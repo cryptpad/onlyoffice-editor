@@ -975,13 +975,13 @@ CChangesSectionEndnoteNumFormat.prototype.private_SetValue = function(Value)
 
 /**
  * @constructor
- * @extends {AscDFH.CChangesBaseProperty}
+ * @extends {AscDFH.CChangesBaseObjectProperty}
  */
 function CChangesSectionLnNumType(Class, Old, New)
 {
-	AscDFH.CChangesBaseProperty.call(this, Class, Old, New);
+	AscDFH.CChangesBaseObjectProperty.call(this, Class, Old, New);
 }
-CChangesSectionLnNumType.prototype = Object.create(AscDFH.CChangesBaseProperty.prototype);
+CChangesSectionLnNumType.prototype = Object.create(AscDFH.CChangesBaseObjectProperty.prototype);
 CChangesSectionLnNumType.prototype.constructor = CChangesSectionLnNumType;
 CChangesSectionLnNumType.prototype.Type = AscDFH.historyitem_Section_LnNumType;
 CChangesSectionLnNumType.prototype.private_CreateObject = function()

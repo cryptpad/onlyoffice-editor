@@ -2461,7 +2461,7 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 		var Y = this.Pages[CurPage].Y + this.Lines[CurLine].Y;
 		var X = this.Pages[CurPage].X;
 
-		if (this.LineNumbersInfo && (1 === RangesCount || (RangesCount > 1 && Line.Ranges[0].W > 0.001)))
+		if (this.LineNumbersInfo && (1 === RangesCount || (RangesCount > 1 && (Line.Ranges[0].W > 0.001 || Line.Ranges[0].WEnd > 0.001))))
 			this.private_DrawLineNumber(X, Y, pGraphics, this.LineNumbersInfo.StartNum + CurLine + 1, Theme, ColorMap, CurPage, CurLine);
 
 		for (var CurRange = 0; CurRange < RangesCount; CurRange++)
@@ -12313,6 +12313,11 @@ Paragraph.prototype.Refresh_RecalcData = function(Data)
 
 			break;
 		}
+		case AscDFH.historyitem_Paragraph_SuppressLineNumbers:
+		{
+			History.AddLineNumbersToRecalculateData();
+			break;
+		}
 	}
 
 	if (true === bNeedRecalc)
@@ -13315,6 +13320,14 @@ Paragraph.prototype.Get_SectPr = function()
     }
 
     return null;
+};
+/**
+ * Получаем секцию, в которой лежит заданный параграф
+ * @returns  {?CSectionPr}
+ */
+Paragraph.prototype.GetDocumentSectPr = function()
+{
+	return this.Get_SectPr();
 };
 Paragraph.prototype.CheckRevisionsChanges = function(oRevisionsManager)
 {
@@ -15862,7 +15875,7 @@ Paragraph.prototype.UpdateLineNumbersInfo = function()
 		var oPrevParagraph = this.Parent.GetPrevParagraphForLineNumbers(nIndex, nRestart === Asc.c_oAscLineNumberRestartType.NewSection);
 		if (oPrevParagraph)
 		{
-			var nPrevLinesCount = oPrevParagraph.GetLineNumbersInfo(nRestart === oPrevParagraph.Get_SectPr().GetLineNumbersRestart);
+			var nPrevLinesCount = oPrevParagraph.GetLineNumbersInfo(Asc.c_oAscLineNumberRestartType.NewPage === oPrevParagraph.Get_SectPr().GetLineNumbersRestart());
 			if (nPrevLinesCount > 0)
 				nStartLineNum = nPrevLinesCount;
 

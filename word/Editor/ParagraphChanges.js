@@ -1929,7 +1929,7 @@ function CChangesParagraphSuppressLineNumbers(Class, Old, New, Color)
 }
 CChangesParagraphSuppressLineNumbers.prototype = Object.create(AscDFH.CChangesBaseBoolProperty.prototype);
 CChangesParagraphSuppressLineNumbers.prototype.constructor = CChangesParagraphSuppressLineNumbers;
-CChangesParagraphSuppressLineNumbers.prototype.Type = AscDFH.historyitem_Paragraph_OutlineLvl;
+CChangesParagraphSuppressLineNumbers.prototype.Type = AscDFH.historyitem_Paragraph_SuppressLineNumbers;
 CChangesParagraphSuppressLineNumbers.prototype.private_SetValue = function(Value)
 {
 	var oParagraph = this.Class;
@@ -1943,7 +1943,3 @@ CChangesParagraphSuppressLineNumbers.prototype.private_SetValue = function(Value
 };
 CChangesParagraphSuppressLineNumbers.prototype.Merge = private_ParagraphChangesOnMergePr;
 CChangesParagraphSuppressLineNumbers.prototype.Load = private_ParagraphChangesOnLoadPr;
-CChangesParagraphSuppressLineNumbers.prototype.IsNeedRecalculate = function()
-{
-	return false;
-};

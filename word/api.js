@@ -3881,9 +3881,10 @@ background-repeat: no-repeat;\
 
 		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Properties))
 		{
-			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphSuppressLineNumbers);
-			this.WordControl.m_oLogicDocument.SetParagraphSuppressLineNumbers(isSuppress);
-			this.WordControl.m_oLogicDocument.FinalizeAction();
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphSuppressLineNumbers);
+			oLogicDocument.SetParagraphSuppressLineNumbers(isSuppress);
+			oLogicDocument.Recalculate();
+			oLogicDocument.FinalizeAction();
 		}
 	};
 

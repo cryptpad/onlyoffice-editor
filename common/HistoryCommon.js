@@ -1184,6 +1184,12 @@
 			case AscDFH.historydescription_Document_SetParagraphSuppressLineNumbers:
 				sString = "Document_SetParagraphSuppressLineNumbers";
 				break;
+			case AscDFH.historydescription_Document_AddLineNumbers:
+				sString = "Document_AddLineNumbers";
+				break;
+			case AscDFH.historydescription_Document_RemoveLineNumbers:
+				sString = "Document_RemoveLineNumbers";
+				break;
 
 		}
 		return sString;
@@ -3299,7 +3305,9 @@
 	window['AscDFH'].historydescription_Document_Shortcut_ClearFormatting           = 0x017d;
 	window['AscDFH'].historydescription_Document_Shortcut_AddNonBreakingSpace       = 0x017e;
 	window['AscDFH'].historydescription_Document_SetParagraphSuppressLineNumbers    = 0x017f;
-	window['AscDFH'].historydescription_Document_AddCrossRef                        = 0x0180;
+	window['AscDFH'].historydescription_Document_AddLineNumbers                     = 0x0180;
+	window['AscDFH'].historydescription_Document_RemoveLineNumbers                  = 0x0181;
+	window['AscDFH'].historydescription_Document_AddCrossRef                        = 0x0182;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

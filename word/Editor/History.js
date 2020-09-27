@@ -64,6 +64,7 @@ function CHistory(Document)
 		NumPr        : [],
 		NotesEnd     : false,
 		NotesEndPage : 0,
+		LineNumbers  : false,
 		Update       : true
 	};
 
@@ -649,6 +650,11 @@ CHistory.prototype =
     {
         this.RecalculateData.Tables[TableId] = true;
     },
+
+	AddLineNumbersToRecalculateData : function()
+	{
+		this.RecalculateData.LineNumbers = true;
+	},
 
     OnEnd_GetRecalcData : function()
     {
@@ -1296,6 +1302,7 @@ CHistory.prototype.private_ClearRecalcData = function()
 		Update        : true,
 		ChangedStyles : {},
 		ChangedNums   : {},
+		LineNumbers   : false,
 		AllParagraphs : null
 	};
 };

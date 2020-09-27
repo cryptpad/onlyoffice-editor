@@ -674,6 +674,12 @@ CSectionPr.prototype =
         if ( -1 === Index )
             return;
 
+        if (AscDFH.historyitem_Section_LnNumType === Data.Type)
+		{
+			History.AddLineNumbersToRecalculateData();
+			return;
+		}
+
         // Здесь есть 1 исключение: когда мы добавляем колонтитул для первой страницы, может так получиться, что 
         // у данной секции флаг TitlePage = False, а значит пересчет надо запускать с места где данный колонтитул
         // первый раз начнет использоваться, а не с текущей секции.
