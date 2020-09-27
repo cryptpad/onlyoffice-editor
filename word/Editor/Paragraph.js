@@ -14850,15 +14850,10 @@ Paragraph.prototype.CanAddRefAfterSEQ = function(sCaption)
 		var nPosInRun = oSEQPos.Get(oSEQPos.Get_Depth());
 		if(nPosInRun < oParaElement.Content.length - 1)
 		{
-			for(nPos = oParaElement.Content.length - 1; nPos > nPosInRun; --nPos)
+			nPos = oParaElement.FindNoSpaceElement(nPosInRun);
+			if(nPos > -1)
 			{
-				oElement = oParaElement.Content[nPos];
-				if(oElement.Type !== para_Space &&
-					oElement.Type !== para_Tab &&
-					oElement.Type !== para_NewLine)
-				{
-					return true;
-				}
+				return true;
 			}
 		}
 	}
@@ -14867,7 +14862,7 @@ Paragraph.prototype.CanAddRefAfterSEQ = function(sCaption)
 Paragraph.prototype.AddBookmarkForCaption = function(sCaption, isOnlyText)
 {
 	if (!this.LogicDocument)
-		return;
+		return null;
 	
 	if(isOnlyText && !this.CanAddRefAfterSEQ(sCaption))
 	{
@@ -14879,14 +14874,16 @@ Paragraph.prototype.AddBookmarkForCaption = function(sCaption, isOnlyText)
 		return null;
 	}
 	var arrClasses = this.Get_ClassesByPos(oParaPos);
-	var oRun, oParent, nRunPos, nPosInRun, oElement;
+	var oParent, nRunPos, nPosInRun, oElement;
 	var sBookmarkName = null, sId;
-	if (1 === arrClasses.length && (arrClasses[arrClasses.length - 1].Type === para_Run || arrClasses[arrClasses.length - 1].Type === para_Field))
+	if (1 === arrClasses.length &&
+		(arrClasses[arrClasses.length - 1].Type === para_Run || arrClasses[arrClasses.length - 1].Type === para_Field))
 	{
 		oElement    = arrClasses[arrClasses.length - 1];
 		oParent = this;
 	}
-	else if (arrClasses.length >= 2 && (arrClasses[arrClasses.length - 1].Type === para_Run || arrClasses[arrClasses.length - 1].Type === para_Field))
+	else if (arrClasses.length >= 2 &&
+		(arrClasses[arrClasses.length - 1].Type === para_Run || arrClasses[arrClasses.length - 1].Type === para_Field))
 	{
 		oElement    = arrClasses[arrClasses.length - 1];
 		oParent = arrClasses[arrClasses.length - 2];
@@ -14901,34 +14898,22 @@ Paragraph.prototype.AddBookmarkForCaption = function(sCaption, isOnlyText)
 	nPosInRun = oParaPos.Get(oParaPos.Get_Depth());
 	
 	var aStartBookmarks = [], aEndBookmarks = [];
-	var nPos, oRunElement, aPair;
+	var nPos, aPair, nFindPos;
 	if(isOnlyText)
 	{
-		var bRun = (oElement.Type === para_Run);
-		if(bRun)
+		var bCurrentRun = false;
+		var nBookmarkPos = nRunPos + 1;
+		if(oElement.Type === para_Run)
 		{
-			for(; nPosInRun < oElement.Content.length; ++nPosInRun)
+			nFindPos = oElement.FindNoSpaceElement(nPosInRun);
+			if(nFindPos > -1)
 			{
-				oRunElement = oElement.Content[nPosInRun];
-				if(oRunElement.Type === para_Space ||
-					oRunElement.Type === para_Tab ||
-					oRunElement.Type === para_NewLine)
-				{
-					continue;
-				}
-				else
-				{
-					break;
-				}
+				nPosInRun = nFindPos;
+				oElement.Split2(nPosInRun, oParent, nRunPos);
+				bCurrentRun = true;
 			}
 		}
-		var nBookmarkPos = nRunPos + 1;
-		if(bRun && nPosInRun < oElement.Content.length - 1)
-		{
-			oElement.Split2(nPosInRun, oParent, nRunPos);
-			nBookmarkPos = nRunPos + 1;
-		}
-		else
+		if(!bCurrentRun)
 		{
 			for(nPos = nRunPos + 1; nPos < oParent.Content.length; ++nPos)
 			{
@@ -14936,25 +14921,12 @@ Paragraph.prototype.AddBookmarkForCaption = function(sCaption, isOnlyText)
 				nBookmarkPos = nPos;
 				if(oElement.GetType() === para_Run)
 				{
-					for(nPosInRun = 0; nPosInRun < oElement.Content.length; ++nPosInRun)
+					nFindPos = oElement.FindNoSpaceElement(0);
+					if(nFindPos < oElement.Content.length)
 					{
-						oRunElement = oElement.Content[nPosInRun];
-						if(oRunElement.Type === para_Space ||
-							oRunElement.Type === para_Tab ||
-							oRunElement.Type === para_NewLine)
+						if(nFindPos > 0)
 						{
-							continue;
-						}
-						else
-						{
-							break;
-						}
-					}
-					if(nPosInRun < oElement.Content.length)
-					{
-						if(nPosInRun > 0)
-						{
-							oElement.Split2(nPosInRun, oParent, nPos);
+							oElement.Split2(nFindPos, oParent, nPos);
 							nBookmarkPos = nPos + 1;
 						}
 						break;
@@ -14986,7 +14958,7 @@ Paragraph.prototype.AddBookmarkForCaption = function(sCaption, isOnlyText)
 	{
 		if(oElement.Type === para_Run)
 		{
-			if(nPosInRun < oElement.Content.length - 1)
+			if(nPosInRun < oElement.Content.length)
 			{
 				oElement.Split2(nPosInRun, oParent, nRunPos);
 			}

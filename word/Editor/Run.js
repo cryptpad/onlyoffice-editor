@@ -11432,6 +11432,24 @@ ParaRun.prototype.GetLastSEQPos = function(sType)
     }
     return null;
 };
+ParaRun.prototype.FindNoSpaceElement = function(nStart)
+{
+	for(var nIndex = nStart; nIndex < this.Content.length; ++nIndex)
+	{
+		var oElement = this.Content[nIndex];
+		if(oElement.Type === para_Space ||
+			oElement.Type === para_Tab ||
+			oElement.Type === para_NewLine)
+		{
+			continue;
+		}
+		else
+		{
+			return nIndex;
+		}
+	}
+	return -1;
+};
 ParaRun.prototype.AddToContent = function(nPos, oItem, isUpdatePositions)
 {
 	return this.Add_ToContent(nPos, oItem, isUpdatePositions);
