@@ -294,6 +294,8 @@ Paragraph.prototype.Copy = function(Parent, DrawingDocument, oPr)
 
 		if (para_Comment === Item.Type && true === oPr.SkipComments)
 			continue;
+		if(para_Bookmark === Item.Type && true === oPr.SkipBookmarks)
+			continue;
 
 		Para.Internal_Content_Add(Para.Content.length, Item.Copy(false, oPr), false);
 	}
@@ -472,12 +474,20 @@ Paragraph.prototype.GetAllParagraphs = function(Props, ParaArray)
 		ParaArray = [];
 
 	var ContentLen = this.Content.length;
-	for (var CurPos = 0; CurPos < ContentLen; CurPos++)
+	var CurPos;
+	var bCheckInShapes = true;
+	if(Props && Props.Shapes === false)
 	{
-		if (this.Content[CurPos].GetAllParagraphs)
-			this.Content[CurPos].GetAllParagraphs(Props, ParaArray);
+		bCheckInShapes = false;
 	}
-
+	if(bCheckInShapes)
+	{
+		for (CurPos = 0; CurPos < ContentLen; CurPos++)
+		{
+			if (this.Content[CurPos].GetAllParagraphs)
+				this.Content[CurPos].GetAllParagraphs(Props, ParaArray);
+		}	
+	}
 	if (!Props || true === Props.All)
 	{
 		ParaArray.push(this);
@@ -14586,6 +14596,405 @@ Paragraph.prototype.AddBookmarkForTOC = function()
 
 	return sName;
 };
+Paragraph.prototype.AddBookmarkForRef = function()
+{
+	if (!this.LogicDocument)
+		return null;
+
+	//check is ref bookmark in paragraph
+	var aStartBookmarks = this.private_FindBookmarks(0, this.Content.length - 1), aEndBookmarks;
+	if(aStartBookmarks.length > 0)
+	{
+		aEndBookmarks = this.private_FindBookmarks(this.Content.length - 2, 0);
+		var aPair = this.private_FindPairRefBookmarks(aStartBookmarks, aEndBookmarks);
+		if(aPair)
+		{
+			return aPair[0].GetBookmarkName();
+		}
+	}
+	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
+	var sId   = oBookmarksManager.GetNewBookmarkId();
+	var sBookmarkName = oBookmarksManager.GetNewBookmarkNameRef();
+	this.Add_ToContent(0, new CParagraphBookmark(true, sId, sBookmarkName));
+	this.Add_ToContent(this.Content.length - 1, new CParagraphBookmark(false, sId, sBookmarkName));
+	this.Correct_Content();
+	return sBookmarkName;
+};
+Paragraph.prototype.AddBookmarkForNoteRef = function()
+{
+	if (!this.LogicDocument)
+	{
+		return null;
+	}
+	if(!this.Parent)
+	{
+		return null;
+	}
+	var oFootnote = this.Parent.IsFootnote(true);
+	if(!oFootnote)
+	{
+		return null;
+	}
+	var oRef = oFootnote.Ref;
+	if(!oRef)
+	{
+		return null;
+	}
+	var oRun = oRef.Run;
+	if(!oRun)
+	{
+		return null;
+	}
+	var oRefParagraph = oRun.Paragraph;
+	if(!oRefParagraph)
+	{
+		return null;
+	}
+	var nRefPos = -1, nPos;
+	for(nPos = 0; nPos < oRun.Content.length; ++nPos)
+	{
+		if(oRun.Content[nPos] === oRef)
+		{
+			nRefPos = nPos;
+			break;
+		}
+	}
+	if(nRefPos === -1)
+	{
+		return null;
+	}
+	var oParaPos = oRun.GetParagraphContentPosFromObject(nRefPos);
+	var nRunPos;
+	if(oRun.Content.length > 1)
+	{
+		nRunPos = oParaPos.Get(oParaPos.Get_Depth() - 1);
+		//split
+		if(nRefPos < oRun.Content.length - 1)
+		{
+			oRun.Split2(nRefPos + 1, oRefParagraph, nRunPos);
+		}
+		if(nRefPos > 0)
+		{
+			oRun = oRun.Split2(nRefPos - 1, oRefParagraph, nRunPos);
+			nRunPos++;
+		}
+		oParaPos = oRun.GetParagraphContentPosFromObject(0);
+	}
+	nRunPos = oParaPos.Get(oParaPos.Get_Depth() - 1);
+	var aStartBookmarks = oRefParagraph.private_FindBookmarks(nRunPos - 1, 0), aEndBookmarks;
+	var nPos, oElement;
+	var sBookmarkName;
+	if(aStartBookmarks.length > 0)
+	{
+		aEndBookmarks = oRefParagraph.private_FindBookmarks(nRunPos + 1, oRefParagraph.Content.length - 1);
+		var aPair = oRefParagraph.private_FindPairRefBookmarks(aStartBookmarks, aEndBookmarks);
+		if(aPair)
+		{
+			return aPair[0].GetBookmarkName();
+		}
+	}
+	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
+	var sId   = oBookmarksManager.GetNewBookmarkId();
+	sBookmarkName = oBookmarksManager.GetNewBookmarkNameRef();
+	oRefParagraph.Add_ToContent(nRunPos, new CParagraphBookmark(true, sId, sBookmarkName));
+	oRefParagraph.Add_ToContent(nRunPos + 2, new CParagraphBookmark(false, sId, sBookmarkName));
+	oRefParagraph.Correct_Content();
+	return sBookmarkName;
+};
+Paragraph.prototype.private_FindBookmarks = function(nStart, nEnd)
+{
+	var nPos;
+	var aBookmarks = [], oElement;
+	if(nStart < nEnd)
+	{
+		for(nPos = nStart; nPos <= nEnd; ++nPos)
+		{
+			oElement = this.Content[nPos];
+			if(oElement.GetType() === para_Bookmark)
+			{
+				aBookmarks.push(oElement);
+			}
+			if(oElement.IsEmpty())
+			{
+				continue;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+	else
+	{
+		for(nPos = nStart; nPos >= nEnd; --nPos)
+		{
+			oElement = this.Content[nPos];
+			if(oElement.GetType() === para_Bookmark)
+			{
+				aBookmarks.push(oElement);
+			}
+			if(oElement.IsEmpty())
+			{
+				continue;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+	return aBookmarks;
+};
+Paragraph.prototype.private_FindPairRefBookmarks = function(aStartBookmarks, aEndBookmarks)
+{
+	if(aStartBookmarks.length > 0 && aEndBookmarks.length > 0)
+	{
+		for(var nStart = 0; nStart < aStartBookmarks.length; ++nStart)
+		{
+			var oStart = aStartBookmarks[nStart], oEnd;
+			var sName = oStart.GetBookmarkName();
+			for(var nEnd = 0; nEnd < aEndBookmarks.length; ++nEnd)
+			{
+				oEnd = aEndBookmarks[nEnd];
+				if(sName && sName.indexOf("_Ref") === 0 &&
+				 oStart.GetBookmarkId() === oEnd.GetBookmarkId() && 
+				 oStart.IsStart() && !oEnd.IsStart())
+				{
+					break;
+				}
+			}
+			if(nEnd < aEndBookmarks.length)
+			{
+				return [oStart, oEnd];
+			}
+		}
+	}
+	return null;
+};
+Paragraph.prototype.private_GetLastSEQPos = function(sCaption)
+{
+	var nPos, oElement, oFieldPos = -1;
+	for(nPos = this.Content.length - 1; nPos > -1; --nPos)
+	{
+		oElement = this.Content[nPos];
+		if(oElement.Type === para_Run)
+		{
+			oFieldPos = oElement.GetLastSEQPos(sCaption);
+			if(oFieldPos)
+			{
+				return oFieldPos;
+			}
+		}
+	}
+	return null;
+};
+Paragraph.prototype.CanAddRefAfterSEQ = function(sCaption)
+{
+	if (!this.LogicDocument)
+		return false;
+	var oSEQPos = this.private_GetLastSEQPos(sCaption);
+	if(!oSEQPos)
+	{
+		return false;
+	}
+	var nRunPos = oSEQPos.Get(oSEQPos.Get_Depth() - 1);
+	var arrClasses = this.Get_ClassesByPos(oSEQPos);
+	var oRun, oParent;
+	if (1 === arrClasses.length && arrClasses[arrClasses.length - 1].Type === para_Run)
+	{
+		oRun    = arrClasses[arrClasses.length - 1];
+		oParent = this;
+	}
+	else if (arrClasses.length >= 2 && arrClasses[arrClasses.length - 1].Type === para_Run)
+	{
+		oRun    = arrClasses[arrClasses.length - 1];
+		oParent = arrClasses[arrClasses.length - 2];
+	}
+	else
+	{
+		return false;
+	}
+	var nPos, oElement;
+	for(nPos = oParent.Content.length - 2; nPos > nRunPos; nPos--)
+	{
+		oElement = oParent.Content[nPos];
+		if(oElement.GetType() === para_Run)
+		{
+			var oPr =
+			{
+				SkipNewLine : true,
+				SkipSpace   : true,
+				SkipTab     : true
+			}
+			if(!oElement.Is_Empty(oPr))
+			{
+				return true;
+			}
+		}
+		else if((oElement.GetType() === para_Math_Run
+		|| oElement.GetType() === para_InlineLevelSdt
+		|| oElement.GetType() === para_Math) && !oElement.IsEmpty())
+		{
+			return true;
+		}
+	}
+	var nPosInRun = oSEQPos.Get(oSEQPos.Get_Depth())
+	if(nPosInRun < oRun.Content.length - 1)
+	{
+		for(nPos = oRun.Content.length - 1; nPos > nPosInRun; --nPos)
+		{
+			oElement = oRun.Content[nPos];
+			if(oElement.Type !== para_Space &&
+				oElement.Type !== para_Tab &&
+				oElement.Type !== para_NewLine)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+};
+Paragraph.prototype.AddBookmarkForCaption = function(sCaption, isOnlyText)
+{
+	if (!this.LogicDocument)
+		return;
+	
+	if(isOnlyText && !this.CanAddRefAfterSEQ(sCaption))
+	{
+		return null;
+	}
+	var oParaPos = this.private_GetLastSEQPos(sCaption);
+	if(!oParaPos)
+	{
+		return null;
+	}
+	var arrClasses = this.Get_ClassesByPos(oParaPos);
+	var oRun, oParent, nRunPos, nPosInRun;
+	var sBookmarkName = null, sId;
+	if (1 === arrClasses.length && arrClasses[arrClasses.length - 1].Type === para_Run)
+	{
+		oRun    = arrClasses[arrClasses.length - 1];
+		oParent = this;
+	}
+	else if (arrClasses.length >= 2 && arrClasses[arrClasses.length - 1].Type === para_Run)
+	{
+		oRun    = arrClasses[arrClasses.length - 1];
+		oParent = arrClasses[arrClasses.length - 2];
+	}
+	else
+	{
+		return null;
+	}
+	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
+	var sId;
+	
+	nRunPos = oParaPos.Get(oParaPos.Get_Depth() - 1);
+	nPosInRun = oParaPos.Get(oParaPos.Get_Depth());
+	
+	var aStartBookmarks = [], aEndBookmarks = [];
+	var nPos, oElement, oRunElement;
+	if(isOnlyText)
+	{
+
+		for(; nPosInRun < oRun.Content.length; ++nPosInRun)
+		{
+			oRunElement = oRun.Content[nPosInRun];
+			if(oRunElement.Type === para_Space ||
+				oRunElement.Type === para_Tab ||
+				oRunElement.Type === para_NewLine)
+			{
+				continue;
+			}
+			else
+			{
+				break;
+			}
+		}
+		var nBookmarkPos = nRunPos;
+		if(nPosInRun < oRun.Content.length - 1)
+		{
+			oRun.Split2(nPosInRun, oParent, nRunPos);
+			nBookmarkPos = nRunPos + 1;
+		}
+		else
+		{
+			for(nPos = nRunPos + 1; nPos < oParent.Content.length; ++nPos)
+			{
+				oElement = oParent.Content[nPos];
+				nBookmarkPos = nPos;
+				if(oElement.GetType() === para_Run)
+				{
+					for(nPosInRun = 0; nPosInRun < oElement.Content.length; ++nPosInRun)
+					{
+						oRunElement = oElement.Content[nPosInRun];
+						if(oRunElement.Type === para_Space ||
+							oRunElement.Type === para_Tab ||
+							oRunElement.Type === para_NewLine)
+						{
+							continue;
+						}
+						else
+						{
+							break;
+						}
+					}
+					if(nPosInRun < oElement.Content.length)
+					{
+						if(nPosInRun > 0)
+						{
+							oElement.Split2(nPosInRun, oParent, nPos);
+							nBookmarkPos = nPos + 1;
+						}
+						break;
+					}
+				}
+				else if(!oElement.IsEmpty())
+				{
+					break;
+				}
+			}
+		}
+		aStartBookmarks = oParent.private_FindBookmarks(nBookmarkPos - 1, 0);
+		if(aStartBookmarks.length > 0)
+		{
+			aEndBookmarks = oParent.private_FindBookmarks(oParent.Content.length - 2, nBookmarkPos + 1);
+			var aPair = oParent.private_FindPairRefBookmarks(aStartBookmarks, aEndBookmarks);
+			if(aPair)
+			{
+				return aPair[0].GetBookmarkName();
+			}
+		}
+		sId = oBookmarksManager.GetNewBookmarkId();
+		sBookmarkName = oBookmarksManager.GetNewBookmarkNameRef();
+		oParent.Add_ToContent(oParent.Content.length - 1, new CParagraphBookmark(false, sId, sBookmarkName));
+		oParent.Add_ToContent(nBookmarkPos, new CParagraphBookmark(true, sId, sBookmarkName));
+		oParent.Correct_Content();
+	}
+	else
+	{
+		if(nPosInRun < oRun.Content.length - 1)
+		{
+			oRun.Split2(nPosInRun, oParent, nRunPos);
+		}
+		aStartBookmarks = oParent.private_FindBookmarks(0, nRunPos - 1);
+		if(aStartBookmarks.length > 0)
+		{
+			aEndBookmarks = oParent.private_FindBookmarks(nRunPos + 1, oParent.Content.length - 1);
+			var aPair = oParent.private_FindPairRefBookmarks(aStartBookmarks, aEndBookmarks);
+			if(aPair)
+			{
+				return aPair[0].GetBookmarkName();
+			}
+		}
+		sId = oBookmarksManager.GetNewBookmarkId();
+		sBookmarkName = oBookmarksManager.GetNewBookmarkNameRef();
+		nRunPos = oParaPos.Get(oParaPos.Get_Depth() - 1);
+		oParent.Add_ToContent(nRunPos + 1, new CParagraphBookmark(false, sId, sBookmarkName));
+		oParent.Add_ToContent(0, new CParagraphBookmark(true, sId, sBookmarkName));
+		oParent.Correct_Content();
+	}
+	return sBookmarkName;
+};
 Paragraph.prototype.AddBookmarkChar = function(oBookmarkChar, isUseSelection, isStartSelection)
 {
 	var oParaPos   = this.Get_ParaContentPos(isUseSelection, isStartSelection, false);
@@ -15522,6 +15931,35 @@ Paragraph.prototype.IsCountLineNumbers = function()
 	return (this.IsInline() && (!this.Get_SectionPr() || !this.IsEmpty()) && !this.IsSuppressLineNumbers());
 };
 
+Paragraph.prototype.asc_getText = function()
+{
+	var sText = "";
+	var oNumPr = this.GetNumPr();
+	var nLvl = oNumPr && oNumPr.Lvl;
+	var nIndex;
+	if(nLvl !== undefined && nLvl !== null)
+	{
+		for(nIndex = 0; nIndex < nLvl; ++nIndex)
+		{
+			sText += " ";
+		}
+	}
+	var sNumText = this.GetNumberingText();
+	if(typeof sNumText === "string" && sNumText.length > 0)
+	{
+		sText += sNumText;
+		sText += " ";
+	}
+	sText += this.GetText();
+	return sText;
+};
+Paragraph.prototype.asc_canAddRefToCaptionText = Paragraph.prototype.CanAddRefAfterSEQ;
+//export
+Paragraph.prototype["asc_getText"]                = Paragraph.prototype.asc_getText;
+Paragraph.prototype["asc_canAddRefToCaptionText"] = Paragraph.prototype.asc_canAddRefToCaptionText;
+
+
+
 var pararecalc_0_All  = 0;
 var pararecalc_0_None = 1;
 
@@ -16295,7 +16733,10 @@ CParagraphComplexFieldsInfo.prototype.GetREForHYPERLINK = function()
 	for (var nIndex = this.CF.length - 1; nIndex >= 0; --nIndex)
 	{
 		var oInstruction = this.CF[nIndex].ComplexField.GetInstruction();
-		if (oInstruction && (fieldtype_HYPERLINK === oInstruction.GetType() || fieldtype_REF === oInstruction.GetType()))
+		if (oInstruction && 
+			(fieldtype_HYPERLINK === oInstruction.GetType() 
+			|| fieldtype_REF === oInstruction.GetType() && oInstruction.GetHyperlink()
+			|| fieldtype_NOTEREF === oInstruction.GetType() && oInstruction.GetHyperlink()))
 			return this.CF[nIndex].ComplexField;
 	}
 

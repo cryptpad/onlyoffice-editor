@@ -911,6 +911,16 @@ CFootnotesController.prototype.GetAllTables = function(oProps, arrTables)
 
 	return arrTables;
 };
+CFootnotesController.prototype.GetFirstParagraphs = function()
+{
+	var aParagraphs = []
+	for (var sId in this.Footnote)
+	{
+		var oFootnote = this.Footnote[sId];
+		aParagraphs.push(oFootnote.GetFirstParagraph());
+	}
+	return aParagraphs;
+};
 CFootnotesController.prototype.StartSelection = function(X, Y, PageAbs, MouseEvent)
 {
 	if (true === this.Selection.Use)
@@ -3325,6 +3335,14 @@ CFootnotesController.prototype.GetAllDrawingObjects = function(arrDrawings)
 	}
 
 	return arrDrawings;
+};
+CFootnotesController.prototype.UpdateBookmarks = function(oBookmarkManager)
+{
+	for (var sId in  this.Footnote)
+	{
+		var oFootnote = this.Footnote[sId];
+		oFootnote.UpdateBookmarks(oBookmarkManager);
+	}
 };
 CFootnotesController.prototype.IsTableCellSelection = function()
 {

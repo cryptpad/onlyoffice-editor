@@ -3307,6 +3307,7 @@
 	window['AscDFH'].historydescription_Document_SetParagraphSuppressLineNumbers    = 0x017f;
 	window['AscDFH'].historydescription_Document_AddLineNumbers                     = 0x0180;
 	window['AscDFH'].historydescription_Document_RemoveLineNumbers                  = 0x0181;
+	window['AscDFH'].historydescription_Document_AddCrossRef                        = 0x0182;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

@@ -9936,6 +9936,58 @@ background-repeat: no-repeat;\
 			oLogicDocument.ConvertEquationToMath(oEquation, isAll);
 		}
 	};
+	asc_docs_api.prototype.asc_GetAllNumberedParagraphs = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		return oLogicDocument.GetAllNumberedParagraphs();
+	};
+	asc_docs_api.prototype.asc_AddCrossRefToParagraph = function(oParagraph, nType, bHyperlink, bAboveBelow, sSeparator)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		oLogicDocument.AddRefToParagraph(oParagraph, nType, bHyperlink, bAboveBelow, sSeparator);
+	};
+	asc_docs_api.prototype.asc_GetAllHeadingParagraphs = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		var arrOutline = [];
+		oLogicDocument.GetOutlineParagraphs(arrOutline, {SkipEmptyParagraphs : true});
+		var aParagraphs = [];
+		for(var nIndex = 0; nIndex < arrOutline.length; ++nIndex)
+		{
+			aParagraphs.push(arrOutline[nIndex].Paragraph);
+		}
+		return aParagraphs;
+	};
+	asc_docs_api.prototype.asc_AddCrossRefToBookmark = function(sName, nType, bHyperlink, bAboveBelow, sSeparator)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		oLogicDocument.AddRefToBookmark(sName, nType, bHyperlink, bAboveBelow, sSeparator);
+	};
+	asc_docs_api.prototype.asc_GetAllFootNoteParagraphs = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		return oLogicDocument.GetFootNotesFirstParagraphs();
+	};
+	asc_docs_api.prototype.asc_AddCrossRefToNote = function(oParagraph, nType, bHyperlink, bAboveBelow)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		oLogicDocument.AddNoteRefToParagraph(oParagraph, nType, bHyperlink, bAboveBelow);
+	};
+	asc_docs_api.prototype.asc_GetAllEndNoteParagraphs = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		return oLogicDocument.GetEndNotesFirstParagraphs();
+	};
+	asc_docs_api.prototype.asc_GetAllCaptionParagraphs = function(sCaption)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		return oLogicDocument.GetAllCaptionParagraphs(sCaption);
+	};
+	asc_docs_api.prototype.asc_AddCrossRefToCaption = function(sCaption, oParagraph, nType, bHyperlink, bAboveBelow)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		oLogicDocument.AddRefToCaption(sCaption, oParagraph, nType, bHyperlink, bAboveBelow);
+	};
 
 	window["asc_docs_api"]                                      = asc_docs_api;
 	window["asc_docs_api"].prototype["asc_nativeOpenFile"]      = function(base64File, version)
@@ -11028,6 +11080,18 @@ background-repeat: no-repeat;\
     asc_docs_api.prototype['sendEvent']         						= asc_docs_api.prototype.sendEvent;
 
 	asc_docs_api.prototype['asc_ConvertEquationToMath']                 = asc_docs_api.prototype.asc_ConvertEquationToMath;
+
+	//cross-references
+	asc_docs_api.prototype['asc_GetAllNumberedParagraphs']              = asc_docs_api.prototype.asc_GetAllNumberedParagraphs;
+	asc_docs_api.prototype['asc_AddCrossRefToParagraph']                = asc_docs_api.prototype.asc_AddCrossRefToParagraph;
+	asc_docs_api.prototype['asc_GetAllHeadingParagraphs']               = asc_docs_api.prototype.asc_GetAllHeadingParagraphs;
+	asc_docs_api.prototype['asc_AddCrossRefToBookmark']                 = asc_docs_api.prototype.asc_AddCrossRefToBookmark;
+	asc_docs_api.prototype['asc_GetAllFootNoteParagraphs']              = asc_docs_api.prototype.asc_GetAllFootNoteParagraphs;
+	asc_docs_api.prototype['asc_AddCrossRefToNote']                     = asc_docs_api.prototype.asc_AddCrossRefToNote;
+	asc_docs_api.prototype['asc_GetAllEndNoteParagraphs']               = asc_docs_api.prototype.asc_GetAllEndNoteParagraphs;
+	asc_docs_api.prototype['asc_GetAllCaptionParagraphs']               = asc_docs_api.prototype.asc_GetAllCaptionParagraphs;
+	asc_docs_api.prototype['asc_AddCrossRefToCaption']                  = asc_docs_api.prototype.asc_AddCrossRefToCaption;
+
 
     asc_docs_api.prototype['SetTableDrawMode']         					= asc_docs_api.prototype.SetTableDrawMode;
     asc_docs_api.prototype['SetTableEraseMode']         				= asc_docs_api.prototype.SetTableEraseMode;
