@@ -12303,6 +12303,11 @@ Paragraph.prototype.Refresh_RecalcData = function(Data)
 
 			break;
 		}
+		case AscDFH.historyitem_Paragraph_SuppressLineNumbers:
+		{
+			History.AddLineNumbersToRecalculateData();
+			break;
+		}
 	}
 
 	if (true === bNeedRecalc)

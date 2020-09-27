@@ -3883,7 +3883,7 @@ background-repeat: no-repeat;\
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphSuppressLineNumbers);
 			oLogicDocument.SetParagraphSuppressLineNumbers(isSuppress);
-			oLogicDocument.RecalculateLineNumbers();
+			oLogicDocument.Recalculate();
 			oLogicDocument.FinalizeAction();
 		}
 	};

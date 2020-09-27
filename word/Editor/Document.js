@@ -3008,10 +3008,6 @@ CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 
 	if (this.Action.Additional.FormChange)
 		this.private_FinalizeFormChange();
-
-	if (this.Action.Additional.RecalculateLineNumbers)
-		this.private_FinalizeRecalculateLineNumbers();
-
 	//------------------------------------------------------------------------------------------------------------------
 
 	var isAllPointsEmpty = true;
@@ -3076,14 +3072,12 @@ CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 	this.Action.Additional      = {};
 };
 /**
- * Сообщаем, что нужно пересчитать нумерацию строк
+ * Пересчитываем нумерацию строк
  */
 CDocument.prototype.RecalculateLineNumbers = function()
 {
-	if (!this.Action.Start)
-		return;
-
-	this.Action.Additional.RecalculateLineNumbers = true;
+	this.UpdateLineNumbersInfo();
+	this.Redraw(-1, -1);
 };
 CDocument.prototype.private_FinalizeRemoveTrackMove = function()
 {
@@ -3246,17 +3240,6 @@ CDocument.prototype.private_FinalizeFormChange = function()
 	}
 
 	delete this.Action.Additional.FormChangeStart;
-};
-CDocument.prototype.private_FinalizeRecalculateLineNumbers = function()
-{
-	// Если мы будет запускать обычный пересчет, то пересчет нумерации строк отдельно запускать не нужно
-	if (this.Action.Recalculate)
-		return;
-
-	this.UpdateLineNumbersInfo();
-
-	this.Action.Redraw.Start = -1;
-	this.Action.Redraw.End   = -1;
 };
 /**
  * Данная функция предназначена для отключения пересчета. Это может быть полезно, т.к. редактор всегда запускает
@@ -3560,6 +3543,12 @@ CDocument.prototype.private_Recalculate = function(_RecalcData, isForceStrictRec
                 SectPrIndex = CheckSectIndex;
         }
     }
+
+    // 3. Пересчитываем нумерацию строк отдельно, если нужно
+	if (true === RecalcData.LineNumbers)
+	{
+		this.RecalculateLineNumbers();
+	}
 
 	if (-1 === RecalcData.Inline.Pos && -1 === SectPrIndex)
 	{
@@ -23192,7 +23181,7 @@ CDocument.prototype.RemoveLineNumbers = function(isAllSections)
 			}
 		}
 
-		this.RecalculateLineNumbers();
+		this.Recalculate();
 		this.FinalizeAction();
 	}
 };
@@ -23224,7 +23213,7 @@ CDocument.prototype.AddLineNumbers = function(isAllSections, nCountBy, nDistance
 			}
 		}
 
-		this.RecalculateLineNumbers();
+		this.Recalculate();
 		this.FinalizeAction();
 	}
 };
