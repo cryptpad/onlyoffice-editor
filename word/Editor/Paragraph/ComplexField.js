@@ -542,6 +542,7 @@ CComplexField.prototype.private_InsertContent = function(oSelectedContent)
 				this.LogicDocument.TurnOn_InterfaceEvents(false);
 				oParagraph.Check_NearestPos(oNearPos);
 				oParagraph.Parent.InsertContent(oSelectedContent, oNearPos);
+				this.LogicDocument.MoveCursorRight(false, false, false);
 			}
 		}
 	}
