@@ -14676,13 +14676,11 @@ Paragraph.prototype.AddBookmarkForNoteRef = function()
 		if(nRefPos > 0)
 		{
 			oRun = oRun.Split2(nRefPos - 1, oRefParagraph, nRunPos);
-			nRunPos++;
 		}
 		oParaPos = oRun.GetParagraphContentPosFromObject(0);
 	}
 	nRunPos = oParaPos.Get(oParaPos.Get_Depth() - 1);
 	var aStartBookmarks = oRefParagraph.private_FindBookmarks(nRunPos - 1, 0), aEndBookmarks;
-	var nPos, oElement;
 	var sBookmarkName;
 	if(aStartBookmarks.length > 0)
 	{
@@ -14838,7 +14836,7 @@ Paragraph.prototype.CanAddRefAfterSEQ = function(sCaption)
 			return true;
 		}
 	}
-	var nPosInRun = oSEQPos.Get(oSEQPos.Get_Depth())
+	var nPosInRun = oSEQPos.Get(oSEQPos.Get_Depth());
 	if(nPosInRun < oRun.Content.length - 1)
 	{
 		for(nPos = oRun.Content.length - 1; nPos > nPosInRun; --nPos)
@@ -14886,13 +14884,12 @@ Paragraph.prototype.AddBookmarkForCaption = function(sCaption, isOnlyText)
 		return null;
 	}
 	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
-	var sId;
 	
 	nRunPos = oParaPos.Get(oParaPos.Get_Depth() - 1);
 	nPosInRun = oParaPos.Get(oParaPos.Get_Depth());
 	
 	var aStartBookmarks = [], aEndBookmarks = [];
-	var nPos, oElement, oRunElement;
+	var nPos, oElement, oRunElement, aPair;
 	if(isOnlyText)
 	{
 
@@ -14958,7 +14955,7 @@ Paragraph.prototype.AddBookmarkForCaption = function(sCaption, isOnlyText)
 		if(aStartBookmarks.length > 0)
 		{
 			aEndBookmarks = oParent.private_FindBookmarks(oParent.Content.length - 2, nBookmarkPos + 1);
-			var aPair = oParent.private_FindPairRefBookmarks(aStartBookmarks, aEndBookmarks);
+			aPair = oParent.private_FindPairRefBookmarks(aStartBookmarks, aEndBookmarks);
 			if(aPair)
 			{
 				return aPair[0].GetBookmarkName();
@@ -14980,7 +14977,7 @@ Paragraph.prototype.AddBookmarkForCaption = function(sCaption, isOnlyText)
 		if(aStartBookmarks.length > 0)
 		{
 			aEndBookmarks = oParent.private_FindBookmarks(nRunPos + 1, oParent.Content.length - 1);
-			var aPair = oParent.private_FindPairRefBookmarks(aStartBookmarks, aEndBookmarks);
+			aPair = oParent.private_FindPairRefBookmarks(aStartBookmarks, aEndBookmarks);
 			if(aPair)
 			{
 				return aPair[0].GetBookmarkName();
