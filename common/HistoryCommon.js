@@ -1181,6 +1181,15 @@
 			case AscDFH.historydescription_Document_Shortcut_AddNonBreakingSpace:
 				sString = "Document_Shortcut_AddNonBreakingSpace";
 				break;
+			case AscDFH.historydescription_Document_SetParagraphSuppressLineNumbers:
+				sString = "Document_SetParagraphSuppressLineNumbers";
+				break;
+			case AscDFH.historydescription_Document_AddLineNumbers:
+				sString = "Document_AddLineNumbers";
+				break;
+			case AscDFH.historydescription_Document_RemoveLineNumbers:
+				sString = "Document_RemoveLineNumbers";
+				break;
 
 		}
 		return sString;
@@ -1492,6 +1501,7 @@
 	window['AscDFH'].historyitem_Paragraph_PrReviewInfo              = window['AscDFH'].historyitem_type_Paragraph | 36;
 	window['AscDFH'].historyitem_Paragraph_OutlineLvl                = window['AscDFH'].historyitem_type_Paragraph | 37;
 	window['AscDFH'].historyitem_Paragraph_DefaultTabSize            = window['AscDFH'].historyitem_type_Paragraph | 38;
+	window['AscDFH'].historyitem_Paragraph_SuppressLineNumbers       = window['AscDFH'].historyitem_type_Paragraph | 39;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе ParaTextPr
 	//------------------------------------------------------------------------------------------------------------------
@@ -1860,6 +1870,7 @@
 	window['AscDFH'].historyitem_Section_Endnote_NumStart    = window['AscDFH'].historyitem_type_Section | 35;
 	window['AscDFH'].historyitem_Section_Endnote_NumRestart  = window['AscDFH'].historyitem_type_Section | 36;
 	window['AscDFH'].historyitem_Section_Endnote_NumFormat   = window['AscDFH'].historyitem_type_Section | 37;
+	window['AscDFH'].historyitem_Section_LnNumType           = window['AscDFH'].historyitem_type_Section | 38;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе AscCommon.ParaComment
 	//------------------------------------------------------------------------------------------------------------------
@@ -3294,6 +3305,10 @@
 	window['AscDFH'].historydescription_Document_AutoCorrectCommon                  = 0x017c;
 	window['AscDFH'].historydescription_Document_Shortcut_ClearFormatting           = 0x017d;
 	window['AscDFH'].historydescription_Document_Shortcut_AddNonBreakingSpace       = 0x017e;
+	window['AscDFH'].historydescription_Document_SetParagraphSuppressLineNumbers    = 0x017f;
+	window['AscDFH'].historydescription_Document_AddLineNumbers                     = 0x0180;
+	window['AscDFH'].historydescription_Document_RemoveLineNumbers                  = 0x0181;
+	window['AscDFH'].historydescription_Document_AddCrossRef                        = 0x0182;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

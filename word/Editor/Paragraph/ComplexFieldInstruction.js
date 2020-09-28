@@ -55,6 +55,7 @@ var fieldtype_DATE       = 0x000B;
 var fieldtype_FORMULA    = 0x0010;
 var fieldtype_SEQ        = 0x0011;
 var fieldtype_STYLEREF   = 0x0012;
+var fieldtype_NOTEREF    = 0x0013;
 
 
 //--------------------------------------------------------export----------------------------------------------------
@@ -77,6 +78,7 @@ window['AscCommonWord'].fieldtype_DATE       = fieldtype_DATE;
 window['AscCommonWord'].fieldtype_FORMULA    = fieldtype_FORMULA;
 window['AscCommonWord'].fieldtype_SEQ        = fieldtype_SEQ;
 window['AscCommonWord'].fieldtype_STYLEREF   = fieldtype_STYLEREF;
+window['AscCommonWord'].fieldtype_NOTEREF    = fieldtype_NOTEREF;
 
 
 /**
@@ -529,11 +531,23 @@ function CFieldInstructionREF()
 {
 	CFieldInstructionBase.call(this);
 
+	this.GeneralSwitches = [];
 	this.BookmarkName = "";
+	this.Hyperlink = false; // \h - is hyperlink
+	this.bIsNumberNoContext = false; // \n - paragraph number (no context)
+	this.bIsNumberFullContext = false; // \w - paragraph number (full context)
+	this.bIsNumber = false; // \r - paragraph number in realtive context
+	this.bIsPosition = false; // \p - above/below
+	this.Delimiter = null;
 }
 CFieldInstructionREF.prototype = Object.create(CFieldInstructionBase.prototype);
 CFieldInstructionREF.prototype.constructor = CFieldInstructionREF;
 CFieldInstructionREF.prototype.Type = fieldtype_REF;
+
+CFieldInstructionREF.prototype.SetGeneralSwitches = function (aSwitches)
+{
+	this.GeneralSwitches = aSwitches;
+};
 CFieldInstructionREF.prototype.SetBookmarkName = function(sBookmarkName)
 {
 	this.BookmarkName = sBookmarkName;
@@ -541,6 +555,92 @@ CFieldInstructionREF.prototype.SetBookmarkName = function(sBookmarkName)
 CFieldInstructionREF.prototype.GetBookmarkName = function()
 {
 	return this.BookmarkName;
+};
+CFieldInstructionREF.prototype.SetHyperlink = function(bIsHyperlink)
+{
+	this.Hyperlink = bIsHyperlink;
+};
+CFieldInstructionREF.prototype.GetHyperlink = function()
+{
+	return this.Hyperlink;
+};
+CFieldInstructionREF.prototype.SetIsNumberNoContext = function(bVal)
+{
+	this.bIsNumberNoContext = bVal;
+};
+CFieldInstructionREF.prototype.IsNumberNoContext = function()
+{
+	return this.bIsNumberNoContext;
+};
+CFieldInstructionREF.prototype.SetIsNumberFullContext = function(bVal)
+{
+	this.bIsNumberFullContext = bVal;
+};
+CFieldInstructionREF.prototype.IsNumberFullContext = function()
+{
+	return this.bIsNumberFullContext;
+};
+CFieldInstructionREF.prototype.HaveNumberFlag = function()
+{
+	return this.IsNumber() || this.IsNumberFullContext() || this.IsNumberNoContext();
+};
+CFieldInstructionREF.prototype.SetIsNumber = function(bVal)
+{
+	this.bIsNumber = bVal;
+};
+CFieldInstructionREF.prototype.IsNumber = function()
+{
+	return this.bIsNumber;
+};
+CFieldInstructionREF.prototype.SetIsPosition = function(bVal)
+{
+	this.bIsPosition = bVal;
+};
+CFieldInstructionREF.prototype.IsPosition = function()
+{
+	return this.bIsPosition;
+};
+CFieldInstructionREF.prototype.SetDelimiter = function(bVal)
+{
+	this.Delimiter = bVal;
+};
+CFieldInstructionREF.prototype.GetDelimiter = function()
+{
+	return this.Delimiter;
+};
+CFieldInstructionREF.prototype.ToString = function()
+{
+	var sInstruction = " REF ";
+	sInstruction += this.BookmarkName;
+	for(var nSwitch = 0; i < this.GeneralSwitches.length; ++nSwitch)
+	{
+		sInstruction +=  " \\* " + this.GeneralSwitches[nSwitch];
+	}
+	if(this.GetHyperlink())
+	{
+		sInstruction += " \\h";
+	}
+	if(this.IsNumberNoContext())
+	{
+		sInstruction += " \\n";
+	}
+	if(this.IsNumberFullContext())
+	{
+		sInstruction += " \\w";
+	}
+	if(this.IsNumber())
+	{
+		sInstruction += " \\r"
+	}
+	if(this.IsPosition())
+	{
+		sInstruction += " \\p";
+	}
+	if(typeof this.Delimiter === "string" && this.Delimiter.length > 0)
+	{
+		sInstruction += " \\d " + this.Delimiter;
+	}
+	return sInstruction;
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для совместимости с обычным ParaHyperlink
@@ -569,7 +669,12 @@ CFieldInstructionREF.prototype.SetToolTip = function(sToolTip)
 };
 CFieldInstructionREF.prototype.GetToolTip = function()
 {
-	return "";
+	var sTooltip = this.BookmarkName;
+	if(!sTooltip || '_' === sTooltip.charAt(0))
+	{
+		sTooltip = AscCommon.translateManager.getValue("Current Document");
+	}
+	return sTooltip;
 };
 
 /**
@@ -1221,6 +1326,113 @@ CFieldInstructionSTYLEREF.prototype.SetComplexField = function (oComplexField)
 	}
 };
 
+
+/**
+ * NOTEREF field
+ * @constructor
+ */
+function CFieldInstructionNOTEREF()
+{
+	CFieldInstructionBase.call(this);
+
+	this.GeneralSwitches = [];
+	this.BookmarkName = "";
+	this.Hyperlink = false; // \h - is hyperlink
+	this.bIsPosition = false; // \p - above/below
+	this.bFormatting = false; // \p - format as notes or endnotes
+}
+CFieldInstructionNOTEREF.prototype = Object.create(CFieldInstructionBase.prototype);
+CFieldInstructionNOTEREF.prototype.constructor = CFieldInstructionNOTEREF;
+CFieldInstructionNOTEREF.prototype.Type = fieldtype_NOTEREF;
+
+
+CFieldInstructionNOTEREF.prototype.SetGeneralSwitches = function (aSwitches)
+{
+	this.GeneralSwitches = aSwitches;
+};
+CFieldInstructionNOTEREF.prototype.SetBookmarkName = function(sBookmarkName)
+{
+	this.BookmarkName = sBookmarkName;
+};
+CFieldInstructionNOTEREF.prototype.GetBookmarkName = function()
+{
+	return this.BookmarkName;
+};
+CFieldInstructionNOTEREF.prototype.SetHyperlink = function(bIsHyperlink)
+{
+	this.Hyperlink = bIsHyperlink;
+};
+CFieldInstructionNOTEREF.prototype.GetHyperlink = function()
+{
+	return this.Hyperlink;
+};
+CFieldInstructionNOTEREF.prototype.SetIsPosition = function(bVal)
+{
+	this.bIsPosition = bVal;
+};
+CFieldInstructionNOTEREF.prototype.IsPosition = function()
+{
+	return this.bIsPosition;
+};
+CFieldInstructionNOTEREF.prototype.SetIsFormatting = function(bVal)
+{
+	this.bFormatting = bVal;
+};
+CFieldInstructionNOTEREF.prototype.IsFormatting = function()
+{
+	return this.bFormatting;
+};
+CFieldInstructionNOTEREF.prototype.ToString = function()
+{
+	var sInstruction = " NOTEREF ";
+	sInstruction += this.BookmarkName;
+	for(var nSwitch = 0; i < this.GeneralSwitches.length; ++nSwitch)
+	{
+		sInstruction +=  " \\* " + this.GeneralSwitches[nSwitch];
+	}
+	if(this.GetHyperlink())
+	{
+		sInstruction += " \\h";
+	}
+	if(this.IsPosition())
+	{
+		sInstruction += " \\p";
+	}
+	if(this.IsFormatting())
+	{
+		sInstruction += " \\f";
+	}
+	return sInstruction;
+};
+//----------------------------------------------------------------------------------------------------------------------
+// Функции для совместимости с обычным ParaHyperlink
+//----------------------------------------------------------------------------------------------------------------------
+CFieldInstructionNOTEREF.prototype.IsTopOfDocument = function()
+{
+	return (this.GetBookmarkName() === "_top");
+};
+CFieldInstructionNOTEREF.prototype.GetAnchor = function()
+{
+	return this.GetBookmarkName();
+};
+CFieldInstructionNOTEREF.prototype.GetValue = function()
+{
+	return "";
+};
+CFieldInstructionNOTEREF.prototype.SetVisited = function(isVisited)
+{
+};
+
+CFieldInstructionREF.prototype.SetToolTip = function(sToolTip)
+{
+};
+CFieldInstructionNOTEREF.prototype.GetToolTip = function()
+{
+	return AscCommon.translateManager.getValue("Current Document");
+};
+
+
+
 /**
  * Класс для разбора строки с инструкцией
  * @constructor
@@ -1271,6 +1483,10 @@ CFieldInstructionParser.prototype.private_Parse = function()
 	else if("REF" === sBuffer)
 	{
 		this.private_ReadREF();
+	}
+	else if("NOTEREF" === sBuffer)
+	{
+		this.private_ReadNOTEREF();
 	}
 	else if("NUMPAGES" === sBuffer)
 	{
@@ -1604,8 +1820,82 @@ CFieldInstructionParser.prototype.private_ReadREF = function(sBookmarkName)
 			this.Result.SetBookmarkName(arrArguments[0]);
 		}
 	}
+	while (this.private_ReadNext())
+	{
+		if (this.private_IsSwitch())
+		{
+			var sType = this.private_GetSwitchLetter();
+			if ('*' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+					this.Result.SetGeneralSwitches(arrArguments);
+			}
+			else if("d" === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+				{
+					if(typeof arrArguments[0] === "string" && arrArguments[0].length > 0)
+					{
+						this.Result.SetDelimiter(arrArguments[0]);
+					}
+				}
+			}
+			else if("h" === sType)
+			{
+				this.Result.SetHyperlink(true);
+			}
+			else if("n" === sType)
+			{
+				this.Result.SetIsNumberNoContext(true);
+			}
+			else if("w" === sType)
+			{
+				this.Result.SetIsNumberFullContext(true);
+			}
+			else if("r" === sType)
+			{
+				this.Result.SetIsNumber(true);
+			}
+			else if("p" === sType)
+			{
+				this.Result.SetIsPosition(true);
+			}
+		}
+	}
+};
+CFieldInstructionParser.prototype.private_ReadNOTEREF = function()
+{
+	this.Result = new CFieldInstructionNOTEREF();
 
-	// TODO: Switches
+	var arrArguments = this.private_ReadArguments();
+	if (arrArguments.length > 0)
+	{
+		this.Result.SetBookmarkName(arrArguments[0]);
+	}
+	while (this.private_ReadNext())
+	{
+		if (this.private_IsSwitch())
+		{
+			var sType = this.private_GetSwitchLetter();
+			if ('*' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+					this.Result.SetGeneralSwitches(arrArguments);
+			}
+			else if("h" === sType) {
+				this.Result.SetHyperlink(true);
+			}
+			else if("f" === sType) {
+				this.Result.SetIsFormatting(true);
+			}
+			else if("p" === sType) {
+				this.Result.SetIsPosition(true);
+			}
+		}
+	}
 };
 CFieldInstructionParser.prototype.private_ReadNUMPAGES = function()
 {

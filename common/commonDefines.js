@@ -2087,6 +2087,12 @@
 		Symbol : 1
 	};
 
+	var c_oAscLineNumberRestartType = {
+		Continuous : 1,
+		NewPage    : 2,
+		NewSection : 3
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -3099,5 +3105,10 @@
 
 	prot = window['AscCommon']['c_oAscCustomShortcutType'] = window['AscCommon'].c_oAscCustomShortcutType = c_oAscCustomShortcutType;
 	prot['Symbol'] = c_oAscCustomShortcutType.Symbol;
+
+	prot = window['Asc']['c_oAscLineNumberRestartType'] = window['Asc'].c_oAscLineNumberRestartType = c_oAscLineNumberRestartType;
+	prot['Continuous'] = c_oAscLineNumberRestartType.Continuous;
+	prot['NewPage']    = c_oAscLineNumberRestartType.NewPage;
+	prot['NewSection'] = c_oAscLineNumberRestartType.NewSection;
 
 })(window);

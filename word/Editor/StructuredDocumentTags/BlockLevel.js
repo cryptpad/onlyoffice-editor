@@ -2417,6 +2417,26 @@ CBlockLevelSdt.prototype.SetCalculatedFrame = function(oFrame)
 {
 	this.Content.SetCalculatedFrame(oFrame);
 };
+CBlockLevelSdt.prototype.GetPrevParagraphForLineNumbers = function(isPrev, isNewSection)
+{
+	var oPrevPara = null;
+
+	if (!isPrev)
+		oPrevPara = this.Content.GetPrevParagraphForLineNumbers(-1, isNewSection);
+
+	if (!oPrevPara)
+	{
+		var oParent = this.GetParent();
+		if (oParent && oParent.GetPrevParagraphForLineNumbers)
+			return oParent.GetPrevParagraphForLineNumbers(this.GetIndex(), isNewSection);
+	}
+
+	return oPrevPara;
+};
+CBlockLevelSdt.prototype.UpdateLineNumbersInfo = function()
+{
+	this.Content.UpdateLineNumbersInfo();
+};
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CBlockLevelSdt = CBlockLevelSdt;

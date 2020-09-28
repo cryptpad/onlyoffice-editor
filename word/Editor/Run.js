@@ -509,7 +509,9 @@ ParaRun.prototype.Is_Empty = function(oProps)
 	var SkipEnd     = (undefined !== oProps ? oProps.SkipEnd : false);
 	var SkipPlcHldr = (undefined !== oProps ? oProps.SkipPlcHldr : false);
 	var SkipNewLine = (undefined !== oProps ? oProps.SkipNewLine : false);
-	var SkipCF      = (undefined !== oProps ? oProps.SkipComplexFields : false);
+    var SkipCF      = (undefined !== oProps ? oProps.SkipComplexFields : false);
+    var SkipSpace   = (undefined !== oProps ? oProps.SkipSpace : false);
+    var SkipTab     = (undefined !== oProps ? oProps.SkipTab : false);
 
 	var nCount = this.Content.length;
 
@@ -517,7 +519,8 @@ ParaRun.prototype.Is_Empty = function(oProps)
 		&& true !== SkipEnd
 		&& true !== SkipPlcHldr
 		&& true !== SkipNewLine
-		&& true !== SkipCF)
+        && true !== SkipCF
+        && true !== SkipSpace)
 	{
 		if (nCount > 0)
 			return false;
@@ -535,7 +538,9 @@ ParaRun.prototype.Is_Empty = function(oProps)
 				&& (true !== SkipEnd || para_End !== nType)
 				&& (true !== SkipPlcHldr || true !== oItem.IsPlaceholder())
 				&& (true !== SkipNewLine || para_NewLine !== nType)
-				&& (true !== SkipCF || (para_InstrText !== nType && para_FieldChar !== nType)))
+                && (true !== SkipCF || (para_InstrText !== nType && para_FieldChar !== nType)
+                && (true !== SkipSpace || para_Space !== nType)
+                && (true !== SkipTab || para_Tab !== nType)))
 				return false;
 		}
 
@@ -11391,6 +11396,60 @@ ParaRun.prototype.GetAllSeqFieldsByType = function(sType, aFields)
 		}
 	}
 };
+ParaRun.prototype.GetLastSEQPos = function(sType)
+{
+	for (var nPos = this.Content.length - 1; nPos > -1; --nPos)
+	{
+		var oItem = this.Content[nPos];
+		if (para_FieldChar === oItem.Type)
+		{
+			var oComplexField = oItem.GetComplexField();
+			if(oComplexField)
+			{
+				var oInstruction = oComplexField.Instruction;
+				if(oInstruction)
+				{
+					if(oInstruction.Type === fieldtype_SEQ)
+					{
+						if(oInstruction.Id === sType)
+						{
+							return this.GetParagraphContentPosFromObject(nPos + 1);
+						}
+					}
+				}
+			}
+		}
+		else if(para_Field === oItem.Type)
+		{
+			if(oItem.FieldType === fieldtype_SEQ)
+			{
+				if(oItem.Arguments[0] === sType)
+				{
+                    return this.GetParagraphContentPosFromObject(nPos + 1);
+				}
+			}
+		}
+    }
+    return null;
+};
+ParaRun.prototype.FindNoSpaceElement = function(nStart)
+{
+	for(var nIndex = nStart; nIndex < this.Content.length; ++nIndex)
+	{
+		var oElement = this.Content[nIndex];
+		if(oElement.Type === para_Space ||
+			oElement.Type === para_Tab ||
+			oElement.Type === para_NewLine)
+		{
+			continue;
+		}
+		else
+		{
+			return nIndex;
+		}
+	}
+	return -1;
+};
 ParaRun.prototype.AddToContent = function(nPos, oItem, isUpdatePositions)
 {
 	return this.Add_ToContent(nPos, oItem, isUpdatePositions);
@@ -12153,12 +12212,18 @@ ParaRun.prototype.GetSelectedElementsInfo = function(oInfo)
 	{
 		oInfo.RegisterRunWithReviewType(this.GetReviewType());
 
+        var oElement;
 		for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 		{
-			if (para_RevisionMove === this.Content[nPos].Type)
+            oElement = this.Content[nPos];
+			if (para_RevisionMove === oElement.Type)
 			{
-				oInfo.RegisterTrackMoveMark(this.Content[nPos].Type);
-			}
+				oInfo.RegisterTrackMoveMark(oElement.Type);
+            }
+            else if(para_FootnoteReference === oElement.Type || para_EndnoteReference === oElement.Type)
+            {
+                oInfo.RegisterFootEndNoteRef(oElement);
+            }
 		}
 	}
 };

@@ -960,6 +960,17 @@ CEndnotesController.prototype.GetAllTables = function(oProps, arrTables)
 
 	return arrTables;
 };
+CEndnotesController.prototype.GetFirstParagraphs = function()
+{
+	var aParagraphs = []
+	for (var sId in this.Endnote)
+	{
+		var oEndnote = this.Endnote[sId];
+		aParagraphs.push(oEndnote.GetFirstParagraph());
+	}
+	return aParagraphs;
+};
+
 /**
  * Перенеслись ли сноски с предыдущей страницы, на новую
  * @param nPageAbs
@@ -3174,6 +3185,14 @@ CEndnotesController.prototype.GetAllDrawingObjects = function(arrDrawings)
 	}
 
 	return arrDrawings;
+};
+CEndnotesController.prototype.UpdateBookmarks = function(oBookmarkManager)
+{
+	for (var sId in  this.Endnote)
+	{
+		var oEndnote = this.Endnote[sId];
+		oEndnote.UpdateBookmarks(oBookmarkManager);
+	}
 };
 CEndnotesController.prototype.IsTableCellSelection = function()
 {

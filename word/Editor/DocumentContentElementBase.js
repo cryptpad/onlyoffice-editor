@@ -1192,6 +1192,10 @@ CDocumentContentElementBase.prototype.GetFramePr = function(){return null;};
  * @returns {{GapLeft : {number}, GapRight : {number}, GridWidth : {number}}}
  */
 CDocumentContentElementBase.prototype.GetMaxTableGridWidth = function(){return {GapLeft : 0, GapRight : 0, GridWidth : -1};};
+/**
+ * Обновляем нумерацию строк
+ */
+CDocumentContentElementBase.prototype.UpdateLineNumbersInfo = function(){};
 
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

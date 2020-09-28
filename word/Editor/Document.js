@@ -1852,6 +1852,7 @@ function CSelectedElementsInfo(oPr)
 	this.m_bReviewNormal      = false; // Обычный контент
 	this.m_oPresentationField = null;
 	this.m_arrMoveMarks       = [];
+	this.m_arrFootEndNoteRefs = [];
 
     this.Reset = function()
     {
@@ -2061,7 +2062,10 @@ CSelectedElementsInfo.prototype.GetHyperlink = function()
 	for (var nIndex = 0, nCount = this.m_arrComplexFields.length; nIndex < nCount; ++nIndex)
 	{
 		var oInstruction = this.m_arrComplexFields[nIndex].GetInstruction();
-		if (oInstruction && (fieldtype_HYPERLINK === oInstruction.GetType() || fieldtype_REF === oInstruction.GetType()))
+		if (oInstruction && 
+			(fieldtype_HYPERLINK === oInstruction.GetType() 
+			|| fieldtype_REF === oInstruction.GetType() && oInstruction.GetHyperlink()
+			|| fieldtype_NOTEREF === oInstruction.GetType() && oInstruction.GetHyperlink()))
 			return oInstruction;
 	}
 
@@ -2124,6 +2128,14 @@ CSelectedElementsInfo.prototype.RegisterTrackMoveMark = function(oMoveMark)
 CSelectedElementsInfo.prototype.GetTrackMoveMarks = function()
 {
 	return this.m_arrMoveMarks;
+};
+CSelectedElementsInfo.prototype.RegisterFootEndNoteRef = function(oRef)
+{
+	this.m_arrFootEndNoteRefs.push(oRef);
+};
+CSelectedElementsInfo.prototype.GetFootEndNoteRefs  = function()
+{
+	return this.m_arrFootEndNoteRefs;
 };
 
 function CDocumentSettings()
@@ -2479,6 +2491,8 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.LastNumberedList = undefined; // Последний примененный нумерованный список
 
 	this.SectionEndMark = {}; // Храним пересчитанные метки конца секции
+
+	this.LineNumbersInfo = new CDocumentLineNumbersInfo(this); // Класс для кэширования информации для отрисовки нумерации строк
 
 	// Класс для работы со сносками
 	this.Footnotes               = new CFootnotesController(this);
@@ -3006,7 +3020,6 @@ CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 
 	if (this.Action.Additional.FormChange)
 		this.private_FinalizeFormChange();
-
 	//------------------------------------------------------------------------------------------------------------------
 
 	var isAllPointsEmpty = true;
@@ -3069,6 +3082,14 @@ CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 	this.Action.Redraw.Start    = undefined;
 	this.Action.Redraw.End      = undefined;
 	this.Action.Additional      = {};
+};
+/**
+ * Пересчитываем нумерацию строк
+ */
+CDocument.prototype.RecalculateLineNumbers = function()
+{
+	this.UpdateLineNumbersInfo();
+	this.Redraw(-1, -1);
 };
 CDocument.prototype.private_FinalizeRemoveTrackMove = function()
 {
@@ -3534,6 +3555,12 @@ CDocument.prototype.private_Recalculate = function(_RecalcData, isForceStrictRec
                 SectPrIndex = CheckSectIndex;
         }
     }
+
+    // 3. Пересчитываем нумерацию строк отдельно, если нужно
+	if (true === RecalcData.LineNumbers)
+	{
+		this.RecalculateLineNumbers();
+	}
 
 	if (-1 === RecalcData.Inline.Pos && -1 === SectPrIndex)
 	{
@@ -6416,6 +6443,14 @@ CDocument.prototype.SetParagraphOutlineLvl = function(nLvl)
 	}
 
 	this.Recalculate();
+};
+CDocument.prototype.SetParagraphSuppressLineNumbers = function(isSuppress)
+{
+	var arrParagraphs = this.GetSelectedParagraphs();
+	for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
+	{
+		arrParagraphs[nIndex].SetSuppressLineNumbers(isSuppress);
+	}
 };
 CDocument.prototype.private_SetParagraphNumbering = function(oNumInfo)
 {
@@ -14247,6 +14282,68 @@ CDocument.prototype.GetAllTables = function(oProps, arrTables)
 
 	return arrTables;
 };
+CDocument.prototype.GetAllNumberedParagraphs = function()
+{
+	var oProps = {};
+	oProps.OnlyMainDocument = true;
+	oProps.Shapes = false;
+	oProps.Numbering = true;
+	oProps.NumPr = [];
+	var oNumbering = this.GetNumbering();
+	var oNumMap = oNumbering.Num, nLvl;
+	for(var sNumId in oNumMap)
+	{
+		var oNum = oNumbering.Num[sNumId];
+		for(nLvl = 0; nLvl < 9; ++nLvl)
+		{
+			var oLvl = oNum.GetLvl(nLvl);
+			if(oLvl && oLvl.IsNumbered())
+			{
+				oProps.NumPr.push(new CNumPr(oNum.GetId(), nLvl));
+			}
+		}
+	}
+	return this.GetAllParagraphs(oProps);
+};
+CDocument.prototype.GetFootNotesFirstParagraphs = function()
+{
+	return this.Footnotes.GetFirstParagraphs();
+};
+CDocument.prototype.GetEndNotesFirstParagraphs = function()
+{
+	return this.Endnotes.GetFirstParagraphs();
+};
+CDocument.prototype.GetAllCaptionParagraphs = function(sCaption)
+{
+	var aFields = [];
+	if(!(typeof sCaption === "string" && sCaption.length > 0))
+	{
+		return [];
+	}
+	this.GetAllSeqFieldsByType(sCaption, aFields);
+	var aParagraphs = [];
+	for(var nField = 0; nField < aFields.length; ++nField)
+	{
+		var oField = aFields[nField];
+		if(oField)
+		{
+            if(oField.BeginChar)
+            {
+                var oRun       = oField.BeginChar.GetRun();
+                var oParagraph = oRun.GetParagraph();
+                if(oParagraph)
+                {
+                    aParagraphs.push(oParagraph);
+                }
+            }
+            else if(oField.Paragraph)
+            {
+                aParagraphs.push(oField.Paragraph);
+            }
+		}
+	}
+	return aParagraphs;
+};
 CDocument.prototype.TurnOffHistory = function()
 {
 	this.History.TurnOff();
@@ -20916,7 +21013,225 @@ CDocument.prototype.AddDateTime = function(oPr)
 		this.AddTextWithPr(oPr.get_String(), {Lang : {Val : nLang}}, true);
 	}
 };
-
+CDocument.prototype.AddRefToParagraph = function(oParagraph, nType, bHyperlink, bAboveBelow, sSeparator)
+{
+	if(false === this.IsSelectionLocked(AscCommon.changestype_Document_Content, {
+		Type      : changestype_2_ElementsArray_and_Type,
+		Elements  : [oParagraph],
+		CheckType : changestype_Paragraph_Content
+	}))
+	{
+		this.StartAction(AscDFH.historydescription_Document_AddCrossRef);
+		var sBookmarkName = oParagraph.AddBookmarkForRef();
+		if(sBookmarkName)
+		{
+			this.private_AddRefToBookmark(sBookmarkName, nType, bHyperlink, bAboveBelow, sSeparator);
+			this.Recalculate();
+		}
+		this.UpdateInterface();
+		this.UpdateSelection();
+		this.FinalizeAction();
+	}
+};
+CDocument.prototype.AddRefToBookmark = function(sBookmarkName, nType, bHyperlink, bAboveBelow, sSeparator)
+{
+	if(false === this.IsSelectionLocked(AscCommon.changestype_Document_Content))
+	{
+		this.StartAction(AscDFH.historydescription_Document_AddCrossRef);
+		this.private_AddRefToBookmark(sBookmarkName, nType, bHyperlink, bAboveBelow, sSeparator);
+		this.Recalculate();
+		this.UpdateInterface();
+		this.UpdateSelection();
+		this.FinalizeAction();
+	}
+};
+CDocument.prototype.private_AddRefToBookmark = function(sBookmarkName, nType, bHyperlink, bAboveBelow, sSeparator)
+{
+	if(!(typeof sBookmarkName === "string" && sBookmarkName.length > 0))
+	{
+		return;
+	}
+	var sInstr = "";
+	var sSuffix = "";
+	if(bHyperlink)
+	{
+		sSuffix += " \\h";
+	}
+	if(bAboveBelow)
+	{
+		sSuffix += " \\p";
+	}
+	if(typeof sSeparator === "string" && sSeparator.length > 0)
+	{
+		sSuffix += " \\d " + sSeparator;
+	}
+	switch (nType)
+	{
+		case Asc.c_oAscDocumentRefenceToType.PageNum:
+		{
+			sInstr = " PAGEREF " + sBookmarkName;
+			sInstr += sSuffix;
+			break;
+		}
+		case Asc.c_oAscDocumentRefenceToType.Text:
+		case Asc.c_oAscDocumentRefenceToType.OnlyCaptionText:
+		case Asc.c_oAscDocumentRefenceToType.OnlyLabelAndNumber:
+		{
+			sInstr = " REF " + sBookmarkName + " ";
+			sInstr += sSuffix;
+			break;
+		}
+		case Asc.c_oAscDocumentRefenceToType.ParaNum:
+		{
+			sInstr = " REF " + sBookmarkName + " \\r ";
+			sInstr += sSuffix;
+			break;
+		}
+		case Asc.c_oAscDocumentRefenceToType.ParaNumNoContext:
+		{
+			sInstr = " REF " + sBookmarkName + " \\n ";
+			sInstr += sSuffix;
+			break;
+		}
+		case Asc.c_oAscDocumentRefenceToType.ParaNumFullContex:
+		{
+			sInstr = " REF " + sBookmarkName + " \\w ";
+			sInstr += sSuffix;
+			break;
+		}
+		case Asc.c_oAscDocumentRefenceToType.AboveBelow:
+		{
+			sInstr = " REF " + sBookmarkName + " \\p ";
+			break;
+		}
+	}
+	var oComplexField = this.AddFieldWithInstruction(sInstr);
+	this.Recalculate(true);
+	oComplexField.Update(false);
+};
+CDocument.prototype.AddNoteRefToParagraph = function(oParagraph, nType, bHyperlink, bAboveBelow)
+{
+	if(!oParagraph.Parent)
+	{
+		return;
+	}
+	var oFootnote = oParagraph.Parent.IsFootnote(true);
+	if(!oFootnote)
+	{
+		return;
+	}
+	var oRef = oFootnote.Ref;
+	if(!oRef)
+	{
+		return;
+	}
+	var oRun = oRef.Run;
+	if(!oRun)
+	{
+		return;
+	}
+	var oRefParagraph = oRun.Paragraph;
+	if(!oRefParagraph)
+	{
+		return;
+	}
+	if(false === this.IsSelectionLocked(AscCommon.changestype_Document_Content, {
+		Type      : changestype_2_ElementsArray_and_Type,
+		Elements  : [oRefParagraph],
+		CheckType : changestype_Paragraph_Content
+	}))
+	{
+		this.StartAction(AscDFH.historydescription_Document_AddCrossRef);
+		var sBookmarkName = oParagraph.AddBookmarkForNoteRef();
+		if(sBookmarkName)
+		{
+			this.private_AddNoteRefToBookmark(sBookmarkName, nType, bHyperlink, bAboveBelow);
+			this.Recalculate();
+		}
+		this.UpdateInterface();
+		this.UpdateSelection();
+		this.FinalizeAction();
+	}
+};
+CDocument.prototype.private_AddNoteRefToBookmark = function(sBookmarkName, nType, bHyperlink, bAboveBelow)
+{
+	if(!(typeof sBookmarkName === "string" && sBookmarkName.length > 0))
+	{
+		return;
+	}
+	var sInstr = "";
+	var sSuffix = "";
+	if(bHyperlink)
+	{
+		sSuffix += " \\h";
+	}
+	if(bAboveBelow)
+	{
+		sSuffix += " \\p";
+	}
+	switch (nType)
+	{
+		case Asc.c_oAscDocumentRefenceToType.NoteNumber:
+		{
+			sInstr = " NOTEREF " + sBookmarkName;
+			sInstr += sSuffix;
+			break;
+		}
+		case Asc.c_oAscDocumentRefenceToType.PageNum:
+		{
+			sInstr = " PAGEREF " + sBookmarkName;
+			sInstr += sSuffix;
+			break;
+		}
+		case Asc.c_oAscDocumentRefenceToType.NoteNumberFormatted:
+		{
+			sInstr = " NOTEREF " + sBookmarkName + " \\f ";
+			sInstr += sSuffix;
+			break;
+		}
+		case Asc.c_oAscDocumentRefenceToType.AboveBelow:
+		{
+			sInstr = " NOTEREF " + sBookmarkName + " \\p ";
+			break;
+		}
+	}
+	var oComplexField = this.AddFieldWithInstruction(sInstr);
+	this.Recalculate(true);
+	oComplexField.Update(false);
+};
+CDocument.prototype.AddRefToCaption = function(sCaption, oParagraph, nType, bHyperlink, bAboveBelow)
+{
+	if(nType  === Asc.c_oAscDocumentRefenceToType.PageNum || 
+		nType === Asc.c_oAscDocumentRefenceToType.AboveBelow ||
+		nType ===  Asc.c_oAscDocumentRefenceToType.Text)
+	{
+		this.AddRefToParagraph(oParagraph, nType, bHyperlink, bAboveBelow);
+		return;
+	}
+	this.StartAction(AscDFH.historydescription_Document_AddCrossRef);
+	var sBookmarkName = null;
+	switch(nType)
+	{
+		case Asc.c_oAscDocumentRefenceToType.OnlyLabelAndNumber:
+		{
+			sBookmarkName = oParagraph.AddBookmarkForCaption(sCaption, false);
+			break;
+		}
+		case Asc.c_oAscDocumentRefenceToType.OnlyCaptionText:
+		{
+			sBookmarkName = oParagraph.AddBookmarkForCaption(sCaption, true);
+			break;
+		}
+	}
+	if(sBookmarkName)
+	{
+		this.private_AddRefToBookmark(sBookmarkName, nType, bHyperlink, bAboveBelow, null);
+		this.Recalculate();
+	}
+	this.UpdateInterface();
+	this.UpdateSelection();
+	this.FinalizeAction();
+};
 CDocument.prototype.private_CreateComplexFieldRun = function(sInstruction, oParagraph)
 {
     var oBeginChar    = new ParaFieldChar(fldchartype_Begin, this),
@@ -21185,10 +21500,13 @@ CDocument.prototype.UpdateBookmarks = function()
 
 	this.BookmarksManager.BeginCollectingProcess();
 
+	this.SectionsInfo.UpdateBookmarks(this.BookmarksManager);
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
 		this.Content[nIndex].UpdateBookmarks(this.BookmarksManager);
 	}
+	this.Footnotes.UpdateBookmarks(this.BookmarksManager);
+	this.Endnotes.UpdateBookmarks(this.BookmarksManager);
 
 	this.BookmarksManager.EndCollectingProcess();
 };
@@ -22358,7 +22676,7 @@ CDocument.prototype.AddCaption = function(oPr)
                 break;
             }
         }
-        aFields = aFields.slice(i, aFields.length - i);
+        aFields = aFields.slice(i);
         var arrParagraphs = [];
         for (var nIndex = 0, nCount = aFields.length; nIndex < nCount; ++nIndex)
         {
@@ -23118,6 +23436,82 @@ CDocument.prototype.GetSectionEndMarkPr = function(nType)
 		return oPr;
 	}
 };
+/**
+ * Получаем закэшированную информацию для отрисовки нумерации строк
+ * @returns {CDocumentLineNumbersInfo}
+ */
+CDocument.prototype.GetLineNumbersInfo = function()
+{
+	return this.LineNumbersInfo;
+};
+/**
+ * Убираем нумерацию строк
+ * @param {boolean} isAllSections - Удаляем из всех секций или только из текущей
+ */
+CDocument.prototype.RemoveLineNumbers = function(isAllSections)
+{
+	if (!this.IsSelectionLocked(AscCommon.changestype_Document_SectPr))
+	{
+		this.StartAction(AscDFH.historydescription_Document_RemoveLineNumbers);
+
+		if (isAllSections)
+		{
+			for (var nIndex = 0, nCount = this.SectionsInfo.GetCount(); nIndex < nCount; ++nIndex)
+			{
+				var oSectPr = this.SectionsInfo.Get(nIndex).SectPr;
+				oSectPr.RemoveLineNumbers();
+			}
+		}
+		else
+		{
+			if (docpostype_Content === this.GetDocPosType())
+			{
+				var oParagraph = this.GetCurrentParagraph(true);
+				if (oParagraph)
+				{
+					var oSectPr = oParagraph.GetDocumentSectPr();
+					if (oSectPr)
+						oSectPr.RemoveLineNumbers();
+				}
+			}
+		}
+
+		this.Recalculate();
+		this.FinalizeAction();
+	}
+};
+CDocument.prototype.AddLineNumbers = function(isAllSections, nCountBy, nDistance, nStart, nRestartType)
+{
+	if (!this.IsSelectionLocked(AscCommon.changestype_Document_SectPr))
+	{
+		this.StartAction(AscDFH.historydescription_Document_RemoveLineNumbers);
+
+		if (isAllSections)
+		{
+			for (var nIndex = 0, nCount = this.SectionsInfo.GetCount(); nIndex < nCount; ++nIndex)
+			{
+				var oSectPr = this.SectionsInfo.Get(nIndex).SectPr;
+				oSectPr.SetLineNumbers(nCountBy, nDistance, nStart, nRestartType);
+			}
+		}
+		else
+		{
+			if (docpostype_Content === this.GetDocPosType())
+			{
+				var oParagraph = this.GetCurrentParagraph(true);
+				if (oParagraph)
+				{
+					var oSectPr = oParagraph.GetDocumentSectPr();
+					if (oSectPr)
+						oSectPr.SetLineNumbers(nCountBy, nDistance, nStart, nRestartType);
+				}
+			}
+		}
+
+		this.Recalculate();
+		this.FinalizeAction();
+	}
+};
 
 function CDocumentSelectionState()
 {
@@ -23268,7 +23662,33 @@ CDocumentSectionsInfo.prototype =
             if (null != SectPr.FooterEven)
                 SectPr.FooterEven.GetAllDrawingObjects(arrDrawings);
         }
-    },
+	},
+	
+	UpdateBookmarks : function(oBookmarkManager)
+	{
+        for (var nIndex = 0, nCount = this.Elements.length; nIndex < nCount; ++nIndex)
+        {
+            var SectPr = this.Elements[nIndex].SectPr;
+
+            if (null != SectPr.HeaderFirst)
+                SectPr.HeaderFirst.UpdateBookmarks(oBookmarkManager);
+
+            if (null != SectPr.HeaderDefault)
+                SectPr.HeaderDefault.UpdateBookmarks(oBookmarkManager);
+
+            if (null != SectPr.HeaderEven)
+                SectPr.HeaderEven.UpdateBookmarks(oBookmarkManager);
+
+            if (null != SectPr.FooterFirst)
+                SectPr.FooterFirst.UpdateBookmarks(oBookmarkManager);
+
+            if (null != SectPr.FooterDefault)
+                SectPr.FooterDefault.UpdateBookmarks(oBookmarkManager);
+
+            if (null != SectPr.FooterEven)
+                SectPr.FooterEven.UpdateBookmarks(oBookmarkManager);
+        }
+	},
 
     Document_CreateFontMap : function(FontMap)
     {
@@ -23473,6 +23893,14 @@ CDocumentSectionsInfo.prototype =
                 this.Elements[Index].Index -= Count;
         }
     }
+};
+CDocumentSectionsInfo.prototype.GetCount = function()
+{
+	return this.Elements.length;
+};
+CDocumentSectionsInfo.prototype.Get = function(nIndex)
+{
+	return this.Elements[nIndex];
 };
 /**
  * Получаем массив всех колонтитулов, используемых в данном документе
@@ -25391,6 +25819,45 @@ CDocumentNumberingContinueEngine.prototype.CheckParagraph = function(oParagraph)
 CDocumentNumberingContinueEngine.prototype.GetNumPr = function()
 {
 	return this.SimilarNumPr ? this.SimilarNumPr : this.LastNumPr;
+};
+
+function CDocumentLineNumbersInfo(oLogicDocument)
+{
+	this.LogicDocument = oLogicDocument;
+	this.Widths        = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+	this.TextPr        = null;
+	this.RecalcId      = null;
+}
+CDocumentLineNumbersInfo.prototype.GetTextPr = function()
+{
+	this.private_Update();
+	return this.TextPr;
+};
+CDocumentLineNumbersInfo.prototype.GetWidths = function()
+{
+	this.private_Update();
+	return this.Widths;
+};
+CDocumentLineNumbersInfo.prototype.private_Update = function()
+{
+	if (this.RecalcId && this.RecalcId === this.LogicDocument.GetRecalcId())
+		return;
+
+	this.RecalcId = this.LogicDocument.GetRecalcId();
+
+	var oPr = this.LogicDocument.GetStyles().Get_Pr(undefined, styletype_Paragraph);
+	this.TextPr = oPr.TextPr.Copy();
+
+	var nFontKoef = 1;
+	if (this.TextPr.VertAlign !== AscCommon.vertalign_Baseline)
+		nFontKoef = AscCommon.vaKSize;
+
+	g_oTextMeasurer.SetTextPr(this.TextPr, this.LogicDocument.GetTheme());
+	g_oTextMeasurer.SetFontSlot(fontslot_ASCII, nFontKoef);
+	for (var nDigit = 0; nDigit < 10; ++nDigit)
+	{
+		this.Widths[nDigit] = g_oTextMeasurer.MeasureCode(0x0030 + nDigit).Width;
+	}
 };
 
 //-------------------------------------------------------------export---------------------------------------------------
