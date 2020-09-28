@@ -4754,12 +4754,16 @@ StyleManager.prototype =
 				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
 		}
 	};
-	Row.prototype.setHidden = function (val/*, bViewLocalChange*/) {
+	Row.prototype.setHidden = function (val, bViewLocalChange) {
 		if (this.index >= 0 && (!this.getHidden() !== !val)) {
 			this.ws.hiddenManager.addHidden(true, this.index);
 		}
 
-		var bViewLocalChange = !this.ws.workbook.bCollaborativeChanges && this.ws.getActiveNamedSheetViewId() !== null && this.ws.autoFilters.containInFilter(this.index);
+		if (!bViewLocalChange) {
+			var bCollaborativeChanges = this.ws.workbook.bCollaborativeChanges;
+			bViewLocalChange = !bCollaborativeChanges && this.ws.getActiveNamedSheetViewId() !== null && this.ws.autoFilters.containInFilter(this.index);
+		}
+
 		var _rowFlag_hd = !bViewLocalChange ? g_nRowFlag_hd : g_nRowFlag_hdView;
 		if (true === val) {
 			this.flags |= _rowFlag_hd;
@@ -4793,8 +4797,12 @@ StyleManager.prototype =
 	Row.prototype.getOutlineLevel = function () {
 		return this.outlineLevel;
 	};
-	Row.prototype.getHidden = function () {
-		var bViewLocalChange = this.ws.getActiveNamedSheetViewId() !== null && this.ws.autoFilters.containInFilter(this.index);
+
+	Row.prototype.getHidden = function (bViewLocalChange) {
+		if (undefined === bViewLocalChange) {
+			var bCollaborativeChanges = this.ws.workbook.bCollaborativeChanges;
+			bViewLocalChange = !bCollaborativeChanges && this.ws.getActiveNamedSheetViewId() !== null && this.ws.autoFilters.containInFilter(this.index);
+		}
 		var _rowFlag_hd = bViewLocalChange ? g_nRowFlag_hdView : g_nRowFlag_hd;
 		return 0 !== (_rowFlag_hd & this.flags);
 	};
