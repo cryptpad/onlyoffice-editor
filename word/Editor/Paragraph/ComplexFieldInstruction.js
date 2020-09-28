@@ -304,7 +304,7 @@ function CFieldInstructionTOC()
 	this.SkipPageRefEnd   = -1;
 	this.ForceTabLeader   = undefined;
 	this.Caption          = undefined;
-	this.SkipCaptionLabel = undefined;
+	this.CaptionOnlyText  = undefined;
 }
 
 CFieldInstructionTOC.prototype = Object.create(CFieldInstructionBase.prototype);
@@ -424,6 +424,14 @@ CFieldInstructionTOC.prototype.GetCaption = function()
 {
 	return this.Caption;
 };
+CFieldInstructionTOC.prototype.SetCaptionOnlyText = function (sVal)
+{
+	this.CaptionOnlyText = sVal;
+};
+CFieldInstructionTOC.prototype.GetCaptionOnlyText = function()
+{
+	return this.CaptionOnlyText;
+};
 CFieldInstructionTOC.prototype.SetPr = function(oPr)
 {
 	if (!(oPr instanceof Asc.CTableOfContentsPr))
@@ -495,9 +503,21 @@ CFieldInstructionTOC.prototype.ToString = function()
 
 		sInstr += "\" ";
 	}
-	if(typeof this.Caption === "string" && this.Caption.length > 0)
+	if(this.Caption !== undefined)
 	{
-		sInstr += ("\\c \"" + this.Caption + "\"");
+		sInstr += "\\c ";
+		if(typeof this.Caption === "string" && this.Caption.length > 0)
+		{
+			sInstr += "\"" + this.Caption + "\"";
+		}
+	}
+	if(this.CaptionOnlyText !== undefined)
+	{
+		sInstr += "\\a ";
+		if(typeof this.CaptionOnlyText === "string" && this.CaptionOnlyText.length > 0)
+		{
+			sInstr += "\"" + this.CaptionOnlyText + "\"";
+		}
 	}
 
 	return sInstr;
@@ -1808,11 +1828,37 @@ CFieldInstructionParser.prototype.private_ReadTOC = function()
 					{
 						this.Result.SetCaption(sCaption);
 					}
+					else
+					{
+						this.Result.SetCaption(null);
+					}
+				}
+				else
+				{
+					this.Result.SetCaption(null);
+				}
+			}
+			else if('a' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if(arrArguments.length > 0)
+				{
+					var sCaptionOnlyText = arrArguments[0];
+					if(typeof sCaptionOnlyText === "string" && sCaptionOnlyText.length > 0)
+					{
+						this.Result.SetCaptionOnlyText(sCaptionOnlyText);
+					}
+					else
+					{
+						this.Result.SetCaptionOnlyText(null);
+					}
+				}
+				else
+				{
+					this.Result.SetCaptionOnlyText(null);
 				}
 			}
 		}
-
-
 	}
 
 };
