@@ -11797,6 +11797,7 @@ CDocument.prototype.Document_UpdateSectionPr = function()
 		var ColumnsPr = new CDocumentColumnsProps();
 		ColumnsPr.From_SectPr(SectPr);
 		this.Api.sync_ColumnsPropsCallback(ColumnsPr);
+		this.Api.sync_LineNumbersPropsCollback(SectPr.GetLineNumbers());
 		this.Api.sync_SectionPropsCallback(new CDocumentSectionProps(SectPr, this));
 	}
 };
@@ -23445,33 +23446,38 @@ CDocument.prototype.GetLineNumbersInfo = function()
 	return this.LineNumbersInfo;
 };
 /**
- * Убираем нумерацию строк
- * @param {boolean} isAllSections - Удаляем из всех секций или только из текущей
+ * Устанавливаем настройки для нумерации строк
+ * @param {Asc.c_oAscSectionApplyType} nApplyType
+ * @param {?CSectionLnNumType} oProps  (если null или undefined, то из заданных разделов удаляем нумерацию строк)
  */
-CDocument.prototype.RemoveLineNumbers = function(isAllSections)
+CDocument.prototype.SetLineNumbersProps = function(nApplyType, oProps)
 {
 	if (!this.IsSelectionLocked(AscCommon.changestype_Document_SectPr))
 	{
-		this.StartAction(AscDFH.historydescription_Document_RemoveLineNumbers);
+		this.StartAction(AscDFH.historydescription_Document_SetLineNumbersProps);
 
-		if (isAllSections)
+		var arrSectPr = this.GetSectionsByApplyType(nApplyType);
+		if (arrSectPr.length > 0)
 		{
-			for (var nIndex = 0, nCount = this.SectionsInfo.GetCount(); nIndex < nCount; ++nIndex)
+			if (undefined === oProps || null === oProps)
 			{
-				var oSectPr = this.SectionsInfo.Get(nIndex).SectPr;
-				oSectPr.RemoveLineNumbers();
-			}
-		}
-		else
-		{
-			if (docpostype_Content === this.GetDocPosType())
-			{
-				var oParagraph = this.GetCurrentParagraph(true);
-				if (oParagraph)
+				for (var nIndex = 0, nCount = this.SectionsInfo.GetCount(); nIndex < nCount; ++nIndex)
 				{
-					var oSectPr = oParagraph.GetDocumentSectPr();
-					if (oSectPr)
-						oSectPr.RemoveLineNumbers();
+					var oSectPr = this.SectionsInfo.Get(nIndex).SectPr;
+					oSectPr.RemoveLineNumbers();
+				}
+			}
+			else
+			{
+				var nCountBy     = oProps.GetCountBy();
+				var nDistance    = oProps.GetDistance();
+				var nStart       = oProps.GetStart();
+				var nRestartType = oProps.GetRestart();
+
+				for (var nIndex = 0, nCount = this.SectionsInfo.GetCount(); nIndex < nCount; ++nIndex)
+				{
+					var oSectPr = this.SectionsInfo.Get(nIndex).SectPr;
+					oSectPr.SetLineNumbers(nCountBy, nDistance, nStart, nRestartType);
 				}
 			}
 		}
@@ -23480,38 +23486,72 @@ CDocument.prototype.RemoveLineNumbers = function(isAllSections)
 		this.FinalizeAction();
 	}
 };
-CDocument.prototype.AddLineNumbers = function(isAllSections, nCountBy, nDistance, nStart, nRestartType)
+/**
+ * Получаем настройки нумерации строк текущего раздела
+ * @returns {?CSectionLnNumType|null}
+ */
+CDocument.prototype.GetLineNumbersProps = function()
 {
-	if (!this.IsSelectionLocked(AscCommon.changestype_Document_SectPr))
-	{
-		this.StartAction(AscDFH.historydescription_Document_RemoveLineNumbers);
-
-		if (isAllSections)
-		{
-			for (var nIndex = 0, nCount = this.SectionsInfo.GetCount(); nIndex < nCount; ++nIndex)
-			{
-				var oSectPr = this.SectionsInfo.Get(nIndex).SectPr;
-				oSectPr.SetLineNumbers(nCountBy, nDistance, nStart, nRestartType);
-			}
-		}
-		else
-		{
-			if (docpostype_Content === this.GetDocPosType())
-			{
-				var oParagraph = this.GetCurrentParagraph(true);
-				if (oParagraph)
-				{
-					var oSectPr = oParagraph.GetDocumentSectPr();
-					if (oSectPr)
-						oSectPr.SetLineNumbers(nCountBy, nDistance, nStart, nRestartType);
-				}
-			}
-		}
-
-		this.Recalculate();
-		this.FinalizeAction();
-	}
+	var oSectPr = this.SectionsInfo.GetByContentPos(this.CurPos.ContentPos).SectPr;
+	return oSectPr.HaveLineNumbers() ? oSectPr.GetLineNumbers().Copy() : null;
 };
+/**
+ * Получаем список секции на основе по заданному типу
+ * @param {Asc.c_oAscSectionApplyType} nType
+ * @returns {Array.CSectionPr}
+ */
+CDocument.prototype.GetSectionsByApplyType = function(nType)
+{
+	if (Asc.c_oAscSectionApplyType.Current === nType)
+	{
+		if (docpostype_Content !== this.GetDocPosType())
+			return [];
+
+		var oParagraph = this.GetCurrentParagraph();
+		if (!oParagraph)
+			return [];
+
+		var oSectPr = oParagraph.GetDocumentSectPr();
+		if (oSectPr)
+			return [oSectPr];
+	}
+	else if (Asc.c_oAscSectionApplyType.ToEnd === nType)
+	{
+		if (docpostype_Content !== this.GetDocPosType())
+			return [];
+
+		var oParagraph = this.GetCurrentParagraph();
+		if (!oParagraph)
+			return [];
+
+		var oSectPr = oParagraph.GetDocumentSectPr();
+		if (!oSectPr)
+			[];
+
+		var nIndex = this.SectionsInfo.Find(oSectPr);
+		if (-1 === nIndex)
+			return [oSectPr];
+
+		var arrSectPr = [];
+		for (nCount = this.SectionsInfo.GetCount(); nIndex < nCount; ++nIndex)
+		{
+			arrSectPr.push(this.SectionsInfo.Get(nIndex).SectPr);
+		}
+		return arrSectPr;
+	}
+	else if (Asc.c_oAscSectionApplyType.All === nType)
+	{
+		var arrSectPr = [];
+		for (var nIndex = 0, nCount = this.SectionsInfo.GetCount(); nIndex < nCount; ++nIndex)
+		{
+			arrSectPr.push(this.SectionsInfo.Get(nIndex).SectPr);
+		}
+		return arrSectPr;
+	}
+
+	return [];
+};
+
 
 function CDocumentSelectionState()
 {
@@ -23792,16 +23832,7 @@ CDocumentSectionsInfo.prototype =
 
     Get_SectPr : function(Index)
     {
-        var Count = this.Elements.length;
-
-        for ( var Pos = 0; Pos < Count; Pos++ )
-        {
-            if ( Index <= this.Elements[Pos].Index )
-                return this.Elements[Pos];
-        }
-
-        // Последний элемент здесь это всегда конечная секция документа
-        return this.Elements[Count - 1];
+    	return this.GetByContentPos(Index);
     },
 
     Get_SectPr2 : function(Index)
@@ -23898,9 +23929,31 @@ CDocumentSectionsInfo.prototype.GetCount = function()
 {
 	return this.Elements.length;
 };
+/**
+ * Получаем секцию по заданному номеру
+ * @param {number} nIndex
+ * @returns {CDocumentSectionsInfoElement}
+ */
 CDocumentSectionsInfo.prototype.Get = function(nIndex)
 {
 	return this.Elements[nIndex];
+};
+/**
+ * Получаем секцию по заданной позиции контента
+ * @param {number} nContentPos
+ * @returns {CDocumentSectionsInfoElement}
+ */
+CDocumentSectionsInfo.prototype.GetByContentPos = function(nContentPos)
+{
+	var nCount = this.Elements.length;
+	for (var nPos = 0; nPos < nCount; ++nPos)
+	{
+		if (nContentPos <= this.Elements[nPos].Index)
+			return this.Elements[nPos];
+	}
+
+	// Последний элемент здесь это всегда конечная секция документа
+	return this.Elements[nCount - 1];
 };
 /**
  * Получаем массив всех колонтитулов, используемых в данном документе
