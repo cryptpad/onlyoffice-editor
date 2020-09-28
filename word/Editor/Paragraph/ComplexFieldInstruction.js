@@ -304,6 +304,7 @@ function CFieldInstructionTOC()
 	this.SkipPageRefEnd   = -1;
 	this.ForceTabLeader   = undefined;
 	this.Caption          = undefined;
+	this.SkipCaptionLabel = undefined;
 }
 
 CFieldInstructionTOC.prototype = Object.create(CFieldInstructionBase.prototype);
