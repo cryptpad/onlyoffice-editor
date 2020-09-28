@@ -863,7 +863,7 @@ CComplexField.prototype.private_UpdatePAGEREF = function()
 	if(!oBookmark)
 	{
 		var sValue = AscCommon.translateManager.getValue("Error! Bookmark not defined.");
-		this.private_InsertError(sValue)
+		this.private_InsertError(sValue);
 		return;
 	}
 	this.LogicDocument.AddText(this.private_CalculatePAGEREF());
@@ -1014,7 +1014,7 @@ CComplexField.prototype.private_GetMessageContent = function(sMessage, oTextPr)
 	oSelectedContent.DoNotAddEmptyPara = true;
 	return oSelectedContent;
 };
-CComplexField.prototype.private_GetErrorContent = function(sMessage, oTextPr)
+CComplexField.prototype.private_GetErrorContent = function(sMessage)
 {
 	var oTextPr = new CTextPr();
 	oTextPr.Set_FromObject({Bold: true});
@@ -1056,11 +1056,10 @@ CComplexField.prototype.private_GetREFContent = function()
 		var oNumPr     = oSrcParagraph.GetNumPr();
 		var oNumbering = this.LogicDocument.GetNumbering();
 		var oNumInfo   = oSrcParagraph.GetParent().CalculateNumberingValues(oSrcParagraph, oNumPr);
-		var nLvl, oParaNumInfo, nLvlStart;
+		var nLvl, oParaNumInfo;
 		if(this.Instruction.IsNumber())
 		{
 			var oParaNumPr = oParagraph.GetNumPr();
-			nLvlStart = oNumPr.Lvl;
 			if(oParaNumPr && oParaNumPr.NumId === oNumPr.NumId)
 			{
 				oParaNumInfo = oParagraph.GetParent().CalculateNumberingValues(oParagraph, oParaNumPr);
@@ -1169,7 +1168,7 @@ CComplexField.prototype.private_GetNOTEREFContent = function()
 	var oSelectedContent = new CSelectedContent();
 	var oTextPr;
 	var oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
-	var oRun  = new ParaRun(oPara, false);
+	oRun  = new ParaRun(oPara, false);
 	if(this.Instruction.IsFormatting())
 	{
 		oTextPr = new CTextPr();
@@ -1188,7 +1187,7 @@ CComplexField.prototype.private_GetNOTEREFContent = function()
 	oSelectedContent.Add(new CSelectedElement(oPara, false));
 	oSelectedContent.DoNotAddEmptyPara = true;
 	return oSelectedContent;
-}
+};
 CComplexField.prototype.private_UpdateNOTEREF = function()
 {
 	this.private_InsertContent(this.private_GetNOTEREFContent());

@@ -14606,7 +14606,7 @@ Paragraph.prototype.AddBookmarkForRef = function()
 	if(aStartBookmarks.length > 0)
 	{
 		aEndBookmarks = this.private_FindBookmarks(this.Content.length - 2, 0);
-		var aPair = this.private_FindPairRefBookmarks(aStartBookmarks, aEndBookmarks);
+		var aPair = this.private_FindPairBookmarks(aStartBookmarks, aEndBookmarks, "_Ref");
 		if(aPair)
 		{
 			return aPair[0].GetBookmarkName();
@@ -14685,7 +14685,7 @@ Paragraph.prototype.AddBookmarkForNoteRef = function()
 	if(aStartBookmarks.length > 0)
 	{
 		aEndBookmarks = oRefParagraph.private_FindBookmarks(nRunPos + 1, oRefParagraph.Content.length - 1);
-		var aPair = oRefParagraph.private_FindPairRefBookmarks(aStartBookmarks, aEndBookmarks);
+		var aPair = oRefParagraph.private_FindPairBookmarks(aStartBookmarks, aEndBookmarks, "_Ref");
 		if(aPair)
 		{
 			return aPair[0].GetBookmarkName();
@@ -14743,7 +14743,7 @@ Paragraph.prototype.private_FindBookmarks = function(nStart, nEnd)
 	}
 	return aBookmarks;
 };
-Paragraph.prototype.private_FindPairRefBookmarks = function(aStartBookmarks, aEndBookmarks)
+Paragraph.prototype.private_FindPairBookmarks = function(aStartBookmarks, aEndBookmarks, sPrefix)
 {
 	if(aStartBookmarks.length > 0 && aEndBookmarks.length > 0)
 	{
@@ -14754,7 +14754,7 @@ Paragraph.prototype.private_FindPairRefBookmarks = function(aStartBookmarks, aEn
 			for(var nEnd = 0; nEnd < aEndBookmarks.length; ++nEnd)
 			{
 				oEnd = aEndBookmarks[nEnd];
-				if(sName && sName.indexOf("_Ref") === 0 &&
+				if(sName && sName.indexOf(sPrefix) === 0 &&
 				 oStart.GetBookmarkId() === oEnd.GetBookmarkId() && 
 				 oStart.IsStart() && !oEnd.IsStart())
 				{
@@ -14859,7 +14859,7 @@ Paragraph.prototype.CanAddRefAfterSEQ = function(sCaption)
 	}
 	return false;
 };
-Paragraph.prototype.AddBookmarkForCaption = function(sCaption, isOnlyText)
+Paragraph.prototype.AddBookmarkForCaption = function(sCaption, isOnlyText, isTOC)
 {
 	if (!this.LogicDocument)
 		return null;
@@ -14922,7 +14922,7 @@ Paragraph.prototype.AddBookmarkForCaption = function(sCaption, isOnlyText)
 				if(oElement.GetType() === para_Run)
 				{
 					nFindPos = oElement.FindNoSpaceElement(0);
-					if(nFindPos < oElement.Content.length)
+					if(nFindPos > -1)
 					{
 						if(nFindPos > 0)
 						{
@@ -14942,14 +14942,21 @@ Paragraph.prototype.AddBookmarkForCaption = function(sCaption, isOnlyText)
 		if(aStartBookmarks.length > 0)
 		{
 			aEndBookmarks = oParent.private_FindBookmarks(oParent.Content.length - 2, nBookmarkPos + 1);
-			aPair = oParent.private_FindPairRefBookmarks(aStartBookmarks, aEndBookmarks);
+			aPair = oParent.private_FindPairBookmarks(aStartBookmarks, aEndBookmarks, isTOC ? "_Toc" : "_Ref");
 			if(aPair)
 			{
 				return aPair[0].GetBookmarkName();
 			}
 		}
 		sId = oBookmarksManager.GetNewBookmarkId();
-		sBookmarkName = oBookmarksManager.GetNewBookmarkNameRef();
+		if(isTOC)
+		{
+			sBookmarkName = oBookmarksManager.GetNewBookmarkNameTOC();
+		}
+		else
+		{
+			sBookmarkName = oBookmarksManager.GetNewBookmarkNameRef();
+		}
 		oParent.Add_ToContent(oParent.Content.length - 1, new CParagraphBookmark(false, sId, sBookmarkName));
 		oParent.Add_ToContent(nBookmarkPos, new CParagraphBookmark(true, sId, sBookmarkName));
 		oParent.Correct_Content();
@@ -14967,7 +14974,7 @@ Paragraph.prototype.AddBookmarkForCaption = function(sCaption, isOnlyText)
 		if(aStartBookmarks.length > 0)
 		{
 			aEndBookmarks = oParent.private_FindBookmarks(nRunPos + 1, oParent.Content.length - 1);
-			aPair = oParent.private_FindPairRefBookmarks(aStartBookmarks, aEndBookmarks);
+			aPair = oParent.private_FindPairBookmarks(aStartBookmarks, aEndBookmarks, "_Ref");
 			if(aPair)
 			{
 				return aPair[0].GetBookmarkName();
