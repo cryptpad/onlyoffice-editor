@@ -1431,6 +1431,7 @@
 	window['AscDFH'].historyitem_type_AbsSizeAnchor          = 1135 << 16;
 	window['AscDFH'].historyitem_type_Core                   = 1136 << 16;
 	window['AscDFH'].historyitem_type_SlicerView             = 1137 << 16;
+	window['AscDFH'].historyitem_type_NamedSheetView         = 1138 << 16;
 
 
 	window['AscDFH'].historyitem_type_DocumentMacros         = 2000 << 16;

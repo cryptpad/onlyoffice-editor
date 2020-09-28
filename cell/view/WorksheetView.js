@@ -3104,6 +3104,7 @@
             }
         }
 
+        var activeNamedSheetView = this.model.getActiveNamedSheetViewId() !== null;
         var ctx = drawingCtx || this.drawingCtx;
         var st = this.settings.header.style[style];
         var x2 = x + w;
@@ -3113,7 +3114,7 @@
         // background только для видимых
         if (!isZeroHeader) {
             // draw background
-            ctx.setFillStyle(st.background)
+            ctx.setFillStyle(activeNamedSheetView ? st.backgroundDark : st.background)
               .fillRect(x, y, w, h);
         }
         // draw border
@@ -3154,7 +3155,7 @@
         var textY = this._calcTextVertPos(y, h, bl, tm, Asc.c_oAscVAlign.Bottom);
 
 		ctx.AddClipRect(x, y, w, h);
-		ctx.setFillStyle(st.color).fillText(text, textX, textY + Asc.round(tm.baseline * this.getZoom()), undefined, sr.charWidths);
+		ctx.setFillStyle(activeNamedSheetView ? st.colorDark : st.color).fillText(text, textX, textY + Asc.round(tm.baseline * this.getZoom()), undefined, sr.charWidths);
 		ctx.RemoveClipRect();
     };
 
@@ -10468,6 +10469,7 @@
             if (t.model.autoFilters._searchFiltersInRange(arnFrom, true)) {
                 t._isLockedAll(onApplyMoveAutoFiltersCallback);
 				if(copyRange){
+					//TODO перепроверить лок
 					t._isLockedDefNames(null, null);
 				}
             } else {
@@ -10852,7 +10854,7 @@
 				History.EndTransaction();
 				if(expansionTableRange) {
 					t.applyTableAutoExpansion(expansionTableRange);
-			}
+				}
 			}
 
 			if (hasUpdates) {
@@ -11140,6 +11142,7 @@
 
 			if (bIsAddTable) {
 				t._isLockedAll(function () {
+					//TODO перепроверить лок
 					t._isLockedDefNames(null, null)
 				});
 			}
@@ -14842,9 +14845,9 @@
 		}
 	};
 
-    WorksheetView.prototype.applyAutoFilter = function (autoFilterObject) {
-        var t = this;
-        var ar = this.model.selectionRange.getLast().clone();
+	WorksheetView.prototype.applyAutoFilter = function (autoFilterObject) {
+		var t = this;
+		var ar = this.model.selectionRange.getLast().clone();
 		//todo filteringMode
 		//pivot
 		if (Asc.CT_pivotTableDefinition.prototype.asc_filterByCell) {
@@ -14864,12 +14867,12 @@
                 return;
             }
 
-            var applyFilterProps = t.model.autoFilters.applyAutoFilter(autoFilterObject, ar);
-			if(!applyFilterProps) {
+			var applyFilterProps = t.model.autoFilters.applyAutoFilter(autoFilterObject, ar);
+			if (!applyFilterProps) {
 				return false;
 			}
-            var minChangeRow = applyFilterProps.minChangeRow;
-            var rangeOldFilter = applyFilterProps.rangeOldFilter;
+			var minChangeRow = applyFilterProps.minChangeRow;
+			var rangeOldFilter = applyFilterProps.rangeOldFilter;
 
 			//если срез находится на одном листе, а таблица на другом
 			//в данном случае пересчёт для ф/т нужен, а перерисовка не нужна
@@ -14882,74 +14885,83 @@
 				if (applyFilterProps.nOpenRowsCount !== applyFilterProps.nAllRowsCount) {
 					t.handlers.trigger('onFilterInfo', applyFilterProps.nOpenRowsCount, applyFilterProps.nAllRowsCount);
 				}
-            }
+			}
 
-            if (null !== minChangeRow) {
-                t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow});
-            }
-        };
+			if (null !== minChangeRow) {
+				t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow});
+			}
+		};
+
+		var api = window["Asc"]["editor"];
 		if (!window['AscCommonExcel'].filteringMode) {
 			History.LocalChange = true;
 			onChangeAutoFilterCallback();
 			History.LocalChange = false;
-        } else {
-			this._isLockedAll(onChangeAutoFilterCallback);
-        }
-    };
+		} else {
+			//в особом режиме не лочим лист при фильтрации
+			var nActive = t.model.getActiveNamedSheetViewId();
+			if (null !== nActive) {
+				//лочу для того, чтобы не было возможности изменить имя текущего отображения
+				//иначе будут конфликты при принятии изменений
+				//api._isLockedNamedSheetView([t.model.aNamedSheetViews[nActive]], function (_success) {
+					onChangeAutoFilterCallback(true);
+				//});
+			} else {
+				this._isLockedAll(onChangeAutoFilterCallback);
+			}
+		}
+	};
 
-    WorksheetView.prototype.reapplyAutoFilter = function (tableName) {
-        var t = this;
-        var ar = this.model.selectionRange.getLast().clone();
-        var onChangeAutoFilterCallback = function (isSuccess) {
-            if (false === isSuccess) {
-                return;
-            }
+	WorksheetView.prototype.reapplyAutoFilter = function (tableName) {
+		var t = this;
+		var ar = this.model.selectionRange.getLast().clone();
+		var onChangeAutoFilterCallback = function (isSuccess) {
+			if (false === isSuccess) {
+				return;
+			}
 
-            //reApply
-            var applyFilterProps = t.model.autoFilters.reapplyAutoFilter(tableName, ar);
+			//reApply
+			var applyFilterProps = t.model.autoFilters.reapplyAutoFilter(tableName, ar);
 
-            //reSort
-            var filter = applyFilterProps.filter;
-            if (filter && filter.SortState && filter.SortState.SortConditions && filter.SortState.SortConditions[0]) {
-                var sortState = filter.SortState;
-                var rangeWithoutHeaderFooter = filter.getRangeWithoutHeaderFooter();
-                var sortRange = t.model.getRange3(rangeWithoutHeaderFooter.r1, rangeWithoutHeaderFooter.c1,
-                  rangeWithoutHeaderFooter.r2, rangeWithoutHeaderFooter.c2);
-                var startCol = sortState.SortConditions[0].Ref.c1;
-                var type;
-                var rgbColor = null;
-                switch (sortState.SortConditions[0].ConditionSortBy) {
-                    case Asc.ESortBy.sortbyCellColor:
-                    {
-                        type = Asc.c_oAscSortOptions.ByColorFill;
-                        rgbColor = sortState.SortConditions[0].dxf.fill.bg();
-                        break;
-                    }
-                    case Asc.ESortBy.sortbyFontColor:
-                    {
-                        type = Asc.c_oAscSortOptions.ByColorFont;
-                        rgbColor = sortState.SortConditions[0].dxf.font.getColor();
-                        break;
-                    }
-                    default:
-                    {
-                        type = Asc.c_oAscSortOptions.ByColorFont;
-                        if (sortState.SortConditions[0].ConditionDescending) {
-                            type = Asc.c_oAscSortOptions.Descending;
-                        } else {
-                            type = Asc.c_oAscSortOptions.Ascending;
-                        }
-                    }
-                }
+			//reSort
+			var filter = applyFilterProps.filter;
+			if (filter && filter.SortState && filter.SortState.SortConditions && filter.SortState.SortConditions[0]) {
+				var sortState = filter.SortState;
+				var rangeWithoutHeaderFooter = filter.getRangeWithoutHeaderFooter();
+				var sortRange = t.model.getRange3(rangeWithoutHeaderFooter.r1, rangeWithoutHeaderFooter.c1,
+					rangeWithoutHeaderFooter.r2, rangeWithoutHeaderFooter.c2);
+				var startCol = sortState.SortConditions[0].Ref.c1;
+				var type;
+				var rgbColor = null;
+				switch (sortState.SortConditions[0].ConditionSortBy) {
+					case Asc.ESortBy.sortbyCellColor: {
+						type = Asc.c_oAscSortOptions.ByColorFill;
+						rgbColor = sortState.SortConditions[0].dxf.fill.bg();
+						break;
+					}
+					case Asc.ESortBy.sortbyFontColor: {
+						type = Asc.c_oAscSortOptions.ByColorFont;
+						rgbColor = sortState.SortConditions[0].dxf.font.getColor();
+						break;
+					}
+					default: {
+						type = Asc.c_oAscSortOptions.ByColorFont;
+						if (sortState.SortConditions[0].ConditionDescending) {
+							type = Asc.c_oAscSortOptions.Descending;
+						} else {
+							type = Asc.c_oAscSortOptions.Ascending;
+						}
+					}
+				}
 
 				var sort = t._doSort(sortRange, type, startCol, rgbColor, null, null, null, sortState);
-                t.cellCommentator.sortComments(sort);
-            }
+				t.cellCommentator.sortComments(sort);
+			}
 
-            t.model.autoFilters._resetTablePartStyle();
+			t.model.autoFilters._resetTablePartStyle();
 
-            var minChangeRow = applyFilterProps.minChangeRow;
-            var updateRange = applyFilterProps.updateRange;
+			var minChangeRow = applyFilterProps.minChangeRow;
+			var updateRange = applyFilterProps.updateRange;
 
             if (updateRange && !t.model.workbook.bUndoChanges && !t.model.workbook.bRedoChanges) {
                 t.objectRender.bUpdateMetrics = false;
@@ -14957,10 +14969,10 @@
                 t.objectRender.bUpdateMetrics = true;
             }
 
-            if (null !== minChangeRow) {
-                t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow});
-            }
-        };
+			if (null !== minChangeRow) {
+				t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow});
+			}
+		};
 		if (!window['AscCommonExcel'].filteringMode) {
 			History.LocalChange = true;
 			onChangeAutoFilterCallback();
@@ -14968,97 +14980,97 @@
 		} else {
 			this._isLockedAll(onChangeAutoFilterCallback);
 		}
-    };
+	};
 
-    WorksheetView.prototype.applyAutoFilterByType = function (autoFilterObject) {
-        var t = this;
-        var activeCell = this.model.selectionRange.activeCell.clone();
-        var ar = this.model.selectionRange.getLast().clone();
+	WorksheetView.prototype.applyAutoFilterByType = function (autoFilterObject) {
+		var t = this;
+		var activeCell = this.model.selectionRange.activeCell.clone();
+		var ar = this.model.selectionRange.getLast().clone();
 
 		//нельзя применять если столбец, где находится активная ячейка, не определен
-		if(!this.model.getColDataNoEmpty(activeCell.col)) {
+		if (!this.model.getColDataNoEmpty(activeCell.col)) {
 			t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterDataRangeError, c_oAscError.Level.NoCritical);
 			return;
 		}
 
-        var isStartRangeIntoFilterOrTable = t.model.autoFilters.isStartRangeContainIntoTableOrFilter(activeCell);
-        var isApplyAutoFilter = null, isAddAutoFilter = null, cellId = null, isFromatTable = null;
-        if (null !== isStartRangeIntoFilterOrTable)//into autofilter or format table
-        {
-            isFromatTable = !(-1 === isStartRangeIntoFilterOrTable);
-            var filterRef = isFromatTable ? t.model.TableParts[isStartRangeIntoFilterOrTable].Ref :
-              t.model.AutoFilter.Ref;
-            cellId = t.model.autoFilters._rangeToId(new Asc.Range(ar.c1, filterRef.r1, ar.c1, filterRef.r1));
-            isApplyAutoFilter = true;
+		var isStartRangeIntoFilterOrTable = t.model.autoFilters.isStartRangeContainIntoTableOrFilter(activeCell);
+		var isApplyAutoFilter = null, isAddAutoFilter = null, cellId = null, isFromatTable = null;
+		if (null !== isStartRangeIntoFilterOrTable)//into autofilter or format table
+		{
+			isFromatTable = !(-1 === isStartRangeIntoFilterOrTable);
+			var filterRef = isFromatTable ? t.model.TableParts[isStartRangeIntoFilterOrTable].Ref :
+				t.model.AutoFilter.Ref;
+			cellId = t.model.autoFilters._rangeToId(new Asc.Range(ar.c1, filterRef.r1, ar.c1, filterRef.r1));
+			isApplyAutoFilter = true;
 
-            if (isFromatTable && !t.model.TableParts[isStartRangeIntoFilterOrTable].AutoFilter)//add autofilter to tablepart
-            {
-                isAddAutoFilter = true;
-            }
-        } else//without filter
-        {
-            isAddAutoFilter = true;
-            isApplyAutoFilter = true;
-        }
+			if (isFromatTable && !t.model.TableParts[isStartRangeIntoFilterOrTable].AutoFilter)//add autofilter to tablepart
+			{
+				isAddAutoFilter = true;
+			}
+		} else//without filter
+		{
+			isAddAutoFilter = true;
+			isApplyAutoFilter = true;
+		}
 
 
-        var onChangeAutoFilterCallback = function (isSuccess) {
-            if (false === isSuccess) {
-                return;
-            }
+		var onChangeAutoFilterCallback = function (isSuccess) {
+			if (false === isSuccess) {
+				return;
+			}
 
-            History.Create_NewPoint();
-            History.StartTransaction();
+			History.Create_NewPoint();
+			History.StartTransaction();
 
-            if (null !== isAddAutoFilter) {
-                //delete old filter
-                if (!isFromatTable && t.model.AutoFilter && t.model.AutoFilter.Ref) {
-                    t.model.autoFilters.isEmptyAutoFilters(t.model.AutoFilter.Ref);
-                }
+			if (null !== isAddAutoFilter) {
+				//delete old filter
+				if (!isFromatTable && t.model.AutoFilter && t.model.AutoFilter.Ref) {
+					t.model.autoFilters.isEmptyAutoFilters(t.model.AutoFilter.Ref);
+				}
 
-                //add new filter
-                t.model.autoFilters.addAutoFilter(null, ar, null);
-                //generate cellId
-                if (null === cellId) {
-                    cellId = t.model.autoFilters._rangeToId(
+				//add new filter
+				t.model.autoFilters.addAutoFilter(null, ar, null);
+				//generate cellId
+				if (null === cellId) {
+					cellId = t.model.autoFilters._rangeToId(
 						new Asc.Range(activeCell.col, t.model.AutoFilter.Ref.r1, activeCell.col, t.model.AutoFilter.Ref.r1));
-                }
-            }
+				}
+			}
 
-            if (null !== isApplyAutoFilter) {
-                autoFilterObject.asc_setCellId(cellId);
+			if (null !== isApplyAutoFilter) {
+				autoFilterObject.asc_setCellId(cellId);
 
-                var filter = autoFilterObject.filter;
-                if (c_oAscAutoFilterTypes.CustomFilters === filter.type) {
-                    t.model._getCell(activeCell.row, activeCell.col, function(cell) {
-                        filter.filter.CustomFilters[0].Val = cell.getValueWithoutFormat();
-                    });
-                } else if (c_oAscAutoFilterTypes.ColorFilter === filter.type) {
-                    t.model._getCell(activeCell.row, activeCell.col, function(cell) {
-                        if (filter.filter && filter.filter.dxf && filter.filter.dxf.fill) {
-                            var xfs = cell.getCompiledStyleCustom(false, true, true);
-                            if (false === filter.filter.CellColor) {
-                                var fontColor = xfs && xfs.font ? xfs.font.getColor() : null;
-                                //TODO добавлять дефолтовый цвет шрифта в случае, если цвет шрифта не указан
-                                if (null !== fontColor) {
-                                    filter.filter.dxf.fill.fromColor(fontColor);
-                                }
-                            } else {
-                                //TODO просмотерть ситуации без заливки
-                                var cellColor = null !== xfs && xfs.fill && xfs.fill.bg() ? xfs.fill.bg() : null;
-                                filter.filter.dxf.fill.fromColor(null !== cellColor ? new AscCommonExcel.RgbColor(cellColor.getRgb()) : null);
-                            }
-                        }
-                    });
-                }
+				var filter = autoFilterObject.filter;
+				if (c_oAscAutoFilterTypes.CustomFilters === filter.type) {
+					t.model._getCell(activeCell.row, activeCell.col, function (cell) {
+						filter.filter.CustomFilters[0].Val = cell.getValueWithoutFormat();
+					});
+				} else if (c_oAscAutoFilterTypes.ColorFilter === filter.type) {
+					t.model._getCell(activeCell.row, activeCell.col, function (cell) {
+						if (filter.filter && filter.filter.dxf && filter.filter.dxf.fill) {
+							var xfs = cell.getCompiledStyleCustom(false, true, true);
+							if (false === filter.filter.CellColor) {
+								var fontColor = xfs && xfs.font ? xfs.font.getColor() : null;
+								//TODO добавлять дефолтовый цвет шрифта в случае, если цвет шрифта не указан
+								if (null !== fontColor) {
+									filter.filter.dxf.fill.fromColor(fontColor);
+								}
+							} else {
+								//TODO просмотерть ситуации без заливки
+								var cellColor = null !== xfs && xfs.fill && xfs.fill.bg() ? xfs.fill.bg() : null;
+								filter.filter.dxf.fill.fromColor(null !== cellColor ? new AscCommonExcel.RgbColor(cellColor.getRgb()) : null);
+							}
+						}
+					});
+				}
 
-                var applyFilterProps = t.model.autoFilters.applyAutoFilter(autoFilterObject, ar, true);
-				if(!applyFilterProps) {
+				var applyFilterProps = t.model.autoFilters.applyAutoFilter(autoFilterObject, ar, true);
+				if (!applyFilterProps) {
 					History.EndTransaction();
 					return false;
 				}
-                var minChangeRow = applyFilterProps.minChangeRow;
-                var rangeOldFilter = applyFilterProps.rangeOldFilter;
+				var minChangeRow = applyFilterProps.minChangeRow;
+				var rangeOldFilter = applyFilterProps.rangeOldFilter;
 
 				History.EndTransaction();
 
@@ -15073,29 +15085,37 @@
             } else {
 				History.EndTransaction();
 			}
-        };
+		};
 
-        if (null === isAddAutoFilter)//do not add autoFilter
-        {
+		if (null === isAddAutoFilter)//do not add autoFilter
+		{
+			var api = window["Asc"]["editor"];
 			if (!window['AscCommonExcel'].filteringMode) {
 				History.LocalChange = true;
 				onChangeAutoFilterCallback();
 				History.LocalChange = false;
 			} else {
-				this._isLockedAll(onChangeAutoFilterCallback);
+				var activeId = t.model.getActiveNamedSheetViewId();
+				if (null !== activeId) {
+					//api._isLockedNamedSheetView([t.model.aNamedSheetViews[nActive]], function (_success) {
+						onChangeAutoFilterCallback(true);
+					//});
+				} else {
+					this._isLockedAll(onChangeAutoFilterCallback);
+				}
 			}
-        } else//add autofilter + apply
-        {
+		} else//add autofilter + apply
+		{
 			if (!window['AscCommonExcel'].filteringMode) {
 				return;
 			}
-            if (t._checkAddAutoFilter(ar, null, autoFilterObject, true) === true) {
-                this._isLockedAll(onChangeAutoFilterCallback);
-                this._isLockedDefNames(null, null);
-            }
-        }
+			if (t._checkAddAutoFilter(ar, null, autoFilterObject, true) === true) {
+				this._isLockedAll(onChangeAutoFilterCallback);
+				this._isLockedDefNames(null, null);
+			}
+		}
 
-    };
+	};
 
     WorksheetView.prototype.sortRange = function (type, cellId, displayName, color, bIsExpandRange) {
         var t = this;
@@ -15404,6 +15424,7 @@
 			if (range.isIntersect(updatedRange)) {
 				var row = range.r1;
 
+				//TODO sheet view
 				var sortConditions = filter.isApplySortConditions() ? filter.SortState.SortConditions : null;
 				for (var col = range.c1; col <= range.c2; col++) {
 					if (col >= updatedRange.c1 && col <= updatedRange.c2) {
@@ -15413,19 +15434,29 @@
 
 						var i;
 						var colId = filter.isAutoFilter() ? t.model.autoFilters._getTrueColId(autoFilter, col - range.c1, true) : col - range.c1;
-						if (autoFilter.FilterColumns && autoFilter.FilterColumns.length) {
+
+						var filterColumns = t.model.getNamedSheetViewFilterColumns(filter.DisplayName);
+						var viewSheetMode = false;
+						if (!filterColumns) {
+							filterColumns = autoFilter.FilterColumns;
+						} else {
+							viewSheetMode = true;
+						}
+
+						if (filterColumns && filterColumns.length) {
 							var filterColumn = null, filterColumnWithMerge = null;
 
-							for (i = 0; i < autoFilter.FilterColumns.length; i++) {
-								if (autoFilter.FilterColumns[i].ColId === col - range.c1) {
-									filterColumn = autoFilter.FilterColumns[i];
+							for (i = 0; i < filterColumns.length; i++) {
+								var _filterColumn = viewSheetMode ? filterColumns[i].filter : filterColumns[i];
+								if (_filterColumn.ColId === col - range.c1) {
+									filterColumn = _filterColumn;
 								}
 
 								if (colId === col - range.c1 && filterColumn !== null) {
 									filterColumnWithMerge = filterColumn;
 									break;
-								} else if (autoFilter.FilterColumns[i].ColId === colId) {
-									filterColumnWithMerge = autoFilter.FilterColumns[i];
+								} else if (_filterColumn.ColId === colId) {
+									filterColumnWithMerge = _filterColumn;
 								}
 							}
 
@@ -15958,7 +15989,18 @@
         var automaticRowCount = openAndClosedValues.automaticRowCount;
         //для случае когда скрыто только пустое значение не отображаем customfilter
 		var ignoreCustomFilter = openAndClosedValues.ignoreCustomFilter;
-        var filters = autoFilter.getFilterColumn(colId);
+
+		var activeNamedSheetView = ws.getActiveNamedSheetViewId();
+		var nsvFilter;
+		var filters;
+		if (activeNamedSheetView !== null) {
+			nsvFilter = ws.getNvsFilterByTableName(filter.DisplayName);
+			if (nsvFilter) {
+				filters = nsvFilter.getColumnFilterByColId(colId);
+			}
+		} else {
+			filters = autoFilter.getFilterColumn(colId, true);
+		}
 
         var rangeButton = new Asc.Range(autoFilter.Ref.c1 + colId, autoFilter.Ref.r1, autoFilter.Ref.c1 + colId, autoFilter.Ref.r1);
         var cellId = ws.autoFilters._rangeToId(rangeButton);
@@ -15979,7 +16021,7 @@
 
             for(var i = 0; i < SortConditions.length; i++) {
 				var sortCondition = SortConditions[i];
-            	if (rangeButton.c1 == sortCondition.Ref.c1) {
+            	if (rangeButton.c1 === sortCondition.Ref.c1) {
 
 					var conditionSortBy = SortConditions.ConditionSortBy;
 					switch (conditionSortBy) {
@@ -20226,6 +20268,7 @@
 					History.EndTransaction();
 					return;
 				}
+				//TODO перепроверить лок
 				t._isLockedDefNames(callback);
 			});
 		} else {
@@ -20234,6 +20277,7 @@
 					History.EndTransaction();
 					return;
 				}
+				//TODO перепроверить лок
 				t._isLockedDefNames(callback);
 			});
 		}
@@ -20478,6 +20522,7 @@
 		this._isLockedCells(lockRanges, null, function(success) {
 			if (success) {
 				if (isLockDefNames) {
+					//TODO перепроверить лок
 					t._isLockedDefNames(_callback);
 				} else {
 					_callback(true);

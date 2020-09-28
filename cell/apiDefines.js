@@ -154,7 +154,8 @@ var c_oAscLockTypeElemSubType = {
   DeleteRows: 3,
   InsertRows: 4,
   ChangeProperties: 5,
-  DefinedNames: 6
+  DefinedNames: 6,
+  NamedSheetView: 7
 };
 
 var c_oAscRecalcIndexTypes = {
