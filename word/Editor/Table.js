@@ -917,7 +917,7 @@ CTable.prototype.Get_Props = function()
 
 	Pr.Locked = this.Lock.Is_Locked();
 
-	if (true === this.Parent.Is_InTable())
+	if (true === this.Parent.IsInTable())
 		Pr.TableLayout = undefined;
 	else
 		Pr.TableLayout = (TablePr.TableLayout === tbllayout_AutoFit ? c_oAscTableLayout.AutoFit : c_oAscTableLayout.Fixed );
@@ -7299,7 +7299,7 @@ CTable.prototype.GetSelectedText = function(bClearText, oPr)
 };
 CTable.prototype.GetSelectedElementsInfo = function(Info)
 {
-	Info.Set_Table();
+	Info.SetTable();
 
 	if (false === this.Selection.Use || (true === this.Selection.Use && table_Selection_Text === this.Selection.Type))
 	{
@@ -7315,7 +7315,7 @@ CTable.prototype.GetSelectedElementsInfo = function(Info)
 		if (!Cell)
 			return;
 
-		Info.Set_SingleCell(Cell);
+		Info.SetSingleCell(Cell);
 	}
 };
 CTable.prototype.GetSelectedContent = function(SelectedContent)

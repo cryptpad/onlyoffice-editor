@@ -541,7 +541,7 @@ CTableCell.prototype =
         return false;
     },
 
-    Is_InTable : function(bReturnTopTable)
+    IsInTable : function(bReturnTopTable)
     {
         if (true === bReturnTopTable)
         {
@@ -549,7 +549,7 @@ CTableCell.prototype =
             if (!oTable)
                 return null;
 
-            var oTopTable = oTable.Parent ? oTable.Parent.Is_InTable(true) : null;
+            var oTopTable = oTable.Parent ? oTable.Parent.IsInTable(true) : null;
             if (oTopTable)
                 return oTopTable;
             else

@@ -180,7 +180,7 @@ CTextBody.prototype =
         return true;
     },
 
-    Is_InTable: function(bReturnTopTable)
+    IsInTable: function(bReturnTopTable)
     {
         if ( true === bReturnTopTable )
             return null;

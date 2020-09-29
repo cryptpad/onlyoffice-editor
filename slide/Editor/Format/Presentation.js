@@ -5375,7 +5375,7 @@ CPresentation.prototype.GetAddedTextOnKeyDown = function (e) {
             if (oTargetDocContent) {
                 var oSelectedInfo = new CSelectedElementsInfo();
                 oTargetDocContent.GetSelectedElementsInfo(oSelectedInfo);
-                var oMath = oSelectedInfo.Get_Math();
+                var oMath = oSelectedInfo.GetMath();
 
                 if (!oMath) {
                     if (true === e.ShiftKey && true === e.CtrlKey)
@@ -5978,7 +5978,7 @@ CPresentation.prototype.OnKeyDown = function (e) {
 
                                         var oSelectedInfo = new CSelectedElementsInfo();
                                         oTargetDocContent.GetSelectedElementsInfo(oSelectedInfo);
-                                        var oMath = oSelectedInfo.Get_Math();
+                                        var oMath = oSelectedInfo.GetMath();
                                         if (null !== oMath && oMath.Is_InInnerContent()) {
                                             if (oMath.Handle_AddNewLine())
                                                 this.Recalculate();
@@ -5996,7 +5996,7 @@ CPresentation.prototype.OnKeyDown = function (e) {
                                             History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
                                             var oSelectedInfo = new CSelectedElementsInfo();
                                             oTargetDocContent.GetSelectedElementsInfo(oSelectedInfo);
-                                            var oMath = oSelectedInfo.Get_Math();
+                                            var oMath = oSelectedInfo.GetMath();
                                             if (null !== oMath && oMath.Is_InInnerContent()) {
                                                 if (oMath.Handle_AddNewLine())
                                                     this.Recalculate();
@@ -6008,7 +6008,7 @@ CPresentation.prototype.OnKeyDown = function (e) {
 
                                         var oSelectedInfo = new CSelectedElementsInfo();
                                         oTargetDocContent.GetSelectedElementsInfo(oSelectedInfo);
-                                        var oMath = oSelectedInfo.Get_Math();
+                                        var oMath = oSelectedInfo.GetMath();
                                         if (null !== oMath && oMath.Is_InInnerContent()) {
                                             if (true === this.CollaborativeEditing.Is_Fast() || this.Document_Is_SelectionLocked(changestype_Drawing_Props) === false) {
                                                 History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);

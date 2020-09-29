@@ -2626,7 +2626,7 @@ CEndnotesController.prototype.GetCurrentParagraph = function(bIgnoreSelection, a
 CEndnotesController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
 	if (true !== this.private_IsOneEndnoteSelected() || null === this.CurEndnote)
-		oInfo.Set_MixedSelection();
+		oInfo.SetMixedSelection();
 	else
 		this.CurEndnote.GetSelectedElementsInfo(oInfo);
 };

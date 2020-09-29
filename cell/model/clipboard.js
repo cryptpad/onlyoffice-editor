@@ -2029,7 +2029,7 @@
 				//TODO пока выключаю специальную ставку внутри math, позже доработать и включить
 				var oInfo = new CSelectedElementsInfo();
 				//var selectedElementsInfo = isIntoShape.GetSelectedElementsInfo(oInfo);
-				var mathObj = oInfo.Get_Math();
+				var mathObj = oInfo.GetMath();
 
 				if (/*!window['AscCommon'].g_specialPasteHelper.specialPasteStart && */null === mathObj) {
 					var sProps = Asc.c_oSpecialPasteProps;
