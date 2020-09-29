@@ -1242,7 +1242,7 @@ CSdtFormPr.prototype.WriteToBinary = function(oWriter)
 
 	if (undefined !== this.Required)
 	{
-		Writer.WriteBool(this.Required);
+		oWriter.WriteBool(this.Required);
 		nFlags |= 8;
 	}
 
