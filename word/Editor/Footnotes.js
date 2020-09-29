@@ -2718,7 +2718,7 @@ CFootnotesController.prototype.GetCurrentParagraph = function(bIgnoreSelection, 
 CFootnotesController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
 	if (true !== this.private_IsOnFootnoteSelected() || null === this.CurFootnote)
-		oInfo.Set_MixedSelection();
+		oInfo.SetMixedSelection();
 	else
 		this.CurFootnote.GetSelectedElementsInfo(oInfo);
 };

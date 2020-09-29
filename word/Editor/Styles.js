@@ -13478,12 +13478,11 @@ CTextPr.prototype.Is_Equal = function(TextPr)
 	if ((undefined === this.FontFamily && undefined !== TextPr.FontFamily) || (undefined !== this.FontFamily && (undefined === TextPr.FontFamily || this.FontFamily.Name !== TextPr.FontFamily.Name)))
 		return false;
 
-	if (false
-		|| (undefined === this.FontSize
+	if ((undefined === this.FontSize
 		&& undefined !== TextPr.FontSize)
 		|| (undefined !== this.FontSize
-		&& (undefined === TextPr.FontSize
-		|| Math.abs(this.FontSize - TextPr.FontSize) >= 0.001)))
+			&& (undefined === TextPr.FontSize
+				|| Math.abs(this.FontSize - TextPr.FontSize) >= 0.001)))
 		return false;
 
 	if ((undefined === this.Color && undefined !== TextPr.Color) || (undefined !== this.Color && (undefined === TextPr.Color || true !== this.Color.Compare(TextPr.Color))))
@@ -13522,12 +13521,11 @@ CTextPr.prototype.Is_Equal = function(TextPr)
 	if (this.ItalicCS !== TextPr.ItalicCS)
 		return false;
 
-	if (false
-		|| (undefined === this.FontSizeCS
+	if ((undefined === this.FontSizeCS
 		&& undefined !== TextPr.FontSizeCS)
 		|| (undefined !== this.FontSizeCS
-		&& (undefined === TextPr.FontSizeCS
-		|| Math.abs(this.FontSizeCS - TextPr.FontSizeCS) >= 0.001)))
+			&& (undefined === TextPr.FontSizeCS
+				|| Math.abs(this.FontSizeCS - TextPr.FontSizeCS) >= 0.001)))
 		return false;
 
 	if (this.CS !== TextPr.CS)
@@ -13651,8 +13649,8 @@ CTextPr.prototype.GetDiff = function(oTextPr)
 	}
 	else
 	{
-		if (!oTextPr.HighLight.IsEqual(oTextPr.HighLight))
-			oResultTextPr.HighLight = oTextPr.HighLight.Copy();
+		if (!this.HighLight.IsEqual(oTextPr.HighLight))
+			oResultTextPr.HighLight = this.HighLight.Copy();
 	}
 
 	if (this.RStyle !== oTextPr.RStyle)

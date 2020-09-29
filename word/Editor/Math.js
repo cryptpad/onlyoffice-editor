@@ -1671,7 +1671,7 @@ ParaMath.prototype.Get_AllFontNames = function(AllFonts)
 
 ParaMath.prototype.GetSelectedElementsInfo = function(Info, ContentPos, Depth)
 {
-    Info.Set_Math(this);
+    Info.SetMath(this);
 };
 
 ParaMath.prototype.GetSelectedText = function(bAll, bClearText, oPr)

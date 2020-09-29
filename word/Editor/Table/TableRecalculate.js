@@ -408,7 +408,7 @@ CTable.prototype.private_RecalculateGrid = function()
 		this.RecalcInfo.TableGrid = false;
 	}
 
-    var TopTable = this.Parent.Is_InTable(true);
+    var TopTable = this.Parent.IsInTable(true);
     if ( ( null === TopTable && tbllayout_AutoFit === TablePr.TableLayout) || ( null != TopTable && tbllayout_AutoFit === TopTable.Get_CompiledPr(false).TablePr.TableLayout ) )
     {
         //---------------------------------------------------------------------------

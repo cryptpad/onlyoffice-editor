@@ -1134,9 +1134,9 @@ CBlockLevelSdt.prototype.Check_AutoFit = function()
 {
 	return this.Parent.Check_AutoFit();
 };
-CBlockLevelSdt.prototype.Is_InTable = function(bReturnTopTable)
+CBlockLevelSdt.prototype.IsInTable = function(bReturnTopTable)
 {
-	return this.Parent.Is_InTable(bReturnTopTable);
+	return this.Parent.IsInTable(bReturnTopTable);
 };
 CBlockLevelSdt.prototype.Get_PageContentStartPos = function(CurPage)
 {

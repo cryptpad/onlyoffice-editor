@@ -7355,7 +7355,7 @@ Paragraph.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent, bTabl
 	{
 		var oInfo = new CSelectedElementsInfo();
 		this.GetSelectedElementsInfo(oInfo);
-		var oField = oInfo.Get_Field();
+		var oField = oInfo.GetField();
 		var oSdt   = oInfo.GetInlineLevelSdt();
 		if (oSdt && oSdt.IsPlaceHolder())
 		{

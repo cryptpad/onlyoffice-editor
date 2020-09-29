@@ -2338,7 +2338,7 @@ PasteProcessor.prototype =
 
 			//если вставляем таблицу в ячейку таблицы
 			if (this.pasteIntoElem && 1 === this.aContent.length && type_Table === this.aContent[0].GetType() &&
-				this.pasteIntoElem.Parent && this.pasteIntoElem.Parent.Is_InTable() && (!bIsSpecialPaste || (bIsSpecialPaste &&
+				this.pasteIntoElem.Parent && this.pasteIntoElem.Parent.IsInTable() && (!bIsSpecialPaste || (bIsSpecialPaste &&
 				Asc.c_oSpecialPasteProps.overwriteCells === specialPasteHelper.specialPasteProps))) {
 				//TODO пересмотреть положение кнопки специальной вставки при вставке в таблицу
 				var table;
@@ -2493,7 +2493,7 @@ PasteProcessor.prototype =
 
 			//если вставляем одну таблицу в ячейку другой таблицы
 			if (this.pasteIntoElem && 1 === aContent.length && type_Table === this.aContent[0].GetType() &&
-				this.pasteIntoElem.Parent && this.pasteIntoElem.Parent.Is_InTable())
+				this.pasteIntoElem.Parent && this.pasteIntoElem.Parent.IsInTable())
 			{
 				props = [sProps.overwriteCells, sProps.insertAsNestedTable, sProps.keepTextOnly];
 			}

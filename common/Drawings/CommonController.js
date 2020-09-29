@@ -2969,8 +2969,8 @@ DrawingObjectsController.prototype =
                     if(oContent2){
                         var SelectedInfo = new CSelectedElementsInfo();
                         oContent2.GetSelectedElementsInfo(SelectedInfo);
-                        if (null !== SelectedInfo.Get_Math()){
-                            var ParaMath = SelectedInfo.Get_Math();
+                        if (null !== SelectedInfo.GetMath()){
+                            var ParaMath = SelectedInfo.GetMath();
                             ParaMath.Set_MenuProps(oMathProps);
                         }
                     }
@@ -2999,7 +2999,7 @@ DrawingObjectsController.prototype =
             if(oContent){
                 var oInfo = new CSelectedElementsInfo();
                 oContent.GetSelectedElementsInfo(oInfo);
-                var Math         = oInfo.Get_Math();
+                var Math         = oInfo.GetMath();
                 if (null !== Math && true !== Math.Is_Inline())
                 {
                     Math.Set_Align(align);
@@ -7220,7 +7220,7 @@ DrawingObjectsController.prototype =
                 {
                     var oSelectedInfo = new CSelectedElementsInfo();
                     target_doc_content.GetSelectedElementsInfo(oSelectedInfo);
-                    var oMath         = oSelectedInfo.Get_Math();
+                    var oMath         = oSelectedInfo.GetMath();
                     if (null !== oMath && oMath.Is_InInnerContent())
                     {
                         this.checkSelectedObjectsAndCallback(function()

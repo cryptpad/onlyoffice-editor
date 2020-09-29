@@ -1861,53 +1861,53 @@ CSelectedElementsInfo.prototype.Reset = function()
     this.m_bMixedSelection = false;
     this.m_nDrawing        = -1;
 };
-CSelectedElementsInfo.prototype.Set_Math = function(Math)
+CSelectedElementsInfo.prototype.SetMath = function(Math)
 {
     this.m_oMath = Math;
 };
-CSelectedElementsInfo.prototype.Set_Field = function(Field)
+CSelectedElementsInfo.prototype.SetField = function(Field)
 {
     this.m_oField = Field;
 };
-CSelectedElementsInfo.prototype.Get_Math = function()
+CSelectedElementsInfo.prototype.GetMath = function()
 {
     return this.m_oMath;
 };
-CSelectedElementsInfo.prototype.Get_Field = function()
+CSelectedElementsInfo.prototype.GetField = function()
 {
     return this.m_oField;
 };
-CSelectedElementsInfo.prototype.Set_Table = function()
+CSelectedElementsInfo.prototype.SetTable = function()
 {
     this.m_bTable = true;
 };
-CSelectedElementsInfo.prototype.Set_Drawing = function(nDrawing)
+CSelectedElementsInfo.prototype.SetDrawing = function(nDrawing)
 {
     this.m_nDrawing = nDrawing;
 
     this.m_bSdtOverDrawing = true;
 };
-CSelectedElementsInfo.prototype.Is_DrawingObjSelected = function()
+CSelectedElementsInfo.prototype.IsDrawingObjSelected = function()
 {
     return ( this.m_nDrawing === selected_DrawingObject ? true : false );
 };
-CSelectedElementsInfo.prototype.Set_MixedSelection = function()
+CSelectedElementsInfo.prototype.SetMixedSelection = function()
 {
     this.m_bMixedSelection = true;
 };
-CSelectedElementsInfo.prototype.Is_InTable = function()
+CSelectedElementsInfo.prototype.IsInTable = function()
 {
     return this.m_bTable;
 };
-CSelectedElementsInfo.prototype.Is_MixedSelection = function()
+CSelectedElementsInfo.prototype.IsMixedSelection = function()
 {
     return this.m_bMixedSelection;
 };
-CSelectedElementsInfo.prototype.Set_SingleCell = function(Cell)
+CSelectedElementsInfo.prototype.SetSingleCell = function(Cell)
 {
     this.m_oCell = Cell;
 };
-CSelectedElementsInfo.prototype.Get_SingleCell = function()
+CSelectedElementsInfo.prototype.GetSingleCell = function()
 {
     return this.m_oCell;
 };
@@ -6375,7 +6375,7 @@ CDocument.prototype.MoveCursorToPageEnd = function()
 CDocument.prototype.SetParagraphAlign = function(Align)
 {
 	var SelectedInfo = this.GetSelectedElementsInfo();
-	var Math         = SelectedInfo.Get_Math();
+	var Math         = SelectedInfo.GetMath();
 	if (null !== Math && true !== Math.Is_Inline())
 	{
 		Math.Set_Align(Align);
@@ -7590,7 +7590,7 @@ CDocument.prototype.Interface_Update_ParaPr = function()
 		}
 
 		var oSelectedInfo = this.GetSelectedElementsInfo({CheckAllSelection : true});
-		var oMath         = oSelectedInfo.Get_Math();
+		var oMath         = oSelectedInfo.GetMath();
 
 		if (oMath)
 			ParaPr.CanAddImage = false;
@@ -9478,7 +9478,7 @@ CDocument.prototype.OnKeyDown = function(e)
 		case c_oAscDocumentShortcutType.InsertEquation:
 		{
 			var oSelectedInfo = this.GetSelectedElementsInfo();
-			var oMath         = oSelectedInfo.Get_Math();
+			var oMath         = oSelectedInfo.GetMath();
 			if (null === oMath)
 				this.Api.asc_AddMath();
 
@@ -9599,9 +9599,9 @@ CDocument.prototype.OnKeyDown = function(e)
 		{
 			var SelectedInfo = this.GetSelectedElementsInfo();
 
-			if (null !== SelectedInfo.Get_Math())
+			if (null !== SelectedInfo.GetMath())
 			{
-				var ParaMath  = SelectedInfo.Get_Math();
+				var ParaMath  = SelectedInfo.GetMath();
 				var Paragraph = ParaMath.GetParagraph();
 				if (Paragraph && false === this.Document_Is_SelectionLocked(changestype_None, {
 					Type      : changestype_2_Element_and_Type,
@@ -9615,17 +9615,17 @@ CDocument.prototype.OnKeyDown = function(e)
 					this.FinalizeAction();
 				}
 			}
-			else if (true === SelectedInfo.Is_InTable() && true != e.CtrlKey)
+			else if (true === SelectedInfo.IsInTable() && true != e.CtrlKey)
 			{
 				this.MoveCursorToCell(true === e.ShiftKey ? false : true);
 			}
-			else if (true === SelectedInfo.Is_DrawingObjSelected() && true != e.CtrlKey)
+			else if (true === SelectedInfo.IsDrawingObjSelected() && true != e.CtrlKey)
 			{
 				this.DrawingObjects.selectNextObject((e.ShiftKey === true ? -1 : 1));
 			}
 			else
 			{
-				if (true === SelectedInfo.Is_MixedSelection())
+				if (true === SelectedInfo.IsMixedSelection())
 				{
 					if (true === e.ShiftKey)
 						this.DecreaseIndent();
@@ -9696,7 +9696,7 @@ CDocument.prototype.OnKeyDown = function(e)
 				var CheckType     = AscCommon.changestype_Document_Content_Add;
 
 				var bCanPerform = true;
-				if ((oSelectedInfo.GetInlineLevelSdt() && !oSelectedInfo.IsSdtOverDrawing() && (!e.ShiftKey || e.CtrlKey)) || (oSelectedInfo.Get_Field() && oSelectedInfo.Get_Field().IsFillingForm()))
+				if ((oSelectedInfo.GetInlineLevelSdt() && !oSelectedInfo.IsSdtOverDrawing() && (!e.ShiftKey || e.CtrlKey)) || (oSelectedInfo.GetField() && oSelectedInfo.GetField().IsFillingForm()))
 					bCanPerform = false;
 
 				if (bCanPerform && (docpostype_DrawingObjects === this.CurPos.Type ||
@@ -9717,7 +9717,7 @@ CDocument.prototype.OnKeyDown = function(e)
 				{
 					this.StartAction(AscDFH.historydescription_Document_EnterButton);
 
-					var oMath = oSelectedInfo.Get_Math();
+					var oMath = oSelectedInfo.GetMath();
 					if (null !== oMath && oMath.Is_InInnerContent())
 					{
 						if (oMath.Handle_AddNewLine())
@@ -9790,7 +9790,7 @@ CDocument.prototype.OnKeyDown = function(e)
 		else if (e.KeyCode === 32) // Space
 		{
 			var oSelectedInfo = this.GetSelectedElementsInfo();
-			var oMath         = oSelectedInfo.Get_Math();
+			var oMath         = oSelectedInfo.GetMath();
 			var oInlineSdt    = oSelectedInfo.GetInlineLevelSdt();
 			var oBlockSdt     = oSelectedInfo.GetBlockLevelSdt();
 
@@ -10622,7 +10622,7 @@ CDocument.prototype.GetAddedTextOnKeyDown = function(e)
 	if (e.KeyCode === 32) // Space
 	{
 		var oSelectedInfo = this.GetSelectedElementsInfo();
-		var oMath         = oSelectedInfo.Get_Math();
+		var oMath         = oSelectedInfo.GetMath();
 
 		if (!oMath)
 		{
@@ -11309,7 +11309,7 @@ CDocument.prototype.Is_TopDocument = function(bReturnTopDocument)
 
 	return true;
 };
-CDocument.prototype.Is_InTable = function(bReturnTopTable)
+CDocument.prototype.IsInTable = function(bReturnTopTable)
 {
 	if (true === bReturnTopTable)
 		return null;
@@ -11667,7 +11667,7 @@ CDocument.prototype.private_UpdateTracks = function(bSelection, bEmptySelection)
 
 	var oSelectedInfo = this.GetSelectedElementsInfo();
 
-	var Math = oSelectedInfo.Get_Math();
+	var Math = oSelectedInfo.GetMath();
 	if (null !== Math)
 		this.DrawingDocument.Update_MathTrack(true, (false === bSelection || true === bEmptySelection ? true : false), Math);
 	else
@@ -11683,7 +11683,7 @@ CDocument.prototype.private_UpdateTracks = function(bSelection, bEmptySelection)
 	else
 		this.DrawingDocument.OnDrawContentControl(null, AscCommon.ContentControlTrack.In);
 
-	var oField = oSelectedInfo.Get_Field();
+	var oField = oSelectedInfo.GetField();
 	if (null !== oField && (fieldtype_MERGEFIELD !== oField.Get_FieldType() || true !== this.MailMergeFieldsHighlight))
 	{
 		var aBounds = oField.Get_Bounds();
@@ -14440,7 +14440,7 @@ CDocument.prototype.Save_DocumentStateBeforeLoadChanges = function()
 		}
 	};
 
-	State.SingleCell = this.GetSelectedElementsInfo().Get_SingleCell();
+	State.SingleCell = this.GetSelectedElementsInfo().GetSingleCell();
 	State.Pos        = [];
 	State.StartPos   = [];
 	State.EndPos     = [];
@@ -14864,7 +14864,7 @@ CDocument.prototype.private_CorrectDocumentPosition = function()
 CDocument.prototype.private_ToggleParagraphAlignByHotkey = function(Align)
 {
 	var SelectedInfo = this.GetSelectedElementsInfo();
-	var Math         = SelectedInfo.Get_Math();
+	var Math         = SelectedInfo.GetMath();
 	if (null !== Math && true !== Math.Is_Inline())
 	{
 		var MathAlign = Math.Get_Align();
@@ -15687,11 +15687,11 @@ CDocument.prototype.IsMirrorMargins = function()
 CDocument.prototype.Set_MathProps = function(MathProps)
 {
 	var SelectedInfo = this.GetSelectedElementsInfo();
-	if (null !== SelectedInfo.Get_Math() && false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
+	if (null !== SelectedInfo.GetMath() && false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
 	{
 		this.StartAction(AscDFH.historydescription_Document_SetMathProps);
 
-		var ParaMath = SelectedInfo.Get_Math();
+		var ParaMath = SelectedInfo.GetMath();
 		ParaMath.Set_MenuProps(MathProps);
 
 		this.Recalculate();
@@ -17865,13 +17865,13 @@ CDocument.prototype.controller_AddToParagraph = function(ParaItem, bRecalculate)
 				if (ParaItem instanceof AscCommonWord.MathMenu)
 				{
 					var oInfo = this.GetSelectedElementsInfo();
-					if (oInfo.Get_Math())
+					if (oInfo.GetMath())
 					{
-						var oMath = oInfo.Get_Math();
+						var oMath = oInfo.GetMath();
 						if (!oMath.IsParentEquationPlaceholder())
 							ParaItem.SetText(oMath.Copy(true));
 					}
-					else if (!oInfo.Is_MixedSelection())
+					else if (!oInfo.IsMixedSelection())
 					{
 						ParaItem.SetText(this.GetSelectedText({MathAdd : true}));
 					}
@@ -19867,7 +19867,7 @@ CDocument.prototype.controller_GetSelectedElementsInfo = function(oInfo)
 		else
 		{
 			if (this.Selection.StartPos !== this.Selection.EndPos)
-				oInfo.Set_MixedSelection();
+				oInfo.SetMixedSelection();
 
 			if (oInfo.IsCheckAllSelection() || this.Selection.StartPos === this.Selection.EndPos)
 			{
@@ -20608,7 +20608,7 @@ CDocument.prototype.IsFillingFormMode = function()
 CDocument.prototype.IsInFormField = function()
 {
 	var oSelectedInfo = this.GetSelectedElementsInfo();
-	var oField        = oSelectedInfo.Get_Field();
+	var oField        = oSelectedInfo.GetField();
 	var oInlineSdt    = oSelectedInfo.GetInlineLevelSdt();
 	var oBlockSdt     = oSelectedInfo.GetBlockLevelSdt();
 
