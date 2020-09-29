@@ -3884,6 +3884,7 @@ background-repeat: no-repeat;\
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphSuppressLineNumbers);
 			oLogicDocument.SetParagraphSuppressLineNumbers(isSuppress);
 			oLogicDocument.Recalculate();
+			oLogicDocument.UpdateInterface();
 			oLogicDocument.FinalizeAction();
 		}
 	};
