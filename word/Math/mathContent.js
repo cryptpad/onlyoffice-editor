@@ -5447,7 +5447,7 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
     var CanMakeAutoCorrect         = false;
     // Смотрим возможно ли выполнить автозамену, если нет, тогда пробуем произвести автозамену пропуская последний символ
     CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine);
-    if (CanMakeAutoCorrect && AutoCorrectEngine.IsFull) {
+    if (CanMakeAutoCorrect && (AutoCorrectEngine.IsFull || AutoCorrectEngine.TypeSpecFunc)) {
         this.private_ReplaceAutoCorrect(AutoCorrectEngine);
         if (AutoCorrectEngine.StartHystory) {
             if(oLogicDocument) {
@@ -5457,12 +5457,35 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
             }
             AutoCorrectEngine.StartHystory = false;
         }
+        if (AutoCorrectEngine.TypeSpecFunc == MATH_MATRIX) {
+            if(oLogicDocument) {
+                oLogicDocument.StartAction(AscDFH.historydescription_Document_MathAutoCorrect);
+            } else {
+                History.Create_NewPoint(AscDFH.historydescription_Document_MathAutoCorrect);
+            }
+
+            AutoCorrectEngine.Remove[0].Count = AutoCorrectEngine.ReplaceContent[0].Content.length + 1;
+            AutoCorrectEngine.CurElement = this.CurPos;
+            AutoCorrectEngine.ReplaceContent = [];
+            AutoCorrectEngine.private_Add_Element(this.Content);
+            this.private_ReplaceAutoCorrect(AutoCorrectEngine);
+            this.Add_Text("(", this.Paragraph);
+            this.Add_Matrix(AutoCorrectEngine.TextPr, 3, 3, false, ["1", "0", "0", "0", "1", "0", "0", "0", "1"]);
+            this.Add_Text(")", this.Paragraph);
+
+            if(oLogicDocument) {
+                oLogicDocument.FinalizeAction();
+            } else {
+                History.Remove_LastPoint();
+            }
+        }
         AutoCorrectEngine.CurElement = this.CurPos;
         AutoCorrectEngine.private_Add_Element(this.Content);
         AutoCorrectEngine.Remove = [];
-        AutoCorrectEngine.Remove['total']  = 0;
+        AutoCorrectEngine.Remove['total'] = 0;
         AutoCorrectEngine.ReplaceContent = [];
-        CanMakeAutoCorrect = false;
+        CanMakeAutoCorrect = (AutoCorrectEngine.TypeSpecFunc == MATH_MATRIX) ? true : false;
+        AutoCorrectEngine.TypeSpecFunc = null;
     }
 
 
@@ -5606,6 +5629,10 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine) 
                 }
             }
             FlagEnd = true;
+            if (AutoCorrectElement[0] == '\\identitymatrix' || AutoCorrectElement[0] == '\\quadratic') {
+                AutoCorrectEngine.TypeSpecFunc = (AutoCorrectElement[0] == '\\identitymatrix') ? MATH_MATRIX : MATH_RADICAL;
+                RemoveCount--;  
+            }
         }
         if (FlagEnd) {
             break;
@@ -9093,6 +9120,8 @@ function CMathAutoCorrectEngine(Elem, CurPos, Paragraph) {
     this.StartHystory     = false;                                              // флаг, обозначающий была ли уже создана точка в истории автозаменой
     this.IntFlag          = window['AscCommonWord'].b_DoAutoCorrectMathSymbols; // флаг из интерфейса делать ли автозамену  символов из списка
     this.RepCharsCode     = [];                                                 // массив символов, добавленных в документ при автозамене
+    this.IsFull           = false;                                              // флаг обозначения полной автозамены
+    this.TypeSpecFunc     = null;                                               // тип функции полученной в private_CanAutoCorrectText (пока важны только identitymatrix и quadratic) 
     this.TextPr           = null;
     this.MathPr           = null;
 };
@@ -9379,7 +9408,7 @@ var g_DefaultAutoCorrectMathSymbolsList =
     ['\\hphantom', 0x2B04],
     ['\\hsmash', 0x2B0C],
     ['\\hvec', 0x20D1],
-    ['\\identitymatrix', [0x0028, 0x25A0, 0x0028, 0x0031, 0x0026, 0x0030, 0x0026, 0x0030, 0x0040, 0x0030, 0x0026,0x0031, 0x0026, 0x0030, 0x0030, 0x0040, 0x0030, 0x0026, 0x0030, 0x0026, 0x0031, 0x0029, 0x0029]],
+    ['\\identitymatrix', [0x0028, 0x25A0, 0x0028, 0x0031, 0x0026, 0x0030, 0x0026, 0x0030, 0x0040, 0x0030, 0x0026, 0x0031, 0x0026, 0x0030, 0x0040, 0x0030, 0x0026, 0x0030, 0x0026, 0x0031, 0x0029, 0x0029]],
     ['\\ii', 0x2148],
     ['\\iiint', 0x222D],
     ['\\iint', 0x222C],
@@ -9425,7 +9454,7 @@ var g_DefaultAutoCorrectMathSymbolsList =
     ['\\lessgtr', 0x2276],
     ['\\lfloor', 0x230A],
     ['\\lhvec', 0x20D0],
-    ['\\limit', [0x006C, 0x0069, 0x006D, 0x005F, 0x0028, 0x006E, 0x2192, 0x221E, 0x0029, 0x2061, 0x3016, 0x0028, 0x0031, 0x002B, 0x0031, 0x002F, 0x006E, 0x0029, 0x005E, 0x006E, 0x3017, 0x003D, 0x0065]],
+    ['\\limit', [0x006C, 0x0069, 0x006D, 0x2061, 0x005F, 0x0028, 0x006E, 0x2192, 0x221E, 0x0029, 0x3016, 0x0028, 0x0031, 0x002B, 0x0031, 0x002F, 0x006E, 0x0029, 0x005E, 0x006E, 0x3017, 0x003D, 0x0065]],
     ['\\ll', 0x226A],
     ['\\lmoust', 0x23B0],
     ['\\Longleftarrow', 0x27F8],
@@ -9500,7 +9529,7 @@ var g_DefaultAutoCorrectMathSymbolsList =
     ['\\psi', 0x03C8],
     ['\\Psi', 0x03A8],
     ['\\qdrt', 0x221C],
-    ['\\quadratic', [0x0078, 0x003d, 0x0028, 0x002d, 0x0062, 0x00B1, 0x221A, 0x0020, 0x0028, 0x0062, 0x005e, 0x0032, 0x002d, 0x0034, 0x0061, 0x0063, 0x0029, 0x0029, 0x002f, 0x0032, 0x0061]],
+    ['\\quadratic', [0x0078, 0x003d, 0x0028, 0x002d, 0x0062, 0x00B1, 0x221A, 0x0028, 0x0062, 0x005e, 0x0032, 0x002d, 0x0034, 0x0061, 0x0063, 0x0029, 0x0029, 0x002f, 0x0032, 0x0061]],
     ['\\rangle', 0x232A],
     ['\\Rangle', 0x27EB],
     ['\\ratio', 0x2236],
