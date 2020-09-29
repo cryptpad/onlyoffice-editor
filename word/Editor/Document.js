@@ -1853,77 +1853,64 @@ function CSelectedElementsInfo(oPr)
 	this.m_oPresentationField = null;
 	this.m_arrMoveMarks       = [];
 	this.m_arrFootEndNoteRefs = [];
-
-    this.Reset = function()
-    {
-        this.m_bSelection      = false;
-        this.m_bTable          = false;
-        this.m_bMixedSelection = false;
-        this.m_nDrawing        = -1;
-    };
-
-    this.Set_Math = function(Math)
-    {
-        this.m_oMath = Math;
-    };
-
-    this.Set_Field = function(Field)
-    {
-        this.m_oField = Field;
-    };
-
-    this.Get_Math = function()
-    {
-        return this.m_oMath;
-    };
-
-    this.Get_Field = function()
-    {
-        return this.m_oField;
-    };
-
-    this.Set_Table = function()
-    {
-        this.m_bTable = true;
-    };
-
-    this.Set_Drawing = function(nDrawing)
-    {
-        this.m_nDrawing = nDrawing;
-
-		this.m_bSdtOverDrawing = true;
-    };
-
-    this.Is_DrawingObjSelected = function()
-    {
-        return ( this.m_nDrawing === selected_DrawingObject ? true : false );
-    };
-
-    this.Set_MixedSelection = function()
-    {
-        this.m_bMixedSelection = true;
-    };
-
-    this.Is_InTable = function()
-    {
-        return this.m_bTable;
-    };
-
-    this.Is_MixedSelection = function()
-    {
-        return this.m_bMixedSelection;
-    };
-
-    this.Set_SingleCell = function(Cell)
-    {
-        this.m_oCell = Cell;
-    };
-
-    this.Get_SingleCell = function()
-    {
-        return this.m_oCell;
-    };
 }
+CSelectedElementsInfo.prototype.Reset = function()
+{
+    this.m_bSelection      = false;
+    this.m_bTable          = false;
+    this.m_bMixedSelection = false;
+    this.m_nDrawing        = -1;
+};
+CSelectedElementsInfo.prototype.Set_Math = function(Math)
+{
+    this.m_oMath = Math;
+};
+CSelectedElementsInfo.prototype.Set_Field = function(Field)
+{
+    this.m_oField = Field;
+};
+CSelectedElementsInfo.prototype.Get_Math = function()
+{
+    return this.m_oMath;
+};
+CSelectedElementsInfo.prototype.Get_Field = function()
+{
+    return this.m_oField;
+};
+CSelectedElementsInfo.prototype.Set_Table = function()
+{
+    this.m_bTable = true;
+};
+CSelectedElementsInfo.prototype.Set_Drawing = function(nDrawing)
+{
+    this.m_nDrawing = nDrawing;
+
+    this.m_bSdtOverDrawing = true;
+};
+CSelectedElementsInfo.prototype.Is_DrawingObjSelected = function()
+{
+    return ( this.m_nDrawing === selected_DrawingObject ? true : false );
+};
+CSelectedElementsInfo.prototype.Set_MixedSelection = function()
+{
+    this.m_bMixedSelection = true;
+};
+CSelectedElementsInfo.prototype.Is_InTable = function()
+{
+    return this.m_bTable;
+};
+CSelectedElementsInfo.prototype.Is_MixedSelection = function()
+{
+    return this.m_bMixedSelection;
+};
+CSelectedElementsInfo.prototype.Set_SingleCell = function(Cell)
+{
+    this.m_oCell = Cell;
+};
+CSelectedElementsInfo.prototype.Get_SingleCell = function()
+{
+    return this.m_oCell;
+};
 CSelectedElementsInfo.prototype.IsSkipTOC = function()
 {
 	return this.m_bSkipTOC;
