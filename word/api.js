@@ -3531,8 +3531,8 @@ background-repeat: no-repeat;\
 				this.WordControl.m_oLogicDocument.Set_DocumentDefaultTab(Props.DefaultTab);
 			}
 
-			if (undefined !== Props.OutlineLvl)
-				oLogicDocument.SetParagraphOutlineLvl(Props.SuppressLineNumbers);
+			if (undefined !== Props.SuppressLineNumbers)
+				oLogicDocument.SetParagraphSuppressLineNumbers(Props.SuppressLineNumbers);
 
 			// TODO: как только разъединят настройки параграфа и текста переделать тут
 			var TextPr = new AscCommonWord.CTextPr();
@@ -3873,7 +3873,7 @@ background-repeat: no-repeat;\
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
-	asc_docs_api.prototype.put_ParagraphSuppressLineNumbers = function(isSuppress)
+	asc_docs_api.prototype.asc_SetParagraphSuppressLineNumbers = function(isSuppress)
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
 		if (!oLogicDocument)
@@ -3884,6 +3884,7 @@ background-repeat: no-repeat;\
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphSuppressLineNumbers);
 			oLogicDocument.SetParagraphSuppressLineNumbers(isSuppress);
 			oLogicDocument.Recalculate();
+			oLogicDocument.UpdateInterface();
 			oLogicDocument.FinalizeAction();
 		}
 	};
@@ -4500,6 +4501,17 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["asc_SetColumnsProps"]    = asc_docs_api.prototype.asc_SetColumnsProps;
 	asc_docs_api.prototype["asc_GetColumnsProps"]    = asc_docs_api.prototype.asc_GetColumnsProps;
 
+	asc_docs_api.prototype.asc_SetLineNumbersProps = function(nApplyType, oLineNumbersProps)
+	{
+		this.WordControl.m_oLogicDocument.SetLineNumbersProps(nApplyType, oLineNumbersProps);
+	};
+	asc_docs_api.prototype.asc_GetLineNumbersProps = function()
+	{
+		return this.WordControl.m_oLogicDocument.GetLineNumbersProps();
+	};
+	asc_docs_api.prototype["asc_SetLineNumbersProps"] = asc_docs_api.prototype.asc_SetLineNumbersProps;
+	asc_docs_api.prototype["asc_GetLineNumbersProps"] = asc_docs_api.prototype.asc_GetLineNumbersProps;
+
 	asc_docs_api.prototype.asc_GetWatermarkProps = function()
 	{
 		return this.WordControl.m_oLogicDocument.GetWatermarkProps();
@@ -4549,6 +4561,10 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.sync_ColumnsPropsCallback = function(ColumnsProps)
 	{
 		this.sendEvent("asc_onColumnsProps", ColumnsProps);
+	};
+	asc_docs_api.prototype.sync_LineNumbersPropsCollback = function(oLineNumbersProps)
+	{
+		this.sendEvent("asc_onLineNumbersProps", oLineNumbersProps);
 	};
 	asc_docs_api.prototype.asc_SetFootnoteProps = function(oFootnotePr, bApplyToAll)
 	{
@@ -10687,7 +10703,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_AddNewNumbering']                       = asc_docs_api.prototype.asc_AddNewNumbering;
 	asc_docs_api.prototype['asc_ChangeNumberingLvl']                    = asc_docs_api.prototype.asc_ChangeNumberingLvl;
 	asc_docs_api.prototype['put_Style']                                 = asc_docs_api.prototype.put_Style;
-	asc_docs_api.prototype['put_ParagraphSuppressLineNumbers']          = asc_docs_api.prototype.put_ParagraphSuppressLineNumbers;
+	asc_docs_api.prototype['asc_SetParagraphSuppressLineNumbers']       = asc_docs_api.prototype.asc_SetParagraphSuppressLineNumbers;
 	asc_docs_api.prototype['SetDeviceInputHelperId']                    = asc_docs_api.prototype.SetDeviceInputHelperId;
 	asc_docs_api.prototype['put_ShowSnapLines']                         = asc_docs_api.prototype.put_ShowSnapLines;
 	asc_docs_api.prototype['get_ShowSnapLines']                         = asc_docs_api.prototype.get_ShowSnapLines;

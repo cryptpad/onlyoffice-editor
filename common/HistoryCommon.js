@@ -1184,11 +1184,11 @@
 			case AscDFH.historydescription_Document_SetParagraphSuppressLineNumbers:
 				sString = "Document_SetParagraphSuppressLineNumbers";
 				break;
-			case AscDFH.historydescription_Document_AddLineNumbers:
-				sString = "Document_AddLineNumbers";
+			case AscDFH.historydescription_Document_SetLineNumbersProps:
+				sString = "Document_SetLineNumbersProps";
 				break;
-			case AscDFH.historydescription_Document_RemoveLineNumbers:
-				sString = "Document_RemoveLineNumbers";
+			case AscDFH.historydescription_Document_AddCrossRef:
+				sString = "Document_AddCrossRef";
 				break;
 
 		}
@@ -1431,6 +1431,7 @@
 	window['AscDFH'].historyitem_type_AbsSizeAnchor          = 1135 << 16;
 	window['AscDFH'].historyitem_type_Core                   = 1136 << 16;
 	window['AscDFH'].historyitem_type_SlicerView             = 1137 << 16;
+	window['AscDFH'].historyitem_type_NamedSheetView         = 1138 << 16;
 
 
 	window['AscDFH'].historyitem_type_DocumentMacros         = 2000 << 16;
@@ -3305,9 +3306,8 @@
 	window['AscDFH'].historydescription_Document_Shortcut_ClearFormatting           = 0x017d;
 	window['AscDFH'].historydescription_Document_Shortcut_AddNonBreakingSpace       = 0x017e;
 	window['AscDFH'].historydescription_Document_SetParagraphSuppressLineNumbers    = 0x017f;
-	window['AscDFH'].historydescription_Document_AddLineNumbers                     = 0x0180;
-	window['AscDFH'].historydescription_Document_RemoveLineNumbers                  = 0x0181;
-	window['AscDFH'].historydescription_Document_AddCrossRef                        = 0x0182;
+	window['AscDFH'].historydescription_Document_SetLineNumbersProps                = 0x0180;
+	window['AscDFH'].historydescription_Document_AddCrossRef                        = 0x0181;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
@@ -3410,6 +3410,10 @@
 	CChangesBase.prototype.IsNeedRecalculate = function()
 	{
 		return true;
+	};
+	CChangesBase.prototype.IsNeedRecalculateLineNumbers = function()
+	{
+		return false;
 	};
 	window['AscDFH'].CChangesBase = CChangesBase;
 	/**

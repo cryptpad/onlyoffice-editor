@@ -791,14 +791,20 @@ FT_Stream2.prototype.GetBuffer = function(length) {
 };
 FT_Stream2.prototype.ToFileStream = function() {
 	var res = new AscCommon.FileStream();
-	res.obj = this.obj;
-	res.data = this.data;
-	res.size = this.size;
-	res.pos = this.pos;
-	res.cur= this.cur;
+	this.ToFileStream2(res);
 	return res;
 };
+FT_Stream2.prototype.ToFileStream2 = function(stream) {
+	stream.obj = this.obj;
+	stream.data = this.data;
+	stream.size = this.size;
+	stream.pos = this.pos;
+	stream.cur = this.cur;
+};
 FT_Stream2.prototype.FromFileStream = function(stream) {
+	this.obj = stream.obj;
+	this.data = stream.data;
+	this.size = stream.size;
 	this.pos = stream.pos;
 	this.cur = stream.cur;
 };

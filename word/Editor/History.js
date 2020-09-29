@@ -480,7 +480,7 @@ CHistory.prototype =
 				Len : Binary_Len
 			},
 
-			NeedRecalc : !this.MinorChanges && (!_Class || _Class.IsNeedRecalculate())
+			NeedRecalc : !this.MinorChanges && (!_Class || _Class.IsNeedRecalculate() || _Class.IsNeedRecalculateLineNumbers())
 		};
 
 		this.Points[this.Index].Items.push(Item);

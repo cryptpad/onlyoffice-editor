@@ -325,6 +325,10 @@ var editor;
     this._onEndOpen();
   };
 
+
+  spreadsheet_api.prototype.initGlobalObjectsNamedSheetView = function(wbModel) {
+  };
+
   spreadsheet_api.prototype.initGlobalObjects = function(wbModel) {
     // History & global counters
     History.init(wbModel);
@@ -346,6 +350,7 @@ var editor;
     AscCommonExcel.g_oUndoRedoSlicer = new AscCommonExcel.UndoRedoSlicer(wbModel);
     AscCommonExcel.g_oUndoRedoPivotTables = new AscCommonExcel.UndoRedoPivotTables(wbModel);
     AscCommonExcel.g_oUndoRedoPivotFields = new AscCommonExcel.UndoRedoPivotFields(wbModel);
+    this.initGlobalObjectsNamedSheetView(wbModel);
   };
 
   spreadsheet_api.prototype.asc_DownloadAs = function (options) {
@@ -1220,6 +1225,11 @@ var editor;
       },
       "updateAllPrintScaleLock": function() {
           t._onUpdateAllPrintScaleLock.apply(t, arguments);
+      },
+      "updateAllSheetViewLock": function() {
+          if (t._onUpdateAllSheetViewLock) {
+            t._onUpdateAllSheetViewLock.apply(t, arguments);
+          }
       }
     }, this.getViewMode());
 
@@ -1284,6 +1294,10 @@ var editor;
           t._onUpdateHeaderFooterLock(lockElem);
           //эвент о локе в меню опции scale во вкладке layout
           t._onUpdatePrintScaleLock(lockElem);
+          //эвент о локе представлений
+          if (t._onUpdateNamedSheetViewLock) {
+            t._onUpdateNamedSheetViewLock(lockElem);
+          }
 
 
 
@@ -4842,6 +4856,7 @@ var editor;
   spreadsheet_api.prototype.asc_setSlicers = function (names, obj) {
     return this.wb.setSlicers(names, obj);
   };
+  
 
   /*
    * Export

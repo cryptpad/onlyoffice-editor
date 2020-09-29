@@ -240,7 +240,9 @@
 			// Data Validate
 			RemoveDuplicates : -850,
 
-			LargeRangeWarning: -900
+			LargeRangeWarning: -900,
+
+			LockedEditView: -950
 		}
 	};
 
@@ -2091,6 +2093,12 @@
 		NewSection : 3
 	};
 
+	var c_oAscSectionApplyType = {
+		Current : 0,
+		ToEnd   : 1,
+		All     : 2
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -2250,6 +2258,7 @@
 	prot['CustomSortNotOriginalSelectError'] = prot.CustomSortNotOriginalSelectError;
 	prot['RemoveDuplicates']                 = prot.RemoveDuplicates;
 	prot['LargeRangeWarning']                = prot.LargeRangeWarning;
+	prot['LockedEditView']                   = prot.LockedEditView;
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
 	prot                                     = c_oAscAsyncAction;
 	prot['Open']                             = prot.Open;
@@ -3107,5 +3116,10 @@
 	prot['Continuous'] = c_oAscLineNumberRestartType.Continuous;
 	prot['NewPage']    = c_oAscLineNumberRestartType.NewPage;
 	prot['NewSection'] = c_oAscLineNumberRestartType.NewSection;
+
+	prot = window['Asc']['c_oAscSectionApplyType'] = window['Asc'].c_oAscSectionApplyType = c_oAscSectionApplyType;
+	prot['Current'] = c_oAscSectionApplyType.Current;
+	prot['ToEnd']   = c_oAscSectionApplyType.ToEnd;
+	prot['All']     = c_oAscSectionApplyType.All;
 
 })(window);

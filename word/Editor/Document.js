@@ -1853,77 +1853,64 @@ function CSelectedElementsInfo(oPr)
 	this.m_oPresentationField = null;
 	this.m_arrMoveMarks       = [];
 	this.m_arrFootEndNoteRefs = [];
-
-    this.Reset = function()
-    {
-        this.m_bSelection      = false;
-        this.m_bTable          = false;
-        this.m_bMixedSelection = false;
-        this.m_nDrawing        = -1;
-    };
-
-    this.Set_Math = function(Math)
-    {
-        this.m_oMath = Math;
-    };
-
-    this.Set_Field = function(Field)
-    {
-        this.m_oField = Field;
-    };
-
-    this.Get_Math = function()
-    {
-        return this.m_oMath;
-    };
-
-    this.Get_Field = function()
-    {
-        return this.m_oField;
-    };
-
-    this.Set_Table = function()
-    {
-        this.m_bTable = true;
-    };
-
-    this.Set_Drawing = function(nDrawing)
-    {
-        this.m_nDrawing = nDrawing;
-
-		this.m_bSdtOverDrawing = true;
-    };
-
-    this.Is_DrawingObjSelected = function()
-    {
-        return ( this.m_nDrawing === selected_DrawingObject ? true : false );
-    };
-
-    this.Set_MixedSelection = function()
-    {
-        this.m_bMixedSelection = true;
-    };
-
-    this.Is_InTable = function()
-    {
-        return this.m_bTable;
-    };
-
-    this.Is_MixedSelection = function()
-    {
-        return this.m_bMixedSelection;
-    };
-
-    this.Set_SingleCell = function(Cell)
-    {
-        this.m_oCell = Cell;
-    };
-
-    this.Get_SingleCell = function()
-    {
-        return this.m_oCell;
-    };
 }
+CSelectedElementsInfo.prototype.Reset = function()
+{
+    this.m_bSelection      = false;
+    this.m_bTable          = false;
+    this.m_bMixedSelection = false;
+    this.m_nDrawing        = -1;
+};
+CSelectedElementsInfo.prototype.Set_Math = function(Math)
+{
+    this.m_oMath = Math;
+};
+CSelectedElementsInfo.prototype.Set_Field = function(Field)
+{
+    this.m_oField = Field;
+};
+CSelectedElementsInfo.prototype.Get_Math = function()
+{
+    return this.m_oMath;
+};
+CSelectedElementsInfo.prototype.Get_Field = function()
+{
+    return this.m_oField;
+};
+CSelectedElementsInfo.prototype.Set_Table = function()
+{
+    this.m_bTable = true;
+};
+CSelectedElementsInfo.prototype.Set_Drawing = function(nDrawing)
+{
+    this.m_nDrawing = nDrawing;
+
+    this.m_bSdtOverDrawing = true;
+};
+CSelectedElementsInfo.prototype.Is_DrawingObjSelected = function()
+{
+    return ( this.m_nDrawing === selected_DrawingObject ? true : false );
+};
+CSelectedElementsInfo.prototype.Set_MixedSelection = function()
+{
+    this.m_bMixedSelection = true;
+};
+CSelectedElementsInfo.prototype.Is_InTable = function()
+{
+    return this.m_bTable;
+};
+CSelectedElementsInfo.prototype.Is_MixedSelection = function()
+{
+    return this.m_bMixedSelection;
+};
+CSelectedElementsInfo.prototype.Set_SingleCell = function(Cell)
+{
+    this.m_oCell = Cell;
+};
+CSelectedElementsInfo.prototype.Get_SingleCell = function()
+{
+    return this.m_oCell;
+};
 CSelectedElementsInfo.prototype.IsSkipTOC = function()
 {
 	return this.m_bSkipTOC;
@@ -11797,6 +11784,7 @@ CDocument.prototype.Document_UpdateSectionPr = function()
 		var ColumnsPr = new CDocumentColumnsProps();
 		ColumnsPr.From_SectPr(SectPr);
 		this.Api.sync_ColumnsPropsCallback(ColumnsPr);
+		this.Api.sync_LineNumbersPropsCollback(SectPr.GetLineNumbers());
 		this.Api.sync_SectionPropsCallback(new CDocumentSectionProps(SectPr, this));
 	}
 };
@@ -23445,73 +23433,113 @@ CDocument.prototype.GetLineNumbersInfo = function()
 	return this.LineNumbersInfo;
 };
 /**
- * Убираем нумерацию строк
- * @param {boolean} isAllSections - Удаляем из всех секций или только из текущей
+ * Устанавливаем настройки для нумерации строк
+ * @param {Asc.c_oAscSectionApplyType} nApplyType
+ * @param {?CSectionLnNumType} oProps  (если null или undefined, то из заданных разделов удаляем нумерацию строк)
  */
-CDocument.prototype.RemoveLineNumbers = function(isAllSections)
+CDocument.prototype.SetLineNumbersProps = function(nApplyType, oProps)
 {
 	if (!this.IsSelectionLocked(AscCommon.changestype_Document_SectPr))
 	{
-		this.StartAction(AscDFH.historydescription_Document_RemoveLineNumbers);
+		this.StartAction(AscDFH.historydescription_Document_SetLineNumbersProps);
 
-		if (isAllSections)
+		var arrSectPr = this.GetSectionsByApplyType(nApplyType);
+		if (arrSectPr.length > 0)
 		{
-			for (var nIndex = 0, nCount = this.SectionsInfo.GetCount(); nIndex < nCount; ++nIndex)
+			if (undefined === oProps || null === oProps)
 			{
-				var oSectPr = this.SectionsInfo.Get(nIndex).SectPr;
-				oSectPr.RemoveLineNumbers();
-			}
-		}
-		else
-		{
-			if (docpostype_Content === this.GetDocPosType())
-			{
-				var oParagraph = this.GetCurrentParagraph(true);
-				if (oParagraph)
+				for (var nIndex = 0, nCount = this.SectionsInfo.GetCount(); nIndex < nCount; ++nIndex)
 				{
-					var oSectPr = oParagraph.GetDocumentSectPr();
-					if (oSectPr)
-						oSectPr.RemoveLineNumbers();
+					var oSectPr = this.SectionsInfo.Get(nIndex).SectPr;
+					oSectPr.RemoveLineNumbers();
+				}
+			}
+			else
+			{
+				var nCountBy     = oProps.GetCountBy();
+				var nDistance    = oProps.GetDistance();
+				var nStart       = oProps.GetStart();
+				var nRestartType = oProps.GetRestart();
+
+				for (var nIndex = 0, nCount = arrSectPr.length; nIndex < nCount; ++nIndex)
+				{
+					var oSectPr = arrSectPr[nIndex];
+					oSectPr.SetLineNumbers(nCountBy, nDistance, nStart, nRestartType);
 				}
 			}
 		}
 
 		this.Recalculate();
+		this.UpdateInterface();
 		this.FinalizeAction();
 	}
 };
-CDocument.prototype.AddLineNumbers = function(isAllSections, nCountBy, nDistance, nStart, nRestartType)
+/**
+ * Получаем настройки нумерации строк текущего раздела
+ * @returns {?CSectionLnNumType|null}
+ */
+CDocument.prototype.GetLineNumbersProps = function()
 {
-	if (!this.IsSelectionLocked(AscCommon.changestype_Document_SectPr))
-	{
-		this.StartAction(AscDFH.historydescription_Document_RemoveLineNumbers);
-
-		if (isAllSections)
-		{
-			for (var nIndex = 0, nCount = this.SectionsInfo.GetCount(); nIndex < nCount; ++nIndex)
-			{
-				var oSectPr = this.SectionsInfo.Get(nIndex).SectPr;
-				oSectPr.SetLineNumbers(nCountBy, nDistance, nStart, nRestartType);
-			}
-		}
-		else
-		{
-			if (docpostype_Content === this.GetDocPosType())
-			{
-				var oParagraph = this.GetCurrentParagraph(true);
-				if (oParagraph)
-				{
-					var oSectPr = oParagraph.GetDocumentSectPr();
-					if (oSectPr)
-						oSectPr.SetLineNumbers(nCountBy, nDistance, nStart, nRestartType);
-				}
-			}
-		}
-
-		this.Recalculate();
-		this.FinalizeAction();
-	}
+	var oSectPr = this.SectionsInfo.GetByContentPos(this.CurPos.ContentPos).SectPr;
+	return oSectPr.HaveLineNumbers() ? oSectPr.GetLineNumbers().Copy() : null;
 };
+/**
+ * Получаем список секции на основе по заданному типу
+ * @param {Asc.c_oAscSectionApplyType} nType
+ * @returns {Array.CSectionPr}
+ */
+CDocument.prototype.GetSectionsByApplyType = function(nType)
+{
+	if (Asc.c_oAscSectionApplyType.Current === nType)
+	{
+		if (docpostype_Content !== this.GetDocPosType())
+			return [];
+
+		var oParagraph = this.GetCurrentParagraph();
+		if (!oParagraph)
+			return [];
+
+		var oSectPr = oParagraph.GetDocumentSectPr();
+		if (oSectPr)
+			return [oSectPr];
+	}
+	else if (Asc.c_oAscSectionApplyType.ToEnd === nType)
+	{
+		if (docpostype_Content !== this.GetDocPosType())
+			return [];
+
+		var oParagraph = this.GetCurrentParagraph();
+		if (!oParagraph)
+			return [];
+
+		var oSectPr = oParagraph.GetDocumentSectPr();
+		if (!oSectPr)
+			[];
+
+		var nIndex = this.SectionsInfo.Find(oSectPr);
+		if (-1 === nIndex)
+			return [oSectPr];
+
+		var arrSectPr = [];
+		for (nCount = this.SectionsInfo.GetCount(); nIndex < nCount; ++nIndex)
+		{
+			arrSectPr.push(this.SectionsInfo.Get(nIndex).SectPr);
+		}
+		return arrSectPr;
+	}
+	else if (Asc.c_oAscSectionApplyType.All === nType)
+	{
+		var arrSectPr = [];
+		for (var nIndex = 0, nCount = this.SectionsInfo.GetCount(); nIndex < nCount; ++nIndex)
+		{
+			arrSectPr.push(this.SectionsInfo.Get(nIndex).SectPr);
+		}
+		return arrSectPr;
+	}
+
+	return [];
+};
+
 
 function CDocumentSelectionState()
 {
@@ -23792,16 +23820,7 @@ CDocumentSectionsInfo.prototype =
 
     Get_SectPr : function(Index)
     {
-        var Count = this.Elements.length;
-
-        for ( var Pos = 0; Pos < Count; Pos++ )
-        {
-            if ( Index <= this.Elements[Pos].Index )
-                return this.Elements[Pos];
-        }
-
-        // Последний элемент здесь это всегда конечная секция документа
-        return this.Elements[Count - 1];
+    	return this.GetByContentPos(Index);
     },
 
     Get_SectPr2 : function(Index)
@@ -23898,9 +23917,31 @@ CDocumentSectionsInfo.prototype.GetCount = function()
 {
 	return this.Elements.length;
 };
+/**
+ * Получаем секцию по заданному номеру
+ * @param {number} nIndex
+ * @returns {CDocumentSectionsInfoElement}
+ */
 CDocumentSectionsInfo.prototype.Get = function(nIndex)
 {
 	return this.Elements[nIndex];
+};
+/**
+ * Получаем секцию по заданной позиции контента
+ * @param {number} nContentPos
+ * @returns {CDocumentSectionsInfoElement}
+ */
+CDocumentSectionsInfo.prototype.GetByContentPos = function(nContentPos)
+{
+	var nCount = this.Elements.length;
+	for (var nPos = 0; nPos < nCount; ++nPos)
+	{
+		if (nContentPos <= this.Elements[nPos].Index)
+			return this.Elements[nPos];
+	}
+
+	// Последний элемент здесь это всегда конечная секция документа
+	return this.Elements[nCount - 1];
 };
 /**
  * Получаем массив всех колонтитулов, используемых в данном документе
