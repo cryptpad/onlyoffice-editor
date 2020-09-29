@@ -1943,3 +1943,11 @@ CChangesParagraphSuppressLineNumbers.prototype.private_SetValue = function(Value
 };
 CChangesParagraphSuppressLineNumbers.prototype.Merge = private_ParagraphChangesOnMergePr;
 CChangesParagraphSuppressLineNumbers.prototype.Load = private_ParagraphChangesOnLoadPr;
+CChangesParagraphSuppressLineNumbers.prototype.IsNeedRecalculate = function()
+{
+	return false;
+};
+CChangesParagraphSuppressLineNumbers.prototype.IsNeedRecalculateLineNumbers = function()
+{
+	return true;
+};

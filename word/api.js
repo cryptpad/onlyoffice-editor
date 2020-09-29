@@ -3531,8 +3531,8 @@ background-repeat: no-repeat;\
 				this.WordControl.m_oLogicDocument.Set_DocumentDefaultTab(Props.DefaultTab);
 			}
 
-			if (undefined !== Props.OutlineLvl)
-				oLogicDocument.SetParagraphOutlineLvl(Props.SuppressLineNumbers);
+			if (undefined !== Props.SuppressLineNumbers)
+				oLogicDocument.SetParagraphSuppressLineNumbers(Props.SuppressLineNumbers);
 
 			// TODO: как только разъединят настройки параграфа и текста переделать тут
 			var TextPr = new AscCommonWord.CTextPr();

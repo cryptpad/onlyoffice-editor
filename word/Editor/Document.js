@@ -23474,15 +23474,16 @@ CDocument.prototype.SetLineNumbersProps = function(nApplyType, oProps)
 				var nStart       = oProps.GetStart();
 				var nRestartType = oProps.GetRestart();
 
-				for (var nIndex = 0, nCount = this.SectionsInfo.GetCount(); nIndex < nCount; ++nIndex)
+				for (var nIndex = 0, nCount = arrSectPr.length; nIndex < nCount; ++nIndex)
 				{
-					var oSectPr = this.SectionsInfo.Get(nIndex).SectPr;
+					var oSectPr = arrSectPr[nIndex];
 					oSectPr.SetLineNumbers(nCountBy, nDistance, nStart, nRestartType);
 				}
 			}
 		}
 
 		this.Recalculate();
+		this.UpdateInterface();
 		this.FinalizeAction();
 	}
 };

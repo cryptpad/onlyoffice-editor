@@ -3411,6 +3411,10 @@
 	{
 		return true;
 	};
+	CChangesBase.prototype.IsNeedRecalculateLineNumbers = function()
+	{
+		return false;
+	};
 	window['AscDFH'].CChangesBase = CChangesBase;
 	/**
 	 * Базовый класс для изменений, которые меняют содержимое родительского класса.*

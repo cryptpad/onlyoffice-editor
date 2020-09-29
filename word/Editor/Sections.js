@@ -193,6 +193,9 @@ CSectionPr.prototype =
         this.SetFootnoteNumStart(Other.FootnotePr.NumStart);
         this.SetFootnoteNumRestart(Other.FootnotePr.NumRestart);
         this.SetFootnoteNumFormat(Other.FootnotePr.NumFormat);
+
+        if (Other.HaveLineNumbers())
+        	this.SetLineNumbers(Other.GetLineNumbersCountBy(), Other.GetLineNumbersDistance(), Other.GetLineNumbersStart(), Other.GetLineNumbersRestart());
     },
     
     Clear_AllHdrFtr : function()
@@ -1770,7 +1773,7 @@ CFootnotePr.prototype.ReadFromBinary = function(Reader)
 function CSectionLnNumType(nCountBy, nDistance, nStart, nRestartType)
 {
 	this.CountBy  = undefined !== nCountBy && 1 !== nCountBy ? nCountBy : undefined;
-	this.Distance = undefined !== nDistance ? nDistance : undefined; // В твипсах
+	this.Distance = undefined !== nDistance && null !== nDistance ? nDistance : undefined; // В твипсах
 	this.Start    = undefined !== nStart && 1 !== nStart ? nStart : undefined;
 	this.Restart  = undefined !== nRestartType && Asc.c_oAscLineNumberRestartType.Continuous !== nRestartType ? nRestartType : undefined;
 }
