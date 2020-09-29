@@ -1061,11 +1061,21 @@
 				var worksheet = this.worksheet;
 				var workbook = worksheet.workbook;
 				var result = false;
+				var viewActive = worksheet.getActiveNamedSheetViewId();
 
+				var _filterColumns, _nvsFilter;
 				if (-1 !== tablePartId) {
 					var tablePart = worksheet.TableParts[tablePartId];
-					if (tablePart.Ref && ((tablePart.AutoFilter && tablePart.AutoFilter.FilterColumns &&
-						tablePart.AutoFilter.FilterColumns.length) ||
+
+					if (viewActive !== null) {
+						_nvsFilter = worksheet.getNvsFilterByTableName(tablePart.DisplayName);
+						_filterColumns = _nvsFilter && _nvsFilter.columnsFilter
+					} else {
+						_filterColumns = tablePart.AutoFilter && tablePart.AutoFilter.FilterColumns &&
+							tablePart.AutoFilter.FilterColumns;
+					}
+
+					if (tablePart.Ref && ((_filterColumns && _filterColumns.length) ||
 						(tablePart && tablePart.AutoFilter && tablePart.isApplySortConditions()))) {
 						result = {isFilterColumns: true, isAutoFilter: true};
 					} else if (tablePart.Ref && tablePart.AutoFilter) {
@@ -1078,8 +1088,16 @@
 						result.isSlicerAdded = true;
 					}
 				} else {
+
+					if (viewActive !== null) {
+						_nvsFilter = worksheet.getNvsFilterByTableName(null);
+						_filterColumns = _nvsFilter && _nvsFilter.columnsFilter
+					} else {
+						_filterColumns = worksheet.AutoFilter && worksheet.AutoFilter.FilterColumns && worksheet.AutoFilter.FilterColumns;
+					}
+
 					if (worksheet.AutoFilter &&
-						((worksheet.AutoFilter.FilterColumns && worksheet.AutoFilter.FilterColumns.length &&
+						((_filterColumns && _filterColumns.length &&
 						this._isFilterColumnsContainFilter(worksheet.AutoFilter.FilterColumns)) ||
 						worksheet.AutoFilter.isApplySortConditions())) {
 						result = {isFilterColumns: true, isAutoFilter: true};
