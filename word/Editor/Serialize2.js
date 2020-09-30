@@ -372,7 +372,8 @@ var c_oSerProp_secPrType = {
 	pgBorders: 9,
 	footnotePr: 10,
 	endnotePr: 11,
-	rtlGutter: 12
+	rtlGutter: 12,
+	lnNumType: 13
 };
 var c_oSerProp_secPrSettingsType = {
     titlePg: 0,
@@ -381,6 +382,12 @@ var c_oSerProp_secPrSettingsType = {
 };
 var c_oSerProp_secPrPageNumType = {
 	start: 0
+};
+var c_oSerProp_secPrLineNumType = {
+	CountBy: 0,
+	Distance: 1,
+	Restart: 2,
+	Start: 3
 };
 var c_oSerProp_Columns = {
 	EqualWidth: 0,
@@ -639,7 +646,10 @@ var c_oSer_CommentsType = {
 	Replies: 9,
 	OOData: 10,
 	DurableId: 11,
-	ProviderId: 12
+	ProviderId: 12,
+	CommentContent: 13,
+	DateUtc: 14,
+	UserData: 15
 };
 
 var c_oSer_StyleType = {
@@ -1187,16 +1197,6 @@ var ESdtType = {
 	sdttypeCheckBox: 12
 };
 
-	function getCommentAdditionalData (comment) {
-		var AdditionalData = "";
-		if(null != comment.m_sOOTime && "" != comment.m_sOOTime)
-		{
-			AdditionalData += "teamlab_data:";
-			var dateStr = new Date(comment.m_sOOTime - 0).toISOString().slice(0, 19) + 'Z';
-			AdditionalData += "0;" + dateStr.length + ";" + dateStr + ";";
-		}
-		return AdditionalData;
-	};
 	function ReadNextInteger(_parsed)
 	{
 		var _len = _parsed.data.length;
@@ -2449,6 +2449,8 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 		var PageNumType = sectPr.Get_PageNum_Start();
 		if(-1 != PageNumType)
 			this.bs.WriteItem(c_oSerProp_secPrType.pageNumType, function(){oThis.WritePageNumType(PageNumType);});
+		if(undefined !== sectPr.LnNumType)
+			this.bs.WriteItem(c_oSerProp_secPrType.lnNumType, function(){oThis.WriteLineNumType(sectPr.LnNumType);});
 		if(null != sectPr.Columns)
 			this.bs.WriteItem(c_oSerProp_secPrType.cols, function(){oThis.WriteColumns(sectPr.Columns);});
 		if(null != sectPr.Borders && !sectPr.Borders.IsEmptyBorders())
@@ -2630,6 +2632,22 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 		var oThis = this;
 		this.bs.WriteItem(c_oSerProp_secPrPageNumType.start, function(){oThis.memory.WriteLong(PageNumType);});
 	}
+	this.WriteLineNumType = function(lineNum)
+	{
+		var oThis = this;
+		if(undefined != lineNum.CountBy){
+			this.bs.WriteItem(c_oSerProp_secPrLineNumType.CountBy, function(){oThis.memory.WriteLong(lineNum.CountBy);});
+		}
+		if(undefined != lineNum.Distance){
+			this.bs.WriteItem(c_oSerProp_secPrLineNumType.Distance, function(){oThis.memory.WriteLong(lineNum.Distance);});
+		}
+		if(undefined != lineNum.Restart){
+			this.bs.WriteItem(c_oSerProp_secPrLineNumType.Restart, function(){oThis.memory.WriteByte(lineNum.Restart);});
+		}
+		if(undefined != lineNum.Start){
+			this.bs.WriteItem(c_oSerProp_secPrLineNumType.Start, function(){oThis.memory.WriteLong(lineNum.Start);});
+		}
+	};
     this.WriteColumns = function(cols)
     {
         var oThis = this;
@@ -6416,11 +6434,15 @@ function BinaryCommentsTableWriter(memory, doc, oMapCommentId, commentUniqueGuid
 		{
 			this.bs.WriteItem(c_oSer_CommentsType.Replies, function(){oThis.WriteReplies(comment.m_aReplies);});
 		}
-		var dataStr = getCommentAdditionalData(comment);
-		if (dataStr)
+		if (null != comment.m_sOOTime)
 		{
-			this.memory.WriteByte(c_oSer_CommentsType.OOData);
-			this.memory.WriteString2(dataStr);
+			this.memory.WriteByte(c_oSer_CommentsType.DateUtc);
+			this.memory.WriteString2(new Date(comment.m_sOOTime - 0).toISOString().slice(0, 19) + 'Z');
+		}
+		if (null != comment.m_sUserData)
+		{
+			this.memory.WriteByte(c_oSer_CommentsType.UserData);
+			this.memory.WriteString2(comment.m_sUserData);
 		}
     };
 	this.WriteReplies = function(aComments)
@@ -7538,6 +7560,8 @@ function BinaryFileReader(doc, openParams)
 				oCommentObj.m_sTime = comment.Date;
 			if(null != comment.OODate)
 				oCommentObj.m_sOOTime = comment.OODate;
+			if(null != comment.UserData)
+				oCommentObj.m_sUserData = comment.UserData;
 			if(null != comment.Text)
 				oCommentObj.m_sText = comment.Text;
 			if(null != comment.Solved)
@@ -8774,6 +8798,14 @@ function Binary_pPrReader(doc, oReadResult, stream)
                 return oThis.Read_pageNumType(t, l, oSectPr);
             });
         }
+		else if( c_oSerProp_secPrType.lnNumType === type )
+		{
+			var lineNum = {nCountBy: undefined, nDistance: undefined, nStart: undefined, nRestartType: undefined};
+			res = this.bcr.Read1(length, function(t, l) {
+				return oThis.Read_lineNumType(t, l, lineNum);
+			});
+			oSectPr.SetLineNumbers(lineNum.nCountBy, lineNum.nDistance, lineNum.nStart, lineNum.nRestartType);
+		}
         else if( c_oSerProp_secPrType.sectPrChange === type )
             res = c_oSerConstants.ReadUnknown;//todo
         else if( c_oSerProp_secPrType.cols === type ) {
@@ -9037,6 +9069,22 @@ function Binary_pPrReader(doc, oReadResult, stream)
             res = c_oSerConstants.ReadUnknown;
         return res;
     }
+	this.Read_lineNumType = function(type, length, lineNum)
+	{
+		var res = c_oSerConstants.ReadOk;
+		var oThis = this;
+		if( c_oSerProp_secPrLineNumType.CountBy === type ) {
+			lineNum.nCountBy = this.stream.GetULongLE();
+		} else if( c_oSerProp_secPrLineNumType.Distance === type ) {
+			lineNum.nDistance = this.stream.GetULongLE();
+		} else if( c_oSerProp_secPrLineNumType.Restart === type ) {
+			lineNum.nRestartType = this.stream.GetByte();
+		} else if( c_oSerProp_secPrLineNumType.Start === type ) {
+			lineNum.nStart = this.stream.GetULongLE();
+		} else
+			res = c_oSerConstants.ReadUnknown;
+		return res;
+	}
     this.Read_cols = function(type, length, oSectPr)
     {
         var res = c_oSerConstants.ReadOk;
@@ -15406,6 +15454,19 @@ function Binary_CommentsTableReader(doc, oReadResult, stream, oComments)
 		else if ( c_oSer_CommentsType.OOData === type )
 		{
 			ParceAdditionalData(this.stream.GetString2LE(length), oNewImage);
+		}
+		else if ( c_oSer_CommentsType.DateUtc === type )
+		{
+			var dateStr = this.stream.GetString2LE(length);
+			var dateMs = AscCommon.getTimeISO8601(dateStr);
+			if (isNaN(dateMs)) {
+				dateMs = new Date().getTime();
+			}
+			oNewImage.OODate = dateMs + "";
+		}
+		else if ( c_oSer_CommentsType.UserData === type )
+		{
+			oNewImage.UserData = this.stream.GetString2LE(length);
 		}
 		else if ( c_oSer_CommentsType.DurableId === type )
 		{

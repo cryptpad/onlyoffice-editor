@@ -14373,6 +14373,37 @@ CDocument.prototype.GetAllCaptionParagraphs = function(sCaption)
 	}
 	return aParagraphs;
 };
+CDocument.prototype.GetAllUsedParagraphStyles = function ()
+{
+    var aParagraphs = this.GetAllParagraphs({All: true});
+    var nIndex, nCount = aParagraphs.length;
+    var oStylesMap = {}, sStyleId;
+    var oStyles = this.GetStyles();
+    var aStyles = [];
+    var oStyle;
+    for(nIndex = 0; nIndex < nCount; ++nIndex)
+    {
+        sStyleId = aParagraphs[nIndex].GetParagraphStyle();
+        if(sStyleId)
+        {
+            oStylesMap[sStyleId] = true;
+        }
+        else
+        {
+            sStyleId = oStyles.GetDefaultParagraph();
+            oStylesMap[sStyleId] = true;
+        }
+    }
+    for(sStyleId in oStylesMap)
+    {
+        oStyle = oStyles.Get(sStyleId);
+        if(oStyle)
+        {
+            aStyles.push(oStyles.Get(sStyleId));
+        }
+    }
+    return aStyles;
+};
 CDocument.prototype.TurnOffHistory = function()
 {
 	this.History.TurnOff();
@@ -23394,8 +23425,59 @@ CDocument.prototype.RegisterForm = function(oForm)
 			this.SpecialForms[oForm.GetId()] = oForm;
 		else
 			delete this.SpecialForms[oForm.GetId()];
-
 	}
+};
+/**
+ * Получаем ключи форм по заданным параметрам
+ * @param oPr
+ * @returns {Array.string}
+ */
+CDocument.prototype.GetFormKeys = function(oPr)
+{
+	var isText       = oPr && oPr.Text;
+	var isComboBox   = oPr && oPr.ComboBox;
+	var isDropDown   = oPr && oPr.DropDownList;
+	var isCheckBox   = oPr && oPr.CheckBox;
+	var isPicture    = oPr && oPr.Picture;
+	var isRadioGroup = oPr && oPr.RadioGroup;
+
+	var arrKeys = [];
+	for (var sId in this.SpecialForms)
+	{
+		var oForm = this.SpecialForms[sId];
+
+		var sKey = null;
+		if ((isText && oForm.IsTextForm())
+			|| (isComboBox && oForm.IsComboBox())
+			|| (isDropDown && oForm.IsDropDownList())
+			|| (isCheckBox && oForm.IsCheckBox() && !oForm.IsRadioButton())
+			|| (isPicture && oForm.IsPicture()))
+		{
+			sKey = oForm.GetFormKey();
+		}
+		else if (isRadioGroup && oForm.IsRadioButton())
+		{
+			sKey = oForm.GetRadioButtonGroupKey();
+		}
+
+		if (sKey)
+		{
+			var isAdd = true;
+			for (var nIndex = 0, nCount = arrKeys.length; nIndex < nCount; ++nIndex)
+			{
+				if (sKey === arrKeys[nIndex])
+				{
+					isAdd = false;
+					break;
+				}
+			}
+
+			if (isAdd)
+				arrKeys.push(sKey);
+		}
+	}
+
+	return arrKeys;
 };
 /**
  * Сохраняем информацию о том, что форма с заданным ключом была изменена

@@ -186,7 +186,7 @@ CSdtBase.prototype.IsContentControlTemporary = function()
  */
 CSdtBase.prototype.SetFormPr = function(oFormPr)
 {
-	if ((!this.Pr.FormPr && oFormPr) || this.Pr.FormPr.IsEqual(oFormPr))
+	if ((!this.Pr.FormPr && oFormPr) || !this.Pr.FormPr.IsEqual(oFormPr))
 	{
 		History.Add(new CChangesSdtPrFormPr(this, this.Pr.FormPr, oFormPr));
 		this.Pr.FormPr = oFormPr;
@@ -236,4 +236,15 @@ CSdtBase.prototype.IsRadioButton = function()
 CSdtBase.prototype.IsTextForm = function()
 {
 	return false;
+};
+/**
+ * Получаем ключ для группы радио-кнопок
+ * @returns {?string}
+ */
+CSdtBase.prototype.GetRadioButtonGroupKey = function()
+{
+	if (!this.IsRadioButton())
+		return undefined;
+
+	return (this.Pr.CheckBox.GroupKey);
 };

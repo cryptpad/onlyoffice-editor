@@ -381,6 +381,7 @@
 		this.buildDefName = {};
 		this.buildShared = {};
 		this.buildArrayFormula = [];
+		this.buildPivot = [];
 		this.cleanCellCache = {};
 		//lock
 		this.lockCounter = 0;
@@ -1168,6 +1169,9 @@
 			//происходит это позже - в Cell.prototype.saveContent
 			this.buildArrayFormula.push(f);
 		},
+		addToBuildDependencyPivot: function(f) {
+			this.buildPivot.push(f);
+		},
 		addToCleanCellCache: function(sheetId, row, col) {
 			var sheetArea = this.cleanCellCache[sheetId];
 			if (sheetArea) {
@@ -1229,10 +1233,18 @@
 					this.wb.dependencyFormulas.addToChangedRange2(parsed.getWs().getId(), array);
 				}
 			}
+			for (var index = 0; index < this.buildPivot.length; ++index) {
+				var parsed = this.buildPivot[index];
+				if (parsed) {
+					parsed.parse();
+					parsed.buildDependencies();
+				}
+			}
 			this.buildCell = {};
 			this.buildDefName = {};
 			this.buildShared = {};
 			this.buildArrayFormula = [];
+			this.buildPivot = [];
 		},
 		calcTree: function() {
 			if (this.lockCounter > 0) {
@@ -5571,7 +5583,7 @@
 			}
 		};
 
-		var bCollaborativeChanges = this.workbook.bCollaborativeChanges
+		var bCollaborativeChanges = !this.autoFilters.useViewLocalChange && this.workbook.bCollaborativeChanges
 		if (!bCollaborativeChanges && null !== this.getActiveNamedSheetViewId()) {
 			var rowsArr = this.autoFilters.splitRangeByFilters(start, stop);
 			if (rowsArr) {
@@ -6909,12 +6921,15 @@
 				var cells = this.getRange4(pos.row, pos.col);
 				this._updatePivotTableSetCellValue(cells, pivotTable.getPageFieldName(i));
 				cells = this.getRange4(pos.row, pos.col + 1);
-				//todo right align
 				var num = pivotTable.getPivotFieldNum(pos.pageField.fld);
 				if (num) {
 					cells.setNum(num);
 				}
-				cells.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, pivotTable.getPageFieldCellValue(i)));
+				var oCellValue = pivotTable.getPageFieldCellValue(i);
+				if (oCellValue.type !== AscCommon.CellValueType.String) {
+					cells.setAlignHorizontal(AscCommon.align_Left);
+				}
+				cells.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, oCellValue));
 			}
 		}
 	};
@@ -8611,8 +8626,14 @@
 		this.activeNamedSheetViewId = id;
 	};
 
-	Worksheet.prototype.getNvsFilterByTableName = function (val, opt_name) {
-		var activeNamedSheetViewId = opt_name ? this.getIdNamedSheetViewByName(opt_name) : this.getActiveNamedSheetViewId();
+	Worksheet.prototype.getNvsFilterByTableName = function (val, opt_name, viewId) {
+		var activeNamedSheetViewId;
+		if (viewId) {
+			activeNamedSheetViewId = viewId;
+		} else {
+			activeNamedSheetViewId = opt_name ? this.getIdNamedSheetViewByName(opt_name) : this.getActiveNamedSheetViewId();
+		}
+
 		if (activeNamedSheetViewId === null) {
 			return;
 		}

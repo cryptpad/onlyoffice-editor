@@ -1361,6 +1361,10 @@ function (window, undefined) {
 		data.Read_FromBinary2(reader);
 		return data;
 	};
+	UndoRedoData_BinaryWrapper.prototype.readData = function (data) {
+		var reader = new AscCommon.FT_Stream2(this.binary, this.len);
+		data.Read_FromBinary2(reader);
+	};
 	function UndoRedoData_BinaryWrapper2(data) {
 		this.binary = null;
 		this.len = 0;
@@ -1628,6 +1632,7 @@ function (window, undefined) {
 		this.nRow = null;
 		this.formula = null;
 		this.totalFunction = null;
+		this.viewId = null;
 	}
 
 	UndoRedoData_AutoFilter.prototype.Properties = {
@@ -1653,7 +1658,8 @@ function (window, undefined) {
 		nCol: 19,
 		nRow: 20,
 		formula: 21,
-		totalFunction: 22
+		totalFunction: 22,
+		viewId: 23
 	};
 	UndoRedoData_AutoFilter.prototype.getType = function () {
 		return UndoRedoDataTypes.AutoFilter;
@@ -1742,6 +1748,9 @@ function (window, undefined) {
 				break;
 			case this.Properties.totalFunction:
 				return this.totalFunction;
+				break;
+			case this.Properties.viewId:
+				return this.viewId;
 				break;
 		}
 
@@ -1847,6 +1856,9 @@ function (window, undefined) {
 				break;
 			case this.Properties.totalFunction:
 				this.totalFunction = value;
+				break;
+			case this.Properties.viewId:
+				this.viewId = value;
 				break;
 		}
 		return null;
@@ -2161,6 +2173,13 @@ function (window, undefined) {
 		} else if(AscCH.historyitem_Workbook_Calculate === Type) {
 			if (!bUndo) {
 				wb.calculate(Data.elem, nSheetId);
+			}
+		} else if (bUndo && AscCH.historyitem_Workbook_PivotWorksheetSource === Type) {
+			var wrapper = bUndo ? Data.from : Data.to;
+			var worksheetSource = AscCommon.g_oTableId.Get_ById(wrapper.Id);
+			if (worksheetSource) {
+				wrapper.readData(worksheetSource);
+				worksheetSource.fromWorksheetSource(worksheetSource, true);
 			}
 		}
 	};
@@ -3574,12 +3593,6 @@ function (window, undefined) {
 				if (pageField) {
 					pageField.item = value;
 				}
-				break;
-			case AscCH.historyitem_PivotTable_WorksheetSource:
-				var worksheetSource = new Asc.CT_WorksheetSource();
-				var wrapper = bUndo ? Data.from : Data.to;
-				wrapper.initObject(worksheetSource);
-				pivotTable.cacheDefinition.fromWorksheetSource(worksheetSource);
 				break;
 		}
 	};

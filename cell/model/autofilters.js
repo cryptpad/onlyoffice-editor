@@ -445,6 +445,8 @@
 		/** @constructor */
 		function AutoFilters(currentSheet) {
 			this.worksheet = currentSheet;
+			//флаг для того, чтобы применять скрытые строки к текущему вью
+			this.useViewLocalChange = null;
 
 			this.m_oColor = new AscCommon.CColor(120, 120, 120);
 			return this;
@@ -952,12 +954,23 @@
 
 			updateNamedSheetViewAfterDeleteFilter: function (filter) {
 				var worksheet = this.worksheet;
-				var activeNamedSheetViewId = worksheet.getActiveNamedSheetViewId();
-				if (activeNamedSheetViewId !== null) {
-					var activeNamedSheetView = worksheet.getNamedSheetViewById(activeNamedSheetViewId);
-					if (activeNamedSheetView && activeNamedSheetView.deleteFilter) {
-						activeNamedSheetView.deleteFilter(filter);
+				worksheet.forEachView(function (view) {
+					if (view && view.deleteFilter) {
+						view.deleteFilter(filter);
 					}
+				});
+				this._openHiddenRowsByView(filter.Ref);
+			},
+
+			_openHiddenRowsByView: function (range) {
+				var worksheet = this.worksheet;
+				if (worksheet.aNamedSheetViews && worksheet.aNamedSheetViews.length) {
+					this.useViewLocalChange = true;
+					var sheetViewId = worksheet.getActiveNamedSheetViewId();
+					worksheet.setActiveNamedSheetView(worksheet.aNamedSheetViews[0].Id);
+					worksheet.setRowHidden(false, range.r1, range.r2);
+					worksheet.setActiveNamedSheetView(sheetViewId);
+					this.useViewLocalChange = null;
 				}
 			},
 
@@ -999,6 +1012,9 @@
 				}
 
 				var autoFilter = filter.getAutoFilter();
+				if (autoFilter === null) {
+					return false;
+				}
 
 				worksheet.workbook.dependencyFormulas.lockRecal();
 
@@ -1061,11 +1077,21 @@
 				var worksheet = this.worksheet;
 				var workbook = worksheet.workbook;
 				var result = false;
+				var viewActive = worksheet.getActiveNamedSheetViewId();
 
+				var _filterColumns, _nvsFilter;
 				if (-1 !== tablePartId) {
 					var tablePart = worksheet.TableParts[tablePartId];
-					if (tablePart.Ref && ((tablePart.AutoFilter && tablePart.AutoFilter.FilterColumns &&
-						tablePart.AutoFilter.FilterColumns.length) ||
+
+					if (viewActive !== null) {
+						_nvsFilter = worksheet.getNvsFilterByTableName(tablePart.DisplayName);
+						_filterColumns = _nvsFilter && _nvsFilter.columnsFilter
+					} else {
+						_filterColumns = tablePart.AutoFilter && tablePart.AutoFilter.FilterColumns &&
+							tablePart.AutoFilter.FilterColumns;
+					}
+
+					if (tablePart.Ref && ((_filterColumns && _filterColumns.length) ||
 						(tablePart && tablePart.AutoFilter && tablePart.isApplySortConditions()))) {
 						result = {isFilterColumns: true, isAutoFilter: true};
 					} else if (tablePart.Ref && tablePart.AutoFilter) {
@@ -1078,9 +1104,17 @@
 						result.isSlicerAdded = true;
 					}
 				} else {
+
+					if (viewActive !== null) {
+						_nvsFilter = worksheet.getNvsFilterByTableName(null);
+						_filterColumns = _nvsFilter && _nvsFilter.columnsFilter
+					} else {
+						_filterColumns = worksheet.AutoFilter && worksheet.AutoFilter.FilterColumns && worksheet.AutoFilter.FilterColumns;
+					}
+
 					if (worksheet.AutoFilter &&
-						((worksheet.AutoFilter.FilterColumns && worksheet.AutoFilter.FilterColumns.length &&
-						this._isFilterColumnsContainFilter(worksheet.AutoFilter.FilterColumns)) ||
+						((_filterColumns && _filterColumns.length &&
+						this._isFilterColumnsContainFilter(_filterColumns)) ||
 						worksheet.AutoFilter.isApplySortConditions())) {
 						result = {isFilterColumns: true, isAutoFilter: true};
 					} else if (worksheet.AutoFilter) {
@@ -1183,7 +1217,9 @@
 						this._moveAutoFilters(data.moveTo, data.moveFrom);
 						break;
 					case AscCH.historyitem_AutoFilter_CleanAutoFilter:
-						this.isApplyAutoFilterInCell(data.activeCells, true);
+						this.useViewLocalChange = true;
+						this.isApplyAutoFilterInCell(data.activeCells, true, data.viewId ? data.viewId : null);
+						this.useViewLocalChange = false;
 						break;
 					case AscCH.historyitem_AutoFilter_Change:
 						if (data !== null && data.displayName) {
@@ -1278,12 +1314,12 @@
 
 				var undo_apply = function() {
 					if (cloneData.Ref) {
-						var isEn = false;
+						var _doAdd = false;
 						if (worksheet.AutoFilter && worksheet.AutoFilter.Ref.isEqual(cloneData.Ref)) {
 							t._reDrawCurrentFilter(cloneData.FilterColumns);
 							worksheet.AutoFilter = cloneData;
 							t._resetTablePartStyle(worksheet.AutoFilter.Ref);
-							isEn = true;
+							_doAdd = true;
 						} else if (worksheet.TableParts) {
 							for (var l = 0; l < worksheet.TableParts.length; l++) {
 								if (cloneData.Ref.isEqual(worksheet.TableParts[l].Ref)) {
@@ -1294,7 +1330,7 @@
 									} else {
 										t._reDrawCurrentFilter(null, worksheet.TableParts[l]);
 									}
-									isEn = true;
+									_doAdd = true;
 
 									//перерисовываем фильтры, находящиеся на одном уровне с данным фильтром
 									t._resetTablePartStyle(worksheet.TableParts[l].Ref);
@@ -1304,7 +1340,7 @@
 							}
 						}
 
-						if (!isEn)//добавляем фильтр
+						if (!_doAdd)//добавляем фильтр
 						{
 							if (cloneData.TableStyleInfo) {
 								worksheet.addTablePart.push(cloneData);
@@ -1391,6 +1427,21 @@
 							//AscCH.historyitem_AutoFilter_ClearFilterColumn
 							//ипользуется целиком объект фильтра/фт(cloneData)
 							undo_apply();
+						} else if (cloneData.columnsFilter) {
+							//undo view filter
+							var sheetView = t.worksheet.getNamedSheetViewById(t.worksheet.getActiveNamedSheetViewId());
+							if (sheetView) {
+								if (sheetView.nsvFilters.length) {
+									for (var i = 0; i < sheetView.nsvFilters.length; i++) {
+										if (sheetView.nsvFilters[i].tableId === cloneData.tableId) {
+											sheetView.nsvFilters[i] = cloneData;
+											break;
+										}
+									}
+								} else {
+									sheetView.nsvFilters.push(cloneData);
+								}
+							}
 						}
 						break;
 				}
@@ -1458,6 +1509,9 @@
 
 					//смотрим находится ли фильтр(первая его строчка) внутри выделенного фрагмента
 					if ((activeCells.containsFirstLineRange(bbox) && !isTablePart) || (isTablePart && activeCells.containsRange(bbox))) {
+
+						t.updateNamedSheetViewAfterDeleteFilter(oldFilter);
+
 						if (isTablePart) {
 							oRange.clearTableStyle();
 							//write formulas history before filter history
@@ -1468,7 +1522,10 @@
 
 						//открываем скрытые строки
 						if (oldFilter.isApplyAutoFilter()) {
+							var sheetViewId = worksheet.getActiveNamedSheetViewId();
+							worksheet.setActiveNamedSheetView(null);
 							worksheet.setRowHidden(false, bbox.r1, bbox.r2);
+							worksheet.setActiveNamedSheetView(sheetViewId);
 						}
 
 						//заносим в историю
@@ -2097,38 +2154,57 @@
 			},
 			
 			//2 parameter - clean from found filter FilterColumns и SortState
-			isApplyAutoFilterInCell: function (activeCell, clean) {
+			isApplyAutoFilterInCell: function (activeCell, clean, viewId) {
 				var worksheet = this.worksheet;
+				var autoFilter;
 				if (worksheet.TableParts) {
 					var tablePart;
 					for (var i = 0; i < worksheet.TableParts.length; i++) {
 						tablePart = worksheet.TableParts[i];
+						autoFilter = this.getAutoFilter(tablePart, viewId);
 
 						//если применен фильтр или сортировка
-						if (tablePart.isApplyAutoFilter() || tablePart.isApplySortConditions()) {
+						if ((autoFilter && autoFilter.isApplyAutoFilter()) || tablePart.isApplySortConditions()) {
 							if (tablePart.Ref.containsRange(activeCell)) {
 								if (clean) {
-									return this._cleanFilterColumnsAndSortState(tablePart, activeCell);
+									return this._cleanFilterColumnsAndSortState(tablePart, tablePart.Ref, viewId);
 								}
 							}
 						} else {
-							if (tablePart.Ref.containsRange(activeCell, activeCell)) {
+							if (tablePart.Ref.containsRange(activeCell)) {
 								return false;
 							}
 						}
 					}
 				}
 
-				if (worksheet.AutoFilter &&
-					(worksheet.AutoFilter.isApplyAutoFilter() || worksheet.AutoFilter.isApplySortConditions())) {
+				autoFilter = this.getAutoFilter(worksheet.AutoFilter, viewId);
+				if (autoFilter || (worksheet.AutoFilter && worksheet.AutoFilter.isApplySortConditions())) {
 					if (clean) {
-						return this._cleanFilterColumnsAndSortState(worksheet.AutoFilter, activeCell);
+						return this._cleanFilterColumnsAndSortState(worksheet.AutoFilter, worksheet.AutoFilter.Ref, viewId);
 					}
 				}
 
 				return false;
 			},
-			
+
+			//на вход - таблица или а/ф. отдаёт либо autoFilter, либо nsvFilter
+			getAutoFilter: function (obj, viewId) {
+				if (!obj) {
+					return null;
+				}
+				var ws = this.worksheet;
+				var activeNamedSheetView = viewId !== undefined ? viewId : ws.getActiveNamedSheetViewId();
+				var filter;
+				if (activeNamedSheetView !== null) {
+					filter = ws.getNvsFilterByTableName(obj.isAutoFilter() ? null : obj.DisplayName, null, activeNamedSheetView);
+				} else {
+					filter = obj.isAutoFilter() ? obj : obj.AutoFilter;
+				}
+
+				return filter;
+			},
+
 			//если активный диапазон захватывает части нескольких табли, либо часть одной таблицы и одну целую
 			isRangeIntersectionSeveralTableParts: function (activeRange) {
 				//TODO сделать общую функцию с isActiveCellsCrossHalfFTable
@@ -3036,6 +3112,7 @@
 					oHistoryObject.nRow = redoObject.nRow;
 					oHistoryObject.formula = redoObject.formula;
 					oHistoryObject.totalFunction = redoObject.totalFunction;
+					oHistoryObject.viewId = ws.getActiveNamedSheetViewId();
 				} else {
 					oHistoryObject.activeCells = activeRange ? activeRange.clone() : null;
 					if (type !== AscCH.historyitem_AutoFilter_Change) {
@@ -4692,7 +4769,7 @@
 
 				var filterColumn;
 				for (var k = 0; k < filterColumns.length; k++) {
-					filterColumn = filterColumns[k];
+					filterColumn = filterColumns[k].filter ? filterColumns[k].filter : filterColumns[k];
 					if (filterColumn && (filterColumn.ColorFilter || filterColumn.ColorFilter || filterColumn.CustomFiltersObj || filterColumn.DynamicFilter || filterColumn.Filters || filterColumn.Top10)) {
 						return true;
 					}
@@ -5225,7 +5302,7 @@
 				return res;
 			},
 
-			_cleanFilterColumnsAndSortState: function (autoFilterElement, activeCells) {
+			_cleanFilterColumnsAndSortState: function (autoFilterElement, activeCells, viewId) {
 				var worksheet = this.worksheet;
 				var oldFilter = autoFilterElement.clone(null);
 
@@ -5237,32 +5314,37 @@
 
 				var doClean = function(af) {
 					var filterColumns = af.FilterColumns;
+					if (af.columnsFilter) {
+						filterColumns = af.columnsFilter;
+						oldFilter = af.clone();
+					}
 					if(filterColumns.length) {
 						var isAllClean = true;
 						for(var i = 0; i < filterColumns.length; i++) {
-							filterColumns[i].clean();
-							if(!filterColumns[i].isAllClean()) {
+							var _filterColumn = filterColumns[i].filter ? filterColumns[i].filter : filterColumns[i];
+							_filterColumn.clean();
+							if(!_filterColumn.isAllClean()) {
 								isAllClean = false;
 							}
 						}
 						if(isAllClean) {
-							af.FilterColumns = null;
+							if (af.columnsFilter) {
+								af.columnsFilter = [];
+							} else {
+								af.FilterColumns = null;
+							}
 						}
 					}
 				};
 
-				if (autoFilterElement.AutoFilter && autoFilterElement.AutoFilter.FilterColumns) {
-					doClean(autoFilterElement.AutoFilter);
-				} else if (autoFilterElement.FilterColumns) {
-					doClean(autoFilterElement);
-				}
+				doClean(this.getAutoFilter(autoFilterElement, viewId));
 
-				this._addHistoryObj(oldFilter, AscCH.historyitem_AutoFilter_CleanAutoFilter, {activeCells: activeCells},
+				this._addHistoryObj(oldFilter, AscCH.historyitem_AutoFilter_CleanAutoFilter, {activeCells: activeCells, viewId: viewId},
 					null, activeCells);
 
 				this._resetTablePartStyle();
 
-				return oldFilter.Ref;
+				return autoFilterElement.Ref;
 			},
 
 			clearFilterColumn: function (cellId, displayName) {

@@ -930,8 +930,7 @@
 	 * @param {PageOrientation} sPageOrientation
 	 * */
 	ApiWorksheet.prototype.SetPageOrientation = function (sPageOrientation) {
-		sPageOrientation = (sPageOrientation == 'xlPortrait') ? 0 : (sPageOrientation == 'xlLandscape') ? 1 : 0;
-		this.worksheet.PagePrintOptions.pageSetup.asc_setOrientation(sPageOrientation);
+		this.worksheet.PagePrintOptions.pageSetup.asc_setOrientation('xlLandscape' === sPageOrientation ? 1 : 0);
 	};
 
 	/**
@@ -954,23 +953,62 @@
 		}
 	});
 
+
+	/**
+	 * Gets page PrintHeadings property.
+	 * @memberof ApiWorksheet
+	 * @typeofeditors ["CSE"]
+	 * @returns {bool} - True if row and column headings are printed with this page.
+	 * */
+	ApiWorksheet.prototype.GetPrintHeadings = function ()	{
+		return this.worksheet.PagePrintOptions.asc_getHeadings();
+	};
+
+	/**
+	 * Sets page PrintHeadings property.
+	 * @memberof ApiWorksheet
+	 * @typeofeditors ["CSE"]
+	 * @param {bool} bPrint - Determines whether row and column headings will be printed with this page.
+	 * */
+	ApiWorksheet.prototype.SetPrintHeadings = function (bPrint)	{
+		this.worksheet.PagePrintOptions.asc_setHeadings(!!bPrint);
+	};
+
 	Object.defineProperty(ApiWorksheet.prototype, "PrintHeadings", {
 		get: function () {
-			return this.worksheet.PagePrintOptions.asc_getHeadings();
+			return this.GetPrintHeadings();
 		},
-		set: function (value) {
-			value = (typeof value === 'bool') ? value : false;
-			this.worksheet.PagePrintOptions.asc_setHeadings(value);
+		set: function (bPrint) {
+			this.SetPrintHeadings(bPrint)
 		}
 	});
 
+	/**
+	 * Gets page PrintGridlines property.
+	 * @memberof ApiWorksheet
+	 * @typeofeditors ["CSE"]
+	 * @returns {bool} - True if cell gridlines are printed on the page.
+	 * */
+	ApiWorksheet.prototype.GetPrintGridlines = function ()	{
+		return this.worksheet.PagePrintOptions.asc_getGridLines();
+	};
+
+	/**
+	 * Sets page PrintGridlines property.
+	 * @memberof ApiWorksheet
+	 * @typeofeditors ["CSE"]
+	 * @param {bool} bPrint - Determines whether grid lines of cells are printed on the page.
+	 * */
+	ApiWorksheet.prototype.SetPrintGridlines = function (bPrint)	{
+		this.worksheet.PagePrintOptions.asc_setGridLines(!!bPrint);
+	};
+
 	Object.defineProperty(ApiWorksheet.prototype, "PrintGridlines", {
 		get: function () {
-			return this.worksheet.PagePrintOptions.asc_getGridLines();
+			return this.GetPrintGridlines();
 		},
-		set: function (value) {
-			value = (typeof value === 'bool') ? value : false;
-			this.worksheet.PagePrintOptions.asc_setGridLines(value);
+		set: function (bPrint) {
+			this.SetPrintGridlines(bPrint)
 		}
 	});
 

@@ -9274,6 +9274,27 @@ background-repeat: no-repeat;\
 
 		oLogicDocument.SetContentControlTextPlaceholder(sText, oContentControl);
 	};
+	asc_docs_api.prototype.asc_GetTextFormKeys = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		return oLogicDocument ? oLogicDocument.GetFormKeys({Text : true, ComboBox : true, DropDownList : true}) : [];
+	};
+	asc_docs_api.prototype.asc_GetPictureFormKeys = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		return oLogicDocument ? oLogicDocument.GetFormKeys({Picture : true}) : [];
+	};
+	asc_docs_api.prototype.asc_GetCheckBoxFormKeys = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		return oLogicDocument ? oLogicDocument.GetFormKeys({CheckBox : true}) : [];
+	};
+	asc_docs_api.prototype.asc_GetRadioButtonGroupKeys = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		return oLogicDocument ? oLogicDocument.GetFormKeys({RadioGroup : true}) : [];
+	};
+
 
 	asc_docs_api.prototype.asc_UncheckContentControlButtons = function()
 	{
@@ -11087,6 +11108,11 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_SetContentControlDatePickerPr']         = asc_docs_api.prototype.asc_SetContentControlDatePickerPr;
 	asc_docs_api.prototype['asc_SetContentControlDatePickerDate']       = asc_docs_api.prototype.asc_SetContentControlDatePickerDate;
 	asc_docs_api.prototype['asc_SetContentControlTextPlaceholder']      = asc_docs_api.prototype.asc_SetContentControlTextPlaceholder;
+	asc_docs_api.prototype['asc_GetTextFormKeys']                       = asc_docs_api.prototype.asc_GetTextFormKeys;
+	asc_docs_api.prototype['asc_GetPictureFormKeys']                    = asc_docs_api.prototype.asc_GetPictureFormKeys;
+	asc_docs_api.prototype['asc_GetCheckBoxFormKeys']                   = asc_docs_api.prototype.asc_GetCheckBoxFormKeys;
+	asc_docs_api.prototype['asc_GetRadioButtonGroupKeys']               = asc_docs_api.prototype.asc_GetRadioButtonGroupKeys;
+
 
 	asc_docs_api.prototype['asc_BeginViewModeInReview']                 = asc_docs_api.prototype.asc_BeginViewModeInReview;
 	asc_docs_api.prototype['asc_EndViewModeInReview']                   = asc_docs_api.prototype.asc_EndViewModeInReview;
