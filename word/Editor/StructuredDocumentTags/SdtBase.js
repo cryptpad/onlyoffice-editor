@@ -237,3 +237,14 @@ CSdtBase.prototype.IsTextForm = function()
 {
 	return false;
 };
+/**
+ * Получаем ключ для группы радио-кнопок
+ * @returns {?string}
+ */
+CSdtBase.prototype.GetRadioButtonGroupKey = function()
+{
+	if (!this.IsRadioButton())
+		return undefined;
+
+	return (this.Pr.CheckBox.GroupKey);
+};
