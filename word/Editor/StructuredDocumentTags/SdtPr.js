@@ -769,6 +769,14 @@ CSdtCheckBoxPr.prototype.Read_FromBinary = function(oReader)
 {
 	this.ReadFromBinary(oReader);
 };
+CSdtCheckBoxPr.prototype.SetChecked = function(isChecked)
+{
+	this.Checked = isChecked;
+};
+CSdtCheckBoxPr.prototype.GetChecked = function()
+{
+	return this.Checked;
+};
 CSdtCheckBoxPr.prototype.GetCheckedSymbol = function()
 {
 	return this.CheckedSymbol;
@@ -1351,6 +1359,8 @@ CContentControlPr.prototype['put_FormPr']             = CContentControlPr.protot
 window['AscCommon'].CSdtCheckBoxPr    = CSdtCheckBoxPr;
 window['AscCommon']['CSdtCheckBoxPr'] = CSdtCheckBoxPr;
 
+CSdtCheckBoxPr.prototype['get_Checked']         = CSdtCheckBoxPr.prototype.GetChecked;
+CSdtCheckBoxPr.prototype['put_Checked']         = CSdtCheckBoxPr.prototype.SetChecked;
 CSdtCheckBoxPr.prototype['get_CheckedSymbol']   = CSdtCheckBoxPr.prototype.GetCheckedSymbol;
 CSdtCheckBoxPr.prototype['put_CheckedSymbol']   = CSdtCheckBoxPr.prototype.SetCheckedSymbol;
 CSdtCheckBoxPr.prototype['get_CheckedFont']     = CSdtCheckBoxPr.prototype.GetCheckedFont;
