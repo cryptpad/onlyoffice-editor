@@ -49,6 +49,7 @@
 	var cBaseFunction = AscCommonExcel.cBaseFunction;
 	var cFormulaFunctionGroup = AscCommonExcel.cFormulaFunctionGroup;
 	var cElementType = AscCommonExcel.cElementType;
+	var argType = Asc.c_oAscFormulaArgumentType;
 
 	cFormulaFunctionGroup['Logical'] = cFormulaFunctionGroup['Logical'] || [];
 	cFormulaFunctionGroup['Logical'].push(cAND, cFALSE, cIF, cIFERROR, cIFNA, cIFS, cNOT, cOR, cSWITCH, cTRUE, cXOR);
@@ -66,6 +67,7 @@
 	cAND.prototype.name = 'AND';
 	cAND.prototype.argumentsMin = 1;
 	cAND.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
+	cAND.prototype.argumentsType = [[argType.logical]];
 	cAND.prototype.Calculate = function (arg) {
 		var argResult = null;
 		for (var i = 0; i < arg.length; i++) {
@@ -138,6 +140,7 @@
 	cFALSE.prototype.constructor = cFALSE;
 	cFALSE.prototype.name = 'FALSE';
 	cFALSE.prototype.argumentsMax = 0;
+	cFALSE.prototype.argumentsType = null;
 	cFALSE.prototype.Calculate = function () {
 		return new cBool(false);
 	};
@@ -156,6 +159,7 @@
 	cIF.prototype.argumentsMin = 2;
 	cIF.prototype.argumentsMax = 3;
 	cIF.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cIF.prototype.argumentsType = [argType.logical, argType.any, argType.any];
 	cIF.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2];
 
@@ -194,6 +198,7 @@
 	cIFERROR.prototype.name = 'IFERROR';
 	cIFERROR.prototype.argumentsMin = 2;
 	cIFERROR.prototype.argumentsMax = 2;
+	cIFERROR.prototype.argumentsType = [argType.any, argType.any];
 	cIFERROR.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArray) {
@@ -227,6 +232,7 @@
 	cIFNA.prototype.argumentsMin = 2;
 	cIFNA.prototype.argumentsMax = 2;
 	cIFNA.prototype.isXLFN = true;
+	cIFNA.prototype.argumentsType = [argType.any, argType.any];
 	cIFNA.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArray) {
@@ -312,6 +318,7 @@
 	cNOT.prototype.name = 'NOT';
 	cNOT.prototype.argumentsMin = 1;
 	cNOT.prototype.argumentsMax = 1;
+	cNOT.prototype.argumentsType = [argType.logical];
 	cNOT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArray) {
@@ -349,6 +356,7 @@
 	cOR.prototype.name = 'OR';
 	cOR.prototype.argumentsMin = 1;
 	cOR.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
+	cOR.prototype.argumentsType = [[argType.logical]];
 	cOR.prototype.Calculate = function (arg) {
 		var argResult = null;
 		for (var i = 0; i < arg.length; i++) {
@@ -471,6 +479,7 @@
 	cTRUE.prototype.constructor = cTRUE;
 	cTRUE.prototype.name = 'TRUE';
 	cTRUE.prototype.argumentsMax = 0;
+	cTRUE.prototype.argumentsType = null;
 	cTRUE.prototype.Calculate = function () {
 		return new cBool(true);
 	};
@@ -490,6 +499,7 @@
 	cXOR.prototype.argumentsMax = 254;
 	cXOR.prototype.isXLFN = true;
 	cXOR.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
+	cXOR.prototype.argumentsType = [[argType.logical]];
 	cXOR.prototype.Calculate = function (arg) {
 		var argResult = null;
 		var nTrueValues = 0;

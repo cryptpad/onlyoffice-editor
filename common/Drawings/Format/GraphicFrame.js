@@ -69,8 +69,6 @@ function CGraphicFrame()
 
     this.compiledHierarchy = [];
     this.Pages      = [];
-    this.Id = AscCommon.g_oIdCounter.Get_NewId();
-    AscCommon.g_oTableId.Add(this, this.Id);
     this.compiledStyles = [];
     this.recalcInfo =
     {
@@ -570,15 +568,6 @@ CGraphicFrame.prototype.canRotate = function()
         return false;
 };
 
-CGraphicFrame.prototype.canResize = function()
-    {
-        return true;
-};
-
-CGraphicFrame.prototype.canMove = function()
-    {
-        return true;
-};
 
 CGraphicFrame.prototype.canGroup = function()
     {
@@ -838,7 +827,7 @@ CGraphicFrame.prototype.deselect = CShape.prototype.deselect;
 CGraphicFrame.prototype.Update_ContentIndexing = function()
 {};
     
-CGraphicFrame.prototype.GetTopDocumentContent = function()
+CGraphicFrame.prototype.GetTopDocumentContent = function(isOneLevel)
 {
     return null;
 };
@@ -1122,12 +1111,6 @@ CGraphicFrame.prototype.Get_PageContentStartPos2 = function()
         return this.Get_PageContentStartPos();
 };
 
-CGraphicFrame.prototype.hitToHandles = CShape.prototype.hitToHandles;
-CGraphicFrame.prototype.hitToAdjustment = function()
-    {
-        return {hit:false};
-};
-
 CGraphicFrame.prototype.Refresh_RecalcData = function()
     {
         this.Refresh_RecalcData2();
@@ -1168,6 +1151,9 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
        if(this.graphicObject){
            this.graphicObject.GetAllContentControls(arrContentControls);
        }
+    };
+    CGraphicFrame.prototype.IsElementStartOnNewPage = function(){
+      return true;
     };
 
     CGraphicFrame.prototype.getCopyWithSourceFormatting = function(){

@@ -115,8 +115,9 @@
 		var i, res = new CConditionalFormattingRule();
 		res.aboveAverage = this.aboveAverage;
 		res.bottom = this.bottom;
-		if (this.dxf)
+		if (this.dxf) {
 			res.dxf = this.dxf.clone();
+		}
 		res.equalAverage = this.equalAverage;
 		res.operator = this.operator;
 		res.percent = this.percent;
@@ -130,8 +131,9 @@
 
 		res.updateConditionalFormatting(this);
 
-		for (i = 0; i < this.aRuleElements.length; ++i)
+		for (i = 0; i < this.aRuleElements.length; ++i) {
 			res.aRuleElements.push(this.aRuleElements[i].clone());
+		}
 		return res;
 	};
 	CConditionalFormattingRule.prototype.getTimePeriod = function() {
@@ -469,19 +471,94 @@
 		return res;
 	};
 
+	CConditionalFormattingRule.prototype.asc_getType = function () {
+		return this.type;
+	};
+	CConditionalFormattingRule.prototype.asc_getDxf = function () {
+		return this.dxf;
+	};
+	CConditionalFormattingRule.prototype.asc_getLocation = function () {
+		var arrResult = [];
+		if (this.ranges) {
+			this.ranges.forEach(function (item) {
+				arrResult.push(item.getAbsName());
+			});
+		}
+		return arrResult.join(AscCommon.FormulaSeparators.functionArgumentSeparator);
+	};
+	CConditionalFormattingRule.prototype.asc_getContainsText = function () {
+		if (null !== this.text) {
+			return this.text;
+		}
+		var ruleElement = this.aRuleElements[1];
+		return ruleElement && ruleElement.getFormula ? ruleElement.Text : null;
+	};
+	CConditionalFormattingRule.prototype.asc_getTimePeriod = function () {
+		return this.timePeriod;
+	};
+	CConditionalFormattingRule.prototype.asc_getOperator = function () {
+		return this.operator;
+	};
+	CConditionalFormattingRule.prototype.asc_getRank = function () {
+		return this.rank;
+	};
+	CConditionalFormattingRule.prototype.asc_getBottom = function () {
+		return this.bottom;
+	};
+	CConditionalFormattingRule.prototype.asc_getPercent = function () {
+		return this.percent;
+	};
+	CConditionalFormattingRule.prototype.asc_getAboveAverage = function () {
+		return this.aboveAverage;
+	};
+	CConditionalFormattingRule.prototype.asc_getEqualAverage = function () {
+		return this.equalAverage;
+	};
+	CConditionalFormattingRule.prototype.asc_getStdDev = function () {
+		return this.stdDev;
+	};
+	CConditionalFormattingRule.prototype.asc_getValue1 = function () {
+		var ruleElement = this.aRuleElements[0];
+		return ruleElement && ruleElement.getFormula ? ruleElement.Text : null;
+	};
+	CConditionalFormattingRule.prototype.asc_getValue2 = function () {
+		var ruleElement = this.aRuleElements[1];
+		return ruleElement && ruleElement.getFormula ? ruleElement.Text : null;
+	};
+	CConditionalFormattingRule.prototype.asc_getColorScaleOrDataBarOrIconSetRule = function () {
+		if ((Asc.ECfType.dataBar === this.type || Asc.ECfType.iconSet === this.type ||
+			Asc.ECfType.colorScale === this.type) && 1 === this.aRuleElements.length) {
+			var res = this.aRuleElements[0];
+			if (res && this.type === res.type) {
+				return res;
+			}
+		}
+		return null;
+	};
+
 	function CColorScale () {
 		this.aCFVOs = [];
 		this.aColors = [];
 
 		return this;
 	}
-	CColorScale.prototype.type = AscCommonExcel.ECfType.colorScale;
+	CColorScale.prototype.type = Asc.ECfType.colorScale;
 	CColorScale.prototype.clone = function() {
 		var i, res = new CColorScale();
 		for (i = 0; i < this.aCFVOs.length; ++i)
 			res.aCFVOs.push(this.aCFVOs[i].clone());
 		for (i = 0; i < this.aColors.length; ++i)
 			res.aColors.push(this.aColors[i].clone());
+		return res;
+	};
+	CColorScale.prototype.asc_getCFVOs = function () {
+		return this.aCFVOs;
+	};
+	CColorScale.prototype.asc_getColors = function () {
+		var res = [];
+		for (var i = 0; i < this.aColors.length; ++i) {
+			res.push(Asc.colorObjToAscColor(this.aColors[i]));
+		}
 		return res;
 	};
 
@@ -503,7 +580,7 @@
 		this.AxisColor = null;
 		return this;
 	}
-	CDataBar.prototype.type = AscCommonExcel.ECfType.dataBar;
+	CDataBar.prototype.type = Asc.ECfType.dataBar;
 	CDataBar.prototype.clone = function() {
 		var i, res = new CDataBar();
 		res.MaxLength = this.MaxLength;
@@ -527,6 +604,42 @@
 		if (this.AxisColor)
 			res.AxisColor = this.AxisColor.clone();
 		return res;
+	};
+	CDataBar.prototype.asc_getShowValue = function () {
+		return this.ShowValue;
+	};
+	CDataBar.prototype.asc_getAxisPosition = function () {
+		return this.AxisPosition;
+	};
+	CDataBar.prototype.asc_getGradient = function () {
+		return this.Gradient;
+	};
+	CDataBar.prototype.asc_getDirection = function () {
+		return this.Direction;
+	};
+	CDataBar.prototype.asc_getNegativeBarColorSameAsPositive = function () {
+		return this.NegativeBarColorSameAsPositive;
+	};
+	CDataBar.prototype.asc_getNegativeBarBorderColorSameAsPositive = function () {
+		return this.NegativeBarBorderColorSameAsPositive;
+	};
+	CDataBar.prototype.asc_getCFVOs = function () {
+		return this.aCFVOs;
+	};
+	CDataBar.prototype.asc_getColor = function () {
+		return Asc.colorObjToAscColor(this.Color);
+	};
+	CDataBar.prototype.asc_getNegativeColor = function () {
+		return Asc.colorObjToAscColor(this.NegativeColor);
+	};
+	CDataBar.prototype.asc_getBorderColor = function () {
+		return Asc.colorObjToAscColor(this.BorderColor);
+	};
+	CDataBar.prototype.asc_getNegativeBorderColor = function () {
+		return Asc.colorObjToAscColor(this.NegativeBorderColor);
+	};
+	CDataBar.prototype.asc_getAxisColor = function () {
+		return Asc.colorObjToAscColor(this.AxisColor);
 	};
 
 	function CFormulaCF () {
@@ -574,7 +687,7 @@
 
 		return this;
 	}
-	CIconSet.prototype.type = AscCommonExcel.ECfType.iconSet;
+	CIconSet.prototype.type = Asc.ECfType.iconSet;
 	CIconSet.prototype.clone = function() {
 		var i, res = new CIconSet();
 		res.IconSet = this.IconSet;
@@ -586,6 +699,21 @@
 		for (i = 0; i < this.aIconSets.length; ++i)
 			res.aIconSets.push(this.aIconSets[i].clone());
 		return res;
+	};
+	CIconSet.prototype.asc_getIconSet = function () {
+		return this.IconSet;
+	};
+	CIconSet.prototype.asc_getReverse = function () {
+		return this.Reverse;
+	};
+	CIconSet.prototype.asc_getShowValue = function () {
+		return this.ShowValue;
+	};
+	CIconSet.prototype.asc_getCFVOs = function () {
+		return this.aCFVOs;
+	};
+	CIconSet.prototype.asc_getIconSets = function () {
+		return this.aIconSets;
 	};
 
 	function CConditionalFormatValueObject () {
@@ -605,6 +733,15 @@
 		res.formulaParent = this.formulaParent ? this.formulaParent.clone() : null;
 		res.formula = this.formula ? this.formula.clone() : null;
 		return res;
+	};
+	CConditionalFormatValueObject.prototype.asc_getGte = function () {
+		return this.Gte;
+	};
+	CConditionalFormatValueObject.prototype.asc_getType = function () {
+		return this.Type;
+	};
+	CConditionalFormatValueObject.prototype.asc_getVal = function () {
+		return this.Val;
 	};
 
 	function CConditionalFormatIconSet () {
@@ -741,7 +878,7 @@
 	c_arrIcons[EIconSetType.Stars3] = [iStarSilver, iStarHalf, iStarGold];
 	c_arrIcons[EIconSetType.Boxes5] = [iZeroFilledBoxes, iOneFilledBoxes, iTwoFilledBoxes, iThreeFilledBoxes, iFourFilledBoxes];
 
-	function getIconsForLoad() {
+	function getCFIconsForLoad() {
 		return [iCheckGreen, iCheckSymbolGreen, iCircleTwoWhiteQuarters, iCircleBlack, iCircleGray, iCircleGreen,
 			iCircleLightRed, iCircleOneWhiteQuarter, iCircleRed, iCircleThreeWhiteQuarters, iCircleWhite,
 			iCircleYellow, iCrossRed, iCrossSymbolRed, iDashYellow, iDiamondRed, iDown, iDownGray, iDownIncline,
@@ -762,10 +899,23 @@
 		return icons[(oIconSet && null !== oIconSet.IconId) ? oIconSet.IconId : index] || icons[icons.length - 1];
 	}
 
+	function getDataBarGradientColor(color) {
+		if (!color) {
+			return null;
+		}
+		var RGB = {R: 0xFF, G: 0xFF, B: 0xFF};
+		var bCoeff = 0.828;
+		RGB.R = Math.min(255,(color.getR() + bCoeff*(0xFF - color.getR()) + 0.5) >> 0);
+		RGB.G = Math.min(255,(color.getG() + bCoeff*(0xFF - color.getG()) + 0.5) >> 0);
+		RGB.B = Math.min(255,(color.getB() + bCoeff*(0xFF - color.getB()) + 0.5) >> 0);
+		return AscCommonExcel.createRgbColor(RGB.R, RGB.G, RGB.B);
+	}
+
 	/*
 	 * Export
 	 * -----------------------------------------------------------------------------
 	 */
+	var prot;
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscCommonExcel'].CConditionalFormatting = CConditionalFormatting;
 	window['AscCommonExcel'].CConditionalFormattingFormulaParent = CConditionalFormattingFormulaParent;
@@ -780,6 +930,54 @@
 
 	window['AscCommonExcel'].cDefIconSize = cDefIconSize;
 	window['AscCommonExcel'].cDefIconFont = cDefIconFont;
-	window['AscCommonExcel'].getIconsForLoad = getIconsForLoad;
+	window['AscCommonExcel'].getCFIconsForLoad = getCFIconsForLoad;
 	window['AscCommonExcel'].getCFIcon = getCFIcon;
+	window['AscCommonExcel'].getDataBarGradientColor = getDataBarGradientColor;
+
+	prot = CConditionalFormattingRule;
+	prot['asc_getDxf'] = prot.asc_getDxf;
+	prot['asc_getType'] = prot.asc_getType;
+	prot['asc_getLocation'] = prot.asc_getLocation;
+	prot['asc_getContainsText'] = prot.asc_getContainsText;
+	prot['asc_getTimePeriod'] = prot.asc_getTimePeriod;
+	prot['asc_getOperator'] = prot.asc_getOperator;
+	prot['asc_getRank'] = prot.asc_getRank;
+	prot['asc_getBottom'] = prot.asc_getBottom;
+	prot['asc_getPercent'] = prot.asc_getPercent;
+	prot['asc_getAboveAverage'] = prot.asc_getAboveAverage;
+	prot['asc_getEqualAverage'] = prot.asc_getEqualAverage;
+	prot['asc_getStdDev'] = prot.asc_getStdDev;
+	prot['asc_getValue1'] = prot.asc_getValue1;
+	prot['asc_getValue2'] = prot.asc_getValue2;
+	prot['asc_getColorScaleOrDataBarOrIconSetRule'] = prot.asc_getColorScaleOrDataBarOrIconSetRule;
+
+	prot = CColorScale;
+	prot['asc_getCFVOs'] = prot.asc_getCFVOs;
+	prot['asc_getColors'] = prot.asc_getColors;
+
+	prot = CDataBar;
+	prot['asc_getShowValue'] = prot.asc_getShowValue;
+	prot['asc_getAxisPosition'] = prot.asc_getAxisPosition;
+	prot['asc_getGradient'] = prot.asc_getGradient;
+	prot['asc_getDirection'] = prot.asc_getDirection;
+	prot['asc_getNegativeBarColorSameAsPositive'] = prot.asc_getNegativeBarColorSameAsPositive;
+	prot['asc_getNegativeBarBorderColorSameAsPositive'] = prot.asc_getNegativeBarBorderColorSameAsPositive;
+	prot['asc_getCFVOs'] = prot.asc_getCFVOs;
+	prot['asc_getColor'] = prot.asc_getColor;
+	prot['asc_getNegativeColor'] = prot.asc_getNegativeColor;
+	prot['asc_getBorderColor'] = prot.asc_getBorderColor;
+	prot['asc_getNegativeBorderColor'] = prot.asc_getNegativeBorderColor;
+	prot['asc_getAxisColor'] = prot.asc_getAxisColor;
+
+	prot = CIconSet;
+	prot['asc_getIconSet'] = prot.asc_getIconSet;
+	prot['asc_getReverse'] = prot.asc_getReverse;
+	prot['asc_getShowValue'] = prot.asc_getShowValue;
+	prot['asc_getCFVOs'] = prot.asc_getCFVOs;
+	prot['asc_getIconSets'] = prot.asc_getIconSets;
+
+	prot = CConditionalFormatValueObject;
+	prot['asc_getGte'] = prot.asc_getGte;
+	prot['asc_getType'] = prot.asc_getType;
+	prot['asc_getVal'] = prot.asc_getVal;
 })(window);

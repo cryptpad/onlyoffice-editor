@@ -124,6 +124,11 @@ ParaComment.prototype =
         return null;
     },
 
+	GetRunByElement : function(oRunElement)
+	{
+		return null;
+	},
+
     Get_DrawingObjectContentPos : function(Id, ContentPos, Depth)
     {
         return false;
@@ -251,6 +256,11 @@ ParaComment.prototype =
     Recalculate_PageEndInfo : function(PRSI, _CurLine, _CurRange)
     {
     },
+
+	RecalculateEndInfo : function(PRSI)
+	{
+
+	},
 
     SaveRecalculateObject : function(Copy)
     {

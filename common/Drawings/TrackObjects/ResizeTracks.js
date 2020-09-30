@@ -313,7 +313,16 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
         this.transform = originalObject.transform.CreateDublicate();
         this.geometry = AscFormat.ExecuteNoHistory(function(){ return originalObject.getGeom().createDuplicate();}, this, []);
         this.cropObject = originalObject.cropObject;
-        if(!originalObject.isChart())
+        var nObjectType = originalObject.getObjectType && originalObject.getObjectType();
+        if(nObjectType === AscDFH.historyitem_type_Chart
+            || nObjectType === AscDFH.historyitem_type_GraphicFrame
+            || nObjectType === AscDFH.historyitem_type_SlicerView)
+        {
+            var pen_brush = CreatePenBrushForChartTrack();
+            this.brush = pen_brush.brush;
+            this.pen = pen_brush.pen;
+        }
+        else
         {
             if(originalObject.blipFill)
             {
@@ -326,13 +335,6 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             }
             this.pen = originalObject.pen;
         }
-        else
-        {
-            var pen_brush = CreatePenBrushForChartTrack();
-            this.brush = pen_brush.brush;
-            this.pen = pen_brush.pen;
-        }
-
 
 
         this.isLine = originalObject.spPr && originalObject.spPr.geometry && originalObject.spPr.geometry.preset === "line";
@@ -1008,6 +1010,11 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 }
 
             }
+
+            if(this.chartSpace)
+            {
+                global_MatrixTransformer.MultiplyAppend(_transform, this.chartSpace.transform);
+            }
             if(this.originalObject.cropObject)
             {
                 var oShapeDrawer = new AscCommon.CShapeDrawer();
@@ -1147,6 +1154,30 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             if(!this.bIsTracked){
                 return;
             }
+            if(this.chartSpace)
+            {
+                var oObjectToSet = this.originalObject;
+                if(!oObjectToSet.layout)
+                {
+                    oObjectToSet.setLayout(new AscFormat.CLayout());
+                }
+                var pos = this.chartSpace.chartObj.recalculatePositionText(this.originalObject);
+                oObjectToSet.layout.setXMode(AscFormat.LAYOUT_MODE_EDGE);
+                oObjectToSet.layout.setYMode(AscFormat.LAYOUT_MODE_EDGE);
+                if(oObjectToSet instanceof AscFormat.CPlotArea)
+                {
+                    oObjectToSet.layout.setLayoutTarget(AscFormat.LAYOUT_TARGET_INNER);
+                }
+                var fLayoutX = this.chartSpace.calculateLayoutByPos(pos.x, oObjectToSet.layout.xMode, this.resizedPosX, this.chartSpace.extX);
+                var fLayoutY = this.chartSpace.calculateLayoutByPos(pos.y, oObjectToSet.layout.yMode, this.resizedPosY, this.chartSpace.extY);
+                var fLayoutW = this.chartSpace.calculateLayoutBySize(this.resizedPosX, oObjectToSet.layout.wMode, this.chartSpace.extX, this.resizedExtX);
+                var fLayoutH = this.chartSpace.calculateLayoutBySize(this.resizedPosY, oObjectToSet.layout.hMode, this.chartSpace.extY, this.resizedExtY);
+                oObjectToSet.layout.setX(fLayoutX);
+                oObjectToSet.layout.setY(fLayoutY);
+                oObjectToSet.layout.setW(fLayoutW);
+                oObjectToSet.layout.setH(fLayoutH);
+                return;
+            }
             if(!this.bConnector || !this.oSpPr){
                 var scale_coefficients, ch_off_x, ch_off_y;
                 if(this.originalObject.group)
@@ -1217,7 +1248,9 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                         xfrm.setOffY(this.resizedPosY + this.resizedExtY/2.0  - this.originalObject.extY/2);
                     }
                 }
-                if(this.originalObject.getObjectType() !== AscDFH.historyitem_type_ChartSpace && this.originalObject.getObjectType() !== AscDFH.historyitem_type_GraphicFrame)
+                if(this.originalObject.getObjectType() !== AscDFH.historyitem_type_ChartSpace &&
+                    this.originalObject.getObjectType() !== AscDFH.historyitem_type_GraphicFrame &&
+                    this.originalObject.getObjectType() !== AscDFH.historyitem_type_SlicerView)
                 {
 
                     if(!this.originalObject.isCrop)
@@ -1321,6 +1354,10 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             {
                 AscFormat.CheckShapeBodyAutoFitReset(this.originalObject);
                 this.originalObject.checkDrawingBaseCoords();
+                if(this.originalObject.checkExtentsByDocContent)
+                {
+                    this.originalObject.checkExtentsByDocContent(true, true);
+                }
             }
             else
             {

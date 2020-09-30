@@ -132,6 +132,14 @@ CNumberingLvl.prototype.GetLvlText = function()
 	return this.LvlText;
 };
 /**
+ * Выставляем содержимое нумерации
+ * @constructor
+ */
+CNumberingLvl.prototype.SetLvlText = function(arrLvlText)
+{
+	this.LvlText = arrLvlText;
+};
+/**
  * Проверяем совместимость с устаревшей нумерацией
  * @returns {boolean}
  */

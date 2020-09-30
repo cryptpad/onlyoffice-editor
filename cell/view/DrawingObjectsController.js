@@ -37,7 +37,7 @@
  * @param {undefined} undefined
  */
 function (window, undefined) {
-    
+
     // Import
     var DrawingObjectsController = AscFormat.DrawingObjectsController;
 
@@ -214,7 +214,7 @@ DrawingObjectsController.prototype.getTheme = function()
 DrawingObjectsController.prototype.startRecalculate = function(bCheckPoint)
 {
     this.recalculate(undefined, undefined, bCheckPoint);
-    this.drawingObjects.showDrawingObjects(true);
+    this.drawingObjects.showDrawingObjects();
     //this.updateSelectionState();
 };
 
@@ -542,9 +542,9 @@ DrawingObjectsController.prototype.convertPixToMM = function(pix)
     return _ret;
 };
 
-DrawingObjectsController.prototype.setParagraphNumbering = function(Bullet, Pr)
+DrawingObjectsController.prototype.setParagraphNumbering = function(Bullet)
 {
-    this.applyDocContentFunction(CDocumentContent.prototype.Set_ParagraphPresentationNumbering, [Bullet, Pr], CTable.prototype.Set_ParagraphPresentationNumbering);
+    this.applyDocContentFunction(CDocumentContent.prototype.Set_ParagraphPresentationNumbering, [Bullet], CTable.prototype.Set_ParagraphPresentationNumbering);
 };
 
 DrawingObjectsController.prototype.setParagraphIndent = function(Indent)
@@ -659,6 +659,78 @@ DrawingObjectsController.prototype.onKeyPress = function(e)
 
     return bRetValue;
 };
+
+
+    DrawingObjectsController.prototype.checkSlicerCopies = function (aCopies)
+    {
+        var i;
+        var aSlicers = [];
+        var aSlicerViewNames = [];
+        var oDrawing, oSlicer, sSlicerViewName;
+        var oWSView;
+        var oWB = Asc["editor"] && Asc["editor"].wbModel;
+        var oControllerParent = this.drawingObjects;
+        var oThis = this;
+        if(oControllerParent && oControllerParent.getWorksheet)
+        {
+            oWSView = oControllerParent.getWorksheet();
+        }
+        if(!oWB || !oWSView)
+        {
+            return;
+        }
+        var aSlicerView = [];
+
+        for(i = 0; i < aCopies.length; ++i)
+        {
+            aCopies[i].getAllSlicerViews(aSlicerView);
+        }
+        for(i = 0; i < aSlicerView.length; ++i)
+        {
+            oDrawing = aSlicerView[i];
+            sSlicerViewName = oDrawing.getName();
+            oSlicer = oWB.getSlicerByName(sSlicerViewName);
+            if(oSlicer)
+            {
+                aSlicers.push(oSlicer);
+                aSlicerViewNames.push(sSlicerViewName);
+            }
+        }
+        if(aSlicers.length > 0)
+        {
+            History.StartTransaction();
+            oWSView.tryPasteSlicers(aSlicers, function(bSuccess, aSlicerNames)
+            {
+                if(!bSuccess || aSlicerNames.length !== aSlicerViewNames.length)
+                {
+                    History.EndTransaction();
+                    History.Undo();
+                    return;
+                }
+                History.EndTransaction();
+                var i, j;
+                var oDrawing;
+                var sOldSlicerName, sNewSlicerName;
+                for(i = 0; i < aSlicerNames.length; ++i)
+                {
+                    sOldSlicerName = aSlicerViewNames[i];
+                    sNewSlicerName = aSlicerNames[i];
+                    for(j = 0; j < aSlicerView.length; ++j)
+                    {
+                        oDrawing = aSlicerView[j];
+                        if(oDrawing.getName() === sOldSlicerName)
+                        {
+                            oDrawing.setName(sNewSlicerName);
+                            oDrawing.onDataUpdate();
+                            break;
+                        }
+                    }
+                }
+                oThis.startRecalculate();
+                oThis.drawingObjects.sendGraphicObjectProps();
+            });
+        }
+    }
 //------------------------------------------------------------export---------------------------------------------------
 window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 window['AscCommonExcel'].CheckIdSatetShapeAdd = CheckIdSatetShapeAdd;

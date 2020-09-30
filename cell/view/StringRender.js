@@ -242,7 +242,8 @@
          * @param {Number} maxWidth
          */
         StringRender.prototype.getTransformBound = function(angle, w, h, textW, alignHorizontal, alignVertical, maxWidth) {
-
+			var ctx = this.drawingCtx;
+			
             // TODO: добавить padding по сторонам
 
             this.angle          =   0;  //  angle;
@@ -267,7 +268,8 @@
                 isVertBottom    = (Asc.c_oAscVAlign.Bottom === alignVertical),
                 isVertCenter    = (Asc.c_oAscVAlign.Center === alignVertical || Asc.c_oAscVAlign.Dist === alignVertical || Asc.c_oAscVAlign.Just === alignVertical),
                 isVertTop       = (Asc.c_oAscVAlign.Top    === alignVertical);
-
+			
+				
             if (isVertBottom) {
                 if (angle < 0) {
                     if (isHorzLeft) {
@@ -280,7 +282,7 @@
                     else if (isHorzRight) {
                         dx = w - posv + 2;
                         offsetX = - (w - posv) - angleSin * tm.height - 2;
-                    }
+					}
                 } else {
                     if (isHorzLeft) {
 
@@ -292,7 +294,7 @@
                     else if (isHorzRight) {
                         dx = w  - posv + 1 + 1 - tm.height * angleSin;
                         offsetX = - w  - posv + 1 + 1 - tm.height * angleSin;
-                    }
+					}
                 }
 
                 if (posh < h) {
@@ -305,7 +307,7 @@
                 } else {
                     if (angle > 0) {
                         dy = h - angleCos * tm.height;
-                    }
+                    } 
                 }
             }
             else if (isVertCenter) {
@@ -364,7 +366,7 @@
                     else if (isHorzRight) {
                         dx = w - posv + 2;
                         offsetX = - (w - posv) - angleSin * tm.height - 2;
-                    }
+					}
                 } else {
                     if (isHorzLeft) {
                     }
@@ -378,7 +380,7 @@
                     }
 
                     dy = Math.min(h + tm.height * angleCos, posh);
-                }
+				}
             }
 
             var bound = { dx: dx, dy: dy, height: 0, width: 0, offsetX: offsetX};
@@ -747,6 +749,7 @@
 			var font = ctx.font;
 			var wrap = this.flags && (this.flags.wrapText || this.flags.wrapOnlyCE) && !this.flags.isNumberFormat;
 			var wrapNL = this.flags && this.flags.wrapOnlyNL;
+			var verticalText = this.flags && this.flags.verticalText;
 			var hasRepeats = false;
 			var i, j, fr, fmt, text, p, p_ = {}, pIndex, startCh;
 			var tw = 0, nlPos = 0, isEastAsian, hpPos = undefined, isSP_ = true, delta = 0;
@@ -763,11 +766,13 @@
 					isSP = !isNL ? self.reHypSp.test(ch) : false;
 
 					// if 'wrap flag' is set
-					if (wrap || wrapNL) {
+					if (wrap || wrapNL || verticalText) {
 						isHP = !isSP && !isNL ? self.reHyphen.test(ch) : false;
 						chc = s.charCodeAt(j);
 						isEastAsian = AscCommon.isEastAsianScript(chc);
-						if (isNL) {
+						if (verticalText) {
+							// ToDo verticalText and new line or space
+						} else if (isNL) {
 							// add new line marker
 							nlPos = chPos;
 							self._getCharPropAt(nlPos).nl = true;
@@ -788,7 +793,7 @@
 							}
 						}
 
-						if (wrap && tw + chw > maxWidth && chPos !== nlPos && !isSP) {
+						if (chPos !== nlPos && ((wrap && !isSP && tw + chw > maxWidth) || verticalText)) {
 							// add hyphenation marker
 							nlPos = hpPos !== undefined ? hpPos : chPos;
 							self._getCharPropAt(nlPos).hp = true;

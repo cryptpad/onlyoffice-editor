@@ -162,7 +162,7 @@ CGraphicObjects.prototype =
         }
         return _arrFields;
     },
-    
+
     TurnOffCheckChartSelection: function()
     {
         this.bNoCheckChartTextSelection = true;
@@ -191,6 +191,8 @@ CGraphicObjects.prototype =
     {
         return this.selectedObjects;
     },
+
+    getSelectedArray: DrawingObjectsController.prototype.getSelectedArray,
 
     getTheme: function()
     {
@@ -469,7 +471,7 @@ CGraphicObjects.prototype =
         }, this, []);
 
     },
-	
+
     recalculate_: function(data)
     {
         if(data.All)
@@ -1146,10 +1148,13 @@ CGraphicObjects.prototype =
                 if(arrObjects[i].IsParagraph())
                 {
                     var calc_frame = arrObjects[i].CalculatedFrame;
-                    var FramePr = arrObjects[i].Get_FramePr();
-                    var FrameDx = ( undefined === FramePr.HSpace ? 0 : FramePr.HSpace );
-                    var FrameDy = ( undefined === FramePr.VSpace ? 0 : FramePr.VSpace );
-                    ret.push(new CFlowParagraph(arrObjects[i], calc_frame.L2, calc_frame.T2, calc_frame.W2, calc_frame.H2, FrameDx, FrameDy, arrObjects[i].GetIndex(), 1, FramePr.Wrap));
+                    if(calc_frame.StartIndex === arrObjects[i].Index)
+                    {
+                        var FramePr = arrObjects[i].Get_FramePr();
+                        var FrameDx = ( undefined === FramePr.HSpace ? 0 : FramePr.HSpace );
+                        var FrameDy = ( undefined === FramePr.VSpace ? 0 : FramePr.VSpace );
+                        ret.push(new CFlowParagraph(arrObjects[i], calc_frame.L2, calc_frame.T2, calc_frame.W2, calc_frame.H2, FrameDx, FrameDy, arrObjects[i].GetIndex(), calc_frame.FlowCount, FramePr.Wrap));
+                    }
                 }
                 else if(arrObjects[i].IsTable())
                 {
@@ -1217,6 +1222,16 @@ CGraphicObjects.prototype =
            // this.graphicPages[table.PageNum + table.PageController].hdrFtrPage.addFloatTable(table);
         }
     },
+
+	updateFloatTable : function(table)
+	{
+		var hdr_ftr = table.Table.Parent.IsHdrFtr(true);
+
+		if (!hdr_ftr && this.graphicPages[table.PageNum + table.PageController])
+		{
+			this.graphicPages[table.PageNum + table.PageController].updateFloatTable(table);
+		}
+	},
 
     removeFloatTableById: function(pageIndex, id)
     {
@@ -1407,7 +1422,7 @@ CGraphicObjects.prototype =
         var ret = [];
         for(var i = 0; i < tables.length; ++i)
         {
-            if(flowobject_Table === tables[i].Type && tables[i].Table.Parent === docContent)
+            if(tables[i].IsFlowTable() && tables[i].Table.Parent === docContent)
                 ret.push(tables[i]);
         }
         return ret;
@@ -1440,7 +1455,7 @@ CGraphicObjects.prototype =
     handleOleObjectDoubleClick: function(drawing, oleObject, e, x, y, pageIndex)
     {
 		if(drawing && drawing.ParaMath){
-			drawing.Convert_ToMathObject();
+			editor.sync_OnConvertEquationToMath(drawing);
 		}
         else if(false === this.document.Document_Is_SelectionLocked(changestype_Drawing_Props) || !this.document.CanEdit())
         {
@@ -1481,7 +1496,7 @@ CGraphicObjects.prototype =
 
     handleMathDrawingDoubleClick : function(drawing, e, x, y, pageIndex)
     {
-        drawing.Convert_ToMathObject();
+		editor.sync_OnConvertEquationToMath(drawing);
         this.changeCurrentState(new AscFormat.NullState(this));
         this.document.OnMouseUp(e, x, y, pageIndex);
     },
@@ -2128,9 +2143,9 @@ CGraphicObjects.prototype =
     selectNextObject: DrawingObjectsController.prototype.selectNextObject,
 
 
-    getCurrentParagraph: function(bIgnoreSelection, arrSelectedParagraphs)
+    getCurrentParagraph: function(bIgnoreSelection, arrSelectedParagraphs, oPr)
     {
-        var content = this.getTargetDocContent();
+        var content = this.getTargetDocContent(oPr && oPr.CheckDocContent, undefined);
         if(content)
         {
             return content.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
@@ -2657,8 +2672,9 @@ CGraphicObjects.prototype =
         var nPageIndex = objects_for_grouping[0].parent.pageIndex;
         for(i = 0; i < objects_for_grouping.length; ++i)
         {
-            objects_for_grouping[i].parent.PreDelete();
+			objects_for_grouping[i].parent.bNotPreDelete = true;
             objects_for_grouping[i].parent.Remove_FromDocument(false);
+			objects_for_grouping[i].parent.bNotPreDelete = undefined;
             if(objects_for_grouping[i].setParent){
                 objects_for_grouping[i].setParent(null);
             }
@@ -2730,8 +2746,10 @@ CGraphicObjects.prototype =
                 parent_paragraph = cur_group.parent.Get_ParentParagraph();
                 page_num = cur_group.selectStartPage;
                 cur_group.normalize();
-                cur_group.parent.PreDelete();
+				
+				cur_group.parent.bNotPreDelete = true;
                 cur_group.parent.Remove_FromDocument(false);
+				cur_group.parent.bNotPreDelete = undefined;
                 cur_group.setBDeleted(true);
                 sp_tree = cur_group.spTree;
                 aPos = arrCenterPos[i];
@@ -2924,7 +2942,7 @@ CGraphicObjects.prototype =
             return oTargetDocContent.RecalculateCurPos(bUpdateX, bUpdateY);
 
         if (!window["NATIVE_EDITOR_ENJINE"]) {
-            
+
             var oParaDrawing = this.getMajorParaDrawing();
             if (oParaDrawing)
             {
@@ -3177,7 +3195,18 @@ CGraphicObjects.prototype =
 
                 if(isRealObject(object) && isRealObject(object.parent))
                 {
-                    return ret.bMarker ?  DRAWING_ARRAY_TYPE_BEFORE : object.parent.getDrawingArrayType();
+                    if(ret.bMarker)
+                    {
+                        return DRAWING_ARRAY_TYPE_BEFORE;
+                    }
+                    else
+                    {
+                        if(object.parent.getDrawingArrayType)
+                        {
+                            return object.parent.getDrawingArrayType();
+                        }
+                        return DRAWING_ARRAY_TYPE_BEFORE;
+                    }
                 }
             }
             else
@@ -3859,7 +3888,7 @@ CGraphicObjects.prototype =
     {
         if(this.canChangeWrapPolygon())
         {
-            var bNeedBehindDoc = this.getCompatibilityMode() < document_compatibility_mode_Word15;
+            var bNeedBehindDoc = this.getCompatibilityMode() < AscCommon.document_compatibility_mode_Word15;
             if(this.selectedObjects[0].parent.wrappingType !== WRAPPING_TYPE_THROUGH
                 || this.selectedObjects[0].parent.wrappingType !== WRAPPING_TYPE_TIGHT
             || this.selectedObjects[0].parent.behindDoc !== bNeedBehindDoc)

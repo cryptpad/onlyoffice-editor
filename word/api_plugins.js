@@ -43,10 +43,52 @@
 
     /**
      * @typedef {Object} ContentControl
-     * @property {string} Tag
-     * @property {string} Id
-     * @property {number} Lock
-     * @property {string} InternalId
+     * @property {string} Tag - is a tag assigned to the content control. One and the same tag can be assigned to several content controls so that you can make reference to them in your code.
+     * @property {string} Id - is a unique identifier of the content control. It can be used to search for a certain content control and make reference to it in your code.
+     * @property {ContentControlLock} Lock - is a value that defines if it is possible to delete and/or edit the content control or not. 0 - only deleting, 1 - no deleting or editing, 2 - only editing, 3 - full access
+     * @property {string} InternalId - is internal id of content control. It used for all operation with content controls
+     */
+
+    /**
+     * @typedef {Object} ContentControlLock
+     * Is a value that defines if it is possible to delete and/or edit the content control or not
+     *
+     * **0** - only deleting
+     * **1** - disable deleting or editing
+     * **2** - only editing
+     * **3** - full access
+     * @property {(0 | 1 | 2 | 3)} Lock
+     */
+
+    /**
+     * @typedef {Object} ContentControlType
+     * Is a numeric value that specifies the content control type.
+
+     * @property  {(1 | 2 | 3 | 4)} type **1** - block content control **2** - inline content control **3** - row content control **4** - cell content control
+     */
+
+    /**
+     * @typedef {Object} ContentControlPropertiesAndContent
+     * Is array of properties and contents of content controls.
+
+     * @property  {ContentControlProperties} [ContentControlProperties = {}]
+     * @property  {string} Script is must be a script that will be executed to generate the data within the content control.
+     * @property  {string} Url its must be a link to a shared file
+     */
+
+    /**
+     * @typedef {Object} ContentControlProperties
+     * @property {string} Id - is a unique identifier of the content control. It can be used to search for a certain content control and make reference to it in your code.
+     * @property {string} Tag - is a tag assigned to the content control. One and the same tag can be assigned to several content controls so that you can make reference to them in your code.
+     * @property {ContentControlLock} Lock is a value that defines if it is possible to delete and/or edit the content control or not
+     * @property {string} Alias Alias
+     * @property {string} Appearance Appearance
+     * @property {object} Color Color
+     * @property {number} Color.R R
+     * @property {number} Color.G G
+     * @property {number} Color.B B
+     * @example
+     * {"Id": 100, "Tag": "CC_Tag", "Lock": 3}
      */
 
     var Api = window["asc_docs_api"];
@@ -77,7 +119,7 @@
      * Get all fields as text
      * @memberof Api
      * @typeofeditors ["CDE"]
-     * @alias OpenFile
+     * @alias GetFields
      * @returns {string[]}
      */
     window["asc_docs_api"].prototype["pluginMethod_GetFields"] = function()
@@ -85,11 +127,33 @@
         return this.asc_GetBlockChainData();
     };
     /**
-     * Insert and replace content controls
+     * This method inserts a content control that contains data. The data is specified by the js code for Document Builder, or by the link to a shared document.
      * @memberof Api
      * @typeofeditors ["CDE"]
      * @alias InsertAndReplaceContentControls
-     * @param {object} arrDocuments
+     * @param {ContentControlPropertiesAndContent[]} arrDocuments is array of properties and contents of content controls.
+     * @return {ContentControlProperties[]} return array of created content controls
+     * @example
+     * // Add new content control
+     * var arrDocuments = [{
+     *  "Props": {
+     *       "Id": 100,
+     *       "Tag": "CC_Tag",
+     *       "Lock": 3
+     *   },
+     *   "Script": "var oParagraph = Api.CreateParagraph();oParagraph.AddText('Hello world!');Api.GetDocument().InsertContent([oParagraph]);"
+     *}]
+     * window.Asc.plugin.executeMethod("InsertAndReplaceContentControls", [arrDocuments]);
+     *
+     * // Change existed content control
+     * var arrDocuments = [{
+     *  "Props": {
+     *       "InternalId": "2_803"
+     *   },
+     *   "Script": "var oParagraph = Api.CreateParagraph();oParagraph.AddText('New text');Api.GetDocument().InsertContent([oParagraph]);"
+     *}]
+     * window.Asc.plugin.executeMethod("InsertAndReplaceContentControls", [arrDocuments]);
+
      */
     window["asc_docs_api"].prototype["pluginMethod_InsertAndReplaceContentControls"] = function(arrDocuments)
     {
@@ -97,11 +161,14 @@
         return _worker.start();
     };
     /**
-     * Remove content controls
+     * This method allows to remove several content controls.
      * @memberof Api
      * @typeofeditors ["CDE"]
      * @alias RemoveContentControls
-     * @param {object} arrDocuments
+     * @param {ContentControl[]} arrDocuments is a array of InternalId's. example: [{"InternalId": "5_556"}]
+     * @return {undefined}
+     * @example
+     * window.Asc.plugin.executeMethod("RemoveContentControls", [[{"InternalId": "5_556"}]])
      */
     window["asc_docs_api"].prototype["pluginMethod_RemoveContentControls"] = function(arrDocuments)
     {
@@ -109,11 +176,13 @@
         return _worker.delete();
     };
     /**
-     * Get all content controls
+     * This method allows to get information about all content controls that have been added to the page.
      * @memberof Api
      * @typeofeditors ["CDE"]
      * @alias GetAllContentControls
      * @returns {ContentControl[]}
+     * @example
+     * window.Asc.plugin.executeMethod("GetAllContentControls");
      */
     window["asc_docs_api"].prototype["pluginMethod_GetAllContentControls"] = function()
     {
@@ -128,64 +197,27 @@
         return _ret;
     };
     /**
-     * Add content control
-     * @memberof Api
-     * @typeofeditors ["CDE"]
-     * @alias AddContentControl
-     * @param {number} type Type: 1 = Block, 2 = Inline, 3 = Row, 4 = Cell
-     * @param {object} pr Properties
-     * @param {string} pr.Id Id
-     * @param {string} pr.Tag Tag
-     * @param {string} pr.Lock Lock
-     * @param {string} pr.Alias Alias
-     * @param {string} pr.Appearance Appearance
-     * @param {object} pr.Color Color
-     * @param {number} pr.Color.R R
-     * @param {number} pr.Color.G G
-     * @param {number} pr.Color.B B
-     * @returns {ContentControl}
-     */
-    window["asc_docs_api"].prototype["pluginMethod_AddContentControl"] = function(type, pr)
-    {
-        var _content_control_pr;
-        if (pr)
-        {
-            _content_control_pr = new AscCommon.CContentControlPr();
-            _content_control_pr.Id = pr["Id"];
-            _content_control_pr.Tag = pr["Tag"];
-            _content_control_pr.Lock = pr["Lock"];
-
-            _content_control_pr.Alias = pr["Alias"];
-
-            if (undefined !== pr["Appearance"])
-                _content_control_pr.Appearance = pr["Appearance"];
-
-            if (undefined !== pr["Color"])
-                _content_control_pr.Color = new Asc.asc_CColor(pr["Color"]["R"], pr["Color"]["G"], pr["Color"]["B"]);
-        }
-
-        var _obj = this.asc_AddContentControl(type, _content_control_pr);
-        if (!_obj)
-            return undefined;
-        return {"Tag" : _obj.Tag, "Id" : _obj.Id, "Lock" : _obj.Lock, "InternalId" : _obj.InternalId};
-    };
-    /**
-     * Remove specified content control
+     * This method allows to remove content control, but leave all its contents.
      * @memberof Api
      * @typeofeditors ["CDE"]
      * @alias RemoveContentControl
+     * @param {string} InternalId is a InternalId of the content control
      * @returns {Object}
+     * @example
+     * window.Asc.plugin.executeMethod("RemoveContentControl", ["InternalId"])
      */
-    window["asc_docs_api"].prototype["pluginMethod_RemoveContentControl"] = function(id)
+    window["asc_docs_api"].prototype["pluginMethod_RemoveContentControl"] = function(InternalId)
     {
-        return this.asc_RemoveContentControlWrapper(id);
+        return this.asc_RemoveContentControlWrapper(InternalId);
     };
     /**
-     * Get current content control
+     * This method allows to get the identifier of the selected content control (i.e. the content control where the mouse cursor is currently positioned).
      * @memberof Api
      * @typeofeditors ["CDE"]
      * @alias GetCurrentContentControl
-     * @returns {Object}
+     * @returns {string} InternalId of selected content control
+     * @example
+     * window.Asc.plugin.executeMethod("GetCurrentContentControl");
      */
     window["asc_docs_api"].prototype["pluginMethod_GetCurrentContentControl"] = function()
     {
@@ -196,8 +228,9 @@
      * @memberof Api
      * @typeofeditors ["CDE"]
      * @alias GetCurrentContentControlPr
-     * @param {string} contentFormat
-     * @returns {Object}
+     * @returns {ContentControlProperties}
+     * @example
+     * window.Asc.plugin.executeMethod("GetCurrentContentControlPr")
      */
 	window["asc_docs_api"].prototype["pluginMethod_GetCurrentContentControlPr"] = function(contentFormat)
 	{
@@ -251,7 +284,9 @@
      * @memberof Api
      * @typeofeditors ["CDE"]
      * @alias SelectContentControl
-     * @param {string} id Content control identifier
+     * @param {string} id is a InternalId of the content control
+     * @example
+     * window.Asc.plugin.executeMethod("SelectContentControl", ["5_665"]);
      */
     window["asc_docs_api"].prototype["pluginMethod_SelectContentControl"] = function(id)
     {
@@ -266,8 +301,11 @@
      * @memberof Api
      * @typeofeditors ["CDE"]
      * @alias MoveCursorToContentControl
-     * @param {string} id Content control identifier
-     * @param {boolean} isBegin
+     * @param {string} id InternalId of content control
+     * @param {boolean} [isBegin = false] is a option for changing cursor position in content control. By default, cursor will place in begin of content control
+     * @return {undefined}
+     * @example
+     * window.Asc.plugin.executeMethod("MoveCursorToContentControl", ["2_839", false])
      */
     window["asc_docs_api"].prototype["pluginMethod_MoveCursorToContentControl"] = function(id, isBegin)
     {
@@ -296,6 +334,9 @@
      * @memberof Api
      * @typeofeditors ["CDE"]
      * @alias RemoveSelectedContent
+     * @return {undefined}
+     * @example
+     *  window.Asc.plugin.executeMethod("RemoveSelectedContent")
      */
     window["asc_docs_api"].prototype["pluginMethod_RemoveSelectedContent"] = function()
     {
@@ -320,7 +361,7 @@
      */
     window["asc_docs_api"].prototype["pluginMethod_AddComment"] = function(sMessage, sAuthorName)
     {
-        var oData = new asc_CCommentDataWord();
+        var oData = new window['Asc']['asc_CCommentDataWord'] ();
 
         if (sMessage)
             oData.asc_putText(sMessage);
@@ -374,7 +415,7 @@
      * @param {Object} oProperties The properties for find and replace.
      * @param {string} oProperties.searchString Search string.
      * @param {string} oProperties.replaceString Replacement string.
-     * @param {boolean} [oProperties.matchCase=true]
+     * @param {boolean} [oProperties.matchCase=true] matchCase option
      */
     window["asc_docs_api"].prototype["pluginMethod_SearchAndReplace"] = function(oProperties)
     {
@@ -394,6 +435,8 @@
      * @typeofeditors ["CDE"]
      * @alias GetFileHTML
      * @return {string}
+     * @example
+     * window.Asc.plugin.executeMethod("GetFileHTML")
      */
     window["asc_docs_api"].prototype["pluginMethod_GetFileHTML"] = function()
     {

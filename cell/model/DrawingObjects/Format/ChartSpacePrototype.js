@@ -62,7 +62,6 @@ CChartSpace.prototype.recalcText = function()
 
 CChartSpace.prototype.recalculateBounds = CShape.prototype.recalculateBounds;
 CChartSpace.prototype.deselect = CShape.prototype.deselect;
-CChartSpace.prototype.hitToHandles = CShape.prototype.hitToHandles;
 CChartSpace.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CChartSpace.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CChartSpace.prototype.getInvertTransform = CShape.prototype.getInvertTransform;
@@ -207,7 +206,6 @@ CChartSpace.prototype.handleUpdateLn = function()
 	this.recalcInfo.recalculateMarkers = true;
     this.addToRecalculate();
 };
-CChartSpace.prototype.canGroup = CShape.prototype.canGroup;
 CChartSpace.prototype.convertPixToMM = CShape.prototype.convertPixToMM;
 CChartSpace.prototype.getCanvasContext = CShape.prototype.getCanvasContext;
 CChartSpace.prototype.getHierarchy = CShape.prototype.getHierarchy;
@@ -221,14 +219,6 @@ CChartSpace.prototype.getParentObjects = function()
     return parents;
 };
 CChartSpace.prototype.recalculateTransform = CShape.prototype.recalculateTransform;
-
-CChartSpace.prototype.canResize = CShape.prototype.canResize;
-CChartSpace.prototype.canMove = CShape.prototype.canMove;
-CChartSpace.prototype.canRotate = function()
-{
-    return false;
-};
-
 
 CChartSpace.prototype.createResizeTrack = CShape.prototype.createResizeTrack;
 CChartSpace.prototype.createMoveTrack = CShape.prototype.createMoveTrack;

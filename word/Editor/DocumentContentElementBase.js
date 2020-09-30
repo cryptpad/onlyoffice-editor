@@ -248,13 +248,13 @@ CDocumentContentElementBase.prototype.SelectAll = function(nDirection)
 CDocumentContentElementBase.prototype.GetCalculatedTextPr = function()
 {
 	var oTextPr = new CTextPr();
-	oTextPr.Init_Default();
+	oTextPr.InitDefault();
 	return oTextPr;
 };
 CDocumentContentElementBase.prototype.GetCalculatedParaPr = function()
 {
 	var oParaPr = new CParaPr();
-	oParaPr.Init_Default();
+	oParaPr.InitDefault();
 	return oParaPr;
 };
 CDocumentContentElementBase.prototype.GetDirectParaPr = function()
@@ -403,6 +403,11 @@ CDocumentContentElementBase.prototype.IsStartFromNewPage = function()
 };
 CDocumentContentElementBase.prototype.GetAllParagraphs = function(Props, ParaArray)
 {
+	return [];
+};
+CDocumentContentElementBase.prototype.GetAllTables = function(oProps, arrTables)
+{
+	return [];
 };
 CDocumentContentElementBase.prototype.SetContentSelection = function(StartDocPos, EndDocPos, Depth, StartFlag, EndFlag)
 {
@@ -779,6 +784,14 @@ CDocumentContentElementBase.prototype.Get_ColumnsCount = function()
 {
 	return this.ColumnsCount;
 };
+CDocumentContentElementBase.prototype.GetStartColumn = function()
+{
+	return this.ColumnNum;
+};
+CDocumentContentElementBase.prototype.GetColumnsCount = function()
+{
+	return this.ColumnsCount;
+};
 CDocumentContentElementBase.prototype.private_GetRelativePageIndex = function(CurPage)
 {
 	if (!this.ColumnsCount || 0 === this.ColumnsCount)
@@ -1032,9 +1045,11 @@ CDocumentContentElementBase.prototype.GetSimilarNumbering = function(oContinueEn
  * Переходим к следующей ссылке на сноску
  * @param isNext {boolean} - направление поиска
  * @param isCurrent {boolean} - ищем начиная с текущей позиции или с края элемента
+ * @param isStepFootnote {boolean} - ищем сноски на странице
+ * @param isStepEndnote {boolean} - ищем концевые сноски
  * @returns {boolean}
  */
-CDocumentContentElementBase.prototype.GotoFootnoteRef = function(isNext, isCurrent)
+CDocumentContentElementBase.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepFootnote, isStepEndnote)
 {
 	return false;
 };
@@ -1151,6 +1166,32 @@ CDocumentContentElementBase.prototype.GetPresentationField = function()
  * @returns {Array}
  */
 CDocumentContentElementBase.prototype.GetAllTablesOnPage = function(nPageAbs, arrTables){return arrTables ? arrTables : [];};
+/**
+ * Обрабатываем сложные поля
+ */
+CDocumentContentElementBase.prototype.ProcessComplexFields = function() {};
+/**
+ * Вычисляем EndInfo для всех параграфаов
+ */
+CDocumentContentElementBase.prototype.RecalculateEndInfo = function() {};
+/**
+ * Получаем ссылку на глобальный класс документа
+ * @returns {CDocument}
+ */
+CDocumentContentElementBase.prototype.GetLogicDocument = function()
+{
+	return this.LogicDocument;
+};
+/**
+ * Получаем настройки рамки для данного элемента
+ * @returns {?CFramePr}
+ */
+CDocumentContentElementBase.prototype.GetFramePr = function(){return null;};
+/**
+ * Получаем маскимальную ширину таблицы
+ * @returns {{GapLeft : {number}, GapRight : {number}, GridWidth : {number}}}
+ */
+CDocumentContentElementBase.prototype.GetMaxTableGridWidth = function(){return {GapLeft : 0, GapRight : 0, GridWidth : -1};};
 
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

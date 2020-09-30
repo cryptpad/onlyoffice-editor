@@ -38,7 +38,7 @@
 var g_fontApplication = AscFonts.g_fontApplication;
 
 var g_oTextMeasurer = AscCommon.g_oTextMeasurer;
-    
+
 var Geometry = AscFormat.Geometry;
 var EPSILON_TEXT_AUTOFIT = AscFormat.EPSILON_TEXT_AUTOFIT;
 var ObjectToDraw = AscFormat.ObjectToDraw;
@@ -180,12 +180,12 @@ CDocContentStructure.prototype.checkByWarpStruct = function(oWarpStruct, dWidth,
                 var bArcDown = "textArchDown" !== oWarpStruct.preset && i < 1;
                 if(!AscFormat.isRealNumber(oWarpedObject.x) || !AscFormat.isRealNumber(oWarpedObject.y) )
                 {
-                    CheckGeometryByPolygon(oWarpedObject, oPolygon, bArcDown, XLimit*dKoeff, dContentHeight, dKoeff, nDivCount > 1 ? oBoundsChecker.Bounds : null);
+                    oWarpedObject.geometry.checkByPolygon(oPolygon, bArcDown, XLimit*dKoeff, dContentHeight, dKoeff, nDivCount > 1 ? oBoundsChecker.Bounds : null);
                 }
                 else
                 {
                     oNextPointOnPolygon = this.checkTransformByOddPath(oMatrix, oWarpedObject, aWarpedObjects[t+1], oNextPointOnPolygon, dContentHeight, dKoeff, bArcDown, oPolygon, XLimit);
-                    TransformGeometry(oWarpedObject, oMatrix);
+                    oWarpedObject.geometry.transform(oMatrix, dKoeff);
                 }
             }
         }
@@ -870,11 +870,11 @@ function CTextDrawer(dWidth, dHeight, bDivByLInes, oTheme, bDivGlyphs)
     this.Width = dWidth;
     this.Height = dHeight;
     this.m_oTransform = new AscCommon.CMatrix();
-    this.pathW = 43200;
-    this.pathH = 43200;
+    this.pathW = 1000000000;
+    this.pathH = 1000000000;
 
-    this.xKoeff = this.pathW/this.Width;
-    this.yKoeff = this.pathH/this.Height;
+    this.xKoeff = this.pathW;
+    this.yKoeff = this.pathH;
 
     this.m_aStack = [];
     this.m_oDocContentStructure = null;
@@ -929,6 +929,9 @@ function CTextDrawer(dWidth, dHeight, bDivByLInes, oTheme, bDivGlyphs)
     {
         this.m_aByParagraphs = [];
     }
+
+    this.m_bIsTextDrawer = true;
+    this.pathMemory = new AscFormat.CPathMemory();
 }
 
 CTextDrawer.prototype =
@@ -950,6 +953,25 @@ CTextDrawer.prototype =
         {
             this.m_oPen.Color.A = a;
         }
+        var oLastCommand = this.m_aStack[this.m_aStack.length - 1];
+        if(oLastCommand)
+        {
+            if(oLastCommand.m_nType === DRAW_COMMAND_LINE && 
+                oLastCommand.m_nDrawType === 3)
+            {
+                if(this.m_oTextPr && this.m_oTheme)
+                {
+                    var oTextPr = this.m_oTextPr.Copy();
+                    if(!oTextPr.TextOutline)
+                    {
+                        oTextPr.TextOutline = new AscFormat.CLn();
+                    }
+                    oTextPr.TextOutline.Fill = AscFormat.CreateUnfilFromRGB(r, g, b);
+                    this.SetTextPr(oTextPr, this.m_oTheme);
+                    return;
+                }
+            }
+        }
         this.Get_PathToDraw(false, true);
     },
     AddSmartRect: function()
@@ -969,15 +991,32 @@ CTextDrawer.prototype =
     // brush methods
     b_color1 : function(r,g,b,a)
     {
-        if (this.m_oBrush.Color1.R != r || this.m_oBrush.Color1.G != g || this.m_oBrush.Color1.B != b)
+        if (this.m_oBrush.Color1.R !== r || this.m_oBrush.Color1.G !== g || this.m_oBrush.Color1.B !== b)
         {
             this.m_oBrush.Color1.R = r;
             this.m_oBrush.Color1.G = g;
             this.m_oBrush.Color1.B = b;
         }
-        if (this.m_oBrush.Color1.A != a)
+        if (this.m_oBrush.Color1.A !== a)
         {
             this.m_oBrush.Color1.A = a;
+        }
+        var oLastCommand = this.m_aStack[this.m_aStack.length - 1];
+        if(oLastCommand)
+        {
+            if(oLastCommand.m_nType === DRAW_COMMAND_LINE && 
+                (oLastCommand.m_nDrawType === 0))
+            {
+                if(this.m_oTextPr && this.m_oTheme)
+                {
+                    var oTextPr = this.m_oTextPr.Copy();
+                    oTextPr.Unifill = undefined;
+                    oTextPr.TextFill = undefined;
+                    oTextPr.Color = new CDocumentColor(r, g, b, false);
+                    this.SetTextPr(oTextPr, this.m_oTheme);
+                    return;
+                }
+            }
         }
         this.Get_PathToDraw(false, true);
     },
@@ -1251,7 +1290,7 @@ CTextDrawer.prototype =
 
                             if(bStart2)
                             {
-                                if(oLastObjectToDraw.geometry.pathLst.length === 0 || (oLastObjectToDraw.geometry.pathLst.length === 1 && oLastObjectToDraw.geometry.pathLst[0].ArrPathCommandInfo.length === 0))
+                                if(oLastObjectToDraw.geometry.pathLst.length === 0 || (oLastObjectToDraw.geometry.pathLst.length === 1 && oLastObjectToDraw.geometry.pathLst[0].isEmpty()))
                                 {
                                     oLastObjectToDraw.resetBrushPen(this.GetFillFromTextPr(this.m_oTextPr), this.GetPenFromTextPr(this.m_oTextPr), x, y)
                                 }
@@ -1273,7 +1312,7 @@ CTextDrawer.prototype =
 
                             if(bStart2)
                             {
-                                if(oLastObjectToDraw.geometry.pathLst.length === 0 || (oLastObjectToDraw.geometry.pathLst.length === 1 && oLastObjectToDraw.geometry.pathLst[0].ArrPathCommandInfo.length === 0))
+                                if(oLastObjectToDraw.geometry.pathLst.length === 0 || (oLastObjectToDraw.geometry.pathLst.length === 1 && oLastObjectToDraw.geometry.pathLst[0].isEmpty()))
                                 {
                                     oLastObjectToDraw.resetBrushPen(this.m_oFill, this.m_oLine, x, y);
                                 }
@@ -1295,7 +1334,7 @@ CTextDrawer.prototype =
 
                             if(bStart2)
                             {
-                                if(oLastObjectToDraw.geometry.pathLst.length === 0 || (oLastObjectToDraw.geometry.pathLst.length === 1 && oLastObjectToDraw.geometry.pathLst[0].ArrPathCommandInfo.length === 0))
+                                if(oLastObjectToDraw.geometry.pathLst.length === 0 || (oLastObjectToDraw.geometry.pathLst.length === 1 && oLastObjectToDraw.geometry.pathLst[0].isEmpty()))
                                 {
                                     oLastObjectToDraw.resetBrushPen(this.m_oFill, this.m_oLine, x, y);
                                 }
@@ -1319,7 +1358,7 @@ CTextDrawer.prototype =
 
                             if(bStart2)
                             {
-                                if(oLastObjectToDraw.geometry.pathLst.length === 0 || (oLastObjectToDraw.geometry.pathLst.length === 1 && oLastObjectToDraw.geometry.pathLst[0].ArrPathCommandInfo.length === 0))
+                                if(oLastObjectToDraw.geometry.pathLst.length === 0 || (oLastObjectToDraw.geometry.pathLst.length === 1 && oLastObjectToDraw.geometry.pathLst[0].isEmpty()))
                                 {
                                     oLastObjectToDraw.resetBrushPen(this.GetFillFromTextPr(this.m_oTextPr), this.GetPenFromTextPr(this.m_oTextPr), x, y);
                                 }
@@ -1341,7 +1380,7 @@ CTextDrawer.prototype =
 
                             if(bStart2)
                             {
-                                if(oLastObjectToDraw.geometry.pathLst.length === 0 || (oLastObjectToDraw.geometry.pathLst.length === 1 && oLastObjectToDraw.geometry.pathLst[0].ArrPathCommandInfo.length === 0))
+                                if(oLastObjectToDraw.geometry.pathLst.length === 0 || (oLastObjectToDraw.geometry.pathLst.length === 1 && oLastObjectToDraw.geometry.pathLst[0].isEmpty()))
                                 {
                                     oLastObjectToDraw.resetBrushPen(this.m_oFill, this.m_oLine, x, y);
                                 }
@@ -1368,7 +1407,7 @@ CTextDrawer.prototype =
 
                     if(bStart2)
                     {
-                        if(oLastObjectToDraw.geometry.pathLst.length === 0 || (oLastObjectToDraw.geometry.pathLst.length === 1 && oLastObjectToDraw.geometry.pathLst[0].ArrPathCommandInfo.length === 0))
+                        if(oLastObjectToDraw.geometry.pathLst.length === 0 || (oLastObjectToDraw.geometry.pathLst.length === 1 && oLastObjectToDraw.geometry.pathLst[0].isEmpty()))
                         {
                             oLastObjectToDraw.resetBrushPen(this.m_oFill, this.m_oLine, x, y);
                         }
@@ -1400,7 +1439,7 @@ CTextDrawer.prototype =
             oLastObjectToDraw.Comment = this.m_oCurComment;
             if(oLastObjectToDraw.geometry.pathLst.length === 0 || bStart)
             {
-                oPath = new AscFormat.Path();
+                oPath = this.pathMemory.AllocPath2();
                 oPath.setPathW(this.pathW);
                 oPath.setPathH(this.pathH);
                 oPath.setExtrusionOk(false);
@@ -1679,7 +1718,7 @@ CTextDrawer.prototype =
             style += 1;
 
         var fontinfo = g_fontApplication.GetFontInfo(_lastFont.Name, style, this.LastFontOriginInfo);
-        
+
         if (this.m_oFont.Name != fontinfo.Name)
         {
             this.m_oFont.Name = fontinfo.Name;
@@ -2328,261 +2367,13 @@ PolygonWrapper.prototype.getPointOnPolygon = function(dCT, bNeedPoints)
     return {x: oPoint1.x + t*(oPoint2.x - oPoint1.x ), y: oPoint1.y + t*(oPoint2.y - oPoint1.y ), oP1: oRetPoint1, oP2: oRetPoint2};
 };
 
-function CheckPointByPaths(dX, dY, dWidth, dHeight, dMinX, dMinY, oPolygonWrapper1, oPolygonWrapper2)
-{
-    var cX, cY, point, topX, topY, bottomX, bottomY;
-    cX = (dX - dMinX)/dWidth;
-    cY = (dY - dMinY)/dHeight;
-    if(cX > 1)
-    {
-        cX = 1;
-    }
-    if(cX < 0)
-    {
-        cX = 0;
-    }
-    point = oPolygonWrapper1.getPointOnPolygon(cX);
-    topX = point.x;
-    topY = point.y;
-    point = oPolygonWrapper2.getPointOnPolygon(cX);
-    bottomX = point.x;
-    bottomY = point.y;
-    return {x: topX + cY*(bottomX - topX), y: topY + cY*(bottomY - topY)};
-}
+
 function ObjectsToDrawBetweenTwoPolygons(aObjectsToDraw, oBoundsController, oPolygonWrapper1, oPolygonWrapper2)
 {
-    var i, j, t, dMinX = oBoundsController.min_x, dMinY = oBoundsController.min_y, aPathLst, dWidth = oBoundsController.max_x - oBoundsController.min_x, dHeight = oBoundsController.max_y - oBoundsController.min_y;
-    var oCommand, oPoint, oPath;
+    var i;
     for(i = 0; i < aObjectsToDraw.length; ++i)
     {
-        aPathLst = aObjectsToDraw[i].geometry.pathLst;
-        for(t = 0; t < aPathLst.length; ++t)
-        {
-            oPath = aPathLst[t];
-            for(j = 0; j < oPath.ArrPathCommand.length; ++j)
-            {
-                oCommand = oPath.ArrPathCommand[j];
-                switch(oCommand.id)
-                {
-                    case AscFormat.moveTo:
-                    case AscFormat.lineTo:
-                    {
-                        oPoint = CheckPointByPaths(oCommand.X, oCommand.Y, dWidth, dHeight, dMinX, dMinY, oPolygonWrapper1, oPolygonWrapper2);
-                        oCommand.X = oPoint.x;
-                        oCommand.Y = oPoint.y;
-                        break;
-                    }
-
-                    case AscFormat.bezier3:
-                    {
-                        oPoint = CheckPointByPaths(oCommand.X0, oCommand.Y0, dWidth, dHeight, dMinX, dMinY, oPolygonWrapper1, oPolygonWrapper2);
-                        oCommand.X0 = oPoint.x;
-                        oCommand.Y0 = oPoint.y;
-                        oPoint = CheckPointByPaths(oCommand.X1, oCommand.Y1, dWidth, dHeight, dMinX, dMinY, oPolygonWrapper1, oPolygonWrapper2);
-                        oCommand.X1 = oPoint.x;
-                        oCommand.Y1 = oPoint.y;
-                        break;
-                    }
-                    case AscFormat.bezier4:
-                    {
-                        oPoint = CheckPointByPaths(oCommand.X0, oCommand.Y0, dWidth, dHeight, dMinX, dMinY, oPolygonWrapper1, oPolygonWrapper2);
-                        oCommand.X0 = oPoint.x;
-                        oCommand.Y0 = oPoint.y;
-                        oPoint = CheckPointByPaths(oCommand.X1, oCommand.Y1, dWidth, dHeight, dMinX, dMinY, oPolygonWrapper1, oPolygonWrapper2);
-                        oCommand.X1 = oPoint.x;
-                        oCommand.Y1 = oPoint.y;
-                        oPoint = CheckPointByPaths(oCommand.X2, oCommand.Y2, dWidth, dHeight, dMinX, dMinY, oPolygonWrapper1, oPolygonWrapper2);
-                        oCommand.X2 = oPoint.x;
-                        oCommand.Y2 = oPoint.y;
-                        break;
-                    }
-                    case AscFormat.arcTo:
-                    {
-                        break;
-                    }
-                    case AscFormat.close:
-                    {
-                        break;
-                    }
-                }
-            }
-        }
-    }
-}
-
-function TransformPointGeometry(x, y, oTransform)
-{
-    var oRet = {x: 0, y: 0};
-    oRet.x = oTransform.TransformPointX(x,y);
-    oRet.y = oTransform.TransformPointY(x,y);
-    return oRet;
-}
-
-
-function TransformGeometry(oObjectToDraw, oTransform)
-{
-    var oCommand, oPoint, oPath, t, j, aPathLst;
-    aPathLst = oObjectToDraw.geometry.pathLst;
-    for(t = 0; t < aPathLst.length; ++t)
-    {
-        oPath = aPathLst[t];
-        for(j = 0; j < oPath.ArrPathCommand.length; ++j)
-        {
-            oCommand = oPath.ArrPathCommand[j];
-            switch(oCommand.id)
-            {
-                case AscFormat.moveTo:
-                case AscFormat.lineTo:
-                {
-                    oPoint = TransformPointGeometry(oCommand.X, oCommand.Y, oTransform);
-                    oCommand.X = oPoint.x;
-                    oCommand.Y = oPoint.y;
-                    break;
-                }
-
-                case AscFormat.bezier3:
-                {
-                    oPoint = TransformPointGeometry(oCommand.X0, oCommand.Y0, oTransform);
-                    oCommand.X0 = oPoint.x;
-                    oCommand.Y0 = oPoint.y;
-                    oPoint = TransformPointGeometry(oCommand.X1, oCommand.Y1, oTransform);
-                    oCommand.X1 = oPoint.x;
-                    oCommand.Y1 = oPoint.y;
-                    break;
-                }
-                case AscFormat.bezier4:
-                {
-                    oPoint = TransformPointGeometry(oCommand.X0, oCommand.Y0, oTransform);
-                    oCommand.X0 = oPoint.x;
-                    oCommand.Y0 = oPoint.y;
-                    oPoint = TransformPointGeometry(oCommand.X1, oCommand.Y1, oTransform);
-                    oCommand.X1 = oPoint.x;
-                    oCommand.Y1 = oPoint.y;
-                    oPoint = TransformPointGeometry(oCommand.X2, oCommand.Y2, oTransform);
-                    oCommand.X2 = oPoint.x;
-                    oCommand.Y2 = oPoint.y;
-                    break;
-                }
-                case AscFormat.arcTo:
-                {
-                    break;
-                }
-                case AscFormat.close:
-                {
-                    break;
-                }
-            }
-        }
-
-    }
-}
-
-function TransformPointPolygon(x, y, oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds)
-{
-    var oRet = {x: 0, y: 0}, y0, y1, cX, oPointOnPolygon, x1t, y1t, dX, dY, x0t, y0t;
-    y0 = y;//dKoeff;
-    if(bFlag)
-    {
-        y1 = 0;
-		if(oBounds)
-		{
-			y0 -= oBounds.min_y;
-		}
-    }
-    else
-    {
-        y1 = ContentHeight*dKoeff;
-        if(oBounds)
-        {
-            y1 = (oBounds.max_y - oBounds.min_y);
-			y0 -= oBounds.min_y;
-        }
-    }
-    cX = x/XLimit;
-    oPointOnPolygon = oPolygon.getPointOnPolygon(cX, true);
-    x1t = oPointOnPolygon.x;
-    y1t = oPointOnPolygon.y;
-    dX = oPointOnPolygon.oP2.x - oPointOnPolygon.oP1.x;
-    dY = oPointOnPolygon.oP2.y - oPointOnPolygon.oP1.y;
-
-    if(bFlag)
-    {
-        dX = -dX;
-        dY = -dY;
-    }
-    var dNorm = Math.sqrt(dX*dX + dY*dY);
-
-    if(bFlag)
-    {
-        x0t = x1t + (dY/dNorm)*(y0);
-        y0t = y1t - (dX/dNorm)*(y0);
-    }
-    else
-    {
-
-        x0t = x1t + (dY/dNorm)*(y1 - y0);
-        y0t = y1t - (dX/dNorm)*(y1 - y0);
-    }
-    oRet.x = x0t;
-    oRet.y = y0t;
-    return oRet;
-}
-
-function CheckGeometryByPolygon(oObjectToDraw, oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds)
-{
-    var oCommand, oPoint, oPath, t, j, aPathLst;
-    aPathLst = oObjectToDraw.geometry.pathLst;
-    for(t = 0; t < aPathLst.length; ++t)
-    {
-        oPath = aPathLst[t];
-        for(j = 0; j < oPath.ArrPathCommand.length; ++j)
-        {
-            oCommand = oPath.ArrPathCommand[j];
-            switch(oCommand.id)
-            {
-                case AscFormat.moveTo:
-                case AscFormat.lineTo:
-                {
-                    oPoint = TransformPointPolygon(oCommand.X, oCommand.Y, oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds);
-                    oCommand.X = oPoint.x;
-                    oCommand.Y = oPoint.y;
-                    break;
-                }
-
-                case AscFormat.bezier3:
-                {
-                    oPoint = TransformPointPolygon(oCommand.X0, oCommand.Y0, oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds);
-                    oCommand.X0 = oPoint.x;
-                    oCommand.Y0 = oPoint.y;
-                    oPoint = TransformPointPolygon(oCommand.X1, oCommand.Y1, oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds);
-                    oCommand.X1 = oPoint.x;
-                    oCommand.Y1 = oPoint.y;
-                    break;
-                }
-                case AscFormat.bezier4:
-                {
-                    oPoint = TransformPointPolygon(oCommand.X0, oCommand.Y0, oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds);
-                    oCommand.X0 = oPoint.x;
-                    oCommand.Y0 = oPoint.y;
-                    oPoint = TransformPointPolygon(oCommand.X1, oCommand.Y1, oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds);
-                    oCommand.X1 = oPoint.x;
-                    oCommand.Y1 = oPoint.y;
-                    oPoint = TransformPointPolygon(oCommand.X2, oCommand.Y2, oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds);
-                    oCommand.X2 = oPoint.x;
-                    oCommand.Y2 = oPoint.y;
-                    break;
-                }
-                case AscFormat.arcTo:
-                {
-                    break;
-                }
-                case AscFormat.close:
-                {
-                    break;
-                }
-            }
-        }
-
+        aObjectsToDraw[i].geometry.checkBetweenPolygons(oBoundsController, oPolygonWrapper1, oPolygonWrapper2);
     }
 }
 

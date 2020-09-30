@@ -83,7 +83,21 @@ field_months[0][11] = "декабря";
 
 
 AscDFH.drawingsChangesMap[AscDFH.historyitem_TextBodySetParent] =   function(oClass, value){oClass.parent = value;};
-AscDFH.drawingsChangesMap[AscDFH.historyitem_TextBodySetBodyPr] =   function(oClass, value){oClass.bodyPr = value;};
+AscDFH.drawingsChangesMap[AscDFH.historyitem_TextBodySetBodyPr] =   function(oClass, value){
+    if(CheckNeedRecalcAutoFit(oClass.bodyPr, value))
+        if(oClass.parent)
+        {
+            oClass.parent.recalcInfo.recalculateContent = true;
+            oClass.parent.recalcInfo.recalculateContent2 = true;
+            oClass.parent.recalcInfo.recalculateTransformText = true;
+        }
+    if(oClass.content)
+    {
+        oClass.content.Recalc_AllParagraphs_CompiledPr();
+    }
+    oClass.bodyPr = value;
+    oClass.recalcInfo.recalculateBodyPr = true;
+};
 AscDFH.drawingsChangesMap[AscDFH.historyitem_TextBodySetContent] =  function(oClass, value){oClass.content = value;};
 AscDFH.drawingsChangesMap[AscDFH.historyitem_TextBodySetLstStyle] = function(oClass, value){oClass.lstStyle = value;};
 
@@ -102,6 +116,7 @@ function CTextBody()
     this.content2 = null;
     this.compiledBodyPr = null;
     this.parent = null;
+    this.bFit = true;
     this.recalcInfo =
     {
         recalculateBodyPr: true,
@@ -121,7 +136,7 @@ CTextBody.prototype =
         if(this.lstStyle)
             ret.setLstStyle(this.lstStyle.createDuplicate());
         if(this.content)
-            ret.setContent(this.content.Copy(ret, AscFormat.NEW_WORKSHEET_DRAWING_DOCUMENT));
+            ret.setContent(this.content.Copy(ret));
         return ret;
     },
 
@@ -165,6 +180,14 @@ CTextBody.prototype =
         return true;
     },
 
+    Is_InTable: function(bReturnTopTable)
+    {
+        if ( true === bReturnTopTable )
+            return null;
+
+        return false;
+    },
+
     Get_Theme : function()
     {
         if(this.parent){
@@ -193,10 +216,13 @@ CTextBody.prototype =
         this.bodyPr = pr;
         if(this.parent && this.parent.recalcInfo)
         {
-            this.parent.recalcInfo.recalcContent = true;
             this.parent.recalcInfo.recalculateContent = true;
             this.parent.recalcInfo.recalculateContent2 = true;
-            this.parent.recalcInfo.recalcTransformText = true;
+            this.parent.recalcInfo.recalculateTransformText = true;
+            if(this.content)
+            {
+                this.content.Recalc_AllParagraphs_CompiledPr();
+            }
             if(this.parent.addToRecalculate)
             {
                 this.parent.addToRecalculate();
@@ -301,121 +327,15 @@ CTextBody.prototype =
         }, this, []);
     },
 
-    checkTextFit: function()
-    {
-        if(this.parent && this.parent.parent && this.parent.parent instanceof Slide)
-        {
-            if(isRealObject(this.bodyPr.textFit))
-            {
-                if(this.bodyPr.textFit.type === AscFormat.text_fit_NormAuto)
-                {
-                    var text_fit = this.bodyPr.textFit;
-                    var font_scale, spacing_scale;
-                    if(AscFormat.isRealNumber(text_fit.fontScale))
-                        font_scale = text_fit.fontScale/100000;
-                    if(AscFormat.isRealNumber(text_fit.lnSpcReduction))
-                        spacing_scale = text_fit.lnSpcReduction/100000;
-
-                    if(AscFormat.isRealNumber(font_scale)|| AscFormat.isRealNumber(spacing_scale))
-                    {
-                        var pars = this.content.Content;
-                        for(var index = 0; index < pars.length; ++index)
-                        {
-                            var parg = pars[index];
-                            if(AscFormat.isRealNumber(spacing_scale))
-                            {
-                                var spacing2 = parg.Get_CompiledPr(false).ParaPr.Spacing;
-                                var new_spacing = {};
-                                var spc = spacing2.Line*spacing_scale;
-                                new_spacing.LineRule = spacing2.LineRule;
-                                if(AscFormat.isRealNumber(spc))
-                                {
-                                    if(spacing2.LineRule === Asc.linerule_Auto)
-                                    {
-                                        new_spacing.Line = spacing2.Line - spacing_scale;
-                                    }
-                                    else
-                                    {
-                                        new_spacing.Line = spc;
-                                    }
-                                }
-                                parg.Set_Spacing(new_spacing);
-                            }
-                            if(AscFormat.isRealNumber(font_scale))
-                            {
-                                var bReset = false;
-                                if(AscCommon.g_oIdCounter.m_bLoad)
-                                {
-                                    bReset = true;
-                                    AscCommon.g_oIdCounter.m_bLoad = false;
-                                }
-                                 var redFontSize = Math.round(parg.Get_CompiledPr(false).TextPr.FontSize*font_scale);
-                                if(bReset)
-                                {
-                                    AscCommon.g_oIdCounter.m_bLoad = true;
-                                }
-                                this.checkParagraphContent(parg, font_scale, true, redFontSize);
-                            }
-                        }
-                    }
-                    this.bodyPr.textFit = null;
-                }
-            }
-        }
-    },
-
-    checkParagraphContent: function(parg, fontScale, bParagraph, paragrRedFontSize)
-    {
-        for(var r = 0; r < parg.Content.length; ++r)
-        {
-            var item = parg.Content[r];
-            switch(item.Type)
-            {
-                case para_Run:
-                {
-                    if(AscFormat.isRealNumber(item.Pr.FontSize))
-                    {
-                        item.Set_FontSize(Math.round(item.Pr.FontSize*fontScale));
-                    }
-                    else
-                    {
-                        item.Set_FontSize(paragrRedFontSize);
-                    }
-                    break;
-                }
-                case para_Hyperlink:
-                {
-                    this.checkParagraphContent(item, fontScale, false, paragrRedFontSize);
-                    break;
-                }
-            }
-        }
-
-        if(parg.TextPr && parg.TextPr.Value)
-        {
-            if(AscFormat.isRealNumber(parg.TextPr.Value.FontSize))
-            {
-                parg.TextPr.Set_FontSize(Math.round(parg.TextPr.Value.FontSize*fontScale));
-            }
-            else
-            {
-                parg.TextPr.Set_FontSize(paragrRedFontSize);
-            }
-        }
-    },
-
     Check_AutoFit: function()
     {
         return this.parent && this.parent.Check_AutoFit && this.parent.Check_AutoFit(true) || false;
     },
 
-    Refresh_RecalcData: function()
+    Refresh_RecalcData: function(Data)
     {
         if(this.parent && this.parent.recalcInfo)
         {
-            this.parent.recalcInfo.recalcContent = true;
-            this.parent.recalcInfo.recalcTransformText = true;
-
             this.parent.recalcInfo.recalculateContent = true;
             this.parent.recalcInfo.recalculateContent2 = true;
             this.parent.recalcInfo.recalculateTransformText = true;
@@ -423,6 +343,13 @@ CTextBody.prototype =
             if(this.parent.addToRecalculate)
             {
                 this.parent.addToRecalculate();
+            }
+        }
+        if(AscCommon.isRealObject(Data))
+        {
+            if(Data.Type === AscDFH.historyitem_TextBodySetBodyPr)
+            {
+                this.recalcInfo.recalculateBodyPr = true;
             }
         }
     },
@@ -652,6 +579,56 @@ CTextBody.prototype =
     {
         this.parent && this.parent.Refresh_RecalcData2 && this.parent.Refresh_RecalcData2(pageIndex, this);
     },
+    checkContentFit: function(sText) {
+        var oContent = this.content;
+        if(!oContent.Is_Empty()) {
+            var oFirstPara = oContent.Content[0];
+            oFirstPara.Content = [oFirstPara.Content[oFirstPara.Content.length - 1]];
+        }
+        AscFormat.AddToContentFromString(oContent, sText);
+        AscFormat.CShape.prototype.recalculateContent.call(this.parent);
+        var oFirstParagraph = oContent.Content[0];
+        return oFirstParagraph.Lines.length === 1;
+    },
+    recalculateOneString: function(sText) {
+        if(this.checkContentFit(sText)) {
+
+            this.bFit = true;
+            return;
+        }
+        this.bFit = false;
+        var nLeftPos = 0, nRightPos = sText.length;
+        var nMiddlePos;
+        var sEnd = "...";
+        var sFitText = sText + sEnd;
+
+        while (nRightPos - nLeftPos > 1) {
+            nMiddlePos = (nRightPos + nLeftPos) / 2 + 0.5 >> 0;
+            sFitText = sText.slice(0, nMiddlePos - 1);
+            sFitText += sEnd;
+            if(!this.checkContentFit(sFitText)) {
+                nRightPos = nMiddlePos;
+            }
+            else {
+                nLeftPos = nMiddlePos;
+            }
+        }
+        sFitText = sText.slice(0, nLeftPos - 1);
+        sFitText += sEnd;
+        if(!this.checkContentFit(sFitText)) {
+            var bFound = false;
+            for(var i = sEnd.length - 1; i > -1; i--) {
+                sFitText = sEnd.slice(0, i);
+                if(this.checkContentFit(sFitText)) {
+                    bFound = true;
+                    break;
+                }
+            }
+            if(!bFound) {
+                this.checkContentFit("");
+            }
+        }
+    },
 
     getContentOneStringSizes: function()
     {
@@ -764,13 +741,42 @@ CTextBody.prototype =
     }
 };
 
+
+
+function CalculateReductionParams(oBodyPrHolder, oContent) {
+    if(!oBodyPrHolder || !oContent) {
+        return;
+    }
+    var oBodyPr = oBodyPrHolder.bodyPr ? oBodyPrHolder.bodyPr.createDuplicate() : new AscFormat.CBodyPr();
+
+    return oBodyPr;
+}
     function GetContentOneStringSizes(oContent) {
         oContent.Reset(0, 0, 20000, 20000);
         oContent.Recalculate_Page(0, true);
         return {w: oContent.Content[0].Lines[0].Ranges[0].W+0.1, h: oContent.GetSummaryHeight() + 0.1};
     }
+
+
+    function CheckNeedRecalcAutoFit(oBP1, oBP2)
+    {
+        if(AscCommon.isFileBuild())
+        {
+            return false;
+        }
+        var oTF1 = oBP1 && oBP1.textFit;
+        var oTF2 = oBP2 && oBP2.textFit;
+        var oTFType1 = oTF1 && oTF1.type || 0;
+        var oTFType2 = oTF2 && oTF2.type || 0;
+        if(oTFType1 === AscFormat.text_fit_NormAuto && oTFType2 === AscFormat.text_fit_NormAuto)
+        {
+            return oTF1.lnSpcReduction !== oTF2.lnSpcReduction || oTF1.fontScale !== oTF2.fontScale;
+        }
+        return oTFType1 === AscFormat.text_fit_NormAuto || oTFType2 === AscFormat.text_fit_NormAuto;
+    }
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].GetContentOneStringSizes = GetContentOneStringSizes;
     window['AscFormat'].CTextBody = CTextBody;
+    window['AscFormat'].CheckNeedRecalcAutoFit = CheckNeedRecalcAutoFit;
 })(window);

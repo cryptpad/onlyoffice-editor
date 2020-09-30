@@ -386,6 +386,109 @@
 	};
 
 	/**
+	 * Get mail merge fields.
+	 * @memberof Api
+	 * @param {number} nSheet
+	 * @returns {string[]}
+	 */
+	Api.prototype.private_GetMailMergeFields = function (nSheet) {
+		var oSheet     = this.GetSheet(nSheet);
+		var arrFields  = [];
+		var colIndex   = 0;
+		var colsCount  = 0;
+		var oRange     = oSheet.GetRangeByNumber(1, colIndex);
+		var fieldValue = undefined;
+
+		while (oRange.GetValue() !== "") {
+			colsCount++;
+			colIndex++;
+			oRange = oSheet.GetRangeByNumber(1, colIndex);
+		}
+			
+		for (var nCol = 0; nCol < colsCount; nCol++) {
+			oRange     = oSheet.GetRangeByNumber(0, nCol);
+			fieldValue = oRange.GetValue();
+
+			if (fieldValue !== "")
+				arrFields.push(oRange.GetValue());
+			else 
+				arrFields.push("F" + String(nCol + 1));
+		}
+
+		return arrFields;
+	};
+
+	/**
+	 * Get mail merge map.
+	 * @memberof Api
+	 * @param {number} nSheet
+	 * @returns {string[][]}
+	 */
+	Api.prototype.private_GetMailMergeMap = function (nSheet) {
+		var oSheet           = this.GetSheet(nSheet);
+		var arrMailMergeMap  = [];
+		var valuesInRow      = null;
+
+		var rowIndex         = 1;
+		var rowsCount        = 0;
+		var colIndex         = 0;
+		var colsCount        = 0;
+
+		var mergeValue       = undefined;
+		
+		var oRange           = oSheet.GetRangeByNumber(rowIndex, 0);
+
+		// определяем количество строк с данными
+		while (oRange.GetValue() !== "") {
+			rowsCount++;
+			rowIndex++;
+			oRange = oSheet.GetRangeByNumber(rowIndex, 0);
+		}
+
+		oRange     = oSheet.GetRangeByNumber(1, colIndex);
+		// определяем количество столбцов с данными
+		while (oRange.GetValue() !== "") {
+			colsCount++;
+			colIndex++;
+			oRange = oSheet.GetRangeByNumber(1, colIndex);
+		}	
+		
+		for (var nRow = 1; nRow < rowsCount + 1; nRow++) {
+			valuesInRow = [];
+
+			for (var nCol = 0; nCol < colsCount; nCol++) {
+				oRange     = oSheet.GetRangeByNumber(nRow, nCol);
+				mergeValue = oRange.GetValue();
+	
+				valuesInRow.push(oRange.GetValue());
+			}
+			
+			arrMailMergeMap.push(valuesInRow);
+		}
+		
+
+		return arrMailMergeMap;
+	};
+
+	/**
+	 * Get mail merge data.
+	 * @memberof Api
+	 * @param {number} nSheet
+	 * @returns {string[][]} 
+	 */
+	Api.prototype.GetMailMergeData = function (nSheet) {
+		var arrFields       = this.private_GetMailMergeFields(nSheet);
+		var arrMailMergeMap = this.private_GetMailMergeMap(nSheet, arrFields);
+		var resultList      = [arrFields];
+
+		for (var nMailMergeMap = 0; nMailMergeMap < arrMailMergeMap.length; nMailMergeMap++) {
+			resultList.push(arrMailMergeMap[nMailMergeMap]);
+		}
+
+		return resultList;
+	};
+
+	/**
 	 * Returns Visible of sheet
 	 * @memberof ApiWorksheet
 	 * @returns {bool}
@@ -1095,7 +1198,7 @@
 	 * @returns {ApiShape}
 	 * */
 	ApiWorksheet.prototype.AddShape = function(sType, nWidth, nHeight, oFill, oStroke, nFromCol, nColOffset, nFromRow, nRowOffset){
-		var oShape = AscFormat.builder_CreateShape(sType, nWidth/36000, nHeight/36000, oFill.UniFill, oStroke.Ln, null, this.worksheet.workbook.theme, this.worksheet.DrawingDocument, false, this.worksheet);
+		var oShape = AscFormat.builder_CreateShape(sType, nWidth/36000, nHeight/36000, oFill.UniFill, oStroke.Ln, null, this.worksheet.workbook.theme, this.worksheet.getDrawingDocument(), false, this.worksheet);
 		private_SetCoords(oShape, this.worksheet, nWidth, nHeight, nFromCol, nColOffset,  nFromRow, nRowOffset);
 		return new ApiShape(oShape);
 	};
@@ -1329,20 +1432,20 @@
 		var range = this.range.bbox;
 		var	count;
 		switch (range.getType()) {
-			case 1:
+			case Asc.c_oAscSelectionType.RangeCells:
 				count = (range.c2 - range.c1 + 1) * (range.r2 - range.r1 + 1);
 				break;
 
-			case 2:		
-				count = range.c2 - range.c1 + 1;				
+			case Asc.c_oAscSelectionType.RangeCol:
+				count = range.c2 - range.c1 + 1;
 				break;
 
-			case 3:
-				count = range.r2 - range.r1 + 1;				
+			case Asc.c_oAscSelectionType.RangeRow:
+				count = range.r2 - range.r1 + 1;
 				break;
 
-			case 4:
-				count = range.r2 * range.c2;				
+			case Asc.c_oAscSelectionType.RangeMax:
+				count = range.r2 * range.c2;
 				break;
 		}
 		return count;
@@ -2462,23 +2565,25 @@
 		this.Comment.worksheet.cellCommentator.removeComment(this.Comment.asc_getId());
 	};
 
-	Api.prototype["Format"] = Api.prototype.Format;
-	Api.prototype["AddSheet"] = Api.prototype.AddSheet;
-	Api.prototype["GetSheets"] = Api.prototype.GetSheets;
-	Api.prototype["GetActiveSheet"] = Api.prototype.GetActiveSheet;
-	Api.prototype["GetLocale"] = Api.prototype.GetLocale;
-	Api.prototype["SetLocale"] = Api.prototype.SetLocale;
-	Api.prototype["GetSheet"] = Api.prototype.GetSheet;
-	Api.prototype["GetThemesColors"] = Api.prototype.GetThemesColors;
-	Api.prototype["SetThemeColors"] = Api.prototype.SetThemeColors;
+	Api.prototype["Format"]                = Api.prototype.Format;
+	Api.prototype["AddSheet"]              = Api.prototype.AddSheet;
+	Api.prototype["GetSheets"]             = Api.prototype.GetSheets;
+	Api.prototype["GetActiveSheet"]        = Api.prototype.GetActiveSheet;
+	Api.prototype["GetLocale"]             = Api.prototype.GetLocale;
+	Api.prototype["SetLocale"]             = Api.prototype.SetLocale;
+	Api.prototype["GetSheet"]              = Api.prototype.GetSheet;
+	Api.prototype["GetThemesColors"]       = Api.prototype.GetThemesColors;
+	Api.prototype["SetThemeColors"]        = Api.prototype.SetThemeColors;
 	Api.prototype["CreateNewHistoryPoint"] = Api.prototype.CreateNewHistoryPoint;
-	Api.prototype["CreateColorFromRGB"] = Api.prototype.CreateColorFromRGB;
-	Api.prototype["CreateColorByName"] = Api.prototype.CreateColorByName;
-	Api.prototype["Intersect"] = Api.prototype.Intersect;
-	Api.prototype["GetSelection"] = Api.prototype.GetSelection;
-	Api.prototype["AddDefName"] = Api.prototype.AddDefName;
-	Api.prototype["GetDefName"] = Api.prototype.GetDefName;
-	Api.prototype["Save"] = Api.prototype.Save;
+	Api.prototype["CreateColorFromRGB"]    = Api.prototype.CreateColorFromRGB;
+	Api.prototype["CreateColorByName"]     = Api.prototype.CreateColorByName;
+	Api.prototype["Intersect"]             = Api.prototype.Intersect;
+	Api.prototype["GetSelection"]          = Api.prototype.GetSelection;
+	Api.prototype["AddDefName"]            = Api.prototype.AddDefName;
+	Api.prototype["GetDefName"]            = Api.prototype.GetDefName;
+	Api.prototype["Save"]                  = Api.prototype.Save;
+	Api.prototype["GetMailMergeData"]      = Api.prototype.GetMailMergeData;
+	
 
 	ApiWorksheet.prototype["GetVisible"] = ApiWorksheet.prototype.GetVisible;
 	ApiWorksheet.prototype["SetVisible"] = ApiWorksheet.prototype.SetVisible;

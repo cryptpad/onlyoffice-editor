@@ -863,6 +863,13 @@ ParaComment.prototype.Recalculate_PageEndInfo = function(PRSI, _CurLine, _CurRan
 	else
 		PRSI.RemoveComment(this.CommentId);
 };
+ParaComment.prototype.RecalculateEndInfo = function(oPRSI)
+{
+	if (this.Start)
+		oPRSI.AddComment(this.CommentId);
+	else
+		oPRSI.RemoveComment(this.CommentId);
+};
 ParaComment.prototype.SaveRecalculateObject = function(Copy)
 {
 	var RecalcObj = new CRunRecalculateObject(this.StartLine, this.StartRange);

@@ -219,16 +219,7 @@ function FrozenPlace(ws, type) {
 	};
 	
 	_this.getRect = function(bEvent) {
-		var rect = { x: 0, y: 0, w: 0, h: 0, r: 0, b: 0 };
-		rect.x = _this.worksheet.getCellLeftRelative(_this.range.c1, 0);
-		rect.y = _this.worksheet.getCellTopRelative(_this.range.r1, 0);
-		rect.w = _this.worksheet.getCellLeftRelative(_this.range.c2, 0) + _this.worksheet.getColumnWidth(_this.range.c2, 0) - rect.x;
-		rect.h = _this.worksheet.getCellTopRelative(_this.range.r2, 0) + _this.worksheet.getRowHeight(_this.range.r2, 0) - rect.y;
-
-        rect.r = rect.x + rect.w;
-        rect.b = rect.y + rect.h;
-
-
+		var rect = _this.worksheet.rangeToRectRel(_this.range, 0);
         switch (_this.type) {
 
             case FrozenAreaType.Top:
@@ -343,18 +334,7 @@ function FrozenPlace(ws, type) {
 
 		return rect;
 	};
-
-    _this.getRect2 = function() {
-        var rect = { x: 0, y: 0, w: 0, h: 0 };
-        rect.x = _this.worksheet.getCellLeftRelative(_this.range.c1, 0);
-        rect.y = _this.worksheet.getCellTopRelative(_this.range.r1, 0);
-        rect.w = _this.worksheet.getCellLeftRelative(_this.range.c2, 0) + _this.worksheet.getColumnWidth(_this.range.c2, 0) - rect.x;
-        rect.h = _this.worksheet.getCellTopRelative(_this.range.r2, 0) + _this.worksheet.getRowHeight(_this.range.r2, 0) - rect.y;
-        return rect;
-    };
-
-
-
+    
 	_this.getFirstVisible = function() {
 		var fv = { col: 0, row: 0 };
 		
@@ -534,8 +514,7 @@ function FrozenPlace(ws, type) {
 		return scroll;
 	};
 	
-	_this.clip = function(canvas) {
-		var rect = _this.getRect2();
+	_this.clip = function(canvas, rect) {
 		canvas.m_oContext.save();
 		canvas.m_oContext.beginPath();
 		canvas.m_oContext.rect(rect.x, rect.y, rect.w, rect.h);
@@ -550,12 +529,67 @@ function FrozenPlace(ws, type) {
         canvas.m_oContext.restore();
 	};
 	
-	_this.drawObject = function(object) {
+	_this.drawObject = function(object, oRect) {
+	
+		var oUpdateRect = _this.worksheet.rangeToRectAbs(_this.range, 3);
+		if(oRect) {
+			oUpdateRect = oUpdateRect.intersection(oRect);
+			if(!oUpdateRect) {
+				return;
+			}
+		}
 		var canvas = _this.worksheet.objectRender.getDrawingCanvas();
 		_this.setTransform(canvas.shapeCtx, canvas.shapeOverlayCtx, canvas.autoShapeTrack);
-		
-		_this.clip(canvas.shapeCtx);
-		object.graphicObject.draw(canvas.shapeCtx);
+
+		var oClipRect;
+		if(!oRect) {
+			oClipRect = _this.worksheet.rangeToRectRel(_this.range, 0);
+		}
+		else {
+			var oT = canvas.shapeCtx.m_oCoordTransform;
+			var l = (oT.TransformPointX(oUpdateRect.l, oUpdateRect.t) >> 0) - 1;
+			var t = (oT.TransformPointY(oUpdateRect.l, oUpdateRect.t) >> 0) - 1;
+			var r = (oT.TransformPointX(oUpdateRect.r, oUpdateRect.b) >> 0) + 1;
+			var b = (oT.TransformPointY(oUpdateRect.r, oUpdateRect.b) >> 0) + 1;
+			oClipRect = new AscFormat.CGraphicBounds(l, t, r, b);
+		}
+
+		_this.clip(canvas.shapeCtx, oClipRect);
+		canvas.shapeCtx.updatedRect = oUpdateRect;
+		object.draw(canvas.shapeCtx);
+		canvas.shapeCtx.updatedRect = null;
+		// Lock
+		if ( (object.graphicObject.lockType !== undefined) && (object.graphicObject.lockType !== AscCommon.c_oAscLockTypes.kLockTypeNone) ) {
+			var oApi = Asc['editor'];
+			if(oApi){
+				if (!oApi.collaborativeEditing.getFast() || object.graphicObject.lockType !== AscCommon.c_oAscLockTypes.kLockTypeMine){
+					canvas.shapeCtx.SetIntegerGrid(false);
+					canvas.shapeCtx.transform3(object.graphicObject.transform, false);
+					canvas.shapeCtx.DrawLockObjectRect(object.graphicObject.lockType, 0, 0, object.graphicObject.extX, object.graphicObject.extY );
+					canvas.shapeCtx.reset();
+					canvas.shapeCtx.SetIntegerGrid(true);
+				}
+			}
+		}
+		_this.restore(canvas.shapeCtx);
+	};
+	
+	_this.updateRange = function(object, oRange) {
+		var oClipRange = _this.range.intersectionSimple(oRange)
+		if(!oClipRange) {
+			return;
+		}
+		var canvas = _this.worksheet.objectRender.getDrawingCanvas();
+		_this.setTransform(canvas.shapeCtx, canvas.shapeOverlayCtx, canvas.autoShapeTrack);
+		_this.clip(canvas.shapeCtx, _this.worksheet.rangeToRectRel(oClipRange, 0));
+		canvas.shapeCtx.updatedRect = _this.worksheet.rangeToRectAbs(oClipRange, 3);
+		//For debug
+		// canvas.shapeCtx.p_color(0, 0, 0, 255);
+		// canvas.shapeCtx.p_width(5);
+		// canvas.shapeCtx.rect(oRect.x, oRect.y, oRect.w, oRect.h);
+		// canvas.shapeCtx.ds();
+		object.draw(canvas.shapeCtx);
+		canvas.shapeCtx.updatedRect = null;
 		
 		// Lock
 		if ( (object.graphicObject.lockType !== undefined) && (object.graphicObject.lockType !== AscCommon.c_oAscLockTypes.kLockTypeNone) ) {
@@ -570,8 +604,76 @@ function FrozenPlace(ws, type) {
 				}
 			}
 		}
-					
 		_this.restore(canvas.shapeCtx);
+	};
+	
+	
+	
+	_this.drawSelection = function(drawingDocument, shapeCtx, shapeOverlayCtx, autoShapeTrack, trackOverlay) {
+
+		var ctx = trackOverlay.m_oContext;
+		_this.setTransform(shapeCtx, shapeOverlayCtx, autoShapeTrack, trackOverlay);
+		// Clip
+		_this.clip(shapeOverlayCtx, _this.worksheet.rangeToRectRel(_this.range, 0));
+		if (drawingDocument.m_bIsSelection) {
+			if (!window["IS_NATIVE_EDITOR"]) {
+				drawingDocument.SelectionMatrix = null;
+				trackOverlay.m_oControl.HtmlElement.style.display = "block";
+
+				if (null == trackOverlay.m_oContext) {
+					trackOverlay.m_oContext = trackOverlay.m_oControl.HtmlElement.getContext('2d');
+				}
+			}
+
+			drawingDocument.private_StartDrawSelection(trackOverlay);
+			this.worksheet.objectRender.controller.drawTextSelection();
+			drawingDocument.private_EndDrawSelection();
+
+			this.worksheet.handlers.trigger("drawMobileSelection");
+		}
+		ctx.globalAlpha = 1.0;
+		this.worksheet.objectRender.controller.drawSelection(drawingDocument);
+		if ( this.worksheet.objectRender.controller.needUpdateOverlay() ) {
+			trackOverlay.Show();
+			autoShapeTrack.Graphics.put_GlobalAlpha(true, 0.5);
+			this.worksheet.objectRender.controller.drawTracks(autoShapeTrack);
+			autoShapeTrack.Graphics.put_GlobalAlpha(true, 1);
+			_this.restore(autoShapeTrack);
+		}
+		// Restore
+		_this.restore(autoShapeTrack);
+		var nShadowLength = 10;
+		var fLeft, fTop, fRight, fBottom;
+		if(_this.type === FrozenAreaType.Bottom){
+			//autoShapeTrack.Graphics.put_GlobalAlpha(true, 1);
+			fTop = this.worksheet._getRowTop(_this.frozenCell.row);
+			fLeft = 0;
+			autoShapeTrack.drawImage(sFrozenImageUrl, fLeft, fTop, autoShapeTrack.Graphics.m_lWidthPix, nShadowLength);
+		}
+		else if(_this.type === FrozenAreaType.Right){
+			fTop = 0;
+			fLeft = this.worksheet._getColLeft(_this.frozenCell.col);
+			autoShapeTrack.drawImage(sFrozenImageRotUrl, fLeft, fTop, nShadowLength, autoShapeTrack.Graphics.m_lHeightPix);
+		}
+		else if(_this.type === FrozenAreaType.RightBottom){
+			//autoShapeTrack.Graphics.put_GlobalAlpha(true, 1);
+			fTop = this.worksheet._getRowTop(_this.frozenCell.row);
+			fLeft = this.worksheet._getColLeft(_this.frozenCell.col);
+			autoShapeTrack.drawImage(sFrozenImageUrl, fLeft, fTop, autoShapeTrack.Graphics.m_lWidthPix, nShadowLength);
+			autoShapeTrack.drawImage(sFrozenImageRotUrl, fLeft, fTop, nShadowLength, autoShapeTrack.Graphics.m_lHeightPix);
+		}
+		else if(_this.type === FrozenAreaType.LeftBottom){
+			fTop = this.worksheet._getRowTop(_this.frozenCell.row);
+			fLeft = 0;
+			fRight = this.worksheet._getColLeft(_this.frozenCell.col);
+			autoShapeTrack.drawImage(sFrozenImageUrl, fLeft, fTop, fRight, nShadowLength);
+		}
+		else if(_this.type === FrozenAreaType.RightTop){
+			fTop = 0;
+			fLeft = this.worksheet._getColLeft(_this.frozenCell.col);
+			fBottom = this.worksheet._getRowTop(_this.frozenCell.row);
+			autoShapeTrack.drawImage(sFrozenImageRotUrl, fLeft, fTop, nShadowLength, fBottom);
+		}	
 	};
 	
 	_this.setTransform = function(shapeCtx, shapeOverlayCtx, autoShapeTrack, trackOverlay) {
@@ -659,10 +761,17 @@ DrawingArea.prototype.clear = function() {
     this.worksheet.drawingGraphicCtx.clear();
 };
 
-DrawingArea.prototype.drawObject = function(object) {
+DrawingArea.prototype.drawObject = function(object, oRect) {
     for ( var i = 0; i < this.frozenPlaces.length; i++ ) {
         if ( this.frozenPlaces[i].isObjectInside(object) ) {
-            this.frozenPlaces[i].drawObject(object);
+            this.frozenPlaces[i].drawObject(object, oRect);
+        }
+    }
+};
+DrawingArea.prototype.updateRange = function(object, oRange) {
+    for ( var i = 0; i < this.frozenPlaces.length; i++ ) {
+        if ( this.frozenPlaces[i].isObjectInside(object) ) {
+            this.frozenPlaces[i].updateRange(object, oRange);
         }
     }
 };
@@ -677,8 +786,8 @@ DrawingArea.prototype.drawSelection = function(drawingDocument) {
 	if (window["IS_NATIVE_EDITOR"]) {
 		AscCommon.g_oTextMeasurer.Flush();
 	}
-
-    var canvas = this.worksheet.objectRender.getDrawingCanvas();
+	var oWS = this.worksheet;
+    var canvas = oWS.objectRender.getDrawingCanvas();
     var shapeCtx = canvas.shapeCtx;
     var shapeOverlayCtx = canvas.shapeOverlayCtx;
     var autoShapeTrack = canvas.autoShapeTrack;
@@ -688,103 +797,29 @@ DrawingArea.prototype.drawSelection = function(drawingDocument) {
     trackOverlay.Clear();
     drawingDocument.Overlay = trackOverlay;
 
-    this.worksheet.overlayCtx.clear();
-    this.worksheet.overlayGraphicCtx.clear();
-    this.worksheet._drawCollaborativeElements(autoShapeTrack);
+    oWS.overlayCtx.clear();
+    oWS.overlayGraphicCtx.clear();
+    oWS._drawCollaborativeElements(autoShapeTrack);
 
-    if ( !this.worksheet.objectRender.controller.selectedObjects.length && !this.api.isStartAddShape )
-        this.worksheet._drawSelection();
-
+	var controller = oWS.objectRender.controller;
+    if ( !controller.selectedObjects.length && !this.api.isStartAddShape) {
+		oWS._drawSelection();
+	}
     var chart;
-    var controller = this.worksheet.objectRender.controller;
     var selected_objects = controller.selection.groupSelection ? controller.selection.groupSelection.selectedObjects : controller.selectedObjects;
-    if(selected_objects.length === 1 && selected_objects[0].getObjectType() === AscDFH.historyitem_type_ChartSpace)
-    {
+    if(selected_objects.length === 1 && selected_objects[0].getObjectType() === AscDFH.historyitem_type_ChartSpace) {
         chart = selected_objects[0];
-        this.worksheet.objectRender.selectDrawingObjectRange(chart);
+		oWS.objectRender.selectDrawingObjectRange(chart);
     }
     for ( var i = 0; i < this.frozenPlaces.length; i++ ) {
-
-        this.frozenPlaces[i].setTransform(shapeCtx, shapeOverlayCtx, autoShapeTrack, trackOverlay);
-
-        // Clip
-        this.frozenPlaces[i].clip(shapeOverlayCtx);
-
-		if (drawingDocument.m_bIsSelection) {
-			if (!window["IS_NATIVE_EDITOR"]) {
-				drawingDocument.SelectionMatrix = null;
-				trackOverlay.m_oControl.HtmlElement.style.display = "block";
-
-				if (null == trackOverlay.m_oContext) {
-					trackOverlay.m_oContext = trackOverlay.m_oControl.HtmlElement.getContext('2d');
-				}
-			}
-
-			drawingDocument.private_StartDrawSelection(trackOverlay);
-			this.worksheet.objectRender.controller.drawTextSelection();
-			drawingDocument.private_EndDrawSelection();
-
-			this.worksheet.handlers.trigger("drawMobileSelection");
-		}
-
-		ctx.globalAlpha = 1.0;
-
-		this.worksheet.objectRender.controller.drawSelection(drawingDocument);
-
-
-		if ( this.worksheet.objectRender.controller.needUpdateOverlay() ) {
-			trackOverlay.Show();
-			autoShapeTrack.Graphics.put_GlobalAlpha(true, 0.5);
-			this.worksheet.objectRender.controller.drawTracks(autoShapeTrack);
-			autoShapeTrack.Graphics.put_GlobalAlpha(true, 1);
-			this.frozenPlaces[i].restore(autoShapeTrack);
-		}
-
-
-        // Restore
-        this.frozenPlaces[i].restore(autoShapeTrack);
-
-
-		var nShadowLength = 10;
-		var fLeft, fTop, fRight, fBottom;
-		if(this.frozenPlaces[i].type === FrozenAreaType.Bottom){
-			//autoShapeTrack.Graphics.put_GlobalAlpha(true, 1);
-			fTop = this.worksheet._getRowTop(this.frozenPlaces[i].frozenCell.row);
-			fLeft = 0;
-			autoShapeTrack.drawImage(sFrozenImageUrl, fLeft, fTop, autoShapeTrack.Graphics.m_lWidthPix, nShadowLength);
-		}
-		else if(this.frozenPlaces[i].type === FrozenAreaType.Right){
-			fTop = 0;
-			fLeft = this.worksheet._getColLeft(this.frozenPlaces[i].frozenCell.col);
-			autoShapeTrack.drawImage(sFrozenImageRotUrl, fLeft, fTop, nShadowLength, autoShapeTrack.Graphics.m_lHeightPix);
-		}
-		else if(this.frozenPlaces[i].type === FrozenAreaType.RightBottom){
-			//autoShapeTrack.Graphics.put_GlobalAlpha(true, 1);
-			fTop = this.worksheet._getRowTop(this.frozenPlaces[i].frozenCell.row);
-			fLeft = this.worksheet._getColLeft(this.frozenPlaces[i].frozenCell.col);
-			autoShapeTrack.drawImage(sFrozenImageUrl, fLeft, fTop, autoShapeTrack.Graphics.m_lWidthPix, nShadowLength);
-			autoShapeTrack.drawImage(sFrozenImageRotUrl, fLeft, fTop, nShadowLength, autoShapeTrack.Graphics.m_lHeightPix);
-		}
-		else if(this.frozenPlaces[i].type === FrozenAreaType.LeftBottom){
-			fTop = this.worksheet._getRowTop(this.frozenPlaces[i].frozenCell.row);
-			fLeft = 0;
-			fRight = this.worksheet._getColLeft(this.frozenPlaces[i].frozenCell.col);
-			autoShapeTrack.drawImage(sFrozenImageUrl, fLeft, fTop, fRight, nShadowLength);
-		}
-		else if(this.frozenPlaces[i].type === FrozenAreaType.RightTop){
-			fTop = 0;
-			fLeft = this.worksheet._getColLeft(this.frozenPlaces[i].frozenCell.col);
-			fBottom = this.worksheet._getRowTop(this.frozenPlaces[i].frozenCell.row);
-			autoShapeTrack.drawImage(sFrozenImageRotUrl, fLeft, fTop, nShadowLength, fBottom);
-		}
-
+        this.frozenPlaces[i].drawSelection(drawingDocument, shapeCtx, shapeOverlayCtx, autoShapeTrack, trackOverlay);
     }
 
-	if(window['Asc']['editor'].watermarkDraw)
-	{
-		window['Asc']['editor'].watermarkDraw.zoom = 1;//this.worksheet.objectRender.zoom.current;
-		window['Asc']['editor'].watermarkDraw.Generate();
-		window['Asc']['editor'].watermarkDraw.Draw(ctx, ctx.canvas.width, ctx.canvas.height);
+    var oWatermark = this.api.watermarkDraw;
+	if(oWatermark) {
+		oWatermark.zoom = 1.0;
+		oWatermark.Generate();
+		oWatermark.Draw(ctx, ctx.canvas.width, ctx.canvas.height);
 	}
 };
 

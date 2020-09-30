@@ -61,7 +61,6 @@ CChartSpace.prototype.recalculateBounds =  function()
     this.bounds.h = this.bounds.b - this.bounds.t;
 };
 CChartSpace.prototype.deselect = CShape.prototype.deselect;
-CChartSpace.prototype.hitToHandles = CShape.prototype.hitToHandles;
 CChartSpace.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CChartSpace.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CChartSpace.prototype.getInvertTransform = CShape.prototype.getInvertTransform;
@@ -210,14 +209,11 @@ CChartSpace.prototype.handleUpdateStyle = function()
     this.recalcInfo.recalculateAxisVal = true;
     this.addToRecalculate();
 };
-CChartSpace.prototype.canGroup = CShape.prototype.canGroup;
 CChartSpace.prototype.convertPixToMM = CShape.prototype.convertPixToMM;
 CChartSpace.prototype.getCanvasContext = CShape.prototype.getCanvasContext;
 CChartSpace.prototype.getHierarchy = CShape.prototype.getHierarchy;
 CChartSpace.prototype.getParentObjects = CShape.prototype.getParentObjects;
 CChartSpace.prototype.recalculateTransform = CShape.prototype.recalculateTransform;
-CChartSpace.prototype.canResize = CShape.prototype.canResize;
-CChartSpace.prototype.canMove = CShape.prototype.canMove;
 
 
 CChartSpace.prototype.recalcText = function()
@@ -257,10 +253,6 @@ CChartSpace.prototype.setStartPage = function(pageIndex)
 };
 CChartSpace.prototype.getRecalcObject = CShape.prototype.getRecalcObject;
 CChartSpace.prototype.setRecalcObject = CShape.prototype.setRecalcObject;
-CChartSpace.prototype.canRotate = function()
-{
-    return false;
-};
 
 
 CChartSpace.prototype.createResizeTrack = CShape.prototype.createResizeTrack;
@@ -461,6 +453,7 @@ CChartSpace.prototype.checkShapeChildTransform = function(transform_text)
             {
                 if(this.chart.plotArea)
                 {
+                    this.chart.plotArea.checkShapeChildTransform(transform_text);
                     if(this.chart.plotArea.charts[0] && this.chart.plotArea.charts[0].series)
                     {
                         var series = this.chart.plotArea.charts[0].series;
@@ -565,17 +558,7 @@ CChartSpace.prototype.IsHdrFtr = function(bool)
 
 CChartSpace.prototype.Refresh_RecalcData2 = function(pageIndex, object)
 {
-    if(object && object.getObjectType && object.getObjectType() === AscDFH.historyitem_type_Title && this.selection.title === object)
-    {
-        this.recalcInfo.recalcTitle = object;
-    }
-    else
-    {
-        var bOldRecalculateRef = this.recalcInfo.recalculateReferences;
-        this.setRecalculateInfo();
-        this.recalcInfo.recalculateReferences = bOldRecalculateRef;
-    }
-    this.addToRecalculate();
+    this.refreshRecalcData2(pageIndex, object);
     var HdrFtr = this.IsHdrFtr(true);
     if (HdrFtr)
         HdrFtr.Refresh_RecalcData2();

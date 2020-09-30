@@ -111,6 +111,9 @@ var para_FieldChar                 = 0x0045;
 var para_InstrText                 = 0x0046;
 var para_Bookmark                  = 0x0047;
 var para_RevisionMove              = 0x0048;
+var para_EndnoteReference          = 0x0049; // Ссылка на сноску
+var para_EndnoteRef                = 0x004a; // Номер сноски (должен быть только внутри сноски)
+
 
 var break_Line   = 0x01;
 var break_Page   = 0x02;
@@ -202,6 +205,10 @@ CRunElementBase.prototype.Set_WidthVisible = function(WidthVisible)
 {
 	this.WidthVisible = (WidthVisible * TEXTWIDTH_DIVIDER) | 0;
 };
+CRunElementBase.prototype.Set_Width        = function(Width)
+{
+	this.Width = (Width * TEXTWIDTH_DIVIDER) | 0;
+};
 CRunElementBase.prototype.Is_RealContent   = function()
 {
 	return true;
@@ -258,6 +265,14 @@ CRunElementBase.prototype.IsDot = function()
 {
 	return false;
 };
+/**
+ * @param {CRunElementBase} oElement
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsEqual = function(oElement)
+{
+	return (this.Type === oElement.Type)
+};
 
 /**
  * Класс представляющий текстовый символ
@@ -291,8 +306,14 @@ ParaText.prototype.Set_CharCode = function(CharCode)
 	if (AscFonts.IsCheckSymbols)
 		AscFonts.FontPickerByCharacter.getFontBySymbol(this.Value);
 };
-ParaText.prototype.Draw = function(X, Y, Context)
+ParaText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 {
+	if (undefined !== this.LGap)
+	{
+		this.private_DrawGapsBackground(X, Y, Context, PDSE, oTextPr);
+		X += this.LGap;
+	}
+
 	var CharCode = this.Value;
 
 	var FontKoef = 1;
@@ -385,6 +406,10 @@ ParaText.prototype.Can_AddNumbering = function()
 ParaText.prototype.Copy = function()
 {
 	return new ParaText(this.Value);
+};
+ParaText.prototype.IsEqual = function(oElement)
+{
+	return (oElement.Type === this.Type && this.Value === oElement.Value);
 };
 ParaText.prototype.Is_NBSP = function()
 {
@@ -500,6 +525,75 @@ ParaText.prototype.IsDot = function()
 {
 	return !!(this.Value === 0x002E);
 };
+ParaText.prototype.SetGaps = function(nLeftGap, nRightGap)
+{
+	this.LGap = nLeftGap;
+	this.RGap = nRightGap;
+
+	this.Width += ((nLeftGap + nRightGap) * TEXTWIDTH_DIVIDER) | 0;
+};
+ParaText.prototype.ResetGapBackground = function()
+{
+	this.RGapCount     = undefined;
+	this.RGapCharCode  = undefined;
+	this.RGapCharWidth = undefined;
+	this.RGapShift     = undefined;
+	this.RGapFontSlot  = undefined;
+	this.RGapFont      = undefined;
+};
+ParaText.prototype.SetGapBackground = function(nCount, nCharCode, nCombWidth, oContext, sFont, oTextPr, oTheme)
+{
+	this.RGapCount    = nCount;
+	this.RGapCharCode = nCharCode;
+	this.RGapFontSlot = g_font_detector.Get_FontClass(nCharCode, oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
+
+	if (sFont)
+	{
+		this.RGapFont = sFont;
+
+		var oCurTextPr = oTextPr.Copy();
+		oCurTextPr.SetFontFamily(sFont);
+
+		oContext.SetTextPr(oCurTextPr, oTheme);
+		oContext.SetFontSlot(this.RGapFontSlot, oTextPr.Get_FontKoef());
+	}
+
+	this.RGapCharWidth = Math.max(oContext.MeasureCode(nCharCode).Width + oTextPr.Spacing, 0);
+	this.RGapShift     = Math.max(nCombWidth, this.RGapCharWidth);
+
+	if (sFont)
+		oContext.SetTextPr(oTextPr, oTheme);
+};
+ParaText.prototype.private_DrawGapsBackground = function(X, Y, oContext, PDSE, oTextPr)
+{
+	if (this.RGapFont)
+	{
+		var oCurTextPr = oTextPr.Copy();
+		oCurTextPr.SetFontFamily(this.RGapFont);
+
+		oContext.SetTextPr(oCurTextPr, PDSE.Theme);
+		oContext.SetFontSlot(this.RGapFontSlot, oTextPr.Get_FontKoef());
+	}
+
+	if (this.RGap && this.RGapCount)
+	{
+		X += this.Width / TEXTWIDTH_DIVIDER;
+		var nShift = (this.RGapShift - this.RGapCharWidth) / 2;
+
+		for (var nIndex = 0; nIndex < this.RGapCount; ++nIndex)
+		{
+			X -= nShift + this.RGapCharWidth;
+
+			oContext.FillTextCode(X, Y, this.RGapCharCode);
+
+			X -= nShift;
+		}
+	}
+
+	if (this.RGapFont)
+		oContext.SetTextPr(oTextPr, PDSE.Theme);
+};
+
 
 /**
  * Класс представляющий пробелбный символ
@@ -519,10 +613,16 @@ ParaSpace.prototype = Object.create(CRunElementBase.prototype);
 ParaSpace.prototype.constructor = ParaSpace;
 
 ParaSpace.prototype.Type = para_Space;
-ParaSpace.prototype.Draw = function(X, Y, Context)
+ParaSpace.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 {
 	if (undefined !== editor && editor.ShowParaMarks)
 	{
+		if (undefined !== this.LGap)
+		{
+			this.private_DrawGapsBackground(X, Y, Context, PDSE, oTextPr);
+			X += this.LGap;
+		}
+
 		Context.SetFontSlot(fontslot_ASCII, this.Get_FontKoef());
 		Context.FillText(X, Y, String.fromCharCode(0x00B7));
 	}
@@ -533,7 +633,7 @@ ParaSpace.prototype.Measure = function(Context, TextPr)
 	this.Set_FontKoef_SmallCaps(true != TextPr.Caps && true === TextPr.SmallCaps ? true : false);
 
 	// Разрешенные размеры шрифта только либо целое, либо целое/2. Даже после применения FontKoef, поэтому
-	// мы должны подкрутить коэффициент так, чтобы после домножения на него, у на получался разрешенный размер.
+	// мы должны подкрутить коэффициент так, чтобы после домножения на него, у нас получался разрешенный размер
 	var FontKoef = this.Get_FontKoef();
 	var FontSize = TextPr.FontSize;
 	if (1 !== FontKoef)
@@ -541,7 +641,7 @@ ParaSpace.prototype.Measure = function(Context, TextPr)
 
 	Context.SetFontSlot(fontslot_ASCII, FontKoef);
 
-	var Temp = Context.MeasureCode(0x20);
+	var Temp  = Context.MeasureCode(0x20);
 
 	var ResultWidth  = (Math.max((Temp.Width + TextPr.Spacing), 0) * 16384) | 0;
 	this.Width       = ResultWidth;
@@ -601,16 +701,25 @@ ParaSpace.prototype.CanStartAutoCorrect = function()
 {
 	return true;
 };
-ParaSpace.prototype.CheckCondensedWidth = function(isCondensedSpaces)
+ParaSpace.prototype.SetCondensedWidth = function(nKoef)
 {
-	// TODO: Коэффициент 3/4 получен опытным путем, возможно есть параметр в шрифте соответствующий, но
-	// для шрифтов, которые я просмотрел был именно такой коэффициент
-
-	if (isCondensedSpaces)
-		this.Width = this.WidthOrigin * 0.75;
-	else
-		this.Width = this.WidthOrigin;
+	this.Width = this.WidthOrigin * nKoef;
 };
+ParaSpace.prototype.ResetCondensedWidth = function()
+{
+	this.Width = this.WidthOrigin;
+};
+ParaSpace.prototype.SetGaps = function(nLeftGap, nRightGap)
+{
+	this.LGap = nLeftGap;
+	this.RGap = nRightGap;
+
+	this.Width       += ((nLeftGap + nRightGap) * TEXTWIDTH_DIVIDER) | 0;
+	this.WidthOrigin += ((nLeftGap + nRightGap) * TEXTWIDTH_DIVIDER) | 0;
+};
+ParaSpace.prototype.ResetGapBackground = ParaText.prototype.ResetGapBackground;
+ParaSpace.prototype.SetGapBackground = ParaText.prototype.SetGapBackground;
+ParaSpace.prototype.private_DrawGapsBackground = ParaText.prototype.private_DrawGapsBackground;
 
 
 /**
@@ -717,6 +826,10 @@ ParaSym.prototype.Copy = function()
 {
 	return new ParaSym(this.Char, this.FontFamily);
 };
+ParaSym.prototype.IsEqual = function(oElement)
+{
+	return (this.Type === oElement.Type && this.Char === oElement.Char && this.FontFamily === oElement.FontFamily);
+};
 ParaSym.prototype.Write_ToBinary = function(Writer)
 {
 	// Long   : Type
@@ -747,7 +860,8 @@ function ParaEnd()
 	CRunElementBase.call(this);
 
     this.SectionPr    = null;
-    this.WidthVisible = 0x00000000 | 0; 
+    this.WidthVisible = 0x00000000 | 0;
+	this.Flags        = 0x00000000 | 0;
 }
 ParaEnd.prototype = Object.create(CRunElementBase.prototype);
 ParaEnd.prototype.constructor = ParaEnd;
@@ -757,7 +871,8 @@ ParaEnd.prototype.Draw = function(X, Y, Context, bEndCell, bForceDraw)
 {
 	if ((undefined !== editor && editor.ShowParaMarks) || true === bForceDraw)
 	{
-		Context.SetFontSlot(fontslot_ASCII);
+		var FontKoef = (this.Flags & PARATEXT_FLAGS_FONTKOEF_SCRIPT ? AscCommon.vaKSize : 1);
+		Context.SetFontSlot(fontslot_ASCII, FontKoef);
 
 		if (null !== this.SectionPr)
 		{
@@ -787,9 +902,20 @@ ParaEnd.prototype.Draw = function(X, Y, Context, bEndCell, bForceDraw)
 			Context.FillText(X, Y, String.fromCharCode(0x00B6));
 	}
 };
-ParaEnd.prototype.Measure = function(Context, bEndCell)
+ParaEnd.prototype.Measure = function(Context, oTextPr, bEndCell)
 {
-	Context.SetFontSlot(fontslot_ASCII);
+	var dFontKoef = 1;
+	if (oTextPr.VertAlign !== AscCommon.vertalign_Baseline)
+	{
+		this.Flags |= PARATEXT_FLAGS_FONTKOEF_SCRIPT;
+		dFontKoef = AscCommon.vaKSize;
+	}
+	else
+	{
+		this.Flags &= PARATEXT_FLAGS_NON_FONTKOEF_SCRIPT;
+	}
+
+	Context.SetFontSlot(fontslot_ASCII, dFontKoef);
 
 	if (true === bEndCell)
 		this.WidthVisible = (Context.Measure(String.fromCharCode(0x00A4)).Width * TEXTWIDTH_DIVIDER) | 0;
@@ -1140,6 +1266,10 @@ ParaNewLine.prototype.Can_AddNumbering = function()
 ParaNewLine.prototype.Copy = function()
 {
 	return new ParaNewLine(this.BreakType);
+};
+ParaNewLine.prototype.IsEqual = function(oElement)
+{
+	return (oElement.Type === this.Type && this.BreakType === oElement.BreakType);
 };
 /**
  * Функция проверяет особый случай, когда у нас PageBreak, после которого в параграфе ничего не идет
@@ -1690,9 +1820,9 @@ ParaPresentationNumbering.prototype = Object.create(CRunElementBase.prototype);
 ParaPresentationNumbering.prototype.constructor = ParaPresentationNumbering;
 
 ParaPresentationNumbering.prototype.Type = para_PresentationNumbering;
-ParaPresentationNumbering.prototype.Draw = function(X, Y, Context, FirstTextPr, PDSE)
+ParaPresentationNumbering.prototype.Draw = function(X, Y, Context, PDSE)
 {
-	this.Bullet.Draw(X, Y, Context, FirstTextPr, PDSE);
+	this.Bullet.Draw(X, Y, Context, PDSE);
 };
 ParaPresentationNumbering.prototype.Measure = function (Context, FirstTextPr, Theme)
 {
@@ -1818,6 +1948,10 @@ ParaFootnoteReference.prototype.Copy = function(oPr)
 	oRef.NumFormat = this.NumFormat;
 
 	return oRef;
+};
+ParaFootnoteReference.prototype.IsEqual = function(oElement)
+{
+	return (oElement.Type === this.Type && this.Footnote === oElement.Footnote && oElement.CustomMark === this.CustomMark);
 };
 ParaFootnoteReference.prototype.Write_ToBinary = function(Writer)
 {
@@ -2057,6 +2191,20 @@ ParaSeparator.prototype.UpdateWidth = function(PRS)
 	this.Width        = nWidth;
 	this.WidthVisible = nWidth;
 };
+ParaSeparator.prototype.SaveRecalculateObject = function(isCopy)
+{
+	return {
+		Width : this.Width
+	};
+};
+ParaSeparator.prototype.LoadRecalculateObject = function(oRecalcObj)
+{
+	this.Width        = oRecalcObj.Width;
+	this.WidthVisible = oRecalcObj.Width;
+};
+ParaSeparator.PrepareRecalculateObject = function()
+{
+};
 
 /**
  * Класс представляющий собой длинный разделитель (который в основном используется для сносок).
@@ -2111,6 +2259,20 @@ ParaContinuationSeparator.prototype.UpdateWidth = function(PRS)
 
 	this.Width        = nWidth;
 	this.WidthVisible = nWidth;
+};
+ParaContinuationSeparator.prototype.SaveRecalculateObject = function(isCopy)
+{
+	return {
+		Width : this.Width
+	};
+};
+ParaContinuationSeparator.prototype.LoadRecalculateObject = function(oRecalcObj)
+{
+	this.Width        = oRecalcObj.Width;
+	this.WidthVisible = oRecalcObj.Width;
+};
+ParaContinuationSeparator.PrepareRecalculateObject = function()
+{
 };
 
 
@@ -2241,6 +2403,117 @@ ParaPageCount.prototype.GetParent = function()
 {
 	return this.Parent;
 };
+/**
+ * Класс представляющий ссылку на сноску
+ * @param {CFootEndnote} oEndnote - Ссылка на сноску
+ * @param {string} sCustomMark
+ * @constructor
+ * @extends {ParaFootnoteReference}
+ */
+function ParaEndnoteReference(oEndnote, sCustomMark)
+{
+	ParaFootnoteReference.call(this, oEndnote, sCustomMark);
+}
+ParaEndnoteReference.prototype = Object.create(ParaFootnoteReference.prototype);
+ParaEndnoteReference.prototype.constructor = ParaEndnoteReference;
+
+ParaEndnoteReference.prototype.Type = para_EndnoteReference;
+ParaEndnoteReference.prototype.Get_Type = function()
+{
+	return para_EndnoteReference;
+};
+ParaEndnoteReference.prototype.Copy = function(oPr)
+{
+	var oEndnote;
+	if (oPr && oPr.Comparison)
+	{
+		oEndnote = oPr.Comparison.createEndNote();
+	}
+	else
+	{
+		oEndnote = this.Footnote.Parent.CreateEndnote();
+	}
+	oEndnote.Copy2(this.Footnote, oPr);
+
+	var oRef = new ParaEndnoteReference(oEndnote);
+
+	oRef.Number    = this.Number;
+	oRef.NumFormat = this.NumFormat;
+
+	return oRef;
+};
+ParaEndnoteReference.prototype.UpdateNumber = function(PRS, isKeepNumber)
+{
+	if (this.Footnote && true !== PRS.IsFastRecalculate() && PRS.TopDocument instanceof CDocument)
+	{
+		var nPageAbs    = PRS.GetPageAbs();
+		var nColumnAbs  = PRS.GetColumnAbs();
+		var nAdditional = PRS.GetEndnoteReferenceCount(this);
+		var oSectPr     = PRS.GetSectPr();
+		var nNumFormat  = oSectPr.GetEndnoteNumFormat();
+
+		var oLogicDocument      = this.Footnote.GetLogicDocument();
+		var oEndnotesController = oLogicDocument.GetEndnotesController();
+
+		if (!isKeepNumber)
+		{
+			this.NumFormat = nNumFormat;
+			this.Number    = oEndnotesController.GetEndnoteNumberOnPage(nPageAbs, nColumnAbs, oSectPr, this.Footnote) + nAdditional;
+
+			// Если данная сноска не участвует в нумерации, просто уменьшаем ей номер на 1, для упрощения работы
+			if (this.IsCustomMarkFollows())
+				this.Number--;
+		}
+
+		this.private_Measure();
+		this.Footnote.SetNumber(this.Number, oSectPr, this.IsCustomMarkFollows());
+	}
+	else
+	{
+		this.Number    = 1;
+		this.NumFormat = Asc.c_oAscNumberingFormat.LowerRoman;
+		this.private_Measure();
+	}
+};
+
+/**
+ * Класс представляющий номер сноски внутри сноски.
+ * @param {CFootEndnote} oEndnote - Ссылка на сноску.
+ * @constructor
+ * @extends {ParaEndnoteReference}
+ */
+function ParaEndnoteRef(oEndnote)
+{
+	ParaEndnoteReference.call(this, oEndnote);
+}
+ParaEndnoteRef.prototype = Object.create(ParaEndnoteReference.prototype);
+ParaEndnoteRef.prototype.constructor = ParaEndnoteRef;
+
+ParaEndnoteRef.prototype.Type = para_EndnoteRef;
+ParaEndnoteRef.prototype.Get_Type = function()
+{
+	return para_EndnoteRef;
+};
+ParaEndnoteRef.prototype.Copy = function()
+{
+	return new ParaEndnoteRef(this.GetFootnote());
+};
+ParaEndnoteRef.prototype.UpdateNumber = function(oEndnote)
+{
+	this.Footnote = oEndnote;
+	if (this.Footnote && this.Footnote instanceof CFootEndnote)
+	{
+		this.Number    = this.Footnote.GetNumber();
+		this.NumFormat = this.Footnote.GetReferenceSectPr().GetEndnoteNumFormat();
+		this.private_Measure();
+	}
+	else
+	{
+		this.Number    = 1;
+		this.NumFormat = Asc.c_oAscNumberingFormat.LowerRoman;
+		this.private_Measure();
+	}
+};
 
 function ParagraphContent_Read_FromBinary(Reader)
 {
@@ -2280,6 +2553,8 @@ function ParagraphContent_Read_FromBinary(Reader)
 		case para_FieldChar             : Element = new ParaFieldChar(); break;
 		case para_InstrText             : Element = new ParaInstrText(); break;
 		case para_RevisionMove          : Element = new CRunRevisionMove(); break;
+		case para_EndnoteReference      : Element = new ParaEndnoteReference(); break;
+		case para_EndnoteRef            : Element = new ParaEndnoteRef(); break;
 	}
 
 	if (null != Element)

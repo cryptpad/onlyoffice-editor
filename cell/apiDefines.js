@@ -107,7 +107,11 @@ var c_oAscSelectionDialogType = {
   FormatTable: 1,
   Chart: 2,
   FormatTableChangeRange: 4,
-  CustomSort: 5
+  CustomSort: 5,
+  PivotTableData: 6,
+  PivotTableReport: 7,
+  PrintTitles: 8,
+  Function: 9
 };
 
 var c_oAscScrollType = {
@@ -127,7 +131,8 @@ var c_oAscMouseMoveType = {
   LockedObject: 3,
   ResizeColumn: 4,
   ResizeRow: 5,
-  Filter: 6
+  Filter: 6,
+  Tooltip: 7
 };
 
 var c_oAscMouseMoveLockedObjectType = {
@@ -197,18 +202,19 @@ var c_oAscDynamicAutoFilter = {
     nextQuarter: 20,
     nextWeek: 21,
     nextYear: 22,
-    q1: 23,
-    q2: 24,
-    q3: 25,
-    q4: 26,
-    thisMonth: 27,
-    thisQuarter: 28,
-    thisWeek: 29,
-    thisYear: 30,
-    today: 31,
-    tomorrow: 32,
-    yearToDate: 33,
-    yesterday: 34
+    nullType: 23,
+    q1: 24,
+    q2: 25,
+    q3: 26,
+    q4: 27,
+    thisMonth: 28,
+    thisQuarter: 29,
+    thisWeek: 30,
+    thisYear: 31,
+    today: 32,
+    tomorrow: 33,
+    yearToDate: 34,
+    yesterday: 35
 };
 
 var c_oAscTop10AutoFilter = {
@@ -225,7 +231,8 @@ var c_oAscChangeSelectionFormatTable = {
 	all: 1,
 	data: 2,
 	row: 3,
-	column: 4
+	column: 4,
+	dataColumn: 5
 };
 
 var c_oAscChangeTableStyleInfo = {
@@ -300,7 +307,8 @@ var c_oTargetType = {
   FrozenAnchorH: 14,
   FrozenAnchorV: 15,
   GroupRow: 16,
-  GroupCol: 17
+  GroupCol: 17,
+  TableSelectionChange: 18
 };
 
 var c_oAscAutoFilterTypes = {
@@ -364,7 +372,9 @@ var c_oAscPopUpSelectorType = {
   None: 0,
   Func: 1,
   Range: 2,
-  Table: 3
+  Table: 3,
+  Slicer: 4,
+  TotalRowFunc: 5
 };
   /** @enum */
   var c_oSerFormat = {
@@ -447,6 +457,26 @@ var c_oAscPopUpSelectorType = {
       custom: 14
   };
 
+  var c_oAscPrintTitlesRangeType = {
+      first: 0,
+      frozen: 1,
+      current: 2
+  };
+
+  var c_oAscFormulaArgumentType = {
+    number: 0,
+    text: 1,
+    reference: 2,
+    any: 3,
+    logical: 4
+  };
+
+  var c_oAscSelectionForCFType = {
+    selection: 1,
+    worksheet: 2,
+    table: 3,
+    pivot: 4
+  };
 
   var c_kMaxPrintPages = 1500;
 
@@ -538,6 +568,10 @@ var c_oAscPopUpSelectorType = {
   prot['Chart'] = prot.Chart;
   prot['FormatTableChangeRange'] = prot.FormatTableChangeRange;
   prot['CustomSort'] = prot.CustomSort;
+  prot['PivotTableData'] = prot.PivotTableData;
+  prot['PivotTableReport'] = prot.PivotTableReport;
+  prot['PrintTitles'] = prot.PrintTitles;
+  prot['Function'] = prot.Function;
   window['Asc']['c_oAscHyperlinkType'] = window['Asc'].c_oAscHyperlinkType = c_oAscHyperlinkType;
   prot = c_oAscHyperlinkType;
   prot['WebLink'] = prot.WebLink;
@@ -551,6 +585,7 @@ var c_oAscPopUpSelectorType = {
   prot['ResizeColumn'] = prot.ResizeColumn;
   prot['ResizeRow'] = prot.ResizeRow;
   prot['Filter'] = prot.Filter;
+  prot['Tooltip'] = prot.Tooltip;
   window['Asc']['c_oAscMouseMoveLockedObjectType'] = window['Asc'].c_oAscMouseMoveLockedObjectType = c_oAscMouseMoveLockedObjectType;
   prot = c_oAscMouseMoveLockedObjectType;
   prot['None'] = prot.None;
@@ -598,6 +633,7 @@ var c_oAscPopUpSelectorType = {
   prot['data'] = prot.data;
   prot['row'] = prot.row;
   prot['column'] = prot.column;
+  prot['dataColumn'] = prot.dataColumn;
   window['Asc']['c_oAscChangeTableStyleInfo'] = window['Asc'].c_oAscChangeTableStyleInfo = c_oAscChangeTableStyleInfo;
   prot = c_oAscChangeTableStyleInfo;
   prot['columnFirst'] = prot.columnFirst;
@@ -640,6 +676,8 @@ var c_oAscPopUpSelectorType = {
   prot['Func'] = prot.Func;
   prot['Range'] = prot.Range;
   prot['Table'] = prot.Table;
+  prot['Slicer'] = prot.Slicer;
+  prot['TotalRowFunc'] = prot.TotalRowFunc;
   window['Asc']['c_oAscSparklineType'] = window['Asc'].c_oAscSparklineType = c_oAscSparklineType;
   prot = c_oAscSparklineType;
   prot['Line'] = prot.Line;
@@ -706,5 +744,27 @@ var c_oAscPopUpSelectorType = {
   prot['userPageDate'] = prot.userPageDate;
   prot['preparedUserDatePage'] = prot.preparedUserDatePage;
   prot['custom'] = prot.custom;
+
+  window['Asc']['c_oAscPrintTitlesRangeType'] = window['Asc'].c_oAscPrintTitlesRangeType = c_oAscPrintTitlesRangeType;
+  prot = c_oAscPrintTitlesRangeType;
+  prot['first'] = prot.first;
+  prot['frozen'] = prot.frozen;
+  prot['current'] = prot.current;
+
+  window['Asc']['c_oAscFormulaArgumentType'] = window['Asc'].c_oAscFormulaArgumentType = c_oAscFormulaArgumentType;
+  prot = c_oAscPrintTitlesRangeType;
+  prot['number'] = prot.number;
+  prot['text'] = prot.text;
+  prot['reference'] = prot.reference;
+  prot['any'] = prot.any;
+  prot['logical'] = prot.logical;
+
+  window['Asc']['c_oAscSelectionForCFType'] = window['Asc'].c_oAscSelectionForCFType = c_oAscSelectionForCFType;
+  prot = c_oAscSelectionForCFType;
+  prot['selection'] = prot.selection;
+  prot['worksheet'] = prot.worksheet;
+  prot['table'] = prot.table;
+  prot['pivot'] = prot.pivot;
+
 
 })(window);

@@ -108,7 +108,9 @@
         TableStyles: 12,
         CellStyleXfs: 14,
         CellStyles: 15,
-        CellStyle: 16
+        CellStyle: 16,
+        SlicerStyles: 17,
+        ExtDxfs: 18
     };
     /** @enum */
     var c_oSerBorderTypes =
@@ -227,7 +229,10 @@
 		JsaProject: 13,
 		Comments: 14,
 		CalcPr: 15,
-		Connections: 16
+		Connections: 16,
+        SlicerCaches: 18,
+        SlicerCachesExt: 19,
+        SlicerCache: 20
     };
     /** @enum */
     var c_oSerWorkbookPrTypes =
@@ -305,7 +310,10 @@
 		QueryTable: 33,
 		Controls: 34,
 		XlsbPos: 35,
-		SortState: 36
+		SortState: 36,
+        Slicers: 37,
+        SlicersExt: 38,
+        Slicer: 39
     };
     /** @enum */
     var c_oSerWorksheetPropTypes =
@@ -479,7 +487,26 @@
         TableColumns:6,
         TableStyleInfo:7,
 		HeaderRowCount:8,
-		AltTextTable: 9
+		AltTextTable: 9,
+        Name: 10,
+        Comment: 11,
+        ConnectionId: 12,
+        Id: 13,
+        DataCellStyle: 14,
+        DataDxfId: 15,
+        HeaderRowBorderDxfId: 16,
+        HeaderRowCellStyle: 17,
+        HeaderRowDxfId: 18,
+        InsertRow: 19,
+        InsertRowShift: 20,
+        Published: 21,
+        TableBorderDxfId: 22,
+        TableType: 23,
+        TotalsRowBorderDxfId: 24,
+        TotalsRowCellStyle: 25,
+        TotalsRowDxfId: 26,
+        TotalsRowShown: 27,
+        QueryTable: 28
     };
     /** @enum */
     var c_oSer_TableStyleInfo =
@@ -1486,12 +1513,13 @@
 	}
 
     /** @constructor */
-    function BinaryTableWriter(memory, aDxfs, isCopyPaste)
+    function BinaryTableWriter(memory, aDxfs, isCopyPaste, tableIds)
     {
         this.memory = memory;
         this.aDxfs = aDxfs;
         this.bs = new BinaryCommonWriter(this.memory);
         this.isCopyPaste = isCopyPaste;
+        this.tableIds = tableIds;
         this.Write = function(aTables, ws)
         {
             var oThis = this;
@@ -1526,6 +1554,13 @@
             {
                 this.memory.WriteByte(c_oSer_TablePart.DisplayName);
                 this.memory.WriteString2(table.DisplayName);
+
+                if (this.tableIds) {
+                    var elem = this.tableIds[table.DisplayName];
+                    if (elem) {
+                        this.bs.WriteItem(c_oSer_TablePart.Id, function(){oThis.memory.WriteULong(elem.id);});
+                    }
+                }
             }
             //AutoFilter
             if(null != table.AutoFilter)
@@ -2088,6 +2123,12 @@
 			if(null != this.aDxfs && this.aDxfs.length > 0) {
 				this.bs.WriteItem(c_oSerStylesTypes.Dxfs, function(){oThis.WriteDxfs(oThis.aDxfs);});
             }
+            var aExtDxfs = [];
+            var slicerStyles = this.PrepareSlicerStyles(wb.SlicerStyles, aExtDxfs);
+            if(aExtDxfs.length > 0) {
+                this.bs.WriteItem(c_oSerStylesTypes.ExtDxfs, function(){oThis.WriteDxfs(aExtDxfs);});
+            }
+            this.bs.WriteItem(c_oSerStylesTypes.SlicerStyles, function(){oThis.WriteSlicerStyles(slicerStyles);});
             //numfmts пишется в конце потому что они могут пополниться при записи Dxfs
             this.bs.WriteItem(c_oSerStylesTypes.NumFmts, function(){oThis.WriteNumFmts();});
         };
@@ -2537,6 +2578,38 @@
             if (null != oCellStyle.XfId)
                 this.bs.WriteItem(c_oSer_CellStyle.XfId, function(){oThis.memory.WriteLong(oCellStyle.XfId);});
         };
+        this.PrepareSlicerStyles = function(slicerStyles, aDxfs)
+        {
+            var styles = new Asc.CT_slicerStyles();
+            styles.defaultSlicerStyle = slicerStyles.DefaultStyle;
+            for(var name in slicerStyles.CustomStyles){
+                if(slicerStyles.CustomStyles.hasOwnProperty(name)){
+                    var slicerStyle = new Asc.CT_slicerStyle();
+                    slicerStyle.name = name;
+                    var elems = slicerStyles.CustomStyles[name];
+                    for(var type in elems){
+                        if(elems.hasOwnProperty(type)) {
+                            var styleElement = new Asc.CT_slicerStyleElement();
+                            styleElement.type = parseInt(type);
+                            styleElement.dxfId = aDxfs.length;
+                            aDxfs.push(elems[type]);
+                            slicerStyle.slicerStyleElements.push(styleElement);
+                        }
+                    }
+                    styles.slicerStyle.push(slicerStyle);
+                }
+            }
+            return styles;
+        };
+        this.WriteSlicerStyles = function(slicerStyles)
+        {
+            var old = new AscCommon.CMemory(true);
+            pptx_content_writer.BinaryFileWriter.ExportToMemory(old);
+            pptx_content_writer.BinaryFileWriter.ImportFromMemory(this.memory);
+            pptx_content_writer.BinaryFileWriter.WriteRecord4(0, slicerStyles);
+            pptx_content_writer.BinaryFileWriter.ExportToMemory(this.memory);
+            pptx_content_writer.BinaryFileWriter.ImportFromMemory(old);
+        };
         this.WriteTableStyles = function(tableStyles)
         {
             var oThis = this;
@@ -2668,17 +2741,28 @@
             }
         };
     }
-    function BinaryWorkbookTableWriter(memory, wb, oBinaryWorksheetsTableWriter, isCopyPaste)
+    function BinaryWorkbookTableWriter(memory, wb, oBinaryWorksheetsTableWriter, isCopyPaste, tableIds)
     {
         this.memory = memory;
         this.bs = new BinaryCommonWriter(this.memory);
         this.wb = wb;
         this.oBinaryWorksheetsTableWriter = oBinaryWorksheetsTableWriter;
         this.isCopyPaste = isCopyPaste;
+        this.tableIds = tableIds;
         this.Write = function()
         {
             var oThis = this;
             this.bs.WriteItemWithLength(function(){oThis.WriteWorkbookContent();});
+        };
+        this.PrepareTableIds = function()
+        {
+            var oThis = this;
+            var index = 1;
+            this.oBinaryWorksheetsTableWriter.wb.forEach(function(ws) {
+                for (var i = 0; i < ws.TableParts.length; ++i) {
+                    oThis.tableIds[ws.TableParts[i].DisplayName] = {id: index++, table: ws.TableParts[i]}
+                }
+            }, this.oBinaryWorksheetsTableWriter.isCopyPaste);
         };
         this.WriteWorkbookContent = function()
         {
@@ -2695,21 +2779,58 @@
 			this.bs.WriteItem(c_oSerWorkbookTypes.CalcPr, function(){oThis.WriteCalcPr(oThis.wb.calcPr);});
 
 			//PivotCaches
-			var isEmptyCaches = true;
+			var pivotCacheIndex = 0;
 			var pivotCaches = {};
 			this.oBinaryWorksheetsTableWriter.wb.forEach(function(ws) {
 				for (var i = 0; i < ws.pivotTables.length; ++i) {
 					var pivotTable = ws.pivotTables[i];
-					if (null !== pivotTable.cacheId && pivotTable.cacheDefinition) {
-						isEmptyCaches = false;
-						pivotCaches[pivotTable.cacheId] = pivotTable.cacheDefinition;
+					if (oThis.isCopyPaste && !pivotTable.isInRange(oThis.isCopyPaste)) {
+						continue;
+					}
+					if (pivotTable.cacheDefinition) {
+						var pivotCache = pivotCaches[pivotTable.cacheDefinition.Get_Id()];
+						if (!pivotCache) {
+							pivotCache = {id: pivotCacheIndex++, cache: pivotTable.cacheDefinition};
+							pivotCaches[pivotTable.cacheDefinition.Get_Id()] = pivotCache;
+				}
+						pivotTable.cacheId = pivotCache.id;
 					}
 				}
 			}, this.oBinaryWorksheetsTableWriter.isCopyPaste);
-			if (!isEmptyCaches) {
+			if (pivotCacheIndex > 0) {
 				this.bs.WriteItem(c_oSerWorkbookTypes.PivotCaches, function () {oThis.WritePivotCaches(pivotCaches);});
 			}
-			if (this.wb.externalReferences.length > 0) {
+			//slicerCaches
+            //for copy/paste write string name table/column ?
+            if (!this.oBinaryWorksheetsTableWriter.isCopyPaste) {
+                this.PrepareTableIds();
+            }
+
+            var slicerCacheIndex = 0;
+            var slicerCaches = {};
+            var slicerCacheExtIndex = 0;
+            var slicerCachesExt = {};
+            this.oBinaryWorksheetsTableWriter.wb.forEach(function(ws) {
+                for (var i = 0; i < ws.aSlicers.length; ++i) {
+                    var slicerCache = ws.aSlicers[i].getSlicerCache();
+                    if (slicerCache) {
+                        if (ws.aSlicers[i].isExt()) {
+                            slicerCachesExt[slicerCache.name] = slicerCache;
+                            slicerCacheExtIndex++;
+                        } else {
+                            slicerCaches[slicerCache.name] = slicerCache;
+                            slicerCacheIndex++;
+                        }
+                    }
+                }
+            }, this.oBinaryWorksheetsTableWriter.isCopyPaste);
+            if (slicerCacheIndex > 0) {
+                this.bs.WriteItem(c_oSerWorkbookTypes.SlicerCaches, function () {oThis.WriteSlicerCaches(slicerCaches, oThis.tableIds);});
+            }
+            if (slicerCacheExtIndex > 0) {
+                this.bs.WriteItem(c_oSerWorkbookTypes.SlicerCachesExt, function () {oThis.WriteSlicerCaches(slicerCachesExt, oThis.tableIds);});
+            }
+			if (!this.isCopyPaste && this.wb.externalReferences.length > 0) {
 				this.bs.WriteItem(c_oSerWorkbookTypes.ExternalReferences, function() {oThis.WriteExternalReferences();});
 			}
 			if (!this.isCopyPaste) {
@@ -2773,7 +2894,7 @@
         this.WriteDefinedNames = function()
         {
             var oThis = this;
-            var defNameList = this.wb.dependencyFormulas.saveDefName();
+            var defNameList = this.wb.dependencyFormulas.saveDefName(this.isCopyPaste === false);
 
             var filterDefName = "_xlnm._FilterDatabase";
 			var tempMap = {};
@@ -2809,7 +2930,7 @@
                 if(ws && ws.AutoFilter && ws.AutoFilter.Ref && !tempMap[ws.index]) {
                     ref = ws.AutoFilter.Ref;
 					defNameRef = AscCommon.parserHelp.get3DRef(ws.getName(), ref.getAbsName());
-					defName = new Asc.asc_CDefName(filterDefName, defNameRef, ws.index, false, true);
+					defName = new Asc.asc_CDefName(filterDefName, defNameRef, ws.index, null, true);
                     this.bs.WriteItem(c_oSerWorkbookTypes.DefinedName, function(){oThis.WriteDefinedName(defName);});
                 }
             }
@@ -2828,7 +2949,13 @@
                 this.memory.WriteString2(oDefinedName.Ref);
             }
             if (null !== oDefinedName.LocalSheetId){
-                this.bs.WriteItem(c_oSerDefinedNameTypes.LocalSheetId, function(){oThis.memory.WriteLong(oDefinedName.LocalSheetId);});
+                var _localSheetId = oDefinedName.LocalSheetId;
+                if (this.isCopyPaste === false) {
+                    //при переносе листов пишем только один лист
+                    // соответсвенно именованные диапазоны должны ссылаться на первый лист
+                    _localSheetId = 0;
+                }
+                this.bs.WriteItem(c_oSerDefinedNameTypes.LocalSheetId, function(){oThis.memory.WriteLong(_localSheetId);});
             }
             if (null != oDefinedName.Hidden) {
                 this.bs.WriteItem(c_oSerDefinedNameTypes.Hidden, function(){oThis.memory.WriteBool(oDefinedName.Hidden);});
@@ -2882,7 +3009,10 @@
 		this.WritePivotCaches = function(pivotCaches) {
 			var oThis = this;
 			for (var id in pivotCaches) {
-				this.bs.WriteItem(c_oSerWorkbookTypes.PivotCache, function(){oThis.WritePivotCache(id, pivotCaches[id]);});
+				if (pivotCaches.hasOwnProperty(id)) {
+					var elem = pivotCaches[id];
+					this.bs.WriteItem(c_oSerWorkbookTypes.PivotCache, function(){oThis.WritePivotCache(elem.id, elem.cache);});
+				}
 			}
 		};
 		this.WritePivotCache = function(id, pivotCache) {
@@ -2892,8 +3022,9 @@
 			this.bs.WriteItem(c_oSer_PivotTypes.id, function() {
 				oThis.memory.WriteLong(id - 0);
 			});
+			var stylesForWrite = oThis.isCopyPaste ? undefined : oThis.oBinaryWorksheetsTableWriter.stylesForWrite;
 			this.bs.WriteItem(c_oSer_PivotTypes.cache, function() {
-				pivotCache.toXml(oThis.memory);
+				pivotCache.toXml(oThis.memory, stylesForWrite);
 			});
 			if (pivotCache.cacheRecords) {
 				this.bs.WriteItem(c_oSer_PivotTypes.record, function() {
@@ -2902,6 +3033,26 @@
 			}
 			pivotCache.id = oldId;
 		};
+        this.WriteSlicerCaches = function(slicerCaches, tableIds) {
+            var oThis = this;
+            var stream = pptx_content_writer.BinaryFileWriter;
+            for (var name in slicerCaches) {
+                if (slicerCaches.hasOwnProperty(name)) {
+                    this.bs.WriteItem(c_oSerWorkbookTypes.SlicerCache, function() {
+                        var old = new AscCommon.CMemory(true);
+                        stream.ExportToMemory(old);
+                        stream.ImportFromMemory(oThis.memory);
+
+                        stream.StartRecord(0);
+                        slicerCaches[name].toStream(stream, tableIds, oThis.isCopyPaste || oThis.isCopyPaste === false);
+                        stream.EndRecord();
+
+                        stream.ExportToMemory(oThis.memory);
+                        stream.ImportFromMemory(old);
+                    });
+                }
+            }
+        };
 		this.WriteExternalReferences = function() {
 			var oThis = this;
 			for (var i = 0; i < this.wb.externalReferences.length; i++) {
@@ -3043,7 +3194,7 @@
             }
         };
     }
-	function BinaryWorksheetsTableWriter(memory, wb, oSharedStrings, aDxfs, personList, isCopyPaste, bsw, saveThreadedComments, commentUniqueGuids)
+	function BinaryWorksheetsTableWriter(memory, wb, oSharedStrings, aDxfs, personList, isCopyPaste, bsw, saveThreadedComments, commentUniqueGuids, tableIds)
     {
         this.memory = memory;
         this.bs = new BinaryCommonWriter(this.memory);
@@ -3058,6 +3209,7 @@
         this.sharedFormulas = {};
 		this.sharedFormulasIndex = 0;
         this.commentUniqueGuids = commentUniqueGuids;
+        this.tableIds = tableIds;
         this._getCrc32FromObjWithProperty = function(val)
         {
             return Asc.crc32(this._getStringFromObjWithProperty(val));
@@ -3156,17 +3308,17 @@
             var oBinaryTableWriter;
             if(null != ws.AutoFilter && !this.isCopyPaste)
             {
-                oBinaryTableWriter = new BinaryTableWriter(this.memory, this.aDxfs);
+                oBinaryTableWriter = new BinaryTableWriter(this.memory, this.aDxfs, false, {});
                 this.bs.WriteItem(c_oSerWorksheetsTypes.Autofilter, function(){oBinaryTableWriter.WriteAutoFilter(ws.AutoFilter);});
             }
             if(null != ws.sortState && !this.isCopyPaste)
             {
-                oBinaryTableWriter = new BinaryTableWriter(this.memory, this.aDxfs);
+                oBinaryTableWriter = new BinaryTableWriter(this.memory, this.aDxfs, false, {});
                 this.bs.WriteItem(c_oSerWorksheetsTypes.SortState, function(){oBinaryTableWriter.WriteSortState(ws.sortState);});
             }
             if(null != ws.TableParts && ws.TableParts.length > 0)
             {
-                oBinaryTableWriter = new BinaryTableWriter(this.memory, this.aDxfs, this.isCopyPaste);
+                oBinaryTableWriter = new BinaryTableWriter(this.memory, this.aDxfs, this.isCopyPaste, this.tableIds);
                 this.bs.WriteItem(c_oSerWorksheetsTypes.TableParts, function(){oBinaryTableWriter.Write(ws.TableParts, ws);});
             }
 			if (ws.aSparklineGroups.length > 0) {
@@ -3177,8 +3329,30 @@
 				this.bs.WriteItem(c_oSerWorksheetsTypes.ConditionalFormatting, function(){oThis.WriteConditionalFormatting(ws.aConditionalFormattingRules[i]);});
 			}
 			for (i = 0; i < ws.pivotTables.length; ++i) {
-				this.bs.WriteItem(c_oSerWorksheetsTypes.PivotTable, function(){oThis.WritePivotTable(ws.pivotTables[i])});
+				this.bs.WriteItem(c_oSerWorksheetsTypes.PivotTable, function(){oThis.WritePivotTable(ws.pivotTables[i], oThis.isCopyPaste)});
 			}
+            var slicers = new Asc.CT_slicers();
+            var slicerExt = new Asc.CT_slicers();
+            for (var i = 0; i < ws.aSlicers.length; ++i) {
+                if (this.isCopyPaste) {
+                    var _graphicObject = ws.workbook.getSlicerViewByName(ws.aSlicers[i].name);
+                    if (!_graphicObject || !_graphicObject.selected) {
+                        continue;
+                    }
+                }
+
+                if (ws.aSlicers[i].isExt()) {
+                    slicerExt.slicer.push(ws.aSlicers[i]);
+                } else {
+                    slicers.slicer.push(ws.aSlicers[i]);
+                }
+            }
+            if (slicers.slicer.length > 0) {
+                this.bs.WriteItem(c_oSerWorksheetsTypes.Slicers, function () {oThis.WriteSlicers(slicers);});
+            }
+            if (slicerExt.slicer.length > 0) {
+                this.bs.WriteItem(c_oSerWorksheetsTypes.SlicersExt, function () {oThis.WriteSlicers(slicerExt);});
+            }
             if (null !== ws.headerFooter) {
                 this.bs.WriteItem(c_oSerWorksheetsTypes.HeaderFooter, function () {oThis.WriteHeaderFooter(ws.headerFooter);});
             }
@@ -4025,10 +4199,6 @@
             } else {
                 range = ws.getRange3(0, 0, gc_nMaxRow0, gc_nMaxCol0);
             }
-            var bIsTablePartContainActiveRange;
-            if (oThis.isCopyPaste) {
-                bIsTablePartContainActiveRange = ws.autoFilters.isTablePartContainActiveRange(ws.selectionRange.getLast());
-            }
 
             var curRow = -1;
             var allRow = ws.getAllRowNoEmpty();
@@ -4051,13 +4221,7 @@
                 //готовим ячейку к записи
                 var nXfsId;
                 var cellXfs = cell.xfs;
-                /*if (oThis.isCopyPaste && bIsTablePartContainActiveRange) {
-                 var compiledXfs = cell.getCompiledStyle();
-                 nXfsId = oThis.stylesForWrite.add(compiledXfs);
-                 cellXfs = compiledXfs;
-                 } else {*/
                 nXfsId = oThis.stylesForWrite.add(cell.xfs);
-                //}
 
                 //сохраняем как и Excel даже пустой стиль(нужно чтобы убрать стиль строки/колонки)
                 if (null != cellXfs || false == cell.isNullText()) {
@@ -4670,13 +4834,30 @@
                 this.memory.WriteString2(oSparkline.sqRef.getName());
 			}
 		}
-		this.WritePivotTable = function(pivotTable)
+        this.WriteSlicers = function(slicers)
+        {
+            var oThis = this;
+            this.bs.WriteItem(c_oSerWorksheetsTypes.Slicer, function() {
+                var old = new AscCommon.CMemory(true);
+                pptx_content_writer.BinaryFileWriter.ExportToMemory(old);
+                pptx_content_writer.BinaryFileWriter.ImportFromMemory(oThis.memory);
+                pptx_content_writer.BinaryFileWriter.WriteRecord4(0, slicers);
+                pptx_content_writer.BinaryFileWriter.ExportToMemory(oThis.memory);
+                pptx_content_writer.BinaryFileWriter.ImportFromMemory(old);
+            });
+        };
+		this.WritePivotTable = function(pivotTable, isCopyPaste)
 		{
+			if (isCopyPaste && !pivotTable.isInRange(this.isCopyPaste)) {
+				return;
+			}
+
 			var oThis = this;
 			if (null != pivotTable.cacheId) {
 				this.bs.WriteItem(c_oSer_PivotTypes.cacheId, function() {oThis.memory.WriteLong(pivotTable.cacheId);});
 			}
-			this.bs.WriteItem(c_oSer_PivotTypes.table, function() {pivotTable.toXml(oThis.memory);});
+			var stylesForWrite = oThis.isCopyPaste ? undefined : oThis.stylesForWrite;
+			this.bs.WriteItem(c_oSer_PivotTypes.table, function() {pivotTable.toXml(oThis.memory, stylesForWrite);});
 		}
         this.WriteHeaderFooter = function(headerFooter)
         {
@@ -4950,9 +5131,10 @@
             var aDxfs = [];
             var personList = [];
             var commentUniqueGuids = {};
+            var tableIds = {};
 			var oBinaryStylesTableWriter = new BinaryStylesTableWriter(this.Memory, this.wb, aDxfs);
-			var oBinaryWorksheetsTableWriter = new BinaryWorksheetsTableWriter(this.Memory, this.wb, oSharedStrings, aDxfs, personList, this.isCopyPaste, oBinaryStylesTableWriter, this.saveThreadedComments, commentUniqueGuids);
-            this.WriteTable(c_oSerTableTypes.Workbook, new BinaryWorkbookTableWriter(this.Memory, this.wb, oBinaryWorksheetsTableWriter, this.isCopyPaste));
+			var oBinaryWorksheetsTableWriter = new BinaryWorksheetsTableWriter(this.Memory, this.wb, oSharedStrings, aDxfs, personList, this.isCopyPaste, oBinaryStylesTableWriter, this.saveThreadedComments, commentUniqueGuids, tableIds);
+            this.WriteTable(c_oSerTableTypes.Workbook, new BinaryWorkbookTableWriter(this.Memory, this.wb, oBinaryWorksheetsTableWriter, this.isCopyPaste, tableIds));
             //Worksheets
             this.WriteTable(c_oSerTableTypes.Worksheets, oBinaryWorksheetsTableWriter);
             if (personList.length > 0) {
@@ -5106,6 +5288,10 @@
 					return oThis.ReadAltTextTable(t,l, oTable);
 				});
 			}
+            else if ( c_oSer_TablePart.Id == type )
+            {
+                this.oReadResult.tableIds[this.stream.GetULongLE()] = oTable;
+            }
             else
                 res = c_oSerConstants.ReadUnknown;
             return res;
@@ -5128,19 +5314,7 @@
             var oThis = this;
             if ( c_oSer_AutoFilter.Ref == type )
 			{
-				var sRef = this.stream.GetString2LE(length);
-
-				//TODO пересмотреть проверку
-				//возможно здесь 3d ref - проверяем
-				if(-1 !== sRef.indexOf("!"))
-				{
-					var is3DRef = AscCommon.parserHelp.parse3DRef(sRef);
-					if(is3DRef){
-						sRef = is3DRef.range;
-					}
-				}
-
-				oAutoFilter.Ref = AscCommonExcel.g_oRangeCache.getAscRange(sRef);
+				oAutoFilter.setStringRef(this.stream.GetString2LE(length));
 			}
             else if ( c_oSer_AutoFilter.FilterColumns == type )
             {
@@ -5188,15 +5362,7 @@
                 res = this.bcr.Read1(length, function(t,l){
                     return oThis.ReadFilters(t,l, oFilterColumn.Filters);
                 });
-
-				//sort dates
-				if(oFilterColumn.Filters && oFilterColumn.Filters.Dates && oFilterColumn.Filters.Dates.length)
-				{
-					oFilterColumn.Filters.Dates.sort (function sortArr(a, b)
-					{
-						return a.start - b.start;
-					})
-				}
+				oFilterColumn.Filters.sortDate();
             }
             else if ( c_oSer_FilterColumn.CustomFilters == type )
             {
@@ -5620,13 +5786,11 @@
         };
     }
     /** @constructor */
-    function Binary_StylesTableReader(stream, wb, aCellXfs, Dxfs, isCopyPaste, useNumId)
+    function Binary_StylesTableReader(stream, wb, aCellXfs, isCopyPaste, useNumId)
     {
         this.stream = stream;
         this.wb = wb;
-        this.oStyleManager = wb.oStyleManager;
         this.aCellXfs = aCellXfs;
-        this.Dxfs = Dxfs;
         this.bcr = new Binary_CommonReader(this.stream);
         this.bssr = new Binary_SharedStringTableReader(this.stream, wb);
 		this.isCopyPaste = isCopyPaste;
@@ -5635,12 +5799,11 @@
         {
             var oThis = this;
             var oStyleObject = {aBorders: [], aFills: [], aFonts: [], oNumFmts: {}, aCellStyleXfs: [],
-                aCellXfs: [], aCellStyles: [], oCustomTableStyles: {}};
+                aCellXfs: [], aDxfs: [], aExtDxfs: [], aCellStyles: [], oCustomTableStyles: {}, oCustomSlicerStyles: null};
             var res = this.bcr.ReadTable(function (t, l) {
                 return oThis.ReadStylesContent(t, l, oStyleObject);
             });
-            this.InitStyleManager(oStyleObject);
-            return res;
+            return oStyleObject;
         };
         this.InitStyleManager = function (oStyleObject)
         {
@@ -5720,9 +5883,8 @@
 					xf.align = g_StyleCache.addAlign(xf.align);
 				}
 			}
-			for (i = 0; i < this.Dxfs.length; ++i) {
-				this.Dxfs[i] = g_StyleCache.addXf(this.Dxfs[i]);
-			}
+            this.InitDxfs(oStyleObject.aDxfs);
+            this.InitDxfs(oStyleObject.aExtDxfs);
 
             // ToDo убрать - это заглушка
             var arrStyleMap = {};
@@ -5885,17 +6047,35 @@
 			if (firstXf && !this.isCopyPaste) {
 				//addXf with force flag should be last operation
 				firstXf = g_StyleCache.addXf(firstXf, true);
-				this.oStyleManager.init(this.wb, firstXf, firstFont, firstFill, secondFill, firstBorder, normalXf);
+                this.wb.oStyleManager.init(firstXf, firstFont, firstFill, secondFill, firstBorder, normalXf);
 			}
-            for(var i in oStyleObject.oCustomTableStyles)
+            this.InitTableStyles(this.wb.TableStyles.CustomStyles, oStyleObject.oCustomTableStyles, oStyleObject.aDxfs);
+            wb.SlicerStyles.addCustomStylesAtOpening(oStyleObject.oCustomSlicerStyles, oStyleObject.aExtDxfs);
+        };
+        this.InitDefSlicerStyles = function (wb, oStyleObject)
+        {
+            this.InitDxfs(oStyleObject.aDxfs);
+            this.InitDxfs(oStyleObject.aExtDxfs);
+            this.InitTableStyles(wb.TableStyles.DefaultStyles, oStyleObject.oCustomTableStyles, oStyleObject.aDxfs);
+            wb.SlicerStyles.addDefaultStylesAtOpening(oStyleObject.oCustomSlicerStyles, oStyleObject.aExtDxfs);
+        };
+        this.InitDxfs = function (Dxfs)
+        {
+            for (var i = 0; i < Dxfs.length; ++i) {
+                Dxfs[i] = g_StyleCache.addXf(Dxfs[i]);
+            }
+        };
+        this.InitTableStyles = function (tableStyles, oCustomTableStyles, aDxfs)
+        {
+            for(var i in oCustomTableStyles)
             {
-                var item = oStyleObject.oCustomTableStyles[i];
+                var item = oCustomTableStyles[i];
                 if(null != item)
                 {
                     var style = item.style;
                     var elems = item.elements;
-                    this.initTableStyle(style, elems, this.Dxfs);
-                    this.wb.TableStyles.CustomStyles[i] = style;
+                    this.initTableStyle(style, elems, aDxfs);
+                    tableStyles[i] = style;
                 }
             }
         };
@@ -6009,12 +6189,22 @@
                 });
             } else if (c_oSerStylesTypes.Dxfs === type) {
                 res = this.bcr.Read1(length, function (t, l) {
-                    return oThis.ReadDxfs(t, l, oThis.Dxfs);
+                    return oThis.ReadDxfs(t, l, oStyleObject.aDxfs);
                 });
             } else if (c_oSerStylesTypes.TableStyles === type) {
                 res = this.bcr.Read1(length, function (t, l){
                     return oThis.ReadTableStyles(t, l, oThis.wb.TableStyles, oStyleObject.oCustomTableStyles);
                 });
+            } else if (c_oSerStylesTypes.ExtDxfs === type) {
+                res = this.bcr.Read1(length, function (t, l) {
+                    return oThis.ReadDxfs(t, l, oStyleObject.aExtDxfs);
+                });
+            } else if (c_oSerStylesTypes.SlicerStyles === type && typeof Asc.CT_slicerStyles != "undefined") {
+                var fileStream = this.stream.ToFileStream();
+                fileStream.GetUChar();
+                oStyleObject.oCustomSlicerStyles = new Asc.CT_slicerStyles();
+                oStyleObject.oCustomSlicerStyles.fromStream(fileStream);
+                this.stream.FromFileStream(fileStream);
             } else
                 res = c_oSerConstants.ReadUnknown;
             return res;
@@ -6561,9 +6751,10 @@
         };
     }
     /** @constructor */
-    function Binary_WorkbookTableReader(stream, oWorkbook, bwtr)
+    function Binary_WorkbookTableReader(stream, oReadResult, oWorkbook, bwtr)
     {
         this.stream = stream;
+        this.oReadResult = oReadResult;
         this.oWorkbook = oWorkbook;
         this.bcr = new Binary_CommonReader(this.stream);
         this.bwtr = bwtr;
@@ -6612,7 +6803,7 @@
 			}
 			else if (c_oSerWorkbookTypes.JsaProject == type)
 			{
-				this.oWorkbook.oApi.macros.SetData(AscCommon.GetStringUtf8(this.stream, length));
+				this.oReadResult.macros = AscCommon.GetStringUtf8(this.stream, length);
 			}
             else if (c_oSerWorkbookTypes.Comments == type)
             {
@@ -6624,19 +6815,72 @@
 			{
 				this.oWorkbook.connections = this.stream.GetBuffer(length);
 			}
+			else if (c_oSerWorkbookTypes.PivotCaches == type && typeof Asc.CT_PivotCacheDefinition != "undefined")
+			{
+				res = this.bcr.Read1(length, function(t,l){
+					return oThis.ReadPivotCaches(t,l);
+				});
+			}
+            else if ((c_oSerWorkbookTypes.SlicerCaches == type || c_oSerWorkbookTypes.SlicerCachesExt == type) && typeof Asc.CT_slicerCacheDefinition != "undefined")
+            {
+                res = this.bcr.Read1(length, function(t,l){
+                    return oThis.ReadSlicerCaches(t,l);
+                });
+            }
             else
                 res = c_oSerConstants.ReadUnknown;
             return res;
         };
+        this.ReadSlicerCaches = function(type, length)
+        {
+            var res = c_oSerConstants.ReadOk;
+            var oThis = this;
+            if ( c_oSerWorkbookTypes.SlicerCache == type ) {
+                var slicerCacheDefinition = new Asc.CT_slicerCacheDefinition();
+                var fileStream = this.stream.ToFileStream();
+                fileStream.GetUChar();
+                slicerCacheDefinition.fromStream(fileStream, oThis.bwtr.copyPasteObj && oThis.bwtr.copyPasteObj.isCopyPaste);
+                this.stream.FromFileStream(fileStream);
+                this.oReadResult.slicerCaches[slicerCacheDefinition.name] = slicerCacheDefinition;
+            } else
+                res = c_oSerConstants.ReadUnknown;
+            return res;
+        };
+		this.ReadPivotCaches = function(type, length)
+		{
+			var res = c_oSerConstants.ReadOk;
+			var oThis = this;
+			if ( c_oSerWorkbookTypes.PivotCache == type ) {
+				var pivotCache = new Asc.CT_PivotCacheDefinition();
+				res = this.bcr.Read1(length, function(t,l){
+					return oThis.ReadPivotCache(t,l, pivotCache);
+				});
+				this.oReadResult.pivotCacheDefinitions[pivotCache.id] = pivotCache;
+			} else
+				res = c_oSerConstants.ReadUnknown;
+			return res;
+		};
+		this.ReadPivotCache = function(type, length, pivotCache)
+		{
+			var res = c_oSerConstants.ReadOk;
+			if ( c_oSer_PivotTypes.id == type ) {
+				pivotCache.id = this.stream.GetLong();
+			} else if ( c_oSer_PivotTypes.cache == type ) {
+				new openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(this.stream, length), pivotCache);
+			} else if ( c_oSer_PivotTypes.record == type ) {
+				var cacheRecords = new Asc.CT_PivotCacheRecords();
+				new openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(this.stream, length), cacheRecords);
+				pivotCache.cacheRecords = cacheRecords;
+			} else
+				res = c_oSerConstants.ReadUnknown;
+			return res;
+		};
+
         this.ReadWorkbookPr = function(type, length, WorkbookPr)
         {
             var res = c_oSerConstants.ReadOk;
             if ( c_oSerWorkbookPrTypes.Date1904 == type )
-            {
                 WorkbookPr.Date1904 = this.stream.GetBool();
-                AscCommon.bDate1904 = WorkbookPr.Date1904;
-                AscCommonExcel.c_DateCorrectConst = AscCommon.bDate1904?AscCommonExcel.c_Date1904Const:AscCommonExcel.c_Date1900Const;
-            }
             else if ( c_oSerWorkbookPrTypes.DateCompatibility == type )
                 WorkbookPr.DateCompatibility = this.stream.GetBool();
 			else if ( c_oSerWorkbookPrTypes.HidePivotFieldList == type ) {
@@ -6680,9 +6924,7 @@
                 res = this.bcr.Read1(length, function(t,l){
                     return oThis.ReadDefinedName(t,l,oNewDefinedName);
                 });
-                if (null != oNewDefinedName.Name && null != oNewDefinedName.Ref) {
-                    this.oWorkbook.dependencyFormulas.addDefNameOpen(oNewDefinedName.Name, oNewDefinedName.Ref, oNewDefinedName.LocalSheetId, oNewDefinedName.Hidden, false);
-                }
+                this.oReadResult.defNames.push(oNewDefinedName);
             }
             else
                 res = c_oSerConstants.ReadUnknown;
@@ -6966,15 +7208,13 @@
                 this.aHyperlinks = [];
                 var oNewWorksheet = new AscCommonExcel.Worksheet(this.wb, wb.aWorksheets.length);
                 oNewWorksheet.aFormulaExt = [];
-
+                var DrawingDocument = oNewWorksheet.getDrawingDocument();
 				//TODO при copy/paste в word из excel необходимо подменить DrawingDocument из word - пересмотреть правку!
-				if(typeof editor != "undefined" && editor && editor.WordControl && editor.WordControl.m_oLogicDocument && editor.WordControl.m_oLogicDocument.DrawingDocument)
-					oNewWorksheet.DrawingDocument = editor.WordControl.m_oLogicDocument.DrawingDocument;
-				else if(this.copyPasteObj && this.copyPasteObj.isCopyPaste)
-				{
-					oNewWorksheet.DrawingDocument = window["Asc"]["editor"].wbModel.getActiveWs().DrawingDocument;
-				}
+				if(typeof editor != "undefined" && editor && editor.WordControl && editor.WordControl.m_oLogicDocument && editor.WordControl.m_oLogicDocument.DrawingDocument) {
+                    this.wb.DrawingDocument = editor.WordControl.m_oLogicDocument.DrawingDocument;
+                }
 
+				
                 this.curWorksheet = oNewWorksheet;
                 res = this.bcr.Read1(length, function(t,l){
                     return oThis.ReadWorksheet(t,l, oNewWorksheet);
@@ -6993,6 +7233,7 @@
                 }
                 this.wb.aWorksheets.push(oNewWorksheet);
                 this.wb.aWorksheetsById[oNewWorksheet.getId()] = oNewWorksheet;
+                this.wb.DrawingDocument = DrawingDocument;
             }
             else
                 res = c_oSerConstants.ReadUnknown;
@@ -7163,10 +7404,59 @@
 				res = this.bcr.Read1(length, function(t, l) {
 					return oThis.ReadDataValidations(t, l, oWorksheet.dataValidations);
 				});
+			} else if (c_oSerWorksheetsTypes.PivotTable === type && typeof Asc.CT_pivotTableDefinition != "undefined") {
+				var data = {table: null, cacheId: null};
+				res = this.bcr.Read1(length, function(t, l) {
+					return oThis.ReadPivotCopyPaste(t, l, data);
+				});
+				var cacheDefinition = this.oReadResult.pivotCacheDefinitions[data.cacheId];
+				if(data.table && cacheDefinition){
+					data.table.cacheDefinition = cacheDefinition;
+					oWorksheet.insertPivotTable(data.table);
+				}
+            } else if (/*c_oSerWorksheetsTypes.Slicers === type ||*/ c_oSerWorksheetsTypes.SlicersExt === type) {
+                res = this.bcr.Read1(length, function(t, l) {
+                    return oThis.ReadSlicers(t, l, oWorksheet);
+                });
 			} else
 				res = c_oSerConstants.ReadUnknown;
 			return res;
 		};
+		this.ReadPivotCopyPaste = function(type, length, data)
+		{
+			var res = c_oSerConstants.ReadOk;
+			var oThis = this;
+			if (c_oSer_PivotTypes.cacheId == type) {
+				data.cacheId = this.stream.GetLong();
+			} else if (c_oSer_PivotTypes.table == type) {
+				data.table = new Asc.CT_pivotTableDefinition(true);
+				new openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(this.stream, length), data.table);
+			} else
+				res = c_oSerConstants.ReadUnknown;
+			return res;
+		};
+        this.ReadSlicers = function(type, length, oWorksheet)
+        {
+            var res = c_oSerConstants.ReadOk;
+            var oThis = this;
+            if (c_oSerWorksheetsTypes.Slicer === type) {
+                if (typeof Asc.CT_slicers == "undefined") {
+                    if (this.copyPasteObj.isCopyPaste) {
+                        oWorksheet.aSlicers.push(null);
+                    }
+                    return c_oSerConstants.ReadUnknown;
+                }
+
+                var slicers = new Asc.CT_slicers();
+                slicers.slicer = oWorksheet.aSlicers;
+                var fileStream = this.stream.ToFileStream();
+                fileStream.GetUChar();
+                slicers.fromStream(fileStream, oWorksheet, oThis.oReadResult.slicerCaches);
+                this.stream.FromFileStream(fileStream);
+            } else
+                res = c_oSerConstants.ReadUnknown;
+            return res;
+        };
 		this.ReadDataValidations = function(type, length, dataValidations)
 		{
 			var res = c_oSerConstants.ReadOk;
@@ -7666,6 +7956,11 @@
 					var parsed = new AscCommonExcel.parserFormula(formula.v, newFormulaParent, cell.ws);
 					parsed.ca = formula.ca;
 					parsed.parse(undefined, undefined, parseResult);
+					if (parseResult.error === Asc.c_oAscError.ID.FrmlMaxReference) {
+                        tmp.ws.workbook.openErrors.push(cell.getName());
+                        return;
+                    }
+
 					if (null !== formula.ref) {
 						if(formula.t === ECellFormulaType.cellformulatypeShared) {
 							sharedRef = AscCommonExcel.g_oRangeCache.getAscRange(formula.ref).clone();
@@ -7677,6 +7972,7 @@
 							}
 						}
 					}
+
 					curFormula = new OpenColumnFormula(cell.nRow, formula.v, parsed, parseResult.refPos, newFormulaParent);
 					tmp.prevFormulas[cell.nCol] = curFormula;
 				}
@@ -7684,7 +7980,9 @@
 					tmp.sharedFormulas[formula.si] = curFormula;
 					tmp.siFormulas[curFormula.parsed.getListenerId()] = curFormula.parsed;
 				}
-			}
+			} else if (formula.v && !(this.copyPasteObj && this.copyPasteObj.isCopyPaste)) {
+				tmp.ws.workbook.openErrors.push(cell.getName());
+            }
 			if (curFormula) {
 				cell.setFormulaInternal(curFormula.parsed);
 				if (curFormula.parsed.ca || cell.isNullTextString()) {
@@ -7903,7 +8201,7 @@
         };
         this.ReadPptxDrawing = function () {
             var graphicObject;
-            var oGraphicObject = pptx_content_loader.ReadGraphicObject(this.stream, this.curWorksheet);
+            var oGraphicObject = pptx_content_loader.ReadGraphicObject(this.stream, this.curWorksheet, this.curWorksheet.getDrawingDocument());
             if(null != oGraphicObject
                 && !((oGraphicObject.getObjectType() === AscDFH.historyitem_type_Shape || oGraphicObject.getObjectType() === AscDFH.historyitem_type_ImageShape) && !oGraphicObject.spPr)
                 && !AscCommon.IsHiddenObj(oGraphicObject))
@@ -9076,12 +9374,18 @@
         this.copyPasteObj =
         {
             isCopyPaste: isCopyPaste,
-            activeRange: null
+            activeRange: null,
+            selectAllSheet: null
         };
         this.oReadResult = {
             tableCustomFunc: [],
 			sheetData: [],
-			stylesTableReader: null
+			stylesTableReader: null,
+			pivotCacheDefinitions: {},
+			macros: null,
+            slicerCaches: {},
+			tableIds: {},
+			defNames: []
         };
         this.getbase64DecodedData = function(szSrc)
         {
@@ -9294,12 +9598,18 @@
             if(!this.copyPasteObj.isCopyPaste)
             {
                 ReadDefCellStyles(wb, wb.CellStyles.DefaultStyles);
+                ReadDefSlicerStyles(wb, wb.CellStyles.DefaultStyles);
+                wb.SlicerStyles.concatStyles();
                 // ReadDefTableStyles(wb, wb.TableStyles.DefaultStyles);
                 // wb.TableStyles.concatStyles();
             }
+            if(pptx_content_loader.Reader)
+            {
+                pptx_content_loader.Reader.AssignConnectorsId();
+            }
 			if(!pasteBinaryFromExcel)
 				History.TurnOn();
-			//чтобы удалялся stream с бинарником
+            //чтобы удалялся stream с бинарником
 			pptx_content_loader.Clear(true);
         };
         this.ReadMainTable = function(wb)
@@ -9362,12 +9672,17 @@
                 if(c_oSerConstants.ReadOk == res)
                     res = (new Binary_SharedStringTableReader(this.stream, wb, aSharedStrings)).Read();
             }
-			this.oReadResult.stylesTableReader = new Binary_StylesTableReader(this.stream, wb, aCellXfs, aDxfs, this.copyPasteObj.isCopyPaste)
+			this.oReadResult.stylesTableReader = new Binary_StylesTableReader(this.stream, wb, aCellXfs, this.copyPasteObj.isCopyPaste)
             if(null != nStyleTableOffset)
             {
                 res = this.stream.Seek(nStyleTableOffset);
-                if(c_oSerConstants.ReadOk == res)
-					res = this.oReadResult.stylesTableReader.Read();
+                if (c_oSerConstants.ReadOk == res) {
+                    var oStyleObject = this.oReadResult.stylesTableReader.Read();
+                    this.oReadResult.stylesTableReader.InitStyleManager(oStyleObject);
+                    aDxfs = oStyleObject.aDxfs;
+                    wb.oNumFmtsOpen = oStyleObject.oNumFmts;
+                }
+
             }
             var personList = {};
             if(null != nPersonListTableOffset)
@@ -9377,6 +9692,12 @@
                     res = new BinaryPersonReader(this.stream, personList).Read();
             }
 			var bwtr = new Binary_WorksheetTableReader(this.stream, this.oReadResult, wb, aSharedStrings, aCellXfs, aDxfs, oMediaArray, personList, this.copyPasteObj);
+			if(null != nWorkbookTableOffset)
+			{
+				res = this.stream.Seek(nWorkbookTableOffset);
+				if(c_oSerConstants.ReadOk == res)
+					res = (new Binary_WorkbookTableReader(this.stream, this.oReadResult, wb, bwtr)).Read();
+			}
             if(c_oSerConstants.ReadOk == res)
             {
                 for(var i = 0; i < aSeekTable.length; ++i)
@@ -9426,27 +9747,93 @@
                         break;
                 }
             }
+			this.PostLoadPrepareDefNames(wb);
             //todo инициализация формул из-за именованных диапазонов перенесена в wb.init ее надо вызывать в любом случае(Rev: 61959)
-            //надо вернуть чтение Binary_WorkbookTableReader, когда будем реализовывать копирования именованных диапазонов
-            if(!this.copyPasteObj.isCopyPaste)
+            if(!this.copyPasteObj.isCopyPaste || this.copyPasteObj.selectAllSheet)
             {
-                if(null != nWorkbookTableOffset)
-                {
-                    res = this.stream.Seek(nWorkbookTableOffset);
-                    if(c_oSerConstants.ReadOk == res)
-                        res = (new Binary_WorkbookTableReader(this.stream, wb, bwtr)).Read();
-                }
 				bwtr.ReadSheetDataExternal(false);
-                wb.init(this.oReadResult.tableCustomFunc, false, true);
+				if (!this.copyPasteObj.isCopyPaste) {
+					this.PostLoadPrepare(wb);
+				}
+                wb.init(this.oReadResult.tableCustomFunc, this.oReadResult.tableIds, false, true);
             } else {
 				bwtr.ReadSheetDataExternal(true);
 				if(window["Asc"] && window["Asc"]["editor"] !== undefined) {
-					wb.init(this.oReadResult.tableCustomFunc, true);
+					wb.init(this.oReadResult.tableCustomFunc, this.oReadResult.tableIds, true);
 				}
             }
             return res;
         };
+		this.PostLoadPrepare = function(wb)
+		{
+			if (wb.WorkbookPr && null != wb.WorkbookPr.Date1904) {
+				AscCommon.bDate1904 = wb.WorkbookPr.Date1904;
+				AscCommonExcel.c_DateCorrectConst = AscCommon.bDate1904?AscCommonExcel.c_Date1904Const:AscCommonExcel.c_Date1900Const;
+			}
+			if (this.oReadResult.macros) {
+				wb.oApi.macros.SetData(this.oReadResult.macros);
+			}
+		}
+		this.PostLoadPrepareDefNames = function(wb)
+		{
+			this.oReadResult.defNames.forEach(function (defName) {
+				if (null != defName.Name && null != defName.Ref) {
+					var _type = Asc.c_oAscDefNameType.none;
+					if (wb.getSlicerCacheByName(defName.Name)) {
+						_type = Asc.c_oAscDefNameType.slicer;
+					}
+					wb.dependencyFormulas.addDefNameOpen(defName.Name, defName.Ref, defName.LocalSheetId, defName.Hidden, _type);
+				}
+			});
+		}
+	}
+    function CSlicerStyles()
+    {
+        this.DefaultStyle = "SlicerStyleLight1";
+        this.CustomStyles = {};
+        this.DefaultStyles = {};
+        this.AllStyles = {};
     }
+    CSlicerStyles.prototype =
+    {
+        concatStyles : function()
+        {
+            for(var i in this.DefaultStyles)
+                this.AllStyles[i] = this.DefaultStyles[i];
+            for(var i in this.CustomStyles)
+                this.AllStyles[i] = this.CustomStyles[i];
+        },
+        addCustomStylesAtOpening : function(styles, Dxfs)
+        {
+            if (!styles) {
+                return;
+            }
+            this.DefaultStyle = styles.defaultSlicerStyle || this.DefaultStyle;
+            for(var i = 0; i < styles.slicerStyle.length; ++i){
+                this.addStyleAtOpening(this.CustomStyles, Dxfs, styles.slicerStyle[i]);
+            }
+        },
+        addDefaultStylesAtOpening : function(styles, Dxfs)
+        {
+            for(var i = 0; i < styles.slicerStyle.length; ++i){
+                this.addStyleAtOpening(this.DefaultStyles, Dxfs, styles.slicerStyle[i]);
+            }
+        },
+        addStyleAtOpening : function(styles, Dxfs, style)
+        {
+            if (null === style.name) {
+                return;
+            }
+            var elems = {};
+            for (var i = 0; i < style.slicerStyleElements.length; ++i) {
+                var elem = style.slicerStyleElements[i];
+                if (null !== elem.type && null !== elem.dxfId) {
+                    elems[elem.type] = Dxfs[elem.dxfId];
+                }
+            }
+            styles[style.name] = elems;
+        }
+    };
     function CTableStyles()
     {
         this.DefaultTableStyle = "TableStyleMedium2";
@@ -9760,7 +10147,7 @@
         var oBinaryFileReader = new BinaryFileReader();
         var stream = oBinaryFileReader.getbase64DecodedData(sStyles);
         var bcr = new Binary_CommonReader(stream);
-        var oBinary_StylesTableReader = new Binary_StylesTableReader(stream, wb, [], [], undefined, true);
+        var oBinary_StylesTableReader = new Binary_StylesTableReader(stream, wb, [], undefined, true);
 
         var length = stream.GetULongLE();
 
@@ -9875,6 +10262,39 @@
         if (null == g_oDefaultFormat.XfId) {
             g_oDefaultFormat.XfId = 0;
         }
+    }
+    function RenameDefSlicerStyle(oStyleObject){
+        var tableStyles = oStyleObject.oCustomTableStyles;
+        var tableStylesRenamed = {}, i;
+        for(i in tableStyles)
+        {
+            var item = tableStyles[i];
+            if(null != item)
+            {
+                item.style.name = item.style.name.slice(0, -2);
+                item.style.displayName = item.style.displayName.slice(0, -2);
+                tableStylesRenamed[item.style.name] = item;
+            }
+        }
+        oStyleObject.oCustomTableStyles = tableStylesRenamed;
+        if (oStyleObject.oCustomSlicerStyles) {
+            var slicerStyles = oStyleObject.oCustomSlicerStyles.slicerStyle;
+            for (i = 0; i < slicerStyles.length; ++i) {
+                slicerStyles[i].name = slicerStyles[i].name.slice(0, -2);
+            }
+        }
+    }
+    function ReadDefSlicerStyles(wb, oOutput)
+    {
+        var sStyles = "XLSY;;25178;VmIAAAAFAAAAAQAAAAAEIAAAAAULAAAAAAYAAAACAQAAABEFCwAAAAAGAAAAAgEAAAAIBi8AAAAHKgAAAAEGAwAAAAIBAQQGDgAAAEMAYQBsAGkAYgByAGkACQEBBgUAAAAAAAAmQA4dAAAAAxgAAAAGBAAAAAAHBAAAAAAIBAAAAAAJBAAAAAACIwAAAAMeAAAABgQAAAAABwQAAAAACAQAAAAACQQAAAAADAQAAAAADygAAAAQIwAAAAAEAAAAAAAAAAQMAAAATgBvAHIAbQBhAGwABQQAAAAAAAAACrEHAAALKgAAAAEUAAAAAA8AAAAABgYAAAAABL2BT/8BAQ0DDAAAAAABAQEGAwAAAAIBAQtjAAAAAVAAAAAADwAAAAAGBgAAAAAEvYFP/wEBDQIPAAAAAAYGAAAAAAS9gU//AQENBA8AAAAABgYAAAAABL2BT/8BAQ0FDwAAAAAGBgAAAAAEvYFP/wEBDQMJAAAAAQYDAAAAAgEBCzEAAAABGwAAAAAWAAAAAAYNAAAAAgEAAwWzmFnMLGbWvwEBDQMMAAAAAAEBAQYDAAAAAgEBC38AAAABbAAAAAAWAAAAAAYNAAAAAgEAAwUA/3//v//fvwEBDQIWAAAAAAYNAAAAAgEAAwUA/3//v//fvwEBDQQWAAAAAAYNAAAAAgEAAwUA/3//v//fvwEBDQUWAAAAAAYNAAAAAgEAAwUA/3//v//fvwEBDQMJAAAAAQYDAAAAAgEBCycAAAABEQAAAAAMAAAAAAYDAAAAAgEJAQENAwwAAAAAAQEBBgMAAAACAQELVwAAAAFEAAAAAAwAAAAABgMAAAACAQkBAQ0CDAAAAAAGAwAAAAIBCQEBDQQMAAAAAAYDAAAAAgEJAQENBQwAAAAABgMAAAACAQkBAQ0DCQAAAAEGAwAAAAIBAQsnAAAAAREAAAAADAAAAAAGAwAAAAIBCAEBDQMMAAAAAAEBAQYDAAAAAgEBC1cAAAABRAAAAAAMAAAAAAYDAAAAAgEIAQENAgwAAAAABgMAAAACAQgBAQ0EDAAAAAAGAwAAAAIBCAEBDQUMAAAAAAYDAAAAAgEIAQENAwkAAAABBgMAAAACAQELJwAAAAERAAAAAAwAAAAABgMAAAACAQcBAQ0DDAAAAAABAQEGAwAAAAIBAQtXAAAAAUQAAAAADAAAAAAGAwAAAAIBBwEBDQIMAAAAAAYDAAAAAgEHAQENBAwAAAAABgMAAAACAQcBAQ0FDAAAAAAGAwAAAAIBBwEBDQMJAAAAAQYDAAAAAgEBCycAAAABEQAAAAAMAAAAAAYDAAAAAgEGAQENAwwAAAAAAQEBBgMAAAACAQELVwAAAAFEAAAAAAwAAAAABgMAAAACAQYBAQ0CDAAAAAAGAwAAAAIBBgEBDQQMAAAAAAYDAAAAAgEGAQENBQwAAAAABgMAAAACAQYBAQ0DCQAAAAEGAwAAAAIBAQsnAAAAAREAAAAADAAAAAAGAwAAAAIBBQEBDQMMAAAAAAEBAQYDAAAAAgEBC1cAAAABRAAAAAAMAAAAAAYDAAAAAgEFAQENAgwAAAAABgMAAAACAQUBAQ0EDAAAAAAGAwAAAAIBBQEBDQUMAAAAAAYDAAAAAgEFAQENAwkAAAABBgMAAAACAQELJwAAAAERAAAAAAwAAAAABgMAAAACAQQBAQ0DDAAAAAABAQEGAwAAAAIBAQtXAAAAAUQAAAAADAAAAAAGAwAAAAIBBAEBDQIMAAAAAAYDAAAAAgEEAQENBAwAAAAABgMAAAACAQQBAQ0FDAAAAAAGAwAAAAIBBAEBDQMJAAAAAQYDAAAAAgEBCycAAAABEQAAAAAMAAAAAAYDAAAAAgEJAQENAwwAAAAAAQEBBgMAAAACAQELVwAAAAFEAAAAAAwAAAAABgMAAAACAQkBAQ0CDAAAAAAGAwAAAAIBCQEBDQQMAAAAAAYDAAAAAgEJAQENBQwAAAAABgMAAAACAQkBAQ0DCQAAAAEGAwAAAAIBAQsnAAAAAREAAAAADAAAAAAGAwAAAAIBCAEBDQMMAAAAAAEBAQYDAAAAAgEBC1cAAAABRAAAAAAMAAAAAAYDAAAAAgEIAQENAgwAAAAABgMAAAACAQgBAQ0EDAAAAAAGAwAAAAIBCAEBDQUMAAAAAAYDAAAAAgEIAQENAwkAAAABBgMAAAACAQELJwAAAAERAAAAAAwAAAAABgMAAAACAQcBAQ0DDAAAAAABAQEGAwAAAAIBAQtXAAAAAUQAAAAADAAAAAAGAwAAAAIBBwEBDQIMAAAAAAYDAAAAAgEHAQENBAwAAAAABgMAAAACAQcBAQ0FDAAAAAAGAwAAAAIBBwEBDQMJAAAAAQYDAAAAAgEBCycAAAABEQAAAAAM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+gAGASkAAAD7AAkAAAD6AAcBKAAAAPsApgAAAPoAEwAAAFMAbABpAGMAZQByAFMAdAB5AGwAZQBMAGkAZwBoAHQANAAgADIA+wB0AAAACAAAAAAJAAAA+gAAAScAAAD7AAkAAAD6AAIBJgAAAPsACQAAAPoAAQElAAAA+wAJAAAA+gADASQAAAD7AAkAAAD6AAQBIwAAAPsACQAAAPoABQEiAAAA+wAJAAAA+gAGASEAAAD7AAkAAAD6AAcBIAAAAPsApgAAAPoAEwAAAFMAbABpAGMAZQByAFMAdAB5AGwAZQBMAGkAZwBoAHQANQAgADIA+wB0AAAACAAAAAAJAAAA+gAAAR8AAAD7AAkAAAD6AAIBHgAAAPsACQAAAPoAAQEdAAAA+wAJAAAA+gADARwAAAD7AAkAAAD6AAQBGwAAAPsACQAAAPoABQEaAAAA+wAJAAAA+gAGARkAAAD7AAkAAAD6AAcBGAAAAPsApgAAAPoAEwAAAFMAbABpAGMAZQByAFMAdAB5AGwAZQBMAGkAZwBoAHQANgAgADIA+wB0AAAACAAAAAAJAAAA+gAAARcAAAD7AAkAAAD6AAIBFgAAAPsACQAAAPoAAQEVAAAA+wAJAAAA+gADARQAAAD7AAkAAAD6AAQBEwAAAPsACQAAAPoABQESAAAA+wAJAAAA+gAGAREAAAD7AAkAAAD6AAcBEAAAAPsApgAAAPoAEwAAAFMAbABpAGMAZQByAFMAdAB5AGwAZQBPAHQAaABlAHIAMQAgADIA+wB0AAAACAAAAAAJAAAA+gAAAQ8AAAD7AAkAAAD6AAIBDgAAAPsACQAAAPoAAQENAAAA+wAJAAAA+gADAQwAAAD7AAkAAAD6AAQBCwAAAPsACQAAAPoABQEKAAAA+wAJAAAA+gAGAQkAAAD7AAkAAAD6AAcBCAAAAPsApgAAAPoAEwAAAFMAbABpAGMAZQByAFMAdAB5AGwAZQBPAHQAaABlAHIAMgAgADIA+wB0AAAACAAAAAAJAAAA+gAAAQcAAAD7AAkAAAD6AAIBBgAAAPsACQAAAPoAAQEFAAAA+wAJAAAA+gADAQQAAAD7AAkAAAD6AAQBAwAAAPsACQAAAPoABQECAAAA+wAJAAAA+gAGAQEAAAD7AAkAAAD6AAcBAAAAAPs=";
+
+        var oBinaryFileReader = new BinaryFileReader();
+        var stream = oBinaryFileReader.getbase64DecodedData(sStyles);
+        new Binary_CommonReader(stream);
+        var oBinary_StylesTableReader = new Binary_StylesTableReader(stream, wb, [], undefined, true);
+        var oStyleObject = oBinary_StylesTableReader.Read();
+        RenameDefSlicerStyle(oStyleObject);
+        oBinary_StylesTableReader.InitDefSlicerStyles(wb, oStyleObject);
     }
 
 	function CT_PresetTableStyles(tableStyles, pivotStyles) {
@@ -10037,6 +10457,7 @@
 		return newContext;
 	};
 
+    var prot;
     window['Asc'] = window['Asc'] || {};
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
     window["Asc"].EBorderStyle = EBorderStyle;
@@ -10056,14 +10477,81 @@
     window["Asc"].EIconSetType = EIconSetType;
     window["Asc"].c_oSer_DrawingType = c_oSer_DrawingType;
     window["Asc"].c_oSer_DrawingPosType = c_oSer_DrawingPosType;
-    window["AscCommonExcel"].ECfOperator = ECfOperator;
-	window["AscCommonExcel"].ECfType = ECfType;
-    window["AscCommonExcel"].ECfvoType = ECfvoType;
-    window["AscCommonExcel"].ST_TimePeriod = ST_TimePeriod;
-	window["AscCommonExcel"].EDataBarAxisPosition = EDataBarAxisPosition;
-	window["AscCommonExcel"].EDataBarDirection = EDataBarDirection;
+
+    window['Asc']['c_oAscCFOperator'] = window["AscCommonExcel"].ECfOperator = ECfOperator;
+    prot = ECfOperator;
+    prot['beginsWith'] = prot.Operator_beginsWith;
+    prot['between'] = prot.Operator_between;
+    prot['containsText'] = prot.Operator_containsText;
+    prot['endsWith'] = prot.Operator_endsWith;
+    prot['equal'] = prot.Operator_equal;
+    prot['greaterThan'] = prot.Operator_greaterThan;
+    prot['greaterThanOrEqual'] = prot.Operator_greaterThanOrEqual;
+    prot['lessThan'] = prot.Operator_lessThan;
+    prot['lessThanOrEqual'] = prot.Operator_lessThanOrEqual;
+    prot['notBetween'] = prot.Operator_notBetween;
+    prot['notContains'] = prot.Operator_notContains;
+    prot['notEqual'] = prot.Operator_notEqual;
+
+    window['Asc']['c_oAscCFType'] = window["Asc"].ECfType  = ECfType;
+    prot = ECfType;
+    prot['aboveAverage'] = prot.aboveAverage;
+    prot['beginsWith'] = prot.beginsWith;
+    prot['cellIs'] = prot.cellIs;
+    prot['colorScale'] = prot.colorScale;
+    prot['containsBlanks'] = prot.containsBlanks;
+    prot['containsErrors'] = prot.containsErrors;
+    prot['containsText'] = prot.containsText;
+    prot['dataBar'] = prot.dataBar;
+    prot['duplicateValues'] = prot.duplicateValues;
+    prot['expression'] = prot.expression;
+    prot['notContainsBlanks'] = prot.notContainsBlanks;
+    prot['notContainsErrors'] = prot.notContainsErrors;
+    prot['notContainsText'] = prot.notContainsText;
+    prot['timePeriod'] = prot.timePeriod;
+    prot['top10'] = prot.top10;
+    prot['uniqueValues'] = prot.uniqueValues;
+    prot['endsWith'] = prot.endsWith;
+
+    window['Asc']['c_oAscCfvoType'] = window["AscCommonExcel"].ECfvoType = ECfvoType;
+    prot = ECfvoType;
+    prot['Formula'] = prot.Formula;
+    prot['Maximum'] = prot.Maximum;
+    prot['Minimum'] = prot.Minimum;
+    prot['Number'] = prot.Number;
+    prot['Percent'] = prot.Percent;
+    prot['Percentile'] = prot.Percentile;
+    prot['AutoMin'] = prot.AutoMin;
+    prot['AutoMax'] = prot.AutoMax;
+
+    window['Asc']['c_oAscTimePeriod'] = window["AscCommonExcel"].ST_TimePeriod = ST_TimePeriod;
+    prot = ST_TimePeriod;
+    prot['last7Days'] = prot.last7Days;
+    prot['lastMonth'] = prot.lastMonth;
+    prot['lastWeek'] = prot.lastWeek;
+    prot['nextMonth'] = prot.nextMonth;
+    prot['nextWeek'] = prot.nextWeek;
+    prot['thisMonth'] = prot.thisMonth;
+    prot['thisWeek'] = prot.thisWeek;
+    prot['today'] = prot.today;
+    prot['tomorrow'] = prot.tomorrow;
+    prot['yesterday'] = prot.yesterday;
+
+    window['Asc']['c_oAscDataBarAxisPosition'] = window['AscCommonExcel'].EDataBarAxisPosition = EDataBarAxisPosition;
+    prot = EDataBarAxisPosition;
+    prot['automatic'] = prot.automatic;
+    prot['middle'] = prot.middle;
+    prot['none'] = prot.none;
+
+    window['Asc']['c_oAscDataBarDirection'] = window["AscCommonExcel"].EDataBarDirection = EDataBarDirection;
+    prot = EDataBarDirection;
+    prot['context'] = prot.context;
+    prot['leftToRight'] = prot.leftToRight;
+    prot['rightToLeft'] = prot.rightToLeft;
+
 	window["AscCommonExcel"].XLSB = XLSB;
 
+    window["Asc"].CSlicerStyles = CSlicerStyles;
     window["Asc"].CTableStyles = CTableStyles;
     window["Asc"].CTableStyle = CTableStyle;
     window["Asc"].CTableStyleElement = CTableStyleElement;
@@ -10080,5 +10568,18 @@
 
 	window["AscCommonExcel"].BinaryStylesTableWriter = BinaryStylesTableWriter;
 	window["AscCommonExcel"].Binary_StylesTableReader = Binary_StylesTableReader;
+
+    window['Asc']['ETotalsRowFunction'] = window['AscCommonExcel'].ETotalsRowFunction = ETotalsRowFunction;
+    prot = ETotalsRowFunction;
+    prot['totalrowfunctionNone'] = prot.totalrowfunctionNone;
+    prot['totalrowfunctionAverage'] = prot.totalrowfunctionAverage;
+    prot['totalrowfunctionCount'] = prot.totalrowfunctionCount;
+    prot['totalrowfunctionCountNums'] = prot.totalrowfunctionCountNums;
+    prot['totalrowfunctionCustom'] = prot.totalrowfunctionCustom;
+    prot['totalrowfunctionMax'] = prot.totalrowfunctionMax;
+    prot['totalrowfunctionMin'] = prot.totalrowfunctionMin;
+    prot['totalrowfunctionStdDev'] = prot.totalrowfunctionStdDev;
+    prot['totalrowfunctionSum'] = prot.totalrowfunctionSum;
+    prot['totalrowfunctionVar'] = prot.totalrowfunctionVar;
 
 })(window);

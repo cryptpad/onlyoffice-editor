@@ -635,9 +635,13 @@ CShape.prototype.checkShapeChildTransform = function()
 CShape.prototype.GetAllParagraphs = function(Props, ParaArray)
 {
     var oContent = this.getDocContent();
-    oContent && oContent.GetAllParagraphs(Props, ParaArray);
+    return oContent ? oContent.GetAllParagraphs(Props, ParaArray) : [];
 };
-
+CShape.prototype.GetAllTables = function(oProps, arrTables)
+{
+	var oContent = this.getDocContent();
+	return oContent ? oContent.GetAllTables(oProps, arrTables) : [];
+};
 
 
 CShape.prototype.getArrayWrapIntervals = function(x0,y0, x1, y1, Y0Sp, Y1Sp, LeftField, RightField, arr_intervals, bMathWrap)
@@ -711,12 +715,6 @@ CShape.prototype.applyParentTransform = function(transform)
 CShape.prototype.recalculateShapeStyleForParagraph = function()
 {
     this.textStyleForParagraph = {TextPr: g_oDocumentDefaultTextPr.Copy(), ParaPr: g_oDocumentDefaultParaPr.Copy()};
-    var styles = this.Get_Styles();
-    if(styles)
-    {
-        this.textStyleForParagraph.ParaPr.Merge( styles.Default.ParaPr.Copy() );
-        this.textStyleForParagraph.TextPr.Merge( styles.Default.TextPr.Copy() );
-    }
     if(this.style && this.style.fontRef)
     {
         //this.textStyleForParagraph.ParaPr.Spacing.Line = 1;
@@ -741,6 +739,12 @@ CShape.prototype.recalculateShapeStyleForParagraph = function()
         shape_text_pr.FontRef = this.style.fontRef.createDuplicate();
         this.textStyleForParagraph.TextPr.Merge(shape_text_pr);
     }
+    var styles = this.Get_Styles();
+    if(styles)
+    {
+        this.textStyleForParagraph.ParaPr.Merge( styles.Default.ParaPr.Copy() );
+        this.textStyleForParagraph.TextPr.Merge( styles.Default.TextPr.Copy() );
+    }
 };
 CShape.prototype.Get_ShapeStyleForPara = function()
 {
@@ -756,6 +760,17 @@ CShape.prototype.Refresh_RecalcData = function(data)
 {
     this.recalcTxBoxContent();
     this.recalcTransformText();
+    if(AscCommon.isRealObject(data))
+    {
+        switch (data.Type)
+        {
+            case AscDFH.historyitem_ShapeSetBodyPr:
+            {
+                this.handleUpdateExtents();
+                break;
+            }
+        }
+    }
     this.Refresh_RecalcData2();
     if(data && data.Type === AscDFH.historyitem_ShapeSetStyle)
     {
@@ -1143,13 +1158,6 @@ CShape.prototype.Get_Styles = function()
         return oLogicDoc.Styles;
     }
     return new CStyles(true);
-};
-CShape.prototype.Is_InTable = function(bReturnTopTable)
-{
-    if ( true === bReturnTopTable )
-        return null;
-
-    return false;
 };
 
 CShape.prototype.Get_TableStyleForPara = function()

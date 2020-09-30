@@ -416,6 +416,17 @@ CShape.prototype.getParentObjects = function ()
                     notes: this.parent
                 }
             }
+            case AscDFH.historyitem_type_NotesMaster:
+            {
+                return {
+                    presentation: editor.WordControl.m_oLogicDocument,
+                    slide: null,
+                    layout: null,
+                    master: this.parent,
+                    theme: this.themeOverride ? this.themeOverride : this.parent.Theme,
+                    notes: null
+                }
+            }
             case AscDFH.historyitem_type_RelSizeAnchor:
             case AscDFH.historyitem_type_AbsSizeAnchor:
             {
@@ -687,14 +698,16 @@ CShape.prototype.recalculateContent2 = function()
                 }
                 content.Content[0].Pr.DefaultRunPr.Merge(content_.Content[0].GetFirstRunPr());
             }
+            this.bCheckAutoFitFlag = true;
+            this.tmpFontScale = undefined;
+            this.tmpLnSpcReduction = undefined;
             content.Set_StartPage(0);
             content.Reset(0, 0, w, 20000);
             content.RecalculateContent(this.txBody.contentWidth2, this.txBody.contentHeight2, 0);
-
             var oTextWarpContent = this.checkTextWarp(content, body_pr, this.txBody.contentWidth2, this.txBody.contentHeight2, false, true);
             this.txWarpStructParamarks2 = oTextWarpContent.oTxWarpStructParamarks;
             this.txWarpStruct2 = oTextWarpContent.oTxWarpStruct;
-
+            this.bCheckAutoFitFlag = false;
         }
         else
         {

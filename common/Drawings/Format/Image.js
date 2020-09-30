@@ -88,9 +88,6 @@ function CImageShape()
     this.parentCrop = null;
 
     this.shdwSp = null;
-
-    this.Id = AscCommon.g_oIdCounter.Get_NewId();
-    AscCommon.g_oTableId.Add( this, this.Id );
 }
 
 	CImageShape.prototype = Object.create(AscFormat.CGraphicObjectBase.prototype);
@@ -305,34 +302,17 @@ CImageShape.prototype.getRectBounds = function()
 
 CImageShape.prototype.canRotate = function()
 {
-    if(this.isCrop){
+    if(this.isCrop)
+    {
         return false;
     }
-    if(this.cropObject){
+    if(this.cropObject)
+    {
         return false;
     }
-    return true;
+    return AscFormat.CGraphicObjectBase.prototype.canRotate.call(this);
 };
 
-CImageShape.prototype.canResize = function()
-{
-    return true;//TODO
-};
-
-CImageShape.prototype.canMove = function()
-{
-    return true;//TODO
-};
-
-CImageShape.prototype.canGroup = function()
-{
-    return true;//TODO
-};
-
-CImageShape.prototype.canChangeAdjustments = function()
-{
-    return true;//TODO
-};
 
 CImageShape.prototype.createRotateTrack = function()
 {
@@ -643,15 +623,11 @@ CImageShape.prototype.draw = function(graphics, transform)
     if(this.checkNeedRecalculate && this.checkNeedRecalculate()){
         return;
     }
-    if(graphics.updatedRect)
-    {
-        var rect = graphics.updatedRect;
-        var bounds = this.bounds;
-        if(bounds.x > rect.x + rect.w
-            || bounds.y > rect.y + rect.h
-            || bounds.x + bounds.w < rect.x
-            || bounds.y + bounds.h < rect.y)
+    var oUR = graphics.updatedRect;
+    if(oUR && this.bounds) {
+        if(!oUR.isIntersectOther(this.bounds)) {
             return;
+        }
     }
 
 

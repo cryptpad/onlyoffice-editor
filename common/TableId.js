@@ -85,6 +85,10 @@
 	{
 		this.m_bTurnOff = false;
 	};
+	CTableId.prototype.IsOn = function()
+	{
+		return (!this.m_bTurnOff);
+	};
 	/**
 	 * Получаем указатель на класс по Id
 	 * @param Id
@@ -270,6 +274,8 @@
 		this.m_oFactoryClass[AscDFH.historyitem_type_AbsSizeAnchor]      	 = AscFormat.CAbsSizeAnchor;
 		this.m_oFactoryClass[AscDFH.historyitem_type_ParaRevisionMove]       = AscCommon.CParaRevisionMove;
 		this.m_oFactoryClass[AscDFH.historyitem_type_RunRevisionMove]        = AscCommon.CRunRevisionMove;
+		this.m_oFactoryClass[AscDFH.historyitem_type_DocPart]                = AscCommon.CDocPart;
+		this.m_oFactoryClass[AscDFH.historyitem_type_SlicerView]             = AscFormat.CSlicer;
 
 
 		if (window['AscCommonSlide'])
@@ -291,6 +297,7 @@
 		{
 			this.m_oFactoryClass[AscDFH.historyitem_type_Sparkline] = AscCommonExcel.sparklineGroup;
 			this.m_oFactoryClass[AscDFH.historyitem_type_PivotTableDefinition] = Asc.CT_pivotTableDefinition;
+			this.m_oFactoryClass[AscDFH.historyitem_type_PivotWorksheetSource] = Asc.CT_WorksheetSource;
 		}
 
 		this.m_oFactoryClass[AscDFH.historyitem_type_DocumentMacros] = AscCommon.CDocumentMacros;

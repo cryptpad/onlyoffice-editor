@@ -181,9 +181,9 @@
 
         this.openFileCryptBinary = null;
 
-        this.copyOutEnabled = (config['copyoutenabled'] !== false);
+        this.copyOutEnabled = true;
 
-		this.watermarkDraw = config['watermark_on_draw'] ? new AscCommon.CWatermarkOnDraw(config['watermark_on_draw'], this) : null;
+		this.watermarkDraw = null;
 
 		this.SaveAfterMacros = false;
 
@@ -352,6 +352,12 @@
 
 			this.documentOpenOptions = this.DocInfo.asc_getOptions();
 
+			var permissions = this.DocInfo.asc_getPermissions();
+			if (permissions && undefined !== permissions['copy'])
+			{
+				this.copyOutEnabled = permissions['copy'];
+			}
+
 			this.User = new AscCommon.asc_CUser();
 			this.User.setId(this.DocInfo.get_UserId());
 			this.User.setUserName(this.DocInfo.get_UserName());
@@ -361,8 +367,9 @@
 			//чтобы в versionHistory был один documentId для auth и open
 			this.CoAuthoringApi.setDocId(this.documentId);
 
-			if (this.watermarkDraw)
+			if (this.documentOpenOptions && this.documentOpenOptions["watermark"])
 			{
+				this.watermarkDraw = new AscCommon.CWatermarkOnDraw(this.documentOpenOptions["watermark"], this);
 				this.watermarkDraw.CheckParams(this);
 			}
 		}
@@ -426,6 +433,14 @@
 	{
 		return this.copyOutEnabled;
 	};
+	baseEditorsApi.prototype.sync_CanCopyCutCallback = function (bCanCopyCut)
+	{
+		this.sendEvent("asc_onCanCopyCut", bCanCopyCut);
+	};
+	baseEditorsApi.prototype.can_CopyCut = function ()
+	{
+		return true;
+	};
 	// target pos
 	baseEditorsApi.prototype.asc_LockTargetUpdate		     = function(isLock)
 	{
@@ -485,25 +500,33 @@
 	{
 		return this.isViewMode;
 	};
+	baseEditorsApi.prototype.asc_addRestriction              = function(val)
+	{
+		this.restrictions |= val;
+	};
+	baseEditorsApi.prototype.asc_removeRestriction           = function(val)
+	{
+		this.restrictions &= ~val;
+	};
 	baseEditorsApi.prototype.canEdit                         = function()
 	{
 		return !this.isViewMode && this.restrictions === Asc.c_oAscRestrictionType.None;
 	};
 	baseEditorsApi.prototype.isRestrictionForms              = function()
 	{
-		return (this.restrictions === Asc.c_oAscRestrictionType.OnlyForms);
+		return !!(this.restrictions & Asc.c_oAscRestrictionType.OnlyForms);
 	};
 	baseEditorsApi.prototype.isRestrictionComments           = function()
 	{
-		return (this.restrictions === Asc.c_oAscRestrictionType.OnlyComments);
+		return !!(this.restrictions & Asc.c_oAscRestrictionType.OnlyComments);
 	};
 	baseEditorsApi.prototype.isRestrictionSignatures         = function()
 	{
-		return (this.restrictions === Asc.c_oAscRestrictionType.OnlySignatures);
+		return !!(this.restrictions & Asc.c_oAscRestrictionType.OnlySignatures);
 	};
 	baseEditorsApi.prototype.isRestrictionView               = function()
 	{
-		return (this.restrictions === Asc.c_oAscRestrictionType.View);
+		return !!(this.restrictions & Asc.c_oAscRestrictionType.View);
 	};
 	baseEditorsApi.prototype.isLongAction                    = function()
 	{
@@ -716,7 +739,8 @@
 		if (this.DocInfo)
 			this["pluginMethod_SetProperties"](this.DocInfo.asc_getOptions());
 
-		this.macros && !this.disableAutostartMacros && this.macros.runAuto();
+		if (this.macros && !this.disableAutostartMacros && this.macros.isExistAuto())
+			this.sendEvent("asc_onRunAutostartMacroses");
 
 		if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["onDocumentContentReady"])
             window["AscDesktopEditor"]["onDocumentContentReady"]();
@@ -905,7 +929,27 @@
 		}
 	};
 	// GoTo
-	baseEditorsApi.prototype.goTo                                = function(action)
+	baseEditorsApi.prototype.goTo                                = function(options)
+	{
+		options = options || (this.DocInfo && this.DocInfo.asc_getOptions());
+		options = options && options['action'];
+		if (!options) {
+			return;
+		}
+		switch (options['type']) {
+			case 'bookmark':
+			case 'internallink':
+				this._goToBookmark(options['data']);
+				break;
+			case 'comment':
+				this._goToComment(options['data']);
+				break;
+		}
+	};
+	baseEditorsApi.prototype._goToComment                        = function(data)
+	{
+	};
+	baseEditorsApi.prototype._goToBookmark                       = function(data)
 	{
 	};
 	// CoAuthoring
@@ -2114,7 +2158,7 @@
     {
     };
 
-    baseEditorsApi.prototype["asc_insertSymbol"] = function(familyName, code)
+    baseEditorsApi.prototype["asc_insertSymbol"] = function(familyName, code, pr)
     {
 		var arrCharCodes = [code];
         AscFonts.FontPickerByCharacter.checkTextLight(arrCharCodes, true);
@@ -2129,9 +2173,16 @@
                 case c_oEditorId.Word:
                 case c_oEditorId.Presentation:
                 {
-					var textPr = new AscCommonWord.CTextPr();
-					textPr.SetFontFamily(familyName);
-                	this.WordControl.m_oLogicDocument.AddTextWithPr(new AscCommon.CUnicodeStringEmulator(arrCharCodes), textPr, true);
+                	if (pr && c_oEditorId.Word === this.editorId)
+					{
+						this.WordControl.m_oLogicDocument.AddSpecialSymbol(pr);
+					}
+                	else
+					{
+						var textPr = new AscCommonWord.CTextPr();
+						textPr.SetFontFamily(familyName);
+						this.WordControl.m_oLogicDocument.AddTextWithPr(new AscCommon.CUnicodeStringEmulator(arrCharCodes), textPr, true);
+					}
                     break;
                 }
                 case c_oEditorId.Spreadsheet:
@@ -2170,6 +2221,8 @@
     // Builder
 	baseEditorsApi.prototype.asc_nativeInitBuilder = function()
 	{
+		// Disable history for builder
+		AscCommon.History.TurnOff();
 		this.asc_setDocInfo(new Asc.asc_CDocInfo());
 	};
 	baseEditorsApi.prototype.asc_SetSilentMode     = function()
@@ -2552,7 +2605,7 @@
             }
             case c_oEditorId.Spreadsheet:
             {
-                var off, selectionType = this.asc_getCellInfo().asc_getFlags().asc_getSelectionType();
+                var off, selectionType = this.asc_getCellInfo().asc_getSelectionType();
                 if (this.asc_getCellEditMode())
                 {
                     // cell edit
@@ -2720,6 +2773,110 @@
 		return this.macros.GetData();
 	};
 
+	baseEditorsApi.prototype._beforeEvalCommand = function()
+	{
+		switch (this.editorId)
+		{
+			case AscCommon.c_oEditorId.Word:
+			{
+				if (this.WordControl && this.WordControl.m_oLogicDocument)
+					this.WordControl.m_oLogicDocument.LockPanelStyles();
+				break;
+			}
+			default:
+				break;
+		}
+	};
+
+	baseEditorsApi.prototype._afterEvalCommand = function(endAction)
+	{
+		var oApi = this;
+		switch (this.editorId)
+		{
+			case AscCommon.c_oEditorId.Word:
+			case AscCommon.c_oEditorId.Presentation:
+			{
+				var oLogicDocument = this.WordControl.m_oLogicDocument;
+				if (!oLogicDocument)
+				{
+					endAction && endAction();
+					return;
+				}
+
+				var _imagesArray = oLogicDocument.Get_AllImageUrls();
+				var _images = {};
+				for (var i = 0; i < _imagesArray.length; i++)
+					_images[_imagesArray[i]] = _imagesArray[i];
+
+				AscCommon.Check_LoadingDataBeforePrepaste(this, oLogicDocument.Document_Get_AllFontNames(), _images, function() {
+					if (oLogicDocument.Reassign_ImageUrls)
+						oLogicDocument.Reassign_ImageUrls(_images);
+
+					if (AscCommon.c_oEditorId.Word === oApi.editorId)
+					{
+						oLogicDocument.UnlockPanelStyles(true);
+						oLogicDocument.OnEndLoadScript();
+					}
+
+					oApi.asc_Recalculate(true);
+					oLogicDocument.FinalizeAction();
+
+					if (oApi.SaveAfterMacros)
+					{
+						oApi.asc_Save();
+						oApi.SaveAfterMacros = false;
+					}
+
+					endAction && endAction();
+				});
+				break;
+			}
+			case AscCommon.c_oEditorId.Spreadsheet:
+			{
+				var oModel = this.wbModel;
+				var _imagesArray = oModel.getAllImageUrls();
+				var _images = {};
+				for (var i = 0; i < _imagesArray.length; i++)
+					_images[_imagesArray[i]] = _imagesArray[i];
+
+				AscCommon.Check_LoadingDataBeforePrepaste(this, oModel._generateFontMap(), _images, function() {
+					oModel.reassignImageUrls(_images);
+					oApi.asc_Recalculate(true);
+					var wsView = oApi.wb && oApi.wb.getWorksheet();
+					if (wsView && wsView.objectRender && wsView.objectRender.controller)
+					{
+						wsView.objectRender.controller.recalculate2(undefined);
+					}
+
+					if (oApi.SaveAfterMacros)
+					{
+						oApi.asc_Save();
+						oApi.SaveAfterMacros = false;
+					}
+
+					endAction && endAction();
+				});
+				break;
+			}
+			default:
+				break;
+		}
+	};
+
+
+	baseEditorsApi.prototype.asc_runAutostartMacroses = function()
+    {
+    	if (!this.macros || this.disableAutostartMacros)
+    		return;
+
+    	if (!this.asc_canPaste())
+    		return;
+
+    	this._beforeEvalCommand();
+		this.macros.runAuto();
+		this._afterEvalCommand(undefined);
+    };
+
 	baseEditorsApi.prototype.asc_getSelectedDrawingObjectsCount = function()
 	{
 		return 0;
@@ -2750,6 +2907,22 @@
 		}
 
 		reader.readAsText(new Blob([buffer]), encoding);
+	};
+
+	baseEditorsApi.prototype.asc_setVisiblePasteButton = function(val)
+	{
+		if (AscCommon.g_specialPasteHelper)
+		{
+			AscCommon.g_specialPasteHelper.setVisiblePasteButton(val);
+		}
+	};
+	/**
+	 * Return array for Math AutoCorrect for menu
+	 * @returns {Array.<String, Number || Array.<Number>>}
+	 */
+	baseEditorsApi.prototype.asc_getAutoCorrectMathSymbols = function()
+	{
+        return window['AscCommonWord'].g_aAutoCorrectMathSymbols;
 	};
 
 	baseEditorsApi.prototype.getFileAsFromChanges = function()
@@ -2833,12 +3006,17 @@
 
 	prot = baseEditorsApi.prototype;
 	prot['asc_loadFontsFromServer'] = prot.asc_loadFontsFromServer;
+	prot['asc_setRestriction'] = prot.asc_setRestriction;
 	prot['asc_selectSearchingResults'] = prot.asc_selectSearchingResults;
 	prot['asc_showRevision'] = prot.asc_showRevision;
 	prot['asc_getAdvancedOptions'] = prot.asc_getAdvancedOptions;
 	prot['asc_Print'] = prot.asc_Print;
 	prot['asc_GetCurrentColorSchemeName'] = prot.asc_GetCurrentColorSchemeName;
 	prot['asc_GetCurrentColorSchemeIndex'] = prot.asc_GetCurrentColorSchemeIndex;
+	prot['asc_runAutostartMacroses'] = prot.asc_runAutostartMacroses;
+	prot['asc_setVisiblePasteButton'] = prot.asc_setVisiblePasteButton;
+	prot['asc_getAutoCorrectMathSymbols'] = prot.asc_getAutoCorrectMathSymbols;
+
 	prot['asc_isCrypto'] = prot.asc_isCrypto;
 
 })(window);

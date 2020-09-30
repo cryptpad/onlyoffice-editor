@@ -2832,7 +2832,7 @@ function CDrawingDocument()
 					if (!this.isFirstRecalculate)
 					{
 						// полный пересчет закончился, и не был пересчет документа.
-						api.goTo(options && options["action"]);
+						api.goTo();
 					}
 
 					if (options && options["disableEditBeforeCalculate"])
