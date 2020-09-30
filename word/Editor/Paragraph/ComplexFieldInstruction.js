@@ -522,7 +522,18 @@ CFieldInstructionTOC.prototype.ToString = function()
 
 	return sInstr;
 };
-
+CFieldInstructionTOC.prototype.IsTableOfFigures = function ()
+{
+	if(this.Caption !== undefined || this.CaptionOnlyText !== undefined)
+	{
+		return true;
+	}
+	return false;
+};
+CFieldInstructionTOC.prototype.IsTableOfContents = function ()
+{
+	return !this.IsTableOfFigures();
+};
 /**
  * ASK field
  * @constructor
