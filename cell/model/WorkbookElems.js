@@ -6592,6 +6592,9 @@ function RangeDataManagerElem(bbox, data)
 
 		return oNewElem;
 	};
+	AutoFilter.prototype.getFilterColumnByIndex = function (index) {
+		return this.FilterColumns && this.FilterColumns[index];
+	};
 	AutoFilter.prototype.setStringRef = function (ref) {
 		//TODO пересмотреть проверку
 		//возможно здесь 3d ref - проверяем
@@ -6946,6 +6949,11 @@ function RangeDataManagerElem(bbox, data)
 		}
 		//todo sortState
 		writer.WriteXmlNodeEnd(name);
+	};
+	AutoFilter.prototype.deleteFilterColumn = function(index) {
+		if (this.FilterColumns && this.FilterColumns[index]) {
+			this.FilterColumns.splice(index, 1)
+		}
 	};
 
 	function FilterColumns() {

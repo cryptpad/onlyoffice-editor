@@ -448,6 +448,30 @@
 		}
 		return res;
 	};
+	CT_NsvFilter.prototype.getFilterColumnByIndex = function (index) {
+		return this.columnsFilter && this.columnsFilter[index] && this.columnsFilter[index].filter;
+	};
+	CT_NsvFilter.prototype.getIndexByColId = function (colId) {
+		var res = null;
+
+		if (!this.columnsFilter) {
+			return res;
+		}
+
+		for (var i = 0; i < this.columnsFilter.length; i++) {
+			if (this.columnsFilter[i].filter && this.columnsFilter[i].filter.ColId === colId) {
+				res = i;
+				break;
+			}
+		}
+
+		return res;
+	};
+	CT_NsvFilter.prototype.deleteFilterColumn = function(index) {
+		if (this.columnsFilter && this.columnsFilter[index]) {
+			this.columnsFilter.splice(index, 1)
+		}
+	};
 
 
 	function CT_ColumnFilter() {
