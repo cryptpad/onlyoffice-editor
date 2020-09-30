@@ -14332,6 +14332,37 @@ CDocument.prototype.GetAllCaptionParagraphs = function(sCaption)
 	}
 	return aParagraphs;
 };
+CDocument.prototype.GetAllUsedParagraphStyles = function ()
+{
+    var aParagraphs = this.GetAllParagraphs({All: true});
+    var nIndex, nCount = aParagraphs.length;
+    var oStylesMap = {}, sStyleId;
+    var oStyles = this.GetStyles();
+    var aStyles = [];
+    var oStyle;
+    for(nIndex = 0; nIndex < nCount; ++nIndex)
+    {
+        sStyleId = aParagraphs[nIndex].GetParagraphStyle();
+        if(sStyleId)
+        {
+            oStylesMap[sStyleId] = true;
+        }
+        else
+        {
+            sStyleId = oStyles.GetDefaultParagraph();
+            oStylesMap[sStyleId] = true;
+        }
+    }
+    for(sStyleId in oStylesMap)
+    {
+        oStyle = oStyles.Get(sStyleId);
+        if(oStyle)
+        {
+            aStyles.push(oStyles.Get(sStyleId));
+        }
+    }
+    return aStyles;
+};
 CDocument.prototype.TurnOffHistory = function()
 {
 	this.History.TurnOff();
