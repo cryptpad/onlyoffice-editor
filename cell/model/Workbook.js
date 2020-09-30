@@ -5571,7 +5571,7 @@
 			}
 		};
 
-		var bCollaborativeChanges = this.workbook.bCollaborativeChanges
+		var bCollaborativeChanges = !this.autoFilters.useViewLocalChange && this.workbook.bCollaborativeChanges
 		if (!bCollaborativeChanges && null !== this.getActiveNamedSheetViewId()) {
 			var rowsArr = this.autoFilters.splitRangeByFilters(start, stop);
 			if (rowsArr) {

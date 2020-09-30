@@ -260,6 +260,7 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Slicer_SetCacheHideItemsWithNoData = 17;
 	
 	window['AscCH'].historyitem_NamedSheetView_SetName = 1;
+	window['AscCH'].historyitem_NamedSheetView_DeleteFilter = 2;
 
 
 

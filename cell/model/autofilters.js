@@ -954,12 +954,23 @@
 
 			updateNamedSheetViewAfterDeleteFilter: function (filter) {
 				var worksheet = this.worksheet;
-				var activeNamedSheetViewId = worksheet.getActiveNamedSheetViewId();
-				if (activeNamedSheetViewId !== null) {
-					var activeNamedSheetView = worksheet.getNamedSheetViewById(activeNamedSheetViewId);
-					if (activeNamedSheetView && activeNamedSheetView.deleteFilter) {
-						activeNamedSheetView.deleteFilter(filter);
+				worksheet.forEachView(function (view) {
+					if (view && view.deleteFilter) {
+						view.deleteFilter(filter);
 					}
+				});
+				this._openHiddenRowsByView(filter.Ref);
+			},
+
+			_openHiddenRowsByView: function (range) {
+				var worksheet = this.worksheet;
+				if (worksheet.aNamedSheetViews && worksheet.aNamedSheetViews.length) {
+					this.useViewLocalChange = true;
+					var sheetViewId = worksheet.getActiveNamedSheetViewId();
+					worksheet.setActiveNamedSheetView(worksheet.aNamedSheetViews[0].Id);
+					worksheet.setRowHidden(false, range.r1, range.r2);
+					worksheet.setActiveNamedSheetView(sheetViewId);
+					this.useViewLocalChange = null;
 				}
 			},
 
@@ -1001,6 +1012,9 @@
 				}
 
 				var autoFilter = filter.getAutoFilter();
+				if (autoFilter === null) {
+					return false;
+				}
 
 				worksheet.workbook.dependencyFormulas.lockRecal();
 
@@ -1495,6 +1509,9 @@
 
 					//смотрим находится ли фильтр(первая его строчка) внутри выделенного фрагмента
 					if ((activeCells.containsFirstLineRange(bbox) && !isTablePart) || (isTablePart && activeCells.containsRange(bbox))) {
+
+						t.updateNamedSheetViewAfterDeleteFilter(oldFilter);
+
 						if (isTablePart) {
 							oRange.clearTableStyle();
 							//write formulas history before filter history
@@ -1505,7 +1522,10 @@
 
 						//открываем скрытые строки
 						if (oldFilter.isApplyAutoFilter()) {
+							var sheetViewId = worksheet.getActiveNamedSheetViewId();
+							worksheet.setActiveNamedSheetView(null);
 							worksheet.setRowHidden(false, bbox.r1, bbox.r2);
+							worksheet.setActiveNamedSheetView(sheetViewId);
 						}
 
 						//заносим в историю
