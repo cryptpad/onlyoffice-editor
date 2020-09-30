@@ -930,8 +930,7 @@
 	 * @param {PageOrientation} sPageOrientation
 	 * */
 	ApiWorksheet.prototype.SetPageOrientation = function (sPageOrientation) {
-		sPageOrientation = (sPageOrientation == 'xlPortrait') ? 0 : (sPageOrientation == 'xlLandscape') ? 1 : 0;
-		this.worksheet.PagePrintOptions.pageSetup.asc_setOrientation(sPageOrientation);
+		this.worksheet.PagePrintOptions.pageSetup.asc_setOrientation('xlLandscape' === sPageOrientation ? 1 : 0);
 	};
 
 	/**
@@ -959,8 +958,7 @@
 			return this.worksheet.PagePrintOptions.asc_getHeadings();
 		},
 		set: function (value) {
-			value = (typeof value === 'bool') ? value : false;
-			this.worksheet.PagePrintOptions.asc_setHeadings(value);
+			this.worksheet.PagePrintOptions.asc_setHeadings(!!value);
 		}
 	});
 
@@ -969,8 +967,7 @@
 			return this.worksheet.PagePrintOptions.asc_getGridLines();
 		},
 		set: function (value) {
-			value = (typeof value === 'bool') ? value : false;
-			this.worksheet.PagePrintOptions.asc_setGridLines(value);
+			this.worksheet.PagePrintOptions.asc_setGridLines(!!value);
 		}
 	});
 
