@@ -435,6 +435,20 @@
 		}
 	};
 
+	CT_NsvFilter.prototype.isApplyAutoFilter = function (obj) {
+		var res = null
+		if (this.columnsFilter && this.columnsFilter.length) {
+			for (var i = 0; i < this.columnsFilter.length; i++) {
+				var _filterColumn = this.columnsFilter[i] && this.columnsFilter[i].filter;
+				if (_filterColumn.isApplyAutoFilter()) {
+					res = true;
+					break;
+				}
+			}
+		}
+		return res;
+	};
+
 
 	function CT_ColumnFilter() {
 		this.filter = null;

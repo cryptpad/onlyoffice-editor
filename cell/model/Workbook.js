@@ -8611,8 +8611,14 @@
 		this.activeNamedSheetViewId = id;
 	};
 
-	Worksheet.prototype.getNvsFilterByTableName = function (val, opt_name) {
-		var activeNamedSheetViewId = opt_name ? this.getIdNamedSheetViewByName(opt_name) : this.getActiveNamedSheetViewId();
+	Worksheet.prototype.getNvsFilterByTableName = function (val, opt_name, viewId) {
+		var activeNamedSheetViewId;
+		if (viewId) {
+			activeNamedSheetViewId = viewId;
+		} else {
+			activeNamedSheetViewId = opt_name ? this.getIdNamedSheetViewByName(opt_name) : this.getActiveNamedSheetViewId();
+		}
+
 		if (activeNamedSheetViewId === null) {
 			return;
 		}

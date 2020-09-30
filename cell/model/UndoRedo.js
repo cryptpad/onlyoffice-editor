@@ -1628,6 +1628,7 @@ function (window, undefined) {
 		this.nRow = null;
 		this.formula = null;
 		this.totalFunction = null;
+		this.viewId = null;
 	}
 
 	UndoRedoData_AutoFilter.prototype.Properties = {
@@ -1653,7 +1654,8 @@ function (window, undefined) {
 		nCol: 19,
 		nRow: 20,
 		formula: 21,
-		totalFunction: 22
+		totalFunction: 22,
+		viewId: 23
 	};
 	UndoRedoData_AutoFilter.prototype.getType = function () {
 		return UndoRedoDataTypes.AutoFilter;
@@ -1742,6 +1744,9 @@ function (window, undefined) {
 				break;
 			case this.Properties.totalFunction:
 				return this.totalFunction;
+				break;
+			case this.Properties.viewId:
+				return this.viewId;
 				break;
 		}
 
@@ -1847,6 +1852,9 @@ function (window, undefined) {
 				break;
 			case this.Properties.totalFunction:
 				this.totalFunction = value;
+				break;
+			case this.Properties.viewId:
+				this.viewId = value;
 				break;
 		}
 		return null;
