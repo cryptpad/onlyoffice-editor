@@ -1635,9 +1635,10 @@ ParaDrawing.prototype.Get_DrawingType = function()
 };
 ParaDrawing.prototype.Is_Inline = function()
 {
-	if(this.Parent)
+	if(this.Parent &&
+		this.Parent.Get_ParentTextTransform &&
+		this.Parent.Get_ParentTextTransform())
 	{
-		if (!this.Parent.Get_ParentTextTransform || null !== this.Parent.Get_ParentTextTransform())
 			return true;
 	}
 
