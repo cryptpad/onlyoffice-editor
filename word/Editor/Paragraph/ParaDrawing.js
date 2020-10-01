@@ -1635,8 +1635,11 @@ ParaDrawing.prototype.Get_DrawingType = function()
 };
 ParaDrawing.prototype.Is_Inline = function()
 {
-	if (!this.Parent || !this.Parent.Get_ParentTextTransform || null !== this.Parent.Get_ParentTextTransform())
-		return true;
+	if(this.Parent)
+	{
+		if (!this.Parent.Get_ParentTextTransform || null !== this.Parent.Get_ParentTextTransform())
+			return true;
+	}
 
 	return ( drawing_Inline === this.DrawingType ? true : false );
 };
