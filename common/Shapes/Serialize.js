@@ -448,14 +448,17 @@ function BinaryPPTYLoader()
 
             pres.fromStream(s, this);
 
-            if(pres.attrShowSpecialPlsOnTitleSld !== null)
+            if(!this.IsThemeLoader)
             {
-                this.presentation.setShowSpecialPlsOnTitleSld(pres.attrShowSpecialPlsOnTitleSld);
-            }
+                if(pres.attrShowSpecialPlsOnTitleSld !== null)
+                {
+                    this.presentation.setShowSpecialPlsOnTitleSld(pres.attrShowSpecialPlsOnTitleSld);
+                }
 
-            if(pres.attrFirstSlideNum !== null)
-            {
-                this.presentation.setFirstSlideNum(pres.attrFirstSlideNum);
+                if(pres.attrFirstSlideNum !== null)
+                {
+                    this.presentation.setFirstSlideNum(pres.attrFirstSlideNum);
+                }
             }
 
             this.presentation.defaultTextStyle = pres.defaultTextStyle;
