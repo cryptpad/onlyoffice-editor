@@ -8,15 +8,11 @@
         function slimScrolling() {
             var checkbox = document.getElementById('slimScroll');
             if(checkbox.checked === true) {
-                settings.slimScroll = true;
-                settings1.slimScroll = true;
-                scrollObject.Reinit(settings);
-                scrollObject1.Reinit(settings1);
+                isSlimScroll = true;
+                createScrolls();
             } else {
-                settings.slimScroll = false;
-                settings1.slimScroll = false;
-                scrollObject.Reinit(settings);
-                scrollObject1.Reinit(settings1);
+                isSlimScroll = false;
+                createScrolls();
             }
 
         }
@@ -47,15 +43,11 @@
         function showArrows() {
             var checkbox = document.getElementById('showArrows');
             if(checkbox.checked === true) {
-                settings.showArrows = true;
-                settings1.showArrows = true;
-                scrollObject.Reinit(settings);
-                scrollObject1.Reinit(settings1);
+                isShowArrows = true;
+                createScrolls();
             } else {
-                settings.showArrows = false;
-                settings1.showArrows = false;
-                scrollObject.Reinit(settings);
-                scrollObject1.Reinit(settings1);
+                isShowArrows = false;
+                createScrolls();
             }
 
         }
@@ -63,7 +55,7 @@
 </head>
 
 <body>
-<div>
+<div style="width: 350px; height: 100px; padding-top: 20px; padding-left: 10px" id="menu">
     <input type="checkbox" id="slimScroll"  onchange="slimScrolling();"> Slim Scroll
     <input type="checkbox" id="cornerRadius"  onchange="cornerRadius();"> Corner Radius
     <input type="checkbox" id="showArrows"  onchange="showArrows();" checked> Show Arrows
@@ -76,32 +68,43 @@
 <script type="text/javascript">
 
     var AscCommon = window['AscCommon'];
+    var dPR = window.devicePixelRatio;
     var mainDiv = document.createElement('div');
-    mainDiv.style.width = '100%';
-    mainDiv.style.height = '100%';
-    var scrollObject, scrollObject1, settings, settings1;
+    var menuDiv = document.getElementById('menu');
+    menuDiv.style.position = "absolute";
+    mainDiv.style.top = "0px";
+    mainDiv.style.left = "0px";
+
+    var scrollObject, scrollObject1, settings, settings1, isSlimScroll = false, isShowArrows = true;
+
     function createScrolls() {
         mainDiv.innerHTML = '<div id="ws-v-scrollbar"></div><div id="ws-h-scrollbar"></div>';
         document.body.append(mainDiv);
         var div = document.getElementById("ws-v-scrollbar");
-        div.style.width = '14px';
-        div.style.height = '720px';
-        div.style.position = "relative";
-
         settings = new AscCommon.ScrollSettings();
+        div.style.position = "absolute";
+        div.style.width = (isSlimScroll ? 11 : 14) + "px";
+        div.style.height = "720px";
+        div.style.left = "0px";
+        div.style.top = "0px";
+        settings.slimScroll = isSlimScroll;
+        settings.showArrows = isShowArrows;
         scrollObject = new AscCommon.ScrollObject("ws-v-scrollbar", settings);
 
 
-        document.body.append(mainDiv);
         var div = document.getElementById("ws-h-scrollbar");
-        div.style.width = '720px';
-        div.style.height = '14px';
-        div.style.position = "relative";
-
         settings1 = new AscCommon.ScrollSettings();
+        div.style.position = "absolute";
+        div.style.width = "720px";
+        div.style.height = (isSlimScroll ? 11 : 14) + "px";
+        div.style.left = (Math.round(15 * dPR)) / dPR + "px";
+        div.style.top = "0px";
+        settings1.slimScroll = isSlimScroll;
+        settings1.showArrows = isShowArrows;
         settings1.isHorizontalScroll = true;
         settings1.isVerticalScroll = false;
         scrollObject1 = new AscCommon.ScrollObject("ws-h-scrollbar", settings1);
+
     }
     createScrolls();
     window.addEventListener('mousemove', e => {
@@ -115,7 +118,6 @@
     });
 
     window.onresize = function(){
-        document.body.innerHTML = '';
         createScrolls();
     }
 
