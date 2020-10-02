@@ -9,18 +9,17 @@
             var checkbox = document.getElementById('slimScroll');
             if(checkbox.checked === true) {
                 isSlimScroll = true;
-                createScrolls();
+                createScrolls(mainDiv);
             } else {
                 isSlimScroll = false;
-                createScrolls();
+                createScrolls(mainDiv);
             }
-
         }
         function cornerRadius() {
             var checkbox = document.getElementById('cornerRadius');
             if(checkbox.checked === true) {
-                settings.cornerRadius = 7;
-                settings1.cornerRadius = 7;
+                settings.cornerRadius = 2;
+                settings1.cornerRadius = 2;
                 scrollObject.Reinit(settings);
                 scrollObject1.Reinit(settings1);
             } else {
@@ -31,7 +30,6 @@
             }
         }
         function clickFadeDelay() {
-            var button = document.getElementById('buttonFadeDelay');
             var textArea = document.getElementById('fadeDelay');
             if(parseInt(textArea.value)) {
                 settings.fadeInFadeOutDelay = parseInt(textArea.value);
@@ -44,10 +42,10 @@
             var checkbox = document.getElementById('showArrows');
             if(checkbox.checked === true) {
                 isShowArrows = true;
-                createScrolls();
+                createScrolls(mainDiv);
             } else {
                 isShowArrows = false;
-                createScrolls();
+                createScrolls(mainDiv);
             }
 
         }
@@ -69,44 +67,51 @@
 
     var AscCommon = window['AscCommon'];
     var dPR = window.devicePixelRatio;
-    var mainDiv = document.createElement('div');
+
     var menuDiv = document.getElementById('menu');
     menuDiv.style.position = "absolute";
+
+    var mainDiv = document.createElement('div');
     mainDiv.style.top = "0px";
     mainDiv.style.left = "0px";
-
+    document.body.append(mainDiv);
     var scrollObject, scrollObject1, settings, settings1, isSlimScroll = false, isShowArrows = true;
 
-    function createScrolls() {
-        mainDiv.innerHTML = '<div id="ws-v-scrollbar"></div><div id="ws-h-scrollbar"></div>';
-        document.body.append(mainDiv);
-        var div = document.getElementById("ws-v-scrollbar");
+    function createScrolls(div) {
+        if(document.getElementById("ws-v-scrollbar")) document.getElementById("ws-v-scrollbar").remove();
+        if(document.getElementById("ws-h-scrollbar")) document.getElementById("ws-h-scrollbar").remove();
+
+        var divVertScroll = document.createElement('div');
+        divVertScroll.id = "ws-v-scrollbar";
         settings = new AscCommon.ScrollSettings();
-        div.style.position = "absolute";
-        div.style.width = (isSlimScroll ? 11 : 14) + "px";
-        div.style.height = "720px";
-        div.style.left = "0px";
-        div.style.top = "0px";
+        divVertScroll.style.position = "absolute";
+        divVertScroll.style.width = (isSlimScroll ? 11 : 14) + "px";
+        divVertScroll.style.height = "720px";
+        divVertScroll.style.left = "0px";
+        divVertScroll.style.top = "0px";
         settings.slimScroll = isSlimScroll;
         settings.showArrows = isShowArrows;
+        div.appendChild(divVertScroll);
         scrollObject = new AscCommon.ScrollObject("ws-v-scrollbar", settings);
 
-
-        var div = document.getElementById("ws-h-scrollbar");
+        var divHorScroll = document.createElement('div');
+        divHorScroll.id = "ws-h-scrollbar";
         settings1 = new AscCommon.ScrollSettings();
-        div.style.position = "absolute";
-        div.style.width = "720px";
-        div.style.height = (isSlimScroll ? 11 : 14) + "px";
-        div.style.left = (Math.round(15 * dPR)) / dPR + "px";
-        div.style.top = "0px";
+        divHorScroll.style.position = "absolute";
+        divHorScroll.style.width = "720px";
+        divHorScroll.style.height = (isSlimScroll ? 11 : 14) + "px";
+        divHorScroll.style.left = (Math.round(15 * dPR)) / dPR + "px";
+        divHorScroll.style.top = "0px";
         settings1.slimScroll = isSlimScroll;
         settings1.showArrows = isShowArrows;
         settings1.isHorizontalScroll = true;
         settings1.isVerticalScroll = false;
+        div.appendChild(divHorScroll);
         scrollObject1 = new AscCommon.ScrollObject("ws-h-scrollbar", settings1);
 
     }
-    createScrolls();
+    createScrolls(mainDiv);
+
     window.addEventListener('mousemove', e => {
             scrollObject.mouseDown ? scrollObject.evt_mousemove.call(scrollObject, event) : false;
             scrollObject1.mouseDown ? scrollObject1.evt_mousemove.call(scrollObject1, event) : false;
@@ -117,8 +122,8 @@
         scrollObject1.mouseDown ? scrollObject1.evt_mouseup.call( scrollObject1, event) : false;
     });
 
-    window.onresize = function(){
-        createScrolls();
+    window.onresize = function() {
+        createScrolls(mainDiv);
     }
 
 </script>
