@@ -3051,6 +3051,13 @@ var editor;
     }
     return null;
   };
+  spreadsheet_api.prototype.asc_GetSelectedText = function() {
+    var ws = this.wb.getWorksheet();
+    if (ws && ws.objectRender && ws.objectRender.controller) {
+      return ws.objectRender.controller.GetSelectedText(true);
+    }
+    return "";
+  };
 
   spreadsheet_api.prototype.asc_setGraphicObjectProps = function(props) {
 
@@ -5096,6 +5103,7 @@ var editor;
   prot["asc_canUnGroupGraphicsObjects"] = prot.asc_canUnGroupGraphicsObjects;
   prot["asc_unGroupGraphicsObjects"] = prot.asc_unGroupGraphicsObjects;
   prot["asc_getGraphicObjectProps"] = prot.asc_getGraphicObjectProps;
+  prot["asc_GetSelectedText"] = prot.asc_GetSelectedText;
   prot["asc_setGraphicObjectProps"] = prot.asc_setGraphicObjectProps;
   prot["asc_getOriginalImageSize"] = prot.asc_getOriginalImageSize;
   prot["asc_changeShapeType"] = prot.asc_changeShapeType;

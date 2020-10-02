@@ -4225,7 +4225,7 @@ CDocumentContent.prototype.GetSelectedText = function(bClearText, oPr)
 	else
 	{
 		if (docpostype_DrawingObjects === this.CurPos.Type)
-			return this.LogicDocument.DrawingObjects.getSelectedText(bClearText, oPr);
+			return this.LogicDocument.DrawingObjects.GetSelectedText(bClearText, oPr);
 
 		// Либо у нас нет выделения, либо выделение внутри одного элемента
 		if (docpostype_Content == this.CurPos.Type && ( ( true === this.Selection.Use && selectionflag_Common === this.Selection.Flag ) || false === this.Selection.Use ))

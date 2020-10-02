@@ -2160,18 +2160,7 @@ CGraphicObjects.prototype =
         }
     },
 
-    getSelectedText: function(bClearText, oPr)
-    {
-        var content = this.getTargetDocContent();
-        if(content)
-        {
-            return content.GetSelectedText(bClearText, oPr);
-        }
-        else
-        {
-            return "";
-        }
-    },
+    GetSelectedText: DrawingObjectsController.prototype.GetSelectedText,
 
     getCurPosXY: function()
     {

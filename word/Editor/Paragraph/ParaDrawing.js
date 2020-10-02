@@ -2103,10 +2103,10 @@ ParaDrawing.prototype.getCurrentParagraph = function(bIgnoreSelection, arrSelect
 	if (this.Parent instanceof Paragraph)
 		return this.Parent;
 };
-ParaDrawing.prototype.getSelectedText = function(bClearText, oPr)
+ParaDrawing.prototype.GetSelectedText = function(bClearText, oPr)
 {
-	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.getSelectedText === "function")
-		return this.GraphicObj.getSelectedText(bClearText, oPr);
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.GetSelectedText === "function")
+		return this.GraphicObj.GetSelectedText(bClearText, oPr);
 	return "";
 };
 ParaDrawing.prototype.getCurPosXY = function()
