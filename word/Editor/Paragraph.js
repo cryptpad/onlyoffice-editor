@@ -2564,9 +2564,22 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 						else
 						{
 							if (true === oNumTextPr.Color.Auto)
-								pGraphics.b_color1(AutoColor.r, AutoColor.g, AutoColor.b, 255);
+							{
+								if(oNumTextPr.FontRef && oNumTextPr.FontRef.Color)
+								{
+									oNumTextPr.FontRef.Color.check(Theme, ColorMap);
+									RGBA = oNumTextPr.FontRef.Color.RGBA;
+									pGraphics.b_color1(RGBA.R, RGBA.G, RGBA.B, 255);
+								}
+								else
+								{
+									pGraphics.b_color1(AutoColor.r, AutoColor.g, AutoColor.b, 255);
+								}
+							}
 							else
+							{
 								pGraphics.b_color1(oNumTextPr.Color.r, oNumTextPr.Color.g, oNumTextPr.Color.b, 255);
+							}
 						}
 
 						if (NumberingItem.HaveSourceNumbering() || reviewtype_Common !== nReviewType)
