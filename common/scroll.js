@@ -914,13 +914,13 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		var t = this.ArrowDrawer;
 		var that = this;
 		var xDeltaBORDER = 0.5, yDeltaBORDER = 1.5;
-		var dPR = window.devicePixelRatio;
-		var x1 = that.settings.isVerticalScroll ? 0 : Math.round(dPR);
-		var y1 = that.settings.isVerticalScroll ? yDeltaBORDER * Math.round(dPR) : -Math.round(dPR);
+		var roundDPR = that._roundForScale(window.devicePixelRatio);
+		var x1 = that.settings.isVerticalScroll ? 0 : roundDPR;
+		var y1 = that.settings.isVerticalScroll ? yDeltaBORDER * roundDPR : -roundDPR;
 		var x2 = 0;
 		var y2 = that.settings.isVerticalScroll ? 0 : 0;
-		var strokeW = t.SizeW - Math.round(dPR);
-		var strokeH = t.SizeH - Math.round(dPR);
+		var strokeW = t.SizeW - roundDPR;
+		var strokeH = t.SizeH - roundDPR;
 		var ctx = that.context;
 
 		ctx.beginPath();
@@ -932,12 +932,12 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 
 				if (t.IsDrawBorders) {
 					ctx.strokeStyle = t.ColorBorderNone;
-					ctx.lineWidth = Math.round(dPR);
+					ctx.lineWidth = roundDPR;
 					ctx.rect(x1 + xDeltaBORDER * ctx.lineWidth, y1, strokeW, strokeH);
 					ctx.stroke();
 				}
 
-				y1 = that.canvasH - t.SizeH + Math.round(dPR) - yDeltaBORDER * Math.round(dPR);
+				y1 = that.canvasH - t.SizeH + roundDPR - yDeltaBORDER * roundDPR;
                 y2 = that.canvasH - t.SizeH;
 				arrowImage = that.ArrowDrawer.ImageBottom;
 			}
@@ -950,12 +950,12 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 
 				if (t.IsDrawBorders) {
 					ctx.strokeStyle = t.ColorBorderNone;
-					ctx.lineWidth = Math.round(dPR);
+					ctx.lineWidth = roundDPR;
 					ctx.rect(x1 + xDeltaBORDER * ctx.lineWidth, y1 + yDeltaBORDER * ctx.lineWidth, strokeW, strokeH);
 					ctx.stroke();
 				}
 
-				x1 = that.canvasW - t.SizeW -  Math.round(dPR);
+				x1 = that.canvasW - t.SizeW -  roundDPR;
                 x2 = that.canvasW - t.SizeW;
                 y2 = 0;
 				arrowImage = that.ArrowDrawer.ImageRight;
@@ -965,9 +965,9 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 
 	ScrollObject.prototype._drawScroll = function (fillColor, piperColor) {
 		var that = this;
-		var dPR = window.devicePixelRatio;
 		that.context.beginPath();
-		that.context.lineWidth = Math.round(dPR);
+		var roundDPR = this._roundForScale(window.devicePixelRatio);
+		that.context.lineWidth = roundDPR;
 
 		if (that.settings.isVerticalScroll) {
 			var _y = that.settings.showArrows ? that.arrowPosition : 0,
@@ -1018,7 +1018,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 			}
 
 			if (_b > _y) {
-				that.roundRect(that.scroller.x - 0.5 * that.context.lineWidth, _y + 0.5 * that.context.lineWidth, that.scroller.w - Math.round(dPR), that.scroller.h -  Math.round(dPR), that.settings.cornerRadius);
+				that.roundRect(that.scroller.x - 0.5 * that.context.lineWidth, _y + 0.5 * that.context.lineWidth, that.scroller.w - roundDPR, that.scroller.h -  roundDPR, that.settings.cornerRadius * roundDPR);
 			}
 		} else if (that.settings.isHorizontalScroll && that.maxScrollX != 0) {
 			var _x = that.scroller.x >> 0, arrow = that.settings.showArrows ? that.arrowPosition : 0;
@@ -1031,7 +1031,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 			}
 
 			if (_r > _x) {
-				that.roundRect(_x +  0.5 * that.context.lineWidth, that.scroller.y -  0.5 * that.context.lineWidth, that.scroller.w - Math.round(dPR), that.scroller.h - Math.round(dPR), that.settings.cornerRadius);
+				that.roundRect(_x +  0.5 * that.context.lineWidth, that.scroller.y -  0.5 * that.context.lineWidth, that.scroller.w - roundDPR, that.scroller.h - roundDPR, that.settings.cornerRadius * roundDPR);
 			}
 		}
 
@@ -1047,7 +1047,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		if (that._checkPiperImagesV()) {
 
 			x = Math.round((that.scroller.w - that.piperImgVert.width) / 2);
-			y = Math.floor((that.scroller.y + Math.floor(that.scroller.h / 2) - 6 * dPR));
+			y = Math.floor((that.scroller.y + Math.floor(that.scroller.h / 2) - 6 * window.devicePixelRatio));
 
 			ctx_piperImg = that.piperImgVert.getContext('2d');
 			ctx_piperImg.globalCompositeOperation = "source-in";
@@ -1084,7 +1084,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 
 	ScrollObject.prototype._animateArrow = function (fadeIn, curArrowType, backgroundColorUnfade) {
 		var that = this;
-		var dPR = Math.round(window.devicePixelRatio);
+		var roundDPR = that._roundForScale(window.devicePixelRatio);
 		var sizeW = that.ArrowDrawer.SizeW, sizeH = that.ArrowDrawer.SizeH;
 
 		if (!that.settings.showArrows || !curArrowType) {
@@ -1111,32 +1111,32 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		//what type of arrow to draw
 		switch (curArrowType) {
 			case ArrowType.ARROW_TOP: {
-				fillRectX = dPR;
-				fillRectY = dPR;
+				fillRectX = roundDPR;
+				fillRectY = roundDPR;
 				break;
 			}
 			case ArrowType.ARROW_BOTTOM: {
 				y = that.canvasH - sizeH;
-				fillRectY = -dPR;
-				strokeRectY = -2 * dPR;
+				fillRectY = -roundDPR;
+				strokeRectY = -2 * roundDPR;
 				arrowImage = that.ArrowDrawer.ImageBottom;
 				break;
 			}
 			case ArrowType.ARROW_RIGHT: {
 				y = 0;
 				x = that.canvasW - sizeW;
-				fillRectX = -dPR;
-				strokeRectX = -dPR;
-				strokeRectY = -dPR;
+				fillRectX = -roundDPR;
+				strokeRectX = -roundDPR;
+				strokeRectY = -roundDPR;
 				arrowImage = that.ArrowDrawer.ImageRight;
 				break;
 			}
 			case ArrowType.ARROW_LEFT: {
 				y = 0;
 				x = 0;
-				fillRectX = dPR;
-				strokeRectX = dPR;
-				strokeRectY =  -dPR;
+				fillRectX = roundDPR;
+				strokeRectX = roundDPR;
+				strokeRectY =  -roundDPR;
 				break;
 			}
 		}
@@ -1179,7 +1179,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
         var x1 = fadeIn === undefined ? x : 0;
         var y1 = fadeIn === undefined ? y : 0;
 
-        ctx.fillRect( x1 + fillRectX,  y1 +  fillRectY, sizeW - dPR, sizeH - dPR);
+        ctx.fillRect( x1 + fillRectX,  y1 +  fillRectY, sizeW - roundDPR, sizeH - roundDPR);
 
 		if (that.ArrowDrawer.IsDrawBorders) {
 			var borderColor = hoverColor;
@@ -1191,8 +1191,8 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
             ctx.strokeStyle = "rgb(" + borderColor + "," +
 				borderColor + "," +
 				borderColor + ")";
-			ctx.lineWidth = Math.round(dPR);
-            ctx.strokeRect(x1 + 0.5 * ctx.lineWidth + strokeRectX, y1 + 1.5 * ctx.lineWidth + strokeRectY, sizeW - dPR, sizeH - dPR);
+			ctx.lineWidth = roundDPR;
+            ctx.strokeRect(x1 + 0.5 * ctx.lineWidth + strokeRectX, y1 + 1.5 * ctx.lineWidth + strokeRectY, sizeW - roundDPR, sizeH - roundDPR);
 		}
 
 		//drawing arrow icon
@@ -1371,7 +1371,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 	ScrollObject.prototype._setScrollerHW = function () {
 		var dPR = window.devicePixelRatio;
 		if ( this.settings.isVerticalScroll ) {
-			this.scroller.x = Math.round(dPR);
+			this.scroller.x = this._roundForScale(dPR);
 			this.scroller.w = Math.round((this.canvasOriginalW - 1) * dPR);
 			if(this.settings.slimScroll) {
 				this.settings.arrowSizeW = this.settings.arrowSizeH = this.scroller.w;
@@ -1380,7 +1380,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 				this.ArrowDrawer.InitSize( this.settings.arrowSizeW, this.settings.arrowSizeH, this.IsRetina );
 		}
 		else if ( this.settings.isHorizontalScroll ) {
-			this.scroller.y = Math.round(dPR);
+			this.scroller.y = this._roundForScale(dPR);
 			this.scroller.h = Math.round((this.canvasOriginalH - 1) * dPR);
 			if(this.settings.slimScroll) {
 				this.settings.arrowSizeH = this.settings.arrowSizeW = this.scroller.h;
@@ -1968,6 +1968,9 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		handle( that );
 	};
 
+	ScrollObject.prototype._roundForScale = function (value) {
+		return ((value - Math.floor(value)) <= 0.5) ? Math.floor(value) : Math.round(value);
+	};
     //---------------------------------------------------------export---------------------------------------------------
 	window["AscCommon"].ScrollSettings = ScrollSettings;
     window["AscCommon"].ScrollObject = ScrollObject;
