@@ -3053,6 +3053,12 @@ var editor;
   };
   spreadsheet_api.prototype.asc_GetSelectedText = function() {
     var ws = this.wb.getWorksheet();
+    if (this.wb.getCellEditMode()) {
+      var fragments = this.wb.cellEditor.copySelection();
+      if (null !== fragments) {
+        return AscCommonExcel.getFragmentsText(fragments);
+      }
+    }
     if (ws && ws.objectRender && ws.objectRender.controller) {
       return ws.objectRender.controller.GetSelectedText(true);
     }
