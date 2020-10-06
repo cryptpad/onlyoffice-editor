@@ -3081,7 +3081,7 @@ function CDLbl()
             return this.tx.getFormula();
         }
         return "";
-    }
+    };
     CSeriesBase.prototype.setValues = function(sValues) {
         var oResult;
         if(sValues === "" || sValues === null) {
@@ -3996,6 +3996,16 @@ CPlotArea.prototype =
             this.parent.moveSeriesDown(oSeries);
         }
     };
+    CChartBase.prototype.sortSeries = function() {
+        var aAllSeries = [].concat(this.series);
+        this.removeAllSeries();
+        aAllSeries.sort(function(a, b){
+            return a.order - b.order;
+        });
+        for(var nSeries = 0; nSeries < aAllSeries.length; ++nSeries) {
+            this.addSer(aAllSeries[nSeries]);
+        }
+    };
     CChartBase.prototype.onDataUpdate = function() {
         if(this.parent) {
             this.parent.onDataUpdate();
@@ -4087,6 +4097,7 @@ CPlotArea.prototype =
             History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_CommonChart_AddFilteredSeries, idx, this.filteredSeries.splice(idx, 1), false));
         }
     };
+
 function CBarChart()
 {
     CChartBase.call(this);
