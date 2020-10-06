@@ -13612,9 +13612,14 @@ CChartSpace.prototype.getChartSizes = function(bNotRecalculate)
             aAllSeries[nIndex].setOrder(nIndex);
         }
     };
-
-
-    
+    CChartSpace.prototype.sortSeries = function() {
+        if(this.chart && this.chart.plotArea) {
+            var aCharts = this.chart.plotArea.charts;
+            for(var i = 0; i < aCharts.length; ++i) {
+                aCharts[i].sortSeries();
+            }
+        }
+    };
     CChartSpace.prototype.moveSeriesUp = function(oSeries) {
         var aAllSeries = this.getAllSeries();
         aAllSeries.sort(function(a, b){
@@ -13630,6 +13635,7 @@ CChartSpace.prototype.getChartSizes = function(bNotRecalculate)
                 break;
             }
         }
+        this.sortSeries();
     };
     CChartSpace.prototype.moveSeriesDown = function(oSeries) {
         var aAllSeries = this.getAllSeries();
@@ -13646,6 +13652,7 @@ CChartSpace.prototype.getChartSizes = function(bNotRecalculate)
                 break;
             }
         }
+        this.sortSeries();
     };
 CChartSpace.prototype.getAllSeries =  function()
 {
