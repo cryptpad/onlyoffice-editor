@@ -5676,7 +5676,7 @@ CTable.prototype.DrawSelectionOnPage = function(CurPage)
 
 				var RowIndex = 0 != Cell_PageRel ? this.Pages[CurPage].FirstRow : Pos.Row;
 
-				if (true === Cell.Is_VerticalText())
+				if (true === Cell.IsVerticalText())
 				{
 					var X_start       = Page.X + CellInfo.X_cell_start;
 					var TextDirection = Cell.Get_TextDirection();

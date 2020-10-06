@@ -900,7 +900,7 @@ CTableCell.prototype =
         if (undefined === isRotated)
             isRotated = false;
 
-        if (true === this.Is_VerticalText())
+        if (true === this.IsVerticalText())
             isRotated = true === isRotated ? false : true;
 
         var Result;
@@ -935,9 +935,65 @@ CTableCell.prototype =
         return Result;
     },
 
+	RecalculateMinMaxContentWidth : function(isRotated, nPctWidth)
+	{
+		var oTable         = this.GetTable();
+		var oLogicDocument = oTable ? oTable.GetLogicDocument() : null;
+
+		if (undefined === isRotated)
+			isRotated = false;
+
+		if (true === this.IsVerticalText())
+			isRotated = true !== isRotated;
+
+		var oResult;
+		if (oLogicDocument && oLogicDocument.GetRecalcId() === this.CachedMinMax.RecalcId)
+		{
+			oResult = this.CachedMinMax.MinMax;
+		}
+		else
+		{
+			oResult = this.Content.RecalculateMinMaxContentWidth(isRotated);
+
+			var oMargins = this.GetMargins();
+			oResult.Min += oMargins.Left.W + oMargins.Right.W;
+			oResult.Max += oMargins.Left.W + oMargins.Right.W;
+
+			var oPrefW = this.GetW();
+			if (tblwidth_Mm === oPrefW.Type)
+			{
+				if (oResult.Min < oPrefW.W)
+					oResult.Min = oPrefW.W;
+
+				if (oResult.Max < oPrefW.W)
+					oResult.Max = oPrefW.W;
+			}
+			else if (tblwidth_Pct === oPrefW.Type && nPctWidth)
+			{
+				var nPrefW = nPctWidth * oPrefW.W / 100;
+				if (oResult.Min < nPrefW)
+					oResult.Min = nPrefW;
+
+				if (oResult.Max < nPrefW)
+					oResult.Max = nPrefW;
+			}
+
+			if (true !== isRotated && true === this.GetNoWrap())
+				oResult.Min = Math.max(oResult.Min, oResult.Max);
+
+			if (oLogicDocument)
+			{
+				this.CachedMinMax.RecalcId = oLogicDocument.GetRecalcId();
+				this.CachedMinMax.MinMax   = oResult;
+			}
+		}
+
+		return oResult;
+	},
+
     Content_Shift : function(CurPage, dX, dY)
     {
-        if (true === this.Is_VerticalText())
+        if (true === this.IsVerticalText())
         {
             this.Temp.X_start += dX;
             this.Temp.Y_start += dY;
@@ -1424,13 +1480,10 @@ CTableCell.prototype =
 		}
 	},
 
-    Is_VerticalText : function()
+	IsVerticalText : function()
     {
         var TextDirection = this.Get_TextDirection();
-        if (textdirection_BTLR === TextDirection || textdirection_TBRL === TextDirection)
-            return true;
-
-        return false;
+        return (textdirection_BTLR === TextDirection || textdirection_TBRL === TextDirection);
     },
 
     Get_TextDirection : function()
