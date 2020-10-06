@@ -3102,6 +3102,9 @@ function CDLbl()
         return oResult;
     };
     CSeriesBase.prototype.setCategories = function(sValues) {
+        if(!this.setCat) {
+            return;
+        }
         var oResult;
         if(sValues === null || typeof sValues === "string" && sValues.length === 0) {
             if(this.cat) {
