@@ -15038,6 +15038,10 @@ CFramePr.prototype =
         return false;
     }
 };
+CFramePr.prototype.GetW = function()
+{
+	return this.W;
+};
 CFramePr.prototype.IsEqual = function(oFramePr)
 {
 	if (!oFramePr)
