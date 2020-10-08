@@ -44,7 +44,7 @@ var c_oAscNumFormatType = Asc.c_oAscNumFormatType;
 
 var gc_sFormatDecimalPoint = ".";
 var gc_sFormatThousandSeparator = ",";
-
+var LocaleFormatSymbol ={};
 var numFormat_Text = 0;
 var numFormat_TextPlaceholder = 1;
 var numFormat_Bracket = 2;
@@ -289,6 +289,66 @@ function FormatObjBracket(sData)
     };
     this.parse(sData);
 }
+function ParseLocalFormatSymbol(LCID)
+{
+    switch(LCID) {
+        //GER
+        case 7:
+        {
+            LocaleFormatSymbol['Y'] = 'J';
+            //   LocaleFormatSymbol['y'] ='j';
+            LocaleFormatSymbol['M'] = 'M';
+            //  LocaleFormatSymbol['m'] ='m';
+            LocaleFormatSymbol['D'] = 'T';
+            // LocaleFormatSymbol['d'] ='t';
+            LocaleFormatSymbol['H'] = 'S';
+            //  LocaleFormatSymbol['h'] ='s';
+            LocaleFormatSymbol['S'] = 'S';
+            // LocaleFormatSymbol['s'] ='s';
+        }break;
+        //EN
+        case 9:
+        {
+            LocaleFormatSymbol['Y'] = 'Y';
+            LocaleFormatSymbol['y'] = 'y';
+            LocaleFormatSymbol['M'] = 'M';
+            LocaleFormatSymbol['m'] = 'm';
+            LocaleFormatSymbol['D'] = 'D';
+            LocaleFormatSymbol['d'] = 'd';
+            LocaleFormatSymbol['H'] = 'H';
+            LocaleFormatSymbol['h'] = 'h';
+            LocaleFormatSymbol['S'] = 'S';
+            LocaleFormatSymbol['s'] = 's';
+        }break;
+        //Ru
+        case 1049:
+        {
+            LocaleFormatSymbol['Y'] = 'Г';
+            LocaleFormatSymbol['y'] = 'г';
+            LocaleFormatSymbol['M'] = 'М';
+            LocaleFormatSymbol['m'] = 'м';
+            LocaleFormatSymbol['D'] = 'Д';
+            LocaleFormatSymbol['d'] = 'д';
+            LocaleFormatSymbol['H'] = 'Ч';
+            LocaleFormatSymbol['h'] = 'ч';
+            LocaleFormatSymbol['S'] = 'C';
+            LocaleFormatSymbol['s'] = 'с';
+        }break;
+        //TUR
+        case 1055:
+        { // Tur
+            LocaleFormatSymbol['Y'] = 'Y';
+            LocaleFormatSymbol['y'] = 'y';
+            LocaleFormatSymbol['M'] = 'A';
+            LocaleFormatSymbol['m'] = 'a';
+            LocaleFormatSymbol['H'] = 'S';
+            LocaleFormatSymbol['h'] = 's';
+            LocaleFormatSymbol['S'] = 'S';
+            LocaleFormatSymbol['s'] = 's';
+        }break;
+    }
+    return true;
+}
 function NumFormat(bAddMinusIfNes)
 {
     //Stream чтения формата
@@ -511,29 +571,28 @@ NumFormat.prototype =
             {
                 this._addToFormat(numFormat_TextPlaceholder);
             }
-            else if("Y" == next || "y" == next)
+            else if(LocaleFormatSymbol['Y'] == next || LocaleFormatSymbol['y'] == next)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
             }
-            else if("M" == next || "m" == next)
+            else if(LocaleFormatSymbol['M'] == next || LocaleFormatSymbol['m'] == next)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
             }
-            else if("D" == next || "d" == next)
+            else if(LocaleFormatSymbol['D'] == next || LocaleFormatSymbol['d'] == next)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Day, 1, false));
             }
-            else if("H" == next || "h" == next)
+            else if(LocaleFormatSymbol['H'] == next ||  LocaleFormatSymbol['h'] == next)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
             }
-            else if("S" == next || "s" == next)
+            else if(LocaleFormatSymbol['S'] == next || LocaleFormatSymbol['s'] == next)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
             }
-            else if ("A" == next || "a" == next) {
-                this._ReadAmPm(next);
-            }
+
+
             else {
                 if (sGeneralFirst === next.toLowerCase() &&
                     sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase()) {
@@ -547,8 +606,12 @@ NumFormat.prototype =
             if (!bNoFormat)
                 this.bGeneralChart = false;
         }
+
         return true;
     },
+
+
+
     _parseFormatWordDateTime : function()
     {
         while(true)
@@ -558,26 +621,26 @@ NumFormat.prototype =
 				break;
 			else if("\'" == next)
 				this._ReadText("\'");
-			else if("Y" == next || "y" == next)
-			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
-			}
-			else if("M" == next || "m" == next)
-			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
-			}
-			else if("D" == next || "d" == next)
-			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_Day, 1, false));
-			}
-			else if("H" == next || "h" == next)
-			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
-			}
-			else if("S" == next || "s" == next)
-			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
-			}
+            else if(LocaleFormatSymbol['Y'] == next || LocaleFormatSymbol['y'] == next)
+            {
+                this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
+            }
+            else if(LocaleFormatSymbol['M'] == next || LocaleFormatSymbol['m'] == next)
+            {
+                this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+            }
+            else if(LocaleFormatSymbol['D'] == next || LocaleFormatSymbol['d'] == next)
+            {
+                this._addToFormat2(new FormatObjDateVal(numFormat_Day, 1, false));
+            }
+            else if(LocaleFormatSymbol['H'] == next ||  LocaleFormatSymbol['h'] == next)
+            {
+                this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
+            }
+            else if(LocaleFormatSymbol['S'] == next || LocaleFormatSymbol['s'] == next)
+            {
+                this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
+            }
 			else if ("A" == next || "a" == next) {
 				this._ReadAmPm(next);
 			}
@@ -585,6 +648,7 @@ NumFormat.prototype =
 					this._addToFormat(numFormat_Text, next);
 			}
         }
+
         return true;
     },
 	_parseFormatWordNumeric : function(digitSpaceSymbol)
@@ -3778,9 +3842,10 @@ function setCurrentCultureInfo (LCID, decimalSeparator, groupSeparator) {
 		if (LCID !== g_oLCID) {
 			g_oLCID = LCID;
 			AscCommon.g_oDefaultCultureInfo = g_oDefaultCultureInfo = JSON.parse(JSON.stringify(cultureInfoNew)); // ToDo clone
+
 			res = true;
 		}
-
+        ParseLocalFormatSymbol(g_oDefaultCultureInfo.LCID);
 		decimalSeparator = (null != decimalSeparator) ? decimalSeparator : cultureInfoNew.NumberDecimalSeparator;
 		if (decimalSeparator !== g_oDefaultCultureInfo.NumberDecimalSeparator) {
 			g_oDefaultCultureInfo.NumberDecimalSeparator = decimalSeparator;
@@ -3792,6 +3857,7 @@ function setCurrentCultureInfo (LCID, decimalSeparator, groupSeparator) {
 			res = true;
 		}
 	}
+
 	return res;
 }
 	function checkCultureInfoFontPicker(LCID) {
@@ -4537,6 +4603,8 @@ var g_aCultureInfos = {
 	30724: {LCID: 30724, Name: "zh", CurrencyPositivePattern: 0, CurrencyNegativePattern: 2, CurrencySymbol: "¥", NumberDecimalSeparator: ".", NumberGroupSeparator: ",", NumberGroupSizes: [3], DayNames: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"], AbbreviatedDayNames: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"], MonthNames: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月", ""], AbbreviatedMonthNames: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月", ""], MonthGenitiveNames: [], AbbreviatedMonthGenitiveNames: [], AMDesignator: "上午", PMDesignator: "下午", DateSeparator: "/", TimeSeparator: ":", ShortDatePattern: "520"},
 	30764: {LCID: 30764, Name: "az-Latn", CurrencyPositivePattern: 3, CurrencyNegativePattern: 8, CurrencySymbol: "₼", NumberDecimalSeparator: ",", NumberGroupSeparator: ".", NumberGroupSizes: [3], DayNames: ["bazar", "bazar ertəsi", "çərşənbə axşamı", "çərşənbə", "cümə axşamı", "cümə", "şənbə"], AbbreviatedDayNames: ["B.", "B.E.", "Ç.A.", "Ç.", "C.A.", "C.", "Ş."], MonthNames: ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr", ""], AbbreviatedMonthNames: ["yan", "fev", "mar", "apr", "may", "iyn", "iyl", "avq", "sen", "okt", "noy", "dek", ""], MonthGenitiveNames: ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avqust", "sentyabr", "oktyabr", "noyabr", "dekabr", ""], AbbreviatedMonthGenitiveNames: [], AMDesignator: "AM", PMDesignator: "PM", DateSeparator: ".", TimeSeparator: ":", ShortDatePattern: "135"},
 	31748: {LCID: 31748, Name: "zh-Hant", CurrencyPositivePattern: 0, CurrencyNegativePattern: 0, CurrencySymbol: "HK$", NumberDecimalSeparator: ".", NumberGroupSeparator: ",", NumberGroupSizes: [3], DayNames: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"], AbbreviatedDayNames: ["週日", "週一", "週二", "週三", "週四", "週五", "週六"], MonthNames: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月", ""], AbbreviatedMonthNames: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月", ""], MonthGenitiveNames: [], AbbreviatedMonthGenitiveNames: [], AMDesignator: "上午", PMDesignator: "下午", DateSeparator: "/", TimeSeparator: ":", ShortDatePattern: "025"},
+ //   31749:{lCID: 31749,Name: "ru,"}
+
 };
 var g_oDefaultCultureInfo, g_oLCID;
 setCurrentCultureInfo(1033);//en-US//1033//fr-FR//1036//basq//1069//ru-Ru//1049//hindi//1081
