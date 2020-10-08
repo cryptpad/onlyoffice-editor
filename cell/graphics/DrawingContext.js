@@ -945,6 +945,7 @@
 			}
 
 			if (!angle) {
+				AscCommon.g_oTextMeasurer.Flush();
 				window["native"]["PD_LoadFont"](fontInfo.Path, fontInfo.FaceIndex, this.font.getSize(), flag);
 			}
 			fontInfo = g_oTextMeasurer.Measurer["LoadFont"](fontInfo.Path, fontInfo.FaceIndex, this.font.getSize(), flag);
