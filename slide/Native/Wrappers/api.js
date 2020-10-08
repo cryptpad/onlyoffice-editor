@@ -667,7 +667,12 @@ function asc_menu_WriteChartPr(_type, _chartPr, _stream)
     asc_menu_WriteAscValAxisSettings(16, _chartPr.horAxisProps, _stream);
     asc_menu_WriteAscValAxisSettings(17, _chartPr.vertAxisProps, _stream);
 
-    var sRange = _chartPr.getRange();
+    var sRange = null;
+    sRange = _chartPr.getRange();
+    if(!sRange)
+    {
+        sRange = _chartPr.aRanges[0];
+    }
     if (sRange !== undefined && sRange !== null)
     {
         _stream["WriteByte"](18);
