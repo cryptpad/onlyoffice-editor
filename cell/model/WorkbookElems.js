@@ -6159,7 +6159,8 @@ function RangeDataManagerElem(bbox, data)
 		this.handlers.trigger("changeRefTablePart", this);
 
 		if (this.AutoFilter) {
-			this.AutoFilter.changeRefOnRange(range);
+			var filterRange = new Asc.Range(range.c1, range.r1, range.c2, this.isTotalsRow() ? range.r2 - 1 : range.r2);
+			this.AutoFilter.changeRefOnRange(filterRange);
 		}
 	};
 	TablePart.prototype.isApplyAutoFilter = function () {
@@ -6635,10 +6636,6 @@ function RangeDataManagerElem(bbox, data)
 		}
 
 		this.Ref = new Asc.Range(range.c1, range.r1, range.c2, range.r2);
-
-		if (this.AutoFilter) {
-			this.AutoFilter.changeRefOnRange(range);
-		}
 	};
 	AutoFilter.prototype.isApplyAutoFilter = function () {
 		var res = false;
