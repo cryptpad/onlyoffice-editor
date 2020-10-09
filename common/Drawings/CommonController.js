@@ -2571,9 +2571,14 @@ DrawingObjectsController.prototype =
                 }
                 else if(arr[i].getObjectType() === AscDFH.historyitem_type_ChartSpace)
                 {
-                    if(f === CDocumentContent.prototype.AddToParagraph && args[0].Type === para_TextPr)
+                    if(args[0].Type === para_TextPr)
                     {
-                        AscFormat.CheckObjectTextPr(arr[i], args[0].Value, oThis.getDrawingDocument());
+                        var oChartSpace = arr[i];
+
+                        var fCallback = function(oElement) {
+                            AscFormat.CheckObjectTextPr(oElement, args[0].Value, oThis.getDrawingDocument());
+                        };
+                        oChartSpace.applyLabelsFunction(fCallback, args[0].Value);
                     }
                     if(f === CDocumentContent.prototype.IncreaseDecreaseFontSize)
                     {

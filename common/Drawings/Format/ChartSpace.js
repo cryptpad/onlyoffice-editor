@@ -2740,11 +2740,59 @@ CChartSpace.prototype.getParagraphTextPr = function()
             }
         }
     }
+    var text_pr = new CTextPr();
+    text_pr.InitDefault();
+    text_pr.FontSize = 10;
+    if(AscFormat.isRealNumber(this.style) )
+    {
+        if(this.style > 40)
+        {
+            text_pr.Unifill = AscFormat.CreateUnfilFromRGB(255, 255, 255);
+        }
+        else
+        {
+            var default_style = AscFormat.CHART_STYLE_MANAGER.getDefaultLineStyleByIndex(this.style);
+            var oUnifill = default_style.axisAndMajorGridLines.createDuplicate();
+            if(oUnifill && oUnifill.fill && oUnifill.fill.color && oUnifill.fill.color.Mods)
+            {
+                oUnifill.fill.color.Mods.Mods.length = 0;
+            }
+            text_pr.Unifill = oUnifill;
+        }
+    }
+    else
+    {
+        text_pr.Unifill = AscFormat.CreateUnfilFromRGB(0,0,0);
+    }
+    text_pr.RFonts.Set_FromObject(
+        {
+            Ascii: {
+                Name: "+mn-lt",
+                Index: -1
+            },
+            EastAsia: {
+                Name: "+mn-ea",
+                Index: -1
+            },
+            HAnsi: {
+                Name: "+mn-lt",
+                Index: -1
+            },
+            CS: {
+                Name: "+mn-lt",
+                Index: -1
+            }
+        }
+    );
     if(this.txPr && this.txPr.content && this.txPr.content.Content[0] && this.txPr.content.Content[0].Pr.DefaultRunPr)
     {
-        this.txPr.content.Content[0].Pr.DefaultRunPr.Copy();
+        text_pr.Merge(this.txPr.content.Content[0].Pr.DefaultRunPr.Copy());
     }
-    return new AscCommonWord.CTextPr();
+    if(text_pr.RFonts && text_pr.RFonts.Ascii && text_pr.RFonts.Ascii.Name)
+    {
+        text_pr.FontFamily.Name = text_pr.RFonts.Ascii.Name;
+    }
+    return text_pr;
 };
 
 
@@ -2847,6 +2895,48 @@ CChartSpace.prototype.applyLabelsFunction = function(fCallback, value)
 
                     }
                     fCallback(dLbl, value, this.getDrawingDocument(), 10);
+                }
+            }
+        }
+    }
+    else {
+        var oDD = this.getDrawingDocument();
+        fCallback(this, value, oDD, 10);
+        var chart = this.chart, i;
+        if(chart)
+        {
+            for(i = 0; i < chart.pivotFmts.length; ++i)
+            {
+                chart.pivotFmts[i] &&  fCallback(chart.pivotFmts[i], value, oDD, 10);
+            }
+            if(chart.legend)
+            {
+                fCallback(chart.legend, value, oDD, 10);
+                for(i = 0;  i < chart.legend.legendEntryes.length; ++i)
+                {
+                    chart.legend.legendEntryes[i] && fCallback(chart.legend.legendEntryes[i], value, oDD, 10);
+                }
+            }
+            if(chart.title)
+            {
+                fCallback(chart.title, value, oDD, 18);
+            }
+            var plot_area = chart.plotArea;
+            if(plot_area)
+            {
+                for(i = 0; i < plot_area.charts.length; ++i)
+                {
+                    plot_area.charts[i] && plot_area.charts[i].applyLabelsFunction(fCallback, value, oDD);/*TODO надо бы этот метод переименовать чтоб название не вводило в заблуждение*/
+                }
+                var cur_axis;
+                for(i = 0; i < plot_area.axId.length; ++i)
+                {
+                    cur_axis = plot_area.axId[i];
+                    fCallback(cur_axis, value, oDD, 10);
+                    if(cur_axis.title)
+                    {
+                        fCallback(cur_axis.title, value, oDD, 10);
+                    }
                 }
             }
         }
@@ -5395,6 +5485,7 @@ CChartSpace.prototype.recalcTitles2 = function()
         {
             var bOldRecalculateRef = this.recalcInfo.recalculateReferences;
             this.setRecalculateInfo();
+            this.handleTitlesAfterChangeTheme();
             this.recalcInfo.recalculateReferences = bOldRecalculateRef;
         }
         this.addToRecalculate();
@@ -15448,7 +15539,7 @@ CChartSpace.prototype.GetSearchElementId  = function(bNext, bCurrent)
 
 CChartSpace.prototype.isAccent1Background = function() {
     return this.spPr && this.spPr.Fill && this.spPr.Fill.isAccent1();
-}
+};
 
 CChartSpace.prototype.addSeries = function(sName, sValues) {
     var oLastChart = this.chart.plotArea.charts[this.chart.plotArea.charts.length - 1];
