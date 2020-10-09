@@ -18,8 +18,8 @@
         function cornerRadius() {
             var checkbox = document.getElementById('cornerRadius');
             if(checkbox.checked === true) {
-                settings.cornerRadius = 2;
-                settings1.cornerRadius = 2;
+                settings.cornerRadius = 6;
+                settings1.cornerRadius = 6;
                 scrollObject.Reinit(settings);
                 scrollObject1.Reinit(settings1);
             } else {
@@ -53,13 +53,12 @@
 </head>
 
 <body>
-<div style="width: 350px; height: 100px; padding-top: 20px; padding-left: 10px" id="menu">
+<div style="width: 350px; height: 100px; padding-left: 734px; z-index: 100" id="menu">
     <input type="checkbox" id="slimScroll"  onchange="slimScrolling();"> Slim Scroll
     <input type="checkbox" id="cornerRadius"  onchange="cornerRadius();"> Corner Radius
     <input type="checkbox" id="showArrows"  onchange="showArrows();" checked> Show Arrows
     <input type="text" value="20" id="fadeDelay" size="1">
     <button  id="buttonFadeDelay" onclick="clickFadeDelay()"/> Fade delay
-
 </div>
 </body>
 
@@ -72,9 +71,26 @@
     menuDiv.style.position = "absolute";
 
     var mainDiv = document.createElement('div');
+    mainDiv.id = "maindiv";
     mainDiv.style.top = "0px";
     mainDiv.style.left = "0px";
+    mainDiv.style.width = 720 + (isSlimScroll ? 11 : 14) + "px";
+    mainDiv.style.height = 720 + (isSlimScroll ? 11 : 14) + "px";
+    mainDiv.style.position = "absolute";
+    var str  = '';
+    for(var i = 0; i < 50; i++) {
+     str += 'testtesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttesttest<br>'
+    }
+
+    mainDiv.innerHTML = '<div id="content" style="position:absolute;width:100%;height:100%;overflow:hidden"></div>'
     document.body.append(mainDiv);
+    var content = document.getElementById("content");
+    var str;
+    for (var i = 0; i < 720; i++) {
+        str += 'test + <br>'
+    }
+    content.innerHTML = str;
+
     var scrollObject, scrollObject1, settings, settings1, isSlimScroll = false, isShowArrows = true;
 
     function createScrolls(div) {
@@ -87,12 +103,17 @@
         divVertScroll.style.position = "absolute";
         divVertScroll.style.width = (isSlimScroll ? 11 : 14) + "px";
         divVertScroll.style.height = "720px";
-        divVertScroll.style.left = "0px";
-        divVertScroll.style.top = "0px";
+        divVertScroll.style.right = "0px";
         settings.slimScroll = isSlimScroll;
         settings.showArrows = isShowArrows;
         div.appendChild(divVertScroll);
         scrollObject = new AscCommon.ScrollObject("ws-v-scrollbar", settings);
+
+        scrollObject.bind("scrollvertical", function(evt)
+        {
+            var content = document.getElementById("content");
+            content.scrollTop = evt.scrollPositionY / settings.vscrollStep;
+        });
 
         var divHorScroll = document.createElement('div');
         divHorScroll.id = "ws-h-scrollbar";
@@ -100,8 +121,7 @@
         divHorScroll.style.position = "absolute";
         divHorScroll.style.width = "720px";
         divHorScroll.style.height = (isSlimScroll ? 11 : 14) + "px";
-        divHorScroll.style.left = (Math.round(15 * dPR)) / dPR + "px";
-        divHorScroll.style.top = "0px";
+        divHorScroll.style.bottom =  "0px";
         settings1.slimScroll = isSlimScroll;
         settings1.showArrows = isShowArrows;
         settings1.isHorizontalScroll = true;
@@ -109,21 +129,30 @@
         div.appendChild(divHorScroll);
         scrollObject1 = new AscCommon.ScrollObject("ws-h-scrollbar", settings1);
 
+        scrollObject1.bind("scrollhorizontal", function(evt)
+        {
+           var content = document.getElementById("content");
+            content.scrollLeft = evt.scrollPositionX / settings1.hscrollStep;
+        });
+
     }
     createScrolls(mainDiv);
 
     window.addEventListener('mousemove', e => {
             scrollObject.mouseDown ? scrollObject.evt_mousemove.call(scrollObject, event) : false;
             scrollObject1.mouseDown ? scrollObject1.evt_mousemove.call(scrollObject1, event) : false;
-
     });
     window.addEventListener('mouseup', e => {
         scrollObject.mouseDown ? scrollObject.evt_mouseup.call( scrollObject, event) : false;
         scrollObject1.mouseDown ? scrollObject1.evt_mouseup.call( scrollObject1, event) : false;
     });
+    content.addEventListener('mousewheel', e => {
+        scrollObject.evt_mousewheel.call( scrollObject, event);
+    });
 
     window.onresize = function() {
-        createScrolls(mainDiv);
+        scrollObject.Reinit(settings);
+        scrollObject1.Reinit(settings1);
     }
 
 </script>
