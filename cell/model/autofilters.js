@@ -5585,6 +5585,23 @@
 				return result;
 			},
 
+			isPartFilterRightRange: function (range) {
+				var worksheet = this.worksheet;
+				var result = false;
+
+				if (worksheet.AutoFilter) {
+					var ref = worksheet.AutoFilter.Ref;
+					var allColRef = new Asc.Range(range.c1, range.r1, AscCommon.gc_nMaxCol0, range.r2);
+
+					if (allColRef.intersection(ref) && !allColRef.containsRange(ref)) {
+						result = true;
+					}
+
+				}
+
+				return result;
+			},
+
 			_isPartTablePartsByRowCol: function (range) {
 				var worksheet = this.worksheet;
 

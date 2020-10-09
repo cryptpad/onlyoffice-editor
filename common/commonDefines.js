@@ -159,6 +159,7 @@
 			LockedWorksheetRename            : -55,
 			FTChangeTableRangeError          : -56,
 			FTRangeIncludedOtherTables       : -57,
+			ChangeFilteredRangeError         : -58,
 
 			PasteMaxRangeError   : -64,
 			PastInMergeAreaError : -65,
@@ -2204,6 +2205,7 @@
 	prot['LockedWorksheetRename']            = prot.LockedWorksheetRename;
 	prot['FTChangeTableRangeError']          = prot.FTChangeTableRangeError;
 	prot['FTRangeIncludedOtherTables']       = prot.FTRangeIncludedOtherTables;
+	prot['ChangeFilteredRangeError']         = prot.ChangeFilteredRangeError;
 	prot['PasteMaxRangeError']               = prot.PasteMaxRangeError;
 	prot['PastInMergeAreaError']             = prot.PastInMergeAreaError;
 	prot['CopyMultiselectAreaError']         = prot.CopyMultiselectAreaError;
