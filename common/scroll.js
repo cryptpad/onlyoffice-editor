@@ -360,13 +360,21 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		this.secondArrow = {arrowColor: this.settings.arrowColor, arrowBackColor: this.ArrowDrawer.ColorBackNone};
 
 		this.piperColor = 207;
+		this.lastDPR = window.devicePixelRatio;
 
         this.fadeTimeoutScroll = null;
         this.fadeTimeoutArrows = null;
 
 		this.IsRetina = AscBrowser.isRetina;
-		var dPR = window.devicePixelRatio;
 
+		this.disableCurrentScroll = false;
+        this._initPiperImg();
+
+		this._init( elemID );
+	}
+
+	ScrollObject.prototype._initPiperImg = function() {
+		var dPR = window.devicePixelRatio;
 		this.piperImgVert = document.createElement( 'canvas' );
 		this.piperImgHor =  document.createElement( 'canvas' );
 
@@ -376,42 +384,38 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		this.piperImgHor.width = Math.round( 13 * dPR);
 		this.piperImgHor.height = Math.round(5 * dPR);
 
-		this.disableCurrentScroll = false;
-
 		if(this.settings.slimScroll){
 			this.piperImgVert.width =
-					this.piperImgHor.height = Math.round(3 * dPR);
+				this.piperImgHor.height = Math.round(3 * dPR);
 		}
 
 		var ctx_piperImg;
-        ctx_piperImg = this.piperImgVert.getContext('2d');
-        ctx_piperImg.beginPath();
-        ctx_piperImg.lineWidth = Math.floor(dPR);
-        var count = 0;
+		ctx_piperImg = this.piperImgVert.getContext('2d');
+		ctx_piperImg.beginPath();
+		ctx_piperImg.lineWidth = Math.floor(dPR);
+		var count = 0;
 
-        var _dPR = dPR < 0.5 ? Math.ceil(dPR) :  Math.round(dPR);
+		var _dPR = dPR < 0.5 ? Math.ceil(dPR) :  Math.round(dPR);
 
-        for (var i = 0; i < this.piperImgVert.height; i += _dPR + Math.floor(dPR)) {
-            ctx_piperImg.moveTo(0, i + 0.5 * ctx_piperImg.lineWidth);
-            ctx_piperImg.lineTo(this.piperImgVert.width, i + 0.5 * ctx_piperImg.lineWidth);
-            ctx_piperImg.stroke();
-            ++count;
-            if (count > 6 && dPR >= 1) break;
-        }
+		for (var i = 0; i < this.piperImgVert.height; i += _dPR + Math.floor(dPR)) {
+			ctx_piperImg.moveTo(0, i + 0.5 * ctx_piperImg.lineWidth);
+			ctx_piperImg.lineTo(this.piperImgVert.width, i + 0.5 * ctx_piperImg.lineWidth);
+			ctx_piperImg.stroke();
+			++count;
+			if (count > 6 && dPR >= 1) break;
+		}
 
-        ctx_piperImg = this.piperImgHor.getContext('2d');
-        ctx_piperImg.beginPath();
-        ctx_piperImg.lineWidth = Math.floor(dPR);
-        var count = 0;
-        for (var i = 0; i < this.piperImgHor.width; i += _dPR + Math.floor(dPR)) {
-            ctx_piperImg.moveTo(i + 0.5 * ctx_piperImg.lineWidth, 0);
-            ctx_piperImg.lineTo(i + 0.5 * ctx_piperImg.lineWidth, this.piperImgHor.height);
-            ctx_piperImg.stroke();
-            ++count;
-            if (count > 6 && dPR >= 1) break;
-        }
-
-		this._init( elemID );
+		ctx_piperImg = this.piperImgHor.getContext('2d');
+		ctx_piperImg.beginPath();
+		ctx_piperImg.lineWidth = Math.floor(dPR);
+		var count = 0;
+		for (var i = 0; i < this.piperImgHor.width; i += _dPR + Math.floor(dPR)) {
+			ctx_piperImg.moveTo(i + 0.5 * ctx_piperImg.lineWidth, 0);
+			ctx_piperImg.lineTo(i + 0.5 * ctx_piperImg.lineWidth, this.piperImgHor.height);
+			ctx_piperImg.stroke();
+			++count;
+			if (count > 6 && dPR >= 1) break;
+		}
 	}
 
 	ScrollObject.prototype._init = function ( elemID ) {
@@ -451,15 +455,16 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		this.maxScrollX = this.maxScrollX2 = canvasClientWidth - this.settings.screenW > 0 ? canvasClientWidth - this.settings.screenW : 0;
 
 		this._setScrollerHW();
-
 		this.settings.arrowDim = this.settings.slimScroll && this.settings.isVerticalScroll ? this.scroller.w : this.settings.arrowDim;
 		this.settings.arrowDim = this.settings.slimScroll && this.settings.isHorizontalScroll ? this.scroller.h : this.settings.arrowDim;
-		this.arrowPosition = this.settings.showArrows ? Math.round(this.settings.arrowDim + Math.round(2 * dPR)) : this.settings.marginScroller;
+		this.arrowPosition = this.settings.showArrows ? Math.round(this.settings.arrowDim + Math.round(dPR) + this._roundForScale(dPR)) : this.settings.marginScroller;
 
 		this.paneHeight = this.canvasH - this.arrowPosition * 2;
 		this.paneWidth = this.canvasW - this.arrowPosition * 2;
 
 		this.RecalcScroller();
+
+		this.lastDPR = dPR;
 
 		AscCommon.addMouseEvent(this.canvas, "down", this.evt_mousedown);
         AscCommon.addMouseEvent(this.canvas, "move", this.evt_mousemove);
@@ -655,7 +660,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		this._draw();
 	};
 	ScrollObject.prototype.Reinit = function ( settings, pos ) {
-		var size, dPR = window.devicePixelRatio,
+		var size,
 			canvasH = this.canvas.parentNode.firstElementChild.clientHeight,
 			canvasW = this.canvas.parentNode.firstElementChild.clientWidth,
 		    dPR = window.devicePixelRatio;
@@ -667,10 +672,19 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		size = Math.round(canvasW * dPR) - (settings.screenH || this.canvas.parentNode.offsetWidth);
 		this.maxScrollX = this.maxScrollX2 = 0 < size ? size : 0;
 
-		this.settings.isVerticalScroll = canvasH / Math.max( this.canvasH, 1 ) > 1 || this.settings.isVerticalScroll;
-		this.settings.isHorizontalScroll = canvasW / Math.max( this.canvasW, 1 ) > 1 || this.settings.isHorizontalScroll;
-		this._setScrollerHW();
+		if(this.settings.showArrows) {
+			this.settings.arrowSizeW = Math.round(13 * dPR);
+			this.settings.arrowSizeH = Math.round(13 * dPR);
+		}
 
+		this._setScrollerHW();
+		this.settings.arrowDim = Math.round(13 * dPR);
+		this.settings.arrowDim = this.settings.slimScroll && this.settings.isVerticalScroll ? this.scroller.w : this.settings.arrowDim;
+		this.settings.arrowDim = this.settings.slimScroll && this.settings.isHorizontalScroll ? this.scroller.h : this.settings.arrowDim;
+		this.arrowPosition = this.settings.showArrows ? Math.round(this.settings.arrowDim + Math.round(dPR) + this._roundForScale(dPR)) : Math.round(dPR);
+
+		this.settings.vscrollStep = Math.round(10 * dPR);
+		this.settings.hscrollStep = Math.round(10 * dPR);
 		this.paneHeight = this.canvasH - this.arrowPosition * 2;
 		this.paneWidth = this.canvasW - this.arrowPosition * 2;
 		this.RecalcScroller();
@@ -686,6 +700,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		this.reinit = false;
 		this.context.fillStyle = this.settings.scrollBackgroundColor;
 		this.context.fillRect(0, 0, this.canvasW, this.canvasH);
+        this._initPiperImg();
 		this._draw();
 	};
 	ScrollObject.prototype._scrollV = function ( that, evt, pos, isTop, isBottom, bIsAttack ) {
@@ -753,7 +768,6 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 			evt.pos = pos;
 			that.handleEvents( "onscrollHEnd", evt );
 		}
-
 	};
 	ScrollObject.prototype.scrollByY = function ( delta ) {
 		if ( !this.settings.isVerticalScroll ) {
@@ -805,7 +819,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 			return;
 		}
 
-		this.scroller.y = destY / Math.max( 1, this.scrollCoeff ) + this.arrowPosition;
+		this.scroller.y = destY / this.lastDPR * window.devicePixelRatio / Math.max( 1, this.scrollCoeff ) + this.arrowPosition;
 		if ( this.scroller.y < this.dragMinY )
 			this.scroller.y = this.dragMinY + 1;
 		else if ( this.scroller.y > this.dragMaxY )
@@ -864,8 +878,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		if ( !this.settings.isHorizontalScroll ) {
 			return;
 		}
-
-		this.scroller.x = destX / Math.max( 1, this.scrollCoeff ) + this.arrowPosition;
+		this.scroller.x = destX / this.lastDPR * window.devicePixelRatio / Math.max( 1, this.scrollCoeff ) + this.arrowPosition;
 		if ( this.scroller.x < this.dragMinX )
 			this.scroller.x = this.dragMinX + 1;
 		else if ( this.scroller.x > this.dragMaxX )
@@ -1355,9 +1368,6 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 
 	ScrollObject.prototype._setDimension = function ( h, w ) {
 
-		if ( w == this.canvasW && h == this.canvasH )
-			return;
-
 		var dPR = window.devicePixelRatio;
 		this.canvasH = Math.round(h * dPR);
 		this.canvasW = Math.round(w * dPR);
@@ -1390,11 +1400,13 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		}
 	};
 	ScrollObject.prototype._MouseHoverOnScroller = function ( mp ) {
-		if ( mp.x >= this.scroller.x && mp.x <= this.scroller.x + this.scroller.w &&
-			mp.y >= this.scroller.y && mp.y <= this.scroller.y + this.scroller.h ) {
+		if(this.settings.isVerticalScroll && mp.x >= 0 && mp.x <= this.scroller.x + this.scroller.w &&
+			mp.y >= this.scroller.y && mp.y <= this.scroller.y + this.scroller.h) {
 			return true;
-		}
-		else {
+		} else if(this.settings.isHorizontalScroll && mp.x >= this.scroller.x && mp.x <= this.scroller.x + this.scroller.w &&
+			mp.y >= 0 && mp.y <= this.scroller.y + this.scroller.h) {
+			return true;
+		} else {
 			return false;
 		}
 	};
@@ -1450,6 +1462,8 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 				scrollTimeout = setTimeout( doScroll, isFirst ? that.settings.initialDelay : that.settings.arrowRepeatFreq );
 				isFirst = false;
 			};
+		that.settings.vscrollStep = Math.round(10 * window.devicePixelRatio);
+		that.settings.hscrollStep = Math.round(10 * window.devicePixelRatio);
 		doScroll();
 		this.bind( "mouseup.main mouseout", function () {
 			scrollTimeout && clearTimeout( scrollTimeout );
@@ -1468,6 +1482,8 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 				scrollTimeout = setTimeout( doScroll, isFirst ? that.settings.initialDelay : that.settings.arrowRepeatFreq );
 				isFirst = false;
 			};
+		that.settings.vscrollStep = Math.round(10 * window.devicePixelRatio);
+		that.settings.hscrollStep = Math.round(10 * window.devicePixelRatio);
 		doScroll();
 		this.bind( "mouseup.main mouseout", function () {
 			scrollTimeout && clearTimeout( scrollTimeout );
@@ -1539,7 +1555,9 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 				} else {
 					this.that.animState = AnimationType.SCROLL_ACTIVE;
 				}
-				var _dlt = this.that.EndMousePosition.y - this.that.StartMousePosition.y;
+				var _dlt =this.that.EndMousePosition.y - this.that.StartMousePosition.y;
+				_dlt = _dlt >= 0 ? Math.floor(_dlt) : Math.ceil(_dlt);
+
 				if ( this.that.EndMousePosition.y == this.that.StartMousePosition.y ) {
 					return;
 				}
@@ -1552,6 +1570,10 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 					this.that.scroller.y = this.that.canvasH - this.that.arrowPosition - this.that.scroller.h;
 				}
 				else {
+					var dltY = _dlt > 0 ? this.that.canvasH - this.that.arrowPosition - this.that.scroller.h - this.that.scroller.y : this.that.arrowPosition - this.that.scroller.y;
+					var lineW = this.that._roundForScale(window.devicePixelRatio);
+					_dlt = (_dlt > 0) ? (dltY < _dlt ? lineW : _dlt) : (dltY > _dlt ? -lineW : _dlt);
+
 					if ( (_dlt > 0 && this.that.scroller.y + _dlt + this.that.scroller.h <= this.that.canvasH - this.that.arrowPosition ) ||
 						(_dlt < 0 && this.that.scroller.y + _dlt >= this.that.arrowPosition) ) {
 						this.that.scroller.y += _dlt;
@@ -1579,7 +1601,9 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
                 } else {
                     this.that.animState = AnimationType.SCROLL_ACTIVE;
                 }
-				var _dlt = this.that.EndMousePosition.x - this.that.StartMousePosition.x;
+				var _dlt =this.that.EndMousePosition.x - this.that.StartMousePosition.x;
+                _dlt = _dlt >= 0 ? Math.floor(_dlt) : Math.ceil(_dlt);
+
 				if ( this.that.EndMousePosition.x == this.that.StartMousePosition.x )
 					return;
 				else if ( this.that.EndMousePosition.x < this.that.arrowPosition ) {
@@ -1593,21 +1617,20 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 					this.that.scroller.x = this.that.canvasW - this.that.arrowPosition - this.that.scroller.w;
 				}
 				else {
+					var dltX = _dlt > 0 ? this.that.canvasW - this.that.arrowPosition - this.that.scroller.w - this.that.scroller.x : this.that.arrowPosition - this.that.scroller.x;
+					var lineW = this.that._roundForScale(window.devicePixelRatio);
+					_dlt = (_dlt > 0) ? (dltX < _dlt ? lineW : _dlt) : (dltX > _dlt ? -lineW : _dlt);
 					if ( (_dlt > 0 && this.that.scroller.x + _dlt + this.that.scroller.w <= this.that.canvasW - this.that.arrowPosition ) ||
 						(_dlt < 0 && this.that.scroller.x + _dlt >= this.that.arrowPosition) )
 						this.that.scroller.x += _dlt;
 				}
-				var destX = (this.that.scroller.x - this.that.arrowPosition) * this.that.scrollCoeff
+				var destX = (this.that.scroller.x - this.that.arrowPosition) * this.that.scrollCoeff;
 
 				this.that._scrollH( this.that, evt, destX, isTop, isBottom );
 
 				this.that.StartMousePosition.x = this.that.EndMousePosition.x;
 				this.that.StartMousePosition.y = this.that.EndMousePosition.y;
 			}
-		}
-
-		if ( !this.that.mouseDownArrow ) {
-			// this.that._drawArrow( arrowStat );
 		}
 
         this.that.moveble = false;
