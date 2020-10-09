@@ -2881,6 +2881,9 @@ function CDLbl()
     CSeriesBase.prototype.documentCreateFontMap = function(allFonts) {
         this.dLbls && this.dLbls.documentCreateFontMap(allFonts);
     };
+    CSeriesBase.prototype.applyLabelsFunction = function(fCallback, value, oDD) {
+        this.dLbls && this.dLbls.applyLabelsFunction(fCallback, value, oDD);
+    };
     CSeriesBase.prototype.getAllRasterImages = function(images)  {
         this.spPr && this.spPr.checkBlipFillRasterImage(images);
         this.dLbls && this.dLbls.getAllRasterImages(images);
@@ -4039,6 +4042,12 @@ CPlotArea.prototype =
         this.dLbls && this.dLbls.documentCreateFontMap(allFonts);
         for(var i = 0 ; i < this.series.length; ++i) {
             this.series[i].documentCreateFontMap(allFonts);
+        }
+    };
+    CChartBase.prototype.applyLabelsFunction = function(fCallback, value, oDD) {
+        this.dLbls && this.dLbls.applyLabelsFunction(fCallback, value, oDD);
+        for(var i = 0 ; i < this.series.length; ++i) {
+            this.series[i].applyLabelsFunction(fCallback, value, oDD);
         }
     };
     CChartBase.prototype.getAllRasterImages = function(images) {
@@ -7599,6 +7608,14 @@ CDLbls.prototype =
         {
             this.dLbl[i] && AscFormat.checkTxBodyDefFonts(allFonts, this.dLbl[i].txPr);
             this.dLbl[i].tx && this.dLbl[i].tx.rich && this.dLbl[i].tx.rich.content && this.dLbl[i].tx.rich.content.Document_Get_AllFontNames(allFonts);
+        }
+    },
+    applyLabelsFunction: function(fCallback, value, oDD)
+    {
+        fCallback(this, value, oDD, 10);
+        for(var i = 0; i < this.dLbl.length; ++i)
+        {
+            this.dLbl[i] && fCallback(this.dLbl[i], value, oDD, 10);
         }
     },
     getObjectType: function()
