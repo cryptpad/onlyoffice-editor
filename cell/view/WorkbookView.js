@@ -2490,7 +2490,18 @@
       if (newSelectionDialogMode) {
           this.copyActiveSheet = this.wsActive;
 
-          var tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange);
+          var tmpSelectRange;
+          if(c_oAscSelectionDialogType.Chart === selectionDialogType) {
+              if(typeof selectRange === "string" && selectRange[0] === '=') {
+                  tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange.slice(1));
+              }
+              else {
+                  tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange);
+              }
+          }
+          else {
+              tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange);
+          }
           if (tmpSelectRange) {
               var ws = this.model.getWorksheetByName(tmpSelectRange.sheet);
               if (!ws || ws.getHidden()) {
