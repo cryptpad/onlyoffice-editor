@@ -1750,7 +1750,6 @@
         var oldTransform = this.transform.CreateDublicate();
         var oldExtX = this.extX;
         var oldExtY = this.extY;
-        var newExtX, newExtY;
         AscFormat.ExecuteNoHistory(function(){
             // this.cropObject.recalculateTransform();
             // this.recalculateTransform();
@@ -1760,20 +1759,9 @@
             this.recalcInfo.recalculateTransform = oldVal;
         }, this, []);
         this.transform = oldTransform;
-        newExtX = this.extX;
-        newExtY = this.extY;
         this.extX = oldExtX;
         this.extY = oldExtY;
         this.setSrcRect(this.calculateSrcRect2());
-        var oParent = this.parent;
-        if(oParent && oParent.Check_WrapPolygon)
-        {
-            this.extX = newExtX;
-            this.extY = newExtY;
-            oParent.Check_WrapPolygon();
-            this.extX = oldExtX;
-            this.extY = oldExtY;
-        }
         this.clearCropObject();
     };
 

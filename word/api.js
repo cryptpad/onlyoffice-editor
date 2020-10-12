@@ -9001,6 +9001,10 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.asc_SetContentControlPictureUrl = function(sUrl, sId)
 	{
+		if (this.WordControl && this.WordControl.m_oDrawingDocument)
+		{
+			this.WordControl.m_oDrawingDocument.UnlockCursorType();
+		}
 		var oLogicDocument = this.private_GetLogicDocument();
 		if (!oLogicDocument || AscCommon.isNullOrEmptyString(sUrl))
 			return;
