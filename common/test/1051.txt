@@ -1,1 +1,0 @@
-[$-F800]DDDD, MMMM DD, AAAA
