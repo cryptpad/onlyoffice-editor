@@ -9735,7 +9735,7 @@ CDocumentColor.prototype.Compare = function(Color)
 };
 CDocumentColor.prototype.Is_Equal = function(Color)
 {
-	return this.Is_Equal(Color);
+	return this.IsEqual(Color);
 };
 
 
