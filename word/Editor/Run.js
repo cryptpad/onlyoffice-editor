@@ -11721,7 +11721,7 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 			var arrElements = oRunElementsBefore.GetElements();
 			if (arrElements.length > 0 && para_Text === arrElements[0].Type && 45 === arrElements[0].Value)
 			{
-				oDocument.StartAction(AscDFH.Document_AutoCorrectHyphensWithDash);
+				oDocument.StartAction(AscDFH.historydescription_Document_AutoCorrectHyphensWithDash);
 
 				var oDash = new ParaText(8212);
 				this.AddToContent(nPos + 1, oDash);
