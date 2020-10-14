@@ -1288,6 +1288,11 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
         }
         return ret;
     };
+    CGraphicFrame.prototype.documentCreateFontMap = function(oMap) {
+        if(this.graphicObject && this.graphicObject.Document_CreateFontMap) {
+            this.graphicObject.Document_CreateFontMap(oMap);
+        }
+    };
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CGraphicFrame = CGraphicFrame;

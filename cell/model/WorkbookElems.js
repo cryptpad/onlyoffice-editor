@@ -4755,13 +4755,14 @@ StyleManager.prototype =
 		}
 	};
 	Row.prototype.setHidden = function (val, bViewLocalChange) {
-		if (this.index >= 0 && (!this.getHidden() !== !val)) {
-			this.ws.hiddenManager.addHidden(true, this.index);
-		}
-
+		var inViewAndFilter = this.ws.getActiveNamedSheetViewId() !== null && this.ws.autoFilters.containInFilter(this.index);
 		if (!bViewLocalChange) {
 			var bCollaborativeChanges = !this.ws.autoFilters.useViewLocalChange && this.ws.workbook.bCollaborativeChanges;
-			bViewLocalChange = !bCollaborativeChanges && this.ws.getActiveNamedSheetViewId() !== null && this.ws.autoFilters.containInFilter(this.index);
+			bViewLocalChange = !bCollaborativeChanges && inViewAndFilter;
+		}
+		//если находимся в режиме вью, а приходят изменения для дефолта - не меняем hiddenManager
+		if (this.index >= 0 && (!this.getHidden() !== !val) && !(inViewAndFilter && !bViewLocalChange)) {
+			this.ws.hiddenManager.addHidden(true, this.index);
 		}
 
 		var _rowFlag_hd = !bViewLocalChange ? g_nRowFlag_hd : g_nRowFlag_hdView;
@@ -6158,7 +6159,8 @@ function RangeDataManagerElem(bbox, data)
 		this.handlers.trigger("changeRefTablePart", this);
 
 		if (this.AutoFilter) {
-			this.AutoFilter.changeRefOnRange(range);
+			var filterRange = new Asc.Range(range.c1, range.r1, range.c2, this.isTotalsRow() ? range.r2 - 1 : range.r2);
+			this.AutoFilter.changeRefOnRange(filterRange);
 		}
 	};
 	TablePart.prototype.isApplyAutoFilter = function () {
@@ -6592,6 +6594,9 @@ function RangeDataManagerElem(bbox, data)
 
 		return oNewElem;
 	};
+	AutoFilter.prototype.getFilterColumnByIndex = function (index) {
+		return this.FilterColumns && this.FilterColumns[index];
+	};
 	AutoFilter.prototype.setStringRef = function (ref) {
 		//TODO пересмотреть проверку
 		//возможно здесь 3d ref - проверяем
@@ -6631,10 +6636,6 @@ function RangeDataManagerElem(bbox, data)
 		}
 
 		this.Ref = new Asc.Range(range.c1, range.r1, range.c2, range.r2);
-
-		if (this.AutoFilter) {
-			this.AutoFilter.changeRefOnRange(range);
-		}
 	};
 	AutoFilter.prototype.isApplyAutoFilter = function () {
 		var res = false;
@@ -6946,6 +6947,11 @@ function RangeDataManagerElem(bbox, data)
 		}
 		//todo sortState
 		writer.WriteXmlNodeEnd(name);
+	};
+	AutoFilter.prototype.deleteFilterColumn = function(index) {
+		if (this.FilterColumns && this.FilterColumns[index]) {
+			this.FilterColumns.splice(index, 1)
+		}
 	};
 
 	function FilterColumns() {
@@ -10079,7 +10085,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		var oRes = new CHeaderFooter(ws);
 
 		oRes.alignWithMargins = this.alignWithMargins;
-		oRes.differentFirst = this.alignWithMargins;
+		oRes.differentFirst = this.differentFirst;
 		oRes.differentOddEven = this.differentOddEven;
 		oRes.scaleWithDoc = this.scaleWithDoc;
 		oRes.evenFooter = this.evenFooter ? this.evenFooter.clone() : null;

@@ -7139,8 +7139,13 @@ CPresentation.prototype.Get_PageSizesByDrawingObjects = function () {
 // Дополнительные функции
 //-----------------------------------------------------------------------------------
 CPresentation.prototype.Document_CreateFontMap = function () {
-    //TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!
-    return;
+    var nSlide;
+    var oCheckedMap = {};
+    var oFontsMap = {};
+    for(nSlide = 0; nSlide < this.Slides.length; ++nSlide) {
+        this.Slides[nSlide].createFontMap(oFontsMap, oCheckedMap);
+    }
+    return oFontsMap;
 };
 
 CPresentation.prototype.Document_CreateFontCharMap = function (FontCharMap) {
@@ -7162,10 +7167,10 @@ CPresentation.prototype.Document_Get_AllFontNames = function () {
         this.globalTableStyles.Document_Get_AllFontNames(AllFonts);
     }
 
-    for (var i = 0; i < this.notesMasters.length; ++i) {
+    for (i = 0; i < this.notesMasters.length; ++i) {
         this.notesMasters[i].getAllFonts(AllFonts);
     }
-    for (var i = 0; i < this.notes.length; ++i) {
+    for (i = 0; i < this.notes.length; ++i) {
         this.notes[i].getAllFonts(AllFonts);
     }
     delete AllFonts["+mj-lt"];

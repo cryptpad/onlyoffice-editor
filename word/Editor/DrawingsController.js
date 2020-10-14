@@ -423,7 +423,7 @@ CDrawingsController.prototype.GetCurPosXY = function()
 };
 CDrawingsController.prototype.GetSelectedText = function(bClearText, oPr)
 {
-	return this.DrawingObjects.getSelectedText(bClearText, oPr);
+	return this.DrawingObjects.GetSelectedText(bClearText, oPr);
 };
 CDrawingsController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {

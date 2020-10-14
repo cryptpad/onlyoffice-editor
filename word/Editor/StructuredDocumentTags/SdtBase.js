@@ -194,8 +194,27 @@ CSdtBase.prototype.SetFormPr = function(oFormPr)
 		var oLogicDocument = this.GetLogicDocument();
 		if (oLogicDocument)
 			oLogicDocument.RegisterForm(this);
+
+		this.private_OnAddFormPr();
 	}
 }
+/**
+ * Удаляем настройки специальных форм
+ */
+CSdtBase.prototype.RemoveFormPr = function()
+{
+	if (this.Pr.FormPr)
+	{
+		History.Add(new CChangesSdtPrFormPr(this, this.Pr.FormPr, undefined));
+		this.Pr.FormPr = undefined;
+
+		var oLogicDocument = this.GetLogicDocument();
+		if (oLogicDocument)
+			oLogicDocument.UnregisterForm(this);
+
+		this.private_OnAddFormPr();
+	}
+};
 /**
  * @returns {?CSdtFormPr}
  */
@@ -248,3 +267,15 @@ CSdtBase.prototype.GetRadioButtonGroupKey = function()
 
 	return (this.Pr.CheckBox.GroupKey);
 };
+/**
+ * Для чекбоксов и радио-кнопок получаем состояние
+ * @returns {bool}
+ */
+CSdtBase.prototype.IsCheckBoxChecked = function()
+{
+	if (this.IsCheckBox())
+		return this.Pr.CheckBox.Checked;
+
+	return false;
+};
+

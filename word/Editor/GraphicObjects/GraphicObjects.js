@@ -1853,6 +1853,8 @@ CGraphicObjects.prototype =
         {
             this.drawingDocument.SelectClear();
             this.drawingDocument.TargetEnd();
+			this.drawingDocument.SelectEnabled(true);
+			this.drawingDocument.SelectShow();
         }
     },
 
@@ -2160,18 +2162,7 @@ CGraphicObjects.prototype =
         }
     },
 
-    getSelectedText: function(bClearText, oPr)
-    {
-        var content = this.getTargetDocContent();
-        if(content)
-        {
-            return content.GetSelectedText(bClearText, oPr);
-        }
-        else
-        {
-            return "";
-        }
-    },
+    GetSelectedText: DrawingObjectsController.prototype.GetSelectedText,
 
     getCurPosXY: function()
     {

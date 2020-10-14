@@ -10302,7 +10302,7 @@ CTableMeasurement.prototype =
  */
 CTableMeasurement.prototype.IsMM = function()
 {
-	return !!(tblwidth_Mm === this.Type);
+	return (tblwidth_Mm === this.Type);
 };
 /**
  * Измерение в процентах?
@@ -10310,7 +10310,15 @@ CTableMeasurement.prototype.IsMM = function()
  */
 CTableMeasurement.prototype.IsPercent = function()
 {
-	return !!(tblwidth_Pct === this.Type);
+	return (tblwidth_Pct === this.Type);
+};
+/**
+ * Ширина должна быть расчитана автоматически
+ * @returns {boolean}
+ */
+CTableMeasurement.prototype.IsAuto = function()
+{
+	return (tblwidth_Auto === this.Type);
 };
 /**
  * Получаем значение ширины в процентах или в миллиметрах
@@ -10320,6 +10328,19 @@ CTableMeasurement.prototype.GetValue = function()
 {
 	return this.W;
 };
+/**
+ * Расчитываем ширину с учетом заданного типа
+ * @param {number} nFullWidth - ширина родительского элемента для расчета значения процентах
+ */
+CTableMeasurement.prototype.GetCalculatedValue = function(nFullWidth)
+{
+	if (this.IsMM())
+		return this.W;
+	else if (this.IsPercent())
+		return this.W * nFullWidth / 100;
+
+	return 0;
+}
 CTableMeasurement.prototype.ReadFromBinary = function(oReader)
 {
 	// Double : W
@@ -15089,6 +15110,10 @@ CFramePr.prototype =
         return false;
     }
 };
+CFramePr.prototype.GetW = function()
+{
+	return this.W;
+};
 CFramePr.prototype.IsEqual = function(oFramePr)
 {
 	if (!oFramePr)
@@ -16240,7 +16265,7 @@ CParaPr.prototype.Get_PresentationBullet = function(theme, colorMap)
 
 			case AscFormat.BULLET_TYPE_BULLET_AUTONUM :
 			{
-				Bullet.m_nType    = g_NumberingArr[this.Bullet.bulletType.AutoNumType];
+				Bullet.m_nType    = this.Bullet.bulletType.AutoNumType;
 				if(this.Bullet.bulletType.startAt === null)
 				{
 					Bullet.m_nStartAt = 1;

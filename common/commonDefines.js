@@ -159,6 +159,7 @@
 			LockedWorksheetRename            : -55,
 			FTChangeTableRangeError          : -56,
 			FTRangeIncludedOtherTables       : -57,
+			ChangeFilteredRangeError         : -58,
 
 			PasteMaxRangeError   : -64,
 			PastInMergeAreaError : -65,
@@ -860,7 +861,8 @@
 		Common       : 0,
 		Hyperlink    : 1,
 		LockedObject : 2,
-		Footnote     : 3
+		Footnote     : 3,
+		Form         : 4
 	};
 
 	// selection type
@@ -2204,6 +2206,7 @@
 	prot['LockedWorksheetRename']            = prot.LockedWorksheetRename;
 	prot['FTChangeTableRangeError']          = prot.FTChangeTableRangeError;
 	prot['FTRangeIncludedOtherTables']       = prot.FTRangeIncludedOtherTables;
+	prot['ChangeFilteredRangeError']         = prot.ChangeFilteredRangeError;
 	prot['PasteMaxRangeError']               = prot.PasteMaxRangeError;
 	prot['PastInMergeAreaError']             = prot.PastInMergeAreaError;
 	prot['CopyMultiselectAreaError']         = prot.CopyMultiselectAreaError;
@@ -2649,6 +2652,16 @@
 	prot['Millimeter']                      = prot.Millimeter;
 	prot['Inch']                            = prot.Inch;
 	prot['Point']                           = prot.Point;
+
+	window['Asc']['c_oAscMouseMoveDataTypes'] = window['Asc'].c_oAscMouseMoveDataTypes = c_oAscMouseMoveDataTypes;
+
+	prot                 = c_oAscMouseMoveDataTypes;
+	prot['Common']       = prot.Common;
+	prot['Hyperlink']    = prot.Hyperlink;
+	prot['LockedObject'] = prot.LockedObject;
+	prot['Footnote']     = prot.Footnote;
+	prot['Form']         = prot.Form;
+
 	window['Asc']['c_oAscMaxTooltipLength'] = window['Asc'].c_oAscMaxTooltipLength = c_oAscMaxTooltipLength;
 	window['Asc']['c_oAscMaxCellOrCommentLength'] = window['Asc'].c_oAscMaxCellOrCommentLength = c_oAscMaxCellOrCommentLength;
 	window['Asc']['c_oAscMaxHeaderFooterLength']  = window['Asc'].c_oAscMaxHeaderFooterLength  = c_oAscMaxHeaderFooterLength;
@@ -2834,7 +2847,6 @@
 	window["AscCommon"].c_oAscChartSubType          = c_oAscChartSubType;
 	window["AscCommon"].c_oAscCsvDelimiter          = c_oAscCsvDelimiter;
 	window["AscCommon"].c_oAscUrlType               = c_oAscUrlType;
-	window["AscCommon"].c_oAscMouseMoveDataTypes    = c_oAscMouseMoveDataTypes;
 	window["AscCommon"].c_oAscPrintDefaultSettings  = c_oAscPrintDefaultSettings;
 	window["AscCommon"].c_oZoomType                 = c_oZoomType;
 	window["AscCommon"].c_oNotifyType               = c_oNotifyType;

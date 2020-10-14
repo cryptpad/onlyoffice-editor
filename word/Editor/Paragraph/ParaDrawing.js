@@ -1890,7 +1890,7 @@ ParaDrawing.prototype.UpdateCursorType = function(X, Y, PageIndex)
 			var Coords              = this.DrawingDocument.ConvertCoordsToCursorWR(_X, _Y, this.Parent.Get_StartPage_Absolute() + ( PageIndex - this.Parent.PageNum ));
 			MMData.X_abs            = Coords.X - 5;
 			MMData.Y_abs            = Coords.Y;
-			MMData.Type             = AscCommon.c_oAscMouseMoveDataTypes.LockedObject;
+			MMData.Type             = Asc.c_oAscMouseMoveDataTypes.LockedObject;
 			MMData.UserId           = Lock.Get_UserId();
 			MMData.HaveChanges      = Lock.Have_Changes();
 			MMData.LockedObjectType = c_oAscMouseMoveLockedObjectType.Common;
@@ -2103,10 +2103,10 @@ ParaDrawing.prototype.getCurrentParagraph = function(bIgnoreSelection, arrSelect
 	if (this.Parent instanceof Paragraph)
 		return this.Parent;
 };
-ParaDrawing.prototype.getSelectedText = function(bClearText, oPr)
+ParaDrawing.prototype.GetSelectedText = function(bClearText, oPr)
 {
-	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.getSelectedText === "function")
-		return this.GraphicObj.getSelectedText(bClearText, oPr);
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.GetSelectedText === "function")
+		return this.GraphicObj.GetSelectedText(bClearText, oPr);
 	return "";
 };
 ParaDrawing.prototype.getCurPosXY = function()

@@ -12559,7 +12559,7 @@
 						type: CellValueType.String
 					})));
 			} else {
-				range.setValue(rangeStyle.val, null, null, null, pasteOnlyText);
+				range.setValue(rangeStyle.val, null, null, undefined, pasteOnlyText);
 			}
 		}
 
@@ -14131,7 +14131,7 @@
     };
 
 	WorksheetView.prototype._saveCellValueAfterEdit = function (c, val, flags, isNotHistory, lockDraw) {
-	    var bbox = c.bbox;
+		var bbox = c.bbox;
 		var t = this;
 
 		var ctrlKey = flags && flags.ctrlKey;
@@ -14169,6 +14169,10 @@
 			changeRangesIfArrayFormula();
 			if(ctrlKey) {
 				this.model.workbook.dependencyFormulas.lockRecal();
+			}
+
+			if (!applyByArray && ctrlKey) {
+				applyByArray = null;
 			}
 
 			c.setValue(AscCommonExcel.getFragmentsText(val), function (r) {
@@ -15235,9 +15239,9 @@
         return this.model.autoFilters.getAddFormatTableOptions(selectionRange, range, isPivot);
     };
 
-    WorksheetView.prototype.clearFilter = function () {
-        var t = this;
-        var ar = this.model.selectionRange.getLast().clone();
+	WorksheetView.prototype.clearFilter = function () {
+		var t = this;
+		var ar = this.model.selectionRange.getLast().clone();
 		//pivot
 		if (Asc.CT_pivotTableDefinition.prototype.asc_removeFilters) {
 			var pivotTable = this.model.inPivotTable(ar);
@@ -15247,22 +15251,32 @@
 			}
 		}
 
-        var onChangeAutoFilterCallback = function (isSuccess) {
-            if (false === isSuccess) {
-                return;
-            }
+		var onChangeAutoFilterCallback = function (isSuccess) {
+			if (false === isSuccess) {
+				return;
+			}
 
 			AscCommonExcel.checkFilteringMode(function () {
 				var updateRange = t.model.autoFilters.isApplyAutoFilterInCell(ar, true);
 				if (false !== updateRange) {
 					t._onUpdateFormatTable(updateRange);
-                    t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: updateRange.r1});
+					t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: updateRange.r1});
 					t._updateSlicers(updateRange);
 				}
 			});
-        };
-        this._isLockedAll(onChangeAutoFilterCallback);
-    };
+		};
+		//в особом режиме не лочим лист при фильтрации
+		var nActive = t.model.getActiveNamedSheetViewId();
+		if (null !== nActive) {
+			//лочу для того, чтобы не было возможности изменить имя текущего отображения
+			//иначе будут конфликты при принятии изменений
+			//api._isLockedNamedSheetView([t.model.aNamedSheetViews[nActive]], function (_success) {
+			onChangeAutoFilterCallback(true);
+			//});
+		} else {
+			this._isLockedAll(onChangeAutoFilterCallback);
+		}
+	};
 
     WorksheetView.prototype.clearFilterColumn = function (cellId, displayName) {
         var t = this;
@@ -15292,7 +15306,17 @@
 				}
 			});
         };
-        this._isLockedAll(onChangeAutoFilterCallback);
+		//в особом режиме не лочим лист при фильтрации
+		var nActive = t.model.getActiveNamedSheetViewId();
+		if (null !== nActive) {
+			//лочу для того, чтобы не было возможности изменить имя текущего отображения
+			//иначе будут конфликты при принятии изменений
+			//api._isLockedNamedSheetView([t.model.aNamedSheetViews[nActive]], function (_success) {
+			onChangeAutoFilterCallback(true);
+			//});
+		} else {
+			this._isLockedAll(onChangeAutoFilterCallback);
+		}
     };
 
     /**
@@ -16667,30 +16691,33 @@
         this.model.autoFilters.changeDisplayNameTable(tableName, newName);
     };
 
-    WorksheetView.prototype.af_checkInsDelCells = function (activeRange, val, prop, isFromFormatTable) {
-        var ws = this.model;
-        var res = true;
+	WorksheetView.prototype.af_checkInsDelCells = function (activeRange, val, prop, isFromFormatTable) {
+		var ws = this.model;
+		var res = true;
+		var filterError;
 
 		if (!window['AscCommonExcel'].filteringMode) {
-			if(val === c_oAscInsertOptions.InsertCellsAndShiftRight || val === c_oAscInsertOptions.InsertColumns){
+			if (val === c_oAscInsertOptions.InsertCellsAndShiftRight || val === c_oAscInsertOptions.InsertColumns) {
 				return false;
-			}else if(val === c_oAscDeleteOptions.DeleteCellsAndShiftLeft || val === c_oAscDeleteOptions.DeleteColumns){
+			} else if (val === c_oAscDeleteOptions.DeleteCellsAndShiftLeft || val === c_oAscDeleteOptions.DeleteColumns) {
 				return false;
 			}
 		}
 
-        var intersectionTableParts = ws.autoFilters.getTablesIntersectionRange(activeRange);
-        var isPartTablePartsUnderRange = ws.autoFilters._isPartTablePartsUnderRange(activeRange);
-        var isPartTablePartsRightRange = ws.autoFilters.isPartTablePartsRightRange(activeRange);
-        var isOneTableIntersection = intersectionTableParts && intersectionTableParts.length === 1 ? intersectionTableParts[0] : null;
+		var intersectionTableParts = ws.autoFilters.getTablesIntersectionRange(activeRange);
+		var isPartTablePartsUnderRange = ws.autoFilters._isPartTablePartsUnderRange(activeRange);
+		var isPartTablePartsRightRange = ws.autoFilters.isPartTablePartsRightRange(activeRange);
+		var isOneTableIntersection = intersectionTableParts && intersectionTableParts.length === 1 ? intersectionTableParts[0] : null;
+
+		var isPartFilterUnderRange = ws.autoFilters.isPartFilterUnderRange(activeRange);
+		var isPartFilterRightRange = ws.autoFilters.isPartFilterRightRange(activeRange);
 
 		var isPartTablePartsByRowCol = ws.autoFilters._isPartTablePartsByRowCol(activeRange);
-		//var isPartTablePartsRows = ws.autoFilters._isPartTablePartsUnderRange(activeRange);
 
 		var allTablesInside = true;
-		if(intersectionTableParts && intersectionTableParts.length) {
-			for(var i = 0; i < intersectionTableParts.length; i++) {
-				if(intersectionTableParts[i] && intersectionTableParts[i].Ref && !activeRange.containsRange(intersectionTableParts[i].Ref)) {
+		if (intersectionTableParts && intersectionTableParts.length) {
+			for (var i = 0; i < intersectionTableParts.length; i++) {
+				if (intersectionTableParts[i] && intersectionTableParts[i].Ref && !activeRange.containsRange(intersectionTableParts[i].Ref)) {
 					allTablesInside = false;
 					break;
 				}
@@ -16700,131 +16727,148 @@
 		//TODO перепроверить ->
 		//когда выделено несколько колонок и нажимаем InsertCellsAndShiftRight(аналогично со строками)
 		//ms в данном случае выдаёт ошибку, но пока не вижу никаких ограничений для данного действия
-        var checkInsCells = function () {
-            switch (val) {
-                case c_oAscInsertOptions.InsertCellsAndShiftDown:
-                {
-                    if (isFromFormatTable) {
-                        //если внизу находится часть форматированной таблицы или это часть форматированной таблицы
-                        if (isPartTablePartsUnderRange) {
-                            res = false;
-                        } else if (isOneTableIntersection !== null &&
-                          !(isOneTableIntersection.Ref.c1 === activeRange.c1 &&
-                          isOneTableIntersection.Ref.c2 === activeRange.c2)) {
-                            res = false;
-                        }
-                    } else {
-                        if (isPartTablePartsUnderRange) {
-                            res = false;
-                        } /*else if (intersectionTableParts && null !== isOneTableIntersection) {
+		var checkInsCells = function () {
+			switch (val) {
+				case c_oAscInsertOptions.InsertCellsAndShiftDown: {
+					if (isFromFormatTable) {
+						//если внизу находится часть форматированной таблицы или это часть форматированной таблицы
+						if (isPartTablePartsUnderRange) {
+							res = false;
+						} else if (isOneTableIntersection !== null &&
+							!(isOneTableIntersection.Ref.c1 === activeRange.c1 &&
+								isOneTableIntersection.Ref.c2 === activeRange.c2)) {
+							res = false;
+						}
+					} else {
+						if (isPartTablePartsUnderRange) {
+							res = false;
+						} /*else if (intersectionTableParts && null !== isOneTableIntersection) {
                             res = false;
                         } else if (isOneTableIntersection && !isOneTableIntersection.Ref.isEqual(activeRange)) {
                             res = false;
-                        }*/ else if(isPartTablePartsByRowCol && isPartTablePartsByRowCol.cols) {
+                        }*/ else if (isPartTablePartsByRowCol && isPartTablePartsByRowCol.cols) {
 							res = false;
 						}
-                    }
+					}
 
-                    break;
-                }
-                case c_oAscInsertOptions.InsertCellsAndShiftRight:
-                {
-                    //если справа находится часть форматированной таблицы или это часть форматированной таблицы
-                    if (isFromFormatTable) {
-                        if (isPartTablePartsRightRange) {
-                            res = false;
-                        }
-                    } else {
-                        if (isPartTablePartsRightRange) {
-                            res = false;
-                        } /*else if (intersectionTableParts && null !== isOneTableIntersection) {
+					if (res && isPartFilterUnderRange) {
+						res = false;
+						filterError = true;
+					}
+
+					break;
+				}
+				case c_oAscInsertOptions.InsertCellsAndShiftRight: {
+					//если справа находится часть форматированной таблицы или это часть форматированной таблицы
+					if (isFromFormatTable) {
+						if (isPartTablePartsRightRange) {
+							res = false;
+						}
+					} else {
+						if (isPartTablePartsRightRange) {
+							res = false;
+						} /*else if (intersectionTableParts && null !== isOneTableIntersection) {
                             res = false;
                         } else if (isOneTableIntersection && !isOneTableIntersection.Ref.isEqual(activeRange)) {
                             res = false;
-                        } */else if(isPartTablePartsByRowCol && isPartTablePartsByRowCol.rows) {
+                        } */ else if (isPartTablePartsByRowCol && isPartTablePartsByRowCol.rows) {
 							res = false;
 						}
-                    }
+					}
 
-                    break;
-                }
-                case c_oAscInsertOptions.InsertColumns:
-                {
+					if (res && isPartFilterRightRange) {
+						res = false;
+						filterError = true;
+					}
 
-                    break;
-                }
-                case c_oAscInsertOptions.InsertRows:
-                {
+					break;
+				}
+				case c_oAscInsertOptions.InsertColumns: {
 
-                    break;
-                }
-            }
-        };
+					break;
+				}
+				case c_oAscInsertOptions.InsertRows: {
 
-        var checkDelCells = function () {
-            switch (val) {
-                case c_oAscDeleteOptions.DeleteCellsAndShiftTop:
-                {
-                    if (isFromFormatTable) {
-                        if (isPartTablePartsUnderRange) {
-                            res = false;
-                        }
-                    } else {
-                        if (isPartTablePartsUnderRange) {
-                            res = false;
-                        } /*else if (!isOneTableIntersection && null !== isOneTableIntersection) {
+					break;
+				}
+			}
+		};
+
+		var checkDelCells = function () {
+			switch (val) {
+				case c_oAscDeleteOptions.DeleteCellsAndShiftTop: {
+					if (isFromFormatTable) {
+						if (isPartTablePartsUnderRange) {
+							res = false;
+						}
+					} else {
+						if (isPartTablePartsUnderRange) {
+							res = false;
+						} /*else if (!isOneTableIntersection && null !== isOneTableIntersection) {
                             res = false;
                         } else if (isOneTableIntersection && !isOneTableIntersection.Ref.isEqual(activeRange)) {
                             res = false;
-                        }*/ else if(!allTablesInside) {
+                        }*/ else if (!allTablesInside) {
 							res = false;
 						}
-                    }
+					}
 
-                    break;
-                }
-                case c_oAscDeleteOptions.DeleteCellsAndShiftLeft:
-                {
-                    if (isFromFormatTable) {
-                        if (isPartTablePartsRightRange) {
-                            res = false;
-                        }
-                    } else {
-                        if (isPartTablePartsRightRange) {
-                            res = false;
-                        } /*else if (!isOneTableIntersection && null !== isOneTableIntersection) {
+					if (res && isPartFilterUnderRange) {
+						res = false;
+						filterError = true;
+					}
+
+					break;
+				}
+				case c_oAscDeleteOptions.DeleteCellsAndShiftLeft: {
+					if (isFromFormatTable) {
+						if (isPartTablePartsRightRange) {
+							res = false;
+						}
+					} else {
+						if (isPartTablePartsRightRange) {
+							res = false;
+						} /*else if (!isOneTableIntersection && null !== isOneTableIntersection) {
                             res = false;
                         } else if (isOneTableIntersection && !isOneTableIntersection.Ref.isEqual(activeRange)) {
                             res = false;
-                        }*/ else if(!allTablesInside) {
+                        }*/ else if (!allTablesInside) {
 							res = false;
 						}
-                    }
+					}
 
-                    break;
-                }
-                case c_oAscDeleteOptions.DeleteColumns:
-                {
+					if (res && isPartFilterRightRange) {
+						res = false;
+						filterError = true;
+					}
 
-                    break;
-                }
-                case c_oAscDeleteOptions.DeleteRows:
-                {
+					break;
+				}
+				case c_oAscDeleteOptions.DeleteColumns: {
 
-                    break;
-                }
-            }
-        };
+					break;
+				}
+				case c_oAscDeleteOptions.DeleteRows: {
 
-        prop === "insCell" ? checkInsCells() : checkDelCells();
+					break;
+				}
+			}
+		};
 
-        if (res === false) {
-            ws.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterChangeFormatTableError,
-              c_oAscError.Level.NoCritical);
-        }
+		prop === "insCell" ? checkInsCells() : checkDelCells();
 
-        return res;
-    };
+		if (res === false) {
+			if (filterError) {
+				ws.workbook.handlers.trigger("asc_onError", c_oAscError.ID.ChangeFilteredRangeError,
+					c_oAscError.Level.NoCritical);
+			} else {
+				ws.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterChangeFormatTableError,
+					c_oAscError.Level.NoCritical);
+			}
+		}
+
+		return res;
+	};
 
     WorksheetView.prototype.af_setDisableProps = function (tablePart, formatTableInfo) {
         var selectionRange = this.model.selectionRange;

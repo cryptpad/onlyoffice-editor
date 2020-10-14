@@ -3725,7 +3725,7 @@ Paragraph.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlyS
 					this.IndDecNumberingLevel(false);
 				}
 			}
-			else if (numbering_presentationnumfrmt_None != this.PresentationPr.Bullet.Get_Type())
+			else if (!this.PresentationPr.Bullet.IsNone())
 			{
 				this.Remove_PresentationNumbering();
 			}
@@ -9031,48 +9031,46 @@ Paragraph.prototype.Add_PresentationNumbering = function(Bullet)
 					oBullet2.bulletType.startAt = _OldBullet.bulletType.startAt;
 				}
 			}
-			this.Set_Bullet(oBullet2.createDuplicate());
-			LeftInd = Math.min(ParaPr.Ind.Left, ParaPr.Ind.Left + ParaPr.Ind.FirstLine);
-			var oFirstRunPr = this.Get_FirstTextPr2();
-			var Indent = oFirstRunPr.FontSize*0.305954545 + 2.378363636;
-			if (NewType === numbering_presentationnumfrmt_Char)
+			if(!oBullet2.isEqual(this.Pr.Bullet))
 			{
-				this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
-			}
-			else if (NewType === numbering_presentationnumfrmt_None)
-			{
-				this.Set_Ind({FirstLine : 0, Left : LeftInd}, false);
-			}
-			else
-			{
-				var oArabicAlphaMap =
-					{
-						numbering_presentationnumfrmt_ArabicPeriod  : true,
-						numbering_presentationnumfrmt_ArabicParenR  : true,
-						numbering_presentationnumfrmt_AlphaLcParenR : true,
-						numbering_presentationnumfrmt_AlphaLcPeriod : true,
-						numbering_presentationnumfrmt_AlphaUcParenR : true,
-						numbering_presentationnumfrmt_AlphaUcPeriod : true
-					};
-				var oRomanMap       =
-					{
-						numbering_presentationnumfrmt_RomanUcPeriod : true,
-						numbering_presentationnumfrmt_RomanLcPeriod : true
-					};
-				if (!(oArabicAlphaMap[NewType] && oArabicAlphaMap[UndefType] || oRomanMap[NewType] && oRomanMap[UndefType]))
+				var bEqualBulletType = false;
+				if(oBullet2.bulletType && this.Pr.Bullet && this.Pr.Bullet.bulletType)
 				{
-					if (oArabicAlphaMap[NewType])
+					bEqualBulletType = this.Pr.Bullet.bulletType.IsIdentical(oBullet2.bulletType);
+				}
+				this.Set_Bullet(oBullet2.createDuplicate());
+				if(bEqualBulletType)
+				{
+					LeftInd = Math.min(ParaPr.Ind.Left, ParaPr.Ind.Left + ParaPr.Ind.FirstLine);
+					var oFirstRunPr = this.Get_FirstTextPr2();
+
+					var Indent = oFirstRunPr.FontSize*0.305954545 + 2.378363636;
+					if (NewType === numbering_presentationnumfrmt_Char)
 					{
 						this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
+					}
+					else if (NewType === numbering_presentationnumfrmt_None)
+					{
+						this.Set_Ind({FirstLine : 0, Left : LeftInd}, false);
 					}
 					else
 					{
-						this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
+						if (!IsPrNumberingSameType(NewType, UndefType))
+						{
+							if (!IsRomanPrNumbering(NewType))
+							{
+								this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
+							}
+							else
+							{
+								this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
+							}
+						}
+						else
+						{
+							this.Set_Ind({Left : undefined, FirstLine : undefined}, true);
+						}
 					}
-				}
-				else
-				{
-					this.Set_Ind({Left : undefined, FirstLine : undefined}, true);
 				}
 			}
 		}
@@ -9108,7 +9106,7 @@ Paragraph.prototype.GetBulletNum = function()
 	var Bullet = this.PresentationPr.Bullet;
 
 	var BulletNum = null;
-	if (Bullet.Get_Type() >= numbering_presentationnumfrmt_ArabicPeriod)
+	if (Bullet.IsNumbered())
 	{
 		var Prev = this.Prev;
 		BulletNum = Bullet.Get_StartAt();
@@ -10900,20 +10898,20 @@ Paragraph.prototype.UpdateCursorType = function(X, Y, CurPage)
 
 	if (isInText && null != oHyperlink && (Y <= this.Pages[CurPage].Bounds.Bottom && Y >= this.Pages[CurPage].Bounds.Top))
 	{
-		MMData.Type      = AscCommon.c_oAscMouseMoveDataTypes.Hyperlink;
+		MMData.Type      = Asc.c_oAscMouseMoveDataTypes.Hyperlink;
 		MMData.Hyperlink = new Asc.CHyperlinkProperty(oHyperlink);
 
 		MMData.Hyperlink.ToolTip = oHyperlink.GetToolTip();
 	}
 	else if (isInText && null !== Footnote && this.Parent.GetTopDocumentContent() instanceof CDocument)
 	{
-		MMData.Type   = AscCommon.c_oAscMouseMoveDataTypes.Footnote;
+		MMData.Type   = Asc.c_oAscMouseMoveDataTypes.Footnote;
 		MMData.Text   = Footnote.GetHint();
 		MMData.Number = Footnote.GetNumber();
 	}
 	else
 	{
-		MMData.Type = AscCommon.c_oAscMouseMoveDataTypes.Common;
+		MMData.Type = Asc.c_oAscMouseMoveDataTypes.Common;
 	}
 
 	if (isInText && (null != oHyperlink || bPageRefLink) && true === AscCommon.global_keyboardEvent.CtrlKey)
@@ -10931,7 +10929,7 @@ Paragraph.prototype.UpdateCursorType = function(X, Y, CurPage)
 		var Coords              = this.DrawingDocument.ConvertCoordsToCursorWR(_X, _Y, this.Get_AbsolutePage(CurPage), text_transform);
 		MMData.X_abs            = Coords.X - 5;
 		MMData.Y_abs            = Coords.Y;
-		MMData.Type             = AscCommon.c_oAscMouseMoveDataTypes.LockedObject;
+		MMData.Type             = Asc.c_oAscMouseMoveDataTypes.LockedObject;
 		MMData.UserId           = this.Lock.Get_UserId();
 		MMData.HaveChanges      = this.Lock.Have_Changes();
 		MMData.LockedObjectType = c_oAscMouseMoveLockedObjectType.Common;

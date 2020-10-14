@@ -1242,7 +1242,7 @@
 						this.changeDisplayNameTable(data.displayName, data.val);
 						break;
 					case AscCH.historyitem_AutoFilter_ClearFilterColumn:
-						this.clearFilterColumn(data.cellId, data.displayName);
+						this.clearFilterColumn(data.cellId, data.displayName, data.viewId ? data.viewId : null);
 						break;
 					case AscCH.historyitem_AutoFilter_ChangeColumnName:
 						this.renameTableColumn(null, null, data);
@@ -3073,15 +3073,19 @@
 				return res;
 			},
 
-			_getColIdColumn: function (filter, cellId) {
+			_getColIdColumn: function (filter, cellId, viewId) {
 				var res = null;
 
-				var autoFilter = filter && false === filter.isAutoFilter() ? filter.AutoFilter : filter;
+				var autoFilterObj = this.getAutoFilter(filter, viewId);
 
-				if (autoFilter && autoFilter.FilterColumns && autoFilter.FilterColumns.length) {
+				var bFilterColumns = autoFilterObj && autoFilterObj.FilterColumns && autoFilterObj.FilterColumns.length;
+				if (!bFilterColumns) {
+					bFilterColumns = autoFilterObj && autoFilterObj.columnsFilter && autoFilterObj.columnsFilter.length;
+				}
 
+				if (bFilterColumns) {
 					var rangeCellId = this._idToRange(cellId);
-					var colId = rangeCellId.c1 - autoFilter.Ref.c1;
+					var colId = rangeCellId.c1 - filter.Ref.c1;
 					res = this._getTrueColId(filter, colId, true);
 				}
 
@@ -4807,6 +4811,7 @@
 				}
 
 				worksheet.workbook.dependencyFormulas.lockRecal();
+				this.useViewLocalChange = true;
 				for (var i = ref.r1 + 1; i <= ref.r2; i++) {
 					if (worksheet.getRowHidden(i) === false) {
 						continue;
@@ -4817,6 +4822,7 @@
 						worksheet.setRowHidden(false, i, i);
 					}
 				}
+				this.useViewLocalChange = null;
 				worksheet.workbook.dependencyFormulas.unlockRecal();
 			},
 
@@ -5310,7 +5316,9 @@
 					autoFilterElement.SortState = null;
 				}
 
-				worksheet.setRowHidden(false, autoFilterElement.Ref.r1, autoFilterElement.Ref.r2);
+				if (!viewId || viewId === worksheet.getActiveNamedSheetViewId()) {
+					worksheet.setRowHidden(false, autoFilterElement.Ref.r1, autoFilterElement.Ref.r2);
+				}
 
 				var doClean = function(af) {
 					var filterColumns = af.FilterColumns;
@@ -5339,7 +5347,7 @@
 
 				doClean(this.getAutoFilter(autoFilterElement, viewId));
 
-				this._addHistoryObj(oldFilter, AscCH.historyitem_AutoFilter_CleanAutoFilter, {activeCells: activeCells, viewId: viewId},
+				this._addHistoryObj(oldFilter, AscCH.historyitem_AutoFilter_CleanAutoFilter, {activeCells: activeCells},
 					null, activeCells);
 
 				this._resetTablePartStyle();
@@ -5347,11 +5355,13 @@
 				return autoFilterElement.Ref;
 			},
 
-			clearFilterColumn: function (cellId, displayName) {
+			clearFilterColumn: function (cellId, displayName, viewId) {
 				var filter = this._getFilterByDisplayName(displayName);
-				var autoFilter = filter && false === filter.isAutoFilter() ? filter.AutoFilter : filter;
 
-				var oldFilter = filter.clone(null);
+				//autofilter or nvsFilter
+				var autoFilterObj = this.getAutoFilter(filter, viewId)
+
+				var oldFilter = autoFilterObj && autoFilterObj.columnsFilter ? autoFilterObj.clone() : filter.clone(null);
 
 				var colId = this._getColIdColumn(filter, cellId);
 
@@ -5359,13 +5369,17 @@
 				History.StartTransaction();
 
 				if (colId !== null) {
-					var index = autoFilter.getIndexByColId(colId);
-					this._openHiddenRowsAfterDeleteColumn(filter, colId);
+					var index = autoFilterObj.getIndexByColId(colId);
+					if (!viewId || viewId === this.worksheet.getActiveNamedSheetViewId()) {
+						this._openHiddenRowsAfterDeleteColumn(filter, colId);
+					}
 
-					var filterColumn = autoFilter.FilterColumns[index];
-					filterColumn.clean();
-					if (filterColumn.isAllClean()) {
-						autoFilter.FilterColumns.splice(index, 1);
+					var filterColumn = autoFilterObj.getFilterColumnByIndex(index);
+					if (filterColumn) {
+						filterColumn.clean();
+						if (filterColumn.isAllClean()) {
+							autoFilterObj.deleteFilterColumn(index);
+						}
 					}
 
 					this._resetTablePartStyle();
@@ -5561,6 +5575,23 @@
 				if (worksheet.AutoFilter) {
 					var ref = worksheet.AutoFilter.Ref;
 					var allColRef = new Asc.Range(range.c1, range.r1, range.c2, AscCommon.gc_nMaxRow0);
+
+					if (allColRef.intersection(ref) && !allColRef.containsRange(ref)) {
+						result = true;
+					}
+
+				}
+
+				return result;
+			},
+
+			isPartFilterRightRange: function (range) {
+				var worksheet = this.worksheet;
+				var result = false;
+
+				if (worksheet.AutoFilter) {
+					var ref = worksheet.AutoFilter.Ref;
+					var allColRef = new Asc.Range(range.c1, range.r1, AscCommon.gc_nMaxCol0, range.r2);
 
 					if (allColRef.intersection(ref) && !allColRef.containsRange(ref)) {
 						result = true;

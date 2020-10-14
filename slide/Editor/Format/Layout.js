@@ -585,6 +585,26 @@ SlideLayout.prototype =
         }
     },
 
+    createFontMap: function (oFontsMap, oCheckedMap, isNoPh) {
+        if(oCheckedMap[this.Get_Id()]) {
+            return;
+        }
+        var aSpTree = this.cSld.spTree;
+        var nSp, oSp, nSpCount = aSpTree.length;
+        for(nSp = 0; nSp < nSpCount; ++nSp) {
+            oSp = aSpTree[nSp];
+            if(isNoPh)
+            {
+                if(oSp.isPlaceholder())
+                {
+                    continue;
+                }
+            }
+            oSp.createFontMap(oFontsMap);
+        }
+        oCheckedMap[this.Get_Id()] = this;
+    },
+
     addToRecalculate: function()
     {
         History.RecalcData_Add({Type: AscDFH.historyitem_recalctype_Drawing, Object: this});

@@ -3546,7 +3546,7 @@ CTable.prototype.UpdateCursorType = function(X, Y, CurPage)
 		var Coords              = this.DrawingDocument.ConvertCoordsToCursorWR(_X, _Y, this.Get_AbsolutePage(CurPage));
 		MMData.X_abs            = Coords.X - 5;
 		MMData.Y_abs            = Coords.Y - 5;
-		MMData.Type             = AscCommon.c_oAscMouseMoveDataTypes.LockedObject;
+		MMData.Type             = Asc.c_oAscMouseMoveDataTypes.LockedObject;
 		MMData.UserId           = this.Lock.Get_UserId();
 		MMData.HaveChanges      = this.Lock.Have_Changes();
 		MMData.LockedObjectType = c_oAscMouseMoveLockedObjectType.Common;
@@ -5676,7 +5676,7 @@ CTable.prototype.DrawSelectionOnPage = function(CurPage)
 
 				var RowIndex = 0 != Cell_PageRel ? this.Pages[CurPage].FirstRow : Pos.Row;
 
-				if (true === Cell.Is_VerticalText())
+				if (true === Cell.IsVerticalText())
 				{
 					var X_start       = Page.X + CellInfo.X_cell_start;
 					var TextDirection = Cell.Get_TextDirection();

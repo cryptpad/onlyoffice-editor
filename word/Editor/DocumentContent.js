@@ -4225,7 +4225,7 @@ CDocumentContent.prototype.GetSelectedText = function(bClearText, oPr)
 	else
 	{
 		if (docpostype_DrawingObjects === this.CurPos.Type)
-			return this.LogicDocument.DrawingObjects.getSelectedText(bClearText, oPr);
+			return this.LogicDocument.DrawingObjects.GetSelectedText(bClearText, oPr);
 
 		// Либо у нас нет выделения, либо выделение внутри одного элемента
 		if (docpostype_Content == this.CurPos.Type && ( ( true === this.Selection.Use && selectionflag_Common === this.Selection.Flag ) || false === this.Selection.Use ))
@@ -4922,7 +4922,7 @@ CDocumentContent.prototype.Set_ParagraphPresentationNumbering = function(Bullet)
 			var Level = AscFormat.isRealNumber(oLastParagraph.Pr.Lvl) ? oLastParagraph.Pr.Lvl : 0;
 
 			var oLastBullet_ = oLastParagraph.Get_PresentationNumbering();
-			if (oLastBullet_.Get_Type() >= numbering_presentationnumfrmt_ArabicPeriod)
+			if (oLastBullet_.IsNumbered())
 			{
 				var Next = oLastParagraph.Next;
 				while (null != Next && type_Paragraph === Next.GetType())
