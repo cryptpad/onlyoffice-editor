@@ -558,9 +558,9 @@ CDocumentContent.prototype.Check_AutoFit = function()
 	return this.Parent.Check_AutoFit();
 };
 // Проверяем, лежит ли данный класс в таблице
-CDocumentContent.prototype.Is_InTable = function(bReturnTopTable)
+CDocumentContent.prototype.IsInTable = function(bReturnTopTable)
 {
-	return this.Parent.Is_InTable(bReturnTopTable);
+	return this.Parent.IsInTable(bReturnTopTable);
 };
 // Проверяем, является ли данный класс верхним, по отношению к другим классам DocumentContent, Document
 CDocumentContent.prototype.Is_TopDocument = function(bReturnTopDocument)
@@ -602,7 +602,16 @@ CDocumentContent.prototype.IsHdrFtr = function(bReturnHdrFtr)
 CDocumentContent.prototype.IsFootnote = function(bReturnFootnote)
 {
 	if (this instanceof CFootEndnote)
-		return true;
+	{
+		if(bReturnFootnote)
+		{
+			return this;
+		}
+		else
+		{
+			return true;
+		}
+	}
 
 	if (this.Parent)
 		return this.Parent.IsFootnote(bReturnFootnote);
@@ -850,7 +859,7 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
                 var Frame_XLimit = FramePr.Get_W();
                 var Frame_YLimit = FramePr.Get_H();
 
-				var FrameHRule = ( undefined === FramePr.HRule ? Asc.linerule_Auto : FramePr.HRule );
+				var FrameHRule = (undefined === FramePr.HRule ? (undefined !== Frame_YLimit ? Asc.linerule_AtLeast : Asc.linerule_Auto) : FramePr.HRule);
 
 				if (undefined === Frame_XLimit)
                     Frame_XLimit = Page_Field_R - Page_Field_L;
@@ -3013,13 +3022,13 @@ CDocumentContent.prototype.AddToParagraph = function(ParaItem, bRecalculate)
 					if (ParaItem instanceof AscCommonWord.MathMenu)
 					{
 						var oInfo = this.GetSelectedElementsInfo();
-						if (oInfo.Get_Math())
+						if (oInfo.GetMath())
 						{
-							var oMath = oInfo.Get_Math();
+							var oMath = oInfo.GetMath();
 							if (!oMath.IsParentEquationPlaceholder())
 								ParaItem.SetText(oMath.Copy(true));
 						}
-						else if (!oInfo.Is_MixedSelection())
+						else if (!oInfo.IsMixedSelection())
 						{
 							ParaItem.SetText(this.GetSelectedText());
 						}
@@ -3402,7 +3411,18 @@ CDocumentContent.prototype.MoveCursorLeft = function(AddToSelect, Word)
 					Start = this.Selection.EndPos;
 
 				this.CurPos.ContentPos = Start;
-				this.Content[this.CurPos.ContentPos].MoveCursorLeft(false, Word);
+				if (false === this.Content[this.CurPos.ContentPos].MoveCursorLeft(false, Word))
+				{
+					if (this.CurPos.ContentPos > 0)
+					{
+						this.CurPos.ContentPos--;
+						this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false, false);
+					}
+					else
+					{
+						ReturnValue = false;
+					}
+				}
 
 				this.RemoveSelection();
 			}
@@ -3548,7 +3568,18 @@ CDocumentContent.prototype.MoveCursorRight = function(AddToSelect, Word, FromPas
 				}
 				else
 				{
-					this.Content[this.CurPos.ContentPos].MoveCursorRight(false, Word);
+					if (!this.Content[this.CurPos.ContentPos].MoveCursorRight(false, Word))
+					{
+						if (this.CurPos.ContentPos < this.Content.length - 1)
+						{
+							this.CurPos.ContentPos++;
+							this.Content[this.CurPos.ContentPos].MoveCursorToStartPos(false);
+						}
+						else
+						{
+							ReturnValue = false;
+						}
+					}
 				}
 
 				this.RemoveSelection();
@@ -4194,7 +4225,7 @@ CDocumentContent.prototype.GetSelectedText = function(bClearText, oPr)
 	else
 	{
 		if (docpostype_DrawingObjects === this.CurPos.Type)
-			return this.LogicDocument.DrawingObjects.getSelectedText(bClearText, oPr);
+			return this.LogicDocument.DrawingObjects.GetSelectedText(bClearText, oPr);
 
 		// Либо у нас нет выделения, либо выделение внутри одного элемента
 		if (docpostype_Content == this.CurPos.Type && ( ( true === this.Selection.Use && selectionflag_Common === this.Selection.Flag ) || false === this.Selection.Use ))
@@ -4232,7 +4263,7 @@ CDocumentContent.prototype.GetSelectedElementsInfo = function(oInfo)
 	{
 		var nCount = this.Content.length;
 		if (nCount > 1)
-			oInfo.Set_MixedSelection();
+			oInfo.SetMixedSelection();
 
 		if (oInfo.IsCheckAllSelection() || nCount === 1)
 		{
@@ -4249,6 +4280,22 @@ CDocumentContent.prototype.GetSelectedElementsInfo = function(oInfo)
 	{
 		if (docpostype_DrawingObjects === this.CurPos.Type)
 		{
+			if (this.LogicDocument && this.LogicDocument.DrawingsController)
+			{
+				var oContentControl = this.LogicDocument.DrawingsController.private_GetParentContentControl();
+				if (oContentControl)
+				{
+					if (oContentControl.IsBlockLevel())
+					{
+						oInfo.SetBlockLevelSdt(oContentControl);
+					}
+					else if (oContentControl.IsInlineLevel())
+					{
+						oInfo.SetInlineLevelSdt(oContentControl);
+					}
+				}
+			}
+
 			this.LogicDocument.DrawingObjects.getSelectedElementsInfo(oInfo);
 		}
 		else //if ( docpostype_Content == this.CurPos.Type )
@@ -4265,7 +4312,7 @@ CDocumentContent.prototype.GetSelectedElementsInfo = function(oInfo)
 				if (true === this.Selection.Use)
 				{
 					if (this.Selection.StartPos != this.Selection.EndPos)
-						oInfo.Set_MixedSelection();
+						oInfo.SetMixedSelection();
 
 					if (oInfo.IsCheckAllSelection() || this.Selection.StartPos === this.Selection.EndPos)
 					{
@@ -4338,6 +4385,10 @@ CDocumentContent.prototype.InsertContent = function(SelectedContent, NearPos)
                 break;
             }
         }
+
+		// Try to convert content to ParaMath in simple cases
+		if (!InsertMathContent)
+			InsertMathContent = SelectedContent.ConvertToMath();
 
         if (null !== InsertMathContent)
         {
@@ -5186,7 +5237,7 @@ CDocumentContent.prototype.SetParagraphContextualSpacing = function(Value)
 CDocumentContent.prototype.SetParagraphPageBreakBefore = function(Value)
 {
 	// В таблице или вне самого верхнего документа нет смысла ставить PageBreak
-	if (docpostype_Content !== this.GetDocPosType() || this.Is_InTable() || this.GetTopDocumentContent() !== this.LogicDocument)
+	if (docpostype_Content !== this.GetDocPosType() || this.IsInTable() || this.GetTopDocumentContent() !== this.LogicDocument)
 		return;
 
 	if (this.CurPos.ContentPos < 0)
@@ -6077,7 +6128,7 @@ CDocumentContent.prototype.Interface_Update_ParaPr    = function()
 		if (this.LogicDocument)
 		{
 			var oSelectedInfo = this.LogicDocument.GetSelectedElementsInfo({CheckAllSelection : true});
-			var oMath         = oSelectedInfo.Get_Math();
+			var oMath         = oSelectedInfo.GetMath();
 			if (oMath)
 				oParaPr.CanAddImage = false;
 			else if (false !== oParaPr.CanAddImage)

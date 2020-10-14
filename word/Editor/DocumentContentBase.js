@@ -196,6 +196,90 @@ CDocumentContentBase.prototype.GetAllSeqFieldsByType = function(sType, aFields)
 };
 
 /**
+ * Finds a paragraph with a given style
+ * @param {string} sStyleId - id of paragraph style
+ * @param {boolean} bBackward - whether to search backward or forward
+ * @param {?number} nStartIdx - index of searching start. If it is null searching starts depends on bBackward.
+ * @returns {?Paragraph}
+ */
+CDocumentContentBase.prototype.FindParaWithStyle = function (sStyleId, bBackward, nStartIdx)
+{
+	var nIdx, oElement, oResultPara = null, oContent;
+	var nSearchStartIdx;
+	if(bBackward)
+	{
+		if(nStartIdx !== null)
+		{
+			nSearchStartIdx = Math.min(nStartIdx, this.Content.length - 1);
+		}
+		else
+		{
+			nSearchStartIdx = this.Content.length - 1;
+		}
+		for(nIdx = nSearchStartIdx; nIdx >= 0; --nIdx)
+		{
+			oElement = this.Content[nIdx];
+			if(oElement.GetType() === type_Paragraph)
+			{
+				if(oElement.GetParagraphStyle() === sStyleId)
+				{
+					oResultPara = oElement;
+				}
+			}
+			else if(oElement.GetType() === type_Table)
+			{
+				oResultPara = oElement.FindParaWithStyle(sStyleId, bBackward, null);
+			}
+			else if(oElement.GetType() === type_BlockLevelSdt)
+			{
+				oContent = oElement.GetContent();
+				oResultPara = oContent.FindParaWithStyle(sStyleId, bBackward, null);
+			}
+			if(oResultPara !== null)
+			{
+				return oResultPara;
+			}
+		}
+	}
+	else
+	{
+		if(nStartIdx !== null)
+		{
+			nSearchStartIdx = Math.max(nStartIdx, 0);
+		}
+		else
+		{
+			nSearchStartIdx = 0;
+		}
+		for(nIdx = nSearchStartIdx; nIdx < this.Content.length; ++nIdx)
+		{
+			oElement = this.Content[nIdx];
+			if(oElement.GetType() === type_Paragraph)
+			{
+				if(oElement.GetParagraphStyle() === sStyleId)
+				{
+					oResultPara = oElement;
+				}
+			}
+			else if(oElement.GetType() === type_Table)
+			{
+				oResultPara = oElement.FindParaWithStyle(sStyleId, bBackward, null);
+			}
+			else if(oElement.GetType() === type_BlockLevelSdt)
+			{
+				oContent = oElement.GetContent();
+				oResultPara = oContent.FindParaWithStyle(sStyleId, bBackward, null);
+			}
+			if(oResultPara !== null)
+			{
+				return oResultPara;
+			}
+		}
+	}
+	return null;
+};
+
+/**
  * Находим отрезок сносок, заданный между сносками.
  * @param {?CFootEndnote} oFirstFootnote - если null, то иещм с начала документа
  * @param {?CFootEndnote} oLastFootnote - если null, то ищем до конца документа
@@ -2056,4 +2140,49 @@ CDocumentContentBase.prototype.private_GetContentIndexByFlowObject = function(oF
 CDocumentContentBase.prototype.GetDocumentContentForRecalcInfo = function()
 {
 	return this;
+};
+CDocumentContentBase.prototype.GetPrevParagraphForLineNumbers = function(nIndex, isNewSection)
+{
+	var _nIndex = nIndex;
+	if (-1 === _nIndex || undefined === _nIndex)
+		_nIndex = this.Content.length;
+
+	while (_nIndex >= 0)
+	{
+		if (0 === _nIndex)
+		{
+			var oParent = this.GetParent();
+			if (oParent && oParent.GetPrevParagraphForLineNumbers)
+				return oParent.GetPrevParagraphForLineNumbers(true, isNewSection);
+
+			return null;
+		}
+
+		_nIndex--;
+
+		if (this.Content[_nIndex].IsParagraph())
+		{
+			var oSectPr = this.Content[_nIndex].Get_SectionPr();
+			if (oSectPr && (isNewSection || !oSectPr.HaveLineNumbers()))
+				return null;
+
+			if (!this.Content[_nIndex].IsCountLineNumbers())
+				continue;
+
+			return this.Content[_nIndex];
+		}
+		else if (this.Content[_nIndex].IsBlockLevelSdt())
+		{
+			return this.Content[_nIndex].GetPrevParagraphForLineNumbers(false, isNewSection);
+		}
+	}
+
+	return null;
+};
+CDocumentContentBase.prototype.UpdateLineNumbersInfo = function()
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		this.Content[nIndex].UpdateLineNumbersInfo();
+	}
 };

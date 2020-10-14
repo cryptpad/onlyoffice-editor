@@ -154,7 +154,8 @@ var c_oAscLockTypeElemSubType = {
   DeleteRows: 3,
   InsertRows: 4,
   ChangeProperties: 5,
-  DefinedNames: 6
+  DefinedNames: 6,
+  NamedSheetView: 7
 };
 
 var c_oAscRecalcIndexTypes = {
@@ -478,11 +479,6 @@ var c_oAscPopUpSelectorType = {
     pivot: 4
   };
 
-  var c_oAscDefNameType = {
-    table: 1,
-    slicer: 2
-  };
-
   var c_kMaxPrintPages = 1500;
 
   var c_oAscFrozenPaneBorderType = {
@@ -776,10 +772,6 @@ var c_oAscPopUpSelectorType = {
   prot['table'] = prot.table;
   prot['pivot'] = prot.pivot;
 
-  window['Asc']['c_oAscDefNameType'] = window['Asc'].c_oAscDefNameType = c_oAscDefNameType;
-  prot = c_oAscDefNameType;
-  prot['table'] = prot.table;
-  prot['slicer'] = prot.slicer;
 
   window['Asc']['c_oAscFrozenPaneBorderType'] = window['Asc'].c_oAscFrozenPaneBorderType = c_oAscFrozenPaneBorderType;
   prot = c_oAscFrozenPaneBorderType;

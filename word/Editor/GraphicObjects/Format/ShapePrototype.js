@@ -1179,7 +1179,7 @@ CShape.prototype.Is_DrawingShape = function(bRetShape)
     return true;
 };
 
-CShape.prototype.Is_InTable = function(bReturnTopTable)
+CShape.prototype.IsInTable = function(bReturnTopTable)
 {
     if ( true === bReturnTopTable )
         return null;

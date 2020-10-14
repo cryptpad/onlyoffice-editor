@@ -194,6 +194,9 @@
 		// macros & plugins events
 		this.internalEvents = {};
 
+		this.Shortcuts = new AscCommon.CShortcuts();
+		this.initDefaultShortcuts();
+
 		return this;
 	}
 
@@ -514,19 +517,19 @@
 	};
 	baseEditorsApi.prototype.isRestrictionForms              = function()
 	{
-		return (this.restrictions & Asc.c_oAscRestrictionType.OnlyForms);
+		return !!(this.restrictions & Asc.c_oAscRestrictionType.OnlyForms);
 	};
 	baseEditorsApi.prototype.isRestrictionComments           = function()
 	{
-		return (this.restrictions & Asc.c_oAscRestrictionType.OnlyComments);
+		return !!(this.restrictions & Asc.c_oAscRestrictionType.OnlyComments);
 	};
 	baseEditorsApi.prototype.isRestrictionSignatures         = function()
 	{
-		return (this.restrictions & Asc.c_oAscRestrictionType.OnlySignatures);
+		return !!(this.restrictions & Asc.c_oAscRestrictionType.OnlySignatures);
 	};
 	baseEditorsApi.prototype.isRestrictionView               = function()
 	{
-		return (this.restrictions & Asc.c_oAscRestrictionType.View);
+		return !!(this.restrictions & Asc.c_oAscRestrictionType.View);
 	};
 	baseEditorsApi.prototype.isLongAction                    = function()
 	{
@@ -2163,7 +2166,7 @@
     {
     };
 
-    baseEditorsApi.prototype["asc_insertSymbol"] = function(familyName, code)
+    baseEditorsApi.prototype["asc_insertSymbol"] = function(familyName, code, pr)
     {
 		var arrCharCodes = [code];
         AscFonts.FontPickerByCharacter.checkTextLight(arrCharCodes, true);
@@ -2178,9 +2181,16 @@
                 case c_oEditorId.Word:
                 case c_oEditorId.Presentation:
                 {
-					var textPr = new AscCommonWord.CTextPr();
-					textPr.SetFontFamily(familyName);
-                	this.WordControl.m_oLogicDocument.AddTextWithPr(new AscCommon.CUnicodeStringEmulator(arrCharCodes), textPr, true);
+                	if (pr && c_oEditorId.Word === this.editorId)
+					{
+						this.WordControl.m_oLogicDocument.AddSpecialSymbol(pr);
+					}
+                	else
+					{
+						var textPr = new AscCommonWord.CTextPr();
+						textPr.SetFontFamily(familyName);
+						this.WordControl.m_oLogicDocument.AddTextWithPr(new AscCommon.CUnicodeStringEmulator(arrCharCodes), textPr, true);
+					}
                     break;
                 }
                 case c_oEditorId.Spreadsheet:
@@ -2219,6 +2229,8 @@
     // Builder
 	baseEditorsApi.prototype.asc_nativeInitBuilder = function()
 	{
+		// Disable history for builder
+		AscCommon.History.TurnOff();
 		this.asc_setDocInfo(new Asc.asc_CDocInfo());
 	};
 	baseEditorsApi.prototype.asc_SetSilentMode     = function()
@@ -2769,9 +2781,108 @@
 		return this.macros.GetData();
 	};
 
-    baseEditorsApi.prototype.asc_runAutostartMacroses = function()
+	baseEditorsApi.prototype._beforeEvalCommand = function()
+	{
+		switch (this.editorId)
+		{
+			case AscCommon.c_oEditorId.Word:
+			{
+				if (this.WordControl && this.WordControl.m_oLogicDocument)
+					this.WordControl.m_oLogicDocument.LockPanelStyles();
+				break;
+			}
+			default:
+				break;
+		}
+	};
+
+	baseEditorsApi.prototype._afterEvalCommand = function(endAction)
+	{
+		var oApi = this;
+		switch (this.editorId)
+		{
+			case AscCommon.c_oEditorId.Word:
+			case AscCommon.c_oEditorId.Presentation:
+			{
+				var oLogicDocument = this.WordControl.m_oLogicDocument;
+				if (!oLogicDocument)
+				{
+					endAction && endAction();
+					return;
+				}
+
+				var _imagesArray = oLogicDocument.Get_AllImageUrls();
+				var _images = {};
+				for (var i = 0; i < _imagesArray.length; i++)
+					_images[_imagesArray[i]] = _imagesArray[i];
+
+				AscCommon.Check_LoadingDataBeforePrepaste(this, oLogicDocument.Document_Get_AllFontNames(), _images, function() {
+					if (oLogicDocument.Reassign_ImageUrls)
+						oLogicDocument.Reassign_ImageUrls(_images);
+
+					if (AscCommon.c_oEditorId.Word === oApi.editorId)
+					{
+						oLogicDocument.UnlockPanelStyles(true);
+						oLogicDocument.OnEndLoadScript();
+					}
+
+					oApi.asc_Recalculate(true);
+					oLogicDocument.FinalizeAction();
+
+					if (oApi.SaveAfterMacros)
+					{
+						oApi.asc_Save();
+						oApi.SaveAfterMacros = false;
+					}
+
+					endAction && endAction();
+				});
+				break;
+			}
+			case AscCommon.c_oEditorId.Spreadsheet:
+			{
+				var oModel = this.wbModel;
+				var _imagesArray = oModel.getAllImageUrls();
+				var _images = {};
+				for (var i = 0; i < _imagesArray.length; i++)
+					_images[_imagesArray[i]] = _imagesArray[i];
+
+				AscCommon.Check_LoadingDataBeforePrepaste(this, oModel._generateFontMap(), _images, function() {
+					oModel.reassignImageUrls(_images);
+					oApi.asc_Recalculate(true);
+					var wsView = oApi.wb && oApi.wb.getWorksheet();
+					if (wsView && wsView.objectRender && wsView.objectRender.controller)
+					{
+						wsView.objectRender.controller.recalculate2(undefined);
+					}
+
+					if (oApi.SaveAfterMacros)
+					{
+						oApi.asc_Save();
+						oApi.SaveAfterMacros = false;
+					}
+
+					endAction && endAction();
+				});
+				break;
+			}
+			default:
+				break;
+		}
+	};
+
+
+	baseEditorsApi.prototype.asc_runAutostartMacroses = function()
     {
-        this.macros && !this.disableAutostartMacros && this.macros.runAuto();
+    	if (!this.macros || this.disableAutostartMacros)
+    		return;
+
+    	if (!this.asc_canPaste())
+    		return;
+
+    	this._beforeEvalCommand();
+		this.macros.runAuto();
+		this._afterEvalCommand(undefined);
     };
 
 	baseEditorsApi.prototype.asc_getSelectedDrawingObjectsCount = function()
@@ -2814,35 +2925,63 @@
 		}
 	};
 	/**
-	 * Return default array for Math AutoCorrect for menu
+	 * Return default array for Math AutoCorrect symbols for menu
 	 * @returns {Array.<String, Number || Array.<Number>>}
 	 */
 	baseEditorsApi.prototype.asc_getAutoCorrectMathSymbols = function()
 	{
-        return window['AscCommonWord'].g_DefaultAutoCorrectMathSymbolsList;
+        return window['AscCommonWord'].g_AutoCorrectMathsList.DefaultAutoCorrectMathSymbolsList;
 	};
 	/**
-	 * Reset to defaul version list autocorrect math symbols
+	 * Return default array for Math AutoCorrect functions for menu
+	 * @returns {Array.<String>}
+	 */
+	baseEditorsApi.prototype.asc_getAutoCorrectMathFunctions = function()
+	{
+        return window['AscCommonWord'].g_AutoCorrectMathsList.DefaultAutoCorrectMathFuncs;
+	};
+	/**
+	 * Reset to defaul math autocorrect symbols list
 	 */
 	baseEditorsApi.prototype.asc_resetToDefaultAutoCorrectMathSymbols = function()
 	{
-		window['AscCommonWord'].g_aAutoCorrectMathSymbols = JSON.parse(JSON.stringify(window['AscCommonWord'].g_DefaultAutoCorrectMathSymbolsList));
+		window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathSymbols = JSON.parse(JSON.stringify(window['AscCommonWord'].g_AutoCorrectMathsList.DefaultAutoCorrectMathSymbolsList));
 	};
 	/**
-	 * Delete item from g_aAutoCorrectMathSymbols
+	 * Reset to default version math autocorrect functions list
+	 */
+	baseEditorsApi.prototype.asc_resetToDefaultAutoCorrectMathFunctions = function()
+	{
+		window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathFuncs = JSON.parse(JSON.stringify(window['AscCommonWord'].g_AutoCorrectMathsList.DefaultAutoCorrectMathFuncs));
+	};
+	/**
+	 * Delete item from g_AutoCorrectMathSymbols
 	 * @param {string} element
 	 */
 	baseEditorsApi.prototype.asc_deleteFromAutoCorrectMathSymbols = function(element)
 	{
-        var remInd = window['AscCommonWord'].g_aAutoCorrectMathSymbols.findIndex(function(val, index){
+        var remInd = window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathSymbols.findIndex(function(val, index){
 			if (val[0] === element){
 				return index;
 			}
 		});
-		window['AscCommonWord'].g_aAutoCorrectMathSymbols.splice(remInd, 1);
+		window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathSymbols.splice(remInd, 1);
 	};
 	/**
-	 * Add or edit item from g_aAutoCorrectMathSymbols
+	 * Delete item from g_AutoCorrectMathFuncs
+	 * @param {string} element
+	 */
+	baseEditorsApi.prototype.asc_deleteFromAutoCorrectMathFunctions = function(element)
+	{
+        var remInd = window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathFuncs.findIndex(function(val, index){
+			if (val === element){
+				return index;
+			}
+		});
+		window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathFuncs.splice(remInd, 1);
+	};
+	/**
+	 * Add or edit item from g_AutoCorrectMathSymbols
 	 * @param {string} element
 	 * @param {Array.<number> || number || string} repVal
 	 */
@@ -2851,19 +2990,27 @@
 		if (typeof repVal === 'string') {
 			repVal = AscCommon.convertUTF16toUnicode(repVal);
 		}
-		var changeInd = window['AscCommonWord'].g_aAutoCorrectMathSymbols.findIndex(function(val, index){
+		var changeInd = window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathSymbols.findIndex(function(val, index){
 			if (val[0] === element){
 				return index;
 			}
 		});
 		if (changeInd >= 0) {
-			window['AscCommonWord'].g_aAutoCorrectMathSymbols[changeInd][1] = repVal;
+			window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathSymbols[changeInd][1] = repVal;
 		} else {
-			window['AscCommonWord'].g_aAutoCorrectMathSymbols.push([element, repVal]);
+			window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathSymbols.push([element, repVal]);
 		}
 	};
 	/**
-	 * Refresh g_aAutoCorrectMathSymbols on start
+	 * Add item from g_AutoCorrectMathFuncs
+	 * @param {string} newEl
+	 */
+	baseEditorsApi.prototype.asc_AddFromAutoCorrectMathFunctions = function(newEl)
+	{
+		window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathFuncs.push(newEl);
+	};
+	/**
+	 * Refresh g_AutoCorrectMathSymbols on start
 	 * @param {Array.<string>} remItems
 	 * @param {Array.<string, Array.<number> || number || string>} addItems
 	 * @param {boolean} flag
@@ -2885,9 +3032,25 @@
 		this.asc_updateFlagAutoCorrectMathSymbols(flag);
 	};
 	/**
-	 * Update flag about autocorrect math symbols
-	 * @param {boolean} flag
+	 * Refresh g_AutoCorrectMathFuncs on start
+	 * @param {Array.<string>} remItems
+	 * @param {Array.<string>} addItems
 	 */
+	baseEditorsApi.prototype.asc_refreshOnStartAutoCorrectMathFunctions = function(remItems, addItems)
+	{
+		var me = this;
+		this.asc_resetToDefaultAutoCorrectMathFunctions();
+		if (remItems) {
+			remItems.forEach(function(el) {
+				me.asc_deleteFromAutoCorrectMathFunctions(el);
+			});
+		}
+		if (addItems) {
+			addItems.forEach(function(el) {
+				me.asc_AddFromAutoCorrectMathFunctions(el);
+			});
+		}
+	};
 	baseEditorsApi.prototype.asc_updateFlagAutoCorrectMathSymbols = function(flag)
 	{
 		window['AscCommonWord'].b_DoAutoCorrectMathSymbols = flag;
@@ -2920,6 +3083,64 @@
 		return ret;
 	};
 
+	baseEditorsApi.prototype.initShortcuts = function(arrShortcuts, isRemoveBeforeAdd)
+	{
+		// Массив
+		// [[ActionType, KeyCode, Ctrl, Shift, Alt]]
+		for (var nIndex = 0, nCount = arrShortcuts.length; nIndex < nCount; ++nIndex)
+		{
+			var s = arrShortcuts[nIndex];
+
+			if (true === isRemoveBeforeAdd)
+				this.Shortcuts.RemoveByType(s[0]);
+
+			this.Shortcuts.Add(s[0], s[1], s[2], s[3], s[4]);
+		}
+	};
+	baseEditorsApi.prototype.initDefaultShortcuts = function()
+	{
+	};
+	baseEditorsApi.prototype.getShortcut = function(e)
+	{
+		if (e.GetKeyCode)
+			return this.Shortcuts.Get(e.GetKeyCode(), e.IsCtrl(), e.IsShift(), e.IsAlt());
+		else
+			return this.Shortcuts.Get(e.KeyCode, e.CtrlKey, e.ShiftKey, e.AltKey);
+	};
+	baseEditorsApi.prototype.getCustomShortcutAction = function(nActionType)
+	{
+		return this.Shortcuts.GetCustomAction(nActionType);
+	};
+	baseEditorsApi.prototype.asc_initShortcuts = baseEditorsApi.prototype.initShortcuts;
+	baseEditorsApi.prototype.asc_getShortcutAction = function(nKeyCode, isCtrl, isShift, isAlt)
+	{
+		return this.Shortcuts.Get(nKeyCode, isCtrl, isShift, isAlt);
+	};
+	baseEditorsApi.prototype.asc_removeShortcuts = function(arrShortcuts, arrActionTypes)
+	{
+		if (arrShortcuts)
+		{
+			for (var nIndex = 0, nCount = arrShortcuts.length; nIndex < nCount; ++nIndex)
+			{
+				var s = arrShortcuts[nIndex];
+				this.Shortcuts.Remove(s[0], s[1], s[2], s[3]);
+			}
+		}
+
+		if (arrActionTypes)
+		{
+			for (var nIndex = 0, nCount = arrActionTypes.length; nIndex < nCount; ++nIndex)
+			{
+				this.Shortcuts.RemoveByType(arrActionTypes[nIndex]);
+			}
+		}
+	};
+	baseEditorsApi.prototype.asc_addCustomShortcutInsertSymbol = function(nCharCode, sFont, sShortcut)
+	{
+		var nActionType = this.Shortcuts.AddCustomActionSymbol(nCharCode, sFont);
+		this.Shortcuts.Add(nActionType, sShortcut[0], sShortcut[1], sShortcut[2], sShortcut[3]);
+		return nActionType;
+	};
 	//----------------------------------------------------------addons----------------------------------------------------
     baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)
 	{
@@ -2974,6 +3195,7 @@
 
 	prot = baseEditorsApi.prototype;
 	prot['asc_loadFontsFromServer'] = prot.asc_loadFontsFromServer;
+	prot['asc_setRestriction'] = prot.asc_setRestriction;
 	prot['asc_selectSearchingResults'] = prot.asc_selectSearchingResults;
 	prot['asc_showRevision'] = prot.asc_showRevision;
 	prot['asc_getAdvancedOptions'] = prot.asc_getAdvancedOptions;
@@ -2983,11 +3205,20 @@
 	prot['asc_runAutostartMacroses'] = prot.asc_runAutostartMacroses;
 	prot['asc_setVisiblePasteButton'] = prot.asc_setVisiblePasteButton;
 	prot['asc_getAutoCorrectMathSymbols'] = prot.asc_getAutoCorrectMathSymbols;
+	prot['asc_getAutoCorrectMathFunctions'] = prot.asc_getAutoCorrectMathFunctions;
 	prot['asc_resetToDefaultAutoCorrectMathSymbols'] = prot.asc_resetToDefaultAutoCorrectMathSymbols;
+	prot['asc_resetToDefaultAutoCorrectMathFunctions'] = prot.asc_resetToDefaultAutoCorrectMathFunctions;
 	prot['asc_deleteFromAutoCorrectMathSymbols'] = prot.asc_deleteFromAutoCorrectMathSymbols;
+	prot['asc_deleteFromAutoCorrectMathFunctions'] = prot.asc_deleteFromAutoCorrectMathFunctions;
 	prot['asc_AddOrEditFromAutoCorrectMathSymbols'] = prot.asc_AddOrEditFromAutoCorrectMathSymbols;
+	prot['asc_AddFromAutoCorrectMathFunctions'] = prot.asc_AddFromAutoCorrectMathFunctions;
 	prot['asc_refreshOnStartAutoCorrectMathSymbols'] = prot.asc_refreshOnStartAutoCorrectMathSymbols;
+	prot['asc_refreshOnStartAutoCorrectMathFunctions'] = prot.asc_refreshOnStartAutoCorrectMathFunctions;
 	prot['asc_updateFlagAutoCorrectMathSymbols'] = prot.asc_updateFlagAutoCorrectMathSymbols;
+	prot['asc_initShortcuts'] = prot.asc_initShortcuts;
+	prot['asc_getShortcutAction'] = prot.asc_getShortcutAction;
+	prot['asc_removeShortcuts'] = prot.asc_removeShortcuts;
+	prot['asc_addCustomShortcutInsertSymbol'] = prot.asc_addCustomShortcutInsertSymbol;
 
 	prot['asc_isCrypto'] = prot.asc_isCrypto;
 

@@ -4419,8 +4419,8 @@
 	cSUBTOTAL.prototype = Object.create(cBaseFunction.prototype);
 	cSUBTOTAL.prototype.constructor = cSUBTOTAL;
 	cSUBTOTAL.prototype.name = 'SUBTOTAL';
-	cSUBTOTAL.prototype.argumentsMin = 1;
-	cSUBTOTAL.prototype.argumentsType = [argType.number, [argType.reference]];
+	cSUBTOTAL.prototype.argumentsMin = 2;
+	cSUBTOTAL.prototype.argumentsType = [argType.number, argType.reference, [argType.reference]];
 	//TODO все оставшиеся аргументы приходят на вход функции как массивы
 	cSUBTOTAL.prototype.arrayIndexes = {1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1};
 	cSUBTOTAL.prototype.Calculate = function (arg) {
@@ -4885,6 +4885,7 @@
 	cSUMPRODUCT.prototype.argumentsMin = 1;
 	cSUMPRODUCT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cSUMPRODUCT.prototype.argumentsType = [[argType.array]];
+	cSUMPRODUCT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cSUMPRODUCT.prototype.Calculate = function (arg) {
 		var arg0 = new cNumber(0), resArr = [], col = 0, row = 0, res = 1, _res = [], i;
 

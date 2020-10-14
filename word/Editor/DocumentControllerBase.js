@@ -226,7 +226,7 @@ CDocumentControllerBase.prototype.Refresh_RecalcData2 = function()
  * @param {boolean} bReturnTopTable - Возвращается объект или true/false
  * @returns {boolean | CTable}
  */
-CDocumentControllerBase.prototype.Is_InTable = function(bReturnTopTable)
+CDocumentControllerBase.prototype.IsInTable = function(bReturnTopTable)
 {
 	if (true === bReturnTopTable)
 		return null;

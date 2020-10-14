@@ -524,7 +524,7 @@
 				return {base64: sBase64, html: innerHtml};
 			},
 
-			getBinaryForCopy: function (wsModel, objectRender, activeRange, selectAll) {
+			getBinaryForCopy: function (wsModel, objectRender, activeRange, selectAll, ignoreCopyPaste) {
 				var isIntoShape = objectRender && objectRender.controller ? objectRender.controller.getTargetDocContent() : null;
 
 				var sBase64 = null;
@@ -594,7 +594,7 @@
 
 
 					//WRITE
-					var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(wb, selectionRange);
+					var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(wb, !ignoreCopyPaste ? selectionRange : false);
 					sBase64 = "xslData;" + oBinaryFileWriter.Write();
 					pptx_content_writer.BinaryFileWriter.ClearIdMap();
 					pptx_content_writer.End_UseFullUrl();
@@ -1564,7 +1564,7 @@
 
 				var doPasteIntoShape = function() {
 					History.TurnOff();
-					var docContent = this._convertTableFromExcelToDocument(worksheet, pasteData, isIntoShape);
+					var docContent = t._convertTableFromExcelToDocument(worksheet, pasteData, isIntoShape);
 					History.TurnOn();
 
 					var callback = function (isSuccess) {
@@ -1692,7 +1692,7 @@
 				var curDocId = api.DocInfo && api.DocInfo.Id;
 				var curUserId = api.CoAuthoringApi && api.CoAuthoringApi.getUserConnectionId();
 
-				if(pastedWb.Core && pastedWb.Core.identifier === curDocId && pastedWb.Core.creator === curUserId) {
+				if(pastedWb && pastedWb.Core && pastedWb.Core.identifier === curDocId && pastedWb.Core.creator === curUserId) {
 					res = true;
 				}
 
@@ -2031,7 +2031,7 @@
 				//TODO пока выключаю специальную ставку внутри math, позже доработать и включить
 				var oInfo = new CSelectedElementsInfo();
 				//var selectedElementsInfo = isIntoShape.GetSelectedElementsInfo(oInfo);
-				var mathObj = oInfo.Get_Math();
+				var mathObj = oInfo.GetMath();
 
 				if (/*!window['AscCommon'].g_specialPasteHelper.specialPasteStart && */null === mathObj) {
 					var sProps = Asc.c_oSpecialPasteProps;
@@ -2390,7 +2390,7 @@
 					if (data.Drawings[i].graphicObject.getObjectType() === AscDFH.historyitem_type_SlicerView) {
 						if (pastedInOriginalDoc) {
 							var pastedSlicer = data.getSlicerByName(data.Drawings[i].graphicObject.name);
-							if (pastedSlicers) {
+							if (pastedSlicer) {
 								if (pastedSlicer.checkModelContent(ws.model)) {
 									pastedSlicers.push(pastedSlicer);
 								} else {
@@ -3085,7 +3085,7 @@
 				var newFonts = {};
 				var fontName;
 				for (var i in oFonts) {
-					fontName = oFonts[i] ? oFonts[i].Name : undefined;
+					fontName = oFonts[i] ? (oFonts[i].Name || oFonts[i].name) : undefined;
 					if(undefined !== fontName) {
 						newFonts[fontName] = 1;
 					}

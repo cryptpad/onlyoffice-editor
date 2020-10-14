@@ -193,6 +193,67 @@ var c_oAscSdtCheckBoxDefaults = {
 
 window["flat_desine"] = false;
 
+var c_oAscDocumentShortcutType = {
+	InsertPageBreak      : 1,
+	InsertLineBreak      : 2,
+	InsertColumnBreak    : 3,
+	ResetChar            : 4,
+	NonBreakingSpace     : 5,
+	ApplyHeading1        : 6,
+	ApplyHeading2        : 7,
+	ApplyHeading3        : 8,
+	Strikeout            : 9,
+	ShowAll              : 10, // Показать/скрыть непечатаемые символы
+	EditSelectAll        : 11,
+	Bold                 : 12,
+	CopyFormat           : 13,
+	CopyrightSign        : 14,
+	InsertEndnoteNow     : 15,
+	CenterPara           : 16,
+	EuroSign             : 17,
+	InsertFootnoteNow    : 18,
+	Italic               : 19,
+	JustifyPara          : 20,
+	InsertHyperlink      : 21,
+	ApplyListBullet      : 22,
+	LeftPara             : 23,
+	Indent               : 24,
+	UnIndent             : 25,
+	PrintPreviewAndPrint : 26,
+	InsertPageNumber     : 27,
+	RegisteredSign       : 28,
+	RightPara            : 29,
+	Save                 : 30,
+	TrademarkSign        : 31,
+	Underline            : 32,
+	PasteFormat          : 33,
+	EditUndo             : 34,
+	EditRedo             : 35,
+	EmDash               : 36,
+	EnDash               : 37,
+	UpdateFields         : 38,
+	InsertEquation       : 39,
+	Superscript          : 40,
+	NonBreakingHyphen    : 41,
+	SoftHyphen           : 42,
+	HorizontalEllipsis   : 43,
+	Subscript            : 44,
+	IncreaseFontSize     : 45,
+	DecreaseFontSize     : 46
+};
+
+var c_oAscDocumentRefenceToType = {
+	Text               : 0,
+	PageNum            : 1,
+	ParaNum            : 2,
+	ParaNumNoContext   : 3,
+	ParaNumFullContex  : 4,
+	AboveBelow         : 5,
+	OnlyLabelAndNumber : 6,
+	OnlyCaptionText    : 7,
+	NoteNumber         : 8,
+	NoteNumberFormatted : 9
+};
 //------------------------------------------------------------export---------------------------------------------------
 var prot;
 window['Asc'] = window['Asc'] || {};
@@ -291,3 +352,63 @@ prot['CheckedFont']     = prot.CheckedFont;
 prot['UncheckedFont']   = prot.UncheckedFont;
 
 window['Asc']['NoYLimit'] = window['Asc'].NoYLimit = 0x7FFFFFFF;
+
+prot = window['Asc']['c_oAscDocumentShortcutType'] = window['Asc'].c_oAscDocumentShortcutType = c_oAscDocumentShortcutType;
+prot['InsertPageBreak']      = prot.InsertPageBreak;
+prot['InsertLineBreak']      = prot.InsertLineBreak;
+prot['InsertColumnBreak']    = prot.InsertColumnBreak;
+prot['ResetChar']            = prot.ResetChar;
+prot['NonBreakingSpace']     = prot.NonBreakingSpace;
+prot['ApplyHeading1']        = prot.ApplyHeading1;
+prot['ApplyHeading2']        = prot.ApplyHeading2;
+prot['ApplyHeading3']        = prot.ApplyHeading3;
+prot['Strikeout']            = prot.Strikeout;
+prot['ShowAll']              = prot.ShowAll;
+prot['EditSelectAll']        = prot.EditSelectAll;
+prot['Bold']                 = prot.Bold;
+prot['CopyFormat']           = prot.CopyFormat;
+prot['CopyrightSign']        = prot.CopyrightSign;
+prot['InsertEndnoteNow']     = prot.InsertEndnoteNow;
+prot['CenterPara']           = prot.CenterPara;
+prot['EuroSign']             = prot.EuroSign;
+prot['InsertFootnoteNow']    = prot.InsertFootnoteNow;
+prot['Italic']               = prot.Italic;
+prot['JustifyPara']          = prot.JustifyPara;
+prot['InsertHyperlink']      = prot.InsertHyperlink;
+prot['ApplyListBullet']      = prot.ApplyListBullet;
+prot['LeftPara']             = prot.LeftPara;
+prot['Indent']               = prot.Indent;
+prot['UnIndent']             = prot.UnIndent;
+prot['PrintPreviewAndPrint'] = prot.PrintPreviewAndPrint;
+prot['InsertPageNumber']     = prot.InsertPageNumber;
+prot['RegisteredSign']       = prot.RegisteredSign;
+prot['RightPara']            = prot.RightPara;
+prot['Save']                 = prot.Save;
+prot['TrademarkSign']        = prot.TrademarkSign;
+prot['Underline']            = prot.Underline;
+prot['PasteFormat']          = prot.PasteFormat;
+prot['EditUndo']             = prot.EditUndo;
+prot['EditRedo']             = prot.EditRedo;
+prot['EmDash']               = prot.EmDash;
+prot['EnDash']               = prot.EnDash;
+prot['UpdateFields']         = prot.UpdateFields;
+prot['InsertEquation']       = prot.InsertEquation;
+prot['Superscript']          = prot.Superscript;
+prot['NonBreakingHyphen']    = prot.NonBreakingHyphen;
+prot['SoftHyphen']           = prot.SoftHyphen;
+prot['HorizontalEllipsis']   = prot.HorizontalEllipsis;
+prot['Subscript']            = prot.Subscript;
+prot['IncreaseFontSize']     = prot.IncreaseFontSize;
+prot['DecreaseFontSize']     = prot.DecreaseFontSize;
+
+prot = window['Asc']['c_oAscDocumentRefenceToType'] = window['Asc'].c_oAscDocumentRefenceToType = c_oAscDocumentRefenceToType;
+prot['Text']               = prot.Text;
+prot['PageNum']            = prot.PageNum;
+prot['ParaNum']            = prot.ParaNum;
+prot['ParaNumNoContext']   = prot.ParaNumNoContext;
+prot['ParaNumFullContex']  = prot.ParaNumFullContex;
+prot['AboveBelow']         = prot.AboveBelow;
+prot['OnlyLabelAndNumber'] = prot.OnlyLabelAndNumber;
+prot['OnlyCaptionText']    = prot.OnlyCaptionText;
+prot['NoteNumber']         = prot.NoteNumber;
+prot['NoteNumberFormatted'] = prot.NoteNumberFormatted;

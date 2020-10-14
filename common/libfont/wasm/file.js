@@ -1002,6 +1002,8 @@
             var oSizes = new CFontCacheSizes();
             oSizes.ushUnicode = glyph_index_or_unicode;
 
+            var nUnicodeForHintTest = this.m_bStringGID ? 0 : glyph_index_or_unicode;
+
             var unGID = this.m_bStringGID ? glyph_index_or_unicode : AscFonts.FT_SetCMapForCharCode(this.m_pFace, glyph_index_or_unicode);
 
             if (unGID <= 0 && !this.m_bStringGID)
@@ -1046,7 +1048,7 @@
 
             //var measure_time_start = performance.now();
 
-			var load_mode = this.GetCharLoadMode();
+			var load_mode = this.GetCharLoadMode(nUnicodeForHintTest);
 			if (this.m_bStringGID || !isRaster || this.m_bNeedDoBold || !AscFonts.isUseBitmapStrikes(glyph_index_or_unicode))
 				load_mode |= AscFonts.FT_Load_Mode.FT_LOAD_NO_BITMAP;
 
@@ -1466,9 +1468,18 @@
             }
         };
 
-		this.GetCharLoadMode = function()
+		this.GetCharLoadMode = function(code)
         {
-        	return (this.HintsSupport && this.HintsSubpixelSupport) ? this.m_oFontManager.LOAD_MODE : AscFonts.LOAD_MODE_DEFAULT;
+        	if (this.HintsSupport && this.HintsSubpixelSupport)
+			{
+				// -----------------------------------------------------------------
+				// заглушки
+				if (code === 95 && this.m_pFaceInfo.family_name === "Wingdings 3")
+					return AscFonts.LOAD_MODE_DEFAULT;
+				// -----------------------------------------------------------------
+				return this.m_oFontManager.LOAD_MODE;
+			}
+			return AscFonts.LOAD_MODE_DEFAULT;
         };
 
         this.GetKerning = function(unPrevGID, unGID)

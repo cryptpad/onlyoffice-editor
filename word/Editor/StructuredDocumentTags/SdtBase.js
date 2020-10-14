@@ -186,7 +186,7 @@ CSdtBase.prototype.IsContentControlTemporary = function()
  */
 CSdtBase.prototype.SetFormPr = function(oFormPr)
 {
-	if ((!this.Pr.FormPr && oFormPr) || this.Pr.FormPr.IsEqual(oFormPr))
+	if ((!this.Pr.FormPr && oFormPr) || !this.Pr.FormPr.IsEqual(oFormPr))
 	{
 		History.Add(new CChangesSdtPrFormPr(this, this.Pr.FormPr, oFormPr));
 		this.Pr.FormPr = oFormPr;
@@ -194,8 +194,27 @@ CSdtBase.prototype.SetFormPr = function(oFormPr)
 		var oLogicDocument = this.GetLogicDocument();
 		if (oLogicDocument)
 			oLogicDocument.RegisterForm(this);
+
+		this.private_OnAddFormPr();
 	}
 }
+/**
+ * Удаляем настройки специальных форм
+ */
+CSdtBase.prototype.RemoveFormPr = function()
+{
+	if (this.Pr.FormPr)
+	{
+		History.Add(new CChangesSdtPrFormPr(this, this.Pr.FormPr, undefined));
+		this.Pr.FormPr = undefined;
+
+		var oLogicDocument = this.GetLogicDocument();
+		if (oLogicDocument)
+			oLogicDocument.UnregisterForm(this);
+
+		this.private_OnAddFormPr();
+	}
+};
 /**
  * @returns {?CSdtFormPr}
  */
@@ -237,3 +256,26 @@ CSdtBase.prototype.IsTextForm = function()
 {
 	return false;
 };
+/**
+ * Получаем ключ для группы радио-кнопок
+ * @returns {?string}
+ */
+CSdtBase.prototype.GetRadioButtonGroupKey = function()
+{
+	if (!this.IsRadioButton())
+		return undefined;
+
+	return (this.Pr.CheckBox.GroupKey);
+};
+/**
+ * Для чекбоксов и радио-кнопок получаем состояние
+ * @returns {bool}
+ */
+CSdtBase.prototype.IsCheckBoxChecked = function()
+{
+	if (this.IsCheckBox())
+		return this.Pr.CheckBox.Checked;
+
+	return false;
+};
+

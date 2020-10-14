@@ -988,7 +988,7 @@ CMathBase.prototype.Apply_TextPrToCtrPr = function(TextPr, IncFontSize, ApplyToA
 	if (true === ApplyToAll)
 		this.RecalcInfo.bCtrPrp = true;
 
-	if (undefined === TextPr)
+	if (!TextPr)
 	{
 		var CtrPrp = this.Get_CompiledCtrPrp_2();
 		this.Set_FontSizeCtrPrp(FontSize_IncreaseDecreaseValue(IncFontSize, CtrPrp.FontSize));
@@ -996,7 +996,7 @@ CMathBase.prototype.Apply_TextPrToCtrPr = function(TextPr, IncFontSize, ApplyToA
 	else
 	{
 		if (undefined !== TextPr.Bold)
-			this.Set_Bold(TextPr.Bold);
+			this.Set_Bold(null === TextPr.Bold ? undefined : TextPr.Bold);
 
 		if (TextPr.AscFill || TextPr.AscLine || TextPr.AscUnifill)
 		{
@@ -1016,54 +1016,61 @@ CMathBase.prototype.Apply_TextPrToCtrPr = function(TextPr, IncFontSize, ApplyToA
 			return;
 		}
 
-		if (TextPr.FontSize !== undefined)
-			this.Set_FontSizeCtrPrp(TextPr.FontSize);
+		if (undefined !== TextPr.FontSize)
+			this.Set_FontSizeCtrPrp(null === TextPr.FontSize ? undefined : TextPr.FontSize);
 
-		if (TextPr.Shd !== undefined)
-			this.Set_Shd(TextPr.Shd);
+		if (undefined !== TextPr.Shd)
+			this.Set_Shd(null === TextPr.Shd ? undefined : TextPr.Shd);
 
 		if (undefined !== TextPr.Unifill)
 		{
 			this.Set_Unifill(null === TextPr.Unifill ? undefined : TextPr.Unifill.createDuplicate());
-			this.Set_Color(undefined);
-			this.Set_TextFill(undefined);
+
+			if (null !== TextPr.Unifill)
+			{
+				if (this.CtrPrp.Color)
+					this.Set_Color(undefined);
+
+				if (this.CtrPrp.TextFill)
+					this.Set_TextFill(undefined);
+			}
 		}
 
 		if (undefined !== TextPr.TextOutline)
-		{
-			this.Set_TextOutline(TextPr.TextOutline);
-		}
+			this.Set_TextOutline(null === TextPr.TextOutline ? undefined : TextPr.TextOutline);
 
 		if (undefined !== TextPr.TextFill)
 		{
-			this.Set_TextFill(TextPr.TextFill);
-			this.Set_Color(undefined);
-			this.Set_Unifill(undefined);
+			this.Set_TextFill(null === TextPr.TextFill ? undefined : TextPr.TextFill);
+
+			if (null !== TextPr.TextFill)
+			{
+				if (this.CtrPrp.Color)
+					this.Set_Color(undefined);
+
+				if (this.CtrPrp.Unifill)
+					this.Set_Unifill(undefined);
+			}
 		}
 
 		if (undefined !== TextPr.HighLight)
-			this.Set_HighLight(TextPr.HighLight);
+			this.Set_HighLight(null === TextPr.HighLight ? undefined : TextPr.HighLight);
 
 		if (undefined !== TextPr.Underline)
-		{
-			this.Set_Underline(TextPr.Underline);
-		}
+			this.Set_Underline(null === TextPr.Underline ? undefined : TextPr.Underline);
 
 		if (undefined !== TextPr.Strikeout)
-		{
-			this.Set_Strikeout(TextPr.Strikeout);
-		}
+			this.Set_Strikeout(null === TextPr.Strikeout ? undefined : TextPr.Strikeout);
 
 		if (undefined !== TextPr.DStrikeout)
-		{
-			this.Set_DoubleStrikeout(TextPr.DStrikeout);
-		}
+			this.Set_DoubleStrikeout(null === TextPr.DStrikeout ? undefined : TextPr.DStrikeout);
 
-		if (undefined !== TextPr.RFonts && null !== TextPr.RFonts)
+		if (undefined !== TextPr.RFonts)
 		{
-			var oRFonts = new CRFonts();
-			oRFonts.SetAll("Cambria Math", -1);
-			this.raw_SetRFonts(oRFonts);
+			var RFonts = new CRFonts();
+			RFonts.Set_All("Cambria Math", -1);
+
+			this.raw_SetRFonts(RFonts);
 		}
 	}
 };
@@ -2015,6 +2022,14 @@ CMathBase.prototype.Make_ShdColor = function(PDSE, CurTextPr)
     var AutoColor = ( undefined != BgColor && false === BgColor.Check_BlackAutoColor() ? new CDocumentColor( 255, 255, 255, false ) : new CDocumentColor( 0, 0, 0, false ) );
 
     var RGBA;
+
+    if(CurTextPr.FontRef && CurTextPr.FontRef.Color)
+    {
+        CurTextPr.FontRef.Color.check(PDSE.Theme, PDSE.ColorMap);
+        RGBA = CurTextPr.FontRef.Color.RGBA;
+        AutoColor = new CDocumentColor( RGBA.R, RGBA.G, RGBA.B, RGBA.A );
+    }
+
     if(CurTextPr.Unifill)
     {
         CurTextPr.Unifill.check(PDSE.Theme, PDSE.ColorMap);
@@ -2042,15 +2057,21 @@ CMathBase.prototype.Make_ShdColor = function(PDSE, CurTextPr)
             pGraphics.p_color( RGBA.R, RGBA.G, RGBA.B, RGBA.A );
             pGraphics.b_color1( RGBA.R, RGBA.G, RGBA.B, RGBA.A );
         }
-        else if ( true === CurTextPr.Color.Auto )
-        {
-            pGraphics.p_color( AutoColor.r, AutoColor.g, AutoColor.b, 255);
-            pGraphics.b_color1( AutoColor.r, AutoColor.g, AutoColor.b, 255);
-        }
         else
         {
-            pGraphics.p_color( CurTextPr.Color.r, CurTextPr.Color.g, CurTextPr.Color.b, 255);
-            pGraphics.b_color1( CurTextPr.Color.r, CurTextPr.Color.g, CurTextPr.Color.b, 255);
+            if(!pGraphics.m_bIsTextDrawer || !CurTextPr.TextFill)
+            {
+                if ( true === CurTextPr.Color.Auto )
+                {
+                    pGraphics.p_color( AutoColor.r, AutoColor.g, AutoColor.b, 255);
+                    pGraphics.b_color1( AutoColor.r, AutoColor.g, AutoColor.b, 255);
+                }
+                else
+                {
+                    pGraphics.p_color( CurTextPr.Color.r, CurTextPr.Color.g, CurTextPr.Color.b, 255);
+                    pGraphics.b_color1( CurTextPr.Color.r, CurTextPr.Color.g, CurTextPr.Color.b, 255);
+                }
+            }
         }
     }
 

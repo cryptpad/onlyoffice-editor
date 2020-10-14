@@ -416,6 +416,17 @@ CShape.prototype.getParentObjects = function ()
                     notes: this.parent
                 }
             }
+            case AscDFH.historyitem_type_NotesMaster:
+            {
+                return {
+                    presentation: editor.WordControl.m_oLogicDocument,
+                    slide: null,
+                    layout: null,
+                    master: this.parent,
+                    theme: this.themeOverride ? this.themeOverride : this.parent.Theme,
+                    notes: null
+                }
+            }
             case AscDFH.historyitem_type_RelSizeAnchor:
             case AscDFH.historyitem_type_AbsSizeAnchor:
             {

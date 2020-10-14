@@ -94,6 +94,8 @@ function CSectionPr(LogicDocument)
 	this.FootnotePr    = new CFootnotePr();
 	this.EndnotePr     = new CFootnotePr();
 
+	this.LnNumType     = undefined;
+
     // Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
     g_oTableId.Add( this, this.Id );
 }
@@ -191,6 +193,9 @@ CSectionPr.prototype =
         this.SetFootnoteNumStart(Other.FootnotePr.NumStart);
         this.SetFootnoteNumRestart(Other.FootnotePr.NumRestart);
         this.SetFootnoteNumFormat(Other.FootnotePr.NumFormat);
+
+        if (Other.HaveLineNumbers())
+        	this.SetLineNumbers(Other.GetLineNumbersCountBy(), Other.GetLineNumbersDistance(), Other.GetLineNumbersStart(), Other.GetLineNumbersRestart());
     },
     
     Clear_AllHdrFtr : function()
@@ -671,6 +676,12 @@ CSectionPr.prototype =
 
         if ( -1 === Index )
             return;
+
+        if (AscDFH.historyitem_Section_LnNumType === Data.Type)
+		{
+			History.AddLineNumbersToRecalculateData();
+			return;
+		}
 
         // Здесь есть 1 исключение: когда мы добавляем колонтитул для первой страницы, может так получиться, что 
         // у данной секции флаг TitlePage = False, а значит пересчет надо запускать с места где данный колонтитул
@@ -1276,6 +1287,71 @@ CSectionPr.prototype.GetContentFrameHeight = function()
 
 	return nFrameHeight;
 };
+/**
+ * Есть ли нумерация строк
+ * @returns {boolean}
+ */
+CSectionPr.prototype.HaveLineNumbers = function()
+{
+	return (undefined !== this.LnNumType);
+};
+/**
+ * Добавляем или меняем нумерацию строк
+ * @param nCountBy
+ * @param nDistance
+ * @param nStart
+ * @param nRestartType
+ */
+CSectionPr.prototype.SetLineNumbers = function(nCountBy, nDistance, nStart, nRestartType)
+{
+	if (!this.LnNumType
+		|| nCountBy !== this.GetLineNumbersCountBy()
+		|| nDistance !== this.GetLineNumbersDistance()
+		|| nStart !== this.GetLineNumbersStart()
+		|| nRestartType !== this.GetLineNumbersRestart()
+	)
+	{
+		var oLnNumType = new CSectionLnNumType(nCountBy, nDistance, nStart, nRestartType);
+		History.Add(new CChangesSectionLnNumType(this, this.LnNumType, oLnNumType));
+		this.LnNumType = oLnNumType;
+	}
+};
+/**
+ * Получаем класс с настройками нумерации строк
+ * @returns {?CSectionLnNumType}
+ */
+CSectionPr.prototype.GetLineNumbers = function()
+{
+	return this.LnNumType;
+};
+/**
+ * Убираем нумерацию строк
+ */
+CSectionPr.prototype.RemoveLineNumbers = function()
+{
+	if (this.LnNumType)
+	{
+		History.Add(new CChangesSectionLnNumType(this, this.LnNumType, undefined));
+		this.LnNumType = undefined;
+	}
+};
+CSectionPr.prototype.GetLineNumbersCountBy = function()
+{
+	return (this.LnNumType && undefined !== this.LnNumType.CountBy ? this.LnNumType.CountBy : 1);
+};
+CSectionPr.prototype.GetLineNumbersStart = function()
+{
+	return (this.LnNumType && undefined !== this.LnNumType.Start ? this.LnNumType.Start : 1);
+};
+CSectionPr.prototype.GetLineNumbersRestart = function()
+{
+	return (this.LnNumType && undefined !== this.LnNumType.Restart ? this.LnNumType.Restart : Asc.c_oAscLineNumberRestartType.Continuous);
+};
+CSectionPr.prototype.GetLineNumbersDistance = function()
+{
+	return (this.LnNumType ? this.LnNumType.Distance : undefined);
+};
+
 
 function CSectionPageSize()
 {
@@ -1694,7 +1770,127 @@ CFootnotePr.prototype.ReadFromBinary = function(Reader)
 		this.Pos = undefined;
 };
 
+function CSectionLnNumType(nCountBy, nDistance, nStart, nRestartType)
+{
+	this.CountBy  = undefined !== nCountBy && 1 !== nCountBy ? nCountBy : undefined;
+	this.Distance = undefined !== nDistance && null !== nDistance ? nDistance : undefined; // В твипсах
+	this.Start    = undefined !== nStart && 1 !== nStart ? nStart : undefined;
+	this.Restart  = undefined !== nRestartType && Asc.c_oAscLineNumberRestartType.Continuous !== nRestartType ? nRestartType : undefined;
+}
+CSectionLnNumType.prototype.Copy = function()
+{
+	return new CSectionLnNumType(this.CountBy, this.Distance, this.Start, this.Restart);
+};
+CSectionLnNumType.prototype.WriteToBinary = function(oWriter)
+{
+	var nStartPos = oWriter.GetCurPosition();
+	oWriter.Skip(4);
+	var nFlags = 0;
+
+	if (undefined !== this.CountBy)
+	{
+		oWriter.WriteLong(this.CountBy);
+		nFlags |= 1;
+	}
+
+	if (undefined !== this.Distance)
+	{
+		oWriter.WriteLong(this.Distance);
+		nFlags |= 2;
+	}
+
+	if (undefined !== this.Start)
+	{
+		oWriter.WriteLong(this.Start);
+		nFlags |= 4;
+	}
+
+	if (undefined !== this.Restart)
+	{
+		oWriter.WriteLong(this.Restart);
+		nFlags |= 8;
+	}
+
+	var nEndPos = oWriter.GetCurPosition();
+	oWriter.Seek(nStartPos);
+	oWriter.WriteLong(nFlags);
+	oWriter.Seek(nEndPos);
+};
+CSectionLnNumType.prototype.ReadFromBinary = function(oReader)
+{
+	var nFlags = oReader.GetLong();
+
+	if (nFlags & 1)
+		this.CountBy = oReader.GetLong();
+	else
+		this.CountBy = undefined;
+
+	if (nFlags & 2)
+		this.Distance = oReader.GetLong();
+	else
+		this.Distance = undefined;
+
+	if (nFlags & 4)
+		this.Start = oReader.GetLong();
+	else
+		this.Start = undefined;
+
+	if (nFlags & 8)
+		this.Restart = oReader.GetLong();
+	else
+		this.Restart = undefined;
+};
+CSectionLnNumType.prototype.Write_ToBinary = function(oWriter)
+{
+	this.WriteToBinary(oWriter);
+};
+CSectionLnNumType.prototype.Read_FromBinary = function(oReader)
+{
+	this.ReadFromBinary(oReader);
+};
+CSectionLnNumType.prototype.SetCountBy = function(nCountBy)
+{
+	this.CountBy = nCountBy;
+};
+CSectionLnNumType.prototype.GetCountBy = function()
+{
+	return (undefined === this.CountBy ? 1 : this.CountBy);
+};
+CSectionLnNumType.prototype.SetDistance = function(nDistance)
+{
+	this.Distance = nDistance;
+};
+CSectionLnNumType.prototype.GetDistance = function()
+{
+	return this.Distance;
+};
+CSectionLnNumType.prototype.SetStart = function(nStart)
+{
+	this.Start = nStart;
+};
+CSectionLnNumType.prototype.GetStart = function()
+{
+	return (undefined === this.Start ? 1 : this.Start);
+};
+CSectionLnNumType.prototype.SetRestart = function(nRestart)
+{
+	this.Restart = nRestart;
+};
+CSectionLnNumType.prototype.GetRestart = function()
+{
+	return (undefined === this.Restart ? Asc.c_oAscLineNumberRestartType.Continuous : this.Restart);
+};
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CSectionPr = CSectionPr;
+
+window['Asc']['CSectionLnNumType'] = window['Asc'].CSectionLnNumType = CSectionLnNumType;
+CSectionLnNumType.prototype["get_CountBy"]  = CSectionLnNumType.prototype.GetCountBy;
+CSectionLnNumType.prototype["put_CountBy"]  = CSectionLnNumType.prototype.SetCountBy;
+CSectionLnNumType.prototype["get_Distance"] = CSectionLnNumType.prototype.GetDistance;
+CSectionLnNumType.prototype["put_Distance"] = CSectionLnNumType.prototype.SetDistance;
+CSectionLnNumType.prototype["get_Start"]    = CSectionLnNumType.prototype.GetStart;
+CSectionLnNumType.prototype["put_Start"]    = CSectionLnNumType.prototype.SetStart;
+CSectionLnNumType.prototype["get_Restart"]  = CSectionLnNumType.prototype.GetRestart;
+CSectionLnNumType.prototype["put_Restart"]  = CSectionLnNumType.prototype.SetRestart;

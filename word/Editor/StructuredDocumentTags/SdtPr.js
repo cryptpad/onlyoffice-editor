@@ -45,18 +45,6 @@ function CSdtPr()
 	this.Label = undefined;
 	this.Lock  = undefined;
 
-	// section property
-	this.SectionBreak = undefined;
-	this.PageSizeW	  = undefined;
-	this.PageSizeH	  = undefined;
-	this.Orient 	  = undefined;
-
-	// Margins 
-	this.MarginT	 		 = undefined;
-	this.MarginL	 		 = undefined;
-	this.MarginR	 		 = undefined;
-	this.MarginB	 		 = undefined;
-
 	this.DocPartObj = {
 		Gallery  : undefined,
 		Category : undefined,
@@ -769,6 +757,14 @@ CSdtCheckBoxPr.prototype.Read_FromBinary = function(oReader)
 {
 	this.ReadFromBinary(oReader);
 };
+CSdtCheckBoxPr.prototype.SetChecked = function(isChecked)
+{
+	this.Checked = isChecked;
+};
+CSdtCheckBoxPr.prototype.GetChecked = function()
+{
+	return this.Checked;
+};
 CSdtCheckBoxPr.prototype.GetCheckedSymbol = function()
 {
 	return this.CheckedSymbol;
@@ -1242,7 +1238,7 @@ CSdtFormPr.prototype.WriteToBinary = function(oWriter)
 
 	if (undefined !== this.Required)
 	{
-		Writer.WriteBool(this.Required);
+		oWriter.WriteBool(this.Required);
 		nFlags |= 8;
 	}
 
@@ -1351,6 +1347,8 @@ CContentControlPr.prototype['put_FormPr']             = CContentControlPr.protot
 window['AscCommon'].CSdtCheckBoxPr    = CSdtCheckBoxPr;
 window['AscCommon']['CSdtCheckBoxPr'] = CSdtCheckBoxPr;
 
+CSdtCheckBoxPr.prototype['get_Checked']         = CSdtCheckBoxPr.prototype.GetChecked;
+CSdtCheckBoxPr.prototype['put_Checked']         = CSdtCheckBoxPr.prototype.SetChecked;
 CSdtCheckBoxPr.prototype['get_CheckedSymbol']   = CSdtCheckBoxPr.prototype.GetCheckedSymbol;
 CSdtCheckBoxPr.prototype['put_CheckedSymbol']   = CSdtCheckBoxPr.prototype.SetCheckedSymbol;
 CSdtCheckBoxPr.prototype['get_CheckedFont']     = CSdtCheckBoxPr.prototype.GetCheckedFont;

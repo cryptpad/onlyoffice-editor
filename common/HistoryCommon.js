@@ -478,14 +478,14 @@
 			case AscDFH.historydescription_Document_ShiftDeleteButton                  :
 				sString = "Document_ShiftDeleteButton";
 				break;
-			case AscDFH.historydescription_Document_SetStyleHeading1                   :
-				sString = "Document_SetStyleHeading1";
+			case AscDFH.historydescription_Document_Shortcut_SetStyleHeading1:
+				sString = "Document_Shortcut_SetStyleHeading1";
 				break;
-			case AscDFH.historydescription_Document_SetStyleHeading2                   :
-				sString = "Document_SetStyleHeading2";
+			case AscDFH.historydescription_Document_Shortcut_SetStyleHeading2:
+				sString = "Document_Shortcut_SetStyleHeading2";
 				break;
-			case AscDFH.historydescription_Document_SetStyleHeading3                   :
-				sString = "Document_SetStyleHeading3";
+			case AscDFH.historydescription_Document_Shortcut_SetStyleHeading3:
+				sString = "Document_Shortcut_SetStyleHeading3";
 				break;
 			case AscDFH.historydescription_Document_SetTextStrikeoutHotKey             :
 				sString = "Document_SetTextStrikeoutHotKey";
@@ -1172,6 +1172,28 @@
 			case AscDFH.historydescription_Document_ConvertFootnoteType:
 				sString = "Document_ConvertFootnoteType";
 				break;
+			case AscDFH.historydescription_Document_AutoCorrectCommon:
+				sString = "Document_AutoCorrectCommon";
+				break;
+			case AscDFH.historydescription_Document_Shortcut_ClearFormatting:
+				sString = "Document_Shortcut_ClearFormatting";
+				break;
+			case AscDFH.historydescription_Document_Shortcut_AddNonBreakingSpace:
+				sString = "Document_Shortcut_AddNonBreakingSpace";
+				break;
+			case AscDFH.historydescription_Document_SetParagraphSuppressLineNumbers:
+				sString = "Document_SetParagraphSuppressLineNumbers";
+				break;
+			case AscDFH.historydescription_Document_SetLineNumbersProps:
+				sString = "Document_SetLineNumbersProps";
+				break;
+			case AscDFH.historydescription_Document_AddCrossRef:
+				sString = "Document_AddCrossRef";
+				break;
+			case AscDFH.historydescription_Document_ClearAllSpecialForms:
+				sString = "Document_ClearAllSpecialForms";
+				break;
+
 		}
 		return sString;
 	}
@@ -1412,6 +1434,8 @@
 	window['AscDFH'].historyitem_type_AbsSizeAnchor          = 1135 << 16;
 	window['AscDFH'].historyitem_type_Core                   = 1136 << 16;
 	window['AscDFH'].historyitem_type_SlicerView             = 1137 << 16;
+	window['AscDFH'].historyitem_type_PivotWorksheetSource   = 1138 << 16;
+	window['AscDFH'].historyitem_type_NamedSheetView         = 1139 << 16;
 
 
 	window['AscDFH'].historyitem_type_DocumentMacros         = 2000 << 16;
@@ -1481,6 +1505,7 @@
 	window['AscDFH'].historyitem_Paragraph_PrReviewInfo              = window['AscDFH'].historyitem_type_Paragraph | 36;
 	window['AscDFH'].historyitem_Paragraph_OutlineLvl                = window['AscDFH'].historyitem_type_Paragraph | 37;
 	window['AscDFH'].historyitem_Paragraph_DefaultTabSize            = window['AscDFH'].historyitem_type_Paragraph | 38;
+	window['AscDFH'].historyitem_Paragraph_SuppressLineNumbers       = window['AscDFH'].historyitem_type_Paragraph | 39;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе ParaTextPr
 	//------------------------------------------------------------------------------------------------------------------
@@ -1849,6 +1874,7 @@
 	window['AscDFH'].historyitem_Section_Endnote_NumStart    = window['AscDFH'].historyitem_type_Section | 35;
 	window['AscDFH'].historyitem_Section_Endnote_NumRestart  = window['AscDFH'].historyitem_type_Section | 36;
 	window['AscDFH'].historyitem_Section_Endnote_NumFormat   = window['AscDFH'].historyitem_type_Section | 37;
+	window['AscDFH'].historyitem_Section_LnNumType           = window['AscDFH'].historyitem_type_Section | 38;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе AscCommon.ParaComment
 	//------------------------------------------------------------------------------------------------------------------
@@ -3039,9 +3065,9 @@
 	window['AscDFH'].historydescription_Document_ShiftInsertSafari                  = 0x008d;
 	window['AscDFH'].historydescription_Document_DeleteButton                       = 0x008e;
 	window['AscDFH'].historydescription_Document_ShiftDeleteButton                  = 0x008f;
-	window['AscDFH'].historydescription_Document_SetStyleHeading1                   = 0x0090;
-	window['AscDFH'].historydescription_Document_SetStyleHeading2                   = 0x0091;
-	window['AscDFH'].historydescription_Document_SetStyleHeading3                   = 0x0092;
+	window['AscDFH'].historydescription_Document_Shortcut_SetStyleHeading1          = 0x0090;
+	window['AscDFH'].historydescription_Document_Shortcut_SetStyleHeading2          = 0x0091;
+	window['AscDFH'].historydescription_Document_Shortcut_SetStyleHeading3          = 0x0092;
 	window['AscDFH'].historydescription_Document_SetTextStrikeoutHotKey             = 0x0093;
 	window['AscDFH'].historydescription_Document_SetTextBoldHotKey                  = 0x0094;
 	window['AscDFH'].historydescription_Document_SetParagraphAlignHotKey            = 0x0095;
@@ -3280,6 +3306,13 @@
 	window['AscDFH'].historydescription_Document_AddContentControlTextForm          = 0x0179;
 	window['AscDFH'].historydescription_Document_SetEndnotePr                       = 0x017a;
 	window['AscDFH'].historydescription_Document_ConvertFootnoteType                = 0x017b;
+	window['AscDFH'].historydescription_Document_AutoCorrectCommon                  = 0x017c;
+	window['AscDFH'].historydescription_Document_Shortcut_ClearFormatting           = 0x017d;
+	window['AscDFH'].historydescription_Document_Shortcut_AddNonBreakingSpace       = 0x017e;
+	window['AscDFH'].historydescription_Document_SetParagraphSuppressLineNumbers    = 0x017f;
+	window['AscDFH'].historydescription_Document_SetLineNumbersProps                = 0x0180;
+	window['AscDFH'].historydescription_Document_AddCrossRef                        = 0x0181;
+	window['AscDFH'].historydescription_Document_ClearAllSpecialForms               = 0x0182;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
@@ -3382,6 +3415,10 @@
 	CChangesBase.prototype.IsNeedRecalculate = function()
 	{
 		return true;
+	};
+	CChangesBase.prototype.IsNeedRecalculateLineNumbers = function()
+	{
+		return false;
 	};
 	window['AscDFH'].CChangesBase = CChangesBase;
 	/**

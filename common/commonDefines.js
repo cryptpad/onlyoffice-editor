@@ -159,12 +159,14 @@
 			LockedWorksheetRename            : -55,
 			FTChangeTableRangeError          : -56,
 			FTRangeIncludedOtherTables       : -57,
+			ChangeFilteredRangeError         : -58,
 
 			PasteMaxRangeError   : -64,
 			PastInMergeAreaError : -65,
 			CopyMultiselectAreaError : -66,
 			PasteSlicerError: 67,
-			PasteMultiSelectError : -68,
+			MoveSlicerError: 68,
+			PasteMultiSelectError : -69,
 
 			DataRangeError   : -75,
 			CannotMoveRange  : -74,
@@ -191,6 +193,8 @@
 			SessionToken: -122,
 
 			/* для формул */
+			FrmlMaxReference            : -297,
+			FrmlMaxLength               : -298,
 			FrmlMaxTextLength           : -299,
 			FrmlWrongCountParentheses   : -300,
 			FrmlWrongOperator           : -301,
@@ -238,7 +242,9 @@
 			// Data Validate
 			RemoveDuplicates : -850,
 
-			LargeRangeWarning: -900
+			LargeRangeWarning: -900,
+
+			LockedEditView: -950
 		}
 	};
 
@@ -390,6 +396,47 @@
 
 	var c_oAscShdClear = 0;
 	var c_oAscShdNil   = 1;
+
+	var c_oAscShd = {
+		Clear                 : 0,
+		Nil                   : 1,
+		DiagCross             : 2,
+		DiagStripe            : 3,
+		HorzCross             : 4,
+		HorzStripe            : 5,
+		Pct10                 : 6,
+		Pct12                 : 7,
+		Pct15                 : 8,
+		Pct20                 : 9,
+		Pct25                 : 10,
+		Pct30                 : 11,
+		Pct35                 : 12,
+		Pct37                 : 13,
+		Pct40                 : 14,
+		Pct45                 : 15,
+		Pct5                  : 16,
+		Pct50                 : 17,
+		Pct55                 : 18,
+		Pct60                 : 19,
+		Pct62                 : 20,
+		Pct65                 : 21,
+		Pct70                 : 22,
+		Pct75                 : 23,
+		Pct80                 : 24,
+		Pct85                 : 25,
+		Pct87                 : 26,
+		Pct90                 : 27,
+		Pct95                 : 28,
+		ReverseDiagStripe     : 29,
+		Solid                 : 30,
+		ThinDiagCross         : 31,
+		ThinDiagStripe        : 32,
+		ThinHorzCross         : 33,
+		ThinHorzStripe        : 34,
+		ThinReverseDiagStripe : 35,
+		ThinVertStripe        : 36,
+		VertStripe            : 37
+	};
 
 	var vertalign_Baseline    = 0;
 	var vertalign_SuperScript = 1;
@@ -815,7 +862,8 @@
 		Common       : 0,
 		Hyperlink    : 1,
 		LockedObject : 2,
-		Footnote     : 3
+		Footnote     : 3,
+		Form         : 4
 	};
 
 	// selection type
@@ -870,8 +918,8 @@
 		MinPageTopField		: 0.17,
 		MinPageBottomField	: 0.17,
 
-		PageGridLines : 0,
-		PageHeadings  : 0
+		PageGridLines : false,
+		PageHeadings  : false
 	};
 
 	// Тип печати
@@ -905,7 +953,8 @@
 		EndCalculate: 2,
 		GetRangeCell: 3,
 		IsDefName: 4,
-		Shared: 5
+		Shared: 5,
+		ProcessNotify: 6
 	};
 
 	var c_oDashType = {
@@ -1117,7 +1166,9 @@
 	var c_oAscMaxCellOrCommentLength = 32767;
 	var c_oAscMaxFormulaLength       = 8192;
 	var c_oAscMaxHeaderFooterLength  = 255;
-	var c_oAscMaxFilterListLength  = 10000;
+	var c_oAscMaxFilterListLength    = 10000;
+	var c_oAscMaxFormulaReferenceLength = 2048;
+	var c_oAscMaxTableColumnTextLength  = 256;
 
 	var locktype_None   = 1; // никто не залочил данный объект
 	var locktype_Mine   = 2; // данный объект залочен текущим пользователем
@@ -1462,6 +1513,8 @@
 		UpperLetter           : 0x2006,
 		DecimalZero           : 0x2007,
 		DecimalEnclosedCircle : 0x2008,
+		RussianLower          : 0x2009,
+		RussianUpper          : 0x200a,
 
 		ChineseCounting         : 0x2101,
 		ChineseCountingThousand : 0x2102,
@@ -1616,6 +1669,12 @@
 		DateTime     : 5,
 
 		TOC          : 10
+	};
+
+	var c_oAscDefNameType = {
+		none: 0,
+		table: 1,
+		slicer: 2
 	};
 
 	var g_aLcidNameIdArray = [
@@ -2027,6 +2086,22 @@
 
 	var document_compatibility_mode_Current = document_compatibility_mode_Word12;
 
+	var c_oAscCustomShortcutType = {
+		Symbol : 1
+	};
+
+	var c_oAscLineNumberRestartType = {
+		Continuous : 1,
+		NewPage    : 2,
+		NewSection : 3
+	};
+
+	var c_oAscSectionApplyType = {
+		Current : 0,
+		ToEnd   : 1,
+		All     : 2
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -2132,10 +2207,12 @@
 	prot['LockedWorksheetRename']            = prot.LockedWorksheetRename;
 	prot['FTChangeTableRangeError']          = prot.FTChangeTableRangeError;
 	prot['FTRangeIncludedOtherTables']       = prot.FTRangeIncludedOtherTables;
+	prot['ChangeFilteredRangeError']         = prot.ChangeFilteredRangeError;
 	prot['PasteMaxRangeError']               = prot.PasteMaxRangeError;
 	prot['PastInMergeAreaError']             = prot.PastInMergeAreaError;
 	prot['CopyMultiselectAreaError']         = prot.CopyMultiselectAreaError;
 	prot['PasteSlicerError']                 = prot.PasteSlicerError;
+	prot['MoveSlicerError']                  = prot.MoveSlicerError;
 	prot['PasteMultiSelectError']            = prot.PasteMultiSelectError;
 	prot['DataRangeError']                   = prot.DataRangeError;
 	prot['CannotMoveRange']                  = prot.CannotMoveRange;
@@ -2152,6 +2229,8 @@
 	prot['SessionIdle']                      = prot.SessionIdle;
 	prot['SessionToken']                     = prot.SessionToken;
 	prot['FrmlMaxTextLength']                = prot.FrmlMaxTextLength;
+	prot['FrmlMaxLength']                    = prot.FrmlMaxLength;
+	prot['FrmlMaxReference']                 = prot.FrmlMaxReference;
 	prot['FrmlWrongCountParentheses']        = prot.FrmlWrongCountParentheses;
 	prot['FrmlWrongOperator']                = prot.FrmlWrongOperator;
 	prot['FrmlWrongMaxArgument']             = prot.FrmlWrongMaxArgument;
@@ -2184,6 +2263,7 @@
 	prot['CustomSortNotOriginalSelectError'] = prot.CustomSortNotOriginalSelectError;
 	prot['RemoveDuplicates']                 = prot.RemoveDuplicates;
 	prot['LargeRangeWarning']                = prot.LargeRangeWarning;
+	prot['LockedEditView']                   = prot.LockedEditView;
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
 	prot                                     = c_oAscAsyncAction;
 	prot['Open']                             = prot.Open;
@@ -2255,6 +2335,46 @@
 	window['Asc']['linerule_Exact'] = window['Asc'].linerule_Exact = linerule_Exact;
 	window['Asc']['c_oAscShdClear'] = window['Asc'].c_oAscShdClear = c_oAscShdClear;
 	window['Asc']['c_oAscShdNil'] = window['Asc'].c_oAscShdNil = c_oAscShdNil;
+	window['Asc']['c_oAscShd']    = window['Asc'].c_oAscShd = c_oAscShd;
+	prot                          = c_oAscShd;
+	prot['Clear'] = prot.Clear;
+	prot['Nil'] = prot.Nil;
+	prot['DiagCross'] = prot.DiagCross;
+	prot['DiagStripe'] = prot.DiagStripe;
+	prot['HorzCross'] = prot.HorzCross;
+	prot['HorzStripe'] = prot.HorzStripe;
+	prot['Pct10'] = prot.Pct10;
+	prot['Pct12'] = prot.Pct12;
+	prot['Pct15'] = prot.Pct15;
+	prot['Pct20'] = prot.Pct20;
+	prot['Pct25'] = prot.Pct25;
+	prot['Pct30'] = prot.Pct30;
+	prot['Pct35'] = prot.Pct35;
+	prot['Pct37'] = prot.Pct37;
+	prot['Pct40'] = prot.Pct40;
+	prot['Pct45'] = prot.Pct45;
+	prot['Pct5'] = prot.Pct5;
+	prot['Pct50'] = prot.Pct50;
+	prot['Pct55'] = prot.Pct55;
+	prot['Pct60'] = prot.Pct60;
+	prot['Pct62'] = prot.Pct62;
+	prot['Pct65'] = prot.Pct65;
+	prot['Pct70'] = prot.Pct70;
+	prot['Pct75'] = prot.Pct75;
+	prot['Pct80'] = prot.Pct80;
+	prot['Pct85'] = prot.Pct85;
+	prot['Pct87'] = prot.Pct87;
+	prot['Pct90'] = prot.Pct90;
+	prot['Pct95'] = prot.Pct95;
+	prot['ReverseDiagStripe'] = prot.ReverseDiagStripe;
+	prot['Solid'] = prot.Solid;
+	prot['ThinDiagCross'] = prot.ThinDiagCross;
+	prot['ThinDiagStripe'] = prot.ThinDiagStripe;
+	prot['ThinHorzCross'] = prot.ThinHorzCross;
+	prot['ThinHorzStripe'] = prot.ThinHorzStripe;
+	prot['ThinReverseDiagStripe'] = prot.ThinReverseDiagStripe;
+	prot['ThinVertStripe'] = prot.ThinVertStripe;
+	prot['VertStripe'] = prot.VertStripe;
 	window['Asc']['c_oAscDropCap'] = window['Asc'].c_oAscDropCap = c_oAscDropCap;
 	prot                                          = c_oAscDropCap;
 	prot['None']                                  = prot.None;
@@ -2534,6 +2654,16 @@
 	prot['Millimeter']                      = prot.Millimeter;
 	prot['Inch']                            = prot.Inch;
 	prot['Point']                           = prot.Point;
+
+	window['Asc']['c_oAscMouseMoveDataTypes'] = window['Asc'].c_oAscMouseMoveDataTypes = c_oAscMouseMoveDataTypes;
+
+	prot                 = c_oAscMouseMoveDataTypes;
+	prot['Common']       = prot.Common;
+	prot['Hyperlink']    = prot.Hyperlink;
+	prot['LockedObject'] = prot.LockedObject;
+	prot['Footnote']     = prot.Footnote;
+	prot['Form']         = prot.Form;
+
 	window['Asc']['c_oAscMaxTooltipLength'] = window['Asc'].c_oAscMaxTooltipLength = c_oAscMaxTooltipLength;
 	window['Asc']['c_oAscMaxCellOrCommentLength'] = window['Asc'].c_oAscMaxCellOrCommentLength = c_oAscMaxCellOrCommentLength;
 	window['Asc']['c_oAscMaxHeaderFooterLength']  = window['Asc'].c_oAscMaxHeaderFooterLength  = c_oAscMaxHeaderFooterLength;
@@ -2719,7 +2849,6 @@
 	window["AscCommon"].c_oAscChartSubType          = c_oAscChartSubType;
 	window["AscCommon"].c_oAscCsvDelimiter          = c_oAscCsvDelimiter;
 	window["AscCommon"].c_oAscUrlType               = c_oAscUrlType;
-	window["AscCommon"].c_oAscMouseMoveDataTypes    = c_oAscMouseMoveDataTypes;
 	window["AscCommon"].c_oAscPrintDefaultSettings  = c_oAscPrintDefaultSettings;
 	window["AscCommon"].c_oZoomType                 = c_oZoomType;
 	window["AscCommon"].c_oNotifyType               = c_oNotifyType;
@@ -2734,6 +2863,9 @@
 	window["AscCommon"].c_oAscCodePageUtf32         = c_oAscCodePageUtf32;
 	window["AscCommon"].c_oAscCodePageUtf32BE       = c_oAscCodePageUtf32BE;
 	window["AscCommon"].c_oAscMaxFormulaLength      = c_oAscMaxFormulaLength;
+	window["AscCommon"].c_oAscMaxFormulaReferenceLength = c_oAscMaxFormulaReferenceLength;
+	window["AscCommon"].c_oAscMaxTableColumnTextLength = c_oAscMaxTableColumnTextLength;
+
 
 	window["AscCommon"].locktype_None   = locktype_None;
 	window["AscCommon"].locktype_Mine   = locktype_Mine;
@@ -2847,18 +2979,20 @@
 
 	window['Asc']['c_oAscNumberingFormat'] = window['Asc'].c_oAscNumberingFormat = c_oAscNumberingFormat;
 	prot = c_oAscNumberingFormat;
-	prot['None']        = c_oAscNumberingFormat.None;
-	prot['Bullet']      = c_oAscNumberingFormat.Bullet;
-	prot['Decimal']     = c_oAscNumberingFormat.Decimal;
-	prot['LowerRoman']  = c_oAscNumberingFormat.LowerRoman;
-	prot['UpperRoman']  = c_oAscNumberingFormat.UpperRoman;
-	prot['LowerLetter'] = c_oAscNumberingFormat.LowerLetter;
-	prot['UpperLetter'] = c_oAscNumberingFormat.UpperLetter;
-	prot['DecimalZero'] = c_oAscNumberingFormat.DecimalZero;
-	prot['DecimalEnclosedCircle'] = c_oAscNumberingFormat.DecimalEnclosedCircle;
-	prot['ChineseCounting'] = c_oAscNumberingFormat.ChineseCounting;
-	prot['ChineseCountingThousand'] = c_oAscNumberingFormat.ChineseCountingThousand;
-	prot['ChineseLegalSimplified'] = c_oAscNumberingFormat.ChineseLegalSimplified;
+	prot['None']                    = prot.None;
+	prot['Bullet']                  = prot.Bullet;
+	prot['Decimal']                 = prot.Decimal;
+	prot['LowerRoman']              = prot.LowerRoman;
+	prot['UpperRoman']              = prot.UpperRoman;
+	prot['LowerLetter']             = prot.LowerLetter;
+	prot['UpperLetter']             = prot.UpperLetter;
+	prot['DecimalZero']             = prot.DecimalZero;
+	prot['DecimalEnclosedCircle']   = prot.DecimalEnclosedCircle;
+	prot['RussianLower']            = prot.RussianLower;
+	prot['RussianUpper']            = prot.RussianUpper;
+	prot['ChineseCounting']         = prot.ChineseCounting;
+	prot['ChineseCountingThousand'] = prot.ChineseCountingThousand;
+	prot['ChineseLegalSimplified']  = prot.ChineseLegalSimplified;
 
 	window['Asc']['c_oAscNumberingSuff'] = window['Asc'].c_oAscNumberingSuff = c_oAscNumberingSuff;
 	prot = c_oAscNumberingSuff;
@@ -2978,10 +3112,28 @@
 	prot['DateTime']     = c_oAscContentControlSpecificType.DateTime;
 	prot['TOC']          = c_oAscContentControlSpecificType.TOC;
 
+	window['Asc']['c_oAscDefNameType'] = window['Asc'].c_oAscDefNameType = c_oAscDefNameType;
+	prot = c_oAscDefNameType;
+	prot['table'] = prot.table;
+	prot['slicer'] = prot.slicer;
+
 	window["AscCommon"].document_compatibility_mode_Word11  = document_compatibility_mode_Word11;
 	window["AscCommon"].document_compatibility_mode_Word12  = document_compatibility_mode_Word12;
 	window["AscCommon"].document_compatibility_mode_Word14  = document_compatibility_mode_Word14;
 	window["AscCommon"].document_compatibility_mode_Word15  = document_compatibility_mode_Word15;
 	window["AscCommon"].document_compatibility_mode_Current = document_compatibility_mode_Current;
+
+	prot = window['AscCommon']['c_oAscCustomShortcutType'] = window['AscCommon'].c_oAscCustomShortcutType = c_oAscCustomShortcutType;
+	prot['Symbol'] = c_oAscCustomShortcutType.Symbol;
+
+	prot = window['Asc']['c_oAscLineNumberRestartType'] = window['Asc'].c_oAscLineNumberRestartType = c_oAscLineNumberRestartType;
+	prot['Continuous'] = c_oAscLineNumberRestartType.Continuous;
+	prot['NewPage']    = c_oAscLineNumberRestartType.NewPage;
+	prot['NewSection'] = c_oAscLineNumberRestartType.NewSection;
+
+	prot = window['Asc']['c_oAscSectionApplyType'] = window['Asc'].c_oAscSectionApplyType = c_oAscSectionApplyType;
+	prot['Current'] = c_oAscSectionApplyType.Current;
+	prot['ToEnd']   = c_oAscSectionApplyType.ToEnd;
+	prot['All']     = c_oAscSectionApplyType.All;
 
 })(window);

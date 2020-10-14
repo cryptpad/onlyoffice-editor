@@ -417,6 +417,9 @@ Paragraph.prototype.Recalculate_Page = function(CurPage)
     if (RecalcResult & recalcresult_NextElement && window['AscCommon'].g_specialPasteHelper && window['AscCommon'].g_specialPasteHelper.showButtonIdParagraph === this.GetId())
 		window['AscCommon'].g_specialPasteHelper.SpecialPasteButtonById_Show();
 
+    if (RecalcResult & recalcresult_NextElement)
+		this.UpdateLineNumbersInfo();
+
     return RecalcResult;
 };
 

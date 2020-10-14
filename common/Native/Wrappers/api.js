@@ -38,6 +38,7 @@ var _internalStorage = {
 };
 
 window['SockJS'] = createSockJS();
+window['JSZipUtils'] = JSZipUtils();
 
 Asc['asc_docs_api'].prototype.Update_ParaInd = function( Ind )
 {
@@ -5487,10 +5488,10 @@ Asc['asc_docs_api'].prototype.asc_findText = function(text, isNext, isMatchCase)
 {
     var SearchEngine = editor.WordControl.m_oLogicDocument.Search( text, { MatchCase : isMatchCase } );
 
-    var Id = this.WordControl.m_oLogicDocument.Search_GetId( isNext );
+    var Id = this.WordControl.m_oLogicDocument.GetSearchElementId( isNext );
 
     if ( null != Id )
-        this.WordControl.m_oLogicDocument.Search_Select( Id );
+        this.WordControl.m_oLogicDocument.SelectSearchElement( Id );
 
     return SearchEngine.Count;
 };
@@ -5501,7 +5502,7 @@ Asc['asc_docs_api'].prototype.asc_replaceText = function(text, replaceWith, isRe
 
     if ( true === isReplaceAll )
     {
-        this.WordControl.m_oLogicDocument.Search_Replace(replaceWith, true, -1);
+        this.WordControl.m_oLogicDocument.ReplaceSearchElement(replaceWith, true, -1);
         return true;
     }
     else
@@ -5509,13 +5510,13 @@ Asc['asc_docs_api'].prototype.asc_replaceText = function(text, replaceWith, isRe
         var CurId = this.WordControl.m_oLogicDocument.SearchEngine.CurId;
         var bDirection = this.WordControl.m_oLogicDocument.SearchEngine.Direction;
         if ( -1 != CurId )
-            this.WordControl.m_oLogicDocument.Search_Replace(replaceWith, false, CurId);
+            this.WordControl.m_oLogicDocument.ReplaceSearchElement(replaceWith, false, CurId);
 
-        var Id = this.WordControl.m_oLogicDocument.Search_GetId( bDirection );
+        var Id = this.WordControl.m_oLogicDocument.GetSearchElementId( bDirection );
 
         if ( null != Id )
         {
-            this.WordControl.m_oLogicDocument.Search_Select( Id );
+            this.WordControl.m_oLogicDocument.SelectSearchElement( Id );
             return true;
         }
 
@@ -5525,12 +5526,12 @@ Asc['asc_docs_api'].prototype.asc_replaceText = function(text, replaceWith, isRe
 
 Asc['asc_docs_api'].prototype._selectSearchingResults = function(bShow)
 {
-    this.WordControl.m_oLogicDocument.Search_Set_Selection(bShow);
+    this.WordControl.m_oLogicDocument.HighlightSearchResults(bShow);
 };
 
 Asc['asc_docs_api'].prototype.asc_isSelectSearchingResults = function()
 {
-    return this.WordControl.m_oLogicDocument.Search_Get_Selection();
+    return this.WordControl.m_oLogicDocument.IsHighlightSearchResults();
 };
 // endfind ----------------------------------------------------------------------------------------------
 

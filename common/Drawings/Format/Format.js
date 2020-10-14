@@ -9832,6 +9832,7 @@ CBodyPr.prototype =
         this.vertOverflow   = nOTOwerflow;
         this.wrap           = AscFormat.nTWTSquare;
         this.prstTxWarp     = null;
+        this.textFit        = null;
     },
 
     createDuplicate: function()
@@ -11198,16 +11199,10 @@ function GenerateDefaultTheme(presentation, opt_fontName)
         brush.fill.color.color.setId(phClr);
         theme.themeElements.fmtScheme.bgFillStyleLst.push(brush);
 
-        brush = new CUniFill();
-        brush.setFill(new CSolidFill());
-        brush.fill.setColor(new CUniColor());
-        brush.fill.color.setColor(CreateUniColorRGB(0,0,0));
+        brush = AscFormat.CreateUniFillByUniColor(AscFormat.CreateUniColorRGB(0, 0, 0));
         theme.themeElements.fmtScheme.bgFillStyleLst.push(brush);
 
-        brush = new CUniFill();
-        brush.setFill(new CSolidFill());
-        brush.fill.setColor(new CUniColor());
-        brush.fill.color.setColor(CreateUniColorRGB(0,0,0));
+        brush = AscFormat.CreateUniFillByUniColor(AscFormat.CreateUniColorRGB(0, 0, 0));
         theme.themeElements.fmtScheme.bgFillStyleLst.push(brush);
         // ----------------------------------------------------
 

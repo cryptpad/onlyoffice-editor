@@ -375,6 +375,9 @@
 		return res;
 	};
 	CT_slicer.prototype.merge = function(val) {
+		if(val.name !== this.name) {
+			this.name = undefined;
+		}
 		if(val.caption !== this.caption) {
 			this.caption = undefined;
 		}
@@ -474,6 +477,12 @@
 			}
 		}
 	};
+	CT_slicer.prototype.getIndexSheetCache = function () {
+		if (this.cacheDefinition) {
+			return this.cacheDefinition.getIndexSheetCache();
+		}
+		return null;
+	};
 	CT_slicer.prototype.initInterfaceOptions = function () {
 		this._ascSourceName = this.getSourceName();
 		this._ascNameInFormulas = this.getNameInFormulas();
@@ -549,7 +558,15 @@
 					this.cacheDefinition = slicerCaches[cache] || null;
 					break;
 				}
-				case 3: { this.caption = s.GetString2(); break; }
+				case 3: {
+					this.caption = s.GetString2();
+					if(typeof this.caption === "string") {
+						if(AscFonts.IsCheckSymbols) {
+							AscFonts.FontPickerByCharacter.getFontsByString(this.caption);
+						}
+					}
+					break;
+				}
 				case 4: { this.startItem = s.GetULong(); break; }
 				case 5: { this.columnCount = s.GetULong(); break; }
 				case 6: { this.showCaption = s.GetBool(); break; }
@@ -599,6 +616,11 @@
 	CT_slicer.prototype.setCaption = function (val) {
 		var oldVal = this.caption;
 		this.caption = val;
+		if(typeof this.caption === "string") {
+			if(AscFonts.IsCheckSymbols) {
+				AscFonts.FontPickerByCharacter.getFontsByString(this.caption);
+			}
+		}
 		History.Add(AscCommonExcel.g_oUndoRedoSlicer, AscCH.historyitem_Slicer_SetCaption,
 			this.ws.getId(), null, new AscCommonExcel.UndoRedoData_Slicer(this.name, oldVal, val));
 	};
@@ -702,10 +724,11 @@
 
 	};
 
-	CT_slicer.prototype.set = function (val) {
-		if (this.name !== val.name && val.name !== undefined) {
+	CT_slicer.prototype.set = function (val, opt_moveSheet) {
+		if (!opt_moveSheet && this.name !== val.name && val.name !== undefined) {
 			this.setName(val.name);
 		}
+
 		this.caption = this.checkProperty(this.caption, val.caption, AscCH.historyitem_Slicer_SetCaption);
 		this.startItem = this.checkProperty(this.startItem, val.startItem, AscCH.historyitem_Slicer_SetStartItem);
 		this.columnCount = this.checkProperty(this.columnCount, val.columnCount, AscCH.historyitem_Slicer_SetColumnCount);
@@ -731,10 +754,12 @@
 		}
 
 		//TODO ws?
-		var slicers = this.ws.getSlicersByCacheName(this.cacheDefinition.name);
-		if (slicers) {
-			for (var i = 0; i < slicers.length; i++) {
-				this.ws.workbook.onSlicerUpdate(slicers[i].name);
+		if (!opt_moveSheet) {
+			var slicers = this.ws.getSlicersByCacheName(this.cacheDefinition.name);
+			if (slicers) {
+				for (var i = 0; i < slicers.length; i++) {
+					this.ws.workbook.onSlicerUpdate(slicers[i].name);
+				}
 			}
 		}
 	};
@@ -1064,6 +1089,13 @@
 			return _res;
 		};
 
+		//replace not valid symbols
+		name = name.replace(/[-+*\/^&%<=>: ;//),]/g,"_");
+		//TODO дополнительная проверка - пересмотреть
+		if (!AscCommon.rx_defName.test(name)) {
+			name = name.replace(/[^a-zA-ZА-Яа-яЁё0-9]/gi,"_")
+		}
+
 		//TODO перевод - проверить на другом языке?
 		var index = 1;
 		name = "Slicer_" + name;
@@ -1169,6 +1201,25 @@
 			}
 		}
 		s.Seek2(_end_pos);
+	};
+
+	CT_slicerCacheDefinition.prototype.getIndexSheetCache = function () {
+		//TODO позже можно использовать данную функцию в функции getFilterValues. сейчас часть кода дублируется.
+		var res = null;
+		var type = this.getType();
+		var wb = this.wb;
+		switch (type) {
+			case insertSlicerType.table: {
+				//пока беру первый элемент, поскольку не очень понятно в каких случаях их вообще может быть несколько
+				var tableCache = this.tableSlicerCache;
+				var tableObj = wb.getTableByName(tableCache.tableId, true);
+				res = tableObj ? tableObj.index : null;
+			}
+			case insertSlicerType.pivotTable: {
+				break;
+			}
+		}
+		return res;
 	};
 
 	CT_slicerCacheDefinition.prototype.getFilterValues = function () {
@@ -2151,7 +2202,7 @@
 	CT_tableSlicerCache.prototype.toStream = function (s, tableIds, historySerialize) {
 		var tableIdOpen = null;
 		var columnOpen = null;
-		var elem = tableIds && tableIds[this.tableId];
+		var elem = !historySerialize && tableIds && tableIds[this.tableId];
 		if (elem) {
 			tableIdOpen = elem.id;
 			columnOpen = (elem.table.getTableIndexColumnByName(this.column) + 1) || null;

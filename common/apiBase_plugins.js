@@ -530,8 +530,35 @@
                 }
                 case "watermark_on_draw":
                 {
-                    this.watermarkDraw = obj[prop] ? new AscCommon.CWatermarkOnDraw(obj[prop], this) : null;
-                    this.watermarkDraw.checkOnReady();
+                    var sText = "";
+                    var tempProp = {};
+                    try
+                    {
+                        tempProp = (typeof obj[prop] === "string") ? JSON.parse(obj[prop]) : obj[prop];
+                    }
+                    catch (err)
+                    {
+                        tempProp = {};
+                    }
+                    if (tempProp["paragraphs"])
+                    {
+                        tempProp["paragraphs"].forEach(function (el) {
+                            if (el["runs"])
+                            {
+                                sText += el["runs"].reduce(function (accum, curel) {
+                                    return accum + (curel["text"] ? curel["text"] : "");
+                                }, "");
+                            }
+                        });
+                    }
+                    
+                    if(!(typeof sText === "string"))
+                        sText = "";
+                    
+                    AscFonts.FontPickerByCharacter.checkText(sText, this, function () {
+                        this.watermarkDraw = obj[prop] ? new AscCommon.CWatermarkOnDraw(obj[prop], this) : null;
+                        this.watermarkDraw.checkOnReady();
+                    });
                     break;
                 }
                 case "hideContentControlTrack":
