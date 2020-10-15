@@ -9042,7 +9042,7 @@ Paragraph.prototype.Add_PresentationNumbering = function(Bullet)
 					bEqualBulletType = this.Pr.Bullet.bulletType.IsIdentical(oBullet2.bulletType);
 				}
 				this.Set_Bullet(oBullet2.createDuplicate());
-				if(bEqualBulletType)
+				if(!bEqualBulletType)
 				{
 					LeftInd = Math.min(ParaPr.Ind.Left, ParaPr.Ind.Left + ParaPr.Ind.FirstLine);
 					var oFirstRunPr = this.Get_FirstTextPr2();
