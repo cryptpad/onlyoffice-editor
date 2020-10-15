@@ -2732,7 +2732,10 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 				}
 				else if (para_PresentationNumbering === this.Numbering.Type)
 				{
-					if (true != this.IsEmpty())
+					var bIsEmpty = this.IsEmpty();
+					if (!bIsEmpty ||
+						this.Is_ThisElementCurrent() ||
+						this.Parent.IsSelectionUse() && this.Parent.IsSelectionEmpty() && this.Parent.Selection.StartPos === this.Index)
 					{
 						if (Pr.ParaPr.Ind.FirstLine < 0)
 							NumberingItem.Draw(X, Y, pGraphics, PDSE);
@@ -9065,7 +9068,7 @@ Paragraph.prototype.Add_PresentationNumbering = function(Bullet)
 					bEqualBulletType = this.Pr.Bullet.bulletType.IsIdentical(oBullet2.bulletType);
 				}
 				this.Set_Bullet(oBullet2.createDuplicate());
-				if(bEqualBulletType)
+				if(!bEqualBulletType)
 				{
 					LeftInd = Math.min(ParaPr.Ind.Left, ParaPr.Ind.Left + ParaPr.Ind.FirstLine);
 					var oFirstRunPr = this.Get_FirstTextPr2();

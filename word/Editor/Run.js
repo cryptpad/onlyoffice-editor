@@ -11543,11 +11543,8 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 	if (!oParagraph)
 		return false;
 
-	if (false === oParagraph.bFromDocument)
-		return false;
-
 	var oDocument = oParagraph.LogicDocument;
-	if (!oDocument || !(oDocument instanceof CDocument))
+	if (!oDocument || !(oDocument instanceof CDocument) && !(oDocument instanceof CPresentation))
 		return false;
 
 	var oContentPos = oParagraph.Get_PosByElement(this);
@@ -11778,134 +11775,168 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 
 	if (oRunElementsBefore.IsEnd())
 	{
-		var oNumPr = null;
-
-		if (oDocument.IsAutomaticBulletedLists())
+		if(oParagraph.bFromDocument)
 		{
-			var oNumLvl = this.private_GetSuitableBulletedLvlForAutoCorrect(sText);
-			if (oNumLvl)
+			var oNumPr = null;
+
+			if (oDocument.IsAutomaticBulletedLists())
 			{
-				if (oPrevNumPr)
+				var oNumLvl = this.private_GetSuitableBulletedLvlForAutoCorrect(sText);
+				if (oNumLvl)
 				{
-					var oPrevNumLvl = oDocument.GetNumbering().GetNum(oPrevNumPr.NumId).GetLvl(oPrevNumPr.Lvl);
-					if (oPrevNumLvl.IsSimilar(oNumLvl))
+					if (oPrevNumPr)
 					{
-						oNumPr = new CNumPr(oPrevNumPr.NumId, oPrevNumPr.Lvl);
+						var oPrevNumLvl = oDocument.GetNumbering().GetNum(oPrevNumPr.NumId).GetLvl(oPrevNumPr.Lvl);
+						if (oPrevNumLvl.IsSimilar(oNumLvl))
+						{
+							oNumPr = new CNumPr(oPrevNumPr.NumId, oPrevNumPr.Lvl);
+						}
+					}
+
+					if (!oNumPr)
+					{
+						var oNum = oDocument.GetNumbering().CreateNum();
+						oNum.CreateDefault(c_oAscMultiLevelNumbering.Bullet);
+						oNum.SetLvl(oNumLvl, 0);
+						oNumPr = new CNumPr(oNum.GetId(), 0);
 					}
 				}
-
-				if (!oNumPr)
-				{
-					var oNum = oDocument.GetNumbering().CreateNum();
-					oNum.CreateDefault(c_oAscMultiLevelNumbering.Bullet);
-					oNum.SetLvl(oNumLvl, 0);
-					oNumPr = new CNumPr(oNum.GetId(), 0);
-				}
 			}
-		}
 
-		if (oDocument.IsAutomaticNumberedLists())
-		{
-			var arrResult = this.private_GetSuitableNumberedLvlForAutoCorrect(sText);
-
-			if (arrResult && arrResult.length > 0 && arrResult.length <= 9)
+			if (oDocument.IsAutomaticNumberedLists())
 			{
-				if (oPrevNumPr)
+				var arrResult = this.private_GetSuitableNumberedLvlForAutoCorrect(sText);
+
+				if (arrResult && arrResult.length > 0 && arrResult.length <= 9)
 				{
-					var isAdd      = false;
-					var nResultLvL = oPrevNumPr.Lvl;
-
-					var oResult = arrResult[arrResult.length - 1];
-					if (oResult && -1 !== oResult.Value && oResult.Lvl)
+					if (oPrevNumPr)
 					{
-						var oNumInfo = oPrevParagraph.Parent.CalculateNumberingValues(oPrevParagraph, oPrevNumPr);
-						var oPrevNum = oDocument.GetNumbering().GetNum(oPrevNumPr.NumId);
-						var nPrevLvl = oPrevNumPr.Lvl;
+						var isAdd      = false;
+						var nResultLvL = oPrevNumPr.Lvl;
 
-						for (var nLvl = nPrevLvl; nLvl >= 0; --nLvl)
+						var oResult = arrResult[arrResult.length - 1];
+						if (oResult && -1 !== oResult.Value && oResult.Lvl)
 						{
-							var oPrevNumLvl = oPrevNum.GetLvl(nLvl);
-							if (oPrevNumLvl.IsSimilar(oResult.Lvl))
+							var oNumInfo = oPrevParagraph.Parent.CalculateNumberingValues(oPrevParagraph, oPrevNumPr);
+							var oPrevNum = oDocument.GetNumbering().GetNum(oPrevNumPr.NumId);
+							var nPrevLvl = oPrevNumPr.Lvl;
+
+							for (var nLvl = nPrevLvl; nLvl >= 0; --nLvl)
 							{
-								if (oResult.Value > oNumInfo[nLvl] && oResult.Value <= oNumInfo[nLvl] + 2 && arrResult.length - 1 >= nLvl)
+								var oPrevNumLvl = oPrevNum.GetLvl(nLvl);
+								if (oPrevNumLvl.IsSimilar(oResult.Lvl))
 								{
-									var isCheckPrevLvls = true;
-									for (var nLvl2 = 0; nLvl2 < nLvl; ++nLvl2)
+									if (oResult.Value > oNumInfo[nLvl] && oResult.Value <= oNumInfo[nLvl] + 2 && arrResult.length - 1 >= nLvl)
 									{
-										if (arrResult[nLvl2].Value !== oNumInfo[nLvl2])
+										var isCheckPrevLvls = true;
+										for (var nLvl2 = 0; nLvl2 < nLvl; ++nLvl2)
 										{
-											isCheckPrevLvls = false;
+											if (arrResult[nLvl2].Value !== oNumInfo[nLvl2])
+											{
+												isCheckPrevLvls = false;
+												break;
+											}
+										}
+
+										if (isCheckPrevLvls)
+										{
+											isAdd      = true;
+											nResultLvL = nLvl;
 											break;
 										}
 									}
-
-									if (isCheckPrevLvls)
-									{
-										isAdd      = true;
-										nResultLvL = nLvl;
-										break;
-									}
 								}
 							}
+
+							if (!isAdd)
+							{
+								oResult.Lvl.ResetNumberedText(oPrevNumPr.Lvl);
+
+								var oPrevNumLvl = oDocument.GetNumbering().GetNum(oPrevNumPr.NumId).GetLvl(oPrevNumPr.Lvl);
+								if (oPrevNumLvl.IsSimilar(oResult.Lvl))
+								{
+									var oNumInfo = oPrevParagraph.Parent.CalculateNumberingValues(oPrevParagraph, oPrevNumPr);
+									if (oResult.Value > oNumInfo[oPrevNumPr.Lvl] && oResult.Value <= oNumInfo[oPrevNumPr.Lvl] + 2)
+										isAdd = true;
+								}
+							}
+
 						}
 
-						if (!isAdd)
+						if (isAdd)
+							oNumPr = new CNumPr(oPrevNumPr.NumId, nResultLvL);
+					}
+					else
+					{
+						var isCreateNew = true;
+						for (var nIndex = 0, nCount = arrResult.length; nIndex < nCount; ++nIndex)
 						{
-							oResult.Lvl.ResetNumberedText(oPrevNumPr.Lvl);
-
-							var oPrevNumLvl = oDocument.GetNumbering().GetNum(oPrevNumPr.NumId).GetLvl(oPrevNumPr.Lvl);
-							if (oPrevNumLvl.IsSimilar(oResult.Lvl))
+							var oResult = arrResult[nIndex];
+							if (!oResult || 1 !== oResult.Value || !oResult.Lvl)
 							{
-								var oNumInfo = oPrevParagraph.Parent.CalculateNumberingValues(oPrevParagraph, oPrevNumPr);
-								if (oResult.Value > oNumInfo[oPrevNumPr.Lvl] && oResult.Value <= oNumInfo[oPrevNumPr.Lvl] + 2)
-									isAdd = true;
+								isCreateNew = false;
+								break;
 							}
 						}
 
-					}
-
-					if (isAdd)
-						oNumPr = new CNumPr(oPrevNumPr.NumId, nResultLvL);
-				}
-				else
-				{
-					var isCreateNew = true;
-					for (var nIndex = 0, nCount = arrResult.length; nIndex < nCount; ++nIndex)
-					{
-						var oResult = arrResult[nIndex];
-						if (!oResult || 1 !== oResult.Value || !oResult.Lvl)
+						if (isCreateNew)
 						{
-							isCreateNew = false;
-							break;
-						}
-					}
+							var oNum = oDocument.GetNumbering().CreateNum();
+							oNum.CreateDefault(c_oAscMultiLevelNumbering.Numbered);
+							for (var nIndex = 0, nCount = arrResult.length; nIndex < nCount; ++nIndex)
+							{
+								oNum.SetLvl(arrResult[nIndex].Lvl, nIndex);
+							}
 
-					if (isCreateNew)
-					{
-						var oNum = oDocument.GetNumbering().CreateNum();
-						oNum.CreateDefault(c_oAscMultiLevelNumbering.Numbered);
-						for (var nIndex = 0, nCount = arrResult.length; nIndex < nCount; ++nIndex)
-						{
-							oNum.SetLvl(arrResult[nIndex].Lvl, nIndex);
+							oNumPr = new CNumPr(oNum.GetId(), arrResult.length - 1);
 						}
-
-						oNumPr = new CNumPr(oNum.GetId(), arrResult.length - 1);
 					}
 				}
 			}
+
+
+			if (oNumPr)
+			{
+				if (false === oDocument.Document_Is_SelectionLocked({
+						Type      : AscCommon.changestype_2_ElementsArray_and_Type,
+						Elements  : [oParagraph],
+						CheckType : AscCommon.changestype_Paragraph_Properties
+					}))
+				{
+					oDocument.StartAction(AscDFH.historydescription_Document_AutomaticListAsType);
+
+					var oStartPos = oParagraph.GetStartPos();
+					var oEndPos   = oContentPos;
+					oContentPos.Update(nPos + 1, oContentPos.GetDepth());
+
+					oParagraph.RemoveSelection();
+					oParagraph.SetSelectionUse(true);
+					oParagraph.SetSelectionContentPos(oStartPos, oEndPos, false);
+					oParagraph.Remove(1);
+					oParagraph.RemoveSelection();
+					oParagraph.MoveCursorToStartPos(false);
+
+					oParagraph.ApplyNumPr(oNumPr.NumId, oNumPr.Lvl);
+
+					oDocument.Recalculate();
+					oDocument.FinalizeAction();
+				}
+			}
 		}
-
-
-		if (oNumPr)
+		else
 		{
-			if (false === oDocument.Document_Is_SelectionLocked({
-					Type      : AscCommon.changestype_2_ElementsArray_and_Type,
-					Elements  : [oParagraph],
-					CheckType : AscCommon.changestype_Paragraph_Properties
-				}))
+			var oBullet = null;
+			if (oDocument.IsAutomaticBulletedLists())
+			{
+				oBullet = this.private_GetSuitablePrBulletForAutoCorrect(sText);
+			}
+			if (!oBullet && oDocument.IsAutomaticNumberedLists())
+			{
+				oBullet = this.private_GetSuitablePrNumberingForAutoCorrect(sText);
+			}
+			if (oBullet)
 			{
 				oDocument.StartAction(AscDFH.historydescription_Document_AutomaticListAsType);
-
 				var oStartPos = oParagraph.GetStartPos();
 				var oEndPos   = oContentPos;
 				oContentPos.Update(nPos + 1, oContentPos.GetDepth());
@@ -11916,10 +11947,7 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 				oParagraph.Remove(1);
 				oParagraph.RemoveSelection();
 				oParagraph.MoveCursorToStartPos(false);
-
-				oParagraph.ApplyNumPr(oNumPr.NumId, oNumPr.Lvl);
-
-				oDocument.Recalculate();
+				oParagraph.Add_PresentationNumbering(oBullet);
 				oDocument.FinalizeAction();
 			}
 		}
@@ -12116,6 +12144,97 @@ ParaRun.prototype.private_GetSuitableNumberedLvlForAutoCorrect = function(sText)
 		return null;
 	}
 
+	return null;
+};
+
+
+ParaRun.prototype.private_GetSuitablePrBulletForAutoCorrect = function (sText)
+{
+	if ('*' === sText)
+	{
+		return AscFormat.fGetPresentationBulletByNumInfo({Type: 0, SubType: 0});
+	}
+	else if ('-' === sText)
+	{
+		return AscFormat.fGetPresentationBulletByNumInfo({Type: 0, SubType: 8});
+	}
+	return null;
+};
+ParaRun.prototype.private_GetSuitablePrNumberingForAutoCorrect = function (sText)
+{
+	var sLastChar = sText.charAt(sText.length - 1);
+	if ('.' !== sLastChar && ')' !== sLastChar)
+		return null;
+
+	var nNumType = null;
+	if(sText === "(a)")
+	{
+		nNumType = numbering_presentationnumfrmt_AlphaLcParenBoth;
+	}
+	else if(sText === "a)")
+	{
+		nNumType = numbering_presentationnumfrmt_AlphaLcParenR;
+	}
+	else if(sText === "a.")
+	{
+		nNumType = numbering_presentationnumfrmt_AlphaLcPeriod;
+	}
+	else if(sText === "(A)")
+	{
+		nNumType = numbering_presentationnumfrmt_AlphaUcParenBoth;
+	}
+	else if(sText === "A)")
+	{
+		nNumType = numbering_presentationnumfrmt_AlphaUcParenR;
+	}
+	else if(sText === "A.")
+	{
+		nNumType = numbering_presentationnumfrmt_AlphaUcPeriod;
+	}
+	else if(sText === "(1)")
+	{
+		nNumType = numbering_presentationnumfrmt_ArabicParenBoth;
+	}
+	else if(sText === "1)")
+	{
+		nNumType = numbering_presentationnumfrmt_ArabicParenR;
+	}
+	else if(sText === "1.")
+	{
+		nNumType = numbering_presentationnumfrmt_ArabicPeriod;
+	}
+	else if(sText === "(i)")
+	{
+		nNumType = numbering_presentationnumfrmt_RomanLcParenBoth;
+	}
+	else if(sText === "i)")
+	{
+		nNumType = numbering_presentationnumfrmt_RomanLcParenR;
+	}
+	else if(sText === "i.")
+	{
+		nNumType = numbering_presentationnumfrmt_RomanLcPeriod;
+	}
+	else if(sText === "(I)")
+	{
+		nNumType = numbering_presentationnumfrmt_RomanUcParenBoth;
+	}
+	else if(sText === "I)")
+	{
+		nNumType = numbering_presentationnumfrmt_RomanUcParenR;
+	}
+	else if(sText === "I.")
+	{
+		nNumType = numbering_presentationnumfrmt_RomanUcPeriod;
+	}
+	if(nNumType !== null)
+	{
+		var oBullet = new AscFormat.CBullet();
+		oBullet.bulletType = new AscFormat.CBulletType();
+		oBullet.bulletType.type = AscFormat.BULLET_TYPE_BULLET_AUTONUM;
+		oBullet.bulletType.AutoNumType = nNumType;
+		return oBullet;
+	}
 	return null;
 };
 /**
