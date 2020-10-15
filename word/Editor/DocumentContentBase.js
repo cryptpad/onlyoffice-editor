@@ -1411,9 +1411,8 @@ CDocumentContentBase.prototype.GetTablesOfFigures = function(arrComplexFields)
  */
 CDocumentContentBase.prototype.AddText = function(sText)
 {
-	var oLogicDocument = this.GetLogicDocument();
-	if (oLogicDocument)
-		oLogicDocument.RemoveSelection();
+	if (this.IsSelectionUse())
+		this.Remove(1, true, false, true, false);
 
 	var oParagraph = this.GetCurrentParagraph();
 	if (!oParagraph)
