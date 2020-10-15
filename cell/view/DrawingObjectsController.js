@@ -648,7 +648,7 @@ DrawingObjectsController.prototype.onKeyPress = function(e)
     {
         var oApi = window["Asc"] && window["Asc"]["editor"];
         var fCallback = function(){
-            this.paragraphAdd(new ParaSpace(1));
+            this.paragraphAdd(new ParaSpace());
             this.checkMobileCursorPosition();
             this.recalculateCurPos(true, true);
         };
