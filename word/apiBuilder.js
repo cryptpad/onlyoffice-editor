@@ -2842,7 +2842,7 @@
 	/**
 	 * Create a radial gradient fill which allows to fill the object using a selected radial gradient as the object background.
 	 * @memberof Api
-	 * @typeofeditors ["CDE", "CPE"]
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @param {Array} aGradientStop - The array of gradient color stops measured in 1000th of percent.
 	 * @returns {ApiFill}
 	 */
@@ -5516,7 +5516,7 @@
 	/**
 	 * Get the type of this class.
 	 * @memberof ApiRun
-	 * @typeofeditors ["CDE", "CPE"]
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @returns {"run"}
 	 */
 	ApiRun.prototype.GetClassType = function()
@@ -10741,7 +10741,7 @@
 	/**
 	 * Get the type of this class.
 	 * @memberof ApiPresetColor
-	 * @typeofeditors ["CDE", "CPE"]
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @returns {"presetColor"}
 	 */
 	ApiPresetColor.prototype.GetClassType = function ()
