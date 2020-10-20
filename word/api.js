@@ -8960,6 +8960,23 @@ background-repeat: no-repeat;\
 		if (!oContentControl || !oContentControl.IsCheckBox())
 			return;
 
+		if (oContentControl.IsForm() && oPr)
+		{
+			if (oPr.GroupKey)
+			{
+				oPr.CheckedSymbol   = 0x25C9;
+				oPr.UncheckedSymbol = 0x25CB;
+			}
+			else
+			{
+				oPr.CheckedSymbol   = 0x2611;
+				oPr.UncheckedSymbol = 0x2610;
+			}
+
+			oPr.CheckedFont   = "Segoe UI Symbol";
+			oPr.UncheckedFont = "Segoe UI Symbol";
+		}
+
 		if (oPr.CheckedSymbol)
 			AscFonts.FontPickerByCharacter.getFontBySymbol(oPr.CheckedSymbol);
 
@@ -9053,6 +9070,7 @@ background-repeat: no-repeat;\
 					}
 					oApi.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_ApplyImagePrWithUrl);
 					oApi.WordControl.m_oLogicDocument.SetImageProps(oImagePr);
+					oCC.SetShowingPlcHdr(false);
 					oApi.WordControl.m_oLogicDocument.UpdateTracks();
 					oApi.WordControl.m_oLogicDocument.FinalizeAction();
 				};
@@ -9297,7 +9315,46 @@ background-repeat: no-repeat;\
 
 		oLogicDocument.ClearAllSpecialForms();
 	};
+	asc_docs_api.prototype.asc_SetSpecialFormsHighlightColor = function(r, g, b)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
 
+		// Лок можно не проверять, такие изменения нормально мержаться
+		oLogicDocument.StartAction(AscDFH.historydescription_Document_SetGlobalSdtHighlightColor);
+
+		// Если цвет не задан
+		if (undefined === r || null == r)
+			oLogicDocument.SetSpecialFormsHighlight(null);
+		else
+			oLogicDocument.SetSpecialFormsHighlight(r, g, b);
+
+		oLogicDocument.GetDrawingDocument().ClearCachePages();
+		oLogicDocument.GetDrawingDocument().FirePaint();
+		oLogicDocument.FinalizeAction();
+	};
+	asc_docs_api.prototype.asc_GetSpecialFormsHighlightColor = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return null;
+
+		var oColor = oLogicDocument.GetSpecialFormsHighlight();
+		return oColor ? new Asc.asc_CColor(oColor.r, oColor.g, oColor.b) : null;
+	};
+	asc_docs_api.prototype.sync_OnChangeSpecialFormsGlobalSettings = function()
+	{
+		this.sendEvent("asc_onChangeSpecialFormsGlobalSettings");
+	};
+	asc_docs_api.prototype.asc_SetPerformContentControlActionByClick = function(isPerform)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		oLogicDocument.SetPerformContentControlActionByClick(isPerform);
+	};
 
 	asc_docs_api.prototype.asc_UncheckContentControlButtons = function()
 	{
@@ -11218,7 +11275,9 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_GetCheckBoxFormKeys']                   = asc_docs_api.prototype.asc_GetCheckBoxFormKeys;
 	asc_docs_api.prototype['asc_GetRadioButtonGroupKeys']               = asc_docs_api.prototype.asc_GetRadioButtonGroupKeys;
 	asc_docs_api.prototype['asc_ClearAllSpecialForms']                  = asc_docs_api.prototype.asc_ClearAllSpecialForms;
-
+	asc_docs_api.prototype['asc_SetSpecialFormsHighlightColor']         = asc_docs_api.prototype.asc_SetSpecialFormsHighlightColor;
+	asc_docs_api.prototype['asc_GetSpecialFormsHighlightColor']         = asc_docs_api.prototype.asc_GetSpecialFormsHighlightColor;
+	asc_docs_api.prototype['asc_SetPerformContentControlActionByClick'] = asc_docs_api.prototype.asc_SetPerformContentControlActionByClick;
 
 	asc_docs_api.prototype['asc_BeginViewModeInReview']                 = asc_docs_api.prototype.asc_BeginViewModeInReview;
 	asc_docs_api.prototype['asc_EndViewModeInReview']                   = asc_docs_api.prototype.asc_EndViewModeInReview;

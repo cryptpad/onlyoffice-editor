@@ -273,6 +273,23 @@ CInlineLevelSdt.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _C
 	var Y1         = oParagraph.Lines[_CurLine].Bottom + oParagraph.Pages[_CurPage].Y;
 	var X0         = PRSA.X;
 
+	if (0 === CurLine)
+		Y0 = oParagraph.Lines[_CurLine].Y + oParagraph.Pages[_CurPage].Y - oParagraph.Lines[_CurLine].Metrics.Ascent;
+
+	if (CurLine >= this.protected_GetLinesCount() - 1)
+	{
+		for (var Key in this.Bounds)
+		{
+			var __CurLine = (Key | 0) >> 16;
+			if (__CurLine === CurLine - 1)
+			{
+				this.Bounds[Key].H = Y0 - this.Bounds[Key].Y;
+			}
+		}
+
+		Y1 = oParagraph.Lines[_CurLine].Y + oParagraph.Pages[_CurPage].Y + oParagraph.Lines[_CurLine].Metrics.Descent;
+	}
+
 	CParagraphContentWithParagraphLikeContent.prototype.Recalculate_Range_Spaces.apply(this, arguments);
 
 	var X1 = PRSA.X;
@@ -442,7 +459,7 @@ CInlineLevelSdt.prototype.GetBoundingPolygon = function()
 		this.BoundsPaths = [];
 		for (var nIndex = 0, nCount = arrBounds.length; nIndex < nCount; ++nIndex)
 		{
-			var oPolygon = new CPolygon();
+			var oPolygon = new AscCommon.CPolygon();
 			oPolygon.fill([arrBounds[nIndex]]);
 			this.BoundsPaths = this.BoundsPaths.concat(oPolygon.GetPaths(0));
 		}
@@ -755,6 +772,16 @@ CInlineLevelSdt.prototype.private_FillPlaceholderContent = function()
 			for (var nPos = 0, nCount = oFirstParagraph.Content.length; nPos < nCount - 1; ++nPos)
 			{
 				this.AddToContent(0, oFirstParagraph.Content[nPos].Copy());
+			}
+
+			if (this.IsTextForm() && this.GetTextFormPr().MaxCharacters > 0 && this.Content[0] instanceof ParaRun)
+			{
+				// В такой ситуации у нас должен быть всего 1 ран в параграфе
+				var oRun = this.Content[0];
+				if (oRun.Content.length > this.GetTextFormPr().MaxCharacters)
+				{
+					oRun.RemoveFromContent(this.GetTextFormPr().MaxCharacters, oRun.Content.length - this.GetTextFormPr().MaxCharacters, true);
+				}
 			}
 		}
 	}
@@ -1242,7 +1269,10 @@ CInlineLevelSdt.prototype.private_UpdatePictureContent = function()
 		return;
 
 	if (this.IsPlaceHolder())
+	{
 		this.ReplacePlaceHolderWithContent();
+		this.SetShowingPlcHdr(true);
+	}
 
 	var arrDrawings = this.GetAllDrawingObjects();
 
@@ -1284,7 +1314,6 @@ CInlineLevelSdt.prototype.private_UpdatePictureContent = function()
 CInlineLevelSdt.prototype.ApplyPicturePr = function(isPicture)
 {
 	this.SetPicturePr(isPicture);
-	this.SetPlaceholder(undefined);
 	this.private_UpdatePictureContent();
 };
 /**

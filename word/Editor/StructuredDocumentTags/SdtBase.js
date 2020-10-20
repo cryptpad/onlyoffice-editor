@@ -88,17 +88,32 @@ CSdtBase.prototype.SetPlaceholderText = function(sText)
 	var oParaPr = oDocPart.GetDirectParaPr();
 
 	oDocPart.ClearContent(true);
+	if (this.IsForm())
+		oDocPart.MakeSingleParagraphContent();
+
 	oDocPart.SelectAll();
 
 	var oParagraph = oDocPart.GetFirstParagraph();
 	oParagraph.CorrectContent();
+
+	var oRun = null;
+	if (this.IsForm())
+		oRun = oParagraph.MakeSingleRunParagraph();
+
 	oParagraph.SetDirectParaPr(oParaPr);
 	oParagraph.SetDirectTextPr(oTextPr);
 
-	oDocPart.AddText(sText);
+	if (oRun)
+		oRun.AddText(sText);
+	else
+		oDocPart.AddText(sText);
+
 	oDocPart.RemoveSelection();
 
-	if (this.IsPlaceHolder())
+	var isPlaceHolder = this.IsPlaceHolder();
+	if (isPlaceHolder && this.IsPicture())
+		this.private_UpdatePictureContent();
+	else
 		this.private_FillPlaceholderContent();
 
 	return oDocPart;
