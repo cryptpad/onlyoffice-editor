@@ -87,7 +87,7 @@ Common.Locale = new(function() {
 
     var _requireLang = function () {
         var lang = (_getUrlParameterByName('lang') || 'en').split(/[\-_]/)[0];
-        fetch('locale/' + lang + '.json')
+        fetch('locale/' + lang + '.json?'+window.CP_urlArgs)
             .then(function(response) {
                 if (!response.ok) {
                     if (lang != 'en')

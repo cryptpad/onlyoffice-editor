@@ -1,0 +1,783 @@
+.btn {
+    &.active, &:active {
+        &:not(:disabled):not(.disabled) {
+            .toolbar__icon {
+                @btn-active-icon-offset: -20px;
+                background-position-x: @btn-active-icon-offset;
+                --bgX: @btn-active-icon-offset;
+            }
+        }
+    }
+}
+.menu__icon {
+    .no-checkmark.checked & {
+        @btn-active-icon-offset: -20px;
+        background-position-x: @btn-active-icon-offset;
+        --bgX: @btn-active-icon-offset;
+    }
+}
+.toolbar__icon, .menu__icon {
+    background-image: url(resources/../../img/iconssmall.png);
+}
+.advanced-btn-ratio {
+    background-position: 0px -440px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -440px;
+}
+.arrange-back {
+    background-position: 0px -460px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -460px;
+}
+.arrange-backward {
+    background-position: 0px -480px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -480px;
+}
+.arrange-forward {
+    background-position: 0px -500px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -500px;
+}
+.arrange-front {
+    background-position: 0px -520px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -520px;
+}
+.btn-align-bottom {
+    background-position: 0px -540px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -540px;
+}
+.btn-align-center {
+    background-position: 0px -560px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -560px;
+}
+.btn-align-just {
+    background-position: 0px -580px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -580px;
+}
+.btn-align-left {
+    background-position: 0px -600px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -600px;
+}
+.btn-align-middle {
+    background-position: 0px -620px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -620px;
+}
+.btn-align-right {
+    background-position: 0px -640px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -640px;
+}
+.btn-align-top {
+    background-position: 0px -660px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -660px;
+}
+[applang=ru] .btn-bold {
+    background-position: 0px -700px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -700px;
+}
+.btn-bold {
+    background-position: 0px -680px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -680px;
+}
+.btn-border-all {
+    background-position: 0px -720px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -720px;
+}
+.btn-border-bottom {
+    background-position: 0px -740px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -740px;
+}
+.btn-border-diagdown {
+    background-position: 0px -760px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -760px;
+}
+.btn-border-diagup {
+    background-position: 0px -780px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -780px;
+}
+.btn-border-inside {
+    background-position: 0px -800px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -800px;
+}
+.btn-border-insidehor {
+    background-position: 0px -820px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -820px;
+}
+.btn-border-insidevert {
+    background-position: 0px -840px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -840px;
+}
+.btn-border-left {
+    background-position: 0px -860px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -860px;
+}
+.btn-border-no {
+    background-position: 0px -880px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -880px;
+}
+.btn-border-out {
+    background-position: 0px -900px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -900px;
+}
+.btn-border-right {
+    background-position: 0px -920px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -920px;
+}
+.btn-border-top {
+    background-position: 0px -940px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -940px;
+}
+.btn-clearstyle {
+    background-position: 0px -960px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -960px;
+}
+.btn-close {
+    background-position: 0px -980px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -980px;
+}
+.btn-colorschemas {
+    background-position: 0px -1000px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1000px;
+}
+.btn-copy {
+    background-position: 0px -1020px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1020px;
+}
+.btn-copystyle {
+    background-position: 0px -1040px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1040px;
+}
+.btn-decfont {
+    background-position: 0px -1060px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1060px;
+}
+.btn-decoffset {
+    background-position: 0px -1080px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1080px;
+}
+.btn-download {
+    background-position: 0px -1100px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1100px;
+}
+.btn-edit {
+    background-position: 0px -1120px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1120px;
+}
+.btn-firstitem {
+    background-position: 0px -1140px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1140px;
+}
+.btn-flip-hor {
+    background-position: 0px -1160px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1160px;
+}
+.btn-flip-vert {
+    background-position: 0px -1180px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1180px;
+}
+.btn-fontcolor {
+    background-position: 0px -1200px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1200px;
+}
+.btn-goback {
+    background-position: 0px -1220px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1220px;
+}
+.btn-higlight {
+    background-position: 0px -1240px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1240px;
+}
+.btn-ic-doclang {
+    background-position: 0px 0px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) 0px;
+}
+[applang=ru] .btn-ic-docspell {
+    background-position: 0px -1300px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1300px;
+}
+.btn-ic-docspell {
+    background-position: 0px -1280px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1280px;
+}
+.btn-ic-options {
+    background-position: 0px -1320px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1320px;
+}
+.btn-ic-review {
+    background-position: 0px -1340px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1340px;
+}
+.btn-ic-zoomtopage {
+    background-position: 0px -1360px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1360px;
+}
+.btn-ic-zoomtowidth {
+    background-position: 0px -1380px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1380px;
+}
+.btn-incfont {
+    background-position: 0px -1400px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1400px;
+}
+.btn-incoffset {
+    background-position: 0px -1420px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1420px;
+}
+[applang=ru] .btn-italic {
+    background-position: 0px -1460px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1460px;
+}
+.btn-italic {
+    background-position: 0px -1440px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1440px;
+}
+.btn-lastitem {
+    background-position: 0px -1480px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1480px;
+}
+.btn-linespace {
+    background-position: 0px -1500px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1500px;
+}
+.btn-menu-about {
+    background-position: 0px -1520px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1520px;
+}
+.btn-menu-chart {
+    background-position: 0px -1540px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1540px;
+}
+.btn-menu-chat {
+    background-position: 0px -1560px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1560px;
+}
+.btn-menu-comments {
+    background-position: 0px -1580px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1580px;
+}
+.btn-menu-image {
+    background-position: 0px -1600px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1600px;
+}
+.btn-menu-navigation {
+    background-position: 0px -1620px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1620px;
+}
+.btn-menu-search {
+    background-position: 0px -1640px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1640px;
+}
+.btn-menu-shape {
+    background-position: 0px -1660px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1660px;
+}
+.btn-menu-signature {
+    background-position: 0px -1680px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1680px;
+}
+.btn-menu-support {
+    background-position: 0px -1700px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1700px;
+}
+.btn-menu-table {
+    background-position: 0px -1720px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1720px;
+}
+.btn-menu-textart {
+    background-position: 0px -1740px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1740px;
+}
+.btn-nextitem {
+    background-position: 0px -1760px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1760px;
+}
+.btn-numbering {
+    background-position: 0px -1780px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1780px;
+}
+.btn-paracolor {
+    background-position: 0px -1800px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1800px;
+}
+.btn-paragraph {
+    background-position: 0px -1820px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1820px;
+}
+.btn-paste {
+    background-position: 0px -1840px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1840px;
+}
+.btn-previtem {
+    background-position: 0px -1860px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1860px;
+}
+.btn-print {
+    background-position: 0px -1880px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1880px;
+}
+.btn-redo {
+    background-position: 0px -1900px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1900px;
+}
+.btn-rotate-270 {
+    background-position: 0px -1920px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1920px;
+}
+.btn-rotate-90 {
+    background-position: 0px -1940px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1940px;
+}
+.btn-save-coauth {
+    background-position: 0px -1960px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1960px;
+}
+.btn-save {
+    background-position: 0px -1980px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1980px;
+}
+.btn-setmarkers {
+    background-position: 0px -2000px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2000px;
+}
+.btn-settings {
+    background-position: 0px -2020px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2020px;
+}
+[applang=ru] .btn-strikeout {
+    background-position: 0px -2060px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2060px;
+}
+.btn-strikeout {
+    background-position: 0px -2040px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2040px;
+}
+.btn-subscript {
+    background-position: 0px -2080px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2080px;
+}
+.btn-superscript {
+    background-position: 0px -2100px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2100px;
+}
+[applang=ru] .btn-underline {
+    background-position: 0px -2140px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2140px;
+}
+.btn-underline {
+    background-position: 0px -2120px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2120px;
+}
+.btn-undo {
+    background-position: 0px -2160px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2160px;
+}
+.btn-users {
+    background-position: 0px -2180px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2180px;
+}
+.btn-zoomdown {
+    background-position: 0px -2200px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2200px;
+}
+.btn-zoomup {
+    background-position: 0px -2220px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2220px;
+}
+.page-landscape {
+    background-position: 0px -2240px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2240px;
+}
+.page-portrait {
+    background-position: 0px -2260px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2260px;
+}
+.shape-align-bottom {
+    background-position: 0px -2280px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2280px;
+}
+.shape-align-center {
+    background-position: 0px -2300px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2300px;
+}
+.shape-align-left {
+    background-position: 0px -2320px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2320px;
+}
+.shape-align-middle {
+    background-position: 0px -2340px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2340px;
+}
+.shape-align-right {
+    background-position: 0px -2360px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2360px;
+}
+.shape-align-top {
+    background-position: 0px -2380px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2380px;
+}
+.shape-distribute-hor {
+    background-position: 0px -2400px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2400px;
+}
+.shape-distribute-vert {
+    background-position: 0px -2420px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2420px;
+}
+.shape-group {
+    background-position: 0px -2440px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2440px;
+}
+.shape-ungroup {
+    background-position: 0px -2460px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2460px;
+}
+.text-orient-hor {
+    background-position: 0px -2480px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2480px;
+}
+.text-orient-rdown {
+    background-position: 0px -2500px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2500px;
+}
+.text-orient-rup {
+    background-position: 0px -2520px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -2520px;
+}
+.btn-addcell {
+    background-position: 0px -20px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -20px;
+}
+.btn-autofilter {
+    background-position: 0px -1260px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -1260px;
+}
+.btn-border-style {
+    background-position: 0px -40px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -40px;
+}
+.btn-clear-filter {
+    background-position: 0px -60px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -60px;
+}
+.btn-currency-style {
+    background-position: 0px -80px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -80px;
+}
+.btn-decdecimal {
+    background-position: 0px -100px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -100px;
+}
+.btn-delcell {
+    background-position: 0px -120px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -120px;
+}
+.btn-formula {
+    background-position: 0px -140px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -140px;
+}
+.btn-function {
+    background-position: 0px -160px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -160px;
+}
+.btn-incdecimal {
+    background-position: 0px -180px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -180px;
+}
+.btn-menu-cell {
+    background-position: 0px -200px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -200px;
+}
+.btn-menu-pivot {
+    background-position: 0px -220px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -220px;
+}
+.btn-merge {
+    background-position: 0px -240px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -240px;
+}
+.btn-named-range {
+    background-position: 0px -260px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -260px;
+}
+.btn-percent-style {
+    background-position: 0px -280px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -280px;
+}
+[applang=ru] .btn-sort-down {
+    background-position: 0px -320px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -320px;
+}
+.btn-sort-down {
+    background-position: 0px -300px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -300px;
+}
+[applang=ru] .btn-sort-up {
+    background-position: 0px -360px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -360px;
+}
+.btn-sort-up {
+    background-position: 0px -340px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -340px;
+}
+.btn-wrap {
+    background-position: 0px -380px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -380px;
+}
+.text-orient-ccw {
+    background-position: 0px -400px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -400px;
+}
+.text-orient-cw {
+    background-position: 0px -420px;
+
+    --bgX: 0px;
+    background-position: var(--bgX) -420px;
+}

@@ -54,8 +54,8 @@ define([
             isRetina        = window.devicePixelRatio > 1,
             thumbCanvas     = document.createElement('canvas'),
             thumbContext    = thumbCanvas.getContext('2d'),
-            thumbPath       = '../../../../sdkjs/common/Images/fonts_thumbnail.png',
-            thumbPath2x     = '../../../../sdkjs/common/Images/fonts_thumbnail@2x.png',
+            thumbPath       = '../../../../sdkjs/common/Images/fonts_thumbnail.png?'+window.CP_urlArgs,
+            thumbPath2x     = '../../../../sdkjs/common/Images/fonts_thumbnail@2x.png?'+window.CP_urlArgs,
             listItemHeight  = 26;
 
         if (typeof window['AscDesktopEditor'] === 'object') {
