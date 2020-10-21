@@ -289,12 +289,26 @@ function FormatObjBracket(sData)
     };
     this.parse(sData);
 }
-function ParseLocalFormatSymbol(LCID)
+function ParseLocalFormatSymbol(Name)
 {
-    if(g_aCultureInfos.LCID ==LCID){
-    let parametrofnamelcid =g_aCultureInfos.Name;
-    switch(parametrofnamelcid) {
 
+    switch(Name) {
+
+        case "en-US","en-GB":
+            {
+                LocaleFormatSymbol['Y'] = 'Y';
+                LocaleFormatSymbol['y'] ='y';
+                LocaleFormatSymbol['M'] = 'M';
+                LocaleFormatSymbol['m'] ='m';
+                LocaleFormatSymbol['D'] = 'D';
+                LocaleFormatSymbol['d'] ='d';
+                LocaleFormatSymbol['H'] = 'H';
+                LocaleFormatSymbol['h'] ='h';
+                LocaleFormatSymbol['S'] = 'S';
+                LocaleFormatSymbol['s'] ='s';
+
+
+            }
         case "ast-ES","ca-ES-valencia","ca-ES","es-BR","es-ES","es-MX","eu-ES","gl-ES","pt-BR","pt-PT":
         {
             LocaleFormatSymbol['Y'] = 'A';
@@ -470,7 +484,7 @@ function ParseLocalFormatSymbol(LCID)
         }break;
     }
     return true;
-}}
+}
 function NumFormat(bAddMinusIfNes)
 {
     //Stream чтения формата
@@ -3967,7 +3981,7 @@ function setCurrentCultureInfo (LCID, decimalSeparator, groupSeparator) {
 
 			res = true;
 		}
-        ParseLocalFormatSymbol(g_oDefaultCultureInfo.LCID);
+        ParseLocalFormatSymbol(g_oDefaultCultureInfo.Name);
 		decimalSeparator = (null != decimalSeparator) ? decimalSeparator : cultureInfoNew.NumberDecimalSeparator;
 		if (decimalSeparator !== g_oDefaultCultureInfo.NumberDecimalSeparator) {
 			g_oDefaultCultureInfo.NumberDecimalSeparator = decimalSeparator;
