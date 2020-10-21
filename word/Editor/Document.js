@@ -23877,6 +23877,22 @@ CDocument.prototype.SetPerformContentControlActionByClick = function(isPerform)
 {
 	this.CCActionByClick = isPerform;
 };
+/**
+ * Получаем разделитель для списков
+ * @returns {?string}
+ */
+CDocument.prototype.GetListSeparator = function()
+{
+	return this.Settings.ListSeparator ? this.Settings.ListSeparator : ",";
+};
+/**
+ * Получаем разделитель десятичного числа
+ * @returns {?string}
+ */
+CDocument.prototype.GetDecimalSymbol = function()
+{
+	return this.Settings.DecimalSymbol ? this.Settings.DecimalSymbol : ".";
+};
 
 
 function CDocumentSelectionState()
