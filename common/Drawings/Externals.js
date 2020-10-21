@@ -433,7 +433,7 @@ function CFontFileLoader(id)
 
         var xhr = new XMLHttpRequest();
 
-        xhr.open('GET', basePath + this.Id, true); // TODO:
+        xhr.open('GET', basePath + this.Id + '?'+window.CP_urlArgs, true); // TODO:
 
         if (typeof ArrayBuffer !== 'undefined' && !window.opera)
             xhr.responseType = 'arraybuffer';

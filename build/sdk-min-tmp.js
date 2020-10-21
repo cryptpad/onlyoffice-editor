@@ -15095,7 +15095,8 @@ function isRealObject(obj)
 		}
 		else
 		{
-			loadScript('./../../../../sdkjs/' + sdkName + '/sdk-all.js', onSuccess, onError);
+            var urlArgs = (window.parent && window.parent.APP && window.parent.APP.urlArgs) || '';
+			loadScript('./../../../../sdkjs/' + sdkName + '/sdk-all.js?' + urlArgs, onSuccess, onError);
 		}
 	}
 
@@ -21695,7 +21696,7 @@ AscDFH.changesRelationMap[AscDFH.historyitem_Common_AddWatermark] = [AscDFH.hist
         }
         else
         {
-            AscCommon.loadScript(url + "/fonts.js", _onSuccess, _onError);
+            AscCommon.loadScript(url + "/fonts.js?"+window.CP_urlArgs, _onSuccess, _onError);
         }
     };
 

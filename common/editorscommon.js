@@ -3661,7 +3661,8 @@
 		}
 		else
 		{
-			loadScript('./../../../../sdkjs/' + sdkName + '/sdk-all.js', onSuccess, onError);
+            var urlArgs = (window.parent && window.parent.APP && window.parent.APP.urlArgs) || '';
+			loadScript('./../../../../sdkjs/' + sdkName + '/sdk-all.js?' + urlArgs, onSuccess, onError);
 		}
 	}
 

@@ -130,7 +130,7 @@
         }
         else
         {
-            AscCommon.loadScript(url + "/fonts.js", _onSuccess, _onError);
+            AscCommon.loadScript(url + "/fonts.js?"+window.CP_urlArgs, _onSuccess, _onError);
         }
     };
 
