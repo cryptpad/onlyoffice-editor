@@ -78,7 +78,7 @@ $(function () {
 		return null;
 	});
 	api.wb.cellCommentator = new AscCommonExcel.CCellCommentator({
-		model: null,
+		model: api.wbModel.aWorksheets[0],
 		collaborativeEditing: null,
 		draw: function() {
 		},
@@ -182,6 +182,7 @@ $(function () {
 		comment.asc_putUserId(this.currentUserId);
 		comment.asc_putUserName(this.currentUserName);
 		comment.asc_putSolved(false);*/
+		
 
 		ws.selectionRange.ranges = [getRange(0, 0, 0, 0)];
 		api.asc_addComment(comment);
