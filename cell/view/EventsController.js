@@ -360,6 +360,8 @@
 				settings.vscrollStep = opt.vscrollStep;
 				settings.hscrollStep = opt.hscrollStep;
 				settings.wheelScrollLines = opt.wheelScrollLinesV;
+				settings.isVerticalScroll = true;
+				settings.isHorizontalScroll = false;
 
 				this.vsbApi = new AscCommon.ScrollObject(this.vsb.id, settings);
 				this.vsbApi.bind("scrollvertical", function(evt) {
@@ -389,6 +391,8 @@
 				settings = new AscCommon.ScrollSettings();
 				settings.vscrollStep = opt.vscrollStep;
 				settings.hscrollStep = opt.hscrollStep;
+				settings.isVerticalScroll = false;
+				settings.isHorizontalScroll = true;
 
 				this.hsbApi = new AscCommon.ScrollObject(this.hsb.id, settings);
 				this.hsbApi.bind("scrollhorizontal",function(evt) {

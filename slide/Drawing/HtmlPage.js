@@ -2963,6 +2963,8 @@ function CEditorPage(api)
 
 		settings = this.CreateScrollSettings();
 		settings.alwaysVisible = true;
+		settings.isVerticalScroll = false;
+		settings.isHorizontalScroll = true;
 		if (this.m_bIsHorScrollVisible)
 		{
 			if (this.m_oScrollHor_)

@@ -2664,6 +2664,8 @@ function CEditorPage(api)
 			return;
 
 		settings = this.CreateScrollSettings();
+		settings.isHorizontalScroll = true;
+		settings.isVerticalScroll = false;
 		if (this.m_oScrollHor_)
 			this.m_oScrollHor_.Repos(settings, this.m_bIsHorScrollVisible);
 		else
@@ -2687,6 +2689,8 @@ function CEditorPage(api)
 		}
 
 		settings = this.CreateScrollSettings();
+		settings.isHorizontalScroll = false;
+		settings.isVerticalScroll = true;
 		if (this.m_oScrollVer_)
 		{
 			this.m_oScrollVer_.Repos(settings, undefined, true);
