@@ -294,7 +294,7 @@ function ParseLocalFormatSymbol(Name)
 
     switch(Name) {
 
-        case "en-US","en-GB":
+        case ("en-US"||"en-GB"):
             {
                 LocaleFormatSymbol['Y'] = 'Y';
                 LocaleFormatSymbol['y'] ='y';
@@ -309,7 +309,7 @@ function ParseLocalFormatSymbol(Name)
 
 
             }
-        case "ast-ES","ca-ES-valencia","ca-ES","es-BR","es-ES","es-MX","eu-ES","gl-ES","pt-BR","pt-PT":
+        case ("ast-ES"||"ca-ES-valencia"||"ca-ES"||"es-BR"||"es-ES"||"es-MX"||"eu-ES"||"gl-ES"||"pt-BR"||"pt-PT"):
         {
             LocaleFormatSymbol['Y'] = 'A';
             LocaleFormatSymbol['y'] ='a';
@@ -322,7 +322,7 @@ function ParseLocalFormatSymbol(Name)
             LocaleFormatSymbol['S'] = 'S';
             LocaleFormatSymbol['s'] ='s';
         }break;
-        case "cs-CZ","pl-PL":
+        case ("cs-CZ"||"pl-PL"):
             {
                 LocaleFormatSymbol['Y'] = 'R';
                 LocaleFormatSymbol['y'] ='r';
@@ -336,7 +336,7 @@ function ParseLocalFormatSymbol(Name)
                 LocaleFormatSymbol['s'] ='s';
 
             }break;
-        case "hu-HU":
+        case ("hu-HU"):
             {
                 LocaleFormatSymbol['Y'] = 'É';
                 LocaleFormatSymbol['y'] ='é';
@@ -350,12 +350,12 @@ function ParseLocalFormatSymbol(Name)
                 LocaleFormatSymbol['s'] ='m';
 
             }break;
-        case "bo-CN","ii-CN","mn-Mong-CN","ug-CN","zn-CN","zn-Hans","zn-TW","ja-JP":
+        case ("bo-CN"||"ii-CN"||"mn-Mong-CN"||"ug-CN"||"zn-CN"||"zn-Hans"||"zn-TW"||"ja-JP"):
             {
                 //G/通用格式
 
             }break;
-        case "en-FI","fi-FI","se-FI","smn-FI","sms-FI","sv-AX","sv-FI":
+        case ("en-FI"||"fi-FI"||"se-FI"||"smn-FI"||"sms-FI"||"sv-AX"||"sv-FI"):
             {
                 LocaleFormatSymbol['Y'] = 'V';
                 LocaleFormatSymbol['y'] ='v';
@@ -368,7 +368,7 @@ function ParseLocalFormatSymbol(Name)
                 LocaleFormatSymbol['S'] = 'S';
                 LocaleFormatSymbol['s'] ='s';
             }break;
-        case"da-DK","en-DK","en-SE","fo-DK","nb-NO","nb-SJ","nn-NO","se-NO","se-SE","sma-NO","sma-SE","smj-NO","smj-SE","sv-SE":
+        case("da-DK"||"en-DK"||"en-SE"||"fo-DK"||"nb-NO"||"nb-SJ"||"nn-NO"||"se-NO"||"se-SE"||"sma-NO"||"sma-SE"||"smj-NO"||"smj-SE"||"sv-SE"):
             {
                 LocaleFormatSymbol['Y'] = 'Å';
                 LocaleFormatSymbol['y'] ='å';
@@ -382,7 +382,7 @@ function ParseLocalFormatSymbol(Name)
                 LocaleFormatSymbol['s'] ='s';
 
             }break;
-        case"de-AT","de-CH","de-DE","dsb-DE","en-AT","en-DE","hsb-DE","ksh-DE","nds-DE":
+        case("de-AT"||"de-CH"||"de-DE"||"dsb-DE"||"en-AT"||"en-DE"||"hsb-DE"||"ksh-DE"||"nds-DE"):
             {
                 LocaleFormatSymbol['Y'] = 'J';
 
@@ -396,7 +396,7 @@ function ParseLocalFormatSymbol(Name)
 
             }
 
-        case "el-GR":
+        case ("el-GR"):
             {
             LocaleFormatSymbol['Y'] = 'Ε';
             LocaleFormatSymbol['y'] ='ε';
@@ -411,7 +411,7 @@ function ParseLocalFormatSymbol(Name)
 
             }
         break;
-        case"en-NL","fy-NL","nds-NL","nl-BE","nl-NL":
+        case("en-NL"||"fy-NL"||"nds-NL"||"nl-BE"||"nl-NL"):
             {
                 LocaleFormatSymbol['Y'] = 'J';
                 LocaleFormatSymbol['y'] ='j';
@@ -424,7 +424,7 @@ function ParseLocalFormatSymbol(Name)
                 LocaleFormatSymbol['S'] = 'S';
                 LocaleFormatSymbol['s'] ='s';
             }break;
-        case "ca-IT","de-IT","fur-IT","it-CH","it-IT","it-VA":
+        case ("ca-IT"||"de-IT"||"fur-IT"||"it-CH"||"it-IT"||"it-VA"):
             {
                 LocaleFormatSymbol['Y'] = 'G';
                 LocaleFormatSymbol['y'] ='g';
@@ -439,7 +439,7 @@ function ParseLocalFormatSymbol(Name)
 
 
             }break;
-        case "br-FR","ca-FR","co-FR","fr-BE","fr-CA","fr-CH","fr-FR","gsw-FR","oc-FR":
+        case ("br-FR"||"ca-FR"||"co-FR"||"fr-BE"||"fr-CA"||"fr-CH"||"fr-FR"||"gsw-FR"||"oc-FR"):
            {
                LocaleFormatSymbol['Y'] = 'J';
                LocaleFormatSymbol['y'] ='j';
@@ -454,7 +454,7 @@ function ParseLocalFormatSymbol(Name)
 
            }break;
         //Ru
-        case "ru-RU","ce-RU","cu-RU","de-BE","en-BE","en-CH","gsw-CH","kk-KZ","os-RU","pt-CH","rm-CH","ru-KZ","sah-RU","tt-RU","wae-CH","ba-RU":
+        case ("ru-RU"||"ce-RU"||"cu-RU"||"de-BE"||"en-BE"||"en-CH"||"gsw-CH"||"kk-KZ"||"os-RU"||"pt-CH"||"rm-CH"||"ru-KZ"||"sah-RU"||"tt-RU"||"wae-CH"||"ba-RU"):
         {
             LocaleFormatSymbol['Y'] = 'Г';
             LocaleFormatSymbol['y'] = 'г';
@@ -469,7 +469,7 @@ function ParseLocalFormatSymbol(Name)
         }break;
 
         //TUR
-        case "tr-TR":
+        case ("tr-TR"):
         { // Tur
             LocaleFormatSymbol['Y'] = 'Y';
             LocaleFormatSymbol['y'] = 'y';
