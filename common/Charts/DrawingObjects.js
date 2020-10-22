@@ -2884,6 +2884,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                     {
                         window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImagesSync);
                     }
+                    History.Clear();
                 });
 
 
