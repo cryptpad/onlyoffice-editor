@@ -629,15 +629,30 @@ CopyProcessor.prototype =
                 var _presentation_bullet = Item.PresentationPr.Bullet;
                 switch(_presentation_bullet.m_nType)
                 {
-                    case numbering_presentationnumfrmt_ArabicPeriod:
+                    case numbering_presentationnumfrmt_ArabicParenBoth:
                     case numbering_presentationnumfrmt_ArabicParenR:
+                    case numbering_presentationnumfrmt_ArabicPeriod:
+                    case numbering_presentationnumfrmt_ArabicPlain:
                     {
                         sListStyle = "decimal";
                         break;
                     }
-                    case numbering_presentationnumfrmt_RomanLcPeriod: sListStyle = "lower-roman";break;
-                    case numbering_presentationnumfrmt_RomanUcPeriod: sListStyle = "upper-roman";break;
+                    case numbering_presentationnumfrmt_RomanLcParenBoth:
+                    case numbering_presentationnumfrmt_RomanLcParenR:
+                    case numbering_presentationnumfrmt_RomanLcPeriod:
+                    {
+                        sListStyle = "lower-roman";
+                        break;
+                    }
+                    case numbering_presentationnumfrmt_RomanUcParenBoth:
+                    case numbering_presentationnumfrmt_RomanUcParenR:
+                    case numbering_presentationnumfrmt_RomanUcPeriod:
+                    {
+                        sListStyle = "upper-roman";
+                        break;
+                    }
 
+                    case numbering_presentationnumfrmt_AlphaLcParenBoth:
                     case numbering_presentationnumfrmt_AlphaLcParenR:
                     case numbering_presentationnumfrmt_AlphaLcPeriod:
                     {
@@ -646,11 +661,11 @@ CopyProcessor.prototype =
                     }
                     case numbering_presentationnumfrmt_AlphaUcParenR:
                     case numbering_presentationnumfrmt_AlphaUcPeriod:
+                    case numbering_presentationnumfrmt_AlphaUcParenBoth:
                     {
                         sListStyle = "upper-alpha";
                         break;
                     }
-
                     default:
                         sListStyle = "disc";
                         bBullet = true;
@@ -1483,88 +1498,77 @@ CopyProcessor.prototype =
 			return {sBase64: "docData;" + sBase64, text: text, drawingUrls: drawingUrls};
 		}
 	},
-	
-    Start : function()
-    {
+
+	Start : function () {
 		var oDocument = this.oDocument;
 		var bFromPresentation;
 
 		window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
 
-		if(PasteElementsId.g_bIsDocumentCopyPaste)
-		{
-			var selectedContent = oDocument.GetSelectedContent();
-			
+		var selectedContent;
+		if (PasteElementsId.g_bIsDocumentCopyPaste) {
+			selectedContent = oDocument.GetSelectedContent();
+
 			var elementsContent;
-			if(selectedContent && selectedContent.Elements && selectedContent.Elements[0] && selectedContent.Elements[0].Element)
+			if (selectedContent && selectedContent.Elements && selectedContent.Elements[0] && selectedContent.Elements[0].Element)
 				elementsContent = selectedContent.Elements;
-			else 
-				return "";
-				
-			//TODO заглушка для презентационных параграфов(выделен текст внутри диаграммы) - пока не пишем в бинарник
-			if(selectedContent.Elements[0].Element && selectedContent.Elements[0].Element.bFromDocument === false)
-			{
-				this.oBinaryFileWriter.Document = this.oDocument;
-			}
 			else
-			{
+				return "";
+
+			//TODO заглушка для презентационных параграфов(выделен текст внутри диаграммы) - пока не пишем в бинарник
+			if (selectedContent.Elements[0].Element && selectedContent.Elements[0].Element.bFromDocument === false) {
+				this.oBinaryFileWriter.Document = this.oDocument;
+			} else {
 				//подменяем Document для копирования(если не подменить, то commentId будет не соответствовать)
 				this.oBinaryFileWriter.Document = elementsContent[0].Element.LogicDocument;
 			}
-				
-			this.oBinaryFileWriter.CopyStart();	
+
+			this.oBinaryFileWriter.CopyStart();
 			this.CopyDocument2(this.oRoot, oDocument, elementsContent, bFromPresentation);
 			this.oBinaryFileWriter.CopyEnd();
-		}
-        else
-        {
-			var selectedContent = oDocument.GetSelectedContent2();
-			if(!selectedContent[0].DocContent && (!selectedContent[0].Drawings || (selectedContent[0].Drawings && !selectedContent[0].Drawings.length)) && (!selectedContent[0].SlideObjects || (selectedContent[0].SlideObjects && !selectedContent[0].SlideObjects.length)))
+		} else {
+			selectedContent = oDocument.GetSelectedContent2();
+			if (!selectedContent[0].DocContent && (!selectedContent[0].Drawings || (selectedContent[0].Drawings && !selectedContent[0].Drawings.length)) && (!selectedContent[0].SlideObjects || (selectedContent[0].SlideObjects && !selectedContent[0].SlideObjects.length)))
 				return false;
 
 			this.CopyDocument2(this.oRoot, oDocument, selectedContent);
 
-            var sBase64 = this.oPresentationWriter.GetBase64Memory();
-            sBase64 = "pptData;" + this.oPresentationWriter.pos + ";" + sBase64;
-			if(this.oRoot.aChildren && this.oRoot.aChildren.length === 1 && AscBrowser.isSafariMacOs)
-			{
+			var sBase64 = this.oPresentationWriter.GetBase64Memory();
+			sBase64 = "pptData;" + this.oPresentationWriter.pos + ";" + sBase64;
+			if (this.oRoot.aChildren && this.oRoot.aChildren.length === 1 && AscBrowser.isSafariMacOs) {
 				var oElem = this.oRoot.aChildren[0];
 				var sStyle = oElem.oAttributes["style"];
-				if(null == sStyle)
+				if (null == sStyle)
 					oElem.oAttributes["style"] = "font-weight:normal";
 				else
 					oElem.oAttributes["style"] = sStyle + ";font-weight:normal";//просто добавляем потому что в sStyle не могло быть font-weight, мы всегда пишем <b>
 				this.oRoot.wrapChild(new CopyElement("b"));
 			}
-			if(this.oRoot.aChildren && this.oRoot.aChildren.length  > 0)
-				this.oRoot.aChildren[0].oAttributes["class"] = sBase64;
-        }
-		
-		if(PasteElementsId.g_bIsDocumentCopyPaste && PasteElementsId.copyPasteUseBinary && this.oBinaryFileWriter.copyParams.itemCount > 0 && !bFromPresentation)
-		{
-			var sBase64 = "docData;" + this.oBinaryFileWriter.GetResult();
-			if(this.oRoot.aChildren && this.oRoot.aChildren.length == 1 && AscBrowser.isSafariMacOs)
-			{
-				var oElem = this.oRoot.aChildren[0];
-				var sStyle = oElem.oAttributes["style"];
-				if(null == sStyle)
-					oElem.oAttributes["style"] = "font-weight:normal";
-				else
-					oElem.oAttributes["style"] = sStyle + ";font-weight:normal";//просто добавляем потому что в sStyle не могло быть font-weight, мы всегда пишем <b>
-				this.oRoot.wrapChild(new CopyElement("b"));
-			}
-			if(this.oRoot.aChildren && this.oRoot.aChildren.length  > 0)
+			if (this.oRoot.aChildren && this.oRoot.aChildren.length > 0)
 				this.oRoot.aChildren[0].oAttributes["class"] = sBase64;
 		}
-		
+
+		if (PasteElementsId.g_bIsDocumentCopyPaste && PasteElementsId.copyPasteUseBinary && this.oBinaryFileWriter.copyParams.itemCount > 0 && !bFromPresentation) {
+			var sBase64 = "docData;" + this.oBinaryFileWriter.GetResult();
+			if (this.oRoot.aChildren && this.oRoot.aChildren.length == 1 && AscBrowser.isSafariMacOs) {
+				var oElem = this.oRoot.aChildren[0];
+				var sStyle = oElem.oAttributes["style"];
+				if (null == sStyle)
+					oElem.oAttributes["style"] = "font-weight:normal";
+				else
+					oElem.oAttributes["style"] = sStyle + ";font-weight:normal";//просто добавляем потому что в sStyle не могло быть font-weight, мы всегда пишем <b>
+				this.oRoot.wrapChild(new CopyElement("b"));
+			}
+			if (this.oRoot.aChildren && this.oRoot.aChildren.length > 0)
+				this.oRoot.aChildren[0].oAttributes["class"] = sBase64;
+		}
+
 		return sBase64;
-    },
+	},
 
 
-    CopySlide: function(oDomTarget, slide)
-    {
-		if(oDomTarget)
-		{
+	CopySlide: function (oDomTarget, slide) {
+		if (oDomTarget) {
 			var sSrc = slide.getBase64Img();
 			var _bounds_cheker = new AscFormat.CSlideBoundsChecker();
 			slide.draw(_bounds_cheker, 0);
@@ -1575,299 +1579,267 @@ CopyProcessor.prototype =
 			oDomTarget.addChild(oImg);
 		}
 
-		//TODO необходимо записать перед записью слайда ссылки стиль и сами стили
+		//пока записываю для копирования/вставки ссылку на стиль
+		//TODO в дальнейшем необходимо пересмотреть и писать стили вместе со слайдом
 		// - аналогично тому как это реализовано при записи таблицы
-		/*var presentation = editor.WordControl.m_oLogicDocument;
+		var presentation = editor.WordControl.m_oLogicDocument;
 		for(var key in presentation.TableStylesIdMap)
 		{
 			if(presentation.TableStylesIdMap.hasOwnProperty(key))
 			{
-				this.oPresentationWriter.tableStylesGuides[key] = "{" + AscCommon.GUID() + "}"
+				this.oPresentationWriter.tableStylesGuides[key] = key;
 			}
-		}*/
+		}
 
 		//записываем slide
 		this.oPresentationWriter.WriteSlide(slide);
 
-    },
+	},
 
-    CopyLayout: function(layout)
-    {
-        this.oPresentationWriter.WriteSlideLayout(layout);
-    },
+	CopyLayout: function (layout) {
+		this.oPresentationWriter.WriteSlideLayout(layout);
+	},
 
 
-    CopyPresentationTableCells: function(oDomTarget, graphicFrame)
-    {
-        var aSelectedRows = [];
-        var oRowElems = {};
-        var Item = graphicFrame.graphicObject;
-        if(Item.Selection.Data.length > 0)
-        {
-            for(var i = 0, length = Item.Selection.Data.length; i < length; ++i)
-            {
-                var elem = Item.Selection.Data[i];
-                var rowElem = oRowElems[elem.Row];
-                if(null == rowElem)
-                {
-                    rowElem = {row: elem.Row, gridStart: null, gridEnd: null, indexStart: null, indexEnd: null, after: null, before: null, cells: {}};
-                    oRowElems[elem.Row] = rowElem;
-                    aSelectedRows.push(rowElem);
-                }
-                if(null == rowElem.indexEnd || elem.Cell > rowElem.indexEnd)
-                    rowElem.indexEnd = elem.Cell;
-                if(null == rowElem.indexStart || elem.Cell < rowElem.indexStart)
-                    rowElem.indexStart = elem.Cell;
-                rowElem.cells[elem.Cell] = 1;
-            }
-        }
-        aSelectedRows.sort(function(a,b){
-            return a.row - b.row;
-        });
-        var nMinGrid = null;
-        var nMaxGrid = null;
-        var nPrevStartGrid = null;
-        var nPrevEndGrid = null;
-        var nPrevRowIndex = null;
-        for(var i = 0, length = aSelectedRows.length; i < length; ++i)
-        {
-            var elem = aSelectedRows[i];
-            var nRowIndex = elem.row;
-            if(null != nPrevRowIndex)
-            {
-                if(nPrevRowIndex + 1 !== nRowIndex)
-                {
-                    nMinGrid = null;
-                    nMaxGrid = null;
-                    break;
-                }
-            }
-            nPrevRowIndex = nRowIndex;
-            var row = Item.Content[nRowIndex];
-            var cellFirst = row.Get_Cell(elem.indexStart);
-            var cellLast = row.Get_Cell(elem.indexEnd);
-            var nCurStartGrid = cellFirst.Metrics.StartGridCol;
-            var nCurEndGrid = cellLast.Metrics.StartGridCol + cellLast.Get_GridSpan() - 1;
-            if(null != nPrevStartGrid && null != nPrevEndGrid)
-            {
-                //учитываем вертикальный merge, раздвигаем границы
-                if(nCurStartGrid > nPrevStartGrid)
-                {
-                    for(var j = elem.indexStart - 1; j >= 0; --j)
-                    {
-                        var cellCur = row.Get_Cell(j);
-                        if(vmerge_Continue === cellCur.GetVMerge())
-                        {
-                            var nCurGridCol = cellCur.Metrics.StartGridCol;
-                            if(nCurGridCol >= nPrevStartGrid)
-                            {
-                                nCurStartGrid = nCurGridCol;
-                                elem.indexStart = j;
-                            }
-                            else
-                                break;
-                        }
-                        else
-                            break;
-                    }
-                }
-                if(nCurEndGrid < nPrevEndGrid)
-                {
-                    for(var j = elem.indexEnd + 1; j < row.Get_CellsCount(); ++j)
-                    {
-                        var cellCur = row.Get_Cell(j);
-                        if(vmerge_Continue === cellCur.GetVMerge())
-                        {
-                            var nCurGridCol = cellCur.Metrics.StartGridCol + cellCur.Get_GridSpan() - 1;
-                            if(nCurGridCol <= nPrevEndGrid)
-                            {
-                                nCurEndGrid = nCurGridCol;
-                                elem.indexEnd = j;
-                            }
-                            else
-                                break;
-                        }
-                        else
-                            break;
-                    }
-                }
-            }
-            elem.gridStart = nPrevStartGrid = nCurStartGrid;
-            elem.gridEnd = nPrevEndGrid = nCurEndGrid;
-            if(null == nMinGrid || nMinGrid > nCurStartGrid)
-                nMinGrid = nCurStartGrid;
-            if(null == nMaxGrid || nMaxGrid < nCurEndGrid)
-                nMaxGrid = nCurEndGrid;
-        }
-        if(null != nMinGrid && null != nMaxGrid)
-        {
-            //выставляем after, before
-            for(var i = 0 ,length = aSelectedRows.length; i < length; ++i)
-            {
-                var elem = aSelectedRows[i];
-                elem.before = elem.gridStart - nMinGrid;
-                elem.after = nMaxGrid - elem.gridEnd;
-            }
-            this.CopyTable(oDomTarget, Item, aSelectedRows);
-        }
+	CopyPresentationTableCells: function (oDomTarget, graphicFrame) {
+		var aSelectedRows = [];
+		var oRowElems = {};
+		var Item = graphicFrame.graphicObject;
+		if (Item.Selection.Data.length > 0) {
+			for (var i = 0, length = Item.Selection.Data.length; i < length; ++i) {
+				var elem = Item.Selection.Data[i];
+				var rowElem = oRowElems[elem.Row];
+				if (null == rowElem) {
+					rowElem = {
+						row: elem.Row,
+						gridStart: null,
+						gridEnd: null,
+						indexStart: null,
+						indexEnd: null,
+						after: null,
+						before: null,
+						cells: {}
+					};
+					oRowElems[elem.Row] = rowElem;
+					aSelectedRows.push(rowElem);
+				}
+				if (null == rowElem.indexEnd || elem.Cell > rowElem.indexEnd)
+					rowElem.indexEnd = elem.Cell;
+				if (null == rowElem.indexStart || elem.Cell < rowElem.indexStart)
+					rowElem.indexStart = elem.Cell;
+				rowElem.cells[elem.Cell] = 1;
+			}
+		}
+		aSelectedRows.sort(function (a, b) {
+			return a.row - b.row;
+		});
+		var nMinGrid = null;
+		var nMaxGrid = null;
+		var nPrevStartGrid = null;
+		var nPrevEndGrid = null;
+		var nPrevRowIndex = null;
+		for (var i = 0, length = aSelectedRows.length; i < length; ++i) {
+			var elem = aSelectedRows[i];
+			var nRowIndex = elem.row;
+			if (null != nPrevRowIndex) {
+				if (nPrevRowIndex + 1 !== nRowIndex) {
+					nMinGrid = null;
+					nMaxGrid = null;
+					break;
+				}
+			}
+			nPrevRowIndex = nRowIndex;
+			var row = Item.Content[nRowIndex];
+			var cellFirst = row.Get_Cell(elem.indexStart);
+			var cellLast = row.Get_Cell(elem.indexEnd);
+			var nCurStartGrid = cellFirst.Metrics.StartGridCol;
+			var nCurEndGrid = cellLast.Metrics.StartGridCol + cellLast.Get_GridSpan() - 1;
+			if (null != nPrevStartGrid && null != nPrevEndGrid) {
+				//учитываем вертикальный merge, раздвигаем границы
+				if (nCurStartGrid > nPrevStartGrid) {
+					for (var j = elem.indexStart - 1; j >= 0; --j) {
+						var cellCur = row.Get_Cell(j);
+						if (vmerge_Continue === cellCur.GetVMerge()) {
+							var nCurGridCol = cellCur.Metrics.StartGridCol;
+							if (nCurGridCol >= nPrevStartGrid) {
+								nCurStartGrid = nCurGridCol;
+								elem.indexStart = j;
+							} else
+								break;
+						} else
+							break;
+					}
+				}
+				if (nCurEndGrid < nPrevEndGrid) {
+					for (var j = elem.indexEnd + 1; j < row.Get_CellsCount(); ++j) {
+						var cellCur = row.Get_Cell(j);
+						if (vmerge_Continue === cellCur.GetVMerge()) {
+							var nCurGridCol = cellCur.Metrics.StartGridCol + cellCur.Get_GridSpan() - 1;
+							if (nCurGridCol <= nPrevEndGrid) {
+								nCurEndGrid = nCurGridCol;
+								elem.indexEnd = j;
+							} else
+								break;
+						} else
+							break;
+					}
+				}
+			}
+			elem.gridStart = nPrevStartGrid = nCurStartGrid;
+			elem.gridEnd = nPrevEndGrid = nCurEndGrid;
+			if (null == nMinGrid || nMinGrid > nCurStartGrid)
+				nMinGrid = nCurStartGrid;
+			if (null == nMaxGrid || nMaxGrid < nCurEndGrid)
+				nMaxGrid = nCurEndGrid;
+		}
+		if (null != nMinGrid && null != nMaxGrid) {
+			//выставляем after, before
+			for (var i = 0, length = aSelectedRows.length; i < length; ++i) {
+				var elem = aSelectedRows[i];
+				elem.before = elem.gridStart - nMinGrid;
+				elem.after = nMaxGrid - elem.gridEnd;
+			}
+			this.CopyTable(oDomTarget, Item, aSelectedRows);
+		}
 		History.TurnOff();
-        var graphic_frame = new CGraphicFrame(graphicFrame.parent);
-        var grid = [];
+		var graphic_frame = new CGraphicFrame(graphicFrame.parent);
+		var grid = [];
 
-        for(var i = nMinGrid; i <= nMaxGrid; ++i)
-        {
-            grid.push(graphicFrame.graphicObject.TableGrid[i]);
-        }
-        var table = new CTable(editor.WordControl.m_oDrawingDocument, graphicFrame, false, aSelectedRows.length, nMaxGrid - nMinGrid+1, grid);
-        table.setStyleIndex(graphicFrame.graphicObject.styleIndex);
-        graphic_frame.setGraphicObject(table);
-        graphic_frame.setXfrm(0, 0, 20, 30, 0, false, false);
-        var  b_style_index = false;
-        if(AscFormat.isRealNumber(graphic_frame.graphicObject.styleIndex) && graphic_frame.graphicObject.styleIndex > -1)
-        {
-            b_style_index = true;
-        }
+		for (var i = nMinGrid; i <= nMaxGrid; ++i) {
+			grid.push(graphicFrame.graphicObject.TableGrid[i]);
+		}
+		var table = new CTable(editor.WordControl.m_oDrawingDocument, graphicFrame, false, aSelectedRows.length, nMaxGrid - nMinGrid + 1, grid);
+		table.setStyleIndex(graphicFrame.graphicObject.styleIndex);
+		graphic_frame.setGraphicObject(table);
+		graphic_frame.setXfrm(0, 0, 20, 30, 0, false, false);
+		var b_style_index = false;
+		if (AscFormat.isRealNumber(graphic_frame.graphicObject.styleIndex) && graphic_frame.graphicObject.styleIndex > -1) {
+			b_style_index = true;
+		}
 
-        this.oPresentationWriter.WriteULong(1);
-        this.oPresentationWriter.WriteBool(false);
-        this.oPresentationWriter.WriteBool(b_style_index);
-        if(b_style_index)
-        {
-            this.oPresentationWriter.WriteULong(graphic_frame.graphicObject.styleIndex);
-        }
-        var old_style_index = graphic_frame.graphicObject.styleIndex;
-        graphic_frame.graphicObject.styleIndex = -1;
-        this.oPresentationWriter.WriteGrFrame(graphic_frame);
-        graphic_frame.graphicObject.styleIndex = old_style_index;
+		this.oPresentationWriter.WriteULong(1);
+		this.oPresentationWriter.WriteBool(false);
+		this.oPresentationWriter.WriteBool(b_style_index);
+		if (b_style_index) {
+			this.oPresentationWriter.WriteULong(graphic_frame.graphicObject.styleIndex);
+		}
+		var old_style_index = graphic_frame.graphicObject.styleIndex;
+		graphic_frame.graphicObject.styleIndex = -1;
+		this.oPresentationWriter.WriteGrFrame(graphic_frame);
+		graphic_frame.graphicObject.styleIndex = old_style_index;
 
 		History.TurnOn();
 
-        this.oBinaryFileWriter.copyParams.itemCount = 0;
-    },
+		this.oBinaryFileWriter.copyParams.itemCount = 0;
+	},
 
-    CopyPresentationTableFull: function(oDomTarget, graphicFrame, isOnlyTable)
-    {
-        var aSelectedRows = [];
-        var oRowElems = {};
-        var Item = graphicFrame.graphicObject;
-		
-        var b_style_index = false;
-        var presentation = editor.WordControl.m_oLogicDocument;
-        if(Item.TableStyle && presentation.globalTableStyles.Style[Item.TableStyle])
-        {
-            b_style_index = true;
-        }
+	CopyPresentationTableFull: function (oDomTarget, graphicFrame, isOnlyTable) {
+		var aSelectedRows = [];
+		var oRowElems = {};
+		var Item = graphicFrame.graphicObject;
 
-		for(var key in presentation.TableStylesIdMap)
-        {
-            if(presentation.TableStylesIdMap.hasOwnProperty(key))
-            {
-                this.oPresentationWriter.tableStylesGuides[key] = "{" + AscCommon.GUID() + "}"
-            }
-        }
+		var b_style_index = false;
+		var presentation = editor.WordControl.m_oLogicDocument;
+		if (Item.TableStyle && presentation.globalTableStyles.Style[Item.TableStyle]) {
+			b_style_index = true;
+		}
 
-		
-        this.oPresentationWriter.WriteBool(!b_style_index);
-        if(b_style_index)
-        {
-            var tableStyle = presentation.globalTableStyles.Style[Item.TableStyle];
+		for (var key in presentation.TableStylesIdMap) {
+			if (presentation.TableStylesIdMap.hasOwnProperty(key)) {
+				this.oPresentationWriter.tableStylesGuides[key] = "{" + AscCommon.GUID() + "}"
+			}
+		}
+
+
+		this.oPresentationWriter.WriteBool(!b_style_index);
+		if (b_style_index) {
+			var tableStyle = presentation.globalTableStyles.Style[Item.TableStyle];
 			this.oPresentationWriter.WriteBool(true);
 			this.oPresentationWriter.WriteTableStyle(Item.TableStyle, tableStyle);
 			this.oPresentationWriter.WriteBool(true);
 			this.oPresentationWriter.WriteString2(Item.TableStyle);
-        }
-		
+		}
+
 		History.TurnOff();
-        this.oPresentationWriter.WriteGrFrame(graphicFrame);
-		
+		this.oPresentationWriter.WriteGrFrame(graphicFrame);
+
 		//для случая, когда копируем 1 таблицу из презентаций, в бинарник заносим ещё одну такую же табличку, но со скомпиоированными стилями(для вставки в word / excel)
-		if(isOnlyTable)
-		{
+		if (isOnlyTable) {
 			this.convertToCompileStylesTable(Item);
 			this.oPresentationWriter.WriteGrFrame(graphicFrame);
 		}
 		History.TurnOn();
 
-		if(oDomTarget)
-		{
+		if (oDomTarget) {
 			this.CopyTable(oDomTarget, Item, null);
 		}
-    },
+	},
 
-	convertToCompileStylesTable: function(table)
-	{
+	convertToCompileStylesTable: function (table) {
 		var t = this;
-		
-		for(var i = 0; i < table.Content.length; i++)
-		{
+
+		for (var i = 0; i < table.Content.length; i++) {
 			var row = table.Content[i];
-			for(var j = 0; j < row.Content.length; j++)
-			{
+			for (var j = 0; j < row.Content.length; j++) {
 				var cell = row.Content[j];
 				var compilePr = cell.Get_CompiledPr();
-				
+
 				cell.Pr = compilePr;
-				
+
 				var shd = compilePr.Shd;
 				var color = shd.Get_Color2(this.oDocument.Get_Theme(), this.oDocument.Get_ColorMap());
 				cell.Pr.Shd.Unifill = AscFormat.CreteSolidFillRGB(color.r, color.g, color.b);
-				
-				if(compilePr.TableCellBorders.Bottom)
-				{
+
+				if (compilePr.TableCellBorders.Bottom) {
 					color = compilePr.TableCellBorders.Bottom.Get_Color2(this.oDocument.Get_Theme(), this.oDocument.Get_ColorMap());
 					cell.Pr.TableCellBorders.Bottom.Unifill = AscFormat.CreteSolidFillRGB(color.r, color.g, color.b);
 				}
-				
-				if(compilePr.TableCellBorders.Top)
-				{
+
+				if (compilePr.TableCellBorders.Top) {
 					color = compilePr.TableCellBorders.Top.Get_Color2(this.oDocument.Get_Theme(), this.oDocument.Get_ColorMap());
 					cell.Pr.TableCellBorders.Top.Unifill = AscFormat.CreteSolidFillRGB(color.r, color.g, color.b);
 				}
-				
-				if(compilePr.TableCellBorders.Left)
-				{
+
+				if (compilePr.TableCellBorders.Left) {
 					color = compilePr.TableCellBorders.Left.Get_Color2(this.oDocument.Get_Theme(), this.oDocument.Get_ColorMap());
 					cell.Pr.TableCellBorders.Left.Unifill = AscFormat.CreteSolidFillRGB(color.r, color.g, color.b);
 				}
-				
-				if(compilePr.TableCellBorders.Right)
-				{
+
+				if (compilePr.TableCellBorders.Right) {
 					color = compilePr.TableCellBorders.Right.Get_Color2(this.oDocument.Get_Theme(), this.oDocument.Get_ColorMap());
 					cell.Pr.TableCellBorders.Right.Unifill = AscFormat.CreteSolidFillRGB(color.r, color.g, color.b);
 				}
 			}
 		}
 	},
-	
-    CopyGraphicObject: function(oDomTarget, oGraphicObj, drawingCopyObject)
-    {
-        var sSrc = drawingCopyObject.ImageUrl;
-        if(oDomTarget && sSrc.length > 0)
-        {
-            var _bounds_cheker = new AscFormat.CSlideBoundsChecker();
-            oGraphicObj.draw(_bounds_cheker, 0);
 
-            var width, height;
-            if(drawingCopyObject && drawingCopyObject.ExtX)
-                width = Math.round(drawingCopyObject.ExtX * g_dKoef_mm_to_pix);
-            else
-                width = Math.round((_bounds_cheker.Bounds.max_x - _bounds_cheker.Bounds.min_x + 1) * g_dKoef_mm_to_pix);
+	CopyGraphicObject: function (oDomTarget, oGraphicObj, drawingCopyObject) {
+		var sSrc = drawingCopyObject.ImageUrl;
+		if (oDomTarget && sSrc.length > 0) {
+			var _bounds_cheker = new AscFormat.CSlideBoundsChecker();
+			oGraphicObj.draw(_bounds_cheker, 0);
 
-            if(drawingCopyObject && drawingCopyObject.ExtY)
-                height = Math.round(drawingCopyObject.ExtY * g_dKoef_mm_to_pix);
-            else
-                height = Math.round((_bounds_cheker.Bounds.max_y - _bounds_cheker.Bounds.min_y + 1) * g_dKoef_mm_to_pix);
+			var width, height;
+			if (drawingCopyObject && drawingCopyObject.ExtX)
+				width = Math.round(drawingCopyObject.ExtX * g_dKoef_mm_to_pix);
+			else
+				width = Math.round((_bounds_cheker.Bounds.max_x - _bounds_cheker.Bounds.min_x + 1) * g_dKoef_mm_to_pix);
 
-            var oImg = new CopyElement("img");
-            oImg.oAttributes["width"] = width;
-            oImg.oAttributes["height"] = height;
-            oImg.oAttributes["src"] = sSrc;
-            if (this.api.DocumentReaderMode)
-                oImg.oAttributes["style"] = "max-width:100%;";
-            oDomTarget.addChild(oImg);
-        }
-        this.oPresentationWriter.WriteSpTreeElem(oGraphicObj);
-    }
+			if (drawingCopyObject && drawingCopyObject.ExtY)
+				height = Math.round(drawingCopyObject.ExtY * g_dKoef_mm_to_pix);
+			else
+				height = Math.round((_bounds_cheker.Bounds.max_y - _bounds_cheker.Bounds.min_y + 1) * g_dKoef_mm_to_pix);
+
+			var oImg = new CopyElement("img");
+			oImg.oAttributes["width"] = width;
+			oImg.oAttributes["height"] = height;
+			oImg.oAttributes["src"] = sSrc;
+			if (this.api.DocumentReaderMode)
+				oImg.oAttributes["style"] = "max-width:100%;";
+			oDomTarget.addChild(oImg);
+		}
+		this.oPresentationWriter.WriteSpTreeElem(oGraphicObj);
+	}
 };
 
 function CopyPasteCorrectString(str)
@@ -2381,9 +2353,16 @@ PasteProcessor.prototype =
 
 			//если вставляем таблицу в ячейку таблицы
 			if (this.pasteIntoElem && 1 === this.aContent.length && type_Table === this.aContent[0].GetType() &&
-				this.pasteIntoElem.Parent && this.pasteIntoElem.Parent.Is_InTable() && (!bIsSpecialPaste || (bIsSpecialPaste &&
+				this.pasteIntoElem.Parent && this.pasteIntoElem.Parent.IsInTable() && (!bIsSpecialPaste || (bIsSpecialPaste &&
 				Asc.c_oSpecialPasteProps.overwriteCells === specialPasteHelper.specialPasteProps))) {
-				var table = this.pasteIntoElem.Parent.Parent.Get_Table();
+				//TODO пересмотреть положение кнопки специальной вставки при вставке в таблицу
+				var table;
+				var tableCell = paragraph && paragraph.Parent && paragraph.Parent.Parent;
+				if (tableCell && tableCell.GetTable) {
+					table = tableCell.GetTable()
+				} else {
+					table = this.pasteIntoElem.Parent.Parent.Get_Table();
+				}
 				specialPasteHelper.showButtonIdParagraph = table.Id;
 			} else {
 				if(oSelectedContent.Elements.length === 1)
@@ -2529,7 +2508,7 @@ PasteProcessor.prototype =
 
 			//если вставляем одну таблицу в ячейку другой таблицы
 			if (this.pasteIntoElem && 1 === aContent.length && type_Table === this.aContent[0].GetType() &&
-				this.pasteIntoElem.Parent && this.pasteIntoElem.Parent.Is_InTable())
+				this.pasteIntoElem.Parent && this.pasteIntoElem.Parent.IsInTable())
 			{
 				props = [sProps.overwriteCells, sProps.insertAsNestedTable, sProps.keepTextOnly];
 			}
@@ -3241,7 +3220,7 @@ PasteProcessor.prototype =
 		return map;
 	},
 
-	Start: function (node, nodeDisplay, bDuplicate, fromBinary, text, callback) {
+	Start : function (node, nodeDisplay, bDuplicate, fromBinary, text, callback) {
 		//PASTE
 		var tempPresentation = !PasteElementsId.g_bIsDocumentCopyPaste && editor && editor.WordControl ? editor.WordControl.m_oLogicDocument : null;
 		var insertToPresentationWithoutSlides = tempPresentation && tempPresentation.Slides && !tempPresentation.Slides.length;
@@ -4188,6 +4167,17 @@ PasteProcessor.prototype =
 				loader.presentation = editor.WordControl.m_oLogicDocument;
 				loader.DrawingDocument = editor.WordControl.m_oLogicDocument.DrawingDocument;
 
+				//для вставки таблицы со стилем
+				//TODO в дальнейшем необходимо пересмотреть и писать стили вместе со слайдом
+				var _globalTableStyles = editor.WordControl.m_oLogicDocument.globalTableStyles;
+				if (_globalTableStyles) {
+					for (var key in _globalTableStyles.Style) {
+						if (_globalTableStyles.Style.hasOwnProperty(key)) {
+							loader.map_table_styles[_globalTableStyles.Style[key].Id] =_globalTableStyles.Style[key];
+						}
+					}
+				}
+
 				//read slides
 				var slide_count = stream.GetULong();
 				//var arr_arrTransforms = [];
@@ -5044,7 +5034,7 @@ PasteProcessor.prototype =
 					tempParaRun.Add_ToContent(0, newParaDrawing, false);
 
 					tempParaRun.Content[0].Set_GraphicObject(graphicObj);
-					tempParaRun.Content[0].GraphicObj.setParent(tempParaRun.Content[0]);
+					tempParaRun.Content[0].GraphicObj.setParent2(tempParaRun.Content[0]);
 					var oGraphicObj = tempParaRun.Content[0].GraphicObj;
 					if (oGraphicObj.spPr && oGraphicObj.spPr.xfrm) {
 						oGraphicObj.spPr.xfrm.setOffX(0);
@@ -5260,7 +5250,7 @@ PasteProcessor.prototype =
 					var type = range.getType();
 					if (null != align.hor) {
 						oCurPar.Pr.Jc = align.hor;
-					} else if (null === type || AscCommon.CellValueType.Number === type) {
+					} else if (AscCommon.CellValueType.Number === type) {
 						oCurPar.Pr.Jc = AscCommon.align_Right;
 					}
 				}
@@ -6690,38 +6680,41 @@ PasteProcessor.prototype =
 				if (null != pNoHtmlPr.numType)
 					num = pNoHtmlPr.numType;
 				var type = pNoHtmlPr["list-style-type"];
+                var oBullet = null;
 				if (type) {
 					switch (type) {
-						case "disc":
-							num = numbering_presentationnumfrmt_Char;
-							break;
-						case "decimal":
-							num = numbering_presentationnumfrmt_ArabicPeriod;
-							break;
-						case "lower-roman":
-							num = numbering_presentationnumfrmt_RomanLcPeriod;
-							break;
-						case "upper-roman":
-							num = numbering_presentationnumfrmt_RomanUcPeriod;
-							break;
-						case "lower-alpha":
-							num = numbering_presentationnumfrmt_AlphaLcPeriod;
-							break;
-						case "upper-alpha":
-							num = numbering_presentationnumfrmt_AlphaUcPeriod;
-							break;
+						case "disc": {
+                            oBullet = AscFormat.fGetPresentationBulletByNumInfo({Type: 0, SubType: 1});
+                            break;
+                        }
+						case "decimal": {
+                            oBullet = AscFormat.fGetPresentationBulletByNumInfo({Type: 1, SubType: 0});
+                            break;
+                        }
+
+						case "lower-roman": {
+                            oBullet = AscFormat.fGetPresentationBulletByNumInfo({Type: 1, SubType: 7});
+                            break;
+                        }
+						case "upper-roman": {
+                            oBullet = AscFormat.fGetPresentationBulletByNumInfo({Type: 1, SubType: 3});
+                            break;
+                        }
+						case "lower-alpha": {
+                            oBullet = AscFormat.fGetPresentationBulletByNumInfo({Type: 1, SubType: 6});
+                            break;
+                        }
+						case "upper-alpha": {
+                            oBullet = AscFormat.fGetPresentationBulletByNumInfo({Type: 1, SubType: 4});
+                            break;
+                        }
 						default: {
-							num = numbering_presentationnumfrmt_Char;
-						}
+                            oBullet = AscFormat.fGetPresentationBulletByNumInfo({Type: 0, SubType: 1});
+                            break;
+                        }
 					}
 				}
-				var _bullet = new CPresentationBullet();
-				_bullet.m_nType = num;
-				if (num === numbering_presentationnumfrmt_Char) {
-					_bullet.m_sChar = "•";
-				}
-				_bullet.m_nStartAt = 1;
-				Para.Add_PresentationNumbering2(_bullet);
+				Para.Add_PresentationNumbering(oBullet);
 			} else {
 				Para.Remove_PresentationNumbering();
 			}
@@ -7801,6 +7794,13 @@ PasteProcessor.prototype =
 
 		var checkStyle = function (elem) {
 			var res = false;
+
+			//TODO пересмотреть! возможно стоит сделать проверку на computedStyle.
+			var _nodeName = elem.nodeName.toLowerCase();
+			if ("h1" === _nodeName || "h2" === _nodeName || "h3" === _nodeName || "h4" === _nodeName || "h5" === _nodeName || "h6" === _nodeName) {
+				return true;
+			}
+
 			var sClass = elem.getAttribute("class");
 			var sStyle = elem.getAttribute("style");
 			var sHref = elem.getAttribute("href");

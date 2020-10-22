@@ -54,6 +54,8 @@ function (window, undefined) {
 	var cArea3D = AscCommonExcel.cArea3D;
 	var cRef = AscCommonExcel.cRef;
 	var cRef3D = AscCommonExcel.cRef3D;
+	var cName = AscCommonExcel.cName;
+	var cName3D = AscCommonExcel.cName3D;
 	var cEmpty = AscCommonExcel.cEmpty;
 	var cArray = AscCommonExcel.cArray;
 	var cBaseFunction = AscCommonExcel.cBaseFunction;
@@ -380,21 +382,11 @@ function (window, undefined) {
 		if (cElementType.cell === arg0.type || cElementType.cell3D === arg0.type ||
 			cElementType.cellsRange === arg0.type || cElementType.cellsRange3D === arg0.type) {
 			var bbox = arg0.getRange();
-			var formula = bbox.getFormula();
-			if ("" === formula) {
+			var formula = bbox.isFormula();
+			if (!formula) {
 				return new cError(cErrorType.not_available);
 			} else {
-				var isArray;
-				var ws = arg0.getWS();
-				if (ws && bbox.bbox) {
-					var firstRange = ws.getCell3(bbox.bbox.r1, bbox.bbox.c1);
-					firstRange._foreachNoEmpty(function (cell) {
-						if (cell && cell.formulaParsed && cell.formulaParsed.ref) {
-							isArray = true;
-						}
-					});
-				}
-				res = new cString(isArray ? "{" + "=" + formula + "}" : "=" + formula);
+				res = new cString(bbox.getValueForEdit(true));
 			}
 		}
 
@@ -566,8 +558,8 @@ function (window, undefined) {
 			var _colCount = _from.getCountElementInRow();
 			var _rowCount = _from.rowCount;
 			var i;
-			row = Math.ceil(row);
-			col = Math.ceil(col);
+			row = row !== undefined ? Math.ceil(row) : row;
+			col = col !== undefined ? Math.ceil(col) : col;
 			if (undefined !== row) {
 				if (_rowCount < row) {
 					if (col === undefined && _rowCount === 1 && _from.array[0] && _from.array[0][row - 1]) {
@@ -740,13 +732,15 @@ function (window, undefined) {
 					} else {
 						found_operand = new cRef3D(o.real_str ? o.real_str.toUpperCase() : o.operand_str.toUpperCase(), wsFrom);
 					}
+				} else if (parserHelp.isName.call(o, o.Formula, o.pCurrPos)) {
+					found_operand = new cName3D(o.operand_str, wsFrom);
 				}
 			} else if (parserHelp.isArea.call(o, o.Formula, o.pCurrPos)) {
 				found_operand = new cArea(o.real_str ? o.real_str.toUpperCase() : o.operand_str.toUpperCase(), ws);
 			} else if (parserHelp.isRef.call(o, o.Formula, o.pCurrPos, true)) {
 				found_operand = new cRef(o.real_str ? o.real_str.toUpperCase() : o.operand_str.toUpperCase(), ws);
 			} else if (parserHelp.isName.call(o, o.Formula, o.pCurrPos)) {
-				found_operand = new AscCommonExcel.cName(o.operand_str, ws);
+				found_operand = new cName(o.operand_str, ws);
 			}
 		}
 
@@ -765,11 +759,16 @@ function (window, undefined) {
 			o.Formula = arg0.toString();
 			AscCommonExcel.executeInR1C1Mode(!!(arg1 && arg1.value === false), parseReference);
 			if (found_operand) {
-				if (cElementType.name === found_operand.type) {
+				if (cElementType.name === found_operand.type || cElementType.name3D === found_operand.type) {
 					found_operand = found_operand.toRef(arguments[1]);
+					if (found_operand && cElementType.error === found_operand.type) {
+						ret = new cError(cErrorType.bad_reference);
+					} else {
+						ret = found_operand;
+					}
+				} else {
+					ret = found_operand;
 				}
-
-				ret = found_operand;
 			} else {
 				ret = new cError(cErrorType.bad_reference);
 			}

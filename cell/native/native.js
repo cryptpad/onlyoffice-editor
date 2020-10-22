@@ -4317,13 +4317,13 @@ function OfflineEditor () {
         var colRowHeaders = _api.asc_getSheetViewSettings();
         
         if (colRowHeaders.asc_getShowGridLines() && false == istoplayer) {
-            worksheet.__drawGrid(undefined,
+            worksheet.__drawGrid(null,
                                  region.columnBeg, region.rowBeg, region.columnEnd, region.rowEnd,
                                  region.columnOff, region.rowOff,
                                  width + region.columnOff, height + region.rowOff);
         }
         
-        worksheet.__drawCellsAndBorders(undefined,
+        worksheet.__drawCellsAndBorders(null,
                                         region.columnBeg, region.rowBeg, region.columnEnd, region.rowEnd,
                                         region.columnOff, region.rowOff, istoplayer);
     };
@@ -5335,6 +5335,21 @@ window["native"]["offline_cell_editor_process_input_commands"] = function(sendAr
     return [cellEditor.left, cellEditor.top, cellEditor.right, cellEditor.bottom,
             cellEditor.curLeft, cellEditor.curTop, cellEditor.curHeight,
             cellEditor.textRender.chars.length];
+}
+window["native"]["offline_cell_editor_get_cursor_position"] = function() {
+    var cellEditor = _api.wb.cellEditor;
+    var pos = 0;
+    pos = cellEditor.cursorPos;
+    return {'cursorPos': pos};
+}
+
+window["native"]["offline_cell_editor_get_selection_text"] = function() {
+    var cellEditor =  _api.wb.cellEditor;
+    var selectBegin = 0;
+    var selectEnd = 0;
+    selectBegin = cellEditor.selectionBegin;
+    selectEnd = cellEditor.selectionEnd;
+    return {'selectionBegin': selectBegin, 'selectionEnd': selectEnd};
 }
 
 window["native"]["offline_cell_editor_mouse_event"] = function(sendEvents) {

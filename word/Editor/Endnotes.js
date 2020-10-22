@@ -314,7 +314,7 @@ CEndnotesController.prototype.OnContentReDraw = function(StartPageAbs, EndPageAb
 {
 	this.LogicDocument.OnContentReDraw(StartPageAbs, EndPageAbs);
 };
-CEndnotesController.prototype.GetEndnoteNumberOnPage = function(nPageAbs, nColumnAbs, oSectPr)
+CEndnotesController.prototype.GetEndnoteNumberOnPage = function(nPageAbs, nColumnAbs, oSectPr, oCurEndnote)
 {
 	var nNumRestart = section_footnote_RestartContinuous;
 	var nNumStart   = 1;
@@ -335,6 +335,9 @@ CEndnotesController.prototype.GetEndnoteNumberOnPage = function(nPageAbs, nColum
 			var oPage = this.Pages[nPageIndex];
 			if (oPage && oPage.Endnotes.length > 0)
 			{
+				if (oEndnote === oCurEndnote)
+					return oEndnote.GetNumber();
+
 				var oEndnote = oPage.Endnotes[oPage.Endnotes.length - 1];
 				if (oEndnote.GetReferenceSectPr() !== oSectPr)
 					return 1;
@@ -357,6 +360,10 @@ CEndnotesController.prototype.GetEndnoteNumberOnPage = function(nPageAbs, nColum
 				for (var nEndnoteIndex = 0, nTempCount = oPage.Endnotes.length; nEndnoteIndex < nTempCount; ++nEndnoteIndex)
 				{
 					var oEndnote = oPage.Endnotes[nEndnoteIndex];
+
+					if (oEndnote === oCurEndnote)
+						return oEndnote.GetNumber();
+
 					if (oEndnote && true !== oEndnote.IsCustomMarkFollows())
 						nEndnotesCount++;
 				}
@@ -873,7 +880,7 @@ CEndnotesController.prototype.GetNearestPos = function(X, Y, nPageAbs, bAnchor, 
  * Проверяем попадание в сноски на заданной странице.
  * @param X
  * @param Y
- * @param nPageAbs
+ * @param nPageAbsAdd
  * @returns {boolean}
  */
 CEndnotesController.prototype.CheckHitInEndnote = function(X, Y, nPageAbs)
@@ -953,6 +960,17 @@ CEndnotesController.prototype.GetAllTables = function(oProps, arrTables)
 
 	return arrTables;
 };
+CEndnotesController.prototype.GetFirstParagraphs = function()
+{
+	var aParagraphs = []
+	for (var sId in this.Endnote)
+	{
+		var oEndnote = this.Endnote[sId];
+		aParagraphs.push(oEndnote.GetFirstParagraph());
+	}
+	return aParagraphs;
+};
+
 /**
  * Перенеслись ли сноски с предыдущей страницы, на новую
  * @param nPageAbs
@@ -982,6 +1000,16 @@ CEndnotesController.prototype.GotoPrevEndnote = function()
 		oPrevEndnote.MoveCursorToStartPos(false);
 		this.private_SetCurrentEndnoteNoSelection(oPrevEndnote);
 	}
+};
+CEndnotesController.prototype.GetNumberingInfo = function(oPara, oNumPr, oEndnote)
+{
+	var arrEndnotes      = this.LogicDocument.GetEndnotesList(null, oEndnote);
+	var oNumberingEngine = new CDocumentNumberingInfoEngine(oPara, oNumPr, this.Get_Numbering());
+	for (var nIndex = 0, nCount = arrEndnotes.length; nIndex < nCount; ++nIndex)
+	{
+		arrEndnotes[nIndex].GetNumberingInfo(oNumberingEngine, oPara, oNumPr);
+	}
+	return oNumberingEngine.GetNumInfo();
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private area
@@ -2598,7 +2626,7 @@ CEndnotesController.prototype.GetCurrentParagraph = function(bIgnoreSelection, a
 CEndnotesController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
 	if (true !== this.private_IsOneEndnoteSelected() || null === this.CurEndnote)
-		oInfo.Set_MixedSelection();
+		oInfo.SetMixedSelection();
 	else
 		this.CurEndnote.GetSelectedElementsInfo(oInfo);
 };
@@ -3158,6 +3186,14 @@ CEndnotesController.prototype.GetAllDrawingObjects = function(arrDrawings)
 
 	return arrDrawings;
 };
+CEndnotesController.prototype.UpdateBookmarks = function(oBookmarkManager)
+{
+	for (var sId in  this.Endnote)
+	{
+		var oEndnote = this.Endnote[sId];
+		oEndnote.UpdateBookmarks(oBookmarkManager);
+	}
+};
 CEndnotesController.prototype.IsTableCellSelection = function()
 {
 	if (this.CurEndnote)
@@ -3234,7 +3270,27 @@ CEndnotePage.prototype.Reset = function()
 };
 CEndnotePage.prototype.AddEndnotes = function(arrEndnotes)
 {
-	this.Endnotes = this.Endnotes.concat(arrEndnotes)
+	// Может прийти добавление одной и той же сноски несколько раз, т.к. мы можем пересчитывать одну и ту же колонку
+	// или страницу несколько раз. Но при этом сама последовательность сносок не должна меняться, поэтому
+	// точку поиска следующей сноски спокойно сдвигаем, если нашли для предыдущей.
+
+	var nStartPos = 0;
+	for (var nAddIndex = 0, nAddCount = arrEndnotes.length; nAddIndex < nAddCount; ++nAddIndex)
+	{
+		var oEndnote  = arrEndnotes[nAddIndex];
+		var isNeedAdd = true;
+		for (var nEndnoteIndex = nStartPos, nEndnotesCount = this.Endnotes.length; nEndnoteIndex < nEndnotesCount; ++nEndnoteIndex)
+		{
+			if (this.Endnotes[nEndnoteIndex] === oEndnote)
+			{
+				nStartPos = nEndnoteIndex + 1;
+				isNeedAdd = false;
+			}
+		}
+
+		if (isNeedAdd)
+			this.Endnotes.push(oEndnote);
+	}
 };
 CEndnotePage.prototype.AddSection = function(nSectionIndex)
 {

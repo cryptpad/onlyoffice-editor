@@ -241,11 +241,11 @@ CGraphicFrame.prototype.Search = function(Str, Props, SearchEngine, Type)
         }
 };
 
-CGraphicFrame.prototype.Search_GetId = function(bNext, bCurrent)
+CGraphicFrame.prototype.GetSearchElementId = function(bNext, bCurrent)
     {
         if(this.graphicObject)
         {
-            return this.graphicObject.Search_GetId(bNext, bCurrent);
+            return this.graphicObject.GetSearchElementId(bNext, bCurrent);
         }
 
         return null;
@@ -683,7 +683,7 @@ CGraphicFrame.prototype.Check_AutoFit = function()
         return false;
 };
 
-CGraphicFrame.prototype.Is_InTable = function()
+CGraphicFrame.prototype.IsInTable = function()
     {
         return null;
 };
@@ -1032,12 +1032,6 @@ CGraphicFrame.prototype.setParagraphIndent = function(val)
         }
 };
 
-CGraphicFrame.prototype.setParent2 = function(parent)
-    {
-        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_GraphicFrameSetSetParent, this.parent, parent));
-        this.parent = parent;
-};
-
 CGraphicFrame.prototype.setWordFlag = function(bPresentation, Document)
     {
         if(this.graphicObject)
@@ -1293,6 +1287,11 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
             }
         }
         return ret;
+    };
+    CGraphicFrame.prototype.documentCreateFontMap = function(oMap) {
+        if(this.graphicObject && this.graphicObject.Document_CreateFontMap) {
+            this.graphicObject.Document_CreateFontMap(oMap);
+        }
     };
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};

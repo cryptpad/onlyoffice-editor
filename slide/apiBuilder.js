@@ -315,18 +315,24 @@
      * @memberof Api
      * @typeofeditors ["CPE"]
      * @param {ShapeType} [sType="rect"] - The shape type which specifies the preset shape geometry.
-     * @param {EMU} nWidth - The shape width in English measure units.
-     * @param {EMU} nHeight - The shape height in English measure units.
-     * @param {ApiFill} oFill - The color or pattern used to fill the shape.
-     * @param {ApiStroke} oStroke - The stroke used to create the element shadow.
+     * @param {EMU} [nWidth = 914400] - The shape width in English measure units.
+	 * @param {EMU} [nHeight = 914400] - The shape height in English measure units.
+	 * @param {ApiFill} [oFill = Api.CreateNoFill()] - The color or pattern used to fill the shape.
+	 * @param {ApiStroke} [oStroke = Api.CreateStroke(0, Api.CreateNoFill())] - The stroke used to create the element shadow.
      * @returns {ApiShape}
      * */
     Api.prototype.CreateShape = function(sType, nWidth, nHeight, oFill, oStroke){
         var oCurrentSlide = private_GetCurrentSlide();
+        sType   = sType   || "rect";
+        nWidth  = nWidth  || 914400;
+	    nHeight = nHeight || 914400;
+	    oFill   = oFill   || editor.CreateNoFill();
+	    oStroke = oStroke || editor.CreateStroke(0, editor.CreateNoFill());
         var oTheme = oCurrentSlide && oCurrentSlide.Layout && oCurrentSlide.Layout.Master && oCurrentSlide.Layout.Master.Theme;
         return new ApiShape(AscFormat.builder_CreateShape(sType, nWidth/36000, nHeight/36000, oFill.UniFill, oStroke.Ln, oCurrentSlide, oTheme, private_GetDrawingDocument(), false));
     };
 
+    
     /**
      * Create a chart with the parameters specified.
      * @memberof Api
@@ -740,11 +746,27 @@
 
 
     /**
+     * Deprecated in 6.2
      * Get the shape inner contents where a paragraph or text runs can be inserted. 
      * @typeofeditors ["CPE"]
      * @returns {?ApiDocumentContent}
      */
     ApiShape.prototype.GetDocContent = function()
+    {
+        var oApi = private_GetApi();
+        if(oApi && this.Drawing && this.Drawing.txBody && this.Drawing.txBody.content)
+        {
+            return oApi.private_CreateApiDocContent(this.Drawing.txBody.content);
+        }
+        return null;
+    };
+    
+    /**
+     * Get the shape inner contents where a paragraph or text runs can be inserted. 
+     * @typeofeditors ["CPE"]
+     * @returns {?ApiDocumentContent}
+     */
+    ApiShape.prototype.GetContent = function()
     {
         var oApi = private_GetApi();
         if(oApi && this.Drawing && this.Drawing.txBody && this.Drawing.txBody.content)
@@ -1223,21 +1245,50 @@
 
     /**
      * Specify the shading which shall be applied to the extents of the current table.
-     * @param {?ApiFill} oApiFill
-     */
-
-    ApiTable.prototype.SetShd = function(oApiFill)
+     * @typeofeditors ["CPE"]
+	 * @param {ShdType | ApiFill} sType - The shading type applied to the contents of the current table. Can be ShdType or ApiFill.
+	 * @param {byte} r - Red color component value.
+	 * @param {byte} g - Green color component value.
+	 * @param {byte} b - Blue color component value.
+	 */
+    ApiTable.prototype.SetShd = function(sType, r, g, b)
     {
-        var oPr = this.Table.Pr.Copy();
-        if(!oApiFill){
-            oPr.Shd = null;
-        }
-        else{
-            var oShd = new CDocumentShd();
-            oShd.Value = Asc.c_oAscShdClear;
-            oShd.Unifill = oApiFill.UniFill;
+        var oPr    = this.Table.Pr.Copy();
+        var color  = new Asc.asc_CColor({r : r, g: g, b: b, Auto : false});
+        var oShd   = new CDocumentShd();
+        var _Shd   = null;
+
+        if (sType === "nil") {
+            _Shd = {Value : Asc.c_oAscShdNil};
+            oShd.Set_FromObject(_Shd);
             oPr.Shd = oShd;
         }
+        else if (sType === "clear") {
+
+            var Unifill        = new AscFormat.CUniFill();
+			Unifill.fill       = new AscFormat.CSolidFill();
+			Unifill.fill.color = AscFormat.CorrectUniColor(color, Unifill.fill.color, 1);
+			_Shd = {
+				Value   : Asc.c_oAscShdClear,
+				Color   : {
+					r : color.asc_getR(),
+					g : color.asc_getG(),
+					b : color.asc_getB()
+				},
+				Unifill : Unifill
+			};
+			
+			oShd.Set_FromObject(_Shd);
+            oPr.Shd = oShd;
+        }
+        else if (sType.GetClassType && sType.GetClassType() === "fill") {
+            oShd.Value = Asc.c_oAscShdClear;
+            oShd.Unifill = sType.UniFill;
+            oPr.Shd = oShd;
+        }
+        else 
+            oPr.Shd = null;
+        
         this.Table.Set_Pr(oPr);
     };
 
@@ -1283,7 +1334,26 @@
      */
     ApiTableRow.prototype.SetHeight = function(nValue)
     {
-        this.Row.Set_Height(nValue/36000, Asc.linerule_AtLeast)
+        var fMaxTopMargin = 0, fMaxBottomMargin = 0, fMaxTopBorder = 0, fMaxBottomBorder = 0;
+
+        for (var i = 0;  i < this.Row.Content.length; ++i){
+            var oCell = this.Row.Content[i];
+            var oMargins = oCell.GetMargins();
+            if(oMargins.Bottom.W > fMaxBottomMargin){
+                fMaxBottomMargin = oMargins.Bottom.W;
+            }
+            if(oMargins.Top.W > fMaxTopMargin){
+                fMaxTopMargin = oMargins.Top.W;
+            }
+            var oBorders = oCell.Get_Borders();
+            if(oBorders.Top.Size > fMaxTopBorder){
+                fMaxTopBorder = oBorders.Top.Size;
+            }
+            if(oBorders.Bottom.Size > fMaxBottomBorder){
+                fMaxBottomBorder = oBorders.Bottom.Size;
+            }
+        }
+        this.Row.Set_Height(Math.max(1, nValue/36000 - fMaxTopMargin - fMaxBottomMargin - fMaxTopBorder/2 - fMaxBottomBorder/2), Asc.linerule_AtLeast);
     };
 
 
@@ -1316,22 +1386,54 @@
 
     /**
      * Specify the shading which shall be applied to the extents of the current table cell.
-     * @param {?ApiFill} oApiFill
-     */
-    ApiTableCell.prototype.SetShd = function(oApiFill)
+     * @typeofeditors ["CPE"]
+	 * @param {ShdType | ApiFill} sType - The shading type applied to the contents of the current table. Can be ShdType or ApiFill.
+	 * @param {byte} r - Red color component value.
+	 * @param {byte} g - Green color component value.
+	 * @param {byte} b - Blue color component value.
+	 */
+    ApiTableCell.prototype.SetShd = function(sType, r, g, b)
     {
-        var oPr = this.Cell.Pr.Copy();
-        if(!oApiFill){
-            oPr.Shd = null;
-        }
-        else{
-            var oShd = new CDocumentShd();
-            oShd.Value = Asc.c_oAscShdClear;
-            oShd.Unifill = oApiFill.UniFill;
+        var oPr    = this.Cell.Pr.Copy();
+        var color  = new Asc.asc_CColor({r : r, g: g, b: b, Auto : false});
+        var oShd   = new CDocumentShd();
+        var _Shd   = null;
+
+        if (sType === "nil") {
+            _Shd = {Value : Asc.c_oAscShdNil};
+            oShd.Set_FromObject(_Shd);
             oPr.Shd = oShd;
         }
+        else if (sType === "clear") {
+
+            var Unifill        = new AscFormat.CUniFill();
+			Unifill.fill       = new AscFormat.CSolidFill();
+			Unifill.fill.color = AscFormat.CorrectUniColor(color, Unifill.fill.color, 1);
+			_Shd = {
+				Value   : Asc.c_oAscShdClear,
+				Color   : {
+					r : color.asc_getR(),
+					g : color.asc_getG(),
+					b : color.asc_getB()
+				},
+				Unifill : Unifill
+			};
+			
+			oShd.Set_FromObject(_Shd);
+            oPr.Shd = oShd;
+        }
+        else if (sType.GetClassType && sType.GetClassType() === "fill") {
+            oShd.Value = Asc.c_oAscShdClear;
+            oShd.Unifill = sType.UniFill;
+            oPr.Shd = oShd;
+        }
+        else 
+            oPr.Shd = null;
+
         this.Cell.Set_Pr(oPr);
     };
+
+
     /**
      * Specifies the amount of space which shall be left between the bottom extent of the cell contents and the border
      * of a specific table cell within a table.
@@ -1574,6 +1676,7 @@
 
     ApiShape.prototype["GetClassType"]               =  ApiShape.prototype.GetClassType;
     ApiShape.prototype["GetDocContent"]              =  ApiShape.prototype.GetDocContent;
+    ApiShape.prototype["GetContent"]                 =  ApiShape.prototype.GetContent;
     ApiShape.prototype["SetVerticalTextAlign"]       =  ApiShape.prototype.SetVerticalTextAlign;
 
     ApiChart.prototype["GetClassType"]                 = ApiChart.prototype.GetClassType;

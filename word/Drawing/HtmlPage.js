@@ -687,8 +687,9 @@ function CEditorPage(api)
 			return false;
 		};
 
-		if (!this.m_oApi.isMobileVersion)
+		if (!this.m_oApi.isMobileVersion && false)
 		{
+			// перешли на pointer - евенты
 			var _check_e = function(e)
 			{
 				if (e.touches && e.touches[0])
@@ -711,7 +712,8 @@ function CEditorPage(api)
 				AscCommon.isTouchMove 		= false;
 				AscCommon.TouchStartTime 	= new Date().getTime();
 				AscCommon.stopEvent(e);
-				var _ret = this.onmousedown(_check_e(e), true);
+				var _mouse_down = AscCommon.getMouseEvent(this, "down");
+				var _ret = _mouse_down ? _mouse_down.call(this, _check_e(e), true) : false;
 				global_mouseEvent.KoefPixToMM = _old;
 
 				if ((document.activeElement !== undefined) &&
@@ -731,7 +733,8 @@ function CEditorPage(api)
 				AscCommon.isTouch 		= true;
 				AscCommon.isTouchMove 	= true;
 				AscCommon.stopEvent(e);
-				var _ret = this.onmousemove(_check_e(e), true);
+				var _mouse_move = AscCommon.getMouseEvent(this, "move");
+				var _ret = _mouse_move ? _mouse_move.call(this, _check_e(e), true) : false;
 				global_mouseEvent.KoefPixToMM = _old;
 				return _ret;
 			};
@@ -746,7 +749,8 @@ function CEditorPage(api)
 				AscCommon.isTouch = false;
 				AscCommon.stopEvent(e);
 				var _natE = _check_e(e);
-				var _ret = this.onmouseup(_natE, undefined, true);
+				var _mouse_up = AscCommon.getMouseEvent(this, "up");
+				var _ret = _mouse_up ? _mouse_up.call(this, _natE, undefined, true) : false;
 				global_mouseEvent.KoefPixToMM = _old;
 
 				if (!AscCommon.isTouchMove && (-1 != AscCommon.TouchStartTime) && (Math.abs(AscCommon.TouchStartTime - (new Date().getTime())) > 900))
@@ -2722,6 +2726,16 @@ function CEditorPage(api)
 			this.m_dScrollY = this.m_dScrollY_max;
 	};
 
+	this.private_RefreshAll = function()
+	{
+		AscCommon.g_fontManager.ClearFontsRasterCache();
+
+		if (AscCommon.g_fontManager2)
+			AscCommon.g_fontManager2.ClearFontsRasterCache();
+
+		this.OnRePaintAttack();
+	};
+
 	this.OnRePaintAttack = function()
 	{
 		this.m_bIsFullRepaint = true;
@@ -3067,7 +3081,7 @@ function CEditorPage(api)
 				drDoc.DrawFrameTrack(overlay);
 			}
 
-			if (drDoc.MathRect.IsActive)
+			if (drDoc.MathTrack.IsActive())
 			{
 				drDoc.DrawMathTrack(overlay);
 			}
@@ -3743,6 +3757,7 @@ function CEditorPage(api)
 		}
 		if (oWordControl.m_bIsScroll)
 		{
+			isRepaint = true;
 			oWordControl.m_bIsScroll = false;
 			oWordControl.OnPaint();
 

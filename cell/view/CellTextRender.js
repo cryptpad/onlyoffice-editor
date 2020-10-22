@@ -82,6 +82,9 @@
 		};
 
 		CellTextRender.prototype.calcLineOffset = function (index) {
+			if (index < 0) {index = 0;}
+			if (index > this.lines.length) {index = this.lines.length;}
+
 			var zoom = this.drawingCtx.getZoom();
 			for (var i = 0, h = 0, l = this.lines; i < index; ++i) {
 				h += Asc.round(l[i].th * zoom);
@@ -213,15 +216,6 @@
 			co = this.charOffset(pos, i - 1, h);
 			return co;
 		};
-
-		CellTextRender.prototype.calcCharHeight = function (pos) {
-			var t = this;
-			for (var p = t.charProps[pos]; (!p || !p.font) && pos > 0; --pos) {
-				p = t.charProps[pos - 1];
-			}
-			return t._calcLineMetrics(p.fsz !== undefined ? p.fsz : p.font.FontSize, p.va, p.fm);
-		};
-
 
 		CellTextRender.prototype.getCharsCount = function () {
 			return this.chars.length;

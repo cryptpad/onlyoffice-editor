@@ -728,6 +728,10 @@
 		this.setTransform(this._im.sx, this._im.shy, this._im.shx, this._im.sy, this._im.tx, this._im.ty);
 		this.setTextTransform(this._im.sx, this._im.shy, this._im.shx, this._im.sy, this._im.tx, this._im.ty);
 		this._calcMFT();
+
+      	if (window["IS_NATIVE_EDITOR"]) {
+			window["native"]["PD_transform"](this._im.sx, this._im.shy, this._im.shx, this._im.sy, this._im.tx, this._im.ty);
+      	}
 	};
 
 	// Style methods
@@ -943,6 +947,7 @@
 			if (!angle) {
 				window["native"]["PD_LoadFont"](fontInfo.Path, fontInfo.FaceIndex, this.font.getSize(), flag);
 			}
+			AscCommon.g_oTextMeasurer.Flush();
 			fontInfo = g_oTextMeasurer.Measurer["LoadFont"](fontInfo.Path, fontInfo.FaceIndex, this.font.getSize(), flag);
 			if (angle) {
 				this.fmgrGraphics[1].init(fontInfo);

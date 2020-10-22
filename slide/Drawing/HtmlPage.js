@@ -977,6 +977,23 @@ function CEditorPage(api)
 
 		if (this.m_oApi.isReporterMode)
 			this.m_oApi.StartDemonstration(this.Name, 0);
+
+		if (AscCommon.AscBrowser.isIE && !AscCommon.AscBrowser.isIeEdge)
+		{
+			var ie_hack = [
+				this.m_oThumbnailsBack,
+				this.m_oThumbnails,
+				this.m_oMainContent,
+				this.m_oEditor,
+				this.m_oOverlay
+			];
+
+			for (var elem in ie_hack)
+			{
+				if (ie_hack[elem] && ie_hack[elem].HtmlElement)
+					ie_hack[elem].HtmlElement.style.zIndex = 0;
+			}
+		}
 	};
 
 	this.CheckRetinaDisplay = function()
@@ -3516,6 +3533,12 @@ function CEditorPage(api)
 			if (this.MobileTouchManager)
 				this.MobileTouchManager.CheckSelect(overlay);
 		}
+
+		if (drDoc.MathTrack.IsActive())
+		{
+			drDoc.DrawMathTrack(overlay);
+		}
+
 
 		if (isDrawNotes && drDoc.m_bIsSelection)
 		{

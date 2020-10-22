@@ -68,6 +68,10 @@ function ParaDrawing(W, H, GraphicObj, DrawingDocument, DocumentContent, Parent)
 	this.Y      = 0;
 	this.Width  = 0;
 	this.Height = 0;
+	this.OrigX = 0;
+	this.OrigY = 0;
+	this.ShiftX = 0;
+	this.ShiftY = 0;
 
 	this.PageNum = 0;
 	this.LineNum = 0;
@@ -215,10 +219,11 @@ ParaDrawing.prototype.GetSelectedContent = function(SelectedContent)
 		this.GraphicObj.GetSelectedContent(SelectedContent);
 	}
 };
-ParaDrawing.prototype.Search_GetId = function(bNext, bCurrent)
+ParaDrawing.prototype.GetSearchElementId = function(bNext, bCurrent)
 {
-	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.Search_GetId === "function")
-		return this.GraphicObj.Search_GetId(bNext, bCurrent);
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.GetSearchElementId === "function")
+		return this.GraphicObj.GetSearchElementId(bNext, bCurrent);
+
 	return null;
 };
 
@@ -600,6 +605,24 @@ ParaDrawing.prototype.Set_PositionV = function(RelativeFrom, Align, Value, Perce
 	this.PositionV.Align        = Align;
     this.PositionV.Value        = _Value;
     this.PositionV.Percent      = _Percent;
+};
+ParaDrawing.prototype.GetPositionH = function()
+{
+	return {
+		RelativeFrom : this.PositionH.RelativeFrom,
+		Align        : this.PositionH.Align,
+		Value        : this.PositionH.Value,
+		Percent      : this.PositionH.Percent
+	};
+};
+ParaDrawing.prototype.GetPositionV = function()
+{
+	return {
+		RelativeFrom : this.PositionV.RelativeFrom,
+		Align        : this.PositionV.Align,
+		Value        : this.PositionV.Value,
+		Percent      : this.PositionV.Percent
+	};
 };
 ParaDrawing.prototype.Set_BehindDoc = function(BehindDoc)
 {
@@ -1301,7 +1324,7 @@ ParaDrawing.prototype.Update_Position = function(Paragraph, ParaLayout, PageLimi
 		this.PositionV.Percent      = this.PositionV_Old.Percent2;
 	}
 
-	var oDocumentContent = this.Parent.Parent;
+	var oDocumentContent = this.Parent && this.Parent.Parent;
 	if (oDocumentContent && oDocumentContent.IsBlockLevelSdtContent())
 		oDocumentContent = oDocumentContent.Parent.Parent;
 
@@ -1311,7 +1334,7 @@ ParaDrawing.prototype.Update_Position = function(Paragraph, ParaLayout, PageLimi
 
 	var OtherFlowObjects = editor.WordControl.m_oLogicDocument.DrawingObjects.getAllFloatObjectsOnPage(PageNum, this.Parent.Parent);
 	var bInline          = this.Is_Inline();
-	this.Internal_Position.Set(this.GraphicObj.extX, this.GraphicObj.extY, this.getXfrmRot(), this.GraphicObj.bounds, this.EffectExtent, this.YOffset, ParaLayout, PageLimits);
+	this.Internal_Position.Set(this.GraphicObj.extX, this.GraphicObj.extY, this.getXfrmRot(), this.EffectExtent, this.YOffset, ParaLayout, PageLimits);
 	this.Internal_Position.Calculate_X(bInline, this.PositionH.RelativeFrom, this.PositionH.Align, this.PositionH.Value, this.PositionH.Percent);
 	this.Internal_Position.Calculate_Y(bInline, this.PositionV.RelativeFrom, this.PositionV.Align, this.PositionV.Value, this.PositionV.Percent);
 
@@ -1366,7 +1389,10 @@ ParaDrawing.prototype.Update_Position = function(Paragraph, ParaLayout, PageLimi
 		// На всякий случай пересчитаем заново координату
 		this.Y = this.Internal_Position.Calculate_Y(bInline, this.PositionV.RelativeFrom, this.PositionV.Align, this.PositionV.Value, this.PositionV.Percent);
 	}
-
+	this.OrigX = this.X;
+	this.OrigY = this.Y;
+	this.ShiftX = 0;
+	this.ShiftY = 0;
 	this.updatePosition3(this.PageNum, this.X, this.Y, OldPageNum);
 	this.useWrap = this.Use_TextWrap();
 };
@@ -1395,7 +1421,8 @@ ParaDrawing.prototype.Update_PositionYHeaderFooter = function(TopMarginY, Bottom
 {
 	this.Internal_Position.Update_PositionYHeaderFooter(TopMarginY, BottomMarginY);
 	this.Internal_Position.Calculate_Y(this.Is_Inline(), this.PositionV.RelativeFrom, this.PositionV.Align, this.PositionV.Value, this.PositionV.Percent);
-	this.Y = this.Internal_Position.CalcY;
+	this.OrigY = this.Internal_Position.CalcY;
+	this.Y = this.OrigY + this.ShiftY;
 	this.updatePosition3(this.PageNum, this.X, this.Y, this.PageNum);
 };
 ParaDrawing.prototype.Reset_SavedPosition = function()
@@ -1468,8 +1495,10 @@ ParaDrawing.prototype.recalculateDocContent = function()
 };
 ParaDrawing.prototype.Shift = function(Dx, Dy)
 {
-	this.X += Dx;
-	this.Y += Dy;
+	this.ShiftX = Dx;
+	this.ShiftY = Dy;
+	this.X = this.OrigX + Dx;
+	this.Y = this.OrigY + Dy;
 
 	this.updatePosition3(this.PageNum, this.X, this.Y);
 };
@@ -1562,7 +1591,7 @@ ParaDrawing.prototype.private_SetXYByLayout = function(X, Y, PageNum, Layout, bC
 	}
 	this.PageNum = PageNum;
 
-	this.Internal_Position.Set(this.GraphicObj.extX, this.GraphicObj.extY, this.getXfrmRot(), this.GraphicObj.bounds, this.EffectExtent, this.YOffset, Layout.ParagraphLayout, Layout.PageLimitsOrigin);
+	this.Internal_Position.Set(this.GraphicObj.extX, this.GraphicObj.extY, this.getXfrmRot(), this.EffectExtent, this.YOffset, Layout.ParagraphLayout, Layout.PageLimitsOrigin);
 	this.Internal_Position.Calculate_X(false, c_oAscRelativeFromH.Page, false, X - Layout.PageLimitsOrigin.X, false);
 	this.Internal_Position.Calculate_Y(false, c_oAscRelativeFromV.Page, false, Y - Layout.PageLimitsOrigin.Y, false);
 	var bCorrect = false;
@@ -1625,6 +1654,10 @@ ParaDrawing.prototype.Use_TextWrap = function()
 	// или он просто лежит над или под текстом.
 	return ( drawing_Anchor === this.DrawingType && !(this.wrappingType === WRAPPING_TYPE_NONE) );
 };
+ParaDrawing.prototype.IsUseTextWrap = function()
+{
+	return this.Use_TextWrap();
+};
 ParaDrawing.prototype.Draw_Selection = function()
 {
 	var Padding = this.DrawingDocument.GetMMPerDot(6);
@@ -1651,11 +1684,22 @@ ParaDrawing.prototype.Draw_Selection = function()
 	}
 
 };
+ParaDrawing.prototype.CanInsertToPos = function(oAnchorPos)
+{
+	// Автофигуры не вставляем в другие автофигуры, сноски и концевые сноски
+	if (!oAnchorPos || !oAnchorPos.Paragraph || !oAnchorPos.Paragraph.Parent)
+		return false;
+
+	return !((this.IsShape() || this.IsGroup()) && (true === oAnchorPos.Paragraph.Parent.Is_DrawingShape() || true === oAnchorPos.Paragraph.Parent.IsFootnote()));
+};
 ParaDrawing.prototype.OnEnd_MoveInline = function(NearPos)
 {
+	if (!this.Parent)
+		return;
+
 	NearPos.Paragraph.Check_NearestPos(NearPos);
 
-	var oRun        = this.Parent.Get_DrawingObjectRun(this.Id);
+	var oRun        = this.GetRun();
 	var isPictureCC = false;
 	if (oRun)
 	{
@@ -1670,11 +1714,29 @@ ParaDrawing.prototype.OnEnd_MoveInline = function(NearPos)
 		}
 	}
 
+	// Ничего никуда не переносим в такой ситуации
+	if (isPictureCC)
+	{
+		var oDstRun = null;
+		var arrClasses = NearPos.Paragraph.GetClassesByPos(NearPos.ContentPos);
+		for (var nIndex = arrClasses.length - 1; nIndex >= 0; --nIndex)
+		{
+			if (arrClasses[nIndex] instanceof ParaRun)
+			{
+				oDstRun = arrClasses[nIndex];
+				break;
+			}
+		}
+
+		if (oDstRun === oRun)
+			return;
+	}
+
 	var RunPr = this.Remove_FromDocument(false);
 
 	// При переносе всегда создаем копию, чтобы в совместном редактировании не было проблем
 	var NewParaDrawing = this.Copy();
-	this.DocumentContent.Select_DrawingObject(NewParaDrawing.Get_Id());
+	this.DocumentContent.Select_DrawingObject(NewParaDrawing.GetId());
 	NewParaDrawing.Add_ToDocument(NearPos, true, RunPr, undefined, isPictureCC);
 };
 ParaDrawing.prototype.Get_ParentTextTransform = function()
@@ -1697,6 +1759,10 @@ ParaDrawing.prototype.GoTo_Text = function(bBefore, bUpdateStates)
 ParaDrawing.prototype.Remove_FromDocument = function(bRecalculate)
 {
 	var oResult = null;
+	if(!this.Parent)
+	{
+		return oResult;
+	}
 
 	var oRun = this.Parent.Get_DrawingObjectRun(this.Id);
 	if (oRun)
@@ -1795,7 +1861,7 @@ ParaDrawing.prototype.Add_ToDocument = function(NearPos, bRecalculate, RunPr, Ru
 	NearPos.Paragraph.Parent.InsertContent(SelectedContent, NearPos);
 	NearPos.Paragraph.Clear_NearestPosArray();
 	NearPos.Paragraph.Correct_Content();
-
+	this.Set_Parent(NearPos.Paragraph);
 	if (false != bRecalculate)
 		LogicDocument.Recalculate();
 };
@@ -1805,6 +1871,7 @@ ParaDrawing.prototype.Add_ToDocument2 = function(Paragraph)
 	DrawingRun.Add_ToContent(0, this);
 
 	Paragraph.Add_ToContent(0, DrawingRun);
+	this.Set_Parent(Paragraph);
 };
 ParaDrawing.prototype.UpdateCursorType = function(X, Y, PageIndex)
 {
@@ -1823,7 +1890,7 @@ ParaDrawing.prototype.UpdateCursorType = function(X, Y, PageIndex)
 			var Coords              = this.DrawingDocument.ConvertCoordsToCursorWR(_X, _Y, this.Parent.Get_StartPage_Absolute() + ( PageIndex - this.Parent.PageNum ));
 			MMData.X_abs            = Coords.X - 5;
 			MMData.Y_abs            = Coords.Y;
-			MMData.Type             = AscCommon.c_oAscMouseMoveDataTypes.LockedObject;
+			MMData.Type             = Asc.c_oAscMouseMoveDataTypes.LockedObject;
 			MMData.UserId           = Lock.Get_UserId();
 			MMData.HaveChanges      = Lock.Have_Changes();
 			MMData.LockedObjectType = c_oAscMouseMoveLockedObjectType.Common;
@@ -1834,6 +1901,10 @@ ParaDrawing.prototype.UpdateCursorType = function(X, Y, PageIndex)
 };
 ParaDrawing.prototype.Get_AnchorPos = function()
 {
+	if(!this.Parent)
+	{
+		return null;
+	}
 	return this.Parent.Get_AnchorPos(this);
 };
 ParaDrawing.prototype.CheckRecalcAutoFit = function(oSectPr)
@@ -2032,10 +2103,10 @@ ParaDrawing.prototype.getCurrentParagraph = function(bIgnoreSelection, arrSelect
 	if (this.Parent instanceof Paragraph)
 		return this.Parent;
 };
-ParaDrawing.prototype.getSelectedText = function(bClearText, oPr)
+ParaDrawing.prototype.GetSelectedText = function(bClearText, oPr)
 {
-	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.getSelectedText === "function")
-		return this.GraphicObj.getSelectedText(bClearText, oPr);
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.GetSelectedText === "function")
+		return this.GraphicObj.GetSelectedText(bClearText, oPr);
 	return "";
 };
 ParaDrawing.prototype.getCurPosXY = function()
@@ -2431,7 +2502,7 @@ ParaDrawing.prototype.allIncreaseDecFontSize = function(bIncrease)
 };
 ParaDrawing.prototype.setParagraphNumbering = function(NumInfo)
 {
-	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.allIncreaseDecFontSize === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphNumbering === "function")
 		this.GraphicObj.setParagraphNumbering(NumInfo);
 };
 ParaDrawing.prototype.allIncreaseDecIndent = function(bIncrease)
@@ -2845,6 +2916,10 @@ ParaDrawing.prototype.UpdateBookmarks = function(oManager)
 };
 ParaDrawing.prototype.PreDelete = function()
 {
+	if(this.bNotPreDelete === true) {
+		//TODO: remove
+		return;
+	}
 	var arrDocContents = this.GetAllDocContents();
 	for (var nIndex = 0, nCount = arrDocContents.length; nIndex < nCount; ++nIndex)
 	{
@@ -2906,7 +2981,22 @@ ParaDrawing.prototype.GetPicture = function()
 {
 	return this.GraphicObj.getObjectType() === AscDFH.historyitem_type_ImageShape ? this.GraphicObj : null;
 };
-
+/**
+ * Является ли объект фигурой
+ * @returns {boolean}
+ */
+ParaDrawing.prototype.IsShape = function()
+{
+	return (this.GraphicObj.getObjectType() === AscDFH.historyitem_type_Shape);
+};
+/**
+ * Является ли объект группой
+ * @returns {boolean}
+ */
+ParaDrawing.prototype.IsGroup = function()
+{
+	return (this.GraphicObj.getObjectType() === AscDFH.historyitem_type_GroupShape);
+};
 /**
  * Класс, описывающий текущее положение параграфа при рассчете позиции автофигуры.
  * @constructor
@@ -2946,10 +3036,6 @@ function CAnchorPosition()
 	// Данные для Flow-объектов
 	this.W             = 0;
 	this.H             = 0;
-	this.BoundsL       = 0;
-	this.BoundsT       = 0;
-	this.BoundsW       = 0;
-	this.BoundsH       = 0;
 	this.X             = 0;
 	this.Y             = 0;
 	this.PageNum       = 0;
@@ -2969,15 +3055,11 @@ function CAnchorPosition()
 	this.Page_X        = 0;
 	this.Page_Y        = 0;
 }
-CAnchorPosition.prototype.Set = function(W, H, Rot, Bounds, EffectExtent, YOffset, ParaLayout, PageLimits)
+CAnchorPosition.prototype.Set = function(W, H, Rot, EffectExtent, YOffset, ParaLayout, PageLimits)
 {
 	this.W = W;
 	this.H = H;
 	this.Rot = Rot;
-	this.BoundsL = Bounds.l;
-	this.BoundsT = Bounds.t;
-	this.BoundsW = Bounds.w;
-	this.BoundsH = Bounds.h;
 	this.EffectExtentL = EffectExtent.L;
 	this.EffectExtentT = EffectExtent.T;
 	this.EffectExtentR = EffectExtent.R;

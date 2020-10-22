@@ -81,15 +81,16 @@
   };
 
   function WorksheetViewSettings() {
+    //TODO темные цвета необходимо скорректировать
     this.header = {
       style: [// Header colors
         { // kHeaderDefault
-          background: new CColor(241, 241, 241), border: new CColor(213, 213, 213), color: new CColor(54, 54, 54)
-        }, { // kHeaderActive
-          background: new CColor(193, 193, 193), border: new CColor(146, 146, 146), color: new CColor(54, 54, 54)
-        }, { // kHeaderHighlighted
-          background: new CColor(223, 223, 223), border: new CColor(175, 175, 175), color: new CColor(101, 106, 112)
-        }], cornerColor: new CColor(193, 193, 193)
+          background: new CColor(241, 241, 241), border: new CColor(213, 213, 213), color: new CColor(54, 54, 54),
+            backgroundDark: new CColor(0, 0, 0), colorDark: new CColor(255, 255, 255)}, { // kHeaderActive
+          background: new CColor(193, 193, 193), border: new CColor(146, 146, 146), color: new CColor(54, 54, 54),
+            backgroundDark: new CColor(0, 0, 0), colorDark: new CColor(255, 255, 255)}, { // kHeaderHighlighted
+          background: new CColor(223, 223, 223), border: new CColor(175, 175, 175), color: new CColor(101, 106, 112),
+            backgroundDark: new CColor(0, 0, 0), colorDark: new CColor(255, 255, 255)}], cornerColor: new CColor(193, 193, 193)
     };
     this.cells = {
       defaultState: {
@@ -651,7 +652,9 @@
 
 
       AscCommon.InitBrowserInputContext(this.Api, "id_target_cursor");
-      this.model.dependencyFormulas.calcTree();
+      AscCommonExcel.executeInR1C1Mode(false, function () {
+          self.model.dependencyFormulas.calcTree();
+      });
     }
 
 	  this.cellEditor =
@@ -767,6 +770,13 @@
 		  }
 	  });
 
+	  this.model.handlers.add("changeSheetViewSettings", function (wsId, type) {
+		  var ws = self.getWorksheetById(wsId, true);
+		  if (ws) {
+			  ws._onChangeSheetViewSettings(type);
+		  }
+	  });
+
     this.model.handlers.add("cleanCellCache", function(wsId, oRanges, skipHeight) {
       var ws = self.getWorksheetById(wsId, true);
       if (ws) {
@@ -794,9 +804,6 @@
     });
     this.model.handlers.add("setSelectionState", function() {
       self._onSetSelectionState.apply(self, arguments);
-    });
-    this.model.handlers.add("reInit", function() {
-      self.reInit.apply(self, arguments);
     });
     this.model.handlers.add("drawWS", function() {
       self.drawWS.apply(self, arguments);
@@ -1804,7 +1811,7 @@
    * @returns {WorkbookView}
    */
   WorkbookView.prototype.showWorksheet = function (index, bLockDraw) {
-  	if (window["NATIVE_EDITOR_ENJINE"] && !window['IS_NATIVE_EDITOR'] && !window['DoctRendererMode']) {
+  	if (AscCommon.isFileBuild()) {
 		return this;
 	}
     // ToDo disable method for assembly
@@ -2296,7 +2303,7 @@
 
         var addFunction = function (name) {
         	t.setWizardMode(true);
-        	if (doCleanCellContent) {
+			if (doCleanCellContent || !t.cellEditor.isFormula()) {
                 t.cellEditor.selectionBegin = 0;
                 t.cellEditor.selectionEnd = t.cellEditor.textRender.getEndOfText();
             }
@@ -2608,8 +2615,8 @@
     }
   };
 
-  WorkbookView.prototype.getDefinedNames = function(defNameListId) {
-    return this.model.getDefinedNamesWB(defNameListId, true);
+  WorkbookView.prototype.getDefinedNames = function(defNameListId, excludeErrorRefNames) {
+    return this.model.getDefinedNamesWB(defNameListId, true, excludeErrorRefNames);
   };
 
   WorkbookView.prototype.setDefinedNames = function(defName) {
@@ -2622,7 +2629,7 @@
 
   WorkbookView.prototype.editDefinedNames = function(oldName, newName) {
     //ToDo проверка defName.ref на знак "=" в начале ссылки. знака нет тогда это либо число либо строка, так делает Excel.
-    if (this.collaborativeEditing.getGlobalLock()) {
+    if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
       return;
     }
 
@@ -2686,7 +2693,7 @@
 
   WorkbookView.prototype.delDefinedNames = function(oldName) {
     //ToDo проверка defName.ref на знак "=" в начале ссылки. знака нет тогда это либо число либо строка, так делает Excel.
-    if (this.collaborativeEditing.getGlobalLock()) {
+    if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
       return;
     }
 
@@ -2715,7 +2722,8 @@
 
   WorkbookView.prototype.getDefaultDefinedName = function() {
     //ToDo проверка defName.ref на знак "=" в начале ссылки. знака нет тогда это либо число либо строка, так делает Excel.
-    return new Asc.asc_CDefName("", this.getWorksheet().getSelectionRangeValue(true, true), null);
+    var val = this.getWorksheet().getDefaultDefinedNameText();
+    return new Asc.asc_CDefName(val, this.getWorksheet().getSelectionRangeValue(true, true), null);
 
   };
   WorkbookView.prototype.getDefaultTableStyle = function() {
@@ -2827,12 +2835,6 @@
   	this.drawWS();
   };
 
-  WorkbookView.prototype.reInit = function() {
-    var ws = this.getWorksheet();
-    ws._initCellsArea(AscCommonExcel.recalcType.full);
-    ws._updateVisibleColsCount();
-    ws._updateVisibleRowsCount();
-  };
   WorkbookView.prototype.drawWS = function() {
     this.getWorksheet().draw();
   };
@@ -3452,7 +3454,12 @@
 
 		var doCopy = function() {
 			History.Create_NewPoint();
-			var renameParams = t.model.copyWorksheet(0, insertBefore, name, undefined, undefined, undefined, pastedWs);
+			var renameParams = t.model.copyWorksheet(0, insertBefore, name, undefined, undefined, undefined, pastedWs, base64);
+			//TODO ошибку по срезам добавил в renameParams. необходимо пересмотреть
+			//переименовать эту переменную, либо не добавлять copySlicerError и посылать ошибку в другом месте
+			if (renameParams && renameParams.copySlicerError) {
+				t.handlers.trigger("asc_onError", c_oAscError.ID.MoveSlicerError, c_oAscError.Level.NoCritical);
+			}
 			callback(renameParams);
 		};
 
@@ -3478,7 +3485,14 @@
 
 	WorkbookView.prototype.setFilterValuesFromSlicer = function (name, val) {
 		var slicer = this.model.getSlicerByName(name);
-		this.getWorksheet().setFilterValuesFromSlicer(slicer, val);
+		//нам нужно получить индекс листа где находится кэш данного среза
+		var sheetIndex = slicer.getIndexSheetCache();
+		if (sheetIndex !== null) {
+			var ws = this.getWorksheet(sheetIndex);
+			if (ws) {
+				ws.setFilterValuesFromSlicer(slicer, val);
+			}
+		}
 	};
 
 	WorkbookView.prototype.deleteSlicer = function (name) {

@@ -334,16 +334,16 @@ Slide.prototype =
         }
     },
 
-    Search_GetId: function(isNext, StartPos)
+	GetSearchElementId: function(isNext, StartPos)
     {
         var sp_tree = this.cSld.spTree, i, Id;
         if(isNext)
         {
             for(i = StartPos; i < sp_tree.length; ++i)
             {
-                if(sp_tree[i].Search_GetId)
+                if(sp_tree[i].GetSearchElementId)
                 {
-                    Id = sp_tree[i].Search_GetId(isNext, false);
+                    Id = sp_tree[i].GetSearchElementId(isNext, false);
                     if(Id !== null)
                     {
                         return Id;
@@ -355,9 +355,9 @@ Slide.prototype =
         {
             for(i = StartPos; i > -1; --i)
             {
-                if(sp_tree[i].Search_GetId)
+                if(sp_tree[i].GetSearchElementId)
                 {
-                    Id = sp_tree[i].Search_GetId(isNext, false);
+                    Id = sp_tree[i].GetSearchElementId(isNext, false);
                     if(Id !== null)
                     {
                         return Id;
@@ -762,6 +762,7 @@ Slide.prototype =
         var _pos = (AscFormat.isRealNumber(pos) && pos > -1 && pos <= this.cSld.spTree.length) ? pos : this.cSld.spTree.length;
        History.Add(new AscDFH.CChangesDrawingsContentPresentation(this, AscDFH.historyitem_SlideAddToSpTree, _pos, [item], true));
         this.cSld.spTree.splice(_pos, 0, item);
+        item.setParent2(this);
     },
 
     isVisible: function(){
@@ -1228,42 +1229,59 @@ Slide.prototype =
         }, this, []);
     },
 
+    needMasterSpDraw: function() {
+        if(this.showMasterSp === true) {
+            return true;
+        }
+        if(this.showMasterSp === false){
+            return false;
+        }
+        if(this.Layout.showMasterSp === false) {
+            return false;
+        }
+        return true;
+    },
+
+    needLayoutSpDraw: function() {
+        return this.showMasterSp !== false;
+    },
+
     draw: function(graphics)
     {
-        var _bounds;
+        var _bounds, i;
         DrawBackground(graphics, this.backgroundFill, this.Width, this.Height);
-        if(this.showMasterSp === true || (!(this.showMasterSp === false) && (this.Layout.showMasterSp == undefined || this.Layout.showMasterSp)))
+        if(this.needMasterSpDraw())
         {
             if (graphics.IsSlideBoundsCheckerType === undefined)
                 this.Layout.Master.draw(graphics, this);
-            else if(graphics.IsSlideBoundsCheckerType){
+            else if(graphics.IsSlideBoundsCheckerType)
+            {
                 _bounds =  this.Layout.Master.bounds;
                 graphics.rect(_bounds.l, _bounds.t, _bounds.w, _bounds.h);
             }
         }
-
-        if(this.showMasterSp !== false)
+        if(this.needLayoutSpDraw())
         {
             if (graphics && graphics.IsSlideBoundsCheckerType === undefined)
                 this.Layout.draw(graphics, this);
-            else{
+            else
+            {
                 _bounds =  this.Layout.bounds;
                 graphics.rect(_bounds.l, _bounds.t, _bounds.w, _bounds.h);
             }
         }
-        for(var i=0; i < this.cSld.spTree.length; ++i)
+        for(i = 0; i < this.cSld.spTree.length; ++i)
         {
             this.cSld.spTree[i].draw(graphics);
         }
         if(this.slideComments)
         {
             var comments = this.slideComments.comments;
-            for(var i=0; i < comments.length; ++i)
+            for(i = 0; i < comments.length; ++i)
             {
                 comments[i].draw(graphics);
             }
         }
-        return;
     },
 
     drawNotes: function (g) {
@@ -1600,6 +1618,24 @@ Slide.prototype =
 
     getDrawingsForController: function(){
         return this.cSld.spTree;
+    },
+    
+    createFontMap: function (oFontsMap, oCheckedMap) {
+        var aSpTree = this.cSld.spTree;
+        var nSp, nSpCount = aSpTree.length;
+        for(nSp = 0; nSp < nSpCount; ++nSp) {
+            aSpTree[nSp].createFontMap(oFontsMap);
+        }
+        if(this.needMasterSpDraw()) {
+            this.Layout.Master.createFontMap(oFontsMap, oCheckedMap, true);
+        }
+        if(this.needLayoutSpDraw()) {
+            this.Layout.createFontMap(oFontsMap, oCheckedMap, true);
+        }
+        oCheckedMap[this.Get_Id()] = this;
+        if(this.notesShape) {
+            this.notesShape.createFontMap(oFontsMap);
+        }
     }
 };
 

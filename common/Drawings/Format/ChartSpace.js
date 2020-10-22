@@ -15389,7 +15389,7 @@ CChartSpace.prototype.Search  = function(Str, Props, SearchEngine, Type)
     }
 };
 
-CChartSpace.prototype.Search_GetId  = function(bNext, bCurrent)
+CChartSpace.prototype.GetSearchElementId  = function(bNext, bCurrent)
 {
     var Current = -1;
     var titles = this.getAllTitles();
@@ -15414,9 +15414,9 @@ CChartSpace.prototype.Search_GetId  = function(bNext, bCurrent)
 
         for ( var i = Start; i < Len; i++ )
         {
-            if ( titles[i].Search_GetId )
+            if ( titles[i].GetSearchElementId )
             {
-                Id = titles[i].Search_GetId(true, i === Current ? true : false);
+                Id = titles[i].GetSearchElementId(true, i === Current ? true : false);
                 if ( null !== Id )
                     return Id;
             }
@@ -15428,9 +15428,9 @@ CChartSpace.prototype.Search_GetId  = function(bNext, bCurrent)
 
         for ( var i = Start; i >= 0; i-- )
         {
-            if (titles[i].Search_GetId )
+            if (titles[i].GetSearchElementId )
             {
-                Id = titles[i].Search_GetId(false, i === Current ? true : false);
+                Id = titles[i].GetSearchElementId(false, i === Current ? true : false);
                 if ( null !== Id )
                     return Id;
             }

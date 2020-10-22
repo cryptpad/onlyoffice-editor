@@ -1082,6 +1082,13 @@
 		this.endRecalcDocument = false;//для документов, закончен ли пересчет документа. нужно, чтобы грамотно рассчитать позицию иконки с/в
 		this.doNotShowButton = false;
 		this.visiblePasteButton = true;
+
+		//активный диапазон до первой вставки
+		this.selectionRange = null;
+
+		//добавил флаг для возможности применения друг за другом нескольких математических операций(paste special)
+		//если данный флаг выставлен в true и делается новая математическая операция
+		this.isAppliedOperation = false;
 	}
 
 	CSpecialPasteHelper.prototype = {
@@ -1139,6 +1146,10 @@
 
 		Paste_Process_End : function(checkEnd)
 		{
+			// при открытии хтмл не инициализируется. так как нет никакого ввода.
+			if (!this.Api)
+				return;
+
 			AscFonts.IsCheckSymbols             = false;
 			//todo возможно стоит добавить проверку
 			/*if(!this.pasteStart)

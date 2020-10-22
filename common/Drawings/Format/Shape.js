@@ -340,6 +340,7 @@ function CopyRunToPPTX(Run, Paragraph, bHyper)
     {
         RunPr.RStyle = undefined;
     }
+    RunPr.FontScale = undefined;
 
     if(bHyper)
     {
@@ -1290,12 +1291,12 @@ CShape.prototype.Search = function (Str, Props, SearchEngine, Type) {
     }
 };
 
-CShape.prototype.Search_GetId = function (bNext, bCurrent) {
+CShape.prototype.GetSearchElementId = function (bNext, bCurrent) {
     if (this.textBoxContent)
-        return this.textBoxContent.Search_GetId(bNext, bCurrent);
+        return this.textBoxContent.GetSearchElementId(bNext, bCurrent);
 
     else if (this.txBody && this.txBody.content) {
-        return this.txBody.content.Search_GetId(bNext, bCurrent);
+        return this.txBody.content.GetSearchElementId(bNext, bCurrent);
     }
 
     return null;
@@ -1763,9 +1764,7 @@ CShape.prototype.setTextFitType = function(type)
         var new_body_pr = this.getBodyPr();
         if (new_body_pr) {
             new_body_pr = new_body_pr.createDuplicate();
-            if (!AscCommon.isRealObject(new_body_pr.textFit)) {
-                new_body_pr.textFit = new AscFormat.CTextFit();
-            }
+            new_body_pr.textFit = new AscFormat.CTextFit();
             new_body_pr.textFit.type = type;
 
             if (this.bWordShape) {
@@ -2977,24 +2976,13 @@ CShape.prototype.recalculateBrush = function () {
     var compiled_style = this.getCompiledStyle();
     var RGBA = {R: 0, G: 0, B: 0, A: 255};
     var parents = this.getParentObjects();
+    var oStyleBrush = null;
+    var oLin;
     if (isRealObject(parents.theme) && isRealObject(compiled_style) && isRealObject(compiled_style.fillRef)) {
-        //compiled_style.fillRef.Color.Calculate(parents.theme, parents.slide, parents.layout, parents.master, {R: 0, G: 0, B: 0, A:255});
-        //RGBA = compiled_style.fillRef.Color.RGBA;
         this.brush = parents.theme.getFillStyle(compiled_style.fillRef.idx, compiled_style.fillRef.Color);
-        //if (isRealObject(this.brush))
-        //{
-        //    if (isRealObject(compiled_style.fillRef.Color.color)
-        //        && isRealObject(this.brush)
-        //        && isRealObject(this.brush.fill)
-        //        && this.brush.fill.type === FILL_TYPE_SOLID)
-        //    {
-        //        this.brush.fill.color = compiled_style.fillRef.Color.createDuplicate();
-        //    }
-        //}
-        //else
-        //{
-        //    this.brush = new AscFormat.CUniFill();
-        //}
+        if(this.brush) {
+            oStyleBrush = this.brush.createDuplicate();
+        }
     }
     else {
         this.brush = new AscFormat.CUniFill();
@@ -3003,15 +2991,22 @@ CShape.prototype.recalculateBrush = function () {
     this.brush.merge(this.getCompiledFill());
     this.brush.transparent = this.getCompiledTransparent();
     this.brush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA);
-    if(this.bWordShape){
-        if(this.brush.fill && this.brush.fill.type === Asc.c_oAscFill.FILL_TYPE_GRAD){
-            var oGradFill = this.brush.fill;
-            if(!oGradFill.lin && !oGradFill.path){
-                var oLin = new AscFormat.GradLin();
+    if(this.brush.fill && this.brush.fill.type === Asc.c_oAscFill.FILL_TYPE_GRAD) {
+        var oGradFill = this.brush.fill;
+        if(!oGradFill.lin && !oGradFill.path) {
+            if(oStyleBrush &&
+                oStyleBrush.fill &&
+                oStyleBrush.fill.type === Asc.c_oAscFill.FILL_TYPE_GRAD &&
+                oStyleBrush.fill.lin) {
+                    oLin = oStyleBrush.fill.lin.createDuplicate();
+            }
+            else {
+                oLin = new AscFormat.GradLin();
                 oLin.setScale(false);
-                oLin.setAngle(5400000);
+                oLin.setAngle(0);
                 oGradFill.setLin(oLin);
             }
+            oGradFill.setLin(oLin);
         }
     }
 };
@@ -4137,6 +4132,9 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
         {
             oMainGroup.normalize();
         }
+        
+        this.tmpFontScale = undefined;
+        this.tmpLnSpcReduction = undefined;
         this.bCheckAutoFitFlag = true;
         var oOldRecalcTitle = this.recalcInfo.recalcTitle;
         var bOldRecalcTitle = this.recalcInfo.bRecalculatedTitle;
@@ -4199,7 +4197,7 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                 {
                     return;
                 }
-                if(AscFormat.isRealNumber(dOldClipW) && AscFormat.isRealNumber(dOldClipH)
+                if(!bForce && AscFormat.isRealNumber(dOldClipW) && AscFormat.isRealNumber(dOldClipH)
                     && AscFormat.fApproxEqual(dOldClipW, this.clipRect.w) && AscFormat.fApproxEqual(dOldClipH, this.clipRect.h))
                 {
                     if(AscFormat.isRealNumber(dOldContentHeight) && AscFormat.fApproxEqual(dOldContentHeight, this.contentHeight))
@@ -4231,6 +4229,8 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                         }
                     }
                     this.bCheckAutoFitFlag = false;
+                    this.tmpFontScale = undefined;
+                    this.tmpLnSpcReduction = undefined;
                     return;
                 }
 
@@ -4298,7 +4298,16 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                     }
                 }
                 this.bCheckAutoFitFlag = false;
+                this.tmpFontScale = undefined;
+                this.tmpLnSpcReduction = undefined;
                 this.recalculateContentWitCompiledPr();
+            }
+            else
+            {
+                if(bForce)
+                {
+                    this.recalculateContentWitCompiledPr();
+                }
             }
         }
     }
@@ -5318,7 +5327,7 @@ CShape.prototype.changePresetGeom = function (sPreset) {
     if(sPreset === "textRect")
     {
         this.spPr.setGeometry(AscFormat.CreateGeometry("rect"));
-        
+
         if(this.bWordShape)
         {
             if(this.style)
@@ -5330,7 +5339,7 @@ CShape.prototype.changePresetGeom = function (sPreset) {
         {
             this.setStyle(AscFormat.CreateDefaultTextRectStyle());
         }
-        
+
         var fill = new AscFormat.CUniFill();
         fill.setFill(new AscFormat.CSolidFill());
         fill.fill.setColor(new AscFormat.CUniColor());
@@ -6249,6 +6258,21 @@ CShape.prototype.getColumnNumber = function(){
         if(oContent){
             return oContent.GetAllSeqFieldsByType(sType, aFields)
         }
+    };
+
+    CShape.prototype.Get_TextBackGroundColor = function()
+    {
+        if(!this.brush)
+        {
+            return undefined;
+        }
+        var oTheme = this.Get_Theme && this.Get_Theme();
+        var oColorMap = this.Get_ColorMap && this.Get_ColorMap();
+        if(oTheme && oColorMap)
+        {
+            this.brush.check(oTheme, oColorMap);
+        }
+        return this.brush.Get_TextBackGroundColor();
     };
 function CreateBinaryReader(szSrc, offset, srcLen)
 {

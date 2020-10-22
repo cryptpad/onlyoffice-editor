@@ -416,6 +416,17 @@ CShape.prototype.getParentObjects = function ()
                     notes: this.parent
                 }
             }
+            case AscDFH.historyitem_type_NotesMaster:
+            {
+                return {
+                    presentation: editor.WordControl.m_oLogicDocument,
+                    slide: null,
+                    layout: null,
+                    master: this.parent,
+                    theme: this.themeOverride ? this.themeOverride : this.parent.Theme,
+                    notes: null
+                }
+            }
             case AscDFH.historyitem_type_RelSizeAnchor:
             case AscDFH.historyitem_type_AbsSizeAnchor:
             {
@@ -737,17 +748,6 @@ CShape.prototype.getStyles = function(index)
 CShape.prototype.Get_Worksheet = function()
 {
     return this.worksheet;
-};
-CShape.prototype.setParent2 = function(parent)
-{
-    this.setParent(parent);
-    if(Array.isArray(this.spTree))
-    {
-        for(var i = 0; i < this.spTree.length; ++i)
-        {
-            this.spTree[i].setParent2(parent);
-        }
-    }
 };
 CShape.prototype.Get_Numbering =  function()
 {

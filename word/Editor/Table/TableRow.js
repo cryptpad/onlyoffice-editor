@@ -1145,6 +1145,51 @@ CTableRow.prototype.private_UpdateTableGrid = function()
 		oTable.private_UpdateTableGrid();
 };
 
+CTableRow.prototype.FindParaWithStyle = function (sStyleId, bBackward, nStartIdx)
+{
+	var nSearchStartIdx, nIdx, oResult, oContent;
+	if(bBackward)
+	{
+		if(nStartIdx !== null)
+		{
+			nSearchStartIdx = Math.min(nStartIdx, this.Content.length - 1);
+		}
+		else
+		{
+			nSearchStartIdx = this.Content.length - 1;
+		}
+		for(nIdx = nSearchStartIdx; nIdx >= 0; --nIdx)
+		{
+			oContent = this.Content[nIdx].GetContent();
+			oResult = oContent.FindParaWithStyle(sStyleId, bBackward, null);
+			if(oResult)
+			{
+				return oResult
+			}
+		}
+	}
+	else
+	{
+		if(nStartIdx !== null)
+		{
+			nSearchStartIdx = Math.max(nStartIdx, 0);
+		}
+		else
+		{
+			nSearchStartIdx = 0;
+		}
+		for(nIdx = nSearchStartIdx; nIdx < this.Content.length; ++nIdx)
+		{
+			oContent = this.Content[nIdx].GetContent();
+			oResult = oContent.FindParaWithStyle(sStyleId, bBackward, null);
+			if(oResult)
+			{
+				return oResult
+			}
+		}
+	}
+	return null;
+};
 
 function CTableRowRecalculateObject()
 {

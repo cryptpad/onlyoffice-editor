@@ -453,6 +453,7 @@ MasterSlide.prototype =
             this.checkDrawingUniNvPr(item);
             History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_SlideMasterAddToSpTree, pos, [item], true));
             this.cSld.spTree.splice(pos, 0, item);
+            item.setParent2(this);
         },
 
         changeBackground: function (bg) {
@@ -523,6 +524,26 @@ MasterSlide.prototype =
                 if (typeof  this.cSld.spTree[i].getAllFonts === "function")
                     this.cSld.spTree[i].getAllFonts(fonts);
             }
+        },
+
+        createFontMap: function (oFontsMap, oCheckedMap, isNoPh) {
+            if(oCheckedMap[this.Get_Id()]) {
+                return;
+            }
+            var aSpTree = this.cSld.spTree;
+            var nSp, oSp, nSpCount = aSpTree.length;
+            for(nSp = 0; nSp < nSpCount; ++nSp) {
+                oSp = aSpTree[nSp];
+                if(isNoPh)
+                {
+                    if(oSp.isPlaceholder())
+                    {
+                        continue;
+                    }
+                }
+                oSp.createFontMap(oFontsMap);
+            }
+            oCheckedMap[this.Get_Id()] = this;
         },
 
         createDuplicate: function (IdMap) {

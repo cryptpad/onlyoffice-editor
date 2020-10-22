@@ -1248,7 +1248,9 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                         xfrm.setOffY(this.resizedPosY + this.resizedExtY/2.0  - this.originalObject.extY/2);
                     }
                 }
-                if(this.originalObject.getObjectType() !== AscDFH.historyitem_type_ChartSpace && this.originalObject.getObjectType() !== AscDFH.historyitem_type_GraphicFrame)
+                if(this.originalObject.getObjectType() !== AscDFH.historyitem_type_ChartSpace &&
+                    this.originalObject.getObjectType() !== AscDFH.historyitem_type_GraphicFrame &&
+                    this.originalObject.getObjectType() !== AscDFH.historyitem_type_SlicerView)
                 {
 
                     if(!this.originalObject.isCrop)

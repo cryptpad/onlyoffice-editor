@@ -41,6 +41,7 @@ var _internalStorage = {};
 // endsectionPr -----------------------------------------------------------------------------------------
 
 window['SockJS'] = createSockJS();
+window['JSZipUtils'] = JSZipUtils();
 
 // font engine -------------------------------------
 var FontStyle =

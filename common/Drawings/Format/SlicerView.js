@@ -400,7 +400,6 @@
         }
         return true;
     };
-
     CSlicerData.prototype.onViewUpdate = function () {
         var oWorksheet = this.slicer.getWorksheet();
         if(!oWorksheet) {
@@ -433,7 +432,6 @@
             }
             aValuesToApply.push(oApplyValue);
         }
-
         if(bNeedUpdate) {
             if(this.slicer.isSubscribed()) {
                 this.values = aValuesToApply;
@@ -447,6 +445,9 @@
         }
     };
     CSlicerData.prototype.onDataUpdate = function() {
+        if(AscCommon.isFileBuild()) {
+           return;
+        }
         var oOldCache = this.save();
         this.clear();
         if(this.needUpdateValues(oOldCache)) {
@@ -729,6 +730,21 @@
         return false;
     };
     CSlicer.prototype.recalculate = function () {
+        if(AscCommon.isFileBuild()) {
+            return;
+        }
+
+        //--------------For bug 46500--------------------
+        var bCollaborativeChanges = false;
+        var oWorkbook = this.getWorkbook();
+        if(oWorkbook) {
+            bCollaborativeChanges = oWorkbook.bCollaborativeChanges;
+        }
+        if(AscFonts.IsCheckSymbols && bCollaborativeChanges) {
+            return;
+        }
+        //-------------------------------------------------
+        
         AscFormat.ExecuteNoHistory(function () {
             AscFormat.CShape.prototype.recalculate.call(this);
             if(this.recalcInfo.recalculateHeader) {
@@ -752,6 +768,7 @@
         if(!this.header) {
             this.header = new CHeader(this);
         }
+        this.header.worksheet = this.worksheet;
         this.header.setRecalculateInfo();
         this.header.recalculate();
     };
@@ -1014,11 +1031,17 @@
         return this.buttonsContainer.onWheel(deltaX, deltaY);
     };
     CSlicer.prototype.onSlicerUpdate = function (sName) {
+        if(AscCommon.isFileBuild()) {
+            return;
+        }
         if(this.name === sName) {
             this.onDataUpdate();
         }
     };
     CSlicer.prototype.onSlicerLock = function (sName, bLock) {
+        if(AscCommon.isFileBuild()) {
+            return;
+        }
         if(this.name === sName) {
             this.data.setLocked(bLock);
             this.onUpdate(this.bounds);
@@ -1026,21 +1049,44 @@
         }
     };
     CSlicer.prototype.onSlicerChangeName = function (sName, sNewName) {
+        if(AscCommon.isFileBuild()) {
+            return;
+        }
         if(this.name === sName) {
             this.setName(sNewName);
             this.onDataUpdate();
         }
     };
     CSlicer.prototype.onSlicerDelete = function (sName) {
-         var bRet = false;
+        if(AscCommon.isFileBuild()) {
+            return false;
+        }
+        var bRet = false;
+        var oMainGroup, oCurGroup;
         if(this.name === sName) {
-            if(this.drawingBase) {
-                this.deleteDrawingBase();
+            if(this.group) {
+                this.group.removeFromSpTree(this.Id);
+                oCurGroup = this.group;
+                while (oCurGroup.spTree.length === 0 && oCurGroup.group) {
+                    oCurGroup.group.removeFromSpTree(oCurGroup.Get_Id());
+                    oCurGroup = oCurGroup.group;
+                }
+                if(oCurGroup.spTree.length === 0) {
+                    if(oCurGroup.drawingBase) {
+                        oCurGroup.deleteDrawingBase();
+                    }
+                }
+                else {
+                    oMainGroup = this.group.getMainGroup();
+                    if(oMainGroup) {
+                        oMainGroup.updateCoordinatesAfterInternalResize();
+                    }
+                }
                 bRet = true;
             }
             else {
-                if(this.group) {
-                    this.group.removeFromSpTree(this.Id);
+                if(this.drawingBase) {
+                    this.deleteDrawingBase();
                     bRet = true;
                 }
             }
@@ -1144,6 +1190,9 @@
             return this;
         }
         return null;
+    };
+    CSlicer.prototype.getAllSlicerViews = function(aSlicerView) {
+        aSlicerView.push(this);
     };
 
     function CHeader(slicer) {

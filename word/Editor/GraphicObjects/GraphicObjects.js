@@ -192,6 +192,8 @@ CGraphicObjects.prototype =
         return this.selectedObjects;
     },
 
+    getSelectedArray: DrawingObjectsController.prototype.getSelectedArray,
+
     getTheme: function()
     {
         return this.document.theme;
@@ -1851,6 +1853,8 @@ CGraphicObjects.prototype =
         {
             this.drawingDocument.SelectClear();
             this.drawingDocument.TargetEnd();
+			this.drawingDocument.SelectEnabled(true);
+			this.drawingDocument.SelectShow();
         }
     },
 
@@ -2109,17 +2113,17 @@ CGraphicObjects.prototype =
     {
 
         if(this.selectedObjects.length === 0)
-            Info.Set_Drawing(-1);
+            Info.SetDrawing(-1);
 
         var content = this.getTargetDocContent();
         if(content)
         {
-            Info.Set_Drawing(selected_DrawingObjectText);
+            Info.SetDrawing(selected_DrawingObjectText);
             content.GetSelectedElementsInfo(Info);
         }
         else
         {
-            Info.Set_Drawing(selected_DrawingObject);
+            Info.SetDrawing(selected_DrawingObject);
         }
         return Info;
     },
@@ -2158,18 +2162,7 @@ CGraphicObjects.prototype =
         }
     },
 
-    getSelectedText: function(bClearText, oPr)
-    {
-        var content = this.getTargetDocContent();
-        if(content)
-        {
-            return content.GetSelectedText(bClearText, oPr);
-        }
-        else
-        {
-            return "";
-        }
-    },
+    GetSelectedText: DrawingObjectsController.prototype.GetSelectedText,
 
     getCurPosXY: function()
     {
@@ -2670,8 +2663,9 @@ CGraphicObjects.prototype =
         var nPageIndex = objects_for_grouping[0].parent.pageIndex;
         for(i = 0; i < objects_for_grouping.length; ++i)
         {
-            objects_for_grouping[i].parent.PreDelete();
+			objects_for_grouping[i].parent.bNotPreDelete = true;
             objects_for_grouping[i].parent.Remove_FromDocument(false);
+			objects_for_grouping[i].parent.bNotPreDelete = undefined;
             if(objects_for_grouping[i].setParent){
                 objects_for_grouping[i].setParent(null);
             }
@@ -2743,8 +2737,10 @@ CGraphicObjects.prototype =
                 parent_paragraph = cur_group.parent.Get_ParentParagraph();
                 page_num = cur_group.selectStartPage;
                 cur_group.normalize();
-                cur_group.parent.PreDelete();
+				
+				cur_group.parent.bNotPreDelete = true;
                 cur_group.parent.Remove_FromDocument(false);
+				cur_group.parent.bNotPreDelete = undefined;
                 cur_group.setBDeleted(true);
                 sp_tree = cur_group.spTree;
                 aPos = arrCenterPos[i];
@@ -4081,6 +4077,8 @@ CGraphicObjects.prototype =
     endImageCrop: DrawingObjectsController.prototype.endImageCrop,
     cropFit: DrawingObjectsController.prototype.cropFit,
     cropFill: DrawingObjectsController.prototype.cropFill,
+
+    checkRedrawOnChangeCursorPosition: DrawingObjectsController.prototype.checkRedrawOnChangeCursorPosition,
 
     getFromTargetTextObjectContextMenuPosition: function(oTargetTextObject, pageIndex)
     {
