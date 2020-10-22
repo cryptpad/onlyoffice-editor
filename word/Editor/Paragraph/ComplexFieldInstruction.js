@@ -302,6 +302,8 @@ function CFieldInstructionTOC()
 	this.SkipPageRefStart = -1;
 	this.SkipPageRefEnd   = -1;
 	this.ForceTabLeader   = undefined;
+	this.Caption          = undefined;
+	this.CaptionOnlyText  = undefined;
 }
 
 CFieldInstructionTOC.prototype = Object.create(CFieldInstructionBase.prototype);
@@ -417,6 +419,22 @@ CFieldInstructionTOC.prototype.IsSkipPageRefLvl = function(nLvl)
 
 	return  (nLvl >= this.SkipPageRefStart - 1 && nLvl <= this.SkipPageRefEnd - 1);
 };
+CFieldInstructionTOC.prototype.SetCaption = function (sCaption)
+{
+	this.Caption = sCaption;
+};
+CFieldInstructionTOC.prototype.GetCaption = function()
+{
+	return this.Caption;
+};
+CFieldInstructionTOC.prototype.SetCaptionOnlyText = function (sVal)
+{
+	this.CaptionOnlyText = sVal;
+};
+CFieldInstructionTOC.prototype.GetCaptionOnlyText = function()
+{
+	return this.CaptionOnlyText;
+};
 CFieldInstructionTOC.prototype.SetPr = function(oPr)
 {
 	if (!(oPr instanceof Asc.CTableOfContentsPr))
@@ -437,6 +455,21 @@ CFieldInstructionTOC.prototype.SetPr = function(oPr)
 		this.SetSeparator(" ");
 
 	this.ForceTabLeader = oPr.TabLeader;
+	var sCaption = oPr.get_Caption();
+	if(sCaption !== undefined)
+	{
+		if(sCaption || this.Styles.length > 0)
+		{
+			if(oPr.IsIncludeLabelAndNumber)
+			{
+				this.SetCaption(sCaption);
+			}
+			else
+			{
+				this.SetCaptionOnlyText(sCaption);
+			}
+		}
+	}
 };
 CFieldInstructionTOC.prototype.GetForceTabLeader = function()
 {
@@ -497,10 +530,37 @@ CFieldInstructionTOC.prototype.ToString = function()
 
 		sInstr += "\" ";
 	}
+	if(this.Caption !== undefined)
+	{
+		sInstr += "\\c ";
+		if(typeof this.Caption === "string" && this.Caption.length > 0)
+		{
+			sInstr += "\"" + this.Caption + "\"";
+		}
+	}
+	if(this.CaptionOnlyText !== undefined)
+	{
+		sInstr += "\\a ";
+		if(typeof this.CaptionOnlyText === "string" && this.CaptionOnlyText.length > 0)
+		{
+			sInstr += "\"" + this.CaptionOnlyText + "\"";
+		}
+	}
 
 	return sInstr;
 };
-
+CFieldInstructionTOC.prototype.IsTableOfFigures = function ()
+{
+	if(this.Caption !== undefined || this.CaptionOnlyText !== undefined)
+	{
+		return true;
+	}
+	return false;
+};
+CFieldInstructionTOC.prototype.IsTableOfContents = function ()
+{
+	return !this.IsTableOfFigures();
+};
 /**
  * ASK field
  * @constructor
@@ -1740,7 +1800,7 @@ CFieldInstructionParser.prototype.private_ReadTOC = function()
 	// TODO: \a, \b, \c, \d, \f, \l, \s, \z, \u
 
 	this.Result = new CFieldInstructionTOC();
-
+	var arrArguments;
 	while (this.private_ReadNext())
 	{
 		if (this.private_IsSwitch())
@@ -1760,13 +1820,13 @@ CFieldInstructionParser.prototype.private_ReadTOC = function()
 			}
 			else if ('p' === sType)
 			{
-				var arrArguments = this.private_ReadArguments();
+				arrArguments = this.private_ReadArguments();
 				if (arrArguments.length > 0)
 					this.Result.SetSeparator(arrArguments[0]);
 			}
 			else if ('o' === sType)
 			{
-				var arrArguments = this.private_ReadArguments();
+				arrArguments = this.private_ReadArguments();
 				if (arrArguments.length > 0)
 				{
 					var arrRange = this.private_ParseIntegerRange(arrArguments[0]);
@@ -1780,13 +1840,13 @@ CFieldInstructionParser.prototype.private_ReadTOC = function()
 			}
 			else if ('t' === sType)
 			{
-				var arrArguments = this.private_ReadArguments();
+				arrArguments = this.private_ReadArguments();
 				if (arrArguments.length > 0)
 					this.Result.SetStylesArrayRaw(arrArguments[0]);
 			}
 			else if ('n' === sType)
 			{
-				var arrArguments = this.private_ReadArguments();
+				arrArguments = this.private_ReadArguments();
 				if (arrArguments.length > 0)
 				{
 					var arrRange = this.private_ParseIntegerRange(arrArguments[0]);
@@ -1800,9 +1860,47 @@ CFieldInstructionParser.prototype.private_ReadTOC = function()
 					this.Result.SetPageRefSkippedLvls(true, -1, -1);
 				}
 			}
+			else if('c' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if(arrArguments.length > 0)
+				{
+					var sCaption = arrArguments[0];
+					if(typeof sCaption === "string" && sCaption.length > 0)
+					{
+						this.Result.SetCaption(sCaption);
+					}
+					else
+					{
+						this.Result.SetCaption(null);
+					}
+				}
+				else
+				{
+					this.Result.SetCaption(null);
+				}
+			}
+			else if('a' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if(arrArguments.length > 0)
+				{
+					var sCaptionOnlyText = arrArguments[0];
+					if(typeof sCaptionOnlyText === "string" && sCaptionOnlyText.length > 0)
+					{
+						this.Result.SetCaptionOnlyText(sCaptionOnlyText);
+					}
+					else
+					{
+						this.Result.SetCaptionOnlyText(null);
+					}
+				}
+				else
+				{
+					this.Result.SetCaptionOnlyText(null);
+				}
+			}
 		}
-
-
 	}
 
 };
