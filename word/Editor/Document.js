@@ -2127,17 +2127,18 @@ CSelectedElementsInfo.prototype.GetFootEndNoteRefs  = function()
 
 function CDocumentSettings()
 {
-    this.MathSettings      = undefined !== CMathSettings ? new CMathSettings() : {};
-    this.CompatibilityMode = AscCommon.document_compatibility_mode_Current;
-    this.SdtSettings       = new CSdtGlobalSettings();
+	this.MathSettings         = undefined !== CMathSettings ? new CMathSettings() : {};
+	this.CompatibilityMode    = AscCommon.document_compatibility_mode_Current;
+	this.SdtSettings          = new CSdtGlobalSettings();
+	this.SpecialFormsSettings = new CSpecialFormsGlobalSettings();
 
-    this.ListSeparator = undefined;
-    this.DecimalSymbol = undefined;
-    this.GutterAtTop   = false;
-    this.MirrorMargins = false;
+	this.ListSeparator = undefined;
+	this.DecimalSymbol = undefined;
+	this.GutterAtTop   = false;
+	this.MirrorMargins = false;
 
-    // Compatibility
-    this.SplitPageBreakAndParaMark = false;
+	// Compatibility
+	this.SplitPageBreakAndParaMark = false;
 	this.DoNotExpandShiftReturn    = false;
 }
 
@@ -2202,7 +2203,8 @@ function CDocument(DrawingDocument, isMainLogicDocument)
         ContentPos : 0, // в зависимости, от параметра Type: позиция в Document.Content
         RealX      : 0, // позиция курсора, без учета расположения букв
         RealY      : 0, // это актуально для клавиш вверх и вниз
-        Type       : docpostype_Content
+        Type       : docpostype_Content,
+		CC         : null
     };
 
 	this.Selection =
@@ -2335,6 +2337,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.RemoveEmptySelection      = true;  // При обновлении селекта, если он пустой тогда сбрасываем его
 	this.MoveDrawing               = false; // Происходит ли сейчас перенос автофигуры
 	this.PrintSelection            = false; // Печатаем выделенный фрагмент
+	this.CCActionByClick           = true;  // Выполнять ли действие с ContentControl по простому клику (если false, то мы должны находится внутри, чтобы действие выполнилось)
 
 	this.DrawTableMode = {
 		Start  : false,
@@ -10157,6 +10160,8 @@ CDocument.prototype.OnMouseDown = function(e, X, Y, PageIndex)
 	if (this.SearchEngine.Count > 0)
 		this.SearchEngine.Reset_Current();
 
+	this.CurPos.CC = null;
+
 	// Обработка правой кнопки мыши происходит на событии MouseUp
 	if (AscCommon.g_mouse_button_right === e.Button)
 		return;
@@ -10284,6 +10289,16 @@ CDocument.prototype.OnMouseDown = function(e, X, Y, PageIndex)
 			this.Selection_SetEnd(X, Y, e);
 			this.Document_UpdateSelectionState();
 			return;
+		}
+
+		if (!this.CCActionByClick && !this.IsFillingFormMode())
+		{
+			var oSelectedContent = this.GetSelectedElementsInfo();
+			var oInlineSdt       = oSelectedContent.GetInlineLevelSdt();
+			var oBlockSdt        = oSelectedContent.GetBlockLevelSdt();
+
+			if ((oInlineSdt && oInlineSdt.IsCheckBox()) || (oBlockSdt && oBlockSdt.IsCheckBox()))
+				this.CurPos.CC = (oInlineSdt && oInlineSdt.IsCheckBox()) ? oInlineSdt : oBlockSdt;
 		}
 
 		this.Selection_SetStart(X, Y, e);
@@ -10540,16 +10555,19 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 	if ((oInlineSdt && oInlineSdt.IsCheckBox()) || (oBlockSdt && oBlockSdt.IsCheckBox()))
 	{
 		var oCC = (oInlineSdt && oInlineSdt.IsCheckBox()) ? oInlineSdt : oBlockSdt;
-		oCC.SkipSpecialContentControlLock(true);
-		if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, true, this.IsFillingFormMode()))
+		if (this.CCActionByClick || this.IsFillingFormMode() || oCC === this.CurPos.CC)
 		{
-			this.StartAction();
-			oCC.ToggleCheckBox();
-			this.Recalculate();
-			this.UpdateTracks();
-			this.FinalizeAction();
+			oCC.SkipSpecialContentControlLock(true);
+			if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, true, this.IsFillingFormMode()))
+			{
+				this.StartAction();
+				oCC.ToggleCheckBox();
+				this.Recalculate();
+				this.UpdateTracks();
+				this.FinalizeAction();
+			}
+			oCC.SkipSpecialContentControlLock(false);
 		}
-		oCC.SkipSpecialContentControlLock(false);
 	}
 
 	this.private_CheckCursorPosInFillingFormMode();
@@ -15485,6 +15503,45 @@ CDocument.prototype.IsSdtGlobalSettingsDefault = function()
 {
 	return this.Settings.SdtSettings.IsDefault();
 };
+CDocument.prototype.GetSpecialFormsHighlight = function()
+{
+	return this.Settings.SpecialFormsSettings.Highlight;
+};
+CDocument.prototype.SetSpecialFormsHighlight = function(r, g, b)
+{
+	if ((undefined === r || null === r) && undefined !== this.Settings.SpecialFormsSettings.Highlight)
+	{
+		var oNewSettings = this.Settings.SpecialFormsSettings.Copy();
+		oNewSettings.Highlight = undefined;
+
+		this.History.Add(new CChangesDocumentSpecialFormsGlobalSettings(this, this.Settings.SpecialFormsSettings, oNewSettings));
+		this.Settings.SpecialFormsSettings = oNewSettings;
+
+		this.OnChangeSpecialFormsGlobalSettings();
+	}
+	else if (undefined !== r && null !== r)
+	{
+		var oNewColor = new CDocumentColor(r, g, b);
+		if (!oNewColor.IsEqual(this.Settings.SpecialFormsSettings.Highlight))
+		{
+			var oNewSettings = this.Settings.SpecialFormsSettings.Copy();
+			oNewSettings.Highlight = oNewColor;
+
+			this.History.Add(new CChangesDocumentSpecialFormsGlobalSettings(this, this.Settings.SpecialFormsSettings, oNewSettings));
+			this.Settings.SpecialFormsSettings = oNewSettings;
+
+			this.OnChangeSpecialFormsGlobalSettings();
+		}
+	}
+};
+CDocument.prototype.OnChangeSpecialFormsGlobalSettings = function()
+{
+	this.GetApi().sync_OnChangeSpecialFormsGlobalSettings();
+};
+CDocument.prototype.IsSpecialFormsSettingsDefault = function()
+{
+	return this.Settings.SdtSettings.IsDefault();
+};
 /**
  * Добавляем специальный контейнер в виде чекбокса
  * @param oPr {?CSdtCheckBoxPr}
@@ -15522,6 +15579,7 @@ CDocument.prototype.AddContentControlPicture = function()
 	if (!oCC)
 		return null;
 
+	oCC.SetPlaceholderText(AscCommon.translateManager.getValue("Click to load image"));
 	oCC.ApplyPicturePr(true);
 	return oCC;
 };
@@ -21723,17 +21781,19 @@ CDocument.prototype.AddTableOfContents = function(sHeading, oPr, oSdt)
 
 		oSdt.SetThisElementCurrent();
 
-		var oComplexField = this.AddFieldWithInstruction("TOC \\o \"1-3\" \\h \\z \\u");
-		oSdt.SetDocPartObj(undefined, "Table of Contents", true);
-
+		var sInstruction = "TOC \\o \"1-3\" \\h \\z \\u";
 		if (oPr)
 		{
+			var oInstruction = new CFieldInstructionTOC();
+			oInstruction.SetPr(oPr);
+			sInstruction = oInstruction.ToString();
+
 			if (isNeedChangeStyles)
 				oStyles.SetTOCStylesType(nStylesType);
-
-			oComplexField.SetPr(oPr);
-			oComplexField.Update();
 		}
+
+		this.AddFieldWithInstruction(sInstruction);
+		oSdt.SetDocPartObj(undefined, "Table of Contents", true);
 
 		var oNextParagraph = oSdt.GetNextParagraph();
 		if (oNextParagraph)
@@ -23686,6 +23746,30 @@ CDocument.prototype.GetSectionsByApplyType = function(nType)
 	}
 
 	return [];
+};
+/**
+ * Выполнять ли связанные действия с контейнером при простом клике в него (например выставление чекбокса)
+ * @param {boolean} isPerform
+ */
+CDocument.prototype.SetPerformContentControlActionByClick = function(isPerform)
+{
+	this.CCActionByClick = isPerform;
+};
+/**
+ * Получаем разделитель для списков
+ * @returns {?string}
+ */
+CDocument.prototype.GetListSeparator = function()
+{
+	return this.Settings.ListSeparator ? this.Settings.ListSeparator : ",";
+};
+/**
+ * Получаем разделитель десятичного числа
+ * @returns {?string}
+ */
+CDocument.prototype.GetDecimalSymbol = function()
+{
+	return this.Settings.DecimalSymbol ? this.Settings.DecimalSymbol : ".";
 };
 
 

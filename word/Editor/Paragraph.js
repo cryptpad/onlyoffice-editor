@@ -1957,6 +1957,7 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 	var DrawMMFields       = !!(this.LogicDocument && this.LogicDocument.Is_HighlightMailMergeFields && true === this.LogicDocument.Is_HighlightMailMergeFields());
 	var DrawSolvedComments = DocumentComments ? DocumentComments.IsUseSolved() : false;
 	var SdtHighlightColor  = this.LogicDocument.GetSdtGlobalShowHighlight && this.LogicDocument.GetSdtGlobalShowHighlight() && undefined === pGraphics.RENDERER_PDF_FLAG ? this.LogicDocument.GetSdtGlobalColor() : null;
+	var FormsHighlight     = this.LogicDocument.GetSpecialFormsHighlight && this.LogicDocument.GetSpecialFormsHighlight() && undefined === pGraphics.RENDERER_PDF_FLAG ? this.LogicDocument.GetSpecialFormsHighlight() : null;
 
 	PDSH.Reset(this, pGraphics, DrawColl, DrawFind, DrawComm, DrawMMFields, this.GetEndInfoByPage(CurPage - 1), DrawSolvedComments);
 
@@ -2161,13 +2162,38 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 			//----------------------------------------------------------------------------------------------------------
 			// Рисуем подсветку InlineSdt
 			//----------------------------------------------------------------------------------------------------------
-			if (SdtHighlightColor)
+			if (SdtHighlightColor || FormsHighlight)
 			{
-				pGraphics.b_color1(SdtHighlightColor.r, SdtHighlightColor.g, SdtHighlightColor.b, 255);
-				var oSdtBounds;
+				var oSdtBounds, oInlineSdt, isForm;
+				var nPrevColorState = 0;
+
 				for (var nSdtIndex = 0, nSdtCount = PDSH.InlineSdt.length; nSdtIndex < nSdtCount; ++nSdtIndex)
 				{
+					oInlineSdt = PDSH.InlineSdt[nSdtIndex];
+					isForm     = oInlineSdt.IsForm();
 					oSdtBounds = PDSH.InlineSdt[nSdtIndex].GetRangeBounds(CurLine, CurRange);
+
+					if (isForm && FormsHighlight)
+					{
+						if (1 !== nPrevColorState)
+						{
+							pGraphics.b_color1(FormsHighlight.r, FormsHighlight.g, FormsHighlight.b, 255);
+							nPrevColorState = 1;
+						}
+					}
+					else if (!isForm && SdtHighlightColor)
+					{
+						if (2 !== nPrevColorState)
+						{
+							pGraphics.b_color1(SdtHighlightColor.r, SdtHighlightColor.g, SdtHighlightColor.b, 255);
+							nPrevColorState = 2;
+						}
+					}
+					else
+					{
+						continue;
+					}
+
 					if (oSdtBounds)
 					{
 						pGraphics.rect(oSdtBounds.X, oSdtBounds.Y, oSdtBounds.W, oSdtBounds.H);
@@ -2706,7 +2732,10 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 				}
 				else if (para_PresentationNumbering === this.Numbering.Type)
 				{
-					if (true != this.IsEmpty())
+					var bIsEmpty = this.IsEmpty();
+					if (!bIsEmpty ||
+						this.Is_ThisElementCurrent() ||
+						this.Parent.IsSelectionUse() && this.Parent.IsSelectionEmpty() && this.Parent.Selection.StartPos === this.Index)
 					{
 						if (Pr.ParaPr.Ind.FirstLine < 0)
 							NumberingItem.Draw(X, Y, pGraphics, PDSE);
@@ -2800,6 +2829,7 @@ Paragraph.prototype.Internal_Draw_5 = function(CurPage, pGraphics, Pr, BgColor)
 		var aRunReview  = PDSL.RunReview;
 		var aCollChange = PDSL.CollChange;
 		var aDUnderline = PDSL.DUnderline;
+		var aCombForms  = PDSL.CombForms;
 
 		// Рисуем зачеркивание
 		var Element = aStrikeout.Get_Next();
@@ -2913,6 +2943,26 @@ Paragraph.prototype.Internal_Draw_5 = function(CurPage, pGraphics, Pr, BgColor)
             }
 		}
 
+		Element = aCombForms.Get_Next(true);
+		while (Element)
+		{
+			var nFormY0 = Page.Y + Line.Y - Line.Metrics.Ascent;
+			var nFormY1 = Page.Y + Line.Y + Line.Metrics.Descent;
+
+			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
+			pGraphics.drawHorLineExt(c_oAscLineDrawingRule.Bottom, nFormY0, Element.x0, Element.x1, Element.w, -Element.w / 2, Element.w / 2);
+			pGraphics.drawHorLineExt(c_oAscLineDrawingRule.Top, nFormY1, Element.x0, Element.x1, Element.w, -Element.w / 2, Element.w / 2);
+			pGraphics.drawVerLine(c_oAscLineDrawingRule.Center, Element.x0, nFormY0, nFormY1, Element.w);
+			pGraphics.drawVerLine(c_oAscLineDrawingRule.Center, Element.x1, nFormY0, nFormY1, Element.w);
+
+			for (var nInterIndex = 0, nIntersCount = Element.Intermediate.length; nInterIndex < nIntersCount; ++nInterIndex)
+			{
+				pGraphics.drawVerLine(c_oAscLineDrawingRule.Center, Element.Intermediate[nInterIndex], nFormY0, nFormY1, Element.w);
+			}
+
+			Element = aCombForms.Get_Next(true);
+		}
+
 		if (pGraphics.End_Command)
 		{
 			pGraphics.End_Command()
@@ -2925,7 +2975,7 @@ Paragraph.prototype.Internal_Draw_5 = function(CurPage, pGraphics, Pr, BgColor)
 		{
 			var arrRunReviewRects = arrRunReviewAreas[ReviewAreaIndex];
 			var oRunReviewColor   = arrRunReviewAreasColors[ReviewAreaIndex];
-			var ReviewPolygon     = new CPolygon();
+			var ReviewPolygon     = new AscCommon.CPolygon();
 			ReviewPolygon.fill(arrRunReviewRects);
 			var PolygonPaths = ReviewPolygon.GetPaths(0);
 			pGraphics.p_color(oRunReviewColor.r, oRunReviewColor.g, oRunReviewColor.b, 255);
@@ -3725,7 +3775,7 @@ Paragraph.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlyS
 					this.IndDecNumberingLevel(false);
 				}
 			}
-			else if (numbering_presentationnumfrmt_None != this.PresentationPr.Bullet.Get_Type())
+			else if (!this.PresentationPr.Bullet.IsNone())
 			{
 				this.Remove_PresentationNumbering();
 			}
@@ -9031,48 +9081,46 @@ Paragraph.prototype.Add_PresentationNumbering = function(Bullet)
 					oBullet2.bulletType.startAt = _OldBullet.bulletType.startAt;
 				}
 			}
-			this.Set_Bullet(oBullet2.createDuplicate());
-			LeftInd = Math.min(ParaPr.Ind.Left, ParaPr.Ind.Left + ParaPr.Ind.FirstLine);
-			var oFirstRunPr = this.Get_FirstTextPr2();
-			var Indent = oFirstRunPr.FontSize*0.305954545 + 2.378363636;
-			if (NewType === numbering_presentationnumfrmt_Char)
+			if(!oBullet2.isEqual(this.Pr.Bullet))
 			{
-				this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
-			}
-			else if (NewType === numbering_presentationnumfrmt_None)
-			{
-				this.Set_Ind({FirstLine : 0, Left : LeftInd}, false);
-			}
-			else
-			{
-				var oArabicAlphaMap =
-					{
-						numbering_presentationnumfrmt_ArabicPeriod  : true,
-						numbering_presentationnumfrmt_ArabicParenR  : true,
-						numbering_presentationnumfrmt_AlphaLcParenR : true,
-						numbering_presentationnumfrmt_AlphaLcPeriod : true,
-						numbering_presentationnumfrmt_AlphaUcParenR : true,
-						numbering_presentationnumfrmt_AlphaUcPeriod : true
-					};
-				var oRomanMap       =
-					{
-						numbering_presentationnumfrmt_RomanUcPeriod : true,
-						numbering_presentationnumfrmt_RomanLcPeriod : true
-					};
-				if (!(oArabicAlphaMap[NewType] && oArabicAlphaMap[UndefType] || oRomanMap[NewType] && oRomanMap[UndefType]))
+				var bEqualBulletType = false;
+				if(oBullet2.bulletType && this.Pr.Bullet && this.Pr.Bullet.bulletType)
 				{
-					if (oArabicAlphaMap[NewType])
+					bEqualBulletType = this.Pr.Bullet.bulletType.IsIdentical(oBullet2.bulletType);
+				}
+				this.Set_Bullet(oBullet2.createDuplicate());
+				if(!bEqualBulletType)
+				{
+					LeftInd = Math.min(ParaPr.Ind.Left, ParaPr.Ind.Left + ParaPr.Ind.FirstLine);
+					var oFirstRunPr = this.Get_FirstTextPr2();
+
+					var Indent = oFirstRunPr.FontSize*0.305954545 + 2.378363636;
+					if (NewType === numbering_presentationnumfrmt_Char)
 					{
 						this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
+					}
+					else if (NewType === numbering_presentationnumfrmt_None)
+					{
+						this.Set_Ind({FirstLine : 0, Left : LeftInd}, false);
 					}
 					else
 					{
-						this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
+						if (!IsPrNumberingSameType(NewType, UndefType))
+						{
+							if (!IsRomanPrNumbering(NewType))
+							{
+								this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
+							}
+							else
+							{
+								this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
+							}
+						}
+						else
+						{
+							this.Set_Ind({Left : undefined, FirstLine : undefined}, true);
+						}
 					}
-				}
-				else
-				{
-					this.Set_Ind({Left : undefined, FirstLine : undefined}, true);
 				}
 			}
 		}
@@ -9108,7 +9156,7 @@ Paragraph.prototype.GetBulletNum = function()
 	var Bullet = this.PresentationPr.Bullet;
 
 	var BulletNum = null;
-	if (Bullet.Get_Type() >= numbering_presentationnumfrmt_ArabicPeriod)
+	if (Bullet.IsNumbered())
 	{
 		var Prev = this.Prev;
 		BulletNum = Bullet.Get_StartAt();
@@ -14485,30 +14533,35 @@ Paragraph.prototype.GetOutlineParagraphs = function(arrOutline, oPr)
 	var nOutlineLvl = this.GetOutlineLvl();
 	if (undefined !== nOutlineLvl
 		&& (!oPr
-		|| -1 === oPr.OutlineStart
-		|| -1 === oPr.OutlineEnd
-		|| undefined === oPr.OutlineStart
-		|| undefined === oPr.OutlineEnd
-		|| (nOutlineLvl >= oPr.OutlineStart - 1 && nOutlineLvl <= oPr.OutlineEnd - 1)))
+			|| (-1 !== oPr.OutlineStart
+				&& -1 !== oPr.OutlineEnd
+				&& undefined !== oPr.OutlineStart
+				&& undefined !== oPr.OutlineEnd
+				&& nOutlineLvl >= oPr.OutlineStart - 1
+				&& nOutlineLvl <= oPr.OutlineEnd - 1)))
 	{
 		arrOutline.push({Paragraph : this, Lvl : nOutlineLvl});
 	}
 	else if (oPr && oPr.Styles && oPr.Styles.length > 0)
 	{
-		if(!this.LogicDocument)
-		{
+		if (!this.LogicDocument)
 			return;
-		}
-		var oStyle = this.LogicDocument.Get_Styles().Get(this.Style_Get());
+
+		var oStyles = this.LogicDocument.GetStyles();
+
+		var sStyleId = this.Style_Get();
+		if (!sStyleId)
+			sStyleId = oStyles.GetDefaultParagraph();
+
+		var oStyle = oStyles.Get(sStyleId);
 		if (!oStyle)
 			return;
 
-		var sStyleName = oStyle.Get_Name();
-
+		var sStyleName = oStyle.GetName();
 		for (var nIndex = 0, nCount = oPr.Styles.length; nIndex < nCount; ++nIndex)
 		{
 			if (oPr.Styles[nIndex].Name === sStyleName)
-				return arrOutline.push({Paragraph : this, Lvl : oPr.Styles[nIndex].Lvl - 1});
+				return arrOutline.push({Paragraph : this, Lvl : !oPr.Styles[nIndex].Lvl ? 0 : oPr.Styles[nIndex].Lvl - 1});
 		}
 	}
 
@@ -16146,8 +16199,9 @@ function CParaDrawingRangeLinesElement(y0, y1, x0, x1, w, r, g, b, Additional, A
     this.g  = g;
     this.b  = b;
 
-    this.Additional = Additional;
-    this.Additional2 = Additional2;
+    this.Additional   = Additional;
+    this.Additional2  = Additional2;
+    this.Intermediate = [];
 }
 
 
@@ -16168,7 +16222,7 @@ CParaDrawingRangeLines.prototype =
         this.Elements.push( new CParaDrawingRangeLinesElement(y0, y1, x0, x1, w, r, g, b, Additional, Additional2) );
     },
 
-    Get_Next : function()
+    Get_Next : function(isSaveIntermediate)
     {
         var Count = this.Elements.length;
         if ( Count <= 0 )
@@ -16184,11 +16238,16 @@ CParaDrawingRangeLines.prototype =
 
             if (this.private_CanUnionElements(PrevEl, Element))
             {
+				if (isSaveIntermediate)
+					Element.Intermediate.push(Element.x0);
+
                 Element.x0 = PrevEl.x0;
                 Count--;
             }
             else
-                break;
+			{
+				break;
+			}
         }
 
         this.Elements.length = Count;
@@ -16993,6 +17052,7 @@ function CParagraphDrawStateLines()
     this.RunReview  = new CParaDrawingRangeLines();
     this.CollChange = new CParaDrawingRangeLines();
     this.DUnderline = new CParaDrawingRangeLines();
+    this.CombForms  = new CParaDrawingRangeLines();
 
     this.Page  = 0;
     this.Line  = 0;
@@ -17033,6 +17093,10 @@ CParagraphDrawStateLines.prototype =
         this.DStrikeout.Clear();
         this.Underline.Clear();
         this.Spelling.Clear();
+		this.RunReview.Clear();
+		this.CollChange.Clear();
+		this.DUnderline.Clear();
+		this.CombForms.Clear();
     },
 
     Reset_Range : function(Range, X, Spaces)

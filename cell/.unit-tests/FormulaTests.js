@@ -2575,11 +2575,98 @@ $( function () {
 		testArrayFormula2("MROUND", 2, 2, true);
     } );
 
-    test( "Test: \"T(\"HELLO\")\"", function () {
-        oParser = new parserFormula( "T(\"HELLO\")", "A1", ws );
-        ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), "HELLO" );
-    } );
+	test( "Test: \"T(\"HELLO\")\"", function () {
+		oParser = new parserFormula( "T(\"HELLO\")", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "HELLO" );
+	} );
+
+	test( "Test: \"MMULT\"", function () {
+		ws.getRange2( "AAA102" ).setValue( "4" );
+		ws.getRange2( "AAA103" ).setValue( "5" );
+		ws.getRange2( "AAA104" ).setValue( "6" );
+		ws.getRange2( "AAA105" ).setValue( "7" );
+		ws.getRange2( "AAB102" ).setValue( "1" );
+		ws.getRange2( "AAB103" ).setValue( "2" );
+		ws.getRange2( "AAB104" ).setValue( "3" );
+		ws.getRange2( "AAB105" ).setValue( "2" );
+		ws.getRange2( "AAC102" ).setValue( "4" );
+		ws.getRange2( "AAC103" ).setValue( "5" );
+		ws.getRange2( "AAC104" ).setValue( "6" );
+		ws.getRange2( "AAC105" ).setValue( "3" );
+		ws.getRange2( "AAD102" ).setValue( "7" );
+		ws.getRange2( "AAD103" ).setValue( "8" );
+		ws.getRange2( "AAD104" ).setValue( "9" );
+		ws.getRange2( "AAD105" ).setValue( "4" );
+
+		ws.getRange2( "AAF102" ).setValue( "1" );
+		ws.getRange2( "AAF103" ).setValue( "2" );
+		ws.getRange2( "AAF104" ).setValue( "3" );
+		ws.getRange2( "AAF105" ).setValue( "6" );
+
+		ws.getRange2( "AAG102" ).setValue( "2" );
+		ws.getRange2( "AAG103" ).setValue( "3" );
+		ws.getRange2( "AAG104" ).setValue( "4" );
+		ws.getRange2( "AAG105" ).setValue( "5" );
+
+		oParser = new parserFormula( "MMULT(AAC102,AAF104)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 12 );
+
+		oParser = new parserFormula( "MMULT(AAA102:AAD105,AAF104)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "MMULT(AAC102,AAF104)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 12 );
+
+		oParser = new parserFormula( "MMULT(AAA102:AAD105,AAF102:AAG105)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 60 );
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue(), 62 );
+		strictEqual( oParser.calculate().getElementRowCol(1,0).getValue(), 72 );
+		strictEqual( oParser.calculate().getElementRowCol(1,1).getValue(), 76 );
+
+		oParser = new parserFormula( "MMULT(AAA102:AAD105,AAF102:AAF105)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 60 );
+		strictEqual( oParser.calculate().getElementRowCol(1,0).getValue(), 72 );
+
+		oParser = new parserFormula( "MMULT(AAA102:AAD105,AAF102:AAF105)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 60 );
+		strictEqual( oParser.calculate().getElementRowCol(1,0).getValue(), 72 );
+
+		oParser = new parserFormula( "MMULT(AAA102:AAD105,AAF102:AAF104)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "MMULT(AAA102:AAD105,AAK110:AAN110)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "MMULT(AAA102:AAD105,AAA102:AAD105)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 94 );
+		strictEqual( oParser.calculate().getElementRowCol(1,0).getValue(), 116 );
+		strictEqual( oParser.calculate().getElementRowCol(2,0).getValue(), 138 );
+
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue(), 32 );
+		strictEqual( oParser.calculate().getElementRowCol(1,1).getValue(), 40 );
+		strictEqual( oParser.calculate().getElementRowCol(2,1).getValue(), 48 );
+
+		oParser = new parserFormula( "MMULT(AAF102:AAF105,AAG102:AAG105)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "MMULT(AAF102:AAF105,AAA102:AAD102)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 4 );
+		strictEqual( oParser.calculate().getElementRowCol(1,0).getValue(), 8 );
+		strictEqual( oParser.calculate().getElementRowCol(2,0).getValue(), 12 );
+
+	} );
 
     test( "Test: \"T(123)\"", function () {
         oParser = new parserFormula( "T(123)", "A1", ws );
@@ -12550,7 +12637,7 @@ $( function () {
 		testArrayFormula2("UPPER", 1, 1);
 	});
 
-	/*test( "Test: \"GROWTH\"", function () {
+	test( "Test: \"GROWTH\"", function () {
 
 		ws.getRange2( "A102" ).setValue( "11" );
 		ws.getRange2( "A103" ).setValue( "12" );
@@ -12603,6 +12690,8 @@ $( function () {
 		oParser = new parserFormula( "GROWTH(A103:C103,A104:C105,A106:C107,0)", "A2", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1.0017632);
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue().toFixed(3) - 0, 12047829814.167);
+		strictEqual( oParser.calculate().getElementRowCol(0,2).getValue().toFixed(3) - 0, 10705900594.962);
 
 		oParser = new parserFormula( "GROWTH({1,2,3},A104:C105,A106:C107,1)", "A2", ws );
 		ok( oParser.parse() );
@@ -12611,9 +12700,15 @@ $( function () {
 		oParser = new parserFormula( "GROWTH({1,2,3},A104:C105,A106:C107,A106:C107)", "A2", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), "#VALUE!");
-	} );*/
 
-	/*test( "Test: \"TREND\"", function () {
+		oParser = new parserFormula( "GROWTH(A103:C103,A104:C105,A106:C107,1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 12.00187209);
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue().toFixed(3) - 0, 676231620.297);
+		strictEqual( oParser.calculate().getElementRowCol(0,2).getValue().toFixed(3) - 0, 612512904.254)
+	} );
+
+	test( "Test: \"TREND\"", function () {
 
 		ws.getRange2( "A101" ).setValue( "1" );
 		ws.getRange2( "A102" ).setValue( "2" );
@@ -12655,7 +12750,35 @@ $( function () {
 		oParser = new parserFormula( "TREND(B101:B112,A101:A112,A115:A119)", "A2", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(4) - 0, 146171.5152);
-	} );*/
+		strictEqual( oParser.calculate().getElementRowCol(1,0).getValue().toFixed(4) - 0, 147189.697);
+		strictEqual( oParser.calculate().getElementRowCol(2,0).getValue().toFixed(4) - 0, 148207.8788);
+		strictEqual( oParser.calculate().getElementRowCol(3,0).getValue().toFixed(4) - 0, 149226.0606);
+		strictEqual( oParser.calculate().getElementRowCol(4,0).getValue().toFixed(4) - 0, 150244.2424);
+
+		oParser = new parserFormula( "TREND(B101:B112,A101:A112,A115:A119, FALSE)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(4) - 0, 220615.2);
+		strictEqual( oParser.calculate().getElementRowCol(1,0).getValue().toFixed(4) - 0, 237585.6);
+		strictEqual( oParser.calculate().getElementRowCol(2,0).getValue().toFixed(4) - 0, 254556);
+		strictEqual( oParser.calculate().getElementRowCol(3,0).getValue().toFixed(4) - 0, 271526.4);
+		strictEqual( oParser.calculate().getElementRowCol(4,0).getValue().toFixed(4) - 0, 288496.8);
+
+		oParser = new parserFormula( "TREND(B101:B112,A101:A112,,FALSE)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 16970.4);
+
+		oParser = new parserFormula( "TREND(B101:B112,A101:A112,,TRUE)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 133953.33333333);
+
+		oParser = new parserFormula( "TREND(B101:B112,,,TRUE)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 133953.33333333);
+
+		oParser = new parserFormula( "TREND(B101:B112,,,FALSE)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 16970.4);
+	} );
 
 	test( "Test: \"PDURATION\"", function () {
 		oParser = new parserFormula( "PDURATION(2.5%,2000,2200)", "A2", ws );
@@ -12921,6 +13044,35 @@ $( function () {
 		oParser = new parserFormula( "MINUTE(A204)", "A1", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), 0 );
+
+		ws.getRange2( "A205" ).setValue( "06/30/2020 20:00" );
+		ws.getRange2( "A206" ).setValue( "06/30/2020 21:15" );
+
+		ws.getRange2( "A207" ).setValue( "06/30/2020 23:15" );
+
+		oParser = new parserFormula( "MINUTE(A206-A205)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 15 );
+
+		oParser = new parserFormula( "MINUTE(A207-A205)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 15 );
+
+		oParser = new parserFormula( "MINUTE(A207-A206)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 0 );
+
+		oParser = new parserFormula( "MINUTE(A207+A206)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 30 );
+
+		oParser = new parserFormula( "MINUTE(123.1231231 - 1.12334343)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 59 );
+
+		oParser = new parserFormula( "MINUTE(1.12334343 - 123.1231231)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#NUM!" );
 	} );
 
 	/*test( "Test: \"MINVERSE\"", function () {

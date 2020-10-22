@@ -10172,6 +10172,10 @@ CDocumentBorder.prototype.GetWidth = function()
 
 	return this.Size;
 };
+CDocumentBorder.prototype.GetColor = function(oParagraph)
+{
+	return this.Get_Color(oParagraph);
+};
 CDocumentBorder.prototype.IsEqual = function(oBorder)
 {
 	if (!oBorder || this.Value !== oBorder.Value)
@@ -10184,6 +10188,14 @@ CDocumentBorder.prototype.IsEqual = function(oBorder)
 		&& IsEqualStyleObjects(this.Unifill, oBorder.Unifill)
 		&& this.Space !== oBorder.Space
 		&& this.Size !== oBorder.Size);
+};
+CDocumentBorder.prototype.WriteToBinary = function(oWriter)
+{
+	return this.Write_ToBinary(oWriter);
+};
+CDocumentBorder.prototype.ReadFromBinary = function(oReader)
+{
+	return this.Read_FromBinary(oReader);
 };
 
 function CTableMeasurement(Type, W)
@@ -16193,7 +16205,7 @@ CParaPr.prototype.Get_PresentationBullet = function(theme, colorMap)
 
 			case AscFormat.BULLET_TYPE_BULLET_AUTONUM :
 			{
-				Bullet.m_nType    = g_NumberingArr[this.Bullet.bulletType.AutoNumType];
+				Bullet.m_nType    = this.Bullet.bulletType.AutoNumType;
 				if(this.Bullet.bulletType.startAt === null)
 				{
 					Bullet.m_nStartAt = 1;
