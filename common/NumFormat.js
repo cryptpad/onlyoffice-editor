@@ -308,7 +308,7 @@ function ParseLocalFormatSymbol(Name)
                 LocaleFormatSymbol['s'] ='s';
 
 
-            }
+            }break;
         case ("ast-ES"||"ca-ES-valencia"||"ca-ES"||"es-BR"||"es-ES"||"es-MX"||"eu-ES"||"gl-ES"||"pt-BR"||"pt-PT"):
         {
             LocaleFormatSymbol['Y'] = 'A';
