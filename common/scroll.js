@@ -246,8 +246,8 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		this.screenW = -1;
 		this.screenH = -1;
 		this.screenAddH = 0;
-		this.contentH = undefined;
-		this.contentW = undefined;
+		this.contentH = 0;
+		this.contentW = 0;
 		this.scrollerMinHeight = 34;
 		this.scrollerMaxHeight = 99999;
 		this.scrollerMinWidth = 34;
@@ -447,8 +447,8 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		// var canvasClientWidth = Math.round(holder.firstElementChild.clientWidth * dPR);
 		// var canvasClientHeight =  Math.round(holder.firstElementChild.clientHeight *dPR);
 
-		this.maxScrollY = this.maxScrollY2 = holder.firstElementChild.clientHeight - this.settings.screenH > 0 ? holder.firstElementChild.clientHeight - this.settings.screenH : 0;
-		this.maxScrollX = this.maxScrollX2 = holder.firstElementChild.clientWidth - this.settings.screenW > 0 ? holder.firstElementChild.clientWidth - this.settings.screenW : 0;
+		this.maxScrollY = this.maxScrollY2 = this.settings.contentH - this.settings.screenH > 0 ? this.settings.contentH - this.settings.screenH : 0;
+		this.maxScrollX = this.maxScrollX2 = this.settings.contentW - this.settings.screenW > 0 ? this.settings.contentW - this.settings.screenW : 0;
 
 		this._setScrollerHW();
 		this.settings.arrowDim = this.settings.slimScroll && this.settings.isVerticalScroll ? this.scroller.w : this.settings.arrowDim;
@@ -606,13 +606,8 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		var _parentClientW = GetClientWidth( this.canvas.parentNode );
 		var _parentClientH = GetClientHeight( this.canvas.parentNode );
 
-		var _firstChildW = 0;
-        var _firstChildH = 0;
-        if (this.canvas.parentNode)
-        {
-            _firstChildW = GetClientWidth(this.canvas.parentNode.firstElementChild);
-            _firstChildH = GetClientHeight(this.canvas.parentNode.firstElementChild);
-        }
+		var _firstChildW = settings.contentW;
+        var _firstChildH = settings.contentH;
 
 		this.maxScrollY = this.maxScrollY2 = _firstChildH - settings.screenH > 0 ? Math.round((_firstChildH - settings.screenH) ) : 0;
 		this.maxScrollX = this.maxScrollX2 = _firstChildW - settings.screenW > 0 ? Math.round((_firstChildW - settings.screenW) ) : 0;
