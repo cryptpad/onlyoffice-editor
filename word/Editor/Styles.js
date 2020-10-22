@@ -6668,6 +6668,62 @@ CStyle.prototype.CreateTOCHeading = function()
 	this.Set_UnhideWhenUsed(true);
 	this.Set_ParaPr(ParaPr);
 };
+CStyle.prototype.CreateTOF = function(nType)
+{
+	var nType_;
+	var oParaPr = new CParaPr(), oTextPr = new CTextPr();
+	oParaPr.Spacing.Set_FromObject({After: 0, AfterAutoSpacing: 0});
+	if(Asc.c_oAscTOFStylesType)
+	{
+		if(nType === undefined || nType === null)
+		{
+			nType_ = Asc.c_oAscTOFStylesType.Formal;
+		}
+		else
+		{
+			nType_ = nType;
+		}
+		switch(nType_)
+		{
+			case Asc.c_oAscTOFStylesType.Classic:
+			{
+				oTextPr.SetCaps(true);
+				break;
+			}
+			case Asc.c_oAscTOFStylesType.Distinctive:
+			{
+				oTextPr.SetItalic(true);
+				break;
+			}
+			case Asc.c_oAscTOFStylesType.Centered:
+			{
+				oTextPr.SetBold(true);
+				oTextPr.SetItalic(true);
+				oParaPr.SetJc(AscCommon.align_Center);
+				break;
+			}
+			case Asc.c_oAscTOFStylesType.Formal:
+			{
+				break;
+			}
+			case Asc.c_oAscTOFStylesType.Simple:
+			{
+				oTextPr.SetBold(true);
+				break;
+			}
+			case Asc.c_oAscTOFStylesType.Web:
+			{
+				oTextPr.SetUnderline(true);
+				oTextPr.SetUnifill(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorHyperlink, null, null));
+				break;
+			}
+		}
+	}
+	this.Set_UiPriority(99);
+	this.Set_UnhideWhenUsed(true);
+	this.Set_ParaPr(oParaPr);
+	this.Set_TextPr(oTextPr);
+};
 /**
  * Дефолтовые настройки для стиля ListParagraph
  */
@@ -7315,6 +7371,7 @@ function CStyles(bCreateDefault)
 			IntenseQuote      : null,
 			TOC               : [],
 			TOCHeading        : null,
+			TOF               : null,
 			Caption           : null,
 			EndnoteText       : null,
 			EndnoteTextChar   : null,
@@ -7970,6 +8027,10 @@ function CStyles(bCreateDefault)
 		oStyleTOCHeading.CreateTOCHeading();
 		this.Default.TOCHeading = this.Add(oStyleTOCHeading);
 
+		var oStyleTOF = new CStyle("table of figures", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		oStyleTOF.CreateTOF();
+		this.Default.TOF = this.Add(oStyleTOF);
+
         // Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
         g_oTableId.Add( this, this.Id );
     }
@@ -7998,6 +8059,7 @@ function CStyles(bCreateDefault)
 
 			TOC               : [],
 			TOCHeading        : null,
+			TOF               : null,
 			Caption           : null,
 			EndnoteText       : null,
 			EndnoteTextChar   : null,
@@ -9491,6 +9553,10 @@ CStyles.prototype.GetDefaultTOCHeading = function()
 {
 	return this.Default.TOCHeading;
 };
+CStyles.prototype.GetDefaultTOF = function()
+{
+	return this.Default.TOF;
+};
 CStyles.prototype.GetDefaultHyperlink = function()
 {
 	return this.Default.Hyperlink;
@@ -9557,6 +9623,55 @@ CStyles.prototype.private_CheckTOCStyle = function(nLvl, nType)
 
 	return (!!oCheckStyle.IsEqual(oTOCStyle));
 };
+
+/**
+ * Get table of figures style type
+ * @returns {Asc.c_oAscTOCStylesType}
+ */
+CStyles.prototype.GetTOFStyleType = function()
+{
+	if(this.private_CheckTOFStyle(Asc.c_oAscTOFStylesType.Classic))
+	{
+		return Asc.c_oAscTOFStylesType.Classic;
+	}
+	else if(this.private_CheckTOFStyle(Asc.c_oAscTOFStylesType.Distinctive))
+	{
+		return Asc.c_oAscTOFStylesType.Distinctive;
+	}
+	else if(this.private_CheckTOFStyle(Asc.c_oAscTOFStylesType.Centered))
+	{
+		return Asc.c_oAscTOFStylesType.Centered;
+	}
+	else if(this.private_CheckTOFStyle(Asc.c_oAscTOFStylesType.Formal))
+	{
+		return Asc.c_oAscTOFStylesType.Formal;
+	}
+	else if(this.private_CheckTOFStyle(Asc.c_oAscTOFStylesType.Simple))
+	{
+		return Asc.c_oAscTOFStylesType.Simple;
+	}
+	else if(this.private_CheckTOFStyle(Asc.c_oAscTOFStylesType.Web))
+	{
+		return Asc.c_oAscTOFStylesType.Web;
+	}
+	return Asc.c_oAscTOFStylesType.Current;
+};
+CStyles.prototype.private_CheckTOFStyle = function(nType)
+{
+	var oTOCStyle = this.Get(this.GetDefaultTOF());
+
+	if (!this.LogicDocument || !oTOCStyle)
+		return false;
+
+	this.LogicDocument.TurnOffHistory();
+	var oCheckStyle = new CStyle();
+	oCheckStyle.Clear(oTOCStyle.GetName(), oTOCStyle.GetBasedOn(), oTOCStyle.GetNext(), oTOCStyle.GetType());
+	oCheckStyle.CreateTOF(nType);
+	this.LogicDocument.TurnOnHistory();
+
+	return (!!oCheckStyle.IsEqual(oTOCStyle));
+};
+
 /**
  * Переделываем стили для Table of Contents на заданную коллекцию стилей
  * @param nType {Asc.c_oAscTOCStylesType}
@@ -9576,6 +9691,24 @@ CStyles.prototype.SetTOCStylesType = function(nType)
 		oStyle.CreateTOC(nLvl, nType);
 	}
 };
+
+
+/**
+ * Recreate table of figures style according to current style type
+ * @param nType {Asc.c_oAscTOCStylesType}
+ */
+CStyles.prototype.SetTOFStyleType = function(nType)
+{
+	if (Asc.c_oAscTOCStylesType.Current === nType)
+		return;
+	var oStyle = this.Get(this.GetDefaultTOF());
+	if (!oStyle)
+		return;
+
+	oStyle.Clear(oStyle.GetName(), oStyle.GetBasedOn(), oStyle.GetNext(), oStyle.GetType());
+	oStyle.CreateTOF(nType);
+};
+
 /**
  * Получаем массив стилей в виде классов Asc.CAscStyle
  * @returns {Asc.CAscStyle[]}
