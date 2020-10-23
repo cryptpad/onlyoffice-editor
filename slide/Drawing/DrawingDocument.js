@@ -4573,7 +4573,7 @@ function CThumbnailsManager()
 			settings.scrollBackgroundColor = GlobalSkin.BackgroundColorThumbnails;
 			settings.scrollBackgroundColorHover = GlobalSkin.BackgroundColorThumbnails;
 			settings.scrollBackgroundColorActive = GlobalSkin.BackgroundColorThumbnails;
-
+            settings.contentH = nHeightPix;
 			document.getElementById('panel_right_scroll_thmbnl').style.height = parseInt(nHeightPix) + "px";
 
 			if (word_control.m_oScrollThumb_)

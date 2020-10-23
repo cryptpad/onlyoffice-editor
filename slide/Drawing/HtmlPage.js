@@ -3412,9 +3412,6 @@ function CEditorPage(api)
 
 		this.m_bIsHorScrollVisible = this.checkNeedHorScrollValue(this.m_dDocumentWidth);
 
-		var hor_scroll         = document.getElementById('panel_hor_scroll');
-		hor_scroll.style.width = this.m_dDocumentWidth + "px";
-
 		if (this.m_bIsHorScrollVisible)
 		{
 			if (this.m_oApi.isMobileVersion)
@@ -3875,8 +3872,6 @@ function CEditorPage(api)
 
 		this.checkNeedHorScroll();
 
-		document.getElementById('panel_right_scroll').style.height = this.m_dDocumentHeight + "px";
-
 		this.UpdateScrolls();
 
 		this.MainScrollUnLock();
@@ -3920,8 +3915,6 @@ function CEditorPage(api)
 		this.MainScrollLock();
 
 		var bIsResize = this.checkNeedHorScroll();
-
-		document.getElementById('panel_right_scroll').style.height = this.m_dDocumentHeight + "px";
 
 		this.UpdateScrolls();
 

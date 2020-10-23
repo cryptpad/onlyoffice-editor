@@ -444,9 +444,6 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 
 		this._setDimension( holder.clientHeight, holder.clientWidth );
 
-		// var canvasClientWidth = Math.round(holder.firstElementChild.clientWidth * dPR);
-		// var canvasClientHeight =  Math.round(holder.firstElementChild.clientHeight *dPR);
-
 		this.maxScrollY = this.maxScrollY2 = this.settings.contentH - this.settings.screenH > 0 ? this.settings.contentH - this.settings.screenH : 0;
 		this.maxScrollX = this.maxScrollX2 = this.settings.contentW - this.settings.screenW > 0 ? this.settings.contentW - this.settings.screenW : 0;
 
@@ -595,7 +592,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		}
 		if (bIsHorAttack)
 		{
-			if (settings.screenW == this.canvasW && undefined !== settings.cont.entW)
+			if (settings.screenW == this.canvasW && undefined !== settings.contentW)
 			{
 				var _maxScrollX = settings.contentW - settings.screenW > 0 ? settings.contentW - settings.screenW : 0;
 				if (_maxScrollX == this.maxScrollX)
@@ -613,9 +610,6 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		this.maxScrollX = this.maxScrollX2 = _firstChildW - settings.screenW > 0 ? Math.round((_firstChildW - settings.screenW) ) : 0;
 
 		this._setDimension( _parentClientH, _parentClientW );
-
-		this.settings.isVerticalScroll = _firstChildH / Math.max( this.canvasH, 1 ) > 1 || this.settings.isVerticalScroll || (true === bIsVerAttack);
-		this.settings.isHorizontalScroll = _firstChildW / Math.max( this.canvasW, 1 ) > 1 || this.settings.isHorizontalScroll || (true === bIsHorAttack);
 		this._setScrollerHW();
 
 		this.settings.arrowDim = Math.round(13 * dPR);
