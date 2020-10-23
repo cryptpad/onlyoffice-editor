@@ -89,6 +89,12 @@ $(function () {
 		}
 	});
 
+	AscCommonExcel.CCellCommentator.prototype.isLockedComment = function (oComment, callbackFunc) {
+		callbackFunc(true);
+	};
+	AscCommonExcel.CCellCommentator.prototype.drawCommentCells = function () {
+	};
+
 	var wsView = api.wb.getWorksheet(0);
 	wsView.handlers = api.handlers;
 	wsView.objectRender = new AscFormat.DrawingObjects();
@@ -184,7 +190,7 @@ $(function () {
 		comment.asc_putSolved(false);*/
 		
 
-		ws.selectionRange.ranges = [getRange(0, 0, 0, 0)];
+		ws.selectionRange.ranges = [getRange(4, 9, 4, 9)];
 		api.asc_addComment(comment);
 
 		var base64 = AscCommonExcel.g_clipboardExcel.copyProcessor.getBinaryForCopy(ws, wsView.objectRender);
@@ -192,7 +198,7 @@ $(function () {
 		ws.selectionRange.ranges = [getRange(0, 1, 0, 1)];
 		AscCommonExcel.g_clipboardExcel.pasteData(wsView, AscCommon.c_oAscClipboardDataFormat.Internal, base64);
 
-		strictEqual(ws.getRange2("A2").getValue(), ws.getRange2("A1").getValue());
+		strictEqual(ws.getRange2("A2").getValue(), ws.getRange2("E10").getValue());
 
 		ws.selectionRange.ranges = [getRange(0, 5, 0, 5), getRange(1, 5, 1, 8)];
 		AscCommonExcel.g_clipboardExcel.pasteData(wsView, AscCommon.c_oAscClipboardDataFormat.Internal, base64);
