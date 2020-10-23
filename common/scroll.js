@@ -1716,7 +1716,11 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 				this.that.arrowState = arrowHover;
 				this.that.animState = AnimationType.ARROW_HOVER;
 			} else {
-				this.that.animState = AnimationType.SCROLL_HOVER;
+				if (this.that._MouseHoverOnScroller(mousePos)) {
+					this.that.animState = AnimationType.SCROLL_HOVER;
+				} else {
+					this.that.animState = AnimationType.NONE;
+				}
 			}
 			this.that.mouseDownArrow = false;
 		}
