@@ -518,6 +518,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		};
 	};
 	ScrollObject.prototype.RecalcScroller = function ( startpos ) {
+		var dPR = window.devicePixelRatio;
 		if ( this.settings.isVerticalScroll ) {
 			if ( this.settings.showArrows ) {
 				this.verticalTrackHeight = this.canvasH - this.arrowPosition * 2;
@@ -525,12 +526,13 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 			}
 			else {
 				this.verticalTrackHeight = this.canvasH;
-				this.scroller.y = Math.round(window.devicePixelRatio);
+				this.scroller.y = Math.round(dPR);
 			}
 			var percentInViewV;
 
-			percentInViewV = (this.maxScrollY + this.paneHeight) / this.paneHeight;
-			this.scroller.h = Math.ceil( 1 / percentInViewV * this.verticalTrackHeight);
+			percentInViewV = (this.maxScrollY * dPR + this.paneHeight) / this.paneHeight;
+			this.scroller.h = Math.ceil(Math.ceil( 1 / percentInViewV * this.verticalTrackHeight / dPR) * dPR);
+			this.settings.scrollerMinHeight = 34 * dPR;
 			if ( this.scroller.h < this.settings.scrollerMinHeight )
 				this.scroller.h = this.settings.scrollerMinHeight;
 			else if ( this.scroller.h > this.settings.scrollerMaxHeight )
@@ -550,11 +552,12 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 			}
 			else {
 				this.horizontalTrackWidth = this.canvasW;
-				this.scroller.x = Math.round(window.devicePixelRatio);
+				this.scroller.x = Math.round(dPR);
 			}
 			var percentInViewH;
-			percentInViewH = ( this.maxScrollX + this.paneWidth ) / this.paneWidth;
-			this.scroller.w = Math.ceil( 1 / percentInViewH * this.horizontalTrackWidth );
+			percentInViewH = ( this.maxScrollX * dPR + this.paneWidth ) / this.paneWidth;
+			this.scroller.w = Math.ceil(Math.ceil( 1 / percentInViewH * this.horizontalTrackWidth / dPR) * dPR);
+			this.settings.scrollerMinWidth = 34 * dPR;
 
 			if ( this.scroller.w < this.settings.scrollerMinWidth )
 				this.scroller.w = this.settings.scrollerMinWidth;
@@ -787,8 +790,8 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 			isTop = false;
 			isBottom = true;
 		}
-
-		this.scroller.y = destY / Math.max( 1, this.scrollCoeff ) + this.arrowPosition;
+		var scrollCoeff = this.scrollCoeff === 0 ? 1 : this.scrollCoeff;
+		this.scroller.y = destY / scrollCoeff + this.arrowPosition;
 		if ( this.scroller.y < this.dragMinY )
 			this.scroller.y = this.dragMinY + 1;
 		else if ( this.scroller.y > this.dragMaxY )
@@ -848,8 +851,8 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 			isTop = false;
 			isBottom = true;
 		}
-
-		this.scroller.x = destX / Math.max( 1, this.scrollCoeff ) + this.arrowPosition;
+		var scrollCoeff = this.scrollCoeff === 0 ? 1 : this.scrollCoeff;
+		this.scroller.x = destX / scrollCoeff + this.arrowPosition;
 		if ( this.scroller.x < this.dragMinX )
 			this.scroller.x = this.dragMinX + 1;
 		else if ( this.scroller.x > this.dragMaxX )
