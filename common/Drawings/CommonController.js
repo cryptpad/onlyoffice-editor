@@ -11788,8 +11788,8 @@ function CollectSettingsUniFill(oUniFill)
         }
         case oFillTypes.FILL_TYPE_PATT:{
             ret.push(oFill.ftype);
-            ret.push(CollectUniColor(oFill.fgClr));
-            ret.push(CollectUniColor(oFill.bgClr));
+            ret.push(CollectUniColor(oFill.fgClr || AscFormat.AscFormat.CreateUniColorRGB(0, 0, 0)));
+            ret.push(CollectUniColor(oFill.bgClr || AscFormat.AscFormat.CreateUniColorRGB(255, 255, 255)));
             break;
         }
         case oFillTypes.FILL_TYPE_GRP:{

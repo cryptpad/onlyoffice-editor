@@ -4492,8 +4492,26 @@ CPattFill.prototype =
         {
             _ret.ftype = this.ftype;
         }
-        _ret.fgClr = this.fgClr.compare(fill.fgClr);
-        _ret.bgClr = this.bgClr.compare(fill.bgClr);
+        if(this.fgClr)
+        {
+            _ret.fgClr = this.fgClr.compare(fill.fgClr);
+        }
+        else
+        {
+            _ret.fgClr = null;
+        }
+        if(this.bgClr)
+        {
+            _ret.bgClr = this.bgClr.compare(fill.bgClr);
+        }
+        else
+        {
+            _ret.bgClr = null;
+        }
+        if(!_ret.bgClr && !_ret.fgClr)
+        {
+            return null;
+        }
         return _ret;
     }
 };
