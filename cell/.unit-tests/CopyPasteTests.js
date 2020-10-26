@@ -77,6 +77,9 @@ $(function () {
 	wb.handlers.add("getSelectionState", function () {
 		return null;
 	});
+	wb.handlers.add("getLockDefNameManagerStatus", function () {
+		return true;
+	});
 	api.wb.cellCommentator = new AscCommonExcel.CCellCommentator({
 		model: api.wbModel.aWorksheets[0],
 		collaborativeEditing: null,
@@ -208,6 +211,28 @@ $(function () {
 		strictEqual(ws.getRange2("B7").getValue(), "-4");
 		strictEqual(ws.getRange2("B8").getValue(), "-4");
 		strictEqual(ws.getRange2("B9").getValue(), "-4");
+	});
+
+	test("Test: \"tables\"", function () {
+		ws.autoFilters.addAutoFilter("TableStyleMedium2", getRange(3, 5, 3, 8));
+
+		ws.selectionRange.ranges = [getRange(3, 5, 3, 9)];
+		var base64 = AscCommonExcel.g_clipboardExcel.copyProcessor.getBinaryForCopy(ws, wsView.objectRender);
+
+		ws.selectionRange.ranges = [getRange(4, 10, 4, 10)];
+		AscCommonExcel.g_clipboardExcel.pasteData(wsView, AscCommon.c_oAscClipboardDataFormat.Internal, base64);
+
+		strictEqual(ws.TableParts[ws.TableParts.length - 1].Ref.r1, 10);
+		strictEqual(ws.TableParts[ws.TableParts.length - 1].Ref.c1, 4);
+
+		ws.selectionRange.ranges = [getRange(5, 10, 5, 10), getRange(6, 10, 6, 10)];
+		AscCommonExcel.g_clipboardExcel.pasteData(wsView, AscCommon.c_oAscClipboardDataFormat.Internal, base64);
+
+		strictEqual(ws.TableParts[ws.TableParts.length - 2].Ref.r1, 10);
+		strictEqual(ws.TableParts[ws.TableParts.length - 2].Ref.c1, 5);
+
+		strictEqual(ws.TableParts[ws.TableParts.length - 1].Ref.r1, 10);
+		strictEqual(ws.TableParts[ws.TableParts.length - 1].Ref.c1, 6)
 	});
 
 	module("CopyPaste");
