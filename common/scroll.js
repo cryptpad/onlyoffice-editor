@@ -338,6 +338,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		this.maxScrollX2 = 0;
 
 		this.scrollCoeff = 0;
+		this.isResizeArrows = false;
 
 		this.scroller = {x:0, y:1, h:0, w:0};
 
@@ -694,10 +695,12 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 			pos !== undefined ? this.scrollByX( pos - this.scrollHCurrentX ) : this.scrollToX( this.scrollHCurrentX );
 		}
 		this.reinit = false;
-		this.context.fillStyle = this.settings.scrollBackgroundColor;
-		this.context.fillRect(0, 0, this.canvasW, this.canvasH);
         this._initPiperImg();
-        this._drawArrows();
+		if(this.isResizeArrows) {
+			this.context.fillStyle = this.settings.scrollBackgroundColor;
+			this.context.fillRect(0, 0, this.canvasW, this.canvasH);
+			this._drawArrows();
+		}
 		this._draw();
 	};
 	ScrollObject.prototype._scrollV = function ( that, evt, pos, isTop, isBottom, bIsAttack ) {
@@ -1369,7 +1372,11 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 	ScrollObject.prototype._setDimension = function ( h, w ) {
 
 		var dPR = window.devicePixelRatio;
-
+		if(this.canvasH ===  Math.round(h * dPR) && this.canvasW === Math.round(w * dPR)) {
+			this.isResizeArrows = false;
+			return;
+		}
+		this.isResizeArrows = true;
         this.canvasH = Math.round(h * dPR);
         this.canvasW = Math.round(w * dPR);
 
