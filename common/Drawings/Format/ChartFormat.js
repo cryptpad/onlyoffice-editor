@@ -3069,8 +3069,12 @@ function CDLbl()
         if(typeof sName === "string" && sName.length > 0) {
             var oTx = new CTx();
             oResult = oTx.setValues(sName);
-            if(oResult.isSuccessful()) {
+            if(oResult.isSuccessful() && oTx.isValid()) {
                 this.setTx(oTx);
+            }
+            else {
+                oResult = new CParseResult();
+                this.setTx(null);
             }
         }
         else {
@@ -3092,11 +3096,10 @@ function CDLbl()
             oResult.setError(Asc.c_oAscError.ID.NoValues);
             return oResult;
         }
-        if(this.val === null) {
-            this.setVal(new CYVal());
-        }
-        if(this.val) {
-            oResult = this.val.setValues(sValues);
+        var oVal = new CYVal();
+        oResult = oVal.setValues(sValues);
+        if(oVal.isValid()) {
+            this.setVal(oVal);
         }
         else {
             oResult = new CParseResult();
@@ -3117,10 +3120,18 @@ function CDLbl()
             oResult.setError(Asc.c_oAscError.ID.No);
         }
         else {
-            if(!this.cat) {
-                this.setCat(new CCat());
+            var oCat = new CCat();
+            oResult = oCat.setValues(sValues);
+            if(oCat.isValid()) {
+                this.setCat(oCat);
             }
-            oResult = this.cat.setValues(sValues);
+            else {
+                if(this.cat) {
+                    this.setCat(null);
+                }
+                oResult = new CParseResult();
+                oResult.setError(Asc.c_oAscError.ID.DataRangeError);
+            }
         }
         return oResult;
      };
@@ -3229,10 +3240,18 @@ function CDLbl()
             oResult.setError(Asc.c_oAscError.ID.No);
         }
         else {
-            if(this.xVal === null) {
-                this.setXVal(new CCat());
+            var oCat = new CCat();
+            oResult = oCat.setValues(sValues);
+            if(oCat.isValid()) {
+                this.setXVal(oCat);
             }
-            oResult = this.xVal.setValues(sValues);
+            else {
+                if(this.xVal) {
+                    this.setXVal(null);
+                }
+                oResult = new CParseResult();
+                oResult.setError(Asc.c_oAscError.ID.DataRangeError);
+            }
         }
         return oResult;
     };
@@ -3243,11 +3262,10 @@ function CDLbl()
             oResult.setError(Asc.c_oAscError.ID.NoValues);
             return oResult;
         }
-        if(this.yVal === null) {
-            this.setYVal(new CYVal());
-        }
-        if(this.yVal) {
-            oResult = this.yVal.setValues(sValues);
+        var oVal = new CYVal();
+        oResult = oVal.setValues(sValues);
+        if(oVal.isValid()) {
+            this.setYVal(oVal);
         }
         else {
             oResult = new CParseResult();
@@ -7284,7 +7302,7 @@ CCat.prototype =
                 }
             }
             if(!oStrRef && !oMultiLvl) {
-                fParseNumLit(sValues, true, oResult);
+                fParseNumLit(sValues, false, oResult);
                 oNumLit = oResult.getObject();
                 if(!oNumLit) {
                     fParseStrLit(sValues, oResult);
@@ -7384,6 +7402,16 @@ CCat.prototype =
             return this.multiLvlStrRef.getParsedRefs();
         }
         return [];
+    },
+    isValid: function() {
+        if(this.multiLvlStrRef ||
+            this.numLit ||
+            this.numRef ||
+            this.strLit ||
+            this.strRef) {
+            return true;
+        }
+        return false;
     }
  };
 
@@ -11490,6 +11518,13 @@ CTx.prototype =
             oResult.setError(Asc.c_oAscError.ID.DataRangeError);
         }
         return oResult;
+    },
+
+    isValid: function() {
+        if(this.strRef || (typeof this.v === "string")) {
+            return true;
+        }
+        return false;
     }
 };
 
@@ -11840,7 +11875,7 @@ CStrCache.prototype =
     getFormula: function() {
         var sRet = "={";
         for(var nIndex = 0; nIndex < this.pts.length; ++nIndex) {
-            sRet += this.pts[nIndex].val;
+            sRet += ("\"" + this.pts[nIndex].val + "\"");
             if(nIndex < this.pts.length -1) {
                 sRet += ", ";
             }
@@ -13288,6 +13323,12 @@ CYVal.prototype =
             return this.numRef.getParsedRefs();
         }
         return [];
+    },
+    isValid: function() {
+        if(this.numRef || this.numLit) {
+            return true;
+        }
+        return false;
     }
 };
 

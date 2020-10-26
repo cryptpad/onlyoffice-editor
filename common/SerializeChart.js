@@ -1873,7 +1873,7 @@ BinaryChartWriter.prototype.WriteCT_ChartLines = function (oVal) {
 }
 BinaryChartWriter.prototype.WriteCT_Title = function (oVal) {
     var oThis = this;
-    if (null != oVal.tx) {
+    if (null != oVal.tx && oVal.tx.isValid && oVal.tx.isValid()) {
         this.bs.WriteItem(c_oserct_titleTX, function () {
             oThis.WriteCT_Tx(oVal.tx);
         });
@@ -2340,7 +2340,7 @@ BinaryChartWriter.prototype.WriteCT_DispUnitsLbl = function (oVal) {
     this.bs.WriteItem(c_oserct_dispunitslblLAYOUT, function () {
         oThis.WriteCT_Layout(oVal);
     });
-    if (null != oVal.tx) {
+    if (null != oVal.tx && oVal.tx.isValid && oVal.tx.isValid()) {
         this.bs.WriteItem(c_oserct_dispunitslblTX, function () {
             oThis.WriteCT_Tx(oVal.tx);
         });
@@ -2603,17 +2603,17 @@ BinaryChartWriter.prototype.WriteCT_BubbleSer = function (oVal) {
             oThis.WriteCT_ErrBars(oVal.errBars);
         });
     }
-    if (null != oVal.xVal) {
+    if (null != oVal.xVal && oVal.xVal.isValid && oVal.xVal.isValid()) {
         this.bs.WriteItem(c_oserct_bubbleserXVAL, function () {
             oThis.WriteCT_AxDataSource(oVal.xVal);
         });
     }
-    if (null != oVal.yVal) {
+    if (null != oVal.yVal && oVal.yVal.isValid && oVal.yVal.isValid()) {
         this.bs.WriteItem(c_oserct_bubbleserYVAL, function () {
             oThis.WriteCT_NumDataSource(oVal.yVal);
         });
     }
-    if (null != oVal.bubbleSize) {
+    if (null != oVal.bubbleSize && oVal.bubbleSize.isValid && oVal.bubbleSize.isValid()) {
         this.bs.WriteItem(c_oserct_bubbleserBUBBLESIZE, function () {
             oThis.WriteCT_NumDataSource(oVal.bubbleSize);
         });
@@ -2950,7 +2950,7 @@ BinaryChartWriter.prototype.WriteCT_DLbl = function (oVal) {
             oThis.WriteSpPr(oVal.spPr);
         });
     }
-    if (null != oVal.tx) {
+    if (null != oVal.tx && oVal.tx.isValid && oVal.tx.isValid()) {
         this.bs.WriteItem(c_oserct_dlblTX, function () {
             oThis.WriteCT_Tx(oVal.tx);
         });
@@ -3093,7 +3093,7 @@ BinaryChartWriter.prototype.WriteCT_TrendlineLbl = function (oVal) {
     this.bs.WriteItem(c_oserct_trendlinelblLAYOUT, function () {
         oThis.WriteCT_Layout(oVal);
     });
-    if (null != oVal.tx) {
+    if (null != oVal.tx && oVal.tx.isValid && oVal.tx.isValid()) {
         this.bs.WriteItem(c_oserct_trendlinelblTX, function () {
             oThis.WriteCT_Tx(oVal.tx);
         });
@@ -3142,12 +3142,12 @@ BinaryChartWriter.prototype.WriteCT_ErrBars = function (oVal) {
             oThis.WriteCT_Boolean(oVal.noEndCap);
         });
     }
-    if (null != oVal.plus) {
+    if (null != oVal.plus && oVal.plus.isValid && oVal.plus.isValid()) {
         this.bs.WriteItem(c_oserct_errbarsPLUS, function () {
             oThis.WriteCT_NumDataSource(oVal.plus);
         });
     }
-    if (null != oVal.minus) {
+    if (null != oVal.minus && oVal.minus.isValid && oVal.minus.isValid()) {
         this.bs.WriteItem(c_oserct_errbarsMINUS, function () {
             oThis.WriteCT_NumDataSource(oVal.minus);
         });
@@ -3510,12 +3510,12 @@ BinaryChartWriter.prototype.WriteCT_SurfaceSer = function (oVal) {
             oThis.WriteSpPr(oVal.spPr);
         });
     }
-    if (null != oVal.cat) {
+    if (null != oVal.cat && oVal.cat.isValid && oVal.cat.isValid()) {
         this.bs.WriteItem(c_oserct_surfaceserCAT, function () {
             oThis.WriteCT_AxDataSource(oVal.cat);
         });
     }
-    if (null != oVal.val) {
+    if (null != oVal.val && oVal.val.isValid && oVal.val.isValid()) {
         this.bs.WriteItem(c_oserct_surfaceserVAL, function () {
             oThis.WriteCT_NumDataSource(oVal.val);
         });
@@ -3740,12 +3740,12 @@ BinaryChartWriter.prototype.WriteCT_PieSer = function (oVal) {
             oThis.WriteCT_DLbls(oVal.dLbls);
         });
     }
-    if (null != oVal.cat) {
+    if (null != oVal.cat && oVal.cat.isValid && oVal.cat.isValid()) {
         this.bs.WriteItem(c_oserct_pieserCAT, function () {
             oThis.WriteCT_AxDataSource(oVal.cat);
         });
     }
-    if (null != oVal.val) {
+    if (null != oVal.val && oVal.val.isValid && oVal.val.isValid()) {
         this.bs.WriteItem(c_oserct_pieserVAL, function () {
             oThis.WriteCT_NumDataSource(oVal.val);
         });
@@ -3919,12 +3919,12 @@ BinaryChartWriter.prototype.WriteCT_BarSer = function (oVal) {
             oThis.WriteCT_ErrBars(oVal.errBars);
         });
     }
-    if (null != oVal.cat) {
+    if (null != oVal.cat && oVal.cat.isValid && oVal.cat.isValid()) {
         this.bs.WriteItem(c_oserct_barserCAT, function () {
             oThis.WriteCT_AxDataSource(oVal.cat);
         });
     }
-    if (null != oVal.val) {
+    if (null != oVal.val && oVal.val.isValid && oVal.val.isValid()) {
         this.bs.WriteItem(c_oserct_barserVAL, function () {
             oThis.WriteCT_NumDataSource(oVal.val);
         });
@@ -4205,12 +4205,12 @@ BinaryChartWriter.prototype.WriteCT_ScatterSer = function (oVal) {
             oThis.WriteCT_ErrBars(oVal.errBars);
         });
     }
-    if (null != oVal.xVal) {
+    if (null != oVal.xVal && oVal.xVal.isValid && oVal.xVal.isValid()) {
         this.bs.WriteItem(c_oserct_scatterserXVAL, function () {
             oThis.WriteCT_AxDataSource(oVal.xVal);
         });
     }
-    if (null != oVal.yVal) {
+    if (null != oVal.yVal && oVal.yVal.isValid && oVal.yVal.isValid()) {
         this.bs.WriteItem(c_oserct_scatterserYVAL, function () {
             oThis.WriteCT_NumDataSource(oVal.yVal);
         });
@@ -4332,12 +4332,12 @@ BinaryChartWriter.prototype.WriteCT_RadarSer = function (oVal) {
             oThis.WriteCT_DLbls(oVal.dLbls);
         });
     }
-    if (null != oVal.cat) {
+    if (null != oVal.cat && oVal.cat.isValid && oVal.cat.isValid()) {
         this.bs.WriteItem(c_oserct_radarserCAT, function () {
             oThis.WriteCT_AxDataSource(oVal.cat);
         });
     }
-    if (null != oVal.val) {
+    if (null != oVal.val && oVal.val.isValid && oVal.val.isValid()) {
         this.bs.WriteItem(c_oserct_radarserVAL, function () {
             oThis.WriteCT_NumDataSource(oVal.val);
         });
@@ -4511,12 +4511,12 @@ BinaryChartWriter.prototype.WriteCT_LineSer = function (oVal) {
             oThis.WriteCT_ErrBars(oVal.errBars);
         });
     }
-    if (null != oVal.cat) {
+    if (null != oVal.cat && oVal.cat.isValid && oVal.cat.isValid()) {
         this.bs.WriteItem(c_oserct_lineserCAT, function () {
             oThis.WriteCT_AxDataSource(oVal.cat);
         });
     }
-    if (null != oVal.val) {
+    if (null != oVal.val && oVal.val.isValid && oVal.val.isValid()) {
         this.bs.WriteItem(c_oserct_lineserVAL, function () {
             oThis.WriteCT_NumDataSource(oVal.val);
         });
@@ -4812,12 +4812,12 @@ BinaryChartWriter.prototype.WriteCT_AreaSer = function (oVal) {
             oThis.WriteCT_ErrBars(oVal.errBars);
         });
     }
-    if (null != oVal.cat) {
+    if (null != oVal.cat && oVal.cat.isValid && oVal.cat.isValid()) {
         this.bs.WriteItem(c_oserct_areaserCAT, function () {
             oThis.WriteCT_AxDataSource(oVal.cat);
         });
     }
-    if (null != oVal.val) {
+    if (null != oVal.val && oVal.val.isValid && oVal.val.isValid()) {
         this.bs.WriteItem(c_oserct_areaserVAL, function () {
             oThis.WriteCT_NumDataSource(oVal.val);
         });
@@ -8462,7 +8462,7 @@ BinaryChartReader.prototype.ReadCT_ErrBars = function (type, length, val) {
         val.setPlus(oNewVal);
     }
     else if (c_oserct_errbarsMINUS === type) {
-        var oNewVal = new AscFormat.CMinusPlus();;
+        var oNewVal = new AscFormat.CMinusPlus();
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_NumDataSource(t, l, oNewVal);
         });
