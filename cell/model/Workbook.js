@@ -2315,6 +2315,11 @@
 			if(!(bFromRedo === true))
 			{
 				wsFrom.copyObjects(newSheet, renameParams);
+				if (wsFrom.aNamedSheetViews) {
+					for (var i = 0; i < wsFrom.aNamedSheetViews.length; ++i) {
+						newSheet.addNamedSheetView(wsFrom.aNamedSheetViews[i].clone(renameParams.tableNameMap));
+					}
+				}
 			}
 			this.sortDependency();
 
@@ -3931,6 +3936,10 @@
 					renameParams.slicerNameMap[_slicer.name] = _newSlicer.name;
 				}
 			}
+		}
+
+		if(wsFrom.headerFooter) {
+			this.headerFooter = wsFrom.headerFooter.clone(this);
 		}
 
 		return renameParams;
