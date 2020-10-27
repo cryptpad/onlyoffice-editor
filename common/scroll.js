@@ -246,18 +246,27 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		this.screenW = -1;
 		this.screenH = -1;
 		this.screenAddH = 0;
+
 		this.contentH = 0;
 		this.contentW = 0;
+
+		//timeout when scroll move
+		this.initialDelay = 300;
+		this.arrowRepeatFreq = 50;
+		this.trackClickRepeatFreq = 70;
+
+		this.scrollPagePercent = 1. / 8;
+
+		//max and min scroll size
 		this.scrollerMinHeight = 34;
 		this.scrollerMaxHeight = 99999;
 		this.scrollerMinWidth = 34;
 		this.scrollerMaxWidth = 99999;
-		this.initialDelay = 300;
-		this.arrowRepeatFreq = 50;
-		this.trackClickRepeatFreq = 70;
-		this.scrollPagePercent = 1. / 8;
+
+		//arrow dimension
 		this.arrowDim = Math.round(13 * window.devicePixelRatio);
-		this.marginScroller = Math.round(window.devicePixelRatio);
+
+		//scroll elements color
 		this.scrollerColor = 241;
 		this.scrollBackgroundColor = "#f4f4f4";
 		this.scrollBackgroundColorHover = "#f4f4f4";
@@ -265,9 +274,13 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		this.strokeStyleNone = "#cfcfcf";
 		this.strokeStyleOver = "#cfcfcf";
 		this.strokeStyleActive = "#ADADAD";
+
+		//scroll speed
 		this.vscrollStep = 10;
 		this.hscrollStep = 10;
 		this.wheelScrollLines = 1;
+
+		//arrow elements color
 		this.arrowColor = 173;
 		this.arrowBackgroundColor = 241;
 		this.arrowBorderColor = "#cfcfcf";
@@ -275,12 +288,18 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		this.arrowOverBackgroundColor = "#cfcfcf";
 		this.arrowActiveBorderColor = "#ADADAD";
 		this.arrowActiveBackgroundColor = "#ADADAD";
+
+		//scroll animation time delay
 		this.fadeInFadeOutDelay = 20;
+
+		//stripes color
 		this.piperColor = "#cfcfcf";
 		this.piperColorHover = "#f1f1f1";
+
 		this.defaultColor = 241;
 		this.hoverColor = 207;
 		this.activeColor = 173;
+
         this.arrowSizeW = Math.round(13 * window.devicePixelRatio);
         this.arrowSizeH = Math.round(13 * window.devicePixelRatio);
 		this.cornerRadius = 0;
@@ -350,8 +369,6 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		this.IsRetina = false;
 		this.canvasW = 1;
 		this.canvasH = 1;
-		this.canvasOriginalW = 1;
-		this.canvasOriginalH = 1;
 
 		this.scrollColor = this.settings.scrollerColor;
 		this.arrowColor = this.settings.arrowColor;
@@ -451,7 +468,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		this._setScrollerHW();
 		this.settings.arrowDim = this.settings.slimScroll && this.settings.isVerticalScroll ? this.scroller.w : this.settings.arrowDim;
 		this.settings.arrowDim = this.settings.slimScroll && this.settings.isHorizontalScroll ? this.scroller.h : this.settings.arrowDim;
-		this.arrowPosition = this.settings.showArrows ? Math.round(this.settings.arrowDim + this._roundForScale(dPR) + this._roundForScale(dPR)) : this.settings.marginScroller;
+		this.arrowPosition = this.settings.showArrows ? Math.round(this.settings.arrowDim + this._roundForScale(dPR) + this._roundForScale(dPR)) : Math.round(dPR);
 
 		this.paneHeight = this.canvasH - this.arrowPosition * 2;
 		this.paneWidth = this.canvasW - this.arrowPosition * 2;
@@ -1380,9 +1397,6 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
         this.canvasH = Math.round(h * dPR);
         this.canvasW = Math.round(w * dPR);
 
-        this.canvasOriginalW = w;
-        this.canvasOriginalH = h;
-
 		this.canvas.height = this.canvasH;
 		this.canvas.width =  this.canvasW;
 	};
@@ -1390,7 +1404,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		var dPR = window.devicePixelRatio;
 		if ( this.settings.isVerticalScroll ) {
 			this.scroller.x = this._roundForScale(dPR);
-			this.scroller.w = Math.round((this.canvasOriginalW - 1) * dPR);
+			this.scroller.w = Math.round(this.canvasW -  dPR);
 			if(this.settings.slimScroll) {
 				this.settings.arrowSizeW = this.settings.arrowSizeH = this.scroller.w;
 			}
@@ -1399,7 +1413,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		}
 		else if ( this.settings.isHorizontalScroll ) {
 			this.scroller.y = this._roundForScale(dPR);
-			this.scroller.h = Math.round((this.canvasOriginalH - 1) * dPR);
+			this.scroller.h = Math.round(this.canvasH - dPR);
 			if(this.settings.slimScroll) {
 				this.settings.arrowSizeH = this.settings.arrowSizeW = this.scroller.h;
 			}
