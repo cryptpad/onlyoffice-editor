@@ -10152,6 +10152,7 @@ CNumLit.prototype =
             var oHM, nHidden, nR, nC, oMinBB, oCell, aSpanPoints = [], oStartPoint;
             var dVal, sVal, oPt, sCellFC, nSpan, nLastNoEmptyIndex, nSpliceIndex;
             var sFC = typeof this.formatCode === "string" && this.formatCode.length > 0 ? this.formatCode : "General";
+            var bHaveTotalRow;
             nPtCount = 0;
             nPtIdx = 0;
             for(nRef = 0; nRef < aParsedRef.length; ++nRef) {
@@ -10171,7 +10172,8 @@ CNumLit.prototype =
                 else {
                     nHidden = oHM.getHiddenRowsCount(oBB.r1, oBB.r2 + 1)*oBB.getWidth() + oHM.getHiddenColsCount(oBB.c1, oBB.c2 + 1)*oBB.getHeight();
                 }
-                if(oWS.isTableTotalRow(new Asc.Range(oBB.c1, oBB.r2, oBB.c1, oBB.r2))) {
+                bHaveTotalRow = oWS.isTableTotalRow(new Asc.Range(oBB.c1, oBB.r2, oBB.c1, oBB.r2)) && oBB.r1 !== oBB.r2;
+                if(bHaveTotalRow) {
                     nHidden += 1;
                 }
                 nCount = Math.max(0, oBB.getHeight()*oBB.getWidth() - nHidden);
@@ -10186,7 +10188,7 @@ CNumLit.prototype =
                     if(!displayHidden && oWS.getRowHidden(nR)) {
                         continue;
                     }
-                    if(nR === oBB.r2 && oWS.isTableTotalRow(new Asc.Range(oBB.c1, oBB.r2, oBB.c1, oBB.r2))) {
+                    if(nR === oBB.r2 && bHaveTotalRow) {
                         continue;
                     }
                     for(nC = oMinBB.c1; nC <= oMinBB.c2; ++nC) {
