@@ -199,6 +199,8 @@ $(function () {
 		api.asc_addComment(comment);
 		comment.nCol = 4;
 		comment.nRow = 9;
+		comment.coords.nCol = 4;
+		comment.coords.nRow = 9;
 
 		ws.selectionRange.ranges = [getRange(4, 9, 4, 9)];
 
@@ -218,6 +220,14 @@ $(function () {
 		strictEqual(ws.getRange2("B7").getValue(), "-4");
 		strictEqual(ws.getRange2("B8").getValue(), "-4");
 		strictEqual(ws.getRange2("B9").getValue(), "-4");
+
+		strictEqual(wsView.cellCommentator.getComment(0,5).nRow, 5);
+		strictEqual(wsView.cellCommentator.getComment(1,5).nRow, 5);
+		strictEqual(wsView.cellCommentator.getComment(1,6).nRow, 6);
+		strictEqual(wsView.cellCommentator.getComment(1,7).nRow, 7);
+		strictEqual(wsView.cellCommentator.getComment(1,8).nRow, 8);
+
+		strictEqual(wsView.cellCommentator.getComment(1,9), null);
 	});
 
 	test("Test: \"tables\"", function () {
