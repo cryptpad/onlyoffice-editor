@@ -335,6 +335,17 @@
 			}
 		}
 	};
+	
+	/**
+	 * Get the type of this class.
+	 * @memberof ApiRange
+	 * @typeofeditors ["CDE"]
+	 * @returns {"range"}
+	 */
+	ApiRange.prototype.GetClassType = function()
+	{
+		return "range";
+	};
 
 	/**
 	 * Get a paragraph from all paragraphs that are in the range
@@ -1765,10 +1776,17 @@
 	}
 	ApiHyperlink.prototype.constructor = ApiHyperlink;
 
+	/**
+	 * Get the type of this class.
+	 * @memberof ApiHyperlink
+	 * @typeofeditors ["CDE"]
+	 * @returns {"hyperlink"}
+	 */
 	ApiHyperlink.prototype.GetClassType = function()
 	{
 		return "hyperlink";
 	};
+	
 	/**
 	 * Sets the hyperlink address.
 	 * @typeofeditors ["CDE"]
@@ -2842,7 +2860,7 @@
 	/**
 	 * Create a radial gradient fill which allows to fill the object using a selected radial gradient as the object background.
 	 * @memberof Api
-	 * @typeofeditors ["CDE", "CPE"]
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @param {Array} aGradientStop - The array of gradient color stops measured in 1000th of percent.
 	 * @returns {ApiFill}
 	 */
@@ -5516,7 +5534,7 @@
 	/**
 	 * Get the type of this class.
 	 * @memberof ApiRun
-	 * @typeofeditors ["CDE", "CPE"]
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @returns {"run"}
 	 */
 	ApiRun.prototype.GetClassType = function()
@@ -10741,7 +10759,7 @@
 	/**
 	 * Get the type of this class.
 	 * @memberof ApiPresetColor
-	 * @typeofeditors ["CDE", "CPE"]
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @returns {"presetColor"}
 	 */
 	ApiPresetColor.prototype.GetClassType = function ()
@@ -11290,7 +11308,7 @@
 	 * Gets the collection of content control objects in the content control.
 	 * @memberof ApiBlockLvlSdt
 	 * @typeofeditors ["CDE"]
-	 * @returns {(ApiBlockLvlSdt | ApiInlineLvlSdt)[]}
+	 * @returns {ApiBlockLvlSdt[] | ApiInlineLvlSdt[]}
 	 */
 	ApiBlockLvlSdt.prototype.GetAllContentControls = function()
 	{
@@ -11653,6 +11671,7 @@
 	ApiDocumentContent.prototype["RemoveElement"]    = ApiDocumentContent.prototype.RemoveElement;
 	ApiDocumentContent.prototype["GetRange"]         = ApiDocumentContent.prototype.GetRange;
 
+	ApiRange.prototype["GetClassType"]               = ApiRange.prototype.GetClassType
 	ApiRange.prototype["GetParagraph"]               = ApiRange.prototype.GetParagraph;
 	ApiRange.prototype["AddText"]                    = ApiRange.prototype.AddText;
 	ApiRange.prototype["AddBookmark"]                = ApiRange.prototype.AddBookmark;

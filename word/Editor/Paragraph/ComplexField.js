@@ -607,11 +607,56 @@ CComplexField.prototype.private_UpdateTOC = function()
 	}
 
 	var oStyles          = this.LogicDocument.Get_Styles();
-	var arrOutline       = this.LogicDocument.GetOutlineParagraphs(null, {
+	var arrOutline;
+	var sCaption = this.Instruction.GetCaption(); //flag c
+	var sCaptionOnlyText = this.Instruction.GetCaptionOnlyText();//flag a
+	var sResultCaption = sCaption;
+	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
+	if(typeof sCaptionOnlyText === "string" && sCaptionOnlyText.length > 0)
+	{
+		sResultCaption = sCaptionOnlyText;
+	}
+	var oOutlinePr = {
 		OutlineStart : this.Instruction.GetHeadingRangeStart(),
 		OutlineEnd   : this.Instruction.GetHeadingRangeEnd(),
 		Styles       : this.Instruction.GetStylesArray()
-	});
+	};
+	var bTOF = false;
+	var bSkipCaptionLbl = false;
+	if(sCaption !== undefined || sCaptionOnlyText !== undefined)
+	{
+		bTOF = true;
+		var aStyles = this.Instruction.GetStylesArray();
+		if(aStyles.length > 0)
+		{
+			arrOutline = this.LogicDocument.GetOutlineParagraphs(null, oOutlinePr);
+		}
+		else
+		{
+			arrOutline = [];
+			if(sCaptionOnlyText !== undefined)
+			{
+				bSkipCaptionLbl = true;
+			}
+			if(typeof sResultCaption === "string" && sResultCaption.length > 0)
+			{
+				var aParagraphs = this.LogicDocument.GetAllCaptionParagraphs(sResultCaption);
+				var oCurPara;
+				for(var nParagraph = 0; nParagraph < aParagraphs.length; ++nParagraph)
+				{
+					oCurPara = aParagraphs[nParagraph];
+					if(!bSkipCaptionLbl || oCurPara.CanAddRefAfterSEQ(sResultCaption))
+					{
+						arrOutline.push({Paragraph: oCurPara, Lvl: 0});
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		arrOutline = this.LogicDocument.GetOutlineParagraphs(null, oOutlinePr);
+	}
 	var oSelectedContent = new CSelectedContent();
 
 	var isPreserveTabs   = this.Instruction.IsPreserveTabs();
@@ -642,17 +687,45 @@ CComplexField.prototype.private_UpdateTOC = function()
 		for (var nIndex = 0, nCount = arrOutline.length; nIndex < nCount; ++nIndex)
 		{
 			var oSrcParagraph = arrOutline[nIndex].Paragraph;
-
-			var oPara = oSrcParagraph.Copy(null, null, {
+			var sBookmarkName;
+			var oPara, oParaForCopy = oSrcParagraph;
+			if(bSkipCaptionLbl)
+			{
+				sBookmarkName = oSrcParagraph.AddBookmarkForCaption(sResultCaption, true, true);
+				if(!sBookmarkName)
+				{
+					sBookmarkName = oSrcParagraph.AddBookmarkForTOC();
+				}
+				oBookmarksManager.SelectBookmark(sBookmarkName);
+				var oParaSelectedContent = this.LogicDocument.GetSelectedContent(false);
+				var oElement = oParaSelectedContent.Elements[0];
+				if(oElement && oElement.Element.GetType() === type_Paragraph)
+				{
+					oParaForCopy = oElement.Element;
+				}
+			}
+			else
+			{
+				sBookmarkName = oSrcParagraph.AddBookmarkForTOC();
+			}
+			oPara = oParaForCopy.Copy(null, null, {
 				SkipPageBreak         : true,
 				SkipLineBreak         : this.Instruction.IsRemoveBreaks(),
 				SkipColumnBreak       : true,
 				SkipAnchors           : true,
 				SkipFootnoteReference : true,
 				SkipComplexFields     : true,
-				SkipComments          : true
+				SkipComments          : true,
+				SkipBookmarks         : true
 			});
-			oPara.Style_Add(oStyles.GetDefaultTOC(arrOutline[nIndex].Lvl), false);
+			if(bTOF)
+			{
+				oPara.Style_Add(oStyles.GetDefaultTOF(), false);
+			}
+			else
+			{
+				oPara.Style_Add(oStyles.GetDefaultTOC(arrOutline[nIndex].Lvl), false);
+			}
 			oPara.SetOutlineLvl(undefined);
 
 			var oClearTextPr = new CTextPr();
@@ -683,7 +756,7 @@ CComplexField.prototype.private_UpdateTOC = function()
 			oPara.ApplyTextPr(oClearTextPr);
 			oPara.RemoveSelection();
 
-			var sBookmarkName = oSrcParagraph.AddBookmarkForTOC();
+
 
 			var oContainer    = oPara,
 				nContainerPos = 0;
@@ -805,7 +878,15 @@ CComplexField.prototype.private_UpdateTOC = function()
 	}
 	else
 	{
-		var sReplacementText = AscCommon.translateManager.getValue("No table of contents entries found.");
+		var sReplacementText;
+		if(bTOF)
+		{
+			sReplacementText = AscCommon.translateManager.getValue("No table of figures entries found.");
+		}
+		else
+		{
+			sReplacementText = AscCommon.translateManager.getValue("No table of contents entries found.");
+		}
 
 		var oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
 		var oRun  = new ParaRun(oPara, false);
@@ -815,12 +896,12 @@ CComplexField.prototype.private_UpdateTOC = function()
 		oSelectedContent.Add(new CSelectedElement(oPara, true));
 	}
 
+	this.SelectFieldValue();
 	this.LogicDocument.TurnOff_Recalculate();
 	this.LogicDocument.TurnOff_InterfaceEvents();
 	this.LogicDocument.Remove(1, false, false, false);
 	this.LogicDocument.TurnOn_Recalculate(false);
 	this.LogicDocument.TurnOn_InterfaceEvents(false);
-
 	var oRun       = this.BeginChar.GetRun();
 	var oParagraph = oRun.GetParagraph();
 	var oNearPos   = {

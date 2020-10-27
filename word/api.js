@@ -4820,12 +4820,16 @@ background-repeat: no-repeat;\
 
 	/*----------------------------------------------------------------*/
 	/*functions for working with table*/
-	asc_docs_api.prototype.put_Table               = function(col, row)
+	asc_docs_api.prototype.put_Table               = function(col, row, sStyleId)
 	{
 		if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Document_Content_Add))
 		{
 			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_AddTable);
-			this.WordControl.m_oLogicDocument.AddInlineTable(col, row);
+			var oTable = this.WordControl.m_oLogicDocument.AddInlineTable(col, row);
+			if(oTable && sStyleId)
+			{
+				oTable.Set_TableStyle(sStyleId);
+			}
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
@@ -9553,7 +9557,18 @@ background-repeat: no-repeat;\
 		var oStyles     = oLogicDocument.GetStyles();
 		var nStylesType = oPr.get_StylesType();
 
-		var isNeedChangeStyles = (Asc.c_oAscTOCStylesType.Current !== nStylesType && nStylesType !== oStyles.GetTOCStylesType());
+		var isTOF = oPr.get_Caption() !== undefined;
+
+		var isNeedChangeStyles = false;
+
+		if(isTOF)
+		{
+			isNeedChangeStyles = (Asc.c_oAscTOFStylesType.Current !== nStylesType && nStylesType !== oStyles.GetTOFStyleType());
+		}
+		else
+		{
+			isNeedChangeStyles = (Asc.c_oAscTOCStylesType.Current !== nStylesType && nStylesType !== oStyles.GetTOCStylesType());
+		}
 
 		oTOC.SelectField();
 
@@ -9574,7 +9589,16 @@ background-repeat: no-repeat;\
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_SetComplexFieldPr);
 
 			if (isNeedChangeStyles)
-				oStyles.SetTOCStylesType(nStylesType);
+			{
+				if(isTOF)
+				{
+					oStyles.SetTOFStyleType(nStylesType);
+				}
+				else
+				{
+					oStyles.SetTOCStylesType(nStylesType);
+				}
+			}
 
 			oTOC.SetPr(oPr);
 			oTOC.Update();
@@ -9647,6 +9671,125 @@ background-repeat: no-repeat;\
 			}
 		}
 
+	};
+
+	asc_docs_api.prototype.asc_CanUpdateTablesOfFigures = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		var aTOF = oLogicDocument.GetAllTablesOfFigures(true);
+		return aTOF.length > 0;
+	};
+	asc_docs_api.prototype.asc_UpdateTablesOfFigures = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		var aTOF = oLogicDocument.GetAllTablesOfFigures(true);
+		if(aTOF.length === 0)
+		{
+			return;
+		}
+		var oApi = this;
+		var fCallback = function (isUpdatePageNumbers)
+		{
+			var oTOF = aTOF.pop();
+			if(oTOF)
+			{
+				oApi.asc_UpdateTableOfContents(isUpdatePageNumbers, oTOF);
+			}
+			if(aTOF.length > 0)
+			{
+				aTOF[aTOF.length - 1].SelectField();
+				oApi.sendEvent("asc_onAscTOFUpdate", fCallback);
+			}
+		};
+		aTOF[aTOF.length - 1].SelectField();
+		oApi.sendEvent("asc_onAscTOFUpdate", fCallback);
+	};
+
+	asc_docs_api.prototype.asc_AddTableOfFigures = function(oPr)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		var oApi = this;
+		if(!oLogicDocument)
+		{
+			return;
+		}
+		var sCaption = oPr.get_Caption();
+		var aTOF, oTOF, nIndex, sInstrCaption;
+		var oTOFToReplace = null;
+		var oInstruction;
+		aTOF = oLogicDocument.GetAllTablesOfFigures(true);
+		if(aTOF.length > 0)
+		{
+			oTOFToReplace = aTOF[0];
+		}
+		if(!oTOFToReplace)
+		{
+			aTOF = oLogicDocument.GetAllTablesOfFigures();
+			if(aTOF.length > 0)
+			{
+				if(typeof sCaption === "string" && sCaption.length > 0)
+				{
+					for(nIndex = 0; nIndex < aTOF.length; ++nIndex)
+					{
+						oTOF = aTOF[nIndex];
+						oInstruction = oTOF.GetInstruction();
+						if(!oInstruction)
+						{
+							continue;
+						}
+						sInstrCaption = oInstruction.GetCaptionOnlyText() || oInstruction.GetCaption();
+						if(sInstrCaption === sCaption)
+						{
+							oTOFToReplace = oTOF;
+							break;
+						}
+					}
+				}
+				if(!oTOFToReplace)
+				{
+					oTOFToReplace = aTOF[0];
+				}
+			}
+		}
+		if(oTOFToReplace)
+		{
+			var oState = oLogicDocument.SaveDocumentState();
+			oTOFToReplace.SelectFieldValue();
+			this.sendEvent("asc_onAscReplaceCurrentTOF", function(bReplace){
+				if(!bReplace)
+				{
+					oLogicDocument.AddTableOfFigures(oPr);
+				}
+				else
+				{
+					oPr.ComplexField = oTOFToReplace;
+					oLogicDocument.LoadDocumentState(oState);
+					oApi.asc_SetTableOfContentsPr(oPr);
+				}
+			});
+		}
+		else
+		{
+			oLogicDocument.AddTableOfFigures(oPr);
+		}
+	};
+	asc_docs_api.prototype.asc_GetTableOfFiguresPr = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		var oApi = this;
+		if(!oLogicDocument)
+		{
+			return null;
+		}
+		var aTOF = oLogicDocument.GetAllTablesOfFigures(true);
+		if(aTOF.length > 0)
+		{
+			var oPr = new Asc.CTableOfContentsPr();
+			oPr.InitFromTOCInstruction(aTOF[0]);
+			oPr.CheckStylesType(oLogicDocument.GetStyles());
+			return oPr;
+		}
+		return null;
 	};
 
 	asc_docs_api.prototype.asc_GetCurrentComplexField = function()
@@ -9883,6 +10026,19 @@ background-repeat: no-repeat;\
 			return [];
 
 		return oLogicDocument.GetStyles().GetAscStylesArray();
+	};
+	asc_docs_api.prototype.asc_getAllUsedParagraphStyles = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return [];
+		var aStyles = oLogicDocument.GetAllUsedParagraphStyles();
+		var aAscStyles = [];
+		for(var nStyle = 0; nStyle < aStyles.length; ++nStyle)
+		{
+			aAscStyles.push(aStyles[nStyle].ToAscStyle());
+		}
+		return aAscStyles;
 	};
 
 	asc_docs_api.prototype.asc_SetAutomaticBulletedLists = function(isAuto)
@@ -10497,6 +10653,11 @@ background-repeat: no-repeat;\
 		if (this.WordControl.m_oDrawingDocument)
 			this.WordControl.m_oDrawingDocument.SetDrawImagePlaceContents(id, props);
 	};
+	asc_docs_api.prototype.SetDrawImagePlaceTableOfFigures = function(id, props)
+	{
+		if (this.WordControl.m_oDrawingDocument)
+			this.WordControl.m_oDrawingDocument.SetDrawImagePlaceTableOfFigures(id, props);
+	};
 
     asc_docs_api.prototype.SetDrawImagePreviewMargins = function(id, props)
     {
@@ -10571,6 +10732,19 @@ background-repeat: no-repeat;\
 			return AscCommon.document_compatibility_mode_Word15 !== this.WordControl.m_oLogicDocument.GetCompatibilityMode();
 		}
 		return false;
+	};
+	asc_docs_api.prototype.asc_Remove = function()
+	{
+		var oDocument = this.private_GetLogicDocument();
+		if(oDocument)
+		{
+			var oController = oDocument.DrawingObjects;
+			if(oController)
+			{
+				oController.resetChartElementsSelection();
+				AscCommon.baseEditorsApi.prototype.asc_Remove.call(this);
+			}
+		}
 	};
 	//-------------------------------------------------------------export---------------------------------------------------
 	window['Asc']                                                       = window['Asc'] || {};
@@ -11111,6 +11285,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["asc_SpecialPaste"]                          = asc_docs_api.prototype.asc_SpecialPaste;
 
 	asc_docs_api.prototype["SetDrawImagePlaceContents"]					= asc_docs_api.prototype.SetDrawImagePlaceContents;
+	asc_docs_api.prototype["SetDrawImagePlaceTableOfFigures"]			= asc_docs_api.prototype.SetDrawImagePlaceTableOfFigures;
     asc_docs_api.prototype["SetDrawImagePreviewMargins"]				= asc_docs_api.prototype.SetDrawImagePreviewMargins;
     asc_docs_api.prototype["SetDrawImagePreviewBullet"]					= asc_docs_api.prototype.SetDrawImagePreviewBullet;
 
@@ -11154,6 +11329,12 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_GetTableOfContentsPr']                  = asc_docs_api.prototype.asc_GetTableOfContentsPr;
 	asc_docs_api.prototype['asc_SetTableOfContentsPr']                  = asc_docs_api.prototype.asc_SetTableOfContentsPr;
 	asc_docs_api.prototype['asc_UpdateTableOfContents']                 = asc_docs_api.prototype.asc_UpdateTableOfContents;
+
+	asc_docs_api.prototype['asc_getAllUsedParagraphStyles']             = asc_docs_api.prototype.asc_getAllUsedParagraphStyles;
+	asc_docs_api.prototype['asc_CanUpdateTablesOfFigures']              = asc_docs_api.prototype.asc_CanUpdateTablesOfFigures;
+	asc_docs_api.prototype['asc_UpdateTablesOfFigures']                 = asc_docs_api.prototype.asc_UpdateTablesOfFigures;
+	asc_docs_api.prototype['asc_AddTableOfFigures']                     = asc_docs_api.prototype.asc_AddTableOfFigures;
+	asc_docs_api.prototype['asc_GetTableOfFiguresPr']                   = asc_docs_api.prototype.asc_GetTableOfFiguresPr;
 
 	asc_docs_api.prototype['asc_GetCurrentComplexField']                = asc_docs_api.prototype.asc_GetCurrentComplexField;
 	asc_docs_api.prototype['asc_UpdateComplexField']                    = asc_docs_api.prototype.asc_UpdateComplexField;

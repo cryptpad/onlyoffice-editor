@@ -3330,9 +3330,9 @@ background-repeat: no-repeat;\
 
 	/*----------------------------------------------------------------*/
 	/*functions for working with table*/
-	asc_docs_api.prototype.put_Table               = function(col, row, placeholder)
+	asc_docs_api.prototype.put_Table               = function(col, row, placeholder, sStyleId)
 	{
-		this.WordControl.m_oLogicDocument.Add_FlowTable(col, row, placeholder);
+		this.WordControl.m_oLogicDocument.Add_FlowTable(col, row, placeholder, sStyleId);
 	};
 	asc_docs_api.prototype.addRowAbove             = function(count)
 	{
@@ -7563,6 +7563,19 @@ background-repeat: no-repeat;\
 			oCore.setProps(oProps);
 			oLogicDocument.FinalizeAction(true);
 			this.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
+		}
+	};
+	asc_docs_api.prototype.asc_Remove = function()
+	{
+		var oPresentation = (this.WordControl && this.WordControl.m_oLogicDocument);
+		if(oPresentation)
+		{
+			var oController = oPresentation.GetCurrentController();
+			if(oController)
+			{
+				oController.resetChartElementsSelection();
+				AscCommon.baseEditorsApi.prototype.asc_Remove.call(this);
+			}
 		}
 	};
 	//-------------------------------------------------------------export---------------------------------------------------

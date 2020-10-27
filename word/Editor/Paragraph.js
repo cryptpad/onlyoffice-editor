@@ -14620,10 +14620,31 @@ Paragraph.prototype.GetTableOfContents = function(isUnique, isCheckFields)
 	{
 		var oResult = this.Content[nIndex].GetComplexField(fieldtype_TOC);
 		if (oResult)
-			return oResult;
+		{
+			var oInstruction = oResult.GetInstruction();
+			if(oInstruction && oInstruction.IsTableOfContents())//TOC field can be table of contents or table or figures depending on flags
+			{
+				return oResult;
+			}
+		}
 	}
 
 	return null;
+};
+Paragraph.prototype.GetTablesOfFigures = function(arrComplexFields)
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		var oResult = this.Content[nIndex].GetComplexField(fieldtype_TOC);
+		if (oResult)
+		{
+			var oInstruction = oResult.GetInstruction();
+			if(oInstruction && oInstruction.IsTableOfFigures())//TOC field can be table of contents or table or figures depending on flags
+			{
+				arrComplexFields.push(oResult);
+			}
+		}
+	}
 };
 Paragraph.prototype.GetComplexFieldsArrayByType = function(nType)
 {
@@ -17594,9 +17615,14 @@ function CParagraphRunElements(ContentPos, Count, arrTypes, isReverse)
     this.End        = false;
 	this.Reverse    = undefined !== isReverse ? isReverse : false;
 
+	this.BreakBadType        = false; // Заканчиваем ли поиск при нахождении неподходящих типов
+	this.BreakDifferentClass = false; // Заканчиваем ли поиск при достижении элемента, находящегося в классе отличном от this.StartClass
+
 	this.CurContentPos        = new CParagraphContentPos();
 	this.SaveContentPositions = false;
 	this.ContentPositions     = [];
+
+	this.StartClass  = null;  // Родительский класс для первого рана, с которого мы начинаем проверку
 }
 /**
  * Обновляем текущую позицию
@@ -17606,6 +17632,22 @@ function CParagraphRunElements(ContentPos, Count, arrTypes, isReverse)
 CParagraphRunElements.prototype.UpdatePos = function(nPos, nDepth)
 {
 	this.CurContentPos.Update(nPos, nDepth);
+};
+/**
+ * Останавливаемся на неподходящем типе
+ * @param {boolean} isBreak
+ */
+CParagraphRunElements.prototype.SetBreakOnBadType = function(isBreak)
+{
+	this.BreakBadType = isBreak;
+};
+/**
+ * Останавливаемся при попадании в другой класс
+ * @param isBreak
+ */
+CParagraphRunElements.prototype.SetBreakOnDifferentClass = function(isBreak)
+{
+	this.BreakDifferentClass = isBreak;
 };
 /**
  * Сохранять ли позиции элементов
@@ -17644,27 +17686,45 @@ CParagraphRunElements.prototype.CheckType = function(nType)
 /**
  * Добавляем данный элемент
  * @param oElement {CRunElementBase}
+ * @param oRun {ParaRun}
  */
-CParagraphRunElements.prototype.Add = function(oElement)
+CParagraphRunElements.prototype.Add = function(oElement, oRun)
 {
+	if (oRun && oRun.GetParent() !== this.StartClass && this.BreakDifferentClass)
+	{
+		// Добавляем этот элемент, потому что в конце мы 1 элемент удаляем из-за проверки достижения края параграфа
+		this.Count = 0;
+		this.private_Add(oElement);
+		return;
+	}
+
 	if (this.CheckType(oElement.Type))
 	{
-		if (this.Reverse)
-		{
-			if (this.SaveContentPositions)
-				this.ContentPositions.splice(0, 0, this.CurContentPos.Copy());
-
-			this.Elements.splice(0, 0, oElement);
-		}
-		else
-		{
-			if (this.SaveContentPositions)
-				this.ContentPositions.push(this.CurContentPos.Copy());
-
-			this.Elements.push(oElement);
-		}
-
 		this.Count--;
+		this.private_Add(oElement);
+	}
+	else if (this.BreakBadType)
+	{
+		// Добавляем этот элемент, потому что в конце мы 1 элемент удаляем из-за проверки достижения края параграфа
+		this.Count = 0;
+		this.private_Add(oElement);
+	}
+};
+CParagraphRunElements.prototype.private_Add = function(oElement)
+{
+	if (this.Reverse)
+	{
+		if (this.SaveContentPositions)
+			this.ContentPositions.splice(0, 0, this.CurContentPos.Copy());
+
+		this.Elements.splice(0, 0, oElement);
+	}
+	else
+	{
+		if (this.SaveContentPositions)
+			this.ContentPositions.push(this.CurContentPos.Copy());
+
+		this.Elements.push(oElement);
 	}
 };
 /**
@@ -17685,9 +17745,19 @@ CParagraphRunElements.prototype.CheckEnd = function(isEnd)
 	{
 		this.End = false;
 		if (this.Reverse)
+		{
+			if (this.SaveContentPositions)
+				this.ContentPositions.splice(0, 1);
+
 			this.Elements.splice(0, 1);
+		}
 		else
+		{
+			if (this.SaveContentPositions)
+				this.ContentPositions.splice(this.ContentPositions.length - 1, 1);
+
 			this.Elements.splice(this.Elements.length - 1, 1);
+		}
 	}
 	else if (this.Count >= 1)
 	{
@@ -17709,6 +17779,26 @@ CParagraphRunElements.prototype.IsEnd = function()
 CParagraphRunElements.prototype.GetElements = function()
 {
 	return this.Elements;
+};
+/**
+ * Выставляем стартовый класс
+ * @param oClass
+ */
+CParagraphRunElements.prototype.SetStartClass = function(oClass)
+{
+	this.StartClass = oClass;
+};
+/**
+ * Проверяем класс
+ * @param oClass
+ */
+CParagraphRunElements.prototype.CheckClass = function(oClass)
+{
+	if (oClass !== this.StartClass)
+	{
+		if (this.BreakDifferentDepth)
+			this.Count = 0;
+	}
 };
 
 function CParagraphStatistics(Stats)
