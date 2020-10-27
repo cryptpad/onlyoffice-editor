@@ -57,6 +57,8 @@ $(function () {
 	};
 	AscCommonExcel.WorksheetView.prototype._reinitializeScroll = function () {
 	};
+	AscCommonExcel.WorksheetView.prototype.getZoom = function () {
+	};
 	AscCommon.baseEditorsApi.prototype._onEndLoadSdk = function () {
 	};
 
@@ -96,6 +98,8 @@ $(function () {
 		callbackFunc(true);
 	};
 	AscCommonExcel.CCellCommentator.prototype.drawCommentCells = function () {
+	};
+	AscCommonExcel.CCellCommentator.prototype.ascCvtRatio = function () {
 	};
 
 	var wsView = api.wb.getWorksheet(0);
@@ -186,15 +190,17 @@ $(function () {
 		ws.getRange2("E10").setValue("-4");
 		var comment = new  window["Asc"].asc_CCommentData(null);
 		comment.asc_putText("test");
+		comment.bDocument = false;
 		/*comment.asc_putTime(this.utcDateToString(new Date()));
 		comment.asc_putOnlyOfficeTime(this.ooDateToString(new Date()));
 		comment.asc_putUserId(this.currentUserId);
 		comment.asc_putUserName(this.currentUserName);
 		comment.asc_putSolved(false);*/
-		
+		api.asc_addComment(comment);
+		comment.nCol = 4;
+		comment.nRow = 9;
 
 		ws.selectionRange.ranges = [getRange(4, 9, 4, 9)];
-		api.asc_addComment(comment);
 
 		var base64 = AscCommonExcel.g_clipboardExcel.copyProcessor.getBinaryForCopy(ws, wsView.objectRender);
 
@@ -202,6 +208,7 @@ $(function () {
 		AscCommonExcel.g_clipboardExcel.pasteData(wsView, AscCommon.c_oAscClipboardDataFormat.Internal, base64);
 
 		strictEqual(ws.getRange2("A2").getValue(), ws.getRange2("E10").getValue());
+		strictEqual(wsView.cellCommentator.getComment(4,9).nCol, 4);
 
 		ws.selectionRange.ranges = [getRange(0, 5, 0, 5), getRange(1, 5, 1, 8)];
 		AscCommonExcel.g_clipboardExcel.pasteData(wsView, AscCommon.c_oAscClipboardDataFormat.Internal, base64);
