@@ -6945,7 +6945,7 @@ CChartSpace.prototype.getValAxisCrossType = function()
                 var sFormatCode = null;
                 if(oNumFmt){
                     if(!oNumFmt.sourceLinked) {
-                        if(oNumFmt && typeof oNumFmt.formatCode === "string"){
+                        if(typeof oNumFmt.formatCode === "string"){
                             sFormatCode = oNumFmt.formatCode;
                         }
                     }
@@ -6965,6 +6965,11 @@ CChartSpace.prototype.getValAxisCrossType = function()
                                 if(oBBox && oBBox.seriesBBoxes[0] && oBBox.seriesBBoxes[0].bbox) {
                                     var cell = this.worksheet.getCell3(oBBox.seriesBBoxes[0].bbox.r1, oBBox.seriesBBoxes[0].bbox.c1);
                                     sFormatCode = cell.getNumFormatStr();
+                                }
+                            }
+                            else {
+                                if(typeof oNumFmt.formatCode === "string" && oNumFmt.formatCode.length > 0){
+                                    sFormatCode = oNumFmt.formatCode;
                                 }
                             }
                         }
