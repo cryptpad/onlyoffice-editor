@@ -577,7 +577,8 @@
 					//записываю изображение выделенного фрагмента. пока только для изоюражений
 					//выбрал для этого поле subject
 					var oldSubject = wb.Core.subject;
-					var _imgProperty = Asc.editor.wb.getWorksheet().objectRender.controller.getSelectionImage();
+					var objectRender = Asc.editor.wb.getWorksheet().objectRender;
+					var _imgProperty = objectRender && objectRender.controller && objectRender.controller.getSelectionImage();
 					if (_imgProperty) {
 						var _base64 = _imgProperty.asc_getImageUrl();
 						var _width = _imgProperty.Width;
@@ -1510,7 +1511,8 @@
 				}
 
 				var result = false;
-				var isIntoShape = worksheet.objectRender.controller.getTargetDocContent();
+				var objectRender = worksheet.objectRender;
+				var isIntoShape = objectRender && objectRender.controller && objectRender.controller.getTargetDocContent();
 				if (base64 != null)//from excel
 				{
 					result = this._pasteFromBinaryExcel(worksheet, base64, isIntoShape, isCellEditMode, isPasteAll);
@@ -1687,8 +1689,8 @@
 				var res = false;
 
 				var api = window["Asc"]["editor"];
-				var curDocId = api.DocInfo.Id;
-				var curUserId = api.CoAuthoringApi.getUserConnectionId();
+				var curDocId = api.DocInfo && api.DocInfo.Id;
+				var curUserId = api.CoAuthoringApi && api.CoAuthoringApi.getUserConnectionId();
 
 				if(pastedWb && pastedWb.Core && pastedWb.Core.identifier === curDocId && pastedWb.Core.creator === curUserId) {
 					res = true;
@@ -3007,7 +3009,7 @@
 					}
 
 					res = false;
-				} else if (!worksheet.handlers.trigger("getLockDefNameManagerStatus") && insertWorksheet && insertWorksheet.TableParts && insertWorksheet.TableParts.length) {
+				} else if (worksheet.handlers && !worksheet.handlers.trigger("getLockDefNameManagerStatus") && insertWorksheet && insertWorksheet.TableParts && insertWorksheet.TableParts.length) {
 					//если пытаемся вставить вторым пользователем форматированную таблицу, когда первый уже добавил другую форматированную таблицу
 					worksheet.handlers.trigger("onErrorEvent", c_oAscError.ID.LockCreateDefName,
 						c_oAscError.Level.NoCritical);
