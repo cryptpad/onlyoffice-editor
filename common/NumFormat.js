@@ -291,17 +291,8 @@ function FormatObjBracket(sData)
 }
 function ParseLocalFormatSymbol(Name)
 {
-		LocaleFormatSymbol['Y'] = 'Y';
-		LocaleFormatSymbol['y'] ='y';
-		LocaleFormatSymbol['M'] = 'M';
-		LocaleFormatSymbol['m'] ='m';
-		LocaleFormatSymbol['D'] = 'D';
-		LocaleFormatSymbol['d'] ='d';
-		LocaleFormatSymbol['H'] = 'H';
-		LocaleFormatSymbol['h'] ='h';
-		LocaleFormatSymbol['S'] = 'S';
-		LocaleFormatSymbol['s'] ='s';
-switch(Name) {
+	LocaleFormatSymbol['Y'] = 'Y';LocaleFormatSymbol['y'] ='y';LocaleFormatSymbol['M'] = 'M';LocaleFormatSymbol['m'] ='m';LocaleFormatSymbol['D'] = 'D';LocaleFormatSymbol['d'] ='d';LocaleFormatSymbol['H'] = 'H';LocaleFormatSymbol['h'] ='h';LocaleFormatSymbol['S'] = 'S';LocaleFormatSymbol['s'] ='s';
+		switch(Name) {
 //___________________________________________________________________fi________________________________________________________________
 	case("fi-FI"):{LocaleFormatSymbol['Y'] = 'V';LocaleFormatSymbol['y'] ='v';LocaleFormatSymbol['d'] ='p';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
 	case("se-FI"):{LocaleFormatSymbol['Y'] = 'V';LocaleFormatSymbol['y'] ='v';LocaleFormatSymbol['d'] ='p';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
@@ -309,12 +300,8 @@ switch(Name) {
 	case("sms-FI"):{LocaleFormatSymbol['Y'] = 'V';LocaleFormatSymbol['y'] ='v';LocaleFormatSymbol['d'] ='p';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
 	case("sv-AX"):{LocaleFormatSymbol['Y'] = 'V';LocaleFormatSymbol['y'] ='v';LocaleFormatSymbol['d'] ='p';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
 	case("sv-FI"):{LocaleFormatSymbol['Y'] = 'V';LocaleFormatSymbol['y'] ='v';LocaleFormatSymbol['d'] ='p';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
-//__________________________________________________________DA_______________________________	
-	case("en-SE"):{LocaleFormatSymbol['Y'] = 'Å';LocaleFormatSymbol['y'] ='å';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
-	case("se-SE"):{LocaleFormatSymbol['Y'] = 'Å';LocaleFormatSymbol['y'] ='å';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
-	case("sma-SE"):{LocaleFormatSymbol['Y'] = 'Å';LocaleFormatSymbol['y'] ='å';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
-	case("smj-SE"):{LocaleFormatSymbol['Y'] = 'Å';LocaleFormatSymbol['y'] ='å';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
-	case("sv-SE"):{LocaleFormatSymbol['Y'] = 'Å';LocaleFormatSymbol['y'] ='å';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
+	
+	case("en-FI"):{LocaleFormatSymbol['Y'] = 'V';LocaleFormatSymbol['y'] ='v';LocaleFormatSymbol['d'] ='p';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
 //____________________________________________________________fy_____________________________
 	case("en-NL"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';LocaleFormatSymbol['H'] = 'U'; LocaleFormatSymbol['h'] ='u';}break;
 	case("fy-NL"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';LocaleFormatSymbol['H'] = 'U'; LocaleFormatSymbol['h'] ='u';}break;
@@ -329,6 +316,10 @@ switch(Name) {
 	case("es-MX"):{LocaleFormatSymbol['Y'] = 'A';LocaleFormatSymbol['y'] ='a';}break;
 	case("eu-ES"):{LocaleFormatSymbol['Y'] = 'A';LocaleFormatSymbol['y'] ='a';}break;
 	case("gl-ES"):{LocaleFormatSymbol['Y'] = 'A';LocaleFormatSymbol['y'] ='a';}break;
+	
+	case("es-BR"):{LocaleFormatSymbol['Y'] = 'A';LocaleFormatSymbol['y'] ='a';}break;
+	case("pt-BR"):{LocaleFormatSymbol['Y'] = 'A';LocaleFormatSymbol['y'] ='a';}break;
+	case("pt-PT"):{LocaleFormatSymbol['Y'] = 'A';LocaleFormatSymbol['y'] ='a';}break;
 //______________________________________________________ru___________________________________
 	case("ba-RU"):{LocaleFormatSymbol['Y'] = 'Г';LocaleFormatSymbol['y'] = 'г';LocaleFormatSymbol['M'] = 'М';LocaleFormatSymbol['m'] = 'м';LocaleFormatSymbol['D'] = 'Д';LocaleFormatSymbol['d'] = 'д';LocaleFormatSymbol['H'] = 'Ч';LocaleFormatSymbol['h'] = 'ч';LocaleFormatSymbol['S'] = 'C';LocaleFormatSymbol['s'] = 'с';}break;
 	case("ce-RU"):{LocaleFormatSymbol['Y'] = 'Г';LocaleFormatSymbol['y'] = 'г';LocaleFormatSymbol['M'] = 'М';LocaleFormatSymbol['m'] = 'м';LocaleFormatSymbol['D'] = 'Д';LocaleFormatSymbol['d'] = 'д';LocaleFormatSymbol['H'] = 'Ч';LocaleFormatSymbol['h'] = 'ч';LocaleFormatSymbol['S'] = 'C';LocaleFormatSymbol['s'] = 'с';}break;
@@ -347,14 +338,16 @@ switch(Name) {
 	case("tt-RU"):{LocaleFormatSymbol['Y'] = 'Г';LocaleFormatSymbol['y'] = 'г';LocaleFormatSymbol['M'] = 'М';LocaleFormatSymbol['m'] = 'м';LocaleFormatSymbol['D'] = 'Д';LocaleFormatSymbol['d'] = 'д';LocaleFormatSymbol['H'] = 'Ч';LocaleFormatSymbol['h'] = 'ч';LocaleFormatSymbol['S'] = 'C';LocaleFormatSymbol['s'] = 'с';}break;
 	case("wae-CH"):{LocaleFormatSymbol['Y'] = 'Г';LocaleFormatSymbol['y'] = 'г';LocaleFormatSymbol['M'] = 'М';LocaleFormatSymbol['m'] = 'м';LocaleFormatSymbol['D'] = 'Д';LocaleFormatSymbol['d'] = 'д';LocaleFormatSymbol['H'] = 'Ч';LocaleFormatSymbol['h'] = 'ч';LocaleFormatSymbol['S'] = 'C';LocaleFormatSymbol['s'] = 'с';}break;
 //________________________________________________________fr_________________________________
-	case("br-FR"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';}break;LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';
-	case("ca-FR"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';}break;LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';
-	case("co-FR"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';}break;LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';
-	case("fr-BE"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';}break;LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';
-	case("fr-CA"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';}break;LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';
-	case("fr-CH"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';}break;LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';
-	case("fr-FR"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';}break;LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';
-	case("gsw-FR"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';}break;LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';
+	case("br-FR"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';}break;
+	case("ca-FR"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';}break;
+	case("co-FR"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';}break;
+	case("fr-BE"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';}break;
+	case("fr-CA"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';}break;
+	case("fr-CH"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';}break;
+	case("fr-FR"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';;LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';}break
+	case("gsw-FR"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';}break;
+	
+	case("oc-FR"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';}break;
 //__________________________________________________________de_______________________________
 	case("de-AT"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] = 'j';LocaleFormatSymbol['D'] = 'T';LocaleFormatSymbol['d'] = 't';}break;
 	case("de-CH"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] = 'j';LocaleFormatSymbol['D'] = 'T';LocaleFormatSymbol['d'] = 't';}break;
@@ -381,8 +374,21 @@ switch(Name) {
 	case("se-NO"):{LocaleFormatSymbol['Y'] = 'Å';LocaleFormatSymbol['y'] ='å';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
 	case("sma-NO"):{LocaleFormatSymbol['Y'] = 'Å';LocaleFormatSymbol['y'] ='å';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
 	case("smj-NO"):{LocaleFormatSymbol['Y'] = 'Å';LocaleFormatSymbol['y'] ='å';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
-        
-    } 
+	
+	case("en-DK"):{LocaleFormatSymbol['Y'] = 'Å';LocaleFormatSymbol['y'] ='å';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
+	
+	case("en-SE"):{LocaleFormatSymbol['Y'] = 'Å';LocaleFormatSymbol['y'] ='å';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
+	case("se-SE"):{LocaleFormatSymbol['Y'] = 'Å';LocaleFormatSymbol['y'] ='å';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
+	case("sma-SE"):{LocaleFormatSymbol['Y'] = 'Å';LocaleFormatSymbol['y'] ='å';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
+	case("smj-SE"):{LocaleFormatSymbol['Y'] = 'Å';LocaleFormatSymbol['y'] ='å';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
+	case("sv-SE"):{LocaleFormatSymbol['Y'] = 'Å';LocaleFormatSymbol['y'] ='å';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
+//__________________________________________________special_________________________________________	
+    case("el-GR"):{LocaleFormatSymbol['Y'] = 'Ε';LocaleFormatSymbol['y'] ='ε';LocaleFormatSymbol['M'] = 'Μ';LocaleFormatSymbol['m'] ='μ';LocaleFormatSymbol['D'] = 'Η';LocaleFormatSymbol['d'] ='η';LocaleFormatSymbol['H'] = 'Ω';LocaleFormatSymbol['h'] ='ω';LocaleFormatSymbol['S'] = 'Δ';LocaleFormatSymbol['s'] ='δ';}break;
+	case("hu-HU"):{LocaleFormatSymbol['Y'] = 'É';LocaleFormatSymbol['y'] ='é';LocaleFormatSymbol['M'] = 'H';LocaleFormatSymbol['m'] ='h';LocaleFormatSymbol['D'] = 'N';LocaleFormatSymbol['d'] ='n';LocaleFormatSymbol['H'] = 'Ó';LocaleFormatSymbol['h'] ='ó';LocaleFormatSymbol['S'] = 'M';LocaleFormatSymbol['s'] ='m';}break;
+	case("tr-TR"):{LocaleFormatSymbol['M'] = 'A';LocaleFormatSymbol['m'] ='a';LocaleFormatSymbol['D'] = 'G';LocaleFormatSymbol['d'] ='g';LocaleFormatSymbol['H'] = 'S';LocaleFormatSymbol['h'] ='s';LocaleFormatSymbol['S'] = 'N';LocaleFormatSymbol['s'] ='n';}break;
+	case("pl-PL"):{LocaleFormatSymbol['Y'] = 'R';LocaleFormatSymbol['y'] ='r';LocaleFormatSymbol['H'] = 'G';LocaleFormatSymbol['h'] ='g';}break;
+	case("cs-CZ"):{LocaleFormatSymbol['Y'] = 'R';LocaleFormatSymbol['y'] ='r';}break;
+	} 
     return true;
 }
 function NumFormat(bAddMinusIfNes)
