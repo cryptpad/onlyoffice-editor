@@ -16806,10 +16806,10 @@ CDocument.prototype.Begin_CompositeInput = function()
 			var oRun = oPara.Get_ElementByPos(oPara.Get_ParaContentPos(false, false));
 			if (oRun instanceof ParaRun)
 			{
-				var oTrackRun = oRun.CheckTrackRevisionsBeforeAdd();
-				if (oTrackRun)
+				var oNewRun = oRun.CheckRunBeforeAdd();
+				if (oNewRun)
 				{
-					oRun = oTrackRun;
+					oRun = oNewRun;
 					oRun.Make_ThisElementCurrent();
 				}
 

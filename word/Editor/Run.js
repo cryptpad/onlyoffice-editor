@@ -564,163 +564,28 @@ ParaRun.prototype.IsStartFromNewLine = function()
 
     return true;
 };
-
-// Добавляем элемент в текущую позицию
-ParaRun.prototype.Add = function(Item, bMath)
+/**
+ * Добавляем новый элменет в текущую позицию
+ * @param {CRunElementBase} oItem
+ */
+ParaRun.prototype.Add = function(oItem)
 {
-	if (undefined !== Item.Parent)
-		Item.Parent = this;
+	var oRun = this.CheckRunBeforeAdd(oItem);
+	if (!oRun)
+		oRun = this;
 
-	if (this.IsParaEndRun())
-	{
-		var NewRun = this.private_SplitRunInCurPos();
-		if (NewRun)
-		{
-			NewRun.MoveCursorToStartPos();
-			NewRun.Add(Item, bMath);
-			NewRun.SetThisElementCurrentInParagraph();
-			return;
-		}
-	}
+	oRun.private_AddItemToRun(oRun.State.ContentPos, oItem);
 
-	if (this.Paragraph && this.Paragraph.LogicDocument)
-	{
-		// Специальный код, связанный с обработкой изменения языка ввода при наборе.
-		if (true === this.Paragraph.LogicDocument.CheckLanguageOnTextAdd && editor)
-		{
-			var nRequiredLanguage = editor.asc_getKeyboardLanguage();
-			var nCurrentLanguage  = this.Get_CompiledPr(false).Lang.Val;
-			if (-1 !== nRequiredLanguage && nRequiredLanguage !== nCurrentLanguage)
-			{
-				var NewLang = new CLang();
-				NewLang.Val = nRequiredLanguage;
-
-				if (this.Is_Empty())
-				{
-					this.Set_Lang(NewLang);
-				}
-				else
-				{
-					var NewRun = this.private_SplitRunInCurPos();
-					if (NewRun)
-					{
-						NewRun.Set_Lang(NewLang);
-						NewRun.MoveCursorToStartPos();
-						NewRun.Add(Item, bMath);
-						NewRun.Make_ThisElementCurrent();
-						return;
-					}
-				}
-			}
-		}
-
-		if(this.Paragraph.bFromDocument)
-        {
-            // Специальный код, связанный с работой сносок:
-            // 1. При добавлении сноски мы ее оборачиваем в отдельный ран со специальным стилем.
-            // 2. Если мы находимся в ране со специальным стилем сносок и следующий или предыдущий элемент и есть сноска, тогда
-            //    мы добавляем элемент (если это не ссылка на сноску) в новый ран без стиля для сносок.
-            var oStyles = this.Paragraph.LogicDocument.Get_Styles();
-            if (para_FootnoteRef === Item.Type || para_FootnoteReference === Item.Type || para_EndnoteRef === Item.Type || para_EndnoteReference === Item.Type)
-            {
-            	var isFootnote = (para_FootnoteRef === Item.Type || para_FootnoteReference === Item.Type);
-                if (this.IsEmpty())
-                {
-                	this.SetVertAlign(undefined);
-                    this.SetRStyle(isFootnote ? oStyles.GetDefaultFootnoteReference() : oStyles.GetDefaultEndnoteReference());
-                }
-                else
-                {
-                    var NewRun = this.private_SplitRunInCurPos();
-                    if (NewRun)
-                    {
-                        NewRun.SetVertAlign(undefined);
-                        NewRun.SetRStyle(isFootnote ? oStyles.GetDefaultFootnoteReference() : oStyles.GetDefaultEndnoteReference());
-                        NewRun.MoveCursorToStartPos();
-                        NewRun.Add(Item, bMath);
-                        NewRun.Make_ThisElementCurrent();
-                        return;
-                    }
-                }
-            }
-            else if (true === this.IsCurPosNearFootEndnoteReference())
-            {
-                var NewRun = this.private_SplitRunInCurPos();
-                if (NewRun)
-                {
-                    NewRun.SetVertAlign(AscCommon.vertalign_Baseline);
-                    NewRun.MoveCursorToStartPos();
-                    NewRun.Add(Item, bMath);
-                    NewRun.Make_ThisElementCurrent();
-                    return;
-                }
-            }
-            // Специальный код с обработкой выделения (highlight)
-            // Текст, который пишем до или после выделенного текста делаем без выделения.
-            if ((0 === this.State.ContentPos || this.Content.length === this.State.ContentPos) && highlight_None !== this.Get_CompiledPr(false).HighLight)
-            {
-                var Parent = this.Get_Parent();
-                var RunPos = this.private_GetPosInParent(Parent);
-                if (null !== Parent && -1 !== RunPos)
-                {
-                    if ((0 === this.State.ContentPos
-                        && (0 === RunPos
-                        || Parent.Content[RunPos - 1].Type !== para_Run
-                        || highlight_None === Parent.Content[RunPos - 1].Get_CompiledPr(false).HighLight))
-                        || (this.Content.length === this.State.ContentPos
-                        && (RunPos === Parent.Content.length - 1
-                        || para_Run !== Parent.Content[RunPos + 1].Type
-                        || highlight_None === Parent.Content[RunPos + 1].Get_CompiledPr(false).HighLight)
-                        || (RunPos === Parent.Content.length - 2
-                        && Parent instanceof Paragraph)))
-                    {
-                        var NewRun = this.private_SplitRunInCurPos();
-                        if (NewRun)
-                        {
-                            NewRun.Set_HighLight(highlight_None);
-                            NewRun.MoveCursorToStartPos();
-                            NewRun.Add(Item, bMath);
-                            NewRun.Make_ThisElementCurrent();
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-	}
-
-	var oTrackRevisionsRun = this.CheckTrackRevisionsBeforeAdd();
-    if (oTrackRevisionsRun)
-    {
-		oTrackRevisionsRun.private_AddItemToRun(oTrackRevisionsRun.State.ContentPos, Item);
-		oTrackRevisionsRun.Make_ThisElementCurrent();
-    }
-    else if(this.Type == para_Math_Run && this.State.ContentPos == 0 && true === this.Is_StartForcedBreakOperator()) // если в начале текущего Run идет принудительный перенос => создаем новый Run
-    {
-        var NewRun = new ParaRun(this.Paragraph, bMath);
-        NewRun.Set_Pr(this.Pr.Copy());
-        NewRun.private_AddItemToRun(0, Item);
-
-        // Ищем данный элемент в родительском классе
-        var RunPos = this.private_GetPosInParent(this.Parent);
-
-        this.Parent.Internal_Content_Add(RunPos, NewRun, true);
-    }
-    else
-	{
-		this.private_AddItemToRun(this.State.ContentPos, Item);
-
-		if (this.Type === para_Run && Item.CanStartAutoCorrect())
-			this.ProcessAutoCorrect(this.State.ContentPos - 1);
-	}
+	if (para_Run === oRun.Type && oItem.CanStartAutoCorrect())
+		oRun.ProcessAutoCorrect(oRun.State.ContentPos - 1);
 };
-
 /**
  * Ищем подходящий ран для добавления текста в режиме рецензирования (если нужно создаем новый), если возвращается
  * null, значит текущий ран подходит.
+ * @param {?ParaRun} oNewRun
  * @returns {?ParaRun}
  */
-ParaRun.prototype.CheckTrackRevisionsBeforeAdd = function()
+ParaRun.prototype.private_CheckTrackRevisionsBeforeAdd = function(oNewRun)
 {
 	var TrackRevisions = false;
 	if (this.Paragraph && this.Paragraph.LogicDocument)
@@ -731,6 +596,12 @@ ParaRun.prototype.CheckTrackRevisionsBeforeAdd = function()
 		|| (false === TrackRevisions && reviewtype_Common !== ReviewType))
 	{
 		var DstReviewType = true === TrackRevisions ? reviewtype_Add : reviewtype_Common;
+
+		if (oNewRun)
+		{
+			oNewRun.SetReviewType(DstReviewType);
+			return oNewRun;
+		}
 
 		// Если мы стоим в конце рана, тогда проверяем следующий элемент родительского класса, аналогично если мы стоим
 		// в начале рана, проверяем предыдущий элемент родительского класса.
@@ -796,7 +667,191 @@ ParaRun.prototype.CheckTrackRevisionsBeforeAdd = function()
 		return NewRun;
 	}
 
-	return null;
+	return oNewRun;
+};
+/**
+ * Проверяем, не является ли это ран с символом конца параграфа
+ * @param {!ParaRun} oNewRun
+ * @returns {?ParaRun}
+ */
+ParaRun.prototype.private_CheckParaEndRunBeforeAdd = function(oNewRun)
+{
+	if (!oNewRun && this.IsParaEndRun())
+		oNewRun = this.private_SplitRunInCurPos();
+
+	return oNewRun;
+};
+/**
+ * Проверяем язык ввода
+ * @param {!ParaRun} oNewRun
+ * @param {CDocument}oLogicDocument
+ * @param {!ParaRun} oNewRun
+ * @returns {?ParaRun}
+ */
+ParaRun.prototype.private_CheckLanguageBeforeAdd = function(oNewRun, oLogicDocument)
+{
+	if (!oLogicDocument)
+		return oNewRun;
+
+	var oApi = oLogicDocument.GetApi();
+
+	// Специальный код, связанный с обработкой изменения языка ввода при наборе.
+	if (true === oLogicDocument.CheckLanguageOnTextAdd && oApi)
+	{
+		var nRequiredLanguage = oApi.asc_getKeyboardLanguage();
+		var nCurrentLanguage  = this.Get_CompiledPr(false).Lang.Val;
+		if (-1 !== nRequiredLanguage && nRequiredLanguage !== nCurrentLanguage)
+		{
+			var oNewLang = new CLang();
+			oNewLang.Val = nRequiredLanguage;
+
+			if (oNewRun)
+			{
+				oNewRun.Set_Lang(oNewLang);
+			}
+			else if (this.IsEmpty())
+			{
+				this.Set_Lang(oNewLang);
+			}
+			else
+			{
+				oNewRun = this.private_SplitRunInCurPos();
+				if (oNewRun)
+					oNewRun.Set_Lang(NewLang);
+			}
+		}
+	}
+
+	return oNewRun;
+};
+/**
+ * Провяеряем добавление ссылки на сноску или добавление текста рядом с ссылкой на сноску
+ * @param {!ParaRun} oNewRun
+ * @param {CRunElementBase} oItem
+ * @param {CDocument} oLogicDocument
+ * @returns {?ParaRun}
+ */
+ParaRun.prototype.private_CheckFootnoteReferencesBeforeAdd = function(oNewRun, oItem, oLogicDocument)
+{
+	// Специальный код, связанный с работой сносок:
+	// 1. При добавлении сноски мы ее оборачиваем в отдельный ран со специальным стилем.
+	// 2. Если мы находимся в ране со специальным стилем сносок и следующий или предыдущий элемент и есть сноска, тогда
+	//    мы добавляем элемент (если это не ссылка на сноску) в новый ран без стиля для сносок.
+	var oStyles = oLogicDocument.GetStyles();
+	if (oItem && (para_FootnoteRef === oItem.Type || para_FootnoteReference === oItem.Type || para_EndnoteRef === oItem.Type || para_EndnoteReference === oItem.Type))
+	{
+		var isFootnote = (para_FootnoteRef === oItem.Type || para_FootnoteReference === oItem.Type);
+
+		if (oNewRun)
+		{
+			oNewRun.SetVertAlign(undefined);
+			oNewRun.SetRStyle(isFootnote ? oStyles.GetDefaultFootnoteReference() : oStyles.GetDefaultEndnoteReference());
+
+		}
+		else if (this.IsEmpty())
+		{
+			this.SetVertAlign(undefined);
+			this.SetRStyle(isFootnote ? oStyles.GetDefaultFootnoteReference() : oStyles.GetDefaultEndnoteReference());
+		}
+		else
+		{
+			oNewRun = this.private_SplitRunInCurPos();
+			if (oNewRun)
+			{
+				oNewRun.SetVertAlign(undefined);
+				oNewRun.SetRStyle(isFootnote ? oStyles.GetDefaultFootnoteReference() : oStyles.GetDefaultEndnoteReference());
+			}
+		}
+	}
+	else if (true === this.IsCurPosNearFootEndnoteReference())
+	{
+		if (!oNewRun)
+			oNewRun = this.private_SplitRunInCurPos();
+
+		if (oNewRun)
+			oNewRun.SetVertAlign(AscCommon.vertalign_Baseline);
+	}
+
+	return oNewRun;
+};
+/**
+ * Проверяем выделение текста перед добавление нового элемента
+ * @param {!ParaRun} oNewRun
+ * @returns {?ParaRun}
+ */
+ParaRun.prototype.private_CheckHighlightBeforeAdd = function(oNewRun)
+{
+	// Специальный код с обработкой выделения (highlight)
+	// Текст, который пишем до или после выделенного текста делаем без выделения.
+	if ((0 === this.State.ContentPos || this.Content.length === this.State.ContentPos) && highlight_None !== this.Get_CompiledPr(false).HighLight)
+	{
+		var Parent = this.Get_Parent();
+		var RunPos = this.private_GetPosInParent(Parent);
+		if (null !== Parent && -1 !== RunPos)
+		{
+			if ((0 === this.State.ContentPos
+				&& (0 === RunPos
+					|| Parent.Content[RunPos - 1].Type !== para_Run
+					|| highlight_None === Parent.Content[RunPos - 1].Get_CompiledPr(false).HighLight))
+				|| (this.Content.length === this.State.ContentPos
+					&& (RunPos === Parent.Content.length - 1
+						|| para_Run !== Parent.Content[RunPos + 1].Type
+						|| highlight_None === Parent.Content[RunPos + 1].Get_CompiledPr(false).HighLight)
+					|| (RunPos === Parent.Content.length - 2
+						&& Parent instanceof Paragraph)))
+			{
+				if (!oNewRun)
+					oNewRun = this.private_SplitRunInCurPos();
+
+				if (oNewRun)
+					oNewRun.Set_HighLight(highlight_None);
+			}
+		}
+	}
+
+	return oNewRun;
+};
+/**
+ * Проверяем принудительный перенос в начале математического рана
+ * @param {!ParaRun} oNewRun
+ * @returns {?ParaRun}
+ */
+ParaRun.prototype.private_CheckMathBreakOperatorBeforeAdd = function(oNewRun)
+{
+	// Если в начале текущего Run идет принудительный перенос => создаем новый Run
+	if (!oNewRun && para_Math_Run === this.Type && 0 === this.State.ContentPos && true === this.Is_StartForcedBreakOperator())
+		oNewRun = this.private_SplitRunInCurPos();
+
+	return oNewRun;
+};
+/**
+ * Функция проверяет настройки рана, перед добавлением внутрь элементов
+ * Если необходимо, то добавляется новый ран с необходимыми настройками
+ * @param {?CRunElementBase} oItem
+ * @returns {?ParaRun}
+ */
+ParaRun.prototype.CheckRunBeforeAdd = function(oItem)
+{
+	var oNewRun        = null;
+	var oLogicDocument = this.GetLogicDocument();
+
+	oNewRun = this.private_CheckParaEndRunBeforeAdd(oNewRun);
+	oNewRun = this.private_CheckLanguageBeforeAdd(oNewRun, oLogicDocument);
+	oNewRun = this.private_CheckFootnoteReferencesBeforeAdd(oNewRun, oItem, oLogicDocument);
+	oNewRun = this.private_CheckHighlightBeforeAdd(oNewRun);
+	oNewRun = this.private_CheckMathBreakOperatorBeforeAdd(oNewRun);
+
+	if (oNewRun)
+		oNewRun.MoveCursorToStartPos();
+
+	// В функции private_CheckTrackRevisionsBeforeAdd возможно, что вернется не новый, а существующий левый или правый ран
+	// и нужно брать позицию из рана, поэтому сдвигаться в начало рана нельзя
+	oNewRun = this.private_CheckTrackRevisionsBeforeAdd(oNewRun);
+
+	if (oNewRun)
+		oNewRun.Make_ThisElementCurrent();
+
+	return oNewRun;
 };
 /**
  * Проверяем, предзназначен ли данный ран чисто для математических формул.
