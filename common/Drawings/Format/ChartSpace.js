@@ -12072,8 +12072,30 @@ CChartSpace.prototype.hitInTextRect = function()
 
             //sort series
             series.sort(function(ser1, ser2){
-                if(ser1.getObjectType() === AscDFH.historyitem_type_PieSeries && ser2.getObjectType() !== AscDFH.historyitem_type_PieSeries){
+                if(ser1.getObjectType() === AscDFH.historyitem_type_PieSeries &&
+                    ser2.getObjectType() !== AscDFH.historyitem_type_PieSeries){
                     return -1;
+                }
+                if(ser1.parent && ser2.parent && ser1.parent === ser2.parent) {
+                    //TODO: move this code to the separate method in CChartBase
+                    var oTypedChart = ser1.parent;
+                    var isBarChart = oTypedChart.getObjectType && oTypedChart.getObjectType() === AscDFH.historyitem_type_BarChart;
+                    var isStacked = false;
+                    if(isBarChart) {
+                        if(oTypedChart.grouping === AscFormat.BAR_GROUPING_STACKED
+                            || oTypedChart.grouping === AscFormat.BAR_GROUPING_PERCENT_STACKED) {
+                            isStacked = true;
+                        }
+                    }
+                    else {
+                        if(oTypedChart.grouping === AscFormat.GROUPING_STACKED
+                            || oTypedChart.grouping === AscFormat.GROUPING_PERCENT_STACKED) {
+                            isStacked = true;
+                        }
+                    }
+                    if(isStacked) {
+                        return ser2.idx - ser1.idx
+                    }
                 }
                 return 0;
             });
@@ -12380,7 +12402,9 @@ CChartSpace.prototype.hitInTextRect = function()
                 if(bFixedSize){
                     var oOldLayout = legend.layout;
                     legend.layout = null;
+                    calc_entryes = [].concat(calc_entryes);
                     this.recalculateLegend();
+                    legend.calcEntryes = calc_entryes;
 
                     legend.naturalWidth = legend.extX;
                     legend.naturalHeight = legend.extY;
@@ -16041,7 +16065,35 @@ CChartSpace.prototype.switchRowCol = function() {
         }
     }
     this.recalculate();
+    this.checkLegendLayoutSize();
 };
+
+    CChartSpace.prototype.checkLegendLayoutSize = function() {
+        var oChart = this.chart;
+        if(!oChart) {
+            return;
+        }
+        var oLegend = oChart.legend;
+        if(oLegend) {
+            var oLayout = oLegend.layout;
+            if(oLayout) {
+                if(AscFormat.isRealNumber(oLayout.w) || AscFormat.isRealNumber(oLayout.h)) {
+                    oLegend.setLayout(null);
+                    this.recalcInfo.recalculateLegend = true;
+                    this.recalculate();
+                    if(AscFormat.isRealNumber(oLayout.w)) {
+                        oLayout.setW(this.calculateLayoutBySize(oLegend.x, oLayout.wMode, this.extX, oLegend.extX));
+                    }
+                    if(AscFormat.isRealNumber(oLayout.h)) {
+                        oLayout.setH(this.calculateLayoutBySize(oLegend.y, oLayout.hMode, this.extY, oLegend.extY));
+                    }
+                    oLegend.setLayout(oLayout);
+                    this.recalcInfo.recalculateLegend = true;
+                    this.recalculate();
+                }
+            }
+        }
+    };
 
 CChartSpace.prototype.getCatFormula = function() {
     var aAllSeries = this.getAllSeries();
