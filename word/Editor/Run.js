@@ -733,14 +733,14 @@ ParaRun.prototype.private_CheckLanguageBeforeAdd = function(oNewRun, oLogicDocum
  */
 ParaRun.prototype.private_CheckFootnoteReferencesBeforeAdd = function(oNewRun, oItem, oLogicDocument)
 {
+	if (!oLogicDocument || !this.Paragraph || !this.Paragraph.bFromDocument)
+		return oNewRun;
+
 	// Специальный код, связанный с работой сносок:
 	// 1. При добавлении сноски мы ее оборачиваем в отдельный ран со специальным стилем.
 	// 2. Если мы находимся в ране со специальным стилем сносок и следующий или предыдущий элемент и есть сноска, тогда
 	//    мы добавляем элемент (если это не ссылка на сноску) в новый ран без стиля для сносок.
-	if(!(this.Paragraph && this.Paragraph.bFromDocument))
-	{
-		return oNewRun;
-	}
+
 	var oStyles = oLogicDocument.GetStyles();
 	if (oItem && (para_FootnoteRef === oItem.Type || para_FootnoteReference === oItem.Type || para_EndnoteRef === oItem.Type || para_EndnoteReference === oItem.Type))
 	{
