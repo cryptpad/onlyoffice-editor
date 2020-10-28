@@ -6894,12 +6894,16 @@
 		var cacheFields = pivotTable.asc_getCacheFields();
 		var pivotFields = pivotTable.asc_getPivotFields();
 		if (dataFields && 1 === dataFields.length) {
-			if(rowFields && !colFields) {
-				cells = this.getRange4(pivotRange.r1, pivotRange.c1 + location.firstDataCol);
-			} else if(!rowFields && colFields){
-				cells = this.getRange4(pivotRange.r1 + location.firstDataRow, pivotRange.c1);
-			} else {
+			if (pivotTable.gridDropZones) {
 				cells = this.getRange4(pivotRange.r1, pivotRange.c1);
+			} else {
+				if (rowFields && !colFields) {
+					cells = this.getRange4(pivotRange.r1, pivotRange.c1 + location.firstDataCol);
+				} else if (!rowFields && colFields) {
+					cells = this.getRange4(pivotRange.r1 + location.firstDataRow, pivotRange.c1);
+				} else {
+					cells = this.getRange4(pivotRange.r1, pivotRange.c1);
+				}
 			}
 			this._updatePivotTableSetCellValue(cells, pivotTable.getDataFieldName(0));
 		}
@@ -6925,12 +6929,14 @@
 		var items, fields, field, oCellValue, fieldIndex, cells, r1, c1, valuesIndex;
 		var pivotRange = pivotTable.getRange();
 		var location = pivotTable.location;
+		var hasLeftAlignInRowLables = false;
 		if (rowFieldsOffset) {
 			items = pivotTable.getRowItems();
 			fields = pivotTable.asc_getRowFields();
 			r1 = pivotRange.r1 + location.firstDataRow;
 			c1 = pivotRange.c1;
 			valuesIndex = pivotTable.getRowFieldsValuesIndex();
+			hasLeftAlignInRowLables = pivotTable.hasLeftAlignInRowLables();
 		} else {
 			items = pivotTable.getColItems();
 			fields = pivotTable.asc_getColumnFields();
@@ -6939,6 +6945,21 @@
 			valuesIndex = pivotTable.getColumnFieldsValuesIndex();
 		}
 		if (!items || !fields) {
+			if (pivotTable.gridDropZones && !fields && pivotTable.getDataFieldsCount() > 0) {
+				if (rowFieldsOffset) {
+					cells = this.getRange4(pivotRange.r1 + location.firstDataRow, pivotRange.c1 + location.firstDataCol - 1);
+				} else {
+					cells = this.getRange4(pivotRange.r1 + location.firstDataRow - 1, pivotRange.c1 + location.firstDataCol);
+				}
+				oCellValue = new AscCommonExcel.CCellValue();
+				oCellValue.type = AscCommon.CellValueType.String;
+				oCellValue.text = AscCommonExcel.ToName_ST_ItemType(Asc.c_oAscItemType.Default);
+				cells.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, oCellValue));
+			}
+			if (rowFieldsOffset && false === pivotTable.showHeaders && false === pivotTable.gridDropZones && pivotTable.getDataFieldsCount() > 0) {
+				cells = this.getRange4(pivotRange.r1 + location.firstDataRow, pivotRange.c1 + location.firstDataCol - 1);
+				this._updatePivotTableSetCellValue(cells, pivotTable.getDataFieldName(0));
+			}
 			return;
 		}
 		var pivotFields = pivotTable.asc_getPivotFields();
@@ -6999,6 +7020,9 @@
 					if (num) {
 						cells.setNum(num);
 					}
+				}
+				if (hasLeftAlignInRowLables) {
+					cells.setAlignHorizontal(AscCommon.align_Left);
 				}
 				cells.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, oCellValue));
 			}
