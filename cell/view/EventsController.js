@@ -65,11 +65,9 @@
 			this.element  = undefined;
 			this.handlers = undefined;
 			this.vsb	= undefined;
-			this.vsbHSt	= undefined;
 			this.vsbApi	= undefined;
 			this.vsbMax	= undefined;
 			this.hsb	= undefined;
-			this.hsbHSt	= undefined;
 			this.hsbApi = undefined;
 			this.hsbMax	= undefined;
 
