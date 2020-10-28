@@ -291,16 +291,17 @@ function FormatObjBracket(sData)
 }
 function ParseLocalFormatSymbol(Name)
 {
-	LocaleFormatSymbol['Y'] = 'Y';LocaleFormatSymbol['y'] ='y';LocaleFormatSymbol['M'] = 'M';LocaleFormatSymbol['m'] ='m';LocaleFormatSymbol['D'] = 'D';LocaleFormatSymbol['d'] ='d';LocaleFormatSymbol['H'] = 'H';LocaleFormatSymbol['h'] ='h';LocaleFormatSymbol['S'] = 'S';LocaleFormatSymbol['s'] ='s';
+	LocaleFormatSymbol['Y'] = 'Y';LocaleFormatSymbol['y'] ='y';LocaleFormatSymbol['M'] = 'M';LocaleFormatSymbol['m'] ='m';LocaleFormatSymbol['D'] = 'D';LocaleFormatSymbol['d'] ='d';LocaleFormatSymbol['H'] = 'H';LocaleFormatSymbol['h'] ='h';LocaleFormatSymbol['S'] = 'S';LocaleFormatSymbol['s'] ='s';LocaleFormatSymbol['general']='general';LocaleFormatSymbol['General'] = 'General';
 		switch(Name) {
 //___________________________________________________________________fi________________________________________________________________
 	case("fi-FI"):case("se-FI"):case("smn-FI"):case("sms-FI"):case("sv-AX"):case("sv-FI"):case("en-FI"):{LocaleFormatSymbol['Y'] = 'V';LocaleFormatSymbol['y'] ='v';LocaleFormatSymbol['d'] ='p';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';}break;
 //____________________________________________________________fy_____________________________
 	case("en-NL"):case("fy-NL"):case("nds-NL"):case("nl-BE"):case("nl-NL"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';LocaleFormatSymbol['H'] = 'U'; LocaleFormatSymbol['h'] ='u';}break;
 //____________________________________________________ES_____________________________________
-	case("ast-ES"):case("ca-ES-valencia"):case("ca-ES"):case("es-ES"):case("es-MX"):case("eu-ES"):case("gl-ES"):case("es-BR"):case("pt-BR"):case("pt-PT"):{LocaleFormatSymbol['Y'] = 'A';LocaleFormatSymbol['y'] ='a';}break;
+	case("ast-ES"):case("ca-ES-valencia"):case("ca-ES"):case("es-ES"):case("es-MX"):case("eu-ES"):case("gl-ES"):{LocaleFormatSymbol['Y'] = 'A';LocaleFormatSymbol['y'] ='a';}break;
+    case("es-BR"):case("pt-BR"):case("pt-PT"):{LocaleFormatSymbol['Y'] = 'A';LocaleFormatSymbol['y'] ='a';}break;
 //______________________________________________________ru___________________________________
-	case("ba-RU"):case("ce-RU"):case("cu-RU"):case("de-BE"):case("en-BE"):case("en-CH"):case("gsw-CH"):case("kk-KZ"):case("os-RU"):case("pt-CH"):case("rm-CH"):case("ru-KZ"):case("ru-RU"):case("sah-RU"):case("tt-RU"):case("wae-CH"):{LocaleFormatSymbol['Y'] = 'Г';LocaleFormatSymbol['y'] = 'г';LocaleFormatSymbol['M'] = 'М';LocaleFormatSymbol['m'] = 'м';LocaleFormatSymbol['D'] = 'Д';LocaleFormatSymbol['d'] = 'д';LocaleFormatSymbol['H'] = 'Ч';LocaleFormatSymbol['h'] = 'ч';LocaleFormatSymbol['S'] = 'C';LocaleFormatSymbol['s'] = 'с';}break;
+	case("ba-RU"):case("ce-RU"):case("cu-RU"):case("de-BE"):case("en-BE"):case("en-CH"):case("gsw-CH"):case("kk-KZ"):case("os-RU"):case("pt-CH"):case("rm-CH"):case("ru-KZ"):case("ru-RU"):case("sah-RU"):case("tt-RU"):case("wae-CH"):{LocaleFormatSymbol['Y'] = 'Г';LocaleFormatSymbol['y'] = 'г';LocaleFormatSymbol['M'] = 'М';LocaleFormatSymbol['m'] = 'м';LocaleFormatSymbol['D'] = 'Д';LocaleFormatSymbol['d'] = 'д';LocaleFormatSymbol['H'] = 'Ч';LocaleFormatSymbol['h'] = 'ч';LocaleFormatSymbol['S'] = 'C';LocaleFormatSymbol['s'] = 'с';LocaleFormatSymbol['general'] = 'основной';LocaleFormatSymbol['General'] = 'Основной';}break;
 //________________________________________________________fr_________________________________
 	case("br-FR"):case("ca-FR"):case("co-FR"):case("fr-BE"):case("fr-CA"):case("fr-CH"):case("fr-FR"):case("gsw-FR"):case("oc-FR"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';}break;
 //__________________________________________________________de_______________________________
@@ -464,7 +465,8 @@ NumFormat.prototype =
     _parseFormat : function(digitSpaceSymbol)
     {
         var sGeneral = AscCommon.g_cGeneralFormat.toLowerCase();
-        var sGeneralFirst = sGeneral[0];
+        var sGeneralFirst = sGeneral[0]
+
         this.bGeneralChart = true;
         while(true)
         {
@@ -560,13 +562,19 @@ NumFormat.prototype =
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
             }
+            else if(LocaleFormatSymbol['general'] == (next+this._GetText(LocaleFormatSymbol['general'].length - 1) )
+                ||(LocaleFormatSymbol['General'] == (next+this._GetText(LocaleFormatSymbol['General'].length - 1) )))
+            {
+                this._addToFormat(numFormat_General);
+                this._skip(LocaleFormatSymbol['general'].length - 1);
 
+            }
 
             else {
-                if (sGeneralFirst === next.toLowerCase() &&
-                    sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase()) {
-                    this._addToFormat(numFormat_General);
-                    this._skip(sGeneral.length - 1);
+
+                if (sGeneralFirst === next.toLowerCase() && sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase()) {
+              //    this._addToFormat(numFormat_General);
+               //     this._skip(sGeneral.length - 1);
                 } else {
                     bNoFormat = true;
                     this._addToFormat(numFormat_Text, next);
@@ -610,6 +618,7 @@ NumFormat.prototype =
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
             }
+
 			else if ("A" == next || "a" == next) {
 				this._ReadAmPm(next);
 			}
