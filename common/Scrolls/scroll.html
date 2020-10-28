@@ -20,13 +20,13 @@
             if(checkbox.checked === true) {
                 settings.cornerRadius = 6;
                 settings1.cornerRadius = 6;
-                scrollObject.Reinit(settings);
-                scrollObject1.Reinit(settings1);
+                scrollObject.Repos(settings);
+                scrollObject1.Repos(settings1);
             } else {
                 settings.cornerRadius = 0;
                 settings1.cornerRadius = 0;
-                scrollObject.Reinit(settings);
-                scrollObject1.Reinit(settings1);
+                scrollObject.Repos(settings);
+                scrollObject1.Repos(settings1);
             }
         }
         function clickFadeDelay() {
@@ -34,8 +34,8 @@
             if(parseInt(textArea.value)) {
                 settings.fadeInFadeOutDelay = parseInt(textArea.value);
                 settings1.fadeInFadeOutDelay = parseInt(textArea.value);
-                scrollObject.Reinit(settings);
-                scrollObject1.Reinit(settings1);
+                scrollObject.Repos(settings);
+                scrollObject1.Repos(settings1);
             }
         }
         function showArrows() {
@@ -151,8 +151,8 @@
     });
 
     window.onresize = function() {
-        scrollObject.Reinit(settings);
-        scrollObject1.Reinit(settings1);
+        scrollObject.Repos(settings);
+        scrollObject1.Repos(settings1);
     }
 
 </script>
