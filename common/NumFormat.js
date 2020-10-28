@@ -291,35 +291,35 @@ function FormatObjBracket(sData)
 }
 function ParseLocalFormatSymbol(Name)
 {
-	LocaleFormatSymbol['Y'] = 'Y';LocaleFormatSymbol['y'] ='y';LocaleFormatSymbol['M'] = 'M';LocaleFormatSymbol['m'] ='m';LocaleFormatSymbol['D'] = 'D';LocaleFormatSymbol['d'] ='d';LocaleFormatSymbol['H'] = 'H';LocaleFormatSymbol['h'] ='h';LocaleFormatSymbol['S'] = 'S';LocaleFormatSymbol['s'] ='s';LocaleFormatSymbol['general']='general'.toLowerCase();
+	LocaleFormatSymbol['Y'] = 'Y';LocaleFormatSymbol['y'] ='y';LocaleFormatSymbol['M'] = 'M';LocaleFormatSymbol['m'] ='m';LocaleFormatSymbol['D'] = 'D';LocaleFormatSymbol['d'] ='d';LocaleFormatSymbol['H'] = 'H';LocaleFormatSymbol['h'] ='h';LocaleFormatSymbol['S'] = 'S';LocaleFormatSymbol['s'] ='s';LocaleFormatSymbol['general']='general';
 		switch(Name) {
 //___________________________________________________________________fi________________________________________________________________
 	case("fi-FI"):case("se-FI"):case("smn-FI"):case("sms-FI"):case("sv-AX"):case("sv-FI"):
-	case("en-FI"):{LocaleFormatSymbol['Y'] = 'V';LocaleFormatSymbol['y'] ='v';LocaleFormatSymbol['d'] ='p';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';LocaleFormatSymbol['general']='yleinen'.toLowerCase();}break;
+	case("en-FI"):{LocaleFormatSymbol['Y'] = 'V';LocaleFormatSymbol['y'] ='v';LocaleFormatSymbol['d'] ='p';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';LocaleFormatSymbol['general']='yleinen'}break;
 //____________________________________________________________fy_____________________________
-	case("en-NL"):case("fy-NL"):case("nds-NL"):case("nl-BE"):case("nl-NL"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';LocaleFormatSymbol['H'] = 'U'; LocaleFormatSymbol['h'] ='u';LocaleFormatSymbol['general']='standaard'.toLowerCase();}break;
+	case("en-NL"):case("fy-NL"):case("nds-NL"):case("nl-BE"):case("nl-NL"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';LocaleFormatSymbol['H'] = 'U'; LocaleFormatSymbol['h'] ='u';LocaleFormatSymbol['general']='standaard'}break;
 //____________________________________________________ES_____________________________________
-	case("ast-ES"):case("ca-ES-valencia"):case("ca-ES"):case("es-ES"):case("es-MX"):case("eu-ES"):case("gl-ES"):{LocaleFormatSymbol['Y'] = 'A';LocaleFormatSymbol['y'] ='a';LocaleFormatSymbol['general']='estándar'.toLowerCase()}break;
+	case("ast-ES"):case("ca-ES-valencia"):case("ca-ES"):case("es-ES"):case("es-MX"):case("eu-ES"):case("gl-ES"):{LocaleFormatSymbol['Y'] = 'A';LocaleFormatSymbol['y'] ='a';LocaleFormatSymbol['general']='estándar'}break;
     case("pt-BR"): case("es-BR"):{LocaleFormatSymbol['Y'] = 'A';LocaleFormatSymbol['y'] ='a';LocaleFormatSymbol['general'] ='geral'.toLowerCase();}break;
-	case("pt-PT"):{LocaleFormatSymbol['Y'] = 'A';LocaleFormatSymbol['y'] ='a';LocaleFormatSymbol['General']='Estandar';LocaleFormatSymbol['general']='estandar'.toLowerCase();}break;
+	case("pt-PT"):{LocaleFormatSymbol['Y'] = 'A';LocaleFormatSymbol['y'] ='a';LocaleFormatSymbol['General']='Estandar';LocaleFormatSymbol['general']='estandar'}break;
 //______________________________________________________ru___________________________________
-	case("ba-RU"):case("ce-RU"):case("cu-RU"):case("de-BE"):case("en-BE"):case("en-CH"):case("gsw-CH"):case("kk-KZ"):case("os-RU"):case("pt-CH"):case("rm-CH"):case("ru-KZ"):case("ru-RU"):case("sah-RU"):case("tt-RU"):case("wae-CH"):{LocaleFormatSymbol['Y'] = 'Г';LocaleFormatSymbol['y'] = 'г';LocaleFormatSymbol['M'] = 'М';LocaleFormatSymbol['m'] = 'м';LocaleFormatSymbol['D'] = 'Д';LocaleFormatSymbol['d'] = 'д';LocaleFormatSymbol['H'] = 'Ч';LocaleFormatSymbol['h'] = 'ч';LocaleFormatSymbol['S'] = 'C';LocaleFormatSymbol['s'] = 'с';LocaleFormatSymbol['general'] = 'основной'.toLowerCase();}break;
+	case("ba-RU"):case("ce-RU"):case("cu-RU"):case("de-BE"):case("en-BE"):case("en-CH"):case("gsw-CH"):case("kk-KZ"):case("os-RU"):case("pt-CH"):case("rm-CH"):case("ru-KZ"):case("ru-RU"):case("sah-RU"):case("tt-RU"):case("wae-CH"):{LocaleFormatSymbol['Y'] = 'Г';LocaleFormatSymbol['y'] = 'г';LocaleFormatSymbol['M'] = 'М';LocaleFormatSymbol['m'] = 'м';LocaleFormatSymbol['D'] = 'Д';LocaleFormatSymbol['d'] = 'д';LocaleFormatSymbol['H'] = 'Ч';LocaleFormatSymbol['h'] = 'ч';LocaleFormatSymbol['S'] = 'C';LocaleFormatSymbol['s'] = 'с';LocaleFormatSymbol['general'] = 'основной';}break;
 //________________________________________________________fr_________________________________
-	case("br-FR"):case("ca-FR"):case("co-FR"):case("fr-BE"):case("fr-CA"):case("fr-CH"):case("fr-FR"):case("gsw-FR"):case("oc-FR"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';LocaleFormatSymbol['general']='standard'.toLowerCase();}break;
+	case("br-FR"):case("ca-FR"):case("co-FR"):case("fr-BE"):case("fr-CA"):case("fr-CH"):case("fr-FR"):case("gsw-FR"):case("oc-FR"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] ='j';LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';LocaleFormatSymbol['general']='standard'}break;
 //__________________________________________________________de_______________________________
-	case("de-AT"):case("de-CH"):case("de-DE"):case("dsb-DE"):case("en-AT"):case("en-DE"):case("hsb-DE"):case("ksh-DE"):case("nds-DE"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] = 'j';LocaleFormatSymbol['D'] = 'T';LocaleFormatSymbol['d'] = 't';LocaleFormatSymbol['general']='standard'.toLowerCase();}break;
+	case("de-AT"):case("de-CH"):case("de-DE"):case("dsb-DE"):case("en-AT"):case("en-DE"):case("hsb-DE"):case("ksh-DE"):case("nds-DE"):{LocaleFormatSymbol['Y'] = 'J';LocaleFormatSymbol['y'] = 'j';LocaleFormatSymbol['D'] = 'T';LocaleFormatSymbol['d'] = 't';LocaleFormatSymbol['general']='standard'}break;
 //____________________________________________________________it_____________________________
-	case("ca-IT"):case("de-IT"):case("fur-IT"):case("it-CH"):case("it-IT"):case("it-VA"):{LocaleFormatSymbol['Y'] = 'G';LocaleFormatSymbol['y'] ='g';LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';LocaleFormatSymbol['general']='standard'.toLowerCase();}break;
+	case("ca-IT"):case("de-IT"):case("fur-IT"):case("it-CH"):case("it-IT"):case("it-VA"):{LocaleFormatSymbol['Y'] = 'G';LocaleFormatSymbol['y'] ='g';LocaleFormatSymbol['D'] = 'A';LocaleFormatSymbol['d'] ='a';LocaleFormatSymbol['general']='standard'}break;
 //______________________________________________________________da___________________________
 	case("da-DK"):case("fo-DK"):case("nb-NO"):case("nb-SJ"):case("nn-NO"):case("se-NO"):case("sma-NO"):case("smj-NO"):
-	case("en-DK"):case("en-SE"):case("se-SE"):case("sma-SE"):case("smj-SE"):case("sv-SE"):{LocaleFormatSymbol['Y'] = 'Å';LocaleFormatSymbol['y'] ='å';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';LocaleFormatSymbol['general']='standard'.toLowerCase();}break;
+	case("en-DK"):case("en-SE"):case("se-SE"):case("sma-SE"):case("smj-SE"):case("sv-SE"):{LocaleFormatSymbol['Y'] = 'Å';LocaleFormatSymbol['y'] ='å';LocaleFormatSymbol['H'] = 'T';LocaleFormatSymbol['h'] ='t';LocaleFormatSymbol['general']='standard'}break;
 //_______________________________________________________________________ch__________________
 	case("bo-CN"):case("ii-CN"):case("mn-Mong-CN"):case("ug-CN"):case("zh-CN"):case("zh-Hans"):case("zh-TW"):{LocaleFormatSymbol['General']='G/通用格式';LocaleFormatSymbol['general']='g/通用格式';}break;
 //__________________________________________________special_________________________________________	
-    case("el-GR"):{LocaleFormatSymbol['Y'] = 'Ε';LocaleFormatSymbol['y'] ='ε';LocaleFormatSymbol['M'] = 'Μ';LocaleFormatSymbol['m'] ='μ';LocaleFormatSymbol['D'] = 'Η';LocaleFormatSymbol['d'] ='η';LocaleFormatSymbol['H'] = 'Ω';LocaleFormatSymbol['h'] ='ω';LocaleFormatSymbol['S'] = 'Δ';LocaleFormatSymbol['s'] ='δ';LocaleFormatSymbol['general'] ='γενικός τύπος'.toLowerCase();}break;
-	case("hu-HU"):{LocaleFormatSymbol['Y'] = 'É';LocaleFormatSymbol['y'] ='é';LocaleFormatSymbol['M'] = 'H';LocaleFormatSymbol['m'] ='h';LocaleFormatSymbol['D'] = 'N';LocaleFormatSymbol['d'] ='n';LocaleFormatSymbol['H'] = 'Ó';LocaleFormatSymbol['h'] ='ó';LocaleFormatSymbol['S'] = 'M';LocaleFormatSymbol['s'] ='m';LocaleFormatSymbol['general']='normál'.toLowerCase();}break;
+    case("el-GR"):{LocaleFormatSymbol['Y'] = 'Ε';LocaleFormatSymbol['y'] ='ε';LocaleFormatSymbol['M'] = 'Μ';LocaleFormatSymbol['m'] ='μ';LocaleFormatSymbol['D'] = 'Η';LocaleFormatSymbol['d'] ='η';LocaleFormatSymbol['H'] = 'Ω';LocaleFormatSymbol['h'] ='ω';LocaleFormatSymbol['S'] = 'Δ';LocaleFormatSymbol['s'] ='δ';LocaleFormatSymbol['general'] ='γενικός τύπος'}break;
+	case("hu-HU"):{LocaleFormatSymbol['Y'] = 'É';LocaleFormatSymbol['y'] ='é';LocaleFormatSymbol['M'] = 'H';LocaleFormatSymbol['m'] ='h';LocaleFormatSymbol['D'] = 'N';LocaleFormatSymbol['d'] ='n';LocaleFormatSymbol['H'] = 'Ó';LocaleFormatSymbol['h'] ='ó';LocaleFormatSymbol['S'] = 'M';LocaleFormatSymbol['s'] ='m';LocaleFormatSymbol['general']='normál'}break;
 	case("tr-TR"):{LocaleFormatSymbol['M'] = 'A';LocaleFormatSymbol['m'] ='a';LocaleFormatSymbol['D'] = 'G';LocaleFormatSymbol['d'] ='g';LocaleFormatSymbol['H'] = 'S';LocaleFormatSymbol['h'] ='s';LocaleFormatSymbol['S'] = 'N';LocaleFormatSymbol['s'] ='n';LocaleFormatSymbol['general']='genel'.toLowerCase();}break;
-	case("pl-PL"):{LocaleFormatSymbol['Y'] = 'R';LocaleFormatSymbol['y'] ='r';LocaleFormatSymbol['H'] = 'G';LocaleFormatSymbol['h'] ='g';LocaleFormatSymbol['General']='standardowy'.toLowerCase();}break;
+	case("pl-PL"):{LocaleFormatSymbol['Y'] = 'R';LocaleFormatSymbol['y'] ='r';LocaleFormatSymbol['H'] = 'G';LocaleFormatSymbol['h'] ='g';LocaleFormatSymbol['General']='standardowy'}break;
 	case("cs-CZ"):{LocaleFormatSymbol['Y'] = 'R';LocaleFormatSymbol['y'] ='r';LocaleFormatSymbol['general']='vęeobecný'.toLowerCase()}break;
 	case("ja-JP"):{LocaleFormatSymbol['General']='G/標準';LocaleFormatSymbol['general']='g/標準'}break;
 	case("ko-KR"):{LocaleFormatSymbol['General']='G/표준';LocaleFormatSymbol['general']='g/표준'}break;
@@ -471,8 +471,8 @@ NumFormat.prototype =
     },
     _parseFormat : function(digitSpaceSymbol)
     {
-        var sGeneral = AscCommon.g_cGeneralFormat.toLowerCase();
-        var sGeneralFirst = sGeneral[0]
+        var sGeneral = LocaleFormatSymbol['general'].toLowerCase();
+        var sGeneralFirst = sGeneral[0];
 
         this.bGeneralChart = true;
         while(true)
@@ -495,7 +495,7 @@ NumFormat.prototype =
             {
                 this._addToFormat(numFormat_Text, next);
             }
-			else if(":" == next)
+			else if((":" == next)||("."==next))
             {
                 this._addToFormat(numFormat_TimeSeparator);
             }
@@ -569,19 +569,10 @@ NumFormat.prototype =
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
             }
-            else if(LocaleFormatSymbol['general'].toLowerCase() == (next.toLowerCase()+this._GetText(LocaleFormatSymbol['general'].length - 1).toLowerCase() ))
-         //       ||(LocaleFormatSymbol['General'] == (next+this._GetText(LocaleFormatSymbol['General'].length - 1) )))
-            {
-                this._addToFormat(numFormat_General);
-                this._skip(LocaleFormatSymbol['general'].length - 1);
-
-            }
-
             else {
-
                 if (sGeneralFirst === next.toLowerCase() && sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase()) {
-              //    this._addToFormat(numFormat_General);
-               //     this._skip(sGeneral.length - 1);
+                  this._addToFormat(numFormat_General);
+                    this._skip(sGeneral.length - 1);
                 } else {
                     bNoFormat = true;
                     this._addToFormat(numFormat_Text, next);
@@ -593,8 +584,6 @@ NumFormat.prototype =
 
         return true;
     },
-
-
 
     _parseFormatWordDateTime : function()
     {
