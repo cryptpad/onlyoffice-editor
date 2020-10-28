@@ -5447,6 +5447,7 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
     var CanMakeAutoCorrectFunc     = false;
     var CanMakeAutoCorrect         = false;
     // Смотрим возможно ли выполнить автозамену, если нет, тогда пробуем произвести автозамену пропуская последний символ
+    this.private_UpdateAutoCorrectMathSymbols();
     CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine);
     if (CanMakeAutoCorrect && (AutoCorrectEngine.IsFull || AutoCorrectEngine.TypeSpecFunc)) {
         this.private_ReplaceAutoCorrect(AutoCorrectEngine);
@@ -5571,6 +5572,11 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
 
         AutoCorrectEngine.StartHystory = false;
     }
+};
+CMathContent.prototype.private_UpdateAutoCorrectMathSymbols = function() {
+    g_AutoCorrectMathSymbols = window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathSymbols;
+    g_AutoCorrectMathFuncs = window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathFuncs;
+
 };
 CMathContent.prototype.private_NeedAutoCorrect = function(ActionElement) {
     var CharCode = ActionElement.value;
@@ -6569,7 +6575,7 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectEquation = function(Elements
                             if (el.value == 0x5E || el.value == 0x5F) {
                                 pos = i;
                                 arr.unshift(...tempArr);
-                                fBreak = true;;
+                                fBreak = true;
                                 break;
                             } else if (g_aMathAutoCorrectFracCharCodes[el.value]) {
                                 break;
@@ -8851,7 +8857,7 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
                             if (el.value == 0x5E || el.value == 0x5F) {
                                 pos = i;
                                 arr.unshift(...tempArr);
-                                fBreak = true;;
+                                fBreak = true;
                                 break;
                             } else if (g_aMathAutoCorrectFracCharCodes[el.value]) {
                                 break;
