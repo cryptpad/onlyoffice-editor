@@ -5888,20 +5888,23 @@ window["native"]["offline_apply_event"] = function(type,params) {
                             break;
                         }
                         case 21:
-                        {
-                            var urlSource = selectedImageProp[0].Value.ImageUrl;
-                            if (urlSource) {
-                                var bIsNeed = params[_current.pos++];
-                                if (bIsNeed)
-                                {
-                                    var _originSize = window["native"]["GetOriginalImageSize"](urlSource);
-                                    var _w = _originSize[0] * 25.4 / 96.0 / window["native"]["GetDeviceScale"]();
-                                    var _h = _originSize[1] * 25.4 / 96.0 / window["native"]["GetDeviceScale"]();
+                        { 
+                            var bIsNeed = params[_current.pos++];
+                            if (bIsNeed) {
+                            for (var j = 0; j < selectedImageProp.length; ++j) {
+                                if (selectedImageProp[j] && selectedImageProp[j].Value) {
+                                    var urlSource = selectedImageProp[j].Value.ImageUrl;
+                                    if (urlSource) {
+                                            var _originSize = window["native"]["GetOriginalImageSize"](urlSource);
+                                            var _w = _originSize[0] * 25.4 / 96.0 / window["native"]["GetDeviceScale"]();
+                                            var _h = _originSize[1] * 25.4 / 96.0 / window["native"]["GetDeviceScale"]();
                                     
-                                    _imagePr.ImageUrl = undefined;
+                                            _imagePr.ImageUrl = undefined;
                                     
-                                    _imagePr.Width = _w;
-                                    _imagePr.Height = _h;
+                                            _imagePr.Width = _w;
+                                            _imagePr.Height = _h;
+                                        }
+                                    }
                                 }
                             }
                             
