@@ -13463,6 +13463,29 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
         return null;
     }
 
+    function fGetDefaultShapeExtents(sPreset)
+    {
+        var ext_x, ext_y;
+        if(typeof AscFormat.SHAPE_EXT[sPreset] === "number")
+        {
+            ext_x = AscFormat.SHAPE_EXT[sPreset];
+        }
+        else
+        {
+            ext_x = 25.4;
+        }
+        if(typeof AscFormat.SHAPE_ASPECTS[sPreset] === "number")
+        {
+            var _aspect = AscFormat.SHAPE_ASPECTS[sPreset];
+            ext_y = ext_x/_aspect;
+        }
+        else
+        {
+            ext_y = ext_x;
+        }
+        return {x: ext_x, y: ext_y};
+    }
+
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].HANDLE_EVENT_MODE_HANDLE = HANDLE_EVENT_MODE_HANDLE;
@@ -13544,4 +13567,5 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
 	window['AscFormat'].getAbsoluteRectBoundsArr = getAbsoluteRectBoundsArr;
 	window['AscFormat'].fCheckObjectHyperlink = fCheckObjectHyperlink;
 	window['AscFormat'].getNumberingType = getNumberingType;
+	window['AscFormat'].fGetDefaultShapeExtents = fGetDefaultShapeExtents;
 })(window);

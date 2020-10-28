@@ -1318,7 +1318,7 @@ CGraphicObjects.prototype =
     },
 
 
-    addShapeOnPage: function(sPreset, nPageIndex, dX, dY, dExtX, dExtY)
+    addShapeOnPage: function(sPreset, nPageIndex)
     {
         if ( docpostype_HdrFtr !== this.document.GetDocPosType() || null !== this.document.HdrFtr.CurHdrFtr )
         {
@@ -1341,6 +1341,17 @@ CGraphicObjects.prototype =
                 DocContent.Selection.Start = true;
             }
 
+            var dX, dY, dExtX, dExtY;
+            var oSectPr = this.document.Get_PageLimits(nPageIndex);
+            var oExt = AscFormat.fGetDefaultShapeExtents(sPreset);
+            var dSize = Math.min(oSectPr.XLimit / 2, oSectPr.YLimit / 2);
+            var dScale = dSize/Math.max(oExt.x, oExt.y);
+            dExtX = oExt.x * dScale;
+            dExtY = oExt.y * dScale;
+            dX = (oSectPr.XLimit - oSectPr.X - dExtX) / 2;
+            dX = Math.max(0, dX);
+            dY = (oSectPr.YLimit - oSectPr.Y - dExtY) / 2;
+            dY = Math.max(0, dY);
             this.changeCurrentState(new AscFormat.StartAddNewShape(this, sPreset));
             this.OnMouseDown({}, dX, dY, nPageIndex);
             if(AscFormat.isRealNumber(dExtX) && AscFormat.isRealNumber(dExtY))

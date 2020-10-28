@@ -136,23 +136,9 @@ StartAddNewShape.prototype =
             if(!this.bMoved && this instanceof StartAddNewShape)
             {
                 var ext_x, ext_y;
-                if(typeof AscFormat.SHAPE_EXT[this.preset] === "number")
-                {
-                    ext_x = AscFormat.SHAPE_EXT[this.preset];
-                }
-                else
-                {
-                    ext_x = 25.4;
-                }
-                if(typeof AscFormat.SHAPE_ASPECTS[this.preset] === "number")
-                {
-                    var _aspect = AscFormat.SHAPE_ASPECTS[this.preset];
-                    ext_y = ext_x/_aspect;
-                }
-                else
-                {
-                    ext_y = ext_x;
-                }
+                var oExt = AscFormat.fGetDefaultShapeExtents(this.preset);
+                ext_x = oExt.x;
+                ext_y = oExt.y;
                 this.onMouseMove({IsLocked: true}, this.startX + ext_x, this.startY + ext_y);
             }
             var callback = function(bLock){

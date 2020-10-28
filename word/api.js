@@ -7732,18 +7732,7 @@ background-repeat: no-repeat;\
 	{
 		if (!this.WordControl.m_oLogicDocument)
 			return;
-
-		var _pageNum = this.GetCurrentVisiblePage();
-		// получаем размеры страницы
-		var _sectionPr = this.WordControl.m_oLogicDocument.Get_PageLimits(_pageNum);
-
-		var _min = Math.min(_sectionPr.XLimit / 2, _sectionPr.YLimit / 2);
-
-		this.WordControl.m_oLogicDocument.DrawingObjects.addShapeOnPage(_type, _pageNum,
-			_sectionPr.X + _sectionPr.XLimit / 4,
-			_sectionPr.Y + _sectionPr.YLimit / 4,
-			_min,
-			_min);
+		this.WordControl.m_oLogicDocument.DrawingObjects.addShapeOnPage(_type, this.GetCurrentVisiblePage());
 	};
 
 

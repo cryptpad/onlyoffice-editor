@@ -1809,23 +1809,9 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                 metrics.rowOff = 0;
                 var coordsFrom = _this.calculateCoords(metrics);
                 var ext_x, ext_y;
-                if(typeof AscFormat.SHAPE_EXT[sType] === "number")
-                {
-                    ext_x = AscFormat.SHAPE_EXT[sType];
-                }
-                else
-                {
-                    ext_x = 25.4;
-                }
-                if(typeof AscFormat.SHAPE_ASPECTS[sType] === "number")
-                {
-                    var _aspect = AscFormat.SHAPE_ASPECTS[sType];
-                    ext_y = ext_x/_aspect;
-                }
-                else
-                {
-                    ext_y = ext_x;
-                }
+                var oExt = AscFormat.fGetDefaultShapeExtents(sType);
+                ext_x = oExt.x;
+                ext_y = oExt.y;
                 History.Create_NewPoint();
 
                 var posX = pxToMm(coordsFrom.x) + MOVE_DELTA;
