@@ -1277,7 +1277,7 @@ CBlockLevelSdt.prototype.RemoveContentControlWrapper = function()
 	else if (nParentSelectionEndPos > nElementPos)
 		this.Parent.Selection.EndPos = nParentSelectionEndPos + nCount - 1;
 
-	this.Content.Remove_FromContent(0, this.Content.Content.length - 1);
+	this.Content.RemoveFromContent(0, this.Content.Content.length, false);
 };
 CBlockLevelSdt.prototype.IsTableFirstRowOnNewPage = function()
 {
