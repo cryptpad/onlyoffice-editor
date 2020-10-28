@@ -589,7 +589,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 			this.dragMinX = this.arrowPosition;
 		}
 	};
-	ScrollObject.prototype.Repos = function ( settings, bIsHorAttack, bIsVerAttack ) {
+	ScrollObject.prototype.Repos = function ( settings, bIsHorAttack, bIsVerAttack, pos ) {
 		var dPR = window.devicePixelRatio;
 
 			if(this.settings.showArrows) {
@@ -666,58 +666,24 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 				this.canvas.style.display = "";
 			}
 		}
-        this.context = this.canvas.getContext( '2d' );
-        this.context.fillStyle = this.settings.scrollBackgroundColor;
-        this.context.fillRect(0, 0, this.canvasW, this.canvasH);
-		this._initPiperImg();
-        this._drawArrows();
-		this._draw();
-	};
-	ScrollObject.prototype.Reinit = function ( settings, pos ) {
-		var size,
-			canvasH = this.canvas.parentNode.firstElementChild.clientHeight,
-			canvasW = this.canvas.parentNode.firstElementChild.clientWidth,
-		    dPR = window.devicePixelRatio;
 
-		size = Math.round(canvasH  - (settings.screenH || this.canvas.parentNode.offsetHeight));
-		this.maxScrollY = this.maxScrollY2 = 0 < size ? size : 0;
-
-		size = Math.round(canvasW - (settings.screenH || this.canvas.parentNode.offsetWidth));
-		this.maxScrollX = this.maxScrollX2 = 0 < size ? size : 0;
-
-		this._setDimension( this.canvas.parentNode.clientHeight, this.canvas.parentNode.clientWidth );
-
-		if(this.settings.showArrows) {
-			this.settings.arrowSizeW = Math.round(13 * dPR);
-			this.settings.arrowSizeH = Math.round(13 * dPR);
-		}
-
-		this._setScrollerHW();
-		this.settings.arrowDim = Math.round(13 * dPR);
-		this.settings.arrowDim = this.settings.slimScroll && this.settings.isVerticalScroll ? this.scroller.w : this.settings.arrowDim;
-		this.settings.arrowDim = this.settings.slimScroll && this.settings.isHorizontalScroll ? this.scroller.h : this.settings.arrowDim;
-		this.arrowPosition = this.settings.showArrows ? Math.round(this.settings.arrowDim + this._roundForScale(dPR) + this._roundForScale(dPR)) : Math.round(dPR);
-
-		this.settings.vscrollStep = 10;
-		this.settings.hscrollStep = 10;
-		this.paneHeight = this.canvasH - this.arrowPosition * 2;
-		this.paneWidth = this.canvasW - this.arrowPosition * 2;
-		this.RecalcScroller();
 		this.reinit = true;
-		if ( this.settings.isVerticalScroll ) {
+		if ( this.settings.isVerticalScroll && pos) {
 			pos !== undefined ? this.scrollByY( pos - this.scrollVCurrentY ) : this.scrollToY( this.scrollVCurrentY );
 		}
 
-		if ( this.settings.isHorizontalScroll ) {
+		if ( this.settings.isHorizontalScroll && pos) {
 			pos !== undefined ? this.scrollByX( pos - this.scrollHCurrentX ) : this.scrollToX( this.scrollHCurrentX );
 		}
 		this.reinit = false;
-        this._initPiperImg();
-		if(this.isResizeArrows) {
+
+		if (this.isResizeArrows) {
+			this.context = this.canvas.getContext('2d');
 			this.context.fillStyle = this.settings.scrollBackgroundColor;
 			this.context.fillRect(0, 0, this.canvasW, this.canvasH);
 			this._drawArrows();
 		}
+		this._initPiperImg();
 		this._draw();
 	};
 	ScrollObject.prototype._scrollV = function ( that, evt, pos, isTop, isBottom, bIsAttack ) {
