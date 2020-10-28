@@ -304,6 +304,17 @@ function ParseLocalFormatSymbol(Name)
 	LocaleFormatSymbol['general']='general';
     LocaleFormatSymbol[':']=':';
         switch(Name) {
+//_________________________________________________pointen______________________________________________________________
+			case("bn-IN"):
+			case("id-ID"):
+			case("jv-Java-ID"):
+			case("jv-Latn-ID"):
+			case("jv-Latn"):
+			case("pa-Arab-PK"):
+			case("pa-Arab"):
+			case("pa-Guru"):
+			case("si-LK"): {
+				LocaleFormatSymbol[':']='.'}break;
 //____________________________________________________fi________________________________________________________________
 	        case("fi-FI"):
 	        case("se-FI"):
