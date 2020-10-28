@@ -369,6 +369,8 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		this.IsRetina = false;
 		this.canvasW = 1;
 		this.canvasH = 1;
+		this.canvasOriginalW = 1;
+		this.canvasOriginalH = 1;
 
 		this.scrollColor = this.settings.scrollerColor;
 		this.arrowColor = this.settings.arrowColor;
@@ -1362,7 +1364,8 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		this.isResizeArrows = true;
         this.canvasH = Math.round(h * dPR);
         this.canvasW = Math.round(w * dPR);
-
+		this.canvasOriginalH = h;
+        this.canvasOriginalW = w;
 		this.canvas.height = this.canvasH;
 		this.canvas.width =  this.canvasW;
 	};
@@ -1370,7 +1373,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		var dPR = window.devicePixelRatio;
 		if ( this.settings.isVerticalScroll ) {
 			this.scroller.x = this._roundForScale(dPR);
-			this.scroller.w = Math.round(this.canvasW -  dPR);
+			this.scroller.w = Math.round((this.canvasOriginalW - 1) * dPR);
 			if(this.settings.slimScroll) {
 				this.settings.arrowSizeW = this.settings.arrowSizeH = this.scroller.w;
 			}
@@ -1379,7 +1382,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		}
 		else if ( this.settings.isHorizontalScroll ) {
 			this.scroller.y = this._roundForScale(dPR);
-			this.scroller.h = Math.round(this.canvasH - dPR);
+			this.scroller.h = Math.round((this.canvasOriginalH - 1) * dPR);
 			if(this.settings.slimScroll) {
 				this.settings.arrowSizeH = this.settings.arrowSizeW = this.scroller.h;
 			}
