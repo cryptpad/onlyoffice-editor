@@ -627,8 +627,8 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		var _firstChildW = settings.contentW;
         var _firstChildH = settings.contentH;
 
-		this.maxScrollY = this.maxScrollY2 = _firstChildH - settings.screenH > 0 ? Math.round((_firstChildH - settings.screenH) ) : 0;
-		this.maxScrollX = this.maxScrollX2 = _firstChildW - settings.screenW > 0 ? Math.round((_firstChildW - settings.screenW) ) : 0;
+		this.maxScrollY = this.maxScrollY2 = _firstChildH - settings.screenH > 0 ? _firstChildH - settings.screenH : 0;
+		this.maxScrollX = this.maxScrollX2 = _firstChildW - settings.screenW > 0 ? _firstChildW - settings.screenW : 0;
 
 		this._setDimension( _parentClientH, _parentClientW );
 		this._setScrollerHW();
