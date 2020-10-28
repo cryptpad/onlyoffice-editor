@@ -2854,6 +2854,9 @@ function CPresentation(DrawingDocument) {
 //CPresentation.prototype = Object.create(CDocumentContentBase.prototype);
 CPresentation.prototype.constructor = CPresentation;
 
+CPresentation.prototype.GetApi = function() {
+    return this.Api;
+};
 
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для работы с составным вводом
@@ -6573,7 +6576,9 @@ CPresentation.prototype.OnKeyPress = function (e) {
             if (true === this.CollaborativeEditing.Is_Fast() || this.Document_Is_SelectionLocked(changestype_Drawing_Props) === false) {
                 if (oController && oController.selectedObjects.length !== 0) {
                     History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
+                    this.CheckLanguageOnTextAdd = true;
                     this.AddToParagraph(new ParaSpace());
+                    this.CheckLanguageOnTextAdd = false;
                 }
             }
         }
