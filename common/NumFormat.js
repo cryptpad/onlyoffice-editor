@@ -811,8 +811,8 @@ NumFormat.prototype =
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
             }
-			else if ("A" == next || "a" == next) {
-				this._ReadAmPm(next);
+            else if ("A" == next || "a" == next) {
+                this._ReadAmPm(next);
 			}
             else {
                 if (sGeneralFirst === next.toLowerCase() &&
@@ -858,7 +858,6 @@ NumFormat.prototype =
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
             }
-
 			else if ("A" == next || "a" == next) {
 				this._ReadAmPm(next);
 			}
@@ -866,7 +865,6 @@ NumFormat.prototype =
 					this._addToFormat(numFormat_Text, next);
 			}
         }
-
         return true;
     },
 	_parseFormatWordNumeric : function(digitSpaceSymbol)
