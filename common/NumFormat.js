@@ -302,7 +302,6 @@ function ParseLocalFormatSymbol(Name)
 	LocaleFormatSymbol['S'] = 'S';
 	LocaleFormatSymbol['s'] ='s';
 	LocaleFormatSymbol['general']='general';
-	LocaleFormatSymbol[':']=':';
 		switch(Name) {
 //____________________________________________________fi________________________________________________________________
 			case("fi"):
@@ -754,7 +753,7 @@ NumFormat.prototype =
             {
                 this._addToFormat(numFormat_DigitSpace);
             }
-            else if (gc_sFormatDecimalPoint == next)
+            else if (g_oDefaultCultureInfo.NumberDecimalSeparator == next)
             {
                 this._addToFormat(numFormat_DecimalPoint);
             }
@@ -762,7 +761,7 @@ NumFormat.prototype =
             {
                 this._addToFormat2(new FormatObjDecimalFrac([], []));
             }
-            else if (gc_sFormatThousandSeparator == next)
+            else if (g_oDefaultCultureInfo.NumberGroupSeparator == next)
             {
                 this._addToFormat(numFormat_Thousand, 1);
             }
@@ -3997,7 +3996,7 @@ FormatParser.prototype =
 								sFormat += " AM/PM";
 						}
 						else if(true == bDate)
-							sFormat = sDateFormat;
+							sFormat = sDateFormatL;
 						else
 						{
 							if(dValue > 1)
