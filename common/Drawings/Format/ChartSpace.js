@@ -12073,39 +12073,65 @@ CChartSpace.prototype.hitInTextRect = function()
             var arr_str_labels = [], i, j;
             var calc_entryes = legend.calcEntryes;
             calc_entryes.length = 0;
-            var series = this.getAllSeries();
-
-            //sort series
-            series.sort(function(ser1, ser2){
-                if(ser1.getObjectType() === AscDFH.historyitem_type_PieSeries &&
-                    ser2.getObjectType() !== AscDFH.historyitem_type_PieSeries){
-                    return -1;
-                }
-                if(ser1.parent && ser2.parent && ser1.parent === ser2.parent) {
-                    //TODO: move this code to the separate method in CChartBase
-                    var oTypedChart = ser1.parent;
-                    var isBarChart = oTypedChart.getObjectType && oTypedChart.getObjectType() === AscDFH.historyitem_type_BarChart;
-                    var isStacked = false;
-                    if(isBarChart) {
+            var series;
+            var legend_pos = c_oAscChartLegendShowSettings.right;
+            if(AscFormat.isRealNumber(legend.legendPos))
+            {
+                legend_pos = legend.legendPos;
+            }
+            var aCharts = this.chart.plotArea.charts;
+            var oTypedChart;
+            //Order series for the legend
+            var aOrderedSeries = [];
+            var aChartSeries;
+            var nChart;
+            var bStraightOrder;
+            var bVericalLegend = false;
+            if(aCharts.length === 1 && (legend_pos === c_oAscChartLegendShowSettings.left ||
+                legend_pos === c_oAscChartLegendShowSettings.right ||
+                legend_pos === c_oAscChartLegendShowSettings.leftOverlay ||
+                legend_pos === c_oAscChartLegendShowSettings.rightOverlay ||
+                legend_pos === c_oAscChartLegendShowSettings.topRight)) {
+                bVericalLegend = true;
+            }
+            for(nChart = 0; nChart < aCharts.length; ++nChart) {
+                oTypedChart = aCharts[nChart];
+                aChartSeries = [].concat(oTypedChart.series);
+                bStraightOrder = true;
+                if(bVericalLegend) {
+                    if(oTypedChart.getObjectType() === AscDFH.historyitem_type_BarChart) {
                         if(oTypedChart.grouping === AscFormat.BAR_GROUPING_STACKED
                             || oTypedChart.grouping === AscFormat.BAR_GROUPING_PERCENT_STACKED) {
-                            isStacked = true;
+                            bStraightOrder = false;
                         }
                     }
                     else {
                         if(oTypedChart.grouping === AscFormat.GROUPING_STACKED
                             || oTypedChart.grouping === AscFormat.GROUPING_PERCENT_STACKED) {
-                            isStacked = true;
+                            bStraightOrder = false;
                         }
                     }
-                    if(isStacked) {
-                        return ser2.idx - ser1.idx
-                    }
                 }
-                return 0;
-            });
-
-
+                if(bStraightOrder) {
+                    aChartSeries.sort(function(a, b) {
+                        return a.order - b.order;
+                    });
+                }
+                else {
+                    aChartSeries.sort(function(a, b) {
+                        return b.order - a.order;
+                    });
+                }
+                if(oTypedChart.getObjectType() === AscDFH.historyitem_type_DoughnutChart ||
+                    oTypedChart.getObjectType() === AscDFH.historyitem_type_PieChart ||
+                    oTypedChart.getObjectType() === AscDFH.historyitem_type_OfPieChart) {
+                    aOrderedSeries = aChartSeries.concat(aOrderedSeries);
+                }
+                else {
+                    aOrderedSeries = aOrderedSeries.concat(aChartSeries);
+                }
+            }
+            series = aOrderedSeries;
             var calc_entry, union_marker, entry;
             var max_width = 0, cur_width, max_font_size = 0, cur_font_size, ser, b_line_series;
             var max_word_width = 0;
@@ -12115,7 +12141,6 @@ CChartSpace.prototype.hitInTextRect = function()
          (this.chart.plotArea.charts[0].scatterStyle === AscFormat.SCATTER_STYLE_MARKER || this.chart.plotArea.charts[0].scatterStyle === AscFormat.SCATTER_STYLE_NONE));  */
             this.legendLength = null;
 
-            var aCharts = this.chart.plotArea.charts;
             var oFirstChart = aCharts[0];
             var bNoPieChart = (oFirstChart.getObjectType() !== AscDFH.historyitem_type_PieChart && oFirstChart.getObjectType() !== AscDFH.historyitem_type_DoughnutChart);
             var bSurfaceChart = (oFirstChart.getObjectType() === AscDFH.historyitem_type_SurfaceChart);
@@ -12392,11 +12417,7 @@ CChartSpace.prototype.hitInTextRect = function()
                 distance_to_text = marker_size*0.7;
             }
             var left_inset = marker_size + 3*distance_to_text;
-            var legend_pos = c_oAscChartLegendShowSettings.right;
-            if(AscFormat.isRealNumber(legend.legendPos))
-            {
-                legend_pos = legend.legendPos;
-            }
+
             var legend_width, legend_height;
             var fFixedWidth = null, fFixedHeight = null;
             var bFixedSize = false;
@@ -12872,7 +12893,7 @@ CChartSpace.prototype.hitInTextRect = function()
             {
                 legend.calcGeometry.Recalculate(legend.extX, legend.extY);
             }
-            for(var i = 0; i < calc_entryes.length; ++i)
+            for(i = 0; i < calc_entryes.length; ++i)
             {
                 calc_entryes[i].checkWidhtContent();
             }
