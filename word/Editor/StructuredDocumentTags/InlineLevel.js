@@ -178,6 +178,12 @@ CInlineLevelSdt.prototype.private_CopyPrTo = function(oContentControl)
 	oContentControl.SetPlaceholder(this.Pr.Placeholder);
 	oContentControl.SetContentControlEquation(this.Pr.Equation);
 	oContentControl.SetContentControlTemporary(this.Pr.Temporary);
+
+	if (undefined !== this.Pr.FormPr)
+		oContentControl.SetFormPr(this.Pr.FormPr);
+
+	if (undefined !== this.Pr.TextForm)
+		oContentControl.SetTextFormPr(this.Pr.TextForm);
 };
 CInlineLevelSdt.prototype.GetSelectedContent = function(oSelectedContent)
 {
