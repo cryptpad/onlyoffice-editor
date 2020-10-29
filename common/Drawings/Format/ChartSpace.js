@@ -13732,6 +13732,20 @@ CChartSpace.prototype.getChartSizes = function(bNotRecalculate)
             aAllSeries[nIndex].setOrder(nIndex);
         }
     };
+    CChartSpace.prototype.reorderSeries = function() {
+        var aAllSeries = this.getAllSeries();
+        aAllSeries.sort(function(a, b){
+            return a.order - b.order;
+        });
+        var oSeries;
+        for(var nIndex = 0; nIndex < aAllSeries.length; ++nIndex) {
+            oSeries = aAllSeries[nIndex];
+            if(nIndex !== oSeries.order) {
+                oSeries.setOrder(nIndex);
+            }
+        }
+    };
+
     CChartSpace.prototype.sortSeries = function() {
         if(this.chart && this.chart.plotArea) {
             var aCharts = this.chart.plotArea.charts;
@@ -15580,6 +15594,7 @@ CChartSpace.prototype.addSeries = function(sName, sValues) {
     var aAllSeries = this.getAllSeries();
     var oFirstSeries = aAllSeries[0];
     var oFirstSpPrPreset = 0;
+    var nSeries;
     if(oFirstSeries) {
         oFirstSpPrPreset = oFirstSeries.getSpPrPreset();
     }
@@ -15587,9 +15602,41 @@ CChartSpace.prototype.addSeries = function(sName, sValues) {
     oSeries = oLastChart.series[0] ? oLastChart.series[0].createDuplicate() : oLastChart.getSeriesConstructor();
     oSeries.setName(sName);
     oSeries.setValues(sValues);
-    oSeries.setIdx(aAllSeries.length);
-    oSeries.setOrder(aAllSeries.length);
+    var nIdx, nOrder;
+    if(aAllSeries.length === 0) {
+        nIdx = 0;
+        nOrder = 0;
+    }
+    else {
+        if(oFirstSeries.idx > 0) {
+            nIdx = 0;
+        }
+        else {
+            //Find a gap between series indexes
+            var oCurSeries, oNextSeries;
+            for(nSeries = 0; nSeries < aAllSeries.length - 1; ++i) {
+                oCurSeries = aAllSeries[nSeries];
+                oNextSeries = aAllSeries[nSeries + 1];
+                if(oNextSeries.idx - oCurSeries.idx > 1) {
+                    nIdx = oCurSeries.idx + 1;
+                    break;
+                }
+            }
+            if(nSeries === aAllSeries.length - 1) {
+                //There is no gap in the series indexes
+                nIdx = aAllSeries[aAllSeries.length - 1].idx + 1;
+            }
+        }
+        aAllSeries.sort(function(a, b) {
+            return a.order - b.order;
+        });
+        nOrder = aAllSeries[aAllSeries.length - 1].order + 1;
+    }
+
+    oSeries.setIdx(nIdx);
+    oSeries.setOrder(nOrder);
     oLastChart.addSer(oSeries);
+    this.reorderSeries();
 
     var oStyle, aBaseFills, aPts, nPt;
     if(oFirstSpPrPreset) {

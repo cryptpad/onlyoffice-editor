@@ -3278,7 +3278,7 @@ function CDLbl()
             return;
         }
         this.parent.removeSeries(this.parent.getSeriesArrayIdx(this));
-        this.parent.reindexSeries();
+        this.parent.reorderSeries();
     };
     CSeriesBase.prototype.asc_getName = function() {
         return AscFormat.ExecuteNoHistory(CSeriesBase.prototype.getName, this, []);
@@ -3956,6 +3956,11 @@ CPlotArea.prototype =
             this.parent.reindexSeries();
         }
     },
+    reorderSeries: function() {
+        if(this.parent) {
+            this.parent.reorderSeries();
+        }
+    },
     moveSeriesUp: function(oSeries) {
         if(this.parent) {
             this.parent.moveSeriesUp(oSeries);
@@ -4006,7 +4011,12 @@ CPlotArea.prototype =
         if(this.parent) {
             this.parent.reindexSeries();
         }
-    };    
+    };
+    CChartBase.prototype.reorderSeries = function() {
+        if(this.parent) {
+            this.parent.reorderSeries();
+        }
+    };
     CChartBase.prototype.moveSeriesUp = function(oSeries) {
         if(this.parent) {
             this.parent.moveSeriesUp(oSeries);
@@ -13630,6 +13640,11 @@ CChart.prototype =
     reindexSeries: function() {
         if(this.parent) {
             this.parent.reindexSeries();
+        }
+    },
+    reorderSeries: function() {
+        if(this.parent) {
+            this.parent.reorderSeries();
         }
     },
     moveSeriesUp: function(oSeries) {
