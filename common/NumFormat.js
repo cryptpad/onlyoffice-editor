@@ -302,8 +302,8 @@ function ParseLocalFormatSymbol(Name)
 	LocaleFormatSymbol['S'] = 'S';
 	LocaleFormatSymbol['s'] ='s';
 	LocaleFormatSymbol['general']='general';
-    LocaleFormatSymbol[':']=':';
-        switch(Name) {
+	LocaleFormatSymbol[':']=':';
+		switch(Name) {
 //____________________________________________________fi________________________________________________________________
 			case("fi"):
 			case("smn"):
@@ -314,20 +314,20 @@ function ParseLocalFormatSymbol(Name)
 			case("sms-FI"):
 			case("sv-AX"):
 			case("sv-FI"): {
-	            LocaleFormatSymbol['Y'] = 'V';
-	            LocaleFormatSymbol['y'] ='v';
-	            LocaleFormatSymbol['d'] ='p';
-	            LocaleFormatSymbol['H'] = 'T';
-	            LocaleFormatSymbol['h'] ='t';
-	            LocaleFormatSymbol['general']='yleinen';
-	        }break;
-            case("en-FI"): {
-                LocaleFormatSymbol['Y'] = 'V';
-                LocaleFormatSymbol['y'] ='v';
-                LocaleFormatSymbol['d'] ='p';
-                LocaleFormatSymbol['H'] = 'T';
-                LocaleFormatSymbol['h'] ='t';
-             }break;
+				LocaleFormatSymbol['Y'] = 'V';
+				LocaleFormatSymbol['y'] ='v';
+				LocaleFormatSymbol['d'] ='p';
+				LocaleFormatSymbol['H'] = 'T';
+				LocaleFormatSymbol['h'] ='t';
+				LocaleFormatSymbol['general']='yleinen';
+			}break;
+			case("en-FI"): {
+				LocaleFormatSymbol['Y'] = 'V';
+				LocaleFormatSymbol['y'] ='v';
+				LocaleFormatSymbol['d'] ='p';
+				LocaleFormatSymbol['H'] = 'T';
+				LocaleFormatSymbol['h'] ='t';
+			}break;
 //____________________________________________________fy________________________________________________________________
 			case("fy"):
 			case("nds"):
@@ -336,12 +336,12 @@ function ParseLocalFormatSymbol(Name)
 			case("nds-NL"):
 			case("nl-BE"):
 			case("nl-NL"): {
-	            LocaleFormatSymbol['Y'] = 'J';
-	            LocaleFormatSymbol['y'] ='j';
-	            LocaleFormatSymbol['H'] = 'U';
-	            LocaleFormatSymbol['h'] ='u';
-	            LocaleFormatSymbol['general']='standaard';
-	        }break;
+				LocaleFormatSymbol['Y'] = 'J';
+				LocaleFormatSymbol['y'] ='j';
+				LocaleFormatSymbol['H'] = 'U';
+				LocaleFormatSymbol['h'] ='u';
+				LocaleFormatSymbol['general']='standaard';
+			}break;
 //____________________________________________________ES________________________________________________________________
 	        case("ast"):
 			case("eu"):
@@ -353,23 +353,23 @@ function ParseLocalFormatSymbol(Name)
 			case("eu-ES"):
 			case("gl-ES"):
 			case("ca-ES-valencia"): {
-	            LocaleFormatSymbol['Y'] = 'A';
-	            LocaleFormatSymbol['y'] ='a';
-	            LocaleFormatSymbol['general']='estándar';
-	        }break;
-            case("pt-BR"):
-            case("es-BR"): {
-                LocaleFormatSymbol['Y'] = 'A';
-                LocaleFormatSymbol['y'] ='a';
-                LocaleFormatSymbol['general'] ='geral';
-            }break;
-	        case("pt-PT"): {
-                LocaleFormatSymbol['Y'] = 'A';
-                LocaleFormatSymbol['y'] ='a';
-	            LocaleFormatSymbol['general']='estandar';
-	        }break;
+				LocaleFormatSymbol['Y'] = 'A';
+				LocaleFormatSymbol['y'] ='a';
+				LocaleFormatSymbol['general']='estándar';
+			}break;
+			case("pt-BR"):
+			case("es-BR"): {
+				LocaleFormatSymbol['Y'] = 'A';
+				LocaleFormatSymbol['y'] ='a';
+				LocaleFormatSymbol['general'] ='geral';
+			}break;
+			case("pt-PT"): {
+				LocaleFormatSymbol['Y'] = 'A';
+				LocaleFormatSymbol['y'] ='a';
+				LocaleFormatSymbol['general']='estandar';
+			}break;
 //_____________________________________________________ru_______________________________________________________________
-	        case("ba"):
+			case("ba"):
 			case("ce"):
 			case("cu"):
 			case("kk"):
@@ -394,18 +394,18 @@ function ParseLocalFormatSymbol(Name)
 			case("sah-RU"):
 			case("tt-RU"):
 			case("wae-CH"): {
-	            LocaleFormatSymbol['Y'] = 'Г';
-	            LocaleFormatSymbol['y'] = 'г';
-	            LocaleFormatSymbol['M'] = 'М';
-	            LocaleFormatSymbol['m'] = 'м';
-	            LocaleFormatSymbol['D'] = 'Д';
-	            LocaleFormatSymbol['d'] = 'д';
-	            LocaleFormatSymbol['H'] = 'Ч';
-	            LocaleFormatSymbol['h'] = 'ч';
-	            LocaleFormatSymbol['S'] = 'C';
-	            LocaleFormatSymbol['s'] = 'с';
-	            LocaleFormatSymbol['general'] = 'основной';
-	        }break;
+				LocaleFormatSymbol['Y'] = 'Г';
+				LocaleFormatSymbol['y'] = 'г';
+				LocaleFormatSymbol['M'] = 'М';
+				LocaleFormatSymbol['m'] = 'м';
+				LocaleFormatSymbol['D'] = 'Д';
+				LocaleFormatSymbol['d'] = 'д';
+				LocaleFormatSymbol['H'] = 'Ч';
+				LocaleFormatSymbol['h'] = 'ч';
+				LocaleFormatSymbol['S'] = 'C';
+				LocaleFormatSymbol['s'] = 'с';
+				LocaleFormatSymbol['general'] = 'основной';
+			}break;
 //_____________________________________________________fr_______________________________________________________________
 			case("oc"):
 			case("br"):
@@ -418,13 +418,13 @@ function ParseLocalFormatSymbol(Name)
 			case("fr-CH"):
 			case("fr-FR"):
 			case("gsw-FR"):
-	        case("oc-FR"): {
-	            LocaleFormatSymbol['Y'] = 'J';
-	            LocaleFormatSymbol['y'] ='j';
-	            LocaleFormatSymbol['D'] = 'A';
-	            LocaleFormatSymbol['d'] ='a';
-	            LocaleFormatSymbol['general']='standard';
-	        }break;
+			case("oc-FR"): {
+				LocaleFormatSymbol['Y'] = 'J';
+				LocaleFormatSymbol['y'] ='j';
+				LocaleFormatSymbol['D'] = 'A';
+				LocaleFormatSymbol['d'] ='a';
+				LocaleFormatSymbol['general']='standard';
+			}break;
 //_____________________________________________________de_______________________________________________________________
 			case("ksh"):
 			case("dsb"):
@@ -438,14 +438,14 @@ function ParseLocalFormatSymbol(Name)
 			case("hsb-DE"):
 			case("ksh-DE"):
 			case("nds-DE"): {
-	            LocaleFormatSymbol['Y'] = 'J';
-	            LocaleFormatSymbol['y'] = 'j';
-	            LocaleFormatSymbol['D'] = 'T';
-	            LocaleFormatSymbol['d'] = 't';
-	            LocaleFormatSymbol['general']='standard';
-	        }break;
+				LocaleFormatSymbol['Y'] = 'J';
+				LocaleFormatSymbol['y'] = 'j';
+				LocaleFormatSymbol['D'] = 'T';
+				LocaleFormatSymbol['d'] = 't';
+				LocaleFormatSymbol['general']='standard';
+			}break;
 //_____________________________________________________it_______________________________________________________________
-	        case("ca"):
+			case("ca"):
 			case("it"):
 			case("fur"):
 			case("ca-IT"):
@@ -454,12 +454,12 @@ function ParseLocalFormatSymbol(Name)
 			case("it-CH"):
 			case("it-IT"):
 			case("it-VA"): {
-	            LocaleFormatSymbol['Y'] = 'G';
-	            LocaleFormatSymbol['y'] ='g';
-	            LocaleFormatSymbol['D'] = 'A';
-	            LocaleFormatSymbol['d'] ='a';
-	            LocaleFormatSymbol['general']='standard';
-	        }break;
+				LocaleFormatSymbol['Y'] = 'G';
+				LocaleFormatSymbol['y'] ='g';
+				LocaleFormatSymbol['D'] = 'A';
+				LocaleFormatSymbol['d'] ='a';
+				LocaleFormatSymbol['general']='standard';
+			}break;
 //_____________________________________________________da_______________________________________________________________
 			case("nb"):
 			case("nn"):
@@ -475,18 +475,18 @@ function ParseLocalFormatSymbol(Name)
 			case("se-NO"):
 			case("sma-NO"):
 			case("smj-NO"):
-	        case("en-SE"):
+			case("en-SE"):
 			case("se-SE"):
 			case("sma-SE"):	
 			case("smj-SE"):		
 			case("sv-SE"):
 			{
-                LocaleFormatSymbol['Y'] = 'Å';
-                LocaleFormatSymbol['y'] = 'å';
-                LocaleFormatSymbol['H'] = 'T';
-                LocaleFormatSymbol['h'] = 't';
-                LocaleFormatSymbol['general'] = 'standard';
-            }break;
+				LocaleFormatSymbol['Y'] = 'Å';
+				LocaleFormatSymbol['y'] = 'å';
+				LocaleFormatSymbol['H'] = 'T';
+				LocaleFormatSymbol['h'] = 't';
+				LocaleFormatSymbol['general'] = 'standard';
+			}break;
 //______________________________________________________ch______________________________________________________________
 			case("ii"):
 			case("ug"):
@@ -498,76 +498,76 @@ function ParseLocalFormatSymbol(Name)
 			case("zh-CN"):
 			case("zh-Hans"):
 			case("zh-TW"): {
-	            LocaleFormatSymbol['General']='G/通用格式';
-	            LocaleFormatSymbol['general']='g/通用格式';
-	        }break;
+				LocaleFormatSymbol['General']='G/通用格式';
+				LocaleFormatSymbol['general']='g/通用格式';
+			}break;
 //__________________________________________________special_____________________________________________________________
-            case("el"):
+			case("el"):
 			case("el-GR"): {
-                LocaleFormatSymbol['Y'] = 'Ε';
-                LocaleFormatSymbol['y'] ='ε';
-                LocaleFormatSymbol['M'] = 'Μ';
-                LocaleFormatSymbol['m'] ='μ';
-                LocaleFormatSymbol['D'] = 'Η';
-                LocaleFormatSymbol['d'] ='η';
-                LocaleFormatSymbol['H'] = 'Ω';
-                LocaleFormatSymbol['h'] ='ω';
-                LocaleFormatSymbol['S'] = 'Δ';
-                LocaleFormatSymbol['s'] ='δ';
-                LocaleFormatSymbol['general'] ='γενικός τύπος';
-            }break;
+				LocaleFormatSymbol['Y'] = 'Ε';
+				LocaleFormatSymbol['y'] ='ε';
+				LocaleFormatSymbol['M'] = 'Μ';
+				LocaleFormatSymbol['m'] ='μ';
+				LocaleFormatSymbol['D'] = 'Η';
+				LocaleFormatSymbol['d'] ='η';
+				LocaleFormatSymbol['H'] = 'Ω';
+				LocaleFormatSymbol['h'] ='ω';
+				LocaleFormatSymbol['S'] = 'Δ';
+				LocaleFormatSymbol['s'] ='δ';
+				LocaleFormatSymbol['general'] ='γενικός τύπος';
+			}break;
 			case("hu"):
-	        case("hu-HU"): {
-	            LocaleFormatSymbol['Y'] = 'É';
-	            LocaleFormatSymbol['y'] ='é';
-	            LocaleFormatSymbol['M'] = 'H';
-	            LocaleFormatSymbol['m'] ='h';
-	            LocaleFormatSymbol['D'] = 'N';
-	            LocaleFormatSymbol['d'] ='n';
-	            LocaleFormatSymbol['H'] = 'Ó';
-	            LocaleFormatSymbol['h'] ='ó';
-	            LocaleFormatSymbol['S'] = 'M';
-	            LocaleFormatSymbol['s'] ='m';
-	            LocaleFormatSymbol['general']='normál';
-	        }break;
+			case("hu-HU"): {
+				LocaleFormatSymbol['Y'] = 'É';
+				LocaleFormatSymbol['y'] ='é';
+				LocaleFormatSymbol['M'] = 'H';
+				LocaleFormatSymbol['m'] ='h';
+				LocaleFormatSymbol['D'] = 'N';
+				LocaleFormatSymbol['d'] ='n';
+				LocaleFormatSymbol['H'] = 'Ó';
+				LocaleFormatSymbol['h'] ='ó';
+				LocaleFormatSymbol['S'] = 'M';
+				LocaleFormatSymbol['s'] ='m';
+				LocaleFormatSymbol['general']='normál';
+			}break;
 			case("tr"):
-	        case("tr-TR"): {
-	            LocaleFormatSymbol['M'] = 'A';
-	            LocaleFormatSymbol['m'] ='a';
-	            LocaleFormatSymbol['D'] = 'G';
-	            LocaleFormatSymbol['d'] ='g';
-	            LocaleFormatSymbol['H'] = 'S';
-	            LocaleFormatSymbol['h'] ='s';
-	            LocaleFormatSymbol['S'] = 'N';
-	            LocaleFormatSymbol['s'] ='n';
-	            LocaleFormatSymbol['general']='genel';
-	        }break;
+			case("tr-TR"): {
+				LocaleFormatSymbol['M'] = 'A';
+				LocaleFormatSymbol['m'] ='a';
+				LocaleFormatSymbol['D'] = 'G';
+				LocaleFormatSymbol['d'] ='g';
+				LocaleFormatSymbol['H'] = 'S';
+				LocaleFormatSymbol['h'] ='s';
+				LocaleFormatSymbol['S'] = 'N';
+				LocaleFormatSymbol['s'] ='n';
+				LocaleFormatSymbol['general']='genel';
+			}break;
 			case("pl"):
-	        case("pl-PL"): {
-	            LocaleFormatSymbol['Y'] = 'R';
-	            LocaleFormatSymbol['y'] ='r';
-	            LocaleFormatSymbol['H'] = 'G';
-	            LocaleFormatSymbol['h'] ='g';
-	            LocaleFormatSymbol['General']='standardowy';
-	        }break;
+			case("pl-PL"): {
+				LocaleFormatSymbol['Y'] = 'R';
+				LocaleFormatSymbol['y'] ='r';
+				LocaleFormatSymbol['H'] = 'G';
+				LocaleFormatSymbol['h'] ='g';
+				LocaleFormatSymbol['General']='standardowy';
+			}break;
 			case("cs"):
-	        case("cs-CZ"): {
-	            LocaleFormatSymbol['Y'] = 'R';
-	            LocaleFormatSymbol['y'] ='r';
-	            LocaleFormatSymbol['general']='vęeobecný';
-	        }break;
+			case("cs-CZ"): {
+				LocaleFormatSymbol['Y'] = 'R';
+				LocaleFormatSymbol['y'] ='r';
+				LocaleFormatSymbol['general']='vęeobecný';
+			}break;
 			case("ja"):
-	        case("ja-JP"): {
-	            LocaleFormatSymbol['General']='G/標準';
-	            LocaleFormatSymbol['general']='g/標準';
-	        }break;
+			case("ja-JP"): {
+				LocaleFormatSymbol['General']='G/標準';
+				LocaleFormatSymbol['general']='g/標準';
+			}break;
 			case("ko"):
-	        case("ko-KR"): {
-	            LocaleFormatSymbol['General']='G/표준';
-	            LocaleFormatSymbol['general']='g/표준';
-	        }break;
+			case("ko-KR"): {
+				LocaleFormatSymbol['General']='G/표준';
+				LocaleFormatSymbol['general']='g/표준';
+			}break;
 	} 
-    return true;
+	return true;
 }
 function NumFormat(bAddMinusIfNes)
 {
