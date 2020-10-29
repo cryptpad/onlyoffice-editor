@@ -711,7 +711,7 @@ NumFormat.prototype =
             this.bDateTime = true;
         }
     },
-    _parseFormat : function(digitSpaceSymbol)
+    _parseFormat : function(digitSpaceSymbol,CultureInfo)
     {
         var sGeneral = LocaleFormatSymbol['general'].toLowerCase();
         var sGeneralFirst = sGeneral[0];
@@ -736,7 +736,7 @@ NumFormat.prototype =
             {
                 this._addToFormat(numFormat_Text, next);
             }
-			else if(g_oDefaultCultureInfo.TimeSeparator == next)
+			else if(CultureInfo.TimeSeparator == next)
             {
                 this._addToFormat(numFormat_TimeSeparator);
             }
@@ -753,7 +753,7 @@ NumFormat.prototype =
             {
                 this._addToFormat(numFormat_DigitSpace);
             }
-            else if (g_oDefaultCultureInfo.NumberDecimalSeparator == next)
+            else if (CultureInfo.NumberDecimalSeparator == next)
             {
                 this._addToFormat(numFormat_DecimalPoint);
             }
@@ -761,7 +761,7 @@ NumFormat.prototype =
             {
                 this._addToFormat2(new FormatObjDecimalFrac([], []));
             }
-            else if (g_oDefaultCultureInfo.NumberGroupSeparator == next)
+            else if (CultureInfo.NumberGroupSeparator == next)
             {
                 this._addToFormat(numFormat_Thousand, 1);
             }
@@ -1720,7 +1720,7 @@ NumFormat.prototype =
 		} else if (NumFormatType.WordFieldNumeric === formatType) {
 			this.valid = this._parseFormatWordNumeric("#");
 		} else {
-			this.valid = this._parseFormat("?");
+			this.valid = this._parseFormat("?",cultureInfo);
 		}
         if (true == this.valid) {
             //prepare tokens
@@ -3996,7 +3996,7 @@ FormatParser.prototype =
 								sFormat += " AM/PM";
 						}
 						else if(true == bDate)
-							sFormat = sDateFormatL;
+							sFormat = sDateFormat;
 						else
 						{
 							if(dValue > 1)
@@ -4816,8 +4816,6 @@ var g_aCultureInfos = {
 	30724: {LCID: 30724, Name: "zh", CurrencyPositivePattern: 0, CurrencyNegativePattern: 2, CurrencySymbol: "¥", NumberDecimalSeparator: ".", NumberGroupSeparator: ",", NumberGroupSizes: [3], DayNames: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"], AbbreviatedDayNames: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"], MonthNames: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月", ""], AbbreviatedMonthNames: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月", ""], MonthGenitiveNames: [], AbbreviatedMonthGenitiveNames: [], AMDesignator: "上午", PMDesignator: "下午", DateSeparator: "/", TimeSeparator: ":", ShortDatePattern: "520"},
 	30764: {LCID: 30764, Name: "az-Latn", CurrencyPositivePattern: 3, CurrencyNegativePattern: 8, CurrencySymbol: "₼", NumberDecimalSeparator: ",", NumberGroupSeparator: ".", NumberGroupSizes: [3], DayNames: ["bazar", "bazar ertəsi", "çərşənbə axşamı", "çərşənbə", "cümə axşamı", "cümə", "şənbə"], AbbreviatedDayNames: ["B.", "B.E.", "Ç.A.", "Ç.", "C.A.", "C.", "Ş."], MonthNames: ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr", ""], AbbreviatedMonthNames: ["yan", "fev", "mar", "apr", "may", "iyn", "iyl", "avq", "sen", "okt", "noy", "dek", ""], MonthGenitiveNames: ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avqust", "sentyabr", "oktyabr", "noyabr", "dekabr", ""], AbbreviatedMonthGenitiveNames: [], AMDesignator: "AM", PMDesignator: "PM", DateSeparator: ".", TimeSeparator: ":", ShortDatePattern: "135"},
 	31748: {LCID: 31748, Name: "zh-Hant", CurrencyPositivePattern: 0, CurrencyNegativePattern: 0, CurrencySymbol: "HK$", NumberDecimalSeparator: ".", NumberGroupSeparator: ",", NumberGroupSizes: [3], DayNames: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"], AbbreviatedDayNames: ["週日", "週一", "週二", "週三", "週四", "週五", "週六"], MonthNames: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月", ""], AbbreviatedMonthNames: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月", ""], MonthGenitiveNames: [], AbbreviatedMonthGenitiveNames: [], AMDesignator: "上午", PMDesignator: "下午", DateSeparator: "/", TimeSeparator: ":", ShortDatePattern: "025"},
-
-	
 };
 var g_oDefaultCultureInfo, g_oLCID;
 setCurrentCultureInfo(1033);//en-US//1033//fr-FR//1036//basq//1069//ru-Ru//1049//hindi//1081
