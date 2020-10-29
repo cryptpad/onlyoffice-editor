@@ -305,16 +305,7 @@ function ParseLocalFormatSymbol(Name)
     LocaleFormatSymbol[':']=':';
         switch(Name) {
 //_________________________________________________pointen______________________________________________________________
-			case("bn-IN"):
-			case("id-ID"):
-			case("jv-Java-ID"):
-			case("jv-Latn-ID"):
-			case("jv-Latn"):
-			case("pa-Arab-PK"):
-			case("pa-Arab"):
-			case("pa-Guru"):
-			case("si-LK"): {
-				LocaleFormatSymbol[':']='.'}break;
+
 //____________________________________________________fi________________________________________________________________
 	        case("fi-FI"):
 	        case("se-FI"):
@@ -335,8 +326,7 @@ function ParseLocalFormatSymbol(Name)
                 LocaleFormatSymbol['d'] ='p';
                 LocaleFormatSymbol['H'] = 'T';
                 LocaleFormatSymbol['h'] ='t';
-                LocaleFormatSymbol[':']='.';
-            }break;
+             }break;
 //____________________________________________________fy________________________________________________________________
 	        case("en-NL"):
 	        case("fy-NL"):
@@ -416,7 +406,6 @@ function ParseLocalFormatSymbol(Name)
 	            LocaleFormatSymbol['D'] = 'A';
 	            LocaleFormatSymbol['d'] ='a';
 	            LocaleFormatSymbol['general']='standard';
-                LocaleFormatSymbol[':']='.';
 	        }break;
 //_____________________________________________________de_______________________________________________________________
 	        case("de-AT"):
@@ -461,19 +450,13 @@ function ParseLocalFormatSymbol(Name)
 	        case("se-SE"):
 	        case("sma-SE"):
 	        case("smj-SE"):
+			case("en-DK"):
 	        case("sv-SE"): {
                 LocaleFormatSymbol['Y'] = 'Å';
                 LocaleFormatSymbol['y'] = 'å';
                 LocaleFormatSymbol['H'] = 'T';
                 LocaleFormatSymbol['h'] = 't';
                 LocaleFormatSymbol['general'] = 'standard';
-            }break;
-            case("en-DK"): {
-                LocaleFormatSymbol['Y'] = 'Å';
-                LocaleFormatSymbol['y'] = 'å';
-                LocaleFormatSymbol['H'] = 'T';
-                LocaleFormatSymbol['h'] = 't';
-                LocaleFormatSymbol[':']='.';
             }break;
 //______________________________________________________ch______________________________________________________________
 	        case("bo-CN"):
@@ -716,7 +699,7 @@ NumFormat.prototype =
             {
                 this._addToFormat(numFormat_Text, next);
             }
-			else if(LocaleFormatSymbol[':'] == next)
+			else if(g_oDefaultCultureInfo.TimeSeparator == next)
             {
                 this._addToFormat(numFormat_TimeSeparator);
             }
