@@ -711,10 +711,15 @@ NumFormat.prototype =
             this.bDateTime = true;
         }
     },
-    _parseFormat : function(digitSpaceSymbol,CultureInfo)
+    _parseFormat : function(digitSpaceSymbol,b_param)
     {
-        var sGeneral = LocaleFormatSymbol['general'].toLowerCase();
-        var sGeneralFirst = sGeneral[0];
+		var sGeneral = AscCommon.g_cGeneralFormat.toLowerCase();
+
+    	if(b_param == true)
+    	{
+			sGeneral = LocaleFormatSymbol['general'].toLowerCase();
+		}
+		var sGeneralFirst = sGeneral[0];
         this.bGeneralChart = true;
         while(true)
         {
@@ -736,10 +741,14 @@ NumFormat.prototype =
             {
                 this._addToFormat(numFormat_Text, next);
             }
-			else if(CultureInfo.TimeSeparator == next)
+			else if(g_aCultureInfos.TimeSeparator == next && b_param == true)
             {
                 this._addToFormat(numFormat_TimeSeparator);
             }
+			else if(":" == next && (b_param == false ||b_param == null))
+			{
+				this._addToFormat(numFormat_TimeSeparator);
+			}
             else if(0 <= next && next <= 9)
             {
                 //не 0 может быть только в дробях
@@ -753,18 +762,27 @@ NumFormat.prototype =
             {
                 this._addToFormat(numFormat_DigitSpace);
             }
-            else if (CultureInfo.NumberDecimalSeparator == next)
+            else if (g_aCultureInfos.NumberDecimalSeparator == next && b_param==true)
             {
                 this._addToFormat(numFormat_DecimalPoint);
             }
+
+			else if(gc_sFormatDecimalPoint == next && b_param==false)
+			{
+				this._addToFormat(numFormat_DecimalPoint);
+			}
             else if("/" == next)
             {
                 this._addToFormat2(new FormatObjDecimalFrac([], []));
             }
-            else if (CultureInfo.NumberGroupSeparator == next)
+            else if (g_aCultureInfos.NumberGroupSeparator == next && b_param ==true)
             {
                 this._addToFormat(numFormat_Thousand, 1);
             }
+            else if (gc_sFormatThousandSeparator == next && (b_param == false ||b_param == null))
+			{
+				this._addToFormat(numFormat_DecimalPoint);
+			}
             else if("E" == next || "e" == next)
             {
                 var nextnext = this._readChar();
@@ -790,26 +808,46 @@ NumFormat.prototype =
             {
                 this._addToFormat(numFormat_TextPlaceholder);
             }
-            else if(LocaleFormatSymbol['Y'] == next || LocaleFormatSymbol['y'] == next)
+            else if((LocaleFormatSymbol['Y'] == next || LocaleFormatSymbol['y'] == next)&& b_param == true)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
             }
-            else if(LocaleFormatSymbol['M'] == next || LocaleFormatSymbol['m'] == next)
+			else if(("Y" == next || "y" == next)&&(b_param == false ||b_param == null))
+			{
+				this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
+			}
+            else if((LocaleFormatSymbol['M'] == next || LocaleFormatSymbol['m'] == next)&& b_param == true)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
             }
-            else if(LocaleFormatSymbol['D'] == next || LocaleFormatSymbol['d'] == next)
+			else if(("M" == next || "m" == next)&&(b_param == false ||b_param == null))
+			{
+				this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+			}
+            else if((LocaleFormatSymbol['D'] == next || LocaleFormatSymbol['d'] == next)&& b_param == true)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Day, 1, false));
             }
-            else if(LocaleFormatSymbol['H'] == next ||  LocaleFormatSymbol['h'] == next)
+			else if(("D" == next || "d" == next)&&(b_param == false ||b_param == null))
+			{
+				this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+			}
+            else if((LocaleFormatSymbol['H'] == next || LocaleFormatSymbol['h'] == next)&& b_param == true)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
             }
-            else if(LocaleFormatSymbol['S'] == next || LocaleFormatSymbol['s'] == next)
+			else if(("H" == next || "h" == next)&&(b_param == false ||b_param == null))
+			{
+				this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
+			}
+            else if((LocaleFormatSymbol['S'] == next || LocaleFormatSymbol['s'] == next)&& b_param == true)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
             }
+			else if(("S" == next || "s" == next)&&(b_param == false ||b_param == null))
+			{
+				this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
+			}
             else if ("A" == next || "a" == next) {
                 this._ReadAmPm(next);
 			}
@@ -1708,7 +1746,7 @@ NumFormat.prototype =
             }
         }
     },
-    setFormat: function(format, cultureInfo, formatType) {
+    setFormat: function(format, cultureInfo, formatType,b_param) {
 		if (null == cultureInfo) {
             cultureInfo = g_oDefaultCultureInfo;
         }
@@ -1720,7 +1758,7 @@ NumFormat.prototype =
 		} else if (NumFormatType.WordFieldNumeric === formatType) {
 			this.valid = this._parseFormatWordNumeric("#");
 		} else {
-			this.valid = this._parseFormat("?",cultureInfo);
+			this.valid = this._parseFormat("?",b_param);
 		}
         if (true == this.valid) {
             //prepare tokens
@@ -2407,7 +2445,7 @@ NumFormatCache.prototype =
 	cleanCache : function(){
 		this.oNumFormats = {};
 	},
-    get : function(format, formatType)
+    get : function(format, formatType,b_param)
     {
 		var key = format + String.fromCharCode(5) + formatType;
         var res = this.oNumFormats[key];
@@ -2446,7 +2484,7 @@ function CellFormat(format, formatType)
       }
     }
 		var oNewFormat = new NumFormat(false);
-		oNewFormat.setFormat(sNewFormat, undefined, formatType);
+		oNewFormat.setFormat(sNewFormat, undefined, formatType,false);
 		aParsedFormats.push(oNewFormat);
 	}
   var nFormatsLength = aParsedFormats.length;
@@ -2498,7 +2536,7 @@ function CellFormat(format, formatType)
 				}
 			}
 			this.oTextFormat = new NumFormat(false);
-			this.oTextFormat.setFormat("@");
+			this.oTextFormat.setFormat("@",true);
 			if(null == oPositive || null == oNegative || null == oNull)
 			{
 				//по результатам опытов, если оператор сравнения проходит через 0, то надо добавлять знак минус в зависимости от значения
