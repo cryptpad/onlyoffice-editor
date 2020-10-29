@@ -343,7 +343,7 @@ function ParseLocalFormatSymbol(Name)
 				LocaleFormatSymbol['general']='standaard';
 			}break;
 //____________________________________________________ES________________________________________________________________
-	        case("ast"):
+			case("ast"):
 			case("eu"):
 			case("gl"):
 			case("ast-ES"):
