@@ -9348,6 +9348,22 @@ background-repeat: no-repeat;\
 
 		oLogicDocument.SetPerformContentControlActionByClick(isPerform);
 	};
+	asc_docs_api.prototype.asc_GetTextFormAutoWidth = function(sId)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		var oContentControl = oLogicDocument.GetContentControl(sId);
+		if (!oContentControl || !oContentControl.IsTextForm() || !(oContentControl instanceof CInlineLevelSdt))
+			return null;
+
+		var oRun = oContentControl.GetFirstRun();
+		if (!oRun)
+			return null;
+
+		return oRun.GetTextFormAutoWidth();
+	};
 
 	asc_docs_api.prototype.asc_UncheckContentControlButtons = function()
 	{
@@ -11304,6 +11320,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_SetSpecialFormsHighlightColor']         = asc_docs_api.prototype.asc_SetSpecialFormsHighlightColor;
 	asc_docs_api.prototype['asc_GetSpecialFormsHighlightColor']         = asc_docs_api.prototype.asc_GetSpecialFormsHighlightColor;
 	asc_docs_api.prototype['asc_SetPerformContentControlActionByClick'] = asc_docs_api.prototype.asc_SetPerformContentControlActionByClick;
+	asc_docs_api.prototype['asc_GetTextFormAutoWidth']                  = asc_docs_api.prototype.asc_GetTextFormAutoWidth;
 
 	asc_docs_api.prototype['asc_BeginViewModeInReview']                 = asc_docs_api.prototype.asc_BeginViewModeInReview;
 	asc_docs_api.prototype['asc_EndViewModeInReview']                   = asc_docs_api.prototype.asc_EndViewModeInReview;

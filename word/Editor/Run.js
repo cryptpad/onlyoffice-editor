@@ -12560,6 +12560,11 @@ ParaRun.prototype.IsInCheckBox = function()
 
 	return false;
 };
+ParaRun.prototype.GetTextFormAutoWidth = function()
+{
+	this.Recalculate_MeasureContent();
+	return this.TextAscent;
+};
 ParaRun.prototype.CheckParentFormKey = function(oPr)
 {
 	var sKey = this.Parent instanceof CInlineLevelSdt && this.Parent.IsForm() ? this.Parent.GetFormKey() : null;
