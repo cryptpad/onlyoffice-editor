@@ -716,7 +716,6 @@ NumFormat.prototype =
     {
         var sGeneral = LocaleFormatSymbol['general'].toLowerCase();
         var sGeneralFirst = sGeneral[0];
-
         this.bGeneralChart = true;
         while(true)
         {
@@ -812,10 +811,13 @@ NumFormat.prototype =
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
             }
+			else if ("A" == next || "a" == next) {
+				this._ReadAmPm(next);
+			}
             else {
                 if (sGeneralFirst === next.toLowerCase() &&
-                    sGeneral===(next + this._GetText(sGeneral.length - 1)).toLowerCase()) {
-                  this._addToFormat(numFormat_General);
+                    sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase()) {
+                    this._addToFormat(numFormat_General);
                     this._skip(sGeneral.length - 1);
                 } else {
                     bNoFormat = true;
@@ -825,10 +827,8 @@ NumFormat.prototype =
             if (!bNoFormat)
                 this.bGeneralChart = false;
         }
-
         return true;
     },
-
     _parseFormatWordDateTime : function()
     {
         while(true)
@@ -2796,7 +2796,7 @@ CellFormat.prototype =
 		return this._formatToText(number, CellValueType.Number, dDigitsCount || gc_nMaxDigCount, false, cultureInfo, true);
 	},
 	_formatToText : function(number, nValType, dDigitsCount, bChart, cultureInfo, opt_forceNull)
- 	{
+	{
 		var result = "";
 		var arrFormat = this.format(number, nValType, dDigitsCount, bChart, cultureInfo, undefined, opt_forceNull);
 		for (var i = 0, item; i < arrFormat.length; ++i) {
@@ -4060,10 +4060,9 @@ function setCurrentCultureInfo (LCID, decimalSeparator, groupSeparator) {
 		if (LCID !== g_oLCID) {
 			g_oLCID = LCID;
 			AscCommon.g_oDefaultCultureInfo = g_oDefaultCultureInfo = JSON.parse(JSON.stringify(cultureInfoNew)); // ToDo clone
-
 			res = true;
 		}
-        ParseLocalFormatSymbol(g_oDefaultCultureInfo.Name);
+		ParseLocalFormatSymbol(g_oDefaultCultureInfo.Name);
 		decimalSeparator = (null != decimalSeparator) ? decimalSeparator : cultureInfoNew.NumberDecimalSeparator;
 		if (decimalSeparator !== g_oDefaultCultureInfo.NumberDecimalSeparator) {
 			g_oDefaultCultureInfo.NumberDecimalSeparator = decimalSeparator;
@@ -4075,7 +4074,6 @@ function setCurrentCultureInfo (LCID, decimalSeparator, groupSeparator) {
 			res = true;
 		}
 	}
-
 	return res;
 }
 	function checkCultureInfoFontPicker(LCID) {
@@ -4821,8 +4819,8 @@ var g_aCultureInfos = {
 	30724: {LCID: 30724, Name: "zh", CurrencyPositivePattern: 0, CurrencyNegativePattern: 2, CurrencySymbol: "¥", NumberDecimalSeparator: ".", NumberGroupSeparator: ",", NumberGroupSizes: [3], DayNames: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"], AbbreviatedDayNames: ["周日", "周一", "周二", "周三", "周四", "周五", "周六"], MonthNames: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月", ""], AbbreviatedMonthNames: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月", ""], MonthGenitiveNames: [], AbbreviatedMonthGenitiveNames: [], AMDesignator: "上午", PMDesignator: "下午", DateSeparator: "/", TimeSeparator: ":", ShortDatePattern: "520"},
 	30764: {LCID: 30764, Name: "az-Latn", CurrencyPositivePattern: 3, CurrencyNegativePattern: 8, CurrencySymbol: "₼", NumberDecimalSeparator: ",", NumberGroupSeparator: ".", NumberGroupSizes: [3], DayNames: ["bazar", "bazar ertəsi", "çərşənbə axşamı", "çərşənbə", "cümə axşamı", "cümə", "şənbə"], AbbreviatedDayNames: ["B.", "B.E.", "Ç.A.", "Ç.", "C.A.", "C.", "Ş."], MonthNames: ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr", ""], AbbreviatedMonthNames: ["yan", "fev", "mar", "apr", "may", "iyn", "iyl", "avq", "sen", "okt", "noy", "dek", ""], MonthGenitiveNames: ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avqust", "sentyabr", "oktyabr", "noyabr", "dekabr", ""], AbbreviatedMonthGenitiveNames: [], AMDesignator: "AM", PMDesignator: "PM", DateSeparator: ".", TimeSeparator: ":", ShortDatePattern: "135"},
 	31748: {LCID: 31748, Name: "zh-Hant", CurrencyPositivePattern: 0, CurrencyNegativePattern: 0, CurrencySymbol: "HK$", NumberDecimalSeparator: ".", NumberGroupSeparator: ",", NumberGroupSizes: [3], DayNames: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"], AbbreviatedDayNames: ["週日", "週一", "週二", "週三", "週四", "週五", "週六"], MonthNames: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月", ""], AbbreviatedMonthNames: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月", ""], MonthGenitiveNames: [], AbbreviatedMonthGenitiveNames: [], AMDesignator: "上午", PMDesignator: "下午", DateSeparator: "/", TimeSeparator: ":", ShortDatePattern: "025"},
- //   31749:{lCID: 31749,Name: "ru,"}
 
+	
 };
 var g_oDefaultCultureInfo, g_oLCID;
 setCurrentCultureInfo(1033);//en-US//1033//fr-FR//1036//basq//1069//ru-Ru//1049//hindi//1081
