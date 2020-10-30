@@ -7515,6 +7515,9 @@ CDocument.prototype.SetDocumentMargin = function(oMargins, isFromRuler)
 		}
 	}
 
+	if (isFromRuler && oSectPr.GetPageMarginTop() < 0 && T > 0)
+		T = -T;
+
 	oSectPr.SetPageMargins(L, T, R, B);
 	this.DrawingObjects.CheckAutoFit();
 
