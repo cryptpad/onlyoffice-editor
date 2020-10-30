@@ -1790,7 +1790,9 @@
         this.check_bounds(oShapeDrawer);
         return  CalculateSrcRect(this.transform, oShapeDrawer, this.cropObject.invertTransform, this.cropObject.extX, this.cropObject.extY);
     };
-
+    CGraphicObjectBase.prototype.getMediaFileName = function(){
+        return null;
+    };
     CGraphicObjectBase.prototype.getLogicDocument = function()
     {
         var oApi = editor || Asc['editor'];

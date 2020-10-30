@@ -444,7 +444,7 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
     {
         if(drawingObjectsController.isSlideShow())
         {
-            var sMediaFile = drawing.getMediaFileName && drawing.getMediaFileName();
+            var sMediaFile = drawing.getMediaFileName();
             if(!sMediaFile)
             {
                 return false;
@@ -506,7 +506,7 @@ function handleShapeImageInGroup(drawingObjectsController, drawing, shape, e, x,
     {
         if(drawingObjectsController.isSlideShow())
         {
-            var sMediaFile = drawing.getMediaFileName && drawing.getMediaFileName();
+            var sMediaFile = drawing.getMediaFileName();
             if(!sMediaFile)
             {
                 return false;
