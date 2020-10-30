@@ -42,7 +42,7 @@ function (window, undefined) {
 	var CellValueType = AscCommon.CellValueType;
 	var g_oFormatParser = AscCommon.g_oFormatParser;
 	var oNumFormatCache = AscCommon.oNumFormatCache;
-
+	var CellFormat = AscCommon.CellFormat;
 	var cErrorType = AscCommonExcel.cErrorType;
 	var cNumber = AscCommonExcel.cNumber;
 	var cString = AscCommonExcel.cString;
@@ -1887,7 +1887,7 @@ function (window, undefined) {
 			}
 		}
 
-		var oFormat = oNumFormatCache.get(arg1.toString());
+		var oFormat = CellFormat(arg1.toString(),undefined,true);
 		var a = g_oFormatParser.parse(arg0.toLocaleString(true) + ""), aText;
 		aText = oFormat.format(a ? a.value : arg0.toLocaleString(),
 			(arg0 instanceof cNumber || a) ? CellValueType.Number : CellValueType.String,
