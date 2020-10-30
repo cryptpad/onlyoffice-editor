@@ -65,11 +65,9 @@
 			this.element  = undefined;
 			this.handlers = undefined;
 			this.vsb	= undefined;
-			this.vsbHSt	= undefined;
 			this.vsbApi	= undefined;
 			this.vsbMax	= undefined;
 			this.hsb	= undefined;
-			this.hsbHSt	= undefined;
 			this.hsbApi = undefined;
 			this.hsbMax	= undefined;
 
@@ -246,15 +244,15 @@
 		asc_CEventsController.prototype.reinitScrollX = function (pos, max, max2) {
 			var step = this.settings.hscrollStep;
 			this.hsbMax = Math.max(max * step, 1);
-			this.hsbHSt.width = (this.hsb.offsetWidth + this.hsbMax) + "px";
-			this.hsbApi.Reinit(this.settings, pos * step);
+			this.hsbApi.settings.contentW = this.hsbMax - 1;
+			this.hsbApi.Repos(this.hsbApi.settings, false, false, pos * step);
 			this.hsbApi.maxScrollX2 = Math.max(max2 * step, 1);
 		};
 		asc_CEventsController.prototype.reinitScrollY = function (pos, max, max2) {
 			var step = this.settings.vscrollStep;
 			this.vsbMax = Math.max(max * step, 1);
-			this.vsbHSt.height = (this.vsb.offsetHeight + this.vsbMax) + "px";
-			this.vsbApi.Reinit(this.settings, pos * step);
+			this.vsbApi.settings.contentH = this.vsbMax - 1;
+			this.vsbApi.Repos(this.vsbApi.settings, false, false, pos * step);
 			this.vsbApi.maxScrollY2 = Math.max(max2 * step, 1);
 		};
 
@@ -351,15 +349,15 @@
 			// vertical scroll bar
 			this.vsb = document.createElement('div');
 			this.vsb.id = "ws-v-scrollbar";
-			this.vsb.innerHTML = '<div id="ws-v-scroll-helper"></div>';
 			this.widget.appendChild(this.vsb);
-			this.vsbHSt = document.getElementById("ws-v-scroll-helper").style;
 
 			if (!this.vsbApi) {
 				settings = new AscCommon.ScrollSettings();
 				settings.vscrollStep = opt.vscrollStep;
 				settings.hscrollStep = opt.hscrollStep;
 				settings.wheelScrollLines = opt.wheelScrollLinesV;
+				settings.isVerticalScroll = true;
+				settings.isHorizontalScroll = false;
 
 				this.vsbApi = new AscCommon.ScrollObject(this.vsb.id, settings);
 				this.vsbApi.bind("scrollvertical", function(evt) {
@@ -381,14 +379,14 @@
 			// horizontal scroll bar
 			this.hsb = document.createElement('div');
 			this.hsb.id = "ws-h-scrollbar";
-			this.hsb.innerHTML = '<div id="ws-h-scroll-helper"></div>';
 			this.widget.appendChild(this.hsb);
-			this.hsbHSt = document.getElementById("ws-h-scroll-helper").style;
 
 			if (!this.hsbApi) {
 				settings = new AscCommon.ScrollSettings();
 				settings.vscrollStep = opt.vscrollStep;
 				settings.hscrollStep = opt.hscrollStep;
+				settings.isVerticalScroll = false;
+				settings.isHorizontalScroll = true;
 
 				this.hsbApi = new AscCommon.ScrollObject(this.hsb.id, settings);
 				this.hsbApi.bind("scrollhorizontal",function(evt) {
