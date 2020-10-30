@@ -65,6 +65,9 @@ CSdtBase.prototype.GetPlaceholderText = function()
  */
 CSdtBase.prototype.SetPlaceholderText = function(sText)
 {
+	if (!sText)
+		return this.SetPlaceholder(undefined);
+
 	var oLogicDocument = this.GetLogicDocument();
 	var oGlossary      = oLogicDocument.GetGlossaryDocument();
 
