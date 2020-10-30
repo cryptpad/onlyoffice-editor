@@ -3904,6 +3904,7 @@ function OfflineEditor () {
             _api.asc_nativeOpenFile(window["native"]["GetFileString"](), undefined, true, window["native"]["GetXlsxPath"]());
             
             this.asc_WriteAllWorksheets(true);
+            this.asc_WriteCurrentCell();
             
             _api.sendColorThemes(_api.wbModel.theme);
             _api.asc_ApplyColorScheme(false);
@@ -4308,6 +4309,14 @@ function OfflineEditor () {
         }
         
         _stream["WriteByte"](255);
+    };
+
+    this.asc_WriteCurrentCell = function() {
+        var cellInfo = _api.asc_getCellInfo();
+        var stream = global_memory_stream_menu;
+        stream["ClearNoAttack"]();
+        asc_WriteCCellInfo(cellInfo, stream);
+        window["native"]["OnCallMenuEvent"](2402, stream); // ASC_SPREADSHEETS_EVENT_TYPE_SELECTION_CHANGED
     };
     
     // render
@@ -7380,6 +7389,7 @@ window["Asc"]["spreadsheet_api"].prototype.openDocument = function(file) {
                window["native"]["onEndLoadingFile"](ws.headersWidth, ws.headersHeight);
                
                _s.asc_WriteAllWorksheets(true);
+               _s.asc_WriteCurrentCell();
                
                return;
                }
@@ -7422,6 +7432,7 @@ window["Asc"]["spreadsheet_api"].prototype.openDocument = function(file) {
                           //console.log("JS - onEndLoadingFile()");
                           
                           _s.asc_WriteAllWorksheets(true);
+                          _s.asc_WriteCurrentCell();
                           
                           setInterval(function() {
                                       
