@@ -5152,6 +5152,10 @@ Asc['asc_docs_api'].prototype.ImgApply = function(obj)
                 {
                     this.exucuteHistory = false;
                 }
+                if(this.exucuteHistoryEnd)
+                {
+                    this.exucuteHistoryEnd = false;
+                }
             }
             else
             {

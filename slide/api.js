@@ -2867,6 +2867,10 @@ background-repeat: no-repeat;\
 					}
 					this.exucuteHistory = false;
 				}
+				if(this.exucuteHistoryEnd)
+				{
+					this.exucuteHistoryEnd = false;
+				}
 			}
 			else
 			{
@@ -2917,7 +2921,7 @@ background-repeat: no-repeat;\
 		if (null == prop)
 			return;
 
-		var arr_ind    = this.WordControl.m_oLogicDocument.GetSelectedSlides()
+		var arr_ind    = this.WordControl.m_oLogicDocument.GetSelectedSlides();
 		var _back_fill = prop.get_background();
 
 		if (_back_fill)
@@ -3036,6 +3040,10 @@ background-repeat: no-repeat;\
 					if (this.exucuteHistory)
 					{
 						this.exucuteHistory = false;
+					}
+					if(this.exucuteHistoryEnd)
+					{
+						this.exucuteHistoryEnd = false;
 					}
 				}
 				else
