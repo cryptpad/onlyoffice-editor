@@ -725,142 +725,221 @@ NumFormat.prototype =
         {
             var next = this._readChar();
             var bNoFormat = false;
-            if(this.EOF == next)
-                break;
-            else if("[" == next)
-                this._ReadBracket();
-            else if("\"" == next)
-                this._ReadText("\"");
-            else if("\\" == next)
-                this._ReadChar();
-            else if("%" == next)
+			if(this.EOF == next)
+				break;
+            else if (useLocaleFormat)
             {
-                this._addToFormat(numFormat_Percent);
+				if(g_aCultureInfos.TimeSeparator == next)
+				{
+					this._addToFormat(numFormat_TimeSeparator);
+				}
+				else if (g_aCultureInfos.NumberDecimalSeparator == next)
+				{
+					this._addToFormat(numFormat_DecimalPoint);
+				}
+				else if (g_aCultureInfos.NumberGroupSeparator == next)
+				{
+					this._addToFormat(numFormat_Thousand, 1);
+				}
+				else if("[" == next)
+					this._ReadBracket();
+				else if("\"" == next)
+					this._ReadText("\"");
+				else if("\\" == next)
+					this._ReadChar();
+				else if("%" == next)
+				{
+					this._addToFormat(numFormat_Percent);
+				}
+				else if("$" == next || "+" == next || "-" == next || "(" == next || ")" == next || " " == next)
+				{
+					this._addToFormat(numFormat_Text, next);
+				}
+				else if(0 <= next && next <= 9)
+				{
+					//не 0 может быть только в дробях
+					this._addToFormat(numFormat_Digit, next - 0);
+				}
+				else if("#" == next)
+				{
+					this._addToFormat(numFormat_DigitNoDisp);
+				}
+				else if(digitSpaceSymbol == next)
+				{
+					this._addToFormat(numFormat_DigitSpace);
+				}
+				else if("/" == next)
+				{
+					this._addToFormat2(new FormatObjDecimalFrac([], []));
+				}
+				else if("E" == next || "e" == next)
+				{
+					var nextnext = this._readChar();
+					if(this.EOF != nextnext && "+" == nextnext || "-" == nextnext)
+					{
+						var sign = ("+" == nextnext) ? SignType.Positive : SignType.Negative;
+						this._addToFormat2(new FormatObjScientific(next, "", sign));
+					}
+				}
+				else if("*" == next)
+				{
+					var nextnext = this._readChar();
+					if(this.EOF != nextnext)
+						this._addToFormat(numFormat_Repeat, nextnext);
+				}
+				else if("_" == next)
+				{
+					var nextnext = this._readChar();
+					if(this.EOF != nextnext)
+						this._addToFormat(numFormat_Skip, nextnext);
+				}
+				else if("@" == next)
+				{
+					this._addToFormat(numFormat_TextPlaceholder);
+				}
+				else if((LocaleFormatSymbol['Y'] == next || LocaleFormatSymbol['y'] == next))
+				{
+					this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
+				}
+				else if((LocaleFormatSymbol['M'] == next || LocaleFormatSymbol['m'] == next))
+				{
+					this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+				}
+				else if((LocaleFormatSymbol['D'] == next || LocaleFormatSymbol['d'] == next))
+				{
+					this._addToFormat2(new FormatObjDateVal(numFormat_Day, 1, false));
+				}
+				else if((LocaleFormatSymbol['H'] == next || LocaleFormatSymbol['h'] == next))
+				{
+					this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
+				}
+				else if((LocaleFormatSymbol['S'] == next || LocaleFormatSymbol['s'] == next))
+				{
+					this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
+				}
+				else if ("A" == next || "a" == next)
+				{
+					this._ReadAmPm(next);
+				}
+				else {
+					if (sGeneralFirst === next.toLowerCase() &&
+						sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase()) {
+						this._addToFormat(numFormat_General);
+						this._skip(sGeneral.length - 1);
+					} else {
+						bNoFormat = true;
+						this._addToFormat(numFormat_Text, next);
+					}
+				}
             }
-            else if("$" == next || "+" == next || "-" == next || "(" == next || ")" == next || " " == next)
+            else if(!useLocaleFormat)
             {
-                this._addToFormat(numFormat_Text, next);
-            }
-			else if(g_aCultureInfos.TimeSeparator == next && useLocaleFormat == true)
-            {
-                this._addToFormat(numFormat_TimeSeparator);
-            }
-			else if(":" == next && (useLocaleFormat == false ||useLocaleFormat == null))
-			{
-				this._addToFormat(numFormat_TimeSeparator);
-			}
-            else if(0 <= next && next <= 9)
-            {
-                //не 0 может быть только в дробях
-                this._addToFormat(numFormat_Digit, next - 0);
-            }
-            else if("#" == next)
-            {
-                this._addToFormat(numFormat_DigitNoDisp);
-            }
-            else if(digitSpaceSymbol == next)
-            {
-                this._addToFormat(numFormat_DigitSpace);
-            }
-            else if (g_aCultureInfos.NumberDecimalSeparator == next && useLocaleFormat==true)
-            {
-                this._addToFormat(numFormat_DecimalPoint);
-            }
+				if(gc_sFormatDecimalPoint == next)
+				{
+				this._addToFormat(numFormat_DecimalPoint);
+				}
+				else if (gc_sFormatThousandSeparator == next)
+				{
+					this._addToFormat(numFormat_DecimalPoint);
+				}
+            	if("[" == next)
+					this._ReadBracket();
+				else if("\"" == next)
+					this._ReadText("\"");
+				else if("\\" == next)
+					this._ReadChar();
+				else if("%" == next)
+				{
+					this._addToFormat(numFormat_Percent);
+				}
+				else if("$" == next || "+" == next || "-" == next || "(" == next || ")" == next || " " == next)
+				{
+					this._addToFormat(numFormat_Text, next);
+				}
+				else if(":" == next)
+				{
+					this._addToFormat(numFormat_TimeSeparator);
+				}
+				else if(0 <= next && next <= 9)
+				{
+					//не 0 может быть только в дробях
+					this._addToFormat(numFormat_Digit, next - 0);
+				}
+				else if("#" == next)
+				{
+					this._addToFormat(numFormat_DigitNoDisp);
+				}
+				else if(digitSpaceSymbol == next)
+				{
+					this._addToFormat(numFormat_DigitSpace);
+				}
+				else if("/" == next)
+				{
+					this._addToFormat2(new FormatObjDecimalFrac([], []));
+				}
 
-			else if(gc_sFormatDecimalPoint == next && useLocaleFormat==false)
-			{
-				this._addToFormat(numFormat_DecimalPoint);
+				else if("E" == next || "e" == next)
+				{
+					var nextnext = this._readChar();
+					if(this.EOF != nextnext && "+" == nextnext || "-" == nextnext)
+					{
+						var sign = ("+" == nextnext) ? SignType.Positive : SignType.Negative;
+						this._addToFormat2(new FormatObjScientific(next, "", sign));
+					}
+				}
+				else if("*" == next)
+				{
+					var nextnext = this._readChar();
+					if(this.EOF != nextnext)
+						this._addToFormat(numFormat_Repeat, nextnext);
+				}
+				else if("_" == next)
+				{
+					var nextnext = this._readChar();
+					if(this.EOF != nextnext)
+						this._addToFormat(numFormat_Skip, nextnext);
+				}
+				else if("@" == next)
+				{
+					this._addToFormat(numFormat_TextPlaceholder);
+				}
+				else if(("Y" == next || "y" == next))
+				{
+					this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
+				}
+				else if(("M" == next || "m" == next))
+				{
+					this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+				}
+
+				else if(("D" == next || "d" == next))
+				{
+					this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+				}
+				else if(("H" == next || "h" == next))
+				{
+					this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
+				}
+				else if(("S" == next || "s" == next))
+				{
+					this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
+				}
+				else if ("A" == next || "a" == next)
+				{
+					this._ReadAmPm(next);
+				}
+				else {
+					if (sGeneralFirst === next.toLowerCase() &&
+						sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase()) {
+						this._addToFormat(numFormat_General);
+						this._skip(sGeneral.length - 1);
+					} else {
+						bNoFormat = true;
+						this._addToFormat(numFormat_Text, next);
+					}
+				}
 			}
-            else if("/" == next)
-            {
-                this._addToFormat2(new FormatObjDecimalFrac([], []));
-            }
-            else if (g_aCultureInfos.NumberGroupSeparator == next && useLocaleFormat ==true)
-            {
-                this._addToFormat(numFormat_Thousand, 1);
-            }
-            else if (gc_sFormatThousandSeparator == next && (useLocaleFormat == false ||useLocaleFormat == null))
-			{
-				this._addToFormat(numFormat_DecimalPoint);
-			}
-            else if("E" == next || "e" == next)
-            {
-                var nextnext = this._readChar();
-                if(this.EOF != nextnext && "+" == nextnext || "-" == nextnext)
-                {
-                    var sign = ("+" == nextnext) ? SignType.Positive : SignType.Negative;
-                    this._addToFormat2(new FormatObjScientific(next, "", sign));
-                }
-            }
-            else if("*" == next)
-            {
-                var nextnext = this._readChar();
-                if(this.EOF != nextnext)
-                    this._addToFormat(numFormat_Repeat, nextnext);
-            }
-            else if("_" == next)
-            {
-                var nextnext = this._readChar();
-                if(this.EOF != nextnext)
-                    this._addToFormat(numFormat_Skip, nextnext);
-            }
-            else if("@" == next)
-            {
-                this._addToFormat(numFormat_TextPlaceholder);
-            }
-            else if((LocaleFormatSymbol['Y'] == next || LocaleFormatSymbol['y'] == next)&& useLocaleFormat == true)
-            {
-                this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
-            }
-			else if(("Y" == next || "y" == next)&&(useLocaleFormat == false ||useLocaleFormat == null))
-			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
-			}
-            else if((LocaleFormatSymbol['M'] == next || LocaleFormatSymbol['m'] == next)&& useLocaleFormat == true)
-            {
-                this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
-            }
-			else if(("M" == next || "m" == next)&&(useLocaleFormat == false ||useLocaleFormat == null))
-			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
-			}
-            else if((LocaleFormatSymbol['D'] == next || LocaleFormatSymbol['d'] == next)&& useLocaleFormat == true)
-            {
-                this._addToFormat2(new FormatObjDateVal(numFormat_Day, 1, false));
-            }
-			else if(("D" == next || "d" == next)&&(useLocaleFormat == false ||useLocaleFormat == null))
-			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
-			}
-            else if((LocaleFormatSymbol['H'] == next || LocaleFormatSymbol['h'] == next)&& useLocaleFormat == true)
-            {
-                this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
-            }
-			else if(("H" == next || "h" == next)&&(useLocaleFormat == false ||useLocaleFormat == null))
-			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
-			}
-            else if((LocaleFormatSymbol['S'] == next || LocaleFormatSymbol['s'] == next)&& useLocaleFormat == true)
-            {
-                this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
-            }
-			else if(("S" == next || "s" == next)&&(useLocaleFormat == false ||useLocaleFormat == null))
-			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
-			}
-            else if ("A" == next || "a" == next) {
-                this._ReadAmPm(next);
-			}
-            else {
-                if (sGeneralFirst === next.toLowerCase() &&
-                    sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase()) {
-                    this._addToFormat(numFormat_General);
-                    this._skip(sGeneral.length - 1);
-                } else {
-                    bNoFormat = true;
-                    this._addToFormat(numFormat_Text, next);
-                }
-            }
+
             if (!bNoFormat)
                 this.bGeneralChart = false;
         }
