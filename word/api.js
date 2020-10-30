@@ -5658,6 +5658,10 @@ background-repeat: no-repeat;\
 							this.nCurPointItemsLength = oPoint.Items.length;
 						}
 					}
+					if(this.exucuteHistoryEnd)
+					{
+						this.exucuteHistoryEnd = false;
+					}
 				}
 				else
 				{

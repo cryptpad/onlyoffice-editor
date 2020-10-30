@@ -4072,6 +4072,10 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                     }
                     api.exucuteHistory = false;
                 }
+                if(api.exucuteHistoryEnd)
+                {
+                    api.exucuteHistoryEnd = false;
+                }
             }
             else
             {
