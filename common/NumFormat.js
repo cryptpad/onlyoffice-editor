@@ -711,11 +711,11 @@ NumFormat.prototype =
             this.bDateTime = true;
         }
     },
-    _parseFormat : function(digitSpaceSymbol,b_param)
+    _parseFormat : function(digitSpaceSymbol,useLocaleFormat)
     {
 		var sGeneral = AscCommon.g_cGeneralFormat.toLowerCase();
 
-    	if(b_param == true)
+    	if(useLocaleFormat == true)
     	{
 			sGeneral = LocaleFormatSymbol['general'].toLowerCase();
 		}
@@ -741,11 +741,11 @@ NumFormat.prototype =
             {
                 this._addToFormat(numFormat_Text, next);
             }
-			else if(g_aCultureInfos.TimeSeparator == next && b_param == true)
+			else if(g_aCultureInfos.TimeSeparator == next && useLocaleFormat == true)
             {
                 this._addToFormat(numFormat_TimeSeparator);
             }
-			else if(":" == next && (b_param == false ||b_param == null))
+			else if(":" == next && (useLocaleFormat == false ||useLocaleFormat == null))
 			{
 				this._addToFormat(numFormat_TimeSeparator);
 			}
@@ -762,12 +762,12 @@ NumFormat.prototype =
             {
                 this._addToFormat(numFormat_DigitSpace);
             }
-            else if (g_aCultureInfos.NumberDecimalSeparator == next && b_param==true)
+            else if (g_aCultureInfos.NumberDecimalSeparator == next && useLocaleFormat==true)
             {
                 this._addToFormat(numFormat_DecimalPoint);
             }
 
-			else if(gc_sFormatDecimalPoint == next && b_param==false)
+			else if(gc_sFormatDecimalPoint == next && useLocaleFormat==false)
 			{
 				this._addToFormat(numFormat_DecimalPoint);
 			}
@@ -775,11 +775,11 @@ NumFormat.prototype =
             {
                 this._addToFormat2(new FormatObjDecimalFrac([], []));
             }
-            else if (g_aCultureInfos.NumberGroupSeparator == next && b_param ==true)
+            else if (g_aCultureInfos.NumberGroupSeparator == next && useLocaleFormat ==true)
             {
                 this._addToFormat(numFormat_Thousand, 1);
             }
-            else if (gc_sFormatThousandSeparator == next && (b_param == false ||b_param == null))
+            else if (gc_sFormatThousandSeparator == next && (useLocaleFormat == false ||useLocaleFormat == null))
 			{
 				this._addToFormat(numFormat_DecimalPoint);
 			}
@@ -808,43 +808,43 @@ NumFormat.prototype =
             {
                 this._addToFormat(numFormat_TextPlaceholder);
             }
-            else if((LocaleFormatSymbol['Y'] == next || LocaleFormatSymbol['y'] == next)&& b_param == true)
+            else if((LocaleFormatSymbol['Y'] == next || LocaleFormatSymbol['y'] == next)&& useLocaleFormat == true)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
             }
-			else if(("Y" == next || "y" == next)&&(b_param == false ||b_param == null))
+			else if(("Y" == next || "y" == next)&&(useLocaleFormat == false ||useLocaleFormat == null))
 			{
 				this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
 			}
-            else if((LocaleFormatSymbol['M'] == next || LocaleFormatSymbol['m'] == next)&& b_param == true)
+            else if((LocaleFormatSymbol['M'] == next || LocaleFormatSymbol['m'] == next)&& useLocaleFormat == true)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
             }
-			else if(("M" == next || "m" == next)&&(b_param == false ||b_param == null))
+			else if(("M" == next || "m" == next)&&(useLocaleFormat == false ||useLocaleFormat == null))
 			{
 				this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
 			}
-            else if((LocaleFormatSymbol['D'] == next || LocaleFormatSymbol['d'] == next)&& b_param == true)
+            else if((LocaleFormatSymbol['D'] == next || LocaleFormatSymbol['d'] == next)&& useLocaleFormat == true)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Day, 1, false));
             }
-			else if(("D" == next || "d" == next)&&(b_param == false ||b_param == null))
+			else if(("D" == next || "d" == next)&&(useLocaleFormat == false ||useLocaleFormat == null))
 			{
 				this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
 			}
-            else if((LocaleFormatSymbol['H'] == next || LocaleFormatSymbol['h'] == next)&& b_param == true)
+            else if((LocaleFormatSymbol['H'] == next || LocaleFormatSymbol['h'] == next)&& useLocaleFormat == true)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
             }
-			else if(("H" == next || "h" == next)&&(b_param == false ||b_param == null))
+			else if(("H" == next || "h" == next)&&(useLocaleFormat == false ||useLocaleFormat == null))
 			{
 				this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
 			}
-            else if((LocaleFormatSymbol['S'] == next || LocaleFormatSymbol['s'] == next)&& b_param == true)
+            else if((LocaleFormatSymbol['S'] == next || LocaleFormatSymbol['s'] == next)&& useLocaleFormat == true)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
             }
-			else if(("S" == next || "s" == next)&&(b_param == false ||b_param == null))
+			else if(("S" == next || "s" == next)&&(useLocaleFormat == false ||useLocaleFormat == null))
 			{
 				this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
 			}
@@ -1746,7 +1746,7 @@ NumFormat.prototype =
             }
         }
     },
-    setFormat: function(format, cultureInfo, formatType,b_param) {
+    setFormat: function(format, cultureInfo, formatType,useLocaleFormat) {
 		if (null == cultureInfo) {
             cultureInfo = g_oDefaultCultureInfo;
         }
@@ -1758,7 +1758,7 @@ NumFormat.prototype =
 		} else if (NumFormatType.WordFieldNumeric === formatType) {
 			this.valid = this._parseFormatWordNumeric("#");
 		} else {
-			this.valid = this._parseFormat("?",b_param);
+			this.valid = this._parseFormat("?",useLocaleFormat);
 		}
         if (true == this.valid) {
             //prepare tokens
@@ -1808,7 +1808,7 @@ NumFormat.prototype =
         //todo fIsFitMeasurer and decrease dDigitsCount by other format tokens
         var sGeneral = DecodeGeneralFormat(number, nValType, dDigitsCount);
         if (null != sGeneral) {
-            var numFormat = oNumFormatCache.get(sGeneral);
+            var numFormat = oNumFormatCache.get(sGeneral,undefined,true);
             if (null != numFormat) {
                 res = numFormat.format(number, nValType, dDigitsCount, bChart, cultureInfo, true);
             }
@@ -2445,22 +2445,23 @@ NumFormatCache.prototype =
 	cleanCache : function(){
 		this.oNumFormats = {};
 	},
-    get : function(format, formatType,b_param)
+    get : function(format, formatType,useLocaleFormat)
     {
 		var key = format + String.fromCharCode(5) + formatType;
         var res = this.oNumFormats[key];
         if(null == res)
         {
-            res = new CellFormat(format, formatType);
+            res = new CellFormat(format, formatType,useLocaleFormat);
             this.oNumFormats[key] = res;
         }
         return res;
     }
 };
+
 //кеш структур по строке формата
 var oNumFormatCache = new NumFormatCache();
 
-function CellFormat(format, formatType)
+function CellFormat(format, formatType,useLocaleFormat)
 {
     this.sFormat = format;
     this.oPositiveFormat = null;
@@ -2484,7 +2485,7 @@ function CellFormat(format, formatType)
       }
     }
 		var oNewFormat = new NumFormat(false);
-		oNewFormat.setFormat(sNewFormat, undefined, formatType,false);
+		oNewFormat.setFormat(sNewFormat, undefined, formatType,useLocaleFormat);
 		aParsedFormats.push(oNewFormat);
 	}
   var nFormatsLength = aParsedFormats.length;
@@ -2536,7 +2537,7 @@ function CellFormat(format, formatType)
 				}
 			}
 			this.oTextFormat = new NumFormat(false);
-			this.oTextFormat.setFormat("@",true);
+			this.oTextFormat.setFormat("@",undefined,undefined,useLocaleFormat);
 			if(null == oPositive || null == oNegative || null == oNull)
 			{
 				//по результатам опытов, если оператор сравнения проходит через 0, то надо добавлять знак минус в зависимости от значения
