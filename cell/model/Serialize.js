@@ -6213,7 +6213,7 @@
 				(27 <= oNum.id && oNum.id <= 31) || (36 <= oNum.id && oNum.id <= 44))) {
 					oRes.id = oNum.id;
 				}
-			var numFormat = AscCommon.oNumFormatCache.get(oRes.f);
+			var numFormat = AscCommon.oNumFormatCache.get(oRes.f,undefined,false);
 			numFormat.checkCultureInfoFontPicker();
 			if (null != oNumFmts) {
 				oNumFmts[oNum.id] = oRes;
