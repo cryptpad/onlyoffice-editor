@@ -1570,7 +1570,7 @@
 		}
 		return res;
 	}
-	function _ShowFileDialog(accept, allowEncryption, fValidate, callback)
+	function _ShowFileDialog(accept, allowEncryption, allowMultiple, fValidate, callback)
 	{
 		if (AscCommon.AscBrowser.isNeedEmulateUpload && window["emulateUpload"])
 		{
@@ -1599,7 +1599,7 @@
 
 		if ("undefined" != typeof(FileReader))
 		{
-			var fileName = GetUploadInput(accept, function (e)
+			var fileName = GetUploadInput(accept, allowMultiple, function (e)
 			{
 				if (e && e.target && e.target.files)
 				{
@@ -1620,7 +1620,7 @@
 	}
 	function ShowImageFileDialog(documentId, documentUserId, jwt, callback, callbackOld)
 	{
-		if (false === _ShowFileDialog("image/*", true, ValidateUploadImage, callback)) {
+		if (false === _ShowFileDialog("image/*", true, true, ValidateUploadImage, callback)) {
 			//todo remove this compatibility
 			var frameWindow = GetUploadIFrame();
 			var url = sUploadServiceLocalUrlOld + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
@@ -1654,7 +1654,7 @@
 		}
 	}
 	function ShowDocumentFileDialog(callback) {
-		if (false === _ShowFileDialog(getAcceptByArray(c_oAscDocumentUploadProp.SupportedFormats), false, ValidateUploadDocument, callback)) {
+		if (false === _ShowFileDialog(getAcceptByArray(c_oAscDocumentUploadProp.SupportedFormats), false, false, ValidateUploadDocument, callback)) {
 			callback(Asc.c_oAscError.ID.Unknown);
 		}
 	}
@@ -1987,7 +1987,7 @@
 		return window.frames[sIFrameName];
 	}
 
-	function GetUploadInput(accept, onchange)
+	function GetUploadInput(accept, allowMultiple, onchange)
 	{
 		var inputName = 'apiiuFile';
 		var input = document.getElementById(inputName);
@@ -2002,6 +2002,9 @@
 		input.setAttribute('type', 'file');
 		input.setAttribute('accept', accept);
 		input.setAttribute('style', 'position:absolute;left:-2px;top:-2px;width:1px;height:1px;z-index:-1000;cursor:pointer;');
+		if (allowMultiple) {
+			input.setAttribute('multiple', true);
+		}
 		input.onchange = onchange;
 		document.body.appendChild(input);
 		return input;
