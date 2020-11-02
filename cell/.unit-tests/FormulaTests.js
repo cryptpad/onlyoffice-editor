@@ -3850,9 +3850,7 @@ $( function () {
         strictEqual( oParser.calculate().getValue(), "12.5%" );
 
 		testArrayFormula2("TEXT", 2, 2);
-    } );
-    test( "Test: \"TEXT\"", function () {
-
+		var culturelcid =  AscCommon.g_oDefaultCultureInfo.LCID
         AscCommon.setCurrentCultureInfo(1049);
         oParser = new parserFormula( "TEXT(1234.567,\"гг-мм-дд\")", "A2", ws );
         ok( oParser.parse() );
@@ -3861,11 +3859,7 @@ $( function () {
         oParser = new parserFormula( "TEXT(123,\"чч:мм:сс\")", "A2", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "00:00:00" );
-
-        testArrayFormula2("TEXT", 2, 2);
-        AscCommon.setCurrentCultureInfo(1033);
-    } );
-    test( "Test: \"TEXT\"", function () {
+        AscCommon.setCurrentCultureInfo(culturelcid);
 
         AscCommon.setCurrentCultureInfo(1025);
         oParser = new parserFormula( "TEXT(1234.567,\"yy-mm-dd\")", "A2", ws );
@@ -3877,7 +3871,7 @@ $( function () {
         strictEqual( oParser.calculate().getValue(), "00:00:00" );
 
         testArrayFormula2("TEXT", 2, 2);
-        AscCommon.setCurrentCultureInfo(1033);
+        AscCommon.setCurrentCultureInfo(culturelcid);
     } );
 	test( "Test: \"TEXTJOIN\"", function () {
 
