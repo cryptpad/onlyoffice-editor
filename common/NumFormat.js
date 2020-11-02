@@ -533,6 +533,8 @@ function ParseLocalFormatSymbol(Name)
 				LocaleFormatSymbol['d'] ='n';
 				LocaleFormatSymbol['H'] = 'Ó';
 				LocaleFormatSymbol['h'] ='ó';
+				LocaleFormatSymbol['Minute']='P';
+				LocaleFormatSymbol['minute']='p';
 				LocaleFormatSymbol['S'] = 'M';
 				LocaleFormatSymbol['s'] ='m';
 				LocaleFormatSymbol['general']='normál';
@@ -545,6 +547,8 @@ function ParseLocalFormatSymbol(Name)
 				LocaleFormatSymbol['d'] ='g';
 				LocaleFormatSymbol['H'] = 'S';
 				LocaleFormatSymbol['h'] ='s';
+				LocaleFormatSymbol['Minute']='D';
+				LocaleFormatSymbol['minute']='d';
 				LocaleFormatSymbol['S'] = 'N';
 				LocaleFormatSymbol['s'] ='n';
 				LocaleFormatSymbol['general']='genel';
