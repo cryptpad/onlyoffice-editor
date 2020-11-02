@@ -7479,7 +7479,7 @@ CDocument.prototype.Get_PageSizesByDrawingObjects = function()
 	return this.DrawingObjects.getPageSizesByDrawingObjects();
 };
 /**
- * Выставояем поля документа
+ * Выставляем поля документа
  * @param oMargins {{Left : number, Top : number, Right : number, Bottom : number}}
  * @param isFromRuler {boolean} пришло ли изменение из линейки
  */
@@ -7513,10 +7513,10 @@ CDocument.prototype.SetDocumentMargin = function(oMargins, isFromRuler)
 			else
 				L = Math.max(0, L - nGutter);
 		}
-	}
 
-	if (isFromRuler && oSectPr.GetPageMarginTop() < 0 && T > 0)
-		T = -T;
+		if (oSectPr.GetPageMarginTop() < 0 && T > 0)
+			T = -T;
+	}
 
 	oSectPr.SetPageMargins(L, T, R, B);
 	this.DrawingObjects.CheckAutoFit();
