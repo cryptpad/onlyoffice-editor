@@ -3917,6 +3917,40 @@ $( function () {
         strictEqual( oParser.calculate().getValue(), "00:00:00" );
 
         AscCommon.setCurrentCultureInfo(culturelciddefault);
+//_______________________________de___________________________________________________
+        AscCommon.setCurrentCultureInfo(1031);
+        oParser = new parserFormula( "TEXT(123,\"jj-mm-tt\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"hh:mm:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+        AscCommon.setCurrentCultureInfo(culturelciddefault);
+//_______________________________da____________________________________________________
+        AscCommon.setCurrentCultureInfo(1053);
+        oParser = new parserFormula( "TEXT(123,\"åå-mm-dd\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"tt:mm:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+        AscCommon.setCurrentCultureInfo(culturelciddefault);
+//_____________________________special________________________________________________
+        AscCommon.setCurrentCultureInfo(1032);
+        oParser = new parserFormula( "TEXT(123,\"εε-μμ-ηη\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"ωω:λλ:δδ\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+        AscCommon.setCurrentCultureInfo(culturelciddefault);
+
     } );
 	test( "Test: \"TEXTJOIN\"", function () {
 
