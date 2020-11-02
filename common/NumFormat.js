@@ -422,8 +422,7 @@ function ParseLocalFormatSymbol(Name)
 			case("fr-CA"):
 			case("fr-CH"):
 			case("fr-FR"):
-			case("gsw-FR"):
-			case("oc-FR"): {
+			case("gsw-FR"): {
 				LocaleFormatSymbol['Y'] = 'J';
 				LocaleFormatSymbol['y'] ='j';
 				LocaleFormatSymbol['D'] = 'A';
@@ -733,7 +732,6 @@ NumFormat.prototype =
 		var Month;
 		var Day;
 		var Hour;
-		var Second;
 		var year;
 		var month;
 		var day;
