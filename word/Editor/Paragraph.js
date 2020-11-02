@@ -12780,12 +12780,15 @@ Paragraph.prototype.ReplaceMisspelledWord = function(Word, oElement)
 	if (!Element)
 		return;
 
-	var isEndDot = false;
-	if (Element.IsEndDot() && 0x002E === Word.charCodeAt(Word.length - 1))
+	var isEnding = false;
+	if (Element.GetEnding() && Element.GetEnding() === Word.charCodeAt(Word.length - 1))
 	{
 		Word     = Word.substr(0, Word.length - 1);
-		isEndDot = true;
+		isEnding = true;
 	}
+
+	if (Element.GetPrefix() && Element.GetPrefix() === Word.charCodeAt(0))
+		Word = Word.substr(1);
 
 	// Сначала вставим новое слово
 	var Class = Element.StartRun;
@@ -12826,7 +12829,7 @@ Paragraph.prototype.ReplaceMisspelledWord = function(Word, oElement)
 
 	this.RemoveSelection();
 	this.Set_ParaContentPos(StartPos, true, -1, -1);
-	if (isEndDot)
+	if (isEnding)
 		this.MoveCursorRight(false, false);
 
 	this.RecalcInfo.Set_Type_0(pararecalc_0_All);

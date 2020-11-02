@@ -266,6 +266,14 @@ CRunElementBase.prototype.IsDot = function()
 	return false;
 };
 /**
+ * Является ли данный элемент символом дефиса
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsHyphen = function()
+{
+	return false;
+};
+/**
  * @param {CRunElementBase} oElement
  * @returns {boolean}
  */
@@ -305,6 +313,10 @@ ParaText.prototype.Set_CharCode = function(CharCode)
 
 	if (AscFonts.IsCheckSymbols)
 		AscFonts.FontPickerByCharacter.getFontBySymbol(this.Value);
+};
+ParaText.prototype.GetCharCode = function()
+{
+	return this.Value;
 };
 ParaText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 {
@@ -475,10 +487,7 @@ ParaText.prototype.Set_SpaceAfter = function(bSpaceAfter)
 };
 ParaText.prototype.IsNoBreakHyphen = function()
 {
-	if (false === this.IsSpaceAfter() && this.Value === 0x002D)
-		return true;
-
-	return false;
+	return (false === this.IsSpaceAfter() && this.Value === 0x002D);
 };
 ParaText.prototype.Write_ToBinary = function(Writer)
 {
@@ -541,7 +550,11 @@ ParaText.prototype.IsDiacriticalSymbol = function()
 };
 ParaText.prototype.IsDot = function()
 {
-	return !!(this.Value === 0x002E);
+	return (this.Value === 0x002E);
+};
+ParaText.prototype.IsHyphen = function()
+{
+	return (this.Value === 0x002D);
 };
 ParaText.prototype.SetGaps = function(nLeftGap, nRightGap)
 {
