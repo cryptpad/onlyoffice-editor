@@ -392,7 +392,8 @@ module.exports = function(grunt) {
 									AppCopyright: process.env['APP_COPYRIGHT'] || appCopyright,
 									PublisherUrl: process.env['PUBLISHER_URL'] || publisherUrl,
 									Version: process.env['PRODUCT_VERSION'] || '0.0.0',
-									Build: process.env['BUILD_NUMBER'] || '0'
+									Build: process.env['BUILD_NUMBER'] || '0',
+									BuildMode: process.env['BuildMode'] || ''
 								}
 							}
 						]
