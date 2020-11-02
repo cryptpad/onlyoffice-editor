@@ -287,6 +287,9 @@
 		this.isAnalyticsEnable = false;
 		this.buildVersion = null;
 		this.buildNumber = null;
+
+		this.buildMode = '@@BuildMode';
+
 		return this;
 	}
 
@@ -328,6 +331,9 @@
 	};
 	asc_CAscEditorPermissions.prototype.asc_getBuildNumber = function () {
 		return this.buildNumber;
+	};
+	asc_CAscEditorPermissions.prototype.asc_getIsBeta = function () {
+		return this.buildMode === 'beta';
 	};
 
 	asc_CAscEditorPermissions.prototype.setLicenseType = function (v) {
@@ -4844,6 +4850,7 @@
 	prot["asc_getRights"] = prot.asc_getRights;
 	prot["asc_getBuildVersion"] = prot.asc_getBuildVersion;
 	prot["asc_getBuildNumber"] = prot.asc_getBuildNumber;
+	prot["asc_getIsBeta"] = prot.asc_getIsBeta;
 
 	window["AscCommon"].asc_ValAxisSettings = asc_ValAxisSettings;
 	prot = asc_ValAxisSettings.prototype;
