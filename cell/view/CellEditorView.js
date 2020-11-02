@@ -1871,8 +1871,6 @@
 		if (t.isTopLineActive && !t.skipTLUpdate) {
 			t._updateTopLineCurPos();
 		}
-		var ws = this.handlers.trigger("getActiveWS");
-		ws.workbook.handlers.trigger("asc_onSelectionEnd");
 	};
 
 	CellEditor.prototype._changeSelection = function (coord) {
@@ -2185,7 +2183,6 @@
 		var xfs = new AscCommonExcel.CellXfs();
 		xfs.setFont(this.newTextFormat || this.options.fragments[f.index].format);
 		this.handlers.trigger("updateEditorSelectionInfo", xfs);
-		this.handlers.trigger("asc_onSelectionEnd");
 	};
 
 	CellEditor.prototype._checkMaxCellLength = function (length) {
@@ -2231,6 +2228,7 @@
 				t.close();
 				event.stopPropagation();
 				event.preventDefault();
+				this.handlers.trigger("endSelectionForPlugin");
 				return false;
 
 			case 13:  // "enter"
@@ -2281,6 +2279,7 @@
 					}
 				}
 				t._removeChars(ctrlKey ? kPrevWord : kPrevChar);
+				this.handlers.trigger("endSelectionForPlugin");
 				return false;
 
 			case 46:  // "del"
@@ -2294,6 +2293,7 @@
 				event.stopPropagation();
 				event.preventDefault();
 				t._removeChars(ctrlKey ? kNextWord : kNextChar);
+				this.handlers.trigger("endSelectionForPlugin");
 				return true;
 
 			case 37:  // "left"
@@ -2312,6 +2312,7 @@
 				}
 				kind = ctrlKey ? kPrevWord : kPrevChar;
 				event.shiftKey ? t._selectChars(kind) : t._moveCursor(kind);
+				this.handlers.trigger("endSelectionForPlugin");
 				return false;
 
 			case 39:  // "right"
@@ -2330,6 +2331,7 @@
 				}
 				kind = ctrlKey ? kNextWord : kNextChar;
 				event.shiftKey ? t._selectChars(kind) : t._moveCursor(kind);
+				this.handlers.trigger("endSelectionForPlugin");
 				return false;
 
 			case 38:  // "up"
@@ -2347,6 +2349,7 @@
 					t._syncEditors();
 				}
 				event.shiftKey ? t._selectChars(kPrevLine) : t._moveCursor(kPrevLine);
+				this.handlers.trigger("endSelectionForPlugin");
 				return false;
 
 			case 40:  // "down"
@@ -2364,6 +2367,7 @@
 					t._syncEditors();
 				}
 				event.shiftKey ? t._selectChars(kNextLine) : t._moveCursor(kNextLine);
+				this.handlers.trigger("endSelectionForPlugin");
 				return false;
 
 			case 35:  // "end"
@@ -2382,6 +2386,7 @@
 				}
 				kind = ctrlKey ? kEndOfText : kEndOfLine;
 				event.shiftKey ? t._selectChars(kind) : t._moveCursor(kind);
+				this.handlers.trigger("endSelectionForPlugin");
 				return false;
 
 			case 36:  // "home"
@@ -2400,6 +2405,7 @@
 				}
 				kind = ctrlKey ? kBeginOfText : kBeginOfLine;
 				event.shiftKey ? t._selectChars(kind) : t._moveCursor(kind);
+				this.handlers.trigger("endSelectionForPlugin");
 				return false;
 
 			case 53: // 5
@@ -2427,6 +2433,7 @@
 					}
 					t._moveCursor(kBeginOfText);
 					t._selectChars(kEndOfText);
+					this.handlers.trigger("endSelectionForPlugin");
 					return true;
 				}
 				break;
@@ -2501,6 +2508,7 @@
 					event.stopPropagation();
 					event.preventDefault();
 					event.which === 90 ? t.undo() : t.redo();
+					this.handlers.trigger("endSelectionForPlugin");
 					return false;
 				}
 				break;
@@ -2614,6 +2622,7 @@
 		if (this.callTopLineMouseup) {
 			this._topLineMouseUp();
 		}
+		this.handlers.trigger("endSelectionForPlugin");
 		return true;
 	};
 
@@ -2688,8 +2697,7 @@
 			this.cleanSelectRange();
 		}
 		this.isSelectMode = c_oAscCellEditorSelectState.no;
-		var ws = this.handlers.trigger("getActiveWS");
-		ws.workbook.handlers.trigger("asc_onSelectionEnd");
+		this.handlers.trigger("endSelectionForPlugin");
 		return true;
 	};
 
