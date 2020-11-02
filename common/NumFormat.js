@@ -299,6 +299,8 @@ function ParseLocalFormatSymbol(Name)
 	LocaleFormatSymbol['d'] ='d';
 	LocaleFormatSymbol['H'] = 'H';
 	LocaleFormatSymbol['h'] ='h';
+	LocaleFormatSymbol['Minute'] = 'M';
+	LocaleFormatSymbol['minute'] = 'm';
 	LocaleFormatSymbol['S'] = 'S';
 	LocaleFormatSymbol['s'] ='s';
 	LocaleFormatSymbol['general']='general';
@@ -403,6 +405,8 @@ function ParseLocalFormatSymbol(Name)
 				LocaleFormatSymbol['d'] = 'д';
 				LocaleFormatSymbol['H'] = 'Ч';
 				LocaleFormatSymbol['h'] = 'ч';
+				LocaleFormatSymbol['Minute'] = 'М';
+				LocaleFormatSymbol['minute'] = 'м'
 				LocaleFormatSymbol['S'] = 'C';
 				LocaleFormatSymbol['s'] = 'с';
 				LocaleFormatSymbol['general'] = 'основной';
@@ -513,6 +517,8 @@ function ParseLocalFormatSymbol(Name)
 				LocaleFormatSymbol['d'] ='η';
 				LocaleFormatSymbol['H'] = 'Ω';
 				LocaleFormatSymbol['h'] ='ω';
+				LocaleFormatSymbol['Minute']='Λ';
+				LocaleFormatSymbol['minute'] = 'λ';
 				LocaleFormatSymbol['S'] = 'Δ';
 				LocaleFormatSymbol['s'] ='δ';
 				LocaleFormatSymbol['general'] ='γενικός τύπος';
@@ -728,6 +734,9 @@ NumFormat.prototype =
 		var month;
 		var day;
 		var hour;
+		var Minute;
+		var minute
+		var Second;
 		var second;
     	if(useLocaleFormat)
     	{
@@ -743,6 +752,8 @@ NumFormat.prototype =
 			day = LocaleFormatSymbol['d'];
 			Hour = LocaleFormatSymbol['H'];
 			hour = LocaleFormatSymbol['h'];
+			Minute =LocaleFormatSymbol['Minute'];
+			minute=LocaleFormatSymbol['minute'];
 			Second = LocaleFormatSymbol['S'];
 			second = LocaleFormatSymbol['s'];
 		}
@@ -760,6 +771,8 @@ NumFormat.prototype =
 			day = 'd';
 			Hour = 'H';
 			hour = 'h';
+			Minute ='M';
+			minute= 'm';
 			Second = 'S';
 			second = 's';
 		}
@@ -855,6 +868,10 @@ NumFormat.prototype =
 			{
 				this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
 			}
+			else if(Minute == next || minute == next)
+			{
+				this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+			}
 			else if(Second == next || second == next)
 			{
 				this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
@@ -888,6 +905,8 @@ NumFormat.prototype =
 		var day = LocaleFormatSymbol['d'];
 		var Hour = LocaleFormatSymbol['H'];
 		var hour = LocaleFormatSymbol['h'];
+		var Minute =LocaleFormatSymbol['Minute'];
+		var minute =LocaleFormatSymbol['minute'];
 		var Second = LocaleFormatSymbol['S'];
 		var second = LocaleFormatSymbol['s'];
         while(true)
@@ -913,6 +932,10 @@ NumFormat.prototype =
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
             }
+			else if(Minute == next || minute == next)
+			{
+				this._addToFormat2(new FormatObjDateVal(numFormat_Minute, 1, false));
+			}
             else if(Second == next || second == next)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
