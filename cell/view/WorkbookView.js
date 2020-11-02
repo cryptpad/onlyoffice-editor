@@ -707,7 +707,7 @@
 				  self.handlers.trigger("asc_onContextMenu", event);
 			  }, "updatedEditableFunction": function (fName) {
 				  self.handlers.trigger("asc_onFormulaInfo", fName);
-			  }, "endSelectionForPlugin" : function () {
+			  }, "onSelectionEnd" : function () {
           setTimeout(function(){self.handlers.trigger("asc_onSelectionEnd")},500);
         }
 		  }, this.defaults.worksheetView.cells.padding);
