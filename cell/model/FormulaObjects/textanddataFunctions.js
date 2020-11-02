@@ -1887,7 +1887,7 @@ function (window, undefined) {
 			}
 		}
 
-		var oFormat = CellFormat(arg1.toString(),undefined,true);
+		var oFormat = new CellFormat(arg1.toString(),undefined,true);
 		var a = g_oFormatParser.parse(arg0.toLocaleString(true) + ""), aText;
 		aText = oFormat.format(a ? a.value : arg0.toLocaleString(),
 			(arg0 instanceof cNumber || a) ? CellValueType.Number : CellValueType.String,
