@@ -288,7 +288,7 @@
 		this.buildVersion = null;
 		this.buildNumber = null;
 
-		this.buildMode = '@@BuildMode';
+		this.betaVersion = '@@Beta';
 
 		return this;
 	}
@@ -333,7 +333,7 @@
 		return this.buildNumber;
 	};
 	asc_CAscEditorPermissions.prototype.asc_getIsBeta = function () {
-		return this.buildMode === 'beta';
+		return this.betaVersion === 'true';
 	};
 
 	asc_CAscEditorPermissions.prototype.setLicenseType = function (v) {
