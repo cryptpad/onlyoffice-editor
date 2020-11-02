@@ -748,6 +748,7 @@
 	CellEditor.prototype.cleanSelectRange = function () {
 		this._cleanLastRangeInfo();
 		this.handlers.trigger("cleanSelectRange");
+		this.handlers.trigger("onSelectionEnd");
 	};
 
 	// Private
@@ -1395,7 +1396,9 @@
 				}
 			}
 		}
-
+		if (!this.isSelectMode) {
+			this.handlers.trigger("onSelectionEnd");
+		}
 		return selection;
 	};
 
@@ -2228,7 +2231,6 @@
 				t.close();
 				event.stopPropagation();
 				event.preventDefault();
-				this.handlers.trigger("onSelectionEnd");
 				return false;
 
 			case 13:  // "enter"
@@ -2279,7 +2281,6 @@
 					}
 				}
 				t._removeChars(ctrlKey ? kPrevWord : kPrevChar);
-				this.handlers.trigger("onSelectionEnd");
 				return false;
 
 			case 46:  // "del"
@@ -2293,7 +2294,6 @@
 				event.stopPropagation();
 				event.preventDefault();
 				t._removeChars(ctrlKey ? kNextWord : kNextChar);
-				this.handlers.trigger("onSelectionEnd");
 				return true;
 
 			case 37:  // "left"
@@ -2312,7 +2312,6 @@
 				}
 				kind = ctrlKey ? kPrevWord : kPrevChar;
 				event.shiftKey ? t._selectChars(kind) : t._moveCursor(kind);
-				this.handlers.trigger("onSelectionEnd");
 				return false;
 
 			case 39:  // "right"
@@ -2331,7 +2330,6 @@
 				}
 				kind = ctrlKey ? kNextWord : kNextChar;
 				event.shiftKey ? t._selectChars(kind) : t._moveCursor(kind);
-				this.handlers.trigger("onSelectionEnd");
 				return false;
 
 			case 38:  // "up"
@@ -2349,7 +2347,6 @@
 					t._syncEditors();
 				}
 				event.shiftKey ? t._selectChars(kPrevLine) : t._moveCursor(kPrevLine);
-				this.handlers.trigger("onSelectionEnd");
 				return false;
 
 			case 40:  // "down"
@@ -2367,7 +2364,6 @@
 					t._syncEditors();
 				}
 				event.shiftKey ? t._selectChars(kNextLine) : t._moveCursor(kNextLine);
-				this.handlers.trigger("onSelectionEnd");
 				return false;
 
 			case 35:  // "end"
@@ -2386,7 +2382,6 @@
 				}
 				kind = ctrlKey ? kEndOfText : kEndOfLine;
 				event.shiftKey ? t._selectChars(kind) : t._moveCursor(kind);
-				this.handlers.trigger("onSelectionEnd");
 				return false;
 
 			case 36:  // "home"
@@ -2405,7 +2400,6 @@
 				}
 				kind = ctrlKey ? kBeginOfText : kBeginOfLine;
 				event.shiftKey ? t._selectChars(kind) : t._moveCursor(kind);
-				this.handlers.trigger("onSelectionEnd");
 				return false;
 
 			case 53: // 5
@@ -2433,7 +2427,6 @@
 					}
 					t._moveCursor(kBeginOfText);
 					t._selectChars(kEndOfText);
-					this.handlers.trigger("onSelectionEnd");
 					return true;
 				}
 				break;
@@ -2508,7 +2501,6 @@
 					event.stopPropagation();
 					event.preventDefault();
 					event.which === 90 ? t.undo() : t.redo();
-					this.handlers.trigger("onSelectionEnd");
 					return false;
 				}
 				break;
@@ -2622,7 +2614,6 @@
 		if (this.callTopLineMouseup) {
 			this._topLineMouseUp();
 		}
-		this.handlers.trigger("onSelectionEnd");
 		return true;
 	};
 
@@ -2697,7 +2688,6 @@
 			this.cleanSelectRange();
 		}
 		this.isSelectMode = c_oAscCellEditorSelectState.no;
-		this.handlers.trigger("onSelectionEnd");
 		return true;
 	};
 
