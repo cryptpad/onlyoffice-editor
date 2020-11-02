@@ -3951,6 +3951,16 @@ $( function () {
 
         AscCommon.setCurrentCultureInfo(culturelciddefault);
 
+        AscCommon.setCurrentCultureInfo(1029);
+        oParser = new parserFormula( "TEXT(123,\"rr-mm-dd\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"hh:mm:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+        AscCommon.setCurrentCultureInfo(culturelciddefault);
     } );
 	test( "Test: \"TEXTJOIN\"", function () {
 
