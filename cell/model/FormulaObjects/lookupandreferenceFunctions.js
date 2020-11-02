@@ -69,7 +69,7 @@ function (window, undefined) {
 	cFormulaFunctionGroup['LookupAndReference'] = cFormulaFunctionGroup['LookupAndReference'] || [];
 	cFormulaFunctionGroup['LookupAndReference'].push(cADDRESS, cAREAS, cCHOOSE, cCOLUMN, cCOLUMNS, cFORMULATEXT,
 		cGETPIVOTDATA, cHLOOKUP, cHYPERLINK, cINDEX, cINDIRECT, cLOOKUP, cMATCH, cOFFSET, cROW, cROWS, cRTD, cTRANSPOSE,
-		cVLOOKUP);
+		cUNIQUE, cVLOOKUP);
 
 	cFormulaFunctionGroup['NotRealised'] = cFormulaFunctionGroup['NotRealised'] || [];
 	cFormulaFunctionGroup['NotRealised'].push(cAREAS, cGETPIVOTDATA, cRTD);
@@ -1798,6 +1798,158 @@ function (window, undefined) {
 		}
 
 		return TransposeMatrix(arg0);
+	};
+
+	/**
+	 * @constructor
+	 * @extends {AscCommonExcel.cBaseFunction}
+	 */
+	function cUNIQUE() {
+	}
+
+	//***array-formula***
+	cUNIQUE.prototype = Object.create(cBaseFunction.prototype);
+	cUNIQUE.prototype.constructor = cUNIQUE;
+	cUNIQUE.prototype.name = 'UNIQUE';
+	cUNIQUE.prototype.argumentsMin = 1;
+	cUNIQUE.prototype.argumentsMax = 3;
+	cUNIQUE.prototype.arrayIndexes = {0: 1};
+	cUNIQUE.prototype.argumentsType = [argType.reference, argType.logical, argType.logical];
+	cUNIQUE.prototype.isXLFN = true;
+	cUNIQUE.prototype.Calculate = function (arg) {
+
+		var _getUniqueArr = function (_arr, _byCol, _exactlyOnce) {
+			var rowCount = _arr && _arr.length;
+			var colCount = _arr && _arr[0] && _arr[0].length;
+			if (!rowCount || !colCount) {
+				return cError(cErrorType.wrong_value_type);
+			}
+
+			var res = new cArray();
+			var repeateArr = [];
+			var i, j, n, _value;
+			var resArr = [];
+
+			var _key;
+			if (!_byCol) {
+				var _rowCount = 0;
+				for (i = 0; i < rowCount; i++) {
+					_key = "";
+					for (j = 0; j < colCount; j++) {
+						_value = _arr[i][j].getValue();
+						_key += _value + ";";
+						if (j === colCount - 1) {
+							if (!repeateArr[_key]) {
+								repeateArr[_key] = {index: _rowCount, count: 1};
+								for (n = 0; n < colCount; n++) {
+									if (!resArr[_rowCount]) {
+										resArr[_rowCount] = [];
+									}
+									resArr[_rowCount].push(_arr[i][n]);
+								}
+								_rowCount++;
+							}  else {
+								repeateArr[_key].count++;
+							}
+						}
+					}
+				}
+			} else {
+				var _colCount = 0;
+				for (i = 0; i < colCount; i++) {
+					_key = "";
+					for (j = 0; j < rowCount; j++) {
+						_value = _arr[j][i].getValue();
+						_key += _value + ";";
+						if (j === rowCount - 1) {
+							if (!repeateArr[_key]) {
+								repeateArr[_key] = {index: _colCount, count: 1};
+								for (n = 0; n < rowCount; n++) {
+									if (!resArr[n]) {
+										resArr[n] = [];
+									}
+									resArr[n][_colCount] = _arr[n][i];
+								}
+								_colCount++;
+							} else {
+								repeateArr[_key].count++;
+							}
+						}
+					}
+				}
+			}
+
+			if (_exactlyOnce) {
+				var tempArr = [];
+				var _counter = 0;
+				for (i in repeateArr) {
+					var _elem = repeateArr[i];
+					if (_elem.count > 1) {
+						continue;
+					}
+					if (!_byCol) {
+						tempArr[_counter] = resArr[_elem.index];
+					} else {
+						for (j = 0; j < rowCount; j++) {
+							if (!tempArr[j]) {
+								tempArr[j] = [];
+							}
+							tempArr[j][_counter] = resArr[j][_elem.index];
+						}
+					}
+					_counter++;
+				}
+
+				resArr = tempArr;
+			}
+
+			if (!resArr.length) {
+				return new cError(cErrorType.wrong_value_type);
+			}
+
+			res.fillFromArray(resArr);
+			
+			return res;
+		};
+
+		var arg0 = arg[0];
+		if (cElementType.cellsRange === arg0.type) {
+			arg0 = arg0.getMatrix();
+		} else if(cElementType.cellsRange3D === arg0.type) {
+			arg0 = arg0.getMatrix()[0];
+		} else if(cElementType.array === arg0.type) {
+			arg0 = arg0.getMatrix();
+		} else if (cElementType.cell === arg0.type || cElementType.cell3D === arg0.type) {
+			return arg0.getValue();
+		} else if (cElementType.number === arg0.type || cElementType.string === arg0.type ||
+			cElementType.bool === arg0.type || cElementType.error === arg0.type) {
+			return arg0;
+		} else {
+			return new cError(cErrorType.not_available);
+		}
+
+		if (cElementType.error === arg0.type) {
+			return arg0;
+		}
+		if(0 === arg0.length){
+			return new cError(cErrorType.wrong_value_type);
+		}
+
+		var arg1 = !arg[1] ? false : arg[1].tocBool();
+		if (arg1 && cElementType.error === arg1.type) {
+			return arg1;
+		} else if (arg1) {
+			arg1 = arg1.toBool();
+		}
+
+		var arg2 = !arg[2] ? false : arg[2].tocBool();
+		if (arg2 && cElementType.error === arg2.type) {
+			return arg2;
+		} else if (arg2) {
+			arg2 = arg2.toBool();
+		}
+
+		return _getUniqueArr(arg0, arg1, arg2);
 	};
 
 	/**
