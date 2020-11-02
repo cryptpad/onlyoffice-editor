@@ -1887,7 +1887,7 @@ NumFormat.prototype =
         //todo fIsFitMeasurer and decrease dDigitsCount by other format tokens
         var sGeneral = DecodeGeneralFormat(number, nValType, dDigitsCount);
         if (null != sGeneral) {
-            var numFormat = oNumFormatCache.get(sGeneral,undefined,true);
+            var numFormat = oNumFormatCache.get(sGeneral);
             if (null != numFormat) {
                 res = numFormat.format(number, nValType, dDigitsCount, bChart, cultureInfo, true);
             }
@@ -2524,13 +2524,13 @@ NumFormatCache.prototype =
 	cleanCache : function(){
 		this.oNumFormats = {};
 	},
-    get : function(format, formatType,useLocaleFormat)
+    get : function(format, formatType)
     {
 		var key = format + String.fromCharCode(5) + formatType;
         var res = this.oNumFormats[key];
         if(null == res)
         {
-            res = new CellFormat(format, formatType,useLocaleFormat);
+            res = new CellFormat(format, formatType,false);
             this.oNumFormats[key] = res;
         }
         return res;
