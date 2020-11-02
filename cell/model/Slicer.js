@@ -1300,6 +1300,7 @@
 				var tableCache = this.tableSlicerCache;
 				var tableObj = wb.getTableByName(tableCache.tableId, true);
 				res = tableObj ? tableObj.index : null;
+				break;
 			}
 			case insertSlicerType.pivotTable: {
 				//slicer can connect to pivots in different worksheet or can have zero connection
