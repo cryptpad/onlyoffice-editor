@@ -748,7 +748,7 @@ NumFormat.prototype =
 		{
 			sGeneral= AscCommon.g_cGeneralFormat.toLowerCase();
 			DecimalSeparator = gc_sFormatDecimalPoint;
-			TimeSeparator = ":";
+			TimeSeparator = ':';
 			GroupSeparator = gc_sFormatThousandSeparator;
 			Year = 'Y';
 			year = 'y';
@@ -847,7 +847,7 @@ NumFormat.prototype =
 			}
 			else if((Day == next || day == next))
 			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+				this._addToFormat2(new FormatObjDateVal(numFormat_Day, 1, false));
 			}
 			else if((Hour == next || hour == next))
 			{
