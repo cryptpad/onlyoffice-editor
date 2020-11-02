@@ -708,7 +708,7 @@
 			  }, "updatedEditableFunction": function (fName) {
 				  self.handlers.trigger("asc_onFormulaInfo", fName);
 			  }, "onSelectionEnd" : function () {
-          self.handlers.trigger("asc_onSelectionEnd");
+				  self.handlers.trigger("asc_onSelectionEnd");
         }
 		  }, this.defaults.worksheetView.cells.padding);
 
