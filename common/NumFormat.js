@@ -315,6 +315,7 @@ function ParseLocalFormatSymbol(Name)
 			case("sv-FI"): {
 				LocaleFormatSymbol['Y'] = 'V';
 				LocaleFormatSymbol['y'] ='v';
+				LocaleFormatSymbol['D']='P';
 				LocaleFormatSymbol['d'] ='p';
 				LocaleFormatSymbol['H'] = 'T';
 				LocaleFormatSymbol['h'] ='t';
@@ -323,6 +324,7 @@ function ParseLocalFormatSymbol(Name)
 			case("en-FI"): {
 				LocaleFormatSymbol['Y'] = 'V';
 				LocaleFormatSymbol['y'] ='v';
+				LocaleFormatSymbol['D']='P';
 				LocaleFormatSymbol['d'] ='p';
 				LocaleFormatSymbol['H'] = 'T';
 				LocaleFormatSymbol['h'] ='t';
@@ -731,8 +733,8 @@ NumFormat.prototype =
     	{
 			sGeneral = LocaleFormatSymbol['general'].toLowerCase();
 			DecimalSeparator = g_oDefaultCultureInfo.NumberDecimalSeparator;
-			GroupSeparator = g_oDefaultCultureInfo.NumberGroupSeparator;
 			TimeSeparator = g_oDefaultCultureInfo.TimeSeparator;
+			GroupSeparator = g_oDefaultCultureInfo.NumberGroupSeparator;
 			Year = LocaleFormatSymbol['Y'];
 			year = LocaleFormatSymbol['y'];
 			Month = LocaleFormatSymbol['M'];
@@ -800,7 +802,7 @@ NumFormat.prototype =
 			{
 				this._addToFormat(numFormat_DigitSpace);
 			}
-			if(DecimalSeparator == next)
+			else if(DecimalSeparator == next)
 			{
 				this._addToFormat(numFormat_DecimalPoint);
 			}
@@ -837,23 +839,23 @@ NumFormat.prototype =
 			{
 				this._addToFormat(numFormat_TextPlaceholder);
 			}
-			else if((Year == next || year == next))
+			else if(Year == next || year == next)
 			{
 				this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
 			}
-			else if((Month == next || month == next))
+			else if(Month == next || month == next)
 			{
 				this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
 			}
-			else if((Day == next || day == next))
+			else if(Day == next || day == next)
 			{
 				this._addToFormat2(new FormatObjDateVal(numFormat_Day, 1, false));
 			}
-			else if((Hour == next || hour == next))
+			else if(Hour == next || hour == next)
 			{
 				this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
 			}
-			else if((Second == next || second == next))
+			else if(Second == next || second == next)
 			{
 				this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
 			}
@@ -878,6 +880,16 @@ NumFormat.prototype =
     _parseFormatWordDateTime : function()
     {
 
+		var Year = LocaleFormatSymbol['Y'];
+		var year = LocaleFormatSymbol['y'];
+		var Month = LocaleFormatSymbol['M'];
+		var month = LocaleFormatSymbol['m'];
+		var Day = LocaleFormatSymbol['D'];
+		var day = LocaleFormatSymbol['d'];
+		var Hour = LocaleFormatSymbol['H'];
+		var hour = LocaleFormatSymbol['h'];
+		var Second = LocaleFormatSymbol['S'];
+		var second = LocaleFormatSymbol['s'];
         while(true)
         {
             var next = this._readChar();
@@ -885,23 +897,23 @@ NumFormat.prototype =
 				break;
 			else if("\'" == next)
 				this._ReadText("\'");
-            else if(LocaleFormatSymbol['Y'] == next || LocaleFormatSymbol['y'] == next)
+            else if(Year == next || year== next)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
             }
-            else if(LocaleFormatSymbol['M'] == next || LocaleFormatSymbol['m'] == next)
+            else if(Month == next || month == next)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
             }
-            else if(LocaleFormatSymbol['D'] == next || LocaleFormatSymbol['d'] == next)
+            else if(Day == next || day == next)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Day, 1, false));
             }
-            else if(LocaleFormatSymbol['H'] == next ||  LocaleFormatSymbol['h'] == next)
+            else if(Hour == next ||  hour == next)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
             }
-            else if(LocaleFormatSymbol['S'] == next || LocaleFormatSymbol['s'] == next)
+            else if(Second == next || second == next)
             {
                 this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
             }
