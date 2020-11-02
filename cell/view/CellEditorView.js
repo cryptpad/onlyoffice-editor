@@ -1871,6 +1871,8 @@
 		if (t.isTopLineActive && !t.skipTLUpdate) {
 			t._updateTopLineCurPos();
 		}
+		var ws = this.handlers.trigger("getActiveWS");
+		ws.workbook.handlers.trigger("asc_onSelectionEnd");
 	};
 
 	CellEditor.prototype._changeSelection = function (coord) {
@@ -2183,6 +2185,7 @@
 		var xfs = new AscCommonExcel.CellXfs();
 		xfs.setFont(this.newTextFormat || this.options.fragments[f.index].format);
 		this.handlers.trigger("updateEditorSelectionInfo", xfs);
+		this.handlers.trigger("asc_onSelectionEnd");
 	};
 
 	CellEditor.prototype._checkMaxCellLength = function (length) {
@@ -2685,6 +2688,8 @@
 			this.cleanSelectRange();
 		}
 		this.isSelectMode = c_oAscCellEditorSelectState.no;
+		var ws = this.handlers.trigger("getActiveWS");
+		ws.workbook.handlers.trigger("asc_onSelectionEnd");
 		return true;
 	};
 
