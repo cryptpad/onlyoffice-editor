@@ -3905,6 +3905,10 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "00:00:00" );
 
+        oParser = new parserFormula( "TEXT(123,\"yleinen\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "General" );
+
         oParser = new parserFormula( "TEXT(123,\"\")", "A2", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "00:00:00" );
