@@ -466,6 +466,9 @@ CContentControlPr.prototype.SetToContentControl = function(oContentControl)
 
 	if (undefined !== this.CheckBoxPr)
 	{
+		if (undefined !== this.CheckBoxPr.GroupKey && undefined !== this.CheckBoxPr.Checked)
+			this.CheckBoxPr.Checked = false;
+
 		oContentControl.SetCheckBoxPr(this.CheckBoxPr);
 		oContentControl.private_UpdateCheckBoxContent();
 	}

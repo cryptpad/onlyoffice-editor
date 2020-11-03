@@ -1779,12 +1779,15 @@ CBlockLevelSdt.prototype.GetCheckBoxPr = function()
  */
 CBlockLevelSdt.prototype.ToggleCheckBox = function()
 {
-	if (!this.IsCheckBox() || (this.IsRadioButton() && true === this.Pr.CheckBox.Checked))
+	if (!this.IsCheckBox())
 		return;
 
 	var oLogicDocument = this.GetLogicDocument();
 	if (oLogicDocument || this.IsRadioButton() || this.GetFormKey())
 		oLogicDocument.OnChangeForm(this.IsRadioButton() ? this.Pr.CheckBox.GroupKey : this.GetFormKey(), this);
+
+	if (this.IsRadioButton() && true === this.Pr.CheckBox.Checked)
+		return;
 
 	this.SetCheckBoxChecked(!this.Pr.CheckBox.Checked);
 };

@@ -12784,7 +12784,7 @@ Paragraph.prototype.ReplaceMisspelledWord = function(Word, oElement)
 	if (Element.GetEnding() && Element.GetEnding() === Word.charCodeAt(Word.length - 1))
 	{
 		Word     = Word.substr(0, Word.length - 1);
-		isEnding = true;С
+		isEnding = true;
 	}
 
 	if (Element.GetPrefix() && Element.GetPrefix() === Word.charCodeAt(0))
