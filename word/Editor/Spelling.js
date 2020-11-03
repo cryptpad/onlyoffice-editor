@@ -1132,24 +1132,19 @@ ParaRun.prototype.CheckSpelling = function(oSpellCheckerEngine, nDepth)
 
 	var nStartPos = 0;
 
+	if (reviewtype_Remove === this.GetReviewType() || this.GetParentForm())
+	{
+		oSpellCheckerEngine.FlushWord();
+
+		if (reviewtype_Remove === this.GetReviewType())
+			return;
+	}
+
 	var bWord        = oSpellCheckerEngine.bWord;
 	var sWord        = oSpellCheckerEngine.sWord;
 	var CurLcid      = oSpellCheckerEngine.CurLcid;
 	var SpellChecker = oSpellCheckerEngine.SpellChecker;
 	var ContentPos   = oSpellCheckerEngine.ContentPos;
-
-	if (reviewtype_Remove === this.GetReviewType())
-	{
-		if (true === bWord)
-		{
-			SpellChecker.Add(oSpellCheckerEngine.StartPos, oSpellCheckerEngine.EndPos, sWord, CurLcid, oSpellCheckerEngine.GetPrefix(), 0);
-
-			oSpellCheckerEngine.bWord   = false;
-			oSpellCheckerEngine.sWord   = "";
-			oSpellCheckerEngine.CurLcid = CurLcid;
-		}
-		return;
-	}
 
 	var oCurTextPr = this.Get_CompiledPr(false);
 
@@ -1232,6 +1227,9 @@ ParaRun.prototype.CheckSpelling = function(oSpellCheckerEngine, nDepth)
 	oSpellCheckerEngine.bWord   = bWord;
 	oSpellCheckerEngine.sWord   = sWord;
 	oSpellCheckerEngine.CurLcid = CurLcid;
+
+	if (this.GetParentForm())
+		oSpellCheckerEngine.FlushWord();
 };
 
 ParaRun.prototype.Add_SpellCheckerElement = function(Element, Start, Depth)
@@ -1436,6 +1434,19 @@ CParagraphSpellCheckerEngine.prototype.GetPrefix = function()
 CParagraphSpellCheckerEngine.prototype.CheckPrefix = function(oItem)
 {
 	this.Prefix = oItem;
+};
+/**
+ * Данная команда останавливает сборку элемента для проверки орфографии 
+ */
+CParagraphSpellCheckerEngine.prototype.FlushWord = function()
+{
+	if (this.bWord)
+	{
+		this.SpellChecker.Add(this.StartPos, this.EndPos, this.sWord, this.CurLcid, this.GetPrefix(), 0);
+
+		this.bWord = false;
+		this.sWord = "";
+	}
 };
 
 function CParagraphSpellingMark(SpellCheckerElement, Start, Depth)
