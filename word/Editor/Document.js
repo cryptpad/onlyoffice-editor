@@ -15638,7 +15638,7 @@ CDocument.prototype.AddContentControlComboBox = function(oPr)
 	if (!oPr)
 	{
 		oPr = new CSdtComboBoxPr();
-		oPr.AddItem(AscCommon.translateManager.getValue("Choose an item."), "");
+		oPr.AddItem(AscCommon.translateManager.getValue("Choose an item"), "");
 	}
 
 	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
@@ -15660,7 +15660,7 @@ CDocument.prototype.AddContentControlDropDownList = function(oPr)
 	if (!oPr)
 	{
 		oPr = new CSdtComboBoxPr();
-		oPr.AddItem(AscCommon.translateManager.getValue("Choose an item."), "");
+		oPr.AddItem(AscCommon.translateManager.getValue("Choose an item"), "");
 	}
 
 	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
