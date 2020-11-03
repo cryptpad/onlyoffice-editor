@@ -1722,6 +1722,8 @@ CT_PivotCacheDefinition.prototype.fromDataRef = function(dataRef) {
 };
 CT_PivotCacheDefinition.prototype.asc_create = function() {
 	this.createdVersion = 4;//default value blocks label filter clear button
+	this.refreshedVersion = 4;//default value blocks adding slices
+	this.minRefreshableVersion = 3;
 };
 CT_PivotCacheDefinition.prototype.getPivotCacheId = function() {
 	return this.pivotCacheDefinitionX14 && this.pivotCacheDefinitionX14.pivotCacheId || null;
@@ -5017,6 +5019,8 @@ CT_pivotTableDefinition.prototype.asc_create = function(ws, name, cacheDefinitio
 	this.useAutoFormatting = true;
 	this.itemPrintTitles = true;
 	this.createdVersion = 4;//default value blocks label filter clear button
+	this.updatedVersion = 4;//default value blocks adding slices
+	this.minRefreshableVersion = 3;
 	this.indent = 0;
 	this.outline = true;
 	this.outlineData = true;
