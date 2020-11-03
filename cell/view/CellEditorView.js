@@ -748,6 +748,7 @@
 	CellEditor.prototype.cleanSelectRange = function () {
 		this._cleanLastRangeInfo();
 		this.handlers.trigger("cleanSelectRange");
+		this.handlers.trigger("onSelectionEnd");
 	};
 
 	// Private
@@ -1395,7 +1396,9 @@
 				}
 			}
 		}
-
+		if (!this.isSelectMode) {
+			this.handlers.trigger("onSelectionEnd");
+		}
 		return selection;
 	};
 
