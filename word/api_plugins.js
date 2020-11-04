@@ -499,10 +499,10 @@
 	 * Move cursor to specified
 	 * @memberof Api
 	 * @typeofeditors ["CDE"]
-	 * @alias SelectComment
+	 * @alias MoveToComment
 	 * @param {string} sId
 	 */
-	window["asc_docs_api"].prototype["pluginMethod_SelectComment"] = function(sId)
+	window["asc_docs_api"].prototype["pluginMethod_MoveToComment"] = function(sId)
 	{
 		this.asc_selectComment(sId);
 	};
