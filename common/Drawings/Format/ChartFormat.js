@@ -10691,7 +10691,7 @@ function CPieSeries()
             this.setExplosion(o.explosion);
         if(AscFormat.isRealNumber(o.idx))
             this.setIdx(o.idx);
-        if(o.order)
+        if(AscFormat.isRealNumber(o.order))
             this.setOrder(o.order);
         if(o.spPr){
             this.setSpPr(o.spPr);
@@ -11031,7 +11031,7 @@ function CRadarSeries()
             this.setMarker(o.marker);
         if(AscFormat.isRealNumber(o.idx))
             this.setIdx(o.idx);
-        if(o.order)
+        if(AscFormat.isRealNumber(o.order))
             this.setOrder(o.order);
         if(o.spPr)
             this.setSpPr(o.spPr);
@@ -12244,7 +12244,7 @@ CSurfaceSeries.prototype = Object.create(CSeriesBase.prototype);
             this.setCat(o.cat);
         if(AscFormat.isRealNumber(o.idx))
             this.setIdx(o.idx);
-        if(o.order)
+        if(AscFormat.isRealNumber(o.order))
             this.setOrder(o.order);
         if(o.spPr)
             this.setSpPr(o.spPr);
