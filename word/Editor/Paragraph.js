@@ -12762,6 +12762,33 @@ Paragraph.prototype.RemoveCommentMarks = function(Id)
 		}
 	}
 };
+Paragraph.prototype.MoveCursorToCommentMark = function(sId)
+{
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		var oItem = this.Content[nPos];
+		if (para_Comment === oItem.Type && sId === oItem.CommentId)
+		{
+			nPos--;
+			while (nPos >= 0)
+			{
+				if (this.Content[nPos].IsCursorPlaceable())
+				{
+					this.Content[nPos].SetThisElementCurrent();
+					this.Content[nPos].MoveCursorToEndPos();
+					return;
+				}
+
+				nPos--;
+			}
+
+			break;
+		}
+	}
+
+	this.MoveCursorToStartPos();
+	this.Document_SetThisElementCurrent(false);
+};
 Paragraph.prototype.ReplaceMisspelledWord = function(Word, oElement)
 {
 	var Element = null;

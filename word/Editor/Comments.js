@@ -629,6 +629,14 @@ CComment.prototype.IsCurrentUser = function()
 
 	return true;
 };
+CComment.prototype.MoveCursorToStart = function()
+{
+	var oStartPara = g_oTableId.Get_ById(this.StartId);
+	if (oStartPara && (oStartPara instanceof Paragraph))
+	{
+		oStartPara.MoveCursorToCommentMark(this.Id);
+	}
+};
 
 var comments_NoComment        = 0;
 var comments_NonActiveComment = 1;

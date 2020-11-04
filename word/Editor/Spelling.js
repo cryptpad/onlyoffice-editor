@@ -1436,7 +1436,7 @@ CParagraphSpellCheckerEngine.prototype.CheckPrefix = function(oItem)
 	this.Prefix = oItem;
 };
 /**
- * Данная команда останавливает сборку элемента для проверки орфографии 
+ * Данная команда останавливает сборку элемента для проверки орфографии
  */
 CParagraphSpellCheckerEngine.prototype.FlushWord = function()
 {

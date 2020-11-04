@@ -12975,30 +12975,20 @@ CDocument.prototype.CanAddComment = function()
 
 	return this.Controller.CanAddComment();
 };
-CDocument.prototype.SelectComment = function(Id, ScrollToComment)
+CDocument.prototype.SelectComment = function(sId, isScrollToComment)
 {
-	var OldId = this.Comments.Get_CurrentId();
-	this.Comments.Set_Current(Id);
+	var sOldId = this.Comments.Get_CurrentId();
+	this.Comments.Set_Current(sId);
 
-	var Comment = this.Comments.Get_ById(Id);
-	if (null != Comment)
+	var oComment = this.Comments.Get_ById(sId);
+	if (isScrollToComment && oComment)
 	{
-		var Comment_PageNum = Comment.m_oStartInfo.PageNum;
-		var Comment_Y       = Comment.m_oStartInfo.Y;
-		var Comment_X       = Comment.m_oStartInfo.X;
-
-		if (true === ScrollToComment) {
-			if (!window["NATIVE_EDITOR_ENJINE"]) {
-				this.DrawingDocument.m_oWordControl.ScrollToPosition(Comment_X, Comment_Y, Comment_PageNum);
-			} else {
-				if (window["native"]["DD_WC_ScrollToPosition"] !== undefined) {
-					window["native"]["DD_WC_ScrollToPosition"](Comment_X, Comment_Y, Comment_PageNum);
-				}
-			}
-		}
+		oComment.MoveCursorToStart();
+		this.UpdateSelection();
+		this.UpdateInterface();
 	}
 
-	if (OldId != Id)
+	if (sOldId !== sId)
 	{
 		this.DrawingDocument.ClearCachePages();
 		this.DrawingDocument.FirePaint();
