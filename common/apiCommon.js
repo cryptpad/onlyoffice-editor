@@ -172,7 +172,8 @@
 		SuccessLimit  : 7,
 		UsersCount    : 8,
 		ConnectionsOS : 9,
-		UsersCountOS  : 10
+		UsersCountOS  : 10,
+		ExpiredLimited: 11
 	};
 
 	var c_oRights = {
@@ -4779,6 +4780,7 @@
 	prot['UsersCount'] = prot.UsersCount;
 	prot['ConnectionsOS'] = prot.ConnectionsOS;
 	prot['UsersCountOS'] = prot.UsersCountOS;
+	prot['ExpiredLimited'] = prot.ExpiredLimited;
 
 	window['Asc']['c_oRights'] = window['Asc'].c_oRights = c_oRights;
 	prot = c_oRights;
