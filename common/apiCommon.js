@@ -186,7 +186,8 @@
 	var c_oLicenseMode = {
 		None: 0,
 		Trial: 1,
-		Developer: 2
+		Developer: 2,
+		Limited: 4
 	};
 
 	var EPluginDataType = {
@@ -4792,6 +4793,7 @@
 	prot['None'] = prot.None;
 	prot['Trial'] = prot.Trial;
 	prot['Developer'] = prot.Developer;
+	prot['Limited'] = prot.Limited;
 
 	window["Asc"]["EPluginDataType"] = window["Asc"].EPluginDataType = EPluginDataType;
 	prot         = EPluginDataType;
