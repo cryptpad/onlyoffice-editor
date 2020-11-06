@@ -740,9 +740,6 @@ NumFormat.prototype =
 		var minute
 		var Second;
 		var second;
-		var ScientificE="E";
-		var Scientifice ="e";
-		var Scientific0 ="0";
 		if(useLocaleFormat)
     	{
 			sGeneral = LocaleFormatSymbol['general'].toLowerCase();
@@ -782,11 +779,11 @@ NumFormat.prototype =
 			second = 's';
 		}
 		var sGeneralFirst = sGeneral[0];
-        this.bGeneralChart = true;
-        while(true)
-        {
+		this.bGeneralChart = true;
+		while(true)
+		{
 			var next = this._readChar();
-            var bNoFormat = false;
+			var bNoFormat = false;
 			if(this.EOF == next)
 				break;
 			else if("[" == next)
@@ -828,11 +825,11 @@ NumFormat.prototype =
 			{
 				this._addToFormat2(new FormatObjDecimalFrac([], []));
 			}
-			else if (GroupSeparator == next)
+			else if(GroupSeparator == next)
 			{
-				this._addToFormat(numFormat_Thousand);
+				this._addToFormat(numFormat_Thousand, 1);
 			}
-			else if("E" == next ||"e" == next)
+			else if("E" == next || "e" == next)
 			{
 				var nextnext = this._readChar();
 				if(this.EOF != nextnext && "+" == nextnext || "-" == nextnext)
@@ -894,47 +891,9 @@ NumFormat.prototype =
 					this._addToFormat(numFormat_Text, next);
 				}
 			}
-            if (!bNoFormat)
-                this.bGeneralChart = false;
-        }
-        return true;
-    },
-    _parseFormatWordDateTime : function()
-    {
-        while(true)
-        {
-            var next = this._readChar();
-			if(this.EOF == next)
-				break;
-			else if("\'" == next)
-				this._ReadText("\'");
-            else if("Y" == next || "y"== next)
-            {
-                this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
-            }
-            else if("M" == next || "m" == next)
-            {
-                this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
-            }
-            else if("D" == next || "d" == next)
-            {
-                this._addToFormat2(new FormatObjDateVal(numFormat_Day, 1, false));
-            }
-            else if("H" == next ||  "h" == next)
-            {
-                this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
-            }
-            else if("S" == next || "s" == next)
-            {
-                this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
-            }
-			else if ("A" == next || "a" == next) {
-				this._ReadAmPm(next);
-			}
-			else {
-					this._addToFormat(numFormat_Text, next);
-			}
-        }
+			if (!bNoFormat)
+				this.bGeneralChart = false;
+		}
         return true;
     },
 	_parseFormatWordNumeric : function(digitSpaceSymbol)
