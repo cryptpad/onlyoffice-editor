@@ -15635,7 +15635,7 @@ CChartSpace.prototype.addSeries = function(sName, sValues) {
         else {
             //Find a gap between series indexes
             var oCurSeries, oNextSeries;
-            for(nSeries = 0; nSeries < aAllSeries.length - 1; ++i) {
+            for(nSeries = 0; nSeries < aAllSeries.length - 1; ++nSeries) {
                 oCurSeries = aAllSeries[nSeries];
                 oNextSeries = aAllSeries[nSeries + 1];
                 if(oNextSeries.idx - oCurSeries.idx > 1) {
