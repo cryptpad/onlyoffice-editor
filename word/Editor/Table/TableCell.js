@@ -64,17 +64,17 @@ function CTableCell(Row, ColW)
 
     // Массивы с рассчитанными стилями для границ данной ячейки.
     // В каждом элементе лежит массив стилей.
-    this.BorderInfo =
-    {
-        Top    : null,
-        Left   : null,
-        Right  : null,
-        Bottom : null,            // Используется для последней строки таблицы,
-        Bottom_BeforeCount : -1,  // когда Spacing = null(у последней строки) или когда в следущей строке
-        Bottom_AfterCount  : -1,  // GridBefore и/или GridAfter отлично от 0.
-        MaxLeft  : 0,
-        MaxRight : 0
-    };
+    this.BorderInfo = {
+		Top                : null,
+		Left               : null,
+		Right              : null,
+		Bottom             : null,  // Используется для последней строки таблицы,
+		TopHeader          : null,  // Используется для первой строки таблицы с заголовком на странице
+		Bottom_BeforeCount : -1,    // когда Spacing = null(у последней строки) или когда в следущей строке
+		Bottom_AfterCount  : -1,    // GridBefore и/или GridAfter отлично от 0.
+		MaxLeft            : 0,
+		MaxRight           : 0
+	};
 
     // Метрики данной ячейки(они все относительные, а не абсолютные). Абсолютные хранятся в строке
     this.Metrics =
@@ -1807,10 +1807,15 @@ CTableCell.prototype =
 		}
 	},
 
-    Set_BorderInfo_Top : function( TopInfo )
-    {
-        this.BorderInfo.Top = TopInfo;
-    },
+	SetBorderInfoTop : function(oTopInfo)
+	{
+		this.BorderInfo.Top = oTopInfo;
+	},
+
+	SetBorderInfoTopHeader : function(oTopInfo)
+	{
+		this.BorderInfo.TopHeader = oTopInfo;
+	},
 
     Set_BorderInfo_Bottom : function(BottomInfo, BeforeCount, AfterCount)
     {
@@ -1831,7 +1836,7 @@ CTableCell.prototype =
         this.BorderInfo.MaxRight = Max;
     },
 
-    Get_BorderInfo : function()
+	GetBorderInfo : function()
     {
         return this.BorderInfo;
     },

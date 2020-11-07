@@ -162,7 +162,7 @@ CTable.prototype.StartFromNewPage = function()
 	}
 };
 //----------------------------------------------------------------------------------------------------------------------
-// Приватные функции связанные с рассчетом таблицы.
+// Приватные функции связанные с расчетом таблицы
 //----------------------------------------------------------------------------------------------------------------------
 CTable.prototype.private_RecalculateCheckPageColumnBreak = function(CurPage)
 {
@@ -1086,6 +1086,9 @@ CTable.prototype.private_RecalculateBorders = function()
     var TablePr = this.Get_CompiledPr(false).TablePr;
     var TableBorders = this.Get_Borders();
 
+    var nRowsCountInHeader = this.GetRowsCountInHeader();
+    var oHeaderLastRow     = nRowsCountInHeader ? this.GetRow(nRowsCountInHeader - 1) : null;
+
     for ( var CurRow = 0; CurRow < this.Content.length; CurRow++ )
     {
         var Row         = this.Content[CurRow];
@@ -1150,14 +1153,15 @@ CTable.prototype.private_RecalculateBorders = function()
                 if ( border_Single === CellBorders.Top.Value && MaxTopBorder[CurRow] < CellBorders.Top.Size )
                     MaxTopBorder[CurRow] = CellBorders.Top.Size;
 
-                Cell.Set_BorderInfo_Top( [ CellBorders.Top ] );
+				Cell.SetBorderInfoTop([CellBorders.Top]);
+				Cell.SetBorderInfoTopHeader([CellBorders.Top]);
             }
             else
             {
                 if ( 0 === CurRow )
                 {
                     // Сравним границы
-                    var Result_Border = this.Internal_CompareBorders( TableBorders.Top, CellBorders.Top, true, false );
+                    var Result_Border = this.private_ResolveBordersConflict( TableBorders.Top, CellBorders.Top, true, false );
                     if ( border_Single === Result_Border.Value && MaxTopBorder[CurRow] < Result_Border.Size )
                         MaxTopBorder[CurRow] = Result_Border.Size;
 
@@ -1165,108 +1169,19 @@ CTable.prototype.private_RecalculateBorders = function()
                     for ( var TempIndex = 0; TempIndex < GridSpan; TempIndex++ )
                         BorderInfo_Top.push( Result_Border );
 
-                    Cell.Set_BorderInfo_Top( BorderInfo_Top );
+					Cell.SetBorderInfoTop(BorderInfo_Top);
+					Cell.SetBorderInfoTopHeader(BorderInfo_Top);
                 }
                 else
                 {
-                    // Ищем в предыдущей строке первую ячейку, пересекающуюся с [CurGridCol, CurGridCol + GridSpan]
-                    var Prev_Row = this.Content[CurRow - 1];
-                    var Prev_CellsCount = Prev_Row.Get_CellsCount();
-                    var Prev_BeforeInfo = Prev_Row.Get_Before();
-                    var Prev_AfterInfo  = Prev_Row.Get_After();
+					var oCellTopInfo       = this.private_RecalculateCellTopBorder(this.GetRow(CurRow - 1), CurRow, CurGridCol, GridSpan, TableBorders, CellBorders);
+					var oCellTopHeaderInfo = oHeaderLastRow ? this.private_RecalculateCellTopBorder(oHeaderLastRow, CurRow, CurGridCol, GridSpan, TableBorders, CellBorders) : oCellTopInfo;
 
-                    var Prev_Pos = -1;
+					if (MaxTopBorder[CurRow] < oCellTopInfo.Max)
+						MaxTopBorder[CurRow] = oCellTopInfo.Max;
 
-                    var Prev_GridCol = Prev_BeforeInfo.GridBefore;
-                    for ( var PrevCell = 0; PrevCell < Prev_CellsCount; PrevCell++ )
-                    {
-                        var Prev_Cell      = Prev_Row.Get_Cell( PrevCell );
-                        var Prev_GridSpan  = Prev_Cell.Get_GridSpan();
-
-                        if ( Prev_GridCol <= CurGridCol + GridSpan - 1 && Prev_GridCol + Prev_GridSpan - 1 >= CurGridCol )
-                        {
-                            Prev_Pos = PrevCell;
-                            break;
-                        }
-
-                        Prev_GridCol += Prev_GridSpan;
-                    }
-
-                    var Border_Top_Info = [];
-
-                    // Сначала посмотрим пересечение с GridBefore предыдущей строки
-                    if ( CurGridCol <= Prev_BeforeInfo.GridBefore - 1 )
-                    {
-                        var Result_Border = this.Internal_CompareBorders( TableBorders.Left, CellBorders.Top, true, false );
-                        if ( border_Single === Result_Border.Value && MaxTopBorder[CurRow] < Result_Border.Size )
-                            MaxTopBorder[CurRow] = Result_Border.Size;
-
-                        var AddCount = Math.min( Prev_BeforeInfo.GridBefore - CurGridCol, GridSpan );
-                        for ( var TempIndex = 0; TempIndex < AddCount; TempIndex++ )
-                            Border_Top_Info.push( Result_Border );
-                    }
-
-                    if ( -1 != Prev_Pos )
-                    {
-                        while ( Prev_GridCol <= CurGridCol + GridSpan - 1 && Prev_Pos < Prev_CellsCount )
-                        {
-                            var Prev_Cell      = Prev_Row.Get_Cell( Prev_Pos );
-                            var Prev_GridSpan  = Prev_Cell.Get_GridSpan();
-
-                            // Если данная ячейка учавствует в вертикальном объединении,
-                            // тогда найдем нижнюю ячейку.
-
-                            var Prev_VMerge = Prev_Cell.GetVMerge();
-                            if ( vmerge_Continue === Prev_VMerge )
-                                Prev_Cell = this.Internal_Get_EndMergedCell(CurRow - 1, Prev_GridCol, Prev_GridSpan);
-
-                            var PrevBorders = Prev_Cell.Get_Borders();
-
-                            // Сравним границы
-                            var Result_Border = this.Internal_CompareBorders( PrevBorders.Bottom, CellBorders.Top, false, false );
-                            if ( border_Single === Result_Border.Value && MaxTopBorder[CurRow] < Result_Border.Size )
-                                MaxTopBorder[CurRow] = Result_Border.Size;
-
-                            // Надо добавить столько раз, сколько колонок находится в пересечении этих двух ячееки
-                            var AddCount = 0;
-                            if ( Prev_GridCol >= CurGridCol )
-                            {
-                                if ( Prev_GridCol + Prev_GridSpan - 1 > CurGridCol + GridSpan - 1 )
-                                    AddCount = CurGridCol + GridSpan - Prev_GridCol;
-                                else
-                                    AddCount = Prev_GridSpan;
-                            }
-                            else if ( Prev_GridCol + Prev_GridSpan - 1 > CurGridCol + GridSpan - 1 )
-                                AddCount = GridSpan;
-                            else
-                                AddCount = Prev_GridCol + Prev_GridSpan - CurGridCol;
-
-                            for ( var TempIndex = 0; TempIndex < AddCount; TempIndex++ )
-                                Border_Top_Info.push( Result_Border );
-
-                            Prev_Pos++;
-                            Prev_GridCol += Prev_GridSpan;
-                        }
-                    }
-
-                    // Посмотрим пересечение с GridAfter предыдущей строки
-                    if ( Prev_AfterInfo.GridAfter > 0 )
-                    {
-                        var StartAfterGrid = Prev_Row.Get_CellInfo( Prev_CellsCount - 1 ).StartGridCol + Prev_Row.Get_Cell( Prev_CellsCount - 1 ).Get_GridSpan();
-
-                        if ( CurGridCol + GridSpan - 1 >= StartAfterGrid )
-                        {
-                            var Result_Border = this.Internal_CompareBorders( TableBorders.Right, CellBorders.Top, true, false );
-                            if ( border_Single === Result_Border.Value && MaxTopBorder[CurRow] < Result_Border.Size )
-                                MaxTopBorder[CurRow] = Result_Border.Size;
-
-                            var AddCount = Math.min( CurGridCol + GridSpan - StartAfterGrid, GridSpan );
-                            for ( var TempIndex = 0; TempIndex < AddCount; TempIndex++ )
-                                Border_Top_Info.push( Result_Border );
-                        }
-                    }
-
-                    Cell.Set_BorderInfo_Top( Border_Top_Info );
+                    Cell.SetBorderInfoTop(oCellTopInfo.Info);
+                    Cell.SetBorderInfoTopHeader(oCellTopHeaderInfo.Info);
                 }
             }
 
@@ -1291,7 +1206,7 @@ CTable.prototype.private_RecalculateBorders = function()
                 if ( this.Content.length - 1 === CurRow + VMergeCount - 1 )
                 {
                     // Сравним границы
-                    var Result_Border = this.Internal_CompareBorders( TableBorders.Bottom, CellBordersBottom, true, false );
+                    var Result_Border = this.private_ResolveBordersConflict( TableBorders.Bottom, CellBordersBottom, true, false );
 
                     if ( border_Single === Result_Border.Value && Result_Border.Size > MaxBotBorder[CurRow + VMergeCount - 1] )
                         MaxBotBorder[CurRow + VMergeCount - 1] = Result_Border.Size;
@@ -1323,7 +1238,7 @@ CTable.prototype.private_RecalculateBorders = function()
                     var BeforeCount = 0;
                     if ( CurGridCol <= Next_BeforeInfo.GridBefore - 1 )
                     {
-                        var Result_Border = this.Internal_CompareBorders( TableBorders.Left, CellBordersBottom, true, false );
+                        var Result_Border = this.private_ResolveBordersConflict( TableBorders.Left, CellBordersBottom, true, false );
                         BeforeCount = Math.min( Next_BeforeInfo.GridBefore - CurGridCol, GridSpan );
 
                         for ( var TempIndex = 0; TempIndex < BeforeCount; TempIndex++ )
@@ -1346,7 +1261,7 @@ CTable.prototype.private_RecalculateBorders = function()
 
                         if ( CurGridCol + GridSpan - 1 >= StartAfterGrid )
                         {
-                            var Result_Border = this.Internal_CompareBorders( TableBorders.Right, CellBordersBottom, true, false );
+                            var Result_Border = this.private_ResolveBordersConflict( TableBorders.Right, CellBordersBottom, true, false );
                             AfterCount = Math.min( CurGridCol + GridSpan - StartAfterGrid, GridSpan );
                             for ( var TempIndex = 0; TempIndex < AfterCount; TempIndex++ )
                                 Border_Bottom_Info.push( Result_Border );
@@ -1501,7 +1416,7 @@ CTable.prototype.private_RecalculateBorders = function()
 						// Обработка левой границы
 						if (0 === nTempCurCell)
 						{
-							var oLeftBorder = this.Internal_CompareBorders(TableBorders.Left, oTempCellBorders.Left, true, false);
+							var oLeftBorder = this.private_ResolveBordersConflict(TableBorders.Left, oTempCellBorders.Left, true, false);
 							if (border_Single === oLeftBorder.Value && oLeftBorder.Size > Max_l_w)
 								Max_l_w = oLeftBorder.Size;
 
@@ -1509,7 +1424,7 @@ CTable.prototype.private_RecalculateBorders = function()
 						}
 						else
 						{
-							var oLeftBorder = this.Internal_CompareBorders(oTempRow.GetCell(nTempCurCell - 1).GetBorders().Right, oTempCellBorders.Left, false, false);
+							var oLeftBorder = this.private_ResolveBordersConflict(oTempRow.GetCell(nTempCurCell - 1).GetBorders().Right, oTempCellBorders.Left, false, false);
 							if (border_Single === oLeftBorder.Value && oLeftBorder.Size > Max_l_w)
 								Max_l_w = oLeftBorder.Size;
 
@@ -1519,7 +1434,7 @@ CTable.prototype.private_RecalculateBorders = function()
 						// Обработка правой границы
 						if (oTempRow.GetCellsCount() - 1 === nTempCurCell)
 						{
-							var oRightBorder = this.Internal_CompareBorders(TableBorders.Right, oTempCellBorders.Right, true, false);
+							var oRightBorder = this.private_ResolveBordersConflict(TableBorders.Right, oTempCellBorders.Right, true, false);
 							if (border_Single === oRightBorder.Value && oRightBorder.Size > Max_r_w)
 								Max_r_w = oRightBorder.Size;
 
@@ -1527,7 +1442,7 @@ CTable.prototype.private_RecalculateBorders = function()
 						}
 						else
 						{
-							var oRightBorder = this.Internal_CompareBorders(oTempRow.GetCell(nTempCurCell + 1).GetBorders().Left, oTempCellBorders.Right, false, false);
+							var oRightBorder = this.private_ResolveBordersConflict(oTempRow.GetCell(nTempCurCell + 1).GetBorders().Left, oTempCellBorders.Right, false, false);
 							if (border_Single === oRightBorder.Value && oRightBorder.Size > Max_r_w)
 								Max_r_w = oRightBorder.Size;
 
@@ -1563,7 +1478,7 @@ CTable.prototype.private_RecalculateBorders = function()
                 }
                 else
                 {
-                    var BorderInfo = Cell.Get_BorderInfo();
+                    var BorderInfo = Cell.GetBorderInfo();
                     Row_x_min = X_grid_start - BorderInfo.MaxLeft / 2;
                 }
             }
@@ -1578,7 +1493,7 @@ CTable.prototype.private_RecalculateBorders = function()
                 }
                 else
                 {
-                    var BorderInfo = Cell.Get_BorderInfo();
+                    var BorderInfo = Cell.GetBorderInfo();
                     Row_x_max = X_grid_end + BorderInfo.MaxRight / 2;
                 }
             }
@@ -1592,6 +1507,112 @@ CTable.prototype.private_RecalculateBorders = function()
     }
 
     this.RecalcInfo.TableBorders = false;
+};
+CTable.prototype.private_RecalculateCellTopBorder = function(oPrevRow, nCurRow, nCurGridCol, nGridSpan, oTableBorders, oCellBorders)
+{
+	// Ищем в предыдущей строке первую ячейку, пересекающуюся с [nCurGridCol, nCurGridCol + nGridSpan]
+
+	var nPrevCellsCount = oPrevRow.GetCellsCount();
+	var oPrevBefore     = oPrevRow.GetBefore();
+	var oPrevAfter      = oPrevRow.GetAfter();
+
+	var nPrevPos = -1;
+
+	var nPrevGridCol = oPrevBefore.Grid;
+	for (var nPrevCell = 0; nPrevCell < nPrevCellsCount; ++nPrevCell)
+	{
+		var oPrevCell     = oPrevRow.GetCell(nPrevCell);
+		var nPrevGridSpan = oPrevCell.GetGridSpan();
+
+		if (nPrevGridCol <= nCurGridCol + nGridSpan - 1 && nPrevGridCol + nPrevGridSpan - 1 >= nCurGridCol)
+		{
+			nPrevPos = nPrevCell;
+			break;
+		}
+
+		nPrevGridCol += nPrevGridSpan;
+	}
+
+	var arrBorderTopInfo = [];
+	var nMaxTopBorder    = 0;
+
+	// Сначала посмотрим пересечение с Before.Grid предыдущей строки
+	if (nCurGridCol <= oPrevBefore.Grid - 1)
+	{
+		var oBorder  = this.private_ResolveBordersConflict(oTableBorders.Left, oCellBorders.Top, true, false);
+		var nBorderW = oBorder.GetWidth();
+		if (nMaxTopBorder < nBorderW)
+			nMaxTopBorder = nBorderW;
+
+		for (var nCurGrid = 0, nGridCount = Math.min(oPrevBefore.Grid - nCurGridCol, nGridSpan); nCurGrid < nGridCount; ++nCurGrid)
+			arrBorderTopInfo.push(oBorder);
+	}
+
+	if (-1 !== nPrevPos)
+	{
+		while (nPrevGridCol <= nCurGridCol + nGridSpan - 1 && nPrevPos < nPrevCellsCount)
+		{
+			var oPrevCell     = oPrevRow.GetCell(nPrevPos);
+			var nPrevGridSpan = oPrevCell.GetGridSpan();
+
+			// Если данная ячейка учавствует в вертикальном объединении,
+			// тогда нам нужно использовать нижнюю ячейку
+			if (vmerge_Continue === oPrevCell.GetVMerge())
+				oPrevCell = this.Internal_Get_EndMergedCell(nCurRow - 1, nPrevGridCol, nPrevGridSpan);
+
+			var oPrevBottom = oPrevCell.GetBorders().Bottom;
+
+			var oBorder  = this.private_ResolveBordersConflict(oPrevBottom, oCellBorders.Top, false, false);
+			var nBorderW = oBorder.GetWidth();
+			if (nMaxTopBorder < nBorderW)
+				nMaxTopBorder = nBorderW;
+
+			// Надо добавить столько раз, сколько колонок находится в пересечении этих двух ячееки
+			var nGridCount = 0;
+			if (nPrevGridCol >= nCurGridCol)
+			{
+				if (nPrevGridCol + nPrevGridSpan - 1 > nCurGridCol + nGridSpan - 1)
+					nGridCount = nCurGridCol + nGridSpan - nPrevGridCol;
+				else
+					nGridCount = nPrevGridSpan;
+			}
+			else if (nPrevGridCol + nPrevGridSpan - 1 > nCurGridCol + nGridSpan - 1)
+			{
+				nGridCount = nGridSpan;
+			}
+			else
+			{
+				nGridCount = nPrevGridCol + nPrevGridSpan - nCurGridCol;
+			}
+
+			for (var nCurGrid = 0; nCurGrid < nGridCount; ++nCurGrid)
+				arrBorderTopInfo.push(oBorder);
+
+			nPrevPos++;
+			nPrevGridCol += nPrevGridSpan;
+		}
+	}
+
+	// Посмотрим пересечение с GridAfter предыдущей строки
+	if (oPrevAfter.Grid > 0)
+	{
+		var nStartAfterGrid = oPrevRow.GetCellInfo(nPrevCellsCount - 1).StartGridCol + oPrevRow.GetCell(nPrevCellsCount - 1).GetGridSpan();
+		if (nCurGridCol + nGridSpan - 1 >= nStartAfterGrid)
+		{
+			var oBorder  = this.private_ResolveBordersConflict(oTableBorders.Right, oCellBorders.Top, true, false);
+			var nBorderW = oBorder.GetWidth();
+			if (nMaxTopBorder < nBorderW)
+				nMaxTopBorder = nBorderW;
+
+			for (var nCurGrid = 0, nGridCount = Math.min(nCurGridCol + nGridSpan - nStartAfterGrid, nGridSpan); nCurGrid < nGridCount; ++nCurGrid)
+				arrBorderTopInfo.push(oBorder);
+		}
+	}
+
+	return {
+		Info : arrBorderTopInfo,
+		Max  : nMaxTopBorder
+	};
 };
 CTable.prototype.private_RecalculateHeader = function()
 {
@@ -1838,6 +1859,8 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
     var TableHeight = 0;
 
     var TableBorders = this.Get_Borders();
+
+    var nHeaderMaxTopBorder = -1;
 
     var X_max = -1;
     var X_min = -1;
@@ -2262,6 +2285,8 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
             }
         }
 
+        nHeaderMaxTopBorder = this.private_GetMaxTopBorderWidth(FirstRow, true);
+
 		this.LogicDocument.RecalcTableHeader = false;
     }
     else
@@ -2313,9 +2338,13 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
         var AfterInfo   = Row.Get_After();
         var CurGridCol  = BeforeInfo.GridBefore;
 
+        var nMaxTopBorder = MaxTopBorder[CurRow];
+        if (CurRow === FirstRow && nHeaderMaxTopBorder > 0)
+        	nMaxTopBorder = nHeaderMaxTopBorder;
+
         // Добавляем ширину верхней границы у текущей строки
-        Y           += MaxTopBorder[CurRow];
-        TableHeight += MaxTopBorder[CurRow];
+        Y           += nMaxTopBorder;
+        TableHeight += nMaxTopBorder;
 
         // Если таблица с расстоянием между ячейками, тогда добавляем его
         if (FirstRow === CurRow)
@@ -2392,7 +2421,7 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
 
 		// Для строк с точной высотой строк значение высоты считается вместе с шириной верхней границы
 		if (Asc.linerule_Exact === RowH.HRule)
-			RowHValue -= MaxTopBorder[CurRow];
+			RowHValue -= nMaxTopBorder;
 
 		if (oFootnotes && (Asc.linerule_AtLeast === RowH.HRule || Asc.linerule_Exact == RowH.HRule))
 		{
@@ -2837,7 +2866,7 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
         // в одной из следйющих строк может оказаться ячейка с вертикальным объединением,
         // захватывающим данную строку. Значит, ее содержимое может изменить высоту нашей строки.
         var TempY            = Y;
-        var TempMaxTopBorder = MaxTopBorder[CurRow];
+        var TempMaxTopBorder = nMaxTopBorder;
 
         if ( null != CellSpacing )
         {
@@ -3098,7 +3127,7 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
                     if (vmerge_Continue === Cell.GetVMerge())
                         Cell = this.Internal_Get_StartMergedCell(CurRow, Row.Get_CellInfo(CurCell).StartGridCol, Cell.Get_GridSpan());
 
-                    var Border_Info = Cell.Get_BorderInfo().Bottom;
+                    var Border_Info = Cell.GetBorderInfo().Bottom;
 
                     for (var BorderId = 0; BorderId < Border_Info.length; BorderId++)
                     {
@@ -3149,7 +3178,7 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
                         var Border = Cell.Get_Borders().Bottom;
 
                         // Сравним границы
-                        var Result_Border = this.Internal_CompareBorders(Border, TableBorders.Bottom, false, true);
+                        var Result_Border = this.private_ResolveBordersConflict(Border, TableBorders.Bottom, false, true);
                         if (border_Single === Result_Border.Value && MaxBotBorder < Result_Border.Size)
                             MaxBotBorder = Result_Border.Size;
 
@@ -3281,6 +3310,26 @@ CTable.prototype.private_RecalculateGridCols = function()
 			nCurGridCol += oCell.Get_GridSpan();
 		}
 	}
+};
+CTable.prototype.private_GetMaxTopBorderWidth = function(nCurRow, isHeader)
+{
+	var nMax = 0;
+
+	var oRow = this.GetRow(nCurRow);
+	for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
+	{
+		var oCell = oRow.GetCell(nCurCell);
+		var arrBorderInfo = isHeader ? oCell.GetBorderInfo().TopHeader : oCell.GetBorderInfo().Top;
+
+		for (var nInfoIndex = 0, nInfosCount = arrBorderInfo.length; nInfoIndex < nInfosCount; ++nInfoIndex)
+		{
+			var nBorderW = arrBorderInfo[nInfoIndex].GetWidth();
+			if (nMax < nBorderW)
+				nMax = nBorderW;
+		}
+	}
+
+	return nMax;
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Класс CTablePage

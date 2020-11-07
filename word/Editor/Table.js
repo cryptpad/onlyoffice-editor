@@ -2427,32 +2427,7 @@ CTable.prototype.Get_PageContentStartPos = function(CurPage, RowIndex, CellIndex
 
 	// Далее вычислим маскимальную ширину верхней границы всех ячеек в данной
 	// строке, учитывая ячейки, учавствующие в вертикальном объединении.
-
-	var MaxTopBorder = 0;
-	var CellsCount   = Row.Get_CellsCount();
-	var TableBorders = this.Get_Borders();
-	for (var CurCell = 0; CurCell < CellsCount; CurCell++)
-	{
-		var Cell   = Row.Get_Cell(CurCell);
-		var VMerge = Cell.GetVMerge();
-
-		if (vmerge_Continue === VMerge)
-			Cell = this.Internal_Get_StartMergedCell(RowIndex, Row.Get_CellInfo(CurCell).StartGridCol, Cell.Get_GridSpan());
-
-		var BorderInfo_Top = Cell.Get_BorderInfo().Top;
-		if (null === BorderInfo_Top)
-			continue;
-
-		for (var Index = 0; Index < BorderInfo_Top.length; Index++)
-		{
-			var CurBorder = BorderInfo_Top[Index];
-
-			var ResultBorder = this.Internal_CompareBorders(CurBorder, TableBorders.Top, false, true);
-
-			if (border_Single === ResultBorder.Value && MaxTopBorder < ResultBorder.Size)
-				MaxTopBorder = ResultBorder.Size;
-		}
-	}
+	var MaxTopBorder = this.private_GetMaxTopBorderWidth(RowIndex, bHeader);
 
 	Pos.X = this.Pages[CurPage].X;
 
@@ -2491,7 +2466,7 @@ CTable.prototype.Get_MaxTopBorder = function(RowIndex)
 		if (vmerge_Continue === VMerge)
 			Cell = this.Internal_Get_StartMergedCell(RowIndex, Row.Get_CellInfo(CurCell).StartGridCol, Cell.Get_GridSpan());
 
-		var BorderInfo_Top = Cell.Get_BorderInfo().Top;
+		var BorderInfo_Top = Cell.GetBorderInfo().Top;
 		if (null === BorderInfo_Top)
 			continue;
 
@@ -2499,7 +2474,7 @@ CTable.prototype.Get_MaxTopBorder = function(RowIndex)
 		{
 			var CurBorder = BorderInfo_Top[Index];
 
-			var ResultBorder = this.Internal_CompareBorders(CurBorder, TableBorders.Top, false, true);
+			var ResultBorder = this.private_ResolveBordersConflict(CurBorder, TableBorders.Top, false, true);
 
 			if (border_Single === ResultBorder.Value && MaxTopBorder < ResultBorder.Size)
 				MaxTopBorder = ResultBorder.Size;
@@ -2544,7 +2519,7 @@ CTable.prototype.GetTableOffsetCorrection = function()
 	{
 		var TableBorder_Left = this.Get_Borders().Left;
 		var CellBorder_Left  = Cell.Get_Borders().Left;
-		var Result_Border    = this.Internal_CompareBorders(TableBorder_Left, CellBorder_Left, true, false);
+		var Result_Border    = this.private_ResolveBordersConflict(TableBorder_Left, CellBorder_Left, true, false);
 
 		if (border_None != Result_Border.Value)
 			X += Math.max(Result_Border.Size / 2, Margins.Left.W);
@@ -2586,7 +2561,7 @@ CTable.prototype.GetRightTableOffsetCorrection = function()
 	{
 		var TableBorder_Right = this.Get_Borders().Right;
 		var CellBorder_Right  = Cell.Get_Borders().Right;
-		var Result_Border     = this.Internal_CompareBorders(TableBorder_Right, CellBorder_Right, true, false);
+		var Result_Border     = this.private_ResolveBordersConflict(TableBorder_Right, CellBorder_Right, true, false);
 
 		if (border_None != Result_Border.Value)
 			X += Math.max(Result_Border.Size / 2, Margins.Right.W);
@@ -14782,71 +14757,72 @@ CTable.prototype.Internal_UpdateCellW = function(Col)
 	}
 };
 /**
- * Сравниваем границы двух соседних ячеек.
- * @param Border1
- * @param Border2
- * @param bTableBorder1 - является ли граница границей всей таблицы
- * @param bTableBorder2 - является ли граница границей всей таблицы
+ * Получаем какую из двух заданных конфликтующих границ использовать
+ * @param oBorder1 {CDocumentBorder}
+ * @param oBorder2 {CDocumentBorder}
+ * @param [isTableBorder1=false] {boolean} является ли граница границей всей таблицы
+ * @param [isTableBorder2=false] {boolean} является ли граница границей всей таблицы
+ * @returns {CDocumentBorder}
  */
-CTable.prototype.Internal_CompareBorders = function(Border1, Border2, bTableBorder1, bTableBorder2)
+CTable.prototype.private_ResolveBordersConflict = function(oBorder1, oBorder2, isTableBorder1, isTableBorder2)
 {
-	if ("undefined" === typeof(bTableBorder1))
-		bTableBorder1 = false;
+	if (undefined === isTableBorder1)
+		isTableBorder1 = false;
 
-	if ("undefined" === typeof(bTableBorder2))
-		bTableBorder2 = false;
+	if (undefined === isTableBorder2)
+		isTableBorder2 = false;
 
 	// Граница ячейки всегда побеждает границу таблицы, если первая задана
-	if (true === bTableBorder1)
-		return Border2;
+	if (isTableBorder1)
+		return oBorder2;
 
-	if (true === bTableBorder2)
-		return Border1;
+	if (isTableBorder2)
+		return oBorder1;
 
 	// Всегда побеждает непустая граница
-	if (border_None === Border1.Value)
-		return Border2;
+	if (oBorder1.IsNone())
+		return oBorder2;
 
-	if (border_None === Border2.Value)
-		return Border1;
+	if (oBorder2.IsNone())
+		return oBorder1;
 
 	// TODO: Как только мы реализуем рисование не только простых границ,
 	//       сделать здесь обработку. W_b = Border.Size * Border_Num,
 	//       где Border_Num зависит от Border.Value
 
-	var W_b_1 = Border1.Size;
-	var W_b_2 = Border2.Size;
+	var W_b_1 = oBorder1.Size;
+	var W_b_2 = oBorder2.Size;
 	if (W_b_1 > W_b_2)
-		return Border1;
+		return oBorder1;
 	else if (W_b_2 > W_b_1)
-		return Border2;
+		return oBorder2;
 
-	var Brightness_1_1 = Border1.Color.r + Border1.Color.b + 2 * Border1.Color.g;
-	var Brightness_1_2 = Border2.Color.r + Border2.Color.b + 2 * Border2.Color.g;
+	var Brightness_1_1 = oBorder1.Color.r + oBorder1.Color.b + 2 * oBorder1.Color.g;
+	var Brightness_1_2 = oBorder2.Color.r + oBorder2.Color.b + 2 * oBorder2.Color.g;
 
 	if (Brightness_1_1 < Brightness_1_2)
-		return Border1;
+		return oBorder1;
 	else if (Brightness_1_2 < Brightness_1_1)
-		return Border2;
+		return oBorder2;
 
-	var Brightness_2_1 = Border1.Color.b + 2 * Border1.Color.g;
-	var Brightness_2_2 = Border2.Color.b + 2 * Border2.Color.g;
+	var Brightness_2_1 = oBorder1.Color.b + 2 * oBorder1.Color.g;
+	var Brightness_2_2 = oBorder2.Color.b + 2 * oBorder2.Color.g;
 
 	if (Brightness_2_1 < Brightness_2_2)
-		return Border1;
+		return oBorder1;
 	else if (Brightness_2_2 < Brightness_2_1)
-		return Border2;
+		return oBorder2;
 
-	var Brightness_3_1 = Border1.Color.g;
-	var Brightness_3_2 = Border2.Color.g;
+	var Brightness_3_1 = oBorder1.Color.g;
+	var Brightness_3_2 = oBorder2.Color.g;
 
 	if (Brightness_3_1 < Brightness_3_2)
-		return Border1;
+		return oBorder1;
 	else if (Brightness_3_2 < Brightness_3_1)
-		return Border2;
+		return oBorder2;
 
-	// Две границы функционально идентичны, нам все равно какую рисовать.
-	return Border1;
+	// Две границы функционально идентичны, нам все равно какую использовать
+	return oBorder1;
 };
 /**
  * Получаем левую верхнюю ячейку в текущем объединении

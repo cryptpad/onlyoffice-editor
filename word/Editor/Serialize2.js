@@ -16190,7 +16190,7 @@ function GetTableOffsetCorrection(tbl)
     {
         var TableBorder_Left = tbl.Get_Borders().Left;
         var CellBorder_Left  = Cell.Get_Borders().Left;
-        var Result_Border = tbl.Internal_CompareBorders( TableBorder_Left, CellBorder_Left, true, false );
+        var Result_Border = tbl.private_ResolveBordersConflict( TableBorder_Left, CellBorder_Left, true, false );
 
         if ( border_None != Result_Border.Value )
             X += Math.max( Result_Border.Size / 2, Margins.Left.W );
