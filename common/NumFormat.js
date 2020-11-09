@@ -360,7 +360,7 @@ function ParseLocalFormatSymbol(Name)
 		case("ca-ES-valencia"): {
 			LocaleFormatSymbol['Y'] = 'A';
 			LocaleFormatSymbol['y'] ='a';
-			LocaleFormatSymbol['general']='éstándar';
+			LocaleFormatSymbol['general']='estándar';
 		}break;
 		case("pt-BR"):
 		case("es-BR"): {
@@ -843,6 +843,11 @@ NumFormat.prototype =
 					var sign = ("+" == nextnext) ? SignType.Positive : SignType.Negative;
 					this._addToFormat2(new FormatObjScientific(next, "", sign));
 				}
+				else if(!bFormat)
+				{
+					this._addToFormat(numFormat_General);
+				}
+				bFormat = true;
 			}
 			else if("*" == next)
 			{
@@ -916,8 +921,8 @@ NumFormat.prototype =
 					bFormat = true;
 				} else {
 					bNoFormat = true;
-					break;
-					//this._addToFormat(numFormat_Text, next);
+					if(bFormat) break;
+					this._addToFormat(numFormat_Text, next);
 				}
 			}
 			if (!bNoFormat)
