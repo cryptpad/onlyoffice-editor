@@ -843,7 +843,8 @@ NumFormat.prototype =
 					var sign = ("+" == nextnext) ? SignType.Positive : SignType.Negative;
 					this._addToFormat2(new FormatObjScientific(next, "", sign));
 				}
-				else if(!bFormat)
+				else if((!bFormat) && sGeneralFirst === next.toLowerCase() &&
+					sGeneral === (next + nextnext + this._GetText(sGeneral.length - 1)).toLowerCase())
 				{
 					this._addToFormat(numFormat_General);
 				}
@@ -888,7 +889,7 @@ NumFormat.prototype =
 			}
 			else if(Hour == next || hour == next)
 			{
-				if(!bFormat)
+				if((!bFormat))
 				{
 					this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
 				}
@@ -906,7 +907,15 @@ NumFormat.prototype =
 			}
 			else if(Second == next || second == next)
 			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_SecondGeneral, 1, false));
+				if(sGeneralFirst === next.toLowerCase() &&
+				sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase())
+				{
+					this._addToFormat2(new FormatObjDateVal(numFormat_SecondGeneral, 1, false));
+				}
+				else
+				{
+					this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
+				}
 				bFormat = true;
 			}
 			else if ("A" == next || "a" == next) {
@@ -918,7 +927,7 @@ NumFormat.prototype =
 					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase()) {
 						this._addToFormat(numFormat_SecondGeneral);
 						this._skip(sGeneral.length - 1);
-					bFormat = true;
+						bFormat = true;
 				} else {
 					bNoFormat = true;
 					if(bFormat) break;
