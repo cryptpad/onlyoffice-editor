@@ -3886,7 +3886,7 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "00-05-02" );
 
-        oParser = new parserFormula( "TEXT(123,\"éstándar\")", "A2", ws );
+        oParser = new parserFormula( "TEXT(123,\"estándar\")", "A2", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "123" );
 
