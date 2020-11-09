@@ -845,6 +845,7 @@ NumFormat.prototype =
 					sGeneral === (next + nextnext + this._GetText(sGeneral.length - 1)).toLowerCase())
 				{
 					this._addToFormat(numFormat_General);
+					break;
 				}
 				bFormat = true;
 			}
@@ -877,11 +878,12 @@ NumFormat.prototype =
 				if(!bFormat)
 				{
 					this._addToFormat2(new FormatObjDateVal(numFormat_Day, 1, false));
+					bFormat = true;
 				}
-				bFormat = true;
 				if(reserved	==	next)
 				{
 					this._addToFormat2(new FormatObjDateVal(numFormat_Day, 1, false));
+					bFormat = false;
 				}
 				reserved=next;
 			}
@@ -890,11 +892,12 @@ NumFormat.prototype =
 				if((!bFormat))
 				{
 					this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
+					bFormat=true;
 				}
-				bFormat=true;
 				if(reserveh == next)
 				{
 					this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
+					bFormat=false;
 				}
 				reserveh = next;
 			}
@@ -929,7 +932,6 @@ NumFormat.prototype =
 						bFormat = true;
 				} else {
 					bNoFormat = true;
-					if(bFormat) break;
 					this._addToFormat(numFormat_Text, next);
 				}
 			}
