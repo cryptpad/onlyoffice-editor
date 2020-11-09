@@ -9353,7 +9353,7 @@ background-repeat: no-repeat;\
 			return;
 
 		var oContentControl = oLogicDocument.GetContentControl(sId);
-		if (!oContentControl || !oContentControl.IsTextForm() || !(oContentControl instanceof CInlineLevelSdt))
+		if (!oContentControl || !oContentControl.IsTextForm() || !oContentControl.IsInlineLevel())
 			return null;
 
 		var oRun = oContentControl.GetFirstRun();
