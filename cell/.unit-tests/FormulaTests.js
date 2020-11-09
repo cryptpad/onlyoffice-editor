@@ -3896,6 +3896,14 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "123,123" );
 
+        oParser = new parserFormula( "TEXT(123,\"hh qq\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00 qq" );
+
+        oParser = new parserFormula( "TEXT(123,\"dd hh\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "02 00" );
+
         AscCommon.setCurrentCultureInfo(culturelciddefault);
 //__________________________________es________________________________________________
         AscCommon.setCurrentCultureInfo(3082);
