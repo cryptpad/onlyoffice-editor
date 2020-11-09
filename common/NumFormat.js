@@ -908,7 +908,8 @@ NumFormat.prototype =
 				if(sGeneralFirst === next.toLowerCase() &&
 				sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase())
 				{
-					this._addToFormat2(new FormatObjDateVal(numFormat_General, 1, false));
+					this._addToFormat(numFormat_General);
+					this._skip(sGeneral.length - 1);
 				}
 				else
 				{
