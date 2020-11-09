@@ -70,8 +70,6 @@ var numFormat_TimeSeparator = 21;
 var numFormat_DecimalPointText = 22;
 //Вспомогательные типы, которые заменятюся в _prepareFormat
 var numFormat_MonthMinute = 101;
-var numFormat_SecondGeneral = 107;
-var numFormat_HourNothing = 108;
 var numFormat_Percent = 102;
 var numFormat_General = 103;
 var numFormat_DigitDrop = 104;
@@ -910,7 +908,7 @@ NumFormat.prototype =
 				if(sGeneralFirst === next.toLowerCase() &&
 				sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase())
 				{
-					this._addToFormat2(new FormatObjDateVal(numFormat_SecondGeneral, 1, false));
+					this._addToFormat2(new FormatObjDateVal(numFormat_General, 1, false));
 				}
 				else
 				{
@@ -925,7 +923,7 @@ NumFormat.prototype =
 			else {
 				if (sGeneralFirst === next.toLowerCase() &&
 					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase()) {
-						this._addToFormat(numFormat_SecondGeneral);
+						this._addToFormat(numFormat_General);
 						this._skip(sGeneral.length - 1);
 						bFormat = true;
 				} else {
@@ -1332,68 +1330,6 @@ NumFormat.prototype =
             {
                 this.bTextFormat = true;
             }
-			else if(numFormat_SecondGeneral == item.type)
-			{
-				//Разрешаем конфликты numFormat_SecondGeneral
-				var bRightCond = false;
-				//ищем вперед первый элемент с типом datetime
-				for(var j = i + 1; j < nFormatLength; ++j)
-				{
-					var subItem = this.aRawFormat[j];
-					if(numFormat_Year == subItem.type || numFormat_Month == subItem.type || numFormat_Day == subItem.type || numFormat_SecondGeneral == subItem.type ||
-						numFormat_Hour == subItem.type || numFormat_Minute == subItem.type || numFormat_Second == subItem.type || numFormat_Milliseconds == subItem.type)
-					{
-						if(numFormat_Second == subItem.type)
-							bRightCond = true;
-						break;
-					}
-				}
-				var bLeftCond = false;
-				if(false == bRightCond)
-				{
-					//ищем назад первый элемент с типом hh или ss
-					var bFindSec = false;//чтобы разрулить случай mm:ss:mm должно быть Минуты:Секунды:Месяцы
-					for(var j = i - 1; j >= 0; --j)
-					{
-						var subItem = this.aRawFormat[j];
-
-						if(numFormat_Hour == subItem.type)
-						{
-							bLeftCond = true;
-							break;
-						}
-						else if(numFormat_Second == subItem.type)
-						{
-							//продолжаем смотреть дальше, пока не встретиться следующий date time обьект
-							bFindSec = true;
-						}
-						else if(numFormat_Second == subItem.type || numFormat_General == subItem.type || numFormat_SecondGeneral == subItem.type)
-						{
-							if(true == bFindSec && numFormat_Second == subItem.type)
-								bFindSec = false;
-							break;
-						}
-						else if(numFormat_Year == subItem.type || numFormat_Day == subItem.type || numFormat_Hour == subItem.type || numFormat_Second == subItem.type || numFormat_Milliseconds == subItem.type)
-						{
-							if(true == bFindSec)
-								break;
-						}
-					}
-					if(true == bFindSec)
-						bLeftCond = true;
-				}
-
-				if( true == bLeftCond || true == bRightCond)
-				{
-					item.type = numFormat_Second;
-					this.bTime = true;
-				}
-				else
-				{
-					item.type = numFormat_General;
-
-				}
-			}
         }
         return true;
     },
