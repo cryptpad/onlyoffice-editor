@@ -3368,7 +3368,7 @@ CTable.prototype.FindNextFillingForm = function(isNext, isCurrent, isStart)
 };
 CTable.prototype.Get_NearestPos = function(CurPage, X, Y, bAnchor, Drawing)
 {
-	var Pos  = this.Internal_GetCellByXY(X, Y, CurPage);
+	var Pos  = this.private_GetCellByXY(X, Y, CurPage);
 	var Cell = this.Content[Pos.Row].Get_Cell(Pos.Cell);
 
 	return Cell.Content_Get_NearestPos(CurPage - Cell.Content.Get_StartPage_Relative(), X, Y, bAnchor, Drawing);
@@ -3601,7 +3601,7 @@ CTable.prototype.UpdateCursorType = function(X, Y, CurPage)
 		}
 	}
 
-	var Cell_Pos = this.Internal_GetCellByXY(X, Y, CurPage);
+	var Cell_Pos = this.private_GetCellByXY(X, Y, CurPage);
 	var Cell     = this.Content[Cell_Pos.Row].Get_Cell(Cell_Pos.Cell);
 	Cell.Content_UpdateCursorType(X, Y, CurPage - Cell.Content.Get_StartPage_Relative());
 };
@@ -4758,25 +4758,19 @@ CTable.prototype.GetSelectionAnchorPos = function()
 //----------------------------------------------------------------------------------------------------------------------
 CTable.prototype.MoveCursorToXY = function(X, Y, bLine, bDontChangeRealPos, CurPage)
 {
-	var Pos  = this.Internal_GetCellByXY(X, Y, CurPage);
-	var Row  = this.Content[Pos.Row];
-	var Cell = Row.Get_Cell(Pos.Cell);
+	var oPos  = this.private_GetCellByXY(X, Y, CurPage);
+	var oRow  = this.GetRow(oPos.Row);
+	var oCell = oRow.GetCell(oPos.Cell);
 
 	this.Selection.Type         = table_Selection_Text;
 	this.Selection.Type2        = table_Selection_Common;
-	this.Selection.StartPos.Pos = {Row : Pos.Row, Cell : Pos.Cell};
-	this.Selection.EndPos.Pos   = {Row : Pos.Row, Cell : Pos.Cell};
-	this.Selection.CurRow       = Pos.Row;
+	this.Selection.StartPos.Pos = {Row : oPos.Row, Cell : oPos.Cell};
+	this.Selection.EndPos.Pos   = {Row : oPos.Row, Cell : oPos.Cell};
+	this.Selection.CurRow       = oPos.Row;
 
 	// Устанавливаем найденную ячейку текущей и перемещаемся в контент ячейки по координатам X,Y
-	this.CurCell = Cell;
-	this.DrawingDocument.TargetStart();
-	this.DrawingDocument.TargetShow();
+	this.CurCell = oCell;
 	this.CurCell.Content_MoveCursorToXY(X, Y, false, true, CurPage - this.CurCell.Content.Get_StartPage_Relative());
-	if (this.LogicDocument)
-	{
-		this.LogicDocument.RecalculateCurPos();
-	}
 };
 CTable.prototype.Selection_SetStart = function(X, Y, CurPage, MouseEvent)
 {
@@ -5531,7 +5525,7 @@ CTable.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent)
 		return;
 	}
 
-	var oTempPos = this.Internal_GetCellByXY(X, Y, CurPage);
+	var oTempPos = this.private_GetCellByXY(X, Y, CurPage);
 
 	var Pos = {
 		Row  : oTempPos.Row,
@@ -5762,7 +5756,7 @@ CTable.prototype.CheckPosInSelection = function(X, Y, CurPage, NearPos)
 		if (oHitInfo.CellSelection || oHitInfo.RowSelection || oHitInfo.ColumnSelection)
 			return false;
 
-		var CellPos = this.Internal_GetCellByXY(X, Y, CurPage);
+		var CellPos = this.private_GetCellByXY(X, Y, CurPage);
 		if (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type)
 		{
 			for (var Index = 0; Index < this.Selection.Data.length; Index++)
@@ -11810,7 +11804,7 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 		}
 		else
 		{
-			var Cell_pos = this.Internal_GetCellByXY(X1 + this.Pages[CurPageStart].X, Y1, CurPageStart);
+			var Cell_pos = this.private_GetCellByXY(X1 + this.Pages[CurPageStart].X, Y1, CurPageStart);
 
 			var Row              = this.GetRow(Cell_pos.Row);
 			var Cell         	 = Row.Get_Cell(Cell_pos.Cell);  //текущая ячейка
@@ -12093,7 +12087,7 @@ CTable.prototype.DrawCellInCell = function(X1, Y1, X2, Y2, CurPageStart)
 		X1 = cache;
 	}
 
-	var Cell_pos = this.Internal_GetCellByXY(X1 + this.Pages[CurPageStart].X, Y1, CurPageStart);
+	var Cell_pos = this.private_GetCellByXY(X1 + this.Pages[CurPageStart].X, Y1, CurPageStart);
 
 	var oRow  = this.GetRow(Cell_pos.Row);
 	var oCell = oRow.GetCell(Cell_pos.Cell);  //текущая ячейка
@@ -14035,7 +14029,7 @@ CTable.prototype.Internal_RecalculateFrom = function(RowIndex, CellIndex, bChang
 {
 	return editor.WordControl.m_oLogicDocument.Recalculate();
 };
-CTable.prototype.Internal_GetCellByXY = function(X, Y, PageIndex)
+CTable.prototype.private_GetCellByXY = function(X, Y, PageIndex)
 {
 	// Сначала определяем колонку в которую мы попали
 	var CurGrid = 0;
@@ -15192,7 +15186,7 @@ CTable.prototype.private_UpdateTableMarkup = function(nRowIndex, nCellIndex, nCu
 CTable.prototype.private_CheckHitInBorder = function(X, Y, nCurPage)
 {
 	// Сначала определим ячейку, у которой границы мы будем проверять
-	var oCellPos = this.Internal_GetCellByXY(X, Y, nCurPage);
+	var oCellPos = this.private_GetCellByXY(X, Y, nCurPage);
 
 	var oResult = {
 		Pos             : oCellPos,
