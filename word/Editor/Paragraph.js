@@ -5919,8 +5919,6 @@ Paragraph.prototype.GetNextRunElements = function(oRunElements)
 
 		CurPos++;
 	}
-
-	oRunElements.CheckEnd();
 };
 /**
  * Составляем список элементов рана, идущих до заданной позиции
@@ -5946,8 +5944,6 @@ Paragraph.prototype.GetPrevRunElements = function(oRunElements)
 
 		CurPos--;
 	}
-
-	oRunElements.CheckEnd();
 };
 /**
  * Получаем следующий за курсором элемент рана
@@ -5969,7 +5965,7 @@ Paragraph.prototype.GetNextRunElement = function()
  */
 Paragraph.prototype.GetPrevRunElement = function()
 {
-	var oRunElements = new CParagraphRunElements(this.Get_ParaContentPos(this.Selection.Use, false, false), 1, null, true);
+	var oRunElements = new CParagraphRunElements(this.Get_ParaContentPos(this.Selection.Use, false, false), 1, null);
 	this.GetPrevRunElements(oRunElements);
 
 	if (oRunElements.Elements.length <= 0)
@@ -17725,22 +17721,29 @@ CParagraphRunElements.prototype.Add = function(oElement, oRun)
 {
 	if (oRun && oRun.GetParent() !== this.StartClass && this.BreakDifferentClass)
 	{
-		// Добавляем этот элемент, потому что в конце мы 1 элемент удаляем из-за проверки достижения края параграфа
 		this.Count = 0;
-		this.private_Add(oElement);
+		this.End   = false;
 		return;
 	}
 
 	if (this.CheckType(oElement.Type))
 	{
-		this.Count--;
-		this.private_Add(oElement);
+		if (1 === this.Count)
+		{
+			this.Count = 0;
+			this.End   = false;
+		}
+		else
+		{
+			this.private_Add(oElement);
+			this.Count--;
+			this.End = true;
+		}
 	}
 	else if (this.BreakBadType)
 	{
-		// Добавляем этот элемент, потому что в конце мы 1 элемент удаляем из-за проверки достижения края параграфа
 		this.Count = 0;
-		this.private_Add(oElement);
+		this.End   = false;
 	}
 };
 CParagraphRunElements.prototype.private_Add = function(oElement)
@@ -17767,35 +17770,6 @@ CParagraphRunElements.prototype.private_Add = function(oElement)
 CParagraphRunElements.prototype.IsEnoughElements = function()
 {
 	return (this.Count <= 0);
-};
-/**
- * Проверяем достиглили мы края параграфа
- * @param isEnd {boolean}
- */
-CParagraphRunElements.prototype.CheckEnd = function(isEnd)
-{
-	if (this.Count <= 0)
-	{
-		this.End = false;
-		if (this.Reverse)
-		{
-			if (this.SaveContentPositions)
-				this.ContentPositions.splice(0, 1);
-
-			this.Elements.splice(0, 1);
-		}
-		else
-		{
-			if (this.SaveContentPositions)
-				this.ContentPositions.splice(this.ContentPositions.length - 1, 1);
-
-			this.Elements.splice(this.Elements.length - 1, 1);
-		}
-	}
-	else if (this.Count >= 1)
-	{
-		this.End = true;
-	}
 };
 /**
  * Проверяем достигли ли мы конца параграфа
