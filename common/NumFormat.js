@@ -863,23 +863,68 @@ NumFormat.prototype =
 			}
 			else if(Year == next || year == next)
 			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
+				if(sGeneralFirst === next.toLowerCase() &&
+					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase())
+				{
+					this._addToFormat(numFormat_General);
+					this._skip(sGeneral.length - 1);
+				}
+				else
+				{
+					this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
+				}
 			}
 			else if(Month == next || month == next)
 			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+				if(sGeneralFirst === next.toLowerCase() &&
+					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase())
+				{
+					this._addToFormat(numFormat_General);
+					this._skip(sGeneral.length - 1);
+				}
+				else
+				{
+					this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+				}
 			}
 			else if(Day == next || day == next)
 			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_Day, 1, false));
+				if(sGeneralFirst === next.toLowerCase() &&
+					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase())
+				{
+					this._addToFormat(numFormat_General);
+					this._skip(sGeneral.length - 1);
+				}
+				else
+				{
+					this._addToFormat2(new FormatObjDateVal(numFormat_Day, 1, false));
+				}
 			}
 			else if(Hour == next || hour == next)
 			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
+				if(sGeneralFirst === next.toLowerCase() &&
+					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase())
+				{
+					this._addToFormat(numFormat_General);
+					this._skip(sGeneral.length - 1);
+				}
+				else
+				{
+					this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
+				}
 			}
 			else if(Minute == next || minute == next)
 			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+				if(sGeneralFirst === next.toLowerCase() &&
+					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase())
+				{
+					this._addToFormat(numFormat_General);
+					this._skip(sGeneral.length - 1);
+				}
+				else
+				{
+					this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+				}
 			}
 			else if(Second == next || second == next)
 			{
