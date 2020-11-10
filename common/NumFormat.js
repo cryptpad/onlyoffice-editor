@@ -611,7 +611,6 @@ function NumFormat(bAddMinusIfNes)
 	this.LCID = null;
     
 	this.bGeneralChart = false;//если в формате только один текст(например в chart "Основной")
-	this.bGenChart = false;
     this.bAddMinusIfNes = bAddMinusIfNes;//когда не задано форматирование для отрицательных чисел иногда надо вставлять минус
 }
 NumFormat.prototype =
@@ -1187,7 +1186,6 @@ NumFormat.prototype =
         var nReadState = FormatStates.Decimal;
         var bDecimal = true;
         nFormatLength = this.aRawFormat.length;
-		this.bTime=false;
         //Разруливаем конфликтные ситуации, выставляем значения свойств
         for(var i = 0; i < nFormatLength; ++i)
         {
