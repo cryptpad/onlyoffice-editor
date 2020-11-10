@@ -779,9 +779,6 @@ NumFormat.prototype =
 			second = 's';
 		}
 		var sGeneralFirst = sGeneral[0];
-    	var bFormat = false;
-    	var reserveh;
-    	var reserved;
 		this.bGeneralChart = true;
 		while(true)
 		{
@@ -834,19 +831,19 @@ NumFormat.prototype =
 			}
 			else if("E" == next || "e" == next)
 			{
-				var nextnext = this._readChar();
-				if(this.EOF != nextnext && "+" == nextnext || "-" == nextnext)
-				{
-					var sign = ("+" == nextnext) ? SignType.Positive : SignType.Negative;
-					this._addToFormat2(new FormatObjScientific(next, "", sign));
-				}
-				else if((!bFormat) && sGeneralFirst === next.toLowerCase() &&
-					sGeneral === (next + nextnext + this._GetText(sGeneral.length - 1)).toLowerCase())
-				{
+				if (sGeneralFirst === next.toLowerCase() &&
+					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase()) {
 					this._addToFormat(numFormat_General);
-					break;
+					this._skip(sGeneral.length - 1);
 				}
-				bFormat = true;
+				else
+				{
+					var nextnext = this._readChar();
+					if (this.EOF != nextnext && "+" == nextnext || "-" == nextnext) {
+						var sign = ("+" == nextnext) ? SignType.Positive : SignType.Negative;
+						this._addToFormat2(new FormatObjScientific(next, "", sign));
+					}
+				}
 			}
 			else if("*" == next)
 			{
@@ -866,44 +863,68 @@ NumFormat.prototype =
 			}
 			else if(Year == next || year == next)
 			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
+				if(sGeneralFirst === next.toLowerCase() &&
+					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase())
+				{
+					this._addToFormat(numFormat_General);
+					this._skip(sGeneral.length - 1);
+				}
+				else
+				{
+					this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
+				}
 			}
 			else if(Month == next || month == next)
 			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+				if(sGeneralFirst === next.toLowerCase() &&
+					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase())
+				{
+					this._addToFormat(numFormat_General);
+					this._skip(sGeneral.length - 1);
+				}
+				else
+				{
+					this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+				}
 			}
 			else if(Day == next || day == next)
 			{
-				if(!bFormat)
+				if(sGeneralFirst === next.toLowerCase() &&
+					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase())
+				{
+					this._addToFormat(numFormat_General);
+					this._skip(sGeneral.length - 1);
+				}
+				else
 				{
 					this._addToFormat2(new FormatObjDateVal(numFormat_Day, 1, false));
-					bFormat = true;
 				}
-				if(reserved	==	next)
-				{
-					this._addToFormat2(new FormatObjDateVal(numFormat_Day, 1, false));
-					bFormat = false;
-				}
-				reserved=next;
 			}
 			else if(Hour == next || hour == next)
 			{
-				if((!bFormat))
+				if(sGeneralFirst === next.toLowerCase() &&
+					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase())
+				{
+					this._addToFormat(numFormat_General);
+					this._skip(sGeneral.length - 1);
+				}
+				else
 				{
 					this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
-					bFormat=true;
 				}
-				if(reserveh == next)
-				{
-					this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
-					bFormat=false;
-				}
-				reserveh = next;
 			}
 			else if(Minute == next || minute == next)
 			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
-				bFormat = true;
+				if(sGeneralFirst === next.toLowerCase() &&
+					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase())
+				{
+					this._addToFormat(numFormat_General);
+					this._skip(sGeneral.length - 1);
+				}
+				else
+				{
+					this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+				}
 			}
 			else if(Second == next || second == next)
 			{
@@ -917,18 +938,15 @@ NumFormat.prototype =
 				{
 					this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
 				}
-				bFormat = true;
 			}
 			else if ("A" == next || "a" == next) {
 				this._ReadAmPm(next);
-				bFormat = true;
 			}
 			else {
 				if (sGeneralFirst === next.toLowerCase() &&
 					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase()) {
 						this._addToFormat(numFormat_General);
 						this._skip(sGeneral.length - 1);
-						bFormat = true;
 				} else {
 					bNoFormat = true;
 					this._addToFormat(numFormat_Text, next);
@@ -937,7 +955,6 @@ NumFormat.prototype =
 			if (!bNoFormat)
 				this.bGeneralChart = false;
 		}
-
         return true;
     },
 	_parseFormatWordDateTime : function()
