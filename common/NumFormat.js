@@ -724,7 +724,7 @@ NumFormat.prototype =
     },
     _parseFormat : function(digitSpaceSymbol,useLocaleFormat)
     {
-		var sGeneral;
+    	var sGeneral;
 		var DecimalSeparator;
 		var GroupSeparator;
 		var TimeSeparator;
@@ -829,21 +829,18 @@ NumFormat.prototype =
 			{
 				this._addToFormat(numFormat_Thousand, 1);
 			}
+			else if (sGeneralFirst === next.toLowerCase() &&
+				sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase()) {
+				this._addToFormat(numFormat_General);
+				this._skip(sGeneral.length - 1);
+			}
 			else if("E" == next || "e" == next)
 			{
-				if (sGeneralFirst === next.toLowerCase() &&
-					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase()) {
-					this._addToFormat(numFormat_General);
-					this._skip(sGeneral.length - 1);
-				}
-				else
-				{
 					var nextnext = this._readChar();
 					if (this.EOF != nextnext && "+" == nextnext || "-" == nextnext) {
 						var sign = ("+" == nextnext) ? SignType.Positive : SignType.Negative;
 						this._addToFormat2(new FormatObjScientific(next, "", sign));
 					}
-				}
 			}
 			else if("*" == next)
 			{
@@ -863,94 +860,33 @@ NumFormat.prototype =
 			}
 			else if(Year == next || year == next)
 			{
-				if(sGeneralFirst === next.toLowerCase() &&
-					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase())
-				{
-					this._addToFormat(numFormat_General);
-					this._skip(sGeneral.length - 1);
-				}
-				else
-				{
-					this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
-				}
+				this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
 			}
 			else if(Month == next || month == next)
 			{
-				if(sGeneralFirst === next.toLowerCase() &&
-					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase())
-				{
-					this._addToFormat(numFormat_General);
-					this._skip(sGeneral.length - 1);
-				}
-				else
-				{
-					this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
-				}
+				this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
 			}
 			else if(Day == next || day == next)
 			{
-				if(sGeneralFirst === next.toLowerCase() &&
-					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase())
-				{
-					this._addToFormat(numFormat_General);
-					this._skip(sGeneral.length - 1);
-				}
-				else
-				{
-					this._addToFormat2(new FormatObjDateVal(numFormat_Day, 1, false));
-				}
+				this._addToFormat2(new FormatObjDateVal(numFormat_Day, 1, false));
 			}
 			else if(Hour == next || hour == next)
 			{
-				if(sGeneralFirst === next.toLowerCase() &&
-					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase())
-				{
-					this._addToFormat(numFormat_General);
-					this._skip(sGeneral.length - 1);
-				}
-				else
-				{
-					this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
-				}
+				this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
 			}
 			else if(Minute == next || minute == next)
 			{
-				if(sGeneralFirst === next.toLowerCase() &&
-					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase())
-				{
-					this._addToFormat(numFormat_General);
-					this._skip(sGeneral.length - 1);
-				}
-				else
-				{
-					this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
-				}
+				this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
 			}
 			else if(Second == next || second == next)
 			{
-				if(sGeneralFirst === next.toLowerCase() &&
-				sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase())
-				{
-					this._addToFormat(numFormat_General);
-					this._skip(sGeneral.length - 1);
-				}
-				else
-				{
-					this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
-				}
+				this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
 			}
 			else if ("A" == next || "a" == next) {
 				this._ReadAmPm(next);
-			}
-			else {
-				if (sGeneralFirst === next.toLowerCase() &&
-					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase()) {
-						this._addToFormat(numFormat_General);
-						this._skip(sGeneral.length - 1);
-				} else {
-					bNoFormat = true;
-					this._addToFormat(numFormat_Text, next);
-				}
+			} else {
+				bNoFormat = true;
+				this._addToFormat(numFormat_Text, next);
 			}
 			if (!bNoFormat)
 				this.bGeneralChart = false;
