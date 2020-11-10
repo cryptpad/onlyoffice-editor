@@ -831,18 +831,19 @@ NumFormat.prototype =
 			}
 			else if("E" == next || "e" == next)
 			{
-				var nextnext = this._readChar();
-				if(this.EOF != nextnext && "+" == nextnext || "-" == nextnext)
-				{
-					var sign = ("+" == nextnext) ? SignType.Positive : SignType.Negative;
-					this._addToFormat2(new FormatObjScientific(next, "", sign));
+				if (sGeneralFirst === next.toLowerCase() &&
+					sGeneral === (next + this._GetText(sGeneral.length - 1)).toLowerCase()) {
+					this._addToFormat(numFormat_General);
+					this._skip(sGeneral.length - 1);
 				}
-				else if(sGeneralFirst === next.toLowerCase() &&
-					sGeneral === (next + nextnext + this._GetText(sGeneral.length - 1)).toLowerCase())
-					{
-						this._addToFormat(numFormat_General);
-						this._skip(sGeneral.length - 1);
+				else
+				{
+					var nextnext = this._readChar();
+					if (this.EOF != nextnext && "+" == nextnext || "-" == nextnext) {
+						var sign = ("+" == nextnext) ? SignType.Positive : SignType.Negative;
+						this._addToFormat2(new FormatObjScientific(next, "", sign));
 					}
+				}
 			}
 			else if("*" == next)
 			{
