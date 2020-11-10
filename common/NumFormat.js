@@ -957,6 +957,44 @@ NumFormat.prototype =
 		}
         return true;
     },
+	_parseFormatWordDateTime : function()
+	{
+		while(true)
+		{
+			var next = this._readChar();
+			if(this.EOF == next)
+				break;
+			else if("\'" == next)
+				this._ReadText("\'");
+			else if("Y" == next || "y" == next)
+			{
+				this._addToFormat2(new FormatObjDateVal(numFormat_Year, 1, false));
+			}
+			else if("M" == next || "m" == next)
+			{
+				this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+			}
+			else if("D" == next || "d" == next)
+			{
+				this._addToFormat2(new FormatObjDateVal(numFormat_Day, 1, false));
+			}
+			else if("H" == next || "h" == next)
+			{
+				this._addToFormat2(new FormatObjDateVal(numFormat_Hour, 1, false));
+			}
+			else if("S" == next || "s" == next)
+			{
+				this._addToFormat2(new FormatObjDateVal(numFormat_Second, 1, false));
+			}
+			else if ("A" == next || "a" == next) {
+				this._ReadAmPm(next);
+			}
+			else {
+				this._addToFormat(numFormat_Text, next);
+			}
+		}
+		return true;
+	},
 	_parseFormatWordNumeric : function(digitSpaceSymbol)
 	{
 		while(true)
