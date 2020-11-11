@@ -23714,9 +23714,22 @@ CDocument.prototype.ClearAllSpecialForms = function()
 	}
 };
 /**
- * Функция, которая используется для отрисовки символа конца секции
- * @constructor
+ * Получаем массив всех специальных форм с заданным ключом
+ * @param sKey
+ * @returns {[]}
  */
+CDocument.prototype.GetSpecialFormsByKey = function(sKey)
+{
+	var arrForms = [];
+	for (var sId in this.SpecialForms)
+	{
+		var oForm = this.SpecialForms[sId];
+		if (sKey === oForm.GetFormKey())
+			arrForms.push(oForm);
+	}
+
+	return arrForms;
+};
 /**
  *  Функция, которая используется для отрисовки символа конца секции
  * @param nType {number} тип разрыва секции
