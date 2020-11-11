@@ -8432,12 +8432,12 @@
 		this.aSlicers.push(slicer);
 		var oCache = slicer.getCacheDefinition();
 
+		History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SlicerAdd, this.getId(), null,
+			new AscCommonExcel.UndoRedoData_FromTo(null, slicer));
+
 		if (isNewCache) {
 			slicer.updateItemsWithNoData();
 		}
-
-		History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SlicerAdd, this.getId(), null,
-			new AscCommonExcel.UndoRedoData_FromTo(null, slicer));
 
 		if (oCache) {
 			var _name = oCache.name;
