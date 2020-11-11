@@ -314,22 +314,17 @@ function ParseLocalFormatSymbol(Name)
 		case("smn-FI"):
 		case("sms-FI"):
 		case("sv-AX"):
-		case("sv-FI"): {
-			LocaleFormatSymbol['Y'] = 'V';
-			LocaleFormatSymbol['y'] ='v';
-			LocaleFormatSymbol['D']='P';
-			LocaleFormatSymbol['d'] ='p';
-			LocaleFormatSymbol['H'] = 'T';
-			LocaleFormatSymbol['h'] ='t';
-			LocaleFormatSymbol['general']='yleinen';
-		}break;
+		case("sv-FI"):
 		case("en-FI"): {
 			LocaleFormatSymbol['Y'] = 'V';
-			LocaleFormatSymbol['y'] ='v';
-			LocaleFormatSymbol['D']='P';
-			LocaleFormatSymbol['d'] ='p';
+			LocaleFormatSymbol['y'] = 'v';
+			LocaleFormatSymbol['M'] = 'K';
+			LocaleFormatSymbol['m'] = 'k';
+			LocaleFormatSymbol['D']= 'P';
+			LocaleFormatSymbol['d'] = 'p';
 			LocaleFormatSymbol['H'] = 'T';
-			LocaleFormatSymbol['h'] ='t';
+			LocaleFormatSymbol['h'] = 't';
+			LocaleFormatSymbol['general']= 'yleinen';
 		}break;
 //___________________________________________________fy________________________________________________________________
 		case("fy"):
@@ -423,10 +418,10 @@ function ParseLocalFormatSymbol(Name)
 		case("fr-CH"):
 		case("fr-FR"):
 		case("gsw-FR"): {
-			LocaleFormatSymbol['Y'] = 'J';
-			LocaleFormatSymbol['y'] ='j';
-			LocaleFormatSymbol['D'] = 'A';
-			LocaleFormatSymbol['d'] ='a';
+			LocaleFormatSymbol['Y'] = 'A';
+			LocaleFormatSymbol['y'] ='a';
+			LocaleFormatSymbol['D'] = 'J';
+			LocaleFormatSymbol['d'] ='j';
 			LocaleFormatSymbol['general']='standard';
 		}break;
 //____________________________________________________de_______________________________________________________________
