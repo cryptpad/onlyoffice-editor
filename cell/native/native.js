@@ -6844,7 +6844,7 @@ window["native"]["offline_apply_event"] = function(type,params) {
                 var json = JSON.parse(params[0]);
                 if (json && json["id"]) {
                     if (_api.asc_showComment) {
-                        _api.asc_showComment(json["id"], json["isNew"]);
+                        _api.asc_showComment(json["id"], json["isNew"] === true);
                     }
                 }
                 break;
