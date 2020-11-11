@@ -540,7 +540,7 @@ CBlockLevelSdt.prototype.Remove = function(nCount, isRemoveWholeElement, bRemove
 
 	if (this.IsEmpty()
 		&& !bOnAddText
-		&& true !== isRemoveWholeElement
+		&& (true !== isRemoveWholeElement || bResult)
 		&& this.CanBeEdited())
 	{
 		this.private_ReplaceContentWithPlaceHolder();
