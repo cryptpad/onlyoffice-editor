@@ -3900,6 +3900,14 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "00-05-02" );
 
+        oParser = new parserFormula( "TEXT(123,\"yy-MM-dd\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"hh:MM:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
         oParser = new parserFormula( "TEXT(123,\"hh:mm:ss\")", "A2", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "00:00:00" );

@@ -474,7 +474,7 @@ function ParseLocalFormatSymbol(Name)
 			LocaleFormatSymbol['Y'] = 'Å';
 			LocaleFormatSymbol['y'] = 'å';
 			LocaleFormatSymbol['m'] = 'M'
-			LocaleFormatSymbol['m'] = 'M';
+			LocaleFormatSymbol['M'] = 'M';
 			LocaleFormatSymbol['Minute'] = 'm';
 			LocaleFormatSymbol['minute']='m';
 			LocaleFormatSymbol['H'] = 'T';
