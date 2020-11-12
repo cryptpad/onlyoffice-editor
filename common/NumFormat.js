@@ -395,12 +395,12 @@ function ParseLocalFormatSymbol(Name)
 			LocaleFormatSymbol['Y'] = 'Г';
 			LocaleFormatSymbol['y'] = 'г';
 			LocaleFormatSymbol['M'] = 'М';
-			LocaleFormatSymbol['m'] = 'м';
+			LocaleFormatSymbol['m'] = 'М';
 			LocaleFormatSymbol['D'] = 'Д';
 			LocaleFormatSymbol['d'] = 'д';
 			LocaleFormatSymbol['H'] = 'Ч';
 			LocaleFormatSymbol['h'] = 'ч';
-			LocaleFormatSymbol['Minute'] = 'М';
+			LocaleFormatSymbol['Minute'] = 'м';
 			LocaleFormatSymbol['minute'] = 'м'
 			LocaleFormatSymbol['S'] = 'C';
 			LocaleFormatSymbol['s'] = 'с';
@@ -439,6 +439,10 @@ function ParseLocalFormatSymbol(Name)
 		case("nds-DE"): {
 			LocaleFormatSymbol['Y'] = 'J';
 			LocaleFormatSymbol['y'] = 'j';
+			LocaleFormatSymbol['M'] = 'M';
+			LocaleFormatSymbol['m'] = 'M';
+			LocaleFormatSymbol['minute'] = 'm';
+			LocaleFormatSymbol['Minute'] = 'm';
 			LocaleFormatSymbol['D'] = 'T';
 			LocaleFormatSymbol['d'] = 't';
 			LocaleFormatSymbol['general']='standard';
@@ -460,20 +464,7 @@ function ParseLocalFormatSymbol(Name)
 			LocaleFormatSymbol['general']='standard';
 		}break;
 //____________________________________________________da_______________________________________________________________
-		case("nb"):
-		case("nn"):
-		case("se"):
-		case("smj"):
 		case("sv"):
-		case("sma"):
-		case("da-DK"):
-		case("fo-DK"):
-		case("nb-NO"):
-		case("nb-SJ"):
-		case("nn-NO"):
-		case("se-NO"):
-		case("sma-NO"):
-		case("smj-NO"):
 		case("en-SE"):
 		case("se-SE"):
 		case("sma-SE"):
@@ -482,9 +473,33 @@ function ParseLocalFormatSymbol(Name)
 		{
 			LocaleFormatSymbol['Y'] = 'Å';
 			LocaleFormatSymbol['y'] = 'å';
+			LocaleFormatSymbol['m'] = 'M'
+			LocaleFormatSymbol['m'] = 'M';
+			LocaleFormatSymbol['Minute'] = 'm';
+			LocaleFormatSymbol['minute']='m';
 			LocaleFormatSymbol['H'] = 'T';
 			LocaleFormatSymbol['h'] = 't';
 			LocaleFormatSymbol['general'] = 'standard';
+		}break;
+		case("nb"):
+        case("nn"):
+        case("se"):
+      	case("smj"):
+      	case("sma"):
+		case("smj-NO"):
+		case("sma-NO"):
+		case("se-NO"):
+		case("nn-NO"):
+		case("nb-SJ"):
+		case("nb-NO"):
+		case("fo-DK"):
+		case("da-DK"):
+		{
+		    LocaleFormatSymbol['Y'] = 'Å';
+            LocaleFormatSymbol['y'] = 'å';
+        	LocaleFormatSymbol['H'] = 'T';
+        	LocaleFormatSymbol['h'] = 't';
+        	LocaleFormatSymbol['general'] = 'standard';
 		}break;
 //_____________________________________________________ch______________________________________________________________
 		case("ii"):
@@ -871,7 +886,7 @@ NumFormat.prototype =
 			}
 			else if(Minute == next || minute == next)
 			{
-			    this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+			    this._addToFormat2(new FormatObjDateVal(numFormat_Minute, 1, false));
 			}
 			else if(Second == next || second == next)
 			{
