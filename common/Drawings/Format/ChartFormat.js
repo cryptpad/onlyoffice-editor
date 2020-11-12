@@ -4222,10 +4222,6 @@ function CBarChart()
             {
                 break;
             }
-            case AscDFH.historyitem_CommonChart_RemoveSeries:
-            {
-                break;
-            }
             case AscDFH.historyitem_BarChart_AddAxId:
             case AscDFH.historyitem_CommonChart_AddAxId:
             {
@@ -4271,6 +4267,7 @@ function CBarChart()
             case AscDFH.historyitem_CommonChart_AddSeries:
             case AscDFH.historyitem_CommonChart_AddFilteredSeries:
             case AscDFH.historyitem_CommonChart_RemoveFilteredSeries:
+            case AscDFH.historyitem_CommonChart_RemoveSeries:
             {
                 if(this.parent && this.parent.parent && this.parent.parent.parent)
                 {
@@ -4405,10 +4402,6 @@ CAreaChart.prototype.Refresh_RecalcData = function(data)
         {
             break;
         }
-        case AscDFH.historyitem_CommonChart_RemoveSeries:
-        {
-            break;
-        }
         case AscDFH.historyitem_AreaChart_AddAxId:
         case AscDFH.historyitem_CommonChart_AddAxId:
         {
@@ -4444,6 +4437,7 @@ CAreaChart.prototype.Refresh_RecalcData = function(data)
         case AscDFH.historyitem_CommonChart_AddSeries:
         case AscDFH.historyitem_CommonChart_AddFilteredSeries:
         case AscDFH.historyitem_CommonChart_RemoveFilteredSeries:
+        case AscDFH.historyitem_CommonChart_RemoveSeries:
         {
             if(this.parent && this.parent.parent && this.parent.parent.parent)
             {
@@ -8167,10 +8161,6 @@ CDoughnutChart.prototype.Refresh_RecalcData = function(data) {
         {
             break;
         }
-        case AscDFH.historyitem_CommonChart_RemoveSeries:
-        {
-            break;
-        }
         case AscDFH.historyitem_DoughnutChart_SetDLbls :
         {
             if(this.parent && this.parent.parent && this.parent.parent.parent)
@@ -8191,6 +8181,7 @@ CDoughnutChart.prototype.Refresh_RecalcData = function(data) {
         case AscDFH.historyitem_CommonChart_AddSeries:
         case AscDFH.historyitem_CommonChart_AddFilteredSeries:
         case AscDFH.historyitem_CommonChart_RemoveFilteredSeries:
+        case AscDFH.historyitem_CommonChart_RemoveSeries:
         {
             if(this.parent && this.parent.parent && this.parent.parent.parent)
             {
@@ -9011,10 +9002,6 @@ CLineChart.prototype = Object.create(CChartBase.prototype);
             {
                 break;
             }
-            case AscDFH.historyitem_CommonChart_RemoveSeries:
-            {
-                break;
-            }
             case AscDFH.historyitem_LineChart_AddAxId:
             case AscDFH.historyitem_CommonChart_AddAxId:
             {
@@ -9057,6 +9044,7 @@ CLineChart.prototype = Object.create(CChartBase.prototype);
             case AscDFH.historyitem_CommonChart_AddSeries:
             case AscDFH.historyitem_CommonChart_AddFilteredSeries:
             case AscDFH.historyitem_CommonChart_RemoveFilteredSeries:
+            case AscDFH.historyitem_CommonChart_RemoveSeries:
             {
                 if(this.parent && this.parent.parent && this.parent.parent.parent)
                 {
@@ -10523,10 +10511,6 @@ function CPieChart()
             {
                 break;
             }
-            case AscDFH.historyitem_CommonChart_RemoveSeries:
-            {
-                break;
-            }
             case AscDFH.historyitem_PieChart_SetDLbls:
             case AscDFH.historyitem_CommonChart_SetDlbls:
             {
@@ -10544,6 +10528,7 @@ function CPieChart()
             case AscDFH.historyitem_CommonChart_AddSeries:
             case AscDFH.historyitem_CommonChart_AddFilteredSeries:
             case AscDFH.historyitem_CommonChart_RemoveFilteredSeries:
+            case AscDFH.historyitem_CommonChart_RemoveSeries:
             {
                 if(this.parent && this.parent.parent && this.parent.parent.parent)
                 {
@@ -10876,10 +10861,6 @@ CRadarChart.prototype = Object.create(CChartBase.prototype);
             {
                 break;
             }
-            case AscDFH.historyitem_CommonChart_RemoveSeries:
-            {
-                break;
-            }
             case AscDFH.historyitem_RadarChart_AddAxId:
             case AscDFH.historyitem_CommonChart_AddAxId:
             {
@@ -10902,6 +10883,7 @@ CRadarChart.prototype = Object.create(CChartBase.prototype);
             case AscDFH.historyitem_CommonChart_AddSeries:
             case AscDFH.historyitem_CommonChart_AddFilteredSeries:
             case AscDFH.historyitem_CommonChart_RemoveFilteredSeries:
+            case AscDFH.historyitem_CommonChart_RemoveSeries:
             {
                 if(this.parent && this.parent.parent && this.parent.parent.parent)
                 {
@@ -12077,10 +12059,6 @@ CSurfaceChart.prototype = Object.create(CChartBase.prototype);
             {
                 break;
             }
-            case AscDFH.historyitem_CommonChart_RemoveSeries:
-            {
-                break;
-            }
             case AscDFH.historyitem_SurfaceChart_AddAxId:
             case AscDFH.historyitem_CommonChart_AddAxId:
             {
@@ -12094,6 +12072,7 @@ CSurfaceChart.prototype = Object.create(CChartBase.prototype);
             case AscDFH.historyitem_CommonChart_AddSeries:
             case AscDFH.historyitem_CommonChart_AddFilteredSeries:
             case AscDFH.historyitem_CommonChart_RemoveFilteredSeries:
+            case AscDFH.historyitem_CommonChart_RemoveSeries:
             {
                 if(this.parent && this.parent.parent && this.parent.parent.parent)
                 {
