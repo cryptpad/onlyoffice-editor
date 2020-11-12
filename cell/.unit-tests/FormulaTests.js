@@ -3946,7 +3946,7 @@ $( function () {
         AscCommon.setCurrentCultureInfo(culturelciddefault);
 //__________________________________fi________________________________________________
         AscCommon.setCurrentCultureInfo(1035);
-        oParser = new parserFormula( "TEXT(123,\"vv-mm-pp\")", "A2", ws );
+        oParser = new parserFormula( "TEXT(123,\"vv-kk-pp\")", "A2", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "00-05-02" );
 

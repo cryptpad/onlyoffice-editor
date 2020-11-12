@@ -453,10 +453,10 @@ function ParseLocalFormatSymbol(Name)
 		case("it-CH"):
 		case("it-IT"):
 		case("it-VA"): {
-			LocaleFormatSymbol['Y'] = 'G';
-			LocaleFormatSymbol['y'] ='g';
-			LocaleFormatSymbol['D'] = 'A';
-			LocaleFormatSymbol['d'] ='a';
+			LocaleFormatSymbol['Y'] = 'A';
+			LocaleFormatSymbol['y'] ='a';
+			LocaleFormatSymbol['D'] = 'G';
+			LocaleFormatSymbol['d'] ='g';
 			LocaleFormatSymbol['general']='standard';
 		}break;
 //____________________________________________________da_______________________________________________________________
@@ -859,7 +859,7 @@ NumFormat.prototype =
 			}
 			else if(Month == next || month == next)
 			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+			    this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
 			}
 			else if(Day == next || day == next)
 			{
@@ -871,7 +871,7 @@ NumFormat.prototype =
 			}
 			else if(Minute == next || minute == next)
 			{
-				this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+			    this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
 			}
 			else if(Second == next || second == next)
 			{
