@@ -2834,7 +2834,7 @@ function CDLbl()
     CSeriesBase.prototype.Refresh_RecalcData = function(oData) {
         //TODO: rework this
         var oChart = this.parent;
-        if(oChart.parent && oChart.parent.parent && oChart.parent.parent.parent)
+        if(oChart && oChart.parent && oChart.parent.parent && oChart.parent.parent.parent)
         {
             oChart.parent.parent.parent.handleUpdateType();
         }
@@ -11588,7 +11588,7 @@ CTx.prototype =
     },
 
     isValid: function() {
-        if(this.strRef || (typeof this.v === "string")) {
+        if(this.strRef || (typeof this.val === "string")) {
             return true;
         }
         return false;
