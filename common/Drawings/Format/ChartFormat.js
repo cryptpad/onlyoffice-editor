@@ -444,10 +444,10 @@ function (window, undefined) {
     drawingsChangesMap[AscDFH.historyitem_View3d_SetRAngAx]                              = function(oClass, value){oClass.rAngAx        =  value; oClass.Refresh_RecalcData();};
     drawingsChangesMap[AscDFH.historyitem_View3d_SetRotX]                                = function(oClass, value){oClass.rotX          =  value; oClass.Refresh_RecalcData();};
     drawingsChangesMap[AscDFH.historyitem_View3d_SetRotY]                                = function(oClass, value){oClass.rotY          =  value; oClass.Refresh_RecalcData();};
-    drawingsChangesMap[AscDFH.historyitem_CommonSeries_SetIdx]                     = function(oClass, value){oClass.idx           =  value; oClass.Refresh_RecalcData();};
-    drawingsChangesMap[AscDFH.historyitem_CommonSeries_SetOrder]                   = function(oClass, value){oClass.order         =  value; oClass.Refresh_RecalcData();};
-    drawingsChangesMap[AscDFH.historyitem_CommonSeries_SetTx]                      = function(oClass, value){oClass.tx            =  value; oClass.Refresh_RecalcData();};
-    drawingsChangesMap[AscDFH.historyitem_CommonSeries_SetSpPr]                    = function(oClass, value){oClass.spPr          =  value; oClass.Refresh_RecalcData();};
+    drawingsChangesMap[AscDFH.historyitem_CommonSeries_SetIdx]                     = function(oClass, value){oClass.idx           =  value; oClass.Refresh_RecalcData({Type: AscDFH.historyitem_CommonSeries_SetIdx});};
+    drawingsChangesMap[AscDFH.historyitem_CommonSeries_SetOrder]                   = function(oClass, value){oClass.order         =  value; oClass.Refresh_RecalcData({Type: AscDFH.historyitem_CommonSeries_SetOrder});};
+    drawingsChangesMap[AscDFH.historyitem_CommonSeries_SetTx]                      = function(oClass, value){oClass.tx            =  value; oClass.Refresh_RecalcData({Type: AscDFH.historyitem_CommonSeries_SetTx});};
+    drawingsChangesMap[AscDFH.historyitem_CommonSeries_SetSpPr]                    = function(oClass, value){oClass.spPr          =  value; oClass.Refresh_RecalcData({Type: AscDFH.historyitem_CommonSeries_SetSpPr});};
 
 
 
@@ -2814,6 +2814,31 @@ function CDLbl()
     }
     CSeriesBase.prototype = Object.create(AscFormat.CBaseObject.prototype);
     CSeriesBase.prototype.constructor = CSeriesBase;
+    CSeriesBase.prototype.updateData = function(displayEmptyCellsAs, displayHidden) {
+        if(this.val) {
+            this.val.update(displayEmptyCellsAs, displayHidden, this);
+        }
+        if(this.yVal) {
+            this.yVal.update(displayEmptyCellsAs, displayHidden, this);
+        }
+        if(this.cat) {
+            this.cat.update();
+        }
+        if(this.xVal) {
+            this.xVal.update();
+        }
+        if(this.tx) {
+            this.tx.update();
+        }
+    };
+    CSeriesBase.prototype.Refresh_RecalcData = function(oData) {
+        //TODO: rework this
+        var oChart = this.parent;
+        if(oChart.parent && oChart.parent.parent && oChart.parent.parent.parent)
+        {
+            oChart.parent.parent.parent.handleUpdateType();
+        }
+    };
     CSeriesBase.prototype.setIdx = function(val) {
         if(History.CanAddChanges()) {
             History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_CommonSeries_SetIdx, this.idx, val));
@@ -7205,19 +7230,15 @@ CCat.prototype =
     },
     Refresh_RecalcData: function()
     {},
-
     Write_ToBinary2: function(w)
     {
         w.WriteLong(this.getObjectType());
         w.WriteString2(this.Get_Id());
     },
-
     Read_FromBinary2: function(r)
     {
         this.Id = r.GetString2();
     },
-
-
     createDuplicate: function()
     {
         var c = new CCat();
@@ -7243,12 +7264,10 @@ CCat.prototype =
         }
         return c;
     },
-
     getObjectType: function()
     {
         return AscDFH.historyitem_type_Cat;
     },
-
     setFromOtherObject: function(o)
     {
         if(o.multiLvlStrRef)
@@ -7262,7 +7281,6 @@ CCat.prototype =
         if(o.strRef)
             this.setStrRef(o.strRef);
     },
-
     setMultiLvlStrRef: function(pr)
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Cat_SetMultiLvlStrRef, this.multiLvlStrRef, pr));
@@ -7288,7 +7306,6 @@ CCat.prototype =
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Cat_SetStrRef, this.multiLvlStrRef, pr));
         this.strRef = pr;
     },
-
     setValues: function(sValues) {
         var oNumRef, oNumLit, oStrRef, oStrLit, oMultiLvl, oRef, oResult;
         oResult = new CParseResult();
@@ -7358,7 +7375,6 @@ CCat.prototype =
         }
         return oResult;
     },
-
     getValues: function(nMaxCount) {
         if(this.numLit) {
             return this.numLit.getValues(nMaxCount);
@@ -7376,7 +7392,6 @@ CCat.prototype =
             return this.multiLvlStrRef.getValues(nMaxCount);
         }
     },
-
     getFormula: function() {
         if(this.numLit) {
             return this.numLit.getFormula();
@@ -7416,6 +7431,49 @@ CCat.prototype =
             return true;
         }
         return false;
+    },
+    getStringPointsLit: function() {
+        if(this.strRef && this.strRef.strCache) {
+            return this.strRef.strCache;
+        }
+        else if(this.strLit) {
+            return this.strLit;
+        }
+        else if(this.multiLvlStrRef) {
+            return this.multiLvlStrRef.getFirstLvlCache();
+        }
+        return null;
+    },
+    getLit: function() {
+        var oLit = null;
+        if(this.strRef && this.strRef.strCache){
+            oLit = this.strRef.strCache;
+        }
+        else if(this.strLit){
+            oLit = this.strLit;
+        }
+        else if(this.numRef && this.numRef.numCache){
+            oLit = this.numRef.numCache;
+        }
+        else if(this.numLit){
+            oLit = this.numLit;
+        }
+        else if(this.multiLvlStrRef) {
+            //TODO: implement multiLvlStrCache and remove this
+            oLit = this.multiLvlStrRef.getFirstLvlCache();
+        }
+        return oLit;
+    },
+    update: function() {
+        if(this.multiLvlStrRef) {
+            this.multiLvlStrRef.updateCache();
+        }
+        if(this.numRef) {
+            this.numRef.updateCache();
+        }
+        if(this.strRef) {
+            this.strRef.updateCache();
+        }
     }
  };
 
@@ -7526,7 +7584,13 @@ CChartText.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartText_SetStrRef, this.strRef, pr));
         this.strRef = pr;
-            }
+    },
+
+    update: function() {
+        if(this.strRef) {
+            this.strRef.updateCache();
+        }
+    }
 };
 
 function CDLbls()
@@ -9678,6 +9742,8 @@ CMultiLvlStrCache.prototype =
                         nPtIdx += (oBBox.c2 - oBBox.c1 + 1);
                     }
                 }
+                oLvl.setPtCount(nPtIdx);
+                this.addLvl(oLvl);
             }
         }
     },
@@ -9767,6 +9833,13 @@ CMultiLvlStrRef.prototype =
     },
     getParsedRefs: function() {
         return AscFormat.fParseChartFormula(this.f);
+    },
+    getFirstLvlCache: function() {
+        var oCache = this.multiLvlStrCache;
+        if(oCache && oCache.lvl[0]) {
+            return oCache.lvl[0];
+        }
+        return null;
     }
 };
 
@@ -11440,13 +11513,13 @@ CTx.prototype =
         this.val = pr;
             },
 
-    getText: function() {
+    getText: function(bNoUpdate) {
         var sRet = "";
         if(typeof this.val === "string" && this.val.length > 0) {
             sRet = this.val;
         }
         else if(this.strRef) {
-            sRet = this.strRef.getText();
+            sRet = this.strRef.getText(bNoUpdate);
         }
         return sRet;
     },
@@ -11519,6 +11592,12 @@ CTx.prototype =
             return true;
         }
         return false;
+    },
+
+    update: function () {
+        if(this.strRef) {
+            this.strRef.updateCache();
+        }
     }
 };
 
@@ -12008,9 +12087,11 @@ CStrRef.prototype =
         this.strCache.removeAllPts();
         this.strCache.update(this.f);
     },
-    getText: function() {
+    getText: function(bNoUpdate) {
         if(!this.strCache) {
-            this.updateCache();
+            if(bNoUpdate !== true) {
+                this.updateCache();
+            }
         }
         var aValues = this.strCache.getValues(null);
         var sRet = "";
@@ -12737,11 +12818,11 @@ CTitle.prototype =
 
     getDefaultTextForTxBody: function()
     {
-        var oStrCache = AscFormat.getStringPointsFromCat(this.tx);
-        if(oStrCache){
-            var oPoint = oStrCache.getPtByIndex(0);
-            if(oPoint && oPoint.val){
-                return oPoint.val;
+        var sText;
+        if(this.tx) {
+            sText = this.tx.getText(true);
+            if(typeof sText === "string" && sText.length > 0) {
+                return sText;
             }
         }
         var key = 'Axis Title';
@@ -12753,14 +12834,9 @@ CTitle.prototype =
                     && this.parent.plotArea.charts[0].series.length === 1 && this.parent.plotArea.charts[0].series[0].tx)
                 {
                     var oTx = this.parent.plotArea.charts[0].series[0].tx;
-                    if(typeof oTx.val === "string" && oTx.val.length > 0)
-                    {
-                        return oTx.val;
-                    }
-                    if(oTx.strRef && oTx.strRef.strCache && oTx.strRef.strCache.pts.length === 1 && isRealObject(oTx.strRef.strCache.pts[0]) && typeof oTx.strRef.strCache.pts[0].val === "string"
-                        && oTx.strRef.strCache.pts[0].val.length > 0)
-                    {
-                        return oTx.strRef.strCache.pts[0].val;
+                    sText = oTx.getText(true);
+                    if(typeof sText === "string" && sText.length > 0) {
+                        return sText;
                     }
                 }
 				key = 'Diagram Title';
@@ -13320,6 +13396,11 @@ CYVal.prototype =
             return true;
         }
         return false;
+    },
+    update: function(displayEmptyCellsAs, displayHidden, ser) {
+        if(this.numRef) {
+            this.numRef.updateCache(displayEmptyCellsAs, displayHidden, ser);
+        }
     }
 };
 
