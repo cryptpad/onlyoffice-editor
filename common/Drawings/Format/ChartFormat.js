@@ -9711,9 +9711,10 @@ CMultiLvlStrCache.prototype =
         if(!(typeof sFormula === "string" && sFormula.length > 0)) {
             return;
         }
+        var nPtCount = 0;
         var aParsedRef = AscFormat.fParseChartFormula(sFormula);
         if(aParsedRef.length > 0) {
-            var nPtCount = 0, nRows = 0, nRef, oRef, oBBox, nPtIdx, nCol, oWS, oCell, sVal;
+            var nRows = 0, nRef, oRef, oBBox, nPtIdx, nCol, oWS, oCell, sVal;
             for(nRef = 0; nRef < aParsedRef.length; ++nRef) {
                 oRef = aParsedRef[nRef];
                 oBBox = oRef.bbox;
@@ -9742,10 +9743,12 @@ CMultiLvlStrCache.prototype =
                         nPtIdx += (oBBox.c2 - oBBox.c1 + 1);
                     }
                 }
+                nPtCount = Math.max(nPtCount, nPtIdx);
                 oLvl.setPtCount(nPtIdx);
                 this.addLvl(oLvl);
             }
         }
+        this.setPtCount(nPtCount);
     },
 
     getValues: function (nMaxValues) {

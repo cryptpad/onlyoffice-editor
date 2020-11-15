@@ -6285,21 +6285,6 @@ CChartSpace.prototype.getCommonBBox = function()
     }
 };
 
-CChartSpace.prototype.checkValByNumRef = function(ser, val)
-{
-    if(val && val.numRef)
-    {
-        val.numRef.updateCache(this.displayEmptyCellsAs, this.displayHidden, ser);
-    }
-};
-
-CChartSpace.prototype.checkCatByNumRef = function(ser, cat)
-{
-    if(cat && cat.strRef)
-    {
-        cat.strRef.updateCache();
-    }
-};
 
 CChartSpace.prototype.recalculateReferences = function()
 {
@@ -6707,6 +6692,9 @@ CChartSpace.prototype.getValAxisCrossType = function()
                 return oFirstSeries.getValues(oFirstSeries.getValuesCount());
             }
             else {
+                if(oFirstSeries.xVal) {
+                    return oFirstSeries.xVal.getValues(oFirstSeries.getValuesCount());
+                }
                 var oAxes = this.chart.plotArea.getAxisByTypes();
                 var oValAxis = null;
                 for(var nAxis = 0; nAxis < oAxes.valAx.length; ++nAxis) {

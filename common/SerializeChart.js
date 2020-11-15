@@ -3347,7 +3347,7 @@ BinaryChartWriter.prototype.WriteCT_MultiLvlStrRef = function (oVal) {
 BinaryChartWriter.prototype.WriteCT_lvl = function (oVal) {
     var oThis = this;
     if (null != oVal) {
-        for (var i = 0, length = oVal.length; i < length; ++i) {
+        for (var i = 0, length =  oVal.pts.length; i < length; ++i) {
             var oCurVal = oVal.pts[i];
             if (null != oCurVal) {
                 this.bs.WriteItem(c_oserct_lvlPT, function () {
@@ -3364,10 +3364,10 @@ BinaryChartWriter.prototype.WriteCT_MultiLvlStrData = function (oVal) {
             oThis.WriteCT_UnsignedInt(oVal.ptCount);
         });
     }
-    //todo array
-    if (null != oVal.lvl) {
+    var nLvl;
+    for(nLvl = 0; nLvl < oVal.lvl.length; ++nLvl) {
         this.bs.WriteItem(c_oserct_multilvlstrdataLVL, function () {
-            oThis.WriteCT_lvl(oVal.lvl);
+            oThis.WriteCT_lvl(oVal.lvl[nLvl]);
         });
     }
     // var oCurVal = oVal.m_extLst;
@@ -8728,10 +8728,7 @@ BinaryChartReader.prototype.ReadCT_MultiLvlStrData = function (type, length, val
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_lvl(t, l, oNewVal);
         });
-        for(var i = 0; i < oNewVal.length; ++i)
-        {
-            val.addLvl(oNewVal[i]);
-        }
+        val.addLvl(oNewVal);
     }
     else if (c_oserct_multilvlstrdataEXTLST === type) {
         var oNewVal = {};
