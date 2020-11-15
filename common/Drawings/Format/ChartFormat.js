@@ -2822,10 +2822,10 @@ function CDLbl()
             this.yVal.update(displayEmptyCellsAs, displayHidden, this);
         }
         if(this.cat) {
-            this.cat.update();
+            this.cat.update(this);
         }
         if(this.xVal) {
-            this.xVal.update();
+            this.xVal.update(this);
         }
         if(this.tx) {
             this.tx.update();
@@ -2927,6 +2927,13 @@ function CDLbl()
             checkSpPrRasterImages(this.dPt[i].spPr);
             this.dPt[i].marker && checkSpPrRasterImages(this.dPt[i].marker.spPr);
         }
+    };
+    CSeriesBase.prototype.getValRefFormula = function() {
+        var oVal = this.val || this.yVal;
+        if(oVal) {
+            return oVal.getRefFormula();
+        }
+        return null;
     };
     CSeriesBase.prototype.getCatName = function(idx) {
         var pts;
@@ -7464,9 +7471,9 @@ CCat.prototype =
         }
         return oLit;
     },
-    update: function() {
+    update: function(oSeries) {
         if(this.multiLvlStrRef) {
-            this.multiLvlStrRef.updateCache();
+            this.multiLvlStrRef.updateCache(oSeries);
         }
         if(this.numRef) {
             this.numRef.updateCache();
@@ -9707,45 +9714,107 @@ CMultiLvlStrCache.prototype =
         this.Id = r.GetString2();
     },
 
-    update: function(sFormula) {
+    update: function(sFormula, oSeries) {
         if(!(typeof sFormula === "string" && sFormula.length > 0)) {
             return;
         }
+        var nPtCount = 0;
         var aParsedRef = AscFormat.fParseChartFormula(sFormula);
         if(aParsedRef.length > 0) {
-            var nPtCount = 0, nRows = 0, nRef, oRef, oBBox, nPtIdx, nCol, oWS, oCell, sVal;
-            for(nRef = 0; nRef < aParsedRef.length; ++nRef) {
-                oRef = aParsedRef[nRef];
-                oBBox = oRef.bbox;
-                nPtCount += (oBBox.c2 - oBBox.c1 + 1);
-                nRows = Math.max(nRows, oBBox.r2 - oBBox.r1 + 1);
-            }
+            var nRows = 0, nRef, oRef, oBBox, nPtIdx, nCol, oWS, oCell, sVal, nCols = 0, nRow;
             var nLvl, oLvl;
-            for(nLvl = 0; nLvl < nRows; ++nLvl) {
-                oLvl = new CStrCache();
-                nPtIdx = 0;
+            var bLvlsByRows = true;
+            if(oSeries) {
+                var sSeriesFormula = oSeries.getValRefFormula();
+
+                if(sSeriesFormula) {
+                    if(sSeriesFormula.charAt(0) === '=') {
+                        sSeriesFormula = sSeriesFormula.slice(1);
+                    }
+                    var aParsedSeriesRef = AscFormat.fParseChartFormula(sSeriesFormula);
+                    if(aParsedSeriesRef.length === aParsedRef.length) {
+                        var oSeriesRef;
+                        for(nRef = 0; nRef < aParsedRef.length; ++nRef) {
+                            oRef = aParsedRef[nRef];
+                            oSeriesRef = aParsedSeriesRef[nRef];
+                            if(oSeriesRef.r1 !== oRef.r1 || oSeriesRef.r2 !== oRef.r2) {
+                                break;
+                            }
+                        }
+                        if(nRef === aParsedRef.length) {
+                            bLvlsByRows = false;
+                        }
+                    }
+                }
+            }
+            if(bLvlsByRows) {
                 for(nRef = 0; nRef < aParsedRef.length; ++nRef) {
                     oRef = aParsedRef[nRef];
                     oBBox = oRef.bbox;
-                    oWS = oRef.worksheet;
-                    if(nLvl < (oBBox.r2 - oBBox.r1 + 1)) {
-                        for(nCol = oBBox.c1; nCol <= oBBox.c2; ++nCol) {
-                            oCell = oWS.getCell3(nLvl + oBBox.r1, nCol);
-                            sVal = oCell.getValueWithFormat();
-                            if(typeof sVal === "string" && sVal.length > 0) {
-                                oLvl.addStringPoint(nPtIdx, sVal);
+                    nPtCount += (oBBox.c2 - oBBox.c1 + 1);
+                    nRows = Math.max(nRows, oBBox.r2 - oBBox.r1 + 1);
+                }
+                for(nLvl = 0; nLvl < nRows; ++nLvl) {
+                    oLvl = new CStrCache();
+                    nPtIdx = 0;
+                    for(nRef = 0; nRef < aParsedRef.length; ++nRef) {
+                        oRef = aParsedRef[nRef];
+                        oBBox = oRef.bbox;
+                        oWS = oRef.worksheet;
+                        if(nLvl < (oBBox.r2 - oBBox.r1 + 1)) {
+                            for(nCol = oBBox.c1; nCol <= oBBox.c2; ++nCol) {
+                                oCell = oWS.getCell3(nLvl + oBBox.r1, nCol);
+                                sVal = oCell.getValueWithFormat();
+                                if(typeof sVal === "string" && sVal.length > 0) {
+                                    oLvl.addStringPoint(nPtIdx, sVal);
+                                }
+                                ++nPtIdx;
                             }
-                            ++nPtIdx;
+                        }
+                        else {
+                            nPtIdx += (oBBox.c2 - oBBox.c1 + 1);
                         }
                     }
-                    else {
-                        nPtIdx += (oBBox.c2 - oBBox.c1 + 1);
-                    }
+                    nPtCount = Math.max(nPtCount, nPtIdx);
+                    oLvl.setPtCount(nPtIdx);
+                    this.addLvl(oLvl);
                 }
-                oLvl.setPtCount(nPtIdx);
-                this.addLvl(oLvl);
+            }
+            else {
+                for(nRef = 0; nRef < aParsedRef.length; ++nRef) {
+                    oRef = aParsedRef[nRef];
+                    oBBox = oRef.bbox;
+                    nPtCount += (oBBox.r2 - oBBox.r1 + 1);
+                    nCols = Math.max(nCols, oBBox.c2 - oBBox.c1 + 1);
+                }
+                for(nLvl = 0; nLvl < nCols; ++nLvl) {
+                    oLvl = new CStrCache();
+                    nPtIdx = 0;
+                    for(nRef = 0; nRef < aParsedRef.length; ++nRef) {
+                        oRef = aParsedRef[nRef];
+                        oBBox = oRef.bbox;
+                        oWS = oRef.worksheet;
+                        if(nLvl < (oBBox.c2 - oBBox.c1 + 1)) {
+                            for(nRow = oBBox.r1; nRow <= oBBox.r2; ++nRow) {
+                                oCell = oWS.getCell3(nRow, nLvl + oBBox.c1);
+                                sVal = oCell.getValueWithFormat();
+                                if(typeof sVal === "string" && sVal.length > 0) {
+                                    oLvl.addStringPoint(nPtIdx, sVal);
+                                }
+                                ++nPtIdx;
+                            }
+                        }
+                        else {
+                            nPtIdx += (oBBox.r2 - oBBox.r1 + 1);
+                        }
+                    }
+                    nPtCount = Math.max(nPtCount, nPtIdx);
+                    oLvl.setPtCount(nPtIdx);
+                    this.addLvl(oLvl);
+                }
             }
         }
+        this.setPtCount(nPtCount);
     },
 
     getValues: function (nMaxValues) {
@@ -9818,9 +9887,9 @@ CMultiLvlStrRef.prototype =
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_MultiLvlStrRef_SetMultiLvlStrCache, this.multiLvlStrCache, pr));
         this.multiLvlStrCache = pr;
     },
-    updateCache: function () {
+    updateCache: function (oSeries) {
         this.setMultiLvlStrCache(new CMultiLvlStrCache());
-        this.multiLvlStrCache.update(this.f);
+        this.multiLvlStrCache.update(this.f, oSeries);
     },
     getValues: function (nMaxValues) {
         if(!this.multiLvlStrCache) {
@@ -13384,6 +13453,12 @@ CYVal.prototype =
         if(this.numRef) {
             return this.numRef.getFormula();
         }
+    },
+    getRefFormula: function() {
+        if(this.numRef) {
+            return this.numRef.getFormula();
+        }
+        return null;
     },
     getParsedRefs: function() {
         if(this.numRef) {
