@@ -12819,8 +12819,8 @@ CTitle.prototype =
     getDefaultTextForTxBody: function()
     {
         var sText;
-        if(this.tx) {
-            sText = this.tx.getText(true);
+        if(this.tx && this.tx.strRef) {
+            sText = this.tx.strRef.getText(true);
             if(typeof sText === "string" && sText.length > 0) {
                 return sText;
             }
