@@ -6693,7 +6693,7 @@ CChartSpace.prototype.getValAxisCrossType = function()
             }
             else {
                 if(oFirstSeries.xVal) {
-                    return oFirstSeries.xVal.getValues(oFirstSeries.getValuesCount());
+                    return oFirstSeries.xVal.getValues();
                 }
                 var oAxes = this.chart.plotArea.getAxisByTypes();
                 var oValAxis = null;
@@ -6853,76 +6853,10 @@ CChartSpace.prototype.getValAxisCrossType = function()
                 else{
                     fMultiplier = 1.0;
                 }
-                var oNumFmt = oAxis.numFmt;
                 var oNumFormat = null;
-                var sFormatCode = null;
-                if(oNumFmt){
-                    if(!oNumFmt.sourceLinked) {
-                        if(typeof oNumFmt.formatCode === "string"){
-                            sFormatCode = oNumFmt.formatCode;
-                        }
-                    }
-                    else {
-                        var aPoints = AscFormat.getPtsFromSeries(oSeries);
-                        if(aPoints[0] &&  aPoints[0].idx === 0 && typeof aPoints[0].formatCode === "string" && aPoints[0].formatCode.length > 0){
-                            sFormatCode = aPoints[0].formatCode;
-                        }
-                        else {
-                            if(oSeries.parent && oSeries.parent.getObjectType
-                                && (oSeries.parent.getObjectType() === AscDFH.historyitem_type_BarChart  && oSeries.parent.grouping ===  AscFormat.BAR_GROUPING_PERCENT_STACKED
-                                || oSeries.parent.getObjectType() !== AscDFH.historyitem_type_BarChart && oSeries.parent.grouping === AscFormat.GROUPING_PERCENT_STACKED)) {
-                                sFormatCode = "0%";
-                            }
-                            else if(this.worksheet) {
-                                var oBBox = this._recalculateBBox([oSeries]);
-                                if(oBBox && oBBox.seriesBBoxes[0] && oBBox.seriesBBoxes[0].bbox) {
-                                    var cell = this.worksheet.getCell3(oBBox.seriesBBoxes[0].bbox.r1, oBBox.seriesBBoxes[0].bbox.c1);
-                                    sFormatCode = cell.getNumFormatStr();
-                                }
-                            }
-                            else {
-                                if(typeof oNumFmt.formatCode === "string" && oNumFmt.formatCode.length > 0){
-                                    sFormatCode = oNumFmt.formatCode;
-                                }
-                            }
-                        }
-                    }
-                }
+                var sFormatCode = oAxis.getFormatCode(this, oSeries);
                 if(typeof sFormatCode === "string"){
                     oNumFormat = oNumFormatCache.get(sFormatCode);
-                }
-                else{
-                    if(oSeries){
-                        if(oSeries.xVal){
-                            var strCache = oSeries.xVal.strRef && oSeries.xVal.strRef.strCache;
-                            if(strCache && strCache.pts[0] && typeof strCache.pts[0].formatCode === "string"){
-                                oNumFormat = oNumFormatCache.get(strCache.pts[0].formatCode);
-                            }
-                        }
-                        else{
-                            var pts = getPtsFromSeries(oSeries);
-                            if(pts.length > 0 && pts[0].idx === 0 && typeof pts[0].formatCode === "string" && pts[0].formatCode.length > 0){
-                                oNumFormat = oNumFormatCache.get(pts[0].formatCode);
-                            }
-                            else {
-                                if(this.worksheet) {
-                                    var oBBox = this._recalculateBBox([oSeries]);
-                                    if(oBBox && oBBox.seriesBBoxes[0] && oBBox.seriesBBoxes[0].bbox) {
-                                        var cell = this.worksheet.getCell3(oBBox.seriesBBoxes[0].bbox.r1, oBBox.seriesBBoxes[0].bbox.c1);
-                                        sFormatCode = cell.getNumFormatStr();
-                                    }
-                                }
-                                if(!sFormatCode) {
-                                    if(oSeries.getFormatCode){
-                                        sFormatCode = oSeries.getFormatCode();
-                                        if(sFormatCode === "string" && sFormatCode.length > 0){
-                                            oNumFormat = oNumFormatCache.get(sFormatCode);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
                 if(!oNumFormat) {
                     oNumFormat = oNumFormatCache.get("General");
@@ -17705,7 +17639,7 @@ function CreateScatterChart(chartSeries, bUseCache, oOptions)
     if(first_series && first_series.xVal && typeof first_series.xVal.Formula === "string" && first_series.xVal.Formula.length > 0)
     {
         oXVal = new AscFormat.CCat();
-        FillCatStr(oXVal, first_series.xVal, bUseCache);
+        FillValNum(oXVal, first_series.xVal, bUseCache);
     }
     else
     {

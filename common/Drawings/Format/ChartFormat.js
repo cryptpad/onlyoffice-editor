@@ -6183,7 +6183,6 @@ CValAx.prototype =
         this.Id = r.GetString2();
     },
 
-
     setAxId: function(pr)
     {
         History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_ValAxSetAxId, this.axId, pr));
@@ -6771,6 +6770,61 @@ CValAx.prototype =
                 this.setDelete(false);
             }
         }
+    },
+
+    getFormatCode: function(oChartSpace, oSeries) {
+        var oNumFmt = this.numFmt;
+        var sFormatCode = null;
+        if(oNumFmt) {
+            sFormatCode = oNumFmt.formatCode;
+            if(false === oNumFmt.sourceLinked && typeof sFormatCode === "string" && sFormatCode.length > 0) {
+                return sFormatCode;
+            }
+        }
+        if(oSeries) {
+            if(oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer &&
+                (this.axPos === AscFormat.AX_POS_B || this.axPos === AscFormat.AX_POS_T)) {
+                var oXVal = oSeries.xVal;
+                if(oXVal) {
+                    var oXValLit = (oXVal.numRef && oXVal.numRef.numCache || oXVal.numLit || oXVal.strRef && oXVal.strRef.strCache);
+                    if(oXValLit) {
+                        var aXPts = oXValLit.pts;
+                        if(aXPts[0] &&  aXPts[0].idx === 0 && typeof aXPts[0].formatCode === "string" && aXPts[0].formatCode.length > 0){
+                            sFormatCode = aXPts[0].formatCode;
+                        }
+                        else {
+                            if(oXValLit.formatCode) {
+                                sFormatCode = oXValLit.formatCode;
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                var aPoints = AscFormat.getPtsFromSeries(oSeries);
+                if(aPoints[0] &&  aPoints[0].idx === 0 && typeof aPoints[0].formatCode === "string" && aPoints[0].formatCode.length > 0){
+                    sFormatCode = aPoints[0].formatCode;
+                }
+                else {
+                    if(oSeries.parent
+                        && (oSeries.parent.getObjectType() === AscDFH.historyitem_type_BarChart  && oSeries.parent.grouping ===  AscFormat.BAR_GROUPING_PERCENT_STACKED
+                        || oSeries.parent.getObjectType() !== AscDFH.historyitem_type_BarChart && oSeries.parent.grouping === AscFormat.GROUPING_PERCENT_STACKED)) {
+                        sFormatCode = "0%";
+                    }
+                    else if(oChartSpace.worksheet) {
+                        var oBBox = oChartSpace._recalculateBBox([oSeries]);
+                        if(oBBox && oBBox.seriesBBoxes[0] && oBBox.seriesBBoxes[0].bbox) {
+                            var cell = oChartSpace.worksheet.getCell3(oBBox.seriesBBoxes[0].bbox.r1, oBBox.seriesBBoxes[0].bbox.c1);
+                            sFormatCode = cell.getNumFormatStr();
+                        }
+                    }
+                }
+                if(!sFormatCode) {
+                    sFormatCode = oSeries.getFormatCode();
+                }
+            }
+        }
+        return sFormatCode;
     }
 };
 
@@ -10416,7 +10470,15 @@ CNumLit.prototype =
         for(var nIndex = 0; nIndex < nEnd; ++nIndex) {
             var oPt = this.getPtByIndex(nIndex);
             if(oPt) {
-                ret.push(oPt.val + "");
+                var sFormatCode = oPt.formatCode || this.formatCode;
+                if(sFormatCode) {
+                    var oNumFmt = AscCommon.oNumFormatCache.get(sFormatCode);
+                    ret.push(oNumFmt.formatToChart(oPt.val));
+                }
+                else {
+                    ret.push(oPt.val + "");
+                }
+
             }
             else {
                 ret.push("");
@@ -11370,7 +11432,7 @@ CScatterChart.prototype = Object.create(CChartBase.prototype);
 
 function CScatterSeries()
 {
-    CSeriesBase.call(this)
+    CSeriesBase.call(this);
     this.dLbls     = null;
     this.dPt       = [];
     this.errBars   = null;
