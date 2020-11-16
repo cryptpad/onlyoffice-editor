@@ -652,6 +652,7 @@
             pluginData.setAttribute("lang", this.language);
             pluginData.setAttribute("documentId", this.api.documentId);
             pluginData.setAttribute("documentTitle", this.api.documentTitle);
+            pluginData.setAttribute("documentCallbackUrl", this.api.documentCallbackUrl);
 
             if (this.api.User)
             {

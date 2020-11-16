@@ -1526,8 +1526,8 @@
 						}
 						else if (data["type"] === "onExternalPluginMessage")
 						{
-                            if (!window.g_asc_plugins)
-                            	return;
+							if (!window.g_asc_plugins)
+								return;
 
 							if (data["subType"] == "internalCommand")
 							{
@@ -1537,7 +1537,7 @@
 									case "onbeforedrop":
 									case "ondrop":
 									{
-                                        window.g_asc_plugins.api.privateDropEvent(data.data);
+										window.g_asc_plugins.api.privateDropEvent(data.data);
 										return;
 									}
 									default:
@@ -1546,6 +1546,13 @@
 							}
 
 							window.g_asc_plugins.sendToAllPlugins(event.data);
+						}
+						else if (data["type"] === "onExternalPluginMessageCallback")
+						{
+							if (!window.g_asc_plugins)
+								return;
+
+							window.parent && window.parent.postMessage(event.data, "*");
 						}
                         else if (data["type"] === "emulateUploadInFrame")
                         {
