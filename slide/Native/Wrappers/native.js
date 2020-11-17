@@ -1270,7 +1270,6 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         {
             var index = parseInt(_params);
             this.AddSlide(index);
-            this.WordControl.m_oDrawingDocument.UpdateThumbnailsAttack();
             break;
         }
 

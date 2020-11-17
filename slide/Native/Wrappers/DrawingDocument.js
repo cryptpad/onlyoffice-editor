@@ -724,7 +724,6 @@ CDrawingDocument.prototype.UpdateThumbnailsAttack = function()
         {
             var oSlide = aSlides[i];
             this.Native["DD_UpdateThumbnailAttack"](i, oSlide.Id, !oSlide.isVisible());
-            DrawingDocument.OnRecalculatePage(i, aSlides[i]);
         }
     }
     DrawingDocument.OnEndRecalculate();

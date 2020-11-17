@@ -4204,9 +4204,9 @@ CPresentation.prototype.Recalculate = function (RecalcData) {
     if (bSync) {
         var bEndRecalc = false;
         if (bRedrawAllSlides) {
-            for (i = 0; i < this.Slides.length; ++i) {
-                this.DrawingDocument.OnRecalculatePage(i, this.Slides[i]);
-            }
+
+            this.bNeedUpdateTh = true;
+            this.DrawingDocument.OnRecalculatePage(this.CurPage, this.Slides[this.CurPage]);
             bEndRecalc = (this.Slides.length > 0);
             if (this.Slides[this.CurPage]) {
                 this.DrawingDocument.Notes_OnRecalculate(this.CurPage, this.Slides[this.CurPage].NotesWidth, this.Slides[this.CurPage].getNotesHeight());
@@ -9241,7 +9241,6 @@ CPresentation.prototype.shiftSlides = function (pos, array, bCopy) {
     this.Recalculate();
     this.Document_UpdateUndoRedoState();
     this.DrawingDocument.OnEndRecalculate();
-    this.DrawingDocument.UpdateThumbnailsAttack();
     this.DrawingDocument.m_oWordControl.GoToPage(_newSelectedPage);
     return _newSelectedPage;
 };
@@ -9265,7 +9264,6 @@ CPresentation.prototype.deleteSlides = function (array) {
         editor.sync_HideComment();
         this.Document_UpdateUndoRedoState();
         this.Recalculate();
-        this.DrawingDocument.UpdateThumbnailsAttack();
     }
 };
 
@@ -9605,7 +9603,6 @@ CPresentation.prototype.moveSlides = function (slidesIndexes, pos) {
         this.insertSlide(insert_pos + i, removed_slides[i]);
     }
     this.Recalculate();
-    this.DrawingDocument.UpdateThumbnailsAttack();
 };
 //-----------------------------------------------------------------------------------
 // Функции для работы с совместным редактирования
