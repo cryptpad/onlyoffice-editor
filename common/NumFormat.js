@@ -512,7 +512,6 @@ function ParseLocalFormatSymbol(Name)
 		case("zh-CN"):
 		case("zh-Hans"):
 		case("zh-TW"): {
-			LocaleFormatSymbol['General']='G/通用格式';
 			LocaleFormatSymbol['general']='g/通用格式';
 		}break;
 //_________________________________________________special_____________________________________________________________
@@ -568,7 +567,7 @@ function ParseLocalFormatSymbol(Name)
 			LocaleFormatSymbol['y'] ='r';
 			LocaleFormatSymbol['H'] = 'G';
 			LocaleFormatSymbol['h'] ='g';
-			LocaleFormatSymbol['General']='standardowy';
+			LocaleFormatSymbol['general']='standardowy';
 		}break;
 		case("cs"):
 		case("cs-CZ"): {
@@ -578,12 +577,10 @@ function ParseLocalFormatSymbol(Name)
 		}break;
 		case("ja"):
 		case("ja-JP"): {
-			LocaleFormatSymbol['General']='G/標準';
 			LocaleFormatSymbol['general']='g/標準';
 		}break;
 		case("ko"):
 		case("ko-KR"): {
-			LocaleFormatSymbol['General']='G/표준';
 			LocaleFormatSymbol['general']='g/표준';
 		}break;
 	}
