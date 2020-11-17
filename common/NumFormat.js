@@ -400,7 +400,7 @@ function ParseLocalFormatSymbol(Name)
 			LocaleFormatSymbol['d'] = 'д';
 			LocaleFormatSymbol['H'] = 'Ч';
 			LocaleFormatSymbol['h'] = 'ч';
-			LocaleFormatSymbol['Minute'] = 'м';
+			LocaleFormatSymbol['Minute'] = 'М';
 			LocaleFormatSymbol['minute'] = 'м'
 			LocaleFormatSymbol['S'] = 'C';
 			LocaleFormatSymbol['s'] = 'с';
@@ -441,8 +441,8 @@ function ParseLocalFormatSymbol(Name)
 			LocaleFormatSymbol['y'] = 'j';
 			LocaleFormatSymbol['M'] = 'M';
 			LocaleFormatSymbol['m'] = 'M';
+			LocaleFormatSymbol['Minute'] = 'M';
 			LocaleFormatSymbol['minute'] = 'm';
-			LocaleFormatSymbol['Minute'] = 'm';
 			LocaleFormatSymbol['D'] = 'T';
 			LocaleFormatSymbol['d'] = 't';
 			LocaleFormatSymbol['general']='standard';
@@ -475,7 +475,7 @@ function ParseLocalFormatSymbol(Name)
 			LocaleFormatSymbol['y'] = 'å';
 			LocaleFormatSymbol['m'] = 'M'
 			LocaleFormatSymbol['M'] = 'M';
-			LocaleFormatSymbol['Minute'] = 'm';
+			LocaleFormatSymbol['Minute'] = 'M';
 			LocaleFormatSymbol['minute']='m';
 			LocaleFormatSymbol['H'] = 'T';
 			LocaleFormatSymbol['h'] = 't';
@@ -731,7 +731,7 @@ NumFormat.prototype =
     },
     _parseFormat : function(digitSpaceSymbol,useLocaleFormat)
     {
-    	var sGeneral;
+		var sGeneral;
 		var DecimalSeparator;
 		var GroupSeparator;
 		var TimeSeparator;
@@ -871,7 +871,11 @@ NumFormat.prototype =
 			}
 			else if(Month == next || month == next)
 			{
-			    this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+				if (Month === Minute) {
+					this._addToFormat2(new FormatObjDateVal(numFormat_MonthMinute, 1, false));
+				} else {
+					this._addToFormat2(new FormatObjDateVal(numFormat_Month, 1, false));
+				}
 			}
 			else if(Day == next || day == next)
 			{
@@ -1015,7 +1019,7 @@ NumFormat.prototype =
                     }
                 }
             }
-            else if(numFormat_Year == item.type || numFormat_MonthMinute == item.type || numFormat_Day == item.type || numFormat_Hour == item.type || numFormat_Second == item.type || numFormat_Thousand == item.type)
+            else if(numFormat_Year == item.type || numFormat_MonthMinute == item.type || numFormat_Month == item.type || numFormat_Day == item.type || numFormat_Hour == item.type || numFormat_Minute == item.type || numFormat_Second == item.type || numFormat_Thousand == item.type)
             {
                 //Собираем в одно целое последовательности hhh
                 var nStartType = item.type;
