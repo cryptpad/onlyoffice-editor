@@ -1914,19 +1914,8 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                     }
                 }
             }
-
-            if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Document_Content_Add) )
-            {
-                this.WordControl.m_oLogicDocument.StartAction();
-                this.WordControl.m_oLogicDocument.AddInlineTable(_rows, _cols);
-
-                if (_style != null)
-                {
-                    this.WordControl.m_oLogicDocument.SetTableProps({TableStyle : _style});
-                }
-
-                this.WordControl.m_oLogicDocument.FinalizeAction();
-            }
+            _style = _style + "";
+            this.put_Table(_rows, _cols, _style);
             break;
         }
         case 50: // ASC_MENU_EVENT_TYPE_INSERT_IMAGE
