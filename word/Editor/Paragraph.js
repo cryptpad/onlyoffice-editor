@@ -14727,6 +14727,14 @@ Paragraph.prototype.private_FindBookmarks = function(nStart, nEnd)
 {
 	var nPos;
 	var aBookmarks = [], oElement;
+	if(nStart < 0 || nEnd < 0)
+	{
+		return aBookmarks;
+	}
+	if(nStart >= this.Content.length || nEnd >= this.Content.length)
+	{
+		return aBookmarks;
+	}
 	if(nStart < nEnd)
 	{
 		for(nPos = nStart; nPos <= nEnd; ++nPos)
