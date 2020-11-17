@@ -1235,7 +1235,7 @@ NumFormat.prototype =
                         bLeftCond = true;
                 }
                 
-                if( true == bLeftCond || true == bRightCond)
+                if((true == bLeftCond || true == bRightCond) && item.val <= 2)
 				{
                     item.type = numFormat_Minute;
 					this.bTime = true;

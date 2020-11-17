@@ -3850,7 +3850,19 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "12.5%" );
 
-		testArrayFormula2("TEXT", 2, 2);
+        oParser = new parserFormula( "TEXT(123123,\"hh:mmm:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:Feb:00" );
+
+        oParser = new parserFormula( "TEXT(123123,\"hh:mmmm:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:February:00" );
+
+        oParser = new parserFormula( "TEXT(123123,\"hh:mmmmm:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:F:00" );
+
+        testArrayFormula2("TEXT", 2, 2);
 
         //____________________________________en_____________________________________________
         AscCommon.setCurrentCultureInfo(1025);
