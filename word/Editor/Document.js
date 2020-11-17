@@ -21085,7 +21085,7 @@ CDocument.prototype.private_AddRefToBookmark = function(sBookmarkName, nType, bH
 	{
 		sSuffix += " \\h";
 	}
-	if(bAboveBelow)
+	if(bAboveBelow && nType !== Asc.c_oAscDocumentRefenceToType.AboveBelow)
 	{
 		sSuffix += " \\p";
 	}
@@ -21130,6 +21130,7 @@ CDocument.prototype.private_AddRefToBookmark = function(sBookmarkName, nType, bH
 		case Asc.c_oAscDocumentRefenceToType.AboveBelow:
 		{
 			sInstr = " REF " + sBookmarkName + " \\p ";
+            sInstr += sSuffix;
 			break;
 		}
 	}
@@ -21193,7 +21194,7 @@ CDocument.prototype.private_AddNoteRefToBookmark = function(sBookmarkName, nType
 	{
 		sSuffix += " \\h";
 	}
-	if(bAboveBelow)
+	if(bAboveBelow && nType !== Asc.c_oAscDocumentRefenceToType.AboveBelow)
 	{
 		sSuffix += " \\p";
 	}
@@ -21220,6 +21221,7 @@ CDocument.prototype.private_AddNoteRefToBookmark = function(sBookmarkName, nType
 		case Asc.c_oAscDocumentRefenceToType.AboveBelow:
 		{
 			sInstr = " NOTEREF " + sBookmarkName + " \\p ";
+            sInstr += sSuffix;
 			break;
 		}
 	}
