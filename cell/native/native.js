@@ -3832,7 +3832,7 @@ function OfflineEditor () {
     this.openFile = function(settings) {
         
         window["NativeSupportTimeouts"] = true;
-        
+
         //        try
         //        {
         //            throw "OpenFile";
@@ -3841,19 +3841,19 @@ function OfflineEditor () {
         //        {
         //
         //        }
-        
+
         AscFonts.FontPickerByCharacter.IsUseNoSquaresMode = true;
-        
+
         this.initSettings = settings;
-        
+
         this.beforeOpen();
-        
+
         deviceScale = window["native"]["GetDeviceScale"]();
         sdkCheck = settings["sdkCheck"];
-        
+
         window.g_file_path = "native_open_file";
         window.NATIVE_DOCUMENT_TYPE = "";
-  
+
         var translations = this.initSettings["translations"];
         if (undefined != translations && null != translations && translations.length > 0) {
             translations = JSON.parse(translations)
@@ -3862,7 +3862,7 @@ function OfflineEditor () {
         }
 
         window["_api"] = window["API"] = _api = new window["Asc"]["spreadsheet_api"](translations);
-        
+
         AscCommon.g_clipboardBase.Init(_api);
         
         var userInfo = new Asc.asc_CUserInfo();
@@ -3900,9 +3900,9 @@ function OfflineEditor () {
             window["native"]["onTokenJWT"](_api.CoAuthoringApi.get_jwt());
             
         } else {
-            
-            _api.asc_nativeOpenFile(window["native"]["GetFileString"](), undefined, true, window["native"]["GetXlsxPath"]());
-            
+
+             var thenCallback = function() {
+
             this.asc_WriteAllWorksheets(true);
             this.asc_WriteCurrentCell();
             
@@ -3954,7 +3954,8 @@ function OfflineEditor () {
                     //console.log(JSON.stringify(json));
                 }
             }
-            
+            };
+            _api.asc_nativeOpenFile(window["native"]["GetFileString"](), undefined, true, window["native"]["GetXlsxPath"]()).then(thenCallback, thenCallback);
             // TODO: Implement frozen places
             // TODO: Implement Text Art Styles
         }
