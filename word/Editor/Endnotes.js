@@ -962,11 +962,15 @@ CEndnotesController.prototype.GetAllTables = function(oProps, arrTables)
 };
 CEndnotesController.prototype.GetFirstParagraphs = function()
 {
-	var aParagraphs = []
+	var aParagraphs = [];
 	for (var sId in this.Endnote)
 	{
 		var oEndnote = this.Endnote[sId];
-		aParagraphs.push(oEndnote.GetFirstParagraph());
+		var oParagrpaph = oEndnote.GetFirstParagraph();
+		if(oParagrpaph && oParagrpaph.Is_UseInDocument())
+		{
+			aParagraphs.push(oParagrpaph);
+		}
 	}
 	return aParagraphs;
 };

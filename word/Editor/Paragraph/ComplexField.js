@@ -943,6 +943,17 @@ CComplexField.prototype.private_GetREFPosValue = function()
 	{
 		return "";
 	}
+	var oParent = oParagraph.GetParent();
+	var oSrcParent = oSrcParagraph.GetParent();
+	if(!oParent || !oSrcParent)
+	{
+		return "";
+	}
+	if(oParent.IsHdrFtr() !== oSrcParent.IsHdrFtr())
+	{
+		return "";
+	}
+
 	var sPosition = "";
 	if (oStartBookmark.GetPage() === this.SeparateChar.GetPage())
 	{
@@ -997,6 +1008,31 @@ CComplexField.prototype.private_GetErrorContent = function(sMessage)
 	oTextPr.Set_FromObject({Bold: true});
 	return this.private_GetMessageContent(sMessage, oTextPr);
 };
+CComplexField.prototype.private_GetBookmarkContent = function(sBookmarkName)
+{
+	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
+	this.LogicDocument.TurnOff_InterfaceEvents();
+	oBookmarksManager.SelectBookmark(sBookmarkName);
+	this.LogicDocument.TurnOn_InterfaceEvents(false);
+	var oSelectedContent = this.LogicDocument.GetSelectedContent(false);
+	var aElements = oSelectedContent.Elements;
+	var oElement;
+	for(var nIndex = 0; nIndex < aElements.length; ++nIndex)
+	{
+		oElement = aElements[nIndex];
+		oElement.Element = oElement.Element.Copy(null, null, {
+			SkipPageBreak         : true,
+			SkipColumnBreak       : true,
+			SkipAnchors           : true,
+			SkipFootnoteReference : true,
+			SkipComplexFields     : true,
+			SkipComments          : true,
+			SkipBookmarks         : true
+		});
+	}
+	oSelectedContent.DoNotAddEmptyPara = true;
+	return oSelectedContent;
+};
 CComplexField.prototype.private_GetREFContent = function()
 {
 	var sValue = AscCommon.translateManager.getValue("Error! Reference source not found.");
@@ -1016,6 +1052,12 @@ CComplexField.prototype.private_GetREFContent = function()
 	var oRun       = this.BeginChar.GetRun();
 	var oParagraph = oRun.GetParagraph();
 	if(!oSrcParagraph || !oParagraph)
+	{
+		return this.private_GetErrorContent(sValue);
+	}
+	var oParent = oParagraph.GetParent();
+	var oSrcParent = oSrcParagraph.GetParent();
+	if(!oParent || !oSrcParent)
 	{
 		return this.private_GetErrorContent(sValue);
 	}
@@ -1082,31 +1124,13 @@ CComplexField.prototype.private_GetREFContent = function()
 		}
 		return this.private_GetMessageContent(sValue, null);
 	}
-	else if(this.Instruction.IsPosition())
+	else if(this.Instruction.IsPosition() && sPosition.length > 0)
 	{
 		return this.private_GetMessageContent(sPosition, null);
 	}
 	else // bookmark content
 	{
-		oBookmarksManager.SelectBookmark(sBookmarkName);
-		var oSelectedContent = this.LogicDocument.GetSelectedContent(true);
-		var aElements = oSelectedContent.Elements;
-		var oElement;
-		for(var nIndex = 0; nIndex < aElements.length; ++nIndex)
-		{
-			oElement = aElements[nIndex];
-			oElement.Element = oElement.Element.Copy(null, null, {
-				SkipPageBreak         : true,
-				SkipColumnBreak       : true,
-				SkipAnchors           : true,
-				SkipFootnoteReference : true,
-				SkipComplexFields     : true,
-				SkipComments          : true,
-				SkipBookmarks         : true
-			});
-		}
-		oSelectedContent.DoNotAddEmptyPara = true;
-		return oSelectedContent;
+		return this.private_GetBookmarkContent(sBookmarkName);
 	}
 	//TODO: Apply formatting from general switches
 };
@@ -1125,8 +1149,9 @@ CComplexField.prototype.private_GetNOTEREFContent = function()
 		return this.private_GetErrorContent(sValue);
 	}
 	//check notes in bookmarked content
-
+	this.LogicDocument.TurnOff_InterfaceEvents();
 	oBookmarksManager.SelectBookmark(sBookmarkName);
+	this.LogicDocument.TurnOn_InterfaceEvents(false);
 	var oSelectionInfo = this.LogicDocument.GetSelectedElementsInfo({CheckAllSelection : true});
 	var aFootEndNotes = oSelectionInfo.GetFootEndNoteRefs();
 	if(aFootEndNotes.length === 0)
@@ -1145,21 +1170,33 @@ CComplexField.prototype.private_GetNOTEREFContent = function()
 	var oSelectedContent = new CSelectedContent();
 	var oTextPr;
 	var oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
-	oRun  = new ParaRun(oPara, false);
-	if(this.Instruction.IsFormatting())
+	var oParent = oParagraph.GetParent();
+	var oSrcParent = oSrcParagraph.GetParent();
+	if(!oParent || !oSrcParent)
 	{
-		oTextPr = new CTextPr();
-		oTextPr.Set_FromObject({VertAlign: AscCommon.vertalign_SuperScript});
-		oRun.Apply_Pr(oTextPr);
+		return this.private_GetErrorContent(sValue);
 	}
-	oRun.AddText(oFootEndNote.private_GetString());
-	oPara.AddToContent(0, oRun);
-	if(this.Instruction.IsPosition())
+	if(this.Instruction.IsPosition() && oParent.IsHdrFtr() === oSrcParent.IsHdrFtr())
 	{
-		sValue = " " + this.private_GetREFPosValue();
+		sValue = this.private_GetREFPosValue();
+		if(typeof sValue === "string" && sValue.length > 0)
+		{
+			oRun  = new ParaRun(oPara, false);
+			oRun.AddText(sValue);
+			oPara.AddToContent(0, oRun);
+		}
+	}
+	else
+	{
 		oRun  = new ParaRun(oPara, false);
-		oRun.AddText(sValue);
-		oPara.AddToContent(1, oRun);
+		if(this.Instruction.IsFormatting())
+		{
+			oTextPr = new CTextPr();
+			oTextPr.Set_FromObject({VertAlign: AscCommon.vertalign_SuperScript});
+			oRun.Apply_Pr(oTextPr);
+		}
+		oRun.AddText(oFootEndNote.private_GetString());
+		oPara.AddToContent(0, oRun);
 	}
 	oSelectedContent.Add(new CSelectedElement(oPara, false));
 	oSelectedContent.DoNotAddEmptyPara = true;

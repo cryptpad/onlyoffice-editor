@@ -2124,9 +2124,24 @@ ParaFootnoteRef.prototype.Get_Type = function()
 {
 	return para_FootnoteRef;
 };
-ParaFootnoteRef.prototype.Copy = function()
+ParaFootnoteRef.prototype.Copy = function(oPr)
 {
-	return new ParaFootnoteRef(this.GetFootnote());
+	var oFootnote = this.GetFootnote();
+	var oParagraph, oParent, oTopDocument;
+	if(oPr && oPr.Paragraph)
+	{
+		oParagraph = oPr.Paragraph;
+		oParent = oParagraph.GetParent();
+		if(oParent)
+		{
+			oTopDocument = oParent.GetTopDocumentContent();
+			if(oTopDocument && oTopDocument instanceof CFootEndnote)
+			{
+				oFootnote = oTopDocument;
+			}
+		}
+	}
+	return new ParaFootnoteRef(oFootnote);
 };
 ParaFootnoteRef.prototype.UpdateNumber = function(oFootnote)
 {
@@ -2502,9 +2517,24 @@ ParaEndnoteRef.prototype.Get_Type = function()
 {
 	return para_EndnoteRef;
 };
-ParaEndnoteRef.prototype.Copy = function()
+ParaEndnoteRef.prototype.Copy = function(oPr)
 {
-	return new ParaEndnoteRef(this.GetFootnote());
+	var oEndNote = this.GetFootnote();
+	var oParagraph, oParent, oTopDocument;
+	if(oPr && oPr.Paragraph)
+	{
+		oParagraph = oPr.Paragraph;
+		oParent = oParagraph.GetParent();
+		if(oParent)
+		{
+			oTopDocument = oParent.GetTopDocumentContent();
+			if(oTopDocument && oTopDocument instanceof CFootEndnote)
+			{
+				oEndNote = oTopDocument;
+			}
+		}
+	}
+	return new ParaEndnoteRef(oEndNote);
 };
 ParaEndnoteRef.prototype.UpdateNumber = function(oEndnote)
 {

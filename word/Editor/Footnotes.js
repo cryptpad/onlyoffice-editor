@@ -913,11 +913,15 @@ CFootnotesController.prototype.GetAllTables = function(oProps, arrTables)
 };
 CFootnotesController.prototype.GetFirstParagraphs = function()
 {
-	var aParagraphs = []
+	var aParagraphs = [];
 	for (var sId in this.Footnote)
 	{
 		var oFootnote = this.Footnote[sId];
-		aParagraphs.push(oFootnote.GetFirstParagraph());
+		var oParagraph = oFootnote.GetFirstParagraph();
+		if(oParagraph && oParagraph.Is_UseInDocument())
+		{
+			aParagraphs.push(oParagraph);
+		}
 	}
 	return aParagraphs;
 };

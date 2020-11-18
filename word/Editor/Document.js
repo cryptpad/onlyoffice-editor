@@ -21164,6 +21164,15 @@ CDocument.prototype.AddNoteRefToParagraph = function(oParagraph, nType, bHyperli
 	{
 		return;
 	}
+    if(Asc.c_oAscDocumentRefenceToType.AboveBelow === nType)
+    {
+        var bIsHdrFtr = (docpostype_HdrFtr === this.GetDocPosType());
+        var bIsRefHdrFtr = oRefParagraph.Parent && oRefParagraph.Parent.IsHdrFtr(false);
+        if(bIsHdrFtr !== bIsRefHdrFtr)
+        {
+            return;
+        }
+    }
 	if(false === this.IsSelectionLocked(AscCommon.changestype_Document_Content, {
 		Type      : changestype_2_ElementsArray_and_Type,
 		Elements  : [oRefParagraph],
