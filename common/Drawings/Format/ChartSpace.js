@@ -15423,6 +15423,20 @@ CChartSpace.prototype.isAccent1Background = function() {
     return this.spPr && this.spPr.Fill && this.spPr.Fill.isAccent1();
 };
 
+
+
+    CChartSpace.prototype.addNewSeries = function() {
+        var oLastChart = this.chart.plotArea.charts[this.chart.plotArea.charts.length - 1];
+        if(!oLastChart) {
+            return null;
+        }
+        if(oLastChart.getObjectType() === AscDFH.historyitem_type_ScatterChart) {
+            return this.addScatterSeries(null, null, "={1}");
+        }
+        else {
+            return this.addSeries(null, "={1}");
+        }
+    };
 CChartSpace.prototype.addSeries = function(sName, sValues) {
     var oLastChart = this.chart.plotArea.charts[this.chart.plotArea.charts.length - 1];
     if(!oLastChart) {

@@ -1353,7 +1353,7 @@
 		addSeries: function() {
 			var oRet = null;
 			if(this.chartSpace) {
-				oRet = this.chartSpace.addSeries(null, "={1}");
+				oRet = this.chartSpace.addNewSeries();
 			}
 			this.updateChart();
 			return oRet;
@@ -1362,7 +1362,7 @@
 		addScatterSeries: function() {
 			var oRet = null;
 			if(this.chartSpace) {
-				oRet = this.chartSpace.addScatterSeries(null, null, "={1}");
+				oRet = this.chartSpace.addNewSeries();
 			}
 			this.updateChart();
 			return oRet;
