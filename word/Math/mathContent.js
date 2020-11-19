@@ -1689,9 +1689,10 @@ CMathContent.prototype.private_CorrectContent = function()
         }
         else if(bDeleteEmptyRun && false == Current.Is_CheckingNearestPos()) // если NearPosArray не нулевой длины, то это вызов происходит на InsertContent, не удаляем пустые Run
         {
+            var tempPos = this.CurPos;
             this.Remove_FromContent(CurrPos, 1);
 
-            if (this.CurPos === CurrPos)
+            if (tempPos === CurrPos)
             {
                 if (bLeftRun)
                 {
@@ -1700,7 +1701,6 @@ CMathContent.prototype.private_CorrectContent = function()
                 }
                 else
                 {
-                    this.CurPos = CurrPos;
                     this.Content[this.CurPos].MoveCursorToStartPos();
                 }
             }
