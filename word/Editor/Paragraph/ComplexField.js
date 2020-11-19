@@ -949,31 +949,36 @@ CComplexField.prototype.private_GetREFPosValue = function()
 	{
 		return "";
 	}
-	if(oParent.IsHdrFtr() !== oSrcParent.IsHdrFtr())
+	var oTopDoc = oParent.Is_TopDocument(true);
+	if(oTopDoc !== oSrcParent.Is_TopDocument(true))
 	{
 		return "";
 	}
-
-	var sPosition = "";
-	if (oStartBookmark.GetPage() === this.SeparateChar.GetPage())
+	var sPosition = AscCommon.translateManager.getValue("above");
+	oRun.Make_ThisElementCurrent(false);
+	var aFieldPos = oTopDoc.GetContentPosition();
+	this.LogicDocument.TurnOff_InterfaceEvents();
+	oBookmarksManager.SelectBookmark(sBookmarkName);
+	this.LogicDocument.TurnOn_InterfaceEvents(false);
+	var aBookmarkPos = oTopDoc.GetContentPosition(true, false);
+	var nIdx, nEnd, oBookmarkPos, oFieldPos;
+	for(nIdx = 0, nEnd = Math.min(aFieldPos.length, aBookmarkPos.length); nIdx < nEnd; ++nIdx)
 	{
-		var oBookmarkXY = oStartBookmark.GetXY();
-		var oFieldXY    = this.SeparateChar.GetXY();
-
-		if (Math.abs(oBookmarkXY.Y - oFieldXY.Y) < 0.001)
-			sPosition = oBookmarkXY.X < oFieldXY.X ? AscCommon.translateManager.getValue("above") : AscCommon.translateManager.getValue("below");
-		else if (oBookmarkXY.Y < oFieldXY.Y)
-			sPosition = AscCommon.translateManager.getValue("above");
-		else
-			sPosition = AscCommon.translateManager.getValue("below");
-	}
-	else if(oStartBookmark.GetPage() < this.SeparateChar.GetPage())
-	{
-		sPosition = AscCommon.translateManager.getValue("above");
-	}
-	else
-	{
-		sPosition = AscCommon.translateManager.getValue("below");
+		oBookmarkPos = aBookmarkPos[nIdx];
+		oFieldPos = aFieldPos[nIdx];
+		if(oBookmarkPos && oFieldPos
+		&& oBookmarkPos.Position !== oFieldPos.Position)
+		{
+			if(oBookmarkPos.Position < oFieldPos.Position)
+			{
+				sPosition = AscCommon.translateManager.getValue("above");
+			}
+			else
+			{
+				sPosition = AscCommon.translateManager.getValue("below");
+			}
+			break;
+		}
 	}
 	return sPosition;
 };
