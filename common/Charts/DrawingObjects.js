@@ -3824,15 +3824,21 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 
     _this.getDrawingBase = function(graphicId) {
         var oDrawing = AscCommon.g_oTableId.Get_ById(graphicId);
-        if(oDrawing){
-            while(oDrawing.group){
+
+        if(oDrawing) {
+            if(oDrawing.chart 
+                && oDrawing.chart.getObjectType
+                && oDrawing.chart.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+                oDrawing = oDrawing.chart;
+            }
+            while(oDrawing.group) {
                 oDrawing = oDrawing.group;
             }
-        }
-        if(oDrawing && oDrawing.drawingBase){
-            for (var i = 0; i < aObjects.length; i++) {
-                if ( aObjects[i] === oDrawing.drawingBase )
-                    return aObjects[i];
+            if(oDrawing.drawingBase) {
+                for (var i = 0; i < aObjects.length; i++) {
+                    if ( aObjects[i] === oDrawing.drawingBase )
+                        return aObjects[i];
+                }
             }
         }
         return null;
