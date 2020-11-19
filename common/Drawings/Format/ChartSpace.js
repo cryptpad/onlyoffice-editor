@@ -15846,6 +15846,7 @@ CChartSpace.prototype.switchRowCol = function() {
         oPlotArea.removeCharts(1, oPlotArea.charts.length - 1);
     }
     var oFirstSeries = oFirstChart.series[0];
+    var aOldSeries = [].concat(oFirstChart.series);
     oFirstChart.removeAllSeries();
     var bAccent1Background = this.isAccent1Background();
     var oFirstSpPrPreset = 0;
@@ -15858,10 +15859,25 @@ CChartSpace.prototype.switchRowCol = function() {
     var oValBB = oBBoxInfo.val;
     var oRange, r1, r2, c1, c2, sValues, sTx, sCat;
     var oWorksheet = oBBoxInfo.worksheet;
+    var nOldSeries, oOldSeries;
+    var nMinStartIdx;
     if(oBBoxInfo.tb) {
         nSeriesCount = oValBB.c2 - oValBB.c1 + 1;
+        nMinStartIdx = nSeriesCount;
         for(nSeries = 0; nSeries < nSeriesCount; ++nSeries) {
-            oSeries = oFirstSeries ? oFirstSeries.createDuplicate() : oFirstChart.getSeriesConstructor();
+            oSeries = null;
+            for(nOldSeries = 0; nOldSeries < aOldSeries.length; ++nOldSeries) {
+                oOldSeries = aOldSeries[nOldSeries];
+                if(oOldSeries.idx === nSeries) {
+                    oSeries = oOldSeries.createDuplicate();
+                    break;
+                }
+            }
+            if(!oSeries) {
+                oSeries = oFirstSeries ? oFirstSeries.createDuplicate() : oFirstChart.getSeriesConstructor();
+                oSeries.setSpPr(null);
+                nMinStartIdx = Math.min(nSeries, nMinStartIdx);
+            }
             r1 = oValBB.r1;
             r2 = oValBB.r2;
             c1 = oValBB.c1 + nSeries;
@@ -15909,8 +15925,21 @@ CChartSpace.prototype.switchRowCol = function() {
     }
     else {
         nSeriesCount = oValBB.r2 - oValBB.r1 + 1;
+        nMinStartIdx = nSeriesCount;
         for(nSeries = 0; nSeries < nSeriesCount; ++nSeries) {
-            oSeries = oFirstSeries ? oFirstSeries.createDuplicate() : oFirstChart.getSeriesConstructor();
+            oSeries = null;
+            for(nOldSeries = 0; nOldSeries < aOldSeries.length; ++nOldSeries) {
+                oOldSeries = aOldSeries[nOldSeries];
+                if(oOldSeries.idx === nSeries) {
+                    oSeries = oOldSeries.createDuplicate();
+                    break;
+                }
+            }
+            if(!oSeries) {
+                oSeries = oFirstSeries ? oFirstSeries.createDuplicate() : oFirstChart.getSeriesConstructor();
+                oSeries.setSpPr(null);
+                nMinStartIdx = Math.min(nSeries, nMinStartIdx);
+            }
             r1 = oValBB.r1 + nSeries;
             r2 = r1;
             c1 = oValBB.c1;
@@ -15960,9 +15989,16 @@ CChartSpace.prototype.switchRowCol = function() {
     var oStyle, aBaseFills;
     oStyle = AscFormat.CHART_STYLE_MANAGER.getStyleByIndex(this.style);
     aBaseFills = AscFormat.getArrayFillsFromBase(oStyle.fill2, nSeriesCount);
-    for(nSeries = 0; nSeries < nSeriesCount; ++nSeries) {
+    //TODO: Remove this when the chartStyle will be implemented
+    for(nSeries = nMinStartIdx; nSeries < nSeriesCount; ++nSeries) {
         oSeries = oFirstChart.series[nSeries];
         if(oFirstSpPrPreset) {
+            if(oSeries.getObjectType() !== AscDFH.historyitem_type_PieSeries) {
+                var oUniFill = AscFormat.CreateUnifillFromPreset(oFirstSpPrPreset[0], oSeries.idx, aBaseFills, bAccent1Background);
+                if(oUniFill && oUniFill.isSolidFillRGB()) {
+                    continue;
+                }
+            }
             AscFormat.ApplySpPr(oFirstSpPrPreset, oSeries, oSeries.idx, aBaseFills, bAccent1Background);
         }
         if(oFirstSpPrMarkerPrst && oSeries.marker) {

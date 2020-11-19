@@ -13371,4 +13371,5 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
 	window['AscFormat'].getAbsoluteRectBoundsArr = getAbsoluteRectBoundsArr;
 	window['AscFormat'].fCheckObjectHyperlink = fCheckObjectHyperlink;
 	window['AscFormat'].getNumberingType = getNumberingType;
+	window['AscFormat'].CreateUnifillFromPreset = CreateUnifillFromPreset;
 })(window);
