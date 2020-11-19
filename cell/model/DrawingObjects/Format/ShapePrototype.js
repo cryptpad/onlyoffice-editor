@@ -872,7 +872,12 @@ AscFormat.CTextBody.prototype.Get_Worksheet = function()
 };
 AscFormat.CTextBody.prototype.getDrawingDocument = function()
 {
-    return this.parent && this.parent.getDrawingDocument && this.parent.getDrawingDocument();
+    var oCellApi = window["Asc"] && window["Asc"]["editor"];
+    if (oCellApi && oCellApi.wbModel)
+    {
+        return oCellApi.wbModel.DrawingDocument;
+    }
+    return null;
 };
 
     //------------------------------------------------------------export----------------------------------------------------

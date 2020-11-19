@@ -3826,7 +3826,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         var oDrawing = AscCommon.g_oTableId.Get_ById(graphicId);
 
         if(oDrawing) {
-            if(oDrawing.chart 
+            if(oDrawing.chart
                 && oDrawing.chart.getObjectType
                 && oDrawing.chart.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
                 oDrawing = oDrawing.chart;
