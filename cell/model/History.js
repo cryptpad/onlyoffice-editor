@@ -1129,7 +1129,7 @@ CHistory.prototype.GetSerializeArray = function()
 		{
 			if(this.PosInCurPoint !== null)
 			{
-				for ( var Index = oPoint.Items.length - 1; Index > this.PosInCurPoint; Index-- )
+				for ( var Index = oPoint.Items.length - 1; Index >= this.PosInCurPoint; Index-- )
 				{
 					var Item = oPoint.Items[Index];
 					if(!Item.Class.RefreshRecalcData)
@@ -1143,6 +1143,7 @@ CHistory.prototype.GetSerializeArray = function()
 						}
 					}
 				}
+				oPoint.Items.splice(this.PosInCurPoint);
 			}
 		}
 		this.PosInCurPoint = null; 

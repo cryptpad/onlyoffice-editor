@@ -1379,6 +1379,8 @@
 		cancelEdit: function() {
 			AscCommon.History.EndTransaction();
 			AscCommon.History.Undo();
+			AscCommon.History.Clear_Redo();
+			AscCommon.History._sendCanUndoRedo();
 			this.updateChart();
 		},
 		startEditData: function() {
