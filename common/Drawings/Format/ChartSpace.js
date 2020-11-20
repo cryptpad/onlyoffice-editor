@@ -14898,6 +14898,39 @@ CChartSpace.prototype.isAccent1Background = function() {
             return this.addSeries(null, "={1}");
         }
     };
+    CChartSpace.prototype.setNewSeriesIdxAndOrder = function(oSeries) {
+        var aAllSeries = this.getAllSeries();
+        var nSeries;
+        var oFirstSeries = aAllSeries[0];
+        var nIdx = 0, nOrder = 0;
+        if(aAllSeries.length > 0) {
+            if(oFirstSeries.idx > 0) {
+                nIdx = 0;
+            }
+            else {
+                //Find a gap between series indexes
+                var oCurSeries, oNextSeries;
+                for(nSeries = 0; nSeries < aAllSeries.length - 1; ++nSeries) {
+                    oCurSeries = aAllSeries[nSeries];
+                    oNextSeries = aAllSeries[nSeries + 1];
+                    if(oNextSeries.idx - oCurSeries.idx > 1) {
+                        nIdx = oCurSeries.idx + 1;
+                        break;
+                    }
+                }
+                if(nSeries === aAllSeries.length - 1) {
+                    //There is no gap in the series indexes
+                    nIdx = aAllSeries[aAllSeries.length - 1].idx + 1;
+                }
+            }
+            aAllSeries.sort(function(a, b) {
+                return a.order - b.order;
+            });
+            nOrder = aAllSeries[aAllSeries.length - 1].order + 1;
+        }
+        oSeries.setIdx(nIdx);
+        oSeries.setOrder(nOrder);
+    };
 CChartSpace.prototype.addSeries = function(sName, sValues) {
     var oLastChart = this.chart.plotArea.charts[this.chart.plotArea.charts.length - 1];
     if(!oLastChart) {
@@ -14908,50 +14941,16 @@ CChartSpace.prototype.addSeries = function(sName, sValues) {
     var aAllSeries = this.getAllSeries();
     var oFirstSeries = aAllSeries[0];
     var oFirstSpPrPreset = 0;
-    var nSeries;
-    if(oFirstSeries) {
+    if(oFirstSeries && oFirstSeries.idx === 0) {
         oFirstSpPrPreset = oFirstSeries.getSpPrPreset();
     }
     var oSeries;
     oSeries = oLastChart.series[0] ? oLastChart.series[0].createDuplicate() : oLastChart.getSeriesConstructor();
     oSeries.setName(sName);
     oSeries.setValues(sValues);
-    var nIdx, nOrder;
-    if(aAllSeries.length === 0) {
-        nIdx = 0;
-        nOrder = 0;
-    }
-    else {
-        if(oFirstSeries.idx > 0) {
-            nIdx = 0;
-        }
-        else {
-            //Find a gap between series indexes
-            var oCurSeries, oNextSeries;
-            for(nSeries = 0; nSeries < aAllSeries.length - 1; ++nSeries) {
-                oCurSeries = aAllSeries[nSeries];
-                oNextSeries = aAllSeries[nSeries + 1];
-                if(oNextSeries.idx - oCurSeries.idx > 1) {
-                    nIdx = oCurSeries.idx + 1;
-                    break;
-                }
-            }
-            if(nSeries === aAllSeries.length - 1) {
-                //There is no gap in the series indexes
-                nIdx = aAllSeries[aAllSeries.length - 1].idx + 1;
-            }
-        }
-        aAllSeries.sort(function(a, b) {
-            return a.order - b.order;
-        });
-        nOrder = aAllSeries[aAllSeries.length - 1].order + 1;
-    }
-
-    oSeries.setIdx(nIdx);
-    oSeries.setOrder(nOrder);
+    this.setNewSeriesIdxAndOrder(oSeries);
     oLastChart.addSer(oSeries);
     this.reorderSeries();
-
     var oStyle, aBaseFills, aPts, nPt;
     if(oFirstSpPrPreset) {
         oStyle = AscFormat.CHART_STYLE_MANAGER.getStyleByIndex(this.style);
@@ -14985,7 +14984,7 @@ CChartSpace.prototype.addScatterSeries = function(sName, sXValues, sYValues) {
     var bAccent1Background = this.isAccent1Background();
     var oFirstSpPrPreset = 0;
     var oFirstSpPrMarkerPrst = 0;
-    if(oFirstSeries) {
+    if(oFirstSeries && oFirstSeries.idx === 0) {
         oFirstSpPrPreset = oFirstSeries.getSpPrPreset();
         oFirstSpPrMarkerPrst = oFirstSeries.getMarkerPreset();
     }
@@ -14994,18 +14993,25 @@ CChartSpace.prototype.addScatterSeries = function(sName, sXValues, sYValues) {
     oSeries.setName(sName);
     oSeries.setYValues(sYValues);
     oSeries.setXValues(sXValues);
-    oSeries.setIdx(aAllSeries.length);
-    oSeries.setOrder(aAllSeries.length);
+    this.setNewSeriesIdxAndOrder(oSeries);
     oLastChart.addSer(oSeries);
 
     var oStyle, aBaseFills;
     oStyle = AscFormat.CHART_STYLE_MANAGER.getStyleByIndex(this.style);
     aBaseFills = AscFormat.getArrayFillsFromBase(oStyle.fill2, aAllSeries.length + 1);
+    if(oSeries.spPr) {
+        oSeries.setSpPr(null);
+    }
     if(oFirstSpPrPreset) {
         AscFormat.ApplySpPr(oFirstSpPrPreset, oSeries, oSeries.idx, aBaseFills, bAccent1Background);
     }
-    if(oFirstSpPrMarkerPrst && oSeries.marker) {
-        AscFormat.ApplySpPr(oFirstSpPrMarkerPrst, oSeries.marker, oSeries.idx, aBaseFills, bAccent1Background);
+    if(oSeries.marker) {
+        if(oSeries.marker.spPr) {
+            oSeries.marker.setSpPr(null);
+        }
+        if(oFirstSpPrMarkerPrst) {
+            AscFormat.ApplySpPr(oFirstSpPrMarkerPrst, oSeries.marker, oSeries.idx, aBaseFills, bAccent1Background);
+        }
     }
     return oSeries;
 };
