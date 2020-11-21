@@ -4206,9 +4206,9 @@ CPresentation.prototype.Recalculate = function (RecalcData) {
         if (bRedrawAllSlides) {
 
             this.bNeedUpdateTh = true;
-            this.DrawingDocument.OnRecalculatePage(this.CurPage, this.Slides[this.CurPage]);
             bEndRecalc = (this.Slides.length > 0);
             if (this.Slides[this.CurPage]) {
+                this.DrawingDocument.OnRecalculatePage(this.CurPage, this.Slides[this.CurPage]);
                 this.DrawingDocument.Notes_OnRecalculate(this.CurPage, this.Slides[this.CurPage].NotesWidth, this.Slides[this.CurPage].getNotesHeight());
             }
 
