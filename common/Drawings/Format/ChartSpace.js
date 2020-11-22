@@ -17156,7 +17156,29 @@ function CreateScatterChart(chartSeries, bUseCache, oOptions)
     if(first_series && first_series.xVal && typeof first_series.xVal.Formula === "string" && first_series.xVal.Formula.length > 0)
     {
         oXVal = new AscFormat.CCat();
-        FillValNum(oXVal, first_series.xVal, bUseCache);
+        var bVal = true;
+        var oValCache = first_series.xVal;
+        var aPts =  oValCache.NumCache, oPt, nPt;
+        for(nPt = 0; nPt < aPts.length; ++nPt)
+        {
+            oPt = aPts[nPt];
+            if(oPt)
+            {
+                if(!oPt.isDateTimeFormat && !AscFormat.isRealNumber(parseFloat(oPt.val)))
+                {
+                    bVal = false;
+                    break;
+                }
+            }
+        }
+        if(bVal)
+        {
+            FillValNum(oXVal, first_series.xVal, bUseCache);
+        }
+        else
+        {
+            FillCatStr(oXVal, first_series.xVal, bUseCache);
+        }
     }
     else
     {

@@ -2806,32 +2806,26 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                         if(resultRef)
                         {
                             model.workbook.aWorksheets[0].sName = resultRef.sheet;
-                            if(series[0] && series[0].xVal && series[0].xVal.numRef)
-                            {
-                                fillTableFromRef(series[0].xVal.numRef);
-                            }
-                            if(series[0].cat && series[0].cat.strRef)
-                            {
-                                fillTableFromRef(series[0].cat.strRef);
-                            }
+                            var oCat, oVal;
                             for(var i = 0; i < series.length; ++i)
                             {
                                 ser = series[i];
-                                if(ser.val && ser.val.numRef)
+                                oVal = ser.val || ser.yVal;
+                                if(oVal && oVal.numRef)
                                 {
-                                    fillTableFromRef(ser.val.numRef);
+                                    fillTableFromRef(oVal.numRef);
                                 }
-                                if(ser.yVal && ser.yVal.numRef)
+                                oCat = ser.cat || ser.xVal;
+                                if(oCat)
                                 {
-                                    fillTableFromRef(ser.yVal.numRef);
-                                }
-                                if(ser.cat && ser.cat.numRef)
-                                {
-                                    fillTableFromRef(ser.cat.numRef);
-                                }
-                                if(ser.cat && ser.cat.strRef)
-                                {
-                                    fillTableFromRef(ser.cat.strRef);
+                                    if(oCat.numRef)
+                                    {
+                                        fillTableFromRef(oCat.numRef);
+                                    }
+                                    if(oCat.strRef)
+                                    {
+                                        fillTableFromRef(oCat.strRef);
+                                    }
                                 }
                                 if(ser.tx && ser.tx.strRef)
                                 {
