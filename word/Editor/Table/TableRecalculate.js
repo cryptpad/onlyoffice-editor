@@ -783,7 +783,7 @@ CTable.prototype.private_RecalculateGridMinContent = function(nPctWidth, arrMinM
 				if (0 === arrPreferred[nCurGridCol] || arrPreferred[nCurGridCol] < nBeforeW)
 					arrPreferred[nCurGridCol] = nBeforeW;
 
-				if (arrPreferred[CurGridCol])
+				if (arrPreferred[nCurGridCol])
 					arrMaxContent[nCurGridCol] = arrPreferred[nCurGridCol];
 				else if (arrMaxContent[nCurGridCol] < nBeforeW)
 					arrMaxContent[nCurGridCol] = nBeforeW;
@@ -888,7 +888,7 @@ CTable.prototype.private_RecalculateGridMinContent = function(nPctWidth, arrMinM
 				if (0 === arrPreferred[nCurGridCol] || arrPreferred[nCurGridCol] < nAfterW)
 					arrPreferred[nCurGridCol] = nAfterW;
 
-				if (arrPreferred[CurGridCol])
+				if (arrPreferred[nCurGridCol])
 					arrMaxContent[nCurGridCol] = arrPreferred[nCurGridCol];
 				else if (arrMaxContent[nCurGridCol] < nAfterW)
 					arrMaxContent[nCurGridCol] = nAfterW;
