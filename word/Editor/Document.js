@@ -21054,7 +21054,6 @@ CDocument.prototype.AddRefToParagraph = function(oParagraph, nType, bHyperlink, 
 		if(sBookmarkName)
 		{
 			this.private_AddRefToBookmark(sBookmarkName, nType, bHyperlink, bAboveBelow, sSeparator);
-			this.Recalculate();
 		}
 		this.UpdateInterface();
 		this.UpdateSelection();
@@ -21067,7 +21066,6 @@ CDocument.prototype.AddRefToBookmark = function(sBookmarkName, nType, bHyperlink
 	{
 		this.StartAction(AscDFH.historydescription_Document_AddCrossRef);
 		this.private_AddRefToBookmark(sBookmarkName, nType, bHyperlink, bAboveBelow, sSeparator);
-		this.Recalculate();
 		this.UpdateInterface();
 		this.UpdateSelection();
 		this.FinalizeAction();
@@ -21135,8 +21133,20 @@ CDocument.prototype.private_AddRefToBookmark = function(sBookmarkName, nType, bH
 		}
 	}
 	var oComplexField = this.AddFieldWithInstruction(sInstr);
-	this.Recalculate(true);
-	oComplexField.Update(false);
+    if(nType === Asc.c_oAscDocumentRefenceToType.PageNum)
+    {
+        this.FullRecalc.Continue = false;
+        this.FullRecalc.UseRecursion = false;
+        this.private_Recalculate(undefined, true);
+        while (this.FullRecalc.Continue)
+        {
+            this.FullRecalc.Continue = false;
+            this.Recalculate_Page();
+        }
+        this.FullRecalc.UseRecursion = true;
+        oComplexField.Update(false);
+    }
+    return oComplexField;
 };
 CDocument.prototype.AddNoteRefToParagraph = function(oParagraph, nType, bHyperlink, bAboveBelow)
 {
@@ -21243,8 +21253,20 @@ CDocument.prototype.private_AddNoteRefToBookmark = function(sBookmarkName, nType
 		}
 	}
 	var oComplexField = this.AddFieldWithInstruction(sInstr);
-	this.Recalculate(true);
-	oComplexField.Update(false);
+    if(nType === Asc.c_oAscDocumentRefenceToType.PageNum)
+    {
+        this.FullRecalc.Continue = false;
+        this.FullRecalc.UseRecursion = false;
+        this.private_Recalculate(undefined, true);
+        while (this.FullRecalc.Continue)
+        {
+            this.FullRecalc.Continue = false;
+            this.Recalculate_Page();
+        }
+        this.FullRecalc.UseRecursion = true;
+        oComplexField.Update(false);
+    }
+    return oComplexField;
 };
 CDocument.prototype.AddRefToCaption = function(sCaption, oParagraph, nType, bHyperlink, bAboveBelow)
 {
@@ -21273,7 +21295,6 @@ CDocument.prototype.AddRefToCaption = function(sCaption, oParagraph, nType, bHyp
 	if(sBookmarkName)
 	{
 		this.private_AddRefToBookmark(sBookmarkName, nType, bHyperlink, bAboveBelow, null);
-		this.Recalculate();
 	}
 	this.UpdateInterface();
 	this.UpdateSelection();
