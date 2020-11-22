@@ -21253,7 +21253,7 @@ CDocument.prototype.private_AddNoteRefToBookmark = function(sBookmarkName, nType
 		}
 	}
 	var oComplexField = this.AddFieldWithInstruction(sInstr);
-    if(nType === Asc.c_oAscDocumentRefenceToType.PageNum)
+    if(nType !== Asc.c_oAscDocumentRefenceToType.AboveBelow)
     {
         this.FullRecalc.Continue = false;
         this.FullRecalc.UseRecursion = false;
