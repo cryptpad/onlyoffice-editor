@@ -407,12 +407,12 @@ DrawingObjectsController.prototype.addChartDrawingObject = function(options)
         }
         else
         {
-            chartLeft =  -this.drawingObjects.convertMetric(this.drawingObjects.getScrollOffset().getX(), 0, 3) + this.drawingObjects.convertMetric((this.drawingObjects.getContextWidth()  - w) / 2, 0, 3);
+            chartLeft =  -this.drawingObjects.convertMetric(this.drawingObjects.getScrollOffset().getX(), 0, 3) + (this.drawingObjects.convertMetric(this.drawingObjects.getContextWidth(), 0, 3) - w) / 2;
             if(chartLeft < 0)
             {
                 chartLeft = 0;
             }
-            chartTop =  -this.drawingObjects.convertMetric(this.drawingObjects.getScrollOffset().getY(), 0, 3) + this.drawingObjects.convertMetric((this.drawingObjects.getContextHeight()  - h) / 2, 0, 3);
+            chartTop =  -this.drawingObjects.convertMetric(this.drawingObjects.getScrollOffset().getY(), 0, 3) + (this.drawingObjects.convertMetric(this.drawingObjects.getContextHeight(), 0, 3) - h) / 2;
             if(chartTop < 0)
             {
                 chartTop = 0;

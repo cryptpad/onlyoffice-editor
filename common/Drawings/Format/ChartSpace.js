@@ -14952,6 +14952,9 @@ CChartSpace.prototype.addSeries = function(sName, sValues) {
     oLastChart.addSer(oSeries);
     this.reorderSeries();
     var oStyle, aBaseFills, aPts, nPt;
+    if(oSeries.spPr) {
+        oSeries.setSpPr(null);
+    }
     if(oFirstSpPrPreset) {
         oStyle = AscFormat.CHART_STYLE_MANAGER.getStyleByIndex(this.style);
         if(oSeries.getObjectType() === AscDFH.historyitem_type_PieSeries) {
