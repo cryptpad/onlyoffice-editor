@@ -15372,21 +15372,14 @@ CChartSpace.prototype.switchRowCol = function() {
                 oRange = new Asc.Range(c1, r1, c2, r2);
                 sCat = AscFormat.fCreateRef({worksheet: oWorksheet, bbox: oRange});
             }
-            
-            if(sTx) {
-                oSeries.setName(sTx);
-            }
+            oSeries.setName(sTx);
             if(oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer) {
                 oSeries.setYValues(sValues);
-                if(sCat) {
-                    oSeries.setXValues(sCat);
-                }
+                oSeries.setXValues(sCat);
             }
             else {
                 oSeries.setValues(sValues);
-                if(sCat) {
-                    oSeries.setCategories(sCat);
-                }
+                oSeries.setCategories(sCat);
             }
             oSeries.setIdx(nSeries);
             oSeries.setOrder(nSeries);
@@ -15434,21 +15427,16 @@ CChartSpace.prototype.switchRowCol = function() {
                 oRange = new Asc.Range(c1, r1, c2, r2);
                 sCat = AscFormat.fCreateRef({worksheet: oWorksheet, bbox: oRange});
             }
-            
-            if(sTx) {
-                oSeries.setName(sTx);
-            }
+
+
+            oSeries.setName(sTx);
             if(oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer) {
                 oSeries.setYValues(sValues);
-                if(sCat) {
-                    oSeries.setXValues(sCat);
-                }
+                oSeries.setXValues(sCat);
             }
             else {
                 oSeries.setValues(sValues);
-                if(sCat) {
-                    oSeries.setCategories(sCat);
-                }
+                oSeries.setCategories(sCat);
             }
             oSeries.setIdx(nSeries);
             oSeries.setOrder(nSeries);
