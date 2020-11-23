@@ -2952,9 +2952,9 @@
 			if (Asc.c_oAscSelectionDialogType.Chart === dialogType)
 			{
 				// Проверка максимального дипазона
-				var maxSeries = 255;
+				var maxSeries = AscFormat.MAX_SERIES_COUNT;
 				var minStockVal = 4;
-				var maxValues = 4096;
+				var maxValues = AscFormat.MAX_POINTS_COUNT;
 
 				var intervalValues, intervalSeries;
 				if (isRows)

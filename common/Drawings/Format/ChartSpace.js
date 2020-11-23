@@ -41,6 +41,8 @@ function (window, undefined) {
 
 
     var MAX_LABELS_COUNT = 300;
+    var MAX_SERIES_COUNT = 255;
+    var MAX_POINTS_COUNT = 4096;
 // Import
     var oNonSpaceRegExp = new RegExp('' + String.fromCharCode(0x00A0),'g');
 var c_oAscChartType = AscCommon.c_oAscChartType;
@@ -15305,12 +15307,25 @@ CChartSpace.prototype.getCommonRange = function() {
 CChartSpace.prototype.switchRowCol = function() {
     var oBBoxInfo = this.getCommonBBoxInfo();
     if(!oBBoxInfo) {
-        return;
+        return Asc.c_oAscError.ID.No;
     }
     var oPlotArea = this.chart.plotArea;
     var oFirstChart = oPlotArea.charts[0];
     if(!oFirstChart) {
-        return;
+        return Asc.c_oAscError.ID.No;
+    }
+    var nSeriesCount = 0, nPtCount = 0;
+    var oValBB = oBBoxInfo.val;
+    if(oBBoxInfo.tb) {
+        nSeriesCount = oValBB.c2 - oValBB.c1 + 1;
+        nPtCount = oValBB.r2 - oValBB.r1 + 1;
+    }
+    else {
+        nSeriesCount = oValBB.r2 - oValBB.r1 + 1;
+        nPtCount = oValBB.c2 - oValBB.c1 + 1;
+    }
+    if(nSeriesCount > MAX_SERIES_COUNT) {
+        return Asc.c_oAscError.ID.MaxDataSeriesError;
     }
     if(oPlotArea.charts.length > 1) {
         oPlotArea.removeCharts(1, oPlotArea.charts.length - 1);
@@ -15321,12 +15336,11 @@ CChartSpace.prototype.switchRowCol = function() {
     var bAccent1Background = this.isAccent1Background();
     var oFirstSpPrPreset = 0;
     var oFirstSpPrMarkerPrst = 0;
-    if(oFirstSeries) {
+    if(oFirstSeries && oFirstSeries.idx === 0) {
         oFirstSpPrPreset = oFirstSeries.getSpPrPreset();
         oFirstSpPrMarkerPrst = oFirstSeries.getMarkerPreset();
     }
-    var nSeriesCount = 0, nSeries, oSeries;
-    var oValBB = oBBoxInfo.val;
+    var nSeries, oSeries;
     var oRange, r1, r2, c1, c2, sValues, sTx, sCat;
     var oWorksheet = oBBoxInfo.worksheet;
     var nOldSeries, oOldSeries;
@@ -15465,6 +15479,7 @@ CChartSpace.prototype.switchRowCol = function() {
     }
     this.recalculate();
     this.checkLegendLayoutSize();
+    return Asc.c_oAscError.ID.No;
 };
 
     CChartSpace.prototype.checkLegendLayoutSize = function() {
@@ -18558,6 +18573,9 @@ function checkBlipFillRasterImages(sp)
     window['AscFormat'].PAGE_SETUP_ORIENTATION_DEFAULT = 0;
     window['AscFormat'].PAGE_SETUP_ORIENTATION_LANDSCAPE = 1;
     window['AscFormat'].PAGE_SETUP_ORIENTATION_PORTRAIT = 2;
+
+    window['AscFormat'].MAX_SERIES_COUNT = MAX_SERIES_COUNT;
+    window['AscFormat'].MAX_POINTS_COUNT = MAX_POINTS_COUNT;
 
     window['AscFormat'].initStyleManager = initStyleManager;
     window['AscFormat'].CHART_STYLE_MANAGER = CHART_STYLE_MANAGER;

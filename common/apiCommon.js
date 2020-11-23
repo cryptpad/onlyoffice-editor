@@ -902,6 +902,12 @@
 			if(this.chartSpace) {
 				return this.chartSpace.getCommonRange();
 			}
+			if(this.aRanges.length > 0 && typeof this.aRanges[0] === "string" ) {
+				var sRange = this.aRanges[0];
+				if(sRange.length > 0) {
+					return sRange;
+				}
+			}
 			return null;
 		},
 
@@ -1344,10 +1350,12 @@
 		},
 
 		switchRowCol: function() {
+			var nError = Asc.c_oAscError.ID.No;
 			if(this.chartSpace) {
-				this.chartSpace.switchRowCol();
+				nError = this.chartSpace.switchRowCol();
 			}
 			this.updateChart();
+			return nError;
 		},
 
 		addSeries: function() {
