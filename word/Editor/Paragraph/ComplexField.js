@@ -531,18 +531,29 @@ CComplexField.prototype.private_InsertContent = function(oSelectedContent)
 	{
 		this.SelectFieldValue();
 		var oNearPos = oParagraph.GetCurrentAnchorPosition();
+		this.LogicDocument.TurnOff_Recalculate();
+		this.LogicDocument.TurnOff_InterfaceEvents();
+		this.LogicDocument.Remove(1, false, false, false);
+		this.LogicDocument.TurnOn_Recalculate(false);
+		this.LogicDocument.TurnOn_InterfaceEvents(false);
 		if(oNearPos)
 		{
 			if(this.LogicDocument.Can_InsertContent(oSelectedContent, oNearPos))
 			{
-				this.LogicDocument.TurnOff_Recalculate();
-				this.LogicDocument.TurnOff_InterfaceEvents();
-				this.LogicDocument.Remove(1, false, false, false);
-				this.LogicDocument.TurnOn_Recalculate(false);
-				this.LogicDocument.TurnOn_InterfaceEvents(false);
-				oParagraph.Check_NearestPos(oNearPos);
-				oParagraph.Parent.InsertContent(oSelectedContent, oNearPos);
-				this.LogicDocument.MoveCursorRight(false, false, false);
+				var aElements = oSelectedContent.Elements;
+				var bOneEmptyPara = false;
+				if(aElements.length === 1 &&
+					aElements[0].Element.GetType() === AscCommonWord.type_Paragraph &&
+					aElements[0].Element.Is_Empty())
+				{
+					bOneEmptyPara = true;
+				}
+				if(!bOneEmptyPara)
+				{
+					oParagraph.Check_NearestPos(oNearPos);
+					oParagraph.Parent.InsertContent(oSelectedContent, oNearPos);
+					this.LogicDocument.MoveCursorRight(false, false, false);
+				}
 			}
 		}
 	}
