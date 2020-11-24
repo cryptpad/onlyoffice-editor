@@ -647,7 +647,25 @@ CFieldInstructionREF.prototype.ToString = function()
 //----------------------------------------------------------------------------------------------------------------------
 CFieldInstructionREF.prototype.GetAnchor = function()
 {
-	return this.GetBookmarkName();
+	var sBookmarkName = this.GetBookmarkName();
+	var sAnchor = sBookmarkName;
+	if(this.ComplexField)
+	{
+		var oLogicDoc = this.ComplexField.LogicDocument;
+		if(oLogicDoc)
+		{
+			var oBookmarksManager = oLogicDoc.GetBookmarksManager();
+			if(oBookmarksManager)
+			{
+				var oBookmark = oBookmarksManager.GetBookmarkByName(sBookmarkName);
+				if(!oBookmark)
+				{
+					sAnchor = "_top";
+				}
+			}
+		}
+	}
+	return sAnchor;
 };
 CFieldInstructionREF.prototype.GetValue = function()
 {
@@ -662,7 +680,7 @@ CFieldInstructionREF.prototype.SetVisited = function(isVisited)
  */
 CFieldInstructionREF.prototype.IsTopOfDocument = function()
 {
-	return (this.GetBookmarkName() === "_top");
+	return (this.GetAnchor() === "_top");
 };
 CFieldInstructionREF.prototype.SetToolTip = function(sToolTip)
 {
@@ -1409,11 +1427,29 @@ CFieldInstructionNOTEREF.prototype.ToString = function()
 //----------------------------------------------------------------------------------------------------------------------
 CFieldInstructionNOTEREF.prototype.IsTopOfDocument = function()
 {
-	return (this.GetBookmarkName() === "_top");
+	return (this.GetAnchor() === "_top");
 };
 CFieldInstructionNOTEREF.prototype.GetAnchor = function()
 {
-	return this.GetBookmarkName();
+	var sBookmarkName = this.GetBookmarkName();
+	var sAnchor = sBookmarkName;
+	if(this.ComplexField)
+	{
+		var oLogicDoc = this.ComplexField.LogicDocument;
+		if(oLogicDoc)
+		{
+			var oBookmarksManager = oLogicDoc.GetBookmarksManager();
+			if(oBookmarksManager)
+			{
+				var oBookmark = oBookmarksManager.GetBookmarkByName(sBookmarkName);
+				if(!oBookmark)
+				{
+					sAnchor = "_top";
+				}
+			}
+		}
+	}
+	return sAnchor;
 };
 CFieldInstructionNOTEREF.prototype.GetValue = function()
 {
