@@ -5273,7 +5273,7 @@
             this._drawElements(this._drawSelectionElement, range, selectionLineType,
               this.settings.activeCellBorderColor);
         }
-		this.handlers.trigger("drawMobileSelection", this.settings.activeCellBorderColor);
+		this.handlers.trigger("drawMobileSelection", this.workbook.mainOverlay, this.settings.activeCellBorderColor);
     };
 
     WorksheetView.prototype._drawFormatPainterRange = function () {
@@ -5574,6 +5574,17 @@
 
         if (!(Number.MAX_VALUE === x1 && -Number.MAX_VALUE === x2 && Number.MAX_VALUE === y1 &&
           -Number.MAX_VALUE === y2)) {
+            if(this.workbook.Api.isMobileVersion) {
+                //Add radius of mobile pins
+                var nRad = (AscCommon.MOBILE_SELECT_TRACK_ROUND / 2 + 0.5) >> 0;
+                if (AscCommon.AscBrowser.isRetina) {
+                    nRad = AscCommon.AscBrowser.convertToRetinaValue(nRad, true);
+                }
+                x1 -= nRad;
+                x2 += nRad;
+                y1 -= nRad;
+                y2 += nRad;
+            }
             ctx.save()
               .beginPath()
               .rect(this.cellsLeft, this.cellsTop, ctx.getWidth() - this.cellsLeft, ctx.getHeight() - this.cellsTop)

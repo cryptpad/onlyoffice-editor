@@ -575,6 +575,8 @@ COverlay.prototype =
         {
             nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
         }
+        this.CheckPoint1(left, y - nW);
+        this.CheckPoint2(right, y + nW);
         this.m_oContext.lineWidth = nW;
         this.m_oContext.beginPath();
         this.m_oContext.moveTo(left, y);
@@ -589,6 +591,8 @@ COverlay.prototype =
         {
             nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
         }
+        this.CheckPoint1(x - nW, top);
+        this.CheckPoint2(x + nW, bottom);
         this.m_oContext.lineWidth = nW;
         this.m_oContext.beginPath();
         this.m_oContext.moveTo(x, top);
