@@ -1884,15 +1884,15 @@ ParaPresentationNumbering.prototype.Check_Range = function(Range, Line)
 
 
 /**
- * Класс представляющий ссылку на сноску.
- * @param {CFootEndnote} Footnote - Ссылка на сноску.
+ * Класс представляющий ссылку на сноску
+ * @param {CFootEndnote} Footnote - Ссылка на сноску
  * @param {string} CustomMark
  * @constructor
  * @extends {CRunElementBase}
  */
 function ParaFootnoteReference(Footnote, CustomMark)
 {
-	this.Footnote   = Footnote;
+	this.Footnote   = Footnote instanceof AscCommonWord.CFootEndnote ? Footnote : null;
 	this.CustomMark = CustomMark ? CustomMark : undefined;
 
 	this.Width        = 0;
@@ -1903,8 +1903,8 @@ function ParaFootnoteReference(Footnote, CustomMark)
 	this.Run          = null;
 	this.Widths       = [];
 
-	if (Footnote)
-		Footnote.SetRef(this);
+	if (this.Footnote)
+		this.Footnote.SetRef(this);
 }
 ParaFootnoteReference.prototype = Object.create(CRunElementBase.prototype);
 ParaFootnoteReference.prototype.constructor = ParaFootnoteReference;
@@ -1953,16 +1953,19 @@ ParaFootnoteReference.prototype.Measure = function(Context, TextPr, MathInfo, Ru
 };
 ParaFootnoteReference.prototype.Copy = function(oPr)
 {
-	var oFootnote;
-	if(oPr && oPr.Comparison)
+	if (this.Footnote)
 	{
-		oFootnote = oPr.Comparison.createFootNote();
+		var oFootnote;
+		if (oPr && oPr.Comparison)
+		{
+			oFootnote = oPr.Comparison.createFootNote();
+		}
+		else
+		{
+			oFootnote = this.Footnote.Parent.CreateFootnote();
+		}
+		oFootnote.Copy2(this.Footnote, oPr);
 	}
-	else
-	{
-		oFootnote = this.Footnote.Parent.CreateFootnote();
-	}
-	oFootnote.Copy2(this.Footnote, oPr);
 
 	var oRef = new ParaFootnoteReference(oFootnote);
 
@@ -1982,7 +1985,7 @@ ParaFootnoteReference.prototype.Write_ToBinary = function(Writer)
 	// Bool : is undefined mark ?
 	// false -> String2 : CustomMark
 	Writer.WriteLong(this.Type);
-	Writer.WriteString2(this.Footnote.Get_Id());
+	Writer.WriteString2(this.Footnote ? this.Footnote.GetId() : "");
 
 	if (undefined === this.CustomMark)
 	{
@@ -2146,9 +2149,24 @@ ParaFootnoteRef.prototype.Get_Type = function()
 {
 	return para_FootnoteRef;
 };
-ParaFootnoteRef.prototype.Copy = function()
+ParaFootnoteRef.prototype.Copy = function(oPr)
 {
-	return new ParaFootnoteRef(this.GetFootnote());
+	var oFootnote = this.GetFootnote();
+	var oParagraph, oParent, oTopDocument;
+	if(oPr && oPr.Paragraph)
+	{
+		oParagraph = oPr.Paragraph;
+		oParent = oParagraph.GetParent();
+		if(oParent)
+		{
+			oTopDocument = oParent.GetTopDocumentContent();
+			if(oTopDocument && oTopDocument instanceof CFootEndnote)
+			{
+				oFootnote = oTopDocument;
+			}
+		}
+	}
+	return new ParaFootnoteRef(oFootnote);
 };
 ParaFootnoteRef.prototype.UpdateNumber = function(oFootnote)
 {
@@ -2454,16 +2472,19 @@ ParaEndnoteReference.prototype.Get_Type = function()
 };
 ParaEndnoteReference.prototype.Copy = function(oPr)
 {
-	var oEndnote;
-	if (oPr && oPr.Comparison)
+	if (this.Footnote)
 	{
-		oEndnote = oPr.Comparison.createEndNote();
+		var oEndnote;
+		if (oPr && oPr.Comparison)
+		{
+			oEndnote = oPr.Comparison.createEndNote();
+		}
+		else
+		{
+			oEndnote = this.Footnote.Parent.CreateEndnote();
+		}
+		oEndnote.Copy2(this.Footnote, oPr);
 	}
-	else
-	{
-		oEndnote = this.Footnote.Parent.CreateEndnote();
-	}
-	oEndnote.Copy2(this.Footnote, oPr);
 
 	var oRef = new ParaEndnoteReference(oEndnote);
 
@@ -2478,7 +2499,7 @@ ParaEndnoteReference.prototype.UpdateNumber = function(PRS, isKeepNumber)
 	{
 		var nPageAbs    = PRS.GetPageAbs();
 		var nColumnAbs  = PRS.GetColumnAbs();
-		var nAdditional = PRS.GetEndnoteReferenceCount(this);
+		var nNumber     = PRS.GetEndnoteReferenceNumber(this);
 		var oSectPr     = PRS.GetSectPr();
 		var nNumFormat  = oSectPr.GetEndnoteNumFormat();
 
@@ -2488,7 +2509,7 @@ ParaEndnoteReference.prototype.UpdateNumber = function(PRS, isKeepNumber)
 		if (!isKeepNumber)
 		{
 			this.NumFormat = nNumFormat;
-			this.Number    = oEndnotesController.GetEndnoteNumberOnPage(nPageAbs, nColumnAbs, oSectPr, this.Footnote) + nAdditional;
+			this.Number    = -1 === nNumber ? oEndnotesController.GetEndnoteNumberOnPage(nPageAbs, nColumnAbs, oSectPr, this.Footnote) : nNumber;
 
 			// Если данная сноска не участвует в нумерации, просто уменьшаем ей номер на 1, для упрощения работы
 			if (this.IsCustomMarkFollows())
@@ -2501,7 +2522,7 @@ ParaEndnoteReference.prototype.UpdateNumber = function(PRS, isKeepNumber)
 	else
 	{
 		this.Number    = 1;
-		this.NumFormat = Asc.c_oAscNumberingFormat.LowerRoman;
+		this.NumFormat = Asc.c_oAscNumberingFormat.Decimal;
 		this.private_Measure();
 	}
 };
@@ -2524,9 +2545,24 @@ ParaEndnoteRef.prototype.Get_Type = function()
 {
 	return para_EndnoteRef;
 };
-ParaEndnoteRef.prototype.Copy = function()
+ParaEndnoteRef.prototype.Copy = function(oPr)
 {
-	return new ParaEndnoteRef(this.GetFootnote());
+	var oEndNote = this.GetFootnote();
+	var oParagraph, oParent, oTopDocument;
+	if(oPr && oPr.Paragraph)
+	{
+		oParagraph = oPr.Paragraph;
+		oParent = oParagraph.GetParent();
+		if(oParent)
+		{
+			oTopDocument = oParent.GetTopDocumentContent();
+			if(oTopDocument && oTopDocument instanceof CFootEndnote)
+			{
+				oEndNote = oTopDocument;
+			}
+		}
+	}
+	return new ParaEndnoteRef(oEndNote);
 };
 ParaEndnoteRef.prototype.UpdateNumber = function(oEndnote)
 {
@@ -2540,7 +2576,7 @@ ParaEndnoteRef.prototype.UpdateNumber = function(oEndnote)
 	else
 	{
 		this.Number    = 1;
-		this.NumFormat = Asc.c_oAscNumberingFormat.LowerRoman;
+		this.NumFormat = Asc.c_oAscNumberingFormat.Decimal;
 		this.private_Measure();
 	}
 };

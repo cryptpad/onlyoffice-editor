@@ -80,7 +80,8 @@ var c_oSerTableTypes = {
 	VbaProject: 13,
 	App: 15,
 	Core: 16,
-	DocumentComments: 17
+	DocumentComments: 17,
+	CustomProperties: 18
 };
 var c_oSerSigTypes = {
     Version:0
@@ -275,7 +276,8 @@ var c_oSerProp_pPrType = {
 	Spacing_BeforeTwips: 40,
 	Spacing_AfterTwips: 41,
 	Tab_Item_PosTwips: 42,
-	Tab_Item_Val: 43
+	Tab_Item_Val: 43,
+	SuppressLineNumbers: 44
 };
 var c_oSerProp_rPrType = {
     Bold:0,
@@ -1726,6 +1728,16 @@ function BinaryFileWriter(doc, bMailMergeDocx, bMailMergeHtml, isCompatible)
 				pptx_content_writer.BinaryFileWriter.ImportFromMemory(old);
 			}});
 		}
+		if (this.Document.CustomProperties) {
+			this.WriteTable(c_oSerTableTypes.CustomProperties, {Write: function(){
+				var old = new AscCommon.CMemory(true);
+				pptx_content_writer.BinaryFileWriter.ExportToMemory(old);
+				pptx_content_writer.BinaryFileWriter.ImportFromMemory(t.memory);
+				t.Document.CustomProperties.toStream(pptx_content_writer.BinaryFileWriter);
+				pptx_content_writer.BinaryFileWriter.ExportToMemory(t.memory);
+				pptx_content_writer.BinaryFileWriter.ImportFromMemory(old);
+			}});
+		}
 		//Write Settings
 		this.WriteTable(c_oSerTableTypes.Settings, new BinarySettingsTableWriter(this.memory, this.Document, this.saveParams));
 		
@@ -2231,6 +2243,12 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 			this.memory.WriteByte(c_oSerProp_pPrType.outlineLvl);
 			this.memory.WriteByte(c_oSerPropLenType.Long);
 			this.memory.WriteLong(pPr.OutlineLvl);
+		}
+		if(null != pPr.SuppressLineNumbers)
+		{
+			this.memory.WriteByte(c_oSerProp_pPrType.SuppressLineNumbers);
+			this.memory.WriteByte(c_oSerPropLenType.Byte);
+			this.memory.WriteBool(pPr.SuppressLineNumbers);
 		}
     };
     this.WriteInd = function(Ind)
@@ -6501,7 +6519,7 @@ function BinaryCommentsTableWriter(memory, doc, oMapCommentId, commentUniqueGuid
 			this.memory.WriteByte(c_oSer_CommentsType.DateUtc);
 			this.memory.WriteString2(new Date(comment.m_sOOTime - 0).toISOString().slice(0, 19) + 'Z');
 		}
-		if (null != comment.m_sUserData)
+		if (comment.m_sUserData)
 		{
 			this.memory.WriteByte(c_oSer_CommentsType.UserData);
 			this.memory.WriteString2(comment.m_sUserData);
@@ -7199,6 +7217,13 @@ function BinaryFileReader(doc, openParams)
 					fileStream = this.stream.ToFileStream();
 					this.Document.Core = new AscCommon.CCore();
 					this.Document.Core.fromStream(fileStream);
+					this.stream.FromFileStream(fileStream);
+					break;
+				case c_oSerTableTypes.CustomProperties:
+					this.stream.Seek2(mtiOffBits);
+					fileStream = this.stream.ToFileStream();
+					this.Document.CustomProperties = new AscCommon.CCustomProperties();
+					this.Document.CustomProperties.fromStream(fileStream);
 					this.stream.FromFileStream(fileStream);
 					break;
             }
@@ -8534,6 +8559,9 @@ function Binary_pPrReader(doc, oReadResult, stream)
                 break;
 			case c_oSerProp_pPrType.outlineLvl:
 				pPr.OutlineLvl = this.stream.GetLongLE();
+				break;
+			case c_oSerProp_pPrType.SuppressLineNumbers:
+				pPr.SuppressLineNumbers = this.stream.GetBool();
 				break;
             default:
                 res = c_oSerConstants.ReadUnknown;

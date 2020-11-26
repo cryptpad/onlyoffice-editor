@@ -2056,6 +2056,7 @@
 		this.nActive = 0;
 		this.App = null;
 		this.Core = null;
+		this.CustomProperties = null;
 		this.theme = null;
 		this.clrSchemeMap = null;
 
@@ -2314,6 +2315,11 @@
 			if(!(bFromRedo === true))
 			{
 				wsFrom.copyObjects(newSheet, renameParams);
+				if (wsFrom.aNamedSheetViews) {
+					for (var i = 0; i < wsFrom.aNamedSheetViews.length; ++i) {
+						newSheet.addNamedSheetView(wsFrom.aNamedSheetViews[i].clone(renameParams.tableNameMap));
+					}
+				}
 			}
 			this.sortDependency();
 
@@ -2928,6 +2934,7 @@
 			history.UndoRedoPrepare(oRedoObjectParam, false);
 			var changesMine = [].concat.apply([], oThis.aCollaborativeActions);
 			oThis._forwardTransformation(oThis.snapshot, changesMine, aUndoRedoElems);
+			oThis.cleanCollaborativeFilterObj();
 			for (var i = 0, length = aUndoRedoElems.length; i < length; ++i)
 			{
 				var item = aUndoRedoElems[i];
@@ -3464,6 +3471,15 @@
 		History.EndTransaction();
 	};
 
+	Workbook.prototype.cleanCollaborativeFilterObj = function () {
+		if (!Asc.CT_NamedSheetView.prototype.asc_getName) {
+			return;
+		}
+		for(var i = 0; i < this.aWorksheets.length; ++i) {
+			this.aWorksheets[i].autoFilters.cleanCollaborativeObj();
+		}
+	};
+
 //-------------------------------------------------------------------------------------------------
 	var tempHelp = new ArrayBuffer(8);
 	var tempHelpUnit = new Uint8Array(tempHelp);
@@ -3961,6 +3977,10 @@
 			}
 		}
 
+		if(wsFrom.headerFooter) {
+			this.headerFooter = wsFrom.headerFooter.clone(this);
+		}
+
 		return renameParams;
 	};
 
@@ -3978,8 +3998,9 @@
 		this._forEachCell(function(cell) {
 			if (cell.isFormula()) {
 				var parsed, notMainArrayCell;
-				parsed = cell.getFormulaParsed();
-				if (!cell.transformSharedFormula()) {
+				if (cell.transformSharedFormula()) {
+					parsed = cell.getFormulaParsed();
+				} else {
 					parsed = cell.getFormulaParsed();
 					if(parsed.getArrayFormulaRef()) {//***array-formula***
 						var listenerId = parsed.getListenerId();

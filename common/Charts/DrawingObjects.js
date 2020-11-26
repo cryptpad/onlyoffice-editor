@@ -2792,32 +2792,26 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                         if(resultRef)
                         {
                             model.workbook.aWorksheets[0].sName = resultRef.sheet;
-                            if(series[0] && series[0].xVal && series[0].xVal.numRef)
-                            {
-                                fillTableFromRef(series[0].xVal.numRef);
-                            }
-                            if(series[0].cat && series[0].cat.strRef)
-                            {
-                                fillTableFromRef(series[0].cat.strRef);
-                            }
+                            var oCat, oVal;
                             for(var i = 0; i < series.length; ++i)
                             {
                                 ser = series[i];
-                                if(ser.val && ser.val.numRef)
+                                oVal = ser.val || ser.yVal;
+                                if(oVal && oVal.numRef)
                                 {
-                                    fillTableFromRef(ser.val.numRef);
+                                    fillTableFromRef(oVal.numRef);
                                 }
-                                if(ser.yVal && ser.yVal.numRef)
+                                oCat = ser.cat || ser.xVal;
+                                if(oCat)
                                 {
-                                    fillTableFromRef(ser.yVal.numRef);
-                                }
-                                if(ser.cat && ser.cat.numRef)
-                                {
-                                    fillTableFromRef(ser.cat.numRef);
-                                }
-                                if(ser.cat && ser.cat.strRef)
-                                {
-                                    fillTableFromRef(ser.cat.strRef);
+                                    if(oCat.numRef)
+                                    {
+                                        fillTableFromRef(oCat.numRef);
+                                    }
+                                    if(oCat.strRef)
+                                    {
+                                        fillTableFromRef(oCat.strRef);
+                                    }
                                 }
                                 if(ser.tx && ser.tx.strRef)
                                 {
@@ -2870,6 +2864,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                     {
                         window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImagesSync);
                     }
+                    History.Clear();
                 });
 
 
@@ -3809,15 +3804,21 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 
     _this.getDrawingBase = function(graphicId) {
         var oDrawing = AscCommon.g_oTableId.Get_ById(graphicId);
-        if(oDrawing){
-            while(oDrawing.group){
+
+        if(oDrawing) {
+            if(oDrawing.chart
+                && oDrawing.chart.getObjectType
+                && oDrawing.chart.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+                oDrawing = oDrawing.chart;
+            }
+            while(oDrawing.group) {
                 oDrawing = oDrawing.group;
             }
-        }
-        if(oDrawing && oDrawing.drawingBase){
-            for (var i = 0; i < aObjects.length; i++) {
-                if ( aObjects[i] === oDrawing.drawingBase )
-                    return aObjects[i];
+            if(oDrawing.drawingBase) {
+                for (var i = 0; i < aObjects.length; i++) {
+                    if ( aObjects[i] === oDrawing.drawingBase )
+                        return aObjects[i];
+                }
             }
         }
         return null;
@@ -4056,6 +4057,10 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                         _this.nCurPointItemsLength = -1;
                     }
                     api.exucuteHistory = false;
+                }
+                if(api.exucuteHistoryEnd)
+                {
+                    api.exucuteHistoryEnd = false;
                 }
             }
             else

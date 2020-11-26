@@ -2896,13 +2896,13 @@ function (window, undefined) {
 					namedSheetView._isActive = true;
 				}
 
-				ws.autoFilters.reapplyAllFilters(true);
+				ws.autoFilters.reapplyAllFilters(true, ws.getActiveNamedSheetViewId() !== null, true);
 			}
 		} else if (AscCH.historyitem_Worksheet_SheetViewAdd === Type) {
 			if (bUndo) {
 				ws.deleteNamedSheetViews([ws.getNamedSheetViewById(Data.Id)], true);
 			} else {
-				ws.addNamedSheetView(Data.getData());
+				ws.addNamedSheetView(Data.getData(), true);
 			}
 		} else if (AscCH.historyitem_Worksheet_SheetViewDelete === Type) {
 			if (bUndo) {

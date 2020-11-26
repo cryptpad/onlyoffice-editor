@@ -1274,7 +1274,7 @@ background-repeat: no-repeat;\
 			[c_oAscDocumentShortcutType.CopyFormat, 67, true, true, false],
 			[c_oAscDocumentShortcutType.CopyrightSign, 67, true, false, true],
 			[c_oAscDocumentShortcutType.InsertEndnoteNow, 68, true, false, true],
-			[c_oAscDocumentShortcutType.CenterPara, 69, true, false, true],
+			[c_oAscDocumentShortcutType.CenterPara, 69, true, false, false],
 			[c_oAscDocumentShortcutType.EuroSign, 69, true, false, true],
 			[c_oAscDocumentShortcutType.InsertFootnoteNow, 70, true, false, true],
 			[c_oAscDocumentShortcutType.Italic, 73, true, false, false],
@@ -5651,6 +5651,10 @@ background-repeat: no-repeat;\
 							this.nCurPointItemsLength = oPoint.Items.length;
 						}
 					}
+					if(this.exucuteHistoryEnd)
+					{
+						this.exucuteHistoryEnd = false;
+					}
 				}
 				else
 				{
@@ -7831,6 +7835,14 @@ background-repeat: no-repeat;\
 			this.WordControl.m_oLogicDocument.Add_SectionBreak(_Type);
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
+	};
+	asc_docs_api.prototype.asc_GetSectionsCount = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return 1;
+
+		return oLogicDocument.GetSectionsCount();
 	};
 
 	asc_docs_api.prototype.asc_setViewMode = function(isViewMode)
@@ -11215,6 +11227,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['ClearFormating']                            = asc_docs_api.prototype.ClearFormating;
 	asc_docs_api.prototype['GetSectionInfo']                            = asc_docs_api.prototype.GetSectionInfo;
 	asc_docs_api.prototype['add_SectionBreak']                          = asc_docs_api.prototype.add_SectionBreak;
+	asc_docs_api.prototype['asc_GetSectionsCount']                      = asc_docs_api.prototype.asc_GetSectionsCount;
 	asc_docs_api.prototype['asc_setViewMode']                           = asc_docs_api.prototype.asc_setViewMode;
 	asc_docs_api.prototype['OnMouseUp']                                 = asc_docs_api.prototype.OnMouseUp;
 	asc_docs_api.prototype['asyncImageEndLoaded2']                      = asc_docs_api.prototype.asyncImageEndLoaded2;

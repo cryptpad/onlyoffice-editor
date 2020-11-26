@@ -1619,7 +1619,13 @@ TextAddState.prototype =
     {
         if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_CURSOR)
         {
-            return {objectId: this.majorObject.Id, cursorType: "text"};
+            var sId = this.majorObject.Id;
+            if(this.majorObject.chart
+                && this.majorObject.chart.getObjectType
+                && this.majorObject.chart.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+                sId = this.majorObject.chart.Id;
+            }
+            return {objectId: sId, cursorType: "text"};
         }
     },
     onMouseMove: function(e, x, y, pageIndex)

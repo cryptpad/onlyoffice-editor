@@ -1373,7 +1373,7 @@
 			// Запоминаем координаты нажатия
 			this.mouseDownLastCord = coord;
 
-			if (!t.getCellEditMode()) {
+			if (!t.getCellEditMode() && !t.getSelectionDialogMode()) {
 				this.gotFocus(true);
 				if (event.shiftKey) {
 					t.isSelectMode = true;

@@ -87,6 +87,10 @@ var c_oAscError = Asc.c_oAscError;
 			t._addImageUrl([AscCommon.g_oDocumentUrls.getImageUrl(_url)], obj);
 		});
 	};
+	spreadsheet_api.prototype.AddImageUrlAction = function(url)
+	{
+		this._addImageUrl([url]);
+	};
 	spreadsheet_api.prototype.asc_setAdvancedOptions = function(idOption, option)
 	{
 		if (asc.c_oAscAdvancedOptionsID.CSV === idOption) {

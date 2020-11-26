@@ -1914,19 +1914,8 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                     }
                 }
             }
-
-            if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Document_Content_Add) )
-            {
-                this.WordControl.m_oLogicDocument.StartAction();
-                this.WordControl.m_oLogicDocument.AddInlineTable(_rows, _cols);
-
-                if (_style != null)
-                {
-                    this.WordControl.m_oLogicDocument.SetTableProps({TableStyle : _style});
-                }
-
-                this.WordControl.m_oLogicDocument.FinalizeAction();
-            }
+            _style = _style + "";
+            this.put_Table(_rows, _cols, _style);
             break;
         }
         case 50: // ASC_MENU_EVENT_TYPE_INSERT_IMAGE
@@ -2458,15 +2447,15 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         }
 
         case 23102: // ASC_MENU_EVENT_TYPE_DO_SHOW_COMMENT
-            {
-                var json = JSON.parse(params[0]);
-                if (json && json["id"]) {
-                    if (_api.asc_showComment) {
-                        _api.asc_showComment(json["id"], json["isNew"]);
-                    }
+        {
+            var json = JSON.parse(_params[0]);
+            if (json && json["id"]) {
+                if (_api.asc_showComment) {
+                    _api.asc_showComment(json["id"], json["isNew"] === true);
                 }
-                break;
             }
+            break;
+        }
 
         case 23103: // ASC_MENU_EVENT_TYPE_DO_SELECT_COMMENTS
         {
@@ -3927,7 +3916,12 @@ function asc_menu_WriteChartPr(_type, _chartPr, _stream)
     asc_menu_WriteAscValAxisSettings(16, _chartPr.horAxisProps, _stream);
     asc_menu_WriteAscValAxisSettings(17, _chartPr.vertAxisProps, _stream);
 
-    var sRange = _chartPr.getRange();
+    var sRange = null;
+    sRange = _chartPr.getRange();
+    if(!sRange)
+    {
+        sRange = _chartPr.aRanges[0];
+    }
     if (sRange !== undefined && sRange !== null)
     {
         _stream["WriteByte"](18);
@@ -5135,6 +5129,10 @@ Asc['asc_docs_api'].prototype.ImgApply = function(obj)
                 if(this.exucuteHistory)
                 {
                     this.exucuteHistory = false;
+                }
+                if(this.exucuteHistoryEnd)
+                {
+                    this.exucuteHistoryEnd = false;
                 }
             }
             else

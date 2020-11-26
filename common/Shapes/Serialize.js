@@ -46,6 +46,43 @@ var c_oAscShdClear = Asc.c_oAscShdClear;
 var c_oAscColor = Asc.c_oAscColor;
 var c_oAscFill = Asc.c_oAscFill;
 
+var c_oVariantTypes = {
+    vtEmpty: 0,
+    vtNull: 1,
+    vtVariant: 2,
+    vtVector: 3,
+    vtArray: 4,
+    vtVStream: 5,
+    vtBlob: 6,
+    vtOBlob: 7,
+    vtI1: 8,
+    vtI2: 9,
+    vtI4: 10,
+    vtI8: 11,
+    vtInt: 12,
+    vtUi1: 13,
+    vtUi2: 14,
+    vtUi4: 15,
+    vtUi8: 16,
+    vtUint: 17,
+    vtR4: 18,
+    vtR8: 19,
+    vtDecimal: 20,
+    vtLpstr: 21,
+    vtLpwstr: 22,
+    vtBstr: 23,
+    vtDate: 24,
+    vtFiletime: 25,
+    vtBool: 26,
+    vtCy: 27,
+    vtError: 28,
+    vtStream: 29,
+    vtOStream: 30,
+    vtStorage: 31,
+    vtOStorage: 32,
+    vtClsid: 33
+};
+
 var c_dScalePPTXSizes = 36000;
 function IsHiddenObj(object)
 {
@@ -435,6 +472,15 @@ function BinaryPPTYLoader()
 
                 this.presentation.Core = new CCore();
                 this.presentation.Core.fromStream(s);
+            }
+
+            if (undefined != _main_tables["48"])
+            {
+                // core
+                s.Seek2(_main_tables["48"]);
+
+                this.presentation.CustomProperties = new CCustomProperties();
+                this.presentation.CustomProperties.fromStream(s);
             }
         }
 
@@ -10745,7 +10791,493 @@ CCore.prototype.Refresh_RecalcData2 = function(){
         }, this, []);
     };
 
-function CPres()
+    function CVariantVector()
+    {
+        this.baseType = null;
+        this.size = null;
+
+        this.variants = [];
+    }
+    CVariantVector.prototype.fromStream = function(s)
+    {
+        var _type;
+        var _len = s.GetULong();
+        var _start_pos = s.cur;
+        var _end_pos = _len + _start_pos;
+        var _at;
+
+        // attributes
+        var _sa = s.GetUChar();
+
+        while (true)
+        {
+            _at = s.GetUChar();
+
+            if (_at == g_nodeAttributeEnd)
+                break;
+
+            switch (_at)
+            {
+                case 0: { this.baseType = s.GetUChar(); break; }
+                case 1: { this.size = s.GetLong(); break; }
+                default:
+                    return;
+            }
+        }
+        while (true)
+        {
+            if (s.cur >= _end_pos)
+                break;
+
+            _type = s.GetUChar();
+            switch (_type)
+            {
+                case 0:
+                {
+                    s.Skip2(4);
+                    var _c = s.GetULong();
+                    for (var i = 0; i < _c; ++i) {
+                        s.Skip2(1); // type
+                        var tmp = new CVariant();
+                        tmp.fromStream(s);
+                        this.variants.push(tmp);
+                    }
+                    break;
+                }
+                default:
+                {
+                    s.SkipRecord();
+                    break;
+                }
+            }
+        }
+        s.Seek2(_end_pos);
+    };
+    CVariantVector.prototype.toStream = function(s) {
+        s.WriteUChar(AscCommon.g_nodeAttributeStart);
+        s._WriteUChar2(0, this.baseType);
+        s._WriteInt2(1, this.size);
+        s.WriteUChar(g_nodeAttributeEnd);
+
+        s.WriteRecordArray4(0, 0, this.variants);
+    };
+    function CVariantArray()
+    {
+        this.baseType = null;
+        this.lBounds = null;
+        this.uBounds = null;
+
+        this.variants = [];
+    }
+    CVariantArray.prototype.fromStream = function(s)
+    {
+        var _type;
+        var _len = s.GetULong();
+        var _start_pos = s.cur;
+        var _end_pos = _len + _start_pos;
+        var _at;
+
+        // attributes
+        var _sa = s.GetUChar();
+
+        while (true)
+        {
+            _at = s.GetUChar();
+
+            if (_at == g_nodeAttributeEnd)
+                break;
+
+            switch (_at)
+            {
+                case 0: { this.baseType = s.GetUChar(); break; }
+                case 1: { this.lBounds = s.GetString2(); break; }
+                case 2: { this.uBounds = s.GetString2(); break; }
+                default:
+                    return;
+            }
+        }
+        while (true)
+        {
+            if (s.cur >= _end_pos)
+                break;
+
+            _type = s.GetUChar();
+            switch (_type)
+            {
+                case 0:
+                {
+                    s.Skip2(4);
+                    var _c = s.GetULong();
+                    for (var i = 0; i < _c; ++i) {
+                        s.Skip2(1); // type
+                        var tmp = new CVariant();
+                        tmp.fromStream(s);
+                        this.variants.push(tmp);
+                    }
+                    break;
+                }
+                default:
+                {
+                    s.SkipRecord();
+                    break;
+                }
+            }
+        }
+        s.Seek2(_end_pos);
+    };
+    CVariantArray.prototype.toStream = function(s) {
+        s.WriteUChar(AscCommon.g_nodeAttributeStart);
+        s._WriteUChar2(0, this.baseType);
+        s._WriteString2(1, this.lBounds);
+        s._WriteString2(2, this.uBounds);
+        s.WriteUChar(g_nodeAttributeEnd);
+
+        s.WriteRecordArray4(0, 0, this.variants);
+    };
+    function CVariantVStream()
+    {
+        this.version = null;
+
+        this.strContent = null;
+    }
+    CVariantVStream.prototype.fromStream = function(s)
+    {
+        var _type;
+        var _len = s.GetULong();
+        var _start_pos = s.cur;
+        var _end_pos = _len + _start_pos;
+        var _at;
+
+        // attributes
+        var _sa = s.GetUChar();
+
+        while (true)
+        {
+            _at = s.GetUChar();
+
+            if (_at == g_nodeAttributeEnd)
+                break;
+
+            switch (_at)
+            {
+                case 0: { this.version = s.GetString2(); break; }
+                default:
+                    return;
+            }
+        }
+        while (true)
+        {
+            if (s.cur >= _end_pos)
+                break;
+
+            _type = s.GetUChar();
+            switch (_type)
+            {
+                case 0:
+                {
+                    this.strContent = s.GetString2();
+                    break;
+                }
+                default:
+                {
+                    s.SkipRecord();
+                    break;
+                }
+            }
+        }
+        s.Seek2(_end_pos);
+    };
+    CVariantVStream.prototype.toStream = function(s) {
+        s.WriteUChar(AscCommon.g_nodeAttributeStart);
+        s._WriteString2(0, this.version);
+        s.WriteUChar(g_nodeAttributeEnd);
+
+        s._WriteString2(0, this.strContent);
+    };
+    function CVariant()
+    {
+        this.type = null;
+        this.strContent = null;
+        this.iContent = null;
+        this.uContent = null;
+        this.dContent = null;
+        this.bContent = null;
+        this.variant = null;
+        this.vector = null;
+        this.array = null;
+        this.vStream = null;
+
+    }
+    CVariant.prototype.fromStream = function(s)
+    {
+        var _type;
+        var _len = s.GetULong();
+        var _start_pos = s.cur;
+        var _end_pos = _len + _start_pos;
+        var _at;
+
+        // attributes
+        var _sa = s.GetUChar();
+
+        while (true)
+        {
+            _at = s.GetUChar();
+
+            if (_at == g_nodeAttributeEnd)
+                break;
+
+            switch (_at)
+            {
+                case 0: { this.type = s.GetUChar(); break; }
+                default:
+                    return;
+            }
+        }
+        while (true)
+        {
+            if (s.cur >= _end_pos)
+                break;
+
+            _type = s.GetUChar();
+            switch (_type)
+            {
+                case 0:
+                {
+                    this.strContent = s.GetString2();
+                    break;
+                }
+                case 1:
+                {
+                    this.iContent = s.GetLong();
+                    break;
+                }
+                case 2:
+                {
+                    this.iContent = s.GetULong();
+                    break;
+                }
+                case 3:
+                {
+                    this.dContent = s.GetDouble();
+                    break;
+                }
+                case 4:
+                {
+                    this.bContent = s.GetBool();
+                    break;
+                }
+                case 5:
+                {
+                    this.variant = new CVariant();
+                    this.variant.fromStream(s);
+                    break;
+                }
+                case 6:
+                {
+                    this.vector = new CVariantVector();
+                    this.vector.fromStream(s);
+                    break;
+                }
+                case 7:
+                {
+                    this.array = new CVariantArray();
+                    this.array.fromStream(s);
+                    break;
+                }
+                case 8:
+                {
+                    this.vStream = new CVariantVStream();
+                    this.vStream.fromStream(s);
+                    break;
+                }
+                default:
+                {
+                    s.SkipRecord();
+                    break;
+                }
+            }
+        }
+        s.Seek2(_end_pos);
+    };
+    CVariant.prototype.toStream = function(s) {
+        s.WriteUChar(AscCommon.g_nodeAttributeStart);
+        s._WriteUChar2(0, this.type);
+        s.WriteUChar(g_nodeAttributeEnd);
+
+        s._WriteString2(0, this.strContent);
+        s._WriteInt2(1, this.iContent);
+        s._WriteUInt2(2, this.uContent);
+        s._WriteDoubleReal2(3, this.dContent);
+        s._WriteBool2(4, this.bContent);
+        s.WriteRecord4(5, this.variant);
+        s.WriteRecord4(6, this.vector);
+        s.WriteRecord4(7, this.array);
+        s.WriteRecord4(8, this.vStream);
+    };
+    CVariant.prototype.setText = function(val) {
+        this.type = c_oVariantTypes.vtLpwstr;
+        this.strContent = val;
+    };
+    CVariant.prototype.setNumber = function(val) {
+        this.type = c_oVariantTypes.vtI4;
+        this.iContent = val;
+    };
+    CVariant.prototype.setDate = function(val) {
+        this.type = c_oVariantTypes.vtFiletime;
+        this.strContent = val.toISOString().slice(0, 19) + 'Z';
+    };
+    CVariant.prototype.setBool = function(val) {
+        this.type = c_oVariantTypes.vtBool;
+        this.bContent = val;
+    };
+    
+    function CCustomProperty()
+    {
+        this.fmtid = null;
+        this.pid = null;
+        this.name = null;
+        this.linkTarget = null;
+
+        this.content = null;
+    }
+    CCustomProperty.prototype.fromStream = function(s)
+    {
+        var _type;
+        var _len = s.GetULong();
+        var _start_pos = s.cur;
+        var _end_pos = _len + _start_pos;
+        var _at;
+
+        // attributes
+        var _sa = s.GetUChar();
+
+        while (true)
+        {
+            _at = s.GetUChar();
+
+            if (_at == g_nodeAttributeEnd)
+                break;
+
+            switch (_at)
+            {
+                case 0: { this.fmtid = s.GetString2(); break; }
+                case 1: { this.pid = s.GetLong(); break; }
+                case 2: { this.name = s.GetString2(); break; }
+                case 3: { this.linkTarget = s.GetString2(); break; }
+                default:
+                    return;
+            }
+        }
+        while (true)
+        {
+            if (s.cur >= _end_pos)
+                break;
+
+            _type = s.GetUChar();
+            switch (_type)
+            {
+                case 0:
+                {
+                    this.content = new CVariant();
+                    this.content.fromStream(s);
+                    break;
+                }
+                default:
+                {
+                    s.SkipRecord();
+                    break;
+                }
+            }
+        }
+        s.Seek2(_end_pos);
+    };
+    CCustomProperty.prototype.toStream = function(s) {
+        s.WriteUChar(AscCommon.g_nodeAttributeStart);
+        s._WriteString2(0, this.fmtid);
+        s._WriteInt2(1, this.pid);
+        s._WriteString2(2, this.name);
+        s._WriteString2(3, this.linkTarget);
+        s.WriteUChar(g_nodeAttributeEnd);
+
+        s.WriteRecord4(0, this.content);
+    };
+    function CCustomProperties()
+    {
+        this.properties = [];
+    }
+    CCustomProperties.prototype.fromStream = function(s)
+    {
+        var _type = s.GetUChar();
+        var _len = s.GetULong();
+        var _start_pos = s.cur;
+        var _end_pos = _len + _start_pos;
+        var _at;
+
+        // attributes
+        var _sa = s.GetUChar();
+
+        while (true)
+        {
+            _at = s.GetUChar();
+
+            if (_at == g_nodeAttributeEnd)
+                break;
+        }
+        while (true)
+        {
+            if (s.cur >= _end_pos)
+                break;
+
+            _type = s.GetUChar();
+            switch (_type)
+            {
+                case 0:
+                {
+                    s.Skip2(4);
+                    var _c = s.GetULong();
+                    for (var i = 0; i < _c; ++i) {
+                        s.Skip2(1); // type
+                        var tmp = new CCustomProperty();
+                        tmp.fromStream(s);
+                        this.properties.push(tmp);
+                    }
+                    break;
+                }
+                default:
+                {
+                    s.SkipRecord();
+                    break;
+                }
+            }
+        }
+        s.Seek2(_end_pos);
+    };
+    CCustomProperties.prototype.toStream = function(s) {
+        s.StartRecord(AscCommon.c_oMainTables.CustomProperties);
+        s.WriteUChar(AscCommon.g_nodeAttributeStart);
+        s.WriteUChar(g_nodeAttributeEnd);
+
+        this.fillNewPid();
+        s.WriteRecordArray4(0, 0, this.properties);
+        s.EndRecord();
+    };
+    CCustomProperties.prototype.fillNewPid = function(s) {
+        var index = 2;
+        this.properties.forEach(function(property) {
+            property.pid = index++;
+        });
+    };
+    CCustomProperties.prototype.add = function(name, variant, opt_linkTarget) {
+        var newProperty = new CCustomProperty();
+        newProperty.fmtid = "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}";
+        newProperty.pid = null;
+        newProperty.name = name;
+        newProperty.linkTarget = opt_linkTarget || null;
+        newProperty.content = variant;
+        this.properties.push(newProperty);
+    };
+
+    function CPres()
 {
     this.defaultTextStyle = null;
     this.SldSz = null;
@@ -12137,5 +12669,17 @@ function CPres()
     prot["asc_putLastPrinted"] = prot.asc_putLastPrinted;
     prot["asc_putSubject"] = prot.asc_putSubject;
     prot["asc_putVersion"] = prot.asc_putVersion;
+
+    window['AscCommon'].CCustomProperties = CCustomProperties;
+    prot = CCustomProperties.prototype;
+    prot["add"] = prot.add;
+
+    window['AscCommon'].c_oVariantTypes = c_oVariantTypes;
+    window['AscCommon'].CVariant = CVariant;
+    prot = CVariant.prototype;
+    prot["setText"] = prot.setText;
+    prot["setNumber"] = prot.setNumber;
+    prot["setDate"] = prot.setDate;
+    prot["setBool"] = prot.setBool;
 
 })(window);

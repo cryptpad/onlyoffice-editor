@@ -1526,8 +1526,8 @@
 						}
 						else if (data["type"] === "onExternalPluginMessage")
 						{
-                            if (!window.g_asc_plugins)
-                            	return;
+							if (!window.g_asc_plugins)
+								return;
 
 							if (data["subType"] == "internalCommand")
 							{
@@ -1537,7 +1537,7 @@
 									case "onbeforedrop":
 									case "ondrop":
 									{
-                                        window.g_asc_plugins.api.privateDropEvent(data.data);
+										window.g_asc_plugins.api.privateDropEvent(data.data);
 										return;
 									}
 									default:
@@ -1546,6 +1546,13 @@
 							}
 
 							window.g_asc_plugins.sendToAllPlugins(event.data);
+						}
+						else if (data["type"] === "onExternalPluginMessageCallback")
+						{
+							if (!window.g_asc_plugins)
+								return;
+
+							window.parent && window.parent.postMessage(event.data, "*");
 						}
                         else if (data["type"] === "emulateUploadInFrame")
                         {
@@ -2914,6 +2921,8 @@
 				{
 					range = AscCommonExcel.g_oRangeCache.getAscRange(result.range);
 				}
+			} else if (Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType) {
+				range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
 			}
 			if (!range) {
 				range = AscCommon.rx_defName.test(dataRange);
@@ -2946,9 +2955,9 @@
 			if (Asc.c_oAscSelectionDialogType.Chart === dialogType)
 			{
 				// Проверка максимального дипазона
-				var maxSeries = 255;
+				var maxSeries = AscFormat.MAX_SERIES_COUNT;
 				var minStockVal = 4;
-				var maxValues = 4096;
+				var maxValues = AscFormat.MAX_POINTS_COUNT;
 
 				var intervalValues, intervalSeries;
 				if (isRows)
@@ -3013,8 +3022,12 @@
 			{
 				var location = Asc.CT_pivotTableDefinition.prototype.parseDataRef(dataRange);
 				if (location) {
+					sheetModel = location.ws;
+					if (!sheetModel) {
+						sheetModel = model.getActiveWs();
+					}
 					var newRange = new Asc.Range(location.bbox.c1, location.bbox.r1, location.bbox.c1 + AscCommonExcel.NEW_PIVOT_LAST_COL_OFFSET, location.bbox.r1 + AscCommonExcel.NEW_PIVOT_LAST_ROW_OFFSET);
-					return location.ws.checkPivotReportLocationForError([newRange]);
+					return sheetModel.checkPivotReportLocationForError([newRange]);
 				} else {
 					return Asc.c_oAscError.ID.DataRangeError
 				}

@@ -3254,6 +3254,7 @@
 						if (!isIntoShape) {
 							return false;
 						}
+						isIntoShape.Remove(1, true, true);
 						var Count = text.length;
 
 						var newParagraph = new Paragraph(isIntoShape.DrawingDocument, isIntoShape);

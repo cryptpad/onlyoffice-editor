@@ -458,6 +458,9 @@
 			//флаг для того, чтобы применять скрытые строки к текущему вью
 			this.useViewLocalChange = null;
 
+			this.applyCollaborativeChangedColumnsArr = [];
+			this.applyCollaborativeChangedRowsArr = [];
+
 			this.m_oColor = new AscCommon.CColor(120, 120, 120);
 			return this;
 		}
@@ -776,6 +779,7 @@
 					}
 
 					if (nsvFilter) {
+						oldFilter = nsvFilter.clone();
 						//TODO перепроверить. соответствует ли индекс?
 						newFilterColumn = nsvFilter.getColumnFilterByColId(filterObj.ColId, true);
 
@@ -833,7 +837,7 @@
 
 				//автоматическое расширение диапазона а/ф
 				if (autoFiltersObject.automaticRowCount && filterObj.filter && filterObj.filter.Ref &&
-					filterObj.filter.isAutoFilter() && !nsvFilter) {
+					filterObj.filter.isAutoFilter() /*&& !nsvFilter*/) {
 					var currentDiff = filterObj.filter.Ref.r2 - filterObj.filter.Ref.r1;
 					var newDiff = autoFiltersObject.automaticRowCount - filterObj.filter.Ref.r1;
 
@@ -884,9 +888,8 @@
 				}
 
 				//history
-				var updateRange =  oldFilter ? oldFilter.Ref: null;
 				this._addHistoryObj(oldFilter, AscCH.historyitem_AutoFilter_Apply,
-					{activeCells: ar, autoFiltersObject: autoFiltersObject}, null, updateRange);
+					{activeCells: ar, autoFiltersObject: autoFiltersObject}, null, rangeOldFilter);
 				History.EndTransaction();
 
 				if (!bUndoChanges && !bRedoChanges) {
@@ -984,7 +987,7 @@
 				}
 			},
 
-			reapplyAllFilters: function (turnOffHistory, openPreviousHiddenRows) {
+			reapplyAllFilters: function (turnOffHistory, openPreviousHiddenRows, ignoreUndoRedo) {
 				if (turnOffHistory) {
 					History.TurnOff();
 				}
@@ -993,14 +996,14 @@
 					if (openPreviousHiddenRows && worksheet.AutoFilter.isApplyAutoFilter()) {
 						worksheet.setRowHidden(false, worksheet.AutoFilter.Ref.r1, worksheet.AutoFilter.Ref.r2);
 					}
-					this.reapplyAutoFilter(null);
+					this.reapplyAutoFilter(null, ignoreUndoRedo);
 				}
 				if (worksheet.TableParts) {
 					for (var i = 0; i < worksheet.TableParts.length; i++) {
 						if (openPreviousHiddenRows && worksheet.TableParts[i].isApplyAutoFilter()) {
 							worksheet.setRowHidden(false, worksheet.TableParts[i].Ref.r1, worksheet.TableParts[i].Ref.r2);
 						}
-						this.reapplyAutoFilter(worksheet.TableParts[i].DisplayName);
+						this.reapplyAutoFilter(worksheet.TableParts[i].DisplayName, ignoreUndoRedo);
 					}
 				}
 				if (turnOffHistory) {
@@ -1008,7 +1011,7 @@
 				}
 			},
 
-			reapplyAutoFilter: function (displayName) {
+			reapplyAutoFilter: function (displayName, ignoreUndoRedo) {
 				var worksheet = this.worksheet;
 				var bUndoChanges = worksheet.workbook.bUndoChanges;
 				var bRedoChanges = worksheet.workbook.bRedoChanges;
@@ -1032,7 +1035,7 @@
 				History.StartTransaction();
 
 				//open/close rows
-				if (!bUndoChanges && !bRedoChanges) {
+				if ((!bUndoChanges && !bRedoChanges) || ignoreUndoRedo) {
 					var activeNamedSheetView = worksheet.getActiveNamedSheetViewId();
 					var opt_columnsFilter;
 					if (activeNamedSheetView !== null) {
@@ -1239,7 +1242,9 @@
 							} else if (data.type === false) {
 								redrawTablesArr = this.insertLastTableRow(data.displayName, data.activeCells);
 							}
-							this.redrawStylesTables(redrawTablesArr);
+							if (redrawTablesArr) {
+								this.redrawStylesTables(redrawTablesArr);
+							}
 						}
 						break;
 					case AscCH.historyitem_AutoFilter_ChangeTableInfo:
@@ -1689,6 +1694,10 @@
 
 				activeRange = activeRange.clone();
 
+				if (this.worksheet.workbook.bCollaborativeChanges && Asc.CT_NamedSheetView.prototype.asc_getName) {
+					this.applyCollaborativeChangedColumnsArr.push({range: activeRange, offset: diff});
+				}
+
 				var redrawTablesArr = [];
 				var changeFilter = function (filter, bTablePart) {
 					var ref = filter.Ref;
@@ -1704,6 +1713,7 @@
 
 							if (diff < 0) {
 								diffColId = ref.c1 - activeRange.c2 - 1;
+								t._deleteCollaborativeActiveAfterDeleteColumn(filter, activeRange);
 								filter.deleteTableColumns(activeRange);
 								filter.changeRef(-diffColId, null, true);
 							}
@@ -1715,6 +1725,7 @@
 
 							if (diff < 0) {
 								filter.deleteTableColumns(activeRange);
+								t._deleteCollaborativeActiveAfterDeleteColumn(filter, activeRange);
 							} else {
 								filter.addTableColumns(activeRange, t);
 							}
@@ -1726,6 +1737,7 @@
 
 							if (diff < 0) {
 								filter.deleteTableColumns(activeRange);
+								t._deleteCollaborativeActiveAfterDeleteColumn(filter, activeRange);
 							} else {
 								filter.addTableColumns(activeRange, t);
 							}
@@ -1829,7 +1841,7 @@
 						var changeElement = {
 							oldFilter: oldFilter, newFilterRef: filter.Ref.clone()
 						};
-						t._addHistoryObj(changeElement, AscCH.historyitem_AutoFilter_Change,
+						t.deferredHistoryAction = t._getHistoryObj(changeElement, AscCH.historyitem_AutoFilter_Change,
 							{displayName: displayNameFormatTable, activeCells: activeRange, type: true}, false,
 							oldFilter.Ref, null, activeRange);
 					}
@@ -1861,6 +1873,10 @@
 
 				if (type === "delCell") {
 					diff = -diff;
+				}
+
+				if (this.worksheet.workbook.bCollaborativeChanges && Asc.CT_NamedSheetView.prototype.asc_getName) {
+					this.applyCollaborativeChangedRowsArr.push({range: activeRange, offset: diff});
 				}
 
 				if (DeleteRows)//в случае, если удаляем строки, тогда расширяем активную область область по всем столбцам
@@ -3105,6 +3121,27 @@
 			_addHistoryObj: function (oldObj, type, redoObject, deleteFilterAfterDeleteColRow, activeHistoryRange,
 									  bWithoutFilter, activeRange) {
 				var ws = this.worksheet;
+				var oHistoryObject = this._getHistoryObj(oldObj, type, redoObject, deleteFilterAfterDeleteColRow, activeHistoryRange,
+					bWithoutFilter);
+
+				if (!redoObject) {
+					oHistoryObject.activeCells = activeRange ? activeRange.clone() : null;
+					if (type !== AscCH.historyitem_AutoFilter_Change) {
+						type = null;
+					}
+				}
+
+				if (!activeHistoryRange) {
+					activeHistoryRange = null;
+				}
+
+				History.Add(AscCommonExcel.g_oUndoRedoAutoFilters, type, ws.getId(), activeHistoryRange,
+					oHistoryObject);
+			},
+
+			_getHistoryObj: function (oldObj, type, redoObject, deleteFilterAfterDeleteColRow, activeHistoryRange,
+									  bWithoutFilter) {
+				var ws = this.worksheet;
 				var oHistoryObject = new AscCommonExcel.UndoRedoData_AutoFilter();
 				oHistoryObject.undo = oldObj;
 
@@ -3127,19 +3164,10 @@
 					oHistoryObject.formula = redoObject.formula;
 					oHistoryObject.totalFunction = redoObject.totalFunction;
 					oHistoryObject.viewId = ws.getActiveNamedSheetViewId();
-				} else {
-					oHistoryObject.activeCells = activeRange ? activeRange.clone() : null;
-					if (type !== AscCH.historyitem_AutoFilter_Change) {
-						type = null;
-					}
+					oHistoryObject._type = type;
 				}
 
-				if (!activeHistoryRange) {
-					activeHistoryRange = null;
-				}
-
-				History.Add(AscCommonExcel.g_oUndoRedoAutoFilters, type, ws.getId(), activeHistoryRange,
-					oHistoryObject);
+				return oHistoryObject;
 			},
 
 			renameTableColumn: function (range, bUndo, props) {
@@ -5373,7 +5401,7 @@
 
 				var oldFilter = autoFilterObj && autoFilterObj.columnsFilter ? autoFilterObj.clone() : filter.clone(null);
 
-				var colId = this._getColIdColumn(filter, cellId);
+				var colId = this._getColIdColumn(filter, cellId, viewId);
 
 				History.Create_NewPoint();
 				History.StartTransaction();
@@ -5917,6 +5945,22 @@
 				//здесь проверяем массив aCollaborativeActions
 				var res = false;
 
+				var _setOffset = function (_val, arr, byCol) {
+					if (arr && arr.length) {
+						for (var i = 0; i < arr.length; i++) {
+							var offset = arr[i].offset;
+							var first = byCol ? arr[i].range.c1 : arr[i].range.r1;
+							var last = byCol ? arr[i].range.c2 : arr[i].range.r2;
+							if (_val > last) {
+								_val += offset;
+							} else if (_val >= first && _val <= last && offset > 0) {
+								_val += offset;
+							}
+						}
+					}
+					return _val;
+				};
+
 				var wb = this.worksheet.workbook;
 				if (wb.aCollaborativeActions) {
 					for (var i = 0; i < wb.aCollaborativeActions.length; i++) {
@@ -5928,7 +5972,26 @@
 								//в дальнейшем если перейти на айдишники колонок, то этот вопрос можно решить
 								var autoFiltersObjectAction = action && action.oData ? action.oData.autoFiltersObject : null;
 								if (autoFiltersObjectAction && autoFiltersObject && autoFiltersObject.displayName === autoFiltersObjectAction.displayName) {
-									return true;
+									var cellIdOther = autoFiltersObject.cellId.split('af')[0];
+									var rangeOther;
+									AscCommonExcel.executeInR1C1Mode(false, function () {
+										rangeOther = AscCommonExcel.g_oRangeCache.getAscRange(cellIdOther).clone();
+									});
+									var cellIdMe = autoFiltersObjectAction.cellId.split('af')[0];
+									var rangeMe;
+									AscCommonExcel.executeInR1C1Mode(false, function () {
+										rangeMe = AscCommonExcel.g_oRangeCache.getAscRange(cellIdMe).clone();
+									});
+
+
+									var colMe =  _setOffset(rangeMe.c1, this.applyCollaborativeChangedColumnsArr, true);
+									var colOther = rangeOther.c1;
+									var rowMe = _setOffset(rangeMe.r1, this.applyCollaborativeChangedRowsArr);
+									var rowOther = rangeOther.r1;
+
+									if (colMe === colOther && rowMe === rowOther) {
+										return true;
+									}
 								}
 							}
 						}
@@ -5936,6 +5999,49 @@
 				}
 
 				return res;
+			},
+
+			_deleteCollaborativeActiveAfterDeleteColumn: function(filter, range) {
+				if (!this.worksheet.workbook.bCollaborativeChanges) {
+					return;
+				}
+
+				var compareFilter = function (_name1, _name2) {
+					if (_name1 === _name2 || (!_name1 && !_name2)) {
+						return true;
+					}
+					return false;
+				};
+
+				var wb = this.worksheet.workbook;
+				if (wb.aCollaborativeActions) {
+					for (var i = 0; i < wb.aCollaborativeActions.length; i++) {
+						for (var j = 0; j < wb.aCollaborativeActions[i].length; j++) {
+							var action = wb.aCollaborativeActions[i][j];
+							if (action.oClass && AscCommonExcel.g_oUndoRedoAutoFilters.nType === action.oClass.nType && action.nActionType === AscCH.historyitem_AutoFilter_Apply) {
+								var autoFiltersObjectAction = action && action.oData ? action.oData.autoFiltersObject : null;
+								if (autoFiltersObjectAction && null !== autoFiltersObjectAction.namedSheetView && compareFilter(autoFiltersObjectAction.displayName, filter.DisplayName)) {
+									var applyFilterId = autoFiltersObjectAction.cellId.split('af')[0];
+									var applyFilterIdRange;
+									AscCommonExcel.executeInR1C1Mode(false, function () {
+										applyFilterIdRange = AscCommonExcel.g_oRangeCache.getAscRange(applyFilterId).clone();
+									});
+									if (applyFilterIdRange && applyFilterIdRange.c1 >= range.c1 && applyFilterIdRange.c1 <= range.c2) {
+										//удаляем изменение чтобы потом при его применении у другого пользователя не было
+										//конфликтов с несуществующим столбцом
+										wb.aCollaborativeActions[i].splice(j, 1);
+										j--;
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+
+			cleanCollaborativeObj: function () {
+				this.applyCollaborativeChangedColumnsArr = [];
+				this.applyCollaborativeChangedRowsArr = [];
 			}
 		};
 

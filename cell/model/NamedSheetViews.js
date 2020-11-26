@@ -97,6 +97,11 @@
 		}
 		s.Seek2(_end_pos);
 	};
+	CT_NamedSheetViews.prototype.hasColorFilter = function(){
+		return this.namedSheetView.some(function(namedSheetView) {
+			return namedSheetView.hasColorFilter();
+		});
+	}
 
 	function CT_NamedSheetView() {
 		this.nsvFilters = [];
@@ -201,7 +206,7 @@
 		}
 
 		this.name = reader.GetString2();
-		this.id = reader.GetLong();
+		this.id = reader.GetString2();
 	};
 	CT_NamedSheetView.prototype.initPostOpen = function (tableIds, ws) {
 		for (var i = 0; i < this.nsvFilters.length; ++i) {
@@ -211,15 +216,14 @@
 			this.setWS(ws);
 		}
 	};
-	CT_NamedSheetView.prototype.clone = function () {
+	CT_NamedSheetView.prototype.clone = function (tableNameMap) {
 		var res = new CT_NamedSheetView(true);
 
 		for (var i = 0; i < this.nsvFilters.length; ++i) {
-			res.nsvFilters[i] = this.nsvFilters[i].clone();
+			res.nsvFilters[i] = this.nsvFilters[i].clone(tableNameMap);
 		}
 
 		res.name = this.name;
-		res.id = this.id;
 		res.ws = this.ws;
 
 		return res;
@@ -228,6 +232,11 @@
 	CT_NamedSheetView.prototype.setWS = function (ws) {
 		this.ws = ws;
 	};
+	CT_NamedSheetView.prototype.hasColorFilter = function(){
+		return this.nsvFilters.some(function(nsvFilter) {
+			return nsvFilter.hasColorFilter();
+		});
+	}
 
 	function CT_NsvFilter() {
 		this.columnsFilter = [];
@@ -345,7 +354,7 @@
 			this.sortRules.push(_obj);
 		}
 
-		this.filterId = reader.GetLong();
+		this.filterId = reader.GetString2();
 
 		if (reader.GetBool()) {
 			var r1 = reader.GetLong();
@@ -364,7 +373,7 @@
 			this.tableIdOpen = reader.GetString2();
 		}
 	};
-	CT_NsvFilter.prototype.clone = function () {
+	CT_NsvFilter.prototype.clone = function (tableNameMap) {
 		var res = new CT_NsvFilter();
 		var i;
 		if (this.columnsFilter) {
@@ -378,9 +387,9 @@
 			}
 		}
 
-		res.filterId = this.filterId;
+		//res.filterId = this.filterId;
 		res.ref = this.ref;
-		res.tableId = this.tableId;
+		res.tableId = tableNameMap && tableNameMap[this.tableId] ? tableNameMap[this.tableId] : this.tableId;
 		res.tableIdOpen = this.tableIdOpen;
 
 		return res;
@@ -472,6 +481,11 @@
 			this.columnsFilter.splice(index, 1)
 		}
 	};
+	CT_NsvFilter.prototype.hasColorFilter = function(){
+		return this.columnsFilter.some(function(columnsFilter) {
+			return columnsFilter.hasColorFilter();
+		});
+	}
 
 
 	function CT_ColumnFilter() {
@@ -594,15 +608,20 @@
 		if (reader.GetBool()) {
 			var obj = new window['AscCommonExcel'].FilterColumn();
 			obj.Read_FromBinary2(reader);
+			this.colId = obj ? obj.ColId : null;
 			this.filter = obj;
 		}
 	};
 	CT_ColumnFilter.prototype.clone = function () {
 		var res = new CT_ColumnFilter();
 		res.filter = this.filter ? this.filter.clone() : null;
+		res.colId = this.colId;
 
 		return res;
 	};
+	CT_ColumnFilter.prototype.hasColorFilter = function(){
+		return null !== this.filter && this.filter.isColorFilter();
+	}
 
 	function CT_SortRules() {
 		this.sortMethod = null;//none

@@ -4948,7 +4948,7 @@ function (window, undefined) {
 
 		var arg0 = arg[0], arg1 = arg[1], arr0 = [], arr1 = [];
 
-		if (arg0 instanceof cArea) {
+		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
 			arr0 = arg0.getValue();
 		} else if (arg0 instanceof cArray) {
 			arg0.foreach(function (elem) {
@@ -4958,7 +4958,7 @@ function (window, undefined) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
-		if (arg1 instanceof cArea) {
+		if (arg1 instanceof cArea || arg1 instanceof cArea3D) {
 			arr1 = arg1.getValue();
 		} else if (arg1 instanceof cArray) {
 			arg1.foreach(function (elem) {
@@ -7295,7 +7295,7 @@ function (window, undefined) {
 
 		var arg0 = arg[0], arg1 = arg[1], arr0 = [], arr1 = [];
 
-		if (arg0 instanceof cArea) {
+		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
 			arr0 = arg0.getValue();
 		} else if (arg0 instanceof cArray) {
 			arg0.foreach(function (elem) {
@@ -7305,7 +7305,7 @@ function (window, undefined) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
-		if (arg1 instanceof cArea) {
+		if (arg1 instanceof cArea || arg1 instanceof cArea3D) {
 			arr1 = arg1.getValue();
 		} else if (arg1 instanceof cArray) {
 			arg1.foreach(function (elem) {
@@ -10076,7 +10076,7 @@ function (window, undefined) {
 
 		var arg0 = arg[0], arg1 = arg[1], arr0 = [], arr1 = [];
 
-		if (arg0 instanceof cArea) {
+		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
 			arr0 = arg0.getValue();
 		} else if (arg0 instanceof cArray) {
 			arg0.foreach(function (elem) {
@@ -10086,7 +10086,7 @@ function (window, undefined) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
-		if (arg1 instanceof cArea) {
+		if (arg1 instanceof cArea || arg1 instanceof cArea3D) {
 			arr1 = arg1.getValue();
 		} else if (arg1 instanceof cArray) {
 			arg1.foreach(function (elem) {

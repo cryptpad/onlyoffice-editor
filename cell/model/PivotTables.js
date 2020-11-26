@@ -2152,6 +2152,9 @@ CT_PivotCacheRecords.prototype.convertToSharedItems = function(index, si) {
 CT_PivotCacheRecords.prototype.fromWorksheetRange = function(location, cacheFields) {
 	var i;
 	var ws = location.ws;
+	if (!ws) {
+		return;
+	}
 	var bbox = location.bbox;
 	var headings = location.headings;
 	if (!headings) {
@@ -4234,16 +4237,19 @@ CT_pivotTableDefinition.prototype.parseDataRef = function(dataRef) {
 	return worksheetSource.getDataLocation();
 };
 CT_pivotTableDefinition.prototype.isValidDataRef = function(dataRef) {
-	var location = this.parseDataRef(dataRef);
-	if (location && location.bbox.getHeight() > 0) {
-		if (location.headings) {
-			return location.headings.length === location.bbox.getWidth();
-		} else if (location.bbox.getHeight() > 1) {
-			var header = this._prepareDataRange(location.ws, location.bbox.r1, location.bbox.c1, location.bbox.c2);
-			return header.countCol === location.bbox.getWidth();
+	return AscFormat.ExecuteNoHistory(function()
+	{
+		var location = this.parseDataRef(dataRef);
+		if (location && location.ws && location.bbox.getHeight() > 0) {
+			if (location.headings) {
+				return location.headings.length === location.bbox.getWidth();
+			} else if (location.bbox.getHeight() > 1) {
+				var header = this._prepareDataRange(location.ws, location.bbox.r1, location.bbox.c1, location.bbox.c2);
+				return header.countCol === location.bbox.getWidth();
+			}
 		}
-	}
-	return false;
+		return false;
+	}, this, []);
 };
 CT_pivotTableDefinition.prototype.prepareDataRange = function(ws, range) {
 	var header = this._prepareDataRange(ws, range.r1, range.c1, range.c2);
@@ -8048,7 +8054,7 @@ CT_WorksheetSource.prototype.onFormulaEvent = function (type, eventData) {
 					var table = elem.getTable();
 					if (table.isHeaderRow()) {
 						var dataLocation = this.getDataLocation();
-						if (dataLocation) {
+						if (dataLocation && dataLocation.ws) {
 							eventData.formula.removeTableName(data.from, true);
 							var bbox = dataLocation.bbox.clone();
 							bbox.r1--;
@@ -8139,7 +8145,8 @@ CT_WorksheetSource.prototype.getDataLocation = function() {
 				case AscCommonExcel.cElementType.cellsRange:
 				case AscCommonExcel.cElementType.cell3D:
 				case AscCommonExcel.cElementType.cellsRange3D:
-					return {ws: val.getWS(), bbox: val.getBBox0(), headings: headings};
+					var ws = val.getWS() !== AscCommonExcel.g_DefNameWorksheet ? val.getWS() : null;
+					return {ws: ws, bbox: val.getBBox0(), headings: headings};
 					break;
 			}
 		}

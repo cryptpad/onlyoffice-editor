@@ -33,7 +33,8 @@ jobs:
         uses: actions/setup-node@v1
         with:
             node-version: 12
-      - run: |
+      - name: Run builder tests
+        run: |
            npm install -g grunt-cli
            npm install --prefix build
            grunt --level=WHITESPACE_ONLY --base build --gruntfile build/Gruntfile.js

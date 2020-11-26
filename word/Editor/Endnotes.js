@@ -148,6 +148,7 @@ CEndnotesController.prototype.CreateEndnote = function()
 CEndnotesController.prototype.AddEndnote = function(oEndnote)
 {
 	this.Endnote[oEndnote.GetId()] = oEndnote;
+	oEndnote.SetParent(this);
 	this.LogicDocument.GetHistory().Add(new CChangesEndnotesAddEndnote(this, oEndnote.GetId()));
 };
 CEndnotesController.prototype.RemoveEndnote = function(oEndnote)
@@ -408,7 +409,7 @@ CEndnotesController.prototype.HaveEndnotes = function(oSectPr, isFinal)
 {
 	var nEndnotesPos = this.GetEndnotePrPos();
 
-	if (isFinal && section_endnote_PosDocEnd === nEndnotesPos)
+	if (isFinal && Asc.c_oAscEndnotePos.DocEnd === nEndnotesPos)
 	{
 		for (var nCurPage = 0, nPagesCount = this.Pages.length; nCurPage < nPagesCount; ++nCurPage)
 		{
@@ -416,7 +417,7 @@ CEndnotesController.prototype.HaveEndnotes = function(oSectPr, isFinal)
 				return true;
 		}
 	}
-	else if (section_endnote_PosSectEnd === nEndnotesPos)
+	else if (Asc.c_oAscEndnotePos.SectEnd === nEndnotesPos)
 	{
 		// Мы должны найти просто ссылку на самую последнюю сноску, и если она привязана не данной секции, значит
 		// в данной секции и не было никаких сносок
@@ -493,14 +494,16 @@ CEndnotesController.prototype.Recalculate = function(X, Y, XLimit, YLimit, nPage
 	{
 		oSection.Pages[nPageAbs] = new CEndnoteSectionPage();
 
+		var nColumnSpace = nColumnAbs > 0 ? oSectPr.GetColumnSpace(nColumnAbs - 1) : 0;
+
 		for (var nColumnIndex = 0; nColumnIndex < nColumnAbs; ++nColumnIndex)
 		{
 			var oTempColumn = new CEndnoteSectionPageColumn();
 			oSection.Pages[nPageAbs].Columns[nColumnIndex] = oTempColumn;
 
-			oTempColumn.X      = X - 5;
+			oTempColumn.X      = X - nColumnSpace;
 			oTempColumn.Y      = Y;
-			oTempColumn.XLimit = XLimit - 10;
+			oTempColumn.XLimit = X - nColumnSpace;
 			oTempColumn.YLimit = YLimit;
 		}
 	}
@@ -626,7 +629,7 @@ CEndnotesController.prototype.private_UpdateSection = function(oSectPr, nSection
 		{
 			for (var nEndnoteIndex = 0, nEndnotesCount = oPage.Endnotes.length; nEndnoteIndex < nEndnotesCount; ++nEndnoteIndex)
 			{
-				if ((oPos === section_endnote_PosDocEnd && isFinal) || (oPos === section_endnote_PosSectEnd && oPage.Endnotes[nEndnoteIndex].GetReferenceSectPr() === oSectPr))
+				if ((oPos === Asc.c_oAscEndnotePos.DocEnd && isFinal) || (oPos === Asc.c_oAscEndnotePos.SectEnd && oPage.Endnotes[nEndnoteIndex].GetReferenceSectPr() === oSectPr))
 					this.Sections[nSectionIndex].Endnotes.push(oPage.Endnotes[nEndnoteIndex]);
 			}
 		}
@@ -880,12 +883,12 @@ CEndnotesController.prototype.GetNearestPos = function(X, Y, nPageAbs, bAnchor, 
  * Проверяем попадание в сноски на заданной странице.
  * @param X
  * @param Y
- * @param nPageAbsAdd
+ * @param nPageAbs
  * @returns {boolean}
  */
 CEndnotesController.prototype.CheckHitInEndnote = function(X, Y, nPageAbs)
 {
-	var isCheckBottom = this.GetEndnotePrPos() === section_endnote_PosSectEnd;
+	var isCheckBottom = this.GetEndnotePrPos() === Asc.c_oAscEndnotePos.SectEnd;
 
 	if (true === this.IsEmptyPage(nPageAbs))
 		return false;
@@ -962,11 +965,15 @@ CEndnotesController.prototype.GetAllTables = function(oProps, arrTables)
 };
 CEndnotesController.prototype.GetFirstParagraphs = function()
 {
-	var aParagraphs = []
+	var aParagraphs = [];
 	for (var sId in this.Endnote)
 	{
 		var oEndnote = this.Endnote[sId];
-		aParagraphs.push(oEndnote.GetFirstParagraph());
+		var oParagrpaph = oEndnote.GetFirstParagraph();
+		if(oParagrpaph && oParagrpaph.Is_UseInDocument())
+		{
+			aParagraphs.push(oParagrpaph);
+		}
 	}
 	return aParagraphs;
 };
@@ -1001,7 +1008,7 @@ CEndnotesController.prototype.GotoPrevEndnote = function()
 		this.private_SetCurrentEndnoteNoSelection(oPrevEndnote);
 	}
 };
-CEndnotesController.prototype.GetNumberingInfo = function(oPara, oNumPr, oEndnote)
+CEndnotesController.prototype.GetNumberingInfo = function(oPara, oNumPr, oEndnote, isUseReview)
 {
 	var arrEndnotes      = this.LogicDocument.GetEndnotesList(null, oEndnote);
 	var oNumberingEngine = new CDocumentNumberingInfoEngine(oPara, oNumPr, this.Get_Numbering());
@@ -1009,6 +1016,10 @@ CEndnotesController.prototype.GetNumberingInfo = function(oPara, oNumPr, oEndnot
 	{
 		arrEndnotes[nIndex].GetNumberingInfo(oNumberingEngine, oPara, oNumPr);
 	}
+
+	if (true === isUseReview)
+		return [oNumberingEngine.GetNumInfo(), oNumberingEngine.GetNumInfo(false)];
+
 	return oNumberingEngine.GetNumInfo();
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1323,6 +1334,65 @@ CEndnotesController.prototype.private_GetSelectionArray = function()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 CEndnotesController.prototype.CanUpdateTarget = function()
 {
+	var oLogicDocument = this.LogicDocument;
+	if (!oLogicDocument)
+		return false;
+
+	var oCurEndnote = this.CurEndnote;
+	if (null !== oLogicDocument.FullRecalc.Id && oCurEndnote)
+	{
+		var nPageAbs   = oLogicDocument.FullRecalc.PageIndex;
+
+		var nSectionIndex = oCurEndnote.GetSectionIndex();
+
+		var nLastIndex = this.LogicDocument.GetElementsCount() - 1;
+		if (Asc.c_oAscEndnotePos.SectEnd === this.GetEndnotePrPos())
+			nLastIndex = this.LogicDocument.SectionsInfo.Get(nSectionIndex).Index;
+
+		if (oLogicDocument.FullRecalc.StartIndex < nLastIndex || (oLogicDocument.FullRecalc.StartIndex === nLastIndex && !oLogicDocument.FullRecalc.Endnotes))
+			return false;
+
+		if (!oLogicDocument.FullRecalc.Endnotes)
+			return true;
+
+		var _nSectionIndex = this.LogicDocument.SectionsInfo.Find(this.LogicDocument.SectionsInfo.Get_SectPr(oLogicDocument.FullRecalc.StartIndex).SectPr);
+		if (_nSectionIndex < nSectionIndex)
+			return false;
+		else if (_nSectionIndex > nSectionIndex)
+			return true;
+
+		var oSection = this.Sections[nSectionIndex];
+		if (!oSection)
+			return false;
+
+		var nStartPos = 0;
+
+		if (nPageAbs - 1 <= oSection.StartPage || !oSection.Pages[nPageAbs - 1] || !oSection.Pages[nPageAbs - 1].Columns.length)
+		{
+			return false;
+		}
+		else
+		{
+			nStartPos = oSection.Pages[nPageAbs - 1].Columns[0].EndPos;
+		}
+
+		if (oSection.Endnotes[nStartPos] === this.CurEndnote)
+		{
+			var nEndnotePageIndex = this.CurEndnote.GetElementPageIndex(oLogicDocument.FullRecalc.PageIndex, oLogicDocument.FullRecalc.ColumnIndex);
+			return this.CurEndnote.CanUpdateTarget(nEndnotePageIndex);
+		}
+		else
+		{
+			for (var nPos = 0; nPos < nStartPos; ++nPos)
+			{
+				if (this.CurEndnote === oSection.Endnotes[nPos])
+					return true;
+			}
+		}
+
+		return false;
+	}
+
 	return true;
 };
 CEndnotesController.prototype.RecalculateCurPos = function(bUpdateX, bUpdateY, isUpdateTarget)

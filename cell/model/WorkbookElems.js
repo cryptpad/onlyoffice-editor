@@ -7710,6 +7710,9 @@ function RangeDataManagerElem(bbox, data)
 
 		return false;
 	};
+	FilterColumn.prototype.isColorFilter = function () {
+		return this.ColorFilter !== null;
+	};
 	FilterColumn.prototype.readAttributes = function(attr, uq) {
 		if (attr()) {
 			var vals = attr();
@@ -8648,7 +8651,7 @@ CustomFilter.prototype.Write_ToBinary2 = function(writer) {
 
 	if (null != this.Val) {
 		writer.WriteBool(true);
-		writer.WriteLong(this.Val);
+		writer.WriteString2(this.Val);
 	} else {
 		writer.WriteBool(false);
 	}
@@ -8658,7 +8661,7 @@ CustomFilter.prototype.Read_FromBinary2 = function(reader) {
 		this.Operator = reader.GetLong();
 	}
 	if (reader.GetBool()) {
-		this.Val = reader.GetLong();
+		this.Val = reader.GetString2();
 	}
 };
 CustomFilter.prototype.changeForInterface = function() {
@@ -9053,7 +9056,7 @@ ColorFilter.prototype.toXml = function(writer, name) {
 ColorFilter.prototype.Write_ToBinary2 = function(writer) {
 	if (null !== this.CellColor) {
 		writer.WriteBool(true);
-		writer.WriteLong(this.CellColor);
+		writer.WriteBool(this.CellColor);
 	} else {
 		writer.WriteBool(false);
 	}
@@ -9069,13 +9072,13 @@ ColorFilter.prototype.Write_ToBinary2 = function(writer) {
 };
 ColorFilter.prototype.Read_FromBinary2 = function(reader) {
 	if (reader.GetBool()) {
-		this.CellColor = reader.GetLong();
+		this.CellColor = reader.GetBool();
 	}
 	if (reader.GetBool()) {
 		var api_sheet = Asc['editor'];
 		var wb = api_sheet.wbModel;
 		var bsr = new AscCommonExcel.Binary_StylesTableReader(reader, wb);
-		var bcr = new AscCommon.Binary_CommonReader(r);
+		var bcr = new AscCommon.Binary_CommonReader(reader);
 		var oDxf = new AscCommonExcel.CellXfs();
 		reader.GetUChar();
 		var length = reader.GetULongLE();

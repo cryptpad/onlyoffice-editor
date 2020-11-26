@@ -58,14 +58,6 @@ var section_footnote_RestartContinuous = 0x00;
 var section_footnote_RestartEachSect   = 0x01;
 var section_footnote_RestartEachPage   = 0x02;
 
-var section_footnote_PosBeneathText = 0x00;
-var section_footnote_PosDocEnd      = 0x01;
-var section_footnote_PosPageBottom  = 0x02;
-var section_footnote_PosSectEnd     = 0x03;
-
-var section_endnote_PosDocEnd  = 0x00;
-var section_endnote_PosSectEnd = 0x01;
-
 function CSectionPr(LogicDocument)
 {
     this.Id = AscCommon.g_oIdCounter.Get_NewId();
@@ -690,7 +682,7 @@ CSectionPr.prototype =
         if ( (AscDFH.historyitem_Section_Header_First === Data.Type || AscDFH.historyitem_Section_Footer_First === Data.Type) && false === this.TitlePage )
         {
             var bHeader = AscDFH.historyitem_Section_Header_First === Data.Type ? true : false
-            var SectionsCount = this.LogicDocument.SectionsInfo.Get_SectionsCount();
+            var SectionsCount = this.LogicDocument.SectionsInfo.GetSectionsCount();
             while ( Index < SectionsCount - 1 )
             {
                 Index++;
@@ -830,7 +822,7 @@ CSectionPr.prototype.SetFootnotePos = function(nPos)
 CSectionPr.prototype.GetFootnotePos = function()
 {
 	if (undefined === this.FootnotePr.Pos)
-		return section_footnote_PosPageBottom;
+		return Asc.c_oAscFootnotePos.PageBottom;
 
 	return this.FootnotePr.Pos;
 };
@@ -1296,7 +1288,7 @@ CSectionPr.prototype.GetContentFrameHeight = function()
  */
 CSectionPr.prototype.HaveLineNumbers = function()
 {
-	return (undefined !== this.LnNumType);
+	return (undefined !== this.LnNumType && undefined !== this.LnNumType.CountBy && this.LnNumType.GetStart() >= 0);
 };
 /**
  * Добавляем или меняем нумерацию строк
@@ -1307,7 +1299,7 @@ CSectionPr.prototype.HaveLineNumbers = function()
  */
 CSectionPr.prototype.SetLineNumbers = function(nCountBy, nDistance, nStart, nRestartType)
 {
-	if (!this.LnNumType
+	if (!this.HaveLineNumbers()
 		|| nCountBy !== this.GetLineNumbersCountBy()
 		|| nDistance !== this.GetLineNumbersDistance()
 		|| nStart !== this.GetLineNumbersStart()
@@ -1325,7 +1317,10 @@ CSectionPr.prototype.SetLineNumbers = function(nCountBy, nDistance, nStart, nRes
  */
 CSectionPr.prototype.GetLineNumbers = function()
 {
-	return this.LnNumType;
+	if (this.HaveLineNumbers())
+		return this.LnNumType;
+
+	return undefined;
 };
 /**
  * Убираем нумерацию строк
@@ -1344,11 +1339,11 @@ CSectionPr.prototype.GetLineNumbersCountBy = function()
 };
 CSectionPr.prototype.GetLineNumbersStart = function()
 {
-	return (this.LnNumType && undefined !== this.LnNumType.Start ? this.LnNumType.Start : 1);
+	return (this.LnNumType && undefined !== this.LnNumType.GetStart() ? this.LnNumType.GetStart() : 0);
 };
 CSectionPr.prototype.GetLineNumbersRestart = function()
 {
-	return (this.LnNumType && undefined !== this.LnNumType.Restart ? this.LnNumType.Restart : Asc.c_oAscLineNumberRestartType.Continuous);
+	return (this.LnNumType && undefined !== this.LnNumType.Restart ? this.LnNumType.Restart : Asc.c_oAscLineNumberRestartType.NewPage);
 };
 CSectionPr.prototype.GetLineNumbersDistance = function()
 {
@@ -1704,14 +1699,14 @@ CFootnotePr.prototype.InitDefault = function()
 	this.NumFormat  = Asc.c_oAscNumberingFormat.Decimal;
 	this.NumRestart = section_footnote_RestartContinuous;
 	this.NumStart   = 1;
-	this.Pos        = section_footnote_PosPageBottom;
+	this.Pos        = Asc.c_oAscFootnotePos && Asc.c_oAscFootnotePos.PageBottom;
 };
 CFootnotePr.prototype.InitDefaultEndnotePr = function()
 {
 	this.NumFormat  = Asc.c_oAscNumberingFormat.LowerRoman;
 	this.NumRestart = section_footnote_RestartContinuous;
 	this.NumStart   = 1;
-	this.Pos        = section_endnote_PosDocEnd;
+	this.Pos        = Asc.c_oAscEndnotePos && Asc.c_oAscEndnotePos.DocEnd;
 };
 CFootnotePr.prototype.WriteToBinary = function(Writer)
 {
@@ -1775,10 +1770,13 @@ CFootnotePr.prototype.ReadFromBinary = function(Reader)
 
 function CSectionLnNumType(nCountBy, nDistance, nStart, nRestartType)
 {
-	this.CountBy  = undefined !== nCountBy && 1 !== nCountBy ? nCountBy : undefined;
+	// Если задан сам класс, но в нем не задан CountBy, считаем, что нумерация строк не задана. Поэтому
+	// по умолчанию задаем CountBy=1
+
+	this.CountBy  = undefined !== nCountBy ? nCountBy : 1;
 	this.Distance = undefined !== nDistance && null !== nDistance ? nDistance : undefined; // В твипсах
-	this.Start    = undefined !== nStart && 1 !== nStart ? nStart : undefined;
-	this.Restart  = undefined !== nRestartType && Asc.c_oAscLineNumberRestartType.Continuous !== nRestartType ? nRestartType : undefined;
+	this.Start    = undefined !== nStart && 0 !== nStart ? nStart : undefined;
+	this.Restart  = undefined !== nRestartType && Asc.c_oAscLineNumberRestartType.NewPage !== nRestartType ? nRestartType : undefined;
 }
 CSectionLnNumType.prototype.Copy = function()
 {
@@ -1857,7 +1855,7 @@ CSectionLnNumType.prototype.SetCountBy = function(nCountBy)
 };
 CSectionLnNumType.prototype.GetCountBy = function()
 {
-	return (undefined === this.CountBy ? 1 : this.CountBy);
+	return this.CountBy;
 };
 CSectionLnNumType.prototype.SetDistance = function(nDistance)
 {
@@ -1873,7 +1871,7 @@ CSectionLnNumType.prototype.SetStart = function(nStart)
 };
 CSectionLnNumType.prototype.GetStart = function()
 {
-	return (undefined === this.Start ? 1 : this.Start);
+	return undefined === this.Start ? 0 : this.Start;
 };
 CSectionLnNumType.prototype.SetRestart = function(nRestart)
 {
@@ -1881,7 +1879,7 @@ CSectionLnNumType.prototype.SetRestart = function(nRestart)
 };
 CSectionLnNumType.prototype.GetRestart = function()
 {
-	return (undefined === this.Restart ? Asc.c_oAscLineNumberRestartType.Continuous : this.Restart);
+	return (undefined === this.Restart ? Asc.c_oAscLineNumberRestartType.NewPage : this.Restart);
 };
 
 //--------------------------------------------------------export----------------------------------------------------
@@ -1893,7 +1891,13 @@ CSectionLnNumType.prototype["get_CountBy"]  = CSectionLnNumType.prototype.GetCou
 CSectionLnNumType.prototype["put_CountBy"]  = CSectionLnNumType.prototype.SetCountBy;
 CSectionLnNumType.prototype["get_Distance"] = CSectionLnNumType.prototype.GetDistance;
 CSectionLnNumType.prototype["put_Distance"] = CSectionLnNumType.prototype.SetDistance;
-CSectionLnNumType.prototype["get_Start"]    = CSectionLnNumType.prototype.GetStart;
-CSectionLnNumType.prototype["put_Start"]    = CSectionLnNumType.prototype.SetStart;
+CSectionLnNumType.prototype["get_Start"]    = function()
+{
+	return undefined === this.Start ? 1 : this.Start + 1;
+};
+CSectionLnNumType.prototype["put_Start"]    = function(nStart)
+{
+	this.Start = nStart - 1;
+};
 CSectionLnNumType.prototype["get_Restart"]  = CSectionLnNumType.prototype.GetRestart;
 CSectionLnNumType.prototype["put_Restart"]  = CSectionLnNumType.prototype.SetRestart;

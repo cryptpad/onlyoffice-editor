@@ -251,6 +251,14 @@ CDocumentContent.prototype.CreateDuplicateComments = function()
 		}
 	}
 };
+/**
+ * Устанавливаем родительский класс
+ * @param oParent
+ */
+CDocumentContent.prototype.SetParent = function(oParent)
+{
+	this.Parent = oParent;
+};
 //-----------------------------------------------------------------------------------
 // Функции, к которым идет обращение из контента
 //-----------------------------------------------------------------------------------
@@ -7751,24 +7759,6 @@ CDocumentContent.prototype.Write_ToBinary2 = function(Writer)
 	for (var Index = 0; Index < Count; Index++)
 		Writer.WriteString2(ContentToWrite[Index].Get_Id());
 
-	if (this.Parent && this.Parent.Get_Worksheet)
-	{
-		Writer.WriteBool(true);
-		var worksheet = this.Parent.Get_Worksheet();
-		if (worksheet)
-		{
-			Writer.WriteBool(true);
-			Writer.WriteString2(worksheet.getId())
-		}
-		else
-		{
-			Writer.WriteBool(false);
-		}
-	}
-	else
-	{
-		Writer.WriteBool(false);
-	}
 };
 CDocumentContent.prototype.Read_FromBinary2 = function(Reader)
 {
@@ -7803,24 +7793,11 @@ CDocumentContent.prototype.Read_FromBinary2 = function(Reader)
 
 	AscCommon.CollaborativeEditing.Add_LinkData(this, LinkData);
 
-	var b_worksheet = Reader.GetBool();
-	if (b_worksheet)
+	var oCellApi = window["Asc"] && window["Asc"]["editor"];
+	if (oCellApi && oCellApi.wbModel)
 	{
 		this.Parent        = g_oTableId.Get_ById(LinkData.Parent);
-		var b_worksheet_id = Reader.GetBool();
-		if (b_worksheet_id)
-		{
-			var id  = Reader.GetString2();
-			var api = window["Asc"]["editor"];
-			if (api.wb)
-			{
-				var worksheet = api.wbModel.getWorksheetById(id);
-				if (worksheet)
-				{
-					this.DrawingDocument = worksheet.getDrawingDocument();
-				}
-			}
-		}
+		this.DrawingDocument = oCellApi.wbModel.DrawingDocument;
 	}
 	else
 	{

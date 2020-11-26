@@ -978,12 +978,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                 }
             }
 
-            this.put_Table(cols, rows);
-
-            var properties = new Asc.CTableProp();
-            properties.put_TableStyle(style);
-
-            this.tblApply(properties);
+            this.put_Table(cols, rows, undefined, style);
 
             break;
         }
@@ -1270,7 +1265,6 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         {
             var index = parseInt(_params);
             this.AddSlide(index);
-            this.WordControl.m_oDrawingDocument.UpdateThumbnailsAttack();
             break;
         }
 

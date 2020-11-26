@@ -2226,7 +2226,29 @@ ParaRun.prototype.Split2 = function(CurPos, Parent, ParentPos)
     var NewRun = new ParaRun(this.Paragraph, bMathRun);
 
     // Копируем настройки
-    NewRun.Set_Pr(this.Pr.Copy(true));
+    NewRun.SetPr(this.Pr.Copy(true));
+
+	if ((0 === CurPos || this.Content.length === CurPos)
+		&& this.Paragraph
+		&& this.Paragraph.LogicDocument
+		&& this.Paragraph.bFromDocument)
+	{
+		var oStyles = this.Paragraph.LogicDocument.GetStyles();
+		if (this.GetRStyle() === oStyles.GetDefaultFootnoteReference() || this.GetRStyle() === oStyles.GetDefaultEndnoteReference())
+		{
+			if (0 === CurPos)
+			{
+				this.SetRStyle(undefined);
+				this.SetVertAlign(undefined);
+			}
+			else
+			{
+				NewRun.SetRStyle(undefined);
+				NewRun.SetVertAlign(undefined);
+			}
+		}
+	}
+
     NewRun.SetReviewTypeWithInfo(this.ReviewType, this.ReviewInfo ? this.ReviewInfo.Copy() : undefined);
 
     NewRun.CollPrChangeMine  = this.CollPrChangeMine;
@@ -11811,7 +11833,7 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 			var arrElements = oRunElementsBefore.GetElements();
 			if (arrElements.length > 0 && para_Text === arrElements[0].Type && 45 === arrElements[0].Value)
 			{
-				oDocument.StartAction(AscDFH.Document_AutoCorrectHyphensWithDash);
+				oDocument.StartAction(AscDFH.historydescription_Document_AutoCorrectHyphensWithDash);
 
 				var oDash = new ParaText(8212);
 				this.AddToContent(nPos + 1, oDash);
