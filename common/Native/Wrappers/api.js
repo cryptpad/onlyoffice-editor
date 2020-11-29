@@ -1168,7 +1168,11 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                     case 8:
                     {
                         var color = asc_menu_ReadColor(_params, _current);
-                        _textPr.HighLight = { r: color.r, g: color.g, b: color.b };
+                        if (color.a < 1) {
+                            _textPr.HighLight = AscCommonWord.highlight_None;
+                        } else {
+                            _textPr.HighLight = { r: color.r, g: color.g, b: color.b };
+                        }
                         break;
                     }
                     case 9:
