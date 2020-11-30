@@ -149,6 +149,8 @@
 
 			// Data Validate
 			DataValidate : -45,
+			MoreOneTypeDataValidate: -46,
+			ContainsCellsWithoutDataValidate: -47,
 
 			// for AutoFilter
 			AutoFilterDataRangeError         : -50,
@@ -240,6 +242,13 @@
 			CustomSortNotOriginalSelectError: -801,
 
 			// Data Validate
+			DataValidateNotNumeric: -830,
+			DataValidateNegativeTextLength: -831,
+			DataValidateMustEnterValue: -832,
+			DataValidateMinGreaterMax: 833,
+			DataValidateInvalid: 834,
+
+
 			RemoveDuplicates : -850,
 
 			LargeRangeWarning: -900,
@@ -2199,6 +2208,8 @@
 	prot['MailMergeLoadFile']                = prot.MailMergeLoadFile;
 	prot['MailMergeSaveFile']                = prot.MailMergeSaveFile;
 	prot['DataValidate']                     = prot.DataValidate;
+	prot['MoreOneTypeDataValidate']          = prot.MoreOneTypeDataValidate;
+	prot['ContainsCellsWithoutDataValidate'] = prot.ContainsCellsWithoutDataValidate;
 	prot['AutoFilterDataRangeError']         = prot.AutoFilterDataRangeError;
 	prot['AutoFilterChangeFormatTableError'] = prot.AutoFilterChangeFormatTableError;
 	prot['AutoFilterChangeError']            = prot.AutoFilterChangeError;
@@ -2264,6 +2275,13 @@
 	prot['RemoveDuplicates']                 = prot.RemoveDuplicates;
 	prot['LargeRangeWarning']                = prot.LargeRangeWarning;
 	prot['LockedEditView']                   = prot.LockedEditView;
+	
+	prot['DataValidateNotNumeric']           = prot.DataValidateNotNumeric;
+	prot['DataValidateNegativeTextLength']   = prot.DataValidateNegativeTextLength;
+	prot['DataValidateMustEnterValue']       = prot.DataValidateMustEnterValue;
+	prot['DataValidateMinGreaterMax']        = prot.DataValidateMinGreaterMax;
+	prot['DataValidateInvalid']              = prot.DataValidateInvalid;
+
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
 	prot                                     = c_oAscAsyncAction;
 	prot['Open']                             = prot.Open;

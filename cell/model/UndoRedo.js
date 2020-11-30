@@ -434,6 +434,8 @@ function (window, undefined) {
 		this.NamedSheetView = 130;
 		this.NamedSheetViewChange = 131;
 
+		this.DataValidation = 140;
+
 		this.Create = function (nType) {
 			switch (nType) {
 				case this.ValueMultiTextElem:
@@ -610,6 +612,9 @@ function (window, undefined) {
 					if (window['AscCommonExcel'].UndoRedoData_NamedSheetView) {
 						return new window['AscCommonExcel'].UndoRedoData_NamedSheetView();
 					}
+					break;
+				case this.DataValidation:
+					return new window['AscCommonExcel'].UndoRedoData_DataValidation();
 			}
 			return null;
 		};
@@ -2045,6 +2050,45 @@ function (window, undefined) {
 		}
 	};
 
+	function UndoRedoData_DataValidation(from, to) {
+		this.from = from;
+		this.to = to;
+	}
+
+	UndoRedoData_DataValidation.prototype.Properties = {
+		to: 0
+	};
+	UndoRedoData_DataValidation.prototype.getType = function () {
+		return UndoRedoDataTypes.DataValidation;
+	};
+	UndoRedoData_DataValidation.prototype.getProperties = function () {
+		return this.Properties;
+	};
+	UndoRedoData_DataValidation.prototype.getProperty = function (nType) {
+		switch (nType) {
+			case this.Properties.from:
+				return this.from;
+				break;
+			case this.Properties.to:
+				return this.to;
+				break;
+		}
+		return null;
+	};
+	UndoRedoData_DataValidation.prototype.setProperty = function (nType, value) {
+		switch (nType) {
+			case this.Properties.from:
+				this.from = value;
+				break;
+			case this.Properties.to:
+				this.to = value;
+				break;
+			case this.Properties.id:
+				this.id = value;
+				break;
+		}
+	};
+
 	//для применения изменений
 	var UndoRedoClassTypes = new function () {
 		this.aTypes = [];
@@ -2909,6 +2953,18 @@ function (window, undefined) {
 				ws.addNamedSheetView(Data.from);
 			} else {
 				ws.deleteNamedSheetViews([ws.getNamedSheetViewById(Data.sheetView)], true);
+			}
+		} else if (AscCH.historyitem_Worksheet_DataValidationAdd === Type) {
+			if (bUndo) {
+				ws.deleteDataValidationById(Data.Id);
+			} else {
+				ws._addDataValidation(Data.getData());
+			}
+		} else if (AscCH.historyitem_Worksheet_DataValidationChange === Type) {
+			var wrapper = bUndo ? Data.from.getData() : Data.to.getData();
+			var dataValidation = ws.getDataValidationById(wrapper.Id);
+			if (dataValidation) {
+				ws.dataValidations.elems[dataValidation.index] = wrapper;
 			}
 		}
 	};
@@ -3919,6 +3975,7 @@ function (window, undefined) {
 	window['AscCommonExcel'].UndoRedoData_ArrayFormula = UndoRedoData_ArrayFormula;
 	window['AscCommonExcel'].UndoRedoData_SortState = UndoRedoData_SortState;
 	window['AscCommonExcel'].UndoRedoData_Slicer = UndoRedoData_Slicer;
+	window['AscCommonExcel'].UndoRedoData_DataValidation = UndoRedoData_DataValidation;
 	window['AscCommonExcel'].UndoRedoWorkbook = UndoRedoWorkbook;
 	window['AscCommonExcel'].UndoRedoCell = UndoRedoCell;
 	window['AscCommonExcel'].UndoRedoWoorksheet = UndoRedoWoorksheet;

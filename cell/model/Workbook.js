@@ -8934,6 +8934,64 @@
 		}
 	};
 
+	Worksheet.prototype.getDataValidationProps = function (doExtend) {
+		var _selection = this.getSelection();
+		
+		if (!this.dataValidations) {
+			return new window['AscCommonExcel'].CDataValidation();
+		} else {
+			return this.dataValidations.getProps(_selection.ranges, doExtend);
+		}
+	};
+
+	Worksheet.prototype.setDataValidationProps = function (props) {
+		var _selection = this.getSelection();
+
+		if (!this.dataValidations) {
+			this.dataValidations = new window['AscCommonExcel'].CDataValidations();
+		}
+
+		this.dataValidations.setProps(this, _selection.ranges, props);
+	};
+
+	Worksheet.prototype._addDataValidation = function (dataValidation, addToHistory) {
+		if (!this.dataValidations) {
+			this.dataValidations = new window['AscCommonExcel'].CDataValidations();
+		}
+		this.dataValidations.add(this, dataValidation, addToHistory);
+	};
+	
+	Worksheet.prototype._getDataValidationIntersection = function (ranges) {
+		if (this.dataValidations) {
+			return this.dataValidations.getIntersections(ranges);
+		}
+		return {intersection: [], contain: []};
+	};
+
+	Worksheet.prototype.changeDataValidation = function (from, to, addToHistory) {
+		if (this.dataValidations) {
+			this.dataValidations.change(this, from, to, addToHistory);
+		}
+	};
+
+	Worksheet.prototype.deleteDataValidationById = function (id) {
+		if (this.dataValidations) {
+			this.dataValidations.delete(id);
+		}
+	};
+
+	Worksheet.prototype.getDataValidationById = function (id) {
+		if (this.dataValidations) {
+			return this.dataValidations.getById(id);
+		}
+	};
+
+	Worksheet.prototype.updateDataValidation = function (bInsert, operType, updateRange) {
+		if (this.dataValidations) {
+			this.dataValidations.updateDiff(bInsert, operType, updateRange);
+		}
+	};
+
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
 	var g_nCellOffsetXf = g_nCellOffsetFlag + 1;
