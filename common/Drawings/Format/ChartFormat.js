@@ -2804,6 +2804,160 @@ function CDLbl()
         }
     }
 
+    function CCommonChartRanges(oChartSpace) {
+        this.bHorisontalSeries = undefined;
+        this.aCatRanges = [];
+        this.aValRanges = [];
+        this.aTxTanges = [];
+
+        this.series = oChartSpace.getAllSeries();
+        this.series.sort(function(a, b){
+          return a.order - b.order;
+        });
+        var nSer, oSeries;
+        for(nSer = 0; nSer < this.series.length; ++nSer) {
+            oSeries = this.series[nSer];
+            if(oSeries.hasValuesRefs()) {
+                break;
+            }
+        }
+        if(nSer === this.series.length) {
+            return;
+        }
+        var aFirstValRefs = oSeries.getValRefs();
+        if(aFirstValRefs.length < 1) {
+            return;
+        }
+        var oWorksheet = aFirstValRefs[0].worksheet;
+        var aFirstCatRefs = oSeries.getCatRefs();
+        var aFirstTxRefs = oSeries.getTxRefs();
+        if(!this.checkRangesWorksheet(oWorksheet, aFirstCatRefs, aFirstTxRefs)) {
+            return;
+        }
+        var aRefs, nRef;
+        if(nSer === this.series.length - 1) {
+            if(aFirstCatRefs && aFirstTxRefs) {
+                if(aFirstCatRefs.length !== aFirstValRefs.length) {
+                    return;
+                }
+
+            }
+            else if(aFirstCatRefs) {
+
+            }
+            else if(aFirstTxRefs) {
+
+            }
+            else {
+
+            }
+        }
+        else {
+            var bHorisontal = undefined;
+            for(nSer = nSer + 1; nSer < this.series.length; ++nSer) {
+                oSeries = this.series[nSer];
+                aRefs = oSeries.getValRefs();
+                if(aRefs.length < 1) {
+                    return;
+                }
+
+            }
+        }
+    }
+
+    CCommonChartRanges.prototype.checkInRow = function(aRanges) {
+        if(aRanges.length > 0) {
+            var oRange = aRanges[0];
+            var nR1 = oRange.bbox.r1;
+            var nR2 = oRange.bbox.r2;
+            var oWorksheet = oRange.worksheet;
+            for(var nRange = 1; nRange < aRanges.length; ++nRange) {
+                oRange = aRanges[nRange];
+                if(oWorksheet !== oRange.worksheet || nR1 !== oRange.bbox.r1 || nR2 !== oRange.bbox.r2) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    };
+
+    CCommonChartRanges.prototype.checkInCol = function(aRanges) {
+        if(aRanges.length > 0) {
+            var oRange = aRanges[0];
+            var nC1 = oRange.bbox.c1;
+            var nC2 = oRange.bbox.c2;
+            var oWorksheet = oRange.worksheet;
+            for(var nRange = 1; nRange < aRanges.length; ++nRange) {
+                oRange = aRanges[nRange];
+                if(oWorksheet !== oRange.worksheet || nC1 !== oRange.bbox.c1 || nC2 !== oRange.bbox.c2) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    };
+
+    CCommonChartRanges.prototype.checkValuesAboveBelow = function(aRangesBelow, aRangesAbove) {
+        if(aRangesAbove.length !== aRangesBelow.length) {
+            return false;
+        }
+        if(!this.checkInRow(aRangesBelow) || !this.checkInRow(aRangesAbove)) {
+            return false;
+        }
+        var oRangeAbove, oRangeBelow;
+        for(var nRange = 0; nRange < aRangesAbove.length; ++nRange) {
+            oRangeAbove = aRangesAbove[nRange];
+            oRangeBelow = aRangesBelow[nRange];
+            if(!this.checkInCol([aRangesAbove, aRangesBelow])) {
+                return false;
+            }
+            if(oRangeAbove.bbox.r2 >= oRangeBelow.bbox.r1) {
+                return false;
+            }
+        }
+        return true;
+    };
+    CCommonChartRanges.prototype.checkValuesLeft = function(aRangesLeft, aRangesRight) {
+        if(aRangesLeft.length !== aRangesRight.length) {
+            return false;
+        }
+        if(!this.checkInCol(aRangesLeft) || !this.checkInCol(aRangesRight)) {
+            return false;
+        }
+        var oRangeLeft, oRangeRight;
+        for(var nRange = 0; nRange < aRangesLeft.length; ++nRange) {
+            oRangeLeft = aRangesLeft[nRange];
+            oRangeRight = aRangesRight[nRange];
+            if(!this.checkInRow([oRangeLeft, oRangeRight])) {
+                return false;
+            }
+            if(oRangeLeft.c2 >= oRangeRight.c1) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    CCommonChartRanges.prototype.checkRangesWorksheet = function(oWorksheet) {
+        var aRanges;
+        for(var nArg = 1; nArg < arguments.length; ++nArg) {
+            aRanges = arguments[nArg];
+            for(var nRange = 0; nRange < aRanges.length; ++nRange) {
+                if(aRanges[nRange].worksheet !== oWorksheet) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    };
+    CCommonChartRanges.prototype.hasOwnRanges = function() {
+    };
+    CCommonChartRanges.prototype.getValuesRanges = function() {
+
+    };
+
     function CSeriesBase() {
         AscFormat.CBaseObject.call(this);
         this.idx = null;
@@ -2829,6 +2983,23 @@ function CDLbl()
         }
         if(this.tx) {
             this.tx.update();
+        }
+    };
+    CSeriesBase.prototype.hasValuesRefs = function() {
+        return this.getValRefs().length > 0;
+    };
+    CSeriesBase.prototype.fit = function(oSeries) {
+
+        if(this.aVal.length !== oSeriesDataRanges.aVal.length ||
+            this.aCat.length !== oSeriesDataRanges.aCat.length ||
+            this.aTx.length !== oSeriesDataRanges.aTx.length) {
+            return false;
+        }
+        var nRange, oRange, oRangeOther;
+        for(nRange = 0; nRange < this.aCat.length; ++nRange) {
+            oRange = this.aCat[nRange];
+            oRangeOther = oSeriesDataRanges.aCat[nRange];
+            // if(!oRange)
         }
     };
     CSeriesBase.prototype.Refresh_RecalcData = function(oData) {
