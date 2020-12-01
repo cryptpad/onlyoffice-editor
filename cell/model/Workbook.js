@@ -8976,7 +8976,7 @@
 
 	Worksheet.prototype.deleteDataValidationById = function (id) {
 		if (this.dataValidations) {
-			this.dataValidations.delete(id);
+			this.dataValidations.delete(this, id);
 		}
 	};
 
