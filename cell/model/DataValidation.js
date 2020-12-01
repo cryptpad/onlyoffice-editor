@@ -656,6 +656,136 @@
 	CDataValidation.prototype.setFormula2 = function (newVal, addToHistory) {
 		this.formula2 = newVal;
 	};
+	CDataValidation.prototype.updateDiff = function (bInsert, type, updateRange) {
+		var _setDiff = function (_range) {
+			var _newRanges, offset;
+			if (bInsert) {
+				switch (type) {
+					case c_oAscInsertOptions.InsertCellsAndShiftDown:
+						var tempRange = new Asc.Range(updateRange.c1, updateRange.r1, updateRange.c2, AscCommon.gc_nMaxRow0);
+						var intersection = tempRange.intersection(_range);
+						if (intersection) {
+							if (tempRange.containsRange(_range)) {
+								//сдвигаем полностью
+								offset = new AscCommon.CellBase(updateRange.r2 - updateRange.r1, 0);
+								_newRanges = _range.clone()
+								_newRanges.setOffset(offset);
+							}
+						}
+						break;
+
+					case c_oAscInsertOptions.InsertCellsAndShiftRight:
+
+						break;
+
+					case c_oAscInsertOptions.InsertColumns:
+						if (updateRange.c1 <= _range.c1) {
+							//сдвигаем всю область
+							offset = new AscCommon.CellBase(0, updateRange.c2 - updateRange.c1);
+							_newRanges = _range.clone()
+							_newRanges.setOffset(offset);
+						} else if (updateRange.c1 > _range.c1 && updateRange.c1 < _range.c2) {
+							offset = new AscCommon.CellBase(0, updateRange.c2 - updateRange.c1);
+							_newRanges = _range.clone();
+							_newRanges.setOffsetLast();
+						}
+						break;
+
+					case c_oAscInsertOptions.InsertRows:
+						if (updateRange.r1 <= _range.r1) {
+							//сдвигаем всю область
+							offset = new AscCommon.CellBase(updateRange.r2 - updateRange.r1, 0);
+							_newRanges = _range.clone()
+							_newRanges.setOffset(offset);
+						} else if (updateRange.r1 > _range.r1 && updateRange.r1 < _range.r2) {
+							offset = new AscCommon.CellBase(updateRange.r2 - updateRange.r1, 0);
+							_newRanges = _range.clone();
+							_newRanges.setOffsetLast();
+						}
+						break;
+				}
+			} else {
+				switch (type) {
+					case c_oAscDeleteOptions.DeleteCellsAndShiftTop:
+
+						break;
+
+					case c_oAscDeleteOptions.DeleteCellsAndShiftLeft:
+
+						break;
+
+					case c_oAscDeleteOptions.DeleteColumns:
+						if (updateRange.c1 < _range.c1 && updateRange.c2 < _range.c1) {
+							//сдвигаем всю область
+							offset = new AscCommon.CellBase(0, updateRange.c1 - updateRange.c2);
+							_newRanges = _range.clone()
+							_newRanges.setOffset(offset);
+						} else if (updateRange.c1 <= _range.c1 && updateRange.c2 >= _range.c1) {
+							offset = new AscCommon.CellBase(0, range.c1 - updateRange.c2 - 1);
+							_newRanges = _range.clone();
+							_newRanges.setOffsetFirst(offset);
+							offset = new AscCommon.CellBase(0, updateRange.c1 - updateRange.c2);
+							_newRanges.setOffset(offset);
+						}
+
+						var _intersection = _range.intersection(updateRange);
+						if (_intersection) {
+							offset = new AscCommon.CellBase(0, _intersection.c2 - _intersection.c1);
+							_newRanges = _range.clone();
+							_newRanges.setOffsetLast(offset);
+						}
+
+						break;
+
+					case c_oAscDeleteOptions.DeleteRows:
+						if (updateRange.r1 < _range.r1 && updateRange.r2 < _range.r1) {
+							//сдвигаем всю область
+							offset = new AscCommon.CellBase(updateRange.r1 - updateRange.r2, 0);
+							_newRanges = _range.clone()
+							_newRanges.setOffset(offset);
+						} else if (updateRange.r1 <= _range.r1 && updateRange.r2 >= _range.r1) {
+							offset = new AscCommon.CellBase(range.r1 - updateRange.r2 - 1, 0);
+							_newRanges = _range.clone();
+							_newRanges.setOffsetFirst(offset);
+							offset = new AscCommon.CellBase(updateRange.r1 - updateRange.r2, 0);
+							_newRanges.setOffset(offset);
+						}
+
+						var _intersection = _range.intersection(updateRange);
+						if (_intersection) {
+							offset = new AscCommon.CellBase(_intersection.r2 - _intersection.r1, 0);
+							_newRanges = _range.clone();
+							_newRanges.setOffsetLast(offset);
+						}
+
+						break;
+				}
+			}
+			return _newRanges;
+		};
+
+		var newRanges = [];
+		var bDel;
+		for (var i = 0; i < this.ranges.length; i++) {
+			if (!bInsert && updateRange.containsRange(this.ranges[i])) {
+				bDel = true;
+			} else {
+				var changedRanges = _setDiff(this.ranges[i]);
+				if (changedRanges) {
+					newRanges.concat(changedRanges);
+				} else if (bDel) {
+					newRanges.concat(this.ranges[i].clone());
+				}
+			}
+		}
+		if (!newRanges.length && bDel) {
+			//удаляем
+
+		} else if (newRanges.length) {
+			//меняем диапазон
+
+		}
+	};
 
 	function CDataValidations() {
 		this.disablePrompts = false;
@@ -683,45 +813,9 @@
 		return res;
 	};
 	CDataValidations.prototype.updateDiff = function(bInsert, type, updateRange) {
-
-		if (bInsert) {
-			switch (type) {
-				case c_oAscInsertOptions.InsertCellsAndShiftDown:
-
-					break;
-
-				case c_oAscInsertOptions.InsertCellsAndShiftRight:
-
-					break;
-
-				case c_oAscInsertOptions.InsertColumns:
-
-					break;
-
-				case c_oAscInsertOptions.InsertRows:
-
-					break;
-			}
-		} else {
-			switch (type) {
-				case c_oAscDeleteOptions.DeleteCellsAndShiftTop:
-
-					break;
-
-				case c_oAscDeleteOptions.DeleteCellsAndShiftLeft:
-
-					break;
-
-				case c_oAscDeleteOptions.DeleteColumns:
-
-					break;
-
-				case c_oAscDeleteOptions.DeleteRows:
-
-					break;
-			}
+		for (var i = 0; i < this.elems.length; i++) {
+			this.elems[i].updateDiff(bInsert, type, updateRange);
 		}
-		updateCommentsList(aChangedComments);
 	};
 
 	CDataValidations.prototype.add = function(ws, val, addToHistory) {
