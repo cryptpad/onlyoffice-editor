@@ -658,47 +658,86 @@
 	};
 	CDataValidation.prototype.updateDiff = function (bInsert, type, updateRange) {
 		var _setDiff = function (_range) {
-			var _newRanges, offset;
+			var _newRanges, offset, tempRange, intersection, otherPart, diff;
 			if (bInsert) {
 				switch (type) {
 					case c_oAscInsertOptions.InsertCellsAndShiftDown:
-						var tempRange = new Asc.Range(updateRange.c1, updateRange.r1, updateRange.c2, AscCommon.gc_nMaxRow0);
-						var intersection = tempRange.intersection(_range);
+						tempRange = new Asc.Range(updateRange.c1, updateRange.r1, updateRange.c2, AscCommon.gc_nMaxRow0);
+						intersection = tempRange.intersection(_range);
 						if (intersection) {
+							diff = updateRange.r2 - updateRange.r1 + 1;
 							if (tempRange.containsRange(_range)) {
 								//сдвигаем полностью
-								offset = new AscCommon.CellBase(updateRange.r2 - updateRange.r1, 0);
+								offset = new AscCommon.CellBase(diff, 0);
 								_newRanges = _range.clone()
 								_newRanges.setOffset(offset);
+							} else if (updateRange.c1 <= _range.c1 && updateRange.c2 >= _range.c2) {
+								offset = new AscCommon.CellBase(diff, 0);
+								_newRanges = _range.clone();
+								_newRanges.setOffsetLast(offset);
+							} else {
+								_newRanges = [];
+								//добавляем сдвинутую часть диапазона
+								_newRanges.push(intersection);
+								offset = new AscCommon.CellBase(diff, 0);
+								otherPart = _newRanges[0].difference(_range);
+								_newRanges[0].setOffset(offset);
+								//исключаем сдвинутую часть из диапазона
+								_newRanges = _newRanges.concat(otherPart);
 							}
 						}
 						break;
 
 					case c_oAscInsertOptions.InsertCellsAndShiftRight:
-
+						tempRange = new Asc.Range(updateRange.c1, updateRange.r1, AscCommon.gc_nMaxCol0, updateRange.r2);
+						intersection = tempRange.intersection(_range);
+						if (intersection) {
+							diff = updateRange.c2 - updateRange.c1 + 1;
+							if (tempRange.containsRange(_range)) {
+								//сдвигаем полностью
+								offset = new AscCommon.CellBase(0, diff);
+								_newRanges = _range.clone()
+								_newRanges.setOffset(offset);
+							} else if (updateRange.r1 <= _range.r1 && updateRange.r2 >= _range.r2) {
+								offset = new AscCommon.CellBase(0, diff);
+								_newRanges = _range.clone()
+								_newRanges.setOffsetLast(offset);
+							} else {
+								_newRanges = [];
+								//добавляем сдвинутую часть диапазона
+								_newRanges.push(intersection);
+								offset = new AscCommon.CellBase(0, diff);
+								otherPart = _newRanges[0].difference(_range);
+								_newRanges[0].setOffset(offset);
+								//исключаем сдвинутую часть из диапазона
+								_newRanges = _newRanges.concat(otherPart);
+							}
+						}
 						break;
 
 					case c_oAscInsertOptions.InsertColumns:
+						diff = updateRange.c2 - updateRange.c1 + 1;
 						if (updateRange.c1 <= _range.c1) {
 							//сдвигаем всю область
-							offset = new AscCommon.CellBase(0, updateRange.c2 - updateRange.c1);
+							offset = new AscCommon.CellBase(0, diff);
 							_newRanges = _range.clone()
 							_newRanges.setOffset(offset);
 						} else if (updateRange.c1 > _range.c1 && updateRange.c1 < _range.c2) {
-							offset = new AscCommon.CellBase(0, updateRange.c2 - updateRange.c1);
+							offset = new AscCommon.CellBase(0, diff);
 							_newRanges = _range.clone();
 							_newRanges.setOffsetLast();
 						}
 						break;
 
 					case c_oAscInsertOptions.InsertRows:
+						diff = updateRange.r2 - updateRange.r1 + 1;
 						if (updateRange.r1 <= _range.r1) {
 							//сдвигаем всю область
-							offset = new AscCommon.CellBase(updateRange.r2 - updateRange.r1, 0);
+							offset = new AscCommon.CellBase(diff, 0);
 							_newRanges = _range.clone()
 							_newRanges.setOffset(offset);
 						} else if (updateRange.r1 > _range.r1 && updateRange.r1 < _range.r2) {
-							offset = new AscCommon.CellBase(updateRange.r2 - updateRange.r1, 0);
+							offset = new AscCommon.CellBase(diff, 0);
 							_newRanges = _range.clone();
 							_newRanges.setOffsetLast();
 						}
@@ -707,24 +746,71 @@
 			} else {
 				switch (type) {
 					case c_oAscDeleteOptions.DeleteCellsAndShiftTop:
-
+						tempRange = new Asc.Range(updateRange.c1, updateRange.r1, updateRange.c2, AscCommon.gc_nMaxRow0);
+						intersection = tempRange.intersection(_range);
+						if (intersection) {
+							diff = updateRange.r2 - updateRange.r1 + 1;
+							if (tempRange.containsRange(_range)) {
+								//сдвигаем полностью
+								offset = new AscCommon.CellBase(-diff, 0);
+								_newRanges = _range.clone()
+								_newRanges.setOffset(offset);
+							} else if (updateRange.c1 <= _range.c1 && updateRange.c2 >= _range.c2) {
+								offset = new AscCommon.CellBase(-diff, 0);
+								_newRanges = _range.clone()
+								_newRanges.setOffsetLast(offset);
+							} else {
+								_newRanges = [];
+								//добавляем сдвинутую часть диапазона
+								_newRanges.push(intersection);
+								offset = new AscCommon.CellBase(-diff, 0);
+								otherPart = _newRanges[0].difference(_range);
+								_newRanges[0].setOffset(offset);
+								//исключаем сдвинутую часть из диапазона
+								_newRanges = _newRanges.concat(otherPart);
+							}
+						}
 						break;
 
 					case c_oAscDeleteOptions.DeleteCellsAndShiftLeft:
-
+						tempRange = new Asc.Range(updateRange.c1, updateRange.r1, AscCommon.gc_nMaxCol0, updateRange.r2);
+						intersection = tempRange.intersection(_range);
+						if (intersection) {
+							diff = updateRange.c2 - updateRange.c1 + 1;
+							if (tempRange.containsRange(_range)) {
+								//сдвигаем полностью
+								offset = new AscCommon.CellBase(0, -diff);
+								_newRanges = _range.clone()
+								_newRanges.setOffset(offset);
+							} else if (updateRange.r1 <= _range.r1 && updateRange.r2 >= _range.r2) {
+								offset = new AscCommon.CellBase(0, -diff);
+								_newRanges = _range.clone()
+								_newRanges.setOffsetLast(offset);
+							} else {
+								_newRanges = [];
+								//добавляем сдвинутую часть диапазона
+								_newRanges.push(intersection);
+								offset = new AscCommon.CellBase(0, -diff);
+								otherPart = _newRanges[0].difference(_range);
+								_newRanges[0].setOffset(offset);
+								//исключаем сдвинутую часть из диапазона
+								_newRanges = _newRanges.concat(otherPart);
+							}
+						}
 						break;
 
 					case c_oAscDeleteOptions.DeleteColumns:
+						diff = updateRange.c2 - updateRange.c1 + 1;
 						if (updateRange.c1 < _range.c1 && updateRange.c2 < _range.c1) {
 							//сдвигаем всю область
-							offset = new AscCommon.CellBase(0, updateRange.c1 - updateRange.c2);
+							offset = new AscCommon.CellBase(0, -diff);
 							_newRanges = _range.clone()
 							_newRanges.setOffset(offset);
 						} else if (updateRange.c1 <= _range.c1 && updateRange.c2 >= _range.c1) {
 							offset = new AscCommon.CellBase(0, range.c1 - updateRange.c2 - 1);
 							_newRanges = _range.clone();
 							_newRanges.setOffsetFirst(offset);
-							offset = new AscCommon.CellBase(0, updateRange.c1 - updateRange.c2);
+							offset = new AscCommon.CellBase(0, -diff);
 							_newRanges.setOffset(offset);
 						}
 
@@ -738,16 +824,17 @@
 						break;
 
 					case c_oAscDeleteOptions.DeleteRows:
+						diff = updateRange.r2 - updateRange.r1 + 1;
 						if (updateRange.r1 < _range.r1 && updateRange.r2 < _range.r1) {
 							//сдвигаем всю область
-							offset = new AscCommon.CellBase(updateRange.r1 - updateRange.r2, 0);
+							offset = new AscCommon.CellBase(-diff, 0);
 							_newRanges = _range.clone()
 							_newRanges.setOffset(offset);
 						} else if (updateRange.r1 <= _range.r1 && updateRange.r2 >= _range.r1) {
-							offset = new AscCommon.CellBase(range.r1 - updateRange.r2 - 1, 0);
+							offset = new AscCommon.CellBase(-diff, 0);
 							_newRanges = _range.clone();
 							_newRanges.setOffsetFirst(offset);
-							offset = new AscCommon.CellBase(updateRange.r1 - updateRange.r2, 0);
+							offset = new AscCommon.CellBase(-diff, 0);
 							_newRanges.setOffset(offset);
 						}
 
@@ -772,18 +859,18 @@
 			} else {
 				var changedRanges = _setDiff(this.ranges[i]);
 				if (changedRanges) {
-					newRanges.concat(changedRanges);
+					newRanges = newRanges.concat(changedRanges);
 				} else if (bDel) {
-					newRanges.concat(this.ranges[i].clone());
+					newRanges = newRanges.concat(this.ranges[i].clone());
 				}
 			}
 		}
 		if (!newRanges.length && bDel) {
 			//удаляем
-
+			return -1;
 		} else if (newRanges.length) {
 			//меняем диапазон
-
+			return newRanges;
 		}
 	};
 
@@ -812,9 +899,16 @@
 		}
 		return res;
 	};
-	CDataValidations.prototype.updateDiff = function(bInsert, type, updateRange) {
+	CDataValidations.prototype.updateDiff = function(ws, bInsert, type, updateRange) {
 		for (var i = 0; i < this.elems.length; i++) {
-			this.elems[i].updateDiff(bInsert, type, updateRange);
+			var isUpdate = this.elems[i].updateDiff(bInsert, type, updateRange);
+			if (isUpdate === -1) {
+				this.delete(this.elems[i].Id);
+			} else if (isUpdate) {
+				var to = this.elems[i].clone();
+				to.ranges = isUpdate;
+				this.change(ws, this.elems[i], to , true);
+			}
 		}
 	};
 
@@ -978,7 +1072,7 @@
 				//в данном случае расширяем диапазон
 				//set
 			} else {
-				this.add(ws, prepeareAdd(props), null, true);
+				this.add(ws, prepeareAdd(props), true);
 			}
 		} else if (equalRangeDataValidation) {
 			this.change(ws, equalRangeDataValidation, props, true);

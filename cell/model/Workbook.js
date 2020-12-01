@@ -8988,7 +8988,7 @@
 
 	Worksheet.prototype.updateDataValidation = function (bInsert, operType, updateRange) {
 		if (this.dataValidations) {
-			this.dataValidations.updateDiff(bInsert, operType, updateRange);
+			this.dataValidations.updateDiff(this, bInsert, operType, updateRange);
 		}
 	};
 
