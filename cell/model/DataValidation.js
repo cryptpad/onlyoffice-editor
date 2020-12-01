@@ -657,220 +657,88 @@
 		this.formula2 = newVal;
 	};
 	CDataValidation.prototype.updateDiff = function (bInsert, type, updateRange) {
+
 		var _setDiff = function (_range) {
-			var _newRanges, offset, tempRange, intersection, otherPart, diff, _intersection;
-			if (bInsert) {
-				switch (type) {
-					case c_oAscInsertOptions.InsertCellsAndShiftDown:
-						tempRange = new Asc.Range(updateRange.c1, updateRange.r1, updateRange.c2, AscCommon.gc_nMaxRow0);
-						intersection = tempRange.intersection(_range);
-						if (intersection) {
-							diff = updateRange.r2 - updateRange.r1 + 1;
-							if (tempRange.containsRange(_range)) {
-								//сдвигаем полностью
-								offset = new AscCommon.CellBase(diff, 0);
-								_newRanges = _range.clone()
-								_newRanges.setOffset(offset);
-							} else if (updateRange.c1 <= _range.c1 && updateRange.c2 >= _range.c2) {
-								offset = new AscCommon.CellBase(diff, 0);
-								_newRanges = _range.clone();
-								_newRanges.setOffsetLast(offset);
-							} else {
-								_newRanges = [];
-								//добавляем сдвинутую часть диапазона
-								_newRanges.push(intersection);
-								offset = new AscCommon.CellBase(diff, 0);
-								otherPart = _newRanges[0].difference(_range);
-								_newRanges[0].setOffset(offset);
-								//исключаем сдвинутую часть из диапазона
-								_newRanges = _newRanges.concat(otherPart);
-							}
-						}
-						break;
+			var _newRanges, offset, tempRange, intersection, otherPart, diff;
 
-					case c_oAscInsertOptions.InsertCellsAndShiftRight:
-						tempRange = new Asc.Range(updateRange.c1, updateRange.r1, AscCommon.gc_nMaxCol0, updateRange.r2);
-						intersection = tempRange.intersection(_range);
-						if (intersection) {
-							diff = updateRange.c2 - updateRange.c1 + 1;
-							if (tempRange.containsRange(_range)) {
-								//сдвигаем полностью
-								offset = new AscCommon.CellBase(0, diff);
-								_newRanges = _range.clone()
-								_newRanges.setOffset(offset);
-							} else if (updateRange.r1 <= _range.r1 && updateRange.r2 >= _range.r2) {
-								offset = new AscCommon.CellBase(0, diff);
-								_newRanges = _range.clone()
-								_newRanges.setOffsetLast(offset);
-							} else {
-								_newRanges = [];
-								//добавляем сдвинутую часть диапазона
-								_newRanges.push(intersection);
-								offset = new AscCommon.CellBase(0, diff);
-								otherPart = _newRanges[0].difference(_range);
-								_newRanges[0].setOffset(offset);
-								//исключаем сдвинутую часть из диапазона
-								_newRanges = _newRanges.concat(otherPart);
-							}
-						}
-						break;
-
-					case c_oAscInsertOptions.InsertColumns:
-						diff = updateRange.c2 - updateRange.c1 + 1;
-						if (updateRange.c1 <= _range.c1) {
-							//сдвигаем всю область
-							offset = new AscCommon.CellBase(0, diff);
-							_newRanges = _range.clone()
-							_newRanges.setOffset(offset);
-						} else if (updateRange.c1 > _range.c1 && updateRange.c1 < _range.c2) {
-							offset = new AscCommon.CellBase(0, diff);
-							_newRanges = _range.clone();
-							_newRanges.setOffsetLast(offset);
-						}
-						break;
-
-					case c_oAscInsertOptions.InsertRows:
+			switch (type) {
+				case c_oAscInsertOptions.InsertCellsAndShiftDown:
+					tempRange = new Asc.Range(updateRange.c1, updateRange.r1, updateRange.c2, AscCommon.gc_nMaxRow0);
+					intersection = tempRange.intersection(_range);
+					if (intersection) {
 						diff = updateRange.r2 - updateRange.r1 + 1;
-						if (updateRange.r1 <= _range.r1) {
-							//сдвигаем всю область
-							offset = new AscCommon.CellBase(diff, 0);
-							_newRanges = _range.clone()
-							_newRanges.setOffset(offset);
-						} else if (updateRange.r1 > _range.r1 && updateRange.r1 < _range.r2) {
-							offset = new AscCommon.CellBase(diff, 0);
-							_newRanges = _range.clone();
-							_newRanges.setOffsetLast(offset);
-						}
-						break;
-				}
-			} else {
-				switch (type) {
-					case c_oAscDeleteOptions.DeleteCellsAndShiftTop:
-						tempRange = new Asc.Range(updateRange.c1, updateRange.r1, updateRange.c2, AscCommon.gc_nMaxRow0);
-						intersection = tempRange.intersection(_range);
-						if (intersection) {
-							diff = updateRange.r2 - updateRange.r1 + 1;
-							if (tempRange.containsRange(_range)) {
-								//сдвигаем полностью
-								offset = new AscCommon.CellBase(-diff, 0);
-								_newRanges = _range.clone()
-								_newRanges.setOffset(offset);
-							} else if (updateRange.c1 <= _range.c1 && updateRange.c2 >= _range.c2) {
-								offset = new AscCommon.CellBase(-diff, 0);
-								_newRanges = _range.clone()
-								_newRanges.setOffsetLast(offset);
-							} else {
-								_newRanges = [];
-								//добавляем сдвинутую часть диапазона
-								_newRanges.push(intersection);
-								offset = new AscCommon.CellBase(-diff, 0);
-								otherPart = _newRanges[0].difference(_range);
-								_newRanges[0].setOffset(offset);
-								//исключаем сдвинутую часть из диапазона
-								_newRanges = _newRanges.concat(otherPart);
-							}
-						}
-						break;
 
-					case c_oAscDeleteOptions.DeleteCellsAndShiftLeft:
-						tempRange = new Asc.Range(updateRange.c1, updateRange.r1, AscCommon.gc_nMaxCol0, updateRange.r2);
-						intersection = tempRange.intersection(_range);
-						if (intersection) {
-							diff = updateRange.c2 - updateRange.c1 + 1;
-							if (tempRange.containsRange(_range)) {
-								//сдвигаем полностью
-								offset = new AscCommon.CellBase(0, -diff);
-								_newRanges = _range.clone()
-								_newRanges.setOffset(offset);
-							} else if (updateRange.r1 <= _range.r1 && updateRange.r2 >= _range.r2) {
-								offset = new AscCommon.CellBase(0, -diff);
-								_newRanges = _range.clone()
-								_newRanges.setOffsetLast(offset);
-							} else {
-								_newRanges = [];
-								//добавляем сдвинутую часть диапазона
-								_newRanges.push(intersection);
-								offset = new AscCommon.CellBase(0, -diff);
-								otherPart = _newRanges[0].difference(_range);
-								_newRanges[0].setOffset(offset);
-								//исключаем сдвинутую часть из диапазона
-								_newRanges = _newRanges.concat(otherPart);
-							}
-						}
-						break;
+						_newRanges = [];
+						//добавляем сдвинутую часть диапазона
+						_newRanges.push(intersection);
+						offset = new AscCommon.CellBase(bInsert ? diff : -diff, 0);
+						otherPart = _newRanges[0].difference(_range);
+						_newRanges[0].setOffset(offset);
+						//исключаем сдвинутую часть из диапазона
+						_newRanges = _newRanges.concat(otherPart);
 
-					case c_oAscDeleteOptions.DeleteColumns:
+					}
+					break;
+
+				case c_oAscInsertOptions.InsertCellsAndShiftRight:
+					tempRange = new Asc.Range(updateRange.c1, updateRange.r1, AscCommon.gc_nMaxCol0, updateRange.r2);
+					intersection = tempRange.intersection(_range);
+					if (intersection) {
 						diff = updateRange.c2 - updateRange.c1 + 1;
-						if (updateRange.c1 < _range.c1 && updateRange.c2 < _range.c1) {
-							//сдвигаем всю область
-							offset = new AscCommon.CellBase(0, -diff);
-							_newRanges = _range.clone()
-							_newRanges.setOffset(offset);
-						} else if (updateRange.c1 <= _range.c1 && updateRange.c2 >= _range.c1) {
-							offset = new AscCommon.CellBase(0, range.c1 - updateRange.c2 - 1);
-							_newRanges = _range.clone();
-							_newRanges.setOffsetFirst(offset);
-							offset = new AscCommon.CellBase(0, -diff);
-							_newRanges.setOffset(offset);
-						}
-
-						_intersection = _range.intersection(updateRange);
-						if (_intersection) {
-							diff = _intersection.c2 - _intersection.c1 + 1;
-							offset = new AscCommon.CellBase(0, -diff);
-							_newRanges = _range.clone();
-							_newRanges.setOffsetLast(offset);
-						}
-
-						break;
-
-					case c_oAscDeleteOptions.DeleteRows:
-						diff = updateRange.r2 - updateRange.r1 + 1;
-						if (updateRange.r1 < _range.r1 && updateRange.r2 < _range.r1) {
-							//сдвигаем всю область
-							offset = new AscCommon.CellBase(-diff, 0);
-							_newRanges = _range.clone()
-							_newRanges.setOffset(offset);
-						} else if (updateRange.r1 <= _range.r1 && updateRange.r2 >= _range.r1) {
-							offset = new AscCommon.CellBase(-diff, 0);
-							_newRanges = _range.clone();
-							_newRanges.setOffsetFirst(offset);
-							offset = new AscCommon.CellBase(-diff, 0);
-							_newRanges.setOffset(offset);
-						}
-
-						_intersection = _range.intersection(updateRange);
-						if (_intersection) {
-							diff = _intersection.r2 - _intersection.r1 + 1;
-							offset = new AscCommon.CellBase(-diff, 0);
-							_newRanges = _range.clone();
-							_newRanges.setOffsetLast(offset);
-						}
-
-						break;
-				}
+						_newRanges = [];
+						//добавляем сдвинутую часть диапазона
+						_newRanges.push(intersection);
+						offset = new AscCommon.CellBase(0, bInsert ? diff : -diff, 0);
+						otherPart = _newRanges[0].difference(_range);
+						_newRanges[0].setOffset(offset);
+						//исключаем сдвинутую часть из диапазона
+						_newRanges = _newRanges.concat(otherPart);
+					}
+					break;
 			}
+
 			return _newRanges;
 		};
 
+		var _offset;
+		if (type === c_oAscInsertOptions.InsertCellsAndShiftDown || type === c_oAscInsertOptions.InsertRows) {
+			_offset = new AscCommon.CellBase(updateRange.r2 - updateRange.r1 + 1, 0);
+			if (!bInsert) {
+				_offset.row = -_offset.row;
+			}
+		} else {
+			_offset = new AscCommon.CellBase(0, updateRange.c2 - updateRange.c1 + 1);
+			if (!bInsert) {
+				_offset.col = -_offset.col;
+			}
+		}
+
 		var newRanges = [];
-		var bDel;
+		var bDel, isChanged;
 		for (var i = 0; i < this.ranges.length; i++) {
 			if (!bInsert && updateRange.containsRange(this.ranges[i])) {
 				bDel = true;
 			} else {
-				var changedRanges = _setDiff(this.ranges[i]);
-				if (changedRanges) {
-					newRanges = newRanges.concat(changedRanges);
-				} else if (bDel) {
-					newRanges = newRanges.concat(this.ranges[i].clone());
+				if (updateRange.isIntersectForShift(this.ranges[i], _offset)) {
+					var cloneRange = this.ranges[i].clone();
+					cloneRange.forShift(updateRange, _offset);
+					newRanges.push(cloneRange);
+					isChanged = true;
+				} else {
+					var changedRanges = _setDiff(this.ranges[i]);
+					if (changedRanges) {
+						newRanges = newRanges.concat(changedRanges);
+						isChanged = true;
+					} else {
+						newRanges = newRanges.concat(this.ranges[i].clone());
+					}
 				}
 			}
 		}
 		if (!newRanges.length && bDel) {
 			//удаляем
 			return -1;
-		} else if (newRanges.length) {
+		} else if (newRanges.length && isChanged) {
 			//меняем диапазон
 			return newRanges;
 		}
@@ -905,7 +773,7 @@
 		for (var i = 0; i < this.elems.length; i++) {
 			var isUpdate = this.elems[i].updateDiff(bInsert, type, updateRange);
 			if (isUpdate === -1) {
-				this.delete(this.elems[i].Id);
+				this.delete(ws, this.elems[i].Id, true);
 			} else if (isUpdate) {
 				var to = this.elems[i].clone();
 				to.ranges = isUpdate;
@@ -931,15 +799,22 @@
 		}
 		if (addToHistory) {
 			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_DataValidationChange, ws.getId(), null,
-				new AscCommonExcel.UndoRedoData_DataValidation(new AscCommonExcel.UndoRedoData_BinaryWrapper(from), new AscCommonExcel.UndoRedoData_BinaryWrapper(to)));
+				new AscCommonExcel.UndoRedoData_DataValidation(from.Id, new AscCommonExcel.UndoRedoData_BinaryWrapper(from), new AscCommonExcel.UndoRedoData_BinaryWrapper(to)));
 		}
 	};
 
-	CDataValidations.prototype.delete = function (id) {
+	CDataValidations.prototype.delete = function (ws, id, addToHistory) {
+		var from;
 		for (var i = 0; i < this.elems.length; i++) {
 			if (this.elems[i].Id === id) {
+				from = this.elems[i];
 				this.elems.splice(i, 1);
 			}
+		}
+
+		if (addToHistory) {
+			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_DataValidationDelete, ws.getId(), null,
+				new AscCommonExcel.UndoRedoData_DataValidation(from.Id, new AscCommonExcel.UndoRedoData_BinaryWrapper(from), null));
 		}
 	};
 
