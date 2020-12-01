@@ -4691,10 +4691,13 @@ function setCurrentCultureInfo (LCID, decimalSeparator, groupSeparator) {
 					res.push('[$-F800]dddd, mmmm dd, yyyy');
 				}
 				res.push(getShortDateFormat2(1, 1, 0, cultureInfo) + ';@');
+				res.push(getShortDateFormat2(2, 2, 0, cultureInfo) + ';@');
 				res.push(getShortDateFormat2(1, 1, 2, cultureInfo) + ';@');
 				res.push(getShortDateFormat2(2, 2, 2, cultureInfo) + ';@');
 				res.push(getShortDateFormat2(1, 1, 4, cultureInfo) + ';@');
+				res.push(getShortDateFormat2(2, 2, 4, cultureInfo) + ';@');
 				res.push(getShortDateFormat2(1, 1, 2, cultureInfo) + ' h:mm;@');
+				res.push(getShortDateFormat2(2, 2, 2, cultureInfo) + ' h:mm;@');
 				res.push('[$-409]' + getShortDateFormat2(1, 1, 2, cultureInfo) + ' h:mm AM/PM;@');
 				var locale = getLocaleFormat(cultureInfo, false);
 				res.push(locale + 'mmmmm;@');
