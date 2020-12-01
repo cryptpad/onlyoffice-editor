@@ -303,7 +303,7 @@ function ParseLocalFormatSymbol(Name)
 	LocaleFormatSymbol['minute'] = 'm';
 	LocaleFormatSymbol['S'] = 'S';
 	LocaleFormatSymbol['s'] = 's';
-	LocaleFormatSymbol['general'] = 'general';
+	LocaleFormatSymbol['general'] = 'General';
 	switch (Name) {
 //___________________________________________________fi________________________________________________________________
 		case("fi"):
@@ -324,7 +324,7 @@ function ParseLocalFormatSymbol(Name)
 			LocaleFormatSymbol['d'] = 'p';
 			LocaleFormatSymbol['H'] = 'T';
 			LocaleFormatSymbol['h'] = 't';
-			LocaleFormatSymbol['general'] = 'yleinen';
+			LocaleFormatSymbol['general'] = 'Yleinen';
 			break;
 		}
 //___________________________________________________fy________________________________________________________________
@@ -339,7 +339,7 @@ function ParseLocalFormatSymbol(Name)
 			LocaleFormatSymbol['y'] = 'j';
 			LocaleFormatSymbol['H'] = 'U';
 			LocaleFormatSymbol['h'] = 'u';
-			LocaleFormatSymbol['general'] = 'standaard';
+			LocaleFormatSymbol['general'] = 'Standaard';
 			break;
 		}
 //___________________________________________________ES________________________________________________________________
@@ -355,20 +355,20 @@ function ParseLocalFormatSymbol(Name)
 		case("ca-ES-valencia"): {
 			LocaleFormatSymbol['Y'] = 'A';
 			LocaleFormatSymbol['y'] = 'a';
-			LocaleFormatSymbol['general'] = 'estándar';
+			LocaleFormatSymbol['general'] = 'Estándar';
 			break;
 		}
 		case("pt-BR"):
 		case("es-BR"): {
 			LocaleFormatSymbol['Y'] = 'A';
 			LocaleFormatSymbol['y'] = 'a';
-			LocaleFormatSymbol['general'] = 'geral';
+			LocaleFormatSymbol['general'] = 'Geral';
 			break;
 		}
 		case("pt-PT"): {
 			LocaleFormatSymbol['Y'] = 'A';
 			LocaleFormatSymbol['y'] = 'a';
-			LocaleFormatSymbol['general'] = 'éstandar';
+			LocaleFormatSymbol['general'] = 'Éstandar';
 			break;
 		}
 //____________________________________________________ru_______________________________________________________________
@@ -409,7 +409,7 @@ function ParseLocalFormatSymbol(Name)
 			LocaleFormatSymbol['minute'] = 'м'
 			LocaleFormatSymbol['S'] = 'C';
 			LocaleFormatSymbol['s'] = 'с';
-			LocaleFormatSymbol['general'] = 'основной';
+			LocaleFormatSymbol['general'] = 'Основной';
 			break;
 		}
 //____________________________________________________fr_______________________________________________________________
@@ -428,7 +428,7 @@ function ParseLocalFormatSymbol(Name)
 			LocaleFormatSymbol['y'] = 'a';
 			LocaleFormatSymbol['D'] = 'J';
 			LocaleFormatSymbol['d'] = 'j';
-			LocaleFormatSymbol['general'] = 'standard';
+			LocaleFormatSymbol['general'] = 'Standard';
 			break;
 		}
 //____________________________________________________de_______________________________________________________________
@@ -452,7 +452,7 @@ function ParseLocalFormatSymbol(Name)
 			LocaleFormatSymbol['minute'] = 'm';
 			LocaleFormatSymbol['D'] = 'T';
 			LocaleFormatSymbol['d'] = 't';
-			LocaleFormatSymbol['general'] = 'standard';
+			LocaleFormatSymbol['general'] = 'Standard';
 			break;
 		}
 //____________________________________________________it_______________________________________________________________
@@ -469,7 +469,7 @@ function ParseLocalFormatSymbol(Name)
 			LocaleFormatSymbol['y'] = 'a';
 			LocaleFormatSymbol['D'] = 'G';
 			LocaleFormatSymbol['d'] = 'g';
-			LocaleFormatSymbol['general'] = 'standard';
+			LocaleFormatSymbol['general'] = 'Standard';
 			break;
 		}
 //____________________________________________________da_______________________________________________________________
@@ -487,7 +487,7 @@ function ParseLocalFormatSymbol(Name)
 			LocaleFormatSymbol['minute'] = 'm';
 			LocaleFormatSymbol['H'] = 'T';
 			LocaleFormatSymbol['h'] = 't';
-			LocaleFormatSymbol['general'] = 'standard';
+			LocaleFormatSymbol['general'] = 'Standard';
 			break;
 		}
 		case("nb"):
@@ -507,7 +507,7 @@ function ParseLocalFormatSymbol(Name)
 			LocaleFormatSymbol['y'] = 'å';
 			LocaleFormatSymbol['H'] = 'T';
 			LocaleFormatSymbol['h'] = 't';
-			LocaleFormatSymbol['general'] = 'standard';
+			LocaleFormatSymbol['general'] = 'Standard';
 			break;
 		}
 //_____________________________________________________ch______________________________________________________________
@@ -521,7 +521,7 @@ function ParseLocalFormatSymbol(Name)
 		case("zh-CN"):
 		case("zh-Hans"):
 		case("zh-TW"): {
-			LocaleFormatSymbol['general'] = 'g/通用格式';
+			LocaleFormatSymbol['general'] = 'G/通用格式';
 			break;
 		}
 //_________________________________________________special_____________________________________________________________
@@ -539,7 +539,7 @@ function ParseLocalFormatSymbol(Name)
 			LocaleFormatSymbol['minute'] = 'λ';
 			LocaleFormatSymbol['S'] = 'Δ';
 			LocaleFormatSymbol['s'] = 'δ';
-			LocaleFormatSymbol['general'] = 'γενικός τύπος';
+			LocaleFormatSymbol['general'] = 'Γενικός τύπος';
 			break;
 		}
 		case("hu"):
@@ -556,7 +556,7 @@ function ParseLocalFormatSymbol(Name)
 			LocaleFormatSymbol['minute'] = 'p';
 			LocaleFormatSymbol['S'] = 'M';
 			LocaleFormatSymbol['s'] = 'm';
-			LocaleFormatSymbol['general'] = 'normál';
+			LocaleFormatSymbol['general'] = 'Normál';
 			break;
 		}
 		case("tr"):
@@ -571,7 +571,7 @@ function ParseLocalFormatSymbol(Name)
 			LocaleFormatSymbol['minute'] = 'd';
 			LocaleFormatSymbol['S'] = 'N';
 			LocaleFormatSymbol['s'] = 'n';
-			LocaleFormatSymbol['general'] = 'genel';
+			LocaleFormatSymbol['general'] = 'Genel';
 			break;
 		}
 		case("pl"):
@@ -580,24 +580,24 @@ function ParseLocalFormatSymbol(Name)
 			LocaleFormatSymbol['y'] = 'r';
 			LocaleFormatSymbol['H'] = 'G';
 			LocaleFormatSymbol['h'] = 'g';
-			LocaleFormatSymbol['general'] = 'standardowy';
+			LocaleFormatSymbol['general'] = 'Standardowy';
 			break;
 		}
 		case("cs"):
 		case("cs-CZ"): {
 			LocaleFormatSymbol['Y'] = 'R';
 			LocaleFormatSymbol['y'] = 'r';
-			LocaleFormatSymbol['general'] = 'vęeobecný';
+			LocaleFormatSymbol['general'] = 'Vęeobecný';
 			break;
 		}
 		case("ja"):
 		case("ja-JP"): {
-			LocaleFormatSymbol['general'] = 'g/標準';
+			LocaleFormatSymbol['general'] = 'G/標準';
 			break;
 		}
 		case("ko"):
 		case("ko-KR"): {
-			LocaleFormatSymbol['general'] = 'g/표준';
+			LocaleFormatSymbol['general'] = 'G/표준';
 			break;
 		}
 	}
@@ -761,7 +761,7 @@ NumFormat.prototype =
         var day;
         var hour;
         var Minute;
-        var minute
+        var minute;
         var Second;
         var second;
 		if (useLocaleFormat) {
@@ -817,10 +817,10 @@ NumFormat.prototype =
             {
                 this._addToFormat(numFormat_Percent);
             }
-            else if("$" == next || "+" == next || "-" == next || "(" == next || ")" == next || " " == next)
-            {
-                this._addToFormat(numFormat_Text, next);
-            }
+			else if("$" == next || "+" == next || "-" == next || "(" == next || ")" == next || " " == next)
+			{
+				this._addToFormat(numFormat_Text, next);
+			}
             else if(TimeSeparator == next)
             {
                 this._addToFormat(numFormat_TimeSeparator);
@@ -2271,11 +2271,53 @@ NumFormat.prototype =
 		}
         return res;
     },
-    toString : function(output, nShift)
-    {
-        var bRes = true;
-        if(this.bDateTime || this.bSlash || this.bTextFormat || (nShift < 0 && 0 == this.aFracFormat.length))
-            return false;
+	shiftFormat : function(output, nShift, useLocaleFormat) {
+		if (this.bDateTime || this.bSlash || this.bTextFormat || (nShift < 0 && 0 == this.aFracFormat.length))
+			return false;
+		output.format = this.toString(nShift, useLocaleFormat);
+		return true;
+	},
+	toString : function(nShift, useLocaleFormat)
+	{
+		var sGeneral;
+		var DecimalSeparator;
+		var GroupSeparator;
+		var TimeSeparator;
+		var year;
+		var month;
+		var day;
+		var hour;
+		var minute;
+		var second;
+		if (useLocaleFormat) {
+			sGeneral = LocaleFormatSymbol['general'];
+			DecimalSeparator = g_oDefaultCultureInfo.NumberDecimalSeparator;
+			TimeSeparator = g_oDefaultCultureInfo.TimeSeparator;
+			GroupSeparator = g_oDefaultCultureInfo.NumberGroupSeparator;
+			if (LocaleFormatSymbol['M'] === LocaleFormatSymbol['m']) {
+				year = LocaleFormatSymbol['Y'];
+				month = LocaleFormatSymbol['M'];
+				day = LocaleFormatSymbol['D'];
+			} else {
+				year = LocaleFormatSymbol['y'];
+				month = LocaleFormatSymbol['m'];
+				day = LocaleFormatSymbol['d'];
+			}
+			hour = LocaleFormatSymbol['h'];
+			minute = LocaleFormatSymbol['minute'];
+			second = LocaleFormatSymbol['s'];
+		} else {
+			sGeneral = AscCommon.g_cGeneralFormat;
+			DecimalSeparator = gc_sFormatDecimalPoint;
+			TimeSeparator = ':';
+			GroupSeparator = gc_sFormatThousandSeparator;
+			year = 'y';
+			month = 'm';
+			day = 'd';
+			hour = 'h';
+			minute = 'm';
+			second = 's';
+		}
         var nDecLength = this.aDecFormat.length;
         var nDecIndex = 0;
         var nFracLength = this.aFracFormat.length;
@@ -2335,10 +2377,7 @@ NumFormat.prototype =
 				case NumComporationOperators.notequal: res += "[<>" + this.ComporationOperator.operatorValue +"]";break;
 			}
 		}
-        //ThousandSep
-        var bAddThousandSep = this.bThousandSep;
-        var nThousandScale = this.nThousandScale;
-            
+
         var nFormatLength = this.aRawFormat.length;    
         for(var i = 0; i < nFormatLength; ++i)
         {
@@ -2360,16 +2399,16 @@ NumFormat.prototype =
             else if(numFormat_DecimalPoint == item.type)
             {
                 nReadState = FormatStates.Frac;
-                if(0 != nNewFracLength && 0 != nShift)
-                    res += gc_sFormatDecimalPoint;
+                if(0 != nNewFracLength)
+                    res += DecimalSeparator;
             }
             else if (numFormat_DecimalPointText == item.type) {
-                res += gc_sFormatDecimalPoint;
+                res += DecimalSeparator;
             }
             else if(numFormat_Thousand == item.type)
             {
                 for(var j = 0; j < item.val; ++j)
-                    res += gc_sFormatThousandSeparator;
+                    res += GroupSeparator;
             }
             else if(this._isDigitType(item.type))
             {
@@ -2435,36 +2474,36 @@ NumFormat.prototype =
 			else if(numFormat_DateSeparator == item.type)
                 res += "/";
 			else if(numFormat_TimeSeparator == item.type)
-                res += ":";
+                res += TimeSeparator;
             else if(numFormat_Year == item.type)
             {
                 for(var j = 0; j < item.val; ++j)
-                    res += "y";
+                    res += year;
             }
             else if(numFormat_Month == item.type)
             {
                 for(var j = 0; j < item.val; ++j)
-                    res += "m";
+                    res += month;
             }
             else if(numFormat_Day == item.type)
             {
                 for(var j = 0; j < item.val; ++j)
-                    res += "d";
+                    res += day;
             }
             else if(numFormat_Hour == item.type)
             {
                 for(var j = 0; j < item.val; ++j)
-                    res += "h";
+                    res += hour;
             }
             else if(numFormat_Minute == item.type)
             {
                 for(var j = 0; j < item.val; ++j)
-                    res += "m";
+                    res += minute;
             }
             else if(numFormat_Second == item.type)
             {
                 for(var j = 0; j < item.val; ++j)
-                    res += "s";
+                    res += second;
             }
             else if(numFormat_AmPm == item.type)
                 res += "AM/PM";
@@ -2474,9 +2513,10 @@ NumFormat.prototype =
 				res += "+";
 			else if(numFormat_Minus == item.type)
 				res += "-";
+			else if(numFormat_General == item.type)
+				res += sGeneral;
         }
-        output.format = res;
-        return true;
+        return res;
     },
 	getFormatCellsInfo: function() {
 		var info = new Asc.asc_CFormatCellsInfo();
@@ -2810,20 +2850,20 @@ CellFormat.prototype =
         }
         return res;
     },
-    shiftFormat : function(output, nShift)
+    shiftFormat : function(output, nShift, useLocaleFormat)
     {
         var bRes = false;
         var bCurRes = true;
 		if(null == this.aComporationFormats)
 		{
-			bCurRes = this.oPositiveFormat.toString(output, nShift);
+			bCurRes = this.oPositiveFormat.shiftFormat(output, nShift, useLocaleFormat);
 			if(false == bCurRes)
 				output.format = this.oPositiveFormat.formatString;
 			bRes |= bCurRes;
 			if(null != this.oNegativeFormat && this.oPositiveFormat != this.oNegativeFormat)
 			{
 				var oTempOutput = {};
-				bCurRes = this.oNegativeFormat.toString(oTempOutput, nShift);
+				bCurRes = this.oNegativeFormat.shiftFormat(oTempOutput, nShift, useLocaleFormat);
 				if(false == bCurRes)
 					output.format += ";" + this.oNegativeFormat.formatString;
 				else
@@ -2833,7 +2873,7 @@ CellFormat.prototype =
 			if(null != this.oNullFormat && this.oPositiveFormat != this.oNullFormat)
 			{
 				var oTempOutput = {};
-				bCurRes = this.oNullFormat.toString(oTempOutput, nShift);
+				bCurRes = this.oNullFormat.shiftFormat(oTempOutput, nShift, useLocaleFormat);
 				if(false == bCurRes)
 					output.format += ";" + this.oNullFormat.formatString;
 				else
@@ -2843,7 +2883,7 @@ CellFormat.prototype =
 			if(null != this.oTextFormat && this.oPositiveFormat != this.oTextFormat)
 			{
 				var oTempOutput = {};
-				bCurRes = this.oTextFormat.toString(oTempOutput, nShift);
+				bCurRes = this.oTextFormat.shiftFormat(oTempOutput, nShift, useLocaleFormat);
 				if(false == bCurRes)
 					output.format += ";" + this.oTextFormat.formatString;
 				else
@@ -2859,7 +2899,7 @@ CellFormat.prototype =
 			{
 				var oTempOutput = {};
 				var oCurFormat = this.aComporationFormats[i];
-				var bCurRes = oCurFormat.toString(oTempOutput, nShift);
+				var bCurRes = oCurFormat.shiftFormat(oTempOutput, nShift, useLocaleFormat);
 				if(0 != i)
 					output.format += ";";
 				if(false == bCurRes)
@@ -2871,6 +2911,33 @@ CellFormat.prototype =
 		}
         return bRes;
     },
+	toString: function(nShift, useLocaleFormat) {
+		var res = '';
+		if (null == this.aComporationFormats) {
+			res += this.oPositiveFormat.toString(nShift, useLocaleFormat);
+			if (null != this.oNegativeFormat && this.oPositiveFormat != this.oNegativeFormat) {
+				res += ";" + this.oNegativeFormat.toString(nShift, useLocaleFormat);
+			}
+			if (null != this.oNullFormat && this.oPositiveFormat != this.oNullFormat) {
+				res += ";" + this.oNullFormat.toString(nShift, useLocaleFormat);
+			}
+			if (null != this.oTextFormat && this.oPositiveFormat != this.oTextFormat) {
+				res += ";" + this.oTextFormat.toString(nShift, useLocaleFormat);
+			}
+		}
+		else {
+			var length = this.aComporationFormats.length;
+			for (var i = 0; i < length; ++i) {
+				var oCurFormat = this.aComporationFormats[i];
+				if (0 != i) {
+					res += ";";
+				} else {
+					res += oCurFormat.toString(nShift, useLocaleFormat);
+				}
+			}
+		}
+		return res;
+	},
 	formatToMathInfo : function(number, nValType, dDigitsCount)
 	{
 		return this._formatToText(number, nValType, dDigitsCount, false);

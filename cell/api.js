@@ -249,6 +249,14 @@ var editor;
 		}
 		return res;
 	};
+	spreadsheet_api.prototype.asc_convertNumFormatLocal2NumFormat = function(format) {
+		var oFormat = new AscCommon.CellFormat(format,undefined,true);
+		return oFormat.toString(0, false);
+	};
+	spreadsheet_api.prototype.asc_convertNumFormat2NumFormatLocal = function(format) {
+		var oFormat = new AscCommon.CellFormat(format,undefined,false);
+		return oFormat.toString(0, true);
+	};
 	spreadsheet_api.prototype.asc_getFormatCells = function(info) {
 		return AscCommon.getFormatCells(info);
 	};
@@ -4938,6 +4946,8 @@ var editor;
   prot['asc_getFunctionArgumentSeparator'] = prot.asc_getFunctionArgumentSeparator;
   prot['asc_getCurrencySymbols'] = prot.asc_getCurrencySymbols;
   prot['asc_getLocaleExample'] = prot.asc_getLocaleExample;
+  prot['asc_convertNumFormatLocal2NumFormat'] = prot.asc_convertNumFormatLocal2NumFormat;
+  prot['asc_convertNumFormat2NumFormatLocal'] = prot.asc_convertNumFormat2NumFormatLocal;
   prot['asc_getFormatCells'] = prot.asc_getFormatCells;
   prot["asc_getLocaleCurrency"] = prot.asc_getLocaleCurrency;
   prot["asc_setLocale"] = prot.asc_setLocale;
