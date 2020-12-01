@@ -2965,8 +2965,29 @@ function asc_WriteCCellInfo(c, s) {
     if (v) {
         asc_WriteFormatTableInfo(31, v, s);
     }
+
+    s['WriteByte'](32);
+    s['WriteString2'](asc_CellInfoToJson(c));
     
     s['WriteByte'](255);
+}
+function asc_CellInfoToJson(cellInfo) {
+    var json = {
+        asc_getSelectionType: cellInfo.asc_getSelectionType(),
+        asc_getLocked: cellInfo.asc_getLocked(),
+        asc_getLockedTable: cellInfo.asc_getLockedTable(),
+        asc_getComments: []
+    };
+
+    var cellComments = cellInfo.asc_getComments();
+    var jsonComments = [];
+    for (var i = 0; i < cellComments.length; ++i) {
+        jsonComments.push(JSON.stringify(readSDKComment(cellComments[i].asc_getId(), cellComments[i])));
+    }
+
+    json["asc_getComments"] = jsonComments;
+    
+    return JSON.stringify(json);
 }
 function asc_WriteColorSchemes(schemas, s) {
     
