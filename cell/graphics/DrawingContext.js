@@ -947,6 +947,7 @@
 			if (!angle) {
 				window["native"]["PD_LoadFont"](fontInfo.Path, fontInfo.FaceIndex, this.font.getSize(), flag);
 			}
+			AscCommon.g_oTextMeasurer.Flush();
 			fontInfo = g_oTextMeasurer.Measurer["LoadFont"](fontInfo.Path, fontInfo.FaceIndex, this.font.getSize(), flag);
 			if (angle) {
 				this.fmgrGraphics[1].init(fontInfo);

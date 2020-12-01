@@ -2029,7 +2029,7 @@
 				//TODO пока выключаю специальную ставку внутри math, позже доработать и включить
 				var oInfo = new CSelectedElementsInfo();
 				//var selectedElementsInfo = isIntoShape.GetSelectedElementsInfo(oInfo);
-				var mathObj = oInfo.Get_Math();
+				var mathObj = oInfo.GetMath();
 
 				if (/*!window['AscCommon'].g_specialPasteHelper.specialPasteStart && */null === mathObj) {
 					var sProps = Asc.c_oSpecialPasteProps;
@@ -2978,6 +2978,14 @@
 				var oBinaryFileReader = new AscCommonWord.BinaryFileReader(newCDocument, openParams);
 				var oRes = oBinaryFileReader.ReadFromString(sBase64, {excelCopyPaste: true});
 
+				var defrPr = oBinaryFileReader.oReadResult && oBinaryFileReader.oReadResult.DefrPr;
+				if (defrPr && newCDocument.Styles && newCDocument.Styles.Default && newCDocument.Styles.Default.TextPr) {
+					newCDocument.Styles.Default.TextPr.FontSize = defrPr.FontSize;
+					if (defrPr.RFonts) {
+						newCDocument.Styles.Default.TextPr.RFonts = defrPr.RFonts;
+					}
+				}
+
 				pptx_content_loader.End_UseFullUrl();
 
 				oTempDrawingDocument.m_oLogicDocument = old_m_oLogicDocument;
@@ -3252,6 +3260,7 @@
 						if (!isIntoShape) {
 							return false;
 						}
+						isIntoShape.Remove(1, true, true);
 						var Count = text.length;
 
 						var newParagraph = new Paragraph(isIntoShape.DrawingDocument, isIntoShape);
@@ -3661,6 +3670,9 @@
 				result.hyperLink = this.hyperLink;
 				result.location = this.location;
 
+				result.alignVertical = this.alignVertical;
+				result.alignHorizontal = this.alignHorizontal;
+
 				return result;
 			}
 		};
@@ -3809,6 +3821,19 @@
 								}
 
 								newCell.borders = this._getBorders(childrens[i], row, col, newCell.borders);
+
+								var alignVertical = childrens[i].elem.Get_VAlign();
+								switch (alignVertical) {
+									case vertalignjc_Bottom:
+										newCell.alignVertical = Asc.c_oAscVAlign.Bottom;
+										break;
+									case vertalignjc_Center:
+										newCell.alignVertical = Asc.c_oAscVAlign.Center;
+										break;
+									case vertalignjc_Top:
+										newCell.alignVertical = Asc.c_oAscVAlign.Top;
+										break;
+								}
 							}
 						}
 					}
@@ -3849,6 +3874,10 @@
 						oNewItem.borders = cell.borders;
 					}
 
+					if (undefined !== cell.alignVertical) {
+						oNewItem.alignVertical = cell.alignVertical;
+					}
+
 					if (cell.rowSpan != null) {
 						oNewItem.rowSpan = cell.rowSpan;
 						oNewItem.colSpan = cell.colSpan;
@@ -3878,8 +3907,10 @@
 					oNewItem.wrap = true;
 				}
 
+				oNewItem.alignHorizontal = horisontalAlign;
+
 				//вертикальное выравнивание
-				oNewItem.va = Asc.c_oAscVAlign.Center;
+				//oNewItem.alignVertical = Asc.c_oAscVAlign.Center;
 
 				//так же wrap выставляем у параграфа, чьим родителем является ячейка таблицы
 				var cellParent = this._getParentByTag(paragraph, c_oAscBoundsElementType.Cell);
@@ -4480,7 +4511,7 @@
 					colorText = null;
 				}
 
-				fontFamily = cTextPr.fontFamily ? cTextPr.fontFamily.Name : cTextPr.RFonts.CS ? cTextPr.RFonts.CS.Name : paragraphFontFamily;
+				fontFamily = cTextPr.FontFamily ? cTextPr.FontFamily.Name : cTextPr.RFonts.CS ? cTextPr.RFonts.CS.Name : paragraphFontFamily;
 				this.fontsNew[fontFamily] = 1;
 
 				var verticalAlign;

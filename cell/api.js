@@ -115,6 +115,9 @@ var editor;
     this.shapeElementId = null;
     this.textArtElementId = null;
 
+    //frozen pane border type
+    this.frozenPaneBorderType = Asc.c_oAscFrozenPaneBorderType.shadow;
+
 	  // Styles sizes
       this.styleThumbnailWidth = 112;
 	  this.styleThumbnailHeight = 38;
@@ -300,6 +303,17 @@ var editor;
   	var cultureInfo = AscCommon.g_aCultureInfos[culture] || AscCommon.g_oDefaultCultureInfo;
   	return cultureInfo.NumberGroupSeparator;
   };
+  spreadsheet_api.prototype.asc_getFrozenPaneBorderType = function() {
+    return this.frozenPaneBorderType;
+  };
+  spreadsheet_api.prototype.asc_setFrozenPaneBorderType = function(nType) {
+    if(this.frozenPaneBorderType !== nType) {
+      this.frozenPaneBorderType = nType;
+      if(this.wbModel) {
+        this.asc_showWorksheet(this.asc_getActiveWorksheetIndex());
+      }
+    }
+  };
   spreadsheet_api.prototype._openDocument = function(data) {
     this.wbModel = new AscCommonExcel.Workbook(this.handlers, this);
     this.initGlobalObjects(this.wbModel);
@@ -309,6 +323,10 @@ var editor;
     AscFonts.IsCheckSymbols = false;
     this.openingEnd.bin = true;
     this._onEndOpen();
+  };
+
+
+  spreadsheet_api.prototype.initGlobalObjectsNamedSheetView = function(wbModel) {
   };
 
   spreadsheet_api.prototype.initGlobalObjects = function(wbModel) {
@@ -332,6 +350,7 @@ var editor;
     AscCommonExcel.g_oUndoRedoSlicer = new AscCommonExcel.UndoRedoSlicer(wbModel);
     AscCommonExcel.g_oUndoRedoPivotTables = new AscCommonExcel.UndoRedoPivotTables(wbModel);
     AscCommonExcel.g_oUndoRedoPivotFields = new AscCommonExcel.UndoRedoPivotFields(wbModel);
+    this.initGlobalObjectsNamedSheetView(wbModel);
   };
 
   spreadsheet_api.prototype.asc_DownloadAs = function (options) {
@@ -1206,6 +1225,11 @@ var editor;
       },
       "updateAllPrintScaleLock": function() {
           t._onUpdateAllPrintScaleLock.apply(t, arguments);
+      },
+      "updateAllSheetViewLock": function() {
+          if (t._onUpdateAllSheetViewLock) {
+            t._onUpdateAllSheetViewLock.apply(t, arguments);
+          }
       }
     }, this.getViewMode());
 
@@ -1270,6 +1294,10 @@ var editor;
           t._onUpdateHeaderFooterLock(lockElem);
           //эвент о локе в меню опции scale во вкладке layout
           t._onUpdatePrintScaleLock(lockElem);
+          //эвент о локе представлений
+          if (t._onUpdateNamedSheetViewLock) {
+            t._onUpdateNamedSheetViewLock(lockElem);
+          }
 
 
 
@@ -2537,6 +2565,9 @@ var editor;
         }
 	};
 
+    spreadsheet_api.prototype.asc_setIncludeNewRowColTable = function (value) {
+      window['AscCommonExcel'].g_IncludeNewRowColInTable = value;
+    };
 
   // Spreadsheet interface
 
@@ -4537,10 +4568,15 @@ var editor;
 		var location = Asc.CT_pivotTableDefinition.prototype.parseDataRef(pivotRef);
 		if (location) {
 			var wb = this.wbModel;
-			this.wbModel.setActiveById(location.ws.getId());
+			var ws = location.ws;
+			if (ws) {
+				this.wbModel.setActiveById(ws.getId());
+			} else {
+				ws = wb.getActiveWs();
+			}
 			this.wb.updateWorksheetByModel();
 			this.wb.showWorksheet();
-			this._asc_insertPivot(wb, dataRef, location.ws, location.bbox, false);
+			this._asc_insertPivot(wb, dataRef, ws, location.bbox, false);
 		}
 	};
 	spreadsheet_api.prototype._asc_insertPivot = function(wb, dataRef, ws, location, confirmation) {
@@ -4825,6 +4861,7 @@ var editor;
   spreadsheet_api.prototype.asc_setSlicers = function (names, obj) {
     return this.wb.setSlicers(names, obj);
   };
+  
 
   /*
    * Export
@@ -4845,6 +4882,8 @@ var editor;
   prot["asc_getLocale"] = prot.asc_getLocale;
   prot["asc_getDecimalSeparator"] = prot.asc_getDecimalSeparator;
   prot["asc_getGroupSeparator"] = prot.asc_getGroupSeparator;
+  prot["asc_getFrozenPaneBorderType"] = prot.asc_getFrozenPaneBorderType;
+  prot["asc_setFrozenPaneBorderType"] = prot.asc_setFrozenPaneBorderType;
   prot["asc_getEditorPermissions"] = prot.asc_getEditorPermissions;
   prot["asc_LoadDocument"] = prot.asc_LoadDocument;
   prot["asc_DownloadAs"] = prot.asc_DownloadAs;
@@ -4942,6 +4981,7 @@ var editor;
   prot["asc_setWorksheetRange"] = prot.asc_setWorksheetRange;
 
   prot["asc_setR1C1Mode"] = prot.asc_setR1C1Mode;
+  prot["asc_setIncludeNewRowColTable"] = prot.asc_setIncludeNewRowColTable;
 
   // Spreadsheet interface
 

@@ -2571,9 +2571,14 @@ DrawingObjectsController.prototype =
                 }
                 else if(arr[i].getObjectType() === AscDFH.historyitem_type_ChartSpace)
                 {
-                    if(f === CDocumentContent.prototype.AddToParagraph && args[0].Type === para_TextPr)
+                    if(args[0].Type === para_TextPr)
                     {
-                        AscFormat.CheckObjectTextPr(arr[i], args[0].Value, oThis.getDrawingDocument());
+                        var oChartSpace = arr[i];
+
+                        var fCallback = function(oElement) {
+                            AscFormat.CheckObjectTextPr(oElement, args[0].Value, oThis.getDrawingDocument());
+                        };
+                        oChartSpace.applyLabelsFunction(fCallback, args[0].Value);
                     }
                     if(f === CDocumentContent.prototype.IncreaseDecreaseFontSize)
                     {
@@ -2969,8 +2974,8 @@ DrawingObjectsController.prototype =
                     if(oContent2){
                         var SelectedInfo = new CSelectedElementsInfo();
                         oContent2.GetSelectedElementsInfo(SelectedInfo);
-                        if (null !== SelectedInfo.Get_Math()){
-                            var ParaMath = SelectedInfo.Get_Math();
+                        if (null !== SelectedInfo.GetMath()){
+                            var ParaMath = SelectedInfo.GetMath();
                             ParaMath.Set_MenuProps(oMathProps);
                         }
                     }
@@ -2999,7 +3004,7 @@ DrawingObjectsController.prototype =
             if(oContent){
                 var oInfo = new CSelectedElementsInfo();
                 oContent.GetSelectedElementsInfo(oInfo);
-                var Math         = oInfo.Get_Math();
+                var Math         = oInfo.GetMath();
                 if (null !== Math && true !== Math.Is_Inline())
                 {
                     Math.Set_Align(align);
@@ -5810,6 +5815,7 @@ DrawingObjectsController.prototype =
     {
         var chart = chart_space.chart, plot_area = chart_space.chart.plotArea;
         var ret = new Asc.asc_ChartSettings();
+        ret.chartSpace = chart_space;
         var range_obj = chart_space.getRangeObjectStr();
         if(range_obj)
         {
@@ -6241,7 +6247,10 @@ DrawingObjectsController.prototype =
         ret.putShowCatName(data_labels.showCatName === true);
         ret.putShowVal(data_labels.showVal === true);
         ret.putSeparator(data_labels.separator);
-        if(data_labels.showSerName || data_labels.showCatName || data_labels.showVal || data_labels.showPercent){
+        if(data_labels.bDelete) {
+            ret.putDataLabelsPos(c_oAscChartDataLabelsPos.none);
+        }
+        else if(data_labels.showSerName || data_labels.showCatName || data_labels.showVal || data_labels.showPercent){
             ret.putDataLabelsPos(AscFormat.isRealNumber(data_labels.dLblPos) ? data_labels.dLblPos :  nDefaultDatalabelsPos);
         }
         else{
@@ -7163,12 +7172,22 @@ DrawingObjectsController.prototype =
         var ctrlKey = e.metaKey || e.ctrlKey;
         var drawingObjectsController = this;
         var bRetValue = false;
-        var state = drawingObjectsController.curState;
         var canEdit = drawingObjectsController.canEdit();
         var oApi = window["Asc"]["editor"];
-        if ( e.keyCode == 8 && canEdit ) // BackSpace
+        var oTargetTextObject;
+        AscCommon.check_KeyboardEvent(e);
+        var oEvent = AscCommon.global_keyboardEvent;
+        var nShortcutAction = oApi.getShortcut(oEvent);
+        var oCustom = oApi.getCustomShortcutAction(nShortcutAction);
+        if (oCustom) {
+            if(this.getTargetDocContent(false, false)) {
+                if (AscCommon.c_oAscCustomShortcutType.Symbol === oCustom.Type) {
+                    oApi["asc_insertSymbol"](oCustom.Font, oCustom.CharCode);
+                }
+            }
+        }
+        else if ( e.keyCode == 8 && canEdit ) // BackSpace
         {
-            var oTargetTextObject = getTargetTextObject(this);
             drawingObjectsController.remove(-1, undefined, undefined, undefined, ctrlKey);
             bRetValue = true;
         }
@@ -7206,7 +7225,7 @@ DrawingObjectsController.prototype =
                 {
                     var oSelectedInfo = new CSelectedElementsInfo();
                     target_doc_content.GetSelectedElementsInfo(oSelectedInfo);
-                    var oMath         = oSelectedInfo.Get_Math();
+                    var oMath         = oSelectedInfo.GetMath();
                     if (null !== oMath && oMath.Is_InInnerContent())
                     {
                         this.checkSelectedObjectsAndCallback(function()
@@ -7407,7 +7426,6 @@ DrawingObjectsController.prototype =
         {
 			if (!e.shiftKey)
 			{
-				var oTargetTextObject = getTargetTextObject(this);
 				drawingObjectsController.remove(1, undefined, undefined, undefined, ctrlKey);
 				bRetValue = true;
 			}
@@ -10040,19 +10058,6 @@ DrawingObjectsController.prototype =
     {
         if(typeof Asc.asc_CParagraphProperty !== "undefined" && !(props instanceof Asc.asc_CParagraphProperty))
         {
-            if(props && props.ChartProperties && typeof props.ChartProperties.getRange() === "string")
-            {
-                var editor = window["Asc"]["editor"];
-                var check = parserHelp.checkDataRange(editor.wbModel, editor.wb, Asc.c_oAscSelectionDialogType.Chart, props.ChartProperties.getRange(), true, !props.ChartProperties.getInColumns(), props.ChartProperties.getType());
-                if(check === c_oAscError.ID.StockChartError || check === c_oAscError.ID.DataRangeError
-                    || check === c_oAscError.ID.MaxDataSeriesError)
-                {
-                    editor.wbModel.handlers.trigger("asc_onError", check, c_oAscError.Level.NoCritical);
-                    this.drawingObjects.sendGraphicObjectProps();
-                    return;
-                }
-            }
-
             var aAdditionalObjects = null;
             if(AscFormat.isRealNumber(props.Width) && AscFormat.isRealNumber(props.Height)){
                 aAdditionalObjects = this.getConnectorsForCheck2();
@@ -11770,8 +11775,8 @@ function CollectSettingsUniFill(oUniFill)
         }
         case oFillTypes.FILL_TYPE_PATT:{
             ret.push(oFill.ftype);
-            ret.push(CollectUniColor(oFill.fgClr));
-            ret.push(CollectUniColor(oFill.bgClr));
+            ret.push(CollectUniColor(oFill.fgClr || AscFormat.CreateUniColorRGB(0, 0, 0)));
+            ret.push(CollectUniColor(oFill.bgClr || AscFormat.CreateUniColorRGB(255, 255, 255)));
             break;
         }
         case oFillTypes.FILL_TYPE_GRP:{
@@ -13366,4 +13371,5 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
 	window['AscFormat'].getAbsoluteRectBoundsArr = getAbsoluteRectBoundsArr;
 	window['AscFormat'].fCheckObjectHyperlink = fCheckObjectHyperlink;
 	window['AscFormat'].getNumberingType = getNumberingType;
+	window['AscFormat'].CreateUnifillFromPreset = CreateUnifillFromPreset;
 })(window);

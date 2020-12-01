@@ -75,6 +75,7 @@ AscDFH.changesFactory[AscDFH.historyitem_Paragraph_PrChange]                  = 
 AscDFH.changesFactory[AscDFH.historyitem_Paragraph_PrReviewInfo]              = CChangesParagraphPrReviewInfo;
 AscDFH.changesFactory[AscDFH.historyitem_Paragraph_OutlineLvl]                = CChangesParagraphOutlineLvl;
 AscDFH.changesFactory[AscDFH.historyitem_Paragraph_DefaultTabSize]            = CChangesParagraphDefaultTabSize;
+AscDFH.changesFactory[AscDFH.historyitem_Paragraph_SuppressLineNumbers]       = CChangesParagraphSuppressLineNumbers;
 
 function private_ParagraphChangesOnLoadPr(oColor)
 {
@@ -254,7 +255,8 @@ AscDFH.changesRelationMap[AscDFH.historyitem_Paragraph_Pr]                      
 	AscDFH.historyitem_Paragraph_FramePr,
 	AscDFH.historyitem_Paragraph_PrChange,
 	AscDFH.historyitem_Paragraph_PrReviewInfo,
-	AscDFH.historyitem_Paragraph_OutlineLvl
+	AscDFH.historyitem_Paragraph_OutlineLvl,
+	AscDFH.historyitem_Paragraph_SuppressLineNumbers
 ];
 AscDFH.changesRelationMap[AscDFH.historyitem_Paragraph_PresentationPr_Bullet]     = [
 	AscDFH.historyitem_Paragraph_PresentationPr_Bullet,
@@ -283,6 +285,10 @@ AscDFH.changesRelationMap[AscDFH.historyitem_Paragraph_PrReviewInfo]            
 ];
 AscDFH.changesRelationMap[AscDFH.historyitem_Paragraph_OutlineLvl]                = [
 	AscDFH.historyitem_Paragraph_OutlineLvl
+];
+AscDFH.changesRelationMap[AscDFH.historyitem_Paragraph_SuppressLineNumbers]       = [
+	AscDFH.historyitem_Paragraph_SuppressLineNumbers,
+	AscDFH.historyitem_Paragraph_Pr
 ];
 
 // Общая функция Merge для изменений, которые зависят только от себя и AscDFH.historyitem_Paragraph_Pr
@@ -1912,4 +1918,36 @@ CChangesParagraphOutlineLvl.prototype.Load = private_ParagraphChangesOnLoadPr;
 CChangesParagraphOutlineLvl.prototype.IsNeedRecalculate = function()
 {
 	return false;
+};
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseBoolProperty}
+ */
+function CChangesParagraphSuppressLineNumbers(Class, Old, New, Color)
+{
+	AscDFH.CChangesBaseBoolProperty.call(this, Class, Old, New, Color);
+}
+CChangesParagraphSuppressLineNumbers.prototype = Object.create(AscDFH.CChangesBaseBoolProperty.prototype);
+CChangesParagraphSuppressLineNumbers.prototype.constructor = CChangesParagraphSuppressLineNumbers;
+CChangesParagraphSuppressLineNumbers.prototype.Type = AscDFH.historyitem_Paragraph_SuppressLineNumbers;
+CChangesParagraphSuppressLineNumbers.prototype.private_SetValue = function(Value)
+{
+	var oParagraph = this.Class;
+	oParagraph.Pr.SuppressLineNumbers = Value;
+
+	oParagraph.CompiledPr.NeedRecalc = true;
+	oParagraph.private_UpdateTrackRevisionOnChangeParaPr(false);
+	private_ParagraphChangesOnSetValue(this.Class);
+
+	// TODO: Запросить пересчет номеров строк
+};
+CChangesParagraphSuppressLineNumbers.prototype.Merge = private_ParagraphChangesOnMergePr;
+CChangesParagraphSuppressLineNumbers.prototype.Load = private_ParagraphChangesOnLoadPr;
+CChangesParagraphSuppressLineNumbers.prototype.IsNeedRecalculate = function()
+{
+	return false;
+};
+CChangesParagraphSuppressLineNumbers.prototype.IsNeedRecalculateLineNumbers = function()
+{
+	return true;
 };

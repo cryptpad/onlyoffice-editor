@@ -917,7 +917,7 @@ CTable.prototype.Get_Props = function()
 
 	Pr.Locked = this.Lock.Is_Locked();
 
-	if (true === this.Parent.Is_InTable())
+	if (true === this.Parent.IsInTable())
 		Pr.TableLayout = undefined;
 	else
 		Pr.TableLayout = (TablePr.TableLayout === tbllayout_AutoFit ? c_oAscTableLayout.AutoFit : c_oAscTableLayout.Fixed );
@@ -3034,10 +3034,10 @@ CTable.prototype.Reset_RecalculateCache = function()
 		}
 	}
 };
-CTable.prototype.RecalculateCurPos = function(bUpdateX, bUpdateY)
+CTable.prototype.RecalculateCurPos = function(bUpdateX, bUpdateY, isUpdateTarget)
 {
 	if (this.CurCell)
-		return this.CurCell.Content_RecalculateCurPos(bUpdateX, bUpdateY);
+		return this.CurCell.Content_RecalculateCurPos(bUpdateX, bUpdateY, isUpdateTarget);
 
 	return null;
 };
@@ -6302,6 +6302,7 @@ CTable.prototype.MoveCursorLeft = function(AddToSelect, Word)
 						if (vmerge_Restart !== oTempCell.GetVMerge())
 							continue;
 
+						this.RemoveSelection();
 						this.CurCell = oTempCell;
 						break;
 					}
@@ -6489,6 +6490,7 @@ CTable.prototype.MoveCursorRight = function(AddToSelect, Word, FromPaste)
 						if (vmerge_Restart !== oTempCell.GetVMerge())
 							continue;
 
+						this.RemoveSelection();
 						this.CurCell = oTempCell;
 						break;
 					}
@@ -7297,7 +7299,7 @@ CTable.prototype.GetSelectedText = function(bClearText, oPr)
 };
 CTable.prototype.GetSelectedElementsInfo = function(Info)
 {
-	Info.Set_Table();
+	Info.SetTable();
 
 	if (false === this.Selection.Use || (true === this.Selection.Use && table_Selection_Text === this.Selection.Type))
 	{
@@ -7313,7 +7315,7 @@ CTable.prototype.GetSelectedElementsInfo = function(Info)
 		if (!Cell)
 			return;
 
-		Info.Set_SingleCell(Cell);
+		Info.SetSingleCell(Cell);
 	}
 };
 CTable.prototype.GetSelectedContent = function(SelectedContent)

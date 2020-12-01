@@ -1526,8 +1526,8 @@
 						}
 						else if (data["type"] === "onExternalPluginMessage")
 						{
-                            if (!window.g_asc_plugins)
-                            	return;
+							if (!window.g_asc_plugins)
+								return;
 
 							if (data["subType"] == "internalCommand")
 							{
@@ -1537,7 +1537,7 @@
 									case "onbeforedrop":
 									case "ondrop":
 									{
-                                        window.g_asc_plugins.api.privateDropEvent(data.data);
+										window.g_asc_plugins.api.privateDropEvent(data.data);
 										return;
 									}
 									default:
@@ -1546,6 +1546,13 @@
 							}
 
 							window.g_asc_plugins.sendToAllPlugins(event.data);
+						}
+						else if (data["type"] === "onExternalPluginMessageCallback")
+						{
+							if (!window.g_asc_plugins)
+								return;
+
+							window.parent && window.parent.postMessage(event.data, "*");
 						}
                         else if (data["type"] === "emulateUploadInFrame")
                         {
@@ -2885,7 +2892,12 @@
 		{
 			if(dataRange)
 			{
-				result = parserHelp.parse3DRef(dataRange);
+				var sData = dataRange;
+				if(sData[0] === "=")
+				{
+					sData = sData.slice(1);
+				}
+				result = parserHelp.parse3DRef(sData);
 			}
 			if (result)
 			{
@@ -2906,6 +2918,8 @@
 				{
 					range = AscCommonExcel.g_oRangeCache.getAscRange(result.range);
 				}
+			} else if (Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType) {
+				range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
 			}
 			if (!range) {
 				range = AscCommon.rx_defName.test(dataRange);
@@ -2938,9 +2952,9 @@
 			if (Asc.c_oAscSelectionDialogType.Chart === dialogType)
 			{
 				// Проверка максимального дипазона
-				var maxSeries = 255;
+				var maxSeries = AscFormat.MAX_SERIES_COUNT;
 				var minStockVal = 4;
-				var maxValues = 4096;
+				var maxValues = AscFormat.MAX_POINTS_COUNT;
 
 				var intervalValues, intervalSeries;
 				if (isRows)
@@ -3005,8 +3019,12 @@
 			{
 				var location = Asc.CT_pivotTableDefinition.prototype.parseDataRef(dataRange);
 				if (location) {
+					sheetModel = location.ws;
+					if (!sheetModel) {
+						sheetModel = model.getActiveWs();
+					}
 					var newRange = new Asc.Range(location.bbox.c1, location.bbox.r1, location.bbox.c1 + AscCommonExcel.NEW_PIVOT_LAST_COL_OFFSET, location.bbox.r1 + AscCommonExcel.NEW_PIVOT_LAST_ROW_OFFSET);
-					return location.ws.checkPivotReportLocationForError([newRange]);
+					return sheetModel.checkPivotReportLocationForError([newRange]);
 				} else {
 					return Asc.c_oAscError.ID.DataRangeError
 				}
@@ -3703,6 +3721,35 @@
 				break;
 			}
 
+			case Asc.c_oAscNumberingFormat.RussianLower:
+			case Asc.c_oAscNumberingFormat.RussianUpper:
+			{
+				// Формат: а,..,я,аа,..,яя,ааа,...,яяя,...
+				var Num = nValue - 1;
+
+				var Count = (Num - Num % 29) / 29;
+				var Ost   = Num % 29;
+
+				// Буквы й, ъ, ь - не участвуют
+				if (Ost > 25)
+					Ost += 3;
+				else if (Ost > 24)
+					Ost += 2;
+				else if (Ost > 8)
+					Ost++;
+
+				var Letter;
+				if (Asc.c_oAscNumberingFormat.RussianLower === nFormat)
+					Letter = String.fromCharCode(Ost + 0x0430);
+				else
+					Letter = String.fromCharCode(Ost + 0x0410);
+
+				for (var nIndex = 0; nIndex < Count + 1; ++nIndex)
+					sResult += Letter;
+
+				break;
+			}
+
 			case Asc.c_oAscNumberingFormat.LowerRoman:
 			case Asc.c_oAscNumberingFormat.UpperRoman:
 			{
@@ -4026,6 +4073,24 @@
 		}
 
 		return sResult;
+	}
+
+	var c_oAscSpaces = [];
+	c_oAscSpaces[0x000A] = 1;
+	c_oAscSpaces[0x0020] = 1;
+	c_oAscSpaces[0x2002] = 1;
+	c_oAscSpaces[0x2003] = 1;
+	c_oAscSpaces[0x2005] = 1;
+	c_oAscSpaces[0x3000] = 1;
+
+	/**
+	 * Проверяем является ли заданный юников пробелом
+	 * @param nUnicode {number}
+	 * @returns {boolean}
+	 */
+	function IsSpace(nUnicode)
+	{
+		return !!(c_oAscSpaces[nUnicode]);
 	}
 
 	function private_IsAbbreviation(sWord) {
@@ -4659,6 +4724,74 @@
 				delete _api.ImageLoader.map_image_index[_guid];
 		};
 	}
+
+	function CShortcuts()
+	{
+		this.List = {};
+
+		this.CustomCounter = 0;
+		this.CustomActions = {};
+	}
+	CShortcuts.prototype.Add = function(nType, nCode, isCtrl, isShift, isAlt)
+	{
+		this.List[this.private_GetIndex(nCode, isCtrl, isShift, isAlt)] = nType;
+	};
+	CShortcuts.prototype.Get = function(nCode, isCtrl, isShift, isAlt)
+	{
+		var nType = this.List[this.private_GetIndex(nCode, isCtrl, isShift, isAlt)];
+		return (undefined !== nType ? nType : 0);
+	};
+	CShortcuts.prototype.private_GetIndex = function(nCode, isCtrl, isShift, isAlt)
+	{
+		return ((nCode << 8) | (isCtrl ? 4 : 0) | (isShift ? 2 : 0) | (isAlt ? 1 : 0));
+	}
+	CShortcuts.prototype.CheckType = function(nType)
+	{
+		for (var nIndex in this.List)
+		{
+			if (this.List[nIndex] === nType)
+				return {KeyCode : nIndex >>> 8, CtrlKey : !!(nIndex & 4), ShiftKey : !!(nIndex & 2), AltKey : !!(nIndex & 1)};
+		}
+
+		return null;
+	};
+	CShortcuts.prototype.Remove = function(nCode, isCtrl, isShift, isAlt)
+	{
+		delete this.List[this.private_GetIndex(nCode, isCtrl, isShift, isAlt)];
+	};
+	CShortcuts.prototype.RemoveByType = function(nType)
+	{
+		for (var nIndex in this.List)
+		{
+			if (this.List[nIndex] === nType)
+				delete this.List[nIndex];
+		}
+	};
+	CShortcuts.prototype.GetNewCustomType = function()
+	{
+		return (0x00FF0000 | (this.CustomCounter++));
+	};
+	CShortcuts.prototype.IsCustomType = function(nType)
+	{
+		return (nType >= 0x00FF0000);
+	};
+	CShortcuts.prototype.GetCustomAction = function(nType)
+	{
+		return this.CustomActions[nType];
+	};
+	CShortcuts.prototype.AddCustomActionSymbol = function(nCharCode, sFont)
+	{
+		var nType = this.GetNewCustomType();
+		this.CustomActions[nType] = new CCustomShortcutActionSymbol(nCharCode, sFont);
+		return nType;
+	};
+
+	function CCustomShortcutActionSymbol(nCharCode, sFont)
+	{
+		this.CharCode = nCharCode;
+		this.Font     = sFont;
+	}
+	CCustomShortcutActionSymbol.prototype.Type = AscCommon.c_oAscCustomShortcutType.Symbol;
 
     /////////////////////////////////////////////////////////
 	///////////////       CRYPT      ////////////////////////
@@ -5547,6 +5680,7 @@
 	window["AscCommon"].RomanToInt = RomanToInt;
 	window["AscCommon"].LatinNumberingToInt = LatinNumberingToInt;
 	window["AscCommon"].IntToNumberFormat = IntToNumberFormat;
+	window["AscCommon"].IsSpace = IsSpace;
 
 	window["AscCommon"].loadSdk = loadSdk;
     window["AscCommon"].loadScript = loadScript;
@@ -5603,6 +5737,21 @@
 	window["AscCommon"].private_IsAbbreviation = private_IsAbbreviation;
 
 	window["AscCommon"].rx_test_ws_name = rx_test_ws_name;
+
+	window["AscCommon"].CShortcuts = window["AscCommon"]["CShortcuts"] = CShortcuts;
+	prot = CShortcuts.prototype;
+	prot["Add"]                   = prot.Add;
+	prot["Get"]                   = prot.Get;
+	prot["CheckType"]             = prot.CheckType;
+	prot["Remove"]                = prot.Remove;
+	prot["RemoveByType"]          = prot.RemoveByType;
+	prot["GetNewCustomType"]      = prot.GetNewCustomType;
+	prot["IsCustomType"]          = prot.IsCustomType;
+	prot["GetCustomAction"]       = prot.GetCustomAction;
+	prot["AddCustomActionSymbol"] = prot.AddCustomActionSymbol;
+
+	window["AscCommon"].CCustomShortcutActionSymbol = window["AscCommon"]["CCustomShortcutActionSymbol"] = CCustomShortcutActionSymbol;
+
 })(window);
 
 window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)

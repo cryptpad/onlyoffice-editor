@@ -154,7 +154,8 @@ var c_oAscLockTypeElemSubType = {
   DeleteRows: 3,
   InsertRows: 4,
   ChangeProperties: 5,
-  DefinedNames: 6
+  DefinedNames: 6,
+  NamedSheetView: 7
 };
 
 var c_oAscRecalcIndexTypes = {
@@ -480,6 +481,11 @@ var c_oAscPopUpSelectorType = {
 
   var c_kMaxPrintPages = 1500;
 
+  var c_oAscFrozenPaneBorderType = {
+    shadow: 1,
+    line: 2
+  };
+
   //----------------------------------------------------------export----------------------------------------------------
   window['AscCommonExcel'] = window['AscCommonExcel'] || {};
   window['AscCommonExcel'].c_oAscDrawDepOptions = c_oAscDrawDepOptions;
@@ -765,6 +771,12 @@ var c_oAscPopUpSelectorType = {
   prot['worksheet'] = prot.worksheet;
   prot['table'] = prot.table;
   prot['pivot'] = prot.pivot;
+
+
+  window['Asc']['c_oAscFrozenPaneBorderType'] = window['Asc'].c_oAscFrozenPaneBorderType = c_oAscFrozenPaneBorderType;
+  prot = c_oAscFrozenPaneBorderType;
+  prot['shadow'] = prot.shadow;
+  prot['line'] = prot.line;
 
 
 })(window);

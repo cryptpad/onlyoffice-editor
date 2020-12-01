@@ -81,15 +81,16 @@
   };
 
   function WorksheetViewSettings() {
+    //TODO темные цвета необходимо скорректировать
     this.header = {
       style: [// Header colors
         { // kHeaderDefault
-          background: new CColor(241, 241, 241), border: new CColor(213, 213, 213), color: new CColor(54, 54, 54)
-        }, { // kHeaderActive
-          background: new CColor(193, 193, 193), border: new CColor(146, 146, 146), color: new CColor(54, 54, 54)
-        }, { // kHeaderHighlighted
-          background: new CColor(223, 223, 223), border: new CColor(175, 175, 175), color: new CColor(101, 106, 112)
-        }], cornerColor: new CColor(193, 193, 193)
+          background: new CColor(241, 241, 241), border: new CColor(213, 213, 213), color: new CColor(54, 54, 54),
+            backgroundDark: new CColor(68, 68, 68), colorDark: new CColor(255, 255, 255)}, { // kHeaderActive
+          background: new CColor(193, 193, 193), border: new CColor(146, 146, 146), color: new CColor(54, 54, 54),
+            backgroundDark: new CColor(0, 0, 0), colorDark: new CColor(255, 255, 255)}, { // kHeaderHighlighted
+          background: new CColor(223, 223, 223), border: new CColor(175, 175, 175), color: new CColor(101, 106, 112),
+            backgroundDark: new CColor(102, 102, 102), colorDark: new CColor(255, 255, 255)}], cornerColor: new CColor(193, 193, 193)
     };
     this.cells = {
       defaultState: {
@@ -2489,7 +2490,18 @@
       if (newSelectionDialogMode) {
           this.copyActiveSheet = this.wsActive;
 
-          var tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange);
+          var tmpSelectRange;
+          if(c_oAscSelectionDialogType.Chart === selectionDialogType) {
+              if(typeof selectRange === "string" && selectRange[0] === '=') {
+                  tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange.slice(1));
+              }
+              else {
+                  tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange);
+              }
+          }
+          else {
+              tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange);
+          }
           if (tmpSelectRange) {
               var ws = this.model.getWorksheetByName(tmpSelectRange.sheet);
               if (!ws || ws.getHidden()) {
@@ -2721,7 +2733,8 @@
 
   WorkbookView.prototype.getDefaultDefinedName = function() {
     //ToDo проверка defName.ref на знак "=" в начале ссылки. знака нет тогда это либо число либо строка, так делает Excel.
-    return new Asc.asc_CDefName("", this.getWorksheet().getSelectionRangeValue(true, true), null);
+    var val = this.getWorksheet().getDefaultDefinedNameText();
+    return new Asc.asc_CDefName(val, this.getWorksheet().getSelectionRangeValue(true, true), null);
 
   };
   WorkbookView.prototype.getDefaultTableStyle = function() {

@@ -1530,7 +1530,12 @@ function asc_menu_WriteChartPr(_type, _chartPr, _stream){
         && _chartPr.vertAxisProps.getAxisType() == Asc.c_oAscAxisType.val) {
         asc_menu_WriteAscValAxisSettings(17, _chartPr.vertAxisProps, _stream);
     }
-    var sRange = _chartPr.getRange();
+    var sRange = null;
+    sRange = _chartPr.getRange();
+    if(!sRange)
+    {
+        sRange = _chartPr.aRanges[0];
+    }
     if (sRange !== undefined && sRange !== null)
     {
         _stream["WriteByte"](18);
@@ -3827,7 +3832,7 @@ function OfflineEditor () {
     this.openFile = function(settings) {
         
         window["NativeSupportTimeouts"] = true;
-        
+
         //        try
         //        {
         //            throw "OpenFile";
@@ -3836,19 +3841,19 @@ function OfflineEditor () {
         //        {
         //
         //        }
-        
+
         AscFonts.FontPickerByCharacter.IsUseNoSquaresMode = true;
-        
+
         this.initSettings = settings;
-        
+
         this.beforeOpen();
-        
+
         deviceScale = window["native"]["GetDeviceScale"]();
         sdkCheck = settings["sdkCheck"];
-        
+
         window.g_file_path = "native_open_file";
         window.NATIVE_DOCUMENT_TYPE = "";
-  
+
         var translations = this.initSettings["translations"];
         if (undefined != translations && null != translations && translations.length > 0) {
             translations = JSON.parse(translations)
@@ -3857,7 +3862,7 @@ function OfflineEditor () {
         }
 
         window["_api"] = window["API"] = _api = new window["Asc"]["spreadsheet_api"](translations);
-        
+
         AscCommon.g_clipboardBase.Init(_api);
         
         var userInfo = new Asc.asc_CUserInfo();
@@ -3895,60 +3900,67 @@ function OfflineEditor () {
             window["native"]["onTokenJWT"](_api.CoAuthoringApi.get_jwt());
             
         } else {
+
+        	 var t = this;
+
+             var thenCallback = function() {
+
+            	t.asc_WriteAllWorksheets(true);
+            	t.asc_WriteCurrentCell();
             
-            _api.asc_nativeOpenFile(window["native"]["GetFileString"](), undefined, true, window["native"]["GetXlsxPath"]());
+            	_api.sendColorThemes(_api.wbModel.theme);
+            	_api.asc_ApplyColorScheme(false);
+            	_api._applyFirstLoadChanges();
+            	// Go to if sent options
+            	_api.goTo();
             
-            this.asc_WriteAllWorksheets(true);
+            	var ws = _api.wb.getWorksheet();
             
-            _api.sendColorThemes(_api.wbModel.theme);
-            _api.asc_ApplyColorScheme(false);
-            _api._applyFirstLoadChanges();
-            // Go to if sent options
-            _api.goTo();
+            	_api.wb.showWorksheet(undefined, true);
+            	ws._fixSelectionOfMergedCells();
             
-            var ws = _api.wb.getWorksheet();
+            	if (ws.topLeftFrozenCell) {
+                	t.row0 = ws.topLeftFrozenCell.getRow0();
+                	t.col0 = ws.topLeftFrozenCell.getCol0();
+            	}
             
-            _api.wb.showWorksheet(undefined, true);
-            ws._fixSelectionOfMergedCells();
-            
-            if (ws.topLeftFrozenCell) {
-                this.row0 = ws.topLeftFrozenCell.getRow0();
-                this.col0 = ws.topLeftFrozenCell.getCol0();
-            }
-            
-            var chartData = this.initSettings["chartData"];
-            if (chartData.length > 0) {
-                var json = JSON.parse(chartData);
-                if (json) {
+            	var chartData = t.initSettings["chartData"];
+
+            	if (chartData.length > 0) {
+                	var json = JSON.parse(chartData);
+                	if (json) {
                     
-                    var nativeToEditor = 1.0 / deviceScale;
+                    	var nativeToEditor = 1.0 / deviceScale;
                     
-                    var screenWidth = this.initSettings["screenWidth"] * nativeToEditor / 2.54 - ws.headersWidth;
-                    var screenHeight = this.initSettings["screenHeight"] * nativeToEditor / 2.54 - ws.headersHeight;
+                    	var screenWidth = t.initSettings["screenWidth"] * nativeToEditor / 2.54 - ws.headersWidth;
+                    	var screenHeight = t.initSettings["screenHeight"] * nativeToEditor / 2.54 - ws.headersHeight;
                     
-                    _api.asc_addChartDrawingObject(json);
+                    	_api.asc_addChartDrawingObject(json);
                     
-                    var objects = ws.objectRender.controller.drawingObjects.getDrawingObjects();
-                    if (objects.length > 0) {
+                    	var objects = ws.objectRender.controller.drawingObjects.getDrawingObjects();
+                    	if (objects.length > 0) {
                         
-                        var gr = objects[0].graphicObject;
+                        	var gr = objects[0].graphicObject;
                         
-                        var w = gr.spPr.xfrm.extX;
-                        var h = gr.spPr.xfrm.extY;
+                        	var w = gr.spPr.xfrm.extX;
+                        	var h = gr.spPr.xfrm.extY;
                         
-                        var offX = Math.max(0, (screenWidth - w) * 0.5);
-                        var offY = Math.max(screenHeight * 0.2, (screenHeight - w) * 0.5);
+                        	var offX = Math.max(0, (screenWidth - w) * 0.5);
+                        	var offY = Math.max(screenHeight * 0.2, (screenHeight - w) * 0.5);
                         
-                        gr.spPr.xfrm.setOffX(offX);
-                        gr.spPr.xfrm.setOffY(offY);
-                        gr.checkDrawingBaseCoords();
-                        gr.recalculate();
-                    }
+                        	gr.spPr.xfrm.setOffX(offX);
+                        	gr.spPr.xfrm.setOffY(offY);
+                        	gr.checkDrawingBaseCoords();
+                        	gr.recalculate();
+                    	}
                     
-                    //console.log(JSON.stringify(json));
-                }
-            }
-            
+                    	//console.log(JSON.stringify(json));
+                	}
+            	}
+            };
+
+            _api.asc_nativeOpenFile(window["native"]["GetFileString"](), undefined, true, window["native"]["GetXlsxPath"]()).then(thenCallback, thenCallback);
+           
             // TODO: Implement frozen places
             // TODO: Implement Text Art Styles
         }
@@ -4303,6 +4315,14 @@ function OfflineEditor () {
         }
         
         _stream["WriteByte"](255);
+    };
+
+    this.asc_WriteCurrentCell = function() {
+        var cellInfo = _api.asc_getCellInfo();
+        var stream = global_memory_stream_menu;
+        stream["ClearNoAttack"]();
+        asc_WriteCCellInfo(cellInfo, stream);
+        window["native"]["OnCallMenuEvent"](2402, stream); // ASC_SPREADSHEETS_EVENT_TYPE_SELECTION_CHANGED
     };
     
     // render
@@ -5335,6 +5355,21 @@ window["native"]["offline_cell_editor_process_input_commands"] = function(sendAr
     return [cellEditor.left, cellEditor.top, cellEditor.right, cellEditor.bottom,
             cellEditor.curLeft, cellEditor.curTop, cellEditor.curHeight,
             cellEditor.textRender.chars.length];
+}
+window["native"]["offline_cell_editor_get_cursor_position"] = function() {
+    var cellEditor = _api.wb.cellEditor;
+    var pos = 0;
+    pos = cellEditor.cursorPos;
+    return {'cursorPos': pos};
+}
+
+window["native"]["offline_cell_editor_get_selection_text"] = function() {
+    var cellEditor =  _api.wb.cellEditor;
+    var selectBegin = 0;
+    var selectEnd = 0;
+    selectBegin = cellEditor.selectionBegin;
+    selectEnd = cellEditor.selectionEnd;
+    return {'selectionBegin': selectBegin, 'selectionEnd': selectEnd};
 }
 
 window["native"]["offline_cell_editor_mouse_event"] = function(sendEvents) {
@@ -6815,7 +6850,7 @@ window["native"]["offline_apply_event"] = function(type,params) {
                 var json = JSON.parse(params[0]);
                 if (json && json["id"]) {
                     if (_api.asc_showComment) {
-                        _api.asc_showComment(json["id"], json["isNew"]);
+                        _api.asc_showComment(json["id"], json["isNew"] === true);
                     }
                 }
                 break;
@@ -7360,6 +7395,7 @@ window["Asc"]["spreadsheet_api"].prototype.openDocument = function(file) {
                window["native"]["onEndLoadingFile"](ws.headersWidth, ws.headersHeight);
                
                _s.asc_WriteAllWorksheets(true);
+               _s.asc_WriteCurrentCell();
                
                return;
                }
@@ -7402,6 +7438,7 @@ window["Asc"]["spreadsheet_api"].prototype.openDocument = function(file) {
                           //console.log("JS - onEndLoadingFile()");
                           
                           _s.asc_WriteAllWorksheets(true);
+                          _s.asc_WriteCurrentCell();
                           
                           setInterval(function() {
                                       

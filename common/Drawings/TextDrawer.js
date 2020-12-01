@@ -1012,6 +1012,7 @@ CTextDrawer.prototype =
                     var oTextPr = this.m_oTextPr.Copy();
                     oTextPr.Unifill = undefined;
                     oTextPr.TextFill = undefined;
+                    oTextPr.FontRef = undefined;
                     oTextPr.Color = new CDocumentColor(r, g, b, false);
                     this.SetTextPr(oTextPr, this.m_oTheme);
                     return;
@@ -2230,7 +2231,28 @@ CTextDrawer.prototype =
             }
             if(oTextPr.Color)
             {
-                return AscFormat.CreateUnfilFromRGB(oTextPr.Color.r, oTextPr.Color.g, oTextPr.Color.b);
+                var oColor = oTextPr.Color;
+                if(oColor.Auto && oTextPr.FontRef && oTextPr.FontRef.Color && this.m_oTheme)
+                {
+                    var oColorMap = AscFormat.DEFAULT_COLOR_MAP;
+                    var oApi = window && window.editor;
+                    if(oApi)
+                    {
+                        var oDoc = oApi.WordControl && oApi.WordControl.m_oLogicDocument;
+                        if(oDoc && oDoc.Get_ColorMap)
+                        {
+                            var _cm = oDoc.Get_ColorMap();
+                            if(_cm)
+                            {
+                                oColorMap = _cm;
+                            }
+                        }
+                    }
+                    oTextPr.FontRef.Color.check(this.m_oTheme, oColorMap);
+                    var RGBA = oTextPr.FontRef.Color.RGBA;
+                    oColor = new CDocumentColor( RGBA.R, RGBA.G, RGBA.B, RGBA.A );
+                }
+                return AscFormat.CreateUnfilFromRGB(oColor.r, oColor.g, oColor.b);
             }
             return null;
         }

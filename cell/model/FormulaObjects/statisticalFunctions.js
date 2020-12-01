@@ -4919,7 +4919,7 @@ function (window, undefined) {
 
 		var arg0 = arg[0], arg1 = arg[1], arr0 = [], arr1 = [];
 
-		if (arg0 instanceof cArea) {
+		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
 			arr0 = arg0.getValue();
 		} else if (arg0 instanceof cArray) {
 			arg0.foreach(function (elem) {
@@ -4929,7 +4929,7 @@ function (window, undefined) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
-		if (arg1 instanceof cArea) {
+		if (arg1 instanceof cArea || arg1 instanceof cArea3D) {
 			arr1 = arg1.getValue();
 		} else if (arg1 instanceof cArray) {
 			arg1.foreach(function (elem) {
@@ -5129,16 +5129,16 @@ function (window, undefined) {
 		matchingInfo = AscCommonExcel.matchingValue(arg1);
 		if (cElementType.cellsRange === arg0.type) {
 			arg0.foreach2(function (_val) {
-				_count += checkEmptyValue(matching(_val, matchingInfo), _val, matchingInfo);
+				_count += checkEmptyValue(matching(_val, matchingInfo, true), _val, matchingInfo);
 			})
 		} else if (cElementType.cellsRange3D === arg0.type) {
 			val = arg0.getValue();
 			for (var i = 0; i < val.length; i++) {
-				_count += checkEmptyValue(matching(val[i], matchingInfo), val[i], matchingInfo);
+				_count += checkEmptyValue(matching(val[i], matchingInfo, true), val[i], matchingInfo);
 			}
 		} else {
 			val = arg0.getValue();
-			_count += checkEmptyValue(matching(val, matchingInfo), val, matchingInfo);
+			_count += checkEmptyValue(matching(val, matchingInfo, true), val, matchingInfo);
 		}
 
 		return new cNumber(_count);
@@ -7262,7 +7262,7 @@ function (window, undefined) {
 
 		var arg0 = arg[0], arg1 = arg[1], arr0 = [], arr1 = [];
 
-		if (arg0 instanceof cArea) {
+		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
 			arr0 = arg0.getValue();
 		} else if (arg0 instanceof cArray) {
 			arg0.foreach(function (elem) {
@@ -7272,7 +7272,7 @@ function (window, undefined) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
-		if (arg1 instanceof cArea) {
+		if (arg1 instanceof cArea || arg1 instanceof cArea3D) {
 			arr1 = arg1.getValue();
 		} else if (arg1 instanceof cArray) {
 			arg1.foreach(function (elem) {
@@ -10023,7 +10023,7 @@ function (window, undefined) {
 
 		var arg0 = arg[0], arg1 = arg[1], arr0 = [], arr1 = [];
 
-		if (arg0 instanceof cArea) {
+		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
 			arr0 = arg0.getValue();
 		} else if (arg0 instanceof cArray) {
 			arg0.foreach(function (elem) {
@@ -10033,7 +10033,7 @@ function (window, undefined) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
-		if (arg1 instanceof cArea) {
+		if (arg1 instanceof cArea || arg1 instanceof cArea3D) {
 			arr1 = arg1.getValue();
 		} else if (arg1 instanceof cArray) {
 			arg1.foreach(function (elem) {

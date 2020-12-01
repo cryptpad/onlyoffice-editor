@@ -334,9 +334,9 @@ CBlockLevelSdt.prototype.GetSelectionBounds = function()
 {
 	return this.Content.GetSelectionBounds();
 };
-CBlockLevelSdt.prototype.RecalculateCurPos = function(bUpdateX, bUpdateY)
+CBlockLevelSdt.prototype.RecalculateCurPos = function(bUpdateX, bUpdateY, isUpdateTarget)
 {
-	return this.Content.RecalculateCurPos(bUpdateX, bUpdateY);
+	return this.Content.RecalculateCurPos(bUpdateX, bUpdateY, isUpdateTarget);
 };
 CBlockLevelSdt.prototype.Can_CopyCut = function()
 {
@@ -1134,9 +1134,9 @@ CBlockLevelSdt.prototype.Check_AutoFit = function()
 {
 	return this.Parent.Check_AutoFit();
 };
-CBlockLevelSdt.prototype.Is_InTable = function(bReturnTopTable)
+CBlockLevelSdt.prototype.IsInTable = function(bReturnTopTable)
 {
-	return this.Parent.Is_InTable(bReturnTopTable);
+	return this.Parent.IsInTable(bReturnTopTable);
 };
 CBlockLevelSdt.prototype.Get_PageContentStartPos = function(CurPage)
 {
@@ -2281,7 +2281,10 @@ CBlockLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType, bChec
 		return this.Lock.Check(this.GetId());
 
 	if (AscCommon.changestype_ContentControl_Remove === CheckType)
+	{
+		isCheckContentControlLock = false;
 		this.Lock.Check(this.GetId());
+	}
 
 	if (isCheckContentControlLock
 		&& (AscCommon.changestype_Paragraph_Content === CheckType
@@ -2413,6 +2416,26 @@ CBlockLevelSdt.prototype.GetFramePr = function()
 CBlockLevelSdt.prototype.SetCalculatedFrame = function(oFrame)
 {
 	this.Content.SetCalculatedFrame(oFrame);
+};
+CBlockLevelSdt.prototype.GetPrevParagraphForLineNumbers = function(isPrev, isNewSection)
+{
+	var oPrevPara = null;
+
+	if (!isPrev)
+		oPrevPara = this.Content.GetPrevParagraphForLineNumbers(-1, isNewSection);
+
+	if (!oPrevPara)
+	{
+		var oParent = this.GetParent();
+		if (oParent && oParent.GetPrevParagraphForLineNumbers)
+			return oParent.GetPrevParagraphForLineNumbers(this.GetIndex(), isNewSection);
+	}
+
+	return oPrevPara;
+};
+CBlockLevelSdt.prototype.UpdateLineNumbersInfo = function()
+{
+	this.Content.UpdateLineNumbersInfo();
 };
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

@@ -2111,17 +2111,17 @@ CGraphicObjects.prototype =
     {
 
         if(this.selectedObjects.length === 0)
-            Info.Set_Drawing(-1);
+            Info.SetDrawing(-1);
 
         var content = this.getTargetDocContent();
         if(content)
         {
-            Info.Set_Drawing(selected_DrawingObjectText);
+            Info.SetDrawing(selected_DrawingObjectText);
             content.GetSelectedElementsInfo(Info);
         }
         else
         {
-            Info.Set_Drawing(selected_DrawingObject);
+            Info.SetDrawing(selected_DrawingObject);
         }
         return Info;
     },

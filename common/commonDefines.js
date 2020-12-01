@@ -166,8 +166,12 @@
 			PasteSlicerError: 67,
 			MoveSlicerError: 68,
 
-			DataRangeError  : -72,
-			CannotMoveRange : -71,
+			DataRangeError   : -75,
+			CannotMoveRange  : -74,
+			ErrorInFormula   : -73,
+			InvalidReference : -72,
+			NoSingleRowCol   : -71,
+			NoValues         : -70,
 
 			MaxDataSeriesError : -80,
 			CannotFillRange    : -81,
@@ -236,7 +240,9 @@
 			// Data Validate
 			RemoveDuplicates : -850,
 
-			LargeRangeWarning: -900
+			LargeRangeWarning: -900,
+
+			LockedEditView: -950
 		}
 	};
 
@@ -388,6 +394,47 @@
 
 	var c_oAscShdClear = 0;
 	var c_oAscShdNil   = 1;
+
+	var c_oAscShd = {
+		Clear                 : 0,
+		Nil                   : 1,
+		DiagCross             : 2,
+		DiagStripe            : 3,
+		HorzCross             : 4,
+		HorzStripe            : 5,
+		Pct10                 : 6,
+		Pct12                 : 7,
+		Pct15                 : 8,
+		Pct20                 : 9,
+		Pct25                 : 10,
+		Pct30                 : 11,
+		Pct35                 : 12,
+		Pct37                 : 13,
+		Pct40                 : 14,
+		Pct45                 : 15,
+		Pct5                  : 16,
+		Pct50                 : 17,
+		Pct55                 : 18,
+		Pct60                 : 19,
+		Pct62                 : 20,
+		Pct65                 : 21,
+		Pct70                 : 22,
+		Pct75                 : 23,
+		Pct80                 : 24,
+		Pct85                 : 25,
+		Pct87                 : 26,
+		Pct90                 : 27,
+		Pct95                 : 28,
+		ReverseDiagStripe     : 29,
+		Solid                 : 30,
+		ThinDiagCross         : 31,
+		ThinDiagStripe        : 32,
+		ThinHorzCross         : 33,
+		ThinHorzStripe        : 34,
+		ThinReverseDiagStripe : 35,
+		ThinVertStripe        : 36,
+		VertStripe            : 37
+	};
 
 	var vertalign_Baseline    = 0;
 	var vertalign_SuperScript = 1;
@@ -1463,6 +1510,8 @@
 		UpperLetter           : 0x2006,
 		DecimalZero           : 0x2007,
 		DecimalEnclosedCircle : 0x2008,
+		RussianLower          : 0x2009,
+		RussianUpper          : 0x200a,
 
 		ChineseCounting         : 0x2101,
 		ChineseCountingThousand : 0x2102,
@@ -2034,6 +2083,22 @@
 
 	var document_compatibility_mode_Current = document_compatibility_mode_Word12;
 
+	var c_oAscCustomShortcutType = {
+		Symbol : 1
+	};
+
+	var c_oAscLineNumberRestartType = {
+		Continuous : 1,
+		NewPage    : 2,
+		NewSection : 3
+	};
+
+	var c_oAscSectionApplyType = {
+		Current : 0,
+		ToEnd   : 1,
+		All     : 2
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -2193,6 +2258,7 @@
 	prot['CustomSortNotOriginalSelectError'] = prot.CustomSortNotOriginalSelectError;
 	prot['RemoveDuplicates']                 = prot.RemoveDuplicates;
 	prot['LargeRangeWarning']                = prot.LargeRangeWarning;
+	prot['LockedEditView']                   = prot.LockedEditView;
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
 	prot                                     = c_oAscAsyncAction;
 	prot['Open']                             = prot.Open;
@@ -2264,6 +2330,46 @@
 	window['Asc']['linerule_Exact'] = window['Asc'].linerule_Exact = linerule_Exact;
 	window['Asc']['c_oAscShdClear'] = window['Asc'].c_oAscShdClear = c_oAscShdClear;
 	window['Asc']['c_oAscShdNil'] = window['Asc'].c_oAscShdNil = c_oAscShdNil;
+	window['Asc']['c_oAscShd']    = window['Asc'].c_oAscShd = c_oAscShd;
+	prot                          = c_oAscShd;
+	prot['Clear'] = prot.Clear;
+	prot['Nil'] = prot.Nil;
+	prot['DiagCross'] = prot.DiagCross;
+	prot['DiagStripe'] = prot.DiagStripe;
+	prot['HorzCross'] = prot.HorzCross;
+	prot['HorzStripe'] = prot.HorzStripe;
+	prot['Pct10'] = prot.Pct10;
+	prot['Pct12'] = prot.Pct12;
+	prot['Pct15'] = prot.Pct15;
+	prot['Pct20'] = prot.Pct20;
+	prot['Pct25'] = prot.Pct25;
+	prot['Pct30'] = prot.Pct30;
+	prot['Pct35'] = prot.Pct35;
+	prot['Pct37'] = prot.Pct37;
+	prot['Pct40'] = prot.Pct40;
+	prot['Pct45'] = prot.Pct45;
+	prot['Pct5'] = prot.Pct5;
+	prot['Pct50'] = prot.Pct50;
+	prot['Pct55'] = prot.Pct55;
+	prot['Pct60'] = prot.Pct60;
+	prot['Pct62'] = prot.Pct62;
+	prot['Pct65'] = prot.Pct65;
+	prot['Pct70'] = prot.Pct70;
+	prot['Pct75'] = prot.Pct75;
+	prot['Pct80'] = prot.Pct80;
+	prot['Pct85'] = prot.Pct85;
+	prot['Pct87'] = prot.Pct87;
+	prot['Pct90'] = prot.Pct90;
+	prot['Pct95'] = prot.Pct95;
+	prot['ReverseDiagStripe'] = prot.ReverseDiagStripe;
+	prot['Solid'] = prot.Solid;
+	prot['ThinDiagCross'] = prot.ThinDiagCross;
+	prot['ThinDiagStripe'] = prot.ThinDiagStripe;
+	prot['ThinHorzCross'] = prot.ThinHorzCross;
+	prot['ThinHorzStripe'] = prot.ThinHorzStripe;
+	prot['ThinReverseDiagStripe'] = prot.ThinReverseDiagStripe;
+	prot['ThinVertStripe'] = prot.ThinVertStripe;
+	prot['VertStripe'] = prot.VertStripe;
 	window['Asc']['c_oAscDropCap'] = window['Asc'].c_oAscDropCap = c_oAscDropCap;
 	prot                                          = c_oAscDropCap;
 	prot['None']                                  = prot.None;
@@ -2859,18 +2965,20 @@
 
 	window['Asc']['c_oAscNumberingFormat'] = window['Asc'].c_oAscNumberingFormat = c_oAscNumberingFormat;
 	prot = c_oAscNumberingFormat;
-	prot['None']        = c_oAscNumberingFormat.None;
-	prot['Bullet']      = c_oAscNumberingFormat.Bullet;
-	prot['Decimal']     = c_oAscNumberingFormat.Decimal;
-	prot['LowerRoman']  = c_oAscNumberingFormat.LowerRoman;
-	prot['UpperRoman']  = c_oAscNumberingFormat.UpperRoman;
-	prot['LowerLetter'] = c_oAscNumberingFormat.LowerLetter;
-	prot['UpperLetter'] = c_oAscNumberingFormat.UpperLetter;
-	prot['DecimalZero'] = c_oAscNumberingFormat.DecimalZero;
-	prot['DecimalEnclosedCircle'] = c_oAscNumberingFormat.DecimalEnclosedCircle;
-	prot['ChineseCounting'] = c_oAscNumberingFormat.ChineseCounting;
-	prot['ChineseCountingThousand'] = c_oAscNumberingFormat.ChineseCountingThousand;
-	prot['ChineseLegalSimplified'] = c_oAscNumberingFormat.ChineseLegalSimplified;
+	prot['None']                    = prot.None;
+	prot['Bullet']                  = prot.Bullet;
+	prot['Decimal']                 = prot.Decimal;
+	prot['LowerRoman']              = prot.LowerRoman;
+	prot['UpperRoman']              = prot.UpperRoman;
+	prot['LowerLetter']             = prot.LowerLetter;
+	prot['UpperLetter']             = prot.UpperLetter;
+	prot['DecimalZero']             = prot.DecimalZero;
+	prot['DecimalEnclosedCircle']   = prot.DecimalEnclosedCircle;
+	prot['RussianLower']            = prot.RussianLower;
+	prot['RussianUpper']            = prot.RussianUpper;
+	prot['ChineseCounting']         = prot.ChineseCounting;
+	prot['ChineseCountingThousand'] = prot.ChineseCountingThousand;
+	prot['ChineseLegalSimplified']  = prot.ChineseLegalSimplified;
 
 	window['Asc']['c_oAscNumberingSuff'] = window['Asc'].c_oAscNumberingSuff = c_oAscNumberingSuff;
 	prot = c_oAscNumberingSuff;
@@ -3000,5 +3108,18 @@
 	window["AscCommon"].document_compatibility_mode_Word14  = document_compatibility_mode_Word14;
 	window["AscCommon"].document_compatibility_mode_Word15  = document_compatibility_mode_Word15;
 	window["AscCommon"].document_compatibility_mode_Current = document_compatibility_mode_Current;
+
+	prot = window['AscCommon']['c_oAscCustomShortcutType'] = window['AscCommon'].c_oAscCustomShortcutType = c_oAscCustomShortcutType;
+	prot['Symbol'] = c_oAscCustomShortcutType.Symbol;
+
+	prot = window['Asc']['c_oAscLineNumberRestartType'] = window['Asc'].c_oAscLineNumberRestartType = c_oAscLineNumberRestartType;
+	prot['Continuous'] = c_oAscLineNumberRestartType.Continuous;
+	prot['NewPage']    = c_oAscLineNumberRestartType.NewPage;
+	prot['NewSection'] = c_oAscLineNumberRestartType.NewSection;
+
+	prot = window['Asc']['c_oAscSectionApplyType'] = window['Asc'].c_oAscSectionApplyType = c_oAscSectionApplyType;
+	prot['Current'] = c_oAscSectionApplyType.Current;
+	prot['ToEnd']   = c_oAscSectionApplyType.ToEnd;
+	prot['All']     = c_oAscSectionApplyType.All;
 
 })(window);

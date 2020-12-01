@@ -156,7 +156,7 @@ CDocumentContentBase.prototype.GetAllDrawingObjects = function(arrDrawings)
  */
 CDocumentContentBase.prototype.Get_AllImageUrls = function(arrUrls)
 {
-	if (undefined === arrDrawings || null === arrDrawings)
+	if (undefined === arrUrls || null === arrUrls)
 		arrUrls = [];
 
 	var arrDrawings = this.GetAllDrawingObjects();
@@ -290,15 +290,10 @@ CDocumentContentBase.prototype.GetFootnotesList = function(oFirstFootnote, oLast
 	var oEngine = new CDocumentFootnotesRangeEngine();
 	oEngine.Init(oFirstFootnote, oLastFootnote, !isEndnotes, isEndnotes);
 
-	var arrFootnotes = [];
-
 	var arrParagraphs = this.GetAllParagraphs({OnlyMainDocument : true, All : true});
 	for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
 	{
-		var oParagraph = arrParagraphs[nIndex];
-
-		if (true === oParagraph.GetFootnotesList(oEngine))
-			return arrFootnotes;
+		arrParagraphs[nIndex].GetFootnotesList(oEngine);
 	}
 
 	return oEngine.GetRange();
@@ -2140,4 +2135,49 @@ CDocumentContentBase.prototype.private_GetContentIndexByFlowObject = function(oF
 CDocumentContentBase.prototype.GetDocumentContentForRecalcInfo = function()
 {
 	return this;
+};
+CDocumentContentBase.prototype.GetPrevParagraphForLineNumbers = function(nIndex, isNewSection)
+{
+	var _nIndex = nIndex;
+	if (-1 === _nIndex || undefined === _nIndex)
+		_nIndex = this.Content.length;
+
+	while (_nIndex >= 0)
+	{
+		if (0 === _nIndex)
+		{
+			var oParent = this.GetParent();
+			if (oParent && oParent.GetPrevParagraphForLineNumbers)
+				return oParent.GetPrevParagraphForLineNumbers(true, isNewSection);
+
+			return null;
+		}
+
+		_nIndex--;
+
+		if (this.Content[_nIndex].IsParagraph())
+		{
+			var oSectPr = this.Content[_nIndex].Get_SectionPr();
+			if (oSectPr && (isNewSection || !oSectPr.HaveLineNumbers()))
+				return null;
+
+			if (!this.Content[_nIndex].IsCountLineNumbers())
+				continue;
+
+			return this.Content[_nIndex];
+		}
+		else if (this.Content[_nIndex].IsBlockLevelSdt())
+		{
+			return this.Content[_nIndex].GetPrevParagraphForLineNumbers(false, isNewSection);
+		}
+	}
+
+	return null;
+};
+CDocumentContentBase.prototype.UpdateLineNumbersInfo = function()
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		this.Content[nIndex].UpdateLineNumbersInfo();
+	}
 };

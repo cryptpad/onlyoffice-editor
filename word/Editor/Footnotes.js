@@ -148,8 +148,8 @@ CFootnotesController.prototype.CreateFootnote = function()
 CFootnotesController.prototype.AddFootnote = function(oFootnote)
 {
 	this.Footnote[oFootnote.GetId()] = oFootnote;
-	var oHistory                     = this.LogicDocument.GetHistory();
-	oHistory.Add(new CChangesFootnotesAddFootnote(this, oFootnote.GetId()));
+	oFootnote.SetParent(this);
+	this.LogicDocument.GetHistory().Add(new CChangesFootnotesAddFootnote(this, oFootnote.GetId()));
 };
 CFootnotesController.prototype.RemoveFootnote = function(oFootnote)
 {
@@ -911,6 +911,20 @@ CFootnotesController.prototype.GetAllTables = function(oProps, arrTables)
 
 	return arrTables;
 };
+CFootnotesController.prototype.GetFirstParagraphs = function()
+{
+	var aParagraphs = [];
+	for (var sId in this.Footnote)
+	{
+		var oFootnote = this.Footnote[sId];
+		var oParagraph = oFootnote.GetFirstParagraph();
+		if(oParagraph && oParagraph.Is_UseInDocument())
+		{
+			aParagraphs.push(oParagraph);
+		}
+	}
+	return aParagraphs;
+};
 CFootnotesController.prototype.StartSelection = function(X, Y, PageAbs, MouseEvent)
 {
 	if (true === this.Selection.Use)
@@ -1095,7 +1109,7 @@ CFootnotesController.prototype.GotoPrevFootnote = function()
 		this.private_SetCurrentFootnoteNoSelection(oPrevFootnote);
 	}
 };
-CFootnotesController.prototype.GetNumberingInfo = function(oPara, oNumPr, oFootnote)
+CFootnotesController.prototype.GetNumberingInfo = function(oPara, oNumPr, oFootnote, isUseReview)
 {
 	var arrFootnotes     = this.LogicDocument.GetFootnotesList(null, oFootnote);
 	var oNumberingEngine = new CDocumentNumberingInfoEngine(oPara, oNumPr, this.Get_Numbering());
@@ -1103,6 +1117,10 @@ CFootnotesController.prototype.GetNumberingInfo = function(oPara, oNumPr, oFootn
 	{
 		arrFootnotes[nIndex].GetNumberingInfo(oNumberingEngine, oPara, oNumPr);
 	}
+
+	if (true === isUseReview)
+		return [oNumberingEngine.GetNumInfo(), oNumberingEngine.GetNumInfo(false)];
+
 	return oNumberingEngine.GetNumInfo();
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2708,7 +2726,7 @@ CFootnotesController.prototype.GetCurrentParagraph = function(bIgnoreSelection, 
 CFootnotesController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
 	if (true !== this.private_IsOnFootnoteSelected() || null === this.CurFootnote)
-		oInfo.Set_MixedSelection();
+		oInfo.SetMixedSelection();
 	else
 		this.CurFootnote.GetSelectedElementsInfo(oInfo);
 };
@@ -3325,6 +3343,14 @@ CFootnotesController.prototype.GetAllDrawingObjects = function(arrDrawings)
 	}
 
 	return arrDrawings;
+};
+CFootnotesController.prototype.UpdateBookmarks = function(oBookmarkManager)
+{
+	for (var sId in  this.Footnote)
+	{
+		var oFootnote = this.Footnote[sId];
+		oFootnote.UpdateBookmarks(oBookmarkManager);
+	}
 };
 CFootnotesController.prototype.IsTableCellSelection = function()
 {

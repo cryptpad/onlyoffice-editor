@@ -425,6 +425,13 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculat
 		case fieldtype_DATE:
 			this.private_UpdateTIME();
 			break;
+		case fieldtype_REF:
+			this.private_UpdateREF();
+			break;
+		case fieldtype_NOTEREF:
+			this.private_UpdateNOTEREF();
+			break;
+
 
 	}
 
@@ -474,6 +481,13 @@ CComplexField.prototype.CalculateValue = function()
 		case fieldtype_DATE:
 			sResult = this.private_CalculateTIME();
 			break;
+		case fieldtype_REF:
+			sResult = this.private_CalculateREF();
+			break;
+		case fieldtype_NOTEREF:
+			sResult = this.private_CalculateNOTEREF();
+			break;
+
 	}
 
 	return sResult;
@@ -495,38 +509,69 @@ CComplexField.prototype.private_CalculateSTYLEREF = function()
 {
 	return this.Instruction.GetText();
 };
-CComplexField.prototype.private_UpdateFORMULA = function()
+CComplexField.prototype.private_InsertMessage = function(sMessage, oTextPr)
 {
-	this.Instruction.Calculate(this.LogicDocument);
-	if(this.Instruction.ErrStr !== null)
+	var oSelectedContent = new CSelectedContent();
+	var oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
+	var oRun  = new ParaRun(oPara, false);
+	if(oTextPr)
 	{
-		var oSelectedContent = new CSelectedContent();
-		var oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
-		var oRun  = new ParaRun(oPara, false);
-		oRun.Set_Bold(true);
-		oRun.AddText(this.Instruction.ErrStr);
-		oPara.AddToContent(0, oRun);
-		oSelectedContent.Add(new CSelectedElement(oPara, false));
+		oRun.Apply_Pr(oTextPr);
+	}
+	oRun.AddText(sMessage);
+	oPara.AddToContent(0, oRun);
+	oSelectedContent.Add(new CSelectedElement(oPara, false));
+	this.private_InsertContent(oSelectedContent);
+};
+CComplexField.prototype.private_InsertContent = function(oSelectedContent)
+{
+	var oRun       = this.BeginChar.GetRun();
+	var oParagraph = oRun.GetParagraph();
+	if (oParagraph)
+	{
+		this.SelectFieldValue();
+		var oNearPos = oParagraph.GetCurrentAnchorPosition();
 		this.LogicDocument.TurnOff_Recalculate();
 		this.LogicDocument.TurnOff_InterfaceEvents();
 		this.LogicDocument.Remove(1, false, false, false);
 		this.LogicDocument.TurnOn_Recalculate(false);
 		this.LogicDocument.TurnOn_InterfaceEvents(false);
-		oRun       = this.BeginChar.GetRun();
-		var oParagraph = oRun.GetParagraph();
-		var oNearPos   = {
-			Paragraph  : oParagraph,
-			ContentPos : oParagraph.Get_ParaContentPos(false, false)
-		};
-		oParagraph.Check_NearestPos(oNearPos);
-		oSelectedContent.DoNotAddEmptyPara = true;
-		oParagraph.Parent.InsertContent(oSelectedContent, oNearPos);
+		if(oNearPos)
+		{
+			if(this.LogicDocument.Can_InsertContent(oSelectedContent, oNearPos))
+			{
+				var aElements = oSelectedContent.Elements;
+				var bOneEmptyPara = false;
+				if(aElements.length === 1 &&
+					aElements[0].Element.GetType() === AscCommonWord.type_Paragraph &&
+					aElements[0].Element.Is_Empty())
+				{
+					bOneEmptyPara = true;
+				}
+				if(!bOneEmptyPara)
+				{
+					oParagraph.Check_NearestPos(oNearPos);
+					oParagraph.Parent.InsertContent(oSelectedContent, oNearPos);
+					this.LogicDocument.MoveCursorRight(false, false, false);
+				}
+			}
+		}
+	}
+};
+CComplexField.prototype.private_UpdateFORMULA = function()
+{
+	this.Instruction.Calculate(this.LogicDocument);
+	if(this.Instruction.ErrStr !== null)
+	{
+		var oTextPr = new CTextPr();
+		oTextPr.Set_FromObject({Bold: true});
+		this.private_InsertMessage(this.Instruction.ErrStr, oTextPr);
 	}
 	else
 	{
 		if(this.Instruction.ResultStr !== null)
 		{
-			this.LogicDocument.AddText(this.Instruction.ResultStr);
+			this.private_InsertMessage(this.Instruction.ResultStr, null);
 		}
 	}
 };
@@ -801,6 +846,14 @@ CComplexField.prototype.private_UpdateTOC = function()
 };
 CComplexField.prototype.private_UpdatePAGEREF = function()
 {
+	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
+	var oBookmark = oBookmarksManager.GetBookmarkByName(this.Instruction.GetBookmarkName());
+	if(!oBookmark)
+	{
+		var sValue = AscCommon.translateManager.getValue("Error! Bookmark not defined.");
+		this.private_InsertError(sValue);
+		return;
+	}
 	this.LogicDocument.AddText(this.private_CalculatePAGEREF());
 };
 CComplexField.prototype.private_CalculatePAGEREF = function()
@@ -877,6 +930,302 @@ CComplexField.prototype.private_CalculateTIME = function()
 	}
 
 	return sDate;
+};
+CComplexField.prototype.private_InsertError = function(sText)
+{
+	var oTextPr = new CTextPr();
+	oTextPr.Set_FromObject({Bold: true});
+	this.private_InsertMessage(sText, oTextPr);
+};
+CComplexField.prototype.private_GetREFPosValue = function()
+{
+	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
+	var sBookmarkName = this.Instruction.GetBookmarkName();
+	var oBookmark = oBookmarksManager.GetBookmarkByName(sBookmarkName);
+	if(!oBookmark)
+	{
+		return "";
+	}
+	var oStartBookmark = oBookmark[0];
+	var oSrcParagraph = oStartBookmark.Paragraph;
+	var oRun       = this.BeginChar.GetRun();
+	var oParagraph = oRun.GetParagraph();
+	if(!oSrcParagraph || !oParagraph)
+	{
+		return "";
+	}
+	var oParent = oParagraph.GetParent();
+	var oSrcParent = oSrcParagraph.GetParent();
+	if(!oParent || !oSrcParent)
+	{
+		return "";
+	}
+	var oTopDoc = oParent.Is_TopDocument(true);
+	if(oTopDoc !== oSrcParent.Is_TopDocument(true))
+	{
+		return "";
+	}
+	var sPosition = AscCommon.translateManager.getValue("above");
+	oRun.Make_ThisElementCurrent(false);
+	var aFieldPos = oTopDoc.GetContentPosition();
+	this.LogicDocument.TurnOff_InterfaceEvents();
+	oBookmarksManager.SelectBookmark(sBookmarkName);
+	this.LogicDocument.TurnOn_InterfaceEvents(false);
+	var aBookmarkPos = oTopDoc.GetContentPosition(true, false);
+	var nIdx, nEnd, oBookmarkPos, oFieldPos;
+	for(nIdx = 0, nEnd = Math.min(aFieldPos.length, aBookmarkPos.length); nIdx < nEnd; ++nIdx)
+	{
+		oBookmarkPos = aBookmarkPos[nIdx];
+		oFieldPos = aFieldPos[nIdx];
+		if(oBookmarkPos && oFieldPos
+		&& oBookmarkPos.Position !== oFieldPos.Position)
+		{
+			if(oBookmarkPos.Position < oFieldPos.Position)
+			{
+				sPosition = AscCommon.translateManager.getValue("above");
+			}
+			else
+			{
+				sPosition = AscCommon.translateManager.getValue("below");
+			}
+			break;
+		}
+	}
+	return sPosition;
+};
+CComplexField.prototype.private_UpdateREF = function()
+{
+	this.private_InsertContent(this.private_GetREFContent());
+
+};
+CComplexField.prototype.private_CalculateREF = function()
+{
+	var oSelectedContent = this.private_GetREFContent();
+	return oSelectedContent.GetText(null);
+};
+CComplexField.prototype.private_GetMessageContent = function(sMessage, oTextPr)
+{
+	var oSelectedContent = new CSelectedContent();
+	var oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
+	var oRun  = new ParaRun(oPara, false);
+	if(oTextPr)
+	{
+		oRun.Apply_Pr(oTextPr);
+	}
+	oRun.AddText(sMessage);
+	oPara.AddToContent(0, oRun);
+	oSelectedContent.Add(new CSelectedElement(oPara, false));
+	oSelectedContent.DoNotAddEmptyPara = true;
+	return oSelectedContent;
+};
+CComplexField.prototype.private_GetErrorContent = function(sMessage)
+{
+	var oTextPr = new CTextPr();
+	oTextPr.Set_FromObject({Bold: true});
+	return this.private_GetMessageContent(sMessage, oTextPr);
+};
+CComplexField.prototype.private_GetBookmarkContent = function(sBookmarkName)
+{
+	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
+	this.LogicDocument.TurnOff_InterfaceEvents();
+	oBookmarksManager.SelectBookmark(sBookmarkName);
+	this.LogicDocument.TurnOn_InterfaceEvents(false);
+	var oSelectedContent = this.LogicDocument.GetSelectedContent(false);
+	var aElements = oSelectedContent.Elements;
+	var oElement;
+	for(var nIndex = 0; nIndex < aElements.length; ++nIndex)
+	{
+		oElement = aElements[nIndex];
+		oElement.Element = oElement.Element.Copy(null, null, {
+			SkipPageBreak         : true,
+			SkipColumnBreak       : true,
+			SkipAnchors           : true,
+			SkipFootnoteReference : true,
+			SkipComplexFields     : true,
+			SkipComments          : true,
+			SkipBookmarks         : true
+		});
+	}
+	oSelectedContent.DoNotAddEmptyPara = true;
+	return oSelectedContent;
+};
+CComplexField.prototype.private_GetREFContent = function()
+{
+	var sValue = AscCommon.translateManager.getValue("Error! Reference source not found.");
+	if(!this.Instruction || this.Instruction.Type !== fieldtype_REF)
+	{
+		return this.private_GetErrorContent(sValue);
+	}
+	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
+	var sBookmarkName = this.Instruction.GetBookmarkName();
+	var oBookmark = oBookmarksManager.GetBookmarkByName(sBookmarkName);
+	if(!oBookmark)
+	{
+		return this.private_GetErrorContent(sValue);
+	}
+	var oStartBookmark = oBookmark[0];
+	var oSrcParagraph = oStartBookmark.Paragraph;
+	var oRun       = this.BeginChar.GetRun();
+	var oParagraph = oRun.GetParagraph();
+	if(!oSrcParagraph || !oParagraph)
+	{
+		return this.private_GetErrorContent(sValue);
+	}
+	var oParent = oParagraph.GetParent();
+	var oSrcParent = oSrcParagraph.GetParent();
+	if(!oParent || !oSrcParent)
+	{
+		return this.private_GetErrorContent(sValue);
+	}
+	var sPosition = "";
+	if(this.Instruction.IsPosition())
+	{
+		sPosition = this.private_GetREFPosValue();
+	}
+	if(this.Instruction.HaveNumberFlag())
+	{
+		if(!oSrcParagraph.IsNumberedNumbering())
+		{
+			return this.private_GetMessageContent("0", null);
+		}
+		var oNumPr     = oSrcParagraph.GetNumPr();
+		var oNumbering = this.LogicDocument.GetNumbering();
+		var oNumInfo   = oSrcParagraph.GetParent().CalculateNumberingValues(oSrcParagraph, oNumPr);
+		var nLvl, oParaNumInfo;
+		if(this.Instruction.IsNumber())
+		{
+			var oParaNumPr = oParagraph.GetNumPr();
+			if(oParaNumPr && oParaNumPr.NumId === oNumPr.NumId)
+			{
+				oParaNumInfo = oParagraph.GetParent().CalculateNumberingValues(oParagraph, oParaNumPr);
+				for(nLvl = 0; nLvl <= oNumPr.Lvl && nLvl <= oParaNumPr.Lvl; ++nLvl)
+				{
+					if(oParaNumInfo[nLvl] !== oNumInfo[nLvl])
+					{
+						break;
+					}
+				}
+				sValue = "";
+				for( ;nLvl <= oNumPr.Lvl; ++nLvl)
+				{
+					sValue += oNumbering.GetText(oNumPr.NumId, nLvl, oNumInfo, nLvl === oNumPr.Lvl);
+				}
+			}
+			else
+			{
+				sValue = oNumbering.GetText(oNumPr.NumId, oNumPr.Lvl, oNumInfo, true);
+			}
+		}
+		else if(this.Instruction.IsNumberFullContext())
+		{
+			sValue = "";
+			var sDelimiter = this.Instruction.GetDelimiter();
+			for(nLvl = 0; nLvl <= oNumPr.Lvl; ++nLvl)
+			{
+				sValue += oNumbering.GetText(oNumPr.NumId, nLvl, oNumInfo, nLvl === oNumPr.Lvl);
+				if(nLvl !== oNumPr.Lvl && typeof sDelimiter === "string" && sDelimiter.length > 0)
+				{
+					sValue += sDelimiter;
+				}
+			}
+		}
+		else if(this.Instruction.IsNumberNoContext())
+		{
+			sValue = oNumbering.GetText(oNumPr.NumId, oNumPr.Lvl, oNumInfo, true);
+		}
+		if(sPosition.length > 0)
+		{
+			sValue += " ";
+			sValue += sPosition;
+		}
+		return this.private_GetMessageContent(sValue, null);
+	}
+	else if(this.Instruction.IsPosition() && sPosition.length > 0)
+	{
+		return this.private_GetMessageContent(sPosition, null);
+	}
+	else // bookmark content
+	{
+		return this.private_GetBookmarkContent(sBookmarkName);
+	}
+	//TODO: Apply formatting from general switches
+};
+CComplexField.prototype.private_GetNOTEREFContent = function()
+{
+	var sValue = AscCommon.translateManager.getValue("Error! Bookmark not defined.");
+	if(!this.Instruction || this.Instruction.Type !== fieldtype_NOTEREF)
+	{
+		return this.private_GetErrorContent(sValue);
+	}
+	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
+	var sBookmarkName = this.Instruction.GetBookmarkName();
+	var oBookmark = oBookmarksManager.GetBookmarkByName(sBookmarkName);
+	if(!oBookmark)
+	{
+		return this.private_GetErrorContent(sValue);
+	}
+	//check notes in bookmarked content
+	this.LogicDocument.TurnOff_InterfaceEvents();
+	oBookmarksManager.SelectBookmark(sBookmarkName);
+	this.LogicDocument.TurnOn_InterfaceEvents(false);
+	var oSelectionInfo = this.LogicDocument.GetSelectedElementsInfo({CheckAllSelection : true});
+	var aFootEndNotes = oSelectionInfo.GetFootEndNoteRefs();
+	if(aFootEndNotes.length === 0)
+	{
+		return this.private_GetErrorContent(sValue);
+	}
+	var oFootEndNote = aFootEndNotes[0];
+	var oStartBookmark = oBookmark[0];
+	var oSrcParagraph = oStartBookmark.Paragraph;
+	var oRun       = this.BeginChar.GetRun();
+	var oParagraph = oRun.GetParagraph();
+	if(!oSrcParagraph || !oParagraph)
+	{
+		return this.private_GetErrorContent(sValue);
+	}
+	var oSelectedContent = new CSelectedContent();
+	var oTextPr;
+	var oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
+	var oParent = oParagraph.GetParent();
+	var oSrcParent = oSrcParagraph.GetParent();
+	if(!oParent || !oSrcParent)
+	{
+		return this.private_GetErrorContent(sValue);
+	}
+	if(this.Instruction.IsPosition() && oParent.IsHdrFtr() === oSrcParent.IsHdrFtr())
+	{
+		sValue = this.private_GetREFPosValue();
+		if(typeof sValue === "string" && sValue.length > 0)
+		{
+			oRun  = new ParaRun(oPara, false);
+			oRun.AddText(sValue);
+			oPara.AddToContent(0, oRun);
+		}
+	}
+	else
+	{
+		oRun  = new ParaRun(oPara, false);
+		if(this.Instruction.IsFormatting())
+		{
+			oTextPr = new CTextPr();
+			oTextPr.Set_FromObject({VertAlign: AscCommon.vertalign_SuperScript});
+			oRun.Apply_Pr(oTextPr);
+		}
+		oRun.AddText(oFootEndNote.private_GetString());
+		oPara.AddToContent(0, oRun);
+	}
+	oSelectedContent.Add(new CSelectedElement(oPara, false));
+	oSelectedContent.DoNotAddEmptyPara = true;
+	return oSelectedContent;
+};
+CComplexField.prototype.private_UpdateNOTEREF = function()
+{
+	this.private_InsertContent(this.private_GetNOTEREFContent());
+};
+CComplexField.prototype.private_CalculateNOTEREF = function()
+{
+	var oSelectedContent = this.private_GetNOTEREFContent();
+	return oSelectedContent.GetText(null);
 };
 CComplexField.prototype.SelectFieldValue = function()
 {

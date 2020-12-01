@@ -978,12 +978,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                 }
             }
 
-            this.put_Table(cols, rows);
-
-            var properties = new Asc.CTableProp();
-            properties.put_TableStyle(style);
-
-            this.tblApply(properties);
+            this.put_Table(cols, rows, undefined, style);
 
             break;
         }
@@ -1048,9 +1043,9 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         case 62: //ASC_MENU_EVENT_TYPE_SEARCH_FINDTEXT
         {
             var SearchEngine = this.WordControl.m_oLogicDocument.Search(_params[0], {MatchCase : _params[2]});
-            var Id = this.WordControl.m_oLogicDocument.Search_GetId(_params[1]);
+            var Id = this.WordControl.m_oLogicDocument.GetSearchElementId(_params[1]);
             if (null != Id)
-                this.WordControl.m_oLogicDocument.Search_Select(Id);
+                this.WordControl.m_oLogicDocument.SelectSearchElement(Id);
 
             var _stream = global_memory_stream_menu;
             _stream["ClearNoAttack"]();
@@ -1270,7 +1265,6 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         {
             var index = parseInt(_params);
             this.AddSlide(index);
-            this.WordControl.m_oDrawingDocument.UpdateThumbnailsAttack();
             break;
         }
 
@@ -1661,6 +1655,17 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                     _api.asc_changeComment(commentId, ascComment);
                 }
             }
+            break;
+        }
+
+        case 23109: // ASC_MENU_EVENT_TYPE_DO_CAN_ADD_QUOTED_COMMENT
+        {
+            var _stream = global_memory_stream_menu;
+            _stream["ClearNoAttack"]();
+            _stream["WriteString2"](JSON.stringify({
+                result: this.can_AddQuotedComment()
+            }));
+            _return = _stream;
             break;
         }
 

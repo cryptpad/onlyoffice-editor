@@ -798,8 +798,8 @@ CShapeDrawer.prototype =
                 if (undefined == _patt_name)
                     _patt_name = "cross";
 
-                var _fc = _fill.fgClr.RGBA;
-                var _bc = _fill.bgClr.RGBA;
+                var _fc = _fill.fgClr && _fill.fgClr.RGBA || {R: 0, G: 0, B: 0, A: 255};
+                var _bc = _fill.bgClr && _fill.bgClr.RGBA || {R: 255, G: 255, B: 255, A: 255};
 
                 var __fa = (null === this.UniFill.transparent) ? _fc.A : 255;
                 var __ba = (null === this.UniFill.transparent) ? _bc.A : 255;
@@ -1065,8 +1065,8 @@ CShapeDrawer.prototype =
                     if (undefined == _patt_name)
                         _patt_name = "cross";
 
-                    var _fc = _fill.fgClr.RGBA;
-                    var _bc = _fill.bgClr.RGBA;
+                    var _fc = _fill.fgClr.RGBA || {R: 0, G: 0, B: 0, A: 255};
+                    var _bc = _fill.bgClr.RGBA || {R: 255, G: 255, B: 255, A: 255};
 
                     var __fa = (null === this.UniFill.transparent) ? _fc.A : 255;
                     var __ba = (null === this.UniFill.transparent) ? _bc.A : 255;

@@ -496,7 +496,7 @@ CHeaderFooter.prototype =
         return true;
     },
 
-    Is_InTable : function(bReturnTopTable)
+    IsInTable : function(bReturnTopTable)
     {
         if ( true === bReturnTopTable )
             return null;
@@ -943,7 +943,12 @@ CHeaderFooter.prototype =
 	GetAllDrawingObjects : function(arrDrawings)
 	{
 		return this.Content.GetAllDrawingObjects(arrDrawings);
-	},
+    },
+
+    UpdateBookmarks : function(oBookmarkManager)
+    {
+        this.Content.UpdateBookmarks(oBookmarkManager);
+    },
 
 	GetPrevElementEndInfo : function(CurElement)
     {
@@ -1529,10 +1534,10 @@ CHeaderFooterController.prototype =
 //-----------------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------------   
-    RecalculateCurPos : function(bUpdateX, bUpdateY)
+    RecalculateCurPos : function(bUpdateX, bUpdateY, isUpdateTarget)
 	{
 		if (this.CurHdrFtr)
-			return this.CurHdrFtr.RecalculateCurPos(bUpdateX, bUpdateY);
+			return this.CurHdrFtr.RecalculateCurPos(bUpdateX, bUpdateY, isUpdateTarget);
 
 		return null;
 	},

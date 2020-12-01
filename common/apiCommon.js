@@ -172,7 +172,8 @@
 		SuccessLimit  : 7,
 		UsersCount    : 8,
 		ConnectionsOS : 9,
-		UsersCountOS  : 10
+		UsersCountOS  : 10,
+		ExpiredLimited: 11
 	};
 
 	var c_oRights = {
@@ -186,7 +187,8 @@
 	var c_oLicenseMode = {
 		None: 0,
 		Trial: 1,
-		Developer: 2
+		Developer: 2,
+		Limited: 4
 	};
 
 	var EPluginDataType = {
@@ -712,6 +714,7 @@
 		this.smooth = null;
 		this.showHorAxis = null;
 		this.showVerAxis = null;
+		this.chartSpace = null;
 	}
 
 	asc_ChartSettings.prototype = {
@@ -876,9 +879,34 @@
 			this.aRanges[0] = range;
 		},
 
+		setRange: function(sRange) {
+			if(this.chartSpace) {
+				this.chartSpace.setRange(sRange);
+				this.updateChart();
+			}
+		},
+
+		isValidRange: function(sRange) {
+			if(sRange === "") {
+				return Asc.c_oAscError.ID.No;
+			}
+			var sCheck = sRange;
+			if(sRange[0] === "=") {
+				sCheck = sRange.slice(1);
+			}
+			var aRanges = AscFormat.fParseChartFormula(sCheck);
+			return (aRanges.length !== 0) ? Asc.c_oAscError.ID.No : Asc.c_oAscError.ID.DataRangeError;
+		},
+
 		getRange: function () {
-			if(this.aRanges.length > 0) {
-				return this.aRanges[0];
+			if(this.chartSpace) {
+				return this.chartSpace.getCommonRange();
+			}
+			if(this.aRanges.length > 0 && typeof this.aRanges[0] === "string" ) {
+				var sRange = this.aRanges[0];
+				if(sRange.length > 0) {
+					return sRange;
+				}
 			}
 			return null;
 		},
@@ -1281,6 +1309,103 @@
 			this.showVerAxis = v;
 		}, getShowVerAxis: function () {
 			return this.showVerAxis;
+		},
+
+		getSeries: function() {
+			if(this.chartSpace) {
+				return this.chartSpace.getAllSeries();
+			}
+			return [];
+		},
+
+		getCatValues: function() {
+			if(this.chartSpace) {
+				return this.chartSpace.getCatValues();
+			}
+			return [];
+		},
+
+		getCatFormula: function() {
+			if(this.chartSpace) {
+				return this.chartSpace.getCatFormula();
+			}
+			return "";
+		},
+
+		setCatFormula: function(sFormula) {
+			if(this.chartSpace) {
+				return this.chartSpace.setCatFormula(sFormula);
+			}
+			this.updateChart();
+		},
+
+		isValidCatFormula: function(sFormula) {
+			if(sFormula === "" || sFormula === null) {
+				return Asc.c_oAscError.ID.No;
+			}
+			return AscFormat.ExecuteNoHistory(function(){
+				var oCat = new AscFormat.CCat();
+				return oCat.setValues(sFormula).getError();
+			}, this, []);
+		},
+
+		switchRowCol: function() {
+			var nError = Asc.c_oAscError.ID.No;
+			if(this.chartSpace) {
+				nError = this.chartSpace.switchRowCol();
+			}
+			this.updateChart();
+			return nError;
+		},
+
+		addSeries: function() {
+			var oRet = null;
+			if(this.chartSpace) {
+				oRet = this.chartSpace.addNewSeries();
+			}
+			this.updateChart();
+			return oRet;
+		},
+
+		addScatterSeries: function() {
+			var oRet = null;
+			if(this.chartSpace) {
+				oRet = this.chartSpace.addNewSeries();
+			}
+			this.updateChart();
+			return oRet;
+		},
+
+		startEdit: function() {
+			AscCommon.History.Create_NewPoint();
+			AscCommon.History.StartTransaction();
+		},
+		endEdit: function() {
+			AscCommon.History.EndTransaction();
+			this.updateChart();
+		},
+		cancelEdit: function() {
+			AscCommon.History.EndTransaction();
+			AscCommon.History.Undo();
+			AscCommon.History.Clear_Redo();
+			AscCommon.History._sendCanUndoRedo();
+			this.updateChart();
+		},
+		startEditData: function() {
+			AscCommon.History.SavePointIndex();
+		},
+		cancelEditData: function() {
+			AscCommon.History.UndoToPointIndex();
+			this.updateChart();
+		},
+		endEditData: function() {
+			AscCommon.History.ClearPointIndex();
+			this.updateChart();
+		},
+		updateChart: function() {
+			if(this.chartSpace) {
+				this.chartSpace.onDataUpdate();
+			}
 		}
 	};
 
@@ -1926,6 +2051,7 @@
 			this.ListType = (undefined != obj.ListType) ? obj.ListType : undefined;
 			this.OutlineLvl = (undefined != obj.OutlineLvl) ? obj.OutlineLvl : undefined;
 			this.OutlineLvlStyle = (undefined != obj.OutlineLvlStyle) ? obj.OutlineLvlStyle : false;
+			this.SuppressLineNumbers = undefined !== obj.SuppressLineNumbers ? obj.SuppressLineNumbers : false;
 			this.Bullet = obj.Bullet;
 			var oBullet = obj.Bullet;
 			if(oBullet) {
@@ -1980,6 +2106,7 @@
 			this.ListType = undefined;
 			this.OutlineLvl = undefined;
 			this.OutlineLvlStyle = false;
+			this.SuppressLineNumbers = false;
 			this.Bullet = undefined;
 
 			this.CanDeleteBlockCC  = true;
@@ -1993,134 +2120,194 @@
 
 		asc_getContextualSpacing: function () {
 			return this.ContextualSpacing;
-		}, asc_putContextualSpacing: function (v) {
+		},
+		asc_putContextualSpacing: function (v) {
 			this.ContextualSpacing = v;
-		}, asc_getInd: function () {
+		},
+		asc_getInd: function () {
 			return this.Ind;
-		}, asc_putInd: function (v) {
+		},
+		asc_putInd: function (v) {
 			this.Ind = v;
-		}, asc_getJc: function () {
+		},
+		asc_getJc: function () {
 			return this.Jc;
-		}, asc_putJc: function (v) {
+		},
+		asc_putJc: function (v) {
 			this.Jc = v;
-		}, asc_getKeepLines: function () {
+		},
+		asc_getKeepLines: function () {
 			return this.KeepLines;
-		}, asc_putKeepLines: function (v) {
+		},
+		asc_putKeepLines: function (v) {
 			this.KeepLines = v;
-		}, asc_getKeepNext: function () {
+		},
+		asc_getKeepNext: function () {
 			return this.KeepNext;
-		}, asc_putKeepNext: function (v) {
+		},
+		asc_putKeepNext: function (v) {
 			this.KeepNext = v;
-		}, asc_getPageBreakBefore: function () {
+		},
+		asc_getPageBreakBefore: function () {
 			return this.PageBreakBefore;
-		}, asc_putPageBreakBefore: function (v) {
+		},
+		asc_putPageBreakBefore: function (v) {
 			this.PageBreakBefore = v;
-		}, asc_getWidowControl: function () {
+		},
+		asc_getWidowControl: function () {
 			return this.WidowControl;
-		}, asc_putWidowControl: function (v) {
+		},
+		asc_putWidowControl: function (v) {
 			this.WidowControl = v;
-		}, asc_getSpacing: function () {
+		},
+		asc_getSpacing: function () {
 			return this.Spacing;
-		}, asc_putSpacing: function (v) {
+		},
+		asc_putSpacing: function (v) {
 			this.Spacing = v;
-		}, asc_getBorders: function () {
+		},
+		asc_getBorders: function () {
 			return this.Brd;
-		}, asc_putBorders: function (v) {
+		},
+		asc_putBorders: function (v) {
 			this.Brd = v;
-		}, asc_getShade: function () {
+		},
+		asc_getShade: function () {
 			return this.Shd;
-		}, asc_putShade: function (v) {
+		},
+		asc_putShade: function (v) {
 			this.Shd = v;
-		}, asc_getLocked: function () {
+		},
+		asc_getLocked: function () {
 			return this.Locked;
-		}, asc_getCanAddTable: function () {
+		},
+		asc_getCanAddTable: function () {
 			return this.CanAddTable;
-		}, asc_getSubscript: function () {
+		},
+		asc_getSubscript: function () {
 			return this.Subscript;
-		}, asc_putSubscript: function (v) {
+		},
+		asc_putSubscript: function (v) {
 			this.Subscript = v;
-		}, asc_getSuperscript: function () {
+		},
+		asc_getSuperscript: function () {
 			return this.Superscript;
-		}, asc_putSuperscript: function (v) {
+		},
+		asc_putSuperscript: function (v) {
 			this.Superscript = v;
-		}, asc_getSmallCaps: function () {
+		},
+		asc_getSmallCaps: function () {
 			return this.SmallCaps;
-		}, asc_putSmallCaps: function (v) {
+		},
+		asc_putSmallCaps: function (v) {
 			this.SmallCaps = v;
-		}, asc_getAllCaps: function () {
+		},
+		asc_getAllCaps: function () {
 			return this.AllCaps;
-		}, asc_putAllCaps: function (v) {
+		},
+		asc_putAllCaps: function (v) {
 			this.AllCaps = v;
-		}, asc_getStrikeout: function () {
+		},
+		asc_getStrikeout: function () {
 			return this.Strikeout;
-		}, asc_putStrikeout: function (v) {
+		},
+		asc_putStrikeout: function (v) {
 			this.Strikeout = v;
-		}, asc_getDStrikeout: function () {
+		},
+		asc_getDStrikeout: function () {
 			return this.DStrikeout;
-		}, asc_putDStrikeout: function (v) {
+		},
+		asc_putDStrikeout: function (v) {
 			this.DStrikeout = v;
-		}, asc_getTextSpacing: function () {
+		},
+		asc_getTextSpacing: function () {
 			return this.TextSpacing;
-		}, asc_putTextSpacing: function (v) {
+		},
+		asc_putTextSpacing: function (v) {
 			this.TextSpacing = v;
-		}, asc_getPosition: function () {
+		},
+		asc_getPosition: function () {
 			return this.Position;
-		}, asc_putPosition: function (v) {
+		},
+		asc_putPosition: function (v) {
 			this.Position = v;
-		}, asc_getTabs: function () {
+		},
+		asc_getTabs: function () {
 			return this.Tabs;
-		}, asc_putTabs: function (v) {
+		},
+		asc_putTabs: function (v) {
 			this.Tabs = v;
-		}, asc_getDefaultTab: function () {
+		},
+		asc_getDefaultTab: function () {
 			return this.DefaultTab;
-		}, asc_putDefaultTab: function (v) {
+		},
+		asc_putDefaultTab: function (v) {
 			this.DefaultTab = v;
 		},
-
 		asc_getFramePr: function () {
 			return this.FramePr;
-		}, asc_putFramePr: function (v) {
+		},
+		asc_putFramePr: function (v) {
 			this.FramePr = v;
-		}, asc_getCanAddDropCap: function () {
+		},
+		asc_getCanAddDropCap: function () {
 			return this.CanAddDropCap;
-		}, asc_getCanAddImage: function () {
+		},
+		asc_getCanAddImage: function () {
 			return this.CanAddImage;
-		}, asc_getOutlineLvl: function() {
+		},
+		asc_getOutlineLvl: function() {
 			return this.OutlineLvl;
-		}, asc_putOutLineLvl: function(nLvl) {
+		},
+		asc_putOutLineLvl: function(nLvl) {
 			this.OutlineLvl = nLvl;
-		}, asc_getOutlineLvlStyle: function() {
+		},
+		asc_getOutlineLvlStyle: function() {
 			return this.OutlineLvlStyle;
-		}, asc_putBullet: function(val) {
+		},
+		asc_getSuppressLineNumbers: function() {
+			return this.SuppressLineNumbers;
+		},
+		asc_putSuppressLineNumbers: function(isSuppress) {
+			this.SuppressLineNumbers = isSuppress;
+		},
+		asc_putBullet: function(val) {
 			this.Bullet = val;
-		}, asc_getBullet: function() {
+		},
+		asc_getBullet: function() {
 			return this.Bullet;
-		}, asc_putBulletSize: function(size) {
+		},
+		asc_putBulletSize: function(size) {
 			if(!this.Bullet) {
 				this.Bullet = new Asc.asc_CBullet();
 			}
 			this.Bullet.asc_putSize(size);
-		}, asc_getBulletSize: function() {
+		},
+		asc_getBulletSize: function() {
 			if(!this.Bullet) {
 				return undefined;
 			}
 			return this.Bullet.asc_getSize();
-		}, asc_putBulletColor: function(color) {
+		},
+		asc_putBulletColor: function(color) {
 			if(!this.Bullet) {
 				this.Bullet = new Asc.asc_CBullet();
 			}
 			this.Bullet.asc_putColor(color);
-		}, asc_getBulletColor: function() {
+		},
+		asc_getBulletColor: function() {
 			if(!this.Bullet) {
 				return undefined;
 			}
 			return this.Bullet.asc_getColor();
-		}, asc_putNumStartAt: function(NumStartAt) {
+		},
+		asc_putNumStartAt: function(NumStartAt) {
 			if(!this.Bullet) {
 				this.Bullet = new Asc.asc_CBullet();
 			}
 			this.Bullet.asc_putNumStartAt(NumStartAt);
-		}, asc_getNumStartAt: function() {
+		},
+		asc_getNumStartAt: function() {
 			if(!this.Bullet) {
 				return undefined;
 			}
@@ -4261,6 +4448,7 @@
 	{
 		this.description = "";
 		this.url         = "";
+		this.help        = "";
 		this.baseUrl     = "";
 		this.index       = 0;     // сверху не выставляем. оттуда в каком порядке пришли - в таком порядке и работают
 
@@ -4303,6 +4491,14 @@
 	CPluginVariation.prototype["set_Url"]         = function(value)
 	{
 		this.url = value;
+	};
+	CPluginVariation.prototype["get_Help"]         = function()
+	{
+		return this.help;
+	};
+	CPluginVariation.prototype["set_Help"]         = function(value)
+	{
+		this.help = value;
 	};
 
 	CPluginVariation.prototype["get_Icons"] = function()
@@ -4442,6 +4638,7 @@
 		var _object            = {};
 		_object["description"] = this.description;
 		_object["url"]         = this.url;
+		_object["help"]        = this.help;
 		_object["index"]       = this.index;
 
 		_object["icons"]          = this.icons;
@@ -4470,6 +4667,7 @@
 	{
 		this.description = (_object["description"] != null) ? _object["description"] : this.description;
 		this.url         = (_object["url"] != null) ? _object["url"] : this.url;
+		this.help        = (_object["help"] != null) ? _object["help"] : this.help;
 		this.index       = (_object["index"] != null) ? _object["index"] : this.index;
 
 		this.icons          = (_object["icons"] != null) ? _object["icons"] : this.icons;
@@ -4592,6 +4790,7 @@
 	prot['UsersCount'] = prot.UsersCount;
 	prot['ConnectionsOS'] = prot.ConnectionsOS;
 	prot['UsersCountOS'] = prot.UsersCountOS;
+	prot['ExpiredLimited'] = prot.ExpiredLimited;
 
 	window['Asc']['c_oRights'] = window['Asc'].c_oRights = c_oRights;
 	prot = c_oRights;
@@ -4606,6 +4805,7 @@
 	prot['None'] = prot.None;
 	prot['Trial'] = prot.Trial;
 	prot['Developer'] = prot.Developer;
+	prot['Limited'] = prot.Limited;
 
 	window["Asc"]["EPluginDataType"] = window["Asc"].EPluginDataType = EPluginDataType;
 	prot         = EPluginDataType;
@@ -4778,6 +4978,26 @@
 	prot["getShowHorAxis"] = prot.getShowHorAxis;
 	prot["putShowVerAxis"] = prot.putShowVerAxis;
 	prot["getShowVerAxis"] = prot.getShowVerAxis;
+	prot["getSeries"] = prot.getSeries;
+	prot["getCatValues"] = prot.getCatValues;
+	prot["switchRowCol"] = prot.switchRowCol;
+	prot["addSeries"] = prot.addSeries;
+	prot["addScatterSeries"] = prot.addScatterSeries;
+	prot["getCatFormula"] = prot.getCatFormula;
+	prot["setCatFormula"] = prot.setCatFormula;
+	prot["isValidCatFormula"] = prot.isValidCatFormula;
+	prot["setRange"] = prot.setRange;
+	prot["isValidRange"] = prot.isValidRange;
+	prot["startEdit"] = prot.startEdit;
+	prot["endEdit"] = prot.endEdit;
+	prot["cancelEdit"] = prot.cancelEdit;
+	prot["startEditData"] = prot.startEditData;
+	prot["cancelEditData"] = prot.cancelEditData;
+	prot["endEditData"] = prot.endEditData;
+
+
+
+
 
 	window["AscCommon"].asc_CRect = asc_CRect;
 	prot = asc_CRect.prototype;
@@ -4991,6 +5211,8 @@
 	prot["get_OutlineLvl"] = prot["asc_getOutlineLvl"] = prot.asc_getOutlineLvl;
 	prot["put_OutlineLvl"] = prot["asc_putOutLineLvl"] = prot.asc_putOutLineLvl;
 	prot["get_OutlineLvlStyle"] = prot["asc_getOutlineLvlStyle"] = prot.asc_getOutlineLvlStyle;
+	prot["get_SuppressLineNumbers"] = prot["asc_getSuppressLineNumbers"] = prot.asc_getSuppressLineNumbers;
+	prot["put_SuppressLineNumbers"] = prot["asc_putSuppressLineNumbers"] = prot.asc_putSuppressLineNumbers;
 	prot["put_Bullet"] = prot["asc_putBullet"] = prot.asc_putBullet;
 	prot["get_Bullet"] = prot["asc_getBullet"] = prot.asc_getBullet;
 	prot["put_BulletSize"] = prot["asc_putBulletSize"] = prot.asc_putBulletSize;
@@ -5421,4 +5643,5 @@
 
 	window["Asc"]["CPluginVariation"] = window["Asc"].CPluginVariation = CPluginVariation;
 	window["Asc"]["CPlugin"] = window["Asc"].CPlugin = CPlugin;
+
 })(window);

@@ -566,6 +566,34 @@ COverlay.prototype =
         _ctx.quadraticCurveTo(x, y + h, x, y + h - r);
         _ctx.lineTo(x, y + r);
         _ctx.quadraticCurveTo(x, y, x + r, y);
+    },
+    DrawFrozenPlaceHorLine: function(y, left, right)
+    {
+        this.m_oContext.strokeStyle = "#AAAAAA";
+        var nW = 2;
+        if(AscCommon.AscBrowser.isRetina)
+        {
+            nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
+        }
+        this.m_oContext.lineWidth = nW;
+        this.m_oContext.beginPath();
+        this.m_oContext.moveTo(left, y);
+        this.m_oContext.lineTo(right, y);
+        this.m_oContext.stroke();
+    },
+    DrawFrozenPlaceVerLine: function(x, top, bottom)
+    {
+        this.m_oContext.strokeStyle = "#AAAAAA";
+        var nW = 2;
+        if(AscCommon.AscBrowser.isRetina)
+        {
+            nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
+        }
+        this.m_oContext.lineWidth = nW;
+        this.m_oContext.beginPath();
+        this.m_oContext.moveTo(x, top);
+        this.m_oContext.lineTo(x, bottom);
+        this.m_oContext.stroke();
     }
 };
 
@@ -2900,7 +2928,24 @@ CAutoshapeTrack.prototype =
         this.m_oContext.drawImage(AscCommon.g_comment_image, _offset[0], _offset[1], _offset[2], _offset[3], __x, __y, _offset[2], _offset[3]);
 
         ctx.globalAlpha = _oldAlpha;
-    }
+    },
+
+    DrawFrozenPaneBorderHor: function(y, left, right)
+    {
+        this.m_oOverlay.SetBaseTransform();
+        autoShapeTrack.p_color(0xAA, 0xAA, 0xAA);
+        var nW = BORDER_WIDTH;
+        if(AscCommon.AscBrowser.isRetina) {
+            nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
+        }
+        autoShapeTrack.Graphics.SetIntegerGrid(true);
+        autoShapeTrack.p_width(nW);
+        autoShapeTrack._s();
+        autoShapeTrack._m(left, y);
+        autoShapeTrack._l(right, y);
+        autoShapeTrack.ds();
+        autoShapeTrack.Graphics.SetIntegerGrid(false);
+    } 
 };
 
 	function DrawTextByCenter() // this!

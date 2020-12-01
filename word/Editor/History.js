@@ -64,6 +64,7 @@ function CHistory(Document)
 		NumPr        : [],
 		NotesEnd     : false,
 		NotesEndPage : 0,
+		LineNumbers  : false,
 		Update       : true
 	};
 
@@ -340,8 +341,8 @@ CHistory.prototype =
 		if ( 0 !== this.TurnOffHistory )
 			return false;
 
-		if (this.Document && this.Document.OnCreateNewHistoryPoint)
-			this.Document.OnCreateNewHistoryPoint();
+		if (this.Document && this.Document.ClearListsCache)
+			this.Document.ClearListsCache();
 
         this.CanNotAddChanges = false;
 		this.CollectChanges   = false;
@@ -479,7 +480,7 @@ CHistory.prototype =
 				Len : Binary_Len
 			},
 
-			NeedRecalc : !this.MinorChanges && (!_Class || _Class.IsNeedRecalculate())
+			NeedRecalc : !this.MinorChanges && (!_Class || _Class.IsNeedRecalculate() || _Class.IsNeedRecalculateLineNumbers())
 		};
 
 		this.Points[this.Index].Items.push(Item);
@@ -649,6 +650,11 @@ CHistory.prototype =
     {
         this.RecalculateData.Tables[TableId] = true;
     },
+
+	AddLineNumbersToRecalculateData : function()
+	{
+		this.RecalculateData.LineNumbers = true;
+	},
 
     OnEnd_GetRecalcData : function()
     {
@@ -1296,6 +1302,7 @@ CHistory.prototype.private_ClearRecalcData = function()
 		Update        : true,
 		ChangedStyles : {},
 		ChangedNums   : {},
+		LineNumbers   : false,
 		AllParagraphs : null
 	};
 };

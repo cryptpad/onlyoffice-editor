@@ -94,6 +94,8 @@
 
 		this.isNoSystemPluginsOnlyOne = true;
 
+		this.countEventDocContOrPluginsReady = 0;
+
 		this.guidAsyncMethod = "";
 
 		this.sendsToInterface = {};
@@ -650,6 +652,7 @@
             pluginData.setAttribute("lang", this.language);
             pluginData.setAttribute("documentId", this.api.documentId);
             pluginData.setAttribute("documentTitle", this.api.documentTitle);
+            pluginData.setAttribute("documentCallbackUrl", this.api.documentCallbackUrl);
 
             if (this.api.User)
             {
@@ -1145,6 +1148,10 @@
 				window.g_asc_plugins.loadExtensionPlugins(window["Asc"]["extensionPlugins"]);
 			}, 10);
 
+		});
+		window.g_asc_plugins.api.asc_registerCallback('asc_LoadPluginsOrDocument', function()
+		{
+			window.g_asc_plugins.countEventDocContOrPluginsReady++;
 		});
 
         if (window.location && window.location.search)

@@ -250,6 +250,7 @@ SlideLayout.prototype =
         this.checkDrawingUniNvPr(item);
         History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_SlideLayoutAddToSpTree, pos, [item], true));
         this.cSld.spTree.splice(pos, 0, item);
+        item.setParent2(this);
     },
 
 
