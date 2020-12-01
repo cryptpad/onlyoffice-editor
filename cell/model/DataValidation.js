@@ -658,7 +658,7 @@
 	};
 	CDataValidation.prototype.updateDiff = function (bInsert, type, updateRange) {
 		var _setDiff = function (_range) {
-			var _newRanges, offset, tempRange, intersection, otherPart, diff;
+			var _newRanges, offset, tempRange, intersection, otherPart, diff, _intersection;
 			if (bInsert) {
 				switch (type) {
 					case c_oAscInsertOptions.InsertCellsAndShiftDown:
@@ -725,7 +725,7 @@
 						} else if (updateRange.c1 > _range.c1 && updateRange.c1 < _range.c2) {
 							offset = new AscCommon.CellBase(0, diff);
 							_newRanges = _range.clone();
-							_newRanges.setOffsetLast();
+							_newRanges.setOffsetLast(offset);
 						}
 						break;
 
@@ -739,7 +739,7 @@
 						} else if (updateRange.r1 > _range.r1 && updateRange.r1 < _range.r2) {
 							offset = new AscCommon.CellBase(diff, 0);
 							_newRanges = _range.clone();
-							_newRanges.setOffsetLast();
+							_newRanges.setOffsetLast(offset);
 						}
 						break;
 				}
@@ -814,9 +814,10 @@
 							_newRanges.setOffset(offset);
 						}
 
-						var _intersection = _range.intersection(updateRange);
+						_intersection = _range.intersection(updateRange);
 						if (_intersection) {
-							offset = new AscCommon.CellBase(0, _intersection.c2 - _intersection.c1);
+							diff = _intersection.c2 - _intersection.c1 + 1;
+							offset = new AscCommon.CellBase(0, -diff);
 							_newRanges = _range.clone();
 							_newRanges.setOffsetLast(offset);
 						}
@@ -838,9 +839,10 @@
 							_newRanges.setOffset(offset);
 						}
 
-						var _intersection = _range.intersection(updateRange);
+						_intersection = _range.intersection(updateRange);
 						if (_intersection) {
-							offset = new AscCommon.CellBase(_intersection.r2 - _intersection.r1, 0);
+							diff = _intersection.r2 - _intersection.r1 + 1;
+							offset = new AscCommon.CellBase(-diff, 0);
 							_newRanges = _range.clone();
 							_newRanges.setOffsetLast(offset);
 						}
