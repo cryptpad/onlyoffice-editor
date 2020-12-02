@@ -1211,7 +1211,7 @@
 	var changestype_Theme                     = 64; // Изменение темы;
 	var changestype_SlideSize                 = 65; // Изменение цветовой схемы;
 	var changestype_SlideBg                   = 66; // Изменение цветовой схемы;
-	var changestype_SlideTiming               = 67; // Изменение цветовой схемы;
+	var changestype_SlideTransition           = 67; // Изменение цветовой схемы;
 	var changestype_MoveComment               = 68;
 	var changestype_AddSp                     = 69;
 	var changestype_AddComment                = 70;
@@ -2916,7 +2916,7 @@
 	window["AscCommon"].changestype_Theme                     = changestype_Theme;
 	window["AscCommon"].changestype_SlideSize                 = changestype_SlideSize;
 	window["AscCommon"].changestype_SlideBg                   = changestype_SlideBg;
-	window["AscCommon"].changestype_SlideTiming               = changestype_SlideTiming;
+	window["AscCommon"].changestype_SlideTransition           = changestype_SlideTransition;
 	window["AscCommon"].changestype_MoveComment               = changestype_MoveComment;
 	window["AscCommon"].changestype_AddComment                = changestype_AddComment;
 	window["AscCommon"].changestype_Layout                    = changestype_Layout;

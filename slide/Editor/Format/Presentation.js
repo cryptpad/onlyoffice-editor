@@ -2793,8 +2793,8 @@ function CPresentation(DrawingDocument) {
     this.LastColorScheme = null;
     this.LastColorMap = null;
     this.LastTableLook = null;
-    this.DefaultSlideTiming = new CAscSlideTiming();
-    this.DefaultSlideTiming.setDefaultParams();
+    this.DefaultSlideTransition = new CAscSlideTransition();
+    this.DefaultSlideTransition.setDefaultParams();
 
     this.DefaultTableStyleId = null;
     this.TableStylesIdMap = {};
@@ -9807,27 +9807,27 @@ CPresentation.prototype.Document_Is_SelectionLocked = function (CheckType, Addit
         }
     }
 
-    if (CheckType === AscCommon.changestype_SlideTiming) {
+    if (CheckType === AscCommon.changestype_SlideTransition) {
         if (!AdditionalData || !AdditionalData.All) {
             var aSelectedSlides = this.GetSelectedSlides();
             for (var i = 0; i < aSelectedSlides.length; ++i) {
                 var check_obj =
                     {
                         "type": c_oAscLockTypeElemPresentation.Slide,
-                        "val": this.Slides[this.CurPage].timingLock.Get_Id(),
-                        "guid": this.Slides[this.CurPage].timingLock.Get_Id()
+                        "val": this.Slides[this.CurPage].transitionLock.Get_Id(),
+                        "guid": this.Slides[this.CurPage].transitionLock.Get_Id()
                     };
-                this.Slides[aSelectedSlides[i]].timingLock.Lock.Check(check_obj);
+                this.Slides[aSelectedSlides[i]].transitionLock.Lock.Check(check_obj);
             }
         } else {
             for (var i = 0; i < this.Slides.length; ++i) {
                 var check_obj =
                     {
                         "type": c_oAscLockTypeElemPresentation.Slide,
-                        "val": this.Slides[i].timingLock.Get_Id(),
-                        "guid": this.Slides[i].timingLock.Get_Id()
+                        "val": this.Slides[i].transitionLock.Get_Id(),
+                        "guid": this.Slides[i].transitionLock.Get_Id()
                     };
-                this.Slides[i].timingLock.Lock.Check(check_obj);
+                this.Slides[i].transitionLock.Lock.Check(check_obj);
             }
         }
 
