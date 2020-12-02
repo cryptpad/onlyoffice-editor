@@ -6330,6 +6330,7 @@
 		this._moveFormulas(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset);
 		this._moveCells(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset);
 		this._moveMergedAndHyperlinks(prepared, oBBoxFrom, oBBoxTo, copyRange, wsTo, offset);
+		this._moveDataValidation(oBBoxFrom, oBBoxTo, copyRange, offset, wsTo);
 
 		if(true == this.workbook.bUndoChanges || true == this.workbook.bRedoChanges) {
 			wsTo.autoFilters.unmergeTablesAfterMove(oBBoxTo);
@@ -8986,9 +8987,33 @@
 		}
 	};
 
-	Worksheet.prototype.updateDataValidation = function (bInsert, operType, updateRange) {
+	Worksheet.prototype.shiftDataValidation = function (bInsert, operType, updateRange) {
 		if (this.dataValidations) {
-			this.dataValidations.updateDiff(this, bInsert, operType, updateRange);
+			this.dataValidations.shift(this, bInsert, operType, updateRange);
+		}
+	};
+
+	Worksheet.prototype.clearDataValidation = function (ranges, addToHistory) {
+		if (this.dataValidations) {
+			this.dataValidations.clear(this, ranges, addToHistory);
+		}
+	};
+
+	Worksheet.prototype._moveDataValidation = function (oBBoxFrom, oBBoxTo, copyRange, offset, wsTo) {
+		if (!wsTo) {
+			wsTo = this;
+		}
+		if (false === this.workbook.bUndoChanges && false === this.workbook.bRedoChanges) {
+			wsTo.clearDataValidation([oBBoxTo], true);
+			if (copyRange) {
+
+			} else {
+				if (this === wsTo) {
+
+				} else {
+
+				}
+			}
 		}
 	};
 

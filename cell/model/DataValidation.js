@@ -656,7 +656,7 @@
 	CDataValidation.prototype.setFormula2 = function (newVal, addToHistory) {
 		this.formula2 = newVal;
 	};
-	CDataValidation.prototype.updateDiff = function (bInsert, type, updateRange) {
+	CDataValidation.prototype.shift = function (bInsert, type, updateRange) {
 
 		var _setDiff = function (_range) {
 			var _newRanges, offset, tempRange, intersection, otherPart, diff;
@@ -744,6 +744,23 @@
 		}
 	};
 
+	CDataValidation.prototype.clear = function (ranges) {
+		var newRanges = [];
+		var isChanged;
+		for (var i = 0; i < this.ranges.length; i++) {
+			for (var j = 0; j < ranges.length; j++) {
+				var intersection = this.ranges[i].intersection(ranges[j]);
+				if (intersection) {
+					isChanged = true;
+					newRanges = newRanges.concat(intersection.difference(this.ranges[i]));
+				}
+			}
+		}
+
+		return isChanged ? newRanges : null;
+	};
+
+
 	function CDataValidations() {
 		this.disablePrompts = false;
 		this.xWindow = null;
@@ -769,9 +786,9 @@
 		}
 		return res;
 	};
-	CDataValidations.prototype.updateDiff = function(ws, bInsert, type, updateRange) {
+	CDataValidations.prototype.shift = function(ws, bInsert, type, updateRange) {
 		for (var i = 0; i < this.elems.length; i++) {
-			var isUpdate = this.elems[i].updateDiff(bInsert, type, updateRange);
+			var isUpdate = this.elems[i].shift(bInsert, type, updateRange);
 			if (isUpdate === -1) {
 				this.delete(ws, this.elems[i].Id, true);
 			} else if (isUpdate) {
@@ -990,6 +1007,17 @@
 			}
 			//разбиваем диапазон объектов, с которыми пересекаемся + добавляем новый
 			this.add(ws, prepeareAdd(props), true);
+		}
+	};
+
+	CDataValidations.prototype.clear = function (ws, ranges, addToHistory) {
+		for (var i = 0; i < this.elems.length; i++) {
+			var changedRanges = this.elems[i].clear(ranges);
+			if (changedRanges) {
+				var newDataValidation = this.clone();
+				newDataValidation.ranges = changedRanges;
+				this.change(ws, this, newDataValidation, addToHistory);
+			}
 		}
 	};
 
