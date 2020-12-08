@@ -6778,7 +6778,7 @@ function onApiShowRevisionsChange(data) {
                     if (value.Get_SpacingBeforeAutoSpacing())
                         changes.push("|Spacing before| |auto|");
                     else if (value.Get_SpacingBefore() !== undefined)
-                        changes.push("|Spacing before|" + " " + recalcFromMM(value.Get_SpacingBefore()).toFixed(2) + ' ' + Common.Utils.Metric.getCurrentMetricName());
+                        changes.push("|Spacing before|" + " " + recalcFromMM(value.Get_SpacingBefore()).toFixed(2) + ' ' + metricName);
                     if (value.Get_SpacingAfterAutoSpacing())
                         changes.push("|Spacing after| |auto|");
                     else if (value.Get_SpacingAfter() !== undefined)
