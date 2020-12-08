@@ -40,6 +40,7 @@
 
 	var c_oAscInsertOptions = Asc.c_oAscInsertOptions;
 	var c_oAscDeleteOptions = Asc.c_oAscDeleteOptions;
+	var cElementType = AscCommonExcel.cElementType;
 
 	var EDataValidationType = {
 		None: 0,
@@ -82,6 +83,9 @@
 
 	function checkIntegerType(val) {
 		return val && AscCommonExcel.cElementType.number === val.type;
+	}
+	function isNum(value) {
+		return !isNaN(parseFloat(value)) && isFinite(value);
 	}
 
 	function CDataFormula(value) {
@@ -167,7 +171,7 @@
 		return AscDFH.historyitem_type_DataValidation;
 	};
 	CDataValidation.prototype.getType = function () {
-		return AscCommonExcel.UndoRedoDataTypes.DataValidation;
+		return AscCommonExcel.UndoRedoDataTypes.DataValidationInner;
 	};
 	CDataValidation.prototype._init = function (ws) {
 		if (this.formula1) {
@@ -243,7 +247,7 @@
 	};
 	CDataValidation.prototype.Write_ToBinary2 = function (writer) {
 		//for wrapper
-		writer.WriteLong(this.getObjectType());
+		//writer.WriteLong(this.getObjectType());
 
 		if (null != this.ranges) {
 			writer.WriteBool(true);
@@ -261,7 +265,6 @@
 		writer.WriteBool(this.allowBlank);
 		writer.WriteBool(this.showDropDown);
 		writer.WriteBool(this.showErrorMessage);
-		writer.WriteBool(this.showInputMessage);
 		writer.WriteBool(this.showInputMessage);
 		writer.WriteLong(this.type);
 		writer.WriteLong(this.errorStyle);
@@ -324,7 +327,6 @@
 		this.showDropDown = reader.GetBool();
 		this.showErrorMessage = reader.GetBool();
 		this.showInputMessage = reader.GetBool();
-		this.showInputMessage = reader.GetBool();
 		this.type = reader.GetLong();
 		this.errorStyle = reader.GetLong();
 		this.imeMode = reader.GetLong();
@@ -386,6 +388,21 @@
 			}
 		}
 		return false;
+	};
+	CDataValidation.prototype.getIntersections = function (range, offset) {
+		var res = [];
+		if (this.ranges) {
+			for (var i = 0; i < this.ranges.length; ++i) {
+				var intersection = this.ranges[i].intersection(range);
+				if (intersection) {
+					if (offset) {
+						intersection.setOffset(offset);
+					}
+					res.push(intersection);
+				}
+			}
+		}
+		return res.length ? res : null;
 	};
 	CDataValidation.prototype.checkValue = function (cell, ws) {
 		if (!this.showErrorMessage || EDataValidationType.None === this.type) {
@@ -506,58 +523,128 @@
 		}
 		return res;
 	};
-	CDataValidation.prototype.isValidDataRef = function (ws, _val, type) {
-		function _isNumeric(value) {
-			return !isNaN(parseFloat(value)) && isFinite(value);
-		}
+	CDataValidation.prototype.isValidDataRef = function (ws, _val, isRange, type) {
+		var _checkFormula = function (val) {
+			var _res = false;
+			if (val.type === cElementType.cell || val.type === cElementType.cell3D) {
+				_res = true;
+			} else if (val.type === cElementType.number) {
+				_res = true;
+			}
+			return _res;
+		};
+
+		//TODO пока проверяем на введенный диапазон и формулу
+		//позже необходимо переделать ввод данных в select data range - добавлять в данном режиме всегда с "="
+		//и рассматривать диапазон/формулу только в случае, если начинается с "="
 
 		var res = null;
-
-		var isNumeric = _isNumeric(_val);
-		var _formula, _formulaRes;
-		if (!isNumeric) {
-			_formula = new CDataFormula(_val);
-			_formulaRes = _formula.getValue(ws);
-		}
-		//AscCommonExcel.cElementType.number === val.type
-
 		var asc_error = Asc.c_oAscError.ID;
+		var _formula, _formulaRes, isNumeric, date;
+		if (isRange) {
+			//если ссылка на диапазон - в любом случае отдаём ошибку
+			if (!isRange.isOneCell()) {
+				return asc_error.DataValidateInvalid;
+			}
+			//если ссылка на одиночную ячейку
+			return asc_error.No;
+		} else {
+			isNumeric = isNum(_val);
+			if (!isNumeric) {
+				//проверим, может быть это дата или время
+				if (type !== EDataValidationType.List) {
+					date = AscCommon.g_oFormatParser.parseDate(_val, AscCommon.g_oDefaultCultureInfo);
+				}
+				if (!date) {
+					//проверка на формулу
+					if (_val[0] === "=") {
+						_val = _val.slice(1);
+					}
+					_formula = new CDataFormula(_val);
+					_formulaRes = _formula.getValue(ws);
+				}
+			}
+		}
+
+		res = asc_error.No;
 		switch (type) {
 			case EDataValidationType.Date:
 				if (!isNumeric) {
-					//проверка на корректность формулы
-					return asc_error.DataValidateInvalid;
+					if (date) {
+						_val = date.value;
+					} else if (_formulaRes) {
+						if (!_checkFormula(_formulaRes)) {
+							return asc_error.DataValidateInvalid;
+						}
+					} else {
+						return asc_error.DataValidateInvalid;
+					}
 				}
+
 				//TODO не нашёл константу на максимальную дату
 				var maxDate = 2958465;
-				if (val < 0 || val > maxDate) {
+				if (isNumeric && (_val < 0 || _val > maxDate)) {
 					return asc_error.DataValidateInvalid;
 				}
 				break;
 			case EDataValidationType.Decimal:
 			case EDataValidationType.Whole:
 				if (!isNumeric) {
-					//проверка на корректность формулы
-					return asc_error.DataValidateNotNumeric;
+					if (date) {
+						_val = date.value;
+					} else if (_formulaRes) {
+						if (!_checkFormula(_formulaRes)) {
+							return asc_error.DataValidateInvalid;
+						}
+					} else {
+						return asc_error.DataValidateInvalid;
+					}
 				}
 				break;
 			case EDataValidationType.List:
+				if (!isNumeric) {
+					if (_formulaRes) {
+						//Max string length -> 255
+						if (cElementType.string === _formulaRes.type) {
+
+						} if (_formulaRes.type === cElementType.cellsRange || _formulaRes.type === cElementType.cellsRange3D) {
+							return asc_error.DataValidateInvalid;
+						}
+					} else {
+						return asc_error.DataValidateInvalid;
+					}
+				}
+
 				break;
 			case EDataValidationType.TextLength:
 				if (!isNumeric) {
-					//проверка на корректность формулы
-					return asc_error.DataValidateNotNumeric;
+					if (date) {
+						_val = date.value;
+					} else if (_formulaRes) {
+						if (!_checkFormula(_formulaRes)) {
+							return asc_error.DataValidateInvalid;
+						}
+					} else {
+						return asc_error.DataValidateNotNumeric;
+					}
 				}
-				if (val >= 10000000000 || val < 0) {
+				if (_val >= 10000000000 || _val < 0) {
 					return asc_error.DataValidateNegativeTextLength;
 				}
 				break;
 			case EDataValidationType.Time:
 				if (!isNumeric) {
-					//проверка на корректность формулы
-					return asc_error.DataValidateInvalid;
+					if (date) {
+						_val = date.value;
+					} else if (_formulaRes) {
+						if (!_checkFormula(_formulaRes)) {
+							return asc_error.DataValidateInvalid;
+						}
+					} else {
+						return asc_error.DataValidateInvalid;
+					}
 				}
-				if (val < 0 || val >= 1) {
+				if (_val < 0 || _val >= 1) {
 					return asc_error.DataValidateInvalid;
 				}
 
@@ -588,7 +675,7 @@
 	CDataValidation.prototype.getShowInputMessage = function () {
 		return this.showInputMessage;
 	};
-	CDataValidation.prototype.getType = function () {
+	CDataValidation.prototype.asc_getType = function () {
 		return this.type;
 	};
 	CDataValidation.prototype.getImeMode = function () {
@@ -753,6 +840,8 @@
 				if (intersection) {
 					isChanged = true;
 					newRanges = newRanges.concat(intersection.difference(this.ranges[i]));
+				} else {
+					newRanges.push(this.ranges[i]);
 				}
 			}
 		}
@@ -760,6 +849,130 @@
 		return isChanged ? newRanges : null;
 	};
 
+	CDataValidation.prototype.move = function (oBBoxFrom, copyRange, offset) {
+		var newRanges = [];
+		var isChanged;
+		for (var i = 0; i < this.ranges.length; i++) {
+			var intersection = this.ranges[i].intersection(oBBoxFrom);
+			if (intersection) {
+				isChanged = true;
+				if (!copyRange) {
+					newRanges = newRanges.concat(intersection.difference(this.ranges[i]));
+				} else {
+					newRanges.push(this.ranges[i]);
+				}
+
+				intersection.setOffset(offset);
+				newRanges.push(intersection);
+			} else {
+				newRanges.push(this.ranges[i]);
+			}
+		}
+
+		return isChanged ? newRanges : null;
+	};
+
+	CDataValidation.prototype.prepeareToPaste = function (range, offset) {
+		var newRanges = [];
+		for (var j = 0; j < this.ranges.length; j++) {
+			var intersection = range.intersection(this.ranges[j]);
+			if (intersection) {
+				intersection.setOffset(offset)
+				newRanges.push(intersection);
+			}
+		}
+		if (newRanges.length) {
+			this.ranges = newRanges;
+			return true;
+		}
+		return false;
+	};
+
+	CDataValidation.prototype.applyCollaborative = function (nSheetId, collaborativeEditing) {
+
+	};
+
+	CDataValidation.prototype.correctToInterface = function () {
+		var t = this;
+		var doCorrect = function (_formula) {
+			var _val = _formula.text;
+			var isNumeric = isNum(_val);
+
+			if (isNumeric) {
+				//переводим в дату
+				var _format;
+				if (t.type === EDataValidationType.Date) {
+					_format = AscCommon.oNumFormatCache.get("m/d/yyyy");
+				} else if (t.type === EDataValidationType.Time) {
+					_format = AscCommon.oNumFormatCache.get("h:mm:ss AM/PM");
+				}
+				if (_format) {
+					var dateVal = _format.format(_val);
+					if (dateVal && dateVal[0] && dateVal[0].text) {
+						_formula.text = dateVal[0].text;
+					}
+				}
+			}
+
+			if (t.type === EDataValidationType.List) {
+				if (_val[1] === '"') {
+					_formula.text = _val.slice(1, -1);
+				}
+			}
+		};
+
+		if (this.formula1) {
+			doCorrect(this.formula1);
+		}
+		if (this.formula2) {
+			doCorrect(this.formula2);
+		}
+	};
+
+	CDataValidation.prototype.correctFromInterface = function (ws) {
+		var t = this;
+		var doCorrect = function (_formula) {
+			var _val = _formula.text;
+			var isNumeric = isNum(_val);
+			var isDate;
+			var isFormula;
+			if (!isNumeric) {
+				//проверим, может быть это дата или время
+				if (t.type !== EDataValidationType.List) {
+					isDate = AscCommon.g_oFormatParser.parseDate(_val, AscCommon.g_oDefaultCultureInfo);
+				}
+				if (!isDate) {
+					//проверка на формулу
+					if (_val[0] === "=") {
+						_val = _val.slice(1);
+					}
+					var _tempFormula = new CDataFormula(_val);
+					isFormula = _tempFormula.getValue(ws);
+				}
+			}
+
+			//храним число
+			if (isDate) {
+				_formula.text = isDate.value;
+				return;
+			}
+
+			if (t.type === EDataValidationType.List) {
+				if (isFormula) {
+					if (!(isFormula.type === cElementType.cell || isFormula.type === cElementType.cell3D)) {
+						formula.text = '"' + formula.text + '"';
+					}
+				}
+			}
+		};
+
+		if (this.formula1) {
+			doCorrect(this.formula1);
+		}
+		if (this.formula2) {
+			doCorrect(this.formula2);
+		}
+	};
 
 	function CDataValidations() {
 		this.disablePrompts = false;
@@ -786,15 +999,15 @@
 		}
 		return res;
 	};
-	CDataValidations.prototype.shift = function(ws, bInsert, type, updateRange) {
+	CDataValidations.prototype.shift = function(ws, bInsert, type, updateRange, addToHistory) {
 		for (var i = 0; i < this.elems.length; i++) {
 			var isUpdate = this.elems[i].shift(bInsert, type, updateRange);
 			if (isUpdate === -1) {
-				this.delete(ws, this.elems[i].Id, true);
+				this.delete(ws, this.elems[i].Id, addToHistory);
 			} else if (isUpdate) {
 				var to = this.elems[i].clone();
 				to.ranges = isUpdate;
-				this.change(ws, this.elems[i], to , true);
+				this.change(ws, this.elems[i], to , addToHistory);
 			}
 		}
 	};
@@ -803,7 +1016,7 @@
 		this.elems.push(val);
 		if (addToHistory) {
 			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_DataValidationAdd, ws.getId(), null,
-				new AscCommonExcel.UndoRedoData_BinaryWrapper(val));
+				new AscCommonExcel.UndoRedoData_DataValidation(val.Id, null, val));
 		}
 	};
 
@@ -816,7 +1029,7 @@
 		}
 		if (addToHistory) {
 			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_DataValidationChange, ws.getId(), null,
-				new AscCommonExcel.UndoRedoData_DataValidation(from.Id, new AscCommonExcel.UndoRedoData_BinaryWrapper(from), new AscCommonExcel.UndoRedoData_BinaryWrapper(to)));
+				new AscCommonExcel.UndoRedoData_DataValidation(from.Id, from, to));
 		}
 	};
 
@@ -831,7 +1044,7 @@
 
 		if (addToHistory) {
 			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_DataValidationDelete, ws.getId(), null,
-				new AscCommonExcel.UndoRedoData_DataValidation(from.Id, new AscCommonExcel.UndoRedoData_BinaryWrapper(from), null));
+				new AscCommonExcel.UndoRedoData_DataValidation(from.Id, from, null));
 		}
 	};
 
@@ -899,18 +1112,29 @@
 			}
 		}
 
+		var getNewObject = function () {
+			var _res = new window['AscCommonExcel'].CDataValidation();
+			_res.showErrorMessage = true;
+			_res.showInputMessage = true;
+			_res.showDropDown = true;
+			return _res;
+		};
 
 		//для передачи в интерфейс использую объект и модели - CDataValidation
+		//если doExtend = null -> значит erase === true
 		var res;
-		if (dataValidationIntersection.length && doExtend !== false && dataValidationContain.length === 0) {
-			//в зависимости от параметров формируем обект с опциями
-			res = dataValidationIntersection[0].clone();
+		if (doExtend === null) {
+			res = getNewObject();
+		} else if (doExtend !== undefined) {
+			res = doExtend ? dataValidationIntersection[0].clone() : getNewObject();
 		} else if (dataValidationContain.length === 1) {
 			res = dataValidationContain[0].clone();
 		} else {
 			//возвращаем новый объект с опциями
-			res = new window['AscCommonExcel'].CDataValidation();
+			res = getNewObject();
 		}
+
+		res.correctToInterface();
 
 		return res;
 	};
@@ -945,6 +1169,8 @@
 			_dataValidation.ranges = _ranges;
 			return _dataValidation;
 		};
+
+		props.correctFromInterface(ws);
 
 		var equalRangeDataValidation;
 		var equalDataValidation;
@@ -1014,11 +1240,61 @@
 		for (var i = 0; i < this.elems.length; i++) {
 			var changedRanges = this.elems[i].clear(ranges);
 			if (changedRanges) {
-				var newDataValidation = this.clone();
+				var newDataValidation = this.elems[i].clone();
 				newDataValidation.ranges = changedRanges;
-				this.change(ws, this, newDataValidation, addToHistory);
+				this.change(ws, this.elems[i], newDataValidation, addToHistory);
 			}
 		}
+	};
+
+	CDataValidations.prototype.move = function (ws, oBBoxFrom, oBBoxTo, copyRange, offset) {
+		for (var i = 0; i < this.elems.length; i++) {
+			var changedRanges = this.elems[i].move(oBBoxFrom, copyRange, offset);
+			if (changedRanges) {
+				var newDataValidation = this.elems[i].clone();
+				newDataValidation.ranges = changedRanges;
+				this.change(ws, this.elems[i], newDataValidation, true);
+			}
+		}
+	};
+
+	CDataValidations.prototype.getCopyByRange = function (range, offset) {
+		var res = [];
+		for (var i = 0; i < this.elems.length; i++) {
+			var changedRanges = this.elems[i].getIntersections(range, offset);
+			if (changedRanges) {
+				var newDataValidation = this.elems[i].clone();
+				newDataValidation.ranges = changedRanges;
+				res.push(newDataValidation);
+			}
+		}
+		return res.length ? res : null;
+	};
+
+	CDataValidations.prototype.expandRanges = function (ranges) {
+		var res = [];
+		var _notExpandRanges = [];
+		for (var k = 0; k < ranges.length; k++) {
+			res[k] = ranges[k];
+			for (var i = 0; i < this.elems.length; i++) {
+				var _expandRange = res[k];
+				var isIntersection = false;
+				var tempArr = [];
+				for (var j = 0; j < this.elems[i].ranges.length; j++) {
+					if (this.elems[i].ranges[j].intersection(_expandRange)) {
+						isIntersection = true;
+						_expandRange = _expandRange.union(this.elems[i].ranges[j]);
+					} else {
+						tempArr.push(this.elems[i].ranges[j]);
+					}
+				}
+				if (isIntersection) {
+					_notExpandRanges = _notExpandRanges.concat(tempArr);
+					res[k] = _expandRange;
+				}
+			}
+		}
+		return res.concat(_notExpandRanges);
 	};
 
 
@@ -1062,7 +1338,7 @@
 	prot['asc_getShowDropDown'] = prot.getShowDropDown;
 	prot['asc_getShowErrorMessage'] = prot.getShowErrorMessage;
 	prot['asc_getShowInputMessage'] = prot.getShowInputMessage;
-	prot['asc_getType'] = prot.getType;
+	prot['asc_getType'] = prot.asc_getType;
 	//prot['asc_getImeMode'] = prot.getImeMode;
 	prot['asc_getOperator'] = prot.getOperator;
 	prot['asc_getPrompt'] = prot.getPrompt;
