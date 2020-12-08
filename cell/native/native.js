@@ -3950,29 +3950,26 @@ function OfflineEditor () {
             	if (chartData.length > 0) {
                 	var json = JSON.parse(chartData);
                 	if (json) {
-                    
-                    	var nativeToEditor = 1.0 / deviceScale;
-                    
-                    	var screenWidth = t.initSettings["screenWidth"] * nativeToEditor / 2.54 - ws.headersWidth;
-                    	var screenHeight = t.initSettings["screenHeight"] * nativeToEditor / 2.54 - ws.headersHeight;
-                    
+
                     	_api.asc_addChartDrawingObject(json);
                     
                     	var objects = ws.objectRender.controller.drawingObjects.getDrawingObjects();
                     	if (objects.length > 0) {
+                            
+                            var left = t.initSettings["chartLeft"];
+                            var top = t.initSettings["chartTop"];
+                            var right = t.initSettings["chartRight"];
+                            var bottom = t.initSettings["chartBottom"];
                         
-                        	var gr = objects[0].graphicObject;
+                        	var chart = objects[0].graphicObject;
                         
-                        	var w = gr.spPr.xfrm.extX;
-                        	var h = gr.spPr.xfrm.extY;
-                        
-                        	var offX = Math.max(0, (screenWidth - w) * 0.5);
-                        	var offY = Math.max(screenHeight * 0.2, (screenHeight - w) * 0.5);
-                        
-                        	gr.spPr.xfrm.setOffX(offX);
-                        	gr.spPr.xfrm.setOffY(offY);
-                        	gr.checkDrawingBaseCoords();
-                        	gr.recalculate();
+                        	chart.spPr.xfrm.setOffX(parseInt(left));
+                        	chart.spPr.xfrm.setOffY(parseInt(top));
+                            chart.spPr.xfrm.setExtX(parseInt(right - left));
+                            chart.spPr.xfrm.setExtY(parseInt(bottom - top));
+                        	
+                            chart.checkDrawingBaseCoords();
+                            chart.recalculate();
                     	}
                     
                     	//console.log(JSON.stringify(json));
