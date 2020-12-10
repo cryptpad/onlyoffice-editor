@@ -253,7 +253,9 @@
 
 			LargeRangeWarning: -900,
 
-			LockedEditView: -950
+			LockedEditView: -950,
+
+			Password : -1000
 		}
 	};
 
