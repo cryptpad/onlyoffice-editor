@@ -1252,12 +1252,12 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
         case 8001: //ASC_PRESENTATIONS_EVENT_TYPE_ALL_TRANSITIONS
         {
-            var aTimings = [];
+            var aTransitions = [];
             var slides = this.WordControl.m_oLogicDocument.Slides;
             for(var i = 0; i < slides.length; ++i){
-                aTimings.push(slides[i].timing.ToArray());
+                aTransitions.push(slides[i].transition.ToArray());
             }
-            _return = aTimings;
+            _return = aTransitions;
             break;
         }
 
@@ -1362,7 +1362,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
         case 8124: // ASC_PRESENTATIONS_EVENT_TYPE_SLIDE_TIMIN_GALL
         {
-            this.SlideTimingApplyToAll();
+            this.SlideTransitionApplyToAll();
             break;
         }
 
@@ -1655,6 +1655,17 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                     _api.asc_changeComment(commentId, ascComment);
                 }
             }
+            break;
+        }
+
+        case 23109: // ASC_MENU_EVENT_TYPE_DO_CAN_ADD_QUOTED_COMMENT
+        {
+            var _stream = global_memory_stream_menu;
+            _stream["ClearNoAttack"]();
+            _stream["WriteString2"](JSON.stringify({
+                result: this.can_AddQuotedComment()
+            }));
+            _return = _stream;
             break;
         }
 

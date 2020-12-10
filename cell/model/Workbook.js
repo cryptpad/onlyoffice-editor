@@ -3480,6 +3480,12 @@
 		}
 	};
 
+	Workbook.prototype.checkCorrectTables = function () {
+		for(var i = 0; i < this.aWorksheets.length; ++i) {
+			this.aWorksheets[i].checkCorrectTables();
+		}
+	};
+
 //-------------------------------------------------------------------------------------------------
 	var tempHelp = new ArrayBuffer(8);
 	var tempHelpUnit = new Uint8Array(tempHelp);
@@ -6330,6 +6336,7 @@
 		this._moveFormulas(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset);
 		this._moveCells(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset);
 		this._moveMergedAndHyperlinks(prepared, oBBoxFrom, oBBoxTo, copyRange, wsTo, offset);
+		this._moveDataValidation(oBBoxFrom, oBBoxTo, copyRange, offset, wsTo);
 
 		if(true == this.workbook.bUndoChanges || true == this.workbook.bRedoChanges) {
 			wsTo.autoFilters.unmergeTablesAfterMove(oBBoxTo);
@@ -8934,6 +8941,28 @@
 		}
 	};
 
+	Worksheet.prototype.checkCorrectTables = function () {
+		for (var i = 0; i < this.TableParts.length; ++i) {
+			var table = this.TableParts[i];
+			if (table.isHeaderRow()) {
+				for (var j = 0; j < table.TableColumns.length; j++) {
+					this._getCell(table.Ref.r1, table.Ref.c1 + j, function(cell) {
+						var tableColName = table.TableColumns[j].Name;
+						var valueData = cell.getValueData();
+						var val = valueData && valueData.value && valueData.value.text;
+						if (val !== tableColName){
+							cell.setValueData(
+								new AscCommonExcel.UndoRedoData_CellValueData(null, new AscCommonExcel.CCellValue({
+									text: tableColName,
+									type: CellValueType.String
+								})));
+						}
+					});
+				}
+			}
+		}
+	};
+
 	Worksheet.prototype.getDataValidationProps = function (doExtend) {
 		var _selection = this.getSelection();
 		
@@ -8976,7 +9005,7 @@
 
 	Worksheet.prototype.deleteDataValidationById = function (id) {
 		if (this.dataValidations) {
-			this.dataValidations.delete(id);
+			this.dataValidations.delete(this, id);
 		}
 	};
 
@@ -8986,9 +9015,33 @@
 		}
 	};
 
-	Worksheet.prototype.updateDataValidation = function (bInsert, operType, updateRange) {
+	Worksheet.prototype.shiftDataValidation = function (bInsert, operType, updateRange) {
 		if (this.dataValidations) {
-			this.dataValidations.updateDiff(bInsert, operType, updateRange);
+			this.dataValidations.shift(this, bInsert, operType, updateRange);
+		}
+	};
+
+	Worksheet.prototype.clearDataValidation = function (ranges, addToHistory) {
+		if (this.dataValidations) {
+			this.dataValidations.clear(this, ranges, addToHistory);
+		}
+	};
+
+	Worksheet.prototype._moveDataValidation = function (oBBoxFrom, oBBoxTo, copyRange, offset, wsTo) {
+		if (!wsTo) {
+			wsTo = this;
+		}
+		if (false === this.workbook.bUndoChanges && false === this.workbook.bRedoChanges) {
+			wsTo.clearDataValidation([oBBoxTo], true);
+			if (copyRange) {
+
+			} else {
+				if (this === wsTo) {
+
+				} else {
+
+				}
+			}
 		}
 	};
 

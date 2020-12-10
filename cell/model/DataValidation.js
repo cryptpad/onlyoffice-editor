@@ -656,6 +656,110 @@
 	CDataValidation.prototype.setFormula2 = function (newVal, addToHistory) {
 		this.formula2 = newVal;
 	};
+	CDataValidation.prototype.shift = function (bInsert, type, updateRange) {
+
+		var _setDiff = function (_range) {
+			var _newRanges, offset, tempRange, intersection, otherPart, diff;
+
+			switch (type) {
+				case c_oAscInsertOptions.InsertCellsAndShiftDown:
+					tempRange = new Asc.Range(updateRange.c1, updateRange.r1, updateRange.c2, AscCommon.gc_nMaxRow0);
+					intersection = tempRange.intersection(_range);
+					if (intersection) {
+						diff = updateRange.r2 - updateRange.r1 + 1;
+
+						_newRanges = [];
+						//добавляем сдвинутую часть диапазона
+						_newRanges.push(intersection);
+						offset = new AscCommon.CellBase(bInsert ? diff : -diff, 0);
+						otherPart = _newRanges[0].difference(_range);
+						_newRanges[0].setOffset(offset);
+						//исключаем сдвинутую часть из диапазона
+						_newRanges = _newRanges.concat(otherPart);
+
+					}
+					break;
+
+				case c_oAscInsertOptions.InsertCellsAndShiftRight:
+					tempRange = new Asc.Range(updateRange.c1, updateRange.r1, AscCommon.gc_nMaxCol0, updateRange.r2);
+					intersection = tempRange.intersection(_range);
+					if (intersection) {
+						diff = updateRange.c2 - updateRange.c1 + 1;
+						_newRanges = [];
+						//добавляем сдвинутую часть диапазона
+						_newRanges.push(intersection);
+						offset = new AscCommon.CellBase(0, bInsert ? diff : -diff, 0);
+						otherPart = _newRanges[0].difference(_range);
+						_newRanges[0].setOffset(offset);
+						//исключаем сдвинутую часть из диапазона
+						_newRanges = _newRanges.concat(otherPart);
+					}
+					break;
+			}
+
+			return _newRanges;
+		};
+
+		var _offset;
+		if (type === c_oAscInsertOptions.InsertCellsAndShiftDown || type === c_oAscInsertOptions.InsertRows) {
+			_offset = new AscCommon.CellBase(updateRange.r2 - updateRange.r1 + 1, 0);
+			if (!bInsert) {
+				_offset.row = -_offset.row;
+			}
+		} else {
+			_offset = new AscCommon.CellBase(0, updateRange.c2 - updateRange.c1 + 1);
+			if (!bInsert) {
+				_offset.col = -_offset.col;
+			}
+		}
+
+		var newRanges = [];
+		var bDel, isChanged;
+		for (var i = 0; i < this.ranges.length; i++) {
+			if (!bInsert && updateRange.containsRange(this.ranges[i])) {
+				bDel = true;
+			} else {
+				if (updateRange.isIntersectForShift(this.ranges[i], _offset)) {
+					var cloneRange = this.ranges[i].clone();
+					cloneRange.forShift(updateRange, _offset);
+					newRanges.push(cloneRange);
+					isChanged = true;
+				} else {
+					var changedRanges = _setDiff(this.ranges[i]);
+					if (changedRanges) {
+						newRanges = newRanges.concat(changedRanges);
+						isChanged = true;
+					} else {
+						newRanges = newRanges.concat(this.ranges[i].clone());
+					}
+				}
+			}
+		}
+		if (!newRanges.length && bDel) {
+			//удаляем
+			return -1;
+		} else if (newRanges.length && isChanged) {
+			//меняем диапазон
+			return newRanges;
+		}
+	};
+
+	CDataValidation.prototype.clear = function (ranges) {
+		var newRanges = [];
+		var isChanged;
+		for (var i = 0; i < this.ranges.length; i++) {
+			for (var j = 0; j < ranges.length; j++) {
+				var intersection = this.ranges[i].intersection(ranges[j]);
+				if (intersection) {
+					isChanged = true;
+					newRanges = newRanges.concat(intersection.difference(this.ranges[i]));
+				}
+			}
+		}
+
+		return isChanged ? newRanges : null;
+	};
+
 
 	function CDataValidations() {
 		this.disablePrompts = false;
@@ -682,46 +786,17 @@
 		}
 		return res;
 	};
-	CDataValidations.prototype.updateDiff = function(bInsert, type, updateRange) {
-
-		if (bInsert) {
-			switch (type) {
-				case c_oAscInsertOptions.InsertCellsAndShiftDown:
-
-					break;
-
-				case c_oAscInsertOptions.InsertCellsAndShiftRight:
-
-					break;
-
-				case c_oAscInsertOptions.InsertColumns:
-
-					break;
-
-				case c_oAscInsertOptions.InsertRows:
-
-					break;
-			}
-		} else {
-			switch (type) {
-				case c_oAscDeleteOptions.DeleteCellsAndShiftTop:
-
-					break;
-
-				case c_oAscDeleteOptions.DeleteCellsAndShiftLeft:
-
-					break;
-
-				case c_oAscDeleteOptions.DeleteColumns:
-
-					break;
-
-				case c_oAscDeleteOptions.DeleteRows:
-
-					break;
+	CDataValidations.prototype.shift = function(ws, bInsert, type, updateRange) {
+		for (var i = 0; i < this.elems.length; i++) {
+			var isUpdate = this.elems[i].shift(bInsert, type, updateRange);
+			if (isUpdate === -1) {
+				this.delete(ws, this.elems[i].Id, true);
+			} else if (isUpdate) {
+				var to = this.elems[i].clone();
+				to.ranges = isUpdate;
+				this.change(ws, this.elems[i], to , true);
 			}
 		}
-		updateCommentsList(aChangedComments);
 	};
 
 	CDataValidations.prototype.add = function(ws, val, addToHistory) {
@@ -741,15 +816,22 @@
 		}
 		if (addToHistory) {
 			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_DataValidationChange, ws.getId(), null,
-				new AscCommonExcel.UndoRedoData_DataValidation(new AscCommonExcel.UndoRedoData_BinaryWrapper(from), new AscCommonExcel.UndoRedoData_BinaryWrapper(to)));
+				new AscCommonExcel.UndoRedoData_DataValidation(from.Id, new AscCommonExcel.UndoRedoData_BinaryWrapper(from), new AscCommonExcel.UndoRedoData_BinaryWrapper(to)));
 		}
 	};
 
-	CDataValidations.prototype.delete = function (id) {
+	CDataValidations.prototype.delete = function (ws, id, addToHistory) {
+		var from;
 		for (var i = 0; i < this.elems.length; i++) {
 			if (this.elems[i].Id === id) {
+				from = this.elems[i];
 				this.elems.splice(i, 1);
 			}
+		}
+
+		if (addToHistory) {
+			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_DataValidationDelete, ws.getId(), null,
+				new AscCommonExcel.UndoRedoData_DataValidation(from.Id, new AscCommonExcel.UndoRedoData_BinaryWrapper(from), null));
 		}
 	};
 
@@ -884,7 +966,7 @@
 				//в данном случае расширяем диапазон
 				//set
 			} else {
-				this.add(ws, prepeareAdd(props), null, true);
+				this.add(ws, prepeareAdd(props), true);
 			}
 		} else if (equalRangeDataValidation) {
 			this.change(ws, equalRangeDataValidation, props, true);
@@ -925,6 +1007,17 @@
 			}
 			//разбиваем диапазон объектов, с которыми пересекаемся + добавляем новый
 			this.add(ws, prepeareAdd(props), true);
+		}
+	};
+
+	CDataValidations.prototype.clear = function (ws, ranges, addToHistory) {
+		for (var i = 0; i < this.elems.length; i++) {
+			var changedRanges = this.elems[i].clear(ranges);
+			if (changedRanges) {
+				var newDataValidation = this.clone();
+				newDataValidation.ranges = changedRanges;
+				this.change(ws, this, newDataValidation, addToHistory);
+			}
 		}
 	};
 

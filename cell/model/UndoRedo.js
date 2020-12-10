@@ -2050,13 +2050,14 @@ function (window, undefined) {
 		}
 	};
 
-	function UndoRedoData_DataValidation(from, to) {
+	function UndoRedoData_DataValidation(id, from, to) {
+		this.id = id;
 		this.from = from;
 		this.to = to;
 	}
 
 	UndoRedoData_DataValidation.prototype.Properties = {
-		to: 0
+		id: 0, to: 1
 	};
 	UndoRedoData_DataValidation.prototype.getType = function () {
 		return UndoRedoDataTypes.DataValidation;
@@ -2066,6 +2067,9 @@ function (window, undefined) {
 	};
 	UndoRedoData_DataValidation.prototype.getProperty = function (nType) {
 		switch (nType) {
+			case this.Properties.id:
+				return this.id;
+				break;
 			case this.Properties.from:
 				return this.from;
 				break;
@@ -2961,10 +2965,16 @@ function (window, undefined) {
 				ws._addDataValidation(Data.getData());
 			}
 		} else if (AscCH.historyitem_Worksheet_DataValidationChange === Type) {
-			var wrapper = bUndo ? Data.from.getData() : Data.to.getData();
-			var dataValidation = ws.getDataValidationById(wrapper.Id);
+			var data = bUndo ? Data.from.getData() : Data.to.getData();
+			var dataValidation = ws.getDataValidationById(data.Id);
 			if (dataValidation) {
-				ws.dataValidations.elems[dataValidation.index] = wrapper;
+				ws.dataValidations.elems[dataValidation.index] = data;
+			}
+		} else if (AscCH.historyitem_Worksheet_DataValidationDelete === Type) {
+			if (bUndo) {
+				ws._addDataValidation(Data.from.getData());
+			} else {
+				ws.deleteDataValidationById(Data.id);
 			}
 		}
 	};
