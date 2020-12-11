@@ -488,6 +488,13 @@ Paragraph.prototype.GetAllParagraphs = function(Props, ParaArray)
 				this.Content[CurPos].GetAllParagraphs(Props, ParaArray);
 		}	
 	}
+	if(Props && Props.DoNotAddRemoved)
+	{
+		if(this.GetReviewType() === reviewtype_Remove)
+		{
+			return ParaArray;
+		}
+	}
 	if (!Props || true === Props.All)
 	{
 		ParaArray.push(this);
@@ -16061,7 +16068,7 @@ Paragraph.prototype.GetLineNumbersInfo = function(isNewPage)
 	{
 		return this.LineNumbersInfo.StartNum + this.Lines.length;
 	}
-}
+};
 /**
  * Учитываем ли номера строк у данного параграфа
  * @returns {boolean}
@@ -16075,21 +16082,24 @@ Paragraph.prototype.IsCountLineNumbers = function()
 Paragraph.prototype.asc_getText = function()
 {
 	var sText = "";
-	var oNumPr = this.GetNumPr();
-	var nLvl = oNumPr && oNumPr.Lvl;
-	var nIndex;
-	if(nLvl !== undefined && nLvl !== null)
+	if(this.GetReviewType() !== reviewtype_Remove)
 	{
-		for(nIndex = 0; nIndex < nLvl; ++nIndex)
+		var oNumPr = this.GetNumPr();
+		var nLvl = oNumPr && oNumPr.Lvl;
+		var nIndex;
+		if(nLvl !== undefined && nLvl !== null)
 		{
+			for(nIndex = 0; nIndex < nLvl; ++nIndex)
+			{
+				sText += " ";
+			}
+		}
+		var sNumText = this.GetNumberingText();
+		if(typeof sNumText === "string" && sNumText.length > 0)
+		{
+			sText += sNumText;
 			sText += " ";
 		}
-	}
-	var sNumText = this.GetNumberingText();
-	if(typeof sNumText === "string" && sNumText.length > 0)
-	{
-		sText += sNumText;
-		sText += " ";
 	}
 	sText += this.GetText();
 	return sText;

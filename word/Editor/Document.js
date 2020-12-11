@@ -14341,6 +14341,7 @@ CDocument.prototype.GetAllNumberedParagraphs = function()
 	var oProps = {};
 	oProps.OnlyMainDocument = true;
 	oProps.Shapes = false;
+	oProps.DoNotAddRemoved = true;
 	oProps.Numbering = true;
 	oProps.NumPr = [];
 	var oNumbering = this.GetNumbering();
