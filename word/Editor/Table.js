@@ -15411,31 +15411,29 @@ CTable.prototype.private_UpdateSelectedCellsArray = function(bForceSelectByLines
 	}
 	else
 	{
-		var RowsCount = this.Content.length;
+		var nRowsCount = this.GetRowsCount();
 
-		var StartRow = Math.min(Math.max(0, this.Selection.StartPos.Pos.Row), RowsCount - 1);
-		var EndRow   = Math.min(Math.max(0, this.Selection.EndPos.Pos.Row), RowsCount - 1);
+		var nStartRow = Math.min(Math.max(0, this.Selection.StartPos.Pos.Row), nRowsCount - 1);
+		var nEndRow   = Math.min(Math.max(0, this.Selection.EndPos.Pos.Row), nRowsCount - 1);
 
-		if (EndRow < StartRow)
+		if (nEndRow < nStartRow)
 		{
-			var TempRow = StartRow;
-			StartRow    = EndRow;
-			EndRow      = TempRow;
+			var nSwapRow = nStartRow;
+			nStartRow    = nEndRow;
+			nEndRow      = nSwapRow;
 		}
 
-		for (var CurRow = StartRow; CurRow <= EndRow; CurRow++)
+		for (var nCurRow = nStartRow; nCurRow <= nEndRow; ++nCurRow)
 		{
-			var Row        = this.Content[CurRow];
-			var CellsCount = Row.Get_CellsCount();
-			for (var CurCell = 0; CurCell < CellsCount; CurCell++)
+			var oRow = this.GetRow(nCurRow);
+			for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
 			{
-				var Cell   = Row.Get_Cell(CurCell);
-				var Vmerge = Cell.GetVMerge();
+				var oCell = oRow.GetCell(nCurCell);
 
-				if (vmerge_Continue === Vmerge)
+				if (vmerge_Continue === oCell.GetVMerge())
 					continue;
 
-				this.Selection.Data.push({Row : CurRow, Cell : CurCell});
+				this.Selection.Data.push({Row : nCurRow, Cell : nCurCell});
 			}
 		}
 	}
