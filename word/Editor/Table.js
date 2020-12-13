@@ -15284,7 +15284,7 @@ CTable.prototype.private_UpdateSelectedCellsArray = function(bForceSelectByLines
 	this.Selection.Type = table_Selection_Cell;
 	this.Selection.Data = [];
 
-	if (this.Parent.IsSelectedSingleElement() && false == bForceSelectByLines)
+	if (this.Parent.IsSelectedSingleElement() && false === bForceSelectByLines)
 	{
 		// Определяем ячейки, которые попали в наш селект
 		// Алгоритм следующий:
@@ -15382,35 +15382,29 @@ CTable.prototype.private_UpdateSelectedCellsArray = function(bForceSelectByLines
 				}
 			}
 
-			for (var CurRow = StartRow; CurRow <= EndRow; CurRow++)
+			for (var nCurRow = StartRow; nCurRow <= EndRow; ++nCurRow)
 			{
-				var Row        = this.Content[CurRow];
-				var BeforeInfo = Row.Get_Before();
-				var CurGridCol = BeforeInfo.GridBefore;
-				var CellsCount = Row.Get_CellsCount();
-				for (var CurCell = 0; CurCell < CellsCount; CurCell++)
+				var oRow        = this.GetRow(nCurRow);
+				var nCurGridCol = oRow.GetBefore().Grid;
+				for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
 				{
-					var Cell     = Row.Get_Cell(CurCell);
-					var GridSpan = Cell.Get_GridSpan();
-					var Vmerge   = Cell.GetVMerge();
+					var oCell     = oRow.GetCell(nCurCell);
+					var nGridSpan = oCell.GetGridSpan();
 
-					// Обсчет такик ячеек произошел ранее
-					if (vmerge_Continue === Vmerge)
+					if (vmerge_Continue === oCell.GetVMerge())
 					{
-						CurGridCol += GridSpan;
+						nCurGridCol += nGridSpan;
 						continue;
 					}
 
-					// У первой строки мы не селектим ячейки до начальной.
-					// Аналогично, у последней строки мы не селектим ничего после
-					// конечной ячейки.
-					if (( StartRow === CurRow /*&& CurCell >= StartCell*/ ) || ( EndRow === CurRow /*&& CurCell <= EndCell*/ ) || ( CurRow > StartRow && CurRow < EndRow ))
+					if ((nCurGridCol >= GridCol_start && nCurGridCol <= GridCol_end)
+						|| (nCurGridCol + nGridSpan - 1 >= GridCol_start && nCurGridCol + nGridSpan - 1 <= GridCol_end)
+						|| (nCurGridCol <= GridCol_start && GridCol_end <= nCurGridCol + nGridSpan - 1))
 					{
-						if (( CurGridCol >= GridCol_start && CurGridCol <= GridCol_end ) || ( CurGridCol + GridSpan - 1 >= GridCol_start && CurGridCol + GridSpan - 1 <= GridCol_end ))
-							this.Selection.Data.push({Row : CurRow, Cell : CurCell});
+						this.Selection.Data.push({Row : nCurRow, Cell : nCurCell});
 					}
 
-					CurGridCol += GridSpan;
+					nCurGridCol += nGridSpan;
 				}
 			}
 		}
