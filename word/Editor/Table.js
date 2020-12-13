@@ -15274,7 +15274,7 @@ CTable.prototype.private_CheckHitInBorder = function(X, Y, nCurPage)
 };
 /**
  * Обновляем массив выделенных ячеек
- * @param {boolean} [bForceSelectByLines=false] использовать ли выделение по строкам
+ * @param {boolean} [bForceSelectByLines=false] использовать ли обязательное выделение по строкам
  */
 CTable.prototype.private_UpdateSelectedCellsArray = function(bForceSelectByLines)
 {
@@ -15442,18 +15442,6 @@ CTable.prototype.private_UpdateSelectedCellsArray = function(bForceSelectByLines
 
 	if (this.Selection.Data.length > 1)
 		this.Selection.CurRow = this.Selection.Data[this.Selection.Data.length - 1].Row;
-
-	// В "flow" таблице обновляем значения настроек для параграфа и текста
-	if (true != this.Is_Inline() && true === this.Selection.Use && false === this.Selection.Start)
-	{
-		var ParaPr = this.GetCalculatedParaPr();
-		if (null != ParaPr)
-			editor.UpdateParagraphProp(ParaPr);
-
-		var TextPr = this.GetCalculatedTextPr();
-		if (null != TextPr)
-			editor.UpdateTextPr(TextPr);
-	}
 };
 CTable.prototype.Internal_CompareBorders2 = function(Border1, Border2)
 {
