@@ -3906,36 +3906,29 @@ CTable.prototype.SelectTable = function(Type)
 			break;
 		}
 
-		case c_oAscTableSelectionType.Column :
+		case c_oAscTableSelectionType.Column:
 		{
-			var Grid_start = -1;
-			var Grid_end   = -1;
+			var nGridStart = -1;
+			var nGridEnd   = -1;
 
-			if (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type)
+			if (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0)
 			{
-				for (var Index = 0; Index < this.Selection.Data.length; Index++)
-				{
-					var Pos  = this.Selection.Data[Index];
-					var Row  = this.Content[Pos.Row];
-					var Cell = Row.Get_Cell(Pos.Cell);
+				var oStartPos = this.Selection.Data[0];
+				var oEndPos   = this.Selection.Data[this.Selection.Data.length - 1];
 
-					var StartGridCol = Row.Get_CellInfo(Pos.Cell).StartGridCol;
-					var EndGridCol   = StartGridCol + Cell.Get_GridSpan() - 1;
+				var oStartRow = this.GetRow(oStartPos.Row);
+				var oEndRow   = this.GetRow(oEndPos.Row)
 
-					if (-1 === Grid_start || Grid_start > StartGridCol)
-						Grid_start = StartGridCol;
-
-					if (-1 === Grid_end || Grid_end < EndGridCol)
-						Grid_end = EndGridCol;
-				}
+				nGridStart = oStartRow.GetCellInfo(oStartPos.Cell).StartGridCol;
+				nGridEnd   = oEndRow.GetCellInfo(oEndPos.Cell).StartGridCol + oEndRow.GetCell(oEndPos.Cell).GetGridSpan() - 1;
 			}
 			else
 			{
-				Grid_start = this.Content[this.CurCell.Row.Index].Get_CellInfo(this.CurCell.Index).StartGridCol;
-				Grid_end   = Grid_start + this.CurCell.Get_GridSpan() - 1;
+				nGridStart = this.CurCell.GetRow().GetCellInfo(this.CurCell.GetIndex()).StartGridCol;
+				nGridEnd   = nGridStart + this.CurCell.GetGridSpan() - 1;
 			}
 
-			this.private_GetColumnByGridRange(Grid_start, Grid_end, NewSelectionData);
+			this.private_GetColumnByGridRange(nGridStart, nGridEnd, NewSelectionData);
 			break;
 		}
 
@@ -9942,7 +9935,13 @@ CTable.prototype.Row_Remove2 = function()
 	return true;
 };
 /**
- * Удаление колонки либо по выделению Selection, либо по текущей ячейке.
+ * Удаление колонки либо по выделению Selection, либо по текущей ячейке
+ *
+ * ВАЖНО:
+ * Данная функция больше не должна использоваться. Удаление колонки должно теперь осуществляться через
+ * выделение колонки, с помощью функции SelectTable(c_oAscTableSelectionType.Column), и последующим удалением ячеек,
+ * с помощью функции RemoveTableCells
+ *
  */
 CTable.prototype.RemoveTableColumn = function()
 {
@@ -9974,10 +9973,10 @@ CTable.prototype.RemoveTableColumn = function()
 		var Cur_Grid_start = Row.Get_CellInfo(Cells_pos[Index].Cell).StartGridCol;
 		var Cur_Grid_end   = Cur_Grid_start + Cell.Get_GridSpan() - 1;
 
-		if (-1 === Grid_start || ( -1 != Grid_start && Grid_start > Cur_Grid_start ))
+		if (-1 === Grid_start || ( -1 !== Grid_start && Grid_start > Cur_Grid_start ))
 			Grid_start = Cur_Grid_start;
 
-		if (-1 === Grid_end || ( -1 != Grid_end && Grid_end < Cur_Grid_end ))
+		if (-1 === Grid_end || ( -1 !== Grid_end && Grid_end < Cur_Grid_end ))
 			Grid_end = Cur_Grid_end;
 	}
 
@@ -10061,7 +10060,7 @@ CTable.prototype.RemoveTableColumn = function()
 	if (this.Content.length <= 0)
 		return false;
 
-	// TODO: При удалении колонки надо запоминать информацию об вертикально
+	// TODO: При удалении колонки надо запоминать информацию о вертикально
 	//       объединенных ячейках, и в новой сетке объединять ячейки только
 	//       если они были объединены изначально. Сейчас если ячейка была
 	//       объединена с какой-либо ячейков, то она может после удаления колонки
@@ -10082,7 +10081,7 @@ CTable.prototype.RemoveTableColumn = function()
 		for (var CurCell = 0; CurCell < CellsCount; CurCell++)
 		{
 			var Cell = Row.Get_Cell(CurCell);
-			if (vmerge_Continue != Cell.GetVMerge())
+			if (vmerge_Continue !== Cell.GetVMerge())
 			{
 				bRemove = false;
 				break;
@@ -18359,7 +18358,8 @@ CTable.prototype.private_GetColumnByGridRange = function(nGridStart, nGridEnd, a
 			var nStartGridCol = oRow.GetCellInfo(nCurCell).StartGridCol;
 			var nEndGridCol   = nStartGridCol + oCell.GetGridSpan() - 1;
 
-			if (nEndGridCol >= nGridStart && nStartGridCol <= nGridEnd)
+			if ((nEndGridCol >= nGridStart && nStartGridCol <= nGridEnd)
+				|| (nStartGridCol <= nGridStart && nGridEnd <= nEndGridCol))
 				arrPos.push({Cell : nCurCell, Row : nCurRow});
 		}
 	}

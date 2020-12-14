@@ -4900,9 +4900,8 @@ background-repeat: no-repeat;\
 		if (!oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Remove))
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_TableRemoveColumn);
-			oLogicDocument.RemoveTableColumn();
+			oLogicDocument.RemoveTableCells();
 			oLogicDocument.FinalizeAction();
-
 			return true;
 		}
 		else
