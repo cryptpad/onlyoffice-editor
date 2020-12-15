@@ -1908,7 +1908,7 @@ function (window, undefined) {
 			}
 
 			res.fillFromArray(resArr);
-			
+
 			return res;
 		};
 
@@ -1964,7 +1964,7 @@ function (window, undefined) {
 	VHLOOKUPCache.prototype.calculate = function (arg, argument1) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2];
 		var arg3 = arg[3] ? arg[3].tocBool().value : true;
-		var opt_xlookup = arg[4] !== undefined
+		var opt_xlookup = arg[4] !== undefined;
 		var opt_arg4, opt_arg5;
 		if (opt_xlookup) {
 			opt_arg4 = arg[4];
@@ -2193,6 +2193,14 @@ function (window, undefined) {
 			return -1;
 		};
 
+		//бинарный поиск для xlookup(так работает ms) бинарный поиск происходит до определенной длины массива
+		//как только длина становится меньше n(около 10), начинается линейный поиск
+		//так же в случае бинарного поиска когда требуется возвратить меньший или больший элемент(opt_arg4)
+		//- возвращается последний обработанный элемент меньший(больший) искомого, между собой элементы не сравниваются
+
+		//мы делаем иначе: бинарный поиск происходит всегда и не зависит от длины массива, при поиске наибольшего(наименьшего)
+		//из обработанных элементов выбираем те, которые больше(меньше) -> из них уже ищем наименьший(наибольший)
+		//т.е. в итоге получаем следующий наименьший/наибольший элемент
 		var _binarySearch = function (revert) {
 			i = 0;
 
