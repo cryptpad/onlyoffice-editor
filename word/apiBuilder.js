@@ -4973,56 +4973,6 @@
 		return this;
 	};
 	/**
-	 * Specify the shading applied to the contents of the current paragraph.
-	 * @memberof ApiParagraph
-	 * @typeofeditors ["CDE"]
-	 * @param {ShdType} sType - The shading type applied to the contents of the current paragraph.
-	 * @param {byte} r - Red color component value.
-	 * @param {byte} g - Green color component value.
-	 * @param {byte} b - Blue color component value.
-	 * @returns {ApiParagraph} this
-	 */
-	ApiParagraph.prototype.SetShd = function(sType, r, g, b)
-	{
-		var color = new Asc.asc_CColor();
-		color.r    = r;
-		color.g    = g;
-		color.b    = b;
-		color.Auto = false;
-
-		this.Paragraph.Set_ApplyToAll(true);
-
-		var Shd = new CDocumentShd();
-
-		if (sType === "nil")
-		{
-			var _Shd = {Value : Asc.c_oAscShdNil};
-			Shd.Set_FromObject(_Shd);
-			this.Paragraph.SetParagraphShd(_Shd);
-		}
-		else if (sType === "clear")
-		{
-			var Unifill        = new AscFormat.CUniFill();
-			Unifill.fill       = new AscFormat.CSolidFill();
-			Unifill.fill.color = AscFormat.CorrectUniColor(color, Unifill.fill.color, 1);
-			var _Shd = {
-				Value   : Asc.c_oAscShdClear,
-				Color   : {
-					r : color.asc_getR(),
-					g : color.asc_getG(),
-					b : color.asc_getB()
-				},
-				Unifill : Unifill
-			};
-			
-			Shd.Set_FromObject(_Shd);
-			this.Paragraph.SetParagraphShd(_Shd);
-		}
-		this.Paragraph.Set_ApplyToAll(false);
-		
-		return this;
-	};
-	/**
 	 * Specify that all small letter characters in this paragraph are formatted for display only as their capital
 	 * letter character equivalents in a font size two points smaller than the actual font size specified for this text.
 	 * @memberof ApiParagraph
@@ -8324,6 +8274,24 @@
 		this.private_OnChange();
 	};
 	/**
+	 * Gets the paragraph style method.
+	 * @memberof ApiParaPr
+	 * @typeofeditors ["CDE"]
+	 * @return {?ApiStyle} - The style of the paragraph.
+	 */
+	ApiParaPr.prototype.GetStyle = function()
+	{
+		var styleId = this.ParaPr.PStyle;
+		if (styleId != undefined)
+			return editor.GetDocument().GetStyle(editor.asc_GetStyleNameById(styleId));
+
+		styleId = editor.GetDocument().Document.Styles.Default.ParaPr.PStyle;
+		if (styleId != undefined)
+			return editor.GetDocument().GetStyle(editor.asc_GetStyleNameById(styleId));
+
+		return null;
+	};
+	/**
 	 * Specify that any space before or after this paragraph set using the 
 	 * {@link ApiParaPr#SetSpacingBefore} or {@link ApiParaPr#SetSpacingAfter} spacing element, should not be applied when the preceding and 
 	 * following paragraphs are of the same paragraph style, affecting the top and bottom spacing respectively.
@@ -8348,6 +8316,19 @@
 		this.private_OnChange();
 	};
 	/**
+	 * Gets the paragraph left side indentation.
+	 * @memberof ApiParaPr
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @returns {twips} - The paragraph left side indentation value measured in twentieths of a point (1/1440 of an inch).
+	 */
+	ApiParaPr.prototype.GetIndLeft = function()
+	{
+		if (this.ParaPr.Ind.Left != undefined)
+			return this.ParaPr.Ind.Left / (25.4 / 72.0 / 20);
+		
+		return editor.GetDocument().Document.Styles.Default.ParaPr.Ind.Left / (25.4 / 72.0 / 20);
+	};
+	/**
 	 * Set the paragraph right side indentation.
 	 * @memberof ApiParaPr
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
@@ -8357,6 +8338,19 @@
 	{
 		this.ParaPr.Ind.Right = private_Twips2MM(nValue);
 		this.private_OnChange();
+	};
+	/**
+	 * Gets the paragraph right side indentation.
+	 * @memberof ApiParaPr
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @returns {twips} - The paragraph right side indentation value measured in twentieths of a point (1/1440 of an inch).
+	 */
+	ApiParaPr.prototype.GetIndRight = function()
+	{
+		if (this.ParaPr.Ind.Right != undefined)
+			return this.ParaPr.Ind.Right / (25.4 / 72.0 / 20);
+		
+		return editor.GetDocument().Document.Styles.Default.ParaPr.Ind.Right / (25.4 / 72.0 / 20);
 	};
 	/**
 	 * Set the paragraph first line indentation.
@@ -8370,6 +8364,19 @@
 		this.private_OnChange();
 	};
 	/**
+	 * Gets the paragraph first line indentation.
+	 * @memberof ApiParaPr
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @returns {twips} - The paragraph first line indentation value measured in twentieths of a point (1/1440 of an inch).
+	 */
+	ApiParaPr.prototype.GetIndFirstLine = function()
+	{
+		if (this.ParaPr.Ind.FirstLine != undefined)
+			return this.ParaPr.Ind.FirstLine / (25.4 / 72.0 / 20);
+		
+		return editor.GetDocument().Document.Styles.Default.ParaPr.Ind.FirstLine / (25.4 / 72.0 / 20);
+	};
+	/**
 	 * Set paragraph contents justification.
 	 * @memberof ApiParaPr
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
@@ -8380,6 +8387,34 @@
 	{
 		this.ParaPr.Jc = private_GetParaAlign(sJc);
 		this.private_OnChange();
+	};
+	/**
+	 * Gets paragraph contents justification.
+	 * @memberof ApiParaPr
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @returns {("left" | "right" | "both" | "center")} 
+	 */
+	ApiParaPr.prototype.GetJc = function()
+	{
+		function GetParaAlign(nType)
+		{
+			switch (nType)
+			{
+				case 0 :
+					return "right";
+				case 1 :
+					return "left";
+				case 2 :
+					return "center";
+				case 3 : 
+					return "both";
+			}
+		}
+
+		if (this.ParaPr.Jc != undefined)
+			return GetParaAlign(this.ParaPr.Jc);
+
+		return GetParaAlign(editor.GetDocument().Document.Styles.Default.ParaPr.Jc);
 	};
 	/**
 	 * Specify that when rendering this document using a page view, all lines of this paragraph are maintained on a single page whenever possible.
@@ -8453,6 +8488,34 @@
 		this.private_OnChange();
 	};
 	/**
+	 * Get the paragraph line spacing value.
+	 * @memberof ApiParaPr
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @returns {(twips | line240)} - The line spacing value measured either in twentieths of a point (1/1440 of an inch) or in 240ths of a line. 
+	 */
+	ApiParaPr.prototype.GetSpacingLine = function()
+	{
+		function GetSpacingValue(oSpacing)
+		{
+			switch (oSpacing.LineRule)
+			{
+				case Asc.linerule_Auto:
+					return oSpacing.Line * 240.0;
+				case Asc.linerule_AtLeast:
+				case Asc.linerule_Exact:
+					return oSpacing.Line / (25.4 / 72.0 / 20);
+			}
+		}
+		
+		if (this.ParaPr.Spacing.LineRule != undefined)
+		{
+			return GetSpacingValue(this.ParaPr.Spacing);
+		}
+		
+		return GetSpacingValue(editor.GetDocument().Document.Styles.Default.ParaPr.Spacing);
+		
+	};
+	/**
 	 * Set the spacing before the current paragraph. If the value of the isBeforeAuto parameter is true, then 
 	 * any value of the nBefore is ignored. If isBeforeAuto parameter is not specified, then 
 	 * it will be interpreted as false.
@@ -8470,6 +8533,19 @@
 			this.ParaPr.Spacing.BeforeAutoSpacing = isBeforeAuto;
 
 		this.private_OnChange();
+	};
+	/**
+	 * Get the spacing before value of the current paragraph.
+	 * @memberof ApiParaPr
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @returns {twips} - The value of the spacing before the current paragraph measured in twentieths of a point (1/1440 of an inch).
+	 */
+	ApiParaPr.prototype.GetSpacingBefore = function()
+	{
+		if (this.ParaPr.Spacing.Before != undefined)
+			return this.ParaPr.Spacing.Before / (25.4 / 72.0 / 20);
+		
+		return editor.GetDocument().Document.Styles.Default.ParaPr.Spacing.Before / (25.4 / 72.0 / 20);
 	};
 	/**
 	 * Set the spacing after the current paragraph. If the value of the isAfterAuto parameter is true, then 
@@ -8491,6 +8567,19 @@
 		this.private_OnChange();
 	};
 	/**
+	 * Get the spacing after value of the current paragraph. 
+	 * @memberof ApiParaPr
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @returns {twips} - The value of the spacing after the current paragraph measured in twentieths of a point (1/1440 of an inch).
+	 */
+	ApiParaPr.prototype.GetSpacingAfter = function()
+	{
+		if (this.ParaPr.Spacing.After != undefined)
+			return this.ParaPr.Spacing.After / (25.4 / 72.0 / 20);
+		
+		return editor.GetDocument().Document.Styles.Default.ParaPr.Spacing.After / (25.4 / 72.0 / 20);
+	};
+	/**
 	 * Specify the shading applied to the contents of the paragraph.
 	 * @memberof ApiParaPr
 	 * @typeofeditors ["CDE"]
@@ -8504,6 +8593,20 @@
 	{
 		this.ParaPr.Shd = private_GetShd(sType, r, g, b, isAuto);
 		this.private_OnChange();
+	};
+	/**
+	 * Gets the shading applied to the contents of the paragraph.
+	 * @memberof ApiParaPr
+	 * @typeofeditors ["CDE"]
+	 * @returns {ApiRGBColor}
+	 */
+	ApiParaPr.prototype.GetShd = function()
+	{
+		if (this.ParaPr.Shd != undefined)
+			return new ApiRGBColor(this.ParaPr.Shd.Color.r, this.ParaPr.Shd.Color.g, this.ParaPr.Shd.Color.b);
+		
+		var defaultColor = editor.GetDocument().Document.Styles.Default.ParaPr.Shd.Color;
+		return new ApiRGBColor(defaultColor.r, defaultColor.g, defaultColor.b)
 	};
 	/**
 	 * Specify the border which will be displayed below a set of paragraphs which have the same paragraph border settings.
@@ -8646,8 +8749,6 @@
 		}
 		this.private_OnChange();
 	};
-
-
 	/**
 	 * Set the bullet or numbering to the current paragraph.
 	 * @memberof ApiParaPr
