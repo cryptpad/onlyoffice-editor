@@ -8149,7 +8149,7 @@ CTable.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedPar
 
 			var oCellContent = this.GetRow(nCurRow).GetCell(nCurCell).GetContent();
 
-			if (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type)
+			if (true === this.ApplyToAll || (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type))
 			{
 				oCellContent.Set_ApplyToAll(true);
 				oCellContent.GetCurrentParagraph(false, arrSelectedParagraphs, oPr);
