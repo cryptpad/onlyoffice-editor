@@ -2706,7 +2706,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 	};
 	cArray.prototype.getDimensions = function () {
-		return {col: this.getCountElementInRow(), row: this.getCountElement()};
+		return {col: this.getCountElementInRow(), row: this.getRowCount()};
 	};
 
 

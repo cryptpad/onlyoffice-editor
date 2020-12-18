@@ -1533,9 +1533,19 @@ function (window, undefined) {
 			valueForSearching = ('' + arg0.getValue()).toLowerCase();
 		}
 
+		if (cElementType.cellsRange === arg0Val.type) {
+			arg0Val = arg0Val.cross(argument1);
+		} else if (cElementType.cellsRange3D === arg0Val.type) {
+			arg0Val = arg0Val.cross(argument1);
+		}
+
+		if (cElementType.error === arg0Val.type) {
+			return arg0;
+		}
+
 		//TODO hlookup не правильно работает если первый агумент массив - раскомментировать тесты для hlookup
 		var found = false;
-		if (cElementType.array === arg1.type) {
+		if (cElementType.array === arg1.type && !opt_xlookup) {
 			// ToDo
 			if (cElementType.string === arg0.type) {
 				regexp = searchRegExp(valueForSearching);
@@ -1585,7 +1595,14 @@ function (window, undefined) {
 		if (cElementType.cell === arg1.type || cElementType.cell3D === arg1.type ||
 			cElementType.cellsRange === arg1.type || cElementType.cellsRange3D === arg1.type) {
 			range = arg1.getRange();
+		} else if (cElementType.array === arg1.type && opt_xlookup) {
+			var _cacheElem = {elements: []};
+			arg1.foreach(function (elem, r, c) {
+				_cacheElem.elements.push({v: elem, i: (t.bHor ? c : r)});
+			});
+			return this._calculate(_cacheElem.elements, arg0Val, null, opt_arg4, opt_arg5);
 		}
+
 		if (!range) {
 			return new cError(cErrorType.bad_reference);
 		}
@@ -1600,15 +1617,6 @@ function (window, undefined) {
 		c = this.bHor ? bb.c2 : bb.c1;
 		var oSearchRange = ws.getRange3(bb.r1, bb.c1, r, c);
 
-		if (cElementType.cellsRange === arg0Val.type) {
-			arg0Val = arg0Val.cross(argument1);
-		} else if (cElementType.cellsRange3D === arg0Val.type) {
-			arg0Val = arg0Val.cross(argument1);
-		}
-
-		if (cElementType.error === arg0Val.type) {
-			return arg0;
-		}
 
 		res = this._get(oSearchRange, arg0Val, arg3, opt_arg4, opt_arg5);
 		if (opt_xlookup) {
