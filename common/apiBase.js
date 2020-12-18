@@ -415,8 +415,6 @@
 	};
 	baseEditorsApi.prototype.asc_changeDocInfo = function(oDocInfo)
 	{
-		this.DocInfo.asc_getUserInfo().asc_putFullName(oDocInfo.asc_getUserName());
-		this.User.setUserName(oDocInfo.asc_getUserName());
 		var rData = {
 			"c": 'changedocinfo',
 			"id": this.documentId,
@@ -427,8 +425,10 @@
 		{
 			if (null != input && "changedocinfo" == input["type"])
 			{
-				if ('ok' !== input["status"])
-				{
+				if ('ok' === input["status"]) {
+					t.DocInfo.asc_getUserInfo().asc_putFullName(oDocInfo.asc_getUserName());
+					t.User.setUserName(oDocInfo.asc_getUserName());
+				} else {
 					t.sendEvent("asc_onError", AscCommon.mapAscServerErrorToAscError(parseInt(input["data"])),
 						c_oAscError.Level.NoCritical);
 				}
