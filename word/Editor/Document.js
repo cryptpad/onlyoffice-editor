@@ -1269,7 +1269,7 @@ CDocumentPage.prototype.RemoveFlowTable = function(oTable)
 };
 CDocumentPage.prototype.private_GetFlowTableIndex = function(oTable)
 {
-	for (var nIndex = 0, nCount = this.Frames.length; nIndex < nCount; ++nIndex)
+	for (var nIndex = 0, nCount = this.FlowTables.length; nIndex < nCount; ++nIndex)
 	{
 		if (oTable === this.FlowTables[nIndex])
 			return nIndex;

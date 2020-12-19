@@ -3906,36 +3906,29 @@ CTable.prototype.SelectTable = function(Type)
 			break;
 		}
 
-		case c_oAscTableSelectionType.Column :
+		case c_oAscTableSelectionType.Column:
 		{
-			var Grid_start = -1;
-			var Grid_end   = -1;
+			var nGridStart = -1;
+			var nGridEnd   = -1;
 
-			if (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type)
+			if (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0)
 			{
-				for (var Index = 0; Index < this.Selection.Data.length; Index++)
-				{
-					var Pos  = this.Selection.Data[Index];
-					var Row  = this.Content[Pos.Row];
-					var Cell = Row.Get_Cell(Pos.Cell);
+				var oStartPos = this.Selection.Data[0];
+				var oEndPos   = this.Selection.Data[this.Selection.Data.length - 1];
 
-					var StartGridCol = Row.Get_CellInfo(Pos.Cell).StartGridCol;
-					var EndGridCol   = StartGridCol + Cell.Get_GridSpan() - 1;
+				var oStartRow = this.GetRow(oStartPos.Row);
+				var oEndRow   = this.GetRow(oEndPos.Row)
 
-					if (-1 === Grid_start || Grid_start > StartGridCol)
-						Grid_start = StartGridCol;
-
-					if (-1 === Grid_end || Grid_end < EndGridCol)
-						Grid_end = EndGridCol;
-				}
+				nGridStart = oStartRow.GetCellInfo(oStartPos.Cell).StartGridCol;
+				nGridEnd   = oEndRow.GetCellInfo(oEndPos.Cell).StartGridCol + oEndRow.GetCell(oEndPos.Cell).GetGridSpan() - 1;
 			}
 			else
 			{
-				Grid_start = this.Content[this.CurCell.Row.Index].Get_CellInfo(this.CurCell.Index).StartGridCol;
-				Grid_end   = Grid_start + this.CurCell.Get_GridSpan() - 1;
+				nGridStart = this.CurCell.GetRow().GetCellInfo(this.CurCell.GetIndex()).StartGridCol;
+				nGridEnd   = nGridStart + this.CurCell.GetGridSpan() - 1;
 			}
 
-			this.private_GetColumnByGridRange(Grid_start, Grid_end, NewSelectionData);
+			this.private_GetColumnByGridRange(nGridStart, nGridEnd, NewSelectionData);
 			break;
 		}
 
@@ -8156,7 +8149,7 @@ CTable.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedPar
 
 			var oCellContent = this.GetRow(nCurRow).GetCell(nCurCell).GetContent();
 
-			if (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type)
+			if (true === this.ApplyToAll || (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type))
 			{
 				oCellContent.Set_ApplyToAll(true);
 				oCellContent.GetCurrentParagraph(false, arrSelectedParagraphs, oPr);
@@ -9942,7 +9935,13 @@ CTable.prototype.Row_Remove2 = function()
 	return true;
 };
 /**
- * Удаление колонки либо по выделению Selection, либо по текущей ячейке.
+ * Удаление колонки либо по выделению Selection, либо по текущей ячейке
+ *
+ * ВАЖНО:
+ * Данная функция больше не должна использоваться. Удаление колонки должно теперь осуществляться через
+ * выделение колонки, с помощью функции SelectTable(c_oAscTableSelectionType.Column), и последующим удалением ячеек,
+ * с помощью функции RemoveTableCells
+ *
  */
 CTable.prototype.RemoveTableColumn = function()
 {
@@ -9974,10 +9973,10 @@ CTable.prototype.RemoveTableColumn = function()
 		var Cur_Grid_start = Row.Get_CellInfo(Cells_pos[Index].Cell).StartGridCol;
 		var Cur_Grid_end   = Cur_Grid_start + Cell.Get_GridSpan() - 1;
 
-		if (-1 === Grid_start || ( -1 != Grid_start && Grid_start > Cur_Grid_start ))
+		if (-1 === Grid_start || ( -1 !== Grid_start && Grid_start > Cur_Grid_start ))
 			Grid_start = Cur_Grid_start;
 
-		if (-1 === Grid_end || ( -1 != Grid_end && Grid_end < Cur_Grid_end ))
+		if (-1 === Grid_end || ( -1 !== Grid_end && Grid_end < Cur_Grid_end ))
 			Grid_end = Cur_Grid_end;
 	}
 
@@ -10061,7 +10060,7 @@ CTable.prototype.RemoveTableColumn = function()
 	if (this.Content.length <= 0)
 		return false;
 
-	// TODO: При удалении колонки надо запоминать информацию об вертикально
+	// TODO: При удалении колонки надо запоминать информацию о вертикально
 	//       объединенных ячейках, и в новой сетке объединять ячейки только
 	//       если они были объединены изначально. Сейчас если ячейка была
 	//       объединена с какой-либо ячейков, то она может после удаления колонки
@@ -10082,7 +10081,7 @@ CTable.prototype.RemoveTableColumn = function()
 		for (var CurCell = 0; CurCell < CellsCount; CurCell++)
 		{
 			var Cell = Row.Get_Cell(CurCell);
-			if (vmerge_Continue != Cell.GetVMerge())
+			if (vmerge_Continue !== Cell.GetVMerge())
 			{
 				bRemove = false;
 				break;
@@ -15274,7 +15273,7 @@ CTable.prototype.private_CheckHitInBorder = function(X, Y, nCurPage)
 };
 /**
  * Обновляем массив выделенных ячеек
- * @param {boolean} [bForceSelectByLines=false] использовать ли выделение по строкам
+ * @param {boolean} [bForceSelectByLines=false] использовать ли обязательное выделение по строкам
  */
 CTable.prototype.private_UpdateSelectedCellsArray = function(bForceSelectByLines)
 {
@@ -15284,7 +15283,7 @@ CTable.prototype.private_UpdateSelectedCellsArray = function(bForceSelectByLines
 	this.Selection.Type = table_Selection_Cell;
 	this.Selection.Data = [];
 
-	if (this.Parent.IsSelectedSingleElement() && false == bForceSelectByLines)
+	if (this.Parent.IsSelectedSingleElement() && false === bForceSelectByLines)
 	{
 		// Определяем ячейки, которые попали в наш селект
 		// Алгоритм следующий:
@@ -15382,84 +15381,64 @@ CTable.prototype.private_UpdateSelectedCellsArray = function(bForceSelectByLines
 				}
 			}
 
-			for (var CurRow = StartRow; CurRow <= EndRow; CurRow++)
+			for (var nCurRow = StartRow; nCurRow <= EndRow; ++nCurRow)
 			{
-				var Row        = this.Content[CurRow];
-				var BeforeInfo = Row.Get_Before();
-				var CurGridCol = BeforeInfo.GridBefore;
-				var CellsCount = Row.Get_CellsCount();
-				for (var CurCell = 0; CurCell < CellsCount; CurCell++)
+				var oRow        = this.GetRow(nCurRow);
+				var nCurGridCol = oRow.GetBefore().Grid;
+				for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
 				{
-					var Cell     = Row.Get_Cell(CurCell);
-					var GridSpan = Cell.Get_GridSpan();
-					var Vmerge   = Cell.GetVMerge();
+					var oCell     = oRow.GetCell(nCurCell);
+					var nGridSpan = oCell.GetGridSpan();
 
-					// Обсчет такик ячеек произошел ранее
-					if (vmerge_Continue === Vmerge)
+					if (vmerge_Continue === oCell.GetVMerge())
 					{
-						CurGridCol += GridSpan;
+						nCurGridCol += nGridSpan;
 						continue;
 					}
 
-					// У первой строки мы не селектим ячейки до начальной.
-					// Аналогично, у последней строки мы не селектим ничего после
-					// конечной ячейки.
-					if (( StartRow === CurRow /*&& CurCell >= StartCell*/ ) || ( EndRow === CurRow /*&& CurCell <= EndCell*/ ) || ( CurRow > StartRow && CurRow < EndRow ))
+					if ((nCurGridCol >= GridCol_start && nCurGridCol <= GridCol_end)
+						|| (nCurGridCol + nGridSpan - 1 >= GridCol_start && nCurGridCol + nGridSpan - 1 <= GridCol_end)
+						|| (nCurGridCol <= GridCol_start && GridCol_end <= nCurGridCol + nGridSpan - 1))
 					{
-						if (( CurGridCol >= GridCol_start && CurGridCol <= GridCol_end ) || ( CurGridCol + GridSpan - 1 >= GridCol_start && CurGridCol + GridSpan - 1 <= GridCol_end ))
-							this.Selection.Data.push({Row : CurRow, Cell : CurCell});
+						this.Selection.Data.push({Row : nCurRow, Cell : nCurCell});
 					}
 
-					CurGridCol += GridSpan;
+					nCurGridCol += nGridSpan;
 				}
 			}
 		}
 	}
 	else
 	{
-		var RowsCount = this.Content.length;
+		var nRowsCount = this.GetRowsCount();
 
-		var StartRow = Math.min(Math.max(0, this.Selection.StartPos.Pos.Row), RowsCount - 1);
-		var EndRow   = Math.min(Math.max(0, this.Selection.EndPos.Pos.Row), RowsCount - 1);
+		var nStartRow = Math.min(Math.max(0, this.Selection.StartPos.Pos.Row), nRowsCount - 1);
+		var nEndRow   = Math.min(Math.max(0, this.Selection.EndPos.Pos.Row), nRowsCount - 1);
 
-		if (EndRow < StartRow)
+		if (nEndRow < nStartRow)
 		{
-			var TempRow = StartRow;
-			StartRow    = EndRow;
-			EndRow      = TempRow;
+			var nSwapRow = nStartRow;
+			nStartRow    = nEndRow;
+			nEndRow      = nSwapRow;
 		}
 
-		for (var CurRow = StartRow; CurRow <= EndRow; CurRow++)
+		for (var nCurRow = nStartRow; nCurRow <= nEndRow; ++nCurRow)
 		{
-			var Row        = this.Content[CurRow];
-			var CellsCount = Row.Get_CellsCount();
-			for (var CurCell = 0; CurCell < CellsCount; CurCell++)
+			var oRow = this.GetRow(nCurRow);
+			for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
 			{
-				var Cell   = Row.Get_Cell(CurCell);
-				var Vmerge = Cell.GetVMerge();
+				var oCell = oRow.GetCell(nCurCell);
 
-				if (vmerge_Continue === Vmerge)
+				if (vmerge_Continue === oCell.GetVMerge())
 					continue;
 
-				this.Selection.Data.push({Row : CurRow, Cell : CurCell});
+				this.Selection.Data.push({Row : nCurRow, Cell : nCurCell});
 			}
 		}
 	}
 
 	if (this.Selection.Data.length > 1)
 		this.Selection.CurRow = this.Selection.Data[this.Selection.Data.length - 1].Row;
-
-	// В "flow" таблице обновляем значения настроек для параграфа и текста
-	if (true != this.Is_Inline() && true === this.Selection.Use && false === this.Selection.Start)
-	{
-		var ParaPr = this.GetCalculatedParaPr();
-		if (null != ParaPr)
-			editor.UpdateParagraphProp(ParaPr);
-
-		var TextPr = this.GetCalculatedTextPr();
-		if (null != TextPr)
-			editor.UpdateTextPr(TextPr);
-	}
 };
 CTable.prototype.Internal_CompareBorders2 = function(Border1, Border2)
 {
@@ -18379,7 +18358,8 @@ CTable.prototype.private_GetColumnByGridRange = function(nGridStart, nGridEnd, a
 			var nStartGridCol = oRow.GetCellInfo(nCurCell).StartGridCol;
 			var nEndGridCol   = nStartGridCol + oCell.GetGridSpan() - 1;
 
-			if (nEndGridCol >= nGridStart && nStartGridCol <= nGridEnd)
+			if ((nEndGridCol >= nGridStart && nStartGridCol <= nGridEnd)
+				|| (nStartGridCol <= nGridStart && nGridEnd <= nEndGridCol))
 				arrPos.push({Cell : nCurCell, Row : nCurRow});
 		}
 	}

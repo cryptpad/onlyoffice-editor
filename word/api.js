@@ -4900,9 +4900,8 @@ background-repeat: no-repeat;\
 		if (!oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Remove))
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_TableRemoveColumn);
-			oLogicDocument.RemoveTableColumn();
+			oLogicDocument.RemoveTableCells();
 			oLogicDocument.FinalizeAction();
-
 			return true;
 		}
 		else
@@ -10840,6 +10839,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['sync_ChangeLastSelectedElement']            = asc_docs_api.prototype.sync_ChangeLastSelectedElement;
 	asc_docs_api.prototype['asc_getEditorPermissions']                  = asc_docs_api.prototype.asc_getEditorPermissions;
 	asc_docs_api.prototype['asc_setDocInfo']                            = asc_docs_api.prototype.asc_setDocInfo;
+	asc_docs_api.prototype['asc_changeDocInfo']                         = asc_docs_api.prototype.asc_changeDocInfo;
 	asc_docs_api.prototype['asc_setLocale']                             = asc_docs_api.prototype.asc_setLocale;
 	asc_docs_api.prototype['asc_getLocale']                             = asc_docs_api.prototype.asc_getLocale;
 	asc_docs_api.prototype['asc_LoadDocument']                          = asc_docs_api.prototype.asc_LoadDocument;
