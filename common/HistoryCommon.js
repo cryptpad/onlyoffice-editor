@@ -2980,145 +2980,145 @@
 	AscDFH.historyitem_TimingBldLst = AscDFH.historyitem_type_Timing | 1;
 	AscDFH.historyitem_TimingTnLst  = AscDFH.historyitem_type_Timing | 2;
 
-	AscDFH.historyitem_CommonTimingListAdd     = AscDFH.historyitem_type_CommonTimingList | 1;
-	AscDFH.historyitem_CommonTimingListRemove  = AscDFH.historyitem_type_CommonTimingList | 2;
+	AscDFH.historyitem_CommonTimingListAdd    = AscDFH.historyitem_type_CommonTimingList | 1;
+	AscDFH.historyitem_CommonTimingListRemove = AscDFH.historyitem_type_CommonTimingList | 2;
 
-	AscDFH.historyitem_ObjectTargetSpid     = AscDFH.historyitem_type_ObjectTarget | 1;
+	AscDFH.historyitem_ObjectTargetSpid = AscDFH.historyitem_type_ObjectTarget | 1;
 
-	AscDFH.historyitem_BldBaseGrpId        = AscDFH.historyitem_type_BldBase | 1;
-	AscDFH.historyitem_BldBaseUIExpand     = AscDFH.historyitem_type_BldBase | 2;
+	AscDFH.historyitem_BldBaseGrpId    = AscDFH.historyitem_type_BldBase | 1;
+	AscDFH.historyitem_BldBaseUIExpand = AscDFH.historyitem_type_BldBase | 2;
 
-	AscDFH.historyitem_BldDgmBld     = AscDFH.historyitem_type_BldDgm | 1;
+	AscDFH.historyitem_BldDgmBld = AscDFH.historyitem_type_BldDgm | 1;
 
-	AscDFH.historyitem_BldGraphicBldAsOne     = AscDFH.historyitem_type_BldGraphic | 1;
-	AscDFH.historyitem_BldGraphicBldSub     = AscDFH.historyitem_type_BldGraphic | 2;
+	AscDFH.historyitem_BldGraphicBldAsOne = AscDFH.historyitem_type_BldGraphic | 1;
+	AscDFH.historyitem_BldGraphicBldSub   = AscDFH.historyitem_type_BldGraphic | 2;
 
-	AscDFH.historyitem_BldOleChartAnimBg     = AscDFH.historyitem_type_BldOleChart | 1;
+	AscDFH.historyitem_BldOleChartAnimBg = AscDFH.historyitem_type_BldOleChart | 1;
 
-	AscDFH.historyitem_BldPTmplLst = AscDFH.historyitem_type_BldP | 1;
-	AscDFH.historyitem_BldPAdvAuto = AscDFH.historyitem_type_BldP | 2;
-	AscDFH.historyitem_BldPAutoUpdateAnimBg      = AscDFH.historyitem_type_BldP | 3;
-	AscDFH.historyitem_BldPBldLvl  = AscDFH.historyitem_type_BldP | 4;
-	AscDFH.historyitem_BldPBuild  = AscDFH.historyitem_type_BldP | 5;
-	AscDFH.historyitem_BldPRev = AscDFH.historyitem_type_BldP | 6;
+	AscDFH.historyitem_BldPTmplLst          = AscDFH.historyitem_type_BldP | 1;
+	AscDFH.historyitem_BldPAdvAuto          = AscDFH.historyitem_type_BldP | 2;
+	AscDFH.historyitem_BldPAutoUpdateAnimBg = AscDFH.historyitem_type_BldP | 3;
+	AscDFH.historyitem_BldPBldLvl           = AscDFH.historyitem_type_BldP | 4;
+	AscDFH.historyitem_BldPBuild            = AscDFH.historyitem_type_BldP | 5;
+	AscDFH.historyitem_BldPRev              = AscDFH.historyitem_type_BldP | 6;
 
-	AscDFH.historyitem_BldSubBldChart     = AscDFH.historyitem_type_BldSub | 1;
-	AscDFH.historyitem_BldSubBldDgm       = AscDFH.historyitem_type_BldSub | 2;
+	AscDFH.historyitem_BldSubBldChart = AscDFH.historyitem_type_BldSub | 1;
+	AscDFH.historyitem_BldSubBldDgm   = AscDFH.historyitem_type_BldSub | 2;
 
-	AscDFH.historyitem_DirTransitionDir     = AscDFH.historyitem_type_DirTransition | 1;
+	AscDFH.historyitem_DirTransitionDir = AscDFH.historyitem_type_DirTransition | 1;
 
-	AscDFH.historyitem_OptBlackTransitionThruBlk     = AscDFH.historyitem_type_OptBlackTransition | 1;
+	AscDFH.historyitem_OptBlackTransitionThruBlk = AscDFH.historyitem_type_OptBlackTransition | 1;
 
 
-	AscDFH.historyitem_GraphicElDgmId                = AscDFH.historyitem_type_GraphicEl | 1;
-	AscDFH.historyitem_GraphicElDgmBuildStep         = AscDFH.historyitem_type_GraphicEl | 2;
-	AscDFH.historyitem_GraphicElChartBuildStep       = AscDFH.historyitem_type_GraphicEl | 3;
-	AscDFH.historyitem_GraphicElSeriesIdx            = AscDFH.historyitem_type_GraphicEl | 4;
-	AscDFH.historyitem_GraphicElCategoryIdx          = AscDFH.historyitem_type_GraphicEl | 5;
+	AscDFH.historyitem_GraphicElDgmId          = AscDFH.historyitem_type_GraphicEl | 1;
+	AscDFH.historyitem_GraphicElDgmBuildStep   = AscDFH.historyitem_type_GraphicEl | 2;
+	AscDFH.historyitem_GraphicElChartBuildStep = AscDFH.historyitem_type_GraphicEl | 3;
+	AscDFH.historyitem_GraphicElSeriesIdx      = AscDFH.historyitem_type_GraphicEl | 4;
+	AscDFH.historyitem_GraphicElCategoryIdx    = AscDFH.historyitem_type_GraphicEl | 5;
 
-	AscDFH.historyitem_IndexRgSt      = AscDFH.historyitem_type_IndexRg | 1;
-	AscDFH.historyitem_IndexRgEnd     = AscDFH.historyitem_type_IndexRg | 2;
+	AscDFH.historyitem_IndexRgSt  = AscDFH.historyitem_type_IndexRg | 1;
+	AscDFH.historyitem_IndexRgEnd = AscDFH.historyitem_type_IndexRg | 2;
 
-	AscDFH.historyitem_TmplLvl     = AscDFH.historyitem_type_Tmpl | 1;
-	AscDFH.historyitem_TmplTnLst     = AscDFH.historyitem_type_Tmpl | 2;
+	AscDFH.historyitem_TmplLvl   = AscDFH.historyitem_type_Tmpl | 1;
+	AscDFH.historyitem_TmplTnLst = AscDFH.historyitem_type_Tmpl | 2;
 
-	AscDFH.historyitem_AnimCBhvr         = AscDFH.historyitem_type_Anim | 1;
-	AscDFH.historyitem_AnimTavLst        = AscDFH.historyitem_type_Anim | 2;
-	AscDFH.historyitem_AnimBy            = AscDFH.historyitem_type_Anim | 3;
-	AscDFH.historyitem_AnimCalcmode      = AscDFH.historyitem_type_Anim | 4;
-	AscDFH.historyitem_AnimFrom          = AscDFH.historyitem_type_Anim | 5;
-	AscDFH.historyitem_AnimTo            = AscDFH.historyitem_type_Anim | 6;
-	AscDFH.historyitem_AnimValueType     = AscDFH.historyitem_type_Anim | 7;
+	AscDFH.historyitem_AnimCBhvr     = AscDFH.historyitem_type_Anim | 1;
+	AscDFH.historyitem_AnimTavLst    = AscDFH.historyitem_type_Anim | 2;
+	AscDFH.historyitem_AnimBy        = AscDFH.historyitem_type_Anim | 3;
+	AscDFH.historyitem_AnimCalcmode  = AscDFH.historyitem_type_Anim | 4;
+	AscDFH.historyitem_AnimFrom      = AscDFH.historyitem_type_Anim | 5;
+	AscDFH.historyitem_AnimTo        = AscDFH.historyitem_type_Anim | 6;
+	AscDFH.historyitem_AnimValueType = AscDFH.historyitem_type_Anim | 7;
 
-	AscDFH.historyitem_CBhvrAttrNameLst  = AscDFH.historyitem_type_CBhvr | 1;
-	AscDFH.historyitem_CBhvrCTn          = AscDFH.historyitem_type_CBhvr | 2;
-	AscDFH.historyitem_CBhvrTgtEl        = AscDFH.historyitem_type_CBhvr | 3;
-	AscDFH.historyitem_CBhvrAccumulate   = AscDFH.historyitem_type_CBhvr | 4;
-	AscDFH.historyitem_CBhvrAdditive     = AscDFH.historyitem_type_CBhvr | 5;
-	AscDFH.historyitem_CBhvrBy           = AscDFH.historyitem_type_CBhvr | 6;
-	AscDFH.historyitem_CBhvrFrom         = AscDFH.historyitem_type_CBhvr | 7;
-	AscDFH.historyitem_CBhvrOverride     = AscDFH.historyitem_type_CBhvr | 8;
-	AscDFH.historyitem_CBhvrRctx         = AscDFH.historyitem_type_CBhvr | 9;
-	AscDFH.historyitem_CBhvrTo           = AscDFH.historyitem_type_CBhvr | 10;
-	AscDFH.historyitem_CBhvrXfrmType     = AscDFH.historyitem_type_CBhvr | 11;
+	AscDFH.historyitem_CBhvrAttrNameLst = AscDFH.historyitem_type_CBhvr | 1;
+	AscDFH.historyitem_CBhvrCTn         = AscDFH.historyitem_type_CBhvr | 2;
+	AscDFH.historyitem_CBhvrTgtEl       = AscDFH.historyitem_type_CBhvr | 3;
+	AscDFH.historyitem_CBhvrAccumulate  = AscDFH.historyitem_type_CBhvr | 4;
+	AscDFH.historyitem_CBhvrAdditive    = AscDFH.historyitem_type_CBhvr | 5;
+	AscDFH.historyitem_CBhvrBy          = AscDFH.historyitem_type_CBhvr | 6;
+	AscDFH.historyitem_CBhvrFrom        = AscDFH.historyitem_type_CBhvr | 7;
+	AscDFH.historyitem_CBhvrOverride    = AscDFH.historyitem_type_CBhvr | 8;
+	AscDFH.historyitem_CBhvrRctx        = AscDFH.historyitem_type_CBhvr | 9;
+	AscDFH.historyitem_CBhvrTo          = AscDFH.historyitem_type_CBhvr | 10;
+	AscDFH.historyitem_CBhvrXfrmType    = AscDFH.historyitem_type_CBhvr | 11;
 
-	AscDFH.historyitem_CTnChildTnLst     = AscDFH.historyitem_type_CTn | 1;
-	AscDFH.historyitem_CTnEndCondLst     = AscDFH.historyitem_type_CTn | 2;
-	AscDFH.historyitem_CTnEndSync        = AscDFH.historyitem_type_CTn | 3;
-	AscDFH.historyitem_CTnIterate        = AscDFH.historyitem_type_CTn | 4;
-	AscDFH.historyitem_CTnStCondLst      = AscDFH.historyitem_type_CTn | 5;
-	AscDFH.historyitem_CTnSubTnLst       = AscDFH.historyitem_type_CTn | 6;
-	AscDFH.historyitem_CTnAccel          = AscDFH.historyitem_type_CTn | 7;
-	AscDFH.historyitem_CTnAfterEffect    = AscDFH.historyitem_type_CTn | 8;
-	AscDFH.historyitem_CTnAutoRev        = AscDFH.historyitem_type_CTn | 9;
-	AscDFH.historyitem_CTnBldLvl         = AscDFH.historyitem_type_CTn | 10;
-	AscDFH.historyitem_CTnDecel          = AscDFH.historyitem_type_CTn | 11;
-	AscDFH.historyitem_CTnDisplay        = AscDFH.historyitem_type_CTn | 12;
-	AscDFH.historyitem_CTnDur            = AscDFH.historyitem_type_CTn | 13;
-	AscDFH.historyitem_CTnEvtFilter      = AscDFH.historyitem_type_CTn | 14;
-	AscDFH.historyitem_CTnFill           = AscDFH.historyitem_type_CTn | 15;
-	AscDFH.historyitem_CTnGrpId          = AscDFH.historyitem_type_CTn | 16;
-	AscDFH.historyitem_CTnId             = AscDFH.historyitem_type_CTn | 17;
-	AscDFH.historyitem_CTnMasterRel      = AscDFH.historyitem_type_CTn | 18;
-	AscDFH.historyitem_CTnNodePh         = AscDFH.historyitem_type_CTn | 19;
-	AscDFH.historyitem_CTnNodeType       = AscDFH.historyitem_type_CTn | 20;
-	AscDFH.historyitem_CTnPresetClass    = AscDFH.historyitem_type_CTn | 21;
-	AscDFH.historyitem_CTnPresetID       = AscDFH.historyitem_type_CTn | 22;
-	AscDFH.historyitem_CTnPresetSubtype  = AscDFH.historyitem_type_CTn | 23;
-	AscDFH.historyitem_CTnRepeatCount    = AscDFH.historyitem_type_CTn | 24;
-	AscDFH.historyitem_CTnRepeatDur      = AscDFH.historyitem_type_CTn | 25;
-	AscDFH.historyitem_CTnRestart        = AscDFH.historyitem_type_CTn | 26;
-	AscDFH.historyitem_CTnSpd            = AscDFH.historyitem_type_CTn | 27;
-	AscDFH.historyitem_CTnSyncBehavior   = AscDFH.historyitem_type_CTn | 28;
-	AscDFH.historyitem_CTnTmFilter       = AscDFH.historyitem_type_CTn | 29;
+	AscDFH.historyitem_CTnChildTnLst    = AscDFH.historyitem_type_CTn | 1;
+	AscDFH.historyitem_CTnEndCondLst    = AscDFH.historyitem_type_CTn | 2;
+	AscDFH.historyitem_CTnEndSync       = AscDFH.historyitem_type_CTn | 3;
+	AscDFH.historyitem_CTnIterate       = AscDFH.historyitem_type_CTn | 4;
+	AscDFH.historyitem_CTnStCondLst     = AscDFH.historyitem_type_CTn | 5;
+	AscDFH.historyitem_CTnSubTnLst      = AscDFH.historyitem_type_CTn | 6;
+	AscDFH.historyitem_CTnAccel         = AscDFH.historyitem_type_CTn | 7;
+	AscDFH.historyitem_CTnAfterEffect   = AscDFH.historyitem_type_CTn | 8;
+	AscDFH.historyitem_CTnAutoRev       = AscDFH.historyitem_type_CTn | 9;
+	AscDFH.historyitem_CTnBldLvl        = AscDFH.historyitem_type_CTn | 10;
+	AscDFH.historyitem_CTnDecel         = AscDFH.historyitem_type_CTn | 11;
+	AscDFH.historyitem_CTnDisplay       = AscDFH.historyitem_type_CTn | 12;
+	AscDFH.historyitem_CTnDur           = AscDFH.historyitem_type_CTn | 13;
+	AscDFH.historyitem_CTnEvtFilter     = AscDFH.historyitem_type_CTn | 14;
+	AscDFH.historyitem_CTnFill          = AscDFH.historyitem_type_CTn | 15;
+	AscDFH.historyitem_CTnGrpId         = AscDFH.historyitem_type_CTn | 16;
+	AscDFH.historyitem_CTnId            = AscDFH.historyitem_type_CTn | 17;
+	AscDFH.historyitem_CTnMasterRel     = AscDFH.historyitem_type_CTn | 18;
+	AscDFH.historyitem_CTnNodePh        = AscDFH.historyitem_type_CTn | 19;
+	AscDFH.historyitem_CTnNodeType      = AscDFH.historyitem_type_CTn | 20;
+	AscDFH.historyitem_CTnPresetClass   = AscDFH.historyitem_type_CTn | 21;
+	AscDFH.historyitem_CTnPresetID      = AscDFH.historyitem_type_CTn | 22;
+	AscDFH.historyitem_CTnPresetSubtype = AscDFH.historyitem_type_CTn | 23;
+	AscDFH.historyitem_CTnRepeatCount   = AscDFH.historyitem_type_CTn | 24;
+	AscDFH.historyitem_CTnRepeatDur     = AscDFH.historyitem_type_CTn | 25;
+	AscDFH.historyitem_CTnRestart       = AscDFH.historyitem_type_CTn | 26;
+	AscDFH.historyitem_CTnSpd           = AscDFH.historyitem_type_CTn | 27;
+	AscDFH.historyitem_CTnSyncBehavior  = AscDFH.historyitem_type_CTn | 28;
+	AscDFH.historyitem_CTnTmFilter      = AscDFH.historyitem_type_CTn | 29;
 
-	AscDFH.historyitem_CondRtn          = AscDFH.historyitem_type_Cond | 1;
-	AscDFH.historyitem_CondTgtEl        = AscDFH.historyitem_type_Cond | 2;
-	AscDFH.historyitem_CondTn           = AscDFH.historyitem_type_Cond | 3;
-	AscDFH.historyitem_CondDelay        = AscDFH.historyitem_type_Cond | 4;
-	AscDFH.historyitem_CondEvt          = AscDFH.historyitem_type_Cond | 5;
+	AscDFH.historyitem_CondRtn   = AscDFH.historyitem_type_Cond | 1;
+	AscDFH.historyitem_CondTgtEl = AscDFH.historyitem_type_Cond | 2;
+	AscDFH.historyitem_CondTn    = AscDFH.historyitem_type_Cond | 3;
+	AscDFH.historyitem_CondDelay = AscDFH.historyitem_type_Cond | 4;
+	AscDFH.historyitem_CondEvt   = AscDFH.historyitem_type_Cond | 5;
 
-	AscDFH.historyitem_RtnVal           = AscDFH.historyitem_type_Rtn | 1;
+	AscDFH.historyitem_RtnVal = AscDFH.historyitem_type_Rtn | 1;
 
-	AscDFH.historyitem_TgtElInkTgt      = AscDFH.historyitem_type_TgtEl | 1;
-	AscDFH.historyitem_TgtElSldTgt      = AscDFH.historyitem_type_TgtEl | 2;
-	AscDFH.historyitem_TgtElSndTgt      = AscDFH.historyitem_type_TgtEl | 3;
-	AscDFH.historyitem_TgtElSpTgt       = AscDFH.historyitem_type_TgtEl | 4;
+	AscDFH.historyitem_TgtElInkTgt = AscDFH.historyitem_type_TgtEl | 1;
+	AscDFH.historyitem_TgtElSldTgt = AscDFH.historyitem_type_TgtEl | 2;
+	AscDFH.historyitem_TgtElSndTgt = AscDFH.historyitem_type_TgtEl | 3;
+	AscDFH.historyitem_TgtElSpTgt  = AscDFH.historyitem_type_TgtEl | 4;
 
-	AscDFH.historyitem_SndTgtEmbed         = AscDFH.historyitem_type_SndTgt | 1;
-	AscDFH.historyitem_SndTgtName          = AscDFH.historyitem_type_SndTgt | 2;
-	AscDFH.historyitem_SndTgtBuiltIn       = AscDFH.historyitem_type_SndTgt | 3;
+	AscDFH.historyitem_SndTgtEmbed   = AscDFH.historyitem_type_SndTgt | 1;
+	AscDFH.historyitem_SndTgtName    = AscDFH.historyitem_type_SndTgt | 2;
+	AscDFH.historyitem_SndTgtBuiltIn = AscDFH.historyitem_type_SndTgt | 3;
 
-	AscDFH.historyitem_SpTgtBg          = AscDFH.historyitem_type_SpTgt | 1;
-	AscDFH.historyitem_SpTgtGraphicEl   = AscDFH.historyitem_type_SpTgt | 2;
-	AscDFH.historyitem_SpTgtOleChartEl  = AscDFH.historyitem_type_SpTgt | 3;
-	AscDFH.historyitem_SpTgtSubSpId       = AscDFH.historyitem_type_SpTgt | 4;
-	AscDFH.historyitem_SpTgtTxEl        = AscDFH.historyitem_type_SpTgt | 5;
+	AscDFH.historyitem_SpTgtBg         = AscDFH.historyitem_type_SpTgt | 1;
+	AscDFH.historyitem_SpTgtGraphicEl  = AscDFH.historyitem_type_SpTgt | 2;
+	AscDFH.historyitem_SpTgtOleChartEl = AscDFH.historyitem_type_SpTgt | 3;
+	AscDFH.historyitem_SpTgtSubSpId    = AscDFH.historyitem_type_SpTgt | 4;
+	AscDFH.historyitem_SpTgtTxEl       = AscDFH.historyitem_type_SpTgt | 5;
 
 	AscDFH.historyitem_IterateDataTmAbs     = AscDFH.historyitem_type_IterateData | 1;
 	AscDFH.historyitem_IterateDataTmPct     = AscDFH.historyitem_type_IterateData | 2;
 	AscDFH.historyitem_IterateDataBackwards = AscDFH.historyitem_type_IterateData | 3;
 	AscDFH.historyitem_IterateDataType      = AscDFH.historyitem_type_IterateData | 4;
 
-	AscDFH.historyitem_TmVal                = AscDFH.historyitem_type_Tm | 1;
+	AscDFH.historyitem_TmVal = AscDFH.historyitem_type_Tm | 1;
 
-	AscDFH.historyitem_TavVal               = AscDFH.historyitem_type_Tav | 1;
-	AscDFH.historyitem_TavFmla              = AscDFH.historyitem_type_Tav | 2;
-	AscDFH.historyitem_TavTm                = AscDFH.historyitem_type_Tav | 3;
+	AscDFH.historyitem_TavVal  = AscDFH.historyitem_type_Tav | 1;
+	AscDFH.historyitem_TavFmla = AscDFH.historyitem_type_Tav | 2;
+	AscDFH.historyitem_TavTm   = AscDFH.historyitem_type_Tav | 3;
 
-	AscDFH.historyitem_AnimVariantBoolVal   = AscDFH.historyitem_type_AnimVariant | 1;
-	AscDFH.historyitem_AnimVariantClrVal    = AscDFH.historyitem_type_AnimVariant | 2;
-	AscDFH.historyitem_AnimVariantFltVal    = AscDFH.historyitem_type_AnimVariant | 3;
-	AscDFH.historyitem_AnimVariantIntVal    = AscDFH.historyitem_type_AnimVariant | 4;
-	AscDFH.historyitem_AnimVariantStrVal    = AscDFH.historyitem_type_AnimVariant | 5;
+	AscDFH.historyitem_AnimVariantBoolVal = AscDFH.historyitem_type_AnimVariant | 1;
+	AscDFH.historyitem_AnimVariantClrVal  = AscDFH.historyitem_type_AnimVariant | 2;
+	AscDFH.historyitem_AnimVariantFltVal  = AscDFH.historyitem_type_AnimVariant | 3;
+	AscDFH.historyitem_AnimVariantIntVal  = AscDFH.historyitem_type_AnimVariant | 4;
+	AscDFH.historyitem_AnimVariantStrVal  = AscDFH.historyitem_type_AnimVariant | 5;
 
-	AscDFH.historyitem_AnimClrByRGB         = AscDFH.historyitem_type_AnimClr | 1;
-	AscDFH.historyitem_AnimClrByHSL         = AscDFH.historyitem_type_AnimClr | 2;
-	AscDFH.historyitem_AnimClrCBhvr         = AscDFH.historyitem_type_AnimClr | 3;
-	AscDFH.historyitem_AnimClrFrom          = AscDFH.historyitem_type_AnimClr | 4;
-	AscDFH.historyitem_AnimClrTo            = AscDFH.historyitem_type_AnimClr | 5;
-	AscDFH.historyitem_AnimClrClrSpc        = AscDFH.historyitem_type_AnimClr | 6;
-	AscDFH.historyitem_AnimClrDir           = AscDFH.historyitem_type_AnimClr | 7;
+	AscDFH.historyitem_AnimClrByRGB  = AscDFH.historyitem_type_AnimClr | 1;
+	AscDFH.historyitem_AnimClrByHSL  = AscDFH.historyitem_type_AnimClr | 2;
+	AscDFH.historyitem_AnimClrCBhvr  = AscDFH.historyitem_type_AnimClr | 3;
+	AscDFH.historyitem_AnimClrFrom   = AscDFH.historyitem_type_AnimClr | 4;
+	AscDFH.historyitem_AnimClrTo     = AscDFH.historyitem_type_AnimClr | 5;
+	AscDFH.historyitem_AnimClrClrSpc = AscDFH.historyitem_type_AnimClr | 6;
+	AscDFH.historyitem_AnimClrDir    = AscDFH.historyitem_type_AnimClr | 7;
 
 	AscDFH.historyitem_AnimEffectCBhvr      = AscDFH.historyitem_type_AnimEffect | 1;
 	AscDFH.historyitem_AnimEffectProgress   = AscDFH.historyitem_type_AnimEffect | 2;
@@ -3137,19 +3137,19 @@
 	AscDFH.historyitem_AnimMotionPtsTypes     = AscDFH.historyitem_type_AnimMotion | 9;
 	AscDFH.historyitem_AnimMotionRAng         = AscDFH.historyitem_type_AnimMotion | 10;
 
-	AscDFH.historyitem_AnimRotCBhvr           = AscDFH.historyitem_type_AnimRot | 1;
-	AscDFH.historyitem_AnimRotBy              = AscDFH.historyitem_type_AnimRot | 2;
-	AscDFH.historyitem_AnimRotFrom            = AscDFH.historyitem_type_AnimRot | 3;
-	AscDFH.historyitem_AnimRotTo              = AscDFH.historyitem_type_AnimRot | 4;
+	AscDFH.historyitem_AnimRotCBhvr = AscDFH.historyitem_type_AnimRot | 1;
+	AscDFH.historyitem_AnimRotBy    = AscDFH.historyitem_type_AnimRot | 2;
+	AscDFH.historyitem_AnimRotFrom  = AscDFH.historyitem_type_AnimRot | 3;
+	AscDFH.historyitem_AnimRotTo    = AscDFH.historyitem_type_AnimRot | 4;
 
-	AscDFH.historyitem_AnimScaleCBhvr         = AscDFH.historyitem_type_AnimScale | 1;
-	AscDFH.historyitem_AnimScaleBy            = AscDFH.historyitem_type_AnimScale | 2;
-	AscDFH.historyitem_AnimScaleFrom          = AscDFH.historyitem_type_AnimScale | 3;
-	AscDFH.historyitem_AnimScaleTo            = AscDFH.historyitem_type_AnimScale | 4;
-	AscDFH.historyitem_AnimScaleZoomContents  = AscDFH.historyitem_type_AnimScale | 5;
+	AscDFH.historyitem_AnimScaleCBhvr        = AscDFH.historyitem_type_AnimScale | 1;
+	AscDFH.historyitem_AnimScaleBy           = AscDFH.historyitem_type_AnimScale | 2;
+	AscDFH.historyitem_AnimScaleFrom         = AscDFH.historyitem_type_AnimScale | 3;
+	AscDFH.historyitem_AnimScaleTo           = AscDFH.historyitem_type_AnimScale | 4;
+	AscDFH.historyitem_AnimScaleZoomContents = AscDFH.historyitem_type_AnimScale | 5;
 
-	AscDFH.historyitem_AudioCMediaNode        = AscDFH.historyitem_type_Audio | 1;
-	AscDFH.historyitem_AudioIsNarration       = AscDFH.historyitem_type_Audio | 2;
+	AscDFH.historyitem_AudioCMediaNode  = AscDFH.historyitem_type_Audio | 1;
+	AscDFH.historyitem_AudioIsNarration = AscDFH.historyitem_type_Audio | 2;
 
 	AscDFH.historyitem_CMediaNodeCTn             = AscDFH.historyitem_type_CMediaNode | 1;
 	AscDFH.historyitem_CMediaNodeTgtEl           = AscDFH.historyitem_type_CMediaNode | 2;
@@ -3158,47 +3158,47 @@
 	AscDFH.historyitem_CMediaNodeShowWhenStopped = AscDFH.historyitem_type_CMediaNode | 5;
 	AscDFH.historyitem_CMediaNodeVol             = AscDFH.historyitem_type_CMediaNode | 6;
 
-	AscDFH.historyitem_CmdCBhvr         = AscDFH.historyitem_type_Cmd | 1;
-	AscDFH.historyitem_CmdCmd           = AscDFH.historyitem_type_Cmd | 2;
-	AscDFH.historyitem_CmdType          = AscDFH.historyitem_type_Cmd | 3;
+	AscDFH.historyitem_CmdCBhvr = AscDFH.historyitem_type_Cmd | 1;
+	AscDFH.historyitem_CmdCmd   = AscDFH.historyitem_type_Cmd | 2;
+	AscDFH.historyitem_CmdType  = AscDFH.historyitem_type_Cmd | 3;
 
 
-	AscDFH.historyitem_OleChartElLvl   = AscDFH.historyitem_type_OleChartEl | 1;
-	AscDFH.historyitem_OleChartElType  = AscDFH.historyitem_type_OleChartEl | 2;
+	AscDFH.historyitem_OleChartElLvl  = AscDFH.historyitem_type_OleChartEl | 1;
+	AscDFH.historyitem_OleChartElType = AscDFH.historyitem_type_OleChartEl | 2;
 
 
-	AscDFH.historyitem_TimeNodeContainerCTn  = AscDFH.historyitem_type_TimeNodeContainer | 1;
+	AscDFH.historyitem_TimeNodeContainerCTn = AscDFH.historyitem_type_TimeNodeContainer | 1;
 
-	AscDFH.historyitem_SeqNextCondLst         = AscDFH.historyitem_type_Seq | 1;
-	AscDFH.historyitem_SeqPrevCondLst         = AscDFH.historyitem_type_Seq | 2;
-	AscDFH.historyitem_SeqConcurrent          = AscDFH.historyitem_type_Seq | 3;
-	AscDFH.historyitem_SeqNextAc              = AscDFH.historyitem_type_Seq | 4;
-	AscDFH.historyitem_SeqPrevAc              = AscDFH.historyitem_type_Seq | 5;
+	AscDFH.historyitem_SeqNextCondLst = AscDFH.historyitem_type_Seq | 1;
+	AscDFH.historyitem_SeqPrevCondLst = AscDFH.historyitem_type_Seq | 2;
+	AscDFH.historyitem_SeqConcurrent  = AscDFH.historyitem_type_Seq | 3;
+	AscDFH.historyitem_SeqNextAc      = AscDFH.historyitem_type_Seq | 4;
+	AscDFH.historyitem_SeqPrevAc      = AscDFH.historyitem_type_Seq | 5;
 
-	AscDFH.historyitem_SetCBhvr               = AscDFH.historyitem_type_Set | 1;
-	AscDFH.historyitem_SetTo                  = AscDFH.historyitem_type_Set | 2;
+	AscDFH.historyitem_SetCBhvr = AscDFH.historyitem_type_Set | 1;
+	AscDFH.historyitem_SetTo    = AscDFH.historyitem_type_Set | 2;
 
-	AscDFH.historyitem_VideoCMediaNode        = AscDFH.historyitem_type_Video | 1;
-	AscDFH.historyitem_VideoFullScrn          = AscDFH.historyitem_type_Video | 2;
+	AscDFH.historyitem_VideoCMediaNode = AscDFH.historyitem_type_Video | 1;
+	AscDFH.historyitem_VideoFullScrn   = AscDFH.historyitem_type_Video | 2;
 
-	AscDFH.historyitem_OleChartElLvl          = AscDFH.historyitem_type_OleChartEl | 1;
-	AscDFH.historyitem_OleChartElType         = AscDFH.historyitem_type_OleChartEl | 2;
+	AscDFH.historyitem_OleChartElLvl  = AscDFH.historyitem_type_OleChartEl | 1;
+	AscDFH.historyitem_OleChartElType = AscDFH.historyitem_type_OleChartEl | 2;
 
-	AscDFH.historyitem_TlPointX               = AscDFH.historyitem_type_TlPoint | 1;
-	AscDFH.historyitem_TlPointY               = AscDFH.historyitem_type_TlPoint | 2;
+	AscDFH.historyitem_TlPointX = AscDFH.historyitem_type_TlPoint | 1;
+	AscDFH.historyitem_TlPointY = AscDFH.historyitem_type_TlPoint | 2;
 
-	AscDFH.historyitem_SndAcEndSnd            = AscDFH.historyitem_type_SndAc | 1;
-	AscDFH.historyitem_SndAcStSnd             = AscDFH.historyitem_type_SndAc | 2;
+	AscDFH.historyitem_SndAcEndSnd = AscDFH.historyitem_type_SndAc | 1;
+	AscDFH.historyitem_SndAcStSnd  = AscDFH.historyitem_type_SndAc | 2;
 
-	AscDFH.historyitem_StSndSnd               = AscDFH.historyitem_type_StSnd | 1;
-	AscDFH.historyitem_StSndLoop              = AscDFH.historyitem_type_StSnd | 2;
+	AscDFH.historyitem_StSndSnd  = AscDFH.historyitem_type_StSnd | 1;
+	AscDFH.historyitem_StSndLoop = AscDFH.historyitem_type_StSnd | 2;
 
-	AscDFH.historyitem_TxElCharRg             = AscDFH.historyitem_type_TxEl | 1;
-	AscDFH.historyitem_TxElPRg                = AscDFH.historyitem_type_TxEl | 2;
+	AscDFH.historyitem_TxElCharRg = AscDFH.historyitem_type_TxEl | 1;
+	AscDFH.historyitem_TxElPRg    = AscDFH.historyitem_type_TxEl | 2;
 
-	AscDFH.historyitem_WheelSpokes            = AscDFH.historyitem_type_Wheel | 1;
+	AscDFH.historyitem_WheelSpokes = AscDFH.historyitem_type_Wheel | 1;
 
-	AscDFH.historyitem_AttrNameText            = AscDFH.historyitem_type_AttrName | 1;
+	AscDFH.historyitem_AttrNameText = AscDFH.historyitem_type_AttrName | 1;
 
 
 
