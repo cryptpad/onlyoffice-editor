@@ -4136,8 +4136,10 @@
 		var arrApiShapes  = [];
 
 		for (var Index = 0; Index < arrAllDrawing.length; Index++)
+		{
 			if (arrAllDrawing[Index].GraphicObj instanceof CShape)
 				arrApiShapes.push(new ApiShape(arrAllDrawing[Index].GraphicObj));
+		}
 		
 		return arrApiShapes;
 	};
@@ -4153,8 +4155,10 @@
 		var arrApiImages  = [];
 
 		for (var Index = 0; Index < arrAllDrawing.length; Index++)
+		{
 			if (arrAllDrawing[Index].GraphicObj instanceof CImageShape)
 				arrApiImages.push(new ApiImage(arrAllDrawing[Index].GraphicObj));
+		}
 		
 		return arrApiImages;
 	};
@@ -4170,8 +4174,10 @@
 		var arrApiCharts  = [];
 
 		for (var Index = 0; Index < arrAllDrawing.length; Index++)
+		{
 			if (arrAllDrawing[Index].GraphicObj instanceof CChartSpace)
 				arrApiCharts.push(new ApiChart(arrAllDrawing[Index].GraphicObj));
+		}
 		
 		return arrApiCharts;
 	};
@@ -5175,7 +5181,9 @@
 		var arrApiShapes  = [];
 
 		for (var Index = 0; Index < arrAllDrawing.length; Index++)
+		{
 			arrApiShapes.push(new ApiDrawing(arrAllDrawing[Index]));
+		}
 		
 		return arrApiShapes;
 	};
@@ -5191,8 +5199,10 @@
 		var arrApiShapes  = [];
 
 		for (var Index = 0; Index < arrAllDrawing.length; Index++)
+		{
 			if (arrAllDrawing[Index].GraphicObj instanceof CShape)
-				arrApiShapes.push(new ApiShape(arrAllDrawing[Index]));
+				arrApiShapes.push(new ApiShape(arrAllDrawing[Index].GraphicObj));
+		}
 
 		return arrApiShapes;
 	};
@@ -5208,8 +5218,10 @@
 		var arrApiImages  = [];
 
 		for (var Index = 0; Index < arrAllDrawing.length; Index++)
+		{
 			if (arrAllDrawing[Index].GraphicObj instanceof CImageShape)
-				arrApiImages.push(new ApiImage(arrAllDrawing[Index]));
+				arrApiImages.push(new ApiImage(arrAllDrawing[Index].GraphicObj));
+		}
 
 		return arrApiImages;
 	};
@@ -5225,8 +5237,10 @@
 		var arrApiCharts  = [];
 
 		for (var Index = 0; Index < arrAllDrawing.length; Index++)
+		{
 			if (arrAllDrawing[Index].GraphicObj instanceof CChartSpace)
-				arrApiCharts.push(new ApiChart(arrAllDrawing[Index]));
+				arrApiCharts.push(new ApiChart(arrAllDrawing[Index].GraphicObj));
+		}
 
 		return arrApiCharts;
 	};
