@@ -9795,8 +9795,14 @@
 	 */
 	ApiDrawing.prototype.Copy = function()
 	{
-		var CopyParaDrawing = this.Drawing.copy();
-		return new ApiDrawing(CopyParaDrawing);
+		var oDrawing = this.Drawing.copy();
+
+		if (this instanceof ApiShape
+			|| this instanceof ApiChart
+			|| this instanceof ApiImage)
+			return new this.constructor(oDrawing.GraphicObj);
+
+		return new ApiDrawing(oDrawing);
 	};
 	/**
 	 * Wraps the graphic object with a rich text content control.
@@ -12096,7 +12102,7 @@
 	ApiImage.prototype["GetClassType"]               = ApiImage.prototype.GetClassType;
 	ApiImage.prototype["GetNextImage"]               = ApiImage.prototype.GetNextImage;
 	ApiImage.prototype["GetPrevImage"]               = ApiImage.prototype.GetPrevImage;
-	
+
 	ApiShape.prototype["GetClassType"]               = ApiShape.prototype.GetClassType;
 	ApiShape.prototype["GetDocContent"]              = ApiShape.prototype.GetDocContent;
 	ApiShape.prototype["GetContent"]                 = ApiShape.prototype.GetContent;
