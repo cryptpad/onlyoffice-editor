@@ -4081,6 +4081,8 @@
 	};
 	/**
 	 * Get the collection of tables on a given absolute page
+	 * <note>This method can be a little bit slow, because it runs the document calculation
+	 * process to arrange tables on the specified page</note>
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
 	 * @param nPage - page number
@@ -4090,12 +4092,13 @@
 	{
 		var arrApiAllTables = [];
 
+		this.Document.private_Recalculate(undefined, true, nPage + 1);
 		var arrAllTables = this.Document.GetAllTablesOnPage(nPage);
 
 		for (var Index = 0; Index < arrAllTables.length; Index++)
 		{
 			arrApiAllTables.push(new ApiTable(arrAllTables[Index].Table));
-		};
+		}
 
 		return arrApiAllTables;
 	};
@@ -11373,15 +11376,21 @@
 	};
 
 	/**
-	 * Get the collection of tables on a given absolute page
+	 * Get the collection of tables on a given absolute page.
+	 * <note>This method can be a little bit slow, because it runs the document calculation
+	 * process to arrange tables on the specified page</note>
 	 * @memberof ApiBlockLvlSdt
 	 * @typeofeditors ["CDE"]
 	 * @param nPage - page number
 	 * @return {ApiTable[]}  
 	 */
-	ApiBlockLvlSdt.prototype.GetAllTablesOnPage = function(nPageAbs)
+	ApiBlockLvlSdt.prototype.GetAllTablesOnPage = function(nPage)
 	{
-		var arrTables		= this.Sdt.GetAllTablesOnPage(nPageAbs);
+		var oLogicDocument = this.Sdt.GetLogicDocument();
+		if (oLogicDocument)
+			oLogicDocument.private_Recalculate(undefined, true, nPage + 1);
+
+		var arrTables		= this.Sdt.GetAllTablesOnPage(nPage);
 		var arrApiTables	= [];
 
 		for (var Index = 0, nCount = arrTables.length; Index < nCount; Index++)
