@@ -9993,7 +9993,7 @@
 			return false;
 
 		this.Drawing.GraphicObj.spPr.setFill(oFill.UniFill);
-		return truel
+		return true;
 	};
 	/**
 	 * Sets the outline properties for the specified graphic object.
