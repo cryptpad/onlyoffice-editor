@@ -2708,67 +2708,216 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
     }
 
-    function CCommonChartRanges(oChartSpace) {
-        this.bHorisontalSeries = undefined;
-        this.aCatRanges = [];
-        this.aValRanges = [];
-        this.aTxTanges = [];
+    var SERIES_FLAG_HOR_VALUE = 1;
+    var SERIES_FLAG_VERT_VALUE = 2;
+    var SERIES_FLAG_CAT = 4;
+    var SERIES_FLAG_TX = 8;
 
-        this.series = oChartSpace.getAllSeries();
-        this.series.sort(function(a, b){
-          return a.order - b.order;
-        });
-        var nSer, oSeries;
-        for(nSer = 0; nSer < this.series.length; ++nSer) {
-            oSeries = this.series[nSer];
-            if(oSeries.hasValuesRefs()) {
-                break;
+
+    function CDataRefs(aRefs) {
+        this.aRefs = aRefs;
+    }
+    CDataRefs.prototype.isOneCell = function() {
+        if(this.aRefs.length === 1) {
+            return this.aRefs[0].bbox.isOneCell();
+        }
+        return false;
+    };
+    CDataRefs.prototype.isEmpty = function() {
+        return this.aRefs.length === 0;
+    };
+    CDataRefs.prototype.getEqualWorksheet = function() {
+        if(this.isEmpty()) {
+            return null;
+        }
+        var oWorksheet = this.aRanges[0].worksheet;
+        for(var nRef = 1; nRef < this.aRefs.length; ++nRef) {
+            if(oWorksheet !== this.aRefs[nRef].worksheet) {
+                return null;
             }
         }
-        if(nSer === this.series.length) {
-            return;
+        return oWorksheet;
+    };
+    CDataRefs.prototype.isCorrect = function() {
+        if(this.isEmpty()) {
+            return false;
         }
-        var aFirstValRefs = oSeries.getValRefs();
-        if(aFirstValRefs.length < 1) {
-            return;
+        if(!this.getEqualWorksheet()) {
+            return false;
         }
-        var oWorksheet = aFirstValRefs[0].worksheet;
-        var aFirstCatRefs = oSeries.getCatRefs();
-        var aFirstTxRefs = oSeries.getTxRefs();
-        if(!this.checkRangesWorksheet(oWorksheet, aFirstCatRefs, aFirstTxRefs)) {
-            return;
+        return true;
+    };
+    CDataRefs.prototype.isInRow = function() {
+        if(!this.isCorrect()) {
+            return false;
         }
-        var aRefs, nRef;
-        if(nSer === this.series.length - 1) {
-            if(aFirstCatRefs && aFirstTxRefs) {
-                if(aFirstCatRefs.length !== aFirstValRefs.length) {
-                    return;
-                }
-
-            }
-            else if(aFirstCatRefs) {
-
-            }
-            else if(aFirstTxRefs) {
-
-            }
-            else {
-
+        var oRef = this.aRefs[0];
+        for(var nRef = 1; this.aRefs[nRef].length; ++nRef) {
+            if(!oRef.bbox.isEqualRows(this.aRefs[nRef].bbox)){
+                return false;
             }
         }
-        else {
-            var bHorisontal = undefined;
-            for(nSer = nSer + 1; nSer < this.series.length; ++nSer) {
-                oSeries = this.series[nSer];
-                aRefs = oSeries.getValRefs();
-                if(aRefs.length < 1) {
-                    return;
-                }
-
+        return true;
+    };
+    CDataRefs.prototype.getMaxRow = function() {
+        if(this.isCorrect()) {
+            var aSorted = [].concat(this.aRefs);
+            aSorted.sort(function(a, b) {
+                return a.bbox.r2 - b.bbox.r2;
+            });
+            return aSorted[aSorted.length - 1].bbox.r2;
+        }
+        return null;
+    };
+    CDataRefs.prototype.getMinRow = function() {
+        if(this.isCorrect()) {
+            var aSorted = [].concat(this.aRefs);
+            aSorted.sort(function(a, b) {
+                return a.bbox.r1 - b.bbox.r1;
+            });
+            return aSorted[0].bbox.r1;
+        }
+        return null;
+    };
+    CDataRefs.prototype.getMaxCol = function() {
+        if(this.isCorrect()) {
+            var aSorted = [].concat(this.aRefs);
+            aSorted.sort(function(a, b) {
+                return a.bbox.c2 - b.bbox.c2;
+            });
+            return aSorted[aSorted.length - 1].bbox.c2;
+        }
+        return null;
+    };
+    CDataRefs.prototype.getMinCol = function() {
+        if(this.isCorrect()) {
+            var aSorted = [].concat(this.aRefs);
+            aSorted.sort(function(a, b) {
+                return a.bbox.c1 - b.bbox.c1;
+            });
+            return aSorted[0].bbox.c1;
+        }
+        return null;
+    };
+    CDataRefs.prototype.isInCol = function() {
+        if(!this.isCorrect()) {
+            return false;
+        }
+        var oRef = this.aRefs[0];
+        for(var nRef = 1; this.aRefs[nRef].length; ++nRef) {
+            if(!oRef.bbox.isEqualCols(this.aRefs[nRef].bbox)){
+                return false;
             }
         }
+        return true;
+    };
+    CDataRefs.prototype.isEqualCols = function(oOther) {
+        if(this.getEqualWorksheet() !== oOther.getEqualWorksheet()) {
+            return false;
+        }
+        if(this.aRefs.length !== oOther.aRefs.length) {
+            return false;
+        }
+        if(!this.isInRow() || !oOther.isInRow()) {
+            return false;
+        }
+        for(var nRef = 0; nRef < this.aRefs.length; ++nRef) {
+            if(!this.aRefs[nRef].bbox.isEqualCols(oOther.aRefs[nRef].bbox)) {
+                return false;
+            }
+        }
+        return true;
+    };
+    CDataRefs.prototype.isEqualRows = function(oOther) {
+        if(this.getEqualWorksheet() !== oOther.getEqualWorksheet()) {
+            return false;
+        }
+        if(this.aRefs.length !== oOther.aRefs.length) {
+            return false;
+        }
+        if(!this.isInCol() || !oOther.isInCol()) {
+            return false;
+        }
+        for(var nRef = 0; nRef < this.aRefs.length; ++nRef) {
+            if(!this.aRefs[nRef].bbox.isEqualRows(oOther.aRefs[nRef].bbox)) {
+                return false;
+            }
+        }
+        return true;
+    };
+    CDataRefs.prototype.isAboveInRows = function(oOther) {
+        if(this.isEqualCols(oOther)) {
+            return this.aRefs[0].bbox.r2 < oOther.aRefs[0].bbox.r1;
+        }
+        return false;
+    };
+    CDataRefs.prototype.isToTheLeftInCols = function(oOther) {
+        if(this.isEqualRows(oOther)) {
+            return this.aRefs[0].bbox.c2 < oOther.aRefs[0].bbox.c1;
+        }
+        return false;
+    };
+    CDataRefs.prototype.isSameCol = function(oOther) {
+        var oData = new CDataRefs(this.aRefs.concat(oOther.aRefs));
+        if(oData.isInCol() && oData.aRefs[0].bbox.c1 === oData.aRefs[0].bbox.c2) {
+            return true;
+        }
+        return false;
+    };
+    CDataRefs.prototype.isSameRow = function(oOther) {
+        var oData = new CDataRefs(this.aRefs.concat(oOther.aRefs));
+        if(oData.isInCol() && oData.aRefs[0].bbox.r1 === oData.aRefs[0].bbox.r2) {
+            return true;
+        }
+        return false;
+    };
+    CDataRefs.prototype.isToTheLeftInSameRow = function(oOther) {
+        if(this.isSameRow(oOther)) {
+            if(this.getMaxCol() < oOther.getMinCol()) {
+                return true;
+            }
+        }
+        return false;
+    };
+    CDataRefs.prototype.isAboveInSameCol = function(oOther) {
+        if(this.isSameCol(oOther)) {
+            if(this.getMaxRow() < oOther.getMinRow()) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    function CSeriesDataRefs(oSeries) {
+        this.series = oSeries;
+        this.val = oSeries.getValRefs();
+        this.cat = oSeries.getCatRefs();
+        this.tx = oSeries.getTxRefs();
     }
 
+    CSeriesDataRefs.prototype.getInfo = function() {
+        var nInfo = 0;
+        
+    };
+
+
+    function CCommonChartRanges(oChartSpace) {
+    }
+    CCommonChartRanges.prototype.detectLayout = function() {
+
+    };
+    CCommonChartRanges.prototype.checkRefsAligned = function(aValRefs, aCatRefs, aTxRefs) {
+        var bInRow = this.checkInRow(aValRefs);
+        var bInCol = this.checkInCol(aValRefs);
+        if(!bInRow && !bInCol) {
+            return false;
+        }
+        if(bInCol && bInRow) {
+            if(aCatRefs.length === 0 && aTxRefs.length === 0) {
+                return true;
+            }
+        }
+    };
     CCommonChartRanges.prototype.checkInRow = function(aRanges) {
         if(aRanges.length > 0) {
             var oRange = aRanges[0];
@@ -2785,7 +2934,6 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         return false;
     };
-
     CCommonChartRanges.prototype.checkInCol = function(aRanges) {
         if(aRanges.length > 0) {
             var oRange = aRanges[0];
@@ -2802,7 +2950,6 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         return false;
     };
-
     CCommonChartRanges.prototype.checkValuesAboveBelow = function(aRangesBelow, aRangesAbove) {
         if(aRangesAbove.length !== aRangesBelow.length) {
             return false;
@@ -2843,14 +2990,21 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         return true;
     };
-
-    CCommonChartRanges.prototype.checkRangesWorksheet = function(oWorksheet) {
+    CCommonChartRanges.prototype.checkRangesSameWorksheet = function() {
         var aRanges;
+        var oWorksheet = undefined;
+        var oRange;
         for(var nArg = 1; nArg < arguments.length; ++nArg) {
             aRanges = arguments[nArg];
             for(var nRange = 0; nRange < aRanges.length; ++nRange) {
-                if(aRanges[nRange].worksheet !== oWorksheet) {
-                    return false;
+                oRange = aRanges[nRange];
+                if(oWorksheet === undefined) {
+                    oWorksheet = oRange.worksheet;
+                }
+                else {
+                    if(oRange.worksheet !== oWorksheet) {
+                        return false;
+                    }
                 }
             }
         }
@@ -2887,23 +3041,6 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         if(this.tx) {
             this.tx.update();
-        }
-    };
-    CSeriesBase.prototype.hasValuesRefs = function() {
-        return this.getValRefs().length > 0;
-    };
-    CSeriesBase.prototype.fit = function(oSeries) {
-
-        if(this.aVal.length !== oSeriesDataRanges.aVal.length ||
-            this.aCat.length !== oSeriesDataRanges.aCat.length ||
-            this.aTx.length !== oSeriesDataRanges.aTx.length) {
-            return false;
-        }
-        var nRange, oRange, oRangeOther;
-        for(nRange = 0; nRange < this.aCat.length; ++nRange) {
-            oRange = this.aCat[nRange];
-            oRangeOther = oSeriesDataRanges.aCat[nRange];
-            // if(!oRange)
         }
     };
     CSeriesBase.prototype.Refresh_RecalcData = function(oData) {
@@ -3227,31 +3364,26 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         return [];
     };
     CSeriesBase.prototype.getCatRefs = function() {
-        if(this.cat) {
-            return this.cat.getParsedRefs();
-        }
-        if(this.xVal) {
-            return this.xVal.getParsedRefs();
-        }
-        return [];
+        return this.getRefs(this.cat || this.xVal);
     };
     CSeriesBase.prototype.getTxRefs = function() {
-        if(this.tx) {
-            return this.tx.getParsedRefs();
-        }
-        return [];
+        return this.getRefs(this.tx);
     };
     CSeriesBase.prototype.getValRefs = function() {
-        if(this.val) {
-            return this.val.getParsedRefs();
+        return this.getRefs(this.val || this.yVal);
+    };
+    CSeriesBase.prototype.getRefs = function(oSource) {
+        var aRefs;
+        if(oSource) {
+            aRefs = oSource.getParsedRefs();
         }
-        if(this.yVal) {
-            return this.yVal.getParsedRefs();
+        else {
+            aRefs = [];
         }
-        return [];
+        return new CDataRefs(aRefs);
     };
     CSeriesBase.prototype.getBBoxInfo = function() {
-        var aValRefs = this.getValRefs();
+        var aValRefs = this.getValRefs().aRefs;
         var oWorksheet, oCatBB, oValBB, oTxBB, oValRef, aCatRefs, oCatRef, aTxRefs, oTxRef;
         if(aValRefs.length !== 1) {
             return null;
@@ -3259,7 +3391,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         oValRef = aValRefs[0];
         oValBB = oValRef.bbox;
         oWorksheet = oValRef.worksheet;
-        aCatRefs = this.getCatRefs();
+        aCatRefs = this.getCatRefs().aRefs;
         if(aCatRefs.length > 1) {
             return null;
         }
@@ -3271,7 +3403,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
             }
             oCatBB = oCatRef.bbox;
         }
-        aTxRefs = this.getTxRefs();
+        aTxRefs = this.getTxRefs().aRefs;
         if(aTxRefs.length > 1) {
             return null;
         }
@@ -3283,6 +3415,10 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
             oTxBB = oTxRef.bbox;
         }
         return {ws: oWorksheet, val: oValBB, cat: oCatBB, tx: oTxBB};
+    };
+    CSeriesBase.prototype.getDataPlacementInfo = function() {
+        var nInfo = 0;
+        return nInfo;
     };
     CSeriesBase.prototype.getSpPrPreset = function() {
         var oFirstSpPrPreset = 0;

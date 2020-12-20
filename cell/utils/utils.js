@@ -435,9 +435,18 @@
 			return range && this.c1 === range.c1 && this.r1 === range.r1 && this.c2 === range.c2 && this.r2 === range.r2;
 		};
 
+		Range.prototype.isEqualCols = function (range) {
+			return range && this.c1 === range.c1 && this.c2 === range.c2;
+		};
+
+		Range.prototype.isEqualRows = function (range) {
+			return range && this.r1 === range.r1 && this.r2 === range.r2;
+		};
+
 		Range.prototype.isEqualAll = function (range) {
 			return this.isEqual(range) && this.refType1 === range.refType1 && this.refType2 === range.refType2;
 		};
+
 		Range.prototype.isEqualWithOffsetRow = function (range, offsetRow) {
 			return this.c1 === range.c1 && this.c2 === range.c2 &&
 				this.isAbsC1() === range.isAbsC1() && this.isAbsC2() === range.isAbsC2() &&
