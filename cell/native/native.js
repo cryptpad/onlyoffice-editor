@@ -7021,7 +7021,7 @@ window["native"]["offline_apply_event"] = function(type,params) {
 
         case 25001: // ASC_MENU_EVENT_TYPE_DO_API_FUNCTION_CALL
         {
-            var json = JSON.parse(_params[0]),
+            var json = JSON.parse(params[0]),
                 func = json["func"],
                 params = json["params"] || [],
                 returnable = json["returnable"] || false; // need return result
