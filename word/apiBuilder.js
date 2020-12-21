@@ -8281,11 +8281,7 @@
 	 */
 	ApiParaPr.prototype.GetStyle = function()
 	{
-		var styleId = this.ParaPr.PStyle;
-		if (styleId != undefined)
-			return editor.GetDocument().GetStyle(editor.asc_GetStyleNameById(styleId));
-
-		styleId = editor.GetDocument().Document.Styles.Default.ParaPr.PStyle;
+		var styleId = this.Paragraph.Get_CompiledPr2().ParaPr.PStyle;
 		if (styleId != undefined)
 			return editor.GetDocument().GetStyle(editor.asc_GetStyleNameById(styleId));
 
@@ -8323,10 +8319,7 @@
 	 */
 	ApiParaPr.prototype.GetIndLeft = function()
 	{
-		if (this.ParaPr.Ind.Left != undefined)
-			return this.ParaPr.Ind.Left / (25.4 / 72.0 / 20);
-		
-		return editor.GetDocument().Document.Styles.Default.ParaPr.Ind.Left / (25.4 / 72.0 / 20);
+		return this.Paragraph.Get_CompiledPr2().ParaPr.Ind.Left / (25.4 / 72.0 / 20);
 	};
 	/**
 	 * Set the paragraph right side indentation.
@@ -8347,10 +8340,7 @@
 	 */
 	ApiParaPr.prototype.GetIndRight = function()
 	{
-		if (this.ParaPr.Ind.Right != undefined)
-			return this.ParaPr.Ind.Right / (25.4 / 72.0 / 20);
-		
-		return editor.GetDocument().Document.Styles.Default.ParaPr.Ind.Right / (25.4 / 72.0 / 20);
+		return this.Paragraph.Get_CompiledPr2().ParaPr.Ind.Right / (25.4 / 72.0 / 20);
 	};
 	/**
 	 * Set the paragraph first line indentation.
@@ -8371,10 +8361,7 @@
 	 */
 	ApiParaPr.prototype.GetIndFirstLine = function()
 	{
-		if (this.ParaPr.Ind.FirstLine != undefined)
-			return this.ParaPr.Ind.FirstLine / (25.4 / 72.0 / 20);
-		
-		return editor.GetDocument().Document.Styles.Default.ParaPr.Ind.FirstLine / (25.4 / 72.0 / 20);
+		return this.Paragraph.Get_CompiledPr2().ParaPr.Ind.FirstLine / (25.4 / 72.0 / 20);
 	};
 	/**
 	 * Set paragraph contents justification.
@@ -8411,10 +8398,7 @@
 			}
 		}
 
-		if (this.ParaPr.Jc != undefined)
-			return GetParaAlign(this.ParaPr.Jc);
-
-		return GetParaAlign(editor.GetDocument().Document.Styles.Default.ParaPr.Jc);
+		return GetParaAlign(this.Paragraph.Get_CompiledPr2().ParaPr.Jc);
 	};
 	/**
 	 * Specify that when rendering this document using a page view, all lines of this paragraph are maintained on a single page whenever possible.
@@ -8491,29 +8475,24 @@
 	 * Get the paragraph line spacing value.
 	 * @memberof ApiParaPr
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
-	 * @returns {(twips | line240)} - The line spacing value measured either in twentieths of a point (1/1440 of an inch) or in 240ths of a line. 
+	 * @returns {object} - has two properties: "Value" - contains the value of line spacing, 
+	 * "Type" - contains the type of Value: twentieths of a point (1/1440 of an inch) or in 240ths of a line.
 	 */
 	ApiParaPr.prototype.GetSpacingLine = function()
 	{
-		function GetSpacingValue(oSpacing)
+		function GetSpacing(oSpacing)
 		{
 			switch (oSpacing.LineRule)
 			{
 				case Asc.linerule_Auto:
-					return oSpacing.Line * 240.0;
+					return { Value : oSpacing.Line * 240.0, Type: "line240" };
 				case Asc.linerule_AtLeast:
 				case Asc.linerule_Exact:
-					return oSpacing.Line / (25.4 / 72.0 / 20);
+					return { Value : oSpacing.Line / (25.4 / 72.0 / 20), Type: "twips" };
 			}
 		}
 		
-		if (this.ParaPr.Spacing.LineRule != undefined)
-		{
-			return GetSpacingValue(this.ParaPr.Spacing);
-		}
-		
-		return GetSpacingValue(editor.GetDocument().Document.Styles.Default.ParaPr.Spacing);
-		
+		return GetSpacing(this.Paragraph.Get_CompiledPr2().ParaPr.Spacing);
 	};
 	/**
 	 * Set the spacing before the current paragraph. If the value of the isBeforeAuto parameter is true, then 
@@ -8542,10 +8521,7 @@
 	 */
 	ApiParaPr.prototype.GetSpacingBefore = function()
 	{
-		if (this.ParaPr.Spacing.Before != undefined)
-			return this.ParaPr.Spacing.Before / (25.4 / 72.0 / 20);
-		
-		return editor.GetDocument().Document.Styles.Default.ParaPr.Spacing.Before / (25.4 / 72.0 / 20);
+		return this.Paragraph.Get_CompiledPr2().ParaPr.Spacing.Before / (25.4 / 72.0 / 20);
 	};
 	/**
 	 * Set the spacing after the current paragraph. If the value of the isAfterAuto parameter is true, then 
@@ -8574,10 +8550,7 @@
 	 */
 	ApiParaPr.prototype.GetSpacingAfter = function()
 	{
-		if (this.ParaPr.Spacing.After != undefined)
-			return this.ParaPr.Spacing.After / (25.4 / 72.0 / 20);
-		
-		return editor.GetDocument().Document.Styles.Default.ParaPr.Spacing.After / (25.4 / 72.0 / 20);
+		return this.Paragraph.Get_CompiledPr2().ParaPr.Spacing.After / (25.4 / 72.0 / 20);
 	};
 	/**
 	 * Specify the shading applied to the contents of the paragraph.
@@ -8602,11 +8575,8 @@
 	 */
 	ApiParaPr.prototype.GetShd = function()
 	{
-		if (this.ParaPr.Shd != undefined)
-			return new ApiRGBColor(this.ParaPr.Shd.Color.r, this.ParaPr.Shd.Color.g, this.ParaPr.Shd.Color.b);
-		
-		var defaultColor = editor.GetDocument().Document.Styles.Default.ParaPr.Shd.Color;
-		return new ApiRGBColor(defaultColor.r, defaultColor.g, defaultColor.b)
+		var oColor = this.Paragraph.Get_CompiledPr2().ParaPr.Shd.Color;
+		return new ApiRGBColor(oColor.r, oColor.g, oColor.b)
 	};
 	/**
 	 * Specify the border which will be displayed below a set of paragraphs which have the same paragraph border settings.
