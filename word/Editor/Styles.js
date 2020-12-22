@@ -12417,12 +12417,15 @@ function CTextPr()
     this.Shd        = undefined;
     this.Vanish     = undefined;
 
-    this.TextOutline = undefined;
-    this.TextFill    = undefined;
+    this.TextOutline    = undefined;
+    this.TextFill       = undefined;
 	this.HighlightColor = undefined;
 	this.FontScale      = undefined;
-	this.PrChange   = undefined;
-	this.ReviewInfo = undefined;
+	this.FontSizeOrig   = undefined;
+	this.FontSizeCSOrig = undefined;
+
+	this.PrChange       = undefined;
+	this.ReviewInfo     = undefined;
 }
 
 CTextPr.prototype.Clear = function()
@@ -12461,6 +12464,8 @@ CTextPr.prototype.Clear = function()
 	this.AscUnifill     = undefined;
 	this.AscLine        = undefined;
 	this.FontScale      = undefined;
+	this.FontSizeOrig   = undefined;
+	this.FontSizeCSOrig = undefined;
 
 	this.PrChange   = undefined;
 	this.ReviewInfo = undefined;
@@ -12694,7 +12699,9 @@ CTextPr.prototype.InitDefault = function(nCompatibilityMode)
 	this.TextOutline    = undefined;
 	this.TextFill       = undefined;
 	this.HighlightColor = undefined;
-	this.FontScale = undefined;
+	this.FontScale      = undefined;
+	this.FontSizeOrig   = undefined;
+	this.FontSizeCSOrig = undefined;
 
 	this.PrChange   = undefined;
 	this.ReviewInfo = undefined;
@@ -12991,10 +12998,38 @@ CTextPr.prototype.ReplaceThemeFonts = function(oFontScheme)
 	}
 };
 
+
+CTextPr.prototype.GetIncDecFontSize = function(IncFontSize)
+{
+	var FontSize = this.FontSize;
+	if(this.FontScale !== null &&
+		this.FontScale !== undefined &&
+		this.FontSizeOrig !== null &&
+		this.FontSizeOrig !== undefined)
+	{
+		FontSize = this.FontSizeOrig;
+	}
+	return FontSize_IncreaseDecreaseValue(IncFontSize, FontSize);
+};
+CTextPr.prototype.GetIncDecFontSizeCS = function(IncFontSize)
+{
+	var FontSize = this.FontSizeCS;
+	if(this.FontScale !== null &&
+		this.FontScale !== undefined &&
+		this.FontSizeCSOrig !== null &&
+		this.FontSizeCSOrig !== undefined)
+	{
+		FontSize = this.FontSizeCSOrig;
+	}
+	return FontSize_IncreaseDecreaseValue(IncFontSize, FontSize);
+};
+
 CTextPr.prototype.CheckFontScale =  function()
 {
 	if(this.FontScale !== null && this.FontScale !== undefined)
 	{
+		this.FontSizeOrig   = this.FontSize;
+		this.FontSizeCSOrig = this.FontSizeCS;
 		this.FontSize *= 	this.FontScale;
 		this.FontSize = (this.FontSize + 0.5) >> 0;
 		this.FontSize = Math.max(1, this.FontSize);

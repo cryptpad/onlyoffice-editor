@@ -8137,7 +8137,7 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
             var CurTextPr = this.Get_CompiledPr( false );
 
             this.private_AddCollPrChangeMine();
-            this.Set_FontSize( FontSize_IncreaseDecreaseValue( IncFontSize, CurTextPr.FontSize ) );
+            this.Set_FontSize( CurTextPr.GetIncDecFontSize(IncFontSize));
         }
 
         // Дополнительно проверим, если у нас para_End лежит в данном ране и попадает в выделение, тогда
@@ -8187,7 +8187,7 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
 				var oEndTextPr = this.Paragraph.GetParaEndCompiledPr();
 
 				// TODO: Как только перенесем историю изменений TextPr в сам класс CTextPr, переделать тут
-				this.Paragraph.TextPr.Set_FontSize(FontSize_IncreaseDecreaseValue(IncFontSize, oEndTextPr.FontSize));
+				this.Paragraph.TextPr.Set_FontSize(oEndTextPr.GetIncDecFontSize(IncFontSize));
 			}
 		}
     }
@@ -8261,7 +8261,7 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
 					var CurTextPr = this.Get_CompiledPr(false);
 
 					CRun.private_AddCollPrChangeMine();
-					CRun.Set_FontSize(FontSize_IncreaseDecreaseValue(IncFontSize, CurTextPr.FontSize));
+					CRun.Set_FontSize(CurTextPr.GetIncDecFontSize(IncFontSize));
 				}
 
 				if (null !== RRun)
@@ -8307,7 +8307,7 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
 						var oEndTextPr = this.Paragraph.GetParaEndCompiledPr();
 
 						// TODO: Как только перенесем историю изменений TextPr в сам класс CTextPr, переделать тут
-						this.Paragraph.TextPr.Set_FontSize(FontSize_IncreaseDecreaseValue(IncFontSize, oEndTextPr.FontSize));
+						this.Paragraph.TextPr.Set_FontSize(oEndTextPr.GetIncDecFontSize(IncFontSize));
 					}
 				}
 			}
@@ -8356,7 +8356,7 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
                 var _TextPr = new CTextPr();
                 var CurTextPr = this.Get_CompiledPr( false );
                 CRun.private_AddCollPrChangeMine();
-                CRun.Set_FontSize( FontSize_IncreaseDecreaseValue( IncFontSize, CurTextPr.FontSize ) );
+                CRun.Set_FontSize(CurTextPr.GetIncDecFontSize(IncFontSize));
             }
 
 

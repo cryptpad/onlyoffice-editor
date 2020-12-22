@@ -6701,7 +6701,7 @@ Paragraph.prototype.Apply_TextPr = function(TextPr, IncFontSize)
 				EndTextPr.Merge(this.TextPr.Value);
 
 				// TODO: Как только перенесем историю изменений TextPr в сам класс CTextPr, переделать тут
-				this.TextPr.Set_FontSize(FontSize_IncreaseDecreaseValue(IncFontSize, EndTextPr.FontSize));
+				this.TextPr.Set_FontSize(EndTextPr.GetIncDecFontSize(IncFontSize));
 			}
 
 			// TODO (ParaEnd): Переделать

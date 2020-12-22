@@ -19425,8 +19425,7 @@ CDocument.prototype.controller_IncreaseDecreaseFontSize = function(bIncrease)
 			}
 			case  selectionflag_Numbering:
 			{
-				var OldFontSize = this.GetCalculatedTextPr().FontSize;
-				var NewFontSize = FontSize_IncreaseDecreaseValue(bIncrease, OldFontSize);
+				var NewFontSize = this.GetCalculatedTextPr().GetIncDecFontSize(bIncrease);
 				var TextPr      = new CTextPr();
 				TextPr.FontSize = NewFontSize;
 				this.AddToParagraph(new ParaTextPr(TextPr), true);
