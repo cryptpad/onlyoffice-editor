@@ -1585,46 +1585,40 @@ function CEditorPage(api)
 	this.onButtonTabsDraw = function()
 	{
 		var _ctx = this.m_oLeftRuler_buttonsTabs.HtmlElement.getContext('2d');
-		if (this.bIsRetinaSupport)
-		{
-			_ctx.setTransform(AscCommon.AscBrowser.retinaPixelRatio, 0, 0, AscCommon.AscBrowser.retinaPixelRatio, 0, 0);
-		}
-		else
-		{
-			_ctx.setTransform(1, 0, 0, 1, 0, 0);
-		}
+		_ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-		var _width  = 19;
-		var _height = 19;
+		var dPR = window.devicePixelRatio;
+		var _width  = Math.round(19 * dPR);
+		var _height = Math.round(19 * dPR);
 
-		_ctx.clearRect(0, 0, 19, 19);
+		_ctx.clearRect(0, 0, _width, _height);
 
-		_ctx.lineWidth   = 1;
+		_ctx.lineWidth   = Math.round(dPR);
 		_ctx.strokeStyle = "#BBBEC2";
-		_ctx.strokeRect(2.5, 3.5, 14, 14);
+		_ctx.strokeRect(2.5 * _ctx.lineWidth, 3.5 * _ctx.lineWidth, Math.round(14 * dPR), Math.round(14 * dPR));
 		_ctx.beginPath();
 
 		_ctx.strokeStyle = "#3E3E3E";
 
-		_ctx.lineWidth = 2;
+		_ctx.lineWidth = 2 * Math.round(dPR);
 		if (this.m_nTabsType == tab_Left)
 		{
-			_ctx.moveTo(8, 9);
-			_ctx.lineTo(8, 14);
-			_ctx.lineTo(13, 14);
+			_ctx.moveTo(Math.round(8 * dPR), Math.round(9 * dPR));
+			_ctx.lineTo(Math.round(8 * dPR), Math.round(14 * dPR));
+			_ctx.lineTo(Math.round(13 * dPR), Math.round(14 * dPR));
 		}
 		else if (this.m_nTabsType == tab_Center)
 		{
-			_ctx.moveTo(6, 14);
-			_ctx.lineTo(14, 14);
-			_ctx.moveTo(10, 9);
-			_ctx.lineTo(10, 14);
+			_ctx.moveTo(Math.round(6 * dPR), Math.round(14 * dPR));
+			_ctx.lineTo(Math.round(14 * dPR), Math.round(14 * dPR));
+			_ctx.moveTo(Math.round(10 * dPR), Math.round(9 * dPR));
+			_ctx.lineTo(Math.round(10 * dPR), Math.round(14 * dPR));
 		}
 		else
 		{
-			_ctx.moveTo(12, 9);
-			_ctx.lineTo(12, 14);
-			_ctx.lineTo(7, 14);
+			_ctx.moveTo(Math.round(12 * dPR), Math.round(9 * dPR));
+			_ctx.lineTo(Math.round(12 * dPR), Math.round(14 * dPR));
+			_ctx.lineTo(Math.round(7 * dPR), Math.round(14 * dPR));
 		}
 
 		_ctx.stroke();
