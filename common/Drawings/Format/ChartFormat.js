@@ -2712,8 +2712,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
     var SERIES_FLAG_VERT_VALUE = 2;
     var SERIES_FLAG_CAT = 4;
     var SERIES_FLAG_TX = 8;
-
-
+    var SERIES_FLAG_CONTINUOUS = 16;
     function CDataRefs(aRefs) {
         this.aRefs = aRefs;
     }
@@ -2747,17 +2746,14 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         return true;
     };
-    CDataRefs.prototype.isInRow = function() {
-        if(!this.isCorrect()) {
-            return false;
+    CDataRefs.prototype.isCorrectForVal = function() {
+        if(this.isCorrect() && (this.isInOneCol() ||  this.isInOneRow())) {
+            return true;
         }
-        var oRef = this.aRefs[0];
-        for(var nRef = 1; this.aRefs[nRef].length; ++nRef) {
-            if(!oRef.bbox.isEqualRows(this.aRefs[nRef].bbox)){
-                return false;
-            }
-        }
-        return true;
+        return false;
+    };
+    CDataRefs.prototype.isContinuous = function() {
+        this.aRefs.length === 1;
     };
     CDataRefs.prototype.getMaxRow = function() {
         if(this.isCorrect()) {
@@ -2799,6 +2795,27 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         return null;
     };
+    CDataRefs.prototype.isInRow = function() {
+        if(!this.isCorrect()) {
+            return false;
+        }
+        var oRef = this.aRefs[0];
+        for(var nRef = 1; this.aRefs[nRef].length; ++nRef) {
+            if(!oRef.bbox.isEqualRows(this.aRefs[nRef].bbox)){
+                return false;
+            }
+        }
+        return true;
+    };
+    CDataRefs.prototype.isInOneRow = function() {
+        if(this.isInRow()) {
+            var oRef = this.aRefs[0];
+            if(oRef.bbox.r1 === oRef.bbox.r2) {
+                return true;
+            }
+        }
+        return false;
+    };
     CDataRefs.prototype.isInCol = function() {
         if(!this.isCorrect()) {
             return false;
@@ -2810,6 +2827,15 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
             }
         }
         return true;
+    };
+    CDataRefs.prototype.isInOneCol = function() {
+        if(this.isInCol()) {
+            var oRef = this.aRefs[0];
+            if(oRef.bbox.c1 === oRef.bbox.c2) {
+                return true;
+            }
+        }
+        return false;
     };
     CDataRefs.prototype.isEqualCols = function(oOther) {
         if(this.getEqualWorksheet() !== oOther.getEqualWorksheet()) {
@@ -2894,126 +2920,117 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         this.cat = oSeries.getCatRefs();
         this.tx = oSeries.getTxRefs();
     }
-
     CSeriesDataRefs.prototype.getInfo = function() {
         var nInfo = 0;
-        
+        if(!this.val.isCorrectForVal()) {
+            return nInfo;
+        }
+        if(this.tx.isEmpty() && this.cat.isEmpty()) {
+            if(this.val.isInOneRow()) {
+                nInfo |= SERIES_FLAG_HOR_VALUE;
+                if(this.val.isContinuous()) {
+                    nInfo |= SERIES_FLAG_CONTINUOUS;
+                }
+            }
+            if(this.val.isInOneCol()) {
+                nInfo |= SERIES_FLAG_VERT_VALUE;
+                if(this.val.isContinuous()) {
+                    nInfo |= SERIES_FLAG_CONTINUOUS;
+                }
+            }
+        }
+        else if(this.tx.isEmpty() && !this.cat.isEmpty()) {
+            if(this.cat.isAboveInRows(this.val)) {
+                nInfo |= SERIES_FLAG_HOR_VALUE;
+                nInfo |= SERIES_FLAG_CAT;
+                if(this.val.isContinuous()) {
+                    nInfo |= SERIES_FLAG_CONTINUOUS;
+                }
+            }
+            else if(this.cat.isToTheLeftInCols(this.val)) {
+                nInfo |= SERIES_FLAG_VERT_VALUE;
+                nInfo |= SERIES_FLAG_CAT;
+                if(this.val.isContinuous()) {
+                    nInfo |= SERIES_FLAG_CONTINUOUS;
+                }
+            }
+        }
+        else if(!this.tx.isEmpty() && this.cat.isEmpty()) {
+            if(this.tx.isAboveInSameCol(this.val)) {
+                nInfo |= SERIES_FLAG_VERT_VALUE;
+                nInfo |= SERIES_FLAG_TX;
+                if(this.val.isContinuous()) {
+                    nInfo |= SERIES_FLAG_CONTINUOUS;
+                }
+            }
+            else if(this.tx.isToTheLeftInSameRow(this.val)) {
+                nInfo |= SERIES_FLAG_HOR_VALUE;
+                nInfo |= SERIES_FLAG_TX;
+                if(this.val.isContinuous()) {
+                    nInfo |= SERIES_FLAG_CONTINUOUS;
+                }
+            }
+        }
+        else if(!this.tx.isEmpty() && !this.cat.isEmpty()) {
+            if(this.cat.isAboveInRows(this.val) && this.tx.isToTheLeftInSameRow(this.val)) {
+                nInfo |= SERIES_FLAG_HOR_VALUE;
+                nInfo |= SERIES_FLAG_CAT;
+                nInfo |= SERIES_FLAG_TX;
+                if(this.val.isContinuous()) {
+                    nInfo |= SERIES_FLAG_CONTINUOUS;
+                }
+            }
+            else if(this.cat.isToTheLeftInCols(this.val) && this.tx.isAboveInSameCol(this.val)) {
+                nInfo |= SERIES_FLAG_VERT_VALUE;
+                nInfo |= SERIES_FLAG_CAT;
+                nInfo |= SERIES_FLAG_TX;
+                if(this.val.isContinuous()) {
+                    nInfo |= SERIES_FLAG_CONTINUOUS;
+                }
+            }
+        }
+        return nInfo;
     };
 
-
-    function CCommonChartRanges(oChartSpace) {
+    function CChartDataRefs(oChartSpace) {
+        this.chartSpace = oChartSpace;
     }
-    CCommonChartRanges.prototype.detectLayout = function() {
+    CChartDataRefs.prototype.getCommonRange = function () {
+        var aSeries = this.chartSpace.getAllSeries();
+        aSeries.sort(function(a, b) {
+            return a.order - b.order;
+        });
+        var nSeries;
+        var oSeriesRefs;
+        var nStartIdx = aSeries.length;
+        for(nSeries = 0; nSeries < aSeries.length; ++nSeries) {
+            oSeriesRefs = new CSeriesDataRefs(aSeries[nSeries]);
+            if(oSeriesRefs.isCorrectForVal()) {
+                nStartIdx = nSeries;
+                break;
+            }
+        }
+        if(nStartIdx >= aSeries.length) {
+            return "";
+        }
+        var oFirstSeriesRefs = new CSeriesDataRefs(aSeries[nSeries]);
+        var nFirstInfo = oFirstSeriesRefs.getInfo();
+        var nInfo;
+        if(nFirstInfo === 0) {
+            return "";
+        }
+        if((nFirstInfo & SERIES_FLAG_HOR_VALUE) && (nFirstInfo & SERIES_FLAG_VERT_VALUE)) {
 
-    };
-    CCommonChartRanges.prototype.checkRefsAligned = function(aValRefs, aCatRefs, aTxRefs) {
-        var bInRow = this.checkInRow(aValRefs);
-        var bInCol = this.checkInCol(aValRefs);
-        if(!bInRow && !bInCol) {
-            return false;
         }
-        if(bInCol && bInRow) {
-            if(aCatRefs.length === 0 && aTxRefs.length === 0) {
-                return true;
-            }
-        }
-    };
-    CCommonChartRanges.prototype.checkInRow = function(aRanges) {
-        if(aRanges.length > 0) {
-            var oRange = aRanges[0];
-            var nR1 = oRange.bbox.r1;
-            var nR2 = oRange.bbox.r2;
-            var oWorksheet = oRange.worksheet;
-            for(var nRange = 1; nRange < aRanges.length; ++nRange) {
-                oRange = aRanges[nRange];
-                if(oWorksheet !== oRange.worksheet || nR1 !== oRange.bbox.r1 || nR2 !== oRange.bbox.r2) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
-    };
-    CCommonChartRanges.prototype.checkInCol = function(aRanges) {
-        if(aRanges.length > 0) {
-            var oRange = aRanges[0];
-            var nC1 = oRange.bbox.c1;
-            var nC2 = oRange.bbox.c2;
-            var oWorksheet = oRange.worksheet;
-            for(var nRange = 1; nRange < aRanges.length; ++nRange) {
-                oRange = aRanges[nRange];
-                if(oWorksheet !== oRange.worksheet || nC1 !== oRange.bbox.c1 || nC2 !== oRange.bbox.c2) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
-    };
-    CCommonChartRanges.prototype.checkValuesAboveBelow = function(aRangesBelow, aRangesAbove) {
-        if(aRangesAbove.length !== aRangesBelow.length) {
-            return false;
-        }
-        if(!this.checkInRow(aRangesBelow) || !this.checkInRow(aRangesAbove)) {
-            return false;
-        }
-        var oRangeAbove, oRangeBelow;
-        for(var nRange = 0; nRange < aRangesAbove.length; ++nRange) {
-            oRangeAbove = aRangesAbove[nRange];
-            oRangeBelow = aRangesBelow[nRange];
-            if(!this.checkInCol([aRangesAbove, aRangesBelow])) {
-                return false;
-            }
-            if(oRangeAbove.bbox.r2 >= oRangeBelow.bbox.r1) {
-                return false;
-            }
-        }
-        return true;
-    };
-    CCommonChartRanges.prototype.checkValuesLeft = function(aRangesLeft, aRangesRight) {
-        if(aRangesLeft.length !== aRangesRight.length) {
-            return false;
-        }
-        if(!this.checkInCol(aRangesLeft) || !this.checkInCol(aRangesRight)) {
-            return false;
-        }
-        var oRangeLeft, oRangeRight;
-        for(var nRange = 0; nRange < aRangesLeft.length; ++nRange) {
-            oRangeLeft = aRangesLeft[nRange];
-            oRangeRight = aRangesRight[nRange];
-            if(!this.checkInRow([oRangeLeft, oRangeRight])) {
-                return false;
-            }
-            if(oRangeLeft.c2 >= oRangeRight.c1) {
-                return false;
-            }
-        }
-        return true;
-    };
-    CCommonChartRanges.prototype.checkRangesSameWorksheet = function() {
-        var aRanges;
-        var oWorksheet = undefined;
-        var oRange;
-        for(var nArg = 1; nArg < arguments.length; ++nArg) {
-            aRanges = arguments[nArg];
-            for(var nRange = 0; nRange < aRanges.length; ++nRange) {
-                oRange = aRanges[nRange];
-                if(oWorksheet === undefined) {
-                    oWorksheet = oRange.worksheet;
-                }
-                else {
-                    if(oRange.worksheet !== oWorksheet) {
-                        return false;
-                    }
+        else {
+            for(nSeries = nStartIdx + 1; nSeries < aSeries.length; ++nSeries) {
+                oSeriesRefs = new CSeriesDataRefs(aSeries[nSeries]);
+                nInfo = oSeriesRefs.getInfo();
+                if((nInfo & nFirstInfo) !== nFirstInfo) {
+                    return "";
                 }
             }
         }
-        return true;
-    };
-    CCommonChartRanges.prototype.hasOwnRanges = function() {
-    };
-    CCommonChartRanges.prototype.getValuesRanges = function() {
-
     };
 
     function CSeriesBase() {
