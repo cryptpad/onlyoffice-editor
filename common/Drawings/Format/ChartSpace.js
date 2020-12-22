@@ -597,7 +597,11 @@ var G_O_ACTIVE_COMMENT_BRUSH = AscFormat.CreateUniFillByUniColor(AscFormat.Creat
             {
                 oCopyTextPr = new CTextPr();
             }
-            oCopyTextPr.FontSize = FontSize_IncreaseDecreaseValue( bIncrease, AscFormat.isRealNumber(oCopyTextPr.FontSize) ? oCopyTextPr.FontSize : nDefaultSize);
+            if(!AscFormat.isRealNumber(oCopyTextPr.FontSize))
+            {
+                oCopyTextPr.FontSize = nDefaultSize;
+            }
+            oCopyTextPr.FontSize = oCopyTextPr.GetIncDecFontSize(bIncrease);
             oParaPr.DefaultRunPr = oCopyTextPr;
             oElement.txPr.content.Content[0].Set_Pr(oParaPr);
             if(oElement.tx && oElement.tx.rich)

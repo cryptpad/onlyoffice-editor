@@ -705,8 +705,8 @@ CInlineLevelSdt.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAl
 			if (oCompiledTextPr)
 			{
 				var oNewTextPr = new CTextPr();
-				oNewTextPr.FontSize   = FontSize_IncreaseDecreaseValue(IncFontSize, oCompiledTextPr.FontSize);
-				oNewTextPr.FontSizeCS = FontSize_IncreaseDecreaseValue(IncFontSize, oCompiledTextPr.FontSizeCS);
+				oNewTextPr.FontSize   = oCompiledTextPr.GetIncDecFontSize(IncFontSize);
+				oNewTextPr.FontSizeCS = oCompiledTextPr.GetIncDecFontSizeCS(IncFontSize);
 
 				var oTempTextPr = this.Pr.TextPr.Copy();
 				oTempTextPr.Merge(oNewTextPr);
