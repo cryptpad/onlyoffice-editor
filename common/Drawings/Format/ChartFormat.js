@@ -2729,7 +2729,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         if(this.isEmpty()) {
             return null;
         }
-        var oWorksheet = this.aRanges[0].worksheet;
+        var oWorksheet = this.aRefs[0].worksheet;
         for(var nRef = 1; nRef < this.aRefs.length; ++nRef) {
             if(oWorksheet !== this.aRefs[nRef].worksheet) {
                 return null;
@@ -2800,7 +2800,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
             return false;
         }
         var oRef = this.aRefs[0];
-        for(var nRef = 1; this.aRefs[nRef].length; ++nRef) {
+        for(var nRef = 1; nRef < this.aRefs.length; ++nRef) {
             if(!oRef.bbox.isEqualRows(this.aRefs[nRef].bbox)){
                 return false;
             }
@@ -2821,7 +2821,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
             return false;
         }
         var oRef = this.aRefs[0];
-        for(var nRef = 1; this.aRefs[nRef].length; ++nRef) {
+        for(var nRef = 1; nRef < this.aRefs.length; ++nRef) {
             if(!oRef.bbox.isEqualCols(this.aRefs[nRef].bbox)){
                 return false;
             }
@@ -2913,7 +2913,56 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         return false;
     };
+    CDataRefs.prototype.isEqual = function(oOther) {
+        if(this.aRefs.length !== oOther.aRefs.length) {
+            return false;
+        }
+        for(var nRef = 0; nRef < this.aRefs.length; ++nRef) {
+            var oRef = this.aRefs[nRef];
+            var oOtherRef = oOther.aRefs[nRef];
+            if(oRef.worksheet !== oOtherRef.worksheet) {
+                return false;
+            }
+            if(!oRef.bbox.isEqual(oOtherRef.bbox)) {
+                return false;
+            }
+        }
+        return true;
+    };
+    CDataRefs.prototype.union = function(oOther) {
+        var nRef, nOtherRef, oRef, oOtherRef, oBBox, oOtherBBox;
+        for(nOtherRef = 0; nOtherRef < oOther.aRefs.length; ++nOtherRef) {
+            oOtherRef = oOther.aRefs[nOtherRef];
+            for(nRef = 0; nRef < this.aRefs.length; ++nRef) {
+                oRef = this.aRefs[nRef];
+                if(oRef.worksheet === oOtherRef.worksheet) {
+                    oBBox = oRef.bbox;
+                    oOtherBBox = oOtherRef.bbox;
+                    if(oBBox.isNeighbor(oOtherBBox)) {
+                        oBBox.union2(oOtherBBox);
+                        break;
+                    }
+                }
+            }
+            if(nRef === this.aRefs.length) {
+                this.aRefs.push(oOtherRef);
+            }
+        }
+    };
+    CDataRefs.prototype.clone = function() {
+        var oCopy = new CDataRefs([]);
+        for(var nRef = 0; nRef < this.aRefs.length; ++nRef) {
+            oCopy.aRefs.push(this.aRefs[nRef].clone())
+        }
+        return oCopy;
+    };
 
+
+    var SERIES_COMPARE_RESULT_NONE = 0;
+    var SERIES_COMPARE_RESULT_RIGHT = 1;
+    var SERIES_COMPARE_RESULT_LEFT = 2;
+    var SERIES_COMPARE_RESULT_ABOVE = 3;
+    var SERIES_COMPARE_RESULT_BELOW = 4;
     function CSeriesDataRefs(oSeries) {
         this.series = oSeries;
         this.val = oSeries.getValRefs();
@@ -2991,11 +3040,57 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         return nInfo;
     };
+    CSeriesDataRefs.prototype.compare = function(oOther) {
+        var nInfo = this.getInfo();
+        if(nInfo === 0) {
+            return SERIES_COMPARE_RESULT_NONE;
+        }
+        var nOtherInfo = oOther.getInfo();
+        if((nInfo & nOtherInfo) !== nInfo) {
+            return SERIES_COMPARE_RESULT_NONE;
+        }
+        if(!this.cat.isEqual(oOther.cat)) {
+            return SERIES_COMPARE_RESULT_NONE;
+        }
+        if(this.val.isAboveInRows(oOther.val)) {
+            if((nInfo & SERIES_FLAG_TX) && !this.tx.isAboveInRows(oOther.tx)) {
+                return SERIES_COMPARE_RESULT_NONE;
+            }
+            return SERIES_COMPARE_RESULT_ABOVE;
+        }
+        else if(oOther.val.isAboveInRows(this.val)) {
+            if((nInfo & SERIES_FLAG_TX) && !oOther.tx.isAboveInRows(this.tx)) {
+                return SERIES_COMPARE_RESULT_NONE;
+            }
+            return SERIES_COMPARE_RESULT_BELOW;
+        }
+        else if(this.val.isToTheLeftInCols(oOther.val)) {
+            if((nInfo & SERIES_FLAG_TX) && !this.tx.isToTheLeftInCols(oOther.tx)) {
+                return SERIES_COMPARE_RESULT_NONE;
+            }
+            return SERIES_COMPARE_RESULT_LEFT;
+        }
+        else if(oOther.val.isToTheLeftInCols(this.val)) {
+            if((nInfo & SERIES_FLAG_TX) && !oOther.tx.isToTheLeftInCols(this.tx)) {
+                return SERIES_COMPARE_RESULT_NONE;
+            }
+            return SERIES_COMPARE_RESULT_RIGHT;
+        }
+        return SERIES_COMPARE_RESULT_NONE
+    };
 
     function CChartDataRefs(oChartSpace) {
         this.chartSpace = oChartSpace;
+
+        this.val = null;
+        this.cat = null;
+        this.tx = null;
+        this.updateDataRefs();
     }
-    CChartDataRefs.prototype.getCommonRange = function () {
+    CChartDataRefs.prototype.updateDataRefs = function () {
+        this.val = null;
+        this.cat = null;
+        this.tx = null;
         var aSeries = this.chartSpace.getAllSeries();
         aSeries.sort(function(a, b) {
             return a.order - b.order;
@@ -3005,33 +3100,52 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         var nStartIdx = aSeries.length;
         for(nSeries = 0; nSeries < aSeries.length; ++nSeries) {
             oSeriesRefs = new CSeriesDataRefs(aSeries[nSeries]);
-            if(oSeriesRefs.isCorrectForVal()) {
+            if(oSeriesRefs.getInfo() !== 0) {
                 nStartIdx = nSeries;
                 break;
             }
         }
         if(nStartIdx >= aSeries.length) {
-            return "";
+            return;
         }
-        var oFirstSeriesRefs = new CSeriesDataRefs(aSeries[nSeries]);
+        var oFirstSeriesRefs = oSeriesRefs;
         var nFirstInfo = oFirstSeriesRefs.getInfo();
-        var nInfo;
-        if(nFirstInfo === 0) {
-            return "";
+        if(nFirstInfo & SERIES_FLAG_HOR_VALUE) {
+            if(this.checkSeries(aSeries, nStartIdx, SERIES_COMPARE_RESULT_ABOVE)) {
+                return;
+            }
         }
-        if((nFirstInfo & SERIES_FLAG_HOR_VALUE) && (nFirstInfo & SERIES_FLAG_VERT_VALUE)) {
-
-        }
-        else {
-            for(nSeries = nStartIdx + 1; nSeries < aSeries.length; ++nSeries) {
-                oSeriesRefs = new CSeriesDataRefs(aSeries[nSeries]);
-                nInfo = oSeriesRefs.getInfo();
-                if((nInfo & nFirstInfo) !== nFirstInfo) {
-                    return "";
-                }
+        if(nFirstInfo & SERIES_FLAG_VERT_VALUE) {
+            if(this.checkSeries(aSeries, nStartIdx, SERIES_COMPARE_RESULT_LEFT)) {
+                return;
             }
         }
     };
+
+    CChartDataRefs.prototype.checkSeries = function (aSeries, nStartIdx, nCompareResult) {
+        var oFirstSeriesRefs = new CSeriesDataRefs(aSeries[nStartIdx]);
+        var oValRefs = oFirstSeriesRefs.val.clone();
+        var oTxRefs = oFirstSeriesRefs.tx.clone();
+        var oCatRefs = oFirstSeriesRefs.cat.clone();
+        var oPrevRefs = oFirstSeriesRefs;
+        var oSeriesRefs;
+        for(var nSeries = nStartIdx + 1; nSeries < aSeries.length; ++nSeries) {
+            oSeriesRefs = new CSeriesDataRefs(aSeries[nSeries]);
+            if(oPrevRefs.compare(oSeriesRefs) !== nCompareResult) {
+                break;
+            }
+            oValRefs.union(oSeriesRefs.val);
+            oTxRefs.union(oSeriesRefs.tx);
+            oPrevRefs = oSeriesRefs;
+        }
+        if(nSeries === aSeries.length) {
+            this.val = oValRefs;
+            this.tx = oTxRefs;
+            this.cat = oCatRefs;
+            return true;
+        }
+        return false;
+    }
 
     function CSeriesBase() {
         AscFormat.CBaseObject.call(this);
@@ -15926,4 +16040,5 @@ function CreateMarkerGeometryByType(type, src)
     window['AscFormat'].fCreateRef = fCreateRef;
     window['AscFormat'].isHorizontalAxis = isHorizontalAxis;
     window['AscFormat'].isVerticalAxis = isVerticalAxis;
+    window['AscFormat'].CChartDataRefs = CChartDataRefs;
 })(window);
