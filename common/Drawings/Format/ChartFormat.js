@@ -3135,13 +3135,14 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         this.val = null;
         this.cat = null;
         this.tx = null;
-        this.info = null;
+        this.info = 0;
         this.updateDataRefs();
     }
     CChartDataRefs.prototype.updateDataRefs = function () {
         this.val = null;
         this.cat = null;
         this.tx = null;
+        this.info = 0;
         if(!this.chartSpace) {
             return;
         }

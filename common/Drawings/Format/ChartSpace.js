@@ -15262,6 +15262,9 @@ CChartSpace.prototype.getCommonRange = function() {
     return oDataRange.getRange();
 };
 CChartSpace.prototype.switchRowCol = function() {
+
+
+
     var oBBoxInfo = this.getCommonBBoxInfo();
     if(!oBBoxInfo) {
         return Asc.c_oAscError.ID.No;
