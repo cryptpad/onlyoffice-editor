@@ -15258,15 +15258,8 @@ CChartSpace.prototype.getCommonBBoxInfo = function() {
     return null;
 };
 CChartSpace.prototype.getCommonRange = function() {
-    var aAllSeries = this.getAllSeries();
-    if(aAllSeries.length === 0) {
-        return "";
-    }
-    var sRes = AscFormat.fCreateRef(this.getCommonBBoxInfo());
-    if(sRes) {
-        sRes = "=" + sRes;
-    }
-    return sRes;
+    var oDataRange = new AscFormat.CChartDataRefs(this);
+    return oDataRange.getRange();
 };
 CChartSpace.prototype.switchRowCol = function() {
     var oBBoxInfo = this.getCommonBBoxInfo();

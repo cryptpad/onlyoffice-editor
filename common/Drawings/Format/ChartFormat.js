@@ -2936,24 +2936,31 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         return true;
     };
     CDataRefs.prototype.union = function(oOther) {
+        this.aRefs = this.aRefs.concat(oOther.aRefs);
+        this.checkUnion();
+    };
+    CDataRefs.prototype.checkUnion = function() {
         var nRef, nOtherRef, oRef, oOtherRef, oBBox, oOtherBBox;
-        for(nOtherRef = 0; nOtherRef < oOther.aRefs.length; ++nOtherRef) {
-            oOtherRef = oOther.aRefs[nOtherRef];
-            for(nRef = 0; nRef < this.aRefs.length; ++nRef) {
+        do {
+            for(nRef = this.aRefs.length - 1; nRef > -1; --nRef) {
                 oRef = this.aRefs[nRef];
-                if(oRef.worksheet === oOtherRef.worksheet) {
-                    oBBox = oRef.bbox;
+                oBBox = oRef.bbox;
+                for(nOtherRef = nRef - 1; nOtherRef > -1; --nOtherRef) {
+                    oOtherRef = this.aRefs[nOtherRef];
                     oOtherBBox = oOtherRef.bbox;
-                    if(oBBox.isNeighbor(oOtherBBox)) {
-                        oBBox.union2(oOtherBBox);
-                        break;
+                    if(oRef.worksheet === oOtherRef.worksheet) {
+                        if(oBBox.isNeighbor(oOtherBBox)) {
+                            oBBox.union2(oOtherBBox);
+                            this.aRefs.splice(nOtherRef, 1);
+                            break;
+                        }
                     }
                 }
+                if(nOtherRef > -1) {
+                    break;
+                }
             }
-            if(nRef === this.aRefs.length) {
-                this.aRefs.push(oOtherRef);
-            }
-        }
+        } while(nRef > -1)
     };
     CDataRefs.prototype.clone = function() {
         var oCopy = new CDataRefs([]);
@@ -2980,6 +2987,21 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
             }
         }
         return oIntersectRefs;
+    };
+    CDataRefs.prototype.getDataRange = function() {
+        var sResult = "=";
+        var sCurRef;
+        for(var nRef = 0; nRef < this.aRefs.length; ++nRef) {
+            sCurRef = fCreateRef(this.aRefs[nRef]);
+            if(sCurRef === null) {
+                return "";
+            }
+            sResult += sCurRef;
+            if(nRef < this.aRefs.length - 1) {
+                sResult += ",";
+            }
+        }
+        return sResult;
     };
 
 
@@ -3202,9 +3224,9 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         var oTx = this.tx;
         var oCat = this.cat;
         if(!oTx.isEmpty() && !oCat.isEmpty()) {
-            var oTxRange = oTx.aRanges[0];
+            var oTxRange = oTx.aRefs[0];
             var oTxBBox = oTxRange.bbox;
-            var oCatBBox = oCat.aRanges[0].bbox;
+            var oCatBBox = oCat.aRefs[0].bbox;
             var oIntersectionBBox;
             if(this.info & SERIES_FLAG_HOR_VALUE) {
                 oIntersectionBBox = new Asc.Range(oTxBBox.c1, oCatBBox.r1, oTxBBox.c2, oCatBBox.r2, true);
@@ -3213,9 +3235,15 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
                 oIntersectionBBox = new Asc.Range(oCatBBox.c1, oTxBBox.r1, oCatBBox.c2, oTxBBox.r2, true);
             }
             if(oIntersectionBBox) {
-                oTxCatIntersection.aRefs.push(oTx.aRanges[0].createFromBBox(oTxRange.worksheet, oIntersectionBBox));
+                oTxCatIntersection.aRefs.push(oTx.aRefs[0].createFromBBox(oTxRange.worksheet, oIntersectionBBox));
             }
         }
+        var oResult = new CDataRefs([]);
+        oResult.union(oTxCatIntersection);
+        oResult.union(oCat);
+        oResult.union(oTx);
+        oResult.union(this.val);
+        return oResult.getDataRange();
     };
 
     function CSeriesBase() {
