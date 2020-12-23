@@ -161,6 +161,8 @@
 
 		this.Id = AscCommon.g_oIdCounter.Get_NewId();
 
+		this._tempSelection = null;
+
 		return this;
 	}
 
@@ -181,7 +183,7 @@
 			this.formula2._init(ws);
 		}
 	};
-	CDataValidation.prototype.clone = function () {
+	CDataValidation.prototype.clone = function (needSaveId) {
 		var res = new CDataValidation();
 		if (this.ranges) {
 			res.ranges = [];
@@ -203,6 +205,9 @@
 		res.promptTitle = this.promptTitle;
 		res.formula1 = this.formula1 ? this.formula1.clone() : null;
 		res.formula2 = this.formula2 ? this.formula2.clone() : null;
+		if (needSaveId) {
+			res.Id = this.Id;
+		}
 		return res;
 	};
 	CDataValidation.prototype.set = function (val, ws) {
@@ -234,10 +239,19 @@
 	};
 	CDataValidation.prototype.isEqual = function (obj) {
 		var errorEqual = obj.error === this.error && this.errorStyle === obj.errorStyle && this.showErrorMessage === obj.showErrorMessage;
+		var compareFormulas = function (_f1, _f2) {
+			if (_f1 === _f2) {
+				return true;
+			} else if (_f1 && _f2 && _f1.text === _f2.text) {
+				return true;
+			}
+			return false;
+		};
+
 		if (errorEqual) {
 			if (obj.allowBlank === this.allowBlank && obj.showDropDown === this.showDropDown && obj.showInputMessage === this.showInputMessage) {
 				if (obj.type === this.type && obj.imeMode === this.imeMode && obj.operator === this.operator && obj.prompt === this.prompt) {
-					if (obj.promptTitle === this.promptTitle && obj.formula1 === this.formula1 && obj.formula2 === this.formula2) {
+					if (obj.promptTitle === this.promptTitle && compareFormulas(obj.formula1, this.formula1) && compareFormulas(obj.formula2, this.formula2)) {
 						return true;
 					}
 				}
@@ -930,7 +944,7 @@
 		for (var j = 0; j < this.ranges.length; j++) {
 			var intersection = range.intersection(this.ranges[j]);
 			if (intersection) {
-				intersection.setOffset(offset)
+				intersection.setOffset(offset);
 				newRanges.push(intersection);
 			}
 		}
@@ -1135,7 +1149,7 @@
 		};
 
 		var intersectionArr = [];
-		var containArr = []
+		var containArr = [];
 		if (this.elems) {
 			for (var i = 0; i < this.elems.length; i++) {
 				var dataValidation = this.elems[i];
@@ -1189,9 +1203,9 @@
 		if (doExtend === null) {
 			res = getNewObject();
 		} else if (doExtend !== undefined) {
-			res = doExtend ? dataValidationIntersection[0].clone() : getNewObject();
+			res = doExtend ? dataValidationIntersection[0].clone(true) : getNewObject();
 		} else if (dataValidationContain.length === 1) {
-			res = dataValidationContain[0].clone();
+			res = dataValidationContain[0].clone(true);
 		} else {
 			//возвращаем новый объект с опциями
 			res = getNewObject();
@@ -1234,6 +1248,7 @@
 			return _dataValidation;
 		};
 
+		props.Id = AscCommon.g_oIdCounter.Get_NewId();
 		props.correctFromInterface(ws);
 
 		var equalRangeDataValidation;
@@ -1359,6 +1374,24 @@
 			}
 		}
 		return res.concat(_notExpandRanges);
+	};
+
+	CDataValidations.prototype.getSameSettingsElems = function(_elem) {
+		var res = null;
+		if (!_elem) {
+			return res;
+		}
+
+		for (var i = 0; i < this.elems.length; i++) {
+			if (this.elems[i].isEqual(_elem)) {
+				if (!res) {
+					res = [];
+				}
+				res.push(_elem);
+			}
+		}
+
+		return res;
 	};
 
 

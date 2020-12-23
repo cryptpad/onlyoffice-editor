@@ -20835,11 +20835,47 @@
 			t.model.setDataValidationProps(props);
 
 			History.EndTransaction();
-		}
+		};
 
 		//TODO необходимо ли лочить каждый объект data validate?
 		var lockRanges = this.model.dataValidations ? this.model.dataValidations.expandRanges(_selection) : _selection;
 		this._isLockedCells(lockRanges, /*subType*/null, callback);
+	};
+
+	WorksheetView.prototype.setDataValidationSameSettings = function (props, val) {
+		var _selection = this.model.getSelection().ranges;
+		var t = this;
+		//AscCommonExcel.Range.prototype.createFromBBox(this.model, range)
+		var getRangeSelection = function (oldRanges) {
+			var _ranges = [];
+			for (var i = 0; i < oldRanges.length; i++) {
+				_ranges.push(AscCommonExcel.Range.prototype.createFromBBox(t, oldRanges[i].clone()));
+			}
+			return _ranges;
+		};
+
+		//здесь не будем проверять лок
+		//если какая-то ячейка окажется залочена, то дальнейшего применения не произойдёт
+		if (val) {
+			//поскольку объект может быть измененным, использую тот, который лежит в модели
+			var modelDataValidation = this.model.dataValidations.getById(props.Id);
+			if (modelDataValidation && modelDataValidation.data) {
+				modelDataValidation = modelDataValidation.data;
+			} else {
+				return;
+			}
+			var elems = this.model.dataValidations.getSameSettingsElems(modelDataValidation);
+			if (elems) {
+				props._tempSelection = _selection;
+				var newSelection = [];
+				for (var i = 0; i < elems.length; i++) {
+					newSelection = newSelection.concat(elems[i].ranges);
+				}
+				this.setSelection(getRangeSelection(newSelection));
+			}
+		} else if (props._tempSelection) {
+			this.setSelection(getRangeSelection(props._tempSelection));
+		}
 	};
 
 	//------------------------------------------------------------export---------------------------------------------------
