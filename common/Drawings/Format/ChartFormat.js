@@ -2722,6 +2722,12 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         return false;
     };
+    CDataRefs.prototype.isOneRange = function() {
+        if(this.aRefs.length === 1) {
+            return true;
+        }
+        return false;
+    };
     CDataRefs.prototype.isEmpty = function() {
         return this.aRefs.length === 0;
     };
@@ -2956,6 +2962,25 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         return oCopy;
     };
+    CDataRefs.prototype.intersection = function(oOther) {
+        var oIntersectRefs = new CDataRefs([]);
+        var nRef, nOtherRef, oRef, oOtherRef, oBBox, oOtherBBox, oIntersectBBox;
+        for(nOtherRef = 0; nOtherRef < oOther.aRefs.length; ++nOtherRef) {
+            oOtherRef = oOther.aRefs[nOtherRef];
+            for(nRef = 0; nRef < this.aRefs.length; ++nRef) {
+                oRef = this.aRefs[nRef];
+                if(oRef.worksheet === oOtherRef.worksheet) {
+                    oBBox = oRef.bbox;
+                    oOtherBBox = oOtherRef.bbox;
+                    oIntersectBBox = oBBox.intersection(oOtherBBox);
+                    if(oIntersectBBox) {
+                       oIntersectRefs.aRefs.push(oRef.createFromBBox(oRef.worksheet, oIntersectBBox));
+                    }
+                }
+            }
+        }
+        return oIntersectRefs;
+    };
 
 
     var SERIES_COMPARE_RESULT_NONE = 0;
@@ -3005,36 +3030,40 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
             }
         }
         else if(!this.tx.isEmpty() && this.cat.isEmpty()) {
-            if(this.tx.isAboveInSameCol(this.val)) {
-                nInfo |= SERIES_FLAG_VERT_VALUE;
-                nInfo |= SERIES_FLAG_TX;
-                if(this.val.isContinuous()) {
-                    nInfo |= SERIES_FLAG_CONTINUOUS;
+            if(this.tx.isOneRange()) {
+                if(this.tx.isAboveInSameCol(this.val)) {
+                    nInfo |= SERIES_FLAG_VERT_VALUE;
+                    nInfo |= SERIES_FLAG_TX;
+                    if(this.val.isContinuous()) {
+                        nInfo |= SERIES_FLAG_CONTINUOUS;
+                    }
                 }
-            }
-            else if(this.tx.isToTheLeftInSameRow(this.val)) {
-                nInfo |= SERIES_FLAG_HOR_VALUE;
-                nInfo |= SERIES_FLAG_TX;
-                if(this.val.isContinuous()) {
-                    nInfo |= SERIES_FLAG_CONTINUOUS;
+                else if(this.tx.isToTheLeftInSameRow(this.val)) {
+                    nInfo |= SERIES_FLAG_HOR_VALUE;
+                    nInfo |= SERIES_FLAG_TX;
+                    if(this.val.isContinuous()) {
+                        nInfo |= SERIES_FLAG_CONTINUOUS;
+                    }
                 }
             }
         }
         else if(!this.tx.isEmpty() && !this.cat.isEmpty()) {
-            if(this.cat.isAboveInRows(this.val) && this.tx.isToTheLeftInSameRow(this.val)) {
-                nInfo |= SERIES_FLAG_HOR_VALUE;
-                nInfo |= SERIES_FLAG_CAT;
-                nInfo |= SERIES_FLAG_TX;
-                if(this.val.isContinuous()) {
-                    nInfo |= SERIES_FLAG_CONTINUOUS;
+            if(this.tx.isOneRange()) {
+                if(this.cat.isAboveInRows(this.val) && this.tx.isToTheLeftInSameRow(this.val)) {
+                    nInfo |= SERIES_FLAG_HOR_VALUE;
+                    nInfo |= SERIES_FLAG_CAT;
+                    nInfo |= SERIES_FLAG_TX;
+                    if(this.val.isContinuous()) {
+                        nInfo |= SERIES_FLAG_CONTINUOUS;
+                    }
                 }
-            }
-            else if(this.cat.isToTheLeftInCols(this.val) && this.tx.isAboveInSameCol(this.val)) {
-                nInfo |= SERIES_FLAG_VERT_VALUE;
-                nInfo |= SERIES_FLAG_CAT;
-                nInfo |= SERIES_FLAG_TX;
-                if(this.val.isContinuous()) {
-                    nInfo |= SERIES_FLAG_CONTINUOUS;
+                else if(this.cat.isToTheLeftInCols(this.val) && this.tx.isAboveInSameCol(this.val)) {
+                    nInfo |= SERIES_FLAG_VERT_VALUE;
+                    nInfo |= SERIES_FLAG_CAT;
+                    nInfo |= SERIES_FLAG_TX;
+                    if(this.val.isContinuous()) {
+                        nInfo |= SERIES_FLAG_CONTINUOUS;
+                    }
                 }
             }
         }
@@ -3081,16 +3110,19 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
 
     function CChartDataRefs(oChartSpace) {
         this.chartSpace = oChartSpace;
-
         this.val = null;
         this.cat = null;
         this.tx = null;
+        this.info = null;
         this.updateDataRefs();
     }
     CChartDataRefs.prototype.updateDataRefs = function () {
         this.val = null;
         this.cat = null;
         this.tx = null;
+        if(!this.chartSpace) {
+            return;
+        }
         var aSeries = this.chartSpace.getAllSeries();
         aSeries.sort(function(a, b) {
             return a.order - b.order;
@@ -3108,8 +3140,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         if(nStartIdx >= aSeries.length) {
             return;
         }
-        var oFirstSeriesRefs = oSeriesRefs;
-        var nFirstInfo = oFirstSeriesRefs.getInfo();
+        var nFirstInfo = oSeriesRefs.getInfo();
         if(nFirstInfo & SERIES_FLAG_HOR_VALUE) {
             if(this.checkSeries(aSeries, nStartIdx, SERIES_COMPARE_RESULT_ABOVE)) {
                 return;
@@ -3121,7 +3152,6 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
             }
         }
     };
-
     CChartDataRefs.prototype.checkSeries = function (aSeries, nStartIdx, nCompareResult) {
         var oFirstSeriesRefs = new CSeriesDataRefs(aSeries[nStartIdx]);
         var oValRefs = oFirstSeriesRefs.val.clone();
@@ -3142,10 +3172,51 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
             this.val = oValRefs;
             this.tx = oTxRefs;
             this.cat = oCatRefs;
+            this.info = oFirstSeriesRefs.getInfo();
             return true;
         }
         return false;
-    }
+    };
+    CChartDataRefs.prototype.getRefsForTrack = function() {
+        this.updateDataRefs();
+        if(!this.val) {
+            return null;
+        }
+        if(!this.val.isOneRange()) {
+            return null;
+        }
+        if(!this.tx.isEmpty() && !this.tx.isOneRange()) {
+            return null;
+        }
+        if(!this.cat.isEmpty() && !this.cat.isOneRange()) {
+            return null;
+        }
+        return this;
+    };
+    CChartDataRefs.prototype.getRange = function() {
+        this.updateDataRefs();
+        if(this.info === 0) {
+            return "";
+        }
+        var oTxCatIntersection = new CDataRefs([]);
+        var oTx = this.tx;
+        var oCat = this.cat;
+        if(!oTx.isEmpty() && !oCat.isEmpty()) {
+            var oTxRange = oTx.aRanges[0];
+            var oTxBBox = oTxRange.bbox;
+            var oCatBBox = oCat.aRanges[0].bbox;
+            var oIntersectionBBox;
+            if(this.info & SERIES_FLAG_HOR_VALUE) {
+                oIntersectionBBox = new Asc.Range(oTxBBox.c1, oCatBBox.r1, oTxBBox.c2, oCatBBox.r2, true);
+            }
+            else if(this.info & SERIES_FLAG_VERT_VALUE) {
+                oIntersectionBBox = new Asc.Range(oCatBBox.c1, oTxBBox.r1, oCatBBox.c2, oTxBBox.r2, true);
+            }
+            if(oIntersectionBBox) {
+                oTxCatIntersection.aRefs.push(oTx.aRanges[0].createFromBBox(oTxRange.worksheet, oIntersectionBBox));
+            }
+        }
+    };
 
     function CSeriesBase() {
         AscFormat.CBaseObject.call(this);
@@ -3546,10 +3617,6 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
             oTxBB = oTxRef.bbox;
         }
         return {ws: oWorksheet, val: oValBB, cat: oCatBB, tx: oTxBB};
-    };
-    CSeriesBase.prototype.getDataPlacementInfo = function() {
-        var nInfo = 0;
-        return nInfo;
     };
     CSeriesBase.prototype.getSpPrPreset = function() {
         var oFirstSpPrPreset = 0;
