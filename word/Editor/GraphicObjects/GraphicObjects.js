@@ -2162,7 +2162,7 @@ CGraphicObjects.prototype =
         var content = this.getTargetDocContent(oPr && oPr.CheckDocContent, undefined);
         if(content)
         {
-            return content.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
+            return content.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
         }
         else
         {
