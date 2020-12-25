@@ -15262,11 +15262,9 @@ CChartSpace.prototype.getCommonRange = function() {
     return oDataRange.getRange();
 };
 CChartSpace.prototype.switchRowCol = function() {
-
-
-
-    var oBBoxInfo = this.getCommonBBoxInfo();
-    if(!oBBoxInfo) {
+    var oDataRange = new AscFormat.CChartDataRefs(this);
+    var aRefs = oDataRange.getSwitchedRefs();
+    if(!aRefs) {
         return Asc.c_oAscError.ID.No;
     }
     var oPlotArea = this.chart.plotArea;
@@ -15274,16 +15272,7 @@ CChartSpace.prototype.switchRowCol = function() {
     if(!oFirstChart) {
         return Asc.c_oAscError.ID.No;
     }
-    var nSeriesCount = 0, nPtCount = 0;
-    var oValBB = oBBoxInfo.val;
-    if(oBBoxInfo.tb) {
-        nSeriesCount = oValBB.c2 - oValBB.c1 + 1;
-        nPtCount = oValBB.r2 - oValBB.r1 + 1;
-    }
-    else {
-        nSeriesCount = oValBB.r2 - oValBB.r1 + 1;
-        nPtCount = oValBB.c2 - oValBB.c1 + 1;
-    }
+    var nSeriesCount = aRefs.length;
     if(nSeriesCount > MAX_SERIES_COUNT) {
         return Asc.c_oAscError.ID.MaxDataSeriesError;
     }
@@ -15302,120 +15291,40 @@ CChartSpace.prototype.switchRowCol = function() {
     }
     var nSeries, oSeries;
     var oRange, r1, r2, c1, c2, sValues, sTx, sCat;
-    var oWorksheet = oBBoxInfo.worksheet;
     var nOldSeries, oOldSeries;
     var nMinStartIdx;
-    if(oBBoxInfo.tb) {
-        nSeriesCount = oValBB.c2 - oValBB.c1 + 1;
-        nMinStartIdx = nSeriesCount;
-        for(nSeries = 0; nSeries < nSeriesCount; ++nSeries) {
-            oSeries = null;
-            for(nOldSeries = 0; nOldSeries < aOldSeries.length; ++nOldSeries) {
-                oOldSeries = aOldSeries[nOldSeries];
-                if(oOldSeries.idx === nSeries) {
-                    oSeries = oOldSeries.createDuplicate();
-                    break;
-                }
+    var oSeriesData;
+    nMinStartIdx = nSeriesCount;
+    for(nSeries = 0; nSeries < nSeriesCount; ++nSeries) {
+        oSeries = null;
+        for(nOldSeries = 0; nOldSeries < aOldSeries.length; ++nOldSeries) {
+            oOldSeries = aOldSeries[nOldSeries];
+            if(oOldSeries.idx === nSeries) {
+                oSeries = oOldSeries.createDuplicate();
+                break;
             }
-            if(!oSeries) {
-                oSeries = oFirstSeries ? oFirstSeries.createDuplicate() : oFirstChart.getSeriesConstructor();
-                oSeries.setSpPr(null);
-                nMinStartIdx = Math.min(nSeries, nMinStartIdx);
-            }
-            r1 = oValBB.r1;
-            r2 = oValBB.r2;
-            c1 = oValBB.c1 + nSeries;
-            c2 = c1;
-            oRange = new Asc.Range(c1, r1, c2, r2);
-            sValues = AscFormat.fCreateRef({worksheet: oWorksheet, bbox: oRange});
-            sTx = null;
-            if(oBBoxInfo.cat) {
-                r1 = oBBoxInfo.cat.r1;
-                r2 = r1;
-                c1 = oValBB.c1 + nSeries;
-                c2 = c1;
-                oRange = new Asc.Range(c1, r1, c2, r2);
-                sTx = AscFormat.fCreateRef({worksheet: oWorksheet, bbox: oRange});
-            }
-            sCat = null;
-            if(oBBoxInfo.tx) {
-                r1 = oBBoxInfo.tx.r1;
-                r2 = oBBoxInfo.tx.r2;
-                c1 = oBBoxInfo.tx.c1;
-                c2 = oBBoxInfo.tx.c2;
-                oRange = new Asc.Range(c1, r1, c2, r2);
-                sCat = AscFormat.fCreateRef({worksheet: oWorksheet, bbox: oRange});
-            }
-            oSeries.setName(sTx);
-            if(oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer) {
-                oSeries.setYValues(sValues);
-                oSeries.setXValues(sCat);
-            }
-            else {
-                oSeries.setValues(sValues);
-                oSeries.setCategories(sCat);
-            }
-            oSeries.setIdx(nSeries);
-            oSeries.setOrder(nSeries);
-            oFirstChart.addSer(oSeries);
         }
-    }
-    else {
-        nSeriesCount = oValBB.r2 - oValBB.r1 + 1;
-        nMinStartIdx = nSeriesCount;
-        for(nSeries = 0; nSeries < nSeriesCount; ++nSeries) {
-            oSeries = null;
-            for(nOldSeries = 0; nOldSeries < aOldSeries.length; ++nOldSeries) {
-                oOldSeries = aOldSeries[nOldSeries];
-                if(oOldSeries.idx === nSeries) {
-                    oSeries = oOldSeries.createDuplicate();
-                    break;
-                }
-            }
-            if(!oSeries) {
-                oSeries = oFirstSeries ? oFirstSeries.createDuplicate() : oFirstChart.getSeriesConstructor();
-                oSeries.setSpPr(null);
-                nMinStartIdx = Math.min(nSeries, nMinStartIdx);
-            }
-            r1 = oValBB.r1 + nSeries;
-            r2 = r1;
-            c1 = oValBB.c1;
-            c2 = oValBB.c2;
-            oRange = new Asc.Range(c1, r1, c2, r2);
-            sValues = AscFormat.fCreateRef({worksheet: oWorksheet, bbox: oRange});
-            sTx = null;
-            if(oBBoxInfo.cat) {
-                r1 = oBBoxInfo.cat.r1 + nSeries;
-                r2 = r1;
-                c1 = oBBoxInfo.cat.c1;
-                c2 = c1;
-                oRange = new Asc.Range(c1, r1, c2, r2);
-                sTx = AscFormat.fCreateRef({worksheet: oWorksheet, bbox: oRange});
-            }
-            sCat = null;
-            if(oBBoxInfo.tx) {
-                r1 = oBBoxInfo.tx.r1;
-                r2 = oBBoxInfo.tx.r2;
-                c1 = oBBoxInfo.tx.c1;
-                c2 = oBBoxInfo.tx.c2;
-                oRange = new Asc.Range(c1, r1, c2, r2);
-                sCat = AscFormat.fCreateRef({worksheet: oWorksheet, bbox: oRange});
-            }
-
-
-            oSeries.setName(sTx);
-            if(oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer) {
-                oSeries.setYValues(sValues);
-                oSeries.setXValues(sCat);
-            }
-            else {
-                oSeries.setValues(sValues);
-                oSeries.setCategories(sCat);
-            }
-            oSeries.setIdx(nSeries);
-            oSeries.setOrder(nSeries);
-            oFirstChart.addSer(oSeries);
+        if(!oSeries) {
+            oSeries = oFirstSeries ? oFirstSeries.createDuplicate() : oFirstChart.getSeriesConstructor();
+            oSeries.setSpPr(null);
+            nMinStartIdx = Math.min(nSeries, nMinStartIdx);
         }
+        oSeriesData = aRefs[nSeries];
+        sValues = oSeriesData.val.getFormula();
+        sTx = oSeriesData.tx.getFormula();
+        sCat = oSeriesData.cat.getFormula();
+        oSeries.setName(sTx);
+        if(oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer) {
+            oSeries.setYValues(sValues);
+            oSeries.setXValues(sCat);
+        }
+        else {
+            oSeries.setValues(sValues);
+            oSeries.setCategories(sCat);
+        }
+        oSeries.setIdx(nSeries);
+        oSeries.setOrder(nSeries);
+        oFirstChart.addSer(oSeries);
     }
     nSeriesCount = oFirstChart.series.length;
     var oStyle, aBaseFills;
