@@ -238,7 +238,7 @@ function CHorRuler()
     this.Units = c_oAscDocumentUnits.Millimeter;
 
     this.InitTablePict = function() {
-        var dPR = window.devicePixelRatio;
+        var dPR = AscCommon.AscBrowser.retinaPixelRatio;
         var roundDPR = Math.round(dPR);
         // var roundDPR = ((dPR - Math.floor(dPR)) <= 0.5) ? Math.floor(dPR) : Math.round(dPR);
         var ctx = g_memory.ctx;
@@ -271,7 +271,7 @@ function CHorRuler()
     {
         if (null != this.tableSprite)
         {
-            if (this.tableSprite.width == 7 * Math.round(window.devicePixelRatio))
+            if (this.tableSprite.width === 7 * Math.round(AscCommon.AscBrowser.retinaPixelRatio))
                 return;
         }
             this.tableSprite = this.InitTablePict();
@@ -285,7 +285,7 @@ function CHorRuler()
 
         this.CheckTableSprite();
 
-        var dPR = window.devicePixelRatio;
+        var dPR = AscCommon.AscBrowser.retinaPixelRatio;
         var dKoef_mm_to_pix = g_dKoef_mm_to_pix * this.m_dZoom;
         dKoef_mm_to_pix *= dPR;
 
@@ -433,7 +433,7 @@ function CHorRuler()
         checker.Type = this.CurrentObjectType;
         checker.BlitAttack = true;
 
-        var dPR = window.devicePixelRatio;
+        var dPR = AscCommon.AscBrowser.retinaPixelRatio;
         var dKoef_mm_to_pix = g_dKoef_mm_to_pix * this.m_dZoom * dPR;
 
         // не править !!!
@@ -527,8 +527,8 @@ function CHorRuler()
 
         context.beginPath();
         context.lineWidth = Math.round(dPR);
-        context.strokeStyle = "#585B5E";
-        context.fillStyle = "#585B5E";
+        context.strokeStyle = GlobalSkin.RulerTextColor;
+        context.fillStyle = GlobalSkin.RulerTextColor;
 
         var mm_1_4 = 10 * dKoef_mm_to_pix / 4;
         var inch_1_8 = 25.4 * dKoef_mm_to_pix / 8;
@@ -2307,7 +2307,7 @@ function CHorRuler()
 
     this.BlitToMain = function(left, top, htmlElement)
     {
-        var dPR = window.devicePixelRatio;
+        var dPR = AscCommon.AscBrowser.retinaPixelRatio;
         left = Math.round(dPR * left);
         var _margin_left = this.m_dMarginLeft;
         var _margin_right = this.m_dMarginRight;
@@ -2610,7 +2610,7 @@ function CHorRuler()
             var _len_tabs = this.m_arrTabs.length;
             if (0 != _len_tabs)
             {
-                context.strokeStyle = "#000000";
+                context.strokeStyle = GlobalSkin.RulerTabsColor;
                 context.lineWidth = 2 * roundDPR;
 
                 _positon_y = this.m_nBottom - Math.round(5 * dPR);
@@ -2719,7 +2719,7 @@ function CVerRuler()
     {
         this.m_dZoom = this.m_oWordControl.m_nZoomValue / 100;
 
-        var dPR = window.devicePixelRatio;
+        var dPR = AscCommon.AscBrowser.retinaPixelRatio;
         var dKoef_mm_to_pix = g_dKoef_mm_to_pix * this.m_dZoom * dPR;
 
         var heightNew    = dKoef_mm_to_pix * this.m_oPage.height_mm;
@@ -2821,7 +2821,7 @@ function CVerRuler()
         checker.Type = this.CurrentObjectType;
         checker.BlitAttack = true;
 
-        var dPR = window.devicePixelRatio;
+        var dPR = AscCommon.AscBrowser.retinaPixelRatio;
         var dKoef_mm_to_pix = g_dKoef_mm_to_pix * this.m_dZoom * dPR;
 
         // не править !!!
@@ -2901,8 +2901,8 @@ function CVerRuler()
 
         context.beginPath();
         context.lineWidth = Math.round(dPR);
-        context.strokeStyle = "#585B5E";
-        context.fillStyle = "#585B5E";
+        context.strokeStyle = GlobalSkin.RulerTextColor;
+        context.fillStyle = GlobalSkin.RulerTextColor;
 
         var mm_1_4 = 10 * dKoef_mm_to_pix / 4;
 		var isDraw1_4 = (mm_1_4 > 7) ? true : false;
@@ -3178,7 +3178,7 @@ function CVerRuler()
 
         if ((this.CurrentObjectType == RULER_OBJECT_TYPE_TABLE) && (null != markup))
         {
-            var dPR = window.devicePixelRatio;
+            var dPR = AscCommon.AscBrowser.retinaPixelRatio;
             var dKoef_mm_to_pix = g_dKoef_mm_to_pix * this.m_dZoom * dPR;
 
             // не будет нулевых таблиц.
@@ -3643,7 +3643,7 @@ function CVerRuler()
     {
         if (!this.RepaintChecker.BlitAttack && top == this.RepaintChecker.BlitTop)
             return;
-        var dPR = window.devicePixelRatio;
+        var dPR = AscCommon.AscBrowser.retinaPixelRatio;
         top = Math.round(top * dPR);
         this.RepaintChecker.BlitTop = top;
         this.RepaintChecker.BlitAttack = false;

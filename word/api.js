@@ -1160,11 +1160,6 @@
 
 	asc_docs_api.prototype.CreateCSS = function()
 	{
-		if (window["flat_desine"] === true)
-		{
-			AscCommonWord.updateGlobalSkin(AscCommonWord.GlobalSkinFlat2);
-		}
-
 		var _head = document.getElementsByTagName('head')[0];
 
 		var style0       = document.createElement('style');
@@ -1202,6 +1197,9 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.CreateComponents = function()
 	{
+		this.asc_setSkin(this.skinObject);
+		delete this.skinObject;
+
 		this.CreateCSS();
 
 		if (this.HtmlElement != null)
@@ -1230,6 +1228,23 @@ background-repeat: no-repeat;\
 									<div id=\"id_horizontal_scroll\" style=\"left:0px;top:0;height:14px;overflow:hidden;position:absolute;width:100%;\">\
 									</div>\
 									</div>" + this.HtmlElement.innerHTML);
+	};
+
+	asc_docs_api.prototype.asc_setSkin = function(theme)
+	{
+		AscCommonWord.updateGlobalSkin(theme);
+
+		var obj_id_main = document.getElementById("id_main");
+		if (obj_id_main)
+		{
+			obj_id_main.style.backgroundColor = AscCommonWord.GlobalSkin.BackgroundColor;
+			document.getElementById("id_viewer").style.backgroundColor = AscCommonWord.GlobalSkin.BackgroundColor;
+			document.getElementById("id_panel_right").style.backgroundColor = AscCommonWord.GlobalSkin.BackgroundScroll;
+			document.getElementById("id_horscrollpanel").style.backgroundColor = AscCommonWord.GlobalSkin.BackgroundScroll;
+		}
+
+		if (this.WordControl && this.WordControl.m_oBody)
+			this.WordControl.OnResize(true);
 	};
 
 	asc_docs_api.prototype.GetCopyPasteDivId = function()
@@ -11391,6 +11406,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_GetSelectedText']                       = asc_docs_api.prototype.asc_GetSelectedText;
 	asc_docs_api.prototype['asc_AddBlankPage']                          = asc_docs_api.prototype.asc_AddBlankPage;
     asc_docs_api.prototype['sendEvent']         						= asc_docs_api.prototype.sendEvent;
+	asc_docs_api.prototype['asc_setSkin']								= asc_docs_api.prototype.asc_setSkin;
 
 	asc_docs_api.prototype['asc_ConvertEquationToMath']                 = asc_docs_api.prototype.asc_ConvertEquationToMath;
 

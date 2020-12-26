@@ -1284,11 +1284,6 @@
 
 	asc_docs_api.prototype.CreateCSS = function()
 	{
-		if (window["flat_desine"] === true)
-		{
-			AscCommonSlide.updateGlobalSkin(AscCommonSlide.GlobalSkinFlat2);
-		}
-
 		var _head = document.getElementsByTagName('head')[0];
 
 		var style0       = document.createElement('style');
@@ -1326,6 +1321,9 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.CreateComponents = function()
 	{
+		this.asc_setSkin(this.skinObject);
+		delete this.skinObject;
+
 		this.CreateCSS();
 
 		var _innerHTML = "<div id=\"id_panel_thumbnails\" class=\"block_elem\" style=\"touch-action:none;background-color:" + AscCommonSlide.GlobalSkin.BackgroundColorThumbnails + ";\">\
@@ -1356,7 +1354,7 @@ background-repeat: no-repeat;\
 								    <div id=\"id_buttonPrevPage\" class=\"block_elem buttonPrevPage\"></div>\
 								    <div id=\"id_buttonNextPage\" class=\"block_elem buttonNextPage\"></div>\
                                 </div>\
-                                <div id=\"id_horscrollpanel\" class=\"block_elem\" style=\"margin-bottom:1px;background-color:#F1F1F1;\">\
+                                <div id=\"id_horscrollpanel\" class=\"block_elem\" style=\"margin-bottom:1px;background-color:" + AscCommonSlide.GlobalSkin.BackgroundColor + ";\">\
                                     <div id=\"id_horizontal_scroll\" style=\"left:0;top:0;height:14px;overflow:hidden;position:absolute;width:100%;\">\
                                     </div>\
                                 </div>\
@@ -1382,6 +1380,30 @@ background-repeat: no-repeat;\
 			this.HtmlElement.style.backgroundColor = AscCommonSlide.GlobalSkin.BackgroundColor;
 			this.HtmlElement.innerHTML = _innerHTML;
 		}
+	};
+
+	asc_docs_api.prototype.asc_setSkin = function(theme)
+	{
+		AscCommonSlide.updateGlobalSkin(theme);
+
+		var baseElem = document.getElementById(this.HtmlElementName);
+		if (baseElem)
+			baseElem.style.backgroundColor = AscCommonSlide.GlobalSkin.BackgroundColor;
+
+		var obj_id_main = document.getElementById("id_main");
+		if (obj_id_main)
+		{
+			obj_id_main.style.backgroundColor = AscCommonSlide.GlobalSkin.BackgroundColor;
+			document.getElementById("id_panel_thumbnails").style.backgroundColor = AscCommonSlide.GlobalSkin.BackgroundColorThumbnails;
+			document.getElementById("id_panel_thumbnails_split").style.backgroundColor = AscCommonSlide.GlobalSkin.BackgroundColorThumbnails;
+			document.getElementById("id_main_parent").style.backgroundColor = AscCommonSlide.GlobalSkin.BorderSplitterColor;
+			document.getElementById("id_viewer").style.backgroundColor = AscCommonSlide.GlobalSkin.BackgroundColor;
+			document.getElementById("id_panel_right").style.backgroundColor = AscCommonSlide.GlobalSkin.BackgroundScroll;
+			document.getElementById("id_horscrollpanel").style.backgroundColor = AscCommonSlide.GlobalSkin.BackgroundScroll;
+		}
+
+		if (this.WordControl && this.WordControl.m_oBody)
+			this.WordControl.OnResize(true);
 	};
 
 	asc_docs_api.prototype.initDefaultShortcuts = function()
@@ -8028,6 +8050,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["asc_SetMathProps"]           		  = asc_docs_api.prototype.asc_SetMathProps;
 
     asc_docs_api.prototype['sendEvent']								= asc_docs_api.prototype.sendEvent;
+	asc_docs_api.prototype['asc_setSkin']							= asc_docs_api.prototype.asc_setSkin;
 
 	// mobile
 	asc_docs_api.prototype["asc_GetDefaultTableStyles"]           	= asc_docs_api.prototype.asc_GetDefaultTableStyles;

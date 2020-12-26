@@ -63,70 +63,101 @@ var Y_Bottom_Field = Page_Height - Y_Bottom_Margin;
 
 var tableSpacingMinValue = 0.02;//0.02мм
 
-var GlobalSkinTeamlab = {
-	Name                   : "classic",
-	RulersButton           : true,
-	NavigationButtons      : true,
-	BackgroundColor        : "#B0B0B0",
-	RulerDark              : "#B0B0B0",
-	RulerLight             : "EDEDED",
-	BackgroundScroll       : "#D3D3D3",
-	RulerOutline           : "#929292",
-	RulerMarkersFillColor  : "#E7E7E7",
-	PageOutline            : "#81878F",
-	STYLE_THUMBNAIL_WIDTH  : 80,
-	STYLE_THUMBNAIL_HEIGHT : 40,
-	ContentControlsBack	   : "#F1F1F1",
-	ContentControlsHover   : "#D8DADC",
-	ContentControlsActive  : "#7C838A",
-	ContentControlsText    : "#444444",
-	ContentControlsTextActive   : "#FFFFFF",
-	ContentControlsAnchorActive : "#CFCFCF"
-};
-var GlobalSkinFlat    = {
-	Name                   : "flat",
-	RulersButton           : false,
-	NavigationButtons      : false,
-	BackgroundColor        : "#F4F4F4",
-	RulerDark              : "#CFCFCF",
-	RulerLight             : "#FFFFFF",
-	BackgroundScroll       : "#F1F1F1",
-	RulerOutline           : "#BBBEC2",
-	RulerMarkersFillColor  : "#FFFFFF",
-	PageOutline            : "#BBBEC2",
-	STYLE_THUMBNAIL_WIDTH  : 104,
-	STYLE_THUMBNAIL_HEIGHT : 38,
-	isNeedInvertOnActive   : false,
-	ContentControlsBack	   : "#F1F1F1",
-	ContentControlsHover   : "#D8DADC",
-	ContentControlsActive  : "#7C838A",
-	ContentControlsText    : "#444444",
-	ContentControlsTextActive   : "#FFFFFF",
-	ContentControlsAnchorActive : "#CFCFCF"
-};
-var GlobalSkinFlat2    = {
-	Name                   : "flat",
-	RulersButton           : false,
-	NavigationButtons      : false,
-	BackgroundColor        : "#E2E2E2",
-	RulerDark              : "#CFCFCF",
-	RulerLight             : "#FFFFFF",
-	BackgroundScroll       : "#E2E2E2",
-	RulerOutline           : "#BBBEC2",
-	RulerMarkersFillColor  : "#FFFFFF",
-	PageOutline            : "#BBBEC2",
-	STYLE_THUMBNAIL_WIDTH  : 104,
-	STYLE_THUMBNAIL_HEIGHT : 38,
-	isNeedInvertOnActive   : false,
-	ContentControlsBack	   : "#F1F1F1",
-	ContentControlsHover   : "#D8DADC",
-	ContentControlsActive  : "#7C838A",
-	ContentControlsText    : "#444444",
-	ContentControlsTextActive   : "#FFFFFF",
-	ContentControlsAnchorActive : "#CFCFCF"
+var EditorSkins = {
+	"classic" : {
+		Name 				   : "classic",
+		RulersButton           : true,
+		NavigationButtons      : true,
+		BackgroundColor        : "#B0B0B0",
+		RulerDark              : "#B0B0B0",
+		RulerLight             : "#EDEDED",
+		BackgroundScroll       : "#D3D3D3",
+		RulerOutline           : "#929292",
+		RulerMarkersFillColor  : "#E7E7E7",
+		RulerTextColor		   : "#585B5E",
+		RulerTabsColor		   : "#000000",
+		PageOutline            : "#81878F",
+		STYLE_THUMBNAIL_WIDTH  : 80,
+		STYLE_THUMBNAIL_HEIGHT : 40,
+		ContentControlsBack	   : "#F1F1F1",
+		ContentControlsHover   : "#D8DADC",
+		ContentControlsActive  : "#7C838A",
+		ContentControlsText    : "#444444",
+		ContentControlsTextActive   : "#FFFFFF",
+		ContentControlsAnchorActive : "#CFCFCF"
+	},
+	"flat" : {
+		Name 				   : "flat",
+		RulersButton           : false,
+		NavigationButtons      : false,
+		BackgroundColor        : "#E2E2E2",
+		RulerDark              : "#CFCFCF",
+		RulerLight             : "#FFFFFF",
+		BackgroundScroll       : "#E2E2E2",
+		RulerOutline           : "#BBBEC2",
+		RulerMarkersFillColor  : "#FFFFFF",
+		RulerTextColor		   : "#585B5E",
+		PageOutline            : "#BBBEC2",
+		RulerTabsColor		   : "#000000",
+		STYLE_THUMBNAIL_WIDTH  : 104,
+		STYLE_THUMBNAIL_HEIGHT : 38,
+		isNeedInvertOnActive   : false,
+		ContentControlsBack	   : "#F1F1F1",
+		ContentControlsHover   : "#D8DADC",
+		ContentControlsActive  : "#7C838A",
+		ContentControlsText    : "#444444",
+		ContentControlsTextActive   : "#FFFFFF",
+		ContentControlsAnchorActive : "#CFCFCF"
+	},
+	"flat2" : {
+		Name 				   : "flat2",
+		RulersButton           : false,
+		NavigationButtons      : false,
+		BackgroundColor        : "#F0F0F0",
+		RulerDark              : "#D9D9D9",
+		RulerLight             : "#FFFFFF",
+		BackgroundScroll       : "#F0F0F0",
+		RulerOutline           : "#BBBEC2",
+		RulerMarkersFillColor  : "#FFFFFF",
+		RulerTextColor		   : "#585B5E",
+		RulerTabsColor		   : "#000000",
+		PageOutline            : "#BBBEC2",
+		STYLE_THUMBNAIL_WIDTH  : 104,
+		STYLE_THUMBNAIL_HEIGHT : 38,
+		isNeedInvertOnActive   : false,
+		ContentControlsBack	   : "#F1F1F1",
+		ContentControlsHover   : "#D8DADC",
+		ContentControlsActive  : "#7C838A",
+		ContentControlsText    : "#444444",
+		ContentControlsTextActive   : "#FFFFFF",
+		ContentControlsAnchorActive : "#CFCFCF"
+	},
+	"flatDark" : {
+		Name 				   : "flatDark",
+		RulersButton           : false,
+		NavigationButtons      : false,
+		BackgroundColor        : "#666666",
+		RulerDark              : "#444444",
+		RulerLight             : "#555555",
+		BackgroundScroll       : "#666666",
+		RulerOutline           : "#B2B2B2",
+		RulerMarkersFillColor  : "#666666",
+		RulerTextColor		   : "#B2B2B2",
+		RulerTabsColor		   : "#FFFFFF",
+		PageOutline            : "#BBBEC2",
+		STYLE_THUMBNAIL_WIDTH  : 104,
+		STYLE_THUMBNAIL_HEIGHT : 38,
+		isNeedInvertOnActive   : false,
+		ContentControlsBack	   : "#F1F1F1",
+		ContentControlsHover   : "#D8DADC",
+		ContentControlsActive  : "#7C838A",
+		ContentControlsText    : "#444444",
+		ContentControlsTextActive   : "#FFFFFF",
+		ContentControlsAnchorActive : "#CFCFCF"
+	}
 };
 
-var GlobalSkin = GlobalSkinFlat2;
+var GlobalSkin = EditorSkins["flat2"];
 if (AscCommon.TEMP_STYLE_THUMBNAIL_WIDTH !== undefined && AscCommon.TEMP_STYLE_THUMBNAIL_HEIGHT !== undefined)
 {
 	// TODO: переделать.
@@ -134,21 +165,40 @@ if (AscCommon.TEMP_STYLE_THUMBNAIL_WIDTH !== undefined && AscCommon.TEMP_STYLE_T
 	GlobalSkin.STYLE_THUMBNAIL_HEIGHT = AscCommon.TEMP_STYLE_THUMBNAIL_HEIGHT;
 }
 
-function updateGlobalSkin(newSkin)
+function updateGlobalSkin(obj)
 {
-	GlobalSkin.Name                   = newSkin.Name;
-	GlobalSkin.RulersButton           = newSkin.RulersButton;
-	GlobalSkin.NavigationButtons      = newSkin.NavigationButtons;
-	GlobalSkin.BackgroundColor        = newSkin.BackgroundColor;
-	GlobalSkin.RulerDark              = newSkin.RulerDark;
-	GlobalSkin.RulerLight             = newSkin.RulerLight;
-	GlobalSkin.BackgroundScroll       = newSkin.BackgroundScroll;
-	GlobalSkin.RulerOutline           = newSkin.RulerOutline;
-	GlobalSkin.RulerMarkersFillColor  = newSkin.RulerMarkersFillColor;
-	GlobalSkin.PageOutline            = newSkin.PageOutline;
-	GlobalSkin.STYLE_THUMBNAIL_WIDTH  = newSkin.STYLE_THUMBNAIL_WIDTH;
-	GlobalSkin.STYLE_THUMBNAIL_HEIGHT = newSkin.STYLE_THUMBNAIL_HEIGHT;
-	GlobalSkin.isNeedInvertOnActive   = newSkin.isNeedInvertOnActive;
+	if (!obj) return;
+
+	if (typeof obj === "string" && undefined !== EditorSkins[obj])
+	{
+		GlobalSkin = EditorSkins[obj];
+	}
+	else
+	{
+		if (undefined !== obj["Name"]) GlobalSkin.Name = obj["Name"];
+		if (undefined !== obj["RulersButton"]) GlobalSkin.RulersButton = obj["RulersButton"];
+		if (undefined !== obj["NavigationButtons"]) GlobalSkin.NavigationButtons = obj["NavigationButtons"];
+		if (undefined !== obj["BackgroundColor"]) GlobalSkin.BackgroundColor = obj["BackgroundColor"];
+		if (undefined !== obj["RulerDark"]) GlobalSkin.RulerDark = obj["RulerDark"];
+		if (undefined !== obj["RulerLight"]) GlobalSkin.RulerLight = obj["RulerLight"];
+		if (undefined !== obj["BackgroundScroll"]) GlobalSkin.BackgroundScroll = obj["BackgroundScroll"];
+		if (undefined !== obj["RulerOutline"]) GlobalSkin.RulerOutline = obj["RulerOutline"];
+		if (undefined !== obj["RulerMarkersFillColor"]) GlobalSkin.RulerMarkersFillColor = obj["RulerMarkersFillColor"];
+		if (undefined !== obj["RulerTextColor"]) GlobalSkin.RulerTextColor = obj["RulerTextColor"];
+		if (undefined !== obj["RulerTabsColor"]) GlobalSkin.RulerTabsColor = obj["RulerTabsColor"];
+		if (undefined !== obj["PageOutline"]) GlobalSkin.PageOutline = obj["PageOutline"];
+		if (undefined !== obj["STYLE_THUMBNAIL_WIDTH"]) GlobalSkin.STYLE_THUMBNAIL_WIDTH = obj["STYLE_THUMBNAIL_WIDTH"];
+		if (undefined !== obj["STYLE_THUMBNAIL_HEIGHT"]) GlobalSkin.STYLE_THUMBNAIL_HEIGHT = obj["STYLE_THUMBNAIL_HEIGHT"];
+		if (undefined !== obj["isNeedInvertOnActive"]) GlobalSkin.isNeedInvertOnActive = obj["isNeedInvertOnActive"];
+		if (undefined !== obj["ContentControlsBack"]) GlobalSkin.ContentControlsBack = obj["ContentControlsBack"];
+		if (undefined !== obj["ContentControlsHover"]) GlobalSkin.ContentControlsHover = obj["ContentControlsHover"];
+		if (undefined !== obj["ContentControlsActive"]) GlobalSkin.ContentControlsActive = obj["ContentControlsActive"];
+		if (undefined !== obj["ContentControlsText"]) GlobalSkin.ContentControlsText = obj["ContentControlsText"];
+		if (undefined !== obj["ContentControlsTextActive"]) GlobalSkin.ContentControlsTextActive = obj["ContentControlsTextActive"];
+		if (undefined !== obj["ContentControlsAnchorActive"]) GlobalSkin.ContentControlsAnchorActive = obj["ContentControlsAnchorActive"];
+	}
+
+	window['AscCommonWord'].GlobalSkin = GlobalSkin;
 }
 
 function CEditorPage(api)
@@ -1293,18 +1343,18 @@ function CEditorPage(api)
 		var _ctx = this.m_oLeftRuler_buttonsTabs.HtmlElement.getContext('2d');
 		_ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-		var dPR = window.devicePixelRatio;
+		var dPR = AscCommon.AscBrowser.retinaPixelRatio;
 		var _width  = Math.round(19 * dPR);
 		var _height = Math.round(19 * dPR);
 
 		_ctx.clearRect(0, 0, _width, _height);
 
 		_ctx.lineWidth   = Math.round(dPR);
-		_ctx.strokeStyle = "#BBBEC2";
+		_ctx.strokeStyle = GlobalSkin.RulerOutline;
 		_ctx.strokeRect(2.5 * _ctx.lineWidth, 3.5 * _ctx.lineWidth, Math.round(14 * dPR), Math.round(14 * dPR));
 		_ctx.beginPath();
 
-		_ctx.strokeStyle = "#3E3E3E";
+		_ctx.strokeStyle = GlobalSkin.RulerTabsColor;
 
 		_ctx.lineWidth = 2 * Math.round(dPR);
 		if (this.m_nTabsType == tab_Left)
@@ -3974,8 +4024,6 @@ var _message_update = "zero_delay_update";
 //------------------------------------------------------------export----------------------------------------------------
 window['AscCommon']                      = window['AscCommon'] || {};
 window['AscCommonWord']                  = window['AscCommonWord'] || {};
-window['AscCommonWord'].GlobalSkinFlat   = GlobalSkinFlat;
-window['AscCommonWord'].GlobalSkinFlat2 = GlobalSkinFlat2;
 window['AscCommonWord'].GlobalSkin       = GlobalSkin;
 window['AscCommonWord'].updateGlobalSkin = updateGlobalSkin;
 window['AscCommonWord'].CEditorPage      = CEditorPage;
