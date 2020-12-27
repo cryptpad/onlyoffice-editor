@@ -3560,22 +3560,8 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         else {
             return;
         }
-
-        var oValRange = null, oCatRange = null, oTxRange = null;
-        var ranges = oRanges.ranges;
-        for(var i = 0; i < ranges.length; ++i) {
-            if(ranges[i].chartRangeIndex === 0) {
-                oValRange = ranges[i].clone();
-            }
-            else if(ranges[i].chartRangeIndex === 1) {
-                oTxRange = ranges[i].clone();
-            }
-            else if(ranges[i].chartRangeIndex === 2) {
-                oCatRange = ranges[i].clone();
-            }
-        }
         _this.controller.checkSelectedObjectsAndCallback(function () {
-            oChart.rebuildSeriesData(oValRange, oCatRange, oTxRange);
+            oChart.fillDataFromTrack(oRanges);
         }, [], false, AscDFH.historydescription_ChartDrawingObjects);
     };
 
@@ -4254,98 +4240,8 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     _this.selectDrawingObjectRange = function(drawing) {
 		worksheet.cleanSelection();
         worksheet.endEditChart();
-
-        // if(!drawing.bbox || drawing.bbox.worksheet !== worksheet.model)
-        //     return;
-        //TODO: check worksheet
-        var BBoxObjects = drawing.getDataRanges();
-        var BB, range;
-        var oSelectedSeries = drawing.getSelectedSeries();
-        var oSelectionRange;
-        var aCheckRanges, i, j;
-
-        var oSeriesBBox = null, oTxBBox = null, oCatBBox = null;
-        if(!oSelectedSeries)
-        {
-            if(BBoxObjects.bbox
-                && BBoxObjects.bbox.worksheet === worksheet.model) {
-                oSeriesBBox = BBoxObjects.bbox.seriesBBox;
-                oTxBBox = BBoxObjects.bbox.serBBox;
-                oCatBBox = BBoxObjects.bbox.catBBox;
-                aCheckRanges = [oSeriesBBox, oTxBBox, oCatBBox];
-                for(i = 0; i < aCheckRanges.length; ++i)
-                {
-                    for(j = i + 1; j < aCheckRanges.length; ++j)
-                    {
-                        if(aCheckRanges[i] && aCheckRanges[j] && aCheckRanges[i].isIntersect && aCheckRanges[i].isIntersect(aCheckRanges[j]))
-                        {
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-        else {
-            if(BBoxObjects.bbox) {
-                if(BBoxObjects.bbox.worksheet === worksheet.model) {
-                    oSeriesBBox = BBoxObjects.bbox.seriesBBox;
-                    oTxBBox = BBoxObjects.bbox.serBBox;
-                    oCatBBox = BBoxObjects.bbox.catBBox;
-                }
-            }
-            if(!oSeriesBBox) {
-                if(BBoxObjects.seriesBBoxes.length === 1) {
-                    oSeriesBBox = BBoxObjects.seriesBBoxes[0];
-                }
-            }
-            if(!oTxBBox) {
-                if(BBoxObjects.seriesTitlesBBoxes.length === 1) {
-                    oSeriesBBox = BBoxObjects.seriesTitlesBBoxes[0];
-                }
-            }
-            if(!oCatBBox) {
-                if(BBoxObjects.catTitlesBBoxes.length === 1) {
-                    oSeriesBBox = BBoxObjects.catTitlesBBoxes[0];
-                }
-            }
-        }
-        oSelectionRange = new AscCommonExcel.SelectionRange(worksheet);
-        // ToDo change create SelectionRange
-        oSelectionRange.ranges = [];
-
-        if (oSeriesBBox) {
-            worksheet.isChartAreaEditMode = true;
-
-            BB = oSeriesBBox;
-            oSelectionRange.addRange();
-            range = oSelectionRange.getLast();
-            range.assign(BB.c1, BB.r1, BB.c2, BB.r2, true);
-            range.separated = AscCommon.isRealObject(oSelectedSeries);
-            range.chartRangeIndex = 0;
-            range.vert = BB.bVert;
-        }
-        if (oTxBBox) {
-            worksheet.isChartAreaEditMode = true;
-
-            BB = oTxBBox;
-            oSelectionRange.addRange();
-            range = oSelectionRange.getLast();
-            range.assign(BB.c1, BB.r1, BB.c2, BB.r2, true);
-            range.separated = AscCommon.isRealObject(oSelectedSeries);
-            range.chartRangeIndex = 1;
-        }
-        if (oCatBBox) {
-            worksheet.isChartAreaEditMode = true;
-
-            BB = oCatBBox;
-            oSelectionRange.addRange();
-            range = oSelectionRange.getLast();
-            range.assign(BB.c1, BB.r1, BB.c2, BB.r2, true);
-            range.separated = AscCommon.isRealObject(oSelectedSeries);
-            range.chartRangeIndex = 2;
-        }
+        drawing.fillSelectedRanges(worksheet);
         if (worksheet.isChartAreaEditMode) {
-            worksheet.oOtherRanges = oSelectionRange;
             worksheet._drawSelection();
         }
     };

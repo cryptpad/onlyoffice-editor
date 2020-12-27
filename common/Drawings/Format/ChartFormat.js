@@ -2722,12 +2722,6 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         return false;
     };
-    CDataRefs.prototype.isOneRange = function() {
-        if(this.aRefs.length === 1) {
-            return true;
-        }
-        return false;
-    };
     CDataRefs.prototype.isEmpty = function() {
         return this.aRefs.length === 0;
     };
@@ -2759,7 +2753,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         return false;
     };
     CDataRefs.prototype.isContinuous = function() {
-        this.aRefs.length === 1;
+        return this.aRefs.length === 1;
     };
     CDataRefs.prototype.getMaxRow = function() {
         if(this.isCorrect()) {
@@ -3122,7 +3116,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
             }
         }
         else if(!this.tx.isEmpty() && this.cat.isEmpty()) {
-            if(this.tx.isOneRange()) {
+            if(this.tx.isContinuous()) {
                 if(this.tx.isAboveInSameCol(this.val)) {
                     nInfo |= SERIES_FLAG_VERT_VALUE;
                     nInfo |= SERIES_FLAG_TX;
@@ -3140,7 +3134,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
             }
         }
         else if(!this.tx.isEmpty() && !this.cat.isEmpty()) {
-            if(this.tx.isOneRange()) {
+            if(this.tx.isContinuous()) {
                 if(this.cat.isAboveInRows(this.val) && this.tx.isToTheLeftInSameRow(this.val)) {
                     nInfo |= SERIES_FLAG_HOR_VALUE;
                     nInfo |= SERIES_FLAG_CAT;
@@ -3199,7 +3193,81 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         return SERIES_COMPARE_RESULT_NONE
     };
+    CSeriesDataRefs.prototype.fillSelectedRanges = function(oWSView) {
+        fFillSelectedRanges(this.val, this.cat, this.tx, this.getInfo(), true, oWSView);
+    };
+    CSeriesDataRefs.prototype.fillFromSelectedRange = function(oSelectedRange) {
+        fFillDataFromSelectedRange(this, oSelectedRange);
+    };
 
+    function fFillDataFromSelectedRange(oData, oSelectedRange) {
+        var oValRange = null, oCatRange = null, oTxRange = null;
+        var ranges = oSelectedRange.ranges;
+        for(var i = 0; i < ranges.length; ++i) {
+            if(ranges[i].chartRangeIndex === 0) {
+                if(oData.val.isContinuous()) {
+                    oData.val.aRefs[0].bbox.assign2(ranges[i]);
+                }
+            }
+            else if(ranges[i].chartRangeIndex === 1) {
+                if(oData.tx.isContinuous()) {
+                    oData.tx.aRefs[0].bbox.assign2(ranges[i]);
+                }
+            }
+            else if(ranges[i].chartRangeIndex === 2) {
+                if(oData.cat.isContinuous()) {
+                    oData.cat.aRefs[0].bbox.assign2(ranges[i]);
+                }
+            }
+        }
+    }
+
+    function fFillSelectedRanges(oVal, oCat, oTx, nInfo, bSeparated, oWSView) {
+        if(!oVal) {
+            return;
+        }
+        if(!oVal.isContinuous()) {
+            return;
+        }
+        if(!oTx.isEmpty() && !oTx.isContinuous()) {
+            return;
+        }
+        if(!oCat.isEmpty() && !oCat.isContinuous()) {
+            return;
+        }
+        var oRef = oVal.aRefs[0];
+        if(oRef.worksheet !== oWSView.model) {
+            return;
+        }
+        oWSView.isChartAreaEditMode = true;
+        var oSelectionRange = new AscCommonExcel.SelectionRange(oWSView);
+        oSelectionRange.ranges = [];
+        var oBBox, oRange;
+        oBBox = oVal.aRefs[0].bbox;
+        oSelectionRange.addRange();
+        oRange = oSelectionRange.getLast();
+        oRange.assign(oBBox.c1, oBBox.r1, oBBox.c2, oBBox.r2, true);
+        oRange.separated = bSeparated;
+        oRange.chartRangeIndex = 0;
+        oRange.vert = (nInfo & SERIES_FLAG_HOR_VALUE);
+        if (!oTx.isEmpty()) {
+            oBBox = oTx.aRefs[0].bbox;
+            oSelectionRange.addRange();
+            oRange = oSelectionRange.getLast();
+            oRange.assign(oBBox.c1, oBBox.r1, oBBox.c2, oBBox.r2, true);
+            oRange.separated = bSeparated;
+            oRange.chartRangeIndex = 1;
+        }
+        if (!oCat.isEmpty()) {
+            oBBox = oCat.aRefs[0].bbox;
+            oSelectionRange.addRange();
+            oRange = oSelectionRange.getLast();
+            oRange.assign(oBBox.c1, oBBox.r1, oBBox.c2, oBBox.r2, true);
+            oRange.separated = bSeparated;
+            oRange.chartRangeIndex = 2;
+        }
+        oWSView.oOtherRanges = oSelectionRange;
+    }
     function CChartDataRefs(oChartSpace) {
         this.chartSpace = oChartSpace;
         this.val = null;
@@ -3270,22 +3338,6 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         return false;
     };
-    CChartDataRefs.prototype.getRefsForTrack = function() {
-        this.updateDataRefs();
-        if(!this.val) {
-            return null;
-        }
-        if(!this.val.isOneRange()) {
-            return null;
-        }
-        if(!this.tx.isEmpty() && !this.tx.isOneRange()) {
-            return null;
-        }
-        if(!this.cat.isEmpty() && !this.cat.isOneRange()) {
-            return null;
-        }
-        return this;
-    };
     CChartDataRefs.prototype.getRange = function() {
         this.updateDataRefs();
         if(this.info === 0) {
@@ -3320,7 +3372,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         this.updateDataRefs();
         return this.info;
     };
-    CChartDataRefs.prototype.privateGetSeriesRefs = function() {
+    CChartDataRefs.prototype.calculateSeriesRefs = function() {
         if(this.info === 0) {
             return null;
         }
@@ -3397,10 +3449,6 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         return aData;
     };
-    CChartDataRefs.prototype.getSeriesRefs = function() {
-        this.updateDataRefs();
-        return this.privateGetSeriesRefs();
-    }
     CChartDataRefs.prototype.getSwitchedRefs = function() {
         this.updateDataRefs();
         if(this.info === 0) {
@@ -3417,12 +3465,28 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         else if(this.info & AscFormat.SERIES_FLAG_VERT_VALUE) {
             this.info = (this.info & (~AscFormat.SERIES_FLAG_VERT_VALUE)) | AscFormat.SERIES_FLAG_HOR_VALUE;
         }
-        var aData = this.privateGetSeriesRefs();
+        var aData = this.calculateSeriesRefs();
         this.info = nOldInfo;
         this.cat = oOldCat;
         this.tx = oOldTx;
         return aData;
     };
+    CChartDataRefs.prototype.getRefs = function() {
+        this.updateDataRefs();
+        if(this.info === 0) {
+            return null;
+        }
+        return this.calculateSeriesRefs();
+    };
+    CChartDataRefs.prototype.fillSelectedRanges = function(oWSView) {
+        this.updateDataRefs();
+        fFillSelectedRanges(this.val, this.cat, this.tx, this.info, false, oWSView);
+    };
+    CChartDataRefs.prototype.fillFromSelectedRange = function(oSelectedRange) {
+        this.updateDataRefs();
+        fFillDataFromSelectedRange(this, oSelectedRange);
+    };
+
 
     function CSeriesBase() {
         AscFormat.CBaseObject.call(this);
@@ -3915,6 +3979,15 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
             this.setValues(sValues);
             this.setCategories(sCat);
         }
+    };
+    CSeriesBase.prototype.fillSelectedRanges = function(oWSView) {
+        var oData = new CSeriesDataRefs(this);
+        oData.fillSelectedRanges(oWSView);
+    };
+    CSeriesBase.prototype.fillFromSelectedRange = function(oSelectedRange) {
+        var oData = new CSeriesDataRefs(this);
+        oData.fillFromSelectedRange(oSelectedRange);
+        this.setData(oData);
     };
     CSeriesBase.prototype.setDLblsDeleteValue = function(bVal) {
         if(this.dLbls) {

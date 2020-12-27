@@ -4365,317 +4365,6 @@ CChartSpace.prototype.rebuildSeriesFromAsc = function(asc_chart)
 };
 
 
-CChartSpace.prototype.rebuildSeriesData = function(oValRange, oCatRange, oTxRange)
-{
-    var oSeries = this.getSelectedSeries();
-    var oBBox, i, nSeriesIndex, startCell, endCell, aSeries;
-    var oCat, oTx;
-    var oWorksheet = this.worksheet;//TODO
-    var bScatter;
-
-    var oFirstSpPrPreset = 0;
-    var oFirstSpPrMarkerPrst = 0;
-    var bAccent1Background = false;
-    var style = AscFormat.CHART_STYLE_MANAGER.getStyleByIndex(this.style);
-    var nPointCount = 0;
-    if(oSeries)
-    {
-        bScatter = oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer;
-        if(oValRange)
-        {
-            if(oSeries.getObjectType() === AscDFH.historyitem_type_PieSeries)
-            {
-                oFirstSpPrPreset = oSeries.getSpPrPreset();
-                if(oFirstSpPrPreset)
-                {
-                    bAccent1Background = this.isAccent1Background();
-                    nPointCount = Math.max(oValRange.r2 - oValRange.r1 + 1, oValRange.c2 - oValRange.c1 + 1);
-                    base_fills = AscFormat.getArrayFillsFromBase(style.fill2, nPointCount);
-                   // AscFormat.removeDPtsFromSeries(oSeries);
-                    for(var j = 0; j < nPointCount; ++j)
-                    {
-                        if(!oSeries.getDptByIdx(j))
-                        {
-                            var oDPt = new AscFormat.CDPt();
-                            oDPt.setBubble3D(false);
-                            oDPt.setIdx(j);
-                            AscFormat.ApplySpPr(oFirstSpPrPreset, oDPt, j, base_fills, bAccent1Background);
-                            oSeries.addDPt(oDPt);
-                        }
-                    }
-                }
-            }
-            if(!bScatter) {
-                if(!oSeries.val)
-                {
-                    oSeries.setVal(new AscFormat.CYVal());
-                }
-                if(!oSeries.val.numRef)
-                {
-                    oSeries.val.setNumRef(new AscFormat.CNumRef());
-                }
-                this._setRefF(oSeries.val.numRef, oWorksheet, oValRange.r1, oValRange.r2, oValRange.c1, oValRange.c2);
-            }
-            else {
-
-                if(!oSeries.yVal)
-                {
-                    oSeries.setYVal(new AscFormat.CYVal());
-                }
-                if(!oSeries.yVal.numRef)
-                {
-                    oSeries.yVal.setNumRef(new AscFormat.CNumRef());
-                }
-                this._setRefF(oSeries.yVal.numRef, oWorksheet, oValRange.r1, oValRange.r2, oValRange.c1, oValRange.c2);
-            }
-        }
-        if(oTxRange)
-        {
-            if(!oSeries.tx)
-            {
-                oSeries.setTx(new AscFormat.CTx());
-            }
-            oTx = oSeries.tx;
-            if(!oTx.strRef)
-            {
-                oTx.setStrRef(new AscFormat.CStrRef());
-            }
-            this._setRefF(oTx.strRef, oWorksheet,oTxRange.r1, oTxRange.r2, oTxRange.c1, oTxRange.c2);
-        }
-        if(oCatRange)
-        {
-            //if(bScatter) {
-                aSeries = this.getAllSeries();
-            // }
-            // else {
-            //     aSeries = [oSeries];
-            // }
-            for(i = 0; i < aSeries.length; ++i) {
-                oSeries = aSeries[i];
-                if(!bScatter) {
-                    if(!oSeries.cat)
-                    {
-                        oSeries.setCat(new AscFormat.CCat());
-                    }
-                    oCat = oSeries.cat;
-                    if(!oCat.strRef)
-                    {
-                        oCat.setStrRef(new AscFormat.CStrRef());
-                    }
-                    this._setRefF(oCat.strRef, oWorksheet, oCatRange.r1, oCatRange.r2, oCatRange.c1, oCatRange.c2);
-                }
-                else {
-                    if(!oSeries.xVal)
-                    {
-                        oSeries.setXVal(new AscFormat.CCat());
-                    }
-                    oCat = oSeries.xVal;
-                    if(!oCat.strRef)
-                    {
-                        oCat.setStrRef(new AscFormat.CStrRef());
-                    }
-                    this._setRefF(oCat.strRef, oWorksheet, oCatRange.r1, oCatRange.r2, oCatRange.c1, oCatRange.c2);
-                }
-            }
-        }
-    }
-    else
-    {
-        if(!oValRange)
-        {
-            return;
-        }
-        aSeries = this.getAllSeries();
-        var oLastChart = this.chart.plotArea.charts[this.chart.plotArea.charts.length - 1];
-
-        bScatter = oLastChart.getObjectType() === AscDFH.historyitem_type_ScatterChart;
-        if(aSeries.length > 0)
-        {
-
-
-            if(!bScatter){
-                bAccent1Background = this.isAccent1Background();
-            }
-
-            if(oLastChart.getObjectType() === AscDFH.historyitem_type_PieChart || oLastChart.getObjectType() === AscDFH.historyitem_type_DoughnutChart){
-                if(oLastChart.series[0] && oLastChart.series[0].dPt[0] && oLastChart.series[0].dPt[0].spPr && !oLastChart.series[0].dPt[0].spPr.hasRGBFill()){
-                    oFirstSpPrPreset = AscFormat.CollectSettingsSpPr(oLastChart.series[0].dPt[0].spPr);
-                }
-            }
-            else{
-                if(oLastChart.series[0] && oLastChart.series[0].spPr && !oLastChart.series[0].spPr.hasRGBFill()){
-                    oFirstSpPrPreset = AscFormat.CollectSettingsSpPr(oLastChart.series[0].spPr);
-                }
-                if(oLastChart.series[0] && oLastChart.series[0].marker && oLastChart.series[0].marker.spPr && !oLastChart.series[0].marker.spPr.hasRGBFill()){
-                    oFirstSpPrMarkerPrst = AscFormat.CollectSettingsSpPr(oLastChart.series[0].marker.spPr);
-                }
-            }
-
-
-
-            oBBox = this._recalculateBBox(this.getAllSeries()).bbox;
-            var bVert = oBBox.seriesBBox && oBBox.seriesBBox.bVert;
-            var nStartIndex, nEndIndex;
-            var  base_fills;
-            if(bVert)
-            {
-                nStartIndex = oValRange.r1;
-                nEndIndex = oValRange.r2;
-                nPointCount = oValRange.c2 - oValRange.c1 + 1;
-            }
-            else
-            {
-                nStartIndex = oValRange.c1;
-                nEndIndex = oValRange.c2;
-                nPointCount = oValRange.r2 - oValRange.r1 + 1;
-            }
-            base_fills = AscFormat.getArrayFillsFromBase(style.fill2, nEndIndex - nStartIndex + 1);
-
-            for(i = nStartIndex; i <= nEndIndex; ++i)
-            {
-                nSeriesIndex = i - nStartIndex;
-                if(aSeries[nSeriesIndex])
-                {
-                    oSeries = aSeries[nSeriesIndex];
-                }
-                else
-                {
-                    oSeries = oLastChart.series[0] ? oLastChart.series[0].createDuplicate() : oLastChart.getSeriesConstructor();
-                    oLastChart.addSer(oSeries);
-                    if(!(oLastChart.getObjectType() === AscDFH.historyitem_type_PieChart || oLastChart.getObjectType() === AscDFH.historyitem_type_DoughnutChart))
-                    {
-                        if(oFirstSpPrPreset)
-                        {
-                            AscFormat.ApplySpPr(oFirstSpPrPreset, oSeries, nSeriesIndex, base_fills, bAccent1Background);
-                        }
-                        if(oFirstSpPrMarkerPrst && oSeries.marker)
-                        {
-                            AscFormat.ApplySpPr(oFirstSpPrMarkerPrst, oSeries.marker, nSeriesIndex, base_fills, bAccent1Background);
-                        }
-                    }
-                }
-                if(oLastChart.getObjectType() === AscDFH.historyitem_type_PieChart || oLastChart.getObjectType() === AscDFH.historyitem_type_DoughnutChart)
-                {
-                    if(oFirstSpPrPreset)
-                    {
-                        base_fills = AscFormat.getArrayFillsFromBase(style.fill2, nPointCount);
-                        for(var j = 0; j < nPointCount; ++j)
-                        {
-                            if(!oSeries.getDptByIdx(j))
-                            {
-                                var oDPt = new AscFormat.CDPt();
-                                oDPt.setBubble3D(false);
-                                oDPt.setIdx(j);
-                                AscFormat.ApplySpPr(oFirstSpPrPreset, oDPt, j, base_fills, bAccent1Background);
-                                oSeries.addDPt(oDPt);
-                            }
-                        }
-                    }
-                }
-                oSeries.setIdx(nSeriesIndex);
-                oSeries.setOrder(nSeriesIndex);
-                bScatter = oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer;
-                var oNumRef;
-                if(!bScatter) {
-                    if(!oSeries.val)
-                    {
-                        oSeries.setVal(new AscFormat.CYVal());
-                    }
-                    if(!oSeries.val.numRef)
-                    {
-                        oSeries.val.setNumRef(new AscFormat.CNumRef());
-                    }
-                    oNumRef = oSeries.val.numRef;
-                }
-                else {
-                    if(!oSeries.yVal)
-                    {
-                        oSeries.setYVal(new AscFormat.CYVal());
-                    }
-                    if(!oSeries.yVal.numRef)
-                    {
-                        oSeries.yVal.setNumRef(new AscFormat.CNumRef());
-                    }
-                    oNumRef = oSeries.yVal.numRef;
-                }
-                if(bVert)
-                {
-                    this._setRefF(oNumRef, oWorksheet, i, i, oValRange.c1, oValRange.c2);
-                }
-                else
-                {
-                    this._setRefF(oNumRef, oWorksheet, oValRange.r1, oValRange.r2, i, i);
-                }
-                if(oCatRange)
-                {
-                    if(!bScatter) {
-                        if(!oSeries.cat)
-                        {
-                            oSeries.setCat(new AscFormat.CCat());
-                        }
-                        oCat = oSeries.cat;
-                        if(!oCat.strRef)
-                        {
-                            oCat.setStrRef(new AscFormat.CStrRef());
-                        }
-                    }
-                    else {
-                        if(!oSeries.xVal)
-                        {
-                            oSeries.setXVal(new AscFormat.CCat());
-                        }
-                        oCat = oSeries.xVal;
-                        if(!oCat.strRef)
-                        {
-                            oCat.setStrRef(new AscFormat.CStrRef());
-                        }
-                    }
-                    this._setRefF(oCat.strRef, oWorksheet, oCatRange.r1, oCatRange.r2, oCatRange.c1, oCatRange.c2);
-                }
-                if(oTxRange)
-                {
-                    if(!oSeries.tx)
-                    {
-                        oSeries.setTx(new AscFormat.CTx());
-                    }
-                    oTx = oSeries.tx;
-                    if(!oTx.strRef)
-                    {
-                        oTx.setStrRef(new AscFormat.CStrRef());
-                    }
-                    if(bVert)
-                    {
-                        this._setRefF(oTx.strRef, oWorksheet, i, i, oTxRange.c1, oTxRange.c2);
-                    }
-                    else
-                    {
-                        this._setRefF(oTx.strRef, oWorksheet, oTxRange.r1, oTxRange.r2, i, i);
-                    }
-                }
-            }
-            var nLastIndex = nEndIndex - nStartIndex;
-            for(i = aSeries.length - 1; i > nLastIndex; --i) {
-                aSeries[i].remove();
-            }
-        }
-    }
-};
-
-    CChartSpace.prototype._setRefF = function(oRef, oWorksheet, r1, r2, c1, c2)
-    {
-        var startCell = new CellAddress(r1, c1, 0);
-        var endCell = new CellAddress(r2, c2, 0);
-        var sStartCellId = startCell.getIDAbsolute();
-        var sEndCellId = endCell.getIDAbsolute();
-        if (sStartCellId === sEndCellId)
-        {
-            oRef.setF(parserHelp.get3DRef(oWorksheet.sName, sStartCellId));
-        }
-        else
-        {
-            oRef.setF(parserHelp.get3DRef(oWorksheet.sName, sStartCellId + ':' + sEndCellId));
-        }
-    };
 
 CChartSpace.prototype.Write_ToBinary2 = function (w)
 {
@@ -14953,6 +14642,15 @@ CChartSpace.prototype.getCommonRange = function() {
     return oDataRange.getRange();
 };
 
+    CChartSpace.prototype.fillSelectedRanges = function(oWSView) {
+        var oSelectedSeries = this.getSelectedSeries();
+        if(oSelectedSeries) {
+            oSelectedSeries.fillSelectedRanges(oWSView);
+            return;
+        }
+        var oDataRange = new AscFormat.CChartDataRefs(this);
+        oDataRange.fillSelectedRanges(oWSView);
+    };
     CChartSpace.prototype.buildSeries = function(aRefs) {
         if(!Array.isArray(aRefs)) {
             return Asc.c_oAscError.ID.No;
@@ -15058,19 +14756,33 @@ CChartSpace.prototype.getCommonRange = function() {
         }
         return Asc.c_oAscError.ID.No;
     };
-CChartSpace.prototype.switchRowCol = function() {
-    var oDataRange = new AscFormat.CChartDataRefs(this);
-    var aRefs = oDataRange.getSwitchedRefs();
-    if(!aRefs) {
-        return Asc.c_oAscError.ID.No;
-    }
-    var nResult = this.buildSeries(aRefs);
-    if(Asc.c_oAscError.ID.No === nResult) {
-        this.recalculate();
-        this.checkLegendLayoutSize();
-    }
-    return nResult;
-};
+    CChartSpace.prototype.switchRowCol = function() {
+        var oDataRange = new AscFormat.CChartDataRefs(this);
+        var aRefs = oDataRange.getSwitchedRefs();
+        if(!aRefs) {
+            return Asc.c_oAscError.ID.No;
+        }
+        var nResult = this.buildSeries(aRefs);
+        if(Asc.c_oAscError.ID.No === nResult) {
+            this.recalculate();
+            this.checkLegendLayoutSize();
+        }
+        return nResult;
+    };
+    CChartSpace.prototype.fillDataFromTrack = function(oSelectedRange) {
+        var oSlectedSeries = this.getSelectedSeries();
+        if(oSlectedSeries) {
+            oSlectedSeries.fillFromSelectedRange(oSelectedRange);
+            this.recalculate();
+            return;
+        }
+        var oDataRange = new AscFormat.CChartDataRefs(this);
+        oDataRange.fillFromSelectedRange(oSelectedRange);
+        var nResult = this.buildSeries(oDataRange.calculateSeriesRefs());
+        if(Asc.c_oAscError.ID.No === nResult) {
+            this.recalculate();
+        }
+    };
 
     CChartSpace.prototype.checkLegendLayoutSize = function() {
         var oChart = this.chart;
