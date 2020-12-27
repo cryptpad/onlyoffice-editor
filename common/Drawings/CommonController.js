@@ -4358,62 +4358,8 @@ DrawingObjectsController.prototype =
         //Set the data range
         //TODO: Rework this
         var sRange = oProps.getRange();
-        if(typeof sRange === "string" && sRange.length > 0) {
-            var oWB = oApi.wb, oWS, oRange, oBBox, oCommonBBox, oChartBBox, oSeriesBBox;
-            var bEqualBBox = false, bEqualWS = false, bEqualVert = false, bLimit = false;
-            var oCatHeadersBBox, oSerHeadersBBox, oCatBBox, oSerBBox;
-            var aSeries;
-            if(oWB) {
-                var oParsedFormula = parserHelp.parse3DRef(sRange);
-                if(oParsedFormula) {
-                    oWS = oWB.getWorksheetByName(oParsedFormula.sheet);
-                    if(oWS) {
-                        oRange = oWS.getRange2(oParsedFormula.range);
-                        if(oRange) {
-                            oBBox = oRange.bbox;
-                            if(oBBox) {
-                                oCommonBBox = oChartSpace.getCommonBBox();
-                                oChartBBox = oChartSpace.bbox;
-                                bEqualBBox = oBBox.isEqual(oCommonBBox);
-                                if(oChartBBox) {
-                                    bEqualWS = oChartBBox.worksheet === oWS;
-                                    oSeriesBBox = oChartBBox.seriesBBox;
-                                    if(oSeriesBBox) {
-                                        bEqualVert =  oProps.getInColumns() === !oSeriesBBox.bVert;
-                                    }
-                                }
-                                bLimit = (oBBox.getHeight() > AscFormat.MAX_POINTS_COUNT || oBBox.getWidth() > AscFormat.MAX_POINTS_COUNT);
-                                if(!bLimit && (!bEqualWS || !bEqualBBox || !bEqualVert)) {
-                                    if(oChartBBox && bEqualBBox && bEqualWS && !bEqualVert) {
-                                        oCatBBox = oChartBBox.catBBox;
-                                        if(oCatBBox) {
-                                            oSerHeadersBBox = {
-                                                r1: oCatBBox.r1,
-                                                r2: oCatBBox.r2,
-                                                c1: oCatBBox.c1,
-                                                c2: oCatBBox.c2
-                                            };
-                                        }
-                                        oSerBBox = oChartBBox.serBBox;
-                                        if(oSerBBox)
-                                            oCatHeadersBBox = {
-                                                r1: oSerBBox.r1,
-                                                r2: oSerBBox.r2,
-                                                c1: oSerBBox.c1,
-                                                c2: oSerBBox.c2
-                                            };
-                                    }
-                                    aSeries = AscFormat.getChartSeries(oWS, oProps, oCatHeadersBBox, oSerHeadersBBox);
-                                    oChartSpace.rebuildSeriesFromAsc(aSeries);
-                                    if(oChartSpace.pivotSource){
-                                        oChartSpace.setPivotSource(null);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        if(typeof sRange === "string") {
+            oChartSpace.setRange(sRange);
         }
 
         //Title
