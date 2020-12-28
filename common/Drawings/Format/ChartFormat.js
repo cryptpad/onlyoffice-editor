@@ -2423,13 +2423,17 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         if(!oWB) {
             return [];
         }
+        var _sFormula = sFormula;
+        if(_sFormula.charAt(0) === '=') {
+            _sFormula = _sFormula.slice(1);
+        }
         var oWS = oWB.getWorksheet(0);
         if(!oWS) {
             return [];
         }
         var res;
         AscCommonExcel.executeInR1C1Mode(false, function () {
-            res = AscCommonExcel.getRangeByRef(sFormula, oWS);
+            res = AscCommonExcel.getRangeByRef(_sFormula, oWS);
         });
         return res;
     }
@@ -2714,7 +2718,10 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
     var SERIES_FLAG_TX = 8;
     var SERIES_FLAG_CONTINUOUS = 16;
     function CDataRefs(aRefs) {
-        this.aRefs = aRefs;
+        this.aRefs = [];
+        for(var nRef = 0; nRef < aRefs.length; ++nRef) {
+            this.addInternal(aRefs[nRef]);
+        }
     }
     CDataRefs.prototype.isOneCell = function() {
         if(this.aRefs.length === 1) {
@@ -2935,8 +2942,14 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         this.checkUnion();
     };
     CDataRefs.prototype.add = function(oRef) {
-        this.aRefs.push(oRef);
+        this.addInternal(oRef);
         this.checkUnion();
+    };
+    CDataRefs.prototype.addInternal = function(oRef) {
+        var oMinRef = oRef.getMinimalCellsRange();
+        if(oMinRef) {
+            this.aRefs.push(oMinRef);
+        }
     };
     CDataRefs.prototype.checkUnion = function() {
         var nRef, nOtherRef, oRef, oOtherRef, oBBox, oOtherBBox;
@@ -2965,7 +2978,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         var oCopy = new CDataRefs([]);
         for(var nRef = 0; nRef < this.aRefs.length; ++nRef) {
             var oRef = this.aRefs[nRef];
-            var oCopyRef = oRef.createFromBBox(oRef.worksheet, oRef.bbox.clone(true))
+            var oCopyRef = oRef.createFromBBox(oRef.worksheet, oRef.bbox.clone(true));
             oCopy.aRefs.push(oCopyRef);
         }
         return oCopy;
@@ -2982,7 +2995,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
                     oOtherBBox = oOtherRef.bbox;
                     oIntersectBBox = oBBox.intersection(oOtherBBox);
                     if(oIntersectBBox) {
-                       oIntersectRefs.aRefs.push(oRef.createFromBBox(oRef.worksheet, oIntersectBBox));
+                       oIntersectRefs.add(oRef.createFromBBox(oRef.worksheet, oIntersectBBox));
                     }
                 }
             }
@@ -3061,6 +3074,59 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
             nCount += ((oRef.c2 - oRef.c1 + 1)*(oRef.r2 - oRef.r1 + 1));
         }
         return nCount;
+    };
+    CDataRefs.prototype.getGrid = function() {
+        if(!this.getEqualWorksheet()) {
+            return null;
+        }
+        var nRef, oRef;
+        var aHorRefs = this.getHorRefs();
+        for(nRef = aHorRefs.length - 1; nRef > 0 ; --nRef) {
+            if(aHorRefs[nRef].bbox.c1 < aHorRefs[nRef - 1].bbox.c2) {
+                return null;
+            }
+        }
+        var aVertRefs = this.getVertRefs();
+        for(nRef = aVertRefs.length - 1; nRef > 0 ; --nRef) {
+            if(aVertRefs[nRef].bbox.r1 < aVertRefs[nRef - 1].bbox.r2) {
+                return null;
+            }
+        }
+        var nR1, nR2, nC1, nC2;
+        var nCount;
+        var nHorRef, nVertRef;
+        var oHorBBox, oVertBBox;
+        var aRows = [], aRow;
+        for(nVertRef = 0; nVertRef < aVertRefs.length; ++nVertRef) {
+            oVertBBox = aVertRefs[nVertRef].bbox;
+            nR1 = oVertBBox.r1;
+            nR2 = oVertBBox.r2;
+            aRow = [];
+            for(nHorRef = 0; nHorRef < aHorRefs.length; ++nHorRef) {
+                oHorBBox = aHorRefs[nHorRef].bbox;
+                nC1 = oHorBBox.c1;
+                nC2 = oHorBBox.c2;
+                nCount = 0;
+                for(nRef = 0; nRef < this.aRefs.length; ++nRef) {
+                    oRef = this.aRefs[nRef];
+                    if(oRef.bbox.r1 === nR1 && oRef.bbox.r2 === nR2 &&
+                    oRef.bbox.c1 === nC1 && oRef.bbox.c2 === nC2) {
+                        if(nCount === 0) {
+                            ++nCount;
+                            aRow.push(oRef);
+                        }
+                        else {
+                            return null;
+                        }
+                    }
+                }
+                if(nCount !== 1) {
+                    return null;
+                }
+            }
+            aRows.push(aRow);
+        }
+        return aRows;
     };
 
     var SERIES_COMPARE_RESULT_NONE = 0;
@@ -3201,7 +3267,6 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
     };
 
     function fFillDataFromSelectedRange(oData, oSelectedRange) {
-        var oValRange = null, oCatRange = null, oTxRange = null;
         var ranges = oSelectedRange.ranges;
         for(var i = 0; i < ranges.length; ++i) {
             if(ranges[i].chartRangeIndex === 0) {
@@ -3338,10 +3403,10 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         return false;
     };
-    CChartDataRefs.prototype.getRange = function() {
+    CChartDataRefs.prototype.getUnionRefs = function() {
         this.updateDataRefs();
         if(this.info === 0) {
-            return "";
+            return null;
         }
         var oTxCatIntersection = new CDataRefs([]);
         var oTx = this.tx;
@@ -3358,7 +3423,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
                 oIntersectionBBox = new Asc.Range(oCatBBox.c1, oTxBBox.r1, oCatBBox.c2, oTxBBox.r2, true);
             }
             if(oIntersectionBBox) {
-                oTxCatIntersection.aRefs.push(oTx.aRefs[0].createFromBBox(oTxRange.worksheet, oIntersectionBBox));
+                oTxCatIntersection.add(oTx.aRefs[0].createFromBBox(oTxRange.worksheet, oIntersectionBBox));
             }
         }
         var oResult = new CDataRefs([]);
@@ -3366,13 +3431,20 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         oResult.union(oCat);
         oResult.union(oTx);
         oResult.union(this.val);
-        return oResult.getDataRange();
+        return oResult;
+    };
+    CChartDataRefs.prototype.getRange = function() {
+        var oResult = this.getUnionRefs();
+        if(oResult) {
+            return oResult.getDataRange();
+        }
+        return "";
     };
     CChartDataRefs.prototype.getInfo = function() {
         this.updateDataRefs();
         return this.info;
     };
-    CChartDataRefs.prototype.calculateSeriesRefs = function() {
+    CChartDataRefs.prototype.calculateSeriesRefsFromTrack = function() {
         if(this.info === 0) {
             return null;
         }
@@ -3454,29 +3526,39 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         if(this.info === 0) {
             return null;
         }
-        var nOldInfo = this.info;
-        var oOldCat = this.cat;
-        var oOldTx = this.tx;
-        this.cat = oOldTx;
-        this.tx = oOldCat;
-        if(this.info & AscFormat.SERIES_FLAG_HOR_VALUE) {
-            this.info = (this.info & (~AscFormat.SERIES_FLAG_HOR_VALUE)) | AscFormat.SERIES_FLAG_VERT_VALUE;
+
+        var aData = null;
+        if(!this.tx.isEmpty() && !this.cat.isEmpty()) {
+            var nOldInfo = this.info;
+            var oOldCat = this.cat;
+            var oOldTx = this.tx;
+            this.cat = oOldTx;
+            this.tx = oOldCat;
+            if(this.info & AscFormat.SERIES_FLAG_HOR_VALUE) {
+                this.info = (this.info & (~AscFormat.SERIES_FLAG_HOR_VALUE)) | AscFormat.SERIES_FLAG_VERT_VALUE;
+            }
+            else if(this.info & AscFormat.SERIES_FLAG_VERT_VALUE) {
+                this.info = (this.info & (~AscFormat.SERIES_FLAG_VERT_VALUE)) | AscFormat.SERIES_FLAG_HOR_VALUE;
+            }
+            aData = this.calculateSeriesRefsFromTrack();
+            this.info = nOldInfo;
+            this.cat = oOldCat;
+            this.tx = oOldTx;
         }
-        else if(this.info & AscFormat.SERIES_FLAG_VERT_VALUE) {
-            this.info = (this.info & (~AscFormat.SERIES_FLAG_VERT_VALUE)) | AscFormat.SERIES_FLAG_HOR_VALUE;
+        else {
+            var oUnionRefs = this.getUnionRefs();
+            if(oUnionRefs) {
+                var bHor;
+                if(this.info & AscFormat.SERIES_FLAG_HOR_VALUE) {
+                    bHor = false;
+                }
+                else {
+                    bHor = true;
+                }
+                aData = this.calculateSeriesFromRef(this.getUnionRefs().aRefs, bHor);
+            }
         }
-        var aData = this.calculateSeriesRefs();
-        this.info = nOldInfo;
-        this.cat = oOldCat;
-        this.tx = oOldTx;
         return aData;
-    };
-    CChartDataRefs.prototype.getRefs = function() {
-        this.updateDataRefs();
-        if(this.info === 0) {
-            return null;
-        }
-        return this.calculateSeriesRefs();
     };
     CChartDataRefs.prototype.fillSelectedRanges = function(oWSView) {
         this.updateDataRefs();
@@ -3486,7 +3568,261 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         this.updateDataRefs();
         fFillDataFromSelectedRange(this, oSelectedRange);
     };
+    CChartDataRefs.prototype.calculateSeriesFromRef = function(aRefs, bHorValue) {
+        if(aRefs.length === 0) {
+            return [];
+        }
+        var oRefs = new CDataRefs(aRefs);
+        var aGrid = oRefs.getGrid();
+        var aGridRow, oRef, nRef, oBBox;
+        var nRow, nCol;
+        var oCell;
+        var nEndCol, nEndRow;
+        var nTopHeader = -1, nLeftHeader = -1;
+        var nRowsCount, nColsCount;
+        var nGridRow, nGridCol;
+        var nR1, nR2, nC1, nC2;
+        var bHorizontalValues;
 
+        var nNumFmtType, sValue;
+        var oVal = null, oTx = null, oCat = null, nInfo = 0;
+        if(Array.isArray(aGrid)) {
+            aGridRow = aGrid[0];
+            if(!Array.isArray(aGridRow)) {
+                return [];
+            }
+            oRef = aGridRow[0];
+            if(!oRef) {
+                return [];
+            }
+            //try to find headers
+            oBBox = oRef.bbox;
+            //check empty range in the left top corner
+            nRow = oBBox.r1;
+            for(nCol = oBBox.c1; nCol <= oBBox.c2; ++nCol) {
+                oCell = oRef.worksheet.getCell3(nRow , nCol);
+                if(!oCell.isEmptyTextString()) {
+                    break;
+                }
+            }
+            nEndCol = nCol - 1;
+            if(nEndCol >= oBBox.c1) {
+                for(nRow = oBBox.r1 + 1; nRow <= oBBox.r2; ++nRow) {
+                    for(nCol = oBBox.c1; nCol <= nEndCol; ++nCol) {
+                        oCell = oRef.worksheet.getCell3(nRow, nCol);
+                        if(!oCell.isEmptyTextString()) {
+                            break;
+                        }
+                    }
+                    if(nCol <= nEndCol) {
+                        break;
+                    }
+                }
+                nEndRow = nRow - 1;
+                if(nEndCol === oBBox.c2) {
+                    if(aGridRow.length === 1) {
+                        nEndCol -= 1;
+                    }
+                }
+                if(nEndRow === oBBox.r2) {
+                    if(aGrid.length === 1) {
+                        nEndRow -= 1;
+                    }
+                }
+                nTopHeader = nEndRow - oBBox.r1;
+                nLeftHeader = nEndCol - oBBox.c1;
+            }
+            if(nTopHeader < 0 && nLeftHeader < 0) {
+                //consider the row/col as the title
+                //if the last cell in the row/col contains a non empty non numeric value
+                aGridRow = aGrid[0];
+                oRef = aGridRow[aGridRow.length - 1];
+                nCol = oBBox.c2;
+                for(nRow = oBBox.r2; nRow >= oBBox.r1; --nRow) {
+                    if(this.privateCheckCellValueForHeader(oRef.worksheet.getCell3(nRow, nCol))) {
+                        break;
+                    }
+                }
+                nTopHeader = nRow - oBBox.r1;
+                if(nRow === oBBox.r2) {
+                    if(aGridRow.length === 1) {
+                        nTopHeader -= 1;
+                    }
+                }
+
+                aGridRow = aGrid[aGrid.length - 1];
+                oRef = aGridRow[0];
+                nRow = oBBox.r2;
+                for(nCol = oBBox.c2; nCol >= oBBox.c1; --nCol) {
+                    if(this.privateCheckCellValueForHeader(oRef.worksheet.getCell3(nRow, nCol))) {
+                        break;
+                    }
+                }
+                nLeftHeader = nCol - oBBox.c1;
+                if(nCol === oBBox.r2) {
+                    if(aGrid.length === 1) {
+                        nLeftHeader -= 1;
+                    }
+                }
+            }
+            bHorizontalValues = bHorValue;
+            if(bHorizontalValues !== true && bHorizontalValues !== false) {
+                nRowsCount = 0;
+                nColsCount = 0;
+                for(nRow = 0; nRow < aGrid.length; ++nRow) {
+                    aGridRow = aGrid[nRow];
+                    oRef = aGridRow[0];
+                    nRowsCount += (oRef.bbox.getHeight());
+                }
+                aGridRow = aGridRow[0];
+                for(nCol = 0; nCol < aGridRow.length; ++nCol) {
+                    oRef = aGridRow[nCol];
+                    nColsCount += (oRef.bbox.getWidth());
+                }
+                nRowsCount -= (nTopHeader + 1);
+                nColsCount -= (nLeftHeader + 1);
+                if(nRowsCount > nColsCount) {
+                    bHorizontalValues = false;
+                }
+                else {
+                    bHorizontalValues = true;
+                }
+            }
+            oVal = new CDataRefs([]);
+            oCat = new CDataRefs([]);
+            oTx = new CDataRefs([]);
+            if(nTopHeader > -1) {
+                if(bHorizontalValues) {
+                    nInfo |= SERIES_FLAG_CAT;
+                }
+                else {
+                    nInfo |= SERIES_FLAG_TX;
+                }
+                aGridRow = aGrid[0];
+                for(nRef = 0; nRef < aGridRow.length; ++nRef) {
+                    oRef = aGridRow[nRef];
+                    oBBox = oRef.bbox;
+                    nR1 = oBBox.r1;
+                    nR2 = oBBox.r1 + nTopHeader;
+                    nC2 = oBBox.c2;
+                    if(nRef === 0) {
+                        nC1 = oBBox.c1 + nLeftHeader + 1;
+                    }
+                    else {
+                        nC1 = oBBox.c1;
+                    }
+                    if(nC1 <= nC2) {
+                        if(bHorizontalValues) {
+                            oCat.add(oRef.createFromBBox(oRef.worksheet, new Asc.Range(nC1, nR1, nC2, nR2, true)));
+                        }
+                        else {
+                            oTx.add(oRef.createFromBBox(oRef.worksheet, new Asc.Range(nC1, nR1, nC2, nR2, true)));
+                        }
+                    }
+                }
+            }
+            if(nLeftHeader > -1) {
+                if(bHorizontalValues) {
+                    nInfo |= SERIES_FLAG_TX;
+                }
+                else {
+                    nInfo |= SERIES_FLAG_CAT;
+                }
+                for(nGridRow = 0; nGridRow < aGrid.length; ++nGridRow) {
+                    aGridRow = aGrid[nGridRow];
+                    oRef = aGridRow[0];
+                    oBBox = oRef.bbox;
+                    nC1 = oBBox.c1;
+                    nC2 = nC1 + nLeftHeader;
+                    nR2 = oBBox.r2;
+                    if(nGridRow === 0) {
+                        nR1 = oBBox.r1 + nTopHeader + 1;
+                    }
+                    else {
+                        nR1 = oBBox.r1;
+                    }
+                    if(nR1 <= nR2) {
+                        if(bHorizontalValues) {
+                            oTx.add(oRef.createFromBBox(oRef.worksheet, new Asc.Range(nC1, nR1, nC2, nR2, true)));
+                        }
+                        else {
+                            oCat.add(oRef.createFromBBox(oRef.worksheet, new Asc.Range(nC1, nR1, nC2, nR2, true)));
+                        }
+                    }
+                }
+            }
+            if(bHorizontalValues) {
+                nInfo |= SERIES_FLAG_HOR_VALUE;
+            }
+            else {
+                nInfo |= SERIES_FLAG_VERT_VALUE;
+            }
+            for(nGridRow = 0; nGridRow < aGrid.length; ++nGridRow) {
+                aGridRow = aGrid[nGridRow];
+                for(nGridCol = 0; nGridCol < aGridRow.length; ++nGridCol) {
+                    oRef = aGridRow[nGridCol];
+                    oBBox = oRef.bbox;
+                    if(nGridRow === 0) {
+                        nR1 = oBBox.r1 + nTopHeader + 1;
+                    }
+                    else {
+                        nR1 = oBBox.r1;
+                    }
+                    nR2 = oBBox.r2;
+                    if(nGridCol === 0) {
+                        nC1 = oBBox.c1 + nLeftHeader + 1;
+                    }
+                    else {
+                        nC1 = oBBox.c1;
+                    }
+                    nC2 = oBBox.c2;
+                    if(nC1 <= nC2 && nR1 <= nR2) {
+                        oVal.add(oRef.createFromBBox(oRef.worksheet, new Asc.Range(nC1, nR1, nC2, nR2, true)));
+                    }
+                }
+            }
+            var oData = new CChartDataRefs(null);
+            oData.val = oVal;
+            oData.tx = oTx;
+            oData.cat = oCat;
+            oData.info = nInfo;
+            return oData.calculateSeriesRefsFromTrack();
+        }
+        else {
+            var aSeries = [];
+            bHorizontalValues = bHorValue;
+            if(bHorizontalValues !== true && bHorizontalValues !== false) {
+                oBBox = aRefs[0].bbox;
+                nRowsCount = oBBox.getHeight();
+                nColsCount = oBBox.getWidth();
+                if(nRowsCount > nColsCount) {
+                    bHorizontalValues = false;
+                }
+                else {
+                    bHorizontalValues = true;
+                }
+            }
+            for(nRef = 0; nRef < aRefs.length; ++nRef) {
+                aSeries.concat(this.calculateSeriesFromRef([aRefs[nRef]], bHorizontalValues));
+            }
+            return aSeries;
+        }
+    };
+    CChartDataRefs.prototype.privateCheckCellValueForHeader = function(oCell) {
+
+        var sValue = oCell.getValue()
+        var nNumFmtType = oCell.getNumFormatType();
+        if(!AscCommon.isNumber(sValue) && sValue !== "") {
+            return true;
+        }
+        else {
+            if(Asc.c_oAscNumFormatType.Time === nNumFmtType ||
+                Asc.c_oAscNumFormatType.Date === nNumFmtType) {
+                return true;
+            }
+        }
+        return false;
+    };
 
     function CSeriesBase() {
         AscFormat.CBaseObject.call(this);

@@ -14756,6 +14756,21 @@ CChartSpace.prototype.getCommonRange = function() {
         }
         return Asc.c_oAscError.ID.No;
     };
+
+    CChartSpace.prototype.setRange = function(sRange) {
+        var oDataRange = new AscFormat.CChartDataRefs(this);
+        var aRefs = oDataRange.calculateSeriesFromRef(AscFormat.fParseChartFormula(sRange));
+        if(!Array.isArray(aRefs)) {
+            this.buildSeries([]);
+        }
+        else {
+            this.buildSeries(aRefs);
+        }
+        this.recalculate();
+        if(this.pivotSource){
+            this.setPivotSource(null);
+        }
+    };
     CChartSpace.prototype.switchRowCol = function() {
         var oDataRange = new AscFormat.CChartDataRefs(this);
         var aRefs = oDataRange.getSwitchedRefs();
@@ -14778,7 +14793,7 @@ CChartSpace.prototype.getCommonRange = function() {
         }
         var oDataRange = new AscFormat.CChartDataRefs(this);
         oDataRange.fillFromSelectedRange(oSelectedRange);
-        var nResult = this.buildSeries(oDataRange.calculateSeriesRefs());
+        var nResult = this.buildSeries(oDataRange.calculateSeriesRefsFromTrack());
         if(Asc.c_oAscError.ID.No === nResult) {
             this.recalculate();
         }
@@ -14826,66 +14841,6 @@ CChartSpace.prototype.setCatFormula = function(sFormula) {
     var aAllSeries = this.getAllSeries();
     for(var i = 0; i < aAllSeries.length; ++i) {
         aAllSeries[i].setCategories(sFormula);
-    }
-};
-CChartSpace.prototype.setRange = function(sRange) {
-    var oPlotArea = this.chart.plotArea;
-    var oFirstChart;
-    if(sRange === "") {
-        oPlotArea.removeCharts(1, oPlotArea.charts.length);
-        oFirstChart = oPlotArea.charts[0];
-        if(oFirstChart) {
-            oFirstChart.removeAllSeries();
-        }
-        return;
-    }
-    var sCheck = sRange;
-    if(sRange[0] === "=") {
-        sCheck = sRange.slice(1);
-    }
-    var aRanges = AscFormat.fParseChartFormula(sCheck);
-    if(aRanges.length === 0) {
-        return;
-    }    
-    oPlotArea.removeCharts(1, oPlotArea.charts.length);
-    this.recalculateBBox();
-    var catHeadersBBox, serHeadersBBox;
-    if(this.bbox) {
-    if(this.bbox.catBBox) {
-        serHeadersBBox = {r1: this.bbox.catBBox.r1, r2: this.bbox.catBBox.r2,
-            c1: this.bbox.catBBox.c1, c2: this.bbox.catBBox.c2};
-    }
-    if(this.bbox.serBBox) {
-        catHeadersBBox = {r1: this.bbox.serBBox.r1, r2: this.bbox.serBBox.r2,
-            c1: this.bbox.serBBox.c1, c2: this.bbox.serBBox.c2};
-    }
-    }
-    var chartSettings = new Asc.asc_ChartSettings();
-    var aF = [];
-    for(var nRange = 0; nRange < aRanges.length; ++nRange) {
-        aF.push(AscFormat.fCreateRef(aRanges[nRange]));
-    }
-    if(aF.length === 0) {
-        oPlotArea.removeCharts(1, oPlotArea.charts.length);
-        oFirstChart = oPlotArea.charts[0];
-        if(oFirstChart) {
-            oFirstChart.removeAllSeries();
-        }
-        return;
-    }
-    chartSettings.aRanges = aF;
-    var range_obj = this.getRangeObjectStr();
-    if(range_obj)
-    {
-        if(typeof range_obj.range === "string" && range_obj.range.length > 0)
-        {
-            chartSettings.putInColumns(!range_obj.bVert);
-        }
-    }
-    var chartSeries = AscFormat.getChartSeries(this.worksheet, chartSettings, catHeadersBBox, serHeadersBBox);
-    this.rebuildSeriesFromAsc(chartSeries);
-    if(this.pivotSource){
-        this.setPivotSource(null);
     }
 };
 
