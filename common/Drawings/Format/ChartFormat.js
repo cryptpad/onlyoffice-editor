@@ -3453,7 +3453,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         var aValVertRefs = this.val.getVertRefs();
         var aTxVertRefs, aTxHorRefs;
         var aCatVertRefs, aCatHorRefs;
-        var nHorRef, nVertRef, nCol, nRow, nTxRef;
+        var nHorRef, nVertRef, nCol, nRow, nTxRef, nCatRef;
         var oValHorRef, oValVertRef, oCatRef, oTxRef;
         var oSeriesData;
         var oBBox;
@@ -3471,8 +3471,8 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
                         oBBox = new Asc.Range(oValHorRef.bbox.c1, nRow, oValHorRef.bbox.c2, nRow, true);
                         oSeriesData.val.add(oValHorRef.createFromBBox(oValHorRef.worksheet, oBBox));
                         if(aCatVertRefs.length > 0) {
-                            for(nVertRef = 0; nVertRef < aCatVertRefs.length; ++nVertRef) {
-                                oCatRef = aCatVertRefs[nVertRef];
+                            for(nCatRef = 0; nCatRef < aCatVertRefs.length; ++nCatRef) {
+                                oCatRef = aCatVertRefs[nCatRef];
                                 oBBox = new Asc.Range(oValHorRef.bbox.c1, oCatRef.bbox.r1, oValHorRef.bbox.c2, oCatRef.bbox.r2, true);
                                 oSeriesData.cat.add(oCatRef.createFromBBox(oCatRef.worksheet, oBBox));
                             }
@@ -3502,8 +3502,8 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
                         oBBox = new Asc.Range(nCol, oValVertRef.bbox.r1, nCol, oValVertRef.bbox.r2, true);
                         oSeriesData.val.add(oValVertRef.createFromBBox(oValVertRef.worksheet, oBBox));
                         if(aCatHorRefs.length > 0) {
-                            for(nHorRef = 0; nHorRef < aCatHorRefs.length; ++nHorRef) {
-                                oCatRef = aCatHorRefs[nHorRef];
+                            for(nCatRef = 0; nCatRef < aCatHorRefs.length; ++nCatRef) {
+                                oCatRef = aCatHorRefs[nCatRef];
                                 oBBox = new Asc.Range(oCatRef.bbox.c1, oValVertRef.bbox.r1, oCatRef.bbox.c2, oValVertRef.bbox.r2, true);
                                 oSeriesData.cat.add(oCatRef.createFromBBox(oCatRef.worksheet, oBBox));
                             }
