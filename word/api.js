@@ -1203,7 +1203,7 @@ background-repeat: no-repeat;\
 		this.CreateCSS();
 
 		if (this.HtmlElement != null)
-			this.HtmlElement.innerHTML = ("<div id=\"id_main\" class=\"block_elem\" style=\"touch-action:none;-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;background-color:" + AscCommonWord.GlobalSkin.BackgroundColor + ";overflow:hidden;\" UNSELECTABLE=\"on\">\
+			this.HtmlElement.innerHTML = ("<div id=\"id_main\" class=\"block_elem\" style=\"touch-action:none;-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;background-color:" + AscCommon.GlobalSkin.BackgroundColor + ";overflow:hidden;\" UNSELECTABLE=\"on\">\
 								<div id=\"id_panel_left\" class=\"block_elem\">\
 									<canvas id=\"id_buttonTabs\" class=\"block_elem\"></canvas>\
 									<canvas id=\"id_vert_ruler\" class=\"block_elem\"></canvas>\
@@ -1212,19 +1212,19 @@ background-repeat: no-repeat;\
 									<canvas id=\"id_hor_ruler\" class=\"block_elem\"></canvas>\
 									</div>\
                                     <div id=\"id_main_view\" class=\"block_elem\" style=\"touch-action:none;overflow:hidden\">\
-                                        <canvas id=\"id_viewer\" class=\"block_elem\" style=\"touch-action:none;-ms-touch-action: none;-webkit-user-select: none; background-color:" + AscCommonWord.GlobalSkin.BackgroundColor + ";z-index:1\"></canvas>\
+                                        <canvas id=\"id_viewer\" class=\"block_elem\" style=\"touch-action:none;-ms-touch-action: none;-webkit-user-select: none; background-color:" + AscCommon.GlobalSkin.BackgroundColor + ";z-index:1\"></canvas>\
 									    <canvas id=\"id_viewer_overlay\" class=\"block_elem\" style=\"touch-action:none;-ms-touch-action: none;-webkit-user-select: none; z-index:2\"></canvas>\
 									    <canvas id=\"id_target_cursor\" class=\"block_elem\" width=\"1\" height=\"1\" style=\"touch-action:none;-ms-touch-action: none;-webkit-user-select: none;width:2px;height:13px;z-index:4;\"></canvas>\
                                     </div>\
 								</div>\
-									<div id=\"id_panel_right\" class=\"block_elem\" style=\"touch-action:none;margin-right:1px;background-color:" + AscCommonWord.GlobalSkin.BackgroundScroll + ";\">\
+									<div id=\"id_panel_right\" class=\"block_elem\" style=\"touch-action:none;margin-right:1px;background-color:" + AscCommon.GlobalSkin.ScrollBackgroundColor + ";\">\
 									<div id=\"id_buttonRulers\" class=\"block_elem buttonRuler\"></div>\
 									<div id=\"id_vertical_scroll\" style=\"left:0;top:0px;width:14px;overflow:hidden;position:absolute;\">\
 									</div>\
 									<div id=\"id_buttonPrevPage\" class=\"block_elem buttonPrevPage\"></div>\
 									<div id=\"id_buttonNextPage\" class=\"block_elem buttonNextPage\"></div>\
 								</div>\
-									<div id=\"id_horscrollpanel\" class=\"block_elem\" style=\"touch-action:none;margin-bottom:1px;background-color:" + AscCommonWord.GlobalSkin.BackgroundScroll + ";\">\
+									<div id=\"id_horscrollpanel\" class=\"block_elem\" style=\"touch-action:none;margin-bottom:1px;background-color:" + AscCommon.GlobalSkin.ScrollBackgroundColor + ";\">\
 									<div id=\"id_horizontal_scroll\" style=\"left:0px;top:0;height:14px;overflow:hidden;position:absolute;width:100%;\">\
 									</div>\
 									</div>" + this.HtmlElement.innerHTML);
@@ -1232,15 +1232,15 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_setSkin = function(theme)
 	{
-		AscCommonWord.updateGlobalSkin(theme);
+		AscCommon.updateGlobalSkin(theme);
 
 		var obj_id_main = document.getElementById("id_main");
 		if (obj_id_main)
 		{
-			obj_id_main.style.backgroundColor = AscCommonWord.GlobalSkin.BackgroundColor;
-			document.getElementById("id_viewer").style.backgroundColor = AscCommonWord.GlobalSkin.BackgroundColor;
-			document.getElementById("id_panel_right").style.backgroundColor = AscCommonWord.GlobalSkin.BackgroundScroll;
-			document.getElementById("id_horscrollpanel").style.backgroundColor = AscCommonWord.GlobalSkin.BackgroundScroll;
+			obj_id_main.style.backgroundColor = AscCommon.GlobalSkin.BackgroundColor;
+			document.getElementById("id_viewer").style.backgroundColor = AscCommon.GlobalSkin.BackgroundColor;
+			document.getElementById("id_panel_right").style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
+			document.getElementById("id_horscrollpanel").style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
 		}
 
 		if (this.WordControl && this.WordControl.m_oBody)
@@ -10674,10 +10674,10 @@ background-repeat: no-repeat;\
 	};
 	window["asc_docs_api"].prototype["asc_setParagraphStylesSizes"] = function(width, height)
 	{
-		if (window["AscCommonWord"] && window["AscCommonWord"].GlobalSkin)
+		if (window["AscCommon"] && window["AscCommon"].GlobalSkin)
 		{
-			AscCommonWord.GlobalSkin.STYLE_THUMBNAIL_WIDTH = width;
-			AscCommonWord.GlobalSkin.STYLE_THUMBNAIL_HEIGHT = height;
+			AscCommon.GlobalSkin.STYLE_THUMBNAIL_WIDTH = width;
+			AscCommon.GlobalSkin.STYLE_THUMBNAIL_HEIGHT = height;
 		}
 		else
 		{

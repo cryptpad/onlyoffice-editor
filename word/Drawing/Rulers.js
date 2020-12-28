@@ -245,13 +245,13 @@ function CHorRuler()
         ctx.canvas.width = 7 * roundDPR;
         ctx.canvas.height = 8 * roundDPR;
         ctx.beginPath();
-        ctx.fillStyle = '#ffffff';
-        ctx.strokeStyle = '#ffffff';
+        ctx.fillStyle = GlobalSkin.RulerTableColor1;
+        ctx.strokeStyle = GlobalSkin.RulerTableColor1;
         ctx.stroke();
-        ctx.rect(0,0,ctx.canvas.width, ctx.canvas.height)
+        ctx.rect(0,0,ctx.canvas.width, ctx.canvas.height);
         ctx.fill();
         ctx.beginPath();
-        ctx.strokeStyle = '#646464';
+        ctx.strokeStyle = GlobalSkin.RulerTableColor2;
         ctx.lineWidth = roundDPR;
         for (var i = 0; i < 7 * roundDPR; i += 2 * ctx.lineWidth) {
             ctx.moveTo(0,  1.5 * ctx.lineWidth + i);
@@ -511,7 +511,7 @@ function CHorRuler()
 
         var intW = width >> 0;
 
-        if (window["flat_desine"] === true)
+        if (true)
         {
             context.beginPath();
             context.fillStyle = GlobalSkin.RulerDark;
@@ -870,7 +870,7 @@ function CHorRuler()
                     if ((__r - __x) > 10)
                     {
                         context.fillStyle = GlobalSkin.RulerLight;
-                        context.strokeStyle = "#81878F";
+                        context.strokeStyle = GlobalSkin.RulerMarkersOutlineColor;
                         var roundV1 = Math.round(3 * dPR);
                         var roundV2 = Math.round(6 * dPR);
                         context.fillRect(__x + roundV1, this.m_nTop + indent + roundV1, roundV1, this.m_nBottom - this.m_nTop - roundV2);
@@ -2388,7 +2388,7 @@ function CHorRuler()
 
             var _positon_y = this.m_nBottom - 5 * dPR;
 
-            context.strokeStyle = "#81878F";
+            context.strokeStyle = GlobalSkin.RulerMarkersOutlineColor;
             // не менять!!!
             var2 = 5 * dPR;//(1.4 * g_dKoef_mm_to_pix) >> 0;
             var3 = 3 * dPR;//(1 * g_dKoef_mm_to_pix) >> 0;
@@ -2397,7 +2397,7 @@ function CHorRuler()
             checker.BlitMarginRightInd = _margin_right;
 
             // old position --------------------------------------
-            context.fillStyle = "#CDD1D6";
+            context.fillStyle = GlobalSkin.RulerMarkersFillColorOld;
             if ((-10000 != this.m_dIndentLeft_old) && (this.m_dIndentLeft_old != this.m_dIndentLeft))
             {
                 dCenterX = left + (_margin_left +  this.m_dIndentLeft_old) * dKoef_mm_to_pix;
@@ -2889,7 +2889,7 @@ function CVerRuler()
 
         var intH = height >> 0;
 
-        if (window["flat_desine"] === true)
+        if (true)
         {
             context.beginPath();
             context.fillStyle = GlobalSkin.RulerDark;
