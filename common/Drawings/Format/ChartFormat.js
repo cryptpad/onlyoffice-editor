@@ -3803,7 +3803,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
                 }
             }
             for(nRef = 0; nRef < aRefs.length; ++nRef) {
-                aSeries.concat(this.calculateSeriesFromRef([aRefs[nRef]], bHorizontalValues));
+                aSeries = aSeries.concat(this.calculateSeriesFromRef([aRefs[nRef]], bHorizontalValues));
             }
             return aSeries;
         }

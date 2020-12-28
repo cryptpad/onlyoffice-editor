@@ -14637,10 +14637,10 @@ CChartSpace.prototype.addScatterSeries = function(sName, sXValues, sYValues) {
 };
 
 
-CChartSpace.prototype.getCommonRange = function() {
-    var oDataRange = new AscFormat.CChartDataRefs(this);
-    return oDataRange.getRange();
-};
+    CChartSpace.prototype.getCommonRange = function() {
+        var oDataRange = new AscFormat.CChartDataRefs(this);
+        return oDataRange.getRange();
+    };
 
     CChartSpace.prototype.fillSelectedRanges = function(oWSView) {
         var oSelectedSeries = this.getSelectedSeries();
