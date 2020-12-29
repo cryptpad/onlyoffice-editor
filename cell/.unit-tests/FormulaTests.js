@@ -3890,11 +3890,72 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "123.00" );
 
-        oParser = new parserFormula( "TEXT(123123,\"#,###\")", "A2", ws );
-        ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), "123,123" );
+		oParser = new parserFormula( "TEXT(123123123,\"#,###\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123,123,123" );
 
-        oParser = new parserFormula( "TEXT(123,\"hh qq\")", "A2", ws );
+		oParser = new parserFormula( "TEXT(123123123,\"#,##0.00\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123,123,123.00" );
+
+		//todo
+		// oParser = new parserFormula( "TEXT(123123123,\"###0,.00\")", "A2", ws );
+		// ok( oParser.parse() );
+		// strictEqual( oParser.calculate().getValue(), "123123.12" );
+		//
+		// oParser = new parserFormula( "TEXT(123123123,\"###0,.00,\")", "A2", ws );
+		// ok( oParser.parse() );
+		// strictEqual( oParser.calculate().getValue(), "123.12" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"###0.,0,0\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123123.00" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"#,,,#,#,0.,,0,0\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123,123,123.00" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"0,0,, q,w,,,w,,0,,0\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123,123,1 q,w,w,23" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"00,,q,,,q00\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "1231231q,q23" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"0,q,w,,\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123q,w," );
+
+		oParser = new parserFormula( "TEXT(123123123,\"#,,\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123" );
+
+		oParser = new parserFormula( "TEXT(123123123,\",,,#\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), ",123123123" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"###0,.\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123." );
+
+		oParser = new parserFormula( "TEXT(123123123,\"###0.,\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123." );
+
+		oParser = new parserFormula( "TEXT(123123123,\"###0.,q\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123.q" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"###0,.\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123." );
+
+		oParser = new parserFormula( "TEXT(123123123,\"###0 ,\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123123 ," );
+
+		oParser = new parserFormula( "TEXT(123,\"hh qq\")", "A2", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "00 qq" );
 
@@ -4006,9 +4067,9 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "123,00" );
 
-        oParser = new parserFormula( "TEXT(123123,\"#.###\")", "A2", ws );
+        oParser = new parserFormula( "TEXT(123123123,\"#.###\")", "A2", ws );
         ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), "123.123" );
+        strictEqual( oParser.calculate().getValue(), "123.123.123" );
 
         oParser = new parserFormula( "TEXT(123,\"dd hh\")", "A2", ws );
         ok( oParser.parse() );
@@ -4046,9 +4107,58 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "123,00" );
 
-        oParser = new parserFormula( "TEXT(123123,\"# ###\")", "A2", ws );
+        oParser = new parserFormula( "TEXT(123123123,\"# ###\")", "A2", ws );
         ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), "123 123" );
+        strictEqual( oParser.calculate().getValue(), "123 123 123" );
+
+		oParser = new parserFormula( "TEXT(123123123;\"# ##0,00\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123 123 123,00" );
+
+		//todo
+		// oParser = new parserFormula( "TEXT(123123123,\"###0 ,00\")", "A2", ws );
+		// ok( oParser.parse() );
+		// strictEqual( oParser.calculate().getValue(), "123123,12" );
+		//
+		// oParser = new parserFormula( "TEXT(123123123,\"###0 ,00 \")", "A2", ws );
+		// ok( oParser.parse() );
+		// strictEqual( oParser.calculate().getValue(), "123,12" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"###0, 0 0\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123123,00" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"#   # # 0,  0 0\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123 123 123,00" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"0 0   q w   w  0  0\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123 123 1q w w 23" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"00  q   q00\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "1231231q q23" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"0 q w  \")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123q w " );
+
+		oParser = new parserFormula( "TEXT(123123123,\"#  \")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"   #\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), " 123123123" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"###0 ,\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123," );
+
+		oParser = new parserFormula( "TEXT(123123123,\"###0, \")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123," );
 
         oParser = new parserFormula( "TEXT(123,\"дд чч\")", "A2", ws );
         ok( oParser.parse() );
@@ -4082,9 +4192,9 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "123,00" );
 
-        oParser = new parserFormula( "TEXT(123123,\"# ###\")", "A2", ws );
+        oParser = new parserFormula( "TEXT(123123123,\"# ###\")", "A2", ws );
         ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), "123 123" );
+        strictEqual( oParser.calculate().getValue(), "123 123 123" );
 
         oParser = new parserFormula( "TEXT(123,\"jj hh\")", "A2", ws );
         ok( oParser.parse() );
@@ -4126,9 +4236,9 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "123,00" );
 
-        oParser = new parserFormula( "TEXT(123123,\"#.###\")", "A2", ws );
+        oParser = new parserFormula( "TEXT(123123123,\"#.###\")", "A2", ws );
         ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), "123.123" );
+        strictEqual( oParser.calculate().getValue(), "123.123.123" );
 
         oParser = new parserFormula( "TEXT(123,\"t h\")", "A2", ws );
         ok( oParser.parse() );
@@ -4170,9 +4280,9 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "123,00" );
 
-        oParser = new parserFormula( "TEXT(123123,\"#.###\")", "A2", ws );
+        oParser = new parserFormula( "TEXT(123123123,\"#.###\")", "A2", ws );
         ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), "123.123" );
+        strictEqual( oParser.calculate().getValue(), "123.123.123" );
 
         oParser = new parserFormula( "TEXT(123,\"gg hh\")", "A2", ws );
         ok( oParser.parse() );
@@ -4214,9 +4324,9 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "123,00" );
 
-        oParser = new parserFormula( "TEXT(123123,\"# ###\")", "A2", ws );
+        oParser = new parserFormula( "TEXT(123123123,\"# ###\")", "A2", ws );
         ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), "123 123" );
+        strictEqual( oParser.calculate().getValue(), "123 123 123" );
 
         oParser = new parserFormula( "TEXT(123,\"dd tt\")", "A2", ws );
         ok( oParser.parse() );
@@ -4260,9 +4370,9 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "123,00" );
 
-        oParser = new parserFormula( "TEXT(123123,\"#.###\")", "A2", ws );
+        oParser = new parserFormula( "TEXT(123123123,\"#.###\")", "A2", ws );
         ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), "123.123" );
+        strictEqual( oParser.calculate().getValue(), "123.123.123" );
 
         oParser = new parserFormula( "TEXT(123,\"ηη ωω\")", "A2", ws );
         ok( oParser.parse() );
@@ -4308,9 +4418,9 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "125,00" );
 
-        oParser = new parserFormula( "TEXT(125125,\"# ###\")", "A2", ws );
+        oParser = new parserFormula( "TEXT(123123123,\"# ###\")", "A2", ws );
         ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), "125 125" );
+        strictEqual( oParser.calculate().getValue(), "123 123 123" );
         AscCommon.setCurrentCultureInfo(culturelciddefault);
         //_____________________________tr________________________________________________
         AscCommon.setCurrentCultureInfo(1055);
@@ -4338,9 +4448,9 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "125,00" );
 
-        oParser = new parserFormula( "TEXT(125125,\"#.###\")", "A2", ws );
+        oParser = new parserFormula( "TEXT(123123123,\"#.###\")", "A2", ws );
         ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), "125.125" );
+        strictEqual( oParser.calculate().getValue(), "123.123.123" );
         AscCommon.setCurrentCultureInfo(culturelciddefault);
         //_____________________________pl________________________________________________
         AscCommon.setCurrentCultureInfo(1045);
@@ -4360,9 +4470,9 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "125,00" );
 
-        oParser = new parserFormula( "TEXT(125125,\"# ###\")", "A2", ws );
+        oParser = new parserFormula( "TEXT(123123123,\"# ###\")", "A2", ws );
         ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), "125 125" );
+        strictEqual( oParser.calculate().getValue(), "123 123 123" );
         AscCommon.setCurrentCultureInfo(culturelciddefault);
         //_____________________________cs________________________________________________
         AscCommon.setCurrentCultureInfo(1029);
@@ -4382,9 +4492,9 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "123,00" );
 
-        oParser = new parserFormula( "TEXT(123123,\"# ###\")", "A2", ws );
+        oParser = new parserFormula( "TEXT(123123123,\"# ###\")", "A2", ws );
         ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), "123 123" );
+        strictEqual( oParser.calculate().getValue(), "123 123 123" );
 
         oParser = new parserFormula( "TEXT(123,\"rr ss\")", "A2", ws );
         ok( oParser.parse() );
@@ -4409,9 +4519,9 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "123.00" );
 
-        oParser = new parserFormula( "TEXT(123123,\"#,###\")", "A2", ws );
+        oParser = new parserFormula( "TEXT(123123123,\"#,###\")", "A2", ws );
         ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), "123,123" );
+        strictEqual( oParser.calculate().getValue(), "123,123,123" );
         //_____________________________ko________________________________________________
         AscCommon.setCurrentCultureInfo(1042);
         oParser = new parserFormula( "TEXT(124,\"g/표준\")", "A2", ws );
@@ -4422,9 +4532,9 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "123.00" );
 
-        oParser = new parserFormula( "TEXT(123123,\"#,###\")", "A2", ws );
+        oParser = new parserFormula( "TEXT(123123123,\"#,###\")", "A2", ws );
         ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), "123,123" );
+        strictEqual( oParser.calculate().getValue(), "123,123,123" );
         AscCommon.setCurrentCultureInfo(culturelciddefault);
     } );
 	test( "Test: \"TEXTJOIN\"", function () {
@@ -10118,6 +10228,10 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), "#N/A" );
 
+		oParser = new parserFormula( "MATCH({6,2,3},F106:F117,1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 5 );
+
 		//TODO excel по-другому работает
 		/*oParser = new parserFormula( "MATCH(123,F106:F117,1)", "A2", ws );
 		ok( oParser.parse() );
@@ -10247,7 +10361,11 @@ $( function () {
 		oParser = new parserFormula( "INDEX(A651:C651,1,1,2)", "A2", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), "#REF!" );
-    } );
+
+		oParser = new parserFormula( "INDEX(A651:A655,A651,0)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 1 );
+	} );
 
 	test( "Test: \"INDIRECT\"", function () {
 

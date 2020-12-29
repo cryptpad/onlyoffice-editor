@@ -10668,7 +10668,7 @@ CMultiLvlStrCache.prototype =
                         for(nRef = 0; nRef < aParsedRef.length; ++nRef) {
                             oRef = aParsedRef[nRef];
                             oSeriesRef = aParsedSeriesRef[nRef];
-                            if(oSeriesRef.r1 !== oRef.r1 || oSeriesRef.r2 !== oRef.r2) {
+                            if(oSeriesRef.bbox.r1 !== oRef.bbox.r1 || oSeriesRef.bbox.r2 !== oRef.bbox.r2) {
                                 break;
                             }
                         }

@@ -5186,7 +5186,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype._addImageUrl      = function(urls, obj)
 	{
-        if(obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj["obj"] || (obj instanceof AscCommon.CContentControlPr && obj.get_InternalId()))){
+        if(obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj["obj"] || (obj instanceof AscCommon.CContentControlPr && obj.GetInternalId()))){
             this.AddImageUrl(urls[0], undefined, undefined, obj);
         }
         else{
@@ -5331,9 +5331,9 @@ background-repeat: no-repeat;\
 				{
 					this.asc_SetContentControlPictureUrl(src, obj["obj"].Get_Id());
 				}
-				else if (obj instanceof AscCommon.CContentControlPr && obj.get_InternalId())
+				else if (obj instanceof AscCommon.CContentControlPr && obj.GetInternalId())
 				{
-					this.asc_SetContentControlPictureUrl(src, obj.get_InternalId());
+					this.asc_SetContentControlPictureUrl(src, obj.GetInternalId());
 				}
 				else
 				{
@@ -8679,6 +8679,9 @@ background-repeat: no-repeat;\
 
 		if (oContentControl && oContentControl.GetContentControlType)
 		{
+			oLogicDocument.RemoveSelection();
+			oContentControl.SelectContentControl();
+
 			if (c_oAscSdtLevelType.Block === oContentControl.GetContentControlType())
 			{
 				isLocked = oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_None, {
@@ -8695,7 +8698,7 @@ background-repeat: no-repeat;\
 					isLocked = oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_None, {
 						Type      : AscCommon.changestype_2_ElementsArray_and_Type,
 						Elements  : [oParagraph],
-						CheckType : AscCommon.changestype_Paragraph_Content
+						CheckType : AscCommon.changestype_Remove
 					});
 				}
 			}

@@ -1689,15 +1689,15 @@ ParaRun.prototype.AddText = function(sString, nPos)
 			var nCharCode = oIterator.value();
 
 			if (9 === nCharCode) // \t
-				this.AddToContent(nCharPos++, new ParaTab());
+				this.AddToContent(nCharPos++, new ParaTab(), true);
 			else if (10 === nCharCode) // \n
-				this.AddToContent(nCharPos++, new ParaNewLine(break_Line));
+				this.AddToContent(nCharPos++, new ParaNewLine(break_Line), true);
 			else if (13 === nCharCode) // \r
 				continue;
 			else if (AscCommon.IsSpace(nCharCode)) // space
-				this.AddToContent(nCharPos++, new ParaSpace(nCharCode));
+				this.AddToContent(nCharPos++, new ParaSpace(nCharCode), true);
 			else
-				this.AddToContent(nCharPos++, new ParaText(nCharCode));
+				this.AddToContent(nCharPos++, new ParaText(nCharCode), true);
 		}
 	}
 };
@@ -8542,40 +8542,24 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 	if (undefined !== TextPr.FontSize)
 		this.Set_FontSize(null === TextPr.FontSize ? undefined : TextPr.FontSize);
 
-	if (undefined !== TextPr.Color && undefined === TextPr.Unifill)
+
+	var oCompiledPr;
+	if (undefined !== TextPr.AscUnifill && null !== TextPr.AscUnifill)
 	{
-		this.Set_Color(null === TextPr.Color ? undefined : TextPr.Color);
-		this.Set_Unifill(undefined);
-		this.Set_TextFill(undefined);
-	}
-	else if (undefined !== TextPr.Unifill)
-	{
-		this.Set_Unifill(null === TextPr.Unifill ? undefined : TextPr.Unifill);
-		this.Set_Color(undefined);
-		this.Set_TextFill(undefined);
-	}
-	else if (undefined !== TextPr.AscUnifill && this.Paragraph)
-	{
-		if (!this.Paragraph.bFromDocument)
+		if(this.Paragraph && !this.Paragraph.bFromDocument)
 		{
-			var oCompiledPr = this.Get_CompiledPr(true);
+			oCompiledPr = this.Get_CompiledPr(true);
 			this.Set_Unifill(AscFormat.CorrectUniFill(TextPr.AscUnifill, oCompiledPr.Unifill, 0), AscCommon.isRealObject(TextPr.AscUnifill) && TextPr.AscUnifill.asc_CheckForseSet());
 			this.Set_Color(undefined);
 			this.Set_TextFill(undefined);
 		}
 	}
-	else if (undefined !== TextPr.TextFill)
-	{
-		this.Set_Unifill(undefined);
-		this.Set_Color(undefined);
-		this.Set_TextFill(null === TextPr.TextFill ? undefined : TextPr.TextFill);
-	}
-	else if (undefined !== TextPr.AscFill && this.Paragraph)
+	else if (undefined !== TextPr.AscFill && null !== TextPr.AscFill)
 	{
 		var oMergeUnifill, oColor;
-		if (this.Paragraph.bFromDocument)
+		if (this.Paragraph && this.Paragraph.bFromDocument)
 		{
-			var oCompiledPr = this.Get_CompiledPr(true);
+			oCompiledPr = this.Get_CompiledPr(true);
 			if (oCompiledPr.TextFill)
 			{
 				oMergeUnifill = oCompiledPr.TextFill;
@@ -8594,15 +8578,47 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 			this.Set_TextFill(AscFormat.CorrectUniFill(TextPr.AscFill, oMergeUnifill, 1), AscCommon.isRealObject(TextPr.AscFill) && TextPr.AscFill.asc_CheckForseSet());
 		}
 	}
-
-	if (undefined !== TextPr.TextOutline)
+	else
+	{
+		if (undefined !== TextPr.Color)
+		{
+			this.Set_Color(null === TextPr.Color ? undefined : TextPr.Color);
+			if(null !== TextPr.Colornull)
+			{
+				this.Set_Unifill(undefined);
+				this.Set_TextFill(undefined);
+			}
+		}
+		if (undefined !== TextPr.Unifill)
+		{
+			this.Set_Unifill(null === TextPr.Unifill ? undefined : TextPr.Unifill);
+			if(null !== TextPr.Unifill)
+			{
+				this.Set_Color(undefined);
+				this.Set_TextFill(undefined);
+			}
+		}
+		if (undefined !== TextPr.TextFill)
+		{
+			this.Set_TextFill(null === TextPr.TextFill ? undefined : TextPr.TextFill);
+			if(null !== TextPr.TextFill)
+			{
+				this.Set_Unifill(undefined);
+				this.Set_Color(undefined);
+			}
+		}
+	}
+	if (undefined !== TextPr.AscLine)
+	{
+		if(this.Paragraph)
+		{
+			oCompiledPr = this.Get_CompiledPr(true);
+			this.Set_TextOutline(AscFormat.CorrectUniStroke(TextPr.AscLine, oCompiledPr.TextOutline, 0));
+		}
+	}
+	else if (undefined !== TextPr.TextOutline)
 	{
 		this.Set_TextOutline(null === TextPr.TextOutline ? undefined : TextPr.TextOutline);
-	}
-	else if (undefined !== TextPr.AscLine && this.Paragraph)
-	{
-		var oCompiledPr = this.Get_CompiledPr(true);
-		this.Set_TextOutline(AscFormat.CorrectUniStroke(TextPr.AscLine, oCompiledPr.TextOutline, 0));
 	}
 
 	if (undefined !== TextPr.VertAlign)

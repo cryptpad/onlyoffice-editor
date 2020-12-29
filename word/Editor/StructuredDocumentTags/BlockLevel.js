@@ -100,7 +100,7 @@ CBlockLevelSdt.prototype.Copy = function(Parent, DrawingDocument, oPr)
 		oNew.private_ReplaceContentWithPlaceHolder();
 
 	oNew.SetShowingPlcHdr(this.Pr.ShowingPlcHdr);
-	oNew.SetPlaceholder(this.Pr.Placeholder);
+	oNew.SetPlaceholder(this.private_CopyPlaceholder());
 	oNew.SetContentControlEquation(this.Pr.Equation);
 	oNew.SetContentControlTemporary(this.Pr.Temporary);
 
@@ -206,7 +206,18 @@ CBlockLevelSdt.prototype.Draw = function(CurPage, oGraphics)
 		oGraphics.df();
 	}
 
+	var isPlaceHolder = this.IsPlaceHolder();
+	var nTextAlpha;
+	if (isPlaceHolder && oGraphics.setTextGlobalAlpha)
+	{
+		nTextAlpha = oGraphics.getTextGlobalAlpha();
+		oGraphics.setTextGlobalAlpha(0.5);
+	}
+
 	this.Content.Draw(CurPage, oGraphics);
+
+	if (isPlaceHolder && oGraphics.setTextGlobalAlpha)
+		oGraphics.setTextGlobalAlpha(nTextAlpha);
 
 	if (AscCommon.locktype_None !== this.Lock.Get_Type())
 	{
@@ -843,6 +854,12 @@ CBlockLevelSdt.prototype.CanAddComment = function()
 CBlockLevelSdt.prototype.GetSelectionAnchorPos = function()
 {
 	return this.Content.GetSelectionAnchorPos();
+};
+CBlockLevelSdt.prototype.GetBoundingPolygonFirstLineH = function()
+{
+	// TODO: Когда специальные формы будут реализованы и с помощью блочного контрола, тогда
+	//       надо будет рассчитать тут
+	return 0;
 };
 CBlockLevelSdt.prototype.DrawContentControlsTrack = function(isHover, X, Y, nCurPage)
 {

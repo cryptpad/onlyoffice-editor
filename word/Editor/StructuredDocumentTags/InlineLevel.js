@@ -139,6 +139,8 @@ CInlineLevelSdt.prototype.Copy = function(isUseSelection, oPr)
 			oContentControl.AddToContent(nCurPos - nStartPos, oItem.Copy(false, oPr));
 	}
 
+	// ВАЖНО: настройки копируем после копирования содержимого, потому что есть специальные случаи, когда
+	//        содержимое дальше меняется в зависимости от настроек (например, для радио кнопок)
 	this.private_CopyPrTo(oContentControl);
 
 	if (oContentControl.IsEmpty())
@@ -160,7 +162,25 @@ CInlineLevelSdt.prototype.private_CopyPrTo = function(oContentControl)
 		oContentControl.SetDocPartObj(this.Pr.DocPartObj.Category, this.Pr.DocPartObj.Gallery, this.Pr.DocPartObj.Unique);
 
 	if (undefined !== this.Pr.CheckBox)
-		oContentControl.SetCheckBoxPr(this.Pr.CheckBox);
+	{
+		var oCheckBoxPr     = this.Pr.CheckBox;
+		var isChangeChecked = false;
+
+		if (this.Pr.CheckBox.GroupKey
+			&& true === this.Pr.CheckBox.Checked
+			&& this.GetLogicDocument()
+			&& !this.GetLogicDocument().DragAndDropAction)
+		{
+			oCheckBoxPr = this.Pr.CheckBox.Copy();
+			oCheckBoxPr.Checked = false;
+			isChangeChecked = true;
+		}
+
+		oContentControl.SetCheckBoxPr(oCheckBoxPr);
+
+		if (isChangeChecked)
+			oContentControl.private_UpdateCheckBoxContent();
+	}
 
 	if (undefined !== this.Pr.Picture)
 		oContentControl.SetPicturePr(this.Pr.Picture);
@@ -175,7 +195,7 @@ CInlineLevelSdt.prototype.private_CopyPrTo = function(oContentControl)
 		oContentControl.SetDatePickerPr(this.Pr.Date);
 
 	oContentControl.SetShowingPlcHdr(this.Pr.ShowingPlcHdr);
-	oContentControl.SetPlaceholder(this.Pr.Placeholder);
+	oContentControl.SetPlaceholder(this.private_CopyPlaceholder());
 	oContentControl.SetContentControlEquation(this.Pr.Equation);
 	oContentControl.SetContentControlTemporary(this.Pr.Temporary);
 
@@ -305,6 +325,7 @@ CInlineLevelSdt.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _C
 		W            : X1 - X0,
 		Y            : Y0,
 		H            : Y1 - Y0,
+		TextLineH    : Y1 - Y0,
 		Page         : PRSA.Paragraph.Get_AbsolutePage(_CurPage),
 		PageInternal : _CurPage
 	};
@@ -474,6 +495,22 @@ CInlineLevelSdt.prototype.GetBoundingPolygon = function()
 	}
 
 	return this.BoundsPaths;
+};
+CInlineLevelSdt.prototype.GetBoundingPolygonFirstLineH = function()
+{
+	for (var nCurLine = 0, nLinesCount = this.protected_GetLinesCount(); nCurLine < nLinesCount; ++nCurLine)
+	{
+		for (var nCurRange = 0, nRangesCount = this.protected_GetRangesCount(nCurLine); nCurRange < nRangesCount; ++nCurRange)
+		{
+			var oBounds = this.Bounds[((nCurLine << 16) & 0xFFFF0000) | (nCurRange & 0x0000FFFF)];
+			if (!oBounds)
+				break;
+			else if (oBounds.W > 0)
+				return oBounds.TextLineH;
+		}
+	}
+
+	return 0;
 };
 CInlineLevelSdt.prototype.DrawContentControlsTrack = function(isHover, X, Y, nCurPage)
 {

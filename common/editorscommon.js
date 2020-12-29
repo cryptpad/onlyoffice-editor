@@ -2953,8 +2953,18 @@
 		}
 		else if (Asc.c_oAscSelectionDialogType.DataValidation === dialogType)
 		{
-			if (dataRange === null) {
-				return Asc.c_oAscError.ID.No;
+			if (dataRange === null || dataRange === "") {
+				return Asc.c_oAscError.ID.DataValidateMustEnterValue;
+			} else if (typeof dataRange === "string") {
+				result = parserHelp.parse3DRef(dataRange);
+				if (result)
+				{
+					sheetModel = model.getWorksheetByName(result.sheet);
+					if (sheetModel)
+					{
+						range = AscCommonExcel.g_oRangeCache.getAscRange(result.range);
+					}
+				}
 			}
 		}
 		else
