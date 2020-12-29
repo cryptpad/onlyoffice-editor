@@ -775,6 +775,9 @@
             }, this, []);
         }
     };
+    CGraphicObjectBase.prototype.handleObject = function(fCallback) {
+        fCallback(this);
+    };
 
 
     CGraphicObjectBase.prototype.drawShdw = function(graphics){

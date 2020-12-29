@@ -14635,7 +14635,10 @@ CChartSpace.prototype.addScatterSeries = function(sName, sXValues, sYValues) {
     }
     return oSeries;
 };
-
+    CChartSpace.prototype.hasRefsFromRange = function(oRange) {
+        var oDataRange = new AscFormat.CChartDataRefs(this);
+         oDataRange.hasRefsFromRange(oRange);
+    };
 
     CChartSpace.prototype.getCommonRange = function() {
         var oDataRange = new AscFormat.CChartDataRefs(this);
@@ -14826,16 +14829,16 @@ CChartSpace.prototype.addScatterSeries = function(sName, sXValues, sYValues) {
         }
     };
 
-CChartSpace.prototype.getCatFormula = function() {
-    var aAllSeries = this.getAllSeries();
-    var oFirstSeries = aAllSeries[0];
-    if(oFirstSeries) {
-        if(oFirstSeries.cat) {
-            return oFirstSeries.cat.getFormula();
+    CChartSpace.prototype.getCatFormula = function() {
+        var aAllSeries = this.getAllSeries();
+        var oFirstSeries = aAllSeries[0];
+        if(oFirstSeries) {
+            if(oFirstSeries.cat) {
+                return oFirstSeries.cat.getFormula();
+            }
         }
-    }
-    return "";
-};
+        return "";
+    };
 
 CChartSpace.prototype.setCatFormula = function(sFormula) {
     var aAllSeries = this.getAllSeries();

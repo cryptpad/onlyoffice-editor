@@ -3470,6 +3470,11 @@
 
 		History.EndTransaction();
 	};
+	Workbook.prototype.handleDrawings = function (fCallback) {
+		for(var i = 0; i < this.aWorksheets.length; ++i) {
+			this.aWorksheets[i].handleDrawings(fCallback);
+		}
+	};
 
 	Workbook.prototype.cleanCollaborativeFilterObj = function () {
 		if (!Asc.CT_NamedSheetView.prototype.asc_getName) {
@@ -8629,6 +8634,11 @@
 		}
 		return res.length ? res : null;
 	};
+	Worksheet.prototype.handleDrawings = function (fCallback) {
+		for(var nIndex = 0; nIndex < this.Drawings.length; ++nIndex) {
+			this.Drawings[nIndex].handleObject(fCallback);
+		}
+	};
 
 	Worksheet.prototype.changeTableColName = function (tableName, oldVal, newVal) {
 		if (this.workbook.bUndoChanges || this.workbook.bRedoChanges) {
@@ -11347,6 +11357,12 @@
 		if(!oNewWs)
 			oNewWs = this.worksheet;
 		return this.createFromBBox(oNewWs, this.bbox);
+	};
+	Range.prototype.isIntersect=function(oRange){
+		if(this.worksheet === oRange.worksheet) {
+			return this.bbox.isIntersect(oRange.bbox);
+		}
+		return false;
 	};
 	Range.prototype._foreach = function(action) {
 		if (null != action) {

@@ -1912,6 +1912,13 @@ function CGroupShape()
         return res;
     };
 
+    CGroupShape.prototype.handleObject = function (fCallback) {
+        fCallback(this);
+        for(var nSp = 0; nSp < this.spTree.length; ++nSp) {
+            this.spTree[nSp].handleObject(fCallback);
+        }
+    };
+
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CGroupShape = CGroupShape;
