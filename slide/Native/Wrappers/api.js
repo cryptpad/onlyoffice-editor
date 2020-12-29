@@ -3007,12 +3007,12 @@ Asc['asc_docs_api'].prototype["Native_Editor_Initialize_Settings"] = function(_p
         {
             case 0:
             {
-                AscCommonSlide.GlobalSkin.STYLE_THUMBNAIL_WIDTH = _params[_current.pos++];
+				AscCommon.GlobalSkin.STYLE_THUMBNAIL_WIDTH = _params[_current.pos++];
                 break;
             }
             case 1:
             {
-                AscCommonSlide.GlobalSkin.STYLE_THUMBNAIL_HEIGHT = _params[_current.pos++];
+				AscCommon.GlobalSkin.STYLE_THUMBNAIL_HEIGHT = _params[_current.pos++];
                 break;
             }
             case 2:

@@ -8977,7 +8977,10 @@
 		var _selection = this.getSelection();
 		
 		if (!this.dataValidations) {
-			return new window['AscCommonExcel'].CDataValidation();
+			var newDataValidation = new window['AscCommonExcel'].CDataValidation();
+			newDataValidation.showErrorMessage = true;
+			newDataValidation.showInputMessage = true;
+			return newDataValidation;
 		} else {
 			return this.dataValidations.getProps(_selection.ranges, doExtend);
 		}
@@ -8993,24 +8996,11 @@
 		this.dataValidations.setProps(this, _selection.ranges, props);
 	};
 
-	Worksheet.prototype._addDataValidation = function (dataValidation, addToHistory) {
+	Worksheet.prototype.addDataValidation = function (dataValidation, addToHistory) {
 		if (!this.dataValidations) {
 			this.dataValidations = new window['AscCommonExcel'].CDataValidations();
 		}
 		this.dataValidations.add(this, dataValidation, addToHistory);
-	};
-	
-	Worksheet.prototype._getDataValidationIntersection = function (ranges) {
-		if (this.dataValidations) {
-			return this.dataValidations.getIntersections(ranges);
-		}
-		return {intersection: [], contain: []};
-	};
-
-	Worksheet.prototype.changeDataValidation = function (from, to, addToHistory) {
-		if (this.dataValidations) {
-			this.dataValidations.change(this, from, to, addToHistory);
-		}
 	};
 
 	Worksheet.prototype.deleteDataValidationById = function (id) {
@@ -9025,9 +9015,9 @@
 		}
 	};
 
-	Worksheet.prototype.shiftDataValidation = function (bInsert, operType, updateRange) {
+	Worksheet.prototype.shiftDataValidation = function (bInsert, operType, updateRange, addToHistory) {
 		if (this.dataValidations) {
-			this.dataValidations.shift(this, bInsert, operType, updateRange);
+			this.dataValidations.shift(this, bInsert, operType, updateRange, addToHistory);
 		}
 	};
 
@@ -9043,17 +9033,33 @@
 		}
 		if (false === this.workbook.bUndoChanges && false === this.workbook.bRedoChanges) {
 			wsTo.clearDataValidation([oBBoxTo], true);
-			if (copyRange) {
 
+			if (this === wsTo) {
+				if (this.dataValidations) {
+					this.dataValidations.move(this, oBBoxFrom, oBBoxTo, copyRange, offset);
+				}
 			} else {
-				if (this === wsTo) {
+				var aDataValidations = this._getCopyDataValidationByRange(oBBoxFrom, offset);
+				if (aDataValidations) {
+					if (!copyRange) {
+						this.clearDataValidation([oBBoxFrom], true);
+					}
 
-				} else {
-
+					//далее необходимо создать новые объекты на новом листе
+					for (var i = 0; i < aDataValidations.length; i++) {
+						wsTo.addDataValidation(aDataValidations[i], true);
+					}
 				}
 			}
 		}
 	};
+
+	Worksheet.prototype._getCopyDataValidationByRange = function (range, offset) {
+		if (this.dataValidations) {
+			this.dataValidations.getCopyByRange(range, offset);
+		}
+	};
+
 
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
@@ -11753,6 +11759,7 @@
 			var _val = val;
 			if (_formula) {
 				_formula.isParsed = false;
+				_formula.outStack = [];
 				_formula.parse(true);
 				var offset = new AscCommon.CellBase(cell.nRow - activeCell.row, cell.nCol - activeCell.col);
 				_val = "=" + _formula.changeOffset(offset, null, true).assemble(true);

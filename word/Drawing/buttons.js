@@ -1454,7 +1454,7 @@
                             overlay.CheckRect(_x, _y, widthHeader, 20);
 
                             // рисуем подложку
-                            ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsBack;
+                            ctx.fillStyle = AscCommon.GlobalSkin.ContentControlsBack;
                             ctx.rect(_x, _y, widthHeader, 20);
                             ctx.fill();
                             ctx.beginPath();
@@ -1463,13 +1463,13 @@
                             if (!_object.IsNoButtons)
                             {
                                 ctx.rect(_x, _y, 15, 20);
-                                ctx.fillStyle = (1 == this.ContentControlObjectState) ? AscCommonWord.GlobalSkin.ContentControlsAnchorActive : AscCommonWord.GlobalSkin.ContentControlsBack;
+                                ctx.fillStyle = (1 == this.ContentControlObjectState) ? AscCommon.GlobalSkin.ContentControlsAnchorActive : AscCommon.GlobalSkin.ContentControlsBack;
                                 ctx.fill();
                                 ctx.beginPath();
 
                                 if (1 == this.ContentControlObjectState)
                                 {
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsAnchorActive;
+                                    ctx.fillStyle = AscCommon.GlobalSkin.ContentControlsAnchorActive;
                                     ctx.rect(_x, _y, 15, 20);
                                     ctx.fill();
                                     ctx.beginPath();
@@ -1533,17 +1533,17 @@
                             if (_object.Name != "")
                             {
                                 if (_object.ActiveButtonIndex == -1)
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsActive;
+                                    ctx.fillStyle = AscCommon.GlobalSkin.ContentControlsActive;
                                 else if (_object.HoverButtonIndex == -1)
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsHover;
+                                    ctx.fillStyle = AscCommon.GlobalSkin.ContentControlsHover;
                                 else
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsBack;
+                                    ctx.fillStyle = AscCommon.GlobalSkin.ContentControlsBack;
 
                                 ctx.rect(xText, _y, widthName, 20);
                                 ctx.fill();
                                 ctx.beginPath();
 
-                                ctx.fillStyle = (_object.ActiveButtonIndex == -1) ? AscCommonWord.GlobalSkin.ContentControlsTextActive : AscCommonWord.GlobalSkin.ContentControlsText;
+                                ctx.fillStyle = (_object.ActiveButtonIndex == -1) ? AscCommon.GlobalSkin.ContentControlsTextActive : AscCommon.GlobalSkin.ContentControlsText;
                                 ctx.font = this.getFont();
                                 ctx.fillText(_object.Name, xText + 3, _y + 20 - 6);
 
@@ -1573,12 +1573,12 @@
                                 var isFill = false;
                                 if (_object.ActiveButtonIndex == nIndexB)
                                 {
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsActive;
+                                    ctx.fillStyle = AscCommon.GlobalSkin.ContentControlsActive;
                                     isFill = true;
                                 }
                                 else if (_object.HoverButtonIndex == nIndexB)
                                 {
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsHover;
+                                    ctx.fillStyle = AscCommon.GlobalSkin.ContentControlsHover;
                                     isFill = true;
                                 }
 
@@ -1613,11 +1613,11 @@
                                 ctx.rect(_x, _y, 20, _b - _y);
                                 overlay.CheckRect(_x, _y, 20, _b - _y);
                                 if (_object.ActiveButtonIndex == nIndexB)
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsActive;
+                                    ctx.fillStyle = AscCommon.GlobalSkin.ContentControlsActive;
                                 else if (_object.HoverButtonIndex == nIndexB)
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsHover;
+                                    ctx.fillStyle = AscCommon.GlobalSkin.ContentControlsHover;
                                 else
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsBack;
+                                    ctx.fillStyle = AscCommon.GlobalSkin.ContentControlsBack;
 
                                 ctx.fill();
                                 ctx.stroke();
@@ -1698,7 +1698,7 @@
                             ctx.transform(_ft.sx, _ft.shy, _ft.shx, _ft.sy, _ft.tx, _ft.ty);
 
                             // рисуем подложку
-                            ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsBack;
+                            ctx.fillStyle = AscCommon.GlobalSkin.ContentControlsBack;
                             ctx.rect(_x, _y, widthHeader, scaleY_20);
                             ctx.fill();
                             ctx.beginPath();
@@ -1707,13 +1707,13 @@
                             if (!_object.IsNoButtons)
                             {
                                 ctx.rect(_x, _y, scaleX_15, scaleY_20);
-                                ctx.fillStyle = (1 == this.ContentControlObjectState) ? AscCommonWord.GlobalSkin.ContentControlsAnchorActive : AscCommonWord.GlobalSkin.ContentControlsBack;
+                                ctx.fillStyle = (1 == this.ContentControlObjectState) ? AscCommon.GlobalSkin.ContentControlsAnchorActive : AscCommon.GlobalSkin.ContentControlsBack;
                                 ctx.fill();
                                 ctx.beginPath();
 
                                 if (1 == this.ContentControlObjectState)
                                 {
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsAnchorActive;
+                                    ctx.fillStyle = AscCommon.GlobalSkin.ContentControlsAnchorActive;
                                     ctx.rect(_x, _y, scaleX_15, scaleY_20);
                                     ctx.fill();
                                     ctx.beginPath();
@@ -1755,17 +1755,17 @@
                             if (_object.Name != "")
                             {
                                 if (_object.ActiveButtonIndex == -1)
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsActive;
+                                    ctx.fillStyle = AscCommon.GlobalSkin.ContentControlsActive;
                                 else if (_object.HoverButtonIndex == -1)
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsHover;
+                                    ctx.fillStyle = AscCommon.GlobalSkin.ContentControlsHover;
                                 else
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsBack;
+                                    ctx.fillStyle = AscCommon.GlobalSkin.ContentControlsBack;
 
                                 ctx.rect(_x + (_object.IsNoButtons ? 0 : scaleX_15), _y, widthName, scaleY_20);
                                 ctx.fill();
                                 ctx.beginPath();
 
-                                ctx.fillStyle = (_object.ActiveButtonIndex == -1) ? AscCommonWord.GlobalSkin.ContentControlsTextActive : AscCommonWord.GlobalSkin.ContentControlsText;
+                                ctx.fillStyle = (_object.ActiveButtonIndex == -1) ? AscCommon.GlobalSkin.ContentControlsTextActive : AscCommon.GlobalSkin.ContentControlsText;
                                 ctx.font = this.getFont(_koefY);
                                 ctx.fillText(_object.Name, xText + 3 / _koefX, _y + (20 - 6) / _koefY);
 
@@ -1791,12 +1791,12 @@
                                 var isFill = false;
                                 if (_object.ActiveButtonIndex == nIndexB)
                                 {
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsActive;
+                                    ctx.fillStyle = AscCommon.GlobalSkin.ContentControlsActive;
                                     isFill = true;
                                 }
                                 else if (_object.HoverButtonIndex == nIndexB)
                                 {
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsHover;
+                                    ctx.fillStyle = AscCommon.GlobalSkin.ContentControlsHover;
                                     isFill = true;
                                 }
 
@@ -1824,11 +1824,11 @@
                                 ctx.rect(_x, _y, scaleX_20, _b - _y);
                                 overlay.CheckRect(_x, _y, scaleX_20, _b - _y);
                                 if (_object.ActiveButtonIndex == nIndexB)
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsActive;
+                                    ctx.fillStyle = AscCommon.GlobalSkin.ContentControlsActive;
                                 else if (_object.HoverButtonIndex == nIndexB)
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsHover;
+                                    ctx.fillStyle = AscCommon.GlobalSkin.ContentControlsHover;
                                 else
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsBack;
+                                    ctx.fillStyle = v.GlobalSkin.ContentControlsBack;
 
                                 ctx.fill();
                                 ctx.lineWidth = 1 / _koefY;

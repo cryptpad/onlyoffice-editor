@@ -194,6 +194,8 @@
 		// macros & plugins events
 		this.internalEvents = {};
 
+		this.skinObject = config['skin'];
+
 		this.Shortcuts = new AscCommon.CShortcuts();
 		this.initDefaultShortcuts();
 
@@ -3195,6 +3197,9 @@
 		var nActionType = this.Shortcuts.AddCustomActionSymbol(nCharCode, sFont);
 		this.Shortcuts.Add(nActionType, sShortcut[0], sShortcut[1], sShortcut[2], sShortcut[3]);
 		return nActionType;
+	};
+	baseEditorsApi.prototype.asc_setSkin = function(obj)
+	{
 	};
 	//----------------------------------------------------------addons----------------------------------------------------
     baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)

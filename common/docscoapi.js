@@ -1333,6 +1333,7 @@
     if (participants) {
       for (i = 0; i < participants.length; ++i) {
         tmpUser = new AscCommon.asc_CUser(participants[i]);
+        tmpUser.setState(true);
         participantsNew[tmpUser.asc_getId()] = tmpUser;
         if (!tmpUser.asc_getView()) {
           ++countEditUsersNew;

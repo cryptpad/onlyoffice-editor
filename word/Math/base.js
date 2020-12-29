@@ -991,7 +991,7 @@ CMathBase.prototype.Apply_TextPrToCtrPr = function(TextPr, IncFontSize, ApplyToA
 	if (!TextPr)
 	{
 		var CtrPrp = this.Get_CompiledCtrPrp_2();
-		this.Set_FontSizeCtrPrp(FontSize_IncreaseDecreaseValue(IncFontSize, CtrPrp.FontSize));
+		this.Set_FontSizeCtrPrp(CtrPrp.GetIncDecFontSize(IncFontSize));
 	}
 	else
 	{
