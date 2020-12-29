@@ -2414,7 +2414,6 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
     CParseResult.prototype.getError = function() {
         return this.error;
     };
-
     function fParseChartFormula(sFormula) {
         if(!(typeof sFormula === "string" && sFormula.length > 0)) {
             return [];
@@ -3136,8 +3135,51 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         return false;
     };
+    CDataRefs.prototype.isInside = function(oRange) {
+        if(this.aRefs.length === 0) {
+            return false;
+        }
+        for(var nRange = 0; nRange < this.aRefs.length; ++nRange) {
+            if(!oRange.containsRange(this.aRefs[nRange])) {
+                return false;
+            }
+        }
+        return true;
+    };
     CDataRefs.prototype.clear = function() {
         this.aRefs.length = 0;
+    };
+    CDataRefs.prototype.collectBoundsByWS = function(aBounds) {
+        var oRef, oBounds, oBBox;
+        for(var nRef = 0; nRef < this.aRefs.length; ++nRef) {
+            oRef = this.aRefs[nRef];
+            oBBox = oRef.bbox;
+            for(var nBounds = 0; nBounds < aBounds.length; ++nBounds) {
+                oBounds = aBounds[nBounds];
+                if(oBounds.worksheet === oRef.worksheet) {
+                    break;
+                }
+            }
+            if(nBounds < aBounds.length) {
+                oBounds.bbox.union2(oBBox);
+            }
+            else {
+                aBounds.push(new AscCommonExcel.Range(oRef.worksheet, oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2));
+            }
+        }
+    };
+    CDataRefs.prototype.move = function(oRangeFrom, oRangeTo) {
+        var nDiffR = oRangeTo.bbox.r1 - oRangeFrom.bbox.r1;
+        var nDiffC = oRangeTo.bbox.c1 - oRangeFrom.bbox.c1;
+        for(var nRef = 0; nRef < this.aRefs.length; ++nRef) {
+            var oRef = this.aRefs[nRef];
+            if(oRef.worksheet === oRangeFrom.worksheet) {
+                oRef.bbox.r1 += nDiffR;
+                oRef.bbox.r2 += nDiffR;
+                oRef.bbox.c1 += nDiffC;
+                oRef.bbox.c2 += nDiffC;
+            }
+        }
     };
 
     var SERIES_COMPARE_RESULT_NONE = 0;
@@ -3289,6 +3331,28 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         return false;
     };
+    CSeriesDataRefs.prototype.collectBoundsByWS = function(aBounds) {
+        this.val.collectBoundsByWS(aBounds);
+        this.cat.collectBoundsByWS(aBounds);
+        this.tx.collectBoundsByWS(aBounds);
+    };
+    CSeriesDataRefs.prototype.collectRefsInsideRange = function(oRange, aRefs) {
+        if(!this.series) {
+            return;
+        }
+        if(!this.hasIntersection(oRange)) {
+            return;
+        }
+        if(this.val.isInside(oRange)) {
+            this.series.collectValRefs(aRefs);
+        }
+        if(this.cat.isInside(oRange)) {
+            this.series.collectCatRefs(aRefs);
+        }
+        if(this.tx.isInside(oRange)) {
+            this.series.collectTxRefs(aRefs);
+        }
+    };
 
     function fFillDataFromSelectedRange(oData, oSelectedRange) {
         var ranges = oSelectedRange.ranges;
@@ -3357,6 +3421,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         oWSView.oOtherRanges = oSelectionRange;
     }
+
     function CChartDataRefs(oChartSpace) {
         this.chartSpace = oChartSpace;
         this.val = new CDataRefs([]);
@@ -3364,8 +3429,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         this.tx = new CDataRefs([]);
         this.info = 0;
         this.seriesRefs = [];
-
-
+        this.boundsByWS = [];
         this.updateDataRefs();
     }
     CChartDataRefs.prototype.updateDataRefs = function () {
@@ -3374,6 +3438,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         this.tx.clear();
         this.info = 0;
         this.seriesRefs.length = 0;
+        this.boundsByWS.length = 0;
         if(!this.chartSpace) {
             return;
         }
@@ -3431,7 +3496,13 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
             this.tx = oTxRefs;
             this.cat = oCatRefs;
             this.info = oFirstSeriesRefs.getInfo();
+            this.val.collectBoundsByWS(this.boundsByWS);
+            this.cat.collectBoundsByWS(this.boundsByWS);
+            this.tx.collectBoundsByWS(this.boundsByWS);
             return true;
+        }
+        for(nSeries = 0; nSeries <  this.seriesRefs.length; ++nSeries) {
+            this.seriesRefs[nSeries].collectBoundsByWS(this.boundsByWS);
         }
         return false;
     };
@@ -3495,7 +3566,6 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         var nR1, nR2, nC1, nC2;
         var bHorizontalValues;
 
-        var nNumFmtType, sValue;
         var oVal = null, oTx = null, oCat = null, nInfo = 0;
         if(Array.isArray(aGrid)) {
             aGridRow = aGrid[0];
@@ -3882,6 +3952,14 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         return false;
     };
     CChartDataRefs.prototype.hasIntersection = function(oRange) {
+        for(var nBounds = 0; nBounds < this.boundsByWS.length; ++nBounds) {
+            if(this.boundsByWS[nBounds].isIntersect(oRange)) {
+                break;
+            }
+        }
+        if(nBounds === this.boundsByWS.length) {
+            return false;
+        }
         if(this.info !== 0) {
             if(this.val.hasIntersection(oRange)) {
                 return true;
@@ -3892,18 +3970,22 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
             if(this.tx.hasIntersection(oRange)) {
                 return true;
             }
-            return false;
         }
-        for(var nSer = 0; nSer < this.seriesRefs.length; ++nSer) {
-            if(this.seriesRefs.hasIntersection(oRange)) {
-                return true;
+        else {
+            for(var nSeries = 0; nSeries < this.seriesRefs.length; ++nSeries) {
+                if(this.seriesRefs.hasIntersection(oRange)) {
+                    return true;
+                }
             }
         }
         return false;
     };
-    CChartDataRefs.prototype.hasRefsFromRange = function(oRange) {
+    CChartDataRefs.prototype.collectRefsInsideRange = function(oRange, aRefs) {
         if(!this.hasIntersection(oRange)) {
-            return false;
+            return;
+        }
+        for(var nSeries = 0; nSeries < this.seriesRefs.length; ++nSeries) {
+            this.seriesRefs[nSeries].collectRefsInsideRange(oRange, aRefs);
         }
     };
 
@@ -4259,15 +4341,29 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         return [];
     };
     CSeriesBase.prototype.getCatRefs = function() {
-        return this.getRefs(this.cat || this.xVal);
+        return this.getParsedRefs(this.cat || this.xVal);
     };
     CSeriesBase.prototype.getTxRefs = function() {
-        return this.getRefs(this.tx);
+        return this.getParsedRefs(this.tx);
     };
     CSeriesBase.prototype.getValRefs = function() {
-        return this.getRefs(this.val || this.yVal);
+        return this.getParsedRefs(this.val || this.yVal);
     };
-    CSeriesBase.prototype.getRefs = function(oSource) {
+    CSeriesBase.prototype.collectCatRefs = function(aRefs) {
+        this.collectRefs(this.cat || this.xVal, aRefs);
+    };
+    CSeriesBase.prototype.collectTxRefs = function(aRefs) {
+        this.collectRefs(this.tx, aRefs);
+    };
+    CSeriesBase.prototype.collectValRefs = function(aRefs) {
+        this.collectRefs(this.val || this.yVal, aRefs);
+    };
+    CSeriesBase.prototype.collectRefs = function(oSource, aRefs) {
+        if(oSource) {
+            oSource.collectRefs(aRefs);
+        }
+    };
+    CSeriesBase.prototype.getParsedRefs = function(oSource) {
         var aRefs;
         if(oSource) {
             aRefs = oSource.getParsedRefs();
@@ -9372,6 +9468,17 @@ CCat.prototype =
         }
         return [];
     },
+    collectRefs: function(aRefs) {
+        if(this.numRef) {
+            aRefs.push(this.numRef);
+        }
+        if(this.strRef) {
+            aRefs.push(this.strRef);
+        }
+        if(this.multiLvlStrRef) {
+            aRefs.push(this.multiLvlStrRef);
+        }
+    },
     isValid: function() {
         if(this.multiLvlStrRef ||
             this.numLit ||
@@ -12001,6 +12108,15 @@ CMultiLvlStrCache.prototype =
         this.parent = pr;
     };
 
+    CChartRefBase.prototype.moveRanges = function(oRangeFrom, oRangeTo) {
+        var oDataRefs = new CDataRefs(this.getParsedRefs());
+        oDataRefs.move(oRangeFrom, oRangeTo);
+        var sFormula = oDataRefs.getFormula();
+        if(typeof sFormula === "string" && sFormula.length > 0) {
+            this.setF(sFormula);
+        }
+    };
+
     function CMultiLvlStrRef() {
         CChartRefBase.call(this);
         this.multiLvlStrCache = null;
@@ -13806,6 +13922,11 @@ CTx.prototype =
         }
         return [];
     },
+    collectRefs: function(aRefs) {
+        if(this.strRef) {
+            aRefs.push(this.strRef);
+        }
+    },
 
     setValues: function(sName) {
         var oResult = new CParseResult();
@@ -15569,6 +15690,11 @@ CYVal.prototype =
             return this.numRef.getParsedRefs();
         }
         return [];
+    },
+    collectRefs: function(aRefs) {
+        if(this.numRef) {
+            aRefs.push(this.numRef);
+        }
     },
     isValid: function() {
         if(this.numRef || this.numLit) {

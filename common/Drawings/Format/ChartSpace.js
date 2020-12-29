@@ -14635,9 +14635,9 @@ CChartSpace.prototype.addScatterSeries = function(sName, sXValues, sYValues) {
     }
     return oSeries;
 };
-    CChartSpace.prototype.hasRefsFromRange = function(oRange) {
+    CChartSpace.prototype.collectRefsInsideRange = function(oRange, aRefs) {
         var oDataRange = new AscFormat.CChartDataRefs(this);
-         oDataRange.hasRefsFromRange(oRange);
+        oDataRange.collectRefsInsideRange(oRange, aRefs);
     };
 
     CChartSpace.prototype.getCommonRange = function() {

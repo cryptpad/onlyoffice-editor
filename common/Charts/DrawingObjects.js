@@ -3583,14 +3583,32 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         var aRefsToReplace = [];
         var aChartsForLock = [];
         var oRangeFrom = new AscCommonExcel.Range(worksheet.model, oBBoxFrom.r1, oBBoxFrom.c1, oBBoxFrom.r2, oBBoxFrom.c2);
+        var oRangeTo = new AscCommonExcel.Range(worksheet.model, oBBoxTo.r1, oBBoxTo.c1, oBBoxTo.r2, oBBoxTo.c2);
         oWB.handleDrawings(function(oDrawing) {
             if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
-
-                if(oDrawing.hasRefsFromRange(oRangeFrom)) {
-                    aRefsToReplace.push(oDrawing);
+                var nPrevLength = aRefsToReplace.length;
+                oDrawing.collectRefsInsideRange(oRangeFrom, aRefsToReplace);
+                if(aRefsToReplace.length > nPrevLength) {
+                    aChartsForLock.push(oDrawing);
                 }
             }
         });
+        if(aChartsForLock.length > 0) {
+            _this.objectLocker.reset();
+            for(var nChart = 0; nChart < aChartsForLock.length; ++nChart) {
+                _this.objectLocker.addObjectId(aChartsForLock[nChart].Id);
+            }
+            _this.objectLocker.checkObjects(function(bNoLock) {
+                if(bNoLock) {
+                    for(var nRef = 0; nRef < aRefsToReplace.length; ++nRef) {
+                        aRefsToReplace[nRef].moveRanges(oRangeFrom, oRangeTo);
+                    }
+                    for(var nChart = 0; nChart < aChartsForLock.length; ++nChart) {
+                        aChartsForLock[nChart].recalculate();
+                    }
+                }
+            });
+        }
     };
 
     //-----------------------------------------------------------------------------------
