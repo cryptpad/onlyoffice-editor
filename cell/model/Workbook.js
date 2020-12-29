@@ -3733,7 +3733,6 @@
 		this.autoFilters = AscCommonExcel.AutoFilters !== undefined ? new AscCommonExcel.AutoFilters(this) : null;
 		this.sortState = null;
 
-		this.oDrawingOjectsManager = new DrawingObjectsManager(this);
 		this.contentChanges = new AscCommon.CContentChanges();
 
 		this.aSparklineGroups = [];
@@ -4614,8 +4613,9 @@
 				{
 					if (this.workbook.aWorksheets.hasOwnProperty(key)) {
 						var wsModel = this.workbook.aWorksheets[key];
-						if ( wsModel )
-							wsModel.oDrawingOjectsManager.updateChartReferencesWidthHistory(_lastName, _newName, true);
+						if ( wsModel ) {
+							wsModel.handleDrawingsOnChangeSheetName(_lastName, _newName);
+						}
 					}
 				}
 			}
@@ -8638,6 +8638,13 @@
 		for(var nIndex = 0; nIndex < this.Drawings.length; ++nIndex) {
 			this.Drawings[nIndex].handleObject(fCallback);
 		}
+	};
+	Worksheet.prototype.handleDrawingsOnChangeSheetName = function (sOldName, sNewName) {
+		this.handleDrawings(function(oDrawing) {
+			if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+				oDrawing.onChangeSheetName(sOldName, sNewName);
+			}
+		});
 	};
 
 	Worksheet.prototype.changeTableColName = function (tableName, oldVal, newVal) {
@@ -15414,34 +15421,6 @@
 		}
 		return hiddenSum;
 	};
-
-	/**
-	 * @constructor
-	 */
-	function DrawingObjectsManager(worksheet)
-	{
-		this.worksheet = worksheet;
-	}
-
-	DrawingObjectsManager.prototype.updateChartReferences = function(oldWorksheet, newWorksheet)
-	{
-		AscFormat.ExecuteNoHistory(function(){
-			this.updateChartReferencesWidthHistory(oldWorksheet, newWorksheet);
-		}, this, []);
-	};
-
-	DrawingObjectsManager.prototype.updateChartReferencesWidthHistory = function(oldWorksheet, newWorksheet, bNoRebuildCache)
-	{
-		var aObjects = this.worksheet.Drawings;
-		for (var i = 0; i < aObjects.length; i++) {
-			var graphicObject = aObjects[i].graphicObject;
-			if ( graphicObject.updateChartReferences )
-			{
-				graphicObject.updateChartReferences(oldWorksheet, newWorksheet, bNoRebuildCache);
-			}
-		}
-	};
-
 
 
 	function tryTranslateToPrintArea(val) {

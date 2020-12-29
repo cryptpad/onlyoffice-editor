@@ -2242,22 +2242,15 @@ var editor;
       if (res) {
         History.Create_NewPoint();
         History.StartTransaction();
-        // Нужно проверить все диаграммы, ссылающиеся на удаляемый лист
-          t.wbModel.forEach(function (ws) {
-			  History.TurnOff();
-			  var wsView = t.wb.getWorksheet(ws.index, true);
-			  History.TurnOn();
-			  for (var i = 0; i < arrDeleteNames.length; ++i) {
-                ws.oDrawingOjectsManager.updateChartReferencesWidthHistory(arrDeleteNames[i], parserHelp.getEscapeSheetName(ws.sName));
-              }
-			  if (wsView && wsView.objectRender && wsView.objectRender.controller) {
-				  wsView.objectRender.controller.recalculate2(true);
-			  }
-          });
-
         for (var i = 0; i < arrSheets.length; ++i) {
           t.wbModel.removeWorksheet(arrSheets[i].getIndex());
         }
+        t.wbModel.forEach(function (ws) {
+          var sNewName = parserHelp.getEscapeSheetName(ws.sName);
+          for(var nDeleteName = 0; nDeleteName < arrDeleteNames.length; ++nDeleteName) {
+            ws.handleDrawingsOnChangeSheetName(arrDeleteNames[nDeleteName], sNewName);
+          }
+        });
         t.wb.updateWorksheetByModel();
         t.wb.showWorksheet();
         History.EndTransaction();

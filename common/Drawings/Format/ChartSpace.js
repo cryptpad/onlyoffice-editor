@@ -3690,14 +3690,6 @@ CChartSpace.prototype.checkVal = function(val)
         }
     }
 };
-CChartSpace.prototype.recalculateSeriesFormulas = function()
-{
-    this.checkSeriesRefs(this.checkVal);
-};
-CChartSpace.prototype.checkChartIntersection = function(bbox, worksheet)
-{
-    return this.checkSeriesRefs(this.checkSeriesIntersection, bbox, worksheet);
-};
 CChartSpace.prototype.changeListName = function(val, oldName, newName)
 {
     if(val)
@@ -14648,7 +14640,6 @@ CChartSpace.prototype.addScatterSeries = function(sName, sXValues, sYValues) {
         oDataRange.collectIntersectionRefs(aRanges, aRefs);
     };
     CChartSpace.prototype.onWorkbookUpdate = function(aRanges) {
-        AscFormat.Ex
         var aRefs = [];
         var oDataRange = new AscFormat.CChartDataRefs(this);
         oDataRange.collectIntersectionRefs(aRanges, aRefs);
@@ -14663,7 +14654,13 @@ CChartSpace.prototype.addScatterSeries = function(sName, sXValues, sYValues) {
             }, this, []);
         }
     };
-
+    CChartSpace.prototype.onChangeSheetName = function(sOldName, sNewName) {
+        var aSeries = this.getAllSeries();
+        for(var nSeries = 0; nSeries < aSeries.length; ++nSeries) {
+            aSeries[nSeries].changeSheetName(sOldName, sNewName);
+        }
+        this.recalculate();
+    };
     CChartSpace.prototype.getCommonRange = function() {
         var oDataRange = new AscFormat.CChartDataRefs(this);
         return oDataRange.getRange();

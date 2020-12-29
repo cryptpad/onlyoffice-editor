@@ -3626,12 +3626,22 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
                 nEndRow = nRow - 1;
                 if(nEndCol === oBBox.c2) {
                     if(aGridRow.length === 1) {
-                        nEndCol = oBBox.c1;
+                        if(oBBox.c1 === oBBox.c2) {
+                            nEndCol = oBBox.c1 - 1;
+                        }
+                        else {
+                            nEndCol = oBBox.c1;
+                        }
                     }
                 }
                 if(nEndRow === oBBox.r2) {
                     if(aGrid.length === 1) {
-                        nEndRow = oBBox.r1;
+                        if(oBBox.r1 === oBBox.r2) {
+                            nEndRow = oBBox.r1 - 1;
+                        }
+                        else {
+                            nEndRow = oBBox.r1;
+                        }
                     }
                 }
                 nTopHeader = nEndRow - oBBox.r1;
@@ -4190,21 +4200,16 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         return (idx + 1) + "";
     };
-    CSeriesBase.prototype.getValByIndex = function(idx, bPercent)
-    {
+    CSeriesBase.prototype.getValByIndex = function(idx, bPercent) {
         var pts;
         var val;
-        if(this.val)
-        {
+        if(this.val) {
             val = this.val;
         }
-        else if(this.yVal)
-        {
+        else if(this.yVal) {
             val = this.yVal;
         }
-
-        if(val)
-        {
+        if(val) {
             if(val && val.strRef && val.strRef.strCache)
             {
                 pts = val.strRef.strCache.pts;
@@ -4560,7 +4565,23 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         return oVal.getSourceNumFormat();
     };
-
+    CSeriesBase.prototype.changeSheetName = function(sOldSheetName, sNewSheetName) {
+        if(this.val) {
+            this.val.changeSheetName(sOldSheetName, sNewSheetName);
+        }
+        if(this.yVal) {
+            this.yVal.changeSheetName(sOldSheetName, sNewSheetName);
+        }
+        if(this.cat) {
+            this.cat.changeSheetName(sOldSheetName, sNewSheetName);
+        }
+        if(this.xVal) {
+            this.xVal.changeSheetName(sOldSheetName, sNewSheetName);
+        }
+        if(this.tx) {
+            this.tx.changeSheetName(sOldSheetName, sNewSheetName);
+        }
+    };
 
     CSeriesBase.prototype.asc_getName = function() {
         return AscFormat.ExecuteNoHistory(CSeriesBase.prototype.getName, this, []);
@@ -9295,329 +9316,6 @@ CBubbleSeries.prototype.setYVal = function(pr)
         }
 };
 
-function CCat()
-{
-    this.multiLvlStrRef = null;
-    this.numLit         = null;
-    this.numRef         = null;
-    this.strLit         = null;
-    this.strRef         = null;
-
-    this.Id = g_oIdCounter.Get_NewId();
-    g_oTableId.Add(this, this.Id);
-}
-
-CCat.prototype =
-{
-    Get_Id: function()
-    {
-        return this.Id;
-    },
-    Refresh_RecalcData: function()
-    {},
-    Write_ToBinary2: function(w)
-    {
-        w.WriteLong(this.getObjectType());
-        w.WriteString2(this.Get_Id());
-    },
-    Read_FromBinary2: function(r)
-    {
-        this.Id = r.GetString2();
-    },
-    createDuplicate: function()
-    {
-        var c = new CCat();
-        if(this.multiLvlStrRef)
-        {
-            c.setMultiLvlStrRef(this.multiLvlStrRef.createDuplicate());
-        }
-        if(this.numLit)
-        {
-            c.setNumLit(this.numLit.createDuplicate());
-        }
-        if(this.numRef)
-        {
-            c.setNumRef(this.numRef.createDuplicate());
-        }
-        if(this.strLit)
-        {
-            c.setStrLit(this.strLit.createDuplicate());
-        }
-        if(this.strRef)
-        {
-            c.setStrRef(this.strRef.createDuplicate());
-        }
-        return c;
-    },
-    getObjectType: function()
-    {
-        return AscDFH.historyitem_type_Cat;
-    },
-    setFromOtherObject: function(o)
-    {
-        if(o.multiLvlStrRef)
-            this.setMultiLvlStrRef(o.multiLvlStrRef);
-        if(o.numLit)
-            this.setNumLit(o.numLit);
-        if(o.numRef)
-            this.setNumRef(o.numRef);
-        if(o.strLit)
-            this.setStrLit(o.strLit);
-        if(o.strRef)
-            this.setStrRef(o.strRef);
-    },
-    setMultiLvlStrRef: function(pr)
-    {
-        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Cat_SetMultiLvlStrRef, this.multiLvlStrRef, pr));
-        this.multiLvlStrRef = pr;
-    },
-    setNumLit: function(pr)
-    {
-        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Cat_SetNumLit, this.multiLvlStrRef, pr));
-        this.numLit = pr;
-    },
-    setNumRef: function(pr)
-    {
-        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Cat_SetNumRef, this.multiLvlStrRef, pr));
-        this.numRef = pr;
-    },
-    setStrLit: function(pr)
-    {
-        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Cat_SetStrLit, this.multiLvlStrRef, pr));
-        this.strLit = pr;
-    },
-    setStrRef: function(pr)
-    {
-        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Cat_SetStrRef, this.multiLvlStrRef, pr));
-        this.strRef = pr;
-    },
-    setValues: function(sValues) {
-        var oNumRef, oNumLit, oStrRef, oStrLit, oMultiLvl, oRef, oResult;
-        oResult = new CParseResult();
-        fParseNumRef(sValues, false, oResult);
-        oNumRef = oResult.getObject();
-        if(!oNumRef) {
-            fParseStrRef(sValues, true, oResult);
-            oRef = oResult.getObject();
-            if(oRef) {
-                if(oRef.getObjectType() === AscDFH.historyitem_type_StrRef) {
-                    oStrRef = oRef;
-                }
-                else if(oRef.getObjectType() === AscDFH.historyitem_type_MultiLvlStrRef) {
-                    oMultiLvl = oRef;
-                }
-            }
-            if(!oStrRef && !oMultiLvl) {
-                fParseNumLit(sValues, false, oResult);
-                oNumLit = oResult.getObject();
-                if(!oNumLit) {
-                    fParseStrLit(sValues, oResult);
-                    oStrLit = oResult.getObject();
-                }
-            }
-        }
-        if(oNumRef || oNumLit || oStrRef || oStrLit || oMultiLvl) {
-            if(oNumRef) {
-                this.setNumRef(oNumRef);
-            }
-            else {
-                if(this.numRef) {
-                    this.setNumRef(null);
-                }
-            }
-            if(oNumLit) {
-                this.setNumLit(oNumLit);
-            }
-            else {
-                if(this.numLit) {
-                    this.setNumLit(null);
-                }
-            }
-            if(oStrRef) {
-                this.setStrRef(oStrRef);
-            }
-            else {
-                if(this.strRef) {
-                    this.setStrRef(null);
-                }
-            }
-            if(oStrLit) {
-                this.setStrLit(oStrLit);
-            }
-            else {
-                if(this.strLit) {
-                    this.setStrLit(null);
-                }
-            }
-            if(oMultiLvl) {
-                this.setMultiLvlStrRef(oMultiLvl);
-            }
-            else {
-                if(this.multiLvlStrRef) {
-                    this.setMultiLvlStrRef(null);
-                }
-            }
-        }
-        return oResult;
-    },
-    getValues: function(nMaxCount) {
-        if(this.numLit) {
-            return this.numLit.getValues(nMaxCount);
-        }
-        if(this.numRef) {
-            return this.numRef.getValues(nMaxCount);
-        }
-        if(this.strLit) {
-            return this.strLit.getValues(nMaxCount);
-        }
-        if(this.strRef) {
-            return this.strRef.getValues(nMaxCount, true);
-        }
-        if(this.multiLvlStrRef) {
-            return this.multiLvlStrRef.getValues(nMaxCount);
-        }
-    },
-    getFormula: function() {
-        if(this.numLit) {
-            return this.numLit.getFormula();
-        }
-        if(this.numRef) {
-            return this.numRef.getFormula();
-        }
-        if(this.strLit) {
-            return this.strLit.getFormula();
-        }
-        if(this.strRef) {
-            return this.strRef.getFormula();
-        }
-        if(this.multiLvlStrRef) {
-            return this.multiLvlStrRef.getFormula();
-        }
-        return "";
-    },
-    getParsedRefs: function() {
-        if(this.numRef) {
-            return this.numRef.getParsedRefs();
-        }
-        if(this.strRef) {
-            return this.strRef.getParsedRefs();
-        }
-        if(this.multiLvlStrRef) {
-            return this.multiLvlStrRef.getParsedRefs();
-        }
-        return [];
-    },
-    collectRefs: function(aRefs) {
-        if(this.numRef) {
-            aRefs.push(this.numRef);
-        }
-        if(this.strRef) {
-            aRefs.push(this.strRef);
-        }
-        if(this.multiLvlStrRef) {
-            aRefs.push(this.multiLvlStrRef);
-        }
-    },
-    isValid: function() {
-        if(this.multiLvlStrRef ||
-            this.numLit ||
-            this.numRef ||
-            this.strLit ||
-            this.strRef) {
-            return true;
-        }
-        return false;
-    },
-    getStringPointsLit: function() {
-        if(this.strRef && this.strRef.strCache) {
-            return this.strRef.strCache;
-        }
-        else if(this.strLit) {
-            return this.strLit;
-        }
-        else if(this.multiLvlStrRef) {
-            return this.multiLvlStrRef.getFirstLvlCache();
-        }
-        return null;
-    },
-    getLit: function() {
-        var oLit = null;
-        if(this.strRef && this.strRef.strCache){
-            oLit = this.strRef.strCache;
-        }
-        else if(this.strLit){
-            oLit = this.strLit;
-        }
-        else if(this.numRef && this.numRef.numCache){
-            oLit = this.numRef.numCache;
-        }
-        else if(this.numLit){
-            oLit = this.numLit;
-        }
-        else if(this.multiLvlStrRef) {
-            //TODO: implement multiLvlStrCache and remove this
-            oLit = this.multiLvlStrRef.getFirstLvlCache();
-        }
-        return oLit;
-    },
-    update: function(oSeries) {
-        if(this.numRef || this.strRef || this.multiLvlStrRef) {
-            var sFormula = this.getFormula();
-            if(typeof sFormula === "string" && sFormula.length > 0) {
-                var oTestCat = new CCat();
-                var oRes = oTestCat.setValues(sFormula);
-                var oNumRef = oTestCat.numRef;
-                var oStrRef = oTestCat.strRef;
-                var oMultiLvlStrRef = oTestCat.multiLvlStrRef;
-                if(oRes && oRes.error === Asc.c_oAscError.ID.No &&  (oNumRef || oStrRef || oMultiLvlStrRef)) {
-                    if(oNumRef) {
-                        this.setNumRef(oNumRef.createDuplicate());
-                    }
-                    else {
-                        if(this.numRef) {
-                            this.setNumRef(null);
-                        }
-                    }
-                    if(oStrRef) {
-                        this.setStrRef(oStrRef);
-                    }
-                    else {
-                        if(this.strRef) {
-                            this.setStrRef(null);
-                        }
-                    }
-                    if(oMultiLvlStrRef) {
-                        this.setMultiLvlStrRef(oMultiLvlStrRef);
-                    }
-                    else {
-                        if(this.multiLvlStrRef) {
-                            this.setMultiLvlStrRef(null);
-                        }
-                    }
-                }
-            }
-        }
-        if(this.multiLvlStrRef) {
-            this.multiLvlStrRef.updateCache(oSeries);
-        }
-        if(this.numRef) {
-            this.numRef.updateCache();
-        }
-        if(this.strRef) {
-            this.strRef.updateCache();
-        }
-    },
-
-    getSourceNumFormat: function() {
-        if(this.numRef) {
-            return this.numRef.getNumFormat();
-        }
-        if(this.numLit) {
-            return this.numLit.getNumFormat();
-        }
-        return "General";
-    }
- };
 
 
 function CChartText()
@@ -12156,6 +11854,15 @@ CMultiLvlStrCache.prototype =
     };
     CChartRefBase.prototype.updateCache = function() {
     };
+    CChartRefBase.prototype.changeSheetName = function(sOldSheetName, sNewSheetName) {
+        if(typeof this.f === "string" && this.f.length > 0) {
+            var sFormula = this.f;
+            var sCheckString = sOldSheetName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g,  "\\$&");
+            if(sFormula.indexOf(sCheckString) > -1) {
+                this.setF(sFormula.replace(new RegExp(sCheckString, 'g'), sNewSheetName));
+            }
+        }
+    };
 
     function CMultiLvlStrRef() {
         CChartRefBase.call(this);
@@ -13876,29 +13583,18 @@ CScatterSeries.prototype.setYVal = function(pr)
         {
             this.yVal.setParent(this);
         }
-        };
+};
 
-function CTx()
-{
-    this.strRef = null;
-    this.val    = null;
+    function CTx() {
+        AscFormat.CBaseObject.call(this);
+        this.strRef = null;
+        this.val    = null;
+    }
 
-    this.Id = g_oIdCounter.Get_NewId();
-    g_oTableId.Add(this, this.Id);
-}
+    CTx.prototype = Object.create(AscFormat.CBaseObject.prototype);
+    CTx.prototype.constructor = CTx;
 
-CTx.prototype =
-{
-    Get_Id: function()
-    {
-        return this.Id;
-    },
-
-    Refresh_RecalcData: function()
-    {},
-
-    createDuplicate: function()
-    {
+    CTx.prototype.createDuplicate = function() {
         var c = new CTx();
         if(this.strRef)
         {
@@ -13906,37 +13602,21 @@ CTx.prototype =
         }
         c.setVal(this.val);
         return c;
-    },
-
-    getObjectType: function()
+    };
+    CTx.prototype.getObjectType = function()
     {
         return AscDFH.historyitem_type_Tx;
-    },
-
-    Write_ToBinary2: function(w)
-    {
-        w.WriteLong(this.getObjectType());
-        w.WriteString2(this.Get_Id());
-    },
-
-    Read_FromBinary2: function(r)
-    {
-        this.Id = r.GetString2();
-    },
-
-    setStrRef: function(pr)
-    {
+    };
+    CTx.prototype.setStrRef = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Tx_SetStrRef, this.strRef, pr));
         this.strRef = pr;
-    },
-
-    setVal: function(pr)
-    {
+    };
+    CTx.prototype.setVal = function(pr) {
         History.Add(new CChangesDrawingsString(this, AscDFH.historyitem_Tx_SetVal, this.strRef, pr));
         this.val = pr;
-            },
+    };
 
-    getText: function(bNoUpdate) {
+    CTx.prototype.getText = function(bNoUpdate) {
         var sRet = "";
         if(typeof this.val === "string" && this.val.length > 0) {
             sRet = this.val;
@@ -13945,8 +13625,8 @@ CTx.prototype =
             sRet = this.strRef.getText(bNoUpdate);
         }
         return sRet;
-    },
-    getFormula: function() {
+    };
+    CTx.prototype.getFormula = function() {
         var sRet = "";
         if(typeof this.val === "string" && this.val.length > 0) {
             sRet = "=\"" + this.val + "\"";
@@ -13955,20 +13635,19 @@ CTx.prototype =
             sRet = this.strRef.getFormula();
         }
         return sRet;
-    },
-    getParsedRefs: function() {
+    };
+    CTx.prototype.getParsedRefs = function() {
         if(this.strRef) {
             return this.strRef.getParsedRefs();
         }
         return [];
-    },
-    collectRefs: function(aRefs) {
+    };
+    CTx.prototype.collectRefs = function(aRefs) {
         if(this.strRef) {
             aRefs.push(this.strRef);
         }
-    },
-
-    setValues: function(sName) {
+    };
+    CTx.prototype.setValues = function(sName) {
         var oResult = new CParseResult();
         var oParser, bResult, oLastElem;
         if(typeof sName === "string" && sName.length > 0) {
@@ -14013,21 +13692,23 @@ CTx.prototype =
             oResult.setError(Asc.c_oAscError.ID.DataRangeError);
         }
         return oResult;
-    },
-
-    isValid: function() {
+    };
+    CTx.prototype.isValid = function() {
         if(this.strRef || (typeof this.val === "string")) {
             return true;
         }
         return false;
-    },
-
-    update: function () {
+    };
+    CTx.prototype.update = function () {
         if(this.strRef) {
             this.strRef.updateCache();
         }
-    }
-};
+    };
+    CTx.prototype.changeSheetName = function(sOldSheetName, sNewSheetName) {
+        if(this.strRef) {
+            this.strRef.changeSheetName(sOldSheetName, sNewSheetName);
+        }
+    };
 
 
 function CStockChart()
@@ -15581,29 +15262,15 @@ CUpDownBars.prototype =
             }
 };
 
-function CYVal()
-{
-    this.numLit = null;
-    this.numRef = null;
-
-    this.parent = null;
-
-    this.Id = g_oIdCounter.Get_NewId();
-    g_oTableId.Add(this, this.Id);
-}
-
-CYVal.prototype =
-{
-    Get_Id: function()
-    {
-        return this.Id;
-    },
-
-    Refresh_RecalcData: function()
-    {},
-
-    createDuplicate: function()
-    {
+    function CYVal() {
+        AscFormat.CBaseObject.call(this);
+        this.numLit = null;
+        this.numRef = null;
+        this.parent = null;
+    }
+    CYVal.prototype = Object.create(AscFormat.CBaseObject.prototype);
+    CYVal.prototype.constructor = CYVal;
+    CYVal.prototype.createDuplicate = function() {
         var copy = new CYVal();
         if(this.numLit)
         {
@@ -15615,55 +15282,33 @@ CYVal.prototype =
         }
 
         return copy;
-    },
-
-    getObjectType: function()
-    {
+    };
+    CYVal.prototype.getObjectType = function() {
         return AscDFH.historyitem_type_YVal;
-    },
-
-    setParent: function(pr)
-    {
+    };
+    CYVal.prototype.setParent = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_CommonChartFormat_SetParent, this.parent, pr));
         this.parent = pr;
-    },
-
-    setFromOtherObject: function(o)
-    {
+    };
+    CYVal.prototype.setFromOtherObject = function(o) {
         if(o.numLit)
             this.setNumLit(o.numLit);
         if(o.numRef)
             this.setNumRef(o.numRef);
-    },
-
-    Write_ToBinary2: function(w)
-    {
-        w.WriteLong(this.getObjectType());
-        w.WriteString2(this.Get_Id())
-    },
-
-    Read_FromBinary2: function(r)
-    {
-        this.Id = r.GetString2();
-    },
-
-    setNumLit: function(pr)
-    {
+    };
+    CYVal.prototype.setNumLit = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_YVal_SetNumLit, this.numLit, pr));
         this.numLit = pr;
-    },
-
-    setNumRef: function(pr)
-    {
+    };
+    CYVal.prototype.setNumRef = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_YVal_SetNumRef, this.numRef, pr));
         this.numRef = pr;
         if(this.numRef && this.numRef.setParent)
         {
             this.numRef.setParent(this);
         }
-    },
-
-    setValues: function(sValues) {
+    };
+    CYVal.prototype.setValues = function(sValues) {
         var oResult;
         if(typeof sValues === "string" && sValues.length > 0) {
             oResult = new CParseResult();
@@ -15690,9 +15335,8 @@ CYVal.prototype =
             oResult.setError(Asc.c_oAscError.NoValues);
         }
         return oResult;
-    },
-
-    getValuesCount: function () {
+    };
+    CYVal.prototype.getValuesCount = function () {
         if(this.numLit) {
             return this.numLit.ptCount;
         }
@@ -15700,54 +15344,52 @@ CYVal.prototype =
             return this.numRef.getValuesCount();
         }
         return 0;
-    },
-
-    getValues: function (nMaxValues) {
+    };
+    CYVal.prototype.getValues = function (nMaxValues) {
         if(this.numLit) {
             return this.numLit.getValues(nMaxValues);
         }
         if(this.numRef) {
             return this.numRef.getValues(nMaxValues);
         }
-    },
-
-    getFormula: function() {
+    };
+    CYVal.prototype.getFormula = function() {
         if(this.numLit) {
             return this.numLit.getFormula();
         }
         if(this.numRef) {
             return this.numRef.getFormula();
         }
-    },
-    getRefFormula: function() {
+    };
+    CYVal.prototype.getRefFormula = function() {
         if(this.numRef) {
             return this.numRef.getFormula();
         }
         return null;
-    },
-    getParsedRefs: function() {
+    };
+    CYVal.prototype.getParsedRefs = function() {
         if(this.numRef) {
             return this.numRef.getParsedRefs();
         }
         return [];
-    },
-    collectRefs: function(aRefs) {
+    };
+    CYVal.prototype.collectRefs = function(aRefs) {
         if(this.numRef) {
             aRefs.push(this.numRef);
         }
-    },
-    isValid: function() {
+    };
+    CYVal.prototype.isValid = function() {
         if(this.numRef || this.numLit) {
             return true;
         }
         return false;
-    },
-    update: function(displayEmptyCellsAs, displayHidden, ser) {
+    };
+    CYVal.prototype.update = function(displayEmptyCellsAs, displayHidden, ser) {
         if(this.numRef) {
             this.numRef.updateCache(displayEmptyCellsAs, displayHidden, ser);
         }
-    },
-    getSourceNumFormat: function() {
+    };
+    CYVal.prototype.getSourceNumFormat = function() {
         if(this.numRef) {
             return this.numRef.getNumFormat();
         }
@@ -15755,9 +15397,320 @@ CYVal.prototype =
             return this.numLit.getNumFormat();
         }
         return "General";
-    }
-};
+    };
+    CYVal.prototype.changeSheetName = function(sOldSheetName, sNewSheetName) {
+        if(this.numRef) {
+            this.numRef.changeSheetName(sOldSheetName, sNewSheetName);
+        }
+    };
 
+    function CCat() {
+        AscFormat.CBaseObject.call(this);
+        this.multiLvlStrRef = null;
+        this.numLit         = null;
+        this.numRef         = null;
+        this.strLit         = null;
+        this.strRef         = null;
+    }
+
+    CCat.prototype = Object.create(AscFormat.CBaseObject.prototype);
+    CCat.prototype.constructor = CCat;
+    CCat.prototype.createDuplicate = function()
+    {
+        var c = new CCat();
+        if(this.multiLvlStrRef)
+        {
+            c.setMultiLvlStrRef(this.multiLvlStrRef.createDuplicate());
+        }
+        if(this.numLit)
+        {
+            c.setNumLit(this.numLit.createDuplicate());
+        }
+        if(this.numRef)
+        {
+            c.setNumRef(this.numRef.createDuplicate());
+        }
+        if(this.strLit)
+        {
+            c.setStrLit(this.strLit.createDuplicate());
+        }
+        if(this.strRef)
+        {
+            c.setStrRef(this.strRef.createDuplicate());
+        }
+        return c;
+    };
+    CCat.prototype.getObjectType = function() {
+        return AscDFH.historyitem_type_Cat;
+    };
+    CCat.prototype.setFromOtherObject = function(o) {
+        if(o.multiLvlStrRef)
+            this.setMultiLvlStrRef(o.multiLvlStrRef);
+        if(o.numLit)
+            this.setNumLit(o.numLit);
+        if(o.numRef)
+            this.setNumRef(o.numRef);
+        if(o.strLit)
+            this.setStrLit(o.strLit);
+        if(o.strRef)
+            this.setStrRef(o.strRef);
+    };
+    CCat.prototype.setMultiLvlStrRef = function(pr) {
+        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Cat_SetMultiLvlStrRef, this.multiLvlStrRef, pr));
+        this.multiLvlStrRef = pr;
+    };
+    CCat.prototype.setNumLit = function(pr) {
+        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Cat_SetNumLit, this.multiLvlStrRef, pr));
+        this.numLit = pr;
+    };
+    CCat.prototype.setNumRef = function(pr) {
+        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Cat_SetNumRef, this.multiLvlStrRef, pr));
+        this.numRef = pr;
+    };
+    CCat.prototype.setStrLit = function(pr) {
+        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Cat_SetStrLit, this.multiLvlStrRef, pr));
+        this.strLit = pr;
+    };
+    CCat.prototype.setStrRef = function(pr) {
+        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Cat_SetStrRef, this.multiLvlStrRef, pr));
+        this.strRef = pr;
+    };
+    CCat.prototype.setValues = function(sValues) {
+        var oNumRef, oNumLit, oStrRef, oStrLit, oMultiLvl, oRef, oResult;
+        oResult = new CParseResult();
+        fParseNumRef(sValues, false, oResult);
+        oNumRef = oResult.getObject();
+        if(!oNumRef) {
+            fParseStrRef(sValues, true, oResult);
+            oRef = oResult.getObject();
+            if(oRef) {
+                if(oRef.getObjectType() === AscDFH.historyitem_type_StrRef) {
+                    oStrRef = oRef;
+                }
+                else if(oRef.getObjectType() === AscDFH.historyitem_type_MultiLvlStrRef) {
+                    oMultiLvl = oRef;
+                }
+            }
+            if(!oStrRef && !oMultiLvl) {
+                fParseNumLit(sValues, false, oResult);
+                oNumLit = oResult.getObject();
+                if(!oNumLit) {
+                    fParseStrLit(sValues, oResult);
+                    oStrLit = oResult.getObject();
+                }
+            }
+        }
+        if(oNumRef || oNumLit || oStrRef || oStrLit || oMultiLvl) {
+            if(oNumRef) {
+                this.setNumRef(oNumRef);
+            }
+            else {
+                if(this.numRef) {
+                    this.setNumRef(null);
+                }
+            }
+            if(oNumLit) {
+                this.setNumLit(oNumLit);
+            }
+            else {
+                if(this.numLit) {
+                    this.setNumLit(null);
+                }
+            }
+            if(oStrRef) {
+                this.setStrRef(oStrRef);
+            }
+            else {
+                if(this.strRef) {
+                    this.setStrRef(null);
+                }
+            }
+            if(oStrLit) {
+                this.setStrLit(oStrLit);
+            }
+            else {
+                if(this.strLit) {
+                    this.setStrLit(null);
+                }
+            }
+            if(oMultiLvl) {
+                this.setMultiLvlStrRef(oMultiLvl);
+            }
+            else {
+                if(this.multiLvlStrRef) {
+                    this.setMultiLvlStrRef(null);
+                }
+            }
+        }
+        return oResult;
+    };
+    CCat.prototype.getValues = function(nMaxCount) {
+        if(this.numLit) {
+            return this.numLit.getValues(nMaxCount);
+        }
+        if(this.numRef) {
+            return this.numRef.getValues(nMaxCount);
+        }
+        if(this.strLit) {
+            return this.strLit.getValues(nMaxCount);
+        }
+        if(this.strRef) {
+            return this.strRef.getValues(nMaxCount, true);
+        }
+        if(this.multiLvlStrRef) {
+            return this.multiLvlStrRef.getValues(nMaxCount);
+        }
+    };
+    CCat.prototype.getFormula = function() {
+        if(this.numLit) {
+            return this.numLit.getFormula();
+        }
+        if(this.numRef) {
+            return this.numRef.getFormula();
+        }
+        if(this.strLit) {
+            return this.strLit.getFormula();
+        }
+        if(this.strRef) {
+            return this.strRef.getFormula();
+        }
+        if(this.multiLvlStrRef) {
+            return this.multiLvlStrRef.getFormula();
+        }
+        return "";
+    };
+    CCat.prototype.getParsedRefs = function() {
+        if(this.numRef) {
+            return this.numRef.getParsedRefs();
+        }
+        if(this.strRef) {
+            return this.strRef.getParsedRefs();
+        }
+        if(this.multiLvlStrRef) {
+            return this.multiLvlStrRef.getParsedRefs();
+        }
+        return [];
+    };
+    CCat.prototype.collectRefs = function(aRefs) {
+        if(this.numRef) {
+            aRefs.push(this.numRef);
+        }
+        if(this.strRef) {
+            aRefs.push(this.strRef);
+        }
+        if(this.multiLvlStrRef) {
+            aRefs.push(this.multiLvlStrRef);
+        }
+    };
+    CCat.prototype.isValid = function() {
+        if(this.multiLvlStrRef ||
+            this.numLit ||
+            this.numRef ||
+            this.strLit ||
+            this.strRef) {
+            return true;
+        }
+        return false;
+    };
+    CCat.prototype.getStringPointsLit = function() {
+        if(this.strRef && this.strRef.strCache) {
+            return this.strRef.strCache;
+        }
+        else if(this.strLit) {
+            return this.strLit;
+        }
+        else if(this.multiLvlStrRef) {
+            return this.multiLvlStrRef.getFirstLvlCache();
+        }
+        return null;
+    };
+    CCat.prototype.getLit = function() {
+        var oLit = null;
+        if(this.strRef && this.strRef.strCache){
+            oLit = this.strRef.strCache;
+        }
+        else if(this.strLit){
+            oLit = this.strLit;
+        }
+        else if(this.numRef && this.numRef.numCache){
+            oLit = this.numRef.numCache;
+        }
+        else if(this.numLit){
+            oLit = this.numLit;
+        }
+        else if(this.multiLvlStrRef) {
+            //TODO: implement multiLvlStrCache and remove this
+            oLit = this.multiLvlStrRef.getFirstLvlCache();
+        }
+        return oLit;
+    };
+    CCat.prototype.update = function(oSeries) {
+        if(this.numRef || this.strRef || this.multiLvlStrRef) {
+            var sFormula = this.getFormula();
+            if(typeof sFormula === "string" && sFormula.length > 0) {
+                var oTestCat = new CCat();
+                var oRes = oTestCat.setValues(sFormula);
+                var oNumRef = oTestCat.numRef;
+                var oStrRef = oTestCat.strRef;
+                var oMultiLvlStrRef = oTestCat.multiLvlStrRef;
+                if(oRes && oRes.error === Asc.c_oAscError.ID.No &&  (oNumRef || oStrRef || oMultiLvlStrRef)) {
+                    if(oNumRef) {
+                        this.setNumRef(oNumRef.createDuplicate());
+                    }
+                    else {
+                        if(this.numRef) {
+                            this.setNumRef(null);
+                        }
+                    }
+                    if(oStrRef) {
+                        this.setStrRef(oStrRef);
+                    }
+                    else {
+                        if(this.strRef) {
+                            this.setStrRef(null);
+                        }
+                    }
+                    if(oMultiLvlStrRef) {
+                        this.setMultiLvlStrRef(oMultiLvlStrRef);
+                    }
+                    else {
+                        if(this.multiLvlStrRef) {
+                            this.setMultiLvlStrRef(null);
+                        }
+                    }
+                }
+            }
+        }
+        if(this.multiLvlStrRef) {
+            this.multiLvlStrRef.updateCache(oSeries);
+        }
+        if(this.numRef) {
+            this.numRef.updateCache();
+        }
+        if(this.strRef) {
+            this.strRef.updateCache();
+        }
+    };
+    CCat.prototype.getSourceNumFormat = function() {
+        if(this.numRef) {
+            return this.numRef.getNumFormat();
+        }
+        if(this.numLit) {
+            return this.numLit.getNumFormat();
+        }
+        return "General";
+    };
+    CCat.prototype.changeSheetName = function(sOldSheetName, sNewSheetName) {
+        if(this.multiLvlStrRef) {
+            this.multiLvlStrRef.changeSheetName(sOldSheetName, sNewSheetName);
+        }
+        if(this.numRef) {
+            this.numRef.changeSheetName(sOldSheetName, sNewSheetName);
+        }
+        if(this.strRef) {
+            this.strRef.changeSheetName(sOldSheetName, sNewSheetName);
+        }
+    };
 
 function CChart()
 {
