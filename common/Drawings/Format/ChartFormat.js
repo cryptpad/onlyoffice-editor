@@ -3353,6 +3353,30 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
             this.series.collectTxRefs(aRefs);
         }
     };
+    CSeriesDataRefs.prototype.collectIntersectionRefs = function(aRanges, aCollectedRefs) {
+        var oRange, nRange;
+        for(nRange = 0; nRange < aRanges.length; ++nRange) {
+            oRange = aRanges[nRange];
+            if(this.val.hasIntersection(oRange)) {
+                this.series.collectValRefs(aCollectedRefs);
+                break;
+            }
+        }
+        for(nRange = 0; nRange < aRanges.length; ++nRange) {
+            oRange = aRanges[nRange];
+            if(this.cat.hasIntersection(oRange)) {
+                this.series.collectCatRefs(aCollectedRefs);
+                break;
+            }
+        }
+        for(nRange = 0; nRange < aRanges.length; ++nRange) {
+            oRange = aRanges[nRange];
+            if(this.tx.hasIntersection(oRange)) {
+                this.series.collectTxRefs(aCollectedRefs);
+                break;
+            }
+        }
+    };
 
     function fFillDataFromSelectedRange(oData, oSelectedRange) {
         var ranges = oSelectedRange.ranges;
@@ -3973,7 +3997,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         else {
             for(var nSeries = 0; nSeries < this.seriesRefs.length; ++nSeries) {
-                if(this.seriesRefs.hasIntersection(oRange)) {
+                if(this.seriesRefs[nSeries].hasIntersection(oRange)) {
                     return true;
                 }
             }
@@ -3986,6 +4010,21 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         for(var nSeries = 0; nSeries < this.seriesRefs.length; ++nSeries) {
             this.seriesRefs[nSeries].collectRefsInsideRange(oRange, aRefs);
+        }
+    };
+    CChartDataRefs.prototype.collectIntersectionRefs = function(aRanges, aCollectedRefs) {
+        var aIntersectionRanges = [];
+        var oRange;
+        for(var nRange = 0; nRange < aRanges.length; ++nRange) {
+            oRange = aRanges[nRange];
+            if(this.hasIntersection(oRange)) {
+                aIntersectionRanges.push(oRange);
+            }
+        }
+        if(aIntersectionRanges.length > 0) {
+            for(var nSeries = 0; nSeries < this.seriesRefs.length; ++nSeries) {
+                this.seriesRefs[nSeries].collectIntersectionRefs(aIntersectionRanges, aCollectedRefs);
+            }
         }
     };
 
@@ -12107,7 +12146,6 @@ CMultiLvlStrCache.prototype =
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_CommonChartFormat_SetParent, this.parent, pr));
         this.parent = pr;
     };
-
     CChartRefBase.prototype.moveRanges = function(oRangeFrom, oRangeTo) {
         var oDataRefs = new CDataRefs(this.getParsedRefs());
         oDataRefs.move(oRangeFrom, oRangeTo);
@@ -12115,6 +12153,8 @@ CMultiLvlStrCache.prototype =
         if(typeof sFormula === "string" && sFormula.length > 0) {
             this.setF(sFormula);
         }
+    };
+    CChartRefBase.prototype.updateCache = function() {
     };
 
     function CMultiLvlStrRef() {

@@ -15443,17 +15443,6 @@
 	};
 
 
-	DrawingObjectsManager.prototype.rebuildCharts = function(data)
-	{
-		var aObjects = this.worksheet.Drawings;
-		for(var i = 0; i < aObjects.length; ++i)
-		{
-			if(aObjects[i].graphicObject.rebuildSeries)
-			{
-				aObjects[i].graphicObject.rebuildSeries(data);
-			}
-		}
-	};
 
 	function tryTranslateToPrintArea(val) {
 		var printAreaStr = "Print_Area";

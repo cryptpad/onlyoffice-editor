@@ -14643,6 +14643,26 @@ CChartSpace.prototype.addScatterSeries = function(sName, sXValues, sYValues) {
         var oDataRange = new AscFormat.CChartDataRefs(this);
         oDataRange.collectRefsInsideRange(oRange, aRefs);
     };
+    CChartSpace.prototype.collectIntersectionRefs = function(aRanges, aRefs) {
+        var oDataRange = new AscFormat.CChartDataRefs(this);
+        oDataRange.collectIntersectionRefs(aRanges, aRefs);
+    };
+    CChartSpace.prototype.onWorkbookUpdate = function(aRanges) {
+        AscFormat.Ex
+        var aRefs = [];
+        var oDataRange = new AscFormat.CChartDataRefs(this);
+        oDataRange.collectIntersectionRefs(aRanges, aRefs);
+        if(aRefs.length > 0) {
+            var oThis = this;
+            AscFormat.ExecuteNoHistory(function() {
+                for(var nRef = 0; nRef < aRefs.length; ++nRef) {
+                    aRefs[nRef].updateCache();
+                }
+                oThis.handleUpdateInternalChart();
+                oThis.recalculate();
+            }, this, []);
+        }
+    };
 
     CChartSpace.prototype.getCommonRange = function() {
         var oDataRange = new AscFormat.CChartDataRefs(this);
@@ -14763,7 +14783,6 @@ CChartSpace.prototype.addScatterSeries = function(sName, sXValues, sYValues) {
         }
         return Asc.c_oAscError.ID.No;
     };
-
     CChartSpace.prototype.setRange = function(sRange) {
         var oDataRange = new AscFormat.CChartDataRefs(this);
         var aRefs = oDataRange.getSeriesRefsFromUnionRefs(AscFormat.fParseChartFormula(sRange));
@@ -14804,7 +14823,6 @@ CChartSpace.prototype.addScatterSeries = function(sName, sXValues, sYValues) {
             this.recalculate();
         }
     };
-
     CChartSpace.prototype.checkLegendLayoutSize = function() {
         var oChart = this.chart;
         if(!oChart) {
@@ -14831,7 +14849,6 @@ CChartSpace.prototype.addScatterSeries = function(sName, sXValues, sYValues) {
             }
         }
     };
-
     CChartSpace.prototype.getCatFormula = function() {
         var aAllSeries = this.getAllSeries();
         var oFirstSeries = aAllSeries[0];

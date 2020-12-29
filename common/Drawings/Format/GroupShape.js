@@ -1091,15 +1091,6 @@ function CGroupShape()
         }
     };
 
-    CGroupShape.prototype.rebuildSeries = function(data)
-    {
-        for(var i = 0; i < this.spTree.length; ++i)
-        {
-            if(this.spTree[i].rebuildSeries)
-                this.spTree[i].rebuildSeries(data);
-        }
-    };
-
     CGroupShape.prototype.CheckNeedRecalcAutoFit = function(oSectPr)
     {
         var bRet = false;

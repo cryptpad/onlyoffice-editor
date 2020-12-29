@@ -3048,42 +3048,32 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         }
     };
 
-    _this.rebuildChartGraphicObjects = function(data)
+    _this.rebuildChartGraphicObjects = function(aBBoxes)
     {
         if(!worksheet){
             return;
         }
-        if(data.length === 0){
+        if(aBBoxes.length === 0) {
             return;
         }
-        AscFormat.ExecuteNoHistory(function(){
-            var wsViews = Asc["editor"].wb.wsViews;
-            var changedArr = [];
-            for (var i = 0; i < data.length; ++i) {
-                if(Array.isArray(data[i])) {
-                    var aData = data[i];
-                    for(var j = 0; j < aData.length; ++j) {
-                        var oRange = aData[j] && aData[j].range;
-                        if(oRange && oRange.worksheet && oRange.bbox){
-                            changedArr.push(new BBoxInfo(oRange.worksheet, oRange.bbox));
-                        }
-                    }
-                }
-                else {
-                    changedArr.push(new BBoxInfo(worksheet.model, data[i]));
-                }
+        var oWB = api && api.wb && api.wb.model;
+        if(!oWB) {
+            return;
+        }
+        var oWS = worksheet && worksheet.model;
+        if(!oWS) {
+            return;
+        }
+        var aRanges = [];
+        for(var nBBox = 0; nBBox < aBBoxes.length; ++nBBox) {
+            var oBBox = aBBoxes[nBBox];
+            aRanges.push(new AscCommonExcel.Range(oWS, oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2));
+        }
+        oWB.handleDrawings(function(oDrawing) {
+            if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+                oDrawing.onWorkbookUpdate(aRanges)
             }
-
-            for(i = 0; i < wsViews.length; ++i)
-            {
-                if(wsViews[i] && wsViews[i].objectRender)
-                {
-                    wsViews[i].objectRender.rebuildCharts(changedArr);
-                    wsViews[i].objectRender.recalculate();
-                }
-            }
-        }, _this, []);
-
+        });
 
     };
 
@@ -3093,17 +3083,6 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         for(var i = 0; i < aDrawing.length; ++i)
         {
             aObjects.push(aDrawing[i]);
-        }
-    };
-
-    _this.rebuildCharts = function(data)
-    {
-        for(var i = 0; i < aObjects.length; ++i)
-        {
-            if(aObjects[i].graphicObject.rebuildSeries)
-            {
-                aObjects[i].graphicObject.rebuildSeries(data);
-            }
         }
     };
 
@@ -3602,9 +3581,6 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                 if(bNoLock) {
                     for(var nRef = 0; nRef < aRefsToReplace.length; ++nRef) {
                         aRefsToReplace[nRef].moveRanges(oRangeFrom, oRangeTo);
-                    }
-                    for(var nChart = 0; nChart < aChartsForLock.length; ++nChart) {
-                        aChartsForLock[nChart].recalculate();
                     }
                 }
             });
