@@ -8138,7 +8138,7 @@
 	 */
 	ApiTextPr.prototype.SetFontFamily = function(sFontFamily)
 	{
-		this.TextPr.RFonts.Set_All(sFontFamily, -1);
+		this.TextPr.RFonts.SetAll(sFontFamily, -1);
 		this.private_OnChange();
 	};
 	/**

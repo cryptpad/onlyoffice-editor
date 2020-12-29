@@ -11998,39 +11998,15 @@ function CRFonts()
     this.HAnsi    = undefined;
     this.CS       = undefined;
     this.Hint     = undefined;
+
+    this.AsciiTheme    = undefined;
+    this.EastAsiaTheme = undefined;
+    this.HAnsiTheme    = undefined;
+    this.CSTheme       = undefined;
 }
 
 CRFonts.prototype =
 {
-    Set_All : function(FontName, FontIndex)
-    {
-        this.Ascii =
-        {
-            Name  : FontName,
-            Index : FontIndex
-        };
-
-        this.EastAsia =
-        {
-            Name  : FontName,
-            Index : FontIndex
-        };
-
-        this.HAnsi =
-        {
-            Name  : FontName,
-            Index : FontIndex
-        };
-
-        this.CS =
-        {
-            Name  : FontName,
-            Index : FontIndex
-        };
-
-        this.Hint = fonthint_Default;
-    },
-
     Copy : function()
     {
         var RFonts = new CRFonts();
@@ -12238,7 +12214,32 @@ CRFonts.prototype.SetAll = function(sFontName, nFontIndex)
 	if (undefined === nFontIndex)
 		nFontIndex = -1;
 
-	this.Set_All(sFontName, nFontIndex);
+	this.Ascii = {
+		Name  : sFontName,
+		Index : nFontIndex
+	};
+
+	this.EastAsia = {
+		Name  : sFontName,
+		Index : nFontIndex
+	};
+
+	this.HAnsi = {
+		Name  : sFontName,
+		Index : nFontIndex
+	};
+
+	this.CS = {
+		Name  : sFontName,
+		Index : nFontIndex
+	};
+
+	this.Hint = fonthint_Default;
+
+	this.AsciiTheme    = undefined;
+	this.EastAsiaTheme = undefined;
+	this.HAnsiTheme    = undefined;
+	this.CSTheme       = undefined;
 };
 CRFonts.prototype.IsEqual = function(oRFonts)
 {
@@ -13948,7 +13949,7 @@ CTextPr.prototype.FillFromExcelFont = function(oFont) {
 			break;
 		}
 		case Asc.EFontScheme.fontschemeNone: {
-			this.RFonts.Set_All(oFont.getName(), -1);
+			this.RFonts.SetAll(oFont.getName(), -1);
 			break;
 		}
 	}

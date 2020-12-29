@@ -1068,7 +1068,7 @@ CMathBase.prototype.Apply_TextPrToCtrPr = function(TextPr, IncFontSize, ApplyToA
 		if (undefined !== TextPr.RFonts)
 		{
 			var RFonts = new CRFonts();
-			RFonts.Set_All("Cambria Math", -1);
+			RFonts.SetAll("Cambria Math", -1);
 
 			this.raw_SetRFonts(RFonts);
 		}

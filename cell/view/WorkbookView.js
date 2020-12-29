@@ -621,7 +621,7 @@
       	if (ws && ws.isSelectOnShape) {
       		var textPr = new CTextPr();
 			textPr.RFonts = new CRFonts();
-			textPr.RFonts.Set_All(familyName, -1);
+			textPr.RFonts.SetAll(familyName, -1);
       		ws.objectRender.controller.addTextWithPr(new AscCommon.CUnicodeStringEmulator(arrCharCodes), textPr, true);
       		return;
       	}

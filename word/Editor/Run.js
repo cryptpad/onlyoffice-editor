@@ -8654,7 +8654,7 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 			if (TextPr.RFonts.Ascii !== undefined || TextPr.RFonts.HAnsi !== undefined)
 			{
 				var RFonts = new CRFonts();
-				RFonts.Set_All("Cambria Math", -1);
+				RFonts.SetAll("Cambria Math", -1);
 
 				this.Set_RFonts2(RFonts);
 			}
