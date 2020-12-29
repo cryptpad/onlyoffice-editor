@@ -1082,15 +1082,6 @@ function CGroupShape()
             this.selectedObjects[0].documentUpdateRulersState();
     };
 
-    CGroupShape.prototype.updateChartReferences = function(oldWorksheet, newWorksheet, bNoRebuildCache)
-    {
-        for(var i = 0; i < this.spTree.length; ++i)
-        {
-            if(this.spTree[i].updateChartReferences)
-                this.spTree[i].updateChartReferences(oldWorksheet, newWorksheet, bNoRebuildCache);
-        }
-    };
-
     CGroupShape.prototype.CheckNeedRecalcAutoFit = function(oSectPr)
     {
         var bRet = false;

@@ -3577,12 +3577,14 @@ GraphicOption.prototype.union = function(oGraphicOption) {
             for(var nChart = 0; nChart < aChartsForLock.length; ++nChart) {
                 _this.objectLocker.addObjectId(aChartsForLock[nChart].Id);
             }
+            History.StartTransaction();
             _this.objectLocker.checkObjects(function(bNoLock) {
                 if(bNoLock) {
                     for(var nRef = 0; nRef < aRefsToReplace.length; ++nRef) {
                         aRefsToReplace[nRef].moveRanges(oRangeFrom, oRangeTo);
                     }
                 }
+                History.EndTransaction();
             });
         }
     };
@@ -3591,19 +3593,6 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     // Chart
     //-----------------------------------------------------------------------------------
 
-    _this.updateChartReferences = function(oldWorksheet, newWorksheet, bNoRedraw)
-    {
-        AscFormat.ExecuteNoHistory(function(){
-            for (var i = 0; i < aObjects.length; i++) {
-                var graphicObject = aObjects[i].graphicObject;
-                if ( graphicObject.updateChartReferences )
-                {
-                    graphicObject.updateChartReferences(oldWorksheet, newWorksheet);
-                }
-            }
-        }, this, []);
-
-    };
     _this.updateChartReferences2 = function(oldWorksheet, newWorksheet)
     {
         for (var i = 0; i < aObjects.length; i++) {

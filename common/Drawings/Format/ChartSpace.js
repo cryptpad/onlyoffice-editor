@@ -3743,22 +3743,6 @@ CChartSpace.prototype.checkChartReferences = function(oldWorksheetName)
 {
     return this.checkSeriesRefs(this.checkListName, oldWorksheetName);
 };
-CChartSpace.prototype.updateChartReferences = function(oldWorksheetName, newWorksheetName, bNoRebuildCache)
-{
-    if(this.checkChartReferences(oldWorksheetName))
-    {
-        if(bNoRebuildCache === true)
-        {
-            this.bNoHandleRecalc = true;
-        }
-        this.changeChartReferences(oldWorksheetName, newWorksheetName);
-        if(!(bNoRebuildCache === true))
-        {
-            this.rebuildSeries();
-        }
-        this.bNoHandleRecalc = false;
-    }
-};
 CChartSpace.prototype.updateChartReferences2 = function(oldWorksheetName, newWorksheetName)
 {
     if(this.checkChartReferences(oldWorksheetName))
