@@ -3657,39 +3657,6 @@ CChartSpace.prototype.changeLine = function (line)
     }
     this.spPr.setFill(this.spPr.Fill ? this.spPr.Fill.createDuplicate() : this.spPr.Fill);
 };
-CChartSpace.prototype.checkBBoxIntersection = function(bbox1, bbox2)
-{
-    return !(bbox1.r1 > bbox2.r2 || bbox2.r1 > bbox1.r2 || bbox1.c1 > bbox2.c2 || bbox2.c1 > bbox1.c2)
-};
-CChartSpace.prototype.checkSeriesIntersection = function(val, bbox, worksheet)
-{
-    if(val && bbox && worksheet)
-    {
-        var parsed_formulas = val.parsedFormulas;
-        for(var i = 0; i < parsed_formulas.length; ++i)
-        {
-            if(parsed_formulas[i].worksheet === worksheet && this.checkBBoxIntersection(parsed_formulas[i].bbox, bbox))
-            {
-                return true;
-            }
-        }
-    }
-    return false;
-};
-CChartSpace.prototype.checkVal = function(val)
-{
-    if(val)
-    {
-        if(val.numRef)
-        {
-            val.numRef.parsedFormulas = AscFormat.fParseChartFormula(val.numRef.f);
-        }
-        if(val.strRef)
-        {
-            val.strRef.parsedFormulas = AscFormat.fParseChartFormula(val.strRef.f);
-        }
-    }
-};
 CChartSpace.prototype.changeListName = function(val, oldName, newName)
 {
     if(val)
@@ -3808,59 +3775,6 @@ CChartSpace.prototype.clearCacheVal = function(val)
         }
     }
 };
-CChartSpace.prototype.checkIntersectionChangedRange = function(data)
-{
-    if(!data)
-        return true;
-    var i, j;
-    if(this.seriesBBoxes)
-    {
-        for(i = 0; i < this.seriesBBoxes.length; ++i)
-        {
-            for(j = 0; j < data.length; ++j)
-            {
-                if(this.seriesBBoxes[i].checkIntersection(data[j]))
-                    return true;
-            }
-        }
-    }
-    if(this.seriesTitlesBBoxes)
-    {
-        for(i = 0; i < this.seriesTitlesBBoxes.length; ++i)
-        {
-            for(j = 0; j < data.length; ++j)
-            {
-                if(this.seriesTitlesBBoxes[i].checkIntersection(data[j]))
-                    return true;
-            }
-        }
-    }
-    if(this.catTitlesBBoxes)
-    {
-        for(i = 0; i < this.catTitlesBBoxes.length; ++i)
-        {
-            for(j = 0; j < data.length; ++j)
-            {
-                if(this.catTitlesBBoxes[i].checkIntersection(data[j]))
-                    return true;
-            }
-        }
-    }
-    return false;
-};
-CChartSpace.prototype.rebuildSeries = function(data)
-{
-    if( this.checkIntersectionChangedRange(data))
-    {
-        AscFormat.ExecuteNoHistory(function(){
-            this.checkRemoveCache();
-            this.recalculateReferences();
-            this.recalcInfo.recalculateReferences = false;
-            // this.recalculate();
-        }, this, [])
-
-    }
-};
 CChartSpace.prototype.checkRemoveCache = function()
 {
     this.handleUpdateInternalChart();
@@ -3963,75 +3877,6 @@ CChartSpace.prototype.getTypeSubType = function()
 
     }
     return {type: type, subtype: subtype};
-};
-CChartSpace.prototype.clearFormatting = function(bNoClearShapeProps)
-{
-    if(this.spPr && !(bNoClearShapeProps === true))
-    {
-        this.spPr.Fill && this.spPr.setFill(null);
-        this.spPr.ln && this.spPr.setLn(null);
-    }
-    if(this.chart)
-    {
-        if(this.chart.plotArea)
-        {
-            if(this.chart.plotArea.spPr)
-            {
-                this.chart.plotArea.spPr.Fill && this.chart.plotArea.spPr.setFill(null);
-                this.chart.plotArea.spPr.ln && this.chart.plotArea.spPr.setLn(null);
-            }
-            var i, j, k, series, pts, chart, ser;
-            for(i = this.chart.plotArea.charts.length-1; i > -1; --i)
-            {
-                chart = this.chart.plotArea.charts[i];
-                if(chart.upDownBars /*&& chart.getObjectType() !== AscDFH.historyitem_type_StockChart*/)
-                {
-                    if(chart.upDownBars.upBars)
-                    {
-                        if(chart.upDownBars.upBars.Fill)
-                        {
-                            chart.upDownBars.upBars.setFill(null);
-                        }
-
-                        if(chart.upDownBars.upBars.ln)
-                        {
-                            chart.upDownBars.upBars.setLn(null);
-                        }
-                    }
-
-                    if(chart.upDownBars.downBars)
-                    {
-                        if(chart.upDownBars.downBars.Fill)
-                        {
-                            chart.upDownBars.downBars.setFill(null);
-                        }
-
-                        if(chart.upDownBars.downBars.ln)
-                        {
-                            chart.upDownBars.downBars.setLn(null);
-                        }
-                    }
-                }
-                series = chart.series;
-                for(j = series.length - 1; j > -1; --j)
-                {
-                    ser = series[j];
-                    if(ser.spPr && chart.getObjectType() !== AscDFH.historyitem_type_StockChart)
-                    {
-                        if(ser.spPr.Fill)
-                        {
-                            ser.spPr.setFill(null);
-                        }
-                        if(ser.spPr.ln)
-                        {
-                            ser.spPr.setLn(null);
-                        }
-                    }
-                    AscFormat.removeDPtsFromSeries(ser)
-                }
-            }
-        }
-    }
 };
     CChartSpace.prototype.remove = function()
     {
