@@ -3532,12 +3532,12 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
                 nEndRow = nRow - 1;
                 if(nEndCol === oBBox.c2) {
                     if(aGridRow.length === 1) {
-                        nEndCol -= 1;
+                        nEndCol = oBBox.c1;
                     }
                 }
                 if(nEndRow === oBBox.r2) {
                     if(aGrid.length === 1) {
-                        nEndRow -= 1;
+                        nEndRow = oBBox.r1;
                     }
                 }
                 nTopHeader = nEndRow - oBBox.r1;
