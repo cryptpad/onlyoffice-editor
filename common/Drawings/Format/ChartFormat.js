@@ -3128,7 +3128,6 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         return aRows;
     };
-
     CDataRefs.prototype.hasIntersection = function(oRange) {
         for(var nRange = 0; nRange < this.aRefs.length; ++nRange) {
             if(this.aRefs[nRange].isIntersect(oRange)) {
@@ -3136,6 +3135,9 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
             }
         }
         return false;
+    };
+    CDataRefs.prototype.clear = function() {
+        this.aRefs.length = 0;
     };
 
     var SERIES_COMPARE_RESULT_NONE = 0;
@@ -3357,9 +3359,9 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
     }
     function CChartDataRefs(oChartSpace) {
         this.chartSpace = oChartSpace;
-        this.val = null;
-        this.cat = null;
-        this.tx = null;
+        this.val = new CDataRefs([]);
+        this.cat = new CDataRefs([]);
+        this.tx = new CDataRefs([]);
         this.info = 0;
         this.seriesRefs = [];
 
@@ -3367,9 +3369,9 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         this.updateDataRefs();
     }
     CChartDataRefs.prototype.updateDataRefs = function () {
-        this.val = null;
-        this.cat = null;
-        this.tx = null;
+        this.val.clear();
+        this.cat.clear();
+        this.tx.clear();
         this.info = 0;
         this.seriesRefs.length = 0;
         if(!this.chartSpace) {
@@ -3433,8 +3435,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         }
         return false;
     };
-    CChartDataRefs.prototype.getUnionRefs = function() {
-        this.updateDataRefs();
+    CChartDataRefs.prototype.calculateUnionRefs = function() {
         if(this.info === 0) {
             return null;
         }
@@ -3463,6 +3464,10 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         oResult.union(this.val);
         return oResult;
     };
+    CChartDataRefs.prototype.getUnionRefs = function() {
+        this.updateDataRefs();
+        return this.calculateUnionRefs();
+    };
     CChartDataRefs.prototype.getRange = function() {
         var oResult = this.getUnionRefs();
         if(oResult) {
@@ -3474,130 +3479,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
         this.updateDataRefs();
         return this.info;
     };
-    CChartDataRefs.prototype.calculateSeriesRefsFromTrack = function() {
-        if(this.info === 0) {
-            return null;
-        }
-        var aData = null;
-        var aValHorRefs = this.val.getHorRefs();
-        var aValVertRefs = this.val.getVertRefs();
-        var aTxVertRefs, aTxHorRefs;
-        var aCatVertRefs, aCatHorRefs;
-        var nHorRef, nVertRef, nCol, nRow, nTxRef, nCatRef;
-        var oValHorRef, oValVertRef, oCatRef, oTxRef;
-        var oSeriesData;
-        var oBBox;
-        if(this.info & AscFormat.SERIES_FLAG_HOR_VALUE) {
-            aData = [];
-            aCatVertRefs = this.cat.getVertRefs();
-            aTxHorRefs = this.tx.getHorRefs();
-            for(nVertRef = 0; nVertRef < aValVertRefs.length; ++nVertRef) {
-                oValVertRef = aValVertRefs[nVertRef];
-                for(nRow = oValVertRef.bbox.r1; nRow <= oValVertRef.bbox.r2; ++nRow) {
-                    oSeriesData = new CSeriesDataRefs(null);
-                    aData.push(oSeriesData);
-                    for(nHorRef = 0; nHorRef < aValHorRefs.length; ++nHorRef) {
-                        oValHorRef = aValHorRefs[nHorRef];
-                        oBBox = new Asc.Range(oValHorRef.bbox.c1, nRow, oValHorRef.bbox.c2, nRow, true);
-                        oSeriesData.val.add(oValHorRef.createFromBBox(oValHorRef.worksheet, oBBox));
-                        if(aCatVertRefs.length > 0) {
-                            for(nCatRef = 0; nCatRef < aCatVertRefs.length; ++nCatRef) {
-                                oCatRef = aCatVertRefs[nCatRef];
-                                oBBox = new Asc.Range(oValHorRef.bbox.c1, oCatRef.bbox.r1, oValHorRef.bbox.c2, oCatRef.bbox.r2, true);
-                                oSeriesData.cat.add(oCatRef.createFromBBox(oCatRef.worksheet, oBBox));
-                            }
-                        }
-                    }
-                    if(aTxHorRefs.length > 0) {
-                        for(nTxRef = 0; nTxRef < aTxHorRefs.length; ++nTxRef) {
-                            oTxRef = aTxHorRefs[nTxRef];
-                            oBBox = new Asc.Range(oTxRef.bbox.c1, nRow, oTxRef.bbox.c2, nRow, true);
-                            oSeriesData.tx.add(oTxRef.createFromBBox(oTxRef.worksheet, oBBox));
-                        }
-                    }
-                }
-            }
-        }
-        else if(this.info & AscFormat.SERIES_FLAG_VERT_VALUE) {
-            aData = [];
-            aCatHorRefs = this.cat.getHorRefs();
-            aTxVertRefs = this.tx.getVertRefs();
-            for(nHorRef = 0; nHorRef < aValHorRefs.length; ++nHorRef) {
-                oValHorRef = aValHorRefs[nHorRef];
-                for(nCol = oValHorRef.bbox.c1; nCol <= oValHorRef.bbox.c2; ++nCol) {
-                    oSeriesData = new CSeriesDataRefs(null);
-                    aData.push(oSeriesData);
-                    for(nVertRef = 0; nVertRef < aValVertRefs.length; ++nVertRef) {
-                        oValVertRef = aValVertRefs[nVertRef];
-                        oBBox = new Asc.Range(nCol, oValVertRef.bbox.r1, nCol, oValVertRef.bbox.r2, true);
-                        oSeriesData.val.add(oValVertRef.createFromBBox(oValVertRef.worksheet, oBBox));
-                        if(aCatHorRefs.length > 0) {
-                            for(nCatRef = 0; nCatRef < aCatHorRefs.length; ++nCatRef) {
-                                oCatRef = aCatHorRefs[nCatRef];
-                                oBBox = new Asc.Range(oCatRef.bbox.c1, oValVertRef.bbox.r1, oCatRef.bbox.c2, oValVertRef.bbox.r2, true);
-                                oSeriesData.cat.add(oCatRef.createFromBBox(oCatRef.worksheet, oBBox));
-                            }
-                        }
-                    }
-                    if(aTxVertRefs.length > 0) {
-                        for(nTxRef = 0; nTxRef < aTxVertRefs.length; ++nTxRef) {
-                            oTxRef = aTxVertRefs[nTxRef];
-                            oBBox = new Asc.Range(nCol, oTxRef.bbox.r1, nCol, oTxRef.bbox.r2, true);
-                            oSeriesData.tx.add(oTxRef.createFromBBox(oTxRef.worksheet, oBBox));
-                        }
-                    }
-                }
-            }
-        }
-        return aData;
-    };
-    CChartDataRefs.prototype.getSwitchedRefs = function() {
-        this.updateDataRefs();
-        if(this.info === 0) {
-            return null;
-        }
-        var aData = null;
-        if(!this.tx.isEmpty() && !this.cat.isEmpty()) {
-            var nOldInfo = this.info;
-            var oOldCat = this.cat;
-            var oOldTx = this.tx;
-            this.cat = oOldTx;
-            this.tx = oOldCat;
-            if(this.info & AscFormat.SERIES_FLAG_HOR_VALUE) {
-                this.info = (this.info & (~AscFormat.SERIES_FLAG_HOR_VALUE)) | AscFormat.SERIES_FLAG_VERT_VALUE;
-            }
-            else if(this.info & AscFormat.SERIES_FLAG_VERT_VALUE) {
-                this.info = (this.info & (~AscFormat.SERIES_FLAG_VERT_VALUE)) | AscFormat.SERIES_FLAG_HOR_VALUE;
-            }
-            aData = this.calculateSeriesRefsFromTrack();
-            this.info = nOldInfo;
-            this.cat = oOldCat;
-            this.tx = oOldTx;
-        }
-        else {
-            var oUnionRefs = this.getUnionRefs();
-            if(oUnionRefs) {
-                var bHor;
-                if(this.info & AscFormat.SERIES_FLAG_HOR_VALUE) {
-                    bHor = false;
-                }
-                else {
-                    bHor = true;
-                }
-                aData = this.calculateSeriesFromRef(this.getUnionRefs().aRefs, bHor);
-            }
-        }
-        return aData;
-    };
-    CChartDataRefs.prototype.fillSelectedRanges = function(oWSView) {
-        this.updateDataRefs();
-        fFillSelectedRanges(this.val, this.cat, this.tx, this.info, false, oWSView);
-    };
-    CChartDataRefs.prototype.fillFromSelectedRange = function(oSelectedRange) {
-        this.updateDataRefs();
-        fFillDataFromSelectedRange(this, oSelectedRange);
-    };
-    CChartDataRefs.prototype.calculateSeriesFromRef = function(aRefs, bHorValue) {
+    CChartDataRefs.prototype.getSeriesRefsFromUnionRefs = function(aRefs, bHorValue) {
         if(aRefs.length === 0) {
             return [];
         }
@@ -3815,7 +3697,7 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
             oData.tx = oTx;
             oData.cat = oCat;
             oData.info = nInfo;
-            return oData.calculateSeriesRefsFromTrack();
+            return oData.getSeriesFromFixedRefs();
         }
         else {
             var aSeries = [];
@@ -3832,10 +3714,158 @@ var c_oAscAxisType = Asc.c_oAscAxisType;
                 }
             }
             for(nRef = 0; nRef < aRefs.length; ++nRef) {
-                aSeries = aSeries.concat(this.calculateSeriesFromRef([aRefs[nRef]], bHorizontalValues));
+                aSeries = aSeries.concat(this.getSeriesRefsFromUnionRefs([aRefs[nRef]], bHorizontalValues));
             }
             return aSeries;
         }
+    };
+    CChartDataRefs.prototype.getSeriesFromFixedRefs = function() {
+        if(this.info === 0) {
+            return null;
+        }
+        var aData = null;
+        var aValHorRefs = this.val.getHorRefs();
+        var aValVertRefs = this.val.getVertRefs();
+        var aTxVertRefs, aTxHorRefs;
+        var aCatVertRefs, aCatHorRefs;
+        var nHorRef, nVertRef, nCol, nRow, nTxRef, nCatRef;
+        var oValHorRef, oValVertRef, oCatRef, oTxRef;
+        var oSeriesData;
+        var oBBox;
+        if(this.info & AscFormat.SERIES_FLAG_HOR_VALUE) {
+            aData = [];
+            aCatVertRefs = this.cat.getVertRefs();
+            aTxHorRefs = this.tx.getHorRefs();
+            for(nVertRef = 0; nVertRef < aValVertRefs.length; ++nVertRef) {
+                oValVertRef = aValVertRefs[nVertRef];
+                for(nRow = oValVertRef.bbox.r1; nRow <= oValVertRef.bbox.r2; ++nRow) {
+                    oSeriesData = new CSeriesDataRefs(null);
+                    aData.push(oSeriesData);
+                    for(nHorRef = 0; nHorRef < aValHorRefs.length; ++nHorRef) {
+                        oValHorRef = aValHorRefs[nHorRef];
+                        oBBox = new Asc.Range(oValHorRef.bbox.c1, nRow, oValHorRef.bbox.c2, nRow, true);
+                        oSeriesData.val.add(oValHorRef.createFromBBox(oValHorRef.worksheet, oBBox));
+                        if(aCatVertRefs.length > 0) {
+                            for(nCatRef = 0; nCatRef < aCatVertRefs.length; ++nCatRef) {
+                                oCatRef = aCatVertRefs[nCatRef];
+                                oBBox = new Asc.Range(oValHorRef.bbox.c1, oCatRef.bbox.r1, oValHorRef.bbox.c2, oCatRef.bbox.r2, true);
+                                oSeriesData.cat.add(oCatRef.createFromBBox(oCatRef.worksheet, oBBox));
+                            }
+                        }
+                    }
+                    if(aTxHorRefs.length > 0) {
+                        for(nTxRef = 0; nTxRef < aTxHorRefs.length; ++nTxRef) {
+                            oTxRef = aTxHorRefs[nTxRef];
+                            oBBox = new Asc.Range(oTxRef.bbox.c1, nRow, oTxRef.bbox.c2, nRow, true);
+                            oSeriesData.tx.add(oTxRef.createFromBBox(oTxRef.worksheet, oBBox));
+                        }
+                    }
+                }
+            }
+        }
+        else if(this.info & AscFormat.SERIES_FLAG_VERT_VALUE) {
+            aData = [];
+            aCatHorRefs = this.cat.getHorRefs();
+            aTxVertRefs = this.tx.getVertRefs();
+            for(nHorRef = 0; nHorRef < aValHorRefs.length; ++nHorRef) {
+                oValHorRef = aValHorRefs[nHorRef];
+                for(nCol = oValHorRef.bbox.c1; nCol <= oValHorRef.bbox.c2; ++nCol) {
+                    oSeriesData = new CSeriesDataRefs(null);
+                    aData.push(oSeriesData);
+                    for(nVertRef = 0; nVertRef < aValVertRefs.length; ++nVertRef) {
+                        oValVertRef = aValVertRefs[nVertRef];
+                        oBBox = new Asc.Range(nCol, oValVertRef.bbox.r1, nCol, oValVertRef.bbox.r2, true);
+                        oSeriesData.val.add(oValVertRef.createFromBBox(oValVertRef.worksheet, oBBox));
+                        if(aCatHorRefs.length > 0) {
+                            for(nCatRef = 0; nCatRef < aCatHorRefs.length; ++nCatRef) {
+                                oCatRef = aCatHorRefs[nCatRef];
+                                oBBox = new Asc.Range(oCatRef.bbox.c1, oValVertRef.bbox.r1, oCatRef.bbox.c2, oValVertRef.bbox.r2, true);
+                                oSeriesData.cat.add(oCatRef.createFromBBox(oCatRef.worksheet, oBBox));
+                            }
+                        }
+                    }
+                    if(aTxVertRefs.length > 0) {
+                        for(nTxRef = 0; nTxRef < aTxVertRefs.length; ++nTxRef) {
+                            oTxRef = aTxVertRefs[nTxRef];
+                            oBBox = new Asc.Range(nCol, oTxRef.bbox.r1, nCol, oTxRef.bbox.r2, true);
+                            oSeriesData.tx.add(oTxRef.createFromBBox(oTxRef.worksheet, oBBox));
+                        }
+                    }
+                }
+            }
+        }
+        return aData;
+    };
+    CChartDataRefs.prototype.getSeriesRefsFromSelectedRange = function(oSelectedRange) {
+        this.fillFromSelectedRange(oSelectedRange);
+        if(this.info === 0) {
+            return null;
+        }
+        if(this.tx.isEmpty() && this.cat.isEmpty()) {
+            var oUnionRefs = this.calculateUnionRefs();
+            if(oUnionRefs) {
+                var bHor;
+                if(this.info & AscFormat.SERIES_FLAG_HOR_VALUE) {
+                    bHor = true;
+                }
+                else {
+                    bHor = false;
+                }
+                return this.getSeriesRefsFromUnionRefs(oUnionRefs.aRefs, bHor);
+            }
+            else {
+                return this.getSeriesFromFixedRefs();
+            }
+        }
+        else {
+            return this.getSeriesFromFixedRefs();
+        }
+    };
+    CChartDataRefs.prototype.getSwitchedRefs = function() {
+        this.updateDataRefs();
+        if(this.info === 0) {
+            return null;
+        }
+        var aData = null;
+        if(!this.tx.isEmpty() && !this.cat.isEmpty()) {
+            var nOldInfo = this.info;
+            var oOldCat = this.cat;
+            var oOldTx = this.tx;
+            this.cat = oOldTx;
+            this.tx = oOldCat;
+            if(this.info & AscFormat.SERIES_FLAG_HOR_VALUE) {
+                this.info = (this.info & (~AscFormat.SERIES_FLAG_HOR_VALUE)) | AscFormat.SERIES_FLAG_VERT_VALUE;
+            }
+            else if(this.info & AscFormat.SERIES_FLAG_VERT_VALUE) {
+                this.info = (this.info & (~AscFormat.SERIES_FLAG_VERT_VALUE)) | AscFormat.SERIES_FLAG_HOR_VALUE;
+            }
+            aData = this.getSeriesFromFixedRefs();
+            this.info = nOldInfo;
+            this.cat = oOldCat;
+            this.tx = oOldTx;
+        }
+        else {
+            var oUnionRefs = this.getUnionRefs();
+            if(oUnionRefs) {
+                var bHor;
+                if(this.info & AscFormat.SERIES_FLAG_HOR_VALUE) {
+                    bHor = false;
+                }
+                else {
+                    bHor = true;
+                }
+                aData = this.getSeriesRefsFromUnionRefs(oUnionRefs.aRefs, bHor);
+            }
+        }
+        return aData;
+    };
+    CChartDataRefs.prototype.fillSelectedRanges = function(oWSView) {
+        this.updateDataRefs();
+        fFillSelectedRanges(this.val, this.cat, this.tx, this.info, false, oWSView);
+    };
+    CChartDataRefs.prototype.fillFromSelectedRange = function(oSelectedRange) {
+        this.updateDataRefs();
+        fFillDataFromSelectedRange(this, oSelectedRange);
     };
     CChartDataRefs.prototype.privateCheckCellValueForHeader = function(oCell) {
         var sValue = oCell.getValue();

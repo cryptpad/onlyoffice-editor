@@ -14762,7 +14762,7 @@ CChartSpace.prototype.addScatterSeries = function(sName, sXValues, sYValues) {
 
     CChartSpace.prototype.setRange = function(sRange) {
         var oDataRange = new AscFormat.CChartDataRefs(this);
-        var aRefs = oDataRange.calculateSeriesFromRef(AscFormat.fParseChartFormula(sRange));
+        var aRefs = oDataRange.getSeriesRefsFromUnionRefs(AscFormat.fParseChartFormula(sRange));
         if(!Array.isArray(aRefs)) {
             this.buildSeries([]);
         }
@@ -14795,8 +14795,7 @@ CChartSpace.prototype.addScatterSeries = function(sName, sXValues, sYValues) {
             return;
         }
         var oDataRange = new AscFormat.CChartDataRefs(this);
-        oDataRange.fillFromSelectedRange(oSelectedRange);
-        var nResult = this.buildSeries(oDataRange.calculateSeriesRefsFromTrack());
+        var nResult = this.buildSeries(oDataRange.getSeriesRefsFromSelectedRange(oSelectedRange));
         if(Asc.c_oAscError.ID.No === nResult) {
             this.recalculate();
         }
