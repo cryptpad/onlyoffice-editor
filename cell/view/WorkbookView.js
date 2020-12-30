@@ -80,47 +80,69 @@
     return null;
   };
 
-  function WorksheetViewSettings() {
-    //TODO темные цвета необходимо скорректировать
-    this.header = {
-      style: [// Header colors
-        { // kHeaderDefault
-          background: new CColor(241, 241, 241), border: new CColor(213, 213, 213), color: new CColor(54, 54, 54),
-            backgroundDark: new CColor(68, 68, 68), colorDark: new CColor(255, 255, 255)}, { // kHeaderActive
-          background: new CColor(193, 193, 193), border: new CColor(146, 146, 146), color: new CColor(54, 54, 54),
-            backgroundDark: new CColor(0, 0, 0), colorDark: new CColor(255, 255, 255)}, { // kHeaderHighlighted
-          background: new CColor(223, 223, 223), border: new CColor(175, 175, 175), color: new CColor(101, 106, 112),
-            backgroundDark: new CColor(102, 102, 102), colorDark: new CColor(255, 255, 255)}], cornerColor: new CColor(193, 193, 193)
-    };
-    this.cells = {
-      defaultState: {
-        background: new CColor(255, 255, 255), border: new CColor(202, 202, 202)
-      }, padding: -1 /*px horizontal padding*/
-    };
-    this.activeCellBorderColor = new CColor(72, 121, 92);
-    this.activeCellBorderColor2 = new CColor(255, 255, 255, 1);
-    this.findFillColor = new CColor(255, 238, 128, 1);
+	function WorksheetViewSettings() {
+		//TODO темные цвета необходимо скорректировать
+		this.getCColor = function (_color) {
+			var rgb = parseInt(_color.split('#')[1], 16);
+			return new CColor((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
+		};
+		this.updateStyle = function () {
+			this.header.style = this._generateStyle();
+		};
+		this._generateStyle = function () {
+			return [// Header colors
+				{ // kHeaderDefault
+					background: this.getCColor(AscCommon.GlobalSkin.Background),
+					border: this.getCColor(AscCommon.GlobalSkin.Border),
+					color: this.getCColor(AscCommon.GlobalSkin.Color),
+					backgroundDark: this.getCColor(AscCommon.GlobalSkin.BackgroundDark),
+					colorDark: this.getCColor(AscCommon.GlobalSkin.ColorDark)
+				}, { // kHeaderActive
+					background: this.getCColor(AscCommon.GlobalSkin.BackgroundActive),
+					border: this.getCColor(AscCommon.GlobalSkin.BorderActive),
+					color: this.getCColor(AscCommon.GlobalSkin.ColorActive),
+					backgroundDark: this.getCColor(AscCommon.GlobalSkin.BackgroundDarkActive),
+					colorDark: this.getCColor(AscCommon.GlobalSkin.ColorDarkActive)
+				}, { // kHeaderHighlighted
+					background: this.getCColor(AscCommon.GlobalSkin.BackgroundHighlighted),
+					border: this.getCColor(AscCommon.GlobalSkin.BorderHighlighted),
+					color: this.getCColor(AscCommon.GlobalSkin.ColorHighlighted),
+					backgroundDark: this.getCColor(AscCommon.GlobalSkin.BackgroundDarkHighlighted),
+					colorDark: this.getCColor(AscCommon.GlobalSkin.ColorDarkHighlighted)
+				}];
+		};
+		this.header = {
+			style: this._generateStyle(), cornerColor: new CColor(193, 193, 193)
+		};
+		this.cells = {
+			defaultState: {
+				background: new CColor(255, 255, 255), border: new CColor(202, 202, 202)
+			}, padding: -1 /*px horizontal padding*/
+		};
+		this.activeCellBorderColor = new CColor(72, 121, 92);
+		this.activeCellBorderColor2 = new CColor(255, 255, 255, 1);
+		this.findFillColor = new CColor(255, 238, 128, 1);
 
-    // Цвет закрепленных областей
-    this.frozenColor = new CColor(105, 119, 62, 1);
+		// Цвет закрепленных областей
+		this.frozenColor = new CColor(105, 119, 62, 1);
 
-    // Число знаков для математической информации
-    this.mathMaxDigCount = 9;
+		// Число знаков для математической информации
+		this.mathMaxDigCount = 9;
 
-    var cnv = document.createElement("canvas");
-    cnv.width = 2;
-    cnv.height = 2;
-    var ctx = cnv.getContext("2d");
-    ctx.clearRect(0, 0, 2, 2);
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, 1, 1);
-    ctx.fillRect(1, 1, 1, 1);
-    this.ptrnLineDotted1 = ctx.createPattern(cnv, "repeat");
+		var cnv = document.createElement("canvas");
+		cnv.width = 2;
+		cnv.height = 2;
+		var ctx = cnv.getContext("2d");
+		ctx.clearRect(0, 0, 2, 2);
+		ctx.fillStyle = "#000";
+		ctx.fillRect(0, 0, 1, 1);
+		ctx.fillRect(1, 1, 1, 1);
+		this.ptrnLineDotted1 = ctx.createPattern(cnv, "repeat");
 
-    this.halfSelection = false;
+		this.halfSelection = false;
 
-    return this;
-  }
+		return this;
+	}
 
 
   /**
@@ -3648,6 +3670,10 @@
 		} else {
 			_callback(true);
 		}
+	};
+
+	WorkbookView.prototype.updateSkin = function () {
+		this.defaults.worksheetView.updateStyle();
 	};
 
 
