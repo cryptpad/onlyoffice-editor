@@ -432,12 +432,20 @@ function checkRasterImageId(rasterImageId) {
 
 
 var g_oThemeFontsName = {};
-g_oThemeFontsName["+mj-cs"] = true;
-g_oThemeFontsName["+mj-ea"] = true;
-g_oThemeFontsName["+mj-lt"] = true;
-g_oThemeFontsName["+mn-cs"] = true;
-g_oThemeFontsName["+mn-ea"] = true;
-g_oThemeFontsName["+mn-lt"] = true;
+g_oThemeFontsName["+mj-cs"]        = true;
+g_oThemeFontsName["+mj-ea"]        = true;
+g_oThemeFontsName["+mj-lt"]        = true;
+g_oThemeFontsName["+mn-cs"]        = true;
+g_oThemeFontsName["+mn-ea"]        = true;
+g_oThemeFontsName["+mn-lt"]        = true;
+g_oThemeFontsName["majorAscii"]    = true;
+g_oThemeFontsName["majorBidi"]     = true;
+g_oThemeFontsName["majorEastAsia"] = true;
+g_oThemeFontsName["majorHAnsi"]    = true;
+g_oThemeFontsName["minorAscii"]    = true;
+g_oThemeFontsName["minorBidi"]     = true;
+g_oThemeFontsName["minorEastAsia"] = true;
+g_oThemeFontsName["minorHAnsi"]    = true;
 
 function isRealNumber(n)
 {
@@ -8169,18 +8177,26 @@ FontCollection.prototype =
 
 function FontScheme()
 {
-    this.name = "";
+	this.name = "";
 
-    this.majorFont = new FontCollection(this);
-    this.minorFont = new FontCollection(this);
-    this.fontMap = {
-        "+mj-lt": undefined,
-        "+mj-ea": undefined,
-        "+mj-cs": undefined,
-        "+mn-lt": undefined,
-        "+mn-ea": undefined,
-        "+mn-cs": undefined
-    };
+	this.majorFont = new FontCollection(this);
+	this.minorFont = new FontCollection(this);
+	this.fontMap   = {
+		"+mj-lt"        : undefined,
+		"+mj-ea"        : undefined,
+		"+mj-cs"        : undefined,
+		"+mn-lt"        : undefined,
+		"+mn-ea"        : undefined,
+		"+mn-cs"        : undefined,
+		"majorAscii"    : undefined,
+		"majorBidi"     : undefined,
+		"majorEastAsia" : undefined,
+		"majorHAnsi"    : undefined,
+		"minorAscii"    : undefined,
+		"minorBidi"     : undefined,
+		"minorEastAsia" : undefined,
+		"minorHAnsi"    : undefined
+	};
 }
 
 var FONT_REGION_LT = 0x00;
@@ -8226,16 +8242,20 @@ FontScheme.prototype =
                 case FONT_REGION_LT:
                 {
                     this.fontMap["+mj-lt"] = font;
+					this.fontMap["majorAscii"] = font;
+					this.fontMap["majorHAnsi"] = font;
                     break;
                 }
                 case FONT_REGION_EA:
                 {
                     this.fontMap["+mj-ea"] = font;
+					this.fontMap["majorEastAsia"] = font;
                     break;
                 }
                 case FONT_REGION_CS:
                 {
                     this.fontMap["+mj-cs"] = font;
+					this.fontMap["majorBidi"] = font;
                     break;
                 }
             }
@@ -8247,16 +8267,20 @@ FontScheme.prototype =
                 case FONT_REGION_LT:
                 {
                     this.fontMap["+mn-lt"] = font;
+					this.fontMap["minorAscii"] = font;
+					this.fontMap["minorHAnsi"] = font;
                     break;
                 }
                 case FONT_REGION_EA:
                 {
                     this.fontMap["+mn-ea"] = font;
+					this.fontMap["minorEastAsia"] = font;
                     break;
                 }
                 case FONT_REGION_CS:
                 {
                     this.fontMap["+mn-cs"] = font;
+					this.fontMap["minorBidi"] = font;
                     break;
                 }
             }

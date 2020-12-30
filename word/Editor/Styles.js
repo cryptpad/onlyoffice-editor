@@ -12064,48 +12064,28 @@ CRFonts.prototype.Copy = function()
 CRFonts.prototype.Merge = function(oRFonts)
 {
 	if (oRFonts.AsciiTheme)
-	{
-		this.Ascii      = undefined;
 		this.AsciiTheme = oRFonts.AsciiTheme;
-	}
-	else if (oRFonts.Ascii)
-	{
-		this.AsciiTheme = undefined;
-		this.Ascii      = oRFonts.Ascii;
-	}
+
+	if (oRFonts.Ascii)
+		this.Ascii = oRFonts.Ascii;
 
 	if (oRFonts.EastAsiaTheme)
-	{
-		this.EastAsia      = undefined;
 		this.EastAsiaTheme = oRFonts.EastAsiaTheme
-	}
-	else if (oRFonts.EastAsia)
-	{
-		this.EastAsiaTheme = undefined;
-		this.EastAsia      = oRFonts.EastAsia;
-	}
+
+	if (oRFonts.EastAsia)
+		this.EastAsia = oRFonts.EastAsia;
 
 	if (oRFonts.HAnsiTheme)
-	{
-		this.HAnsi      = undefined;
 		this.HAnsiTheme = oRFonts.HAnsiTheme;
-	}
-	else if (oRFonts.HAnsi)
-	{
-		this.HAnsiTheme = undefined;
-		this.HAnsi      = oRFonts.HAnsi;
-	}
+
+	if (oRFonts.HAnsi)
+		this.HAnsi = oRFonts.HAnsi;
 
 	if (oRFonts.CSTheme)
-	{
-		this.CS      = undefined;
 		this.CSTheme = oRFonts.CSTheme;
-	}
-	else if (oRFonts.CS)
-	{
-		this.CSTheme = undefined;
-		this.CS      = oRFonts.CS;
-	}
+
+	if (oRFonts.CS)
+		this.CS = oRFonts.CS;
 
 	if (oRFonts.Hint)
 		this.Hint = oRFonts.Hint;
@@ -13051,40 +13031,77 @@ CTextPr.prototype.Compare = function(TextPr)
 
 	return this;
 };
-
 CTextPr.prototype.ReplaceThemeFonts = function(oFontScheme)
 {
-	if(this.RFonts && oFontScheme)
+	if (this.RFonts && oFontScheme)
 	{
-		if(this.RFonts.Ascii)
+		if (this.RFonts.AsciiTheme)
 		{
-			this.RFonts.Ascii.Name     = oFontScheme.checkFont(this.RFonts.Ascii.Name);
-			this.RFonts.Ascii.Index    =  -1;
+			this.RFonts.Ascii = {
+				Name  : oFontScheme.checkFont(this.RFonts.AsciiTheme),
+				Index : -1
+			};
+
+			this.RFonts.AsciiTheme = undefined;
 		}
-		if(this.RFonts.EastAsia)
+		else if (this.RFonts.Ascii)
+		{
+			this.RFonts.Ascii.Name  = oFontScheme.checkFont(this.RFonts.Ascii.Name);
+			this.RFonts.Ascii.Index = -1;
+		}
+
+		if (this.RFonts.EastAsiaTheme)
+		{
+			this.RFonts.EastAsia = {
+				Name  : oFontScheme.checkFont(this.RFonts.EastAsiaTheme),
+				Index : -1
+			};
+
+			this.RFonts.EastAsiaTheme = undefined;
+		}
+		else if (this.RFonts.EastAsia)
 		{
 			this.RFonts.EastAsia.Name  = oFontScheme.checkFont(this.RFonts.EastAsia.Name);
 			this.RFonts.EastAsia.Index = -1;
 		}
-		if(this.RFonts.HAnsi)
+
+		if (this.RFonts.HAnsiTheme)
 		{
-			this.RFonts.HAnsi.Name     = oFontScheme.checkFont(this.RFonts.HAnsi.Name);
-			this.RFonts.HAnsi.Index    = -1;
+			this.RFonts.HAnsi = {
+				Name  : oFontScheme.checkFont(this.RFonts.HAnsiTheme),
+				Index : -1
+			};
+
+			this.RFonts.HAnsiTheme = undefined;
 		}
-		if(this.RFonts.CS)
+		else if (this.RFonts.HAnsi)
 		{
-			this.RFonts.CS.Name        = oFontScheme.checkFont(this.RFonts.CS.Name);
-			this.RFonts.CS.Index       = -1;
+			this.RFonts.HAnsi.Name  = oFontScheme.checkFont(this.RFonts.HAnsi.Name);
+			this.RFonts.HAnsi.Index = -1;
+		}
+
+		if (this.RFonts.CSTheme)
+		{
+			this.RFonts.CS = {
+				Name  : oFontScheme.checkFont(this.RFonts.CSTheme),
+				Index : -1
+			};
+
+			this.RFonts.CSTheme = undefined;
+		}
+		else if (this.RFonts.CS)
+		{
+			this.RFonts.CS.Name  = oFontScheme.checkFont(this.RFonts.CS.Name);
+			this.RFonts.CS.Index = -1;
 		}
 	}
-	if(this.FontFamily)
+
+	if (this.FontFamily)
 	{
-		this.FontFamily.Name = oFontScheme.checkFont(this.FontFamily.Name);
+		this.FontFamily.Name  = oFontScheme.checkFont(this.FontFamily.Name);
 		this.FontFamily.Index = -1;
 	}
 };
-
-
 CTextPr.prototype.GetIncDecFontSize = function(IncFontSize)
 {
 	var FontSize = this.FontSize;
