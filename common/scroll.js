@@ -375,8 +375,8 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 
 		this.scrollColor = _HEXTORGB_(this.settings.scrollerColor).R;
 		this.arrowColor = _HEXTORGB_(this.settings.arrowColor).R;
-		this.firstArrow = {arrowColor: _HEXTORGB_(this.settings.arrowColor).R, arrowBackColor: _HEXTORGB_(this.settings.scrollerColor).R};
-		this.secondArrow = {arrowColor: _HEXTORGB_(this.settings.arrowColor).R, arrowBackColor: _HEXTORGB_(this.settings.scrollerColor).R};
+		this.firstArrow = {arrowColor: _HEXTORGB_(this.settings.arrowColor).R, arrowBackColor: _HEXTORGB_(this.settings.scrollerColor).R, arrowStrokeColor: _HEXTORGB_(this.settings.strokeStyleNone).R};
+		this.secondArrow = {arrowColor: _HEXTORGB_(this.settings.arrowColor).R, arrowBackColor: _HEXTORGB_(this.settings.scrollerColor).R, arrowStrokeColor: _HEXTORGB_(this.settings.strokeStyleNone).R};
 
 		this.targetColor = _HEXTORGB_(this.settings.targetColor).R;
 		this.strokeColor = _HEXTORGB_(this.settings.strokeStyleNone).R;
@@ -691,8 +691,8 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 
 		if (this.isResizeArrows || isChangeTheme) {
 
-		    this.firstArrow = {arrowColor: _HEXTORGB_(this.settings.arrowColor).R, arrowBackColor: _HEXTORGB_(this.settings.scrollerColor).R};
-		    this.secondArrow = {arrowColor: _HEXTORGB_(this.settings.arrowColor).R, arrowBackColor: _HEXTORGB_(this.settings.scrollerColor).R};
+		    this.firstArrow = {arrowColor: _HEXTORGB_(this.settings.arrowColor).R, arrowBackColor: _HEXTORGB_(this.settings.scrollerColor).R, arrowStrokeColor: _HEXTORGB_(this.settings.strokeStyleNone).R};
+		    this.secondArrow = {arrowColor: _HEXTORGB_(this.settings.arrowColor).R, arrowBackColor: _HEXTORGB_(this.settings.scrollerColor).R, arrowStrokeColor: _HEXTORGB_(this.settings.strokeStyleNone).R};
 			this._drawArrows();
 		}
 		this._initPiperImg();
@@ -928,12 +928,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		var t = that.ArrowDrawer;
 		var xDeltaBORDER = 0.5, yDeltaBORDER = 1.5;
 		var roundDPR = that._roundForScale(AscBrowser.retinaPixelRatio);
-		var x1 = that.settings.isVerticalScroll ? 0 : roundDPR;
-		var y1 = that.settings.isVerticalScroll ? yDeltaBORDER * roundDPR : -roundDPR;
-		var x2 = 0;
-		var y2 = that.settings.isVerticalScroll ? 0 : 0;
-		var strokeW = t.SizeW - roundDPR;
-		var strokeH = t.SizeH - roundDPR;
+		var x1 = 0, y1 = 0, x2 = 0, y2 = 0;
 		var ctx = that.context;
 
 		ctx.beginPath();
@@ -942,21 +937,20 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		var imgContext = arrowImage.getContext('2d');
 		imgContext.globalCompositeOperation = "source-in";
 		imgContext.fillStyle = that.settings.arrowColor;
-
+        ctx.lineWidth = roundDPR;
 		if (that.settings.isVerticalScroll) {
 			for (var i = 0; i < 2; i++) {
-				imgContext.fillRect( x1 + xDeltaBORDER * ctx.lineWidth,  0, strokeW, strokeH);
-				ctx.fillRect( x1 + xDeltaBORDER * ctx.lineWidth,  y1, strokeW, strokeH);
+				imgContext.fillRect( x1 + xDeltaBORDER * ctx.lineWidth,  0, t.SizeW - roundDPR, t.SizeH - roundDPR);
+				ctx.fillRect( x1,  y1 + roundDPR, t.SizeW, t.SizeH);
 				ctx.drawImage(arrowImage, x1, y2, t.SizeW, t.SizeH);
 
 				if (t.IsDrawBorders) {
 					ctx.strokeStyle = that.settings.strokeStyleNone;
-					ctx.lineWidth = roundDPR;
-					ctx.rect(x1 + xDeltaBORDER * ctx.lineWidth, y1, strokeW, strokeH);
+					ctx.rect(x1 + xDeltaBORDER * ctx.lineWidth, y1  + yDeltaBORDER * ctx.lineWidth, t.SizeW - roundDPR, t.SizeH - roundDPR);
 					ctx.stroke();
 				}
 
-				y1 = that.canvasH - t.SizeH + roundDPR - yDeltaBORDER * roundDPR;
+				y1 = that.canvasH - t.SizeH - 2 * roundDPR;
                 y2 = that.canvasH - t.SizeH;
 				arrowImage = that.ArrowDrawer.ImageBottom;
 				imgContext = arrowImage.getContext('2d');
@@ -971,18 +965,18 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		imgContext.fillStyle = that.settings.arrowColor;
 		if (that.settings.isHorizontalScroll) {
 			for (var i = 0; i < 2; i++) {
-				imgContext.fillRect( 0,   y1 + yDeltaBORDER * ctx.lineWidth, strokeW, strokeH);
-				ctx.fillRect( x1 + xDeltaBORDER * ctx.lineWidth,   y1 + yDeltaBORDER * ctx.lineWidth, strokeW, strokeH);
+				imgContext.fillRect( 0,   y1 + yDeltaBORDER * ctx.lineWidth, t.SizeW - roundDPR, t.SizeH - roundDPR);
+				ctx.fillRect( x1 + roundDPR, y1, t.SizeW, t.SizeH);
 				ctx.drawImage(arrowImage, x2, y2, t.SizeW, t.SizeH);
 
 				if (t.IsDrawBorders) {
 					ctx.strokeStyle = that.settings.strokeStyleNone;
 					ctx.lineWidth = roundDPR;
-					ctx.rect(x1 + xDeltaBORDER * ctx.lineWidth, y1 + yDeltaBORDER * ctx.lineWidth, strokeW, strokeH);
+					ctx.rect(x1 + yDeltaBORDER * ctx.lineWidth, y1 + xDeltaBORDER * ctx.lineWidth, t.SizeW - roundDPR, t.SizeH - roundDPR);
 					ctx.stroke();
 				}
 
-				x1 = that.canvasW - t.SizeW -  roundDPR;
+				x1 = that.canvasW - t.SizeW - 2 * roundDPR;
                 x2 = that.canvasW - t.SizeW;
                 y2 = 0;
 				arrowImage = that.ArrowDrawer.ImageRight;
@@ -1126,7 +1120,10 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
             ctx = cnvs.getContext('2d'), context = that.context,
             hoverColor = _HEXTORGB_(that.settings.scrollerHoverColor).R, defaultColor = _HEXTORGB_(that.settings.scrollerColor).R,
             arrowColor = _HEXTORGB_(that.settings.arrowColor).R,
-			arrowHoverColor = _HEXTORGB_(that.settings.arrowHoverColor).R, borderColor;
+			arrowHoverColor = _HEXTORGB_(that.settings.arrowHoverColor).R,
+		    strokeColor = _HEXTORGB_(that.settings.strokeStyleNone).R,
+			strokeHoverColor = _HEXTORGB_(that.settings.strokeStyleOver).R;
+
 
 
 		cnvs.width = sizeW;
@@ -1145,7 +1142,6 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		//what type of arrow to draw
 		switch (curArrowType) {
 			case ArrowType.ARROW_TOP: {
-				fillRectX = roundDPR;
 				fillRectY = roundDPR;
 				break;
 			}
@@ -1196,7 +1192,14 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 			} else {
 				arrowType.arrowColor = arrowHoverColor;
 			}
-			borderColor = that.settings.strokeStyleOver;
+
+			if (arrowType.arrowStrokeColor - strokeHoverColor > 2) {
+				arrowType.arrowStrokeColor -= 2;
+			} else if (arrowType.arrowStrokeColor - strokeHoverColor < -2) {
+				arrowType.arrowStrokeColor += 2;
+			} else {
+				arrowType.arrowStrokeColor = strokeHoverColor;
+			}
 		} else
 			//reverse dimming
 		if (fadeIn === false) {
@@ -1220,42 +1223,47 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 				arrowType.arrowColor = arrowColor;
 			}
 
-			borderColor = that.settings.strokeStyleNone;
+			if (arrowType.arrowStrokeColor - strokeColor > 2) {
+				arrowType.arrowStrokeColor -= 2;
+			} else if (arrowType.arrowStrokeColor - strokeColor < -2) {
+				arrowType.arrowStrokeColor += 2;
+			} else {
+				arrowType.arrowStrokeColor = strokeColor;
+			}
 		} else {
 			//instant change arrow color
 			arrowType.arrowBackColor = backgroundColorUnfade;
 			switch(backgroundColorUnfade) {
 				case _HEXTORGB_(that.settings.scrollerColor).R:
 					arrowType.arrowColor = _HEXTORGB_(that.settings.arrowColor).R;
-					borderColor = that.settings.strokeStyleNone;
+					arrowType.arrowStrokeColor = _HEXTORGB_(that.settings.strokeStyleNone).R;
 					break;
 				case _HEXTORGB_(that.settings.scrollerHoverColor).R:
 					arrowType.arrowColor = _HEXTORGB_(that.settings.arrowHoverColor).R;
-					borderColor = that.settings.strokeStyleOver;
+					arrowType.arrowStrokeColor = _HEXTORGB_(that.settings.strokeStyleOver).R;
 					break;
 				case _HEXTORGB_(that.settings.scrollerActiveColor).R:
 					arrowType.arrowColor = _HEXTORGB_(that.settings.arrowActiveColor).R;
-					borderColor = that.settings.strokeStyleActive;
+					arrowType.arrowStrokeColor = _HEXTORGB_(that.settings.strokeStyleActive).R;
 					break;
 
 			}
-			ctx = that.context;
 		}
 
+		ctx = that.context;
 
+        ctx.beginPath();
         ctx.fillStyle = "rgb(" + arrowType.arrowBackColor + "," +
             arrowType.arrowBackColor + "," +
             arrowType.arrowBackColor + ")";
 
-        var x1 = fadeIn === undefined ? x : 0;
-        var y1 = fadeIn === undefined ? y : 0;
-
-        ctx.fillRect( x1 + fillRectX,  y1 +  fillRectY, sizeW - roundDPR, sizeH - roundDPR);
+        ctx.fillRect( x + fillRectX,  y +  fillRectY, sizeW, sizeH);
 
 		if (that.ArrowDrawer.IsDrawBorders) {
-            ctx.strokeStyle = borderColor;
+			ctx.strokeStyle = "rgb(" + arrowType.arrowStrokeColor + "," + arrowType.arrowStrokeColor + "," + arrowType.arrowStrokeColor + ")";
 			ctx.lineWidth = roundDPR;
-            ctx.strokeRect(x1 + 0.5 * ctx.lineWidth + strokeRectX, y1 + 1.5 * ctx.lineWidth + strokeRectY, sizeW - roundDPR, sizeH - roundDPR);
+            ctx.rect(x + 0.5 * ctx.lineWidth + strokeRectX, y + 1.5 * ctx.lineWidth + strokeRectY, sizeW - roundDPR, sizeH - roundDPR);
+            ctx.stroke();
 		}
 
 		//drawing arrow icon
@@ -1265,8 +1273,9 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 			arrowType.arrowColor + "," +
 			arrowType.arrowColor + ")";
 		imgContext.fillRect(0.5, 1.5, sizeW , sizeH);
-        ctx.drawImage(arrowImage,  x1, y1, sizeW, sizeH);
-		context.drawImage(cnvs, x, y, sizeW, sizeH);
+        ctx.drawImage(arrowImage,  x, y, sizeW, sizeH);
+		ctx.closePath();
+		context.drawImage(cnvs, x, y);
 
 		if (fadeIn === undefined)
 		return;
@@ -1281,7 +1290,11 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		var hoverColor = _HEXTORGB_(that.settings.scrollerHoverColor).R,
 			defaultColor = _HEXTORGB_(that.settings.scrollerColor).R,
 			targetDefaultColor = _HEXTORGB_(that.settings.targetColor).R,
-			targetHoverColor = _HEXTORGB_(that.settings.targetHoverColor).R;
+			targetHoverColor = _HEXTORGB_(that.settings.targetHoverColor).R,
+			strokeHoverColor = _HEXTORGB_(that.settings.strokeStyleOver).R,
+			strokeColor = _HEXTORGB_(that.settings.strokeStyleNone).R;
+
+
 
 		that.context.beginPath();
 		that._drawScroll(that.scrollColor, that.targetColor, that.strokeColor);
@@ -1310,6 +1323,14 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 				that.targetColor = targetHoverColor;
 			}
 
+			if (that.strokeColor - strokeHoverColor > 2) {
+				that.strokeColor -= 2;
+			} else if (that.strokeColor - strokeHoverColor < -2) {
+				that.strokeColor += 2;
+			} else {
+				that.strokeColor = strokeHoverColor;
+			}
+
 		} else
 			//reverse dimming
 		if (fadeIn === false) {
@@ -1327,7 +1348,17 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 				that.targetColor += 2;
 			} else {
 				that.targetColor = targetDefaultColor;
+				that.strokeColor = strokeColor;
 			}
+
+			if (that.strokeColor - strokeColor > 2) {
+				that.strokeColor -= 2;
+			} else if (that.strokeColor - strokeColor < -2) {
+				that.strokeColor += 2;
+			} else {
+				that.strokeColor = strokeColor;
+			}
+
 		}
 
 		that.fadeTimeoutScroll = setTimeout(function () {
@@ -1418,7 +1449,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 			that._animateArrow(true, that.arrowState);
 
 			if (that.mouseUp && !that.mouseDown) {
-				that._drawScroll(hoverColor, targetHoverColor, strokeColor);
+				that._drawScroll(hoverColor, targetHoverColor, strokeHoverColor);
 			}
 			else if(that.mouseDown && that.scrollerMouseDown) {
 				that._drawScroll(activeColor, targetActiveColor, strokeActiveColor);
@@ -1426,6 +1457,9 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		} else if (this.animState === AnimationType.SCROLL_ACTIVE) {
 			that._animateArrow(false, that.arrowState);
 			that._drawScroll(activeColor, targetActiveColor, strokeActiveColor);
+		} else if (this.animState === AnimationType.ARROW_HOVER && lastAnimState === AnimationType.ARROW_HOVER) {
+			    that._animateArrow(true, that.arrowState);
+			    that._drawScroll(hoverColor, targetHoverColor, strokeHoverColor);
 		} else return;
 	};
 
