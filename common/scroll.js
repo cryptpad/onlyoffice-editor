@@ -381,8 +381,6 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		this.targetColor = _HEXTORGB_(this.settings.targetColor).R;
 		this.strokeColor = _HEXTORGB_(this.settings.strokeStyleNone).R;
 
-		this.theme = AscCommon.GlobalSkin.Name;
-
         this.fadeTimeoutScroll = null;
         this.fadeTimeoutArrows = null;
 
@@ -598,13 +596,15 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 	ScrollObject.prototype.Repos = function ( settings, bIsHorAttack, bIsVerAttack, pos ) {
 		var dPR = AscBrowser.retinaPixelRatio;
 
-		if (settings)
+		var isChangeTheme = settings && this.settings.scrollBackgroundColor !== settings.scrollBackgroundColor;
+
+		if (isChangeTheme)
 		{
 			for ( var i in settings )
 				this.settings[i] = settings[i];
 		}
 
-		if(this.settings.showArrows) {
+		if (this.settings.showArrows) {
 			this.settings.arrowSizeW = Math.round(13 * dPR);
 			this.settings.arrowSizeH = Math.round(13 * dPR);
 			this.ArrowDrawer.InitSize(this.settings.arrowSizeH, this.settings.arrowSizeW, this.IsRetina);
@@ -689,12 +689,11 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		}
 		this.reinit = false;
 
-		if (this.isResizeArrows || this.theme !== AscCommon.GlobalSkin.Name) {
+		if (this.isResizeArrows || isChangeTheme) {
 
 		    this.firstArrow = {arrowColor: _HEXTORGB_(this.settings.arrowColor).R, arrowBackColor: _HEXTORGB_(this.settings.scrollerColor).R};
 		    this.secondArrow = {arrowColor: _HEXTORGB_(this.settings.arrowColor).R, arrowBackColor: _HEXTORGB_(this.settings.scrollerColor).R};
 			this._drawArrows();
-			this.theme = AscCommon.GlobalSkin.Name;
 		}
 		this._initPiperImg();
 		this._draw();
