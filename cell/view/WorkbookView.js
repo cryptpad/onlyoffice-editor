@@ -2909,6 +2909,31 @@
     var ws = this.getWorksheet();
     ws.objectRender.showDrawingObjects();
   };
+    WorkbookView.prototype.handleChartsOnWBChange = function(aRanges) {
+        this.model.handleChartsOnWBChange(aRanges);
+        this.recalculateDrawingObjects(null, false);
+    };
+    WorkbookView.prototype.recalculateDrawingObjects = function(oHistoryPoint, bAll) {
+        var aWSVies = this.wsViews;
+        var oWSView, oDrawingsRender;
+        History.Get_RecalcData(oHistoryPoint);
+        for (var i = 0; i < aWSVies.length; ++i) {
+            oWSView = aWSVies[i];
+            if(oWSView) {
+                oDrawingsRender = oWSView.objectRender;
+                if(oDrawingsRender) {
+                    oDrawingsRender.recalculate(bAll);
+                }
+            }
+        }
+        oWSView = this.getActiveWS();
+        if(oWSView) {
+            oDrawingsRender = oWSView.objectRender;
+            if(oDrawingsRender) {
+                oDrawingsRender.showDrawingObjects(null);
+            }
+        }
+    };
 
   WorkbookView.prototype.insertHyperlink = function(options) {
     var ws = this.getWorksheet();

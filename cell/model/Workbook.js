@@ -3475,6 +3475,13 @@
 			this.aWorksheets[i].handleDrawings(fCallback);
 		}
 	};
+	Workbook.prototype.handleChartsOnWBChange = function (aRanges) {
+		this.handleDrawings(function(oDrawing) {
+			if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+				oDrawing.onWorkbookUpdate(aRanges);
+			}
+		})
+	};
 
 	Workbook.prototype.cleanCollaborativeFilterObj = function () {
 		if (!Asc.CT_NamedSheetView.prototype.asc_getName) {

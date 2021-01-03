@@ -157,26 +157,7 @@ DrawingObjectsController.prototype.recalculate = function(bAll, Point, bCheckPoi
     {
         History.Get_RecalcData(Point);//Только для таблиц
     }
-    if(bAll)
-    {
-        var drawings = this.getDrawingObjects();
-        for(var i = 0; i < drawings.length; ++i)
-        {
-            if(drawings[i].recalcText)
-            {
-                drawings[i].recalcText();
-            }
-            drawings[i].recalculate();
-        }
-    }
-    else
-    {
-        for(var key in this.objectsForRecalculate)
-        {
-            this.objectsForRecalculate[key].recalculate();
-        }
-    }
-    this.objectsForRecalculate = {};
+    this.recalculate2(bAll);
 };
 
 DrawingObjectsController.prototype.recalculate2 = function(bAll)

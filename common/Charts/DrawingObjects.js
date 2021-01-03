@@ -3048,35 +3048,6 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         }
     };
 
-    _this.rebuildChartGraphicObjects = function(aBBoxes)
-    {
-        if(!worksheet){
-            return;
-        }
-        if(aBBoxes.length === 0) {
-            return;
-        }
-        var oWB = api && api.wb && api.wb.model;
-        if(!oWB) {
-            return;
-        }
-        var oWS = worksheet && worksheet.model;
-        if(!oWS) {
-            return;
-        }
-        var aRanges = [];
-        for(var nBBox = 0; nBBox < aBBoxes.length; ++nBBox) {
-            var oBBox = aBBoxes[nBBox];
-            aRanges.push(new AscCommonExcel.Range(oWS, oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2));
-        }
-        oWB.handleDrawings(function(oDrawing) {
-            if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
-                oDrawing.onWorkbookUpdate(aRanges)
-            }
-        });
-
-    };
-
     _this.pushToAObjects = function(aDrawing)
     {
         aObjects = [];

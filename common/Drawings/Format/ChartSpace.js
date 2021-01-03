@@ -12430,8 +12430,6 @@ var GLOBAL_PATH_COUNT = 0;
                 for(var nRef = 0; nRef < aRefs.length; ++nRef) {
                     aRefs[nRef].updateCache();
                 }
-                oThis.handleUpdateInternalChart();
-                oThis.recalculate();
             }, this, []);
         }
     };

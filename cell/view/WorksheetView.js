@@ -951,10 +951,12 @@
             t._updateVisibleColsCount();
 			t.cellCommentator.updateActiveComment();
             t.cellCommentator.updateAreaComments();
+
+            if(bIsHidden !==  t.model.getColHidden(col)) {
+                var oRange = new AscCommonExcel.Range(t.model, 0, col, gc_nMaxRow0, col);
+                Asc.editor.wb.handleChartsOnWBChange([oRange]);
+            }
             if (t.objectRender) {
-                if(bIsHidden !==  t.model.getColHidden(col)) {
-                    t.objectRender.rebuildChartGraphicObjects([new asc_Range(col, 0, col, gc_nMaxRow0)]);
-                }
                 t.objectRender.updateSizeDrawingObjects({target: AscCommonExcel.c_oTargetType.ColumnResize, col: col});
             }
 			if (viewMode) {
@@ -1002,6 +1004,7 @@
                 return;
             }
 
+            var bIsHidden = t.model.getRowHidden(row)
 			if (viewMode) {
 				History.TurnOff();
 			}
@@ -1013,8 +1016,11 @@
             t._updateVisibleRowsCount();
 			t.cellCommentator.updateActiveComment();
 			t.cellCommentator.updateAreaComments();
+            if(bIsHidden !==  t.model.getRowHidden(row)) {
+                var oRange = new AscCommonExcel.Range(t.model, row, gc_nMaxCol0, row, gc_nMaxCol0);
+                Asc.editor.wb.handleChartsOnWBChange([oRange]);
+            }
             if (t.objectRender) {
-				t.objectRender.rebuildChartGraphicObjects([new asc_Range(0, row, gc_nMaxCol0, row)]);
                 t.objectRender.updateSizeDrawingObjects({target: AscCommonExcel.c_oTargetType.RowResize, row: row});
             }
 			if (viewMode) {
@@ -13147,7 +13153,13 @@
 						updateDrawingObjectsInfo2.operType, updateDrawingObjectsInfo2.updateRange);
 				}
 				t.model.onUpdateRanges(arrChangedRanges);
-				t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
+                var aRanges = [];
+                var oBBox;
+                for(var nRange = 0; nRange < arrChangedRanges.length; ++nRange) {
+                    oBBox = arrChangedRanges[nRange];
+                    aRanges.push(new AscCommonExcel.Range(t.model, oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2));
+                }
+                Asc.editor.wb.handleChartsOnWBChange(aRanges);
 			}
 			t.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
 			t.draw(lockDraw);
@@ -14684,7 +14696,13 @@
 			}
 
 			this.model.onUpdateRanges(ranges);
-			this.objectRender.rebuildChartGraphicObjects(ranges);
+            var aRanges = [];
+            var oBBox;
+            for(var nRange = 0; nRange < ranges.length; ++nRange) {
+                oBBox = ranges[nRange];
+                aRanges.push(new AscCommonExcel.Range(t.model, oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2));
+            }
+            Asc.editor.wb.handleChartsOnWBChange(aRanges);
 			this.cellCommentator.updateActiveComment();
 
 			if (this._initRowsCount()) {
@@ -15481,7 +15499,13 @@
 		this._updateDrawingArea();
 		var arrChanged = [new asc_Range(range.c1, 0, range.c2, gc_nMaxRow0)];
 		this.model.onUpdateRanges(arrChanged);
-		this.objectRender.rebuildChartGraphicObjects(arrChanged);
+        var aRanges = [];
+        var oBBox;
+        for(var nRange = 0; nRange < arrChanged.length; ++nRange) {
+            oBBox = arrChanged[nRange];
+            aRanges.push(new AscCommonExcel.Range(t.model, oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2));
+        }
+        Asc.editor.wb.handleChartsOnWBChange(aRanges);
 		this.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
 		this.draw(lockDraw);
 		this._updateSelectionNameAndInfo();
@@ -19412,7 +19436,13 @@
 		if (t.objectRender) {
 			t._updateDrawingArea();
 			t.model.onUpdateRanges(arrChangedRanges);
-			t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
+            var aRanges = [];
+            var oBBox;
+            for(var nRange = 0; nRange < arrChangedRanges.length; ++nRange) {
+                oBBox = arrChangedRanges[nRange];
+                aRanges.push(new AscCommonExcel.Range(t.model, oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2));
+            }
+            Asc.editor.wb.handleChartsOnWBChange(aRanges);
 		}
 
 		if(updateRow) {

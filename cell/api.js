@@ -4083,13 +4083,7 @@ var editor;
   spreadsheet_api.prototype.asc_ApplyColorScheme = function(bRedraw) {
 
     if (window['IS_NATIVE_EDITOR'] || !window["NATIVE_EDITOR_ENJINE"]) {
-      var wsViews = Asc["editor"].wb.wsViews;
-      History.Get_RecalcData();
-      for (var i = 0; i < wsViews.length; ++i) {
-        if (wsViews[i] && wsViews[i].objectRender && wsViews[i].objectRender.controller) {
-          wsViews[i].objectRender.controller.startRecalculate(false);
-        }
-      }
+      Asc["editor"].wb.recalculateDrawingObjects();
       this.chartPreviewManager.clearPreviews();
       this.textArtPreviewManager.clear();
     }
