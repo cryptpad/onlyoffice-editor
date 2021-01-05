@@ -1412,6 +1412,14 @@
 				}
 			};
 		}
+
+// CryptPad print
+if (window.parent.APP.printPdf && DownloadType.Print === downloadType) {
+    window.parent.APP.printPdf(dataContainer, options.callback || this.fCurCallback);
+    return;
+}
+
+
 		AscCommon.saveWithParts(function(fCallback1, oAdditionalData1, dataContainer1) {
 			AscCommon.sendCommand(t, fCallback1, oAdditionalData1, dataContainer1);
 		}, this.fCurCallback, options.callback, oAdditionalData, dataContainer);
