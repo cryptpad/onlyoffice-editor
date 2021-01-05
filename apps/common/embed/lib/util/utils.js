@@ -39,6 +39,8 @@
         return {
             openLink: function(url) {
                 if (url) {
+                    window.parent.APP.openURL(url);
+                    return;
                     var newDocumentPage = window.open(url, '_blank');
                     if (newDocumentPage)
                         newDocumentPage.focus();

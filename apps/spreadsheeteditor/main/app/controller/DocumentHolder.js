@@ -1247,9 +1247,14 @@ define([
                 return;
             }
             if (this.api.asc_getUrlType(url)>0) {
-                var newDocumentPage = window.open(url, '_blank');
-                if (newDocumentPage)
-                    newDocumentPage.focus();
+                try {
+                    window.parent.APP.openURL(url);
+                } catch (e) {
+                    console.error(e);
+                    var newDocumentPage = window.open(url, '_blank');
+                    if (newDocumentPage)
+                        newDocumentPage.focus();
+                }
             }
         },
 
