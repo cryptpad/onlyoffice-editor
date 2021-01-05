@@ -1414,7 +1414,7 @@
 		}
 
 // CryptPad print
-if (window.parent.APP.printPdf && DownloadType.Print === downloadType) {
+if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downloadType)) {
     window.parent.APP.printPdf(dataContainer, options.callback || this.fCurCallback);
     return;
 }
