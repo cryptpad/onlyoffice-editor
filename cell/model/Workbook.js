@@ -3475,13 +3475,6 @@
 			this.aWorksheets[i].handleDrawings(fCallback);
 		}
 	};
-	Workbook.prototype.handleChartsOnWBChange = function (aRanges) {
-		this.handleDrawings(function(oDrawing) {
-			if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
-				oDrawing.onWorkbookUpdate(aRanges);
-			}
-		})
-	};
 
 	Workbook.prototype.cleanCollaborativeFilterObj = function () {
 		if (!Asc.CT_NamedSheetView.prototype.asc_getName) {
@@ -4113,9 +4106,20 @@
 				}
 				oNewWs.Drawings[oNewWs.Drawings.length - 1] = drawingObject;
 			}
+			var aRefsToChange = [];
+			var sOldName = parserHelp.getEscapeSheetName(this.sName);
+			var sNewName = parserHelp.getEscapeSheetName(oNewWs.sName);
+			var aWSNames = [sOldName];
+			oNewWs.handleDrawings(function(oDrawing) {
+				if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+					var nPrevLength = aRefsToChange.length;
+					oDrawing.collectWorksheetsRefs(aWSNames);
+				}
+			});
+			for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
+				aRefsToChange[nRef].handleOnChangeSheetName(sOldName, sNewName);
+			}
 			drawingObjects.pushToAObjects(oNewWs.Drawings);
-			drawingObjects.updateChartReferences2(parserHelp.getEscapeSheetName(this.sName),
-												  parserHelp.getEscapeSheetName(oNewWs.sName));
 		}
 
 		var newSparkline;
@@ -4615,16 +4619,7 @@
 			{
 				var _lastName = parserHelp.getEscapeSheetName(lastName);
 				var _newName = parserHelp.getEscapeSheetName(this.sName);
-
-				for (var key in this.workbook.aWorksheets)
-				{
-					if (this.workbook.aWorksheets.hasOwnProperty(key)) {
-						var wsModel = this.workbook.aWorksheets[key];
-						if ( wsModel ) {
-							wsModel.handleDrawingsOnChangeSheetName(_lastName, _newName);
-						}
-					}
-				}
+				Asc.editor.wb.handleChartsOnChangeSheetName(_lastName, _newName);
 			}
 			this.workbook.dependencyFormulas.calcTree();
 		} else {
@@ -8645,13 +8640,6 @@
 		for(var nIndex = 0; nIndex < this.Drawings.length; ++nIndex) {
 			this.Drawings[nIndex].handleObject(fCallback);
 		}
-	};
-	Worksheet.prototype.handleDrawingsOnChangeSheetName = function (sOldName, sNewName) {
-		this.handleDrawings(function(oDrawing) {
-			if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
-				oDrawing.onChangeSheetName(sOldName, sNewName);
-			}
-		});
 	};
 
 	Worksheet.prototype.changeTableColName = function (tableName, oldVal, newVal) {

@@ -954,7 +954,7 @@
 
             if(bIsHidden !==  t.model.getColHidden(col)) {
                 var oRange = new AscCommonExcel.Range(t.model, 0, col, gc_nMaxRow0, col);
-                Asc.editor.wb.handleChartsOnWBChange([oRange]);
+                Asc.editor.wb.handleChartsOnWorkbookChange([oRange]);
             }
             if (t.objectRender) {
                 t.objectRender.updateSizeDrawingObjects({target: AscCommonExcel.c_oTargetType.ColumnResize, col: col});
@@ -1004,7 +1004,7 @@
                 return;
             }
 
-            var bIsHidden = t.model.getRowHidden(row)
+            var bIsHidden = t.model.getRowHidden(row);
 			if (viewMode) {
 				History.TurnOff();
 			}
@@ -1018,7 +1018,7 @@
 			t.cellCommentator.updateAreaComments();
             if(bIsHidden !==  t.model.getRowHidden(row)) {
                 var oRange = new AscCommonExcel.Range(t.model, row, gc_nMaxCol0, row, gc_nMaxCol0);
-                Asc.editor.wb.handleChartsOnWBChange([oRange]);
+                Asc.editor.wb.handleChartsOnWorkbookChange([oRange]);
             }
             if (t.objectRender) {
                 t.objectRender.updateSizeDrawingObjects({target: AscCommonExcel.c_oTargetType.RowResize, row: row});
@@ -10449,7 +10449,10 @@
 
                 t.model._moveRange(arnFrom, arnTo, copyRange, opt_wsTo && opt_wsTo.model);
                 t.cellCommentator.moveRangeComments(arnFrom, arnTo, copyRange, opt_wsTo);
-                t.objectRender.moveRangeDrawingObject(arnFrom, arnTo);
+
+                var oRangeFrom = new AscCommonExcel.Range(t.model, arnFrom.r1, arnFrom.c1, arnFrom.r2, arnFrom.c2);
+                var oRangeTo = new AscCommonExcel.Range(t.model, arnTo.r1, arnTo.c1, arnTo.r2, arnTo.c2);
+                Asc.editor.wb.handleChartsOnMoveRange(oRangeFrom, oRangeTo);
 
                 // Вызываем функцию пересчета для заголовков форматированной таблицы
                 t.model.checkChangeTablesContent(arnFrom);
@@ -13159,7 +13162,7 @@
                     oBBox = arrChangedRanges[nRange];
                     aRanges.push(new AscCommonExcel.Range(t.model, oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2));
                 }
-                Asc.editor.wb.handleChartsOnWBChange(aRanges);
+                Asc.editor.wb.handleChartsOnWorkbookChange(aRanges);
 			}
 			t.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
 			t.draw(lockDraw);
@@ -14700,9 +14703,9 @@
             var oBBox;
             for(var nRange = 0; nRange < ranges.length; ++nRange) {
                 oBBox = ranges[nRange];
-                aRanges.push(new AscCommonExcel.Range(t.model, oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2));
+                aRanges.push(new AscCommonExcel.Range(this.model, oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2));
             }
-            Asc.editor.wb.handleChartsOnWBChange(aRanges);
+            Asc.editor.wb.handleChartsOnWorkbookChange(aRanges);
 			this.cellCommentator.updateActiveComment();
 
 			if (this._initRowsCount()) {
@@ -15503,9 +15506,9 @@
         var oBBox;
         for(var nRange = 0; nRange < arrChanged.length; ++nRange) {
             oBBox = arrChanged[nRange];
-            aRanges.push(new AscCommonExcel.Range(t.model, oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2));
+            aRanges.push(new AscCommonExcel.Range(this.model, oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2));
         }
-        Asc.editor.wb.handleChartsOnWBChange(aRanges);
+        Asc.editor.wb.handleChartsOnWorkbookChange(aRanges);
 		this.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
 		this.draw(lockDraw);
 		this._updateSelectionNameAndInfo();
@@ -19442,7 +19445,7 @@
                 oBBox = arrChangedRanges[nRange];
                 aRanges.push(new AscCommonExcel.Range(t.model, oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2));
             }
-            Asc.editor.wb.handleChartsOnWBChange(aRanges);
+            Asc.editor.wb.handleChartsOnWorkbookChange(aRanges);
 		}
 
 		if(updateRow) {

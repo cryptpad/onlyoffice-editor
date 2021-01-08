@@ -12428,7 +12428,7 @@ function CorrectUniColor(asc_color, unicolor, flag)
             if(aSeriesNames[i])
             {
                 oAscSeries.TxCache.Formula =  'Sheet1!' + '$A$' + (i + 2);
-                oAscSeries.TxCache.Tx = aSeriesNames[i];
+                oAscSeries.TxCache.NumCache = [{ numFormatStr: "General", isDateTimeFormat: false, val: aSeriesNames[i], isHidden: false }];
             }
             if(oCat)
             {
@@ -12441,9 +12441,8 @@ function CorrectUniColor(asc_color, unicolor, flag)
             }
             aAscSeries.push(oAscSeries);
         }
-        var chartSeries = {series: aAscSeries, parsedHeaders: {bLeft: true, bTop: true}};
 
-        var oChartSpace = AscFormat.DrawingObjectsController.prototype._getChartSpace(chartSeries, settings, true);
+        var oChartSpace = AscFormat.DrawingObjectsController.prototype._getChartSpace(aAscSeries, settings, true);
         if(!oChartSpace)
         {
             return null;

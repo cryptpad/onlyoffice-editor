@@ -2981,7 +2981,6 @@
 			{
 				// Проверка максимального дипазона
 				var maxSeries = AscFormat.MAX_SERIES_COUNT;
-				var minStockVal = 4;
 				var maxValues = AscFormat.MAX_POINTS_COUNT;
 
 				var intervalValues, intervalSeries;
@@ -2998,25 +2997,27 @@
 
 				if (Asc.c_oAscChartTypeSettings.stock === subType)
 				{
-					var chartSettings = new Asc.asc_ChartSettings();
-					chartSettings.putType(Asc.c_oAscChartTypeSettings.stock);
-					chartSettings.putRange(dataRange);
-					chartSettings.putInColumns(!isRows);
-					var chartSeries = AscFormat.getChartSeries(sheetModel, chartSettings).series;
-					if (minStockVal !== chartSeries.length || !chartSeries[0].Val || !chartSeries[0].Val.NumCache || chartSeries[0].Val.NumCache.length < minStockVal)
+					if (!AscFormat.checkStockRange(dataRange, !isRows))
+					{
 						return Asc.c_oAscError.ID.StockChartError;
+					}
 				}
 				else if(Asc.c_oAscChartTypeSettings.comboAreaBar === subType
 						|| Asc.c_oAscChartTypeSettings.comboBarLine === subType
 						|| Asc.c_oAscChartTypeSettings.comboBarLineSecondary === subType
-						|| Asc.c_oAscChartTypeSettings.comboCustom === subType) {
-					if(intervalSeries < 2) {
+						|| Asc.c_oAscChartTypeSettings.comboCustom === subType)
+				{
+					if(intervalSeries < 2)
+					{
 						return Asc.c_oAscError.ID.ComboSeriesError;
 					}
 				}
 				else if (intervalSeries > maxSeries)
+				{
 					return Asc.c_oAscError.ID.MaxDataSeriesError;
-				else if(intervalValues > maxValues){
+				}
+				else if(intervalValues > maxValues)
+				{
 					return Asc.c_oAscError.ID.MaxDataPointsError;
 
 				}

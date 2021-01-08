@@ -2906,12 +2906,137 @@
     this.getWorksheet().draw();
   };
   WorkbookView.prototype.onShowDrawingObjects = function() {
-    var ws = this.getWorksheet();
-    ws.objectRender.showDrawingObjects();
+      var oWSView = this.getWorksheet();
+      var oDrawingsRender;
+      if(oWSView) {
+          oDrawingsRender = oWSView.objectRender;
+          if(oDrawingsRender) {
+              oDrawingsRender.showDrawingObjects(null);
+          }
+      }
   };
-    WorkbookView.prototype.handleChartsOnWBChange = function(aRanges) {
-        this.model.handleChartsOnWBChange(aRanges);
-        this.recalculateDrawingObjects(null, false);
+    WorkbookView.prototype.handleChartsOnWorkbookChange = function (aRanges) {
+        var aRefsToChange = [];
+        var aCharts = [];
+        this.model.handleDrawings(function(oDrawing) {
+            if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+                var nPrevLength = aRefsToChange.length;
+                oDrawing.collectIntersectionRefs(aRanges, aRefsToChange);
+                if(aRefsToChange.length > nPrevLength) {
+                    aCharts.push(oDrawing);
+                }
+            }
+        });
+        if(aRefsToChange.length > 0) {
+            for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
+                aRefsToChange[nRef].updateCache();
+            }
+            for(var nChart = 0; nChart < aCharts.length; ++nChart) {
+                aCharts[nChart].recalculate();
+            }
+            this.onShowDrawingObjects();
+        }
+    };
+    WorkbookView.prototype.handleChartsOnWorksheetsRemove = function (aWSNames) {
+        if(!History.CanAddChanges()) {
+            return;
+        }
+        var aRefsToChange = [];
+        var aChartsForLock = [];
+        this.model.handleDrawings(function(oDrawing) {
+            if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+                var nPrevLength = aRefsToChange.length;
+                oDrawing.collectWorksheetsRefs(aWSNames);
+                if(aRefsToChange.length > nPrevLength) {
+                    aChartsForLock.push(oDrawing);
+                }
+            }
+        });
+
+        var oThis = this;
+        this.checkDrawingsLock(aChartsForLock, function(bNoLock) {
+            if(bNoLock) {
+                for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
+                    aRefsToChange[nRef].handleRemoveWorksheets();
+                }
+                oThis.recalculateDrawingObjects(null, false);
+            }
+        });
+    };
+    WorkbookView.prototype.handleChartsOnChangeSheetName = function (sOldName, sNewName) {
+        if(!History.CanAddChanges()) {
+            return;
+        }
+        var aRefsToChange = [];
+        var aChartsForLock = [];
+        var aWSNames = [sOldName];
+        this.model.handleDrawings(function(oDrawing) {
+            if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+                var nPrevLength = aRefsToChange.length;
+                oDrawing.collectWorksheetsRefs(aWSNames);
+                if(aRefsToChange.length > nPrevLength) {
+                    aChartsForLock.push(oDrawing);
+                }
+            }
+        });
+
+        var oThis = this;
+        this.checkDrawingsLock(aChartsForLock, function(bNoLock) {
+            if(bNoLock) {
+                for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
+                    aRefsToChange[nRef].handleOnChangeSheetName(sOldName, sNewName);
+                }
+                oThis.recalculateDrawingObjects(null, false);
+            }
+        });
+    };
+    WorkbookView.prototype.handleChartsOnMoveRange = function (oRangeFrom, oRangeTo) {
+        if(!History.CanAddChanges()) {
+            return;
+        }
+        var aRefsToReplace = [];
+        var aChartsForLock = [];
+        this.model.handleDrawings(function(oDrawing) {
+            if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+                var nPrevLength = aRefsToReplace.length;
+                oDrawing.collectRefsInsideRange(oRangeFrom, aRefsToReplace);
+                if(aRefsToReplace.length > nPrevLength) {
+                    aChartsForLock.push(oDrawing);
+                }
+            }
+        });
+        var oThis = this;
+        this.checkDrawingsLock(aChartsForLock, function(bNoLock) {
+            if(bNoLock) {
+                for(var nRef = 0; nRef < aRefsToReplace.length; ++nRef) {
+                    aRefsToReplace[nRef].handleOnMoveRange(oRangeFrom, oRangeTo);
+                }
+                oThis.recalculateDrawingObjects(null, false);
+            }
+        });
+    };
+    WorkbookView.prototype.checkDrawingsLock = function(aDrawings, fCallback) {
+        var oActiveWsView = Asc.editor.wb.getWorksheet();
+        if(!oActiveWsView) {
+            return;
+        }
+        var oObjectRender = oActiveWsView.objectRender;
+        if(!oObjectRender) {
+            return;
+        }
+        var oObjectLocked = oObjectRender.objectLocker;
+        if(!oObjectLocked) {
+            return;
+        }
+        oObjectLocked.reset();
+        for(var nChart = 0; nChart < aDrawings.length; ++nChart) {
+            oObjectLocked.addObjectId(aDrawings[nChart].Id);
+        }
+        History.StartTransaction();
+        oObjectLocked.checkObjects(function(bNoLock) {
+            fCallback(bNoLock);
+            History.EndTransaction();
+        });
     };
     WorkbookView.prototype.recalculateDrawingObjects = function(oHistoryPoint, bAll) {
         var aWSVies = this.wsViews;
@@ -2926,13 +3051,7 @@
                 }
             }
         }
-        oWSView = this.getActiveWS();
-        if(oWSView) {
-            oDrawingsRender = oWSView.objectRender;
-            if(oDrawingsRender) {
-                oDrawingsRender.showDrawingObjects(null);
-            }
-        }
+        this.onShowDrawingObjects();
     };
 
   WorkbookView.prototype.insertHyperlink = function(options) {

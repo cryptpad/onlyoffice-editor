@@ -2245,12 +2245,7 @@ var editor;
         for (var i = 0; i < arrSheets.length; ++i) {
           t.wbModel.removeWorksheet(arrSheets[i].getIndex());
         }
-        t.wbModel.forEach(function (ws) {
-          var sNewName = parserHelp.getEscapeSheetName(ws.sName);
-          for(var nDeleteName = 0; nDeleteName < arrDeleteNames.length; ++nDeleteName) {
-            ws.handleDrawingsOnChangeSheetName(arrDeleteNames[nDeleteName], sNewName);
-          }
-        });
+        t.wb.handleChartsOnWorksheetsRemove(arrDeleteNames);
         t.wb.updateWorksheetByModel();
         t.wb.showWorksheet();
         History.EndTransaction();

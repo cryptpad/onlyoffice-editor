@@ -46,7 +46,6 @@ var gc_nMaxRow = AscCommon.gc_nMaxRow;
 var gc_nMaxCol = AscCommon.gc_nMaxCol;
     var History = AscCommon.History;
 
-var BBoxInfo = AscFormat.BBoxInfo;
 var MOVE_DELTA = AscFormat.MOVE_DELTA;
 
 var c_oAscError = Asc.c_oAscError;
@@ -521,7 +520,7 @@ function asc_CChartSeria() {
     this.Val = { Formula: "", NumCache: [] };
     this.xVal = { Formula: "", NumCache: [] };
     this.Cat = { Formula: "", NumCache: [] };
-    this.TxCache = { Formula: "", Tx: "" };
+    this.TxCache = { Formula: "", NumCache: [] };
     this.Marker = { Size: 0, Symbol: "" };
     this.FormatCode = "";
     this.isHidden = false;
@@ -538,8 +537,8 @@ asc_CChartSeria.prototype = {
     asc_getCatFormula: function() { return this.Cat.Formula; },
     asc_setCatFormula: function(formula) { this.Cat.Formula = formula; },
 
-    asc_getTitle: function() { return this.TxCache.Tx; },
-    asc_setTitle: function(title) { this.TxCache.Tx = title; },
+    asc_getTitle: function() { return this.TxCache.NumCache.length > 0 ? this.TxCache.NumCache[0].val : ""; },
+    asc_setTitle: function(title) { this.TxCache.NumCache = [{ numFormatStr: "General", isDateTimeFormat: false, val: title, isHidden: false }] ; },
 
     asc_getTitleFormula: function() { return this.TxCache.Formula; },
     asc_setTitleFormula: function(val) { this.TxCache.Formula = val; },
@@ -644,7 +643,7 @@ CSparklineView.prototype.initFromSparkline = function(oSparkline, oSparklineGrou
         if(oSparkline.oCache){
             ser.Val.NumCache = oSparkline.oCache;
         }
-        var chartSeries = {series: [ser], parsedHeaders: {bLeft: false, bTop: false}};
+        var chartSeries = [ser];
         var chart_space = AscFormat.DrawingObjectsController.prototype._getChartSpace(chartSeries, settings, true);
         chart_space.isSparkline = true;
         chart_space.setBDeleted(false);
@@ -3521,60 +3520,6 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         }, [], false, AscDFH.historydescription_ChartDrawingObjects);
     };
 
-
-    _this.moveRangeDrawingObject = function(oBBoxFrom, oBBoxTo) {
-        if(!History.CanAddChanges()) {
-            return;
-        }
-        var oWB = api && api.wb && api.wb.model;
-        if(!oWB) {
-            return;
-        }
-        var aRefsToReplace = [];
-        var aChartsForLock = [];
-        var oRangeFrom = new AscCommonExcel.Range(worksheet.model, oBBoxFrom.r1, oBBoxFrom.c1, oBBoxFrom.r2, oBBoxFrom.c2);
-        var oRangeTo = new AscCommonExcel.Range(worksheet.model, oBBoxTo.r1, oBBoxTo.c1, oBBoxTo.r2, oBBoxTo.c2);
-        oWB.handleDrawings(function(oDrawing) {
-            if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
-                var nPrevLength = aRefsToReplace.length;
-                oDrawing.collectRefsInsideRange(oRangeFrom, aRefsToReplace);
-                if(aRefsToReplace.length > nPrevLength) {
-                    aChartsForLock.push(oDrawing);
-                }
-            }
-        });
-        if(aChartsForLock.length > 0) {
-            _this.objectLocker.reset();
-            for(var nChart = 0; nChart < aChartsForLock.length; ++nChart) {
-                _this.objectLocker.addObjectId(aChartsForLock[nChart].Id);
-            }
-            History.StartTransaction();
-            _this.objectLocker.checkObjects(function(bNoLock) {
-                if(bNoLock) {
-                    for(var nRef = 0; nRef < aRefsToReplace.length; ++nRef) {
-                        aRefsToReplace[nRef].moveRanges(oRangeFrom, oRangeTo);
-                    }
-                }
-                History.EndTransaction();
-            });
-        }
-    };
-
-    //-----------------------------------------------------------------------------------
-    // Chart
-    //-----------------------------------------------------------------------------------
-
-    _this.updateChartReferences2 = function(oldWorksheet, newWorksheet)
-    {
-        for (var i = 0; i < aObjects.length; i++) {
-            var graphicObject = aObjects[i].graphicObject;
-            if ( graphicObject.updateChartReferences2 )
-            {
-                graphicObject.updateChartReferences2(oldWorksheet, newWorksheet);
-            }
-        }
-    };
-
     //-----------------------------------------------------------------------------------
     // Graphic object
     //-----------------------------------------------------------------------------------
@@ -4040,29 +3985,6 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         if ( !settings )
         {
             settings = new Asc.asc_ChartSettings();
-            var selectedRange = worksheet.getSelectedRange();
-            if (selectedRange)
-            {
-                var box = selectedRange.getBBox0();
-                var nRows = box.r2 - box.r1 + 1;
-                var nCols = box.c2 - box.c1 + 1;
-                if(nRows === nCols)
-                {
-                    if(nRows <= 4096 && nCols <= 4096 && worksheet && worksheet.model)
-                    {
-                        var oHeaders = AscFormat.parseSeriesHeaders(worksheet.model, box);
-                        if(oHeaders.bTop)
-                        {
-                            --nRows;
-                        }
-                        if(oHeaders.bLeft)
-                        {
-                            --nCols;
-                        }
-                    }
-                }
-                settings.putInColumns(nRows > nCols);
-            }
             settings.putRanges(worksheet.getSelectionRangeValues(true, true));
 
             settings.putStyle(2);
@@ -4083,7 +4005,6 @@ GraphicOption.prototype.union = function(oGraphicOption) {
             settings.putSeparator(",");
             settings.putLine(true);
             settings.putShowMarker(false);
-
         }
         else{
             if(true !== bNoLock){

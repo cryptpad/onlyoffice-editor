@@ -361,7 +361,7 @@ DrawingObjectsController.prototype.handleOleObjectDoubleClick = function(drawing
 DrawingObjectsController.prototype.addChartDrawingObject = function(options)
 {
     History.Create_NewPoint();
-    var chart = this.getChartSpace(this.drawingObjects.getWorksheetModel(), options, true);
+    var chart = this.getChartSpace(options, false);
     if(chart)
     {
         chart.setWorksheet(this.drawingObjects.getWorksheetModel());

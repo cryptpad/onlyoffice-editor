@@ -5001,10 +5001,10 @@ DrawingObjectsController.prototype =
 		return null;
 	},
 
-	getChartSpace: function(worksheet, options, bUseCache)
+	getChartSpace: function(options)
 	{
-		var chartSeries = AscFormat.getChartSeries(worksheet, options);
-		return this._getChartSpace(chartSeries, options, bUseCache);
+		var chartSeries = AscFormat.getChartSeries(options);
+		return this._getChartSpace(chartSeries, options, false);
 	},
 
     getChartSpace2: function(chart, options)
@@ -5022,7 +5022,7 @@ DrawingObjectsController.prototype =
             }
             ret.setBDeleted(false);
         }
-        else if(isRealObject(chart))
+        else if(Array.isArray(chart))
         {
             ret = DrawingObjectsController.prototype._getChartSpace.call(this, chart, options, true);
             ret.setBDeleted(false);
@@ -5041,8 +5041,6 @@ DrawingObjectsController.prototype =
 
 	getSeriesDefault: function (type) {
 		// Обновлены тестовые данные для новой диаграммы
-
-
         var series = [], seria, Cat;
         var  createItem = function(value) {
             return { numFormatStr: "General", isDateTimeFormat: false, val: value, isHidden: false };
@@ -5060,33 +5058,27 @@ DrawingObjectsController.prototype =
             seria.Val.Formula = "Sheet1!$B$2:$B$7";
             seria.Val.NumCache = [ createItem(46), createItem(38), createItem(24), createItem(29), createItem(11), createItem(7) ];
             seria.TxCache.Formula = "Sheet1!$B$1";
-            seria.TxCache.Tx = "Gold";
-            if (!bIsScatter)
-                seria.Cat = Cat;
-            else
-                seria.xVal = Cat;
+            seria.TxCache.NumCache = [createItem("Gold")];
+            seria.Cat = Cat;
+            seria.xVal = Cat;
             series.push(seria);
 
             seria = new AscFormat.asc_CChartSeria();
             seria.Val.Formula = "Sheet1!$C$2:$C$7";
             seria.Val.NumCache = [ createItem(29), createItem(27), createItem(26), createItem(17), createItem(19), createItem(14) ];
             seria.TxCache.Formula = "Sheet1!$C$1";
-            seria.TxCache.Tx = "Silver";
-            if (!bIsScatter)
-                seria.Cat = Cat;
-            else
-                seria.xVal = Cat;
+            seria.TxCache.NumCache = [createItem("Silver")];
+            seria.Cat = Cat;
+            seria.xVal = Cat;
             series.push(seria);
 
             seria = new AscFormat.asc_CChartSeria();
             seria.Val.Formula = "Sheet1!$D$2:$D$7";
             seria.Val.NumCache = [ createItem(29), createItem(23), createItem(32), createItem(19), createItem(14), createItem(17) ];
             seria.TxCache.Formula = "Sheet1!$D$1";
-            seria.TxCache.Tx = "Bronze";
-            if (!bIsScatter)
-                seria.Cat = Cat;
-            else
-                seria.xVal = Cat;
+            seria.TxCache.NumCache = [createItem("Bronze")];
+            seria.Cat = Cat;
+            seria.xVal = Cat;
             series.push(seria);
 
             return series;
@@ -5098,32 +5090,36 @@ DrawingObjectsController.prototype =
             seria.Val.Formula = "Sheet1!$B$2:$B$6";
             seria.Val.NumCache = [ createItem(40), createItem(21), createItem(37), createItem(49), createItem(32)];
             seria.TxCache.Formula = "Sheet1!$B$1";
-            seria.TxCache.Tx = "Open";
+            seria.TxCache.NumCache = [createItem("Open")];
             seria.Cat = Cat;
+            seria.xVal = Cat;
             series.push(seria);
 
             seria = new AscFormat.asc_CChartSeria();
             seria.Val.Formula = "Sheet1!$C$2:$C$6";
             seria.Val.NumCache = [ createItem(57), createItem(54), createItem(52), createItem(59), createItem(34)];
             seria.TxCache.Formula = "Sheet1!$C$1";
-            seria.TxCache.Tx = "High";
+            seria.TxCache.NumCache = [createItem("High")];
             seria.Cat = Cat;
+            seria.xVal = Cat;
             series.push(seria);
 
             seria = new AscFormat.asc_CChartSeria();
             seria.Val.Formula = "Sheet1!$D$2:$D$6";
             seria.Val.NumCache = [ createItem(10), createItem(14), createItem(14), createItem(12), createItem(6)];
             seria.TxCache.Formula = "Sheet1!$D$1";
-            seria.TxCache.Tx = "Low";
+            seria.TxCache.NumCache = [createItem("Low")];
             seria.Cat = Cat;
+            seria.xVal = Cat;
             series.push(seria);
 
             seria = new AscFormat.asc_CChartSeria();
             seria.Val.Formula = "Sheet1!$E$2:$E$6";
             seria.Val.NumCache = [ createItem(24), createItem(35), createItem(48), createItem(35), createItem(15)];
             seria.TxCache.Formula = "Sheet1!$E$1";
-            seria.TxCache.Tx = "Close";
+            seria.TxCache.NumCache = [createItem("Close")];
             seria.Cat = Cat;
+            seria.xVal = Cat;
             series.push(seria);
 
             return series;
@@ -6617,12 +6613,10 @@ DrawingObjectsController.prototype =
                 options.type = type;
                 options.style = 1;
                 options.putTitle(c_oAscChartTitleShowSettings.noOverlay);
-                var chartSeries = {series: DrawingObjectsController.prototype.getSeriesDefault.call(this, type),
-                    parsedHeaders: {bLeft: true, bTop: true}};
+                var chartSeries = DrawingObjectsController.prototype.getSeriesDefault.call(this, type);
                 var ret = this.getChartSpace2(chartSeries, options);
                 if (!ret) {
-                    chartSeries = {series: DrawingObjectsController.prototype.getSeriesDefault.call(this,
-                        c_oAscChartTypeSettings.barNormal), parsedHeaders: {bLeft: true, bTop: true}};
+                    chartSeries = DrawingObjectsController.prototype.getSeriesDefault.call(this, c_oAscChartTypeSettings.barNormal);
                     ret = this.getChartSpace2(chartSeries, options);
                 }
                 if(type === c_oAscChartTypeSettings.scatter)

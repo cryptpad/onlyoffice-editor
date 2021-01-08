@@ -154,14 +154,6 @@ function CGroupShape()
         }
     };
 
-    CGroupShape.prototype.checkRemoveCache = function()
-    {
-        for(var i = 0; i < this.spTree.length; ++i)
-        {
-            this.spTree[i].checkRemoveCache && this.spTree[i].checkRemoveCache();
-        }
-    };
-
     CGroupShape.prototype.documentUpdateSelectionState = function()
     {
         if(this.selection.textSelection)
