@@ -4297,7 +4297,7 @@
         this.updateDataRefs();
         return this.info;
     };
-    CChartDataRefs.prototype.getSeriesRefsFromUnionRefs = function(aRefs, bHorValue) {
+    CChartDataRefs.prototype.getSeriesRefsFromUnionRefs = function(aRefs, bHorValue, bScatter) {
         if(aRefs.length === 0) {
             return [];
         }
@@ -4426,6 +4426,18 @@
                     bHorizontalValues = true;
                 }
             }
+            if(bScatter && nTopHeader === -1 && nLeftHeader === -1) {
+                if(bHorizontalValues) {
+                    if(nRowsCount > 1) {
+                        nTopHeader = 0;
+                    }
+                }
+                else {
+                    if(nColsCount > 1) {
+                        nLeftHeader = 0;
+                    }
+                }
+            }
             oVal = new CDataRefs([]);
             oCat = new CDataRefs([]);
             oTx = new CDataRefs([]);
@@ -4541,7 +4553,7 @@
                 }
             }
             for(nRef = 0; nRef < aRefs.length; ++nRef) {
-                aSeries = aSeries.concat(this.getSeriesRefsFromUnionRefs([aRefs[nRef]], bHorizontalValues));
+                aSeries = aSeries.concat(this.getSeriesRefsFromUnionRefs([aRefs[nRef]], bHorizontalValues, false));
             }
             return aSeries;
         }
@@ -4623,7 +4635,7 @@
         }
         return aData;
     };
-    CChartDataRefs.prototype.getSeriesRefsFromSelectedRange = function(oSelectedRange) {
+    CChartDataRefs.prototype.getSeriesRefsFromSelectedRange = function(oSelectedRange, bScatter) {
         this.fillFromSelectedRange(oSelectedRange);
         if(this.info === 0) {
             return null;
@@ -4638,7 +4650,7 @@
                 else {
                     bHor = false;
                 }
-                return this.getSeriesRefsFromUnionRefs(oUnionRefs.aRefs, bHor);
+                return this.getSeriesRefsFromUnionRefs(oUnionRefs.aRefs, bHor, bScatter);
             }
             else {
                 return this.getSeriesFromFixedRefs();
@@ -4648,7 +4660,7 @@
             return this.getSeriesFromFixedRefs();
         }
     };
-    CChartDataRefs.prototype.getSwitchedRefs = function() {
+    CChartDataRefs.prototype.getSwitchedRefs = function(bScatter) {
         this.updateDataRefs();
         if(this.info === 0) {
             return null;
@@ -4681,7 +4693,7 @@
                 else {
                     bHor = true;
                 }
-                aData = this.getSeriesRefsFromUnionRefs(oUnionRefs.aRefs, bHor);
+                aData = this.getSeriesRefsFromUnionRefs(oUnionRefs.aRefs, bHor, bScatter);
             }
         }
         return aData;
@@ -6874,16 +6886,7 @@
         return false;
     };
     CPlotArea.prototype.isScatterType = function(nType) {
-        if(Asc.c_oAscChartTypeSettings.scatter === nType
-            || Asc.c_oAscChartTypeSettings.scatterLine === nType
-            || Asc.c_oAscChartTypeSettings.scatterLineMarker === nType
-            || Asc.c_oAscChartTypeSettings.scatterMarker === nType
-            || Asc.c_oAscChartTypeSettings.scatterNone === nType
-            || Asc.c_oAscChartTypeSettings.scatterSmooth === nType
-            || Asc.c_oAscChartTypeSettings.scatterSmoothMarker === nType) {
-            return true
-        }
-        return false;
+        return isScatterChartType(nType);
     };
     CPlotArea.prototype.isStockChart = function(nType) {
         if(Asc.c_oAscChartTypeSettings.stock === nType) {
@@ -16326,6 +16329,16 @@
         return ret2;
     }
 
+    function isScatterChartType(nType) {
+        return (Asc.c_oAscChartTypeSettings.scatter === nType
+        || Asc.c_oAscChartTypeSettings.scatterLine === nType
+        || Asc.c_oAscChartTypeSettings.scatterLineMarker === nType
+        || Asc.c_oAscChartTypeSettings.scatterMarker === nType
+        || Asc.c_oAscChartTypeSettings.scatterNone === nType
+        || Asc.c_oAscChartTypeSettings.scatterSmooth === nType
+        || Asc.c_oAscChartTypeSettings.scatterSmoothMarker === nType)
+    }
+
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CDLbl = CDLbl;
@@ -16394,6 +16407,7 @@
     window['AscFormat'].CalcLegendEntry = CalcLegendEntry;
     window['AscFormat'].CUnionMarker = CUnionMarker;
     window['AscFormat'].CreateMarkerGeometryByType = CreateMarkerGeometryByType;
+    window['AscFormat'].isScatterChartType = isScatterChartType;
 
     window['AscFormat'].AX_POS_L = AX_POS_L;
     window['AscFormat'].AX_POS_T = AX_POS_T;
