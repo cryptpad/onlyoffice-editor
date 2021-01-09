@@ -15435,25 +15435,27 @@
         }
     };
     CCat.prototype.fillFromAsc = function(oCatCache, bUseCache) {
-        var bVal = true;
-        var aPts = oCatCache.NumCache, oPt, nPt;
-        for(nPt = 0; nPt < aPts.length; ++nPt) {
-            oPt = aPts[nPt];
-            if(oPt) {
-                if(!oPt.isDateTimeFormat && !AscFormat.isRealNumber(parseFloat(oPt.val))) {
-                    bVal = false;
-                    break;
-                }
-            }
-        }
-        if(bVal) {
-            this.setNumRef(new CNumRef());
-            this.numRef.fillFromAsc(oCatCache, bUseCache);
-        }
-        else {
-            this.setStrRef(new CStrRef());
-            this.strRef.fillFromAsc(oCatCache, bUseCache);
-        }
+        //var bVal = true;
+        //var aPts = oCatCache.NumCache, oPt, nPt;
+        //for(nPt = 0; nPt < aPts.length; ++nPt) {
+        //    oPt = aPts[nPt];
+        //    if(oPt) {
+        //        if(!oPt.isDateTimeFormat && !AscFormat.isRealNumber(parseFloat(oPt.val))) {
+        //            bVal = false;
+        //            break;
+        //        }
+        //    }
+        //}
+        //if(bVal) {
+        //    this.setNumRef(new CNumRef());
+        //    this.numRef.fillFromAsc(oCatCache, bUseCache);
+        //}
+        //else {
+        //    this.setStrRef(new CStrRef());
+        //    this.strRef.fillFromAsc(oCatCache, bUseCache);
+        //}
+        this.setStrRef(new CStrRef());
+        this.strRef.fillFromAsc(oCatCache, bUseCache);
     };
     CCat.prototype.onChangeFormula = function(oRef) {
         if(History.CanAddChanges()) {
