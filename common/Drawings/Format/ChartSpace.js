@@ -14038,7 +14038,11 @@ var GLOBAL_PATH_COUNT = 0;
         if(typeof  sRange !== "string") {
             return [];
         }
-        var bHorValues = options.getInColumns();
+        var bInColumns = options.getInColumns();
+        var bHorValues = null;
+        if(bInColumns === true || bInColumns === false) {
+            bHorValues = !bInColumns;
+        }
         var oDataRange = new AscFormat.CChartDataRefs(null);
         var aSeriesRefs = oDataRange.getSeriesRefsFromUnionRefs(AscFormat.fParseChartFormula(sRange), bHorValues);
         if(!Array.isArray(aSeriesRefs)) {

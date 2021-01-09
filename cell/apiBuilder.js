@@ -1291,6 +1291,7 @@
 			if (AscFormat.isRealNumber(nStyleIndex)) {
 				oChart.setStyle(nStyleIndex);
 			}
+			oChart.recalculateReferences();
 			return new ApiChart(oChart);
 		};
 
