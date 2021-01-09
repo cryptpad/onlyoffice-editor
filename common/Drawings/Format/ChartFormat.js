@@ -4404,21 +4404,21 @@
                 }
             }
             bHorizontalValues = bHorValue;
+            nRowsCount = 0;
+            nColsCount = 0;
+            for(nRow = 0; nRow < aGrid.length; ++nRow) {
+                aGridRow = aGrid[nRow];
+                oRef = aGridRow[0];
+                nRowsCount += (oRef.bbox.getHeight());
+            }
+            aGridRow = aGrid[0];
+            for(nCol = 0; nCol < aGridRow.length; ++nCol) {
+                oRef = aGridRow[nCol];
+                nColsCount += (oRef.bbox.getWidth());
+            }
+            nRowsCount -= (nTopHeader + 1);
+            nColsCount -= (nLeftHeader + 1);
             if(bHorizontalValues !== true && bHorizontalValues !== false) {
-                nRowsCount = 0;
-                nColsCount = 0;
-                for(nRow = 0; nRow < aGrid.length; ++nRow) {
-                    aGridRow = aGrid[nRow];
-                    oRef = aGridRow[0];
-                    nRowsCount += (oRef.bbox.getHeight());
-                }
-                aGridRow = aGrid[0];
-                for(nCol = 0; nCol < aGridRow.length; ++nCol) {
-                    oRef = aGridRow[nCol];
-                    nColsCount += (oRef.bbox.getWidth());
-                }
-                nRowsCount -= (nTopHeader + 1);
-                nColsCount -= (nLeftHeader + 1);
                 if(nRowsCount > nColsCount) {
                     bHorizontalValues = false;
                 }
