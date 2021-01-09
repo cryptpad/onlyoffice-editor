@@ -3475,6 +3475,16 @@
 			this.aWorksheets[i].handleDrawings(fCallback);
 		}
 	};
+	Workbook.prototype.checkObjectsLock = function (aId, fCallback) {
+		if(aId.length > 0) {
+			if(Asc && Asc.editor) {
+				Asc.editor.checkObjectsLock(aId, fCallback);
+			}
+			else {
+				fCallback(true, true);
+			}
+		}
+	};
 	Workbook.prototype.handleChartsOnWorksheetsRemove = function (aWSNames) {
 		if(!History.CanAddChanges()) {
 			return;
@@ -3490,12 +3500,12 @@
 				}
 			}
 		});
-		Asc.editor.checkObjectsLock(aId, function(bNoLock) {
+		this.checkObjectsLock(aId, function(bNoLock) {
 			if(bNoLock) {
 				for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
 					aRefsToChange[nRef].handleRemoveWorksheets();
 				}
-				if(Asc.editor.wb) {
+				if(Asc.editor && Asc.editor.wb) {
 					Asc.editor.wb.recalculateDrawingObjects(null, false);
 				}
 			}
@@ -3517,12 +3527,12 @@
 				}
 			}
 		});
-		Asc.editor.checkObjectsLock(aId, function(bNoLock) {
+		this.checkObjectsLock(aId, function(bNoLock) {
 			if(bNoLock) {
 				for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
 					aRefsToChange[nRef].handleOnChangeSheetName(sOldName, sNewName);
 				}
-				if(Asc.editor.wb) {
+				if(Asc.editor && Asc.editor.wb) {
 					Asc.editor.wb.recalculateDrawingObjects(null, false);
 				}
 			}
@@ -3543,12 +3553,12 @@
 				}
 			}
 		});
-		Asc.editor.checkObjectsLock(aId, function(bNoLock) {
+		this.checkObjectsLock(aId, function(bNoLock) {
 			if(bNoLock) {
 				for(var nRef = 0; nRef < aRefsToReplace.length; ++nRef) {
 					aRefsToReplace[nRef].handleOnMoveRange(oRangeFrom, oRangeTo);
 				}
-				if(Asc.editor.wb) {
+				if(Asc.editor && Asc.editor.wb) {
 					Asc.editor.wb.recalculateDrawingObjects(null, false);
 				}
 			}
