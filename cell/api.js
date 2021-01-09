@@ -2245,7 +2245,7 @@ var editor;
         for (var i = 0; i < arrSheets.length; ++i) {
           t.wbModel.removeWorksheet(arrSheets[i].getIndex());
         }
-        t.wb.handleChartsOnWorksheetsRemove(arrDeleteNames);
+        t.wbModel.handleChartsOnWorksheetsRemove(arrDeleteNames);
         t.wb.updateWorksheetByModel();
         t.wb.showWorksheet();
         History.EndTransaction();
@@ -4759,28 +4759,25 @@ var editor;
 		return this.wbModel && this.wbModel.App || null;
 	};
 
+    spreadsheet_api.prototype.checkObjectsLock = function(aObjectsId, fCallback) {
+      if(!this.collaborativeEditing) {
+        fCallback(true, true);
+        return;
+      }
+      this.collaborativeEditing.checkObjectsLock(aObjectsId, fCallback);
+    };
     spreadsheet_api.prototype.asc_setCoreProps = function(oProps)
     {
       var oCore = this.getInternalCoreProps();
       if(!oCore) {
         return;
       }
-      var oWS = this.wb && this.wb.getWorksheet();
-      if(!oWS || !oWS.objectRender) {
-        History.Create_NewPoint();
-        oCore.setProps(oProps);
-      }
-      var oLocker = oWS.objectRender.objectLocker;
-      oLocker.reset();
-      oLocker.addObjectId(oCore.Get_Id());
-      oLocker.checkObjects(
-          function(bNoLock, bSync){
-              if(bNoLock) {
-                History.Create_NewPoint();
-                oCore.setProps(oProps);
-              }
-          }
-      );
+      this.checkObjectsLock([oCore.Get_Id()], function(bNoLock) {
+        if(bNoLock) {
+          History.Create_NewPoint();
+          oCore.setProps(oProps);
+        }
+      });
       return null;
     };
 

@@ -232,10 +232,10 @@ DrawingObjectsController.prototype.checkSelectedObjectsAndFireCallback = functio
         return;
     }
     var selection_state = this.getSelectionState();
-    this.drawingObjects.objectLocker.reset();
+    var aId = [];
     for(var i = 0; i < this.selectedObjects.length; ++i)
     {
-        this.drawingObjects.objectLocker.addObjectId(this.selectedObjects[i].Get_Id());
+        aId.push(this.selectedObjects[i].Get_Id());
     }
     var _this = this;
     var callback2 = function(bLock, bSync)
@@ -249,7 +249,7 @@ DrawingObjectsController.prototype.checkSelectedObjectsAndFireCallback = functio
             callback.apply(_this, args);
         }
     };
-    this.drawingObjects.objectLocker.checkObjects(callback2);
+    oApi.checkObjectsLock(aId, callback2);
 };
 DrawingObjectsController.prototype.onMouseDown = function(e, x, y)
 {

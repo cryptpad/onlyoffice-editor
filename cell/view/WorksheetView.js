@@ -10452,7 +10452,7 @@
 
                 var oRangeFrom = new AscCommonExcel.Range(t.model, arnFrom.r1, arnFrom.c1, arnFrom.r2, arnFrom.c2);
                 var oRangeTo = new AscCommonExcel.Range(t.model, arnTo.r1, arnTo.c1, arnTo.r2, arnTo.c2);
-                Asc.editor.wb.handleChartsOnMoveRange(oRangeFrom, oRangeTo);
+                Asc.editor.wbModel.handleChartsOnMoveRange(oRangeFrom, oRangeTo);
 
                 // Вызываем функцию пересчета для заголовков форматированной таблицы
                 t.model.checkChangeTablesContent(arnFrom);

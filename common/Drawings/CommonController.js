@@ -8896,20 +8896,23 @@ DrawingObjectsController.prototype =
     checkSelectedObjectsAndCallback: function(callback, args, bNoSendProps, nHistoryPointType, aAdditionalObjects, bNoCheckLock)
     {
         var oApi = Asc.editor;
-        if(oApi && oApi.collaborativeEditing && oApi.collaborativeEditing.getGlobalLock()){
+        if(oApi && oApi.collaborativeEditing && oApi.collaborativeEditing.getGlobalLock())
+        {
             return;
         }
         var selection_state = this.getSelectionState();
+        var aId = [], i;
         if(!(bNoCheckLock === true))
         {
-            this.drawingObjects.objectLocker.reset();
-            for(var i = 0; i < this.selectedObjects.length; ++i)
+            for(i = 0; i < this.selectedObjects.length; ++i)
             {
-                this.drawingObjects.objectLocker.addObjectId(this.selectedObjects[i].Get_Id());
+                aId.push(this.selectedObjects[i].Get_Id());
             }
-            if(aAdditionalObjects){
-                for(var i = 0; i < aAdditionalObjects.length; ++i){
-                    this.drawingObjects.objectLocker.addObjectId(aAdditionalObjects[i].Get_Id());
+            if(aAdditionalObjects)
+            {
+                for(i = 0; i < aAdditionalObjects.length; ++i)
+                {
+                    aId.push(aAdditionalObjects[i].Get_Id());
                 }
             }
         }
@@ -8943,32 +8946,18 @@ DrawingObjectsController.prototype =
         };
         if(!(bNoCheckLock === true))
         {
-            return this.drawingObjects.objectLocker.checkObjects(callback2);
+            return Asc.editor.checkObjectsLock(aId, callback2);
         }
         callback2(true, true);
         return true;
     },
 
-    checkSelectedObjectsAndCallbackNoCheckLock: function(callback, args, bNoSendProps, nHistoryPointType)
-    {
-        var nPointType = AscFormat.isRealNumber(nHistoryPointType) ? nHistoryPointType : AscDFH.historydescription_CommonControllerCheckSelected;
-        History.Create_NewPoint(nPointType);
-
-        callback.apply(this, args);
-        this.startRecalculate();
-        if(!(bNoSendProps === true))
-        {
-            this.drawingObjects.sendGraphicObjectProps();
-        }
-    },
-
     checkSelectedObjectsAndCallback2: function(callback)
     {
-        var selection_state = this.getSelectionState();
-        this.drawingObjects.objectLocker.reset();
+        var aId = [];
         for(var i = 0; i < this.selectedObjects.length; ++i)
         {
-            this.drawingObjects.objectLocker.addObjectId(this.selectedObjects[i].Get_Id());
+            aId.push(this.selectedObjects[i].Get_Id());
         }
         var _this = this;
         var callback2 = function(bLock)
@@ -8985,7 +8974,7 @@ DrawingObjectsController.prototype =
             }
 
         };
-        return this.drawingObjects.objectLocker.checkObjects(callback2);
+        return Asc.editor.checkObjectsLock(aId, callback2);
     },
 
     setGraphicObjectPropsCallBack: function(props)

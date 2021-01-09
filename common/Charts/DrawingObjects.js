@@ -1309,7 +1309,6 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 
     _this.zoom = { last: 1, current: 1 };
     _this.canEdit = null;
-    _this.objectLocker = null;
     _this.drawingArea = null;
     _this.drawingDocument = null;
     _this.asyncImageEndLoaded = null;
@@ -1944,7 +1943,6 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         drawingCtx = currentSheet.drawingGraphicCtx;
         overlayCtx = currentSheet.overlayGraphicCtx;
 
-        _this.objectLocker = new ObjectLocker(worksheet);
         _this.drawingArea = currentSheet.drawingArea;
         _this.drawingArea.init();
         _this.drawingDocument = currentSheet.getDrawingDocument();
@@ -3476,11 +3474,11 @@ GraphicOption.prototype.union = function(oGraphicOption) {
             }
         }
         if(aObjectsForCheck.length > 0) {
-            _this.objectLocker.reset();
+            var aId = [];
             for(i = 0; i < aObjectsForCheck.length; ++i) {
-                _this.objectLocker.addObjectId(aObjectsForCheck[i].object.graphicObject.Get_Id());
+                aId.push(aObjectsForCheck[i].object.graphicObject.Get_Id());
             }
-            _this.objectLocker.checkObjects(function (bLock) {
+            Asc.editor.checkObjectsLock(aId, function (bLock) {
                 var i, oObjectToCheck, oGraphicObject;
                 var bUpdateDrawingBaseCoords = (bLock === true) && History.CanAddChanges() && !History.CanNotAddChanges;
                 for(i = 0; i < aObjectsForCheck.length; ++i) {
@@ -3542,9 +3540,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         }
 
         if ( lockByDefault ) {
-            _this.objectLocker.reset();
-            _this.objectLocker.addObjectId(drawingObject.graphicObject.Id);
-            _this.objectLocker.checkObjects( function(result) {} );
+            Asc.editor.checkObjectsLock([drawingObject.graphicObject.Id], function(result) {});
         }
         worksheet.setSelectionShape(true);
 
@@ -4354,80 +4350,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 		}
 		return coords;
 	};
-
-//-----------------------------------------------------------------------------------
-// Universal object locker/checker
-//-----------------------------------------------------------------------------------
-
-function ObjectLocker(ws) {
-    var asc_applyFunction = AscCommonExcel.applyFunction;
-
-    var _t = this;
-    _t.bLock = true;
-    var aObjectId = [];
-    var worksheet = ws;
-
-    _t.reset = function() {
-        _t.bLock = true;
-        aObjectId = [];
-    };
-
-    _t.addObjectId = function(id) {
-        aObjectId.push(id);
-    };
-
-    // For array of objects -=Use reset before use=-
-    _t.checkObjects = function(callback) {
-
-        var callbackEx = function(result, sync) {
-            //if ( worksheet )
-            //	worksheet._drawCollaborativeElements(true);
-            if ( callback )
-                callback(result, sync);
-        };
-
-        if(Asc.editor && Asc.editor.collaborativeEditing && Asc.editor.collaborativeEditing.getGlobalLock()){
-            callbackEx(false, true);
-            return false;
-        }
-        var bRet = true;
-        if (!aObjectId.length) {
-            // Запрещено совместное редактирование
-            asc_applyFunction(callbackEx, true, true);
-            return bRet;
-        }
-
-        var sheetId = worksheet.model.getId();
-        worksheet.collaborativeEditing.onStartCheckLock();
-        for ( var i = 0; i < aObjectId.length; i++ ) {
-
-            var lockInfo = worksheet.collaborativeEditing.getLockInfo( AscCommonExcel.c_oAscLockTypeElem.Object, /*subType*/null, sheetId, aObjectId[i] );
-
-            if ( false === worksheet.collaborativeEditing.getCollaborativeEditing() ) {
-                // Пользователь редактирует один: не ждем ответа, а сразу продолжаем редактирование
-                asc_applyFunction(callbackEx, true, true);
-                callbackEx = undefined;
-            }
-            if ( false !== worksheet.collaborativeEditing.getLockIntersection(lockInfo, c_oAscLockTypes.kLockTypeMine) ) {
-                // Редактируем сами, проверяем дальше
-                continue;
-            }
-            else if ( false !== worksheet.collaborativeEditing.getLockIntersection(lockInfo, c_oAscLockTypes.kLockTypeOther) ) {
-                // Уже ячейку кто-то редактирует
-                asc_applyFunction(callbackEx, false);
-                return false;
-            }
-            if ( _t.bLock )
-                worksheet.collaborativeEditing.addCheckLock(lockInfo);
-        }
-        if ( _t.bLock )
-            worksheet.collaborativeEditing.onEndCheckLock(callbackEx);
-        else
-            asc_applyFunction(callbackEx, true, true);
-        return bRet;
-    }
-}
-
+    
 function ClickCounter() {
     this.x = 0;
     this.y = 0;

@@ -3475,6 +3475,85 @@
 			this.aWorksheets[i].handleDrawings(fCallback);
 		}
 	};
+	Workbook.prototype.handleChartsOnWorksheetsRemove = function (aWSNames) {
+		if(!History.CanAddChanges()) {
+			return;
+		}
+		var aRefsToChange = [];
+		var aId = [];
+		this.handleDrawings(function(oDrawing) {
+			if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+				var nPrevLength = aRefsToChange.length;
+				oDrawing.collectWorksheetsRefs(aWSNames);
+				if(aRefsToChange.length > nPrevLength) {
+					aId.push(oDrawing.Get_Id());
+				}
+			}
+		});
+		Asc.editor.checkObjectsLock(aId, function(bNoLock) {
+			if(bNoLock) {
+				for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
+					aRefsToChange[nRef].handleRemoveWorksheets();
+				}
+				if(Asc.editor.wb) {
+					Asc.editor.wb.recalculateDrawingObjects(null, false);
+				}
+			}
+		});
+	};
+	Workbook.prototype.handleChartsOnChangeSheetName = function (sOldName, sNewName) {
+		if(!History.CanAddChanges()) {
+			return;
+		}
+		var aRefsToChange = [];
+		var aId = [];
+		var aWSNames = [sOldName];
+		this.handleDrawings(function(oDrawing) {
+			if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+				var nPrevLength = aRefsToChange.length;
+				oDrawing.collectWorksheetsRefs(aWSNames);
+				if(aRefsToChange.length > nPrevLength) {
+					aId.push(oDrawing.Get_Id());
+				}
+			}
+		});
+		Asc.editor.checkObjectsLock(aId, function(bNoLock) {
+			if(bNoLock) {
+				for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
+					aRefsToChange[nRef].handleOnChangeSheetName(sOldName, sNewName);
+				}
+				if(Asc.editor.wb) {
+					Asc.editor.wb.recalculateDrawingObjects(null, false);
+				}
+			}
+		});
+	};
+	Workbook.prototype.handleChartsOnMoveRange = function (oRangeFrom, oRangeTo) {
+		if(!History.CanAddChanges()) {
+			return;
+		}
+		var aRefsToReplace = [];
+		var aId = [];
+		this.model.handleDrawings(function(oDrawing) {
+			if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+				var nPrevLength = aRefsToReplace.length;
+				oDrawing.collectRefsInsideRange(oRangeFrom, aRefsToReplace);
+				if(aRefsToReplace.length > nPrevLength) {
+					aId.push(oDrawing.Get_Id());
+				}
+			}
+		});
+		Asc.editor.checkObjectsLock(aId, function(bNoLock) {
+			if(bNoLock) {
+				for(var nRef = 0; nRef < aRefsToReplace.length; ++nRef) {
+					aRefsToReplace[nRef].handleOnMoveRange(oRangeFrom, oRangeTo);
+				}
+				if(Asc.editor.wb) {
+					Asc.editor.wb.recalculateDrawingObjects(null, false);
+				}
+			}
+		});
+	};
 
 	Workbook.prototype.cleanCollaborativeFilterObj = function () {
 		if (!Asc.CT_NamedSheetView.prototype.asc_getName) {
@@ -4112,7 +4191,6 @@
 			var aWSNames = [sOldName];
 			oNewWs.handleDrawings(function(oDrawing) {
 				if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
-					var nPrevLength = aRefsToChange.length;
 					oDrawing.collectWorksheetsRefs(aWSNames);
 				}
 			});
@@ -4619,7 +4697,7 @@
 			{
 				var _lastName = parserHelp.getEscapeSheetName(lastName);
 				var _newName = parserHelp.getEscapeSheetName(this.sName);
-				Asc.editor.wb.handleChartsOnChangeSheetName(_lastName, _newName);
+				this.workbook.handleChartsOnChangeSheetName(_lastName, _newName);
 			}
 			this.workbook.dependencyFormulas.calcTree();
 		} else {
