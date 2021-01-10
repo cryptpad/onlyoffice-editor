@@ -12854,7 +12854,7 @@
             return Asc.c_oAscChartTypeSettings.pie;
         }
     };
-    CPieChart.prototype.tryToChangeType = function(nType) {
+    CPieChart.prototype.tryChangeType = function(nType) {
         if(!this.parent) {
             return false;
         }
