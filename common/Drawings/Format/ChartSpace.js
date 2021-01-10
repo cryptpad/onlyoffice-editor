@@ -1362,7 +1362,7 @@ var GLOBAL_PATH_COUNT = 0;
     CChartSpace.prototype._getPtArrayIdx = function(oChart, nSeriesIdx, nPtIdx) {
         var oSeries = oChart.series[this._getSeriesArrayIdx(nSeriesIdx)];
         if(oSeries) {
-            var aPoints = getPtsFromSeries(oSeries);
+            var aPoints = oSeries.getNumPts();
             if(aPoints[nPtIdx] && aPoints[nPtIdx].idx === nPtIdx) {
                 return nPtIdx;
             }
@@ -1425,7 +1425,7 @@ var GLOBAL_PATH_COUNT = 0;
                 var series = this.getAllSeries();
                 var ser = series[this.selection.dataLbls];
                 if(ser) {
-                    var pts = AscFormat.getPtsFromSeries(ser);
+                    var pts = ser.getNumPts();
                     if(!AscFormat.isRealNumber(this.selection.dataLbl)) {
                         for(i = 0; i < pts.length; ++i) {
                             if(pts[i] && pts[i].compiledDlb && !pts[i].compiledDlb.bDelete) {
@@ -2015,7 +2015,7 @@ var GLOBAL_PATH_COUNT = 0;
         else if(AscFormat.isRealNumber(this.selection.dataLbls)) {
             var ser = this.getAllSeries()[this.selection.dataLbls];
             if(ser) {
-                var pts = AscFormat.getPtsFromSeries(ser);
+                var pts = ser.getNumPts();
                 if(!AscFormat.isRealNumber(this.selection.dataLbl)) {
                     return GetTextPrFormArrObjects(pts, undefined, true);
                 }
@@ -2111,7 +2111,7 @@ var GLOBAL_PATH_COUNT = 0;
         else if(AscFormat.isRealNumber(this.selection.dataLbls)) {
             var ser = this.getAllSeries()[this.selection.dataLbls];
             if(ser) {
-                var pts = AscFormat.getPtsFromSeries(ser);
+                var pts = ser.getNumPts();
                 if(!ser.dLbls) {
                     var oDlbls;
                     var oChart = ser.parent;
@@ -2357,7 +2357,7 @@ var GLOBAL_PATH_COUNT = 0;
             var oDlbls = ser.dLbls;
             if(AscFormat.isRealNumber(this.selection.dataLbl)) {
 
-                var pts = AscFormat.getPtsFromSeries(ser);
+                var pts = ser.getNumPts();
                 var pt = pts[this.selection.dataLbl];
                 if(pt) {
                     return pt.compiledDlb;
@@ -2385,7 +2385,7 @@ var GLOBAL_PATH_COUNT = 0;
                     }
                 }
                 else {
-                    var pts = AscFormat.getPtsFromSeries(ser);
+                    var pts = ser.getNumPts();
                     var pt = pts[this.selection.dataLbl];
                     if(pt) {
                         var dLbl = ser.dLbls && ser.dLbls.findDLblByIdx(pt.idx);
@@ -2415,7 +2415,7 @@ var GLOBAL_PATH_COUNT = 0;
             var oSeries = this.getSelectedSeries();
             if(oSeries) {
                 if(AscFormat.isRealNumber(this.selection.datPoint)) {
-                    var pts = AscFormat.getPtsFromSeries(oSeries);
+                    var pts = oSeries.getNumPts();
                     var datPoint = this.selection.datPoint;
                     if(oSeries.getObjectType() === AscDFH.historyitem_type_LineSeries || oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer) {
                         if(!this.selection.markers) {
@@ -2502,7 +2502,7 @@ var GLOBAL_PATH_COUNT = 0;
                     }
                 }
                 else {
-                    var pts = AscFormat.getPtsFromSeries(ser);
+                    var pts = ser.getNumPts();
                     var pt = pts[this.selection.dataLbl];
                     if(pt) {
                         var dLbl = ser.dLbls && ser.dLbls.findDLblByIdx(pt.idx);
@@ -2532,7 +2532,7 @@ var GLOBAL_PATH_COUNT = 0;
             var oSeries = this.getSelectedSeries();
             if(oSeries) {
                 if(AscFormat.isRealNumber(this.selection.datPoint)) {
-                    var pts = AscFormat.getPtsFromSeries(oSeries);
+                    var pts = oSeries.getNumPts();
                     var datPoint = this.selection.datPoint;
                     if(oSeries.getObjectType() === AscDFH.historyitem_type_LineSeries || oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer) {
                         if(!this.selection.markers) {
@@ -2673,7 +2673,7 @@ var GLOBAL_PATH_COUNT = 0;
                     oDlbls.spPr.setFill(unifill2);
                 }
                 else {
-                    var pts = AscFormat.getPtsFromSeries(ser);
+                    var pts = ser.getNumPts();
                     var pt = pts[this.selection.dataLbl];
                     if(pt) {
                         var dLbl = ser.dLbls && ser.dLbls.findDLblByIdx(pt.idx);
@@ -2733,7 +2733,7 @@ var GLOBAL_PATH_COUNT = 0;
             var oSeries = this.getSelectedSeries();
             if(oSeries) {
                 if(AscFormat.isRealNumber(this.selection.datPoint)) {
-                    var pts = AscFormat.getPtsFromSeries(oSeries);
+                    var pts = oSeries.getNumPts();
                     var datPoint = this.selection.datPoint;
                     if(oSeries.getObjectType() === AscDFH.historyitem_type_LineSeries || oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer) {
                         if(!this.selection.markers) {
@@ -2928,7 +2928,7 @@ var GLOBAL_PATH_COUNT = 0;
                     oDlbls.spPr.setLn(stroke);
                 }
                 else {
-                    var pts = AscFormat.getPtsFromSeries(ser);
+                    var pts = ser.getNumPts();
                     var pt = pts[this.selection.dataLbl];
                     if(pt) {
                         var dLbl = ser.dLbls && ser.dLbls.findDLblByIdx(pt.idx);
@@ -2991,7 +2991,7 @@ var GLOBAL_PATH_COUNT = 0;
             var oSeries = this.getSelectedSeries();
             if(oSeries) {
                 if(AscFormat.isRealNumber(this.selection.datPoint)) {
-                    var pts = AscFormat.getPtsFromSeries(oSeries);
+                    var pts = oSeries.getNumPts();
                     var datPoint = this.selection.datPoint;
                     if(oSeries.getObjectType() === AscDFH.historyitem_type_LineSeries || oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer) {
                         if(!this.selection.markers) {
@@ -3307,7 +3307,7 @@ var GLOBAL_PATH_COUNT = 0;
                     oDlbls.setDelete(true);
                 }
                 else {
-                    var pts = AscFormat.getPtsFromSeries(ser);
+                    var pts = ser.getNumPts();
                     var pt = pts[this.selection.dataLbl];
                     if(pt) {
                         var dLbl = ser.dLbls && ser.dLbls.findDLblByIdx(pt.idx);
@@ -3497,7 +3497,7 @@ var GLOBAL_PATH_COUNT = 0;
                     var series = oChart.series;
                     for(var i = 0; i < series.length; ++i) {
                         var ser = series[i];
-                        var pts = AscFormat.getPtsFromSeries(ser);
+                        var pts = ser.getNumPts();
                         for(var j = 0; j < pts.length; ++j) {
                             if(pts[j].compiledDlb) {
                                 pts[j].compiledDlb.updatePosition(posX, posY);
@@ -3756,7 +3756,7 @@ var GLOBAL_PATH_COUNT = 0;
             for(i = this.chart.plotArea.charts.length - 1; i > -1; --i) {
                 series = this.chart.plotArea.charts[i].series;
                 for(j = series.length - 1; j > -1; --j) {
-                    pts = AscFormat.getPtsFromSeries(series[i]);
+                    pts = series[i].getNumPts();
                     if(Array.isArray(pts)) {
                         for(k = pts.length - 1; k > -1; --k) {
                             pts[k].compiledDlb && pts[k].compiledDlb.txBody && pts[k].compiledDlb.txBody.content.Document_CreateFontMap(allFonts);
@@ -9088,7 +9088,7 @@ var GLOBAL_PATH_COUNT = 0;
 
                     calc_entry.calcMarkerUnion = new AscFormat.CUnionMarker();
                     union_marker = calc_entry.calcMarkerUnion;
-                    var pts = AscFormat.getPtsFromSeries(ser);
+                    var pts = ser.getNumPts();
                     switch(ser.getObjectType()) {
                         case AscDFH.historyitem_type_BarSeries:
                         case AscDFH.historyitem_type_BubbleSeries:
@@ -9119,7 +9119,7 @@ var GLOBAL_PATH_COUNT = 0;
                                 break;
                             }
                             if(ser.compiledSeriesMarker) {
-                                var pts = AscFormat.getPtsFromSeries(ser);
+                                var pts = ser.getNumPts();
                                 union_marker.marker = AscFormat.CreateMarkerGeometryByType(ser.compiledSeriesMarker.symbol, null);
                                 if(pts[0] && pts[0].compiledMarker) {
                                     union_marker.marker.brush = pts[0].compiledMarker.brush;
@@ -9151,14 +9151,14 @@ var GLOBAL_PATH_COUNT = 0;
                     ser = series[i];
                     ++i;
                 }
-                var pts = AscFormat.getPtsFromSeries(ser), pt;
+                var pts = ser.getNumPts(), pt;
                 var cat_str_lit;
                 if(ser && ser.cat) {
                     cat_str_lit = ser.cat.getStringPointsLit();
                 }
                 this.legendLength = pts.length;
 
-                var oNumLit = getNumLit(ser);
+                var oNumLit = ser.getNumLit();
                 var nEndIndex = pts.length;
                 if(oNumLit) {
                     nEndIndex = oNumLit.ptCount;
@@ -10021,7 +10021,7 @@ var GLOBAL_PATH_COUNT = 0;
                     var oChart = this.chart.plotArea.charts[t];
                     var series = oChart.series;
                     for(var i = 0; i < series.length; ++i) {
-                        var pts = AscFormat.getPtsFromSeries(series[i]);
+                        var pts = series[i].getNumPts();
                         var oCalcObjects = [], nCalcId = 0;
                         for(var j = 0; j < pts.length; ++j) {
                             var pt = pts[j];
@@ -10310,8 +10310,7 @@ var GLOBAL_PATH_COUNT = 0;
                             series[i].brush = series[i].compiledSeriesBrush;
                             series[i].pen = series[i].compiledSeriesPen;
                             fSaveChartObjectSourceFormatting(series[i], seriesCopy[i], oTheme, oColorMap);
-                            var pts = AscFormat.getPtsFromSeries(series[i]);
-                            var ptsCopy = AscFormat.getPtsFromSeries(seriesCopy[i]);
+                            var pts = series[i].getNumPts();
                             for(var j = 0; j < pts.length; ++j) {
                                 var pt = pts[j];
                                 oDataPoint = null;
@@ -10709,7 +10708,7 @@ var GLOBAL_PATH_COUNT = 0;
                 var nLblCount = 0;
                 for(var i = 0; i < series.length; ++i) {
                     var ser = series[i];
-                    var pts = AscFormat.getPtsFromSeries(ser);
+                    var pts = ser.getNumPts();
 
 
                     var series_dlb = new AscFormat.CDLbl();
@@ -10827,7 +10826,7 @@ var GLOBAL_PATH_COUNT = 0;
                     var base_fills2 = getArrayFillsFromBase(style.fill2, getMaxIdx(series));
                     for(var ii = 0; ii < series.length; ++ii) {
                         var ser = series[ii];
-                        var pts = AscFormat.getPtsFromSeries(ser);
+                        var pts = ser.getNumPts();
                         this.ptsCount += pts.length;
 
                         ser.compiledSeriesBrush = new AscFormat.CUniFill();
@@ -10984,7 +10983,7 @@ var GLOBAL_PATH_COUNT = 0;
                                 for(var i = 0; i < series.length; ++i) {
                                     var default_line = parents.theme.themeElements.fmtScheme.lnStyleLst[0];
                                     var ser = series[i];
-                                    var pts = AscFormat.getPtsFromSeries(ser);
+                                    var pts = ser.getNumPts();
                                     this.ptsCount += pts.length;
                                     var compiled_line = new AscFormat.CLn();
                                     compiled_line.merge(default_line);
@@ -11031,7 +11030,7 @@ var GLOBAL_PATH_COUNT = 0;
                                     }
                                     ser.compiledSeriesBrush = compiled_brush;
                                     ser.compiledSeriesBrush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
-                                    var pts = AscFormat.getPtsFromSeries(ser);
+                                    var pts = ser.getNumPts();
                                     for(var j = 0; j < pts.length; ++j) {
                                         pts[j].brush = ser.compiledSeriesBrush;
                                         if(Array.isArray(ser.dPt) && !(ser.getObjectType && ser.getObjectType() === AscDFH.historyitem_type_AreaSeries)) {
@@ -11112,7 +11111,7 @@ var GLOBAL_PATH_COUNT = 0;
                             for(var i = 0; i < series.length; ++i) {
                                 var default_line = parents.theme.themeElements.fmtScheme.lnStyleLst[0];
                                 var ser = series[i];
-                                var pts = AscFormat.getPtsFromSeries(ser);
+                                var pts = ser.getNumPts();
                                 this.ptsCount += pts.length;
                                 if(oChart.scatterStyle === AscFormat.SCATTER_STYLE_SMOOTH || oChart.scatterStyle === AscFormat.SCATTER_STYLE_SMOOTH_MARKER) {
                                     if(!AscFormat.isRealBool(ser.smooth)) {
@@ -11282,7 +11281,7 @@ var GLOBAL_PATH_COUNT = 0;
                                     compiled_brush.merge(ser.spPr.Fill);
                                 }
                                 ser.compiledSeriesBrush = compiled_brush.createDuplicate();
-                                var pts = AscFormat.getPtsFromSeries(ser);
+                                var pts = ser.getNumPts();
                                 this.ptsCount += pts.length;
                                 for(var j = 0; j < pts.length; ++j) {
                                     pts[j].brush = ser.compiledSeriesBrush;
@@ -11397,7 +11396,7 @@ var GLOBAL_PATH_COUNT = 0;
                 for(var i = 0; i < series.length; ++i) {
                     var ser = series[i];
                     ser.compiledSeriesMarker = null;
-                    pts = AscFormat.getPtsFromSeries(ser);
+                    pts = ser.getNumPts();
                     for(var j = 0; j < pts.length; ++j) {
                         pts[j].compiledMarker = null;
                     }
@@ -11429,7 +11428,7 @@ var GLOBAL_PATH_COUNT = 0;
                         var ser = oCurChart.series[0], pts;
                         if(ser.marker && ser.marker.symbol === AscFormat.SYMBOL_NONE && (!Array.isArray(ser.dPt) || ser.dPt.length === 0))
                             return;
-                        pts = AscFormat.getPtsFromSeries(ser);
+                        pts = ser.getNumPts();
                         var series_marker = ser.marker;
                         var brushes = getArrayFillsFromBase(fill, getMaxIdx(pts));
 
@@ -11535,7 +11534,7 @@ var GLOBAL_PATH_COUNT = 0;
                             ser.compiledSeriesMarker.brush = compiled_marker.spPr.Fill;
                             ser.compiledSeriesMarker.brush.calculate(parent_objects.theme, parent_objects.slide, parent_objects.layout, parent_objects.master, RGBA, oThis.clrMapOvr);
                             ser.compiledSeriesMarker.pen.calculate(parent_objects.theme, parent_objects.slide, parent_objects.layout, parent_objects.master, RGBA, oThis.clrMapOvr);
-                            pts = AscFormat.getPtsFromSeries(ser);
+                            pts = ser.getNumPts();
                             for(var j = 0; j < pts.length; ++j) {
                                 var d_pt = null;
                                 if(Array.isArray(ser.dPt)) {
@@ -11851,7 +11850,7 @@ var GLOBAL_PATH_COUNT = 0;
                         var _len = oChart.getObjectType() === AscDFH.historyitem_type_PieChart ? 1 : series.length;
                         for(var i = 0; i < _len; ++i) {
                             var ser = series[i];
-                            var pts = AscFormat.getPtsFromSeries(ser);
+                            var pts = ser.getNumPts();
                             for(var j = 0; j < pts.length; ++j) {
                                 if(pts[j].compiledDlb)
                                     pts[j].compiledDlb.draw(graphics);
@@ -12103,7 +12102,7 @@ var GLOBAL_PATH_COUNT = 0;
         if(oFirstSpPrPreset) {
             oStyle = AscFormat.CHART_STYLE_MANAGER.getStyleByIndex(this.style);
             if(oSeries.getObjectType() === AscDFH.historyitem_type_PieSeries) {
-                aPts = AscFormat.getPtsFromSeries(oSeries);
+                aPts = oSeries.getNumPts();
                 aBaseFills = AscFormat.getArrayFillsFromBase(oStyle.fill2, aPts.length);
                 for(nPt = 0; nPt < aPts.length; ++nPt) {
                     var oDPt = new AscFormat.CDPt();
@@ -12419,32 +12418,7 @@ var GLOBAL_PATH_COUNT = 0;
     CChartSpace.prototype.is3dChart = function() {
         return AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(this);
     };
-    function getNumLit(ser) {
-        if(ser) {
-            if(ser.val) {
-                if(ser.val.numRef && ser.val.numRef.numCache)
-                    return ser.val.numRef.numCache;
-                else if(ser.val.numLit)
-                    return ser.val.numLit;
-            }
-            else if(ser.yVal) {
-                if(ser.yVal.numRef && ser.yVal.numRef.numCache)
-                    return ser.yVal.numRef.numCache;
-                else if(ser.yVal.numLit)
-                    return ser.yVal.numLit;
-            }
-        }
-        return null;
-    }
-
-    function getPtsFromSeries(ser) {
-        var oNumLit = getNumLit(ser);
-        if(oNumLit) {
-            return oNumLit.pts
-        }
-        return [];
-    }
-
+    
 
     function getMaxIdx(arr) {
         var max_idx = 0;
@@ -14169,7 +14143,6 @@ var GLOBAL_PATH_COUNT = 0;
     window['AscFormat'].G_O_NO_ACTIVE_COMMENT_BRUSH = G_O_NO_ACTIVE_COMMENT_BRUSH;
     window['AscFormat'].G_O_ACTIVE_COMMENT_BRUSH = G_O_ACTIVE_COMMENT_BRUSH;
     window['AscFormat'].CChartSpace = CChartSpace;
-    window['AscFormat'].getPtsFromSeries = getPtsFromSeries;
     window['AscFormat'].CreateUnfilFromRGB = CreateUnfilFromRGB;
     window['AscFormat'].CreateUniFillSolidFillWidthTintOrShade = CreateUniFillSolidFillWidthTintOrShade;
     window['AscFormat'].CreateUnifillSolidFillSchemeColor = CreateUnifillSolidFillSchemeColor;

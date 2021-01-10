@@ -11256,7 +11256,7 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
         lit = null;
         ser = oChart.series[i];
         val = ser.val || ser.yVal;
-        var pts = AscFormat.getPtsFromSeries(ser);
+        var pts = ser.getNumPts();
         if(val){
             if(val.numRef && val.numRef.numCache)
             {

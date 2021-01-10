@@ -660,7 +660,7 @@ CSparklineView.prototype.initFromSparkline = function(oSparkline, oSparklineGrou
         chart_space.recalculateReferences();
         chart_space.recalcInfo.recalculateReferences = false;
         var oSerie = chart_space.chart.plotArea.charts[0].series[0];
-        var aSeriesPoints = AscFormat.getPtsFromSeries(oSerie);
+        var aSeriesPoints = oSerie.getNumPts();
 
         var val_ax_props = new AscCommon.asc_ValAxisSettings();
         var i, fMinVal = null, fMaxVal = null;
@@ -755,7 +755,7 @@ CSparklineView.prototype.initFromSparkline = function(oSparkline, oSparklineGrou
         AscFormat.DrawingObjectsController.prototype.applyPropsToChartSpace(settings, chart_space);
 
         oSerie = chart_space.chart.plotArea.charts[0].series[0];
-        aSeriesPoints = AscFormat.getPtsFromSeries(oSerie);
+        aSeriesPoints = oSerie.getNumPts();
         if(!chart_space.spPr)
             chart_space.setSpPr(new AscFormat.CSpPr());
 
@@ -1180,7 +1180,7 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
 
         if(oSparklineGroup.displayXAxis)
         {
-             var  aSeriesPoints = AscFormat.getPtsFromSeries(this.chartSpace.chart.plotArea.charts[0].series[0]);
+             var  aSeriesPoints = this.chartSpace.chart.plotArea.charts[0].series[0].getNumPts();
             if(aSeriesPoints.length > 1)
             {
                 aSeriesPoints = [].concat(aSeriesPoints);
@@ -2900,7 +2900,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 					sparkline.oCacheView = new CSparklineView();
 					sparkline.oCacheView.initFromSparkline(sparkline, oSparklineGroup, worksheet);
                 }
-                var aPoints = AscFormat.getPtsFromSeries(sparkline.oCacheView.chartSpace.chart.plotArea.charts[0].series[0]);
+                var aPoints = sparkline.oCacheView.chartSpace.chart.plotArea.charts[0].series[0].getNumPts();
                 for(j = 0; j < aPoints.length; ++j)
                 {
                     ++nPtCount;

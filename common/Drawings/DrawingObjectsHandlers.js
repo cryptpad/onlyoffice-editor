@@ -1429,7 +1429,7 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
             for(var i = _len - 1; i > -1; --i)
             {
                 var ser = series[i];
-                var pts = AscFormat.getPtsFromSeries(ser);
+                var pts = ser.getNumPts();
                 var oDLbl;
                 for(var j = 0; j < pts.length; ++j)
                 {

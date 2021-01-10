@@ -5242,7 +5242,7 @@
     };
     CSeriesBase.prototype.getFirstPointFormatCode = function() {
         var sDefaultValAxFormatCode = null;
-        var aPoints = AscFormat.getPtsFromSeries(this);
+        var aPoints = this.getNumPts();
         if(aPoints[0] && typeof aPoints[0].formatCode === "string" && aPoints[0].formatCode.length > 0) {
             sDefaultValAxFormatCode = aPoints[0].formatCode;
         }
@@ -5329,6 +5329,28 @@
             this.setTx(new CTx());
             this.tx.fillFromAsc(oAscTx, bUseCache);
         }
+    };
+    CSeriesBase.prototype.getNumLit = function() {
+        if(this.val) {
+            if(this.val.numRef && this.val.numRef.numCache)
+                return this.val.numRef.numCache;
+            else if(this.val.numLit)
+                return this.val.numLit;
+        }
+        else if(this.yVal) {
+            if(this.yVal.numRef && this.yVal.numRef.numCache)
+                return this.yVal.numRef.numCache;
+            else if(this.yVal.numLit)
+                return this.yVal.numLit;
+        }
+        return null;
+    };
+    CSeriesBase.prototype.getNumPts = function() {
+        var oNumLit = this.getNumLit();
+        if(oNumLit) {
+            return oNumLit.pts
+        }
+        return [];
     };
     CSeriesBase.prototype.asc_getName = function() {
         return AscFormat.ExecuteNoHistory(CSeriesBase.prototype.getName, this, []);

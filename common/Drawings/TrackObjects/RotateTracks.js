@@ -642,12 +642,12 @@ function Chart3dAdjustTrack(oChartSpace, numHandle, startX, startY)
         var nPointsCount = 0;
         if(oChartObj.getObjectType() === AscDFH.historyitem_type_PieChart || oChartObj.getObjectType() === AscDFH.historyitem_type_PieChart){
             if(oChartObj.series[0]){
-                nPointsCount = AscFormat.getPtsFromSeries(oChartObj.series[0]).length;
+                nPointsCount = oChartObj.series[0].getNumPts().length;
             }
         }
         else{
             for(var i = 0; i < oChartObj.series.length; ++i){
-                nPointsCount += AscFormat.getPtsFromSeries(oChartObj.series[i]).length;
+                nPointsCount += oChartObj.series[i].getNumPts().length;
             }
         }
 
