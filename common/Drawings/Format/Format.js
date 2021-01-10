@@ -12276,136 +12276,116 @@ function CorrectUniColor(asc_color, unicolor, flag)
         return oShape;
     }
 
-    function builder_CreateChart(nW, nH, sType, aCatNames, aSeriesNames, aSeries, nStyleIndex){
-        var settings = new Asc.asc_ChartSettings();
+    function ChartBuilderTypeToInternal(sType)
+    {
         switch (sType)
         {
             case "bar" :
             {
-                settings.type = Asc.c_oAscChartTypeSettings.barNormal;
-                break;
+                return Asc.c_oAscChartTypeSettings.barNormal;
             }
             case "barStacked":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.barStacked;
-                break;
+                return Asc.c_oAscChartTypeSettings.barStacked;
             }
             case "barStackedPercent":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.barStackedPer;
-                break;
+                return Asc.c_oAscChartTypeSettings.barStackedPer;
             }
             case "bar3D":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.barNormal3d;
-                break;
+                return Asc.c_oAscChartTypeSettings.barNormal3d;
             }
             case "barStacked3D":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.barStacked3d;
-                break;
+                return Asc.c_oAscChartTypeSettings.barStacked3d;
             }
             case "barStackedPercent3D":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.barStackedPer3d;
-                break;
+                return Asc.c_oAscChartTypeSettings.barStackedPer3d;
             }
             case "barStackedPercent3DPerspective":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.barNormal3dPerspective;
-                break;
+                return Asc.c_oAscChartTypeSettings.barNormal3dPerspective;
             }
             case "horizontalBar":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.hBarNormal;
-                break;
+                return Asc.c_oAscChartTypeSettings.hBarNormal;
             }
             case "horizontalBarStacked":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.hBarStacked;
-                break;
+                return Asc.c_oAscChartTypeSettings.hBarStacked;
             }
             case "horizontalBarStackedPercent":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.hBarStackedPer;
-                break;
+                return Asc.c_oAscChartTypeSettings.hBarStackedPer;
             }
             case "horizontalBar3D":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.hBarNormal3d;
-                break;
+                return Asc.c_oAscChartTypeSettings.hBarNormal3d;
             }
             case "horizontalBarStacked3D":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.hBarStacked3d;
-                break;
+                return Asc.c_oAscChartTypeSettings.hBarStacked3d;
             }
             case "horizontalBarStackedPercent3D":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.hBarStackedPer3d;
-                break;
+                return Asc.c_oAscChartTypeSettings.hBarStackedPer3d;
             }
             case "lineNormal":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.lineNormal;
-                break;
+                return Asc.c_oAscChartTypeSettings.lineNormal;
             }
             case "lineStacked":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.lineStacked;
-                break;
+                return Asc.c_oAscChartTypeSettings.lineStacked;
             }
             case "lineStackedPercent":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.lineStackedPer;
-                break;
+                return Asc.c_oAscChartTypeSettings.lineStackedPer;
             }
             case "line3D":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.line3d;
-                break;
+                return Asc.c_oAscChartTypeSettings.line3d;
             }
             case "pie":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.pie;
-                break;
+                return Asc.c_oAscChartTypeSettings.pie;
             }
             case "pie3D":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.pie3d;
-                break;
+                return Asc.c_oAscChartTypeSettings.pie3d;
             }
             case "doughnut":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.doughnut;
-                break;
+                return Asc.c_oAscChartTypeSettings.doughnut;
             }
             case "scatter":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.scatter;
-                break;
+                return Asc.c_oAscChartTypeSettings.scatter;
             }
             case "stock":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.stock;
-                break;
+                return Asc.c_oAscChartTypeSettings.stock;
             }
             case "area":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.areaNormal;
-                break;
+                return Asc.c_oAscChartTypeSettings.areaNormal;
             }
             case "areaStacked":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.areaStacked;
-                break;
+                return Asc.c_oAscChartTypeSettings.areaStacked;
             }
             case "areaStackedPercent":
             {
-                settings.type = Asc.c_oAscChartTypeSettings.areaStackedPer;
-                break;
+                return Asc.c_oAscChartTypeSettings.areaStackedPer;
             }
         }
+        return null;
+    }
+    function builder_CreateChart(nW, nH, sType, aCatNames, aSeriesNames, aSeries, nStyleIndex){
+        var settings = new Asc.asc_ChartSettings();
+        settings.type = ChartBuilderTypeToInternal(sType);
         var aAscSeries = [];
         var aAlphaBet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
         var oCat, i;
@@ -13292,6 +13272,7 @@ function CorrectUniColor(asc_color, unicolor, flag)
         window['AscFormat'].CAlphaMod = CAlphaMod;
         window['AscFormat'].CBlend = CBlend;
         window['AscFormat'].CreateNoneBullet = CreateNoneBullet;
+        window['AscFormat'].ChartBuilderTypeToInternal = ChartBuilderTypeToInternal;
 
     window['AscFormat'].DEFAULT_COLOR_MAP = GenerateDefaultColorMap();
 })(window);
