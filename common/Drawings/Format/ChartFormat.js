@@ -1830,6 +1830,12 @@
             oCurElement = oCurElement.parent;
         }
     };
+    CBaseChartObject.prototype.onChartInternalUpdate = function(bColors) {
+        var oChartSpace = this.getChartSpace();
+        if(oChartSpace) {
+            oChartSpace.handleUpdateInternalChart(bColors)
+        }
+    };
 
     function getMinMaxFromArrPoints(aPoints) {
         if(Array.isArray(aPoints) && aPoints.length > 0) {
@@ -3170,18 +3176,10 @@
         return AscCommon.translateManager.getValue('Series') + " " + (this.idx + 1);
     };
     CSeriesBase.prototype.handleUpdateFill = function() {
-        if(this.parent && this.parent.parent
-            && this.parent.parent.parent && this.parent.parent.parent.parent
-            && this.parent.parent.parent.parent.handleUpdateInternalChart) {
-            this.parent.parent.parent.parent.handleUpdateInternalChart();
-        }
+        this.onChartInternalUpdate();
     };
     CSeriesBase.prototype.handleUpdateLn = function() {
-        if(this.parent && this.parent.parent
-            && this.parent.parent.parent && this.parent.parent.parent.parent
-            && this.parent.parent.parent.parent.handleUpdateInternalChart) {
-            this.parent.parent.parent.parent.handleUpdateInternalChart();
-        }
+        this.onChartInternalUpdate();
     };
     CSeriesBase.prototype.documentCreateFontMap = function(allFonts) {
         this.dLbls && this.dLbls.documentCreateFontMap(allFonts);
@@ -5659,6 +5657,10 @@
         return false;
     };
     CChartBase.prototype.tryCreateNewChartFormSeries = function(oSeries, nType, bIsSecondaryAxis) {
+        var oPlotArea = this.parent;
+        if(!oPlotArea) {
+            return Asc.c_oAscError.ID.No;
+        }
         var oNewChart = null;
         var aNewAxes = [];
         var nResult = Asc.c_oAscError.ID.No;
@@ -5724,7 +5726,7 @@
         }
         if(oNewChart) {
             this.removeSeries(this.getSeriesArrayIdx(oSeries));
-            this.parent.addChart(oNewChart, null);
+            oPlotArea.addChart(oNewChart, null);
             nResult = Asc.c_oAscError.ID.No;
         }
         return nResult;
@@ -5846,9 +5848,7 @@
             case AscDFH.historyitem_BarChart_SetGapDepth:
             case AscDFH.historyitem_BarChart_SetShape:
             {
-                if(this.parent && this.parent.parent && this.parent.parent.parent) {
-                    this.parent.parent.parent.handleUpdateInternalChart();
-                }
+                this.onChartInternalUpdate();
                 break;
             }
             case AscDFH.historyitem_BarChart_SetDLbls:
@@ -5865,9 +5865,7 @@
             }
             case AscDFH.historyitem_BarChart_SetGrouping:
             {
-                if(this.parent && this.parent.parent && this.parent.parent.parent) {
-                    this.parent.parent.parent.handleUpdateInternalChart();
-                }
+                this.onChartInternalUpdate();
                 break;
             }
             case AscDFH.historyitem_BarChart_SetOverlap:
@@ -5900,9 +5898,7 @@
     CBarChart.prototype.setBarDir = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_BarChart_SetBarDir, this.barDir, pr));
         this.barDir = pr;
-        if(this.parent && this.parent.parent && this.parent.parent.parent) {
-            this.parent.parent.parent.handleUpdateInternalChart();
-        }
+        this.onChartInternalUpdate();
     };
     CBarChart.prototype.setGapWidth = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_BarChart_SetGapWidth, this.gapWidth, pr));
@@ -5911,9 +5907,7 @@
     CBarChart.prototype.setGrouping = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_BarChart_SetGrouping, this.grouping, pr));
         this.grouping = pr;
-        if(this.parent && this.parent.parent && this.parent.parent.parent) {
-            this.parent.parent.parent.handleUpdateInternalChart();
-        }
+        this.onChartInternalUpdate();
     };
     CBarChart.prototype.setOverlap = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_BarChart_SetOverlap, this.overlap, pr));
@@ -6084,9 +6078,7 @@
             }
             case AscDFH.historyitem_AreaChart_SetGrouping:
             {
-                if(this.parent && this.parent.parent && this.parent.parent.parent) {
-                    this.parent.parent.parent.handleUpdateInternalChart();
-                }
+                this.onChartInternalUpdate();
                 break
             }
             case AscDFH.historyitem_AreaChart_SetVaryColors:
@@ -6121,9 +6113,7 @@
     CAreaChart.prototype.setGrouping = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_AreaChart_SetGrouping, this.grouping, pr));
         this.grouping = pr;
-        if(this.parent && this.parent.parent && this.parent.parent.parent) {
-            this.parent.parent.parent.handleUpdateInternalChart();
-        }
+        this.onChartInternalUpdate();
     };
     CAreaChart.prototype.getChartType = function() {
         var nType = Asc.c_oAscChartTypeSettings.unknown;
@@ -6294,10 +6284,7 @@
         return this.parent;
     };
     CAxisBase.prototype.onUpdate = function() {
-        var oChartSpace = this.getChartSpace();
-        if(oChartSpace) {
-            oChartSpace.handleUpdateInternalChart();
-        }
+        this.onChartInternalUpdate();
     };
     CAxisBase.prototype.Refresh_RecalcData = function() {
         this.onUpdate();
@@ -8716,16 +8703,12 @@
     CLegend.prototype.setLegendPos = function(legendPos) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_Legend_SetLegendPos, this.legendPos, legendPos));
         this.legendPos = legendPos;
-        if(this.parent && this.parent.parent) {
-            this.parent.parent.handleUpdateInternalChart();
-        }
+        this.onChartInternalUpdate();
     };
     CLegend.prototype.setOverlay = function(overlay) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_Legend_SetOverlay, this.overlay, overlay));
         this.overlay = overlay;
-        if(this.parent && this.parent.parent) {
-            this.parent.parent.handleUpdateInternalChart();
-        }
+        this.onChartInternalUpdate();
     };
     CLegend.prototype.setSpPr = function(spPr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Legend_SetSpPr, this.spPr, spPr));
@@ -8738,9 +8721,7 @@
         this.setParentToChild(txPr);
     };
     CLegend.prototype.Refresh_RecalcData2 = function() {
-        if(this.parent && this.parent.parent) {
-            this.parent.parent.handleUpdateInternalChart();
-        }
+        this.onChartInternalUpdate();
     };
     CLegend.prototype.findLegendEntryByIndex = function(idx) {
         for(var i = 0; i < this.legendEntryes.length; ++i) {
@@ -8824,9 +8805,7 @@
             }
             case AscDFH.historyitem_LineChart_SetGrouping:
             {
-                if(this.parent && this.parent.parent && this.parent.parent.parent) {
-                    this.parent.parent.parent.handleUpdateInternalChart();
-                }
+                this.onChartInternalUpdate();
                 break
             }
             case AscDFH.historyitem_LineChart_SetHiLowLines:
@@ -8912,9 +8891,7 @@
     CLineChart.prototype.setGrouping = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_LineChart_SetGrouping, this.grouping, pr));
         this.grouping = pr;
-        if(this.parent && this.parent.parent && this.parent.parent.parent) {
-            this.parent.parent.parent.handleUpdateInternalChart();
-        }
+        this.onChartInternalUpdate();
     };
     CLineChart.prototype.setHiLowLines = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_LineChart_SetHiLowLines, this.hiLowLines, pr));
@@ -9078,16 +9055,12 @@
         History.CanAddChanges() && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_LineSeries_SetMarker, this.marker, pr));
         this.marker = pr;
         this.setParentToChild(pr);
-        if(this.parent && this.parent.parent && this.parent.parent.parent && this.parent.parent.parent.parent && this.parent.parent.parent.parent.handleUpdateInternalChart) {
-            this.parent.parent.parent.parent.handleUpdateInternalChart();
-        }
+        this.onChartInternalUpdate();
     };
     CLineSeries.prototype.setSmooth = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_LineSeries_SetSmooth, this.smooth, pr));
         this.smooth = pr;
-        if(this.parent && this.parent.parent && this.parent.parent.parent && this.parent.parent.parent.parent && this.parent.parent.parent.parent.handleUpdateInternalChart) {
-            this.parent.parent.parent.parent.handleUpdateInternalChart();
-        }
+        this.onChartInternalUpdate();
     };
     CLineSeries.prototype.setTrendline = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_LineSeries_SetTrendline, this.trendline, pr));
@@ -9349,11 +9322,12 @@
     }
     InitClass(CChartRefBase, CBaseChartObject, AscDFH.historyitem_type_Unknown);
     CChartRefBase.prototype.onUpdate = function() {
-        //TODO remove this
-        if(this.parent && this.parent.parent && this.parent.parent.parent && this.parent.parent.parent.parent
-            && this.parent.parent.parent.parent.parent && this.parent.parent.parent.parent.parent.parent && this.parent.parent.parent.parent.parent.parent.handleUpdateInternalChart) {
-            this.parent.parent.parent.parent.parent.parent.handleUpdateInternalChart();
-            this.parent.parent.parent.parent.parent.parent.recalcInfo.recalculateReferences = true;
+        var oChartSpace = this.getChartSpace();
+        if(oChartSpace) {
+            if(!oChartSpace.recalcInfo.recalculateReferences) {
+                oChartSpace.recalcInfo.recalculateReferences = true;
+                oChartSpace.handleUpdateInternalChart();
+            }
         }
     };
     CChartRefBase.prototype.Refresh_RecalcData = function(data) {
@@ -10388,30 +10362,22 @@
     CScaling.prototype.setLogBase = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsDouble2(this, AscDFH.historyitem_Scaling_SetLogBase, this.logBase, pr));
         this.logBase = pr;
-        if(this.parent && this.parent.parent && this.parent.parent.parent && this.parent.parent.parent.parent && this.parent.parent.parent.parent.handleUpdateInternalChart) {
-            this.parent.parent.parent.parent.handleUpdateInternalChart();
-        }
+        this.onChartInternalUpdate();
     };
     CScaling.prototype.setMax = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsDouble2(this, AscDFH.historyitem_Scaling_SetMax, this.max, pr));
         this.max = pr;
-        if(this.parent && this.parent.parent && this.parent.parent.parent && this.parent.parent.parent.parent && this.parent.parent.parent.parent.handleUpdateInternalChart) {
-            this.parent.parent.parent.parent.handleUpdateInternalChart();
-        }
+        this.onChartInternalUpdate();
     };
     CScaling.prototype.setMin = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsDouble2(this, AscDFH.historyitem_Scaling_SetMin, this.min, pr));
         this.min = pr;
-        if(this.parent && this.parent.parent && this.parent.parent.parent && this.parent.parent.parent.parent && this.parent.parent.parent.parent.handleUpdateInternalChart) {
-            this.parent.parent.parent.parent.handleUpdateInternalChart();
-        }
+        this.onChartInternalUpdate();
     };
     CScaling.prototype.setOrientation = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_Scaling_SetOrientation, this.orientation, pr));
         this.orientation = pr;
-        if(this.parent && this.parent.parent && this.parent.parent.parent && this.parent.parent.parent.parent && this.parent.parent.parent.parent.handleUpdateInternalChart) {
-            this.parent.parent.parent.parent.handleUpdateInternalChart();
-        }
+        this.onChartInternalUpdate();
     };
 
     function CScatterChart() {
@@ -12077,9 +12043,7 @@
     }
     InitClass(CChart, CBaseChartObject, AscDFH.historyitem_type_Chart);
     CChart.prototype.Refresh_RecalcData = function() {
-        if(this.parent) {
-            this.parent.handleUpdateInternalChart();
-        }
+        this.onChartInternalUpdate();
     };
     CChart.prototype.CheckCorrect = function() {
         if(!this.plotArea) {
@@ -12246,17 +12210,13 @@
         History.CanAddChanges() && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Chart_SetTitle, this.title, title));
         this.title = title;
         this.setParentToChild(title);
-        if(this.parent) {
-            this.parent.handleUpdateInternalChart();
-        }
+        this.onChartInternalUpdate();
     };
     CChart.prototype.setView3D = function(view3D) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Chart_SetView3D, this.view3D, view3D));
         this.view3D = view3D;
         this.setParentToChild(view3D);
-        if(this.parent) {
-            this.parent.handleUpdateInternalChart();
-        }
+        this.onChartInternalUpdate();
     };
     CChart.prototype.reindexSeries = function() {
         if(this.parent) {
