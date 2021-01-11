@@ -3145,7 +3145,7 @@
             oCopy.setCat(oCat.createDuplicate());
         }
         var oVal = this.val || this.yVal;
-        if(AscCommon.isRealObject(oCat)) {
+        if(AscCommon.isRealObject(oVal)) {
             oCopy.setVal(oVal.createDuplicate());
         }
     };
@@ -4529,7 +4529,7 @@
         oBarChart.setVaryColors(false);
         for(nSeries = 0; nSeries < aSeries.length; ++nSeries) {
             oSeries = new AscFormat.CBarSeries();
-            oSeries.fillObject(aSeries[nSeries]);
+            aSeries[nSeries].fillObject(oSeries);
             oBarChart.addSer(oSeries);
         }
         oBarChart.setBarDir(nNewBarDir);
@@ -4665,7 +4665,7 @@
         oLineChart.marker.setSymbol(AscFormat.SYMBOL_NONE);
         for(nSeries = 0; nSeries < aSeries.length; ++nSeries) {
             oSeries = new AscFormat.CLineSeries();
-            oSeries.fillObject(aSeries[nSeries]);
+            aSeries[nSeries].fillObject(oSeries);
             oSeries.setMarker(new AscFormat.CMarker());
             oSeries.marker.setSymbol(AscFormat.SYMBOL_NONE);
             oSeries.setSmooth(false);
@@ -4700,7 +4700,7 @@
         oPieChart.setVaryColors(true);
         for(var nSeries = 0; nSeries < aSeries.length; ++nSeries) {
             var oSeries = new AscFormat.CPieSeries();
-            oSeries.fillObject(aSeries[nSeries]);
+            aSeries[nSeries].fillObject(oSeries);
             oPieChart.addSer(oSeries);
         }
         if(nType === Asc.c_oAscChartTypeSettings.pie3d) {
@@ -4743,7 +4743,7 @@
         oDoughnutChart.setVaryColors(true);
         for(var nSeries = 0; nSeries < aSeries.length; ++nSeries) {
             var oSeries = new AscFormat.CPieSeries();
-            oSeries.fillObject(aSeries[nSeries]);
+            aSeries[nSeries].fillObject(oSeries);
             oDoughnutChart.addSer(oSeries);
         }
         this.parent.check3DOptions(false, false);
@@ -4774,7 +4774,7 @@
         oAreaChart.setVaryColors(false);
         for(nSeries = 0; nSeries < aSeries.length; ++nSeries) {
             oSeries = new AscFormat.CAreaSeries();
-            oSeries.fillObject(aSeries[nSeries]);
+            aSeries[nSeries].fillObject(oSeries);
             oAreaChart.addSer(oSeries);
         }
         oAreaChart.addAxes(aAxes);
@@ -4806,7 +4806,7 @@
         var nSeries, oSeries;
         for(nSeries = 0; nSeries < aSeries.length; ++nSeries) {
             oSeries = new AscFormat.CScatterSeries();
-            oSeries.fillObject(aSeries[nSeries]);
+            aSeries[nSeries].fillObject(oSeries);
             oSeries.setMarker(null);
             oScatterChart.addSer(oSeries);
         }
@@ -4839,7 +4839,7 @@
         var nSeries, oSeries;
         for(nSeries = 0; nSeries < aSeries.length; ++nSeries) {
             oSeries = new AscFormat.CLineSeries();
-            oSeries.fillObject(aSeries[nSeries]);
+            aSeries[nSeries].fillObject(oSeries);
             oStockChart.addSer(oSeries);
         }
         oStockChart.setHiLowLines(new AscFormat.CSpPr());
@@ -5565,7 +5565,7 @@
         }
         var aSeries = oTypedChart.series;
         oTypedChart.series = [];
-        this.fillObject(oTypedChart, {});
+        oTypedChart.fillObject(this);
         oTypedChart.series = aSeries;
     };
     CChartBase.prototype.setDlblsProps = function(oProps) {
@@ -7628,16 +7628,16 @@
     };
     CBubbleChart.prototype.fillObject = function(oCopy, oIdMap) {
         CChartBase.prototype.fillObject.call(this, oCopy, oIdMap);
-        if(oCopy.setBubble3D) {
+        if(this.bubble3D !== null && oCopy.setBubble3D) {
             oCopy.setBubble3D(this.bubble3D);
         }
-        if(oCopy.setBubbleScale) {
+        if(this.bubbleScale !== null && oCopy.setBubbleScale) {
             oCopy.setBubbleScale(this.bubbleScale);
         }
-        if(oCopy.setShowNegBubbles) {
+        if(this.showNegBubbles !== null && oCopy.setShowNegBubbles) {
             oCopy.setShowNegBubbles(this.showNegBubbles);
         }
-        if(oCopy.setSizeRepresents) {
+        if(this.sizeRepresents !== null && oCopy.setSizeRepresents) {
             oCopy.setSizeRepresents(this.sizeRepresents);
         }
     };
@@ -8317,10 +8317,10 @@
     };
     CDoughnutChart.prototype.fillObject = function(oCopy, oIdMap) {
         CChartBase.prototype.fillObject.call(this, oCopy, oIdMap);
-        if(oCopy.setFirstSliceAng) {
+        if(oCopy.setFirstSliceAng && this.firstSliceAng !== null) {
             oCopy.setFirstSliceAng(this.firstSliceAng);
         }
-        if(oCopy.setHoleSize) {
+        if(oCopy.setHoleSize && this.holeSize !== null) {
             oCopy.setHoleSize(this.holeSize);
         }
     };
@@ -9929,6 +9929,7 @@
         return c_oAscChartDataLabelsPos.bestFit;
     };
     COfPieChart.prototype.fillObject = function(oCopy, oIdMap) {
+        CChartBase.prototype.fillObject.call(this, oCopy, oIdMap);
         var i;
         if(oCopy.addCustSplit) {
             for(i = 0; i < this.custSplit.length; ++i) {
@@ -10100,7 +10101,9 @@
     };
     CPieChart.prototype.fillObject = function(oCopy, oIdMap) {
         CChartBase.prototype.fillObject.call(this, oCopy, oIdMap);
-        oCopy.setFirstSliceAng(this.firstSliceAng);
+        if(this.firstSliceAng !== null && oCopy.setFirstSliceAng) {
+            oCopy.setFirstSliceAng(this.firstSliceAng);
+        }
         if(this.b3D) {
             oCopy.set3D(this.b3D);
         }
@@ -10299,7 +10302,9 @@
     };
     CRadarChart.prototype.fillObject = function(oCopy, oIdMap) {
         CChartBase.prototype.fillObject.call(this, oCopy, oIdMap);
-        oCopy.setRadarStyle(this.radarStyle);
+        if(oCopy.setRadarStyle && this.radarStyle !== null) {
+            oCopy.setRadarStyle(this.radarStyle);
+        }
     };
     CRadarChart.prototype.setRadarStyle = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_RadarChart_SetRadarStyle, this.radarStyle, pr));
@@ -10971,10 +10976,12 @@
     CSurfaceChart.prototype.fillObject = function(oCopy, oIdMap) {
         CChartBase.prototype.fillObject.call(this, oCopy, oIdMap);
         var i;
-        for(i = 0; i < this.bandFmts.length; ++i) {
-            oCopy.addBandFmt(this.bandFmts[i].createDuplicate());
+        if(oCopy.addBandFmt) {
+            for(i = 0; i < this.bandFmts.length; ++i) {
+                oCopy.addBandFmt(this.bandFmts[i].createDuplicate());
+            }
         }
-        if(this.wireframe !== null) {
+        if(this.wireframe !== null && oCopy.setWireframe) {
             oCopy.setWireframe(this.wireframe);
         }
     };

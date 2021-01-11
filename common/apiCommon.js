@@ -1622,21 +1622,14 @@
 	asc_ChartSettings.prototype.changeType = function(type) {
 		this.putType(type);
 		if(this.chartSpace) {
-			var oApi = Asc && Asc.editor;
-			if(oApi && oApi.editorId === AscCommon.c_oEditorId.Spreadsheet) {
-				this.chartSpace.changeChartType(type);
-				this.updateChart();
-			}
-			else {
-				var oController = this.chartSpace.getDrawingObjectsController();
-				if(oController) {
-					var oThis = this;
-					var oChartSpace = this.chartSpace;
-					oController.checkSelectedObjectsAndCallback(function() {
-						oChartSpace.changeChartType(type);
-						oThis.updateChart();
-					}, [], false, 0, []);
-				}
+			var oController = this.chartSpace.getDrawingObjectsController();
+			if(oController) {
+				var oThis = this;
+				var oChartSpace = this.chartSpace;
+				oController.checkSelectedObjectsAndCallback(function() {
+					oChartSpace.changeChartType(type);
+					oThis.updateChart();
+				}, [], false, 0, []);
 			}
 		}
 	};

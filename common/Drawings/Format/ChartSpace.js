@@ -12293,7 +12293,7 @@ var GLOBAL_PATH_COUNT = 0;
     };
     CChartSpace.prototype.setRange = function(sRange) {
         var oDataRange = new AscFormat.CChartDataRefs(this);
-        var aRefs = oDataRange.getSeriesRefsFromUnionRefs(AscFormat.fParseChartFormula(sRange), undefined, AscFormat.isScatterType(this.getChartType()));
+        var aRefs = oDataRange.getSeriesRefsFromUnionRefs(AscFormat.fParseChartFormula(sRange), undefined, AscFormat.isScatterChartType(this.getChartType()));
         if(!Array.isArray(aRefs)) {
             this.buildSeries([]);
         }

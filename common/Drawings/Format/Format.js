@@ -7799,7 +7799,7 @@ CSpPr.prototype =
        && this.Fill.fill.color.color && this.Fill.fill.color.color.type === c_oAscColor.COLOR_TYPE_SRGB;
     },
 
-    hasNoFillFill: function() {
+    hasNoFill: function() {
         if(this.Fill) {
             return this.Fill.isNoFill();
         }
