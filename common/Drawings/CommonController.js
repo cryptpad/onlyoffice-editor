@@ -4804,11 +4804,7 @@ DrawingObjectsController.prototype =
             bNoLine = true;
             for(nSer = 0; nSer < aSeries.length; ++nSer) {
                 oSeries = aSeries[nSer];
-                if(!(oSeries.spPr
-                    && oSeries.spPr.ln
-                    && oSeries.spPr.ln.Fill
-                    && oSeries.spPr.ln.Fill.fill
-                    && oSeries.spPr.ln.Fill.fill.type === c_oAscFill.FILL_TYPE_NOFILL)) {
+                if(!oSeries.hasNoFillLine()) {
                     bNoLine = false;
                     break;
                 }
@@ -4876,11 +4872,7 @@ DrawingObjectsController.prototype =
             if(ret.bLine) {
                 for(nSer = 0; nSer < aSeries.length; ++nSer) {
                     oSeries = aSeries[nSer];
-                    if(!(oSeries.spPr
-                        && oSeries.spPr.ln
-                        && oSeries.spPr.ln.Fill
-                        && oSeries.spPr.ln.Fill.fill
-                        && oSeries.spPr.ln.Fill.fill.type === c_oAscFill.FILL_TYPE_NOFILL)) {
+                    if(!oSeries.hasNoFillLine()) {
                         break;
                     }
                 }
@@ -8006,7 +7998,7 @@ DrawingObjectsController.prototype =
                         new_table_props.Locked = locked;
                         if(new_table_props.CellsBackground)
                         {
-                            if(new_table_props.CellsBackground.Unifill && new_table_props.CellsBackground.Unifill.fill && new_table_props.CellsBackground.Unifill.fill.type !== c_oAscFill.FILL_TYPE_NONE)
+                            if(new_table_props.CellsBackground.Unifill && new_table_props.CellsBackground.Unifill.isVisible())
                             {
                                 new_table_props.CellsBackground.Unifill.check(drawing.Get_Theme(), drawing.Get_ColorMap());
                                 var RGBA = new_table_props.CellsBackground.Unifill.getRGBAColor();
@@ -8025,7 +8017,7 @@ DrawingObjectsController.prototype =
                             {
                                 if(!border)
                                     return;
-                                if(border.Unifill && border.Unifill.fill && border.Unifill.fill.type !== c_oAscFill.FILL_TYPE_NONE)
+                                if(border.Unifill && border.Unifill.isVisible())
                                 {
                                     border.Unifill.check(drawing.Get_Theme(), drawing.Get_ColorMap());
                                     var RGBA = border.Unifill.getRGBAColor();
@@ -10541,9 +10533,6 @@ function CollectSettingsUniFill(oUniFill)
     var oFillTypes = window['Asc'].c_oAscFill;
     switch(oFill.type)
     {
-        case oFillTypes.FILL_TYPE_NONE:{
-            break;
-        }
         case oFillTypes.FILL_TYPE_BLIP:{
             ret.push(oFill.RasterImageId);
             break;
@@ -10654,10 +10643,6 @@ function CollectSettingsUniFill(oUniFill)
         oUnifill.transparent = aPreset[1];
         var oFillTypes = window['Asc'].c_oAscFill;
         switch(aPreset[0]){
-            case oFillTypes.FILL_TYPE_NONE:{
-                oUnifill.fill = new AscFormat.CNoFill();
-                break;
-            }
             case oFillTypes.FILL_TYPE_BLIP:{
                 oUnifill.fill =  new AscFormat.CBlipFill();
                 oUnifill.fill.RasterImageId = aPreset[2];

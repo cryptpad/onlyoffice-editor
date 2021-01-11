@@ -7183,7 +7183,7 @@ drawAreaChart.prototype = {
 		if (k !== 5 && k !== 0) {
 			var props = this.cChartSpace.getParentObjects();
 
-			if (brush.fill.type === Asc.c_oAscFill.FILL_TYPE_NOFILL) {
+			if (brush.isNoFill()) {
 				return;
 			}
 

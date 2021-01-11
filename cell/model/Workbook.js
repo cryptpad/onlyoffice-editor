@@ -3494,7 +3494,7 @@
 		this.handleDrawings(function(oDrawing) {
 			if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
 				var nPrevLength = aRefsToChange.length;
-				oDrawing.collectWorksheetsRefs(aWSNames);
+				oDrawing.collectWorksheetsRefs(aWSNames, aRefsToChange);
 				if(aRefsToChange.length > nPrevLength) {
 					aId.push(oDrawing.Get_Id());
 				}
@@ -3521,7 +3521,7 @@
 		this.handleDrawings(function(oDrawing) {
 			if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
 				var nPrevLength = aRefsToChange.length;
-				oDrawing.collectWorksheetsRefs(aWSNames);
+				oDrawing.collectWorksheetsRefs(aWSNames, aRefsToChange);
 				if(aRefsToChange.length > nPrevLength) {
 					aId.push(oDrawing.Get_Id());
 				}
@@ -4201,7 +4201,7 @@
 			var aWSNames = [sOldName];
 			oNewWs.handleDrawings(function(oDrawing) {
 				if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
-					oDrawing.collectWorksheetsRefs(aWSNames);
+					oDrawing.collectWorksheetsRefs(aWSNames, aRefsToChange);
 				}
 			});
 			for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {

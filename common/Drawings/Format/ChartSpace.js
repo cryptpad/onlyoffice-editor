@@ -12089,7 +12089,7 @@ var GLOBAL_PATH_COUNT = 0;
             oFirstSpPrPreset = oFirstSeries.getSpPrPreset();
         }
         var oSeries;
-        oSeries = oLastChart.series[0] ? oLastChart.series[0].createDuplicate() : oLastChart.getSeriesConstructor();
+        oSeries = oLastChart.series[0] ? oLastChart.series[0].createDuplicate() : oLastChart.getEmptySeries();
         oSeries.setName(sName);
         oSeries.setValues(sValues);
         this.setNewSeriesIdxAndOrder(oSeries);
@@ -12135,7 +12135,7 @@ var GLOBAL_PATH_COUNT = 0;
             oFirstSpPrMarkerPrst = oFirstSeries.getMarkerPreset();
         }
         var oSeries;
-        oSeries = oLastChart.series[0] ? oLastChart.series[0].createDuplicate() : oLastChart.getSeriesConstructor();
+        oSeries = oLastChart.series[0] ? oLastChart.series[0].createDuplicate() : oLastChart.getEmptySeries();
         oSeries.setName(sName);
         oSeries.setYValues(sYValues);
         oSeries.setXValues(sXValues);
@@ -12169,9 +12169,9 @@ var GLOBAL_PATH_COUNT = 0;
         var oDataRange = new AscFormat.CChartDataRefs(this);
         oDataRange.collectIntersectionRefs(aRanges, aRefs);
     };
-    CChartSpace.prototype.collectWorksheetsRefs = function(aWSNames) {
+    CChartSpace.prototype.collectWorksheetsRefs = function(aWSNames, aRefsToChange) {
         var oDataRange = new AscFormat.CChartDataRefs(this);
-        oDataRange.collectWorksheetsRefs(aWSNames);
+        oDataRange.collectWorksheetsRefs(aWSNames, aRefsToChange);
     };
     CChartSpace.prototype.getCommonRange = function() {
         var oDataRange = new AscFormat.CChartDataRefs(this);
@@ -12235,7 +12235,7 @@ var GLOBAL_PATH_COUNT = 0;
                     oPrevSeries.parent.addSerSilent(oSeries);
                 }
                 else {
-                    oSeries = oFirstChart.getSeriesConstructor();
+                    oSeries = oFirstChart.getEmptySeries();
                     oFirstChart.addSerSilent(oSeries);
                 }
                 oSeries.setIdx(nRef);

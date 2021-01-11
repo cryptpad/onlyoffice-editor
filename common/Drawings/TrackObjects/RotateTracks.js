@@ -53,8 +53,7 @@ function OverlayObject(geometry, extX, extY, brush, pen, transform )
     this.extY = extY;
 
     var _brush, _pen;
-    if((!brush || !brush.fill || brush.fill.type === c_oAscFill.FILL_TYPE_NOFILL) &&
-        (!pen || !pen.Fill || !pen.Fill || !pen.Fill.fill || pen.Fill.fill.type === c_oAscFill.FILL_TYPE_NOFILL || pen.w === 0))
+    if((!brush || !brush.isVisible()) && (!pen || !pen.isVisible()))
     {
         var penBrush = AscFormat.CreatePenBrushForChartTrack();
         _brush = penBrush.brush;
@@ -163,10 +162,7 @@ function OverlayObject(geometry, extX, extY, brush, pen, transform )
     this.checkDrawGeometry = function()
     {
         return this.geometry &&
-            ( (this.pen && this.pen.Fill && this.pen.Fill.fill
-                && this.pen.Fill.fill.type != c_oAscFill.FILL_TYPE_NOFILL && this.pen.Fill.fill.type != c_oAscFill.FILL_TYPE_NONE)
-                || (this.brush && this.brush.fill && this.brush.fill
-                && this.brush.fill.type != c_oAscFill.FILL_TYPE_NOFILL && this.brush.fill.type != c_oAscFill.FILL_TYPE_NONE) );
+            ((this.pen && this.pen.isVisible()) || (this.brush && this.brush.isVisible()));
     };
 
 

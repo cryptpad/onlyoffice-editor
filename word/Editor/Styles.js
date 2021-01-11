@@ -10200,7 +10200,7 @@ CDocumentBorder.prototype =
             this.LineRef = undefined;
             this.Size = AscFormat.isRealNumber(pen.w) ? pen.w / 36000 : 12700 /36000;
         }
-        if(!this.Unifill || !this.Unifill.fill || this.Unifill.fill.type === Asc.c_oAscFill.FILL_TYPE_NOFILL)
+        if(!this.Unifill || !this.Unifill.isVisible())
         {
             this.Value = border_None;
         }
