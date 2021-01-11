@@ -3801,6 +3801,9 @@ var GLOBAL_PATH_COUNT = 0;
     };
     CChartSpace.prototype.setChart = function(chart) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartSpace_SetChart, this.chart, chart));
+        if(this.chart) {
+            this.chart.setParent(null);
+        }
         this.chart = chart;
         if(chart) {
             chart.setParent(this);
