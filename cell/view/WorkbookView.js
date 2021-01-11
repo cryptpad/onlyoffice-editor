@@ -80,46 +80,69 @@
     return null;
   };
 
-  function WorksheetViewSettings() {
-    this.header = {
-      style: [// Header colors
-        { // kHeaderDefault
-          background: new CColor(241, 241, 241), border: new CColor(213, 213, 213), color: new CColor(54, 54, 54)
-        }, { // kHeaderActive
-          background: new CColor(193, 193, 193), border: new CColor(146, 146, 146), color: new CColor(54, 54, 54)
-        }, { // kHeaderHighlighted
-          background: new CColor(223, 223, 223), border: new CColor(175, 175, 175), color: new CColor(101, 106, 112)
-        }], cornerColor: new CColor(193, 193, 193)
-    };
-    this.cells = {
-      defaultState: {
-        background: new CColor(255, 255, 255), border: new CColor(202, 202, 202)
-      }, padding: -1 /*px horizontal padding*/
-    };
-    this.activeCellBorderColor = new CColor(72, 121, 92);
-    this.activeCellBorderColor2 = new CColor(255, 255, 255, 1);
-    this.findFillColor = new CColor(255, 238, 128, 1);
+	function WorksheetViewSettings() {
+		//TODO темные цвета необходимо скорректировать
+		this.getCColor = function (_color) {
+			var rgb = parseInt(_color.split('#')[1], 16);
+			return new CColor((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
+		};
+		this.updateStyle = function () {
+			this.header.style = this._generateStyle();
+		};
+		this._generateStyle = function () {
+			return [// Header colors
+				{ // kHeaderDefault
+					background: this.getCColor(AscCommon.GlobalSkin.Background),
+					border: this.getCColor(AscCommon.GlobalSkin.Border),
+					color: this.getCColor(AscCommon.GlobalSkin.Color),
+					backgroundDark: this.getCColor(AscCommon.GlobalSkin.BackgroundDark),
+					colorDark: this.getCColor(AscCommon.GlobalSkin.ColorDark)
+				}, { // kHeaderActive
+					background: this.getCColor(AscCommon.GlobalSkin.BackgroundActive),
+					border: this.getCColor(AscCommon.GlobalSkin.BorderActive),
+					color: this.getCColor(AscCommon.GlobalSkin.ColorActive),
+					backgroundDark: this.getCColor(AscCommon.GlobalSkin.BackgroundDarkActive),
+					colorDark: this.getCColor(AscCommon.GlobalSkin.ColorDarkActive)
+				}, { // kHeaderHighlighted
+					background: this.getCColor(AscCommon.GlobalSkin.BackgroundHighlighted),
+					border: this.getCColor(AscCommon.GlobalSkin.BorderHighlighted),
+					color: this.getCColor(AscCommon.GlobalSkin.ColorHighlighted),
+					backgroundDark: this.getCColor(AscCommon.GlobalSkin.BackgroundDarkHighlighted),
+					colorDark: this.getCColor(AscCommon.GlobalSkin.ColorDarkHighlighted)
+				}];
+		};
+		this.header = {
+			style: this._generateStyle(), cornerColor: new CColor(193, 193, 193)
+		};
+		this.cells = {
+			defaultState: {
+				background: new CColor(255, 255, 255), border: new CColor(202, 202, 202)
+			}, padding: -1 /*px horizontal padding*/
+		};
+		this.activeCellBorderColor = new CColor(72, 121, 92);
+		this.activeCellBorderColor2 = new CColor(255, 255, 255, 1);
+		this.findFillColor = new CColor(255, 238, 128, 1);
 
-    // Цвет закрепленных областей
-    this.frozenColor = new CColor(105, 119, 62, 1);
+		// Цвет закрепленных областей
+		this.frozenColor = new CColor(105, 119, 62, 1);
 
-    // Число знаков для математической информации
-    this.mathMaxDigCount = 9;
+		// Число знаков для математической информации
+		this.mathMaxDigCount = 9;
 
-    var cnv = document.createElement("canvas");
-    cnv.width = 2;
-    cnv.height = 2;
-    var ctx = cnv.getContext("2d");
-    ctx.clearRect(0, 0, 2, 2);
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, 1, 1);
-    ctx.fillRect(1, 1, 1, 1);
-    this.ptrnLineDotted1 = ctx.createPattern(cnv, "repeat");
+		var cnv = document.createElement("canvas");
+		cnv.width = 2;
+		cnv.height = 2;
+		var ctx = cnv.getContext("2d");
+		ctx.clearRect(0, 0, 2, 2);
+		ctx.fillStyle = "#000";
+		ctx.fillRect(0, 0, 1, 1);
+		ctx.fillRect(1, 1, 1, 1);
+		this.ptrnLineDotted1 = ctx.createPattern(cnv, "repeat");
 
-    this.halfSelection = false;
+		this.halfSelection = false;
 
-    return this;
-  }
+		return this;
+	}
 
 
   /**
@@ -214,6 +237,7 @@
     this.mainGraphics = undefined;
     this.stringRender = undefined;
     this.trackOverlay = null;
+    this.mainOverlay = null;
     this.autoShapeTrack = null;
 
     this.formatPainterState = c_oAscFormatPainterState.kOff;
@@ -303,6 +327,10 @@
     this.mainGraphics = new AscCommon.CGraphics();
     this.trackOverlay = new AscCommon.COverlay();
     this.trackOverlay.IsCellEditor = true;
+    if(this.Api.isMobileVersion) {
+        this.mainOverlay = new AscCommon.COverlay();
+        this.mainOverlay.IsCellEditor = true;
+    }
     this.autoShapeTrack = new AscCommon.CAutoshapeTrack();
     this.shapeCtx.m_oAutoShapesTrack = this.autoShapeTrack;
 
@@ -615,7 +643,7 @@
       	if (ws && ws.isSelectOnShape) {
       		var textPr = new CTextPr();
 			textPr.RFonts = new CRFonts();
-			textPr.RFonts.Set_All(familyName, -1);
+			textPr.RFonts.SetAll(familyName, -1);
       		ws.objectRender.controller.addTextWithPr(new AscCommon.CUnicodeStringEmulator(arrCharCodes), textPr, true);
       		return;
       	}
@@ -706,7 +734,9 @@
 				  self.handlers.trigger("asc_onContextMenu", event);
 			  }, "updatedEditableFunction": function (fName) {
 				  self.handlers.trigger("asc_onFormulaInfo", fName);
-			  }
+			  }, "onSelectionEnd" : function () {
+				  self.handlers.trigger("asc_onSelectionEnd");
+        }
 		  }, this.defaults.worksheetView.cells.padding);
 
 	  this.wsViewHandlers = new AscCommonExcel.asc_CHandlersList(/*handlers*/{
@@ -747,9 +777,9 @@
 			  return self.defNameAllowCreate;
 		  }, 'isActive': function () {
 			  return self.isActive();
-		  }, "drawMobileSelection": function (color) {
+		  }, "drawMobileSelection": function (oOverlay, oColor) {
 			  if (self.MobileTouchManager) {
-				  self.MobileTouchManager.CheckSelect(self.trackOverlay, color);
+				  self.MobileTouchManager.CheckSelect(oOverlay, oColor);
 			  }
 		  }, "showSpecialPasteOptions": function (val) {
 			  self.handlers.trigger("asc_onShowSpecialPasteOptions", val);
@@ -1005,7 +1035,7 @@
   	var dataValidation = this.oSelectionInfo && this.oSelectionInfo.dataValidation;
   	if (dataValidation && dataValidation.showInputMessage && !this.model.getActiveWs().getDisablePrompts()) {
   		title = dataValidation.promptTitle;
-		message = dataValidation.promt;
+		message = dataValidation.prompt;
 	}
   	this.handlers.trigger("asc_onInputMessage", title, message);
   };
@@ -1985,6 +2015,11 @@
   	this.trackOverlay.init(this.shapeOverlayCtx.m_oContext, "ws-canvas-graphic-overlay", 0, 0, overlayWidth, overlayHeight, (overlayWidth * 25.4 / this.overlayGraphicCtx.ppiX), (overlayHeight * 25.4 / this.overlayGraphicCtx.ppiY));
   	this.autoShapeTrack.init(this.trackOverlay, 0, 0, overlayWidth, overlayHeight, overlayWidth * 25.4 / this.overlayGraphicCtx.ppiX, overlayHeight * 25.4 / this.overlayGraphicCtx.ppiY);
   	this.autoShapeTrack.Graphics.CalculateFullTransform();
+    if(this.mainOverlay) {
+        overlayWidth = this.canvasOverlay.width;
+        overlayHeight = this.canvasOverlay.height;
+        this.mainOverlay.init(this.overlayCtx.ctx, "ws-canvas-overlay", 0, 0, overlayWidth, overlayHeight, (overlayWidth * 25.4 / this.overlayCtx.ppiX), (overlayHeight * 25.4 / this.overlayCtx.ppiY))
+    }
   };
 
   /** @param event {jQuery.Event} */
@@ -2489,7 +2524,18 @@
       if (newSelectionDialogMode) {
           this.copyActiveSheet = this.wsActive;
 
-          var tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange);
+          var tmpSelectRange;
+          if(c_oAscSelectionDialogType.Chart === selectionDialogType) {
+              if(typeof selectRange === "string" && selectRange[0] === '=') {
+                  tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange.slice(1));
+              }
+              else {
+                  tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange);
+              }
+          }
+          else {
+              tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange);
+          }
           if (tmpSelectRange) {
               var ws = this.model.getWorksheetByName(tmpSelectRange.sheet);
               if (!ws || ws.getHidden()) {
@@ -2628,7 +2674,7 @@
 
   WorkbookView.prototype.editDefinedNames = function(oldName, newName) {
     //ToDo проверка defName.ref на знак "=" в начале ссылки. знака нет тогда это либо число либо строка, так делает Excel.
-    if (this.collaborativeEditing.getGlobalLock()) {
+    if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
       return;
     }
 
@@ -2692,7 +2738,7 @@
 
   WorkbookView.prototype.delDefinedNames = function(oldName) {
     //ToDo проверка defName.ref на знак "=" в начале ссылки. знака нет тогда это либо число либо строка, так делает Excel.
-    if (this.collaborativeEditing.getGlobalLock()) {
+    if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
       return;
     }
 
@@ -3624,6 +3670,10 @@
 		} else {
 			_callback(true);
 		}
+	};
+
+	WorkbookView.prototype.updateSkin = function () {
+		this.defaults.worksheetView.updateStyle();
 	};
 
 

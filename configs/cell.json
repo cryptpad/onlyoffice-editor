@@ -25,6 +25,7 @@
 			"cell/api.js"
 		],
 		"common": [
+			"common/skin.js",
 			"common/downloaderfiles.js",
 			"common/NumFormat.js",
 			"common/SerializeChart.js",
@@ -128,6 +129,7 @@
 			"cell/model/HeaderFooter.js",
 			"cell/model/CellInfo.js",
 			"cell/model/Slicer.js",
+			"cell/model/NamedSheetViews.js",
 			"cell/view/mobileTouch.js",
 			"cell/view/StringRender.js",
 			"cell/view/CellTextRender.js",

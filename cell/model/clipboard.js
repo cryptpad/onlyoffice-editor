@@ -577,7 +577,8 @@
 					//записываю изображение выделенного фрагмента. пока только для изоюражений
 					//выбрал для этого поле subject
 					var oldSubject = wb.Core.subject;
-					var _imgProperty = Asc.editor.wb.getWorksheet().objectRender.controller.getSelectionImage();
+					var objectRender = Asc.editor.wb.getWorksheet().objectRender;
+					var _imgProperty = objectRender && objectRender.controller && objectRender.controller.getSelectionImage();
 					if (_imgProperty) {
 						var _base64 = _imgProperty.asc_getImageUrl();
 						var _width = _imgProperty.Width;
@@ -1510,7 +1511,8 @@
 				}
 
 				var result = false;
-				var isIntoShape = worksheet.objectRender.controller.getTargetDocContent();
+				var objectRender = worksheet.objectRender;
+				var isIntoShape = objectRender && objectRender.controller && objectRender.controller.getTargetDocContent();
 				if (base64 != null)//from excel
 				{
 					result = this._pasteFromBinaryExcel(worksheet, base64, isIntoShape, isCellEditMode, isPasteAll);
@@ -1647,11 +1649,11 @@
 
 				AscFormat.ExecuteNoHistory(function(){
 					pptx_content_loader.Start_UseFullUrl();
-					pptx_content_loader.Reader.ClearConnectorsMaps();
+					pptx_content_loader.Reader.ClearConnectedObjects();
 					oBinaryFileReader.Read(base64, tempWorkbook);
 					t.activeRange = oBinaryFileReader.copyPasteObj.activeRange;
 					aPastedImages = pptx_content_loader.End_UseFullUrl();
-					pptx_content_loader.Reader.AssignConnectorsId();
+					pptx_content_loader.Reader.AssignConnectedObjects();
 				}, this, []);
 
 				return aPastedImages;
@@ -1687,8 +1689,8 @@
 				var res = false;
 
 				var api = window["Asc"]["editor"];
-				var curDocId = api.DocInfo.Id;
-				var curUserId = api.CoAuthoringApi.getUserConnectionId();
+				var curDocId = api.DocInfo && api.DocInfo.Id;
+				var curUserId = api.CoAuthoringApi && api.CoAuthoringApi.getUserConnectionId();
 
 				if(pastedWb && pastedWb.Core && pastedWb.Core.identifier === curDocId && pastedWb.Core.creator === curUserId) {
 					res = true;
@@ -2029,7 +2031,7 @@
 				//TODO пока выключаю специальную ставку внутри math, позже доработать и включить
 				var oInfo = new CSelectedElementsInfo();
 				//var selectedElementsInfo = isIntoShape.GetSelectedElementsInfo(oInfo);
-				var mathObj = oInfo.Get_Math();
+				var mathObj = oInfo.GetMath();
 
 				if (/*!window['AscCommon'].g_specialPasteHelper.specialPasteStart && */null === mathObj) {
 					var sProps = Asc.c_oSpecialPasteProps;
@@ -2867,7 +2869,7 @@
 				loader.DrawingDocument = worksheet.getDrawingDocument();
 				loader.Start_UseFullUrl();
 
-				loader.ClearConnectorsMaps();
+				loader.ClearConnectedObjects();
 				loader.stream = stream;
 
 				var count = stream.GetULong();
@@ -2912,7 +2914,7 @@
 					arr_shapes[i] = worksheet.objectRender.createDrawingObject();
 					arr_shapes[i].graphicObject = drawing;
 				}
-				loader.AssignConnectorsId();
+				loader.AssignConnectedObjects();
 				History.TurnOn();
 
 				var arrImages = arrBase64Img.concat(loader.End_UseFullUrl());
@@ -2978,6 +2980,14 @@
 				var oBinaryFileReader = new AscCommonWord.BinaryFileReader(newCDocument, openParams);
 				var oRes = oBinaryFileReader.ReadFromString(sBase64, {excelCopyPaste: true});
 
+				var defrPr = oBinaryFileReader.oReadResult && oBinaryFileReader.oReadResult.DefrPr;
+				if (defrPr && newCDocument.Styles && newCDocument.Styles.Default && newCDocument.Styles.Default.TextPr) {
+					newCDocument.Styles.Default.TextPr.FontSize = defrPr.FontSize;
+					if (defrPr.RFonts) {
+						newCDocument.Styles.Default.TextPr.RFonts = defrPr.RFonts;
+					}
+				}
+
 				pptx_content_loader.End_UseFullUrl();
 
 				oTempDrawingDocument.m_oLogicDocument = old_m_oLogicDocument;
@@ -3007,7 +3017,7 @@
 					}
 
 					res = false;
-				} else if (!worksheet.handlers.trigger("getLockDefNameManagerStatus") && insertWorksheet && insertWorksheet.TableParts && insertWorksheet.TableParts.length) {
+				} else if (worksheet.handlers && !worksheet.handlers.trigger("getLockDefNameManagerStatus") && insertWorksheet && insertWorksheet.TableParts && insertWorksheet.TableParts.length) {
 					//если пытаемся вставить вторым пользователем форматированную таблицу, когда первый уже добавил другую форматированную таблицу
 					worksheet.handlers.trigger("onErrorEvent", c_oAscError.ID.LockCreateDefName,
 						c_oAscError.Level.NoCritical);
@@ -3252,6 +3262,7 @@
 						if (!isIntoShape) {
 							return false;
 						}
+						isIntoShape.Remove(1, true, true);
 						var Count = text.length;
 
 						var newParagraph = new Paragraph(isIntoShape.DrawingDocument, isIntoShape);
@@ -4502,7 +4513,7 @@
 					colorText = null;
 				}
 
-				fontFamily = cTextPr.fontFamily ? cTextPr.fontFamily.Name : cTextPr.RFonts.CS ? cTextPr.RFonts.CS.Name : paragraphFontFamily;
+				fontFamily = cTextPr.FontFamily ? cTextPr.FontFamily.Name : cTextPr.RFonts.CS ? cTextPr.RFonts.CS.Name : paragraphFontFamily;
 				this.fontsNew[fontFamily] = 1;
 
 				var verticalAlign;

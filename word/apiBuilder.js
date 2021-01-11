@@ -335,6 +335,17 @@
 			}
 		}
 	};
+	
+	/**
+	 * Get the type of this class.
+	 * @memberof ApiRange
+	 * @typeofeditors ["CDE"]
+	 * @returns {"range"}
+	 */
+	ApiRange.prototype.GetClassType = function()
+	{
+		return "range";
+	};
 
 	/**
 	 * Get a paragraph from all paragraphs that are in the range
@@ -1765,10 +1776,17 @@
 	}
 	ApiHyperlink.prototype.constructor = ApiHyperlink;
 
+	/**
+	 * Get the type of this class.
+	 * @memberof ApiHyperlink
+	 * @typeofeditors ["CDE"]
+	 * @returns {"hyperlink"}
+	 */
 	ApiHyperlink.prototype.GetClassType = function()
 	{
 		return "hyperlink";
 	};
+	
 	/**
 	 * Sets the hyperlink address.
 	 * @typeofeditors ["CDE"]
@@ -2842,7 +2860,7 @@
 	/**
 	 * Create a radial gradient fill which allows to fill the object using a selected radial gradient as the object background.
 	 * @memberof Api
-	 * @typeofeditors ["CDE", "CPE"]
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @param {Array} aGradientStop - The array of gradient color stops measured in 1000th of percent.
 	 * @returns {ApiFill}
 	 */
@@ -3133,7 +3151,7 @@
 	};
 
 	/**
-	 * Gets the mail merge template doc.
+	 * Gets the mail merge receptions count.
 	 * @memberof Api
 	 * @typeofeditors ["CDE"]
 	 * @return {number}  
@@ -3687,7 +3705,7 @@
 		if (this.Document.IsSelectionUse())
 		{
 			this.Document.Start_SilentMode();
-			this.Document.Remove(1, false, false, false);
+			this.Document.Remove(1, false, false, isInline);
 			this.Document.End_SilentMode();
 			this.Document.RemoveSelection(true);
 		}
@@ -4063,6 +4081,8 @@
 	};
 	/**
 	 * Get the collection of tables on a given absolute page
+	 * <note>This method can be a little bit slow, because it runs the document calculation
+	 * process to arrange tables on the specified page</note>
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
 	 * @param nPage - page number
@@ -4072,12 +4092,13 @@
 	{
 		var arrApiAllTables = [];
 
+		this.Document.private_Recalculate(undefined, true, nPage + 1);
 		var arrAllTables = this.Document.GetAllTablesOnPage(nPage);
 
 		for (var Index = 0; Index < arrAllTables.length; Index++)
 		{
 			arrApiAllTables.push(new ApiTable(arrAllTables[Index].Table));
-		};
+		}
 
 		return arrApiAllTables;
 	};
@@ -4118,8 +4139,10 @@
 		var arrApiShapes  = [];
 
 		for (var Index = 0; Index < arrAllDrawing.length; Index++)
+		{
 			if (arrAllDrawing[Index].GraphicObj instanceof CShape)
 				arrApiShapes.push(new ApiShape(arrAllDrawing[Index].GraphicObj));
+		}
 		
 		return arrApiShapes;
 	};
@@ -4135,8 +4158,10 @@
 		var arrApiImages  = [];
 
 		for (var Index = 0; Index < arrAllDrawing.length; Index++)
+		{
 			if (arrAllDrawing[Index].GraphicObj instanceof CImageShape)
 				arrApiImages.push(new ApiImage(arrAllDrawing[Index].GraphicObj));
+		}
 		
 		return arrApiImages;
 	};
@@ -4152,8 +4177,10 @@
 		var arrApiCharts  = [];
 
 		for (var Index = 0; Index < arrAllDrawing.length; Index++)
+		{
 			if (arrAllDrawing[Index].GraphicObj instanceof CChartSpace)
 				arrApiCharts.push(new ApiChart(arrAllDrawing[Index].GraphicObj));
+		}
 		
 		return arrApiCharts;
 	};
@@ -4498,10 +4525,11 @@
 	 */
 	ApiParagraph.prototype.GetNext = function()
 	{
-		if (this.Paragraph.Next !== null && this.Paragraph.Next !== undefined)
-			return new ApiParagraph(this.Paragraph.Next);
+		var nextPara = this.Paragraph.GetNextParagraph();
+        if (nextPara !== null)
+            return new ApiParagraph(nextPara);
 
-		return null;
+        return null;
 	};
 	/**
 	 * Gets the Previous paragraph.
@@ -4511,10 +4539,11 @@
 	 */
 	ApiParagraph.prototype.GetPrevious = function()
 	{
-		if (this.Paragraph.Prev !== null && this.Paragraph.Prev !== undefined)
-			return new ApiParagraph(this.Paragraph.Prev);
+		var prevPara = this.Paragraph.GetPrevParagraph();
+        if (prevPara !== null)
+            return new ApiParagraph(prevPara);
 
-		return null;
+        return null;
 	};
 	/**
 	 * Create a copy of the paragraph. Ingonore comments, footnote references, complex fields
@@ -4772,9 +4801,9 @@
 	 */
 	ApiParagraph.prototype.SetBold = function(isBold)
 	{
-		this.Paragraph.Set_ApplyToAll(true);
+		this.Paragraph.SetApplyToAll(true);
 		this.Paragraph.Add(new AscCommonWord.ParaTextPr({Bold : isBold}));
-		this.Paragraph.Set_ApplyToAll(false);
+		this.Paragraph.SetApplyToAll(false);
 		
 		return this;
 	};
@@ -4787,9 +4816,9 @@
 	 */
 	ApiParagraph.prototype.SetCaps = function(isCaps)
 	{
-		this.Paragraph.Set_ApplyToAll(true);
+		this.Paragraph.SetApplyToAll(true);
 		this.Paragraph.Add(new AscCommonWord.ParaTextPr({Caps : isCaps}));
-		this.Paragraph.Set_ApplyToAll(false);
+		this.Paragraph.SetApplyToAll(false);
 		
 		return this;
 	};
@@ -4811,7 +4840,7 @@
 		color.b    = b;
 		color.Auto = isAuto;
 
-		this.Paragraph.Set_ApplyToAll(true);
+		this.Paragraph.SetApplyToAll(true);
 		if (true === color.Auto)
 		{
 			this.Paragraph.Add(new AscCommonWord.ParaTextPr({
@@ -4830,7 +4859,7 @@
 			Unifill.fill.color = AscFormat.CorrectUniColor(color, Unifill.fill.color, 1);
 			this.Paragraph.Add(new AscCommonWord.ParaTextPr({Unifill : Unifill}));
 		}
-		this.Paragraph.Set_ApplyToAll(false);
+		this.Paragraph.SetApplyToAll(false);
 		
 		return this;
 	};
@@ -4843,9 +4872,9 @@
 	 */
 	ApiParagraph.prototype.SetDoubleStrikeout = function(isDoubleStrikeout)
 	{
-		this.Paragraph.Set_ApplyToAll(true);
+		this.Paragraph.SetApplyToAll(true);
 		this.Paragraph.Add(new AscCommonWord.ParaTextPr({DStrikeout : isDoubleStrikeout}));
-		this.Paragraph.Set_ApplyToAll(false);
+		this.Paragraph.SetApplyToAll(false);
 		
 		return this;
 	};
@@ -4872,9 +4901,9 @@
 				Index : -1
 			};
 
-			this.Paragraph.Set_ApplyToAll(true);
+			this.Paragraph.SetApplyToAll(true);
 			this.Paragraph.Add(new AscCommonWord.ParaTextPr({FontFamily : FontFamily}));
-			this.Paragraph.Set_ApplyToAll(false);
+			this.Paragraph.SetApplyToAll(false);
 			
 			return this;
 		}
@@ -4890,9 +4919,9 @@
 	 */
 	ApiParagraph.prototype.SetFontSize = function(nSize)
 	{
-		this.Paragraph.Set_ApplyToAll(true);
+		this.Paragraph.SetApplyToAll(true);
 		this.Paragraph.Add(new AscCommonWord.ParaTextPr({FontSize : nSize/2}));
-		this.Paragraph.Set_ApplyToAll(false);
+		this.Paragraph.SetApplyToAll(false);
 		
 		return this;
 	};
@@ -4908,7 +4937,7 @@
 	 */
 	ApiParagraph.prototype.SetHighlight = function(r, g, b, isNone)
 	{
-		this.Paragraph.Set_ApplyToAll(true);
+		this.Paragraph.SetApplyToAll(true);
 		if (true === isNone)
 		{
 			this.Paragraph.Add(new ParaTextPr({HighLight : highlight_None}));
@@ -4918,7 +4947,7 @@
 			var color = new CDocumentColor(r, g, b);
 			this.Paragraph.Add(new ParaTextPr({HighLight : color}));
 		}
-		this.Paragraph.Set_ApplyToAll(false);
+		this.Paragraph.SetApplyToAll(false);
 		
 		return this;
 	};
@@ -4931,9 +4960,9 @@
 	 */
 	ApiParagraph.prototype.SetItalic = function(isItalic)
 	{
-		this.Paragraph.Set_ApplyToAll(true);
+		this.Paragraph.SetApplyToAll(true);
 		this.Paragraph.Add(new AscCommonWord.ParaTextPr({Italic : isItalic}));
-		this.Paragraph.Set_ApplyToAll(false);
+		this.Paragraph.SetApplyToAll(false);
 		
 		return this;
 	};
@@ -4948,9 +4977,9 @@
 	 */
 	ApiParagraph.prototype.SetPosition = function(nPosition)
 	{
-		this.Paragraph.Set_ApplyToAll(true);
+		this.Paragraph.SetApplyToAll(true);
 		this.Paragraph.Add(new AscCommonWord.ParaTextPr({Position : nPosition}));
-		this.Paragraph.Set_ApplyToAll(false);
+		this.Paragraph.SetApplyToAll(false);
 		
 		return this;
 	};
@@ -4972,7 +5001,7 @@
 		color.b    = b;
 		color.Auto = false;
 
-		this.Paragraph.Set_ApplyToAll(true);
+		this.Paragraph.SetApplyToAll(true);
 
 		var Shd = new CDocumentShd();
 
@@ -5000,7 +5029,7 @@
 			Shd.Set_FromObject(_Shd);
 			this.Paragraph.SetParagraphShd(_Shd);
 		}
-		this.Paragraph.Set_ApplyToAll(false);
+		this.Paragraph.SetApplyToAll(false);
 		
 		return this;
 	};
@@ -5014,12 +5043,12 @@
 	 */
 	ApiParagraph.prototype.SetSmallCaps = function(isSmallCaps)
 	{
-		this.Paragraph.Set_ApplyToAll(true);
+		this.Paragraph.SetApplyToAll(true);
 		this.Paragraph.Add(new AscCommonWord.ParaTextPr({
 			SmallCaps : isSmallCaps,
 			Caps      : false
 		}));
-		this.Paragraph.Set_ApplyToAll(false);
+		this.Paragraph.SetApplyToAll(false);
 		
 		return this;
 	};
@@ -5032,9 +5061,9 @@
 	 */
 	ApiParagraph.prototype.SetSpacing = function(nSpacing)
 	{
-		this.Paragraph.Set_ApplyToAll(true);
+		this.Paragraph.SetApplyToAll(true);
 		this.Paragraph.Add(new AscCommonWord.ParaTextPr({Spacing : nSpacing}));
-		this.Paragraph.Set_ApplyToAll(false);
+		this.Paragraph.SetApplyToAll(false);
 		
 		return this;
 	};
@@ -5047,12 +5076,12 @@
 	 */
 	ApiParagraph.prototype.SetStrikeout = function(isStrikeout)
 	{
-		this.Paragraph.Set_ApplyToAll(true);
+		this.Paragraph.SetApplyToAll(true);
 		this.Paragraph.Add(new AscCommonWord.ParaTextPr({
 			Strikeout  : isStrikeout,
 			DStrikeout : false
 			}));
-		this.Paragraph.Set_ApplyToAll(false);
+		this.Paragraph.SetApplyToAll(false);
 		
 		return this;
 	};
@@ -5066,9 +5095,9 @@
 	 */
 	ApiParagraph.prototype.SetUnderline = function(isUnderline)
 	{
-		this.Paragraph.Set_ApplyToAll(true);
+		this.Paragraph.SetApplyToAll(true);
 		this.Paragraph.Add(new AscCommonWord.ParaTextPr({Underline : isUnderline}));
-		this.Paragraph.Set_ApplyToAll(false);
+		this.Paragraph.SetApplyToAll(false);
 		
 		return this;
 	};
@@ -5095,9 +5124,9 @@
 		else 
 			return null;
 
-		this.Paragraph.Set_ApplyToAll(true);
+		this.Paragraph.SetApplyToAll(true);
 		this.Paragraph.Add(new AscCommonWord.ParaTextPr({VertAlign : value}));
-		this.Paragraph.Set_ApplyToAll(false);
+		this.Paragraph.SetApplyToAll(false);
 		
 		return this;
 	};
@@ -5155,7 +5184,9 @@
 		var arrApiShapes  = [];
 
 		for (var Index = 0; Index < arrAllDrawing.length; Index++)
+		{
 			arrApiShapes.push(new ApiDrawing(arrAllDrawing[Index]));
+		}
 		
 		return arrApiShapes;
 	};
@@ -5171,8 +5202,10 @@
 		var arrApiShapes  = [];
 
 		for (var Index = 0; Index < arrAllDrawing.length; Index++)
+		{
 			if (arrAllDrawing[Index].GraphicObj instanceof CShape)
-				arrApiShapes.push(new ApiShape(arrAllDrawing[Index]));
+				arrApiShapes.push(new ApiShape(arrAllDrawing[Index].GraphicObj));
+		}
 
 		return arrApiShapes;
 	};
@@ -5188,8 +5221,10 @@
 		var arrApiImages  = [];
 
 		for (var Index = 0; Index < arrAllDrawing.length; Index++)
+		{
 			if (arrAllDrawing[Index].GraphicObj instanceof CImageShape)
-				arrApiImages.push(new ApiImage(arrAllDrawing[Index]));
+				arrApiImages.push(new ApiImage(arrAllDrawing[Index].GraphicObj));
+		}
 
 		return arrApiImages;
 	};
@@ -5205,8 +5240,10 @@
 		var arrApiCharts  = [];
 
 		for (var Index = 0; Index < arrAllDrawing.length; Index++)
+		{
 			if (arrAllDrawing[Index].GraphicObj instanceof CChartSpace)
-				arrApiCharts.push(new ApiChart(arrAllDrawing[Index]));
+				arrApiCharts.push(new ApiChart(arrAllDrawing[Index].GraphicObj));
+		}
 
 		return arrApiCharts;
 	};
@@ -5302,9 +5339,9 @@
 		if (!(oTextPr instanceof ApiTextPr))
 			return false;
 
-		this.Paragraph.Set_ApplyToAll(true);
+		this.Paragraph.SetApplyToAll(true);
 		this.Paragraph.Add(new AscCommonWord.ParaTextPr(oTextPr.TextPr));
-		this.Paragraph.Set_ApplyToAll(false);
+		this.Paragraph.SetApplyToAll(false);
 
 		return true;
 	};
@@ -5516,7 +5553,7 @@
 	/**
 	 * Get the type of this class.
 	 * @memberof ApiRun
-	 * @typeofeditors ["CDE", "CPE"]
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @returns {"run"}
 	 */
 	ApiRun.prototype.GetClassType = function()
@@ -7258,9 +7295,9 @@
 
 		for (var curPara = 0; curPara < allParagraphs.length; curPara++)
 		{
-			allParagraphs[curPara].Set_ApplyToAll(true);
+			allParagraphs[curPara].SetApplyToAll(true);
 			allParagraphs[curPara].Add(new AscCommonWord.ParaTextPr(oTextPr.TextPr));
-			allParagraphs[curPara].Set_ApplyToAll(false);
+			allParagraphs[curPara].SetApplyToAll(false);
 		}
 		
 		return true;
@@ -7796,9 +7833,9 @@
 		cellContent.GetAllParagraphs({All : true}, allParagraphs);
 		for (var curPara = 0; curPara < allParagraphs.length; curPara++)
 		{
-			allParagraphs[curPara].Set_ApplyToAll(true);
+			allParagraphs[curPara].SetApplyToAll(true);
 			allParagraphs[curPara].Add(new AscCommonWord.ParaTextPr(oTextPr.TextPr));
-			allParagraphs[curPara].Set_ApplyToAll(false);
+			allParagraphs[curPara].SetApplyToAll(false);
 		}
 		
 		return true;
@@ -8101,7 +8138,7 @@
 	 */
 	ApiTextPr.prototype.SetFontFamily = function(sFontFamily)
 	{
-		this.TextPr.RFonts.Set_All(sFontFamily, -1);
+		this.TextPr.RFonts.SetAll(sFontFamily, -1);
 		this.private_OnChange();
 	};
 	/**
@@ -9761,8 +9798,14 @@
 	 */
 	ApiDrawing.prototype.Copy = function()
 	{
-		var CopyParaDrawing = this.Drawing.copy();
-		return new ApiDrawing(CopyParaDrawing);
+		var oDrawing = this.Drawing.copy();
+
+		if (this instanceof ApiShape
+			|| this instanceof ApiChart
+			|| this instanceof ApiImage)
+			return new this.constructor(oDrawing.GraphicObj);
+
+		return new ApiDrawing(oDrawing);
 	};
 	/**
 	 * Wraps the graphic object with a rich text content control.
@@ -9959,7 +10002,7 @@
 			return false;
 
 		this.Drawing.GraphicObj.spPr.setFill(oFill.UniFill);
-		return truel
+		return true;
 	};
 	/**
 	 * Sets the outline properties for the specified graphic object.
@@ -10275,9 +10318,9 @@
 			oTitle.setTx(new AscFormat.CChartText());
 			var oTextBody = AscFormat.CreateTextBodyFromString(sTitle, this.Chart.getDrawingDocument(), oTitle.tx);
 			if(AscFormat.isRealNumber(nFontSize)){
-				oTextBody.content.Set_ApplyToAll(true);
+				oTextBody.content.SetApplyToAll(true);
 				oTextBody.content.AddToParagraph(new ParaTextPr({ FontSize : nFontSize}));
-				oTextBody.content.Set_ApplyToAll(false);
+				oTextBody.content.SetApplyToAll(false);
 			}
 			oTitle.tx.setRich(oTextBody);
 			return oTitle;
@@ -10741,7 +10784,7 @@
 	/**
 	 * Get the type of this class.
 	 * @memberof ApiPresetColor
-	 * @typeofeditors ["CDE", "CPE"]
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @returns {"presetColor"}
 	 */
 	ApiPresetColor.prototype.GetClassType = function ()
@@ -11148,6 +11191,24 @@
 		return Range;
 	};
 
+	/**
+	 * Create a copy of the inline content control. Ingonore comments, footnote references, complex fields
+	 * @memberof ApiInlineLvlSdt
+	 * @typeofeditors ["CDE"]
+	 * @returns {ApiInlineLvlSdt}
+	 */
+	ApiInlineLvlSdt.prototype.Copy = function()
+	{
+		var oInlineSdt = this.Sdt.Copy(false, {
+			SkipComments          : true,
+			SkipAnchors           : true,
+			SkipFootnoteReference : true,
+			SkipComplexFields     : true
+		});
+
+		return new ApiInlineLvlSdt(oInlineSdt);
+	};
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiBlockLvlSdt
@@ -11290,7 +11351,7 @@
 	 * Gets the collection of content control objects in the content control.
 	 * @memberof ApiBlockLvlSdt
 	 * @typeofeditors ["CDE"]
-	 * @returns {(ApiBlockLvlSdt | ApiInlineLvlSdt)[]}
+	 * @returns {ApiBlockLvlSdt[] | ApiInlineLvlSdt[]}
 	 */
 	ApiBlockLvlSdt.prototype.GetAllContentControls = function()
 	{
@@ -11333,15 +11394,21 @@
 	};
 
 	/**
-	 * Get the collection of tables on a given absolute page
+	 * Get the collection of tables on a given absolute page.
+	 * <note>This method can be a little bit slow, because it runs the document calculation
+	 * process to arrange tables on the specified page</note>
 	 * @memberof ApiBlockLvlSdt
 	 * @typeofeditors ["CDE"]
 	 * @param nPage - page number
 	 * @return {ApiTable[]}  
 	 */
-	ApiBlockLvlSdt.prototype.GetAllTablesOnPage = function(nPageAbs)
+	ApiBlockLvlSdt.prototype.GetAllTablesOnPage = function(nPage)
 	{
-		var arrTables		= this.Sdt.GetAllTablesOnPage(nPageAbs);
+		var oLogicDocument = this.Sdt.GetLogicDocument();
+		if (oLogicDocument)
+			oLogicDocument.private_Recalculate(undefined, true, nPage + 1);
+
+		var arrTables		= this.Sdt.GetAllTablesOnPage(nPage);
 		var arrApiTables	= [];
 
 		for (var Index = 0, nCount = arrTables.length; Index < nCount; Index++)
@@ -11401,9 +11468,9 @@
 	ApiBlockLvlSdt.prototype.SetTextPr = function(oTextPr)
 	{
 		var ParaTextPr = new AscCommonWord.ParaTextPr(oTextPr.TextPr);
-		this.Sdt.Content.Set_ApplyToAll(true);
+		this.Sdt.Content.SetApplyToAll(true);
 		this.Sdt.Add(ParaTextPr);
-		this.Sdt.Content.Set_ApplyToAll(false);
+		this.Sdt.Content.SetApplyToAll(false);
 	};
 
 	/**
@@ -11653,6 +11720,7 @@
 	ApiDocumentContent.prototype["RemoveElement"]    = ApiDocumentContent.prototype.RemoveElement;
 	ApiDocumentContent.prototype["GetRange"]         = ApiDocumentContent.prototype.GetRange;
 
+	ApiRange.prototype["GetClassType"]               = ApiRange.prototype.GetClassType
 	ApiRange.prototype["GetParagraph"]               = ApiRange.prototype.GetParagraph;
 	ApiRange.prototype["AddText"]                    = ApiRange.prototype.AddText;
 	ApiRange.prototype["AddBookmark"]                = ApiRange.prototype.AddBookmark;
@@ -12061,7 +12129,7 @@
 	ApiImage.prototype["GetClassType"]               = ApiImage.prototype.GetClassType;
 	ApiImage.prototype["GetNextImage"]               = ApiImage.prototype.GetNextImage;
 	ApiImage.prototype["GetPrevImage"]               = ApiImage.prototype.GetPrevImage;
-	
+
 	ApiShape.prototype["GetClassType"]               = ApiShape.prototype.GetClassType;
 	ApiShape.prototype["GetDocContent"]              = ApiShape.prototype.GetDocContent;
 	ApiShape.prototype["GetContent"]                 = ApiShape.prototype.GetContent;
@@ -12134,6 +12202,7 @@
 	ApiInlineLvlSdt.prototype["GetParentTable"]         = ApiInlineLvlSdt.prototype.GetParentTable;
 	ApiInlineLvlSdt.prototype["GetParentTableCell"]     = ApiInlineLvlSdt.prototype.GetParentTableCell;
 	ApiInlineLvlSdt.prototype["GetRange"]               = ApiInlineLvlSdt.prototype.GetRange;
+	ApiInlineLvlSdt.prototype["Copy"]                   = ApiInlineLvlSdt.prototype.Copy;
 
 	ApiBlockLvlSdt.prototype["GetClassType"]            = ApiBlockLvlSdt.prototype.GetClassType;
 	ApiBlockLvlSdt.prototype["SetLock"]                 = ApiBlockLvlSdt.prototype.SetLock;
@@ -12157,7 +12226,7 @@
 	ApiBlockLvlSdt.prototype["GetParentTableCell"]      = ApiBlockLvlSdt.prototype.GetParentTableCell;
 	ApiBlockLvlSdt.prototype["Push"]                    = ApiBlockLvlSdt.prototype.Push;
 	ApiBlockLvlSdt.prototype["AddElement"]              = ApiBlockLvlSdt.prototype.AddElement;
-	ApiBlockLvlSdt.prototype["AddText"]                = ApiBlockLvlSdt.prototype.AddText;
+	ApiBlockLvlSdt.prototype["AddText"]                 = ApiBlockLvlSdt.prototype.AddText;
 	ApiBlockLvlSdt.prototype["GetRange"]                = ApiBlockLvlSdt.prototype.GetRange;
 	ApiBlockLvlSdt.prototype["Search"]                  = ApiBlockLvlSdt.prototype.Search;
 	ApiBlockLvlSdt.prototype["Select"]                  = ApiBlockLvlSdt.prototype.Select;

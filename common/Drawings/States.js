@@ -136,23 +136,9 @@ StartAddNewShape.prototype =
             if(!this.bMoved && this instanceof StartAddNewShape)
             {
                 var ext_x, ext_y;
-                if(typeof AscFormat.SHAPE_EXT[this.preset] === "number")
-                {
-                    ext_x = AscFormat.SHAPE_EXT[this.preset];
-                }
-                else
-                {
-                    ext_x = 25.4;
-                }
-                if(typeof AscFormat.SHAPE_ASPECTS[this.preset] === "number")
-                {
-                    var _aspect = AscFormat.SHAPE_ASPECTS[this.preset];
-                    ext_y = ext_x/_aspect;
-                }
-                else
-                {
-                    ext_y = ext_x;
-                }
+                var oExt = AscFormat.fGetDefaultShapeExtents(this.preset);
+                ext_x = oExt.x;
+                ext_y = oExt.y;
                 this.onMouseMove({IsLocked: true}, this.startX + ext_x, this.startY + ext_y);
             }
             var callback = function(bLock){
@@ -247,6 +233,10 @@ function checkEmptyPlaceholderContent(content)
                 return content;
             }
         }
+        var oParagraph = content.GetCurrentParagraph();
+        if(oParagraph.IsEmpty()){
+            return content;
+        }
     }
     return null;
 }
@@ -261,12 +251,25 @@ function NullState(drawingObjects)
 
 NullState.prototype =
 {
+    checkRedrawOnMouseDown: function(oStartContent, oStartPara)
+    {
+        this.drawingObjects.checkRedrawOnChangeCursorPosition(oStartContent, oStartPara);
+    },
     onMouseDown: function(e, x, y, pageIndex, bTextFlag)
     {
         var start_target_doc_content, end_target_doc_content, selected_comment_index = -1;
+        var oStartPara = null;
         if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
         {
             start_target_doc_content = checkEmptyPlaceholderContent(this.drawingObjects.getTargetDocContent());
+            if(start_target_doc_content)
+            {
+                oStartPara = start_target_doc_content.GetCurrentParagraph();
+                if(!oStartPara.IsEmpty())
+                {
+                    oStartPara = null;
+                }
+            }
             this.startTargetTextObject = AscFormat.getTargetTextObject(this.drawingObjects);
         }
         var ret;
@@ -288,12 +291,7 @@ NullState.prototype =
             {
                 if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
                 {
-                    end_target_doc_content = checkEmptyPlaceholderContent(this.drawingObjects.getTargetDocContent());
-                    if((start_target_doc_content || end_target_doc_content) && (start_target_doc_content !== end_target_doc_content))
-                    {
-                        this.drawingObjects.checkChartTextSelection(true);
-                        this.drawingObjects.drawingObjects.showDrawingObjects();
-                    }
+                    this.checkRedrawOnMouseDown(start_target_doc_content, oStartPara);
                     AscCommon.CollaborativeEditing.Update_ForeignCursorsPositions();
                 }
                 return ret;
@@ -303,12 +301,7 @@ NullState.prototype =
             {
                 if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
                 {
-                    end_target_doc_content = checkEmptyPlaceholderContent(this.drawingObjects.getTargetDocContent());
-                    if((start_target_doc_content || end_target_doc_content) && (start_target_doc_content !== end_target_doc_content))
-                    {
-                        this.drawingObjects.checkChartTextSelection(true);
-                        this.drawingObjects.drawingObjects.showDrawingObjects();
-                    }
+                    this.checkRedrawOnMouseDown(start_target_doc_content, oStartPara);
                     AscCommon.CollaborativeEditing.Update_ForeignCursorsPositions();
                 }
                 return ret;
@@ -321,12 +314,7 @@ NullState.prototype =
         {
             if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
             {
-                end_target_doc_content = checkEmptyPlaceholderContent(this.drawingObjects.getTargetDocContent());
-                if((start_target_doc_content || end_target_doc_content) && (start_target_doc_content !== end_target_doc_content))
-                {
-                    this.drawingObjects.checkChartTextSelection(true);
-                    this.drawingObjects.drawingObjects.showDrawingObjects();
-                }
+                this.checkRedrawOnMouseDown(start_target_doc_content, oStartPara);
                 AscCommon.CollaborativeEditing.Update_ForeignCursorsPositions();
             }
             return ret;
@@ -337,12 +325,7 @@ NullState.prototype =
         {
             if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
             {
-                end_target_doc_content = checkEmptyPlaceholderContent(this.drawingObjects.getTargetDocContent());
-                if((start_target_doc_content || end_target_doc_content) && (start_target_doc_content !== end_target_doc_content))
-                {
-                    this.drawingObjects.checkChartTextSelection(true);
-                    this.drawingObjects.drawingObjects.showDrawingObjects();
-                }
+                this.checkRedrawOnMouseDown(start_target_doc_content, oStartPara);
                 AscCommon.CollaborativeEditing.Update_ForeignCursorsPositions();
             }
             return ret;
@@ -1604,15 +1587,45 @@ function TextAddState(drawingObjects, majorObject, startX, startY)
     this.majorObject = majorObject;
     this.startX = startX;
     this.startY = startY;
+    this.bIsSelectionEmpty = true;
 }
 
 TextAddState.prototype =
 {
+    isSelectionEmpty: function()
+    {
+        if(this.majorObject.getObjectType() === AscDFH.historyitem_type_GraphicFrame)
+        {
+            if(this.majorObject.graphicObject)
+            {
+                return this.majorObject.graphicObject.IsSelectionEmpty();
+            }
+            return true;
+        }
+        var oContent = this.majorObject.getDocContent && this.majorObject.getDocContent();
+        if(oContent)
+        {
+            return oContent.IsSelectionEmpty();
+        }
+        return true;
+    },
+
+    checkSelectionEmpty: function()
+    {
+        this.bIsSelectionEmpty = this.isSelectionEmpty();
+    },
+
     onMouseDown: function(e, x, y, pageIndex)
     {
         if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_CURSOR)
         {
-            return {objectId: this.majorObject.Id, cursorType: "text"};
+            var sId = this.majorObject.Id;
+            if(this.majorObject.chart
+                && this.majorObject.chart.getObjectType
+                && this.majorObject.chart.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+                sId = this.majorObject.chart.Id;
+            }
+            return {objectId: sId, cursorType: "text"};
         }
     },
     onMouseMove: function(e, x, y, pageIndex)
@@ -1634,6 +1647,11 @@ TextAddState.prototype =
         this.majorObject.selectionSetEnd(e, x, y, pageIndex);
         if(!(this.majorObject.getObjectType() === AscDFH.historyitem_type_GraphicFrame && this.majorObject.graphicObject.Selection.Type2 === table_Selection_Border))
             this.drawingObjects.updateSelectionState();
+        if(this.bIsSelectionEmpty !== this.isSelectionEmpty())
+        {
+            this.drawingObjects.drawingObjects.showDrawingObjects();
+        }
+        this.checkSelectionEmpty();
     },
     onMouseUp: function(e, x, y, pageIndex)
     {

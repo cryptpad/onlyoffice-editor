@@ -149,6 +149,8 @@
 
 			// Data Validate
 			DataValidate : -45,
+			MoreOneTypeDataValidate: -46,
+			ContainsCellsWithoutDataValidate: -47,
 
 			// for AutoFilter
 			AutoFilterDataRangeError         : -50,
@@ -159,12 +161,14 @@
 			LockedWorksheetRename            : -55,
 			FTChangeTableRangeError          : -56,
 			FTRangeIncludedOtherTables       : -57,
+			ChangeFilteredRangeError         : -58,
 
 			PasteMaxRangeError   : -64,
 			PastInMergeAreaError : -65,
 			CopyMultiselectAreaError : -66,
 			PasteSlicerError: 67,
 			MoveSlicerError: 68,
+			PasteMultiSelectError : -69,
 
 			DataRangeError   : -75,
 			CannotMoveRange  : -74,
@@ -238,9 +242,26 @@
 			CustomSortNotOriginalSelectError: -801,
 
 			// Data Validate
+			DataValidateNotNumeric: -830,
+			DataValidateNegativeTextLength: -831,
+			DataValidateMustEnterValue: -832,
+			DataValidateMinGreaterMax: 833,
+			DataValidateInvalid: 834,
+			NamedRangeNotFound: 835,
+			FormulaEvaluateError: 836,
+			DataValidateInvalidList: 837,
+
+
 			RemoveDuplicates : -850,
 
-			LargeRangeWarning: -900
+			LargeRangeWarning: -900,
+
+			LockedEditView: -950,
+
+			Password : -1000,
+
+			SecondaryAxis: 1001,
+			ComboSeriesError: 1002
 		}
 	};
 
@@ -491,7 +512,8 @@
 		l       : 6,
 		outEnd  : 7,
 		r       : 8,
-		t       : 9
+		t       : 9,
+		show    : 10
 	};
 
 	var c_oAscGridLinesSettings = {
@@ -540,7 +562,11 @@
 		surfaceWireframe       : 35,
 		contourNormal          : 36,
 		contourWireframe       : 37,
-		unknown                : 38
+		comboCustom            : 38,
+		comboBarLine           : 39,
+		comboBarLineSecondary  : 40,
+		comboAreaBar           : 41,
+		unknown                : 42
 	};
 
 	var c_oAscValAxisRule = {
@@ -595,11 +621,10 @@
 	};
 
 	var c_oAscAxisType = {
-		auto : 0,
-		date : 1,
-		text : 2,
-		cat  : 3,
-		val  : 4
+		date : 0,
+		cat  : 1,
+		val  : 2,
+		ser  : 3
 	};
 
 	var c_oAscHAnchor = {
@@ -858,7 +883,8 @@
 		Common       : 0,
 		Hyperlink    : 1,
 		LockedObject : 2,
-		Footnote     : 3
+		Footnote     : 3,
+		Form         : 4
 	};
 
 	// selection type
@@ -1197,7 +1223,7 @@
 	var changestype_Theme                     = 64; // Изменение темы;
 	var changestype_SlideSize                 = 65; // Изменение цветовой схемы;
 	var changestype_SlideBg                   = 66; // Изменение цветовой схемы;
-	var changestype_SlideTiming               = 67; // Изменение цветовой схемы;
+	var changestype_SlideTransition           = 67; // Изменение цветовой схемы;
 	var changestype_MoveComment               = 68;
 	var changestype_AddSp                     = 69;
 	var changestype_AddComment                = 70;
@@ -2085,6 +2111,18 @@
 		Symbol : 1
 	};
 
+	var c_oAscLineNumberRestartType = {
+		Continuous : 1,
+		NewPage    : 2,
+		NewSection : 3
+	};
+
+	var c_oAscSectionApplyType = {
+		Current : 0,
+		ToEnd   : 1,
+		All     : 2
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -2182,6 +2220,8 @@
 	prot['MailMergeLoadFile']                = prot.MailMergeLoadFile;
 	prot['MailMergeSaveFile']                = prot.MailMergeSaveFile;
 	prot['DataValidate']                     = prot.DataValidate;
+	prot['MoreOneTypeDataValidate']          = prot.MoreOneTypeDataValidate;
+	prot['ContainsCellsWithoutDataValidate'] = prot.ContainsCellsWithoutDataValidate;
 	prot['AutoFilterDataRangeError']         = prot.AutoFilterDataRangeError;
 	prot['AutoFilterChangeFormatTableError'] = prot.AutoFilterChangeFormatTableError;
 	prot['AutoFilterChangeError']            = prot.AutoFilterChangeError;
@@ -2190,11 +2230,13 @@
 	prot['LockedWorksheetRename']            = prot.LockedWorksheetRename;
 	prot['FTChangeTableRangeError']          = prot.FTChangeTableRangeError;
 	prot['FTRangeIncludedOtherTables']       = prot.FTRangeIncludedOtherTables;
+	prot['ChangeFilteredRangeError']         = prot.ChangeFilteredRangeError;
 	prot['PasteMaxRangeError']               = prot.PasteMaxRangeError;
 	prot['PastInMergeAreaError']             = prot.PastInMergeAreaError;
 	prot['CopyMultiselectAreaError']         = prot.CopyMultiselectAreaError;
 	prot['PasteSlicerError']                 = prot.PasteSlicerError;
 	prot['MoveSlicerError']                  = prot.MoveSlicerError;
+	prot['PasteMultiSelectError']            = prot.PasteMultiSelectError;
 	prot['DataRangeError']                   = prot.DataRangeError;
 	prot['CannotMoveRange']                  = prot.CannotMoveRange;
 	prot['MaxDataSeriesError']               = prot.MaxDataSeriesError;
@@ -2244,6 +2286,19 @@
 	prot['CustomSortNotOriginalSelectError'] = prot.CustomSortNotOriginalSelectError;
 	prot['RemoveDuplicates']                 = prot.RemoveDuplicates;
 	prot['LargeRangeWarning']                = prot.LargeRangeWarning;
+	prot['LockedEditView']                   = prot.LockedEditView;
+	prot['SecondaryAxis']                    = prot.SecondaryAxis;
+	prot['ComboSeriesError']                 = prot.ComboSeriesError;
+
+	prot['DataValidateNotNumeric']           = prot.DataValidateNotNumeric;
+	prot['DataValidateNegativeTextLength']   = prot.DataValidateNegativeTextLength;
+	prot['DataValidateMustEnterValue']       = prot.DataValidateMustEnterValue;
+	prot['DataValidateMinGreaterMax']        = prot.DataValidateMinGreaterMax;
+	prot['DataValidateInvalid']              = prot.DataValidateInvalid;
+	prot['NamedRangeNotFound']               = prot.NamedRangeNotFound;
+	prot['FormulaEvaluateError']             = prot.FormulaEvaluateError;
+	prot['DataValidateInvalidList']          = prot.DataValidateInvalidList;
+
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
 	prot                                     = c_oAscAsyncAction;
 	prot['Open']                             = prot.Open;
@@ -2398,6 +2453,7 @@
 	prot['outEnd']                           = prot.outEnd;
 	prot['r']                                = prot.r;
 	prot['t']                                = prot.t;
+	prot['show']                             = prot.show;
 	window['Asc']['c_oAscGridLinesSettings'] = window['Asc'].c_oAscGridLinesSettings = c_oAscGridLinesSettings;
 	prot                                     = c_oAscGridLinesSettings;
 	prot['none']                             = prot.none;
@@ -2440,7 +2496,16 @@
 	prot['scatterNone']                = prot.scatterNone;
 	prot['scatterSmooth']              = prot.scatterSmooth;
 	prot['scatterSmoothMarker']        = prot.scatterSmoothMarker;
+	prot['surfaceNormal']              = prot.surfaceNormal;
+	prot['surfaceWireframe']           = prot.surfaceWireframe;
+	prot['contourNormal']              = prot.contourNormal;
+	prot['contourWireframe']           = prot.contourWireframe;
+	prot['comboCustom']                = prot.comboCustom;
+	prot['comboBarLine']               = prot.comboBarLine;
+	prot['comboBarLineSecondary']      = prot.comboBarLineSecondary;
+	prot['comboAreaBar']               = prot.comboAreaBar;
 	prot['unknown']                    = prot.unknown;
+
 	window['Asc']['c_oAscValAxisRule'] = window['Asc'].c_oAscValAxisRule = c_oAscValAxisRule;
 	prot                              = c_oAscValAxisRule;
 	prot['auto']                      = prot.auto;
@@ -2490,6 +2555,7 @@
 	prot['text']                   = prot.text;
 	prot['cat']                    = prot.cat;
 	prot['val']                    = prot.val;
+	prot['ser']                    = prot.ser;
 	window['Asc']['c_oAscHAnchor'] = window['Asc'].c_oAscHAnchor = c_oAscHAnchor;
 	prot                          = c_oAscHAnchor;
 	prot['Margin']                = prot.Margin;
@@ -2634,6 +2700,16 @@
 	prot['Millimeter']                      = prot.Millimeter;
 	prot['Inch']                            = prot.Inch;
 	prot['Point']                           = prot.Point;
+
+	window['Asc']['c_oAscMouseMoveDataTypes'] = window['Asc'].c_oAscMouseMoveDataTypes = c_oAscMouseMoveDataTypes;
+
+	prot                 = c_oAscMouseMoveDataTypes;
+	prot['Common']       = prot.Common;
+	prot['Hyperlink']    = prot.Hyperlink;
+	prot['LockedObject'] = prot.LockedObject;
+	prot['Footnote']     = prot.Footnote;
+	prot['Form']         = prot.Form;
+
 	window['Asc']['c_oAscMaxTooltipLength'] = window['Asc'].c_oAscMaxTooltipLength = c_oAscMaxTooltipLength;
 	window['Asc']['c_oAscMaxCellOrCommentLength'] = window['Asc'].c_oAscMaxCellOrCommentLength = c_oAscMaxCellOrCommentLength;
 	window['Asc']['c_oAscMaxHeaderFooterLength']  = window['Asc'].c_oAscMaxHeaderFooterLength  = c_oAscMaxHeaderFooterLength;
@@ -2819,7 +2895,6 @@
 	window["AscCommon"].c_oAscChartSubType          = c_oAscChartSubType;
 	window["AscCommon"].c_oAscCsvDelimiter          = c_oAscCsvDelimiter;
 	window["AscCommon"].c_oAscUrlType               = c_oAscUrlType;
-	window["AscCommon"].c_oAscMouseMoveDataTypes    = c_oAscMouseMoveDataTypes;
 	window["AscCommon"].c_oAscPrintDefaultSettings  = c_oAscPrintDefaultSettings;
 	window["AscCommon"].c_oZoomType                 = c_oZoomType;
 	window["AscCommon"].c_oNotifyType               = c_oNotifyType;
@@ -2869,7 +2944,7 @@
 	window["AscCommon"].changestype_Theme                     = changestype_Theme;
 	window["AscCommon"].changestype_SlideSize                 = changestype_SlideSize;
 	window["AscCommon"].changestype_SlideBg                   = changestype_SlideBg;
-	window["AscCommon"].changestype_SlideTiming               = changestype_SlideTiming;
+	window["AscCommon"].changestype_SlideTransition           = changestype_SlideTransition;
 	window["AscCommon"].changestype_MoveComment               = changestype_MoveComment;
 	window["AscCommon"].changestype_AddComment                = changestype_AddComment;
 	window["AscCommon"].changestype_Layout                    = changestype_Layout;
@@ -3096,5 +3171,15 @@
 
 	prot = window['AscCommon']['c_oAscCustomShortcutType'] = window['AscCommon'].c_oAscCustomShortcutType = c_oAscCustomShortcutType;
 	prot['Symbol'] = c_oAscCustomShortcutType.Symbol;
+
+	prot = window['Asc']['c_oAscLineNumberRestartType'] = window['Asc'].c_oAscLineNumberRestartType = c_oAscLineNumberRestartType;
+	prot['Continuous'] = c_oAscLineNumberRestartType.Continuous;
+	prot['NewPage']    = c_oAscLineNumberRestartType.NewPage;
+	prot['NewSection'] = c_oAscLineNumberRestartType.NewSection;
+
+	prot = window['Asc']['c_oAscSectionApplyType'] = window['Asc'].c_oAscSectionApplyType = c_oAscSectionApplyType;
+	prot['Current'] = c_oAscSectionApplyType.Current;
+	prot['ToEnd']   = c_oAscSectionApplyType.ToEnd;
+	prot['All']     = c_oAscSectionApplyType.All;
 
 })(window);

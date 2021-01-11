@@ -1635,8 +1635,12 @@ ParaDrawing.prototype.Get_DrawingType = function()
 };
 ParaDrawing.prototype.Is_Inline = function()
 {
-	if (!this.Parent || !this.Parent.Get_ParentTextTransform || null !== this.Parent.Get_ParentTextTransform())
-		return true;
+	if(this.Parent &&
+		this.Parent.Get_ParentTextTransform &&
+		this.Parent.Get_ParentTextTransform())
+	{
+			return true;
+	}
 
 	return ( drawing_Inline === this.DrawingType ? true : false );
 };
@@ -1699,8 +1703,8 @@ ParaDrawing.prototype.OnEnd_MoveInline = function(NearPos)
 
 	NearPos.Paragraph.Check_NearestPos(NearPos);
 
-	var oRun        = this.GetRun();
-	var isPictureCC = false;
+	var oRun       = this.GetRun();
+	var oPictureCC = false;
 	if (oRun)
 	{
 		var arrContentControls = oRun.GetParentContentControls();
@@ -1708,14 +1712,14 @@ ParaDrawing.prototype.OnEnd_MoveInline = function(NearPos)
 		{
 			if (arrContentControls[nIndex].IsPicture())
 			{
-				isPictureCC = true;
+				oPictureCC = arrContentControls[nIndex];
 				break;
 			}
 		}
 	}
 
 	// Ничего никуда не переносим в такой ситуации
-	if (isPictureCC)
+	if (oPictureCC)
 	{
 		var oDstRun = null;
 		var arrClasses = NearPos.Paragraph.GetClassesByPos(NearPos.ContentPos);
@@ -1737,7 +1741,7 @@ ParaDrawing.prototype.OnEnd_MoveInline = function(NearPos)
 	// При переносе всегда создаем копию, чтобы в совместном редактировании не было проблем
 	var NewParaDrawing = this.Copy();
 	this.DocumentContent.Select_DrawingObject(NewParaDrawing.GetId());
-	NewParaDrawing.Add_ToDocument(NearPos, true, RunPr, undefined, isPictureCC);
+	NewParaDrawing.Add_ToDocument(NearPos, true, RunPr, undefined, oPictureCC);
 };
 ParaDrawing.prototype.Get_ParentTextTransform = function()
 {
@@ -1797,8 +1801,13 @@ ParaDrawing.prototype.Get_ParentParagraph = function()
 {
 	if (this.Parent instanceof Paragraph)
 		return this.Parent;
+
 	if (this.Parent instanceof ParaRun)
 		return this.Parent.Paragraph;
+
+	if (this.Parent && this.Parent.GetParagraph())
+		return this.Parent.GetParagraph();
+
 	return null;
 };
 ParaDrawing.prototype.SelectAsText = function()
@@ -1824,7 +1833,7 @@ ParaDrawing.prototype.SelectAsText = function()
 	oDocument.RemoveSelection();
 	oDocument.SetSelectionByContentPositions(oStartPos, oEndPos);
 };
-ParaDrawing.prototype.Add_ToDocument = function(NearPos, bRecalculate, RunPr, Run, isPictureCC)
+ParaDrawing.prototype.Add_ToDocument = function(NearPos, bRecalculate, RunPr, Run, oPictureCC)
 {
 	NearPos.Paragraph.Check_NearestPos(NearPos);
 
@@ -1840,13 +1849,17 @@ ParaDrawing.prototype.Add_ToDocument = function(NearPos, bRecalculate, RunPr, Ru
 	if (Run)
 		DrawingRun.SetReviewTypeWithInfo(Run.GetReviewType(), Run.GetReviewInfo());
 
-	if (isPictureCC)
+	if (oPictureCC)
 	{
 		var oSdt = new CInlineLevelSdt();
 		oSdt.SetPicturePr(true);
 		oSdt.ReplacePlaceHolderWithContent();
 		oSdt.AddToContent(0, DrawingRun);
 		Para.Add_ToContent(0, oSdt);
+
+		var oFormPr = oPictureCC.GetFormPr();
+		if (oFormPr)
+			oSdt.SetFormPr(oFormPr.Copy());
 	}
 	else
 	{
@@ -1890,7 +1903,7 @@ ParaDrawing.prototype.UpdateCursorType = function(X, Y, PageIndex)
 			var Coords              = this.DrawingDocument.ConvertCoordsToCursorWR(_X, _Y, this.Parent.Get_StartPage_Absolute() + ( PageIndex - this.Parent.PageNum ));
 			MMData.X_abs            = Coords.X - 5;
 			MMData.Y_abs            = Coords.Y;
-			MMData.Type             = AscCommon.c_oAscMouseMoveDataTypes.LockedObject;
+			MMData.Type             = Asc.c_oAscMouseMoveDataTypes.LockedObject;
 			MMData.UserId           = Lock.Get_UserId();
 			MMData.HaveChanges      = Lock.Have_Changes();
 			MMData.LockedObjectType = c_oAscMouseMoveLockedObjectType.Common;
@@ -1931,7 +1944,8 @@ ParaDrawing.prototype.Get_ParentObject_or_DocumentPos = function()
 };
 ParaDrawing.prototype.Refresh_RecalcData = function(Data)
 {
-	if (undefined != this.Parent && null != this.Parent)
+	var oRun = this.GetRun();
+	if (oRun)
 	{
 		if (AscCommon.isRealObject(Data))
 		{
@@ -1949,11 +1963,7 @@ ParaDrawing.prototype.Refresh_RecalcData = function(Data)
 
 				case AscDFH.historyitem_Drawing_SetExtent:
 				{
-					var Run = this.Parent.Get_DrawingObjectRun(this.Id);
-					if (Run)
-					{
-						Run.RecalcInfo.Measure = true;
-					}
+					oRun.RecalcInfo.Measure = true;
 					break;
 				}
 
@@ -1966,11 +1976,7 @@ ParaDrawing.prototype.Refresh_RecalcData = function(Data)
 						this.GraphicObj.handleUpdateExtents && this.GraphicObj.handleUpdateExtents();
 						this.GraphicObj.addToRecalculate();
 					}
-					var Run = this.Parent.Get_DrawingObjectRun(this.Id);
-					if (Run)
-					{
-						Run.RecalcInfo.Measure = true;
-					}
+					oRun.RecalcInfo.Measure = true;
 					break;
 				}
 				case AscDFH.historyitem_Drawing_WrappingType:
@@ -1984,18 +1990,14 @@ ParaDrawing.prototype.Refresh_RecalcData = function(Data)
 				}
 			}
 		}
-		return this.Parent.Refresh_RecalcData2();
+		return oRun.Refresh_RecalcData2();
 	}
 };
-
-
 ParaDrawing.prototype.Refresh_RecalcData2 = function(Data)
 {
-
-	if(this.Parent && this.Parent.Refresh_RecalcData2)
-	{
-		return this.Parent.Refresh_RecalcData2();
-	}
+	var oRun = this.GetRun();
+	if (oRun)
+		return oRun.Refresh_RecalcData2();
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для совместного редактирования
@@ -2103,10 +2105,10 @@ ParaDrawing.prototype.getCurrentParagraph = function(bIgnoreSelection, arrSelect
 	if (this.Parent instanceof Paragraph)
 		return this.Parent;
 };
-ParaDrawing.prototype.getSelectedText = function(bClearText, oPr)
+ParaDrawing.prototype.GetSelectedText = function(bClearText, oPr)
 {
-	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.getSelectedText === "function")
-		return this.GraphicObj.getSelectedText(bClearText, oPr);
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.GetSelectedText === "function")
+		return this.GraphicObj.GetSelectedText(bClearText, oPr);
 	return "";
 };
 ParaDrawing.prototype.getCurPosXY = function()
@@ -2944,9 +2946,9 @@ ParaDrawing.prototype.CheckDeletingLock = function()
 	var arrDocContents = this.GetAllDocContents();
 	for (var nIndex = 0, nCount = arrDocContents.length; nIndex < nCount; ++nIndex)
 	{
-		arrDocContents[nIndex].Set_ApplyToAll(true);
+		arrDocContents[nIndex].SetApplyToAll(true);
 		arrDocContents[nIndex].Document_Is_SelectionLocked(AscCommon.changestype_Remove);
-		arrDocContents[nIndex].Set_ApplyToAll(false);
+		arrDocContents[nIndex].SetApplyToAll(false);
 	}
 };
 ParaDrawing.prototype.GetAllFields = function(isUseSelection, arrFields)

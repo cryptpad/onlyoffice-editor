@@ -629,15 +629,30 @@ CopyProcessor.prototype =
                 var _presentation_bullet = Item.PresentationPr.Bullet;
                 switch(_presentation_bullet.m_nType)
                 {
-                    case numbering_presentationnumfrmt_ArabicPeriod:
+                    case numbering_presentationnumfrmt_ArabicParenBoth:
                     case numbering_presentationnumfrmt_ArabicParenR:
+                    case numbering_presentationnumfrmt_ArabicPeriod:
+                    case numbering_presentationnumfrmt_ArabicPlain:
                     {
                         sListStyle = "decimal";
                         break;
                     }
-                    case numbering_presentationnumfrmt_RomanLcPeriod: sListStyle = "lower-roman";break;
-                    case numbering_presentationnumfrmt_RomanUcPeriod: sListStyle = "upper-roman";break;
+                    case numbering_presentationnumfrmt_RomanLcParenBoth:
+                    case numbering_presentationnumfrmt_RomanLcParenR:
+                    case numbering_presentationnumfrmt_RomanLcPeriod:
+                    {
+                        sListStyle = "lower-roman";
+                        break;
+                    }
+                    case numbering_presentationnumfrmt_RomanUcParenBoth:
+                    case numbering_presentationnumfrmt_RomanUcParenR:
+                    case numbering_presentationnumfrmt_RomanUcPeriod:
+                    {
+                        sListStyle = "upper-roman";
+                        break;
+                    }
 
+                    case numbering_presentationnumfrmt_AlphaLcParenBoth:
                     case numbering_presentationnumfrmt_AlphaLcParenR:
                     case numbering_presentationnumfrmt_AlphaLcPeriod:
                     {
@@ -646,11 +661,11 @@ CopyProcessor.prototype =
                     }
                     case numbering_presentationnumfrmt_AlphaUcParenR:
                     case numbering_presentationnumfrmt_AlphaUcPeriod:
+                    case numbering_presentationnumfrmt_AlphaUcParenBoth:
                     {
                         sListStyle = "upper-alpha";
                         break;
                     }
-
                     default:
                         sListStyle = "disc";
                         bBullet = true;
@@ -2338,7 +2353,7 @@ PasteProcessor.prototype =
 
 			//если вставляем таблицу в ячейку таблицы
 			if (this.pasteIntoElem && 1 === this.aContent.length && type_Table === this.aContent[0].GetType() &&
-				this.pasteIntoElem.Parent && this.pasteIntoElem.Parent.Is_InTable() && (!bIsSpecialPaste || (bIsSpecialPaste &&
+				this.pasteIntoElem.Parent && this.pasteIntoElem.Parent.IsInTable() && (!bIsSpecialPaste || (bIsSpecialPaste &&
 				Asc.c_oSpecialPasteProps.overwriteCells === specialPasteHelper.specialPasteProps))) {
 				//TODO пересмотреть положение кнопки специальной вставки при вставке в таблицу
 				var table;
@@ -2493,7 +2508,7 @@ PasteProcessor.prototype =
 
 			//если вставляем одну таблицу в ячейку другой таблицы
 			if (this.pasteIntoElem && 1 === aContent.length && type_Table === this.aContent[0].GetType() &&
-				this.pasteIntoElem.Parent && this.pasteIntoElem.Parent.Is_InTable())
+				this.pasteIntoElem.Parent && this.pasteIntoElem.Parent.IsInTable())
 			{
 				props = [sProps.overwriteCells, sProps.insertAsNestedTable, sProps.keepTextOnly];
 			}
@@ -4825,10 +4840,10 @@ PasteProcessor.prototype =
 			}
 
 			var oTextPr = presentation.GetCalculatedTextPr();
-			shape.txBody.content.Set_ApplyToAll(true);
+			shape.txBody.content.SetApplyToAll(true);
 			var paraTextPr = new AscCommonWord.ParaTextPr(oTextPr);
 			shape.txBody.content.AddToParagraph(paraTextPr);
-			shape.txBody.content.Set_ApplyToAll(false);
+			shape.txBody.content.SetApplyToAll(false);
 
 			oThis.api.pre_Paste([], [], executePastePresentation);
 		};
@@ -5614,9 +5629,9 @@ PasteProcessor.prototype =
 		Asc.getBinaryOtherTableGVar(tempWorkbook);
 
 		pptx_content_loader.Start_UseFullUrl();
-		pptx_content_loader.Reader.ClearConnectorsMaps();
+		pptx_content_loader.Reader.ClearConnectedObjects();
 		oBinaryFileReader.Read(base64, tempWorkbook);
-		pptx_content_loader.Reader.AssignConnectorsId();
+		pptx_content_loader.Reader.AssignConnectedObjects();
 
 		if (!tempWorkbook.aWorksheets.length) {
 			return null;
@@ -5700,7 +5715,7 @@ PasteProcessor.prototype =
 	ReadPresentationShapes: function (stream) {
 		var loader = new AscCommon.BinaryPPTYLoader();
 		loader.Start_UseFullUrl();
-		loader.ClearConnectorsMaps();
+		loader.ClearConnectedObjects();
 		pptx_content_loader.Reader.Start_UseFullUrl();
 
 		loader.stream = stream;
@@ -5797,7 +5812,7 @@ PasteProcessor.prototype =
 
 		var chartImages = pptx_content_loader.Reader.End_UseFullUrl();
 		var images = loader.End_UseFullUrl();
-		loader.AssignConnectorsId();
+		loader.AssignConnectedObjects();
 		var allImages = chartImages.concat(images);
 
 		return {arrShapes: arr_shapes, arrImages: allImages, arrTransforms: arr_transforms};
@@ -5814,9 +5829,9 @@ PasteProcessor.prototype =
 		var arr_slides = [];
 		var slide;
 		for (var i = 0; i < count; ++i) {
-			loader.ClearConnectorsMaps();
+			loader.ClearConnectedObjects();
 			slide = loader.ReadSlide(0);
-			loader.AssignConnectorsId();
+			loader.AssignConnectedObjects();
 			arr_slides.push(slide);
 		}
 		return arr_slides;
@@ -6494,21 +6509,21 @@ PasteProcessor.prototype =
 							oNum.CreateDefault(c_oAscMultiLevelNumbering.Bullet);
 							var LvlText = String.fromCharCode(0x00B7);
 							var NumTextPr = new CTextPr();
-							NumTextPr.RFonts.Set_All("Symbol", -1);
+							NumTextPr.RFonts.SetAll("Symbol", -1);
 
 							switch (type) {
 								case "disc": {
-									NumTextPr.RFonts.Set_All("Symbol", -1);
+									NumTextPr.RFonts.SetAll("Symbol", -1);
 									LvlText = String.fromCharCode(0x00B7);
 									break;
 								}
 								case "circle": {
-									NumTextPr.RFonts.Set_All("Courier New", -1);
+									NumTextPr.RFonts.SetAll("Courier New", -1);
 									LvlText = "o";
 									break;
 								}
 								case "square": {
-									NumTextPr.RFonts.Set_All("Wingdings", -1);
+									NumTextPr.RFonts.SetAll("Wingdings", -1);
 									LvlText = String.fromCharCode(0x00A7);
 									break;
 								}
@@ -6601,21 +6616,21 @@ PasteProcessor.prototype =
 							oNum.CreateDefault(c_oAscMultiLevelNumbering.Bullet);
 							var LvlText = String.fromCharCode(0x00B7);
 							var NumTextPr = new CTextPr();
-							NumTextPr.RFonts.Set_All("Symbol", -1);
+							NumTextPr.RFonts.SetAll("Symbol", -1);
 
 							switch (type) {
 								case "disc": {
-									NumTextPr.RFonts.Set_All("Symbol", -1);
+									NumTextPr.RFonts.SetAll("Symbol", -1);
 									LvlText = String.fromCharCode(0x00B7);
 									break;
 								}
 								case "circle": {
-									NumTextPr.RFonts.Set_All("Courier New", -1);
+									NumTextPr.RFonts.SetAll("Courier New", -1);
 									LvlText = "o";
 									break;
 								}
 								case "square": {
-									NumTextPr.RFonts.Set_All("Wingdings", -1);
+									NumTextPr.RFonts.SetAll("Wingdings", -1);
 									LvlText = String.fromCharCode(0x00A7);
 									break;
 								}
@@ -6665,38 +6680,41 @@ PasteProcessor.prototype =
 				if (null != pNoHtmlPr.numType)
 					num = pNoHtmlPr.numType;
 				var type = pNoHtmlPr["list-style-type"];
+                var oBullet = null;
 				if (type) {
 					switch (type) {
-						case "disc":
-							num = numbering_presentationnumfrmt_Char;
-							break;
-						case "decimal":
-							num = numbering_presentationnumfrmt_ArabicPeriod;
-							break;
-						case "lower-roman":
-							num = numbering_presentationnumfrmt_RomanLcPeriod;
-							break;
-						case "upper-roman":
-							num = numbering_presentationnumfrmt_RomanUcPeriod;
-							break;
-						case "lower-alpha":
-							num = numbering_presentationnumfrmt_AlphaLcPeriod;
-							break;
-						case "upper-alpha":
-							num = numbering_presentationnumfrmt_AlphaUcPeriod;
-							break;
+						case "disc": {
+                            oBullet = AscFormat.fGetPresentationBulletByNumInfo({Type: 0, SubType: 1});
+                            break;
+                        }
+						case "decimal": {
+                            oBullet = AscFormat.fGetPresentationBulletByNumInfo({Type: 1, SubType: 0});
+                            break;
+                        }
+
+						case "lower-roman": {
+                            oBullet = AscFormat.fGetPresentationBulletByNumInfo({Type: 1, SubType: 7});
+                            break;
+                        }
+						case "upper-roman": {
+                            oBullet = AscFormat.fGetPresentationBulletByNumInfo({Type: 1, SubType: 3});
+                            break;
+                        }
+						case "lower-alpha": {
+                            oBullet = AscFormat.fGetPresentationBulletByNumInfo({Type: 1, SubType: 6});
+                            break;
+                        }
+						case "upper-alpha": {
+                            oBullet = AscFormat.fGetPresentationBulletByNumInfo({Type: 1, SubType: 4});
+                            break;
+                        }
 						default: {
-							num = numbering_presentationnumfrmt_Char;
-						}
+                            oBullet = AscFormat.fGetPresentationBulletByNumInfo({Type: 0, SubType: 1});
+                            break;
+                        }
 					}
 				}
-				var _bullet = new CPresentationBullet();
-				_bullet.m_nType = num;
-				if (num === numbering_presentationnumfrmt_Char) {
-					_bullet.m_sChar = "•";
-				}
-				_bullet.m_nStartAt = 1;
-				Para.Add_PresentationNumbering2(_bullet);
+				Para.Add_PresentationNumbering(oBullet);
 			} else {
 				Para.Remove_PresentationNumbering();
 			}
@@ -7776,6 +7794,13 @@ PasteProcessor.prototype =
 
 		var checkStyle = function (elem) {
 			var res = false;
+
+			//TODO пересмотреть! возможно стоит сделать проверку на computedStyle.
+			var _nodeName = elem.nodeName.toLowerCase();
+			if ("h1" === _nodeName || "h2" === _nodeName || "h3" === _nodeName || "h4" === _nodeName || "h5" === _nodeName || "h6" === _nodeName) {
+				return true;
+			}
+
 			var sClass = elem.getAttribute("class");
 			var sStyle = elem.getAttribute("style");
 			var sHref = elem.getAttribute("href");

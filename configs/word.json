@@ -25,6 +25,7 @@
 			"word/api_plugins.js"
 		],
 		"common": [
+			"common/skin.js",
 			"common/downloaderfiles.js",
 			"common/NumFormat.js",
 			"common/SerializeChart.js",

@@ -443,6 +443,10 @@
         this.cropObject = null;
         this.Lock = new AscCommon.CLock();
         this.setRecalculateInfo();
+        if(this.Id === null) {
+            this.Id = AscCommon.g_oIdCounter.Get_NewId();
+            AscCommon.g_oTableId.Add(this, this.Id);
+        }
     }
 
     CGraphicObjectBase.prototype = Object.create(CBaseObject.prototype);
@@ -1750,7 +1754,6 @@
         var oldTransform = this.transform.CreateDublicate();
         var oldExtX = this.extX;
         var oldExtY = this.extY;
-        var newExtX, newExtY;
         AscFormat.ExecuteNoHistory(function(){
             // this.cropObject.recalculateTransform();
             // this.recalculateTransform();
@@ -1760,20 +1763,9 @@
             this.recalcInfo.recalculateTransform = oldVal;
         }, this, []);
         this.transform = oldTransform;
-        newExtX = this.extX;
-        newExtY = this.extY;
         this.extX = oldExtX;
         this.extY = oldExtY;
         this.setSrcRect(this.calculateSrcRect2());
-        var oParent = this.parent;
-        if(oParent && oParent.Check_WrapPolygon)
-        {
-            this.extX = newExtX;
-            this.extY = newExtY;
-            oParent.Check_WrapPolygon();
-            this.extX = oldExtX;
-            this.extY = oldExtY;
-        }
         this.clearCropObject();
     };
 
@@ -1802,7 +1794,9 @@
         this.check_bounds(oShapeDrawer);
         return  CalculateSrcRect(this.transform, oShapeDrawer, this.cropObject.invertTransform, this.cropObject.extX, this.cropObject.extY);
     };
-
+    CGraphicObjectBase.prototype.getMediaFileName = function(){
+        return null;
+    };
     CGraphicObjectBase.prototype.getLogicDocument = function()
     {
         var oApi = editor || Asc['editor'];
@@ -1995,6 +1989,11 @@
                 this.spTree[i].setParent2(parent);
             }
         }
+    };
+    CGraphicObjectBase.prototype.documentCreateFontMap = function(oMap) {
+    };
+    CGraphicObjectBase.prototype.createFontMap = function(oMap) {
+        this.documentCreateFontMap(oMap);
     };
     
     function CRelSizeAnchor() {

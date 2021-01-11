@@ -165,7 +165,9 @@ function CDrawingDocument()
 
 	this.CollaborativeTargets            = [];
 	this.CollaborativeTargetsUpdateTasks = [];
-};
+
+    this.MathTrack = new AscCommon.CMathTrack();
+}
 
 CDrawingDocument.prototype.Notes_GetWidth = function()
 {
@@ -624,6 +626,10 @@ CDrawingDocument.prototype.Set_RulerState_Paragraph = function(obj, margins)
     this.Native["DD_Set_RulerState_Paragraph"](obj, margins);
 };
 
+CDrawingDocument.prototype.Update_MathTrack = function (IsActive, IsContentActive, oMath)
+{
+    //TODO: Implement
+};
 
 CDrawingDocument.prototype.Update_ParaTab = function(Default_Tab, ParaTabs)
 {
@@ -690,6 +696,11 @@ CDrawingDocument.prototype.DrawAdjustment = function(matrix, x, y, bTextWarp)
     this.AutoShapesTrack.DrawAdjustment(matrix, x, y, bTextWarp);
 };
 
+CDrawingDocument.prototype.DrawMathTrack = function (overlay)
+{
+    //TODO: Implement
+};
+
 // cursor
 CDrawingDocument.prototype.UpdateTargetTransform = function(matrix)
 {
@@ -724,7 +735,6 @@ CDrawingDocument.prototype.UpdateThumbnailsAttack = function()
         {
             var oSlide = aSlides[i];
             this.Native["DD_UpdateThumbnailAttack"](i, oSlide.Id, !oSlide.isVisible());
-            DrawingDocument.OnRecalculatePage(i, aSlides[i]);
         }
     }
     DrawingDocument.OnEndRecalculate();

@@ -64,17 +64,17 @@ function CTableCell(Row, ColW)
 
     // Массивы с рассчитанными стилями для границ данной ячейки.
     // В каждом элементе лежит массив стилей.
-    this.BorderInfo =
-    {
-        Top    : null,
-        Left   : null,
-        Right  : null,
-        Bottom : null,            // Используется для последней строки таблицы,
-        Bottom_BeforeCount : -1,  // когда Spacing = null(у последней строки) или когда в следущей строке
-        Bottom_AfterCount  : -1,  // GridBefore и/или GridAfter отлично от 0.
-        MaxLeft  : 0,
-        MaxRight : 0
-    };
+    this.BorderInfo = {
+		Top                : null,
+		Left               : null,
+		Right              : null,
+		Bottom             : null,  // Используется для последней строки таблицы,
+		TopHeader          : null,  // Используется для первой строки таблицы с заголовком на странице
+		Bottom_BeforeCount : -1,    // когда Spacing = null(у последней строки) или когда в следущей строке
+		Bottom_AfterCount  : -1,    // GridBefore и/или GridAfter отлично от 0.
+		MaxLeft            : 0,
+		MaxRight           : 0
+	};
 
     // Метрики данной ячейки(они все относительные, а не абсолютные). Абсолютные хранятся в строке
     this.Metrics =
@@ -242,7 +242,11 @@ CTableCell.prototype =
     {
         this.CompiledPr.NeedRecalc = true;
         this.Content.Recalc_AllParagraphs_CompiledPr();
-    },
+
+        var oTable = this.GetTable();
+		if (oTable)
+			oTable.RecalcInfo.RecalcBorders();
+	},
 
     // Формируем конечные свойства параграфа на основе стиля и прямых настроек.
     Get_CompiledPr : function(bCopy)
@@ -541,7 +545,7 @@ CTableCell.prototype =
         return false;
     },
 
-    Is_InTable : function(bReturnTopTable)
+    IsInTable : function(bReturnTopTable)
     {
         if (true === bReturnTopTable)
         {
@@ -549,7 +553,7 @@ CTableCell.prototype =
             if (!oTable)
                 return null;
 
-            var oTopTable = oTable.Parent ? oTable.Parent.Is_InTable(true) : null;
+            var oTopTable = oTable.Parent ? oTable.Parent.IsInTable(true) : null;
             if (oTopTable)
                 return oTopTable;
             else
@@ -788,14 +792,14 @@ CTableCell.prototype =
 		this.Content.DrawSelectionOnPage(CurPage);
 	},
 
-    Content_RecalculateCurPos : function(bUpdateX, bUpdateY)
+    Content_RecalculateCurPos : function(bUpdateX, bUpdateY, isUpdateTarget)
     {
         var Transform = this.private_GetTextDirectionTransform();
         var DrawingDocument = this.Row.Table.DrawingDocument;
         if (null !== Transform && DrawingDocument)
             DrawingDocument.MultiplyTargetTransform(Transform);
 
-        return this.Content.RecalculateCurPos(bUpdateX, bUpdateY);
+        return this.Content.RecalculateCurPos(bUpdateX, bUpdateY, isUpdateTarget);
     },
 
     Content_Get_NearestPos : function(CurPage, X, Y, bAnchor, Drawing)
@@ -900,7 +904,7 @@ CTableCell.prototype =
         if (undefined === isRotated)
             isRotated = false;
 
-        if (true === this.Is_VerticalText())
+        if (true === this.IsVerticalText())
             isRotated = true === isRotated ? false : true;
 
         var Result;
@@ -935,9 +939,124 @@ CTableCell.prototype =
         return Result;
     },
 
+	RecalculateMinMaxContentWidth : function(isRotated, nPctWidth)
+	{
+		var oTable         = this.GetTable();
+		var oLogicDocument = oTable ? oTable.GetLogicDocument() : null;
+
+		if (undefined === isRotated)
+			isRotated = false;
+
+		if (true === this.IsVerticalText())
+			isRotated = true !== isRotated;
+
+		var oResult;
+		if (oLogicDocument && oLogicDocument.GetRecalcId() === this.CachedMinMax.RecalcId)
+		{
+			oResult = this.CachedMinMax.MinMax;
+		}
+		else
+		{
+			oResult = this.Content.RecalculateMinMaxContentWidth(isRotated);
+
+			// В MSWord у ячейки минимальная ширина 0.1мм
+			if (oResult.Min < 0.1)
+				oResult.Min = 0.1;
+
+			var oMargins = this.GetMargins();
+			var oRow     = this.GetRow();
+			if (oRow)
+			{
+				var nCellSpacing = oRow.GetCellSpacing();
+				var oBorders     = this.GetBorders();
+				if (nCellSpacing)
+				{
+					oResult.Min += oMargins.Left.W + oMargins.Right.W;
+					oResult.Max += oMargins.Left.W + oMargins.Right.W;
+
+					if (border_Single === oBorders.Left.Value)
+					{
+						oResult.Min += oBorders.Left.Size;
+						oResult.Max += oBorders.Left.Size;
+					}
+					if (border_Single === oBorders.Right.Value)
+					{
+						oResult.Min += oBorders.Right.Size;
+						oResult.Max += oBorders.Right.Size;
+					}
+				}
+				else
+				{
+					if (border_Single === oBorders.Left.Value && oBorders.Left.Size / 2 > oMargins.Left.W)
+					{
+						oResult.Min += oBorders.Left.Size / 2;
+						oResult.Max += oBorders.Left.Size / 2;
+					}
+					else
+					{
+						oResult.Min += oMargins.Left.W;
+						oResult.Max += oMargins.Left.W;
+					}
+
+					if (border_Single === oBorders.Right.Value && oBorders.Right.Size / 2 > oMargins.Right.W)
+					{
+						oResult.Min += oBorders.Right.Size / 2;
+						oResult.Max += oBorders.Right.Size / 2;
+					}
+					else
+					{
+						oResult.Min += oMargins.Right.W;
+						oResult.Max += oMargins.Right.W;
+					}
+				}
+			}
+			else
+			{
+				oResult.Min += oMargins.Left.W + oMargins.Right.W;
+				oResult.Max += oMargins.Left.W + oMargins.Right.W;
+			}
+
+			oResult.ContentMin = oResult.Min;
+			oResult.ContentMax = oResult.Max;
+
+			var oPrefW = this.GetW();
+			if (tblwidth_Mm === oPrefW.Type)
+			{
+				if (oResult.Min < oPrefW.W)
+					oResult.Min = oPrefW.W;
+
+				if (oResult.Max < oPrefW.W)
+					oResult.Max = oPrefW.W;
+			}
+			else if (tblwidth_Pct === oPrefW.Type && nPctWidth)
+			{
+				var nPrefW = nPctWidth * oPrefW.W / 100;
+				if (oResult.Min < nPrefW)
+					oResult.Min = nPrefW;
+
+				if (oResult.Max < nPrefW)
+					oResult.Max = nPrefW;
+			}
+
+			if (true !== isRotated && true === this.GetNoWrap())
+			{
+				oResult.Min        = Math.max(oResult.Min, oResult.Max);
+				oResult.ContentMin = Math.max(oResult.ContentMin, oResult.ContentMax);
+			}
+
+			if (oLogicDocument)
+			{
+				this.CachedMinMax.RecalcId = oLogicDocument.GetRecalcId();
+				this.CachedMinMax.MinMax   = oResult;
+			}
+		}
+
+		return oResult;
+	},
+
     Content_Shift : function(CurPage, dX, dY)
     {
-        if (true === this.Is_VerticalText())
+        if (true === this.IsVerticalText())
         {
             this.Temp.X_start += dX;
             this.Temp.Y_start += dY;
@@ -1424,13 +1543,10 @@ CTableCell.prototype =
 		}
 	},
 
-    Is_VerticalText : function()
+	IsVerticalText : function()
     {
         var TextDirection = this.Get_TextDirection();
-        if (textdirection_BTLR === TextDirection || textdirection_TBRL === TextDirection)
-            return true;
-
-        return false;
+        return (textdirection_BTLR === TextDirection || textdirection_TBRL === TextDirection);
     },
 
     Get_TextDirection : function()
@@ -1695,10 +1811,15 @@ CTableCell.prototype =
 		}
 	},
 
-    Set_BorderInfo_Top : function( TopInfo )
-    {
-        this.BorderInfo.Top = TopInfo;
-    },
+	SetBorderInfoTop : function(oTopInfo)
+	{
+		this.BorderInfo.Top = oTopInfo;
+	},
+
+	SetBorderInfoTopHeader : function(oTopInfo)
+	{
+		this.BorderInfo.TopHeader = oTopInfo;
+	},
 
     Set_BorderInfo_Bottom : function(BottomInfo, BeforeCount, AfterCount)
     {
@@ -1719,7 +1840,7 @@ CTableCell.prototype =
         this.BorderInfo.MaxRight = Max;
     },
 
-    Get_BorderInfo : function()
+	GetBorderInfo : function()
     {
         return this.BorderInfo;
     },
@@ -1762,7 +1883,7 @@ CTableCell.prototype =
             }
         }
 
-        this.Row.Table.RecalcInfo.Recalc_Borders();
+        this.Row.Table.RecalcInfo.RecalcBorders();
 
         this.Refresh_RecalcData2( 0, 0 );
     },
@@ -1956,7 +2077,7 @@ CTableCell.prototype.GetDocumentPositionFromObject = function(arrPos)
     {
     	if (arrPos.length > 0)
 		{
-			arrPos.splice({Class : oRow, Position : this.GetIndex()});
+			arrPos.splice(0, 0, {Class : oRow, Position : this.GetIndex()});
 			oRow.GetDocumentPositionFromObject(arrPos);
 		}
 		else

@@ -407,12 +407,12 @@ DrawingObjectsController.prototype.addChartDrawingObject = function(options)
         }
         else
         {
-            chartLeft =  -this.drawingObjects.convertMetric(this.drawingObjects.getScrollOffset().getX(), 0, 3) + this.drawingObjects.convertMetric((this.drawingObjects.getContextWidth()  - w) / 2, 0, 3);
+            chartLeft =  -this.drawingObjects.convertMetric(this.drawingObjects.getScrollOffset().getX(), 0, 3) + (this.drawingObjects.convertMetric(this.drawingObjects.getContextWidth(), 0, 3) - w) / 2;
             if(chartLeft < 0)
             {
                 chartLeft = 0;
             }
-            chartTop =  -this.drawingObjects.convertMetric(this.drawingObjects.getScrollOffset().getY(), 0, 3) + this.drawingObjects.convertMetric((this.drawingObjects.getContextHeight()  - h) / 2, 0, 3);
+            chartTop =  -this.drawingObjects.convertMetric(this.drawingObjects.getScrollOffset().getY(), 0, 3) + (this.drawingObjects.convertMetric(this.drawingObjects.getContextHeight(), 0, 3) - h) / 2;
             if(chartTop < 0)
             {
                 chartTop = 0;
@@ -438,12 +438,11 @@ DrawingObjectsController.prototype.addChartDrawingObject = function(options)
         {
             var old_range = options.getRange();
             options.putRange(null);
-            options.style = null;
-            options.horAxisProps = null;
-            options.vertAxisProps = null;
-            options.showMarker = null;
+            options.putStyle(null);
+            options.removeAllAxesProps();
+            options.putShowMarker(null);
             this.editChartCallback(options);
-            options.style = 1;
+            options.putStyle(1);
            // options.bCreate = true;
             this.editChartCallback(options);
             options.putRange(old_range);
@@ -648,7 +647,7 @@ DrawingObjectsController.prototype.onKeyPress = function(e)
     {
         var oApi = window["Asc"] && window["Asc"]["editor"];
         var fCallback = function(){
-            this.paragraphAdd(new ParaSpace(1));
+            this.paragraphAdd(new ParaSpace());
             this.checkMobileCursorPosition();
             this.recalculateCurPos(true, true);
         };

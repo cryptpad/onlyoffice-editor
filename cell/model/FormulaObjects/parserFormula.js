@@ -1279,6 +1279,14 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			}
 		}
 	};
+	cArea.prototype.getDimensions = function () {
+		var res = null;
+		if (this.range && this.range.bbox) {
+			var bbox = this.range.bbox;
+			res =  {col: bbox.c2 - bbox.c1 + 1, row:  bbox.r2 - bbox.r1 + 1, bbox: bbox};
+		}
+		return res;
+	};
 
 	/**
 	 * @constructor
@@ -1632,6 +1640,13 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	};
 	cArea3D.prototype.isBetweenSheet = function (ws) {
 		return ws && this.wsFrom.getIndex() <= ws.getIndex() && ws.getIndex() <= this.wsTo.getIndex();
+	};
+	cArea3D.prototype.getDimensions = function () {
+		var res = null;
+		if (this.bbox) {
+			res =  {col: this.bbox.c2 - this.bbox.c1 + 1, row: this.bbox.r2 - this.bbox.r1 + 1, bbox: this.bbox};
+		}
+		return res;
 	};
 
 	/**
@@ -2690,6 +2705,9 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			}
 		}
 	};
+	cArray.prototype.getDimensions = function () {
+		return {col: this.getCountElementInRow(), row: this.getRowCount()};
+	};
 
 
 	/**
@@ -2915,31 +2933,30 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		var newArgs = [];
 		var indexArr = null;
 
-		for(var i = 0; i < args.length; i++){
+		for (var i = 0; i < args.length; i++) {
 			var arg = args[i];
 
 			//для массивов отдельная ветка
-			if(typeArray && cElementType.array === typeArray[i])
-			{
+			if (typeArray && cElementType.array === typeArray[i]) {
 				if (cElementType.cellsRange === arg.type || cElementType.array === arg.type) {
 					newArgs[i] = arg.getMatrix(this.excludeHiddenRows, this.excludeErrorsVal, this.excludeNestedStAg);
 				} else if (cElementType.cellsRange3D === arg.type) {
 					newArgs[i] = arg.getMatrix(this.excludeHiddenRows, this.excludeErrorsVal, this.excludeNestedStAg)[0];
-				} else if(cElementType.error === arg.type) {
+				} else if (cElementType.error === arg.type) {
 					newArgs[i] = arg;
 				} else {
 					newArgs[i] = new cError(cErrorType.division_by_zero);
 				}
-			}else if (cElementType.cellsRange === arg.type || cElementType.cellsRange3D === arg.type) {
+			} else if (cElementType.cellsRange === arg.type || cElementType.cellsRange3D === arg.type) {
 				newArgs[i] = arg.cross(arg1);
-			}else if(cElementType.array === arg.type){
-				if(bAddFirstArrElem){
-					newArgs[i] = arg.getElementRowCol(0,0);
-				}else{
+			} else if (cElementType.array === arg.type) {
+				if (bAddFirstArrElem) {
+					newArgs[i] = arg.getElementRowCol(0, 0);
+				} else {
 					indexArr = i;
 					newArgs[i] = arg;
 				}
-			}else{
+			} else {
 				newArgs[i] = arg;
 			}
 		}
@@ -2948,7 +2965,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	};
 	cBaseFunction.prototype._checkErrorArg = function (argArray) {
 		for (var i = 0; i < argArray.length; i++) {
-			if (cElementType.error === argArray[i].type) {
+			if (argArray[i] && cElementType.error === argArray[i].type) {
 				return argArray[i];
 			}
 		}
@@ -3721,8 +3738,8 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cPercentOperator.prototype.Assemble2 = function (arg, start, count) {
 		return new cString(arg[start + count - 1] + this.name);
 	};
-	cPercentOperator.prototype.Assemble2Locale = function (arg, start, count) {
-		return new cString(arg[start + count - 1] + this.name);
+	cPercentOperator.prototype.Assemble2Locale = function (arg, start, count, locale, digitDelim) {
+		return new cString(arg[start + count - 1].toLocaleString(digitDelim) + this.name);
 	};
 
 	/**
@@ -4944,11 +4961,13 @@ _func.binarySearch = function ( sElem, arrTagert, regExp ) {
 };
 
 _func.binarySearchByRange = function ( sElem, area, regExp ) {
-	var bbox;
+	var bbox, ws;
 	if (cElementType.cellsRange3D === area.type) {
 		bbox = area.bbox;
+		ws = area.getWs();
 	} else if (cElementType.cellsRange === area.type) {
 		bbox = area.range.bbox;
+		ws = area.ws;
 	}
 	var bVertical = bbox.r2 - bbox.r1 >= bbox.c2 - bbox.c1;//r>=c
 	var first = 0, /* Номер первого элемента в массиве */
@@ -4956,32 +4975,39 @@ _func.binarySearchByRange = function ( sElem, area, regExp ) {
 		/* Если просматриваемый участок непустой, first<last */
 		mid;
 
-	var getValue = function(n) {
-		var r, c;
-		if(bVertical) {
-			r = n;
-			c = 0;
-		} else {
-			r = 0;
-			c = n;
-		}
-		var res = area.getValueByRowCol(r, c);
-		return res ? res : new cEmpty();
+	var getValuesNoEmpty = function () {
+		var _r1 = bbox.r1;
+		var _r2 = bVertical ? bbox.r2 : bbox.r1;
+		var _c1 = bbox.c1;
+		var _c2 = bVertical ? bbox.c1 : bbox.c2;
+		var _val = [];
+		ws.getRange3(_r1, _c1, _r2, _c2)._foreachNoEmpty(function(cell) {
+			var checkTypeVal = checkTypeCell(cell);
+			if (checkTypeVal.type !== cElementType.empty) {
+				_val.push(checkTypeVal);
+				mapEmptyFullValues[_val.length - 1] = bVertical ? cell.nRow - bbox.r1 : cell.nCol - bbox.c1;
+			}
+		});
+		return _val;
 	};
 
-	if (last === 0) {
+	var mapEmptyFullValues = [];
+	var noEmptyValues = getValuesNoEmpty();
+	last = noEmptyValues.length - 1;
+
+	if (noEmptyValues.length === 0) {
 		return -1;
 		/* массив пуст */
-	} else if (getValue(0).value > sElem.value) {
+	} else if (noEmptyValues[0].value > sElem.value) {
 		return -2;
-	} else if (getValue(last).value < sElem.value) {
+	} else if (noEmptyValues[last].value < sElem.value) {
 		return last;
 	}
 
 	var tempValue;
 	while (first < last) {
 		mid = Math.floor(first + (last - first) / 2);
-		tempValue = getValue(mid);
+		tempValue = noEmptyValues[mid];
 		if (sElem.value <= tempValue.value || ( regExp && regExp.test(tempValue.value) )) {
 			last = mid;
 		} else {
@@ -4990,11 +5016,11 @@ _func.binarySearchByRange = function ( sElem, area, regExp ) {
 	}
 
 	/* Если условный оператор if(n==0) и т.д. в начале опущен - значит, тут раскомментировать!    */
-	if (/* last<n &&*/ getValue(last).value === sElem.value) {
-		return last;
+	if (/* last<n &&*/ noEmptyValues[last].value === sElem.value) {
+		return mapEmptyFullValues[last];
 		/* Искомый элемент найден. last - искомый индекс */
 	} else {
-		return last - 1;
+		return mapEmptyFullValues[last - 1];
 		/* Искомый элемент не найден. Но если вам вдруг надо его вставить со сдвигом, то его место - last.    */
 	}
 
@@ -8298,6 +8324,7 @@ function parserFormula( formula, parent, _ws ) {
 	window['AscCommonExcel'].cRef3D = cRef3D;
 	window['AscCommonExcel'].cEmpty = cEmpty;
 	window['AscCommonExcel'].cName = cName;
+	window['AscCommonExcel'].cName3D = cName3D;
 	window['AscCommonExcel'].cArray = cArray;
 	window['AscCommonExcel'].cUndefined = cUndefined;
 	window['AscCommonExcel'].cBaseFunction = cBaseFunction;

@@ -6668,6 +6668,62 @@ CStyle.prototype.CreateTOCHeading = function()
 	this.Set_UnhideWhenUsed(true);
 	this.Set_ParaPr(ParaPr);
 };
+CStyle.prototype.CreateTOF = function(nType)
+{
+	var nType_;
+	var oParaPr = new CParaPr(), oTextPr = new CTextPr();
+	oParaPr.Spacing.Set_FromObject({After: 0, AfterAutoSpacing: 0});
+	if(Asc.c_oAscTOFStylesType)
+	{
+		if(nType === undefined || nType === null)
+		{
+			nType_ = Asc.c_oAscTOFStylesType.Formal;
+		}
+		else
+		{
+			nType_ = nType;
+		}
+		switch(nType_)
+		{
+			case Asc.c_oAscTOFStylesType.Classic:
+			{
+				oTextPr.SetCaps(true);
+				break;
+			}
+			case Asc.c_oAscTOFStylesType.Distinctive:
+			{
+				oTextPr.SetItalic(true);
+				break;
+			}
+			case Asc.c_oAscTOFStylesType.Centered:
+			{
+				oTextPr.SetBold(true);
+				oTextPr.SetItalic(true);
+				oParaPr.SetJc(AscCommon.align_Center);
+				break;
+			}
+			case Asc.c_oAscTOFStylesType.Formal:
+			{
+				break;
+			}
+			case Asc.c_oAscTOFStylesType.Simple:
+			{
+				oTextPr.SetBold(true);
+				break;
+			}
+			case Asc.c_oAscTOFStylesType.Web:
+			{
+				oTextPr.SetUnderline(true);
+				oTextPr.SetUnifill(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorHyperlink, null, null));
+				break;
+			}
+		}
+	}
+	this.Set_UiPriority(99);
+	this.Set_UnhideWhenUsed(true);
+	this.Set_ParaPr(oParaPr);
+	this.Set_TextPr(oTextPr);
+};
 /**
  * Дефолтовые настройки для стиля ListParagraph
  */
@@ -7315,6 +7371,7 @@ function CStyles(bCreateDefault)
 			IntenseQuote      : null,
 			TOC               : [],
 			TOCHeading        : null,
+			TOF               : null,
 			Caption           : null,
 			EndnoteText       : null,
 			EndnoteTextChar   : null,
@@ -7970,6 +8027,10 @@ function CStyles(bCreateDefault)
 		oStyleTOCHeading.CreateTOCHeading();
 		this.Default.TOCHeading = this.Add(oStyleTOCHeading);
 
+		var oStyleTOF = new CStyle("table of figures", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		oStyleTOF.CreateTOF();
+		this.Default.TOF = this.Add(oStyleTOF);
+
         // Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
         g_oTableId.Add( this, this.Id );
     }
@@ -7998,6 +8059,7 @@ function CStyles(bCreateDefault)
 
 			TOC               : [],
 			TOCHeading        : null,
+			TOF               : null,
 			Caption           : null,
 			EndnoteText       : null,
 			EndnoteTextChar   : null,
@@ -9491,6 +9553,10 @@ CStyles.prototype.GetDefaultTOCHeading = function()
 {
 	return this.Default.TOCHeading;
 };
+CStyles.prototype.GetDefaultTOF = function()
+{
+	return this.Default.TOF;
+};
 CStyles.prototype.GetDefaultHyperlink = function()
 {
 	return this.Default.Hyperlink;
@@ -9557,6 +9623,55 @@ CStyles.prototype.private_CheckTOCStyle = function(nLvl, nType)
 
 	return (!!oCheckStyle.IsEqual(oTOCStyle));
 };
+
+/**
+ * Get table of figures style type
+ * @returns {Asc.c_oAscTOCStylesType}
+ */
+CStyles.prototype.GetTOFStyleType = function()
+{
+	if(this.private_CheckTOFStyle(Asc.c_oAscTOFStylesType.Classic))
+	{
+		return Asc.c_oAscTOFStylesType.Classic;
+	}
+	else if(this.private_CheckTOFStyle(Asc.c_oAscTOFStylesType.Distinctive))
+	{
+		return Asc.c_oAscTOFStylesType.Distinctive;
+	}
+	else if(this.private_CheckTOFStyle(Asc.c_oAscTOFStylesType.Centered))
+	{
+		return Asc.c_oAscTOFStylesType.Centered;
+	}
+	else if(this.private_CheckTOFStyle(Asc.c_oAscTOFStylesType.Formal))
+	{
+		return Asc.c_oAscTOFStylesType.Formal;
+	}
+	else if(this.private_CheckTOFStyle(Asc.c_oAscTOFStylesType.Simple))
+	{
+		return Asc.c_oAscTOFStylesType.Simple;
+	}
+	else if(this.private_CheckTOFStyle(Asc.c_oAscTOFStylesType.Web))
+	{
+		return Asc.c_oAscTOFStylesType.Web;
+	}
+	return Asc.c_oAscTOFStylesType.Current;
+};
+CStyles.prototype.private_CheckTOFStyle = function(nType)
+{
+	var oTOCStyle = this.Get(this.GetDefaultTOF());
+
+	if (!this.LogicDocument || !oTOCStyle)
+		return false;
+
+	this.LogicDocument.TurnOffHistory();
+	var oCheckStyle = new CStyle();
+	oCheckStyle.Clear(oTOCStyle.GetName(), oTOCStyle.GetBasedOn(), oTOCStyle.GetNext(), oTOCStyle.GetType());
+	oCheckStyle.CreateTOF(nType);
+	this.LogicDocument.TurnOnHistory();
+
+	return (!!oCheckStyle.IsEqual(oTOCStyle));
+};
+
 /**
  * Переделываем стили для Table of Contents на заданную коллекцию стилей
  * @param nType {Asc.c_oAscTOCStylesType}
@@ -9576,6 +9691,24 @@ CStyles.prototype.SetTOCStylesType = function(nType)
 		oStyle.CreateTOC(nLvl, nType);
 	}
 };
+
+
+/**
+ * Recreate table of figures style according to current style type
+ * @param nType {Asc.c_oAscTOCStylesType}
+ */
+CStyles.prototype.SetTOFStyleType = function(nType)
+{
+	if (Asc.c_oAscTOCStylesType.Current === nType)
+		return;
+	var oStyle = this.Get(this.GetDefaultTOF());
+	if (!oStyle)
+		return;
+
+	oStyle.Clear(oStyle.GetName(), oStyle.GetBasedOn(), oStyle.GetNext(), oStyle.GetType());
+	oStyle.CreateTOF(nType);
+};
+
 /**
  * Получаем массив стилей в виде классов Asc.CAscStyle
  * @returns {Asc.CAscStyle[]}
@@ -9735,7 +9868,7 @@ CDocumentColor.prototype.Compare = function(Color)
 };
 CDocumentColor.prototype.Is_Equal = function(Color)
 {
-	return this.Is_Equal(Color);
+	return this.IsEqual(Color);
 };
 
 
@@ -10172,6 +10305,10 @@ CDocumentBorder.prototype.GetWidth = function()
 
 	return this.Size;
 };
+CDocumentBorder.prototype.GetColor = function(oParagraph)
+{
+	return this.Get_Color(oParagraph);
+};
 CDocumentBorder.prototype.IsEqual = function(oBorder)
 {
 	if (!oBorder || this.Value !== oBorder.Value)
@@ -10184,6 +10321,14 @@ CDocumentBorder.prototype.IsEqual = function(oBorder)
 		&& IsEqualStyleObjects(this.Unifill, oBorder.Unifill)
 		&& this.Space !== oBorder.Space
 		&& this.Size !== oBorder.Size);
+};
+CDocumentBorder.prototype.WriteToBinary = function(oWriter)
+{
+	return this.Write_ToBinary(oWriter);
+};
+CDocumentBorder.prototype.ReadFromBinary = function(oReader)
+{
+	return this.Read_FromBinary(oReader);
 };
 
 function CTableMeasurement(Type, W)
@@ -10230,7 +10375,7 @@ CTableMeasurement.prototype =
  */
 CTableMeasurement.prototype.IsMM = function()
 {
-	return !!(tblwidth_Mm === this.Type);
+	return (tblwidth_Mm === this.Type);
 };
 /**
  * Измерение в процентах?
@@ -10238,7 +10383,15 @@ CTableMeasurement.prototype.IsMM = function()
  */
 CTableMeasurement.prototype.IsPercent = function()
 {
-	return !!(tblwidth_Pct === this.Type);
+	return (tblwidth_Pct === this.Type);
+};
+/**
+ * Ширина должна быть расчитана автоматически
+ * @returns {boolean}
+ */
+CTableMeasurement.prototype.IsAuto = function()
+{
+	return (tblwidth_Auto === this.Type);
 };
 /**
  * Получаем значение ширины в процентах или в миллиметрах
@@ -10248,6 +10401,19 @@ CTableMeasurement.prototype.GetValue = function()
 {
 	return this.W;
 };
+/**
+ * Расчитываем ширину с учетом заданного типа
+ * @param {number} nFullWidth - ширина родительского элемента для расчета значения процентах
+ */
+CTableMeasurement.prototype.GetCalculatedValue = function(nFullWidth)
+{
+	if (this.IsMM())
+		return this.W;
+	else if (this.IsPercent())
+		return this.W * nFullWidth / 100;
+
+	return 0;
+}
 CTableMeasurement.prototype.ReadFromBinary = function(oReader)
 {
 	// Double : W
@@ -11832,247 +11998,213 @@ function CRFonts()
     this.HAnsi    = undefined;
     this.CS       = undefined;
     this.Hint     = undefined;
+
+    this.AsciiTheme    = undefined;
+    this.EastAsiaTheme = undefined;
+    this.HAnsiTheme    = undefined;
+    this.CSTheme       = undefined;
 }
 
-CRFonts.prototype =
-{
-    Set_All : function(FontName, FontIndex)
-    {
-        this.Ascii =
-        {
-            Name  : FontName,
-            Index : FontIndex
-        };
-
-        this.EastAsia =
-        {
-            Name  : FontName,
-            Index : FontIndex
-        };
-
-        this.HAnsi =
-        {
-            Name  : FontName,
-            Index : FontIndex
-        };
-
-        this.CS =
-        {
-            Name  : FontName,
-            Index : FontIndex
-        };
-
-        this.Hint = fonthint_Default;
-    },
-
-    Copy : function()
-    {
-        var RFonts = new CRFonts();
-        if ( undefined !== this.Ascii )
-        {
-            RFonts.Ascii = {Name: this.Ascii.Name, Index: this.Ascii.Index};
-        }
-        if ( undefined !== this.EastAsia )
-        {
-            RFonts.EastAsia = {Name: this.EastAsia.Name, Index: this.EastAsia.Index};
-        }
-        if ( undefined !== this.HAnsi )
-        {
-            RFonts.HAnsi = {Name: this.HAnsi.Name, Index: this.HAnsi.Index};
-        }
-        if ( undefined !== this.CS )
-        {
-            RFonts.CS = {Name: this.CS.Name, Index: this.CS.Index};
-        }
-        if ( undefined != this.Hint )
-            this.Hint = RFonts.Hint;
-        return RFonts;
-    },
-
-    Merge : function(RFonts)
-	{
-		if (RFonts.Ascii)
-			this.Ascii = RFonts.Ascii;
-
-		if (RFonts.EastAsia)
-			this.EastAsia = RFonts.EastAsia;
-
-		if (RFonts.HAnsi)
-			this.HAnsi = RFonts.HAnsi;
-
-		if (RFonts.CS)
-			this.CS = RFonts.CS;
-
-		if (RFonts.Hint)
-			this.Hint = RFonts.Hint;
-	},
-
-	InitDefault : function()
-    {
-        this.Ascii =
-        {
-            Name  : "Times New Roman",
-            Index : -1
-        };
-
-        this.EastAsia =
-        {
-            Name  : "Times New Roman",
-            Index : -1
-        };
-
-        this.HAnsi =
-        {
-            Name  : "Times New Roman",
-            Index : -1
-        };
-
-        this.CS =
-        {
-            Name  : "Times New Roman",
-            Index : -1
-        };
-
-        this.Hint = fonthint_Default;
-    },
-
-    Set_FromObject : function(RFonts, isUndefinedToNull)
-	{
-		if (undefined != RFonts.Ascii)
-		{
-			this.Ascii = {
-				Name  : RFonts.Ascii.Name,
-				Index : RFonts.Ascii.Index
-			};
-		}
-		else
-		{
-			this.Ascii = isUndefinedToNull ? null : undefined;
-		}
-
-		if (undefined != RFonts.EastAsia)
-		{
-			this.EastAsia = {
-				Name  : RFonts.EastAsia.Name,
-				Index : RFonts.EastAsia.Index
-			};
-		}
-		else
-		{
-			this.EastAsia = isUndefinedToNull ? null : undefined;
-		}
-
-		if (undefined != RFonts.HAnsi)
-		{
-			this.HAnsi = {
-				Name  : RFonts.HAnsi.Name,
-				Index : RFonts.HAnsi.Index
-			};
-		}
-		else
-		{
-			this.HAnsi = isUndefinedToNull ? null : undefined;
-		}
-
-		if (undefined != RFonts.CS)
-		{
-			this.CS = {
-				Name  : RFonts.CS.Name,
-				Index : RFonts.CS.Index
-			};
-		}
-		else
-		{
-			this.CS = isUndefinedToNull ? null : undefined;
-		}
-
-		this.Hint = CheckUndefinedToNull(isUndefinedToNull, RFonts.Hint);
-	},
-
-    Write_ToBinary : function(Writer)
-    {
-        var StartPos = Writer.GetCurPosition();
-        Writer.Skip(4);
-        var Flags = 0;
-
-        if ( undefined != this.Ascii )
-        {
-            Writer.WriteString2( this.Ascii.Name );
-            Flags |= 1;
-        }
-
-        if ( undefined != this.EastAsia )
-        {
-            Writer.WriteString2( this.EastAsia.Name );
-            Flags |= 2;
-        }
-
-        if ( undefined != this.HAnsi )
-        {
-            Writer.WriteString2( this.HAnsi.Name );
-            Flags |= 4;
-        }
-
-        if ( undefined != this.CS )
-        {
-            Writer.WriteString2( this.CS.Name );
-            Flags |= 8;
-        }
-
-        if ( undefined != this.Hint )
-        {
-            Writer.WriteLong( this.Hint );
-            Flags |= 16;
-        }
-
-        var EndPos = Writer.GetCurPosition();
-        Writer.Seek( StartPos );
-        Writer.WriteLong( Flags );
-        Writer.Seek( EndPos );
-    },
-
-    Read_FromBinary : function(Reader)
-    {
-        var Flags = Reader.GetLong();
-
-        // Ascii
-        if ( Flags & 1 )
-            this.Ascii = { Name : Reader.GetString2(), Index : -1 };
-
-        // EastAsia
-        if ( Flags & 2 )
-            this.EastAsia = { Name : Reader.GetString2(), Index : -1 };
-
-        // HAnsi
-        if ( Flags & 4 )
-            this.HAnsi = { Name : Reader.GetString2(), Index : -1 };
-
-        // CS
-        if ( Flags & 8 )
-            this.CS = { Name : Reader.GetString2(), Index : -1 };
-
-        // Hint
-        if ( Flags & 16 )
-            this.Hint = Reader.GetLong();
-    }
-};
 CRFonts.prototype.Is_Empty = function()
 {
-	if (undefined !== this.Ascii
-		|| undefined !== this.EastAsia
-		|| undefined !== this.HAnsi
-		|| undefined !== this.CS
-		|| undefined !== this.Hint)
-		return false;
+	return (undefined === this.Ascii
+		&& undefined === this.EastAsia
+		&& undefined === this.HAnsi
+		&& undefined === this.CS
+		&& undefined === this.Hint
+		&& undefined === this.AsciiTheme
+		&& undefined === this.EastAsiaTheme
+		&& undefined === this.HAnsiTheme
+		&& undefined === this.CSTheme);
+};
+CRFonts.prototype.Copy = function()
+{
+	var oRFonts = new CRFonts();
 
-	return true;
+	if (undefined !== this.Ascii)
+	{
+		oRFonts.Ascii = {
+			Name  : this.Ascii.Name,
+			Index : this.Ascii.Index
+		};
+	}
+
+	if (undefined !== this.EastAsia)
+	{
+		oRFonts.EastAsia = {
+			Name  : this.EastAsia.Name,
+			Index : this.EastAsia.Index
+		};
+	}
+
+	if (undefined !== this.HAnsi)
+	{
+		oRFonts.HAnsi = {
+			Name  : this.HAnsi.Name,
+			Index : this.HAnsi.Index
+		};
+	}
+
+	if (undefined !== this.CS)
+	{
+		oRFonts.CS = {
+			Name  : this.CS.Name,
+			Index : this.CS.Index
+		};
+	}
+
+	oRFonts.Hint          = this.Hint;
+	oRFonts.AsciiTheme    = this.AsciiTheme;
+	oRFonts.EastAsiaTheme = this.EastAsiaTheme;
+	oRFonts.HAnsiTheme    = this.HAnsiTheme;
+	oRFonts.CSTheme       = this.CSTheme;
+
+	return oRFonts;
+};
+CRFonts.prototype.Merge = function(oRFonts)
+{
+	if (oRFonts.AsciiTheme)
+		this.AsciiTheme = oRFonts.AsciiTheme;
+
+	if (oRFonts.Ascii)
+		this.Ascii = oRFonts.Ascii;
+
+	if (oRFonts.EastAsiaTheme)
+		this.EastAsiaTheme = oRFonts.EastAsiaTheme
+
+	if (oRFonts.EastAsia)
+		this.EastAsia = oRFonts.EastAsia;
+
+	if (oRFonts.HAnsiTheme)
+		this.HAnsiTheme = oRFonts.HAnsiTheme;
+
+	if (oRFonts.HAnsi)
+		this.HAnsi = oRFonts.HAnsi;
+
+	if (oRFonts.CSTheme)
+		this.CSTheme = oRFonts.CSTheme;
+
+	if (oRFonts.CS)
+		this.CS = oRFonts.CS;
+
+	if (oRFonts.Hint)
+		this.Hint = oRFonts.Hint;
+};
+CRFonts.prototype.InitDefault = function()
+{
+	this.Ascii = {
+		Name  : "Times New Roman",
+		Index : -1
+	};
+
+	this.EastAsia = {
+		Name  : "Times New Roman",
+		Index : -1
+	};
+
+	this.HAnsi = {
+		Name  : "Times New Roman",
+		Index : -1
+	};
+
+	this.CS = {
+		Name  : "Times New Roman",
+		Index : -1
+	};
+
+	this.Hint          = fonthint_Default;
+	this.AsciiTheme    = undefined;
+	this.EastAsiaTheme = undefined;
+	this.HAnsiTheme    = undefined;
+	this.CSTheme       = undefined;
+};
+CRFonts.prototype.Set_FromObject = function(oRFonts, isUndefinedToNull)
+{
+	if (undefined !== oRFonts.Ascii)
+	{
+		this.Ascii = {
+			Name  : oRFonts.Ascii.Name,
+			Index : oRFonts.Ascii.Index
+		};
+	}
+	else
+	{
+		this.Ascii = isUndefinedToNull ? null : undefined;
+	}
+
+	if (undefined !== oRFonts.EastAsia)
+	{
+		this.EastAsia = {
+			Name  : oRFonts.EastAsia.Name,
+			Index : oRFonts.EastAsia.Index
+		};
+	}
+	else
+	{
+		this.EastAsia = isUndefinedToNull ? null : undefined;
+	}
+
+	if (undefined !== oRFonts.HAnsi)
+	{
+		this.HAnsi = {
+			Name  : oRFonts.HAnsi.Name,
+			Index : oRFonts.HAnsi.Index
+		};
+	}
+	else
+	{
+		this.HAnsi = isUndefinedToNull ? null : undefined;
+	}
+
+	if (undefined !== oRFonts.CS)
+	{
+		this.CS = {
+			Name  : oRFonts.CS.Name,
+			Index : oRFonts.CS.Index
+		};
+	}
+	else
+	{
+		this.CS = isUndefinedToNull ? null : undefined;
+	}
+
+	this.Hint          = CheckUndefinedToNull(isUndefinedToNull, oRFonts.Hint);
+	this.AsciiTheme    = CheckUndefinedToNull(isUndefinedToNull, oRFonts.AsciiTheme);
+	this.EastAsiaTheme = CheckUndefinedToNull(isUndefinedToNull, oRFonts.EastAsiaTheme);
+	this.HAnsiTheme    = CheckUndefinedToNull(isUndefinedToNull, oRFonts.HAnsiTheme);
+	this.CSTheme       = CheckUndefinedToNull(isUndefinedToNull, oRFonts.CSTheme);
 };
 CRFonts.prototype.SetAll = function(sFontName, nFontIndex)
 {
 	if (undefined === nFontIndex)
 		nFontIndex = -1;
 
-	this.Set_All(sFontName, nFontIndex);
+	this.Ascii = {
+		Name  : sFontName,
+		Index : nFontIndex
+	};
+
+	this.EastAsia = {
+		Name  : sFontName,
+		Index : nFontIndex
+	};
+
+	this.HAnsi = {
+		Name  : sFontName,
+		Index : nFontIndex
+	};
+
+	this.CS = {
+		Name  : sFontName,
+		Index : nFontIndex
+	};
+
+	this.Hint = fonthint_Default;
+
+	this.AsciiTheme    = undefined;
+	this.EastAsiaTheme = undefined;
+	this.HAnsiTheme    = undefined;
+	this.CSTheme       = undefined;
 };
 CRFonts.prototype.IsEqual = function(oRFonts)
 {
@@ -12080,20 +12212,120 @@ CRFonts.prototype.IsEqual = function(oRFonts)
 		&& this.private_IsEqual(this.EastAsia, oRFonts.EastAsia)
 		&& this.private_IsEqual(this.HAnsi, oRFonts.HAnsi)
 		&& this.private_IsEqual(this.CS, oRFonts.CS)
-		&& this.Hint === oRFonts.Hint);
+		&& this.Hint === oRFonts.Hint
+		&& this.AsciiTheme === oRFonts.AsciiTheme
+		&& this.EastAsiaTheme === oRFonts.EastAsiaTheme
+		&& this.HAnsiTheme === oRFonts.HAnsiTheme
+		&& this.CSTheme === oRFonts.CSTheme);
 };
 CRFonts.prototype.private_IsEqual = function(oFont1, oFont2)
 {
 	return ((undefined === oFont1 && undefined === oFont2)
 		|| (undefined !== oFont1 && undefined !== oFont2 && oFont1.Name === oFont2.Name));
 };
-CRFonts.prototype.Is_Equal = function(RFonts)
+CRFonts.prototype.Is_Equal = function(oRFonts)
 {
-	return this.IsEqual(RFonts);
+	return this.IsEqual(oRFonts);
 };
-CRFonts.prototype.Compare = function(RFonts)
+CRFonts.prototype.Compare = function(oRFonts)
 {
-	return this.IsEqual(RFonts);
+	return this.IsEqual(oRFonts);
+};
+CRFonts.prototype.Write_ToBinary = function(oWriter)
+{
+	var nStartPos = oWriter.GetCurPosition();
+	oWriter.Skip(4);
+	var nFlags = 0;
+
+	if (undefined !== this.Ascii)
+	{
+		oWriter.WriteString2(this.Ascii.Name);
+		nFlags |= 1;
+	}
+
+	if (undefined !== this.EastAsia)
+	{
+		oWriter.WriteString2(this.EastAsia.Name);
+		nFlags |= 2;
+	}
+
+	if (undefined !== this.HAnsi)
+	{
+		oWriter.WriteString2(this.HAnsi.Name);
+		nFlags |= 4;
+	}
+
+	if (undefined !== this.CS)
+	{
+		oWriter.WriteString2(this.CS.Name);
+		nFlags |= 8;
+	}
+
+	if (undefined !== this.Hint)
+	{
+		oWriter.WriteLong(this.Hint);
+		nFlags |= 16;
+	}
+
+	if (undefined !== this.AsciiTheme)
+	{
+		oWriter.WriteString2(this.AsciiTheme);
+		nFlags |= 32;
+	}
+
+	if (undefined !== this.EastAsiaTheme)
+	{
+		oWriter.WriteString2(this.EastAsiaTheme);
+		nFlags |= 64;
+	}
+
+	if (undefined !== this.HAnsiTheme)
+	{
+		oWriter.WriteString2(this.HAnsiTheme);
+		nFlags |= 128;
+	}
+
+	if (undefined !== this.CSTheme)
+	{
+		oWriter.WriteString2(this.CSTheme);
+		nFlags |= 256;
+	}
+
+	var nEndPos = oWriter.GetCurPosition();
+	oWriter.Seek(nStartPos);
+	oWriter.WriteLong(nFlags);
+	oWriter.Seek(nEndPos);
+};
+CRFonts.prototype.Read_FromBinary = function(oReader)
+{
+	var nFlags = oReader.GetLong();
+
+	if (nFlags & 1)
+		this.Ascii = {Name : oReader.GetString2(), Index : -1};
+
+	if (nFlags & 2)
+		this.EastAsia = {Name : oReader.GetString2(), Index : -1};
+
+	if (nFlags & 4)
+		this.HAnsi = {Name : oReader.GetString2(), Index : -1};
+
+	if (nFlags & 8)
+		this.CS = {Name : oReader.GetString2(), Index : -1};
+
+	if (nFlags & 16)
+		this.Hint = oReader.GetLong();
+
+	if (nFlags & 32)
+		this.AsciiTheme = oReader.GetString2();
+
+	if (nFlags & 64)
+		this.EastAsiaTheme = oReader.GetString2();
+
+	if (nFlags & 128)
+		this.HAnsiTheme = oReader.GetString2();
+
+	if (nFlags & 256)
+		this.CSTheme = oReader.GetString2();
 };
 
 function CLang()
@@ -12251,12 +12483,15 @@ function CTextPr()
     this.Shd        = undefined;
     this.Vanish     = undefined;
 
-    this.TextOutline = undefined;
-    this.TextFill    = undefined;
+    this.TextOutline    = undefined;
+    this.TextFill       = undefined;
 	this.HighlightColor = undefined;
 	this.FontScale      = undefined;
-	this.PrChange   = undefined;
-	this.ReviewInfo = undefined;
+	this.FontSizeOrig   = undefined;
+	this.FontSizeCSOrig = undefined;
+
+	this.PrChange       = undefined;
+	this.ReviewInfo     = undefined;
 }
 
 CTextPr.prototype.Clear = function()
@@ -12295,6 +12530,8 @@ CTextPr.prototype.Clear = function()
 	this.AscUnifill     = undefined;
 	this.AscLine        = undefined;
 	this.FontScale      = undefined;
+	this.FontSizeOrig   = undefined;
+	this.FontSizeCSOrig = undefined;
 
 	this.PrChange   = undefined;
 	this.ReviewInfo = undefined;
@@ -12528,7 +12765,9 @@ CTextPr.prototype.InitDefault = function(nCompatibilityMode)
 	this.TextOutline    = undefined;
 	this.TextFill       = undefined;
 	this.HighlightColor = undefined;
-	this.FontScale = undefined;
+	this.FontScale      = undefined;
+	this.FontSizeOrig   = undefined;
+	this.FontSizeCSOrig = undefined;
 
 	this.PrChange   = undefined;
 	this.ReviewInfo = undefined;
@@ -12792,43 +13031,108 @@ CTextPr.prototype.Compare = function(TextPr)
 
 	return this;
 };
-
 CTextPr.prototype.ReplaceThemeFonts = function(oFontScheme)
 {
-	if(this.RFonts && oFontScheme)
+	if (this.RFonts && oFontScheme)
 	{
-		if(this.RFonts.Ascii)
+		if (this.RFonts.AsciiTheme)
 		{
-			this.RFonts.Ascii.Name     = oFontScheme.checkFont(this.RFonts.Ascii.Name);
-			this.RFonts.Ascii.Index    =  -1;
+			this.RFonts.Ascii = {
+				Name  : oFontScheme.checkFont(this.RFonts.AsciiTheme),
+				Index : -1
+			};
+
+			this.RFonts.AsciiTheme = undefined;
 		}
-		if(this.RFonts.EastAsia)
+		else if (this.RFonts.Ascii)
+		{
+			this.RFonts.Ascii.Name  = oFontScheme.checkFont(this.RFonts.Ascii.Name);
+			this.RFonts.Ascii.Index = -1;
+		}
+
+		if (this.RFonts.EastAsiaTheme)
+		{
+			this.RFonts.EastAsia = {
+				Name  : oFontScheme.checkFont(this.RFonts.EastAsiaTheme),
+				Index : -1
+			};
+
+			this.RFonts.EastAsiaTheme = undefined;
+		}
+		else if (this.RFonts.EastAsia)
 		{
 			this.RFonts.EastAsia.Name  = oFontScheme.checkFont(this.RFonts.EastAsia.Name);
 			this.RFonts.EastAsia.Index = -1;
 		}
-		if(this.RFonts.HAnsi)
+
+		if (this.RFonts.HAnsiTheme)
 		{
-			this.RFonts.HAnsi.Name     = oFontScheme.checkFont(this.RFonts.HAnsi.Name);
-			this.RFonts.HAnsi.Index    = -1;
+			this.RFonts.HAnsi = {
+				Name  : oFontScheme.checkFont(this.RFonts.HAnsiTheme),
+				Index : -1
+			};
+
+			this.RFonts.HAnsiTheme = undefined;
 		}
-		if(this.RFonts.CS)
+		else if (this.RFonts.HAnsi)
 		{
-			this.RFonts.CS.Name        = oFontScheme.checkFont(this.RFonts.CS.Name);
-			this.RFonts.CS.Index       = -1;
+			this.RFonts.HAnsi.Name  = oFontScheme.checkFont(this.RFonts.HAnsi.Name);
+			this.RFonts.HAnsi.Index = -1;
+		}
+
+		if (this.RFonts.CSTheme)
+		{
+			this.RFonts.CS = {
+				Name  : oFontScheme.checkFont(this.RFonts.CSTheme),
+				Index : -1
+			};
+
+			this.RFonts.CSTheme = undefined;
+		}
+		else if (this.RFonts.CS)
+		{
+			this.RFonts.CS.Name  = oFontScheme.checkFont(this.RFonts.CS.Name);
+			this.RFonts.CS.Index = -1;
 		}
 	}
-	if(this.FontFamily)
+
+	if (this.FontFamily)
 	{
-		this.FontFamily.Name = oFontScheme.checkFont(this.FontFamily.Name);
+		this.FontFamily.Name  = oFontScheme.checkFont(this.FontFamily.Name);
 		this.FontFamily.Index = -1;
 	}
+};
+CTextPr.prototype.GetIncDecFontSize = function(IncFontSize)
+{
+	var FontSize = this.FontSize;
+	if(this.FontScale !== null &&
+		this.FontScale !== undefined &&
+		this.FontSizeOrig !== null &&
+		this.FontSizeOrig !== undefined)
+	{
+		FontSize = this.FontSizeOrig;
+	}
+	return FontSize_IncreaseDecreaseValue(IncFontSize, FontSize);
+};
+CTextPr.prototype.GetIncDecFontSizeCS = function(IncFontSize)
+{
+	var FontSize = this.FontSizeCS;
+	if(this.FontScale !== null &&
+		this.FontScale !== undefined &&
+		this.FontSizeCSOrig !== null &&
+		this.FontSizeCSOrig !== undefined)
+	{
+		FontSize = this.FontSizeCSOrig;
+	}
+	return FontSize_IncreaseDecreaseValue(IncFontSize, FontSize);
 };
 
 CTextPr.prototype.CheckFontScale =  function()
 {
 	if(this.FontScale !== null && this.FontScale !== undefined)
 	{
+		this.FontSizeOrig   = this.FontSize;
+		this.FontSizeCSOrig = this.FontSizeCS;
 		this.FontSize *= 	this.FontScale;
 		this.FontSize = (this.FontSize + 0.5) >> 0;
 		this.FontSize = Math.max(1, this.FontSize);
@@ -13406,12 +13710,11 @@ CTextPr.prototype.Is_Equal = function(TextPr)
 	if ((undefined === this.FontFamily && undefined !== TextPr.FontFamily) || (undefined !== this.FontFamily && (undefined === TextPr.FontFamily || this.FontFamily.Name !== TextPr.FontFamily.Name)))
 		return false;
 
-	if (false
-		|| (undefined === this.FontSize
+	if ((undefined === this.FontSize
 		&& undefined !== TextPr.FontSize)
 		|| (undefined !== this.FontSize
-		&& (undefined === TextPr.FontSize
-		|| Math.abs(this.FontSize - TextPr.FontSize) >= 0.001)))
+			&& (undefined === TextPr.FontSize
+				|| Math.abs(this.FontSize - TextPr.FontSize) >= 0.001)))
 		return false;
 
 	if ((undefined === this.Color && undefined !== TextPr.Color) || (undefined !== this.Color && (undefined === TextPr.Color || true !== this.Color.Compare(TextPr.Color))))
@@ -13450,12 +13753,11 @@ CTextPr.prototype.Is_Equal = function(TextPr)
 	if (this.ItalicCS !== TextPr.ItalicCS)
 		return false;
 
-	if (false
-		|| (undefined === this.FontSizeCS
+	if ((undefined === this.FontSizeCS
 		&& undefined !== TextPr.FontSizeCS)
 		|| (undefined !== this.FontSizeCS
-		&& (undefined === TextPr.FontSizeCS
-		|| Math.abs(this.FontSizeCS - TextPr.FontSizeCS) >= 0.001)))
+			&& (undefined === TextPr.FontSizeCS
+				|| Math.abs(this.FontSizeCS - TextPr.FontSizeCS) >= 0.001)))
 		return false;
 
 	if (this.CS !== TextPr.CS)
@@ -13579,8 +13881,8 @@ CTextPr.prototype.GetDiff = function(oTextPr)
 	}
 	else
 	{
-		if (!oTextPr.HighLight.IsEqual(oTextPr.HighLight))
-			oResultTextPr.HighLight = oTextPr.HighLight.Copy();
+		if (!this.HighLight.IsEqual(oTextPr.HighLight))
+			oResultTextPr.HighLight = this.HighLight.Copy();
 	}
 
 	if (this.RStyle !== oTextPr.RStyle)
@@ -13749,7 +14051,7 @@ CTextPr.prototype.FillFromExcelFont = function(oFont) {
 			break;
 		}
 		case Asc.EFontScheme.fontschemeNone: {
-			this.RFonts.Set_All(oFont.getName(), -1);
+			this.RFonts.SetAll(oFont.getName(), -1);
 			break;
 		}
 	}
@@ -15019,6 +15321,10 @@ CFramePr.prototype =
         return false;
     }
 };
+CFramePr.prototype.GetW = function()
+{
+	return this.W;
+};
 CFramePr.prototype.IsEqual = function(oFramePr)
 {
 	if (!oFramePr)
@@ -15187,6 +15493,8 @@ function CParaPr()
 	this.LnSpcReduction    = undefined;
 	this.PrChange          = undefined;
 	this.ReviewInfo        = undefined;
+
+	this.SuppressLineNumbers = undefined;
 }
 
 CParaPr.prototype.Copy = function(bCopyPrChange, oPr)
@@ -15284,6 +15592,9 @@ CParaPr.prototype.Copy = function(bCopyPrChange, oPr)
 
 	if (undefined !== this.Locked)
 		ParaPr.Locked = this.Locked;
+
+	if (undefined !== this.SuppressLineNumbers)
+		ParaPr.SuppressLineNumbers = this.SuppressLineNumbers;
 
 	return ParaPr;
 };
@@ -15433,6 +15744,9 @@ CParaPr.prototype.Merge = function(ParaPr)
 
 	if (undefined !== ParaPr.OutlineLvl)
 		this.OutlineLvl = ParaPr.OutlineLvl;
+
+	if (undefined !== ParaPr.SuppressLineNumbers)
+		this.SuppressLineNumbers = ParaPr.SuppressLineNumbers;
 };
 CParaPr.prototype.InitDefault = function(nCompatibilityMode)
 {
@@ -15466,6 +15780,7 @@ CParaPr.prototype.InitDefault = function(nCompatibilityMode)
 	this.PStyle                    = undefined;
 	this.FramePr                   = undefined;
 	this.OutlineLvl                = undefined;
+	this.SuppressLineNumbers       = false;
 
 	this.DefaultRunPr   = undefined;
 	this.Bullet         = undefined;
@@ -15595,6 +15910,9 @@ CParaPr.prototype.Set_FromObject = function(ParaPr)
 
 	if (undefined !== ParaPr.OutlineLvl)
 		this.OutlineLvl = ParaPr.OutlineLvl;
+
+	if (undefined !== ParaPr.SuppressLineNumbers)
+		this.SuppressLineNumbers = ParaPr.SuppressLineNumbers;
 };
 CParaPr.prototype.Compare = function(ParaPr)
 {
@@ -15719,6 +16037,9 @@ CParaPr.prototype.Compare = function(ParaPr)
 
 	if (this.OutlineLvlStyle || ParaPr.OutlineLvlStyle)
 		Result_ParaPr.OutlineLvlStyle = true;
+
+	if (this.SuppressLineNumbers === ParaPr.SuppressLineNumbers)
+		Result_ParaPr.SuppressLineNumbers = this.SuppressLineNumbers;
 
 	return Result_ParaPr;
 };
@@ -15873,6 +16194,12 @@ CParaPr.prototype.Write_ToBinary = function(Writer)
 		Flags |= 8388608;
 	}
 
+	if (undefined !== this.SuppressLineNumbers)
+	{
+		Writer.WriteBool(this.SuppressLineNumbers);
+		Flags |= 16777216;
+	}
+
 	var EndPos = Writer.GetCurPosition();
 	Writer.Seek(StartPos);
 	Writer.WriteLong(Flags);
@@ -16001,6 +16328,9 @@ CParaPr.prototype.Read_FromBinary = function(Reader)
 		this.PrChange.ReadFromBinary(Reader);
 		this.ReviewInfo.ReadFromBinary(Reader);
 	}
+
+	if (Flags & 16777216)
+		this.SuppressLineNumbers = Reader.GetBool();
 };
 CParaPr.prototype.isEqual = function(ParaPrUOld,ParaPrNew)
 {
@@ -16028,7 +16358,7 @@ CParaPr.prototype.isEqual = function(ParaPrUOld,ParaPrNew)
 };
 CParaPr.prototype.Is_Equal = function(ParaPr)
 {
-	if (this.ContextualSpacing !== ParaPr.ContextualSpacing
+	return !(this.ContextualSpacing !== ParaPr.ContextualSpacing
 		|| true !== IsEqualStyleObjects(this.Ind, ParaPr.Ind)
 		|| this.Jc !== ParaPr.Jc
 		|| this.KeepLines !== ParaPr.KeepLines
@@ -16046,10 +16376,8 @@ CParaPr.prototype.Is_Equal = function(ParaPr)
 		|| true !== IsEqualStyleObjects(this.NumPr, ParaPr.NumPr)
 		|| this.PStyle !== ParaPr.PStyle
 		|| true !== IsEqualStyleObjects(this.FramePr, ParaPr.FramePr)
-		|| this.OutlineLvl !== ParaPr.OutlineLvl)
-		return false;
-
-	return true;
+		|| this.OutlineLvl !== ParaPr.OutlineLvl
+		|| this.SuppressLineNumbers !== ParaPr.SuppressLineNumbers);
 };
 /**
  * Сравниваем данные настройки с заданными, если настройка совпала ставим undefined, если нет, то берем из текущей
@@ -16120,6 +16448,9 @@ CParaPr.prototype.GetDiff = function(oParaPr)
 	if (this.DefaultRunPr && !this.DefaultRunPr.IsEqual(oParaPr.DefaultRunPr))
 		oResultParaPr.DefaultRunPr = this.DefaultRunPr.Copy();
 
+	if (this.SuppressLineNumbers !== oParaPr.SuppressLineNumbers)
+		oResultParaPr.SuppressLineNumbers = this.SuppressLineNumbers;
+
 	return oResultParaPr;
 };
 CParaPr.prototype.Get_PresentationBullet = function(theme, colorMap)
@@ -16145,7 +16476,7 @@ CParaPr.prototype.Get_PresentationBullet = function(theme, colorMap)
 
 			case AscFormat.BULLET_TYPE_BULLET_AUTONUM :
 			{
-				Bullet.m_nType    = g_NumberingArr[this.Bullet.bulletType.AutoNumType];
+				Bullet.m_nType    = this.Bullet.bulletType.AutoNumType;
 				if(this.Bullet.bulletType.startAt === null)
 				{
 					Bullet.m_nStartAt = 1;
@@ -16224,7 +16555,7 @@ CParaPr.prototype.Get_PresentationBullet = function(theme, colorMap)
 };
 CParaPr.prototype.Is_Empty = function()
 {
-	if (undefined !== this.ContextualSpacing
+	return !(undefined !== this.ContextualSpacing
 		|| true !== this.Ind.Is_Empty()
 		|| undefined !== this.Jc
 		|| undefined !== this.KeepLines
@@ -16242,10 +16573,9 @@ CParaPr.prototype.Is_Empty = function()
 		|| undefined !== this.WidowControl
 		|| undefined !== this.Tabs
 		|| undefined !== this.NumPr
-		|| undefined !== this.PStyle)
-		return false;
-
-	return true;
+		|| undefined !== this.PStyle
+		|| undefined !== this.OutlineLvl
+		|| undefined !== this.SuppressLineNumbers);
 };
 CParaPr.prototype.GetDiffPrChange = function()
 {
@@ -16468,6 +16798,14 @@ CParaPr.prototype.SetOutlineLvl = function(nOutlineLvl)
 {
 	this.OutlineLvl = nOutlineLvl;
 };
+CParaPr.prototype.GetSuppressLineNumbers = function()
+{
+	return this.SuppressLineNumbers;
+};
+CParaPr.prototype.SetSuppressLineNumbers = function(isSuppress)
+{
+	this.SuppressLineNumbers = isSuppress;
+};
 CParaPr.prototype.WriteToBinary = function(oWriter)
 {
 	return this.Write_ToBinary(oWriter);
@@ -16535,6 +16873,8 @@ CParaPr.prototype['get_PStyle']                   = CParaPr.prototype.get_PStyle
 CParaPr.prototype['put_PStyle']                   = CParaPr.prototype.put_PStyle                   = CParaPr.prototype.SetPStyle;
 CParaPr.prototype['get_OutlineLvl']               = CParaPr.prototype.get_OutlineLvl               = CParaPr.prototype['Get_OutlineLvl']               = CParaPr.prototype.GetOutlineLvl;
 CParaPr.prototype['put_OutlineLvl']               = CParaPr.prototype.put_OutlineLvl               = CParaPr.prototype.SetOutlineLvl;
+CParaPr.prototype['get_SuppressLineNumbers']      = CParaPr.prototype.get_SuppressLineNumbers      = CParaPr.prototype['Get_SuppressLineNumbers']      = CParaPr.prototype.GetSuppressLineNumbers;
+CParaPr.prototype['pet_SuppressLineNumbers']      = CParaPr.prototype.put_SuppressLineNumbers      = CParaPr.prototype.SetSuppressLineNumbers;
 //----------------------------------------------------------------------------------------------------------------------
 
 function Copy_Bounds(Bounds)

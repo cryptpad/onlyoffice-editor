@@ -180,7 +180,7 @@
     function drawHorBorder(graphics, oBorderPr, oPrevBorderPr, align, y, x, r) {
         var oLastBorderPr = null;
         if(oBorderPr && oBorderPr.s !== AscCommon.c_oAscBorderStyles.None) {
-            graphics.drawHorLine(align, y, x, r, setGraphicsSettings(graphics, oBorderPr));
+            graphics.drawHorLine(align, y, x, r, setGraphicsSettings(graphics, oBorderPr, oPrevBorderPr));
             oLastBorderPr = oBorderPr;
         }
         return oLastBorderPr;
@@ -188,7 +188,7 @@
     function drawVerBorder(graphics, oBorderPr, oPrevBorderPr, align, x, y, b) {
         var oLastBorderPr = null;
         if(oBorderPr && oBorderPr.s !== AscCommon.c_oAscBorderStyles.None) {
-            graphics.drawVerLine(align, x, y, b, setGraphicsSettings(graphics, oBorderPr));
+            graphics.drawVerLine(align, x, y, b, setGraphicsSettings(graphics, oBorderPr, oPrevBorderPr));
             oLastBorderPr = oBorderPr;
         }
         return oLastBorderPr;
@@ -862,7 +862,6 @@
         var oBorder = this.getBorder(STYLE_TYPE.WHOLE);
         if(oBorder) {
             var oTransform = transform || this.transform;
-            graphics.SaveGrState();
             graphics.transform3(oTransform);
             var oSide, oLastDrawn;
             oSide = oBorder.l;
@@ -873,7 +872,7 @@
             oLastDrawn = drawVerBorder(graphics, oSide, oLastDrawn, 1, this.extX, 0, this.extY) || oLastDrawn;
             oSide = oBorder.b;
             oLastDrawn = drawHorBorder(graphics, oSide, oLastDrawn, 1, this.extY, 0, this.extX) || oLastDrawn;
-            graphics.RestoreGrState();
+            graphics.reset();
         }
         if(!AscCommon.IsShapeToImageConverter && !graphics.RENDERER_PDF_FLAG) {
             if(this.getLocked()) {
@@ -1750,14 +1749,12 @@
         }
         var oBorder = this.parent.getBorder(this.getState());
         if(oBorder) {
-            graphics.SaveGrState();
             graphics.transform3(this.transform);
             var oLastDrawn = null;
             oLastDrawn = drawVerBorder(graphics, oBorder.l, oLastDrawn, 0, 0, 0, this.extY) || oLastDrawn;
             oLastDrawn = drawHorBorder(graphics, oBorder.t, oLastDrawn, 0, 0, 0, this.extX) || oLastDrawn;
             oLastDrawn = drawVerBorder(graphics, oBorder.r, oLastDrawn, 2, this.extX, 0, this.extY) || oLastDrawn;
             oLastDrawn = drawHorBorder(graphics, oBorder.b, oLastDrawn, 2, this.extY, 0, this.extX) || oLastDrawn;
-            graphics.RestoreGrState();
         }
     };
     CButtonBase.prototype.hit = function(x, y) {
@@ -2092,7 +2089,12 @@
         return ((this.buttons.length - 1) / this.getColumnsCount() >> 0) + 1;
     };
     CButtonsContainer.prototype.getRowsInFrame = function () {
-        return (this.extY + SPACE_BETWEEN) / (this.getButtonHeight() + SPACE_BETWEEN)  >> 0;
+        var dCount = (this.extY) / (this.getButtonHeight() + SPACE_BETWEEN);
+        var nCeil = (dCount >> 0);
+        if(dCount - nCeil > 0) {
+            ++nCeil;
+        }
+        return nCeil;
     };
     CButtonsContainer.prototype.getScrolledRows = function () {
         return this.getRowsCount() - this.getRowsInFrame();
@@ -2137,7 +2139,7 @@
             this.checkScrollTop();
             var nColumns = this.getColumnsCount();
             var nStart = this.scrollTop * nColumns;
-            var nEnd = Math.min(this.buttons.length - 1, nStart + (this.getRowsInFrame() + 1) * nColumns);
+            var nEnd = Math.min(this.buttons.length - 1, nStart + this.getRowsInFrame() * nColumns - 1);
             for(var nButton = nStart; nButton <= nEnd; ++nButton) {
                 this.buttons[nButton].draw(graphics);
             }

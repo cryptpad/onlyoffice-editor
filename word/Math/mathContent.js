@@ -1689,9 +1689,10 @@ CMathContent.prototype.private_CorrectContent = function()
         }
         else if(bDeleteEmptyRun && false == Current.Is_CheckingNearestPos()) // если NearPosArray не нулевой длины, то это вызов происходит на InsertContent, не удаляем пустые Run
         {
+            var tempPos = this.CurPos;
             this.Remove_FromContent(CurrPos, 1);
 
-            if (this.CurPos === CurrPos)
+            if (tempPos === CurrPos)
             {
                 if (bLeftRun)
                 {
@@ -1700,7 +1701,6 @@ CMathContent.prototype.private_CorrectContent = function()
                 }
                 else
                 {
-                    this.CurPos = CurrPos;
                     this.Content[this.CurPos].MoveCursorToStartPos();
                 }
             }
@@ -2501,7 +2501,7 @@ CMathContent.prototype.Load_FromMenu = function(Type, Paragraph, TextPr, oSelect
     };
 
     Pr.ctrPrp.Italic = true;
-    Pr.ctrPrp.RFonts.Set_All("Cambria Math", -1);
+    Pr.ctrPrp.RFonts.SetAll("Cambria Math", -1);
 
     var MainType = Type >> 24;
 
@@ -2660,7 +2660,7 @@ CMathContent.prototype.private_LoadFromMenuSymbol = function(Type, Pr)
         if(this.Content.length > 0 && this.Content[this.CurPos].Type == para_Math_Run && this.IsSelectionEmpty() == true) // находимся в Run, селект отсутствует
         {
             TextPr = this.Content[this.CurPos].Get_TextPr();
-            TextPr.RFonts.Set_All("Cambria Math", -1);          //  на данный момент добавляются символы исключительно из Cambria Math
+            TextPr.RFonts.SetAll("Cambria Math", -1);          //  на данный момент добавляются символы исключительно из Cambria Math
             MathPr = this.Content[this.CurPos].Get_MathPr();
         }
 
@@ -7222,9 +7222,6 @@ CMathContent.prototype.private_CanAutoCorrectTextFunc = function(AutoCorrectEngi
     var bActionIsSpace = (AutoCorrectEngine.ActionElement.value == 0x20) ? true : false;
     var foundedEl = null;
     var ElCount = AutoCorrectEngine.Elements.length;
-    if (ElCount < 2 + 1) {
-        return false;
-    }
     var Result = false;
     var FlagEnd = false;
     var Start = ElCount - 1;
@@ -7250,12 +7247,6 @@ CMathContent.prototype.private_CanAutoCorrectTextFunc = function(AutoCorrectEngi
             if (String.fromCharCode(LastEl.Element.value) !== AutoCorrectElement[CheckStringLen - nStringPos - 1]) {
                 Found = false;
                 break;
-            }
-            if (nStringPos === (CheckStringLen - 1) && (ElCount - (CheckStringLen + 1)) > 0) {
-                LastEl = AutoCorrectEngine.Elements[ElCount - nStringPos - 2 - 1];
-                if ((LastEl.Element.IsText() && LastEl.Element.value !== 32)) {
-                    Found = false;
-                }
             }
         }
         if (Found === true) {
@@ -9527,12 +9518,12 @@ CMathAutoCorrectEngine.prototype.private_Check_IsFull = function() {
 
 var g_DefaultAutoCorrectMathFuncs =
 [
-    'sin', 'sec', 'asin', 'asec', 'arcsin', 'arcsec',
-    'cos', 'csc', 'acos', 'acsc', 'arccos', 'arccsc',
-    'tan', 'cot', 'atan', 'acot', 'arctan', 'arccot',
-    'sinh', 'sech', 'asinh', 'asech', 'arcsinh', 'arcsech',
-    'cosh', 'csch', 'acosh', 'acsch', 'arccosh', 'arccsch',
-    'tanh', 'coth', 'atanh', 'acoth', 'arctanh', 'arccoth',
+    'arcsin', 'asin', 'sin', 'arcsinh', 'asinh', 'sinh',
+    'arcsec', 'sec', 'asec', 'arcsech', 'asech','sech',
+    'arccos', 'acos', 'cos', 'arccosh','acosh', 'cosh',
+    'arccsc', 'acsc', 'csc', 'arccsch', 'acsch', 'csch',
+    'arctan', 'atan', 'tan', 'arctanh', 'atanh', 'tanh',
+    'arccot', 'acot', 'cot', 'arccoth', 'acoth', 'coth',
     'arg', 'det', 'exp', 'inf', 'lim', 'min',
     'def', 'dim', 'gcd', 'ker', 'log', 'Pr',
     'deg', 'erf', 'hom', 'lg', 'ln', 'max', 'sup'

@@ -930,8 +930,7 @@
 	 * @param {PageOrientation} sPageOrientation
 	 * */
 	ApiWorksheet.prototype.SetPageOrientation = function (sPageOrientation) {
-		sPageOrientation = (sPageOrientation == 'xlPortrait') ? 0 : (sPageOrientation == 'xlLandscape') ? 1 : 0;
-		this.worksheet.PagePrintOptions.pageSetup.asc_setOrientation(sPageOrientation);
+		this.worksheet.PagePrintOptions.pageSetup.asc_setOrientation('xlLandscape' === sPageOrientation ? 1 : 0);
 	};
 
 	/**
@@ -954,23 +953,62 @@
 		}
 	});
 
+
+	/**
+	 * Gets page PrintHeadings property.
+	 * @memberof ApiWorksheet
+	 * @typeofeditors ["CSE"]
+	 * @returns {bool} - True if row and column headings are printed with this page.
+	 * */
+	ApiWorksheet.prototype.GetPrintHeadings = function ()	{
+		return this.worksheet.PagePrintOptions.asc_getHeadings();
+	};
+
+	/**
+	 * Sets page PrintHeadings property.
+	 * @memberof ApiWorksheet
+	 * @typeofeditors ["CSE"]
+	 * @param {bool} bPrint - Determines whether row and column headings will be printed with this page.
+	 * */
+	ApiWorksheet.prototype.SetPrintHeadings = function (bPrint)	{
+		this.worksheet.PagePrintOptions.asc_setHeadings(!!bPrint);
+	};
+
 	Object.defineProperty(ApiWorksheet.prototype, "PrintHeadings", {
 		get: function () {
-			return this.worksheet.PagePrintOptions.asc_getHeadings();
+			return this.GetPrintHeadings();
 		},
-		set: function (value) {
-			value = (typeof value === 'bool') ? value : false;
-			this.worksheet.PagePrintOptions.asc_setHeadings(value);
+		set: function (bPrint) {
+			this.SetPrintHeadings(bPrint)
 		}
 	});
 
+	/**
+	 * Gets page PrintGridlines property.
+	 * @memberof ApiWorksheet
+	 * @typeofeditors ["CSE"]
+	 * @returns {bool} - True if cell gridlines are printed on the page.
+	 * */
+	ApiWorksheet.prototype.GetPrintGridlines = function ()	{
+		return this.worksheet.PagePrintOptions.asc_getGridLines();
+	};
+
+	/**
+	 * Sets page PrintGridlines property.
+	 * @memberof ApiWorksheet
+	 * @typeofeditors ["CSE"]
+	 * @param {bool} bPrint - Determines whether grid lines of cells are printed on the page.
+	 * */
+	ApiWorksheet.prototype.SetPrintGridlines = function (bPrint)	{
+		this.worksheet.PagePrintOptions.asc_setGridLines(!!bPrint);
+	};
+
 	Object.defineProperty(ApiWorksheet.prototype, "PrintGridlines", {
 		get: function () {
-			return this.worksheet.PagePrintOptions.asc_getGridLines();
+			return this.GetPrintGridlines();
 		},
-		set: function (value) {
-			value = (typeof value === 'bool') ? value : false;
-			this.worksheet.PagePrintOptions.asc_setGridLines(value);
+		set: function (bPrint) {
+			this.SetPrintGridlines(bPrint)
 		}
 	});
 
@@ -1053,7 +1091,7 @@
 	 * @typeofeditors ["CSE"]
 	 */
 	ApiWorksheet.prototype.Delete = function () {
-		this.worksheet.workbook.removeWorksheet(this.worksheet.getIndex());
+		this.worksheet.workbook.oApi.asc_deleteWorksheet([this.worksheet.getIndex()]);
 	};
 
 	/**
@@ -1401,6 +1439,17 @@
 	 * Specifies the line style used to form the cell border.
 	 * @typedef {("None" | "Double" | "Hair" | "DashDotDot" | "DashDot" | "Dotted" | "Dashed" | "Thin" | "MediumDashDotDot" | "SlantDashDot" | "MediumDashDot" | "MediumDashed" | "Medium" | "Thick")} LineStyle
 	 */
+
+	/**
+	 * Get the type of this class.
+	 * @memberof ApiRange
+	 * @typeofeditors ["CDE"]
+	 * @returns {"range"}
+	 */
+	ApiRange.prototype.GetClassType = function()
+	{
+		return "range";
+	};
 
 	/**
 	 * Get the number of the row for the selected cell.
@@ -2039,7 +2088,7 @@
 	 * Get the background color for the current cell range
 	 * @memberof ApiRange
 	 * @typeofeditors ["CSE"]
-	 * return {ApiColor|'No Fill'} - return 'No Fill' when the color to the background in the cell/cell range is null
+	 * @returns {ApiColor|'No Fill'} - return 'No Fill' when the color to the background in the cell/cell range is null
 	 */
 	ApiRange.prototype.GetFillColor = function () {
 		var oColor = this.range.getFillColor();
@@ -2935,6 +2984,7 @@
 	ApiWorksheet.prototype["AddImage"] = ApiWorksheet.prototype.AddImage;
 	ApiWorksheet.prototype["ReplaceCurrentImage"] = ApiWorksheet.prototype.ReplaceCurrentImage;
 
+	ApiRange.prototype["GetClassType"] = ApiRange.prototype.GetClassType
 	ApiRange.prototype["GetRow"] = ApiRange.prototype.GetRow;
 	ApiRange.prototype["GetCol"] = ApiRange.prototype.GetCol;
 	ApiRange.prototype["Clear"] = ApiRange.prototype.Clear;

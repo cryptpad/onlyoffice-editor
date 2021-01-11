@@ -111,7 +111,8 @@ var c_oAscSelectionDialogType = {
   PivotTableData: 6,
   PivotTableReport: 7,
   PrintTitles: 8,
-  Function: 9
+  Function: 9,
+  DataValidation: 10
 };
 
 var c_oAscScrollType = {
@@ -154,7 +155,8 @@ var c_oAscLockTypeElemSubType = {
   DeleteRows: 3,
   InsertRows: 4,
   ChangeProperties: 5,
-  DefinedNames: 6
+  DefinedNames: 6,
+  NamedSheetView: 7
 };
 
 var c_oAscRecalcIndexTypes = {
@@ -577,6 +579,7 @@ var c_oAscPopUpSelectorType = {
   prot['PivotTableReport'] = prot.PivotTableReport;
   prot['PrintTitles'] = prot.PrintTitles;
   prot['Function'] = prot.Function;
+  prot['DataValidation'] = prot.DataValidation;
   window['Asc']['c_oAscHyperlinkType'] = window['Asc'].c_oAscHyperlinkType = c_oAscHyperlinkType;
   prot = c_oAscHyperlinkType;
   prot['WebLink'] = prot.WebLink;

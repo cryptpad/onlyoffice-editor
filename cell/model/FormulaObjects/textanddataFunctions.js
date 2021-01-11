@@ -42,7 +42,7 @@ function (window, undefined) {
 	var CellValueType = AscCommon.CellValueType;
 	var g_oFormatParser = AscCommon.g_oFormatParser;
 	var oNumFormatCache = AscCommon.oNumFormatCache;
-
+	var CellFormat = AscCommon.CellFormat;
 	var cErrorType = AscCommonExcel.cErrorType;
 	var cNumber = AscCommonExcel.cNumber;
 	var cString = AscCommonExcel.cString;
@@ -1102,6 +1102,10 @@ function (window, undefined) {
 			arg0 = arg0.getElementRowCol(0, 0);
 		}
 
+		if (arg0 instanceof cError) {
+			return arg0;
+		}
+
 		if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
 			arg0 = arg0.getValue();
 			if (arg0 instanceof cError) {
@@ -1111,10 +1115,6 @@ function (window, undefined) {
 			}
 		} else {
 			arg0 = arg0.toLocaleString();
-		}
-
-		if (arg0 instanceof cError) {
-			return arg0;
 		}
 
 		return new cString(arg0.toLowerCase());
@@ -1887,7 +1887,7 @@ function (window, undefined) {
 			}
 		}
 
-		var oFormat = oNumFormatCache.get(arg1.toString());
+		var oFormat = new CellFormat(arg1.toString(),undefined,true);
 		var a = g_oFormatParser.parse(arg0.toLocaleString(true) + ""), aText;
 		aText = oFormat.format(a ? a.value : arg0.toLocaleString(),
 			(arg0 instanceof cNumber || a) ? CellValueType.Number : CellValueType.String,
@@ -2145,6 +2145,10 @@ function (window, undefined) {
 			arg0 = arg0.getElementRowCol(0, 0);
 		}
 
+		if (arg0 instanceof cError) {
+			return arg0;
+		}
+
 		if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
 			arg0 = arg0.getValue();
 			if (arg0 instanceof cError) {
@@ -2154,10 +2158,6 @@ function (window, undefined) {
 			}
 		} else {
 			arg0 = arg0.toLocaleString();
-		}
-
-		if (arg0 instanceof cError) {
-			return arg0;
 		}
 
 		return new cString(arg0.toUpperCase());

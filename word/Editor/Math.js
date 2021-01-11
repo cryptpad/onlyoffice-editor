@@ -1058,7 +1058,7 @@ function ParaMath()
     this.DefaultTextPr      = new CTextPr();
 
     this.DefaultTextPr.FontFamily = {Name  : "Cambria Math", Index : -1 };
-    this.DefaultTextPr.RFonts.Set_All("Cambria Math", -1);
+    this.DefaultTextPr.RFonts.SetAll("Cambria Math", -1);
 
     // Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
 	g_oTableId.Add( this, this.Id );
@@ -1240,7 +1240,7 @@ ParaMath.prototype.Add = function(Item)
 
         var lng2 = oContent.Content.length;
 
-        TextPr.RFonts.Set_All("Cambria Math", -1);
+        TextPr.RFonts.SetAll("Cambria Math", -1);
 
         if (true === TrackRevisions)
             LogicDocument.SetTrackRevisions(false);
@@ -1671,7 +1671,7 @@ ParaMath.prototype.Get_AllFontNames = function(AllFonts)
 
 ParaMath.prototype.GetSelectedElementsInfo = function(Info, ContentPos, Depth)
 {
-    Info.Set_Math(this);
+    Info.SetMath(this);
 };
 
 ParaMath.prototype.GetSelectedText = function(bAll, bClearText, oPr)

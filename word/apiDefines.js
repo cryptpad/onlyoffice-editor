@@ -142,10 +142,15 @@ var c_oSerFormat = {
 };
 
 var c_oAscFootnotePos = {
-	BeneathText : 0x00, //section_footnote_PosBeneathText
-	DocEnd      : 0x01, //section_footnote_PosDocEnd
-	PageBottom  : 0x02, //section_footnote_PosPageBottom,
-	SectEnd     : 0x03  //section_footnote_PosSectEnd
+	BeneathText : 0x00,
+	DocEnd      : 0x01,
+	PageBottom  : 0x02,
+	SectEnd     : 0x03
+};
+
+var c_oAscEndnotePos = {
+	DocEnd      : 0x00,
+	SectEnd     : 0x01
 };
 
 var c_oAscFootnoteRestart = {
@@ -169,6 +174,16 @@ var c_oAscTOCStylesType = {
 	Modern   : 3,
 	Classic  : 4,
 	Web      : 5
+};
+
+var c_oAscTOFStylesType = {
+	Current     : 0,
+	Classic     : 1,
+	Distinctive : 2,
+	Centered    : 3,
+	Formal      : 4,
+	Simple      : 5,
+	Web         : 6
 };
 
 var c_oAscStyleType = {
@@ -242,6 +257,18 @@ var c_oAscDocumentShortcutType = {
 	DecreaseFontSize     : 46
 };
 
+var c_oAscDocumentRefenceToType = {
+	Text               : 0,
+	PageNum            : 1,
+	ParaNum            : 2,
+	ParaNumNoContext   : 3,
+	ParaNumFullContex  : 4,
+	AboveBelow         : 5,
+	OnlyLabelAndNumber : 6,
+	OnlyCaptionText    : 7,
+	NoteNumber         : 8,
+	NoteNumberFormatted : 9
+};
 //------------------------------------------------------------export---------------------------------------------------
 var prot;
 window['Asc'] = window['Asc'] || {};
@@ -291,14 +318,17 @@ prot['ALIGN_MIDDLE'] = c_oAscAlignShapeType.ALIGN_MIDDLE;
 
 
 
-
-prot = window['Asc']['c_oAscFootnotePos'] = c_oAscFootnotePos;
+prot = window['Asc']['c_oAscFootnotePos'] = window['Asc'].c_oAscFootnotePos = c_oAscFootnotePos;
 prot['BeneathText'] = c_oAscFootnotePos.BeneathText;
 prot['DocEnd']      = c_oAscFootnotePos.DocEnd;
 prot['PageBottom']  = c_oAscFootnotePos.PageBottom;
 prot['SectEnd']     = c_oAscFootnotePos.SectEnd;
 
-prot = window['Asc']['c_oAscFootnoteRestart'] = c_oAscFootnoteRestart;
+prot = window['Asc']['c_oAscEndnotePos'] = window['Asc'].c_oAscEndnotePos = c_oAscEndnotePos;
+prot['DocEnd']      = c_oAscEndnotePos.DocEnd;
+prot['SectEnd']     = c_oAscEndnotePos.SectEnd;
+
+prot = window['Asc']['c_oAscFootnoteRestart'] = window['Asc'].c_oAscFootnoteRestart = c_oAscFootnoteRestart;
 prot['Continuous'] = c_oAscFootnoteRestart.Continuous;
 prot['EachSect']   = c_oAscFootnoteRestart.EachSect;
 prot['EachPage']   = c_oAscFootnoteRestart.EachPage;
@@ -318,6 +348,14 @@ prot['Modern']   = c_oAscTOCStylesType.Modern;
 prot['Classic']  = c_oAscTOCStylesType.Classic;
 prot['Web']      = c_oAscTOCStylesType.Web;
 
+prot = window['Asc']['c_oAscTOFStylesType'] = window['Asc'].c_oAscTOFStylesType = c_oAscTOFStylesType;
+prot['Current']     = prot.Current;
+prot['Classic']     = prot.Classic;
+prot['Distinctive'] = prot.Distinctive;
+prot['Centered']    = prot.Centered;
+prot['Formal']      = prot.Formal;
+prot['Simple']      = prot.Simple;
+prot['Web']         = prot.Web;
 
 prot = window['Asc']['c_oAscStyleType'] = window['Asc'].c_oAscStyleType = c_oAscStyleType;
 prot['Paragraph'] = c_oAscStyleType.Paragraph;
@@ -388,3 +426,15 @@ prot['HorizontalEllipsis']   = prot.HorizontalEllipsis;
 prot['Subscript']            = prot.Subscript;
 prot['IncreaseFontSize']     = prot.IncreaseFontSize;
 prot['DecreaseFontSize']     = prot.DecreaseFontSize;
+
+prot = window['Asc']['c_oAscDocumentRefenceToType'] = window['Asc'].c_oAscDocumentRefenceToType = c_oAscDocumentRefenceToType;
+prot['Text']               = prot.Text;
+prot['PageNum']            = prot.PageNum;
+prot['ParaNum']            = prot.ParaNum;
+prot['ParaNumNoContext']   = prot.ParaNumNoContext;
+prot['ParaNumFullContex']  = prot.ParaNumFullContex;
+prot['AboveBelow']         = prot.AboveBelow;
+prot['OnlyLabelAndNumber'] = prot.OnlyLabelAndNumber;
+prot['OnlyCaptionText']    = prot.OnlyCaptionText;
+prot['NoteNumber']         = prot.NoteNumber;
+prot['NoteNumberFormatted'] = prot.NoteNumberFormatted;

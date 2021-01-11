@@ -995,8 +995,10 @@ function (window, undefined)
 		if (!this.SelectEnabled)
 			return;
 
-		if (color !== undefined)
-			overlay.Clear();
+		if(!overlay)
+		{
+			return;
+		}
 
 		this.CheckSelectRects();
 		if (null == this.RectSelect1 || null == this.RectSelect2)

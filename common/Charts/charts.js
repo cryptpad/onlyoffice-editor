@@ -317,11 +317,6 @@ ChartPreviewManager.prototype.getChartByType = function(type)
 		chart_space.spPr.xfrm.setExtX(fChartSize);
 		chart_space.spPr.xfrm.setExtY(fChartSize);
 		settings.putTitle(Asc.c_oAscChartTitleShowSettings.noOverlay);
-		//settings.putHorAxisLabel(Asc.c_oAscChartTitleShowSettings.none);
-		//settings.putVertAxisLabel(Asc.c_oAscChartTitleShowSettings.none);
-		//settings.putLegendPos(Asc.c_oAscChartLegendShowSettings.none);
-		//settings.putHorGridLines(Asc.c_oAscGridLinesSettings.none);
-		//settings.putVertGridLines(Asc.c_oAscGridLinesSettings.none);
 
 
 		var val_ax_props = new AscCommon.asc_ValAxisSettings();
@@ -390,8 +385,8 @@ ChartPreviewManager.prototype.getChartByType = function(type)
 			}
 		}
 
-		settings.putVertAxisProps(vert_axis_settings);
-		settings.putHorAxisProps(hor_axis_settings);
+		settings.addVertAxesProps(vert_axis_settings);
+		settings.addHorAxesProps(hor_axis_settings);
 
 		AscFormat.DrawingObjectsController.prototype.applyPropsToChartSpace(settings, chart_space);
 		chart_space.setBDeleted(false);
@@ -777,10 +772,10 @@ TextArtPreviewManager.prototype.getShapeByPrst = function(prst)
 			break;
 		}
 	}
-	oContent.Set_ApplyToAll(true);
+	oContent.SetApplyToAll(true);
 	oContent.SetParagraphAlign(AscCommon.align_Center);
 	oContent.AddToParagraph(new ParaTextPr({FontSize: 36, Spacing: TextSpacing}));
-	oContent.Set_ApplyToAll(false);
+	oContent.SetApplyToAll(false);
 
 	var oBodypr = oShape.getBodyPr().createDuplicate();
 	oBodypr.prstTxWarp = AscFormat.ExecuteNoHistory(
@@ -883,11 +878,11 @@ TextArtPreviewManager.prototype.getTAShape = function()
 				oContent.MoveCursorToStartPos();
 			}
 			oContent.AddText("Ta");
-			oContent.Set_ApplyToAll(true);
+			oContent.SetApplyToAll(true);
 			oContent.AddToParagraph(new ParaTextPr({FontSize: 109, RFonts: {Ascii : {Name: "Arial", Index: -1}}}));
 			oContent.SetParagraphAlign(AscCommon.align_Center);
 			oContent.SetParagraphIndent({FirstLine: 0, Left: 0, Right: 0});
-			oContent.Set_ApplyToAll(false);
+			oContent.SetApplyToAll(false);
 		}
 		if (MainLogicDocument && true === TrackRevisions)
 			MainLogicDocument.SetTrackRevisions(true);
@@ -953,7 +948,7 @@ TextArtPreviewManager.prototype.generateTextArtStyles = function()
             editor.ShowParaMarks = false;
         }
         var oContent = oShape.getDocContent();
-        oContent.Set_ApplyToAll(true);
+        oContent.SetApplyToAll(true);
         for(var i = 0; i < this.aStylesByIndex.length; ++i)
         {
             oContent.AddToParagraph(new ParaTextPr(this.aStylesByIndex[i]));
@@ -971,7 +966,7 @@ TextArtPreviewManager.prototype.generateTextArtStyles = function()
             oShape.draw(graphics);
             this.TextArtStyles[i] = _canvas.toDataURL("image/png");
         }
-        oContent.Set_ApplyToAll(false);
+        oContent.SetApplyToAll(false);
 
         if(editor)
         {

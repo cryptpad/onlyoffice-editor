@@ -797,6 +797,12 @@
 			case c_oAscServerError.VKeyUserCountExceed :
 				nRes = Asc.c_oAscError.ID.UserCountExceed;
 				break;
+			case c_oAscServerError.Password :
+				nRes = Asc.c_oAscError.ID.Password;
+				break;
+			case c_oAscServerError.ChangeDocInfo :
+				nRes = Asc.c_oAscError.ID.AccessDeny;
+				break;
 			case c_oAscServerError.Storage :
 			case c_oAscServerError.StorageFileNoFound :
 			case c_oAscServerError.StorageRead :
@@ -1267,6 +1273,7 @@
 		NoError:           0,
 		Unknown:           -1,
 		ReadRequestStream: -3,
+		ChangeDocInfo:     -5,
 
 		TaskQueue: -20,
 
@@ -1307,7 +1314,9 @@
 		VKey:                -120,
 		VKeyEncrypt:         -121,
 		VKeyKeyExpire:       -122,
-		VKeyUserCountExceed: -123
+		VKeyUserCountExceed: -123,
+
+		Password: -180
 	};
 
 	//todo get from server config
@@ -1526,8 +1535,8 @@
 						}
 						else if (data["type"] === "onExternalPluginMessage")
 						{
-                            if (!window.g_asc_plugins)
-                            	return;
+							if (!window.g_asc_plugins)
+								return;
 
 							if (data["subType"] == "internalCommand")
 							{
@@ -1537,7 +1546,7 @@
 									case "onbeforedrop":
 									case "ondrop":
 									{
-                                        window.g_asc_plugins.api.privateDropEvent(data.data);
+										window.g_asc_plugins.api.privateDropEvent(data.data);
 										return;
 									}
 									default:
@@ -1546,6 +1555,13 @@
 							}
 
 							window.g_asc_plugins.sendToAllPlugins(event.data);
+						}
+						else if (data["type"] === "onExternalPluginMessageCallback")
+						{
+							if (!window.g_asc_plugins)
+								return;
+
+							window.parent && window.parent.postMessage(event.data, "*");
 						}
                         else if (data["type"] === "emulateUploadInFrame")
                         {
@@ -1570,7 +1586,7 @@
 		}
 		return res;
 	}
-	function _ShowFileDialog(accept, allowEncryption, fValidate, callback)
+	function _ShowFileDialog(accept, allowEncryption, allowMultiple, fValidate, callback)
 	{
 		if (AscCommon.AscBrowser.isNeedEmulateUpload && window["emulateUpload"])
 		{
@@ -1599,7 +1615,7 @@
 
 		if ("undefined" != typeof(FileReader))
 		{
-			var fileName = GetUploadInput(accept, function (e)
+			var fileName = GetUploadInput(accept, allowMultiple, function (e)
 			{
 				if (e && e.target && e.target.files)
 				{
@@ -1620,7 +1636,7 @@
 	}
 	function ShowImageFileDialog(documentId, documentUserId, jwt, callback, callbackOld)
 	{
-		if (false === _ShowFileDialog("image/*", true, ValidateUploadImage, callback)) {
+		if (false === _ShowFileDialog("image/*", true, true, ValidateUploadImage, callback)) {
 			//todo remove this compatibility
 			var frameWindow = GetUploadIFrame();
 			var url = sUploadServiceLocalUrlOld + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
@@ -1654,7 +1670,7 @@
 		}
 	}
 	function ShowDocumentFileDialog(callback) {
-		if (false === _ShowFileDialog(getAcceptByArray(c_oAscDocumentUploadProp.SupportedFormats), false, ValidateUploadDocument, callback)) {
+		if (false === _ShowFileDialog(getAcceptByArray(c_oAscDocumentUploadProp.SupportedFormats), false, false, ValidateUploadDocument, callback)) {
 			callback(Asc.c_oAscError.ID.Unknown);
 		}
 	}
@@ -1987,7 +2003,7 @@
 		return window.frames[sIFrameName];
 	}
 
-	function GetUploadInput(accept, onchange)
+	function GetUploadInput(accept, allowMultiple, onchange)
 	{
 		var inputName = 'apiiuFile';
 		var input = document.getElementById(inputName);
@@ -2002,6 +2018,9 @@
 		input.setAttribute('type', 'file');
 		input.setAttribute('accept', accept);
 		input.setAttribute('style', 'position:absolute;left:-2px;top:-2px;width:1px;height:1px;z-index:-1000;cursor:pointer;');
+		if (allowMultiple) {
+			input.setAttribute('multiple', true);
+		}
 		input.onchange = onchange;
 		document.body.appendChild(input);
 		return input;
@@ -2878,7 +2897,7 @@
 	 * @param {Asc.c_oAscChartTypeSettings} chartType
 	 * @returns {*}
 	 */
-	parserHelper.prototype.checkDataRange = function (model, wb, dialogType, dataRange, fullCheck, isRows, chartType)
+	parserHelper.prototype.checkDataRange = function (model, wb, dialogType, dataRange, fullCheck, isRows, subType)
 	{
 		var result, range, sheetModel, checkChangeRange;
 		if (Asc.c_oAscSelectionDialogType.Chart === dialogType)
@@ -2911,6 +2930,8 @@
 				{
 					range = AscCommonExcel.g_oRangeCache.getAscRange(result.range);
 				}
+			} else if (Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType) {
+				range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
 			}
 			if (!range) {
 				range = AscCommon.rx_defName.test(dataRange);
@@ -2930,12 +2951,28 @@
 				range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
 			}
 		}
+		else if (Asc.c_oAscSelectionDialogType.DataValidation === dialogType)
+		{
+			if (dataRange === null || dataRange === "") {
+				return Asc.c_oAscError.ID.DataValidateMustEnterValue;
+			} else if (typeof dataRange === "string") {
+				result = parserHelp.parse3DRef(dataRange);
+				if (result)
+				{
+					sheetModel = model.getWorksheetByName(result.sheet);
+					if (sheetModel)
+					{
+						range = AscCommonExcel.g_oRangeCache.getAscRange(result.range);
+					}
+				}
+			}
+		}
 		else
 		{
 			range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
 		}
 
-		if (!range)
+		if (!range && Asc.c_oAscSelectionDialogType.DataValidation !== dialogType)
 			return Asc.c_oAscError.ID.DataRangeError;
 
 		if (fullCheck)
@@ -2943,9 +2980,9 @@
 			if (Asc.c_oAscSelectionDialogType.Chart === dialogType)
 			{
 				// Проверка максимального дипазона
-				var maxSeries = 255;
+				var maxSeries = AscFormat.MAX_SERIES_COUNT;
 				var minStockVal = 4;
-				var maxValues = 4096;
+				var maxValues = AscFormat.MAX_POINTS_COUNT;
 
 				var intervalValues, intervalSeries;
 				if (isRows)
@@ -2959,7 +2996,7 @@
 					intervalValues = range.r2 - range.r1 + 1;
 				}
 
-				if (Asc.c_oAscChartTypeSettings.stock === chartType)
+				if (Asc.c_oAscChartTypeSettings.stock === subType)
 				{
 					var chartSettings = new Asc.asc_ChartSettings();
 					chartSettings.putType(Asc.c_oAscChartTypeSettings.stock);
@@ -2968,6 +3005,14 @@
 					var chartSeries = AscFormat.getChartSeries(sheetModel, chartSettings).series;
 					if (minStockVal !== chartSeries.length || !chartSeries[0].Val || !chartSeries[0].Val.NumCache || chartSeries[0].Val.NumCache.length < minStockVal)
 						return Asc.c_oAscError.ID.StockChartError;
+				}
+				else if(Asc.c_oAscChartTypeSettings.comboAreaBar === subType
+						|| Asc.c_oAscChartTypeSettings.comboBarLine === subType
+						|| Asc.c_oAscChartTypeSettings.comboBarLineSecondary === subType
+						|| Asc.c_oAscChartTypeSettings.comboCustom === subType) {
+					if(intervalSeries < 2) {
+						return Asc.c_oAscError.ID.ComboSeriesError;
+					}
 				}
 				else if (intervalSeries > maxSeries)
 					return Asc.c_oAscError.ID.MaxDataSeriesError;
@@ -3010,10 +3055,22 @@
 			{
 				var location = Asc.CT_pivotTableDefinition.prototype.parseDataRef(dataRange);
 				if (location) {
+					sheetModel = location.ws;
+					if (!sheetModel) {
+						sheetModel = model.getActiveWs();
+					}
 					var newRange = new Asc.Range(location.bbox.c1, location.bbox.r1, location.bbox.c1 + AscCommonExcel.NEW_PIVOT_LAST_COL_OFFSET, location.bbox.r1 + AscCommonExcel.NEW_PIVOT_LAST_ROW_OFFSET);
-					return location.ws.checkPivotReportLocationForError([newRange]);
+					return sheetModel.checkPivotReportLocationForError([newRange]);
 				} else {
-					return Asc.c_oAscError.ID.DataRangeError
+					return Asc.c_oAscError.ID.DataRangeError;
+				}
+			}
+			else if (Asc.c_oAscSelectionDialogType.DataValidation === dialogType)
+			{
+				var dataValidaionTest = AscCommonExcel.CDataValidation.prototype.isValidDataRef(model.getActiveWs(), dataRange, subType);
+				if (null !== dataValidaionTest)
+				{
+					return dataValidaionTest;
 				}
 			}
 		}
@@ -5326,6 +5383,591 @@
 	{
 		return this.mapTranslate.hasOwnProperty(key) ? this.mapTranslate[key] : key;
 	};
+
+
+	function CPolygonPoint2(X, Y)
+	{
+		this.X = X;
+		this.Y = Y;
+	}
+	function CPolygonVectors()
+	{
+		this.Page = -1;
+		this.VX = [];
+		this.VY = [];
+	}
+	function CPolygonPath(precision)
+	{
+		this.Page = -1;
+		this.Direction = 1;
+		this.precision = precision;
+		this.Points = [];
+	}
+	CPolygonPath.prototype.PushPoint = function (x, y)
+	{
+		this.Points.push(new CPolygonPoint2(x / this.precision, y / this.precision));
+	};
+	CPolygonPath.prototype.CorrectExtremePoints = function ()
+	{
+		var Lng = this.Points.length;
+
+		this.Points[0].X = this.Points[Lng - 1].X;
+		this.Points[Lng - 1].Y = this.Points[0].Y;
+	};
+
+	function CPolygon()
+	{
+		this.Vectors = [];
+		this.precision = 1000;
+	}
+	CPolygon.prototype.fill = function (arrBounds)
+	{
+		this.Vectors.length = 0;
+
+		if (arrBounds.length <= 0)
+			return;
+
+		var nStartLineIndex = 0, nStartIndex = 0,
+			CountLines = arrBounds.length,
+			CountBounds;
+
+		while (nStartLineIndex < arrBounds.length)
+		{
+			CountBounds = arrBounds[nStartLineIndex].length;
+
+			while (nStartIndex < CountBounds)
+			{
+				if (arrBounds[nStartLineIndex][nStartIndex].W < 0.001)
+					nStartIndex++;
+				else
+					break;
+			}
+
+			if (nStartIndex < CountBounds)
+				break;
+
+			nStartLineIndex++;
+			nStartIndex = 0;
+		}
+
+		if (nStartLineIndex >= arrBounds.length)
+			return;
+
+		var CurrentPage = arrBounds[nStartLineIndex][nStartIndex].Page,
+			CurrentVectors = new CPolygonVectors(),
+			VectorsX = CurrentVectors.VX,
+			VectorsY = CurrentVectors.VY;
+
+		CurrentVectors.Page = CurrentPage;
+		this.Vectors.push(CurrentVectors);
+
+		for (var LineIndex = nStartLineIndex; LineIndex < CountLines; nStartIndex = 0, LineIndex++)
+		{
+			if (arrBounds[LineIndex][nStartIndex].Page !== CurrentPage)
+			{
+				CurrentPage = arrBounds[LineIndex][nStartIndex].Page;
+
+				CurrentVectors = new CPolygonVectors();
+				VectorsX = CurrentVectors.VX;
+				VectorsY = CurrentVectors.VY;
+				CurrentVectors.Page = CurrentPage;
+				this.Vectors.push(CurrentVectors);
+
+			}
+
+			for (var Index = nStartIndex; Index < arrBounds[LineIndex].length; Index++)
+			{
+				var oBound = arrBounds[LineIndex][Index];
+
+				if (oBound.W < 0.001)
+					continue;
+
+				var x1 = Math.round(oBound.X * this.precision), x2 = Math.round((oBound.X + oBound.W) * this.precision),
+					y1 = Math.round(oBound.Y * this.precision), y2 = Math.round((oBound.Y + oBound.H) * this.precision);
+
+				if (VectorsX[y1] == undefined)
+				{
+					VectorsX[y1] = {};
+				}
+
+				this.IntersectionX(VectorsX, x2, x1, y1);
+
+				if (VectorsY[x1] == undefined)
+				{
+					VectorsY[x1] = {};
+				}
+
+				this.IntersectionY(VectorsY, y1, y2, x1);
+
+				if (VectorsX[y2] == undefined)
+				{
+					VectorsX[y2] = {};
+				}
+
+				this.IntersectionX(VectorsX, x1, x2, y2);
+
+				if (VectorsY[x2] == undefined)
+				{
+					VectorsY[x2] = {};
+				}
+
+				this.IntersectionY(VectorsY, y2, y1, x2);
+			}
+		}
+	};
+	CPolygon.prototype.IntersectionX = function (VectorsX, BeginX, EndX, Y)
+	{
+		var CurrentVector = {};
+		CurrentVector[BeginX] = EndX;
+		var VX = VectorsX[Y];
+
+		if (BeginX > EndX)
+		{
+			while (true == this.IntersectVectorX(CurrentVector, VX))
+			{
+			}
+		}
+		else
+		{
+			while (true == this.IntersectVectorX(VX, CurrentVector))
+			{
+			}
+		}
+
+		for (var X in CurrentVector)
+		{
+			var VBeginX = parseInt(X);
+			var VEndX = CurrentVector[VBeginX];
+
+			if (VBeginX !== VEndX || VX[VBeginX] === undefined) // добавляем точку, только если она не существует, а ненулевой вектор всегда
+			{
+				VX[VBeginX] = VEndX;
+			}
+		}
+	};
+	CPolygon.prototype.IntersectVectorX = function (VectorOpp, VectorClW) // vector opposite, vector clockwise
+	{
+		for (var X in VectorOpp)
+		{
+			var VBeginX = parseInt(X);
+			var VEndX = VectorOpp[VBeginX];
+
+			if (VEndX == VBeginX)
+				continue;
+
+			for (var ClwX in VectorClW)
+			{
+				var ClwBeginX = parseInt(ClwX);
+				var ClwEndX = VectorClW[ClwBeginX];
+				var bIntersection = false;
+
+				if (ClwBeginX == ClwEndX)
+					continue;
+
+				if (ClwBeginX <= VEndX && VBeginX <= ClwEndX) // inside vector ClW
+				{
+					VectorOpp[VBeginX] = VBeginX;
+
+					VectorClW[ClwBeginX] = VEndX;
+					VectorClW[VBeginX] = ClwEndX;
+
+					bIntersection = true;
+				}
+				else if (VEndX <= ClwBeginX && ClwEndX <= VBeginX) // inside vector Opposite clockwise
+				{
+					VectorClW[ClwBeginX] = ClwBeginX;
+
+					VectorOpp[VBeginX] = ClwEndX;
+					VectorOpp[ClwBeginX] = VEndX;
+
+					bIntersection = true;
+
+				}
+				else if (ClwBeginX < VEndX && VEndX < ClwEndX) // intersect vector ClW
+				{
+					VectorClW[ClwBeginX] = VEndX;
+					VectorOpp[VBeginX] = ClwEndX;
+
+					bIntersection = true;
+				}
+				else if (ClwBeginX < VBeginX && VBeginX < ClwEndX) // intersect vector ClW
+				{
+					VectorOpp[ClwBeginX] = VEndX;
+					VectorClW[VBeginX] = ClwEndX;
+
+					delete VectorOpp[VBeginX];
+					delete VectorClW[ClwBeginX];
+
+					bIntersection = true;
+				}
+
+				if (bIntersection == true)
+					return true;
+			}
+		}
+
+		return false;
+	};
+	CPolygon.prototype.IntersectionY = function (VectorsY, BeginY, EndY, X)
+	{
+		var bIntersect = false;
+
+		for (var y in VectorsY[X])
+		{
+			var CurBeginY = parseInt(y);
+			var CurEndY = VectorsY[X][CurBeginY];
+
+			var minY, maxY;
+
+			if (CurBeginY < CurEndY)
+			{
+				minY = CurBeginY;
+				maxY = CurEndY;
+			}
+			else
+			{
+				minY = CurEndY;
+				maxY = CurBeginY;
+			}
+
+			var bInterSection = !((maxY <= BeginY && maxY <= EndY) || (minY >= BeginY && minY >= EndY )), // нач или конечная точка нах-ся внутри данного отрезка
+				bDirection = (CurBeginY - CurEndY) * (BeginY - EndY) < 0; // векторы противоположно направленны
+
+			if (bInterSection && bDirection) // если направления векторов совпало, значит один Bounds нах-ся в другом, ничего не делаем, такого быть не должно
+			{
+
+				VectorsY[X][CurBeginY] = EndY;
+				VectorsY[X][BeginY] = CurEndY;
+				bIntersect = true;
+			}
+		}
+
+		if (bIntersect == false)
+		{
+			VectorsY[X][BeginY] = EndY;
+		}
+	};
+	CPolygon.prototype.GetPaths = function (shift)
+	{
+		var Paths = [];
+
+		shift *= this.precision;
+
+		for (var PageIndex = 0; PageIndex < this.Vectors.length; PageIndex++)
+		{
+			var y, x1, x2,
+				x, y1, y2;
+
+			var VectorsX = this.Vectors[PageIndex].VX,
+				VectorsY = this.Vectors[PageIndex].VY,
+				Page = this.Vectors[PageIndex].Page;
+
+
+			for (var LineIndex in VectorsX)
+			{
+				for (var Index in VectorsX[LineIndex])
+				{
+					var Polygon = new CPolygonPath(this.precision);
+					Polygon.Page = Page;
+
+					y = parseInt(LineIndex);
+					x1 = parseInt(Index);
+					x2 = VectorsX[y][x1];
+
+					VectorsX[y][x1] = -1;
+
+					var Direction = x1 > x2 ? 1 : -1;
+					var minY = y;
+					var SignRightLeft, SignDownUp;
+					var X, Y;
+
+					if (x2 !== -1)
+					{
+						SignRightLeft = x1 > x2 ? 1 : -1;
+						Y = y - SignRightLeft * shift;
+
+						Polygon.PushPoint(x1, Y);
+
+						while (true)
+						{
+							x = x2;
+							y1 = y;
+							y2 = VectorsY[x][y1];
+
+							if (y2 == -1)
+							{
+								break;
+							}
+							else if (y2 == undefined) // такой ситуации не должно произойти, если произошла, значит есть ошибка в алгоритме => не отрисовываем путь
+							{
+								return [];
+							}
+
+							VectorsY[x][y1] = -1;  // выставляем -1 => чтобы не добавить повторно путь с данными точками + проверка на возвращение в стартовую точку
+
+							SignDownUp = y1 > y2 ? 1 : -1;
+							X = x + SignDownUp * shift;
+
+							Polygon.PushPoint(X, Y);
+
+							y = y2;
+							x1 = x;
+							x2 = VectorsX[y][x1];
+
+							if (x2 == -1)
+							{
+								break;
+							}
+							else if (x2 == undefined) // такой ситуации не должно произойти, если произошла, значит есть ошибка в алгоритме => не отрисовываем путь
+							{
+								return [];
+							}
+
+							VectorsX[y][x1] = -1; // выставляем -1 => чтобы не добавить повторно путь с данными точками + проверка на возвращение в стартовую точку
+
+							SignRightLeft = x1 > x2 ? 1 : -1;
+							Y = y - SignRightLeft * shift;
+
+							Polygon.PushPoint(X, Y);
+
+							if (y < minY) // направление обхода
+							{
+								minY = y;
+								Direction = x1 > x2 ? 1 : -1;
+							}
+
+						}
+						Polygon.PushPoint(X, Y);
+						Polygon.CorrectExtremePoints();
+
+
+						Polygon.Direction = Direction;
+						Paths.push(Polygon);
+
+					}
+				}
+			}
+		}
+
+		return Paths;
+	};
+
+	function CMathTrack()
+	{
+		this.MathRect = {IsActive: false, Bounds: [], ContentSelection: null};
+		this.MathPolygons = [];
+		this.MathSelectPolygons = [];
+	}
+	CMathTrack.prototype.Update = function (IsActive, IsContentActive, oMath, PixelError)
+	{
+		this.MathRect.IsActive = IsActive;
+		if (true === IsActive && null !== oMath)
+		{
+			var selectBounds = true === IsContentActive ? oMath.Get_ContentSelection() : null;
+			if (selectBounds != null)
+			{
+				var SelectPolygon = new CPolygon();
+				SelectPolygon.fill(selectBounds);
+				this.MathSelectPolygons = SelectPolygon.GetPaths(0);
+			}
+			else
+			{
+				this.MathSelectPolygons.length = 0;
+			}
+			var arrBounds = oMath.Get_Bounds();
+			if (arrBounds.length <= 0)
+				return;
+			var MPolygon = new CPolygon();
+			MPolygon.fill(arrBounds);
+			this.MathPolygons = MPolygon.GetPaths(PixelError);
+		}
+	};
+	CMathTrack.prototype.Draw = function (overlay, oPath, shift, color, dKoefX, dKoefY, left, top)
+	{
+		var ctx = overlay.m_oContext;
+		ctx.strokeStyle = color;
+		ctx.lineWidth = 1;
+		ctx.beginPath();
+
+		var Points = oPath.Points;
+
+		var nCount = Points.length;
+		// берем предпоследнюю точку, т.к. последняя совпадает с первой
+		var PrevX = Points[nCount - 2].X, PrevY = Points[nCount - 2].Y;
+		var _x = left + dKoefX * Points[nCount - 2].X,
+			_y = top + dKoefY * Points[nCount - 2].Y;
+		var StartX, StartY;
+
+		for (var nIndex = 0; nIndex < nCount; nIndex++)
+		{
+			if (PrevX > Points[nIndex].X)
+			{
+				_y = top + dKoefY * Points[nIndex].Y - shift;
+			}
+			else if (PrevX < Points[nIndex].X)
+			{
+				_y = top + dKoefY * Points[nIndex].Y + shift;
+			}
+
+			if (PrevY < Points[nIndex].Y)
+			{
+				_x = left + dKoefX * Points[nIndex].X - shift;
+			}
+			else if (PrevY > Points[nIndex].Y)
+			{
+				_x = left + dKoefX * Points[nIndex].X + shift;
+			}
+
+			PrevX = Points[nIndex].X;
+			PrevY = Points[nIndex].Y;
+
+			if (nIndex > 0)
+			{
+				overlay.CheckPoint(_x, _y);
+
+				if (1 == nIndex)
+				{
+					StartX = _x;
+					StartY = _y;
+					overlay.m_oContext.moveTo((_x >> 0) + 0.5, (_y >> 0) + 0.5);
+				}
+				else
+				{
+					overlay.m_oContext.lineTo((_x >> 0) + 0.5, (_y >> 0) + 0.5);
+				}
+			}
+		}
+
+		overlay.m_oContext.lineTo((StartX >> 0) + 0.5, (StartY >> 0) + 0.5);
+
+		ctx.closePath();
+		ctx.stroke();
+		ctx.beginPath();
+	};
+
+	CMathTrack.prototype.DrawWithMatrix = function(overlay, oPath, ShiftX, ShiftY, color, dKoefX, dKoefY, left, top, m)
+	{
+		var ctx = overlay.m_oContext;
+		ctx.strokeStyle = color;
+		ctx.lineWidth = 1;
+		ctx.beginPath();
+
+		var Points = oPath.Points;
+
+		var nCount = Points.length;
+		// берем предпоследнюю точку, т.к. последняя совпадает с первой
+		var x = Points[nCount - 2].X, y = Points[nCount - 2].Y;
+		var _x, _y;
+
+		var PrevX = Points[nCount - 2].X, PrevY = Points[nCount - 2].Y;
+		var StartX, StartY;
+
+		for (var nIndex = 0; nIndex < nCount; nIndex++)
+		{
+			if (PrevX > Points[nIndex].X)
+			{
+				y = Points[nIndex].Y - ShiftY;
+			}
+			else if (PrevX < Points[nIndex].X)
+			{
+				y = Points[nIndex].Y + ShiftY;
+			}
+
+			if (PrevY < Points[nIndex].Y)
+			{
+				x = Points[nIndex].X - ShiftX;
+			}
+			else if (PrevY > Points[nIndex].Y)
+			{
+				x = Points[nIndex].X + ShiftX;
+			}
+
+			PrevX = Points[nIndex].X;
+			PrevY = Points[nIndex].Y;
+
+			if (nIndex > 0)
+			{
+				_x = (left + dKoefX * m.TransformPointX(x, y));
+				_y = (top + dKoefY * m.TransformPointY(x, y));
+
+				overlay.CheckPoint(_x, _y);
+
+				if (1 == nIndex)
+				{
+					StartX = _x;
+					StartY = _y;
+					overlay.m_oContext.moveTo((_x >> 0) + 0.5, (_y >> 0) + 0.5);
+				}
+				else
+				{
+					overlay.m_oContext.lineTo((_x >> 0) + 0.5, (_y >> 0) + 0.5);
+				}
+			}
+
+		}
+
+		overlay.m_oContext.lineTo((StartX >> 0) + 0.5, (StartY >> 0) + 0.5);
+
+		ctx.closePath();
+		ctx.stroke();
+		ctx.beginPath();
+	};
+
+	CMathTrack.prototype.DrawSelectPolygon = function(overlay, oPath, dKoefX, dKoefY, left, top, m)
+	{
+		var ctx = overlay.m_oContext;
+		ctx.fillStyle = "#375082";
+		ctx.beginPath();
+		var Points = oPath.Points;
+		var nPointIndex;
+		var _x, _y, x, y, p;
+		for (nPointIndex = 0; nPointIndex < Points.length - 1; nPointIndex++)
+		{
+			p = Points[nPointIndex];
+			if(!m)
+			{
+				_x = left + dKoefX * p.X;
+				_y = top + dKoefY * p.Y;
+			}
+			else
+			{
+				x = p.X;
+				y = p.Y;
+				_x = left + dKoefX * m.TransformPointX(x, y);
+				_y = top + dKoefY * m.TransformPointY(x, y);
+			}
+			overlay.CheckPoint(_x, _y);
+			if (0 == nPointIndex)
+				ctx.moveTo((_x >> 0) + 0.5, (_y >> 0) + 0.5);
+			else
+				ctx.lineTo((_x >> 0) + 0.5, (_y >> 0) + 0.5);
+		}
+		ctx.globalAlpha = 0.2;
+		ctx.fill();
+		ctx.globalAlpha = 1;
+	};
+
+	CMathTrack.prototype.IsActive = function()
+	{
+		return this.MathRect.IsActive;
+	};
+	CMathTrack.prototype.GetPolygonsCount = function()
+	{
+		return this.MathPolygons.length;
+	};
+	CMathTrack.prototype.GetPolygon = function(nIndex)
+	{
+		return this.MathPolygons[nIndex];
+	};
+	CMathTrack.prototype.GetSelectPathsCount = function()
+	{
+		return this.MathSelectPolygons.length;
+	};
+	CMathTrack.prototype.GetSelectPath = function(nIndex)
+	{
+		return this.MathSelectPolygons[nIndex];
+	};
+
 	//------------------------------------------------------------fill polyfill--------------------------------------------
 	if (!Array.prototype.findIndex) {
 		Object.defineProperty(Array.prototype, 'findIndex', {
@@ -5521,6 +6163,17 @@
 		return null;
 	}
 
+	function arrayMove(array, from, to) {
+		array.splice(to, 0, array.splice(from, 1)[0]);
+	}
+	function getRangeArray(start, stop) {
+		var res = new Array(stop - start);
+		for (var i = start; i < stop; ++i) {
+			res[i - start] = i;
+		}
+		return res;
+	}
+
 	var g_oBackoffDefaults = {
 		retries: 2,
 		factor: 2,
@@ -5667,6 +6320,8 @@
 	window["AscCommon"].checkAddColorScheme = checkAddColorScheme;
 	window["AscCommon"].getIndexColorSchemeInArray = getIndexColorSchemeInArray;
 	window["AscCommon"].isEastAsianScript = isEastAsianScript;
+	window["AscCommon"].CMathTrack = CMathTrack;
+	window["AscCommon"].CPolygon = CPolygon;
 
 	window["AscCommon"].JSZipWrapper = JSZipWrapper;
 	window["AscCommon"].g_oDocumentUrls = g_oDocumentUrls;
@@ -5705,6 +6360,8 @@
 
 	window["AscCommon"].valueToMm = valueToMm;
 	window["AscCommon"].valueToMmType = valueToMmType;
+	window["AscCommon"].arrayMove = arrayMove;
+	window["AscCommon"].getRangeArray = getRangeArray;
 
 	window["AscCommon"].CUnicodeStringEmulator = CUnicodeStringEmulator;
 

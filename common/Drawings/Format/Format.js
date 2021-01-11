@@ -432,12 +432,20 @@ function checkRasterImageId(rasterImageId) {
 
 
 var g_oThemeFontsName = {};
-g_oThemeFontsName["+mj-cs"] = true;
-g_oThemeFontsName["+mj-ea"] = true;
-g_oThemeFontsName["+mj-lt"] = true;
-g_oThemeFontsName["+mn-cs"] = true;
-g_oThemeFontsName["+mn-ea"] = true;
-g_oThemeFontsName["+mn-lt"] = true;
+g_oThemeFontsName["+mj-cs"]        = true;
+g_oThemeFontsName["+mj-ea"]        = true;
+g_oThemeFontsName["+mj-lt"]        = true;
+g_oThemeFontsName["+mn-cs"]        = true;
+g_oThemeFontsName["+mn-ea"]        = true;
+g_oThemeFontsName["+mn-lt"]        = true;
+g_oThemeFontsName["majorAscii"]    = true;
+g_oThemeFontsName["majorBidi"]     = true;
+g_oThemeFontsName["majorEastAsia"] = true;
+g_oThemeFontsName["majorHAnsi"]    = true;
+g_oThemeFontsName["minorAscii"]    = true;
+g_oThemeFontsName["minorBidi"]     = true;
+g_oThemeFontsName["minorEastAsia"] = true;
+g_oThemeFontsName["minorHAnsi"]    = true;
 
 function isRealNumber(n)
 {
@@ -4492,8 +4500,26 @@ CPattFill.prototype =
         {
             _ret.ftype = this.ftype;
         }
-        _ret.fgClr = this.fgClr.compare(fill.fgClr);
-        _ret.bgClr = this.bgClr.compare(fill.bgClr);
+        if(this.fgClr)
+        {
+            _ret.fgClr = this.fgClr.compare(fill.fgClr);
+        }
+        else
+        {
+            _ret.fgClr = null;
+        }
+        if(this.bgClr)
+        {
+            _ret.bgClr = this.bgClr.compare(fill.bgClr);
+        }
+        else
+        {
+            _ret.bgClr = null;
+        }
+        if(!_ret.bgClr && !_ret.fgClr)
+        {
+            return null;
+        }
         return _ret;
     }
 };
@@ -5142,6 +5168,10 @@ CUniFill.prototype =
     isAccent1: function() {
         return (this.fill && this.fill.color && this.fill.color.color
         && this.fill.color.color.type === window['Asc'].c_oAscColor.COLOR_TYPE_SCHEME &&  this.fill.color.color.id === 0)
+    },
+    isSolidFillRGB: function() {
+        return (this.fill && this.fill.color && this.fill.color.color
+        && this.fill.color.color.type === window['Asc'].c_oAscColor.COLOR_TYPE_SRGB)
     }
 };
 
@@ -8147,18 +8177,26 @@ FontCollection.prototype =
 
 function FontScheme()
 {
-    this.name = "";
+	this.name = "";
 
-    this.majorFont = new FontCollection(this);
-    this.minorFont = new FontCollection(this);
-    this.fontMap = {
-        "+mj-lt": undefined,
-        "+mj-ea": undefined,
-        "+mj-cs": undefined,
-        "+mn-lt": undefined,
-        "+mn-ea": undefined,
-        "+mn-cs": undefined
-    };
+	this.majorFont = new FontCollection(this);
+	this.minorFont = new FontCollection(this);
+	this.fontMap   = {
+		"+mj-lt"        : undefined,
+		"+mj-ea"        : undefined,
+		"+mj-cs"        : undefined,
+		"+mn-lt"        : undefined,
+		"+mn-ea"        : undefined,
+		"+mn-cs"        : undefined,
+		"majorAscii"    : undefined,
+		"majorBidi"     : undefined,
+		"majorEastAsia" : undefined,
+		"majorHAnsi"    : undefined,
+		"minorAscii"    : undefined,
+		"minorBidi"     : undefined,
+		"minorEastAsia" : undefined,
+		"minorHAnsi"    : undefined
+	};
 }
 
 var FONT_REGION_LT = 0x00;
@@ -8204,16 +8242,20 @@ FontScheme.prototype =
                 case FONT_REGION_LT:
                 {
                     this.fontMap["+mj-lt"] = font;
+					this.fontMap["majorAscii"] = font;
+					this.fontMap["majorHAnsi"] = font;
                     break;
                 }
                 case FONT_REGION_EA:
                 {
                     this.fontMap["+mj-ea"] = font;
+					this.fontMap["majorEastAsia"] = font;
                     break;
                 }
                 case FONT_REGION_CS:
                 {
                     this.fontMap["+mj-cs"] = font;
+					this.fontMap["majorBidi"] = font;
                     break;
                 }
             }
@@ -8225,16 +8267,20 @@ FontScheme.prototype =
                 case FONT_REGION_LT:
                 {
                     this.fontMap["+mn-lt"] = font;
+					this.fontMap["minorAscii"] = font;
+					this.fontMap["minorHAnsi"] = font;
                     break;
                 }
                 case FONT_REGION_EA:
                 {
                     this.fontMap["+mn-ea"] = font;
+					this.fontMap["minorEastAsia"] = font;
                     break;
                 }
                 case FONT_REGION_CS:
                 {
                     this.fontMap["+mn-cs"] = font;
+					this.fontMap["minorBidi"] = font;
                     break;
                 }
             }
@@ -10592,6 +10638,48 @@ function CompareBullets(bullet1, bullet2)
         }
         return undefined;
     };
+    CBullet.prototype.isEqual = function(oBullet) {
+        if(!oBullet) {
+            return false;
+        }
+        if(!this.bulletColor && oBullet.bulletColor
+            || !oBullet.bulletColor && this.bulletColor) {
+            return false;
+        }
+        if(this.bulletColor && oBullet.bulletColor) {
+            if(!this.bulletColor.IsIdentical(oBullet.bulletColor)) {
+                return false;
+            }
+        }
+        if(!this.bulletSize && oBullet.bulletSize
+        || this.bulletSize && !oBullet.bulletSize) {
+            return false;
+        }
+        if(this.bulletSize && oBullet.bulletSize) {
+            if(!this.bulletSize.IsIdentical(oBullet.bulletSize)) {
+                return false;
+            }
+        }
+        if(!this.bulletTypeface && oBullet.bulletTypeface
+            || this.bulletTypeface && !oBullet.bulletTypeface) {
+            return false;
+        }
+        if(this.bulletTypeface && oBullet.bulletTypeface) {
+            if(!this.bulletTypeface.IsIdentical(oBullet.bulletTypeface)) {
+                return false;
+            }
+        }
+        if(!this.bulletType && oBullet.bulletType
+            || this.bulletType && !oBullet.bulletType) {
+            return false;
+        }
+        if(this.bulletType && oBullet.bulletType) {
+            if(!this.bulletType.IsIdentical(oBullet.bulletType)) {
+                return false;
+            }
+        }
+        return true;
+    };
     //interface methods
     var prot = CBullet.prototype;
     prot.asc_getSize = function () {
@@ -10690,7 +10778,7 @@ function CompareBullets(bullet1, bullet2)
             return this.bulletType.Char;
         }
         return undefined;
-    }
+    };
     prot["get_Symbol"] = prot["asc_getSymbol"] = prot.asc_getSymbol;
     prot.asc_putSymbol = function(v) {
         if(!this.bulletType) {
@@ -10825,6 +10913,15 @@ CBulletSize.prototype =
         return d;
     },
 
+    IsIdentical: function(oBulletSize)
+    {
+        if(!oBulletSize)
+        {
+            return false;
+        }
+        return this.type === oBulletSize.type && this.val === oBulletSize.val;
+    },
+
     Write_ToBinary: function(w)
     {
         w.WriteBool(isRealNumber(this.type));
@@ -10886,6 +10983,15 @@ CBulletTypeface.prototype =
         this.typeface = oBulletTypeface.typeface;
     },
 
+    IsIdentical: function(oBulletTypeface)
+    {
+        if(!oBulletTypeface)
+        {
+            return false;
+        }
+        return this.type === oBulletTypeface.type && this.typeface === oBulletTypeface.typeface;
+    },
+
     Write_ToBinary: function(w)
     {
         w.WriteBool(isRealNumber(this.type));
@@ -10933,6 +11039,18 @@ CBulletType.prototype =
     Set_FromObject: function(o)
     {
         this.merge(o);
+    },
+
+    IsIdentical: function(oBulletType)
+    {
+        if(!oBulletType)
+        {
+            return false;
+        }
+        return this.type === oBulletType.type
+            && this.Char === oBulletType.Char
+            && this.AutoNumType === oBulletType.AutoNumType
+            && this.startAt === oBulletType.startAt;
     },
 
     merge: function(oBulletType)
@@ -12486,9 +12604,9 @@ function CorrectUniColor(asc_color, unicolor, flag)
             oTitle.setTx(new AscFormat.CChartText());
             var oTextBody = AscFormat.CreateTextBodyFromString(sTitle, oDrawingDocument, oTitle.tx);
             if(AscFormat.isRealNumber(nFontSize)){
-                oTextBody.content.Set_ApplyToAll(true);
+                oTextBody.content.SetApplyToAll(true);
                 oTextBody.content.AddToParagraph(new ParaTextPr({ FontSize : nFontSize, Bold: bIsBold}));
-                oTextBody.content.Set_ApplyToAll(false);
+                oTextBody.content.SetApplyToAll(false);
             }
             oTitle.tx.setRich(oTextBody);
             return oTitle;
@@ -12505,9 +12623,9 @@ function CorrectUniColor(asc_color, unicolor, flag)
             oTitle.setTx(new AscFormat.CChartText());
             var oTextBody = AscFormat.CreateTextBodyFromString(sTitle, oChartSpace.getDrawingDocument(), oTitle.tx);
             if(AscFormat.isRealNumber(nFontSize)){
-                oTextBody.content.Set_ApplyToAll(true);
+                oTextBody.content.SetApplyToAll(true);
                 oTextBody.content.AddToParagraph(new ParaTextPr({ FontSize : nFontSize, Bold: bIsBold}));
-                oTextBody.content.Set_ApplyToAll(false);
+                oTextBody.content.SetApplyToAll(false);
             }
             oTitle.tx.setRich(oTextBody);
             return oTitle;

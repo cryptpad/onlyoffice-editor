@@ -748,6 +748,7 @@
 	CellEditor.prototype.cleanSelectRange = function () {
 		this._cleanLastRangeInfo();
 		this.handlers.trigger("cleanSelectRange");
+		this.handlers.trigger("onSelectionEnd");
 	};
 
 	// Private
@@ -1395,7 +1396,9 @@
 				}
 			}
 		}
-
+		if (!this.isSelectMode) {
+			this.handlers.trigger("onSelectionEnd");
+		}
 		return selection;
 	};
 
@@ -1468,6 +1471,9 @@
 			}
 			if (curTop < 0) {
 				--this.topLineIndex;
+				if (this.textRender.lines && this.textRender.lines.length && this.topLineIndex > this.textRender.lines.length) {
+					this.topLineIndex = this.textRender.lines.length - 1;
+				}
 				dy = asc_round(this.textRender.getLineInfo(this.topLineIndex).th * zoom);
 				y += dy;
 				curTop += asc_round(dy * this.ky);

@@ -80,7 +80,8 @@ var c_oSerTableTypes = {
 	VbaProject: 13,
 	App: 15,
 	Core: 16,
-	DocumentComments: 17
+	DocumentComments: 17,
+	CustomProperties: 18
 };
 var c_oSerSigTypes = {
     Version:0
@@ -275,7 +276,8 @@ var c_oSerProp_pPrType = {
 	Spacing_BeforeTwips: 40,
 	Spacing_AfterTwips: 41,
 	Tab_Item_PosTwips: 42,
-	Tab_Item_Val: 43
+	Tab_Item_Val: 43,
+	SuppressLineNumbers: 44
 };
 var c_oSerProp_rPrType = {
     Bold:0,
@@ -372,7 +374,8 @@ var c_oSerProp_secPrType = {
 	pgBorders: 9,
 	footnotePr: 10,
 	endnotePr: 11,
-	rtlGutter: 12
+	rtlGutter: 12,
+	lnNumType: 13
 };
 var c_oSerProp_secPrSettingsType = {
     titlePg: 0,
@@ -381,6 +384,12 @@ var c_oSerProp_secPrSettingsType = {
 };
 var c_oSerProp_secPrPageNumType = {
 	start: 0
+};
+var c_oSerProp_secPrLineNumType = {
+	CountBy: 0,
+	Distance: 1,
+	Restart: 2,
+	Start: 3
 };
 var c_oSerProp_Columns = {
 	EqualWidth: 0,
@@ -639,7 +648,10 @@ var c_oSer_CommentsType = {
 	Replies: 9,
 	OOData: 10,
 	DurableId: 11,
-	ProviderId: 12
+	ProviderId: 12,
+	CommentContent: 13,
+	DateUtc: 14,
+	UserData: 15
 };
 
 var c_oSer_StyleType = {
@@ -988,7 +1000,19 @@ var c_oSerSdt = {
 	CheckboxCheckedFont: 40,
 	CheckboxCheckedVal: 41,
 	CheckboxUncheckedFont: 42,
-	CheckboxUncheckedVal: 43
+	CheckboxUncheckedVal: 43,
+	FormPr: 44,
+	FormPrKey: 45,
+	FormPrLabel: 46,
+	FormPrHelpText: 47,
+	FormPrRequired: 48,
+	CheckboxGroupKey: 59,
+	TextFormPr: 50,
+	TextFormPrComb: 51,
+	TextFormPrCombWidth: 52,
+	TextFormPrCombSym: 53,
+	TextFormPrCombFont: 54,
+	TextFormPrMaxCharacters: 55
 };
 var c_oSerFFData = {
 	CalcOnExit: 0,
@@ -1187,16 +1211,6 @@ var ESdtType = {
 	sdttypeCheckBox: 12
 };
 
-	function getCommentAdditionalData (comment) {
-		var AdditionalData = "";
-		if(null != comment.m_sOOTime && "" != comment.m_sOOTime)
-		{
-			AdditionalData += "teamlab_data:";
-			var dateStr = new Date(comment.m_sOOTime - 0).toISOString().slice(0, 19) + 'Z';
-			AdditionalData += "0;" + dateStr.length + ";" + dateStr + ";";
-		}
-		return AdditionalData;
-	};
 	function ReadNextInteger(_parsed)
 	{
 		var _len = _parsed.data.length;
@@ -1714,6 +1728,16 @@ function BinaryFileWriter(doc, bMailMergeDocx, bMailMergeHtml, isCompatible)
 				pptx_content_writer.BinaryFileWriter.ImportFromMemory(old);
 			}});
 		}
+		if (this.Document.CustomProperties) {
+			this.WriteTable(c_oSerTableTypes.CustomProperties, {Write: function(){
+				var old = new AscCommon.CMemory(true);
+				pptx_content_writer.BinaryFileWriter.ExportToMemory(old);
+				pptx_content_writer.BinaryFileWriter.ImportFromMemory(t.memory);
+				t.Document.CustomProperties.toStream(pptx_content_writer.BinaryFileWriter);
+				pptx_content_writer.BinaryFileWriter.ExportToMemory(t.memory);
+				pptx_content_writer.BinaryFileWriter.ImportFromMemory(old);
+			}});
+		}
 		//Write Settings
 		this.WriteTable(c_oSerTableTypes.Settings, new BinarySettingsTableWriter(this.memory, this.Document, this.saveParams));
 		
@@ -2220,6 +2244,12 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 			this.memory.WriteByte(c_oSerPropLenType.Long);
 			this.memory.WriteLong(pPr.OutlineLvl);
 		}
+		if(null != pPr.SuppressLineNumbers)
+		{
+			this.memory.WriteByte(c_oSerProp_pPrType.SuppressLineNumbers);
+			this.memory.WriteByte(c_oSerPropLenType.Byte);
+			this.memory.WriteBool(pPr.SuppressLineNumbers);
+		}
     };
     this.WriteInd = function(Ind)
     {
@@ -2449,6 +2479,8 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 		var PageNumType = sectPr.Get_PageNum_Start();
 		if(-1 != PageNumType)
 			this.bs.WriteItem(c_oSerProp_secPrType.pageNumType, function(){oThis.WritePageNumType(PageNumType);});
+		if(undefined !== sectPr.LnNumType)
+			this.bs.WriteItem(c_oSerProp_secPrType.lnNumType, function(){oThis.WriteLineNumType(sectPr.LnNumType);});
 		if(null != sectPr.Columns)
 			this.bs.WriteItem(c_oSerProp_secPrType.cols, function(){oThis.WriteColumns(sectPr.Columns);});
 		if(null != sectPr.Borders && !sectPr.Borders.IsEmptyBorders())
@@ -2630,6 +2662,22 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 		var oThis = this;
 		this.bs.WriteItem(c_oSerProp_secPrPageNumType.start, function(){oThis.memory.WriteLong(PageNumType);});
 	}
+	this.WriteLineNumType = function(lineNum)
+	{
+		var oThis = this;
+		if(undefined != lineNum.CountBy){
+			this.bs.WriteItem(c_oSerProp_secPrLineNumType.CountBy, function(){oThis.memory.WriteLong(lineNum.CountBy);});
+		}
+		if(undefined != lineNum.Distance){
+			this.bs.WriteItem(c_oSerProp_secPrLineNumType.Distance, function(){oThis.memory.WriteLong(lineNum.Distance);});
+		}
+		if(undefined != lineNum.Restart){
+			this.bs.WriteItem(c_oSerProp_secPrLineNumType.Restart, function(){oThis.memory.WriteByte(lineNum.Restart);});
+		}
+		if(undefined != lineNum.Start){
+			this.bs.WriteItem(c_oSerProp_secPrLineNumType.Start, function(){oThis.memory.WriteLong(lineNum.Start);});
+		}
+	};
     this.WriteColumns = function(cols)
     {
         var oThis = this;
@@ -6216,6 +6264,14 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 			type = ESdtType.sdttypeCheckBox;
 			oThis.bs.WriteItem(c_oSerSdt.Checkbox, function (){oThis.WriteSdtCheckBox(val.CheckBox);});
 		}
+		var formPr = oSdt.GetFormPr();
+		if (formPr) {
+			oThis.bs.WriteItem(c_oSerSdt.FormPr, function (){oThis.WriteSdtFormPr(formPr);});
+		}
+		var textFormPr = oSdt.GetTextFormPr && oSdt.GetTextFormPr();
+		if (textFormPr) {
+			oThis.bs.WriteItem(c_oSerSdt.TextFormPr, function (){oThis.WriteSdtTextFormPr(textFormPr);});
+		}
 		if (undefined !== type) {
 			oThis.bs.WriteItem(c_oSerSdt.Type, function (){oThis.memory.WriteByte(type);});
 		}
@@ -6237,6 +6293,9 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		}
 		if (null != val.UncheckedSymbol) {
 			oThis.bs.WriteItem(c_oSerSdt.CheckboxUncheckedVal, function (){oThis.memory.WriteLong(val.UncheckedSymbol);});
+		}
+		if (null != val.GroupKey) {
+			oThis.bs.WriteItem(c_oSerSdt.CheckboxGroupKey, function (){oThis.memory.WriteString3(val.GroupKey);});
 		}
 	};
 	this.WriteSdtComboBox = function (val)
@@ -6316,6 +6375,45 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		}
 		if (null != val.Unique) {
 			oThis.bs.WriteItem(c_oSerSdt.DocPartUnique, function (){oThis.memory.WriteBool(val.Unique);});
+		}
+	};
+	this.WriteSdtFormPr = function (val)
+	{
+		var oThis = this;
+		if (null != val.Key) {
+			oThis.bs.WriteItem(c_oSerSdt.FormPrKey, function (){oThis.memory.WriteString3(val.Key);});
+		}
+		if (null != val.Label) {
+			oThis.bs.WriteItem(c_oSerSdt.FormPrLabel, function (){oThis.memory.WriteString3(val.Label);});
+		}
+		if (null != val.HelpText) {
+			oThis.bs.WriteItem(c_oSerSdt.FormPrHelpText, function (){oThis.memory.WriteString3(val.HelpText);});
+		}
+		if (null != val.Required) {
+			oThis.bs.WriteItem(c_oSerSdt.FormPrRequired, function (){oThis.memory.WriteBool(val.Required);});
+		}
+	};
+	this.WriteSdtTextFormPr = function (val)
+	{
+		var oThis = this;
+		if (true === val.Comb) {
+			oThis.bs.WriteItem(c_oSerSdt.TextFormPrComb, function (){oThis.WriteSdtTextFormPrComb(val);});
+		}
+		if (null != val.MaxCharacters) {
+			oThis.bs.WriteItem(c_oSerSdt.TextFormPrMaxCharacters, function (){oThis.memory.WriteLong(val.MaxCharacters);});
+		}
+	};
+	this.WriteSdtTextFormPrComb = function (val)
+	{
+		var oThis = this;
+		if (null != val.Width) {
+			oThis.bs.WriteItem(c_oSerSdt.TextFormPrCombWidth, function (){oThis.memory.WriteLong(val.Width);});
+		}
+		if (null != val.CombPlaceholderSymbol) {
+			oThis.bs.WriteItem(c_oSerSdt.TextFormPrCombSym, function (){oThis.memory.WriteString3(val.CombPlaceholderSymbol);});
+		}
+		if (null != val.CombPlaceholderFont) {
+			oThis.bs.WriteItem(c_oSerSdt.TextFormPrCombFont, function (){oThis.memory.WriteString3(val.CombPlaceholderFont);});
 		}
 	};
 };
@@ -6416,11 +6514,15 @@ function BinaryCommentsTableWriter(memory, doc, oMapCommentId, commentUniqueGuid
 		{
 			this.bs.WriteItem(c_oSer_CommentsType.Replies, function(){oThis.WriteReplies(comment.m_aReplies);});
 		}
-		var dataStr = getCommentAdditionalData(comment);
-		if (dataStr)
+		if (null != comment.m_sOOTime)
 		{
-			this.memory.WriteByte(c_oSer_CommentsType.OOData);
-			this.memory.WriteString2(dataStr);
+			this.memory.WriteByte(c_oSer_CommentsType.DateUtc);
+			this.memory.WriteString2(new Date(comment.m_sOOTime - 0).toISOString().slice(0, 19) + 'Z');
+		}
+		if (comment.m_sUserData)
+		{
+			this.memory.WriteByte(c_oSer_CommentsType.UserData);
+			this.memory.WriteString2(comment.m_sUserData);
 		}
     };
 	this.WriteReplies = function(aComments)
@@ -7024,7 +7126,7 @@ function BinaryFileReader(doc, openParams)
 			res = this.stream.Seek(nDocumentCommentTableSeek);
 			if(c_oSerConstants.ReadOk != res)
 				return res;
-			res = (new Binary_CommentsTableReader(this.Document, this.oReadResult, this.stream, this.oReadResult.oComments)).Read();
+			res = (new Binary_CommentsTableReader(this.Document, this.oReadResult, this.stream, this.oReadResult.oDocumentComments)).Read();
 			if(c_oSerConstants.ReadOk != res)
 				return res;
 		}
@@ -7115,6 +7217,13 @@ function BinaryFileReader(doc, openParams)
 					fileStream = this.stream.ToFileStream();
 					this.Document.Core = new AscCommon.CCore();
 					this.Document.Core.fromStream(fileStream);
+					this.stream.FromFileStream(fileStream);
+					break;
+				case c_oSerTableTypes.CustomProperties:
+					this.stream.Seek2(mtiOffBits);
+					fileStream = this.stream.ToFileStream();
+					this.Document.CustomProperties = new AscCommon.CCustomProperties();
+					this.Document.CustomProperties.fromStream(fileStream);
 					this.stream.FromFileStream(fileStream);
 					break;
             }
@@ -7252,6 +7361,11 @@ function BinaryFileReader(doc, openParams)
 		var oNewId = oIdRenameMap[sTOCHeading];
 		if(null != oNewId)
 			stDefault.TOCHeading = oNewId.id;
+
+		var sTOF = stDefault.TOF;
+		var oNewId = oIdRenameMap[sTOF];
+		if(null != oNewId)
+			stDefault.TOF = oNewId.id;
 
 		var localHyperlink = AscCommon.translateManager.getValue("Hyperlink").toLowerCase().replace(/\s/g,"");
 		//меняем старые id
@@ -7533,6 +7647,8 @@ function BinaryFileReader(doc, openParams)
 				oCommentObj.m_sTime = comment.Date;
 			if(null != comment.OODate)
 				oCommentObj.m_sOOTime = comment.OODate;
+			if(null != comment.UserData)
+				oCommentObj.m_sUserData = comment.UserData;
 			if(null != comment.Text)
 				oCommentObj.m_sText = comment.Text;
 			if(null != comment.Solved)
@@ -7554,6 +7670,13 @@ function BinaryFileReader(doc, openParams)
 			this.Document.Comments.Add(oNewComment);
 			oCommentsNewId[oOldComment.Id] = oNewComment;
 		}
+		for(var i in this.oReadResult.oDocumentComments)
+		{
+			var oOldComment = this.oReadResult.oDocumentComments[i];
+			var oNewComment = new AscCommon.CComment(this.Document.Comments, fInitCommentData(oOldComment));
+			this.Document.Comments.Add(oNewComment);
+		}
+
 		for(var commentIndex in this.oReadResult.oCommentsPlaces)
 		{
 			var item = this.oReadResult.oCommentsPlaces[commentIndex];
@@ -7597,9 +7720,10 @@ function BinaryFileReader(doc, openParams)
 			}
 		}
 		//посылаем событие о добавлении комментариев
-		for(var i in oCommentsNewId)
+		var allComments = this.Document.Comments.GetAllComments();
+		for(var i in allComments)
 		{
-			var oNewComment = oCommentsNewId[i];
+			var oNewComment = allComments[i];
 			this.Document.DrawingDocument.m_oWordControl.m_oApi.sync_AddComment( oNewComment.Id, oNewComment.Data );
 		}
 		//remove bookmarks without end
@@ -8436,6 +8560,9 @@ function Binary_pPrReader(doc, oReadResult, stream)
 			case c_oSerProp_pPrType.outlineLvl:
 				pPr.OutlineLvl = this.stream.GetLongLE();
 				break;
+			case c_oSerProp_pPrType.SuppressLineNumbers:
+				pPr.SuppressLineNumbers = this.stream.GetBool();
+				break;
             default:
                 res = c_oSerConstants.ReadUnknown;
                 break;
@@ -8769,6 +8896,14 @@ function Binary_pPrReader(doc, oReadResult, stream)
                 return oThis.Read_pageNumType(t, l, oSectPr);
             });
         }
+		else if( c_oSerProp_secPrType.lnNumType === type )
+		{
+			var lineNum = {nCountBy: undefined, nDistance: undefined, nStart: undefined, nRestartType: undefined};
+			res = this.bcr.Read1(length, function(t, l) {
+				return oThis.Read_lineNumType(t, l, lineNum);
+			});
+			oSectPr.SetLineNumbers(lineNum.nCountBy, lineNum.nDistance, lineNum.nStart, lineNum.nRestartType);
+		}
         else if( c_oSerProp_secPrType.sectPrChange === type )
             res = c_oSerConstants.ReadUnknown;//todo
         else if( c_oSerProp_secPrType.cols === type ) {
@@ -8847,24 +8982,29 @@ function Binary_pPrReader(doc, oReadResult, stream)
 	this.ReadNumFmt = function(type, length, props) {
 		var res = c_oSerConstants.ReadOk;
 		if (c_oSerNumTypes.NumFmtVal === type) {
+			var nFormat = Asc.c_oAscNumberingFormat.Decimal;
 			switch (this.stream.GetByte()) {
-				case 48: props.Format = Asc.c_oAscNumberingFormat.None; break;
-				case 5: props.Format = Asc.c_oAscNumberingFormat.Bullet; break;
-				case 13: props.Format = Asc.c_oAscNumberingFormat.Decimal; break;
-				case 47: props.Format = Asc.c_oAscNumberingFormat.LowerRoman; break;
-				case 61: props.Format = Asc.c_oAscNumberingFormat.UpperRoman; break;
-				case 46: props.Format = Asc.c_oAscNumberingFormat.LowerLetter; break;
-				case 60: props.Format = Asc.c_oAscNumberingFormat.UpperLetter; break;
-				case 21: props.Format = Asc.c_oAscNumberingFormat.DecimalZero; break;
-				case 14: props.Format = Asc.c_oAscNumberingFormat.DecimalEnclosedCircle; break;
-				case 15: props.Format = Asc.c_oAscNumberingFormat.DecimalEnclosedCircle; break;
-				case 52: props.Format = Asc.c_oAscNumberingFormat.RussianLower; break;
-				case 53: props.Format = Asc.c_oAscNumberingFormat.RussianUpper; break;
-				case 8: props.Format = Asc.c_oAscNumberingFormat.ChineseCounting; break;
-				case 9: props.Format = Asc.c_oAscNumberingFormat.ChineseCountingThousand; break;
-				case 10: props.Format = Asc.c_oAscNumberingFormat.ChineseLegalSimplified; break;
-				default: props.Format = Asc.c_oAscNumberingFormat.Decimal; break;
+				case 48: nFormat = Asc.c_oAscNumberingFormat.None; break;
+				case 5:  nFormat = Asc.c_oAscNumberingFormat.Bullet; break;
+				case 13: nFormat = Asc.c_oAscNumberingFormat.Decimal; break;
+				case 47: nFormat = Asc.c_oAscNumberingFormat.LowerRoman; break;
+				case 61: nFormat = Asc.c_oAscNumberingFormat.UpperRoman; break;
+				case 46: nFormat = Asc.c_oAscNumberingFormat.LowerLetter; break;
+				case 60: nFormat = Asc.c_oAscNumberingFormat.UpperLetter; break;
+				case 21: nFormat = Asc.c_oAscNumberingFormat.DecimalZero; break;
+				case 14: nFormat = Asc.c_oAscNumberingFormat.DecimalEnclosedCircle; break;
+				case 15: nFormat = Asc.c_oAscNumberingFormat.DecimalEnclosedCircle; break;
+				case 52: nFormat = Asc.c_oAscNumberingFormat.RussianLower; break;
+				case 53: nFormat = Asc.c_oAscNumberingFormat.RussianUpper; break;
+				case 8:  nFormat = Asc.c_oAscNumberingFormat.ChineseCounting; break;
+				case 9:  nFormat = Asc.c_oAscNumberingFormat.ChineseCountingThousand; break;
+				case 10: nFormat = Asc.c_oAscNumberingFormat.ChineseLegalSimplified; break;
+				default: nFormat = Asc.c_oAscNumberingFormat.Decimal; break;
 			}
+			if (props instanceof CNumberingLvl)
+				props.SetFormat(nFormat);
+			else
+				props.Format = nFormat;
 		} else {
 			res = c_oSerConstants.ReadUnknown;
 		}
@@ -9032,6 +9172,22 @@ function Binary_pPrReader(doc, oReadResult, stream)
             res = c_oSerConstants.ReadUnknown;
         return res;
     }
+	this.Read_lineNumType = function(type, length, lineNum)
+	{
+		var res = c_oSerConstants.ReadOk;
+		var oThis = this;
+		if( c_oSerProp_secPrLineNumType.CountBy === type ) {
+			lineNum.nCountBy = this.stream.GetULongLE();
+		} else if( c_oSerProp_secPrLineNumType.Distance === type ) {
+			lineNum.nDistance = this.stream.GetULongLE();
+		} else if( c_oSerProp_secPrLineNumType.Restart === type ) {
+			lineNum.nRestartType = this.stream.GetByte();
+		} else if( c_oSerProp_secPrLineNumType.Start === type ) {
+			lineNum.nStart = this.stream.GetULongLE();
+		} else
+			res = c_oSerConstants.ReadUnknown;
+		return res;
+	}
     this.Read_cols = function(type, length, oSectPr)
     {
         var res = c_oSerConstants.ReadOk;
@@ -10204,7 +10360,7 @@ function Binary_NumberingTableReader(doc, oReadResult, stream)
         var res = c_oSerConstants.ReadOk;
         if ( c_oSerNumTypes.lvl_Format === type )
         {
-            oNewLvl.Format = this.stream.GetULongLE();
+            oNewLvl.SetFormat(this.stream.GetULongLE());
         }
 		else if ( c_oSerNumTypes.lvl_NumFmt === type )
 		{
@@ -12397,6 +12553,18 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 				return oThis.ReadSdtCheckBox(t, l, checkBoxPr);
 			});
 			oSdt.SetCheckBoxPr(checkBoxPr);
+		} else if (c_oSerSdt.FormPr === type && oSdt.SetFormPr) {
+			var formPr = new CSdtFormPr();
+			res = this.bcr.Read1(length, function(t, l) {
+				return oThis.ReadSdtFormPr(t, l, formPr);
+			});
+			oSdt.SetFormPr(formPr);
+		} else if (c_oSerSdt.TextFormPr === type && oSdt.SetTextFormPr) {
+			var textFormPr = new CSdtTextFormPr();
+			res = this.bcr.Read1(length, function(t, l) {
+				return oThis.ReadSdtTextFormPr(t, l, textFormPr);
+			});
+			oSdt.SetTextFormPr(textFormPr);
 		} else {
 			res = c_oSerConstants.ReadUnknown;
 		}
@@ -12414,6 +12582,8 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			val.UncheckedFont = this.stream.GetString2LE(length);
 		} else if (c_oSerSdt.CheckboxUncheckedVal === type) {
 			val.UncheckedSymbol = this.stream.GetLong();
+		} else if (c_oSerSdt.CheckboxGroupKey === type) {
+			val.GroupKey = this.stream.GetString2LE(length);
 		} else {
 			res = c_oSerConstants.ReadUnknown;
 		}
@@ -12488,6 +12658,49 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			val.Gallery = this.stream.GetString2LE(length);
 		} else if (c_oSerSdt.DocPartUnique === type) {
 			val.Unique = (this.stream.GetUChar() != 0);
+		} else {
+			res = c_oSerConstants.ReadUnknown;
+		}
+		return res;
+	};
+	this.ReadSdtFormPr = function(type, length, val) {
+		var res = c_oSerConstants.ReadOk;
+		if (c_oSerSdt.FormPrKey === type) {
+			val.Key = this.stream.GetString2LE(length);
+		} else if (c_oSerSdt.FormPrLabel === type) {
+			val.Label = this.stream.GetString2LE(length);
+		} else if (c_oSerSdt.FormPrHelpText === type) {
+			val.HelpText = this.stream.GetString2LE(length);
+		} else if (c_oSerSdt.FormPrRequired === type) {
+			val.Required = this.stream.GetBool();
+		} else {
+			res = c_oSerConstants.ReadUnknown;
+		}
+		return res;
+	};
+	this.ReadSdtTextFormPr = function(type, length, val) {
+		var oThis = this;
+		var res = c_oSerConstants.ReadOk;
+		if (c_oSerSdt.TextFormPrComb === type) {
+			val.Comb = true;
+			res = this.bcr.Read1(length, function(t, l) {
+				return oThis.ReadSdtTextFormPrComb(t, l, val);
+			});
+		} else if (c_oSerSdt.TextFormPrMaxCharacters === type) {
+			val.MaxCharacters = this.stream.GetLong();
+		} else {
+			res = c_oSerConstants.ReadUnknown;
+		}
+		return res;
+	};
+	this.ReadSdtTextFormPrComb = function(type, length, val) {
+		var res = c_oSerConstants.ReadOk;
+		if (c_oSerSdt.TextFormPrCombWidth === type) {
+			val.Width = this.stream.GetLong();
+		} else if (c_oSerSdt.TextFormPrCombSym === type) {
+			val.CombPlaceholderSymbol = this.stream.GetString2LE(length);
+		} else if (c_oSerSdt.TextFormPrCombFont === type) {
+			val.CombPlaceholderFont = this.stream.GetString2LE(length);
 		} else {
 			res = c_oSerConstants.ReadUnknown;
 		}
@@ -15402,6 +15615,19 @@ function Binary_CommentsTableReader(doc, oReadResult, stream, oComments)
 		{
 			ParceAdditionalData(this.stream.GetString2LE(length), oNewImage);
 		}
+		else if ( c_oSer_CommentsType.DateUtc === type )
+		{
+			var dateStr = this.stream.GetString2LE(length);
+			var dateMs = AscCommon.getTimeISO8601(dateStr);
+			if (isNaN(dateMs)) {
+				dateMs = new Date().getTime();
+			}
+			oNewImage.OODate = dateMs + "";
+		}
+		else if ( c_oSer_CommentsType.UserData === type )
+		{
+			oNewImage.UserData = this.stream.GetString2LE(length);
+		}
 		else if ( c_oSer_CommentsType.DurableId === type )
 		{
 			oNewImage.DurableId = AscCommon.FixDurableId(this.stream.GetULong());
@@ -16116,7 +16342,7 @@ function GetTableOffsetCorrection(tbl)
     {
         var TableBorder_Left = tbl.Get_Borders().Left;
         var CellBorder_Left  = Cell.Get_Borders().Left;
-        var Result_Border = tbl.Internal_CompareBorders( TableBorder_Left, CellBorder_Left, true, false );
+        var Result_Border = tbl.private_ResolveBordersConflict( TableBorder_Left, CellBorder_Left, true, false );
 
         if ( border_None != Result_Border.Value )
             X += Math.max( Result_Border.Size / 2, Margins.Left.W );
@@ -16368,6 +16594,7 @@ function DocReadResult(doc) {
 	this.logicDocument = doc;
 	this.ImageMap = {};
 	this.oComments = {};
+	this.oDocumentComments = {};
 	this.oCommentsPlaces = {};
 	this.setting = {titlePg: false, EvenAndOddHeaders: false};
 	this.numToNumClass = {};

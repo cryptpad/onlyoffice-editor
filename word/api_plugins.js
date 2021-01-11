@@ -495,5 +495,16 @@
 
 		this.asc_changeComment(sId, new window['Asc']['asc_CCommentDataWord'](oCD));
 	};
+	/**
+	 * Move cursor to specified
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @alias MoveToComment
+	 * @param {string} sId
+	 */
+	window["asc_docs_api"].prototype["pluginMethod_MoveToComment"] = function(sId)
+	{
+		this.asc_selectComment(sId);
+	};
 
 })(window);

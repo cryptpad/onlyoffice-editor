@@ -371,7 +371,7 @@ CGraphicObjects.prototype =
             AscFormat.AddToContentFromString(oContent, oProps.get_Text());
             var oTextPr = new CTextPr();
             oTextPr.FontSize = (oTextPropMenu.get_FontSize() > 0 ? oTextPropMenu.get_FontSize() : 20);
-            oTextPr.RFonts.Set_All(oTextPropMenu.get_FontFamily().get_Name(), -1);
+            oTextPr.RFonts.SetAll(oTextPropMenu.get_FontFamily().get_Name(), -1);
             oTextPr.Bold = oTextPropMenu.get_Bold();
             oTextPr.Italic = oTextPropMenu.get_Italic();
             oTextPr.Underline = oTextPropMenu.get_Underline();
@@ -382,12 +382,12 @@ CGraphicObjects.prototype =
             {
                 oTextPr.SetLang(oTextPropMenu.get_Lang());
             }
-            oContent.Set_ApplyToAll(true);
+            oContent.SetApplyToAll(true);
             oContent.AddToParagraph(new ParaTextPr(oTextPr));
             oContent.SetParagraphAlign(AscCommon.align_Center);
             oContent.SetParagraphSpacing({Before : 0, After: 0,  LineRule : Asc.linerule_Auto, Line : 1.0});
             oContent.SetParagraphIndent({FirstLine:0, Left:0, Right:0});
-            oContent.Set_ApplyToAll(false);
+            oContent.SetApplyToAll(false);
             var oBodyPr = oDrawing.getBodyPr().createDuplicate();
             oBodyPr.rot = 0;
             oBodyPr.spcFirstLastPara = false;
@@ -423,9 +423,9 @@ CGraphicObjects.prototype =
                     extX = dMaxWidth;
                 }
                 oTextPr.FontSize *= (extX / oContentSize.w);
-                oContent.Set_ApplyToAll(true);
+                oContent.SetApplyToAll(true);
                 oContent.AddToParagraph(new ParaTextPr(oTextPr));
-                oContent.Set_ApplyToAll(false);
+                oContent.SetApplyToAll(false);
                 oContentSize = AscFormat.GetContentOneStringSizes(oContent);
                 oXfrm.setExtX(extX + 1);
                 oXfrm.setExtY(oContentSize.h);
@@ -1318,7 +1318,7 @@ CGraphicObjects.prototype =
     },
 
 
-    addShapeOnPage: function(sPreset, nPageIndex, dX, dY, dExtX, dExtY)
+    addShapeOnPage: function(sPreset, nPageIndex)
     {
         if ( docpostype_HdrFtr !== this.document.GetDocPosType() || null !== this.document.HdrFtr.CurHdrFtr )
         {
@@ -1341,6 +1341,17 @@ CGraphicObjects.prototype =
                 DocContent.Selection.Start = true;
             }
 
+            var dX, dY, dExtX, dExtY;
+            var oSectPr = this.document.Get_PageLimits(nPageIndex);
+            var oExt = AscFormat.fGetDefaultShapeExtents(sPreset);
+            var dSize = Math.min(oSectPr.XLimit / 2, oSectPr.YLimit / 2);
+            var dScale = dSize/Math.max(oExt.x, oExt.y);
+            dExtX = oExt.x * dScale;
+            dExtY = oExt.y * dScale;
+            dX = (oSectPr.XLimit - oSectPr.X - dExtX) / 2;
+            dX = Math.max(0, dX);
+            dY = (oSectPr.YLimit - oSectPr.Y - dExtY) / 2;
+            dY = Math.max(0, dY);
             this.changeCurrentState(new AscFormat.StartAddNewShape(this, sPreset));
             this.OnMouseDown({}, dX, dY, nPageIndex);
             if(AscFormat.isRealNumber(dExtX) && AscFormat.isRealNumber(dExtY))
@@ -1433,6 +1444,7 @@ CGraphicObjects.prototype =
     getEditorApi: DrawingObjectsController.prototype.getEditorApi,
     resetConnectors: DrawingObjectsController.prototype.resetConnectors,
     checkDlblsPosition: DrawingObjectsController.prototype.checkDlblsPosition,
+    resetChartElementsSelection: DrawingObjectsController.prototype.resetChartElementsSelection,
 
 
     handleChartDoubleClick: function(drawing, chart, e, x, y, pageIndex)
@@ -1853,6 +1865,8 @@ CGraphicObjects.prototype =
         {
             this.drawingDocument.SelectClear();
             this.drawingDocument.TargetEnd();
+			this.drawingDocument.SelectEnabled(true);
+			this.drawingDocument.SelectShow();
         }
     },
 
@@ -2111,17 +2125,17 @@ CGraphicObjects.prototype =
     {
 
         if(this.selectedObjects.length === 0)
-            Info.Set_Drawing(-1);
+            Info.SetDrawing(-1);
 
         var content = this.getTargetDocContent();
         if(content)
         {
-            Info.Set_Drawing(selected_DrawingObjectText);
+            Info.SetDrawing(selected_DrawingObjectText);
             content.GetSelectedElementsInfo(Info);
         }
         else
         {
-            Info.Set_Drawing(selected_DrawingObject);
+            Info.SetDrawing(selected_DrawingObject);
         }
         return Info;
     },
@@ -2148,7 +2162,7 @@ CGraphicObjects.prototype =
         var content = this.getTargetDocContent(oPr && oPr.CheckDocContent, undefined);
         if(content)
         {
-            return content.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
+            return content.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
         }
         else
         {
@@ -2160,18 +2174,7 @@ CGraphicObjects.prototype =
         }
     },
 
-    getSelectedText: function(bClearText, oPr)
-    {
-        var content = this.getTargetDocContent();
-        if(content)
-        {
-            return content.GetSelectedText(bClearText, oPr);
-        }
-        else
-        {
-            return "";
-        }
-    },
+    GetSelectedText: DrawingObjectsController.prototype.GetSelectedText,
 
     getCurPosXY: function()
     {
@@ -4086,6 +4089,8 @@ CGraphicObjects.prototype =
     endImageCrop: DrawingObjectsController.prototype.endImageCrop,
     cropFit: DrawingObjectsController.prototype.cropFit,
     cropFill: DrawingObjectsController.prototype.cropFill,
+
+    checkRedrawOnChangeCursorPosition: DrawingObjectsController.prototype.checkRedrawOnChangeCursorPosition,
 
     getFromTargetTextObjectContextMenuPosition: function(oTargetTextObject, pageIndex)
     {

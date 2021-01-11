@@ -1033,373 +1033,6 @@ function CCacheManager()
 	}
 }
 
-function CPolygonPoint2(X, Y)
-{
-	this.X = X;
-	this.Y = Y;
-}
-function CPolygonVectors()
-{
-	this.Page = -1;
-	this.VX = [];
-	this.VY = [];
-}
-function CPolygonPath(precision)
-{
-	this.Page = -1;
-	this.Direction = 1;
-	this.precision = precision;
-	this.Points = [];
-}
-CPolygonPath.prototype.PushPoint = function (x, y)
-{
-	this.Points.push(new CPolygonPoint2(x / this.precision, y / this.precision));
-};
-CPolygonPath.prototype.CorrectExtremePoints = function ()
-{
-	var Lng = this.Points.length;
-
-	this.Points[0].X = this.Points[Lng - 1].X;
-	this.Points[Lng - 1].Y = this.Points[0].Y;
-};
-
-function CPolygon()
-{
-	this.Vectors = [];
-	this.precision = 1000;
-}
-CPolygon.prototype.fill = function (arrBounds)
-{
-	this.Vectors.length = 0;
-
-	if (arrBounds.length <= 0)
-		return;
-
-	var nStartLineIndex = 0, nStartIndex = 0,
-		CountLines = arrBounds.length,
-		CountBounds;
-
-	while (nStartLineIndex < arrBounds.length)
-	{
-		CountBounds = arrBounds[nStartLineIndex].length;
-
-		while (nStartIndex < CountBounds)
-		{
-			if (arrBounds[nStartLineIndex][nStartIndex].W < 0.001)
-				nStartIndex++;
-			else
-				break;
-		}
-
-		if (nStartIndex < CountBounds)
-			break;
-
-		nStartLineIndex++;
-		nStartIndex = 0;
-	}
-
-	if (nStartLineIndex >= arrBounds.length)
-		return;
-
-	var CurrentPage = arrBounds[nStartLineIndex][nStartIndex].Page,
-		CurrentVectors = new CPolygonVectors(),
-		VectorsX = CurrentVectors.VX,
-		VectorsY = CurrentVectors.VY;
-
-	CurrentVectors.Page = CurrentPage;
-	this.Vectors.push(CurrentVectors);
-
-	for (var LineIndex = nStartLineIndex; LineIndex < CountLines; nStartIndex = 0, LineIndex++)
-	{
-		if (arrBounds[LineIndex][nStartIndex].Page !== CurrentPage)
-		{
-			CurrentPage = arrBounds[LineIndex][nStartIndex].Page;
-
-			CurrentVectors = new CPolygonVectors();
-			VectorsX = CurrentVectors.VX;
-			VectorsY = CurrentVectors.VY;
-			CurrentVectors.Page = CurrentPage;
-			this.Vectors.push(CurrentVectors);
-
-		}
-
-		for (var Index = nStartIndex; Index < arrBounds[LineIndex].length; Index++)
-		{
-			var oBound = arrBounds[LineIndex][Index];
-
-			if (oBound.W < 0.001)
-				continue;
-
-			var x1 = Math.round(oBound.X * this.precision), x2 = Math.round((oBound.X + oBound.W) * this.precision),
-				y1 = Math.round(oBound.Y * this.precision), y2 = Math.round((oBound.Y + oBound.H) * this.precision);
-
-			if (VectorsX[y1] == undefined)
-			{
-				VectorsX[y1] = {};
-			}
-
-			this.IntersectionX(VectorsX, x2, x1, y1);
-
-			if (VectorsY[x1] == undefined)
-			{
-				VectorsY[x1] = {};
-			}
-
-			this.IntersectionY(VectorsY, y1, y2, x1);
-
-			if (VectorsX[y2] == undefined)
-			{
-				VectorsX[y2] = {};
-			}
-
-			this.IntersectionX(VectorsX, x1, x2, y2);
-
-			if (VectorsY[x2] == undefined)
-			{
-				VectorsY[x2] = {};
-			}
-
-			this.IntersectionY(VectorsY, y2, y1, x2);
-		}
-	}
-};
-CPolygon.prototype.IntersectionX = function (VectorsX, BeginX, EndX, Y)
-{
-	var CurrentVector = {};
-	CurrentVector[BeginX] = EndX;
-	var VX = VectorsX[Y];
-
-	if (BeginX > EndX)
-	{
-		while (true == this.IntersectVectorX(CurrentVector, VX))
-		{
-		}
-	}
-	else
-	{
-		while (true == this.IntersectVectorX(VX, CurrentVector))
-		{
-		}
-	}
-
-	for (var X in CurrentVector)
-	{
-		var VBeginX = parseInt(X);
-		var VEndX = CurrentVector[VBeginX];
-
-		if (VBeginX !== VEndX || VX[VBeginX] === undefined) // добавляем точку, только если она не существует, а ненулевой вектор всегда
-		{
-			VX[VBeginX] = VEndX;
-		}
-	}
-};
-CPolygon.prototype.IntersectVectorX = function (VectorOpp, VectorClW) // vector opposite, vector clockwise
-{
-	for (var X in VectorOpp)
-	{
-		var VBeginX = parseInt(X);
-		var VEndX = VectorOpp[VBeginX];
-
-		if (VEndX == VBeginX)
-			continue;
-
-		for (var ClwX in VectorClW)
-		{
-			var ClwBeginX = parseInt(ClwX);
-			var ClwEndX = VectorClW[ClwBeginX];
-			var bIntersection = false;
-
-			if (ClwBeginX == ClwEndX)
-				continue;
-
-			if (ClwBeginX <= VEndX && VBeginX <= ClwEndX) // inside vector ClW
-			{
-				VectorOpp[VBeginX] = VBeginX;
-
-				VectorClW[ClwBeginX] = VEndX;
-				VectorClW[VBeginX] = ClwEndX;
-
-				bIntersection = true;
-			}
-			else if (VEndX <= ClwBeginX && ClwEndX <= VBeginX) // inside vector Opposite clockwise
-			{
-				VectorClW[ClwBeginX] = ClwBeginX;
-
-				VectorOpp[VBeginX] = ClwEndX;
-				VectorOpp[ClwBeginX] = VEndX;
-
-				bIntersection = true;
-
-			}
-			else if (ClwBeginX < VEndX && VEndX < ClwEndX) // intersect vector ClW
-			{
-				VectorClW[ClwBeginX] = VEndX;
-				VectorOpp[VBeginX] = ClwEndX;
-
-				bIntersection = true;
-			}
-			else if (ClwBeginX < VBeginX && VBeginX < ClwEndX) // intersect vector ClW
-			{
-				VectorOpp[ClwBeginX] = VEndX;
-				VectorClW[VBeginX] = ClwEndX;
-
-				delete VectorOpp[VBeginX];
-				delete VectorClW[ClwBeginX];
-
-				bIntersection = true;
-			}
-
-			if (bIntersection == true)
-				return true;
-		}
-	}
-
-	return false;
-};
-CPolygon.prototype.IntersectionY = function (VectorsY, BeginY, EndY, X)
-{
-	var bIntersect = false;
-
-	for (var y in VectorsY[X])
-	{
-		var CurBeginY = parseInt(y);
-		var CurEndY = VectorsY[X][CurBeginY];
-
-		var minY, maxY;
-
-		if (CurBeginY < CurEndY)
-		{
-			minY = CurBeginY;
-			maxY = CurEndY;
-		}
-		else
-		{
-			minY = CurEndY;
-			maxY = CurBeginY;
-		}
-
-		var bInterSection = !((maxY <= BeginY && maxY <= EndY) || (minY >= BeginY && minY >= EndY )), // нач или конечная точка нах-ся внутри данного отрезка
-			bDirection = (CurBeginY - CurEndY) * (BeginY - EndY) < 0; // векторы противоположно направленны
-
-		if (bInterSection && bDirection) // если направления векторов совпало, значит один Bounds нах-ся в другом, ничего не делаем, такого быть не должно
-		{
-
-			VectorsY[X][CurBeginY] = EndY;
-			VectorsY[X][BeginY] = CurEndY;
-			bIntersect = true;
-		}
-	}
-
-	if (bIntersect == false)
-	{
-		VectorsY[X][BeginY] = EndY;
-	}
-};
-CPolygon.prototype.GetPaths = function (shift)
-{
-	var Paths = [];
-
-	shift *= this.precision;
-
-	for (var PageIndex = 0; PageIndex < this.Vectors.length; PageIndex++)
-	{
-		var y, x1, x2,
-			x, y1, y2;
-
-		var VectorsX = this.Vectors[PageIndex].VX,
-			VectorsY = this.Vectors[PageIndex].VY,
-			Page = this.Vectors[PageIndex].Page;
-
-
-		for (var LineIndex in VectorsX)
-		{
-			for (var Index in VectorsX[LineIndex])
-			{
-				var Polygon = new CPolygonPath(this.precision);
-				Polygon.Page = Page;
-
-				y = parseInt(LineIndex);
-				x1 = parseInt(Index);
-				x2 = VectorsX[y][x1];
-
-				VectorsX[y][x1] = -1;
-
-				var Direction = x1 > x2 ? 1 : -1;
-				var minY = y;
-				var SignRightLeft, SignDownUp;
-				var X, Y;
-
-				if (x2 !== -1)
-				{
-					SignRightLeft = x1 > x2 ? 1 : -1;
-					Y = y - SignRightLeft * shift;
-
-					Polygon.PushPoint(x1, Y);
-
-					while (true)
-					{
-						x = x2;
-						y1 = y;
-						y2 = VectorsY[x][y1];
-
-						if (y2 == -1)
-						{
-							break;
-						}
-						else if (y2 == undefined) // такой ситуации не должно произойти, если произошла, значит есть ошибка в алгоритме => не отрисовываем путь
-						{
-							return [];
-						}
-
-						VectorsY[x][y1] = -1;  // выставляем -1 => чтобы не добавить повторно путь с данными точками + проверка на возвращение в стартовую точку
-
-						SignDownUp = y1 > y2 ? 1 : -1;
-						X = x + SignDownUp * shift;
-
-						Polygon.PushPoint(X, Y);
-
-						y = y2;
-						x1 = x;
-						x2 = VectorsX[y][x1];
-
-						if (x2 == -1)
-						{
-							break;
-						}
-						else if (x2 == undefined) // такой ситуации не должно произойти, если произошла, значит есть ошибка в алгоритме => не отрисовываем путь
-						{
-							return [];
-						}
-
-						VectorsX[y][x1] = -1; // выставляем -1 => чтобы не добавить повторно путь с данными точками + проверка на возвращение в стартовую точку
-
-						SignRightLeft = x1 > x2 ? 1 : -1;
-						Y = y - SignRightLeft * shift;
-
-						Polygon.PushPoint(X, Y);
-
-						if (y < minY) // направление обхода
-						{
-							minY = y;
-							Direction = x1 > x2 ? 1 : -1;
-						}
-
-					}
-					Polygon.PushPoint(X, Y);
-					Polygon.CorrectExtremePoints();
-
-
-					Polygon.Direction = Direction;
-					Paths.push(Polygon);
-
-				}
-			}
-		}
-	}
-
-	return Paths;
-};
-
 function CDrawingPage()
 {
 	this.left = 0;
@@ -2414,9 +2047,8 @@ function CDrawingDocument()
 		Track: {X: 0, Y: 0, L: 0, T: 0, R: 0, B: 0, PageIndex: 0, Type: -1}, IsTracked: false, PageIndex: 0
 	};
 
-	this.MathRect = {IsActive: false, Bounds: [], ContentSelection: null};
-	this.MathPolygons = [];
-	this.MathSelectPolygons = [];
+	this.MathTrack = new AscCommon.CMathTrack();
+
 	this.FieldTrack = {IsActive: false, Rects: []};
 
 	this.m_oCacheManager = new CCacheManager();
@@ -2495,6 +2127,9 @@ function CDrawingDocument()
 	this.GuiCanvasFillTOCParentId = "";
 	this.GuiCanvasFillTOC = null;
 
+	this.GuiCanvasFillTOFParentId = "";
+	this.GuiCanvasFillTOF = null;
+
 	this.TableStylesLastLook = null;
 	this.TableStylesLastClrScheme = null;
 	this.LastParagraphMargins = null;
@@ -2563,7 +2198,7 @@ function CDrawingDocument()
 	{
 		this.IsLockObjectsEnable = true;
 		this.m_oWordControl.OnRePaintAttack();
-	}
+	};
 	this.SetCursorType = function (sType, Data)
 	{
 		if ("" == this.m_sLockedCursorType)
@@ -2591,20 +2226,20 @@ function CDrawingDocument()
 			Data = new AscCommon.CMouseMoveData();
 
 		editor.sync_MouseMoveCallback(Data);
-	}
+	};
 	this.LockCursorType = function (sType)
 	{
 		this.m_sLockedCursorType = sType;
 		this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(this.m_sLockedCursorType);
-	}
+	};
 	this.LockCursorTypeCur = function ()
 	{
 		this.m_sLockedCursorType = this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor;
-	}
+	};
 	this.UnlockCursorType = function ()
 	{
 		this.m_sLockedCursorType = "";
-	}
+	};
 
 	this.scrollToTargetOnRecalculate = function(pageCountOld, pageCountNew)
     {
@@ -2613,7 +2248,7 @@ function CDrawingDocument()
             this.isScrollToTargetAttack = true;
             this.UpdateTarget(this.m_dTargetX, this.m_dTargetY, this.m_lTargetPage);
         }
-    }
+    };
 
 	this.OnStartRecalculate = function (pageCount)
 	{
@@ -2644,7 +2279,7 @@ function CDrawingDocument()
 
             this.isFirstStartRecalculate = true;
 		}
-	}
+	};
 
 	this.OnRepaintPage = function (index)
 	{
@@ -2662,7 +2297,7 @@ function CDrawingDocument()
 		{
 			this.m_oWordControl.OnScroll();
 		}
-	}
+	};
 
 	this.OnRecalculatePage = function (index, pageObject)
 	{
@@ -2917,7 +2552,7 @@ function CDrawingDocument()
 
 		if (isUnlock)
 			_drawingPage.UnLock(this.m_oCacheManager);
-	}
+	};
 
 	this.StartRenderingPage = function (pageIndex)
 	{
@@ -2983,7 +2618,7 @@ function CDrawingDocument()
 		//var EndTime = new Date().getTime();
 
 		//alert("" + ((EndTime - StartTime) / 1000));
-	}
+	};
 
 	this.IsFreezePage = function (pageIndex)
 	{
@@ -2999,7 +2634,7 @@ function CDrawingDocument()
 			return false;
 		}
 		return true;
-	}
+	};
 
 	this.RenderDocument = function (Renderer)
 	{
@@ -3011,7 +2646,7 @@ function CDrawingDocument()
             _this.m_oLogicDocument.DrawPage(i, Renderer);
 			Renderer.EndPage();
 		}
-	}
+	};
 
 	this.ToRenderer = function ()
 	{
@@ -3431,7 +3066,7 @@ function CDrawingDocument()
 			}
 		}
 		return false;
-	}
+	};
 
 	this.ConvertCoordsToCursorWR = function (x, y, pageIndex, transform, id_ruler_no_use)
 	{
@@ -3463,7 +3098,7 @@ function CDrawingDocument()
 		var y_pix = (this.m_arrPages[pageIndex].drawingPage.top + __y * dKoef + _y) >> 0;
 
 		return {X: x_pix, Y: y_pix, Error: false};
-	}
+	};
 
 	this.ConvertCoordsToCursor = function (x, y, pageIndex, bIsRul)
 	{
@@ -3506,7 +3141,7 @@ function CDrawingDocument()
 		}
 
 		return {X: 0, Y: 0, Error: true};
-	}
+	};
 	this.ConvertCoordsToCursor2 = function (x, y, pageIndex, bIsRul)
 	{
 		var dKoef = (this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100);
@@ -3532,7 +3167,7 @@ function CDrawingDocument()
 		var y_pix = (this.m_arrPages[pageIndex].drawingPage.top + y * dKoef + _y - 0.5) >> 0;
 
 		return {X: x_pix, Y: y_pix, Error: false};
-	}
+	};
 	this.ConvertCoordsToCursor3 = function (x, y, pageIndex, isGlobal)
 	{
 		// теперь крутить всякие циклы нет смысла
@@ -3561,7 +3196,7 @@ function CDrawingDocument()
 		var y_pix = (this.m_arrPages[pageIndex].drawingPage.top + y * dKoef + _y + 0.5) >> 0;
 
 		return {X: x_pix, Y: y_pix, Error: false};
-	}
+	};
 
 	this.ConvertCoordsToCursor4 = function (x, y, pageIndex)
 	{
@@ -3577,18 +3212,18 @@ function CDrawingDocument()
 		var y_pix = (this.m_arrPages[pageIndex].drawingPage.top + y * dKoef + 0.5) >> 0;
 
 		return {X: x_pix, Y: y_pix, Error: false};
-	}
+	};
 
 	this.InitViewer = function ()
 	{
-	}
+	};
 
 	this.TargetStart = function ()
 	{
 		if (this.m_lTimerTargetId != -1)
 			clearInterval(this.m_lTimerTargetId);
 		this.m_lTimerTargetId = setInterval(oThis.DrawTarget, 500);
-	}
+	};
 	this.TargetEnd = function ()
 	{
 		//if (!this.TargetShowFlag)
@@ -3604,26 +3239,26 @@ function CDrawingDocument()
 		}
 
 		this.showTarget(false);
-	}
+	};
 	this.UpdateTargetNoAttack = function ()
 	{
 		if (null == this.m_oWordControl)
 			return;
 
 		this.CheckTargetDraw(this.m_dTargetX, this.m_dTargetY);
-	}
+	};
 
 	this.GetTargetStyle = function ()
 	{
 		return "rgb(" + this.TargetCursorColor.R + "," + this.TargetCursorColor.G + "," + this.TargetCursorColor.B + ")";
-	}
+	};
 
 	this.SetTargetColor = function (r, g, b)
 	{
 		this.TargetCursorColor.R = r;
 		this.TargetCursorColor.G = g;
 		this.TargetCursorColor.B = b;
-	}
+	};
 
 	this.CheckTargetDraw = function (x, y)
 	{
@@ -3761,12 +3396,12 @@ function CDrawingDocument()
 	{
 		if (AscCommon.g_inputContext)
 			AscCommon.g_inputContext.move(this.TargetHtmlElementLeft, this.TargetHtmlElementTop);
-	}
+	};
 
 	this.UpdateTargetTransform = function (matrix)
 	{
 		this.TextMatrix = matrix;
-	}
+	};
 
 	this.MultiplyTargetTransform = function (matrix)
 	{
@@ -3776,7 +3411,7 @@ function CDrawingDocument()
 		{
 			this.TextMatrix.Multiply(matrix, AscCommon.MATRIX_ORDER_PREPEND);
 		}
-	}
+	};
 
 	this.UpdateTarget = function (x, y, pageIndex)
 	{
@@ -3933,7 +3568,7 @@ function CDrawingDocument()
 		}
 
 		this.CheckTargetDraw(x, y);
-	}
+	};
 	this.UpdateTarget2 = function (x, y, pageIndex)
 	{
 		if (pageIndex >= this.m_arrPages.length)
@@ -4024,7 +3659,7 @@ function CDrawingDocument()
 			this.m_oWordControl.OnScroll();
 			return;
 		}
-	}
+	};
 
 	this.UpdateTargetTimer = function ()
 	{
@@ -4119,14 +3754,14 @@ function CDrawingDocument()
 		oThis.TargetHtmlElementTop = pos.Y >> 0;
 		oThis.TargetHtmlElement.style.left = oThis.TargetHtmlElementLeft + "px";
 		oThis.TargetHtmlElement.style.top = oThis.TargetHtmlElementTop + "px";
-	}
+	};
 
 	this.SetTargetSize = function (size)
 	{
 		this.m_dTargetSize = size;
 		//this.TargetHtmlElement.style.height = Number(this.m_dTargetSize * this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100) + "px";
 		//this.TargetHtmlElement.style.width = "2px";
-	}
+	};
 	this.DrawTarget = function ()
 	{
 		if (oThis.NeedTarget && oThis.m_oWordControl.IsFocus)
@@ -4138,7 +3773,7 @@ function CDrawingDocument()
 	this.TargetShow = function ()
 	{
 		this.TargetShowNeedFlag = true;
-	}
+	};
 	this.CheckTargetShow = function ()
 	{
 		if (this.TargetShowFlag && this.TargetShowNeedFlag)
@@ -4160,10 +3795,10 @@ function CDrawingDocument()
 			this.showTarget(true);
 
 		this.TargetShowFlag = true;
-	}
+	};
 	this.StartTrackImage = function (obj, x, y, w, h, type, pagenum)
 	{
-	}
+	};
 	this.StartTrackTable = function (obj, transform)
 	{
 		if (this.m_oWordControl.MobileTouchManager)
@@ -4179,7 +3814,7 @@ function CDrawingDocument()
 
 		if (this.m_oWordControl.MobileTouchManager)
 			this.m_oWordControl.OnUpdateOverlay();
-	}
+	};
 	this.EndTrackTable = function (pointer, bIsAttack)
 	{
 		if (this.TableOutlineDr.TableOutline != null)
@@ -4190,7 +3825,7 @@ function CDrawingDocument()
 				this.TableOutlineDr.Counter = 0;
 			}
 		}
-	}
+	};
 	this.CheckTrackTable = function ()
 	{
 		if (null == this.TableOutlineDr.TableOutline)
@@ -4205,7 +3840,7 @@ function CDrawingDocument()
 				this.m_oWordControl.OnUpdateOverlay();
 			}
 		}
-	}
+	};
 
 	this.DrawFrameTrack = function (overlay)
 	{
@@ -4308,155 +3943,22 @@ function CDrawingDocument()
 		return this.contentControls.OnDrawContentControl(obj, state, geom);
 	};
 
-	this.private_DrawMathTrack = function (overlay, oPath, shift, color, dKoefX, dKoefY, drPage)
-	{
-		var ctx = overlay.m_oContext;
-		ctx.strokeStyle = color;
-		ctx.lineWidth = 1;
-		ctx.beginPath();
-
-		var Points = oPath.Points;
-
-		var nCount = Points.length;
-		// берем предпоследнюю точку, т.к. последняя совпадает с первой
-		var PrevX = Points[nCount - 2].X, PrevY = Points[nCount - 2].Y;
-		var _x = drPage.left + dKoefX * Points[nCount - 2].X,
-			_y = drPage.top + dKoefY * Points[nCount - 2].Y;
-		var StartX, StartY;
-
-		for (var nIndex = 0; nIndex < nCount; nIndex++)
-		{
-			if (PrevX > Points[nIndex].X)
-			{
-				_y = drPage.top + dKoefY * Points[nIndex].Y - shift;
-			}
-			else if (PrevX < Points[nIndex].X)
-			{
-				_y = drPage.top + dKoefY * Points[nIndex].Y + shift;
-			}
-
-			if (PrevY < Points[nIndex].Y)
-			{
-				_x = drPage.left + dKoefX * Points[nIndex].X - shift;
-			}
-			else if (PrevY > Points[nIndex].Y)
-			{
-				_x = drPage.left + dKoefX * Points[nIndex].X + shift;
-			}
-
-			PrevX = Points[nIndex].X;
-			PrevY = Points[nIndex].Y;
-
-			if (nIndex > 0)
-			{
-				overlay.CheckPoint(_x, _y);
-
-				if (1 == nIndex)
-				{
-					StartX = _x;
-					StartY = _y;
-					overlay.m_oContext.moveTo((_x >> 0) + 0.5, (_y >> 0) + 0.5);
-				}
-				else
-				{
-					overlay.m_oContext.lineTo((_x >> 0) + 0.5, (_y >> 0) + 0.5);
-				}
-			}
-		}
-
-		overlay.m_oContext.lineTo((StartX >> 0) + 0.5, (StartY >> 0) + 0.5);
-
-		ctx.closePath();
-		ctx.stroke();
-		ctx.beginPath();
-	};
-	this.private_DrawMathTrackWithMatrix = function (overlay, oPath, ShiftX, ShiftY, color, dKoefX, dKoefY, drPage, m)
-	{
-		var ctx = overlay.m_oContext;
-		ctx.strokeStyle = color;
-		ctx.lineWidth = 1;
-		ctx.beginPath();
-
-		var Points = oPath.Points;
-
-		var nCount = Points.length;
-		// берем предпоследнюю точку, т.к. последняя совпадает с первой
-		var x = Points[nCount - 2].X, y = Points[nCount - 2].Y;
-		var _x, _y;
-
-		var PrevX = Points[nCount - 2].X, PrevY = Points[nCount - 2].Y;
-		var StartX, StartY;
-
-		for (var nIndex = 0; nIndex < nCount; nIndex++)
-		{
-			if (PrevX > Points[nIndex].X)
-			{
-				y = Points[nIndex].Y - ShiftY;
-			}
-			else if (PrevX < Points[nIndex].X)
-			{
-				y = Points[nIndex].Y + ShiftY;
-			}
-
-			if (PrevY < Points[nIndex].Y)
-			{
-				x = Points[nIndex].X - ShiftX;
-			}
-			else if (PrevY > Points[nIndex].Y)
-			{
-				x = Points[nIndex].X + ShiftX;
-			}
-
-			PrevX = Points[nIndex].X;
-			PrevY = Points[nIndex].Y;
-
-			if (nIndex > 0)
-			{
-				_x = (drPage.left + dKoefX * m.TransformPointX(x, y));
-				_y = (drPage.top + dKoefY * m.TransformPointY(x, y));
-
-				overlay.CheckPoint(_x, _y);
-
-				if (1 == nIndex)
-				{
-					StartX = _x;
-					StartY = _y;
-					overlay.m_oContext.moveTo((_x >> 0) + 0.5, (_y >> 0) + 0.5);
-				}
-				else
-				{
-					overlay.m_oContext.lineTo((_x >> 0) + 0.5, (_y >> 0) + 0.5);
-				}
-			}
-
-		}
-
-		overlay.m_oContext.lineTo((StartX >> 0) + 0.5, (StartY >> 0) + 0.5);
-
-		ctx.closePath();
-		ctx.stroke();
-		ctx.beginPath();
-	};
-
 	this.DrawMathTrack = function (overlay)
 	{
-		if (!this.MathRect.IsActive)
+		if(!this.MathTrack.IsActive())
+		{
 			return;
-
+		}
 		overlay.Show();
-
-		var ctx = overlay.m_oContext;
 		var nIndex, nCount;
-		var oPath, SelectPaths;
+		var oPath;
 		var _page, drPage, dKoefX, dKoefY;
-		var PathLng = this.MathPolygons.length;
-		var Points, nPointIndex, _x, _y;
-
+		var PathLng = this.MathTrack.GetPolygonsCount();
 		if (null == this.TextMatrix || global_MatrixTransformer.IsIdentity(this.TextMatrix))
 		{
 			for (nIndex = 0; nIndex < PathLng; nIndex++)
 			{
-				oPath = this.MathPolygons[nIndex];
+				oPath = this.MathTrack.GetPolygon(nIndex);
 
 				_page = this.m_arrPages[oPath.Page];
 				drPage = _page.drawingPage;
@@ -4464,49 +3966,24 @@ function CDrawingDocument()
 				dKoefX = (drPage.right - drPage.left) / _page.width_mm;
 				dKoefY = (drPage.bottom - drPage.top) / _page.height_mm;
 
-				this.private_DrawMathTrack(overlay, oPath, 0, "#939393", dKoefX, dKoefY, drPage);
-				this.private_DrawMathTrack(overlay, oPath, 1, "#FFFFFF", dKoefX, dKoefY, drPage);
+				this.MathTrack.Draw(overlay, oPath, 0, "#939393", dKoefX, dKoefY, drPage.left, drPage.top);
+				this.MathTrack.Draw(overlay, oPath, 1, "#FFFFFF", dKoefX, dKoefY, drPage.left, drPage.top);
 			}
-
-			SelectPaths = this.MathSelectPolygons;
-
-			for (nIndex = 0, nCount = SelectPaths.length; nIndex < nCount; nIndex++)
+			for (nIndex = 0, nCount = this.MathTrack.GetSelectPathsCount(); nIndex < nCount; nIndex++)
 			{
-				oPath = SelectPaths[nIndex];
+				oPath = this.MathTrack.GetSelectPath(nIndex);
 				_page = this.m_arrPages[oPath.Page];
 				drPage = _page.drawingPage;
-
 				dKoefX = (drPage.right - drPage.left) / _page.width_mm;
 				dKoefY = (drPage.bottom - drPage.top) / _page.height_mm;
-
-				ctx.fillStyle = "#375082";
-				ctx.beginPath();
-
-				Points = oPath.Points;
-				for (nPointIndex = 0; nPointIndex < Points.length - 1; nPointIndex++)
-				{
-					_x = drPage.left + dKoefX * Points[nPointIndex].X;
-					_y = drPage.top + dKoefY * Points[nPointIndex].Y;
-
-					overlay.CheckPoint(_x, _y);
-
-					if (0 == nPointIndex)
-						ctx.moveTo((_x >> 0) + 0.5, (_y >> 0) + 0.5);
-					else
-						ctx.lineTo((_x >> 0) + 0.5, (_y >> 0) + 0.5);
-				}
-
-				ctx.globalAlpha = 0.2;
-				ctx.fill();
-				ctx.globalAlpha = 1;
-
+				this.MathTrack.DrawSelectPolygon(overlay, oPath, dKoefX, dKoefY, drPage.left, drPage.top, null);
 			}
 		}
 		else
 		{
 			for (nIndex = 0; nIndex < PathLng; nIndex++)
 			{
-				oPath = this.MathPolygons[nIndex];
+				oPath = this.MathTrack.GetPolygon(nIndex);
 				_page = this.m_arrPages[oPath.Page];
 				drPage = _page.drawingPage;
 
@@ -4516,43 +3993,19 @@ function CDrawingDocument()
 				var _1px_mm_x = 1 / Math.max(dKoefX, 0.001);
 				var _1px_mm_y = 1 / Math.max(dKoefY, 0.001);
 
-				this.private_DrawMathTrackWithMatrix(overlay, oPath, 0, 0, "#939393", dKoefX, dKoefY, drPage, this.TextMatrix);
-				this.private_DrawMathTrackWithMatrix(overlay, oPath, _1px_mm_x, _1px_mm_y, "#FFFFFF", dKoefX, dKoefY, drPage, this.TextMatrix);
+				this.MathTrack.DrawWithMatrix(overlay, oPath, 0, 0, "#939393", dKoefX, dKoefY, drPage.left, drPage.top, this.TextMatrix);
+				this.MathTrack.DrawWithMatrix(overlay, oPath, _1px_mm_x, _1px_mm_y, "#FFFFFF", dKoefX, dKoefY, drPage.left, drPage.top, this.TextMatrix);
 			}
 
-			SelectPaths = this.MathSelectPolygons;
 
-			for (nIndex = 0, nCount = SelectPaths.length; nIndex < nCount; nIndex++)
+			for (nIndex = 0, nCount = this.MathTrack.GetSelectPathsCount(); nIndex < nCount; nIndex++)
 			{
-				oPath = SelectPaths[nIndex];
+				oPath = this.MathTrack.GetSelectPath(nIndex);
 				_page = this.m_arrPages[oPath.Page];
 				drPage = _page.drawingPage;
-
 				dKoefX = (drPage.right - drPage.left) / _page.width_mm;
 				dKoefY = (drPage.bottom - drPage.top) / _page.height_mm;
-
-				ctx.fillStyle = "#375082";
-				ctx.beginPath();
-
-				Points = oPath.Points;
-				for (nPointIndex = 0; nPointIndex < Points.length - 1; nPointIndex++)
-				{
-					var x = Points[nPointIndex].X, y = Points[nPointIndex].Y;
-					_x = drPage.left + dKoefX * this.TextMatrix.TransformPointX(x, y);
-					_y = drPage.top + dKoefY * this.TextMatrix.TransformPointY(x, y);
-
-					overlay.CheckPoint(_x, _y);
-
-					if (0 == nPointIndex)
-						ctx.moveTo((_x >> 0) + 0.5, (_y >> 0) + 0.5);
-					else
-						ctx.lineTo((_x >> 0) + 0.5, (_y >> 0) + 0.5);
-				}
-
-				ctx.globalAlpha = 0.2;
-				ctx.fill();
-				ctx.globalAlpha = 1;
-
+				this.MathTrack.DrawSelectPolygon(overlay, oPath, dKoefX, dKoefY, drPage.left, drPage.top, this.TextMatrix);
 			}
 		}
 	};
@@ -4628,7 +4081,7 @@ function CDrawingDocument()
 				ctx.beginPath();
 			}
 		}
-	}
+	};
 
 	this.DrawTableTrack = function (overlay)
 	{
@@ -4812,7 +4265,7 @@ function CDrawingDocument()
 			this.AutoShapesTrack.SetCurrentPage(_near.Page);
 			this.AutoShapesTrack.DrawInlineMoveCursor(_near.X, _near.Y, _near.Height, _near.transform);
 		}
-	}
+	};
 	this.SetCurrentPage = function (PageIndex)
 	{
 		if (PageIndex >= this.m_arrPages.length)
@@ -4822,7 +4275,7 @@ function CDrawingDocument()
 
 		this.m_lCurrentPage = PageIndex;
 		this.m_oWordControl.SetCurrentPage();
-	}
+	};
 
 	this.SelectEnabled = function (bIsEnabled)
 	{
@@ -4834,7 +4287,7 @@ function CDrawingDocument()
 			this.m_oWordControl.OnUpdateOverlay();
 			this.m_oWordControl.m_oOverlayApi.m_oContext.globalAlpha = 1.0;
 		}
-	}
+	};
 	this.SelectClear = function ()
 	{
 		if (this.m_oWordControl.MobileTouchManager)
@@ -4842,7 +4295,7 @@ function CDrawingDocument()
 			this.m_oWordControl.MobileTouchManager.RectSelect1 = null;
 			this.m_oWordControl.MobileTouchManager.RectSelect2 = null;
 		}
-	}
+	};
 	this.SearchClear = function ()
 	{
 		for (var i = 0; i < this.m_lPagesCount; i++)
@@ -4859,7 +4312,7 @@ function CDrawingDocument()
 
 		this.m_oWordControl.m_oOverlayApi.Clear();
 		this.m_bIsSearching = false;
-	}
+	};
 	this.AddPageSearch = function (findText, rects, type)
 	{
 		var _len = rects.length;
@@ -5004,17 +4457,17 @@ function CDrawingDocument()
 		if (is_update)
 			this.m_oWordControl.OnUpdateOverlay();
 
-	}
+	};
 
 	this.StartSearchTransform = function (transform)
 	{
 		this.SearchTransform = transform.CreateDublicate();
-	}
+	};
 
 	this.EndSearchTransform = function ()
 	{
 		this.SearchTransform = null;
-	}
+	};
 
 	this.StartSearch = function ()
 	{
@@ -5022,7 +4475,7 @@ function CDrawingDocument()
 		if (this.m_bIsSelection)
 			this.m_oWordControl.OnUpdateOverlay();
 		this.m_bIsSearching = true;
-	}
+	};
 	this.EndSearch = function (bIsChange)
 	{
 		if (bIsChange)
@@ -5037,12 +4490,12 @@ function CDrawingDocument()
 			this.m_oWordControl.OnUpdateOverlay();
 		}
 		this.m_oWordControl.m_oApi.sync_SearchEndCallback();
-	}
+	};
 
 	this.SetTextSelectionOutline = function (isSelectionOutline)
 	{
 		this.IsTextSelectionOutline = isSelectionOutline;
-	}
+	};
 
 	this.private_StartDrawSelection = function (overlay, isSelect2)
 	{
@@ -5057,7 +4510,7 @@ function CDrawingDocument()
 			this.m_oWordControl.MobileTouchManager.RectSelect1 = null;
 			this.m_oWordControl.MobileTouchManager.RectSelect2 = null;
 		}
-	}
+	};
 	this.private_EndDrawSelection = function ()
 	{
 		var ctx = this.Overlay.m_oContext;
@@ -5078,7 +4531,7 @@ function CDrawingDocument()
 
 		this.IsTextMatrixUse = false;
 		this.Overlay = null;
-	}
+	};
 
 	this.AddPageSelection = function (pageIndex, x, y, w, h)
 	{
@@ -5160,7 +4613,7 @@ function CDrawingDocument()
 			ctx.lineTo(x4, y4);
 			ctx.closePath();
 		}
-	}
+	};
 
     this.AddPageSelection2 = function (pageIndex, x, y, w, h)
     {
@@ -5168,7 +4621,7 @@ function CDrawingDocument()
             this.OverlaySelection2.Data = [];
 
         this.OverlaySelection2.Data.push([pageIndex, x, y, w, h]);
-    }
+    };
 
     this.DrawPageSelection2 = function(overlay)
 	{
@@ -5187,7 +4640,7 @@ function CDrawingDocument()
             this.private_EndDrawSelection();
 		}
         this.OverlaySelection2 = {};
-	}
+	};
 
 	this.CheckSelectMobile = function (overlay)
 	{
@@ -5303,22 +4756,22 @@ function CDrawingDocument()
 			overlay.AddEllipse(pos4.X, pos4.Y + 5, 5);
 			ctx.fill();
 		}
-	}
+	};
 
 	this.SelectShow = function ()
 	{
 		this.m_oWordControl.OnUpdateOverlay();
-	}
+	};
 
     this.OnUpdateOverlay = function ()
     {
         this.m_oWordControl.OnUpdateOverlay();
-    }
+    };
 
 	this.Set_RulerState_Start = function ()
 	{
 		this.UpdateRulerStateFlag = true;
-	}
+	};
 	this.Set_RulerState_End = function ()
 	{
 		if (this.UpdateRulerStateFlag)
@@ -5359,7 +4812,7 @@ function CDrawingDocument()
 				this.UpdateRulerStateParams = [];
 			}
 		}
-	}
+	};
 
 	this.Set_RulerState_Table = function (markup, transform)
 	{
@@ -5416,7 +4869,7 @@ function CDrawingDocument()
 			markup.Table.StartTrackTable();
 			this.m_oWordControl.MobileTouchManager.TableStartTrack_Check = false;
 		}
-	}
+	};
 
 	this.Set_RulerState_Paragraph = function (margins, isCanTrackMargins)
 	{
@@ -5560,7 +5013,7 @@ function CDrawingDocument()
 
 		this.m_oWordControl.UpdateHorRuler();
 		this.m_oWordControl.UpdateVerRuler();
-	}
+	};
 
 	this.Set_RulerState_Columns = function (markup)
 	{
@@ -5635,37 +5088,12 @@ function CDrawingDocument()
 
 		this.m_oWordControl.UpdateHorRuler();
 		this.m_oWordControl.UpdateVerRuler();
-	}
+	};
 
 	this.Update_MathTrack = function (IsActive, IsContentActive, oMath)
 	{
-		this.MathRect.IsActive = IsActive;
-
-		if (true === IsActive && null !== oMath)
-		{
-			var selectBounds = true === IsContentActive ? oMath.Get_ContentSelection() : null;
-			if (selectBounds != null)
-			{
-				var SelectPolygon = new CPolygon();
-				SelectPolygon.fill(selectBounds);
-				this.MathSelectPolygons = SelectPolygon.GetPaths(0);
-			}
-			else
-			{
-				this.MathSelectPolygons.length = 0;
-			}
-
-			var arrBounds = oMath.Get_Bounds();
-
-			if (arrBounds.length <= 0)
-				return;
-
-			var MPolygon = new CPolygon();
-			MPolygon.fill(arrBounds);
-
-			var PixelError = this.GetMMPerDot(1) * 3;
-			this.MathPolygons = MPolygon.GetPaths(PixelError);
-		}
+		var PixelError = this.GetMMPerDot(1) * 3;
+		this.MathTrack.Update(IsActive, IsContentActive, oMath, PixelError);
 	};
 
 	this.Update_FieldTrack = function (IsActive, aRects)
@@ -5710,7 +5138,7 @@ function CDrawingDocument()
 
 		hor_ruler.CorrectTabs();
 		this.m_oWordControl.UpdateHorRuler();
-	}
+	};
 
 	this.CorrectRulerPosition = function (pos)
 	{
@@ -5718,7 +5146,7 @@ function CDrawingDocument()
 			return pos;
 
 		return ((pos / 2.5 + 0.5) >> 0) * 2.5;
-	}
+	};
 
 	this.UpdateTableRuler = function (isCols, index, position)
 	{
@@ -5793,16 +5221,16 @@ function CDrawingDocument()
 			this.m_oWordControl.UpdateHorRulerBack();
 			this.m_oWordControl.m_oOverlayApi.VertLine(this.m_arrPages[this.m_lCurrentPage].drawingPage.left + position * dKoef_mm_to_pix);
 		}
-	}
+	};
 	this.GetDotsPerMM = function (value)
 	{
 		return value * this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100;
-	}
+	};
 
 	this.GetMMPerDot = function (value)
 	{
 		return value / this.GetDotsPerMM(1);
-	}
+	};
 	this.GetVisibleMMHeight = function ()
 	{
 		var pixHeigth = this.m_oWordControl.m_oEditor.HtmlElement.height;
@@ -5811,7 +5239,7 @@ function CDrawingDocument()
 		var pixBetweenPages = 20 * (this.m_lDrawingEnd - this.m_lDrawingFirst);
 
 		return (pixHeigth - pixBetweenPages) * g_dKoef_pix_to_mm * 100 / this.m_oWordControl.m_nZoomValue;
-	}
+	};
 
 	// вот оооочень важная функция. она выкидывает из кэша неиспользуемые шрифты
 	this.CheckFontCache = function ()
@@ -5848,7 +5276,7 @@ function CDrawingDocument()
 				delete _drawing_map[i];
 			}
 		}
-	}
+	};
 
 	// при загрузке документа - нужно понять какие шрифты используются
 	this.CheckFontNeeds = function ()
@@ -5920,7 +5348,7 @@ function CDrawingDocument()
 		 }
 		 this.m_oWordControl.m_oLogicDocument.Fonts = dstfonts;
 		 */
-	}
+	};
 
 	// фукнции для старта работы
 	this.OpenDocument = function ()
@@ -5930,32 +5358,32 @@ function CDrawingDocument()
 
 		this.m_oWordControl.CalculateDocumentSize();
 		this.m_oWordControl.OnScroll();
-	}
+	};
 
 	// вот здесь весь трекинг
 	this.DrawTrack = function (type, matrix, left, top, width, height, isLine, canRotate, isNoMove)
 	{
 		this.AutoShapesTrack.DrawTrack(type, matrix, left, top, width, height, isLine, canRotate, isNoMove);
-	}
+	};
 
 	this.DrawTrackSelectShapes = function (x, y, w, h)
 	{
 		this.AutoShapesTrack.DrawTrackSelectShapes(x, y, w, h);
-	}
+	};
 
 	this.DrawAdjustment = function (matrix, x, y, bTextWarp)
 	{
 		this.AutoShapesTrack.DrawAdjustment(matrix, x, y, bTextWarp);
-	}
+	};
 
 	this.LockTrackPageNum = function (nPageNum)
 	{
 		this.AutoShapesTrackLockPageNum = nPageNum;
-	}
+	};
 	this.UnlockTrackPageNum = function ()
 	{
 		this.AutoShapesTrackLockPageNum = -1;
-	}
+	};
 
 	this.CheckGuiControlColors = function ()
 	{
@@ -6011,7 +5439,7 @@ function CDrawingDocument()
 
 			this.SendControlColors();
 		}
-	}
+	};
 
 	this.SendControlColors = function ()
 	{
@@ -6070,7 +5498,7 @@ function CDrawingDocument()
 			var StylesPainter = new CStylesPainter();
 			StylesPainter.GenerateStyles(this.m_oWordControl.m_oApi, this.m_oWordControl.m_oLogicDocument.Get_Styles().Style);
 		}
-	}
+	};
 
 	this.DrawImageTextureFillShape = function (url)
 	{
@@ -6140,7 +5568,7 @@ function CDrawingDocument()
 			this.GuiCanvasFillTextureCtx.stroke();
 			this.GuiCanvasFillTextureCtx.beginPath();
 		}
-	}
+	};
 
 	this.InitGuiCanvasShape = function (div_id)
 	{
@@ -6167,7 +5595,7 @@ function CDrawingDocument()
 		this.GuiCanvasFillTextureCtx = this.GuiCanvasFillTexture.getContext('2d');
 
 		_div_elem.appendChild(this.GuiCanvasFillTexture);
-	}
+	};
 
 	this.InitGuiCanvasTextProps = function (div_id)
 	{
@@ -6214,7 +5642,7 @@ function CDrawingDocument()
 
 			_div_elem.appendChild(this.GuiCanvasTextProps);
 		}
-	}
+	};
 
 	this.DrawGuiCanvasTextProps = function (props)
 	{
@@ -6385,7 +5813,7 @@ function CDrawingDocument()
 
 		History.TurnOn();
 		editor.isViewMode = _oldTurn;
-	}
+	};
 
 	this.SetDrawImagePlaceContents = function(id, props)
 	{
@@ -6472,46 +5900,42 @@ function CDrawingDocument()
 		if (undefined === nTabLeader || null === nTabLeader)
 			nTabLeader = Asc.c_oAscTabLeader.Dot;
 
-		if (-1 === nOutlineEnd && -1 === nOutlineStart)
-		{
-			nOutlineStart = 1;
-			nOutlineEnd   = 9;
-		}
 
 		var arrLevels         = [];
 		var arrStylesToDelete = [];
 
-		for (var nIndex = 0, nCount = props.get_StylesCount(); nIndex < nCount; ++nIndex)
+		var nStyle, nStylesCount, nAddStyle, nAddStyleCount;
+		var nLvl, sName, sStyleId, oStyle, isAddStyle;
+		for (nStyle = 0, nStylesCount = props.get_StylesCount(); nStyle < nStylesCount; ++nStyle)
 		{
-			var nLvl  = props.get_StyleLevel(nIndex) - 1;
-			var sName = props.get_StyleName(nIndex);
+			nLvl  = props.get_StyleLevel(nStyle) - 1;
+			sName = props.get_StyleName(nStyle);
 
 			if (!arrLevels[nLvl])
 			{
-				var sStyleId = null;
+				sStyleId = null;
 				if (Asc.c_oAscTOCStylesType.Current === nStylesType)
 				{
 					sStyleId = oStyles.GetDefaultTOC(nLvl);
 				}
 				else
 				{
-					var oStyle = new CStyle("", null, null, styletype_Paragraph, true);
+					oStyle = new CStyle("", null, null, styletype_Paragraph, true);
 					oStyle.CreateTOC(nLvl, nStylesType);
 					sStyleId = oStyle.GetId();
 					oStyles.Add(oStyle);
 					arrStylesToDelete.push(oStyle.GetId());
 				}
-
 				arrLevels[nLvl] = {
 					Styles  : [],
 					StyleId : sStyleId
 				};
 			}
 
-			var isAddStyle = true;
-			for (var nIndex = 0, nCount = arrLevels[nLvl].Styles.length; nIndex < nCount; ++nIndex)
+			isAddStyle = true;
+			for (nAddStyle = 0, nAddStyleCount = arrLevels[nLvl].Styles.length; nAddStyle < nAddStyleCount; ++nAddStyle)
 			{
-				if (arrLevels[nLvl].Styles[nIndex] === sName)
+				if (arrLevels[nLvl].Styles[nAddStyle] === sName)
 				{
 					isAddStyle = false;
 					break;
@@ -6522,60 +5946,65 @@ function CDrawingDocument()
 				arrLevels[nLvl].Styles.push(sName);
 		}
 
-		for (var _nLvl = nOutlineStart; _nLvl <= nOutlineEnd; ++_nLvl)
+		if (-1 !== nOutlineEnd && -1 !== nOutlineStart)
 		{
-			var sName = "Heading " + _nLvl;
-			var nLvl  = _nLvl - 1;
-
-			if (!arrLevels[nLvl])
+			for (var _nLvl = nOutlineStart; _nLvl <= nOutlineEnd; ++_nLvl)
 			{
-				var sStyleId = null;
-				if (Asc.c_oAscTOCStylesType.Current === nStylesType)
+				sName = "Heading " + _nLvl;
+				nLvl  = _nLvl - 1;
+
+				if (!arrLevels[nLvl])
 				{
-					sStyleId = oStyles.GetDefaultTOC(nLvl);
-				}
-				else
-				{
-					var oStyle = new CStyle("", null, null, styletype_Paragraph, true);
-					oStyle.CreateTOC(nLvl, nStylesType);
-					sStyleId = oStyle.GetId();
-					oStyles.Add(oStyle);
-					arrStylesToDelete.push(oStyle.GetId());
+					sStyleId = null;
+					if (Asc.c_oAscTOCStylesType.Current === nStylesType)
+					{
+						sStyleId = oStyles.GetDefaultTOC(nLvl);
+					}
+					else
+					{
+						oStyle = new CStyle("", null, null, styletype_Paragraph, true);
+						oStyle.CreateTOC(nLvl, nStylesType);
+						sStyleId = oStyle.GetId();
+						oStyles.Add(oStyle);
+						arrStylesToDelete.push(oStyle.GetId());
+					}
+
+					arrLevels[nLvl] = {
+						Styles  : [],
+						StyleId : sStyleId
+					};
 				}
 
-				arrLevels[nLvl] = {
-					Styles  : [],
-					StyleId : sStyleId
-				};
+				isAddStyle = true;
+				for (nAddStyle = 0, nAddStyleCount = arrLevels[nLvl].Styles.length; nAddStyle < nAddStyleCount; ++nAddStyle)
+				{
+					if (arrLevels[nLvl].Styles[nAddStyle] === sName)
+					{
+						isAddStyle = false;
+						break;
+					}
+				}
+
+				if (isAddStyle)
+					arrLevels[nLvl].Styles.push(sName);
 			}
-
-			var isAddStyle = true;
-			for (var nIndex = 0, nCount = arrLevels[nLvl].Styles.length; nIndex < nCount; ++nIndex)
-			{
-				if (arrLevels[nLvl].Styles[nIndex] === sName)
-				{
-					isAddStyle = false;
-					break;
-				}
-			}
-
-			if (isAddStyle)
-				arrLevels[nLvl].Styles.push(sName);
 		}
+
+
 
 		var oParaIndex = 0;
 		var nPageIndex = 1;
 
 
-		for (var nLvl = 0; nLvl <= 8; ++nLvl)
+		for (nLvl = 0; nLvl <= 8; ++nLvl)
 		{
 			if (!arrLevels[nLvl])
 				continue;
 
-			var sStyleId = arrLevels[nLvl].StyleId;
-			for (var nIndex = 0, nCount = arrLevels[nLvl].Styles.length; nIndex < nCount; ++nIndex)
+			sStyleId = arrLevels[nLvl].StyleId;
+			for (nStyle = 0, nStylesCount = arrLevels[nLvl].Styles.length; nStyle < nStylesCount; ++nStyle)
 			{
-				var sStyleName = AscCommon.translateManager.getValue(arrLevels[nLvl].Styles[nIndex]);
+				var sStyleName = AscCommon.translateManager.getValue(arrLevels[nLvl].Styles[nStyle]);
 
 				var oParagraph = new Paragraph(this, oDocumentContent, false);
 				oDocumentContent.AddToContent(oParaIndex++, oParagraph);
@@ -6610,9 +6039,9 @@ function CDrawingDocument()
 		oDocumentContent.Reset(1, 0, 1000, 10000);
 		oDocumentContent.Recalculate_Page(0, true);
 
-		for (var nIndex = 0, nCount = arrStylesToDelete.length; nIndex < nCount; ++nIndex)
+		for (nStyle = 0, nStylesCount = arrStylesToDelete.length; nStyle < nStylesCount; ++nStyle)
 		{
-			oStyles.Remove(arrStylesToDelete[nIndex]);
+			oStyles.Remove(arrStylesToDelete[nStyle]);
 		}
 
 		var nContentHeight = oDocumentContent.GetSummaryHeight();
@@ -6643,7 +6072,195 @@ function CDrawingDocument()
 
 		History.TurnOn();
 		editor.isViewMode = _oldTurn;
-	}
+	};
+
+	this.SetDrawImagePlaceTableOfFigures = function(id, props)
+	{
+		var _div_elem = null;
+
+		if (null == id || "" == id)
+		{
+			if ("" != this.GuiCanvasFillTOFParentId)
+			{
+				_div_elem = document.getElementById(this.GuiCanvasFillTOFParentId);
+
+				if (this.GuiCanvasFillTOF && _div_elem)
+					_div_elem.removeChild(this.GuiCanvasFillTOF);
+
+				this.GuiCanvasFillTOFParentId = "";
+				this.GuiCanvasFillTOF = null;
+			}
+			return;
+		}
+
+		if (id != this.GuiCanvasFillTOFParentId)
+		{
+			_div_elem = document.getElementById(this.GuiCanvasFillTOFParentId);
+
+			if (this.GuiCanvasFillTOF && _div_elem)
+				_div_elem.removeChild(this.GuiCanvasFillTOF);
+
+			this.GuiCanvasFillTOFParentId = "";
+			this.GuiCanvasFillTOF = null;
+		}
+
+		this.GuiCanvasFillTOFParentId = id;
+		_div_elem =  document.getElementById(this.GuiCanvasFillTOFParentId);
+		if (!_div_elem)
+			return;
+
+		var widthPx = _div_elem.offsetWidth;
+		var heightPx = _div_elem.offsetHeight;
+
+		if (null == this.GuiCanvasFillTOF)
+		{
+			this.GuiCanvasFillTexture = null;
+			this.GuiCanvasFillTextureCtx = null;
+
+			this.GuiCanvasFillTOF = document.createElement('canvas');
+			_div_elem.appendChild(this.GuiCanvasFillTOF);
+		}
+
+		// draw!
+		var wPx = AscBrowser.convertToRetinaValue(widthPx, true);
+		var hPx = AscBrowser.convertToRetinaValue(heightPx, true);
+		var wMm = wPx * g_dKoef_pix_to_mm / AscCommon.AscBrowser.retinaPixelRatio;
+		var hMm = hPx * g_dKoef_pix_to_mm / AscCommon.AscBrowser.retinaPixelRatio;
+
+		var wPxOffset = AscBrowser.convertToRetinaValue(8, true);
+		var wMmOffset = wPxOffset * g_dKoef_pix_to_mm / AscCommon.AscBrowser.retinaPixelRatio;
+
+		this.GuiCanvasFillTOF.style.width = widthPx + "px";
+		this.GuiCanvasFillTOF.width = wPx;
+
+		History.TurnOff();
+		var _oldTurn = editor.isViewMode;
+		editor.isViewMode = true;
+
+		var ctx = this.GuiCanvasFillTOF.getContext('2d');
+
+		var old_marks = this.m_oWordControl.m_oApi.ShowParaMarks;
+		this.m_oWordControl.m_oApi.ShowParaMarks = false;
+
+		// content
+		var oLogicDocument = this.m_oWordControl.m_oLogicDocument;
+		var oStyles        = oLogicDocument.GetStyles();
+
+		var oHeader          = new CHeaderFooter(oLogicDocument.HdrFtr, oLogicDocument, this, AscCommon.hdrftr_Header);
+		var oDocumentContent = oHeader.GetContent();
+
+
+		var nStylesType   = props.get_StylesType();
+		var isShowPageNum = props.get_ShowPageNumbers();
+		var isRightTab    = props.get_RightAlignTab();
+		var nTabLeader    = props.get_TabLeader();
+
+		if (undefined === nTabLeader || null === nTabLeader)
+			nTabLeader = Asc.c_oAscTabLeader.Dot;
+
+
+		var sStyleId = null;
+		var sStyleToDelete = null;
+		var oStyle;
+		if (Asc.c_oAscTOCStylesType.Current === nStylesType)
+		{
+			sStyleId = oStyles.GetDefaultTOF();
+		}
+		else
+		{
+			oStyle = new CStyle("", null, null, styletype_Paragraph, true);
+			oStyle.CreateTOF(nStylesType);
+			sStyleId = oStyle.GetId();
+			oStyles.Add(oStyle);
+			sStyleToDelete = oStyle.GetId();
+		}
+
+		var oParaIndex = 0;
+		var nPageIndex = 1;
+
+
+		var nCount = 5;
+		var sCaption = props.get_Caption();
+		if(!sCaption)
+		{
+			sCaption = AscCommon.translateManager.getValue("Caption");
+		}
+		var sText;
+		var bIncludeLabel = props.get_IncludeLabelAndNumber();
+		for (var nIndex = 0; nIndex < nCount; ++nIndex)
+		{
+			var oParagraph = new Paragraph(this, oDocumentContent, false);
+			oDocumentContent.AddToContent(oParaIndex++, oParagraph);
+			oParagraph.SetParagraphStyleById(sStyleId);
+
+			var oRun = new ParaRun(oParagraph, false);
+			oParagraph.AddToContent(0, oRun);
+			if(bIncludeLabel)
+			{
+				sText = sCaption + " " + (nIndex + 1);
+			}
+			else
+			{
+				sText = sCaption = AscCommon.translateManager.getValue("Text") + " (" + (nIndex + 1) + ")"
+			}
+			oRun.AddText(sText);
+
+			if (isShowPageNum)
+			{
+				if (isRightTab)
+				{
+					var oParaTabs = new CParaTabs();
+					oParaTabs.Add(new CParaTab(tab_Right, wMm - 2 - wMmOffset, nTabLeader));
+					oParagraph.SetParagraphTabs(oParaTabs);
+
+					oRun.AddToContent(-1, new ParaTab());
+				}
+				else
+				{
+					oRun.AddToContent(-1, new ParaSpace());
+				}
+				oRun.AddText("" + nPageIndex);
+				nPageIndex += 2;
+			}
+		}
+
+		oDocumentContent.Reset(1, 0, wMm - 1, 10000);
+		oDocumentContent.Recalculate_Page(0, true);
+
+		if(sStyleToDelete)
+		{
+			oStyles.Remove(sStyleToDelete);
+		}
+
+		var nContentHeight = oDocumentContent.GetSummaryHeight();
+		var nContentHeightPx = (AscCommon.AscBrowser.retinaPixelRatio * nContentHeight / g_dKoef_pix_to_mm) >> 0;
+
+		if (nContentHeightPx > hPx)
+		{
+			hPx = nContentHeightPx;
+			hMm = nContentHeight;
+		}
+
+		this.GuiCanvasFillTOF.style.height = AscBrowser.convertToRetinaValue(hPx, false) + "px";
+		this.GuiCanvasFillTOF.height = hPx;
+
+		var ctx = this.GuiCanvasFillTOF.getContext('2d');
+
+		ctx.fillStyle = "#FFFFFF";
+		ctx.fillRect(0, 0, wPx, hPx);
+
+		var graphics = new AscCommon.CGraphics();
+		graphics.init(ctx, wPx, hPx, wMm, hMm);
+		graphics.m_oFontManager = AscCommon.g_fontManager;
+		graphics.m_oCoordTransform.tx = graphics.m_oCoordTransform.ty = wPxOffset;
+		graphics.transform(1, 0, 0, 1, 0, 0);
+		oDocumentContent.Draw(0, graphics);
+
+		this.m_oWordControl.m_oApi.ShowParaMarks = old_marks;
+
+		History.TurnOn();
+		editor.isViewMode = _oldTurn;
+	};
 
 	this.SetDrawImagePreviewMargins = function(id, props)
 	{
@@ -6875,7 +6492,7 @@ function CDrawingDocument()
 
             gutterPos = 0;
 		}
-	}
+	};
 
     this.privateGetParagraphByString = function(level, levelNum, counterCurrent, x, y, lineHeight, ctx, w, h)
     {
@@ -7203,12 +6820,12 @@ function CDrawingDocument()
                 this.privateGetParagraphByString(props.Lvl[i], level, 1, textYs[i].x, textYs[i].y, line_distance, ctx, width_px, height_px);
             }
         }
-	}
+	};
 
 	this.StartTableStylesCheck = function ()
 	{
 		this.TableStylesCheckLookFlag = true;
-	}
+	};
 
 	this.EndTableStylesCheck = function ()
 	{
@@ -7218,7 +6835,7 @@ function CDrawingDocument()
 			this.CheckTableStyles(this.TableStylesCheckLook);
 			this.TableStylesCheckLook = null;
 		}
-	}
+	};
 
 	this.CheckTableStyles = function (tableLook)
 	{
@@ -7421,20 +7038,20 @@ function CDrawingDocument()
 			logicDoc.SetTrackRevisions(true);
 
 		this.m_oWordControl.m_oApi.sync_InitEditorTableStyles(_dst_styles, this.m_oWordControl.bIsRetinaSupport);
-	}
+	};
 
 	this.IsMobileVersion = function ()
 	{
 		if (this.m_oWordControl.MobileTouchManager)
 			return true;
 		return false;
-	}
+	};
 
 	this.OnSelectEnd = function ()
 	{
 		if (this.m_oWordControl && this.m_oWordControl.MobileTouchManager)
 			this.m_oWordControl.MobileTouchManager.CheckSelectRects();
-	}
+	};
 
     this.DrawCustomTableMode = function(overlay, drawObj, logicObj, isPen)
 	{
@@ -7533,7 +7150,7 @@ function CDrawingDocument()
             ctx.beginPath();
             ctx.lineWidth = 1;
 		}
-	}
+	};
 
 	// mouse events
 	this.checkMouseDown_Drawing = function (pos)
@@ -7822,7 +7439,7 @@ function CDrawingDocument()
             return true;
 
 		return false;
-	}
+	};
 
 	this.checkCursorOnTrackRect = function (X, Y, eps, rect)
 	{
@@ -7906,7 +7523,7 @@ function CDrawingDocument()
 		}
 
 		return -1;
-	}
+	};
 
 	this.checkTrackRect = function (pos)
 	{
@@ -8032,7 +7649,7 @@ function CDrawingDocument()
 				break;
 			}
 		}
-	}
+	};
 
 	this.DrawVerAnchor = function (pageNum, xPos, bIsFromDrawings)
 	{
@@ -8052,7 +7669,7 @@ function CDrawingDocument()
 			this.m_oWordControl.m_oOverlayApi.VertLine2(_pos.X);
 			this.m_oWordControl.m_oOverlayApi.DashLineColor = "#000000";
 		}
-	}
+	};
 
 	this.DrawHorAnchor = function (pageNum, yPos, bIsFromDrawings)
 	{
@@ -8072,7 +7689,7 @@ function CDrawingDocument()
 			this.m_oWordControl.m_oOverlayApi.HorLine2(_pos.Y);
 			this.m_oWordControl.m_oOverlayApi.DashLineColor = "#000000";
 		}
-	}
+	};
 
 	this.DrawHorVerAnchor = function ()
 	{
@@ -8085,7 +7702,7 @@ function CDrawingDocument()
 				this.DrawHorAnchor(_anchor.Page, _anchor.Pos, true);
 		}
 		this.HorVerAnchors.splice(0, this.HorVerAnchors.length);
-	}
+	};
 
 	// track text (inline)
 	this.StartTrackText = function ()
@@ -8093,7 +7710,7 @@ function CDrawingDocument()
 		this.InlineTextTrackEnabled = true;
 		this.InlineTextTrack = null;
 		this.InlineTextTrackPage = -1;
-	}
+	};
 	this.EndTrackText = function (isOnlyMoveTarget)
 	{
 		this.InlineTextTrackEnabled = false;
@@ -8113,19 +7730,19 @@ function CDrawingDocument()
 
 		this.InlineTextTrack = null;
 		this.InlineTextTrackPage = -1;
-	}
+	};
 
 	this.IsTrackText = function ()
 	{
 		return this.InlineTextTrackEnabled;
-	}
+	};
 
 	this.CancelTrackText = function ()
 	{
 		this.InlineTextTrackEnabled = false;
 		this.InlineTextTrack = null;
 		this.InlineTextTrackPage = -1;
-	}
+	};
 
 	this.SendMathToMenu = function ()
 	{

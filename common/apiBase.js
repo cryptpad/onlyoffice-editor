@@ -194,6 +194,8 @@
 		// macros & plugins events
 		this.internalEvents = {};
 
+		this.skinObject = config['skin'];
+
 		this.Shortcuts = new AscCommon.CShortcuts();
 		this.initDefaultShortcuts();
 
@@ -412,6 +414,33 @@
 		{
 			this.onEndLoadDocInfo();
 		}
+	};
+	baseEditorsApi.prototype.asc_changeDocInfo = function(oDocInfo)
+	{
+		var rData = {
+			"c": 'changedocinfo',
+			"id": this.documentId,
+			"username": oDocInfo.asc_getUserName()
+		};
+		var t            = this;
+		t.fCurCallback   = function(input)
+		{
+			if (null != input && "changedocinfo" == input["type"])
+			{
+				if ('ok' === input["status"]) {
+					t.DocInfo.asc_getUserInfo().asc_putFullName(oDocInfo.asc_getUserName());
+					t.User.setUserName(oDocInfo.asc_getUserName());
+				} else {
+					t.sendEvent("asc_onError", AscCommon.mapAscServerErrorToAscError(parseInt(input["data"])),
+						c_oAscError.Level.NoCritical);
+				}
+			}
+			else
+			{
+				t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
+			}
+		};
+		AscCommon.sendCommand(this, null, rData);
 	};
 	baseEditorsApi.prototype.asc_isCrypto = function()
 	{
@@ -1854,6 +1883,7 @@
 		if (this.isLoadFullApi && this.DocInfo && this.openResult && this.isLoadFonts)
 		{
 			this.openDocument(this.openResult);
+			this.sendEvent("asc_onDocumentPassword", ("" !== this.currentPassword));
 			this.openResult = null;
 		}
 
@@ -2461,7 +2491,7 @@
     {
         if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsProtectionSupport"])
             return window["AscDesktopEditor"]["IsProtectionSupport"]();
-        return false;
+        return !(this.DocInfo && this.DocInfo.get_OfflineApp());
     };
 
 	baseEditorsApi.prototype.asc_gotoSignature = function(guid)
@@ -2735,11 +2765,38 @@
 	{
 		this.currentPassword = password;
 		this.asc_Save(false, undefined, true);
+		if (!(this.DocInfo && this.DocInfo.get_OfflineApp())) {
+			var rData = {
+				"c": 'setpassword',
+				"id": this.documentId,
+				"password": password
+			};
+			var t            = this;
+			t.fCurCallback   = function(input)
+			{
+				if (null != input && "setpassword" == input["type"])
+				{
+					if ('ok' === input["status"])
+					{
+						t.sendEvent("asc_onDocumentPassword", "" !== t.currentPassword);
+					}
+					else
+					{
+						t.sendEvent("asc_onError", AscCommon.mapAscServerErrorToAscError(parseInt(input["data"])),
+							c_oAscError.Level.NoCritical);
+					}
+				}
+				else
+				{
+					t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
+				}
+			};
+			AscCommon.sendCommand(this, null, rData);
+		}
 	};
 	baseEditorsApi.prototype.asc_resetPassword = function()
 	{
-		this.currentPassword = "";
-		this.asc_Save(false, undefined, true);
+		this.asc_setCurrentPassword("");
 	};
 
 	baseEditorsApi.prototype.asc_setMacros = function(sData)
@@ -3140,6 +3197,9 @@
 		var nActionType = this.Shortcuts.AddCustomActionSymbol(nCharCode, sFont);
 		this.Shortcuts.Add(nActionType, sShortcut[0], sShortcut[1], sShortcut[2], sShortcut[3]);
 		return nActionType;
+	};
+	baseEditorsApi.prototype.asc_setSkin = function(obj)
+	{
 	};
 	//----------------------------------------------------------addons----------------------------------------------------
     baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)

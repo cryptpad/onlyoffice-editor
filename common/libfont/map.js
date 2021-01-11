@@ -1232,12 +1232,12 @@ CFontSelect.prototype =
     GetFaceNamePenalty : function(sReqName)
     {
         var min = this.GetFaceNamePenalty_private(sReqName, this.m_wsFontName);
-        if (this.names)
+        if (this.m_names)
         {
             var tmpMin = 0;
-            for (var i = 0, len = this.names.length; i < len; i++)
+            for (var i = 0, len = this.m_names.length; i < len; i++)
             {
-                tmpMin = this.GetFaceNamePenalty_private(sReqName, this.names[i]);
+                tmpMin = this.GetFaceNamePenalty_private(sReqName, this.m_names[i]);
                 if (tmpMin < min)
                     min = tmpMin;
             }

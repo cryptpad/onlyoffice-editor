@@ -60,83 +60,6 @@ var Y_Top_Margin    = 20;  // 2   cm
 var X_Right_Field  = Page_Width - X_Right_Margin;
 var Y_Bottom_Field = Page_Height - Y_Bottom_Margin;
 
-var GlobalSkinTeamlab = {
-	Name                                  : "classic",
-	RulersButton                          : true,
-	NavigationButtons                     : true,
-	BackgroundColor                       : "#B0B0B0",
-	BackgroundColorThumbnails             : "#EBEBEB",
-	BackgroundScroll                      : "#F1F1F1",
-	RulerDark                             : "#B0B0B0",
-	RulerLight                            : "EDEDED",
-	RulerOutline                          : "#929292",
-	RulerMarkersFillColor                 : "#E7E7E7",
-	PageOutline                           : "#81878F",
-	STYLE_THUMBNAIL_WIDTH                 : 80,
-	STYLE_THUMBNAIL_HEIGHT                : 40,
-	BorderSplitterColor                   : "#787878",
-	SupportNotes                          : true,
-	SplitterWidthMM                       : 1.5,
-	ThumbnailScrollWidthNullIfNoScrolling : true
-};
-var GlobalSkinFlat    = {
-	Name                                  : "flat",
-	RulersButton                          : false,
-	NavigationButtons                     : false,
-	BackgroundColor                       : "#F4F4F4",
-	BackgroundColorThumbnails             : "#F4F4F4",
-	BackgroundScroll                      : "#F1F1F1",
-	RulerDark                             : "#CFCFCF",
-	RulerLight                            : "#FFFFFF",
-	RulerOutline                          : "#BBBEC2",
-	RulerMarkersFillColor                 : "#FFFFFF",
-	PageOutline                           : "#BBBEC2",
-	STYLE_THUMBNAIL_WIDTH                 : 109,
-	STYLE_THUMBNAIL_HEIGHT                : 45,
-	BorderSplitterColor                   : "#CBCBCB",
-	SupportNotes                          : true,
-	SplitterWidthMM                       : 1,
-	ThumbnailScrollWidthNullIfNoScrolling : false
-};
-var GlobalSkinFlat2    = {
-	Name                                  : "flat",
-	RulersButton                          : false,
-	NavigationButtons                     : false,
-	BackgroundColor                       : "#E2E2E2",
-	BackgroundColorThumbnails             : "#F4F4F4",
-	BackgroundScroll       				  : "#E2E2E2",
-	RulerDark                             : "#CFCFCF",
-	RulerLight                            : "#FFFFFF",
-	RulerOutline                          : "#BBBEC2",
-	RulerMarkersFillColor                 : "#FFFFFF",
-	PageOutline                           : "#BBBEC2",
-	STYLE_THUMBNAIL_WIDTH                 : 109,
-	STYLE_THUMBNAIL_HEIGHT                : 45,
-	BorderSplitterColor                   : "#CBCBCB",
-	SupportNotes                          : true,
-	SplitterWidthMM                       : 1,
-	ThumbnailScrollWidthNullIfNoScrolling : false
-};
-
-var GlobalSkin = GlobalSkinFlat2;
-
-function updateGlobalSkin(newSkin)
-{
-	GlobalSkin.Name                   = newSkin.Name;
-	GlobalSkin.RulersButton           = newSkin.RulersButton;
-	GlobalSkin.NavigationButtons      = newSkin.NavigationButtons;
-	GlobalSkin.BackgroundColor        = newSkin.BackgroundColor;
-	GlobalSkin.RulerDark              = newSkin.RulerDark;
-	GlobalSkin.RulerLight             = newSkin.RulerLight;
-	GlobalSkin.BackgroundScroll       = newSkin.BackgroundScroll;
-	GlobalSkin.RulerOutline           = newSkin.RulerOutline;
-	GlobalSkin.RulerMarkersFillColor  = newSkin.RulerMarkersFillColor;
-	GlobalSkin.PageOutline            = newSkin.PageOutline;
-	GlobalSkin.STYLE_THUMBNAIL_WIDTH  = newSkin.STYLE_THUMBNAIL_WIDTH;
-	GlobalSkin.STYLE_THUMBNAIL_HEIGHT = newSkin.STYLE_THUMBNAIL_HEIGHT;
-	GlobalSkin.isNeedInvertOnActive   = newSkin.isNeedInvertOnActive;
-}
-
 function CEditorPage(api)
 {
 	// ------------------------------------------------------------------
@@ -1585,46 +1508,40 @@ function CEditorPage(api)
 	this.onButtonTabsDraw = function()
 	{
 		var _ctx = this.m_oLeftRuler_buttonsTabs.HtmlElement.getContext('2d');
-		if (this.bIsRetinaSupport)
-		{
-			_ctx.setTransform(AscCommon.AscBrowser.retinaPixelRatio, 0, 0, AscCommon.AscBrowser.retinaPixelRatio, 0, 0);
-		}
-		else
-		{
-			_ctx.setTransform(1, 0, 0, 1, 0, 0);
-		}
+		_ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-		var _width  = 19;
-		var _height = 19;
+		var dPR = window.devicePixelRatio;
+		var _width  = Math.round(19 * dPR);
+		var _height = Math.round(19 * dPR);
 
-		_ctx.clearRect(0, 0, 19, 19);
+		_ctx.clearRect(0, 0, _width, _height);
 
-		_ctx.lineWidth   = 1;
-		_ctx.strokeStyle = "#BBBEC2";
-		_ctx.strokeRect(2.5, 3.5, 14, 14);
+		_ctx.lineWidth   = Math.round(dPR);
+		_ctx.strokeStyle = GlobalSkin.RulerOutline;
+		_ctx.strokeRect(2.5 * _ctx.lineWidth, 3.5 * _ctx.lineWidth, Math.round(14 * dPR), Math.round(14 * dPR));
 		_ctx.beginPath();
 
-		_ctx.strokeStyle = "#3E3E3E";
+		_ctx.strokeStyle = GlobalSkin.RulerTabsColor;
 
-		_ctx.lineWidth = 2;
+		_ctx.lineWidth = 2 * Math.round(dPR);
 		if (this.m_nTabsType == tab_Left)
 		{
-			_ctx.moveTo(8, 9);
-			_ctx.lineTo(8, 14);
-			_ctx.lineTo(13, 14);
+			_ctx.moveTo(Math.round(8 * dPR), Math.round(9 * dPR));
+			_ctx.lineTo(Math.round(8 * dPR), Math.round(14 * dPR));
+			_ctx.lineTo(Math.round(13 * dPR), Math.round(14 * dPR));
 		}
 		else if (this.m_nTabsType == tab_Center)
 		{
-			_ctx.moveTo(6, 14);
-			_ctx.lineTo(14, 14);
-			_ctx.moveTo(10, 9);
-			_ctx.lineTo(10, 14);
+			_ctx.moveTo(Math.round(6 * dPR), Math.round(14 * dPR));
+			_ctx.lineTo(Math.round(14 * dPR), Math.round(14 * dPR));
+			_ctx.moveTo(Math.round(10 * dPR), Math.round(9 * dPR));
+			_ctx.lineTo(Math.round(10 * dPR), Math.round(14 * dPR));
 		}
 		else
 		{
-			_ctx.moveTo(12, 9);
-			_ctx.lineTo(12, 14);
-			_ctx.lineTo(7, 14);
+			_ctx.moveTo(Math.round(12 * dPR), Math.round(9 * dPR));
+			_ctx.lineTo(Math.round(12 * dPR), Math.round(14 * dPR));
+			_ctx.lineTo(Math.round(7 * dPR), Math.round(14 * dPR));
 		}
 
 		_ctx.stroke();
@@ -2937,9 +2854,25 @@ function CEditorPage(api)
 		settings.contentH = this.m_dDocumentHeight;
 		settings.contentW = this.m_dDocumentWidth;
 
-		settings.scrollBackgroundColor = GlobalSkin.BackgroundScroll;
-		settings.scrollBackgroundColorHover = GlobalSkin.BackgroundScroll;
-		settings.scrollBackgroundColorActive = GlobalSkin.BackgroundScroll;
+		settings.scrollBackgroundColor = GlobalSkin.ScrollBackgroundColor;
+		settings.scrollBackgroundColorHover = GlobalSkin.ScrollBackgroundColor;
+		settings.scrollBackgroundColorActive = GlobalSkin.ScrollBackgroundColor;
+
+		settings.scrollerColor = GlobalSkin.ScrollerColor;
+		settings.scrollerHoverColor = GlobalSkin.ScrollerHoverColor;
+		settings.scrollerActiveColor = GlobalSkin.ScrollerActiveColor;
+
+		settings.arrowColor = GlobalSkin.ScrollArrowColor;
+		settings.arrowHoverColor = GlobalSkin.ScrollArrowHoverColor;
+		settings.arrowActiveColor = GlobalSkin.ScrollArrowActiveColor;
+
+		settings.strokeStyleNone = GlobalSkin.ScrollOutlineColor;
+		settings.strokeStyleOver = GlobalSkin.ScrollOutlineHoverColor;
+		settings.strokeStyleActive = GlobalSkin.ScrollOutlineActiveColor;
+
+		settings.targetColor = GlobalSkin.ScrollerTargetColor;
+		settings.targetHoverColor = GlobalSkin.ScrollerTargetHoverColor;
+		settings.targetActiveColor = GlobalSkin.ScrollerTargetActiveColor;
 
 		if (this.m_bIsRuler)
 		{
@@ -2963,6 +2896,8 @@ function CEditorPage(api)
 
 		settings = this.CreateScrollSettings();
 		settings.alwaysVisible = true;
+		settings.isVerticalScroll = false;
+		settings.isHorizontalScroll = true;
 		if (this.m_bIsHorScrollVisible)
 		{
 			if (this.m_oScrollHor_)
@@ -3410,9 +3345,6 @@ function CEditorPage(api)
 
 		this.m_bIsHorScrollVisible = this.checkNeedHorScrollValue(this.m_dDocumentWidth);
 
-		var hor_scroll         = document.getElementById('panel_hor_scroll');
-		hor_scroll.style.width = this.m_dDocumentWidth + "px";
-
 		if (this.m_bIsHorScrollVisible)
 		{
 			if (this.m_oApi.isMobileVersion)
@@ -3533,6 +3465,15 @@ function CEditorPage(api)
 			if (this.MobileTouchManager)
 				this.MobileTouchManager.CheckSelect(overlay);
 		}
+
+		if (drDoc.MathTrack.IsActive())
+		{
+			var dGlobalAplpha = ctx.globalAlpha;
+			ctx.globalAlpha = 1.0;
+			drDoc.DrawMathTrack(overlay);
+			ctx.globalAlpha = dGlobalAplpha;
+		}
+
 
 		if (isDrawNotes && drDoc.m_bIsSelection)
 		{
@@ -3864,8 +3805,6 @@ function CEditorPage(api)
 
 		this.checkNeedHorScroll();
 
-		document.getElementById('panel_right_scroll').style.height = this.m_dDocumentHeight + "px";
-
 		this.UpdateScrolls();
 
 		this.MainScrollUnLock();
@@ -3909,8 +3848,6 @@ function CEditorPage(api)
 		this.MainScrollLock();
 
 		var bIsResize = this.checkNeedHorScroll();
-
-		document.getElementById('panel_right_scroll').style.height = this.m_dDocumentHeight + "px";
 
 		this.UpdateScrolls();
 
@@ -4412,10 +4349,6 @@ function CEditorPage(api)
 //------------------------------------------------------------export----------------------------------------------------
 window['AscCommon']                       = window['AscCommon'] || {};
 window['AscCommonSlide']                  = window['AscCommonSlide'] || {};
-window['AscCommonSlide'].GlobalSkinFlat   = GlobalSkinFlat;
-window['AscCommonSlide'].GlobalSkinFlat2  = GlobalSkinFlat2;
-window['AscCommonSlide'].GlobalSkin       = GlobalSkin;
-window['AscCommonSlide'].updateGlobalSkin = updateGlobalSkin;
 window['AscCommonSlide'].CEditorPage      = CEditorPage;
 
 window['AscCommon'].Page_Width      = Page_Width;

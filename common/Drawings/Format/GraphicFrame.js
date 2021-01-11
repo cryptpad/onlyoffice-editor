@@ -361,10 +361,10 @@ CGraphicFrame.prototype.Set_Props= function(props)
         {
             var bApplyToAll = this.parent.graphicObjects.State.textObject !== this;
            // if(bApplyToAll)
-           //     this.graphicObject.Set_ApplyToAll(true);
+           //     this.graphicObject.SetApplyToAll(true);
             this.graphicObject.Set_Props(props, bApplyToAll);
             //if(bApplyToAll)
-            //    this.graphicObject.Set_ApplyToAll(false);
+            //    this.graphicObject.SetApplyToAll(false);
             this.OnContentRecalculate();
             editor.WordControl.m_oLogicDocument.recalcMap[this.Id] = this;
         }
@@ -683,7 +683,7 @@ CGraphicFrame.prototype.Check_AutoFit = function()
         return false;
 };
 
-CGraphicFrame.prototype.Is_InTable = function()
+CGraphicFrame.prototype.IsInTable = function()
     {
         return null;
 };
@@ -992,9 +992,9 @@ CGraphicFrame.prototype.applyAllAlign = function(val)
     {
         if(isRealObject(this.graphicObject))
         {
-            this.graphicObject.Set_ApplyToAll(true);
+            this.graphicObject.SetApplyToAll(true);
             this.graphicObject.SetParagraphAlign(val);
-            this.graphicObject.Set_ApplyToAll(false);
+            this.graphicObject.SetApplyToAll(false);
         }
 };
 
@@ -1010,9 +1010,9 @@ CGraphicFrame.prototype.applyAllSpacing = function(val)
     {
         if(isRealObject(this.graphicObject))
         {
-            this.graphicObject.Set_ApplyToAll(true);
+            this.graphicObject.SetApplyToAll(true);
             this.graphicObject.SetParagraphSpacing(val);
-            this.graphicObject.Set_ApplyToAll(false);
+            this.graphicObject.SetApplyToAll(false);
         }
 };
 
@@ -1287,6 +1287,11 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
             }
         }
         return ret;
+    };
+    CGraphicFrame.prototype.documentCreateFontMap = function(oMap) {
+        if(this.graphicObject && this.graphicObject.Document_CreateFontMap) {
+            this.graphicObject.Document_CreateFontMap(oMap);
+        }
     };
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
