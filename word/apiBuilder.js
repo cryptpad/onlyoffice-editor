@@ -8386,22 +8386,20 @@
 	 */
 	ApiParaPr.prototype.GetJc = function()
 	{
-		function GetParaAlign(nType)
+		var nType = this.Paragraph.Get_CompiledPr2().ParaPr.Jc
+		switch (nType)
 		{
-			switch (nType)
-			{
-				case 0 :
-					return "right";
-				case 1 :
-					return "left";
-				case 2 :
-					return "center";
-				case 3 : 
-					return "both";
-			}
+			case 0 :
+				return "right";
+			case 1 :
+				return "left";
+			case 2 :
+				return "center";
+			case 3 : 
+				return "both";
 		}
 
-		return GetParaAlign(this.Paragraph.Get_CompiledPr2().ParaPr.Jc);
+		return "left";
 	};
 	/**
 	 * Specify that when rendering this document using a page view, all lines of this paragraph are maintained on a single page whenever possible.
