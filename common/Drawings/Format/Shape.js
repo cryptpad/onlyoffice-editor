@@ -618,7 +618,7 @@ function CheckWordRunPr(Pr, bMath)
 
     if(bMath){
         NewRPr = Pr.Copy();
-        NewRPr.RFonts.Set_All("Cambria Math", -1);
+        NewRPr.RFonts.SetAll("Cambria Math", -1);
     }
     return NewRPr;
 }

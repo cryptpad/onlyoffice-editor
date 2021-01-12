@@ -100,7 +100,26 @@ var EditorSkins = {
 		BorderSplitterColor             : "#CBCBCB",
 		SupportNotes                    : true,
 		SplitterWidthMM                 : 1,
-		ThumbnailScrollWidthNullIfNoScrolling : false
+		ThumbnailScrollWidthNullIfNoScrolling : false,
+
+		/* spreadsheets */
+		//TODO названия не менял. использую такие же как и были ранее. пересмотреть!
+		Background               : "#f1f1f1",
+		Border                   : "#d5d5d5",
+		Color                    : "#363636",
+		BackgroundDark           : "#444444",
+		ColorDark                : "#ffffff",
+		BackgroundActive         : "#c1c1c1",
+		BorderActive             : "#929292",
+		ColorActive              : "#363636",
+		BackgroundDarkActive     : "#000000",
+		ColorDarkActive          : "#ffffff",
+		BackgroundHighlighted    : "#dfdfdf",
+		BorderHighlighted        : "#afafaf",
+		ColorHighlighted         : "#6a6a70",
+		BackgroundDarkHighlighted: "#ffffff",
+		ColorDarkHighlighted     : "#c1c1c1"
+
 	},
 	"flatDark" : {
 		Name                      : "flatDark",
@@ -119,23 +138,23 @@ var EditorSkins = {
 		RulerMarkersFillColorOld  : "#CDD1D6",
 		RulerTextColor            : "#B2B2B2",
 		RulerTabsColor            : "#FFFFFF",
-		RulerTabsColorOld         : "#81878F",
+		RulerTabsColorOld         : "#888888",
 		RulerTableColor1          : "#FFFFFF",
 		RulerTableColor2          : "#646464",
 
 		ScrollBackgroundColor       : "#666666",
-		ScrollOutlineColor          : "#CFCFCF",
-		ScrollOutlineHoverColor     : "#CFCFCF",
+		ScrollOutlineColor          : "#404040",
+		ScrollOutlineHoverColor     : "#999999",
 		ScrollOutlineActiveColor    : "#ADADAD",
-		ScrollerColor               : "#F1F1F1",
-		ScrollerHoverColor          : "#CFCFCF",
+		ScrollerColor               : "#404040",
+		ScrollerHoverColor          : "#999999",
 		ScrollerActiveColor         : "#ADADAD",
-		ScrollArrowColor            : "#ADADAD",
-		ScrollArrowHoverColor       : "#F1F1F1",
-		ScrollArrowActiveColor      : "#F1F1F1",
-		ScrollerTargetColor         : "#CFCFCF",
-		ScrollerTargetHoverColor    : "#F1F1F1",
-		ScrollerTargetActiveColor   : "#F1F1F1",
+		ScrollArrowColor            : "#999999",
+		ScrollArrowHoverColor       : "#404040",
+		ScrollArrowActiveColor      : "#404040",
+		ScrollerTargetColor         : "#999999",
+		ScrollerTargetHoverColor    : "#404040",
+		ScrollerTargetActiveColor   : "#404040",
 
 		/* word */
 		STYLE_THUMBNAIL_WIDTH       : 104,
@@ -165,7 +184,23 @@ var EditorSkins = {
 		BorderSplitterColor                   : "#CBCBCB",
 		SupportNotes                          : true,
 		SplitterWidthMM                       : 1,
-		ThumbnailScrollWidthNullIfNoScrolling : false
+		ThumbnailScrollWidthNullIfNoScrolling : false,
+
+		Background               : "#f1f1f1",
+		Border                   : "#d5d5d5",
+		Color                    : "#363636",
+		BackgroundDark           : "#444444",
+		ColorDark                : "#ffffff",
+		BackgroundActive         : "#c1c1c1",
+		BorderActive             : "#929292",
+		ColorActive              : "#363636",
+		BackgroundDarkActive     : "#000000",
+		ColorDarkActive          : "#ffffff",
+		BackgroundHighlighted    : "#dfdfdf",
+		BorderHighlighted        : "#afafaf",
+		ColorHighlighted         : "#6a6a70",
+		BackgroundDarkHighlighted: "#ffffff",
+		ColorDarkHighlighted     : "#c1c1c1"
 	}
 };
 
@@ -245,6 +280,22 @@ function updateGlobalSkin(obj)
 		if (undefined !== obj["SupportNotes"]) GlobalSkin.SupportNotes = obj["SupportNotes"];
 		if (undefined !== obj["SplitterWidthMM"]) GlobalSkin.SplitterWidthMM = obj["SplitterWidthMM"];
 		if (undefined !== obj["ThumbnailScrollWidthNullIfNoScrolling"]) GlobalSkin.ThumbnailScrollWidthNullIfNoScrolling = obj["ThumbnailScrollWidthNullIfNoScrolling"];
+
+		if (undefined !== obj["Background"]) GlobalSkin.Background = obj["Background"];
+		if (undefined !== obj["Border"]) GlobalSkin.Border = obj["Border"];
+		if (undefined !== obj["Color"]) GlobalSkin.Color = obj["Color"];
+		if (undefined !== obj["BackgroundDark"]) GlobalSkin.BackgroundDark = obj["BackgroundDark"];
+		if (undefined !== obj["ColorDark"]) GlobalSkin.ColorDark = obj["ColorDark"];
+		if (undefined !== obj["BackgroundActive"]) GlobalSkin.BackgroundActive = obj["BackgroundActive"];
+		if (undefined !== obj["BorderActive"]) GlobalSkin.BorderActive = obj["BorderActive"];
+		if (undefined !== obj["ColorActive"]) GlobalSkin.ColorActive = obj["ColorActive"];
+		if (undefined !== obj["BackgroundDarkActive"]) GlobalSkin.BackgroundDarkActive = obj["BackgroundDarkActive"];
+		if (undefined !== obj["ColorDarkActive"]) GlobalSkin.ColorDarkActive = obj["ColorDarkActive"];
+		if (undefined !== obj["BackgroundHighlighted"]) GlobalSkin.BackgroundHighlighted = obj["BackgroundHighlighted"];
+		if (undefined !== obj["BorderHighlighted"]) GlobalSkin.BorderHighlighted = obj["BorderHighlighted"];
+		if (undefined !== obj["ColorHighlighted"]) GlobalSkin.ColorHighlighted = obj["ColorHighlighted"];
+		if (undefined !== obj["BackgroundDarkHighlighted"]) GlobalSkin.BackgroundDarkHighlighted = obj["BackgroundDarkHighlighted"];
+		if (undefined !== obj["ColorDarkHighlighted"]) GlobalSkin.ColorDarkHighlighted = obj["ColorDarkHighlighted"];
 	}
 
 	window['AscCommon'].GlobalSkin = GlobalSkin;

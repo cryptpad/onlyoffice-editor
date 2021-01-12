@@ -16119,6 +16119,8 @@
 				c_oAscError.Level.NoCritical);
 			result = false;
 		} else if (this.model.inPivotTable(fullRange)) {
+			worksheet.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot,
+				c_oAscError.Level.NoCritical);
 			result = false;
 		} else if(styleName && this.intersectionFormulaArray(activeRange, true, true)) {
 			worksheet.workbook.handlers.trigger("asc_onError", c_oAscError.ID.MultiCellsInTablesFormulaArray, c_oAscError.Level.NoCritical);
@@ -16471,7 +16473,7 @@
 			}
 		}
 
-		t._endSelectionShape()
+		t._endSelectionShape();
 		//todo обработать выделение при клике с зажатым ctrl
 		t.setSelection(new Asc.Range(startCol, startRow, endCol, endRow));
 	};
@@ -16525,21 +16527,34 @@
         }
     };
 
-    WorksheetView.prototype.af_checkChangeTableInfo = function (table, optionType) {
-        var res = table.Ref;
-        var t = this;
-        var ws = this.model, range;
-        var lockRange = null;
+	WorksheetView.prototype.af_checkChangeTableInfo = function (table, optionType) {
+		var res = table.Ref;
+		var t = this;
+		var ws = this.model, range;
+		var lockRange = null;
+		var pivotError;
 
-		var sendError = function() {
-			ws.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterChangeFormatTableError, c_oAscError.Level.NoCritical);
+		var sendError = function () {
+			if (pivotError) {
+				t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot,
+					c_oAscError.Level.NoCritical);
+			} else {
+				ws.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterChangeFormatTableError,
+					c_oAscError.Level.NoCritical);
+			}
 			t.handlers.trigger("selectionChanged");
 		};
 
-		var checkShift = function(range) {
+		var checkShift = function (range) {
 			var result = false;
 
-			if(!t.model.autoFilters._isPartTablePartsUnderRange(range) && !t.model.autoFilters.isPartFilterUnderRange(range)) {
+			if (t.model.checkShiftPivotTable(range, new AscCommon.CellBase(1, 0))) {
+				pivotError = true;
+				return false;
+			}
+
+			if (!t.model.autoFilters._isPartTablePartsUnderRange(range) &&
+				!t.model.autoFilters.isPartFilterUnderRange(range)) {
 				result = true;
 
 				//проверяем ещё на наличие части объединенной ячейки
@@ -16550,10 +16565,11 @@
 				var downRange = Asc.Range(range.c1, range.r2 + 1, range.c2, gc_nMaxRow0);
 				var mergedRange = ws.getMergedByRange(downRange);
 
-				if(mergedRange && mergedRange.all) {
-					for(var i = 0; i < mergedRange.all.length; i++) {
-						if(mergedRange.all[i] && mergedRange.all[i].bbox) {
-							if(mergedRange.all[i].bbox.intersection(mergedRange) && !mergedRange.all[i].bbox.containsRange(mergedRange)) {
+				if (mergedRange && mergedRange.all) {
+					for (var i = 0; i < mergedRange.all.length; i++) {
+						if (mergedRange.all[i] && mergedRange.all[i].bbox) {
+							if (mergedRange.all[i].bbox.intersection(mergedRange) &&
+								!mergedRange.all[i].bbox.containsRange(mergedRange)) {
 								result = false;
 								break;
 							}
@@ -16566,13 +16582,12 @@
 		};
 
 		switch (optionType) {
-			case c_oAscChangeTableStyleInfo.rowHeader:
-			{
+			case c_oAscChangeTableStyleInfo.rowHeader: {
 				//добавляем строку заголовков. нужно чтобы либо сверху была пустая строка, либо был возможен сдвиг диапазона вниз
-				if(!table.isHeaderRow()) {
+				if (!table.isHeaderRow()) {
 					range = Asc.Range(table.Ref.c1, table.Ref.r1 - 1, table.Ref.c2, table.Ref.r1 - 1);
-					if(!this.model.autoFilters._isEmptyRange(range, 0)) {
-						if(!checkShift(table.Ref)) {
+					if (!this.model.autoFilters._isEmptyRange(range, 0)) {
+						if (!checkShift(table.Ref)) {
 							sendError();
 							res = false;
 						} else {
@@ -16585,23 +16600,22 @@
 
 				break;
 			}
-			case c_oAscChangeTableStyleInfo.rowTotal:
-			{
+			case c_oAscChangeTableStyleInfo.rowTotal: {
 				range = new Asc.Range(table.Ref.c1, table.Ref.r2 + 1, table.Ref.c2, table.Ref.r2 + 1);
-				if(table.isTotalsRow()) {
+				if (table.isTotalsRow()) {
 
-					if(checkShift(table.Ref)) {
+					if (checkShift(table.Ref)) {
 						//сдвиг диапазона вверх
 						//в данном случае возвращаем не диапазон лока, а диапазон обновления данных
 						lockRange = Asc.Range(table.Ref.c1, table.Ref.r2 - 1, table.Ref.c2, gc_nMaxRow0);
 						res = table.Ref;
 					}
 				} else { // добавляем строку
-					if(checkShift(table.Ref)) {
+					if (checkShift(table.Ref)) {
 						//сдвиг диапазона вниз
 						lockRange = Asc.Range(table.Ref.c1, table.Ref.r2 + 1, table.Ref.c2, gc_nMaxRow0);
 						res = Asc.Range(table.Ref.c1, table.Ref.r1, table.Ref.c2, table.Ref.r2 + 1);
-					} else if(!this.model.autoFilters._isEmptyRange(range, 0)){
+					} else if (!this.model.autoFilters._isEmptyRange(range, 0)) {
 						sendError();
 						res = false;
 					}
@@ -16612,7 +16626,7 @@
 		}
 
 		return res ? {updateRange: res, lockRange: lockRange} : res;
-    };
+	};
 
     WorksheetView.prototype.af_getLockRangeTableInfo = function (tablePart, optionType, val) {
         var res = null;
@@ -16750,6 +16764,13 @@
 
 				break;
 			}
+		}
+
+		var _cellBase = new AscCommon.CellBase(type !== c_oAscInsertOptions.InsertCellsAndShiftRight ? newActiveRange.r2 - newActiveRange.r1 + 1 : 0, type !== c_oAscInsertOptions.InsertCellsAndShiftRight ? 0 : newActiveRange.c2 - newActiveRange.c1 + 1);
+		if (t.model.checkShiftPivotTable(tablePart.Ref, _cellBase)) {
+			t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot,
+				c_oAscError.Level.NoCritical);
+			return;
 		}
 
 		insertCellsAndShiftDownRight(newActiveRange, displayName, type)

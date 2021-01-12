@@ -8026,15 +8026,20 @@ ParaRun.prototype.Internal_Compile_Pr = function ()
 		}
 	}
 
+	var oTheme = this.Paragraph.Get_Theme();
+
 	if (TextPr.TextFill)
-		TextPr.TextFill.check(this.Paragraph.Get_Theme(), this.Paragraph.Get_ColorMap());
+		TextPr.TextFill.check(oTheme, this.Paragraph.Get_ColorMap());
 	else if (TextPr.Unifill)
-		TextPr.Unifill.check(this.Paragraph.Get_Theme(), this.Paragraph.Get_ColorMap());
+		TextPr.Unifill.check(oTheme, this.Paragraph.Get_ColorMap());
+
+	TextPr.ReplaceThemeFonts(oTheme.themeElements.fontScheme);
+	TextPr.CheckFontScale();
 
 	// Для совместимости со старыми версиями запишем FontFamily
 	TextPr.FontFamily.Name  = TextPr.RFonts.Ascii.Name;
 	TextPr.FontFamily.Index = TextPr.RFonts.Ascii.Index;
-	TextPr.CheckFontScale();
+
 	return TextPr;
 };
 
@@ -8654,7 +8659,7 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 			if (TextPr.RFonts.Ascii !== undefined || TextPr.RFonts.HAnsi !== undefined)
 			{
 				var RFonts = new CRFonts();
-				RFonts.Set_All("Cambria Math", -1);
+				RFonts.SetAll("Cambria Math", -1);
 
 				this.Set_RFonts2(RFonts);
 			}

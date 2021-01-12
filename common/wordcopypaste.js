@@ -6509,21 +6509,21 @@ PasteProcessor.prototype =
 							oNum.CreateDefault(c_oAscMultiLevelNumbering.Bullet);
 							var LvlText = String.fromCharCode(0x00B7);
 							var NumTextPr = new CTextPr();
-							NumTextPr.RFonts.Set_All("Symbol", -1);
+							NumTextPr.RFonts.SetAll("Symbol", -1);
 
 							switch (type) {
 								case "disc": {
-									NumTextPr.RFonts.Set_All("Symbol", -1);
+									NumTextPr.RFonts.SetAll("Symbol", -1);
 									LvlText = String.fromCharCode(0x00B7);
 									break;
 								}
 								case "circle": {
-									NumTextPr.RFonts.Set_All("Courier New", -1);
+									NumTextPr.RFonts.SetAll("Courier New", -1);
 									LvlText = "o";
 									break;
 								}
 								case "square": {
-									NumTextPr.RFonts.Set_All("Wingdings", -1);
+									NumTextPr.RFonts.SetAll("Wingdings", -1);
 									LvlText = String.fromCharCode(0x00A7);
 									break;
 								}
@@ -6616,21 +6616,21 @@ PasteProcessor.prototype =
 							oNum.CreateDefault(c_oAscMultiLevelNumbering.Bullet);
 							var LvlText = String.fromCharCode(0x00B7);
 							var NumTextPr = new CTextPr();
-							NumTextPr.RFonts.Set_All("Symbol", -1);
+							NumTextPr.RFonts.SetAll("Symbol", -1);
 
 							switch (type) {
 								case "disc": {
-									NumTextPr.RFonts.Set_All("Symbol", -1);
+									NumTextPr.RFonts.SetAll("Symbol", -1);
 									LvlText = String.fromCharCode(0x00B7);
 									break;
 								}
 								case "circle": {
-									NumTextPr.RFonts.Set_All("Courier New", -1);
+									NumTextPr.RFonts.SetAll("Courier New", -1);
 									LvlText = "o";
 									break;
 								}
 								case "square": {
-									NumTextPr.RFonts.Set_All("Wingdings", -1);
+									NumTextPr.RFonts.SetAll("Wingdings", -1);
 									LvlText = String.fromCharCode(0x00A7);
 									break;
 								}
