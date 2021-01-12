@@ -16737,6 +16737,13 @@
 			}
 		}
 
+		var _cellBase = new AscCommon.CellBase(type !== c_oAscInsertOptions.InsertCellsAndShiftRight ? newActiveRange.r2 - newActiveRange.r1 + 1 : 0, type !== c_oAscInsertOptions.InsertCellsAndShiftRight ? 0 : newActiveRange.c2 - newActiveRange.c1 + 1);
+		if (t.model.checkShiftPivotTable(tablePart.Ref, _cellBase)) {
+			t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot,
+				c_oAscError.Level.NoCritical);
+			return;
+		}
+
 		insertCellsAndShiftDownRight(newActiveRange, displayName, type)
 	};
 
