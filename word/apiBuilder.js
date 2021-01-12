@@ -8490,6 +8490,8 @@
 			case Asc.linerule_AtLeast:
 			case Asc.linerule_Exact:
 				return AscCommon.MMToTwips(oSpacing.Line);
+			default: 
+				return 0;
 		}
 	};
 	/**
@@ -8506,8 +8508,11 @@
 			case Asc.linerule_Auto:
 				return "line240";
 			case Asc.linerule_AtLeast:
+				return "atLeast";
 			case Asc.linerule_Exact:
 				return "twips";
+			default: 
+				"atLeast";
 		}
 	};
 	/**
