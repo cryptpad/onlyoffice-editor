@@ -8490,9 +8490,9 @@
 			case Asc.linerule_AtLeast:
 			case Asc.linerule_Exact:
 				return AscCommon.MMToTwips(oSpacing.Line);
-			default: 
-				return 0;
 		}
+
+		return 0;
 	};
 	/**
 	 * Get the paragraph line spacing rule.
@@ -8511,9 +8511,9 @@
 				return "atLeast";
 			case Asc.linerule_Exact:
 				return "twips";
-			default: 
-				"atLeast";
 		}
+
+		return "atLeast";
 	};
 	/**
 	 * Set the spacing before the current paragraph. If the value of the isBeforeAuto parameter is true, then 
