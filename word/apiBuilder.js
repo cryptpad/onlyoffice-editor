@@ -8475,24 +8475,37 @@
 	 * Get the paragraph line spacing value.
 	 * @memberof ApiParaPr
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
-	 * @returns {object} - has two properties: "Value" - contains the value of line spacing, 
-	 * "Type" - contains the type of Value: twentieths of a point (1/1440 of an inch) or in 240ths of a line.
+	 * @returns {twips | line240} - to know is twips or line240 use ApiParaPr.prototype.GetSpacingLineRule().
 	 */
-	ApiParaPr.prototype.GetSpacingLine = function()
+	ApiParaPr.prototype.GetSpacingLineValue = function()
 	{
-		function GetSpacing(oSpacing)
+		var oSpacing = this.Paragraph.Get_CompiledPr2().ParaPr.Spacing;
+		switch (oSpacing.LineRule)
 		{
-			switch (oSpacing.LineRule)
-			{
-				case Asc.linerule_Auto:
-					return { Value : oSpacing.Line * 240.0, Type: "line240" };
-				case Asc.linerule_AtLeast:
-				case Asc.linerule_Exact:
-					return { Value : oSpacing.Line / (25.4 / 72.0 / 20), Type: "twips" };
-			}
+			case Asc.linerule_Auto:
+				return oSpacing.Line * 240.0;
+			case Asc.linerule_AtLeast:
+			case Asc.linerule_Exact:
+				return AscCommon.MMToTwips(oSpacing.Line);
 		}
-		
-		return GetSpacing(this.Paragraph.Get_CompiledPr2().ParaPr.Spacing);
+	};
+	/**
+	 * Get the paragraph line spacing rule.
+	 * @memberof ApiParaPr
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @returns {"twips" | "line240"} 
+	 */
+	ApiParaPr.prototype.GetSpacingLineRule = function()
+	{
+		var oSpacing = this.Paragraph.Get_CompiledPr2().ParaPr.Spacing;
+		switch (oSpacing.LineRule)
+		{
+			case Asc.linerule_Auto:
+				return "line240";
+			case Asc.linerule_AtLeast:
+			case Asc.linerule_Exact:
+				return "twips";
+		}
 	};
 	/**
 	 * Set the spacing before the current paragraph. If the value of the isBeforeAuto parameter is true, then 
@@ -8521,7 +8534,7 @@
 	 */
 	ApiParaPr.prototype.GetSpacingBefore = function()
 	{
-		return this.Paragraph.Get_CompiledPr2().ParaPr.Spacing.Before / (25.4 / 72.0 / 20);
+		return AscCommon.MMToTwips(this.Paragraph.Get_CompiledPr2().ParaPr.Spacing.Before);
 	};
 	/**
 	 * Set the spacing after the current paragraph. If the value of the isAfterAuto parameter is true, then 
@@ -8550,7 +8563,7 @@
 	 */
 	ApiParaPr.prototype.GetSpacingAfter = function()
 	{
-		return this.Paragraph.Get_CompiledPr2().ParaPr.Spacing.After / (25.4 / 72.0 / 20);
+		return AscCommon.MMToTwips(this.Paragraph.Get_CompiledPr2().ParaPr.Spacing.After);
 	};
 	/**
 	 * Specify the shading applied to the contents of the paragraph.
