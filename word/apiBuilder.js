@@ -8688,7 +8688,8 @@
 
 			oColor = this.ParaPr.Shd.Color;
 			if (oColor)
-				return new ApiRGBColor(oColor.r, oColor.g, oColor.b)
+				return new ApiRGBColor(oColor.r, oColor.g, oColor.b);
+			
 			return null;
 		}
 
@@ -8698,7 +8699,8 @@
 
 		oColor = this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Shd.Color;
 		if (oColor)
-			return new ApiRGBColor(oColor.r, oColor.g, oColor.b)
+			return new ApiRGBColor(oColor.r, oColor.g, oColor.b);
+
 		return null;
 	};
 	/**
