@@ -8440,7 +8440,7 @@
 		nType = this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Jc
 		if (nType != undefined)
 			return GetJC(nType);
-		return undefined;
+		return "left";
 	};
 	/**
 	 * Specify that when rendering this document using a page view, all lines of this paragraph are maintained on a single page whenever possible.
