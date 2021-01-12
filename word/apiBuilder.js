@@ -8417,13 +8417,13 @@
 		{
 			switch (nType)
 			{
-				case 0 :
+				case align_Right :
 					return "right";
-				case 1 :
+				case align_Left :
 					return "left";
-				case 2 :
+				case align_Center :
 					return "center";
-				case 3 : 
+				case align_Justify : 
 					return "both";
 			}
 		}
