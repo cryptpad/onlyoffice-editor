@@ -4025,6 +4025,9 @@ function CThumbnailsManager()
 		var y1 = this.m_arrPages[pageNum].top - this.const_border_w;
 		var y2 = this.m_arrPages[pageNum].bottom + this.const_border_w;
 
+		if (!this.m_oWordControl.m_oScrollThumbApi)
+			return;
+
 		if (y1 < 0)
 		{
 			var _sizeH = y2 - y1;
@@ -4427,7 +4430,7 @@ function CThumbnailsManager()
 				this.DigitWidths[i] = 10;
 		}
 
-		if (GlobalSkin.Name == "flat")
+		if (true)
 		{
 			this.const_offset_y = 17;
 			this.const_offset_b = this.const_offset_y;
@@ -4540,7 +4543,7 @@ function CThumbnailsManager()
 					word_control.m_oThumbnailsBack.Bounds.R = word_control.ScrollWidthPx * g_dKoef_pix_to_mm;
 					word_control.m_oThumbnails.Bounds.R     = word_control.ScrollWidthPx * g_dKoef_pix_to_mm;
 
-					var _width_mm_scroll                          = (GlobalSkin.Name == "flat") ? 10 : word_control.ScrollWidthPx;
+					var _width_mm_scroll                          = (true) ? 10 : word_control.ScrollWidthPx;
 					word_control.m_oThumbnails_scroll.Bounds.AbsW = _width_mm_scroll * g_dKoef_pix_to_mm;
 				}
 				else
@@ -6039,9 +6042,9 @@ function CNotesDrawer(page)
 		settings.contentH = 2 * this.OffsetY + ((height * g_dKoef_mm_to_pix) >> 0);
 		settings.scrollerMinHeight = 5;
 
-		settings.scrollBackgroundColor = GlobalSkin.BackgroundScroll;
-		settings.scrollBackgroundColorHover = GlobalSkin.BackgroundScroll;
-		settings.scrollBackgroundColorActive = GlobalSkin.BackgroundScroll;
+		settings.scrollBackgroundColor = GlobalSkin.ScrollBackgroundColor;
+		settings.scrollBackgroundColorHover = GlobalSkin.ScrollBackgroundColor;
+		settings.scrollBackgroundColorActive = GlobalSkin.ScrollBackgroundColor;
 
 		if (this.HtmlPage.bIsRetinaSupport)
 		{

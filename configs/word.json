@@ -25,6 +25,7 @@
 			"word/api_plugins.js"
 		],
 		"common": [
+			"common/skin.js",
 			"common/downloaderfiles.js",
 			"common/NumFormat.js",
 			"common/SerializeChart.js",
@@ -89,6 +90,7 @@
 
 			"common/scroll.js",
 			"vendor/iscroll.js",
+			"vendor/delta.js",
 			"common/Scrolls/mobileTouchManagerBase.js",
 			"word/Drawing/mobileTouchManager.js",
 

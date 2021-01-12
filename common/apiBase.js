@@ -194,6 +194,8 @@
 		// macros & plugins events
 		this.internalEvents = {};
 
+		this.skinObject = config['skin'];
+
 		this.Shortcuts = new AscCommon.CShortcuts();
 		this.initDefaultShortcuts();
 
@@ -412,6 +414,33 @@
 		{
 			this.onEndLoadDocInfo();
 		}
+	};
+	baseEditorsApi.prototype.asc_changeDocInfo = function(oDocInfo)
+	{
+		var rData = {
+			"c": 'changedocinfo',
+			"id": this.documentId,
+			"username": oDocInfo.asc_getUserName()
+		};
+		var t            = this;
+		t.fCurCallback   = function(input)
+		{
+			if (null != input && "changedocinfo" == input["type"])
+			{
+				if ('ok' === input["status"]) {
+					t.DocInfo.asc_getUserInfo().asc_putFullName(oDocInfo.asc_getUserName());
+					t.User.setUserName(oDocInfo.asc_getUserName());
+				} else {
+					t.sendEvent("asc_onError", AscCommon.mapAscServerErrorToAscError(parseInt(input["data"])),
+						c_oAscError.Level.NoCritical);
+				}
+			}
+			else
+			{
+				t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
+			}
+		};
+		AscCommon.sendCommand(this, null, rData);
 	};
 	baseEditorsApi.prototype.asc_isCrypto = function()
 	{
@@ -3168,6 +3197,9 @@
 		var nActionType = this.Shortcuts.AddCustomActionSymbol(nCharCode, sFont);
 		this.Shortcuts.Add(nActionType, sShortcut[0], sShortcut[1], sShortcut[2], sShortcut[3]);
 		return nActionType;
+	};
+	baseEditorsApi.prototype.asc_setSkin = function(obj)
+	{
 	};
 	//----------------------------------------------------------addons----------------------------------------------------
     baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)

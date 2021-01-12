@@ -10741,6 +10741,7 @@
 							    range.cleanAll();
 								t.model.deletePivotTables(range.bbox);
 								t.model.removeSparklines(range.bbox);
+								t.model.clearDataValidation([range.bbox], true);
 								// Удаляем комментарии
                                 t.cellCommentator.deleteCommentsRange(range.bbox);
 								break;
@@ -11180,10 +11181,10 @@
 		var i;
 		var arnToRange = pasteToRange ? pasteToRange : t.model.selectionRange.getLast();
 		var tablesMap = null, intersectionRangeWithTableParts;
+		var activeRange = fromBinary && AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange;
+		var refInsertBinary = activeRange && AscCommonExcel.g_oRangeCache.getAscRange(activeRange);
 		if (fromBinary && val.TableParts && val.TableParts.length && specialPasteProps.formatTable) {
 			var range, tablePartRange, tables = val.TableParts, diffRow, diffCol, curTable, bIsAddTable;
-			var activeRange = AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange;
-			var refInsertBinary = AscCommonExcel.g_oRangeCache.getAscRange(activeRange);
 			for (i = 0; i < tables.length; i++) {
 				curTable = tables[i];
 				tablePartRange = curTable.Ref;
@@ -11241,14 +11242,26 @@
 			t.model.deletePivotTables(pasteToRange);
 		}
 		if (fromBinary && val.pivotTables && val.pivotTables.length && specialPasteProps.formatTable) {
-			var activeRange = AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange;
-			var refInsertBinary = AscCommonExcel.g_oRangeCache.getAscRange(activeRange);
 			for (i = 0; i < val.pivotTables.length; i++) {
 				var pivot = val.pivotTables[i];
 				pivot.prepareToPaste(t.model, new AscCommon.CellBase(arnToRange.r1 - refInsertBinary.r1, arnToRange.c1 - refInsertBinary.c1), true);
 				t.model.workbook.oApi._changePivotSimple(pivot, true, false, function () {
 					t.model.insertPivotTable(pivot, true, true);
 				});
+			}
+		}
+		
+		//data validation
+		if (specialPasteProps.val) {
+			t.model.clearDataValidation([pasteToRange], true);
+		}
+		if (fromBinary && val.dataValidations && val.dataValidations.elems.length && specialPasteProps.val) {
+			var _offset = new AscCommon.CellBase(arnToRange.r1 - refInsertBinary.r1, arnToRange.c1 - refInsertBinary.c1);
+			for (i = 0; i < val.dataValidations.elems.length; i++) {
+				var dataValidation = val.dataValidations.elems[i];
+				if (dataValidation.prepeareToPaste(refInsertBinary, _offset)) {
+					t.model.addDataValidation(dataValidation, true);
+				}
 			}
 		}
 
@@ -13294,7 +13307,7 @@
 								oRecalcType = AscCommonExcel.recalcType.full;
 								reinitRanges = true;
 								t.cellCommentator.updateCommentsDependencies(true, val, arn);
-								t.model.shiftDataValidation(true, val, arn);
+								t.model.shiftDataValidation(true, val, arn, true);
 								updateDrawingObjectsInfo2 = {bInsert: true, operType: val, updateRange: arn};
 							}
 							History.EndTransaction();
@@ -13327,7 +13340,7 @@
 								oRecalcType = AscCommonExcel.recalcType.full;
 								reinitRanges = true;
 								t.cellCommentator.updateCommentsDependencies(true, val, arn);
-								t.model.shiftDataValidation(true, val, arn);
+								t.model.shiftDataValidation(true, val, arn, true);
 								updateDrawingObjectsInfo2 = {bInsert: true, operType: val, updateRange: arn};
 							}
 							History.EndTransaction();
@@ -13435,7 +13448,7 @@
 							if (range.deleteCellsShiftLeft(function () {
 									t._cleanCache(lockRange);
 									t.cellCommentator.updateCommentsDependencies(false, val, checkRange);
-									t.model.shiftDataValidation(false, val, checkRange);
+									t.model.shiftDataValidation(false, val, checkRange, true);
 								})) {
 								updateDrawingObjectsInfo2 = {bInsert: false, operType: val, updateRange: arn};
 							}
@@ -13473,7 +13486,7 @@
 							if (range.deleteCellsShiftUp(function () {
 									t._cleanCache(lockRange);
 									t.cellCommentator.updateCommentsDependencies(false, val, checkRange);
-									t.model.shiftDataValidation(false, val, checkRange);
+									t.model.shiftDataValidation(false, val, checkRange, true);
 								})) {
 								updateDrawingObjectsInfo2 = {bInsert: false, operType: val, updateRange: arn};
 							}
@@ -14320,13 +14333,9 @@
 				this.model.workbook.dependencyFormulas.lockRecal();
 			}
 
-			if (!applyByArray && ctrlKey) {
-				applyByArray = null;
-			}
-
 			c.setValue(AscCommonExcel.getFragmentsText(val), function (r) {
 				ret = r;
-			}, null, applyByArray ? bbox : null);
+			}, null, applyByArray ? bbox : ((!applyByArray && ctrlKey) ? null : undefined));
 
 			//***array-formula***
 			if(ctrlKey) {
@@ -16083,6 +16092,8 @@
 				c_oAscError.Level.NoCritical);
 			result = false;
 		} else if (this.model.inPivotTable(fullRange)) {
+			worksheet.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot,
+				c_oAscError.Level.NoCritical);
 			result = false;
 		} else if(styleName && this.intersectionFormulaArray(activeRange, true, true)) {
 			worksheet.workbook.handlers.trigger("asc_onError", c_oAscError.ID.MultiCellsInTablesFormulaArray, c_oAscError.Level.NoCritical);
@@ -16435,7 +16446,7 @@
 			}
 		}
 
-		t._endSelectionShape()
+		t._endSelectionShape();
 		//todo обработать выделение при клике с зажатым ctrl
 		t.setSelection(new Asc.Range(startCol, startRow, endCol, endRow));
 	};
@@ -16489,21 +16500,34 @@
         }
     };
 
-    WorksheetView.prototype.af_checkChangeTableInfo = function (table, optionType) {
-        var res = table.Ref;
-        var t = this;
-        var ws = this.model, range;
-        var lockRange = null;
+	WorksheetView.prototype.af_checkChangeTableInfo = function (table, optionType) {
+		var res = table.Ref;
+		var t = this;
+		var ws = this.model, range;
+		var lockRange = null;
+		var pivotError;
 
-		var sendError = function() {
-			ws.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterChangeFormatTableError, c_oAscError.Level.NoCritical);
+		var sendError = function () {
+			if (pivotError) {
+				t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot,
+					c_oAscError.Level.NoCritical);
+			} else {
+				ws.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterChangeFormatTableError,
+					c_oAscError.Level.NoCritical);
+			}
 			t.handlers.trigger("selectionChanged");
 		};
 
-		var checkShift = function(range) {
+		var checkShift = function (range) {
 			var result = false;
 
-			if(!t.model.autoFilters._isPartTablePartsUnderRange(range) && !t.model.autoFilters.isPartFilterUnderRange(range)) {
+			if (t.model.checkShiftPivotTable(range, new AscCommon.CellBase(1, 0))) {
+				pivotError = true;
+				return false;
+			}
+
+			if (!t.model.autoFilters._isPartTablePartsUnderRange(range) &&
+				!t.model.autoFilters.isPartFilterUnderRange(range)) {
 				result = true;
 
 				//проверяем ещё на наличие части объединенной ячейки
@@ -16514,10 +16538,11 @@
 				var downRange = Asc.Range(range.c1, range.r2 + 1, range.c2, gc_nMaxRow0);
 				var mergedRange = ws.getMergedByRange(downRange);
 
-				if(mergedRange && mergedRange.all) {
-					for(var i = 0; i < mergedRange.all.length; i++) {
-						if(mergedRange.all[i] && mergedRange.all[i].bbox) {
-							if(mergedRange.all[i].bbox.intersection(mergedRange) && !mergedRange.all[i].bbox.containsRange(mergedRange)) {
+				if (mergedRange && mergedRange.all) {
+					for (var i = 0; i < mergedRange.all.length; i++) {
+						if (mergedRange.all[i] && mergedRange.all[i].bbox) {
+							if (mergedRange.all[i].bbox.intersection(mergedRange) &&
+								!mergedRange.all[i].bbox.containsRange(mergedRange)) {
 								result = false;
 								break;
 							}
@@ -16530,13 +16555,12 @@
 		};
 
 		switch (optionType) {
-			case c_oAscChangeTableStyleInfo.rowHeader:
-			{
+			case c_oAscChangeTableStyleInfo.rowHeader: {
 				//добавляем строку заголовков. нужно чтобы либо сверху была пустая строка, либо был возможен сдвиг диапазона вниз
-				if(!table.isHeaderRow()) {
+				if (!table.isHeaderRow()) {
 					range = Asc.Range(table.Ref.c1, table.Ref.r1 - 1, table.Ref.c2, table.Ref.r1 - 1);
-					if(!this.model.autoFilters._isEmptyRange(range, 0)) {
-						if(!checkShift(table.Ref)) {
+					if (!this.model.autoFilters._isEmptyRange(range, 0)) {
+						if (!checkShift(table.Ref)) {
 							sendError();
 							res = false;
 						} else {
@@ -16549,23 +16573,22 @@
 
 				break;
 			}
-			case c_oAscChangeTableStyleInfo.rowTotal:
-			{
+			case c_oAscChangeTableStyleInfo.rowTotal: {
 				range = new Asc.Range(table.Ref.c1, table.Ref.r2 + 1, table.Ref.c2, table.Ref.r2 + 1);
-				if(table.isTotalsRow()) {
+				if (table.isTotalsRow()) {
 
-					if(checkShift(table.Ref)) {
+					if (checkShift(table.Ref)) {
 						//сдвиг диапазона вверх
 						//в данном случае возвращаем не диапазон лока, а диапазон обновления данных
 						lockRange = Asc.Range(table.Ref.c1, table.Ref.r2 - 1, table.Ref.c2, gc_nMaxRow0);
 						res = table.Ref;
 					}
 				} else { // добавляем строку
-					if(checkShift(table.Ref)) {
+					if (checkShift(table.Ref)) {
 						//сдвиг диапазона вниз
 						lockRange = Asc.Range(table.Ref.c1, table.Ref.r2 + 1, table.Ref.c2, gc_nMaxRow0);
 						res = Asc.Range(table.Ref.c1, table.Ref.r1, table.Ref.c2, table.Ref.r2 + 1);
-					} else if(!this.model.autoFilters._isEmptyRange(range, 0)){
+					} else if (!this.model.autoFilters._isEmptyRange(range, 0)) {
 						sendError();
 						res = false;
 					}
@@ -16576,7 +16599,7 @@
 		}
 
 		return res ? {updateRange: res, lockRange: lockRange} : res;
-    };
+	};
 
     WorksheetView.prototype.af_getLockRangeTableInfo = function (tablePart, optionType, val) {
         var res = null;
@@ -16661,7 +16684,7 @@
 				History.EndTransaction();
 				if (shiftCells) {
 					t.cellCommentator.updateCommentsDependencies(true, type, arn);
-					t.model.shiftDataValidation(true, type, arn);
+					t.model.shiftDataValidation(true, type, arn, true);
 					t.objectRender.updateDrawingObject(true, type, arn);
 					t._onUpdateFormatTable(range);
 				}
@@ -16716,6 +16739,13 @@
 			}
 		}
 
+		var _cellBase = new AscCommon.CellBase(type !== c_oAscInsertOptions.InsertCellsAndShiftRight ? newActiveRange.r2 - newActiveRange.r1 + 1 : 0, type !== c_oAscInsertOptions.InsertCellsAndShiftRight ? 0 : newActiveRange.c2 - newActiveRange.c1 + 1);
+		if (t.model.checkShiftPivotTable(tablePart.Ref, _cellBase)) {
+			t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot,
+				c_oAscError.Level.NoCritical);
+			return;
+		}
+
 		insertCellsAndShiftDownRight(newActiveRange, displayName, type)
 	};
 
@@ -16749,7 +16779,7 @@
 
                 var preDeleteAction = function () {
                     t.cellCommentator.updateCommentsDependencies(false, type, arn);
-					t.model.shiftDataValidation(false, type, arn);
+					t.model.shiftDataValidation(false, type, arn, true);
                 };
 
                 var res;
@@ -20821,7 +20851,7 @@
 
 	WorksheetView.prototype.setDataValidationProps = function (props) {
 		var t = this;
-		var _selection = this.model.getSelection();
+		var _selection = this.model.getSelection().ranges;
 
 		var callback = function (success) {
 			if (!success) {
@@ -20833,11 +20863,47 @@
 			t.model.setDataValidationProps(props);
 
 			History.EndTransaction();
-		}
-		
-		//TODO необходимо расширить диапазон лока ещё диапазонами, data validate которых изменяется
+		};
+
 		//TODO необходимо ли лочить каждый объект data validate?
-		this._isLockedCells(_selection, /*subType*/null, callback);
+		var lockRanges = this.model.dataValidations ? this.model.dataValidations.expandRanges(_selection) : _selection;
+		this._isLockedCells(lockRanges, /*subType*/null, callback);
+	};
+
+	WorksheetView.prototype.setDataValidationSameSettings = function (props, val) {
+		var _selection = this.model.getSelection().ranges;
+		var t = this;
+		//AscCommonExcel.Range.prototype.createFromBBox(this.model, range)
+		var getRangeSelection = function (oldRanges) {
+			var _ranges = [];
+			for (var i = 0; i < oldRanges.length; i++) {
+				_ranges.push(AscCommonExcel.Range.prototype.createFromBBox(t, oldRanges[i].clone()));
+			}
+			return _ranges;
+		};
+
+		//здесь не будем проверять лок
+		//если какая-то ячейка окажется залочена, то дальнейшего применения не произойдёт
+		if (val) {
+			//поскольку объект может быть измененным, использую тот, который лежит в модели
+			var modelDataValidation = this.model.dataValidations.getById(props.Id);
+			if (modelDataValidation && modelDataValidation.data) {
+				modelDataValidation = modelDataValidation.data;
+			} else {
+				return;
+			}
+			var elems = this.model.dataValidations.getSameSettingsElems(modelDataValidation);
+			if (elems) {
+				props._tempSelection = _selection;
+				var newSelection = [];
+				for (var i = 0; i < elems.length; i++) {
+					newSelection = newSelection.concat(elems[i].ranges);
+				}
+				this.setSelection(getRangeSelection(newSelection));
+			}
+		} else if (props._tempSelection) {
+			this.setSelection(getRangeSelection(props._tempSelection));
+		}
 	};
 
 	//------------------------------------------------------------export---------------------------------------------------

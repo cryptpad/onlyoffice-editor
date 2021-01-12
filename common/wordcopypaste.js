@@ -4840,10 +4840,10 @@ PasteProcessor.prototype =
 			}
 
 			var oTextPr = presentation.GetCalculatedTextPr();
-			shape.txBody.content.Set_ApplyToAll(true);
+			shape.txBody.content.SetApplyToAll(true);
 			var paraTextPr = new AscCommonWord.ParaTextPr(oTextPr);
 			shape.txBody.content.AddToParagraph(paraTextPr);
-			shape.txBody.content.Set_ApplyToAll(false);
+			shape.txBody.content.SetApplyToAll(false);
 
 			oThis.api.pre_Paste([], [], executePastePresentation);
 		};
@@ -5629,9 +5629,9 @@ PasteProcessor.prototype =
 		Asc.getBinaryOtherTableGVar(tempWorkbook);
 
 		pptx_content_loader.Start_UseFullUrl();
-		pptx_content_loader.Reader.ClearConnectorsMaps();
+		pptx_content_loader.Reader.ClearConnectedObjects();
 		oBinaryFileReader.Read(base64, tempWorkbook);
-		pptx_content_loader.Reader.AssignConnectorsId();
+		pptx_content_loader.Reader.AssignConnectedObjects();
 
 		if (!tempWorkbook.aWorksheets.length) {
 			return null;
@@ -5715,7 +5715,7 @@ PasteProcessor.prototype =
 	ReadPresentationShapes: function (stream) {
 		var loader = new AscCommon.BinaryPPTYLoader();
 		loader.Start_UseFullUrl();
-		loader.ClearConnectorsMaps();
+		loader.ClearConnectedObjects();
 		pptx_content_loader.Reader.Start_UseFullUrl();
 
 		loader.stream = stream;
@@ -5812,7 +5812,7 @@ PasteProcessor.prototype =
 
 		var chartImages = pptx_content_loader.Reader.End_UseFullUrl();
 		var images = loader.End_UseFullUrl();
-		loader.AssignConnectorsId();
+		loader.AssignConnectedObjects();
 		var allImages = chartImages.concat(images);
 
 		return {arrShapes: arr_shapes, arrImages: allImages, arrTransforms: arr_transforms};
@@ -5829,9 +5829,9 @@ PasteProcessor.prototype =
 		var arr_slides = [];
 		var slide;
 		for (var i = 0; i < count; ++i) {
-			loader.ClearConnectorsMaps();
+			loader.ClearConnectedObjects();
 			slide = loader.ReadSlide(0);
-			loader.AssignConnectorsId();
+			loader.AssignConnectedObjects();
 			arr_slides.push(slide);
 		}
 		return arr_slides;
@@ -6509,21 +6509,21 @@ PasteProcessor.prototype =
 							oNum.CreateDefault(c_oAscMultiLevelNumbering.Bullet);
 							var LvlText = String.fromCharCode(0x00B7);
 							var NumTextPr = new CTextPr();
-							NumTextPr.RFonts.Set_All("Symbol", -1);
+							NumTextPr.RFonts.SetAll("Symbol", -1);
 
 							switch (type) {
 								case "disc": {
-									NumTextPr.RFonts.Set_All("Symbol", -1);
+									NumTextPr.RFonts.SetAll("Symbol", -1);
 									LvlText = String.fromCharCode(0x00B7);
 									break;
 								}
 								case "circle": {
-									NumTextPr.RFonts.Set_All("Courier New", -1);
+									NumTextPr.RFonts.SetAll("Courier New", -1);
 									LvlText = "o";
 									break;
 								}
 								case "square": {
-									NumTextPr.RFonts.Set_All("Wingdings", -1);
+									NumTextPr.RFonts.SetAll("Wingdings", -1);
 									LvlText = String.fromCharCode(0x00A7);
 									break;
 								}
@@ -6616,21 +6616,21 @@ PasteProcessor.prototype =
 							oNum.CreateDefault(c_oAscMultiLevelNumbering.Bullet);
 							var LvlText = String.fromCharCode(0x00B7);
 							var NumTextPr = new CTextPr();
-							NumTextPr.RFonts.Set_All("Symbol", -1);
+							NumTextPr.RFonts.SetAll("Symbol", -1);
 
 							switch (type) {
 								case "disc": {
-									NumTextPr.RFonts.Set_All("Symbol", -1);
+									NumTextPr.RFonts.SetAll("Symbol", -1);
 									LvlText = String.fromCharCode(0x00B7);
 									break;
 								}
 								case "circle": {
-									NumTextPr.RFonts.Set_All("Courier New", -1);
+									NumTextPr.RFonts.SetAll("Courier New", -1);
 									LvlText = "o";
 									break;
 								}
 								case "square": {
-									NumTextPr.RFonts.Set_All("Wingdings", -1);
+									NumTextPr.RFonts.SetAll("Wingdings", -1);
 									LvlText = String.fromCharCode(0x00A7);
 									break;
 								}

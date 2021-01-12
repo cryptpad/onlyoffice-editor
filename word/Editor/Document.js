@@ -3236,20 +3236,23 @@ CDocument.prototype.private_FinalizeFormChange = function()
 		}
 		else if (oForm.IsPicture())
 		{
-			for (var sId in this.SpecialForms)
+			if (oPr)
 			{
-				var oTempForm = this.SpecialForms[sId];
-				if (!oTempForm.IsUseInDocument())
-					continue;
-
-				if (oTempForm !== oForm && sKey === oTempForm.GetFormKey() && oTempForm.IsPicture())
+				for (var sId in this.SpecialForms)
 				{
-					var arrDrawings = oTempForm.GetAllDrawingObjects();
-					if (arrDrawings.length > 0)
+					var oTempForm = this.SpecialForms[sId];
+					if (!oTempForm.IsUseInDocument())
+						continue;
+
+					if (oTempForm !== oForm && sKey === oTempForm.GetFormKey() && oTempForm.IsPicture())
 					{
-						var oPicture = arrDrawings[0].GetPicture();
-						if (oPicture)
-							oPicture.setBlipFill(AscFormat.CreateBlipFillRasterImageId(oPr));
+						var arrDrawings = oTempForm.GetAllDrawingObjects();
+						if (arrDrawings.length > 0)
+						{
+							var oPicture = arrDrawings[0].GetPicture();
+							if (oPicture)
+								oPicture.setBlipFill(AscFormat.CreateBlipFillRasterImageId(oPr));
+						}
 					}
 				}
 			}
@@ -8923,7 +8926,18 @@ CDocument.prototype.InsertContent = function(SelectedContent, NearPos)
 	{
 		if (LastClass.GetParentForm())
 		{
+			var isPlaceHolder  = LastClass.GetParentForm().IsPlaceHolder();
+			var nInRunStartPos = LastClass.State.ContentPos;
 			LastClass.AddText(SelectedContent.GetText({ParaEndToSpace : false}), ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 1]);
+			var nInRunEndPos = LastClass.State.ContentPos;
+
+			LastClass.SelectThisElement();
+			if (!isPlaceHolder)
+			{
+				LastClass.Selection.Use      = true;
+				LastClass.Selection.StartPos = nInRunStartPos;
+				LastClass.Selection.EndPos   = nInRunEndPos;
+			}
 			return;
 		}
 
@@ -14481,6 +14495,7 @@ CDocument.prototype.GetAllNumberedParagraphs = function()
 	var oProps = {};
 	oProps.OnlyMainDocument = true;
 	oProps.Shapes = false;
+	oProps.DoNotAddRemoved = true;
 	oProps.Numbering = true;
 	oProps.NumPr = [];
 	var oNumbering = this.GetNumbering();
@@ -15846,7 +15861,7 @@ CDocument.prototype.AddContentControlTextForm = function(oPr)
 	if (!oPr)
 		oPr = new CSdtTextFormPr();
 
-	this.RemoveSelection();
+	this.RemoveTextSelection();
 	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
 
 	if (oPr.Comb)
@@ -19425,8 +19440,7 @@ CDocument.prototype.controller_IncreaseDecreaseFontSize = function(bIncrease)
 			}
 			case  selectionflag_Numbering:
 			{
-				var OldFontSize = this.GetCalculatedTextPr().FontSize;
-				var NewFontSize = FontSize_IncreaseDecreaseValue(bIncrease, OldFontSize);
+				var NewFontSize = this.GetCalculatedTextPr().GetIncDecFontSize(bIncrease);
 				var TextPr      = new CTextPr();
 				TextPr.FontSize = NewFontSize;
 				this.AddToParagraph(new ParaTextPr(TextPr), true);
@@ -20992,7 +21006,7 @@ CDocument.prototype.RemoveContentControl = function(Id)
 	else if (c_oAscSdtLevelType.Inline === oContentControl.GetContentControlType())
 	{
 		this.SelectContentControl(Id);
-		this.RemoveBeforePaste();
+		this.Remove(-1, false, false, false);
 	}
 };
 CDocument.prototype.RemoveContentControlWrapper = function(Id)
@@ -22823,9 +22837,9 @@ CDocument.prototype.GetTableCellFormula = function(isReturnField)
 		var oTempCell        = oRow.GetCell(nCellIndex);
 		var oTempCellContent = oTempCell.GetContent();
 
-		oTempCellContent.Set_ApplyToAll(true);
+		oTempCellContent.SetApplyToAll(true);
 		var sCellText = oTempCellContent.GetSelectedText();
-		oTempCellContent.Set_ApplyToAll(false);
+		oTempCellContent.SetApplyToAll(false);
 
 		if (!isNaN(parseInt(sCellText)))
 		{
@@ -22844,9 +22858,9 @@ CDocument.prototype.GetTableCellFormula = function(isReturnField)
 
 		var oTempCellContent = oTempCell.GetContent();
 
-		oTempCellContent.Set_ApplyToAll(true);
+		oTempCellContent.SetApplyToAll(true);
 		var sCellText = oTempCellContent.GetSelectedText();
-		oTempCellContent.Set_ApplyToAll(false);
+		oTempCellContent.SetApplyToAll(false);
 
 		if (!isNaN(parseInt(sCellText)))
 		{
@@ -23920,7 +23934,7 @@ CDocument.prototype.GetSpecialFormsByKey = function(sKey)
 	for (var sId in this.SpecialForms)
 	{
 		var oForm = this.SpecialForms[sId];
-		if (sKey === oForm.GetFormKey())
+		if (sKey === oForm.GetFormKey() && oForm.Is_UseInDocument())
 			arrForms.push(oForm);
 	}
 

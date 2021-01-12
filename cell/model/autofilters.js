@@ -524,6 +524,7 @@
 								shiftRange = worksheet.getRange3(filterRange.r2, filterRange.c1, filterRange.r2, filterRange.c2);
 								shiftRange.addCellsShiftBottom();
 								wsView.cellCommentator.updateCommentsDependencies(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox);
+								worksheet.shiftDataValidation(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox)
 								moveToRange = new Asc.Range(filterRange.c1, filterRange.r1 + 1, filterRange.c2, filterRange.r2);
 							}
 							worksheet._moveRange(rangeWithoutDiff, moveToRange);
@@ -539,6 +540,7 @@
 										shiftRange = worksheet.getRange3(filterRange.r2, filterRange.c1, filterRange.r2, filterRange.c2);
 										shiftRange.addCellsShiftBottom();
 										wsView.cellCommentator.updateCommentsDependencies(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox);
+										worksheet.shiftDataValidation(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox)
 									}
 								}
 							}
@@ -2804,7 +2806,7 @@
 					case c_oAscChangeTableStyleInfo.rowTotal: {
 						if (val === false)//снимаем галку - удаляем строку итогов
 						{
-							if (!this._isPartTablePartsUnderRange(tablePart.Ref)) {
+							if (!this._isPartTablePartsUnderRange(tablePart.Ref) && !worksheet.checkShiftPivotTable(tablePart.Ref, new AscCommon.CellBase(1, 0))) {
 								AscFormat.ExecuteNoHistory(function () {
 									worksheet.getRange3(tablePart.Ref.r2, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2).deleteCellsShiftUp();
 								}, this, []);
@@ -2820,7 +2822,7 @@
 							var rangeUnderTable = new Asc.Range(tablePart.Ref.c1, tablePart.Ref.r2 + 1, tablePart.Ref.c2, tablePart.Ref.r2 + 1);
 
 							//внизу часть форматированной таблицы - следовательно сдвигать нельзя, проверяем пустую строчку по ф/т
-							if (this._isPartTablePartsUnderRange(tablePart.Ref)) {
+							if (this._isPartTablePartsUnderRange(tablePart.Ref) || worksheet.checkShiftPivotTable(tablePart.Ref, new AscCommon.CellBase(1, 0))) {
 								if(this._isEmptyRange(rangeUnderTable, 0)) {
 									isSetValue = true;
 									isSetType = true;

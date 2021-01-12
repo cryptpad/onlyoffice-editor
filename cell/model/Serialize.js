@@ -7623,9 +7623,9 @@
 			} else if (c_oSer_DataValidation.SqRef == type) {
 			    dataValidation.setSqRef(this.stream.GetString2LE(length));
 			} else if (c_oSer_DataValidation.Formula1 == type) {
-			    dataValidation.formula1 = new AscCommonExcel.CDataFormula(this.stream.GetString2LE(length));
+			    dataValidation.formula1 = new Asc.CDataFormula(this.stream.GetString2LE(length));
 			} else if (c_oSer_DataValidation.Formula2 == type) {
-                dataValidation.formula2 = new AscCommonExcel.CDataFormula(this.stream.GetString2LE(length));
+                dataValidation.formula2 = new Asc.CDataFormula(this.stream.GetString2LE(length));
 			} else
 				res = c_oSerConstants.ReadUnknown;
 			return res;
@@ -9712,7 +9712,7 @@
             }
             if(pptx_content_loader.Reader)
             {
-                pptx_content_loader.Reader.AssignConnectorsId();
+                pptx_content_loader.Reader.AssignConnectedObjects();
             }
 			if(!pasteBinaryFromExcel)
 				History.TurnOn();

@@ -488,6 +488,13 @@ Paragraph.prototype.GetAllParagraphs = function(Props, ParaArray)
 				this.Content[CurPos].GetAllParagraphs(Props, ParaArray);
 		}	
 	}
+	if(Props && Props.DoNotAddRemoved)
+	{
+		if(this.GetReviewType() === reviewtype_Remove)
+		{
+			return ParaArray;
+		}
+	}
 	if (!Props || true === Props.All)
 	{
 		ParaArray.push(this);
@@ -6701,7 +6708,7 @@ Paragraph.prototype.Apply_TextPr = function(TextPr, IncFontSize)
 				EndTextPr.Merge(this.TextPr.Value);
 
 				// TODO: Как только перенесем историю изменений TextPr в сам класс CTextPr, переделать тут
-				this.TextPr.Set_FontSize(FontSize_IncreaseDecreaseValue(IncFontSize, EndTextPr.FontSize));
+				this.TextPr.Set_FontSize(EndTextPr.GetIncDecFontSize(IncFontSize));
 			}
 
 			// TODO (ParaEnd): Переделать
@@ -8381,6 +8388,7 @@ Paragraph.prototype.GetCalculatedTextPr = function()
 	var TextPr;
 	if (true === this.ApplyToAll)
 	{
+		var oState = this.SaveSelectionState();
 		this.SelectAll(1);
 
 		var StartPos = 0;
@@ -8398,7 +8406,7 @@ Paragraph.prototype.GetCalculatedTextPr = function()
 				TextPr = TextPr.Compare(TempTextPr);
 		}
 
-		this.RemoveSelection();
+		this.LoadSelectionState(oState);
 	}
 	else
 	{
@@ -9712,6 +9720,7 @@ Paragraph.prototype.GetDirectTextPr = function()
 	var TextPr;
 	if (true === this.ApplyToAll)
 	{
+		var oState = this.SaveSelectionState();
 		this.SelectAll(1);
 
 		var Count    = this.Content.length;
@@ -9721,7 +9730,7 @@ Paragraph.prototype.GetDirectTextPr = function()
 
 		TextPr = this.Content[StartPos].GetDirectTextPr();
 
-		this.RemoveSelection();
+		this.LoadSelectionState(oState);
 	}
 	else
 	{
@@ -12755,11 +12764,11 @@ Paragraph.prototype.CanAddComment = function()
 	if (this.ApplyToAll)
 	{
 		var oState = this.Get_SelectionState2();
-		this.Set_ApplyToAll(false);
+		this.SetApplyToAll(false);
 		this.SelectAll(1);
 		var isCanAdd = this.CanAddComment();
 		this.Set_SelectionState2(oState);
-		this.Set_ApplyToAll(true);
+		this.SetApplyToAll(true);
 		return isCanAdd;
 	}
 
@@ -16067,7 +16076,7 @@ Paragraph.prototype.GetLineNumbersInfo = function(isNewPage)
 	{
 		return this.LineNumbersInfo.StartNum + this.Lines.length;
 	}
-}
+};
 /**
  * Учитываем ли номера строк у данного параграфа
  * @returns {boolean}
@@ -16081,21 +16090,24 @@ Paragraph.prototype.IsCountLineNumbers = function()
 Paragraph.prototype.asc_getText = function()
 {
 	var sText = "";
-	var oNumPr = this.GetNumPr();
-	var nLvl = oNumPr && oNumPr.Lvl;
-	var nIndex;
-	if(nLvl !== undefined && nLvl !== null)
+	if(this.GetReviewType() !== reviewtype_Remove)
 	{
-		for(nIndex = 0; nIndex < nLvl; ++nIndex)
+		var oNumPr = this.GetNumPr();
+		var nLvl = oNumPr && oNumPr.Lvl;
+		var nIndex;
+		if(nLvl !== undefined && nLvl !== null)
 		{
+			for(nIndex = 0; nIndex < nLvl; ++nIndex)
+			{
+				sText += " ";
+			}
+		}
+		var sNumText = this.GetNumberingText();
+		if(typeof sNumText === "string" && sNumText.length > 0)
+		{
+			sText += sNumText;
 			sText += " ";
 		}
-	}
-	var sNumText = this.GetNumberingText();
-	if(typeof sNumText === "string" && sNumText.length > 0)
-	{
-		sText += sNumText;
-		sText += " ";
 	}
 	sText += this.GetText();
 	return sText;

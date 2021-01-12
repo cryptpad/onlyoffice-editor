@@ -10668,7 +10668,7 @@ CMultiLvlStrCache.prototype =
                         for(nRef = 0; nRef < aParsedRef.length; ++nRef) {
                             oRef = aParsedRef[nRef];
                             oSeriesRef = aParsedSeriesRef[nRef];
-                            if(oSeriesRef.r1 !== oRef.r1 || oSeriesRef.r2 !== oRef.r2) {
+                            if(oSeriesRef.bbox.r1 !== oRef.bbox.r1 || oSeriesRef.bbox.r2 !== oRef.bbox.r2) {
                                 break;
                             }
                         }
@@ -15084,9 +15084,9 @@ function CreateDocContentFromString(str, drawingDocument, parent)
 
 function CheckContentTextAndAdd(oContent, sText)
 {
-    oContent.Set_ApplyToAll(true);
+    oContent.SetApplyToAll(true);
     var sContentText = oContent.GetSelectedText(false, {NewLine: true, NewParagraph: true});
-    oContent.Set_ApplyToAll(false);
+    oContent.SetApplyToAll(false);
     if(sContentText !== sText)
     {
         oContent.ClearContent(true);

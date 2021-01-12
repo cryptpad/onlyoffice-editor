@@ -1160,11 +1160,6 @@
 
 	asc_docs_api.prototype.CreateCSS = function()
 	{
-		if (window["flat_desine"] === true)
-		{
-			AscCommonWord.updateGlobalSkin(AscCommonWord.GlobalSkinFlat2);
-		}
-
 		var _head = document.getElementsByTagName('head')[0];
 
 		var style0       = document.createElement('style');
@@ -1202,10 +1197,13 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.CreateComponents = function()
 	{
+		this.asc_setSkin(this.skinObject);
+		delete this.skinObject;
+
 		this.CreateCSS();
 
 		if (this.HtmlElement != null)
-			this.HtmlElement.innerHTML = ("<div id=\"id_main\" class=\"block_elem\" style=\"touch-action:none;-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;background-color:" + AscCommonWord.GlobalSkin.BackgroundColor + ";overflow:hidden;\" UNSELECTABLE=\"on\">\
+			this.HtmlElement.innerHTML = ("<div id=\"id_main\" class=\"block_elem\" style=\"touch-action:none;-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;background-color:" + AscCommon.GlobalSkin.BackgroundColor + ";overflow:hidden;\" UNSELECTABLE=\"on\">\
 								<div id=\"id_panel_left\" class=\"block_elem\">\
 									<canvas id=\"id_buttonTabs\" class=\"block_elem\"></canvas>\
 									<canvas id=\"id_vert_ruler\" class=\"block_elem\"></canvas>\
@@ -1214,22 +1212,39 @@ background-repeat: no-repeat;\
 									<canvas id=\"id_hor_ruler\" class=\"block_elem\"></canvas>\
 									</div>\
                                     <div id=\"id_main_view\" class=\"block_elem\" style=\"touch-action:none;overflow:hidden\">\
-                                        <canvas id=\"id_viewer\" class=\"block_elem\" style=\"touch-action:none;-ms-touch-action: none;-webkit-user-select: none; background-color:" + AscCommonWord.GlobalSkin.BackgroundColor + ";z-index:1\"></canvas>\
+                                        <canvas id=\"id_viewer\" class=\"block_elem\" style=\"touch-action:none;-ms-touch-action: none;-webkit-user-select: none; background-color:" + AscCommon.GlobalSkin.BackgroundColor + ";z-index:1\"></canvas>\
 									    <canvas id=\"id_viewer_overlay\" class=\"block_elem\" style=\"touch-action:none;-ms-touch-action: none;-webkit-user-select: none; z-index:2\"></canvas>\
 									    <canvas id=\"id_target_cursor\" class=\"block_elem\" width=\"1\" height=\"1\" style=\"touch-action:none;-ms-touch-action: none;-webkit-user-select: none;width:2px;height:13px;z-index:4;\"></canvas>\
                                     </div>\
 								</div>\
-									<div id=\"id_panel_right\" class=\"block_elem\" style=\"touch-action:none;margin-right:1px;background-color:" + AscCommonWord.GlobalSkin.BackgroundScroll + ";\">\
+									<div id=\"id_panel_right\" class=\"block_elem\" style=\"touch-action:none;margin-right:1px;background-color:" + AscCommon.GlobalSkin.ScrollBackgroundColor + ";\">\
 									<div id=\"id_buttonRulers\" class=\"block_elem buttonRuler\"></div>\
 									<div id=\"id_vertical_scroll\" style=\"left:0;top:0px;width:14px;overflow:hidden;position:absolute;\">\
 									</div>\
 									<div id=\"id_buttonPrevPage\" class=\"block_elem buttonPrevPage\"></div>\
 									<div id=\"id_buttonNextPage\" class=\"block_elem buttonNextPage\"></div>\
 								</div>\
-									<div id=\"id_horscrollpanel\" class=\"block_elem\" style=\"touch-action:none;margin-bottom:1px;background-color:" + AscCommonWord.GlobalSkin.BackgroundScroll + ";\">\
+									<div id=\"id_horscrollpanel\" class=\"block_elem\" style=\"touch-action:none;margin-bottom:1px;background-color:" + AscCommon.GlobalSkin.ScrollBackgroundColor + ";\">\
 									<div id=\"id_horizontal_scroll\" style=\"left:0px;top:0;height:14px;overflow:hidden;position:absolute;width:100%;\">\
 									</div>\
 									</div>" + this.HtmlElement.innerHTML);
+	};
+
+	asc_docs_api.prototype.asc_setSkin = function(theme)
+	{
+		AscCommon.updateGlobalSkin(theme);
+
+		var obj_id_main = document.getElementById("id_main");
+		if (obj_id_main)
+		{
+			obj_id_main.style.backgroundColor = AscCommon.GlobalSkin.BackgroundColor;
+			document.getElementById("id_viewer").style.backgroundColor = AscCommon.GlobalSkin.BackgroundColor;
+			document.getElementById("id_panel_right").style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
+			document.getElementById("id_horscrollpanel").style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
+		}
+
+		if (this.WordControl && this.WordControl.m_oBody)
+			this.WordControl.OnResize(true);
 	};
 
 	asc_docs_api.prototype.GetCopyPasteDivId = function()
@@ -5171,7 +5186,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype._addImageUrl      = function(urls, obj)
 	{
-        if(obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj["obj"] || (obj instanceof AscCommon.CContentControlPr && obj.get_InternalId()))){
+        if(obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj["obj"] || (obj instanceof AscCommon.CContentControlPr && obj.GetInternalId()))){
             this.AddImageUrl(urls[0], undefined, undefined, obj);
         }
         else{
@@ -5316,9 +5331,9 @@ background-repeat: no-repeat;\
 				{
 					this.asc_SetContentControlPictureUrl(src, obj["obj"].Get_Id());
 				}
-				else if (obj instanceof AscCommon.CContentControlPr && obj.get_InternalId())
+				else if (obj instanceof AscCommon.CContentControlPr && obj.GetInternalId())
 				{
-					this.asc_SetContentControlPictureUrl(src, obj.get_InternalId());
+					this.asc_SetContentControlPictureUrl(src, obj.GetInternalId());
 				}
 				else
 				{
@@ -8664,6 +8679,9 @@ background-repeat: no-repeat;\
 
 		if (oContentControl && oContentControl.GetContentControlType)
 		{
+			oLogicDocument.RemoveSelection();
+			oContentControl.SelectContentControl();
+
 			if (c_oAscSdtLevelType.Block === oContentControl.GetContentControlType())
 			{
 				isLocked = oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_None, {
@@ -8680,7 +8698,7 @@ background-repeat: no-repeat;\
 					isLocked = oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_None, {
 						Type      : AscCommon.changestype_2_ElementsArray_and_Type,
 						Elements  : [oParagraph],
-						CheckType : AscCommon.changestype_Paragraph_Content
+						CheckType : AscCommon.changestype_Remove
 					});
 				}
 			}
@@ -10659,10 +10677,10 @@ background-repeat: no-repeat;\
 	};
 	window["asc_docs_api"].prototype["asc_setParagraphStylesSizes"] = function(width, height)
 	{
-		if (window["AscCommonWord"] && window["AscCommonWord"].GlobalSkin)
+		if (window["AscCommon"] && window["AscCommon"].GlobalSkin)
 		{
-			AscCommonWord.GlobalSkin.STYLE_THUMBNAIL_WIDTH = width;
-			AscCommonWord.GlobalSkin.STYLE_THUMBNAIL_HEIGHT = height;
+			AscCommon.GlobalSkin.STYLE_THUMBNAIL_WIDTH = width;
+			AscCommon.GlobalSkin.STYLE_THUMBNAIL_HEIGHT = height;
 		}
 		else
 		{
@@ -10839,6 +10857,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['sync_ChangeLastSelectedElement']            = asc_docs_api.prototype.sync_ChangeLastSelectedElement;
 	asc_docs_api.prototype['asc_getEditorPermissions']                  = asc_docs_api.prototype.asc_getEditorPermissions;
 	asc_docs_api.prototype['asc_setDocInfo']                            = asc_docs_api.prototype.asc_setDocInfo;
+	asc_docs_api.prototype['asc_changeDocInfo']                         = asc_docs_api.prototype.asc_changeDocInfo;
 	asc_docs_api.prototype['asc_setLocale']                             = asc_docs_api.prototype.asc_setLocale;
 	asc_docs_api.prototype['asc_getLocale']                             = asc_docs_api.prototype.asc_getLocale;
 	asc_docs_api.prototype['asc_LoadDocument']                          = asc_docs_api.prototype.asc_LoadDocument;
@@ -11390,6 +11409,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_GetSelectedText']                       = asc_docs_api.prototype.asc_GetSelectedText;
 	asc_docs_api.prototype['asc_AddBlankPage']                          = asc_docs_api.prototype.asc_AddBlankPage;
     asc_docs_api.prototype['sendEvent']         						= asc_docs_api.prototype.sendEvent;
+	asc_docs_api.prototype['asc_setSkin']								= asc_docs_api.prototype.asc_setSkin;
 
 	asc_docs_api.prototype['asc_ConvertEquationToMath']                 = asc_docs_api.prototype.asc_ConvertEquationToMath;
 

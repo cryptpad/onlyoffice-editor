@@ -4928,11 +4928,20 @@ var editor;
     }
   };
 
-  spreadsheet_api.prototype.asc_setDataValidation = function(props) {
+  spreadsheet_api.prototype.asc_setDataValidation = function(props, switchApplySameSettings) {
     var ws = this.wb.getWorksheet();
     if (ws) {
-      return ws.setDataValidationProps(props);
+      if (undefined === switchApplySameSettings) {
+        return ws.setDataValidationProps(props);
+      } else {
+		  return ws.setDataValidationSameSettings(props, switchApplySameSettings);
+      }
     }
+  };
+
+  spreadsheet_api.prototype.asc_setSkin = function (theme) {
+    AscCommon.updateGlobalSkin(theme);
+    this.wb.updateSkin();
   };
 
   /*
@@ -4945,6 +4954,7 @@ var editor;
 
   prot["asc_GetFontThumbnailsPath"] = prot.asc_GetFontThumbnailsPath;
   prot["asc_setDocInfo"] = prot.asc_setDocInfo;
+  prot["asc_changeDocInfo"] = prot.asc_changeDocInfo;
   prot['asc_getFunctionArgumentSeparator'] = prot.asc_getFunctionArgumentSeparator;
   prot['asc_getCurrencySymbols'] = prot.asc_getCurrencySymbols;
   prot['asc_getLocaleExample'] = prot.asc_getLocaleExample;
@@ -5367,5 +5377,7 @@ var editor;
   //data validation
   prot["asc_setDataValidation"] = prot.asc_setDataValidation;
   prot["asc_getDataValidationProps"] = prot.asc_getDataValidationProps;
+
+  prot["asc_setSkin"] = prot.asc_setSkin;
 
 })(window);
