@@ -16092,6 +16092,8 @@
 				c_oAscError.Level.NoCritical);
 			result = false;
 		} else if (this.model.inPivotTable(fullRange)) {
+			worksheet.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot,
+				c_oAscError.Level.NoCritical);
 			result = false;
 		} else if(styleName && this.intersectionFormulaArray(activeRange, true, true)) {
 			worksheet.workbook.handlers.trigger("asc_onError", c_oAscError.ID.MultiCellsInTablesFormulaArray, c_oAscError.Level.NoCritical);
