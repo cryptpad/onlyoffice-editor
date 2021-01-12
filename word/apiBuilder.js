@@ -8282,19 +8282,20 @@
 	ApiParaPr.prototype.GetStyle = function()
 	{
 		var oDocument = private_GetLogicDocument();
-		var oStyles   = oDocument.Get_Styles();
-		var styleId   = null;
+		var oStyles   = oDocument.GetStyles();
 
+		var styleId;
 		if (!this.Parent)
 		{
 			styleId = this.ParaPr.PStyle;
-			if (styleId != undefined)
+			if (styleId)
 				return new ApiStyle(oStyles.Get(styleId));
+
 			return null;
 		}
 
-		var styleId = this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.PStyle;
-		if (styleId != undefined)
+		styleId = this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.PStyle;
+		if (styleId)
 			return new ApiStyle(oStyles.Get(styleId));
 
 		return null;
@@ -8333,7 +8334,7 @@
 	{
 		if (!this.Parent)
 		{
-			if (this.ParaPr.Ind.Left != undefined)
+			if (this.ParaPr.Ind.Left !== undefined)
 				return AscCommon.MMToTwips(this.ParaPr.Ind.Left);
 			return undefined;
 		}
@@ -8360,8 +8361,9 @@
 	{
 		if (!this.Parent)
 		{
-			if (this.ParaPr.Ind.Right != undefined)
+			if (this.ParaPr.Ind.Right !== undefined)
 				return AscCommon.MMToTwips(this.ParaPr.Ind.Right);
+
 			return undefined;
 		}
 		return AscCommon.MMToTwips(this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Ind.Right);
@@ -8387,10 +8389,12 @@
 	{
 		if (!this.Parent)
 		{
-			if (this.ParaPr.Ind.FirstLine != undefined)
+			if (this.ParaPr.Ind.FirstLine !== undefined)
 				return AscCommon.MMToTwips(this.ParaPr.Ind.FirstLine);
+
 			return undefined;
 		}
+
 		return AscCommon.MMToTwips(this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Ind.FirstLine);
 	};
 	/**
@@ -8426,21 +8430,19 @@
 				case align_Justify : 
 					return "both";
 			}
+
+			return "left";
 		}
 
-		var nType = null;
 		if (!this.Parent)
 		{
-			nType = this.ParaPr.Jc;
-			if (nType != undefined)
-				return GetJC(nType);
+			if (this.ParaPr.Jc !== undefined)
+				return GetJC(this.ParaPr.Jc);
+
 			return undefined;
 		}
-		
-		nType = this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Jc
-		if (nType != undefined)
-			return GetJC(nType);
-		return "left";
+
+		return GetJC(this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Jc);
 	};
 	/**
 	 * Specify that when rendering this document using a page view, all lines of this paragraph are maintained on a single page whenever possible.
@@ -8530,24 +8532,20 @@
 				case Asc.linerule_AtLeast:
 				case Asc.linerule_Exact:
 					return AscCommon.MMToTwips(oSpacing.Line);
-				default:
-					return undefined;
 			}
-		}
 
-		var oSpacing = null;
-		if (!this.Parent)
-		{
-			oSpacing = this.ParaPr.Spacing;
-			if (oSpacing.LineRule != undefined)
-				return GetValue(oSpacing);
 			return undefined;
 		}
 
-		oSpacing = this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Spacing;
-		if (oSpacing.LineRule != undefined)
-			return GetValue(oSpacing);
-		return 0;
+		if (!this.Parent)
+		{
+			if (this.ParaPr.Spacing)
+				return GetValue(this.ParaPr.Spacing);
+
+			return undefined;
+		}
+
+		return GetValue(this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Spacing);
 	};
 	/**
 	 * Get the paragraph line spacing rule.
@@ -8568,20 +8566,19 @@
 				case Asc.linerule_Exact:
 					return "exact";
 			}
+
+			return "atLeast";
 		}
 
 		if (!this.Parent)
 		{
-			nLineRule = this.ParaPr.Spacing.LineRule;
-			if (nLineRule != undefined)
-				return GetRule(nLineRule);
+			if (this.ParaPr.Spacing)
+				return GetRule(this.ParaPr.Spacing.LineRule);
+
 			return undefined;
 		}
 
-		var nLineRule = this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Spacing.LineRule;
-		if (nLineRule != undefined)
-			return GetRule(nLineRule);
-		return "atLeast";
+		return GetRule(this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Spacing.LineRule);
 
 	};
 	/**
@@ -8613,10 +8610,12 @@
 	{
 		if (!this.Parent)
 		{
-			if (this.ParaPr.Spacing.Before != undefined)
-				AscCommon.MMToTwips(this.ParaPr.Spacing.Before);
+			if (this.ParaPr.Spacing.Before !== undefined)
+				return AscCommon.MMToTwips(this.ParaPr.Spacing.Before);
+
 			return undefined;
 		}
+
 		return AscCommon.MMToTwips(this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Spacing.Before);
 	};
 	/**
@@ -8648,10 +8647,12 @@
 	{
 		if (!this.Parent)
 		{
-			if (this.ParaPr.Spacing.After != undefined)
-				AscCommon.MMToTwips(this.ParaPr.Spacing.After);
+			if (this.ParaPr.Spacing.After !== undefined)
+				return AscCommon.MMToTwips(this.ParaPr.Spacing.After);
+
 			return undefined;
 		}
+
 		return AscCommon.MMToTwips(this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Spacing.After);
 	};
 	/**
