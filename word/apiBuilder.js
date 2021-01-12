@@ -8281,9 +8281,12 @@
 	 */
 	ApiParaPr.prototype.GetStyle = function()
 	{
+		var oDocument = private_GetLogicDocument();
+		var oStyles  = oDocument.Get_Styles();
 		var styleId = this.Paragraph.Get_CompiledPr2().ParaPr.PStyle;
+		
 		if (styleId != undefined)
-			return editor.GetDocument().GetStyle(editor.asc_GetStyleNameById(styleId));
+			return new ApiStyle(oStyles.Get(styleId));
 
 		return null;
 	};
