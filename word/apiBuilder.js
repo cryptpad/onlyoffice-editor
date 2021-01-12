@@ -8282,9 +8282,18 @@
 	ApiParaPr.prototype.GetStyle = function()
 	{
 		var oDocument = private_GetLogicDocument();
-		var oStyles  = oDocument.Get_Styles();
-		var styleId = this.Paragraph.Get_CompiledPr2().ParaPr.PStyle;
-		
+		var oStyles   = oDocument.Get_Styles();
+		var styleId   = null;
+
+		if (!this.Parent)
+		{
+			styleId = this.ParaPr.PStyle;
+			if (styleId != undefined)
+				return new ApiStyle(oStyles.Get(styleId));
+			return null;
+		}
+
+		var styleId = this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.PStyle;
 		if (styleId != undefined)
 			return new ApiStyle(oStyles.Get(styleId));
 
@@ -8318,11 +8327,17 @@
 	 * Gets the paragraph left side indentation.
 	 * @memberof ApiParaPr
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
-	 * @returns {twips} - The paragraph left side indentation value measured in twentieths of a point (1/1440 of an inch).
+	 * @returns {twips | undefined} - The paragraph left side indentation value measured in twentieths of a point (1/1440 of an inch).
 	 */
 	ApiParaPr.prototype.GetIndLeft = function()
 	{
-		return this.Paragraph.Get_CompiledPr2().ParaPr.Ind.Left / (25.4 / 72.0 / 20);
+		if (!this.Parent)
+		{
+			if (this.ParaPr.Ind.Left != undefined)
+				return AscCommon.MMToTwips(this.ParaPr.Ind.Left);
+			return undefined;
+		}
+		return AscCommon.MMToTwips(this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Ind.Left);
 	};
 	/**
 	 * Set the paragraph right side indentation.
@@ -8339,11 +8354,17 @@
 	 * Gets the paragraph right side indentation.
 	 * @memberof ApiParaPr
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
-	 * @returns {twips} - The paragraph right side indentation value measured in twentieths of a point (1/1440 of an inch).
+	 * @returns {twips | undefined} - The paragraph right side indentation value measured in twentieths of a point (1/1440 of an inch).
 	 */
 	ApiParaPr.prototype.GetIndRight = function()
 	{
-		return this.Paragraph.Get_CompiledPr2().ParaPr.Ind.Right / (25.4 / 72.0 / 20);
+		if (!this.Parent)
+		{
+			if (this.ParaPr.Ind.Right != undefined)
+				return AscCommon.MMToTwips(this.ParaPr.Ind.Right);
+			return undefined;
+		}
+		return AscCommon.MMToTwips(this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Ind.Right);
 	};
 	/**
 	 * Set the paragraph first line indentation.
@@ -8360,11 +8381,17 @@
 	 * Gets the paragraph first line indentation.
 	 * @memberof ApiParaPr
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
-	 * @returns {twips} - The paragraph first line indentation value measured in twentieths of a point (1/1440 of an inch).
+	 * @returns {twips | undefined} - The paragraph first line indentation value measured in twentieths of a point (1/1440 of an inch).
 	 */
 	ApiParaPr.prototype.GetIndFirstLine = function()
 	{
-		return this.Paragraph.Get_CompiledPr2().ParaPr.Ind.FirstLine / (25.4 / 72.0 / 20);
+		if (!this.Parent)
+		{
+			if (this.ParaPr.Ind.FirstLine != undefined)
+				return AscCommon.MMToTwips(this.ParaPr.Ind.FirstLine);
+			return undefined;
+		}
+		return AscCommon.MMToTwips(this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Ind.FirstLine);
 	};
 	/**
 	 * Set paragraph contents justification.
@@ -8382,24 +8409,38 @@
 	 * Gets paragraph contents justification.
 	 * @memberof ApiParaPr
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
-	 * @returns {("left" | "right" | "both" | "center")} 
+	 * @returns {("left" | "right" | "both" | "center" | undefined)} 
 	 */
 	ApiParaPr.prototype.GetJc = function()
 	{
-		var nType = this.Paragraph.Get_CompiledPr2().ParaPr.Jc
-		switch (nType)
+		function GetJC(nType) 
 		{
-			case 0 :
-				return "right";
-			case 1 :
-				return "left";
-			case 2 :
-				return "center";
-			case 3 : 
-				return "both";
+			switch (nType)
+			{
+				case 0 :
+					return "right";
+				case 1 :
+					return "left";
+				case 2 :
+					return "center";
+				case 3 : 
+					return "both";
+			}
 		}
 
-		return "left";
+		var nType = null;
+		if (!this.Parent)
+		{
+			nType = this.ParaPr.Jc;
+			if (nType != undefined)
+				return GetJC(nType);
+			return undefined;
+		}
+		
+		nType = this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Jc
+		if (nType != undefined)
+			return GetJC(nType);
+		return undefined;
 	};
 	/**
 	 * Specify that when rendering this document using a page view, all lines of this paragraph are maintained on a single page whenever possible.
@@ -8476,42 +8517,72 @@
 	 * Get the paragraph line spacing value.
 	 * @memberof ApiParaPr
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
-	 * @returns {twips | line240} - to know is twips or line240 use ApiParaPr.prototype.GetSpacingLineRule().
+	 * @returns {twips | line240 | undefined} - to know is twips or line240 use ApiParaPr.prototype.GetSpacingLineRule().
 	 */
 	ApiParaPr.prototype.GetSpacingLineValue = function()
 	{
-		var oSpacing = this.Paragraph.Get_CompiledPr2().ParaPr.Spacing;
-		switch (oSpacing.LineRule)
+		function GetValue(oSpacing)
 		{
-			case Asc.linerule_Auto:
-				return oSpacing.Line * 240.0;
-			case Asc.linerule_AtLeast:
-			case Asc.linerule_Exact:
-				return AscCommon.MMToTwips(oSpacing.Line);
+			switch (oSpacing.LineRule)
+			{
+				case Asc.linerule_Auto:
+					return oSpacing.Line * 240.0;
+				case Asc.linerule_AtLeast:
+				case Asc.linerule_Exact:
+					return AscCommon.MMToTwips(oSpacing.Line);
+				default:
+					return undefined;
+			}
 		}
 
+		var oSpacing = null;
+		if (!this.Parent)
+		{
+			oSpacing = this.ParaPr.Spacing;
+			if (oSpacing.LineRule != undefined)
+				return GetValue(oSpacing);
+			return undefined;
+		}
+
+		oSpacing = this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Spacing;
+		if (oSpacing.LineRule != undefined)
+			return GetValue(oSpacing);
 		return 0;
 	};
 	/**
 	 * Get the paragraph line spacing rule.
 	 * @memberof ApiParaPr
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
-	 * @returns {"twips" | "line240"} 
+	 * @returns {"auto" | "atLeast" | "exact" | undefined} 
 	 */
 	ApiParaPr.prototype.GetSpacingLineRule = function()
 	{
-		var oSpacing = this.Paragraph.Get_CompiledPr2().ParaPr.Spacing;
-		switch (oSpacing.LineRule)
+		function GetRule(nLineRule)
 		{
-			case Asc.linerule_Auto:
-				return "line240";
-			case Asc.linerule_AtLeast:
-				return "atLeast";
-			case Asc.linerule_Exact:
-				return "twips";
+			switch (nLineRule)
+			{
+				case Asc.linerule_Auto:
+					return "auto";
+				case Asc.linerule_AtLeast:
+					return "atLeast";
+				case Asc.linerule_Exact:
+					return "exact";
+			}
 		}
 
+		if (!this.Parent)
+		{
+			nLineRule = this.ParaPr.Spacing.LineRule;
+			if (nLineRule != undefined)
+				return GetRule(nLineRule);
+			return undefined;
+		}
+
+		var nLineRule = this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Spacing.LineRule;
+		if (nLineRule != undefined)
+			return GetRule(nLineRule);
 		return "atLeast";
+
 	};
 	/**
 	 * Set the spacing before the current paragraph. If the value of the isBeforeAuto parameter is true, then 
@@ -8540,7 +8611,13 @@
 	 */
 	ApiParaPr.prototype.GetSpacingBefore = function()
 	{
-		return AscCommon.MMToTwips(this.Paragraph.Get_CompiledPr2().ParaPr.Spacing.Before);
+		if (!this.Parent)
+		{
+			if (this.ParaPr.Spacing.Before != undefined)
+				AscCommon.MMToTwips(this.ParaPr.Spacing.Before);
+			return undefined;
+		}
+		return AscCommon.MMToTwips(this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Spacing.Before);
 	};
 	/**
 	 * Set the spacing after the current paragraph. If the value of the isAfterAuto parameter is true, then 
@@ -8569,7 +8646,13 @@
 	 */
 	ApiParaPr.prototype.GetSpacingAfter = function()
 	{
-		return AscCommon.MMToTwips(this.Paragraph.Get_CompiledPr2().ParaPr.Spacing.After);
+		if (!this.Parent)
+		{
+			if (this.ParaPr.Spacing.After != undefined)
+				AscCommon.MMToTwips(this.ParaPr.Spacing.After);
+			return undefined;
+		}
+		return AscCommon.MMToTwips(this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Spacing.After);
 	};
 	/**
 	 * Specify the shading applied to the contents of the paragraph.
@@ -8590,12 +8673,32 @@
 	 * Gets the shading applied to the contents of the paragraph.
 	 * @memberof ApiParaPr
 	 * @typeofeditors ["CDE"]
-	 * @returns {ApiRGBColor}
+	 * @returns {?ApiRGBColor}
 	 */
 	ApiParaPr.prototype.GetShd = function()
 	{
-		var oColor = this.Paragraph.Get_CompiledPr2().ParaPr.Shd.Color;
-		return new ApiRGBColor(oColor.r, oColor.g, oColor.b)
+		var oColor = null;
+		var oShd   = null;
+		if (!this.Parent)
+		{
+			oShd = this.ParaPr.Shd;
+			if (!oShd)
+				return null;
+
+			oColor = this.ParaPr.Shd.Color;
+			if (oColor)
+				return new ApiRGBColor(oColor.r, oColor.g, oColor.b)
+			return null;
+		}
+
+		oShd = this.ParaPr.Shd;
+		if (!oShd)
+			return null;
+
+		oColor = this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Shd.Color;
+		if (oColor)
+			return new ApiRGBColor(oColor.r, oColor.g, oColor.b)
+		return null;
 	};
 	/**
 	 * Specify the border which will be displayed below a set of paragraphs which have the same paragraph border settings.
