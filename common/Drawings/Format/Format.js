@@ -7559,6 +7559,7 @@ CSpPr.prototype =
             }
             case AscDFH.historyitem_SpPr_SetXfrm:
             {
+                this.handleUpdateExtents();
                 break;
             }
             case AscDFH.historyitem_SpPr_SetGeometry:
