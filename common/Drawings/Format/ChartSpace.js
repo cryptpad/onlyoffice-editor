@@ -9106,7 +9106,7 @@ var GLOBAL_PATH_COUNT = 0;
                         case AscDFH.historyitem_type_AreaSeries:
                         case AscDFH.historyitem_type_PieSeries:
                         {
-                            union_marker.marker = AscFormat.CreateMarkerGeometryByType(AscFormat.SYMBOL_SQUARE, null);
+                            union_marker.marker = AscFormat.CreateMarkerGeometryByType(AscFormat.SYMBOL_SQUARE);
                             union_marker.marker.pen = ser.compiledSeriesPen;
                             union_marker.marker.brush = ser.compiledSeriesBrush;
                             break;
@@ -9115,7 +9115,7 @@ var GLOBAL_PATH_COUNT = 0;
                         {
 
                             var oBandFmt = this.chart.plotArea.charts[0].compiledBandFormats[i];
-                            union_marker.marker = AscFormat.CreateMarkerGeometryByType(AscFormat.SYMBOL_SQUARE, null);
+                            union_marker.marker = AscFormat.CreateMarkerGeometryByType(AscFormat.SYMBOL_SQUARE);
                             union_marker.marker.pen = oBandFmt.spPr.ln;
                             union_marker.marker.brush = oBandFmt.spPr.Fill;
                             break;
@@ -9125,14 +9125,14 @@ var GLOBAL_PATH_COUNT = 0;
                         case AscDFH.historyitem_type_RadarSeries:
                         {
                             if(AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(this)) {
-                                union_marker.marker = AscFormat.CreateMarkerGeometryByType(AscFormat.SYMBOL_SQUARE, null);
+                                union_marker.marker = AscFormat.CreateMarkerGeometryByType(AscFormat.SYMBOL_SQUARE);
                                 union_marker.marker.pen = ser.compiledSeriesPen;
                                 union_marker.marker.brush = ser.compiledSeriesBrush;
                                 break;
                             }
                             if(ser.compiledSeriesMarker) {
                                 var pts = ser.getNumPts();
-                                union_marker.marker = AscFormat.CreateMarkerGeometryByType(ser.compiledSeriesMarker.symbol, null);
+                                union_marker.marker = AscFormat.CreateMarkerGeometryByType(ser.compiledSeriesMarker.symbol);
                                 if(pts[0] && pts[0].compiledMarker) {
                                     union_marker.marker.brush = pts[0].compiledMarker.brush;
                                     union_marker.marker.pen = pts[0].compiledMarker.pen;
@@ -9141,7 +9141,7 @@ var GLOBAL_PATH_COUNT = 0;
                             }
 
                             if(ser.compiledSeriesPen && !b_scatter_no_line) {
-                                union_marker.lineMarker = AscFormat.CreateMarkerGeometryByType(AscFormat.SYMBOL_DASH, null);
+                                union_marker.lineMarker = AscFormat.CreateMarkerGeometryByType(AscFormat.SYMBOL_DASH);
                                 union_marker.lineMarker.pen = ser.compiledSeriesPen.createDuplicate(); //Копируем, так как потом возможно придется изменять толщину линии;
                             }
                             if(!b_scatter_no_line && !AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(this))
@@ -9217,12 +9217,12 @@ var GLOBAL_PATH_COUNT = 0;
                         ser.getObjectType() === AscDFH.historyitem_type_RadarSeries) {
                         if(pt) {
                             if(pt.compiledMarker) {
-                                union_marker.marker = AscFormat.CreateMarkerGeometryByType(pt.compiledMarker.symbol, null);
+                                union_marker.marker = AscFormat.CreateMarkerGeometryByType(pt.compiledMarker.symbol);
                                 union_marker.marker.brush = pt.compiledMarker.pen.Fill;
                                 union_marker.marker.pen = pt.compiledMarker.pen;
                             }
                             if(pt.pen) {
-                                union_marker.lineMarker = AscFormat.CreateMarkerGeometryByType(AscFormat.SYMBOL_DASH, null);
+                                union_marker.lineMarker = AscFormat.CreateMarkerGeometryByType(AscFormat.SYMBOL_DASH);
                                 union_marker.lineMarker.pen = pt.pen;
                             }
                         }
@@ -9231,7 +9231,7 @@ var GLOBAL_PATH_COUNT = 0;
                     }
                     else {
                         b_no_line_series = false;
-                        union_marker.marker = AscFormat.CreateMarkerGeometryByType(AscFormat.SYMBOL_SQUARE, null);
+                        union_marker.marker = AscFormat.CreateMarkerGeometryByType(AscFormat.SYMBOL_SQUARE);
                         if(pt) {
                             union_marker.marker.pen = pt.pen;
                             union_marker.marker.brush = pt.brush;

@@ -6675,7 +6675,7 @@
                 }
             }
         }
-    }
+    };
 
     function CCatAx() {
         CAxisBase.call(this);
@@ -11104,15 +11104,14 @@
     };
     CTitle.prototype.Set_CurrentElement = function(bUpdate, pageIndex) {
 
-        var chart = this.chart, controller;
+        var chart = this.chart;
         if(chart && typeof editor !== "undefined" && editor && editor.WordControl && editor.WordControl.m_oLogicDocument) {
-            var bDocument = false, bPresentation = false, drawing_objects;
+            var bDocument = false, drawing_objects;
             if(editor.WordControl.m_oLogicDocument instanceof CDocument) {
                 bDocument = true;
                 drawing_objects = editor.WordControl.m_oLogicDocument.DrawingObjects;
             }
             else if(editor.WordControl.m_oLogicDocument instanceof CPresentation) {
-                bPresentation = true;
                 if(chart.parent) {
                     drawing_objects = chart.parent.graphicObject;
                 }
@@ -11515,7 +11514,7 @@
     CUpDownBars.prototype.handleUpdateLn = function() {
         this.Refresh_RecalcData();
     };
-    CUpDownBars.prototype.fillCopy = function(oCopy, oIdMap) {
+    CUpDownBars.prototype.fillObject = function(oCopy, oIdMap) {
         if(AscFormat.isRealNumber(this.gapWidth)) {
             oCopy.setGapWidth(this.gapWidth);
         }
@@ -12593,7 +12592,7 @@
         this.marker && this.marker.draw(g);
     };
 
-    function CreateMarkerGeometryByType(type, src) {
+    function CreateMarkerGeometryByType(type) {
         var ret = new AscFormat.Geometry();
         var w = 43200, h = 43200;
 
