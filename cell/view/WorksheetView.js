@@ -7756,7 +7756,7 @@
 		}
 
 		var epsChangeSize = 3 * AscCommon.global_mouseEvent.KoefPixToMM;
-		if (x <= this.cellsLeft && y >= this.cellsTop) {
+		if (x <= this.cellsLeft && y >= this.cellsTop && x >= this.headersLeft) {
 			r = this._findRowUnderCursor(y, true);
 			if (r === null) {
 				return oResDefault;
@@ -7773,7 +7773,7 @@
 			};
 		}
 
-		if (y <= this.cellsTop && x >= this.cellsLeft) {
+		if (y <= this.cellsTop && x >= this.cellsLeft && y >= this.headersTop) {
 			c = this._findColUnderCursor(x, true);
 			if (c === null) {
 				return oResDefault;
