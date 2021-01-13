@@ -2071,6 +2071,9 @@ ParaRun.prototype.Recalculate_CurPos = function(X, Y, CurrentRun, _CurRange, _Cu
  */
 ParaRun.prototype.GetSimpleChangesRange = function(arrChanges, nStart, nEnd)
 {
+	if (this.IsMathRun())
+		return null;
+
 	var oParaPos = null;
 
 	var _nStart = undefined !== nStart ? nStart : 0;
