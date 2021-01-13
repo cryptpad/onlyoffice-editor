@@ -12298,7 +12298,7 @@ CDocument.prototype.Document_Undo = function(Options)
 			var arrChanges = this.History.Undo(Options);
 			this.DocumentOutline.UpdateAll(); // TODO: надо бы подумать как переделать на более легкий пересчет
 			this.DrawingObjects.TurnOnCheckChartSelection();
-			this.RecalculateByChanges(arrChanges);
+			this.RecalculateWithParams(this.History.RecalculateData);
 
 			this.Document_UpdateSelectionState();
 			this.Document_UpdateInterfaceState();
@@ -12324,7 +12324,7 @@ CDocument.prototype.Document_Redo = function()
 		var arrChanges = this.History.Redo();
 		this.DocumentOutline.UpdateAll(); // TODO: надо бы подумать как переделать на более легкий пересчет
 		this.DrawingObjects.TurnOnCheckChartSelection();
-		this.RecalculateByChanges(arrChanges);
+		this.RecalculateWithParams(this.History.RecalculateData);
 
 		this.Document_UpdateSelectionState();
 		this.Document_UpdateInterfaceState();
