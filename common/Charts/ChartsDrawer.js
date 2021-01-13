@@ -10355,7 +10355,11 @@ drawRadarChart.prototype = {
 
 			seria = this.chart.series[i];
 
-			dataSeries = this.cChartDrawer.getNumCache(seria.val);
+			var oNumCache = this.cChartDrawer.getNumCache(seria.val);
+			if(!oNumCache) {
+				continue;
+			}
+			dataSeries = oNumCache.pts;
 			if(!dataSeries) {
 				continue;
 			}

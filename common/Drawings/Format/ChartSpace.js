@@ -2417,7 +2417,9 @@ var GLOBAL_PATH_COUNT = 0;
                 if(AscFormat.isRealNumber(this.selection.datPoint)) {
                     var pts = oSeries.getNumPts();
                     var datPoint = this.selection.datPoint;
-                    if(oSeries.getObjectType() === AscDFH.historyitem_type_LineSeries || oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer) {
+                    if(oSeries.getObjectType() === AscDFH.historyitem_type_LineSeries ||
+                        oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer ||
+                        oSeries.getObjectType() === AscDFH.historyitem_type_RadarSeries) {
                         if(!this.selection.markers) {
                             datPoint++;
                         }
@@ -2534,7 +2536,9 @@ var GLOBAL_PATH_COUNT = 0;
                 if(AscFormat.isRealNumber(this.selection.datPoint)) {
                     var pts = oSeries.getNumPts();
                     var datPoint = this.selection.datPoint;
-                    if(oSeries.getObjectType() === AscDFH.historyitem_type_LineSeries || oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer) {
+                    if(oSeries.getObjectType() === AscDFH.historyitem_type_LineSeries ||
+                        oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer ||
+                        oSeries.getObjectType() === AscDFH.historyitem_type_RadarSeries) {
                         if(!this.selection.markers) {
                             datPoint++;
                         }
@@ -2735,7 +2739,9 @@ var GLOBAL_PATH_COUNT = 0;
                 if(AscFormat.isRealNumber(this.selection.datPoint)) {
                     var pts = oSeries.getNumPts();
                     var datPoint = this.selection.datPoint;
-                    if(oSeries.getObjectType() === AscDFH.historyitem_type_LineSeries || oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer) {
+                    if(oSeries.getObjectType() === AscDFH.historyitem_type_LineSeries ||
+                        oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer ||
+                        oSeries.getObjectType() === AscDFH.historyitem_type_RadarSeries) {
                         if(!this.selection.markers) {
                             datPoint++;
                         }
@@ -2993,7 +2999,9 @@ var GLOBAL_PATH_COUNT = 0;
                 if(AscFormat.isRealNumber(this.selection.datPoint)) {
                     var pts = oSeries.getNumPts();
                     var datPoint = this.selection.datPoint;
-                    if(oSeries.getObjectType() === AscDFH.historyitem_type_LineSeries || oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer) {
+                    if(oSeries.getObjectType() === AscDFH.historyitem_type_LineSeries ||
+                        oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer ||
+                        oSeries.getObjectType() === AscDFH.historyitem_type_RadarSeries) {
                         if(!this.selection.markers) {
                             datPoint++;
                         }
@@ -9114,6 +9122,7 @@ var GLOBAL_PATH_COUNT = 0;
                         }
                         case AscDFH.historyitem_type_LineSeries:
                         case AscDFH.historyitem_type_ScatterSer:
+                        case AscDFH.historyitem_type_RadarSeries:
                         {
                             if(AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(this)) {
                                 union_marker.marker = AscFormat.CreateMarkerGeometryByType(AscFormat.SYMBOL_SQUARE, null);
@@ -9203,7 +9212,9 @@ var GLOBAL_PATH_COUNT = 0;
 
                     calc_entry.calcMarkerUnion = new AscFormat.CUnionMarker();
                     union_marker = calc_entry.calcMarkerUnion;
-                    if(ser.getObjectType() === AscDFH.historyitem_type_LineSeries && !AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(this) || ser.getObjectType() === AscDFH.historyitem_type_ScatterSer) {
+                    if(ser.getObjectType() === AscDFH.historyitem_type_LineSeries && !AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(this) ||
+                        ser.getObjectType() === AscDFH.historyitem_type_ScatterSer ||
+                        ser.getObjectType() === AscDFH.historyitem_type_RadarSeries) {
                         if(pt) {
                             if(pt.compiledMarker) {
                                 union_marker.marker = AscFormat.CreateMarkerGeometryByType(pt.compiledMarker.symbol, null);
@@ -9258,7 +9269,9 @@ var GLOBAL_PATH_COUNT = 0;
                     if(calc_entryes[i].calcMarkerUnion.marker) {
                         var marker_width = marker_size;
                         if(calc_entryes[i].series) {
-                            if(calc_entryes[i].series.getObjectType() !== AscDFH.historyitem_type_LineSeries && calc_entryes[i].series.getObjectType() !== AscDFH.historyitem_type_ScatterSer) {
+                            if(calc_entryes[i].series.getObjectType() !== AscDFH.historyitem_type_LineSeries &&
+                                calc_entryes[i].series.getObjectType() !== AscDFH.historyitem_type_ScatterSer &&
+                                calc_entryes[i].series.getObjectType() !== AscDFH.historyitem_type_RadarSeries) {
                                 marker_width = line_marker_width;
                             }
                         }
@@ -10155,41 +10168,6 @@ var GLOBAL_PATH_COUNT = 0;
             }
         }
     };
-
-    function fSaveChartObjectSourceFormatting(oObject, oObjectCopy, oTheme, oColorMap) {
-        if(oObject === oObjectCopy || !oObjectCopy || !oObject) {
-            return;
-        }
-
-        if(oObject.pen || oObject.brush) {
-            if(oObject.pen || oObject.brush) {
-                if(!oObjectCopy.spPr) {
-                    if(oObjectCopy.setSpPr) {
-                        oObjectCopy.setSpPr(new AscFormat.CSpPr());
-                        oObjectCopy.spPr.setParent(oObjectCopy);
-                    }
-                }
-                if(oObject.brush) {
-                    if(oTheme && oColorMap) {
-                        oObject.brush.check(oTheme, oColorMap);
-                    }
-                    oObjectCopy.spPr.setFill(oObject.brush.saveSourceFormatting());
-                }
-                if(oObject.pen) {
-                    if(oObject.pen.Fill && oTheme && oColorMap) {
-                        oObject.pen.Fill.check(oTheme, oColorMap);
-                    }
-                    oObjectCopy.spPr.setLn(oObject.pen.createDuplicate(true));
-                }
-            }
-        }
-        if(oObject.txPr && oObject.txPr.content) {
-            AscFormat.SaveContentSourceFormatting(oObject.txPr.content.Content, oObjectCopy.txPr.content.Content, oTheme, oColorMap);
-        }
-        if(oObject.tx && oObject.tx.rich && oObject.tx.rich.content) {
-            AscFormat.SaveContentSourceFormatting(oObject.tx.rich.content.Content, oObjectCopy.tx.rich.content.Content, oTheme, oColorMap);
-        }
-    }
     CChartSpace.prototype.getCopyWithSourceFormatting = function(oIdMap) {
         var oPr = new AscFormat.CCopyObjectProperties();
         oPr.idMap = oIdMap;
@@ -12421,7 +12399,50 @@ var GLOBAL_PATH_COUNT = 0;
     CChartSpace.prototype.is3dChart = function() {
         return AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(this);
     };
-    
+    CChartSpace.prototype.getTxPrParaPr = function() {
+        if(this.txPr) {
+            return this.txPr.getFirstParaParaPr();
+        }
+        return null;
+    };
+
+
+
+
+    function fSaveChartObjectSourceFormatting(oObject, oObjectCopy, oTheme, oColorMap) {
+        if(oObject === oObjectCopy || !oObjectCopy || !oObject) {
+            return;
+        }
+
+        if(oObject.pen || oObject.brush) {
+            if(oObject.pen || oObject.brush) {
+                if(!oObjectCopy.spPr) {
+                    if(oObjectCopy.setSpPr) {
+                        oObjectCopy.setSpPr(new AscFormat.CSpPr());
+                        oObjectCopy.spPr.setParent(oObjectCopy);
+                    }
+                }
+                if(oObject.brush) {
+                    if(oTheme && oColorMap) {
+                        oObject.brush.check(oTheme, oColorMap);
+                    }
+                    oObjectCopy.spPr.setFill(oObject.brush.saveSourceFormatting());
+                }
+                if(oObject.pen) {
+                    if(oObject.pen.Fill && oTheme && oColorMap) {
+                        oObject.pen.Fill.check(oTheme, oColorMap);
+                    }
+                    oObjectCopy.spPr.setLn(oObject.pen.createDuplicate(true));
+                }
+            }
+        }
+        if(oObject.txPr && oObject.txPr.content) {
+            AscFormat.SaveContentSourceFormatting(oObject.txPr.content.Content, oObjectCopy.txPr.content.Content, oTheme, oColorMap);
+        }
+        if(oObject.tx && oObject.tx.rich && oObject.tx.rich.content) {
+            AscFormat.SaveContentSourceFormatting(oObject.tx.rich.content.Content, oObjectCopy.tx.rich.content.Content, oTheme, oColorMap);
+        }
+    }
 
     function getMaxIdx(arr) {
         var max_idx = 0;
@@ -14047,7 +14068,6 @@ var GLOBAL_PATH_COUNT = 0;
         if(aSeriesRefs.length !== MIN_STOCK_COUNT) {
             return false;
         }
-        var aSeries = [];
         for(var nRef = 0; nRef < aSeriesRefs.length; ++nRef) {
             if(aSeriesRefs[nRef].getValCellsCount() < MIN_STOCK_COUNT) {
                 return false;

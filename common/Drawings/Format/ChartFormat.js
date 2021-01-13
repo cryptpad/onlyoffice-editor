@@ -990,7 +990,6 @@
     drawingsChangesMap[AscDFH.historyitem_ScatterSer_SetDLbls] = function(oClass, value) {
         oClass.dLbls = value;
     };
-
     drawingsChangesMap[AscDFH.historyitem_ScatterSer_SetErrBars] = function(oClass, value) {
         oClass.errBars = value;
     };
@@ -1242,7 +1241,6 @@
         oClass.Refresh_RecalcData({Type: AscDFH.historyitem_CommonSeries_SetSpPr});
     };
 
-
     AscDFH.changesFactory[AscDFH.historyitem_DLbl_SetDelete] = window['AscDFH'].CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_DLbl_SetShowBubbleSize] = window['AscDFH'].CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_DLbl_SetShowCatName] = window['AscDFH'].CChangesDrawingsBool;
@@ -1407,7 +1405,6 @@
     AscDFH.changesFactory[AscDFH.historyitem_View3d_SetRotX] = window['AscDFH'].CChangesDrawingsLong;
     AscDFH.changesFactory[AscDFH.historyitem_View3d_SetRotY] = window['AscDFH'].CChangesDrawingsLong;
     AscDFH.changesFactory[AscDFH.historyitem_NumericPoint_SetIdx] = window['AscDFH'].CChangesDrawingsLong;
-
 
     AscDFH.changesFactory[AscDFH.historyitem_CatAxSetCrossesAt] = window['AscDFH'].CChangesDrawingsDouble;
     AscDFH.changesFactory[AscDFH.historyitem_DateAxBaseTimeUnit] = window['AscDFH'].CChangesDrawingsDouble;
@@ -1588,7 +1585,7 @@
     AscDFH.changesFactory[AscDFH.historyitem_PivotFmt_SetSpPr] = window['AscDFH'].CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_PivotFmt_SetTxPr] = window['AscDFH'].CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_RadarChart_SetDLbls] = window['AscDFH'].CChangesDrawingsObject;
-    AscDFH.changesFactory[AscDFH.historyitem_RadarChart_SetRadarStyle] = window['AscDFH'].CChangesDrawingsObject;
+    AscDFH.changesFactory[AscDFH.historyitem_RadarChart_SetRadarStyle] = window['AscDFH'].CChangesDrawingsLong;
     AscDFH.changesFactory[AscDFH.historyitem_RadarSeries_SetCat] = window['AscDFH'].CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_RadarSeries_SetDLbls] = window['AscDFH'].CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_RadarSeries_SetCat] = window['AscDFH'].CChangesDrawingsObject;
@@ -1781,8 +1778,6 @@
 
 
 // Import
-    var g_oIdCounter = AscCommon.g_oIdCounter;
-    var g_oTableId = AscCommon.g_oTableId;
     var CMatrix = AscCommon.CMatrix;
     var isRealObject = AscCommon.isRealObject;
     var History = AscCommon.History;
@@ -1848,6 +1843,12 @@
             oChartSpace.handleUpdateDataLabels()
         }
     };
+    CBaseChartObject.prototype.getTxPrParaPr = function() {
+        if(this.txPr) {
+            return this.txPr.getFirstParaParaPr();
+        }
+        return null;
+    };
 
     function getMinMaxFromArrPoints(aPoints) {
         if(Array.isArray(aPoints) && aPoints.length > 0) {
@@ -1881,8 +1882,6 @@
         this.spPr = null;
         this.tx = null;
         this.txPr = null;
-
-        this.parent = null;
 
         this.recalcInfo =
         {
@@ -2444,14 +2443,11 @@
             style.TextPr = text_pr;
             var chart_text_pr;
 
-            if(this.chart && this.chart.txPr
-                && this.chart.txPr.content
-                && this.chart.txPr.content.Content[0]
-                && this.chart.txPr.content.Content[0].Pr) {
-                this.chart.txPr.content.Content[0].Set_DocumentIndex(0);
-                style.ParaPr.Merge(this.chart.txPr.content.Content[0].Pr);
-                if(this.chart.txPr.content.Content[0].Pr.DefaultRunPr) {
-                    chart_text_pr = this.chart.txPr.content.Content[0].Pr.DefaultRunPr;
+            var oParaPr = this.chart.getTxPrParaPr();
+            if(oParaPr) {
+                style.ParaPr.Merge(oParaPr);
+                if(oParaPr.DefaultRunPr) {
+                    chart_text_pr = oParaPr.DefaultRunPr;
                     style.TextPr.Merge(chart_text_pr);
                 }
             }
@@ -2464,30 +2460,23 @@
                         style.TextPr.FontSize = 18;
                 }
             }
-            if(this instanceof CalcLegendEntry
-                && this.legend) {
-                if(this.legend.txPr
-                    && this.legend.txPr.content
-                    && this.legend.txPr.content.Content[0]
-                    && this.legend.txPr.content.Content[0].Pr) {
-                    this.legend.txPr.content.Content[0].Set_DocumentIndex(0);
-                    style.ParaPr.Merge(this.legend.txPr.content.Content[0].Pr);
-                    if(this.legend.txPr.content.Content[0].Pr.DefaultRunPr)
-                        style.TextPr.Merge(this.legend.txPr.content.Content[0].Pr.DefaultRunPr);
+            if(this instanceof CalcLegendEntry && this.legend) {
+                oParaPr = this.legend.getTxPrParaPr();
+                if(oParaPr) {
+                    style.ParaPr.Merge(oParaPr);
+                    if(oParaPr.DefaultRunPr)
+                        style.TextPr.Merge(oParaPr.DefaultRunPr);
                 }
-
                 if(AscFormat.isRealNumber(this.idx)) {
                     var aLegendEntries = this.legend.legendEntryes;
                     for(var i = 0; i < aLegendEntries.length; ++i) {
                         if(this.idx === aLegendEntries[i].idx) {
                             var oLegendEntry = aLegendEntries[i];
-                            if(oLegendEntry.txPr
-                                && oLegendEntry.txPr.content
-                                && oLegendEntry.txPr.content.Content[0]
-                                && oLegendEntry.txPr.content.Content[0].Pr) {
-                                style.ParaPr.Merge(oLegendEntry.txPr.content.Content[0].Pr);
-                                if(oLegendEntry.txPr.content.Content[0].Pr.DefaultRunPr)
-                                    style.TextPr.Merge(oLegendEntry.txPr.content.Content[0].Pr.DefaultRunPr);
+                            oParaPr = oLegendEntry.getTxPrParaPr();
+                            if(oParaPr) {
+                                style.ParaPr.Merge(oParaPr);
+                                if(oParaPr.DefaultRunPr)
+                                    style.TextPr.Merge(oParaPr.DefaultRunPr);
                             }
                             break;
                         }
@@ -2495,25 +2484,19 @@
                 }
 
             }
-
-            if(!(this instanceof CTitle) && this.parent && this.parent.txPr
-                && this.parent.txPr.content
-                && this.parent.txPr.content.Content[0]
-                && this.parent.txPr.content.Content[0].Pr) {
-                this.parent.txPr.content.Content[0].Set_DocumentIndex(0);
-                style.ParaPr.Merge(this.parent.txPr.content.Content[0].Pr);
-                if(this.parent.txPr.content.Content[0].Pr.DefaultRunPr)
-                    style.TextPr.Merge(this.parent.txPr.content.Content[0].Pr.DefaultRunPr);
+            if(!(this instanceof CTitle)) {
+                if(this.parent) {
+                    oParaPr = this.parent.getTxPrParaPr();
+                    style.ParaPr.Merge(oParaPr);
+                    if(oParaPr.DefaultRunPr)
+                        style.TextPr.Merge(oParaPr.DefaultRunPr);
+                }
             }
-
-            if(this.txPr
-                && this.txPr.content
-                && this.txPr.content.Content[0]
-                && this.txPr.content.Content[0].Pr) {
-                this.txPr.content.Content[0].Set_DocumentIndex(0);
-                style.ParaPr.Merge(this.txPr.content.Content[0].Pr);
-                if(this.txPr.content.Content[0].Pr.DefaultRunPr)
-                    style.TextPr.Merge(this.txPr.content.Content[0].Pr.DefaultRunPr);
+            oParaPr = this.getTxPrParaPr();
+            if(oParaPr) {
+                style.ParaPr.Merge(oParaPr);
+                if(oParaPr.DefaultRunPr)
+                    style.TextPr.Merge(oParaPr.DefaultRunPr);
             }
             styles.Add(style);
             if(!(this instanceof CTitle))
@@ -5357,7 +5340,6 @@
         this.series = [];
         this.filteredSeries = [];
         this.axId = [];
-        this.parent = null;
         this.dLbls = null;
         this.varyColors = null;
     }
@@ -6313,17 +6295,6 @@
     InitClass(CAxisBase, CBaseChartObject, AscDFH.historyitem_type_Unknown);
     CAxisBase.prototype.notAllowedWithoutId = function() {
         return true;
-    };
-    CAxisBase.prototype.getChartSpace = function() {
-        var oPlotArea = this.parent;
-        if(!oPlotArea) {
-            return null;
-        }
-        var oChart = oPlotArea.parent;
-        if(!oChart) {
-            return null;
-        }
-        return oChart.parent;
     };
     CAxisBase.prototype.getPlotArea = function() {
         return this.parent;
@@ -8211,7 +8182,6 @@
         this.builtInUnit = null;
         this.custUnit = null;
         this.dispUnitsLbl = null;
-        this.parent = null;
     }
     InitClass(CDispUnits, CBaseChartObject, AscDFH.historyitem_type_DispUnits);
     CDispUnits.prototype.fillObject = function(oCopy, oIdMap) {
@@ -9415,7 +9385,6 @@
     function CNumRef() {
         CChartRefBase.call(this);
         this.numCache = null;
-        this.parent = null;
     }
     InitClass(CNumRef, CChartRefBase, AscDFH.historyitem_type_NumRef);
     CNumRef.prototype.fillObject = function(oCopy, oIdMap) {
@@ -10264,9 +10233,8 @@
         }
     };
     CRadarChart.prototype.setRadarStyle = function(pr) {
-        History.CanAddChanges() && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_RadarChart_SetRadarStyle, this.radarStyle, pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_RadarChart_SetRadarStyle, this.radarStyle, pr));
         this.radarStyle = pr;
-        this.setParentToChild(pr);
     };
 
     function CRadarSeries() {
@@ -10334,7 +10302,6 @@
         this.max = null;
         this.min = null;
         this.orientation = null;
-        this.parent = null;
     }
     InitClass(CScaling, CBaseChartObject, AscDFH.historyitem_type_Scaling);
     CScaling.prototype.fillObject = function(oCopy, oIdMap) {
@@ -11521,7 +11488,6 @@
         this.downBars = null;
         this.gapWidth = null;
         this.upBars = null;
-        this.parent = null;
     }
     InitClass(CUpDownBars, CBaseChartObject, AscDFH.historyitem_type_UpDownBars);
     CUpDownBars.prototype.Refresh_RecalcData = function() {
@@ -11565,7 +11531,6 @@
         CBaseChartObject.call(this);
         this.numLit = null;
         this.numRef = null;
-        this.parent = null;
     }
     InitClass(CYVal, CBaseChartObject, AscDFH.historyitem_type_YVal);
     CYVal.prototype.fillObject = function(oCopy, oIdMap) {
@@ -12025,7 +11990,6 @@
         this.sideWall = null;
         this.title = null;
         this.view3D = null;
-        this.parent = null;
     }
     InitClass(CChart, CBaseChartObject, AscDFH.historyitem_type_Chart);
     CChart.prototype.Refresh_RecalcData = function() {
@@ -12139,10 +12103,15 @@
         }
     };
     CChart.prototype.Refresh_RecalcData2 = function(pageIndex, object) {
-        this.parent && this.parent.Refresh_RecalcData2 && this.parent.Refresh_RecalcData2(pageIndex, object);
+        if(this.parent) {
+            this.parent.Refresh_RecalcData2(pageIndex, object);
+        }
     };
     CChart.prototype.getDrawingDocument = function() {
-        return this.parent && this.parent && this.parent.getDrawingDocument && this.parent.getDrawingDocument();
+        if(this.parent) {
+            return this.parent.getDrawingDocument();
+        }
+        return null;
     };
     CChart.prototype.setAutoTitleDeleted = function(autoTitleDeleted) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_Chart_SetAutoTitleDeleted, this.autoTitleDeleted, autoTitleDeleted));
@@ -12588,6 +12557,12 @@
             }
         }
         return false;
+    };
+    CalcLegendEntry.prototype.getTxPrParaPr = function() {
+        if(this.txPr) {
+            return this.txPr.getFirstParaParaPr();
+        }
+        return null;
     };
 
     function CompiledMarker() {
