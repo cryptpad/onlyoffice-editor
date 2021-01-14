@@ -12451,16 +12451,32 @@ ParaRun.prototype.private_ProcessHyperlinkAutoCorrect = function(oDocument, oPar
 	var nTypeHyper = AscCommon.getUrlType(sText);
 	if (AscCommon.c_oAscUrlType.Invalid !== nTypeHyper)
 	{
-		if (!oDocument.IsSelectionLocked({
+		if ((oDocument instanceof CPresentation) || !oDocument.IsSelectionLocked({
 			Type      : AscCommon.changestype_2_ElementsArray_and_Type,
 			Elements  : [oParagraph],
 			CheckType : AscCommon.changestype_Paragraph_Properties
 		}))
 		{
 			oDocument.StartAction(AscDFH.historydescription_Document_AutomaticListAsType);
-
+			var oTopElement;
+			if((oDocument instanceof CPresentation))
+			{
+				var oParentConent = oParagraph.Parent;
+				var oTable = oParentConent.IsInTable(true);
+				if(oTable)
+				{
+					oTopElement = oTable;
+				}
+				else
+				{
+					oTopElement = oParentConent;
+				}
+			}
+			else
+			{
+				oTopElement = oDocument;
+			}
 			var arrContentPosition = oRunElementsBefore.GetContentPositions();
-
 			var oStartPos = arrContentPosition.length > 0 ? arrContentPosition[arrContentPosition.length - 1] : oRunElementsBefore.CurContentPos;
 			var oEndPos   = oContentPos;
 			oContentPos.Update(nPos, oContentPos.GetDepth());
@@ -12478,7 +12494,7 @@ ParaRun.prototype.private_ProcessHyperlinkAutoCorrect = function(oDocument, oPar
 			oParagraph.RemoveSelection();
 
 			oDocument.RefreshDocumentPositions([oDocPos]);
-			oDocument.SetContentPosition(oDocPos, 0, 0)
+			oTopElement.SetContentPosition(oDocPos, 0, 0);
 			oDocument.Recalculate();
 			oDocument.FinalizeAction();
 		}
