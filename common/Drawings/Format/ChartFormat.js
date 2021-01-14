@@ -249,6 +249,7 @@
     };
     drawingsChangesMap[AscDFH.historyitem_CatAxSetTitle] = function(oClass, value) {
         oClass.title = value;
+        oClass.onChangeDataRefs();
     };
     drawingsChangesMap[AscDFH.historyitem_CatAxSetTxPr] = function(oClass, value) {
         oClass.txPr = value;
@@ -1178,6 +1179,7 @@
     };
     drawingsChangesMap[AscDFH.historyitem_Chart_SetTitle] = function(oClass, value) {
         oClass.title = value;
+        oClass.onChangeDataRefs();
     };
     drawingsChangesMap[AscDFH.historyitem_Chart_SetView3D] = function(oClass, value) {
         oClass.view3D = value;
@@ -1859,6 +1861,7 @@
                                             };
 
     drawingContentChanges[AscDFH.historyitem_DLbls_SetDLbl] = function(oClass) {
+        oClass.onChangeDataRefs();
         return oClass.dLbl;
     };
 
@@ -4135,9 +4138,6 @@
                 break;
             }
             case AscDFH.historyitem_PlotArea_RemoveChart:
-            {
-                break;
-            }
             case AscDFH.historyitem_PlotArea_AddChart:
             {
                 this.onChartUpdateType();
@@ -4359,6 +4359,7 @@
         if(this.charts[pos]) {
             var chart = this.charts.splice(pos, 1)[0];
             History.CanAddChanges() && History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_PlotArea_RemoveChart, pos, [chart], false));
+            this.onChangeDataRefs();
             //удалим все оси этой диаграммы, проверив прежде нет ли ссылок на данные оси в других диаграммах
             if(Array.isArray(chart.axId)) {
                 var chart_axis = chart.axId;
@@ -6500,6 +6501,7 @@
         this.title = pr;
         this.setParentToChild(pr);
         this.onUpdate();
+        this.onChangeDataRefs();
     };
     CAxisBase.prototype.setNumFmt = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_CatAxSetNumFmt, this.numFmt, pr));
@@ -8030,11 +8032,14 @@
         History.CanAddChanges() && History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_DLbls_SetDLbl, this.dLbl.length, [pr], true));
         this.dLbl.push(pr);
         this.setParentToChild(pr);
+        this.onChangeDataRefs();
+
     };
     CDLbls.prototype.removeDLbl = function(nIndex) {
         if(nIndex > -1 && nIndex < this.dLbl.length) {
             this.dLbl[nIndex].setParent(null);
             History.CanAddChanges() && History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_DLbls_SetDLbl, nIndex, this.dLbl.splice(nIndex, 1), false));
+            this.onChangeDataRefs();
         }
     };
     CDLbls.prototype.removeAllDLbls = function() {
@@ -12302,6 +12307,7 @@
         this.title = title;
         this.setParentToChild(title);
         this.onChartInternalUpdate();
+        this.onChangeDataRefs();
     };
     CChart.prototype.setView3D = function(view3D) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Chart_SetView3D, this.view3D, view3D));
@@ -13944,22 +13950,18 @@
     CDataRefs.prototype.clear = function() {
         this.aRefs.length = 0;
     };
-    CDataRefs.prototype.collectBoundsByWS = function(aBounds) {
+    CDataRefs.prototype.collectBoundsByWS = function(oBounds) {
         var oRef, oBounds, oBBox;
         for(var nRef = 0; nRef < this.aRefs.length; ++nRef) {
             oRef = this.aRefs[nRef];
             oBBox = oRef.bbox;
-            for(var nBounds = 0; nBounds < aBounds.length; ++nBounds) {
-                oBounds = aBounds[nBounds];
-                if(oBounds.worksheet === oRef.worksheet) {
-                    break;
-                }
-            }
-            if(nBounds < aBounds.length) {
-                oBounds.bbox.union2(oBBox);
+            var sWSName = oRef.getName();
+            var oCurBounds = oBounds[sWSName];
+            if(oCurBounds) {
+                oCurBounds.bbox.union2(oBBox);
             }
             else {
-                aBounds.push(new AscCommonExcel.Range(oRef.worksheet, oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2));
+                oBounds[sWSName] = new AscCommonExcel.Range(oRef.worksheet, oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2);
             }
         }
     };
@@ -14137,10 +14139,10 @@
         }
         return false;
     };
-    CSeriesDataRefs.prototype.collectBoundsByWS = function(aBounds) {
-        this.val.collectBoundsByWS(aBounds);
-        this.cat.collectBoundsByWS(aBounds);
-        this.tx.collectBoundsByWS(aBounds);
+    CSeriesDataRefs.prototype.collectBoundsByWS = function(oBounds) {
+        this.val.collectBoundsByWS(oBounds);
+        this.cat.collectBoundsByWS(oBounds);
+        this.tx.collectBoundsByWS(oBounds);
     };
     CSeriesDataRefs.prototype.collectRefsInsideRange = function(oRange, aRefs) {
         if(!this.series) {
@@ -14272,7 +14274,7 @@
         this.tx = new CDataRefs([]);
         this.info = 0;
         this.seriesRefs = [];
-        this.boundsByWS = [];
+        this.boundsByWS = {};
         this.updateDataRefs();
     }
     CChartDataRefs.prototype.updateDataRefs = function() {
@@ -14281,7 +14283,7 @@
         this.tx.clear();
         this.info = 0;
         this.seriesRefs.length = 0;
-        this.boundsByWS.length = 0;
+        this.boundsByWS = {};
         if(!this.chartSpace) {
             return;
         }
@@ -14817,12 +14819,12 @@
         return false;
     };
     CChartDataRefs.prototype.hasIntersection = function(oRange) {
-        for(var nBounds = 0; nBounds < this.boundsByWS.length; ++nBounds) {
-            if(this.boundsByWS[nBounds].isIntersect(oRange)) {
-                break;
-            }
+        var sWSName = oRange.worksheet.getName();
+        var oSheetBounds = this.boundsByWS[sWSName];
+        if(!oSheetBounds) {
+            return false;
         }
-        if(nBounds === this.boundsByWS.length) {
+        if(!oSheetBounds.isIntersect(oRange)) {
             return false;
         }
         if(this.info !== 0) {
