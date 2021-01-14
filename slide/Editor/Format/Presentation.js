@@ -4402,6 +4402,30 @@ CPresentation.prototype.Remove_ForeignCursor = function (UserId) {
     AscCommon.CollaborativeEditing.Remove_ForeignCursor(UserId);
 };
 
+/**
+ * Список позиций, которые мы собираемся отслеживать
+ * @param arrPositions
+ */
+CPresentation.prototype.TrackDocumentPositions = function(arrPositions)
+{
+    this.CollaborativeEditing.Clear_DocumentPositions();
+
+    for (var nIndex = 0, nCount = arrPositions.length; nIndex < nCount; ++nIndex)
+    {
+        this.CollaborativeEditing.Add_DocumentPosition(arrPositions[nIndex]);
+    }
+};
+/**
+ * Обновляем отслеживаемые позиции
+ * @param arrPositions
+ */
+CPresentation.prototype.RefreshDocumentPositions = function(arrPositions)
+{
+    for (var nIndex = 0, nCount = arrPositions.length; nIndex < nCount; ++nIndex)
+    {
+        this.CollaborativeEditing.Update_DocumentPosition(arrPositions[nIndex]);
+    }
+};
 
 CPresentation.prototype.GetTargetPosition = function () {
     var oController = this.GetCurrentController();
@@ -9635,6 +9659,10 @@ CPresentation.prototype.moveSlides = function (slidesIndexes, pos) {
 // Функции для работы с совместным редактирования
 //-----------------------------------------------------------------------------------
 
+CPresentation.prototype.IsSelectionLocked = function(nCheckType, oAdditionalData, isDontLockInFastMode, isIgnoreCanEditFlag)
+{
+    return this.Document_Is_SelectionLocked(nCheckType, oAdditionalData, isIgnoreCanEditFlag);
+};
 CPresentation.prototype.Document_Is_SelectionLocked = function (CheckType, AdditionalData, isIgnoreCanEditFlag, aAdditionaObjects) {
     if (!this.CanEdit() && true !== isIgnoreCanEditFlag)
         return true;
