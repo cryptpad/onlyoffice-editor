@@ -11411,6 +11411,11 @@
 		var callback = function () {
 			for (var j = 0; j < pasteToRange.length; j++) {
 				_doPaste(pasteToRange[j]);
+				if (!selectData && !fromBinaryExcel) {
+					History.EndTransaction();
+					window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
+					return;
+				}
 			}
 
 			var _selection;
@@ -11425,8 +11430,10 @@
 				}
 			} else {
 				_selection = t.model.selectionRange.getLast();
-				_selection.c2 = pastedInfo[0].selectData[0].c2;
-				_selection.r2 = pastedInfo[0].selectData[0].r2;
+				if (pastedInfo) {
+					_selection.c2 = pastedInfo[0].selectData[0].c2;
+					_selection.r2 = pastedInfo[0].selectData[0].r2;
+				}
 			}
 
 			History.EndTransaction();
@@ -11565,7 +11572,9 @@
 
 		//если вставляем в мерженную ячейку, диапазон которой больше или равен
 		var fPasteCell = pasteContent.content[0][0];
-		if (arn.c2 >= cMax - 1 && arn.r2 >= rMax - 1 && isMergedFirstCell && isMergedFirstCell.isEqual(arn) && cMax - arn.c1 === fPasteCell.colSpan && rMax - arn.r1 === fPasteCell.rowSpan) {
+		var colSpanCompare = cMax - arn.c1 === fPasteCell.colSpan;
+		var rowSpanCompare = rMax - arn.r1 === fPasteCell.rowSpan;
+		if (arn.c2 >= cMax - 1 && arn.r2 >= rMax - 1 && isMergedFirstCell && isMergedFirstCell.isEqual(arn) && colSpanCompare && rowSpanCompare) {
 			if (!isCheckSelection) {
 				pasteContent.content[0][0].colSpan = isMergedFirstCell.c2 - isMergedFirstCell.c1 + 1;
 				pasteContent.content[0][0].rowSpan = isMergedFirstCell.r2 - isMergedFirstCell.r1 + 1;
