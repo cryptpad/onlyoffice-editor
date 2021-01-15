@@ -24180,7 +24180,39 @@ CDocument.prototype.GetDecimalSymbol = function()
 {
 	return this.Settings.DecimalSymbol ? this.Settings.DecimalSymbol : ".";
 };
+CDocument.prototype.ChangeTextCase = function(nCaseType)
+{
+	// TODO: Сейчас SentenceCase меняет слова всегда, но в Word слова, начинающиеся с заглавной буквы (и остальные
+	//       прописные), и слова состоящие полностью из заглавных не меняются.
+	//       В CapitalizeWords слова состоящие только из заглавных тоже не меняются
 
+
+	this.StartAction();
+
+	if (this.IsSelectionUse())
+	{
+		if (!this.IsTextSelectionUse())
+			return;
+
+		var arrParagraphs = this.GetSelectedParagraphs();
+		for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
+		{
+			var oCaseType = {
+				StartSentence : true,
+				StartWord     : true
+			};
+
+			var oParagraph = arrParagraphs[nIndex];
+			oParagraph.CheckRunContent(function(oRun){
+				oRun.ChangeTextCase(nCaseType, oCaseType);
+			});
+		}
+	}
+
+	this.Recalculate();
+	this.FinalizeAction();
+
+};
 
 function CDocumentSelectionState()
 {

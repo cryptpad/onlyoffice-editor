@@ -12733,6 +12733,81 @@ ParaRun.prototype.ConvertFootnoteType = function(isToFootnote, oStyles, oFootnot
 		}
 	}
 };
+ParaRun.prototype.ChangeTextCase = function(nCaseType, oTextCase)
+{
+	var nStartPos = 0;
+	var nEndPos   = -1;
+
+	if (this.Selection.Use)
+	{
+		nStartPos = this.Selection.StartPos;
+		nEndPos   = this.Selection.EndPos;
+		if (nStartPos > nEndPos)
+		{
+			var nTemp = nStartPos;
+			nStartPos = nEndPos;
+			nEndPos   = nTemp;
+		}
+	}
+
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		var oItem = this.Content[nPos];
+		if (para_Text === oItem.Type)
+		{
+			if (oItem.IsDot())
+			{
+				oTextCase.StartSentence = true;
+			}
+			else
+			{
+				if (!oItem.IsPunctuation())
+				{
+					if (nPos >= nStartPos && nPos < nEndPos)
+					{
+						var nCharCode   = oItem.Value;
+						var isLowerCase = String.fromCharCode(nCharCode).toLowerCase().charCodeAt(0) === nCharCode;
+						var isUpperCase = String.fromCharCode(nCharCode).toUpperCase().charCodeAt(0) === nCharCode;
+
+						if (!isLowerCase || !isUpperCase)
+						{
+							if (isLowerCase
+								&& ((Asc.c_oAscChangeTextCaseType.SentenceCase === nCaseType && oTextCase.StartSentence)
+									|| Asc.c_oAscChangeTextCaseType.ToggleCase === nCaseType
+									|| Asc.c_oAscChangeTextCaseType.UpperCase === nCaseType
+									|| (Asc.c_oAscChangeTextCaseType.CapitalizeWords === nCaseType && oTextCase.StartWord)))
+							{
+								this.RemoveFromContent(nPos, 1, false);
+								this.AddToContent(nPos, new ParaText(String.fromCharCode(nCharCode).toUpperCase().charCodeAt(0)), false);
+							}
+							else if (!isLowerCase
+								&& (Asc.c_oAscChangeTextCaseType.ToggleCase === nCaseType
+									|| Asc.c_oAscChangeTextCaseType.LowerCase === nCaseType
+									|| (Asc.c_oAscChangeTextCaseType.CapitalizeWords === nCaseType && !oTextCase.StartWord)
+									|| (Asc.c_oAscChangeTextCaseType.SentenceCase === nCaseType && !oTextCase.StartSentence)))
+							{
+								this.RemoveFromContent(nPos, 1, false);
+								this.AddToContent(nPos, new ParaText(String.fromCharCode(nCharCode).toLowerCase().charCodeAt(0)), false);
+							}
+						}
+					}
+
+					oTextCase.StartWord = false;
+				}
+
+
+				oTextCase.StartSentence = false;
+			}
+		}
+		else
+		{
+			oTextCase.StartWord = true;
+
+			if (para_Tab !== oItem.Type && para_Space !== oItem.Type)
+				oTextCase.StartSentence = false;
+		}
+	}
+};
 
 function CParaRunStartState(Run)
 {
