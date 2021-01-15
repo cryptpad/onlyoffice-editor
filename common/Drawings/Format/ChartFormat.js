@@ -3537,14 +3537,25 @@
         }
         return [];
     };
-    CSeriesBase.prototype.getCatRefs = function() {
-        return this.getParsedRefs(this.cat || this.xVal);
+    CSeriesBase.prototype.getCatDataRefs = function() {
+        var oCat = this.cat || this.xVal;
+        if(oCat) {
+            return oCat.getDataRefs();
+        }
+        return new CDataRefs([]);
     };
-    CSeriesBase.prototype.getTxRefs = function() {
-        return this.getParsedRefs(this.tx);
+    CSeriesBase.prototype.getTxDataRefs = function() {
+        if(this.tx) {
+            return this.tx.getDataRefs();
+        }
+        return new CDataRefs([]);
     };
-    CSeriesBase.prototype.getValRefs = function() {
-        return this.getParsedRefs(this.val || this.yVal);
+    CSeriesBase.prototype.getValDataRefs = function() {
+        var oVal = this.val || this.yVal;
+        if(oVal) {
+            return oVal.getDataRefs();
+        }
+        return new CDataRefs([]);
     };
     CSeriesBase.prototype.collectCatRefs = function(aRefs) {
         this.collectRefs(this.cat || this.xVal, aRefs);
@@ -3559,16 +3570,6 @@
         if(oSource) {
             oSource.collectRefs(aRefs);
         }
-    };
-    CSeriesBase.prototype.getParsedRefs = function(oSource) {
-        var aRefs;
-        if(oSource) {
-            aRefs = oSource.getParsedRefs();
-        }
-        else {
-            aRefs = [];
-        }
-        return new CDataRefs(aRefs);
     };
     CSeriesBase.prototype.getSpPrPreset = function() {
         var oFirstSpPrPreset = 0;
@@ -9610,8 +9611,13 @@
         this.internalSetFormula(pr);
         this.onUpdate();
     };
-    CChartRefBase.prototype.handleOnMoveRange = function(oRangeFrom, oRangeTo) {
+    CChartRefBase.prototype.getDataRefs = function() {
         var oDataRefs = new CDataRefs(this.getParsedRefs());
+        oDataRefs.setRef(this);
+        return oDataRefs;
+    };
+    CChartRefBase.prototype.handleOnMoveRange = function(oRangeFrom, oRangeTo) {
+        var oDataRefs = this.getDataRefs();
         oDataRefs.move(oRangeFrom, oRangeTo);
         var sFormula = oDataRefs.getFormula();
         if(typeof sFormula === "string" && sFormula.length > 0) {
@@ -9897,9 +9903,9 @@
             this.pts.splice(idx, 1);
         }
     };
-    CNumLit.prototype.getChildren = function() {
-        return this.pts;
-    };
+    //CNumLit.prototype.getChildren = function() {
+    //    return this.pts;
+    //};
     CNumLit.prototype.fillObject = function(oCopy, oIdMap) {
         oCopy.setFormatCode(this.formatCode);
         for(var i = 0; i < this.pts.length; ++i) {
@@ -10849,11 +10855,11 @@
         }
         return sRet;
     };
-    CTx.prototype.getParsedRefs = function() {
+    CTx.prototype.getDataRefs = function() {
         if(this.strRef) {
-            return this.strRef.getParsedRefs();
+            return this.strRef.getDataRefs();
         }
-        return [];
+        return new CDataRefs([]);
     };
     CTx.prototype.collectRefs = function(aRefs) {
         if(this.strRef) {
@@ -11005,9 +11011,9 @@
         }
         this.setPtCount(0);
     };
-    CStrCache.prototype.getChildren = function() {
-        return this.pts;
-    };
+    //CStrCache.prototype.getChildren = function() {
+    //    return this.pts;
+    //};
     CStrCache.prototype.fillObject = function(oCopy, oIdMap) {
         for(var i = 0; i < this.pts.length; ++i) {
             oCopy.addPt(this.pts[i].createDuplicate());
@@ -12005,11 +12011,11 @@
         }
         return null;
     };
-    CYVal.prototype.getParsedRefs = function() {
+    CYVal.prototype.getDataRefs = function() {
         if(this.numRef) {
-            return this.numRef.getParsedRefs();
+            return this.numRef.getDataRefs();
         }
-        return [];
+        return new CDataRefs([]);
     };
     CYVal.prototype.collectRefs = function(aRefs) {
         if(this.numRef) {
@@ -12209,17 +12215,17 @@
         }
         return "";
     };
-    CCat.prototype.getParsedRefs = function() {
+    CCat.prototype.getDataRefs = function() {
         if(this.numRef) {
-            return this.numRef.getParsedRefs();
+            return this.numRef.getDataRefs();
         }
         if(this.strRef) {
-            return this.strRef.getParsedRefs();
+            return this.strRef.getDataRefs();
         }
         if(this.multiLvlStrRef) {
-            return this.multiLvlStrRef.getParsedRefs();
+            return this.multiLvlStrRef.getDataRefs();
         }
-        return [];
+        return new CDataRefs([]);
     };
     CCat.prototype.collectRefs = function(aRefs) {
         if(this.numRef) {
@@ -13786,10 +13792,14 @@
 
     function CDataRefs(aRefs) {
         this.aRefs = [];
+        this.ref = null;
         for(var nRef = 0; nRef < aRefs.length; ++nRef) {
             this.addInternal(aRefs[nRef]);
         }
     }
+    CDataRefs.prototype.setRef = function(oRef) {
+        this.ref = oRef;
+    };
     CDataRefs.prototype.isOneCell = function() {
         if(this.aRefs.length === 1) {
             return this.aRefs[0].bbox.isOneCell();
@@ -14264,9 +14274,9 @@
 
     function CSeriesDataRefs(oSeries) {
         if(oSeries) {
-            this.val = oSeries.getValRefs();
-            this.cat = oSeries.getCatRefs();
-            this.tx = oSeries.getTxRefs();
+            this.val = oSeries.getValDataRefs();
+            this.cat = oSeries.getCatDataRefs();
+            this.tx = oSeries.getTxDataRefs();
         }
         else {
             this.val = new CDataRefs([]);
@@ -14542,6 +14552,7 @@
         this.info = 0;
         this.seriesRefs = [];
         this.boundsByWS = {};
+        this.labelsRefs = [];
         this.updateDataRefs();
     }
     CChartDataRefs.prototype.updateDataRefs = function() {
@@ -14550,6 +14561,7 @@
         this.tx.clear();
         this.info = 0;
         this.seriesRefs.length = 0;
+        this.labelsRefs.length = 0;
         this.boundsByWS = {};
         if(!this.chartSpace) {
             return;
@@ -14586,6 +14598,8 @@
                 return;
             }
         }
+        this.checkLabels();
+        this.checkBoundsByWs();
     };
     CChartDataRefs.prototype.checkSeries = function(nStartIdx, nCompareResult) {
         var oFirstSeriesRefs = this.seriesRefs[nStartIdx];
@@ -14608,15 +14622,43 @@
             this.tx = oTxRefs;
             this.cat = oCatRefs;
             this.info = oFirstSeriesRefs.getInfo();
+            return true;
+        }
+        return false;
+    };
+    CChartDataRefs.prototype.checkLabels = function() {
+        this.labelsRefs.length = 0;
+        if(!this.chartSpace) {
+            return;
+        }
+        var oChart = this.chartSpace.chart;
+        if(!oChart) {
+            return;
+        }
+        var oThis = this;
+        oChart.traverse(function(oElement) {
+            if(oElement.getObjectType() === AscDFH.historyitem_type_ChartText) {
+                if(oElement.strRef) {
+                    oThis.labelsRefs.push(oElement.strRef.getDataRefs());
+                }
+            }
+        });
+
+    };
+    CChartDataRefs.prototype.checkBoundsByWs = function() {
+        if(this.info !== 0) {
             this.val.collectBoundsByWS(this.boundsByWS);
             this.cat.collectBoundsByWS(this.boundsByWS);
             this.tx.collectBoundsByWS(this.boundsByWS);
-            return true;
         }
-        for(nSeries = 0; nSeries < this.seriesRefs.length; ++nSeries) {
-            this.seriesRefs[nSeries].collectBoundsByWS(this.boundsByWS);
+        else {
+            for(var nSeries = 0; nSeries < this.seriesRefs.length; ++nSeries) {
+                this.seriesRefs[nSeries].collectBoundsByWS(this.boundsByWS);
+            }
         }
-        return false;
+        for(var nLblRef = 0; nLblRef < this.labelsRefs.length; ++nLblRef) {
+            this.labelsRefs[nLblRef].collectBoundsByWS(this.boundsByWS);
+        }
     };
     CChartDataRefs.prototype.calculateUnionRefs = function() {
         if(this.info === 0) {
