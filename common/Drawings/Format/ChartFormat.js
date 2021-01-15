@@ -14228,7 +14228,7 @@
         this.aRefs.length = 0;
     };
     CDataRefs.prototype.collectBoundsByWS = function(oBounds) {
-        var oRef, oBounds, oBBox;
+        var oRef, oBBox;
         for(var nRef = 0; nRef < this.aRefs.length; ++nRef) {
             oRef = this.aRefs[nRef];
             oBBox = oRef.bbox;
@@ -14264,6 +14264,23 @@
             nCount += (oBBox.r2 - oBBox.r1 + 1) * (oBBox.c2 - oBBox.c1 + 1);
         }
         return nCount;
+    };
+    CDataRefs.prototype.collectRefsInsideRange = function(oRange, aRefs) {
+        if(this.ref) {
+            if(this.isInside(oRange)) {
+                aRefs.push(this.ref);
+            }
+        }
+    };
+    CDataRefs.prototype.collectIntersectionRefs = function(aRanges, aCollectedRefs) {
+        if(this.ref) {
+            for(var nRange = 0; nRange < aRanges.length; ++nRange) {
+                if(this.hasIntersection(aRanges[nRange])) {
+                    aCollectedRefs.push(this.ref);
+                    break;
+                }
+            }
+        }
     };
 
     var SERIES_COMPARE_RESULT_NONE = 0;
@@ -14428,39 +14445,14 @@
         if(!this.hasIntersection(oRange)) {
             return;
         }
-        if(this.val.isInside(oRange)) {
-            this.series.collectValRefs(aRefs);
-        }
-        if(this.cat.isInside(oRange)) {
-            this.series.collectCatRefs(aRefs);
-        }
-        if(this.tx.isInside(oRange)) {
-            this.series.collectTxRefs(aRefs);
-        }
+        this.val.collectRefsInsideRange(oRange, aRefs);
+        this.cat.collectRefsInsideRange(oRange, aRefs);
+        this.tx.collectRefsInsideRange(oRange, aRefs);
     };
     CSeriesDataRefs.prototype.collectIntersectionRefs = function(aRanges, aCollectedRefs) {
-        var oRange, nRange;
-        for(nRange = 0; nRange < aRanges.length; ++nRange) {
-            oRange = aRanges[nRange];
-            if(this.val.hasIntersection(oRange)) {
-                this.series.collectValRefs(aCollectedRefs);
-                break;
-            }
-        }
-        for(nRange = 0; nRange < aRanges.length; ++nRange) {
-            oRange = aRanges[nRange];
-            if(this.cat.hasIntersection(oRange)) {
-                this.series.collectCatRefs(aCollectedRefs);
-                break;
-            }
-        }
-        for(nRange = 0; nRange < aRanges.length; ++nRange) {
-            oRange = aRanges[nRange];
-            if(this.tx.hasIntersection(oRange)) {
-                this.series.collectTxRefs(aCollectedRefs);
-                break;
-            }
-        }
+        this.val.collectIntersectionRefs(aRanges, aCollectedRefs);
+        this.cat.collectIntersectionRefs(aRanges, aCollectedRefs);
+        this.tx.collectIntersectionRefs(aRanges, aCollectedRefs);
     };
     CSeriesDataRefs.prototype.getAscSeries = function() {
         var oSeria = new AscFormat.asc_CChartSeria();
@@ -15154,6 +15146,11 @@
                 }
             }
         }
+        for(var nLblRef = 0; nLblRef < this.labelsRefs.length; ++nLblRef) {
+            if(this.labelsRefs[nLblRef].hasIntersection(oRange)) {
+                return true;
+            }
+        }
         return false;
     };
     CChartDataRefs.prototype.collectRefsInsideRange = function(oRange, aRefs) {
@@ -15162,6 +15159,9 @@
         }
         for(var nSeries = 0; nSeries < this.seriesRefs.length; ++nSeries) {
             this.seriesRefs[nSeries].collectRefsInsideRange(oRange, aRefs);
+        }
+        for(var nLblRef = 0; nLblRef < this.labelsRefs.length; ++nLblRef) {
+            this.labelsRefs[nLblRef].collectRefsInsideRange(oRange, aRefs);
         }
     };
     CChartDataRefs.prototype.collectIntersectionRefs = function(aRanges, aCollectedRefs) {
@@ -15176,6 +15176,9 @@
         if(aIntersectionRanges.length > 0) {
             for(var nSeries = 0; nSeries < this.seriesRefs.length; ++nSeries) {
                 this.seriesRefs[nSeries].collectIntersectionRefs(aIntersectionRanges, aCollectedRefs);
+            }
+            for(var nLblRef = 0; nLblRef < this.labelsRefs.length; ++nLblRef) {
+                this.labelsRefs[nLblRef].collectIntersectionRefs(aIntersectionRanges, aCollectedRefs);
             }
         }
     };

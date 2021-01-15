@@ -2230,10 +2230,9 @@ var editor;
       return false;
     }
 
-    var sheet, arrLocks = [], arrDeleteNames = [];
+    var sheet, arrLocks = [];
     for (var i = 0; i < arrSheets.length; ++i) {
       sheet = arrSheets[i] = this.wbModel.getWorksheet(arrSheets[i]);
-      arrDeleteNames.push(sheet.sName);
       arrLocks.push(this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheet.getId(), sheet.getId()));
     }
 
@@ -2242,10 +2241,10 @@ var editor;
       if (res) {
         History.Create_NewPoint();
         History.StartTransaction();
+        t.wbModel.handleChartsOnWorksheetsRemove(arrSheets);
         for (var i = 0; i < arrSheets.length; ++i) {
           t.wbModel.removeWorksheet(arrSheets[i].getIndex());
         }
-        t.wbModel.handleChartsOnWorksheetsRemove(arrDeleteNames);
         t.wb.updateWorksheetByModel();
         t.wb.showWorksheet();
         History.EndTransaction();

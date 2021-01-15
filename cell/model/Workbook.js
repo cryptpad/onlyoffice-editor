@@ -3485,16 +3485,20 @@
 			}
 		}
 	};
-	Workbook.prototype.handleChartsOnWorksheetsRemove = function (aWSNames) {
+	Workbook.prototype.handleChartsOnWorksheetsRemove = function (aWorksheets) {
 		if(!History.CanAddChanges()) {
 			return;
 		}
 		var aRefsToChange = [];
 		var aId = [];
+		var aRanges = [];
+		for(var nWS = 0; nWS < aWorksheets.length; ++nWS) {
+			aRanges.push(new AscCommonExcel.Range(aWorksheets[nWS], 0, 0, gc_nMaxRow0, gc_nMaxCol0));
+		}
 		this.handleDrawings(function(oDrawing) {
 			if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
 				var nPrevLength = aRefsToChange.length;
-				oDrawing.collectWorksheetsRefs(aWSNames, aRefsToChange);
+				oDrawing.collectIntersectionRefs(aRanges, aRefsToChange);
 				if(aRefsToChange.length > nPrevLength) {
 					aId.push(oDrawing.Get_Id());
 				}
@@ -3511,22 +3515,24 @@
 			}
 		});
 	};
-	Workbook.prototype.handleChartsOnChangeSheetName = function (sOldName, sNewName) {
+	Workbook.prototype.handleChartsOnChangeSheetName = function (oWorksheet, sNewName) {
 		if(!History.CanAddChanges()) {
 			return;
 		}
 		var aRefsToChange = [];
 		var aId = [];
-		var aWSNames = [sOldName];
+		var aRanges = [new AscCommonExcel.Range(oWorksheet, 0, 0, gc_nMaxRow0, gc_nMaxCol0)];
 		this.handleDrawings(function(oDrawing) {
 			if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
 				var nPrevLength = aRefsToChange.length;
-				oDrawing.collectWorksheetsRefs(aWSNames, aRefsToChange);
+				oDrawing.collectIntersectionRefs(aRanges, aRefsToChange);
 				if(aRefsToChange.length > nPrevLength) {
 					aId.push(oDrawing.Get_Id());
 				}
 			}
 		});
+
+		var sOldName = oWorksheet.sName;
 		this.checkObjectsLock(aId, function(bNoLock) {
 			if(bNoLock) {
 				for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
@@ -4196,14 +4202,14 @@
 				oNewWs.Drawings[oNewWs.Drawings.length - 1] = drawingObject;
 			}
 			var aRefsToChange = [];
-			var sOldName = parserHelp.getEscapeSheetName(this.sName);
 			var sNewName = parserHelp.getEscapeSheetName(oNewWs.sName);
-			var aWSNames = [sOldName];
-			oNewWs.handleDrawings(function(oDrawing) {
+			var aRanges = [new AscCommonExcel.Range(this, 0, 0, gc_nMaxRow0, gc_nMaxCol0)];
+			this.handleDrawings(function(oDrawing) {
 				if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
-					oDrawing.collectWorksheetsRefs(aWSNames, aRefsToChange);
+					oDrawing.collectIntersectionRefs(aRanges, aRefsToChange);
 				}
 			});
+			var sOldName = this.sName;
 			for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
 				aRefsToChange[nRef].handleOnChangeSheetName(sOldName, sNewName);
 			}
@@ -4698,17 +4704,16 @@
 		{
 			var lastName = this.sName;
 			History.Create_NewPoint();
+			if(!bFromUndoRedo)
+			{
+				this.workbook.handleChartsOnChangeSheetName(this, parserHelp.getEscapeSheetName(name));
+			}
 			var prepared = this.workbook.dependencyFormulas.prepareChangeSheet(this.getId(), {rename: {from: lastName, to: name}});
 			this.sName = name;
 			this.workbook.dependencyFormulas.changeSheet(prepared);
 
 			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_Rename, this.getId(), null, new UndoRedoData_FromTo(lastName, name));
-			if(!bFromUndoRedo)
-			{
-				var _lastName = parserHelp.getEscapeSheetName(lastName);
-				var _newName = parserHelp.getEscapeSheetName(this.sName);
-				this.workbook.handleChartsOnChangeSheetName(_lastName, _newName);
-			}
+
 			this.workbook.dependencyFormulas.calcTree();
 		} else {
 			console.log(new Error('The sheet name must be less than 31 characters.'));
