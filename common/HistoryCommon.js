@@ -1193,7 +1193,9 @@
 			case AscDFH.historydescription_Document_ClearAllSpecialForms:
 				sString = "Document_ClearAllSpecialForms";
 				break;
-
+			case AscDFH.historydescription_Document_ChangeTextCase:
+				sString = "Document_ChangeTextCase";
+				break;
 		}
 		return sString;
 	}
@@ -3600,6 +3602,7 @@
 	window['AscDFH'].historydescription_Document_SetLineNumbersProps                = 0x0180;
 	window['AscDFH'].historydescription_Document_AddCrossRef                        = 0x0181;
 	window['AscDFH'].historydescription_Document_ClearAllSpecialForms               = 0x0182;
+	window['AscDFH'].historydescription_Document_ChangeTextCase                     = 0x0183;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

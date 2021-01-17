@@ -10282,6 +10282,14 @@ background-repeat: no-repeat;\
 		var oLogicDocument = this.private_GetLogicDocument();
 		oLogicDocument.AddRefToCaption(sCaption, oParagraph, nType, bHyperlink, bAboveBelow);
 	};
+	asc_docs_api.prototype.asc_ChangeTextCase = function(nType)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		oLogicDocument.ChangeTextCase(nType);
+	};
 
 	window["asc_docs_api"]                                      = asc_docs_api;
 	window["asc_docs_api"].prototype["asc_nativeOpenFile"]      = function(base64File, version)
@@ -11424,6 +11432,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_GetAllCaptionParagraphs']               = asc_docs_api.prototype.asc_GetAllCaptionParagraphs;
 	asc_docs_api.prototype['asc_AddCrossRefToCaption']                  = asc_docs_api.prototype.asc_AddCrossRefToCaption;
 
+	asc_docs_api.prototype['asc_ChangeTextCase']                        = asc_docs_api.prototype.asc_ChangeTextCase;
 
     asc_docs_api.prototype['SetTableDrawMode']         					= asc_docs_api.prototype.SetTableDrawMode;
     asc_docs_api.prototype['SetTableEraseMode']         				= asc_docs_api.prototype.SetTableEraseMode;

@@ -24206,12 +24206,12 @@ CDocument.prototype.GetDecimalSymbol = function()
 {
 	return this.Settings.DecimalSymbol ? this.Settings.DecimalSymbol : ".";
 };
+/**
+ * Меняем регистр выделенного текста
+ * @param {Asc.c_oAscChangeTextCaseType} nCaseType
+ */
 CDocument.prototype.ChangeTextCase = function(nCaseType)
 {
-	// TODO: Сейчас SentenceCase меняет слова всегда, но в Word слова, начинающиеся с заглавной буквы (и остальные
-	//       прописные), и слова состоящие полностью из заглавных не меняются.
-	//       В CapitalizeWords слова состоящие только из заглавных тоже не меняются
-
 	var oState = null;
 	if (!this.IsSelectionUse())
 	{
@@ -24223,35 +24223,44 @@ CDocument.prototype.ChangeTextCase = function(nCaseType)
 		}
 	}
 
-	
-
-	this.StartAction();
-
-	if (this.IsSelectionUse())
+	if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
 	{
-		if (!this.IsTextSelectionUse())
-			return;
+		this.StartAction(AscDFH.historydescription_Document_ChangeTextCase);
 
-		var arrParagraphs = this.GetSelectedParagraphs();
-		for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
+		if (this.IsSelectionUse())
 		{
-			var oCaseType = {
-				StartSentence : true,
-				StartWord     : true
-			};
+			if (!this.IsTextSelectionUse())
+				return;
 
-			var oParagraph = arrParagraphs[nIndex];
-			oParagraph.CheckRunContent(function(oRun){
-				oRun.ChangeTextCase(nCaseType, oCaseType);
-			});
+			var oChangeEngine = new CDocumentChangeTextCaseEngine(nCaseType);
+
+			var arrParagraphs = this.GetSelectedParagraphs();
+			for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
+			{
+				oChangeEngine.Reset();
+
+				var oParagraph = arrParagraphs[nIndex];
+				oParagraph.CheckRunContent(function(oRun)
+				{
+					oRun.ChangeTextCase(oChangeEngine);
+				});
+
+				oChangeEngine.FlushWord();
+			}
 		}
+
+		if (oState)
+			this.LoadDocumentState(oState);
+
+		this.UpdateSelection();
+		this.Recalculate();
+		this.FinalizeAction();
 	}
-
-	if (oState)
+	else if (oState)
+	{
 		this.LoadDocumentState(oState);
-
-	this.Recalculate();
-	this.FinalizeAction();
+		this.UpdateSelection();
+	}
 };
 
 function CDocumentSelectionState()
@@ -26612,6 +26621,102 @@ CDocumentLineNumbersInfo.prototype.private_Update = function()
 		this.Widths[nDigit] = g_oTextMeasurer.MeasureCode(0x0030 + nDigit).Width;
 	}
 };
+
+/**
+ * Класс для изменения регистра выделенного текста
+ * @param {Asc.c_oAscChangeTextCaseType} nType
+ */
+function CDocumentChangeTextCaseEngine(nType)
+{
+	this.ChangeType    = nType;
+	this.StartSentence = true;
+	this.WordBuffer    = [];
+}
+CDocumentChangeTextCaseEngine.prototype.Reset = function()
+{
+	this.StartSentence = true;
+	this.WordBuffer    = [];
+};
+CDocumentChangeTextCaseEngine.prototype.FlushWord = function()
+{
+	var isFirstCapital        = false;
+	var isAllCapital          = true;
+	var isAllExceptFirstLower = true;
+
+	for (var nIndex = 0, nCount = this.WordBuffer.length; nIndex < nCount; ++nIndex)
+	{
+		var nCharCode   = this.WordBuffer[nIndex].Run.GetElement(this.WordBuffer[nIndex].Pos).Value;
+		var nLowerCode = String.fromCharCode(nCharCode).toLowerCase().charCodeAt(0);
+		var nUpperCode = String.fromCharCode(nCharCode).toUpperCase().charCodeAt(0);
+
+		if (nUpperCode === nCharCode && nLowerCode !== nCharCode)
+		{
+			if (0 === nIndex)
+				isFirstCapital = true;
+			else
+				isAllExceptFirstLower = false;
+		}
+		else
+		{
+			isAllCapital = false;
+		}
+	}
+
+	var nCaseType = this.ChangeType;
+	for (var nIndex = 0, nCount = this.WordBuffer.length; nIndex < nCount; ++nIndex)
+	{
+		if (!this.WordBuffer[nIndex].Change)
+			continue;
+
+		var oRun      = this.WordBuffer[nIndex].Run;
+		var nInRunPos = this.WordBuffer[nIndex].Pos;
+
+		var nCharCode  = oRun.GetElement(nInRunPos).Value;
+		var nLowerCode = String.fromCharCode(nCharCode).toLowerCase().charCodeAt(0);
+		var nUpperCode = String.fromCharCode(nCharCode).toUpperCase().charCodeAt(0);
+
+		if (nLowerCode !== nCharCode || nUpperCode !== nCharCode)
+		{
+			if (nLowerCode === nCharCode
+				&& ((Asc.c_oAscChangeTextCaseType.SentenceCase === nCaseType && (this.StartSentence && 0 === nIndex))
+					|| Asc.c_oAscChangeTextCaseType.ToggleCase === nCaseType
+					|| Asc.c_oAscChangeTextCaseType.UpperCase === nCaseType
+					|| (Asc.c_oAscChangeTextCaseType.CapitalizeWords === nCaseType && 0 === nIndex)))
+			{
+				oRun.AddToContent(nInRunPos, new ParaText(nUpperCode), false);
+				oRun.RemoveFromContent(nInRunPos + 1, 1, false);
+			}
+			else if (nUpperCode === nCharCode
+				&& (Asc.c_oAscChangeTextCaseType.ToggleCase === nCaseType
+					|| Asc.c_oAscChangeTextCaseType.LowerCase === nCaseType
+					|| (Asc.c_oAscChangeTextCaseType.CapitalizeWords === nCaseType && 0 !== nIndex && !isAllCapital)
+					|| (Asc.c_oAscChangeTextCaseType.SentenceCase === nCaseType && !isAllCapital
+						&& (0 !== nIndex || (!this .StartSentence && !isAllExceptFirstLower)))))
+			{
+				oRun.AddToContent(nInRunPos, new ParaText(nLowerCode), false);
+				oRun.RemoveFromContent(nInRunPos + 1, 1, false);
+			}
+		}
+	}
+
+	if (this.WordBuffer.length > 0)
+		this.StartSentence = false;
+
+	this.WordBuffer = [];
+};
+CDocumentChangeTextCaseEngine.prototype.AddLetter = function(oRun, nInRunPos, isChange)
+{
+	this.WordBuffer.push({
+		Run    : oRun,
+		Pos    : nInRunPos,
+		Change : isChange
+	});
+};
+CDocumentChangeTextCaseEngine.prototype.SetStartSentence = function(isStart)
+{
+	this.StartSentence = isStart;
+};
+
 
 //-------------------------------------------------------------export---------------------------------------------------
 window['Asc'] = window['Asc'] || {};
