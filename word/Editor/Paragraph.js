@@ -7668,6 +7668,36 @@ Paragraph.prototype.DrawSelectionOnPage = function(CurPage)
 		}
 	}
 };
+/**
+ * Выделяем слово, в котором стоит селект
+ * @returns {boolean} возвращаем, выделено ли слово
+ */
+Paragraph.prototype.SelectCurrentWord = function()
+{
+	if (this.LogicDocument)
+		this.LogicDocument.RemoveSelection();
+	else
+		this.RemoveSelection();
+
+	var oCurPos = this.Get_ParaContentPos(false, false)
+
+	// Выделяем слово, в котором находимся
+	var SearchPosS = new CParagraphSearchPos();
+	var SearchPosE = new CParagraphSearchPos();
+
+	this.Get_WordEndPos(SearchPosE, oCurPos);
+	this.Get_WordStartPos(SearchPosS, SearchPosE.Pos);
+
+	var StartPos = (true === SearchPosS.Found ? SearchPosS.Pos : this.Get_StartPos());
+	var EndPos   = (true === SearchPosE.Found ? SearchPosE.Pos : this.Get_EndPos(false));
+
+	this.Selection.Use = true;
+	this.Set_SelectionContentPos(StartPos, EndPos);
+	this.Document_SetThisElementCurrent(false);
+
+	if (this.LogicDocument)
+		this.LogicDocument.Set_WordSelection();
+};
 Paragraph.prototype.Selection_CheckParaEnd = function()
 {
 	if (true !== this.Selection.Use)

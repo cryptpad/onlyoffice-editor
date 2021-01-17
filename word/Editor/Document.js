@@ -8548,6 +8548,32 @@ CDocument.prototype.SelectAll = function()
 	this.private_UpdateCursorXY(true, true);
 };
 /**
+ * Выделяем текущее слово
+ * @return {boolean}
+ */
+CDocument.prototype.SelectCurrentWord = function()
+{
+	if (this.IsSelectionUse() && !this.IsTextSelectionUse())
+		return false;
+
+	if (this.IsSelectionUse())
+		this.RemoveSelection();
+
+	var oParagraph = this.GetCurrentParagraph();
+	if (!oParagraph)
+		return false;
+
+	oParagraph.SelectCurrentWord();
+
+	if (this.IsSelectionEmpty())
+	{
+		this.RemoveSelection();
+		return false;
+	}
+
+	return true;
+};
+/**
  * Выделяем все элементы в заданном диапазоне
  * @param {number} nStartPos
  * @param {number} nEndPos
@@ -24186,6 +24212,18 @@ CDocument.prototype.ChangeTextCase = function(nCaseType)
 	//       прописные), и слова состоящие полностью из заглавных не меняются.
 	//       В CapitalizeWords слова состоящие только из заглавных тоже не меняются
 
+	var oState = null;
+	if (!this.IsSelectionUse())
+	{
+		oState = this.SaveDocumentState();
+		if (!this.SelectCurrentWord())
+		{
+			this.LoadDocumentState(oState);
+			return;
+		}
+	}
+
+	
 
 	this.StartAction();
 
@@ -24209,9 +24247,11 @@ CDocument.prototype.ChangeTextCase = function(nCaseType)
 		}
 	}
 
+	if (oState)
+		this.LoadDocumentState(oState);
+
 	this.Recalculate();
 	this.FinalizeAction();
-
 };
 
 function CDocumentSelectionState()
