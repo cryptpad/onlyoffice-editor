@@ -743,6 +743,8 @@
         // native contentControl
         this.base = obj;
         this.type = this.base.GetSpecificType();
+        this.isForm = this.base.IsForm();
+        this.formInfo = null;
         this.state = state;
 
         this.geom = geom;
@@ -789,7 +791,7 @@
             this.IsNoButtons = true;
 
         this.IsNoButtonsIsFillingForm = this.IsNoButtons;
-        if (this.IsNoButtons && this.parent.document.m_oLogicDocument)
+        if (!this.IsNoButtons && this.parent.document.m_oLogicDocument)
             this.IsNoButtons = this.parent.document.m_oLogicDocument.IsFillingFormMode();
 
         this.CalculateNameRect();
@@ -851,6 +853,14 @@
             H : 20 / koefY
         };
 
+        if (this.formInfo && undefined !== this.formInfo.MoveRectH)
+        {
+            rect.W = CPolygonCC.prototype.rectMoveWidthPx / koefX;
+            rect.H = this.formInfo.MoveRectH;
+            rect.X -= rect.W;
+            return rect;
+        }
+
         if (this.Name == "" && this.Buttons.length == 0)
             rect.X -= rect.W;
         else
@@ -896,6 +906,10 @@
             H : (this.ComboRect.B - this.ComboRect.Y),
             Page : this.ComboRect.Page
         };
+        if (this.formInfo)
+        {
+            rect.W = CPolygonCC.prototype.rectComboWidthPx / koefX;
+        }
 
         return rect;
     };
@@ -1049,6 +1063,46 @@
             }
             default:
                 break;
+        }
+
+        if (this.isForm)
+        {
+            this.formInfo = {};
+            var _geom, _polygonDrawer;
+            if (this.rects)
+            {
+                _geom = this.rects[0];
+                _polygonDrawer = new CPolygonCC();
+                _polygonDrawer.init(this, AscCommon.g_dKoef_mm_to_pix, 0, 1);
+
+                if (_polygonDrawer.isUseMoveRect)
+                {
+                    _polygonDrawer.moveTo(_geom.R, _geom.Y);
+                    _polygonDrawer.lineTo(_geom.X, _geom.Y);
+                    _polygonDrawer.lineTo(_geom.X, _geom.B);
+                    _polygonDrawer.lineTo(_geom.R, _geom.B);
+                    _polygonDrawer.closePath();
+                    this.formInfo.MoveRectH = _polygonDrawer.rectMove.h;
+                }
+                this.formInfo.bounds = _polygonDrawer.bounds;
+            }
+            else if (this.paths)
+            {
+                _geom = this.paths[0];
+
+                _polygonDrawer = new CPolygonCC();
+                _polygonDrawer.init(this, AscCommon.g_dKoef_mm_to_pix, 0, 1);
+                if (_polygonDrawer.isUseMoveRect)
+                {
+                    for (var pointIndex = 0, pointCount = _geom.Points.length; pointIndex < pointCount; pointIndex++)
+                    {
+                        _polygonDrawer.lineTo(_geom.Points[pointIndex].X, _geom.Points[pointIndex].Y);
+                    }
+                    _polygonDrawer.closePath();
+                    this.formInfo.MoveRectH = _polygonDrawer.rectMove.h;
+                }
+                this.formInfo.bounds = _polygonDrawer.bounds;
+            }
         }
     };
     CContentControlTrack.prototype.GetButtonObj = function(indexButton)
@@ -1259,8 +1313,169 @@
                 _object.SetColor(ctx);
                 ctx.lineWidth = 1;
 
-                if (!_object.transform)
+                if (!_object.isForm)
                 {
+					if (!_object.transform)
+					{
+						if (_object.rects)
+						{
+							for (var j = 0; j < _object.rects.length; j++)
+							{
+								_geom = _object.rects[j];
+
+								if (_geom.Page < _pageStart || _geom.Page > this._pageEnd)
+									continue;
+
+								_drawingPage = _pages[_geom.Page].drawingPage;
+
+								ctx.beginPath();
+
+								_x = (_drawingPage.left + _koefX * (_geom.X + _object.OffsetX));
+								_y = (_drawingPage.top + _koefY * (_geom.Y + _object.OffsetY));
+								_r = (_drawingPage.left + _koefX * (_geom.R + _object.OffsetX));
+								_b = (_drawingPage.top + _koefY * (_geom.B + _object.OffsetY));
+
+								overlay.CheckRect(_x, _y, _r - _x, _b - _y);
+								ctx.rect((_x >> 0) + 0.5, (_y >> 0) + 0.5, (_r - _x) >> 0, (_b - _y) >> 0);
+
+								if (_object.state == AscCommon.ContentControlTrack.Hover)
+									ctx.fill();
+								ctx.stroke();
+
+								ctx.beginPath();
+							}
+						}
+						else if (_object.paths)
+						{
+							for (var j = 0; j < _object.paths.length; j++)
+							{
+								_geom = _object.paths[j];
+								if (_geom.Page < _pageStart || _geom.Page > this._pageEnd)
+									continue;
+
+								_drawingPage = _pages[_geom.Page].drawingPage;
+
+								ctx.beginPath();
+
+								for (var pointIndex = 0, pointCount = _geom.Points.length; pointIndex < pointCount; pointIndex++)
+								{
+									_x = (_drawingPage.left + _koefX * (_geom.Points[pointIndex].X + _object.OffsetX));
+									_y = (_drawingPage.top + _koefY * (_geom.Points[pointIndex].Y + _object.OffsetY));
+
+									overlay.CheckPoint(_x, _y);
+
+									_x = (_x >> 0) + 0.5;
+									_y = (_y >> 0) + 0.5;
+
+									if (0 == pointCount)
+										ctx.moveTo(_x, _y);
+									else
+										ctx.lineTo(_x, _y);
+								}
+
+								ctx.closePath();
+
+								if (_object.state == AscCommon.ContentControlTrack.Hover)
+									ctx.fill();
+								ctx.stroke();
+
+								ctx.beginPath();
+							}
+						}
+					}
+					else
+					{
+						if (_object.rects)
+						{
+							for (var j = 0; j < _object.rects.length; j++)
+							{
+								_geom = _object.rects[j];
+
+								if (_geom.Page < _pageStart || _geom.Page > this._pageEnd)
+									continue;
+
+								_drawingPage = _pages[_geom.Page].drawingPage;
+
+								var x1 = _object.transform.TransformPointX(_geom.X, _geom.Y);
+								var y1 = _object.transform.TransformPointY(_geom.X, _geom.Y);
+								var x2 = _object.transform.TransformPointX(_geom.R, _geom.Y);
+								var y2 = _object.transform.TransformPointY(_geom.R, _geom.Y);
+								var x3 = _object.transform.TransformPointX(_geom.R, _geom.B);
+								var y3 = _object.transform.TransformPointY(_geom.R, _geom.B);
+								var x4 = _object.transform.TransformPointX(_geom.X, _geom.B);
+								var y4 = _object.transform.TransformPointY(_geom.X, _geom.B);
+
+								x1 = _drawingPage.left + _koefX * x1;
+								x2 = _drawingPage.left + _koefX * x2;
+								x3 = _drawingPage.left + _koefX * x3;
+								x4 = _drawingPage.left + _koefX * x4;
+
+								y1 = _drawingPage.top + _koefY * y1;
+								y2 = _drawingPage.top + _koefY * y2;
+								y3 = _drawingPage.top + _koefY * y3;
+								y4 = _drawingPage.top + _koefY * y4;
+
+								ctx.beginPath();
+
+								overlay.CheckPoint(x1, y1);
+								overlay.CheckPoint(x2, y2);
+								overlay.CheckPoint(x3, y3);
+								overlay.CheckPoint(x4, y4);
+
+								ctx.moveTo(x1, y1);
+								ctx.lineTo(x2, y2);
+								ctx.lineTo(x3, y3);
+								ctx.lineTo(x4, y4);
+								ctx.closePath();
+
+								if (_object.state == AscCommon.ContentControlTrack.Hover)
+									ctx.fill();
+								ctx.stroke();
+
+								ctx.beginPath();
+							}
+						}
+						else if (_object.paths)
+						{
+							for (var j = 0; j < _object.paths.length; j++)
+							{
+								_geom = _object.paths[j];
+								if (_geom.Page < _pageStart || _geom.Page > this._pageEnd)
+									continue;
+
+								_drawingPage = _pages[_geom.Page].drawingPage;
+
+								ctx.beginPath();
+
+								for (var pointIndex = 0, pointCount = _geom.Points.length; pointIndex < pointCount; pointIndex++)
+								{
+									_x = _object.transform.TransformPointX(_geom.Points[pointIndex].X, _geom.Points[pointIndex].Y);
+									_y = _object.transform.TransformPointY(_geom.Points[pointIndex].X, _geom.Points[pointIndex].Y);
+
+									_x = (_drawingPage.left + _koefX * _x);
+									_y = (_drawingPage.top + _koefY * _y);
+
+									overlay.CheckPoint(_x, _y);
+
+									if (0 == pointCount)
+										ctx.moveTo(_x, _y);
+									else
+										ctx.lineTo(_x, _y);
+								}
+
+								ctx.closePath();
+
+								if (_object.state == AscCommon.ContentControlTrack.Hover)
+									ctx.fill();
+								ctx.stroke();
+
+								ctx.beginPath();
+							}
+						}
+					}
+				}
+				else
+				{
                     if (_object.rects)
                     {
                         for (var j = 0; j < _object.rects.length; j++)
@@ -1272,153 +1487,42 @@
 
                             _drawingPage = _pages[_geom.Page].drawingPage;
 
-                            ctx.beginPath();
+                            var _polygonDrawer = new CPolygonCC();
+                            _polygonDrawer.init(_object, (_koefX + _koefY) / 2, j, _object.rects.length);
 
-                            _x = (_drawingPage.left + _koefX * (_geom.X + _object.OffsetX));
-                            _y = (_drawingPage.top  + _koefY * (_geom.Y + _object.OffsetY));
-                            _r = (_drawingPage.left + _koefX * (_geom.R + _object.OffsetX));
-                            _b = (_drawingPage.top  + _koefY * (_geom.B + _object.OffsetY));
+                            _polygonDrawer.moveTo(_geom.R, _geom.Y);
+                            _polygonDrawer.lineTo(_geom.X, _geom.Y);
+                            _polygonDrawer.lineTo(_geom.X, _geom.B);
+                            _polygonDrawer.lineTo(_geom.R, _geom.B);
+                            _polygonDrawer.closePath();
 
-                            overlay.CheckRect(_x, _y, _r - _x, _b - _y);
-                            ctx.rect((_x >> 0) + 0.5, (_y >> 0) + 0.5, (_r - _x) >> 0, (_b - _y) >> 0);
-
-                            if (_object.state == AscCommon.ContentControlTrack.Hover)
-                                ctx.fill();
-                            ctx.stroke();
-
-                            ctx.beginPath();
+                            _polygonDrawer.draw(overlay, _object, _drawingPage, _koefX, _koefY, this.icons);
                         }
                     }
-                    else if (_object.paths)
-                    {
-                        for (var j = 0; j < _object.paths.length; j++)
-                        {
-                            _geom = _object.paths[j];
-                            if (_geom.Page < _pageStart || _geom.Page > this._pageEnd)
-                                continue;
+					else if (_object.paths)
+					{
+						for (var j = 0; j < _object.paths.length; j++)
+						{
+							_geom = _object.paths[j];
+							if (_geom.Page < _pageStart || _geom.Page > this._pageEnd)
+								continue;
 
-                            _drawingPage = _pages[_geom.Page].drawingPage;
+							_drawingPage = _pages[_geom.Page].drawingPage;
 
-                            ctx.beginPath();
+							var _polygonDrawer = new CPolygonCC();
+							_polygonDrawer.init(_object, (_koefX + _koefY) / 2, j, _object.paths.length);
+							for (var pointIndex = 0, pointCount = _geom.Points.length; pointIndex < pointCount; pointIndex++)
+							{
+								_polygonDrawer.lineTo(_geom.Points[pointIndex].X, _geom.Points[pointIndex].Y);
+							}
+							_polygonDrawer.closePath();
 
-                            for (var pointIndex = 0, pointCount = _geom.Points.length; pointIndex < pointCount; pointIndex++)
-                            {
-                                _x = (_drawingPage.left + _koefX * (_geom.Points[pointIndex].X + _object.OffsetX));
-                                _y = (_drawingPage.top  + _koefY * (_geom.Points[pointIndex].Y + _object.OffsetY));
+							_polygonDrawer.draw(overlay, _object, _drawingPage, _koefX, _koefY, this.icons);
+						}
+					}
+				}
 
-                                overlay.CheckPoint(_x, _y);
-
-                                _x = (_x >> 0) + 0.5;
-                                _y = (_y >> 0) + 0.5;
-
-                                if (0 == pointCount)
-                                    ctx.moveTo(_x, _y);
-                                else
-                                    ctx.lineTo(_x, _y);
-                            }
-
-                            ctx.closePath();
-
-                            if (_object.state == AscCommon.ContentControlTrack.Hover)
-                                ctx.fill();
-                            ctx.stroke();
-
-                            ctx.beginPath();
-                        }
-                    }
-                }
-                else
-                {
-                    if (_object.rects)
-                    {
-                        for (var j = 0; j < _object.rects.length; j++)
-                        {
-                            _geom = _object.rects[j];
-
-                            if (_geom.Page < _pageStart || _geom.Page > this._pageEnd)
-                                continue;
-
-                            _drawingPage = _pages[_geom.Page].drawingPage;
-
-                            var x1 = _object.transform.TransformPointX(_geom.X, _geom.Y);
-                            var y1 = _object.transform.TransformPointY(_geom.X, _geom.Y);
-                            var x2 = _object.transform.TransformPointX(_geom.R, _geom.Y);
-                            var y2 = _object.transform.TransformPointY(_geom.R, _geom.Y);
-                            var x3 = _object.transform.TransformPointX(_geom.R, _geom.B);
-                            var y3 = _object.transform.TransformPointY(_geom.R, _geom.B);
-                            var x4 = _object.transform.TransformPointX(_geom.X, _geom.B);
-                            var y4 = _object.transform.TransformPointY(_geom.X, _geom.B);
-
-                            x1 = _drawingPage.left + _koefX * x1;
-                            x2 = _drawingPage.left + _koefX * x2;
-                            x3 = _drawingPage.left + _koefX * x3;
-                            x4 = _drawingPage.left + _koefX * x4;
-
-                            y1 = _drawingPage.top + _koefY * y1;
-                            y2 = _drawingPage.top + _koefY * y2;
-                            y3 = _drawingPage.top + _koefY * y3;
-                            y4 = _drawingPage.top + _koefY * y4;
-
-                            ctx.beginPath();
-
-                            overlay.CheckPoint(x1, y1);
-                            overlay.CheckPoint(x2, y2);
-                            overlay.CheckPoint(x3, y3);
-                            overlay.CheckPoint(x4, y4);
-
-                            ctx.moveTo(x1, y1);
-                            ctx.lineTo(x2, y2);
-                            ctx.lineTo(x3, y3);
-                            ctx.lineTo(x4, y4);
-                            ctx.closePath();
-
-                            if (_object.state == AscCommon.ContentControlTrack.Hover)
-                                ctx.fill();
-                            ctx.stroke();
-
-                            ctx.beginPath();
-                        }
-                    }
-                    else if (_object.paths)
-                    {
-                        for (var j = 0; j < _object.paths.length; j++)
-                        {
-                            _geom = _object.paths[j];
-                            if (_geom.Page < _pageStart || _geom.Page > this._pageEnd)
-                                continue;
-
-                            _drawingPage = _pages[_geom.Page].drawingPage;
-
-                            ctx.beginPath();
-
-                            for (var pointIndex = 0, pointCount = _geom.Points.length; pointIndex < pointCount; pointIndex++)
-                            {
-                                _x = _object.transform.TransformPointX(_geom.Points[pointIndex].X, _geom.Points[pointIndex].Y);
-                                _y = _object.transform.TransformPointY(_geom.Points[pointIndex].X, _geom.Points[pointIndex].Y);
-
-                                _x = (_drawingPage.left + _koefX * _x);
-                                _y = (_drawingPage.top + _koefY * _y);
-
-                                overlay.CheckPoint(_x, _y);
-
-                                if (0 == pointCount)
-                                    ctx.moveTo(_x, _y);
-                                else
-                                    ctx.lineTo(_x, _y);
-                            }
-
-                            ctx.closePath();
-
-                            if (_object.state == AscCommon.ContentControlTrack.Hover)
-                                ctx.fill();
-                            ctx.stroke();
-
-                            ctx.beginPath();
-                        }
-                    }
-                }
-
-                if (_object.state == AscCommon.ContentControlTrack.In)
+                if (_object.state == AscCommon.ContentControlTrack.In && !_object.isForm)
                 {
                     // draw header
                     if (_object.Pos.Page >= _pageStart && _object.Pos.Page <= _pageEnd)
@@ -1447,159 +1551,159 @@
                                 xText += 15;
                             }
 
-                            if (0 == widthHeader)
-                                continue;
-
-                            // сразу чекаем весь хедер
-                            overlay.CheckRect(_x, _y, widthHeader, 20);
-
-                            // рисуем подложку
-                            ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsBack;
-                            ctx.rect(_x, _y, widthHeader, 20);
-                            ctx.fill();
-                            ctx.beginPath();
-
-                            // draw mover in header
-                            if (!_object.IsNoButtons)
+                            if (0 != widthHeader)
                             {
-                                ctx.rect(_x, _y, 15, 20);
-                                ctx.fillStyle = (1 == this.ContentControlObjectState) ? AscCommonWord.GlobalSkin.ContentControlsAnchorActive : AscCommonWord.GlobalSkin.ContentControlsBack;
-                                ctx.fill();
-                                ctx.beginPath();
+								// сразу чекаем весь хедер
+								overlay.CheckRect(_x, _y, widthHeader, 20);
 
-                                if (1 == this.ContentControlObjectState)
-                                {
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsAnchorActive;
-                                    ctx.rect(_x, _y, 15, 20);
-                                    ctx.fill();
-                                    ctx.beginPath();
-                                }
+								// рисуем подложку
+								ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsBack;
+								ctx.rect(_x, _y, widthHeader, 20);
+								ctx.fill();
+								ctx.beginPath();
 
-                                var cx = _x - 0.5 + 4;
-                                var cy = _y - 0.5 + 4;
+								// draw mover in header
+								if (!_object.IsNoButtons)
+								{
+									ctx.rect(_x, _y, 15, 20);
+									ctx.fillStyle = (1 == this.ContentControlObjectState) ? AscCommonWord.GlobalSkin.ContentControlsAnchorActive : AscCommonWord.GlobalSkin.ContentControlsBack;
+									ctx.fill();
+									ctx.beginPath();
 
-                                var _color1 = "#ADADAD";
-                                var _color2 = "#D4D4D4";
+									if (1 == this.ContentControlObjectState)
+									{
+										ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsAnchorActive;
+										ctx.rect(_x, _y, 15, 20);
+										ctx.fill();
+										ctx.beginPath();
+									}
 
-                                if (0 == this.ContentControlObjectState || 1 == this.ContentControlObjectState)
-                                {
-                                    _color1 = "#444444";
-                                    _color2 = "#9D9D9D";
-                                }
+									var cx = _x - 0.5 + 4;
+									var cy = _y - 0.5 + 4;
 
-                                overlay.AddRect(cx, cy, 3, 3);
-                                overlay.AddRect(cx + 5, cy, 3, 3);
-                                overlay.AddRect(cx, cy + 5, 3, 3);
-                                overlay.AddRect(cx + 5, cy + 5, 3, 3);
-                                overlay.AddRect(cx, cy + 10, 3, 3);
-                                overlay.AddRect(cx + 5, cy + 10, 3, 3);
+									var _color1 = "#ADADAD";
+									var _color2 = "#D4D4D4";
 
-                                ctx.fillStyle = _color2;
-                                ctx.fill();
-                                ctx.beginPath();
+									if (0 == this.ContentControlObjectState || 1 == this.ContentControlObjectState)
+									{
+										_color1 = "#444444";
+										_color2 = "#9D9D9D";
+									}
 
-                                ctx.moveTo(cx + 1.5, cy);
-                                ctx.lineTo(cx + 1.5, cy + 3);
-                                ctx.moveTo(cx + 6.5, cy);
-                                ctx.lineTo(cx + 6.5, cy + 3);
-                                ctx.moveTo(cx + 1.5, cy + 5);
-                                ctx.lineTo(cx + 1.5, cy + 8);
-                                ctx.moveTo(cx + 6.5, cy + 5);
-                                ctx.lineTo(cx + 6.5, cy + 8);
-                                ctx.moveTo(cx + 1.5, cy + 10);
-                                ctx.lineTo(cx + 1.5, cy + 13);
-                                ctx.moveTo(cx + 6.5, cy + 10);
-                                ctx.lineTo(cx + 6.5, cy + 13);
+									overlay.AddRect(cx, cy, 3, 3);
+									overlay.AddRect(cx + 5, cy, 3, 3);
+									overlay.AddRect(cx, cy + 5, 3, 3);
+									overlay.AddRect(cx + 5, cy + 5, 3, 3);
+									overlay.AddRect(cx, cy + 10, 3, 3);
+									overlay.AddRect(cx + 5, cy + 10, 3, 3);
 
-                                ctx.moveTo(cx, cy + 1.5);
-                                ctx.lineTo(cx + 3, cy + 1.5);
-                                ctx.moveTo(cx + 5, cy + 1.5);
-                                ctx.lineTo(cx + 8, cy + 1.5);
-                                ctx.moveTo(cx, cy + 6.5);
-                                ctx.lineTo(cx + 3, cy + 6.5);
-                                ctx.moveTo(cx + 5, cy + 6.5);
-                                ctx.lineTo(cx + 8, cy + 6.5);
-                                ctx.moveTo(cx, cy + 11.5);
-                                ctx.lineTo(cx + 3, cy + 11.5);
-                                ctx.moveTo(cx + 5, cy + 11.5);
-                                ctx.lineTo(cx + 8, cy + 11.5);
+									ctx.fillStyle = _color2;
+									ctx.fill();
+									ctx.beginPath();
 
-                                ctx.strokeStyle = _color1;
-                                ctx.stroke();
-                                ctx.beginPath();
-                            }
+									ctx.moveTo(cx + 1.5, cy);
+									ctx.lineTo(cx + 1.5, cy + 3);
+									ctx.moveTo(cx + 6.5, cy);
+									ctx.lineTo(cx + 6.5, cy + 3);
+									ctx.moveTo(cx + 1.5, cy + 5);
+									ctx.lineTo(cx + 1.5, cy + 8);
+									ctx.moveTo(cx + 6.5, cy + 5);
+									ctx.lineTo(cx + 6.5, cy + 8);
+									ctx.moveTo(cx + 1.5, cy + 10);
+									ctx.lineTo(cx + 1.5, cy + 13);
+									ctx.moveTo(cx + 6.5, cy + 10);
+									ctx.lineTo(cx + 6.5, cy + 13);
 
-                            // draw name
-                            if (_object.Name != "")
-                            {
-                                if (_object.ActiveButtonIndex == -1)
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsActive;
-                                else if (_object.HoverButtonIndex == -1)
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsHover;
-                                else
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsBack;
+									ctx.moveTo(cx, cy + 1.5);
+									ctx.lineTo(cx + 3, cy + 1.5);
+									ctx.moveTo(cx + 5, cy + 1.5);
+									ctx.lineTo(cx + 8, cy + 1.5);
+									ctx.moveTo(cx, cy + 6.5);
+									ctx.lineTo(cx + 3, cy + 6.5);
+									ctx.moveTo(cx + 5, cy + 6.5);
+									ctx.lineTo(cx + 8, cy + 6.5);
+									ctx.moveTo(cx, cy + 11.5);
+									ctx.lineTo(cx + 3, cy + 11.5);
+									ctx.moveTo(cx + 5, cy + 11.5);
+									ctx.lineTo(cx + 8, cy + 11.5);
 
-                                ctx.rect(xText, _y, widthName, 20);
-                                ctx.fill();
-                                ctx.beginPath();
+									ctx.strokeStyle = _color1;
+									ctx.stroke();
+									ctx.beginPath();
+								}
 
-                                ctx.fillStyle = (_object.ActiveButtonIndex == -1) ? AscCommonWord.GlobalSkin.ContentControlsTextActive : AscCommonWord.GlobalSkin.ContentControlsText;
-                                ctx.font = this.getFont();
-                                ctx.fillText(_object.Name, xText + 3, _y + 20 - 6);
+								// draw name
+								if (_object.Name != "")
+								{
+									if (_object.ActiveButtonIndex == -1)
+										ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsActive;
+									else if (_object.HoverButtonIndex == -1)
+										ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsHover;
+									else
+										ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsBack;
 
-                                if (_object.IsNameAdvanced() && !_object.IsNoButtons)
-                                {
-                                    var nY = _y - 0.5;
-                                    nY += 10;
-                                    nY -= 1;
+									ctx.rect(xText, _y, widthName, 20);
+									ctx.fill();
+									ctx.beginPath();
 
-                                    var plus = AscCommon.AscBrowser.isRetina ? 0.5 : 1;
+									ctx.fillStyle = (_object.ActiveButtonIndex == -1) ? AscCommonWord.GlobalSkin.ContentControlsTextActive : AscCommonWord.GlobalSkin.ContentControlsText;
+									ctx.font = this.getFont();
+									ctx.fillText(_object.Name, xText + 3, _y + 20 - 6);
 
-                                    var nX = (xText + widthName - 7) >> 0;
-                                    for (var i = 0; i <= 2; i+=plus)
-                                        ctx.rect(nX + i, nY + i, 1, 1);
+									if (_object.IsNameAdvanced() && !_object.IsNoButtons)
+									{
+										var nY = _y - 0.5;
+										nY += 10;
+										nY -= 1;
 
-                                    for (var i = 0; i <= 2; i+=plus)
-                                        ctx.rect(nX + 4 - i, nY + i, 1, 1);
+										var plus = AscCommon.AscBrowser.isRetina ? 0.5 : 1;
 
-                                    ctx.fill();
-                                    ctx.beginPath();
-                                }
-                            }
+										var nX = (xText + widthName - 7) >> 0;
+										for (var i = 0; i <= 2; i += plus)
+											ctx.rect(nX + i, nY + i, 1, 1);
 
-                            // draw buttons
-                            for (var nIndexB = 0; nIndexB < _object.Buttons.length; nIndexB++)
-                            {
-                                var isFill = false;
-                                if (_object.ActiveButtonIndex == nIndexB)
-                                {
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsActive;
-                                    isFill = true;
-                                }
-                                else if (_object.HoverButtonIndex == nIndexB)
-                                {
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsHover;
-                                    isFill = true;
-                                }
+										for (var i = 0; i <= 2; i += plus)
+											ctx.rect(nX + 4 - i, nY + i, 1, 1);
 
-                                if (isFill)
-                                {
-                                    ctx.rect(xText + widthName + 20 * nIndexB, _y, 20, 20);
-                                    ctx.fill();
-                                    ctx.beginPath();
-                                }
+										ctx.fill();
+										ctx.beginPath();
+									}
+								}
 
-                                var image = this.icons.getImage(_object.Buttons[nIndexB], nIndexB == _object.ActiveButtonIndex);
-                                if (image)
-                                    ctx.drawImage(image, (xText + widthName + 20 * nIndexB) >> 0, _y >> 0, 20, 20);
-                            }
+								// draw buttons
+								for (var nIndexB = 0; nIndexB < _object.Buttons.length; nIndexB++)
+								{
+									var isFill = false;
+									if (_object.ActiveButtonIndex == nIndexB)
+									{
+										ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsActive;
+										isFill = true;
+									}
+									else if (_object.HoverButtonIndex == nIndexB)
+									{
+										ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsHover;
+										isFill = true;
+									}
 
-                            // рисуем единую обводку
-                            _object.SetColor(ctx);
-                            ctx.beginPath();
-                            ctx.rect(_x, _y, widthHeader, 20);
-                            ctx.stroke();
-                            ctx.beginPath();
+									if (isFill)
+									{
+										ctx.rect(xText + widthName + 20 * nIndexB, _y, 20, 20);
+										ctx.fill();
+										ctx.beginPath();
+									}
+
+									var image = this.icons.getImage(_object.Buttons[nIndexB], nIndexB == _object.ActiveButtonIndex);
+									if (image)
+										ctx.drawImage(image, (xText + widthName + 20 * nIndexB) >> 0, _y >> 0, 20, 20);
+								}
+
+								// рисуем единую обводку
+								_object.SetColor(ctx);
+								ctx.beginPath();
+								ctx.rect(_x, _y, widthHeader, 20);
+								ctx.stroke();
+								ctx.beginPath();
+							}
 
                             // есть ли комбо-кнопка?
                             if (_object.ComboRect)
@@ -1659,158 +1763,157 @@
                             }
 
                             if (widthHeader < 0.001)
-                                continue;
-
-                            _r = _x + widthHeader;
-                            _b = _y + scaleY_20;
-
-                            var x1 = _ft.TransformPointX(_x, _y);
-                            var y1 = _ft.TransformPointY(_x, _y);
-                            var x2 = _ft.TransformPointX(_r, _y);
-                            var y2 = _ft.TransformPointY(_r, _y);
-                            var x3 = _ft.TransformPointX(_r, _b);
-                            var y3 = _ft.TransformPointY(_r, _b);
-                            var x4 = _ft.TransformPointX(_x, _b);
-                            var y4 = _ft.TransformPointY(_x, _b);
-
-                            x1 = _drawingPage.left + _koefX * x1;
-                            x2 = _drawingPage.left + _koefX * x2;
-                            x3 = _drawingPage.left + _koefX * x3;
-                            x4 = _drawingPage.left + _koefX * x4;
-                            y1 = _drawingPage.top + _koefY * y1;
-                            y2 = _drawingPage.top + _koefY * y2;
-                            y3 = _drawingPage.top + _koefY * y3;
-                            y4 = _drawingPage.top + _koefY * y4;
-
-                            overlay.CheckPoint(x1, y1);
-                            overlay.CheckPoint(x2, y2);
-                            overlay.CheckPoint(x3, y3);
-                            overlay.CheckPoint(x4, y4);
-                            // --------------------------------
-
-                            var coords = new AscCommon.CMatrix();
-                            coords.sx = _koefX;
-                            coords.sy = _koefY;
-                            coords.tx = _drawingPage.left;
-                            coords.ty = _drawingPage.top;
-
-                            global_MatrixTransformer.MultiplyAppend(_ft, coords);
-                            ctx.transform(_ft.sx, _ft.shy, _ft.shx, _ft.sy, _ft.tx, _ft.ty);
-
-                            // рисуем подложку
-                            ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsBack;
-                            ctx.rect(_x, _y, widthHeader, scaleY_20);
-                            ctx.fill();
-                            ctx.beginPath();
-
-                            // draw mover
-                            if (!_object.IsNoButtons)
                             {
-                                ctx.rect(_x, _y, scaleX_15, scaleY_20);
-                                ctx.fillStyle = (1 == this.ContentControlObjectState) ? AscCommonWord.GlobalSkin.ContentControlsAnchorActive : AscCommonWord.GlobalSkin.ContentControlsBack;
-                                ctx.fill();
-                                ctx.beginPath();
+								_r = _x + widthHeader;
+								_b = _y + scaleY_20;
 
-                                if (1 == this.ContentControlObjectState)
-                                {
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsAnchorActive;
-                                    ctx.rect(_x, _y, scaleX_15, scaleY_20);
-                                    ctx.fill();
-                                    ctx.beginPath();
-                                }
+								var x1 = _ft.TransformPointX(_x, _y);
+								var y1 = _ft.TransformPointY(_x, _y);
+								var x2 = _ft.TransformPointX(_r, _y);
+								var y2 = _ft.TransformPointY(_r, _y);
+								var x3 = _ft.TransformPointX(_r, _b);
+								var y3 = _ft.TransformPointY(_r, _b);
+								var x4 = _ft.TransformPointX(_x, _b);
+								var y4 = _ft.TransformPointY(_x, _b);
 
-                                var cx1 = _x + 5 / _koefX;
-                                var cy1 = _y + 5 / _koefY;
-                                var cx2 = _x + 10 / _koefX;
-                                var cy2 = _y + 5 / _koefY;
+								x1 = _drawingPage.left + _koefX * x1;
+								x2 = _drawingPage.left + _koefX * x2;
+								x3 = _drawingPage.left + _koefX * x3;
+								x4 = _drawingPage.left + _koefX * x4;
+								y1 = _drawingPage.top + _koefY * y1;
+								y2 = _drawingPage.top + _koefY * y2;
+								y3 = _drawingPage.top + _koefY * y3;
+								y4 = _drawingPage.top + _koefY * y4;
 
-                                var cx3 = _x + 5 / _koefX;
-                                var cy3 = _y + 10 / _koefY;
-                                var cx4 = _x + 10 / _koefX;
-                                var cy4 = _y + 10 / _koefY;
+								overlay.CheckPoint(x1, y1);
+								overlay.CheckPoint(x2, y2);
+								overlay.CheckPoint(x3, y3);
+								overlay.CheckPoint(x4, y4);
+								// --------------------------------
 
-                                var cx5 = _x + 5 / _koefX;
-                                var cy5 = _y + 15 / _koefY;
-                                var cx6 = _x + 10 / _koefX;
-                                var cy6 = _y + 15 / _koefY;
+								var coords = new AscCommon.CMatrix();
+								coords.sx = _koefX;
+								coords.sy = _koefY;
+								coords.tx = _drawingPage.left;
+								coords.ty = _drawingPage.top;
 
-                                var rad = 1.5 / _koefX;
-                                overlay.AddEllipse2(cx1, cy1, rad);
-                                overlay.AddEllipse2(cx2, cy2, rad);
-                                overlay.AddEllipse2(cx3, cy3, rad);
-                                overlay.AddEllipse2(cx4, cy4, rad);
-                                overlay.AddEllipse2(cx5, cy5, rad);
-                                overlay.AddEllipse2(cx6, cy6, rad);
+								global_MatrixTransformer.MultiplyAppend(_ft, coords);
+								ctx.transform(_ft.sx, _ft.shy, _ft.shx, _ft.sy, _ft.tx, _ft.ty);
 
-                                var _color1 = "#ADADAD";
-                                if (0 == this.ContentControlObjectState || 1 == this.ContentControlObjectState)
-                                    _color1 = "#444444";
+								// рисуем подложку
+								ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsBack;
+								ctx.rect(_x, _y, widthHeader, scaleY_20);
+								ctx.fill();
+								ctx.beginPath();
 
-                                ctx.fillStyle = _color1;
-                                ctx.fill();
-                                ctx.beginPath();
-                            }
+								// draw mover
+								if (!_object.IsNoButtons)
+								{
+									ctx.rect(_x, _y, scaleX_15, scaleY_20);
+									ctx.fillStyle = (1 == this.ContentControlObjectState) ? AscCommonWord.GlobalSkin.ContentControlsAnchorActive : AscCommonWord.GlobalSkin.ContentControlsBack;
+									ctx.fill();
+									ctx.beginPath();
 
-                            // draw name
-                            if (_object.Name != "")
-                            {
-                                if (_object.ActiveButtonIndex == -1)
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsActive;
-                                else if (_object.HoverButtonIndex == -1)
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsHover;
-                                else
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsBack;
+									if (1 == this.ContentControlObjectState)
+									{
+										ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsAnchorActive;
+										ctx.rect(_x, _y, scaleX_15, scaleY_20);
+										ctx.fill();
+										ctx.beginPath();
+									}
 
-                                ctx.rect(_x + (_object.IsNoButtons ? 0 : scaleX_15), _y, widthName, scaleY_20);
-                                ctx.fill();
-                                ctx.beginPath();
+									var cx1 = _x + 5 / _koefX;
+									var cy1 = _y + 5 / _koefY;
+									var cx2 = _x + 10 / _koefX;
+									var cy2 = _y + 5 / _koefY;
 
-                                ctx.fillStyle = (_object.ActiveButtonIndex == -1) ? AscCommonWord.GlobalSkin.ContentControlsTextActive : AscCommonWord.GlobalSkin.ContentControlsText;
-                                ctx.font = this.getFont(_koefY);
-                                ctx.fillText(_object.Name, xText + 3 / _koefX, _y + (20 - 6) / _koefY);
+									var cx3 = _x + 5 / _koefX;
+									var cy3 = _y + 10 / _koefY;
+									var cx4 = _x + 10 / _koefX;
+									var cy4 = _y + 10 / _koefY;
 
-                                if (_object.IsNameAdvanced() && !_object.IsNoButtons)
-                                {
-                                    var nY = _y + 9 / _koefY;
-                                    var nX = xText + widthName - 6 / _koefX;
+									var cx5 = _x + 5 / _koefX;
+									var cy5 = _y + 15 / _koefY;
+									var cx6 = _x + 10 / _koefX;
+									var cy6 = _y + 15 / _koefY;
 
-                                    for (var i = 0; i < 3; i++)
-                                        ctx.rect(_x + nX + i / _koefX, nY + i / _koefY, 1 / _koefX, 1 / _koefY);
+									var rad = 1.5 / _koefX;
+									overlay.AddEllipse2(cx1, cy1, rad);
+									overlay.AddEllipse2(cx2, cy2, rad);
+									overlay.AddEllipse2(cx3, cy3, rad);
+									overlay.AddEllipse2(cx4, cy4, rad);
+									overlay.AddEllipse2(cx5, cy5, rad);
+									overlay.AddEllipse2(cx6, cy6, rad);
 
-                                    for (var i = 0; i < 2; i++)
-                                        ctx.rect(_x + nX + (4 - i) / _koefX, nY + i / _koefY, 1 / _koefX, 1 / _koefY);
+									var _color1 = "#ADADAD";
+									if (0 == this.ContentControlObjectState || 1 == this.ContentControlObjectState)
+										_color1 = "#444444";
 
-                                    ctx.fill();
-                                    ctx.beginPath();
-                                }
-                            }
+									ctx.fillStyle = _color1;
+									ctx.fill();
+									ctx.beginPath();
+								}
 
-                            // draw buttons
-                            for (var nIndexB = 0; nIndexB < _object.Buttons.length; nIndexB++)
-                            {
-                                var isFill = false;
-                                if (_object.ActiveButtonIndex == nIndexB)
-                                {
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsActive;
-                                    isFill = true;
-                                }
-                                else if (_object.HoverButtonIndex == nIndexB)
-                                {
-                                    ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsHover;
-                                    isFill = true;
-                                }
+								// draw name
+								if (_object.Name != "") {
+									if (_object.ActiveButtonIndex == -1)
+										ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsActive;
+									else if (_object.HoverButtonIndex == -1)
+										ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsHover;
+									else
+										ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsBack;
 
-                                if (isFill)
-                                {
-                                    ctx.rect(xText + widthName + scaleX_20 * nIndexB, _y, scaleX_20, scaleY_20);
-                                    ctx.fill();
-                                    ctx.beginPath();
-                                }
+									ctx.rect(_x + (_object.IsNoButtons ? 0 : scaleX_15), _y, widthName, scaleY_20);
+									ctx.fill();
+									ctx.beginPath();
 
-                                var image = this.icons.getImage(_object.Buttons[nIndexB], nIndexB == _object.ActiveButtonIndex);
-                                if (image)
-                                    ctx.drawImage(image, xText + widthName + scaleX_20 * nIndexB, _y, scaleX_20, scaleY_20);
-                            }
+									ctx.fillStyle = (_object.ActiveButtonIndex == -1) ? AscCommonWord.GlobalSkin.ContentControlsTextActive : AscCommonWord.GlobalSkin.ContentControlsText;
+									ctx.font = this.getFont(_koefY);
+									ctx.fillText(_object.Name, xText + 3 / _koefX, _y + (20 - 6) / _koefY);
+
+									if (_object.IsNameAdvanced() && !_object.IsNoButtons)
+									{
+										var nY = _y + 9 / _koefY;
+										var nX = xText + widthName - 6 / _koefX;
+
+										for (var i = 0; i < 3; i++)
+											ctx.rect(_x + nX + i / _koefX, nY + i / _koefY, 1 / _koefX, 1 / _koefY);
+
+										for (var i = 0; i < 2; i++)
+											ctx.rect(_x + nX + (4 - i) / _koefX, nY + i / _koefY, 1 / _koefX, 1 / _koefY);
+
+										ctx.fill();
+										ctx.beginPath();
+									}
+								}
+
+								// draw buttons
+								for (var nIndexB = 0; nIndexB < _object.Buttons.length; nIndexB++)
+								{
+									var isFill = false;
+									if (_object.ActiveButtonIndex == nIndexB)
+									{
+										ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsActive;
+										isFill = true;
+									}
+									else if (_object.HoverButtonIndex == nIndexB)
+									{
+										ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsHover;
+										isFill = true;
+									}
+
+									if (isFill)
+									{
+										ctx.rect(xText + widthName + scaleX_20 * nIndexB, _y, scaleX_20, scaleY_20);
+										ctx.fill();
+										ctx.beginPath();
+									}
+
+									var image = this.icons.getImage(_object.Buttons[nIndexB], nIndexB == _object.ActiveButtonIndex);
+									if (image)
+										ctx.drawImage(image, xText + widthName + scaleX_20 * nIndexB, _y, scaleX_20, scaleY_20);
+								}
+							}
 
                             // есть ли комбо-кнопка?
                             if (_object.ComboRect)
@@ -2017,48 +2120,77 @@
                         // check buttons
                         if (_object.Buttons.length > 0)
                         {
-                            var rectOrigin = rectName || rectMove;
-                            if (!rectOrigin)
-                                return false;
-                            var x = rectOrigin.X + rectOrigin.W;
-                            var y = rectOrigin.Y;
-                            var w = 20 / koefX;
-                            var h = 20 / koefY;
+                            var indexButton = -1;
+                            var xCC, yCC;
 
-                            for (var indexB = 0; indexB < _object.Buttons.length; indexB++)
+                            var x, y, w, h;
+                            if (_object.formInfo)
                             {
+                                w = 20 / koefX;
+                                h = 20 / koefY;
+
+                                x = _object.formInfo.bounds.x + (_object.formInfo.bounds.w - w) / 2;
+                                y = _object.formInfo.bounds.y + (_object.formInfo.bounds.h - h) / 2;
+
                                 if (xPos > x && xPos < (x + w) && yPos > y && yPos < (y + h))
                                 {
-                                    if (_object.ActiveButtonIndex == indexB)
-                                    {
-                                        _object.ActiveButtonIndex = -2;
-                                        oWordControl.m_oApi.sendEvent("asc_onHideContentControlsActions");
-                                    }
-                                    else
-                                    {
-                                        _object.ActiveButtonIndex = indexB;
-
-                                        var xCC = x + _object.OffsetX;
-                                        var yCC = rectOrigin.Y + rectOrigin.H + _object.OffsetY;
-                                        if (_object.transform)
-                                        {
-                                            var tmp = _object.transform.TransformPointX(xCC, yCC);
-                                            yCC = _object.transform.TransformPointY(xCC, yCC);
-                                            xCC = tmp;
-                                        }
-
-                                        var posOnScreen = this.document.ConvertCoordsToCursorWR(xCC, yCC, _object.Pos.Page);
-                                        oWordControl.m_oApi.sendEvent("asc_onShowContentControlsActions", _object.GetButtonObj(indexB), posOnScreen.X, posOnScreen.Y);
-                                    }
-
-                                    oWordControl.ShowOverlay();
-                                    oWordControl.OnUpdateOverlay();
-                                    oWordControl.EndUpdateOverlay();
-
-                                    this.document.LockCursorType("default");
-                                    return true;
+                                    indexButton = 0;
+                                    xCC = x;
+                                    yCC = y + h;
                                 }
-                                x += w;
+                            }
+                            else
+                            {
+                                var rectOrigin = rectName || rectMove;
+                                if (!rectOrigin)
+                                    return false;
+                                x = rectOrigin.X + rectOrigin.W;
+                                y = rectOrigin.Y;
+                                w = 20 / koefX;
+                                h = 20 / koefY;
+
+                                for (var indexB = 0; indexB < _object.Buttons.length; indexB++)
+                                {
+                                    if (xPos > x && xPos < (x + w) && yPos > y && yPos < (y + h))
+                                    {
+                                        xCC = x + _object.OffsetX;
+                                        yCC = rectOrigin.Y + rectOrigin.H + _object.OffsetY;
+
+                                        indexButton = indexB;
+                                        break;
+                                    }
+                                    x += w;
+                                }
+                            }
+
+                            if (-1 !== indexButton)
+                            {
+                                if (_object.ActiveButtonIndex === indexButton)
+                                {
+                                    _object.ActiveButtonIndex = -2;
+                                    oWordControl.m_oApi.sendEvent("asc_onHideContentControlsActions");
+                                }
+                                else
+                                {
+                                    _object.ActiveButtonIndex = indexButton;
+
+                                    if (_object.transform)
+                                    {
+                                        var tmp = _object.transform.TransformPointX(xCC, yCC);
+                                        yCC = _object.transform.TransformPointY(xCC, yCC);
+                                        xCC = tmp;
+                                    }
+
+                                    var posOnScreen = this.document.ConvertCoordsToCursorWR(xCC, yCC, _object.Pos.Page);
+                                    oWordControl.m_oApi.sendEvent("asc_onShowContentControlsActions", _object.GetButtonObj(indexButton), posOnScreen.X, posOnScreen.Y);
+                                }
+
+                                oWordControl.ShowOverlay();
+                                oWordControl.OnUpdateOverlay();
+                                oWordControl.EndUpdateOverlay();
+
+                                this.document.LockCursorType("default");
+                                return true;
                             }
                         }
                     }
@@ -2224,30 +2356,55 @@
                 // check buttons
                 if (_object.Buttons.length > 0)
                 {
-                    var rectOrigin = rectName || rectMove;
-                    if (!rectOrigin)
-                        return false;
-                    var x = rectOrigin.X + rectOrigin.W;
-                    var y = rectOrigin.Y;
-                    var w = 20 / koefX;
-                    var h = 20 / koefY;
+                    var indexButton = -1;
 
-                    for (var indexB = 0; indexB < _object.Buttons.length; indexB++)
+                    var x, y, w, h;
+                    if (_object.formInfo)
                     {
+                        w = 20 / koefX;
+                        h = 20 / koefY;
+
+                        x = _object.formInfo.bounds.x + (_object.formInfo.bounds.w - w) / 2;
+                        y = _object.formInfo.bounds.y + (_object.formInfo.bounds.h - h) / 2;
+
                         if (xPos > x && xPos < (x + w) && yPos > y && yPos < (y + h))
                         {
-                            _object.HoverButtonIndex = indexB;
-                            oWordControl.ShowOverlay();
-                            oWordControl.OnUpdateOverlay();
-                            oWordControl.EndUpdateOverlay();
-
-                            this.document.SetCursorType("default");
-
-                            oWordControl.m_oApi.sync_MouseMoveStartCallback();
-                            oWordControl.m_oApi.sync_MouseMoveEndCallback();
-                            return true;
+                            indexButton = 0;
                         }
-                        x += w;
+                    }
+                    else
+                    {
+                        var rectOrigin = rectName || rectMove;
+                        if (!rectOrigin)
+                            return false;
+                        x = rectOrigin.X + rectOrigin.W;
+                        y = rectOrigin.Y;
+                        w = 20 / koefX;
+                        h = 20 / koefY;
+
+                        for (var indexB = 0; indexB < _object.Buttons.length; indexB++)
+                        {
+                            if (xPos > x && xPos < (x + w) && yPos > y && yPos < (y + h))
+                            {
+                                indexButton = indexB;
+                                break;
+                            }
+                            x += w;
+                        }
+                    }
+
+                    if (-1 != indexButton)
+                    {
+                        _object.HoverButtonIndex = indexButton;
+                        oWordControl.ShowOverlay();
+                        oWordControl.OnUpdateOverlay();
+                        oWordControl.EndUpdateOverlay();
+
+                        this.document.SetCursorType("default");
+
+                        oWordControl.m_oApi.sync_MouseMoveStartCallback();
+                        oWordControl.m_oApi.sync_MouseMoveEndCallback();
+                        return true;
                     }
                 }
 
@@ -2344,5 +2501,1104 @@
     }
 
     AscCommon.DrawingContentControls = ContentControls;
+
+    // по точкам (paths) нужно определить отрезки и точки по порядку, чтобы была возможность делать скругления.
+	// и по-всякому рисовать якорьки (движение/выпадашку для комбобокса и т.д.)
+
+	function isEqualFloat(coord1, coord2)
+	{
+		return (Math.abs(coord1 - coord2) < 0.0001) ? true : false;
+	}
+
+	var PointDirection = {
+		Unitialized : 0,
+		Up : 1,
+		Down : 2,
+		Right : 3,
+		Left : 4
+	};
+	var PointRound = {
+		Unitialized : 0,
+		True : 1,
+		False : 2
+	};
+
+	function CPointCC(x, y)
+	{
+		this.x = x;
+		this.y = y;
+		this.inDir = PointDirection.Unitialized;
+		this.outDir = PointDirection.Unitialized;
+		this.round = PointRound.Unitialized;
+	}
+
+	function CPolygonCC()
+	{
+		this.points = [];
+
+		this.rectMove = null;
+		this.rectCombo = null;
+		this.bounds = null;
+
+		this.indexMin = 0;
+		this.indexMax = 0;
+
+    	this.roundSizePx = 1;
+
+		this.rectMoveWidth = 1;
+		this.rectComboWidth = 1;
+		this.roundSize = 1;
+
+		this.isClockwise = false;
+		this.isActive = false;
+
+		this.isUseMoveRect = true;
+		this.isCombobox = false;
+		this.isImage = false;
+
+		this.wideOutlineX = 0;
+		this.wideOutlineY = 0;
+		this.koef = 1;
+	}
+
+	CPolygonCC.prototype.rectMoveWidthPx = 13;
+    CPolygonCC.prototype.rectComboWidthPx = 22;
+    CPolygonCC.prototype.rectMoveImageMaxH = 30;
+
+	CPolygonCC.prototype.nextIndex = function(index, add)
+	{
+		if (add === false)
+			index--;
+		else
+			index++;
+		if (index < 0)
+			return this.points.length - index;
+		if (index >= this.points.length)
+			return index - this.points.length;
+		return index;
+	};
+	CPolygonCC.prototype.widePoint = function(point, x, y)
+	{
+		if (x !== 0)
+			point.x += (x === 1) ? this.wideOutlineX : -this.wideOutlineX;
+		if (y !== 0)
+			point.y += (y === 1) ? this.wideOutlineY : -this.wideOutlineY;
+	};
+	CPolygonCC.prototype.wideRects = function()
+	{
+		if (this.rectMove)
+		{
+			this.rectMove.x -= this.wideOutlineX;
+			this.rectMove.y -= this.wideOutlineY;
+			this.rectMove.w += this.wideOutlineX;
+			this.rectMove.h += this.wideOutlineY;
+		}
+		if (this.rectCombo)
+		{
+			this.rectCombo.w += this.wideOutlineX;
+			this.rectCombo.h += this.wideOutlineY;
+		}
+	};
+	CPolygonCC.prototype.init = function(object, koef, indexPath, countPaths)
+	{
+        switch (object.type)
+        {
+            case Asc.c_oAscContentControlSpecificType.ComboBox:
+            case Asc.c_oAscContentControlSpecificType.DropDownList:
+            case Asc.c_oAscContentControlSpecificType.DateTime:
+            {
+                this.isCombobox = true;
+                break;
+            }
+            case Asc.c_oAscContentControlSpecificType.Picture:
+            {
+                this.isImage = true;
+                break;
+            }
+            default:
+                break;
+        }
+
+		if (object.parent.document.m_oWordControl.m_oApi.isViewMode)
+		{
+			this.isUseMoveRect = false;
+			this.isCombobox = false;
+		}
+		else if (object.parent.document.m_oLogicDocument && object.parent.document.m_oLogicDocument.IsFillingFormMode())
+		{
+			this.isUseMoveRect = false;
+		}
+
+		if (object.state === AscCommon.ContentControlTrack.In)
+		{
+			this.isActive = true;
+		}
+
+		if (!this.isActive)
+		{
+			this.isUseMoveRect = false;
+			this.isCombobox = false;
+		}
+
+		if (0 !== indexPath)
+			this.isUseMoveRect = false;
+		if (indexPath !== (countPaths - 1))
+			this.isCombobox = false;
+
+		this.roundSizePx = this.isActive ? AscCommonWord.GlobalSkin.FormsContentControlsOutlineBorderRadiusActive : AscCommonWord.GlobalSkin.FormsContentControlsOutlineBorderRadiusHover;
+		this.rectMoveWidth = this.rectMoveWidthPx / koef;
+		this.rectComboWidth = this.rectComboWidthPx / koef;
+		this.roundSize = this.roundSizePx / koef;
+
+		//this.wideOutlineX = 1 / koef;
+		this.wideOutlineY = 1 / koef;
+        this.koef = koef;
+	};
+	CPolygonCC.prototype.moveTo = function(x, y)
+	{
+		if (this.points.length > 0)
+			this.points = [];
+		this.indexMin = 0;
+		this.indexMax = 0;
+		this.points.push(new CPointCC(x, y));
+	};
+	CPolygonCC.prototype.lineTo = function(x, y)
+	{
+		if (this.points.length == 0)
+		{
+			this.moveTo(x, y);
+			return;
+		}
+		var lastPoint = this.points[this.points.length - 1];
+		var isEqualX = isEqualFloat(lastPoint.x, x);
+		var isEqualY = isEqualFloat(lastPoint.y, y);
+
+		if (isEqualX && isEqualY)
+		{
+			// дублируемые не добавляем
+			return;
+		}
+
+		var firstPoint = this.points[0];
+		if (isEqualFloat(firstPoint.x, x) && isEqualFloat(firstPoint.y, y))
+		{
+			// закроем path на closePath
+			return;
+		}
+
+		var newPoint = new CPointCC(x, y);
+
+		// minimum check
+		var pointCheck = this.points[this.indexMin];
+		if (isEqualFloat(pointCheck.y, newPoint.y))
+		{
+			if (pointCheck.x > newPoint.x)
+				this.indexMin = this.points.length;
+		}
+		if (pointCheck.y > newPoint.y)
+			this.indexMin = this.points.length;
+
+		// maximum check
+		pointCheck = this.points[this.indexMax];
+		if (isEqualFloat(pointCheck.y, newPoint.y))
+		{
+			if (pointCheck.x < newPoint.x)
+				this.indexMax = this.points.length;
+		}
+		if (pointCheck.y < newPoint.y)
+			this.indexMax = this.points.length;
+
+		this.points.push(newPoint);
+	};
+	CPolygonCC.prototype.closePath = function()
+	{
+		this.calcRects();
+		this.calcDirections();
+		this.calcRounds();
+	};
+	CPolygonCC.prototype.calcRects = function()
+	{
+		var pointsLen = this.points.length;
+
+		var minPoint = this.points[this.indexMin];
+		var maxPoint = this.points[this.indexMax];
+
+		// определяем bounds
+		this.bounds = {x : minPoint.x, y : minPoint.y, w : (maxPoint.x - minPoint.x), h : (maxPoint.y - minPoint.y) };
+
+		if (this.isUseMoveRect)
+		{
+			// определяем первый рект (для перетаскивания) и передвигаем точки
+			// нужно найти направление, по которому мы шли, так как это экстремум, а проход в один конец, то
+			// верное направление одно
+			var direction = -1; // назад
+			var indexMinFriend = this.nextIndex(this.indexMin);
+			if (isEqualFloat(minPoint.x, this.points[indexMinFriend].x))
+				direction = 1;
+			this.isClockwise = (direction === 1) ? false : true;
+
+			// зацикливаем
+			var indexMinFriend = this.nextIndex(this.indexMin, direction === 1);
+			var yMax = minPoint.y;
+			while (isEqualFloat(this.points[indexMinFriend].x, minPoint.x))
+			{
+				// точка учавствует в пути - проходная или конечная
+				this.points[indexMinFriend].x -= this.rectMoveWidth;
+				if (this.points[indexMinFriend].y > yMax) // по идее всегда так
+					yMax = this.points[indexMinFriend].y;
+
+				if (this.isImage)
+                {
+                    var yMaxLimit = minPoint.y + this.rectMoveImageMaxH / this.koef;
+                    if (yMax > yMaxLimit)
+                    {
+                        var x1 = this.points[indexMinFriend].x;
+                        var x2 = this.points[indexMinFriend].x + this.rectMoveWidth;
+                        this.points[indexMinFriend].x += this.rectMoveWidth;
+                        this.points.splice(indexMinFriend, 0, new CPointCC(x1, yMaxLimit));
+                        this.points.splice(indexMinFriend + 1, 0, new CPointCC(x2, yMaxLimit));
+                        yMax = yMaxLimit;
+                        break;
+                    }
+                }
+
+				indexMinFriend = this.nextIndex(indexMinFriend, direction === 1);
+			}
+			minPoint.x -= this.rectMoveWidth;
+			this.rectMove = {x: minPoint.x, y: minPoint.y, w: this.rectMoveWidth, h: (yMax - minPoint.y)};
+		}
+
+		if (this.isCombobox)
+		{
+			// определяем второй рект (для комбобокса), и передвигаем точки
+			// нужно найти направление, по которому мы шли, так как это экстремум, а проход в один конец, то
+			// верное направление одно
+			direction = -1; // назад
+			var indexMaxFriend = this.nextIndex(this.indexMax);
+			if (isEqualFloat(maxPoint.x, this.points[indexMaxFriend].x))
+				direction = 1;
+
+			// зацикливаем
+			var indexMaxFriend = this.nextIndex(this.indexMax, direction === 1);
+			var yMin = maxPoint.y;
+			while (isEqualFloat(this.points[indexMaxFriend].x, maxPoint.x))
+			{
+				// точка учавствует в пути - проходная или конечная
+				this.points[indexMaxFriend].x += this.rectComboWidth;
+				if (this.points[indexMaxFriend].y < yMin) // по идее всегда так
+					yMin = this.points[indexMaxFriend].y;
+				indexMaxFriend = this.nextIndex(indexMaxFriend, direction === 1);
+			}
+			this.rectCombo = {x: maxPoint.x, y: yMin, w: this.rectComboWidth, h: (maxPoint.y - yMin)};
+			maxPoint.x += this.rectComboWidth;
+		}
+	};
+	CPolygonCC.prototype.calcDirections = function()
+	{
+		for (var i = 0, len = this.points.length; i < len; i++)
+		{
+			var curPoint = this.points[i];
+			var nextPoint = (i == (len - 1)) ? this.points[0] : this.points[i + 1];
+
+			if (isEqualFloat(curPoint.y, nextPoint.y))
+			{
+				if (curPoint.x < nextPoint.x)
+				{
+					curPoint.outDir = nextPoint.inDir = PointDirection.Right;
+				}
+				else
+				{
+					curPoint.outDir = nextPoint.inDir = PointDirection.Left;
+				}
+			}
+			else if (isEqualFloat(curPoint.x, nextPoint.x))
+			{
+				if (curPoint.y < nextPoint.y)
+				{
+					curPoint.outDir = nextPoint.inDir = PointDirection.Down;
+				}
+				else
+				{
+					curPoint.outDir = nextPoint.inDir = PointDirection.Up;
+				}
+			}
+		}
+	};
+	CPolygonCC.prototype.calcRounds = function()
+	{
+		for (var i = 0, len = this.points.length; i < len; i++)
+		{
+			var curPoint = this.points[i];
+			var nextPoint = (i == (len - 1)) ? this.points[0] : this.points[i + 1];
+
+			// 1) короткая ли линия?
+			var lineLen = Math.abs(curPoint.x - nextPoint.x) + Math.abs(curPoint.y - nextPoint.y);
+			if (lineLen < this.roundSize)
+			{
+				curPoint.round = nextPoint.round = PointRound.False;
+			}
+
+			// 2) скругляем только внешние углы.
+			// зависит от направлений и от общего направления обхода
+			// и тут же сразу 3) расширяем рамку!
+			if (curPoint.round === PointRound.Unitialized)
+			{
+				switch (curPoint.inDir)
+				{
+					case PointDirection.Left:
+					{
+						switch (curPoint.outDir)
+						{
+							case PointDirection.Left:
+							case PointDirection.Right:
+							{
+								curPoint.round = PointRound.False;
+								break;
+							}
+							case PointDirection.Up:
+							{
+								if (this.isClockwise)
+								{
+									curPoint.round = PointRound.True;
+									this.widePoint(curPoint, -1, 1);
+								}
+								else
+								{
+									curPoint.round = PointRound.False;
+									this.widePoint(curPoint, 1, -1);
+								}
+								break;
+							}
+							case PointDirection.Down:
+							{
+								if (this.isClockwise)
+								{
+									curPoint.round = PointRound.False;
+									this.widePoint(curPoint, 1, 1);
+								}
+								else
+								{
+									curPoint.round = PointRound.True;
+									this.widePoint(curPoint, -1, -1);
+								}
+								break;
+							}
+							default:
+								break;
+						}
+						break;
+					}
+					case PointDirection.Right:
+					{
+						switch (curPoint.outDir)
+						{
+							case PointDirection.Left:
+							case PointDirection.Right:
+							{
+								curPoint.round = PointRound.False;
+								break;
+							}
+							case PointDirection.Up:
+							{
+								if (this.isClockwise)
+								{
+									curPoint.round = PointRound.False;
+									this.widePoint(curPoint, -1, -1);
+								}
+								else
+								{
+									curPoint.round = PointRound.True;
+									this.widePoint(curPoint, 1, 1);
+								}
+								break;
+							}
+							case PointDirection.Down:
+							{
+								if (this.isClockwise)
+								{
+									curPoint.round = PointRound.True;
+									this.widePoint(curPoint, 1, -1);
+								}
+								else
+								{
+									curPoint.round = PointRound.False;
+									this.widePoint(curPoint, -1, 1);
+								}
+								break;
+							}
+							default:
+								break;
+						}
+						break;
+					}
+					case PointDirection.Up:
+					{
+						switch (curPoint.outDir)
+						{
+							case PointDirection.Left:
+							{
+								if (this.isClockwise)
+								{
+									curPoint.round = PointRound.False;
+									this.widePoint(curPoint, -1, 1);
+								}
+								else
+								{
+									curPoint.round = PointRound.True;
+									this.widePoint(curPoint, 1, -1);
+								}
+								break;
+							}
+							case PointDirection.Right:
+							{
+								if (this.isClockwise)
+								{
+									curPoint.round = PointRound.True;
+									this.widePoint(curPoint, -1, -1);
+								}
+								else
+								{
+									curPoint.round = PointRound.False;
+									this.widePoint(curPoint, 1, 1);
+								}
+								break;
+							}
+							case PointDirection.Up:
+							{
+								curPoint.round = PointRound.False;
+								this.widePoint(curPoint, this.isClockwise ? -1 : 1, 0);
+								break;
+							}
+							case PointDirection.Down:
+							{
+								curPoint.round = PointRound.False;
+								break;
+							}
+							default:
+								break;
+						}
+						break;
+					}
+					case PointDirection.Down:
+					{
+						switch (curPoint.outDir)
+						{
+							case PointDirection.Left:
+							{
+								if (this.isClockwise)
+								{
+									curPoint.round = PointRound.True;
+									this.widePoint(curPoint, 1, 1);
+								}
+								else
+								{
+									curPoint.round = PointRound.False;
+									this.widePoint(curPoint, -1, -1);
+								}
+								break;
+							}
+							case PointDirection.Right:
+							{
+								if (this.isClockwise)
+								{
+									curPoint.round = PointRound.False;
+									this.widePoint(curPoint, 1, -1);
+								}
+								else
+								{
+									curPoint.round = PointRound.True;
+									this.widePoint(curPoint, -1, 1);
+								}
+								break;
+							}
+							case PointDirection.Up:
+							{
+								curPoint.round = PointRound.False;
+							}
+							case PointDirection.Down:
+							{
+								curPoint.round = PointRound.False;
+								this.widePoint(curPoint, this.isClockwise ? 1 : -1, 0);
+								break;
+							}
+							default:
+								break;
+						}
+						break;
+					}
+					default:
+						break;
+				}
+			}
+		}
+		this.wideRects();
+	};
+
+	var const_rad = 0.9142; // (Math.sqrt(2) - 0.5)
+	CPolygonCC.prototype.draw = function(overlay, object, drPage, koefX, koefY, icons)
+	{
+		var ctx = overlay.m_oContext;
+		var pointsLen = this.points.length;
+		if (!object.transform)
+		{
+			var point;
+			var _x, _y;
+
+			var countIteration = (0 === this.roundSizePx) ? 1 : 2;
+			var currentIteration = 0;
+
+			if (countIteration > 1 && null === this.rectMove && null === this.rectCombo)
+				countIteration = 1;
+
+			while (true)
+			{
+				++currentIteration;
+				if (currentIteration === countIteration)
+				{
+				    var _x1, _x2, _y1, _y2, _x3, _y3, _x4, _y4;
+					var lineH = koefY * object.base.GetBoundingPolygonFirstLineH();
+					if (this.rectMove)
+					{
+                        if (this.isImage)
+                            lineH = koefY * this.rectMove.h;
+
+						// draw move rect
+						_x1 = (drPage.left + koefX * (this.rectMove.x + object.OffsetX)) >> 0;
+						_y1 = (drPage.top + koefY * (this.rectMove.y + object.OffsetY)) >> 0;
+						_x2 = (drPage.left + koefX * (this.rectMove.x + this.rectMove.w + object.OffsetX)) >> 0;
+						_y2 = _y1;
+						_x3 = _x2;
+						_y3 = (drPage.top + koefY * (this.rectMove.y + this.rectMove.h + object.OffsetY)) >> 0;
+						_x4 = _x1;
+						_y4 = _y3;
+
+						ctx.moveTo(_x1, _y1);
+						ctx.lineTo(_x2, _y2);
+						ctx.lineTo(_x3, _y3);
+						ctx.lineTo(_x4, _y4);
+						ctx.closePath();
+						ctx.fill();
+						ctx.beginPath();
+
+						var yCenterPos = ((_y1 + 0.5 * lineH) >> 0) + 0.5;
+						var xCenter = _x1 + this.rectMoveWidthPx / 2;
+						var wCenter = ((this.rectMoveWidthPx / 3) + 1) >> 0;
+						xCenter -= wCenter / 2;
+						xCenter = xCenter >> 0;
+						xCenter += 1; // lineWidth
+
+						if (!this.isActive)
+							ctx.strokeStyle = AscCommonWord.GlobalSkin.FormsContentControlsOutlineHover;
+						else
+                        {
+                            switch (object.parent.ContentControlObjectState)
+                            {
+                                case 0:
+                                    ctx.strokeStyle = AscCommonWord.GlobalSkin.FormsContentControlsOutlineMoverHover;
+                                    break;
+                                case 1:
+                                    ctx.strokeStyle = AscCommonWord.GlobalSkin.FormsContentControlsOutlineMoverActive;
+                                    break;
+                                default:
+                                    ctx.strokeStyle = AscCommonWord.GlobalSkin.FormsContentControlsOutlineActive;
+                                    break;
+                            }
+                        }
+
+						ctx.moveTo(xCenter, yCenterPos);
+						ctx.lineTo(xCenter + wCenter, yCenterPos);
+						ctx.moveTo(xCenter, yCenterPos - 2);
+						ctx.lineTo(xCenter + wCenter, yCenterPos - 2);
+						ctx.moveTo(xCenter, yCenterPos + 2);
+						ctx.lineTo(xCenter + wCenter, yCenterPos + 2);
+
+						ctx.lineWidth = 1;
+						ctx.stroke();
+						ctx.beginPath();
+					}
+
+					if (this.rectCombo)
+					{
+						// draw combo rect
+						_x1 = (drPage.left + koefX * (this.rectCombo.x + object.OffsetX)) >> 0;
+						_y1 = (drPage.top + koefY * (this.rectCombo.y + object.OffsetY)) >> 0;
+						_x2 = (drPage.left + koefX * (this.rectCombo.x + this.rectCombo.w + object.OffsetX)) >> 0;
+						_y2 = _y1;
+						_x3 = _x2;
+						_y3 = (drPage.top + koefY * (this.rectCombo.y + this.rectCombo.h + object.OffsetY)) >> 0;
+						_x4 = _x1;
+						_y4 = _y3;
+
+						ctx.moveTo(_x1, _y1);
+						ctx.lineTo(_x2, _y2);
+						ctx.lineTo(_x3, _y3);
+						ctx.lineTo(_x4, _y4);
+						ctx.closePath();
+
+						var indexButton = object.Buttons.length;
+                        if (object.ActiveButtonIndex === indexButton)
+                            ctx.fillStyle = AscCommonWord.GlobalSkin.FormsContentControlsMarkersBackgroundActive;
+                        else if (object.HoverButtonIndex === indexButton)
+                            ctx.fillStyle = AscCommonWord.GlobalSkin.FormsContentControlsMarkersBackgroundHover;
+                        else
+                            ctx.fillStyle = AscCommonWord.GlobalSkin.FormsContentControlsMarkersBackground;
+
+						ctx.fill();
+						ctx.beginPath();
+
+						var image = icons.getImage(AscCommon.CCButtonType.Combo, false);
+						if (image)
+						{
+                            var imageW = 20; // 1x scale!
+                            var imageH = 20;
+							var yPos = ((_y4 - imageH - 0.5 * (lineH - imageH) >> 0)) + 2;
+							var xPos = ((_x1 + 0.5 * (this.rectComboWidthPx - imageW) >> 0)) + 1;
+
+							ctx.drawImage(image, xPos, yPos, imageW, imageH);
+						}
+					}
+
+					if (this.isImage)
+                    {
+                        _x1 = drPage.left + koefX * (this.bounds.x + object.OffsetX);
+                        _y1 = drPage.top + koefY * (this.bounds.y + object.OffsetY);
+                        _x4 = drPage.left + koefX * (this.bounds.x + this.bounds.w + object.OffsetX);
+                        _y4 = drPage.top + koefY * (this.bounds.y + this.bounds.h + object.OffsetY);
+
+                        var imageW = 20; // 1x scale!
+                        var imageH = 20;
+                        var xPos = (_x1 + _x4 - imageW) >> 1;
+                        var yPos = (_y1 + _y4 - imageH) >> 1;
+
+                        var isFill = false;
+                        if (object.ActiveButtonIndex === 0)
+                        {
+                            ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsActive;
+                            isFill = true;
+                        }
+                        else if (object.HoverButtonIndex === 0)
+                        {
+                            ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsHover;
+                            isFill = true;
+                        }
+
+                        if (isFill)
+                        {
+                            ctx.rect(xPos, yPos, imageW, imageH);
+                            ctx.fill();
+                            ctx.beginPath();
+                        }
+
+                        var image = icons.getImage(AscCommon.CCButtonType.Image, 0 === object.ActiveButtonIndex);
+                        if (image)
+                            ctx.drawImage(image, xPos, yPos, imageW, imageH);
+                    }
+
+					if (2 === currentIteration)
+					{
+						ctx.restore();
+					}
+				}
+
+				for (var i = 0; i < pointsLen; i++)
+				{
+					point = this.points[i];
+					_x = drPage.left + koefX * (point.x + object.OffsetX);
+					_y = drPage.top + koefY * (point.y + object.OffsetY);
+
+					overlay.CheckPoint(_x, _y);
+
+					_x = (_x >> 0) + 0.5;
+					_y = (_y >> 0) + 0.5;
+
+					if (point.round !== PointRound.True)
+					{
+						if (0 === i)
+							ctx.moveTo(_x, _y);
+						else
+							ctx.lineTo(_x, _y);
+					}
+					else
+					{
+						var x1, y1, x2, y2, xCP, yCP;
+						var isX = true;
+						switch (point.inDir)
+						{
+							case PointDirection.Left:
+							{
+								x1 = _x + this.roundSizePx;
+								y1 = _y;
+								break;
+							}
+							case PointDirection.Right:
+							{
+								x1 = _x - this.roundSizePx;
+								y1 = _y;
+								break;
+							}
+							case PointDirection.Up:
+							{
+								x1 = _x;
+								y1 = _y + this.roundSizePx;
+								isX = false;
+								break;
+							}
+							case PointDirection.Down:
+							{
+								x1 = _x;
+								y1 = _y - this.roundSizePx;
+								isX = false;
+								break;
+							}
+							default:
+								break;
+						}
+						switch (point.outDir)
+						{
+							case PointDirection.Left:
+							{
+								x2 = _x - this.roundSizePx;
+								y2 = _y;
+								break;
+							}
+							case PointDirection.Right:
+							{
+								x2 = _x + this.roundSizePx;
+								y2 = _y;
+								break;
+							}
+							case PointDirection.Up:
+							{
+								x2 = _x;
+								y2 = _y - this.roundSizePx;
+								break;
+							}
+							case PointDirection.Down:
+							{
+								x2 = _x;
+								y2 = _y + this.roundSizePx;
+								break;
+							}
+							default:
+								break;
+						}
+
+						if (isX)
+						{
+							xCP = x1 + (x2 - x1) * const_rad;
+							yCP = y1 + (y2 - y1) * (1 - const_rad);
+						}
+						else
+						{
+							xCP = x1 + (x2 - x1) * (1 - const_rad);
+							yCP = y1 + (y2 - y1) * const_rad;
+						}
+
+						if (0 === i)
+							ctx.moveTo(x1, y1);
+						else
+							ctx.lineTo(x1, y1);
+						ctx.quadraticCurveTo(xCP, yCP, x2, y2);
+					}
+				}
+				ctx.closePath();
+
+				if (currentIteration === countIteration)
+				{
+					if (!this.isActive)
+						ctx.strokeStyle = AscCommonWord.GlobalSkin.FormsContentControlsOutlineHover;
+					else
+						ctx.strokeStyle = AscCommonWord.GlobalSkin.FormsContentControlsOutlineActive;
+
+					ctx.lineWidth = 1;
+					ctx.stroke();
+					ctx.beginPath();
+
+					break;
+				}
+				else
+				{
+					ctx.save();
+					ctx.clip();
+
+					ctx.fillStyle = AscCommonWord.GlobalSkin.FormsContentControlsMarkersBackground;
+					ctx.beginPath();
+				}
+			}
+		}
+		else
+        {
+            var point;
+            var _x, _y;
+
+            var countIteration = (0 === this.roundSizePx) ? 1 : 2;
+            var currentIteration = 0;
+
+            if (countIteration > 1 && null === this.rectMove && null === this.rectCombo)
+                countIteration = 1;
+
+            var matrix = object.transform;
+            var coordMatrix = new AscCommon.CMatrix();
+            coordMatrix.sx = koefX;
+            coordMatrix.sy = koefY;
+            coordMatrix.tx = drPage.left;
+            coordMatrix.ty = drPage.top;
+            AscCommon.global_MatrixTransformer.MultiplyPrepend(coordMatrix, matrix);
+
+            while (true)
+            {
+                ++currentIteration;
+                if (currentIteration === countIteration)
+                {
+                    ctx.transform(coordMatrix.sx, coordMatrix.shy, coordMatrix.shx, coordMatrix.sy, coordMatrix.tx, coordMatrix.ty);
+
+                    var lineH = object.base.GetBoundingPolygonFirstLineH();
+                    if (this.rectMove)
+                    {
+                        if (this.isImage)
+                            lineH = this.rectMove.h;
+
+                        // draw move rect
+                        ctx.moveTo(this.rectMove.x, this.rectMove.y);
+                        ctx.lineTo(this.rectMove.x + this.rectMove.w, this.rectMove.y);
+                        ctx.lineTo(this.rectMove.x + this.rectMove.w, this.rectMove.y + this.rectMove.h);
+                        ctx.lineTo(this.rectMove.x, this.rectMove.y + this.rectMove.h);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.beginPath();
+
+                        var xLine = this.rectMove.x + this.rectMove.w / 3;
+                        var wLine = this.rectMove.w / 3;
+                        var yLine = this.rectMove.y + 0.5 * lineH;
+                        var hLine = 2 / koefY;
+
+                        if (!this.isActive)
+                            ctx.strokeStyle = AscCommonWord.GlobalSkin.FormsContentControlsOutlineHover;
+                        else
+                        {
+                            switch (object.parent.ContentControlObjectState)
+                            {
+                                case 0:
+                                    ctx.strokeStyle = AscCommonWord.GlobalSkin.FormsContentControlsOutlineMoverHover;
+                                    break;
+                                case 1:
+                                    ctx.strokeStyle = AscCommonWord.GlobalSkin.FormsContentControlsOutlineMoverActive;
+                                    break;
+                                default:
+                                    ctx.strokeStyle = AscCommonWord.GlobalSkin.FormsContentControlsOutlineActive;
+                                    break;
+                            }
+                        }
+
+                        ctx.moveTo(xLine, yLine - hLine);
+                        ctx.lineTo(xLine + wLine, yLine - hLine);
+                        ctx.moveTo(xLine, yLine);
+                        ctx.lineTo(xLine + wLine, yLine);
+                        ctx.moveTo(xLine, yLine + hLine);
+                        ctx.lineTo(xLine + wLine, yLine + hLine);
+
+                        ctx.lineWidth = 1 / koefY;
+                        ctx.stroke();
+                        ctx.beginPath();
+                    }
+
+                    if (this.rectCombo)
+                    {
+                        // draw combo rect
+                        ctx.moveTo(this.rectCombo.x, this.rectCombo.y);
+                        ctx.lineTo(this.rectCombo.x + this.rectCombo.w, this.rectCombo.y);
+                        ctx.lineTo(this.rectCombo.x + this.rectCombo.w, this.rectCombo.y + this.rectCombo.h);
+                        ctx.lineTo(this.rectCombo.x, this.rectCombo.y + this.rectCombo.h);
+                        ctx.closePath();
+
+                        var indexButton = object.Buttons.length;
+                        if (object.ActiveButtonIndex === indexButton)
+                            ctx.fillStyle = AscCommonWord.GlobalSkin.FormsContentControlsMarkersBackgroundActive;
+                        else if (object.HoverButtonIndex === indexButton)
+                            ctx.fillStyle = AscCommonWord.GlobalSkin.FormsContentControlsMarkersBackgroundHover;
+                        else
+                            ctx.fillStyle = AscCommonWord.GlobalSkin.FormsContentControlsMarkersBackground;
+
+                        ctx.fill();
+                        ctx.beginPath();
+
+                        var image = icons.getImage(AscCommon.CCButtonType.Combo, false);
+                        if (image)
+                        {
+                            var imageW = 20 / koefX; // 1x scale!
+                            var imageH = 20 / koefY;
+                            var yPos = this.rectCombo.y + this.rectCombo.h - imageH - 0.5 * (lineH - imageH);
+                            var xPos = this.rectCombo.x + 0.5 * (this.rectCombo.w - imageW);
+
+                            ctx.drawImage(image, xPos, yPos, imageW, imageH);
+                        }
+                    }
+
+                    if (this.isImage)
+                    {
+                        var imageW = 20 / koefX; // 1x scale!
+                        var imageH = 20 / koefY;
+                        var xPos = this.bounds.x + (this.bounds.w - imageW) / 2;
+                        var yPos = this.bounds.y + (this.bounds.h - imageH) / 2;
+
+                        var isFill = false;
+                        if (object.ActiveButtonIndex === 0)
+                        {
+                            ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsActive;
+                            isFill = true;
+                        }
+                        else if (object.HoverButtonIndex === 0)
+                        {
+                            ctx.fillStyle = AscCommonWord.GlobalSkin.ContentControlsHover;
+                            isFill = true;
+                        }
+
+                        if (isFill)
+                        {
+                            ctx.rect(xPos, yPos, imageW, imageH);
+                            ctx.fill();
+                            ctx.beginPath();
+                        }
+
+                        var image = icons.getImage(AscCommon.CCButtonType.Image, 0 === object.ActiveButtonIndex);
+                        if (image)
+                            ctx.drawImage(image, xPos, yPos, imageW, imageH);
+                    }
+
+                    overlay.SetBaseTransform();
+
+                    if (2 === currentIteration)
+                    {
+                        ctx.restore();
+                    }
+                }
+
+                for (var i = 0; i < pointsLen; i++)
+                {
+                    point = this.points[i];
+                    _x = matrix.TransformPointX(point.x, point.y);
+                    _y = matrix.TransformPointY(point.x, point.y);
+
+                    _x = drPage.left + koefX * _x;
+                    _y = drPage.top + koefY * _y;
+
+                    overlay.CheckPoint(_x, _y);
+
+                    if (point.round !== PointRound.True)
+                    {
+                        if (0 === i)
+                            ctx.moveTo(_x, _y);
+                        else
+                            ctx.lineTo(_x, _y);
+                    }
+                    else
+                    {
+                        var x1, y1, x2, y2, xCP, yCP;
+                        var isX = true;
+                        switch (point.inDir)
+                        {
+                            case PointDirection.Left:
+                            {
+                                x1 = _x + this.roundSizePx;
+                                y1 = _y;
+                                break;
+                            }
+                            case PointDirection.Right:
+                            {
+                                x1 = _x - this.roundSizePx;
+                                y1 = _y;
+                                break;
+                            }
+                            case PointDirection.Up:
+                            {
+                                x1 = _x;
+                                y1 = _y + this.roundSizePx;
+                                isX = false;
+                                break;
+                            }
+                            case PointDirection.Down:
+                            {
+                                x1 = _x;
+                                y1 = _y - this.roundSizePx;
+                                isX = false;
+                                break;
+                            }
+                            default:
+                                break;
+                        }
+                        switch (point.outDir)
+                        {
+                            case PointDirection.Left:
+                            {
+                                x2 = _x - this.roundSizePx;
+                                y2 = _y;
+                                break;
+                            }
+                            case PointDirection.Right:
+                            {
+                                x2 = _x + this.roundSizePx;
+                                y2 = _y;
+                                break;
+                            }
+                            case PointDirection.Up:
+                            {
+                                x2 = _x;
+                                y2 = _y - this.roundSizePx;
+                                break;
+                            }
+                            case PointDirection.Down:
+                            {
+                                x2 = _x;
+                                y2 = _y + this.roundSizePx;
+                                break;
+                            }
+                            default:
+                                break;
+                        }
+
+                        if (isX)
+                        {
+                            xCP = x1 + (x2 - x1) * const_rad;
+                            yCP = y1 + (y2 - y1) * (1 - const_rad);
+                        }
+                        else
+                        {
+                            xCP = x1 + (x2 - x1) * (1 - const_rad);
+                            yCP = y1 + (y2 - y1) * const_rad;
+                        }
+
+                        if (0 === i)
+                            ctx.moveTo(x1, y1);
+                        else
+                            ctx.lineTo(x1, y1);
+                        ctx.quadraticCurveTo(xCP, yCP, x2, y2);
+                    }
+                }
+                ctx.closePath();
+
+                if (currentIteration === countIteration)
+                {
+                    if (!this.isActive)
+                        ctx.strokeStyle = AscCommonWord.GlobalSkin.FormsContentControlsOutlineHover;
+                    else
+                        ctx.strokeStyle = AscCommonWord.GlobalSkin.FormsContentControlsOutlineActive;
+
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    ctx.beginPath();
+
+                    break;
+                }
+                else
+                {
+                    ctx.save();
+                    ctx.clip();
+
+                    ctx.fillStyle = AscCommonWord.GlobalSkin.FormsContentControlsMarkersBackground;
+                    ctx.beginPath();
+                }
+            }
+        }
+	};
 
 })(window);
