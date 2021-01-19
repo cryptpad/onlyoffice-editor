@@ -7015,7 +7015,7 @@ CPresentation.prototype.ApplyTableFunction = function (Function, bBefore, bAll, 
     if (this.Slides[this.CurPage]) {
         var args;
         if (AscFormat.isRealNumber(Rows) && AscFormat.isRealNumber(Cols)) {
-            args = [Rows, Cols];
+            args = [Cols, Rows];
         } else {
             args = [bBefore];
         }
