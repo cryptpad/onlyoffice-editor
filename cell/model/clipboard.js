@@ -3118,7 +3118,11 @@
 					if (isHyperLink) {
 						var oCurHyperlink = new ParaHyperlink();
 						oCurHyperlink.SetParagraph(oCurPar);
-						oCurHyperlink.Set_Value(isHyperLink.Hyperlink);
+						var sHValue = "";
+						if(typeof isHyperLink.Hyperlink === "string") {
+							sHValue = isHyperLink.Hyperlink;
+						}
+						oCurHyperlink.Set_Value(sHValue);
 						if (isHyperLink.Tooltip) {
 							oCurHyperlink.SetToolTip(isHyperLink.Tooltip);
 						}
