@@ -4136,6 +4136,8 @@
 					}
 
 					cloneNewItem = oNewItem.clone();
+					cloneNewItem.rowSpan = null;
+					cloneNewItem.colSpan = null;
 
 					//переходим в следующую ячейку
 					cell = aResult.getCell(row + t.maxLengthRowCount, innerCol + col);
