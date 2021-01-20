@@ -10821,6 +10821,13 @@ background-repeat: no-repeat;\
     {
         if (this.WordControl.m_oDrawingDocument)
             this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBullet(id, props, level, is_multi_level);
+	};
+	
+	asc_docs_api.prototype.SetDrawImagePreviewBulletChangeListLevel = function(id, props)
+    {
+		id = ["bulleted-list-preview","bulleted-list-preview","bulleted-list-preview","bulleted-list-preview","bulleted-list-preview","bulleted-list-preview","bulleted-list-preview","bulleted-list-preview","bulleted-list-preview"];
+		if (this.WordControl.m_oDrawingDocument)
+			this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletChangeListLevel(id, props);
     };
 
 	asc_docs_api.prototype.asc_OnHideContextMenu = function()
