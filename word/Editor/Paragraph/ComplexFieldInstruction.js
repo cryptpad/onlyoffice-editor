@@ -463,10 +463,12 @@ CFieldInstructionTOC.prototype.SetPr = function(oPr)
 			if(oPr.IsIncludeLabelAndNumber)
 			{
 				this.SetCaption(sCaption);
+				this.SetCaptionOnlyText(undefined);
 			}
 			else
 			{
 				this.SetCaptionOnlyText(sCaption);
+				this.SetCaption(undefined);
 			}
 		}
 	}
