@@ -23012,6 +23012,7 @@ CDocument.prototype.AddCaption = function(oPr)
         var nCurPos = 0;
         var oComplexField;
         var oBeginChar, oSeparateChar, oEndChar;
+        var aFieldsToUpdate = [];
         if(!oPr.get_ExcludeLabel())
         {
             var sLabel = oPr.get_Label();
@@ -23047,7 +23048,7 @@ CDocument.prototype.AddCaption = function(oPr)
                 oComplexField.SetInstructionLine(" STYLEREF \"" + oStyle.GetName() + "\" \\s");
                 oComplexField.SetSeparateChar(oSeparateChar);
                 oComplexField.SetEndChar(oEndChar);
-                oComplexField.Update(false, false);
+                aFieldsToUpdate.push(oComplexField);
             }
             var sSeparator = oPr.get_Separator();
             if(!sSeparator || sSeparator.length === 0)
@@ -23093,7 +23094,7 @@ CDocument.prototype.AddCaption = function(oPr)
 
         var aFields = [];
 
-        oComplexField.Update(false, false);
+        aFieldsToUpdate.push(oComplexField);
         this.GetAllSeqFieldsByType(oPr.get_Label(), aFields);
         for(var i = 0; i < aFields.length; ++i)
         {
@@ -23137,6 +23138,10 @@ CDocument.prototype.AddCaption = function(oPr)
                 }
                 this.FinalizeAction();
             }
+        }
+        for(var nField = aFieldsToUpdate.length - 1; nField > -1; --nField)
+        {
+            aFieldsToUpdate[nField].Update(false, false);
         }
         NewParagraph.MoveCursorToEndPos();
         NewParagraph.Document_SetThisElementCurrent(true);
