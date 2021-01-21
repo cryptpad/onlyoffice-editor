@@ -46,7 +46,7 @@
 
 	function colorObjToAscColor(color) {
 		if (!color) {
-			return color;
+			return AscCommon.CreateAscColorCustom(0, 0, 0, true);
 		}
 
 		var oRes = null;

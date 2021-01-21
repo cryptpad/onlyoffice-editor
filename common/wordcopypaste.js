@@ -5092,7 +5092,8 @@ PasteProcessor.prototype =
 				res.Value = border_Single;
 				res.Size = border.w * g_dKoef_pix_to_mm;
 			}
-			res.Color = new CDocumentColor(border.c.getR(), border.c.getG(), border.c.getB());
+			var bc = border.getColorOrDefault();
+			res.Color = new CDocumentColor(bc.getR(), bc.getG(), bc.getB());
 
 			return res;
 		};

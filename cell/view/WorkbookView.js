@@ -3278,26 +3278,26 @@
 			color = AscCommonExcel.getMatchingBorder(prevStyle && prevStyle.border && prevStyle.border.r, curStyle && curStyle.border && curStyle.border.l);
 			if(color && color.w > 0)
 			{
-				calculateLineVer(color.c, j * lineStepX, i * stepY, (i + 1) * stepY);
+				calculateLineVer(color.getColorOrDefault(), j * lineStepX, i * stepY, (i + 1) * stepY);
 			}
 			//right
 			color = curStyle && curStyle.border && curStyle.border.r;
 			if(color && color.w > 0)
 			{
-				calculateLineVer(color.c, (j + 1) * lineStepX, i * stepY, (i + 1) * stepY);
+				calculateLineVer(color.getColorOrDefault(), (j + 1) * lineStepX, i * stepY, (i + 1) * stepY);
 			}
 			//top
 			prevStyle = (i - 1 >= 0) ? compiledStylesArr[i - 1][j] : null;
 			color = AscCommonExcel.getMatchingBorder(prevStyle && prevStyle.border && prevStyle.border.b, curStyle && curStyle.border && curStyle.border.t);
 			if(color && color.w > 0)
 			{
-				calculateLineHor(color.c, j * stepX, i * stepY, (j + 1) * stepX);
+				calculateLineHor(color.getColorOrDefault(), j * stepX, i * stepY, (j + 1) * stepX);
 			}
 			//bottom
 			color = curStyle && curStyle.border && curStyle.border.b;
 			if(color && color.w > 0)
 			{
-				calculateLineHor(color.c, j * stepX, (i + 1) * stepY, (j + 1) * stepX);
+				calculateLineHor(color.getColorOrDefault(), j * stepX, (i + 1) * stepY, (j + 1) * stepX);
 			}
 
 			//marks

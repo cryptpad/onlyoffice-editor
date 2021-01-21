@@ -219,8 +219,10 @@
 				return border2;
 			}
 
-			var r1 = border1.c.getR(), g1 = border1.c.getG(), b1 = border1.c.getB();
-			var r2 = border2.c.getR(), g2 = border2.c.getG(), b2 = border2.c.getB();
+			var bc1 = border1.getColorOrDefault();
+			var bc2 = border2.getColorOrDefault();
+			var r1 = bc1.getR(), g1 = bc1.getG(), b1 = bc1.getB();
+			var r2 = bc2.getR(), g2 = bc2.getG(), b2 = bc2.getB();
 			var Brightness_1_1 = r1 + b1 + 2 * g1;
 			var Brightness_1_2 = r2 + b2 + 2 * g2;
 			if (Brightness_1_1 < Brightness_1_2) {
@@ -1989,7 +1991,7 @@
 			function drawBorder(type, b, x1, y1, x2, y2) {
 				if (b && b.w > 0) {
 					var isStroke = false;
-					var isNewColor = !AscCommonExcel.g_oColorManager.isEqual(bc, b.c);
+					var isNewColor = !AscCommonExcel.g_oColorManager.isEqual(bc, b.getColorOrDefault());
 					var isNewStyle = bs !== b.s;
 					if (isNotFirst && (isNewColor || isNewStyle)) {
 						ctx.stroke();
@@ -1997,7 +1999,7 @@
 					}
 
 					if (isNewColor) {
-						bc = b.c;
+						bc = b.getColorOrDefault();
 						ctx.setStrokeStyle(bc);
 					}
 					if (isNewStyle) {
@@ -2188,26 +2190,26 @@
 			var oBorder = dxf && dxf.getBorder();
 			if (oBorder) {
 				var oS = oBorder.l;
-				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
-					ctx.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
+				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None) {
+					ctx.setStrokeStyle(oS.getColorOrDefault()).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
 					ctx.lineVer(x0, y0, y1);
 					ctx.stroke();
 				}
 				oS = oBorder.t;
-				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
-					ctx.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
+				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None) {
+					ctx.setStrokeStyle(oS.getColorOrDefault()).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
 					ctx.lineHor(x0 + 1, y0, x1 - 1);
 					ctx.stroke();
 				}
 				oS = oBorder.r;
-				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
-					ctx.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
+				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None) {
+					ctx.setStrokeStyle(oS.getColorOrDefault()).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
 					ctx.lineVer(x1 - 1, y0, y1);
 					ctx.stroke();
 				}
 				oS = oBorder.b;
-				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
-					ctx.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
+				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None) {
+					ctx.setStrokeStyle(oS.getColorOrDefault()).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
 					ctx.lineHor(x0 + 1, y1 - 1, x1 - 1);
 					ctx.stroke();
 				}
