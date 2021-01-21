@@ -6945,8 +6945,7 @@ function CDrawingDocument()
         var offsetBase = 10;
         var line_w = 4;
 		// считаем расстояние между линиями
-		var height_px_p = document.getElementById(id[0]).clientHeight;
-		// var height_px_p = document.getElementById(id[0]).parentNode.clientHeight;
+		var height_px_p = document.getElementById(id[0]).parentNode.clientHeight;
         var line_distance = (((height_px_p - (offsetBase << 1)) - line_w * 10) / 9) >> 0;
         // убираем погрешность в offset
         var offset = (height_px_p - (line_w * 10 + line_distance * 9)) >> 1;
@@ -6956,29 +6955,27 @@ function CDrawingDocument()
 
         for (var k = 0; k < 9; k++) 
         {
-            var parent =  document.getElementById(id[k]);
-            if (!parent)
+            var elem =  document.getElementById(id[k]);
+            if (!elem)
                 return;
 
-            var width_px = parent.clientWidth;
-            var height_px = parent.clientHeight;
+            var width_px = elem.clientWidth;
+            var height_px = elem.clientHeight;
             
             var canvas =  document.createElement('canvas');
             canvas.style.cssText = "padding:0;margin:0;user-select:none;";
             canvas.style.width = width_px + "px";
-            canvas.style.height = height_px/11 + "px";
-            parent.appendChild(canvas);
+            canvas.style.height = height_px + "px";
+            elem.appendChild(canvas);
 
             canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
-            canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px/11, true);
+            canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
 
             var ctx = canvas.getContext("2d");
 
             if (AscCommon.AscBrowser.retinaPixelRatio >= 2)
                 ctx.setTransform(2, 0, 0, 2, 0, 0);
 
-            //не уверен, что это событие нужно, так как оно используется для изменения превью
-            // (возможно ещё добавить надо будет событие для наведения, чтобы была всплывающая подсказка)
             // AscCommon.addMouseEvent(canvas, "down", function(e) {
             //  AscCommon.stopEvent(e);
             //  if (true !== this.is_multi_level)
@@ -7030,10 +7027,8 @@ function CDrawingDocument()
             text_base_offset_x += text_base_offset_dist;
             // y += (line_w + line_distance); //если одна канва будет, то надо менять, если каждый раз разная, то не надо
 
-
             this.privateGetParagraphByString(props.Lvl[k], k, 1, textYs.x, textYs.y, line_distance, ctx, width_px, height_px);
         }
-       
     };
 
 
