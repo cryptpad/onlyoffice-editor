@@ -319,7 +319,11 @@ var c_oSerProp_rPrType = {
 	MoveFrom: 36,
 	MoveTo: 37,
 	SpacingTwips:38,
-	PositionHps: 39
+	PositionHps: 39,
+	FontAsciiTheme: 40,
+	FontHAnsiTheme: 41,
+	FontAETheme: 42,
+	FontCSTheme: 43
 };
 var c_oSerProp_rowPrType = {
     CantSplit:0,
@@ -1643,6 +1647,33 @@ function writeNestedReviewType(type, reviewInfo, fWriteRecord, fCallback) {
 	}
 }
 
+function getThemeFontName(type) {
+	switch (type) {
+		case 0: return "majorAscii";
+		case 1: return "majorBidi";
+		case 2: return "majorEastAsia";
+		case 3: return "majorHAnsi";
+		case 4: return "minorAscii";
+		case 5: return "minorBidi";
+		case 6: return "minorEastAsia";
+		case 7: return "minorHAnsi";
+	}
+	return "majorAscii";
+}
+function getThemeFontType(name) {
+	switch (name) {
+		case "majorAscii": return 0;
+		case "majorBidi": return 1;
+		case "majorEastAsia": return 2;
+		case "majorHAnsi": return 3;
+		case "minorAscii": return 4;
+		case "minorBidi": return 5;
+		case "minorEastAsia": return 6;
+		case "minorHAnsi": return 7;
+	}
+	return 0;
+}
+
 function BinaryFileWriter(doc, bMailMergeDocx, bMailMergeHtml, isCompatible)
 {
     this.memory = new AscCommon.CMemory();
@@ -2839,6 +2870,26 @@ function Binary_rPrWriter(memory, saveParams)
 				this.memory.WriteByte(c_oSerProp_rPrType.FontAE);
 				this.memory.WriteByte(c_oSerPropLenType.Variable);
 				this.memory.WriteString2(font.EastAsia.Name);
+			}
+			if(font.AsciiTheme) {
+				this.memory.WriteByte(c_oSerProp_rPrType.FontAsciiTheme);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteByte(getThemeFontType(font.AsciiTheme));
+			}
+			if(font.HAnsiTheme) {
+				this.memory.WriteByte(c_oSerProp_rPrType.FontHAnsiTheme);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteByte(getThemeFontType(font.HAnsiTheme));
+			}
+			if(font.EastAsiaTheme) {
+				this.memory.WriteByte(c_oSerProp_rPrType.FontAETheme);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteByte(getThemeFontType(font.EastAsiaTheme));
+			}
+			if(font.CSTheme) {
+				this.memory.WriteByte(c_oSerProp_rPrType.FontCSTheme);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteByte(getThemeFontType(font.CSTheme));
 			}
 			if(null != font.Hint)
 			{
@@ -9366,6 +9417,18 @@ function Binary_rPrReader(doc, oReadResult, stream)
                     rPr.RFonts = {};
                 rPr.RFonts.CS = { Name : this.stream.GetString2LE(length), Index : -1 };
                 break;
+			case c_oSerProp_rPrType.FontAsciiTheme:
+				rPr.RFonts.AsciiTheme = getThemeFontName(this.stream.GetByte());
+				break;
+			case c_oSerProp_rPrType.FontHAnsiTheme:
+				rPr.RFonts.HAnsiTheme = getThemeFontName(this.stream.GetByte());
+				break;
+			case c_oSerProp_rPrType.FontAETheme:
+				rPr.RFonts.EastAsiaTheme = getThemeFontName(this.stream.GetByte());
+				break;
+			case c_oSerProp_rPrType.FontCSTheme:
+				rPr.RFonts.CSTheme = getThemeFontName(this.stream.GetByte());
+				break;
             case c_oSerProp_rPrType.FontSize:
                 rPr.FontSize = this.stream.GetULongLE() / 2;
                 break;
