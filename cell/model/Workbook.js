@@ -3497,7 +3497,7 @@
 		for(var nWS = 0; nWS < aWorksheets.length; ++nWS) {
 			oWorksheet = aWorksheets[nWS];
 			aRanges.push(new AscCommonExcel.Range(oWorksheet, 0, 0, gc_nMaxRow0, gc_nMaxCol0));
-			aNames.push(oWorksheet.sName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"));
+			aNames.push(parserHelp.getEscapeSheetName(oWorksheet.sName));
 		}
 		this.handleDrawings(function(oDrawing) {
 			if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
@@ -3536,7 +3536,7 @@
 			}
 		});
 
-		var sOldName = oWorksheet.sName;
+		var sOldName = parserHelp.getEscapeSheetName(oWorksheet.sName);
 		this.checkObjectsLock(aId, function(bNoLock) {
 			if(bNoLock) {
 				for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {

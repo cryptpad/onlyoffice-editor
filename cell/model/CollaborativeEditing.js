@@ -891,7 +891,9 @@
 			return this.m_oRecalcIndexRows[sheetId].getLockSaveOther(row);
 		};
 		CCollaborativeEditing.prototype.checkObjectsLock = function(aObjectId, callback) {
+			AscCommon.History.StartTransaction();
 			var callbackEx = function(result, sync) {
+				AscCommon.History.EndTransaction();
 				if ( callback )
 					callback(result, sync);
 			};

@@ -9629,7 +9629,7 @@
         var sName;
         if(sFormula !== null) {
             for(var nName = 0; nName < aNames.length; ++nName) {
-                sName = aNames[nName]
+                sName = aNames[nName];
                 sFormula = sFormula.replace(sName, "#REF");
             }
             if(this.f !== sFormula) {
@@ -9640,9 +9640,8 @@
     CChartRefBase.prototype.handleOnChangeSheetName = function(sOldSheetName, sNewSheetName) {
         if(typeof this.f === "string" && this.f.length > 0) {
             var sFormula = this.f;
-            var sCheckString = sOldSheetName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
-            if(sFormula.indexOf(sCheckString) > -1) {
-                this.setF(sFormula.replace(new RegExp(sCheckString, 'g'), sNewSheetName));
+            if(sFormula.indexOf(sOldSheetName) > -1) {
+                this.setF(sFormula.replace(new RegExp(sOldSheetName, 'g'), sNewSheetName));
             }
         }
     };
