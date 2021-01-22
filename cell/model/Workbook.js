@@ -3554,7 +3554,7 @@
 		}
 		var aRefsToReplace = [];
 		var aId = [];
-		this.model.handleDrawings(function(oDrawing) {
+		this.handleDrawings(function(oDrawing) {
 			if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
 				var nPrevLength = aRefsToReplace.length;
 				oDrawing.collectRefsInsideRange(oRangeFrom, aRefsToReplace);
@@ -4213,7 +4213,7 @@
 					oDrawing.collectIntersectionRefs(aRanges, aRefsToChange);
 				}
 			});
-			var sOldName = this.sName;
+			var sOldName = parserHelp.getEscapeSheetName(this.sName);
 			for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
 				aRefsToChange[nRef].handleOnChangeSheetName(sOldName, sNewName);
 			}
