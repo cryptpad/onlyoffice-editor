@@ -202,7 +202,7 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
         var  aChildren = this.getChildren();
         for(var nChild = aChildren.length - 1; nChild > -1; --nChild) {
             var oChild = aChildren[nChild];
-            if(oChild) {
+            if(oChild && oChild.traverse) {
                 if(oChild.traverse(fCallback)) {
                     return true;
                 }

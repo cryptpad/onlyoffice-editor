@@ -3492,8 +3492,12 @@
 		var aRefsToChange = [];
 		var aId = [];
 		var aRanges = [];
+		var aNames = [];
+		var oWorksheet;
 		for(var nWS = 0; nWS < aWorksheets.length; ++nWS) {
-			aRanges.push(new AscCommonExcel.Range(aWorksheets[nWS], 0, 0, gc_nMaxRow0, gc_nMaxCol0));
+			oWorksheet = aWorksheets[nWS];
+			aRanges.push(new AscCommonExcel.Range(oWorksheet, 0, 0, gc_nMaxRow0, gc_nMaxCol0));
+			aNames.push(oWorksheet.sName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"));
 		}
 		this.handleDrawings(function(oDrawing) {
 			if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
@@ -3507,7 +3511,7 @@
 		this.checkObjectsLock(aId, function(bNoLock) {
 			if(bNoLock) {
 				for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
-					aRefsToChange[nRef].handleRemoveWorksheets();
+					aRefsToChange[nRef].handleRemoveWorksheets(aNames);
 				}
 				if(Asc.editor && Asc.editor.wb) {
 					Asc.editor.wb.recalculateDrawingObjects(null, false);

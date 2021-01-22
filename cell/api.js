@@ -2241,10 +2241,10 @@ var editor;
       if (res) {
         History.Create_NewPoint();
         History.StartTransaction();
-        t.wbModel.handleChartsOnWorksheetsRemove(arrSheets);
         for (var i = 0; i < arrSheets.length; ++i) {
           t.wbModel.removeWorksheet(arrSheets[i].getIndex());
         }
+        t.wbModel.handleChartsOnWorksheetsRemove(arrSheets);
         t.wb.updateWorksheetByModel();
         t.wb.showWorksheet();
         History.EndTransaction();
