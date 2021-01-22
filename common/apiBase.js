@@ -140,6 +140,7 @@
 		// Переменная, которая отвечает, послали ли мы окончание открытия документа
 		this.isPreOpenLocks = true;
 		this.isApplyChangesOnOpenEnabled = true;
+		this.isProtectionSupport = true;
 
 		this.canSave    = true;        // Флаг нужен чтобы не происходило сохранение пока не завершится предыдущее сохранение
 		this.IsUserSave = false;    // Флаг, контролирующий сохранение было сделано пользователем или нет (по умолчанию - нет)
@@ -955,6 +956,10 @@
 				oResult.setRights(this.licenseResult['rights']);
 				oResult.setBuildVersion(this.licenseResult['buildVersion']);
 				oResult.setBuildNumber(this.licenseResult['buildNumber']);
+
+				if (undefined !== this.licenseResult['protectionSupport']) {
+					this.isProtectionSupport = this.licenseResult['protectionSupport'];
+				}
 			}
 			this.sendEvent('asc_onGetEditorPermissions', oResult);
 		}
@@ -2491,7 +2496,7 @@
     {
         if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsProtectionSupport"])
             return window["AscDesktopEditor"]["IsProtectionSupport"]();
-        return !(this.DocInfo && this.DocInfo.get_OfflineApp());
+        return !(this.DocInfo && this.DocInfo.get_OfflineApp()) && this.isProtectionSupport;
     };
 
 	baseEditorsApi.prototype.asc_gotoSignature = function(guid)

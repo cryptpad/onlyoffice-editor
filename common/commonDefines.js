@@ -1698,6 +1698,14 @@
 		slicer: 2
 	};
 
+	var c_oAscChangeTextCaseType = {
+		SentenceCase    : 0,
+		LowerCase       : 1,
+		UpperCase       : 2,
+		CapitalizeWords : 3,
+		ToggleCase      : 4
+	};
+
 	var g_aLcidNameIdArray = [
 		"ar", 0x0001 ,
 		"bg", 0x0002 ,
@@ -3162,6 +3170,14 @@
 	prot = c_oAscDefNameType;
 	prot['table'] = prot.table;
 	prot['slicer'] = prot.slicer;
+
+	window['Asc']['c_oAscChangeTextCaseType'] = window['Asc'].c_oAscChangeTextCaseType = c_oAscChangeTextCaseType;
+	prot = c_oAscChangeTextCaseType;
+	prot['SentenceCase']    = prot.SentenceCase;
+	prot['LowerCase']       = prot.LowerCase;
+	prot['UpperCase']       = prot.UpperCase;
+	prot['CapitalizeWords'] = prot.CapitalizeWords;
+	prot['ToggleCase']      = prot.ToggleCase;
 
 	window["AscCommon"].document_compatibility_mode_Word11  = document_compatibility_mode_Word11;
 	window["AscCommon"].document_compatibility_mode_Word12  = document_compatibility_mode_Word12;

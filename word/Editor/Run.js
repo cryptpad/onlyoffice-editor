@@ -2071,6 +2071,9 @@ ParaRun.prototype.Recalculate_CurPos = function(X, Y, CurrentRun, _CurRange, _Cu
  */
 ParaRun.prototype.GetSimpleChangesRange = function(arrChanges, nStart, nEnd)
 {
+	if (this.IsMathRun())
+		return null;
+
 	var oParaPos = null;
 
 	var _nStart = undefined !== nStart ? nStart : 0;
@@ -12727,6 +12730,55 @@ ParaRun.prototype.ConvertFootnoteType = function(isToFootnote, oStyles, oFootnot
 					this.AddToContent(nCurPos, new ParaEndnoteRef(oFootnote));
 				}
 			}
+		}
+	}
+};
+ParaRun.prototype.ChangeTextCase = function(oEngine)
+{
+	var nStartPos = 0;
+	var nEndPos   = -1;
+
+	if (this.Selection.Use)
+	{
+		nStartPos = this.Selection.StartPos;
+		nEndPos   = this.Selection.EndPos;
+		if (nStartPos > nEndPos)
+		{
+			var nTemp = nStartPos;
+			nStartPos = nEndPos;
+			nEndPos   = nTemp;
+		}
+	}
+
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		var oItem = this.Content[nPos];
+		if (para_Text === oItem.Type)
+		{
+			if (oItem.IsDot())
+			{
+				oEngine.FlushWord();
+				oEngine.SetStartSentence(true);
+			}
+			else
+			{
+				if (!oItem.IsPunctuation())
+				{
+					oEngine.AddLetter(this, nPos, nPos >= nStartPos && nPos < nEndPos);
+				}
+				else
+				{
+					oEngine.FlushWord();
+					oEngine.SetStartSentence(false);
+				}
+			}
+		}
+		else
+		{
+			oEngine.FlushWord();
+
+			if (para_Tab !== oItem.Type && para_Space !== oItem.Type)
+				oEngine.SetStartSentence(false);
 		}
 	}
 };

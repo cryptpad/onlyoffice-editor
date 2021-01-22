@@ -8170,6 +8170,33 @@
 		this.private_OnChange();
 	};
 	/**
+	 * Gets the paragraph style method.
+	 * @memberof ApiParaPr
+	 * @typeofeditors ["CDE"]
+	 * @return {?ApiStyle} - The style of the paragraph.
+	 */
+	ApiParaPr.prototype.GetStyle = function()
+	{
+		var oDocument = private_GetLogicDocument();
+		var oStyles   = oDocument.GetStyles();
+
+		var styleId;
+		if (!this.Parent)
+		{
+			styleId = this.ParaPr.PStyle;
+			if (styleId)
+				return new ApiStyle(oStyles.Get(styleId));
+
+			return null;
+		}
+
+		styleId = this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.PStyle;
+		if (styleId)
+			return new ApiStyle(oStyles.Get(styleId));
+
+		return null;
+	};
+	/**
 	 * Specify that any space before or after this paragraph set using the 
 	 * {@link ApiParaPr#SetSpacingBefore} or {@link ApiParaPr#SetSpacingAfter} spacing element, should not be applied when the preceding and 
 	 * following paragraphs are of the same paragraph style, affecting the top and bottom spacing respectively.
@@ -8194,6 +8221,22 @@
 		this.private_OnChange();
 	};
 	/**
+	 * Gets the paragraph left side indentation.
+	 * @memberof ApiParaPr
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @returns {twips | undefined} - The paragraph left side indentation value measured in twentieths of a point (1/1440 of an inch).
+	 */
+	ApiParaPr.prototype.GetIndLeft = function()
+	{
+		if (!this.Parent)
+		{
+			if (this.ParaPr.Ind.Left !== undefined)
+				return AscCommon.MMToTwips(this.ParaPr.Ind.Left);
+			return undefined;
+		}
+		return AscCommon.MMToTwips(this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Ind.Left);
+	};
+	/**
 	 * Set the paragraph right side indentation.
 	 * @memberof ApiParaPr
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
@@ -8203,6 +8246,23 @@
 	{
 		this.ParaPr.Ind.Right = private_Twips2MM(nValue);
 		this.private_OnChange();
+	};
+	/**
+	 * Gets the paragraph right side indentation.
+	 * @memberof ApiParaPr
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @returns {twips | undefined} - The paragraph right side indentation value measured in twentieths of a point (1/1440 of an inch).
+	 */
+	ApiParaPr.prototype.GetIndRight = function()
+	{
+		if (!this.Parent)
+		{
+			if (this.ParaPr.Ind.Right !== undefined)
+				return AscCommon.MMToTwips(this.ParaPr.Ind.Right);
+
+			return undefined;
+		}
+		return AscCommon.MMToTwips(this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Ind.Right);
 	};
 	/**
 	 * Set the paragraph first line indentation.
@@ -8216,6 +8276,24 @@
 		this.private_OnChange();
 	};
 	/**
+	 * Gets the paragraph first line indentation.
+	 * @memberof ApiParaPr
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @returns {twips | undefined} - The paragraph first line indentation value measured in twentieths of a point (1/1440 of an inch).
+	 */
+	ApiParaPr.prototype.GetIndFirstLine = function()
+	{
+		if (!this.Parent)
+		{
+			if (this.ParaPr.Ind.FirstLine !== undefined)
+				return AscCommon.MMToTwips(this.ParaPr.Ind.FirstLine);
+
+			return undefined;
+		}
+
+		return AscCommon.MMToTwips(this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Ind.FirstLine);
+	};
+	/**
 	 * Set paragraph contents justification.
 	 * @memberof ApiParaPr
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
@@ -8226,6 +8304,41 @@
 	{
 		this.ParaPr.Jc = private_GetParaAlign(sJc);
 		this.private_OnChange();
+	};
+	/**
+	 * Gets paragraph contents justification.
+	 * @memberof ApiParaPr
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @returns {("left" | "right" | "both" | "center" | undefined)} 
+	 */
+	ApiParaPr.prototype.GetJc = function()
+	{
+		function GetJC(nType) 
+		{
+			switch (nType)
+			{
+				case align_Right :
+					return "right";
+				case align_Left :
+					return "left";
+				case align_Center :
+					return "center";
+				case align_Justify : 
+					return "both";
+			}
+
+			return "left";
+		}
+
+		if (!this.Parent)
+		{
+			if (this.ParaPr.Jc !== undefined)
+				return GetJC(this.ParaPr.Jc);
+
+			return undefined;
+		}
+
+		return GetJC(this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Jc);
 	};
 	/**
 	 * Specify that when rendering this document using a page view, all lines of this paragraph are maintained on a single page whenever possible.
@@ -8299,6 +8412,72 @@
 		this.private_OnChange();
 	};
 	/**
+	 * Get the paragraph line spacing value.
+	 * @memberof ApiParaPr
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @returns {twips | line240 | undefined} - to know is twips or line240 use ApiParaPr.prototype.GetSpacingLineRule().
+	 */
+	ApiParaPr.prototype.GetSpacingLineValue = function()
+	{
+		function GetValue(oSpacing)
+		{
+			switch (oSpacing.LineRule)
+			{
+				case Asc.linerule_Auto:
+					return oSpacing.Line * 240.0;
+				case Asc.linerule_AtLeast:
+				case Asc.linerule_Exact:
+					return AscCommon.MMToTwips(oSpacing.Line);
+			}
+
+			return undefined;
+		}
+
+		if (!this.Parent)
+		{
+			if (this.ParaPr.Spacing)
+				return GetValue(this.ParaPr.Spacing);
+
+			return undefined;
+		}
+
+		return GetValue(this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Spacing);
+	};
+	/**
+	 * Get the paragraph line spacing rule.
+	 * @memberof ApiParaPr
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @returns {"auto" | "atLeast" | "exact" | undefined} 
+	 */
+	ApiParaPr.prototype.GetSpacingLineRule = function()
+	{
+		function GetRule(nLineRule)
+		{
+			switch (nLineRule)
+			{
+				case Asc.linerule_Auto:
+					return "auto";
+				case Asc.linerule_AtLeast:
+					return "atLeast";
+				case Asc.linerule_Exact:
+					return "exact";
+			}
+
+			return "atLeast";
+		}
+
+		if (!this.Parent)
+		{
+			if (this.ParaPr.Spacing)
+				return GetRule(this.ParaPr.Spacing.LineRule);
+
+			return undefined;
+		}
+
+		return GetRule(this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Spacing.LineRule);
+
+	};
+	/**
 	 * Set the spacing before the current paragraph. If the value of the isBeforeAuto parameter is true, then 
 	 * any value of the nBefore is ignored. If isBeforeAuto parameter is not specified, then 
 	 * it will be interpreted as false.
@@ -8316,6 +8495,24 @@
 			this.ParaPr.Spacing.BeforeAutoSpacing = isBeforeAuto;
 
 		this.private_OnChange();
+	};
+	/**
+	 * Get the spacing before value of the current paragraph.
+	 * @memberof ApiParaPr
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @returns {twips} - The value of the spacing before the current paragraph measured in twentieths of a point (1/1440 of an inch).
+	 */
+	ApiParaPr.prototype.GetSpacingBefore = function()
+	{
+		if (!this.Parent)
+		{
+			if (this.ParaPr.Spacing.Before !== undefined)
+				return AscCommon.MMToTwips(this.ParaPr.Spacing.Before);
+
+			return undefined;
+		}
+
+		return AscCommon.MMToTwips(this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Spacing.Before);
 	};
 	/**
 	 * Set the spacing after the current paragraph. If the value of the isAfterAuto parameter is true, then 
@@ -8337,6 +8534,24 @@
 		this.private_OnChange();
 	};
 	/**
+	 * Get the spacing after value of the current paragraph. 
+	 * @memberof ApiParaPr
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @returns {twips} - The value of the spacing after the current paragraph measured in twentieths of a point (1/1440 of an inch).
+	 */
+	ApiParaPr.prototype.GetSpacingAfter = function()
+	{
+		if (!this.Parent)
+		{
+			if (this.ParaPr.Spacing.After !== undefined)
+				return AscCommon.MMToTwips(this.ParaPr.Spacing.After);
+
+			return undefined;
+		}
+
+		return AscCommon.MMToTwips(this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Spacing.After);
+	};
+	/**
 	 * Specify the shading applied to the contents of the paragraph.
 	 * @memberof ApiParaPr
 	 * @typeofeditors ["CDE"]
@@ -8350,6 +8565,39 @@
 	{
 		this.ParaPr.Shd = private_GetShd(sType, r, g, b, isAuto);
 		this.private_OnChange();
+	};
+	/**
+	 * Gets the shading applied to the contents of the paragraph.
+	 * @memberof ApiParaPr
+	 * @typeofeditors ["CDE"]
+	 * @returns {?ApiRGBColor}
+	 */
+	ApiParaPr.prototype.GetShd = function()
+	{
+		var oColor = null;
+		var oShd   = null;
+		if (!this.Parent)
+		{
+			oShd = this.ParaPr.Shd;
+			if (!oShd)
+				return null;
+
+			oColor = this.ParaPr.Shd.Color;
+			if (oColor)
+				return new ApiRGBColor(oColor.r, oColor.g, oColor.b);
+			
+			return null;
+		}
+
+		oShd = this.ParaPr.Shd;
+		if (!oShd)
+			return null;
+
+		oColor = this.Parent.private_GetImpl().Get_CompiledPr2().ParaPr.Shd.Color;
+		if (oColor)
+			return new ApiRGBColor(oColor.r, oColor.g, oColor.b);
+
+		return null;
 	};
 	/**
 	 * Specify the border which will be displayed below a set of paragraphs which have the same paragraph border settings.
@@ -8492,8 +8740,6 @@
 		}
 		this.private_OnChange();
 	};
-
-
 	/**
 	 * Set the bullet or numbering to the current paragraph.
 	 * @memberof ApiParaPr

@@ -7014,9 +7014,23 @@ CPresentation.prototype.GetSelectedText = function (bClearText, oPr) {
     return "";
 };
 
+CPresentation.prototype.GetSelectedParagraphs = function() {
+    var oController = this.GetCurrentController();
+    if(!oController) {
+        return [];
+    }
+    var oTargetContent = oController.getTargetDocContent();
+    if(!oTargetContent) {
+        return [];
+    }
+    var aParagraphs = [];
+    oTargetContent.GetCurrentParagraph(false, aParagraphs, {});
+    return aParagraphs;
+};
 //-----------------------------------------------------------------------------------
 // Функции для работы с таблицами
 //-----------------------------------------------------------------------------------
+
 CPresentation.prototype.ApplyTableFunction = function (Function, bBefore, bAll, Cols, Rows) {
     var result = null;
     if (this.Slides[this.CurPage]) {
