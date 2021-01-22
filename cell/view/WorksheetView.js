@@ -16882,8 +16882,8 @@
 		var isPartTablePartsRightRange = ws.autoFilters.isPartTablePartsRightRange(activeRange);
 		var isOneTableIntersection = intersectionTableParts && intersectionTableParts.length === 1 ? intersectionTableParts[0] : null;
 
-		var isPartFilterUnderRange = ws.autoFilters.isPartFilterUnderRange(activeRange);
-		var isPartFilterRightRange = ws.autoFilters.isPartFilterRightRange(activeRange);
+		var isPartFilterUnderRange = ws.autoFilters.isPartFilterUnderRange(activeRange, true);
+		var isPartFilterRightRange = ws.autoFilters.isPartFilterRightRange(activeRange, true);
 
 		var isPartTablePartsByRowCol = ws.autoFilters._isPartTablePartsByRowCol(activeRange);
 
