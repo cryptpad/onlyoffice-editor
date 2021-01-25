@@ -3557,15 +3557,6 @@
         }
         return new CDataRefs([]);
     };
-    CSeriesBase.prototype.collectCatRefs = function(aRefs) {
-        this.collectRefs(this.cat || this.xVal, aRefs);
-    };
-    CSeriesBase.prototype.collectTxRefs = function(aRefs) {
-        this.collectRefs(this.tx, aRefs);
-    };
-    CSeriesBase.prototype.collectValRefs = function(aRefs) {
-        this.collectRefs(this.val || this.yVal, aRefs);
-    };
     CSeriesBase.prototype.collectRefs = function(oSource, aRefs) {
         if(oSource) {
             oSource.collectRefs(aRefs);
@@ -9591,6 +9582,12 @@
             }
         }
     };
+    CChartRefBase.prototype.onUpdateCache = function() {
+        var oChartSpace = this.getChartSpace();
+        if(oChartSpace) {
+            oChartSpace.handleUpdateInternalChart();
+        }
+    };
     CChartRefBase.prototype.Refresh_RecalcData = function(data) {
         if(data && data.Type === AscDFH.historyitem_NumRef_SetF) {
             this.onUpdate();
@@ -9647,6 +9644,14 @@
     };
     CChartRefBase.prototype.updateCache = function() {
     };
+    CChartRefBase.prototype.updateCacheAndCat = function() {
+        if(this.parent && this.parent.getObjectType() === AscDFH.historyitem_type_Cat) {
+            this.parent.update();
+        }
+        else {
+            this.updateCache();
+        }
+    };
     CChartRefBase.prototype.fillObject = function(oCopy, oIdMap) {
         oCopy.setF(this.f);
     };
@@ -9673,7 +9678,7 @@
     CMultiLvlStrRef.prototype.updateCache = function(oSeries) {
         this.setMultiLvlStrCache(new CMultiLvlStrCache());
         this.multiLvlStrCache.update(this.f, oSeries);
-        this.onUpdate();
+        this.onUpdateCache();
     };
     CMultiLvlStrRef.prototype.getValues = function(nMaxValues) {
         if(!this.multiLvlStrCache) {
@@ -9721,7 +9726,7 @@
             ser.isHidden = true;
         }
         this.numCache.update(this.f, displayEmptyCellsAs, displayHidden, ser);
-        this.onUpdate();
+        this.onUpdateCache();
     };
     CNumRef.prototype.getValuesCount = function() {
         if(!this.numCache) {
@@ -9783,7 +9788,7 @@
         }
         this.strCache.removeAllPts();
         this.strCache.update(this.f);
-        this.onUpdate();
+        this.onUpdateCache();
     };
     CStrRef.prototype.getText = function(bNoUpdate) {
         if(!this.strCache) {
@@ -12061,6 +12066,15 @@
         var oNumRef = this.numRef;
         oNumRef.fillFromAsc(oValCache, bUseCache);
     };
+    CYVal.prototype.getNumCache = function() {
+        if (this.numRef && this.numRef.numCache) {
+            return this.numRef.numCache;
+        }
+        else if (this.numLit) {
+            return this.numLit;
+        }
+        return null;
+    };
 
     function CCat() {
         CBaseChartObject.call(this);
@@ -12069,6 +12083,8 @@
         this.numRef = null;
         this.strLit = null;
         this.strRef = null;
+
+        this.calculatedRef = null;
     }
     InitClass(CCat, CBaseChartObject, AscDFH.historyitem_type_Cat);
     CCat.prototype.getChildren = function() {
@@ -12121,6 +12137,7 @@
         this.setParentToChild(pr);
     };
     CCat.prototype.setValues = function(sValues) {
+        this.calculatedRef = null;
         var oNumRef, oNumLit, oStrRef, oStrLit, oMultiLvl, oRef, oResult;
         oResult = new CParseResult();
         fParseNumRef(sValues, false, oResult);
@@ -12258,6 +12275,12 @@
         return false;
     };
     CCat.prototype.getStringPointsLit = function() {
+        if(this.calculatedRef) {
+            if(this.calculatedRef.strCache) {
+                return this.calculatedRef.strCache;
+            }
+            return null;
+        }
         if(this.strRef && this.strRef.strCache) {
             return this.strRef.strCache;
         }
@@ -12270,6 +12293,18 @@
         return null;
     };
     CCat.prototype.getLit = function() {
+        if(this.calculatedRef) {
+            if(this.calculatedRef.strCache) {
+                return this.calculatedRef.strCache;
+            }
+            if(this.calculatedRef.numCache) {
+                return this.calculatedRef.numCache;
+            }
+            if(this.calculatedRef.getFirstLvlCache) {
+                return this.calculatedRef.getFirstLvlCache();
+            }
+            return null;
+        }
         var oLit = null;
         if(this.strRef && this.strRef.strCache) {
             oLit = this.strRef.strCache;
@@ -12290,6 +12325,7 @@
         return oLit;
     };
     CCat.prototype.update = function(oSeries) {
+        this.calculatedRef = null;
         if(this.numRef || this.strRef || this.multiLvlStrRef) {
             var sFormula = this.getFormula();
             if(typeof sFormula === "string" && sFormula.length > 0) {
@@ -12299,28 +12335,13 @@
                 var oStrRef = oTestCat.strRef;
                 var oMultiLvlStrRef = oTestCat.multiLvlStrRef;
                 if(oRes && oRes.error === Asc.c_oAscError.ID.No && (oNumRef || oStrRef || oMultiLvlStrRef)) {
-                    if(oNumRef) {
-                        this.setNumRef(oNumRef.createDuplicate());
-                    }
-                    else {
-                        if(this.numRef) {
-                            this.setNumRef(null);
+                    this.calculatedRef = oNumRef || oStrRef || oMultiLvlStrRef;
+                    if(this.calculatedRef) {
+                        if(this.calculatedRef.getObjectType() === AscDFH.historyitem_type_MultiLvlStrRef) {
+                            this.calculatedRef.updateCache(oSeries);
                         }
-                    }
-                    if(oStrRef) {
-                        this.setStrRef(oStrRef);
-                    }
-                    else {
-                        if(this.strRef) {
-                            this.setStrRef(null);
-                        }
-                    }
-                    if(oMultiLvlStrRef) {
-                        this.setMultiLvlStrRef(oMultiLvlStrRef);
-                    }
-                    else {
-                        if(this.multiLvlStrRef) {
-                            this.setMultiLvlStrRef(null);
+                        else {
+                            this.calculatedRef.updateCache();
                         }
                     }
                 }
@@ -12335,8 +12356,17 @@
         if(this.strRef) {
             this.strRef.updateCache();
         }
+        if(!this.calculatedRef) {
+            this.calculatedRef = (this.multiLvlStrRef || this.numRef || this.strRef);
+        }
     };
     CCat.prototype.getSourceNumFormat = function() {
+        if(this.calculatedRef) {
+            if(this.calculatedRef.getObjectType() === AscDFH.historyitem_type_NumRef) {
+                return this.calculatedRef.getNumFormat();
+            }
+            return "General";
+        }
         if(this.numRef) {
             return this.numRef.getNumFormat();
         }
@@ -12378,6 +12408,21 @@
         //}
         this.setStrRef(new CStrRef());
         this.strRef.fillFromAsc(oCatCache, bUseCache);
+    };
+    CCat.prototype.getNumCache = function() {
+        if(this.calculatedRef) {
+            if(this.calculatedRef.getObjectType() === AscDFH.historyitem_type_NumRef) {
+                return this.calculatedRef.numCache;
+            }
+            return null;
+        }
+        if (this.numRef && this.numRef.numCache) {
+            return this.numRef.numCache;
+        }
+        else if (this.numLit) {
+            return this.numLit;
+        }
+        return null;
     };
 
     function CChart() {
@@ -13496,6 +13541,7 @@
     CParseResult.prototype.getError = function() {
         return this.error;
     };
+
     function fParseChartFormula(sFormula) {
         if(!(typeof sFormula === "string" && sFormula.length > 0)) {
             return [];

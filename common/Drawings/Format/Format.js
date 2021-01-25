@@ -884,7 +884,7 @@ var TYPE_TRACK = {
     TEXT : 2,
     EMPTY_PH : 3,
     CHART_TEXT : 4,
-    CROP : 5,
+    CROP : 5
 };
 var TYPE_KIND = {
     SLIDE : 0,
@@ -3686,8 +3686,8 @@ var  EFFECT_TYPE_BLEND			=	30;
         oMod.name = "alpha";
         oMod.val = 40000;
         this.color.Mods.Mods.push(oMod);
-        this.dir = 2700000
-        this.dist = 38100
+        this.dir = 2700000;
+        this.dist = 38100;
         this.rotWithShape =  false;
     }
     asc_CShadowProperty.prototype = Object.create(COuterShdw.prototype);
@@ -5411,7 +5411,7 @@ function CompareUnifillBool(u1, u2)
         return false;
 
     if(u1.fill.type !== u2.fill.type)
-        return false
+        return false;
     switch(u1.fill.type)
     {
         case c_oAscFill.FILL_TYPE_BLIP:

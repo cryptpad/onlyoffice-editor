@@ -2951,7 +2951,7 @@
         });
         if(aRefsToChange.length > 0) {
             for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
-                aRefsToChange[nRef].updateCache();
+                aRefsToChange[nRef].updateCacheAndCat();
             }
             for(var nChart = 0; nChart < aCharts.length; ++nChart) {
                 aCharts[nChart].recalculate();

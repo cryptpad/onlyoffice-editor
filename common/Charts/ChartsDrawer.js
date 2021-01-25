@@ -3892,11 +3892,7 @@ CChartsDrawer.prototype =
 		var res = null;
 
 		if (val) {
-			if (val.numRef && val.numRef.numCache) {
-				res = val.numRef.numCache;
-			} else if (val.numLit) {
-				res = val.numLit;
-			}
+			res = val.getNumCache();
 		}
 
 		return res;
