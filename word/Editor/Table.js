@@ -18803,11 +18803,12 @@ CTable.prototype.GetMaxTableGridWidth = function()
 };
 CTable.prototype.GetDocumentPositionFromObject = function(arrPos)
 {
-	CDocumentContentElementBase.prototype.GetDocumentPositionFromObject.call(this, arrPos);
+	arrPos = CDocumentContentElementBase.prototype.GetDocumentPositionFromObject.call(this, arrPos);
 	if(this.Parent instanceof AscFormat.CGraphicFrame)
 	{
 		arrPos.splice(0, 1);
 	}
+	return arrPos;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
