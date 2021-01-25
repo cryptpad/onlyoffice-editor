@@ -4114,8 +4114,8 @@ function OfflineEditor () {
         hor_axis_settings.putGridlines(Asc.c_oAscGridLinesSettings.none);
         settings.addHorAxesProps(hor_axis_settings);
 
-        var series = AscFormat.getChartSeries(ws.model, settings);
-        if(series && series.series.length > 1)
+        var series = AscFormat.getChartSeries(settings);
+        if(series.length > 1)
         {
             settings.putLegendPos(Asc.c_oAscChartLegendShowSettings.right);
         }

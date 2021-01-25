@@ -126,11 +126,6 @@ StartAddNewShape.prototype =
         if(this.bStart && this.drawingObjects.canEdit() && this.drawingObjects.arrTrackObjects.length > 0)
         {
             bRet = true;
-            if(this.drawingObjects.drawingObjects.objectLocker)
-            {
-                this.drawingObjects.drawingObjects.objectLocker.reset();
-                this.drawingObjects.drawingObjects.objectLocker.addObjectId(AscCommon.g_oIdCounter.Get_NewId());
-            }
             var oThis = this;
             var track =  oThis.drawingObjects.arrTrackObjects[0];
             if(!this.bMoved && this instanceof StartAddNewShape)
@@ -182,9 +177,9 @@ StartAddNewShape.prototype =
                 }
 
             };
-            if(this.drawingObjects.drawingObjects.objectLocker)
+            if(Asc.editor && Asc.editor.checkObjectsLock)
             {
-                this.drawingObjects.drawingObjects.objectLocker.checkObjects(callback);
+                Asc.editor.checkObjectsLock([AscCommon.g_oIdCounter.Get_NewId()], callback);
             }
             else
             {

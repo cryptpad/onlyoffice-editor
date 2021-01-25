@@ -2817,11 +2817,8 @@
 
 		if (this.editorId == AscCommon.c_oEditorId.Spreadsheet)
 		{
-			var locker = Asc.editor.wb.getWorksheet().objectRender.objectLocker;
-			locker.addObjectId(this.macros.Get_Id());
-
 			var _this = this;
-			locker.checkObjects(function(bNoLock) {
+			Asc.editor.checkObjectsLock([this.macros.Get_Id()], function(bNoLock) {
 				if (bNoLock)
 				{
 					AscCommon.History.Create_NewPoint(AscDFH.historydescription_DocumentMacros_Data);

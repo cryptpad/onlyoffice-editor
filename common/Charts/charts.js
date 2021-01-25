@@ -299,7 +299,7 @@ ChartPreviewManager.prototype.getChartByType = function(type)
 	{
 		var settings = new Asc.asc_ChartSettings();
 		settings.type = type;
-		var chartSeries = {series: this.getAscChartSeriesDefault(type), parsedHeaders: {bLeft: true, bTop: true}};
+		var chartSeries = this.getAscChartSeriesDefault(type);
 		var chart_space = AscFormat.DrawingObjectsController.prototype._getChartSpace(chartSeries, settings, true);
         chart_space.bPreview = true;
 		if (Asc['editor'] && AscCommon.c_oEditorId.Spreadsheet === Asc['editor'].getEditorId()) {

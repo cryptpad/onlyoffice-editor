@@ -2325,10 +2325,6 @@
 
 						xfrm.setOffX(curCol);
 						xfrm.setOffY(curRow);
-
-
-						drawingObject.graphicObject.checkRemoveCache && drawingObject.graphicObject.checkRemoveCache();
-
 						drawingObject.graphicObject.addToDrawingObjects();
 
 						if (drawingObject.graphicObject.checkDrawingBaseCoords) {
@@ -2502,8 +2498,6 @@
 
 					drawingObject.graphicObject.setDrawingObjects(ws.objectRender);
 					drawingObject.graphicObject.setWorksheet(ws.model);
-
-					drawingObject.graphicObject.checkRemoveCache && drawingObject.graphicObject.checkRemoveCache();
 					if(drawingObject.graphicObject.checkExtentsByDocContent) {
 						if (drawingObject.graphicObject.checkDrawingBaseCoords) {
 							drawingObject.graphicObject.checkDrawingBaseCoords();

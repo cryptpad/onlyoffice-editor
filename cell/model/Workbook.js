@@ -3470,6 +3470,110 @@
 
 		History.EndTransaction();
 	};
+	Workbook.prototype.handleDrawings = function (fCallback) {
+		for(var i = 0; i < this.aWorksheets.length; ++i) {
+			this.aWorksheets[i].handleDrawings(fCallback);
+		}
+	};
+	Workbook.prototype.checkObjectsLock = function (aId, fCallback) {
+		if(aId.length > 0) {
+			if(Asc && Asc.editor) {
+				Asc.editor.checkObjectsLock(aId, fCallback);
+			}
+			else {
+				fCallback(true, true);
+			}
+		}
+	};
+	Workbook.prototype.handleChartsOnWorksheetsRemove = function (aWorksheets) {
+		if(!History.CanAddChanges()) {
+			return;
+		}
+		var aRefsToChange = [];
+		var aId = [];
+		var aRanges = [];
+		var aNames = [];
+		var oWorksheet;
+		for(var nWS = 0; nWS < aWorksheets.length; ++nWS) {
+			oWorksheet = aWorksheets[nWS];
+			aRanges.push(new AscCommonExcel.Range(oWorksheet, 0, 0, gc_nMaxRow0, gc_nMaxCol0));
+			aNames.push(parserHelp.getEscapeSheetName(oWorksheet.sName));
+		}
+		this.handleDrawings(function(oDrawing) {
+			if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+				var nPrevLength = aRefsToChange.length;
+				oDrawing.collectIntersectionRefs(aRanges, aRefsToChange);
+				if(aRefsToChange.length > nPrevLength) {
+					aId.push(oDrawing.Get_Id());
+				}
+			}
+		});
+		this.checkObjectsLock(aId, function(bNoLock) {
+			if(bNoLock) {
+				for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
+					aRefsToChange[nRef].handleRemoveWorksheets(aNames);
+				}
+				if(Asc.editor && Asc.editor.wb) {
+					Asc.editor.wb.recalculateDrawingObjects(null, false);
+				}
+			}
+		});
+	};
+	Workbook.prototype.handleChartsOnChangeSheetName = function (oWorksheet, sNewName) {
+		if(!History.CanAddChanges()) {
+			return;
+		}
+		var aRefsToChange = [];
+		var aId = [];
+		var aRanges = [new AscCommonExcel.Range(oWorksheet, 0, 0, gc_nMaxRow0, gc_nMaxCol0)];
+		this.handleDrawings(function(oDrawing) {
+			if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+				var nPrevLength = aRefsToChange.length;
+				oDrawing.collectIntersectionRefs(aRanges, aRefsToChange);
+				if(aRefsToChange.length > nPrevLength) {
+					aId.push(oDrawing.Get_Id());
+				}
+			}
+		});
+
+		var sOldName = parserHelp.getEscapeSheetName(oWorksheet.sName);
+		this.checkObjectsLock(aId, function(bNoLock) {
+			if(bNoLock) {
+				for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
+					aRefsToChange[nRef].handleOnChangeSheetName(sOldName, sNewName);
+				}
+				if(Asc.editor && Asc.editor.wb) {
+					Asc.editor.wb.recalculateDrawingObjects(null, false);
+				}
+			}
+		});
+	};
+	Workbook.prototype.handleChartsOnMoveRange = function (oRangeFrom, oRangeTo) {
+		if(!History.CanAddChanges()) {
+			return;
+		}
+		var aRefsToReplace = [];
+		var aId = [];
+		this.handleDrawings(function(oDrawing) {
+			if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+				var nPrevLength = aRefsToReplace.length;
+				oDrawing.collectRefsInsideRange(oRangeFrom, aRefsToReplace);
+				if(aRefsToReplace.length > nPrevLength) {
+					aId.push(oDrawing.Get_Id());
+				}
+			}
+		});
+		this.checkObjectsLock(aId, function(bNoLock) {
+			if(bNoLock) {
+				for(var nRef = 0; nRef < aRefsToReplace.length; ++nRef) {
+					aRefsToReplace[nRef].handleOnMoveRange(oRangeFrom, oRangeTo);
+				}
+				if(Asc.editor && Asc.editor.wb) {
+					Asc.editor.wb.recalculateDrawingObjects(null, false);
+				}
+			}
+		});
+	};
 
 	Workbook.prototype.cleanCollaborativeFilterObj = function () {
 		if (!Asc.CT_NamedSheetView.prototype.asc_getName) {
@@ -3728,7 +3832,6 @@
 		this.autoFilters = AscCommonExcel.AutoFilters !== undefined ? new AscCommonExcel.AutoFilters(this) : null;
 		this.sortState = null;
 
-		this.oDrawingOjectsManager = new DrawingObjectsManager(this);
 		this.contentChanges = new AscCommon.CContentChanges();
 
 		this.aSparklineGroups = [];
@@ -4102,9 +4205,19 @@
 				}
 				oNewWs.Drawings[oNewWs.Drawings.length - 1] = drawingObject;
 			}
+			var aRefsToChange = [];
+			var sNewName = parserHelp.getEscapeSheetName(oNewWs.sName);
+			var aRanges = [new AscCommonExcel.Range(this, 0, 0, gc_nMaxRow0, gc_nMaxCol0)];
+			this.handleDrawings(function(oDrawing) {
+				if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+					oDrawing.collectIntersectionRefs(aRanges, aRefsToChange);
+				}
+			});
+			var sOldName = parserHelp.getEscapeSheetName(this.sName);
+			for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
+				aRefsToChange[nRef].handleOnChangeSheetName(sOldName, sNewName);
+			}
 			drawingObjects.pushToAObjects(oNewWs.Drawings);
-			drawingObjects.updateChartReferences2(parserHelp.getEscapeSheetName(this.sName),
-												  parserHelp.getEscapeSheetName(oNewWs.sName));
 		}
 
 		var newSparkline;
@@ -4595,25 +4708,16 @@
 		{
 			var lastName = this.sName;
 			History.Create_NewPoint();
+			if(!bFromUndoRedo)
+			{
+				this.workbook.handleChartsOnChangeSheetName(this, parserHelp.getEscapeSheetName(name));
+			}
 			var prepared = this.workbook.dependencyFormulas.prepareChangeSheet(this.getId(), {rename: {from: lastName, to: name}});
 			this.sName = name;
 			this.workbook.dependencyFormulas.changeSheet(prepared);
 
 			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_Rename, this.getId(), null, new UndoRedoData_FromTo(lastName, name));
-			if(!bFromUndoRedo)
-			{
-				var _lastName = parserHelp.getEscapeSheetName(lastName);
-				var _newName = parserHelp.getEscapeSheetName(this.sName);
 
-				for (var key in this.workbook.aWorksheets)
-				{
-					if (this.workbook.aWorksheets.hasOwnProperty(key)) {
-						var wsModel = this.workbook.aWorksheets[key];
-						if ( wsModel )
-							wsModel.oDrawingOjectsManager.updateChartReferencesWidthHistory(_lastName, _newName, true);
-					}
-				}
-			}
 			this.workbook.dependencyFormulas.calcTree();
 		} else {
 			console.log(new Error('The sheet name must be less than 31 characters.'));
@@ -8629,6 +8733,11 @@
 		}
 		return res.length ? res : null;
 	};
+	Worksheet.prototype.handleDrawings = function (fCallback) {
+		for(var nIndex = 0; nIndex < this.Drawings.length; ++nIndex) {
+			this.Drawings[nIndex].handleObject(fCallback);
+		}
+	};
 
 	Worksheet.prototype.changeTableColName = function (tableName, oldVal, newVal) {
 		if (this.workbook.bUndoChanges || this.workbook.bRedoChanges) {
@@ -11353,6 +11462,18 @@
 		if(!oNewWs)
 			oNewWs = this.worksheet;
 		return this.createFromBBox(oNewWs, this.bbox);
+	};
+	Range.prototype.isIntersect=function(oRange){
+		if(this.worksheet === oRange.worksheet) {
+			return this.bbox.isIntersect(oRange.bbox);
+		}
+		return false;
+	};
+	Range.prototype.containsRange=function(oRange){
+		if(this.worksheet === oRange.worksheet) {
+			return this.bbox.containsRange(oRange.bbox);
+		}
+		return false;
 	};
 	Range.prototype._foreach = function(action) {
 		if (null != action) {
@@ -15393,45 +15514,6 @@
 		return hiddenSum;
 	};
 
-	/**
-	 * @constructor
-	 */
-	function DrawingObjectsManager(worksheet)
-	{
-		this.worksheet = worksheet;
-	}
-
-	DrawingObjectsManager.prototype.updateChartReferences = function(oldWorksheet, newWorksheet)
-	{
-		AscFormat.ExecuteNoHistory(function(){
-			this.updateChartReferencesWidthHistory(oldWorksheet, newWorksheet);
-		}, this, []);
-	};
-
-	DrawingObjectsManager.prototype.updateChartReferencesWidthHistory = function(oldWorksheet, newWorksheet, bNoRebuildCache)
-	{
-		var aObjects = this.worksheet.Drawings;
-		for (var i = 0; i < aObjects.length; i++) {
-			var graphicObject = aObjects[i].graphicObject;
-			if ( graphicObject.updateChartReferences )
-			{
-				graphicObject.updateChartReferences(oldWorksheet, newWorksheet, bNoRebuildCache);
-			}
-		}
-	};
-
-
-	DrawingObjectsManager.prototype.rebuildCharts = function(data)
-	{
-		var aObjects = this.worksheet.Drawings;
-		for(var i = 0; i < aObjects.length; ++i)
-		{
-			if(aObjects[i].graphicObject.rebuildSeries)
-			{
-				aObjects[i].graphicObject.rebuildSeries(data);
-			}
-		}
-	};
 
 	function tryTranslateToPrintArea(val) {
 		var printAreaStr = "Print_Area";

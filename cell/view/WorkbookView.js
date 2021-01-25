@@ -2520,39 +2520,83 @@
 
       this._setSelectionDialogType(selectionDialogType);
       var drawSelection = false;
-
+      var index;
       if (newSelectionDialogMode) {
           this.copyActiveSheet = this.wsActive;
-
-          var tmpSelectRange;
           if(c_oAscSelectionDialogType.Chart === selectionDialogType) {
-              if(typeof selectRange === "string" && selectRange[0] === '=') {
-                  tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange.slice(1));
+              var sRef = selectRange;
+              if(sRef.charAt(0) === '=') {
+                  sRef = sRef.slice(1);
+              }
+              var aRefs = sRef.split(',');
+              var aSelectRanges = [];
+              var oRange, oAscRange;
+              var sWSName = null;
+              for(var nRef = 0; nRef < aRefs.length; ++nRef) {
+                  oRange = AscCommon.parserHelp.parse3DRef(aRefs[nRef]);
+                  if(!oRange) {
+                      aSelectRanges.length = 0;
+                      break;
+                  }
+                  if(sWSName === null) {
+                      sWSName = oRange.sheet;
+                  }
+                  else {
+                      if(sWSName !== oRange.sheet) {
+                          aSelectRanges.length = 0;
+                          break;
+                      }
+                  }
+                  oAscRange = AscCommonExcel.g_oRangeCache.getAscRange(oRange.range);
+                  if(oAscRange) {
+                      aSelectRanges.push(oAscRange);
+                  }
+                  else {
+                      aSelectRanges.length = 0;
+                      break;
+                  }
+              }
+              if(aSelectRanges.length > 0) {
+                  var oWS = this.model.getWorksheetByName(sWSName);
+                  if (!oWS || oWS.getHidden()) {
+                      this.getWorksheet().cloneSelection(true, null);
+                  } else {
+                      index = oWS.getIndex();
+                      if (index !== this.wsActive) {
+                          this.showWorksheet(index);
+                      }
+                      this.getWorksheet().cloneSelection(true, new Asc.Range(0, 0, 0, 0));
+                      oWS.selectionRange.assign2(aSelectRanges[0]);
+                      for(nRef = 1; nRef < aSelectRanges.length; ++nRef) {
+                          oWS.selectionRange.addRange();
+                          oWS.selectionRange.getLast().assign2(aSelectRanges[nRef]);
+                      }
+                      oWS.selectionRange.update();
+                  }
               }
               else {
-                  tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange);
+                  this.getWorksheet().cloneSelection(true, null);
               }
           }
           else {
-              tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange);
-          }
-          if (tmpSelectRange) {
-              var ws = this.model.getWorksheetByName(tmpSelectRange.sheet);
-              if (!ws || ws.getHidden()) {
-                  tmpSelectRange = null;
-              } else {
-                  var index = ws.getIndex();
-                  if (index !== this.wsActive) {
-                      this.showWorksheet(index);
+              var tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange);
+              if (tmpSelectRange) {
+                  var ws = this.model.getWorksheetByName(tmpSelectRange.sheet);
+                  if (!ws || ws.getHidden()) {
+                      tmpSelectRange = null;
+                  } else {
+                      index = ws.getIndex();
+                      if (index !== this.wsActive) {
+                          this.showWorksheet(index);
+                      }
+
+                      tmpSelectRange = tmpSelectRange.range;
                   }
-
-                  tmpSelectRange = tmpSelectRange.range;
+              } else {
+                  tmpSelectRange = selectRange;
               }
-          } else {
-              tmpSelectRange = selectRange;
+              this.getWorksheet().cloneSelection(true, tmpSelectRange && AscCommonExcel.g_oRangeCache.getAscRange(tmpSelectRange));
           }
-
-          this.getWorksheet().cloneSelection(true, tmpSelectRange && AscCommonExcel.g_oRangeCache.getAscRange(tmpSelectRange));
           this.selectionDialogMode = newSelectionDialogMode;
           this.input.disabled = !this.isFormulaEditMode || this.isWizardMode;
           drawSelection = true;
@@ -2884,9 +2928,52 @@
     this.getWorksheet().draw();
   };
   WorkbookView.prototype.onShowDrawingObjects = function() {
-    var ws = this.getWorksheet();
-    ws.objectRender.showDrawingObjects();
+      var oWSView = this.getWorksheet();
+      var oDrawingsRender;
+      if(oWSView) {
+          oDrawingsRender = oWSView.objectRender;
+          if(oDrawingsRender) {
+              oDrawingsRender.showDrawingObjects(null);
+          }
+      }
   };
+    WorkbookView.prototype.handleChartsOnWorkbookChange = function (aRanges) {
+        var aRefsToChange = [];
+        var aCharts = [];
+        this.model.handleDrawings(function(oDrawing) {
+            if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+                var nPrevLength = aRefsToChange.length;
+                oDrawing.collectIntersectionRefs(aRanges, aRefsToChange);
+                if(aRefsToChange.length > nPrevLength) {
+                    aCharts.push(oDrawing);
+                }
+            }
+        });
+        if(aRefsToChange.length > 0) {
+            for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
+                aRefsToChange[nRef].updateCacheAndCat();
+            }
+            for(var nChart = 0; nChart < aCharts.length; ++nChart) {
+                aCharts[nChart].recalculate();
+            }
+            this.onShowDrawingObjects();
+        }
+    };
+    WorkbookView.prototype.recalculateDrawingObjects = function(oHistoryPoint, bAll) {
+        var aWSVies = this.wsViews;
+        var oWSView, oDrawingsRender;
+        History.Get_RecalcData(oHistoryPoint);
+        for (var i = 0; i < aWSVies.length; ++i) {
+            oWSView = aWSVies[i];
+            if(oWSView) {
+                oDrawingsRender = oWSView.objectRender;
+                if(oDrawingsRender) {
+                    oDrawingsRender.recalculate(bAll);
+                }
+            }
+        }
+        this.onShowDrawingObjects();
+    };
 
   WorkbookView.prototype.insertHyperlink = function(options) {
     var ws = this.getWorksheet();
