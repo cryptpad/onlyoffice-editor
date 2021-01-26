@@ -6274,6 +6274,24 @@ CShape.prototype.getColumnNumber = function(){
         }
         return this.brush.Get_TextBackGroundColor();
     };
+
+    CShape.prototype.checkResetAutoFit = function() {
+        if(this.txBody) {
+            var oCompiledBodyPr = this.getBodyPr();
+            var oNewBodyPr;
+            var oTextFit = oCompiledBodyPr.textFit;
+            if(oTextFit) {
+                if(oTextFit.type === AscFormat.text_fit_NormAuto) {
+                    if(AscFormat.isRealNumber(oTextFit.fontScale) && oTextFit.fontScale < 100000) {
+                        oNewBodyPr = oCompiledBodyPr.createDuplicate();
+                        oNewBodyPr.textFit =  new AscFormat.CTextFit();
+                        oNewBodyPr.textFit.type = AscFormat.text_fit_No;
+                        this.txBody.setBodyPr(oNewBodyPr);
+                    }
+                }
+            }
+        }
+    };
 function CreateBinaryReader(szSrc, offset, srcLen)
 {
     var nWritten = 0;
