@@ -6713,7 +6713,7 @@ Paragraph.prototype.Apply_TextPr = function(TextPr, IncFontSize)
 				EndTextPr.Merge(this.TextPr.Value);
 
 				// TODO: Как только перенесем историю изменений TextPr в сам класс CTextPr, переделать тут
-				this.TextPr.Set_FontSize(FontSize_IncreaseDecreaseValue(IncFontSize, EndTextPr.FontSize));
+				this.TextPr.Set_FontSize(EndTextPr.GetIncDecFontSize(IncFontSize));
 			}
 
 			// TODO (ParaEnd): Переделать
@@ -8462,6 +8462,7 @@ Paragraph.prototype.GetCalculatedTextPr = function()
 				{
 					TextPr = this.Get_CompiledPr2(false).TextPr.Copy();
 					TextPr.Merge(this.TextPr.Value);
+					TextPr.CheckFontScale();
 				}
 
 				for (var CurPos = StartPos + 1; CurPos <= EndPos; CurPos++)
@@ -8478,6 +8479,7 @@ Paragraph.prototype.GetCalculatedTextPr = function()
 				{
 					var EndTextPr = this.Get_CompiledPr2(false).TextPr.Copy();
 					EndTextPr.Merge(this.TextPr.Value);
+					EndTextPr.CheckFontScale();
 					TextPr = TextPr.Compare(EndTextPr);
 				}
 			}

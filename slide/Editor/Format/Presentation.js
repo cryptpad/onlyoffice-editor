@@ -5205,6 +5205,44 @@ CPresentation.prototype.AddToParagraph = function (ParaItem, bRecalculate, noUpd
 
 };
 
+CPresentation.prototype.CheckResetShapesAutoFit = function(bCheckMinVal) {
+    var oController = this.GetCurrentController();
+    if(!oController) {
+        return;
+    }
+    var oTargetDocContent = oController.getTargetDocContent();
+    if(oTargetDocContent) {
+        if(oTargetDocContent.IsSelectedAll()) {
+            var oTargetTextObject = AscFormat.getTargetTextObject(oController);
+            if(oTargetTextObject.getObjectType() === AscDFH.historyitem_type_Shape) {
+                oTargetTextObject.checkResetAutoFit(bCheckMinVal);
+                this.Recalculate();
+                this.Document_UpdateInterfaceState();
+                this.Document_UpdateRulersState();
+            }
+        }
+        return;
+    }
+    else {
+        var aSelectedObjects;
+        if(oController.selection.groupSelection) {
+            aSelectedObjects = oController.selection.groupSelection.selectedObjects;
+        }
+        else {
+            aSelectedObjects = oController.selectedObjects;
+        }
+        for(var nIdx = 0; nIdx < aSelectedObjects.length; ++nIdx) {
+            var oDrawing = aSelectedObjects[nIdx];
+            if(oDrawing.getObjectType() === AscDFH.historyitem_type_Shape) {
+                oDrawing.checkResetAutoFit(bCheckMinVal);
+            }
+        }
+        this.Recalculate();
+        this.Document_UpdateInterfaceState();
+        this.Document_UpdateRulersState();
+    }
+};
+
 CPresentation.prototype.ClearParagraphFormatting = function (isClearParaPr, isClearTextPr) {
     var oController = this.GetCurrentController();
     oController && oController.checkSelectedObjectsAndCallback(oController.paragraphClearFormatting, [isClearParaPr, isClearTextPr], false, AscDFH.historydescription_Presentation_ParagraphClearFormatting);
@@ -5469,7 +5507,15 @@ CPresentation.prototype.SetParagraphNumbering = function (oBullet) {
 
 CPresentation.prototype.IncreaseDecreaseFontSize = function (bIncrease) {
     var oController = this.GetCurrentController();
-    oController && oController.checkSelectedObjectsAndCallback(oController.paragraphIncDecFontSize, [bIncrease], false, AscDFH.historydescription_Presentation_ParagraphIncDecFontSize);
+    var oPresentation = this;
+    oController && oController.checkSelectedObjectsAndCallback(
+        function() {
+            oController.paragraphIncDecFontSize(bIncrease);
+            if(bIncrease) {
+                oPresentation.CheckResetShapesAutoFit(true);
+            }
+        }
+        , [], false, AscDFH.historydescription_Presentation_ParagraphIncDecFontSize);
     this.Document_UpdateInterfaceState();
 };
 
