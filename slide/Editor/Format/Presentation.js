@@ -5212,7 +5212,7 @@ CPresentation.prototype.CheckResetShapesAutoFit = function(bCheckMinVal) {
     }
     var oTargetDocContent = oController.getTargetDocContent();
     if(oTargetDocContent) {
-        if(oTargetDocContent.IsSelectedAll()) {
+        if(oTargetDocContent.IsSelectedAll() || oTargetDocContent.IsEmpty()) {
             var oTargetTextObject = AscFormat.getTargetTextObject(oController);
             if(oTargetTextObject.getObjectType() === AscDFH.historyitem_type_Shape) {
                 oTargetTextObject.checkResetAutoFit(bCheckMinVal);
