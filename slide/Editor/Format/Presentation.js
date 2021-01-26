@@ -5205,16 +5205,26 @@ CPresentation.prototype.AddToParagraph = function (ParaItem, bRecalculate, noUpd
 
 };
 
-CPresentation.prototype.CheckResetShapesAutoFit = function(bCheckMinVal) {
+CPresentation.prototype.CheckResetShapesAutoFit = function(bPutFontSize) {
     var oController = this.GetCurrentController();
     if(!oController) {
         return;
     }
+    var bCheckMinVal;
     var oTargetDocContent = oController.getTargetDocContent();
     if(oTargetDocContent) {
         if(oTargetDocContent.IsSelectedAll() || oTargetDocContent.IsEmpty()) {
             var oTargetTextObject = AscFormat.getTargetTextObject(oController);
             if(oTargetTextObject.getObjectType() === AscDFH.historyitem_type_Shape) {
+                if(bPutFontSize) {
+                    bCheckMinVal = false;
+                }
+                else {
+                    bCheckMinVal = true;
+                    if(oTargetTextObject.isPlaceholder() && oTargetTextObject.getPhType() === AscFormat.phType_ctrTitle) {
+                        bCheckMinVal = false;
+                    }
+                }
                 oTargetTextObject.checkResetAutoFit(bCheckMinVal);
                 this.Recalculate();
                 this.Document_UpdateInterfaceState();
@@ -5234,6 +5244,15 @@ CPresentation.prototype.CheckResetShapesAutoFit = function(bCheckMinVal) {
         for(var nIdx = 0; nIdx < aSelectedObjects.length; ++nIdx) {
             var oDrawing = aSelectedObjects[nIdx];
             if(oDrawing.getObjectType() === AscDFH.historyitem_type_Shape) {
+                if(bPutFontSize) {
+                    bCheckMinVal = false;
+                }
+                else {
+                    bCheckMinVal = true;
+                    if(oDrawing.isPlaceholder() && oDrawing.getPhType() === AscFormat.phType_ctrTitle) {
+                        bCheckMinVal = false;
+                    }
+                }
                 oDrawing.checkResetAutoFit(bCheckMinVal);
             }
         }
@@ -5512,7 +5531,7 @@ CPresentation.prototype.IncreaseDecreaseFontSize = function (bIncrease) {
         function() {
             oController.paragraphIncDecFontSize(bIncrease);
             if(bIncrease) {
-                oPresentation.CheckResetShapesAutoFit(true);
+                oPresentation.CheckResetShapesAutoFit(false);
             }
         }
         , [], false, AscDFH.historydescription_Presentation_ParagraphIncDecFontSize);
