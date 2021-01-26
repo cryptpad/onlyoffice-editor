@@ -5205,7 +5205,7 @@ CPresentation.prototype.AddToParagraph = function (ParaItem, bRecalculate, noUpd
 
 };
 
-CPresentation.prototype.CheckResetShapesAutoFit = function() {
+CPresentation.prototype.CheckResetShapesAutoFit = function(bCheckMinVal) {
     var oController = this.GetCurrentController();
     if(!oController) {
         return;
@@ -5215,7 +5215,7 @@ CPresentation.prototype.CheckResetShapesAutoFit = function() {
         if(oTargetDocContent.IsSelectedAll()) {
             var oTargetTextObject = AscFormat.getTargetTextObject(oController);
             if(oTargetTextObject.getObjectType() === AscDFH.historyitem_type_Shape) {
-                oTargetTextObject.checkResetAutoFit();
+                oTargetTextObject.checkResetAutoFit(bCheckMinVal);
                 this.Recalculate();
                 this.Document_UpdateInterfaceState();
                 this.Document_UpdateRulersState();
@@ -5234,7 +5234,7 @@ CPresentation.prototype.CheckResetShapesAutoFit = function() {
         for(var nIdx = 0; nIdx < aSelectedObjects.length; ++nIdx) {
             var oDrawing = aSelectedObjects[nIdx];
             if(oDrawing.getObjectType() === AscDFH.historyitem_type_Shape) {
-                oDrawing.checkResetAutoFit();
+                oDrawing.checkResetAutoFit(bCheckMinVal);
             }
         }
         this.Recalculate();
@@ -5507,7 +5507,15 @@ CPresentation.prototype.SetParagraphNumbering = function (oBullet) {
 
 CPresentation.prototype.IncreaseDecreaseFontSize = function (bIncrease) {
     var oController = this.GetCurrentController();
-    oController && oController.checkSelectedObjectsAndCallback(oController.paragraphIncDecFontSize, [bIncrease], false, AscDFH.historydescription_Presentation_ParagraphIncDecFontSize);
+    var oPresentation = this;
+    oController && oController.checkSelectedObjectsAndCallback(
+        function() {
+            oController.paragraphIncDecFontSize(bIncrease);
+            if(bIncrease) {
+                oPresentation.CheckResetShapesAutoFit(true);
+            }
+        }
+        , [], false, AscDFH.historydescription_Presentation_ParagraphIncDecFontSize);
     this.Document_UpdateInterfaceState();
 };
 

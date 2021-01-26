@@ -6275,18 +6275,49 @@ CShape.prototype.getColumnNumber = function(){
         return this.brush.Get_TextBackGroundColor();
     };
 
-    CShape.prototype.checkResetAutoFit = function() {
+    CShape.prototype.checkResetAutoFit = function(bCheckMinVal) {
         if(this.txBody) {
             var oCompiledBodyPr = this.getBodyPr();
             var oNewBodyPr;
             var oTextFit = oCompiledBodyPr.textFit;
             if(oTextFit) {
                 if(oTextFit.type === AscFormat.text_fit_NormAuto) {
-                    if(AscFormat.isRealNumber(oTextFit.fontScale) && oTextFit.fontScale < 100000) {
-                        oNewBodyPr = oCompiledBodyPr.createDuplicate();
-                        oNewBodyPr.textFit =  new AscFormat.CTextFit();
-                        oNewBodyPr.textFit.type = AscFormat.text_fit_No;
-                        this.txBody.setBodyPr(oNewBodyPr);
+                    if(AscFormat.isRealNumber(oTextFit.fontScale)) {
+                        if(oTextFit.fontScale < 100000) {
+                            var bReset = false;
+                            if(bCheckMinVal) {
+                                if(oTextFit.fontScale <= 25000) {
+                                    bReset = true;
+                                    var oContent = this.txBody.content;
+                                    if(oContent) {
+                                        oContent.CheckRunContent(function(oRun) {
+                                            var oTextPr = oRun.Pr;
+                                            var oCompiledPr = oRun.CompiledPr;
+                                            if(AscFormat.isRealNumber(oTextPr.FontSize) &&
+                                                AscFormat.isRealNumber(oCompiledPr.FontSize) &&
+                                                oTextPr.FontSize !== oCompiledPr.FontSize) {
+                                                oRun.Set_FontSize(oCompiledPr.FontSize);
+                                                if(oRun.IsParaEndRun()) {
+                                                    var oParagraph = oRun.Paragraph;
+                                                    if(oParagraph) {
+                                                        oParagraph.TextPr.Apply_TextPr(oTextPr);
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                            else {
+                                bReset = true;
+                            }
+                            if(bReset) {
+                                oNewBodyPr = oCompiledBodyPr.createDuplicate();
+                                oNewBodyPr.textFit =  new AscFormat.CTextFit();
+                                oNewBodyPr.textFit.type = AscFormat.text_fit_No;
+                                this.txBody.setBodyPr(oNewBodyPr);
+                            }
+                        }
                     }
                 }
             }
