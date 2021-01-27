@@ -7203,6 +7203,51 @@ CPresentation.prototype.CheckTableCoincidence = function (Table) {
 CPresentation.prototype.Get_PageSizesByDrawingObjects = function () {
     return {W: Page_Width, H: Page_Height};
 };
+
+CPresentation.prototype.ChangeTextCase = function(nCaseType) {
+    var oController = this.GetCurrentController();
+    if(!oController) {
+        return;
+    }
+    var oPresentation = this;
+    oController.checkSelectedObjectsAndCallback(function() {
+        var oTargetDocContent = oController.getTargetDocContent();
+        var bTextSelection = AscCommon.isRealObject(oTargetDocContent);
+        var oState = oPresentation.Save_DocumentStateBeforeLoadChanges();
+        oController.applyDocContentFunction(function() {
+            var oParagraph;
+            if(bTextSelection) {
+                if(!this.IsSelectionUse()) {
+                    oParagraph = this.GetCurrentParagraph();
+                    if(oParagraph) {
+                        oParagraph.SelectCurrentWord();
+                    }
+                }
+            }
+            else {
+                this.SelectAll();
+            }
+            if(this.IsSelectionUse() && !this.IsSelectionEmpty()) {
+                var oChangeEngine = new CDocumentChangeTextCaseEngine(nCaseType);
+                var aParagraphs = [];
+                this.GetCurrentParagraph(false, aParagraphs, {});
+                for (var nIndex = 0, nCount = aParagraphs.length; nIndex < nCount; ++nIndex) {
+                    oChangeEngine.Reset();
+                    oParagraph = aParagraphs[nIndex];
+                    oParagraph.CheckRunContent(function(oRun)
+                    {
+                        oRun.ChangeTextCase(oChangeEngine);
+                    });
+                    oChangeEngine.FlushWord();
+                }
+            }
+        }, [], function() {});
+        oPresentation.Load_DocumentStateAfterLoadChanges(oState);
+        oPresentation.Recalculate();
+    }, [], false, AscDFH.historydescription_Presentation_ParaApply);
+    this.Document_UpdateInterfaceState();
+};
+
 //-----------------------------------------------------------------------------------
 // Дополнительные функции
 //-----------------------------------------------------------------------------------
