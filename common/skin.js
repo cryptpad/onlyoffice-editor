@@ -93,6 +93,7 @@ var EditorSkins = {
 		ThumbnailsPageNumberText        : "#000000",
 		ThumbnailsPageNumberTextActive  : "#000000",
 		ThumbnailsPageNumberTextHover   : "#000000",
+		BackgroundColorNotes       	    : "#F0F0F0",
 
 		THEMES_THUMBNAIL_WIDTH          : 85,
 		THEMES_THUMBNAIL_HEIGHT         : 38,
@@ -177,6 +178,7 @@ var EditorSkins = {
 		ThumbnailsPageNumberText        : "#FFFFFF",
 		ThumbnailsPageNumberTextActive  : "#FFFFFF",
 		ThumbnailsPageNumberTextHover   : "#FFFFFF",
+		BackgroundColorNotes       	    : "#666666",
 
 		THEMES_THUMBNAIL_WIDTH  : 85,
 		THEMES_THUMBNAIL_HEIGHT : 38,

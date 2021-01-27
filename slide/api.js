@@ -1362,8 +1362,8 @@ background-repeat: no-repeat;\
 
 		if (true)
 		{
-			_innerHTML += "<div id=\"id_panel_notes\" class=\"block_elem\" style=\"-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;overflow:hidden;background-color:#FFFFFF;\">\
-                                <canvas id=\"id_notes\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;background-color:#FFFFFF;z-index:6\"></canvas>\
+			_innerHTML += "<div id=\"id_panel_notes\" class=\"block_elem\" style=\"-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;overflow:hidden;background-color:" + AscCommon.GlobalSkin.BackgroundColorNotes + ";\">\
+                                <canvas id=\"id_notes\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;background-color:" + AscCommon.GlobalSkin.BackgroundColorNotes + ";z-index:6\"></canvas>\
                                 <canvas id=\"id_notes_overlay\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;z-index:7\"></canvas>\
                                 <div id=\"id_vertical_scroll_notes\" style=\"left:0;top:0;width:16px;overflow:hidden;position:absolute;\">\
                                     <div id=\"panel_right_scroll_notes\" class=\"block_elem\" style=\"left:0;top:0;width:1px;height:1px;\"></div>\
@@ -1396,10 +1396,13 @@ background-repeat: no-repeat;\
 			obj_id_main.style.backgroundColor = AscCommon.GlobalSkin.BackgroundColor;
 			document.getElementById("id_panel_thumbnails").style.backgroundColor = AscCommon.GlobalSkin.BackgroundColorThumbnails;
 			document.getElementById("id_panel_thumbnails_split").style.backgroundColor = AscCommon.GlobalSkin.BackgroundColorThumbnails;
-			document.getElementById("id_main_parent").style.backgroundColor = AscCommon.GlobalSkin.BorderSplitterColor;
+			document.getElementById("id_main_parent").style.borderLeftColor = AscCommon.GlobalSkin.BorderSplitterColor;
 			document.getElementById("id_viewer").style.backgroundColor = AscCommon.GlobalSkin.BackgroundColor;
 			document.getElementById("id_panel_right").style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
 			document.getElementById("id_horscrollpanel").style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
+			document.getElementById("id_panel_notes").style.backgroundColor = AscCommon.GlobalSkin.BackgroundColorNotes;
+			document.getElementById("id_panel_notes").style.borderTopColor = AscCommon.GlobalSkin.BorderSplitterColor;
+			document.getElementById("id_notes").style.backgroundColor = AscCommon.GlobalSkin.BackgroundColorNotes;
 		}
 
 		if (this.WordControl && this.WordControl.m_oBody)

@@ -1005,9 +1005,15 @@ function CDrawingDocument()
 		if (AscCommon.g_inputContext)
 			AscCommon.g_inputContext.move(this.TargetHtmlElementLeft, this.TargetHtmlElementTop);
 	};
-	this.GetTargetStyle           = function()
+	this.GetTargetStyle           = function(isFocusOnSlide)
 	{
-		return "rgb(" + this.TargetCursorColor.R + "," + this.TargetCursorColor.G + "," + this.TargetCursorColor.B + ")";
+		if (false !== isFocusOnSlide)
+			return "rgb(" + this.TargetCursorColor.R + "," + this.TargetCursorColor.G + "," + this.TargetCursorColor.B + ")";
+
+		// check dark theme
+		if (AscCommon.GlobalSkin.Name !== "flatDark" || (this.TargetCursorColor.R > 10 || this.TargetCursorColor.R > 10 || this.TargetCursorColor.R > 10))
+			return "rgb(" + this.TargetCursorColor.R + "," + this.TargetCursorColor.G + "," + this.TargetCursorColor.B + ")";
+		return "rgb(" + (255 - this.TargetCursorColor.R) + "," + (255 - this.TargetCursorColor.G) + "," + (255 - this.TargetCursorColor.B) + ")";
 	};
 
 	this.Start_CollaborationEditing = function()
@@ -1929,13 +1935,13 @@ function CDrawingDocument()
 
 			if (_newW == 2 || _newH == 2)
 			{
-				ctx.fillStyle = this.GetTargetStyle();
+				ctx.fillStyle = this.GetTargetStyle(isFocusOnSlide);
 				ctx.fillRect(0, 0, _newW, _newH);
 			}
 			else
 			{
 				ctx.beginPath();
-				ctx.strokeStyle = this.GetTargetStyle();
+				ctx.strokeStyle = this.GetTargetStyle(isFocusOnSlide);
 				ctx.lineWidth   = 2;
 
 				if (((pos1.X - pos2.X) * (pos1.Y - pos2.Y)) >= 0)
@@ -1975,7 +1981,7 @@ function CDrawingDocument()
 
 			var ctx = this.TargetHtmlElement.getContext('2d');
 
-			ctx.fillStyle = this.GetTargetStyle();
+			ctx.fillStyle = this.GetTargetStyle(isFocusOnSlide);
 			ctx.fillRect(0, 0, _newW, _newH);
 
 			if (null != this.TextMatrix)
@@ -5990,6 +5996,11 @@ function CNotesDrawer(page)
 		var g = new AscCommon.CGraphics();
 		g.init(ctx, w_px, h_px, w_mm, h_mm);
 		g.m_oFontManager = this.fontManager;
+
+		if (AscCommon.GlobalSkin.Name === "flatDark")
+		{
+			g.darkModeOverride();
+		}
 
 		if (this.HtmlPage.bIsRetinaSupport)
 			g.IsRetina = true;

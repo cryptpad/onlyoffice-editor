@@ -206,6 +206,12 @@ CGraphics.prototype =
                 this.m_oFullTransform.sy,this.m_oFullTransform.tx,this.m_oFullTransform.ty);
         }
     },
+    darkModeOverride : function(r,g,b,a)
+    {
+        this.p_color_old = this.p_color; this.p_color = function(r,g,b,a) { (r<10 && g<10 && b<10) ? this.p_color_old(255-r,255-g,255-b,a) : this.p_color_old(r,g,b,a); };
+		this.b_color1_old = this.b_color1; this.b_color1 = function(r,g,b,a) { (r<10 && g<10 && b<10) ? this.b_color1_old(255-r,255-g,255-b,a) : this.b_color1_old(r,g,b,a); };
+		this.b_color2_old = this.b_color2; this.b_color2 = function(r,g,b,a) { (r<10 && g<10 && b<10) ? this.b_color2_old(255-r,255-g,255-b,a) : this.b_color2_old(r,g,b,a); };
+    },
     // pen methods
     p_color : function(r,g,b,a)
     {
