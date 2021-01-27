@@ -79,8 +79,7 @@ var c_oAscError = Asc.c_oAscError;
 			var file = _file;
 			if (Array.isArray(file))
 				file = file[0];
-
-			if (file == "")
+			if (!file)
 				return;
 
 			var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](file);
