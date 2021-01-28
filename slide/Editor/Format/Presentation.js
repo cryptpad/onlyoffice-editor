@@ -4232,10 +4232,10 @@ CPresentation.prototype.Recalculate = function (RecalcData) {
             //}
             this.needSelectPages.length = 0;
         }
-        if (this.bNeedUpdateTh) {
-            this.DrawingDocument.UpdateThumbnailsAttack();
-            this.bNeedUpdateTh = false;
-        }
+    }
+    if (this.bNeedUpdateTh) {
+        this.DrawingDocument.UpdateThumbnailsAttack();
+        this.bNeedUpdateTh = false;
     }
     this.Document_UpdateSelectionState();
 
