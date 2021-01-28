@@ -1666,23 +1666,47 @@ TextAddState.prototype =
         this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
         this.drawingObjects.handleEventMode = HANDLE_EVENT_MODE_CURSOR;
         this.drawingObjects.noNeedUpdateCursorType = true;
+        var oApi = this.drawingObjects.getEditorApi();
         var cursor_type = this.drawingObjects.curState.onMouseDown(e, x, y, pageIndex);
         if(cursor_type && cursor_type.hyperlink)
         {
             this.drawingObjects.drawingObjects.showDrawingObjects();
             if(this.drawingObjects.isSlideShow())
             {
-                this.drawingObjects.getEditorApi().sync_HyperlinkClickCallback(cursor_type.hyperlink.Value);
+                oApi.sync_HyperlinkClickCallback(cursor_type.hyperlink.Value);
             }
         }
         this.drawingObjects.noNeedUpdateCursorType = false;
         this.drawingObjects.handleEventMode = HANDLE_EVENT_MODE_HANDLE;
-        if(editor && AscCommon.c_oAscFormatPainterState.kOff !== editor.isPaintFormat)
+        if(oApi)
         {
-            this.drawingObjects.paragraphFormatPaste2();
-            if (AscCommon.c_oAscFormatPainterState.kOn === editor.isPaintFormat)
+            if(oApi.editorId === AscCommon.c_oEditorId.Presentation)
             {
-                editor.sync_PaintFormatCallback(c_oAscFormatPainterState.kOff);
+                if(AscCommon.c_oAscFormatPainterState.kOff !== oApi.isPaintFormat)
+                {
+                    this.drawingObjects.paragraphFormatPaste2();
+                    if (AscCommon.c_oAscFormatPainterState.kOn === oApi.isPaintFormat)
+                    {
+                        oApi.sync_PaintFormatCallback(c_oAscFormatPainterState.kOff);
+                    }
+                }
+                else if(oApi.isMarkerFormat)
+                {
+                    var oPresentation = oApi.WordControl && oApi.WordControl.m_oLogicDocument;
+                    if(oPresentation)
+                    {
+                        if(oPresentation.HighlightColor)
+                        {
+                            var oC = oPresentation.HighlightColor;
+                            oPresentation.SetParagraphHighlight(true, oC.r, oC.g, oC.b);
+                        }
+                        else
+                        {
+                            oPresentation.SetParagraphHighlight(false);
+                        }
+                        oApi.sync_MarkerFormatCallback(true);
+                    }
+                }
             }
         }
     }

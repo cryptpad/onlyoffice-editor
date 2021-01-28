@@ -600,6 +600,7 @@
 		this.bSelectedSlidesTheme = false;
 
 		this.isPaintFormat              = AscCommon.c_oAscFormatPainterState.kOff;
+		this.isMarkerFormat             = false;
 		this.isShowTableEmptyLine       = false;//true;
 		this.isShowTableEmptyLineAttack = false;//true;
 
@@ -6043,6 +6044,21 @@ background-repeat: no-repeat;\
 		this.isPaintFormat = value;
 		return this.sendEvent("asc_onPaintFormatChanged", value);
 	};
+	asc_docs_api.prototype.SetMarkerFormat          = function(value, is_flag, r, g, b)
+	{
+		this.isMarkerFormat = value;
+		if (this.isMarkerFormat)
+		{
+			this.WordControl.m_oLogicDocument.SetParagraphHighlight(is_flag, r, g, b);
+		}
+	};
+
+	asc_docs_api.prototype.sync_MarkerFormatCallback = function(value)
+	{
+		this.isMarkerFormat = value;
+		return this.sendEvent("asc_onMarkerFormatChanged", value);
+	};
+
 	asc_docs_api.prototype.ClearFormating           = function()
 	{
 		this.WordControl.m_oLogicDocument.ClearParagraphFormatting(false, true);
@@ -7972,6 +7988,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['GetCurrentPixOffsetY']                = asc_docs_api.prototype.GetCurrentPixOffsetY;
 	asc_docs_api.prototype['SetPaintFormat']                      = asc_docs_api.prototype.SetPaintFormat;
 	asc_docs_api.prototype['sync_PaintFormatCallback']            = asc_docs_api.prototype.sync_PaintFormatCallback;
+	asc_docs_api.prototype['SetMarkerFormat']                     = asc_docs_api.prototype.SetMarkerFormat;
+	asc_docs_api.prototype['sync_MarkerFormatCallback']           = asc_docs_api.prototype.sync_MarkerFormatCallback;
 	asc_docs_api.prototype['ClearFormating']                      = asc_docs_api.prototype.ClearFormating;
 	asc_docs_api.prototype['SetDeviceInputHelperId']              = asc_docs_api.prototype.SetDeviceInputHelperId;
 	asc_docs_api.prototype['asc_setViewMode']                     = asc_docs_api.prototype.asc_setViewMode;

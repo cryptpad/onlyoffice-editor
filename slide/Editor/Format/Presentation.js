@@ -5473,7 +5473,41 @@ CPresentation.prototype.SetParagraphNumbering = function (oBullet) {
     oController && oController.checkSelectedObjectsAndCallback(oController.setParagraphNumbering, [oBullet], false, AscDFH.historydescription_Presentation_SetParagraphNumbering);
     this.Document_UpdateInterfaceState();   //TODO
 };
-
+CPresentation.prototype.SetParagraphHighlight = function(IsColor, r, g, b) {
+    var oController = this.GetCurrentController();
+    var oPresentation = this;
+    if(oController) {
+        var oTargetContent = oController.getTargetDocContent();
+        if(oTargetContent) {
+            if(oTargetContent.IsSelectionUse() && !oTargetContent.IsSelectionEmpty()) {
+                oController.checkSelectedObjectsAndCallback(function() {
+                    if (false === IsColor) {
+                        oPresentation.AddToParagraph(new ParaTextPr({HighlightColor : null}));
+                    }
+                    else {
+                        oPresentation.AddToParagraph(new ParaTextPr({HighlightColor : AscFormat.CreateUniColorRGB(r, g, b)}));
+                    }
+                }, [], false, AscDFH.historydescription_Document_SetTextHighlight);
+            }
+            else {
+                if (false === IsColor) {
+                    oPresentation.HighlightColor = null;
+                }
+                else {
+                    oPresentation.HighlightColor = new AscCommonWord.CDocumentColor(r, g, b, false);
+                }
+            }
+        }
+        else {
+            if (false === IsColor) {
+                oPresentation.HighlightColor = null;
+            }
+            else {
+                oPresentation.HighlightColor = new AscCommonWord.CreateUniColorRGB(r, g, b);
+            }
+        }
+    }
+};
 CPresentation.prototype.IncreaseDecreaseFontSize = function (bIncrease) {
     var oController = this.GetCurrentController();
     oController && oController.checkSelectedObjectsAndCallback(oController.paragraphIncDecFontSize, [bIncrease], false, AscDFH.historydescription_Presentation_ParagraphIncDecFontSize);
@@ -6164,6 +6198,10 @@ CPresentation.prototype.OnKeyDown = function (e) {
             }
             if (AscCommon.c_oAscFormatPainterState.kOff !== this.Api.isPaintFormat) {
                 this.Api.sync_PaintFormatCallback(AscCommon.c_oAscFormatPainterState.kOff);
+                this.OnMouseMove(global_mouseEvent, 0, 0, this.CurPage);
+            }
+            else if (this.Api.isMarkerFormat) {
+                this.Api.sync_MarkerFormatCallback(false);
                 this.OnMouseMove(global_mouseEvent, 0, 0, this.CurPage);
             }
             bRetValue = keydownresult_PreventAll;

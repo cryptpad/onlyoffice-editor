@@ -1044,6 +1044,8 @@ function CDrawingDocument()
 		{
 			if (this.m_oWordControl.m_oApi.isPaintFormat && (("default" == sType) || ("text" == sType)))
 				this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(AscCommon.kCurFormatPainterWord);
+			else if (this.m_oWordControl.m_oApi.isMarkerFormat)
+				this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value("de-markerformat");
 			else
                 elem.style.cursor = AscCommon.g_oHtmlCursor.value(sType);
 		}

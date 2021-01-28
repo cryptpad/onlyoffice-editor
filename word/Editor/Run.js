@@ -816,6 +816,45 @@ ParaRun.prototype.private_CheckHighlightBeforeAdd = function(oNewRun)
 	return oNewRun;
 };
 /**
+ * Проверяем выделение текста перед добавление нового элемента
+ * @param {!ParaRun} oNewRun
+ * @returns {?ParaRun}
+ */
+ParaRun.prototype.private_CheckHighlightColorBeforeAdd = function(oNewRun)
+{
+	// Специальный код с обработкой выделения (highlight)
+	// Текст, который пишем до или после выделенного текста делаем без выделения.
+	if ((0 === this.State.ContentPos || this.Content.length === this.State.ContentPos) && undefined !== this.Get_CompiledPr(false).HighlightColor)
+	{
+		var Parent = this.Get_Parent();
+		var RunPos = this.private_GetPosInParent(Parent);
+		if (null !== Parent && -1 !== RunPos)
+		{
+			if ((0 === this.State.ContentPos
+				&& (0 === RunPos
+					|| Parent.Content[RunPos - 1].Type !== para_Run
+					|| undefined === Parent.Content[RunPos - 1].Get_CompiledPr(false).HighlightColor))
+				|| (this.Content.length === this.State.ContentPos
+					&& (RunPos === Parent.Content.length - 1
+						|| para_Run !== Parent.Content[RunPos + 1].Type
+						|| undefined === Parent.Content[RunPos + 1].Get_CompiledPr(false).HighlightColor)
+					|| (RunPos === Parent.Content.length - 2
+						&& Parent instanceof Paragraph)))
+			{
+				if (!oNewRun)
+					oNewRun = this.private_SplitRunInCurPos();
+
+				if (oNewRun)
+				{
+					oNewRun.SetHighlightColor(undefined);
+				}
+			}
+		}
+	}
+
+	return oNewRun;
+};
+/**
  * Проверяем принудительный перенос в начале математического рана
  * @param {!ParaRun} oNewRun
  * @returns {?ParaRun}
@@ -843,6 +882,7 @@ ParaRun.prototype.CheckRunBeforeAdd = function(oItem)
 	oNewRun = this.private_CheckLanguageBeforeAdd(oNewRun, oLogicDocument);
 	oNewRun = this.private_CheckFootnoteReferencesBeforeAdd(oNewRun, oItem, oLogicDocument);
 	oNewRun = this.private_CheckHighlightBeforeAdd(oNewRun);
+	oNewRun = this.private_CheckHighlightColorBeforeAdd(oNewRun);
 	oNewRun = this.private_CheckMathBreakOperatorBeforeAdd(oNewRun);
 
 	if (oNewRun)
@@ -8634,6 +8674,8 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 
 	if (undefined !== TextPr.HighLight)
 		this.Set_HighLight(null === TextPr.HighLight ? undefined : TextPr.HighLight);
+	if(undefined !== TextPr.HighlightColor)
+		this.SetHighlightColor(null === TextPr.HighlightColor ? undefined : TextPr.HighlightColor);
 
 	if (undefined !== TextPr.RStyle)
 		this.Set_RStyle(null === TextPr.RStyle ? undefined : TextPr.RStyle);
@@ -8975,6 +9017,16 @@ ParaRun.prototype.Set_HighLight = function(Value)
 
         this.Recalc_CompiledPr(false);
         this.private_UpdateTrackRevisionOnChangeTextPr(true);
+    }
+};
+ParaRun.prototype.SetHighlightColor = function(Value)
+{
+    var OldValue = this.Pr.HighlightColor;
+    if ( OldValue && !OldValue.IsIdentical(Value) || Value && !Value.IsIdentical(OldValue) )
+    {
+        this.Pr.HighlightColor = Value;
+        History.Add(new CChangesRunHighlightColor(this, OldValue, Value, this.private_IsCollPrChangeMine()));
+        this.Recalc_CompiledPr(false);
     }
 };
 
