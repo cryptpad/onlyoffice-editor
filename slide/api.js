@@ -1619,6 +1619,16 @@ background-repeat: no-repeat;\
 			{
 				this.sync_TextColor2(TextPr.Unifill);
 			}
+
+			if (AscCommon.isRealObject(TextPr.HighlightColor))
+			{
+				var oRGB = TextPr.HighlightColor.RGBA;
+				this.sendEvent("asc_onTextHighLight", new AscCommon.CColor(oRGB.R, oRGB.G, oRGB.B));
+			}
+			else
+			{
+				this.sendEvent("asc_onTextHighLight", AscCommonWord.highlight_None);
+			}
 		}
 	};
 
