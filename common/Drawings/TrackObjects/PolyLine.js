@@ -63,8 +63,9 @@ function PolyLine (drawingObjects, theme, master, layout, slide, pageIndex)
         this.polylineForDrawer = new PolylineForDrawer(this);
 
     }, this, []);
+}
 
-    this.Draw = function(graphics)
+    PolyLine.prototype.Draw = function(graphics)
     {
         graphics.SetIntegerGrid(false);
         graphics.transform3(this.Matrix);
@@ -73,7 +74,7 @@ function PolyLine (drawingObjects, theme, master, layout, slide, pageIndex)
         shape_drawer.fromShape(this, graphics);
         shape_drawer.draw(this);
     };
-    this.draw = function(g)
+    PolyLine.prototype.draw = function(g)
     {
         if(AscFormat.isRealNumber(this.pageIndex) && g.SetCurrentPage)
         {
@@ -93,7 +94,7 @@ function PolyLine (drawingObjects, theme, master, layout, slide, pageIndex)
         g.ds();
     };
 
-    this.getBounds = function()
+    PolyLine.prototype.getBounds = function()
     {
         var boundsChecker = new  AscFormat.CSlideBoundsChecker();
         this.draw(boundsChecker);
@@ -103,9 +104,7 @@ function PolyLine (drawingObjects, theme, master, layout, slide, pageIndex)
         boundsChecker.Bounds.extY = boundsChecker.Bounds.max_y - boundsChecker.Bounds.min_y;
         return boundsChecker.Bounds;
     };
-
-    
-    this.getShape =  function(bWord, drawingDocument, drawingObjects)
+    PolyLine.prototype.getShape =  function(bWord, drawingDocument, drawingObjects)
     {
         var xMax = this.arrPoint[0].x, yMax = this.arrPoint[0].y, xMin = xMax, yMin = yMax;
         var i;
@@ -157,11 +156,11 @@ function PolyLine (drawingObjects, theme, master, layout, slide, pageIndex)
 
         var shape = new AscFormat.CShape();
 
-     //  if(drawingObjects)
-     //  {
-     //      shape.setWorksheet(drawingObjects.getWorksheetModel());
-     //      shape.addToDrawingObjects();
-     //  }
+        //  if(drawingObjects)
+        //  {
+        //      shape.setWorksheet(drawingObjects.getWorksheetModel());
+        //      shape.addToDrawingObjects();
+        //  }
         shape.setSpPr(new AscFormat.CSpPr());
         shape.spPr.setParent(shape);
         shape.spPr.setXfrm(new AscFormat.CXfrm());
@@ -223,8 +222,11 @@ function PolyLine (drawingObjects, theme, master, layout, slide, pageIndex)
         shape.x = xMin;
         shape.y = yMin;
         return shape;
-    }
-}
+    };
+    PolyLine.prototype.addPoint = function(x, y)
+    {
+        this.arrPoint.push({x: x, y: y});
+    };
 
 function PolylineForDrawer(polyline)
 {
