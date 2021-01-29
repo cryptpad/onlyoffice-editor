@@ -5478,32 +5478,22 @@ CPresentation.prototype.SetParagraphHighlight = function(IsColor, r, g, b) {
     var oPresentation = this;
     if(oController) {
         var oTargetContent = oController.getTargetDocContent();
-        if(oTargetContent) {
-            if(oTargetContent.IsSelectionUse() && !oTargetContent.IsSelectionEmpty()) {
-                oController.checkSelectedObjectsAndCallback(function() {
-                    if (false === IsColor) {
-                        oPresentation.AddToParagraph(new ParaTextPr({HighlightColor : null}));
-                    }
-                    else {
-                        oPresentation.AddToParagraph(new ParaTextPr({HighlightColor : AscFormat.CreateUniColorRGB(r, g, b)}));
-                    }
-                }, [], false, AscDFH.historydescription_Document_SetTextHighlight);
-            }
-            else {
+        if(!oTargetContent || oTargetContent.IsSelectionUse() && !oTargetContent.IsSelectionEmpty()) {
+            oController.checkSelectedObjectsAndCallback(function() {
                 if (false === IsColor) {
-                    oPresentation.HighlightColor = null;
+                    oPresentation.AddToParagraph(new ParaTextPr({HighlightColor : null}));
                 }
                 else {
-                    oPresentation.HighlightColor = new AscCommonWord.CDocumentColor(r, g, b, false);
+                    oPresentation.AddToParagraph(new ParaTextPr({HighlightColor : AscFormat.CreateUniColorRGB(r, g, b)}));
                 }
-            }
+            }, [], false, AscDFH.historydescription_Document_SetTextHighlight);
         }
         else {
             if (false === IsColor) {
                 oPresentation.HighlightColor = null;
             }
             else {
-                oPresentation.HighlightColor = new AscCommonWord.CreateUniColorRGB(r, g, b);
+                oPresentation.HighlightColor = new AscCommonWord.CDocumentColor(r, g, b, false);
             }
         }
     }
