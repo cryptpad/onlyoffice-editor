@@ -7239,10 +7239,10 @@ CPresentation.prototype.ChangeTextCase = function(nCaseType) {
     }
     var oPresentation = this;
     oController.checkSelectedObjectsAndCallback(function() {
-        var oTargetDocContent = oController.getTargetDocContent();
+        var oTargetDocContent = oController.getTargetDocContent(undefined, true);
         var bTextSelection = AscCommon.isRealObject(oTargetDocContent);
         var oState = oPresentation.Save_DocumentStateBeforeLoadChanges();
-        oController.applyDocContentFunction(function() {
+        var fCallback = function() {
             var oParagraph;
             if(bTextSelection) {
                 if(!this.IsSelectionUse()) {
@@ -7269,7 +7269,8 @@ CPresentation.prototype.ChangeTextCase = function(nCaseType) {
                     oChangeEngine.FlushWord();
                 }
             }
-        }, [], function() {});
+        };
+        oController.applyDocContentFunction(fCallback, [], fCallback);
         oPresentation.Load_DocumentStateAfterLoadChanges(oState);
         oPresentation.Recalculate();
     }, [], false, AscDFH.historydescription_Presentation_ParaApply);
