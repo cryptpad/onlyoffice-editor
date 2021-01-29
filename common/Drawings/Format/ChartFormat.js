@@ -2612,9 +2612,11 @@
             if(!(this instanceof CTitle)) {
                 if(this.parent) {
                     oParaPr = this.parent.getTxPrParaPr();
-                    style.ParaPr.Merge(oParaPr);
-                    if(oParaPr.DefaultRunPr)
-                        style.TextPr.Merge(oParaPr.DefaultRunPr);
+                    if(oParaPr) {
+                        style.ParaPr.Merge(oParaPr);
+                        if(oParaPr.DefaultRunPr)
+                            style.TextPr.Merge(oParaPr.DefaultRunPr);
+                    }
                 }
             }
             oParaPr = this.getTxPrParaPr();
@@ -9252,7 +9254,7 @@
     };
     CLineSeries.prototype.fillObject = function(oCopy, oIdMap) {
         CSeriesBase.prototype.fillObject.call(this, oCopy, oIdMap);
-        if(this.dLbls)
+        if(this.dLbls && oCopy.setDLbls)
             oCopy.setDLbls(this.dLbls.createDuplicate());
         if(oCopy.addDPt && this.dPt.length > 0) {
             for(var nDpt = 0; nDpt < this.dPt.length; ++nDpt) {
@@ -10363,7 +10365,7 @@
         if(this.firstSliceAng !== null && oCopy.setFirstSliceAng) {
             oCopy.setFirstSliceAng(this.firstSliceAng);
         }
-        if(this.b3D) {
+        if(this.b3D && oCopy.set3D) {
             oCopy.set3D(this.b3D);
         }
     };

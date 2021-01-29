@@ -11452,18 +11452,18 @@ var GLOBAL_PATH_COUNT = 0;
             var oPlotArea = this.chart.plotArea;
             var aCharts = oPlotArea.charts;
 
-            this.chart.plotArea.chart = aCharts[0];
+            oPlotArea.valAx = null;
+            oPlotArea.catAx = null;
+            oPlotArea.serAx = null;
+            oPlotArea.chart = aCharts[0];
             for(var i = 0; i < aCharts.length; ++i) {
                 if(aCharts[i].getObjectType() !== AscDFH.historyitem_type_PieChart && aCharts[i].getObjectType() !== AscDFH.historyitem_type_DoughnutChart) {
                     oCheckChart = aCharts[i];
                     break;
                 }
             }
-
             if(oCheckChart) {
-
-                this.chart.plotArea.chart = oCheckChart;
-                this.chart.plotArea.serAx = null;
+                oPlotArea.chart = oCheckChart;
                 if(oCheckChart.getAxisByTypes) {
                     var axis_by_types = oCheckChart.getAxisByTypes();
                     if(axis_by_types.valAx.length > 0 && axis_by_types.catAx.length > 0) {
@@ -11471,8 +11471,8 @@ var GLOBAL_PATH_COUNT = 0;
                             if(axis_by_types.valAx[i].crossAx) {
                                 for(var j = 0; j < axis_by_types.catAx.length; ++j) {
                                     if(axis_by_types.catAx[j] === axis_by_types.valAx[i].crossAx) {
-                                        this.chart.plotArea.valAx = axis_by_types.valAx[i];
-                                        this.chart.plotArea.catAx = axis_by_types.catAx[j];
+                                        oPlotArea.valAx = axis_by_types.valAx[i];
+                                        oPlotArea.catAx = axis_by_types.catAx[j];
                                         break;
                                     }
                                 }
@@ -11482,13 +11482,13 @@ var GLOBAL_PATH_COUNT = 0;
                             }
                         }
                         if(i === axis_by_types.valAx.length) {
-                            this.chart.plotArea.valAx = axis_by_types.valAx[0];
-                            this.chart.plotArea.catAx = axis_by_types.catAx[0];
+                            oPlotArea.valAx = axis_by_types.valAx[0];
+                            oPlotArea.catAx = axis_by_types.catAx[0];
                         }
-                        if(this.chart.plotArea.valAx && this.chart.plotArea.catAx) {
+                        if(oPlotArea.valAx && oPlotArea.catAx) {
                             for(i = 0; i < axis_by_types.serAx.length; ++i) {
-                                if(axis_by_types.serAx[i].crossAx === this.chart.plotArea.valAx) {
-                                    this.chart.plotArea.serAx = axis_by_types.serAx[i];
+                                if(axis_by_types.serAx[i].crossAx === oPlotArea.valAx) {
+                                    oPlotArea.serAx = axis_by_types.serAx[i];
                                     break;
                                 }
                             }
@@ -11496,14 +11496,10 @@ var GLOBAL_PATH_COUNT = 0;
                     }
                     else {
                         if(axis_by_types.valAx.length > 1) {//TODO: выставлять оси исходя из настроек
-                            this.chart.plotArea.valAx = axis_by_types.valAx[1];
-                            this.chart.plotArea.catAx = axis_by_types.valAx[0];
+                            oPlotArea.valAx = axis_by_types.valAx[1];
+                            oPlotArea.catAx = axis_by_types.valAx[0];
                         }
                     }
-                }
-                else {
-                    this.chart.plotArea.valAx = null;
-                    this.chart.plotArea.catAx = null;
                 }
             }
         }
