@@ -902,6 +902,9 @@ CDrawingCollaborativeTarget.prototype =
 
 function CDrawingDocument()
 {
+
+
+	AscCommon.g_oHtmlCursor.register("de-markerformat", "marker_format", "14 8", "pointer");
 	this.IsLockObjectsEnable = false;
 
 	this.m_oWordControl   = null;
