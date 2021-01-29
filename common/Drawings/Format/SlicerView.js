@@ -2103,7 +2103,7 @@
         if(this.buttons.length === 0) {
             return 0;
         }
-        var dCount = (this.extY - SPACE_BETWEEN) / (this.getButtonHeight() + SPACE_BETWEEN);
+        var dCount = (this.extY + SPACE_BETWEEN) / (this.getButtonHeight() + SPACE_BETWEEN);
         if(dCount <= 0) {
             return 0;
         }
