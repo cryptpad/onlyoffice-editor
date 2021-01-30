@@ -34,6 +34,27 @@
 
 (function(window, undefined){
 
+    function CPoint(x, y, bTemporary) {
+        this.x = x;
+        this.y = y;
+        this.bTemporary = bTemporary === true;
+    }
+    CPoint.prototype.reset = function(x, y, bTemporary) {
+        this.x = x;
+        this.y = y;
+        this.bTemporary = bTemporary === true;
+    };
+    CPoint.prototype.distance = function(x, y) {
+        var dx = this.x - x;
+        var dy = this.y - y;
+        return Math.sqrt(dx*dx + dy*dy);
+    };
+    CPoint.prototype.distanceFromOther = function(oPoint) {
+        return this.distance(oPoint.x, oPoint.y);
+    };
+    CPoint.prototype.isNear = function(x, y) {
+        return this.distance(x, y) < AscCommon.g_dKoef_pix_to_mm;
+    };
 function PolyLine (drawingObjects, theme, master, layout, slide, pageIndex)
 {
 
@@ -119,16 +140,21 @@ function PolyLine (drawingObjects, theme, master, layout, slide, pageIndex)
         {
             min_dist = editor.WordControl.m_oDrawingDocument.GetMMPerDot(3)
         }
-        if(this.arrPoint.length > 2)
+        var oLastPoint = this.arrPoint[this.arrPoint.length-1];
+        var nLastIndex = this.arrPoint.length-1;
+        if(oLastPoint.bTemporary) {
+            nLastIndex--;
+        }
+        if(nLastIndex > 1)
         {
-            var dx = this.arrPoint[0].x - this.arrPoint[this.arrPoint.length-1].x;
-            var dy = this.arrPoint[0].y - this.arrPoint[this.arrPoint.length-1].y;
+            var dx = this.arrPoint[0].x - this.arrPoint[nLastIndex].x;
+            var dy = this.arrPoint[0].y - this.arrPoint[nLastIndex].y;
             if(Math.sqrt(dx*dx +dy*dy) < min_dist)
             {
                 bClosed = true;
             }
         }
-        var _n = bClosed ? this.arrPoint.length - 1 : this.arrPoint.length;
+        var _n = bClosed ? nLastIndex : nLastIndex + 1;
         for( i = 1; i<_n; ++i)
         {
             if(this.arrPoint[i].x > xMax)
@@ -187,7 +213,7 @@ function PolyLine (drawingObjects, theme, master, layout, slide, pageIndex)
         if(w > 0)
         {
             pathW = 43200;
-            kw = 43200/ w
+            kw = 43200/ w;
         }
         else
         {
@@ -223,9 +249,43 @@ function PolyLine (drawingObjects, theme, master, layout, slide, pageIndex)
         shape.y = yMin;
         return shape;
     };
-    PolyLine.prototype.addPoint = function(x, y)
+    PolyLine.prototype.tryAddPoint = function(x, y)
     {
-        this.arrPoint.push({x: x, y: y});
+        var oLastPoint = this.arrPoint[this.arrPoint.length - 1];
+        if(!oLastPoint) {
+            this.addPoint(x, y);
+            return;
+        }
+        if(oLastPoint.isNear(x, y)) {
+            oLastPoint.reset(x, y);
+            return;
+        }
+        this.addPoint(x, y);
+    };
+    PolyLine.prototype.addPoint = function(x, y, bTemporary)
+    {
+        this.arrPoint.push(new CPoint(x, y, bTemporary));
+    };
+    PolyLine.prototype.replaceLastPoint = function(x, y, bTemporary)
+    {
+        var oLastPoint = this.arrPoint[this.arrPoint.length - 1];
+        if(!oLastPoint) {
+            this.addPoint(x, y, bTemporary);
+            return;
+        }
+        oLastPoint.reset(x, y, bTemporary);
+    };
+    PolyLine.prototype.canCreateShape = function()
+    {
+        var nCount = this.arrPoint.length;
+        if(nCount < 2) {
+            return false;
+        }
+        var oLast = this.arrPoint[this.arrPoint.length - 1];
+        if(oLast.bTemporary) {
+            --nCount;
+        }
+        return nCount > 1;
     };
 
 function PolylineForDrawer(polyline)
