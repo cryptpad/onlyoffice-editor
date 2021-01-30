@@ -2481,12 +2481,17 @@ AddPolyLine2State3.prototype =
             tr_x = tr_point.X;
             tr_y = tr_point.Y;
         }
-        this.drawingObjects.arrTrackObjects[0].addPoint(tr_x, tr_y);
         if(e.ClickCount > 1)
         {
             this.bStart = true;
             this.pageIndex = this.drawingObjects.startTrackPos.pageIndex;
             StartAddNewShape.prototype.onMouseUp.call(this, e, x, y, pageIndex);
+        }
+        else
+        {
+            var oTrack = this.drawingObjects.arrTrackObjects[0];
+            oTrack.replaceLastPoint(tr_x, tr_y, false);
+            oTrack.addPoint(tr_x, tr_y, true);
         }
     },
 
@@ -2506,7 +2511,7 @@ AddPolyLine2State3.prototype =
         }
 
         var oTrack = this.drawingObjects.arrTrackObjects[0];
-        if(!e.IsLocked)
+        if(!e.IsLocked && oTrack.getPointsCount() > 1)
         {
             oTrack.replaceLastPoint(tr_x, tr_y, true);
         }

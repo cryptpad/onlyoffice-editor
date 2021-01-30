@@ -102,17 +102,6 @@ function PolyLine (drawingObjects, theme, master, layout, slide, pageIndex)
             g.SetCurrentPage(this.pageIndex);
         }
         this.polylineForDrawer.Draw(g);
-        return;
-        if(this.arrPoint.length < 2)
-        {
-            return;
-        }
-        g._m(this.arrPoint[0].x, this.arrPoint[0].y);
-        for(var i = 1; i < this.arrPoint.length; ++i)
-        {
-            g._l(this.arrPoint[i].x, this.arrPoint[i].y);
-        }
-        g.ds();
     };
 
     PolyLine.prototype.getBounds = function()
@@ -286,6 +275,10 @@ function PolyLine (drawingObjects, theme, master, layout, slide, pageIndex)
             --nCount;
         }
         return nCount > 1;
+    };
+    PolyLine.prototype.getPointsCount = function()
+    {
+        return this.arrPoint.length;
     };
 
 function PolylineForDrawer(polyline)
