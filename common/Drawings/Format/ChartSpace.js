@@ -3565,7 +3565,7 @@ var GLOBAL_PATH_COUNT = 0;
             for(i = this.chart.plotArea.charts.length - 1; i > -1; --i) {
                 series = this.chart.plotArea.charts[i].series;
                 for(j = series.length - 1; j > -1; --j) {
-                    pts = series[i].getNumPts();
+                    pts = series[j].getNumPts();
                     if(Array.isArray(pts)) {
                         for(k = pts.length - 1; k > -1; --k) {
                             pts[k].compiledDlb && pts[k].compiledDlb.txBody && pts[k].compiledDlb.txBody.content.Document_CreateFontMap(allFonts);
