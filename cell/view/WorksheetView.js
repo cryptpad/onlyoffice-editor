@@ -11261,10 +11261,10 @@
 		}
 		
 		//data validation
-		if (specialPasteProps.val) {
+		if (specialPasteProps.val && specialPasteProps.format) {
 			t.model.clearDataValidation([pasteToRange], true);
 		}
-		if (fromBinary && val.dataValidations && val.dataValidations.elems.length && specialPasteProps.val) {
+		if (fromBinary && val.dataValidations && val.dataValidations.elems.length && specialPasteProps.val && specialPasteProps.format) {
 			var _offset = new AscCommon.CellBase(arnToRange.r1 - refInsertBinary.r1, arnToRange.c1 - refInsertBinary.c1);
 			for (i = 0; i < val.dataValidations.elems.length; i++) {
 				var dataValidation = val.dataValidations.elems[i];
@@ -11420,6 +11420,11 @@
 		var callback = function () {
 			for (var j = 0; j < pasteToRange.length; j++) {
 				_doPaste(pasteToRange[j]);
+				if (!selectData && !fromBinaryExcel) {
+					History.EndTransaction();
+					window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
+					return;
+				}
 			}
 
 			var _selection;
@@ -11434,8 +11439,10 @@
 				}
 			} else {
 				_selection = t.model.selectionRange.getLast();
-				_selection.c2 = pastedInfo[0].selectData[0].c2;
-				_selection.r2 = pastedInfo[0].selectData[0].r2;
+				if (pastedInfo) {
+					_selection.c2 = pastedInfo[0].selectData[0].c2;
+					_selection.r2 = pastedInfo[0].selectData[0].r2;
+				}
 			}
 
 			History.EndTransaction();
@@ -11574,7 +11581,9 @@
 
 		//если вставляем в мерженную ячейку, диапазон которой больше или равен
 		var fPasteCell = pasteContent.content[0][0];
-		if (arn.c2 >= cMax - 1 && arn.r2 >= rMax - 1 && isMergedFirstCell && isMergedFirstCell.isEqual(arn) && cMax - arn.c1 === fPasteCell.colSpan && rMax - arn.r1 === fPasteCell.rowSpan) {
+		var colSpanCompare = cMax - arn.c1 === fPasteCell.colSpan;
+		var rowSpanCompare = rMax - arn.r1 === fPasteCell.rowSpan;
+		if (arn.c2 >= cMax - 1 && arn.r2 >= rMax - 1 && isMergedFirstCell && isMergedFirstCell.isEqual(arn) && colSpanCompare && rowSpanCompare) {
 			if (!isCheckSelection) {
 				pasteContent.content[0][0].colSpan = isMergedFirstCell.c2 - isMergedFirstCell.c1 + 1;
 				pasteContent.content[0][0].rowSpan = isMergedFirstCell.r2 - isMergedFirstCell.r1 + 1;
@@ -11756,7 +11765,12 @@
 
 	WorksheetView.prototype.pasteFromBinary = function (val, isCheckSelection, tablesMap, pasteToRange) {
 		var pasteRange = AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange;
-		pasteRange = typeof pasteRange === "string" ? AscCommonExcel.g_oRangeCache.getAscRange(pasteRange) : pasteRange;
+		if (typeof pasteRange === "string") {
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				pasteRange = AscCommonExcel.g_oRangeCache.getAscRange(pasteRange);
+			});
+		}
+
 		var pastedCol = pasteRange.c2 - pasteRange.c1 + 1;
 		var pastedRow = pasteRange.r2 - pasteRange.r1 + 1;
 
@@ -11812,7 +11826,14 @@
 		var arrFormula = [];
 
 		var pasteRange = AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange;
-		var activeCellsPasteFragment = typeof pasteRange === "string" ? AscCommonExcel.g_oRangeCache.getAscRange(pasteRange) : pasteRange;
+		var activeCellsPasteFragment;
+		if (typeof pasteRange === "string") {
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				activeCellsPasteFragment = AscCommonExcel.g_oRangeCache.getAscRange(pasteRange);
+			});
+		} else {
+			activeCellsPasteFragment = pasteRange
+		}
 
 		var specialPasteHelper = window['AscCommon'].g_specialPasteHelper;
 		var specialPasteProps = specialPasteHelper.specialPasteProps;
@@ -13402,7 +13423,7 @@
 							t._updateGroups(true);
 							updateDrawingObjectsInfo2 = {bInsert: true, operType: val, updateRange: arn};
 							t.cellCommentator.updateCommentsDependencies(true, val, arn);
-							t.model.shiftDataValidation(true, val, arn);
+							t.model.shiftDataValidation(true, val, arn, true);
 							History.EndTransaction();
 						};
 
@@ -13430,7 +13451,7 @@
 							t._updateGroups();
 							updateDrawingObjectsInfo2 = {bInsert: true, operType: val, updateRange: arn};
 							t.cellCommentator.updateCommentsDependencies(true, val, arn);
-							t.model.shiftDataValidation(true, val, arn);
+							t.model.shiftDataValidation(true, val, arn, true);
 						};
 
 						arrChangedRanges.push(lockRange);
@@ -13549,7 +13570,7 @@
 							History.Create_NewPoint();
 							History.StartTransaction();
 							t.cellCommentator.updateCommentsDependencies(false, val, checkRange);
-							t.model.shiftDataValidation(false, val, checkRange);
+							t.model.shiftDataValidation(false, val, checkRange, true);
 							t.model.autoFilters.isEmptyAutoFilters(arn, c_oAscDeleteOptions.DeleteColumns);
 							t.model.removeCols(checkRange.c1, checkRange.c2);
 							t._updateGroups(true);
@@ -13587,7 +13608,7 @@
 							History.StartTransaction();
 							checkRange = t.model.autoFilters.checkDeleteAllRowsFormatTable(checkRange, true);
 							t.cellCommentator.updateCommentsDependencies(false, val, checkRange);
-							t.model.shiftDataValidation(false, val, checkRange);
+							t.model.shiftDataValidation(false, val, checkRange, true);
 							t.model.autoFilters.isEmptyAutoFilters(arn, c_oAscDeleteOptions.DeleteRows);
 
 							var bExcludeHiddenRows = t.model.autoFilters.bIsExcludeHiddenRows(checkRange, t.model.selectionRange.activeCell);
@@ -14514,21 +14535,53 @@
 					};
 
 					var text = AscCommonExcel.getFragmentsText(val);
-					var dataValidation = 0 !== text.length && t.model.getDataValidation(col, row);
+					var dataValidation = t.model.getDataValidation(col, row);
+					if (dataValidation && dataValidation.allowBlank && 0 === text.length) {
+						dataValidation = null;
+					}
 					if (dataValidation) {
 						var checkCell, setValueError;
 						checkCell = t.model.getCellForValidation(row, col, val, t._isFormula(val) ? text : null,
-													 function (_res) {
-														 setValueError = !_res;
-													 });
+							function (_res) {
+								setValueError = !_res;
+							});
 						if (setValueError) {
 							// Error sent from another function
 							return false;
 						}
+
+						//если в качестве условия введена формула, необходимо чтобы данные временно были в ячейке
+						//поскольку формула может ссылаться на данную ячейку
+						var oldValueData;
+						//дополнительно ещё проверим на наличие данной ячейки в стеке формулы
+						//если её там нет - временно подменять значение не нужно
+						var isNeedChange = Asc.EDataValidationType.Custom === dataValidation.type && dataValidation.checkFormulaStackOnCell(row, col);
+						var temporarySetValue = function (_val) {
+							if (isNeedChange) {
+								c._foreach(function(cell){
+									if (cell.nCol === col && cell.nRow === row) {
+										if (_val) {
+											//temporary set
+											oldValueData = cell.getValueData();
+											cell._setValueData(_val.value);
+										} else {
+											//revert
+											cell._setValueData(oldValueData.value);
+											cell._hasChanged = false;
+										}
+									}
+								});
+							}
+						};
+
+						temporarySetValue(checkCell.getValueData());
 						if (!dataValidation.checkValue(checkCell, t.model)) {
-						t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.DataValidate, c_oAscError.Level.NoCritical, dataValidation);
-						return false;
-					}
+							t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.DataValidate, c_oAscError.Level.NoCritical, dataValidation);
+							temporarySetValue();
+							return false;
+						} else {
+							temporarySetValue();
+						}
 					}
 
 					//***array-formula***
@@ -16913,8 +16966,8 @@
 		var isPartTablePartsRightRange = ws.autoFilters.isPartTablePartsRightRange(activeRange);
 		var isOneTableIntersection = intersectionTableParts && intersectionTableParts.length === 1 ? intersectionTableParts[0] : null;
 
-		var isPartFilterUnderRange = ws.autoFilters.isPartFilterUnderRange(activeRange);
-		var isPartFilterRightRange = ws.autoFilters.isPartFilterRightRange(activeRange);
+		var isPartFilterUnderRange = ws.autoFilters.isPartFilterUnderRange(activeRange, true);
+		var isPartFilterRightRange = ws.autoFilters.isPartFilterRightRange(activeRange, true);
 
 		var isPartTablePartsByRowCol = ws.autoFilters._isPartTablePartsByRowCol(activeRange);
 
@@ -20652,10 +20705,6 @@
 			//set menu object
 			var autoFilterObject = new Asc.AutoFiltersOptions();
 
-			if (!checkFilterItems(val)) {
-				checkFilterItems(val, true);
-			}
-
 			autoFilterObject.asc_setCellId(cellId);
 			autoFilterObject.asc_setValues(val);
 			autoFilterObject.asc_setFilterObj(filterObj);
@@ -20668,11 +20717,16 @@
 			var type = slicerCache.getType();
 			switch (type) {
 				case window['AscCommonExcel'].insertSlicerType.table: {
-					//TODO сформировать объект autoFiltersObject
+					if (!checkFilterItems(val)) {
+						checkFilterItems(val, true);
+					}
 					this.applyAutoFilter(createSimpleFilterOptions());
 					break;
 				}
 				case window['AscCommonExcel'].insertSlicerType.pivotTable: {
+					if (!checkFilterItems(val)) {
+						checkFilterItems(val, true);
+					}
 					slicerCache.applyPivotFilterWithLock(this.model.workbook.oApi, val, slicer.name, null, false);
 					break;
 				}
@@ -20773,9 +20827,16 @@
 					slicer.cacheDefinition = modelCaches[i];
 				} else {
 					//тут необходимо ещё проверить, соответсвует ли внутренняя структура
-					var table = slicer.cacheDefinition.getTableSlicerCache();
-					if (!table || !t.model.workbook.getTableIndexColumnByName(table.tableId, table.column)) {
-						continue;
+					var _type = slicer.cacheDefinition.getType();
+					if (_type === window['AscCommonExcel'].insertSlicerType.table) {
+						var table = slicer.cacheDefinition.getTableSlicerCache();
+						if (!table || !t.model.workbook.getTableIndexColumnByName(table.tableId, table.column)) {
+							continue;
+						}
+					} else if (_type === window['AscCommonExcel'].insertSlicerType.pivotTable) {
+						if (!slicer.cacheDefinition.moveToWb(t.model.workbook)) {
+							continue;
+						}
 					}
 					slicer.cacheDefinition.name = slicer.cacheDefinition.generateSlicerCacheName(slicer.name);
 					var newDefName = new Asc.asc_CDefName(slicer.cacheDefinition.name, "#N/A", null, Asc.c_oAscDefNameType.slicer);
@@ -20825,7 +20886,7 @@
 					t._isLockedDefNames(function(isLockedDefNames) {
 						if (isLockedDefNames) {
 							if (pivotLockInfos.length > 0) {
-								t.collaborativeEditing.lock(pivotLockInfos, callback);
+								t.collaborativeEditing.lock(pivotLockInfos, _callback);
 							} else {
 								_callback(true);
 							}
@@ -20835,7 +20896,7 @@
 					});
 				} else {
 					if (pivotLockInfos.length > 0) {
-						t.collaborativeEditing.lock(pivotLockInfos, callback);
+						t.collaborativeEditing.lock(pivotLockInfos, _callback);
 					} else {
 						_callback(true);
 					}
@@ -20894,6 +20955,8 @@
 			History.StartTransaction();
 
 			t.model.setDataValidationProps(props);
+			t.handlers.trigger("selectionChanged");
+			t.draw();
 
 			History.EndTransaction();
 		};

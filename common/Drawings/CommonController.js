@@ -7419,7 +7419,6 @@ DrawingObjectsController.prototype =
                     var Depth = 0;
                     if(oDrawingSelectionState.textObject instanceof AscFormat.CGraphicFrame){
                         oDocContent = oDrawingSelectionState.textObject.graphicObject;
-                        Depth = 1;
                     }
                     else {
                         oDocContent = oDrawingSelectionState.textObject.getDocContent();

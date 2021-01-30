@@ -1473,6 +1473,7 @@ function CEditorPage(api)
 
 	this.onMouseDown = function(e, isTouch)
 	{
+		oThis.m_oApi.checkInterfaceElementBlur();
 		oThis.m_oApi.checkLastWork();
 
 		//console.log("down: " + isTouch + ", " + AscCommon.isTouch);
@@ -1622,7 +1623,7 @@ function CEditorPage(api)
 		}
 
 		oWordControl.StartUpdateOverlay();
-		var is_drawing = oWordControl.m_oDrawingDocument.checkMouseMove_Drawing(pos);
+		var is_drawing = oWordControl.m_oDrawingDocument.checkMouseMove_Drawing(pos, e === undefined ? true : false);
 		if (is_drawing === true)
 			return;
 
@@ -2963,6 +2964,8 @@ function CEditorPage(api)
 				}
 			}
 
+            drDoc.contentControls && drDoc.contentControls.DrawContentControlsTrack(overlay);
+
 			// drawShapes (+ track)
 			if (this.m_oLogicDocument.DrawingObjects)
 			{
@@ -2980,8 +2983,6 @@ function CEditorPage(api)
 					this.m_oDrawingDocument.AutoShapesTrack.CorrectOverlayBounds();
 				}
 			}
-
-			drDoc.contentControls && drDoc.contentControls.DrawContentControlsTrack(overlay);
 
             if (drDoc.placeholders.objects.length > 0)
             {

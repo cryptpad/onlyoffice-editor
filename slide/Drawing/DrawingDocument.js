@@ -3859,7 +3859,10 @@ function CThumbnailsManager()
 	this.onMouseDown = function(e)
 	{
 		if (oThis.m_oWordControl)
+		{
+			oThis.m_oWordControl.m_oApi.checkInterfaceElementBlur();
 			oThis.m_oWordControl.m_oApi.checkLastWork();
+		}
 
 		AscCommon.stopEvent(e);
 

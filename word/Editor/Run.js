@@ -1484,7 +1484,7 @@ ParaRun.prototype.GetLogicDocument = function()
 // Добавляем элемент в позицию с сохранием в историю
 ParaRun.prototype.Add_ToContent = function(Pos, Item, UpdatePosition)
 {
-	if (this.GetTextForm() && this.GetTextForm().Comb)
+	if (this.GetTextForm() && this.GetTextForm().IsComb())
 		this.RecalcInfo.Measure = true;
 
 	this.CheckParentFormKey();
@@ -1563,7 +1563,7 @@ ParaRun.prototype.Add_ToContent = function(Pos, Item, UpdatePosition)
 
 ParaRun.prototype.Remove_FromContent = function(Pos, Count, UpdatePosition)
 {
-	if (this.GetTextForm() && this.GetTextForm().Comb)
+	if (this.GetTextForm() && this.GetTextForm().IsComb())
 		this.RecalcInfo.Measure = true;
 
 	this.CheckParentFormKey();
@@ -2992,7 +2992,7 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 	var nMaxComb   = -1;
 	var nCombWidth = null;
 	var oTextForm  = this.GetTextForm();
-	if (oTextForm && oTextForm.Comb)
+	if (oTextForm && oTextForm.IsComb())
 	{
 		nMaxComb = oTextForm.MaxCharacters;
 
@@ -6275,7 +6275,7 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
     var aDUnderline = PDSL.DUnderline;
     var aCombForms  = PDSL.CombForms;
 
-    var oCombBorder = this.GetTextForm() && this.GetTextForm().Comb && this.GetTextForm().GetCombBorder() ? this.GetTextForm().GetCombBorder() : null;
+    var oCombBorder = this.GetTextForm() && this.GetTextForm().IsComb() && this.GetTextForm().GetCombBorder() ? this.GetTextForm().GetCombBorder() : null;
 
     var CurTextPr = this.Get_CompiledPr( false );
     var StrikeoutY = Y - this.YOffset;
@@ -12515,22 +12515,42 @@ ParaRun.prototype.private_ProcessFrenchPunctuation = function(oDocument, oParagr
  */
 ParaRun.prototype.private_ProcessHyperlinkAutoCorrect = function(oDocument, oParagraph, oContentPos, nPos, oRunElementsBefore, sText)
 {
+	var isPresentation = !!(AscCommonSlide.CPresentation && oDocument instanceof AscCommonSlide.CPresentation);
+
 	if (this.IsInHyperlink())
 		return false;
 
 	var nTypeHyper = AscCommon.getUrlType(sText);
 	if (AscCommon.c_oAscUrlType.Invalid !== nTypeHyper)
 	{
-		if (!oDocument.IsSelectionLocked({
+		if (isPresentation || !oDocument.IsSelectionLocked({
 			Type      : AscCommon.changestype_2_ElementsArray_and_Type,
 			Elements  : [oParagraph],
 			CheckType : AscCommon.changestype_Paragraph_Properties
 		}))
 		{
 			oDocument.StartAction(AscDFH.historydescription_Document_AutomaticListAsType);
+			var oTopElement;
+
+			if (isPresentation)
+			{
+				var oParentContent = oParagraph.Parent;
+				var oTable         = oParentContent.IsInTable(true);
+				if (oTable)
+				{
+					oTopElement = oTable;
+				}
+				else
+				{
+					oTopElement = oParentContent;
+				}
+			}
+			else
+			{
+				oTopElement = oDocument;
+			}
 
 			var arrContentPosition = oRunElementsBefore.GetContentPositions();
-
 			var oStartPos = arrContentPosition.length > 0 ? arrContentPosition[arrContentPosition.length - 1] : oRunElementsBefore.CurContentPos;
 			var oEndPos   = oContentPos;
 			oContentPos.Update(nPos, oContentPos.GetDepth());
@@ -12548,7 +12568,7 @@ ParaRun.prototype.private_ProcessHyperlinkAutoCorrect = function(oDocument, oPar
 			oParagraph.RemoveSelection();
 
 			oDocument.RefreshDocumentPositions([oDocPos]);
-			oDocument.SetContentPosition(oDocPos, 0, 0)
+			oTopElement.SetContentPosition(oDocPos, 0, 0);
 			oDocument.Recalculate();
 			oDocument.FinalizeAction();
 		}

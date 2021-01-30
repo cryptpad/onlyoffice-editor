@@ -2246,12 +2246,12 @@ background-repeat: no-repeat;\
 	{
 	    if (AscCommon.CollaborativeEditing.Get_GlobalLock())
 	        return;
-
+	    
 		var _logicDoc = this.WordControl.m_oLogicDocument;
 		if (!_logicDoc)
 			return;
 
-		if (false === _logicDoc.Document_Is_SelectionLocked(changestype_Paragraph_Content, null, true, false))
+		if (false === _logicDoc.IsSelectionLocked(changestype_Paragraph_Content, null, true, _logicDoc.IsFormFieldEditing()))
 		{
 			window['AscCommon'].g_specialPasteHelper.Paste_Process_Start(arguments[5]);
 			
@@ -9404,9 +9404,18 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_UncheckContentControlButtons = function()
 	{
 		var _controls = (this.WordControl && this.WordControl.m_oDrawingDocument && this.WordControl.m_oDrawingDocument.contentControls) ? this.WordControl.m_oDrawingDocument.contentControls.ContentControlObjects : [];
+		if (_controls.length === 0)
+			return;
+
+		if (!window['IS_NATIVE_EDITOR'] && AscCommon.global_mouseEvent.IsLocked)
+		{
+			this.WordControl.onMouseUpMainSimple();
+		}
+
 		for (var i = 0; i < _controls.length; i++)
 		{
 			_controls[i].ActiveButtonIndex = -2;
+			_controls[i].HoverButtonIndex = -2;
 		}
 
 		this.WordControl.ShowOverlay();
@@ -10244,7 +10253,7 @@ background-repeat: no-repeat;\
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
 		var arrOutline = [];
-		oLogicDocument.GetOutlineParagraphs(arrOutline, {SkipEmptyParagraphs : true});
+		oLogicDocument.GetOutlineParagraphs(arrOutline, {SkipEmptyParagraphs : true, OutlineStart : 1, OutlineEnd : 9});
 		var aParagraphs = [];
 		for(var nIndex = 0; nIndex < arrOutline.length; ++nIndex)
 		{
@@ -10795,6 +10804,23 @@ background-repeat: no-repeat;\
 			}
 		}
 	};
+
+	asc_docs_api.prototype.onUpdateRestrictions = function()
+	{
+		var contentControls = null;
+		if (this.WordControl && this.WordControl.m_oDrawingDocument)
+			contentControls = this.WordControl.m_oDrawingDocument.contentControls;
+
+		if (!contentControls)
+			return;
+
+		if (contentControls.ContentControlObjects.length === 0)
+			return;
+
+		contentControls.clearAttack();
+		this.WordControl.m_oLogicDocument.Document_UpdateSelectionState();
+	};
+
 	//-------------------------------------------------------------export---------------------------------------------------
 	window['Asc']                                                       = window['Asc'] || {};
 	CAscSection.prototype['get_PageWidth']                              = CAscSection.prototype.get_PageWidth;

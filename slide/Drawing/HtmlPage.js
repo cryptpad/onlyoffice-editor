@@ -2058,6 +2058,7 @@ function CEditorPage(api)
 
 	this.onMouseDown = function(e)
 	{
+		oThis.m_oApi.checkInterfaceElementBlur();
 		oThis.m_oApi.checkLastWork();
 
 		if (false === oThis.m_oApi.bInit_word_control)

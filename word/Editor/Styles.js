@@ -13127,6 +13127,32 @@ CTextPr.prototype.GetIncDecFontSizeCS = function(IncFontSize)
 	return FontSize_IncreaseDecreaseValue(IncFontSize, FontSize);
 };
 
+
+CTextPr.prototype.GetIncDecFontSize = function(IncFontSize)
+{
+	var FontSize = this.FontSize;
+	if(this.FontScale !== null &&
+		this.FontScale !== undefined &&
+		this.FontSizeOrig !== null &&
+		this.FontSizeOrig !== undefined)
+	{
+		FontSize = this.FontSizeOrig;
+	}
+	return FontSize_IncreaseDecreaseValue(IncFontSize, FontSize);
+};
+CTextPr.prototype.GetIncDecFontSizeCS = function(IncFontSize)
+{
+	var FontSize = this.FontSizeCS;
+	if(this.FontScale !== null &&
+		this.FontScale !== undefined &&
+		this.FontSizeCSOrig !== null &&
+		this.FontSizeCSOrig !== undefined)
+	{
+		FontSize = this.FontSizeCSOrig;
+	}
+	return FontSize_IncreaseDecreaseValue(IncFontSize, FontSize);
+};
+
 CTextPr.prototype.CheckFontScale =  function()
 {
 	if(this.FontScale !== null && this.FontScale !== undefined)

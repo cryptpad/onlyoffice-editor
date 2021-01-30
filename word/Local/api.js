@@ -251,8 +251,7 @@ Asc['asc_docs_api'].prototype.AddImage = Asc['asc_docs_api'].prototype.asc_addIm
 		var file = _file;
 		if (Array.isArray(file))
 			file = file[0];
-
-		if (file == "")
+		if (!file)
 			return;
 
 		var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](file);

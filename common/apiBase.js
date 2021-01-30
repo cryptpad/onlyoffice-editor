@@ -528,6 +528,7 @@
 	baseEditorsApi.prototype.asc_setRestriction              = function(val)
 	{
 		this.restrictions = val;
+		this.onUpdateRestrictions();
 	};
 	baseEditorsApi.prototype.getViewMode                     = function()
 	{
@@ -536,6 +537,7 @@
 	baseEditorsApi.prototype.asc_addRestriction              = function(val)
 	{
 		this.restrictions |= val;
+		this.onUpdateRestrictions();
 	};
 	baseEditorsApi.prototype.asc_removeRestriction           = function(val)
 	{
@@ -560,6 +562,9 @@
 	baseEditorsApi.prototype.isRestrictionView               = function()
 	{
 		return !!(this.restrictions & Asc.c_oAscRestrictionType.View);
+	};
+	baseEditorsApi.prototype.onUpdateRestrictions = function()
+	{
 	};
 	baseEditorsApi.prototype.isLongAction                    = function()
 	{
@@ -2751,6 +2756,17 @@
 			return 0;
 
 		return new Date().getTime() - this.lastWorkTime;
+	};
+
+	baseEditorsApi.prototype.checkInterfaceElementBlur = function()
+	{
+		if (!document.activeElement || !document.createEvent || (document.activeElement.id === "area_id"))
+			return;
+
+		var e = document.createEvent("HTMLEvents");
+		e.initEvent("blur", true, true);
+		e.eventName = "blur";
+		document.activeElement.dispatchEvent(e);
 	};
 
 	baseEditorsApi.prototype.checkLastWork = function()

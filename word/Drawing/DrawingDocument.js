@@ -5875,6 +5875,14 @@ function CDrawingDocument()
 		this.GuiCanvasFillTOC.width = wPx;
 
 		History.TurnOff();
+
+		var oLogicDocument = this.m_oWordControl.m_oLogicDocument;
+		var bTrackRevisions = oLogicDocument.IsTrackRevisions();
+
+		if (bTrackRevisions)
+		{
+			oLogicDocument.SetTrackRevisions(false);
+		}
 		var _oldTurn = editor.isViewMode;
 		editor.isViewMode = true;
 
@@ -5884,7 +5892,6 @@ function CDrawingDocument()
 		this.m_oWordControl.m_oApi.ShowParaMarks = false;
 
 		// content
-		var oLogicDocument = this.m_oWordControl.m_oLogicDocument;
 		var oStyles        = oLogicDocument.GetStyles();
 
 		var oHeader          = new CHeaderFooter(oLogicDocument.HdrFtr, oLogicDocument, this, AscCommon.hdrftr_Header);
@@ -6071,6 +6078,10 @@ function CDrawingDocument()
 		this.m_oWordControl.m_oApi.ShowParaMarks = old_marks;
 
 		History.TurnOn();
+		if (bTrackRevisions)
+		{
+			oLogicDocument.SetTrackRevisions(true);
+		}
 		editor.isViewMode = _oldTurn;
 	};
 
@@ -6134,8 +6145,14 @@ function CDrawingDocument()
 		this.GuiCanvasFillTOF.width = wPx;
 
 		History.TurnOff();
+		var oLogicDocument = this.m_oWordControl.m_oLogicDocument;
 		var _oldTurn = editor.isViewMode;
 		editor.isViewMode = true;
+		var bTrackRevisions = oLogicDocument.IsTrackRevisions();
+		if (bTrackRevisions)
+		{
+			oLogicDocument.SetTrackRevisions(false);
+		}
 
 		var ctx = this.GuiCanvasFillTOF.getContext('2d');
 
@@ -6143,7 +6160,6 @@ function CDrawingDocument()
 		this.m_oWordControl.m_oApi.ShowParaMarks = false;
 
 		// content
-		var oLogicDocument = this.m_oWordControl.m_oLogicDocument;
 		var oStyles        = oLogicDocument.GetStyles();
 
 		var oHeader          = new CHeaderFooter(oLogicDocument.HdrFtr, oLogicDocument, this, AscCommon.hdrftr_Header);
@@ -6259,6 +6275,10 @@ function CDrawingDocument()
 		this.m_oWordControl.m_oApi.ShowParaMarks = old_marks;
 
 		History.TurnOn();
+		if (bTrackRevisions)
+		{
+			oLogicDocument.SetTrackRevisions(true);
+		}
 		editor.isViewMode = _oldTurn;
 	};
 
@@ -7257,7 +7277,7 @@ function CDrawingDocument()
 		return false;
 	};
 
-	this.checkMouseMove_Drawing = function (pos)
+	this.checkMouseMove_Drawing = function (pos, isWithoutCoords)
 	{
 		var oWordControl = this.m_oWordControl;
 
@@ -7369,7 +7389,7 @@ function CDrawingDocument()
 			}
 		}
 
-		if (this.contentControls.onPointerMove(pos))
+		if (this.contentControls.onPointerMove(pos, isWithoutCoords))
 			return true;
 
         var _page = this.m_arrPages[pos.Page];

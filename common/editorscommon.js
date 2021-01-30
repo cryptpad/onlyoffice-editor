@@ -4701,12 +4701,11 @@
 	{
 		this.Text = "";
 		window["AscDesktopEditor"]["OpenFilenameDialog"]("images", false, function(_file) {
-            var file = _file;
-            if (Array.isArray(file))
-                file = file[0];
-
-			if (file == "")
-                return;
+			var file = _file;
+			if (Array.isArray(file))
+				file = file[0];
+			if (!file)
+				return;
 
             var _drawer = window.Asc.g_signature_drawer;
             _drawer.Image = window["AscDesktopEditor"]["GetImageBase64"](file);
@@ -4911,11 +4910,11 @@
 		{
 			var _this = this;
             window["AscDesktopEditor"]["OpenFilenameDialog"]("images", true, function(files) {
-
+				if (!files)
+					return;
                 if (!Array.isArray(files)) // string detect
                     files = [files];
-
-                if (0 == files.length)
+                if (0 === files.length)
                 	return;
 
 				var _files = [];
