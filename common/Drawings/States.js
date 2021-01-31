@@ -136,6 +136,29 @@ StartAddNewShape.prototype =
                 ext_y = oExt.y;
                 this.onMouseMove({IsLocked: true}, this.startX + ext_x, this.startY + ext_y);
             }
+            var oTrack = this.drawingObjects.arrTrackObjects[0];
+            if(oTrack instanceof AscFormat.PolyLine)
+            {
+                if(!oTrack.canCreateShape())
+                {
+                    this.drawingObjects.clearTrackObjects();
+                    this.drawingObjects.clearPreTrackObjects();
+                    this.drawingObjects.updateOverlay();
+                    if(Asc["editor"])
+                    {
+                        if(!e.fromWindow || this.bStart)
+                        {
+                            Asc["editor"].asc_endAddShape();
+                        }
+                    }
+                    else if(editor && editor.sync_EndAddShape)
+                    {
+                        editor.sync_EndAddShape();
+                    }
+                    this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
+                    return;
+                }
+            }
             var callback = function(bLock){
 
                 if(bLock)
