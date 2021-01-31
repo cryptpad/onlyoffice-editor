@@ -2458,7 +2458,8 @@ AddPolyLine2State2.prototype =
 function AddPolyLine2State3(drawingObjects, pageIndex)
 {
     this.drawingObjects = drawingObjects;
-    this.minSize = drawingObjects.drawingDocument.GetMMPerDot(1);
+    this.lastX = -1000;
+    this.lastY = -1000;
 
     this.polylineFlag = true;
     this.pageIndex = pageIndex;
@@ -2467,8 +2468,13 @@ AddPolyLine2State3.prototype =
 {
     onMouseDown: function(e, x, y, pageIndex)
     {
+
         if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_CURSOR)
             return {objectId: null, bMarker: true};
+
+
+        this.lastX = x;
+        this.lastY = y;
         var tr_x, tr_y;
         if(pageIndex === this.drawingObjects.startTrackPos.pageIndex)
         {
@@ -2497,6 +2503,9 @@ AddPolyLine2State3.prototype =
 
     onMouseMove: function(e, x, y, pageIndex)
     {
+        if(AscFormat.fApproxEqual(x, this.lastX) && AscFormat.fApproxEqual(y, this.lastY)) {
+            return;
+        }
         var tr_x, tr_y;
         if(pageIndex === this.drawingObjects.startTrackPos.pageIndex)
         {
@@ -2520,10 +2529,14 @@ AddPolyLine2State3.prototype =
             oTrack.tryAddPoint(tr_x, tr_y);
         }
         this.drawingObjects.drawingDocument.m_oWordControl.OnUpdateOverlay();
+        this.lastX = x;
+        this.lastY = y;
     },
 
     onMouseUp: function(e, x, y, pageIndex)
     {
+        this.lastX = x;
+        this.lastY = y;
         if(e.ClickCount > 1)
         {
 
