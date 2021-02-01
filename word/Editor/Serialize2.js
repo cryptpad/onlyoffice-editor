@@ -11172,7 +11172,8 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
                 return oThis.ReadRun(t, l, oParStruct);
             });
 			var run = oParStruct.addElemToContentFinish();
-			if (run.GetElementsCount() > Asc.c_dMaxParaRunContentLength) {
+			//todo do not split runs inside CInlineLevelSdt(use GetParentForm)
+			if (run.GetElementsCount() > Asc.c_dMaxParaRunContentLength && !(oParStruct.cur instanceof CInlineLevelSdt && oParStruct.cur.IsForm())) {
 				this.oReadResult.runsToSplit.push(run);
 			}
         }
