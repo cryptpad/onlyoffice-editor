@@ -1640,17 +1640,26 @@
 	{
 		return this.StyleId;
 	};
+	CAscStyle.prototype.get_TranslatedName = function()
+	{
+		if(typeof this.Name === "string" && this.Name.length > 0)
+		{
+			return AscCommon.translateManager.getValue(this.Name);
+		}
+		return this.Name;
+	};
 
 	window['Asc']['CAscStyle'] = window['Asc'].CAscStyle = CAscStyle;
-	CAscStyle.prototype['get_Name']       = CAscStyle.prototype.get_Name;
-	CAscStyle.prototype['put_Name']       = CAscStyle.prototype.put_Name;
-	CAscStyle.prototype['get_Type']       = CAscStyle.prototype.get_Type;
-	CAscStyle.prototype['put_Type']       = CAscStyle.prototype.put_Type;
-	CAscStyle.prototype['get_QFormat']    = CAscStyle.prototype.get_QFormat;
-	CAscStyle.prototype['put_QFormat']    = CAscStyle.prototype.put_QFormat;
-	CAscStyle.prototype['get_UIPriority'] = CAscStyle.prototype.get_UIPriority;
-	CAscStyle.prototype['put_UIPriority'] = CAscStyle.prototype.put_UIPriority;
-	CAscStyle.prototype['get_StyleId']    = CAscStyle.prototype.get_StyleId;
+	CAscStyle.prototype['get_Name']           = CAscStyle.prototype.get_Name;
+	CAscStyle.prototype['put_Name']           = CAscStyle.prototype.put_Name;
+	CAscStyle.prototype['get_Type']           = CAscStyle.prototype.get_Type;
+	CAscStyle.prototype['put_Type']           = CAscStyle.prototype.put_Type;
+	CAscStyle.prototype['get_QFormat']        = CAscStyle.prototype.get_QFormat;
+	CAscStyle.prototype['put_QFormat']        = CAscStyle.prototype.put_QFormat;
+	CAscStyle.prototype['get_UIPriority']     = CAscStyle.prototype.get_UIPriority;
+	CAscStyle.prototype['put_UIPriority']     = CAscStyle.prototype.put_UIPriority;
+	CAscStyle.prototype['get_StyleId']        = CAscStyle.prototype.get_StyleId;
+	CAscStyle.prototype['get_TranslatedName'] = CAscStyle.prototype.get_TranslatedName;
 
 
 	/**
