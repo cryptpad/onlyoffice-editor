@@ -4919,7 +4919,9 @@ var editor;
 
   spreadsheet_api.prototype.asc_setSkin = function (theme) {
     AscCommon.updateGlobalSkin(theme);
-    this.wb.updateSkin();
+    if (this.wb) {
+      this.wb.updateSkin();
+    }
   };
 
   /*
