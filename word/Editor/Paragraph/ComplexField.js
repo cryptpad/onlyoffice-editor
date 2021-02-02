@@ -533,7 +533,7 @@ CComplexField.prototype.private_InsertContent = function(oSelectedContent)
 		var oNearPos = oParagraph.GetCurrentAnchorPosition();
 		this.LogicDocument.TurnOff_Recalculate();
 		this.LogicDocument.TurnOff_InterfaceEvents();
-		this.LogicDocument.Remove(1, false, false, false);
+		this.LogicDocument.Remove(1, false, false, true);
 		this.LogicDocument.TurnOn_Recalculate(false);
 		this.LogicDocument.TurnOn_InterfaceEvents(false);
 		if(oNearPos)
@@ -887,7 +887,7 @@ CComplexField.prototype.private_UpdateTOC = function()
 				oContainer.Add_ToContent(nContainerPos + 1, oPageRefRun);
 			}
 
-			oSelectedContent.Add(new CSelectedElement(oPara, true));
+			oSelectedContent.Add(new CSelectedElement(oPara, false));
 		}
 	}
 	else
@@ -907,13 +907,13 @@ CComplexField.prototype.private_UpdateTOC = function()
 		oRun.Set_Bold(true);
 		oRun.AddText(sReplacementText);
 		oPara.AddToContent(0, oRun);
-		oSelectedContent.Add(new CSelectedElement(oPara, true));
+		oSelectedContent.Add(new CSelectedElement(oPara, false));
 	}
 
 	this.SelectFieldValue();
 	this.LogicDocument.TurnOff_Recalculate();
 	this.LogicDocument.TurnOff_InterfaceEvents();
-	this.LogicDocument.Remove(1, false, false, false);
+	this.LogicDocument.Remove(1, false, false, true);
 	this.LogicDocument.TurnOn_Recalculate(false);
 	this.LogicDocument.TurnOn_InterfaceEvents(false);
 	oRun       = this.BeginChar.GetRun();
