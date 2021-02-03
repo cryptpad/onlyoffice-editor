@@ -369,6 +369,35 @@
 			return settings;
 		};
 
+		asc_CEventsController.prototype.updateScrollSettings = function () {
+			var opt = this.settings, settings;
+			if (this.vsbApi) {
+				settings = this.createScrollSettings();
+
+				settings.vscrollStep = opt.vscrollStep;
+				settings.hscrollStep = opt.hscrollStep;
+				settings.wheelScrollLines = opt.wheelScrollLinesV;
+				settings.isVerticalScroll = true;
+				settings.isHorizontalScroll = false;
+
+				this.vsbApi.Repos(settings, true, undefined);
+
+				this.vsbApi.settings = settings;
+			}
+			if (this.hsbApi) {
+				settings = this.createScrollSettings();
+
+				settings.vscrollStep = opt.vscrollStep;
+				settings.hscrollStep = opt.hscrollStep;
+				settings.isVerticalScroll = false;
+				settings.isHorizontalScroll = true;
+
+				this.hsbApi.Repos(settings, true, undefined);
+
+				this.hsbApi.settings = settings;
+			}
+		};
+
 		asc_CEventsController.prototype._createScrollBars = function () {
 			var self = this, settings, opt = this.settings;
 

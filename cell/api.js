@@ -4923,6 +4923,7 @@ var editor;
       this.wb.updateSkin();
       var ws = this.wb.getWorksheet();
       if (ws) {
+          this.controller.updateScrollSettings();
 		  ws.draw();
       }
     }
