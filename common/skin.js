@@ -206,21 +206,21 @@ var EditorSkins = {
 		SplitterWidthMM                       : 1,
 		ThumbnailScrollWidthNullIfNoScrolling : false,
 
-		Background               : "#f1f1f1",
-		Border                   : "#d5d5d5",
-		Color                    : "#363636",
-		BackgroundDark           : "#444444",
-		ColorDark                : "#ffffff",
-		BackgroundActive         : "#c1c1c1",
-		BorderActive             : "#929292",
-		ColorActive              : "#363636",
-		BackgroundDarkActive     : "#000000",
-		ColorDarkActive          : "#ffffff",
-		BackgroundHighlighted    : "#dfdfdf",
-		BorderHighlighted        : "#afafaf",
-		ColorHighlighted         : "#6a6a70",
-		BackgroundDarkHighlighted: "#ffffff",
-		ColorDarkHighlighted     : "#c1c1c1"
+		Background               : "#060606",
+		Border                   : "#4b4b4b",
+		Color                    : "#d9d9d9",
+		BackgroundDark           : "#010101",
+		ColorDark                : "#d9d9d9",
+		BackgroundActive         : "#5d5d5d",
+		BorderActive             : "#9e9e9e",
+		ColorActive              : "#d9d9d9",
+		BackgroundDarkActive     : "#030303",
+		ColorDarkActive          : "#d9d9d9",
+		BackgroundHighlighted    : "#4e4e4e",
+		BorderHighlighted        : "#555555",
+		ColorHighlighted         : "#d9d9d9",
+		BackgroundDarkHighlighted: "#000000",
+		ColorDarkHighlighted     : "#d9d9d9"
 	}
 };
 

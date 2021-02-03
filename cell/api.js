@@ -4921,6 +4921,10 @@ var editor;
     AscCommon.updateGlobalSkin(theme);
     if (this.wb) {
       this.wb.updateSkin();
+      var ws = this.wb.getWorksheet();
+      if (ws) {
+		  ws.draw();
+      }
     }
   };
 
