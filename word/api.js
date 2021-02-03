@@ -9748,7 +9748,7 @@ background-repeat: no-repeat;\
 		{
 			return;
 		}
-		var sCaption = oPr.get_Caption();
+		var sCaption = oPr.get_CaptionForInstruction();
 		var aTOF, oTOF, nIndex, sInstrCaption;
 		var oTOFToReplace = null;
 		var oInstruction;
@@ -9780,10 +9780,6 @@ background-repeat: no-repeat;\
 						}
 					}
 				}
-				if(!oTOFToReplace)
-				{
-					oTOFToReplace = aTOF[0];
-				}
 			}
 		}
 		if(oTOFToReplace)
@@ -9793,6 +9789,7 @@ background-repeat: no-repeat;\
 			this.sendEvent("asc_onAscReplaceCurrentTOF", function(bReplace){
 				if(!bReplace)
 				{
+					oLogicDocument.MoveCursorRight(false, false, false);
 					oLogicDocument.AddTableOfFigures(oPr);
 				}
 				else
@@ -9811,7 +9808,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_GetTableOfFiguresPr = function()
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
-		var oApi = this;
 		if(!oLogicDocument)
 		{
 			return null;

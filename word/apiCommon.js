@@ -1555,6 +1555,20 @@
 	{
 		return this.Caption;
 	};
+	CTableOfContentsPr.prototype.get_CaptionForInstruction = function()
+	{
+		if(typeof this.Caption === "string")
+		{
+			var aSplit = this.Caption.split(" ");
+			var sResult = aSplit[0];
+			for(var nIdx = 1; nIdx < aSplit.length; ++nIdx)
+			{
+				sResult += ("_" + aSplit[nIdx]);
+			}
+			return sResult;
+		}
+		return this.Caption;
+	};
 	CTableOfContentsPr.prototype.put_IncludeLabelAndNumber = function(bInclude)
 	{
 		this.IsIncludeLabelAndNumber = bInclude;
@@ -2162,7 +2176,19 @@
 	window['Asc']['CAscCaptionProperties'] = window['Asc'].CAscCaptionProperties = CAscCaptionProperties;
 	var prot = CAscCaptionProperties.prototype;
 	prot.get_Name = prot["get_Name"] = function(){return this.Name;};
-	prot.get_Label = prot["get_Label"] = function(){return this.Label;};
+	prot.get_Label = prot["get_Label"] = function(){
+		if(typeof this.Label === "string")
+		{
+			var aSplit = this.Label.split("_");
+			var sResult = aSplit[0];
+			for(var nIdx = 1; nIdx < aSplit.length; ++nIdx)
+			{
+				sResult += (" " + aSplit[nIdx]);
+			}
+			return sResult;
+		}
+		return this.Label;
+	};
 	prot.get_Before = prot["get_Before"] = function(){return this.Before;};
 	prot.get_ExcludeLabel = prot["get_ExcludeLabel"] = function(){return this.ExcludeLabel;};
 	prot.get_Format = prot["get_Format"] = function(){return this.Format;};
@@ -2205,8 +2231,6 @@
 	prot.put_HeadingLvl = prot["put_HeadingLvl"] = function(v){this.HeadingLvl = v;};
 	prot.put_Separator = prot["put_Separator"] = function(v){this.Separator = v;};
 	prot.put_Additional = prot["put_Additional"] = function(v){this.Additional = v;};
-
-
 	prot.getSeqInstruction = function()
 	{
 		var oComplexField = new CFieldInstructionSEQ();
@@ -2216,7 +2240,7 @@
 		}
 		if(this.Label)
 		{
-			oComplexField.SetId(this.Label);
+			oComplexField.SetId(this.getLabelForInstruction());
 		}
 		if(AscFormat.isRealNumber(this.HeadingLvl))
 		{
@@ -2224,7 +2248,20 @@
 		}
 		return oComplexField;
 	};
-
+	prot.getLabelForInstruction = function()
+	{
+		if(typeof this.Label === "string")
+		{
+			var aSplited = this.Label.split(" ");
+			var sResult = aSplited[0];
+			for(var nIdx = 1; nIdx < aSplited.length; ++nIdx)
+			{
+				sResult += ("_" + aSplited[nIdx]);
+			}
+			return sResult;
+		}
+		return "";
+	};
 	prot.getSeqInstructionLine = function()
 	{
 		return this.getSeqInstruction().ToString();
