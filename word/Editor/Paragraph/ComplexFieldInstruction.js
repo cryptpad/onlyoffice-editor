@@ -464,7 +464,7 @@ CFieldInstructionTOC.prototype.SetPr = function(oPr)
 		this.SetSeparator(" ");
 
 	this.ForceTabLeader = oPr.TabLeader;
-	var sCaption = oPr.get_Caption();
+	var sCaption = oPr.get_CaptionForInstruction();
 	if(sCaption !== undefined)
 	{
 		if(sCaption || this.Styles.length > 0)
