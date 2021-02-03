@@ -1588,7 +1588,7 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
                 }
 
             }
-            else if(hit_in_text_rect)
+            else if(hit_in_text_rect && drawing.selection.title === title)
             {
                 if(drawingObjectsController.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
                 {
