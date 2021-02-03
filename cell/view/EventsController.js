@@ -343,6 +343,32 @@
 			}
 		};
 
+		asc_CEventsController.prototype.createScrollSettings = function () {
+			var settings = new AscCommon.ScrollSettings();
+
+			settings.scrollBackgroundColor = GlobalSkin.ScrollBackgroundColor;
+			settings.scrollBackgroundColorHover = GlobalSkin.ScrollBackgroundColor;
+			settings.scrollBackgroundColorActive = GlobalSkin.ScrollBackgroundColor;
+
+			settings.scrollerColor = GlobalSkin.ScrollerColor;
+			settings.scrollerHoverColor = GlobalSkin.ScrollerHoverColor;
+			settings.scrollerActiveColor = GlobalSkin.ScrollerActiveColor;
+
+			settings.arrowColor = GlobalSkin.ScrollArrowColor;
+			settings.arrowHoverColor = GlobalSkin.ScrollArrowHoverColor;
+			settings.arrowActiveColor = GlobalSkin.ScrollArrowActiveColor;
+
+			settings.strokeStyleNone = GlobalSkin.ScrollOutlineColor;
+			settings.strokeStyleOver = GlobalSkin.ScrollOutlineHoverColor;
+			settings.strokeStyleActive = GlobalSkin.ScrollOutlineActiveColor;
+
+			settings.targetColor = GlobalSkin.ScrollerTargetColor;
+			settings.targetHoverColor = GlobalSkin.ScrollerTargetHoverColor;
+			settings.targetActiveColor = GlobalSkin.ScrollerTargetActiveColor;
+
+			return settings;
+		};
+
 		asc_CEventsController.prototype._createScrollBars = function () {
 			var self = this, settings, opt = this.settings;
 
@@ -352,7 +378,7 @@
 			this.widget.appendChild(this.vsb);
 
 			if (!this.vsbApi) {
-				settings = new AscCommon.ScrollSettings();
+				settings = this.createScrollSettings();
 				settings.vscrollStep = opt.vscrollStep;
 				settings.hscrollStep = opt.hscrollStep;
 				settings.wheelScrollLines = opt.wheelScrollLinesV;
@@ -382,7 +408,7 @@
 			this.widget.appendChild(this.hsb);
 
 			if (!this.hsbApi) {
-				settings = new AscCommon.ScrollSettings();
+				settings = this.createScrollSettings();
 				settings.vscrollStep = opt.vscrollStep;
 				settings.hscrollStep = opt.hscrollStep;
 				settings.isVerticalScroll = false;
