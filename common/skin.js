@@ -128,7 +128,8 @@ var EditorSkins = {
 		BorderHighlighted        : "#afafaf",
 		ColorHighlighted         : "#6a6a70",
 		BackgroundDarkHighlighted: "#ffffff",
-		ColorDarkHighlighted     : "#c1c1c1"
+		ColorDarkHighlighted     : "#c1c1c1",
+		GroupDataBorder          : "#000000"
 
 	},
 	"flatDark" : {
@@ -220,7 +221,8 @@ var EditorSkins = {
 		BorderHighlighted        : "#555555",
 		ColorHighlighted         : "#d9d9d9",
 		BackgroundDarkHighlighted: "#000000",
-		ColorDarkHighlighted     : "#d9d9d9"
+		ColorDarkHighlighted     : "#d9d9d9",
+		GroupDataBorder          : "#ffffff"
 	}
 };
 
@@ -316,6 +318,8 @@ function updateGlobalSkin(obj)
 		if (undefined !== obj["ColorHighlighted"]) GlobalSkin.ColorHighlighted = obj["ColorHighlighted"];
 		if (undefined !== obj["BackgroundDarkHighlighted"]) GlobalSkin.BackgroundDarkHighlighted = obj["BackgroundDarkHighlighted"];
 		if (undefined !== obj["ColorDarkHighlighted"]) GlobalSkin.ColorDarkHighlighted = obj["ColorDarkHighlighted"];
+		if (undefined !== obj["GroupDataBorder"]) GlobalSkin.GroupDataBorder = obj["GroupDataBorder"];
+
 	}
 
 	window['AscCommon'].GlobalSkin = GlobalSkin;

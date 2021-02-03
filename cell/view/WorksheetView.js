@@ -18140,7 +18140,7 @@
 			arrayLines = groupData.groupArr;
 			//rowLevelMap = groupData.levelMap;
 
-			ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(lineWidth).beginPath();
+			ctx.setStrokeStyle(this.settings.header.groupDataBorder).setLineWidth(lineWidth).beginPath();
 
 			var _summaryRight = this.model.sheetPr ? this.model.sheetPr.SummaryRight : true;
 			var minCol;
@@ -18296,7 +18296,7 @@
 			arrayLines = groupData.groupArr;
 			//rowLevelMap = groupData.levelMap;
 
-			ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(lineWidth).beginPath();
+			ctx.setStrokeStyle(this.settings.header.groupDataBorder).setLineWidth(lineWidth).beginPath();
 
 			var checkPrevHideLevel = function(level, row) {
 				var res = false;
@@ -18487,7 +18487,7 @@
 
 		var i, val, level, diff, pos, x, y, w, h, active;
 		var borderSize = AscCommon.AscBrowser.convertToRetinaValue(1, true);
-		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth( borderSize ).beginPath();
+		ctx.setStrokeStyle(this.settings.header.groupDataBorder).setLineWidth( borderSize ).beginPath();
 		for(i = 0; i < buttons.length; i++) {
 			val = buttons[i].r;
 			level = buttons[i].level;
@@ -18519,7 +18519,7 @@
 		}
 		ctx.closePath();
 
-		ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth( AscCommon.AscBrowser.convertToRetinaValue(2, true)).beginPath();
+		ctx.setStrokeStyle(this.settings.header.groupDataBorder).setLineWidth( AscCommon.AscBrowser.convertToRetinaValue(2, true)).beginPath();
 
 		var sizeLine = AscCommon.AscBrowser.convertToRetinaValue(8, true);
 		//var paddingLine = AscCommon.AscBrowser.convertToRetinaValue(3, true);
