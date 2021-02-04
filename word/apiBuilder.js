@@ -12005,7 +12005,7 @@
 				var arrSelectedParas = [];
 				oContent.GetCurrentParagraph(false, arrSelectedParas, {});
 				ReplaceInParas(arrSelectedParas);
-				
+				Asc.editor.wb.recalculateDrawingObjects();
 				return;
 			}
 
