@@ -241,18 +241,18 @@
 			return this.view.selectionDialogMode;
 		};
 
-		asc_CEventsController.prototype.reinitScrollX = function (pos, max, max2) {
+		asc_CEventsController.prototype.reinitScrollX = function (settings, pos, max, max2) {
 			var step = this.settings.hscrollStep;
 			this.hsbMax = Math.max(max * step, 1);
-			this.hsbApi.settings.contentW = this.hsbMax - 1;
-			this.hsbApi.Repos(this.hsbApi.settings, false, false, pos * step);
+			settings.contentW = this.hsbMax - 1;
+			this.hsbApi.Repos(settings, false, false, pos * step);
 			this.hsbApi.maxScrollX2 = Math.max(max2 * step, 1);
 		};
-		asc_CEventsController.prototype.reinitScrollY = function (pos, max, max2) {
+		asc_CEventsController.prototype.reinitScrollY = function (settings, pos, max, max2) {
 			var step = this.settings.vscrollStep;
 			this.vsbMax = Math.max(max * step, 1);
-			this.vsbApi.settings.contentH = this.vsbMax - 1;
-			this.vsbApi.Repos(this.vsbApi.settings, false, false, pos * step);
+			settings.contentH = this.vsbMax - 1;
+			this.vsbApi.Repos(settings, false, false, pos * step);
 			this.vsbApi.maxScrollY2 = Math.max(max2 * step, 1);
 		};
 
@@ -371,6 +371,7 @@
 
 		asc_CEventsController.prototype.updateScrollSettings = function () {
 			var opt = this.settings, settings;
+			var ws = window["Asc"]["editor"].wb.getWorksheet();;
 			if (this.vsbApi) {
 				settings = this.createScrollSettings();
 
@@ -379,21 +380,16 @@
 				settings.wheelScrollLines = opt.wheelScrollLinesV;
 				settings.isVerticalScroll = true;
 				settings.isHorizontalScroll = false;
-
-				this.vsbApi.Repos(settings, true, undefined);
-
+				this.reinitScrollY(settings, ws.getFirstVisibleRow(true), ws.getVerticalScrollRange(), ws.getVerticalScrollMax());
 				this.vsbApi.settings = settings;
 			}
 			if (this.hsbApi) {
 				settings = this.createScrollSettings();
-
 				settings.vscrollStep = opt.vscrollStep;
 				settings.hscrollStep = opt.hscrollStep;
 				settings.isVerticalScroll = false;
 				settings.isHorizontalScroll = true;
-
-				this.hsbApi.Repos(settings, true, undefined);
-
+				this.reinitScrollX(settings, ws.getFirstVisibleCol(true), ws.getHorizontalScrollRange(), ws.getHorizontalScrollMax());
 				this.hsbApi.settings = settings;
 			}
 		};

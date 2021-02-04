@@ -1050,10 +1050,10 @@
 
 		var ws = this.getWorksheet();
 		if (AscCommonExcel.c_oAscScrollType.ScrollHorizontal & type) {
-			this.controller.reinitScrollX(ws.getFirstVisibleCol(true), ws.getHorizontalScrollRange(), ws.getHorizontalScrollMax());
+			this.controller.reinitScrollX(this.controller.hsbApi.settings, ws.getFirstVisibleCol(true), ws.getHorizontalScrollRange(), ws.getHorizontalScrollMax());
 		}
 		if (AscCommonExcel.c_oAscScrollType.ScrollVertical & type) {
-			this.controller.reinitScrollY(ws.getFirstVisibleRow(true), ws.getVerticalScrollRange(), ws.getVerticalScrollMax());
+			this.controller.reinitScrollY(this.controller.vsbApi.settings, ws.getFirstVisibleRow(true), ws.getVerticalScrollRange(), ws.getVerticalScrollMax());
 		}
 
 		if (this.Api.isMobileVersion) {
