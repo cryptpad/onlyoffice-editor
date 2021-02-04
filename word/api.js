@@ -3864,6 +3864,45 @@ background-repeat: no-repeat;\
 			oLogicDocument.FinalizeAction();
 		}
 	};
+	asc_docs_api.prototype.asc_SetNumberingLvl = function(nLvl)
+	{
+		var _nLvl = Math.max(-1, Math.min(8, nLvl));
+
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		var arrSelectedParagraphs = oLogicDocument.GetSelectedParagraphs();
+		if (arrSelectedParagraphs.length <= 0)
+			return;
+
+		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_None, {
+			Type : AscCommon.changestype_2_ElementsArray_and_Type,
+			Elements : arrSelectedParagraphs,
+			CheckType : AscCommon.changestype_Paragraph_Properties
+		}))
+		{
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_SetNumberingLvl);
+
+			for (var nIndex = 0, nCount = arrSelectedParagraphs.length; nIndex < nCount; ++nIndex)
+			{
+				var oParagraph = arrSelectedParagraphs[nIndex];
+				var oNumPr = oParagraph.GetNumPr();
+				if (!oNumPr)
+					continue;
+
+				if (-1 === _nLvl)
+					oParagraph.RemoveNumPr();
+				else
+					oParagraph.SetNumPr(oNumPr.NumId, _nLvl);
+			}
+
+			oLogicDocument.Recalculate();
+			oLogicDocument.UpdateInterface();
+			oLogicDocument.UpdateSelection();
+			oLogicDocument.FinalizeAction();
+		}
+	};
 
 	asc_docs_api.prototype.put_Style    = function(sName)
 	{
@@ -11033,6 +11072,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_GetNumberingPr']                        = asc_docs_api.prototype.asc_GetNumberingPr;
 	asc_docs_api.prototype['asc_AddNewNumbering']                       = asc_docs_api.prototype.asc_AddNewNumbering;
 	asc_docs_api.prototype['asc_ChangeNumberingLvl']                    = asc_docs_api.prototype.asc_ChangeNumberingLvl;
+	asc_docs_api.prototype['asc_SetNumberingLvl']                       = asc_docs_api.prototype.asc_SetNumberingLvl;
 	asc_docs_api.prototype['put_Style']                                 = asc_docs_api.prototype.put_Style;
 	asc_docs_api.prototype['asc_SetParagraphSuppressLineNumbers']       = asc_docs_api.prototype.asc_SetParagraphSuppressLineNumbers;
 	asc_docs_api.prototype['SetDeviceInputHelperId']                    = asc_docs_api.prototype.SetDeviceInputHelperId;
