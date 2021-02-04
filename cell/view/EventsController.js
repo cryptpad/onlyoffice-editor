@@ -464,6 +464,7 @@
                 // right bottom corner
                 var corner = document.createElement('div');
                 corner.id = "ws-scrollbar-corner";
+				corner.style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor
                 this.widget.appendChild(corner);
             }
             else{

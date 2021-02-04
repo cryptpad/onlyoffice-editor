@@ -4920,6 +4920,11 @@ var editor;
   spreadsheet_api.prototype.asc_setSkin = function (theme) {
     AscCommon.updateGlobalSkin(theme);
     if (this.wb) {
+      var corner = document.getElementById("ws-scrollbar-corner");
+      if (corner) {
+        corner.style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
+      }
+
       this.wb.updateSkin();
       var ws = this.wb.getWorksheet();
       if (ws) {
