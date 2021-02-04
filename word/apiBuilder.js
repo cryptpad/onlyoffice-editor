@@ -11752,8 +11752,10 @@
 
 	Api.prototype.ReplaceTextSmart = function(arrString)
 	{
-		var allRunsInfo = null;
-		var textDelta   = null;
+		var allRunsInfo      = null;
+		var textDelta        = null;
+		var arrSelectedParas = null;
+
 		function GetRunInfo(oRun)
 		{
 			var StartPos = 0;
@@ -12002,7 +12004,7 @@
 
 			if (oContent) 
 			{
-				var arrSelectedParas = [];
+				arrSelectedParas = [];
 				oContent.GetCurrentParagraph(false, arrSelectedParas, {});
 				ReplaceInParas(arrSelectedParas);
 				Asc.editor.wb.recalculateDrawingObjects();
@@ -12034,7 +12036,7 @@
 		else 
 		{
 			var oDocument = this.GetDocument();
-			var arrSelectedParas = oDocument.Document.GetSelectedParagraphs();
+			arrSelectedParas = oDocument.Document.GetSelectedParagraphs();
 			
 			ReplaceInParas(arrSelectedParas);
 			oDocument.Document.RemoveSelection();
