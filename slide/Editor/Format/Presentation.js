@@ -2777,8 +2777,8 @@ function CPresentation(DrawingDocument) {
     this.TrackMoveId = null;
 
 
-    this.Width = 254;
-    this.Height = 142;
+    this.SetWidthMM(254);
+    this.SetHeightMM(142);
     this.recalcMap = {};
     this.bNeedUpdateTh = false;
     this.needSelectPages = [];
@@ -2858,6 +2858,32 @@ CPresentation.prototype.constructor = CPresentation;
 CPresentation.prototype.GetApi = function() {
     return this.Api;
 };
+CPresentation.prototype.GetWidthMM = function () {
+    return this.Width;
+    //return this.GetWidthEMU() / g_dKoef_mm_to_emu;
+};
+
+CPresentation.prototype.GetHeightMM = function () {
+    return this.Height;
+    //return this.GetHeightEMU() /g_dKoef_mm_to_emu;
+};
+CPresentation.prototype.SetWidthMM = function (dWidth) {
+    this.Width = dWidth;
+    //return this.GetWidthEMU() / g_dKoef_mm_to_emu;
+};
+
+CPresentation.prototype.SetHeightMM = function (dHeight) {
+    this.Height = dHeight;
+    //return this.GetHeightEMU() /g_dKoef_mm_to_emu;
+};
+//CPresentation.prototype.GetWidthEMU = function () {
+//    return this.Width;
+//};
+//
+//CPresentation.prototype.GetHeightEMU = function () {
+//    return this.Height;
+//};
+
 
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для работы с составным вводом
@@ -4898,14 +4924,14 @@ CPresentation.prototype.addImages = function (aImages, placeholder) {
         for (var i = 0; i < aImages.length; ++i) {
             var _image = aImages[i];
             if(_image.Image) {
-                _w = this.Slides[this.CurPage].Width;
-                _h = this.Slides[this.CurPage].Height;
+                _w = this.GetWidthMM();
+                _h = this.GetHeightMM();
                 var __w = Math.max((_image.Image.width * AscCommon.g_dKoef_pix_to_mm), 1);
                 var __h = Math.max((_image.Image.height * AscCommon.g_dKoef_pix_to_mm), 1);
                 var fKoeff = Math.min(1.0, 1.0 / Math.max(__w / _w, __h / _h));
                 _w = Math.max(5, __w * fKoeff);
                 _h = Math.max(5, __h * fKoeff);
-                var Image = oController.createImage(_image.src, (this.Slides[this.CurPage].Width - _w) / 2, (this.Slides[this.CurPage].Height - _h) / 2, _w, _h, _image.videoUrl, _image.audioUrl);
+                var Image = oController.createImage(_image.src, (this.GetWidthMM() - _w) / 2, (this.GetHeightMM() - _h) / 2, _w, _h, _image.videoUrl, _image.audioUrl);
                 Image.setParent(this.Slides[this.CurPage]);
                 Image.addToDrawingObjects();
                 oController.selectObject(Image, 0);
@@ -4919,8 +4945,8 @@ CPresentation.prototype.addImages = function (aImages, placeholder) {
 
 CPresentation.prototype.AddOleObject = function (fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId) {
     if (this.Slides[this.CurPage]) {
-        var fPosX = (this.Width - fWidth) / 2;
-        var fPosY = (this.Height - fHeight) / 2;
+        var fPosX = (this.GetWidthMM() - fWidth) / 2;
+        var fPosY = (this.GetHeightMM() - fHeight) / 2;
         var oController = this.Slides[this.CurPage].graphicObjects;
         var Image = oController.createOleObject(sData, sApplicationId, sLocalUrl, fPosX, fPosY, fWidth, fHeight, nWidthPix, nHeightPix);
         Image.setParent(this.Slides[this.CurPage]);
@@ -4962,8 +4988,8 @@ CPresentation.prototype.addChart = function (binary, isFromInterface, Placeholde
     var Image = oSlide.graphicObjects.getChartSpace2(binary, null);
     Image.setParent(oSlide);
 
-    var PosX = (oSlide.Width - Image.spPr.xfrm.extX) / 2;
-    var PosY = (oSlide.Height - Image.spPr.xfrm.extY) / 2;
+    var PosX = (this.GetWidthMM() - Image.spPr.xfrm.extX) / 2;
+    var PosY = (this.GetWidthMM() - Image.spPr.xfrm.extY) / 2;
     if (Placeholder) {
         var oPh = AscCommon.g_oTableId.Get_ById(Placeholder.id);
         if (oPh) {
@@ -5100,15 +5126,15 @@ CPresentation.prototype.Create_TableGraphicFrame = function (Cols, Rows, Parent,
     if (AscFormat.isRealNumber(Width)) {
         W = Width;
     } else {
-        W = this.Width * 2 / 3;
+        W = this.GetWidthMM() * 2 / 3;
     }
     var X, Y;
     if (AscFormat.isRealNumber(PosX) && AscFormat.isRealNumber(PosY)) {
         X = PosX;
         Y = PosY;
     } else {
-        X = (this.Width - W) / 2;
-        Y = this.Height / 5;
+        X = (this.GetWidthMM() - W) / 2;
+        Y = this.GetHeightMM() / 5;
     }
     var Inline = false;
     if (AscFormat.isRealBool(bInline)) {
@@ -5207,8 +5233,8 @@ CPresentation.prototype.AddToParagraph = function (ParaItem, bRecalculate, noUpd
             }
             if (oMathShape) {
                 oMathShape.checkExtentsByDocContent();
-                oMathShape.spPr.xfrm.setOffX((this.Slides[this.CurPage].Width - oMathShape.spPr.xfrm.extX) / 2);
-                oMathShape.spPr.xfrm.setOffY((this.Slides[this.CurPage].Height - oMathShape.spPr.xfrm.extY) / 2);
+                oMathShape.spPr.xfrm.setOffX((this.GetWidthMM() - oMathShape.spPr.xfrm.extX) / 2);
+                oMathShape.spPr.xfrm.setOffY((this.GetHeightMM() - oMathShape.spPr.xfrm.extY) / 2);
             }
         }
         if (false === bRecalculate) {
@@ -7534,7 +7560,7 @@ CPresentation.prototype.Document_UpdateInterfaceState = function () {
     this.Document_UpdateRulersState();
 
     this.Document_UpdateCanAddHyperlinkState();
-    editor.sendEvent("asc_onPresentationSize", this.Width, this.Height);
+    editor.sendEvent("asc_onPresentationSize", this.GetWidthMM(), this.GetHeightMM());
     editor.sendEvent("asc_canIncreaseIndent", this.Can_IncreaseParagraphLevel(true));
     editor.sendEvent("asc_canDecreaseIndent", this.Can_IncreaseParagraphLevel(false));
     editor.sendEvent("asc_onCanGroup", this.canGroup());
@@ -8025,8 +8051,8 @@ CPresentation.prototype.GetSelectedContent = function () {
     return AscFormat.ExecuteNoHistory(function () {
         var oIdMap, curImgUrl;
         var ret = new PresentationSelectedContent(), i;
-        ret.PresentationWidth = this.Width;
-        ret.PresentationHeight = this.Height;
+        ret.PresentationWidth = this.GetWidthMM();
+        ret.PresentationHeight = this.GetHeightMM();
         if (this.Slides.length > 0) {
             var FocusObjectType = this.GetFocusObjType();
             switch (FocusObjectType) {
@@ -8115,12 +8141,12 @@ CPresentation.prototype.GetSelectedContent2 = function () {
         var oEndFormattingContent = new PresentationSelectedContent();
         var oImagesSelectedContent = new PresentationSelectedContent();
 
-        oSourceFormattingContent.PresentationWidth = this.Width;
-        oSourceFormattingContent.PresentationHeight = this.Height;
-        oEndFormattingContent.PresentationWidth = this.Width;
-        oEndFormattingContent.PresentationHeight = this.Height;
-        oImagesSelectedContent.PresentationWidth = this.Width;
-        oImagesSelectedContent.PresentationHeight = this.Height;
+        oSourceFormattingContent.PresentationWidth = this.GetWidthMM();
+        oSourceFormattingContent.PresentationHeight = this.GetHeightMM();
+        oEndFormattingContent.PresentationWidth = this.GetWidthMM();
+        oEndFormattingContent.PresentationHeight = this.GetHeightMM();
+        oImagesSelectedContent.PresentationWidth = this.GetWidthMM();
+        oImagesSelectedContent.PresentationHeight = this.GetHeightMM();
         var oSelectedContent, oDocContent, oController, oTargetTextObject, oGraphicFrame, oTable, oImage, dImageWidth,
             dImageHeight, bNeedSelectAll,
             oDocContentForDraw, oParagraph, oNearPos, bOldVal, aParagraphs, dMaxWidth, oCanvas, oContext, oGraphics,
@@ -8490,8 +8516,8 @@ CPresentation.prototype.GetSelectedContent2 = function () {
 
                         if (i === 0) {
                             var sRasterImageId = oSlide.getBase64Img();
-                            oImage = AscFormat.DrawingObjectsController.prototype.createImage(sRasterImageId, 0, 0, this.Width / 2.0, this.Height / 2.0);
-                            oImagesSelectedContent.Drawings.push(new DrawingCopyObject(oImage, 0, 0, this.Width / 2.0, this.Height / 2.0, sRasterImageId));
+                            oImage = AscFormat.DrawingObjectsController.prototype.createImage(sRasterImageId, 0, 0, this.GetWidthMM() / 2.0, this.GetHeightMM() / 2.0);
+                            oImagesSelectedContent.Drawings.push(new DrawingCopyObject(oImage, 0, 0, this.GetWidthMM() / 2.0, this.GetHeightMM() / 2.0, sRasterImageId));
                         }
                         oNotes = null;
                         if (oSlide.notes) {
@@ -8544,12 +8570,12 @@ CPresentation.prototype.CreateAndAddShapeFromSelectedContent = function (oDocCon
     shape.txBody.content.InsertContent(oDocContent, NearPos);
     oDocContent.MoveDrawing = old_val;
     var body_pr = shape.getBodyPr();
-    var w = shape.txBody.getMaxContentWidth(this.Width / 2, true) + body_pr.lIns + body_pr.rIns;
+    var w = shape.txBody.getMaxContentWidth(this.GetWidthMM() / 2, true) + body_pr.lIns + body_pr.rIns;
     var h = shape.txBody.content.GetSummaryHeight() + body_pr.tIns + body_pr.bIns;
     shape.spPr.xfrm.setExtX(w);
     shape.spPr.xfrm.setExtY(h);
-    shape.spPr.xfrm.setOffX((this.Width - w) / 2);
-    shape.spPr.xfrm.setOffY((this.Height - h) / 2);
+    shape.spPr.xfrm.setOffX((this.GetWidthMM() - w) / 2);
+    shape.spPr.xfrm.setOffY((this.GetHeightMM() - h) / 2);
     shape.setParent(this.Slides[this.CurPage]);
     shape.addToDrawingObjects();
     return shape;
@@ -8579,10 +8605,10 @@ CPresentation.prototype.InsertContent2 = function (aContents, nIndex) {
     oContent = aContents[nIndex].copy();
     if (oContent.SlideObjects.length > 0) {
         if (oContent.PresentationWidth !== null && oContent.PresentationHeight !== null) {
-            if (!AscFormat.fApproxEqual(this.Width, oContent.PresentationWidth) || !AscFormat.fApproxEqual(this.Height, oContent.PresentationHeight)) {
+            if (!AscFormat.fApproxEqual(this.GetWidthMM(), oContent.PresentationWidth) || !AscFormat.fApproxEqual(this.GetHeightMM(), oContent.PresentationHeight)) {
                 bChangeSize = true;
-                kw = this.Width / oContent.PresentationWidth;
-                kh = this.Height / oContent.PresentationHeight;
+                kw = this.GetWidthMM() / oContent.PresentationWidth;
+                kh = this.GetHeightMM() / oContent.PresentationHeight;
             }
         }
         if (bEndFormatting) {
@@ -8592,7 +8618,7 @@ CPresentation.prototype.InsertContent2 = function (aContents, nIndex) {
                 if (bChangeSize) {
                     oSlide.Width = oContent.PresentationWidth;
                     oSlide.Height = oContent.PresentationHeight;
-                    oSlide.changeSize(this.Width, this.Height);
+                    oSlide.changeSize(this.GetWidthMM(), this.GetHeightMM());
                 }
                 nLayoutIndex = oSourceContent.LayoutsIndexes[i];
                 oLayout = oSourceContent.Layouts[nLayoutIndex];
@@ -8634,7 +8660,7 @@ CPresentation.prototype.InsertContent2 = function (aContents, nIndex) {
                 if (bChangeSize) {
                     oSlide.Width = oContent.PresentationWidth;
                     oSlide.Height = oContent.PresentationHeight;
-                    oSlide.changeSize(this.Width, this.Height);
+                    oSlide.changeSize(this.GetWidthMM(), this.GetHeightMM());
                 }
                 nLayoutIndex = oContent.LayoutsIndexes[i];
                 oLayout = oContent.Layouts[nLayoutIndex];
@@ -9381,7 +9407,7 @@ CPresentation.prototype.addNextSlide = function (layoutIndex) {
             }
         }
         new_slide.setSlideNum(this.CurPage + 1);
-        new_slide.setSlideSize(this.Width, this.Height);
+        new_slide.setSlideSize(this.GetWidthMM(), this.GetHeightMM());
         this.insertSlide(this.CurPage + 1, new_slide);
 
         for (i = this.CurPage + 2; i < this.Slides.length; ++i) {
@@ -9417,7 +9443,7 @@ CPresentation.prototype.addNextSlide = function (layoutIndex) {
             }
         }
         new_slide.setSlideNum(this.CurPage + 1);
-        new_slide.setSlideSize(this.Width, this.Height);
+        new_slide.setSlideSize(this.GetWidthMM(), this.GetHeightMM());
         this.insertSlide(this.CurPage + 1, new_slide);
         this.Recalculate();
     }
@@ -9661,7 +9687,7 @@ CPresentation.prototype.changeTheme = function (themeInfo, arrInd) {
     var oldMaster = this.Slides[this.CurPage] && this.Slides[this.CurPage].Layout && this.Slides[this.CurPage].Layout.Master;
     var _new_master = themeInfo.Master;
     _new_master.presentation = this;
-    themeInfo.Master.changeSize(this.Width, this.Height);
+    themeInfo.Master.changeSize(this.GetWidthMM(), this.GetHeightMM());
     var oContent, oMasterSp, oMasterContent, oSp;
     if (oldMaster && oldMaster.hf) {
         themeInfo.Master.setHF(oldMaster.hf.createDuplicate());
@@ -9727,7 +9753,7 @@ CPresentation.prototype.changeTheme = function (themeInfo, arrInd) {
         }
     }
     for (i = 0; i < themeInfo.Master.sldLayoutLst.length; ++i) {
-        themeInfo.Master.sldLayoutLst[i].changeSize(this.Width, this.Height);
+        themeInfo.Master.sldLayoutLst[i].changeSize(this.GetWidthMM(), this.GetHeightMM());
     }
     var slides_array = [];
     for (i = 0; i < arr_ind.length; ++i) {
@@ -9769,10 +9795,10 @@ CPresentation.prototype.changeSlideSizeFunction = function (width, height) {
 CPresentation.prototype.changeSlideSize = function (width, height) {
     if (this.Document_Is_SelectionLocked(AscCommon.changestype_SlideSize) === false) {
         History.Create_NewPoint(AscDFH.historydescription_Presentation_ChangeSlideSize);
-        History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_Presentation_SlideSize, new AscFormat.CDrawingBaseCoordsWritable(this.Width, this.Height), new AscFormat.CDrawingBaseCoordsWritable(width, height)));
-        this.Width = width;
-        this.Height = height;
-        this.changeSlideSizeFunction(this.Width, this.Height);
+        History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_Presentation_SlideSize, new AscFormat.CDrawingBaseCoordsWritable(this.GetWidthMM(), this.GetHeightMM()), new AscFormat.CDrawingBaseCoordsWritable(width, height)));
+        this.SetWidthMM(width);
+        this.SetHeightMM(height);
+        this.changeSlideSizeFunction(this.GetWidthMM(), this.GetHeightMM());
         this.Recalculate();
         this.Document_UpdateInterfaceState();
     }
@@ -10381,8 +10407,8 @@ CPresentation.prototype.AddShapeOnCurrentPage = function (sPreset) {
     }
     var oDrawingObjects = this.Slides[this.CurPage].graphicObjects;
     oDrawingObjects.changeCurrentState(new AscFormat.StartAddNewShape(oDrawingObjects, sPreset));
-    this.OnMouseDown({}, this.Width / 4, this.Height / 4, this.CurPage);
-    this.OnMouseUp({}, this.Width / 4, this.Height / 4, this.CurPage);
+    this.OnMouseDown({}, this.GetWidthMM() / 4, this.GetHeightMM() / 4, this.CurPage);
+    this.OnMouseUp({}, this.GetWidthMM() / 4, this.GetHeightMM() / 4, this.CurPage);
     this.Document_UpdateInterfaceState();
     this.Document_UpdateRulersState();
     this.Document_UpdateSelectionState();
@@ -10536,8 +10562,8 @@ CPresentation.prototype.AddTextArt = function (nStyle) {
         var oTextArt = this.Slides[this.CurPage].graphicObjects.createTextArt(nStyle, false);
         oTextArt.addToDrawingObjects();
         oTextArt.checkExtentsByDocContent();
-        oTextArt.spPr.xfrm.setOffX((this.Slides[this.CurPage].Width - oTextArt.spPr.xfrm.extX) / 2);
-        oTextArt.spPr.xfrm.setOffY((this.Slides[this.CurPage].Height - oTextArt.spPr.xfrm.extY) / 2);
+        oTextArt.spPr.xfrm.setOffX((this.GetWidthMM() - oTextArt.spPr.xfrm.extX) / 2);
+        oTextArt.spPr.xfrm.setOffY((this.GetHeightMM() - oTextArt.spPr.xfrm.extY) / 2);
         this.Slides[this.CurPage].graphicObjects.resetSelection();
 
         if (oTextArt.bSelectedText) {
@@ -10556,8 +10582,8 @@ CPresentation.prototype.AddTextArt = function (nStyle) {
 CPresentation.prototype.AddSignatureLine = function (sGuid, sSigner, sSigner2, sEmail, Width, Height, sImgUrl) {
     if (this.Slides[this.CurPage]) {
         History.Create_NewPoint(AscDFH.historydescription_Document_InsertSignatureLine);
-        var fPosX = (this.Width - Width) / 2;
-        var fPosY = (this.Height - Height) / 2;
+        var fPosX = (this.GetWidthMM() - Width) / 2;
+        var fPosY = (this.GetHeightMM() - Height) / 2;
         var oController = this.Slides[this.CurPage].graphicObjects;
         var Image = AscFormat.fCreateSignatureShape(sGuid, sSigner, sSigner2, sEmail, false, null, Width, Height, sImgUrl);
         Image.spPr.xfrm.setOffX(fPosX);

@@ -2117,8 +2117,8 @@
                     {
                         var _w = transition.Rect.w;
                         var _h = transition.Rect.h;
-                        var _w_mm = manager.HtmlPage.m_oLogicDocument.Width;
-                        var _h_mm = manager.HtmlPage.m_oLogicDocument.Height;
+                        var _w_mm = manager.HtmlPage.m_oLogicDocument.GetWidthMM();
+                        var _h_mm = manager.HtmlPage.m_oLogicDocument.GetHeightMM();
 
                         var _x = transition.Rect.x;
                         if (this.isReporterMode)
