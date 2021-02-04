@@ -11752,9 +11752,9 @@
 
 	Api.prototype.ReplaceTextSmart = function(arrString)
 	{
-		var oDocument = this.GetDocument();
-		var oSelectedContent = oDocument.Document.GetSelectedParagraphs();
-		var allRunsInfo = [];
+		var allRunsInfo      = null;
+		var textDelta        = null;
+		var arrSelectedParas = null;
 
 		function GetRunInfo(oRun)
 		{
@@ -11963,32 +11963,85 @@
 			}
 		};
 
-		for (var Index = 0; Index < oSelectedContent.length; Index++)
+		function ReplaceInParas(arrBasicParas) 
 		{
-			var oPara = oSelectedContent[Index];
-			var oParaText = "";
-			
-			if (oPara.Selection.Use)
-				oPara.CheckRunContent(GetRunInfo);
-				
-			for (var nRun = 0; nRun < allRunsInfo.length; nRun++)
-				oParaText += allRunsInfo[nRun].String;
-
-			if (oParaText == "")
-			{
-				allRunsInfo = [];
-				continue;
-			}
-				
-			var textDelta = AscCommon.getTextDelta(oParaText, arrString[Index]);
-
-			DelInsertChars();
 			allRunsInfo = [];
+
+			for (var Index = 0; Index < arrBasicParas.length; Index++)
+			{
+				var oPara = arrBasicParas[Index];
+				var oParaText = "";
+				
+				if (oPara.Selection.Use)
+					oPara.CheckRunContent(GetRunInfo);
+					
+				for (var nRun = 0; nRun < allRunsInfo.length; nRun++)
+					oParaText += allRunsInfo[nRun].String;
+
+				if (oParaText == "")
+				{
+					allRunsInfo = [];
+					continue;
+				}
+					
+				textDelta = AscCommon.getTextDelta(oParaText, arrString[Index]);
+
+				DelInsertChars();
+				allRunsInfo = [];
+			}
 		}
 
-		oDocument.Document.RemoveSelection();
+		if (this.editorId === AscCommon.c_oEditorId.Spreadsheet) 
+		{
+			var oWorksheet        = this.GetActiveSheet();
+			var oRange            = oWorksheet.GetSelection();
+			var tempRange         = null;
+			var nCountLinesInCell = null;
+			var resultText        = null;
+			var nTextToReplace    = 0;
+			var ws                = this.wb.getWorksheet();
+			var oContent = ws.objectRender.controller.getTargetDocContent();
 
-	}
+			if (oContent) 
+			{
+				arrSelectedParas = [];
+				oContent.GetCurrentParagraph(false, arrSelectedParas, {});
+				ReplaceInParas(arrSelectedParas);
+				Asc.editor.wb.recalculateDrawingObjects();
+				return;
+			}
+
+			for (var nRow = oRange.range.bbox.r1; nRow <= oRange.range.bbox.r2; nRow++)
+			{
+				for (var nCol = oRange.range.bbox.c1; nCol <= oRange.range.bbox.c2; nCol++)
+				{
+					resultText        = '';
+					tempRange         = oWorksheet.GetRangeByNumber(nRow, nCol);
+					nCountLinesInCell = tempRange.GetValue().split('\n').length;
+
+					for (var nText = nTextToReplace; nText < nTextToReplace + nCountLinesInCell; nText++) 
+					{
+						resultText += arrString[nText];
+						if (nText !== nTextToReplace + nCountLinesInCell - 1)
+							resultText += '\n';
+
+					}
+					nTextToReplace += nCountLinesInCell;
+
+					if (resultText !== '')
+						tempRange.SetValue(resultText);
+				}
+			}
+		}
+		else 
+		{
+			var oDocument = this.GetDocument();
+			arrSelectedParas = oDocument.Document.GetSelectedParagraphs();
+			
+			ReplaceInParas(arrSelectedParas);
+			oDocument.Document.RemoveSelection();
+		}
+	};
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Export
