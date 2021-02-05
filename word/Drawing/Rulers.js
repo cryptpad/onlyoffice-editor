@@ -239,7 +239,7 @@ function CHorRuler()
 
     this.DrawTablePict = function() {
         var ctx = g_memory.ctx;
-        var dPR = window.devicePixelRatio;
+        var dPR = AscCommon.AscBrowser.retinaPixelRatio;
         var isNeedRedraw = (dPR - Math.floor(dPR)) >= 0.5 ? true : false;
         var roundDPR = isNeedRedraw ? Math.floor(dPR) : Math.round(dPR);
 
