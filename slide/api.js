@@ -1049,7 +1049,7 @@
     asc_docs_api.prototype._spellCheckDisconnect   = function()
     {
         if (this.WordControl.m_oLogicDocument)
-            this.WordControl.m_oLogicDocument.TurnOff_CheckSpelling();
+            this.WordControl.m_oLogicDocument.TurnOffCheckSpelling();
     };
 
     asc_docs_api.prototype.pre_Save = function(_images)

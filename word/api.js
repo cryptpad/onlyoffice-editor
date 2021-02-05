@@ -1327,8 +1327,8 @@ background-repeat: no-repeat;\
 	{
 		this.WordControl.m_oLogicDocument                    = new AscCommonWord.CDocument(this.WordControl.m_oDrawingDocument);
 		this.WordControl.m_oDrawingDocument.m_oLogicDocument = this.WordControl.m_oLogicDocument;
-		if (!this.isSpellCheckEnable)
-			this.WordControl.m_oLogicDocument.TurnOff_CheckSpelling();
+		if (!this.isSpellCheckEnable || this.isRestrictionComments() || this.isRestrictionForms())
+			this.WordControl.m_oLogicDocument.TurnOffCheckSpelling();
 
 		if (this.WordControl.MobileTouchManager)
 			this.WordControl.MobileTouchManager.delegate.LogicDocument = this.WordControl.m_oLogicDocument;
@@ -1767,7 +1767,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype._spellCheckDisconnect   = function()
 	{
 		if (this.WordControl.m_oLogicDocument)
-			this.WordControl.m_oLogicDocument.TurnOff_CheckSpelling();
+			this.WordControl.m_oLogicDocument.TurnOffCheckSpelling();
 	};
 	asc_docs_api.prototype._onUpdateDocumentCanSave   = function()
 	{
