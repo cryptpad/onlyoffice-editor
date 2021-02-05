@@ -5148,9 +5148,6 @@ background-repeat: no-repeat;\
 				}
 
 				if(!window["NATIVE_EDITOR_ENJINE"]){
-
-					this.WordControl.m_oLayoutDrawer.IsRetina = this.WordControl.bIsRetinaSupport;
-
 					this.WordControl.m_oLayoutDrawer.WidthMM  = presentation.Width;
 					this.WordControl.m_oLayoutDrawer.HeightMM = presentation.Height;
 					this.WordControl.m_oMasterDrawer.WidthMM  = presentation.Width;

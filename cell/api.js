@@ -546,10 +546,10 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_Resize = function () {
-    var isRetinaOld = AscCommon.AscBrowser.isRetina;
+    var oldScale = AscCommon.AscBrowser.retinaPixelRatio;
     AscCommon.AscBrowser.checkZoom();
     if (this.wb) {
-      if (isRetinaOld !== AscCommon.AscBrowser.isRetina) {
+      if (Math.abs(oldScale - AscCommon.AscBrowser.retinaPixelRatio) > 0.001) {
         this.wb.changeZoom(null);
       }
       this.wb.resize();

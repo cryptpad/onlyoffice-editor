@@ -1974,28 +1974,19 @@
   };
 
   WorkbookView.prototype._canResize = function() {
-    var isRetina = AscBrowser.isRetina;
-    var oldWidth = this.canvas.width;
-    var oldHeight = this.canvas.height;
-    var width, height, styleWidth, styleHeight;
-    width = styleWidth = this.element.offsetWidth - (this.Api.isMobileVersion ? 0 : this.defaults.scroll.widthPx);
-    height = styleHeight = this.element.offsetHeight - (this.Api.isMobileVersion ? 0 : this.defaults.scroll.heightPx);
-
-    if (isRetina) {
-      width = AscCommon.AscBrowser.convertToRetinaValue(width, true);
-      height = AscCommon.AscBrowser.convertToRetinaValue(height, true);
-    }
-
-    if (oldWidth === width && oldHeight === height && this.isInit) {
-      return false;
-    }
+    var styleWidth, styleHeight;
+    styleWidth = this.element.offsetWidth - (this.Api.isMobileVersion ? 0 : this.defaults.scroll.widthPx);
+    styleHeight = this.element.offsetHeight - (this.Api.isMobileVersion ? 0 : this.defaults.scroll.heightPx);
 
     this.isInit = true;
 
-    this.canvas.width = this.canvasOverlay.width = this.canvasGraphic.width = this.canvasGraphicOverlay.width = width;
-    this.canvas.height = this.canvasOverlay.height = this.canvasGraphic.height = this.canvasGraphicOverlay.height = height;
     this.canvas.style.width = this.canvasOverlay.style.width = this.canvasGraphic.style.width = this.canvasGraphicOverlay.style.width = styleWidth + 'px';
     this.canvas.style.height = this.canvasOverlay.style.height = this.canvasGraphic.style.height = this.canvasGraphicOverlay.style.height = styleHeight + 'px';
+
+    AscCommon.calculateCanvasSize(this.canvas);
+    AscCommon.calculateCanvasSize(this.canvasOverlay);
+    AscCommon.calculateCanvasSize(this.canvasGraphic);
+    AscCommon.calculateCanvasSize(this.canvasGraphicOverlay);
 
     this._reInitGraphics();
 
@@ -3216,11 +3207,9 @@
 			}
 		}
 
-		if (AscBrowser.isRetina)
-		{
-			styleThumbnailWidth = AscCommon.AscBrowser.convertToRetinaValue(styleThumbnailWidth, true);
-			styleThumbnailHeight = AscCommon.AscBrowser.convertToRetinaValue(styleThumbnailHeight, true);
-		}
+		styleThumbnailWidth = AscCommon.AscBrowser.convertToRetinaValue(styleThumbnailWidth, true);
+		styleThumbnailHeight = AscCommon.AscBrowser.convertToRetinaValue(styleThumbnailHeight, true);
+
 		canvas.width = styleThumbnailWidth;
 		canvas.height = styleThumbnailHeight;
 		var sizeInfo = {w: styleThumbnailWidth, h: styleThumbnailHeight, row: row, col: col};

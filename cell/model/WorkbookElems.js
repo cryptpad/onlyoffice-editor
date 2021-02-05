@@ -5911,12 +5911,9 @@ function RangeDataManagerElem(bbox, data)
 		}
 
 		var canvas = document.createElement('canvas');
-		canvas.width = 50;
-		canvas.height = 50;
-		if (AscCommon.AscBrowser.isRetina) {
-			canvas.width = AscCommon.AscBrowser.convertToRetinaValue(canvas.width, true);
-			canvas.height = AscCommon.AscBrowser.convertToRetinaValue(canvas.height, true);
-		}
+		canvas.width = AscCommon.AscBrowser.convertToRetinaValue(50, true);
+		canvas.height = AscCommon.AscBrowser.convertToRetinaValue(50, true);
+
 		var oSparklineView = new AscFormat.CSparklineView();
 		var oSparkline = new sparkline();
 		oSparkline.oCache = this._generateThumbCache();
