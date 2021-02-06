@@ -160,64 +160,6 @@ AscBrowser.isCustomScalingAbove2 = function()
     return (AscBrowser.retinaPixelRatio > 1.999) ? true : false;
 };
 
-AscBrowser.supportedScale = [1, 2];
-
-// uncomment to debug all
-//AscBrowser.supportedScale = [];
-
-AscBrowser.checkSupportedZoom = function()
-{
-	var retValue = {
-		zoom: 1,
-		devicePixelRatio: window.devicePixelRatio,
-		retinaPixelRatio: window.devicePixelRatio,
-		correct : false
-	};
-
-	if (AscBrowser.supportedScale.length === 0 ||
-		AscBrowser.isAndroid ||
-		!AscBrowser.isChrome ||
-		AscBrowser.isOperaOld ||
-		AscBrowser.isMobile ||
-		!document || !document.firstElementChild || !document.body)
-	{
-		return retValue;
-	}
-
-	var systemScaling = window.devicePixelRatio;
-	var bestIndex = 0;
-	var bestDistance = Math.abs(AscBrowser.supportedScale[0] - systemScaling);
-	var currentDistance = 0;
-	for (var i = 1, len = AscBrowser.supportedScale.length; i < len; i++)
-	{
-		if (true)
-		{
-			// это "подстройка под интерфейс" - после убирания этого в общий код - удалить
-			if (Math.abs(AscBrowser.supportedScale[i] - systemScaling) > 0.0001)
-			{
-				if (AscBrowser.supportedScale[i] > (systemScaling - 0.0001))
-					break;
-			}
-		}
-
-		currentDistance = Math.abs(AscBrowser.supportedScale[i] - systemScaling);
-		if (currentDistance < (bestDistance - 0.0001))
-		{
-			bestDistance = currentDistance;
-			bestIndex = i;
-		}
-	}
-
-	retValue.retinaPixelRatio = AscBrowser.supportedScale[bestIndex];
-	if (Math.abs(retValue.devicePixelRatio - retValue.retinaPixelRatio) > 0.01)
-	{
-		retValue.zoom = retValue.devicePixelRatio / retValue.retinaPixelRatio;
-		retValue.correct = true;
-	}
-	return retValue;
-};
-
-
 AscBrowser.checkZoom = function()
 {
     if (AscBrowser.isSailfish && AscBrowser.isEmulateDevicePixelRatio)
@@ -235,18 +177,11 @@ AscBrowser.checkZoom = function()
         return;
     }
 
-    var zoomValue = AscBrowser.checkSupportedZoom();
-	AscBrowser.retinaPixelRatio = zoomValue.retinaPixelRatio;
+    var zoomValue = AscCommon.checkDeviceScale();
+	AscBrowser.retinaPixelRatio = zoomValue.applicationPixelRatio;
 	AscBrowser.zoom = zoomValue.zoom;
 
-    if (zoomValue.correct)
-	{
-		var firstElemStyle = document.firstElementChild.style;
-		if (Math.abs(AscBrowser.zoom - 1) < 0.001)
-			firstElemStyle.zoom = "normal";
-		else
-			firstElemStyle.zoom = 1.0 / AscBrowser.zoom;
-	}
+    zoomValue.correct && AscCommon.correctApplicationScale(AscBrowser.zoom);
 };
 
 AscBrowser.checkZoom();
