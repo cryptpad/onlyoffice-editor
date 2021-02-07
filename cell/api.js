@@ -4919,12 +4919,21 @@ var editor;
 
   spreadsheet_api.prototype.asc_setSkin = function (theme) {
     AscCommon.updateGlobalSkin(theme);
-    if (this.wb) {
-      var corner = document.getElementById("ws-scrollbar-corner");
-      if (corner) {
-        corner.style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
-      }
 
+    var elem = document.getElementById("ws-v-scrollbar");
+    if (elem) {
+      elem.style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
+    }
+    elem = document.getElementById("ws-h-scrollbar");
+    if (elem) {
+      elem.style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
+    }
+    elem = document.getElementById("ws-scrollbar-corner");
+    if (elem) {
+      elem.style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
+    }
+
+    if (this.wb) {
       this.wb.updateSkin();
       var ws = this.wb.getWorksheet();
       if (ws) {

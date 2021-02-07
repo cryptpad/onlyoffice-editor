@@ -371,7 +371,7 @@
 
 		asc_CEventsController.prototype.updateScrollSettings = function () {
 			var opt = this.settings, settings;
-			var ws = window["Asc"]["editor"].wb.getWorksheet();;
+			var ws = window["Asc"]["editor"].wb.getWorksheet();
 			if (this.vsbApi) {
 				settings = this.createScrollSettings();
 
@@ -380,6 +380,7 @@
 				settings.wheelScrollLines = opt.wheelScrollLinesV;
 				settings.isVerticalScroll = true;
 				settings.isHorizontalScroll = false;
+				//this.vsbApi.canvasH = null;
 				this.reinitScrollY(settings, ws.getFirstVisibleRow(true), ws.getVerticalScrollRange(), ws.getVerticalScrollMax());
 				this.vsbApi.settings = settings;
 			}
@@ -389,6 +390,7 @@
 				settings.hscrollStep = opt.hscrollStep;
 				settings.isVerticalScroll = false;
 				settings.isHorizontalScroll = true;
+				//this.hsbApi.canvasW = null;
 				this.reinitScrollX(settings, ws.getFirstVisibleCol(true), ws.getHorizontalScrollRange(), ws.getHorizontalScrollMax());
 				this.hsbApi.settings = settings;
 			}
@@ -400,6 +402,7 @@
 			// vertical scroll bar
 			this.vsb = document.createElement('div');
 			this.vsb.id = "ws-v-scrollbar";
+			this.vsb.style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
 			this.widget.appendChild(this.vsb);
 
 			if (!this.vsbApi) {
@@ -430,6 +433,7 @@
 			// horizontal scroll bar
 			this.hsb = document.createElement('div');
 			this.hsb.id = "ws-h-scrollbar";
+			this.hsb.style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
 			this.widget.appendChild(this.hsb);
 
 			if (!this.hsbApi) {
