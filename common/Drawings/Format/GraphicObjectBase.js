@@ -142,7 +142,8 @@
         noChangeShapeType: 1048576,
         noDrilldown: 4194304,
         noTextEdit: 8388608,
-        noCrop: 16777216
+        noCrop: 16777216,
+        txBox: 33554432
     };
 
     function checkNormalRotate(rot)
@@ -609,6 +610,12 @@
     };
     CGraphicObjectBase.prototype.getNoCrop = function(){
         return this.getLockValue(LOCKS_MASKS.noCrop);
+    };
+    CGraphicObjectBase.prototype.getTxBox = function(){
+        return this.getLockValue(LOCKS_MASKS.txBox);
+    };
+    CGraphicObjectBase.prototype.setTxBox = function(bValue){
+        return this.setLockValue(LOCKS_MASKS.txBox, bValue);
     };
     CGraphicObjectBase.prototype.setNoChangeAspect = function(bValue){
         return this.setLockValue(LOCKS_MASKS.noChangeAspect, bValue);

@@ -7513,6 +7513,11 @@ function BinaryPPTYLoader()
                                     var value;
                                     switch(_at2)
                                     {
+                                        case 0:{
+                                            value = s.GetBool();
+                                            locks |= (AscFormat.LOCKS_MASKS.txBox | (value ? AscFormat.LOCKS_MASKS.txBox << 1 : 0));
+                                            break;
+                                        }
                                         case 1 :{
                                             value = s.GetBool();
                                             locks |= (AscFormat.LOCKS_MASKS.noAdjustHandles | (value ? AscFormat.LOCKS_MASKS.noAdjustHandles << 1 : 0));

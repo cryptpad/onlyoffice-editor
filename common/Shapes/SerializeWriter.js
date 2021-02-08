@@ -4384,6 +4384,8 @@ function CBinaryFileWriter()
 
     this.WriteSpCNvPr = function (locks) {
         oThis.WriteUChar(g_nodeAttributeStart);
+        if(locks & AscFormat.LOCKS_MASKS.txBox)
+            oThis._WriteBool2(0, !!(locks & AscFormat.LOCKS_MASKS.txBox << 1));
         if(locks & AscFormat.LOCKS_MASKS.noAdjustHandles)
             oThis._WriteBool2(1, !!(locks & AscFormat.LOCKS_MASKS.noAdjustHandles << 1));
         if(locks & AscFormat.LOCKS_MASKS.noChangeArrowheads)

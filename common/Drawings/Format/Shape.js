@@ -1100,6 +1100,11 @@ CShape.prototype.convertToPPTX = function (drawingDocument, worksheet, bIsAddMat
         }
     };
 
+
+    CShape.prototype.isTextBox = function(){
+        return this.getTxBox() === true;
+    };
+
 CShape.prototype.documentGetAllFontNames = function (AllFonts) {
     //TODO
     var content = this.getDocContent();
@@ -5644,7 +5649,7 @@ CShape.prototype.hitInPath = function (x, y) {
 
 CShape.prototype.hitInInnerArea = function (x, y) {
     if ((this.getObjectType && this.getObjectType() === AscDFH.historyitem_type_ChartSpace || this.getObjectType() === AscDFH.historyitem_type_Title) ||
-        (this.brush != null && this.brush.isVisible() || this.blipFill) && this.checkHitToBounds(x, y)) {
+        (this.brush != null && this.brush.isVisible() || this.blipFill || (this.isTextBox && this.isTextBox())) && this.checkHitToBounds(x, y)) {
         var invert_transform = this.getInvertTransform();
         if(!invert_transform)
         {
