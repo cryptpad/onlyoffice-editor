@@ -35,7 +35,7 @@
 	var supportedScaleValues = [1, 2];
 
 	// uncomment to debug all scales
-	supportedScaleValues = [];
+	//supportedScaleValues = [];
 
 	var isCorrectApplicationScaleEnabled = (function(){
 
