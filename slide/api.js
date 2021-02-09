@@ -2015,6 +2015,9 @@ background-repeat: no-repeat;\
 			if (t.isForceSaveOnUserSave && t.IsUserSave) {
 				t.forceSaveButtonContinue = t.forceSave();
 			}
+			if (t.forceSaveForm) {
+				t.forceSaveForm();
+			}
 			// Выставляем, что документ не модифицирован
 			t.CheckChangedDocument();
 			t.canSave    = true;

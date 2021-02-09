@@ -1821,6 +1821,9 @@ var editor;
 			if (t.isForceSaveOnUserSave && t.IsUserSave) {
 				t.forceSaveButtonContinue = t.forceSave();
 			}
+			if (t.forceSaveForm) {
+				t.forceSaveForm();
+			}
 
 			if (t.collaborativeEditing.getCollaborativeEditing()) {
 				// Шлем update для toolbar-а, т.к. когда select в lock ячейке нужно заблокировать toolbar
