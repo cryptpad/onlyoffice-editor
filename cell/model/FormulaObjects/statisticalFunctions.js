@@ -1508,8 +1508,8 @@ function (window, undefined) {
 			_pMatX = GetNewMat(nCY, nRY);
 			nCX = nCY;
 			nRX = nRY;
-			
-			var n = 1;
+
+			var num = 1;
 			for (i = 0; i < nRY; i++) {
 				for (j = 0; j < nCY; j++) {
 					if (!_pMatX[j]) {
