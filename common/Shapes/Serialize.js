@@ -491,19 +491,6 @@ function BinaryPPTYLoader()
             }
 
             this.presentation.defaultTextStyle = pres.defaultTextStyle;
-            if(pres.SldSz)
-            {
-                this.presentation.Width = pres.SldSz.cx / c_dScalePPTXSizes;
-                this.presentation.Height = pres.SldSz.cy / c_dScalePPTXSizes;
-            }
-            else
-            {
-                this.presentation.Width = 254;
-                this.presentation.Height = 190.5;
-                pres.SldSz = {};
-                pres.SldSz.cx = this.presentation.Width * c_dScalePPTXSizes;
-                pres.SldSz.cy = this.presentation.Height * c_dScalePPTXSizes;
-            }
         }
 
         if (!this.IsThemeLoader)
@@ -591,7 +578,6 @@ function BinaryPPTYLoader()
                 for (var i = 0; i < _s_count; i++)
                 {
                     this.presentation.insertSlide(i, this.ReadSlide(i)) ;
-                    this.presentation.Slides[i].setSlideSize(this.presentation.Width, this.presentation.Height);
                 }
                 if(this.Api)
                 {
@@ -11301,7 +11287,6 @@ CCore.prototype.Refresh_RecalcData2 = function(){
     function CPres()
 {
     this.defaultTextStyle = null;
-    this.SldSz = null;
     this.NotesSz = null;
 
     this.attrAutoCompressPictures = null;
@@ -11327,6 +11312,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
         // attributes
         var _sa = s.GetUChar();
 
+        var oPresentattion = reader.presentation;
         while (true)
         {
             var _at = s.GetUChar();
@@ -11372,7 +11358,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                 case 4: { s.SkipRecord(); break; }
                 case 5:
                 {
-                    this.SldSz = {};
+                    var oSldSize = new AscCommonSlide.CSlideSize();
                     s.Skip2(5); // len + start attributes
 
                     while (true)
@@ -11384,14 +11370,17 @@ CCore.prototype.Refresh_RecalcData2 = function(){
 
                         switch (_at)
                         {
-                            case 0: { this.SldSz.cx = s.GetLong(); break; }
-                            case 1: { this.SldSz.cy = s.GetLong(); break; }
-                            case 2: { this.SldSz.type = s.GetUChar(); break; }
+                            case 0: { oSldSize.setCX(s.GetLong()); break; }
+                            case 1: { oSldSize.setCY(s.GetLong()); break; }
+                            case 2: { oSldSize.setType(s.GetUChar()); break; }
                             default:
                                 return;
                         }
                     }
-
+                    if(oPresentattion.setSldSz)
+                    {
+                        oPresentattion.setSldSz(oSldSize);
+                    }
                     break;
                 }
                 case 6:
@@ -11447,7 +11436,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
 
                                     s.Seek2(_end_rec3);
 
-                                    reader.presentation.CommentAuthors[_author.Name] = _author;
+                                    oPresentattion.CommentAuthors[_author.Name] = _author;
                                 }
 
                                 break;
@@ -11468,13 +11457,13 @@ CCore.prototype.Refresh_RecalcData2 = function(){
 					var _length = s.GetULong();
 					var _end_rec2 = s.cur + _length;
 
-					reader.presentation.Api.macros.SetData(AscCommon.GetStringUtf8(s, _length));
+                    oPresentattion.Api.macros.SetData(AscCommon.GetStringUtf8(s, _length));
 					s.Seek2(_end_rec2);
 					break;
 				}
                 case 10:
                 {
-                    reader.ReadComments(reader.presentation.writecomments);
+                    reader.ReadComments(oPresentattion.writecomments);
                     break;
                 }
                 default:
@@ -11484,9 +11473,9 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                 }
             }
         }
-        if(reader.presentation.Load_Comments)
+        if(oPresentattion.Load_Comments)
         {
-            reader.presentation.Load_Comments(reader.presentation.CommentAuthors);
+            oPresentattion.Load_Comments(oPresentattion.CommentAuthors);
         }
         s.Seek2(_end_pos);
     }

@@ -2640,7 +2640,7 @@ CShowPr.prototype.Copy = function () {
 AscDFH.changesFactory[AscDFH.historyitem_Presentation_SetShowPr] = AscDFH.CChangesDrawingsObjectNoId;
 AscDFH.changesFactory[AscDFH.historyitem_Presentation_AddSlideMaster] = AscDFH.CChangesDrawingsContent;
 AscDFH.changesFactory[AscDFH.historyitem_Presentation_ChangeTheme] = AscDFH.CChangesDrawingChangeTheme;
-AscDFH.changesFactory[AscDFH.historyitem_Presentation_SlideSize] = AscDFH.CChangesDrawingsObjectNoId;
+AscDFH.changesFactory[AscDFH.historyitem_Presentation_SlideSize] = AscDFH.CChangesDrawingsObject;
 AscDFH.changesFactory[AscDFH.historyitem_Presentation_ChangeColorScheme] = AscDFH.CChangesDrawingChangeTheme;
 AscDFH.changesFactory[AscDFH.historyitem_Presentation_RemoveSlide] = AscDFH.CChangesDrawingsContentPresentation;
 AscDFH.changesFactory[AscDFH.historyitem_Presentation_AddSlide] = AscDFH.CChangesDrawingsContentPresentation;
@@ -2667,9 +2667,12 @@ AscDFH.drawingsChangesMap[AscDFH.historyitem_Presentation_SetShowPr] = function 
     oClass.showPr = value;
 };
 AscDFH.drawingsChangesMap[AscDFH.historyitem_Presentation_SlideSize] = function (oClass, value) {
-    oClass.Width = value.a;
-    oClass.Height = value.b;
-    oClass.changeSlideSizeFunction(oClass.Width, oClass.Height);
+    var nOldW = oClass.GetWidthEMU();
+    var nOldH = oClass.GetHeightEMU();
+    oClass.sldSz = value;
+    var nNewW = oClass.GetWidthEMU();
+    var nNewH = oClass.GetHeightEMU();
+    oClass.changeSlideSizeFunction(nNewW/nOldW, nNewH/nOldH);
 };
 AscDFH.drawingsChangesMap[AscDFH.historyitem_Presentation_SetDefaultTextStyle] = function (oClass, value) {
     oClass.defaultTextStyle = value;
@@ -2692,12 +2695,49 @@ AscDFH.drawingContentChanges[AscDFH.historyitem_Presentation_AddSlideMaster] = f
 };
 
 AscDFH.drawingsConstructorsMap[AscDFH.historyitem_Presentation_SetShowPr] = CShowPr;
-AscDFH.drawingsConstructorsMap[AscDFH.historyitem_Presentation_SlideSize] = AscFormat.CDrawingBaseCoordsWritable;
 AscDFH.drawingsConstructorsMap[AscDFH.historyitem_Presentation_SetDefaultTextStyle] = AscFormat.TextListStyle;
 
+function CSlideSize() {
+    AscFormat.CBaseObject.call(this);
+    this.cx = null;
+    this.cy = null;
+    this.type = null;
+}
+AscFormat.InitClass(CSlideSize, AscFormat.CBaseObject, AscDFH.historyitem_type_SldSz);
+CSlideSize.prototype.DEFAULT_CX = 9144000;
+CSlideSize.prototype.DEFAULT_CY = 6858000;
+CSlideSize.prototype.setCX = function(pr) {
+    History.Add(new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_SldSzCX, this.cx, pr));
+    this.cx = pr;
+};
+CSlideSize.prototype.setCY = function(pr) {
+    History.Add(new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_SldSzCY, this.cy, pr));
+    this.cy = pr;
+};
+CSlideSize.prototype.setType = function(pr) {
+    History.Add(new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_SldSzType, this.type, pr));
+    this.type = pr;
+};
+CSlideSize.prototype.GetWidthEMU = function() {
+    if(AscFormat.isRealNumber(this.cx)) {
+        return this.cx;
+    }
+    return this.DEFAULT_CX;
+};
+CSlideSize.prototype.GetHeightEMU = function() {
+    if(AscFormat.isRealNumber(this.cy)) {
+        return this.cy;
+    }
+    return this.DEFAULT_CY;
+};
+CSlideSize.prototype.GetWidthMM = function() {
+    return this.GetWidthEMU() / g_dKoef_mm_to_emu;
+};
+CSlideSize.prototype.GetHeightMM = function() {
+    return this.GetHeightEMU() / g_dKoef_mm_to_emu;
+};
 
 function CPresentation(DrawingDocument) {
-  //  CDocumentContentBase.call(this);
     this.History = History;
     this.IdCounter = AscCommon.g_oIdCounter;
     this.TableId = g_oTableId;
@@ -2726,8 +2766,6 @@ function CPresentation(DrawingDocument) {
 
     this.StartPage = 0; // Для совместимости с CDocumentContent
     this.CurPage = 0;
-
-    this.Orientation = Asc.c_oAscPageOrientation.PagePortrait; // ориентация страницы//TODO: remove this
 
     this.slidesToUnlock = [];
 
@@ -2777,8 +2815,8 @@ function CPresentation(DrawingDocument) {
     this.TrackMoveId = null;
 
 
-    this.SetWidthMM(254);
-    this.SetHeightMM(142);
+    this.sldSz = null;
+
     this.recalcMap = {};
     this.bNeedUpdateTh = false;
     this.needSelectPages = [];
@@ -2859,23 +2897,69 @@ CPresentation.prototype.GetApi = function() {
     return this.Api;
 };
 CPresentation.prototype.GetWidthMM = function () {
-    return this.Width;
-    //return this.GetWidthEMU() / g_dKoef_mm_to_emu;
+    return this.GetWidthEMU() / g_dKoef_mm_to_emu;
 };
 
 CPresentation.prototype.GetHeightMM = function () {
-    return this.Height;
-    //return this.GetHeightEMU() /g_dKoef_mm_to_emu;
+    return this.GetHeightEMU() /g_dKoef_mm_to_emu;
 };
-CPresentation.prototype.SetWidthMM = function (dWidth) {
-    this.Width = dWidth;
-    //return this.GetWidthEMU() / g_dKoef_mm_to_emu;
+CPresentation.prototype.GetWidthEMU = function () {
+    if(this.sldSz) {
+        return this.sldSz.GetWidthEMU();
+    }
+    return CSlideSize.prototype.DEFAULT_CX;
 };
 
-CPresentation.prototype.SetHeightMM = function (dHeight) {
-    this.Height = dHeight;
-    //return this.GetHeightEMU() /g_dKoef_mm_to_emu;
+CPresentation.prototype.GetHeightEMU = function () {
+    if(this.sldSz) {
+        return this.sldSz.GetHeightEMU();
+    }
+    return CSlideSize.prototype.DEFAULT_CY;
 };
+CPresentation.prototype.setSldSz = function(pr) {
+    History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_Presentation_SlideSize, this.sldSz, pr));
+    this.sldSz = pr;
+};
+
+
+CPresentation.prototype.changeSlideSizeFunction = function (kw, kh) {
+    AscFormat.ExecuteNoHistory(function () {
+        var i;
+        for (i = 0; i < this.slideMasters.length; ++i) {
+            this.slideMasters[i].changeSize(kw, kh);
+            var master = this.slideMasters[i];
+            for (var j = 0; j < master.sldLayoutLst.length; ++j) {
+                master.sldLayoutLst[j].changeSize(kw, kh);
+            }
+        }
+        for (i = 0; i < this.Slides.length; ++i) {
+            this.Slides[i].changeSize(kw, kh);
+        }
+    }, this, []);
+};
+
+CPresentation.prototype.internalChangeSizes = function(nWidth, nHeight) {
+    var nOldW = this.GetWidthEMU();
+    var nOldH = this.GetHeightEMU();
+    var oSldSize = new CSlideSize();
+    oSldSize.setCX(nWidth);
+    oSldSize.setCY(nHeight);
+    this.setSldSz(oSldSize);
+    var nNewW = this.GetWidthEMU();
+    var nNewH = this.GetHeightEMU();
+    this.changeSlideSizeFunction(nNewW/nOldW, nNewH/nOldH);
+};
+
+CPresentation.prototype.changeSlideSize = function (width, height) {
+    if (this.Document_Is_SelectionLocked(AscCommon.changestype_SlideSize) === false) {
+        History.Create_NewPoint(AscDFH.historydescription_Presentation_ChangeSlideSize);
+        this.internalChangeSizes(width * g_dKoef_mm_to_emu, height * g_dKoef_mm_to_emu);
+        this.Recalculate();
+        this.Document_UpdateInterfaceState();
+    }
+};
+
+
 //CPresentation.prototype.GetWidthEMU = function () {
 //    return this.Width;
 //};
@@ -9407,7 +9491,6 @@ CPresentation.prototype.addNextSlide = function (layoutIndex) {
             }
         }
         new_slide.setSlideNum(this.CurPage + 1);
-        new_slide.setSlideSize(this.GetWidthMM(), this.GetHeightMM());
         this.insertSlide(this.CurPage + 1, new_slide);
 
         for (i = this.CurPage + 2; i < this.Slides.length; ++i) {
@@ -9443,7 +9526,6 @@ CPresentation.prototype.addNextSlide = function (layoutIndex) {
             }
         }
         new_slide.setSlideNum(this.CurPage + 1);
-        new_slide.setSlideSize(this.GetWidthMM(), this.GetHeightMM());
         this.insertSlide(this.CurPage + 1, new_slide);
         this.Recalculate();
     }
@@ -9775,33 +9857,6 @@ CPresentation.prototype.changeTheme = function (themeInfo, arrInd) {
     ///this.resetStateCurSlide();
     this.Recalculate();
     this.Document_UpdateInterfaceState();
-};
-
-CPresentation.prototype.changeSlideSizeFunction = function (width, height) {
-    AscFormat.ExecuteNoHistory(function () {
-        for (var i = 0; i < this.slideMasters.length; ++i) {
-            this.slideMasters[i].changeSize(width, height);
-            var master = this.slideMasters[i];
-            for (var j = 0; j < master.sldLayoutLst.length; ++j) {
-                master.sldLayoutLst[j].changeSize(width, height);
-            }
-        }
-        for (var i = 0; i < this.Slides.length; ++i) {
-            this.Slides[i].changeSize(width, height);
-        }
-    }, this, []);
-};
-
-CPresentation.prototype.changeSlideSize = function (width, height) {
-    if (this.Document_Is_SelectionLocked(AscCommon.changestype_SlideSize) === false) {
-        History.Create_NewPoint(AscDFH.historydescription_Presentation_ChangeSlideSize);
-        History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_Presentation_SlideSize, new AscFormat.CDrawingBaseCoordsWritable(this.GetWidthMM(), this.GetHeightMM()), new AscFormat.CDrawingBaseCoordsWritable(width, height)));
-        this.SetWidthMM(width);
-        this.SetHeightMM(height);
-        this.changeSlideSizeFunction(this.GetWidthMM(), this.GetHeightMM());
-        this.Recalculate();
-        this.Document_UpdateInterfaceState();
-    }
 };
 
 CPresentation.prototype.changeColorScheme = function (colorScheme) {
@@ -10874,3 +10929,4 @@ function collectSelectedObjects(aSpTree, aCollectArray, bRecursive, oIdMap, bSou
 window['AscCommonSlide'] = window['AscCommonSlide'] || {};
 window['AscCommonSlide'].CPresentation = CPresentation;
 window['AscCommonSlide'].CPrSection = CPrSection;
+window['AscCommonSlide'].CSlideSize = CSlideSize;

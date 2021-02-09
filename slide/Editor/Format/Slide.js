@@ -117,7 +117,6 @@ AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideSetLayout            ] = funct
 AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideSetTiming            ] = function(oClass, value){oClass.timing = value;};
 AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideSetNum               ] = function(oClass, value){oClass.num = value;};
 AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideSetTransition        ] = function(oClass, value){oClass.transition = value;};
-AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideSetSize              ] = function(oClass, value){oClass.Width = value.a; oClass.Height = value.b;};
 AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideSetBg                ] = function(oClass, value, FromLoad){
     oClass.cSld.Bg = value;
     if(FromLoad){
@@ -179,8 +178,6 @@ function Slide(presentation, slideLayout, slideNum)
         recalculateBackground: true,
         recalculateSpTree: true
     };
-    this.Width = 254;
-    this.Height = 190.5;
 
     this.searchingArray = [];  // массив объектов для селекта
     this.selectionArray = [];  // массив объектов для поиска
@@ -217,8 +214,6 @@ function Slide(presentation, slideLayout, slideNum)
 
     if(presentation)
     {
-        this.Width = presentation.Width;
-        this.Height = presentation.Height;
         this.setSlideComments(new SlideComments(this));
         this.setLocks(new PropLocker(this.Id), new PropLocker(this.Id), new PropLocker(this.Id), new PropLocker(this.Id), new PropLocker(this.Id), new PropLocker(this.Id));
     }
@@ -291,7 +286,6 @@ Slide.prototype =
         }
 
         copy.applyTransition(this.transition.createDuplicate());
-        copy.setSlideSize(this.Width, this.Height);
 
         if(this.notes){
             copy.setNotes(this.notes.createDuplicate());
@@ -573,7 +567,6 @@ Slide.prototype =
         return null;
     },
 
-
     changeNum: function(num)
     {
         this.num = num;
@@ -743,13 +736,6 @@ Slide.prototype =
     {
         History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_SlideSetTiming, this.timing, oTiming));
         this.timing = oTiming;
-    },
-
-    setSlideSize: function(w, h)
-    {
-       History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_SlideSetSize, new AscFormat.CDrawingBaseCoordsWritable(this.Width, this.Height), new AscFormat.CDrawingBaseCoordsWritable(w, h)));
-        this.Width = w;
-        this.Height = h;
     },
 
     changeBackground: function(bg)
@@ -1035,10 +1021,8 @@ Slide.prototype =
         }
     },
 
-    changeSize: function(width, height)
+    changeSize: function(kw, kh)
     {
-        var kw = width/this.Width, kh = height/this.Height;
-        this.setSlideSize(width, height);
         for(var i = 0; i < this.cSld.spTree.length; ++i)
         {
             this.cSld.spTree[i].changeSize(kw, kh);
@@ -1262,10 +1246,33 @@ Slide.prototype =
         return this.showMasterSp !== false;
     },
 
+
+    getWidthMM: function() {
+        if(this.presentation && this.presentation.GetWidthMM) {
+            return this.presentation.GetWidthMM();
+        }
+        return AscCommonSlide.CSlideSize.prototype.DEFAULT_CX;
+    },
+
+    getHeightMM: function() {
+        if(this.presentation && this.presentation.GetHeightMM) {
+            return this.presentation.GetHeightMM();
+        }
+        return AscCommonSlide.CSlideSize.prototype.DEFAULT_CY;
+    },
+
+    GetWidthMM: function() {
+        return this.GetWidthMM();
+    },
+
+    GetHeightMM: function() {
+        return this.getHeightMM();
+    },
+
     draw: function(graphics)
     {
         var _bounds, i;
-        DrawBackground(graphics, this.backgroundFill, this.Width, this.Height);
+        DrawBackground(graphics, this.backgroundFill, this.getWidthMM(), this.getHeightMM());
         if(this.needMasterSpDraw())
         {
             if (graphics.IsSlideBoundsCheckerType === undefined)
@@ -1509,8 +1516,8 @@ Slide.prototype =
         AscCommon.IsShapeToImageConverter = true;
 
         var dKoef = AscCommon.g_dKoef_mm_to_pix;
-        var _need_pix_width     = ((this.Width*dKoef/3.0 + 0.5) >> 0);
-        var _need_pix_height    = ((this.Height*dKoef/3.0 + 0.5) >> 0);
+        var _need_pix_width     = ((this.getWidthMM()*dKoef/3.0 + 0.5) >> 0);
+        var _need_pix_height    = ((this.getHeightMM()*dKoef/3.0 + 0.5) >> 0);
 
         if (_need_pix_width <= 0 || _need_pix_height <= 0)
             return null;
@@ -1536,7 +1543,7 @@ Slide.prototype =
         var _ctx = _canvas.getContext('2d');
 
         var g = new AscCommon.CGraphics();
-        g.init(_ctx, _need_pix_width, _need_pix_height, this.Width, this.Height);
+        g.init(_ctx, _need_pix_width, _need_pix_height, this.getWidthMM(), this.getHeightMM());
         g.m_oFontManager = AscCommon.g_fontManager;
 
         g.m_oCoordTransform.tx = 0.0;

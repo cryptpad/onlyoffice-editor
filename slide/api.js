@@ -622,8 +622,6 @@
 
 		this.ServerImagesWaitComplete = false;
 
-		this.DocumentOrientation = false;
-
 		this.SelectedObjectsStack = [];
 
 		this.CoAuthoringApi.isPowerPoint = true;
@@ -2283,10 +2281,6 @@ background-repeat: no-repeat;\
 	{
 
 	};
-	asc_docs_api.prototype.gotoHeader                      = function(page, X, Y)
-	{
-		this.goToPage(page);
-	};
 	asc_docs_api.prototype.sync_ChangeActiveHeaderCallback = function(position, header)
 	{
 		this.sendEvent("asc_onChangeActiveHeader", position, new Asc.CHeader(header));
@@ -3305,10 +3299,6 @@ background-repeat: no-repeat;\
 
 	/*----------------------------------------------------------------*/
 
-	asc_docs_api.prototype.get_DocumentOrientation = function()
-	{
-		return this.DocumentOrientation;
-	};
 
 	asc_docs_api.prototype.Update_ParaInd                = function(Ind)
 	{
@@ -3358,19 +3348,6 @@ background-repeat: no-repeat;\
 			this.WordControl.m_oHorRuler.m_dIndentRight = Right;
 			this.WordControl.UpdateHorRuler();
 		}
-	};
-
-
-	asc_docs_api.prototype.sync_DocSizeCallback               = function(width, height)
-	{
-		this.sendEvent("asc_onDocSize", width, height);
-	};
-	asc_docs_api.prototype.sync_PageOrientCallback            = function(isPortrait)
-	{
-		this.sendEvent("asc_onPageOrient", isPortrait);
-	};
-	asc_docs_api.prototype.sync_HeadersAndFootersPropCallback = function(hafProp)
-	{
 	};
 
 	/*----------------------------------------------------------------*/
@@ -5354,9 +5331,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.openDocument = function(file)
 	{
 		this.OpenDocument2(file.url, file.data);
-		this.DocumentOrientation = (null == this.WordControl.m_oLogicDocument) ? true : !this.WordControl.m_oLogicDocument.Orientation;
-		this.sync_DocSizeCallback(AscCommon.Page_Width, AscCommon.Page_Height);
-		this.sync_PageOrientCallback(this.get_DocumentOrientation());
 	};
 
 	asc_docs_api.prototype.get_PresentationWidth  = function()
@@ -5500,21 +5474,6 @@ background-repeat: no-repeat;\
 		{
             this.tmpDocumentUnits = _units;
 		}
-	};
-
-	asc_docs_api.prototype.GoToHeader = function(pageNumber)
-	{
-		if (this.WordControl.m_oDrawingDocument.IsFreezePage(pageNumber))
-			return;
-
-		var oldClickCount            = global_mouseEvent.ClickCount;
-		global_mouseEvent.ClickCount = 2;
-		this.WordControl.m_oLogicDocument.OnMouseDown(global_mouseEvent, 0, 0, pageNumber);
-		this.WordControl.m_oLogicDocument.OnMouseUp(global_mouseEvent, 0, 0, pageNumber);
-
-		this.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
-
-		global_mouseEvent.ClickCount = oldClickCount;
 	};
 
 	asc_docs_api.prototype.changeSlideSize = function(width, height)
@@ -7746,7 +7705,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['ClearPropObjCallback']                = asc_docs_api.prototype.ClearPropObjCallback;
 	asc_docs_api.prototype['CollectHeaders']                      = asc_docs_api.prototype.CollectHeaders;
 	asc_docs_api.prototype['GetActiveHeader']                     = asc_docs_api.prototype.GetActiveHeader;
-	asc_docs_api.prototype['gotoHeader']                          = asc_docs_api.prototype.gotoHeader;
 	asc_docs_api.prototype['sync_ChangeActiveHeaderCallback']     = asc_docs_api.prototype.sync_ChangeActiveHeaderCallback;
 	asc_docs_api.prototype['sync_ReturnHeadersCallback']          = asc_docs_api.prototype.sync_ReturnHeadersCallback;
 	asc_docs_api.prototype['startSearchText']                     = asc_docs_api.prototype.startSearchText;
@@ -7822,15 +7780,11 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['sync_SpaceBetweenPrgCallback']        = asc_docs_api.prototype.sync_SpaceBetweenPrgCallback;
 	asc_docs_api.prototype['sync_PrPropCallback']                 = asc_docs_api.prototype.sync_PrPropCallback;
 	asc_docs_api.prototype['SetDrawImagePlaceParagraph']          = asc_docs_api.prototype.SetDrawImagePlaceParagraph;
-	asc_docs_api.prototype['get_DocumentOrientation']             = asc_docs_api.prototype.get_DocumentOrientation;
 	asc_docs_api.prototype['put_AddPageBreak']                    = asc_docs_api.prototype.put_AddPageBreak;
 	asc_docs_api.prototype['Update_ParaInd']                      = asc_docs_api.prototype.Update_ParaInd;
 	asc_docs_api.prototype['Internal_Update_Ind_FirstLine']       = asc_docs_api.prototype.Internal_Update_Ind_FirstLine;
 	asc_docs_api.prototype['Internal_Update_Ind_Left']            = asc_docs_api.prototype.Internal_Update_Ind_Left;
 	asc_docs_api.prototype['Internal_Update_Ind_Right']           = asc_docs_api.prototype.Internal_Update_Ind_Right;
-	asc_docs_api.prototype['sync_DocSizeCallback']                = asc_docs_api.prototype.sync_DocSizeCallback;
-	asc_docs_api.prototype['sync_PageOrientCallback']             = asc_docs_api.prototype.sync_PageOrientCallback;
-	asc_docs_api.prototype['sync_HeadersAndFootersPropCallback']  = asc_docs_api.prototype.sync_HeadersAndFootersPropCallback;
 	asc_docs_api.prototype['put_Table']                           = asc_docs_api.prototype.put_Table;
 	asc_docs_api.prototype['addRowAbove']                         = asc_docs_api.prototype.addRowAbove;
 	asc_docs_api.prototype['addRowBelow']                         = asc_docs_api.prototype.addRowBelow;
@@ -7954,7 +7908,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_SetViewRulersChange']             = asc_docs_api.prototype.asc_SetViewRulersChange;
 	asc_docs_api.prototype['asc_GetViewRulers']                   = asc_docs_api.prototype.asc_GetViewRulers;
 	asc_docs_api.prototype['asc_SetDocumentUnits']                = asc_docs_api.prototype.asc_SetDocumentUnits;
-	asc_docs_api.prototype['GoToHeader']                          = asc_docs_api.prototype.GoToHeader;
 	asc_docs_api.prototype['changeSlideSize']                     = asc_docs_api.prototype.changeSlideSize;
 	asc_docs_api.prototype['AddSlide']                            = asc_docs_api.prototype.AddSlide;
 	asc_docs_api.prototype['DeleteSlide']                         = asc_docs_api.prototype.DeleteSlide;
