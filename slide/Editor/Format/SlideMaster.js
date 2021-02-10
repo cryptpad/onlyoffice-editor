@@ -634,7 +634,10 @@ MasterSlide.prototype =
         },
 
         scale: function (kw, kh) {
-            this.changeSize(kw, kh);
+            for(var i = 0; i < this.cSld.spTree.length; ++i)
+            {
+                this.cSld.spTree[i].changeSize(kw, kh);
+            }
         }
     };
 

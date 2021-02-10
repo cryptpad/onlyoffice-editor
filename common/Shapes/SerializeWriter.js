@@ -1139,29 +1139,26 @@ function CBinaryFileWriter()
         this.WriteRecord2(0, presentation.defaultTextStyle, this.WriteTextListStyle);
 
         // 5
-        pres.SldSz.cx = (presentation.Width * c_dScalePPTXSizes) >> 0;
-        pres.SldSz.cy = (presentation.Height * c_dScalePPTXSizes) >> 0;
+        var oSldSz = presentation.sldSz;
+        if(oSldSz)
+        {
+            this.StartRecord(5);
+            this.WriteUChar(g_nodeAttributeStart);
 
-        this.StartRecord(5);
-        this.WriteUChar(g_nodeAttributeStart);
+            this._WriteInt1(0, oSldSz.cx);
+            this._WriteInt1(1, oSldSz.cy);
+            this._WriteLimit2(2, oSldSz.type);
 
-        this._WriteInt1(0, pres.SldSz.cx);
-        this._WriteInt1(1, pres.SldSz.cy);
-        this._WriteLimit2(2, pres.SldSz.type);
-
-        this.WriteUChar(g_nodeAttributeEnd);
-        this.EndRecord();
+            this.WriteUChar(g_nodeAttributeEnd);
+            this.EndRecord();
+        }
 
         // 3
-        pres.NotesSz = {};
-        pres.NotesSz.cx = (presentation.Height * c_dScalePPTXSizes) >> 0;
-        pres.NotesSz.cy = (presentation.Width * c_dScalePPTXSizes) >> 0;
-
         this.StartRecord(3);
         this.WriteUChar(g_nodeAttributeStart);
 
-        this._WriteInt1(0, pres.NotesSz.cx);
-        this._WriteInt1(1, pres.NotesSz.cy);
+        this._WriteInt1(0, presentation.GetWidthEMU());
+        this._WriteInt1(1, presentation.GetHeightEMU());
 
         this.WriteUChar(g_nodeAttributeEnd);
         this.EndRecord();

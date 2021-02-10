@@ -543,7 +543,7 @@ function BinaryPPTYLoader()
             for (var i = 0; i < _sm_count; i++)
             {
                 this.presentation.slideMasters[i] = this.ReadSlideMaster();
-                this.presentation.slideMasters[i].setSlideSize(this.presentation.Width, this.presentation.Height);
+                this.presentation.slideMasters[i].setSlideSize(this.presentation.GetWidthMM(), this.presentation.GetHeightMM());
             }
         }
 
@@ -557,7 +557,7 @@ function BinaryPPTYLoader()
             for (var i = 0; i < _sl_count; i++)
             {
                 this.aSlideLayouts[i] = this.ReadSlideLayout();
-                this.aSlideLayouts[i].setSlideSize(this.presentation.Width, this.presentation.Height);
+                this.aSlideLayouts[i].setSlideSize(this.presentation.GetWidthMM(), this.presentation.GetHeightMM());
             }
         }
 
