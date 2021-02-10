@@ -2137,4 +2137,3 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 	window["AscCommon"].ScrollSettings = ScrollSettings;
     window["AscCommon"].ScrollObject = ScrollObject;
 })(window);
-

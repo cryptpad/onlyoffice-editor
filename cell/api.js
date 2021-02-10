@@ -546,10 +546,10 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_Resize = function () {
-    var isRetinaOld = AscCommon.AscBrowser.isRetina;
+    var oldScale = AscCommon.AscBrowser.retinaPixelRatio;
     AscCommon.AscBrowser.checkZoom();
     if (this.wb) {
-      if (isRetinaOld !== AscCommon.AscBrowser.isRetina) {
+      if (Math.abs(oldScale - AscCommon.AscBrowser.retinaPixelRatio) > 0.001) {
         this.wb.changeZoom(null);
       }
       this.wb.resize();
@@ -1820,6 +1820,9 @@ var editor;
 			t.CoAuthoringApi.onUnSaveLock = null;
 			if (t.isForceSaveOnUserSave && t.IsUserSave) {
 				t.forceSaveButtonContinue = t.forceSave();
+			}
+			if (t.forceSaveForm) {
+				t.forceSaveForm();
 			}
 
 			if (t.collaborativeEditing.getCollaborativeEditing()) {
@@ -4919,12 +4922,21 @@ var editor;
 
   spreadsheet_api.prototype.asc_setSkin = function (theme) {
     AscCommon.updateGlobalSkin(theme);
-    if (this.wb) {
-      var corner = document.getElementById("ws-scrollbar-corner");
-      if (corner) {
-        corner.style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
-      }
 
+    var elem = document.getElementById("ws-v-scrollbar");
+    if (elem) {
+      elem.style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
+    }
+    elem = document.getElementById("ws-h-scrollbar");
+    if (elem) {
+      elem.style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
+    }
+    elem = document.getElementById("ws-scrollbar-corner");
+    if (elem) {
+      elem.style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
+    }
+
+    if (this.wb) {
       this.wb.updateSkin();
       var ws = this.wb.getWorksheet();
       if (ws) {

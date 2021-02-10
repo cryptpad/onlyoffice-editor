@@ -148,6 +148,7 @@
         this.forceSaveButtonTimeout = null;
         this.forceSaveButtonContinue = false;
         this.forceSaveTimeoutTimeout = null;
+		this.forceSaveForm = null;
 		this.disconnectOnSave = null;
 		this.forceSaveUndoRequest = false; // Флаг нужен, чтобы мы знали, что данное сохранение пришло по запросу Undo в совместке
 
@@ -800,6 +801,20 @@
 	{
 		return this.CoAuthoringApi.forceSave();
 	};
+	baseEditorsApi.prototype.saveFromChanges = function(data, timeout, callback) {
+		var t = this;
+		var fAfterSaveChanges = function() {
+			t.forceSaveForm = null;
+			if (!t.CoAuthoringApi.callPRC(data, timeout, callback)) {
+				callback(false, undefined);
+			}
+		};
+		if (this.asc_Save(true)) {
+			this.forceSaveForm = fAfterSaveChanges;
+		} else {
+			fAfterSaveChanges();
+		}
+	};
 	baseEditorsApi.prototype.asc_setIsForceSaveOnUserSave = function(val)
 	{
 		this.isForceSaveOnUserSave = val;
@@ -823,6 +838,13 @@
 				// Мы не можем в этот момент сохранять, т.к. попали в ситуацию, когда мы залочили сохранение и успели нажать вставку до ответа
 				// Нужно снять lock с сохранения
 				this.CoAuthoringApi.onUnSaveLock = function () {
+					if (t.isForceSaveOnUserSave && t.IsUserSave) {
+						t.forceSaveButtonContinue = t.forceSave();
+					}
+					if (t.forceSaveForm) {
+						t.forceSaveForm();
+					}
+
 					t.canSave = true;
 					t.IsUserSave = false;
 					t.lastSaveTime = null;

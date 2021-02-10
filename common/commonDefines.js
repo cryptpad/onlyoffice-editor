@@ -218,6 +218,7 @@
 
 			ForceSaveButton: -331,
 			ForceSaveTimeout: -332,
+			Submit: -333,
 
 			OpenWarning : 500,
 
@@ -285,7 +286,8 @@
 		SendMailMerge     : 15,  // рассылка mail merge по почте
 		ForceSaveButton   : 16,
 		ForceSaveTimeout  : 17,
-		Waiting	: 18
+		Waiting	: 18,
+		Submit : 19
 	};
 
 	var c_oAscAdvancedOptionsID = {
@@ -2326,6 +2328,8 @@
 	prot['SendMailMerge']                    = prot.SendMailMerge;
 	prot['ForceSaveButton']                  = prot.ForceSaveButton;
 	prot['ForceSaveTimeout']                 = prot.ForceSaveTimeout;
+	prot['Waiting']                          = prot.Waiting;
+	prot['Submit']                           = prot.Submit;
 	window['Asc']['c_oAscAdvancedOptionsID'] = window['Asc'].c_oAscAdvancedOptionsID = c_oAscAdvancedOptionsID;
 	prot                                         = c_oAscAdvancedOptionsID;
 	prot['CSV']                                  = prot.CSV;

@@ -516,9 +516,7 @@ DrawingObjectsController.prototype.getDrawingDocument = function()
 DrawingObjectsController.prototype.convertPixToMM = function(pix)
 {
     var _ret = this.drawingObjects ? this.drawingObjects.convertMetric(pix, 0, 3) : 0;
-    if(AscCommon.AscBrowser.isRetina){
-        _ret *= 2;
-    }
+    _ret *= AscCommon.AscBrowser.retinaPixelRatio;
     return _ret;
 };
 

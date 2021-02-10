@@ -21323,8 +21323,8 @@ CDocument.prototype.private_CheckCursorPosInFillingFormMode = function()
 	if (this.IsFillingFormMode() && !this.IsInFormField())
 	{
 		this.MoveToFillingForm(true);
-		this.Document_UpdateSelectionState();
-		this.Document_UpdateInterfaceState();
+		this.UpdateSelection();
+		this.UpdateInterface();
 	}
 };
 CDocument.prototype.OnEndLoadScript = function()

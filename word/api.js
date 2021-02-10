@@ -1327,8 +1327,8 @@ background-repeat: no-repeat;\
 	{
 		this.WordControl.m_oLogicDocument                    = new AscCommonWord.CDocument(this.WordControl.m_oDrawingDocument);
 		this.WordControl.m_oDrawingDocument.m_oLogicDocument = this.WordControl.m_oLogicDocument;
-		if (!this.isSpellCheckEnable)
-			this.WordControl.m_oLogicDocument.TurnOff_CheckSpelling();
+		if (!this.isSpellCheckEnable || this.isRestrictionComments() || this.isRestrictionForms())
+			this.WordControl.m_oLogicDocument.TurnOffCheckSpelling();
 
 		if (this.WordControl.MobileTouchManager)
 			this.WordControl.MobileTouchManager.delegate.LogicDocument = this.WordControl.m_oLogicDocument;
@@ -1767,7 +1767,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype._spellCheckDisconnect   = function()
 	{
 		if (this.WordControl.m_oLogicDocument)
-			this.WordControl.m_oLogicDocument.TurnOff_CheckSpelling();
+			this.WordControl.m_oLogicDocument.TurnOffCheckSpelling();
 	};
 	asc_docs_api.prototype._onUpdateDocumentCanSave   = function()
 	{
@@ -2452,6 +2452,9 @@ background-repeat: no-repeat;\
 			t.CoAuthoringApi.onUnSaveLock = null;
 			if (t.isForceSaveOnUserSave && t.IsUserSave) {
 				t.forceSaveButtonContinue = t.forceSave();
+			}
+			if (t.forceSaveForm) {
+				t.forceSaveForm();
 			}
 
 			// Выставляем, что документ не модифицирован
@@ -3856,6 +3859,45 @@ background-repeat: no-repeat;\
 				{
 					oNum.SetAscLvl(oAscNumberingLvl[nIndex], nLvl[nIndex]);
 				}
+			}
+
+			oLogicDocument.Recalculate();
+			oLogicDocument.UpdateInterface();
+			oLogicDocument.UpdateSelection();
+			oLogicDocument.FinalizeAction();
+		}
+	};
+	asc_docs_api.prototype.asc_SetNumberingLvl = function(nLvl)
+	{
+		var _nLvl = Math.max(-1, Math.min(8, nLvl));
+
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		var arrSelectedParagraphs = oLogicDocument.GetSelectedParagraphs();
+		if (arrSelectedParagraphs.length <= 0)
+			return;
+
+		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_None, {
+			Type : AscCommon.changestype_2_ElementsArray_and_Type,
+			Elements : arrSelectedParagraphs,
+			CheckType : AscCommon.changestype_Paragraph_Properties
+		}))
+		{
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_SetNumberingLvl);
+
+			for (var nIndex = 0, nCount = arrSelectedParagraphs.length; nIndex < nCount; ++nIndex)
+			{
+				var oParagraph = arrSelectedParagraphs[nIndex];
+				var oNumPr = oParagraph.GetNumPr();
+				if (!oNumPr)
+					continue;
+
+				if (-1 === _nLvl)
+					oParagraph.RemoveNumPr();
+				else
+					oParagraph.SetNumPr(oNumPr.NumId, _nLvl);
 			}
 
 			oLogicDocument.Recalculate();
@@ -7665,6 +7707,18 @@ background-repeat: no-repeat;\
         this.isMarkerFormat = value;
         return this.sendEvent("asc_onMarkerFormatChanged", value);
     };
+	asc_docs_api.prototype.asc_SendForm = function()
+	{
+		var t = this;
+		this.sync_StartAction(c_oAscAsyncActionType.Information, c_oAscAsyncAction.Submit);
+		var data = {'type': 'sendForm', 'userconnectionid': this.CoAuthoringApi.getUserConnectionId()};
+		this.saveFromChanges(data, Asc.c_nMaxConversionTime, function(isTimeout, response) {
+			if (!(response && response.success)) {
+				t.sendEvent('asc_onError', Asc.c_oAscError.ID.Submit, c_oAscError.Level.NoCritical);
+			}
+			t.sync_EndAction(c_oAscAsyncActionType.Information, c_oAscAsyncAction.Submit);
+		});
+	};
 
     asc_docs_api.prototype.SetTableDrawMode = function(value)
     {
@@ -9400,6 +9454,16 @@ background-repeat: no-repeat;\
 
 		return oLogicDocument.GetSpecialFormsByKey(sKey).length;
 	};
+	asc_docs_api.prototype.asc_MoveToFillingForm = function(isNext)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		oLogicDocument.MoveToFillingForm(isNext);
+		oLogicDocument.UpdateSelection();
+		oLogicDocument.UpdateInterface();
+	};
 
 	asc_docs_api.prototype.asc_UncheckContentControlButtons = function()
 	{
@@ -11033,6 +11097,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_GetNumberingPr']                        = asc_docs_api.prototype.asc_GetNumberingPr;
 	asc_docs_api.prototype['asc_AddNewNumbering']                       = asc_docs_api.prototype.asc_AddNewNumbering;
 	asc_docs_api.prototype['asc_ChangeNumberingLvl']                    = asc_docs_api.prototype.asc_ChangeNumberingLvl;
+	asc_docs_api.prototype['asc_SetNumberingLvl']                       = asc_docs_api.prototype.asc_SetNumberingLvl;
 	asc_docs_api.prototype['put_Style']                                 = asc_docs_api.prototype.put_Style;
 	asc_docs_api.prototype['asc_SetParagraphSuppressLineNumbers']       = asc_docs_api.prototype.asc_SetParagraphSuppressLineNumbers;
 	asc_docs_api.prototype['SetDeviceInputHelperId']                    = asc_docs_api.prototype.SetDeviceInputHelperId;
@@ -11394,6 +11459,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_SetPerformContentControlActionByClick'] = asc_docs_api.prototype.asc_SetPerformContentControlActionByClick;
 	asc_docs_api.prototype['asc_GetTextFormAutoWidth']                  = asc_docs_api.prototype.asc_GetTextFormAutoWidth;
 	asc_docs_api.prototype['asc_GetFormsCountByKey']                    = asc_docs_api.prototype.asc_GetFormsCountByKey;
+	asc_docs_api.prototype['asc_MoveToFillingForm']                     = asc_docs_api.prototype.asc_MoveToFillingForm;
+	asc_docs_api.prototype['asc_SendForm']                    			= asc_docs_api.prototype.asc_SendForm;
 
 	asc_docs_api.prototype['asc_BeginViewModeInReview']                 = asc_docs_api.prototype.asc_BeginViewModeInReview;
 	asc_docs_api.prototype['asc_EndViewModeInReview']                   = asc_docs_api.prototype.asc_EndViewModeInReview;

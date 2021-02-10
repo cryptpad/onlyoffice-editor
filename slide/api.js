@@ -1047,7 +1047,7 @@
     asc_docs_api.prototype._spellCheckDisconnect   = function()
     {
         if (this.WordControl.m_oLogicDocument)
-            this.WordControl.m_oLogicDocument.TurnOff_CheckSpelling();
+            this.WordControl.m_oLogicDocument.TurnOffCheckSpelling();
     };
 
     asc_docs_api.prototype.pre_Save = function(_images)
@@ -2012,6 +2012,9 @@ background-repeat: no-repeat;\
 			t.CoAuthoringApi.onUnSaveLock = null;
 			if (t.isForceSaveOnUserSave && t.IsUserSave) {
 				t.forceSaveButtonContinue = t.forceSave();
+			}
+			if (t.forceSaveForm) {
+				t.forceSaveForm();
 			}
 			// Выставляем, что документ не модифицирован
 			t.CheckChangedDocument();
@@ -5125,9 +5128,6 @@ background-repeat: no-repeat;\
 				}
 
 				if(!window["NATIVE_EDITOR_ENJINE"]){
-
-					this.WordControl.m_oLayoutDrawer.IsRetina = this.WordControl.bIsRetinaSupport;
-
 					this.WordControl.m_oLayoutDrawer.WidthMM  = presentation.GetWidthMM();
 					this.WordControl.m_oLayoutDrawer.HeightMM = presentation.GetHeightMM();
 					this.WordControl.m_oMasterDrawer.WidthMM  = presentation.GetWidthMM();

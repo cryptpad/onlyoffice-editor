@@ -3755,11 +3755,11 @@ CPresentation.prototype.ContinueCheckSpelling = function () {
     this.Spelling.ContinueCheckSpelling();
 };
 
-CPresentation.prototype.TurnOff_CheckSpelling = function () {
+CPresentation.prototype.TurnOffCheckSpelling = function () {
     this.Spelling.TurnOff();
 };
 
-CPresentation.prototype.TurnOn_CheckSpelling = function () {
+CPresentation.prototype.TurnOnCheckSpelling = function () {
     this.Spelling.TurnOn();
 };
 

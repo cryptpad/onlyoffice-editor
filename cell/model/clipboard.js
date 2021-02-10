@@ -2050,10 +2050,10 @@
 						cellsLeft;
 					var posY = curShape.transformText.TransformPointY(cursorPos.X, cursorPos.Y) * mmToPx - offsetY +
 						cellsTop;
-					if (AscCommon.AscBrowser.isRetina) {
-						posX = AscCommon.AscBrowser.convertToRetinaValue(posX);
-						posY = AscCommon.AscBrowser.convertToRetinaValue(posY);
-					}
+
+					posX = AscCommon.AscBrowser.convertToRetinaValue(posX);
+					posY = AscCommon.AscBrowser.convertToRetinaValue(posY);
+
 					var position = {x: posX, y: posY};
 
 					var allowedSpecialPasteProps = [sProps.sourceformatting, sProps.destinationFormatting];

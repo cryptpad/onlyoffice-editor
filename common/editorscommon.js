@@ -413,7 +413,7 @@
 		this.value = function(param)
 		{
 			var ret = this.map[param];
-			if (AscCommon.AscBrowser.isRetina && this.mapRetina[param])
+			if (AscCommon.AscBrowser.isCustomScalingAbove2() && this.mapRetina[param])
 				ret = this.mapRetina[param];
 			return ret ? ret : param;
 		};
@@ -5785,10 +5785,13 @@
 	CMathTrack.prototype.Draw = function (overlay, oPath, shift, color, dKoefX, dKoefY, left, top)
 	{
 		var ctx = overlay.m_oContext;
+		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
 		ctx.strokeStyle = color;
-		ctx.lineWidth = 1;
+		ctx.lineWidth = Math.round(window.devicePixelRatio);
 		ctx.beginPath();
 
+        left *= rPR;
+        top *= rPR;
 		var Points = oPath.Points;
 
 		var nCount = Points.length;
@@ -5921,26 +5924,27 @@
 		var Points = oPath.Points;
 		var nPointIndex;
 		var _x, _y, x, y, p;
+		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
 		for (nPointIndex = 0; nPointIndex < Points.length - 1; nPointIndex++)
 		{
 			p = Points[nPointIndex];
 			if(!m)
 			{
-				_x = left + dKoefX * p.X;
-				_y = top + dKoefY * p.Y;
+				_x = (left + dKoefX * p.X) * rPR;
+				_y = (top + dKoefY * p.Y) * rPR;
 			}
 			else
 			{
 				x = p.X;
 				y = p.Y;
-				_x = left + dKoefX * m.TransformPointX(x, y);
-				_y = top + dKoefY * m.TransformPointY(x, y);
+				_x = (left + dKoefX * m.TransformPointX(x, y)) * rPR;
+				_y = (top + dKoefY * m.TransformPointY(x, y)) * rPR;
 			}
 			overlay.CheckPoint(_x, _y);
 			if (0 == nPointIndex)
-				ctx.moveTo((_x >> 0) + 0.5, (_y >> 0) + 0.5);
+				ctx.moveTo((_x >> 0) + 0.5 * Math.round(rPR), (_y >> 0) + 0.5 * Math.round(rPR));
 			else
-				ctx.lineTo((_x >> 0) + 0.5, (_y >> 0) + 0.5);
+				ctx.lineTo((_x >> 0) + 0.5 * Math.round(rPR), (_y >> 0) + 0.5 * Math.round(rPR));
 		}
 		ctx.globalAlpha = 0.2;
 		ctx.fill();
@@ -6331,6 +6335,50 @@
 		});
 		return aDelta;
 	}
+
+    function _getIntegerByDivide(val)
+    {
+        // поддерживаем scale, который
+        // 1) рациональное число
+        // 2) знаменатель несократимой дроби <= 10 (поддерживаем проценты кратные 1/10, 1/9, ... 1/2)
+        var test = val;
+        for (var i = 0; i < 10; i++)
+        {
+            test = (val - i) * AscCommon.AscBrowser.retinaPixelRatio;
+            if (test > 0 && Math.abs(test - (test >> 0)) < 0.001)
+                return { start: (val - i), end : (test >> 0) };
+        }
+        return { start : val, end: AscCommon.AscBrowser.convertToRetinaValue(val, true) };
+    };
+
+    function calculateCanvasSize(element)
+	{
+        var scale = AscCommon.AscBrowser.retinaPixelRatio;
+        if (Math.abs(scale - (scale >> 0)) < 0.001)
+		{
+            element.width = (scale * parseInt(element.style.width));
+            element.height = (scale * parseInt(element.style.height));
+            return;
+		}
+
+        var rect = element.getBoundingClientRect();
+        if (!AscCommon.AscBrowser.isMozilla)
+        {
+            element.width = Math.round(scale * rect.right) - Math.round(scale * rect.left);
+            element.height = Math.round(scale * rect.bottom) - Math.round(scale * rect.top);
+        }
+        else
+        {
+            var sizeW = _getIntegerByDivide(rect.width);
+            var sizeH = _getIntegerByDivide(rect.height);
+            if (sizeW.start !== rect.width) element.style.width = sizeW.start + "px";
+            if (sizeH.start !== rect.height) element.style.height = sizeH.start + "px";
+
+            element.width = sizeW.end;
+            element.height = sizeH.end;
+        }
+    };
+
 	//------------------------------------------------------------export---------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window["AscCommon"].getSockJs = getSockJs;
@@ -6446,6 +6494,8 @@
 	window["AscCommon"].getRangeArray = getRangeArray;
 
 	window["AscCommon"].CUnicodeStringEmulator = CUnicodeStringEmulator;
+
+	window["AscCommon"].calculateCanvasSize = calculateCanvasSize;
 
 	window["AscCommon"].private_IsAbbreviation = private_IsAbbreviation;
 
