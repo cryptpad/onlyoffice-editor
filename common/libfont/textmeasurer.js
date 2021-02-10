@@ -103,7 +103,7 @@
 
         SetTextPr : function(textPr, theme)
         {
-			if (textPr && textPr.ReplaceThemeFonts)
+			if (theme && textPr && textPr.ReplaceThemeFonts)
 				textPr.ReplaceThemeFonts(theme.themeElements.fontScheme);
 
             this.m_oTextPr = textPr;
