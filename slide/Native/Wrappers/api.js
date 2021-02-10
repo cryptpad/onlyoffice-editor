@@ -2667,8 +2667,8 @@ function NativeOpenFileP(_params, documentInfo){
         var _presentation = _api.WordControl.m_oLogicDocument;
 
         var nSlidesCount = _presentation.Slides.length;
-        var dPresentationWidth = _presentation.Width;
-        var dPresentationHeight = _presentation.Height;
+        var dPresentationWidth = _presentation.GetWidthMM();
+        var dPresentationHeight = _presentation.GetHeightMM();
 
         var aTransitions = [];
         var slides = _presentation.Slides;
@@ -3116,8 +3116,8 @@ Asc['asc_docs_api'].prototype.openDocument = function(file)
     var _presentation = _api.WordControl.m_oLogicDocument;
 
     var nSlidesCount = _presentation.Slides.length;
-    var dPresentationWidth = _presentation.Width;
-    var dPresentationHeight = _presentation.Height;
+    var dPresentationWidth = _presentation.GetWidthMM();
+    var dPresentationHeight = _presentation.GetHeightMM();
 
     var aTransitions = [];
     var slides = _presentation.Slides;

@@ -1497,6 +1497,7 @@
 	window['AscDFH'].historyitem_type_TmplLst                = 1193 << 16;
 	window['AscDFH'].historyitem_type_TnLst                  = 1194 << 16;
 	window['AscDFH'].historyitem_type_TavLst                 = 1195 << 16;
+	window['AscDFH'].historyitem_type_SldSz                  = 1196 << 16;
 
 	window['AscDFH'].historyitem_type_DocumentMacros         = 2000 << 16;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3183,6 +3184,10 @@
 	AscDFH.historyitem_WheelSpokes = AscDFH.historyitem_type_Wheel | 1;
 
 	AscDFH.historyitem_AttrNameText = AscDFH.historyitem_type_AttrName | 1;
+
+	AscDFH.historyitem_SldSzCX   = AscDFH.historyitem_type_SldSz | 1;
+	AscDFH.historyitem_SldSzCY   = AscDFH.historyitem_type_SldSz | 2;
+	AscDFH.historyitem_SldSzType = AscDFH.historyitem_type_SldSz | 3;
 
 
 

@@ -1085,9 +1085,9 @@ CGraphicFrame.prototype.Get_PageContentStartPos = function(PageNum)
         var presentation = editor.WordControl.m_oLogicDocument;
         return {
             X : 0,
-            XLimit: presentation.Width,
+            XLimit: presentation.GetWidthMM(),
             Y : 0,
-            YLimit : presentation.Height,
+            YLimit : presentation.GetHeightMM(),
             MaxTopBorder : 0
         };
 
