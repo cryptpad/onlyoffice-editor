@@ -1795,9 +1795,6 @@ function (window, undefined) {
 		}
 
 		var pMatY = argClone[0];
-		if (pMatY && pMatY.length === 1) {
-			//pMatY = AscCommonExcel.reverseMatrix(pMatY);
-		}
 		var pMatX = argClone[1];
 		if (pMatX && !pMatX.length && pMatX.type === cElementType.empty) {
 			pMatX = undefined;
