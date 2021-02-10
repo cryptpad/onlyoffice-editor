@@ -12064,28 +12064,48 @@ CRFonts.prototype.Copy = function()
 CRFonts.prototype.Merge = function(oRFonts)
 {
 	if (oRFonts.AsciiTheme)
+	{
 		this.AsciiTheme = oRFonts.AsciiTheme;
-
-	if (oRFonts.Ascii)
-		this.Ascii = oRFonts.Ascii;
+		this.Ascii      = undefined;
+	}
+	else if (oRFonts.Ascii)
+	{
+		this.Ascii      = oRFonts.Ascii;
+		this.AsciiTheme = undefined;
+	}
 
 	if (oRFonts.EastAsiaTheme)
+	{
 		this.EastAsiaTheme = oRFonts.EastAsiaTheme
-
-	if (oRFonts.EastAsia)
-		this.EastAsia = oRFonts.EastAsia;
+		this.EastAsia      = undefined;
+	}
+	else if (oRFonts.EastAsia)
+	{
+		this.EastAsia      = oRFonts.EastAsia;
+		this.EastAsiaTheme = undefined;
+	}
 
 	if (oRFonts.HAnsiTheme)
+	{
 		this.HAnsiTheme = oRFonts.HAnsiTheme;
-
-	if (oRFonts.HAnsi)
-		this.HAnsi = oRFonts.HAnsi;
+		this.HAnsi      = undefined;
+	}
+	else if (oRFonts.HAnsi)
+	{
+		this.HAnsi      = oRFonts.HAnsi;
+		this.HAnsiTheme = undefined;
+	}
 
 	if (oRFonts.CSTheme)
+	{
 		this.CSTheme = oRFonts.CSTheme;
-
-	if (oRFonts.CS)
-		this.CS = oRFonts.CS;
+		this.CS      = undefined;
+	}
+	else if (oRFonts.CS)
+	{
+		this.CS      = oRFonts.CS;
+		this.CSTheme = undefined;
+	}
 
 	if (oRFonts.Hint)
 		this.Hint = oRFonts.Hint;

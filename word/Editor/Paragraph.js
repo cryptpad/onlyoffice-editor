@@ -655,6 +655,10 @@ Paragraph.prototype.Get_Theme = function()
 
 	return null;
 };
+Paragraph.prototype.GetTheme = function()
+{
+	return this.Get_Theme();
+};
 Paragraph.prototype.Get_ColorMap = function()
 {
 	if (this.Parent)
@@ -8530,7 +8534,15 @@ Paragraph.prototype.GetCalculatedTextPr = function()
 
 	// TODO: Пока возвращаем всегда шрифт лежащий в Ascii, в будущем надо будет это переделать
 	if (undefined !== TextPr.RFonts && null !== TextPr.RFonts)
-		TextPr.FontFamily = TextPr.RFonts.Ascii;
+	{
+		TextPr.ReplaceThemeFonts(this.GetTheme().themeElements.fontScheme);
+
+		if (!TextPr.FontFamily)
+			TextPr.FontFamily = {Name : "", Index : -1};
+
+		TextPr.FontFamily.Name  = TextPr.RFonts.Ascii.Name;
+		TextPr.FontFamily.Index = TextPr.RFonts.Ascii.Index;
+	}
 
 	return TextPr;
 };
