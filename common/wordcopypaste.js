@@ -1162,8 +1162,8 @@ CopyProcessor.prototype =
 			if(elementsContent.DocContent || (elementsContent.Drawings && elementsContent.Drawings.length) || (elementsContent.SlideObjects && elementsContent.SlideObjects.length))
 			{
 				this.oPresentationWriter.WriteString2(this.api.documentId);
-				this.oPresentationWriter.WriteDouble(presentation.Width);
-				this.oPresentationWriter.WriteDouble(presentation.Height);
+				this.oPresentationWriter.WriteDouble(presentation.GetWidth());
+				this.oPresentationWriter.WriteDouble(presentation.GetHeight());
 			}
 			this.copyPresentationContent(elementsContent, oDomTarget);
 		}*/
@@ -4563,7 +4563,7 @@ PasteProcessor.prototype =
 					shape = arrTables[i];
 
 					//TODO передалать высоту/ширину!
-					//var w =  shape.txBody.getRectWidth(presentation.Width*2/3);
+					//var w =  shape.txBody.getRectWidth(presentation.GetWidth()*2/3);
 					//var h = shape.txBody.content.GetSummaryHeight();
 					w = 100;
 					h = 100;

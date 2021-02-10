@@ -2968,16 +2968,6 @@ CPresentation.prototype.changeSlideSize = function (width, height) {
     }
 };
 
-
-//CPresentation.prototype.GetWidthEMU = function () {
-//    return this.Width;
-//};
-//
-//CPresentation.prototype.GetHeightEMU = function () {
-//    return this.Height;
-//};
-
-
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для работы с составным вводом
 //----------------------------------------------------------------------------------------------------------------------
@@ -5082,7 +5072,7 @@ CPresentation.prototype.addChart = function (binary, isFromInterface, Placeholde
     Image.setParent(oSlide);
 
     var PosX = (this.GetWidthMM() - Image.spPr.xfrm.extX) / 2;
-    var PosY = (this.GetWidthMM() - Image.spPr.xfrm.extY) / 2;
+    var PosY = (this.GetHeightMM() - Image.spPr.xfrm.extY) / 2;
     if (Placeholder) {
         var oPh = AscCommon.g_oTableId.Get_ById(Placeholder.id);
         if (oPh) {

@@ -5128,16 +5128,16 @@ background-repeat: no-repeat;\
 
 					this.WordControl.m_oLayoutDrawer.IsRetina = this.WordControl.bIsRetinaSupport;
 
-					this.WordControl.m_oLayoutDrawer.WidthMM  = presentation.Width;
-					this.WordControl.m_oLayoutDrawer.HeightMM = presentation.Height;
-					this.WordControl.m_oMasterDrawer.WidthMM  = presentation.Width;
-					this.WordControl.m_oMasterDrawer.HeightMM = presentation.Height;
+					this.WordControl.m_oLayoutDrawer.WidthMM  = presentation.GetWidthMM();
+					this.WordControl.m_oLayoutDrawer.HeightMM = presentation.GetHeightMM();
+					this.WordControl.m_oMasterDrawer.WidthMM  = presentation.GetWidthMM();
+					this.WordControl.m_oMasterDrawer.HeightMM = presentation.GetHeightMM();
 				}
                 this.standartThemesStatus++;
                 if (2 < this.standartThemesStatus)
                    this.WordControl.m_oLogicDocument.SendThemesThumbnails();
 
-				this.sendEvent("asc_onPresentationSize", presentation.Width, presentation.Height);
+				this.sendEvent("asc_onPresentationSize", presentation.GetWidthMM(), presentation.GetHeightMM());
 
 				this.WordControl.GoToPage(0);
 				bIsScroll = true;
@@ -5337,13 +5337,13 @@ background-repeat: no-repeat;\
 	{
 		if (this.WordControl.m_oLogicDocument == null)
 			return 0;
-		return this.WordControl.m_oLogicDocument.Width;
+		return this.WordControl.m_oLogicDocument.GetWidthMM();
 	};
 	asc_docs_api.prototype.get_PresentationHeight = function()
 	{
 		if (this.WordControl.m_oLogicDocument == null)
 			return 0;
-		return this.WordControl.m_oLogicDocument.Height;
+		return this.WordControl.m_oLogicDocument.GetHeightMM();
 	};
 
 	asc_docs_api.prototype.pre_Paste = function(_fonts, _images, callback)
@@ -7434,16 +7434,16 @@ background-repeat: no-repeat;\
 					oDocRenderer.Memory.Seek(0);
 					oDocRenderer.VectorMemoryForPrint.ClearNoAttack();
 
-					oDocRenderer.BeginPage(_drawing_document.m_oLogicDocument.Width, _drawing_document.m_oLogicDocument.Height);
+					oDocRenderer.BeginPage(_drawing_document.m_oLogicDocument.GetWidthMM(), _drawing_document.m_oLogicDocument.GetHeightMM());
 					this.WordControl.m_oLogicDocument.DrawPage(i, oDocRenderer);
 					oDocRenderer.EndPage();
 
-					window["AscDesktopEditor"]["Print_Page"](oDocRenderer.Memory.GetBase64Memory(), _drawing_document.m_oLogicDocument.Width, _drawing_document.m_oLogicDocument.Height);
+					window["AscDesktopEditor"]["Print_Page"](oDocRenderer.Memory.GetBase64Memory(), _drawing_document.m_oLogicDocument.GetWidthMM(), _drawing_document.m_oLogicDocument.GetHeightMM());
 				}
 
 				if (0 == pagescount)
 				{
-					oDocRenderer.BeginPage(_drawing_document.m_oLogicDocument.Width, _drawing_document.m_oLogicDocument.Height);
+					oDocRenderer.BeginPage(_drawing_document.m_oLogicDocument.GetWidthMM(), _drawing_document.m_oLogicDocument.GetHeightMM());
 					oDocRenderer.EndPage();
 
 					window["AscDesktopEditor"]["Print_Page"](oDocRenderer.Memory.GetBase64Memory());
@@ -7457,7 +7457,7 @@ background-repeat: no-repeat;\
 		}
 
 		var _logic_doc = this.WordControl.m_oLogicDocument;
-		_printer.BeginPage(_logic_doc.Width, _logic_doc.Height);
+		_printer.BeginPage(_logic_doc.GetWidthMM(), _logic_doc.GetHeightMM());
 		_logic_doc.DrawPage(_page, _printer);
 		_printer.EndPage();
 	};

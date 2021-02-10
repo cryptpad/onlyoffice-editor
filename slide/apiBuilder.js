@@ -563,8 +563,8 @@
                     }
                 }
             }
-            var _x = (this.Presentation.Width - _w)/2.0;
-            var _y = (this.Presentation.Height - _h)/2.0;
+            var _x = (this.Presentation.GetWidthMM() - _w)/2.0;
+            var _y = (this.Presentation.GetHeightMM() - _h)/2.0;
             oImage.spPr.xfrm.setOffX(_x);
             oImage.spPr.xfrm.setOffY(_y);
             _slide.addToSpTreeToPos(_slide.cSld.spTree.length, oImage);
