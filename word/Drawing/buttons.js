@@ -3085,6 +3085,8 @@
 	CPolygonCC.prototype.draw = function(overlay, object, drPage, koefX, koefY, icons)
 	{
 		var ctx = overlay.m_oContext;
+		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+		var indent = 0.5 * Math.round(rPR);
 		var pointsLen = this.points.length;
 		if (!object.transform)
 		{
@@ -3110,12 +3112,12 @@
 							lineH = koefY * this.rectMove.h;
 
 						// draw move rect
-						_x1 = (drPage.left + koefX * (this.rectMove.x + object.OffsetX)) >> 0;
-						_y1 = (drPage.top + koefY * (this.rectMove.y + object.OffsetY)) >> 0;
-						_x2 = (drPage.left + koefX * (this.rectMove.x + this.rectMove.w + object.OffsetX)) >> 0;
+						_x1 = ((drPage.left + koefX * (this.rectMove.x + object.OffsetX)) * rPR) >> 0;
+						_y1 = ((drPage.top + koefY * (this.rectMove.y + object.OffsetY)) * rPR) >> 0;
+						_x2 = ((drPage.left + koefX * (this.rectMove.x + this.rectMove.w + object.OffsetX)) * rPR) >> 0;
 						_y2 = _y1;
 						_x3 = _x2;
-						_y3 = (drPage.top + koefY * (this.rectMove.y + this.rectMove.h + object.OffsetY)) >> 0;
+						_y3 = ((drPage.top + koefY * (this.rectMove.y + this.rectMove.h + object.OffsetY)) * rPR) >> 0;
 						_x4 = _x1;
 						_y4 = _y3;
 
@@ -3127,12 +3129,12 @@
 						ctx.fill();
 						ctx.beginPath();
 
-						var yCenterPos = ((_y1 + 0.5 * lineH) >> 0) + 0.5;
-						var xCenter = _x1 + this.rectMoveWidthPx / 2;
-						var wCenter = ((this.rectMoveWidthPx / 3) + 1) >> 0;
+						var yCenterPos = ((_y1 + 0.5 * lineH * rPR) >> 0) + indent;
+						var xCenter = _x1 + this.rectMoveWidthPx / 2 * rPR;
+						var wCenter = (this.rectMoveWidthPx * rPR / 3 + Math.round(rPR)) >> 0;
 						xCenter -= wCenter / 2;
 						xCenter = xCenter >> 0;
-						xCenter += 1; // lineWidth
+						xCenter += Math.round(rPR); // lineWidth
 
 						if (!this.isActive)
 							ctx.strokeStyle = AscCommon.GlobalSkin.FormsContentControlsOutlineHover;
@@ -3154,12 +3156,12 @@
 
 						ctx.moveTo(xCenter, yCenterPos);
 						ctx.lineTo(xCenter + wCenter, yCenterPos);
-						ctx.moveTo(xCenter, yCenterPos - 2);
-						ctx.lineTo(xCenter + wCenter, yCenterPos - 2);
-						ctx.moveTo(xCenter, yCenterPos + 2);
-						ctx.lineTo(xCenter + wCenter, yCenterPos + 2);
+						ctx.moveTo(xCenter, yCenterPos - Math.round(2 * rPR));
+						ctx.lineTo(xCenter + wCenter, yCenterPos - Math.round(2 * rPR));
+						ctx.moveTo(xCenter, yCenterPos + Math.round(2 * rPR));
+						ctx.lineTo(xCenter + wCenter, yCenterPos + Math.round(2 * rPR));
 
-						ctx.lineWidth = 1;
+						ctx.lineWidth = Math.round(rPR);
 						ctx.stroke();
 						ctx.beginPath();
 					}
@@ -3167,12 +3169,12 @@
 					if (this.rectCombo)
 					{
 						// draw combo rect
-						_x1 = (drPage.left + koefX * (this.rectCombo.x + object.OffsetX)) >> 0;
-						_y1 = (drPage.top + koefY * (this.rectCombo.y + object.OffsetY)) >> 0;
-						_x2 = (drPage.left + koefX * (this.rectCombo.x + this.rectCombo.w + object.OffsetX)) >> 0;
+						_x1 = ((drPage.left + koefX * (this.rectCombo.x + object.OffsetX)) * rPR) >> 0;
+						_y1 = ((drPage.top + koefY * (this.rectCombo.y + object.OffsetY)) * rPR)>> 0;
+						_x2 = (drPage.left + koefX * (this.rectCombo.x + this.rectCombo.w + object.OffsetX)) * rPR >> 0;
 						_y2 = _y1;
 						_x3 = _x2;
-						_y3 = (drPage.top + koefY * (this.rectCombo.y + this.rectCombo.h + object.OffsetY)) >> 0;
+						_y3 = ((drPage.top + koefY * (this.rectCombo.y + this.rectCombo.h + object.OffsetY)) * rPR) >> 0;
 						_x4 = _x1;
 						_y4 = _y3;
 
@@ -3196,24 +3198,62 @@
 						var image = icons.getImage(AscCommon.CCButtonType.Combo, false);
 						if (image)
 						{
-							var imageW = 20; // 1x scale!
-							var imageH = 20;
-							var yPos = ((_y4 - imageH - 0.5 * (lineH - imageH) >> 0)) + 2;
-							var xPos = ((_x1 + 0.5 * (this.rectComboWidthPx - imageW) >> 0)) + 1;
+							var canvas = document.createElement('canvas'),
+							    context = canvas.getContext('2d');
 
-							ctx.drawImage(image, xPos, yPos, imageW, imageH);
+							var len = Math.floor(9 * rPR);
+                            var width = Math.round(18 * rPR),
+							    height = Math.round(18 * rPR);
+							// теперь делаем нечетную длину
+							if ( 0 == (len & 1) )
+								len += 1;
+
+							var countPart = (len + 1) >> 1,
+								_data, px,
+								_x = ((width - len) >> 1),
+								_y = height - 2 * countPart,
+								r, g, b;
+							r = 0;
+							g = 0;
+							b = 0;
+
+							_data = context.createImageData(width, height);
+							px = _data.data;
+
+							while (len > 0) {
+								var ind = 4 * (width * _y + _x);
+								for (var i = 0; i < len; i++) {
+									px[ind++] = r;
+									px[ind++] = g;
+									px[ind++] = b;
+									px[ind++] = 255;
+								}
+
+								r = r >> 0;
+								g = g >> 0;
+								b = b >> 0;
+
+								_x += 1;
+								_y += 1;
+								len -= 2;
+							}
+
+							var yPos = _y4 - height - 0.5 * (lineH * rPR - height) >> 0;
+							var xPos = _x1 + (0.5 * (this.rectComboWidthPx * rPR - width) >> 0) + Math.round(rPR);
+							context.putImageData(_data, 0, 0);
+							ctx.drawImage(canvas, xPos, yPos);
 						}
 					}
 
 					if (this.isImage)
 					{
-						_x1 = drPage.left + koefX * (this.bounds.x + object.OffsetX);
-						_y1 = drPage.top + koefY * (this.bounds.y + object.OffsetY);
-						_x4 = drPage.left + koefX * (this.bounds.x + this.bounds.w + object.OffsetX);
-						_y4 = drPage.top + koefY * (this.bounds.y + this.bounds.h + object.OffsetY);
+						_x1 = (drPage.left + koefX * (this.bounds.x + object.OffsetX)) * rPR;
+						_y1 = (drPage.top + koefY * (this.bounds.y + object.OffsetY)) * rPR;
+						_x4 = (drPage.left + koefX * (this.bounds.x + this.bounds.w + object.OffsetX)) * rPR;
+						_y4 = (drPage.top + koefY * (this.bounds.y + this.bounds.h + object.OffsetY)) * rPR;
 
-						var imageW = 20; // 1x scale!
-						var imageH = 20;
+						var imageW = rPR >= 2 ? 40 : 20;
+						var imageH = rPR >= 2 ? 40 : 20;
 						var xPos = (_x1 + _x4 - imageW) >> 1;
 						var yPos = (_y1 + _y4 - imageH) >> 1;
 
@@ -3250,13 +3290,13 @@
 				for (var i = 0; i < pointsLen; i++)
 				{
 					point = this.points[i];
-					_x = drPage.left + koefX * (point.x + object.OffsetX);
-					_y = drPage.top + koefY * (point.y + object.OffsetY);
+					_x = (drPage.left + koefX * (point.x + object.OffsetX)) * rPR;
+					_y = (drPage.top + koefY * (point.y + object.OffsetY)) * rPR;
 
 					overlay.CheckPoint(_x, _y);
 
-					_x = (_x >> 0) + 0.5;
-					_y = (_y >> 0) + 0.5;
+					_x = (_x >> 0) + 0.5 * Math.round(rPR);
+					_y = (_y >> 0) + 0.5 * Math.round(rPR);
 
 					if (point.round !== PointRound.True)
 					{
@@ -3357,7 +3397,7 @@
 					else
 						ctx.strokeStyle = AscCommon.GlobalSkin.FormsContentControlsOutlineActive;
 
-					ctx.lineWidth = 1;
+					ctx.lineWidth = Math.round(rPR);
 					ctx.stroke();
 					ctx.beginPath();
 
