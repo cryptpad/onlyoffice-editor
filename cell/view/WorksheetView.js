@@ -18123,8 +18123,10 @@
 			x2 = this._getColLeft(range.c2 + 1) - offsetX;
 			y2 = this.groupHeight;
 
-			ctx.setFillStyle(st.background).fillRect(x1, y1, x2 - x1, y2 - y1);
-			ctx.setStrokeStyle(this.settings.cells.defaultState.border).setLineWidth(1).beginPath();
+
+			//фон для группировки
+			ctx.setFillStyle(this.settings.header.style[kHeaderDefault].background).fillRect(x1, y1, x2 - x1, y2 - y1);
+			ctx.setStrokeStyle(this.settings.header.editorBorder).setLineWidth(1).beginPath();
 			ctx.lineHorPrevPx(x1, y2, x2);
 			ctx.stroke();
 
@@ -18279,8 +18281,8 @@
 			x2 = this.groupWidth;
 			y2 = this._getRowTop(range.r2 + 1) - offsetY;
 
-			ctx.setFillStyle(st.background).fillRect(x1, y1, x2 - x1, y2 - y1);
-			ctx.setStrokeStyle(this.settings.cells.defaultState.border).setLineWidth(1).beginPath();
+			ctx.setFillStyle(this.settings.header.style[kHeaderDefault].background).fillRect(x1, y1, x2 - x1, y2 - y1);
+			ctx.setStrokeStyle(this.settings.header.editorBorder).setLineWidth(1).beginPath();
 			ctx.lineVerPrevPx(x2, y1, y2);
 			ctx.stroke();
 
@@ -18649,7 +18651,7 @@
 		//угол до кнопок
 		ctx.setFillStyle(st.background).fillRect(0, 0, this.headersLeft, this.headersTop);
 
-		ctx.setStrokeStyle(this.settings.cells.defaultState.border).setLineWidth(1).beginPath();
+		ctx.setStrokeStyle(this.settings.header.editorBorder).setLineWidth(1).beginPath();
 		ctx.lineHorPrevPx(x1, y2, x2);
 		ctx.lineVerPrevPx(x2, y1, y2);
 		//угол до кнопок
@@ -18687,7 +18689,7 @@
 
 		ctx.beginPath();
 
-		ctx.setStrokeStyle(this.settings.cells.defaultState.border).setLineWidth( AscCommon.AscBrowser.convertToRetinaValue(1, true)).beginPath();
+		ctx.setStrokeStyle(this.settings.header.style[kHeaderDefault].border).setLineWidth( AscCommon.AscBrowser.convertToRetinaValue(1, true)).beginPath();
 
 		ctx.lineHorPrevPx(x, y, x + w);
 		ctx.lineVerPrevPx(x + w, y, y + h);

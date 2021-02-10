@@ -114,7 +114,7 @@ var EditorSkins = {
 
 		/* spreadsheets */
 		//TODO названия не менял. использую такие же как и были ранее. пересмотреть!
-		Background               : "#f1f1f1",
+		Background               : "#F0F0F0",
 		Border                   : "#d5d5d5",
 		Color                    : "#363636",
 		BackgroundDark           : "#444444",
@@ -129,7 +129,8 @@ var EditorSkins = {
 		ColorHighlighted         : "#6a6a70",
 		BackgroundDarkHighlighted: "#ffffff",
 		ColorDarkHighlighted     : "#c1c1c1",
-		GroupDataBorder          : "#000000"
+		GroupDataBorder          : "#000000",
+		EditorBorder             : "#cbcbcb"
 
 	},
 	"flatDark" : {
@@ -207,22 +208,23 @@ var EditorSkins = {
 		SplitterWidthMM                       : 1,
 		ThumbnailScrollWidthNullIfNoScrolling : false,
 
-		Background               : "#060606",
-		Border                   : "#4b4b4b",
+		Background               : "#666666",
+		Border                   : "#757575",
 		Color                    : "#d9d9d9",
 		BackgroundDark           : "#010101",
 		ColorDark                : "#d9d9d9",
-		BackgroundActive         : "#5d5d5d",
+		BackgroundActive         : "#939393",
 		BorderActive             : "#9e9e9e",
 		ColorActive              : "#d9d9d9",
 		BackgroundDarkActive     : "#030303",
 		ColorDarkActive          : "#d9d9d9",
-		BackgroundHighlighted    : "#4e4e4e",
-		BorderHighlighted        : "#555555",
+		BackgroundHighlighted    : "#787878",
+		BorderHighlighted        : "#858585",
 		ColorHighlighted         : "#d9d9d9",
 		BackgroundDarkHighlighted: "#000000",
 		ColorDarkHighlighted     : "#d9d9d9",
-		GroupDataBorder          : "#ffffff"
+		GroupDataBorder          : "#ffffff",
+		EditorBorder             : "#2a2a2a"
 	}
 };
 
@@ -319,6 +321,7 @@ function updateGlobalSkin(obj)
 		if (undefined !== obj["BackgroundDarkHighlighted"]) GlobalSkin.BackgroundDarkHighlighted = obj["BackgroundDarkHighlighted"];
 		if (undefined !== obj["ColorDarkHighlighted"]) GlobalSkin.ColorDarkHighlighted = obj["ColorDarkHighlighted"];
 		if (undefined !== obj["GroupDataBorder"]) GlobalSkin.GroupDataBorder = obj["GroupDataBorder"];
+		if (undefined !== obj["EditorBorder"]) GlobalSkin.EditorBorder = obj["EditorBorder"];
 
 	}
 

@@ -89,6 +89,7 @@
 		this.updateStyle = function () {
 			this.header.style = this._generateStyle();
 			this.header.groupDataBorder = this.getCColor(AscCommon.GlobalSkin.GroupDataBorder);
+			this.header.editorBorder = this.getCColor(AscCommon.GlobalSkin.EditorBorder);
 		};
 		this._generateStyle = function () {
 			return [// Header colors
@@ -115,7 +116,8 @@
 		this.header = {
 			style: this._generateStyle(),
 			cornerColor: new CColor(193, 193, 193),
-			groupDataBorder: this.getCColor(AscCommon.GlobalSkin.GroupDataBorder)
+			groupDataBorder: this.getCColor(AscCommon.GlobalSkin.GroupDataBorder),
+			editorBorder: this.getCColor(AscCommon.GlobalSkin.EditorBorder)
 		};
 		this.cells = {
 			defaultState: {
