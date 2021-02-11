@@ -380,7 +380,7 @@
 				settings.wheelScrollLines = opt.wheelScrollLinesV;
 				settings.isVerticalScroll = true;
 				settings.isHorizontalScroll = false;
-				//this.vsbApi.canvasH = null;
+				this.vsbApi.canvasH = null;
 				this.reinitScrollY(settings, ws.getFirstVisibleRow(true), ws.getVerticalScrollRange(), ws.getVerticalScrollMax());
 				this.vsbApi.settings = settings;
 			}
@@ -390,7 +390,7 @@
 				settings.hscrollStep = opt.hscrollStep;
 				settings.isVerticalScroll = false;
 				settings.isHorizontalScroll = true;
-				//this.hsbApi.canvasW = null;
+				this.hsbApi.canvasW = null;
 				this.reinitScrollX(settings, ws.getFirstVisibleCol(true), ws.getHorizontalScrollRange(), ws.getHorizontalScrollMax());
 				this.hsbApi.settings = settings;
 			}
