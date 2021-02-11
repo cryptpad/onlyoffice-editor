@@ -421,7 +421,7 @@ DrawingObjectsController.prototype.addChartDrawingObject = function(options)
             options.putRange(null);
             options.putStyle(null);
             options.removeAllAxesProps();
-            options.putShowMarker(null);
+            //options.putShowMarker(null);
             this.editChartCallback(options);
             options.putStyle(1);
            // options.bCreate = true;

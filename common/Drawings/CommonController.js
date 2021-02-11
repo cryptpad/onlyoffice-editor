@@ -4348,9 +4348,31 @@ DrawingObjectsController.prototype =
         var oPlotArea = oChart.plotArea;
         var nStyle = oProps.getStyle();
         if(AscFormat.isRealNumber(nStyle)){
-            var oPreset = AscCommon.g_oChartPresets[nCurType] && AscCommon.g_oChartPresets[nCurType][nStyle - 1];
+            var nTypeForPreset = nCurType;
+            var bChanged = false;
+            if(oPlotArea.isLineType(nCurType)) {
+                if(Asc.c_oAscChartTypeSettings.lineNormalMarker === nCurType) {
+                    nTypeForPreset = Asc.c_oAscChartTypeSettings.lineNormal;
+                    bChanged = true;
+                }
+                if(Asc.c_oAscChartTypeSettings.lineStackedMarker === nCurType) {
+                    nTypeForPreset = Asc.c_oAscChartTypeSettings.lineStacked;
+                    bChanged = true;
+                }
+                if(Asc.c_oAscChartTypeSettings.lineStackedPerMarker === nCurType) {
+                    nTypeForPreset = Asc.c_oAscChartTypeSettings.lineStackedPer;
+                    bChanged = true;
+                }
+            }
+            var oPreset = AscCommon.g_oChartPresets[nTypeForPreset] && AscCommon.g_oChartPresets[nTypeForPreset][nStyle - 1];
             if(oPreset) {
+                if(bChanged) {
+                    oChartSpace.changeChartType(nTypeForPreset);
+                }
                 AscFormat.ApplyPresetToChartSpace(oChartSpace, oPreset, oProps.bCreate);
+                if(bChanged) {
+                    oChartSpace.changeChartType(nCurType);
+                }
                 return;
             }
         }

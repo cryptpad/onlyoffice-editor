@@ -4830,6 +4830,15 @@
         }
         return nNewGrouping;
     };
+    CPlotArea.prototype.getIsMarkerByType = function(nType) {
+        return getIsMarkerByType(nType);
+    };
+    CPlotArea.prototype.getIsSmoothByType = function(nType) {
+        return getIsSmoothByType(nType);
+    };
+    CPlotArea.prototype.getIsLineByType = function(nType) {
+        return getIsLineByType(nType);
+    };
     CPlotArea.prototype.createLineChart = function(nType, aSeries, aAxes, oOldChart) {
         var nNewGrouping;
         nNewGrouping = this.getGroupingByType(nType);
@@ -5431,6 +5440,46 @@
             this.addAxis(aAxes[nAx]);
         }
     };
+
+
+    function getIsMarkerByType(nType) {
+        if(nType === Asc.c_oAscChartTypeSettings.scatter ||
+            nType === Asc.c_oAscChartTypeSettings.scatterLineMarker ||
+            nType === Asc.c_oAscChartTypeSettings.scatterMarker ||
+            nType === Asc.c_oAscChartTypeSettings.scatterSmoothMarker ||
+            nType === Asc.c_oAscChartTypeSettings.lineNormalMarker ||
+            nType === Asc.c_oAscChartTypeSettings.lineStackedMarker ||
+            nType === Asc.c_oAscChartTypeSettings.lineStackedPerMarker) {
+            return true;
+        }
+        return false;
+    }
+
+
+    function getIsSmoothByType(nType) {
+        if(nType === Asc.c_oAscChartTypeSettings.scatterSmoothMarker ||
+            nType === Asc.c_oAscChartTypeSettings.scatterSmooth) {
+            return true;
+        }
+        return false;
+    }
+
+    function getIsLineByType(nType) {
+        if(nType === Asc.c_oAscChartTypeSettings.scatterSmoothMarker ||
+            nType === Asc.c_oAscChartTypeSettings.scatterSmooth ||
+            nType === Asc.c_oAscChartTypeSettings.scatterLineMarker ||
+            nType === Asc.c_oAscChartTypeSettings.scatter ||
+            nType === Asc.c_oAscChartTypeSettings.lineNormal            ||
+            nType === Asc.c_oAscChartTypeSettings.lineStacked        ||
+            nType === Asc.c_oAscChartTypeSettings.lineStackedPer        ||
+            nType === Asc.c_oAscChartTypeSettings.lineNormalMarker      ||
+            nType === Asc.c_oAscChartTypeSettings.lineStackedMarker     ||
+            nType === Asc.c_oAscChartTypeSettings.lineStackedPerMarker  ||
+            nType === Asc.c_oAscChartTypeSettings.line3d ) {
+            return true;
+        }
+        return false;
+    }
 
     function COrderedAxes(oPlotArea) {
         this.verticalAxes = [];
@@ -9152,12 +9201,22 @@
         switch(this.grouping) {
             case AscFormat.GROUPING_PERCENT_STACKED:
             {
-                nType = Asc.c_oAscChartTypeSettings.lineStackedPer;
+                if(!this.isMarkerChart()) {
+                    nType = Asc.c_oAscChartTypeSettings.lineStackedPer;
+                }
+                else {
+                    nType = Asc.c_oAscChartTypeSettings.lineStackedPerMarker;
+                }
                 break;
             }
             case AscFormat.GROUPING_STACKED:
             {
-                nType = Asc.c_oAscChartTypeSettings.lineStacked;
+                if(!this.isMarkerChart()) {
+                    nType = Asc.c_oAscChartTypeSettings.lineStacked;
+                }
+                else {
+                    nType = Asc.c_oAscChartTypeSettings.lineStackedMarker;
+                }
                 break;
             }
             default:
@@ -9167,7 +9226,12 @@
                     nType = Asc.c_oAscChartTypeSettings.line3d;
                 }
                 else {
-                    nType = Asc.c_oAscChartTypeSettings.lineNormal;
+                    if(!this.isMarkerChart()) {
+                        nType = Asc.c_oAscChartTypeSettings.lineNormal;
+                    }
+                    else {
+                        nType = Asc.c_oAscChartTypeSettings.lineNormalMarker;
+                    }
                 }
                 break;
             }
@@ -9202,6 +9266,9 @@
             }
         }
     };
+    CLineChart.prototype.isMarkerChart = function() {
+        return this.marker !== false;
+    };
     CLineChart.prototype.tryChangeType = function(nType) {
         if(!this.parent) {
             return false;
@@ -9216,6 +9283,10 @@
         nNewGrouping = this.parent.getGroupingByType(nType);
         if(this.grouping !== nNewGrouping) {
             this.setGrouping(nNewGrouping);
+        }
+        var bMarker = this.parent.getIsMarkerByType(nType);
+        if(this.marker !== bMarker) {
+            this.setMarkerValue(bMarker);
         }
         this.checkValAxesFormatByType(nType);
         this.parent.check3DOptions(nType);
@@ -10583,6 +10654,9 @@
     CRadarChart.prototype.setRadarStyle = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_RadarChart_SetRadarStyle, this.radarStyle, pr));
         this.radarStyle = pr;
+    };
+    CRadarChart.prototype.isMarkerChart = function() {
+        return false;
     };
 
     function CRadarSeries() {
@@ -15324,6 +15398,9 @@
     window['AscFormat'].fParseChartFormula = fParseChartFormula;
     window['AscFormat'].fCreateRef = fCreateRef;
     window['AscFormat'].CChartDataRefs = CChartDataRefs;
+    window['AscFormat'].getIsMarkerByType = getIsMarkerByType;
+    window['AscFormat'].getIsSmoothByType = getIsSmoothByType;
+    window['AscFormat'].getIsLineByType = getIsLineByType;
 
     window['AscFormat'].AX_POS_L = AX_POS_L;
     window['AscFormat'].AX_POS_T = AX_POS_T;

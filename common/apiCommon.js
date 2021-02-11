@@ -1516,6 +1516,10 @@
 		return this.smooth;
 	};
 	asc_ChartSettings.prototype.putStyle = function(index) {
+		if(!AscFormat.isRealNumber(index)) {
+			this.style = null;
+			return;
+		}
 		this.style = parseInt(index, 10);
 		if(this.bStartEdit && this.chartSpace) {
 			if(AscFormat.isRealNumber(this.style)){
@@ -1592,8 +1596,32 @@
 		}
 		return this.type;
 	};
+	asc_ChartSettings.prototype.checkParams = function() {
+		if(this.type === null) {
+			return;
+		}
+		if(AscFormat.getIsMarkerByType(this.type)) {
+			this.showMarker = true;
+		}
+		else {
+			this.showMarker = false;
+		}
+		if(AscFormat.getIsSmoothByType(this.type)) {
+			this.smooth = true;
+		}
+		else {
+			this.smooth = false;
+		}
+		if(AscFormat.getIsLineByType(this.type)) {
+			this.bLine = true;
+		}
+		else {
+			this.bLine = false;
+		}
+	};
 	asc_ChartSettings.prototype.putType = function(v) {
 		this.type = v;
+		this.checkParams();
 	};
 	asc_ChartSettings.prototype.putShowSerName = function(v) {
 		this.showSerName = v;
