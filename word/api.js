@@ -497,11 +497,12 @@
 						}
 
 						_content_control_pr = new AscCommon.CContentControlPr();
-						_content_control_pr.Id         = _current["Props"]["Id"];
-						_content_control_pr.Tag 	   = _current["Props"]["Tag"];
-						_content_control_pr.Lock 	   = c_oAscSdtLockType.Unlocked;
-						_content_control_pr.InternalId = _current["Props"]["InternalId"];
-						_content_control_pr.Alias 	   = _current["Props"]["Alias"];
+						_content_control_pr.Id              = _current["Props"]["Id"];
+						_content_control_pr.Tag             = _current["Props"]["Tag"];
+						_content_control_pr.Lock            = c_oAscSdtLockType.Unlocked;
+						_content_control_pr.InternalId      = _current["Props"]["InternalId"];
+						_content_control_pr.Alias           = _current["Props"]["Alias"];
+						_content_control_pr.PlaceholderText = _current["Props"]["PlaceHolderText"];
 						
 						// Page break 
                         if (undefined !== _current["Props"]["SectionBreak"])
@@ -716,11 +717,12 @@
 						if (_blockStd)
 						{
 							_content_control_pr = new AscCommon.CContentControlPr();
-							_content_control_pr.Id = _current["Props"]["Id"];
-							_content_control_pr.Tag = _current["Props"]["Tag"];
-							_content_control_pr.Lock = _current["Props"]["Lock"];
-							_content_control_pr.InternalId = _current["Props"]["InternalId"];
-                            _content_control_pr.Alias = _current["Props"]["Alias"];
+							_content_control_pr.Id              = _current["Props"]["Id"];
+							_content_control_pr.Tag             = _current["Props"]["Tag"];
+							_content_control_pr.Lock            = _current["Props"]["Lock"];
+							_content_control_pr.InternalId      = _current["Props"]["InternalId"];
+							_content_control_pr.Alias           = _current["Props"]["Alias"];
+							_content_control_pr.PlaceholderText = _current["Props"]["PlaceHolderText"];
 
                             if (undefined !== _current["Props"]["Appearance"])
                                 _content_control_pr.Appearance = _current["Props"]["Appearance"];
@@ -755,11 +757,12 @@
 							if (_blockStd)
 							{
 								_content_control_pr = new AscCommon.CContentControlPr();
-								_content_control_pr.Id = _current["Props"]["Id"];
-								_content_control_pr.Tag = _current["Props"]["Tag"];
-								_content_control_pr.Lock = _current["Props"]["Lock"];
-								_content_control_pr.InternalId = _current["Props"]["InternalId"];
-                                _content_control_pr.Alias = _current["Props"]["Alias"];
+								_content_control_pr.Id              = _current["Props"]["Id"];
+								_content_control_pr.Tag             = _current["Props"]["Tag"];
+								_content_control_pr.Lock            = _current["Props"]["Lock"];
+								_content_control_pr.InternalId      = _current["Props"]["InternalId"];
+								_content_control_pr.Alias           = _current["Props"]["Alias"];
+								_content_control_pr.PlaceholderText = _current["Props"]["PlaceHolderText"];
 
                                 if (undefined !== _current["Props"]["Appearance"])
                                     _content_control_pr.Appearance = _current["Props"]["Appearance"];
@@ -6477,6 +6480,12 @@ background-repeat: no-repeat;\
 		{
 			var CommentData = new AscCommon.CCommentData();
 			CommentData.Read_FromAscCommentData(AscCommentData);
+
+			if ("" === CommentData.m_sTime)
+				CommentData.m_sTime = ((new Date()).getTime() - (new Date()).getTimezoneOffset() * 60000).toString();
+
+			if ("" === CommentData.m_sOOTime)
+				CommentData.m_sOOTime = ((new Date()).getTime()).toString();
 
 			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_AddComment);
 			var Comment = this.WordControl.m_oLogicDocument.AddComment(CommentData, AscCommentData.asc_getDocumentFlag());
