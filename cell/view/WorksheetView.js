@@ -11267,6 +11267,7 @@
 				}
 			}
 
+			//TODO transpose!
 			var xW = oMultiple ? (oMultiple.w / oMultiple.pasteW) : 1;
 			var xH = oMultiple ? (oMultiple.h / oMultiple.pasteH) : 1;
 			var _pasteH = oMultiple ? oMultiple.pasteH : 0;
@@ -11277,6 +11278,17 @@
 					for (var n = 0; n < val.dataValidations.elems.length; n++) {
 						var dataValidation = val.dataValidations.elems[n].clone();
 						if (dataValidation.prepeareToPaste(refInsertBinary, _offset)) {
+							if (refInsertBinary) {
+								var formulaOffset = new AscCommon.CellBase(pasteToRange.r1 - refInsertBinary.r1, pasteToRange.c1 - refInsertBinary.c1);
+								dataValidation._init(this.model, true);
+								//TODO
+								//MS сдвигает немного иначе - при отрицательных значениях сдвига вычитает из максимальной строки/столбца
+								//мы делаем аналогично формулам
+								//для того, чтобы сделать как в ms необходимо переделать сдвиг диапазонов для формул
+								//и нужно ли это? кто ожидает в случае такого копирования подобный результат?
+								dataValidation.setOffset(formulaOffset);
+								//dataValidation._buildDependencies();
+							}
 							t.model.addDataValidation(dataValidation, true);
 						}
 					}

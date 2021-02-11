@@ -93,7 +93,7 @@
 		this._formula = null;
 	}
 
-	CDataFormula.prototype._init = function (ws, locale) {
+	CDataFormula.prototype._init = function (ws, locale, doNotBuildDependencies) {
 		if (this._formula || !this.text) {
 			return;
 		}
@@ -107,7 +107,9 @@
 			this._formula.parse(locale);
 		}
 
-		this._formula.buildDependencies();
+		if (!doNotBuildDependencies) {
+			this._formula.buildDependencies();
+		}
 	};
 	CDataFormula.prototype.clone = function () {
 		var res = new CDataFormula();
@@ -145,6 +147,12 @@
 	CDataFormula.prototype.asc_setValue = function (val) {
 		this.text = val;
 	};
+	CDataFormula.prototype.setOffset = function (offset) {
+		if (this._formula) {
+			this.text = this._formula.changeOffset(offset, null, true).assemble(true);
+		}
+	};
+
 
 
 	function CDataValidation() {
@@ -182,12 +190,20 @@
 	CDataValidation.prototype.getType = function () {
 		return AscCommonExcel.UndoRedoDataTypes.DataValidationInner;
 	};
-	CDataValidation.prototype._init = function (ws) {
+	CDataValidation.prototype._init = function (ws, doNotBuildDependencies) {
 		if (this.formula1) {
-			this.formula1._init(ws);
+			this.formula1._init(ws, null, doNotBuildDependencies);
 		}
 		if (this.formula2) {
-			this.formula2._init(ws);
+			this.formula2._init(ws, null, doNotBuildDependencies);
+		}
+	};
+	CDataValidation.prototype._buildDependencies = function (ws, doNotBuildDependencies) {
+		if (this.formula1 && this.formula1._formula) {
+			this.formula1._formula.buildDependencies();
+		}
+		if (this.formula2 && this.formula2._formula) {
+			this.formula2._formula.buildDependencies();
 		}
 	};
 	CDataValidation.prototype.clone = function (needSaveId) {
@@ -265,6 +281,14 @@
 			}
 		}
 		return false;
+	};
+	CDataValidation.prototype.setOffset = function (offset) {
+		if (this.formula1) {
+			this.formula1.setOffset(offset);
+		}
+		if (this.formula2) {
+			this.formula2.setOffset(offset);
+		}
 	};
 	CDataValidation.prototype.Write_ToBinary2 = function (writer) {
 		//for wrapper
