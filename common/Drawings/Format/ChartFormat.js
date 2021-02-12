@@ -4858,6 +4858,10 @@
             oLineChart.addSer(oSeries);
         }
         oLineChart.addAxes(aAxes);
+        var bMarker = this.getIsMarkerByType(nType);
+        if(oLineChart.marker !== bMarker) {
+            oLineChart.setMarkerValue(bMarker);
+        }
         this.parent.check3DOptions(this.getIs3dByType(nType), false);
         return oLineChart;
     };
@@ -10796,6 +10800,14 @@
     };
     CScatterChart.prototype.getChartType = function() {
         return Asc.c_oAscChartTypeSettings.scatter;
+    };
+    CScatterChart.prototype.tryChangeType = function(nNewType) {
+        if(!this.parent) {
+            return false;
+        }
+        if(this.getChartType() === nNewType) {
+            return true;
+        }
     };
 
     function CScatterSeries() {

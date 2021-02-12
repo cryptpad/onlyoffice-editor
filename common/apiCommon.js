@@ -1597,7 +1597,10 @@
 		return this.type;
 	};
 	asc_ChartSettings.prototype.checkParams = function() {
-		if(this.type === null) {
+		if(this.type === null || this.type === Asc.c_oAscChartTypeSettings.comboAreaBar
+			|| this.type === Asc.c_oAscChartTypeSettings.comboBarLine
+		|| this.type === Asc.c_oAscChartTypeSettings.comboBarLineSecondary
+		|| this.type === Asc.c_oAscChartTypeSettings.comboCustom) {
 			return;
 		}
 		if(AscFormat.getIsMarkerByType(this.type)) {
