@@ -12503,6 +12503,7 @@ var GLOBAL_PATH_COUNT = 0;
         }
 
         chart_space.printSettings.setDefault();
+        line_chart.tryChangeType(oOptions.type);
         return chart_space;
     }
 
