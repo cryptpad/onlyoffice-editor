@@ -5003,6 +5003,11 @@
         oScatterChart.setScatterStyle(AscFormat.SCATTER_STYLE_MARKER);
         oScatterChart.addAxes(aAxes);
         this.parent.check3DOptions(false, false);
+        if(nType !== Asc.c_oAscChartTypeSettings.scatter) {
+            oScatterChart.parent = this;
+            oScatterChart.tryChangeType(nType);
+            oScatterChart.parent = null;
+        }
         return oScatterChart;
     };
     CPlotArea.prototype.switchToScatterChart = function(nType) {
