@@ -12924,6 +12924,9 @@ var GLOBAL_PATH_COUNT = 0;
         }
         chart_space.setPrintSettings(new AscFormat.CPrintSettings());
         chart_space.printSettings.setDefault();
+        if(oOptions && oOptions.type !== Asc.c_oAscChartTypeSettings) {
+            scatter_chart.tryChangeType(oOptions.type);
+        }
         return chart_space;
     }
 

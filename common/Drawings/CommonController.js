@@ -6410,7 +6410,7 @@ DrawingObjectsController.prototype =
             return AscFormat.ExecuteNoHistory(function()
             {
                 var options = new Asc.asc_ChartSettings();
-                options.type = type;
+                options.putType(type);
                 options.style = 1;
                 options.putTitle(c_oAscChartTitleShowSettings.noOverlay);
                 var chartSeries = DrawingObjectsController.prototype.getSeriesDefault.call(this, type);
@@ -6429,9 +6429,6 @@ DrawingObjectsController.prototype =
                     new_vert_axis_settings.setDefault();
                     new_vert_axis_settings.putGridlines(c_oAscGridLinesSettings.major);
                     options.addVertAxesProps(new_vert_axis_settings);
-                    options.putShowMarker(true);
-                    options.putSmooth(null);
-                    options.putLine(false);
                 }
                 options.type = null;
                 options.bCreate = true;
