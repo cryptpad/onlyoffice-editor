@@ -11333,7 +11333,7 @@ var GLOBAL_PATH_COUNT = 0;
                     case AscDFH.historyitem_type_LineChart:
                     case AscDFH.historyitem_type_RadarChart:
                     {
-                        if(oCurChart.marker !== false) {
+                        if(oCurChart.isMarkerChart()) {
                             recalculateMarkers2();
                         }
                         break;
@@ -12431,12 +12431,27 @@ var GLOBAL_PATH_COUNT = 0;
         line_chart.addAxId(cat_ax);
         line_chart.addAxId(val_ax);
         val_ax.setCrosses(2);
+
+        var bMarker = false;
+        var nChartType = oOptions.type;
+        if(nChartType === Asc.c_oAscChartTypeSettings.lineNormalMarker ||
+            nChartType === Asc.c_oAscChartTypeSettings.lineStackedMarker ||
+            nChartType === Asc.c_oAscChartTypeSettings.lineStackedPerMarker) {
+            bMarker = true;
+        }
+        bMarker = false;
+        line_chart.setMarker(bMarker);
         for(var i = 0; i < asc_series.length; ++i) {
             var series = new AscFormat.CLineSeries();
             series.setIdx(i);
             series.setOrder(i);
             series.setMarker(new AscFormat.CMarker());
-            series.marker.setSymbol(AscFormat.SYMBOL_NONE);
+            if(bMarker) {
+                series.marker.setSymbol(AscFormat.MARKER_SYMBOL_TYPE[i % 9]);
+            }
+            else {
+                series.marker.setSymbol(AscFormat.SYMBOL_NONE);
+            }
             series.setSmooth(false);
             series.fillFromAscSeries(asc_series[i], bUseCache);
             line_chart.addSer(series);
