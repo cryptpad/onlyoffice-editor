@@ -15650,9 +15650,6 @@
             }
         }
     };
-    CChartDataRefs.prototype.collectWorksheetsRefs = function(aWSNames, aRefsToChange) {
-        //todo
-    };
 
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};

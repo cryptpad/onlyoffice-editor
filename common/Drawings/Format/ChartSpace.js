@@ -11931,10 +11931,6 @@ var GLOBAL_PATH_COUNT = 0;
         var oDataRange = this.getDataRefs();
         oDataRange.collectIntersectionRefs(aRanges, aRefs);
     };
-    CChartSpace.prototype.collectWorksheetsRefs = function(aWSNames, aRefsToChange) {
-        var oDataRange = this.getDataRefs();
-        oDataRange.collectWorksheetsRefs(aWSNames, aRefsToChange);
-    };
     CChartSpace.prototype.getCommonRange = function() {
         var oDataRange = this.getDataRefs();
         return oDataRange.getRange();
