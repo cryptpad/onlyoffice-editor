@@ -5476,12 +5476,12 @@ background-repeat: no-repeat;\
 		}
 	};
 
-	asc_docs_api.prototype.changeSlideSize = function(width, height)
+	asc_docs_api.prototype.changeSlideSize = function(width, height, type)
 	{
 		if (this.isMobileVersion && this.WordControl.MobileTouchManager)
 			this.WordControl.MobileTouchManager.BeginZoomCheck();
 
-		this.WordControl.m_oLogicDocument.changeSlideSize(width, height);
+		this.WordControl.m_oLogicDocument.changeSlideSize(width, height, type);
 
 		if (this.isMobileVersion && this.WordControl.MobileTouchManager)
 			this.WordControl.MobileTouchManager.EndZoomCheck();
