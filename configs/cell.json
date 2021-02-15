@@ -3,6 +3,7 @@
 		"min": [
 			"common/device_scale.js",
 			"common/browser.js",
+			"common/skin.js",
 			"common/commonDefines.js",
 			"common/docscoapicommon.js",
 			"common/docscoapi.js",
@@ -25,8 +26,7 @@
 			"word/apiCommon.js",
 			"cell/api.js"
 		],
-		"common": [
-			"common/skin.js",
+		"common": [			
 			"common/downloaderfiles.js",
 			"common/NumFormat.js",
 			"common/SerializeChart.js",
