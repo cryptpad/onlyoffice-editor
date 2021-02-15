@@ -5137,7 +5137,7 @@ background-repeat: no-repeat;\
                 if (2 < this.standartThemesStatus)
                    this.WordControl.m_oLogicDocument.SendThemesThumbnails();
 
-				this.sendEvent("asc_onPresentationSize", presentation.GetWidthMM(), presentation.GetHeightMM());
+				this.sendEvent("asc_onPresentationSize", presentation.GetWidthEMU(), presentation.GetHeightEMU(), presentation.GetSizeType());
 
 				this.WordControl.GoToPage(0);
 				bIsScroll = true;
