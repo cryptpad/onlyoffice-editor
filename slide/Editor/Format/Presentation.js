@@ -2968,7 +2968,7 @@ CPresentation.prototype.internalChangeSizes = function(nWidth, nHeight, nType) {
     var oSldSize = new CSlideSize();
     oSldSize.setCX(nWidth);
     oSldSize.setCY(nHeight);
-    if(AscFormat.isRealNumber(nType) && nType !== Asc.c_oAscSlideSZType.SzWidescreen) {
+    if(AscFormat.isRealNumber(nType) && nType !== Asc.c_oAscSlideSZType.SzWidescreen && nType !== Asc.c_oAscSlideSZType.SzCustom) {
         oSldSize.setType(nType);
     }
     this.setSldSz(oSldSize);
