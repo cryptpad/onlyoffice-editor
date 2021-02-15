@@ -5337,13 +5337,13 @@ background-repeat: no-repeat;\
 	{
 		if (this.WordControl.m_oLogicDocument == null)
 			return 0;
-		return this.WordControl.m_oLogicDocument.GetWidthMM();
+		return this.WordControl.m_oLogicDocument.GetWidthEMU();
 	};
 	asc_docs_api.prototype.get_PresentationHeight = function()
 	{
 		if (this.WordControl.m_oLogicDocument == null)
 			return 0;
-		return this.WordControl.m_oLogicDocument.GetHeightMM();
+		return this.WordControl.m_oLogicDocument.GetHeightEMU();
 	};
 
 	asc_docs_api.prototype.pre_Paste = function(_fonts, _images, callback)
