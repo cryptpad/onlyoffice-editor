@@ -1984,7 +1984,6 @@
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryFillRef] = AscFormat.StyleRef;
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryEffectRef] = AscFormat.StyleRef;
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryFontRef] = AscFormat.FontRef;
-    AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryDefRPr] = CTextPr;
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryBodyPr] = AscFormat.CBodyPr;
 
 
@@ -2427,7 +2426,12 @@
     CDLbl.prototype.hitInPath = CShape.prototype.hitInPath;
     CDLbl.prototype.hitInInnerArea = CShape.prototype.hitInInnerArea;
     CDLbl.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
-    CDLbl.prototype.hitInTextRect = CShape.prototype.hitInTextRect;
+    CDLbl.prototype.hitInTextRect = function(x, y) {
+        var content = this.getDocContent && this.getDocContent();
+        if (content && this.invertTransformText) {
+            return AscFormat.HitToRect(x, y, this.invertTransform, 0, 0, this.contentWidth, this.contentHeight);
+        }
+    };
     CDLbl.prototype.getCompiledStyle = function() {
         return null;
     };
@@ -12020,7 +12024,7 @@
     CTitle.prototype.hitInPath = CShape.prototype.hitInPath;
     CTitle.prototype.hitInInnerArea = CShape.prototype.hitInInnerArea;
     CTitle.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
-    CTitle.prototype.hitInTextRect = CShape.prototype.hitInTextRect;
+    CTitle.prototype.hitInTextRect = CDLbl.prototype.hitInTextRect;
     CTitle.prototype.recalculateGeometry = CShape.prototype.recalculateGeometry;
     CTitle.prototype.getTransform = CShape.prototype.getTransform;
     CTitle.prototype.check_bounds = CShape.prototype.check_bounds;

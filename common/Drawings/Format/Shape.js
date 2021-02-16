@@ -4439,12 +4439,7 @@ CShape.prototype.hitInTextRectWord = function(x, y)
     var content = this.getDocContent && this.getDocContent();
     if (content && this.invertTransform)
     {
-        var t_x, t_y;
-        t_x = this.invertTransform.TransformPointX(x, y);
-        t_y = this.invertTransform.TransformPointY(x, y);
-
         var w, h, x_, y_;
-
         if(this.spPr && this.spPr.geometry && this.spPr.geometry.rect
             && AscFormat.isRealNumber(this.spPr.geometry.rect.l) && AscFormat.isRealNumber(this.spPr.geometry.rect.t)
             && AscFormat.isRealNumber(this.spPr.geometry.rect.r) && AscFormat.isRealNumber(this.spPr.geometry.rect.r))
@@ -4461,7 +4456,7 @@ CShape.prototype.hitInTextRectWord = function(x, y)
             w = this.extX ;
             h = this.extY ;
         }
-        return t_x > x_  && t_x < x_ + w && t_y > y_ && t_y < y_ + h;
+        return AscFormat.HitToRect(x, y, this.invertTransform, x_, y_, w, h);
     }
     return false;
 };
@@ -4487,10 +4482,7 @@ CShape.prototype.hitInTextRect = function (x, y) {
         var content = this.getDocContent && this.getDocContent();
         if ( content && this.invertTransformText)
         {
-            var t_x, t_y;
-            t_x = this.invertTransformText.TransformPointX(x, y);
-            t_y = this.invertTransformText.TransformPointY(x, y);
-            return t_x > 0 && t_x < this.contentWidth && t_y > 0 && t_y < this.contentHeight;
+            return AscFormat.HitToRect(x, y, this.invertTransform, 0, 0, this.contentWidth, this.contentHeight);
         }
     }
     else

@@ -11908,6 +11908,12 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
         return {x: ext_x, y: ext_y};
     }
 
+    function HitToRect(x, y, invertTransform, rx, ry, rw, rh) {
+        var tx = invertTransform.TransformPointX(x, y);
+        var ty = invertTransform.TransformPointY(x, y);
+        return tx > rx && ty > ry && tx < rw && ty < rh;
+    }
+
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].HANDLE_EVENT_MODE_HANDLE = HANDLE_EVENT_MODE_HANDLE;
@@ -11992,4 +11998,5 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
 	window['AscFormat'].CreateUnifillFromPreset = CreateUnifillFromPreset;
 	window['AscFormat'].fGetDefaultShapeExtents = fGetDefaultShapeExtents;
 	window['AscFormat'].removeDPtsFromSeries = removeDPtsFromSeries;
+	window['AscFormat'].HitToRect = HitToRect;
 })(window);
