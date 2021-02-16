@@ -1499,6 +1499,7 @@
 	window['AscDFH'].historyitem_type_TavLst                 = 1195 << 16;
 	window['AscDFH'].historyitem_type_SldSz                  = 1196 << 16;
 	window['AscDFH'].historyitem_type_ChartStyle             = 1197 << 16;
+	window['AscDFH'].historyitem_type_ChartStyleEntry        = 1198 << 16;
 
 	window['AscDFH'].historyitem_type_DocumentMacros         = 2000 << 16;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3222,7 +3223,15 @@
 	AscDFH.historyitem_ChartStyleWall               = AscDFH.historyitem_type_ChartStyle | 29;
 	AscDFH.historyitem_ChartStyleMarkerLayout       = AscDFH.historyitem_type_ChartStyle | 30;
 
-
+	AscDFH.historyitem_ChartStyleEntryType           = AscDFH.historyitem_type_ChartStyleEntry | 1;
+	AscDFH.historyitem_ChartStyleEntryLineWidthScale = AscDFH.historyitem_type_ChartStyleEntry | 2;
+	AscDFH.historyitem_ChartStyleEntryLnRef          = AscDFH.historyitem_type_ChartStyleEntry | 3;
+	AscDFH.historyitem_ChartStyleEntryFillRef        = AscDFH.historyitem_type_ChartStyleEntry | 4;
+	AscDFH.historyitem_ChartStyleEntryEffectRef      = AscDFH.historyitem_type_ChartStyleEntry | 5;
+	AscDFH.historyitem_ChartStyleEntryFontRef        = AscDFH.historyitem_type_ChartStyleEntry | 6;
+	AscDFH.historyitem_ChartStyleEntryDefRPr         = AscDFH.historyitem_type_ChartStyleEntry | 7;
+	AscDFH.historyitem_ChartStyleEntryBodyPr         = AscDFH.historyitem_type_ChartStyleEntry | 8;
+	AscDFH.historyitem_ChartStyleEntrySpPr           = AscDFH.historyitem_type_ChartStyleEntry | 9;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

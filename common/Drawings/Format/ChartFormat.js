@@ -1350,7 +1350,6 @@
         oClass.Refresh_RecalcData({Type: AscDFH.historyitem_CommonSeries_SetSpPr});
     };
 
-
     drawingsChangesMap[AscDFH.historyitem_ChartStyleAxisTitle] = function(oClass, value) {
         oClass.axisTitle = value;
     };
@@ -1400,50 +1399,80 @@
         oClass.gridlineMajor = value;
     };
     drawingsChangesMap[AscDFH.historyitem_ChartStyleGridlineMinor] = function(oClass, value) {
-        oClass.useFirstPageNumb = value;
+        oClass.gridlineMinor = value;
     };
     drawingsChangesMap[AscDFH.historyitem_ChartStyleHiLoLine] = function(oClass, value) {
-        oClass.useFirstPageNumb = value;
+        oClass.hiLoLine = value;
     };
     drawingsChangesMap[AscDFH.historyitem_ChartStyleLeaderLine] = function(oClass, value) {
-        oClass.useFirstPageNumb = value;
+        oClass.leaderLine = value;
     };
     drawingsChangesMap[AscDFH.historyitem_ChartStyleLegend] = function(oClass, value) {
-        oClass.useFirstPageNumb = value;
+        oClass.legend = value;
     };
     drawingsChangesMap[AscDFH.historyitem_ChartStylePlotArea] = function(oClass, value) {
-        oClass.useFirstPageNumb = value;
+        oClass.plotArea = value;
     };
     drawingsChangesMap[AscDFH.historyitem_ChartStylePlotArea3D] = function(oClass, value) {
-        oClass.useFirstPageNumb = value;
+        oClass.plotArea3D = value;
     };
     drawingsChangesMap[AscDFH.historyitem_ChartStyleSeriesAxis] = function(oClass, value) {
-        oClass.useFirstPageNumb = value;
+        oClass.seriesAxis = value;
     };
     drawingsChangesMap[AscDFH.historyitem_ChartStyleSeriesLine] = function(oClass, value) {
-        oClass.useFirstPageNumb = value;
+        oClass.seriesLine = value;
     };
     drawingsChangesMap[AscDFH.historyitem_ChartStyleTitle] = function(oClass, value) {
-        oClass.useFirstPageNumb = value;
+        oClass.title = value;
     };
     drawingsChangesMap[AscDFH.historyitem_ChartStyleTrendline] = function(oClass, value) {
-        oClass.useFirstPageNumb = value;
+        oClass.trendline = value;
     };
     drawingsChangesMap[AscDFH.historyitem_ChartStyleTrendlineLabel] = function(oClass, value) {
-        oClass.useFirstPageNumb = value;
+        oClass.trendlineLabel = value;
     };
     drawingsChangesMap[AscDFH.historyitem_ChartStyleUpBar] = function(oClass, value) {
-        oClass.useFirstPageNumb = value;
+        oClass.upBar = value;
     };
     drawingsChangesMap[AscDFH.historyitem_ChartStyleValueAxis] = function(oClass, value) {
-        oClass.useFirstPageNumb = value;
+        oClass.valueAxis = value;
     };
     drawingsChangesMap[AscDFH.historyitem_ChartStyleWall] = function(oClass, value) {
-        oClass.useFirstPageNumb = value;
+        oClass.wall = value;
     };
     drawingsChangesMap[AscDFH.historyitem_ChartStyleMarkerLayout] = function(oClass, value) {
-        oClass.useFirstPageNumb = value;
+        oClass.markerLayout = value;
     };
+
+    drawingsChangesMap[AscDFH.historyitem_ChartStyleEntryType] = function(oClass, value) {
+        oClass.type = value;
+    };
+
+    drawingsChangesMap[AscDFH.historyitem_ChartStyleEntryLineWidthScale] = function(oClass, value) {
+        oClass.lineWidthScale = value;
+    };
+    drawingsChangesMap[AscDFH.historyitem_ChartStyleEntryLnRef] = function(oClass, value) {
+        oClass.lnRef = value;
+    };
+    drawingsChangesMap[AscDFH.historyitem_ChartStyleEntryFillRef] = function(oClass, value) {
+        oClass.fillRef = value;
+    };
+    drawingsChangesMap[AscDFH.historyitem_ChartStyleEntryEffectRef] = function(oClass, value) {
+        oClass.effectRef = value;
+    };
+    drawingsChangesMap[AscDFH.historyitem_ChartStyleEntryFontRef] = function(oClass, value) {
+        oClass.fontRef = value;
+    };
+    drawingsChangesMap[AscDFH.historyitem_ChartStyleEntryDefRPr] = function(oClass, value) {
+        oClass.defRPr = value;
+    };
+    drawingsChangesMap[AscDFH.historyitem_ChartStyleEntryBodyPr] = function(oClass, value) {
+        oClass.bodyPr = value;
+    };
+    drawingsChangesMap[AscDFH.historyitem_ChartStyleEntrySpPr] = function(oClass, value) {
+        oClass.spPr = value;
+    };
+
 
     AscDFH.changesFactory[AscDFH.historyitem_DLbl_SetDelete] = window['AscDFH'].CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_DLbl_SetShowBubbleSize] = window['AscDFH'].CChangesDrawingsBool;
@@ -1940,6 +1969,23 @@
     AscDFH.changesFactory[AscDFH.historyitem_ChartStyleValueAxis] = window['AscDFH'].CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_ChartStyleWall] = window['AscDFH'].CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_ChartStyleMarkerLayout] = window['AscDFH'].CChangesDrawingsObject;
+
+    AscDFH.changesFactory[AscDFH.historyitem_ChartStyleEntryType] = window['AscDFH'].CChangesDrawingsLong;
+    AscDFH.changesFactory[AscDFH.historyitem_ChartStyleEntryLineWidthScale] = window['AscDFH'].CChangesDrawingsDouble2;
+    AscDFH.changesFactory[AscDFH.historyitem_ChartStyleEntryLnRef] = window['AscDFH'].CChangesDrawingsObjectNoId;
+    AscDFH.changesFactory[AscDFH.historyitem_ChartStyleEntryFillRef] = window['AscDFH'].CChangesDrawingsObjectNoId;
+    AscDFH.changesFactory[AscDFH.historyitem_ChartStyleEntryEffectRef] = window['AscDFH'].CChangesDrawingsObjectNoId;
+    AscDFH.changesFactory[AscDFH.historyitem_ChartStyleEntryFontRef] = window['AscDFH'].CChangesDrawingsObjectNoId;
+    AscDFH.changesFactory[AscDFH.historyitem_ChartStyleEntryDefRPr] = window['AscDFH'].CChangesDrawingsObjectNoId;
+    AscDFH.changesFactory[AscDFH.historyitem_ChartStyleEntryBodyPr] = window['AscDFH'].CChangesDrawingsObjectNoId;
+    AscDFH.changesFactory[AscDFH.historyitem_ChartStyleEntrySpPr] = window['AscDFH'].CChangesDrawingsObject;
+
+    AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryLnRef] = AscFormat.StyleRef;
+    AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryFillRef] = AscFormat.StyleRef;
+    AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryEffectRef] = AscFormat.StyleRef;
+    AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryFontRef] = AscFormat.FontRef;
+    AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryDefRPr] = AscCommonWord.CTextPr;
+    AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryBodyPr] = AscFormat.CBodyPr;
 
 
     drawingContentChanges[AscDFH.historyitem_PlotArea_AddAxis] =
@@ -16103,6 +16149,58 @@
         this.markerLayout = pr;
     };
 
+    function CStyleEntry() {
+        CBaseFormatObject.call(this);
+        this.type = null;
+        this.lineWidthScale = null;
+        this.lnRef = null;
+        this.fillRef = null;
+        this.effectRef = null;
+        this.fontRef = null;
+        this.defRPr = null;
+        this.bodyPr = null;
+        this.spPr = null;
+    }
+
+    InitClass(CStyleEntry, CBaseFormatObject, AscDFH.historyitem_type_ChartStyleEntry);
+
+    CStyleEntry.prototype.setType = function(pr) {
+        History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_ChartStyleEntryType, this.type, pr));
+        this.type = pr;
+    };
+    CStyleEntry.prototype.setLineWidthScale = function(pr) {
+        History.Add(new CChangesDrawingsDouble2(this, AscDFH.historyitem_ChartStyleEntryLineWidthScale, this.lineWidthScale, pr));
+        this.lineWidthScale = pr;
+    };
+    CStyleEntry.prototype.setLnRef = function(pr) {
+        History.Add(new CChangesDrawingsObjectNoId(this, AscDFH.historyitem_ChartStyleEntryLnRef, this.lnRef, pr));
+        this.lnRef = pr;
+    };
+    CStyleEntry.prototype.setFillRef = function(pr) {
+        History.Add(new CChangesDrawingsObjectNoId(this, AscDFH.historyitem_ChartStyleEntryFillRef, this.fillRef, pr));
+        this.fillRef = pr;
+    };
+    CStyleEntry.prototype.setEffectRef = function(pr) {
+        History.Add(new CChangesDrawingsObjectNoId(this, AscDFH.historyitem_ChartStyleEntryEffectRef, this.effectRef, pr));
+        this.effectRef = pr;
+    };
+    CStyleEntry.prototype.setFontRef = function(pr) {
+        History.Add(new CChangesDrawingsObjectNoId(this, AscDFH.historyitem_ChartStyleEntryFontRef, this.fontRef, pr));
+        this.fontRef = pr;
+    };
+    CStyleEntry.prototype.setDefRPr = function(pr) {
+        History.Add(new CChangesDrawingsObjectNoId(this, AscDFH.historyitem_ChartStyleEntryDefRPr, this.defRPr, pr));
+        this.defRPr = pr;
+    };
+    CStyleEntry.prototype.setBodyPr = function(pr) {
+        History.Add(new CChangesDrawingsObjectNoId(this, AscDFH.historyitem_ChartStyleEntryBodyPr, this.bodyPr, pr));
+        this.bodyPr = pr;
+    };
+    CStyleEntry.prototype.setSpPr = function(pr) {
+        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleEntrySpPr, this.spPr, pr));
+        this.spPr = pr;
+    };
+
 
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
@@ -16187,6 +16285,8 @@
     window['AscFormat'].getIsSmoothByType = getIsSmoothByType;
     window['AscFormat'].getIsLineByType = getIsLineByType;
     window['AscFormat'].getIsLineType = getIsLineType;
+    window['AscFormat'].CChartStyle = CChartStyle;
+    window['AscFormat'].CStyleEntry = CStyleEntry;
 
     window['AscFormat'].AX_POS_L = AX_POS_L;
     window['AscFormat'].AX_POS_T = AX_POS_T;
