@@ -10534,7 +10534,7 @@
 
     WorksheetView.prototype.setSelectionInfo = function (prop, val, onlyActive) {
         // Проверка глобального лока
-        if (this.collaborativeEditing.getGlobalLock()) {
+        if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
             return;
         }
 
@@ -13134,7 +13134,7 @@
 	};
     WorksheetView.prototype.changeSheetViewSettings = function (type, val) {
 		// Проверка глобального лока
-		if (this.collaborativeEditing.getGlobalLock()) {
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
 			return;
 		}
 
@@ -13157,7 +13157,7 @@
 
 	WorksheetView.prototype.changeWorksheet = function (prop, val) {
 		// Проверка глобального лока
-		if (this.collaborativeEditing.getGlobalLock()) {
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
 			return;
 		}
 
@@ -14809,7 +14809,7 @@
 
 	WorksheetView.prototype.addAutoFilter = function (styleName, addFormatTableOptionsObj) {
 		// Проверка глобального лока
-		if (this.collaborativeEditing.getGlobalLock()) {
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
 			return;
 		}
 
@@ -14977,7 +14977,7 @@
 
 	WorksheetView.prototype.changeAutoFilter = function (tableName, optionType, val, opt_callback) {
 		// Проверка глобального лока
-		if (this.collaborativeEditing.getGlobalLock()) {
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
 			if (opt_callback) {
 				opt_callback(false);
 			}
@@ -18813,7 +18813,7 @@
 	};
 
 	WorksheetView.prototype.groupRowClick = function (x, y, target, type) {
-		if(this.collaborativeEditing.getGlobalLock()) {
+		if(this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
 			return;
 		}
 		var currentSheetId = this.model.getId();
@@ -18985,7 +18985,7 @@
 	};
 
 	WorksheetView.prototype._groupRowMenuClick = function (x, y, target, type, bCol) {
-		if(this.collaborativeEditing.getGlobalLock()) {
+		if(this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
 			return;
 		}
 		var currentSheetId = this.model.getId();
@@ -19032,7 +19032,7 @@
 
 	WorksheetView.prototype._tryChangeGroup = function (pos, collapsed, level, bCol) {
 		// Проверка глобального лока
-		if (this.collaborativeEditing.getGlobalLock()) {
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
 			return;
 		}
 
@@ -19043,11 +19043,6 @@
 		//а для тех что закрыты внутренними группами - ещё раз скрыаем их
 		var start = pos.start;
 		var end = pos.end;
-
-		// Проверка глобального лока
-		if (this.collaborativeEditing.getGlobalLock()) {
-			return;
-		}
 
 		var t = this;
 		var functionModelAction = null;
@@ -19170,7 +19165,7 @@
 		}
 
 		// Проверка глобального лока
-		if (this.collaborativeEditing.getGlobalLock()) {
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
 			return;
 		}
 
@@ -20532,6 +20527,10 @@
 	};
 
 	WorksheetView.prototype.insertSlicers = function (arr) {
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
+			return;
+		}
+
 		var t = this;
 		var type, name, pivotTable;
 
@@ -20628,7 +20627,9 @@
 	};
 
 	WorksheetView.prototype.setSlicer = function (slicer, obj) {
-		var t = this;
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
+			return;
+		}
 
 		var callback = function (success) {
 			if (!success) {
@@ -20646,6 +20647,10 @@
 	};
 
 	WorksheetView.prototype.setFilterValuesFromSlicer = function (slicer, val) {
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
+			return;
+		}
+
 		var ws = this.model;
 		var obj;
 		if (slicer && slicer.cacheDefinition) {
