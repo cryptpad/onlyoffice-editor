@@ -891,17 +891,19 @@
 			return this.m_oRecalcIndexRows[sheetId].getLockSaveOther(row);
 		};
 		CCollaborativeEditing.prototype.checkObjectsLock = function(aObjectId, callback) {
+			var bCanNotEdit = this.getGlobalLock() || Asc.editor && !Asc.editor.canEdit();
+			if(bCanNotEdit) {
+				if(callback) {
+					callback(false, true);
+				}
+				return false;
+			}
 			AscCommon.History.StartTransaction();
 			var callbackEx = function(result, sync) {
 				AscCommon.History.EndTransaction();
 				if ( callback )
 					callback(result, sync);
 			};
-
-			if(this.getGlobalLock()){
-				callbackEx(false, true);
-				return false;
-			}
 			var bRet = true;
 			if (!aObjectId.length) {
 				asc_applyFunction(callbackEx, true, true);
