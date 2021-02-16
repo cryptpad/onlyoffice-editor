@@ -990,6 +990,17 @@ define([
                         var rec = usersStore.findUser(id);
                         if (rec)
                             return rec.get('username');
+                        else if (typeof(id) === "string") {
+                            var idOrig = id.slice(0,-1);
+                            var found;
+                            usersStore.models.some(function (obj) {
+                                if (obj.attributes && obj.attributes.idOriginal === idOrig) {
+                                    found = obj;
+                                    return true;
+                                }
+                            });
+                            if (found && found.attributes.username) { return found.attributes.username; }
+                        }
                     }
                     return me.guestText;
                 };
