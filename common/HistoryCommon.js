@@ -1498,6 +1498,7 @@
 	window['AscDFH'].historyitem_type_TnLst                  = 1194 << 16;
 	window['AscDFH'].historyitem_type_TavLst                 = 1195 << 16;
 	window['AscDFH'].historyitem_type_SldSz                  = 1196 << 16;
+	window['AscDFH'].historyitem_type_ChartStyle             = 1197 << 16;
 
 	window['AscDFH'].historyitem_type_DocumentMacros         = 2000 << 16;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3188,6 +3189,38 @@
 	AscDFH.historyitem_SldSzCX   = AscDFH.historyitem_type_SldSz | 1;
 	AscDFH.historyitem_SldSzCY   = AscDFH.historyitem_type_SldSz | 2;
 	AscDFH.historyitem_SldSzType = AscDFH.historyitem_type_SldSz | 3;
+
+	AscDFH.historyitem_ChartStyleAxisTitle          = AscDFH.historyitem_type_ChartStyle | 1;
+	AscDFH.historyitem_ChartStyleCategoryAxis       = AscDFH.historyitem_type_ChartStyle | 2;
+	AscDFH.historyitem_ChartStyleChartArea          = AscDFH.historyitem_type_ChartStyle | 3;
+	AscDFH.historyitem_ChartStyleDataLabel          = AscDFH.historyitem_type_ChartStyle | 4;
+	AscDFH.historyitem_ChartStyleDataLabelCallout   = AscDFH.historyitem_type_ChartStyle | 5;
+	AscDFH.historyitem_ChartStyleDataPoint          = AscDFH.historyitem_type_ChartStyle | 5;
+	AscDFH.historyitem_ChartStyleDataPoint3D        = AscDFH.historyitem_type_ChartStyle | 6;
+	AscDFH.historyitem_ChartStyleDataPointLine      = AscDFH.historyitem_type_ChartStyle | 7;
+	AscDFH.historyitem_ChartStyleDataPointMarker    = AscDFH.historyitem_type_ChartStyle | 8;
+	AscDFH.historyitem_ChartStyleDataPointWireframe = AscDFH.historyitem_type_ChartStyle | 9;
+	AscDFH.historyitem_ChartStyleDataTable          = AscDFH.historyitem_type_ChartStyle | 10;
+	AscDFH.historyitem_ChartStyleDownBar            = AscDFH.historyitem_type_ChartStyle | 11;
+	AscDFH.historyitem_ChartStyleDropLine           = AscDFH.historyitem_type_ChartStyle | 12;
+	AscDFH.historyitem_ChartStyleErrorBar           = AscDFH.historyitem_type_ChartStyle | 13;
+	AscDFH.historyitem_ChartStyleFloor              = AscDFH.historyitem_type_ChartStyle | 14;
+	AscDFH.historyitem_ChartStyleGridlineMajor      = AscDFH.historyitem_type_ChartStyle | 15;
+	AscDFH.historyitem_ChartStyleGridlineMinor      = AscDFH.historyitem_type_ChartStyle | 16;
+	AscDFH.historyitem_ChartStyleHiLoLine           = AscDFH.historyitem_type_ChartStyle | 17;
+	AscDFH.historyitem_ChartStyleLeaderLine         = AscDFH.historyitem_type_ChartStyle | 18;
+	AscDFH.historyitem_ChartStyleLegend             = AscDFH.historyitem_type_ChartStyle | 19;
+	AscDFH.historyitem_ChartStylePlotArea           = AscDFH.historyitem_type_ChartStyle | 20;
+	AscDFH.historyitem_ChartStylePlotArea3D         = AscDFH.historyitem_type_ChartStyle | 21;
+	AscDFH.historyitem_ChartStyleSeriesAxis         = AscDFH.historyitem_type_ChartStyle | 22;
+	AscDFH.historyitem_ChartStyleSeriesLine         = AscDFH.historyitem_type_ChartStyle | 23;
+	AscDFH.historyitem_ChartStyleTitle              = AscDFH.historyitem_type_ChartStyle | 24;
+	AscDFH.historyitem_ChartStyleTrendline          = AscDFH.historyitem_type_ChartStyle | 25;
+	AscDFH.historyitem_ChartStyleTrendlineLabel     = AscDFH.historyitem_type_ChartStyle | 26;
+	AscDFH.historyitem_ChartStyleUpBar              = AscDFH.historyitem_type_ChartStyle | 27;
+	AscDFH.historyitem_ChartStyleValueAxis          = AscDFH.historyitem_type_ChartStyle | 28;
+	AscDFH.historyitem_ChartStyleWall               = AscDFH.historyitem_type_ChartStyle | 29;
+	AscDFH.historyitem_ChartStyleMarkerLayout       = AscDFH.historyitem_type_ChartStyle | 30;
 
 
 
