@@ -1984,7 +1984,7 @@
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryFillRef] = AscFormat.StyleRef;
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryEffectRef] = AscFormat.StyleRef;
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryFontRef] = AscFormat.FontRef;
-    AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryDefRPr] = AscCommonWord.CTextPr;
+    AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryDefRPr] = CTextPr;
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryBodyPr] = AscFormat.CBodyPr;
 
 
@@ -16163,7 +16163,35 @@
     }
 
     InitClass(CStyleEntry, CBaseFormatObject, AscDFH.historyitem_type_ChartStyleEntry);
-
+    CStyleEntry.prototype.fillObject = function(oCopy, oIdMap) {
+        if(this.type !== null) {
+            oCopy.setType(this.type);
+        }
+        if(this.lineWidthScale !== null) {
+            oCopy.setLineWidthScale(this.lineWidthScale.createDuplicate());
+        }
+        if(this.lnRef) {
+            oCopy.setLnRef(this.lnRef.createDuplicate());
+        }
+        if(this.fillRef) {
+            oCopy.setFillRef(this.fillRef.createDuplicate());
+        }
+        if(this.effectRef) {
+            oCopy.setEffectRef(this.effectRef.createDuplicate());
+        }
+        if(this.fontRef) {
+            oCopy.setFontRef(this.fontRef.createDuplicate());
+        }
+        if(this.defRPr) {
+            oCopy.setDefRPr(this.defRPr.Copy());
+        }
+        if(this.bodyPr) {
+            oCopy.setBodyPr(this.bodyPr.createDuplicate());
+        }
+        if(this.spPr) {
+            oCopy.setSpPr(this.spPr.createDuplicate());
+        }
+    };
     CStyleEntry.prototype.setType = function(pr) {
         History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_ChartStyleEntryType, this.type, pr));
         this.type = pr;

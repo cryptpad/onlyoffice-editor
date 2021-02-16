@@ -386,6 +386,7 @@ var GLOBAL_PATH_COUNT = 0;
     AscDFH.changesFactory[AscDFH.historyitem_ChartSpace_SetStyle] = CChangesDrawingsLong;
     AscDFH.changesFactory[AscDFH.historyitem_ChartSpace_SetTxPr] = CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_ChartSpace_SetGroup] = CChangesDrawingsObject;
+    AscDFH.changesFactory[AscDFH.historyitem_ChartSpace_ChartStyle] = CChangesDrawingsObject;
 
     function CheckParagraphTextPr(oParagraph, oTextPr) {
         var oParaPr = oParagraph.Pr.Copy();
@@ -554,6 +555,9 @@ var GLOBAL_PATH_COUNT = 0;
     };
     drawingsChangesMap[AscDFH.historyitem_ChartSpace_SetGroup] = function(oClass, value) {
         oClass.group = value;
+    };
+    drawingsChangesMap[AscDFH.historyitem_ChartSpace_ChartStyle] = function(oClass, value) {
+        oClass.chartStyle = value;
     };
 
     function CLabelsBox(aStrings, oAxis, oChartSpace) {
@@ -1073,6 +1077,7 @@ var GLOBAL_PATH_COUNT = 0;
         this.txPr = null;
         this.themeOverride = null;
         this.userShapes = [];//userShapes
+        this.chartStyle = null;
 
         this.dataRefs = null;
         this.pathMemory = new CPathMemory();
@@ -3596,6 +3601,10 @@ var GLOBAL_PATH_COUNT = 0;
         var aSplicedShape = this.userShapes.splice(pos, 1);
         History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_ChartSpace_RemoveUserShape, pos, aSplicedShape, false));
         return aSplicedShape[0];
+    };
+    CChartSpace.prototype.setChartStyle = function(pr) {
+        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartSpace_ChartStyle, this.chartStyle, pr));
+        this.chartStyle = pr;
     };
     CChartSpace.prototype.recalculateUserShapes = function() {
         for(var i = 0; i < this.userShapes.length; ++i) {
