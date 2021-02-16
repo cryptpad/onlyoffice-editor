@@ -2133,6 +2133,26 @@
 		All     : 2
 	};
 
+	var c_oAscSlideSZType = {
+			Sz35mm: 0,
+			SzA3: 1,
+			SzA4: 2,
+			SzB4ISO: 3,
+			SzB4JIS: 4,
+			SzB5ISO: 5,
+			SzB5JIS: 6,
+			SzBanner: 7,
+			SzCustom: 8,
+			SzHagakiCard: 9,
+			SzLedger: 10,
+			SzLetter: 11,
+			SzOverhead: 12,
+			SzScreen16x10: 13,
+			SzScreen16x9: 14,
+			SzScreen4x3: 15,
+			SzWidescreen: 16
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -3202,5 +3222,24 @@
 	prot['Current'] = c_oAscSectionApplyType.Current;
 	prot['ToEnd']   = c_oAscSectionApplyType.ToEnd;
 	prot['All']     = c_oAscSectionApplyType.All;
+
+	prot = window['Asc']['c_oAscSlideSZType'] = window['Asc'].c_oAscSlideSZType = c_oAscSlideSZType;
+	prot['Sz35mm'] = prot.Sz35mm;
+	prot['SzA3'] = prot.SzA3;
+	prot['SzA4'] = prot.SzA4;
+	prot['SzB4ISO'] = prot.SzB4ISO;
+	prot['SzB4JIS'] = prot.SzB4JIS;
+	prot['SzB5ISO'] = prot.SzB5ISO;
+	prot['SzB5JIS'] = prot.SzB5JIS;
+	prot['SzBanner'] = prot.SzBanner;
+	prot['SzCustom'] = prot.SzCustom;
+	prot['SzHagakiCard'] = prot.SzHagakiCard;
+	prot['SzLedger'] = prot.SzLedger;
+	prot['SzLetter'] = prot.SzLetter;
+	prot['SzOverhead'] = prot.SzOverhead;
+	prot['SzScreen16x10'] = prot.SzScreen16x10;
+	prot['SzScreen16x9'] = prot.SzScreen16x9;
+	prot['SzScreen4x3'] = prot.SzScreen4x3;
+	prot['SzWidescreen'] = prot.SzWidescreen;
 
 })(window);
