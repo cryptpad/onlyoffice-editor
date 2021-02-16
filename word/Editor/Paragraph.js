@@ -11733,17 +11733,18 @@ Paragraph.prototype.Supplement_FramePr = function(FramePr)
 		}
 
 		var TextPr = FirstFramePara.GetFirstRunPr();
+		TextPr.ReplaceThemeFonts(this.GetTheme().themeElements.fontScheme);
 
 		if (undefined === TextPr.RFonts || undefined === TextPr.RFonts.Ascii)
 		{
 			TextPr = this.Get_CompiledPr2(false).TextPr;
+			TextPr.ReplaceThemeFonts(this.GetTheme().themeElements.fontScheme);
 		}
 
-		FramePr.FontFamily =
-			{
-				Name  : TextPr.RFonts.Ascii.Name,
-				Index : TextPr.RFonts.Ascii.Index
-			};
+		FramePr.FontFamily = {
+			Name  : TextPr.RFonts.Ascii.Name,
+			Index : TextPr.RFonts.Ascii.Index
+		};
 	}
 
 	var FrameParas = this.Internal_Get_FrameParagraphs();
