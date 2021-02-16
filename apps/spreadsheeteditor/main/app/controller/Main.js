@@ -1991,6 +1991,8 @@ define([
             },
 
             onTryUndoInFastCollaborative: function() {
+                // CRYPTPAD: disable strict mode
+                return;
                 var val = window.localStorage.getItem("sse-hide-try-undoredo");
                 if (!(val && parseInt(val) == 1))
                     Common.UI.info({
