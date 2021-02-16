@@ -5137,7 +5137,7 @@ background-repeat: no-repeat;\
                 if (2 < this.standartThemesStatus)
                    this.WordControl.m_oLogicDocument.SendThemesThumbnails();
 
-				this.sendEvent("asc_onPresentationSize", presentation.GetWidthMM(), presentation.GetHeightMM());
+				this.sendEvent("asc_onPresentationSize", presentation.GetWidthEMU(), presentation.GetHeightEMU(), presentation.GetSizeType());
 
 				this.WordControl.GoToPage(0);
 				bIsScroll = true;
@@ -5337,13 +5337,13 @@ background-repeat: no-repeat;\
 	{
 		if (this.WordControl.m_oLogicDocument == null)
 			return 0;
-		return this.WordControl.m_oLogicDocument.GetWidthMM();
+		return this.WordControl.m_oLogicDocument.GetWidthEMU();
 	};
 	asc_docs_api.prototype.get_PresentationHeight = function()
 	{
 		if (this.WordControl.m_oLogicDocument == null)
 			return 0;
-		return this.WordControl.m_oLogicDocument.GetHeightMM();
+		return this.WordControl.m_oLogicDocument.GetHeightEMU();
 	};
 
 	asc_docs_api.prototype.pre_Paste = function(_fonts, _images, callback)
@@ -5476,12 +5476,12 @@ background-repeat: no-repeat;\
 		}
 	};
 
-	asc_docs_api.prototype.changeSlideSize = function(width, height)
+	asc_docs_api.prototype.changeSlideSize = function(width, height, type)
 	{
 		if (this.isMobileVersion && this.WordControl.MobileTouchManager)
 			this.WordControl.MobileTouchManager.BeginZoomCheck();
 
-		this.WordControl.m_oLogicDocument.changeSlideSize(width, height);
+		this.WordControl.m_oLogicDocument.changeSlideSize(width, height, type);
 
 		if (this.isMobileVersion && this.WordControl.MobileTouchManager)
 			this.WordControl.MobileTouchManager.EndZoomCheck();

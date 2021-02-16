@@ -2748,6 +2748,12 @@ CSlideSize.prototype.GetHeightMM = function() {
     return this.GetHeightEMU() / g_dKoef_mm_to_emu;
 };
 
+CSlideSize.prototype.GetSizeType = function () {
+    if(AscFormat.isRealNumber(this.type)) {
+        return this.type;
+    }
+    return Asc.c_oAscSlideSZType.SzCustom;
+};
 function CPresentation(DrawingDocument) {
     this.History = History;
     this.IdCounter = AscCommon.g_oIdCounter;
@@ -2921,11 +2927,18 @@ CPresentation.prototype.GetWidthEMU = function () {
     return CSlideSize.prototype.DEFAULT_CX;
 };
 
+
 CPresentation.prototype.GetHeightEMU = function () {
     if(this.sldSz) {
         return this.sldSz.GetHeightEMU();
     }
     return CSlideSize.prototype.DEFAULT_CY;
+};
+CPresentation.prototype.GetSizeType = function () {
+    if(this.sldSz) {
+        return this.sldSz.GetSizeType();
+    }
+    return Asc.c_oAscSlideSZType.SzCustom;
 };
 CPresentation.prototype.setSldSz = function(pr) {
     History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_Presentation_SlideSize, this.sldSz, pr));
@@ -2951,18 +2964,21 @@ CPresentation.prototype.changeSlideSizeFunction = function () {
     }, this, []);
 };
 
-CPresentation.prototype.internalChangeSizes = function(nWidth, nHeight) {
+CPresentation.prototype.internalChangeSizes = function(nWidth, nHeight, nType) {
     var oSldSize = new CSlideSize();
     oSldSize.setCX(nWidth);
     oSldSize.setCY(nHeight);
+    if(AscFormat.isRealNumber(nType) && nType !== Asc.c_oAscSlideSZType.SzWidescreen && nType !== Asc.c_oAscSlideSZType.SzCustom) {
+        oSldSize.setType(nType);
+    }
     this.setSldSz(oSldSize);
     this.changeSlideSizeFunction();
 };
 
-CPresentation.prototype.changeSlideSize = function (width, height) {
+CPresentation.prototype.changeSlideSize = function (width, height, nType) {
     if (this.Document_Is_SelectionLocked(AscCommon.changestype_SlideSize) === false) {
         History.Create_NewPoint(AscDFH.historydescription_Presentation_ChangeSlideSize);
-        this.internalChangeSizes(width * g_dKoef_mm_to_emu, height * g_dKoef_mm_to_emu);
+        this.internalChangeSizes(width, height, nType);
         this.Recalculate();
         this.Document_UpdateInterfaceState();
     }
@@ -7643,7 +7659,7 @@ CPresentation.prototype.Document_UpdateInterfaceState = function () {
     this.Document_UpdateRulersState();
 
     this.Document_UpdateCanAddHyperlinkState();
-    editor.sendEvent("asc_onPresentationSize", this.GetWidthMM(), this.GetHeightMM());
+    editor.sendEvent("asc_onPresentationSize", this.GetWidthEMU(), this.GetHeightEMU(), this.GetSizeType());
     editor.sendEvent("asc_canIncreaseIndent", this.Can_IncreaseParagraphLevel(true));
     editor.sendEvent("asc_canDecreaseIndent", this.Can_IncreaseParagraphLevel(false));
     editor.sendEvent("asc_onCanGroup", this.canGroup());
