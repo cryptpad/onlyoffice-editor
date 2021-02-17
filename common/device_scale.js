@@ -32,7 +32,7 @@
 
 "use strict";
 (function (window, undefined) {
-	var supportedScaleValues = [1, 2];
+	var supportedScaleValues = [1, 1.5, 2];
 
 	// uncomment to debug all scales
 	//supportedScaleValues = [];
