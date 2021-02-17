@@ -6654,6 +6654,11 @@ function BinaryPPTYLoader()
                     txXfrm = this.ReadXfrm();
 					break;
 				}
+                case 7:
+                {
+                    shape.setSignature(this.ReadSignatureLine());
+                    break;
+                }
                 default:
                 {
                     s.SkipRecord();
