@@ -3619,6 +3619,8 @@ function CBinaryFileWriter()
         oThis.WriteRecord2(2, shape.style, oThis.WriteShapeStyle);
         oThis.WriteRecord2(3, shape.txBody, oThis.WriteTxBody);
 
+        oThis.WriteRecord2(7, shape.signatureLine, oThis.WriteSignatureLine);
+
         if (isUseTmpFill)
         {
             shape.spPr.Fill = tmpFill;
