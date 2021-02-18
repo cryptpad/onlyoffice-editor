@@ -86,11 +86,11 @@ function CNativeGraphics()
 
 CNativeGraphics.prototype =
 {
-    init : function(nativecontrol, width_px, height_px, width_mm, height_mm)
+    create : function(nativecontrol, width_px, height_px, width_mm, height_mm)
     {
         this.TextureFillTransformScaleX = width_mm  / (width_px  >> 0);
         this.TextureFillTransformScaleY = height_mm / (height_px >> 0);
-        this.Native["init"](nativecontrol, width_px, height_px, width_mm, height_mm);
+        this.Native["create"](nativecontrol, width_px, height_px, width_mm, height_mm);
     },
     EndDraw : function()
     {
