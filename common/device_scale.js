@@ -102,12 +102,16 @@
 		return retValue;
 	};
 
-	window['AscCommon'].correctApplicationScale = function(scale)
+	var oldZoomValue = 1;
+	window['AscCommon'].correctApplicationScale = function(zoomValue)
 	{
+		if (!zoomValue.correct && Math.abs(zoomValue.zoom - oldZoomValue) < 0.0001)
+			return;
+		oldZoomValue = zoomValue.zoom;
 		var firstElemStyle = document.firstElementChild.style;
-		if (Math.abs(scale - 1) < 0.001)
+		if (Math.abs(oldZoomValue - 1) < 0.001)
 			firstElemStyle.zoom = "normal";
 		else
-			firstElemStyle.zoom = 1.0 / scale;
+			firstElemStyle.zoom = 1.0 / oldZoomValue;
 	};
 })(window);
