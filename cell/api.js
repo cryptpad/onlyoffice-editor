@@ -2865,10 +2865,10 @@ var editor;
     }
   };
     // signatures
-    spreadsheet_api.prototype.asc_addSignatureLine = function (sGuid, sSigner, sSigner2, sEmail, Width, Height, sImgUrl) {
+    spreadsheet_api.prototype.asc_addSignatureLine = function (oPr, Width, Height, sImgUrl) {
       var ws = this.wb.getWorksheet();
       if(ws && ws.objectRender){
-          ws.objectRender.addSignatureLine(sGuid, sSigner, sSigner2, sEmail, Width, Height, sImgUrl);
+          ws.objectRender.addSignatureLine(oPr, Width, Height, sImgUrl);
       }
     };
 

@@ -10439,13 +10439,13 @@ CPresentation.prototype.AddTextArt = function (nStyle) {
 };
 
 
-CPresentation.prototype.AddSignatureLine = function (sGuid, sSigner, sSigner2, sEmail, Width, Height, sImgUrl) {
+CPresentation.prototype.AddSignatureLine = function (oPr, Width, Height, sImgUrl) {
     if (this.Slides[this.CurPage]) {
         History.Create_NewPoint(AscDFH.historydescription_Document_InsertSignatureLine);
         var fPosX = (this.Width - Width) / 2;
         var fPosY = (this.Height - Height) / 2;
         var oController = this.Slides[this.CurPage].graphicObjects;
-        var Image = AscFormat.fCreateSignatureShape(sGuid, sSigner, sSigner2, sEmail, false, null, Width, Height, sImgUrl);
+        var Image = AscFormat.fCreateSignatureShape(oPr, false, null, Width, Height, sImgUrl);
         Image.spPr.xfrm.setOffX(fPosX);
         Image.spPr.xfrm.setOffY(fPosY);
         Image.setParent(this.Slides[this.CurPage]);
@@ -10454,7 +10454,7 @@ CPresentation.prototype.AddSignatureLine = function (sGuid, sSigner, sSigner2, s
         oController.selectObject(Image, 0);
         this.Recalculate();
         this.Document_UpdateInterfaceState();
-        this.Api.sendEvent("asc_onAddSignature", sGuid);
+        this.Api.sendEvent("asc_onAddSignature", Image.signatureLine.id);
     }
 };
 

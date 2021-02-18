@@ -2430,13 +2430,13 @@ GraphicOption.prototype.union = function(oGraphicOption) {
             }
         }
     };
-    _this.addSignatureLine = function(sGuid, sSigner, sSigner2, sEmail, Width, Height, sImgUrl)
+    _this.addSignatureLine = function(oPr, Width, Height, sImgUrl)
     {
         _this.controller.resetSelection();
         History.Create_NewPoint();
         var dLeft = worksheet.getCellLeft(worksheet.model.selectionRange.activeCell.col, 3);
         var dTop = worksheet.getCellTop(worksheet.model.selectionRange.activeCell.row, 3);
-        var oSignatureLine = AscFormat.fCreateSignatureShape(sGuid, sSigner, sSigner2, sEmail, false, worksheet.model, Width, Height, sImgUrl);
+        var oSignatureLine = AscFormat.fCreateSignatureShape(oPr, false, worksheet.model, Width, Height, sImgUrl);
         oSignatureLine.spPr.xfrm.setOffX(dLeft);
         oSignatureLine.spPr.xfrm.setOffY(dTop);
         oSignatureLine.addToDrawingObjects();
@@ -2444,7 +2444,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         _this.controller.selectObject(oSignatureLine, 0);
         _this.controller.startRecalculate();
         worksheet.setSelectionShape(true);
-        window["Asc"]["editor"].sendEvent("asc_onAddSignature", sGuid);
+        window["Asc"]["editor"].sendEvent("asc_onAddSignature", oSignatureLine.signatureLine.id);
     };
 
     _this.addMath = function(Type){

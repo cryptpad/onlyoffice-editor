@@ -2317,7 +2317,7 @@
 		}
 	};
 
-	baseEditorsApi.prototype.asc_addSignatureLine = function (sGuid, sSigner, sSigner2, sEmail, Width, Height, sImgUrl) {
+	baseEditorsApi.prototype.asc_addSignatureLine = function (oPr, Width, Height, sImgUrl) {
 
     };
 	baseEditorsApi.prototype.asc_getAllSignatures = function () {
@@ -2366,10 +2366,10 @@
 		var _url = _canvas.toDataURL("image/png");
 		_canvas = null;
 
-		var _args = [AscCommon.CreateGUID(), _obj.asc_getSigner1(), _obj.asc_getSigner2(), _obj.asc_getEmail(), _w, _h, _url];
+		var _args = [];
 
-		this.ImageLoader.LoadImagesWithCallback([_url], function(_args) {
-			this.asc_addSignatureLine(_args[0], _args[1], _args[2], _args[3], _args[4], _args[5], _args[6]);
+		this.ImageLoader.LoadImagesWithCallback([_url], function() {
+			this.asc_addSignatureLine(_obj, _w, _h, _url);
 		}, _args);
 	};
 
@@ -2400,6 +2400,8 @@
 				_add_sig.signer1 = _sig.signer;
 				_add_sig.signer2 = _sig.signer2;
 				_add_sig.email = _sig.email;
+				_add_sig.showDate = _sig.showDate;
+				_add_sig.instructions = _sig.instructions;
 
 				_sigs_ret.push(_add_sig);
 			}
@@ -2492,6 +2494,8 @@
 				_add_sig.signer1 = _sig.signer;
 				_add_sig.signer2 = _sig.signer2;
 				_add_sig.email = _sig.email;
+				_add_sig.showDate = _sig.showDate;
+				_add_sig.instructions = _sig.instructions;
 
 				_add_sig.isrequested = true;
 				for (var j = 0; j < this.signatures.length; j++)

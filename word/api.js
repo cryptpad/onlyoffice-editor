@@ -4164,17 +4164,17 @@ background-repeat: no-repeat;\
 	};
 
 	// signatures
-	asc_docs_api.prototype.asc_addSignatureLine = function (sGuid, sSigner, sSigner2, sEmail, Width, Height, sImgUrl) {
+	asc_docs_api.prototype.asc_addSignatureLine = function (oPr, Width, Height, sImgUrl) {
         if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Document_Content_Add))
         {
             this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_InsertSignatureLine);
 
-            var oSignature = AscFormat.fCreateSignatureShape(sGuid, sSigner, sSigner2, sEmail, true, null, Width, Height, sImgUrl);
+            var oSignature = AscFormat.fCreateSignatureShape(oPr, true, null, Width, Height, sImgUrl);
             var Drawing   = new AscCommonWord.ParaDrawing(oSignature.spPr.xfrm.extX, oSignature.spPr.xfrm.extY, null, this.WordControl.m_oDrawingDocument, null, null);
             oSignature.setParent(Drawing);
             Drawing.Set_GraphicObject(oSignature);
             this.WordControl.m_oLogicDocument.AddSignatureLine(Drawing);
-            this.sendEvent("asc_onAddSignature", sGuid);
+            this.sendEvent("asc_onAddSignature", oSignature.signatureLine.id);
 			this.WordControl.m_oLogicDocument.FinalizeAction();
         }
     };
