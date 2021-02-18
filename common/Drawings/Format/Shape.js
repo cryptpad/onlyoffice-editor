@@ -934,6 +934,8 @@ function SetXfrmFromMetrics(oDrawing, metrics)
         this.signer = null;
         this.signer2 = null;
         this.email = null;
+        this.showDate = null;
+        this.instructions = null;
     }
 
     CSignatureLine.prototype.Write_ToBinary = function(writer){
@@ -941,19 +943,25 @@ function SetXfrmFromMetrics(oDrawing, metrics)
         AscFormat.writeString(writer, this.signer);
         AscFormat.writeString(writer, this.signer2);
         AscFormat.writeString(writer, this.email);
+        AscFormat.writeBool(writer, this.showDate);
+        AscFormat.writeString(writer, this.instructions);
     };
     CSignatureLine.prototype.Read_FromBinary = function(reader){
         this.id =  AscFormat.readString(reader);
         this.signer = AscFormat.readString(reader);
         this.signer2 =  AscFormat.readString(reader);
         this.email =  AscFormat.readString(reader);
+        this.showDate = AscFormat.readBool(reader);
+        this.instructions = AscFormat.readString(reader);
     };
-    CSignatureLine.prototype.copy = function(oPr){
+    CSignatureLine.prototype.copy = function(){
         var ret = new CSignatureLine();
         ret.id =  this.id;
         ret.signer = this.signer;
         ret.signer2 = this.signer2;
         ret.email = this.email;
+        ret.showDate = this.showDate;
+        ret.instructions = this.instructions;
         return ret;
     };
 

@@ -4311,6 +4311,8 @@ function CBinaryFileWriter()
 		oThis._WriteString2(3, oSignatureLine.id);
 		oThis._WriteBool2(4, true);
 		oThis._WriteString2(5, "{00000000-0000-0000-0000-000000000000}");
+		oThis._WriteBool2(6, oSignatureLine.showDate);
+		oThis._WriteString2(7, oSignatureLine.instructions);
 		oThis._WriteString2(10, oSignatureLine.signer);
 		oThis._WriteString2(11, oSignatureLine.signer2);
 		oThis._WriteString2(12, oSignatureLine.email);

@@ -3983,9 +3983,9 @@ background-repeat: no-repeat;\
 
 
     // signatures
-    asc_docs_api.prototype.asc_addSignatureLine = function (sGuid, sSigner, sSigner2, sEmail, Width, Height, sImgUrl) {
+    asc_docs_api.prototype.asc_addSignatureLine = function (oPr, Width, Height, sImgUrl) {
         if (editor.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Drawing_Props) === false){
-            this.WordControl.m_oLogicDocument.AddSignatureLine(sGuid, sSigner, sSigner2, sEmail, Width, Height, sImgUrl);
+            this.WordControl.m_oLogicDocument.AddSignatureLine(oPr, Width, Height, sImgUrl);
         }
     };
 
