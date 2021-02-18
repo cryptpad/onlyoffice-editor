@@ -180,19 +180,13 @@
 		}
 		if(null === oCanvas)
 		{
+			var rPR = AscCommon.AscBrowser.retinaPixelRatio;
 			oCanvas = document.createElement('canvas');
 			oCanvas.style.width = "100%";
 			oCanvas.style.height = "100%";
 			oDiv.appendChild(oCanvas);
-			var nCanvasW = oCanvas.clientWidth;
-			var nCanvasH = oCanvas.clientHeight;
-			if (AscCommon.AscBrowser.isRetina)
-			{
-				nCanvasW = AscCommon.AscBrowser.convertToRetinaValue(nCanvasW, true);
-				nCanvasH = AscCommon.AscBrowser.convertToRetinaValue(nCanvasH, true);
-			}
-			oCanvas.width = nCanvasW;
-			oCanvas.height = nCanvasH;
+			oCanvas.width = Math.round(oCanvas.clientWidth * rPR);
+			oCanvas.height = Math.round(oCanvas.clientHeight * rPR);
 		}
 		return oCanvas;
 	}
