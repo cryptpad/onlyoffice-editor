@@ -202,6 +202,7 @@
 		this.isFormula = false;
 		this.angle = null;
 		this.textBound = null;
+		this.indent = null;
 	}
 
     function Cache() {
@@ -365,6 +366,7 @@
         this.defaultColWidthPx = 0;
         this.defaultRowHeightPx = 0;
         this.defaultRowDescender = 0;
+        this.defaultSpaceWidth = 0;
         this.headersLeft = 0;
         this.headersTop = 0;
         this.headersWidth = 0;
@@ -479,6 +481,11 @@
 		AscCommonExcel.oDefaultMetrics.RowHeight = Math.min(Asc.c_oAscMaxRowHeight,
 			this.model.getDefaultHeight() || AscCommonExcel.convertPxToPt(this.headersHeightByFont));
 		this.defaultRowHeightPx = AscCommonExcel.convertPtToPx(AscCommonExcel.oDefaultMetrics.RowHeight);
+
+		var tmSpace = this._roundTextMetrics(this.stringRender.measureString(" "));
+		if (tmSpace) {
+			this.defaultSpaceWidth = tmSpace.width;
+		}
 
 		// ToDo refactoring
 		this.model.setDefaultHeight(AscCommonExcel.oDefaultMetrics.RowHeight);
@@ -4007,6 +4014,13 @@
 				if (this._getCellCF(aRules, c, row, col, Asc.ECfType.iconSet) && AscCommon.align_Left === ct.cellHA) {
 					textX += getCFIconSize(font.getSize());
 				}
+				if (ct.indent) {
+					if (AscCommon.align_Right === ct.cellHA) {
+						textX -= ct.indent * 3 * this.defaultSpaceWidth;
+					} else if (AscCommon.align_Left === ct.cellHA) {
+						textX += ct.indent * 3 * this.defaultSpaceWidth;
+					}
+				}
 				this.stringRender.restoreInternalState(ct.state).render(drawingCtx, textX, textY, textW, color);
 				ctx.RemoveClipRect();
 			}
@@ -5847,6 +5861,11 @@
         var align = c.getAlign();
         var va = align.getAlignVertical();
         var angle = align.getAngle();
+        var indent = align.getIndent();
+		if (align.hor === AscCommon.align_Distributed) {
+			fl.wrapText = true;
+			fl.textAlign = AscCommon.align_Center;
+		}
         if (c.isEmptyTextString()) {
             if (!angle && c.isNotDefaultFont() && !(mergeType & c_oAscMergeType.rows)) {
                 // Пустая ячейка с измененной гарнитурой или размером, учитвается в высоте
@@ -5948,7 +5967,24 @@
             angle = 0;
         }
 
-        tm = this._roundTextMetrics(this.stringRender.measureString(str, fl, maxW));
+        if (indent && AscCommon.align_Distributed === alignH) {
+            maxW -= 2 * indent * 3 * this.defaultSpaceWidth;
+        }
+
+        if (fl.wrapText) {
+            maxW -= indent * 3 * this.defaultSpaceWidth;
+        }
+
+		tm = this._roundTextMetrics(this.stringRender.measureString(str, fl, maxW));
+
+		if (indent) {
+			if (AscCommon.align_Right === alignH) {
+				tm.width += indent * 3 * this.defaultSpaceWidth + 1;
+			} else if (AscCommon.align_Left === alignH) {
+				tm.width += indent * 3 * this.defaultSpaceWidth;
+			}
+		}
+
         var cto = (mergeType || fl.wrapText || fl.shrinkToFit) ? {
             maxWidth: maxW - this._getColumnWidthInner(col) + this._getColumnWidth(col), leftSide: 0, rightSide: 0
         } : this._calcCellTextOffset(col, row, ha, tm.width);
@@ -6029,13 +6065,14 @@
 		cache.isFormula = c.isFormula();
 		cache.angle = angle;
 		cache.textBound = textBound;
+		cache.indent = indent;
 
         this._fetchCellCacheText(col, row);
 
         if (!angle && !verticalText && (cto.leftSide !== 0 || cto.rightSide !== 0)) {
             this._addErasedBordersToCache(col - cto.leftSide, col + cto.rightSide, row);
         }
-            this._updateRowHeight(cache, row, maxW, colWidth);
+		this._updateRowHeight(cache, row, maxW, colWidth);
 
         return mc ? mc.c2 : col;
     };
@@ -6055,11 +6092,13 @@
 			fr[0].format = cell.getFont();
 		}
 
+
 		var th;
 		var cellType = cell.getType();
+		var wrap = align.getWrap() || align.hor === AscCommon.align_Distributed;
 		// Автоподбор делается по любому типу (кроме строки)
 		var isNumberFormat = !cell.isEmptyTextString() && (null === cellType || CellValueType.String !== cellType);
-		if (angle || isNumberFormat || align.getWrap()) {
+		if (angle || isNumberFormat || wrap) {
 			this._addCellTextToCache(cell.nCol, cell.nRow);
 			th = this.updateRowHeightValuePx || AscCommonExcel.convertPtToPx(this._getRowHeightReal(cell.nRow));
 		} else {
@@ -6213,7 +6252,7 @@
 		var ls = 0, rs = 0, i, size;
         var width = this._getColumnWidth(col);
 		textWidth = textWidth + this.settings.cells.padding;
-		if (textAlign === AscCommon.align_Center) {
+		if (textAlign === AscCommon.align_Center || textAlign === AscCommon.align_Distributed) {
 			textWidth /= 2;
 			width /= 2;
 		}
@@ -6630,6 +6669,7 @@
     WorksheetView.prototype._calcTextHorizPos = function (x1, x2, tm, align) {
         switch (align) {
             case AscCommon.align_Center:
+			case AscCommon.align_Distributed:
                 return Asc.round(0.5 * (x1 + x2 + 1 - tm.width));
             case AscCommon.align_Right:
                 return x2 + 1 - this.settings.cells.padding - tm.width;
@@ -10579,6 +10619,16 @@
                 return border;
             }
 
+			var checkIndent = function (_range) {
+				if (_range) {
+					var _align = _range.getAlign();
+					if (_align && _align.getIndent && 0 != _align.getIndent()) {
+						return true;
+					}
+				}
+				return false;
+			};
+
             History.Create_NewPoint();
             History.StartTransaction();
 
@@ -10618,6 +10668,9 @@
                         range.setFontAlign(val);
                         break;
                     case "a":
+						if (!(val === AscCommon.align_Right || val === AscCommon.align_Left) && checkIndent(range)) {
+							range.setIndent(0);
+						}
                         range.setAlignHorizontal(val);
                         break;
                     case "va":
@@ -10660,8 +10713,23 @@
                         canChangeColWidth = c_oAscCanChangeColWidth.numbers;
                         break;
                     case "angle":
+						if (val !== 0 && checkIndent(range)) {
+							range.setIndent(0);
+						}
                         range.setAngle(val);
                         break;
+					case "indent":
+						var _align = range.getAlign();
+						if (_align) {
+							if (!(_align.hor === AscCommon.align_Right || _align.hor === AscCommon.align_Left)) {
+								range.setAlignHorizontal(AscCommon.align_Left);
+							}
+							if (_align.angle !== 0) {
+								range.setAngle(0);
+							}
+						}
+						range.setIndent(val);
+						break;
                     case "rh":
                         range.removeHyperlink(null, true);
                         break;
@@ -10696,6 +10764,9 @@
                             callTrigger = true;
                             t.handlers.trigger("slowOperation", true);
                         }
+						if (val === c_oAscMergeOptions.MergeCenter && checkIndent(range)) {
+							range.setIndent(0);
+						}
                         switch (val) {
                             case c_oAscMergeOptions.MergeCenter:
                             case c_oAscMergeOptions.Merge:
@@ -12203,6 +12274,8 @@
 				pastedRangeProps.font = newVal.getFont();
 
 				pastedRangeProps.shrinkToFit = align.getShrinkToFit();
+
+				pastedRangeProps.indent = align.getIndent();
 			}
 
 			var tableDxf = getTableDxf(pasteRow, pasteCol, newVal);
@@ -12809,6 +12882,11 @@
 					firstCell.setStyle(rangeStyle.tableDxfLocal);
 				}
 			});
+		}
+
+		//indent
+		if (rangeStyle.indent && specialPasteProps.format) {
+			range.setIndent(rangeStyle.indent);
 		}
 
 		//hyperLink
@@ -14481,6 +14559,11 @@
 				c = this._getVisibleCell(mc.c1, mc.r1);
 				fl = this._getCellFlags(c);
 			}
+			var align = c.getAlign();
+			var indent = align && align.indent;
+			if (AscCommon.align_Distributed === fl.textAlign) {
+				fl.textAlign = AscCommon.align_Center;
+			}
 
 			this.handlers.trigger("onScroll", this._calcActiveCellOffset());
 
@@ -14691,6 +14774,13 @@
 					h = t.drawingCtx.getHeight();
 					if (arrBottomS[arrBottomS.length - 1] > h) {
 						arrBottomS[arrBottomS.length - 1] = h;
+					}
+					if (indent) {
+						if (AscCommon.align_Right === align.hor) {
+							arrRightS[ri] -= indent * 3 * t.defaultSpaceWidth + 1;
+						} else if (AscCommon.align_Left === align.hor) {
+							cellX += indent * 3 * t.defaultSpaceWidth;
+						}
 					}
 					return {l: arrLeftS, r: arrRightS, b: arrBottomS, cellX: cellX, cellY: cellY, ri: ri, bi: bi};
 				},

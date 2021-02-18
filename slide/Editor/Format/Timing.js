@@ -2077,8 +2077,8 @@
         }
     };
 
-    changesFactory[AscDFH.historyitem_IterateDataTmAbs] = CChangeObject;
-    changesFactory[AscDFH.historyitem_IterateDataTmPct] = CChangeObject;
+    changesFactory[AscDFH.historyitem_IterateDataTmAbs] = CChangeString;
+    changesFactory[AscDFH.historyitem_IterateDataTmPct] = CChangeLong;
     changesFactory[AscDFH.historyitem_IterateDataBackwards] = CChangeBool;
     changesFactory[AscDFH.historyitem_IterateDataType] = CChangeLong;
     drawingsChangesMap[AscDFH.historyitem_IterateDataTmAbs] = function(oClass, value) {oClass.tmAbs = value;};
@@ -2095,14 +2095,12 @@
     }
     InitClass(CIterateData, CBaseFormatObject, AscDFH.historyitem_type_IterateData);
     CIterateData.prototype.setTmAbs = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_IterateDataTmAbs, this.tmAbs, pr));
+        oHistory.Add(new CChangeString(this, AscDFH.historyitem_IterateDataTmAbs, this.tmAbs, pr));
         this.tmAbs = pr;
-        this.setParentToChild(pr);
     };
     CIterateData.prototype.setTmPct = function(pr) {
-        oHistory.Add(new CChangeObject(this, AscDFH.historyitem_IterateDataTmPct, this.tmPct, pr));
+        oHistory.Add(new CChangeLong(this, AscDFH.historyitem_IterateDataTmPct, this.tmPct, pr));
         this.tmPct = pr;
-        this.setParentToChild(pr);
     };
     CIterateData.prototype.setBackwards = function(pr) {
         oHistory.Add(new CChangeBool(this, AscDFH.historyitem_IterateDataBackwards, this.backwards, pr));
@@ -3706,8 +3704,8 @@
         }
         else if(this.pRg) {
             pWriter._WriteBool2(0, false);
-            pWriter._WriteUInt2(1, this.charRg.st);
-            pWriter._WriteUInt2(2, this.charRg.end);
+            pWriter._WriteUInt2(1, this.pRg.st);
+            pWriter._WriteUInt2(2, this.pRg.end);
         }
     };
     CTxEl.prototype.writeChildren = function(pWriter) {

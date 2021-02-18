@@ -181,7 +181,7 @@ AscBrowser.checkZoom = function()
 	AscBrowser.retinaPixelRatio = zoomValue.applicationPixelRatio;
 	AscBrowser.zoom = zoomValue.zoom;
 
-    zoomValue.correct && AscCommon.correctApplicationScale(AscBrowser.zoom);
+    AscCommon.correctApplicationScale(zoomValue);
 };
 
 AscBrowser.checkZoom();
