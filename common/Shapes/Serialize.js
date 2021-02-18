@@ -11526,7 +11526,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
             oOtherStream.pos = this.stream.pos;
             oOtherStream.cur = this.stream.cur;
         };
-        this.ReadPPTXElement = function(reader, stream, length, fReadFunction) {
+        this.ReadPPTXElement = function(reader, stream, fReadFunction) {
             if(reader) {
                 this.BaseReader = reader;
             }
@@ -11536,21 +11536,24 @@ CCore.prototype.Refresh_RecalcData2 = function(){
             return oResult;
         };
         this.ReadBodyPr = function(reader, stream) {
+            var oThis = this;
             return this.ReadPPTXElement(reader, stream, function() {
-                this.stream.GetUChar();
-                return this.Reader.ReadBodyPr();
+                oThis.stream.GetUChar();
+                return oThis.Reader.ReadBodyPr();
             });
         };
         this.ReadFontRef = function(reader, stream) {
+            var oThis = this;
             return this.ReadPPTXElement(reader, stream, function() {
-                this.stream.GetUChar();
-                return this.Reader.ReadFontRef();
+                oThis.stream.GetUChar();
+                return oThis.Reader.ReadFontRef();
             });
         };
         this.ReadStyleRef = function(reader, stream) {
+            var oThis = this;
             return this.ReadPPTXElement(reader, stream, function() {
-                this.stream.GetUChar();
-                return this.Reader.ReadStyleRef();
+                oThis.stream.GetUChar();
+                return oThis.Reader.ReadStyleRef();
             });
         };
 

@@ -5577,8 +5577,11 @@ BinaryChartReader.prototype.ReadCT_ChartSpace = function (type, length, val, cur
     else if(c_oserct_chartspaceSTYLES === type) {
         oNewVal = new AscFormat.CChartStyle();
         res = this.bcr.Read1(length, function (t, l) {
-            return oThis.ReadCT_extLst(t, l, oNewVal);
+            return oThis.ReadCT_ChartStyle(t, l, oNewVal);
         });
+        if(oNewVal) {
+            val.setChartStyle(oNewVal);
+        }
     }
     else if(c_oserct_chartspaceCOLORS === type) {
         //todo
