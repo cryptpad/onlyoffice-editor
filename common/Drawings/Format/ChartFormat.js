@@ -1444,6 +1444,10 @@
         oClass.markerLayout = value;
     };
 
+    drawingsChangesMap[AscDFH.historyitem_ChartStyleMarkerId] = function(oClass, value) {
+        oClass.id = value;
+    };
+
     drawingsChangesMap[AscDFH.historyitem_ChartStyleEntryType] = function(oClass, value) {
         oClass.type = value;
     };
@@ -1471,6 +1475,14 @@
     };
     drawingsChangesMap[AscDFH.historyitem_ChartStyleEntrySpPr] = function(oClass, value) {
         oClass.spPr = value;
+    };
+
+    drawingsChangesMap[AscDFH.historyitem_MarkerLayoutSymbol] = function(oClass, value) {
+        oClass.symbol = value;
+    };
+
+    drawingsChangesMap[AscDFH.historyitem_MarkerLayoutSize] = function(oClass, value) {
+        oClass.size = value;
     };
 
 
@@ -1969,6 +1981,7 @@
     AscDFH.changesFactory[AscDFH.historyitem_ChartStyleValueAxis] = window['AscDFH'].CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_ChartStyleWall] = window['AscDFH'].CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_ChartStyleMarkerLayout] = window['AscDFH'].CChangesDrawingsObject;
+    AscDFH.changesFactory[AscDFH.historyitem_ChartStyleMarkerId] = window['AscDFH'].CChangesDrawingsLong;
 
     AscDFH.changesFactory[AscDFH.historyitem_ChartStyleEntryType] = window['AscDFH'].CChangesDrawingsLong;
     AscDFH.changesFactory[AscDFH.historyitem_ChartStyleEntryLineWidthScale] = window['AscDFH'].CChangesDrawingsDouble2;
@@ -1979,6 +1992,9 @@
     AscDFH.changesFactory[AscDFH.historyitem_ChartStyleEntryDefRPr] = window['AscDFH'].CChangesDrawingsObjectNoId;
     AscDFH.changesFactory[AscDFH.historyitem_ChartStyleEntryBodyPr] = window['AscDFH'].CChangesDrawingsObjectNoId;
     AscDFH.changesFactory[AscDFH.historyitem_ChartStyleEntrySpPr] = window['AscDFH'].CChangesDrawingsObject;
+
+    AscDFH.changesFactory[AscDFH.historyitem_MarkerLayoutSymbol] = window['AscDFH'].CChangesDrawingsLong;
+    AscDFH.changesFactory[AscDFH.historyitem_MarkerLayoutSize] = window['AscDFH'].CChangesDrawingsLong;
 
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryLnRef] = AscFormat.StyleRef;
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryFillRef] = AscFormat.StyleRef;
@@ -15899,6 +15915,7 @@
 
     function CChartStyle() {
         CBaseFormatObject.call(this);
+        this.id = null;
         this.axisTitle = null;
         this.categoryAxis = null;
         this.chartArea = null;
@@ -15933,6 +15950,43 @@
     }
 
     InitClass(CChartStyle, CBaseFormatObject, AscDFH.historyitem_type_ChartStyle);
+    CChartStyle.prototype.addEntry = function(oEntry) {
+        if(!AscCommon.isRealObject(oEntry)) {
+            return;
+        }
+        switch (oEntry.type) {
+            case 1: this.setAxisTitle(oEntry); break;
+            case 2: this.setCategoryAxis(oEntry); break;
+            case 3: this.setChartArea(oEntry); break;
+            case 4: this.setDataLabel(oEntry); break;
+            case 5: this.setDataLabelCallout(oEntry); break;
+            case 6: this.setDataPoint(oEntry); break;
+            case 7: this.setDataPoint3D(oEntry); break;
+            case 8: this.setDataPointLine(oEntry); break;
+            case 9: this.setDataPointMarker(oEntry); break;
+            case 10: this.setDataPointWireframe(oEntry); break;
+            case 11: this.setDataTable(oEntry); break;
+            case 12: this.setDownBar(oEntry); break;
+            case 13: this.setDropLine(oEntry); break;
+            case 14: this.setErrorBar(oEntry); break;
+            case 15: this.setFloor(oEntry); break;
+            case 16: this.setGridlineMajor(oEntry); break;
+            case 17: this.setGridlineMinor(oEntry); break;
+            case 18: this.setHiLoLine(oEntry); break;
+            case 19: this.setLeaderLine(oEntry); break;
+            case 20: this.setLegend(oEntry); break;
+            case 21: this.setPlotArea(oEntry); break;
+            case 22: this.setPlotArea3D(oEntry); break;
+            case 23: this.setSeriesAxis(oEntry); break;
+            case 24: this.setSeriesLine(oEntry); break;
+            case 25: this.setTitle(oEntry); break;
+            case 26: this.setTrendline(oEntry); break;
+            case 27: this.setTrendlineLabel(oEntry); break;
+            case 28: this.setUpBar(oEntry); break;
+            case 29: this.setValueAxis(oEntry); break;
+            case 30: this.setWall(oEntry); break;
+        }
+    };
     CChartStyle.prototype.fillObject = function(oCopy, oIdMap) {
         if(this.axisTitle) {
             oCopy.setAxisTitle(this.axisTitle.createDuplicate());
@@ -16027,6 +16081,10 @@
         if(this.markerLayout) {
             oCopy.setMarkerLayout(this.markerLayout.createDuplicate());
         }
+    };
+    CChartStyle.prototype.setId = function(pr) {
+        History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_ChartStyleMarkerId, this.id, pr));
+        this.id = pr;
     };
     CChartStyle.prototype.setAxisTitle = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleAxisTitle, this.axisTitle, pr));
@@ -16152,7 +16210,18 @@
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleMarkerLayout, this.markerLayout, pr));
         this.markerLayout = pr;
     };
-
+    CChartStyle.prototype.readAttribute = function(nType, pReader) {
+    };
+    CChartStyle.prototype.readChild = function(nType, pReader) {
+        pReader.stream.SkipRecord();
+    };
+    CChartStyle.prototype.privateWriteAttributes = function(pWriter) {
+    };
+    CChartStyle.prototype.writeChildren = function(pWriter) {
+    };
+    CChartStyle.prototype.getChildren = function() {
+        return [];
+    };
     function CStyleEntry() {
         CBaseFormatObject.call(this);
         this.type = null;
@@ -16232,7 +16301,53 @@
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleEntrySpPr, this.spPr, pr));
         this.spPr = pr;
     };
+    CStyleEntry.prototype.readAttribute = function(nType, pReader) {
+    };
+    CStyleEntry.prototype.readChild = function(nType, pReader) {
+        pReader.stream.SkipRecord();
+    };
+    CStyleEntry.prototype.privateWriteAttributes = function(pWriter) {
+    };
+    CStyleEntry.prototype.writeChildren = function(pWriter) {
+    };
+    CStyleEntry.prototype.getChildren = function() {
+        return [];
+    };
 
+    function CMarkerLayout() {
+        CBaseFormatObject.call(this);
+        this.symbol = null;
+        this.size = null;
+    }
+    InitClass(CMarkerLayout, CBaseFormatObject, AscDFH.historyitem_type_MarkerLayout);
+    CMarkerLayout.prototype.fillObject = function(oCopy, oIdMap) {
+        if(this.symbol !== null) {
+            oCopy.setSymbol(this.symbol);
+        }
+        if(this.size !== null) {
+            oCopy.setSize(this.size);
+        }
+    };
+    CMarkerLayout.prototype.setSymbol = function(pr) {
+        History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_MarkerLayoutSymbol, this.symbol, pr));
+        this.symbol = pr;
+    };
+    CMarkerLayout.prototype.setSize = function(pr) {
+        History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_MarkerLayoutSize, this.size, pr));
+        this.size = pr;
+    };
+    CMarkerLayout.prototype.readAttribute = function(nType, pReader) {
+    };
+    CMarkerLayout.prototype.readChild = function(nType, pReader) {
+        pReader.stream.SkipRecord();
+    };
+    CMarkerLayout.prototype.privateWriteAttributes = function(pWriter) {
+    };
+    CMarkerLayout.prototype.writeChildren = function(pWriter) {
+    };
+    CMarkerLayout.prototype.getChildren = function() {
+        return [];
+    };
 
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
@@ -16319,6 +16434,7 @@
     window['AscFormat'].getIsLineType = getIsLineType;
     window['AscFormat'].CChartStyle = CChartStyle;
     window['AscFormat'].CStyleEntry = CStyleEntry;
+    window['AscFormat'].CMarkerLayout = CMarkerLayout;
 
     window['AscFormat'].AX_POS_L = AX_POS_L;
     window['AscFormat'].AX_POS_T = AX_POS_T;

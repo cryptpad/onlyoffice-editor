@@ -11507,6 +11507,52 @@ CCore.prototype.Refresh_RecalcData2 = function(){
         {
             return this.Reader.End_UseFullUrl();
         }
+        this.CheckStreamStart = function(oOtherStream) {
+            if (!this.Reader) {
+                this.Reader = new AscCommon.BinaryPPTYLoader();
+            }
+            this.Reader.ImageMapChecker = this.ImageMapChecker;
+            if (!this.stream) {
+                this.stream = new AscCommon.FileStream();
+                this.stream.obj    = oOtherStream.obj;
+                this.stream.data   = oOtherStream.data;
+                this.stream.size   = oOtherStream.size;
+            }
+            this.stream.pos    = oOtherStream.pos;
+            this.stream.cur    = oOtherStream.cur;
+            this.Reader.stream = this.stream;
+        };
+        this.CheckStreamEnd = function(oOtherStream) {
+            oOtherStream.pos = this.stream.pos;
+            oOtherStream.cur = this.stream.cur;
+        };
+        this.ReadPPTXElement = function(reader, stream, length, fReadFunction) {
+            if(reader) {
+                this.BaseReader = reader;
+            }
+            this.CheckStreamStart(stream);
+            var oResult = fReadFunction();
+            this.CheckStreamEnd(stream);
+            return oResult;
+        };
+        this.ReadBodyPr = function(reader, stream) {
+            return this.ReadPPTXElement(reader, stream, function() {
+                this.stream.GetUChar();
+                return this.Reader.ReadBodyPr();
+            });
+        };
+        this.ReadFontRef = function(reader, stream) {
+            return this.ReadPPTXElement(reader, stream, function() {
+                this.stream.GetUChar();
+                return this.Reader.ReadFontRef();
+            });
+        };
+        this.ReadStyleRef = function(reader, stream) {
+            return this.ReadPPTXElement(reader, stream, function() {
+                this.stream.GetUChar();
+                return this.Reader.ReadStyleRef();
+            });
+        };
 
         this.ReadDrawing = function(reader, stream, logicDocument, paraDrawing)
         {
