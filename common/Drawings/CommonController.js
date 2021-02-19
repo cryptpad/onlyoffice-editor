@@ -6694,12 +6694,6 @@ DrawingObjectsController.prototype =
                     }
                     else
                     {
-                        if(oSp.signatureLine){
-                            var oApi = this.getEditorApi();
-                            if(oApi){
-                                oApi.sendEvent("asc_onRemoveSignature", oSp.signatureLine.id);
-                            }
-                        }
                         oSp.deleteDrawingBase(true);
                         oSp.setBDeleted(true);
                     }
