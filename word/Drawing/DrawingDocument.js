@@ -5898,9 +5898,6 @@ function CDrawingDocument()
 
 		if (null == this.GuiCanvasFillTOC)
 		{
-			this.GuiCanvasFillTexture = null;
-			this.GuiCanvasFillTextureCtx = null;
-
 			this.GuiCanvasFillTOC = document.createElement('canvas');
 			_div_elem.appendChild(this.GuiCanvasFillTOC);
 		}
@@ -6168,9 +6165,6 @@ function CDrawingDocument()
 
 		if (null == this.GuiCanvasFillTOF)
 		{
-			this.GuiCanvasFillTexture = null;
-			this.GuiCanvasFillTextureCtx = null;
-
 			this.GuiCanvasFillTOF = document.createElement('canvas');
 			_div_elem.appendChild(this.GuiCanvasFillTOF);
 		}

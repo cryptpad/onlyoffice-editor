@@ -5149,12 +5149,6 @@ DrawingObjectsController.prototype =
                     else
                     {
                         oSp.deleteDrawingBase(true);
-                        if(oSp.signatureLine){
-                            var oApi = this.getEditorApi();
-                            if(oApi){
-                                oApi.sendEvent("asc_onRemoveSignature", this.selectedObjects[i].signatureLine.id);
-                            }
-                        }
                         oSp.setBDeleted(true);
                     }
 
@@ -11448,7 +11442,7 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
     }
 
 
-    function fCreateSignatureShape(sGuid, sSigner, sSigner2, sEmail, bWord, wsModel, Width, Height, sImgUrl){
+    function fCreateSignatureShape(oPr, bWord, wsModel, Width, Height, sImgUrl){
         var oShape = new AscFormat.CShape();
         oShape.setWordShape(bWord === true);
         oShape.setBDeleted(false);
@@ -11480,10 +11474,8 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
         oShape.setSpPr(oSpPr);
         oSpPr.setParent(oShape);
         var oSignatureLine = new AscFormat.CSignatureLine();
-        oSignatureLine.id = sGuid;
-        oSignatureLine.signer = sSigner;
-        oSignatureLine.signer2 = sSigner2;
-        oSignatureLine.email = sEmail;
+        oSignatureLine.id = AscCommon.CreateGUID();
+        oSignatureLine.setProperties(oPr);
         oShape.setSignature(oSignatureLine);
 
         return oShape;

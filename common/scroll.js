@@ -469,6 +469,14 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		this.maxScrollY = this.maxScrollY2 = this.settings.contentH - this.settings.screenH > 0 ? this.settings.contentH - this.settings.screenH : 0;
 		this.maxScrollX = this.maxScrollX2 = this.settings.contentW - this.settings.screenW > 0 ? this.settings.contentW - this.settings.screenW : 0;
 
+		if(this.settings.isVerticalScroll && !this.settings.alwaysVisible) {
+			this.canvas.style.display = this.maxScrollY == 0 ? "none" : "";
+		}
+
+		if(this.settings.isHorizontalScroll && !this.settings.alwaysVisible) {
+			this.canvas.style.display = this.maxScrollX == 0 ? "none" : "";
+		}
+
 		this._setScrollerHW();
 		this.settings.arrowDim = this.settings.slimScroll && this.settings.isVerticalScroll ? this.scroller.w : this.settings.arrowDim;
 		this.settings.arrowDim = this.settings.slimScroll && this.settings.isHorizontalScroll ? this.scroller.h : this.settings.arrowDim;
@@ -554,9 +562,11 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 
 			percentInViewV = (this.maxScrollY * dPR + this.paneHeight) / this.paneHeight;
 			this.scroller.h = Math.ceil(Math.ceil( 1 / percentInViewV * this.verticalTrackHeight / dPR) * dPR);
-			this.settings.scrollerMinHeight = 34 * dPR;
-			if ( this.scroller.h < this.settings.scrollerMinHeight )
-				this.scroller.h = this.settings.scrollerMinHeight;
+
+			var scrollMinH = Math.round(this.settings.scrollerMinHeight * dPR);
+			
+			if ( this.scroller.h < scrollMinH)
+				this.scroller.h = scrollMinH;
 			else if ( this.scroller.h > this.settings.scrollerMaxHeight )
 				this.scroller.h = this.settings.scrollerMaxHeight;
 			this.scrollCoeff = this.maxScrollY / Math.max( 1, this.paneHeight - this.scroller.h );
@@ -579,10 +589,11 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 			var percentInViewH;
 			percentInViewH = ( this.maxScrollX * dPR + this.paneWidth ) / this.paneWidth;
 			this.scroller.w = Math.ceil(Math.ceil( 1 / percentInViewH * this.horizontalTrackWidth / dPR) * dPR);
-			this.settings.scrollerMinWidth = 34 * dPR;
 
-			if ( this.scroller.w < this.settings.scrollerMinWidth )
-				this.scroller.w = this.settings.scrollerMinWidth;
+			var scrollMinW = Math.round(this.settings.scrollerMinWidth * dPR);
+
+			if ( this.scroller.w < scrollMinW)
+				this.scroller.w = scrollMinW;
 			else if ( this.scroller.w > this.settings.scrollerMaxWidth )
 				this.scroller.w = this.settings.scrollerMaxWidth;
 			this.scrollCoeff = this.maxScrollX / Math.max( 1, this.paneWidth - this.scroller.w );
@@ -928,7 +939,12 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		var t = that.ArrowDrawer;
 		var xDeltaBORDER = 0.5, yDeltaBORDER = 1.5;
 		var roundDPR = that._roundForScale(AscBrowser.retinaPixelRatio);
-		var x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+		var x1 = that.settings.isVerticalScroll ? 0 : roundDPR;
+		var y1 = that.settings.isVerticalScroll ? yDeltaBORDER * roundDPR : -roundDPR;
+		var x2 = 0;
+		var y2 = that.settings.isVerticalScroll ? 0 : 0;
+		var strokeW = t.SizeW - roundDPR;
+		var strokeH = t.SizeH - roundDPR;
 		var ctx = that.context;
 
 		ctx.beginPath();
@@ -1086,10 +1102,6 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		} else if (that._checkPiperImagesH()) {
             x = Math.round(that.scroller.x + (that.scroller.w - that.piperImgHor.width) / 2);
             y = Math.round((that.scroller.h - that.piperImgHor.height) / 2);
-
-			ctx_piperImg = that.piperImgHor.getContext('2d');
-			_data = ctx_piperImg.getImageData(0, 0, that.piperImgHor.width, that.piperImgHor.height);
-			px = _data.data;
 
 			ctx_piperImg = that.piperImgHor.getContext('2d');
 			ctx_piperImg.globalCompositeOperation = "source-in";

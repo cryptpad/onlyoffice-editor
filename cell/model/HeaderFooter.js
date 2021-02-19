@@ -1020,7 +1020,7 @@
 		var wb = api.wb;
 		var ws = wb.getWorksheet();
 
-		if(bSave /*&& bChanged*/) {
+		if(bSave /*&& bChanged*/&& !ws.collaborativeEditing.getGlobalLock() && wb.canEdit()) {
 			var checkError = this._checkSave();
 			if(null === checkError) {
 				wb.cellEditor.close();

@@ -4225,18 +4225,43 @@ background-repeat: no-repeat;\
 	};
 
 	// signatures
-	asc_docs_api.prototype.asc_addSignatureLine = function (sGuid, sSigner, sSigner2, sEmail, Width, Height, sImgUrl) {
-        if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Document_Content_Add))
+	asc_docs_api.prototype.asc_addSignatureLine = function (oPr, Width, Height, sImgUrl) {
+		var oLogicDocument = this.WordControl.m_oLogicDocument;
+        if (false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Document_Content_Add))
         {
-            this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_InsertSignatureLine);
-
-            var oSignature = AscFormat.fCreateSignatureShape(sGuid, sSigner, sSigner2, sEmail, true, null, Width, Height, sImgUrl);
-            var Drawing   = new AscCommonWord.ParaDrawing(oSignature.spPr.xfrm.extX, oSignature.spPr.xfrm.extY, null, this.WordControl.m_oDrawingDocument, null, null);
-            oSignature.setParent(Drawing);
-            Drawing.Set_GraphicObject(oSignature);
-            this.WordControl.m_oLogicDocument.AddSignatureLine(Drawing);
-            this.sendEvent("asc_onAddSignature", sGuid);
-			this.WordControl.m_oLogicDocument.FinalizeAction();
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_InsertSignatureLine);
+			var oSpToEdit = null;
+			var sGuid = oPr.asc_getGuid();
+			if(sGuid)
+			{
+				var oDrawingObjects = oLogicDocument.DrawingObjects;
+				var ret = [], allSpr = [];
+				allSpr = allSpr.concat(allSpr.concat(oDrawingObjects.getAllSignatures2(ret, oDrawingObjects.getDrawingArray())));
+				for(var i = 0; i < allSpr.length; ++i)
+				{
+					if(allSpr[i].getSignatureLineGuid() === sGuid)
+					{
+						oSpToEdit = allSpr[i];
+						break;
+					}
+				}
+			}
+			if(!oSpToEdit)
+			{
+				var oSignature = AscFormat.fCreateSignatureShape(oPr, true, null, Width, Height, sImgUrl);
+				var Drawing   = new AscCommonWord.ParaDrawing(oSignature.spPr.xfrm.extX, oSignature.spPr.xfrm.extY, null, this.WordControl.m_oDrawingDocument, null, null);
+				oSignature.setParent(Drawing);
+				Drawing.Set_GraphicObject(oSignature);
+				oLogicDocument.AddSignatureLine(Drawing);
+				oSignature.setSignature(oSignature.signatureLine);
+				this.sendEvent("asc_onAddSignature", oSignature.signatureLine.id);
+			}
+			else
+			{
+				oSpToEdit.setSignaturePr(oPr);
+				this.sendEvent("asc_onAddSignature", sGuid);
+			}
+			oLogicDocument.FinalizeAction();
         }
     };
 
@@ -4250,8 +4275,8 @@ background-repeat: no-repeat;\
     asc_docs_api.prototype.asc_CallSignatureDblClickEvent = function(sGuid){
         return this.WordControl.m_oLogicDocument.CallSignatureDblClickEvent(sGuid);
     };
-    asc_docs_api.prototype.asc_MoveCursorToSignature = function(sGuid){
-        return this.WordControl.m_oLogicDocument.MoveCursorToSignature(sGuid);
+    asc_docs_api.prototype.gotoSignatureInternal = function(sGuid){
+        return this.WordControl.m_oLogicDocument.GoToSignature(sGuid);
     };
     //////////////////////////////////////////////////////////////////////////
 
@@ -9836,7 +9861,7 @@ background-repeat: no-repeat;\
 		{
 			return;
 		}
-		var sCaption = oPr.get_Caption();
+		var sCaption = oPr.get_CaptionForInstruction();
 		var aTOF, oTOF, nIndex, sInstrCaption;
 		var oTOFToReplace = null;
 		var oInstruction;
@@ -9868,10 +9893,6 @@ background-repeat: no-repeat;\
 						}
 					}
 				}
-				if(!oTOFToReplace)
-				{
-					oTOFToReplace = aTOF[0];
-				}
 			}
 		}
 		if(oTOFToReplace)
@@ -9881,6 +9902,7 @@ background-repeat: no-repeat;\
 			this.sendEvent("asc_onAscReplaceCurrentTOF", function(bReplace){
 				if(!bReplace)
 				{
+					oLogicDocument.MoveCursorRight(false, false, false);
 					oLogicDocument.AddTableOfFigures(oPr);
 				}
 				else
@@ -9899,7 +9921,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_GetTableOfFiguresPr = function()
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
-		var oApi = this;
 		if(!oLogicDocument)
 		{
 			return null;
@@ -11550,7 +11571,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["asc_CallSignatureDblClickEvent"]			= asc_docs_api.prototype.asc_CallSignatureDblClickEvent;
 	asc_docs_api.prototype["asc_getRequestSignatures"] 					= asc_docs_api.prototype.asc_getRequestSignatures;
 	asc_docs_api.prototype["asc_AddSignatureLine2"]             		= asc_docs_api.prototype.asc_AddSignatureLine2;
-	asc_docs_api.prototype["asc_MoveCursorToSignature"]           		= asc_docs_api.prototype.asc_MoveCursorToSignature;
 	asc_docs_api.prototype["asc_Sign"]             						= asc_docs_api.prototype.asc_Sign;
 	asc_docs_api.prototype["asc_RequestSign"]             				= asc_docs_api.prototype.asc_RequestSign;
 	asc_docs_api.prototype["asc_ViewCertificate"] 						= asc_docs_api.prototype.asc_ViewCertificate;

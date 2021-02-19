@@ -3589,7 +3589,7 @@ function (window, undefined) {
 				pivotTable.asc_setGridDropZones(value);
 				break;
 			case AscCH.historyitem_PivotTable_SetFillDownLabelsDefault:
-				pivotTable.asc_setFillDownLabelsDefault(value);
+				pivotTable.setFillDownLabelsDefault(value, false);
 				break;
 			case AscCH.historyitem_PivotTable_SetDataOnRows:
 				pivotTable.setDataOnRows(value);
@@ -3782,7 +3782,7 @@ function (window, undefined) {
 				field.asc_setCompact(value, pivotTable, Data.index);
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldFillDownLabelsDefault:
-				field.asc_setFillDownLabelsDefault(value, pivotTable, Data.index);
+				field.setFillDownLabelsDefault(value, pivotTable, Data.index);
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldSetInsertBlankRow:
 				field.asc_setInsertBlankRow(value, pivotTable, Data.index);
