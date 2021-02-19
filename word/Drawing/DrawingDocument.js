@@ -6643,7 +6643,8 @@ function CDrawingDocument()
 		}
 
         ctx.fillStyle = "#FFFFFF";
-        ctx.fillRect(xOffset, y - lineHeight, parW, lineHeight + (lineHeight >> 1));
+		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+        ctx.fillRect(Math.round(rPR * xOffset), Math.round((y - lineHeight) * rPR), Math.round(parW * rPR), Math.round((lineHeight + (lineHeight >> 1)) * rPR));
         ctx.beginPath();
 
         ctx.save();
@@ -6856,7 +6857,7 @@ function CDrawingDocument()
             var current = level;
             canvas.currentLevel = level;
 
-            ctx.lineWidth = 4;
+            ctx.lineWidth = 4 * Math.round(rPR);
             ctx.strokeStyle = "#CBCBCB";
             var y = offset + 2;
             var text_base_offset_x = offset + ((6.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
@@ -6869,14 +6870,14 @@ function CDrawingDocument()
 				if (i == current)
 				{
 					ctx.strokeStyle = "#000000";
-                    ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
-                    ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y);
+                    ctx.moveTo(Math.round(text_base_offset_x * rPR), Math.round(y * rPR)); ctx.lineTo(Math.round((width_px - offsetBase) * rPR), Math.round(y * rPR)); y += (line_w + line_distance);
+                    ctx.moveTo(Math.round(text_base_offset_x * rPR), Math.round(y * rPR)); ctx.lineTo(Math.round((width_px - offsetBase) * rPR), Math.round(y * rPR));
                     ctx.stroke();
                     ctx.strokeStyle = "#CBCBCB";
 				}
 				else
 				{
-                    ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y);
+                    ctx.moveTo(Math.round(text_base_offset_x * rPR), Math.round(y * rPR)); ctx.lineTo(Math.round((width_px - offsetBase) * rPR), Math.round(y * rPR));
                     ctx.stroke();
 				}
 				ctx.beginPath();
