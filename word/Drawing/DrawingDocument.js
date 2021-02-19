@@ -6747,9 +6747,7 @@ function CDrawingDocument()
         canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
 
         var ctx = canvas.getContext("2d");
-
-        if (AscCommon.AscBrowser.retinaPixelRatio >= 2)
-            ctx.setTransform(2, 0, 0, 2, 0, 0);
+		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
 
         canvas.is_multi_level = is_multi_level;
         canvas.level = level;
@@ -6804,39 +6802,48 @@ function CDrawingDocument()
 
             var textYs = [];
 
-            ctx.lineWidth = 4;
+            ctx.lineWidth = 4 * Math.round(rPR);
             ctx.strokeStyle = "#CBCBCB";
-            var y = offset + 2;
-            ctx.moveTo(offsetBase, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
-            ctx.moveTo(offsetBase, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
-            ctx.stroke();
-            ctx.beginPath();
-            var text_base_offset_x = offset + (6.25 + (6.25 * (level + 1) * AscCommon.g_dKoef_mm_to_pix)) >> 0;
-            if (text_base_offset_x > (width_px - offsetBase - 20))
-            	text_base_offset_x = width_px - offsetBase - 20;
-            ctx.strokeStyle = "#000000";
-            textYs.push(y + line_w);
-            ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
-            ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
-            textYs.push(y + line_w);
-            ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
-            ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
-            textYs.push(y + line_w);
-            ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
-            ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.strokeStyle = "#CBCBCB";
-            ctx.moveTo(offsetBase, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
-            ctx.moveTo(offsetBase, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
-            ctx.stroke();
-            ctx.beginPath();
+            var y = offset + 2 + 2 * (line_w + line_distance);
 
-            for (var i = 0; i < textYs.length; i++)
+			var text_base_offset_x = offset + (6.25 + (6.25 * (level + 1) * AscCommon.g_dKoef_mm_to_pix)) >> 0;
+			if (text_base_offset_x > (width_px - offsetBase - 20))
+				text_base_offset_x = width_px - offsetBase - 20;
+
+			textYs.push(y + line_w); y += 2 * (line_w + line_distance);
+			textYs.push(y + line_w); y += 2 * (line_w + line_distance);
+			textYs.push(y + line_w);
+
+			for (var i = 0; i < textYs.length; i++)
 			{
-				this.privateGetParagraphByString(props.Lvl[level], level, i + 1, text_base_offset_x - ((6.25 * AscCommon.g_dKoef_mm_to_pix) >> 0),
-                    textYs[i], line_distance, ctx, width_px, height_px);
-            }
+				this.privateGetParagraphByString(props.Lvl[level], level, i + 1, (text_base_offset_x- ((6.25 * AscCommon.g_dKoef_mm_to_pix)) >> 0),
+					textYs[i], line_distance, ctx, width_px, height_px);
+			}
+
+			y = Math.round((offset + 2) * rPR);
+			var left_offset = Math.round(text_base_offset_x * rPR),
+				right_offset = Math.round((width_px - offsetBase) * rPR),
+				y_dist = Math.round((line_w + line_distance) * rPR);
+
+            ctx.moveTo(offsetBase * rPR, y); ctx.lineTo((width_px - offsetBase) * rPR, y); y += y_dist;
+            ctx.moveTo(offsetBase * rPR, y); ctx.lineTo((width_px - offsetBase) * rPR, y); y += y_dist;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.strokeStyle = "#000000";
+
+            ctx.moveTo(left_offset, y); ctx.lineTo(right_offset, y); y += y_dist;
+            ctx.moveTo(left_offset, y); ctx.lineTo(right_offset, y); y += y_dist;
+            ctx.moveTo(left_offset, y); ctx.lineTo(right_offset, y); y += y_dist;
+            ctx.moveTo(left_offset, y); ctx.lineTo(right_offset, y); y += y_dist;
+            ctx.moveTo(left_offset, y); ctx.lineTo(right_offset, y); y += y_dist;
+            ctx.moveTo(left_offset, y); ctx.lineTo(right_offset, y); y += y_dist;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.strokeStyle = "#CBCBCB";
+            ctx.moveTo(offsetBase * rPR, y); ctx.lineTo((width_px - offsetBase) * rPR, y); y += y_dist;
+            ctx.moveTo(offsetBase * rPR, y); ctx.lineTo((width_px - offsetBase) * rPR, y);
+            ctx.stroke();
+            ctx.beginPath();
         }
         else
         {
