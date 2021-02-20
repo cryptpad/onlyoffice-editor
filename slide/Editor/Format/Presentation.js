@@ -5321,11 +5321,17 @@ CPresentation.prototype.AddToParagraph = function (ParaItem, bRecalculate, noUpd
         if (this.FocusOnNotes) {
             var oCurSlide = this.Slides[this.CurPage];
             if (oCurSlide.notes) {
-                oCurSlide.notes.graphicObjects.paragraphAdd(ParaItem, bRecalculate);
+                oCurSlide.notes.graphicObjects.paragraphAdd(ParaItem, false);
+                if(bRecalculate !== false) {
+                    this.Recalculate();
+                }
                 bRecalculate = false;
             }
         } else {
-            this.Slides[this.CurPage].graphicObjects.paragraphAdd(ParaItem, bRecalculate);
+            this.Slides[this.CurPage].graphicObjects.paragraphAdd(ParaItem, false);
+            if(bRecalculate !== false) {
+                this.Recalculate();
+            }
             var oTargetTextObject = AscFormat.getTargetTextObject(this.Slides[this.CurPage].graphicObjects);
             if (!oTargetTextObject || oTargetTextObject instanceof AscFormat.CGraphicFrame) {
                 bRecalculate = false;
@@ -10651,13 +10657,13 @@ CPresentation.prototype.AddTextArt = function (nStyle) {
 };
 
 
-CPresentation.prototype.AddSignatureLine = function (sGuid, sSigner, sSigner2, sEmail, Width, Height, sImgUrl) {
+CPresentation.prototype.AddSignatureLine = function (oPr, Width, Height, sImgUrl) {
     if (this.Slides[this.CurPage]) {
         History.Create_NewPoint(AscDFH.historydescription_Document_InsertSignatureLine);
         var fPosX = (this.GetWidthMM() - Width) / 2;
         var fPosY = (this.GetHeightMM() - Height) / 2;
         var oController = this.Slides[this.CurPage].graphicObjects;
-        var Image = AscFormat.fCreateSignatureShape(sGuid, sSigner, sSigner2, sEmail, false, null, Width, Height, sImgUrl);
+        var Image = AscFormat.fCreateSignatureShape(oPr, false, null, Width, Height, sImgUrl);
         Image.spPr.xfrm.setOffX(fPosX);
         Image.spPr.xfrm.setOffY(fPosY);
         Image.setParent(this.Slides[this.CurPage]);
@@ -10666,7 +10672,7 @@ CPresentation.prototype.AddSignatureLine = function (sGuid, sSigner, sSigner2, s
         oController.selectObject(Image, 0);
         this.Recalculate();
         this.Document_UpdateInterfaceState();
-        this.Api.sendEvent("asc_onAddSignature", sGuid);
+        this.Api.sendEvent("asc_onAddSignature", Image.signatureLine.id);
     }
 };
 

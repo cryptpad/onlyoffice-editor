@@ -5845,12 +5845,12 @@ function BinaryPPTYLoader()
 				}
 				case 6:
 				{
-					s.GetBool();
+                    ret.showDate = s.GetBool();
 					break;
 				}
 				case 7:
 				{
-					s.GetString2();
+					ret.instructions = s.GetString2();
 					break;
 				}
 				case 8:
@@ -6661,6 +6661,11 @@ function BinaryPPTYLoader()
                     txXfrm = this.ReadXfrm();
 					break;
 				}
+                case 7:
+                {
+                    shape.setSignature(this.ReadSignatureLine());
+                    break;
+                }
                 default:
                 {
                     s.SkipRecord();

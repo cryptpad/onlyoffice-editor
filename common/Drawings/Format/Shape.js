@@ -926,7 +926,23 @@ function SetXfrmFromMetrics(oDrawing, metrics)
     AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetParent]               = function(oClass, value){oClass.parent = value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetGroup]                = function(oClass, value){oClass.group = value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetWordShape]            = function(oClass, value){oClass.bWordShape = value;};
-    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetSignature]            = function(oClass, value){oClass.signatureLine = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetSignature]            = function(oClass, value){
+        var oldSignature = oClass.signatureLine;
+        var newSignature = value;
+        oClass.signatureLine = value;
+        //interface updating
+        if(!AscCommon.isFileBuild()) {
+            var oApi = window["Asc"] && window["Asc"]["editor"] || editor;
+            if(oApi) {
+                if(oldSignature && oldSignature.id) {
+                    oApi.sendEvent("asc_onRemoveSignature", oldSignature.id);
+                }
+                if(newSignature && newSignature.id) {
+                    oApi.sendEvent("asc_onAddSignature", newSignature.id);
+                }
+            }
+        }
+    };
 
 
     function CSignatureLine(){
@@ -934,6 +950,8 @@ function SetXfrmFromMetrics(oDrawing, metrics)
         this.signer = null;
         this.signer2 = null;
         this.email = null;
+        this.showDate = null;
+        this.instructions = null;
     }
 
     CSignatureLine.prototype.Write_ToBinary = function(writer){
@@ -941,20 +959,39 @@ function SetXfrmFromMetrics(oDrawing, metrics)
         AscFormat.writeString(writer, this.signer);
         AscFormat.writeString(writer, this.signer2);
         AscFormat.writeString(writer, this.email);
+        AscFormat.writeBool(writer, this.showDate);
+        AscFormat.writeString(writer, this.instructions);
     };
     CSignatureLine.prototype.Read_FromBinary = function(reader){
         this.id =  AscFormat.readString(reader);
         this.signer = AscFormat.readString(reader);
         this.signer2 =  AscFormat.readString(reader);
         this.email =  AscFormat.readString(reader);
+        this.showDate = AscFormat.readBool(reader);
+        this.instructions = AscFormat.readString(reader);
     };
-    CSignatureLine.prototype.copy = function(oPr){
+    CSignatureLine.prototype.copy = function(){
         var ret = new CSignatureLine();
-        ret.id =  this.id;
+        ret.id =  AscCommon.CreateGUID();
         ret.signer = this.signer;
         ret.signer2 = this.signer2;
         ret.email = this.email;
+        ret.showDate = this.showDate;
+        ret.instructions = this.instructions;
         return ret;
+    };
+    CSignatureLine.prototype.copyWithId = function(){
+        var sId = this.id;
+        var oCopy = this.copy();
+        oCopy.id = sId;
+        return oCopy;
+    };
+    CSignatureLine.prototype.setProperties = function(oPr){
+        this.signer = oPr.asc_getSigner1();
+        this.signer2 = oPr.asc_getSigner2();
+        this.email = oPr.asc_getEmail();
+        this.showDate = oPr.asc_getShowDate();
+        this.instructions = oPr.asc_getInstructions();
     };
 
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ShapeSetBodyPr] = AscFormat.CBodyPr;
@@ -1013,6 +1050,16 @@ CShape.prototype.setSignature = function(oSignature)
 {
     History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_ShapeSetSignature, this.signatureLine, oSignature));
     this.signatureLine = oSignature;
+};
+CShape.prototype.setSignaturePr = function(oPr)
+{
+    if(!oPr || !this.signatureLine)
+    {
+        return;
+    }
+    var oCopy = this.signatureLine.copyWithId();
+    oCopy.setProperties(oPr);
+    this.setSignature(oCopy);
 };
 
 CShape.prototype.convertToWord = function (document) {
@@ -4286,6 +4333,15 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                         break;
                     }
                 }
+                if(AscFormat.isRealNumber(this.tmpFontScale) && this.tmpFontScale < 90000) {
+                    if(this.isPlaceholder()) {
+                        var nType = this.getPlaceholderType();
+                        if(nType === AscFormat.phType_title || nType === AscFormat.phType_ctrTitle) {
+                            this.tmpFontScale = 90000;
+                            this.tmpLnSpcReduction = dReductionScale*(100000 - this.tmpFontScale) >> 0;
+                        }
+                    }
+                }
 
                 if(oBodyPr.textFit.lnSpcReduction !== this.tmpLnSpcReduction
                 || oBodyPr.textFit.fontScale !== this.tmpFontScale)
@@ -5692,6 +5748,9 @@ CShape.prototype.canRotate = function () {
 
 CShape.prototype.canGroup = function () {
     if(this.isPlaceholder()) {
+        return false;
+    }
+    if(this.signatureLine) {
         return false;
     }
     return AscFormat.CGraphicObjectBase.prototype.canGroup.call(this);

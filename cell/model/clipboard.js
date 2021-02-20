@@ -1485,6 +1485,7 @@
 
 			this.fontsNew = {};
 			this.oImages = {};
+			this.multipleSettings = null;
 		}
 		
 		PasteProcessorExcel.prototype = {
@@ -1497,6 +1498,7 @@
 
 				this.fontsNew = {};
 				this.oImages = {};
+				this.multipleSettings = null;
 			},
 
 			pasteFromBinary: function (worksheet, binary, isCellEditMode, isPasteAll) {
@@ -2200,7 +2202,7 @@
 					return;
 				}
 
-				if (window["Asc"]["editor"].collaborativeEditing.getGlobalLock()) {
+				if (window["Asc"]["editor"].collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
 					return;
 				}
 

@@ -3743,6 +3743,13 @@ StyleManager.prototype =
 	StyleCache.prototype.getXfCount = function() {
 		return this.xfs.list.length;
 	};
+	StyleCache.prototype.getNumFormatStrings = function() {
+		var res = [];
+		for(var fmt in this.nums.vals){
+			res.push(this.nums.vals[fmt].getFormat());
+		}
+		return res;
+	};
 	StyleCache.prototype._add = function(container, newVal, forceAdd) {
 		if (newVal && undefined === newVal.getIndexNumber()) {
 			var hash = newVal.getHash();
@@ -6438,6 +6445,22 @@ function RangeDataManagerElem(bbox, data)
 
 		if(this.TableColumns[index]) {
 			res = this.TableColumns[index].Name;
+		}
+
+		return res;
+	};
+
+	TablePart.prototype.getIndexByColumnName = function (name) {
+		var res = null;
+		if (name === null || name === undefined || !this.TableColumns) {
+			return res;
+		}
+
+		for (var i = 0; i < this.TableColumns.length; i++) {
+			if (name.toLowerCase() === this.TableColumns[i].Name.toLowerCase()) {
+				res = i;
+				break;
+			}
 		}
 
 		return res;

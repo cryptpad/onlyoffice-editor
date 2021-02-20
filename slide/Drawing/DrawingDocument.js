@@ -6330,6 +6330,7 @@ function CNotesDrawer(page)
 		if (_pix_width < 10)
 			_pix_width = 10;
 		_pix_width = AscCommon.AscBrowser.convertToRetinaValue(_pix_width);
+		if (window["NATIVE_EDITOR_ENJINE"] && _pix_width < 100) _pix_width = 100;
 		return _pix_width / g_dKoef_mm_to_pix;
 	};
 }

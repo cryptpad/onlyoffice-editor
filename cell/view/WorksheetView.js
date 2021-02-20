@@ -10582,7 +10582,7 @@
 
     WorksheetView.prototype.setSelectionInfo = function (prop, val, onlyActive) {
         // Проверка глобального лока
-        if (this.collaborativeEditing.getGlobalLock()) {
+        if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
             return;
         }
 
@@ -11335,11 +11335,42 @@
 			t.model.clearDataValidation([pasteToRange], true);
 		}
 		if (fromBinary && val.dataValidations && val.dataValidations.elems.length && specialPasteProps.val && specialPasteProps.format) {
-			var _offset = new AscCommon.CellBase(arnToRange.r1 - refInsertBinary.r1, arnToRange.c1 - refInsertBinary.c1);
-			for (i = 0; i < val.dataValidations.elems.length; i++) {
-				var dataValidation = val.dataValidations.elems[i];
-				if (dataValidation.prepeareToPaste(refInsertBinary, _offset)) {
-					t.model.addDataValidation(dataValidation, true);
+			var aMultiples = AscCommonExcel.g_clipboardExcel.pasteProcessor.multipleSettings;
+			var oMultiple;
+			if (aMultiples) {
+				for (i = 0; i < aMultiples.length; i++) {
+					if (aMultiples[i].pasteInRange && aMultiples[i].pasteInRange.isEqual(pasteToRange)) {
+						oMultiple = aMultiples[i];
+						break;
+					}
+				}
+			}
+
+			//TODO transpose!
+			var xW = oMultiple ? (oMultiple.w / oMultiple.pasteW) : 1;
+			var xH = oMultiple ? (oMultiple.h / oMultiple.pasteH) : 1;
+			var _pasteH = oMultiple ? oMultiple.pasteH : 0;
+			var _pasteW = oMultiple ? oMultiple.pasteW : 0;
+			for (i = 0; i < xW; i++) {
+				for (var j = 0; j < xH; j++) {
+					var _offset = new AscCommon.CellBase(arnToRange.r1 - refInsertBinary.r1 + j*_pasteH, arnToRange.c1 - refInsertBinary.c1 + i*_pasteW);
+					for (var n = 0; n < val.dataValidations.elems.length; n++) {
+						var dataValidation = val.dataValidations.elems[n].clone();
+						if (dataValidation.prepeareToPaste(refInsertBinary, _offset)) {
+							if (refInsertBinary) {
+								var formulaOffset = new AscCommon.CellBase(pasteToRange.r1 - refInsertBinary.r1, pasteToRange.c1 - refInsertBinary.c1);
+								dataValidation._init(this.model, true);
+								//TODO
+								//MS сдвигает немного иначе - при отрицательных значениях сдвига вычитает из максимальной строки/столбца
+								//мы делаем аналогично формулам
+								//для того, чтобы сделать как в ms необходимо переделать сдвиг диапазонов для формул
+								//и нужно ли это? кто ожидает в случае такого копирования подобный результат?
+								dataValidation.setOffset(formulaOffset);
+								//dataValidation._buildDependencies();
+							}
+							t.model.addDataValidation(dataValidation, true);
+						}
+					}
 				}
 			}
 		}
@@ -11891,7 +11922,6 @@
 	WorksheetView.prototype._pasteFromBinary = function (val, isCheckSelection, tablesMap, pasteInRange) {
 		var t = this;
 		var trueActiveRange = pasteInRange ? pasteInRange.clone() : t.model.selectionRange.getLast().clone();
-		var lastSelection = pasteInRange ? pasteInRange : this.model.selectionRange.getLast();
 		var arn = pasteInRange ? pasteInRange.clone() : t.model.selectionRange.getLast().clone();
 		var arrFormula = [];
 
@@ -11993,6 +12023,16 @@
 				//Для случая, когда выделен весь диапазон, запрещаю множественную вставку
 				if (arn.getType() !== window["Asc"].c_oAscSelectionType.RangeMax && arn.getType() !== window["Asc"].c_oAscSelectionType.RangeCol && arn.getType() !== window["Asc"].c_oAscSelectionType.RangeRow) {
 					isMultiple = true;
+					if (!AscCommonExcel.g_clipboardExcel.pasteProcessor.multipleSettings) {
+						AscCommonExcel.g_clipboardExcel.pasteProcessor.multipleSettings = [];
+					}
+					AscCommonExcel.g_clipboardExcel.pasteProcessor.multipleSettings.push({
+						w: widthArea,
+						h: heightArea,
+						pasteW: widthPasteFr,
+						pasteH: heightPasteFr,
+						pasteInRange: pasteInRange
+					});
 				}
 			} else if (firstCell.hasMerged() !== null)//в противном случае ошибка
 			{
@@ -12078,7 +12118,7 @@
 
 		var addComments = function (pasteRow, pasteCol, comments) {
 			var comment;
-			var isMergedCell = val.getMergedByCell(pasteRow, pasteCol)
+			var isMergedCell = val.getMergedByCell(pasteRow, pasteCol);
 
 			for (var i = 0; i < comments.length; i++) {
 				comment = comments[i];
@@ -13178,7 +13218,7 @@
 	};
     WorksheetView.prototype.changeSheetViewSettings = function (type, val) {
 		// Проверка глобального лока
-		if (this.collaborativeEditing.getGlobalLock()) {
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
 			return;
 		}
 
@@ -13201,7 +13241,7 @@
 
 	WorksheetView.prototype.changeWorksheet = function (prop, val) {
 		// Проверка глобального лока
-		if (this.collaborativeEditing.getGlobalLock()) {
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
 			return;
 		}
 
@@ -14635,7 +14675,7 @@
 						var oldValueData;
 						//дополнительно ещё проверим на наличие данной ячейки в стеке формулы
 						//если её там нет - временно подменять значение не нужно
-						var isNeedChange = Asc.EDataValidationType.Custom === dataValidation.type && dataValidation.checkFormulaStackOnCell(row, col);
+						var isNeedChange = Asc.EDataValidationType.Custom === dataValidation.type /*&& dataValidation.checkFormulaStackOnCell(row, col)*/;
 						var temporarySetValue = function (_val) {
 							if (isNeedChange) {
 								c._foreach(function(cell){
@@ -14647,7 +14687,6 @@
 										} else {
 											//revert
 											cell._setValueData(oldValueData.value);
-											cell._hasChanged = false;
 										}
 									}
 								});
@@ -14657,6 +14696,7 @@
 						temporarySetValue(checkCell.getValueData());
 						if (!dataValidation.checkValue(checkCell, t.model)) {
 							t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.DataValidate, c_oAscError.Level.NoCritical, dataValidation);
+							editor.setFocus(true);
 							temporarySetValue();
 							return false;
 						} else {
@@ -14877,7 +14917,7 @@
 
 	WorksheetView.prototype.addAutoFilter = function (styleName, addFormatTableOptionsObj) {
 		// Проверка глобального лока
-		if (this.collaborativeEditing.getGlobalLock()) {
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
 			return;
 		}
 
@@ -15045,7 +15085,7 @@
 
 	WorksheetView.prototype.changeAutoFilter = function (tableName, optionType, val, opt_callback) {
 		// Проверка глобального лока
-		if (this.collaborativeEditing.getGlobalLock()) {
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
 			if (opt_callback) {
 				opt_callback(false);
 			}
@@ -18915,7 +18955,7 @@
 	};
 
 	WorksheetView.prototype.groupRowClick = function (x, y, target, type) {
-		if(this.collaborativeEditing.getGlobalLock()) {
+		if(this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
 			return;
 		}
 		var currentSheetId = this.model.getId();
@@ -19087,7 +19127,7 @@
 	};
 
 	WorksheetView.prototype._groupRowMenuClick = function (x, y, target, type, bCol) {
-		if(this.collaborativeEditing.getGlobalLock()) {
+		if(this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
 			return;
 		}
 		var currentSheetId = this.model.getId();
@@ -19134,7 +19174,7 @@
 
 	WorksheetView.prototype._tryChangeGroup = function (pos, collapsed, level, bCol) {
 		// Проверка глобального лока
-		if (this.collaborativeEditing.getGlobalLock()) {
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
 			return;
 		}
 
@@ -19145,11 +19185,6 @@
 		//а для тех что закрыты внутренними группами - ещё раз скрыаем их
 		var start = pos.start;
 		var end = pos.end;
-
-		// Проверка глобального лока
-		if (this.collaborativeEditing.getGlobalLock()) {
-			return;
-		}
 
 		var t = this;
 		var functionModelAction = null;
@@ -19272,7 +19307,7 @@
 		}
 
 		// Проверка глобального лока
-		if (this.collaborativeEditing.getGlobalLock()) {
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
 			return;
 		}
 
@@ -20640,6 +20675,10 @@
 	};
 
 	WorksheetView.prototype.insertSlicers = function (arr) {
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
+			return;
+		}
+
 		var t = this;
 		var type, name, pivotTable;
 
@@ -20698,7 +20737,7 @@
 				t._isLockedDefNames(callback);
 			});
 		} else {
-			this._isLockedCells(lockRanges, null, function(success) {
+			var callbackLockCell = function (success) {
 				if (!success) {
 					History.EndTransaction();
 					return;
@@ -20715,7 +20754,12 @@
 				} else {
 					t._isLockedDefNames(callback);
 				}
-			});
+			};
+			if(lockRanges.length > 0) {
+				this._isLockedCells(lockRanges, null, callbackLockCell);
+			} else {
+				callbackLockCell(true);
+			}
 		}
 	};
 
@@ -20736,7 +20780,9 @@
 	};
 
 	WorksheetView.prototype.setSlicer = function (slicer, obj) {
-		var t = this;
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
+			return;
+		}
 
 		var callback = function (success) {
 			if (!success) {
@@ -20754,6 +20800,10 @@
 	};
 
 	WorksheetView.prototype.setFilterValuesFromSlicer = function (slicer, val) {
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
+			return;
+		}
+
 		var ws = this.model;
 		var obj;
 		if (slicer && slicer.cacheDefinition) {
