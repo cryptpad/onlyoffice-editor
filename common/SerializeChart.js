@@ -1170,6 +1170,12 @@ BinaryChartWriter.prototype.WriteCT_ChartSpace = function (oVal) {
     // }
     if (null != oVal.themeOverride)
 	    this.bs.WriteItem(c_oserct_chartspaceTHEMEOVERRIDE, function () { AscCommon.pptx_content_writer.WriteTheme(oThis.memory, oVal.themeOverride); });
+
+    if(null != oVal.chartStyle) {
+        this.bs.WriteItem(c_oserct_chartspaceSTYLES, function() {
+           oThis.WriteCT_ChartStyle(oVal.chartStyle);
+        });
+    }
 };
 BinaryChartWriter.prototype.WriteCT_FromTo = function(oVal){
         this.memory.WriteByte(Asc.c_oSer_DrawingPosType.X);
@@ -1216,6 +1222,34 @@ BinaryChartWriter.prototype.WriteCT_UserShapes = function (oVal) {
             });
         }
     }
+
+};
+BinaryChartWriter.prototype.WriteCT_ChartStyle = function (oVal) {
+    var oThis = this;
+    if(oVal.id !== null) {
+        this.bs.WriteItem(c_oserct_chartstyleID, function() {
+            oThis.memory.WriteLong(oVal.id);
+        });
+    }
+    var aEntries = oVal.getStyleEntries(), oEntry;
+    for(var nEntry = 0; nEntry < aEntries.length; ++nEntry) {
+        oEntry = aEntries[nEntry];
+        if(oEntry) {
+            this.bs.WriteItem(c_oserct_chartstyleENTRY, function() {
+                oThis.WriteCT_ChartStyleEntry(oEntry);
+            });
+        }
+    }
+    if(oVal.markerLayout) {
+        this.bs.WriteItem(c_oserct_chartstyleMARKERLAYOUT, function() {
+            oThis.WriteCT_MarkerLayout(oVal.markerLayout);
+        });
+    }
+};
+BinaryChartWriter.prototype.WriteCT_ChartStyleEntry = function (oVal) {
+
+};
+BinaryChartWriter.prototype.WriteCT_MarkerLayout = function (oVal) {
 
 };
 BinaryChartWriter.prototype.WriteSpPr = function (oVal) {
@@ -5864,7 +5898,7 @@ BinaryChartReader.prototype.ReadCT_ChartStyle = function (type, length, val) {
     var oThis = this;
     var oNewVal;
     if(c_oserct_chartstyleID === type) {
-        val.setId(this.stream.GetULong());
+        val.setId(this.stream.GetULongLE());
     }
     else if (c_oserct_chartstyleENTRY === type) {
         oNewVal = new AscFormat.CStyleEntry();
@@ -5967,7 +6001,7 @@ BinaryChartReader.prototype.ReadCT_MarkerLayout = function (type, length, val) {
     }
     else if (c_oserct_chartstyleMARKERSIZE == type)
     {
-        val.setSize(this.stream.GetULong());
+        val.setSize(this.stream.GetULongLE());
     }
     else
     {

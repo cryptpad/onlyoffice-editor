@@ -16045,6 +16045,38 @@
             case 30: this.setWall(oEntry); break;
         }
     };
+    CChartStyle.prototype.getStyleEntries = function() {
+        return [this.axisTitle,
+            this.categoryAxis,
+            this.chartArea,
+            this.dataLabel,
+            this.dataLabelCallout,
+            this.dataPoint,
+            this.dataPoint3D,
+            this.dataPointLine,
+            this.dataPointMarker,
+            this.dataPointWireframe,
+            this.dataTable,
+            this.downBar,
+            this.dropLine,
+            this.errorBar,
+            this.floor,
+            this.gridlineMajor,
+            this.gridlineMinor,
+            this.hiLoLine,
+            this.leaderLine,
+            this.legend,
+            this.plotArea,
+            this.plotArea3D,
+            this.seriesAxis,
+            this.seriesLine,
+            this.title,
+            this.trendline,
+            this.trendlineLabel,
+            this.upBar,
+            this.valueAxis,
+            this.wall];
+    };
     CChartStyle.prototype.fillObject = function(oCopy, oIdMap) {
         if(this.axisTitle) {
             oCopy.setAxisTitle(this.axisTitle.createDuplicate());
