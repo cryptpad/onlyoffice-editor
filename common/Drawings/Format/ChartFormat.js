@@ -15602,7 +15602,7 @@
             }
         }
         if(aSeriesRefs.length > AscFormat.MAX_SERIES_COUNT) {
-            Asc.c_oAscError.ID.MaxDataSeriesError;
+            return Asc.c_oAscError.ID.MaxDataSeriesError;
         }
         for(nRef = 0; nRef < aSeriesRefs.length; ++nRef) {
             if(aSeriesRefs[nRef].getValCellsCount() > AscFormat.MAX_POINTS_COUNT) {
@@ -15699,7 +15699,17 @@
     CChartDataRefs.prototype.collectWorksheetsRefs = function(aWSNames, aRefsToChange) {
         //todo
     };
-
+    function isValidChartRange(sRange) {
+        if(sRange === "") {
+            return Asc.c_oAscError.ID.No;
+        }
+        var sCheck = sRange;
+        if(sRange[0] === "=") {
+            sCheck = sRange.slice(1);
+        }
+        var aRanges = AscFormat.fParseChartFormula(sCheck);
+        return (aRanges.length !== 0) ? Asc.c_oAscError.ID.No : Asc.c_oAscError.ID.DataRangeError;
+    }
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CDLbl = CDLbl;
@@ -15783,6 +15793,7 @@
     window['AscFormat'].getIsSmoothByType = getIsSmoothByType;
     window['AscFormat'].getIsLineByType = getIsLineByType;
     window['AscFormat'].getIsLineType = getIsLineType;
+    window['AscFormat'].isValidChartRange = isValidChartRange;
 
     window['AscFormat'].AX_POS_L = AX_POS_L;
     window['AscFormat'].AX_POS_T = AX_POS_T;

@@ -2904,7 +2904,10 @@
 		{
 			if(dataRange)
 			{
-				range = AscFormat.fParseChartFormula(dataRange);
+				if(AscFormat.isValidChartRange(dataRange))
+				{
+					range = AscFormat.fParseChartFormula(dataRange);
+				}
 			}
 		}
 		else if(Asc.c_oAscSelectionDialogType.PivotTableData === dialogType || Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType)
