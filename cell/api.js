@@ -904,6 +904,9 @@ var editor;
 
   spreadsheet_api.prototype.asc_SetFastCollaborative = function(bFast) {
     if (this.collaborativeEditing) {
+      if (window.parent && window.parent.APP && window.parent.APP.onFastChange) {
+        window.parent.APP.onFastChange(bFast);
+      }
       AscCommon.CollaborativeEditing.Set_Fast(bFast);
       this.collaborativeEditing.setFast(bFast);
     }
