@@ -5386,8 +5386,7 @@ function CBinaryFileWriter()
         {
             this.ShapeTextBoxContent = null;
         };
-        this.WriteTextBody = function(memory, textBody)
-        {
+        this.WritePPTXObject = function(memory, fCallback) {
             if (this.BinaryFileWriter.UseContinueWriter > 0)
             {
                 this.BinaryFileWriter.ImData = memory.ImData;
@@ -5401,10 +5400,7 @@ function CBinaryFileWriter()
                 this.arrayStackStarts.push(this.BinaryFileWriter.pos);
             }
 
-            var _writer = this.BinaryFileWriter;
-            _writer.StartRecord(0);
-            _writer.WriteTxBody(textBody);
-            _writer.EndRecord();
+            fCallback();
 
             if (this.BinaryFileWriter.UseContinueWriter > 0)
             {
@@ -5423,89 +5419,48 @@ function CBinaryFileWriter()
 
                 this.arrayStackStarts.splice(this.arrayStackStarts.length - 1, 1);
             }
+        };
+        this.WriteTextBody = function(memory, textBody)
+        {
+            var _writer = this.BinaryFileWriter;
+            this.WritePPTXObject(memory, function() {
+                _writer.StartRecord(0);
+                _writer.WriteTxBody(textBody);
+                _writer.EndRecord();
+            });
         };
         this.WriteClrMapOverride = function(memory, clrMapOverride)
         {
-            if (this.BinaryFileWriter.UseContinueWriter > 0)
-            {
-                this.BinaryFileWriter.ImData = memory.ImData;
-                this.BinaryFileWriter.data = memory.data;
-                this.BinaryFileWriter.len = memory.len;
-                this.BinaryFileWriter.pos = memory.pos;
-            }
-            else
-            {
-                this.TreeDrawingIndex++;
-                this.arrayStackStarts.push(this.BinaryFileWriter.pos);
-            }
-
             var _writer = this.BinaryFileWriter;
-            _writer.StartRecord(0);
-            _writer.StartRecord(0);
-            _writer.WriteClrMapOvr(clrMapOverride);
-            _writer.EndRecord();
-            _writer.EndRecord();
-
-            if (this.BinaryFileWriter.UseContinueWriter > 0)
-            {
-                memory.ImData = this.BinaryFileWriter.ImData;
-                memory.data = this.BinaryFileWriter.data;
-                memory.len = this.BinaryFileWriter.len;
-                memory.pos = this.BinaryFileWriter.pos;
-            }
-            else
-            {
-                this.TreeDrawingIndex--;
-
-                var oldPos = this.arrayStackStarts[this.arrayStackStarts.length - 1];
-                memory.WriteBuffer(this.BinaryFileWriter.data, oldPos, this.BinaryFileWriter.pos - oldPos);
-                this.BinaryFileWriter.pos = oldPos;
-
-                this.arrayStackStarts.splice(this.arrayStackStarts.length - 1, 1);
-            }
+            this.WritePPTXObject(memory, function() {
+                _writer.StartRecord(0);
+                _writer.StartRecord(0);
+                _writer.WriteClrMapOvr(clrMapOverride);
+                _writer.EndRecord();
+                _writer.EndRecord();
+            });
         };
         this.WriteSpPr = function(memory, spPr, type)
         {
-            if (this.BinaryFileWriter.UseContinueWriter > 0)
-            {
-                this.BinaryFileWriter.ImData = memory.ImData;
-                this.BinaryFileWriter.data = memory.data;
-                this.BinaryFileWriter.len = memory.len;
-                this.BinaryFileWriter.pos = memory.pos;
-            }
-            else
-            {
-                this.TreeDrawingIndex++;
-                this.arrayStackStarts.push(this.BinaryFileWriter.pos);
-            }
-
             var _writer = this.BinaryFileWriter;
-            _writer.StartRecord(0);
-            if(0 == type)
-                _writer.WriteLn(spPr);
-            else if(1 == type)
-                _writer.WriteUniFill(spPr);
-            else
-                _writer.WriteSpPr(spPr);
-            _writer.EndRecord();
-
-            if (this.BinaryFileWriter.UseContinueWriter > 0)
-            {
-                memory.ImData = this.BinaryFileWriter.ImData;
-                memory.data = this.BinaryFileWriter.data;
-                memory.len = this.BinaryFileWriter.len;
-                memory.pos = this.BinaryFileWriter.pos;
-            }
-            else
-            {
-                this.TreeDrawingIndex--;
-
-                var oldPos = this.arrayStackStarts[this.arrayStackStarts.length - 1];
-                memory.WriteBuffer(this.BinaryFileWriter.data, oldPos, this.BinaryFileWriter.pos - oldPos);
-                this.BinaryFileWriter.pos = oldPos;
-
-                this.arrayStackStarts.splice(this.arrayStackStarts.length - 1, 1);
-            }
+            this.WritePPTXObject(memory, function() {
+                _writer.StartRecord(0);
+                if(0 == type)
+                    _writer.WriteLn(spPr);
+                else if(1 == type)
+                    _writer.WriteUniFill(spPr);
+                else
+                    _writer.WriteSpPr(spPr);
+                _writer.EndRecord();
+            });
+        };
+        this.WriteStyleRef = function(memory, oStyleRef) {
+            var _writer = this.BinaryFileWriter;
+            this.WritePPTXObject(memory, function() {
+                _writer.StartRecord(0);
+                _writer.WriteStyleRef(oStyleRef);
+                _writer.EndRecord();
+            });
         };
 		this.WriteRunProperties = function(memory, rPr)
 		{
@@ -5547,42 +5502,14 @@ function CBinaryFileWriter()
 		};
         this.WriteDrawing = function(memory, grObject, Document, oMapCommentId, oNumIdMap, copyParams, saveParams)
         {
-            if (this.BinaryFileWriter.UseContinueWriter > 0)
-            {
-                this.BinaryFileWriter.ImData = memory.ImData;
-                this.BinaryFileWriter.data = memory.data;
-                this.BinaryFileWriter.len = memory.len;
-                this.BinaryFileWriter.pos = memory.pos;
-            }
-            else
-            {
-                this.TreeDrawingIndex++;
-                this.arrayStackStarts.push(this.BinaryFileWriter.pos);
-            }
-
-            this.BinaryFileWriter.StartRecord(0);
-            this.BinaryFileWriter.StartRecord(1);
-            this.WriteGrObj(grObject, Document, oMapCommentId, oNumIdMap, copyParams, saveParams);
-            this.BinaryFileWriter.EndRecord();
-            this.BinaryFileWriter.EndRecord();
-
-            if (this.BinaryFileWriter.UseContinueWriter > 0)
-            {
-                memory.ImData = this.BinaryFileWriter.ImData;
-                memory.data = this.BinaryFileWriter.data;
-                memory.len = this.BinaryFileWriter.len;
-                memory.pos = this.BinaryFileWriter.pos;
-            }
-            else
-            {
-                this.TreeDrawingIndex--;
-
-                var oldPos = this.arrayStackStarts[this.arrayStackStarts.length - 1];
-                memory.WriteBuffer(this.BinaryFileWriter.data, oldPos, this.BinaryFileWriter.pos - oldPos);
-                this.BinaryFileWriter.pos = oldPos;
-
-                this.arrayStackStarts.splice(this.arrayStackStarts.length - 1, 1);
-            }
+            var oThis = this;
+            this.WritePPTXObject(memory, function() {
+                oThis.BinaryFileWriter.StartRecord(0);
+                oThis.BinaryFileWriter.StartRecord(1);
+                oThis.WriteGrObj(grObject, Document, oMapCommentId, oNumIdMap, copyParams, saveParams);
+                oThis.BinaryFileWriter.EndRecord();
+                oThis.BinaryFileWriter.EndRecord();
+            });
         };
         this.WriteGrObj = function(grObject, Document, oMapCommentId, oNumIdMap, copyParams, saveParams)
         {

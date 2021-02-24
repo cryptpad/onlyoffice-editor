@@ -1247,7 +1247,64 @@ BinaryChartWriter.prototype.WriteCT_ChartStyle = function (oVal) {
     }
 };
 BinaryChartWriter.prototype.WriteCT_ChartStyleEntry = function (oVal) {
-
+    //var oThis = this;
+    //if(oVal.type !== null) {
+    //    this.bs.WriteItem(c_oserct_chartstyleENTRYTYPE, function() {
+    //        oThis.memory.WriteByte(oVal.type);
+    //    });
+    //}
+    //if(oVal.lnRef !== null) {
+    //    this.bs.WriteItem(c_oserct_chartstyleLNREF, function() {
+    //        AscCommon.pptx_content_writer.WriteStyleRef(oThis.memory, oVal.lnRef);
+    //    });
+    //}
+    //if(oVal.fillRef !== null) {
+    //    this.bs.WriteItem(c_oserct_chartstyleFILLREF, function() {
+    //        AscCommon.pptx_content_writer.WriteStyleRef(oThis.memory, oVal.fillRef);
+    //    });
+    //}
+    //if(oVal.effectRef !== null) {
+    //    this.bs.WriteItem(c_oserct_chartstyleEFFECTREF, function() {
+    //        AscCommon.pptx_content_writer.WriteStyleRef(oThis.memory, oVal.effectRef);
+    //    });
+    //}
+    //if (c_oserct_chartstyleFONTREF == type)
+    //{
+    //    oNewVal = AscCommon.pptx_content_loader.ReadFontRef(this, this.stream);
+    //    if(oNewVal)
+    //    {
+    //        val.setFontRef(oNewVal);
+    //    }
+    //}
+    //else if (c_oserct_chartstyleDEFPR == type)
+    //{
+    //    oNewVal = AscCommon.pptx_content_loader.ReadRunProperties(this.stream, 0);
+    //    if(oNewVal)
+    //    {
+    //        val.setDefRPr(oNewVal);
+    //    }
+    //}
+    //else if (c_oserct_chartstyleBODYPR == type)
+    //{
+    //    oNewVal = AscCommon.pptx_content_loader.ReadBodyPr(this, this.stream);
+    //    if(oNewVal)
+    //    {
+    //        val.setBodyPr(oNewVal);
+    //    }
+    //}
+    //else if (c_oserct_chartstyleSPPR == type)
+    //{
+    //    val.setSpPr(this.ReadSpPr(length));
+    //}
+    //else if (c_oserct_chartstyleLINEWIDTH == type)
+    //{
+    //    val.setLineWidthScale(this.stream.GetDoubleLE());
+    //}
+    //else
+    //{
+    //    res = c_oSerConstants.ReadUnknown;
+    //}
+    //return res;
 };
 BinaryChartWriter.prototype.WriteCT_MarkerLayout = function (oVal) {
 
