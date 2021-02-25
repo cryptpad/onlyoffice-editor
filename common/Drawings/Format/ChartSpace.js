@@ -364,6 +364,7 @@ var GLOBAL_PATH_COUNT = 0;
     var CChangesDrawingsDouble = AscDFH.CChangesDrawingsDouble;
     var CChangesDrawingsString = AscDFH.CChangesDrawingsString;
     var CChangesDrawingsObject = AscDFH.CChangesDrawingsObject;
+    var CChangesDrawingsObjectNoId = AscDFH.CChangesDrawingsObjectNoId;
 
 
     var drawingsChangesMap = window['AscDFH'].drawingsChangesMap;
