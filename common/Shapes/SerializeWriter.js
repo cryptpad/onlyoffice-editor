@@ -5464,41 +5464,12 @@ function CBinaryFileWriter()
         };
 		this.WriteRunProperties = function(memory, rPr)
 		{
-			if (this.BinaryFileWriter.UseContinueWriter > 0)
-			{
-				this.BinaryFileWriter.ImData = memory.ImData;
-				this.BinaryFileWriter.data = memory.data;
-				this.BinaryFileWriter.len = memory.len;
-				this.BinaryFileWriter.pos = memory.pos;
-			}
-			else
-			{
-				this.TreeDrawingIndex++;
-				this.arrayStackStarts.push(this.BinaryFileWriter.pos);
-			}
-
 			var _writer = this.BinaryFileWriter;
-			_writer.StartRecord(0);
-			_writer.WriteRunProperties(rPr);
-			_writer.EndRecord();
-
-			if (this.BinaryFileWriter.UseContinueWriter > 0)
-			{
-				memory.ImData = this.BinaryFileWriter.ImData;
-				memory.data = this.BinaryFileWriter.data;
-				memory.len = this.BinaryFileWriter.len;
-				memory.pos = this.BinaryFileWriter.pos;
-			}
-			else
-			{
-				this.TreeDrawingIndex--;
-
-				var oldPos = this.arrayStackStarts[this.arrayStackStarts.length - 1];
-				memory.WriteBuffer(this.BinaryFileWriter.data, oldPos, this.BinaryFileWriter.pos - oldPos);
-				this.BinaryFileWriter.pos = oldPos;
-
-				this.arrayStackStarts.splice(this.arrayStackStarts.length - 1, 1);
-			}
+            this.WritePPTXObject(memory, function() {
+                _writer.StartRecord(0);
+                _writer.WriteRunProperties(rPr);
+                _writer.EndRecord();
+            });
 		};
         this.WriteDrawing = function(memory, grObject, Document, oMapCommentId, oNumIdMap, copyParams, saveParams)
         {
@@ -5754,38 +5725,11 @@ function CBinaryFileWriter()
         };
         this.WriteTheme = function(memory, theme)
         {
-			if (this.BinaryFileWriter.UseContinueWriter > 0)
-			{
-				this.BinaryFileWriter.ImData = memory.ImData;
-				this.BinaryFileWriter.data = memory.data;
-				this.BinaryFileWriter.len = memory.len;
-				this.BinaryFileWriter.pos = memory.pos;
-			}
-			else
-			{
-				this.TreeDrawingIndex++;
-				this.arrayStackStarts.push(this.BinaryFileWriter.pos);
-			}
+            var _writer = this.BinaryFileWriter;
+            this.WritePPTXObject(memory, function() {
+                _writer.WriteTheme(theme);
+            });
 
-            this.BinaryFileWriter.WriteTheme(theme);
-
-			if (this.BinaryFileWriter.UseContinueWriter > 0)
-			{
-				memory.ImData = this.BinaryFileWriter.ImData;
-				memory.data = this.BinaryFileWriter.data;
-				memory.len = this.BinaryFileWriter.len;
-				memory.pos = this.BinaryFileWriter.pos;
-			}
-			else
-			{
-				this.TreeDrawingIndex--;
-
-				var oldPos = this.arrayStackStarts[this.arrayStackStarts.length - 1];
-				memory.WriteBuffer(this.BinaryFileWriter.data, oldPos, this.BinaryFileWriter.pos - oldPos);
-				this.BinaryFileWriter.pos = oldPos;
-
-				this.arrayStackStarts.splice(this.arrayStackStarts.length - 1, 1);
-			}
         };
     }
 
