@@ -5490,6 +5490,14 @@ function CBinaryFileWriter()
                 _writer.EndRecord();
             });
         };
+        this.WriteUniColor = function(memory, oUniColor) {
+            var _writer = this.BinaryFileWriter;
+            this.WritePPTXObject(memory, function() {
+                _writer.StartRecord(0);
+                _writer.WriteUniColor(oUniColor);
+                _writer.EndRecord();
+            });
+        };
 		this.WriteRunProperties = function(memory, rPr)
 		{
 			var _writer = this.BinaryFileWriter;

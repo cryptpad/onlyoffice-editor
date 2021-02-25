@@ -1176,6 +1176,11 @@ BinaryChartWriter.prototype.WriteCT_ChartSpace = function (oVal) {
            oThis.WriteCT_ChartStyle(oVal.chartStyle);
         });
     }
+    if(null != oVal.chartColors) {
+        this.bs.WriteItem(c_oserct_chartspaceCOLORS, function() {
+           oThis.WriteCT_ChartColors(oVal.chartColors);
+        });
+    }
 };
 BinaryChartWriter.prototype.WriteCT_FromTo = function(oVal){
         this.memory.WriteByte(Asc.c_oSer_DrawingPosType.X);
@@ -1303,7 +1308,44 @@ BinaryChartWriter.prototype.WriteCT_MarkerLayout = function (oVal) {
     }
     if(oVal.size !== null) {
         this.bs.WriteItem(c_oserct_chartstyleMARKERSIZE, function() {
-            oThis.memory.WriteLong(Val.size);
+            oThis.memory.WriteLong(oVal.size);
+        });
+    }
+};
+BinaryChartWriter.prototype.WriteCT_ChartColors = function (oVal) {
+    var oThis = this;
+    if(oVal.id !== null) {
+        this.bs.WriteItem(c_oserct_chartcolorsID, function() {
+            oThis.memory.WriteLong(oVal.id);
+        });
+    }
+    if(oVal.meth !== null) {
+        this.bs.WriteItem(c_oserct_chartcolorsMETH, function() {
+            oThis.memory.WriteString3(oVal.meth);
+        });
+    }
+    var aItems = oVal.items, nItem, oItem;
+    for(nItem = 0; nItem < aItems.length; ++nItem) {
+        oItem = aItems[nItem];
+        if(oItem instanceof AscFormat.CUniColor) {
+            this.bs.WriteItem(c_oserct_chartcolorsCOLOR, function() {
+                AscCommon.pptx_content_writer.WriteUniColor(oThis.memory, oItem)
+            });
+        }
+        else {
+            this.bs.WriteItem(c_oserct_chartcolorsVARIATION, function() {
+                oThis.WriteCT_ColorsVariation(oItem);
+            });
+        }
+    }
+};
+BinaryChartWriter.prototype.WriteCT_ColorsVariation = function (oVal) {
+    var oThis = this;
+    var aMods = oVal.Mods, nMod, oMod;
+    for(nMod = 0; nMod < aMods.length; ++nMod) {
+        oMod = aMods[nMod];
+        this.bs.WriteItem(c_oserct_chartcolorsEFFECT, function() {
+            AscCommon.pptx_content_writer.WriteMod(oThis.memory, oMod)
         });
     }
 };
@@ -5677,6 +5719,9 @@ BinaryChartReader.prototype.ReadCT_ChartSpace = function (type, length, val, cur
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_ChartColors(t, l, oNewVal);
         });
+        if(oNewVal) {
+            val.setChartColors(oNewVal);
+        }
     }
     else {
         res = c_oSerConstants.ReadUnknown;
