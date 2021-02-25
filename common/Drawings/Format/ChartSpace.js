@@ -387,6 +387,10 @@ var GLOBAL_PATH_COUNT = 0;
     AscDFH.changesFactory[AscDFH.historyitem_ChartSpace_SetTxPr] = CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_ChartSpace_SetGroup] = CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_ChartSpace_ChartStyle] = CChangesDrawingsObject;
+    AscDFH.changesFactory[AscDFH.historyitem_ChartSpace_ChartColors] = CChangesDrawingsObjectNoId;
+
+
+    AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartSpace_ChartColors] = AscFormat.CChartColors;
 
     function CheckParagraphTextPr(oParagraph, oTextPr) {
         var oParaPr = oParagraph.Pr.Copy();
@@ -558,6 +562,9 @@ var GLOBAL_PATH_COUNT = 0;
     };
     drawingsChangesMap[AscDFH.historyitem_ChartSpace_ChartStyle] = function(oClass, value) {
         oClass.chartStyle = value;
+    };
+    drawingsChangesMap[AscDFH.historyitem_ChartSpace_ChartColors] = function(oClass, value) {
+        oClass.chartColors = value;
     };
 
     function CLabelsBox(aStrings, oAxis, oChartSpace) {
@@ -1078,6 +1085,7 @@ var GLOBAL_PATH_COUNT = 0;
         this.themeOverride = null;
         this.userShapes = [];//userShapes
         this.chartStyle = null;
+        this.chartColors = null;
 
         this.dataRefs = null;
         this.pathMemory = new CPathMemory();
@@ -3605,6 +3613,10 @@ var GLOBAL_PATH_COUNT = 0;
     CChartSpace.prototype.setChartStyle = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartSpace_ChartStyle, this.chartStyle, pr));
         this.chartStyle = pr;
+    };
+    CChartSpace.prototype.setChartColors = function(pr) {
+        History.Add(new CChangesDrawingsObjectNoId(this, AscDFH.historyitem_ChartSpace_ChartColors, this.chartColors, pr));
+        this.chartColors = pr;
     };
     CChartSpace.prototype.recalculateUserShapes = function() {
         for(var i = 0; i < this.userShapes.length; ++i) {

@@ -16439,6 +16439,48 @@
         return [];
     };
 
+    function CChartColors() {
+        this.meth = null;
+        this.id = null;
+        this.items = [];
+    }
+    CChartColors.prototype.WriteToBinary = function(writer) {
+        AscFormat.writeString(writer, this.meth);
+        AscFormat.writeLong(writer, this.id);
+        writer.WriteLong(this.items.length);
+        for(var nItem = 0; nItem < this.items.length; ++nItem) {
+            var oItem = this.items[nItem];
+            var bIsUnicolor = (oItem instanceof AscFormat.CUniColor);
+            writer.WriteBool(bIsUnicolor);
+            oItem.WriteToBinary(writer);
+        }
+    };
+    CChartColors.prototype.ReadFromBinary = function(reader) {
+        this.meth = AscFormat.readString(reader);
+        this.id = AscFormat.readLong(reader);
+        var nCount = reader.GetLong();
+        for(var nItem = 0; nItem < nCount; ++nItem) {
+            var bIsUnicolor = reader.GetBool();
+            var oItem;
+            if(bIsUnicolor) {
+                oItem = new AscFormat.CUniColor();
+            }
+            else {
+                oItem = new AscFormat.CColorModifiers();
+            }
+            oItem.ReadFromBinary(reader);
+            this.items.push(oItem);
+        }
+    };
+    CChartColors.prototype.setMeth = function(pr) {
+        this.meth = pr;
+    };
+    CChartColors.prototype.setId = function(pr) {
+        this.id = pr;
+    };
+    CChartColors.prototype.addItem = function(pr) {
+        this.items.push(pr);
+    };
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CDLbl = CDLbl;
@@ -16526,6 +16568,7 @@
     window['AscFormat'].CChartStyle = CChartStyle;
     window['AscFormat'].CStyleEntry = CStyleEntry;
     window['AscFormat'].CMarkerLayout = CMarkerLayout;
+    window['AscFormat'].CChartColors = CChartColors;
 
     window['AscFormat'].AX_POS_L = AX_POS_L;
     window['AscFormat'].AX_POS_T = AX_POS_T;

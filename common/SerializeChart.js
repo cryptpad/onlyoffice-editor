@@ -5673,8 +5673,10 @@ BinaryChartReader.prototype.ReadCT_ChartSpace = function (type, length, val, cur
         }
     }
     else if(c_oserct_chartspaceCOLORS === type) {
-        //todo
-        res = c_oSerConstants.ReadUnknown;
+        oNewVal = new AscFormat.CChartColors();
+        res = this.bcr.Read1(length, function (t, l) {
+            return oThis.ReadCT_ChartColors(t, l, oNewVal);
+        });
     }
     else {
         res = c_oSerConstants.ReadUnknown;
@@ -6064,6 +6066,58 @@ BinaryChartReader.prototype.ReadCT_MarkerLayout = function (type, length, val) {
     }
     return res;
 };
+BinaryChartReader.prototype.ReadCT_ChartColors = function (type, length, val) {
+    var res = c_oSerConstants.ReadOk;
+    var oThis = this;
+    var oNewVal;
+    if (c_oserct_chartcolorsID === type)
+    {
+        val.setId(this.stream.GetULongLE());
+    }
+    else if (c_oserct_chartcolorsMETH === type)
+    {
+        val.setMeth(this.stream.GetString2LE(length));
+    }
+    else if(c_oserct_chartcolorsVARIATION === type)
+    {
+        oNewVal = new AscFormat.CColorModifiers();
+        res = this.bcr.Read1(length, function (t, l) {
+            return oThis.ReadCT_ColorsVariation(t, l, oNewVal);
+        });
+        val.addItem(oNewVal);
+    }
+    else if(c_oserct_chartcolorsCOLOR === type)
+    {
+        oNewVal = AscCommon.pptx_content_loader.ReadUniColor(this, this.stream);
+        if(oNewVal)
+        {
+            val.addItem(oNewVal);
+        }
+    }
+    else
+    {
+        res = c_oSerConstants.ReadUnknown;
+    }
+    return res;
+};
+BinaryChartReader.prototype.ReadCT_ColorsVariation = function (type, length, val)
+{
+    var res = c_oSerConstants.ReadOk;
+    if (c_oserct_chartcolorsEFFECT === type)
+    {
+        var oMod = AscCommon.pptx_content_loader.ReadColorMod(this, this.stream);
+        if(oMod)
+        {
+            val.addMod(oMod);
+        }
+    }
+    else
+    {
+        res = c_oSerConstants.ReadUnknown;
+    }
+    return res;
+};
+
 BinaryChartReader.prototype.ReadCT_FromTo = function(type, length, poResult)
 {
     var res = c_oSerConstants.ReadOk;
