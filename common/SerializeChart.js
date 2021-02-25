@@ -1247,67 +1247,65 @@ BinaryChartWriter.prototype.WriteCT_ChartStyle = function (oVal) {
     }
 };
 BinaryChartWriter.prototype.WriteCT_ChartStyleEntry = function (oVal) {
-    //var oThis = this;
-    //if(oVal.type !== null) {
-    //    this.bs.WriteItem(c_oserct_chartstyleENTRYTYPE, function() {
-    //        oThis.memory.WriteByte(oVal.type);
-    //    });
-    //}
-    //if(oVal.lnRef !== null) {
-    //    this.bs.WriteItem(c_oserct_chartstyleLNREF, function() {
-    //        AscCommon.pptx_content_writer.WriteStyleRef(oThis.memory, oVal.lnRef);
-    //    });
-    //}
-    //if(oVal.fillRef !== null) {
-    //    this.bs.WriteItem(c_oserct_chartstyleFILLREF, function() {
-    //        AscCommon.pptx_content_writer.WriteStyleRef(oThis.memory, oVal.fillRef);
-    //    });
-    //}
-    //if(oVal.effectRef !== null) {
-    //    this.bs.WriteItem(c_oserct_chartstyleEFFECTREF, function() {
-    //        AscCommon.pptx_content_writer.WriteStyleRef(oThis.memory, oVal.effectRef);
-    //    });
-    //}
-    //if (c_oserct_chartstyleFONTREF == type)
-    //{
-    //    oNewVal = AscCommon.pptx_content_loader.ReadFontRef(this, this.stream);
-    //    if(oNewVal)
-    //    {
-    //        val.setFontRef(oNewVal);
-    //    }
-    //}
-    //else if (c_oserct_chartstyleDEFPR == type)
-    //{
-    //    oNewVal = AscCommon.pptx_content_loader.ReadRunProperties(this.stream, 0);
-    //    if(oNewVal)
-    //    {
-    //        val.setDefRPr(oNewVal);
-    //    }
-    //}
-    //else if (c_oserct_chartstyleBODYPR == type)
-    //{
-    //    oNewVal = AscCommon.pptx_content_loader.ReadBodyPr(this, this.stream);
-    //    if(oNewVal)
-    //    {
-    //        val.setBodyPr(oNewVal);
-    //    }
-    //}
-    //else if (c_oserct_chartstyleSPPR == type)
-    //{
-    //    val.setSpPr(this.ReadSpPr(length));
-    //}
-    //else if (c_oserct_chartstyleLINEWIDTH == type)
-    //{
-    //    val.setLineWidthScale(this.stream.GetDoubleLE());
-    //}
-    //else
-    //{
-    //    res = c_oSerConstants.ReadUnknown;
-    //}
-    //return res;
+    var oThis = this;
+    if(oVal.type !== null) {
+        this.bs.WriteItem(c_oserct_chartstyleENTRYTYPE, function() {
+            oThis.memory.WriteByte(oVal.type);
+        });
+    }
+    if(oVal.lnRef !== null) {
+        this.bs.WriteItem(c_oserct_chartstyleLNREF, function() {
+            AscCommon.pptx_content_writer.WriteStyleRef(oThis.memory, oVal.lnRef);
+        });
+    }
+    if(oVal.fillRef !== null) {
+        this.bs.WriteItem(c_oserct_chartstyleFILLREF, function() {
+            AscCommon.pptx_content_writer.WriteStyleRef(oThis.memory, oVal.fillRef);
+        });
+    }
+    if(oVal.effectRef !== null) {
+        this.bs.WriteItem(c_oserct_chartstyleEFFECTREF, function() {
+            AscCommon.pptx_content_writer.WriteStyleRef(oThis.memory, oVal.effectRef);
+        });
+    }
+    if(oVal.fontRef !== null) {
+        this.bs.WriteItem(c_oserct_chartstyleFONTREF, function() {
+            AscCommon.pptx_content_writer.WriteFontRef(oThis.memory, oVal.fontRef);
+        });
+    }
+    if(oVal.defRPr !== null) {
+        this.bs.WriteItem(c_oserct_chartstyleDEFPR, function() {
+            AscCommon.pptx_content_writer.WriteRunProperties(oThis.memory, oVal.defRPr);
+        });
+    }
+    if(oVal.bodyPr !== null) {
+        this.bs.WriteItem(c_oserct_chartstyleBODYPR, function() {
+            AscCommon.pptx_content_writer.WriteBodyPr(oThis.memory, oVal.bodyPr);
+        });
+    }
+    if(oVal.spPr !== null) {
+        this.bs.WriteItem(c_oserct_chartstyleSPPR, function() {
+            AscCommon.pptx_content_writer.WriteSpPr(oThis.memory, oVal.spPr);
+        });
+    }
+    if(oVal.lineWidthScale !== null) {
+        this.bs.WriteItem(c_oserct_chartstyleLINEWIDTH, function() {
+            oThis.memory.WriteDouble2(oVal.lineWidthScale);
+        });
+    }
 };
 BinaryChartWriter.prototype.WriteCT_MarkerLayout = function (oVal) {
-
+    var oThis = this;
+    if(oVal.symbol !== null) {
+        this.bs.WriteItem(c_oserct_chartstyleMARKERSYMBOL, function() {
+            oThis.memory.WriteByte(oVal.symbol);
+        });
+    }
+    if(oVal.size !== null) {
+        this.bs.WriteItem(c_oserct_chartstyleMARKERSIZE, function() {
+            oThis.memory.WriteLong(Val.size);
+        });
+    }
 };
 BinaryChartWriter.prototype.WriteSpPr = function (oVal) {
   AscCommon.pptx_content_writer.WriteSpPr(this.memory, oVal);

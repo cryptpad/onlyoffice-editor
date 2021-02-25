@@ -5462,6 +5462,22 @@ function CBinaryFileWriter()
                 _writer.EndRecord();
             });
         };
+        this.WriteFontRef = function(memory, oFontRef) {
+            var _writer = this.BinaryFileWriter;
+            this.WritePPTXObject(memory, function() {
+                _writer.StartRecord(0);
+                _writer.WriteFontRef(oFontRef);
+                _writer.EndRecord();
+            });
+        };
+        this.WriteBodyPr = function(memory, oBodyPr) {
+            var _writer = this.BinaryFileWriter;
+            this.WritePPTXObject(memory, function() {
+                _writer.StartRecord(0);
+                _writer.WriteBodyPr(oBodyPr);
+                _writer.EndRecord();
+            });
+        };
 		this.WriteRunProperties = function(memory, rPr)
 		{
 			var _writer = this.BinaryFileWriter;
@@ -5729,7 +5745,6 @@ function CBinaryFileWriter()
             this.WritePPTXObject(memory, function() {
                 _writer.WriteTheme(theme);
             });
-
         };
     }
 
