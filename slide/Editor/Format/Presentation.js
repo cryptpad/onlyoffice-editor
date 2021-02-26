@@ -6484,6 +6484,11 @@ CPresentation.prototype.OnKeyDown = function (e) {
             bRetValue = keydownresult_PreventAll;
         } else if (e.KeyCode == 38) // Top Arrow
         {
+            if (this.Slides.length > 1 && !this.FocusOnNotes && this.DrawingDocument.SlideCurrent > 0)
+            {
+                if(this.Slides[this.CurPage].graphicObjects.selectedObjects.length === 0)
+                this.DrawingDocument.m_oWordControl.GoToPage(this.DrawingDocument.SlideCurrent - 1);
+            }
             this.MoveCursorUp(true === e.ShiftKey, true === e.CtrlKey);
             bRetValue = keydownresult_PreventAll;
         } else if (e.KeyCode == 39) // Right Arrow
@@ -6500,6 +6505,11 @@ CPresentation.prototype.OnKeyDown = function (e) {
             //if ( true != e.ShiftKey )
             //    this.DrawingDocument.TargetStart();
 
+            if (this.Slides.length > 1 && !this.FocusOnNotes && this.DrawingDocument.SlideCurrent < (this.Slides.length - 1))
+            {
+                if(this.Slides[this.CurPage].graphicObjects.selectedObjects.length === 0)
+                this.DrawingDocument.m_oWordControl.GoToPage(this.DrawingDocument.SlideCurrent + 1);
+            }
             this.MoveCursorDown(true === e.ShiftKey, true === e.CtrlKey);
             bRetValue = keydownresult_PreventAll;
         } else if (e.KeyCode == 46) // Delete
