@@ -8476,11 +8476,7 @@ background-repeat: no-repeat;\
 	//----------------------------------------------------------------------------------------------------------------------
 	asc_docs_api.prototype.asc_SetTrackRevisions               = function(bTrack)
 	{
-		var oLogicDocument = this.WordControl.m_oLogicDocument;
-		if (!oLogicDocument)
-			return;
-
-		return oLogicDocument.SetTrackRevisions(bTrack);
+		return this.asc_SetLocalTrackRevisions(bTrack);
 	};
 	asc_docs_api.prototype.asc_IsTrackRevisions                = function()
 	{

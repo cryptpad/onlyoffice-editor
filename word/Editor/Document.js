@@ -16418,7 +16418,7 @@ CDocument.prototype.ContinueTrackRevisions = function()
 };
 CDocument.prototype.SetTrackRevisions = function(bTrack)
 {
-	this.TrackRevisions = bTrack;
+	return this.SetLocalTrackRevisions(bTrack);
 };
 /**
  * Проверяем включено ли рецезирование в файле
