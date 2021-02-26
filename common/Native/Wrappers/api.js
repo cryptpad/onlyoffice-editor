@@ -6416,6 +6416,113 @@ function onApiShowRevisionsChange(data) {
 
 // Fill forms
 
+function readSDKContentControl(props) {
+    var type = props.get_SpecificType(),
+        specProps;
+
+    var result = {
+        get_InternalId: props.get_InternalId(),
+        get_PlaceholderText: props.get_PlaceholderText(),
+        get_Lock: props.get_Lock(),
+        get_SpecificType: type
+    };
+
+    // for list controls
+    if (type == Asc.c_oAscContentControlSpecificType.ComboBox || type == Asc.c_oAscContentControlSpecificType.DropDownList) {
+        specProps = (type == Asc.c_oAscContentControlSpecificType.ComboBox) ? props.get_ComboBoxPr() : props.get_DropDownListPr();
+        if (specProps) {
+            var count = specProps.get_ItemsCount();
+            var arr = [];
+            for (var i = 0; i < count; i++) {
+                (specProps.get_ItemValue(i) !== '') && arr.push({
+                    value: specProps.get_ItemValue(i),
+                    name: specProps.get_ItemDisplayText(i)
+                });
+            }
+            result["values"] = arr;
+        }
+    } else if (type == Asc.c_oAscContentControlSpecificType.CheckBox) {
+        specProps = props.get_CheckBoxPr();
+    }
+
+    // form settings
+    var formPr = props.get_FormPr();
+    if (formPr) {
+        var data = [];
+        if (type == Asc.c_oAscContentControlSpecificType.CheckBox) {
+            data = _api.asc_GetCheckBoxFormKeys();
+            result["asc_GetCheckBoxFormKeys"] = data;
+        } else if (type == Asc.c_oAscContentControlSpecificType.Picture) {
+            data = _api.asc_GetPictureFormKeys();
+            result["asc_GetPictureFormKeys"] = data;
+        } else {
+            data = _api.asc_GetTextFormKeys();
+            result["asc_GetTextFormKeys"] = data;
+        }
+
+        var arr = [];
+        data.forEach(function (item) {
+            arr.push({ displayValue: item, value: item });
+        });
+
+        result["FormKeys"] = arr;
+
+        var val = formPr.get_Key();
+        result["get_Key"] = val;
+
+        if (val) {
+            val = _api.asc_GetFormsCountByKey(val);
+            result["asc_GetFormsCountByKey"] = val;
+        }
+        
+        val = formPr.get_HelpText();
+        result["get_HelpText"] = val;
+
+        if (type == Asc.c_oAscContentControlSpecificType.CheckBox && specProps) {
+            val = specProps.get_GroupKey();
+            result["get_GroupKey"] = val;
+            
+            var ischeckbox = (typeof val !== 'string');
+            result["isCheckBox"] = ischeckbox;
+
+            val = specProps.get_Checked();
+            result["get_Checked"] = val;
+            console.log("specProps.get_Checked() - " + val);
+            console.log("specProps.GroupKey - " + specProps.GroupKey);
+
+            
+            if (!ischeckbox) {
+                data = _api.asc_GetRadioButtonGroupKeys();
+                result["asc_GetRadioButtonGroupKeys"] = data;
+
+                var arr = [];
+                data.forEach(function(item) {
+                    arr.push({ displayValue: item,  value: item });
+                });
+
+                result["GroupKeys"] = arr;
+            }
+        }
+
+        var formTextPr = props.get_TextFormPr();
+        if (formTextPr) {
+            val = formTextPr.get_Comb();
+            result["get_Comb"] = val;
+
+            val = formTextPr.get_Width();
+            result["get_Width"] = val;
+            
+            val = _api.asc_GetTextFormAutoWidth();
+            result["asc_GetTextFormAutoWidth"] = val;
+            
+            val = formTextPr.get_MaxCharacters();
+            result["get_MaxCharacters"] = val;
+        }
+    }
+
+    return result;
+}
+
 function onShowContentControlsActions(obj, x, y) {
     console.log("onShowContentControlsActions x: " + x + " y: " + y);
     
@@ -6530,7 +6637,7 @@ function onFocusObject(SelectedObjects) {
             {
                 settings.push({
                     type: eltype,
-                    value: JSON.prune(value, 5)
+                    rawValue: JSON.prune(value, 5)
                 });
                 break;
             }
@@ -6548,7 +6655,8 @@ function onFocusObject(SelectedObjects) {
         settings.push({
             type: Asc.c_oAscTypeSelectElement.ContentControl,
             spectype: spectype,
-            value: JSON.prune(control_props, 4)
+            rawValue: JSON.prune(control_props, 4),
+            value: readSDKContentControl(control_props)
         });
     }
 
