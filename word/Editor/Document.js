@@ -2413,7 +2413,6 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.RemoveEmptySelection      = true;  // При обновлении селекта, если он пустой тогда сбрасываем его
 	this.MoveDrawing               = false; // Происходит ли сейчас перенос автофигуры
 	this.PrintSelection            = false; // Печатаем выделенный фрагмент
-	this.CCActionByClick           = true;  // Выполнять ли действие с ContentControl по простому клику (если false, то мы должны находится внутри, чтобы действие выполнилось)
 	this.CheckFormPlaceHolder      = true;  // Выполняем ли специальную обработку для плейсхолдеров у форм
 
 	this.DrawTableMode = {
@@ -10592,14 +10591,14 @@ CDocument.prototype.OnMouseDown = function(e, X, Y, PageIndex)
 			return;
 		}
 
-		if (!this.CCActionByClick && !this.IsFillingFormMode())
+		if (!this.IsFillingFormMode())
 		{
 			var oSelectedContent = this.GetSelectedElementsInfo();
 			var oInlineSdt       = oSelectedContent.GetInlineLevelSdt();
 			var oBlockSdt        = oSelectedContent.GetBlockLevelSdt();
 
-			if ((oInlineSdt && oInlineSdt.IsCheckBox()) || (oBlockSdt && oBlockSdt.IsCheckBox()))
-				this.CurPos.CC = (oInlineSdt && oInlineSdt.IsCheckBox()) ? oInlineSdt : oBlockSdt;
+			if ((oInlineSdt && oInlineSdt.IsForm() && oInlineSdt.IsCheckBox()) || (oBlockSdt && oBlockSdt.IsForm() && oBlockSdt.IsCheckBox()))
+				this.CurPos.CC = (oInlineSdt && oInlineSdt.IsForm() && oInlineSdt.IsCheckBox()) ? oInlineSdt : oBlockSdt;
 		}
 
 		this.Selection_SetStart(X, Y, e);
@@ -10856,7 +10855,7 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 	if ((oInlineSdt && oInlineSdt.IsCheckBox()) || (oBlockSdt && oBlockSdt.IsCheckBox()))
 	{
 		var oCC = (oInlineSdt && oInlineSdt.IsCheckBox()) ? oInlineSdt : oBlockSdt;
-		if (this.CCActionByClick || this.IsFillingFormMode() || oCC === this.CurPos.CC)
+		if (!oCC.IsForm() || this.IsFillingFormMode() || oCC === this.CurPos.CC)
 		{
 			oCC.SkipSpecialContentControlLock(true);
 			if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, true, this.IsFillingFormMode()))
@@ -24432,14 +24431,6 @@ CDocument.prototype.GetSectionsByApplyType = function(nType)
 	}
 
 	return [];
-};
-/**
- * Выполнять ли связанные действия с контейнером при простом клике в него (например выставление чекбокса)
- * @param {boolean} isPerform
- */
-CDocument.prototype.SetPerformContentControlActionByClick = function(isPerform)
-{
-	this.CCActionByClick = isPerform;
 };
 /**
  * Получаем разделитель для списков

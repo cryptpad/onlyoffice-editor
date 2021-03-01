@@ -9493,11 +9493,7 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.asc_SetPerformContentControlActionByClick = function(isPerform)
 	{
-		var oLogicDocument = this.private_GetLogicDocument();
-		if (!oLogicDocument)
-			return;
-
-		oLogicDocument.SetPerformContentControlActionByClick(isPerform);
+		// obsolete function
 	};
 	asc_docs_api.prototype.asc_GetTextFormAutoWidth = function(sId)
 	{
