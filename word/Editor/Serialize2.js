@@ -7972,7 +7972,7 @@ function BinaryFileReader(doc, openParams)
 		// for(var i = 0, length = this.oReadResult.aPostOpenStyleNumCallbacks.length; i < length; ++i)
 			// this.oReadResult.aPostOpenStyleNumCallbacks[i].call();
 		if (null != this.oReadResult.trackRevisions) {
-			this.Document.DrawingDocument.m_oWordControl.m_oApi.asc_SetTrackRevisions(this.oReadResult.trackRevisions);
+			this.Document.SetGlobalTrackRevisions(this.oReadResult.trackRevisions);
 		}
 		for (var i = 0; i < this.oReadResult.drawingToMath.length; ++i) {
 			this.oReadResult.drawingToMath[i].ConvertToMath();
