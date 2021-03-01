@@ -1689,9 +1689,10 @@ CMathContent.prototype.private_CorrectContent = function()
         }
         else if(bDeleteEmptyRun && false == Current.Is_CheckingNearestPos()) // если NearPosArray не нулевой длины, то это вызов происходит на InsertContent, не удаляем пустые Run
         {
+            var tempPos = this.CurPos;
             this.Remove_FromContent(CurrPos, 1);
 
-            if (this.CurPos === CurrPos)
+            if (tempPos === CurrPos)
             {
                 if (bLeftRun)
                 {
@@ -1700,7 +1701,6 @@ CMathContent.prototype.private_CorrectContent = function()
                 }
                 else
                 {
-                    this.CurPos = CurrPos;
                     this.Content[this.CurPos].MoveCursorToStartPos();
                 }
             }
@@ -6799,12 +6799,6 @@ CMathContent.prototype.private_CanAutoCorrectTextFunc = function(AutoCorrectEngi
                 Found = false;
                 break;
             }
-            if (nStringPos === (CheckStringLen - 1) && (ElCount - (CheckStringLen + 1)) > 0) {
-                LastEl = AutoCorrectEngine.Elements[ElCount - nStringPos - 2 - 1];
-                if ((LastEl.Element.IsText() && LastEl.Element.value !== 32)) {
-                    Found = false;
-                }
-            }
         }
         if (Found === true) {
             foundedEl = AutoCorrectElement;
@@ -8622,12 +8616,12 @@ CMathAutoCorrectEngine.prototype.private_Add_Element = function(Content) {
 
 var g_DefaultAutoCorrectMathFuncs =
 [
-    'sin', 'sec', 'asin', 'asec', 'arcsin', 'arcsec',
-    'cos', 'csc', 'acos', 'acsc', 'arccos', 'arccsc',
-    'tan', 'cot', 'atan', 'acot', 'arctan', 'arccot',
-    'sinh', 'sech', 'asinh', 'asech', 'arcsinh', 'arcsech',
-    'cosh', 'csch', 'acosh', 'acsch', 'arccosh', 'arccsch',
-    'tanh', 'coth', 'atanh', 'acoth', 'arctanh', 'arccoth',
+    'arcsin', 'asin', 'sin', 'arcsinh', 'asinh', 'sinh',
+    'arcsec', 'sec', 'asec', 'arcsech', 'asech','sech',
+    'arccos', 'acos', 'cos', 'arccosh','acosh', 'cosh',
+    'arccsc', 'acsc', 'csc', 'arccsch', 'acsch', 'csch',
+    'arctan', 'atan', 'tan', 'arctanh', 'atanh', 'tanh',
+    'arccot', 'acot', 'cot', 'arccoth', 'acoth', 'coth',
     'arg', 'det', 'exp', 'inf', 'lim', 'min',
     'def', 'dim', 'gcd', 'ker', 'log', 'Pr',
     'deg', 'erf', 'hom', 'lg', 'ln', 'max', 'sup'

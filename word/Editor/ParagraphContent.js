@@ -266,6 +266,14 @@ CRunElementBase.prototype.IsDot = function()
 	return false;
 };
 /**
+ * Является ли данный элемент символом дефиса
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsHyphen = function()
+{
+	return false;
+};
+/**
  * @param {CRunElementBase} oElement
  * @returns {boolean}
  */
@@ -305,6 +313,10 @@ ParaText.prototype.Set_CharCode = function(CharCode)
 
 	if (AscFonts.IsCheckSymbols)
 		AscFonts.FontPickerByCharacter.getFontBySymbol(this.Value);
+};
+ParaText.prototype.GetCharCode = function()
+{
+	return this.Value;
 };
 ParaText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 {
@@ -394,6 +406,12 @@ ParaText.prototype.Measure = function(Context, TextPr)
 
 	this.Width        = ResultWidth;
 	this.WidthVisible = ResultWidth;
+
+	if (this.LGap || this.RGap)
+	{
+		delete this.LGap;
+		delete this.RGap;
+	}
 };
 ParaText.prototype.Is_RealContent = function()
 {
@@ -469,10 +487,7 @@ ParaText.prototype.Set_SpaceAfter = function(bSpaceAfter)
 };
 ParaText.prototype.IsNoBreakHyphen = function()
 {
-	if (false === this.IsSpaceAfter() && this.Value === 0x002D)
-		return true;
-
-	return false;
+	return (false === this.IsSpaceAfter() && this.Value === 0x002D);
 };
 ParaText.prototype.Write_ToBinary = function(Writer)
 {
@@ -535,14 +550,19 @@ ParaText.prototype.IsDiacriticalSymbol = function()
 };
 ParaText.prototype.IsDot = function()
 {
-	return !!(this.Value === 0x002E);
+	return (this.Value === 0x002E);
+};
+ParaText.prototype.IsHyphen = function()
+{
+	return (this.Value === 0x002D);
 };
 ParaText.prototype.SetGaps = function(nLeftGap, nRightGap)
 {
 	this.LGap = nLeftGap;
 	this.RGap = nRightGap;
 
-	this.Width += ((nLeftGap + nRightGap) * TEXTWIDTH_DIVIDER) | 0;
+	this.Width        += ((nLeftGap + nRightGap) * TEXTWIDTH_DIVIDER) | 0;
+	this.WidthVisible += ((nLeftGap + nRightGap) * TEXTWIDTH_DIVIDER) | 0;
 };
 ParaText.prototype.ResetGapBackground = function()
 {
@@ -553,7 +573,7 @@ ParaText.prototype.ResetGapBackground = function()
 	this.RGapFontSlot  = undefined;
 	this.RGapFont      = undefined;
 };
-ParaText.prototype.SetGapBackground = function(nCount, nCharCode, nCombWidth, oContext, sFont, oTextPr, oTheme)
+ParaText.prototype.SetGapBackground = function(nCount, nCharCode, nCombWidth, oContext, sFont, oTextPr, oTheme, nCombBorderW)
 {
 	this.RGapCount    = nCount;
 	this.RGapCharCode = nCharCode;
@@ -570,7 +590,7 @@ ParaText.prototype.SetGapBackground = function(nCount, nCharCode, nCombWidth, oC
 		oContext.SetFontSlot(this.RGapFontSlot, oTextPr.Get_FontKoef());
 	}
 
-	this.RGapCharWidth = Math.max(oContext.MeasureCode(nCharCode).Width + oTextPr.Spacing, 0);
+	this.RGapCharWidth = !nCharCode ? nCombBorderW : Math.max(oContext.MeasureCode(nCharCode).Width + oTextPr.Spacing + nCombBorderW, nCombBorderW);
 	this.RGapShift     = Math.max(nCombWidth, this.RGapCharWidth);
 
 	if (sFont)
@@ -578,6 +598,9 @@ ParaText.prototype.SetGapBackground = function(nCount, nCharCode, nCombWidth, oC
 };
 ParaText.prototype.private_DrawGapsBackground = function(X, Y, oContext, PDSE, oTextPr)
 {
+	if (!this.RGapCharCode)
+		return;
+
 	if (this.RGapFont)
 	{
 		var oCurTextPr = oTextPr.Copy();
@@ -678,6 +701,12 @@ ParaSpace.prototype.Measure = function(Context, TextPr)
 		this.SpaceGap = 0;
 
 	// Не меняем здесь WidthVisible, это значение для пробела высчитывается отдельно, и не должно меняться при пересчете
+
+	if (this.LGap || this.RGap)
+	{
+		delete this.LGap;
+		delete this.RGap;
+	}
 };
 ParaSpace.prototype.Get_FontKoef = function()
 {

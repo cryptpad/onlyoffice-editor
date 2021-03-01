@@ -868,7 +868,7 @@ DrawingObjectsController.prototype =
                                 var Coords         = oDD.ConvertCoordsToCursorWR(x, y, pageIndex, null);
                                 MMData.X_abs       = Coords.X;
                                 MMData.Y_abs       = Coords.Y;
-                                MMData.Type      = AscCommon.c_oAscMouseMoveDataTypes.Hyperlink;
+                                MMData.Type      = Asc.c_oAscMouseMoveDataTypes.Hyperlink;
                                 MMData.Hyperlink = new Asc.CHyperlinkProperty({Text: null, Value: oNvPr.hlinkClick.id, ToolTip: oNvPr.hlinkClick.tooltip, Class: null});
                                 if(this.isSlideShow())
                                 {
@@ -1515,6 +1515,17 @@ DrawingObjectsController.prototype =
         if(this.selection.cropSelection)
         {
             this.endImageCrop && this.endImageCrop(bDoNotRedraw);
+        }
+    },
+
+    resetChartElementsSelection: function() {
+        var oTargetDocContent = this.getTargetDocContent(false, false);
+        if(!oTargetDocContent) {
+            var oSelector = this.selection.groupSelection ? this.selection.groupSelection : this;
+            if(oSelector.selection.chartSelection) {
+                oSelector.selection.chartSelection.resetSelection(false);
+                oSelector.selection.chartSelection = null;
+            }
         }
     },
 
@@ -6500,6 +6511,24 @@ DrawingObjectsController.prototype =
             drawingDocument.SelectEnabled(false);
             drawingDocument.SelectShow();
         }
+        var oContent = this.getTargetDocContent();
+        if(oContent)
+        {
+            var oSelectedInfo = new CSelectedElementsInfo();
+            oSelectedInfo = oContent.GetSelectedElementsInfo(oSelectedInfo);
+
+            var Math = oSelectedInfo.GetMath();
+            var bSelection = oContent.IsSelectionUse();
+            var bEmptySelection = bSelection && oContent.IsSelectionEmpty();
+            if (null !== Math)
+                drawingDocument.Update_MathTrack(true, (!bSelection || bEmptySelection), Math);
+            else
+                drawingDocument.Update_MathTrack(false);
+        }
+        else
+        {
+            drawingDocument.Update_MathTrack(false);
+        }
     },
 
     remove: function(dir, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
@@ -6666,12 +6695,6 @@ DrawingObjectsController.prototype =
                     else
                     {
                         oSp.deleteDrawingBase(true);
-                        if(oSp.signatureLine){
-                            var oApi = this.getEditorApi();
-                            if(oApi){
-                                oApi.sendEvent("asc_onRemoveSignature", this.selectedObjects[i].signatureLine.id);
-                            }
-                        }
                         oSp.setBDeleted(true);
                     }
 
@@ -6880,24 +6903,74 @@ DrawingObjectsController.prototype =
         this.curState = oldCurState;
     },
 
+
+    checkRedrawOnChangeCursorPosition: function(oStartContent, oStartPara)
+    {
+        if(this.document)
+        {
+            return;
+        }
+        var oEndContent = AscFormat.checkEmptyPlaceholderContent(this.getTargetDocContent());
+        var bRedraw = false;
+        var oEndPara = null;
+        if(oStartContent || oEndContent)
+        {
+            if(oStartContent !== oEndContent)
+            {
+                bRedraw = true;
+            }
+            else
+            {
+                if(oEndContent)
+                {
+                    oEndPara = oEndContent.GetCurrentParagraph();
+                }
+                if(oEndPara !== oStartPara)
+                {
+                    bRedraw = true;
+                }
+            }
+        }
+        if(bRedraw)
+        {
+            this.checkChartTextSelection(true);
+            this.drawingObjects.showDrawingObjects && this.drawingObjects.showDrawingObjects();
+        }
+    },
+
     cursorMoveToStartPos: function()
     {
         var content = this.getTargetDocContent(undefined, true);
+
+        var oStartContent, oStartPara;
         if(content)
         {
+            oStartContent = content;
+            if(oStartContent)
+            {
+                oStartPara = oStartContent.GetCurrentParagraph();
+            }
             content.MoveCursorToStartPos();
             this.updateSelectionState();
         }
+        this.checkRedrawOnChangeCursorPosition(oStartContent, oStartPara);
     },
 
     cursorMoveToEndPos: function()
     {
         var content = this.getTargetDocContent(undefined, true);
+        var oStartContent, oStartPara;
         if(content)
         {
+            oStartContent = content;
+            if(oStartContent)
+            {
+                oStartPara = oStartContent.GetCurrentParagraph();
+            }
             content.MoveCursorToEndPos();
             this.updateSelectionState();
         }
+        this.checkRedrawOnChangeCursorPosition(oStartContent, oStartPara);
     },
 
     getMoveDist: function(bWord){
@@ -6912,18 +6985,32 @@ DrawingObjectsController.prototype =
     cursorMoveLeft: function(AddToSelect/*Shift*/, Word/*Ctrl*/)
     {
         var target_text_object = getTargetTextObject(this);
+        var oStartContent, oStartPara;
         if(target_text_object)
         {
+
             if(target_text_object.getObjectType() === AscDFH.historyitem_type_GraphicFrame)
             {
+                oStartContent = this.getTargetDocContent(false, false);
+                if(oStartContent)
+                {
+                    oStartPara = oStartContent.GetCurrentParagraph();
+                }
                 target_text_object.graphicObject.MoveCursorLeft(AddToSelect, Word);
+                this.checkRedrawOnChangeCursorPosition(oStartContent, oStartPara);
             }
             else
             {
                 var content = this.getTargetDocContent(undefined, true);
                 if(content)
                 {
+                    oStartContent = content;
+                    if(oStartContent)
+                    {
+                        oStartPara = oStartContent.GetCurrentParagraph();
+                    }
                     content.MoveCursorLeft(AddToSelect, Word);
+                    this.checkRedrawOnChangeCursorPosition(oStartContent, oStartPara);
                 }
             }
             this.updateSelectionState();
@@ -6940,18 +7027,31 @@ DrawingObjectsController.prototype =
     cursorMoveRight: function(AddToSelect, Word, bFromPaste)
     {
         var target_text_object = getTargetTextObject(this);
+        var oStartContent, oStartPara;
         if(target_text_object)
         {
             if(target_text_object.getObjectType() === AscDFH.historyitem_type_GraphicFrame)
             {
+                oStartContent = this.getTargetDocContent(false, false);
+                if(oStartContent)
+                {
+                    oStartPara = oStartContent.GetCurrentParagraph();
+                }
                 target_text_object.graphicObject.MoveCursorRight(AddToSelect, Word, bFromPaste);
+                this.checkRedrawOnChangeCursorPosition(oStartContent, oStartPara);
             }
             else
             {
                 var content = this.getTargetDocContent(undefined, true);
                 if(content)
                 {
+                    oStartContent = content;
+                    if(oStartContent)
+                    {
+                        oStartPara = oStartContent.GetCurrentParagraph();
+                    }
                     content.MoveCursorRight(AddToSelect, Word, bFromPaste);
+                    this.checkRedrawOnChangeCursorPosition(oStartContent, oStartPara);
                 }
             }
             this.updateSelectionState();
@@ -6968,18 +7068,31 @@ DrawingObjectsController.prototype =
     cursorMoveUp: function(AddToSelect, Word)
     {
         var target_text_object = getTargetTextObject(this);
+        var oStartContent, oStartPara;
         if(target_text_object)
         {
             if(target_text_object.getObjectType() === AscDFH.historyitem_type_GraphicFrame)
             {
+                oStartContent = this.getTargetDocContent(false, false);
+                if(oStartContent)
+                {
+                    oStartPara = oStartContent.GetCurrentParagraph();
+                }
                 target_text_object.graphicObject.MoveCursorUp(AddToSelect);
+                this.checkRedrawOnChangeCursorPosition(oStartContent, oStartPara);
             }
             else
             {
                 var content = this.getTargetDocContent(undefined, true);
                 if(content)
                 {
+                    oStartContent = content;
+                    if(oStartContent)
+                    {
+                        oStartPara = oStartContent.GetCurrentParagraph();
+                    }
                     content.MoveCursorUp(AddToSelect);
+                    this.checkRedrawOnChangeCursorPosition(oStartContent, oStartPara);
                 }
             }
             this.updateSelectionState();
@@ -6995,18 +7108,31 @@ DrawingObjectsController.prototype =
     cursorMoveDown: function(AddToSelect, Word)
     {
         var target_text_object = getTargetTextObject(this);
+        var oStartContent, oStartPara;
         if(target_text_object)
         {
             if(target_text_object.getObjectType() === AscDFH.historyitem_type_GraphicFrame)
             {
+                oStartContent = this.getTargetDocContent(false, false);
+                if(oStartContent)
+                {
+                    oStartPara = oStartContent.GetCurrentParagraph();
+                }
                 target_text_object.graphicObject.MoveCursorDown(AddToSelect);
+                this.checkRedrawOnChangeCursorPosition(oStartContent, oStartPara);
             }
             else
             {
                 var content = this.getTargetDocContent(undefined, true);
                 if(content)
                 {
+                    oStartContent = content;
+                    if(oStartContent)
+                    {
+                        oStartPara = oStartContent.GetCurrentParagraph();
+                    }
                     content.MoveCursorDown(AddToSelect);
+                    this.checkRedrawOnChangeCursorPosition(oStartContent, oStartPara);
                 }
             }
             this.updateSelectionState();
@@ -7021,29 +7147,43 @@ DrawingObjectsController.prototype =
 
     cursorMoveEndOfLine: function(AddToSelect)
     {
+        var oStartContent, oStartPara;
         var content = this.getTargetDocContent(undefined, true);
         if(content)
         {
+            oStartContent = content;
+            if(oStartContent)
+            {
+                oStartPara = oStartContent.GetCurrentParagraph();
+            }
             content.MoveCursorToEndOfLine(AddToSelect);
             this.updateSelectionState();
+            this.checkRedrawOnChangeCursorPosition(oStartContent, oStartPara);
         }
     },
 
 
     cursorMoveStartOfLine: function(AddToSelect)
     {
-
+        var oStartContent, oStartPara;
         var content = this.getTargetDocContent(undefined, true);
         if(content)
         {
+            oStartContent = content;
+            if(oStartContent)
+            {
+                oStartPara = oStartContent.GetCurrentParagraph();
+            }
             content.MoveCursorToStartOfLine(AddToSelect);
             this.updateSelectionState();
+            this.checkRedrawOnChangeCursorPosition(oStartContent, oStartPara);
         }
     },
 
     cursorMoveAt: function( X, Y, AddToSelect )
     {
         var text_object;
+        var oStartContent, oStartPara;
         if(this.selection.textSelection)
         {
             text_object = this.selection.textSelection;
@@ -7054,8 +7194,14 @@ DrawingObjectsController.prototype =
         }
         if(text_object && text_object.cursorMoveAt)
         {
+            oStartContent = this.getTargetDocContent(false, false);
+            if(oStartContent)
+            {
+                oStartPara = oStartContent.GetCurrentParagraph();
+            }
             text_object.cursorMoveAt( X, Y, AddToSelect );
             this.updateSelectionState();
+            this.checkRedrawOnChangeCursorPosition(oStartContent, oStartPara);
         }
     },
 
@@ -8623,7 +8769,6 @@ DrawingObjectsController.prototype =
                     var Depth = 0;
                     if(oDrawingSelectionState.textObject instanceof AscFormat.CGraphicFrame){
                         oDocContent = oDrawingSelectionState.textObject.graphicObject;
-                        Depth = 1;
                     }
                     else {
                         oDocContent = oDrawingSelectionState.textObject.getDocContent();
@@ -9533,6 +9678,7 @@ DrawingObjectsController.prototype =
             shape_props.ShapeProperties.textFitType = props.shapeProps.textFitType;
             shape_props.ShapeProperties.vertOverflowType = props.shapeProps.vertOverflowType;
             shape_props.ShapeProperties.shadow = props.shapeProps.shadow;
+            shape_props.ShapeProperties.signatureId = props.shapeProps.signatureId;
             if(props.shapeProps.textArtProperties && oDrawingDocument)
             {
                 oTextArtProperties = props.shapeProps.textArtProperties;
@@ -12866,7 +13012,7 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
     }
 
 
-    function fCreateSignatureShape(sGuid, sSigner, sSigner2, sEmail, bWord, wsModel, Width, Height, sImgUrl){
+    function fCreateSignatureShape(oPr, bWord, wsModel, Width, Height, sImgUrl){
         var oShape = new AscFormat.CShape();
         oShape.setWordShape(bWord === true);
         oShape.setBDeleted(false);
@@ -12898,10 +13044,8 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
         oShape.setSpPr(oSpPr);
         oSpPr.setParent(oShape);
         var oSignatureLine = new AscFormat.CSignatureLine();
-        oSignatureLine.id = sGuid;
-        oSignatureLine.signer = sSigner;
-        oSignatureLine.signer2 = sSigner2;
-        oSignatureLine.email = sEmail;
+        oSignatureLine.id = AscCommon.CreateGUID();
+        oSignatureLine.setProperties(oPr);
         oShape.setSignature(oSignatureLine);
 
         return oShape;
@@ -12981,7 +13125,7 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
                         ListType.SubType = undefined;
                         if (AscFormat.isRealNumber(Bullet.bulletType.AutoNumType))
                         {
-                            var AutoNumType = AscCommonWord.g_NumberingArr[Bullet.bulletType.AutoNumType] - 99;
+                            var AutoNumType = undefined;
                             switch (Bullet.bulletType.AutoNumType)
                             {
                                 case 1:
@@ -13105,6 +13249,19 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
             case 7 :
             {
                 numberingType = 31;//numbering_numfmt_romanLcPeriod;
+                break;
+            }
+            case 8 : //numbering_numfmt_alphaUcParenR
+            {
+                break;
+            }
+            case 9 :
+            {
+                break;
+            }
+            case 10 :
+            {
+
                 break;
             }
         }
@@ -13290,6 +13447,29 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
         return null;
     }
 
+    function fGetDefaultShapeExtents(sPreset)
+    {
+        var ext_x, ext_y;
+        if(typeof AscFormat.SHAPE_EXT[sPreset] === "number")
+        {
+            ext_x = AscFormat.SHAPE_EXT[sPreset];
+        }
+        else
+        {
+            ext_x = 25.4;
+        }
+        if(typeof AscFormat.SHAPE_ASPECTS[sPreset] === "number")
+        {
+            var _aspect = AscFormat.SHAPE_ASPECTS[sPreset];
+            ext_y = ext_x/_aspect;
+        }
+        else
+        {
+            ext_y = ext_x;
+        }
+        return {x: ext_x, y: ext_y};
+    }
+
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].HANDLE_EVENT_MODE_HANDLE = HANDLE_EVENT_MODE_HANDLE;
@@ -13372,4 +13552,5 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
 	window['AscFormat'].fCheckObjectHyperlink = fCheckObjectHyperlink;
 	window['AscFormat'].getNumberingType = getNumberingType;
 	window['AscFormat'].CreateUnifillFromPreset = CreateUnifillFromPreset;
+	window['AscFormat'].fGetDefaultShapeExtents = fGetDefaultShapeExtents;
 })(window);

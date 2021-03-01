@@ -1935,19 +1935,8 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         case 53: // ASC_MENU_EVENT_TYPE_INSERT_SHAPE
         {
             var _shapeProp = asc_menu_ReadShapePr(_params, _current);
-
             var _pageNum = _shapeProp.InsertPageNum;
-            // получаем размеры страницы
-            var _sectionPr = this.WordControl.m_oLogicDocument.Get_PageLimits(_pageNum);
-
-            var _min = Math.min(_sectionPr.XLimit / 2, _sectionPr.YLimit / 2);
-
-            this.WordControl.m_oLogicDocument.DrawingObjects.addShapeOnPage(_shapeProp.type, _pageNum,
-                                                                            _sectionPr.X + _sectionPr.XLimit / 4,
-                                                                            _sectionPr.Y + _sectionPr.YLimit / 4,
-                                                                            _min,
-                                                                            _min);
-            //this.StartAddShape(_shapeProp.type, true);
+            this.WordControl.m_oLogicDocument.DrawingObjects.addShapeOnPage(_shapeProp.type, _shapeProp.InsertPageNum);
             break;
         }
         case 52: // ASC_MENU_EVENT_TYPE_INSERT_HYPERLINK

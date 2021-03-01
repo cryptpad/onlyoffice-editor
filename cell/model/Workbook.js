@@ -2100,7 +2100,7 @@
 		//временно добавляю новый вставляемый лист, чтобы не передавать параметры через большое количество функций
 		this.addingWorksheet = null;
 	}
-	Workbook.prototype.init=function(tableCustomFunc, tableIds, bNoBuildDep, bSnapshot){
+	Workbook.prototype.init=function(tableCustomFunc, tableIds, sheetIds, bNoBuildDep, bSnapshot){
 		if(this.nActive < 0)
 			this.nActive = 0;
 		if(this.nActive >= this.aWorksheets.length)
@@ -2131,7 +2131,7 @@
 		}
 		//ws
 		this.forEach(function (ws) {
-			ws.initPostOpen(self.wsHandlers, tableIds);
+			ws.initPostOpen(self.wsHandlers, tableIds, sheetIds);
 		});
 		//show active if it hidden
 		var wsActive = this.getActiveWs();
@@ -2285,7 +2285,7 @@
 			
 			newSheet.copyFromFormulas(renameParams);
 
-			newSheet.initPostOpen(this.wsHandlers, {});
+			newSheet.initPostOpen(this.wsHandlers, {}, {});
 			History.TurnOn();
 
 			this.dependencyFormulas.copyDefNameByWorksheet(wsFrom, newSheet, renameParams, opt_sheet);
@@ -2315,9 +2315,15 @@
 			if(!(bFromRedo === true))
 			{
 				wsFrom.copyObjects(newSheet, renameParams);
+				var i;
 				if (wsFrom.aNamedSheetViews) {
-					for (var i = 0; i < wsFrom.aNamedSheetViews.length; ++i) {
+					for (i = 0; i < wsFrom.aNamedSheetViews.length; ++i) {
 						newSheet.addNamedSheetView(wsFrom.aNamedSheetViews[i].clone(renameParams.tableNameMap));
+					}
+				}
+				if (wsFrom.dataValidations && wsFrom.dataValidations.elems) {
+					for (i = 0; i < wsFrom.dataValidations.elems.length; ++i) {
+						newSheet.addDataValidation(wsFrom.dataValidations.elems[i].clone(), true);
 					}
 				}
 			}
@@ -2702,14 +2708,14 @@
 			wb.aWorksheetsById[ws.getId()] = ws;
 		});
 		//init trigger
-		wb.init({}, {}, true, false);
+		wb.init({}, {}, {}, true, false);
 		return wb;
 	};
-	Workbook.prototype.getAllFormulas = function() {
+	Workbook.prototype.getAllFormulas = function(needReturnCellProps) {
 		var res = [];
 		this.dependencyFormulas.getAllFormulas(res);
 		this.forEach(function (ws) {
-			ws.getAllFormulas(res);
+			ws.getAllFormulas(res, needReturnCellProps);
 		});
 		return res;
 	};
@@ -3284,18 +3290,26 @@
 		}
 		return null;
 	};
-	Workbook.prototype.getPivotTableByDataRef = function(dataRef) {
+	Workbook.prototype.getPivotTablesByCacheId = function(pivotCacheId) {
+		var res = [];
 		for (var i = 0, l = this.aWorksheets.length; i < l; ++i) {
-			var pivot = this.aWorksheets[i].getPivotTableByDataRef(dataRef);
-			if (pivot) {
-				return pivot;
-			}
+			var pivotTables = this.aWorksheets[i].getPivotTablesByCacheId(pivotCacheId);
+			res = res.concat(pivotTables);
 		}
-		return null;
+		return res;
 	};
 	Workbook.prototype.getPivotCacheByDataRef = function(dataRef) {
 		for (var i = 0, l = this.aWorksheets.length; i < l; ++i) {
 			var cache = this.aWorksheets[i].getPivotCacheByDataRef(dataRef);
+			if (cache) {
+				return cache;
+			}
+		}
+		return null;
+	};
+	Workbook.prototype.getPivotCacheById = function(pivotCacheId, pivotCachesOpen) {
+		for (var i = 0, l = this.aWorksheets.length; i < l; ++i) {
+			var cache = this.aWorksheets[i].getPivotCacheById(pivotCacheId, pivotCachesOpen);
 			if (cache) {
 				return cache;
 			}
@@ -3319,6 +3333,31 @@
 			}
 		}
 		return null;
+	};
+	Workbook.prototype.getSlicerCacheByPivotTableFld = function (sheetId, pivotName, fld) {
+		var slicerCaches = this.getSlicerCachesByPivotTable(sheetId, pivotName);
+		for (var i = 0; i < slicerCaches.length; ++i) {
+			if (slicerCaches[i].getPivotFieldIndex() === fld) {
+				return slicerCaches[i];
+			}
+		}
+		return null;
+	};
+	Workbook.prototype.getSlicerCachesByPivotTable = function (sheetId, pivotName) {
+		var res = [];
+		for (var i = 0, l = this.aWorksheets.length; i < l; ++i) {
+			var caches = this.aWorksheets[i].getSlicerCachesByPivotTable(sheetId, pivotName);
+			res = res.concat(caches);
+		}
+		return res;
+	};
+	Workbook.prototype.getSlicerCachesByPivotCacheId = function (pivotCacheId) {
+		var res = [];
+		for (var i = 0, l = this.aWorksheets.length; i < l; ++i) {
+			var caches = this.aWorksheets[i].getSlicerCachesByPivotCacheId(pivotCacheId);
+			res = res.concat(caches);
+		}
+		return res;
 	};
 	Workbook.prototype.getSlicerStyle = function (name) {
 		var slicer = this.getSlicerByName(name);
@@ -3421,6 +3460,50 @@
 				this.onSlicerUpdate(slicers[j].name);
 			}
 		}
+	};
+	Workbook.prototype.getSlicersByPivotTable = function (sheetId, pivotName) {
+		var res = [];
+		for(var i = 0; i < this.aWorksheets.length; ++i) {
+			var slicers = this.aWorksheets[i].getSlicersByPivotTable(sheetId, pivotName);
+			res = res.concat(slicers);
+		}
+		return res;
+	};
+	Workbook.prototype.slicersUpdateAfterChangePivotTable = function (sheetId, pivotName) {
+		var slicers = this.getSlicersByPivotTable(sheetId, pivotName);
+		for (var j = 0; j < slicers.length; j++) {
+			this.onSlicerUpdate(slicers[j].name);
+		}
+	};
+	Workbook.prototype.deleteSlicersByPivotTable = function (sheetId, pivotName) {
+		var wb = this;
+		var slicerCaches = wb.getSlicerCachesByPivotTable(sheetId, pivotName);
+		slicerCaches.forEach(function (slicerCache) {
+			slicerCache.deletePivotTable(sheetId, pivotName);
+			if (0 === slicerCache.getPivotTablesCount()) {
+				var slicers = wb.getSlicersByCacheName(slicerCache.name);
+				if (slicers) {
+					slicers.forEach(function (slicer) {
+						wb.deleteSlicer(slicer.name);
+					});
+				}
+			}
+		});
+	};
+	Workbook.prototype.deleteSlicersByPivotTableAndFields = function (sheetId, pivotName, cacheFieldsToDelete) {
+		var wb = this;
+		var slicerCaches = wb.getSlicerCachesByPivotTable(sheetId, pivotName);
+		slicerCaches.forEach(function (slicerCache) {
+			if (cacheFieldsToDelete[slicerCache.getSourceName()]) {
+				slicerCache.deletePivotTable(sheetId, pivotName);
+				var slicers = wb.getSlicersByCacheName(slicerCache.name);
+				if (slicers) {
+					slicers.forEach(function (slicer) {
+						wb.deleteSlicer(slicer.name);
+					});
+				}
+			}
+		});
 	};
 
 	Workbook.prototype.deleteSlicersByTable = function (tableName, doDelDefName) {
@@ -3841,7 +3924,7 @@
 		}
 	};
 	Worksheet.prototype.copyFrom=function(wsFrom, sName, tableNames){
-		var i, elem, range;
+		var i, elem, range, _newSlicer;
 		var t = this;
 		this.sName = this.workbook.checkValidSheetName(sName) ? sName : this.workbook.getUniqueSheetNameFrom(wsFrom.sName, true);
 		this.bHidden = wsFrom.bHidden;
@@ -3910,8 +3993,6 @@
 		for (i = 0; i < wsFrom.aConditionalFormattingRules.length; ++i) {
 			this.aConditionalFormattingRules.push(wsFrom.aConditionalFormattingRules[i].clone());
 		}
-		if (wsFrom.dataValidations)
-			this.dataValidations = wsFrom.dataValidations.clone();
 		if (wsFrom.sheetPr)
 			this.sheetPr = wsFrom.sheetPr.clone();
 
@@ -3930,9 +4011,9 @@
 			//пока только для таблиц
 			var _slicer = wsFrom.aSlicers[i];
 			var _table = _slicer.getTableSlicerCache();
+			var pivotCache = _slicer.getPivotCache();
 			if (_table) {
 				var tableIdNew = renameParams.tableNameMap[_table.tableId];
-				var _newSlicer;
 				if (tableIdNew) {
 					_newSlicer = this.insertSlicer(_table.column, tableIdNew, window['AscCommonExcel'].insertSlicerType.table);
 					_newSlicer.set(_slicer.clone(), true);
@@ -3941,6 +4022,13 @@
 				if (_newSlicer) {
 					renameParams.slicerNameMap[_slicer.name] = _newSlicer.name;
 				}
+			} else if (pivotCache) {
+				var _newCacheDefinition = _slicer.getCacheDefinition().clone(this.workbook);
+				_newCacheDefinition.name = _newCacheDefinition.generateSlicerCacheName(_newCacheDefinition.name);
+				_newSlicer = this.insertSlicer(_slicer.name, undefined, window['AscCommonExcel'].insertSlicerType.pivotTable, undefined, _newCacheDefinition);
+				_newCacheDefinition.forCopySheet(wsFrom.getId(), this.getId());
+				_newSlicer.set(_slicer.clone(), true);
+				renameParams.slicerNameMap[_slicer.name] = _newSlicer.name;
 			}
 		}
 
@@ -4089,7 +4177,7 @@
 		this.initColumn(this.oAllCol);
 		this.aCols.forEach(this.initColumn, this);
 	};
-	Worksheet.prototype.initPostOpen = function (handlers, tableIds) {
+	Worksheet.prototype.initPostOpen = function (handlers, tableIds, sheetIds) {
 		var t = this;
 		this.PagePrintOptions.init();
 		this.headerFooter.init();
@@ -4109,7 +4197,7 @@
 		this.handlers = handlers;
 		this._setHandlersTablePart();
 		this.aSlicers.forEach(function(elem){
-			elem.initPostOpen(tableIds);
+			elem.initPostOpen(tableIds, sheetIds);
 		});
 		this.aNamedSheetViews.forEach(function(elem){
 			elem.initPostOpen(tableIds, t);
@@ -4118,6 +4206,9 @@
 	Worksheet.prototype.initPostOpenZip = function (pivotCaches, oNumFmts) {
 		this.pivotTables.forEach(function(pivotTable){
 			pivotTable.initPostOpenZip(oNumFmts);
+		});
+		this.aSlicers.forEach(function(slicer){
+			slicer.initPostOpenZip(pivotCaches);
 		});
 	};
 	Worksheet.prototype._getValuesForConditionalFormatting = function(ranges, numbers) {
@@ -6026,11 +6117,25 @@
 					this.movePivotOffset(oBBoxFrom, offset);
 				} else {
 					this.copyPivotTable(oBBoxFrom, offset, wsTo);
+					this._movePivotSlicerWsRefs(oBBoxTo, this, wsTo);
 					this.deletePivotTables(oBBoxFrom, true);
 				}
 			}
 		}
 	};
+	Worksheet.prototype._movePivotSlicerWsRefs = function (range, wsFrom, wsTo) {
+		var wb = this.workbook;
+		var pivotTable;
+		for (var i = 0; i < wsTo.pivotTables.length; ++i) {
+			pivotTable = wsTo.pivotTables[i];
+			if (pivotTable.isInRange(range)) {
+				var slicerCaches = wb.getSlicerCachesByPivotTable(wsFrom.getId(), pivotTable.asc_getName());
+				slicerCaches.forEach(function (slicerCache) {
+					slicerCache.movePivotTable(wsFrom.getId(), pivotTable.asc_getName(), wsTo.getId(), pivotTable.asc_getName());
+				});
+			}
+		}
+	}
 	Worksheet.prototype._moveMergedAndHyperlinksPrepare = function(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset) {
 		var res = {merged: [], hyperlinks: []};
 		if (!(false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges))) {
@@ -6280,6 +6385,7 @@
 		this._moveFormulas(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset);
 		this._moveCells(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset);
 		this._moveMergedAndHyperlinks(prepared, oBBoxFrom, oBBoxTo, copyRange, wsTo, offset);
+		this._moveDataValidation(oBBoxFrom, oBBoxTo, copyRange, offset, wsTo);
 
 		if(true == this.workbook.bUndoChanges || true == this.workbook.bRedoChanges) {
 			wsTo.autoFilters.unmergeTablesAfterMove(oBBoxTo);
@@ -6773,11 +6879,11 @@
 		});
 		return cwf;
 	};
-	Worksheet.prototype.getAllFormulas = function(formulas) {
+	Worksheet.prototype.getAllFormulas = function(formulas, needReturnCellProps) {
 		var range = this.getRange3(0, 0, gc_nMaxRow0, gc_nMaxCol0);
 		range._setPropertyNoEmpty(null, null, function(cell) {
 			if (cell.isFormula()) {
-				formulas.push(cell.getFormulaParsed());
+				formulas.push(needReturnCellProps ? {f: cell.getFormulaParsed(), c: cell.nCol, r: cell.nRow} : cell.getFormulaParsed());
 			}
 		});
 		for (var i = 0; i < this.TableParts.length; ++i) {
@@ -6896,6 +7002,36 @@
 		}
 		return c_oAscError.ID.No;
 	};
+	Worksheet.prototype.getSlicerCachesByPivotTable = function(sheetId, pivotName) {
+		var res = [];
+		for (var i = 0; i < this.aSlicers.length; i++) {
+			var cache = this.aSlicers[i].getSlicerCache();
+			if (cache && cache.indexOfPivotTable(sheetId, pivotName) >= 0) {
+				res.push(cache);
+			}
+		}
+		return res;
+	};
+	Worksheet.prototype.getSlicerCachesByPivotCacheId = function(pivotCacheId) {
+		var res = [];
+		for (var i = 0; i < this.aSlicers.length; i++) {
+			var cache = this.aSlicers[i].getSlicerCache();
+			if (cache && pivotCacheId === cache.getPivotCacheId()) {
+				res.push(cache);
+			}
+		}
+		return res;
+	};
+	Worksheet.prototype.getSlicersByPivotTable = function(sheetId, pivotName) {
+		var res = [];
+		for (var i = 0; i < this.aSlicers.length; i++) {
+			var cache = this.aSlicers[i].getSlicerCache();
+			if (cache && cache.indexOfPivotTable(sheetId, pivotName) >= 0) {
+				res.push(this.aSlicers[i]);
+			}
+		}
+		return res;
+	};
 	Worksheet.prototype.initPivotTables = function () {
 		for (var i = 0; i < this.pivotTables.length; ++i) {
 			this.pivotTables[i].init();
@@ -7005,7 +7141,7 @@
 		}
 	};
 	Worksheet.prototype._updatePivotTableCellsRowColLables = function(pivotTable, rowFieldsOffset) {
-		var items, fields, field, oCellValue, fieldIndex, cells, r1, c1, valuesIndex;
+		var items, fields, field, oCellValue, fieldIndex, cells, r1, c1, i, j, valuesIndex;
 		var pivotRange = pivotTable.getRange();
 		var location = pivotTable.location;
 		var hasLeftAlignInRowLables = false;
@@ -7044,10 +7180,23 @@
 		var pivotFields = pivotTable.asc_getPivotFields();
 
 		var totalTitleRange = [];
-		for (var i = 0; i < items.length; ++i) {
+		for (i = 0; i < items.length; ++i) {
 			var item = items[i];
 			var r = item.getR();
-			for (var j = 0; j < item.x.length; ++j) {
+			for (j = 0; j < r; ++j) {
+				fieldIndex = fields[j].asc_getIndex();
+				field = pivotFields[fieldIndex];
+				if (AscCommonExcel.st_VALUES !== fieldIndex && field.asc_getFillDownLabelsDefault() && totalTitleRange[j]) {
+					if (rowFieldsOffset) {
+						cells = this.getRange4(r1 + i, c1 + rowFieldsOffset[j]);
+					} else {
+						cells = this.getRange4(r1 + j, c1 + i);
+					}
+					cells.setStyle(totalTitleRange[j].getStyle());
+					cells.setValueData(totalTitleRange[j].getValueData());
+				}
+			}
+			for (j = 0; j < item.x.length; ++j) {
 				fieldIndex = null;
 				if (rowFieldsOffset) {
 					cells = this.getRange4(r1 + i, c1 + rowFieldsOffset[r + j]);
@@ -7577,8 +7726,8 @@
 		for (var i = 0; i < this.pivotTables.length; ++i) {
 			pivotTable = this.pivotTables[i];
 			if (pivotTable.isInRange(range)) {
-				var newPivot = pivotTable.clone();
-				newPivot.prepareToPaste(wsTo, offset);
+				var newPivot = pivotTable.cloneShallow();
+				newPivot.prepareToPaste(wsTo, offset, wsTo === pivotTable.GetWS());
 				this.workbook.oApi._changePivotSimple(newPivot, true, false, function() {
 					wsTo.insertPivotTable(newPivot, true, false);
 				});
@@ -7643,6 +7792,8 @@
 		}
 	};
 	Worksheet.prototype._deletePivotTable = function (pivotTables, pivotTable, index, withoutCells) {
+		this.workbook.deleteSlicersByPivotTable(this.getId(), pivotTable.asc_getName());
+
 		if (!withoutCells) {
 			this.clearPivotTableCell(pivotTable);
 		}
@@ -7699,22 +7850,62 @@
 		}
 		return res;
 	};
-	Worksheet.prototype.getPivotTableByDataRef = function(dataRef) {
-		var res = null;
+	Worksheet.prototype.getPivotTablesByCacheId = function (pivotCacheId) {
+		var res = [];
 		for (var i = 0; i < this.pivotTables.length; ++i) {
-			var pivotTable = this.pivotTables[i];
-			if (dataRef === pivotTable.asc_getDataRef()) {
-				res = pivotTable;
+			if (this.pivotTables[i].getPivotCacheId() === pivotCacheId) {
+				res.push(this.pivotTables[i]);
 				break;
 			}
 		}
 		return res;
 	};
 	Worksheet.prototype.getPivotCacheByDataRef = function(dataRef) {
-		var res = this.getPivotTableByDataRef(dataRef);
-		return res ? res.cacheDefinition : res;
+		return this.forEachPivotCache(undefined, function(cacheDefinition){
+			if (dataRef === cacheDefinition.getDataRef()) {
+				return cacheDefinition;
+			}
+		});
 	};
 
+	Worksheet.prototype.getPivotCacheById = function(pivotCacheId, pivotCachesOpen) {
+		return this.forEachPivotCache(pivotCachesOpen, function(cacheDefinition){
+			if (pivotCacheId === cacheDefinition.getPivotCacheId()) {
+				return cacheDefinition;
+			}
+		});
+	};
+	Worksheet.prototype.forEachPivotCache = function(pivotCachesOpen, callback) {
+		var res, i;
+		for (i = 0; i < this.pivotTables.length; ++i) {
+			res = callback(this.pivotTables[i].cacheDefinition);
+			if(res){
+				return res;
+			}
+		}
+		for (i = 0; i < this.aSlicers.length; ++i) {
+			var cacheDefinition = this.aSlicers[i].getPivotCache();
+			if (cacheDefinition) {
+				res = callback(cacheDefinition);
+				if(res){
+					return res;
+				}
+			}
+		}
+		//for slicer with zero pivot connection
+		if (pivotCachesOpen) {
+			for (var cacheId in pivotCachesOpen) {
+				var cacheDefinition = pivotCachesOpen[cacheId];
+				if (cacheDefinition) {
+					res = callback(cacheDefinition);
+					if(res){
+						return res;
+					}
+				}
+			}
+		}
+		return null;
+	};
 	Worksheet.prototype.insertPivotTable = function (pivotTable, addToHistory, checkCacheDefinition) {
 		pivotTable.worksheet = this;
 		pivotTable.setChanged(false, true);
@@ -8350,18 +8541,23 @@
 	};
 
 
-	Worksheet.prototype.insertSlicer = function (name, obj_name, type) {
+	Worksheet.prototype.insertSlicer = function (name, obj_name, type, pivotTable, slicerCacheDefinition) {
 		History.Create_NewPoint();
 		History.StartTransaction();
 
 		//TODO недостаточно ли вместо всей данной длинной структуры использовать только tableId(name) и columnName?
 		var slicer = new window['Asc'].CT_slicer(this);
-		slicer.init(name, obj_name, type);
+		slicer.cacheDefinition = slicerCacheDefinition || null;
+		var isNewCache = slicer.init(name, obj_name, type, undefined, pivotTable);
 		this.aSlicers.push(slicer);
 		var oCache = slicer.getCacheDefinition();
 
 		History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SlicerAdd, this.getId(), null,
 			new AscCommonExcel.UndoRedoData_FromTo(null, slicer));
+
+		if (isNewCache) {
+			slicer.updateItemsWithNoData();
+		}
 
 		if (oCache) {
 			var _name = oCache.name;
@@ -8858,6 +9054,96 @@
 			}
 		}
 	};
+
+	Worksheet.prototype.getDataValidationProps = function (doExtend) {
+		var _selection = this.getSelection();
+		
+		if (!this.dataValidations) {
+			var newDataValidation = new window['AscCommonExcel'].CDataValidation();
+			newDataValidation.showErrorMessage = true;
+			newDataValidation.showInputMessage = true;
+			newDataValidation.allowBlank = true;
+			return newDataValidation;
+		} else {
+			return this.dataValidations.getProps(_selection.ranges, doExtend, this);
+		}
+	};
+
+	Worksheet.prototype.setDataValidationProps = function (props) {
+		var _selection = this.getSelection();
+
+		if (!this.dataValidations) {
+			this.dataValidations = new window['AscCommonExcel'].CDataValidations();
+		}
+
+		this.dataValidations.setProps(this, _selection.ranges, props);
+	};
+
+	Worksheet.prototype.addDataValidation = function (dataValidation, addToHistory) {
+		if (!this.dataValidations) {
+			this.dataValidations = new window['AscCommonExcel'].CDataValidations();
+		}
+		this.dataValidations.add(this, dataValidation, addToHistory);
+	};
+
+	Worksheet.prototype.deleteDataValidationById = function (id) {
+		if (this.dataValidations) {
+			this.dataValidations.delete(this, id);
+		}
+	};
+
+	Worksheet.prototype.getDataValidationById = function (id) {
+		if (this.dataValidations) {
+			return this.dataValidations.getById(id);
+		}
+	};
+
+	Worksheet.prototype.shiftDataValidation = function (bInsert, operType, updateRange, addToHistory) {
+		if (this.dataValidations) {
+			this.dataValidations.shift(this, bInsert, operType, updateRange, addToHistory);
+		}
+	};
+
+	Worksheet.prototype.clearDataValidation = function (ranges, addToHistory) {
+		if (this.dataValidations) {
+			this.dataValidations.clear(this, ranges, addToHistory);
+		}
+	};
+
+	Worksheet.prototype._moveDataValidation = function (oBBoxFrom, oBBoxTo, copyRange, offset, wsTo) {
+		if (!wsTo) {
+			wsTo = this;
+		}
+		if (false === this.workbook.bUndoChanges && false === this.workbook.bRedoChanges) {
+			wsTo.clearDataValidation([oBBoxTo], true);
+
+			if (this === wsTo) {
+				if (this.dataValidations) {
+					this.dataValidations.move(this, oBBoxFrom, oBBoxTo, copyRange, offset);
+				}
+			} else {
+				var aDataValidations = this._getCopyDataValidationByRange(oBBoxFrom, offset);
+				if (aDataValidations) {
+					if (!copyRange) {
+						this.clearDataValidation([oBBoxFrom], true);
+					}
+
+					//далее необходимо создать новые объекты на новом листе
+					for (var i = 0; i < aDataValidations.length; i++) {
+						wsTo.addDataValidation(aDataValidations[i], true);
+					}
+				}
+			}
+		}
+	};
+
+	Worksheet.prototype._getCopyDataValidationByRange = function (range, offset) {
+		if (this.dataValidations) {
+			return this.dataValidations.getCopyByRange(range, offset);
+		}
+		return null;
+	};
+
 
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
@@ -11525,13 +11811,32 @@
 			return new Range(this.worksheet, r1, c1, r2, c2);
 		}
 	};
-	Range.prototype.setValue=function(val,callback, isCopyPaste, byRef, ignoreHyperlink){
+	Range.prototype.setValue=function(val, callback, isCopyPaste, byRef, ignoreHyperlink){
 		History.Create_NewPoint();
 		History.StartTransaction();
+		//не хотелось бы вводить дополнительный параметр, поэтому если byRef == null
+		//то в качестве значения придёт формула, которой необходимо сделать offset в зависимости от range
+		//при вызове данной функции обратить внимание на  параметр byRef
+		var _formula, t = this, activeCell;
+		if (byRef === null) {
+			_formula = new AscCommonExcel.parserFormula(val.substr(1), null, this.worksheet);
+			if (!_formula.parse(true)) {
+				_formula = null;
+			} else {
+				var _selection = this.worksheet.getSelection();
+				activeCell = _selection.activeCell;
+			}
+		}
 		this._foreach(function(cell){
-			cell.setValue(val,callback, isCopyPaste, byRef, ignoreHyperlink);
-			// if(cell.isEmpty())
-			// cell.Remove();
+			var _val = val;
+			if (_formula) {
+				_formula.isParsed = false;
+				_formula.outStack = [];
+				_formula.parse(true);
+				var offset = new AscCommon.CellBase(cell.nRow - activeCell.row, cell.nCol - activeCell.col);
+				_val = "=" + _formula.changeOffset(offset, null, true).assemble(true);
+			}
+			cell.setValue(_val, callback, isCopyPaste, byRef, ignoreHyperlink);
 		});
 		History.EndTransaction();
 	};
@@ -11579,6 +11884,28 @@
 						  function(cell){
 							  cell.setCellStyle(val);
 						  });
+	};
+	Range.prototype.setStyle=function(val){
+		History.Create_NewPoint();
+		this.createCellOnRowColCross();
+		var fSetProperty = this._setProperty;
+		var nRangeType = this._getRangeType();
+		if(c_oRangeType.All == nRangeType)
+		{
+			this.worksheet.getAllCol().setStyle(val);
+			fSetProperty = this._setPropertyNoEmpty;
+		}
+		fSetProperty.call(this, function(row){
+				if(c_oRangeType.All == nRangeType && null == row.xfs)
+					return;
+				row.setStyle(val);
+			},
+			function(col){
+				col.setStyle(val);
+			},
+			function(cell){
+				cell.setStyle(val);
+			});
 	};
 	Range.prototype.clearTableStyle = function() {
 		this.worksheet.sheetMergedStyles.clearTablePivotStyle(this.bbox);
@@ -12330,6 +12657,7 @@
 		});
 		return xfs || g_oDefaultFormat.xfs;
 	};
+	Range.prototype.getStyle = Range.prototype.getXfs;
 	Range.prototype.getXfId = function () {
 		var t = this;
 		var nRow = this.bbox.r1;
@@ -14581,6 +14909,46 @@
 								var oNewHyperlink = new Asc.Range(i + oHyperlinkBBox.c1 - from.c1, j + oHyperlinkBBox.r1 - from.r1, i + oHyperlinkBBox.c2 - from.c1, j + oHyperlinkBBox.r2 - from.r1);
 								if (to.containsRange(oNewHyperlink))
 									wsTo.hyperlinkManager.add(oNewHyperlink, oHyperlink.data.clone());
+							}
+						}
+					}
+				}
+
+
+				var aDataValidations;
+				if (wsFrom.dataValidations && wsTo.dataValidations) {
+					wsTo.clearDataValidation([to], true);
+					aDataValidations = wsFrom.dataValidations.getIntersectionByRange(from);
+				}
+				if(aDataValidations && aDataValidations.length > 0) {
+					var newDataValidations = [];
+					for (var i = to.c1; i <= to.c2; i += nDx) {
+						for (var j = to.r1; j <= to.r2; j += nDy) {
+							for(var k = 0, length3 = aDataValidations.length; k < length3; k++){
+								var oDataValidation = aDataValidations[k];
+								var ranges = oDataValidation.ranges;
+								for (var n = 0; n < ranges.length; n++) {
+									var _newRange = new Asc.Range(i + ranges[n].c1 - from.c1, j + ranges[n].r1 - from.r1, i + ranges[n].c2 - from.c1, j + ranges[n].r2 - from.r1);
+									if (to.containsRange(_newRange)) {
+										if (!newDataValidations[k]) {
+											newDataValidations[k] = [];
+										}
+										newDataValidations[k].push(_newRange);
+									}
+								}
+							}
+						}
+					}
+					if (newDataValidations && newDataValidations.length) {
+						for (var i = 0; i < newDataValidations.length; i++) {
+							if (newDataValidations[i] && newDataValidations[i].length) {
+								var fromDataValidation = wsFrom.getDataValidationById(aDataValidations[i].id);
+								if (fromDataValidation) {
+									fromDataValidation = fromDataValidation.data;
+									var toDataValidation = fromDataValidation.clone();
+									toDataValidation.ranges = fromDataValidation.ranges.concat(newDataValidations[i]);
+									wsTo.dataValidations.change(wsTo, fromDataValidation, toDataValidation, true);
+								}
 							}
 						}
 					}

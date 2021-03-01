@@ -293,6 +293,10 @@ CCommentData.prototype.GetQuoteText = function()
 {
 	return this.Get_QuoteText();
 };
+CCommentData.prototype.SetQuoteText = function(sText)
+{
+	this.Set_QuoteText(sText);
+};
 CCommentData.prototype.IsSolved = function()
 {
 	return this.m_bSolved;
@@ -628,6 +632,14 @@ CComment.prototype.IsCurrentUser = function()
 	}
 
 	return true;
+};
+CComment.prototype.MoveCursorToStart = function()
+{
+	var oStartPara = g_oTableId.Get_ById(this.StartId);
+	if (oStartPara && (oStartPara instanceof Paragraph))
+	{
+		oStartPara.MoveCursorToCommentMark(this.Id);
+	}
 };
 
 var comments_NoComment        = 0;

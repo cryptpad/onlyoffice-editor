@@ -1986,6 +1986,11 @@
             }
         }
     };
+    CGraphicObjectBase.prototype.documentCreateFontMap = function(oMap) {
+    };
+    CGraphicObjectBase.prototype.createFontMap = function(oMap) {
+        this.documentCreateFontMap(oMap);
+    };
     
     function CRelSizeAnchor() {
         CBaseObject.call(this);

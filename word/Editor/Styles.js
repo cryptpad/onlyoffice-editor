@@ -6668,6 +6668,62 @@ CStyle.prototype.CreateTOCHeading = function()
 	this.Set_UnhideWhenUsed(true);
 	this.Set_ParaPr(ParaPr);
 };
+CStyle.prototype.CreateTOF = function(nType)
+{
+	var nType_;
+	var oParaPr = new CParaPr(), oTextPr = new CTextPr();
+	oParaPr.Spacing.Set_FromObject({After: 0, AfterAutoSpacing: 0});
+	if(Asc.c_oAscTOFStylesType)
+	{
+		if(nType === undefined || nType === null)
+		{
+			nType_ = Asc.c_oAscTOFStylesType.Formal;
+		}
+		else
+		{
+			nType_ = nType;
+		}
+		switch(nType_)
+		{
+			case Asc.c_oAscTOFStylesType.Classic:
+			{
+				oTextPr.SetCaps(true);
+				break;
+			}
+			case Asc.c_oAscTOFStylesType.Distinctive:
+			{
+				oTextPr.SetItalic(true);
+				break;
+			}
+			case Asc.c_oAscTOFStylesType.Centered:
+			{
+				oTextPr.SetBold(true);
+				oTextPr.SetItalic(true);
+				oParaPr.SetJc(AscCommon.align_Center);
+				break;
+			}
+			case Asc.c_oAscTOFStylesType.Formal:
+			{
+				break;
+			}
+			case Asc.c_oAscTOFStylesType.Simple:
+			{
+				oTextPr.SetBold(true);
+				break;
+			}
+			case Asc.c_oAscTOFStylesType.Web:
+			{
+				oTextPr.SetUnderline(true);
+				oTextPr.SetUnifill(AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorHyperlink, null, null));
+				break;
+			}
+		}
+	}
+	this.Set_UiPriority(99);
+	this.Set_UnhideWhenUsed(true);
+	this.Set_ParaPr(oParaPr);
+	this.Set_TextPr(oTextPr);
+};
 /**
  * Дефолтовые настройки для стиля ListParagraph
  */
@@ -7315,6 +7371,7 @@ function CStyles(bCreateDefault)
 			IntenseQuote      : null,
 			TOC               : [],
 			TOCHeading        : null,
+			TOF               : null,
 			Caption           : null,
 			EndnoteText       : null,
 			EndnoteTextChar   : null,
@@ -7970,6 +8027,10 @@ function CStyles(bCreateDefault)
 		oStyleTOCHeading.CreateTOCHeading();
 		this.Default.TOCHeading = this.Add(oStyleTOCHeading);
 
+		var oStyleTOF = new CStyle("table of figures", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		oStyleTOF.CreateTOF();
+		this.Default.TOF = this.Add(oStyleTOF);
+
         // Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
         g_oTableId.Add( this, this.Id );
     }
@@ -7998,6 +8059,7 @@ function CStyles(bCreateDefault)
 
 			TOC               : [],
 			TOCHeading        : null,
+			TOF               : null,
 			Caption           : null,
 			EndnoteText       : null,
 			EndnoteTextChar   : null,
@@ -9491,6 +9553,10 @@ CStyles.prototype.GetDefaultTOCHeading = function()
 {
 	return this.Default.TOCHeading;
 };
+CStyles.prototype.GetDefaultTOF = function()
+{
+	return this.Default.TOF;
+};
 CStyles.prototype.GetDefaultHyperlink = function()
 {
 	return this.Default.Hyperlink;
@@ -9557,6 +9623,55 @@ CStyles.prototype.private_CheckTOCStyle = function(nLvl, nType)
 
 	return (!!oCheckStyle.IsEqual(oTOCStyle));
 };
+
+/**
+ * Get table of figures style type
+ * @returns {Asc.c_oAscTOCStylesType}
+ */
+CStyles.prototype.GetTOFStyleType = function()
+{
+	if(this.private_CheckTOFStyle(Asc.c_oAscTOFStylesType.Classic))
+	{
+		return Asc.c_oAscTOFStylesType.Classic;
+	}
+	else if(this.private_CheckTOFStyle(Asc.c_oAscTOFStylesType.Distinctive))
+	{
+		return Asc.c_oAscTOFStylesType.Distinctive;
+	}
+	else if(this.private_CheckTOFStyle(Asc.c_oAscTOFStylesType.Centered))
+	{
+		return Asc.c_oAscTOFStylesType.Centered;
+	}
+	else if(this.private_CheckTOFStyle(Asc.c_oAscTOFStylesType.Formal))
+	{
+		return Asc.c_oAscTOFStylesType.Formal;
+	}
+	else if(this.private_CheckTOFStyle(Asc.c_oAscTOFStylesType.Simple))
+	{
+		return Asc.c_oAscTOFStylesType.Simple;
+	}
+	else if(this.private_CheckTOFStyle(Asc.c_oAscTOFStylesType.Web))
+	{
+		return Asc.c_oAscTOFStylesType.Web;
+	}
+	return Asc.c_oAscTOFStylesType.Current;
+};
+CStyles.prototype.private_CheckTOFStyle = function(nType)
+{
+	var oTOCStyle = this.Get(this.GetDefaultTOF());
+
+	if (!this.LogicDocument || !oTOCStyle)
+		return false;
+
+	this.LogicDocument.TurnOffHistory();
+	var oCheckStyle = new CStyle();
+	oCheckStyle.Clear(oTOCStyle.GetName(), oTOCStyle.GetBasedOn(), oTOCStyle.GetNext(), oTOCStyle.GetType());
+	oCheckStyle.CreateTOF(nType);
+	this.LogicDocument.TurnOnHistory();
+
+	return (!!oCheckStyle.IsEqual(oTOCStyle));
+};
+
 /**
  * Переделываем стили для Table of Contents на заданную коллекцию стилей
  * @param nType {Asc.c_oAscTOCStylesType}
@@ -9576,6 +9691,24 @@ CStyles.prototype.SetTOCStylesType = function(nType)
 		oStyle.CreateTOC(nLvl, nType);
 	}
 };
+
+
+/**
+ * Recreate table of figures style according to current style type
+ * @param nType {Asc.c_oAscTOCStylesType}
+ */
+CStyles.prototype.SetTOFStyleType = function(nType)
+{
+	if (Asc.c_oAscTOCStylesType.Current === nType)
+		return;
+	var oStyle = this.Get(this.GetDefaultTOF());
+	if (!oStyle)
+		return;
+
+	oStyle.Clear(oStyle.GetName(), oStyle.GetBasedOn(), oStyle.GetNext(), oStyle.GetType());
+	oStyle.CreateTOF(nType);
+};
+
 /**
  * Получаем массив стилей в виде классов Asc.CAscStyle
  * @returns {Asc.CAscStyle[]}
@@ -10172,6 +10305,10 @@ CDocumentBorder.prototype.GetWidth = function()
 
 	return this.Size;
 };
+CDocumentBorder.prototype.GetColor = function(oParagraph)
+{
+	return this.Get_Color(oParagraph);
+};
 CDocumentBorder.prototype.IsEqual = function(oBorder)
 {
 	if (!oBorder || this.Value !== oBorder.Value)
@@ -10184,6 +10321,14 @@ CDocumentBorder.prototype.IsEqual = function(oBorder)
 		&& IsEqualStyleObjects(this.Unifill, oBorder.Unifill)
 		&& this.Space !== oBorder.Space
 		&& this.Size !== oBorder.Size);
+};
+CDocumentBorder.prototype.WriteToBinary = function(oWriter)
+{
+	return this.Write_ToBinary(oWriter);
+};
+CDocumentBorder.prototype.ReadFromBinary = function(oReader)
+{
+	return this.Read_FromBinary(oReader);
 };
 
 function CTableMeasurement(Type, W)
@@ -10230,7 +10375,7 @@ CTableMeasurement.prototype =
  */
 CTableMeasurement.prototype.IsMM = function()
 {
-	return !!(tblwidth_Mm === this.Type);
+	return (tblwidth_Mm === this.Type);
 };
 /**
  * Измерение в процентах?
@@ -10238,7 +10383,15 @@ CTableMeasurement.prototype.IsMM = function()
  */
 CTableMeasurement.prototype.IsPercent = function()
 {
-	return !!(tblwidth_Pct === this.Type);
+	return (tblwidth_Pct === this.Type);
+};
+/**
+ * Ширина должна быть расчитана автоматически
+ * @returns {boolean}
+ */
+CTableMeasurement.prototype.IsAuto = function()
+{
+	return (tblwidth_Auto === this.Type);
 };
 /**
  * Получаем значение ширины в процентах или в миллиметрах
@@ -10248,6 +10401,19 @@ CTableMeasurement.prototype.GetValue = function()
 {
 	return this.W;
 };
+/**
+ * Расчитываем ширину с учетом заданного типа
+ * @param {number} nFullWidth - ширина родительского элемента для расчета значения процентах
+ */
+CTableMeasurement.prototype.GetCalculatedValue = function(nFullWidth)
+{
+	if (this.IsMM())
+		return this.W;
+	else if (this.IsPercent())
+		return this.W * nFullWidth / 100;
+
+	return 0;
+}
 CTableMeasurement.prototype.ReadFromBinary = function(oReader)
 {
 	// Double : W
@@ -12251,12 +12417,15 @@ function CTextPr()
     this.Shd        = undefined;
     this.Vanish     = undefined;
 
-    this.TextOutline = undefined;
-    this.TextFill    = undefined;
+    this.TextOutline    = undefined;
+    this.TextFill       = undefined;
 	this.HighlightColor = undefined;
 	this.FontScale      = undefined;
-	this.PrChange   = undefined;
-	this.ReviewInfo = undefined;
+	this.FontSizeOrig   = undefined;
+	this.FontSizeCSOrig = undefined;
+
+	this.PrChange       = undefined;
+	this.ReviewInfo     = undefined;
 }
 
 CTextPr.prototype.Clear = function()
@@ -12295,6 +12464,8 @@ CTextPr.prototype.Clear = function()
 	this.AscUnifill     = undefined;
 	this.AscLine        = undefined;
 	this.FontScale      = undefined;
+	this.FontSizeOrig   = undefined;
+	this.FontSizeCSOrig = undefined;
 
 	this.PrChange   = undefined;
 	this.ReviewInfo = undefined;
@@ -12528,7 +12699,9 @@ CTextPr.prototype.InitDefault = function(nCompatibilityMode)
 	this.TextOutline    = undefined;
 	this.TextFill       = undefined;
 	this.HighlightColor = undefined;
-	this.FontScale = undefined;
+	this.FontScale      = undefined;
+	this.FontSizeOrig   = undefined;
+	this.FontSizeCSOrig = undefined;
 
 	this.PrChange   = undefined;
 	this.ReviewInfo = undefined;
@@ -12825,10 +12998,38 @@ CTextPr.prototype.ReplaceThemeFonts = function(oFontScheme)
 	}
 };
 
+
+CTextPr.prototype.GetIncDecFontSize = function(IncFontSize)
+{
+	var FontSize = this.FontSize;
+	if(this.FontScale !== null &&
+		this.FontScale !== undefined &&
+		this.FontSizeOrig !== null &&
+		this.FontSizeOrig !== undefined)
+	{
+		FontSize = this.FontSizeOrig;
+	}
+	return FontSize_IncreaseDecreaseValue(IncFontSize, FontSize);
+};
+CTextPr.prototype.GetIncDecFontSizeCS = function(IncFontSize)
+{
+	var FontSize = this.FontSizeCS;
+	if(this.FontScale !== null &&
+		this.FontScale !== undefined &&
+		this.FontSizeCSOrig !== null &&
+		this.FontSizeCSOrig !== undefined)
+	{
+		FontSize = this.FontSizeCSOrig;
+	}
+	return FontSize_IncreaseDecreaseValue(IncFontSize, FontSize);
+};
+
 CTextPr.prototype.CheckFontScale =  function()
 {
 	if(this.FontScale !== null && this.FontScale !== undefined)
 	{
+		this.FontSizeOrig   = this.FontSize;
+		this.FontSizeCSOrig = this.FontSizeCS;
 		this.FontSize *= 	this.FontScale;
 		this.FontSize = (this.FontSize + 0.5) >> 0;
 		this.FontSize = Math.max(1, this.FontSize);
@@ -15017,6 +15218,10 @@ CFramePr.prototype =
         return false;
     }
 };
+CFramePr.prototype.GetW = function()
+{
+	return this.W;
+};
 CFramePr.prototype.IsEqual = function(oFramePr)
 {
 	if (!oFramePr)
@@ -16168,7 +16373,7 @@ CParaPr.prototype.Get_PresentationBullet = function(theme, colorMap)
 
 			case AscFormat.BULLET_TYPE_BULLET_AUTONUM :
 			{
-				Bullet.m_nType    = g_NumberingArr[this.Bullet.bulletType.AutoNumType];
+				Bullet.m_nType    = this.Bullet.bulletType.AutoNumType;
 				if(this.Bullet.bulletType.startAt === null)
 				{
 					Bullet.m_nStartAt = 1;

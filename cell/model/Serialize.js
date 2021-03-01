@@ -777,7 +777,7 @@
 		ErrorStyle: 9,
 		ImeMode: 10,
 		Operator: 11,
-		Promt: 12,
+		Prompt: 12,
 		PromptTitle: 13,
 		ShowDropDown: 14,
 		ShowErrorMessage: 15,
@@ -2744,7 +2744,7 @@
             }
         };
     }
-    function BinaryWorkbookTableWriter(memory, wb, oBinaryWorksheetsTableWriter, isCopyPaste, tableIds)
+    function BinaryWorkbookTableWriter(memory, wb, oBinaryWorksheetsTableWriter, isCopyPaste, tableIds, sheetIds)
     {
         this.memory = memory;
         this.bs = new BinaryCommonWriter(this.memory);
@@ -2752,6 +2752,7 @@
         this.oBinaryWorksheetsTableWriter = oBinaryWorksheetsTableWriter;
         this.isCopyPaste = isCopyPaste;
         this.tableIds = tableIds;
+        this.sheetIds = sheetIds;
         this.Write = function()
         {
             var oThis = this;
@@ -2765,6 +2766,14 @@
                 for (var i = 0; i < ws.TableParts.length; ++i) {
                     oThis.tableIds[ws.TableParts[i].DisplayName] = {id: index++, table: ws.TableParts[i]}
                 }
+            }, this.oBinaryWorksheetsTableWriter.isCopyPaste);
+        };
+        this.PrepareSheetIds = function()
+        {
+            var oThis = this;
+            var index = 1;
+            this.oBinaryWorksheetsTableWriter.wb.forEach(function(ws) {
+                oThis.sheetIds[ws.getId()] = index++;
             }, this.oBinaryWorksheetsTableWriter.isCopyPaste);
         };
         this.WriteWorkbookContent = function()
@@ -2795,8 +2804,22 @@
 						if (!pivotCache) {
 							pivotCache = {id: pivotCacheIndex++, cache: pivotTable.cacheDefinition};
 							pivotCaches[pivotTable.cacheDefinition.Get_Id()] = pivotCache;
-				}
+						}
 						pivotTable.cacheId = pivotCache.id;
+					}
+				}
+				for (var i = 0; i < ws.aSlicers.length; ++i) {
+					var slicer = ws.aSlicers[i];
+					if (oThis.isCopyPaste) {
+						continue;
+					}
+					var cacheDefinition = slicer.getPivotCache();
+					if (cacheDefinition) {
+						var pivotCache = pivotCaches[cacheDefinition.Get_Id()];
+						if (!pivotCache) {
+							pivotCache = {id: pivotCacheIndex++, cache: cacheDefinition};
+							pivotCaches[cacheDefinition.Get_Id()] = pivotCache;
+						}
 					}
 				}
 			}, this.oBinaryWorksheetsTableWriter.isCopyPaste);
@@ -2808,6 +2831,7 @@
             if (!this.oBinaryWorksheetsTableWriter.isCopyPaste) {
                 this.PrepareTableIds();
             }
+            this.PrepareSheetIds();
 
             var slicerCacheIndex = 0;
             var slicerCaches = {};
@@ -2828,10 +2852,10 @@
                 }
             }, this.oBinaryWorksheetsTableWriter.isCopyPaste);
             if (slicerCacheIndex > 0) {
-                this.bs.WriteItem(c_oSerWorkbookTypes.SlicerCaches, function () {oThis.WriteSlicerCaches(slicerCaches, oThis.tableIds);});
+                this.bs.WriteItem(c_oSerWorkbookTypes.SlicerCaches, function () {oThis.WriteSlicerCaches(slicerCaches, oThis.tableIds, oThis.sheetIds);});
             }
             if (slicerCacheExtIndex > 0) {
-                this.bs.WriteItem(c_oSerWorkbookTypes.SlicerCachesExt, function () {oThis.WriteSlicerCaches(slicerCachesExt, oThis.tableIds);});
+                this.bs.WriteItem(c_oSerWorkbookTypes.SlicerCachesExt, function () {oThis.WriteSlicerCaches(slicerCachesExt, oThis.tableIds, oThis.sheetIds);});
             }
 			if (!this.isCopyPaste && this.wb.externalReferences.length > 0) {
 				this.bs.WriteItem(c_oSerWorkbookTypes.ExternalReferences, function() {oThis.WriteExternalReferences();});
@@ -3036,7 +3060,7 @@
 			}
 			pivotCache.id = oldId;
 		};
-        this.WriteSlicerCaches = function(slicerCaches, tableIds) {
+        this.WriteSlicerCaches = function(slicerCaches, tableIds, sheetIds) {
             var oThis = this;
             var stream = pptx_content_writer.BinaryFileWriter;
             for (var name in slicerCaches) {
@@ -3047,7 +3071,7 @@
                         stream.ImportFromMemory(oThis.memory);
 
                         stream.StartRecord(0);
-                        slicerCaches[name].toStream(stream, tableIds, oThis.isCopyPaste || oThis.isCopyPaste === false);
+                        slicerCaches[name].toStream(stream, tableIds, sheetIds, oThis.isCopyPaste || oThis.isCopyPaste === false);
                         stream.EndRecord();
 
                         stream.ExportToMemory(oThis.memory);
@@ -3197,7 +3221,7 @@
             }
         };
     }
-	function BinaryWorksheetsTableWriter(memory, wb, oSharedStrings, aDxfs, personList, isCopyPaste, bsw, saveThreadedComments, commentUniqueGuids, tableIds)
+	function BinaryWorksheetsTableWriter(memory, wb, oSharedStrings, aDxfs, personList, isCopyPaste, bsw, saveThreadedComments, commentUniqueGuids, tableIds, sheetIds)
     {
         this.memory = memory;
         this.bs = new BinaryCommonWriter(this.memory);
@@ -3213,6 +3237,7 @@
 		this.sharedFormulasIndex = 0;
         this.commentUniqueGuids = commentUniqueGuids;
         this.tableIds = tableIds;
+        this.sheetIds = sheetIds;
         this._getCrc32FromObjWithProperty = function(val)
         {
             return Asc.crc32(this._getStringFromObjWithProperty(val));
@@ -3259,7 +3284,7 @@
 			var hasColorFilter = false;
 			this.wb.forEach(function (ws, index) {
 				oThis.bs.WriteItem(c_oSerWorksheetsTypes.Worksheet, function () {
-					oThis.WriteWorksheet(ws, index);
+					oThis.WriteWorksheet(ws);
 				});
 				hasColorFilter = ws.aNamedSheetViews.some(function(namedSheetView){
 					return namedSheetView.hasColorFilter();
@@ -3271,11 +3296,11 @@
 				this.aDxfs.push(new AscCommonExcel.CellXfs());
 			}
         };
-        this.WriteWorksheet = function(ws, index)
+        this.WriteWorksheet = function(ws)
         {
             var i;
             var oThis = this;
-            this.bs.WriteItem(c_oSerWorksheetsTypes.WorksheetProp, function(){oThis.WriteWorksheetProp(ws, index);});
+            this.bs.WriteItem(c_oSerWorksheetsTypes.WorksheetProp, function(){oThis.WriteWorksheetProp(ws);});
 
             if(ws.aCols.length > 0 || null != ws.oAllCol)
                 this.bs.WriteItem(c_oSerWorksheetsTypes.Cols, function(){oThis.WriteWorksheetCols(ws);});
@@ -3461,10 +3486,10 @@
 				this.memory.WriteByte(c_oSerPropLenType.Byte);
 				this.memory.WriteByte(dataValidation.operator);
 			}
-			if (null != dataValidation.promt) {
-				this.memory.WriteByte(c_oSer_DataValidation.Promt);
+			if (null != dataValidation.prompt) {
+				this.memory.WriteByte(c_oSer_DataValidation.Prompt);
 				this.memory.WriteByte(c_oSerPropLenType.Variable);
-				this.memory.WriteString2(dataValidation.promt);
+				this.memory.WriteString2(dataValidation.prompt);
 			}
 			if (null != dataValidation.promptTitle) {
 				this.memory.WriteByte(c_oSer_DataValidation.PromptTitle);
@@ -3502,7 +3527,7 @@
 				this.memory.WriteString2(dataValidation.formula2.text);
 			}
 		};
-        this.WriteWorksheetProp = function(ws, index)
+        this.WriteWorksheetProp = function(ws)
         {
             var oThis = this;
             //Name
@@ -3512,7 +3537,7 @@
             //SheetId
             this.memory.WriteByte(c_oSerWorksheetPropTypes.SheetId);
             this.memory.WriteByte(c_oSerPropLenType.Long);
-            this.memory.WriteLong(index + 1);
+            this.memory.WriteLong(this.sheetIds[ws.getId()] || 1);
             //Hidden
             if(null != ws.bHidden)
             {
@@ -5174,9 +5199,10 @@
             var personList = [];
             var commentUniqueGuids = {};
             var tableIds = {};
+            var sheetIds = {};
 			var oBinaryStylesTableWriter = new BinaryStylesTableWriter(this.Memory, this.wb, aDxfs);
-			var oBinaryWorksheetsTableWriter = new BinaryWorksheetsTableWriter(this.Memory, this.wb, oSharedStrings, aDxfs, personList, this.isCopyPaste, oBinaryStylesTableWriter, this.saveThreadedComments, commentUniqueGuids, tableIds);
-            this.WriteTable(c_oSerTableTypes.Workbook, new BinaryWorkbookTableWriter(this.Memory, this.wb, oBinaryWorksheetsTableWriter, this.isCopyPaste, tableIds));
+			var oBinaryWorksheetsTableWriter = new BinaryWorksheetsTableWriter(this.Memory, this.wb, oSharedStrings, aDxfs, personList, this.isCopyPaste, oBinaryStylesTableWriter, this.saveThreadedComments, commentUniqueGuids, tableIds, sheetIds);
+            this.WriteTable(c_oSerTableTypes.Workbook, new BinaryWorkbookTableWriter(this.Memory, this.wb, oBinaryWorksheetsTableWriter, this.isCopyPaste, tableIds, sheetIds));
             //Worksheets
             this.WriteTable(c_oSerTableTypes.Worksheets, oBinaryWorksheetsTableWriter);
             if (personList.length > 0) {
@@ -7485,7 +7511,7 @@
 					data.table.cacheDefinition = cacheDefinition;
 					oWorksheet.insertPivotTable(data.table);
 				}
-            } else if (/*c_oSerWorksheetsTypes.Slicers === type ||*/ c_oSerWorksheetsTypes.SlicersExt === type) {
+            } else if (c_oSerWorksheetsTypes.Slicers === type || c_oSerWorksheetsTypes.SlicersExt === type) {
                 res = this.bcr.Read1(length, function(t, l) {
                     return oThis.ReadSlicers(t, l, oWorksheet);
                 });
@@ -7584,8 +7610,8 @@
 				dataValidation.imeMode = this.stream.GetUChar();
 			} else if (c_oSer_DataValidation.Operator == type) {
 				dataValidation.operator = this.stream.GetUChar();
-			} else if (c_oSer_DataValidation.Promt == type) {
-				dataValidation.promt = this.stream.GetString2LE(length);
+			} else if (c_oSer_DataValidation.Prompt == type) {
+				dataValidation.prompt = this.stream.GetString2LE(length);
 			} else if (c_oSer_DataValidation.PromptTitle == type) {
 				dataValidation.promptTitle = this.stream.GetString2LE(length);
 			} else if (c_oSer_DataValidation.ShowDropDown == type) {
@@ -7597,9 +7623,9 @@
 			} else if (c_oSer_DataValidation.SqRef == type) {
 			    dataValidation.setSqRef(this.stream.GetString2LE(length));
 			} else if (c_oSer_DataValidation.Formula1 == type) {
-			    dataValidation.formula1 = new AscCommonExcel.CDataFormula(this.stream.GetString2LE(length));
+			    dataValidation.formula1 = new Asc.CDataFormula(this.stream.GetString2LE(length));
 			} else if (c_oSer_DataValidation.Formula2 == type) {
-                dataValidation.formula2 = new AscCommonExcel.CDataFormula(this.stream.GetString2LE(length));
+                dataValidation.formula2 = new Asc.CDataFormula(this.stream.GetString2LE(length));
 			} else
 				res = c_oSerConstants.ReadUnknown;
 			return res;
@@ -7612,9 +7638,9 @@
                 oWorksheet.sName = this.stream.GetString2LE(length);
 				AscFonts.FontPickerByCharacter.getFontsByString(oWorksheet.sName);
             }
-            else if ( c_oSerWorksheetPropTypes.SheetId == type )
-                oWorksheet.nSheetId = this.stream.GetULongLE();
-            else if ( c_oSerWorksheetPropTypes.State == type )
+            else if ( c_oSerWorksheetPropTypes.SheetId == type ) {
+                this.oReadResult.sheetIds[this.stream.GetULongLE()] = oWorksheet;
+            } else if ( c_oSerWorksheetPropTypes.State == type )
             {
                 switch(this.stream.GetUChar())
                 {
@@ -9465,7 +9491,8 @@
 			macros: null,
             slicerCaches: {},
 			tableIds: {},
-			defNames: []
+			defNames: [],
+			sheetIds: {}
         };
         this.getbase64DecodedData = function(szSrc)
         {
@@ -9842,11 +9869,11 @@
 				if (!this.copyPasteObj.isCopyPaste) {
 					this.PostLoadPrepare(wb);
 				}
-                wb.init(this.oReadResult.tableCustomFunc, this.oReadResult.tableIds, false, true);
+                wb.init(this.oReadResult.tableCustomFunc, this.oReadResult.tableIds, this.oReadResult.sheetIds, false, true);
             } else {
 				bwtr.ReadSheetDataExternal(true);
 				if(window["Asc"] && window["Asc"]["editor"] !== undefined) {
-					wb.init(this.oReadResult.tableCustomFunc, this.oReadResult.tableIds, true);
+					wb.init(this.oReadResult.tableCustomFunc, this.oReadResult.tableIds, this.oReadResult.sheetIds, true);
 				}
             }
             return res;

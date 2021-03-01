@@ -79,8 +79,7 @@ var c_oAscError = Asc.c_oAscError;
 			var file = _file;
 			if (Array.isArray(file))
 				file = file[0];
-
-			if (file == "")
+			if (!file)
 				return;
 
 			var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](file);
@@ -143,7 +142,7 @@ var c_oAscError = Asc.c_oAscError;
 			this.LastUserSavedIndex = AscCommon.History.UserSavedIndex;
 		}
 
-		if (true === this.canSave && !this.isLongAction())
+		if (true === this.canSave && this._saveCheck())
 		{
 			var _isNaturalSave = this.IsUserSave;
 			this.canSave = false;

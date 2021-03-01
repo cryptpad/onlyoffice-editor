@@ -54,6 +54,8 @@ function (window, undefined) {
 	var cArea3D = AscCommonExcel.cArea3D;
 	var cRef = AscCommonExcel.cRef;
 	var cRef3D = AscCommonExcel.cRef3D;
+	var cName = AscCommonExcel.cName;
+	var cName3D = AscCommonExcel.cName3D;
 	var cEmpty = AscCommonExcel.cEmpty;
 	var cArray = AscCommonExcel.cArray;
 	var cBaseFunction = AscCommonExcel.cBaseFunction;
@@ -67,7 +69,7 @@ function (window, undefined) {
 	cFormulaFunctionGroup['LookupAndReference'] = cFormulaFunctionGroup['LookupAndReference'] || [];
 	cFormulaFunctionGroup['LookupAndReference'].push(cADDRESS, cAREAS, cCHOOSE, cCOLUMN, cCOLUMNS, cFORMULATEXT,
 		cGETPIVOTDATA, cHLOOKUP, cHYPERLINK, cINDEX, cINDIRECT, cLOOKUP, cMATCH, cOFFSET, cROW, cROWS, cRTD, cTRANSPOSE,
-		cVLOOKUP);
+		cUNIQUE, cVLOOKUP);
 
 	cFormulaFunctionGroup['NotRealised'] = cFormulaFunctionGroup['NotRealised'] || [];
 	cFormulaFunctionGroup['NotRealised'].push(cAREAS, cGETPIVOTDATA, cRTD);
@@ -649,18 +651,18 @@ function (window, undefined) {
 							} else {
 								res = new Asc.Range(bbox.c1 + arg2 - 1, bbox.r1, bbox.c1 + arg2 - 1, bbox.r2);
 							}
-							res = new cArea(res.getName(), ws);
+							res = res.isOneCell() ? new cRef(res.getName(),ws) : new cArea(res.getName(), ws);
 						}
 					} else if ((0 === arg2 || undefined === arg[2] || cElementType.empty === arg[2].type) && arg1 > 0) {
 						if (arg1 > Math.abs(bbox.r1 - bbox.r2) + 1) {
 							res = new cError(cErrorType.bad_reference);
 						} else {
 							res = new Asc.Range(bbox.c1 + arg2 - diffArg2, bbox.r1 + arg1 - diffArg1, bbox.c2 + arg2 - diffArg2, bbox.r1 + arg1 - diffArg1);
-							res = new cArea(res.getName(), ws);
+							res = res.isOneCell() ? new cRef(res.getName(),ws) : new cArea(res.getName(), ws);
 						}
 					} else if ((0 === arg1 || undefined === arg[1] || cElementType.empty === arg[1].type) && (0 === arg2 || undefined === arg[2] || cElementType.empty === arg[2].type)) {
 						res = new Asc.Range(bbox.c1 + arg2 - diffArg2, bbox.r1 + arg1 - diffArg1, bbox.c2 + arg2 - diffArg2, bbox.r2 + arg1 - diffArg1);
-						res = new cArea(res.getName(), ws);
+						res = res.isOneCell() ? new cRef(res.getName(),ws) : new cArea(res.getName(), ws);
 					} else {
 						if (arg1 > Math.abs(bbox.r1 - bbox.r2) + 1 || arg2 > Math.abs(bbox.c1 - bbox.c2) + 1) {
 							res = new cError(cErrorType.bad_reference);
@@ -730,13 +732,15 @@ function (window, undefined) {
 					} else {
 						found_operand = new cRef3D(o.real_str ? o.real_str.toUpperCase() : o.operand_str.toUpperCase(), wsFrom);
 					}
+				} else if (parserHelp.isName.call(o, o.Formula, o.pCurrPos)) {
+					found_operand = new cName3D(o.operand_str, wsFrom);
 				}
 			} else if (parserHelp.isArea.call(o, o.Formula, o.pCurrPos)) {
 				found_operand = new cArea(o.real_str ? o.real_str.toUpperCase() : o.operand_str.toUpperCase(), ws);
 			} else if (parserHelp.isRef.call(o, o.Formula, o.pCurrPos, true)) {
 				found_operand = new cRef(o.real_str ? o.real_str.toUpperCase() : o.operand_str.toUpperCase(), ws);
 			} else if (parserHelp.isName.call(o, o.Formula, o.pCurrPos)) {
-				found_operand = new AscCommonExcel.cName(o.operand_str, ws);
+				found_operand = new cName(o.operand_str, ws);
 			}
 		}
 
@@ -755,11 +759,16 @@ function (window, undefined) {
 			o.Formula = arg0.toString();
 			AscCommonExcel.executeInR1C1Mode(!!(arg1 && arg1.value === false), parseReference);
 			if (found_operand) {
-				if (cElementType.name === found_operand.type) {
+				if (cElementType.name === found_operand.type || cElementType.name3D === found_operand.type) {
 					found_operand = found_operand.toRef(arguments[1]);
+					if (found_operand && cElementType.error === found_operand.type) {
+						ret = new cError(cErrorType.bad_reference);
+					} else {
+						ret = found_operand;
+					}
+				} else {
+					ret = found_operand;
 				}
-
-				ret = found_operand;
 			} else {
 				ret = new cError(cErrorType.bad_reference);
 			}
@@ -1140,7 +1149,7 @@ function (window, undefined) {
 
 		return findMatch(arg0, arg1, arg2);*/
 
-		return g_oMatchCache.calculate(arg);
+		return g_oMatchCache.calculate(arg, arguments[1]);
 	};
 
 	/**
@@ -1793,6 +1802,159 @@ function (window, undefined) {
 
 	/**
 	 * @constructor
+	 * @extends {AscCommonExcel.cBaseFunction}
+	 */
+	function cUNIQUE() {
+	}
+
+	//***array-formula***
+	cUNIQUE.prototype = Object.create(cBaseFunction.prototype);
+	cUNIQUE.prototype.constructor = cUNIQUE;
+	cUNIQUE.prototype.name = 'UNIQUE';
+	cUNIQUE.prototype.argumentsMin = 1;
+	cUNIQUE.prototype.argumentsMax = 3;
+	cUNIQUE.prototype.arrayIndexes = {0: 1};
+	cUNIQUE.prototype.argumentsType = [argType.reference, argType.logical, argType.logical];
+	cUNIQUE.prototype.isXLFN = true;
+	cUNIQUE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cUNIQUE.prototype.Calculate = function (arg) {
+
+		var _getUniqueArr = function (_arr, _byCol, _exactlyOnce) {
+			var rowCount = _arr && _arr.length;
+			var colCount = _arr && _arr[0] && _arr[0].length;
+			if (!rowCount || !colCount) {
+				return cError(cErrorType.wrong_value_type);
+			}
+
+			var res = new cArray();
+			var repeateArr = [];
+			var i, j, n, _value;
+			var resArr = [];
+
+			var _key;
+			if (!_byCol) {
+				var _rowCount = 0;
+				for (i = 0; i < rowCount; i++) {
+					_key = "";
+					for (j = 0; j < colCount; j++) {
+						_value = _arr[i][j].getValue();
+						_key += _value + ";";
+						if (j === colCount - 1) {
+							if (!repeateArr[_key]) {
+								repeateArr[_key] = {index: _rowCount, count: 1};
+								for (n = 0; n < colCount; n++) {
+									if (!resArr[_rowCount]) {
+										resArr[_rowCount] = [];
+									}
+									resArr[_rowCount].push(_arr[i][n]);
+								}
+								_rowCount++;
+							}  else {
+								repeateArr[_key].count++;
+							}
+						}
+					}
+				}
+			} else {
+				var _colCount = 0;
+				for (i = 0; i < colCount; i++) {
+					_key = "";
+					for (j = 0; j < rowCount; j++) {
+						_value = _arr[j][i].getValue();
+						_key += _value + ";";
+						if (j === rowCount - 1) {
+							if (!repeateArr[_key]) {
+								repeateArr[_key] = {index: _colCount, count: 1};
+								for (n = 0; n < rowCount; n++) {
+									if (!resArr[n]) {
+										resArr[n] = [];
+									}
+									resArr[n][_colCount] = _arr[n][i];
+								}
+								_colCount++;
+							} else {
+								repeateArr[_key].count++;
+							}
+						}
+					}
+				}
+			}
+
+			if (_exactlyOnce) {
+				var tempArr = [];
+				var _counter = 0;
+				for (i in repeateArr) {
+					var _elem = repeateArr[i];
+					if (_elem.count > 1) {
+						continue;
+					}
+					if (!_byCol) {
+						tempArr[_counter] = resArr[_elem.index];
+					} else {
+						for (j = 0; j < rowCount; j++) {
+							if (!tempArr[j]) {
+								tempArr[j] = [];
+							}
+							tempArr[j][_counter] = resArr[j][_elem.index];
+						}
+					}
+					_counter++;
+				}
+
+				resArr = tempArr;
+			}
+
+			if (!resArr.length) {
+				return new cError(cErrorType.wrong_value_type);
+			}
+
+			res.fillFromArray(resArr);
+			
+			return res;
+		};
+
+		var arg0 = arg[0];
+		if (cElementType.cellsRange === arg0.type) {
+			arg0 = arg0.getMatrix();
+		} else if(cElementType.cellsRange3D === arg0.type) {
+			arg0 = arg0.getMatrix()[0];
+		} else if(cElementType.array === arg0.type) {
+			arg0 = arg0.getMatrix();
+		} else if (cElementType.cell === arg0.type || cElementType.cell3D === arg0.type) {
+			return arg0.getValue();
+		} else if (cElementType.number === arg0.type || cElementType.string === arg0.type ||
+			cElementType.bool === arg0.type || cElementType.error === arg0.type) {
+			return arg0;
+		} else {
+			return new cError(cErrorType.not_available);
+		}
+
+		if (cElementType.error === arg0.type) {
+			return arg0;
+		}
+		if(0 === arg0.length){
+			return new cError(cErrorType.wrong_value_type);
+		}
+
+		var arg1 = !arg[1] ? false : arg[1].tocBool();
+		if (arg1 && cElementType.error === arg1.type) {
+			return arg1;
+		} else if (arg1) {
+			arg1 = arg1.toBool();
+		}
+
+		var arg2 = !arg[2] ? false : arg[2].tocBool();
+		if (arg2 && cElementType.error === arg2.type) {
+			return arg2;
+		} else if (arg2) {
+			arg2 = arg2.toBool();
+		}
+
+		return _getUniqueArr(arg0, arg1, arg2);
+	};
+
+	/**
+	 * @constructor
 	 */
 	function VHLOOKUPCache(bHor) {
 		this.cacheId = {};
@@ -2047,13 +2209,14 @@ function (window, undefined) {
 
 	MatchCache.prototype = Object.create(VHLOOKUPCache.prototype);
 	MatchCache.prototype.constructor = MatchCache;
-	MatchCache.prototype.calculate = function (arg) {
+	MatchCache.prototype.calculate = function (arg, _arg1) {
 
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : new cNumber(1);
 
-		if (cElementType.cellsRange3D === arg0.type || cElementType.array === arg0.type ||
-			cElementType.cellsRange === arg0.type) {
-			return new cError(cErrorType.wrong_value_type);
+		if (cElementType.cellsRange3D === arg0.type || cElementType.cellsRange === arg0.type) {
+			arg0 = arg0.cross(_arg1);
+		} else if (cElementType.array === arg0.type) {
+			arg0 = arg0.getElementRowCol(0,0);
 		} else if (cElementType.error === arg0.type) {
 			return arg0;
 		}

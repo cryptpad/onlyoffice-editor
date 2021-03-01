@@ -10614,6 +10614,48 @@ function CompareBullets(bullet1, bullet2)
         }
         return undefined;
     };
+    CBullet.prototype.isEqual = function(oBullet) {
+        if(!oBullet) {
+            return false;
+        }
+        if(!this.bulletColor && oBullet.bulletColor
+            || !oBullet.bulletColor && this.bulletColor) {
+            return false;
+        }
+        if(this.bulletColor && oBullet.bulletColor) {
+            if(!this.bulletColor.IsIdentical(oBullet.bulletColor)) {
+                return false;
+            }
+        }
+        if(!this.bulletSize && oBullet.bulletSize
+        || this.bulletSize && !oBullet.bulletSize) {
+            return false;
+        }
+        if(this.bulletSize && oBullet.bulletSize) {
+            if(!this.bulletSize.IsIdentical(oBullet.bulletSize)) {
+                return false;
+            }
+        }
+        if(!this.bulletTypeface && oBullet.bulletTypeface
+            || this.bulletTypeface && !oBullet.bulletTypeface) {
+            return false;
+        }
+        if(this.bulletTypeface && oBullet.bulletTypeface) {
+            if(!this.bulletTypeface.IsIdentical(oBullet.bulletTypeface)) {
+                return false;
+            }
+        }
+        if(!this.bulletType && oBullet.bulletType
+            || this.bulletType && !oBullet.bulletType) {
+            return false;
+        }
+        if(this.bulletType && oBullet.bulletType) {
+            if(!this.bulletType.IsIdentical(oBullet.bulletType)) {
+                return false;
+            }
+        }
+        return true;
+    };
     //interface methods
     var prot = CBullet.prototype;
     prot.asc_getSize = function () {
@@ -10712,7 +10754,7 @@ function CompareBullets(bullet1, bullet2)
             return this.bulletType.Char;
         }
         return undefined;
-    }
+    };
     prot["get_Symbol"] = prot["asc_getSymbol"] = prot.asc_getSymbol;
     prot.asc_putSymbol = function(v) {
         if(!this.bulletType) {
@@ -10776,6 +10818,30 @@ function CompareBullets(bullet1, bullet2)
             this.type = oBulletColor.type;
             this.UniColor = oBulletColor.UniColor.createDuplicate();
         }
+    };
+    CBulletColor.prototype.IsIdentical = function(oBulletColor)
+    {
+        if(!oBulletColor)
+        {
+            return false;
+        }
+        if(this.type !== oBulletColor.type)
+        {
+            return false;
+        }
+        if(this.UniColor && !oBulletColor.UniColor || oBulletColor.UniColor && !this.UniColor)
+        {
+            return false;
+        }
+        if(this.UniColor)
+        {
+            if(!this.UniColor.IsIdentical(oBulletColor.UniColor))
+            {
+                return false;
+            }
+        }
+        return true;
+
     };
     CBulletColor.prototype.createDuplicate = function()
     {
@@ -10847,6 +10913,15 @@ CBulletSize.prototype =
         return d;
     },
 
+    IsIdentical: function(oBulletSize)
+    {
+        if(!oBulletSize)
+        {
+            return false;
+        }
+        return this.type === oBulletSize.type && this.val === oBulletSize.val;
+    },
+
     Write_ToBinary: function(w)
     {
         w.WriteBool(isRealNumber(this.type));
@@ -10908,6 +10983,15 @@ CBulletTypeface.prototype =
         this.typeface = oBulletTypeface.typeface;
     },
 
+    IsIdentical: function(oBulletTypeface)
+    {
+        if(!oBulletTypeface)
+        {
+            return false;
+        }
+        return this.type === oBulletTypeface.type && this.typeface === oBulletTypeface.typeface;
+    },
+
     Write_ToBinary: function(w)
     {
         w.WriteBool(isRealNumber(this.type));
@@ -10955,6 +11039,18 @@ CBulletType.prototype =
     Set_FromObject: function(o)
     {
         this.merge(o);
+    },
+
+    IsIdentical: function(oBulletType)
+    {
+        if(!oBulletType)
+        {
+            return false;
+        }
+        return this.type === oBulletType.type
+            && this.Char === oBulletType.Char
+            && this.AutoNumType === oBulletType.AutoNumType
+            && this.startAt === oBulletType.startAt;
     },
 
     merge: function(oBulletType)

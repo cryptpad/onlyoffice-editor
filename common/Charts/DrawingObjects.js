@@ -1809,23 +1809,9 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                 metrics.rowOff = 0;
                 var coordsFrom = _this.calculateCoords(metrics);
                 var ext_x, ext_y;
-                if(typeof AscFormat.SHAPE_EXT[sType] === "number")
-                {
-                    ext_x = AscFormat.SHAPE_EXT[sType];
-                }
-                else
-                {
-                    ext_x = 25.4;
-                }
-                if(typeof AscFormat.SHAPE_ASPECTS[sType] === "number")
-                {
-                    var _aspect = AscFormat.SHAPE_ASPECTS[sType];
-                    ext_y = ext_x/_aspect;
-                }
-                else
-                {
-                    ext_y = ext_x;
-                }
+                var oExt = AscFormat.fGetDefaultShapeExtents(sType);
+                ext_x = oExt.x;
+                ext_y = oExt.y;
                 History.Create_NewPoint();
 
                 var posX = pxToMm(coordsFrom.x) + MOVE_DELTA;
@@ -2444,21 +2430,47 @@ GraphicOption.prototype.union = function(oGraphicOption) {
             }
         }
     };
-    _this.addSignatureLine = function(sGuid, sSigner, sSigner2, sEmail, Width, Height, sImgUrl)
+    _this.addSignatureLine = function(oPr, Width, Height, sImgUrl)
     {
-        _this.controller.resetSelection();
+        var oApi = window["Asc"]["editor"];
+        var sGuid = oPr.asc_getGuid();
+        var oSpToEdit = null;
+        if(sGuid)
+        {
+            var oDrawingObjects = this.controller;
+            var ret = [], allSpr = [];
+            allSpr = allSpr.concat(allSpr.concat(oDrawingObjects.getAllSignatures2(ret, oDrawingObjects.getDrawingArray())));
+            for(var i = 0; i < allSpr.length; ++i)
+            {
+                if(allSpr[i].getSignatureLineGuid() === sGuid)
+                {
+                    oSpToEdit = allSpr[i];
+                    break;
+                }
+            }
+        }
         History.Create_NewPoint();
-        var dLeft = worksheet.getCellLeft(worksheet.model.selectionRange.activeCell.col, 3);
-        var dTop = worksheet.getCellTop(worksheet.model.selectionRange.activeCell.row, 3);
-        var oSignatureLine = AscFormat.fCreateSignatureShape(sGuid, sSigner, sSigner2, sEmail, false, worksheet.model, Width, Height, sImgUrl);
-        oSignatureLine.spPr.xfrm.setOffX(dLeft);
-        oSignatureLine.spPr.xfrm.setOffY(dTop);
-        oSignatureLine.addToDrawingObjects();
-        oSignatureLine.checkDrawingBaseCoords();
-        _this.controller.selectObject(oSignatureLine, 0);
+        if(!oSpToEdit)
+        {
+            _this.controller.resetSelection();
+            var dLeft = worksheet.getCellLeft(worksheet.model.selectionRange.activeCell.col, 3);
+            var dTop = worksheet.getCellTop(worksheet.model.selectionRange.activeCell.row, 3);
+            var oSignatureLine = AscFormat.fCreateSignatureShape(oPr, false, worksheet.model, Width, Height, sImgUrl);
+            oSignatureLine.spPr.xfrm.setOffX(dLeft);
+            oSignatureLine.spPr.xfrm.setOffY(dTop);
+            oSignatureLine.addToDrawingObjects();
+            oSignatureLine.checkDrawingBaseCoords();
+            _this.controller.selectObject(oSignatureLine, 0);
+            worksheet.setSelectionShape(true);
+            oApi.sendEvent("asc_onAddSignature", oSignatureLine.signatureLine.id);
+        }
+        else
+        {
+            oSpToEdit.setSignaturePr(oPr, sImgUrl);
+            oApi.sendEvent("asc_onAddSignature", sGuid);
+        }
+
         _this.controller.startRecalculate();
-        worksheet.setSelectionShape(true);
-        window["Asc"]["editor"].sendEvent("asc_onAddSignature", sGuid);
     };
 
     _this.addMath = function(Type){
@@ -4735,7 +4747,8 @@ function ObjectLocker(ws) {
                 callback(result, sync);
         };
 
-        if(Asc.editor && Asc.editor.collaborativeEditing && Asc.editor.collaborativeEditing.getGlobalLock()){
+        var api = Asc.editor;
+        if(api && ((api.collaborativeEditing && api.collaborativeEditing.getGlobalLock()) || !api.canEdit())){
             callbackEx(false, true);
             return false;
         }

@@ -146,7 +146,7 @@ Asc['asc_docs_api'].prototype.asc_Save = function (isNoUserSave, isSaveAs, isRes
 		this.LastUserSavedIndex = AscCommon.History.UserSavedIndex;
 	}
 
-    if (true === this.canSave && !this.isLongAction())
+    if (true === this.canSave && this._saveCheck())
 	{
 		var _isNaturalSave = this.IsUserSave;
 		this.canSave = false;
@@ -251,8 +251,7 @@ Asc['asc_docs_api'].prototype.AddImage = Asc['asc_docs_api'].prototype.asc_addIm
 		var file = _file;
 		if (Array.isArray(file))
 			file = file[0];
-
-		if (file == "")
+		if (!file)
 			return;
 
 		var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](file);

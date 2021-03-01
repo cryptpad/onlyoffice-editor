@@ -123,7 +123,16 @@ var GlobalSkinFlat2    = {
 	ContentControlsActive  : "#7C838A",
 	ContentControlsText    : "#444444",
 	ContentControlsTextActive   : "#FFFFFF",
-	ContentControlsAnchorActive : "#CFCFCF"
+	ContentControlsAnchorActive : "#CFCFCF",
+	FormsContentControlsOutlineHover : "rgba(0, 0, 0, 0.3)",
+	FormsContentControlsOutlineActive : "rgba(0, 0, 0, 0.3)",
+	FormsContentControlsOutlineBorderRadiusHover : 0,
+	FormsContentControlsOutlineBorderRadiusActive : 2,
+	FormsContentControlsMarkersBackground : "#FFFFFF",
+    FormsContentControlsMarkersBackgroundHover : "#E1E1E1",
+    FormsContentControlsMarkersBackgroundActive : "#CCCCCC",
+    FormsContentControlsOutlineMoverHover : "#444444",
+    FormsContentControlsOutlineMoverActive : "#444444"
 };
 
 var GlobalSkin = GlobalSkinFlat2;
@@ -1567,6 +1576,7 @@ function CEditorPage(api)
 
 	this.onMouseDown = function(e, isTouch)
 	{
+		oThis.m_oApi.checkInterfaceElementBlur();
 		oThis.m_oApi.checkLastWork();
 
 		//console.log("down: " + isTouch + ", " + AscCommon.isTouch);
@@ -1716,7 +1726,7 @@ function CEditorPage(api)
 		}
 
 		oWordControl.StartUpdateOverlay();
-		var is_drawing = oWordControl.m_oDrawingDocument.checkMouseMove_Drawing(pos);
+		var is_drawing = oWordControl.m_oDrawingDocument.checkMouseMove_Drawing(pos, e === undefined ? true : false);
 		if (is_drawing === true)
 			return;
 
@@ -2664,6 +2674,9 @@ function CEditorPage(api)
 			return;
 
 		settings = this.CreateScrollSettings();
+		settings.isHorizontalScroll = true;
+		settings.isVerticalScroll = false;
+		settings.contentW = this.m_dDocumentWidth;
 		if (this.m_oScrollHor_)
 			this.m_oScrollHor_.Repos(settings, this.m_bIsHorScrollVisible);
 		else
@@ -2687,6 +2700,9 @@ function CEditorPage(api)
 		}
 
 		settings = this.CreateScrollSettings();
+		settings.isHorizontalScroll = false;
+		settings.isVerticalScroll = true;
+		settings.contentH = this.m_dDocumentHeight;
 		if (this.m_oScrollVer_)
 		{
 			this.m_oScrollVer_.Repos(settings, undefined, true);
@@ -2865,10 +2881,6 @@ function CEditorPage(api)
 
 			// этот флаг для того, чтобы не делался лишний зум и т.д.
 			this.m_bIsHorScrollVisible = false;
-
-			var hor_scroll         = document.getElementById('panel_hor_scroll');
-			hor_scroll.style.width = this.m_dDocumentWidth + "px";
-
 			return false;
 		}
 
@@ -2885,9 +2897,6 @@ function CEditorPage(api)
 		{
 			this.m_bIsHorScrollVisible = true;
 		}
-
-		var hor_scroll         = document.getElementById('panel_hor_scroll');
-		hor_scroll.style.width = this.m_dDocumentWidth + "px";
 
 		if (this.m_bIsHorScrollVisible)
 		{
@@ -3042,6 +3051,8 @@ function CEditorPage(api)
 				}
 			}
 
+            drDoc.contentControls && drDoc.contentControls.DrawContentControlsTrack(overlay);
+
 			// drawShapes (+ track)
 			if (this.m_oLogicDocument.DrawingObjects)
 			{
@@ -3059,8 +3070,6 @@ function CEditorPage(api)
 					this.m_oDrawingDocument.AutoShapesTrack.CorrectOverlayBounds();
 				}
 			}
-
-			drDoc.contentControls && drDoc.contentControls.DrawContentControlsTrack(overlay);
 
             if (drDoc.placeholders.objects.length > 0)
             {
@@ -3081,7 +3090,7 @@ function CEditorPage(api)
 				drDoc.DrawFrameTrack(overlay);
 			}
 
-			if (drDoc.MathRect.IsActive)
+			if (drDoc.MathTrack.IsActive())
 			{
 				drDoc.DrawMathTrack(overlay);
 			}
@@ -3595,8 +3604,6 @@ function CEditorPage(api)
 
 		// теперь нужно выставить размеры для скроллов
 		this.checkNeedHorScroll();
-
-		document.getElementById('panel_right_scroll').style.height = this.m_dDocumentHeight + "px";
 
 		this.UpdateScrolls();
 

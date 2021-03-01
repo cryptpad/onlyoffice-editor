@@ -87,7 +87,8 @@ window['AscCommonWord'].fieldtype_NOTEREF    = fieldtype_NOTEREF;
  */
 function CFieldInstructionBase()
 {
-	this.ComplexField = null;
+	this.ComplexField    = null;
+	this.InstructionLine = "";
 }
 CFieldInstructionBase.prototype.Type = fieldtype_UNKNOWN;
 CFieldInstructionBase.prototype.GetType = function()
@@ -108,6 +109,14 @@ CFieldInstructionBase.prototype.ToString = function()
 };
 CFieldInstructionBase.prototype.SetPr = function()
 {
+};
+CFieldInstructionBase.prototype.SetInstructionLine = function(sLine)
+{
+	this.InstructionLine = sLine;
+};
+CFieldInstructionBase.prototype.CheckInstructionLine = function(sLine)
+{
+	return (this.InstructionLine === sLine);
 };
 /**
 * FORMULA field
@@ -193,24 +202,23 @@ CFieldInstructionFORMULA.prototype.Calculate = function(oLogicDocument)
 		this.ResultStr = '';
 	}
 };
-
-
 CFieldInstructionFORMULA.prototype.private_Calculate = function (oLogicDocument)
 {
-	var sListSeparator = ",";
+	var sListSeparator  = ",";
 	var sDigitSeparator = ".";
-	if(oLogicDocument && oLogicDocument.Settings){
-		var oSettings = oLogicDocument.Settings;
-		if(oSettings.DecimalSymbol && oSettings.ListSeparator && oSettings.DecimalSymbol !== oSettings.ListSeparator){
-			sListSeparator = oSettings.ListSeparator;
-			sDigitSeparator = oSettings.DecimalSymbol;
-		}
+
+	if (oLogicDocument && oLogicDocument.GetDecimalSymbol && oLogicDocument.GetListSeparator && oLogicDocument.GetDecimalSymbol() !== oLogicDocument.GetListSeparator())
+	{
+		sListSeparator  = oLogicDocument.GetListSeparator();
+		sDigitSeparator = oLogicDocument.GetDecimalSymbol();
 	}
+
 	var oParser = new AscCommonWord.CFormulaParser(sListSeparator, sDigitSeparator);
 	oParser.parse(this.Formula, this.ParentContent);
 
 	this.SetParseQueue(oParser.parseQueue);
-	if(oParser.parseQueue){
+	if (oParser.parseQueue)
+	{
 		oParser.parseQueue.format = this.Format;
 	}
 	this.SetError(oParser.error);
@@ -303,6 +311,8 @@ function CFieldInstructionTOC()
 	this.SkipPageRefStart = -1;
 	this.SkipPageRefEnd   = -1;
 	this.ForceTabLeader   = undefined;
+	this.Caption          = undefined;
+	this.CaptionOnlyText  = undefined;
 }
 
 CFieldInstructionTOC.prototype = Object.create(CFieldInstructionBase.prototype);
@@ -355,16 +365,20 @@ CFieldInstructionTOC.prototype.GetHeadingRangeEnd = function()
 };
 CFieldInstructionTOC.prototype.SetStylesArrayRaw = function(sString)
 {
-	// В спецификации написано, то разделено запятыми, но на деле Word реагирует на точку с запятой
-	var arrValues = sString.split(";");
+	var oLogicDocument = editor.WordControl.m_oLogicDocument;
+	var sListSeparator = oLogicDocument.GetListSeparator();
+
+	var arrValues = sString.split(sListSeparator);
 	var arrStyles = [];
 
-	for (var nIndex = 0, nCount = arrValues.length; nIndex < nCount - 1; nIndex += 2)
+	for (var nIndex = 0, nCount = arrValues.length; nIndex < nCount; ++nIndex)
 	{
 		var sName = arrValues[nIndex];
-		var nLvl  = parseInt(arrValues[nIndex + 1]);
+		var nLvl  = nIndex + 1 >= nCount ? 1 : parseInt(arrValues[nIndex + 1]);
 		if (isNaN(nLvl))
-			break;
+			nLvl = undefined;
+		else
+			nIndex++;
 
 		arrStyles.push({
 			Name : sName,
@@ -414,6 +428,22 @@ CFieldInstructionTOC.prototype.IsSkipPageRefLvl = function(nLvl)
 
 	return  (nLvl >= this.SkipPageRefStart - 1 && nLvl <= this.SkipPageRefEnd - 1);
 };
+CFieldInstructionTOC.prototype.SetCaption = function (sCaption)
+{
+	this.Caption = sCaption;
+};
+CFieldInstructionTOC.prototype.GetCaption = function()
+{
+	return this.Caption;
+};
+CFieldInstructionTOC.prototype.SetCaptionOnlyText = function (sVal)
+{
+	this.CaptionOnlyText = sVal;
+};
+CFieldInstructionTOC.prototype.GetCaptionOnlyText = function()
+{
+	return this.CaptionOnlyText;
+};
 CFieldInstructionTOC.prototype.SetPr = function(oPr)
 {
 	if (!(oPr instanceof Asc.CTableOfContentsPr))
@@ -434,6 +464,24 @@ CFieldInstructionTOC.prototype.SetPr = function(oPr)
 		this.SetSeparator(" ");
 
 	this.ForceTabLeader = oPr.TabLeader;
+	var sCaption = oPr.get_CaptionForInstruction();
+	if(sCaption !== undefined)
+	{
+		if(sCaption || this.Styles.length > 0)
+		{
+			if(oPr.IsIncludeLabelAndNumber)
+			{
+				this.SetCaption(sCaption);
+				this.SetCaptionOnlyText(undefined);
+			}
+			else
+			{
+				this.SetCaptionOnlyText(sCaption);
+				this.SetCaption(undefined);
+			}
+			this.SetHeadingRange(-1, -1);
+		}
+	}
 };
 CFieldInstructionTOC.prototype.GetForceTabLeader = function()
 {
@@ -443,6 +491,9 @@ CFieldInstructionTOC.prototype.GetForceTabLeader = function()
 };
 CFieldInstructionTOC.prototype.ToString = function()
 {
+	var oLogicDocument = editor.WordControl.m_oLogicDocument;
+	var sListSeparator = oLogicDocument.GetListSeparator();
+
 	var sInstr = "TOC ";
 
 	if (this.HeadingS >= 1
@@ -480,15 +531,48 @@ CFieldInstructionTOC.prototype.ToString = function()
 
 		for (var nIndex = 0, nCount = this.Styles.length; nIndex < nCount; ++nIndex)
 		{
-			sInstr += this.Styles[nIndex].Name + ";" + this.Styles[nIndex].Lvl + ";";
+			if (0 === nIndex)
+				sInstr += this.Styles[nIndex].Name;
+			else
+				sInstr += sListSeparator + this.Styles[nIndex].Name;
+
+			if (undefined !== this.Styles[nIndex].Lvl && null !== this.Styles[nIndex].Lvl)
+				sInstr += sListSeparator + this.Styles[nIndex].Lvl;
 		}
 
 		sInstr += "\" ";
 	}
+	if(this.Caption !== undefined)
+	{
+		sInstr += "\\c ";
+		if(typeof this.Caption === "string" && this.Caption.length > 0)
+		{
+			sInstr += "\"" + this.Caption + "\"";
+		}
+	}
+	if(this.CaptionOnlyText !== undefined)
+	{
+		sInstr += "\\a ";
+		if(typeof this.CaptionOnlyText === "string" && this.CaptionOnlyText.length > 0)
+		{
+			sInstr += "\"" + this.CaptionOnlyText + "\"";
+		}
+	}
 
 	return sInstr;
 };
-
+CFieldInstructionTOC.prototype.IsTableOfFigures = function ()
+{
+	if(this.Caption !== undefined || this.CaptionOnlyText !== undefined)
+	{
+		return true;
+	}
+	return false;
+};
+CFieldInstructionTOC.prototype.IsTableOfContents = function ()
+{
+	return !this.IsTableOfFigures();
+};
 /**
  * ASK field
  * @constructor
@@ -1764,7 +1848,7 @@ CFieldInstructionParser.prototype.private_ReadTOC = function()
 	// TODO: \a, \b, \c, \d, \f, \l, \s, \z, \u
 
 	this.Result = new CFieldInstructionTOC();
-
+	var arrArguments;
 	while (this.private_ReadNext())
 	{
 		if (this.private_IsSwitch())
@@ -1784,29 +1868,33 @@ CFieldInstructionParser.prototype.private_ReadTOC = function()
 			}
 			else if ('p' === sType)
 			{
-				var arrArguments = this.private_ReadArguments();
+				arrArguments = this.private_ReadArguments();
 				if (arrArguments.length > 0)
 					this.Result.SetSeparator(arrArguments[0]);
 			}
 			else if ('o' === sType)
 			{
-				var arrArguments = this.private_ReadArguments();
+				arrArguments = this.private_ReadArguments();
 				if (arrArguments.length > 0)
 				{
 					var arrRange = this.private_ParseIntegerRange(arrArguments[0]);
 					if (null !== arrRange)
 						this.Result.SetHeadingRange(arrRange[0], arrRange[1]);
 				}
+				else
+				{
+					this.Result.SetHeadingRange(1, 9);
+				}
 			}
 			else if ('t' === sType)
 			{
-				var arrArguments = this.private_ReadArguments();
+				arrArguments = this.private_ReadArguments();
 				if (arrArguments.length > 0)
 					this.Result.SetStylesArrayRaw(arrArguments[0]);
 			}
 			else if ('n' === sType)
 			{
-				var arrArguments = this.private_ReadArguments();
+				arrArguments = this.private_ReadArguments();
 				if (arrArguments.length > 0)
 				{
 					var arrRange = this.private_ParseIntegerRange(arrArguments[0]);
@@ -1820,9 +1908,47 @@ CFieldInstructionParser.prototype.private_ReadTOC = function()
 					this.Result.SetPageRefSkippedLvls(true, -1, -1);
 				}
 			}
+			else if('c' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if(arrArguments.length > 0)
+				{
+					var sCaption = arrArguments[0];
+					if(typeof sCaption === "string" && sCaption.length > 0)
+					{
+						this.Result.SetCaption(sCaption);
+					}
+					else
+					{
+						this.Result.SetCaption(null);
+					}
+				}
+				else
+				{
+					this.Result.SetCaption(null);
+				}
+			}
+			else if('a' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if(arrArguments.length > 0)
+				{
+					var sCaptionOnlyText = arrArguments[0];
+					if(typeof sCaptionOnlyText === "string" && sCaptionOnlyText.length > 0)
+					{
+						this.Result.SetCaptionOnlyText(sCaptionOnlyText);
+					}
+					else
+					{
+						this.Result.SetCaptionOnlyText(null);
+					}
+				}
+				else
+				{
+					this.Result.SetCaptionOnlyText(null);
+				}
+			}
 		}
-
-
 	}
 
 };

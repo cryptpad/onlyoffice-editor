@@ -59,6 +59,7 @@ function CInlineLevelSdt()
 	g_oTableId.Add(this, this.Id);
 
 	this.SkipSpecialLock = false;
+	this.Current         = false;
 }
 
 CInlineLevelSdt.prototype = Object.create(CParagraphContentWithParagraphLikeContent.prototype);
@@ -139,6 +140,8 @@ CInlineLevelSdt.prototype.Copy = function(isUseSelection, oPr)
 			oContentControl.AddToContent(nCurPos - nStartPos, oItem.Copy(false, oPr));
 	}
 
+	// ВАЖНО: настройки копируем после копирования содержимого, потому что есть специальные случаи, когда
+	//        содержимое дальше меняется в зависимости от настроек (например, для радио кнопок)
 	this.private_CopyPrTo(oContentControl);
 
 	if (oContentControl.IsEmpty())
@@ -160,7 +163,25 @@ CInlineLevelSdt.prototype.private_CopyPrTo = function(oContentControl)
 		oContentControl.SetDocPartObj(this.Pr.DocPartObj.Category, this.Pr.DocPartObj.Gallery, this.Pr.DocPartObj.Unique);
 
 	if (undefined !== this.Pr.CheckBox)
-		oContentControl.SetCheckBoxPr(this.Pr.CheckBox);
+	{
+		var oCheckBoxPr     = this.Pr.CheckBox;
+		var isChangeChecked = false;
+
+		if (this.Pr.CheckBox.GroupKey
+			&& true === this.Pr.CheckBox.Checked
+			&& this.GetLogicDocument()
+			&& !this.GetLogicDocument().DragAndDropAction)
+		{
+			oCheckBoxPr = this.Pr.CheckBox.Copy();
+			oCheckBoxPr.Checked = false;
+			isChangeChecked = true;
+		}
+
+		oContentControl.SetCheckBoxPr(oCheckBoxPr);
+
+		if (isChangeChecked)
+			oContentControl.private_UpdateCheckBoxContent();
+	}
 
 	if (undefined !== this.Pr.Picture)
 		oContentControl.SetPicturePr(this.Pr.Picture);
@@ -175,9 +196,15 @@ CInlineLevelSdt.prototype.private_CopyPrTo = function(oContentControl)
 		oContentControl.SetDatePickerPr(this.Pr.Date);
 
 	oContentControl.SetShowingPlcHdr(this.Pr.ShowingPlcHdr);
-	oContentControl.SetPlaceholder(this.Pr.Placeholder);
+	oContentControl.SetPlaceholder(this.private_CopyPlaceholder());
 	oContentControl.SetContentControlEquation(this.Pr.Equation);
 	oContentControl.SetContentControlTemporary(this.Pr.Temporary);
+
+	if (undefined !== this.Pr.FormPr)
+		oContentControl.SetFormPr(this.Pr.FormPr);
+
+	if (undefined !== this.Pr.TextForm)
+		oContentControl.SetTextFormPr(this.Pr.TextForm);
 };
 CInlineLevelSdt.prototype.GetSelectedContent = function(oSelectedContent)
 {
@@ -262,29 +289,56 @@ CInlineLevelSdt.prototype.CanSplit = function()
 };
 CInlineLevelSdt.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange, _CurPage)
 {
+	var isFastRangeRecalc = PRSA.IsFastRangeRecalc();
+
 	var CurLine  = _CurLine - this.StartLine;
 	var CurRange = (0 === CurLine ? _CurRange - this.StartRange : _CurRange);
 
-	if (0 === CurLine && 0 === CurRange && true !== PRSA.RecalcFast)
+	if (0 === CurLine && 0 === CurRange && !isFastRangeRecalc)
 		this.Bounds = {};
 
 	var oParagraph = PRSA.Paragraph;
 	var Y0         = oParagraph.Lines[_CurLine].Top + oParagraph.Pages[_CurPage].Y;
-	var Y1         = oParagraph.Lines[_CurLine].Bottom + oParagraph.Pages[_CurPage].Y;
+	var Y1         = oParagraph.Lines[_CurLine].Y + oParagraph.Pages[_CurPage].Y + oParagraph.Lines[_CurLine].Metrics.Descent;
 	var X0         = PRSA.X;
+
+	if (0 === CurLine)
+		Y0 = oParagraph.Lines[_CurLine].Y + oParagraph.Pages[_CurPage].Y - oParagraph.Lines[_CurLine].Metrics.Ascent;
+
+	if (!isFastRangeRecalc)
+	{
+		for (var Key in this.Bounds)
+		{
+			var __CurLine = (Key | 0) >> 16;
+			if (__CurLine === CurLine - 1 && this.Bounds[Key].PageInternal === _CurPage)
+			{
+				this.Bounds[Key].H = Y0 - this.Bounds[Key].Y;
+			}
+		}
+	}
 
 	CParagraphContentWithParagraphLikeContent.prototype.Recalculate_Range_Spaces.apply(this, arguments);
 
 	var X1 = PRSA.X;
 
-	this.Bounds[((CurLine << 16) & 0xFFFF0000) | (CurRange & 0x0000FFFF)] = {
-		X            : X0,
-		W            : X1 - X0,
-		Y            : Y0,
-		H            : Y1 - Y0,
-		Page         : PRSA.Paragraph.Get_AbsolutePage(_CurPage),
-		PageInternal : _CurPage
-	};
+	if (isFastRangeRecalc && this.Bounds[((CurLine << 16) & 0xFFFF0000) | (CurRange & 0x0000FFFF)])
+	{
+		var oBounds = this.Bounds[((CurLine << 16) & 0xFFFF0000) | (CurRange & 0x0000FFFF)];
+		oBounds.X = X0;
+		oBounds.W = X1 - X0;
+	}
+	else
+	{
+		this.Bounds[((CurLine << 16) & 0xFFFF0000) | (CurRange & 0x0000FFFF)] = {
+			X            : X0,
+			W            : X1 - X0,
+			Y            : Y0,
+			H            : Y1 - Y0,
+			TextLineH    : Y1 - Y0,
+			Page         : PRSA.Paragraph.Get_AbsolutePage(_CurPage),
+			PageInternal : _CurPage
+		};
+	}
 
 	this.BoundsPaths = null;
 };
@@ -442,7 +496,7 @@ CInlineLevelSdt.prototype.GetBoundingPolygon = function()
 		this.BoundsPaths = [];
 		for (var nIndex = 0, nCount = arrBounds.length; nIndex < nCount; ++nIndex)
 		{
-			var oPolygon = new CPolygon();
+			var oPolygon = new AscCommon.CPolygon();
 			oPolygon.fill([arrBounds[nIndex]]);
 			this.BoundsPaths = this.BoundsPaths.concat(oPolygon.GetPaths(0));
 		}
@@ -452,15 +506,33 @@ CInlineLevelSdt.prototype.GetBoundingPolygon = function()
 
 	return this.BoundsPaths;
 };
+CInlineLevelSdt.prototype.GetBoundingPolygonFirstLineH = function()
+{
+	for (var nCurLine = 0, nLinesCount = this.protected_GetLinesCount(); nCurLine < nLinesCount; ++nCurLine)
+	{
+		for (var nCurRange = 0, nRangesCount = this.protected_GetRangesCount(nCurLine); nCurRange < nRangesCount; ++nCurRange)
+		{
+			var oBounds = this.Bounds[((nCurLine << 16) & 0xFFFF0000) | (nCurRange & 0x0000FFFF)];
+			if (!oBounds)
+				break;
+			else if (oBounds.W > 0)
+				return oBounds.TextLineH;
+		}
+	}
+
+	return 0;
+};
 CInlineLevelSdt.prototype.DrawContentControlsTrack = function(isHover, X, Y, nCurPage)
 {
 	if (!this.Paragraph && this.Paragraph.LogicDocument)
 		return;
 
+	var oLogicDocument = this.Paragraph.LogicDocument;
+
 	if (this.IsContentControlEquation())
 		return;
 
-	var oDrawingDocument = this.Paragraph.LogicDocument.GetDrawingDocument();
+	var oDrawingDocument = oLogicDocument.GetDrawingDocument();
 
 	if (Asc.c_oAscSdtAppearance.Hidden === this.GetAppearance() || this.Paragraph.LogicDocument.IsForceHideContentControlTrack())
 	{
@@ -484,6 +556,18 @@ CInlineLevelSdt.prototype.DrawContentControlsTrack = function(isHover, X, Y, nCu
 
 		if (!isHit)
 			return;
+
+		var sHelpText = "";
+		if (isHover && this.IsForm() && (sHelpText = this.GetFormPr().HelpText))
+		{
+			var oMMData   = new AscCommon.CMouseMoveData();
+			var oCoords   = oDrawingDocument.ConvertCoordsToCursorWR(X, Y, this.Paragraph.GetAbsolutePage(nCurPage), this.Paragraph.Get_ParentTextTransform());
+			oMMData.X_abs = oCoords.X - 5;
+			oMMData.Y_abs = oCoords.Y;
+			oMMData.Type  = Asc.c_oAscMouseMoveDataTypes.Form;
+			oMMData.Text  = sHelpText;
+			oLogicDocument.GetApi().sync_MouseMoveCallback(oMMData);
+		}
 	}
 
 	oDrawingDocument.OnDrawContentControl(this, isHover ? AscCommon.ContentControlTrack.Hover : AscCommon.ContentControlTrack.In, this.GetBoundingPolygon());
@@ -621,8 +705,8 @@ CInlineLevelSdt.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAl
 			if (oCompiledTextPr)
 			{
 				var oNewTextPr = new CTextPr();
-				oNewTextPr.FontSize   = FontSize_IncreaseDecreaseValue(IncFontSize, oCompiledTextPr.FontSize);
-				oNewTextPr.FontSizeCS = FontSize_IncreaseDecreaseValue(IncFontSize, oCompiledTextPr.FontSizeCS);
+				oNewTextPr.FontSize   = oCompiledTextPr.GetIncDecFontSize(IncFontSize);
+				oNewTextPr.FontSizeCS = oCompiledTextPr.GetIncDecFontSizeCS(IncFontSize);
 
 				var oTempTextPr = this.Pr.TextPr.Copy();
 				oTempTextPr.Merge(oNewTextPr);
@@ -742,6 +826,16 @@ CInlineLevelSdt.prototype.private_FillPlaceholderContent = function()
 			{
 				this.AddToContent(0, oFirstParagraph.Content[nPos].Copy());
 			}
+
+			if (this.IsTextForm() && this.GetTextFormPr().MaxCharacters > 0 && this.Content[0] instanceof ParaRun)
+			{
+				// В такой ситуации у нас должен быть всего 1 ран в параграфе
+				var oRun = this.Content[0];
+				if (oRun.Content.length > this.GetTextFormPr().MaxCharacters)
+				{
+					oRun.RemoveFromContent(this.GetTextFormPr().MaxCharacters, oRun.Content.length - this.GetTextFormPr().MaxCharacters, true);
+				}
+			}
 		}
 	}
 	else
@@ -758,6 +852,16 @@ CInlineLevelSdt.prototype.private_FillPlaceholderContent = function()
 			var oRun = new ParaRun(oParagraph, false);
 			oRun.AddText(String.fromCharCode(nbsp_charcode, nbsp_charcode, nbsp_charcode, nbsp_charcode));
 			this.AddToContent(0, oRun);
+		}
+	}
+
+	// В формах для плейсхолдера мы копируем настройки текста в сам плейсхолдер тоже
+	if (this.IsForm())
+	{
+		for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+		{
+			if (this.Content[nIndex] instanceof ParaRun)
+				this.Content[nIndex].SetPr(this.Pr.TextPr.Copy());
 		}
 	}
 
@@ -1113,12 +1217,15 @@ CInlineLevelSdt.prototype.GetCheckBoxPr = function()
  */
 CInlineLevelSdt.prototype.ToggleCheckBox = function()
 {
-	if (!this.IsCheckBox() || (this.IsRadioButton() && true === this.Pr.CheckBox.Checked))
+	if (!this.IsCheckBox())
 		return;
 
 	var oLogicDocument = this.GetLogicDocument();
 	if (oLogicDocument || this.IsRadioButton() || this.GetFormKey())
 		oLogicDocument.OnChangeForm(this.IsRadioButton() ? this.Pr.CheckBox.GroupKey : this.GetFormKey(), this);
+
+	if (this.IsRadioButton() && true === this.Pr.CheckBox.Checked)
+		return;
 
 	this.SetCheckBoxChecked(!this.Pr.CheckBox.Checked);
 };
@@ -1228,7 +1335,10 @@ CInlineLevelSdt.prototype.private_UpdatePictureContent = function()
 		return;
 
 	if (this.IsPlaceHolder())
+	{
 		this.ReplacePlaceHolderWithContent();
+		this.SetShowingPlcHdr(true);
+	}
 
 	var arrDrawings = this.GetAllDrawingObjects();
 
@@ -1270,7 +1380,6 @@ CInlineLevelSdt.prototype.private_UpdatePictureContent = function()
 CInlineLevelSdt.prototype.ApplyPicturePr = function(isPicture)
 {
 	this.SetPicturePr(isPicture);
-	this.SetPlaceholder(undefined);
 	this.private_UpdatePictureContent();
 };
 /**
@@ -1577,6 +1686,8 @@ CInlineLevelSdt.prototype.SetTextFormPr = function(oPr)
 		var _oPr = oPr ? oPr.Copy() : undefined;
 		History.Add(new CChangesSdtPrTextForm(this, this.Pr.TextForm, _oPr));
 		this.Pr.TextForm = _oPr;
+
+		this.Recalc_RunsCompiledPr();
 	}
 };
 CInlineLevelSdt.prototype.GetTextFormPr = function()
@@ -1748,6 +1859,21 @@ CInlineLevelSdt.prototype.GetLogicDocument = function()
 {
 	var oParagraph = this.GetParagraph();
 	return oParagraph ? oParagraph.GetLogicDocument() : editor.WordControl.m_oLogicDocument;
+};
+CInlineLevelSdt.prototype.private_OnAddFormPr = function()
+{
+	this.Recalc_RunsCompiledPr();
+};
+CInlineLevelSdt.prototype.UpdatePlaceHolderTextPrForForm = function()
+{
+	if (this.IsPlaceHolder() && this.IsForm() && this.Pr.TextPr)
+	{
+		for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+		{
+			if (this.Content[nIndex] instanceof ParaRun)
+				this.Content[nIndex].SetPr(this.Pr.TextPr.Copy());
+		}
+	}
 };
 
 //--------------------------------------------------------export--------------------------------------------------------

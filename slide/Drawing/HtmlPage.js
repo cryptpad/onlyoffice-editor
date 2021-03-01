@@ -2141,6 +2141,7 @@ function CEditorPage(api)
 
 	this.onMouseDown = function(e)
 	{
+		oThis.m_oApi.checkInterfaceElementBlur();
 		oThis.m_oApi.checkLastWork();
 
 		if (false === oThis.m_oApi.bInit_word_control)
@@ -2963,6 +2964,8 @@ function CEditorPage(api)
 
 		settings = this.CreateScrollSettings();
 		settings.alwaysVisible = true;
+		settings.isVerticalScroll = false;
+		settings.isHorizontalScroll = true;
 		if (this.m_bIsHorScrollVisible)
 		{
 			if (this.m_oScrollHor_)
@@ -3410,9 +3413,6 @@ function CEditorPage(api)
 
 		this.m_bIsHorScrollVisible = this.checkNeedHorScrollValue(this.m_dDocumentWidth);
 
-		var hor_scroll         = document.getElementById('panel_hor_scroll');
-		hor_scroll.style.width = this.m_dDocumentWidth + "px";
-
 		if (this.m_bIsHorScrollVisible)
 		{
 			if (this.m_oApi.isMobileVersion)
@@ -3533,6 +3533,15 @@ function CEditorPage(api)
 			if (this.MobileTouchManager)
 				this.MobileTouchManager.CheckSelect(overlay);
 		}
+
+		if (drDoc.MathTrack.IsActive())
+		{
+			var dGlobalAplpha = ctx.globalAlpha;
+			ctx.globalAlpha = 1.0;
+			drDoc.DrawMathTrack(overlay);
+			ctx.globalAlpha = dGlobalAplpha;
+		}
+
 
 		if (isDrawNotes && drDoc.m_bIsSelection)
 		{
@@ -3864,8 +3873,6 @@ function CEditorPage(api)
 
 		this.checkNeedHorScroll();
 
-		document.getElementById('panel_right_scroll').style.height = this.m_dDocumentHeight + "px";
-
 		this.UpdateScrolls();
 
 		this.MainScrollUnLock();
@@ -3909,8 +3916,6 @@ function CEditorPage(api)
 		this.MainScrollLock();
 
 		var bIsResize = this.checkNeedHorScroll();
-
-		document.getElementById('panel_right_scroll').style.height = this.m_dDocumentHeight + "px";
 
 		this.UpdateScrolls();
 

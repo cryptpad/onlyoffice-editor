@@ -149,6 +149,8 @@
 
 			// Data Validate
 			DataValidate : -45,
+			MoreOneTypeDataValidate: -46,
+			ContainsCellsWithoutDataValidate: -47,
 
 			// for AutoFilter
 			AutoFilterDataRangeError         : -50,
@@ -159,12 +161,14 @@
 			LockedWorksheetRename            : -55,
 			FTChangeTableRangeError          : -56,
 			FTRangeIncludedOtherTables       : -57,
+			ChangeFilteredRangeError         : -58,
 
 			PasteMaxRangeError   : -64,
 			PastInMergeAreaError : -65,
 			CopyMultiselectAreaError : -66,
 			PasteSlicerError: 67,
 			MoveSlicerError: 68,
+			PasteMultiSelectError : -69,
 
 			DataRangeError   : -75,
 			CannotMoveRange  : -74,
@@ -238,6 +242,16 @@
 			CustomSortNotOriginalSelectError: -801,
 
 			// Data Validate
+			DataValidateNotNumeric: -830,
+			DataValidateNegativeTextLength: -831,
+			DataValidateMustEnterValue: -832,
+			DataValidateMinGreaterMax: 833,
+			DataValidateInvalid: 834,
+			NamedRangeNotFound: 835,
+			FormulaEvaluateError: 836,
+			DataValidateInvalidList: 837,
+
+
 			RemoveDuplicates : -850,
 
 			LargeRangeWarning: -900,
@@ -860,7 +874,8 @@
 		Common       : 0,
 		Hyperlink    : 1,
 		LockedObject : 2,
-		Footnote     : 3
+		Footnote     : 3,
+		Form         : 4
 	};
 
 	// selection type
@@ -2196,6 +2211,8 @@
 	prot['MailMergeLoadFile']                = prot.MailMergeLoadFile;
 	prot['MailMergeSaveFile']                = prot.MailMergeSaveFile;
 	prot['DataValidate']                     = prot.DataValidate;
+	prot['MoreOneTypeDataValidate']          = prot.MoreOneTypeDataValidate;
+	prot['ContainsCellsWithoutDataValidate'] = prot.ContainsCellsWithoutDataValidate;
 	prot['AutoFilterDataRangeError']         = prot.AutoFilterDataRangeError;
 	prot['AutoFilterChangeFormatTableError'] = prot.AutoFilterChangeFormatTableError;
 	prot['AutoFilterChangeError']            = prot.AutoFilterChangeError;
@@ -2204,11 +2221,13 @@
 	prot['LockedWorksheetRename']            = prot.LockedWorksheetRename;
 	prot['FTChangeTableRangeError']          = prot.FTChangeTableRangeError;
 	prot['FTRangeIncludedOtherTables']       = prot.FTRangeIncludedOtherTables;
+	prot['ChangeFilteredRangeError']         = prot.ChangeFilteredRangeError;
 	prot['PasteMaxRangeError']               = prot.PasteMaxRangeError;
 	prot['PastInMergeAreaError']             = prot.PastInMergeAreaError;
 	prot['CopyMultiselectAreaError']         = prot.CopyMultiselectAreaError;
 	prot['PasteSlicerError']                 = prot.PasteSlicerError;
 	prot['MoveSlicerError']                  = prot.MoveSlicerError;
+	prot['PasteMultiSelectError']            = prot.PasteMultiSelectError;
 	prot['DataRangeError']                   = prot.DataRangeError;
 	prot['CannotMoveRange']                  = prot.CannotMoveRange;
 	prot['MaxDataSeriesError']               = prot.MaxDataSeriesError;
@@ -2259,6 +2278,16 @@
 	prot['RemoveDuplicates']                 = prot.RemoveDuplicates;
 	prot['LargeRangeWarning']                = prot.LargeRangeWarning;
 	prot['LockedEditView']                   = prot.LockedEditView;
+	
+	prot['DataValidateNotNumeric']           = prot.DataValidateNotNumeric;
+	prot['DataValidateNegativeTextLength']   = prot.DataValidateNegativeTextLength;
+	prot['DataValidateMustEnterValue']       = prot.DataValidateMustEnterValue;
+	prot['DataValidateMinGreaterMax']        = prot.DataValidateMinGreaterMax;
+	prot['DataValidateInvalid']              = prot.DataValidateInvalid;
+	prot['NamedRangeNotFound']               = prot.NamedRangeNotFound;
+	prot['FormulaEvaluateError']             = prot.FormulaEvaluateError;
+	prot['DataValidateInvalidList']          = prot.DataValidateInvalidList;
+
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
 	prot                                     = c_oAscAsyncAction;
 	prot['Open']                             = prot.Open;
@@ -2650,6 +2679,16 @@
 	prot['Millimeter']                      = prot.Millimeter;
 	prot['Inch']                            = prot.Inch;
 	prot['Point']                           = prot.Point;
+
+	window['Asc']['c_oAscMouseMoveDataTypes'] = window['Asc'].c_oAscMouseMoveDataTypes = c_oAscMouseMoveDataTypes;
+
+	prot                 = c_oAscMouseMoveDataTypes;
+	prot['Common']       = prot.Common;
+	prot['Hyperlink']    = prot.Hyperlink;
+	prot['LockedObject'] = prot.LockedObject;
+	prot['Footnote']     = prot.Footnote;
+	prot['Form']         = prot.Form;
+
 	window['Asc']['c_oAscMaxTooltipLength'] = window['Asc'].c_oAscMaxTooltipLength = c_oAscMaxTooltipLength;
 	window['Asc']['c_oAscMaxCellOrCommentLength'] = window['Asc'].c_oAscMaxCellOrCommentLength = c_oAscMaxCellOrCommentLength;
 	window['Asc']['c_oAscMaxHeaderFooterLength']  = window['Asc'].c_oAscMaxHeaderFooterLength  = c_oAscMaxHeaderFooterLength;
@@ -2835,7 +2874,6 @@
 	window["AscCommon"].c_oAscChartSubType          = c_oAscChartSubType;
 	window["AscCommon"].c_oAscCsvDelimiter          = c_oAscCsvDelimiter;
 	window["AscCommon"].c_oAscUrlType               = c_oAscUrlType;
-	window["AscCommon"].c_oAscMouseMoveDataTypes    = c_oAscMouseMoveDataTypes;
 	window["AscCommon"].c_oAscPrintDefaultSettings  = c_oAscPrintDefaultSettings;
 	window["AscCommon"].c_oZoomType                 = c_oZoomType;
 	window["AscCommon"].c_oNotifyType               = c_oNotifyType;

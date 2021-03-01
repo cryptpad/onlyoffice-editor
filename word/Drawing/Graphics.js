@@ -114,6 +114,8 @@ function CGraphics()
     this.IsRetina           = false;
 
     this.dash_no_smart = null;
+
+    this.textAlpha = undefined;
 }
 
 CGraphics.prototype =
@@ -155,6 +157,19 @@ CGraphics.prototype =
     },
     EndDraw : function()
     {
+    },
+
+    setTextGlobalAlpha : function(alpha)
+    {
+        this.textAlpha = alpha;
+    },
+	getTextGlobalAlpha : function()
+	{
+		return this.textAlpha;
+	},
+    resetTextGlobalAlpha : function()
+    {
+        this.textAlpha = undefined;
     },
 
     put_GlobalAlpha : function(enable, alpha)
@@ -997,7 +1012,17 @@ CGraphics.prototype =
 
         if (null != pGlyph.oBitmap)
         {
+            var oldAlpha = undefined;
+            if (this.textAlpha)
+            {
+                oldAlpha = this.m_oContext.globalAlpha;
+                this.m_oContext.globalAlpha = oldAlpha * this.textAlpha;
+            }
+
             this.private_FillGlyph(pGlyph);
+
+            if (undefined !== oldAlpha)
+                this.m_oContext.globalAlpha = oldAlpha;
         }
         if (false === this.m_bIntegerGrid)
         {
@@ -1152,7 +1177,17 @@ CGraphics.prototype =
 
         if (null != pGlyph.oBitmap)
         {
+            var oldAlpha = undefined;
+            if (this.textAlpha)
+            {
+                oldAlpha = this.m_oContext.globalAlpha;
+                this.m_oContext.globalAlpha = oldAlpha * this.textAlpha;
+            }
+
             this.private_FillGlyph(pGlyph);
+
+            if (undefined !== oldAlpha)
+                this.m_oContext.globalAlpha = oldAlpha;
         }
         if (false === this.m_bIntegerGrid)
         {

@@ -2575,11 +2575,98 @@ $( function () {
 		testArrayFormula2("MROUND", 2, 2, true);
     } );
 
-    test( "Test: \"T(\"HELLO\")\"", function () {
-        oParser = new parserFormula( "T(\"HELLO\")", "A1", ws );
-        ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), "HELLO" );
-    } );
+	test( "Test: \"T(\"HELLO\")\"", function () {
+		oParser = new parserFormula( "T(\"HELLO\")", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "HELLO" );
+	} );
+
+	test( "Test: \"MMULT\"", function () {
+		ws.getRange2( "AAA102" ).setValue( "4" );
+		ws.getRange2( "AAA103" ).setValue( "5" );
+		ws.getRange2( "AAA104" ).setValue( "6" );
+		ws.getRange2( "AAA105" ).setValue( "7" );
+		ws.getRange2( "AAB102" ).setValue( "1" );
+		ws.getRange2( "AAB103" ).setValue( "2" );
+		ws.getRange2( "AAB104" ).setValue( "3" );
+		ws.getRange2( "AAB105" ).setValue( "2" );
+		ws.getRange2( "AAC102" ).setValue( "4" );
+		ws.getRange2( "AAC103" ).setValue( "5" );
+		ws.getRange2( "AAC104" ).setValue( "6" );
+		ws.getRange2( "AAC105" ).setValue( "3" );
+		ws.getRange2( "AAD102" ).setValue( "7" );
+		ws.getRange2( "AAD103" ).setValue( "8" );
+		ws.getRange2( "AAD104" ).setValue( "9" );
+		ws.getRange2( "AAD105" ).setValue( "4" );
+
+		ws.getRange2( "AAF102" ).setValue( "1" );
+		ws.getRange2( "AAF103" ).setValue( "2" );
+		ws.getRange2( "AAF104" ).setValue( "3" );
+		ws.getRange2( "AAF105" ).setValue( "6" );
+
+		ws.getRange2( "AAG102" ).setValue( "2" );
+		ws.getRange2( "AAG103" ).setValue( "3" );
+		ws.getRange2( "AAG104" ).setValue( "4" );
+		ws.getRange2( "AAG105" ).setValue( "5" );
+
+		oParser = new parserFormula( "MMULT(AAC102,AAF104)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 12 );
+
+		oParser = new parserFormula( "MMULT(AAA102:AAD105,AAF104)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "MMULT(AAC102,AAF104)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 12 );
+
+		oParser = new parserFormula( "MMULT(AAA102:AAD105,AAF102:AAG105)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 60 );
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue(), 62 );
+		strictEqual( oParser.calculate().getElementRowCol(1,0).getValue(), 72 );
+		strictEqual( oParser.calculate().getElementRowCol(1,1).getValue(), 76 );
+
+		oParser = new parserFormula( "MMULT(AAA102:AAD105,AAF102:AAF105)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 60 );
+		strictEqual( oParser.calculate().getElementRowCol(1,0).getValue(), 72 );
+
+		oParser = new parserFormula( "MMULT(AAA102:AAD105,AAF102:AAF105)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 60 );
+		strictEqual( oParser.calculate().getElementRowCol(1,0).getValue(), 72 );
+
+		oParser = new parserFormula( "MMULT(AAA102:AAD105,AAF102:AAF104)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "MMULT(AAA102:AAD105,AAK110:AAN110)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "MMULT(AAA102:AAD105,AAA102:AAD105)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 94 );
+		strictEqual( oParser.calculate().getElementRowCol(1,0).getValue(), 116 );
+		strictEqual( oParser.calculate().getElementRowCol(2,0).getValue(), 138 );
+
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue(), 32 );
+		strictEqual( oParser.calculate().getElementRowCol(1,1).getValue(), 40 );
+		strictEqual( oParser.calculate().getElementRowCol(2,1).getValue(), 48 );
+
+		oParser = new parserFormula( "MMULT(AAF102:AAF105,AAG102:AAG105)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "MMULT(AAF102:AAF105,AAA102:AAD102)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 4 );
+		strictEqual( oParser.calculate().getElementRowCol(1,0).getValue(), 8 );
+		strictEqual( oParser.calculate().getElementRowCol(2,0).getValue(), 12 );
+
+	} );
 
     test( "Test: \"T(123)\"", function () {
         oParser = new parserFormula( "T(123)", "A1", ws );
@@ -3753,6 +3840,7 @@ $( function () {
 	} );
 
     test( "Test: \"TEXT\"", function () {
+        var culturelciddefault =  AscCommon.g_oDefaultCultureInfo.LCID;
 
         oParser = new parserFormula( "TEXT(1234.567,\"$0.00\")", "A2", ws );
         ok( oParser.parse() );
@@ -3762,9 +3850,693 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "12.5%" );
 
-		testArrayFormula2("TEXT", 2, 2);
-    } );
+        oParser = new parserFormula( "TEXT(123123,\"hh:mmm:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:Feb:00" );
 
+        oParser = new parserFormula( "TEXT(123123,\"hh:mmmm:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:February:00" );
+
+        oParser = new parserFormula( "TEXT(123123,\"hh:mmmmm:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:F:00" );
+
+        testArrayFormula2("TEXT", 2, 2);
+
+        //____________________________________en_____________________________________________
+        AscCommon.setCurrentCultureInfo(1025);
+        oParser = new parserFormula( "TEXT(123,\"yy-mm-dd\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"yy-MM-dd\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"hh:MM:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+        oParser = new parserFormula( "TEXT(123,\"hh:mm:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+        oParser = new parserFormula( "TEXT(123,\"general\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123" );
+
+        oParser = new parserFormula( "TEXT(123,\"0.00\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123.00" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"#,###\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123,123,123" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"#,##0.00\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123,123,123.00" );
+
+		//todo
+		// oParser = new parserFormula( "TEXT(123123123,\"###0,.00\")", "A2", ws );
+		// ok( oParser.parse() );
+		// strictEqual( oParser.calculate().getValue(), "123123.12" );
+		//
+		// oParser = new parserFormula( "TEXT(123123123,\"###0,.00,\")", "A2", ws );
+		// ok( oParser.parse() );
+		// strictEqual( oParser.calculate().getValue(), "123.12" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"###0.,0,0\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123123.00" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"#,,,#,#,0.,,0,0\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123,123,123.00" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"0,0,, q,w,,,w,,0,,0\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123,123,1 q,w,w,23" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"00,,q,,,q00\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "1231231q,q23" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"0,q,w,,\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123q,w," );
+
+		oParser = new parserFormula( "TEXT(123123123,\"#,,\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123" );
+
+		oParser = new parserFormula( "TEXT(123123123,\",,,#\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), ",123123123" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"###0,.\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123." );
+
+		oParser = new parserFormula( "TEXT(123123123,\"###0.,\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123." );
+
+		oParser = new parserFormula( "TEXT(123123123,\"###0.,q\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123.q" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"###0,.\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123." );
+
+		oParser = new parserFormula( "TEXT(123123123,\"###0 ,\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123123 ," );
+
+		oParser = new parserFormula( "TEXT(123,\"hh qq\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00 qq" );
+
+        oParser = new parserFormula( "TEXT(123,\"dd hh\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "02 00" );
+
+        AscCommon.setCurrentCultureInfo(culturelciddefault);
+
+        //__________________________________fi________________________________________________
+        AscCommon.setCurrentCultureInfo(1035);
+        oParser = new parserFormula( "TEXT(123,\"vv-kk-pp\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"vv-mm-pp\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-00-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"tt.mm.ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00.00.00" );
+
+        oParser = new parserFormula( "TEXT(123,\"tt.MM.ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00.00.00" );
+
+        oParser = new parserFormula( "TEXT(123,\"tt.kk.ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00.05.00" );
+
+        oParser = new parserFormula( "TEXT(125,\"yleinen\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "125" );
+
+        oParser = new parserFormula( "TEXT(125,\"0,00\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "125,00" );
+
+        oParser = new parserFormula( "TEXT(125125,\"# ###\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "125 125" );
+
+        oParser = new parserFormula( "TEXT(123,\"pp tt\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "02 00" );
+
+        oParser = new parserFormula( "TEXT(123,\"p t\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "2 0" );
+
+        oParser = new parserFormula( "TEXT(123,\"tt qq\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00 qq" );
+
+        AscCommon.setCurrentCultureInfo(culturelciddefault);
+
+        //__________________________________fy________________________________________________
+        AscCommon.setCurrentCultureInfo(1043);
+        oParser = new parserFormula( "TEXT(123,\"jj-mm-dd\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"uu:mm:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+        oParser = new parserFormula( "TEXT(126,\"standaard\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "126" );
+
+        oParser = new parserFormula( "TEXT(126,\"0,00\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "126,00" );
+
+        oParser = new parserFormula( "TEXT(126126,\"#.###\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "126.126" );
+
+        oParser = new parserFormula( "TEXT(123,\"dd uu\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "02 00" );
+
+        oParser = new parserFormula( "TEXT(123,\"d u\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "2 0" );
+
+        oParser = new parserFormula( "TEXT(123,\"uu qq\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00 qq" );
+
+        AscCommon.setCurrentCultureInfo(culturelciddefault);
+
+        //__________________________________es________________________________________________
+        AscCommon.setCurrentCultureInfo(3082);
+        oParser = new parserFormula( "TEXT(123,\"aa-mm-dd\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"estándar\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123" );
+
+        oParser = new parserFormula( "TEXT(123,\"hh:mm:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+        oParser = new parserFormula( "TEXT(123,\"0,00\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123,00" );
+
+        oParser = new parserFormula( "TEXT(123123123,\"#.###\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123.123.123" );
+
+        oParser = new parserFormula( "TEXT(123,\"dd hh\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "02 00" );
+
+        oParser = new parserFormula( "TEXT(123,\"hh qq\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00 qq" );
+
+        AscCommon.setCurrentCultureInfo(culturelciddefault);
+
+        //___________________________________ru______________________________________________
+        AscCommon.setCurrentCultureInfo(1049);
+        oParser = new parserFormula( "TEXT(123,\"гг-ММ-дд\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"чч:ММ:сс\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+         oParser = new parserFormula( "TEXT(123,\"чч:мм:сс\")", "A2", ws );
+         ok( oParser.parse() );
+         strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+         oParser = new parserFormula( "TEXT(123,\"гг-мм-дд\")", "A2", ws );
+         ok( oParser.parse() );
+         strictEqual( oParser.calculate().getValue(), "00-00-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"основной\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123" );
+
+        oParser = new parserFormula( "TEXT(123,\"0,00\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123,00" );
+
+        oParser = new parserFormula( "TEXT(123123123,\"# ###\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123 123 123" );
+
+		oParser = new parserFormula( "TEXT(123123123;\"# ##0,00\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123 123 123,00" );
+
+		//todo
+		// oParser = new parserFormula( "TEXT(123123123,\"###0 ,00\")", "A2", ws );
+		// ok( oParser.parse() );
+		// strictEqual( oParser.calculate().getValue(), "123123,12" );
+		//
+		// oParser = new parserFormula( "TEXT(123123123,\"###0 ,00 \")", "A2", ws );
+		// ok( oParser.parse() );
+		// strictEqual( oParser.calculate().getValue(), "123,12" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"###0, 0 0\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123123,00" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"#   # # 0,  0 0\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123 123 123,00" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"0 0   q w   w  0  0\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123 123 1q w w 23" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"00  q   q00\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "1231231q q23" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"0 q w  \")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123q w " );
+
+		oParser = new parserFormula( "TEXT(123123123,\"#  \")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"   #\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), " 123123123" );
+
+		oParser = new parserFormula( "TEXT(123123123,\"###0 ,\")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123," );
+
+		oParser = new parserFormula( "TEXT(123123123,\"###0, \")", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "123123," );
+
+        oParser = new parserFormula( "TEXT(123,\"дд чч\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "02 00" );
+
+        oParser = new parserFormula( "TEXT(123,\"чч qq\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00 qq" );
+
+         oParser = new parserFormula( "TEXT(123,\"ММ мм\")", "A2", ws );
+         ok( oParser.parse() );
+         strictEqual( oParser.calculate().getValue(), "05 00" );
+
+        AscCommon.setCurrentCultureInfo(culturelciddefault);
+
+        //__________________________________fr________________________________________________
+        AscCommon.setCurrentCultureInfo(1036);
+        oParser = new parserFormula( "TEXT(123,\"aa-mm-jj\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"hh:mm:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+        oParser = new parserFormula( "TEXT(123,\"standard\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123" );
+
+        oParser = new parserFormula( "TEXT(123,\"0,00\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123,00" );
+
+        oParser = new parserFormula( "TEXT(123123123,\"# ###\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123 123 123" );
+
+        oParser = new parserFormula( "TEXT(123,\"jj hh\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "02 00" );
+
+        oParser = new parserFormula( "TEXT(123,\"j h\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "2 0" );
+
+        oParser = new parserFormula( "TEXT(123,\"hh qq\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00 qq" );
+
+        AscCommon.setCurrentCultureInfo(culturelciddefault);
+
+        //_______________________________de___________________________________________________
+        AscCommon.setCurrentCultureInfo(1031);
+        oParser = new parserFormula( "TEXT(123,\"jj-MM-tt\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"hh:mm:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+        oParser = new parserFormula( "TEXT(123,\"hh:MM:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+        oParser = new parserFormula( "TEXT(123,\"jj-mm-tt\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-00-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"standard\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123" );
+
+        oParser = new parserFormula( "TEXT(123,\"0,00\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123,00" );
+
+        oParser = new parserFormula( "TEXT(123123123,\"#.###\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123.123.123" );
+
+        oParser = new parserFormula( "TEXT(123,\"t h\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "2 0" );
+
+        oParser = new parserFormula( "TEXT(123,\"h qq\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "0 qq" );
+
+        oParser = new parserFormula( "TEXT(123,\"s t\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "0 2" );
+
+        AscCommon.setCurrentCultureInfo(culturelciddefault);
+
+        //_______________________________it___________________________________________________
+        AscCommon.setCurrentCultureInfo(1040);
+        oParser = new parserFormula( "TEXT(123,\"aa-MM-gg\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"aa-mm-gg\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"hh:MM:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+        oParser = new parserFormula( "TEXT(123,\"hh:mm:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+        oParser = new parserFormula( "TEXT(123,\"standard\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123" );
+
+        oParser = new parserFormula( "TEXT(123,\"0,00\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123,00" );
+
+        oParser = new parserFormula( "TEXT(123123123,\"#.###\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123.123.123" );
+
+        oParser = new parserFormula( "TEXT(123,\"gg hh\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "02 00" );
+
+        oParser = new parserFormula( "TEXT(123,\"hh qq\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00 qq" );
+
+        AscCommon.setCurrentCultureInfo(culturelciddefault);
+
+        //_______________________________da____________________________________________________
+        AscCommon.setCurrentCultureInfo(1053);
+        oParser = new parserFormula( "TEXT(123,\"åå-MM-dd\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"åå-mm-dd\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-00-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"tt:mm:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+        oParser = new parserFormula( "TEXT(123,\"tt:MM:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+        oParser = new parserFormula( "TEXT(123,\"standard\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123" );
+
+        oParser = new parserFormula( "TEXT(123,\"0,00\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123,00" );
+
+        oParser = new parserFormula( "TEXT(123,\"0,00\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123,00" );
+
+        oParser = new parserFormula( "TEXT(123123123,\"# ###\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123 123 123" );
+
+        oParser = new parserFormula( "TEXT(123,\"dd tt\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "02 00" );
+
+        oParser = new parserFormula( "TEXT(123,\"tt qq\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00 qq" );
+
+        AscCommon.setCurrentCultureInfo(culturelciddefault);
+        //_____________________________ch________________________________________________
+        AscCommon.setCurrentCultureInfo(1028);
+        oParser = new parserFormula( "TEXT(123,\"g/通用格式\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123" );
+
+        oParser = new parserFormula( "TEXT(123,\"0.00\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123.00" );
+
+        oParser = new parserFormula( "TEXT(123,\"dd hh\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "02 00" );
+
+        AscCommon.setCurrentCultureInfo(culturelciddefault);
+        //_____________________________el________________________________________________
+        AscCommon.setCurrentCultureInfo(1032);
+        oParser = new parserFormula( "TEXT(123,\"εε-μμ-ηη\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"ωω:λλ:δδ\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+        oParser = new parserFormula( "TEXT(123,\"γενικός τύπος\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123" );
+
+        oParser = new parserFormula( "TEXT(123,\"0,00\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123,00" );
+
+        oParser = new parserFormula( "TEXT(123123123,\"#.###\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123.123.123" );
+
+        oParser = new parserFormula( "TEXT(123,\"ηη ωω\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "02 00" );
+
+        oParser = new parserFormula( "TEXT(123,\"ωω qq\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00 qq" );
+
+        oParser = new parserFormula( "TEXT(123,\"ηη qq\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "02 qq" );
+
+        oParser = new parserFormula( "TEXT(123,\"δδ ηη\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00 02" );
+
+        AscCommon.setCurrentCultureInfo(culturelciddefault);
+
+        //_____________________________hu________________________________________________
+        AscCommon.setCurrentCultureInfo(1038);
+        oParser = new parserFormula( "TEXT(123,\"éé-hh-nn\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"óó:pp:mm\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+        oParser = new parserFormula( "TEXT(123,\"éé-pp-nn\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-00-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"óó:hh:mm\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:05:00" );
+
+        oParser = new parserFormula( "TEXT(125,\"normál\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "125" );
+
+        oParser = new parserFormula( "TEXT(125,\"0,00\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "125,00" );
+
+        oParser = new parserFormula( "TEXT(123123123,\"# ###\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123 123 123" );
+        AscCommon.setCurrentCultureInfo(culturelciddefault);
+        //_____________________________tr________________________________________________
+        AscCommon.setCurrentCultureInfo(1055);
+        oParser = new parserFormula( "TEXT(123,\"yy-aa-gg\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"ss:dd:nn\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+        oParser = new parserFormula( "TEXT(123,\"yy-dd-gg\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-00-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"ss:aa:nn\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:05:00" );
+
+        oParser = new parserFormula( "TEXT(125,\"genel\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "125" );
+
+        oParser = new parserFormula( "TEXT(125,\"0,00\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "125,00" );
+
+        oParser = new parserFormula( "TEXT(123123123,\"#.###\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123.123.123" );
+        AscCommon.setCurrentCultureInfo(culturelciddefault);
+        //_____________________________pl________________________________________________
+        AscCommon.setCurrentCultureInfo(1045);
+        oParser = new parserFormula( "TEXT(123,\"rr-mm-dd\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"gg:mm:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+        oParser = new parserFormula( "TEXT(125,\"standardowy\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "125" );
+
+        oParser = new parserFormula( "TEXT(125,\"0,00\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "125,00" );
+
+        oParser = new parserFormula( "TEXT(123123123,\"# ###\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123 123 123" );
+        AscCommon.setCurrentCultureInfo(culturelciddefault);
+        //_____________________________cs________________________________________________
+        AscCommon.setCurrentCultureInfo(1029);
+        oParser = new parserFormula( "TEXT(123,\"rr-mm-dd\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00-05-02" );
+
+        oParser = new parserFormula( "TEXT(123,\"hh:mm:ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00:00:00" );
+
+        oParser = new parserFormula( "TEXT(123,\"vęeobecný\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123" );
+
+        oParser = new parserFormula( "TEXT(123,\"0,00\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123,00" );
+
+        oParser = new parserFormula( "TEXT(123123123,\"# ###\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123 123 123" );
+
+        oParser = new parserFormula( "TEXT(123,\"rr ss\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00 00" );
+
+        oParser = new parserFormula( "TEXT(123,\"dd hh\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "02 00" );
+
+        oParser = new parserFormula( "TEXT(123,\"hh qq\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "00 qq" );
+
+        AscCommon.setCurrentCultureInfo(culturelciddefault);
+        //_____________________________ja________________________________________________
+        AscCommon.setCurrentCultureInfo(1041);
+        oParser = new parserFormula( "TEXT(124,\"G/標準\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "124" );
+
+        oParser = new parserFormula( "TEXT(123,\"0.00\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123.00" );
+
+        oParser = new parserFormula( "TEXT(123123123,\"#,###\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123,123,123" );
+        //_____________________________ko________________________________________________
+        AscCommon.setCurrentCultureInfo(1042);
+        oParser = new parserFormula( "TEXT(124,\"g/표준\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "124" );
+
+        oParser = new parserFormula( "TEXT(123,\"0.00\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123.00" );
+
+        oParser = new parserFormula( "TEXT(123123123,\"#,###\")", "A2", ws );
+        ok( oParser.parse() );
+        strictEqual( oParser.calculate().getValue(), "123,123,123" );
+        AscCommon.setCurrentCultureInfo(culturelciddefault);
+    } );
 	test( "Test: \"TEXTJOIN\"", function () {
 
 		ws.getRange2( "A2" ).setValue( "Tulsa" );
@@ -5110,6 +5882,150 @@ $( function () {
         testArrayFormula2("RANDBETWEEN", 2, 2, true)
     } );
 
+	test( "Test: \"RANDARRAY\"", function () {
+		ws.getRange2( "A101" ).setValue( "2" );
+		ws.getRange2( "A102" ).setValue( "2" );
+		ws.getRange2( "A103" ).setValue( "test1" );
+		ws.getRange2( "A104" ).setValue( "-4" );
+		ws.getRange2( "A105" ).setValue( "-1" );
+
+		var res;
+		oParser = new parserFormula( "RANDARRAY(A101,A102)", "A1", ws );
+		ok( oParser.parse() );
+		res = oParser.calculate().getElementRowCol(0,0).getValue();
+		ok( res >= 0 && res <= 1 );
+		res = oParser.calculate().getElementRowCol(1,0).getValue();
+		ok( res >= 0 && res <= 1 );
+		res = oParser.calculate().getElementRowCol(0,1).getValue();
+		ok( res >= 0 && res <= 1 );
+		res = oParser.calculate().getElementRowCol(1,1).getValue();
+		ok( res >= 0 && res <= 1 );
+
+		oParser = new parserFormula( "RANDARRAY(A101,A102,A104,A105)", "A1", ws );
+		ok( oParser.parse() );
+		res = oParser.calculate().getElementRowCol(0,0).getValue();
+		ok( res >= -4 && res <= -1 );
+		res = oParser.calculate().getElementRowCol(1,0).getValue();
+		ok( res >= -4 && res <= -1 );
+		res = oParser.calculate().getElementRowCol(0,1).getValue();
+		ok( res >= -4 && res <= -1 );
+		res = oParser.calculate().getElementRowCol(1,1).getValue();
+		ok( res >= -4 && res <= -1 );
+
+		oParser = new parserFormula( "RANDARRAY()", "A1", ws );
+		ok( oParser.parse() );
+		res = oParser.calculate().getElementRowCol(0,0).getValue();
+		ok( res >= 0 && res <= 1 );
+
+		oParser = new parserFormula( "RANDARRAY(2,2)", "A1", ws );
+		ok( oParser.parse() );
+		res = oParser.calculate().getElementRowCol(0,0).getValue();
+		ok( res >= 0 && res <= 1 );
+		res = oParser.calculate().getElementRowCol(1,0).getValue();
+		ok( res >= 0 && res <= 1 );
+		res = oParser.calculate().getElementRowCol(0,1).getValue();
+		ok( res >= 0 && res <= 1 );
+		res = oParser.calculate().getElementRowCol(1,1).getValue();
+		ok( res >= 0 && res <= 1 );
+
+		oParser = new parserFormula( "RANDARRAY(2,2,-10,-5)", "A1", ws );
+		ok( oParser.parse() );
+		res = oParser.calculate().getElementRowCol(0,0).getValue();
+		ok( res >= -10 && res <= -5 );
+		res = oParser.calculate().getElementRowCol(1,0).getValue();
+		ok( res >= -10 && res <= -5 );
+		res = oParser.calculate().getElementRowCol(0,1).getValue();
+		ok( res >= -10 && res <= -5 );
+		res = oParser.calculate().getElementRowCol(1,1).getValue();
+		ok( res >= -10 && res <= -5 );
+
+		oParser = new parserFormula( "RANDARRAY(2,2,-10,-5, true)", "A1", ws );
+		ok( oParser.parse() );
+		res = oParser.calculate().getElementRowCol(0,0).getValue();
+		ok( res >= -10 && res <= -5 );
+		res = oParser.calculate().getElementRowCol(1,0).getValue();
+		ok( res >= -10 && res <= -5 );
+		res = oParser.calculate().getElementRowCol(0,1).getValue();
+		ok( res >= -10 && res <= -5 );
+		res = oParser.calculate().getElementRowCol(1,1).getValue();
+		ok( res >= -10 && res <= -5 );
+
+		oParser = new parserFormula( "RANDARRAY(2,2,,, true)", "A1", ws );
+		ok( oParser.parse() );
+		res = oParser.calculate().getElementRowCol(0,0).getValue();
+		ok( res >= 0 && res <= 1 );
+		res = oParser.calculate().getElementRowCol(1,0).getValue();
+		ok( res >= 0 && res <= 1 );
+		res = oParser.calculate().getElementRowCol(0,1).getValue();
+		ok( res >= 0 && res <= 1 );
+		res = oParser.calculate().getElementRowCol(1,1).getValue();
+		ok( res >= 0 && res <= 1 );
+
+		oParser = new parserFormula( "RANDARRAY(-1)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "RANDARRAY(1, -1)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "RANDARRAY(-1, -1)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "RANDARRAY(1, 1, 5, 2)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "RANDARRAY(0, 0, 5, 2)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "RANDARRAY(0, 1, 5, 2)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "RANDARRAY(1, 0, 5, 2)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "RANDARRAY(1,1,,-2,FALSE)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "RANDARRAY(1,1,2,,FALSE)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "RANDARRAY(A103,1,2,,FALSE)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		ws.getRange2( "A101" ).setValue( "#DIV/0!" );
+		ws.getRange2( "A102" ).setValue( "2" );
+		ws.getRange2( "A103" ).setValue( "3" );
+		ws.getRange2( "A104" ).setValue( "4" );
+		ws.getRange2( "A105" ).setValue( "5" );
+		ws.getRange2( "A105" ).setValue( "6" );
+
+		ws.getRange2( "B101" ).setValue( "-3" );
+		ws.getRange2( "B102" ).setValue( "-5" );
+		ws.getRange2( "B103" ).setValue( "2" );
+		ws.getRange2( "B104" ).setValue( "1" );
+		ws.getRange2( "B105" ).setValue( "12" );
+		ws.getRange2( "B105" ).setValue( "13" );
+
+		oParser = new parserFormula( "RANDARRAY({1,123,3},{1,2,3,4},,2,A101:C101)", "A1", ws );
+		ok( oParser.parse() );
+		res = oParser.calculate().getElementRowCol(0,0).getValue();
+		strictEqual( res, "#DIV/0!" );
+		res = oParser.calculate().getElementRowCol(0,1).getValue();
+		ok( res >= 0 && res <= 2 );
+		res = oParser.calculate().getElementRowCol(0,2).getValue();
+		ok( res >= 0 && res <= 2 );
+
+	} );
+
     test( "Test: \"QUOTIENT\"", function () {
         oParser = new parserFormula( "QUOTIENT(1,6)", "A1", ws );
         ok( oParser.parse() );
@@ -5202,6 +6118,51 @@ $( function () {
 
         testArrayFormula2("MULTINOMIAL", 1, 8, null, true);
     } );
+
+	test( "Test: \"MUNIT\"", function () {
+		ws.getRange2( "A101" ).setValue( "5" );
+		ws.getRange2( "B102" ).setValue( "6" );
+
+		oParser = new parserFormula( "MUNIT(1)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 1 );
+
+		oParser = new parserFormula( "MUNIT(-1)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "MUNIT(1.123)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 1 );
+
+		oParser = new parserFormula( "MUNIT(2.123)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 1 );
+		strictEqual( oParser.calculate().getElementRowCol(1,1).getValue(), 1 );
+		strictEqual( oParser.calculate().getElementRowCol(1,0).getValue(), 0 );
+
+		oParser = new parserFormula( "MUNIT(A101)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 1 );
+		strictEqual( oParser.calculate().getElementRowCol(1,1).getValue(), 1 );
+		strictEqual( oParser.calculate().getElementRowCol(1,0).getValue(), 0 );
+
+		oParser = new parserFormula( "MUNIT(A101:B102)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "MUNIT({0,0;1,2;123,\"sdf\"})", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), "#VALUE!" );
+		strictEqual( oParser.calculate().getElementRowCol(1,1).getValue(), 1 );
+		strictEqual( oParser.calculate().getElementRowCol(2,0).getValue(), 1 );
+		strictEqual( oParser.calculate().getElementRowCol(2,1).getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "MUNIT({12,2})", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 1 );
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue(), 1 );
+	} );
 
     test( "Test: \"SUMSQ\"", function () {
         oParser = new parserFormula( "SUMSQ(2.5,-3.6,2.4)", "A1", ws );
@@ -7334,64 +8295,79 @@ $( function () {
 		ws.getRange2( "A111" ).setValue( "2517" );
 		ws.getRange2( "A112" ).setValue( "2540" );
 
-		ws.getRange2( 'B102' ).setValue( '2')
-		ws.getRange2( 'B103' ).setValue( '2')
-		ws.getRange2( 'B104' ).setValue( '3')
-		ws.getRange2( 'B105' ).setValue( '3')
-		ws.getRange2( 'B106' ).setValue( '2')
-		ws.getRange2( 'B107' ).setValue( '4')
-		ws.getRange2( 'B108' ).setValue( '2')
-		ws.getRange2( 'B109' ).setValue( '2')
-		ws.getRange2( 'B110' ).setValue( '3')
-		ws.getRange2( 'B111' ).setValue( '4')
-		ws.getRange2( 'B112' ).setValue( '2')
+		ws.getRange2('B102').setValue('2');
+		ws.getRange2('B103').setValue('2');
+		ws.getRange2('B104').setValue('3');
+		ws.getRange2('B105').setValue('3');
+		ws.getRange2('B106').setValue('2');
+		ws.getRange2('B107').setValue('4');
+		ws.getRange2('B108').setValue('2');
+		ws.getRange2('B109').setValue('2');
+		ws.getRange2('B110').setValue('3');
+		ws.getRange2('B111').setValue('4');
+		ws.getRange2('B112').setValue('2');
 
-		ws.getRange2( 'C102' ).setValue( '2')
-		ws.getRange2( 'C103' ).setValue( '2')
-		ws.getRange2( 'C104' ).setValue( '1.5')
-		ws.getRange2( 'C105' ).setValue( '2')
-		ws.getRange2( 'C106' ).setValue( '3')
-		ws.getRange2( 'C107' ).setValue( '2')
-		ws.getRange2( 'C108' ).setValue( '1.5')
-		ws.getRange2( 'C109' ).setValue( '2')
-		ws.getRange2( 'C110' ).setValue( '3')
-		ws.getRange2( 'C111' ).setValue( '4')
-		ws.getRange2( 'C112' ).setValue( '3')
+		ws.getRange2('C102').setValue('2');
+		ws.getRange2('C103').setValue('2');
+		ws.getRange2('C104').setValue('1.5');
+		ws.getRange2('C105').setValue('2');
+		ws.getRange2('C106').setValue('3');
+		ws.getRange2('C107').setValue('2');
+		ws.getRange2('C108').setValue('1.5');
+		ws.getRange2('C109').setValue('2');
+		ws.getRange2('C110').setValue('3');
+		ws.getRange2('C111').setValue('4');
+		ws.getRange2('C112').setValue('3');
 
-		ws.getRange2( 'D102' ).setValue( '20')
-		ws.getRange2( 'D103' ).setValue( '12')
-		ws.getRange2( 'D104' ).setValue( '33')
-		ws.getRange2( 'D105' ).setValue( '43')
-		ws.getRange2( 'D106' ).setValue( '53')
-		ws.getRange2( 'D107' ).setValue( '23')
-		ws.getRange2( 'D108' ).setValue( '99')
-		ws.getRange2( 'D109' ).setValue( '34')
-		ws.getRange2( 'D110' ).setValue( '23')
-		ws.getRange2( 'D111' ).setValue( '55')
-		ws.getRange2( 'D112' ).setValue( '22')
+		ws.getRange2('D102').setValue('20');
+		ws.getRange2('D103').setValue('12');
+		ws.getRange2('D104').setValue('33');
+		ws.getRange2('D105').setValue('43');
+		ws.getRange2('D106').setValue('53');
+		ws.getRange2('D107').setValue('23');
+		ws.getRange2('D108').setValue('99');
+		ws.getRange2('D109').setValue('34');
+		ws.getRange2('D110').setValue('23');
+		ws.getRange2('D111').setValue('55');
+		ws.getRange2('D112').setValue('22');
 
-		ws.getRange2( 'E102' ).setValue( '142000')
-		ws.getRange2( 'E103' ).setValue( '144000')
-		ws.getRange2( 'E104' ).setValue( '151000')
-		ws.getRange2( 'E105' ).setValue( '150000')
-		ws.getRange2( 'E106' ).setValue( '139000')
-		ws.getRange2( 'E107' ).setValue( '169000')
-		ws.getRange2( 'E108' ).setValue( '126000')
-		ws.getRange2( 'E109' ).setValue( '142900')
-		ws.getRange2( 'E110' ).setValue( '163000')
-		ws.getRange2( 'E111' ).setValue( '169000')
-		ws.getRange2( 'E112' ).setValue( '149000')
+		ws.getRange2('E102').setValue('142000');
+		ws.getRange2('E103').setValue('144000');
+		ws.getRange2('E104').setValue('151000');
+		ws.getRange2('E105').setValue('150000');
+		ws.getRange2('E106').setValue('139000');
+		ws.getRange2('E107').setValue('169000');
+		ws.getRange2('E108').setValue('126000');
+		ws.getRange2('E109').setValue('142900');
+		ws.getRange2('E110').setValue('163000');
+		ws.getRange2('E111').setValue('169000');
+		ws.getRange2('E112').setValue('149000');
 
 		oParser = new parserFormula( "LINEST(E102:E112,A102:D112,TRUE,TRUE)", "A1", ws );
 		oParser.setArrayFormulaRef(ws.getRange2("E120:E123").bbox);
 		ok( oParser.parse() );
-		var array = oParser.calculate();
+		array = oParser.calculate();
 		if(AscCommonExcel.cElementType.array === array.type) {
 			strictEqual( array.getElementRowCol(0,0).getValue().toFixed(7) - 0, -234.2371645);
 			strictEqual( array.getElementRowCol(1,0).getValue().toFixed(8) - 0, 13.26801148);
 			strictEqual( array.getElementRowCol(2,0).getValue().toFixed(9) - 0, 0.996747993);
 			strictEqual( array.getElementRowCol(3,0).getValue().toFixed(7) - 0, 459.7536742);
 		}
+
+		ws.getRange2( "A120" ).setValue( "1" );
+		ws.getRange2( "B120" ).setValue( "2" );
+
+		oParser = new parserFormula( "LINEST(A120:B120)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1);
+
+		oParser = new parserFormula( "LINEST({1;2})", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1);
+
+		oParser = new parserFormula( "LINEST({1,2})", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1);
 
 	} );
 
@@ -9129,6 +10105,10 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), "#N/A" );
 
+		oParser = new parserFormula( "MATCH({6,2,3},F106:F117,1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 5 );
+
 		//TODO excel по-другому работает
 		/*oParser = new parserFormula( "MATCH(123,F106:F117,1)", "A2", ws );
 		ok( oParser.parse() );
@@ -9258,7 +10238,11 @@ $( function () {
 		oParser = new parserFormula( "INDEX(A651:C651,1,1,2)", "A2", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), "#REF!" );
-    } );
+
+		oParser = new parserFormula( "INDEX(A651:A655,A651,0)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), 1 );
+	} );
 
 	test( "Test: \"INDIRECT\"", function () {
 
@@ -12608,7 +13592,158 @@ $( function () {
 		testArrayFormula2("UPPER", 1, 1);
 	});
 
-	/*test( "Test: \"GROWTH\"", function () {
+	test( "Test: \"UNIQUE \"", function () {
+
+		ws.getRange2( "A101" ).setValue( "1" );
+		ws.getRange2( "A102" ).setValue( "2" );
+		ws.getRange2( "A103" ).setValue( "2" );
+		ws.getRange2( "A104" ).setValue( "-1" );
+		ws.getRange2( "A105" ).setValue( "-1" );
+		ws.getRange2( "A106" ).setValue( "ds" );
+		ws.getRange2( "A107" ).setValue( "ds" );
+		ws.getRange2( "A108" ).setValue( "#NUM!" );
+		ws.getRange2( "A109" ).setValue( "#NUM!" );
+
+		ws.getRange2( "B101" ).setValue( "1" );
+		ws.getRange2( "B102" ).setValue( "2" );
+		ws.getRange2( "B103" ).setValue( "2" );
+		ws.getRange2( "B104" ).setValue( "4" );
+		ws.getRange2( "B105" ).setValue( "5" );
+		ws.getRange2( "B106" ).setValue( "7" );
+		ws.getRange2( "B107" ).setValue( "7" );
+		ws.getRange2( "B108" ).setValue( "8" );
+		ws.getRange2( "B109" ).setValue( "8" );
+
+		ws.getRange2( "C101" ).setValue( "2" );
+		ws.getRange2( "C102" ).setValue( "2" );
+		ws.getRange2( "C103" ).setValue( "2" );
+		ws.getRange2( "C104" ).setValue( "1" );
+		ws.getRange2( "C105" ).setValue( "1" );
+		ws.getRange2( "C106" ).setValue( "2" );
+		ws.getRange2( "C107" ).setValue( "3" );
+		ws.getRange2( "C108" ).setValue( "8" );
+		ws.getRange2( "C109" ).setValue( "8" );
+
+		ws.getRange2( "D101" ).setValue( "2" );
+		ws.getRange2( "D102" ).setValue( "2" );
+		ws.getRange2( "D103" ).setValue( "2" );
+		ws.getRange2( "D104" ).setValue( "1" );
+		ws.getRange2( "D105" ).setValue( "1" );
+		ws.getRange2( "D106" ).setValue( "2" );
+		ws.getRange2( "D107" ).setValue( "3" );
+		ws.getRange2( "D108" ).setValue( "8" );
+		ws.getRange2( "D109" ).setValue( "8" );
+
+		oParser = new parserFormula( "UNIQUE(A101:A109)", "F1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 1 );
+		strictEqual( oParser.calculate().getElementRowCol(1,0).getValue(), 2 );
+		strictEqual( oParser.calculate().getElementRowCol(2,0).getValue(), -1 );
+		strictEqual( oParser.calculate().getElementRowCol(3,0).getValue(), "ds" );
+		strictEqual( oParser.calculate().getElementRowCol(4,0).getValue(), "#NUM!" );
+
+		oParser = new parserFormula( "UNIQUE(A101:A109)", "F1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 1 );
+		strictEqual( oParser.calculate().getElementRowCol(1,0).getValue(), 2 );
+		strictEqual( oParser.calculate().getElementRowCol(2,0).getValue(), -1 );
+		strictEqual( oParser.calculate().getElementRowCol(3,0).getValue(), "ds" );
+		strictEqual( oParser.calculate().getElementRowCol(4,0).getValue(), "#NUM!" );
+
+		oParser = new parserFormula( "UNIQUE(A101:D101)", "F1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 1 );
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue(), 1 );
+		strictEqual( oParser.calculate().getElementRowCol(0,2).getValue(), 2 );
+		strictEqual( oParser.calculate().getElementRowCol(0,3).getValue(), 2 );
+
+		oParser = new parserFormula( "UNIQUE(A101:D101, true)", "F1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 1 );
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue(), 2 );
+
+		oParser = new parserFormula( "UNIQUE(A101:D101, true, true)", "F1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		ws.getRange2( "F102" ).setValue( "test" );
+		ws.getRange2( "F103" ).setValue( "#VALUE!" );
+		ws.getRange2( "F104" ).setValue( "test" );
+		ws.getRange2( "F105" ).setValue( "#VALUE!" );
+		ws.getRange2( "F106" ).setValue( "2" );
+		ws.getRange2( "F107" ).setValue( "-3" );
+
+		ws.getRange2( "G102" ).setValue( "2" );
+		ws.getRange2( "G103" ).setValue( "yyy" );
+		ws.getRange2( "G104" ).setValue( "4" );
+		ws.getRange2( "G105" ).setValue( "yyy" );
+		ws.getRange2( "G106" ).setValue( "asd" );
+		ws.getRange2( "G107" ).setValue( "7" );
+
+		ws.getRange2( "H102" ).setValue( "test" );
+		ws.getRange2( "H103" ).setValue( "#VALUE!" );
+		ws.getRange2( "H104" ).setValue( "test" );
+		ws.getRange2( "H105" ).setValue( "#VALUE!" );
+		ws.getRange2( "H106" ).setValue( "2" );
+		ws.getRange2( "H107" ).setValue( "-3" );
+
+		ws.getRange2( "I102" ).setValue( "2" );
+		ws.getRange2( "I103" ).setValue( "123" );
+		ws.getRange2( "I104" ).setValue( "4" );
+		ws.getRange2( "I105" ).setValue( "123" );
+		ws.getRange2( "I106" ).setValue( "6" );
+		ws.getRange2( "I107" ).setValue( "4" );
+
+		oParser = new parserFormula( "UNIQUE(F102:I107)", "F1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,2).getValue(), "test" );
+		strictEqual( oParser.calculate().getElementRowCol(1,2).getValue(), "#VALUE!" );
+		strictEqual( oParser.calculate().getElementRowCol(2,2).getValue(), "test" );
+		strictEqual( oParser.calculate().getElementRowCol(3,2).getValue(), 2 );
+		strictEqual( oParser.calculate().getElementRowCol(4,2).getValue(), -3 );
+
+		oParser = new parserFormula( "UNIQUE(F102:I107, true)", "F1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,2).getValue(), 2 );
+		strictEqual( oParser.calculate().getElementRowCol(1,2).getValue(), 123 );
+		strictEqual( oParser.calculate().getElementRowCol(2,2).getValue(), 4 );
+		strictEqual( oParser.calculate().getElementRowCol(3,2).getValue(), 123 );
+		strictEqual( oParser.calculate().getElementRowCol(4,2).getValue(), 6 );
+		strictEqual( oParser.calculate().getElementRowCol(5,2).getValue(), 4 );
+
+		oParser = new parserFormula( "UNIQUE(F102:I107, false, true)", "F1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), "test" );
+		strictEqual( oParser.calculate().getElementRowCol(1,1).getValue(), 4 );
+		strictEqual( oParser.calculate().getElementRowCol(2,2).getValue(), 2 );
+		strictEqual( oParser.calculate().getElementRowCol(3,3).getValue(), 4 );
+
+		oParser = new parserFormula( "UNIQUE(F102:I107, true, true)", "F1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue(), 2 );
+		strictEqual( oParser.calculate().getElementRowCol(1,1).getValue(), 123 );
+		strictEqual( oParser.calculate().getElementRowCol(2,1).getValue(), 4 );
+		strictEqual( oParser.calculate().getElementRowCol(3,1).getValue(), 123 );
+		strictEqual( oParser.calculate().getElementRowCol(4,1).getValue(), 6 );
+		strictEqual( oParser.calculate().getElementRowCol(5,1).getValue(), 4 );
+
+		ws.getRange2( "A120" ).setValue( "1" );
+		ws.getRange2( "B120" ).setValue( "2" );
+
+		oParser = new parserFormula( "UNIQUE(A120:B120)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1);
+
+		oParser = new parserFormula( "UNIQUE({1;2})", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1);
+
+		oParser = new parserFormula( "UNIQUE({1,2})", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1);
+	} );
+
+	test( "Test: \"GROWTH\"", function () {
 
 		ws.getRange2( "A102" ).setValue( "11" );
 		ws.getRange2( "A103" ).setValue( "12" );
@@ -12661,6 +13796,8 @@ $( function () {
 		oParser = new parserFormula( "GROWTH(A103:C103,A104:C105,A106:C107,0)", "A2", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1.0017632);
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue().toFixed(3) - 0, 12047829814.167);
+		strictEqual( oParser.calculate().getElementRowCol(0,2).getValue().toFixed(3) - 0, 10705900594.962);
 
 		oParser = new parserFormula( "GROWTH({1,2,3},A104:C105,A106:C107,1)", "A2", ws );
 		ok( oParser.parse() );
@@ -12669,9 +13806,31 @@ $( function () {
 		oParser = new parserFormula( "GROWTH({1,2,3},A104:C105,A106:C107,A106:C107)", "A2", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), "#VALUE!");
-	} );*/
 
-	/*test( "Test: \"TREND\"", function () {
+		oParser = new parserFormula( "GROWTH(A103:C103,A104:C105,A106:C107,1)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 12.00187209);
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue().toFixed(3) - 0, 676231620.297);
+		strictEqual( oParser.calculate().getElementRowCol(0,2).getValue().toFixed(3) - 0, 612512904.254)
+
+		ws.getRange2( "A120" ).setValue( "1" );
+		ws.getRange2( "B120" ).setValue( "2" );
+
+		oParser = new parserFormula( "GROWTH(A120:B120)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1);
+
+		oParser = new parserFormula( "GROWTH({1;2})", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1);
+
+		oParser = new parserFormula( "GROWTH({1,2})", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1);
+	} );
+
+
+	test( "Test: \"LOGEST\"", function () {
 
 		ws.getRange2( "A101" ).setValue( "1" );
 		ws.getRange2( "A102" ).setValue( "2" );
@@ -12706,14 +13865,79 @@ $( function () {
 		ws.getRange2( "A118" ).setValue( "16" );
 		ws.getRange2( "A119" ).setValue( "17" );
 
-		oParser = new parserFormula( "TREND(A101:A112,B101:B112)", "A2", ws );
+		oParser = new parserFormula( "LOGEST(B101:B112,A101:A112)", "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(9) - 0, 0.947729865);
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1.00732561);
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue().toFixed(4) - 0, 133044.8167);
 
-		oParser = new parserFormula( "TREND(B101:B112,A101:A112,A115:A119)", "A2", ws );
+		oParser = new parserFormula( "LOGEST(B101:B112,A101:A112,,false)", "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(4) - 0, 146171.5152);
-	} );*/
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1.00732561);
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue().toFixed(4) - 0, 133044.8167);
+
+		//todo необходимо перепроверить остальные значения в данном случае
+		oParser = new parserFormula( "LOGEST(B101:B112,A101:A112,,true)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1.00732561);
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue().toFixed(4) - 0, 133044.8167);
+
+		oParser = new parserFormula( "LOGEST(B101:B112,A101:A112,true,true)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1.00732561);
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue().toFixed(4) - 0, 133044.8167);
+
+		//todo необходимо перепроверить остальные значения в данном случае
+		oParser = new parserFormula( "LOGEST(B101:B112,A101:A112,false,true)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 4.15001464);
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue().toFixed(4) - 0, 1);
+
+		oParser = new parserFormula( "LOGEST(A101:B105,A106:B110,FALSE,TRUE)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1.0000838);
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue().toFixed(4) - 0, 1);
+		strictEqual( oParser.calculate().getElementRowCol(1,0).getValue().toFixed(8) - 0, 0.00000264);
+		strictEqual( oParser.calculate().getElementRowCol(2,0).getValue().toFixed(4) - 0, 0.9911);
+		strictEqual( oParser.calculate().getElementRowCol(3,0).getValue().toFixed(4) - 0, 1005.3131);
+		strictEqual( oParser.calculate().getElementRowCol(4,0).getValue().toFixed(4) - 0, 698.5684);
+
+		oParser = new parserFormula( "LOGEST(A101:B105,A106:B110,,)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1.00007701);
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue().toFixed(4) - 0, 2.6063);
+
+		oParser = new parserFormula( "LOGEST(A101:B105,A106:B110,false,false)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1.0000838);
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue().toFixed(4) - 0, 1);
+
+		//todo необходимо перепроверить остальные значения в данном случае
+		oParser = new parserFormula( "LOGEST(A101:B105,A106:B110,true,true)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1.00007701);
+		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue().toFixed(4) - 0, 2.6063);
+		strictEqual( oParser.calculate().getElementRowCol(1,0).getValue().toFixed(8) - 0, 0.00000205);
+		strictEqual( oParser.calculate().getElementRowCol(2,0).getValue().toFixed(4) - 0, 0.9944);
+		strictEqual( oParser.calculate().getElementRowCol(3,0).getValue().toFixed(4) - 0, 1416.4887);
+		strictEqual( oParser.calculate().getElementRowCol(4,0).getValue().toFixed(4) - 0, 294.9627);
+
+		ws.getRange2( "A120" ).setValue( "1" );
+		ws.getRange2( "B120" ).setValue( "2" );
+
+		oParser = new parserFormula( "LOGEST(A120:B120)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 2);
+
+		oParser = new parserFormula( "LOGEST({1;2})", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 2);
+
+		oParser = new parserFormula( "LOGEST({1,2})", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 2);
+
+	} );
+
 
 	test( "Test: \"PDURATION\"", function () {
 		oParser = new parserFormula( "PDURATION(2.5%,2000,2200)", "A2", ws );
@@ -12979,6 +14203,35 @@ $( function () {
 		oParser = new parserFormula( "MINUTE(A204)", "A1", ws );
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), 0 );
+
+		ws.getRange2( "A205" ).setValue( "06/30/2020 20:00" );
+		ws.getRange2( "A206" ).setValue( "06/30/2020 21:15" );
+
+		ws.getRange2( "A207" ).setValue( "06/30/2020 23:15" );
+
+		oParser = new parserFormula( "MINUTE(A206-A205)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 15 );
+
+		oParser = new parserFormula( "MINUTE(A207-A205)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 15 );
+
+		oParser = new parserFormula( "MINUTE(A207-A206)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 0 );
+
+		oParser = new parserFormula( "MINUTE(A207+A206)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 30 );
+
+		oParser = new parserFormula( "MINUTE(123.1231231 - 1.12334343)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 59 );
+
+		oParser = new parserFormula( "MINUTE(1.12334343 - 123.1231231)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#NUM!" );
 	} );
 
 	/*test( "Test: \"MINVERSE\"", function () {

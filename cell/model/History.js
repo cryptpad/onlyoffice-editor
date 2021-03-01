@@ -91,6 +91,9 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Worksheet_SetActiveNamedSheetView = 45;
 	window['AscCH'].historyitem_Worksheet_SheetViewAdd = 46;
 	window['AscCH'].historyitem_Worksheet_SheetViewDelete = 47;
+	window['AscCH'].historyitem_Worksheet_DataValidationAdd = 48;
+	window['AscCH'].historyitem_Worksheet_DataValidationChange = 49;
+	window['AscCH'].historyitem_Worksheet_DataValidationDelete = 50;
 
 	window['AscCH'].historyitem_RowCol_Fontname = 1;
 	window['AscCH'].historyitem_RowCol_Fontsize = 2;
@@ -191,7 +194,7 @@ function (window, undefined) {
 	window['AscCH'].historyitem_PivotTable_PivotFieldSetName = 30;
 	window['AscCH'].historyitem_PivotTable_PivotFieldSetOutline = 31;
 	window['AscCH'].historyitem_PivotTable_PivotFieldSetCompact = 32;
-	window['AscCH'].historyitem_PivotTable_PivotFieldFillDownLabelsDefault = 32;
+	window['AscCH'].historyitem_PivotTable_PivotFieldFillDownLabelsDefault = 33;
 	window['AscCH'].historyitem_PivotTable_PivotFieldSetInsertBlankRow = 34;
 	window['AscCH'].historyitem_PivotTable_PivotFieldSetDefaultSubtotal = 35;
 	window['AscCH'].historyitem_PivotTable_PivotFieldSetSubtotalTop = 36;
@@ -211,6 +214,7 @@ function (window, undefined) {
 	window['AscCH'].historyitem_PivotTable_PageFilter = 50;
 	window['AscCH'].historyitem_PivotTable_SetGridDropZones = 51;
 	window['AscCH'].historyitem_PivotTable_WorksheetSource = 52;
+	window['AscCH'].historyitem_PivotTable_PivotCacheId = 53;
 
 	window['AscCH'].historyitem_SharedFormula_ChangeFormula = 1;
 	window['AscCH'].historyitem_SharedFormula_ChangeShared = 2;
@@ -261,6 +265,9 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Slicer_SetCacheCustomListSort = 15;
 	window['AscCH'].historyitem_Slicer_SetCacheCrossFilter = 16;
 	window['AscCH'].historyitem_Slicer_SetCacheHideItemsWithNoData = 17;
+	window['AscCH'].historyitem_Slicer_SetCacheData = 18;
+	window['AscCH'].historyitem_Slicer_SetCacheMovePivot = 19;
+	window['AscCH'].historyitem_Slicer_SetCacheCopySheet = 20;
 	
 	window['AscCH'].historyitem_NamedSheetView_SetName = 1;
 	window['AscCH'].historyitem_NamedSheetView_DeleteFilter = 2;

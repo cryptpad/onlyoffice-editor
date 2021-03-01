@@ -3715,6 +3715,13 @@ StyleManager.prototype =
 	StyleCache.prototype.getXfCount = function() {
 		return this.xfs.list.length;
 	};
+	StyleCache.prototype.getNumFormatStrings = function() {
+		var res = [];
+		for(var fmt in this.nums.vals){
+			res.push(this.nums.vals[fmt].getFormat());
+		}
+		return res;
+	};
 	StyleCache.prototype._add = function(container, newVal, forceAdd) {
 		if (newVal && undefined === newVal.getIndexNumber()) {
 			var hash = newVal.getHash();
@@ -6159,7 +6166,8 @@ function RangeDataManagerElem(bbox, data)
 		this.handlers.trigger("changeRefTablePart", this);
 
 		if (this.AutoFilter) {
-			this.AutoFilter.changeRefOnRange(range);
+			var filterRange = new Asc.Range(range.c1, range.r1, range.c2, this.isTotalsRow() ? range.r2 - 1 : range.r2);
+			this.AutoFilter.changeRefOnRange(filterRange);
 		}
 	};
 	TablePart.prototype.isApplyAutoFilter = function () {
@@ -6403,6 +6411,22 @@ function RangeDataManagerElem(bbox, data)
 		return res;
 	};
 
+	TablePart.prototype.getIndexByColumnName = function (name) {
+		var res = null;
+		if (name === null || name === undefined || !this.TableColumns) {
+			return res;
+		}
+
+		for (var i = 0; i < this.TableColumns.length; i++) {
+			if (name.toLowerCase() === this.TableColumns[i].Name.toLowerCase()) {
+				res = i;
+				break;
+			}
+		}
+
+		return res;
+	};
+
 	TablePart.prototype.showButton = function (val) {
 		if (val === false) {
 			if (!this.AutoFilter) {
@@ -6635,10 +6659,6 @@ function RangeDataManagerElem(bbox, data)
 		}
 
 		this.Ref = new Asc.Range(range.c1, range.r1, range.c2, range.r2);
-
-		if (this.AutoFilter) {
-			this.AutoFilter.changeRefOnRange(range);
-		}
 	};
 	AutoFilter.prototype.isApplyAutoFilter = function () {
 		var res = false;
@@ -8350,6 +8370,15 @@ CustomFilters.prototype.toXml = function(writer, name) {
 	}
 	writer.WriteXmlNodeEnd(name);
 };
+CustomFilters.prototype.changeForInterface = function () {
+	var res = this.clone();
+	if(res.CustomFilters) {
+		for(var i = 0; i < res.CustomFilters.length; i++) {
+			res.CustomFilters[i].changeForInterface();
+		}
+	}
+	return res;
+};
 
 var g_oCustomFilter = {
 	Operator	 : 0,
@@ -8582,6 +8611,26 @@ CustomFilter.prototype.check = function () {
 			this.Val = " ";
 		}
 	}
+
+	if (c_oAscCustomAutoFilter.beginsWith === this.Operator) {
+		this.Operator = c_oAscCustomAutoFilter.equals;
+		this.Val = this.Val + "*";
+	} else if (c_oAscCustomAutoFilter.doesNotBeginWith === this.Operator) {
+		this.Operator = c_oAscCustomAutoFilter.doesNotEqual;
+		this.Val = this.Val + "*";
+	} else if (c_oAscCustomAutoFilter.endsWith === this.Operator) {
+		this.Operator = c_oAscCustomAutoFilter.equals;
+		this.Val = "*" + this.Val;
+	} else if (c_oAscCustomAutoFilter.doesNotEndWith === this.Operator) {
+		this.Operator = c_oAscCustomAutoFilter.doesNotEqual;
+		this.Val = "*" + this.Val;
+	} else if (c_oAscCustomAutoFilter.contains === this.Operator) {
+		this.Operator = c_oAscCustomAutoFilter.equals;
+		this.Val = "*" + this.Val + "*";
+	} else if (c_oAscCustomAutoFilter.doesNotContain === this.Operator) {
+		this.Operator = c_oAscCustomAutoFilter.doesNotEqual;
+		this.Val = "*" + this.Val + "*";
+	}
 };
 
 CustomFilter.prototype._generateEmptyValueFilter = function () {
@@ -8636,6 +8685,40 @@ CustomFilter.prototype.Read_FromBinary2 = function(reader) {
 	}
 	if (reader.GetBool()) {
 		this.Val = reader.GetString2();
+	}
+};
+CustomFilter.prototype.changeForInterface = function() {
+	if (!this.Val || this.Val.length <= 1) {
+		return;
+	}
+
+	var isStartSpecSymbol = this.Val && this.Val.length > 1 && this.Val[0] === "*";
+	var isEndSpecSymbol;
+	if (!isStartSpecSymbol || (isStartSpecSymbol && this.Val.length >= 2)) {
+		isEndSpecSymbol = this.Val && this.Val[this.Val.length - 1] === "*";
+	}
+	if (isStartSpecSymbol && isEndSpecSymbol && this.Val.length <= 2) {
+		return;
+	}
+	if (isStartSpecSymbol || isEndSpecSymbol) {
+		this.Val = this.Val.substring(isStartSpecSymbol ? 1 : 0, isEndSpecSymbol ? this.Val.length - 1 : this.Val.length);
+		if(c_oAscCustomAutoFilter.doesNotEqual === this.Operator) {
+			if (isStartSpecSymbol && isEndSpecSymbol) {
+				this.Operator = c_oAscCustomAutoFilter.doesNotContain;
+			} else if (isStartSpecSymbol) {
+				this.Operator = c_oAscCustomAutoFilter.doesNotEndWith;
+			} else {
+				this.Operator = c_oAscCustomAutoFilter.doesNotBeginWith;
+			}
+		} else {
+			if (isStartSpecSymbol && isEndSpecSymbol) {
+				this.Operator = c_oAscCustomAutoFilter.contains;
+			} else if (isStartSpecSymbol) {
+				this.Operator = c_oAscCustomAutoFilter.endsWith;
+			} else {
+				this.Operator = c_oAscCustomAutoFilter.beginsWith;
+			}
+		}
 	}
 };
 
@@ -10091,7 +10174,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		var oRes = new CHeaderFooter(ws);
 
 		oRes.alignWithMargins = this.alignWithMargins;
-		oRes.differentFirst = this.alignWithMargins;
+		oRes.differentFirst = this.differentFirst;
 		oRes.differentOddEven = this.differentOddEven;
 		oRes.scaleWithDoc = this.scaleWithDoc;
 		oRes.evenFooter = this.evenFooter ? this.evenFooter.clone() : null;

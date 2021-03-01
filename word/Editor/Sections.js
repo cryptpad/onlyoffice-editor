@@ -1212,6 +1212,9 @@ CSectionPr.prototype.GetContentFrame = function(nPageAbs)
 	var nL = this.GetPageMarginLeft();
 	var nR = this.GetPageWidth() - this.GetPageMarginRight();
 
+	if (nT < 0)
+		nT = -nT;
+
 	if (this.LogicDocument && this.LogicDocument.IsMirrorMargins() && 1 === nPageAbs % 2)
 	{
 		nL = this.GetPageMarginRight();

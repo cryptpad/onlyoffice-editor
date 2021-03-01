@@ -215,6 +215,7 @@
     this.mainGraphics = undefined;
     this.stringRender = undefined;
     this.trackOverlay = null;
+    this.mainOverlay = null;
     this.autoShapeTrack = null;
 
     this.formatPainterState = c_oAscFormatPainterState.kOff;
@@ -304,6 +305,10 @@
     this.mainGraphics = new AscCommon.CGraphics();
     this.trackOverlay = new AscCommon.COverlay();
     this.trackOverlay.IsCellEditor = true;
+    if(this.Api.isMobileVersion) {
+        this.mainOverlay = new AscCommon.COverlay();
+        this.mainOverlay.IsCellEditor = true;
+    }
     this.autoShapeTrack = new AscCommon.CAutoshapeTrack();
     this.shapeCtx.m_oAutoShapesTrack = this.autoShapeTrack;
 
@@ -707,7 +712,9 @@
 				  self.handlers.trigger("asc_onContextMenu", event);
 			  }, "updatedEditableFunction": function (fName) {
 				  self.handlers.trigger("asc_onFormulaInfo", fName);
-			  }
+			  }, "onSelectionEnd" : function () {
+				  self.handlers.trigger("asc_onSelectionEnd");
+        }
 		  }, this.defaults.worksheetView.cells.padding);
 
 	  this.wsViewHandlers = new AscCommonExcel.asc_CHandlersList(/*handlers*/{
@@ -748,9 +755,9 @@
 			  return self.defNameAllowCreate;
 		  }, 'isActive': function () {
 			  return self.isActive();
-		  }, "drawMobileSelection": function (color) {
+		  }, "drawMobileSelection": function (oOverlay, oColor) {
 			  if (self.MobileTouchManager) {
-				  self.MobileTouchManager.CheckSelect(self.trackOverlay, color);
+				  self.MobileTouchManager.CheckSelect(oOverlay, oColor);
 			  }
 		  }, "showSpecialPasteOptions": function (val) {
 			  self.handlers.trigger("asc_onShowSpecialPasteOptions", val);
@@ -1006,7 +1013,7 @@
   	var dataValidation = this.oSelectionInfo && this.oSelectionInfo.dataValidation;
   	if (dataValidation && dataValidation.showInputMessage && !this.model.getActiveWs().getDisablePrompts()) {
   		title = dataValidation.promptTitle;
-		message = dataValidation.promt;
+		message = dataValidation.prompt;
 	}
   	this.handlers.trigger("asc_onInputMessage", title, message);
   };
@@ -1600,7 +1607,7 @@
     var t = this;
 
     // Проверка глобального лока
-    if (this.collaborativeEditing.getGlobalLock() || this.controller.isResizeMode) {
+    if (this.collaborativeEditing.getGlobalLock() || this.controller.isResizeMode || !this.canEdit()) {
       return;
     }
 
@@ -1986,6 +1993,11 @@
   	this.trackOverlay.init(this.shapeOverlayCtx.m_oContext, "ws-canvas-graphic-overlay", 0, 0, overlayWidth, overlayHeight, (overlayWidth * 25.4 / this.overlayGraphicCtx.ppiX), (overlayHeight * 25.4 / this.overlayGraphicCtx.ppiY));
   	this.autoShapeTrack.init(this.trackOverlay, 0, 0, overlayWidth, overlayHeight, overlayWidth * 25.4 / this.overlayGraphicCtx.ppiX, overlayHeight * 25.4 / this.overlayGraphicCtx.ppiY);
   	this.autoShapeTrack.Graphics.CalculateFullTransform();
+    if(this.mainOverlay) {
+        overlayWidth = this.canvasOverlay.width;
+        overlayHeight = this.canvasOverlay.height;
+        this.mainOverlay.init(this.overlayCtx.ctx, "ws-canvas-overlay", 0, 0, overlayWidth, overlayHeight, (overlayWidth * 25.4 / this.overlayCtx.ppiX), (overlayHeight * 25.4 / this.overlayCtx.ppiY))
+    }
   };
 
   /** @param event {jQuery.Event} */

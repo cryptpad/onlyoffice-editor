@@ -2860,7 +2860,7 @@
 	/**
 	 * Create a radial gradient fill which allows to fill the object using a selected radial gradient as the object background.
 	 * @memberof Api
-	 * @typeofeditors ["CDE", "CPE"]
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @param {Array} aGradientStop - The array of gradient color stops measured in 1000th of percent.
 	 * @returns {ApiFill}
 	 */
@@ -3682,7 +3682,7 @@
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
 	 * @param {DocumentElement[]} arrContent - An array of elements to insert.
-	 * @param {boolean} [isInline=false] - Inline insert on not (works only when the length of arrContent = 1 and it's a paragraph)
+	 * @param {boolean} [isInline=false] - Inline insert or not (works only for the last and the first element and only if it's a paragraph)
 	 * @param {object} [oPr=undefined]
 	 * @returns {boolean} Success?
 	 */
@@ -3694,7 +3694,7 @@
 			var oElement = arrContent[nIndex];
 			if (oElement instanceof ApiParagraph || oElement instanceof ApiTable)
 			{
-				if (true === isInline && 1 === nCount && oElement instanceof ApiParagraph)
+				if (true === isInline && oElement instanceof ApiParagraph)
 					oSelectedContent.Add(new CSelectedElement(oElement.private_GetImpl(), false));
 				else
 					oSelectedContent.Add(new CSelectedElement(oElement.private_GetImpl(), true));
@@ -5534,7 +5534,7 @@
 	/**
 	 * Get the type of this class.
 	 * @memberof ApiRun
-	 * @typeofeditors ["CDE", "CPE"]
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @returns {"run"}
 	 */
 	ApiRun.prototype.GetClassType = function()
@@ -10759,7 +10759,7 @@
 	/**
 	 * Get the type of this class.
 	 * @memberof ApiPresetColor
-	 * @typeofeditors ["CDE", "CPE"]
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @returns {"presetColor"}
 	 */
 	ApiPresetColor.prototype.GetClassType = function ()

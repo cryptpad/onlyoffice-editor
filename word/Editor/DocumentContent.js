@@ -4111,9 +4111,6 @@ CDocumentContent.prototype.MoveCursorToXY = function(X, Y, AddToSelect, bRemoveO
 			this.CurPos.ContentPos = ContentPos;
 			var ElementPageIndex   = this.private_GetElementPageIndexByXY(ContentPos, X, Y, this.CurPage);
 			this.Content[ContentPos].MoveCursorToXY(X, Y, false, false, ElementPageIndex);
-
-			this.Interface_Update_ParaPr();
-			this.Interface_Update_TextPr();
 		}
 	}
 	else
@@ -4131,9 +4128,6 @@ CDocumentContent.prototype.MoveCursorToXY = function(X, Y, AddToSelect, bRemoveO
 			this.CurPos.ContentPos = ContentPos;
 			var ElementPageIndex   = this.private_GetElementPageIndexByXY(ContentPos, X, Y, this.CurPage);
 			this.Content[ContentPos].MoveCursorToXY(X, Y, false, false, ElementPageIndex);
-
-			this.Interface_Update_ParaPr();
-			this.Interface_Update_TextPr();
 		}
 	}
 };
@@ -4233,7 +4227,7 @@ CDocumentContent.prototype.GetSelectedText = function(bClearText, oPr)
 	else
 	{
 		if (docpostype_DrawingObjects === this.CurPos.Type)
-			return this.LogicDocument.DrawingObjects.getSelectedText(bClearText, oPr);
+			return this.LogicDocument.DrawingObjects.GetSelectedText(bClearText, oPr);
 
 		// Либо у нас нет выделения, либо выделение внутри одного элемента
 		if (docpostype_Content == this.CurPos.Type && ( ( true === this.Selection.Use && selectionflag_Common === this.Selection.Flag ) || false === this.Selection.Use ))
@@ -4408,7 +4402,18 @@ CDocumentContent.prototype.InsertContent = function(SelectedContent, NearPos)
     {
 		if (LastClass.GetParentForm())
 		{
+			var isPlaceHolder  = LastClass.GetParentForm().IsPlaceHolder();
+			var nInRunStartPos = LastClass.State.ContentPos;
 			LastClass.AddText(SelectedContent.GetText({ParaEndToSpace : false}), ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 1]);
+			var nInRunEndPos = LastClass.State.ContentPos;
+
+			LastClass.SelectThisElement();
+			if (!isPlaceHolder)
+			{
+				LastClass.Selection.Use      = true;
+				LastClass.Selection.StartPos = nInRunStartPos;
+				LastClass.Selection.EndPos   = nInRunEndPos;
+			}
 			return;
 		}
 
@@ -4656,6 +4661,7 @@ CDocumentContent.prototype.InsertContent = function(SelectedContent, NearPos)
             DocContent.Selection.Start = false;
         }
     }
+	SelectedContent.CheckSignatures();
 };
 CDocumentContent.prototype.SetParagraphPr = function(oParaPr)
 {
@@ -4930,7 +4936,7 @@ CDocumentContent.prototype.Set_ParagraphPresentationNumbering = function(Bullet)
 			var Level = AscFormat.isRealNumber(oLastParagraph.Pr.Lvl) ? oLastParagraph.Pr.Lvl : 0;
 
 			var oLastBullet_ = oLastParagraph.Get_PresentationNumbering();
-			if (oLastBullet_.Get_Type() >= numbering_presentationnumfrmt_ArabicPeriod)
+			if (oLastBullet_.IsNumbered())
 			{
 				var Next = oLastParagraph.Next;
 				while (null != Next && type_Paragraph === Next.GetType())
@@ -5568,8 +5574,7 @@ CDocumentContent.prototype.IncreaseDecreaseFontSize = function(bIncrease)
 				}
 				case  selectionflag_Numbering:
 				{
-					var OldFontSize = this.GetCalculatedTextPr().FontSize;
-					var NewFontSize = FontSize_IncreaseDecreaseValue(bIncrease, OldFontSize);
+					var NewFontSize = this.GetCalculatedTextPr().GetIncDecFontSize(bIncrease);
 					var TextPr      = new CTextPr();
 					TextPr.FontSize = NewFontSize;
 					this.AddToParagraph(new ParaTextPr(TextPr), true);

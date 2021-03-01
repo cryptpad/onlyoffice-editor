@@ -43,7 +43,7 @@
 
 	// Import
 	var prot;
-	var c_oAscMouseMoveDataTypes = AscCommon.c_oAscMouseMoveDataTypes;
+	var c_oAscMouseMoveDataTypes = Asc.c_oAscMouseMoveDataTypes;
 
 	var c_oAscColor = Asc.c_oAscColor;
 	var c_oAscFill = Asc.c_oAscFill;
@@ -289,6 +289,9 @@
 		this.isAnalyticsEnable = false;
 		this.buildVersion = null;
 		this.buildNumber = null;
+
+		this.betaVersion = '@@Beta';
+
 		return this;
 	}
 
@@ -330,6 +333,9 @@
 	};
 	asc_CAscEditorPermissions.prototype.asc_getBuildNumber = function () {
 		return this.buildNumber;
+	};
+	asc_CAscEditorPermissions.prototype.asc_getIsBeta = function () {
+		return this.betaVersion === 'true';
 	};
 
 	asc_CAscEditorPermissions.prototype.setLicenseType = function (v) {
@@ -3586,6 +3592,10 @@
 	{
 		return this.Number;
 	};
+	CMouseMoveData.prototype.get_FormHelpText = function()
+	{
+		return this.Text;
+	};
 
 
 	/**
@@ -4854,6 +4864,7 @@
 	prot["asc_getRights"] = prot.asc_getRights;
 	prot["asc_getBuildVersion"] = prot.asc_getBuildVersion;
 	prot["asc_getBuildNumber"] = prot.asc_getBuildNumber;
+	prot["asc_getIsBeta"] = prot.asc_getIsBeta;
 
 	window["AscCommon"].asc_ValAxisSettings = asc_ValAxisSettings;
 	prot = asc_ValAxisSettings.prototype;
@@ -5548,6 +5559,7 @@
 	prot["get_LockedObjectType"] = prot.get_LockedObjectType;
 	prot["get_FootnoteText"] =  prot.get_FootnoteText;
 	prot["get_FootnoteNumber"] = prot.get_FootnoteNumber;
+	prot["get_FormHelpText"] = prot.get_FormHelpText;
 
 	window["Asc"]["asc_CUserInfo"] = window["Asc"].asc_CUserInfo = asc_CUserInfo;
 	prot = asc_CUserInfo.prototype;

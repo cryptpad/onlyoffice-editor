@@ -253,7 +253,16 @@
             asc_getColorsFont : function() { return this.colorsFont; },
             asc_getSortColor : function() { return this.sortColor; },
 			asc_getColumnName : function() { return this.columnName; },
-			asc_getSheetColumnName : function() { return this.sheetColumnName; }
+			asc_getSheetColumnName : function() { return this.sheetColumnName; },
+
+			setVisibleFromValues: function(values) {
+				if (!this.values) {
+					return;
+				}
+				for (var i = 0; i < this.values.length && i < values.length; ++i) {
+					this.values[i].visible = values[i].visible;
+				}
+			}
 		};
 		
 		var g_oAdvancedTableInfoSettings = {
@@ -357,6 +366,7 @@
 				} else if (!ignoreCustomFilter && filters.CustomFiltersObj && filters.CustomFiltersObj.CustomFilters) {
 					this.type = c_oAscAutoFilterTypes.CustomFilters;
 					this.filter = filters.CustomFiltersObj;
+					this.filter = this.filter.changeForInterface();
 				} else if (filters.DynamicFilter) {
 					this.type = c_oAscAutoFilterTypes.DynamicFilter;
 					this.filter = filters.DynamicFilter.clone();
@@ -514,6 +524,7 @@
 								shiftRange = worksheet.getRange3(filterRange.r2, filterRange.c1, filterRange.r2, filterRange.c2);
 								shiftRange.addCellsShiftBottom();
 								wsView.cellCommentator.updateCommentsDependencies(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox);
+								worksheet.shiftDataValidation(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox, true);
 								moveToRange = new Asc.Range(filterRange.c1, filterRange.r1 + 1, filterRange.c2, filterRange.r2);
 							}
 							worksheet._moveRange(rangeWithoutDiff, moveToRange);
@@ -529,6 +540,7 @@
 										shiftRange = worksheet.getRange3(filterRange.r2, filterRange.c1, filterRange.r2, filterRange.c2);
 										shiftRange.addCellsShiftBottom();
 										wsView.cellCommentator.updateCommentsDependencies(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox);
+										worksheet.shiftDataValidation(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox, true)
 									}
 								}
 							}
@@ -5596,7 +5608,7 @@
 				return result;
 			},
 
-			isPartFilterUnderRange: function (range) {
+			isPartFilterUnderRange: function (range, checkFirstRow) {
 				var worksheet = this.worksheet;
 				var result = false;
 
@@ -5605,7 +5617,28 @@
 					var allColRef = new Asc.Range(range.c1, range.r1, range.c2, AscCommon.gc_nMaxRow0);
 
 					if (allColRef.intersection(ref) && !allColRef.containsRange(ref)) {
-						result = true;
+						if (!checkFirstRow || (checkFirstRow && allColRef.r1 <= ref.r1)) {
+							result = true;
+						}
+					}
+
+				}
+
+				return result;
+			},
+
+			isPartFilterRightRange: function (range, checkFirstCol) {
+				var worksheet = this.worksheet;
+				var result = false;
+
+				if (worksheet.AutoFilter) {
+					var ref = worksheet.AutoFilter.Ref;
+					var allColRef = new Asc.Range(range.c1, range.r1, AscCommon.gc_nMaxCol0, range.r2);
+
+					if (allColRef.intersection(ref) && !allColRef.containsRange(ref)) {
+						if (!checkFirstCol || (checkFirstCol && (allColRef.c1 <= ref.c1 || allColRef.r1 <= ref.r1))) {
+							result = true;
+						}
 					}
 
 				}

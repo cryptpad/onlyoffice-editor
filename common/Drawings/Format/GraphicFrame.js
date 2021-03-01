@@ -102,12 +102,6 @@ CGraphicFrame.prototype.GetDocumentPositionFromObject = function(arrPos)
 {
 	if (!arrPos)
 		arrPos = [];
-
-	// TODO: Судя по тому как записывается позиция и как она читается
-	//       класс CGraphicFrame не должен попадать в позицию
-	if (arrPos && arrPos.length > 0 && arrPos[0].Class === this)
-		arrPos.splice(0, 1);
-
 	return arrPos;
 };
 
@@ -1287,6 +1281,11 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
             }
         }
         return ret;
+    };
+    CGraphicFrame.prototype.documentCreateFontMap = function(oMap) {
+        if(this.graphicObject && this.graphicObject.Document_CreateFontMap) {
+            this.graphicObject.Document_CreateFontMap(oMap);
+        }
     };
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
