@@ -259,10 +259,10 @@ CNativeGraphics.prototype =
         this.m_oTextPr = textPr;
         if (theme)
         {
-            this.m_oGrFonts.Ascii.Name     = theme.themeElements.fontScheme.checkFont(this.m_oTextPr.RFonts.Ascii.Name);
-            this.m_oGrFonts.EastAsia.Name  = theme.themeElements.fontScheme.checkFont(this.m_oTextPr.RFonts.EastAsia.Name);
-            this.m_oGrFonts.HAnsi.Name     = theme.themeElements.fontScheme.checkFont(this.m_oTextPr.RFonts.HAnsi.Name);
-            this.m_oGrFonts.CS.Name        = theme.themeElements.fontScheme.checkFont(this.m_oTextPr.RFonts.CS.Name);
+            this.m_oGrFonts.Ascii.Name     = theme.themeElements.fontScheme.checkFont(this.m_oTextPr.RFonts.Ascii    ? this.m_oTextPr.RFonts.Ascii.Name    : null);
+            this.m_oGrFonts.EastAsia.Name  = theme.themeElements.fontScheme.checkFont(this.m_oTextPr.RFonts.EastAsia ? this.m_oTextPr.RFonts.EastAsia.Name : null);
+            this.m_oGrFonts.HAnsi.Name     = theme.themeElements.fontScheme.checkFont(this.m_oTextPr.RFonts.HAnsi    ? this.m_oTextPr.RFonts.HAnsi.Name    : null);
+            this.m_oGrFonts.CS.Name        = theme.themeElements.fontScheme.checkFont(this.m_oTextPr.RFonts.CS       ? this.m_oTextPr.RFonts.CS.Name       : null);
             this.m_oGrFonts.Ascii.Index    = -1;
             this.m_oGrFonts.EastAsia.Index = -1;
             this.m_oGrFonts.HAnsi.Index    = -1;
