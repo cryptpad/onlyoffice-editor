@@ -1825,6 +1825,35 @@ function BinaryPPTYLoader()
 
                     break;
                 }
+                case c_oAscColor.COLOR_TYPE_STYLE:
+                {
+                    var oColor = new AscFormat.CStyleColor();
+                    s.Skip2(1);
+                    while(true)
+                    {
+                        var _at2 = s.GetUChar();
+                        if (_at2 == g_nodeAttributeEnd)
+                            break;
+                        switch (_at2) {
+                            case 0:
+                            {
+                                oColor.val = s.GetULong();
+                                break;
+                            }
+                            case 1:
+                            {
+                                oColor.bAuto = s.GetBool();
+                                break;
+                            }
+                            default:
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    uni_color.setColor(oColor);
+                    break;
+                }
             }
         }
 

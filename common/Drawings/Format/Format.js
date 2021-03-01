@@ -2003,6 +2003,41 @@ CSchemeColor.prototype =
     }
 };
 
+    function CStyleColor()
+    {
+        this.bAuto = false;
+        this.val = null;
+    }
+    CStyleColor.prototype.type = c_oAscColor.COLOR_TYPE_STYLE;
+    CStyleColor.prototype.check = function(theme, colorMap)
+    {
+    };
+    CStyleColor.prototype.Write_ToBinary = function (w)
+    {
+        w.WriteLong(this.type);
+        writeBool(w, this.bAuto);
+        writeLong(w, this.val);
+    };
+    CStyleColor.prototype.Read_FromBinary = function (r)
+    {
+        this.bAuto = readBool(r);
+        this.val = readLong(r);
+    };
+    CStyleColor.prototype.IsIdentical = function(color)
+    {
+        return color && color.type == this.type && color.bAuto == this.bAuto && this.val === color.val;
+    };
+    CStyleColor.prototype.createDuplicate = function()
+    {
+        var duplicate = new CStyleColor();
+        duplicate.bAuto = this.bAuto;
+        duplicate.val = this.val;
+        return duplicate;
+    };
+    CStyleColor.prototype.Calculate = function(theme, slide, layout, masterSlide, RGBA, colorMap)
+    {
+    };
+
 function CUniColor()
 {
     this.color = null;
@@ -2200,6 +2235,12 @@ CUniColor.prototype =
                 case c_oAscColor.COLOR_TYPE_SYS:
                 {
                     this.color = new CSysColor();
+                    this.color.Read_FromBinary(r);
+                    break;
+                }
+                case c_oAscColor.COLOR_TYPE_STYLE:
+                {
+                    this.color = new CStyleColor();
                     this.color.Read_FromBinary(r);
                     break;
                 }
@@ -5527,6 +5568,14 @@ function CompareUniColor(u1, u2)
                     || u1.color.RGBA.B !== u2.color.RGBA.B
                     || u1.color.RGBA.A !== u2.color.RGBA.A
                     || u1.color.id !== u2.color.id)
+                {
+                    return false;
+                }
+                break;
+            }
+            case c_oAscColor.COLOR_TYPE_STYLE:
+            {
+                if(u1.bAuto !== u2.bAuto || u1.val !== u2.val)
                 {
                     return false;
                 }
@@ -13262,6 +13311,7 @@ function CorrectUniColor(asc_color, unicolor, flag)
     window['AscFormat'].CPrstColor = CPrstColor;
     window['AscFormat'].CRGBColor = CRGBColor;
     window['AscFormat'].CSchemeColor = CSchemeColor;
+    window['AscFormat'].CStyleColor = CStyleColor;
     window['AscFormat'].CUniColor = CUniColor;
     window['AscFormat'].CreateUniColorRGB = CreateUniColorRGB;
     window['AscFormat'].CreateUniColorRGB2 = CreateUniColorRGB2;

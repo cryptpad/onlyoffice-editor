@@ -2465,6 +2465,24 @@ function CBinaryFileWriter()
                 oThis.EndRecord();
                 break;
             }
+            case c_oAscColor.COLOR_TYPE_STYLE:
+            {
+                oThis.StartRecord(c_oAscColor.COLOR_TYPE_STYLE);
+                oThis.WriteUChar(g_nodeAttributeStart);
+                if(AscFormat.isRealNumber(color.val))
+                {
+                    oThis._WriteUInt1(0, color.val);
+                }
+                else
+                {
+                    oThis._WriteBool2(1, color.bAuto);
+                }
+                oThis.WriteUChar(g_nodeAttributeEnd);
+                oThis.WriteMods(unicolor.Mods);
+
+                oThis.EndRecord();
+                break;
+            }
         }
     };
 
