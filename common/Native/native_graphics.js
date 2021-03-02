@@ -485,7 +485,6 @@ CNativeGraphics.prototype =
     },
     drawCollaborativeChanges : function(x, y, w, h, Color)
     {
-        this.Native["drawCollaborativeChanges"](x, y, w, h, Color.r, Color.g, Color.b, 255);
     },
     drawMailMergeField : function(x, y, w, h)
     {
