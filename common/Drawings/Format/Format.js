@@ -2445,6 +2445,14 @@ CUniColor.prototype =
         return _css;
     },
 
+    isCorrect: function()
+    {
+        if(this.color !== null && this.color !== undefined) {
+            return true;
+        }
+        return false;
+    },
+
     getNoStyleUnicolor: function(nIdx, aColors)
     {
         if(!this.color)
@@ -6991,7 +6999,7 @@ StyleRef.prototype =
 
     getNoStyleUnicolor: function(nIdx, aColors)
     {
-        if(this.Color)
+        if(this.Color && this.Color.isCorrect())
         {
             return this.Color.getNoStyleUnicolor(nIdx, aColors);
         }
@@ -7055,7 +7063,7 @@ FontRef.prototype =
 
     getNoStyleUnicolor: function(nIdx, aColors)
     {
-        if(this.Color)
+        if(this.Color && this.Color.isCorrect())
         {
             return this.Color.getNoStyleUnicolor(nIdx, aColors);
         }

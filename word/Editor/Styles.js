@@ -16539,7 +16539,7 @@ CParaPr.prototype.Get_PresentationBullet = function(theme, colorMap)
 				if (this.Bullet.bulletColor.UniColor && this.Bullet.bulletColor.UniColor.color && theme && colorMap)
 				{
 					Bullet.m_bColorTx = false;
-					Bullet.Unifill    = AscFormat.CreateUniFillByUniColor(this.Bullet.bulletColor.UniColor);
+					Bullet.Unifill    = AscFormat.CreateUniFillByUniColorCopy(this.Bullet.bulletColor.UniColor);
 				}
 			}
 		}

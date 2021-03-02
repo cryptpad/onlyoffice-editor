@@ -328,7 +328,7 @@ function CreateUniFillByUniColor(uniColor)
 {
     var ret = new AscFormat.CUniFill();
     ret.setFill(new AscFormat.CSolidFill());
-    ret.fill.setColor(uniColor.createDuplicate());
+    ret.fill.setColor(uniColor);
     return ret;
 }
 
@@ -2934,11 +2934,8 @@ CShape.prototype.recalculateTextStyles = function (level) {
         if (isRealObject(compiled_style) && isRealObject(compiled_style.fontRef)) {
             shape_text_style = new CStyle("shapeTextStyle", null, null, null, true);
             shape_text_style.TextPr.RFonts.SetFontStyle(compiled_style.fontRef.idx);
-            if (compiled_style.fontRef.Color != null && compiled_style.fontRef.Color.color != null) {
-                var unifill = new AscFormat.CUniFill();
-                unifill.fill = new AscFormat.CSolidFill();
-                unifill.fill.color = compiled_style.fontRef.Color;
-                shape_text_style.TextPr.Unifill = unifill;
+            if (compiled_style.fontRef.Color && compiled_style.fontRef.Color.isCorrect()) {
+                shape_text_style.TextPr.Unifill = AscFormat.CreateUniFillByUniColor(compiled_style.fontRef.Color);
             }
         }
         var Styles = new CStyles(false);

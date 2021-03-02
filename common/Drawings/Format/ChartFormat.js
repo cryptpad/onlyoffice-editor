@@ -2130,6 +2130,13 @@
             oCurElement = oCurElement.parent;
         }
     };
+    CBaseChartObject.prototype.getDrawingDocument = function() {
+        var oChartSpace = this.getChartSpace();
+        if(oChartSpace) {
+            return oChartSpace.getDrawingDocument();
+        }
+        return null;
+    };
     CBaseChartObject.prototype.onChartInternalUpdate = function(bColors) {
         var oChartSpace = this.getChartSpace();
         if(oChartSpace) {
@@ -2193,15 +2200,30 @@
             this.spPr.setLn(oLn);
         }
         if(this.setTxPr) {
-            var oBodyPr = null;
-            if(oStyleEntry.bodyPr) {
-                oBodyPr = oStyleEntry.bodyPr.createDuplicate();
-            }
             var oFontRef = oStyleEntry.fontRef;
-            var oFontUnicolor = oFontRef.getNoStyleUnicolor(nIdx, aColors);
-
             var oParaPr = new AscCommonWord.CParaPr();
-            oParaPr.DefaultRunPr;
+            var oTextPr = new AscCommonWord.CTextPr();
+            var oRFonts = oTextPr.RFonts;
+            oRFonts.SetFontStyle(oFontRef.idx);
+            var oFontUnicolor = oFontRef.getNoStyleUnicolor(nIdx, aColors);
+            if(oFontUnicolor) {
+                oTextPr.SetUnifill(AscFormat.CreateUniFillByUniColor(oFontUnicolor))
+            }
+            if(oStyleEntry.defRPr) {
+                oTextPr.Merge(oStyleEntry.defRPr);
+                if(oTextPr.Unifill) {
+                    oTextPr.Unifill.checkPhColor(oFontUnicolor);
+                }
+            }
+            oParaPr.DefaultRunPr = oTextPr;
+            var oBodyPr = null;
+
+            var oTxPr = AscFormat.CreateTextBodyFromString("", this.getDrawingDocument(), this);
+            if(oStyleEntry.bodyPr) {
+                oTxPr.setBodyPr(oStyleEntry.bodyPr.createDuplicate())
+            }
+            oTxPr.content.Content[0].Set_Pr(oParaPr);
+            this.setTxPr(oTxPr);
         }
     };
 
@@ -8267,9 +8289,6 @@
         History.CanAddChanges() && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartFormatSetChart, this.chart, pr));
         this.chart = pr;
         this.setParentToChild(pr);
-    };
-    CChartText.prototype.getDrawingDocument = function() {
-        return this.parent && this.parent.getDrawingDocument && this.parent.getDrawingDocument();
     };
     CChartText.prototype.merge = function(tx, noCopyTextBody) {
         if(tx.rich) {

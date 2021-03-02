@@ -698,7 +698,7 @@
                 }
                 if(outerShdw.color)
                 {
-                    shape.spPr.Fill = AscFormat.CreateUniFillByUniColor(outerShdw.color);
+                    shape.spPr.Fill = AscFormat.CreateUniFillByUniColorCopy(outerShdw.color);
                 }
                 else
                 {
