@@ -34,7 +34,7 @@
 
 function CSpellchecker(settings)
 {
-	useWasm = false;
+	var useWasm = false;
 	var webAsmObj = window["WebAssembly"];
 	if (typeof webAsmObj === "object")
 	{
