@@ -2830,10 +2830,7 @@ CShape.prototype.recalculateTextStyles = function (level) {
         default_style.ParaPr.Align = AscCommon.align_Center;
         if(parent_objects.theme)
         {
-            default_style.TextPr.RFonts.Ascii = {Name: "+mn-lt", Index: -1};
-            default_style.TextPr.RFonts.EastAsia = {Name: "+mn-ea", Index: -1};
-            default_style.TextPr.RFonts.CS = {Name: "+mn-cs", Index: -1};
-            default_style.TextPr.RFonts.HAnsi = {Name: "+mn-lt", Index: -1};
+            default_style.TextPr.RFonts.SetFontStyle(AscFormat.fntStyleInd_minor);;
         }
         if(!this.bCheckAutoFitFlag)
         {
@@ -2936,17 +2933,7 @@ CShape.prototype.recalculateTextStyles = function (level) {
         var compiled_style = this.getCompiledStyle && this.getCompiledStyle();
         if (isRealObject(compiled_style) && isRealObject(compiled_style.fontRef)) {
             shape_text_style = new CStyle("shapeTextStyle", null, null, null, true);
-            var first_name;
-            if (compiled_style.fontRef.idx === AscFormat.fntStyleInd_major)
-                first_name = "+mj-";
-            else
-                first_name = "+mn-";
-
-            shape_text_style.TextPr.RFonts.Ascii = {Name: first_name + "lt", Index: -1};
-            shape_text_style.TextPr.RFonts.EastAsia = {Name: first_name + "ea", Index: -1};
-            shape_text_style.TextPr.RFonts.CS = {Name: first_name + "cs", Index: -1};
-            shape_text_style.TextPr.RFonts.HAnsi = {Name: first_name + "lt", Index: -1};
-
+            shape_text_style.TextPr.RFonts.SetFontStyle(compiled_style.fontRef.idx);
             if (compiled_style.fontRef.Color != null && compiled_style.fontRef.Color.color != null) {
                 var unifill = new AscFormat.CUniFill();
                 unifill.fill = new AscFormat.CSolidFill();

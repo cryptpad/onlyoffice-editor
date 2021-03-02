@@ -2160,6 +2160,50 @@
             oChartSpace.clearDataRefs();
         }
     };
+    CBaseChartObject.prototype.applyStyleEntry = function(oStyleEntry, aColors, oTheme) {
+        var nIdx = 0;
+        if(AscFormat.isRealNumber(this.idx)) {
+            nIdx = this.idx;
+        }
+        if(this.setSpPr) {
+            var oSpPr = oStyleEntry.spPr;
+            //fill
+            var oFill;
+            var oFillRef = oStyleEntry.fillRef;
+            var oFillRefUnicolor = oFillRef.getNoStyleUnicolor(nIdx, aColors);
+            oFill = oTheme.getFillStyle(oFillRef.idx, oFillRefUnicolor);
+            if(oSpPr && oSpPr.Fill) {
+                oFill = oSpPr.Fill.createDuplicate();
+                oFill.checkPhColor(oFillRefUnicolor);
+            }
+            //line
+            var oLn;
+            var oLineRef = oStyleEntry.lnRef;
+            var oLineRefUnicolor = oLineRef.getNoStyleUnicolor(nIdx, aColors);
+            oLn = oTheme.getLnStyle(oLineRef.idx, oLineRefUnicolor);
+            if(oSpPr && oSpPr.ln) {
+                oLn = oSpPr.ln.createDuplicate();
+                oLn.Fill.checkPhColor(oLineRefUnicolor);
+            }
+            if(AscFormat.isRealNumber(oLn.w) && AscFormat.isRealNumber(oStyleEntry.lineWidthScale)) {
+                oLn.w *= oStyleEntry.lineWidthScale;
+            }
+            this.setSpPr(new AscFormat.CSpPr());
+            this.spPr.setFill(oFill);
+            this.spPr.setLn(oLn);
+        }
+        if(this.setTxPr) {
+            var oBodyPr = null;
+            if(oStyleEntry.bodyPr) {
+                oBodyPr = oStyleEntry.bodyPr.createDuplicate();
+            }
+            var oFontRef = oStyleEntry.fontRef;
+            var oFontUnicolor = oFontRef.getNoStyleUnicolor(nIdx, aColors);
+
+            var oParaPr = new AscCommonWord.CParaPr();
+            oParaPr.DefaultRunPr;
+        }
+    };
 
     function getMinMaxFromArrPoints(aPoints) {
         if(Array.isArray(aPoints) && aPoints.length > 0) {
@@ -2740,26 +2784,7 @@
             para_pr.Spacing.Line = 1;
             para_pr.Spacing.LineRule = Asc.linerule_Auto;
             style.ParaPr = para_pr;
-            text_pr.RFonts.Set_FromObject(
-                {
-                    Ascii: {
-                        Name: "+mn-lt",
-                        Index: -1
-                    },
-                    EastAsia: {
-                        Name: "+mn-ea",
-                        Index: -1
-                    },
-                    HAnsi: {
-                        Name: "+mn-lt",
-                        Index: -1
-                    },
-                    CS: {
-                        Name: "+mn-lt",
-                        Index: -1
-                    }
-                }
-            );
+            text_pr.RFonts.SetFontStyle(AscFormat.fntStyleInd_minor);
             style.TextPr = text_pr;
             var chart_text_pr;
 

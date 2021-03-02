@@ -1862,26 +1862,7 @@ var GLOBAL_PATH_COUNT = 0;
         else {
             text_pr.Unifill = AscFormat.CreateUnfilFromRGB(0, 0, 0);
         }
-        text_pr.RFonts.Set_FromObject(
-            {
-                Ascii: {
-                    Name: "+mn-lt",
-                    Index: -1
-                },
-                EastAsia: {
-                    Name: "+mn-ea",
-                    Index: -1
-                },
-                HAnsi: {
-                    Name: "+mn-lt",
-                    Index: -1
-                },
-                CS: {
-                    Name: "+mn-lt",
-                    Index: -1
-                }
-            }
-        );
+        text_pr.RFonts.SetFontStyle(AscFormat.fntStyleInd_minor);
         if(this.txPr && this.txPr.content && this.txPr.content.Content[0] && this.txPr.content.Content[0].Pr.DefaultRunPr) {
             text_pr.Merge(this.txPr.content.Content[0].Pr.DefaultRunPr.Copy());
         }
@@ -10005,26 +9986,7 @@ var GLOBAL_PATH_COUNT = 0;
         if(!oCopy.txPr.content.Content[0].Pr.DefaultRunPr || !oCopy.txPr.content.Content[0].Pr.DefaultRunPr.RFonts || !oCopy.txPr.content.Content[0].Pr.DefaultRunPr.RFonts.Ascii
             || !oCopy.txPr.content.Content[0].Pr.DefaultRunPr.RFonts.Ascii.Name) {
             bMerge = true;
-            oTextPr.RFonts.Set_FromObject(
-                {
-                    Ascii: {
-                        Name: "+mn-lt",
-                        Index: -1
-                    },
-                    EastAsia: {
-                        Name: "+mn-ea",
-                        Index: -1
-                    },
-                    HAnsi: {
-                        Name: "+mn-lt",
-                        Index: -1
-                    },
-                    CS: {
-                        Name: "+mn-lt",
-                        Index: -1
-                    }
-                }
-            );
+            oTextPr.RFonts.SetFontStyle(AscFormat.fntStyleInd_minor);
         }
 
         if(this.txPr && this.txPr.content && this.txPr.content.Content[0] && this.txPr.content.Content[0].Pr.DefaultRunPr && this.txPr.content.Content[0].Pr.DefaultRunPr.Unifill) {
@@ -11965,6 +11927,17 @@ var GLOBAL_PATH_COUNT = 0;
         }
         var oDataRange = this.getDataRefs();
         oDataRange.fillSelectedRanges(oWSView);
+    };
+    CChartSpace.prototype.canResetToStyle = function() {
+        if(this.chartStyle && this.chartColors) {
+            return true;
+        }
+    };
+    CChartSpace.prototype.resetToStyle = function() {
+        if(!this.chartStyle || !this.chartColors) {
+            return;
+        }
+
     };
     CChartSpace.prototype.buildSeries = function(aRefs) {
         if(!Array.isArray(aRefs)) {

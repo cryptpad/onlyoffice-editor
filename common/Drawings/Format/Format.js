@@ -2037,6 +2037,17 @@ CSchemeColor.prototype =
     CStyleColor.prototype.Calculate = function(theme, slide, layout, masterSlide, RGBA, colorMap)
     {
     };
+    CStyleColor.prototype.getNoStyleUnicolor = function(nIdx, aColors)
+    {
+        if(this.bAuto || this.val === null)
+        {
+            return aColors[nIdx % aColors.length];
+        }
+        else
+        {
+            return aColors[this.val % aColors.length];
+        }
+    };
 
 function CUniColor()
 {
@@ -2432,6 +2443,19 @@ CUniColor.prototype =
         }
         var _css = "rgba(" + this.RGBA.R + "," + this.RGBA.G + "," + this.RGBA.B + "," + (this.RGBA.A / 255) + ")";
         return _css;
+    },
+
+    getNoStyleUnicolor: function(nIdx, aColors)
+    {
+        if(!this.color)
+        {
+            return null;
+        }
+        if(this.color.type !== c_oAscColor.COLOR_TYPE_STYLE)
+        {
+            return this.color;
+        }
+        return this.color.getNoStyleUnicolor(nIdx, aColors);
     }
 };
 
@@ -6963,6 +6987,15 @@ StyleRef.prototype =
             this.Color = new CUniColor();
             this.Color.Read_FromBinary(r);
         }
+    },
+
+    getNoStyleUnicolor: function(nIdx, aColors)
+    {
+        if(this.Color)
+        {
+            return this.Color.getNoStyleUnicolor(nIdx, aColors);
+        }
+        return null;
     }
 };
 
@@ -7018,6 +7051,24 @@ FontRef.prototype =
             this.Color = new CUniColor();
             this.Color.Read_FromBinary(r);
         }
+    },
+
+    getNoStyleUnicolor: function(nIdx, aColors)
+    {
+        if(this.Color)
+        {
+            return this.Color.getNoStyleUnicolor(nIdx, aColors);
+        }
+        return null;
+    },
+
+    getFirstPartThemeName: function()
+    {
+        if (this.idx === AscFormat.fntStyleInd_major)
+        {
+            return "+mj-";
+        }
+        return "+mn-";
     }
 };
 
