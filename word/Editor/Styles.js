@@ -14071,19 +14071,11 @@ CTextPr.prototype.FillFromExcelFont = function(oFont) {
 	var nSchemeFont = oFont.getScheme();
 	switch (nSchemeFont) {
 		case Asc.EFontScheme.fontschemeMajor: {
-			this.RFonts.Merge({
-				Ascii: {Name: "+mj-lt", Index: -1},
-				EastAsia: {Name: "+mj-ea", Index: -1},
-				CS: {Name: "+mj-cs", Index: -1}
-			});
+			this.RFonts.SetFontStyle(AscFormat.fntStyleInd_major);
 			break;
 		}
 		case Asc.EFontScheme.fontschemeMinor: {
-			this.RFonts.Merge({
-				Ascii: {Name: "+mn-lt", Index: -1},
-				EastAsia: {Name: "+mn-ea", Index: -1},
-				CS: {Name: "+mn-cs", Index: -1}
-			});
+			this.RFonts.SetFontStyle(AscFormat.fntStyleInd_minor);
 			break;
 		}
 		case Asc.EFontScheme.fontschemeNone: {
