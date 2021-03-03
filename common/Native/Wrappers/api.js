@@ -6418,10 +6418,11 @@ function onApiShowRevisionsChange(data) {
 
 function readSDKContentControl(props) {
     var type = props.get_SpecificType(),
+        internalId = props.get_InternalId(),
         specProps;
 
     var result = {
-        get_InternalId: props.get_InternalId(),
+        get_InternalId: internalId,
         get_PlaceholderText: props.get_PlaceholderText(),
         get_Lock: props.get_Lock(),
         get_SpecificType: type
@@ -6487,8 +6488,9 @@ function readSDKContentControl(props) {
 
             val = specProps.get_Checked();
             result["get_Checked"] = val;
-            console.log("specProps.get_Checked() - " + val);
-            console.log("specProps.GroupKey - " + specProps.GroupKey);
+
+            val = _api.asc_IsContentControlCheckBoxChecked(internalId);
+            result["asc_IsContentControlCheckBoxChecked"] = val;
 
             
             if (!ischeckbox) {
@@ -6614,8 +6616,6 @@ function contentControllListAToJSON(obj) {
 // Common
 
 function onFocusObject(SelectedObjects) {
-    console.log("call onFocusObject");
-
     var settings = [];
     var isChart = false;
     var control_props = _api.asc_IsContentControl() ? _api.asc_GetContentControlProperties() : null,
