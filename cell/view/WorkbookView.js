@@ -89,6 +89,7 @@
 		this.updateStyle = function () {
 			this.header.style = this._generateStyle();
 			this.header.groupDataBorder = this.getCColor(AscCommon.GlobalSkin.GroupDataBorder);
+			this.header.editorBorder = this.getCColor(AscCommon.GlobalSkin.EditorBorder);
 		};
 		this._generateStyle = function () {
 			return [// Header colors
@@ -115,7 +116,8 @@
 		this.header = {
 			style: this._generateStyle(),
 			cornerColor: new CColor(193, 193, 193),
-			groupDataBorder: this.getCColor(AscCommon.GlobalSkin.GroupDataBorder)
+			groupDataBorder: this.getCColor(AscCommon.GlobalSkin.GroupDataBorder),
+			editorBorder: this.getCColor(AscCommon.GlobalSkin.EditorBorder)
 		};
 		this.cells = {
 			defaultState: {
@@ -432,6 +434,8 @@
 				  self._onTableTotalClick.apply(self, arguments);
 			  }, "pivotFiltersClick": function () {
 				  self._onPivotFiltersClick.apply(self, arguments);
+			  }, "pivotCollapseClick": function () {
+				  self._onPivotCollapseClick.apply(self, arguments);
 			  }, "commentCellClick": function () {
 				  self._onCommentCellClick.apply(self, arguments);
 			  }, "isGlobalLockEditCell": function () {
@@ -1501,6 +1505,16 @@
       this.handlers.trigger("asc_onSetAFDialog", filterObj);
     }
   };
+  WorkbookView.prototype._onPivotCollapseClick = function(idPivotCollapse) {
+    if (!idPivotCollapse) {
+      return;
+    }
+    var pivotTable = this.model.getPivotTableById(idPivotCollapse.id);
+    if (!pivotTable) {
+      return;
+    }
+    pivotTable.setVisibleFieldItem(this.Api, !idPivotCollapse.sd, idPivotCollapse.fld, idPivotCollapse.index);
+  };
 
   WorkbookView.prototype._onGroupRowClick = function(x, y, target, type) {
   	return this.getWorksheet().groupRowClick(x, y, target, type);
@@ -1632,7 +1646,7 @@
     var t = this;
 
     // Проверка глобального лока
-    if (this.collaborativeEditing.getGlobalLock() || this.controller.isResizeMode) {
+    if (this.collaborativeEditing.getGlobalLock() || this.controller.isResizeMode || !this.canEdit()) {
       return;
     }
 

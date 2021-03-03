@@ -655,6 +655,10 @@ Paragraph.prototype.Get_Theme = function()
 
 	return null;
 };
+Paragraph.prototype.GetTheme = function()
+{
+	return this.Get_Theme();
+};
 Paragraph.prototype.Get_ColorMap = function()
 {
 	if (this.Parent)
@@ -3232,6 +3236,9 @@ Paragraph.prototype.Internal_Draw_6 = function(CurPage, pGraphics, Pr)
  */
 Paragraph.prototype.private_IsEmptyPageWithBreak = function(CurPage)
 {
+	if (this.Pages.length <= 0 || !this.Pages[CurPage])
+		return true;
+
 	//if (true === this.IsEmptyPage(CurPage))
 	//    return true;
 
@@ -3239,10 +3246,7 @@ Paragraph.prototype.private_IsEmptyPageWithBreak = function(CurPage)
 		return false;
 
 	var Info = this.Lines[this.Pages[CurPage].EndLine].Info;
-	if (Info & paralineinfo_Empty && Info & paralineinfo_BreakPage)
-		return true;
-
-	return false;
+	return !!(Info & paralineinfo_Empty && Info & paralineinfo_BreakPage);
 };
 /**
  * Функция отрисовки нумерации строк
@@ -4238,6 +4242,7 @@ Paragraph.prototype.Add = function(Item)
 
 				case para_Math:
 				case para_Hyperlink:
+				case para_InlineLevelSdt:
 				{
 					CurItem.Add(Item);
 					break;
@@ -8200,7 +8205,7 @@ Paragraph.prototype.GetSelectedText = function(bClearText, oPr)
 	var Str = "";
 
 	var oNumPr = this.GetNumPr();
-	if (oNumPr && oNumPr.IsValid())
+	if (oNumPr && oNumPr.IsValid() && this.IsSelectionFromStart(false))
 	{
 		Str += this.GetNumberingText(false);
 
@@ -8296,7 +8301,7 @@ Paragraph.prototype.GetSelectedContent = function(oSelectedContent)
 	if (true !== this.Selection.Use)
 		return;
 
-	var isAllSelected = (true === this.Selection_IsFromStart(true) && true === this.Selection_CheckParaEnd());
+	var isAllSelected = (true === this.IsSelectionFromStart(true) && true === this.Selection_CheckParaEnd());
 
 	var nStartPos = this.Selection.StartPos;
 	var nEndPos   = this.Selection.EndPos;
@@ -8530,7 +8535,15 @@ Paragraph.prototype.GetCalculatedTextPr = function()
 
 	// TODO: Пока возвращаем всегда шрифт лежащий в Ascii, в будущем надо будет это переделать
 	if (undefined !== TextPr.RFonts && null !== TextPr.RFonts)
-		TextPr.FontFamily = TextPr.RFonts.Ascii;
+	{
+		TextPr.ReplaceThemeFonts(this.GetTheme().themeElements.fontScheme);
+
+		if (!TextPr.FontFamily)
+			TextPr.FontFamily = {Name : "", Index : -1};
+
+		TextPr.FontFamily.Name  = TextPr.RFonts.Ascii.Name;
+		TextPr.FontFamily.Index = TextPr.RFonts.Ascii.Index;
+	}
 
 	return TextPr;
 };
@@ -10009,7 +10022,7 @@ Paragraph.prototype.IsCursorAtBegin = function(_ContentPos, bCheckAnchors)
 /**
  * Проверим, начинается ли выделение с начала параграфа
  */
-Paragraph.prototype.Selection_IsFromStart = function(bCheckAnchors)
+Paragraph.prototype.IsSelectionFromStart = function(bCheckAnchors)
 {
 	if (true === this.IsSelectionUse())
 	{
@@ -10019,10 +10032,7 @@ Paragraph.prototype.Selection_IsFromStart = function(bCheckAnchors)
 		if (StartPos.Compare(EndPos) > 0)
 			StartPos = EndPos;
 
-		if (true != this.IsCursorAtBegin(StartPos, bCheckAnchors))
-			return false;
-
-		return true;
+		return (true === this.IsCursorAtBegin(StartPos, bCheckAnchors));
 	}
 
 	return false;
@@ -11721,17 +11731,18 @@ Paragraph.prototype.Supplement_FramePr = function(FramePr)
 		}
 
 		var TextPr = FirstFramePara.GetFirstRunPr();
+		TextPr.ReplaceThemeFonts(this.GetTheme().themeElements.fontScheme);
 
 		if (undefined === TextPr.RFonts || undefined === TextPr.RFonts.Ascii)
 		{
 			TextPr = this.Get_CompiledPr2(false).TextPr;
+			TextPr.ReplaceThemeFonts(this.GetTheme().themeElements.fontScheme);
 		}
 
-		FramePr.FontFamily =
-			{
-				Name  : TextPr.RFonts.Ascii.Name,
-				Index : TextPr.RFonts.Ascii.Index
-			};
+		FramePr.FontFamily = {
+			Name  : TextPr.RFonts.Ascii.Name,
+			Index : TextPr.RFonts.Ascii.Index
+		};
 	}
 
 	var FrameParas = this.Internal_Get_FrameParagraphs();
@@ -13791,7 +13802,7 @@ Paragraph.prototype.GetRevisionsChangeElement = function(SearchEngine)
 };
 Paragraph.prototype.IsSelectedAll = function()
 {
-    var bStart = this.Selection_IsFromStart();
+    var bStart = this.IsSelectionFromStart();
     var bEnd   = this.Selection_CheckParaEnd();
 
     return ((true === bStart && true === bEnd) || true === this.ApplyToAll ? true : false);
@@ -15816,8 +15827,9 @@ Paragraph.prototype.CheckTrackMoveMarkInSelection = function(isStart, isCheckTo)
 };
 /**
  * Очищаем содержимое параграфа, оставляем в нем ровно 1 пустой параграф
+ * @param {boolean} [isClearRun=true]
  */
-Paragraph.prototype.MakeSingleRunParagraph = function()
+Paragraph.prototype.MakeSingleRunParagraph = function(isClearRun)
 {
 	if (this.Content.length <= 1)
 	{
@@ -15830,7 +15842,10 @@ Paragraph.prototype.MakeSingleRunParagraph = function()
 	}
 
 	var oRun = this.Content[0];
-	oRun.ClearContent();
+
+	if (false !== isClearRun)
+		oRun.ClearContent();
+
 	return oRun;
 };
 Paragraph.prototype.Document_Is_SelectionLocked = function(CheckType)

@@ -86,11 +86,11 @@ function CNativeGraphics()
 
 CNativeGraphics.prototype =
 {
-    init : function(nativecontrol, width_px, height_px, width_mm, height_mm)
+    create : function(nativecontrol, width_px, height_px, width_mm, height_mm)
     {
         this.TextureFillTransformScaleX = width_mm  / (width_px  >> 0);
         this.TextureFillTransformScaleY = height_mm / (height_px >> 0);
-        this.Native["init"](nativecontrol, width_px, height_px, width_mm, height_mm);
+        this.Native["create"](nativecontrol, width_px, height_px, width_mm, height_mm);
     },
     EndDraw : function()
     {
@@ -259,10 +259,10 @@ CNativeGraphics.prototype =
         this.m_oTextPr = textPr;
         if (theme)
         {
-            this.m_oGrFonts.Ascii.Name     = theme.themeElements.fontScheme.checkFont(this.m_oTextPr.RFonts.Ascii.Name);
-            this.m_oGrFonts.EastAsia.Name  = theme.themeElements.fontScheme.checkFont(this.m_oTextPr.RFonts.EastAsia.Name);
-            this.m_oGrFonts.HAnsi.Name     = theme.themeElements.fontScheme.checkFont(this.m_oTextPr.RFonts.HAnsi.Name);
-            this.m_oGrFonts.CS.Name        = theme.themeElements.fontScheme.checkFont(this.m_oTextPr.RFonts.CS.Name);
+            this.m_oGrFonts.Ascii.Name     = theme.themeElements.fontScheme.checkFont(this.m_oTextPr.RFonts.Ascii    ? this.m_oTextPr.RFonts.Ascii.Name    : null);
+            this.m_oGrFonts.EastAsia.Name  = theme.themeElements.fontScheme.checkFont(this.m_oTextPr.RFonts.EastAsia ? this.m_oTextPr.RFonts.EastAsia.Name : null);
+            this.m_oGrFonts.HAnsi.Name     = theme.themeElements.fontScheme.checkFont(this.m_oTextPr.RFonts.HAnsi    ? this.m_oTextPr.RFonts.HAnsi.Name    : null);
+            this.m_oGrFonts.CS.Name        = theme.themeElements.fontScheme.checkFont(this.m_oTextPr.RFonts.CS       ? this.m_oTextPr.RFonts.CS.Name       : null);
             this.m_oGrFonts.Ascii.Index    = -1;
             this.m_oGrFonts.EastAsia.Index = -1;
             this.m_oGrFonts.HAnsi.Index    = -1;
@@ -485,7 +485,6 @@ CNativeGraphics.prototype =
     },
     drawCollaborativeChanges : function(x, y, w, h, Color)
     {
-        this.Native["drawCollaborativeChanges"](x, y, w, h, Color.r, Color.g, Color.b, 255);
     },
     drawMailMergeField : function(x, y, w, h)
     {

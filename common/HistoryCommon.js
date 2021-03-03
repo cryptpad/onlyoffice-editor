@@ -1497,6 +1497,7 @@
 	window['AscDFH'].historyitem_type_TmplLst                = 1193 << 16;
 	window['AscDFH'].historyitem_type_TnLst                  = 1194 << 16;
 	window['AscDFH'].historyitem_type_TavLst                 = 1195 << 16;
+	window['AscDFH'].historyitem_type_SldSz                  = 1196 << 16;
 
 	window['AscDFH'].historyitem_type_DocumentMacros         = 2000 << 16;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1525,6 +1526,7 @@
 	window['AscDFH'].historyitem_Document_Settings_GutterAtTop       = window['AscDFH'].historyitem_type_Document | 8;
 	window['AscDFH'].historyitem_Document_Settings_MirrorMargins     = window['AscDFH'].historyitem_type_Document | 9;
 	window['AscDFH'].historyitem_Document_SpecialFormsGlobalSettings = window['AscDFH'].historyitem_type_Document | 10;
+	window['AscDFH'].historyitem_Document_Settings_TrackRevisions    = window['AscDFH'].historyitem_type_Document | 11;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе Paragraph
 	//------------------------------------------------------------------------------------------------------------------
@@ -3184,6 +3186,10 @@
 
 	AscDFH.historyitem_AttrNameText = AscDFH.historyitem_type_AttrName | 1;
 
+	AscDFH.historyitem_SldSzCX   = AscDFH.historyitem_type_SldSz | 1;
+	AscDFH.historyitem_SldSzCY   = AscDFH.historyitem_type_SldSz | 2;
+	AscDFH.historyitem_SldSzType = AscDFH.historyitem_type_SldSz | 3;
+
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3586,6 +3592,9 @@
 	window['AscDFH'].historydescription_Document_ClearAllSpecialForms               = 0x0182;
 	window['AscDFH'].historydescription_Document_ChangeTextCase                     = 0x0183;
 	window['AscDFH'].historydescription_Document_SetNumberingLvl                    = 0x0184;
+	window['AscDFH'].historydescription_Document_SetTrackRevisions                  = 0x0185;
+	window['AscDFH'].historydescription_Document_SetContentControlText              = 0x0186;
+	window['AscDFH'].historydescription_Document_ClearContentControl                = 0x0187;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

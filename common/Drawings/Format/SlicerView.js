@@ -760,8 +760,7 @@
     };
     CSlicer.prototype.recalculateHeader = function() {
         var bShowHeader = this.getShowCaption();
-        var sCaption = this.getCaption();
-        if(!bShowHeader || sCaption.length < 1) {
+        if(!bShowHeader) {
             this.header = null;
             return;
         }

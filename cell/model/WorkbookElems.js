@@ -2970,8 +2970,12 @@ var g_oBorderProperties = {
 	CellXfs.prototype.asc_getAngle = function () {
 		return this.getAlign2().getAngle();
 	};
+	CellXfs.prototype.asc_getIndent = function () {
+		return this.getAlign2().getIndent();
+	};
 	CellXfs.prototype.asc_getWrapText = function () {
-		return this.getAlign2().getWrap();
+		var align = this.getAlign2();
+		return align.getWrap() || align.hor === AscCommon.align_Distributed;
 	};
 	CellXfs.prototype.asc_getShrinkToFit = function () {
 		return this.getAlign2().getShrinkToFit();
@@ -3031,8 +3035,9 @@ var g_oBorderProperties = {
 
 	/** @constructor */
 	function Align(val) {
-		if (null == val)
+		if (null == val) {
 			val = g_oDefaultFormat.AlignAbs;
+		}
 		this.hor = val.hor;
 		this.indent = val.indent;
 		this.RelativeIndent = val.RelativeIndent;
@@ -3060,10 +3065,11 @@ var g_oBorderProperties = {
 		this._index = val;
 	};
 	Align.prototype._mergeProperty = function (first, second, def) {
-		if (def != first)
+		if (def != first) {
 			return first;
-		else
+		} else {
 			return second;
+		}
 	};
 	Align.prototype.merge = function (align) {
 		var defaultAlign = g_oDefaultFormat.Align;
@@ -3080,36 +3086,44 @@ var g_oBorderProperties = {
 	Align.prototype.getDif = function (val) {
 		var oRes = new Align(this);
 		var bEmpty = true;
-		if (this.hor == val.hor)
+		if (this.hor == val.hor) {
 			oRes.hor = null;
-		else
+		} else {
 			bEmpty = false;
-		if (this.indent == val.indent)
+		}
+		if (this.indent == val.indent) {
 			oRes.indent = null;
-		else
+		} else {
 			bEmpty = false;
-		if (this.RelativeIndent == val.RelativeIndent)
+		}
+		if (this.RelativeIndent == val.RelativeIndent) {
 			oRes.RelativeIndent = null;
-		else
+		} else {
 			bEmpty = false;
-		if (this.shrink == val.shrink)
+		}
+		if (this.shrink == val.shrink) {
 			oRes.shrink = null;
-		else
+		} else {
 			bEmpty = false;
-		if (this.angle == val.angle)
+		}
+		if (this.angle == val.angle) {
 			oRes.angle = null;
-		else
+		} else {
 			bEmpty = false;
-		if (this.ver == val.ver)
+		}
+		if (this.ver == val.ver) {
 			oRes.ver = null;
-		else
+		} else {
 			bEmpty = false;
-		if (this.wrap == val.wrap)
+		}
+		if (this.wrap == val.wrap) {
 			oRes.wrap = null;
-		else
+		} else {
 			bEmpty = false;
-		if (bEmpty)
+		}
+		if (bEmpty) {
 			oRes = null;
+		}
 		return oRes;
 	};
 	Align.prototype.isEqual = function (val) {
@@ -3211,6 +3225,12 @@ var g_oBorderProperties = {
 	};
 	Align.prototype.setAlignVertical = function (val) {
 		this.ver = val;
+	};
+	Align.prototype.getIndent = function () {
+		return this.indent;
+	};
+	Align.prototype.setIndent = function (val) {
+		this.indent = val;
 	};
 	Align.prototype.readAttributes = function (attr, uq) {
 		if (attr()) {
@@ -3560,6 +3580,10 @@ StyleManager.prototype =
 			return AscCommonExcel.angleFormatToInterface2(this.angle);
 		}, Align.prototype.setAngle);
     },
+	setIndent : function(oItemWithXfs, val)
+	{
+		return this._setAlignProperty(oItemWithXfs, val, "indent", Align.prototype.getIndent, Align.prototype.setIndent);
+	},
 	_initXf: function(oItemWithXfs){
 		var xfs = oItemWithXfs.xfs;
 		if (!xfs) {
@@ -3718,6 +3742,13 @@ StyleManager.prototype =
 	};
 	StyleCache.prototype.getXfCount = function() {
 		return this.xfs.list.length;
+	};
+	StyleCache.prototype.getNumFormatStrings = function() {
+		var res = [];
+		for(var fmt in this.nums.vals){
+			res.push(this.nums.vals[fmt].getFormat());
+		}
+		return res;
 	};
 	StyleCache.prototype._add = function(container, newVal, forceAdd) {
 		if (newVal && undefined === newVal.getIndexNumber()) {
@@ -4380,6 +4411,13 @@ StyleManager.prototype =
 				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, false, oRes.oldVal, oRes.newVal));
 		}
 	};
+	Col.prototype.setIndent = function (val) {
+		var oRes = this.ws.workbook.oStyleManager.setIndent(this, val);
+		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoCol, AscCH.historyitem_RowCol_Indent, this.ws.getId(),
+				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, false, oRes.oldVal, oRes.newVal));
+		}
+	};
 	Col.prototype.setHidden = function (val) {
 		if (this.index >= 0 && (!this.hd !== !val)) {
 			this.ws.hiddenManager.addHidden(false, this.index);
@@ -4755,6 +4793,13 @@ StyleManager.prototype =
 		var oRes = this.ws.workbook.oStyleManager.setAngle(this, val);
 		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
 			History.Add(AscCommonExcel.g_oUndoRedoRow, AscCH.historyitem_RowCol_Angle, this.ws.getId(),
+				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
+		}
+	};
+	Row.prototype.setIndent = function (val) {
+		var oRes = this.ws.workbook.oStyleManager.setIndent(this, val);
+		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoRow, AscCH.historyitem_RowCol_Indent, this.ws.getId(),
 				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
 		}
 	};
@@ -6400,6 +6445,22 @@ function RangeDataManagerElem(bbox, data)
 
 		if(this.TableColumns[index]) {
 			res = this.TableColumns[index].Name;
+		}
+
+		return res;
+	};
+
+	TablePart.prototype.getIndexByColumnName = function (name) {
+		var res = null;
+		if (name === null || name === undefined || !this.TableColumns) {
+			return res;
+		}
+
+		for (var i = 0; i < this.TableColumns.length; i++) {
+			if (name.toLowerCase() === this.TableColumns[i].Name.toLowerCase()) {
+				res = i;
+				break;
+			}
 		}
 
 		return res;
@@ -10924,6 +10985,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getHorAlign"] = prot.asc_getHorAlign;
 	prot["asc_getVertAlign"] = prot.asc_getVertAlign;
 	prot["asc_getAngle"] = prot.asc_getAngle;
+	prot["asc_getIndent"] = prot.asc_getIndent;
 	prot["asc_getWrapText"] = prot.asc_getWrapText;
 	prot["asc_getShrinkToFit"] = prot.asc_getShrinkToFit;
 	prot["asc_getPreview"] = prot.asc_getPreview;

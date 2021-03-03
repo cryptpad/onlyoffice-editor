@@ -215,6 +215,7 @@
 			LockedCellPivot				: -312,
 			PivotLabledColumns			: -313,
 			PivotOverlap				: -314,
+			PivotGroup					: -315,
 
 			ForceSaveButton: -331,
 			ForceSaveTimeout: -332,
@@ -407,6 +408,7 @@
 	var align_Left    = 1;
 	var align_Center  = 2;
 	var align_Justify = 3;
+	var align_Distributed = 4;
 
 
 	var linerule_AtLeast = 0x00;
@@ -1235,6 +1237,7 @@
 	var changestype_PresDefaultLang           = 74;
 	var changestype_SlideHide                 = 75;
 	var changestype_CorePr                    = 76;
+	var changestype_Document_Settings         = 77; // Изменение общих настроек документа Document.Settings
 
 	var changestype_2_InlineObjectMove       = 1; // Передвигаем объект в заданную позцию (проверяем место, в которое пытаемся передвинуть)
 	var changestype_2_HdrFtr                 = 2; // Изменения с колонтитулом
@@ -2133,6 +2136,26 @@
 		All     : 2
 	};
 
+	var c_oAscSlideSZType = {
+			Sz35mm: 0,
+			SzA3: 1,
+			SzA4: 2,
+			SzB4ISO: 3,
+			SzB4JIS: 4,
+			SzB5ISO: 5,
+			SzB5JIS: 6,
+			SzBanner: 7,
+			SzCustom: 8,
+			SzHagakiCard: 9,
+			SzLedger: 10,
+			SzLetter: 11,
+			SzOverhead: 12,
+			SzScreen16x10: 13,
+			SzScreen16x9: 14,
+			SzScreen4x3: 15,
+			SzWidescreen: 16
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -2279,6 +2302,7 @@
 	prot['LockedCellPivot']                  = prot.LockedCellPivot;
 	prot['PivotLabledColumns']               = prot.PivotLabledColumns;
 	prot['PivotOverlap']                     = prot.PivotOverlap;
+	prot['PivotGroup']                       = prot.PivotGroup;
 	prot['ForceSaveButton']                  = prot.ForceSaveButton;
 	prot['ForceSaveTimeout']                 = prot.ForceSaveTimeout;
 	prot['CannotChangeFormulaArray']         = prot.CannotChangeFormulaArray;
@@ -2966,6 +2990,8 @@
 	window["AscCommon"].changestype_PresDefaultLang           = changestype_PresDefaultLang;
 	window["AscCommon"].changestype_SlideHide                 = changestype_SlideHide;
 	window["AscCommon"].changestype_CorePr                    = changestype_CorePr;
+	window["AscCommon"].changestype_Document_Settings         = changestype_Document_Settings;
+
 	window["AscCommon"].changestype_2_InlineObjectMove        = changestype_2_InlineObjectMove;
 	window["AscCommon"].changestype_2_HdrFtr                  = changestype_2_HdrFtr;
 	window["AscCommon"].changestype_2_Comment                 = changestype_2_Comment;
@@ -2991,6 +3017,7 @@
 	window['AscCommon']['align_Left'] = window['AscCommon'].align_Left = align_Left;
 	window['AscCommon']['align_Center'] = window['AscCommon'].align_Center = align_Center;
 	window['AscCommon']['align_Justify'] = window['AscCommon'].align_Justify = align_Justify;
+	window['AscCommon']['align_Distributed'] = window['AscCommon'].align_Distributed = align_Distributed;
 
 
 	window["AscCommon"]["c_oAscFormatPainterState"]    = c_oAscFormatPainterState;
@@ -3202,5 +3229,24 @@
 	prot['Current'] = c_oAscSectionApplyType.Current;
 	prot['ToEnd']   = c_oAscSectionApplyType.ToEnd;
 	prot['All']     = c_oAscSectionApplyType.All;
+
+	prot = window['Asc']['c_oAscSlideSZType'] = window['Asc'].c_oAscSlideSZType = c_oAscSlideSZType;
+	prot['Sz35mm'] = prot.Sz35mm;
+	prot['SzA3'] = prot.SzA3;
+	prot['SzA4'] = prot.SzA4;
+	prot['SzB4ISO'] = prot.SzB4ISO;
+	prot['SzB4JIS'] = prot.SzB4JIS;
+	prot['SzB5ISO'] = prot.SzB5ISO;
+	prot['SzB5JIS'] = prot.SzB5JIS;
+	prot['SzBanner'] = prot.SzBanner;
+	prot['SzCustom'] = prot.SzCustom;
+	prot['SzHagakiCard'] = prot.SzHagakiCard;
+	prot['SzLedger'] = prot.SzLedger;
+	prot['SzLetter'] = prot.SzLetter;
+	prot['SzOverhead'] = prot.SzOverhead;
+	prot['SzScreen16x10'] = prot.SzScreen16x10;
+	prot['SzScreen16x9'] = prot.SzScreen16x9;
+	prot['SzScreen4x3'] = prot.SzScreen4x3;
+	prot['SzWidescreen'] = prot.SzWidescreen;
 
 })(window);

@@ -1139,29 +1139,26 @@ function CBinaryFileWriter()
         this.WriteRecord2(0, presentation.defaultTextStyle, this.WriteTextListStyle);
 
         // 5
-        pres.SldSz.cx = (presentation.Width * c_dScalePPTXSizes) >> 0;
-        pres.SldSz.cy = (presentation.Height * c_dScalePPTXSizes) >> 0;
+        var oSldSz = presentation.sldSz;
+        if(oSldSz)
+        {
+            this.StartRecord(5);
+            this.WriteUChar(g_nodeAttributeStart);
 
-        this.StartRecord(5);
-        this.WriteUChar(g_nodeAttributeStart);
+            this._WriteInt1(0, oSldSz.cx);
+            this._WriteInt1(1, oSldSz.cy);
+            this._WriteLimit2(2, oSldSz.type);
 
-        this._WriteInt1(0, pres.SldSz.cx);
-        this._WriteInt1(1, pres.SldSz.cy);
-        this._WriteLimit2(2, pres.SldSz.type);
-
-        this.WriteUChar(g_nodeAttributeEnd);
-        this.EndRecord();
+            this.WriteUChar(g_nodeAttributeEnd);
+            this.EndRecord();
+        }
 
         // 3
-        pres.NotesSz = {};
-        pres.NotesSz.cx = (presentation.Height * c_dScalePPTXSizes) >> 0;
-        pres.NotesSz.cy = (presentation.Width * c_dScalePPTXSizes) >> 0;
-
         this.StartRecord(3);
         this.WriteUChar(g_nodeAttributeStart);
 
-        this._WriteInt1(0, pres.NotesSz.cx);
-        this._WriteInt1(1, pres.NotesSz.cy);
+        this._WriteInt1(0, presentation.GetWidthEMU());
+        this._WriteInt1(1, presentation.GetHeightEMU());
 
         this.WriteUChar(g_nodeAttributeEnd);
         this.EndRecord();
@@ -3639,6 +3636,8 @@ function CBinaryFileWriter()
         oThis.WriteRecord2(2, shape.style, oThis.WriteShapeStyle);
         oThis.WriteRecord2(3, shape.txBody, oThis.WriteTxBody);
 
+        oThis.WriteRecord2(7, shape.signatureLine, oThis.WriteSignatureLine);
+
         if (isUseTmpFill)
         {
             shape.spPr.Fill = tmpFill;
@@ -4329,6 +4328,8 @@ function CBinaryFileWriter()
 		oThis._WriteString2(3, oSignatureLine.id);
 		oThis._WriteBool2(4, true);
 		oThis._WriteString2(5, "{00000000-0000-0000-0000-000000000000}");
+		oThis._WriteBool2(6, oSignatureLine.showDate);
+		oThis._WriteString2(7, oSignatureLine.instructions);
 		oThis._WriteString2(10, oSignatureLine.signer);
 		oThis._WriteString2(11, oSignatureLine.signer2);
 		oThis._WriteString2(12, oSignatureLine.email);

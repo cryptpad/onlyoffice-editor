@@ -525,27 +525,65 @@
 	};
 
 	Api.prototype.RecalculateAllFormulas = function(fLogger) {
-		var formulas = this.wbModel.getAllFormulas();
+		var formulas = this.wbModel.getAllFormulas(true);
 		for (var i = 0; i < formulas.length; ++i) {
 			var formula = formulas[i];
-			var cell = formula.ws.getCell3(formula.parent.nRow, formula.parent.nCol);
-			var oldValue = cell.getValue();
-			formula.setFormula(formula.getFormula());
-			formula.parse();
-			var formulaRes = formula.calculate();
-			var newValue = formulaRes.getValue();
+			var nRow;
+			var nCol;
+			if (formula.f && formula.r !== undefined && formula.c !== undefined) {
+				nRow = formula.r;
+				nCol = formula.c;
+				formula = formula.f;
+			} else if (formula.parent) {
+				nRow = formula.parent.nRow;
+				nCol = formula.parent.nCol;
+			}
 
-			if (fLogger) {
-				if (oldValue != newValue) {
-					//error
-					fLogger({
-						sheet: formula.ws.sName,
-						r: formula.parent.nRow,
-						c: formula.parent.nCol,
-						f: formula.Formula,
-						oldValue: oldValue,
-						newValue: newValue
-					});
+			if (formula.parent && nRow !== undefined && nCol !== undefined) {
+				var cell = formula.ws.getCell3(nRow, nCol);
+				var oldValue = cell.getValue();
+				formula.setFormula(formula.getFormula());
+				formula.parse();
+				var formulaRes = formula.calculate();
+				var arrayFormula = formula.getArrayFormulaRef();
+				var newValue = null;
+				if (arrayFormula && formulaRes.type === AscCommonExcel.cElementType.array) {
+					if (formulaRes.array) {
+						var isOneRow = formulaRes.array.length === 1;
+						var isOneCol = formulaRes.array[0] && formulaRes.array[0].length === 1;
+
+						var rowArray = nRow - arrayFormula.r1;
+						var colArray = nCol - arrayFormula.c1;
+						if (isOneRow && rowArray > 0 && colArray === 0) {
+							colArray = rowArray;
+							rowArray = 0;
+						}
+						if (isOneCol && colArray > 0 && rowArray === 0) {
+							rowArray = colArray;
+							colArray = 0;
+						}
+
+						if (formulaRes.array[rowArray]) {
+							newValue = formulaRes.getElementRowCol(rowArray, colArray);
+						}
+					}
+					newValue = newValue ? newValue.getValue() : "#N/A";
+				} else {
+					newValue = formulaRes ? formulaRes.getValue() : "#N/A";
+				}
+
+				if (fLogger) {
+					if (oldValue != newValue) {
+						//error
+						fLogger({
+							sheet: formula.ws.sName,
+							r: formula.parent.nRow,
+							c: formula.parent.nCol,
+							f: formula.Formula,
+							oldValue: oldValue,
+							newValue: newValue
+						});
+					}
 				}
 			}
 		}

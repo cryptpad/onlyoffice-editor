@@ -1134,8 +1134,8 @@ CopyProcessor.prototype =
 
 				this.oPresentationWriter.WriteString2(this.api.documentId);
 				this.oPresentationWriter.WriteString2(themeName);
-				this.oPresentationWriter.WriteDouble(presentation.Width);
-				this.oPresentationWriter.WriteDouble(presentation.Height);
+				this.oPresentationWriter.WriteDouble(presentation.GetWidthMM());
+				this.oPresentationWriter.WriteDouble(presentation.GetHeightMM());
 				//флаг о том, что множественный контент в буфере
 				this.oPresentationWriter.WriteBool(true);
 			}
@@ -1162,8 +1162,8 @@ CopyProcessor.prototype =
 			if(elementsContent.DocContent || (elementsContent.Drawings && elementsContent.Drawings.length) || (elementsContent.SlideObjects && elementsContent.SlideObjects.length))
 			{
 				this.oPresentationWriter.WriteString2(this.api.documentId);
-				this.oPresentationWriter.WriteDouble(presentation.Width);
-				this.oPresentationWriter.WriteDouble(presentation.Height);
+				this.oPresentationWriter.WriteDouble(presentation.GetWidth());
+				this.oPresentationWriter.WriteDouble(presentation.GetHeight());
 			}
 			this.copyPresentationContent(elementsContent, oDomTarget);
 		}*/
@@ -3261,9 +3261,9 @@ PasteProcessor.prototype =
 				this.oDocument = this._GetTargetDocument(this.oDocument);
 
 				if (this.oDocument && this.oDocument.bPresentation) {
-					if (oThis.api.WordControl.m_oLogicDocument.TrackRevisions) {
-						oThis.api.WordControl.m_oLogicDocument.TrackRevisions = false;
-						bTurnOffTrackRevisions = true;
+					if (oThis.api.WordControl.m_oLogicDocument.IsTrackRevisions()) {
+						bTurnOffTrackRevisions = oThis.api.WordControl.m_oLogicDocument.GetLocalTrackRevisions();
+						oThis.api.WordControl.m_oLogicDocument.SetLocalTrackRevisions(false);
 					}
 				}
 			}
@@ -3301,8 +3301,8 @@ PasteProcessor.prototype =
 		}
 
 		if (true === bInsertFromBinary) {
-			if (bTurnOffTrackRevisions) {
-				oThis.api.WordControl.m_oLogicDocument.TrackRevisions = true;
+			if (false !== bTurnOffTrackRevisions) {
+				oThis.api.WordControl.m_oLogicDocument.SetLocalTrackRevisions(bTurnOffTrackRevisions);
 			}
 		} else if (node) {
 			this._pasteFromHtml(node, bTurnOffTrackRevisions);
@@ -3444,8 +3444,8 @@ PasteProcessor.prototype =
 					}
 					if (AscFormat.isRealNumber(l) && AscFormat.isRealNumber(t)
 						&& AscFormat.isRealNumber(r) && AscFormat.isRealNumber(b)) {
-						var fSlideCX = presentation.Width / 2.0;
-						var fSlideCY = presentation.Height / 2.0;
+						var fSlideCX = presentation.GetWidthMM() / 2.0;
+						var fSlideCY = presentation.GetHeightMM() / 2.0;
 						var fBoundsCX = (r + l) / 2.0;
 						var fBoundsCY = (t + b) / 2.0;
 						var fDiffX = fBoundsCX - fSlideCX;
@@ -3549,8 +3549,8 @@ PasteProcessor.prototype =
 					graphic_frame.spPr.setParent(graphic_frame);
 					graphic_frame.spPr.setXfrm(new AscFormat.CXfrm());
 					graphic_frame.spPr.xfrm.setParent(graphic_frame.spPr);
-					graphic_frame.spPr.xfrm.setOffX((this.oDocument.Width - W) / 2);
-					graphic_frame.spPr.xfrm.setOffY(this.oDocument.Height / 5);
+					graphic_frame.spPr.xfrm.setOffX((this.oDocument.GetWidthMM() - W) / 2);
+					graphic_frame.spPr.xfrm.setOffY(this.oDocument.GetHeightMM() / 5);
 					graphic_frame.spPr.xfrm.setExtX(W);
 					graphic_frame.spPr.xfrm.setExtY(7.478268771701388 * Rows);
 					graphic_frame.setNvSpPr(new AscFormat.UniNvPr());
@@ -3711,7 +3711,7 @@ PasteProcessor.prototype =
 					element = oThis._convertTableToPPTX(element, true);
 
 					//TODO переделать количество строк и ширину
-					var W = oThis.oDocument.Width / 1.45;
+					var W = oThis.oDocument.GetWidthMM() / 1.45;
 					var Rows = element.GetRowsCount();
 					var H = Rows * 7.478268771701388;
 					var graphic_frame = new CGraphicFrame();
@@ -3719,8 +3719,8 @@ PasteProcessor.prototype =
 					graphic_frame.spPr.setParent(graphic_frame);
 					graphic_frame.spPr.setXfrm(new AscFormat.CXfrm());
 					graphic_frame.spPr.xfrm.setParent(graphic_frame.spPr);
-					graphic_frame.spPr.xfrm.setOffX(oThis.oDocument.Width / 2 - W / 2);
-					graphic_frame.spPr.xfrm.setOffY(oThis.oDocument.Height / 2 - H / 2);
+					graphic_frame.spPr.xfrm.setOffX(oThis.oDocument.GetWidthMM() / 2 - W / 2);
+					graphic_frame.spPr.xfrm.setOffY(oThis.oDocument.GetHeightMM() / 2 - H / 2);
 					graphic_frame.spPr.xfrm.setExtX(W);
 					graphic_frame.spPr.xfrm.setExtY(H);
 					graphic_frame.setNvSpPr(new AscFormat.UniNvPr());
@@ -3778,8 +3778,8 @@ PasteProcessor.prototype =
 						drawing.parent = oldParent;
 						drawing.bDeleted = bDeleted;
 
-						drawing.spPr.xfrm.setOffX(oThis.oDocument.Width / 2 - drawing.extX / 2);
-						drawing.spPr.xfrm.setOffY(oThis.oDocument.Height / 2 - drawing.extY / 2);
+						drawing.spPr.xfrm.setOffX(oThis.oDocument.GetWidthMM() / 2 - drawing.extX / 2);
+						drawing.spPr.xfrm.setOffY(oThis.oDocument.GetHeightMM() / 2 - drawing.extY / 2);
 
 					}
 				}
@@ -4522,13 +4522,13 @@ PasteProcessor.prototype =
 						}
 					}
 
-					w = shape.txBody.getRectWidth(presentation.Width * 2 / 3);
+					w = shape.txBody.getRectWidth(presentation.GetWidthMM() * 2 / 3);
 					h = shape.txBody.content.GetSummaryHeight();
 					AscFormat.CheckSpPrXfrm(shape);
 					shape.spPr.xfrm.setExtX(w);
 					shape.spPr.xfrm.setExtY(h);
-					shape.spPr.xfrm.setOffX((presentation.Width - w) / 2.0);
-					shape.spPr.xfrm.setOffY((presentation.Height - h) / 2.0);
+					shape.spPr.xfrm.setOffX((presentation.GetWidthMM() - w) / 2.0);
+					shape.spPr.xfrm.setOffY((presentation.GetHeightMM() - h) / 2.0);
 
 
 					var oBodyPr = shape.getBodyPr().createDuplicate();
@@ -4563,7 +4563,7 @@ PasteProcessor.prototype =
 					shape = arrTables[i];
 
 					//TODO передалать высоту/ширину!
-					//var w =  shape.txBody.getRectWidth(presentation.Width*2/3);
+					//var w =  shape.txBody.getRectWidth(presentation.GetWidth()*2/3);
 					//var h = shape.txBody.content.GetSummaryHeight();
 					w = 100;
 					h = 100;
@@ -4657,8 +4657,8 @@ PasteProcessor.prototype =
 				if (false === oThis.bNested) {
 					oThis.InsertInDocument();
 				}
-				if (bTurnOffTrackRevisions) {
-					oThis.api.WordControl.m_oLogicDocument.TrackRevisions = true;
+				if (false !== bTurnOffTrackRevisions) {
+					oThis.api.WordControl.m_oLogicDocument.SetLocalTrackRevisions(bTurnOffTrackRevisions);
 				}
 				if (false === oThis.bNested) {
 					if (oThis.pasteCallback) {
@@ -4695,8 +4695,8 @@ PasteProcessor.prototype =
 					}
 				}
 			}
-			if (bTurnOffTrackRevisions) {
-				oThis.api.WordControl.m_oLogicDocument.TrackRevisions = false;
+			if (false !== bTurnOffTrackRevisions) {
+				oThis.api.WordControl.m_oLogicDocument.SetLocalTrackRevisions(bTurnOffTrackRevisions);
 			}
 			//на время заполнения контента для вставки отключаем историю
 			oThis._Execute(node, {}, true, true, false);
@@ -4716,8 +4716,8 @@ PasteProcessor.prototype =
 				this._Prepeare(node, fPasteHtmlWordCallback);
 			}
 
-			if (bTurnOffTrackRevisions) {
-				oThis.api.WordControl.m_oLogicDocument.TrackRevisions = true;
+			if (false !== bTurnOffTrackRevisions) {
+				oThis.api.WordControl.m_oLogicDocument.SetLocalTrackRevisions(bTurnOffTrackRevisions);
 			}
 		} else {
 			this.oRootNode = node;

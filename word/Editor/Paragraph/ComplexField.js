@@ -533,7 +533,7 @@ CComplexField.prototype.private_InsertContent = function(oSelectedContent)
 		var oNearPos = oParagraph.GetCurrentAnchorPosition();
 		this.LogicDocument.TurnOff_Recalculate();
 		this.LogicDocument.TurnOff_InterfaceEvents();
-		this.LogicDocument.Remove(1, false, false, false);
+		this.LogicDocument.Remove(1, false, false, true);
 		this.LogicDocument.TurnOn_Recalculate(false);
 		this.LogicDocument.TurnOn_InterfaceEvents(false);
 		if(oNearPos)
@@ -913,7 +913,7 @@ CComplexField.prototype.private_UpdateTOC = function()
 	this.SelectFieldValue();
 	this.LogicDocument.TurnOff_Recalculate();
 	this.LogicDocument.TurnOff_InterfaceEvents();
-	this.LogicDocument.Remove(1, false, false, false);
+	this.LogicDocument.Remove(1, false, false, true);
 	this.LogicDocument.TurnOn_Recalculate(false);
 	this.LogicDocument.TurnOn_InterfaceEvents(false);
 	oRun       = this.BeginChar.GetRun();

@@ -180,19 +180,13 @@
 		}
 		if(null === oCanvas)
 		{
+			var rPR = AscCommon.AscBrowser.retinaPixelRatio;
 			oCanvas = document.createElement('canvas');
 			oCanvas.style.width = "100%";
 			oCanvas.style.height = "100%";
 			oDiv.appendChild(oCanvas);
-			var nCanvasW = oCanvas.clientWidth;
-			var nCanvasH = oCanvas.clientHeight;
-			if (AscCommon.AscBrowser.isRetina)
-			{
-				nCanvasW = AscCommon.AscBrowser.convertToRetinaValue(nCanvasW, true);
-				nCanvasH = AscCommon.AscBrowser.convertToRetinaValue(nCanvasH, true);
-			}
-			oCanvas.width = nCanvasW;
-			oCanvas.height = nCanvasH;
+			oCanvas.width = Math.round(oCanvas.clientWidth * rPR);
+			oCanvas.height = Math.round(oCanvas.clientHeight * rPR);
 		}
 		return oCanvas;
 	}
@@ -1516,6 +1510,10 @@
 		return this.smooth;
 	};
 	asc_ChartSettings.prototype.putStyle = function(index) {
+		if(!AscFormat.isRealNumber(index)) {
+			this.style = null;
+			return;
+		}
 		this.style = parseInt(index, 10);
 		if(this.bStartEdit && this.chartSpace) {
 			if(AscFormat.isRealNumber(this.style)){
@@ -1540,15 +1538,7 @@
 		}
 	};
 	asc_ChartSettings.prototype.isValidRange = function(sRange) {
-		if(sRange === "") {
-			return Asc.c_oAscError.ID.No;
-		}
-		var sCheck = sRange;
-		if(sRange[0] === "=") {
-			sCheck = sRange.slice(1);
-		}
-		var aRanges = AscFormat.fParseChartFormula(sCheck);
-		return (aRanges.length !== 0) ? Asc.c_oAscError.ID.No : Asc.c_oAscError.ID.DataRangeError;
+		return AscFormat.isValidChartRange(sRange);
 	};
 	asc_ChartSettings.prototype.getRange = function() {
 		if(this.chartSpace) {
@@ -1561,6 +1551,12 @@
 	};
 	asc_ChartSettings.prototype.getInColumns = function() {
 		return this.inColumns;
+	};
+	asc_ChartSettings.prototype.getInRows = function() {
+		if(this.inColumns === true || this.inColumns === false) {
+			return !this.inColumns;
+		}
+		return null;
 	};
 	asc_ChartSettings.prototype.putTitle = function(v) {
 		this.title = v;
@@ -1592,8 +1588,35 @@
 		}
 		return this.type;
 	};
+	asc_ChartSettings.prototype.checkParams = function() {
+		if(this.type === null || this.type === Asc.c_oAscChartTypeSettings.comboAreaBar
+			|| this.type === Asc.c_oAscChartTypeSettings.comboBarLine
+		|| this.type === Asc.c_oAscChartTypeSettings.comboBarLineSecondary
+		|| this.type === Asc.c_oAscChartTypeSettings.comboCustom) {
+			return;
+		}
+		if(AscFormat.getIsMarkerByType(this.type)) {
+			this.showMarker = true;
+		}
+		else {
+			this.showMarker = false;
+		}
+		if(AscFormat.getIsSmoothByType(this.type)) {
+			this.smooth = true;
+		}
+		else {
+			this.smooth = false;
+		}
+		if(AscFormat.getIsLineByType(this.type)) {
+			this.bLine = true;
+		}
+		else {
+			this.bLine = false;
+		}
+	};
 	asc_ChartSettings.prototype.putType = function(v) {
 		this.type = v;
+		this.checkParams();
 	};
 	asc_ChartSettings.prototype.putShowSerName = function(v) {
 		this.showSerName = v;
@@ -4799,10 +4822,10 @@
 
 				var _oldTrackRevision = false;
                 if (oApi.getEditorId() == AscCommon.c_oEditorId.Word && oApi.WordControl && oApi.WordControl.m_oLogicDocument)
-                    _oldTrackRevision = oApi.WordControl.m_oLogicDocument.TrackRevisions;
+                    _oldTrackRevision = oApi.WordControl.GetLocalTrackRevisions();
 
-                if (_oldTrackRevision)
-                    oApi.WordControl.m_oLogicDocument.TrackRevisions = false;
+                if (false !== _oldTrackRevision)
+                    oApi.WordControl.m_oLogicDocument.SetLocalTrackRevisions(false);
 
                 var bRemoveDocument = false;
                 if(oApi.WordControl && !oApi.WordControl.m_oLogicDocument)
@@ -4977,8 +5000,8 @@
                     oApi.ShowParaMarks = oldShowParaMarks;
 				}
 
-				if (_oldTrackRevision)
-					oApi.WordControl.m_oLogicDocument.TrackRevisions = true;
+				if (false !== _oldTrackRevision)
+					oApi.WordControl.m_oLogicDocument.SetLocalTrackRevisions(_oldTrackRevision);
 
 			}, this, [obj]);
 
@@ -5619,6 +5642,7 @@
 	prot["getRanges"] = prot.getRanges;
 	prot["putInColumns"] = prot.putInColumns;
 	prot["getInColumns"] = prot.getInColumns;
+	prot["getInRows"] = prot.getInRows;
 	prot["putShowMarker"] = prot.putShowMarker;
 	prot["getShowMarker"] = prot.getShowMarker;
 	prot["putLine"] = prot.putLine;

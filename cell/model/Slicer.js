@@ -472,7 +472,7 @@
 			this.cacheDefinition.initAfterSerialize(this.ws.workbook);
 			var tableCache = this.cacheDefinition.tableSlicerCache;
 			if (tableCache) {
-				var _obj = tableCache.initPostOpen(tableIds);
+				var _obj = tableCache.initPostOpen(tableIds, this.cacheDefinition.sourceName);
 				if (_obj) {
 					this.cacheDefinition._type = insertSlicerType.table;
 				}
@@ -1056,7 +1056,7 @@
 				var cacheFields = cacheDefinition.getFields();
 				var fieldIndex = cacheDefinition.getFieldIndexByName(name);
 				var cacheField = -1 !== fieldIndex && cacheFields[fieldIndex];
-				if (cacheField && cacheField.sharedItems) {
+				if (cacheField) {
 					this.sourceName = name;
 					//TODO для генерации имени нужна отдельная функция
 					this.name = this.generateSlicerCacheName(name);
@@ -1731,7 +1731,7 @@
 		var cacheFields = pivotTable.cacheDefinition.getFields();
 		var fieldIndex = pivotTable.cacheDefinition.getFieldIndexByName(this.sourceName);
 		var cacheField = -1 !== fieldIndex && cacheFields[fieldIndex];
-		if (cacheField && cacheField.sharedItems) {
+		if (cacheField) {
 			pivotTable.checkPivotFieldItems(fieldIndex);
 			var pivotField = pivotTable.asc_getPivotFields()[fieldIndex];
 
@@ -2558,13 +2558,17 @@
 
 		return res;
 	};
-	CT_tableSlicerCache.prototype.initPostOpen = function (tableIds) {
+	CT_tableSlicerCache.prototype.initPostOpen = function (tableIds, sourceName) {
 		var table = null;
 		if (null != this.tableIdOpen && null != this.columnOpen) {
 			table = tableIds[this.tableIdOpen];
 			if (table) {
 				this.tableId = table.DisplayName;
-				this.column = table.getTableNameColumnByIndex(this.columnOpen - 1);
+				if (sourceName && null !== table.getIndexByColumnName(sourceName)) {
+					this.column = sourceName;
+				} else {
+					this.column = table.getTableNameColumnByIndex(this.columnOpen - 1);
+				}
 			}
 		}
 		return table;
@@ -2760,7 +2764,7 @@
 	};
 	CT_tabularSlicerCache.prototype.syncWithCache = function (cacheField, pivotField, cacheFieldWithData) {
 		var pivotItems = pivotField.getItems();
-		var count = Math.min(cacheField.getSharedSize(), pivotItems.length);
+		var count = Math.min(cacheField.getGroupOrSharedSize(), pivotItems.length);
 		if (cacheFieldWithData) {
 			count = Math.min(count, cacheFieldWithData.length);
 		}
@@ -2777,7 +2781,7 @@
 				this.items.push(item);
 			}
 		}
-		this.sortItems(this.sortOrder, cacheField.sharedItems);
+		this.sortItems(this.sortOrder, cacheField.getGroupOrSharedItems());
 	};
 	CT_tabularSlicerCache.prototype.sortItems = function(type, sharedItems) {
 		var sign = ST_tabularSlicerCacheSortOrder.Ascending === type ? 1 : -1;
@@ -2800,9 +2804,10 @@
 		for (var i = 0; i < this.items.length; ++i) {
 			var item = this.items[i];
 			var elem = AscCommonExcel.AutoFiltersOptionsElements();
-			var sharedItem = cacheField.getSharedItem(item.x);
+			var sharedItem = cacheField.getGroupOrSharedItem(item.x);
+			var num = sharedItem.isDateOrNum() && cacheField.getNumFormat();
 			var cellValue = sharedItem.getCellValue();
-			elem.val = elem.text = cellValue.getTextValue();
+			elem.val = elem.text = cellValue.getTextValue(num);
 			elem.visible = item.s;
 			elem.hiddenByOtherColumns = item.nd || undefined;//todo
 			elem.isDateFormat = false;

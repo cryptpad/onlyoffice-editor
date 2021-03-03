@@ -1383,12 +1383,46 @@
 	};
 	baseEditorsApi.prototype._coSpellCheckInit                   = function()
 	{
+		var t = this;
+
+		if (true)
+		{
+			this.SpellCheckApi = {};
+			this.SpellCheckApi.log = true;
+			this.SpellCheckApi.worker = new CSpellchecker({
+				enginePath: "../../../../sdkjs/common/spell/spell",
+				dictionariesPath: "./../../../../dictionaries"
+			});
+			this.SpellCheckApi.checkDictionary = function (lang) {
+				if (this.log) console.log("checkDictionary: " + lang + ": " + this.worker.checkDictionary(lang));
+				return this.worker.checkDictionary(lang);
+			};
+			this.SpellCheckApi.spellCheck = function (spellData) {
+				if (this.log) {
+					console.log("spellCheck:");
+					console.log(spellData);
+				}
+				this.worker.command(spellData);
+			};
+			this.SpellCheckApi.worker.oncommand = function (spellData) {
+				if (t.SpellCheckApi.log) {
+					console.log("onSpellCheck:");
+					console.log(spellData);
+				}
+				t.SpellCheck_CallBack(spellData);
+			};
+			this.SpellCheckApi.disconnect = function ()
+			{
+			};
+			return;
+		}
+
+
 		if (!this.SpellCheckApi)
 		{
 			return; // Error
 		}
 
-		var t = this;
 		if (window["AscDesktopEditor"]) {
 
             window["asc_nativeOnSpellCheck"] = function(response) {
@@ -2139,8 +2173,8 @@
                     {
                         var _w = transition.Rect.w;
                         var _h = transition.Rect.h;
-                        var _w_mm = manager.HtmlPage.m_oLogicDocument.Width;
-                        var _h_mm = manager.HtmlPage.m_oLogicDocument.Height;
+                        var _w_mm = manager.HtmlPage.m_oLogicDocument.GetWidthMM();
+                        var _h_mm = manager.HtmlPage.m_oLogicDocument.GetHeightMM();
 
                         var _x = transition.Rect.x;
                         if (this.isReporterMode)
@@ -2374,7 +2408,7 @@
 		}
 	};
 
-	baseEditorsApi.prototype.asc_addSignatureLine = function (sGuid, sSigner, sSigner2, sEmail, Width, Height, sImgUrl) {
+	baseEditorsApi.prototype.asc_addSignatureLine = function (oPr, Width, Height, sImgUrl) {
 
     };
 	baseEditorsApi.prototype.asc_getAllSignatures = function () {
@@ -2423,10 +2457,10 @@
 		var _url = _canvas.toDataURL("image/png");
 		_canvas = null;
 
-		var _args = [AscCommon.CreateGUID(), _obj.asc_getSigner1(), _obj.asc_getSigner2(), _obj.asc_getEmail(), _w, _h, _url];
+		var _args = [];
 
-		this.ImageLoader.LoadImagesWithCallback([_url], function(_args) {
-			this.asc_addSignatureLine(_args[0], _args[1], _args[2], _args[3], _args[4], _args[5], _args[6]);
+		this.ImageLoader.LoadImagesWithCallback([_url], function() {
+			this.asc_addSignatureLine(_obj, _w, _h, _url);
 		}, _args);
 	};
 
@@ -2457,6 +2491,8 @@
 				_add_sig.signer1 = _sig.signer;
 				_add_sig.signer2 = _sig.signer2;
 				_add_sig.email = _sig.email;
+				_add_sig.showDate = _sig.showDate;
+				_add_sig.instructions = _sig.instructions;
 
 				_sigs_ret.push(_add_sig);
 			}
@@ -2467,7 +2503,7 @@
 
 	baseEditorsApi.prototype.asc_Sign = function(id, guid, url1, url2)
 	{
-		if (window["AscDesktopEditor"])
+		if (window["AscDesktopEditor"] && !this.isRestrictionView())
 			window["AscDesktopEditor"]["Sign"](id, guid, url1, url2);
 	};
 	baseEditorsApi.prototype.asc_RequestSign = function(guid)
@@ -2530,9 +2566,11 @@
 	{
 		if (window["AscDesktopEditor"] && window["asc_IsVisibleSign"] && window["asc_IsVisibleSign"](guid))
 		{
-			if (this.asc_MoveCursorToSignature)
-				this.asc_MoveCursorToSignature(guid);
+			this.gotoSignatureInternal(guid);
 		}
+	};
+	baseEditorsApi.prototype.gotoSignatureInternal = function(guid)
+	{
 	};
 
 	baseEditorsApi.prototype.asc_getSignatureSetup = function(guid)
@@ -2549,6 +2587,8 @@
 				_add_sig.signer1 = _sig.signer;
 				_add_sig.signer2 = _sig.signer2;
 				_add_sig.email = _sig.email;
+				_add_sig.showDate = _sig.showDate;
+				_add_sig.instructions = _sig.instructions;
 
 				_add_sig.isrequested = true;
 				for (var j = 0; j < this.signatures.length; j++)

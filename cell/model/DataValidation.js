@@ -93,14 +93,23 @@
 		this._formula = null;
 	}
 
-	CDataFormula.prototype._init = function (ws) {
+	CDataFormula.prototype._init = function (ws, locale, doNotBuildDependencies) {
 		if (this._formula || !this.text) {
 			return;
 		}
-
+		var t = this;
 		this._formula = new AscCommonExcel.parserFormula(this.text, this, ws);
-		this._formula.parse();
-		this._formula.buildDependencies();
+		if (!locale) {
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				t._formula.parse();
+			});
+		} else {
+			this._formula.parse(locale);
+		}
+
+		if (!doNotBuildDependencies) {
+			this._formula.buildDependencies();
+		}
 	};
 	CDataFormula.prototype.clone = function () {
 		var res = new CDataFormula();
@@ -113,8 +122,11 @@
 			this.text = eventData.assemble;
 		}
 	};
-	CDataFormula.prototype.getValue = function (ws, returnRaw) {
-		this._init(ws);
+	CDataFormula.prototype.getValue = function (ws, returnRaw, local, offset) {
+		this._init(ws, local);
+		if (offset) {
+			this._formula.changeOffset(offset);
+		}
 		var activeCell = ws.getSelection().activeCell;
 		var res = this._formula.calculate(null, new Asc.Range(activeCell.col, activeCell.row, activeCell.col, activeCell.row));
 		return returnRaw ? this._formula.simplifyRefType(res) : res;
@@ -138,6 +150,12 @@
 	CDataFormula.prototype.asc_setValue = function (val) {
 		this.text = val;
 	};
+	CDataFormula.prototype.setOffset = function (offset) {
+		if (this._formula) {
+			this.text = this._formula.changeOffset(offset, null, true).assemble(true);
+		}
+	};
+
 
 
 	function CDataValidation() {
@@ -175,12 +193,20 @@
 	CDataValidation.prototype.getType = function () {
 		return AscCommonExcel.UndoRedoDataTypes.DataValidationInner;
 	};
-	CDataValidation.prototype._init = function (ws) {
+	CDataValidation.prototype._init = function (ws, doNotBuildDependencies) {
 		if (this.formula1) {
-			this.formula1._init(ws);
+			this.formula1._init(ws, null, doNotBuildDependencies);
 		}
 		if (this.formula2) {
-			this.formula2._init(ws);
+			this.formula2._init(ws, null, doNotBuildDependencies);
+		}
+	};
+	CDataValidation.prototype._buildDependencies = function (ws, doNotBuildDependencies) {
+		if (this.formula1 && this.formula1._formula) {
+			this.formula1._formula.buildDependencies();
+		}
+		if (this.formula2 && this.formula2._formula) {
+			this.formula2._formula.buildDependencies();
 		}
 	};
 	CDataValidation.prototype.clone = function (needSaveId) {
@@ -258,6 +284,14 @@
 			}
 		}
 		return false;
+	};
+	CDataValidation.prototype.setOffset = function (offset) {
+		if (this.formula1) {
+			this.formula1.setOffset(offset);
+		}
+		if (this.formula2) {
+			this.formula2.setOffset(offset);
+		}
 	};
 	CDataValidation.prototype.Write_ToBinary2 = function (writer) {
 		//for wrapper
@@ -443,7 +477,7 @@
 				return -1 !== aValue.indexOf(val);
 			}
 		} else if (EDataValidationType.Custom === this.type) {
-			var v = this.formula1 && this.formula1.getValue(ws, true);
+			var v = this.formula1 && this.formula1.clone().getValue(ws, true, null, this.calculateOffset(ws));
 			v = v && v.tocBool();
 			return !!(v && AscCommonExcel.cElementType.bool === v.type && v.toBool());
 		} else {
@@ -625,7 +659,7 @@
 		var formula, fResult, isNumeric, date;
 		if (_val[0] === "=") {
 			formula = new CDataFormula(_val.slice(1));
-			fResult = formula.getValue(ws);
+			fResult = formula.getValue(ws, null, true);
 			var formulaError = _checkFormulaOnError(fResult, formula);
 			if (formulaError !== null) {
 				return formulaError;
@@ -957,7 +991,7 @@
 
 	};
 
-	CDataValidation.prototype.correctToInterface = function () {
+	CDataValidation.prototype.correctToInterface = function (ws) {
 		var t = this;
 		var doCorrect = function (_formula) {
 			var _val = _formula.text;
@@ -990,7 +1024,16 @@
 				}
 
 			} else {
-				_formula.text = "=" + _val;
+				if (_formula && _formula._formula) {
+					//если формула содержит ссылки на диапазоны, то в зависимости от активной области нужно их сдвинуть
+					var offset = t.calculateOffset(ws);
+					if (offset) {
+						_formula._formula.changeOffset(offset);
+					}
+					_formula.text = "=" + _formula._formula.assembleLocale(AscCommonExcel.cFormulaFunctionToLocale);
+				} else {
+					_formula.text = "=" + _val;
+				}
 			}
 		};
 
@@ -1039,7 +1082,7 @@
 							return;
 						}
 						var _tempFormula = new CDataFormula(_val);
-						isFormula = _tempFormula.getValue(ws);
+						isFormula = _tempFormula.getValue(ws, null, true);
 					} else if (t.type !== EDataValidationType.List) {
 						isDate = AscCommon.g_oFormatParser.parseDate(_val, AscCommon.g_oDefaultCultureInfo);
 					}
@@ -1053,6 +1096,8 @@
 
 				if (!isFormula) {
 					_formula.text = addQuotes(_formula.text);
+				} else if (_tempFormula && _tempFormula._formula) {
+					_formula.text = _tempFormula._formula.assemble();
 				}
 			}
 		};
@@ -1079,6 +1124,29 @@
 			}
 		}
 		return false;
+	};
+
+	CDataValidation.prototype.calculateOffset = function (ws) {
+		var res = null;
+		//находим левый верхний угол
+		var _row = null, _col = null;
+		for (var i = 0; i < this.ranges.length; i++) {
+			if (_row === null && _col === null) {
+				_row = this.ranges[i].r1;
+				_col = this.ranges[i].c1;
+			} else if (_row > this.ranges[i].r1) {
+				_row = this.ranges[i].r1;
+			} else if (_col > this.ranges[i].c1) {
+				_col = this.ranges[i].c1;
+			}
+		}
+		if (_row !== null && _col !== null) {
+			var selectionRange = ws.selectionRange;
+			var activeCell = selectionRange.activeCell;
+			res = new AscCommon.CellBase(activeCell.row - _row, activeCell.col - _col);
+		}
+
+		return res;
 	};
 
 	function CDataValidations() {
@@ -1206,7 +1274,7 @@
 		return {intersection: intersectionArr, contain: containArr};
 	};
 
-	CDataValidations.prototype.getProps = function (ranges, doExtend) {
+	CDataValidations.prototype.getProps = function (ranges, doExtend, ws) {
 		var _obj = this.getIntersections(ranges);
 		var dataValidationIntersection = _obj.intersection;
 		var dataValidationContain = _obj.contain;
@@ -1245,7 +1313,8 @@
 			res = getNewObject();
 		}
 
-		res.correctToInterface();
+		res._init(ws);
+		res.correctToInterface(ws);
 
 		return res;
 	};

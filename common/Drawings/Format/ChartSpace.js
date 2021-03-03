@@ -2057,13 +2057,14 @@ var GLOBAL_PATH_COUNT = 0;
             this.selection.textSelection.checkDocContent();
 
             var bTrackRevision = false;
-            if(typeof editor !== "undefined" && editor && editor.WordControl && editor.WordControl.m_oLogicDocument.TrackRevisions === true) {
-                bTrackRevision = true;
-                editor.WordControl.m_oLogicDocument.TrackRevisions = false;
+            if(typeof editor !== "undefined" && editor && editor.WordControl && editor.WordControl.m_oLogicDocument.IsTrackRevisions()) {
+                bTrackRevision = editor.WordControl.m_oLogicDocument.GetLocalTrackRevisions();
+                editor.WordControl.m_oLogicDocument.SetLocalTrackRevisions(false);
             }
             this.selection.textSelection.applyTextFunction(docContentFunction, tableFunction, args);
-            if(bTrackRevision) {
-                editor.WordControl.m_oLogicDocument.TrackRevisions = true;
+
+            if(false !== bTrackRevision) {
+                editor.WordControl.m_oLogicDocument.SetLocalTrackRevisions(bTrackRevision);
             }
         }
     };
@@ -11333,7 +11334,7 @@ var GLOBAL_PATH_COUNT = 0;
                     case AscDFH.historyitem_type_LineChart:
                     case AscDFH.historyitem_type_RadarChart:
                     {
-                        if(oCurChart.marker !== false) {
+                        if(oCurChart.isMarkerChart()) {
                             recalculateMarkers2();
                         }
                         break;
@@ -12431,12 +12432,27 @@ var GLOBAL_PATH_COUNT = 0;
         line_chart.addAxId(cat_ax);
         line_chart.addAxId(val_ax);
         val_ax.setCrosses(2);
+
+        var bMarker = false;
+        var nChartType = oOptions.type;
+        if(nChartType === Asc.c_oAscChartTypeSettings.lineNormalMarker ||
+            nChartType === Asc.c_oAscChartTypeSettings.lineStackedMarker ||
+            nChartType === Asc.c_oAscChartTypeSettings.lineStackedPerMarker) {
+            bMarker = true;
+        }
+        bMarker = false;
+        line_chart.setMarker(bMarker);
         for(var i = 0; i < asc_series.length; ++i) {
             var series = new AscFormat.CLineSeries();
             series.setIdx(i);
             series.setOrder(i);
             series.setMarker(new AscFormat.CMarker());
-            series.marker.setSymbol(AscFormat.SYMBOL_NONE);
+            if(bMarker) {
+                series.marker.setSymbol(AscFormat.MARKER_SYMBOL_TYPE[i % 9]);
+            }
+            else {
+                series.marker.setSymbol(AscFormat.SYMBOL_NONE);
+            }
             series.setSmooth(false);
             series.fillFromAscSeries(asc_series[i], bUseCache);
             line_chart.addSer(series);
@@ -12488,6 +12504,7 @@ var GLOBAL_PATH_COUNT = 0;
         }
 
         chart_space.printSettings.setDefault();
+        line_chart.tryChangeType(oOptions.type);
         return chart_space;
     }
 
@@ -12909,6 +12926,9 @@ var GLOBAL_PATH_COUNT = 0;
         }
         chart_space.setPrintSettings(new AscFormat.CPrintSettings());
         chart_space.printSettings.setDefault();
+        if(oOptions && oOptions.type !== Asc.c_oAscChartTypeSettings) {
+            scatter_chart.tryChangeType(oOptions.type);
+        }
         return chart_space;
     }
 
@@ -13228,25 +13248,6 @@ var GLOBAL_PATH_COUNT = 0;
         return aSeries;
     }
 
-    function checkStockRange(sRange, bHorValues) {
-        if(typeof  sRange !== "string") {
-            return false;
-        }
-        var oDataRange = new AscFormat.CChartDataRefs(null);
-        var aSeriesRefs = oDataRange.getSeriesRefsFromUnionRefs(AscFormat.fParseChartFormula(sRange), bHorValues, false);
-        if(!Array.isArray(aSeriesRefs)) {
-            return false;
-        }
-        if(aSeriesRefs.length !== MIN_STOCK_COUNT) {
-            return false;
-        }
-        for(var nRef = 0; nRef < aSeriesRefs.length; ++nRef) {
-            if(aSeriesRefs[nRef].getValCellsCount() < MIN_STOCK_COUNT) {
-                return false;
-            }
-        }
-        return true;
-    }
 
     function checkSpPrRasterImages(spPr) {
         if(spPr && spPr.Fill && spPr.Fill && spPr.Fill.fill && spPr.Fill.fill.type === Asc.c_oAscFill.FILL_TYPE_BLIP) {
@@ -13354,7 +13355,6 @@ var GLOBAL_PATH_COUNT = 0;
     window['AscFormat'].CreateDefaultAxes = CreateDefaultAxes;
     window['AscFormat'].CreateScatterAxis = CreateScatterAxis;
     window['AscFormat'].getChartSeries = getChartSeries;
-    window['AscFormat'].checkStockRange = checkStockRange;
     window['AscFormat'].checkSpPrRasterImages = checkSpPrRasterImages;
     window['AscFormat'].checkBlipFillRasterImages = checkBlipFillRasterImages;
 
@@ -13364,6 +13364,7 @@ var GLOBAL_PATH_COUNT = 0;
 
     window['AscFormat'].MAX_SERIES_COUNT = MAX_SERIES_COUNT;
     window['AscFormat'].MAX_POINTS_COUNT = MAX_POINTS_COUNT;
+    window['AscFormat'].MIN_STOCK_COUNT = MIN_STOCK_COUNT;
 
     window['AscFormat'].initStyleManager = initStyleManager;
     window['AscFormat'].CHART_STYLE_MANAGER = CHART_STYLE_MANAGER;

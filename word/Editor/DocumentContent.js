@@ -4653,6 +4653,7 @@ CDocumentContent.prototype.InsertContent = function(SelectedContent, NearPos)
             DocContent.Selection.Start = false;
         }
     }
+	SelectedContent.CheckSignatures();
 };
 CDocumentContent.prototype.SetParagraphPr = function(oParaPr)
 {

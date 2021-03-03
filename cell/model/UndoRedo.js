@@ -2347,6 +2347,8 @@ function (window, undefined) {
 				cell.setNum(Val);
 			} else if (AscCH.historyitem_Cell_Angle == Type) {
 				cell.setAngle(Val);
+			} else if (AscCH.historyitem_Cell_Indent == Type) {
+				cell.setIndent(Val);
 			} else if (AscCH.historyitem_Cell_ChangeArrayValueFormat == Type) {
 				var multiText = [];
 				for (var i = 0, length = Val.length; i < length; ++i) {
@@ -2936,6 +2938,17 @@ function (window, undefined) {
 			}
 			ws.deletePivotTable(Data.pivot);
 			ws.insertPivotTable(pivot, false, true);
+		} else if (AscCH.historyitem_Worksheet_PivotReplaceKeepRecords === Type) {
+			var data = bUndo ? Data.from : Data.to;
+			var pivot = data.getData();
+			pivot.init();
+			var oldPivot = ws.getPivotTableById(Data.pivot);
+			if (oldPivot) {
+				pivot.cacheDefinition.cacheRecords = oldPivot.cacheDefinition.cacheRecords;
+				pivot.replaceSlicersPivotCacheDefinition(oldPivot.cacheDefinition, pivot.cacheDefinition);
+				ws.deletePivotTable(Data.pivot);
+				ws.insertPivotTable(pivot, false, true);
+			}
 		} else if (AscCH.historyitem_Worksheet_SlicerAdd === Type) {
 			if (bUndo) {
 				ws.deleteSlicer(Data.to.name);
@@ -3145,6 +3158,8 @@ function (window, undefined) {
 				row.setStyle(Val);
 			} else if (AscCH.historyitem_RowCol_SetCellStyle == Type) {
 				row.setCellStyle(Val);
+			} else if (AscCH.historyitem_RowCol_Indent == Type) {
+				row.setIndent(Val);
 			}
 		}
 
@@ -3585,7 +3600,7 @@ function (window, undefined) {
 				pivotTable.asc_setGridDropZones(value);
 				break;
 			case AscCH.historyitem_PivotTable_SetFillDownLabelsDefault:
-				pivotTable.asc_setFillDownLabelsDefault(value);
+				pivotTable.setFillDownLabelsDefault(value, false);
 				break;
 			case AscCH.historyitem_PivotTable_SetDataOnRows:
 				pivotTable.setDataOnRows(value);
@@ -3778,7 +3793,7 @@ function (window, undefined) {
 				field.asc_setCompact(value, pivotTable, Data.index);
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldFillDownLabelsDefault:
-				field.asc_setFillDownLabelsDefault(value, pivotTable, Data.index);
+				field.setFillDownLabelsDefault(value, pivotTable, Data.index);
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldSetInsertBlankRow:
 				field.asc_setInsertBlankRow(value, pivotTable, Data.index);
@@ -3792,6 +3807,9 @@ function (window, undefined) {
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldSetShowAll:
 				field.asc_setShowAll(value, pivotTable, Data.index);
+				break;
+			case AscCH.historyitem_PivotTable_PivotFieldVisible:
+				field.asc_setVisible(value, pivotTable, Data.index.from, Data.index.to);
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldSetSubtotals:
 				field.setSubtotals(value, pivotTable, Data.index);
