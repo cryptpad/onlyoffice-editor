@@ -16088,12 +16088,12 @@ CDocument.prototype.SetContentControlText = function(sText, oCC)
 
 	oCC.SelectContentControl();
 
-	if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
+	if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, false, this.IsFormFieldEditing()))
 	{
 		this.StartAction(AscDFH.historydescription_Document_SetContentControlText);
 
 		oCC.ReplacePlaceHolderWithContent();
-		
+
 		var oRun;
 		if (oCC.IsBlockLevel())
 			oRun = this.Content.MakeSingleParagraphContent().MakeSingleRunParagraph(true);
