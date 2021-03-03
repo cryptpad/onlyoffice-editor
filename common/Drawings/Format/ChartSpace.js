@@ -12177,6 +12177,23 @@ var GLOBAL_PATH_COUNT = 0;
         }
         return null;
     };
+    CChartSpace.prototype.getTheme = function() {
+        return this.getParentObjects().theme;
+    };
+
+    CChartSpace.prototype.getSpPrFormStyleEntry = function(oStyleEntry, aColors) {
+        return AscFormat.CBaseChartObject.prototype.getSpPrFormStyleEntry.call(this, oStyleEntry, aColors);
+    };
+    CChartSpace.prototype.getTxPrFormStyleEntry = function(oStyleEntry, aColors) {
+        return AscFormat.CBaseChartObject.prototype.getTxPrFormStyleEntry.call(this, oStyleEntry, aColors);
+    };
+    CChartSpace.prototype.applyStyleEntry = function(oStyleEntry, aColors) {
+        AscFormat.CBaseChartObject.prototype.applyStyleEntry.call(this, oStyleEntry, aColors);
+    };
+    CChartSpace.prototype.applyChartStyle = function(oChartStyle, oColors) {
+        this.applyStyleEntry(oChartStyle.chartArea, []);
+        this.chart.applyChartStyle(oChartStyle, oColors);
+    };
 
     function fSaveChartObjectSourceFormatting(oObject, oObjectCopy, oTheme, oColorMap) {
         if(oObject === oObjectCopy || !oObjectCopy || !oObject) {
