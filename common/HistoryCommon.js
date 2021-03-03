@@ -3593,6 +3593,8 @@
 	window['AscDFH'].historydescription_Document_ChangeTextCase                     = 0x0183;
 	window['AscDFH'].historydescription_Document_SetNumberingLvl                    = 0x0184;
 	window['AscDFH'].historydescription_Document_SetTrackRevisions                  = 0x0185;
+	window['AscDFH'].historydescription_Document_SetContentControlText              = 0x0186;
+	window['AscDFH'].historydescription_Document_ClearContentControl                = 0x0187;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

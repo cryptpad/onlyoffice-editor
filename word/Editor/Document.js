@@ -16074,6 +16074,46 @@ CDocument.prototype.SetContentControlTextPlaceholder = function(sText, oCC)
 	}
 };
 /**
+ * Выставляем текст у заданного заданного контент контрола
+ * @param {string} sText
+ * @param {CBlockLevelSdt | CInlineLevelSdt} oCC
+ */
+CDocument.prototype.SetContentControlText = function(sText, oCC)
+{
+	if (!oCC || oCC.IsCheckBox() || oCC.IsDropDownList() || oCC.IsPicture())
+		return;
+
+	if (!sText)
+		return;
+
+	oCC.SelectContentControl();
+
+	if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
+	{
+		this.StartAction(AscDFH.historydescription_Document_SetContentControlText);
+
+		oCC.ReplacePlaceHolderWithContent();
+		
+		var oRun;
+		if (oCC.IsBlockLevel())
+			oRun = this.Content.MakeSingleParagraphContent().MakeSingleRunParagraph(true);
+		else if (oCC.IsInlineLevel())
+			oRun = oCC.MakeSingleRunElement(true);
+
+		if (oRun)
+			oRun.AddText(sText);
+
+		this.RemoveSelection();
+		oCC.MoveCursorToContentControl(false);
+
+		this.Recalculate();
+		this.UpdateInterface();
+		this.UpdateSelection();
+
+		this.FinalizeAction();
+	}
+};
+/**
  * Выставляем глобальный параметр, находится ли переплет наверху документа
  * @param {boolean} isGutterAtTop
  */
@@ -24164,24 +24204,10 @@ CDocument.prototype.ClearAllSpecialForms = function()
 		for (var sId in this.SpecialForms)
 		{
 			var oForm = this.SpecialForms[sId];
-
 			if (!oCurrentForm && oForm.Is_UseInDocument())
 				oCurrentForm = oForm;
 
-			if (oForm.IsCheckBox())
-			{
-				oForm.SetCheckBoxChecked(false);
-			}
-			else if (oForm.IsPicture())
-			{
-				oForm.ReplaceContentWithPlaceHolder();
-				oForm.ApplyPicturePr(true);
-			}
-			else
-			{
-				oForm.ReplaceContentWithPlaceHolder();
-			}
-
+			oForm.ClearContentControlExt();
 			oForm.RemoveSelection();
 		}
 

@@ -1794,17 +1794,21 @@ CBlockLevelSdt.prototype.GetCheckBoxPr = function()
 };
 /**
  * Выставляем состояние чекбокса
+ * @param {boolean|undefined} [isChecked=undefined]
  */
-CBlockLevelSdt.prototype.ToggleCheckBox = function()
+CBlockLevelSdt.prototype.ToggleCheckBox = function(isChecked)
 {
 	if (!this.IsCheckBox())
+		return;
+
+	if (undefined !== isChecked && this.Pr.CheckBox.Checked === isChecked)
 		return;
 
 	var oLogicDocument = this.GetLogicDocument();
 	if (oLogicDocument || this.IsRadioButton() || this.GetFormKey())
 		oLogicDocument.OnChangeForm(this.IsRadioButton() ? this.Pr.CheckBox.GroupKey : this.GetFormKey(), this);
 
-	if (this.IsRadioButton() && true === this.Pr.CheckBox.Checked)
+	if (undefined === isChecked && this.IsRadioButton() && true === this.Pr.CheckBox.Checked)
 		return;
 
 	this.SetCheckBoxChecked(!this.Pr.CheckBox.Checked);
