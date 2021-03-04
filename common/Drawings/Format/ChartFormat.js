@@ -9502,6 +9502,24 @@
         }
         return null;
     };
+    CLegend.prototype.getPropsPos = function() {
+        var nLegendPos = c_oAscChartLegendShowSettings.bottom;
+        if(AscFormat.isRealNumber(this.legendPos)) {
+            nLegendPos = this.legendPos;
+        }
+        if(this.isOverlay()) {
+            if(c_oAscChartLegendShowSettings.left === nLegendPos) {
+                nLegendPos = c_oAscChartLegendShowSettings.leftOverlay;
+            }
+            if(c_oAscChartLegendShowSettings.right === nLegendPos) {
+                nLegendPos = c_oAscChartLegendShowSettings.rightOverlay;
+            }
+        }
+        return nLegendPos;
+    };
+    CLegend.prototype.isOverlay = function() {
+        return (this.overlay === true);
+    };
     CLegend.prototype.applyChartStyle = function(oChartStyle, oColors) {
         this.applyStyleEntry(oChartStyle.legend, [], 0);
     };

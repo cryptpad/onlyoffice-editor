@@ -2904,7 +2904,7 @@
 		{
 			if(dataRange)
 			{
-				if(AscFormat.isValidChartRange(dataRange))
+				if(Asc.c_oAscError.ID.No === AscFormat.isValidChartRange(dataRange))
 				{
 					range = AscFormat.fParseChartFormula(dataRange);
 				}
