@@ -7119,24 +7119,24 @@ function CDrawingDocument()
         }
         else
         {
-            var offsetBase = 5;
+            var offsetBase = 4;
             var line_w = 2;
             // считаем расстояние между линиями
-            var line_distance = (((height_px - (offsetBase << 1)) - line_w * 3) / 3) >> 0;
+            var line_distance = (((height_px - (offsetBase)) - line_w * 3) / 3) >> 0;
             // убираем погрешность в offset
             var offset = (height_px - (line_w * 3 + line_distance * 3)) >> 1;
 
             ctx.lineWidth = 2;
             ctx.strokeStyle = "#CBCBCB";
-            var y = offset + 4;
-            var text_base_offset_x = offset + ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
+            var y = offset + 6;
+            var text_base_offset_x = offset + ((2.75 * AscCommon.g_dKoef_mm_to_pix) >> 0);
             var text_base_offset_dist = (2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0;
 
             var textYs = [];
             for (var i = 0; i < props.Lvl.length; i++)
 			{
                 textYs.push({x: text_base_offset_x - ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0), y: y + line_w});
-				ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y);
+				ctx.moveTo(text_base_offset_x + 2, y); ctx.lineTo(width_px - offsetBase, y);
 				ctx.stroke();
 				ctx.beginPath();
 
