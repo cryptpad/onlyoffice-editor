@@ -2486,13 +2486,18 @@ function CBinaryFileWriter()
         }
     };
 
-    this.WriteMod = function(mod)
+    this.WriteMod = function(mod, bAddNamespace)
     {
         oThis.WriteUChar(g_nodeAttributeStart);
         var sName = mod.name;
-        var _find = sName.indexOf(":");
-        if (_find >= 0 && _find < (sName.length - 1)) {
-            sName = "a:" + sName.substring(_find + 1);
+        if(bAddNamespace) {
+            var _find = sName.indexOf(":");
+            if (_find >= 0 && _find < (sName.length - 1)) {
+                sName = "a:" + sName.substring(_find + 1);
+            }
+            else {
+                sName = "a:" + sName;
+            }
         }
         oThis._WriteString1(0, sName);
         oThis._WriteInt2(1, mod.val);
@@ -5504,7 +5509,7 @@ function CBinaryFileWriter()
             var _writer = this.BinaryFileWriter;
             this.WritePPTXObject(memory, function() {
                 _writer.StartRecord(0);
-                _writer.WriteMod(oMod);
+                _writer.WriteMod(oMod, true);
                 _writer.EndRecord();
             });
         };

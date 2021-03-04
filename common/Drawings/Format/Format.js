@@ -2461,7 +2461,7 @@ CUniColor.prototype =
         }
         if(this.color.type !== c_oAscColor.COLOR_TYPE_STYLE)
         {
-            return this.color;
+            return this;
         }
         return this.color.getNoStyleUnicolor(nIdx, aColors);
     }

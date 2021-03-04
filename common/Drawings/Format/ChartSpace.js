@@ -12184,14 +12184,14 @@ var GLOBAL_PATH_COUNT = 0;
     CChartSpace.prototype.getSpPrFormStyleEntry = function(oStyleEntry, aColors) {
         return AscFormat.CBaseChartObject.prototype.getSpPrFormStyleEntry.call(this, oStyleEntry, aColors);
     };
-    CChartSpace.prototype.getTxPrFormStyleEntry = function(oStyleEntry, aColors) {
-        return AscFormat.CBaseChartObject.prototype.getTxPrFormStyleEntry.call(this, oStyleEntry, aColors);
+    CChartSpace.prototype.getTxPrFormStyleEntry = function(oStyleEntry, aColors, nIdx) {
+        return AscFormat.CBaseChartObject.prototype.getTxPrFormStyleEntry.call(this, oStyleEntry, aColors, nIdx);
     };
-    CChartSpace.prototype.applyStyleEntry = function(oStyleEntry, aColors) {
-        AscFormat.CBaseChartObject.prototype.applyStyleEntry.call(this, oStyleEntry, aColors);
+    CChartSpace.prototype.applyStyleEntry = function(oStyleEntry, aColors, nIdx) {
+        AscFormat.CBaseChartObject.prototype.applyStyleEntry.call(this, oStyleEntry, aColors, nIdx);
     };
     CChartSpace.prototype.applyChartStyle = function(oChartStyle, oColors) {
-        this.applyStyleEntry(oChartStyle.chartArea, []);
+        this.applyStyleEntry(oChartStyle.chartArea, [], 0);
         this.chart.applyChartStyle(oChartStyle, oColors);
     };
 
