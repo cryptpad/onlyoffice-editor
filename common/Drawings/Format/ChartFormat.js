@@ -4052,7 +4052,51 @@
         }
         return this.parent.varyColors === true;
     };
+    CSeriesBase.prototype.getDataStyleEntry = function(oChartStyle) {
+        return oChartStyle.getDataEntry(this);
+    };
     CSeriesBase.prototype.applyChartStyle = function(oChartStyle, oColors) {
+        if(!this.parent) {
+            return;
+        }
+        var nColorsCount;
+        var aColors;
+        var oDataStyleEntry = this.getDataStyleEntry(oChartStyle);
+        if(this.marker) {
+            this.marker.applyChartStyle(oChartStyle, oColors);
+        }
+        if(this.dLbls) {
+            this.dLbls.applyChartStyle(oChartStyle, oColors);
+        }
+        if(this.errBars) {
+            this.errBars.applyChartStyle(oChartStyle, oColors);
+        }
+        if(this.trendline) {
+            this.trendline.applyChartStyle(oChartStyle, oColors);
+        }
+        if(this.isVaryColors() && this.addDPt) {
+            nColorsCount = this.val.getValuesCount();
+            aColors = oColors.generateColors(nColorsCount);
+            var nDPtCount = nColorsCount;
+            this.removeAllDPts();
+            for(var nDPt = 0; nDPt < nDPtCount; ++nDPt) {
+                var oDPt = new CDPt();
+                oDPt.setIdx(nDPt);
+                this.addDPt(oDPt);
+                if(this.marker) {
+                    var oMarker = this.marker.createDuplicate();
+                    oDPt.setMarker(oMarker);
+                    oMarker.applyChartStyle(oChartStyle, oColors);
+                }
+                oDPt.applyStyleEntry(oDataStyleEntry, aColors, nDPt);
+            }
+        }
+        else {
+            nColorsCount = this.getMaxSeriesIdx() + 1;
+            aColors = oColors.generateColors(nColorsCount);
+            this.removeAllDPts();
+            this.applyStyleEntry(oDataStyleEntry, aColors, this.idx)
+        }
     };
     CSeriesBase.prototype.getMaxSeriesIdx = function() {
         if(!this.parent) {
@@ -4075,31 +4119,6 @@
             var arrPt = this.dPt.splice(idx, 1);
             History.CanAddChanges() && History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_CommonSeries_RemoveDPt, idx, arrPt, false));
             arrPt[0].setParent(null);
-        }
-    };
-    CSeriesBase.prototype.applySeriesStyleEntry = function(oStyleEntry, oColors) {
-        if(!this.parent) {
-            return;
-        }
-        var nColorsCount;
-        var aColors;
-        if(this.isVaryColors() && this.addDPt) {
-            nColorsCount = this.val.getValuesCount();
-            aColors = oColors.generateColors(nColorsCount);
-            var nDPtCount = nColorsCount;
-            this.removeAllDPts();
-            for(var nDPt = 0; nDPt < nDPtCount; ++nDPt) {
-                var oDPt = new CDPt();
-                oDPt.setIdx(nDPt);
-                this.addDPt(oDPt);
-                oDPt.applyStyleEntry(oStyleEntry, aColors, nDPt);
-            }
-        }
-        else {
-            nColorsCount = this.getMaxSeriesIdx() + 1;
-            aColors = oColors.generateColors(nColorsCount);
-            this.removeAllDPts();
-            this.applyStyleEntry(oStyleEntry, aColors, this.idx)
         }
     };
     CSeriesBase.prototype.asc_getName = function() {
@@ -5759,6 +5778,9 @@
         }
     };
     CPlotArea.prototype.applyChartStyle = function(oChartStyle, oColors) {
+        if(!this.parent) {
+            return;
+        }
         if(!this.is3dChart()) {
             this.applyStyleEntry(oChartStyle.plotArea, [], 0);
         }
@@ -6820,21 +6842,6 @@
         this.onChangeDataRefs();
         this.setParentToChild(pr);
     };
-    CAreaSeries.prototype.applyChartStyle = function(oChartStyle, oColors) {
-        if(!this.parent) {
-            return;
-        }
-        this.applySeriesStyleEntry(oChartStyle.dataPoint, oColors);
-        if(this.dLbls) {
-            this.dLbls.applyChartStyle(oChartStyle, oColors);
-        }
-        if(this.errBars) {
-            this.errBars.applyChartStyle(oChartStyle, oColors);
-        }
-        if(this.trendline) {
-            this.trendline.applyChartStyle(oChartStyle, oColors);
-        }
-    };
 
     var AX_POS_L = 0;
     var AX_POS_T = 1;
@@ -7271,6 +7278,9 @@
         }
     };
     CAxisBase.prototype.applyChartStyle = function(oChartStyle, oColors) {
+        if(!this.parent) {
+            return;
+        }
         if(this.majorGridlines) {
             this.setMajorGridlines(this.getSpPrFormStyleEntry(oChartStyle.gridlineMajor));
         }
@@ -7600,6 +7610,9 @@
         return oSeries.getCatSourceNumFormat();
     };
     CCatAx.prototype.applyChartStyle = function(oChartStyle, oColors) {
+        if(!this.parent) {
+            return;
+        }
         this.applyStyleEntry(oChartStyle.categoryAxis, [], 0);
         CAxisBase.prototype.applyChartStyle.call(this, oChartStyle, oColors);
     };
@@ -7686,6 +7699,9 @@
         return CCatAx.prototype.getSourceFormatCode.call(this);
     };
     CDateAx.prototype.applyChartStyle = function(oChartStyle, oColors) {
+        if(!this.parent) {
+            return;
+        }
         this.applyStyleEntry(oChartStyle.categoryAxis, [], 0);
         CAxisBase.prototype.applyChartStyle.call(this, oChartStyle, oColors);
     };
@@ -7720,6 +7736,9 @@
         }
     };
     CSerAx.prototype.applyChartStyle = function(oChartStyle, oColors) {
+        if(!this.parent) {
+            return;
+        }
         this.applyStyleEntry(oChartStyle.seriesAxis, [], 0);
         CAxisBase.prototype.applyChartStyle.call(this, oChartStyle, oColors);
     };
@@ -8114,6 +8133,9 @@
         }
     };
     CValAx.prototype.applyChartStyle = function(oChartStyle, oColors) {
+        if(!this.parent) {
+            return;
+        }
         this.applyStyleEntry(oChartStyle.valueAxis, [], 0);
         CAxisBase.prototype.applyChartStyle.call(this, oChartStyle, oColors);
     };
@@ -8233,28 +8255,6 @@
         this.val = pr;
         this.onChangeDataRefs();
         this.setParentToChild(pr);
-    };
-    CBarSeries.prototype.applyChartStyle = function(oChartStyle, oColors) {
-        if(!this.parent) {
-            return;
-        }
-        if(this.dLbls) {
-            this.dLbls.applyChartStyle(oChartStyle, oColors);
-        }
-        var oStyleEntry;
-        if(this.parent.b3D) {
-            oStyleEntry = oChartStyle.dataPoint3D;
-        }
-        else {
-            oStyleEntry = oChartStyle.dataPoint;
-        }
-        this.applySeriesStyleEntry(oStyleEntry, oColors);
-        if(this.errBars) {
-            this.errBars.applyChartStyle(oChartStyle, oColors);
-        }
-        if(this.trendline) {
-            this.trendline.applyChartStyle(oChartStyle, oColors);
-        }
     };
 
     function CBubbleChart() {
@@ -8407,21 +8407,6 @@
     };
     CBubbleSeries.prototype.setVal = function(pr) {
         this.setYVal(pr);
-    };
-    CBubbleSeries.prototype.applyChartStyle = function(oChartStyle, oColors) {
-        if(!this.parent) {
-            return;
-        }
-        if(this.dLbls) {
-            this.dLbls.applyChartStyle(oChartStyle, oColors);
-        }
-        this.applySeriesStyleEntry(oChartStyle.dataPoint, oColors);
-        if(this.errBars) {
-            this.errBars.applyChartStyle(oChartStyle, oColors);
-        }
-        if(this.trendline) {
-            this.trendline.applyChartStyle(oChartStyle, oColors);
-        }
     };
 
     function CChartText() {
@@ -8735,8 +8720,6 @@
                 }
             }
         }
-
-        //TODO: chartStyle
     };
     function fCheckDLblSettings(oLbls, nPos, oProps) {
         if(oLbls.dLblPos !== nPos) {
@@ -8927,6 +8910,9 @@
         this.setParentToChild(pr);
     };
     CDTable.prototype.applyChartStyle = function(oChartStyle, oColors) {
+        if(!this.parent) {
+            return;
+        }
         this.applyStyleEntry(oChartStyle.chartArea, [], 0);
     };
 
@@ -9134,6 +9120,9 @@
         this.val = pr;
     };
     CErrBars.prototype.applyChartStyle = function(oChartStyle, oColors) {
+        if(!this.parent) {
+            return;
+        }
         this.applyStyleEntry(oChartStyle.errorBar, [], 0);
     };
 
@@ -9522,6 +9511,9 @@
         return (this.overlay === true);
     };
     CLegend.prototype.applyChartStyle = function(oChartStyle, oColors) {
+        if(!this.parent) {
+            return;
+        }
         this.applyStyleEntry(oChartStyle.legend, [], 0);
     };
 
@@ -9963,24 +9955,6 @@
         }
         return null;
     };
-    CLineSeries.prototype.applyChartStyle = function(oChartStyle, oColors) {
-        if(!this.parent) {
-            return;
-        }
-        if(this.marker) {
-            this.marker.applyChartStyle(oChartStyle, oColors)
-        }
-        if(this.dLbls) {
-            this.dLbls.applyChartStyle(oChartStyle, oColors);
-        }
-        this.applySeriesStyleEntry(oChartStyle.dataPointLine, oColors);
-        if(this.errBars) {
-            this.errBars.applyChartStyle(oChartStyle, oColors);
-        }
-        if(this.trendline) {
-            this.trendline.applyChartStyle(oChartStyle, oColors);
-        }
-    };
 
     var SYMBOL_CIRCLE = 0;
     var SYMBOL_DASH = 1;
@@ -10058,8 +10032,50 @@
         this.symbol = pr;
     };
     CMarker.prototype.applyChartStyle = function(oChartStyle, oColors) {
-        this.applyStyleEntry(oChartStyle.dataPointMarker, [], 0);
-        //TODO: chartStyle
+        if(!this.parent) {
+            return;
+        }
+        var nParentType = this.parent.getObjectType();
+        var aColors;
+        var nMaxSeriesIdx;
+        if(nParentType === AscDFH.historyitem_type_AreaSeries ||
+           nParentType === AscDFH.historyitem_type_BarSeries ||
+           nParentType === AscDFH.historyitem_type_BubbleSeries ||
+           nParentType === AscDFH.historyitem_type_LineSeries ||
+           nParentType === AscDFH.historyitem_type_PieSeries ||
+           nParentType === AscDFH.historyitem_type_RadarSeries ||
+           nParentType === AscDFH.historyitem_type_ScatterSer ||
+           nParentType === AscDFH.historyitem_type_SurfaceSeries) {
+            nMaxSeriesIdx = this.parent.getMaxSeriesIdx() + 1;
+            aColors = oColors.generateColors(nMaxSeriesIdx + 1);
+            this.applyStyleEntry(oChartStyle.dataPointMarker, aColors, this.parent.idx);
+        }
+        else if(nParentType === AscDFH.historyitem_type_DPt) {
+            var oSeries = this.parent.parent;
+            if(!oSeries) {
+                return;
+            }
+            if(oSeries.isVaryColors()) {
+                var nPtsCount = oSeries.getValuesCount();
+                aColors = oColors.generateColors(nPtsCount);
+                this.applyStyleEntry(oChartStyle.dataPointMarker, aColors, this.parent.idx);
+            }
+            else {
+                nMaxSeriesIdx = this.parent.getMaxSeriesIdx() + 1;
+                aColors = oColors.generateColors(nMaxSeriesIdx + 1);
+                this.applyStyleEntry(oChartStyle.dataPointMarker, aColors, oSeries.idx);
+            }
+        }
+
+        var oMarkerLayout = oChartStyle.markerLayout;
+        if(oMarkerLayout) {
+            if(AscFormat.isRealNumber(oMarkerLayout.symbol)) {
+                this.setSymbol(oMarkerLayout.symbol);
+            }
+            if(AscFormat.isRealNumber(oMarkerLayout.size)) {
+                this.setSize(oMarkerLayout.size);
+            }
+        }
     };
 
     function CMinusPlus() {
@@ -11134,15 +11150,6 @@
         this.onChangeDataRefs();
         this.setParentToChild(pr);
     };
-    CPieSeries.prototype.applyChartStyle = function(oChartStyle, oColors) {
-        if(!this.parent) {
-            return;
-        }
-        if(this.dLbls) {
-            this.dLbls.applyChartStyle(oChartStyle, oColors);
-        }
-        this.applySeriesStyleEntry(oChartStyle.dataPoint, oColors);
-    };
 
     function CPivotFmt() {
         CBaseChartObject.call(this);
@@ -11329,18 +11336,6 @@
         this.val = pr;
         this.onChangeDataRefs();
         this.setParentToChild(pr);
-    };
-    CRadarSeries.prototype.applyChartStyle = function(oChartStyle, oColors) {
-        if(!this.parent) {
-            return;
-        }
-        if(this.dLbls) {
-            this.dLbls.applyChartStyle(oChartStyle, oColors);
-        }
-        this.applySeriesStyleEntry(oChartStyle.dataPointLine, oColors);
-        if(this.marker) {
-            this.marker.applyChartStyle(oChartStyle, oColors);
-        }
     };
 
     var ORIENTATION_MAX_MIN = 0;
@@ -11748,24 +11743,6 @@
     };
     CScatterSeries.prototype.setVal = function(pr) {
         this.setYVal(pr);
-    };
-    CScatterSeries.prototype.applyChartStyle = function(oChartStyle, oColors) {
-        if(!this.parent) {
-            return;
-        }
-        if(this.dLbls) {
-            this.dLbls.applyChartStyle(oChartStyle, oColors);
-        }
-        this.applySeriesStyleEntry(oChartStyle.dataPointLine, oColors);
-        if(this.marker) {
-            this.marker.applyChartStyle(oChartStyle, oColors);
-        }
-        if(this.errBars) {
-            this.errBars.applyChartStyle(oChartStyle, oColors);
-        }
-        if(this.trendline) {
-            this.trendline.applyChartStyle(oChartStyle, oColors);
-        }
     };
 
     function CTx() {
@@ -12304,19 +12281,12 @@
         this.val = pr;
         this.onChangeDataRefs();
         this.setParentToChild(pr);
-    };;
-    CSurfaceSeries.prototype.applyChartStyle = function(oChartStyle, oColors) {
+    };
+    CSurfaceSeries.prototype.isWireframe = function(oChartStyle, oColors) {
         if(!this.parent) {
-            return;
+            return false;
         }
-        var oStyleEntry;
-        if(this.parent.isWireframe()) {
-            oStyleEntry = oChartStyle.dataPointWireframe;
-        }
-        else {
-            oStyleEntry = oChartStyle.dataPoint3D;
-        }
-        this.applySeriesStyleEntry(oStyleEntry, oColors);
+        return this.parent.isWireframe();
     };
 
     function CTitle() {
@@ -12866,6 +12836,9 @@
         }
     };
     CTrendLine.prototype.applyChartStyle = function(oChartStyle, oColors) {
+        if(!this.parent) {
+            return;
+        }
         this.applyStyleEntry(oChartStyle.trendline, [], 0);
     };
 
@@ -13721,6 +13694,9 @@
         return false;
     };
     CChart.prototype.applyChartStyle = function(oChartStyle, oColors) {
+        if(!this.parent) {
+            return;
+        }
         if(this.backWall) {
             this.backWall.applyChartStyle(oChartStyle, oColors);
         }
@@ -13778,6 +13754,9 @@
         this.thickness = pr;
     };
     CChartWall.prototype.applyChartStyle = function(oChartStyle, oColors) {
+        if(!this.parent) {
+            return;
+        }
         this.applyStyleEntry(oChartStyle.wall, [], 0);
     };
 
@@ -16671,6 +16650,43 @@
     };
     CChartStyle.prototype.getChildren = function() {
         return [];
+    };
+    CChartStyle.prototype.getDataEntry = function(oSeries) {
+        var oStyleEntry = this.dataPoint;
+        var nSeriesType = oSeries.getObjectType();
+        switch(nSeriesType) {
+            case AscDFH.historyitem_type_AreaSeries:
+            case AscDFH.historyitem_type_BubbleSeries:
+            case AscDFH.historyitem_type_PieSeries: {
+                oStyleEntry = this.dataPoint;
+                break;
+            }
+            case AscDFH.historyitem_type_BarSeries: {
+                if(oSeries.b3D) {
+                    oStyleEntry = this.dataPoint3D;
+                }
+                else {
+                    oStyleEntry = this.dataPoint;
+                }
+                break;
+            }
+            case AscDFH.historyitem_type_LineSeries:
+            case AscDFH.historyitem_type_RadarSeries:
+            case AscDFH.historyitem_type_ScatterSer: {
+                oStyleEntry = this.dataPointLine;
+                break;
+            }
+            case AscDFH.historyitem_type_SurfaceSeries: {
+                if(oSeries.isWireframe()) {
+                    oStyleEntry = this.dataPointWireframe;
+                }
+                else {
+                    oStyleEntry = this.dataPoint3D;
+                }
+                break;
+            }
+        }
+        return oStyleEntry;
     };
 
     function CStyleEntry() {
