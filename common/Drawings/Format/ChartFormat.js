@@ -4091,6 +4091,7 @@
             for(var nDPt = 0; nDPt < nDPtCount; ++nDPt) {
                 var oDPt = new CDPt();
                 oDPt.setIdx(nDPt);
+                this.addDPt(oDPt);
                 oDPt.applyStyleEntry(oStyleEntry, aColors, nDPt);
             }
         }
@@ -8729,8 +8730,8 @@
                 for(var nDLbl = 0; nDLbl < nPtsCount; ++nDLbl) {
                     var oDLbl = new CDLbl();
                     oDLbl.setIdx(nDLbl);
-                    oDLbl.applyStyleEntry(oChartStyle.dataLabel, aColors, nDLbl);
                     this.addDLbl(oDLbl);
+                    oDLbl.applyStyleEntry(oChartStyle.dataLabel, aColors, nDLbl);
                 }
             }
         }
