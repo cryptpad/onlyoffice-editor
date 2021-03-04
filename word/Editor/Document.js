@@ -22429,7 +22429,6 @@ CDocument.prototype.AddTableOfFigures = function(oPr)
                     oStyles.SetTOFStyleType(nStylesType);
                 oComplexField.Update();
                 var oNextParagraph;
-                this.MoveCursorToEndPos(false);
                 var oParagraph = this.GetCurrentParagraph();
                 if(oParagraph)
                 {
