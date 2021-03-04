@@ -5395,6 +5395,18 @@ ParaRun.prototype.RecalculateMinMaxContentWidth = function(MinMax)
 
                 nCurMaxWidth += ItemWidth;
                 bCheckTextHeight = true;
+
+				// Если текущий символ с переносом, например, дефис, тогда на нем заканчивается слово
+				if (Item.IsSpaceAfter())
+				{
+					if (nMinWidth < nWordLen)
+						nMinWidth = nWordLen;
+
+					bWord     = false;
+					nWordLen  = 0;
+					nSpaceLen = 0;
+				}
+
                 break;
             }
             case para_Math_Text:

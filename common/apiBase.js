@@ -543,6 +543,7 @@
 	baseEditorsApi.prototype.asc_removeRestriction           = function(val)
 	{
 		this.restrictions &= ~val;
+		this.onUpdateRestrictions();
 	};
 	baseEditorsApi.prototype.canEdit                         = function()
 	{
