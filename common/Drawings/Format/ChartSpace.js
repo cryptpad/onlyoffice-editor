@@ -12192,7 +12192,7 @@ var GLOBAL_PATH_COUNT = 0;
         AscFormat.CBaseChartObject.prototype.applyStyleEntry.call(this, oStyleEntry, aColors, nIdx);
     };
     CChartSpace.prototype.applyChartStyle = function(oChartStyle, oColors) {
-        this.applyStyleEntry(oChartStyle.chartArea, [], 0);
+        this.applyStyleEntry(oChartStyle.chartArea, oColors.generateColors(1), 0);
         this.chart.applyChartStyle(oChartStyle, oColors);
     };
 

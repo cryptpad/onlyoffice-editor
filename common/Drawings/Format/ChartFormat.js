@@ -5782,10 +5782,10 @@
             return;
         }
         if(!this.is3dChart()) {
-            this.applyStyleEntry(oChartStyle.plotArea, [], 0);
+            this.applyStyleEntry(oChartStyle.plotArea, oColors.generateColors(1), 0);
         }
         else {
-            this.applyStyleEntry(oChartStyle.plotArea3D, [], 0);
+            this.applyStyleEntry(oChartStyle.plotArea3D, oColors.generateColors(1), 0);
         }
         for(var nChart = 0; nChart < this.charts.length; ++nChart) {
             this.charts[nChart].applyChartStyle(oChartStyle, oColors);
@@ -7613,7 +7613,7 @@
         if(!this.parent) {
             return;
         }
-        this.applyStyleEntry(oChartStyle.categoryAxis, [], 0);
+        this.applyStyleEntry(oChartStyle.categoryAxis, oColors.generateColors(1), 0);
         CAxisBase.prototype.applyChartStyle.call(this, oChartStyle, oColors);
     };
 
@@ -7702,7 +7702,7 @@
         if(!this.parent) {
             return;
         }
-        this.applyStyleEntry(oChartStyle.categoryAxis, [], 0);
+        this.applyStyleEntry(oChartStyle.categoryAxis, oColors.generateColors(1), 0);
         CAxisBase.prototype.applyChartStyle.call(this, oChartStyle, oColors);
     };
 
@@ -7739,7 +7739,7 @@
         if(!this.parent) {
             return;
         }
-        this.applyStyleEntry(oChartStyle.seriesAxis, [], 0);
+        this.applyStyleEntry(oChartStyle.seriesAxis, oColors.generateColors(1), 0);
         CAxisBase.prototype.applyChartStyle.call(this, oChartStyle, oColors);
     };
 
@@ -8136,7 +8136,7 @@
         if(!this.parent) {
             return;
         }
-        this.applyStyleEntry(oChartStyle.valueAxis, [], 0);
+        this.applyStyleEntry(oChartStyle.valueAxis, oColors.generateColors(1), 0);
         CAxisBase.prototype.applyChartStyle.call(this, oChartStyle, oColors);
     };
 
@@ -8695,7 +8695,7 @@
             nParentType === AscDFH.historyitem_type_StockChart ||
             nParentType === AscDFH.historyitem_type_SurfaceChart) {
             this.removeAllDLbls();
-            this.applyStyleEntry(oChartStyle.dataLabel, [], 0);
+            this.applyStyleEntry(oChartStyle.dataLabel, oColors.generateColors(1), 0);
         }
         else if( nParentType === AscDFH.historyitem_type_AreaSeries ||
             nParentType === AscDFH.historyitem_type_BarSeries ||
@@ -8913,7 +8913,7 @@
         if(!this.parent) {
             return;
         }
-        this.applyStyleEntry(oChartStyle.chartArea, [], 0);
+        this.applyStyleEntry(oChartStyle.chartArea, oColors.generateColors(1), 0);
     };
 
     var UNIT_MULTIPLIERS = [];
@@ -9123,7 +9123,7 @@
         if(!this.parent) {
             return;
         }
-        this.applyStyleEntry(oChartStyle.errorBar, [], 0);
+        this.applyStyleEntry(oChartStyle.errorBar, oColors.generateColors(1), 0);
     };
 
     function CLayout() {
@@ -9514,7 +9514,7 @@
         if(!this.parent) {
             return;
         }
-        this.applyStyleEntry(oChartStyle.legend, [], 0);
+        this.applyStyleEntry(oChartStyle.legend, oColors.generateColors(1), 0);
     };
 
     function CLegendEntry() {
@@ -12728,13 +12728,13 @@
         }
         var nParentType = this.parent.getObjectType();
         if(nParentType === AscDFH.historyitem_type_Chart) {
-            this.applyStyleEntry(oChartStyle.title, [], 0);
+            this.applyStyleEntry(oChartStyle.title, oColors.generateColors(1), 0);
         }
         else if(nParentType === AscDFH.historyitem_type_ValAx ||
             nParentType === AscDFH.historyitem_type_CatAx ||
             nParentType === AscDFH.historyitem_type_DateAx ||
             nParentType === AscDFH.historyitem_type_SerAx) {
-            this.applyStyleEntry(oChartStyle.axisTitle, [], 0);
+            this.applyStyleEntry(oChartStyle.axisTitle, oColors.generateColors(1), 0);
         }
     };
 
@@ -12839,7 +12839,7 @@
         if(!this.parent) {
             return;
         }
-        this.applyStyleEntry(oChartStyle.trendline, [], 0);
+        this.applyStyleEntry(oChartStyle.trendline, oColors.generateColors(1), 0);
     };
 
     function CUpDownBars() {
@@ -13757,7 +13757,7 @@
         if(!this.parent) {
             return;
         }
-        this.applyStyleEntry(oChartStyle.wall, [], 0);
+        this.applyStyleEntry(oChartStyle.wall, oColors.generateColors(1), 0);
     };
 
     function CView3d() {

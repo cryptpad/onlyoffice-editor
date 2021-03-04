@@ -8875,6 +8875,10 @@ CTheme.prototype =
 
     getLnStyle: function(idx, unicolor)
     {
+        if(idx === 0)
+        {
+            return AscFormat.CreateNoFillLine();
+        }
         if (this.themeElements.fmtScheme.lnStyleLst[idx-1])
         {
             var ret = this.themeElements.fmtScheme.lnStyleLst[idx-1].createDuplicate();
