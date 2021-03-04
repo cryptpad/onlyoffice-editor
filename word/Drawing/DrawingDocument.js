@@ -6998,6 +6998,158 @@ function CDrawingDocument()
         }
     };
 
+	this.SetDrawImagePreviewBulletForMenu = function(id, props, is_multi_level, isNoCheckFonts)
+	{
+		if (!isNoCheckFonts)
+		{
+            // check need load fonts
+            var fontsDict = {};
+            for (var i = 0, count = props.Lvl.length; i < count; i++)
+            {
+                var curLvl = props.Lvl[i];
+                var text = "";
+                for (var j = 0; j < curLvl.Text.length; j++)
+                {
+                    switch (curLvl.Text[j].Type)
+					{
+                        case Asc.c_oAscNumberingLvlTextType.Text:
+                            text += curLvl.Text[j].Value;
+                            break;
+                        case Asc.c_oAscNumberingLvlTextType.Num:
+                            text += AscCommon.IntToNumberFormat(1, curLvl.Format);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                AscFonts.FontPickerByCharacter.checkTextLight(text);
+
+                if (curLvl.TextPr && curLvl.TextPr.RFonts)
+                {
+                    if (curLvl.TextPr.RFonts.Ascii) fontsDict[curLvl.TextPr.RFonts.Ascii.Name] = true;
+                    if (curLvl.TextPr.RFonts.EastAsia) fontsDict[curLvl.TextPr.RFonts.EastAsia.Name] = true;
+                    if (curLvl.TextPr.RFonts.HAnsi) fontsDict[curLvl.TextPr.RFonts.HAnsi.Name] = true;
+                    if (curLvl.TextPr.RFonts.CS) fontsDict[curLvl.TextPr.RFonts.CS.Name] = true;
+                }
+				// чтобы убрать отступ у i
+				props.Lvl[i].Align = 1;
+            }
+
+            var fonts = [];
+            for (var familyName in fontsDict)
+            {
+                fonts.push(new AscFonts.CFont(AscFonts.g_fontApplication.GetFontInfoName(familyName), 0, "", 0, null));
+            }
+            AscFonts.FontPickerByCharacter.extendFonts(fonts);
+
+            if (false === AscCommon.g_font_loader.CheckFontsNeedLoading(fonts))
+            {
+                return this.SetDrawImagePreviewBulletForMenu(id, props, is_multi_level, true);
+            }
+
+            this.m_oWordControl.m_oApi.asyncMethodCallback = function()
+			{
+                this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletForMenu(id, props, is_multi_level, true);
+            };
+            AscCommon.g_font_loader.LoadDocumentFonts2(fonts);
+            return;
+        }
+
+        var parent =  document.getElementById(id);
+		
+		//моё, чтобы убрать пока фон у картинки
+		parent.style.backgroundPositionY = "0px";
+		parent.style.backgroundPositionX = "60px";
+
+        if (!parent)
+            return;
+
+        var width_px = parent.clientWidth;
+        var height_px = parent.clientHeight;
+
+        var canvas = parent.firstChild;
+        if (!canvas)
+        {
+            canvas = document.createElement('canvas');
+            canvas.style.cssText = "padding:0;margin:0;user-select:none;";
+            canvas.style.width = width_px + "px";
+            canvas.style.height = height_px + "px";
+            parent.appendChild(canvas);
+        }
+
+        canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
+        canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
+
+        var ctx = canvas.getContext("2d");
+
+        if (AscCommon.AscBrowser.retinaPixelRatio >= 2)
+            ctx.setTransform(2, 0, 0, 2, 0, 0);
+
+        if (!is_multi_level)
+        {
+            var offsetBase = 4;
+            var line_w = 2;
+            // считаем расстояние между линиями
+            var line_distance = (((height_px - (offsetBase)) - line_w * 3) / 3) >> 0;
+            // убираем погрешность в offset
+            var offset = (height_px - (line_w * 3 + line_distance * 3)) >> 1;
+
+            var textYs = [];
+
+            ctx.lineWidth = 2;
+            var y = offset + 6;
+            var text_base_offset_x = offset + (2.75 * AscCommon.g_dKoef_mm_to_pix) >> 0;
+            if (text_base_offset_x > (width_px - offsetBase << 1))
+            	text_base_offset_x = width_px - offsetBase << 1;
+            ctx.strokeStyle = "#CBCBCB";
+            textYs.push(y + line_w);
+            ctx.moveTo(text_base_offset_x + 2, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
+            textYs.push(y + line_w);
+            ctx.moveTo(text_base_offset_x + 2, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
+            textYs.push(y + line_w);
+            ctx.moveTo(text_base_offset_x + 2, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
+            ctx.stroke();
+            ctx.beginPath();
+
+            for (var i = 0; i < textYs.length; i++)
+			{
+				this.privateGetParagraphByString(props.Lvl[i], i, i + 1, text_base_offset_x - ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0),
+                    textYs[i], line_distance, ctx, width_px, height_px);
+            }
+        }
+        else
+        {
+            var offsetBase = 5;
+            var line_w = 2;
+            // считаем расстояние между линиями
+            var line_distance = (((height_px - (offsetBase << 1)) - line_w * 3) / 3) >> 0;
+            // убираем погрешность в offset
+            var offset = (height_px - (line_w * 3 + line_distance * 3)) >> 1;
+
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "#CBCBCB";
+            var y = offset + 4;
+            var text_base_offset_x = offset + ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
+            var text_base_offset_dist = (2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0;
+
+            var textYs = [];
+            for (var i = 0; i < props.Lvl.length; i++)
+			{
+                textYs.push({x: text_base_offset_x - ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0), y: y + line_w});
+				ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y);
+				ctx.stroke();
+				ctx.beginPath();
+
+                text_base_offset_x += text_base_offset_dist;
+                y += (line_w + line_distance);
+			}
+
+			for (var i = 0; i < props.Lvl.length; i++)
+			{
+                this.privateGetParagraphByString(props.Lvl[i], 1, 1, textYs[i].x, textYs[i].y, line_distance, ctx, width_px, height_px);
+            }
+        }
+	};
 
 	this.StartTableStylesCheck = function ()
 	{
