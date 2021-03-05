@@ -4062,8 +4062,17 @@
         var nColorsCount;
         var aColors;
         var oDataStyleEntry = this.getDataStyleEntry(oChartStyle);
-        if(this.marker) {
-            this.marker.applyChartStyle(oChartStyle, oColors);
+        var nType = this.getObjectType();
+        var oMarker;
+        if(nType === AscDFH.historyitem_type_LineSeries
+        || nType === AscDFH.historyitem_type_RadarSeries
+        || nType === AscDFH.historyitem_type_ScatterSer) {
+            if(this.parent.isMarkerChart()) {
+                this.setMarker(new CMarker());
+                if(this.marker) {
+                    this.marker.applyChartStyle(oChartStyle, oColors);
+                }
+            }
         }
         if(this.dLbls) {
             this.dLbls.applyChartStyle(oChartStyle, oColors);
@@ -4084,7 +4093,7 @@
                 oDPt.setIdx(nDPt);
                 this.addDPt(oDPt);
                 if(this.marker) {
-                    var oMarker = this.marker.createDuplicate();
+                    oMarker = this.marker.createDuplicate();
                     oDPt.setMarker(oMarker);
                     oMarker.applyChartStyle(oChartStyle, oColors);
                 }
