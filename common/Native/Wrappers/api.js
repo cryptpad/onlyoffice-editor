@@ -6635,6 +6635,7 @@ function NativeOpenFile3(_params, documentInfo)
             initTrackRevisions();
         }
     }
+    _api.isDocumentLoadComplete = true;
 }
 
 // Common
