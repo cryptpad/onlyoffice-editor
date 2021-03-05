@@ -11983,7 +11983,7 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 	if (this.private_ProcessHyperlinkAutoCorrect(oDocument, oParagraph, oContentPos, nPos, oRunElementsBefore, sText))
 		return;
 
-	if (this.private_ProcessCapitalizeFirstLetterOfSentencesAutoCorrect(oDocument, oParagraph, oContentPos, nPos, oRunElementsBefore))
+	if (oDocument.IsAutoCorrectFirstLetterOfSentences() && this.private_ProcessCapitalizeFirstLetterOfSentencesAutoCorrect(oDocument, oParagraph, oContentPos, nPos, oRunElementsBefore))
 		return;
 
 	// Автосоздание списка
