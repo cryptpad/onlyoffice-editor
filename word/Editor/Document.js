@@ -2530,7 +2530,8 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 		HyphensWithDash        : true,
     	AutomaticBulletedLists : true,
 		AutomaticNumberedLists : true,
-		FrenchPunctuation      : true
+		FrenchPunctuation      : true,
+		FirstLetterOfSentences : true
 	};
 
     // Контролируем изменения интерфейса
@@ -22429,7 +22430,6 @@ CDocument.prototype.AddTableOfFigures = function(oPr)
                     oStyles.SetTOFStyleType(nStylesType);
                 oComplexField.Update();
                 var oNextParagraph;
-                this.MoveCursorToEndPos(false);
                 var oParagraph = this.GetCurrentParagraph();
                 if(oParagraph)
                 {
@@ -22934,6 +22934,22 @@ CDocument.prototype.IsAutoCorrectHyphensWithDash = function()
 CDocument.prototype.IsAutoCorrectFrenchPunctuation = function()
 {
 	return this.AutoCorrectSettings.FrenchPunctuation;
+};
+/**
+ * Выставляем настройку атозамены для первового символа предложения
+ * @param {boolean} isCorrect
+ */
+CDocument.prototype.SetAutoCorrectFirstLetterOfSentences = function(isCorrect)
+{
+	this.AutoCorrectSettings.FirstLetterOfSentences = isCorrect;
+};
+/**
+ * Запрашиваем настройку атозамены для первового символа предложения
+ * @return {boolean}
+ */
+CDocument.prototype.IsAutoCorrectFirstLetterOfSentences = function()
+{
+	return this.AutoCorrectSettings.FirstLetterOfSentences;
 };
 /**
  * Получаем идентификатор текущего пользователя

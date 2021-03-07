@@ -1199,6 +1199,18 @@
 			case AscDFH.historydescription_Document_SetNumberingLvl:
 				sString = "Document_SetNumberingLvl";
 				break;
+			case AscDFH.historydescription_Document_SetTrackRevisions:
+				sString = "Document_SetTrackRevisions";
+				break;
+			case AscDFH.historydescription_Document_SetContentControlText:
+				sString = "Document_SetContentControlText";
+				break;
+			case AscDFH.historydescription_Document_ClearContentControl:
+				sString = "Document_ClearContentControl";
+				break;
+			case AscDFH.historydescription_Document_AutoCorrectFirstLetterOfSentence:
+				sString = "Document_AutoCorrectFirstLetterOfSentence";
+				break;
 		}
 		return sString;
 	}
@@ -3644,6 +3656,7 @@
 	window['AscDFH'].historydescription_Document_SetTrackRevisions                  = 0x0185;
 	window['AscDFH'].historydescription_Document_SetContentControlText              = 0x0186;
 	window['AscDFH'].historydescription_Document_ClearContentControl                = 0x0187;
+	window['AscDFH'].historydescription_Document_AutoCorrectFirstLetterOfSentence   = 0x0188;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

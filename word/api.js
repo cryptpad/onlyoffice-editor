@@ -4258,7 +4258,8 @@ background-repeat: no-repeat;\
 			}
 			else
 			{
-				oSpToEdit.setSignaturePr(oPr);
+				oSpToEdit.setSignaturePr(oPr, sImgUrl);
+				oLogicDocument.Recalculate();
 				this.sendEvent("asc_onAddSignature", sGuid);
 			}
 			oLogicDocument.FinalizeAction();
@@ -10380,6 +10381,14 @@ background-repeat: no-repeat;\
 
 		return oLogicDocument.SetAutoCorrectHyphensWithDash(isReplace);
 	};
+	asc_docs_api.prototype.asc_SetAutoCorrectFirstLetterOfSentences = function(isCorrect)
+	{
+		var oLogicDocument = this.WordControl.m_oLogicDocument;
+		if (!oLogicDocument)
+			return;
+
+		return oLogicDocument.SetAutoCorrectFirstLetterOfSentences(isCorrect);
+	};
 
 	asc_docs_api.prototype.asc_GetSelectedText = function()
 	{
@@ -11070,18 +11079,27 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.onUpdateRestrictions = function()
 	{
-		var contentControls = null;
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
 		if (this.WordControl && this.WordControl.m_oDrawingDocument)
-			contentControls = this.WordControl.m_oDrawingDocument.contentControls;
+		{
+			var contentControls = this.WordControl.m_oDrawingDocument.contentControls;
 
-		if (!contentControls)
-			return;
+			if (contentControls && contentControls.ContentControlObjects.length !== 0)
+			{
+				contentControls.clearAttack();
+				oLogicDocument.UpdateSelectionState();
+			}
+		}
 
-		if (contentControls.ContentControlObjects.length === 0)
-			return;
-
-		contentControls.clearAttack();
-		this.WordControl.m_oLogicDocument.Document_UpdateSelectionState();
+		var oHistory = oLogicDocument.GetHistory();
+		if (this.isRestrictionSignatures() && oHistory && !oHistory.Have_Changes())
+		{
+			oHistory.Clear();
+			oLogicDocument.UpdateInterface();
+		}
 	};
 
 	//-------------------------------------------------------------export---------------------------------------------------
@@ -11714,6 +11732,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_SetAutomaticNumberedLists']             = asc_docs_api.prototype.asc_SetAutomaticNumberedLists;
 	asc_docs_api.prototype['asc_SetAutoCorrectSmartQuotes']             = asc_docs_api.prototype.asc_SetAutoCorrectSmartQuotes;
 	asc_docs_api.prototype['asc_SetAutoCorrectHyphensWithDash']         = asc_docs_api.prototype.asc_SetAutoCorrectHyphensWithDash;
+	asc_docs_api.prototype['asc_SetAutoCorrectFirstLetterOfSentences']  = asc_docs_api.prototype.asc_SetAutoCorrectFirstLetterOfSentences;
 
 	asc_docs_api.prototype['asc_GetSelectedText']                       = asc_docs_api.prototype.asc_GetSelectedText;
 	asc_docs_api.prototype['asc_AddBlankPage']                          = asc_docs_api.prototype.asc_AddBlankPage;
