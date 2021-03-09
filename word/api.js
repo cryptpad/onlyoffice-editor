@@ -11001,6 +11001,16 @@ background-repeat: no-repeat;\
 			this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletChangeListLevel(id, props);
     };
 
+	asc_docs_api.prototype.ConvertTextToTable = function(props)
+    {
+		// TODO
+    };
+
+	asc_docs_api.prototype.ConvertTableToTex = function(props)
+    {
+		// TODO
+    };
+
 	asc_docs_api.prototype.asc_OnHideContextMenu = function()
 	{
 		if (this.WordControl.MobileTouchManager)
@@ -11651,6 +11661,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["SetDrawImagePlaceTableOfFigures"]			= asc_docs_api.prototype.SetDrawImagePlaceTableOfFigures;
     asc_docs_api.prototype["SetDrawImagePreviewMargins"]				= asc_docs_api.prototype.SetDrawImagePreviewMargins;
     asc_docs_api.prototype["SetDrawImagePreviewBullet"]					= asc_docs_api.prototype.SetDrawImagePreviewBullet;
+    asc_docs_api.prototype["ConvertTextToTable"]						= asc_docs_api.prototype.ConvertTextToTable;
+    asc_docs_api.prototype["ConvertTableToText"]						= asc_docs_api.prototype.ConvertTableToText;
 
 	asc_docs_api.prototype["asc_RemoveContentControl"]                  = asc_docs_api.prototype.asc_RemoveContentControl;
 	asc_docs_api.prototype["asc_RemoveContentControlWrapper"]           = asc_docs_api.prototype.asc_RemoveContentControlWrapper;
