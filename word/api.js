@@ -11001,15 +11001,23 @@ background-repeat: no-repeat;\
 			this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletChangeListLevel(id, props);
     };
 
-	asc_docs_api.prototype.ConvertTextToTable = function(props)
-    {
-		// TODO
-    };
+	asc_docs_api.prototype.asc_ConvertTextToTable = function(oProps)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
 
-	asc_docs_api.prototype.ConvertTableToTex = function(props)
-    {
-		// TODO
-    };
+		return oLogicDocument.ConvertTextToTable(oProps);
+	};
+
+	asc_docs_api.prototype.asc_ConvertTableToText = function(oProps)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		return oLogicDocument.ConvertTableToText(oProps);
+	};
 
 	asc_docs_api.prototype.asc_OnHideContextMenu = function()
 	{
@@ -11768,6 +11776,10 @@ background-repeat: no-repeat;\
 
     asc_docs_api.prototype['SetTableDrawMode']         					= asc_docs_api.prototype.SetTableDrawMode;
     asc_docs_api.prototype['SetTableEraseMode']         				= asc_docs_api.prototype.SetTableEraseMode;
+
+	asc_docs_api.prototype['asc_ConvertTextToTable']                    = asc_docs_api.prototype.asc_ConvertTextToTable;
+	asc_docs_api.prototype['asc_ConvertTableToText']                    = asc_docs_api.prototype.asc_ConvertTableToText;
+
 
 	// mobile
 	asc_docs_api.prototype["asc_GetDefaultTableStyles"]             	= asc_docs_api.prototype.asc_GetDefaultTableStyles;
