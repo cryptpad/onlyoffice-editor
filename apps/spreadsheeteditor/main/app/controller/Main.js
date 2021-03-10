@@ -1991,7 +1991,7 @@ define([
             },
 
             onTryUndoInFastCollaborative: function() {
-                var val = window.localStorage.getItem("sse-hide-try-undoredo");
+                var val = Common.localStorage.getItem("sse-hide-try-undoredo");
                 if (!(val && parseInt(val) == 1))
                     Common.UI.info({
                         width: 500,
@@ -2002,7 +2002,7 @@ define([
                         customButtonText: this.textStrict,
                         dontshow: true,
                         callback: _.bind(function(btn, dontshow){
-                            if (dontshow) window.localStorage.setItem("sse-hide-try-undoredo", 1);
+                            if (dontshow) Common.localStorage.setItem("sse-hide-try-undoredo", 1);
                             if (btn == 'custom') {
                                 Common.localStorage.setItem("sse-settings-coauthmode", 0);
                                 this.api.asc_SetFastCollaborative(false);

@@ -1705,7 +1705,7 @@ define([
             },
 
             onTryUndoInFastCollaborative: function() {
-                if (!window.localStorage.getBool("pe-hide-try-undoredo"))
+                if (!Common.localStorage.getBool("pe-hide-try-undoredo"))
                     Common.UI.info({
                         width: 500,
                         msg: this.textTryUndoRedo,
@@ -1715,7 +1715,7 @@ define([
                         customButtonText: this.textStrict,
                         dontshow: true,
                         callback: _.bind(function(btn, dontshow){
-                            if (dontshow) window.localStorage.setItem("pe-hide-try-undoredo", 1);
+                            if (dontshow) Common.localStorage.setItem("pe-hide-try-undoredo", 1);
                             if (btn == 'custom') {
                                 Common.localStorage.setItem("pe-settings-coauthmode", 0);
                                 this.api.asc_SetFastCollaborative(false);
