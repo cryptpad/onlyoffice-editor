@@ -5561,6 +5561,7 @@ BinaryChartReader.prototype.ExternalReadCT_ChartSpace = function (length, val, c
             }
         }
     }
+
     var oThis = this;
     this.curChart = val;
     res = this.bcr.Read1(length, function (t, l) {
@@ -5574,6 +5575,160 @@ BinaryChartReader.prototype.ExternalReadCT_ChartSpace = function (length, val, c
             val.setRoundedCorners(false);
         }
     }
+    /*if(this.curWorksheet) {
+        var aStyles = null;
+        var sName = this.curWorksheet.sName;
+        if(sName === "Bar") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barNormal"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barNormal"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barNormal"];
+        }
+        else if(sName === "BarStacked") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barStacked"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barStacked"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barStacked"];
+        }
+        else if(sName === "BarStackedPer") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barStackedPer"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barStackedPer"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barStackedPer"];
+        }
+        else if(sName === "3DClusteredColumn") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barNormal3d"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barNormal3d"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barNormal3d"];
+        }
+        else if(sName === "3DStackedColumn") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barStacked3d"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barStacked3d"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barStacked3d"];
+        }
+        else if(sName === "3DStackedColumnPer") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barStackedPer3d"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barStackedPer3d"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barStackedPer3d"];
+        }
+        else if(sName === "3DColumn") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barNormal3dPerspective"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barNormal3dPerspective"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barNormal3dPerspective"];
+        }
+        else if(sName === "2DBar") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.hBarNormal"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.hBarNormal"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.hBarNormal"];
+        }
+        else if(sName === "StackedBar") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.hBarStacked"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.hBarStacked"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.hBarStacked"];
+        }
+        else if(sName === "StackedBarPer") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.hBarStackedPer"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.hBarStackedPer"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.hBarStackedPer"];
+        }
+        else if(sName === "3DClusteredBar") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.hBarNormal3d"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.hBarNormal3d"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.hBarNormal3d"];
+        }
+        else if(sName === "3DStackedBar") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.hBarStacked3d"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.hBarStacked3d"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.hBarStacked3d"];
+        }
+        else if(sName === "Line") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.lineNormal"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.lineNormal"] =
+                    AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.lineStacked"] =
+                        AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.lineStackedPer"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.lineNormal"];
+        }
+        else if(sName === "Line3D") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.line3d"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.line3d"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.line3d"];
+        }
+        else if(sName === "Pie") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.pie"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.pie"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.pie"];
+        }
+        else if(sName === "Pie3D") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.pie3d"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.pie3d"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.pie3d"];
+        }
+        else if(sName === "Doughnut") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.doughnut"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.doughnut"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.doughnut"];
+        }
+        else if(sName === "Doughnut") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.doughnut"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.doughnut"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.doughnut"];
+        }
+        else if(sName === "Area") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.areaNormal"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.areaNormal"] =
+                    AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.areaStacked"] =
+                        AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.areaStackedPer"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.areaNormal"];
+        }
+        else if(sName === "Stock") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.stock"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.stock"] =
+                    AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.stock"] =
+                        AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.stock"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.stock"];
+        }
+        else if(sName === "Scatter") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.scatter"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.scatter"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.scatter"];
+        }
+        else if(sName === "ScatterLine") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.scatter"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.scatter"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.scatter"];
+        }
+        else if(sName === "Combo") {
+            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.comboCustom"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.comboCustom"] =
+                    AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.comboBarLine"] =
+                    AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.comboBarLineSecondary"] =
+                    AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.comboAreaBar"] = [];
+            }
+            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.comboCustom"];
+        }
+        if(Array.isArray(aStyles)) {
+            aStyles.push([val.sStyleCrc32, val.sColorsCrc32]);
+        }
+    }*/
     return res;
 };
 BinaryChartReader.prototype.ReadCT_ChartSpace = function (type, length, val, curWorksheet) {
@@ -5706,6 +5861,13 @@ BinaryChartReader.prototype.ReadCT_ChartSpace = function (type, length, val, cur
         res = c_oSerConstants.ReadUnknown;
     }
     else if(c_oserct_chartspaceSTYLES === type) {
+        //var aStyleData = this.stream.data.slice(this.stream.cur, this.stream.cur + length);
+        //var sChartStyleData = "";
+        //sChartStyleData += (length + ";");
+        //sChartStyleData += AscCommon.Base64Encode(aStyleData,aStyleData.length, 0);
+        //var sCRC32 = AscCommon.g_oCRC32.Calculate_ByString(sChartStyleData, sChartStyleData.length);
+        //window['AscCommon'].g_oStylesBinaries[sCRC32] = sChartStyleData;
+        //val.sStyleCrc32 = sCRC32;
         oNewVal = new AscFormat.CChartStyle();
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_ChartStyle(t, l, oNewVal);
@@ -5715,6 +5877,14 @@ BinaryChartReader.prototype.ReadCT_ChartSpace = function (type, length, val, cur
         }
     }
     else if(c_oserct_chartspaceCOLORS === type) {
+        //var aStyleData = this.stream.data.slice(this.stream.cur, this.stream.cur + length);
+        //var sChartStyleData = "";
+        //sChartStyleData += (length + ";");
+        //sChartStyleData += AscCommon.Base64Encode(aStyleData,aStyleData.length, 0);
+        //var sCRC32 = AscCommon.g_oCRC32.Calculate_ByString(sChartStyleData, sChartStyleData.length);
+        //window['AscCommon'].g_oColorsBinaries[sCRC32] = sChartStyleData;
+        //val.sColorsCrc32 = sCRC32;
+
         oNewVal = new AscFormat.CChartColors();
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_ChartColors(t, l, oNewVal);

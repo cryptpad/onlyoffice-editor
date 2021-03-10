@@ -11981,6 +11981,10 @@
         return Asc.c_oAscChartTypeSettings.stock;
     };
 
+    CStockChart.prototype.isMarkerChart = function() {
+        return false;
+    };
+
     function CStrCache() {
         CBaseChartObject.call(this);
         this.pts = [];
@@ -16934,6 +16938,15 @@
             oItem.ReadFromBinary(reader);
             this.items.push(oItem);
         }
+    };
+    CChartColors.prototype.createDuplicate = function() {
+        var oCopy = new CChartColors();
+        oCopy.meth = this.meth;
+        oCopy.id = this.id;
+        for(var nItem = 0; nItem < this.items.length; ++nItem) {
+            oCopy.items.push(this.items[nItem].createDuplicate());
+        }
+        return oCopy;
     };
     CChartColors.prototype.setMeth = function(pr) {
         this.meth = pr;

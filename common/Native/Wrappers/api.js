@@ -5714,7 +5714,7 @@ AscCommon.ChartPreviewManager.prototype.createChartPreview = function(_graphics,
           this.chartsByTypes[type] = this.getChartByType(type);
 
       var chart_space = this.chartsByTypes[type];
-      AscFormat.ApplyPresetToChartSpace(chart_space, AscCommon.g_oChartPresets[type][styleIndex]);
+        chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[type][styleIndex]);
       chart_space.recalcInfo.recalculateReferences = false;
       chart_space.recalculate();
 
@@ -5745,8 +5745,8 @@ AscCommon.ChartPreviewManager.prototype.getChartPreviews = function(chartType)
 
             var _graphics = new CDrawingStream();
 
-            if(AscCommon.g_oChartPresets[chartType]){
-                var nStylesCount = AscCommon.g_oChartPresets[chartType].length;
+            if(AscCommon.g_oChartStyles[chartType]){
+                var nStylesCount = AscCommon.g_oChartStyles[chartType].length;
                 for(var i = 0; i < nStylesCount; ++i)
                     this.createChartPreview(_graphics, chartType, i);
             }

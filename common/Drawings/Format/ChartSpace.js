@@ -39,6 +39,7 @@ var GLOBAL_PATH_COUNT = 0;
     function(window, undefined) {
 
 
+
     var MAX_LABELS_COUNT = 300;
     var MAX_SERIES_COUNT = 255;
     var MAX_POINTS_COUNT = 4096;
@@ -12193,6 +12194,19 @@ var GLOBAL_PATH_COUNT = 0;
         this.applyStyleEntry(oChartStyle.chartArea, oColors.generateColors(1), 0);
         this.chart.applyChartStyle(oChartStyle, oColors);
     };
+    CChartSpace.prototype.resetToChartStyle = function() {
+        if(this.chartStyle && this.chartColors) {
+            this.applyChartStyle(this.chartStyle, this.chartColors);
+        }
+    };
+    CChartSpace.prototype.applyChartStyleByIds = function(aId) {
+        var aChartStyle = oChartStyleCache.getStyleObject(aId);
+        if(Array.isArray(aChartStyle)) {
+            this.setChartStyle(aChartStyle[0].createDuplicate());
+            this.setChartColors(aChartStyle[1].createDuplicate());
+            this.resetToChartStyle();
+        }
+    };
 
     function fSaveChartObjectSourceFormatting(oObject, oObjectCopy, oTheme, oColorMap) {
         if(oObject === oObjectCopy || !oObjectCopy || !oObject) {
@@ -13326,6 +13340,62 @@ var GLOBAL_PATH_COUNT = 0;
         CHART_STYLE_MANAGER.init();
     }
 
+
+    function CChartStyleCache() {
+        this.cachedStyles = {};
+        this.cachedColors = {};
+    }
+    CChartStyleCache.prototype.createBinaryReader = function(sBinary) {
+        var oBinaryFileReader = new AscCommonExcel.BinaryFileReader();
+        var oStream = oBinaryFileReader.getbase64DecodedData(sBinary);
+        AscCommon.pptx_content_loader.Clear(true);
+        return new AscCommon.BinaryChartReader(oStream);
+    };
+    CChartStyleCache.prototype.checkStyle = function(nId) {
+        if(!this.cachedStyles[nId]) {
+            var sStyleBinary = AscCommon.g_oStylesBinaries[nId];
+            if(sStyleBinary) {
+                var oReader = this.createBinaryReader(sStyleBinary);
+                var oNewVal = new AscFormat.CChartStyle();
+                oReader.bcr.Read1(oReader.stream.size, function (t, l) {
+                    return oReader.ReadCT_ChartStyle(t, l, oNewVal);
+                });
+                this.cachedStyles[nId] = oNewVal;
+            }
+        }
+        return this.cachedStyles[nId];
+    };
+    CChartStyleCache.prototype.checkColors = function(nId) {
+        if(!this.cachedStyles[nId]) {
+            var sColorsBinary = AscCommon.g_oColorsBinaries[nId];
+            if(sColorsBinary) {
+                var oReader = this.createBinaryReader(sColorsBinary);
+                var oNewVal = new AscFormat.CChartColors();
+                oReader.bcr.Read1(oReader.stream.size, function (t, l) {
+                    return oReader.ReadCT_ChartColors(t, l, oNewVal);
+                });
+                this.cachedColors[nId] = oNewVal;
+            }
+        }
+        return this.cachedColors[nId];
+    };
+    CChartStyleCache.prototype.getStyleObject = function(aId) {
+        if(!Array.isArray(aId)) {
+            return null;
+        }
+        var nStyle = aId[0];
+        var nColor = aId[1];
+        var oChartStyle = this.checkStyle(nStyle);
+        if(!oChartStyle) {
+            return null;
+        }
+        var oChartColors = this.checkColors(nColor);
+        if(!oChartColors) {
+            return null;
+        }
+        return [oChartStyle, oChartColors];
+    };
+    var oChartStyleCache = new CChartStyleCache();
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].BAR_SHAPE_CONE = BAR_SHAPE_CONE;
@@ -13374,6 +13444,7 @@ var GLOBAL_PATH_COUNT = 0;
 
     window['AscFormat'].initStyleManager = initStyleManager;
     window['AscFormat'].CHART_STYLE_MANAGER = CHART_STYLE_MANAGER;
+    window['AscFormat'].g_oChartStyleCache = oChartStyleCache;
     window['AscFormat'].CheckParagraphTextPr = CheckParagraphTextPr;
     window['AscFormat'].CheckObjectTextPr = CheckObjectTextPr;
     window['AscFormat'].CreateColorMapByIndex = CreateColorMapByIndex;

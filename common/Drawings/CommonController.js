@@ -4348,37 +4348,9 @@ DrawingObjectsController.prototype =
         var oPlotArea = oChart.plotArea;
         var nStyle = oProps.getStyle();
         if(AscFormat.isRealNumber(nStyle)){
-            var nTypeForPreset = nCurType;
-            var bChanged = false;
-            if(oPlotArea.isLineType(nCurType)) {
-                if(Asc.c_oAscChartTypeSettings.lineNormalMarker === nCurType) {
-                    nTypeForPreset = Asc.c_oAscChartTypeSettings.lineNormal;
-                    bChanged = true;
-                }
-                if(Asc.c_oAscChartTypeSettings.lineStackedMarker === nCurType) {
-                    nTypeForPreset = Asc.c_oAscChartTypeSettings.lineStacked;
-                    bChanged = true;
-                }
-                if(Asc.c_oAscChartTypeSettings.lineStackedPerMarker === nCurType) {
-                    nTypeForPreset = Asc.c_oAscChartTypeSettings.lineStackedPer;
-                    bChanged = true;
-                }
-            }
-            else if(oPlotArea.isScatterType(nCurType)) {
-                if(Asc.c_oAscChartTypeSettings.scatter !== nCurType) {
-                    nTypeForPreset = Asc.c_oAscChartTypeSettings.scatter;
-                    bChanged = true;
-                }
-            }
-            var oPreset = AscCommon.g_oChartPresets[nTypeForPreset] && AscCommon.g_oChartPresets[nTypeForPreset][nStyle - 1];
-            if(oPreset) {
-                if(bChanged) {
-                    oChartSpace.changeChartType(nTypeForPreset);
-                }
-                AscFormat.ApplyPresetToChartSpace(oChartSpace, oPreset, oProps.bCreate);
-                if(bChanged) {
-                    oChartSpace.changeChartType(nCurType);
-                }
+            var aStyle = AscCommon.g_oChartStyles[nCurType] && AscCommon.g_oChartStyles[nCurType][nStyle - 1];
+            if(aStyle) {
+                oChartSpace.applyChartStyleByIds(AscCommon.g_oChartStyles[nCurType][nStyle - 1]);
                 return;
             }
         }
