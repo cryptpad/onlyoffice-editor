@@ -24579,6 +24579,55 @@ CDocument.prototype.ChangeTextCase = function(nCaseType)
 		this.UpdateSelection();
 	}
 };
+/**
+ * Конвертируем выделенный текст в таблицу
+ * @param oProps
+ */
+CDocument.prototype.ConvertTextToTable = function(oProps)
+{
+	if (!this.IsTextSelectionUse())
+		return;
+
+	if (!this.IsSelectionLocked(AscCommon.changestype_Document_Contentt))
+	{
+		this.StartAction(AscDFH.historydescription_Document_ConvertTextToTable);
+
+		var oSelectedContent = this.GetSelectedContent(true);
+		var oNewContent      = this.private_ConvertTextToTable(oSelectedContent, oProps);
+		if (oNewContent)
+		{
+			this.RemoveBeforePaste();
+
+			var oParagraph = this.GetCurrentParagraph();
+			if (oParagraph)
+			{
+				var oAnchorPos = oParagraph.GetCurrentAnchorPosition();
+				if (oAnchorPos && this.Can_InsertContent(oNewContent, oAnchorPos))
+				{
+					oParagraph.Check_NearestPos(oAnchorPos);
+					oParagraph.Parent.InsertContent(oSelectedContent, oAnchorPos);
+					this.MoveCursorRight(false, false, false);
+				}
+			}
+		}
+
+		this.UpdateSelection();
+		this.Recalculate();
+		this.FinalizeAction();
+	}
+};
+CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oProps)
+{
+	return oSelectedContent;
+};
+/**
+ * Конвертируем текущую таблицу в текст
+ * @param oProps
+ */
+CDocument.prototype.ConvertTableToText = function(oProps)
+{
+	var oTable = this.GetCurrentTable();
+};
 
 function CDocumentSelectionState()
 {
