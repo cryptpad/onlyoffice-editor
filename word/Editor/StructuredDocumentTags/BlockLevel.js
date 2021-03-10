@@ -716,6 +716,13 @@ CBlockLevelSdt.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSel
 
 	return this.Content.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
 };
+CBlockLevelSdt.prototype.GetCurrentTablesStack = function(arrTables)
+{
+	if (!arrTables)
+		arrTables = [];
+
+	return this.Content.GetCurrentTablesStack(arrTables);
+};
 CBlockLevelSdt.prototype.AddTableRow = function(bBefore, nCount)
 {
 	if (this.IsPlaceHolder())

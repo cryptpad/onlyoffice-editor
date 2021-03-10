@@ -11709,6 +11709,25 @@ CDocument.prototype.GetSelectedParagraphs = function()
 	return this.GetCurrentParagraph(false, true);
 };
 /**
+ * Получаем текущую таблицу
+ * @returns {?CTable}
+ */
+CDocument.prototype.GetCurrentTable = function()
+{
+	var arrTables = this.GetCurrentTablesStack();
+	return arrTables.length > 0 ? arrTables[arrTables.length - 1] : null;
+};
+/**
+ * Получаем массив таблицц, в которых мы находимся
+ * @returns {CTable[]}
+ */
+CDocument.prototype.GetCurrentTablesStack = function()
+{
+	var arrTables = [];
+	this.Controller.GetCurrentTablesStack(arrTables)
+	return arrTables;
+};
+/**
  * Получаем информацию о текущем выделении
  * @returns {CSelectedElementsInfo}
  */
@@ -20392,6 +20411,20 @@ CDocument.prototype.controller_GetCurrentParagraph = function(bIgnoreSelection, 
 			return null;
 
 		return this.Content[Pos].GetCurrentParagraph(bIgnoreSelection, null, oPr);
+	}
+};
+CDocument.prototype.controller_GetCurrentTablesStack = function(arrTables)
+{
+	if (true === this.Selection.Use)
+	{
+		if (this.Selection.StartPos !== this.Selection.EndPos)
+			return arrTables;
+		else
+			return this.Content[this.Selection.StartPos].GetCurrentTablesStack(arrTables);
+	}
+	else
+	{
+		return this.Content[this.CurPos.ContentPos].GetCurrentTablesStack(arrTables);
 	}
 };
 CDocument.prototype.controller_GetSelectedElementsInfo = function(oInfo)
