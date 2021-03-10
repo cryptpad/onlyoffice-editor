@@ -7332,7 +7332,7 @@
         if(!this.parent) {
             return;
         }
-        var aColors = oChartStyle.generateColors(1);
+        var aColors = oColors.generateColors(1);
         if(this.majorGridlines) {
             this.setMajorGridlines(this.getSpPrFormStyleEntry(oChartStyle.gridlineMajor, aColors, 0));
         }
@@ -12436,20 +12436,12 @@
         this.recalcInfo.recalcTransform = true;
         this.recalcInfo.recalculateTransformText = true;
         this.recalcInfo.recalculateContent = true;
-        this.recalcInfo.recalculateContent = true;
         this.recalcInfo.recalculateGeometry = true;
 
         this.parent && this.parent.Refresh_RecalcData2 && this.parent.Refresh_RecalcData2(pageIndex, this);
     };
     CTitle.prototype.checkAfterChangeTheme = function() {
-        this.recalcInfo.recalculateTxBody = true;
-        this.recalcInfo.recalcTransform = true;
-        this.recalcInfo.recalculateTransformText = true;
-        this.recalcInfo.recalculateContent = true;
-        this.recalcInfo.recalculateGeometry = true;
-        if(this.tx && this.tx.rich && this.tx.rich.content) {
-            this.tx.rich.content.Recalc_AllParagraphs_CompiledPr();
-        }
+        this.resetRecalcFlags();
     };
     CTitle.prototype.GetRevisionsChangeElement = function(SearchEngine) {
         var oContent = this.getDocContent();
@@ -12680,6 +12672,23 @@
         }
         return null;
     };
+    CTitle.prototype.resetRecalcFlags = function() {
+        this.recalcInfo.recalculateTxBody = true;
+        this.recalcInfo.recalcTransform = true;
+        this.recalcInfo.recalculateTransformText = true;
+        this.recalcInfo.recalculateContent = true;
+        this.recalcInfo.recalculateGeometry = true;
+        if(this.tx && this.tx.rich && this.tx.rich.content) {
+            this.tx.rich.content.Recalc_AllParagraphs_CompiledPr();
+        }
+    };
+    CTitle.prototype.onUpdate = function() {
+       this.resetRecalcFlags();
+        var oChartSpace = this.getChartSpace();
+        if(oChartSpace) {
+            oChartSpace.recalcInfo.recalculateAxisLabels = true;
+        }
+    };
     CTitle.prototype.getDefaultTextForTxBody = function() {
         var sText;
         if(this.tx && this.tx.strRef) {
@@ -12759,11 +12768,13 @@
     CTitle.prototype.setOverlay = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_Title_SetOverlay, this.overlay, pr));
         this.overlay = pr;
+        this.onUpdate();
     };
     CTitle.prototype.setSpPr = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Title_SetSpPr, this.spPr, pr));
         this.spPr = pr;
         this.setParentToChild(pr);
+        this.onUpdate();
     };
     CTitle.prototype.setTx = function(pr) {
         if(this.tx && this.tx.strRef || pr && pr.strRef) {
@@ -12772,11 +12783,13 @@
         History.CanAddChanges() && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Title_SetTx, this.tx, pr));
         this.tx = pr;
         this.setParentToChild(pr);
+        this.onUpdate();
     };
     CTitle.prototype.setTxPr = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Title_SetTxPr, this.txPr, pr));
         this.txPr = pr;
         this.setParentToChild(pr);
+        this.onUpdate();
     };
     CTitle.prototype.applyChartStyle = function(oChartStyle, oColors) {
         if(!this.parent) {
