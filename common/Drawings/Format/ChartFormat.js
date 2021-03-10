@@ -7332,11 +7332,12 @@
         if(!this.parent) {
             return;
         }
+        var aColors = oChartStyle.generateColors(1);
         if(this.majorGridlines) {
-            this.setMajorGridlines(this.getSpPrFormStyleEntry(oChartStyle.gridlineMajor));
+            this.setMajorGridlines(this.getSpPrFormStyleEntry(oChartStyle.gridlineMajor, aColors, 0));
         }
         if(this.minorGridlines) {
-            this.setMinorGridlines(this.getSpPrFormStyleEntry(oChartStyle.gridlineMinor));
+            this.setMinorGridlines(this.getSpPrFormStyleEntry(oChartStyle.gridlineMinor, aColors, 0));
         }
         if(this.title) {
             this.title.applyChartStyle(oChartStyle, oColors);

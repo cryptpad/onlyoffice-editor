@@ -12181,8 +12181,8 @@ var GLOBAL_PATH_COUNT = 0;
         return this.getParentObjects().theme;
     };
 
-    CChartSpace.prototype.getSpPrFormStyleEntry = function(oStyleEntry, aColors) {
-        return AscFormat.CBaseChartObject.prototype.getSpPrFormStyleEntry.call(this, oStyleEntry, aColors);
+    CChartSpace.prototype.getSpPrFormStyleEntry = function(oStyleEntry, aColors, nIdx) {
+        return AscFormat.CBaseChartObject.prototype.getSpPrFormStyleEntry.call(this, oStyleEntry, aColors, nIdx);
     };
     CChartSpace.prototype.getTxPrFormStyleEntry = function(oStyleEntry, aColors, nIdx) {
         return AscFormat.CBaseChartObject.prototype.getTxPrFormStyleEntry.call(this, oStyleEntry, aColors, nIdx);
@@ -13352,6 +13352,9 @@ var GLOBAL_PATH_COUNT = 0;
         return new AscCommon.BinaryChartReader(oStream);
     };
     CChartStyleCache.prototype.checkStyle = function(nId) {
+        if(this.cachedStyles[nId] && !this.cachedStyles[nId].dataPoint) {
+            this.cachedStyles[nId] = undefined;
+        }
         if(!this.cachedStyles[nId]) {
             var sStyleBinary = AscCommon.g_oStylesBinaries[nId];
             if(sStyleBinary) {
