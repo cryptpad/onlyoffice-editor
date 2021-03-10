@@ -11709,12 +11709,23 @@ CDocument.prototype.GetSelectedParagraphs = function()
 	return this.GetCurrentParagraph(false, true);
 };
 /**
- * Получаем текущую таблицу, внутри которой мы находимся
+ * Получаем текущую таблицу
  * @returns {?CTable}
  */
 CDocument.prototype.GetCurrentTable = function()
 {
-	return null;
+	var arrTables = this.GetCurrentTablesStack();
+	return arrTables.length > 0 ? arrTables[arrTables.length - 1] : null;
+};
+/**
+ * Получаем массив таблицц, в которых мы находимся
+ * @returns {CTable[]}
+ */
+CDocument.prototype.GetCurrentTablesStack = function()
+{
+	var arrTables = [];
+	this.Controller.GetCurrentTablesStack(arrTables)
+	return arrTables;
 };
 /**
  * Получаем информацию о текущем выделении
@@ -20402,6 +20413,20 @@ CDocument.prototype.controller_GetCurrentParagraph = function(bIgnoreSelection, 
 		return this.Content[Pos].GetCurrentParagraph(bIgnoreSelection, null, oPr);
 	}
 };
+CDocument.prototype.controller_GetCurrentTablesStack = function(arrTables)
+{
+	if (true === this.Selection.Use)
+	{
+		if (this.Selection.StartPos !== this.Selection.EndPos)
+			return arrTables;
+		else
+			return this.Content[this.Selection.StartPos].GetCurrentTablesStack(arrTables);
+	}
+	else
+	{
+		return this.Content[this.CurPos.ContentPos].GetCurrentTablesStack(arrTables);
+	}
+};
 CDocument.prototype.controller_GetSelectedElementsInfo = function(oInfo)
 {
 	if (true === this.Selection.Use)
@@ -24553,58 +24578,6 @@ CDocument.prototype.ChangeTextCase = function(nCaseType)
 		this.LoadDocumentState(oState);
 		this.UpdateSelection();
 	}
-};
-/**
- * Конвертируем выделенный текст в таблицу
- * @param oProps
- */
-CDocument.prototype.ConvertTextToTable = function(oProps)
-{
-	if (!this.IsTextSelectionUse())
-		return;
-
-	if (!this.IsSelectionLocked(AscCommon.changestype_Document_Contentt))
-	{
-		this.StartAction(AscDFH.historydescription_Document_ConvertTextToTable);
-
-		var oSelectedContent = this.GetSelectedContent(true);
-		var oNewContent = this.private_ConvertTextToTable(oSelectedContent, oProps);
-
-		if (oNewContent)
-		{
-			this.RemoveBeforePaste();
-
-			var oParagraph = this.GetCurrentParagraph();
-			if (oParagraph)
-			{
-				var oAnchorPos = oParagraph.GetCurrentAnchorPosition();
-				if (oAnchorPos && this.Can_InsertContent(oNewContent, oAnchorPos))
-				{
-					oParagraph.Check_NearestPos(oAnchorPos);
-					oParagraph.Parent.InsertContent(oSelectedContent, oAnchorPos);
-					this.MoveCursorRight(false, false, false);
-				}
-			}
-		}
-
-		this.UpdateSelection();
-		this.Recalculate();
-		this.FinalizeAction();
-	}
-};
-CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oProps)
-{
-	return oSelectedContent;
-};
-/**
- * Конвертируем текущую таблицу в текст
- * @param oProps
- */
-CDocument.prototype.ConvertTableToText = function(oProps)
-{
-	var oTable = this.GetCurrentTable();
-
-
 };
 
 function CDocumentSelectionState()
