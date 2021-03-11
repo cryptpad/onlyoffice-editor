@@ -24605,7 +24605,7 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 				if (oAnchorPos && this.Can_InsertContent(oNewContent, oAnchorPos))
 				{
 					oParagraph.Check_NearestPos(oAnchorPos);
-					oParagraph.Parent.InsertContent(oSelectedContent, oAnchorPos);
+					oParagraph.Parent.InsertContent(oNewContent, oAnchorPos);
 					this.MoveCursorRight(false, false, false);
 				}
 			}
@@ -24627,6 +24627,48 @@ CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oPro
 CDocument.prototype.ConvertTableToText = function(oProps)
 {
 	var oTable = this.GetCurrentTable();
+	if (!oTable)
+		return;
+
+	if (!this.IsSelectionLocked(AscCommon.changestype_None, {
+		Type      : changestype_2_ElementsArray_and_Type,
+		Elements  : [oTable],
+		CheckType : changestype_Paragraph_Content
+	}))
+	{
+		this.StartAction(AscDFH.historydescription_Document_ConvertTableToText);
+
+		var oNewContent = this.private_ConvertTableToText(oTable, oProps);
+		var oParent     = oTable.GetParent();
+		if (oNewContent && oParent)
+		{
+			var nIndex     = oTable.GetIndex();
+			var oParagraph = new Paragraph(this.GetDrawingDocument());
+
+			oParent.RemoveFromContent(nIndex, 1, true);
+			oParent.AddToContent(nIndex, oParagraph, true);
+
+			oParagraph.Document_SetThisElementCurrent(false);
+
+			var oAnchorPos = oParagraph.GetCurrentAnchorPosition();
+			if (oAnchorPos && this.Can_InsertContent(oNewContent, oAnchorPos))
+			{
+				oParagraph.Check_NearestPos(oAnchorPos);
+				oParent.InsertContent(oNewContent, oAnchorPos);
+				this.MoveCursorRight(false, false, false);
+			}
+		}
+
+		this.UpdateSelection();
+		this.Recalculate();
+		this.FinalizeAction();
+	}
+};
+CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
+{
+	var oSelectedContent = new CSelectedContent();
+	oSelectedContent.Add(new CSelectedElement(oTable, true));
+	return oSelectedContent;
 };
 
 function CDocumentSelectionState()
