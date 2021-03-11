@@ -11778,9 +11778,6 @@ var GLOBAL_PATH_COUNT = 0;
         }
         return null;
     };
-    CChartSpace.prototype.isAccent1Background = function() {
-        return this.spPr && this.spPr.Fill && this.spPr.Fill.isAccent1();
-    };
     CChartSpace.prototype.addNewSeries = function() {
         var oLastChart = this.chart.plotArea.charts[this.chart.plotArea.charts.length - 1];
         if(!oLastChart) {
@@ -11832,13 +11829,8 @@ var GLOBAL_PATH_COUNT = 0;
             return null;
         }
         History.Create_NewPoint(0);
-        var bAccent1Background = this.isAccent1Background();
         var aAllSeries = this.getAllSeries();
         var oFirstSeries = aAllSeries[0];
-        var oFirstSpPrPreset = 0;
-        if(oFirstSeries && oFirstSeries.idx === 0) {
-            oFirstSpPrPreset = oFirstSeries.getSpPrPreset();
-        }
         var oSeries;
         oSeries = oLastChart.series[0] ? oLastChart.series[0].createDuplicate() : oLastChart.getEmptySeries();
         oSeries.setName(sName);
@@ -11850,23 +11842,8 @@ var GLOBAL_PATH_COUNT = 0;
         if(oSeries.spPr) {
             oSeries.setSpPr(null);
         }
-        if(oFirstSpPrPreset) {
-            oStyle = AscFormat.CHART_STYLE_MANAGER.getStyleByIndex(this.style);
-            if(oSeries.getObjectType() === AscDFH.historyitem_type_PieSeries) {
-                aPts = oSeries.getNumPts();
-                aBaseFills = AscFormat.getArrayFillsFromBase(oStyle.fill2, aPts.length);
-                for(nPt = 0; nPt < aPts.length; ++nPt) {
-                    var oDPt = new AscFormat.CDPt();
-                    oDPt.setBubble3D(false);
-                    oDPt.setIdx(nPt);
-                    AscFormat.ApplySpPr(oFirstSpPrPreset, oDPt, nPt, aBaseFills, bAccent1Background);
-                    oSeries.addDPt(oDPt);
-                }
-            }
-            else {
-                aBaseFills = AscFormat.getArrayFillsFromBase(oStyle.fill2, aAllSeries.length + 1);
-                AscFormat.ApplySpPr(oFirstSpPrPreset, oSeries, oSeries.idx, aBaseFills, bAccent1Background);
-            }
+        if(this.chartStyle && this.chartColors) {
+            oSeries.applyChartStyle(this.chartStyle && this.chartColors);
         }
         return oSeries;
     };
@@ -11878,13 +11855,6 @@ var GLOBAL_PATH_COUNT = 0;
         History.Create_NewPoint(0);
         var aAllSeries = this.getAllSeries();
         var oFirstSeries = aAllSeries[0];
-        var bAccent1Background = this.isAccent1Background();
-        var oFirstSpPrPreset = 0;
-        var oFirstSpPrMarkerPrst = 0;
-        if(oFirstSeries && oFirstSeries.idx === 0) {
-            oFirstSpPrPreset = oFirstSeries.getSpPrPreset();
-            oFirstSpPrMarkerPrst = oFirstSeries.getMarkerPreset();
-        }
         var oSeries;
         oSeries = oLastChart.series[0] ? oLastChart.series[0].createDuplicate() : oLastChart.getEmptySeries();
         oSeries.setName(sName);
@@ -11899,16 +11869,8 @@ var GLOBAL_PATH_COUNT = 0;
         if(oSeries.spPr) {
             oSeries.setSpPr(null);
         }
-        if(oFirstSpPrPreset) {
-            AscFormat.ApplySpPr(oFirstSpPrPreset, oSeries, oSeries.idx, aBaseFills, bAccent1Background);
-        }
-        if(oSeries.marker) {
-            if(oSeries.marker.spPr) {
-                oSeries.marker.setSpPr(null);
-            }
-            if(oFirstSpPrMarkerPrst) {
-                AscFormat.ApplySpPr(oFirstSpPrMarkerPrst, oSeries.marker, oSeries.idx, aBaseFills, bAccent1Background);
-            }
+        if(this.chartStyle && this.chartColors) {
+            oSeries.applyChartStyle(this.chartStyle && this.chartColors);
         }
         return oSeries;
     };
@@ -11957,27 +11919,6 @@ var GLOBAL_PATH_COUNT = 0;
             return a.order - b.order;
         });
 
-        //TODO: remove this after chartStyle.xml implementing
-        var oFirstSpPrPreset = 0;
-        var oFirstSpPrMarkerPrst = 0;
-        var oFirstSeries = aAllSeries[0];
-        var bAccent1Background = this.isAccent1Background();
-        if(oFirstSeries && oFirstSeries.idx === 0) {
-            oFirstSpPrMarkerPrst = oFirstSeries.getMarkerPreset();
-            if(oFirstSeries.getObjectType() === AscDFH.historyitem_type_PieSeries) {
-                if(oFirstSeries.dPt[0] && oFirstSeries.dPt[0].spPr && !oFirstSeries.dPt[0].spPr.hasRGBFill()) {
-                    oFirstSpPrPreset = AscFormat.CollectSettingsSpPr(oFirstSeries.dPt[0].spPr);
-                }
-            }
-            else {
-                oFirstSpPrPreset = oFirstSeries.getSpPrPreset();
-            }
-        }
-        var oStyle, aBaseFills;
-        oStyle = AscFormat.CHART_STYLE_MANAGER.getStyleByIndex(this.style);
-        aBaseFills = AscFormat.getArrayFillsFromBase(oStyle.fill2, aRefs.length);
-        //TODO: end--------------------------------------
-
         var nRef, oRef;
         var nSeries, oSeries = null;
         var oFirstChart = this.chart.plotArea.charts[0];
@@ -11998,49 +11939,11 @@ var GLOBAL_PATH_COUNT = 0;
                 }
                 oSeries.setIdx(nRef);
                 oSeries.setOrder(nRef);
+                if(this.chartStyle && this.chartColors) {
+                    oSeries.applyChartStyle(this.chartStyle, this.chartColors);
+                }
             }
             oSeries.setData(oRef);
-
-
-            //TODO: remove this after chartStyle.xml implementing
-            if(oFirstSeries && oFirstSeries.parent === oSeries.parent) {
-                if(oSeries.getObjectType() === AscDFH.historyitem_type_PieSeries) {
-                    if(oFirstSpPrPreset) {
-                        var nValCount = oRef.val.getCellsCount();
-                        var nDpt, oDPt;
-                        for(nDpt = 0; nDpt < nValCount; ++nDpt) {
-                            if(!oSeries.getDptByIdx(nDpt)) {
-                                oDPt = new AscFormat.CDPt();
-                                oDPt.setBubble3D(false);
-                                oDPt.setIdx(nDpt);
-                                AscFormat.ApplySpPr(oFirstSpPrPreset, oDPt, nDpt, aBaseFills, bAccent1Background);
-                                oSeries.addDPt(oDPt);
-                            }
-                        }
-                        for(nDpt = oSeries.dPt.length - 1; nDpt > -1; --nDpt) {
-                            oDPt = oSeries.dPt[nDpt];
-                            if(oDPt.idx >= nValCount) {
-                                oSeries.removeDPt(nDpt);
-                            }
-                        }
-                    }
-                }
-                else {
-                    if(nRef >= aAllSeries.length) {
-                        if(oFirstSpPrPreset) {
-                            var oUniFill = AscFormat.CreateUnifillFromPreset(oFirstSpPrPreset[0], oSeries.idx, aBaseFills, bAccent1Background);
-                            if(oUniFill && oUniFill.isSolidFillRGB()) {
-                                continue;
-                            }
-                            AscFormat.ApplySpPr(oFirstSpPrPreset, oSeries, oSeries.idx, aBaseFills, bAccent1Background);
-                        }
-                        if(oFirstSpPrMarkerPrst && oSeries.marker) {
-                            AscFormat.ApplySpPr(oFirstSpPrMarkerPrst, oSeries.marker, oSeries.idx, aBaseFills, bAccent1Background);
-                        }
-                    }
-                }
-            }
-            //TODO: end--------------------------------------
 
             oPrevSeries = oSeries;
         }
@@ -12528,6 +12431,7 @@ var GLOBAL_PATH_COUNT = 0;
 
         chart_space.printSettings.setDefault();
         line_chart.tryChangeType(oOptions.type);
+        chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
         return chart_space;
     }
 
@@ -12635,6 +12539,7 @@ var GLOBAL_PATH_COUNT = 0;
             legend.setOverlay(false);
         }
         chart_space.printSettings.setDefault();
+        chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
         return chart_space;
     }
 
@@ -12743,6 +12648,7 @@ var GLOBAL_PATH_COUNT = 0;
             legend.setOverlay(false);
         }
         chart_space.printSettings.setDefault();
+        chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
         return chart_space;
     }
 
@@ -12833,6 +12739,7 @@ var GLOBAL_PATH_COUNT = 0;
             legend.setOverlay(false);
         }
         chart_space.printSettings.setDefault();
+        chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
         return chart_space;
     }
 
@@ -12876,6 +12783,7 @@ var GLOBAL_PATH_COUNT = 0;
         chart.setShowDLblsOverMax(false);
         chart_space.setPrintSettings(new AscFormat.CPrintSettings());
         chart_space.printSettings.setDefault();
+        chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
         return chart_space;
     }
 
@@ -12952,6 +12860,7 @@ var GLOBAL_PATH_COUNT = 0;
         if(oOptions && oOptions.type !== Asc.c_oAscChartTypeSettings) {
             scatter_chart.tryChangeType(oOptions.type);
         }
+        chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
         return chart_space;
     }
 
@@ -13042,6 +12951,7 @@ var GLOBAL_PATH_COUNT = 0;
         legend.setLayout(new AscFormat.CLayout());
         legend.setOverlay(false);
         chart_space.printSettings.setDefault();
+        chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
         return chart_space;
     }
 
@@ -13166,6 +13076,7 @@ var GLOBAL_PATH_COUNT = 0;
         var oPrintSettings = new AscFormat.CPrintSettings();
         oPrintSettings.setDefault();
         oChartSpace.setPrintSettings(oPrintSettings);
+        oChartSpace.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
         return oChartSpace;
     }
     function CreateDefaultAxes(valFormatCode) {

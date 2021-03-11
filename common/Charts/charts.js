@@ -68,6 +68,11 @@ ChartPreviewManager.prototype.getAscChartSeriesDefault = function(type) {
 	switch(type)
 	{
 		case c_oAscChartTypeSettings.lineNormal:
+		case c_oAscChartTypeSettings.lineNormalMarker:
+		case c_oAscChartTypeSettings.scatterLine:
+		case c_oAscChartTypeSettings.scatterLineMarker:
+		case c_oAscChartTypeSettings.scatterSmooth:
+		case c_oAscChartTypeSettings.scatterSmoothMarker:
 		{
 			ser = new AscFormat.asc_CChartSeria();
 			ser.Val.NumCache = [ createItem(2), createItem(3), createItem(2), createItem(3) ];
@@ -88,6 +93,7 @@ ChartPreviewManager.prototype.getAscChartSeriesDefault = function(type) {
             break;
         }
 		case c_oAscChartTypeSettings.lineStacked:
+		case c_oAscChartTypeSettings.lineStackedMarker:
 		{
 			ser = new AscFormat.asc_CChartSeria();
 			ser.Val.NumCache = [ createItem(1), createItem(6), createItem(2), createItem(8) ];
@@ -98,6 +104,7 @@ ChartPreviewManager.prototype.getAscChartSeriesDefault = function(type) {
 			break;
 		}
 		case c_oAscChartTypeSettings.lineStackedPer:
+		case c_oAscChartTypeSettings.lineStackedPerMarker:
 		{
 			ser = new AscFormat.asc_CChartSeria();
 			ser.Val.NumCache = [ createItem(2), createItem(4), createItem(2), createItem(4) ];

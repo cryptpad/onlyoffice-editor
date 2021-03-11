@@ -2232,7 +2232,14 @@
             return;
         }
         if(this.setSpPr) {
-            this.setSpPr(this.getSpPrFormStyleEntry(oStyleEntry, aColors, nIdx));
+            var oSpPr = this.getSpPrFormStyleEntry(oStyleEntry, aColors, nIdx);
+            if(this.spPr) {
+                this.spPr.setFill(oSpPr.Fill);
+                this.spPr.setLn(oSpPr.ln)
+            }
+            else {
+                this.setSpPr(oSpPr);
+            }
         }
         if(this.setTxPr) {
             this.setTxPr(this.getTxPrFormStyleEntry(oStyleEntry, aColors, nIdx));
@@ -3818,25 +3825,6 @@
         if(oSource) {
             oSource.collectRefs(aRefs);
         }
-    };
-    CSeriesBase.prototype.getSpPrPreset = function() {
-        var oFirstSpPrPreset = 0;
-        if(this.getObjectType() === AscDFH.historyitem_type_PieSeries) {
-            if(this.dPt[0] && this.dPt[0].spPr && !this.dPt[0].spPr.hasRGBFill()) {
-                oFirstSpPrPreset = AscFormat.CollectSettingsSpPr(this.dPt[0].spPr);
-            }
-        }
-        else {
-            oFirstSpPrPreset = AscFormat.CollectSettingsSpPr(this.spPr);
-        }
-        return oFirstSpPrPreset;
-    };
-    CSeriesBase.prototype.getMarkerPreset = function() {
-        var oFirstSpPrMarkerPrst = 0;
-        if(this.marker && this.marker.spPr && !this.marker.spPr.hasRGBFill()) {
-            oFirstSpPrMarkerPrst = AscFormat.CollectSettingsSpPr(this.marker.spPr);
-        }
-        return oFirstSpPrMarkerPrst;
     };
     CSeriesBase.prototype.getValuesCount = function() {
         if(this.val) {

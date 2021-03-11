@@ -5414,11 +5414,6 @@ CUniFill.prototype =
         }
         return _ret.fill;
     },
-
-    isAccent1: function() {
-        return (this.fill && this.fill.color && this.fill.color.color
-        && this.fill.color.color.type === window['Asc'].c_oAscColor.COLOR_TYPE_SCHEME &&  this.fill.color.color.id === 0)
-    },
     isSolidFillRGB: function() {
         return (this.fill && this.fill.color && this.fill.color.color
         && this.fill.color.color.type === window['Asc'].c_oAscColor.COLOR_TYPE_SRGB)
