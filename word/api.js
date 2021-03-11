@@ -9047,7 +9047,7 @@ background-repeat: no-repeat;\
 		oContentControl.SelectContentControl();
 		oContentControl.SkipSpecialContentControlLock(true);
 
-		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, false, oLogicDocument.IsFormFieldEditing()))
+		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, undefined, false, oLogicDocument.IsFormFieldEditing()))
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_ClearContentControl);
 			oContentControl.ClearContentControlExt();
@@ -11093,7 +11093,7 @@ background-repeat: no-repeat;\
 			if (contentControls && contentControls.ContentControlObjects.length !== 0)
 			{
 				contentControls.clearAttack();
-				oLogicDocument.UpdateSelectionState();
+				oLogicDocument.UpdateSelection();
 			}
 		}
 
