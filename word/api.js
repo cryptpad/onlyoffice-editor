@@ -9047,7 +9047,7 @@ background-repeat: no-repeat;\
 		oContentControl.SelectContentControl();
 		oContentControl.SkipSpecialContentControlLock(true);
 
-		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
+		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, false, oLogicDocument.IsFormFieldEditing()))
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_ClearContentControl);
 			oContentControl.ClearContentControlExt();
