@@ -135,16 +135,6 @@ var DISTANCE_TO_TEXT_LEFTRIGHT = 3.2;
         image.setBDeleted(false);
     }
 
-    function removeDPtsFromSeries(series)
-    {
-        if(Array.isArray(series.dPt))
-        {
-            for(var i = series.dPt.length - 1; i > -1; --i)
-            {
-                series.removeDPt(i);
-            }
-        }
-    }
 
     function fApproxEqual(a, b, fDelta){
         if ( a === b ) {
@@ -4359,7 +4349,7 @@ DrawingObjectsController.prototype =
         //TODO: Rework this
         var sRange = oProps.getRange();
         if(typeof sRange === "string") {
-            oChartSpace.setRange(sRange);
+           // oChartSpace.setRange(sRange);
         }
 
         //Title
@@ -4433,66 +4423,11 @@ DrawingObjectsController.prototype =
         }
 
         oChartSpace.setDlblsProps(oProps);
-        var oTypedChart, nChart, nSer, oSeries;
+        var oTypedChart;
         oTypedChart = oPlotArea.charts[0];
-        if(oTypedChart.getObjectType() === AscDFH.historyitem_type_LineChart &&
-            AscFormat.isRealBool(oProps.showMarker) && AscFormat.isRealBool(oProps.bLine) && AscFormat.isRealBool(oProps.smooth) )
+        if(oTypedChart.getObjectType() === AscDFH.historyitem_type_LineChart && !oChartSpace.is3dChart())
         {
-            if(AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(oChartSpace))
-            {
-                oProps.showMarker = false;
-            }
-            if(AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(oChartSpace))
-            {
-                oProps.bLine = true;
-            }
-            oTypedChart.setMarkerValue(oProps.showMarker);
-            if(!oProps.bLine)
-            {
-                for(nSer = 0; nSer < oTypedChart.series.length; ++nSer)
-                {
-                    oSeries = oTypedChart.series[nSer];
-                    removeDPtsFromSeries(oSeries);
-                    if(!oSeries.spPr)
-                    {
-                        oSeries.setSpPr(new AscFormat.CSpPr());
-                    }
-
-                    if(AscFormat.isRealBool(oSeries.smooth))
-                    {
-                        oSeries.setSmooth(null);
-                    }
-                    oSeries.spPr.setLn(AscFormat.CreateNoFillLine());
-                }
-            }
-            else
-            {
-                for(nSer = 0; nSer < oTypedChart.series.length; ++nSer)
-                {
-                    oSeries = oTypedChart.series[nSer];
-                    removeDPtsFromSeries(oSeries);
-                    if(oSeries.smooth !== (oProps.smooth === true))
-                    {
-                        oSeries.setSmooth(oProps.smooth === true);
-                    }
-                    if(oSeries.spPr && oSeries.spPr.ln)
-                    {
-                        oSeries.spPr.setLn(null);
-                    }
-                }
-            }
-            if(oTypedChart.smooth !== (oProps.smooth === true))
-            {
-                oTypedChart.setSmooth(oProps.smooth === true);
-            }
-            for(nSer = 0; nSer < oTypedChart.series.length; ++nSer)
-            {
-                oSeries = oTypedChart.series[nSer];
-                if(oSeries.smooth !== (oProps.smooth === true))
-                {
-                    oSeries.setSmooth(oProps.smooth === true);
-                }
-            }
+            oTypedChart.setLineParams(oProps.showMarker, oProps.bLine, oProps.smooth)
         }
         if(oTypedChart.getObjectType() === AscDFH.historyitem_type_ScatterChart)
         {
@@ -10921,7 +10856,6 @@ function CalcLiterByLength(aAlphaBet, nLength)
 
 
     window['AscFormat'].CURSOR_TYPES_BY_CARD_DIRECTION = CURSOR_TYPES_BY_CARD_DIRECTION;
-    window['AscFormat'].removeDPtsFromSeries = removeDPtsFromSeries;
     window['AscFormat'].checkTxBodyDefFonts = checkTxBodyDefFonts;
     window['AscFormat'].CheckShapeBodyAutoFitReset = CheckShapeBodyAutoFitReset;
     window['AscFormat'].CDistance = CDistance;

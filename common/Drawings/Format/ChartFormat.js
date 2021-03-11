@@ -9923,6 +9923,71 @@
         var bSmooth = (bFlags & 4) === 4;
         return bSmooth;
     };
+
+    CLineChart.prototype.setLineParams = function(bMarker, bLine, bSmooth) {
+        if(!AscFormat.isRealBool(bMarker) || !AscFormat.isRealBool(bLine) || !AscFormat.isRealBool(bSmooth)) {
+            return;
+        }
+        if(bMarker === this.isMarkerChart() && bLine === !this.isNoLine() && bSmooth === this.isSmooth()) {
+            return;
+        }
+        this.setMarkerValue(bMarker);
+        var nSer, oSeries;
+        if(!bLine)
+        {
+            for(nSer = 0; nSer < this.series.length; ++nSer)
+            {
+                oSeries = this.series[nSer];
+                oSeries.removeAllDPts();
+                if(!oSeries.spPr)
+                {
+                    oSeries.setSpPr(new AscFormat.CSpPr());
+                }
+
+                if(AscFormat.isRealBool(oSeries.smooth))
+                {
+                    oSeries.setSmooth(null);
+                }
+                oSeries.spPr.setLn(AscFormat.CreateNoFillLine());
+            }
+        }
+        else
+        {
+            for(nSer = 0; nSer < this.series.length; ++nSer)
+            {
+                oSeries = this.series[nSer];
+                oSeries.removeAllDPts();
+                if(oSeries.smooth !== (bSmooth === true))
+                {
+                    oSeries.setSmooth(bSmooth === true);
+                }
+                if(oSeries.spPr && oSeries.spPr.ln)
+                {
+                    oSeries.spPr.setLn(null);
+                }
+            }
+        }
+        if(this.smooth !== (bSmooth === true))
+        {
+            this.setSmooth(bSmooth === true);
+        }
+        for(nSer = 0; nSer < this.series.length; ++nSer)
+        {
+            oSeries = this.series[nSer];
+            if(oSeries.smooth !== (bSmooth === true))
+            {
+                oSeries.setSmooth(bSmooth === true);
+            }
+        }
+        var oChartSpace = this.getChartSpace();
+        if(oChartSpace) {
+            var oChartStyle = oChartSpace.chartSpace;
+            var oChartColors = oChartSpace.chartColors;
+            if(oChartStyle && oChartColors) {
+                this.applyChartStyle(oChartStyle, oChartColors, false);
+            }
+        }
+    };
     CLineChart.prototype.tryChangeType = function(nType) {
         if(!this.parent) {
             return false;
@@ -11629,6 +11694,9 @@
         if(!AscFormat.isRealBool(bMarker) || !AscFormat.isRealBool(bLine) || !AscFormat.isRealBool(bSmooth)) {
             return;
         }
+        if(bMarker === this.isMarkerChart() && bLine === !this.isNoLine() && bSmooth === this.isSmooth()) {
+            return;
+        }
         var nSer, oSeries;
         for(nSer = 0; nSer < this.series.length; ++nSer) {
             oSeries = this.series[nSer];
@@ -11643,7 +11711,7 @@
         if(bLine) {
             for(nSer = 0; nSer < this.series.length; ++nSer) {
                 oSeries = this.series[nSer];
-                AscFormat.removeDPtsFromSeries(oSeries);
+                oSeries.removeAllDPts();
                 if(oSeries.spPr && oSeries.spPr.ln) {
                     oSeries.spPr.setLn(null);
                 }
@@ -11725,6 +11793,14 @@
                     }
                     oSeries.marker.setSymbol(AscFormat.SYMBOL_NONE);
                 }
+            }
+        }
+        var oChartSpace = this.getChartSpace();
+        if(oChartSpace) {
+            var oChartStyle = oChartSpace.chartSpace;
+            var oChartColors = oChartSpace.chartColors;
+            if(oChartStyle && oChartColors) {
+                this.applyChartStyle(oChartStyle, oChartColors, false);
             }
         }
         this.setScatterStyle(new_scatter_style);
