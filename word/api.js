@@ -9043,7 +9043,9 @@ background-repeat: no-repeat;\
 		if (!oContentControl)
 			return;
 
+		oLogicDocument.RemoveSelection();
 		oContentControl.SelectContentControl();
+		oContentControl.SkipSpecialContentControlLock(true);
 
 		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
 		{
@@ -9056,6 +9058,7 @@ background-repeat: no-repeat;\
 
 			oLogicDocument.FinalizeAction();
 		}
+		oContentControl.SkipSpecialContentControlLock(false);
 	};
 	asc_docs_api.prototype.asc_SetGlobalContentControlHighlightColor = function(r, g, b)
 	{
