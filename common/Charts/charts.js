@@ -368,9 +368,6 @@ ChartPreviewManager.prototype.getChartByType = function(type)
 				vert_axis_settings = val_ax_props;
 				hor_axis_settings = val_ax_props;
 				isScatter = true;
-                settings.showMarker = true;
-                settings.smooth = false;
-                settings.bLine = false;
 				break;
 			}
             case c_oAscChartTypeSettings.areaNormal:

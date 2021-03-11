@@ -2181,10 +2181,10 @@
         var oFill;
         var oFillRef = oStyleEntry.fillRef;
         var oFillRefUnicolor = oFillRef.getNoStyleUnicolor(nIdx, aColors);
-        oFill = oTheme.getFillStyle(oFillRef.idx, oFillRefUnicolor);
+        oFill = oTheme.getFillStyle(oFillRef.idx, oFillRefUnicolor || aColors[nIdx]);
         if(oSpPr && oSpPr.Fill) {
             oFill = oSpPr.Fill.createDuplicate();
-            oFill.checkPhColor(oFillRefUnicolor);
+            oFill.checkPhColor(oFillRefUnicolor || aColors[nIdx]);
         }
         //line
         var oLn;
@@ -4072,16 +4072,6 @@
         var oDataStyleEntry = this.getDataStyleEntry(oChartStyle);
         var nType = this.getObjectType();
         var oMarker;
-        if(nType === AscDFH.historyitem_type_LineSeries
-        || nType === AscDFH.historyitem_type_RadarSeries
-        || nType === AscDFH.historyitem_type_ScatterSer) {
-            if(this.parent.isMarkerChart()) {
-                this.setMarker(new CMarker());
-                if(this.marker) {
-                    this.marker.applyChartStyle(oChartStyle, oColors);
-                }
-            }
-        }
         if(this.dLbls) {
             this.dLbls.applyChartStyle(oChartStyle, oColors);
         }
@@ -4112,8 +4102,29 @@
             nColorsCount = this.getMaxSeriesIdx() + 1;
             aColors = oColors.generateColors(nColorsCount);
             this.removeAllDPts();
-            this.applyStyleEntry(oDataStyleEntry, aColors, this.idx)
+            this.applyStyleEntry(oDataStyleEntry, aColors, this.idx);
         }
+
+        if(nType === AscDFH.historyitem_type_LineSeries
+            || nType === AscDFH.historyitem_type_RadarSeries
+            || nType === AscDFH.historyitem_type_ScatterSer) {
+            if(this.parent.isMarkerChart()) {
+                this.setMarker(new CMarker());
+                if(this.marker) {
+                    this.marker.applyChartStyle(oChartStyle, oColors);
+                }
+            }
+        }
+        if(nType === AscDFH.historyitem_type_LineSeries
+            || nType === AscDFH.historyitem_type_ScatterSer) {//TODO: radar chart
+            if(this.parent.isNoLine()) {
+                if(!this.spPr) {
+                    this.setSpPr(new AscFormat.CSpPr());
+                }
+                this.spPr.setLn(AscFormat.CreateNoFillLine());
+            }
+        }
+
     };
     CSeriesBase.prototype.getMaxSeriesIdx = function() {
         if(!this.parent) {
@@ -11589,6 +11600,9 @@
     };
 
     CScatterChart.prototype.setLineParams = function(bMarker, bLine, bSmooth) {
+        if(!AscFormat.isRealBool(bMarker) || !AscFormat.isRealBool(bLine) || !AscFormat.isRealBool(bSmooth)) {
+            return;
+        }
         var nSer, oSeries;
         for(nSer = 0; nSer < this.series.length; ++nSer) {
             oSeries = this.series[nSer];

@@ -4435,13 +4435,14 @@ DrawingObjectsController.prototype =
         oChartSpace.setDlblsProps(oProps);
         var oTypedChart, nChart, nSer, oSeries;
         oTypedChart = oPlotArea.charts[0];
-        if(oTypedChart.getObjectType() === AscDFH.historyitem_type_LineChart )
+        if(oTypedChart.getObjectType() === AscDFH.historyitem_type_LineChart &&
+            AscFormat.isRealBool(oProps.showMarker) && AscFormat.isRealBool(oProps.bLine) && AscFormat.isRealBool(oProps.smooth) )
         {
-            if(!AscFormat.isRealBool(oProps.showMarker) || AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(oChartSpace))
+            if(AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(oChartSpace))
             {
                 oProps.showMarker = false;
             }
-            if(!AscFormat.isRealBool(oProps.bLine) || AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(oChartSpace))
+            if(AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(oChartSpace))
             {
                 oProps.bLine = true;
             }
@@ -4495,14 +4496,6 @@ DrawingObjectsController.prototype =
         }
         if(oTypedChart.getObjectType() === AscDFH.historyitem_type_ScatterChart)
         {
-            if(!AscFormat.isRealBool(oProps.showMarker))
-            {
-                oProps.showMarker = true;
-            }
-            if(!AscFormat.isRealBool(oProps.bLine))
-            {
-                oProps.bLine = false;
-            }
             oTypedChart.setLineParams(oProps.showMarker, oProps.bLine, oProps.smooth);
         }
     },

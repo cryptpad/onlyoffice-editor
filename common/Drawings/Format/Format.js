@@ -2073,10 +2073,10 @@ CUniColor.prototype =
                 {
                     this.color = unicolor.color.createDuplicate();
                 }
-                if(unicolor.Mods)
-                {
-                    this.Mods = unicolor.Mods.createDuplicate();
-                }
+                //if(unicolor.Mods)
+                //{
+                //    this.Mods = unicolor.Mods.createDuplicate();
+                //}
             }
         }
     },
@@ -8132,11 +8132,20 @@ CSpPr.prototype =
             this.parent.handleUpdateFill();
         }
     },
+
     handleUpdateLn: function()
     {
         if(this.parent && this.parent.handleUpdateLn)
         {
             this.parent.handleUpdateLn();
+        }
+    },
+
+    setLineFill: function()
+    {
+        if(this.ln && this.ln.Fill)
+        {
+            this.setFill(this.ln.Fill.createDuplicate());
         }
     }
 };
