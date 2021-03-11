@@ -2903,7 +2903,8 @@ function CPresentation(DrawingDocument) {
         HyphensWithDash        : true,
         AutomaticBulletedLists : true,
         AutomaticNumberedLists : true,
-        FrenchPunctuation      : true
+        FrenchPunctuation      : true,
+		FirstLetterOfSentences : true
     };
 }
 
@@ -10930,6 +10931,22 @@ CPresentation.prototype.IsAutoCorrectHyphensWithDash = function()
 CPresentation.prototype.IsAutoCorrectFrenchPunctuation = function()
 {
     return this.AutoCorrectSettings.FrenchPunctuation;
+};
+/**
+ * Выставляем настройку атозамены для первового символа предложения
+ * @param {boolean} isCorrect
+ */
+CPresentation.prototype.SetAutoCorrectFirstLetterOfSentences = function(isCorrect)
+{
+	this.AutoCorrectSettings.FirstLetterOfSentences = isCorrect;
+};
+/**
+ * Запрашиваем настройку атозамены для первового символа предложения
+ * @return {boolean}
+ */
+CPresentation.prototype.IsAutoCorrectFirstLetterOfSentences = function()
+{
+	return this.AutoCorrectSettings.FirstLetterOfSentences;
 };
 
 function collectSelectedObjects(aSpTree, aCollectArray, bRecursive, oIdMap, bSourceFormatting) {

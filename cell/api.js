@@ -2700,20 +2700,31 @@ var editor;
     }
   };
 
-  spreadsheet_api.prototype.asc_groupPivot = function (opt_rangePr, opt_dateTypes) {
+  spreadsheet_api.prototype._canGroupPivot = function () {
     var ws = this.wbModel.getActiveWs();
     var activeCell = ws.selectionRange.activeCell;
     var pivotTable = ws.getPivotTable(activeCell.col, activeCell.row);
     if (pivotTable && ws.selectionRange.inContains(pivotTable.getReportRanges())) {
-      pivotTable.groupPivot(this, ws.selectionRange, opt_rangePr, opt_dateTypes);
+      var layout = pivotTable.getLayoutsForGroup(ws.selectionRange);
+      if (null !== layout.fld) {
+        return {pivotTable: pivotTable, layout: layout};
+      }
+    }
+    return null;
+  };
+  spreadsheet_api.prototype.asc_canGroupPivot = function () {
+    return !!this._canGroupPivot();
+  };
+  spreadsheet_api.prototype.asc_groupPivot = function (opt_rangePr, opt_dateTypes) {
+    var canGroupRes = this._canGroupPivot();
+    if(canGroupRes) {
+      canGroupRes.pivotTable.groupPivot(this, canGroupRes.layout, opt_rangePr, opt_dateTypes);
     }
   };
-    spreadsheet_api.prototype.asc_ungroupPivot = function () {
-    var ws = this.wbModel.getActiveWs();
-    var activeCell = ws.selectionRange.activeCell;
-    var pivotTable = ws.getPivotTable(activeCell.col, activeCell.row);
-    if (pivotTable && ws.selectionRange.inContains(pivotTable.getReportRanges())) {
-      pivotTable.ungroupPivot(this, ws.selectionRange);
+  spreadsheet_api.prototype.asc_ungroupPivot = function () {
+    var canGroupRes = this._canGroupPivot();
+    if(canGroupRes) {
+      canGroupRes.pivotTable.ungroupPivot(this, canGroupRes.layout);
     }
   };
 
@@ -2922,18 +2933,19 @@ var editor;
                 var nSheetIdx = oWorksheet.getIndex();
                 if (this.asc_getActiveWorksheetIndex() !== nSheetIdx) {
                     this.asc_showWorksheet(nSheetIdx);
-                    var oWSView = this.wb.getWorksheet();
-                    if(oWSView) {
-                        var oRender = oWSView.objectRender;
-                        if(oRender) {
-                            var oController = oRender.controller;
-                            if(oController) {
-                                oSp.Set_CurrentElement(false);
-                                oController.selection.textSelection = null;
-                                oController.updateSelectionState();
-                                oController.updateOverlay();
-                                oRender.sendGraphicObjectProps();
-                            }
+                }
+                var oWSView = this.wb.getWorksheet();
+                if(oWSView) {
+                    var oRender = oWSView.objectRender;
+                    if(oRender) {
+                        var oController = oRender.controller;
+                        if(oController) {
+                            oSp.Set_CurrentElement(false);
+                            oController.selection.textSelection = null;
+                            oWSView.setSelectionShape(true);
+                            oController.updateSelectionState();
+                            oController.updateOverlay();
+                            oRender.sendGraphicObjectProps();
                         }
                     }
                 }
@@ -5139,6 +5151,13 @@ var editor;
     }
   };
 
+  spreadsheet_api.prototype.onUpdateRestrictions = function () {
+    var oHistory = AscCommon.History;
+    if (this.isRestrictionSignatures() && oHistory && !oHistory.Have_Changes()) {
+        oHistory.Clear();
+    }
+  };
+
   /*
    * Export
    * -----------------------------------------------------------------------------
@@ -5320,6 +5339,7 @@ var editor;
   //Group data
   prot["asc_group"] = prot.asc_group;
   prot["asc_ungroup"] = prot.asc_ungroup;
+  prot["asc_canGroupPivot"] = prot.asc_canGroupPivot;
   prot["asc_groupPivot"] = prot.asc_groupPivot;
   prot["asc_ungroupPivot"] = prot.asc_ungroupPivot;
   prot["asc_clearOutline"] = prot.asc_clearOutline;

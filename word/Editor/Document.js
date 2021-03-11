@@ -2530,7 +2530,8 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 		HyphensWithDash        : true,
     	AutomaticBulletedLists : true,
 		AutomaticNumberedLists : true,
-		FrenchPunctuation      : true
+		FrenchPunctuation      : true,
+		FirstLetterOfSentences : true
 	};
 
     // Контролируем изменения интерфейса
@@ -11708,6 +11709,25 @@ CDocument.prototype.GetSelectedParagraphs = function()
 	return this.GetCurrentParagraph(false, true);
 };
 /**
+ * Получаем текущую таблицу
+ * @returns {?CTable}
+ */
+CDocument.prototype.GetCurrentTable = function()
+{
+	var arrTables = this.GetCurrentTablesStack();
+	return arrTables.length > 0 ? arrTables[arrTables.length - 1] : null;
+};
+/**
+ * Получаем массив таблицц, в которых мы находимся
+ * @returns {CTable[]}
+ */
+CDocument.prototype.GetCurrentTablesStack = function()
+{
+	var arrTables = [];
+	this.Controller.GetCurrentTablesStack(arrTables)
+	return arrTables;
+};
+/**
  * Получаем информацию о текущем выделении
  * @returns {CSelectedElementsInfo}
  */
@@ -20393,6 +20413,20 @@ CDocument.prototype.controller_GetCurrentParagraph = function(bIgnoreSelection, 
 		return this.Content[Pos].GetCurrentParagraph(bIgnoreSelection, null, oPr);
 	}
 };
+CDocument.prototype.controller_GetCurrentTablesStack = function(arrTables)
+{
+	if (true === this.Selection.Use)
+	{
+		if (this.Selection.StartPos !== this.Selection.EndPos)
+			return arrTables;
+		else
+			return this.Content[this.Selection.StartPos].GetCurrentTablesStack(arrTables);
+	}
+	else
+	{
+		return this.Content[this.CurPos.ContentPos].GetCurrentTablesStack(arrTables);
+	}
+};
 CDocument.prototype.controller_GetSelectedElementsInfo = function(oInfo)
 {
 	if (true === this.Selection.Use)
@@ -22429,7 +22463,6 @@ CDocument.prototype.AddTableOfFigures = function(oPr)
                     oStyles.SetTOFStyleType(nStylesType);
                 oComplexField.Update();
                 var oNextParagraph;
-                this.MoveCursorToEndPos(false);
                 var oParagraph = this.GetCurrentParagraph();
                 if(oParagraph)
                 {
@@ -22934,6 +22967,22 @@ CDocument.prototype.IsAutoCorrectHyphensWithDash = function()
 CDocument.prototype.IsAutoCorrectFrenchPunctuation = function()
 {
 	return this.AutoCorrectSettings.FrenchPunctuation;
+};
+/**
+ * Выставляем настройку атозамены для первового символа предложения
+ * @param {boolean} isCorrect
+ */
+CDocument.prototype.SetAutoCorrectFirstLetterOfSentences = function(isCorrect)
+{
+	this.AutoCorrectSettings.FirstLetterOfSentences = isCorrect;
+};
+/**
+ * Запрашиваем настройку атозамены для первового символа предложения
+ * @return {boolean}
+ */
+CDocument.prototype.IsAutoCorrectFirstLetterOfSentences = function()
+{
+	return this.AutoCorrectSettings.FirstLetterOfSentences;
 };
 /**
  * Получаем идентификатор текущего пользователя
