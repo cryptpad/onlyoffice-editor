@@ -2733,6 +2733,22 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
+        case 26003: // ASC_MENU_EVENT_TYPE_DO_SET_CONTENTCONTROL_PICTURE
+        {
+            var _src = _params[_current.pos++];
+            var _w = _params[_current.pos++];
+            var _h = _params[_current.pos++];
+            var _pageNum = _params[_current.pos++];
+            var _additionalParams = _params[_current.pos++];
+
+            var json = JSON.parse(_additionalParams);
+            if (json) {
+                var internalId = json["internalId"] || "";
+                _api.SetContentControlPictureUrlNative(_src, internalId)
+            }
+            break;
+        }
+
         default:
             break;
     }
@@ -6449,7 +6465,7 @@ function onApiShowRevisionsChange(data) {
 
 // Fill forms
 
-function readSDKContentControl(props) {
+function readSDKContentControl(props, selectedObjects) {
     var type = props.get_SpecificType(),
         internalId = props.get_InternalId(),
         specProps;
@@ -6477,6 +6493,18 @@ function readSDKContentControl(props) {
         }
     } else if (type == Asc.c_oAscContentControlSpecificType.CheckBox) {
         specProps = props.get_CheckBoxPr();
+    } else if (type == Asc.c_oAscContentControlSpecificType.Picture) {
+        for (i = 0; i < selectedObjects.length; i++) {
+            var eltype = selectedObjects[i].get_ObjectType();
+
+            if (eltype === Asc.c_oAscTypeSelectElement.Image) {
+                var value = selectedObjects[i].get_ObjectValue();
+                if (value.get_ChartProperties() == null && value.get_ShapeProperties() == null) {
+                    result["get_ImageUrl"] = value.get_ImageUrl();
+                    break;
+                }
+            }
+        }
     }
 
     // form settings
@@ -6689,7 +6717,7 @@ function onFocusObject(SelectedObjects) {
             type: Asc.c_oAscTypeSelectElement.ContentControl,
             spectype: spectype,
             rawValue: JSON.prune(control_props, 4),
-            value: readSDKContentControl(control_props)
+            value: readSDKContentControl(control_props, SelectedObjects)
         });
     }
 
