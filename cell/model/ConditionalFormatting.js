@@ -2372,7 +2372,7 @@
 					}
 				} else if (type === Asc.ECfType.iconSet) {
 					if (_prevType !== AscCommonExcel.ECfvoType.Formula && type !== AscCommonExcel.ECfvoType.Formula &&
-						_val > _prevVal) {
+						_val < _prevVal) {
 						return asc_error.IconDataRangesOverlap;
 					}
 				}
