@@ -12103,6 +12103,9 @@ var GLOBAL_PATH_COUNT = 0;
     CChartSpace.prototype.resetFormatting = function() {
         AscFormat.CBaseChartObject.prototype.resetFormatting.call(this);
     };
+    CChartSpace.prototype.resetOwnFormatting = function() {
+        AscFormat.CBaseChartObject.prototype.resetOwnFormatting.call(this);
+    };
     CChartSpace.prototype.applyChartStyle = function(oChartStyle, oColors, bReset) {
         this.applyStyleEntry(oChartStyle.chartArea, oColors.generateColors(1), 0);
         this.chart.applyChartStyle(oChartStyle, oColors, bReset);

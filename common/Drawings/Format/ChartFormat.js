@@ -2246,6 +2246,16 @@
         }
     };
     CBaseChartObject.prototype.resetFormatting = function() {
+        this.resetOwnFormatting();
+        var aChildren = this.getChildren();
+        for(var nChild = 0; nChild < aChildren.length; ++nChild) {
+            var oChild = aChildren[nChild];
+            if(oChild && oChild.resetFormatting) {
+                oChild.resetFormatting();
+            }
+        }
+    };
+    CBaseChartObject.prototype.resetOwnFormatting = function() {
         if(this.setTxPr && this.txPr) {
             this.setTxPr(null);
         }
@@ -2260,13 +2270,6 @@
                 if(this.spPr.ln) {
                     this.spPr.setLn(null);
                 }
-            }
-        }
-        var aChildren = this.getChildren();
-        for(var nChild = 0; nChild < aChildren.length; ++nChild) {
-            var oChild = aChildren[nChild];
-            if(oChild && oChild.resetFormatting) {
-                oChild.resetFormatting();
             }
         }
     };
@@ -4156,6 +4159,7 @@
                     }
                 }
             }
+            this.resetOwnFormatting();
         }
         else {
             nColorsCount = this.getMaxSeriesIdx() + 1;
