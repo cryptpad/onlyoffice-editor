@@ -10900,6 +10900,5 @@ function CalcLiterByLength(aAlphaBet, nLength)
 	window['AscFormat'].fCheckObjectHyperlink = fCheckObjectHyperlink;
 	window['AscFormat'].getNumberingType = getNumberingType;
 	window['AscFormat'].fGetDefaultShapeExtents = fGetDefaultShapeExtents;
-	window['AscFormat'].removeDPtsFromSeries = removeDPtsFromSeries;
 	window['AscFormat'].HitToRect = HitToRect;
 })(window);

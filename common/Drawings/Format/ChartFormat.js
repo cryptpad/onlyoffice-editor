@@ -11768,7 +11768,7 @@
         else {
             for(nSer = 0; nSer < this.series.length; ++nSer) {
                 oSeries = this.series[nSer];
-                AscFormat.removeDPtsFromSeries(oSeries);
+                oSeries.removeAllDPts();
                 if(!oSeries.spPr) {
                     oSeries.setSpPr(new AscFormat.CSpPr());
                 }
