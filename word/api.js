@@ -9072,6 +9072,9 @@ background-repeat: no-repeat;\
 
 		var oAnchor = oContentControl.GetBoundingPolygonAnchorPoint();
 
+		if (!oAnchor || oAnchor.Page < 0)
+			return null;
+
 		var nX = oAnchor.X;
 		var nY = oAnchor.Y;
 
