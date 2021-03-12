@@ -24666,8 +24666,155 @@ CDocument.prototype.ConvertTableToText = function(oProps)
 };
 CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 {
+
 	var oSelectedContent = new CSelectedContent();
-	oSelectedContent.Add(new CSelectedElement(oTable, true));
+
+	// TODO: выставить селект на весь вставненный контент
+	// TODO: Добавить ещё обработку вложенных таблиц (в ворде это доступно по checkbox, только если выбран в качестве разделителя символ абзаца)
+	// скорее всего надо возвращать в этой функции массив новых элементов, хотя можно и так всё оставить без проблем через рекунсивный вызов этой функции 
+	// (только надо будет поменять вставку сразу, а не в конце функции)
+	var oTable = this.GetCurrentTable();
+	if (oTable)
+	{
+		// посмотреть вся таблица выделена или только её часть
+		// если хоть одна строка выделена не до конца, то преобразуем всю таблицу (можно проверять только последнюю в выделении строку, а не все)
+		// если выделено несколько строк, но до конца, то только эти строки
+		
+		// var oSelected = oTable.GetSelectionArray();
+		var oSelectetRows = oTable.GetSelectedRowsRange();
+		oSelectetRows.IsSelectionToEnd = oTable.IsSelectionToEnd();
+		var oLastCell;
+		if (oSelectetRows.Start === oSelectetRows.End)
+		{
+			oLastCell = Math.max(oTable.Selection.StartPos.Pos.Cell, oTable.Selection.EndPos.Pos.Cell);
+		}
+		else
+		{
+			oLastCell = (oTable.Selection.StartPos.Pos.Row === oSelectetRows.End) ? oTable.Selection.StartPos.Pos.Cell : oTable.Selection.EndPos.Pos.Cell;
+		}
+		// не всегда работает IsSelectedAll, подумать, иможет ещё есть какой-то метод
+		var isConverAll = oTable.IsSelectedAll() || ((oTable.GetRow(oSelectetRows.End).GetCellsCount() - 1) !== oLastCell);
+
+
+		var oPosition = oTable.GetIndex();
+		var ArrNewContent = [];
+		if (isConverAll)
+		{
+			oSelectetRows.Start = 0;
+			oSelectetRows.End = oTable.GetRowsCount() - 1;
+		}
+		for (var i = oSelectetRows.Start; i <= oSelectetRows.End; i++)
+		{
+			var oRow = oTable.GetRow(i);
+			var oNewParagraph = new Paragraph(this.DrawingDocument, this);
+			ArrNewContent.push(oNewParagraph);
+			for (var k = 0; k < oRow.GetCellsCount(); k++)
+			{
+				var oCell = oRow.GetCell(k);
+				var oCDocumentContent = oCell.GetContent();
+				var isNewPar = false;
+				//возможно надо сделать ещё один цикл по CDocumentContent (если их может быть больше чем 1)
+				for (var j = 0; j < oCDocumentContent.GetElementsCount(); j++)
+				{
+					var oParagraph = oCDocumentContent.GetElement(j);
+					if (isNewPar)
+					{
+						oNewParagraph = new Paragraph(this.DrawingDocument, this);
+						ArrNewContent.push(oNewParagraph);
+					}
+					else
+					{
+						isNewPar = true;
+					}
+					oNewParagraph.Concat(oParagraph, true);
+				}
+				if (k !== oRow.GetCellsCount() - 1)
+				{
+					var oRun = new ParaRun(oParagraph, false);
+					var oText;
+					switch (oProps.Separator) {
+						case 9:
+							// TODO: подумать над тем, что водр меняет размеры этой табуляции (может нам тоже надо)
+							oText = new ParaTab();
+							break;
+						case 182:
+							// уточнить какой будет знак конца абзаца
+							oNewParagraph = new Paragraph(this.DrawingDocument, this);
+							ArrNewContent.push(oNewParagraph);
+							break;
+						default:
+							oText = new ParaText(oProps.Separator);
+							break;
+					}
+					if (oText)
+					{
+						oRun.Add(oText);
+						oNewParagraph.Internal_Content_Add((oNewParagraph.Content.length - 1 > 0 ? oNewParagraph.Content.length - 1 : oNewParagraph.Content.length), oRun);
+					}
+				}
+			}
+		}
+
+		if (isConverAll)
+		{
+			// не работает
+			// this.RemoveBeforePaste();
+
+
+			// работает
+
+			// oTable.PreDelete()//	возможно надо вызывать
+			
+			
+			
+			
+			
+			
+			// this.RemoveTable();
+			
+			
+			
+			
+			
+			
+			// this.Remove_FromContent(Position, 1, true);
+
+
+			//как вариант
+
+			// //сначала добавить новый контент
+			// NewDocContent.Internal_Content_Add(NewIndex, oTargetTable);
+
+			// // Удаляем таблицу из родительского класса
+			// OldDocContent.Internal_Content_Remove(OldIndex, 1);
+
+		}
+		else
+		{
+			for (var i = oSelectetRows.End; i >= oSelectetRows.Start; i--)
+			{
+				oTable.RemoveTableRow(i);
+			}
+			if (!oSelectetRows.IsSelectionToEnd && oSelectetRows.Start) {
+				//посмотреть здесь, так как не сохраняется верхняя часть таблицы при сплите
+				var oNewTable = oTable.Split(); 
+				ArrNewContent.push(oNewTable, oTable);
+				oPosition++;
+			}
+			if (oSelectetRows.IsSelectionToEnd)
+			{
+				oPosition++;
+			}
+		}
+
+		for (var i = 0; i < ArrNewContent.length; i++)
+		{
+			// this.Internal_Content_Add(oPosition + i, ArrNewContent[i], true);
+			oSelectedContent.Add(new CSelectedElement(ArrNewContent[i], true));
+		}
+	
+	}
+	// oSelectedContent.Add(new CSelectedElement(oTable, true));
 	return oSelectedContent;
 };
 
