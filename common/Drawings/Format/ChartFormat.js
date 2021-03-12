@@ -2245,6 +2245,31 @@
             this.setTxPr(this.getTxPrFormStyleEntry(oStyleEntry, aColors, nIdx));
         }
     };
+    CBaseChartObject.prototype.resetFormatting = function() {
+        if(this.setTxPr && this.txPr) {
+            this.setTxPr(null);
+        }
+        if(this.setSpPr && this.spPr) {
+            if(!this.spPr.xfrm) {
+                this.setSpPr(null);
+            }
+            else {
+                if(this.spPr.Fill) {
+                    this.spPr.setFill(null);
+                }
+                if(this.spPr.ln) {
+                    this.spPr.setLn(null);
+                }
+            }
+        }
+        var aChildren = this.getChildren();
+        for(var nChild = 0; nChild < aChildren.length; ++nChild) {
+            var oChild = aChildren[nChild];
+            if(oChild && oChild.resetFormatting) {
+                oChild.resetFormatting();
+            }
+        }
+    };
 
     function getMinMaxFromArrPoints(aPoints) {
         if(Array.isArray(aPoints) && aPoints.length > 0) {
