@@ -16743,6 +16743,9 @@
         if(this.markerLayout) {
             oCopy.setMarkerLayout(this.markerLayout.createDuplicate());
         }
+        if(this.id !== null) {
+            oCopy.setId(this.id);
+        }
     };
     CChartStyle.prototype.setId = function(pr) {
         History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_ChartStyleMarkerId, this.id, pr));
@@ -17054,6 +17057,12 @@
         this.id = null;
         this.items = [];
     }
+    CChartColors.prototype.Write_ToBinary = function(writer) {
+        this.WriteToBinary(writer);
+    };
+    CChartColors.prototype.Read_FromBinary = function(writer) {
+        this.ReadFromBinary(writer);
+    };
     CChartColors.prototype.WriteToBinary = function(writer) {
         AscFormat.writeString(writer, this.meth);
         AscFormat.writeLong(writer, this.id);
@@ -17062,7 +17071,7 @@
             var oItem = this.items[nItem];
             var bIsUnicolor = (oItem instanceof AscFormat.CUniColor);
             writer.WriteBool(bIsUnicolor);
-            oItem.WriteToBinary(writer);
+            oItem.Write_ToBinary(writer);
         }
     };
     CChartColors.prototype.ReadFromBinary = function(reader) {
@@ -17078,7 +17087,7 @@
             else {
                 oItem = new AscFormat.CColorModifiers();
             }
-            oItem.ReadFromBinary(reader);
+            oItem.Read_FromBinary(reader);
             this.items.push(oItem);
         }
     };
@@ -17173,6 +17182,9 @@
         }
         return [];
     };
+
+    AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartSpace_ChartColors] = CChartColors;
+
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CDLbl = CDLbl;

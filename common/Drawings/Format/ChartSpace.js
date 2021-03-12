@@ -392,8 +392,6 @@ var GLOBAL_PATH_COUNT = 0;
     AscDFH.changesFactory[AscDFH.historyitem_ChartSpace_ChartColors] = CChangesDrawingsObjectNoId;
 
 
-    AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartSpace_ChartColors] = AscFormat.CChartColors;
-
     function CheckParagraphTextPr(oParagraph, oTextPr) {
         var oParaPr = oParagraph.Pr.Copy();
         var oParaPr2 = new CParaPr();
@@ -3190,6 +3188,10 @@ var GLOBAL_PATH_COUNT = 0;
         copy.setThemeOverride(this.themeOverride);
         copy.setBDeleted(this.bDeleted);
         copy.setLocks(this.locks);
+        if(this.chartStyle && this.chartColors) {
+            copy.setChartStyle(this.chartStyle.createDuplicate());
+            copy.setChartColors(this.chartColors.createDuplicate());
+        }
         copy.cachedImage = this.getBase64Img();
         copy.cachedPixH = this.cachedPixH;
         copy.cachedPixW = this.cachedPixW;

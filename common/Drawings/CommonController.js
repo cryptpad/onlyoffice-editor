@@ -4349,7 +4349,7 @@ DrawingObjectsController.prototype =
         //TODO: Rework this
         var sRange = oProps.getRange();
         if(typeof sRange === "string") {
-           // oChartSpace.setRange(sRange);
+           oChartSpace.setRange(sRange);
         }
 
         //Title
