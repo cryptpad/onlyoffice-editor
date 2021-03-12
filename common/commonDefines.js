@@ -263,7 +263,17 @@
 			Password : -1000,
 
 			SecondaryAxis: 1001,
-			ComboSeriesError: 1002
+			ComboSeriesError: 1002,
+
+			//conditional formatting
+			NotValidPercentile : 1003,
+			CannotAddConditionalFormatting: 1004,
+			NotValidPercentage: 1005,
+			NotSingleReferenceCannotUsed: 1006,
+			CannotUseRelativeReference: 1007,
+			ValueMustBeGreaterThen: 1008,
+			IconDataRangesOverlap: 1009,
+			ErrorTop10Between: 1010
 		}
 	};
 
@@ -2332,6 +2342,16 @@
 	prot['NamedRangeNotFound']               = prot.NamedRangeNotFound;
 	prot['FormulaEvaluateError']             = prot.FormulaEvaluateError;
 	prot['DataValidateInvalidList']          = prot.DataValidateInvalidList;
+
+	prot['NotValidPercentile']               = prot.NotValidPercentile;
+	prot['CannotAddConditionalFormatting']   = prot.CannotAddConditionalFormatting;
+	prot['NotValidPercentage']               = prot.NotValidPercentage;
+	prot['NotSingleReferenceCannotUsed']     = prot.NotSingleReferenceCannotUsed;
+	prot['CannotUseRelativeReference']       = prot.CannotUseRelativeReference;
+	prot['ValueMustBeGreaterThen']           = prot.ValueMustBeGreaterThen;
+	prot['IconDataRangesOverlap']            = prot.IconDataRangesOverlap;
+	prot['ErrorTop10Between']                = prot.ErrorTop10Between;
+
 
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
 	prot                                     = c_oAscAsyncAction;

@@ -445,6 +445,10 @@
         this.clickedGroupButton = null;
         this.ignoreGroupSize = null;//для печати не нужно учитывать отступы групп
 
+		//ифомарция о залоченности нового добавленного правила
+		//TODO пока сюда добавляю, пересмотреть!
+		this._lockAddNewRule = null;
+
         this._init();
 
         return this;
@@ -13094,6 +13098,20 @@
 		this.collaborativeEditing.lock([lockInfo], callback);
 	};
 
+	WorksheetView.prototype._isLockedCF = function (callback, cFIdArr) {
+		if (!cFIdArr || !cFIdArr.length) {
+			return;
+		}
+		var lockInfos = [];
+		var sheetId = AscCommonExcel.CConditionalFormattingRule.sStartLockCFId + this.model.getId();
+		for (var i = 0; i < cFIdArr.length; i++) {
+			var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, null, sheetId, cFIdArr[i]);
+			lockInfos.push(lockInfo);
+		}
+
+		this.collaborativeEditing.lock(lockInfos, callback);
+	};
+
 	// Залочен ли весь лист
 	WorksheetView.prototype._isLockedAll = function (callback) {
 		var ar = this.model.getSelection().getLast();
@@ -20564,6 +20582,13 @@
 		var selection = t.model.selectionRange.getLast();
 		var activeCell = t.model.selectionRange.activeCell.clone();
 
+		/*var temp = this.model.aConditionalFormattingRules[0].clone();
+		temp.id = this.model.aConditionalFormattingRules[0].id;
+		//temp.ranges.push(Asc.Range(1,1,1,1));
+
+		this.deleteCF([temp]);
+		return;*/
+
 		var revertSelection = function() {
 			t.cleanSelection();
 			t.model.selectionRange.getLast().assign2(props.selection.clone());
@@ -21248,7 +21273,7 @@
 	WorksheetView.prototype.setDataValidationProps = function (props) {
 		var t = this;
 		var _selection = this.model.getSelection().ranges;
-
+		
 		var callback = function (success) {
 			if (!success) {
 				return;
@@ -21304,6 +21329,168 @@
 		}
 	};
 
+
+	WorksheetView.prototype.setCF = function (arr, deleteIdArr, presetId) {
+		var t = this;
+
+		var callback = function (success) {
+			if (!success) {
+				return;
+			}
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			var j, n;
+			if (deleteIdArr) {
+				for (j = 0; j < deleteIdArr.length; j++) {
+					var _oRule = t.model.getCFRuleById(deleteIdArr[j]);
+					var _ranges;
+					if (_oRule && _oRule.val) {
+						_ranges = _oRule.val.ranges;
+					}
+					t.model.deleteCFRule(deleteIdArr[j], true);
+
+					if (_ranges) {
+						for (n = 0; n < _ranges.length; n++) {
+							t._updateRange(_ranges[n]);
+						}
+					}
+				}
+			}
+
+			if (arr && arr[nActive]) {
+				for (j = 0; j < arr[nActive].length; j++) {
+					t.model.setCFRule(arr[nActive][j]);
+
+					if (arr[nActive][j].ranges) {
+						for (n = 0; n < arr[nActive][j].ranges.length; n++) {
+							t._updateRange(arr[nActive][j].ranges[n]);
+						}
+					}
+				}
+			}
+
+			//TODO возможно здесь необходимо пересчитать формулы
+			t.draw();
+			History.EndTransaction();
+		};
+
+		var _checkRule = function (_rule) {
+			if (_rule) {
+				if (!arr) {
+					arr = [];
+				}
+				if (!arr[nActive]) {
+					arr[nActive] = [];
+				}
+				arr[nActive].push(_rule);
+
+				if (_rule.priority === null) {
+					_rule.priority = 1;
+					//двигаем приоритет у всех остальных и добавляем их в список измененных
+					if (t.model.aConditionalFormattingRules) {
+						for (i = 0; i < t.model.aConditionalFormattingRules.length; i++) {
+							var _id = t.model.aConditionalFormattingRules[i].id;
+							var oRule = t.model.aConditionalFormattingRules[i].clone();
+							oRule.id = _id;
+							oRule.priority++;
+							arr[nActive].push(oRule);
+						}
+					}
+				}
+				if (_rule.ranges === null) {
+					_rule.ranges = [];
+					if (t.model.selectionRange && t.model.selectionRange.ranges) {
+						for (var j = 0; j < t.model.selectionRange.ranges.length; j++) {
+							_rule.ranges.push(t.model.selectionRange.ranges[j].clone());
+						}
+					}
+				}
+			}
+		};
+
+		var nActive = this.model.workbook.nActive;
+		var i;
+		if (presetId !== undefined) {
+			//data bar/icons/scale presets
+			_checkRule(t.model.generateCFRuleFromPreset(presetId));
+		} else if (arr && arr.length === 1 && undefined === arr[0].length) {
+			//other presets
+			var presetRule = arr[0];
+			arr = [];
+			_checkRule(presetRule);
+		}
+
+		var unitedArr = [];
+		if (arr) {
+			if (arr[nActive]) {
+				for (i = 0; i < arr[nActive].length; i++) {
+					unitedArr.push(arr[nActive][i].id);
+				}
+			}
+		}
+		if (deleteIdArr && deleteIdArr.length) {
+			unitedArr = unitedArr.concat(deleteIdArr);
+		}
+
+		this._isLockedCF(callback, unitedArr);
+	};
+
+	WorksheetView.prototype.deleteCF = function (arr, type) {
+		var t = this, _ranges;
+
+		var callback = function (success) {
+			if (!success) {
+				return;
+			}
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			var updateRanges = [];
+			for (var i = 0; i < arr.length; i++) {
+				//TODO для мультиселекта - передать массив!
+				updateRanges = updateRanges.concat(arr[i].ranges);
+				t.model.tryClearCFRule(arr[i], _ranges);
+			}
+
+			//TODO возможно здесь необходимо пересчитать формулы
+			if (updateRanges) {
+				for (i = 0; i < updateRanges.length; i++) {
+					t._updateRange(updateRanges[i]);
+				}
+			}
+			t.draw();
+			History.EndTransaction();
+		};
+
+		switch (type) {
+			case Asc.c_oAscSelectionForCFType.selection:
+				_ranges = this.model.selectionRange.getLast();
+				break;
+			case Asc.c_oAscSelectionForCFType.table:
+				var thisTableIndex = this.model.autoFilters.searchRangeInTableParts(this.model.selectionRange.getLast());
+				if (thisTableIndex >= 0) {
+					_ranges = this.model.TableParts[thisTableIndex].Ref;
+				}
+				break;
+			case Asc.c_oAscSelectionForCFType.pivot:
+				// ToDo
+				break;
+		}
+
+		if (_ranges) {
+			_ranges = [_ranges];
+		}
+
+		var lockArr = [];
+		if (arr) {
+			for (var i = 0; i < arr.length; i++) {
+				lockArr.push(arr[i].id);
+			}
+		}
+
+		this._isLockedCF(callback, lockArr);
+	};
 
 	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};

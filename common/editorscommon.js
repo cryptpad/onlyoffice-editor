@@ -2962,8 +2962,10 @@
 			range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
 		}
 
-		if (!range && Asc.c_oAscSelectionDialogType.DataValidation !== dialogType)
+		if (!range && Asc.c_oAscSelectionDialogType.DataValidation !== dialogType && Asc.c_oAscSelectionDialogType.ConditionalFormattingRule !== dialogType)
+		{
 			return Asc.c_oAscError.ID.DataRangeError;
+		}
 
 		if (fullCheck)
 		{
@@ -3022,6 +3024,23 @@
 				if (null !== dataValidaionTest)
 				{
 					return dataValidaionTest;
+				}
+			}
+			else if (Asc.c_oAscSelectionDialogType.ConditionalFormattingRule === dialogType)
+			{
+				if (dataRange === null || dataRange === "")
+				{
+					return Asc.c_oAscError.ID.DataRangeError;
+				}
+				else
+				{
+					if (dataRange[0] === "=") {
+						dataRange = dataRange.slice(1);
+					}
+					if (!parserHelp.isArea(dataRange) && !parserHelp.isRef(dataRange) && !parserHelp.isTable(dataRange))
+					{
+						return Asc.c_oAscError.ID.DataRangeError;
+					}
 				}
 			}
 		}

@@ -3649,6 +3649,84 @@
 		}
 	};
 
+	Workbook.prototype.getRulesByType = function(type, id, needClone) {
+		var range, sheet;
+		var rules = null;
+		switch (type) {
+			case Asc.c_oAscSelectionForCFType.selection:
+				sheet = this.getActiveWs();
+				// ToDo multiselect
+				range = sheet.selectionRange.getLast();
+				break;
+			case Asc.c_oAscSelectionForCFType.worksheet:
+				sheet = id ? this.getWorksheet(id) : this.getActiveWs();
+				break;
+			case Asc.c_oAscSelectionForCFType.table:
+				var oTable;
+				if (id) {
+					oTable = this.getTableByName(id, true);
+					if (oTable) {
+						sheet = this.aWorksheets[oTable.index];
+						range = oTable.table.Ref;
+					}
+				} else {
+					//this table
+					sheet = this.getActiveWs();
+					var thisTableIndex = sheet.autoFilters.searchRangeInTableParts(sheet.selectionRange.getLast());
+					if (thisTableIndex >= 0) {
+						range = sheet.TableParts[thisTableIndex].Ref;
+					} else {
+						sheet = null;
+					}
+				}
+				break;
+			case Asc.c_oAscSelectionForCFType.pivot:
+				// ToDo
+				break;
+		}
+		if (sheet) {
+			var aRules = sheet.aConditionalFormattingRules.sort(function(v1, v2) {
+				return v1.priority - v2.priority;
+			});
+
+			rules = [];
+			if (range) {
+				var putRange = function (_range, _rule) {
+					multiplyRange = new AscCommonExcel.MultiplyRange(_range);
+					if (multiplyRange.isIntersect(range)) {
+						if (needClone) {
+							var _id = _rule.id;
+							var isLocked = _rule.isLock;
+							_rule = _rule.clone();
+							_rule.id = _id;
+							_rule.isLock = isLocked;
+						}
+						rules.push(_rule);
+					}
+				};
+				var oRule, ranges, multiplyRange, i, mapChangedRules = [];
+				for (i = 0; i < aRules.length; ++i) {
+					oRule = aRules[i];
+					ranges = oRule.ranges;
+					putRange(ranges, oRule);
+				}
+			} else {
+				for (i = 0; i < aRules.length; ++i) {
+					var _rule = aRules[i];
+					if (needClone) {
+						var _id = aRules[i].id;
+						var isLocked = _rule.isLock;
+						_rule = _rule.clone();
+						_rule.id = _id;
+						_rule.isLock = isLocked;
+					}
+					rules.push(_rule);
+				}
+			}
+		}
+		return rules;
+	};
+
 //-------------------------------------------------------------------------------------------------
 	var tempHelp = new ArrayBuffer(8);
 	var tempHelpUnit = new Uint8Array(tempHelp);
@@ -9286,6 +9364,113 @@
 		return null;
 	};
 
+
+	Worksheet.prototype.setCFRule = function (val) {
+		if (!val) {
+			return;
+		}
+		var changedRule = this.getCFRuleById(val.id);
+		if (changedRule) {
+			this.changeCFRule(changedRule.val, val, true);
+		} else {
+			this.addCFRule(val, true);
+		}
+	};
+
+	Worksheet.prototype.getCFRuleById = function (id) {
+		if (this.aConditionalFormattingRules) {
+			for (var i = 0; i < this.aConditionalFormattingRules.length; i++) {
+				if (this.aConditionalFormattingRules[i].id === id) {
+					return {val: this.aConditionalFormattingRules[i], index: i};
+				}
+			}
+		}
+		return null;
+	};
+
+	Worksheet.prototype.changeCFRule = function (from, to, addToHistory) {
+		if (!from) {
+			return;
+		}
+		from.set(to, addToHistory, this);
+	};
+
+	Worksheet.prototype.addCFRule = function (val, addToHistory) {
+		if (!val) {
+			return;
+		}
+
+		if (!val.ranges) {
+			val.ranges = [];
+			for (var i = 0; i < this.selectionRange.ranges.length; i++) {
+				val.ranges.push(this.selectionRange.ranges[i].clone());
+			}
+		}
+
+		this.aConditionalFormattingRules.push(val);
+		if (addToHistory) {
+			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_CFRuleAdd, this.getId(), val.getUnionRange(), new AscCommonExcel.UndoRedoData_CF(val.id, null, val));
+		}
+	};
+
+	Worksheet.prototype.tryClearCFRule = function (rule, ranges) {
+		if (!rule) {
+			return;
+		}
+
+		if (ranges) {
+			var _newRanges = [];
+
+			var ruleRanges = rule.ranges;
+			for (var i = 0; i < ruleRanges.length; i++) {
+
+				var tempRanges = [];
+				for (var j = 0; j < ranges.length; j++) {
+					if (tempRanges.length) {
+						var tempRanges2 = [];
+						for (var k = 0; k < tempRanges.length; k++) {
+							tempRanges2 = tempRanges2.concat(ranges[j].difference(tempRanges[k]));
+						}
+						tempRanges = tempRanges2;
+					} else {
+						tempRanges = ranges[j].difference(ruleRanges[i]);
+					}
+				}
+				_newRanges = _newRanges.concat(tempRanges);
+			}
+
+			if (!_newRanges.length) {
+				this.deleteCFRule(rule.id, true)
+			} else {
+				var newRule = rule.clone();
+				newRule.ranges = _newRanges;
+				this.changeCFRule(rule, newRule, true);
+			}
+		} else {
+			this.deleteCFRule(rule.id, true);
+		}
+	};
+
+	Worksheet.prototype.deleteCFRule = function (id, addToHistory) {
+		var oRule = this.getCFRuleById(id);
+		if (oRule) {
+			this.aConditionalFormattingRules.splice(oRule.index, 1);
+			if (addToHistory) {
+				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_CFRuleDelete, this.getId(), oRule.val.getUnionRange(),
+					new AscCommonExcel.UndoRedoData_CF(id, oRule.val));
+			}
+		}
+	};
+
+	Worksheet.prototype.generateCFRuleFromPreset = function (presetId) {
+		if (!presetId || !presetId.length) {
+			return null;
+		}
+
+		var oRule = new AscCommonExcel.CConditionalFormattingRule();
+		oRule.applyPreset(presetId);
+		return oRule;
+	};
 
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
