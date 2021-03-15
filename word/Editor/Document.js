@@ -24643,6 +24643,7 @@ CDocument.prototype.ConvertTableToText = function(oProps)
 		if (oNewContent && oParent)
 		{
 			var nIndex     = oTable.GetIndex();
+			//не понятно мне зачем создаётся этот параграф, так как он просто остаётся пустым и добавлет лишь одну пустую строку в конце
 			var oParagraph = new Paragraph(this.GetDrawingDocument());
 
 			oParent.RemoveFromContent(nIndex, 1, true);
@@ -24668,7 +24669,6 @@ CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 {
 
 	var oSelectedContent = new CSelectedContent();
-
 	// TODO: выставить селект на весь вставненный контент
 	// TODO: Добавить ещё обработку вложенных таблиц (в ворде это доступно по checkbox, только если выбран в качестве разделителя символ абзаца)
 	// скорее всего надо возвращать в этой функции массив новых элементов, хотя можно и так всё оставить без проблем через рекунсивный вызов этой функции 
@@ -24678,7 +24678,7 @@ CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 	{
 		// посмотреть вся таблица выделена или только её часть
 		// если хоть одна строка выделена не до конца, то преобразуем всю таблицу (можно проверять только последнюю в выделении строку, а не все)
-		// если выделено несколько строк, но до конца, то только эти строки
+		// если выделено несколько строк, но до конца или от самого начала, то только эти строки
 		
 		// var oSelected = oTable.GetSelectionArray();
 		var oSelectetRows = oTable.GetSelectedRowsRange();
@@ -24695,8 +24695,6 @@ CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 		// не всегда работает IsSelectedAll, подумать, иможет ещё есть какой-то метод
 		var isConverAll = oTable.IsSelectedAll() || ((oTable.GetRow(oSelectetRows.End).GetCellsCount() - 1) !== oLastCell);
 
-
-		var oPosition = oTable.GetIndex();
 		var ArrNewContent = [];
 		if (isConverAll)
 		{
@@ -24755,61 +24753,31 @@ CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 			}
 		}
 
-		if (isConverAll)
-		{
-			// не работает
-			// this.RemoveBeforePaste();
-
-
-			// работает
-
-			// oTable.PreDelete()//	возможно надо вызывать
-			
-			
-			
-			
-			
-			
-			// this.RemoveTable();
-			
-			
-			
-			
-			
-			
-			// this.Remove_FromContent(Position, 1, true);
-
-
-			//как вариант
-
-			// //сначала добавить новый контент
-			// NewDocContent.Internal_Content_Add(NewIndex, oTargetTable);
-
-			// // Удаляем таблицу из родительского класса
-			// OldDocContent.Internal_Content_Remove(OldIndex, 1);
-
-		}
-		else
+		if (!isConverAll)
 		{
 			for (var i = oSelectetRows.End; i >= oSelectetRows.Start; i--)
 			{
 				oTable.RemoveTableRow(i);
 			}
 			if (!oSelectetRows.IsSelectionToEnd && oSelectetRows.Start) {
-				//посмотреть здесь, так как не сохраняется верхняя часть таблицы при сплите
 				var oNewTable = oTable.Split(); 
-				ArrNewContent.push(oNewTable, oTable);
-				oPosition++;
+				ArrNewContent.push(oNewTable);
+				ArrNewContent.unshift(oTable);
 			}
 			if (oSelectetRows.IsSelectionToEnd)
 			{
-				oPosition++;
+				ArrNewContent.unshift(oTable);
+			}
+			else if (!oSelectetRows.Start)
+			{
+				ArrNewContent.push(oTable);
 			}
 		}
 
 		for (var i = 0; i < ArrNewContent.length; i++)
 		{
-			// this.Internal_Content_Add(oPosition + i, ArrNewContent[i], true);
+			if (ArrNewContent[i].IsParagraph())
+				ArrNewContent[i].CorrectContent();
 			oSelectedContent.Add(new CSelectedElement(ArrNewContent[i], true));
 		}
 	
