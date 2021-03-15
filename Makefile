@@ -34,11 +34,6 @@ WEBAPPS_FILES += ../$(WEBAPPS_DIR)/deploy/web-apps/apps/documenteditor/main/app.
 WEBAPPS_FILES += ../$(WEBAPPS_DIR)/deploy/web-apps/apps/presentationeditor/main/app.js
 WEBAPPS_FILES += ../$(WEBAPPS_DIR)/deploy/web-apps/apps/spreadsheeteditor/main/app.js
 SDKJS_FILES += word/sdk-all.js
-SDKJS_FILES += cell/sdk-all.js
-SDKJS_FILES += slide/sdk-all.js
-SDKJS_FILES += word/sdk-all-min.js
-SDKJS_FILES += cell/sdk-all-min.js
-SDKJS_FILES += slide/sdk-all-min.js
 
 .PHONY: all desktop
 
@@ -46,8 +41,8 @@ all: $(WEBAPPS)
 
 $(WEBAPPS): $(WEBAPPS_FILES)
 	mkdir -p $(OUTPUT)/$(WEBAPPS_DIR) && \
-        cp common/AllFonts.js ../$(WEBAPPS_DIR)/deploy/sdkjs/common && \
-		cp -r ../$(WEBAPPS_DIR)/deploy/** $(OUTPUT)/$(WEBAPPS_DIR)
+        cp common/AllFonts.js ./deploy/sdkjs/common/ && \
+		cp -r ../$(WEBAPPS_DIR)/deploy/$(WEBAPPS_DIR) $(OUTPUT)/
 
 $(WEBAPPS_FILES): $(NODE_MODULES) $(SDKJS_FILES)
 	cd ../$(WEBAPPS_DIR)/build  && \

@@ -172,9 +172,9 @@ module.exports = function(grunt) {
 	}
 
 	const path = require('path');
-	const pathConfigs = grunt.option('src') || './configs';
-	// var level = grunt.option('level') || 'WHITESPACE_ONLY';
-	const level = grunt.option('level') || 'ADVANCED'; // CRYPTPAD XXX
+	//const pathConfigs = grunt.option('src') || './configs';
+	const level = grunt.option('level') || 'WHITESPACE_ONLY';
+	//const level = grunt.option('level') || 'ADVANCED'; // CRYPTPAD XXX
 	const formatting = grunt.option('formatting') || '';
 	const beta = grunt.option('beta') || 'false';
 
@@ -463,7 +463,8 @@ module.exports = function(grunt) {
 	});
 
 
-// grunt.registerTask('default', ['build-sdk', 'concat', 'closure-compiler', 'clean', 'license', 'splitfile', 'concat', 'replace', 'clean', 'copy']); //
+grunt.registerTask('default', ['build-sdk', 'concat', 'closure-compiler', 'license', 'splitfile', 'concat', 'replace', 'copy', 'clean']); //
+/*
 // /* // CRYPTPAD XXX
 	grunt.registerTask('clean-develop', 'Clean develop scripts', function () {
 		const develop = '../develop/sdkjs/';
