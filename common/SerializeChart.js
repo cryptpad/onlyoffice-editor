@@ -5575,10 +5575,11 @@ BinaryChartReader.prototype.ExternalReadCT_ChartSpace = function (length, val, c
             val.setRoundedCorners(false);
         }
     }
-    /*if(this.curWorksheet) {
+    if(this.curWorksheet) {
         var aStyles = null;
         var sName = this.curWorksheet.sName;
         if(sName === "Bar") {
+
             if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barNormal"])) {
                 AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.barNormal"] = [];
             }
@@ -5652,6 +5653,9 @@ BinaryChartReader.prototype.ExternalReadCT_ChartSpace = function (length, val, c
         }
         else if(sName === "Line") {
             if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.lineNormal"])) {
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.lineNormalMarker"] =
+                    AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.lineStackedMarker"] =
+                        AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.lineStackedPerMarker"] =
                 AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.lineNormal"] =
                     AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.lineStacked"] =
                         AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.lineStackedPer"] = [];
@@ -5726,9 +5730,38 @@ BinaryChartReader.prototype.ExternalReadCT_ChartSpace = function (length, val, c
             aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.comboCustom"];
         }
         if(Array.isArray(aStyles)) {
-            aStyles.push([val.sStyleCrc32, val.sColorsCrc32]);
+            if(this.curChart.oDataLablesData) {
+                AscCommon.g_oDataLabelsBinaries[this.curChart.oDataLablesData.crc32] = this.curChart.oDataLablesData.data;
+            }
+            if(this.curChart.oCatAxData) {
+                AscCommon.g_oCatBinaries[this.curChart.oCatAxData.crc32] = this.curChart.oCatAxData.data;
+            }
+            if(this.curChart.oValAxData) {
+                AscCommon.g_oValBinaries[this.curChart.oValAxData.crc32] = this.curChart.oValAxData.data;
+            }
+            if(this.curChart.oView3DData) {
+                AscCommon.g_oView3dBinaries[this.curChart.oView3DData.crc32] = this.curChart.oView3DData.data;
+            }
+            if(this.curChart.oLegendData) {
+                AscCommon.g_oLegendBinaries[this.curChart.oLegendData.crc32] = this.curChart.oLegendData.data;
+            }
+            if(this.curChart.oChartStyleData) {
+                AscCommon.g_oStylesBinaries[this.curChart.oChartStyleData.crc32] = this.curChart.oChartStyleData.data;
+            }
+            if(this.curChart.oChartColorsData) {
+                AscCommon.g_oColorsBinaries[this.curChart.oChartColorsData.crc32] = this.curChart.oChartColorsData.data;
+            }
+            aStyles.push([
+                val.oChartStyleData && val.oChartStyleData.crc32 || null,
+                val.oChartColorsData && val.oChartColorsData.crc32 || null,
+                val.oDataLablesData && val.oDataLablesData.crc32 || null,
+                val.oCatAxData && val.oCatAxData.crc32 || null,
+                val.oValAxData && val.oValAxData.crc32 || null,
+                val.oView3DData && val.oView3DData.crc32 || null,
+                val.oLegendData && val.oLegendData.crc32 || null
+            ]);
         }
-    }*/
+    }
     return res;
 };
 BinaryChartReader.prototype.ReadCT_ChartSpace = function (type, length, val, curWorksheet) {
@@ -5861,13 +5894,7 @@ BinaryChartReader.prototype.ReadCT_ChartSpace = function (type, length, val, cur
         res = c_oSerConstants.ReadUnknown;
     }
     else if(c_oserct_chartspaceSTYLES === type) {
-        //var aStyleData = this.stream.data.slice(this.stream.cur, this.stream.cur + length);
-        //var sChartStyleData = "";
-        //sChartStyleData += (length + ";");
-        //sChartStyleData += AscCommon.Base64Encode(aStyleData,aStyleData.length, 0);
-        //var sCRC32 = AscCommon.g_oCRC32.Calculate_ByString(sChartStyleData, sChartStyleData.length);
-        //window['AscCommon'].g_oStylesBinaries[sCRC32] = sChartStyleData;
-        //val.sStyleCrc32 = sCRC32;
+        this.curChart.oChartStyleData = AscCommon.fSaveStream(this.bcr.stream, length);
         oNewVal = new AscFormat.CChartStyle();
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_ChartStyle(t, l, oNewVal);
@@ -5877,14 +5904,7 @@ BinaryChartReader.prototype.ReadCT_ChartSpace = function (type, length, val, cur
         }
     }
     else if(c_oserct_chartspaceCOLORS === type) {
-        //var aStyleData = this.stream.data.slice(this.stream.cur, this.stream.cur + length);
-        //var sChartStyleData = "";
-        //sChartStyleData += (length + ";");
-        //sChartStyleData += AscCommon.Base64Encode(aStyleData,aStyleData.length, 0);
-        //var sCRC32 = AscCommon.g_oCRC32.Calculate_ByString(sChartStyleData, sChartStyleData.length);
-        //window['AscCommon'].g_oColorsBinaries[sCRC32] = sChartStyleData;
-        //val.sColorsCrc32 = sCRC32;
-
+        this.curChart.oChartColorsData = AscCommon.fSaveStream(this.bcr.stream, length);
         oNewVal = new AscFormat.CChartColors();
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_ChartColors(t, l, oNewVal);
@@ -9274,6 +9294,7 @@ BinaryChartReader.prototype.ReadCT_BubbleChart = function (type, length, val, aC
     }
     else if (c_oserct_bubblechartDLBLS === type) {
         var oNewVal = new AscFormat.CDLbls();
+        this.curChart.oDataLablesData = AscCommon.fSaveStream(this.bcr.stream, length);
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_DLbls(t, l, oNewVal);
         });
@@ -9584,6 +9605,7 @@ BinaryChartReader.prototype.ReadCT_OfPieChart = function (type, length, val, aCh
     }
     else if (c_oserct_ofpiechartDLBLS === type) {
         var oNewVal = new AscFormat.CDLbls();
+        this.curChart.oDataLablesData = AscCommon.fSaveStream(this.bcr.stream, length);
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_DLbls(t, l, oNewVal);
         });
@@ -9772,6 +9794,7 @@ BinaryChartReader.prototype.ReadCT_Bar3DChart = function (type, length, val, aCh
     }
     else if (c_oserct_bar3dchartDLBLS === type) {
         var oNewVal = new AscFormat.CDLbls();
+        this.curChart.oDataLablesData = AscCommon.fSaveStream(this.bcr.stream, length);
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_DLbls(t, l, oNewVal);
         });
@@ -10021,6 +10044,7 @@ BinaryChartReader.prototype.ReadCT_BarChart = function (type, length, val, aChar
     }
     else if (c_oserct_barchartDLBLS === type) {
         var oNewVal = new AscFormat.CDLbls();
+        this.curChart.oDataLablesData = AscCommon.fSaveStream(this.bcr.stream, length);
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_DLbls(t, l, oNewVal);
         });
@@ -10104,6 +10128,7 @@ BinaryChartReader.prototype.ReadCT_DoughnutChart = function (type, length, val, 
     }
     else if (c_oserct_doughnutchartDLBLS === type) {
         var oNewVal = new AscFormat.CDLbls();
+        this.curChart.oDataLablesData = AscCommon.fSaveStream(this.bcr.stream, length);
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_DLbls(t, l, oNewVal);
         });
@@ -10169,6 +10194,7 @@ BinaryChartReader.prototype.ReadCT_Pie3DChart = function (type, length, val, aCh
     }
     else if (c_oserct_pie3dchartDLBLS === type) {
         var oNewVal = new AscFormat.CDLbls();
+        this.curChart.oDataLablesData = AscCommon.fSaveStream(this.bcr.stream, length);
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_DLbls(t, l, oNewVal);
         });
@@ -10206,6 +10232,7 @@ BinaryChartReader.prototype.ReadCT_PieChart = function (type, length, val, aChar
     }
     else if (c_oserct_piechartDLBLS === type) {
         var oNewVal = new AscFormat.CDLbls();
+        this.curChart.oDataLablesData = AscCommon.fSaveStream(this.bcr.stream, length);
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_DLbls(t, l, oNewVal);
         });
@@ -10383,6 +10410,7 @@ BinaryChartReader.prototype.ReadCT_ScatterChart = function (type, length, val, a
     }
     else if (c_oserct_scatterchartDLBLS === type) {
         var oNewVal = new AscFormat.CDLbls();
+        this.curChart.oDataLablesData = AscCommon.fSaveStream(this.bcr.stream, length);
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_DLbls(t, l, oNewVal);
         });
@@ -10527,6 +10555,7 @@ BinaryChartReader.prototype.ReadCT_RadarChart = function (type, length, val, aCh
     }
     else if (c_oserct_radarchartDLBLS === type) {
         var oNewVal = new AscFormat.CDLbls();
+        this.curChart.oDataLablesData = AscCommon.fSaveStream(this.bcr.stream, length);
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_DLbls(t, l, oNewVal);
         });
@@ -10564,6 +10593,7 @@ BinaryChartReader.prototype.ReadCT_StockChart = function (type, length, val, aCh
     }
     else if (c_oserct_stockchartDLBLS === type) {
         var oNewVal = new AscFormat.CDLbls();
+        this.curChart.oDataLablesData = AscCommon.fSaveStream(this.bcr.stream, length);
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_DLbls(t, l, oNewVal);
         });
@@ -10802,6 +10832,7 @@ BinaryChartReader.prototype.ReadCT_Line3DChart = function (type, length, val, aC
     }
     else if (c_oserct_line3dchartDLBLS === type) {
         var oNewVal = new AscFormat.CDLbls();
+        this.curChart.oDataLablesData = AscCommon.fSaveStream(this.bcr.stream, length);
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_DLbls(t, l, oNewVal);
         });
@@ -10890,6 +10921,7 @@ BinaryChartReader.prototype.ReadCT_LineChart = function (type, length, val, aCha
     }
     else if (c_oserct_linechartDLBLS === type) {
         var oNewVal = new AscFormat.CDLbls();
+        this.curChart.oDataLablesData = AscCommon.fSaveStream(this.bcr.stream, length);
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_DLbls(t, l, oNewVal);
         });
@@ -10990,6 +11022,7 @@ BinaryChartReader.prototype.ReadCT_Area3DChart = function (type, length, val, aC
     }
     else if (c_oserct_area3dchartDLBLS === type) {
         var oNewVal = new AscFormat.CDLbls();
+        this.curChart.oDataLablesData = AscCommon.fSaveStream(this.bcr.stream, length);
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_DLbls(t, l, oNewVal);
         });
@@ -11153,6 +11186,7 @@ BinaryChartReader.prototype.ReadCT_AreaChart = function (type, length, val, aCha
     }
     else if (c_oserct_areachartDLBLS === type) {
         var oNewVal = new AscFormat.CDLbls();
+        this.curChart.oDataLablesData = AscCommon.fSaveStream(this.bcr.stream, length);
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_DLbls(t, l, oNewVal);
         });
@@ -11344,6 +11378,8 @@ BinaryChartReader.prototype.ReadCT_PlotArea = function (type, length, val, oIdTo
     }
     else if (c_oserct_plotareaCATAX === type) {
         var oNewVal = new AscFormat.CCatAx();
+
+        this.curChart.oCatAxData = AscCommon.fSaveStream(this.bcr.stream, length);
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_CatAx(t, l, oNewVal);
         });
@@ -11412,6 +11448,7 @@ BinaryChartReader.prototype.ReadCT_PlotArea = function (type, length, val, oIdTo
 
     }
     else if (c_oserct_plotareaVALAX === type) {
+        this.curChart.oValAxData = AscCommon.fSaveStream(this.bcr.stream, length);
         var oNewVal = new AscFormat.CValAx();
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_ValAx(t, l, oNewVal);
@@ -11713,6 +11750,8 @@ BinaryChartReader.prototype.ReadCT_Chart = function (type, length, val) {
     }
     else if (c_oserct_chartVIEW3D === type) {
         var oNewVal = new AscFormat.CView3d();
+
+        this.curChart.oView3DData = AscCommon.fSaveStream(this.bcr.stream, length);
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_View3D(t, l, oNewVal);
         });
@@ -11893,6 +11932,7 @@ BinaryChartReader.prototype.ReadCT_Chart = function (type, length, val) {
 
     }
     else if (c_oserct_chartLEGEND === type) {
+        this.curChart.oLegendData = AscCommon.fSaveStream(this.bcr.stream, length);
         var oNewVal = new AscFormat.CLegend();
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_Legend(t, l, oNewVal);
@@ -12107,6 +12147,8 @@ BinaryChartReader.prototype.ReadAlternateContentFallback = function (type, lengt
         res = c_oSerConstants.ReadUnknown;
     return res;
 };
+
+
 
     //----------------------------------------------------------export----------------------------------------------------
     window['AscCommon'] = window['AscCommon'] || {};
