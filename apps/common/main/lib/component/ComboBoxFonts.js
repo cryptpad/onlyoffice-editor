@@ -56,7 +56,7 @@ define([
             thumbContext    = thumbCanvas.getContext('2d'),
             thumbPath       = '../../../../sdkjs/common/Images/fonts_thumbnail.png?'+window.CP_urlArgs,
             thumbPath2x     = '../../../../sdkjs/common/Images/fonts_thumbnail@2x.png?'+window.CP_urlArgs,
-            listItemHeight  = 26;
+            listItemHeight  = 26,
             spriteCols     = 1;
 
         if (typeof window['AscDesktopEditor'] === 'object') {
