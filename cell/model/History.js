@@ -48,6 +48,8 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Workbook_ChangeColorScheme = 5;
 	window['AscCH'].historyitem_Workbook_DefinedNamesChange = 7;
 	window['AscCH'].historyitem_Workbook_DefinedNamesChangeUndo = 8;
+	window['AscCH'].historyitem_Workbook_Calculate = 9;
+	window['AscCH'].historyitem_Workbook_PivotWorksheetSource = 10;
 
 	window['AscCH'].historyitem_Worksheet_RemoveCell = 1;
 	window['AscCH'].historyitem_Worksheet_RemoveRows = 2;
@@ -64,11 +66,14 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Worksheet_MoveRange = 13;
 	window['AscCH'].historyitem_Worksheet_Rename = 18;
 	window['AscCH'].historyitem_Worksheet_Hide = 19;
+	window['AscCH'].historyitem_Worksheet_Null = 20;
 
 	window['AscCH'].historyitem_Worksheet_ChangeMerge = 25;
 	window['AscCH'].historyitem_Worksheet_ChangeHyperlink = 26;
 	window['AscCH'].historyitem_Worksheet_SetTabColor = 27;
 	window['AscCH'].historyitem_Worksheet_RowHide = 28;
+// Frozen cell
+	window['AscCH'].historyitem_Worksheet_ChangeFrozenCell = 30;
 	window['AscCH'].historyitem_Worksheet_SetDisplayGridlines = 31;
 	window['AscCH'].historyitem_Worksheet_SetDisplayHeadings = 32;
 	window['AscCH'].historyitem_Worksheet_GroupRow = 33;
@@ -77,8 +82,18 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Worksheet_GroupCol = 36;
 	window['AscCH'].historyitem_Worksheet_SetSummaryRight = 37;
 	window['AscCH'].historyitem_Worksheet_SetSummaryBelow = 38;
-// Frozen cell
-	window['AscCH'].historyitem_Worksheet_ChangeFrozenCell = 30;
+	window['AscCH'].historyitem_Worksheet_SetFitToPage = 39;
+	window['AscCH'].historyitem_Worksheet_PivotAdd = 40;
+	window['AscCH'].historyitem_Worksheet_PivotDelete = 41;
+	window['AscCH'].historyitem_Worksheet_PivotReplace = 42;
+	window['AscCH'].historyitem_Worksheet_SlicerAdd = 43;
+	window['AscCH'].historyitem_Worksheet_SlicerDelete = 44;
+	window['AscCH'].historyitem_Worksheet_SetActiveNamedSheetView = 45;
+	window['AscCH'].historyitem_Worksheet_SheetViewAdd = 46;
+	window['AscCH'].historyitem_Worksheet_SheetViewDelete = 47;
+	window['AscCH'].historyitem_Worksheet_DataValidationAdd = 48;
+	window['AscCH'].historyitem_Worksheet_DataValidationChange = 49;
+	window['AscCH'].historyitem_Worksheet_DataValidationDelete = 50;
 
 	window['AscCH'].historyitem_RowCol_Fontname = 1;
 	window['AscCH'].historyitem_RowCol_Fontsize = 2;
@@ -152,6 +167,54 @@ function (window, undefined) {
 	window['AscCH'].historyitem_PivotTable_StyleShowColHeaders = 3;
 	window['AscCH'].historyitem_PivotTable_StyleShowRowStripes = 4;
 	window['AscCH'].historyitem_PivotTable_StyleShowColStripes = 5;
+	window['AscCH'].historyitem_PivotTable_SetName = 6;
+	window['AscCH'].historyitem_PivotTable_SetRowGrandTotals = 7;
+	window['AscCH'].historyitem_PivotTable_SetColGrandTotals = 8;
+	window['AscCH'].historyitem_PivotTable_SetPageOverThenDown = 9;
+	window['AscCH'].historyitem_PivotTable_SetPageWrap = 10;
+	window['AscCH'].historyitem_PivotTable_SetShowHeaders = 11;
+	window['AscCH'].historyitem_PivotTable_SetCompact = 12;
+	window['AscCH'].historyitem_PivotTable_SetOutline = 13;
+	window['AscCH'].historyitem_PivotTable_SetFillDownLabelsDefault = 14;
+	window['AscCH'].historyitem_PivotTable_SetDataOnRows = 15;
+	window['AscCH'].historyitem_PivotTable_SetAltText = 16;
+	window['AscCH'].historyitem_PivotTable_SetAltTextSummary = 17;
+	window['AscCH'].historyitem_PivotTable_AddPageField = 18;
+	window['AscCH'].historyitem_PivotTable_AddRowField = 19;
+	window['AscCH'].historyitem_PivotTable_AddColField = 20;
+	window['AscCH'].historyitem_PivotTable_AddDataField = 21;
+	window['AscCH'].historyitem_PivotTable_RemovePageField = 22;
+	window['AscCH'].historyitem_PivotTable_RemoveRowField = 23;
+	window['AscCH'].historyitem_PivotTable_RemoveColField = 24;
+	window['AscCH'].historyitem_PivotTable_RemoveDataField = 25;
+	window['AscCH'].historyitem_PivotTable_MovePageField = 26;
+	window['AscCH'].historyitem_PivotTable_MoveRowField = 27;
+	window['AscCH'].historyitem_PivotTable_MoveColField = 28;
+	window['AscCH'].historyitem_PivotTable_MoveDataField = 29;
+	window['AscCH'].historyitem_PivotTable_PivotFieldSetName = 30;
+	window['AscCH'].historyitem_PivotTable_PivotFieldSetOutline = 31;
+	window['AscCH'].historyitem_PivotTable_PivotFieldSetCompact = 32;
+	window['AscCH'].historyitem_PivotTable_PivotFieldFillDownLabelsDefault = 33;
+	window['AscCH'].historyitem_PivotTable_PivotFieldSetInsertBlankRow = 34;
+	window['AscCH'].historyitem_PivotTable_PivotFieldSetDefaultSubtotal = 35;
+	window['AscCH'].historyitem_PivotTable_PivotFieldSetSubtotalTop = 36;
+	window['AscCH'].historyitem_PivotTable_PivotFieldSetShowAll = 37;
+	window['AscCH'].historyitem_PivotTable_PivotFieldSetSubtotals = 38;
+	window['AscCH'].historyitem_PivotTable_DataFieldSetName = 39;
+	window['AscCH'].historyitem_PivotTable_DataFieldSetSubtotal = 40;
+	window['AscCH'].historyitem_PivotTable_RowItems = 41;
+	window['AscCH'].historyitem_PivotTable_ColItems = 42;
+	window['AscCH'].historyitem_PivotTable_Location = 43;
+	window['AscCH'].historyitem_PivotTable_SetDataPosition = 44;
+	window['AscCH'].historyitem_PivotTable_CacheField = 45;
+	window['AscCH'].historyitem_PivotTable_PivotField = 46;
+	window['AscCH'].historyitem_PivotTable_PivotFilter = 47;
+	window['AscCH'].historyitem_PivotTable_PivotFilterDataField = 48;
+	window['AscCH'].historyitem_PivotTable_PivotFilterMeasureFld = 49;
+	window['AscCH'].historyitem_PivotTable_PageFilter = 50;
+	window['AscCH'].historyitem_PivotTable_SetGridDropZones = 51;
+	window['AscCH'].historyitem_PivotTable_WorksheetSource = 52;
+	window['AscCH'].historyitem_PivotTable_PivotCacheId = 53;
 
 	window['AscCH'].historyitem_SharedFormula_ChangeFormula = 1;
 	window['AscCH'].historyitem_SharedFormula_ChangeShared = 2;
@@ -167,6 +230,7 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Layout_GridLines = 9;
 	window['AscCH'].historyitem_Layout_Headings = 10;
 	window['AscCH'].historyitem_Layout_Orientation = 11;
+	window['AscCH'].historyitem_Layout_Scale = 12;
 	
 	window['AscCH'].historyitem_ArrayFromula_AddFormula = 1;
 	window['AscCH'].historyitem_ArrayFromula_DeleteFormula = 2;
@@ -181,6 +245,34 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Scale_With_Doc = 8;
 	window['AscCH'].historyitem_Different_First = 9;
 	window['AscCH'].historyitem_Different_Odd_Even = 10;
+
+	window['AscCH'].historyitem_SortState_Add = 1;
+
+	window['AscCH'].historyitem_Slicer_SetCaption = 1;
+	window['AscCH'].historyitem_Slicer_SetCacheSourceName = 2;
+	window['AscCH'].historyitem_Slicer_SetTableColName = 3;
+	window['AscCH'].historyitem_Slicer_SetTableName = 4;
+	window['AscCH'].historyitem_Slicer_SetCacheName = 5;
+	window['AscCH'].historyitem_Slicer_SetName = 6;
+	window['AscCH'].historyitem_Slicer_SetStartItem = 7;
+	window['AscCH'].historyitem_Slicer_SetColumnCount = 8;
+	window['AscCH'].historyitem_Slicer_SetShowCaption = 9;
+	window['AscCH'].historyitem_Slicer_SetLevel = 10;
+	window['AscCH'].historyitem_Slicer_SetStyle = 11;
+	window['AscCH'].historyitem_Slicer_SetLockedPosition = 12;
+	window['AscCH'].historyitem_Slicer_SetRowHeight = 13;
+	window['AscCH'].historyitem_Slicer_SetCacheSortOrder = 14;
+	window['AscCH'].historyitem_Slicer_SetCacheCustomListSort = 15;
+	window['AscCH'].historyitem_Slicer_SetCacheCrossFilter = 16;
+	window['AscCH'].historyitem_Slicer_SetCacheHideItemsWithNoData = 17;
+	window['AscCH'].historyitem_Slicer_SetCacheData = 18;
+	window['AscCH'].historyitem_Slicer_SetCacheMovePivot = 19;
+	window['AscCH'].historyitem_Slicer_SetCacheCopySheet = 20;
+	
+	window['AscCH'].historyitem_NamedSheetView_SetName = 1;
+	window['AscCH'].historyitem_NamedSheetView_DeleteFilter = 2;
+
+
 
 function CHistory()
 {
@@ -201,6 +293,8 @@ function CHistory()
   // Параметры для специального сохранения для локальной версии редактора
   this.UserSaveMode   = false;
   this.UserSavedIndex = null;  // Номер точки, на которой произошло последнее сохранение пользователем (не автосохранение)
+
+	this.PosInCurPoint = null; // position to roll back changes within the current point
 }
 CHistory.prototype.init = function(workbook) {
 	this.workbook = workbook;
@@ -320,7 +414,7 @@ CHistory.prototype.RedoAdd = function(oRedoObjectParam, Class, Type, sheetid, ra
 	if(bNeedOff)
 		this.TurnOff();
 
-	var bChangeActive = oRedoObjectParam.bChangeActive && AscCommonExcel.g_oUndoRedoWorkbook === Class;
+	var bChangeActive = oRedoObjectParam.bChangeActive && (AscCommonExcel.g_oUndoRedoWorkbook === Class || (AscCommonExcel.g_oUndoRedoWorksheet === Class && AscCH.historyitem_Worksheet_Hide === Type));
 	if (bChangeActive && null != oRedoObjectParam.activeSheet) {
 		//it can be delete action, so set active and get after action
 		this.workbook.setActiveById(oRedoObjectParam.activeSheet);
@@ -354,13 +448,13 @@ CHistory.prototype.RedoAdd = function(oRedoObjectParam, Class, Type, sheetid, ra
 			}
 		}
 	}
-	if (bChangeActive) {
-		oRedoObjectParam.activeSheet = this.workbook.getActiveWs().getId();
-	}
     var curPoint = this.Points[this.Index];
     if (curPoint) {
         this._addRedoObjectParam(oRedoObjectParam, curPoint.Items[curPoint.Items.length - 1]);
     }
+	if (bChangeActive) {
+		oRedoObjectParam.activeSheet = this.workbook.getActiveWs().getId();
+	}
 };
 
 CHistory.prototype.Remove_LastPoint = function()
@@ -374,6 +468,11 @@ CHistory.prototype.Remove_LastPoint = function()
 CHistory.prototype.RemoveLastPoint = function()
 {
 	this.Remove_LastPoint();
+};
+CHistory.prototype.Clear_Redo = function()
+{
+	// Удаляем ненужные точки
+	this.Points.length = this.Index + 1;
 };
 CHistory.prototype.RedoExecute = function(Point, oRedoObjectParam)
 {
@@ -423,9 +522,17 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 	});
 
 	if (null != Point) {
+		if (oRedoObjectParam.bChangeColorScheme) {
+			t.workbook.rebuildColors();
+			t.workbook.oApi.asc_AfterChangeColorScheme();
+		}
+
 		//синхронизация index и id worksheet
 		if (oRedoObjectParam.bUpdateWorksheetByModel)
 			this.workbook.handlers.trigger("updateWorksheetByModel");
+
+		//important after updateWorksheetByModel
+		t.workbook.oApi.updatePivotTables();
 
 		if(!bCoaut)
 		{
@@ -449,8 +556,12 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 			this.workbook.handlers.trigger("changeWorksheetUpdate",
 				oRedoObjectParam.oChangeWorksheetUpdate[i],{lockDraw: true, reinitRanges: true});
 
-		for (i in Point.UpdateRigions)
+		for (i in Point.UpdateRigions) {
 			this.workbook.handlers.trigger("cleanCellCache", i, [Point.UpdateRigions[i]]);
+			var curSheet = this.workbook.getWorksheetById(i);
+			if (curSheet)
+				this.workbook.getWorksheetById(i).updateSlicersByRange(Point.UpdateRigions[i]);
+		}
 
 		if (oRedoObjectParam.bOnSheetsChanged)
 			this.workbook.handlers.trigger("asc_onSheetsChanged");
@@ -470,26 +581,6 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
             }
         }
 
-        if (bUndo) {
-            if (Point.SelectionState) {
-                this.workbook.handlers.trigger("setSelectionState", Point.SelectionState);
-            } else {
-                this.workbook.handlers.trigger("setSelection", Point.SelectRange.clone());
-            }
-        } else {
-            if (null !== oState && oState[0] && oState[0].focus) {
-                this.workbook.handlers.trigger("setSelectionState", oState);
-            } else {
-                var oSelectRange = null;
-                if (null != Point.SelectRangeRedo)
-                    oSelectRange = Point.SelectRangeRedo;
-                else if (null != Point.SelectRange)
-                    oSelectRange = Point.SelectRange;
-                if (null != oSelectRange)
-                    this.workbook.handlers.trigger("setSelection", oSelectRange.clone());
-            }
-        }
-
 		if (oRedoObjectParam.oOnUpdateSheetViewSettings[this.workbook.getWorksheet(this.workbook.getActive()).getId()])
 			this.workbook.handlers.trigger("asc_onUpdateSheetViewSettings");
 
@@ -498,11 +589,30 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 			this.workbook.bUndoChanges = false;
 		else
 			this.workbook.bRedoChanges = false;
-		if (oRedoObjectParam.bIsReInit)
-			this.workbook.handlers.trigger("reInit");
 		//TODO вызывать только в случае, если были изменения строк/столбцов и отдельно для строк и столбцов
 		this.workbook.handlers.trigger("updateGroupData");
 		this.workbook.handlers.trigger("drawWS");
+
+		if (bUndo) {
+			if (Point.SelectionState) {
+				this.workbook.handlers.trigger("setSelectionState", Point.SelectionState);
+			} else {
+				this.workbook.handlers.trigger("setSelection", Point.SelectRange.clone());
+			}
+		} else {
+			if (null !== oState && oState[0] && oState[0].focus) {
+				this.workbook.handlers.trigger("setSelectionState", oState);
+			} else {
+				var oSelectRange = null;
+				if (null != Point.SelectRangeRedo)
+					oSelectRange = Point.SelectRangeRedo;
+				else if (null != Point.SelectRange)
+					oSelectRange = Point.SelectRange;
+				if (null != oSelectRange)
+					this.workbook.handlers.trigger("setSelection", oSelectRange.clone());
+			}
+		}
+
 		if (bUndo) {
 			if (AscCommon.isRealObject(this.lastDrawingObjects)) {
 				this.lastDrawingObjects.sendGraphicObjectProps();
@@ -553,7 +663,6 @@ CHistory.prototype._addRedoObjectParam = function (oRedoObjectParam, Point) {
 	if (AscCommonExcel.g_oUndoRedoWorksheet === Point.Class &&
 		(AscCH.historyitem_Worksheet_SetDisplayGridlines === Point.Type ||
 		AscCH.historyitem_Worksheet_SetDisplayHeadings === Point.Type)) {
-		oRedoObjectParam.bIsReInit = true;
 		oRedoObjectParam.oOnUpdateSheetViewSettings[Point.SheetId] = Point.SheetId;
 	}
 	else if (AscCommonExcel.g_oUndoRedoWorksheet === Point.Class && (AscCH.historyitem_Worksheet_RowProp == Point.Type || AscCH.historyitem_Worksheet_ColProp == Point.Type || AscCH.historyitem_Worksheet_RowHide == Point.Type))
@@ -572,6 +681,8 @@ CHistory.prototype._addRedoObjectParam = function (oRedoObjectParam, Point) {
 		oRedoObjectParam.bAddRemoveRowCol = true;
 	else if(AscCommonExcel.g_oUndoRedoAutoFilters === Point.Class && AscCH.historyitem_AutoFilter_ChangeTableInfo === Point.Type)
 		oRedoObjectParam.oChangeWorksheetUpdate[Point.SheetId] = Point.SheetId;
+	else if(AscCommonExcel.g_oUndoRedoWorkbook === Point.Class && AscCH.historyitem_Workbook_ChangeColorScheme === Point.Type)
+		oRedoObjectParam.bChangeColorScheme = true;
 
 	if (null != Point.SheetId) {
 		oRedoObjectParam.activeSheet = Point.SheetId;
@@ -710,11 +821,11 @@ CHistory.prototype.Create_NewPoint = function()
 	var Time  = new Date().getTime();
 	var UndoSheetId = null, oSelectionState = this.workbook.handlers.trigger("getSelectionState");
 	var oSelectRange = null;
-	var wsActive = this.workbook.getWorksheet(this.workbook.getActive());
+	var wsActive = this.workbook.getActiveWs();
 	if (wsActive) {
 		UndoSheetId = wsActive.getId();
 		// ToDo Берем всегда, т.к. в случае с LastState мы можем не попасть на нужный лист и не заселектить нужный диапазон!
-		oSelectRange = wsActive.selectionRange.getLast(); // ToDo get only last selection range
+		oSelectRange = wsActive.getSelection().getLast(); // ToDo get only last selection range
 	}
 
     // Создаем новую точку
@@ -744,7 +855,7 @@ CHistory.prototype.Create_NewPoint = function()
 // Data  - сами изменения
 CHistory.prototype.Add = function(Class, Type, sheetid, range, Data, LocalChange)
 {
-	if ( 0 !== this.TurnOffHistory || this.Index < 0 )
+	if (!this.CanAddChanges())
 		return;
 
 	this._CheckCanNotAddChanges();
@@ -793,6 +904,10 @@ CHistory.prototype.Add = function(Class, Type, sheetid, range, Data, LocalChange
 			AscCommon.CollaborativeEditing.Add_NewDC(Class.Class);
 		}
 	}
+};
+CHistory.prototype.CanAddChanges = function()
+{
+	return (0 === this.TurnOffHistory && this.Index >= 0);
 };
 
 CHistory.prototype._sendCanUndoRedo = function()
@@ -870,6 +985,9 @@ CHistory.prototype.TurnOn = function()
 
 CHistory.prototype.StartTransaction = function()
 {
+	if (this.IsEndTransaction() && this.workbook) {
+		this.workbook.dependencyFormulas.lockRecal();
+	}
 	this.Transaction++;
 };
 
@@ -878,6 +996,9 @@ CHistory.prototype.EndTransaction = function()
 	this.Transaction--;
 	if(this.Transaction < 0)
 		this.Transaction = 0;
+	if (this.IsEndTransaction() && this.workbook) {
+		this.workbook.dependencyFormulas.unlockRecal();
+	}
 };
 /** @returns {boolean} */
 CHistory.prototype.IsEndTransaction = function()
@@ -889,6 +1010,11 @@ CHistory.prototype.Is_On = function()
 {
 	return (0 === this.TurnOffHistory);
 };
+	/** @returns {boolean} */
+	CHistory.prototype.IsOn = function()
+	{
+		return (0 === this.TurnOffHistory);
+	};
 	CHistory.prototype.Reset_SavedIndex = function(IsUserSave) {
 		this.SavedIndex = (null === this.SavedIndex && -1 === this.Index ? null : this.Index);
 		if (this.Is_UserSaveMode()) {
@@ -987,22 +1113,47 @@ CHistory.prototype.GetSerializeArray = function()
 			}
 		}
 	};
-
-	CHistory.prototype.AddToUpdatesRegions = function(range, sheetId) {
-		if (0 !== this.TurnOffHistory || this.Index < 0) {
-			return;
+	CHistory.prototype.SavePointIndex = function()
+	{
+		var oPoint = this.Points[this.Index];
+		if(oPoint)
+		{
+			this.PosInCurPoint = oPoint.Items.length;
 		}
-
-		var curPoint = this.Points[this.Index];
-		if (null != range && null != sheetId) {
-			var updateRange = curPoint.UpdateRigions[sheetId];
-			if (null != updateRange) {
-				updateRange.union2(range);
-			} else {
-				updateRange = range.clone();
+		else
+		{
+			this.PosInCurPoint = null;
+		}
+	};
+	CHistory.prototype.ClearPointIndex = function()
+	{
+		this.PosInCurPoint = null;
+	};
+	CHistory.prototype.UndoToPointIndex = function()
+	{
+		var oPoint = this.Points[this.Index];
+		if(oPoint)
+		{
+			if(this.PosInCurPoint !== null)
+			{
+				for ( var Index = oPoint.Items.length - 1; Index >= this.PosInCurPoint; Index-- )
+				{
+					var Item = oPoint.Items[Index];
+					if(!Item.Class.RefreshRecalcData)
+						Item.Class.Undo( Item.Type, Item.Data, Item.SheetId );
+					else
+					{
+						if (Item.Class)
+						{
+							Item.Class.Undo();
+							Item.Class.RefreshRecalcData();
+						}
+					}
+				}
+				oPoint.Items.splice(this.PosInCurPoint);
 			}
-			curPoint.UpdateRigions[sheetId] = updateRange;
 		}
+		this.PosInCurPoint = null; 
 	};
 
 	//------------------------------------------------------------export--------------------------------------------------

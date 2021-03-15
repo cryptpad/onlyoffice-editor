@@ -42,6 +42,7 @@
 // Import
 var g_oTableId = AscCommon.g_oTableId;
 var History = AscCommon.History;
+var c_oAscSectionBreakType    = Asc.c_oAscSectionBreakType;
 
 var section_borders_DisplayAllPages     = 0x00;
 var section_borders_DisplayFirstPage    = 0x01;
@@ -56,11 +57,6 @@ var section_borders_ZOrderFront = 0x01;
 var section_footnote_RestartContinuous = 0x00;
 var section_footnote_RestartEachSect   = 0x01;
 var section_footnote_RestartEachPage   = 0x02;
-
-var section_footnote_PosBeneathText = 0x00;
-var section_footnote_PosDocEnd      = 0x01;
-var section_footnote_PosPageBottom  = 0x02;
-var section_footnote_PosSectEnd     = 0x03;
 
 function CSectionPr(LogicDocument)
 {
@@ -84,9 +80,13 @@ function CSectionPr(LogicDocument)
     this.HeaderDefault = null;
 
     this.TitlePage     = false;
+	this.GutterRTL     = false;
 
     this.Columns       = new CSectionColumns(this);
 	this.FootnotePr    = new CFootnotePr();
+	this.EndnotePr     = new CFootnotePr();
+
+	this.LnNumType     = undefined;
 
     // Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
     g_oTableId.Add( this, this.Id );
@@ -99,7 +99,7 @@ CSectionPr.prototype =
         return this.Id;
     },
 
-    Copy : function(Other, CopyHdrFtr)
+    Copy : function(Other, CopyHdrFtr, oCopyPr)
     {
         if (!Other)
             return;
@@ -107,12 +107,13 @@ CSectionPr.prototype =
         // Тип
         this.Set_Type( Other.Type );
 
-        // Настройки страницы
-        this.Set_PageSize( Other.PageSize.W, Other.PageSize.H );
-        this.Set_Orientation( Other.PageSize.Orient, false );
+		// Настройки страницы
+		this.SetPageSize(Other.PageSize.W, Other.PageSize.H);
+		this.SetOrientation(Other.PageSize.Orient, false);
 
-        // Настройки отступов
-        this.Set_PageMargins( Other.PageMargins.Left, Other.PageMargins.Top, Other.PageMargins.Right, Other.PageMargins.Bottom );
+		// Настройки отступов
+		this.SetPageMargins(Other.PageMargins.Left, Other.PageMargins.Top, Other.PageMargins.Right, Other.PageMargins.Bottom);
+		this.SetGutter(Other.PageMargins.Gutter);
 
         // Настройки границ
         this.Set_Borders_Left( Other.Borders.Left );
@@ -120,39 +121,41 @@ CSectionPr.prototype =
         this.Set_Borders_Right( Other.Borders.Right );
         this.Set_Borders_Bottom( Other.Borders.Bottom );
         this.Set_Borders_Display( Other.Borders.Display );
-        this.Set_Borders_OffsetFrom( Other.Borders.OffsetFrom );
+		this.SetBordersOffsetFrom(Other.Borders.OffsetFrom);
         this.Set_Borders_ZOrder( Other.Borders.ZOrder );
+        this.Set_TitlePage(Other.TitlePage);
+        this.SetGutterRTL(Other.GutterRTL);
 
         // Колонтитулы
         if (true === CopyHdrFtr)
         {
             if (Other.HeaderFirst)
-                this.Set_Header_First(Other.HeaderFirst.Copy());
+                this.Set_Header_First(Other.HeaderFirst.Copy(this.LogicDocument, oCopyPr));
             else
                 this.Set_Header_First(null);
 
             if (Other.HeaderEven)
-                this.Set_Header_Even(Other.HeaderEven.Copy());
+                this.Set_Header_Even(Other.HeaderEven.Copy(this.LogicDocument, oCopyPr));
             else
                 this.Set_Header_Even(null);
 
             if (Other.HeaderDefault)
-                this.Set_Header_Default(Other.HeaderDefault.Copy());
+                this.Set_Header_Default(Other.HeaderDefault.Copy(this.LogicDocument, oCopyPr));
             else
                 this.Set_Header_Default(null);
 
             if (Other.FooterFirst)
-                this.Set_Footer_First(Other.FooterFirst.Copy());
+                this.Set_Footer_First(Other.FooterFirst.Copy(this.LogicDocument, oCopyPr));
             else
                 this.Set_Footer_First(null);
 
             if (Other.FooterEven)
-                this.Set_Footer_Even(Other.FooterEven.Copy());
+                this.Set_Footer_Even(Other.FooterEven.Copy(this.LogicDocument, oCopyPr));
             else
                 this.Set_Footer_Even(null);
 
             if (Other.FooterDefault)
-                this.Set_Footer_Default(Other.FooterDefault.Copy());
+                this.Set_Footer_Default(Other.FooterDefault.Copy(this.LogicDocument, oCopyPr));
             else
                 this.Set_Footer_Default(null);
         }
@@ -182,6 +185,9 @@ CSectionPr.prototype =
         this.SetFootnoteNumStart(Other.FootnotePr.NumStart);
         this.SetFootnoteNumRestart(Other.FootnotePr.NumRestart);
         this.SetFootnoteNumFormat(Other.FootnotePr.NumFormat);
+
+        if (Other.HaveLineNumbers())
+        	this.SetLineNumbers(Other.GetLineNumbersCountBy(), Other.GetLineNumbersDistance(), Other.GetLineNumbersStart(), Other.GetLineNumbersRestart());
     },
     
     Clear_AllHdrFtr : function()
@@ -233,112 +239,6 @@ CSectionPr.prototype =
     Get_Type : function()
     {
         return this.Type;
-    },
-
-	Set_PageSize : function(W, H)
-	{
-		if (Math.abs(W - this.PageSize.W) > 0.001 || Math.abs(H - this.PageSize.H) > 0.001)
-		{
-			H = Math.max(2.6, H);
-			W = Math.max(12.7, W);
-
-			History.Add(new CChangesSectionPageSize(this, {W : this.PageSize.W, H : this.PageSize.H}, {W : W, H : H}));
-
-			this.PageSize.W = W;
-			this.PageSize.H = H;
-		}
-	},
-
-    Get_PageWidth : function()
-    {
-        return this.PageSize.W;
-    },
-
-    Get_PageHeight : function()
-    {
-        return this.PageSize.H;
-    },
-
-	Set_PageMargins : function(_L, _T, _R, _B)
-	{
-		// Значения могут прийти как undefined, в этом случае мы поля со значением undefined не меняем
-		var L = ( undefined !== _L ? _L : this.PageMargins.Left );
-		var T = ( undefined !== _T ? _T : this.PageMargins.Top );
-		var R = ( undefined !== _R ? _R : this.PageMargins.Right );
-		var B = ( undefined !== _B ? _B : this.PageMargins.Bottom );
-
-		if (Math.abs(L - this.PageMargins.Left) > 0.001 || Math.abs(T - this.PageMargins.Top) > 0.001 || Math.abs(R - this.PageMargins.Right) > 0.001 || Math.abs(B - this.PageMargins.Bottom) > 0.001)
-		{
-			History.Add(new CChangesSectionPageMargins(this, {
-				L : this.PageMargins.Left,
-				T : this.PageMargins.Top,
-				R : this.PageMargins.Right,
-				B : this.PageMargins.Bottom
-			}, {L : L, T : T, R : R, B : B}));
-
-			this.PageMargins.Left   = L;
-			this.PageMargins.Top    = T;
-			this.PageMargins.Right  = R;
-			this.PageMargins.Bottom = B;
-		}
-	},
-
-    Get_PageMargin_Left : function()
-    {
-        return this.PageMargins.Left;
-    },
-
-    Get_PageMargin_Right : function()
-    {
-        return this.PageMargins.Right;
-    },
-
-    Get_PageMargin_Top : function()
-    {
-        return this.PageMargins.Top;
-    },
-
-    Get_PageMargin_Bottom : function()
-    {
-        return this.PageMargins.Bottom;
-    },
-
-	Set_Orientation : function(Orient, ApplySize)
-	{
-		var _Orient = this.Get_Orientation();
-		if (_Orient !== Orient)
-		{
-			History.Add(new CChangesSectionPageOrient(this, this.PageSize.Orient, Orient));
-			this.PageSize.Orient = Orient;
-
-			if (true === ApplySize)
-			{
-				// При смене ориентации меняем местами высоту и ширину страницы и изменяем отступы
-
-				var W = this.PageSize.W;
-				var H = this.PageSize.H;
-
-				var L = this.PageMargins.Left;
-				var R = this.PageMargins.Right;
-				var T = this.PageMargins.Top;
-				var B = this.PageMargins.Bottom;
-
-				this.Set_PageSize(H, W);
-
-				if (Asc.c_oAscPageOrientation.PagePortrait === Orient)
-					this.Set_PageMargins(T, R, B, L);
-				else
-					this.Set_PageMargins(B, L, T, R);
-			}
-		}
-	},
-
-    Get_Orientation : function()
-    {
-    	if (this.PageSize.W > this.PageSize.H)
-    		return Asc.c_oAscPageOrientation.PageLandscape;
-
-    	return Asc.c_oAscPageOrientation.PagePortrait;
     },
 
 	Set_Borders_Left : function(Border)
@@ -409,20 +309,6 @@ CSectionPr.prototype =
     Get_Borders_Display : function()
     {
         return this.Borders.Display;
-    },
-
-	Set_Borders_OffsetFrom : function(OffsetFrom)
-	{
-		if (OffsetFrom !== this.Borders.OffsetFrom)
-		{
-			History.Add(new CChangesSectionBordersOffsetFrom(this, this.Borders.OffsetFrom, OffsetFrom));
-			this.Borders.OffsetFrom = OffsetFrom;
-		}
-	},
-
-    Get_Borders_OffsetFrom : function()
-    {
-        return this.Borders.OffsetFrom;
     },
 
 	Set_Borders_ZOrder : function(ZOrder)
@@ -535,34 +421,6 @@ CSectionPr.prototype =
     Get_TitlePage : function()
     {
         return this.TitlePage;
-    },
-
-	Set_PageMargins_Header : function(Header)
-	{
-		if (Header !== this.PageMargins.Header)
-		{
-			History.Add(new CChangesSectionPageMarginsHeader(this, this.PageMargins.Header, Header));
-			this.PageMargins.Header = Header;
-		}
-	},
-    
-    Get_PageMargins_Header : function()
-    {
-        return this.PageMargins.Header;
-    },
-
-	Set_PageMargins_Footer : function(Footer)
-	{
-		if (Footer !== this.PageMargins.Footer)
-		{
-			History.Add(new CChangesSectionPageMarginsFooter(this, this.PageMargins.Footer, Footer));
-			this.PageMargins.Footer = Footer;
-		}
-	},
-
-    Get_PageMargins_Footer : function()
-    {
-        return this.PageMargins.Footer;
     },
     
     GetHdrFtr : function(bHeader, bFirst, bEven)
@@ -811,6 +669,12 @@ CSectionPr.prototype =
         if ( -1 === Index )
             return;
 
+        if (AscDFH.historyitem_Section_LnNumType === Data.Type)
+		{
+			History.AddLineNumbersToRecalculateData();
+			return;
+		}
+
         // Здесь есть 1 исключение: когда мы добавляем колонтитул для первой страницы, может так получиться, что 
         // у данной секции флаг TitlePage = False, а значит пересчет надо запускать с места где данный колонтитул
         // первый раз начнет использоваться, а не с текущей секции.
@@ -818,7 +682,7 @@ CSectionPr.prototype =
         if ( (AscDFH.historyitem_Section_Header_First === Data.Type || AscDFH.historyitem_Section_Footer_First === Data.Type) && false === this.TitlePage )
         {
             var bHeader = AscDFH.historyitem_Section_Header_First === Data.Type ? true : false
-            var SectionsCount = this.LogicDocument.SectionsInfo.Get_SectionsCount();
+            var SectionsCount = this.LogicDocument.SectionsInfo.GetSectionsCount();
             while ( Index < SectionsCount - 1 )
             {
                 Index++;
@@ -880,6 +744,7 @@ CSectionPr.prototype =
         // Variable : PageNumType
         // Variable : CSectionColumns
 		// Variable : CFootnotePr
+		// Bool     : GutterRTL
 
         Writer.WriteString2( "" + this.Id );
         Writer.WriteString2( "" + this.LogicDocument.Get_Id() );
@@ -890,6 +755,7 @@ CSectionPr.prototype =
         this.PageNumType.Write_ToBinary( Writer );
         this.Columns.Write_ToBinary(Writer);
 		this.FootnotePr.WriteToBinary(Writer);
+		Writer.WriteBool(this.GutterRTL);
     },
 
     Read_FromBinary2 : function(Reader)
@@ -904,6 +770,7 @@ CSectionPr.prototype =
         // Variable : PageNumType
         // Variable : CSectionColumns
 		// Variable : CFootnotePr
+		// Bool     : GutterRTL
 
         this.Id = Reader.GetString2();
         this.LogicDocument = g_oTableId.Get_ById( Reader.GetString2() );
@@ -914,7 +781,15 @@ CSectionPr.prototype =
         this.PageNumType.Read_FromBinary( Reader );
         this.Columns.Read_FromBinary(Reader);
 		this.FootnotePr.ReadFromBinary(Reader);
+		this.GutterRTL = Reader.GetBool();
     }
+};
+/**
+ * @returns {string}
+ */
+CSectionPr.prototype.GetId = function()
+{
+	return this.Id;
 };
 /**
  * Проверяем, есть ли хоть один колонтитул в данной секции
@@ -947,7 +822,7 @@ CSectionPr.prototype.SetFootnotePos = function(nPos)
 CSectionPr.prototype.GetFootnotePos = function()
 {
 	if (undefined === this.FootnotePr.Pos)
-		return section_footnote_PosPageBottom;
+		return Asc.c_oAscFootnotePos.PageBottom;
 
 	return this.FootnotePr.Pos;
 };
@@ -1000,21 +875,92 @@ CSectionPr.prototype.private_GetDocumentWideFootnotePr = function()
 {
 	return this.LogicDocument.Footnotes.FootnotePr;
 };
-CSectionPr.prototype.SetColumnProps = function(ColumnsProps)
+/**
+ * Возвращаем настройки концевых сносок
+ * @return {CFootnotePr}
+ */
+CSectionPr.prototype.GetEndnotePr = function()
 {
-	var EqualWidth = ColumnsProps.get_EqualWidth();
-	this.Set_Columns_EqualWidth(ColumnsProps.get_EqualWidth());
+	return this.EndnotePr;
+};
+CSectionPr.prototype.SetEndnotePos = function(nPos)
+{
+	// Pos, заданная в секции не должна использоваться
+	if (nPos !== this.EndnotePr.Pos)
+	{
+		History.Add(new CChangesSectionEndnotePos(this, this.EndnotePr.Pos, nPos));
+		this.EndnotePr.Pos = nPos;
+	}
+};
+CSectionPr.prototype.GetEndnotePos = function()
+{
+	// Pos, заданная в секции не должна использоваться
+	return this.EndnotePr.Pos;
+};
+CSectionPr.prototype.SetEndnoteNumStart = function(nStart)
+{
+	if (this.EndnotePr.NumStart !== nStart)
+	{
+		History.Add(new CChangesSectionEndnoteNumStart(this, this.EndnotePr.NumStart, nStart));
+		this.EndnotePr.NumStart = nStart;
+	}
+};
+CSectionPr.prototype.GetEndnoteNumStart = function()
+{
+	if (undefined === this.EndnotePr.NumStart)
+		return 1;
+
+	return this.EndnotePr.NumStart;
+};
+CSectionPr.prototype.SetEndnoteNumRestart = function(nRestartType)
+{
+	if (this.EndnotePr.NumRestart !== nRestartType)
+	{
+		History.Add(new CChangesSectionEndnoteNumRestart(this, this.EndnotePr.NumRestart, nRestartType));
+		this.EndnotePr.NumRestart = nRestartType;
+	}
+};
+CSectionPr.prototype.GetEndnoteNumRestart = function()
+{
+	if (undefined === this.EndnotePr.NumRestart)
+		return section_footnote_RestartContinuous;
+
+	return this.EndnotePr.NumRestart;
+};
+CSectionPr.prototype.SetEndnoteNumFormat = function(nFormatType)
+{
+	if (this.EndnotePr.NumFormat !== nFormatType)
+	{
+		History.Add(new CChangesSectionEndnoteNumFormat(this, this.EndnotePr.NumFormat, nFormatType));
+		this.EndnotePr.NumFormat = nFormatType;
+	}
+};
+CSectionPr.prototype.GetEndnoteNumFormat = function()
+{
+	if (undefined === this.EndnotePr.NumFormat)
+		return Asc.c_oAscNumberingFormat.LowerRoman;
+
+	return this.EndnotePr.NumFormat;
+};
+CSectionPr.prototype.private_GetDocumentWideEndnotePr = function()
+{
+	return this.LogicDocument.Endnotes.EndnotePr;
+};
+CSectionPr.prototype.SetColumnProps = function(oColumnsProps)
+{
+	var EqualWidth = oColumnsProps.get_EqualWidth();
+	this.Set_Columns_EqualWidth(oColumnsProps.get_EqualWidth());
 	if (false === EqualWidth)
 	{
-		var X      = this.Get_PageMargin_Left();
-		var XLimit = this.Get_PageWidth() - this.Get_PageMargin_Right();
+		var X      = 0;
+		var XLimit = this.GetContentFrameWidth();
 
 		var Cols          = [];
 		var SectionColumn = null;
-		var Count         = ColumnsProps.get_ColsCount();
+		var Count         = oColumnsProps.get_ColsCount();
 		for (var Index = 0; Index < Count; ++Index)
 		{
-			var Col             = ColumnsProps.get_Col(Index);
+			var Col             = oColumnsProps.get_Col(Index);
 			SectionColumn       = new CSectionColumn();
 			SectionColumn.W     = Col.get_W();
 			SectionColumn.Space = Col.get_Space();
@@ -1044,12 +990,366 @@ CSectionPr.prototype.SetColumnProps = function(ColumnsProps)
 	}
 	else
 	{
-		this.Set_Columns_Num(ColumnsProps.get_Num());
-		this.Set_Columns_Space(ColumnsProps.get_Space());
+		this.Set_Columns_Num(oColumnsProps.get_Num());
+		this.Set_Columns_Space(oColumnsProps.get_Space());
 	}
 
-	this.Set_Columns_Sep(ColumnsProps.get_Sep());
+	this.Set_Columns_Sep(oColumnsProps.get_Sep());
 };
+CSectionPr.prototype.IsEqualColumnProps = function(oColumnsProps)
+{
+	if (oColumnsProps.get_Sep() !== this.Get_ColumnsSep() || oColumnsProps.get_EqualWidth() !== this.IsEqualColumnWidth())
+		return false;
+
+	if (this.IsEqualColumnWidth())
+	{
+		if (this.GetColumnsCount() !== oColumnsProps.get_Num()
+			|| Math.abs(this.GetColumnSpace() - oColumnsProps.get_Space()) > 0.01763)
+			return false;
+	}
+	else
+	{
+		var nColumnsCount = oColumnsProps.get_ColsCount();
+		if (nColumnsCount !== this.GetColumnsCount())
+			return false;
+
+		for (var nIndex = 0; nIndex < nColumnsCount; ++nIndex)
+		{
+			var oCol = oColumnsProps.get_Col(nIndex);
+			if (Math.abs(this.GetColumnWidth(nIndex) - oCol.get_W()) > 0.01763
+				|| this.GetColumnSpace(nIndex) !== oCol.get_Space())
+				return false;
+		}
+	}
+
+	return true;
+};
+CSectionPr.prototype.SetGutter = function(nGutter)
+{
+	if (Math.abs(nGutter - this.PageMargins.Gutter) > 0.001)
+	{
+		History.Add(new CChangesSectionPageMarginsGutter(this, this.PageMargins.Gutter, nGutter));
+		this.PageMargins.Gutter = nGutter;
+	}
+};
+CSectionPr.prototype.GetGutter = function()
+{
+	return this.PageMargins.Gutter;
+};
+CSectionPr.prototype.SetGutterRTL = function(isRTL)
+{
+	if (isRTL !== this.GutterRTL)
+	{
+		History.Add(new CChangesSectionGutterRTL(this, this.GutterRTL, isRTL));
+		this.GutterRTL = isRTL;
+	}
+};
+CSectionPr.prototype.IsGutterRTL = function()
+{
+	return this.GutterRTL;
+};
+CSectionPr.prototype.SetPageMargins = function(_L, _T, _R, _B)
+{
+	// Значения могут прийти как undefined, в этом случае мы поля со значением undefined не меняем
+	var L = ( undefined !== _L ? _L : this.PageMargins.Left );
+	var T = ( undefined !== _T ? _T : this.PageMargins.Top );
+	var R = ( undefined !== _R ? _R : this.PageMargins.Right );
+	var B = ( undefined !== _B ? _B : this.PageMargins.Bottom );
+
+	if (Math.abs(L - this.PageMargins.Left) > 0.001 || Math.abs(T - this.PageMargins.Top) > 0.001 || Math.abs(R - this.PageMargins.Right) > 0.001 || Math.abs(B - this.PageMargins.Bottom) > 0.001)
+	{
+		History.Add(new CChangesSectionPageMargins(this, {
+			L : this.PageMargins.Left,
+			T : this.PageMargins.Top,
+			R : this.PageMargins.Right,
+			B : this.PageMargins.Bottom
+		}, {L : L, T : T, R : R, B : B}));
+
+		this.PageMargins.Left   = L;
+		this.PageMargins.Top    = T;
+		this.PageMargins.Right  = R;
+		this.PageMargins.Bottom = B;
+	}
+};
+CSectionPr.prototype.GetPageMarginLeft = function()
+{
+	return this.PageMargins.Left;
+};
+CSectionPr.prototype.GetPageMarginRight = function()
+{
+	return this.PageMargins.Right;
+};
+CSectionPr.prototype.GetPageMarginTop = function()
+{
+	return this.PageMargins.Top;
+};
+CSectionPr.prototype.GetPageMarginBottom = function()
+{
+	return this.PageMargins.Bottom;
+};
+CSectionPr.prototype.SetPageSize = function(W, H)
+{
+	if (Math.abs(W - this.PageSize.W) > 0.001 || Math.abs(H - this.PageSize.H) > 0.001)
+	{
+		H = Math.max(2.6, H);
+		W = Math.max(12.7, W);
+
+		History.Add(new CChangesSectionPageSize(this, {W : this.PageSize.W, H : this.PageSize.H}, {W : W, H : H}));
+
+		this.PageSize.W = W;
+		this.PageSize.H = H;
+	}
+};
+CSectionPr.prototype.GetPageWidth = function()
+{
+	return this.PageSize.W;
+};
+CSectionPr.prototype.GetPageHeight = function()
+{
+	return this.PageSize.H;
+};
+CSectionPr.prototype.SetOrientation = function(Orient, ApplySize)
+{
+	var _Orient = this.GetOrientation();
+	if (_Orient !== Orient)
+	{
+		History.Add(new CChangesSectionPageOrient(this, this.PageSize.Orient, Orient));
+		this.PageSize.Orient = Orient;
+
+		if (true === ApplySize)
+		{
+			// При смене ориентации меняем местами высоту и ширину страницы и изменяем отступы
+
+			var W = this.PageSize.W;
+			var H = this.PageSize.H;
+
+			var L = this.PageMargins.Left;
+			var R = this.PageMargins.Right;
+			var T = this.PageMargins.Top;
+			var B = this.PageMargins.Bottom;
+
+			this.SetPageSize(H, W);
+
+			if (Asc.c_oAscPageOrientation.PagePortrait === Orient)
+				this.SetPageMargins(T, R, B, L);
+			else
+				this.SetPageMargins(B, L, T, R);
+		}
+	}
+};
+CSectionPr.prototype.GetOrientation = function()
+{
+	if (this.PageSize.W > this.PageSize.H)
+		return Asc.c_oAscPageOrientation.PageLandscape;
+
+	return Asc.c_oAscPageOrientation.PagePortrait;
+};
+CSectionPr.prototype.GetColumnsCount = function()
+{
+	return this.Columns.Get_Count();
+};
+CSectionPr.prototype.GetColumnWidth = function(nColIndex)
+{
+	return this.Columns.Get_ColumnWidth(nColIndex);
+};
+CSectionPr.prototype.GetColumnSpace = function(nColIndex)
+{
+	return this.Columns.Get_ColumnSpace(nColIndex);
+};
+CSectionPr.prototype.GetColumnSep = function()
+{
+	return this.Columns.Sep;
+};
+CSectionPr.prototype.IsEqualColumnWidth = function()
+{
+	return this.Columns.EqualWidth;
+};
+CSectionPr.prototype.SetBordersOffsetFrom = function(nOffsetFrom)
+{
+	if (nOffsetFrom !== this.Borders.OffsetFrom)
+	{
+		History.Add(new CChangesSectionBordersOffsetFrom(this, this.Borders.OffsetFrom, nOffsetFrom));
+		this.Borders.OffsetFrom = nOffsetFrom;
+	}
+};
+CSectionPr.prototype.GetBordersOffsetFrom = function()
+{
+	return this.Borders.OffsetFrom;
+};
+CSectionPr.prototype.SetPageMarginHeader = function(nHeader)
+{
+	if (nHeader !== this.PageMargins.Header)
+	{
+		History.Add(new CChangesSectionPageMarginsHeader(this, this.PageMargins.Header, nHeader));
+		this.PageMargins.Header = nHeader;
+	}
+};
+CSectionPr.prototype.GetPageMarginHeader = function()
+{
+	return this.PageMargins.Header;
+};
+CSectionPr.prototype.SetPageMarginFooter = function(nFooter)
+{
+	if (nFooter !== this.PageMargins.Footer)
+	{
+		History.Add(new CChangesSectionPageMarginsFooter(this, this.PageMargins.Footer, nFooter));
+		this.PageMargins.Footer = nFooter;
+	}
+};
+CSectionPr.prototype.GetPageMarginFooter = function()
+{
+	return this.PageMargins.Footer;
+};
+/**
+ * Получаем границы для расположения содержимого документа на заданной страницы
+ * @param nPageAbs {number}
+ * @returns {{Left: number, Top: number, Right: number, Bottom: number}}
+ */
+CSectionPr.prototype.GetContentFrame = function(nPageAbs)
+{
+	var nT = this.GetPageMarginTop();
+	var nB = this.GetPageHeight() - this.GetPageMarginBottom();
+	var nL = this.GetPageMarginLeft();
+	var nR = this.GetPageWidth() - this.GetPageMarginRight();
+
+	if (nT < 0)
+		nT = -nT;
+
+	if (this.LogicDocument && this.LogicDocument.IsMirrorMargins() && 1 === nPageAbs % 2)
+	{
+		nL = this.GetPageMarginRight();
+		nR = this.GetPageWidth() - this.GetPageMarginLeft();
+	}
+
+	var nGutter = this.GetGutter();
+	if (nGutter > 0.001)
+	{
+		if (this.LogicDocument && this.LogicDocument.IsGutterAtTop())
+		{
+			nT += nGutter;
+		}
+		else
+		{
+			if (this.LogicDocument && this.LogicDocument.IsMirrorMargins() && 1 === nPageAbs % 2)
+			{
+				if (this.IsGutterRTL())
+					nL += nGutter;
+				else
+					nR -= nGutter;
+			}
+			else
+			{
+				if (this.IsGutterRTL())
+					nR -= nGutter;
+				else
+					nL += nGutter;
+			}
+		}
+	}
+
+	return {
+		Left   : nL,
+		Top    : nT,
+		Right  : nR,
+		Bottom : nB
+	};
+};
+/**
+ * Получаем ширину области для расположения содержимого документа
+ * @returns {number}
+ */
+CSectionPr.prototype.GetContentFrameWidth = function()
+{
+	var nFrameWidth = this.GetPageWidth() - this.GetPageMarginLeft() - this.GetPageMarginRight();
+
+	var nGutter = this.GetGutter();
+	if (nGutter > 0.001 && !(this.LogicDocument && this.LogicDocument.IsGutterAtTop()))
+		nFrameWidth -= nGutter;
+
+	return nFrameWidth;
+};
+/**
+ * Получаем высоту области для расположения содержимого документа
+ * @returns {number}
+ */
+CSectionPr.prototype.GetContentFrameHeight = function()
+{
+	var nFrameHeight = this.GetPageHeight() - this.GetPageMarginTop() - this.GetPageMarginBottom();
+
+	var nGutter = this.GetGutter();
+	if (nGutter > 0.001 && this.LogicDocument && this.LogicDocument.IsGutterAtTop())
+		nFrameHeight -= nGutter;
+
+	return nFrameHeight;
+};
+/**
+ * Есть ли нумерация строк
+ * @returns {boolean}
+ */
+CSectionPr.prototype.HaveLineNumbers = function()
+{
+	return (undefined !== this.LnNumType && undefined !== this.LnNumType.CountBy && this.LnNumType.GetStart() >= 0);
+};
+/**
+ * Добавляем или меняем нумерацию строк
+ * @param nCountBy
+ * @param nDistance
+ * @param nStart
+ * @param nRestartType
+ */
+CSectionPr.prototype.SetLineNumbers = function(nCountBy, nDistance, nStart, nRestartType)
+{
+	if (!this.HaveLineNumbers()
+		|| nCountBy !== this.GetLineNumbersCountBy()
+		|| nDistance !== this.GetLineNumbersDistance()
+		|| nStart !== this.GetLineNumbersStart()
+		|| nRestartType !== this.GetLineNumbersRestart()
+	)
+	{
+		var oLnNumType = new CSectionLnNumType(nCountBy, nDistance, nStart, nRestartType);
+		History.Add(new CChangesSectionLnNumType(this, this.LnNumType, oLnNumType));
+		this.LnNumType = oLnNumType;
+	}
+};
+/**
+ * Получаем класс с настройками нумерации строк
+ * @returns {?CSectionLnNumType}
+ */
+CSectionPr.prototype.GetLineNumbers = function()
+{
+	if (this.HaveLineNumbers())
+		return this.LnNumType;
+
+	return undefined;
+};
+/**
+ * Убираем нумерацию строк
+ */
+CSectionPr.prototype.RemoveLineNumbers = function()
+{
+	if (this.LnNumType)
+	{
+		History.Add(new CChangesSectionLnNumType(this, this.LnNumType, undefined));
+		this.LnNumType = undefined;
+	}
+};
+CSectionPr.prototype.GetLineNumbersCountBy = function()
+{
+	return (this.LnNumType && undefined !== this.LnNumType.CountBy ? this.LnNumType.CountBy : 1);
+};
+CSectionPr.prototype.GetLineNumbersStart = function()
+{
+	return (this.LnNumType && undefined !== this.LnNumType.GetStart() ? this.LnNumType.GetStart() : 0);
+};
+CSectionPr.prototype.GetLineNumbersRestart = function()
+{
+	return (this.LnNumType && undefined !== this.LnNumType.Restart ? this.LnNumType.Restart : Asc.c_oAscLineNumberRestartType.NewPage);
+};
+CSectionPr.prototype.GetLineNumbersDistance = function()
+{
+	return (this.LnNumType ? this.LnNumType.Distance : undefined);
+};
+
 
 function CSectionPageSize()
 {
@@ -1089,46 +1389,46 @@ function CSectionPageMargins()
     this.Top    = 20; // 2 cm
     this.Right  = 15; // 1.5 cm
     this.Bottom = 20; // 2 cm
+	this.Gutter = 0;  // 0 cm
     
     this.Header = 12.5; // 1.25 cm
     this.Footer = 12.5; // 1.25 cm
 }
 
-CSectionPageMargins.prototype =
+CSectionPageMargins.prototype.Write_ToBinary = function(Writer)
 {
-    Write_ToBinary : function(Writer)
-    {
-        // Double : Left
-        // Double : Top
-        // Double : Right
-        // Double : Bottom
-        // Double : Header
-        // Double : Footer        
+	// Double : Left
+	// Double : Top
+	// Double : Right
+	// Double : Bottom
+	// Double : Header
+	// Double : Footer
 
-        Writer.WriteDouble( this.Left );
-        Writer.WriteDouble( this.Top );
-        Writer.WriteDouble( this.Right );
-        Writer.WriteDouble( this.Bottom );
-        Writer.WriteDouble( this.Header );
-        Writer.WriteDouble( this.Footer );
-    },
+	Writer.WriteDouble(this.Left);
+	Writer.WriteDouble(this.Top);
+	Writer.WriteDouble(this.Right);
+	Writer.WriteDouble(this.Bottom);
+	Writer.WriteDouble(this.Header);
+	Writer.WriteDouble(this.Footer);
+	Writer.WriteDouble(this.Gutter);
+};
+CSectionPageMargins.prototype.Read_FromBinary = function(Reader)
+{
+	// Double : Left
+	// Double : Top
+	// Double : Right
+	// Double : Bottom
+	// Double : Header
+	// Double : Footer
+	// Double : Gutter
 
-    Read_FromBinary : function(Reader)
-    {
-        // Double : Left
-        // Double : Top
-        // Double : Right
-        // Double : Bottom
-        // Double : Header
-        // Double : Footer        
-
-        this.Left   = Reader.GetDouble();
-        this.Top    = Reader.GetDouble();
-        this.Right  = Reader.GetDouble();
-        this.Bottom = Reader.GetDouble();
-        this.Header = Reader.GetDouble();
-        this.Footer = Reader.GetDouble();
-    }
+	this.Left   = Reader.GetDouble();
+	this.Top    = Reader.GetDouble();
+	this.Right  = Reader.GetDouble();
+	this.Bottom = Reader.GetDouble();
+	this.Header = Reader.GetDouble();
+	this.Footer = Reader.GetDouble();
+	this.Gutter = Reader.GetDouble();
 };
 
 function CSectionBorders()
@@ -1139,7 +1439,7 @@ function CSectionBorders()
     this.Right      = new CDocumentBorder();
     
     this.Display    = section_borders_DisplayAllPages;
-    this.OffsetFrom = section_borders_OffsetFromPage;
+    this.OffsetFrom = section_borders_OffsetFromText;
     this.ZOrder     = section_borders_ZOrderFront;
 }
 
@@ -1335,10 +1635,8 @@ CSectionColumns.prototype.Get_ColumnWidth = function(ColIndex)
 {
 	if (true === this.EqualWidth)
 	{
-		var PageW   = this.SectPr.Get_PageWidth();
-		var MarginL = this.SectPr.Get_PageMargin_Left();
-		var MarginR = this.SectPr.Get_PageMargin_Right();
-		return this.Num > 0 ? (PageW - MarginL - MarginR - this.Space * (this.Num - 1)) / this.Num : (PageW - MarginL - MarginR);
+		var nFrameW = this.SectPr.GetContentFrameWidth();
+		return this.Num > 0 ? (nFrameW - this.Space * (this.Num - 1)) / this.Num : nFrameW;
 	}
 	else
 	{
@@ -1401,7 +1699,14 @@ CFootnotePr.prototype.InitDefault = function()
 	this.NumFormat  = Asc.c_oAscNumberingFormat.Decimal;
 	this.NumRestart = section_footnote_RestartContinuous;
 	this.NumStart   = 1;
-	this.Pos        = section_footnote_PosPageBottom;
+	this.Pos        = Asc.c_oAscFootnotePos && Asc.c_oAscFootnotePos.PageBottom;
+};
+CFootnotePr.prototype.InitDefaultEndnotePr = function()
+{
+	this.NumFormat  = Asc.c_oAscNumberingFormat.LowerRoman;
+	this.NumRestart = section_footnote_RestartContinuous;
+	this.NumStart   = 1;
+	this.Pos        = Asc.c_oAscEndnotePos && Asc.c_oAscEndnotePos.DocEnd;
 };
 CFootnotePr.prototype.WriteToBinary = function(Writer)
 {
@@ -1463,7 +1768,136 @@ CFootnotePr.prototype.ReadFromBinary = function(Reader)
 		this.Pos = undefined;
 };
 
+function CSectionLnNumType(nCountBy, nDistance, nStart, nRestartType)
+{
+	// Если задан сам класс, но в нем не задан CountBy, считаем, что нумерация строк не задана. Поэтому
+	// по умолчанию задаем CountBy=1
+
+	this.CountBy  = undefined !== nCountBy ? nCountBy : 1;
+	this.Distance = undefined !== nDistance && null !== nDistance ? nDistance : undefined; // В твипсах
+	this.Start    = undefined !== nStart && 0 !== nStart ? nStart : undefined;
+	this.Restart  = undefined !== nRestartType && Asc.c_oAscLineNumberRestartType.NewPage !== nRestartType ? nRestartType : undefined;
+}
+CSectionLnNumType.prototype.Copy = function()
+{
+	return new CSectionLnNumType(this.CountBy, this.Distance, this.Start, this.Restart);
+};
+CSectionLnNumType.prototype.WriteToBinary = function(oWriter)
+{
+	var nStartPos = oWriter.GetCurPosition();
+	oWriter.Skip(4);
+	var nFlags = 0;
+
+	if (undefined !== this.CountBy)
+	{
+		oWriter.WriteLong(this.CountBy);
+		nFlags |= 1;
+	}
+
+	if (undefined !== this.Distance)
+	{
+		oWriter.WriteLong(this.Distance);
+		nFlags |= 2;
+	}
+
+	if (undefined !== this.Start)
+	{
+		oWriter.WriteLong(this.Start);
+		nFlags |= 4;
+	}
+
+	if (undefined !== this.Restart)
+	{
+		oWriter.WriteLong(this.Restart);
+		nFlags |= 8;
+	}
+
+	var nEndPos = oWriter.GetCurPosition();
+	oWriter.Seek(nStartPos);
+	oWriter.WriteLong(nFlags);
+	oWriter.Seek(nEndPos);
+};
+CSectionLnNumType.prototype.ReadFromBinary = function(oReader)
+{
+	var nFlags = oReader.GetLong();
+
+	if (nFlags & 1)
+		this.CountBy = oReader.GetLong();
+	else
+		this.CountBy = undefined;
+
+	if (nFlags & 2)
+		this.Distance = oReader.GetLong();
+	else
+		this.Distance = undefined;
+
+	if (nFlags & 4)
+		this.Start = oReader.GetLong();
+	else
+		this.Start = undefined;
+
+	if (nFlags & 8)
+		this.Restart = oReader.GetLong();
+	else
+		this.Restart = undefined;
+};
+CSectionLnNumType.prototype.Write_ToBinary = function(oWriter)
+{
+	this.WriteToBinary(oWriter);
+};
+CSectionLnNumType.prototype.Read_FromBinary = function(oReader)
+{
+	this.ReadFromBinary(oReader);
+};
+CSectionLnNumType.prototype.SetCountBy = function(nCountBy)
+{
+	this.CountBy = nCountBy;
+};
+CSectionLnNumType.prototype.GetCountBy = function()
+{
+	return this.CountBy;
+};
+CSectionLnNumType.prototype.SetDistance = function(nDistance)
+{
+	this.Distance = nDistance;
+};
+CSectionLnNumType.prototype.GetDistance = function()
+{
+	return this.Distance;
+};
+CSectionLnNumType.prototype.SetStart = function(nStart)
+{
+	this.Start = nStart;
+};
+CSectionLnNumType.prototype.GetStart = function()
+{
+	return undefined === this.Start ? 0 : this.Start;
+};
+CSectionLnNumType.prototype.SetRestart = function(nRestart)
+{
+	this.Restart = nRestart;
+};
+CSectionLnNumType.prototype.GetRestart = function()
+{
+	return (undefined === this.Restart ? Asc.c_oAscLineNumberRestartType.NewPage : this.Restart);
+};
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CSectionPr = CSectionPr;
+
+window['Asc']['CSectionLnNumType'] = window['Asc'].CSectionLnNumType = CSectionLnNumType;
+CSectionLnNumType.prototype["get_CountBy"]  = CSectionLnNumType.prototype.GetCountBy;
+CSectionLnNumType.prototype["put_CountBy"]  = CSectionLnNumType.prototype.SetCountBy;
+CSectionLnNumType.prototype["get_Distance"] = CSectionLnNumType.prototype.GetDistance;
+CSectionLnNumType.prototype["put_Distance"] = CSectionLnNumType.prototype.SetDistance;
+CSectionLnNumType.prototype["get_Start"]    = function()
+{
+	return undefined === this.Start ? 1 : this.Start + 1;
+};
+CSectionLnNumType.prototype["put_Start"]    = function(nStart)
+{
+	this.Start = nStart - 1;
+};
+CSectionLnNumType.prototype["get_Restart"]  = CSectionLnNumType.prototype.GetRestart;
+CSectionLnNumType.prototype["put_Restart"]  = CSectionLnNumType.prototype.SetRestart;

@@ -48,7 +48,7 @@ function (window, undefined)
 	{
 		this.Name = "cell";
 		this.WB = _manager.Api.wb;
-		this.DrawingDocument = this.WB.model.aWorksheets[0].DrawingDocument;
+		this.DrawingDocument = this.WB.model.getDrawingDocument();
 
 		this.Offset = { X: 0, Y: 0};
 		this.Size = { W : 0, H : 0 };
@@ -995,8 +995,10 @@ function (window, undefined)
 		if (!this.SelectEnabled)
 			return;
 
-		if (color !== undefined)
-			overlay.Clear();
+		if(!overlay)
+		{
+			return;
+		}
 
 		this.CheckSelectRects();
 		if (null == this.RectSelect1 || null == this.RectSelect2)

@@ -37,30 +37,36 @@
  * Time: 13:02
  */
 
-AscDFH.changesFactory[AscDFH.historyitem_Document_AddItem]           = CChangesDocumentAddItem;
-AscDFH.changesFactory[AscDFH.historyitem_Document_RemoveItem]        = CChangesDocumentRemoveItem;
-AscDFH.changesFactory[AscDFH.historyitem_Document_DefaultTab]        = CChangesDocumentDefaultTab;
-AscDFH.changesFactory[AscDFH.historyitem_Document_EvenAndOddHeaders] = CChangesDocumentEvenAndOddHeaders;
-AscDFH.changesFactory[AscDFH.historyitem_Document_DefaultLanguage]   = CChangesDocumentDefaultLanguage;
-AscDFH.changesFactory[AscDFH.historyitem_Document_MathSettings]      = CChangesDocumentMathSettings;
-AscDFH.changesFactory[AscDFH.historyitem_Document_SdtGlobalSettings] = CChangesDocumentSdtGlobalSettings;
+AscDFH.changesFactory[AscDFH.historyitem_Document_AddItem]                    = CChangesDocumentAddItem;
+AscDFH.changesFactory[AscDFH.historyitem_Document_RemoveItem]                 = CChangesDocumentRemoveItem;
+AscDFH.changesFactory[AscDFH.historyitem_Document_DefaultTab]                 = CChangesDocumentDefaultTab;
+AscDFH.changesFactory[AscDFH.historyitem_Document_EvenAndOddHeaders]          = CChangesDocumentEvenAndOddHeaders;
+AscDFH.changesFactory[AscDFH.historyitem_Document_DefaultLanguage]            = CChangesDocumentDefaultLanguage;
+AscDFH.changesFactory[AscDFH.historyitem_Document_MathSettings]               = CChangesDocumentMathSettings;
+AscDFH.changesFactory[AscDFH.historyitem_Document_SdtGlobalSettings]          = CChangesDocumentSdtGlobalSettings;
+AscDFH.changesFactory[AscDFH.historyitem_Document_Settings_GutterAtTop]       = CChangesDocumentSettingsGutterAtTop;
+AscDFH.changesFactory[AscDFH.historyitem_Document_Settings_MirrorMargins]     = CChangesDocumentSettingsMirrorMargins;
+AscDFH.changesFactory[AscDFH.historyitem_Document_SpecialFormsGlobalSettings] = CChangesDocumentSpecialFormsGlobalSettings;
 
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
 //----------------------------------------------------------------------------------------------------------------------
-AscDFH.changesRelationMap[AscDFH.historyitem_Document_AddItem]           = [
+AscDFH.changesRelationMap[AscDFH.historyitem_Document_AddItem]                = [
 	AscDFH.historyitem_Document_AddItem,
 	AscDFH.historyitem_Document_RemoveItem
 ];
-AscDFH.changesRelationMap[AscDFH.historyitem_Document_RemoveItem]        = [
+AscDFH.changesRelationMap[AscDFH.historyitem_Document_RemoveItem]             = [
 	AscDFH.historyitem_Document_AddItem,
 	AscDFH.historyitem_Document_RemoveItem
 ];
-AscDFH.changesRelationMap[AscDFH.historyitem_Document_DefaultTab]        = [AscDFH.historyitem_Document_DefaultTab];
-AscDFH.changesRelationMap[AscDFH.historyitem_Document_EvenAndOddHeaders] = [AscDFH.historyitem_Document_EvenAndOddHeaders];
-AscDFH.changesRelationMap[AscDFH.historyitem_Document_DefaultLanguage]   = [AscDFH.historyitem_Document_DefaultLanguage];
-AscDFH.changesRelationMap[AscDFH.historyitem_Document_MathSettings]      = [AscDFH.historyitem_Document_MathSettings];
-AscDFH.changesRelationMap[AscDFH.historyitem_Document_SdtGlobalSettings] = [AscDFH.historyitem_Document_SdtGlobalSettings];
+AscDFH.changesRelationMap[AscDFH.historyitem_Document_DefaultTab]                 = [AscDFH.historyitem_Document_DefaultTab];
+AscDFH.changesRelationMap[AscDFH.historyitem_Document_EvenAndOddHeaders]          = [AscDFH.historyitem_Document_EvenAndOddHeaders];
+AscDFH.changesRelationMap[AscDFH.historyitem_Document_DefaultLanguage]            = [AscDFH.historyitem_Document_DefaultLanguage];
+AscDFH.changesRelationMap[AscDFH.historyitem_Document_MathSettings]               = [AscDFH.historyitem_Document_MathSettings];
+AscDFH.changesRelationMap[AscDFH.historyitem_Document_SdtGlobalSettings]          = [AscDFH.historyitem_Document_SdtGlobalSettings];
+AscDFH.changesRelationMap[AscDFH.historyitem_Document_Settings_GutterAtTop]       = [AscDFH.historyitem_Document_Settings_GutterAtTop];
+AscDFH.changesRelationMap[AscDFH.historyitem_Document_Settings_MirrorMargins]     = [AscDFH.historyitem_Document_Settings_MirrorMargins];
+AscDFH.changesRelationMap[AscDFH.historyitem_Document_SpecialFormsGlobalSettings] = [AscDFH.historyitem_Document_SpecialFormsGlobalSettings];
 //----------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -196,6 +202,12 @@ CChangesDocumentAddItem.prototype.Load = function(Color)
 			oDocument.private_ReindexContent(Pos);
 
 			AscCommon.CollaborativeEditing.Update_DocumentPositionsOnAdd(oDocument, Pos);
+
+			if (Element.IsParagraph())
+			{
+				Element.RecalcCompiledPr(true);
+				Element.UpdateDocumentOutline();
+			}
 		}
 	}
 };
@@ -308,6 +320,15 @@ CChangesDocumentRemoveItem.prototype.Load = function(Color)
 		var Elements = oDocument.Content.splice(Pos, 1);
 		oDocument.private_RecalculateNumbering(Elements);
 		AscCommon.CollaborativeEditing.Update_DocumentPositionsOnRemove(oDocument, Pos, 1);
+
+		for (var nElementIndex = 0; nElementIndex < Elements.length; ++nElementIndex)
+		{
+			if (Elements[nElementIndex].IsParagraph())
+			{
+				Elements[nElementIndex].RecalcCompiledPr(true);
+				Elements[nElementIndex].UpdateDocumentOutline();
+			}
+		}
 
 		if (Pos > 0)
 		{
@@ -540,6 +561,63 @@ CChangesDocumentSdtGlobalSettings.prototype.private_CreateObject = function()
 	return new CSdtGlobalSettings();
 };
 CChangesDocumentSdtGlobalSettings.prototype.private_IsCreateEmptyObject = function()
+{
+	return true;
+};
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseBoolProperty}
+ */
+function CChangesDocumentSettingsGutterAtTop(Class, Old, New)
+{
+	AscDFH.CChangesBaseBoolProperty.call(this, Class, Old, New);
+}
+CChangesDocumentSettingsGutterAtTop.prototype = Object.create(AscDFH.CChangesBaseBoolProperty.prototype);
+CChangesDocumentSettingsGutterAtTop.prototype.constructor = CChangesDocumentSettingsGutterAtTop;
+CChangesDocumentSettingsGutterAtTop.prototype.Type = AscDFH.historyitem_Document_Settings_GutterAtTop;
+CChangesDocumentSettingsGutterAtTop.prototype.private_SetValue = function(Value)
+{
+	this.Class.Settings.GutterAtTop = Value;
+};
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseBoolProperty}
+ */
+function CChangesDocumentSettingsMirrorMargins(Class, Old, New)
+{
+	AscDFH.CChangesBaseBoolProperty.call(this, Class, Old, New);
+}
+CChangesDocumentSettingsMirrorMargins.prototype = Object.create(AscDFH.CChangesBaseBoolProperty.prototype);
+CChangesDocumentSettingsMirrorMargins.prototype.constructor = CChangesDocumentSettingsMirrorMargins;
+CChangesDocumentSettingsMirrorMargins.prototype.Type = AscDFH.historyitem_Document_Settings_MirrorMargins;
+CChangesDocumentSettingsMirrorMargins.prototype.private_SetValue = function(Value)
+{
+	this.Class.Settings.MirrorMargins = Value;
+};
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseObjectProperty}
+ */
+function CChangesDocumentSpecialFormsGlobalSettings(Class, Old, New)
+{
+	AscDFH.CChangesBaseObjectProperty.call(this, Class);
+
+	this.Old = Old;
+	this.New = New;
+}
+CChangesDocumentSpecialFormsGlobalSettings.prototype = Object.create(AscDFH.CChangesBaseObjectProperty.prototype);
+CChangesDocumentSpecialFormsGlobalSettings.prototype.constructor = CChangesDocumentSpecialFormsGlobalSettings;
+CChangesDocumentSpecialFormsGlobalSettings.prototype.Type = AscDFH.historyitem_Document_SpecialFormsGlobalSettings;
+CChangesDocumentSpecialFormsGlobalSettings.prototype.private_SetValue = function(Value)
+{
+	this.Class.Settings.SpecialFormsSettings = Value;
+	this.Class.OnChangeSpecialFormsGlobalSettings();
+};
+CChangesDocumentSpecialFormsGlobalSettings.prototype.private_CreateObject = function()
+{
+	return new CSpecialFormsGlobalSettings();
+};
+CChangesDocumentSpecialFormsGlobalSettings.prototype.private_IsCreateEmptyObject = function()
 {
 	return true;
 };

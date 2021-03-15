@@ -326,8 +326,7 @@ CShapeDrawer.prototype =
             var _arr = AscCommon.DashPatternPresets[this.Ln.prstDash].slice();
             for (var indexD = 0; indexD < _arr.length; indexD++)
                 _arr[indexD] *= this.StrokeWidth;
-         
-            //  this.Graphics.p_dash(_arr);
+            // this.NativeGraphics["PD_p_dash"](_arr);
         }
     },
     
@@ -425,11 +424,15 @@ CShapeDrawer.prototype =
 
         if (this.Ln == null || this.Ln.Fill == null || this.Ln.Fill.fill == null)
         {
-            this.bIsNoStrokeAttack = true;
-            if (true === graphics.IsTrack)
-                graphics.Graphics.ArrayPoints = null;
-            else
+            this.bIsNoStrokeAttack = true;            
+            if (true === graphics.IsTrack) {
+                if (graphics.Graphics != undefined && graphics.Graphics != null) {
+                   graphics.Graphics.ArrayPoints = null;
+                }
+            
+            } else {
                 graphics.ArrayPoints = null;
+            }
         }
         else
         {
@@ -494,6 +497,8 @@ CShapeDrawer.prototype =
 			
             this.p_width(1000 * this.StrokeWidth);
 
+            this.CheckDash();
+
 			if (graphics.IsSlideBoundsCheckerType && !this.bIsNoStrokeAttack)
                 graphics.LineWidth = this.StrokeWidth;
 
@@ -552,10 +557,12 @@ CShapeDrawer.prototype =
 	        {
 	            this.Graphics.CorrectBounds2();
 	        }
+
 			return;
 		}
 
         this.NativeGraphics["PD_StartShapeDraw"](this.IsRectShape);
+        
         if(geom)
         {
             geom.draw(this);
@@ -572,6 +579,7 @@ CShapeDrawer.prototype =
             this._e();
         }
         this.NativeGraphics["PD_EndShapeDraw"]();
+        // this.NativeGraphics["PD_p_dash"]([]);
     },
 
     drawPDF : function(geom)
@@ -790,8 +798,8 @@ CShapeDrawer.prototype =
                 if (undefined == _patt_name)
                     _patt_name = "cross";
 
-                var _fc = _fill.fgClr.RGBA;
-                var _bc = _fill.bgClr.RGBA;
+                var _fc = _fill.fgClr && _fill.fgClr.RGBA || {R: 0, G: 0, B: 0, A: 255};
+                var _bc = _fill.bgClr && _fill.bgClr.RGBA || {R: 255, G: 255, B: 255, A: 255};
 
                 var __fa = (null === this.UniFill.transparent) ? _fc.A : 255;
                 var __ba = (null === this.UniFill.transparent) ? _bc.A : 255;
@@ -874,6 +882,7 @@ CShapeDrawer.prototype =
         if (arr != undefined && arr != null && arr.length > 1 && this.IsCurrentPathCanArrows === true)
         {
             this.IsArrowsDrawing = true;
+            // this.NativeGraphics["PD_p_dash"]([]);
             // значит стрелки есть. теперь:
             // определяем толщину линии "как есть"
             // трансформируем точки в окончательные.
@@ -964,6 +973,7 @@ CShapeDrawer.prototype =
                 }
             }
             this.IsArrowsDrawing = false;
+            this.CheckDash();
         }
     },
 
@@ -1055,8 +1065,8 @@ CShapeDrawer.prototype =
                     if (undefined == _patt_name)
                         _patt_name = "cross";
 
-                    var _fc = _fill.fgClr.RGBA;
-                    var _bc = _fill.bgClr.RGBA;
+                    var _fc = _fill.fgClr.RGBA || {R: 0, G: 0, B: 0, A: 255};
+                    var _bc = _fill.bgClr.RGBA || {R: 255, G: 255, B: 255, A: 255};
 
                     var __fa = (null === this.UniFill.transparent) ? _fc.A : 255;
                     var __ba = (null === this.UniFill.transparent) ? _bc.A : 255;
@@ -1181,6 +1191,7 @@ CShapeDrawer.prototype =
         if (arr != null && arr.length > 1 && this.IsCurrentPathCanArrows === true)
         {
             this.IsArrowsDrawing = true;
+            // this.NativeGraphics["PD_p_dash"]([]);
             // значит стрелки есть. теперь:
             // определяем толщину линии "как есть"
             // трансформируем точки в окончательные.

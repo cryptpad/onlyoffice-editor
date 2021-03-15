@@ -48,18 +48,20 @@ var AscBrowser = {
     isGecko : false,
     isChrome : false,
     isOpera : false,
-	isOperaOld : false,
+    isOperaOld : false,
     isWebkit : false,
     isSafari : false,
     isArm : false,
     isMozilla : false,
-	isRetina : false,
+    isRetina : false,
     isLinuxOS : false,
-	retinaPixelRatio : 1,
-	isVivaldiLinux : false,
+    retinaPixelRatio : 1,
+    isVivaldiLinux : false,
     isSailfish : false,
     isEmulateDevicePixelRatio : false,
-    isNeedEmulateUpload : false
+    isNeedEmulateUpload : false,
+    chromeVersion : 70,
+    iosVersion : 13
 };
 
 // user agent lower case
@@ -68,7 +70,7 @@ AscBrowser.userAgent = navigator.userAgent.toLowerCase();
 // ie detect
 AscBrowser.isIE =  (AscBrowser.userAgent.indexOf("msie") > -1 ||
                     AscBrowser.userAgent.indexOf("trident") > -1 ||
-					AscBrowser.userAgent.indexOf("edge") > -1);
+                    AscBrowser.userAgent.indexOf("edge") > -1);
 
 AscBrowser.isIeEdge = (AscBrowser.userAgent.indexOf("edge/") > -1);
 
@@ -80,6 +82,12 @@ AscBrowser.isMacOs = (AscBrowser.userAgent.indexOf('mac') > -1);
 
 // chrome detect
 AscBrowser.isChrome = !AscBrowser.isIE && (AscBrowser.userAgent.indexOf("chrome") > -1);
+if (AscBrowser.isChrome)
+{
+    var checkVersion = AscBrowser.userAgent.match(/chrom(e|ium)\/([0-9]+)\./);
+    if (checkVersion && checkVersion[2])
+        AscBrowser.chromeVersion = parseInt(checkVersion[2], 10);
+}
 
 // safari detect
 AscBrowser.isSafari = !AscBrowser.isIE && !AscBrowser.isChrome && (AscBrowser.userAgent.indexOf("safari") > -1);
@@ -91,6 +99,24 @@ AscBrowser.isSafariMacOs = (AscBrowser.isSafari && AscBrowser.isMacOs);
 AscBrowser.isAppleDevices = (AscBrowser.userAgent.indexOf("ipad") > -1 ||
                              AscBrowser.userAgent.indexOf("iphone") > -1 ||
                              AscBrowser.userAgent.indexOf("ipod") > -1);
+if (!AscBrowser.isAppleDevices && AscBrowser.isSafariMacOs && navigator.platform === "MacIntel" && (navigator.maxTouchPoints > 1))
+	AscBrowser.isAppleDevices = true;
+
+if (AscBrowser.isAppleDevices)
+{
+	var iosversion = AscBrowser.iosVersion;
+	try
+	{
+		var v = (navigator.appVersion).match(/OS (\d+)_(\d+)_?(\d+)?/);
+		if (!v) v = (navigator.appVersion).match(/Version\/(\d+).(\d+)/);
+		//[parseInt(v[1], 10), parseInt(v[2], 10), parseInt(v[3] || 0, 10)];
+		iosversion = parseInt(v[1], 10);
+	}
+	catch (err)
+	{
+	}
+	AscBrowser.iosVersion = iosversion;
+}
 
 // android devices detect
 AscBrowser.isAndroid = (AscBrowser.userAgent.indexOf("android") > -1);

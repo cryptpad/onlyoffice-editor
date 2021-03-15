@@ -81,6 +81,21 @@ CChangesParaFieldAddItem.prototype.Redo = function()
 	oField.private_UpdateTrackRevisions();
 	oField.private_CheckUpdateBookmarks(this.Items);
 	oField.private_UpdateSpellChecking();
+
+	for (var nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
+	{
+		var oItem = this.Items[nIndex];
+		if (oItem.SetParagraph)
+		{
+			if (oField.GetParagraph)
+				oItem.SetParagraph(oField.GetParagraph());
+			else
+				oItem.SetParagraph(null);
+		}
+
+		if (oItem.SetParent)
+			oItem.SetParent(oField);
+	}
 };
 CChangesParaFieldAddItem.prototype.private_WriteItem = function(Writer, Item)
 {
@@ -100,6 +115,17 @@ CChangesParaFieldAddItem.prototype.Load = function(Color)
 
 		if (null != Element)
 		{
+			if (Element.SetParagraph)
+			{
+				if (oField.GetParagraph)
+					Element.SetParagraph(oField.GetParagraph());
+				else
+					Element.SetParagraph(null);
+			}
+
+			if (Element.SetParent)
+				Element.SetParent(oField);
+
 			oField.Content.splice(Pos, 0, Element);
 			AscCommon.CollaborativeEditing.Update_DocumentPositionsOnAdd(oField, Pos);
 		}
@@ -142,6 +168,21 @@ CChangesParaFieldRemoveItem.prototype.Undo = function()
 	oField.private_UpdateSpellChecking();
 	oField.private_CheckUpdateBookmarks(this.Items);
 	oField.private_UpdateTrackRevisions();
+
+	for (var nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
+	{
+		var oItem = this.Items[nIndex];
+		if (oItem.SetParagraph)
+		{
+			if (oField.GetParagraph)
+				oItem.SetParagraph(oField.GetParagraph());
+			else
+				oItem.SetParagraph(null);
+		}
+
+		if (oItem.SetParent)
+			oItem.SetParent(oField);
+	}
 };
 CChangesParaFieldRemoveItem.prototype.Redo = function()
 {

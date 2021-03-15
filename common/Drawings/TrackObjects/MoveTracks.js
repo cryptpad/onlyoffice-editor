@@ -49,7 +49,17 @@ function MoveShapeImageTrack(originalObject)
     this.lastDx = 0;
     this.lastDy = 0;
 
-    if(!originalObject.isChart())
+    var nObjectType = originalObject.getObjectType && originalObject.getObjectType();
+    if(nObjectType === AscDFH.historyitem_type_ChartSpace
+    || nObjectType === AscDFH.historyitem_type_GraphicFrame
+     || nObjectType === AscDFH.historyitem_type_SlicerView)
+    {
+
+        var pen_brush = AscFormat.CreatePenBrushForChartTrack();
+        this.brush = pen_brush.brush;
+        this.pen = pen_brush.pen;
+    }
+    else
     {
         if(originalObject.blipFill)
         {
@@ -61,12 +71,6 @@ function MoveShapeImageTrack(originalObject)
             this.brush = originalObject.brush;
         }
         this.pen = originalObject.pen;
-    }
-    else
-    {
-        var pen_brush = AscFormat.CreatePenBrushForChartTrack();
-        this.brush = pen_brush.brush;
-        this.pen = pen_brush.pen;
     }
     if(this.originalObject.cropObject && this.brush)
     {
@@ -287,6 +291,11 @@ function MoveShapeImageTrack(originalObject)
                         this.originalObject.transform = this.transform;
                         this.originalObject.invertTransform = AscCommon.global_MatrixTransformer.Invert(this.transform);
                         this.originalObject.calculateSrcRect();
+                        var oParaDrawing = this.originalObject.parent;
+                        if(oParaDrawing && oParaDrawing.Check_WrapPolygon)
+                        {
+                            oParaDrawing.Check_WrapPolygon();
+                        }
                     }
                     return;
                 }
@@ -549,15 +558,20 @@ function MoveComment(comment)
         this.y = original.y + dy;
     };
 
-    this.draw = function(overlay)
+    this.getFlags = function()
     {
-
         var Flags = 0;
         Flags |= 1;
         if(this.comment.Data.m_aReplies.length > 0)
         {
             Flags |= 2;
         }
+        return Flags;
+    };
+    
+    this.draw = function(overlay)
+    {
+        var Flags = this.getFlags();
         var dd = editor.WordControl.m_oDrawingDocument;
         overlay.DrawPresentationComment(Flags, this.x, this.y, dd.GetCommentWidth(Flags), dd.GetCommentHeight(Flags))
     };
@@ -569,6 +583,122 @@ function MoveComment(comment)
         }
         this.comment.setPosition(this.x, this.y);
     };
+    
+    this.getBounds = function()
+    {
+        var dd = editor.WordControl.m_oDrawingDocument;
+        var Flags = this.getFlags();
+        var W = dd.GetCommentWidth(Flags);
+        var H = dd.GetCommentHeight(Flags);
+        var boundsChecker = new  AscFormat.CSlideBoundsChecker();
+        boundsChecker.Bounds.min_x = this.x;
+        boundsChecker.Bounds.max_x = this.x + W;
+        boundsChecker.Bounds.min_y = this.y;
+        boundsChecker.Bounds.max_y = this.y + H;
+        boundsChecker.Bounds.posX = this.x;
+        boundsChecker.Bounds.posY = this.y;
+        boundsChecker.Bounds.extX = W;
+        boundsChecker.Bounds.extY = H;
+        return boundsChecker.Bounds;
+    };
+}
+
+function MoveChartObjectTrack(oObject, oChartSpace)
+{
+    this.bIsTracked = false;
+    this.originalObject = oObject;
+    this.x = oObject.x;
+    this.y = oObject.y;
+    this.chartSpace = oChartSpace;
+
+
+
+    this.transform = oObject.transform.CreateDublicate();
+
+    this.overlayObject = new AscFormat.OverlayObject(oObject.calcGeometry ? oObject.calcGeometry : AscFormat.ExecuteNoHistory(function () {
+            var geom = AscFormat.CreateGeometry("rect");
+            geom.Recalculate(oObject.extX, oObject.extY);
+            return geom;
+        }, this, []
+    ), oObject.extX, oObject.extY, oObject.brush, oObject.pen, this.transform);
+
+    this.track = function(dx, dy)
+    {
+        this.bIsTracked = true;
+        var original = this.originalObject;
+        this.x = original.x + dx;
+        this.y = original.y + dy;
+        this.transform.Reset();
+        this.transform.Translate(this.x, this.y, true);
+        this.transform.Multiply(this.chartSpace.transform);
+
+    };
+
+    this.draw = function(overlay)
+    {
+        if(AscFormat.isRealNumber(this.chartSpace.selectStartPage) && overlay.SetCurrentPage)
+        {
+            overlay.SetCurrentPage(this.chartSpace.selectStartPage);
+        }
+        this.overlayObject.draw(overlay);
+    };
+
+    this.trackEnd = function()
+    {
+        if(!this.bIsTracked)
+        {
+            return;
+        }
+
+        History.Create_NewPoint(1);
+        var oObjectToSet = null;
+        if(this.originalObject instanceof AscFormat.CDLbl)
+        {
+            oObjectToSet = this.originalObject.checkDlbl();
+        }
+        else
+        {
+            oObjectToSet = this.originalObject;
+        }
+        if(!oObjectToSet)
+        {
+            return;
+        }
+        if(!oObjectToSet.layout)
+        {
+            oObjectToSet.setLayout(new AscFormat.CLayout());
+        }
+        if(oObjectToSet.getObjectType() === AscDFH.historyitem_type_PlotArea)
+        {
+            oObjectToSet.layout.setLayoutTarget(AscFormat.LAYOUT_TARGET_INNER);
+            oObjectToSet.layout.setXMode(AscFormat.LAYOUT_MODE_EDGE);
+            oObjectToSet.layout.setYMode(AscFormat.LAYOUT_MODE_EDGE);
+            var fLayoutW = this.chartSpace.calculateLayoutBySize(this.resizedPosX, oObjectToSet.layout.wMode, this.chartSpace.extX, oObjectToSet.extX);
+            var fLayoutH = this.chartSpace.calculateLayoutBySize(this.resizedPosY, oObjectToSet.layout.hMode, this.chartSpace.extY, oObjectToSet.extY);
+            oObjectToSet.layout.setW(fLayoutW);
+            oObjectToSet.layout.setH(fLayoutH);
+        }
+        var pos = this.chartSpace.chartObj.recalculatePositionText(this.originalObject);
+        var fLayoutX = this.chartSpace.calculateLayoutByPos(pos.x, oObjectToSet.layout.xMode, this.x, this.chartSpace.extX);
+        var fLayoutY = this.chartSpace.calculateLayoutByPos(pos.y, oObjectToSet.layout.yMode, this.y, this.chartSpace.extY);
+
+        oObjectToSet.layout.setX(fLayoutX);
+        oObjectToSet.layout.setY(fLayoutY);
+    };
+    
+    this.getBounds = function ()
+    {
+        var boundsChecker = new  AscFormat.CSlideBoundsChecker();
+        boundsChecker.Bounds.min_x = this.x;
+        boundsChecker.Bounds.max_x = this.x + oObject.extX;
+        boundsChecker.Bounds.min_y = this.y;
+        boundsChecker.Bounds.max_y = this.y + oObject.extY;
+        boundsChecker.Bounds.posX = this.x;
+        boundsChecker.Bounds.posY = this.y;
+        boundsChecker.Bounds.extX = oObject.extX;
+        boundsChecker.Bounds.extY = oObject.extY;
+        return boundsChecker.Bounds;
+    };
 }
 
     //--------------------------------------------------------export----------------------------------------------------
@@ -576,4 +706,5 @@ function MoveComment(comment)
     window['AscFormat'].MoveShapeImageTrack = MoveShapeImageTrack;
     window['AscFormat'].MoveGroupTrack = MoveGroupTrack;
     window['AscFormat'].MoveComment = MoveComment;
+    window['AscFormat'].MoveChartObjectTrack = MoveChartObjectTrack;
 })(window);

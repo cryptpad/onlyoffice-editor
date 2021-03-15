@@ -83,6 +83,19 @@ CGraphicPage.prototype =
         this.flowTables.push(table);
     },
 
+	updateFloatTable: function(table)
+	{
+		for(var i = 0; i < this.flowTables.length; ++i)
+		{
+			if(this.flowTables[i].GetElement() === table.GetElement())
+			{
+				this.flowTables.splice(i, 1, table);
+				return;
+			}
+		}
+		this.flowTables.push(table);
+	},
+
     addObject: function(object)
     {
 
@@ -184,7 +197,7 @@ CGraphicPage.prototype =
     {
         for(var index = this.flowTables.length -1; index > -1; --index)
         {
-            if(this.flowTables[index].IsPointIn(x, y) && this.flowTables[index].Table.Parent === documentContent)
+            if(this.flowTables[index].IsPointIn(x, y) && this.flowTables[index].CheckDocumentContent(documentContent))
                 return this.flowTables[index];
         }
         return null;
@@ -234,14 +247,14 @@ CGraphicPage.prototype =
         }
         function findTableInArrayAndRemove(drawingArray, docContent, document)
         {
-            if(!docContent === document)
+            if(docContent === document)
             {
                 drawingArray.length = 0;
                 return;
             }
             for(var i = drawingArray.length-1; i >-1; --i)
             {
-                if(drawingArray[i].Table.Parent === docContent)
+                if(drawingArray[i].Table.Parent.GetDocumentContentForRecalcInfo() === docContent)
                     drawingArray.splice(i, 1);
             }
         }

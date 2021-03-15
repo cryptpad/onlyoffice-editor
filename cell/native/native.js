@@ -30,6 +30,8 @@
  *
  */
 
+var _internalStorage = {};
+
 function asc_menu_ReadColor(_params, _cursor) {
     var _color = new Asc.asc_CColor();
     var _continue = true;
@@ -1383,7 +1385,7 @@ function asc_menu_ReadChartPr(_params, _cursor){
             }
             case 18:
             {
-                _settings.range = _params[_cursor.pos++];
+                _settings.putRange(_params[_cursor.pos++]);
                 break;
             }
             case 19:
@@ -1528,11 +1530,16 @@ function asc_menu_WriteChartPr(_type, _chartPr, _stream){
         && _chartPr.vertAxisProps.getAxisType() == Asc.c_oAscAxisType.val) {
         asc_menu_WriteAscValAxisSettings(17, _chartPr.vertAxisProps, _stream);
     }
-    
-    if (_chartPr.range !== undefined && _chartPr.range !== null)
+    var sRange = null;
+    sRange = _chartPr.getRange();
+    if(!sRange)
+    {
+        sRange = _chartPr.aRanges[0];
+    }
+    if (sRange !== undefined && sRange !== null)
     {
         _stream["WriteByte"](18);
-        _stream["WriteString2"](_chartPr.range);
+        _stream["WriteString2"](sRange);
     }
     
     if (_chartPr.inColumns !== undefined && _chartPr.inColumns !== null)
@@ -2128,7 +2135,14 @@ function asc_ReadCBorder(s, p) {
         {
             case 0:
             {
-                style = s[p.pos++];
+                var type = s[p.pos++];
+                if (type == "thin") {
+                    style = Asc.c_oAscBorderStyles.Thin;
+                } else if (type == "medium") {
+                    style = Asc.c_oAscBorderStyles.Medium; 
+                } else if (type == "thick") {
+                    style = Asc.c_oAscBorderStyles.Thick; 
+                }
                 break;
             }
             case 1:
@@ -2731,18 +2745,16 @@ function asc_WriteCFont(i, c, s) {
     if (i !== -1) s['WriteByte'](i);
     
     s['WriteByte'](0);
-    s['WriteString2'](c.asc_getName());
-    s['WriteDouble2'](c.asc_getSize());
-    s['WriteBool'](c.asc_getBold());
-    s['WriteBool'](c.asc_getItalic());
-    s['WriteBool'](c.asc_getUnderline());
-    s['WriteBool'](c.asc_getStrikeout());
-    s['WriteBool'](c.asc_getSubscript());
-    s['WriteBool'](c.asc_getSuperscript());
-    
-    if (c.asc_getColor()) {
-        asc_menu_WriteColor(1, c.asc_getColor(), s);
-    }
+    s['WriteString2'](c.asc_getFontName());
+    s['WriteDouble2'](c.asc_getFontSize());
+    s['WriteBool'](c.asc_getFontBold());
+    s['WriteBool'](c.asc_getFontItalic());
+    s['WriteBool'](c.asc_getFontUnderline());
+    s['WriteBool'](c.asc_getFontStrikeout());
+    s['WriteBool'](c.asc_getFontSubscript());
+    s['WriteBool'](c.asc_getFontSuperscript());
+
+    asc_menu_WriteColor(1, c.asc_getFontColor(), s);
     
     s['WriteByte'](255);
 }
@@ -2879,74 +2891,103 @@ function asc_WriteFormatTableInfo(i, c, s) {
 
 function asc_WriteCCellInfo(c, s) {
     if (!c) return;
-    
-    if (null != c.asc_getFormula()) {
-        s['WriteByte'](1);
-        s['WriteString2'](c.asc_getFormula());
-    }
-    
-    if (null !== c.asc_getText()) {
+    var xfs = c.asc_getXfs();
+
+    var v = c.asc_getText();
+    if (null !== v) {
         s['WriteByte'](2);
-        s['WriteString2'](c.asc_getText());
+        s['WriteString2'](v);
     }
-    
-    if (null !== c.asc_getHorAlign()) {
+
+    v = xfs.asc_getHorAlign();
+    if (null !== v) {
         s['WriteByte'](3);
-        s['WriteLong'](c.asc_getHorAlign());
+        s['WriteLong'](v);
     }
-    
-    if (null !== c.asc_getVertAlign()) {
+
+    v = xfs.asc_getVertAlign();
+    if (null !== v) {
         s['WriteByte'](4);
-        s['WriteLong'](c.asc_getVertAlign());
+        s['WriteLong'](v);
     }
     
-    if (null !== c.asc_getFlags()) {
-        s['WriteByte'](5);
-        s['WriteBool'](c.asc_getFlags().asc_getMerge());
-        s['WriteBool'](c.asc_getFlags().asc_getShrinkToFit());
-        s['WriteBool'](c.asc_getFlags().asc_getWrapText());
-        s['WriteLong'](c.asc_getFlags().asc_getSelectionType());
-        s['WriteBool'](c.asc_getFlags().asc_getLockText());
-    }
+    s['WriteByte'](5);
+    s['WriteBool'](c.asc_getMerge());
+    s['WriteBool'](xfs.asc_getShrinkToFit());
+    s['WriteBool'](xfs.asc_getWrapText());
+    s['WriteLong'](c.asc_getSelectionType());
+    s['WriteBool'](c.asc_getLockText());
     
-    asc_WriteCFont(6, c.asc_getFont(), s);
-    asc_menu_WriteColor(8, c.asc_getFill().asc_getColor(), s);
+    asc_WriteCFont(6, xfs, s);
+    asc_menu_WriteColor(8, xfs.asc_getFillColor(), s);
     asc_WriteCBorders(9, c.asc_getBorders(), s);
-    
-    if (null !== c.asc_getInnerText()) {
+
+    v = c.asc_getInnerText();
+    if (null !== v) {
         s['WriteByte'](15);
-        s['WriteString2'](c.asc_getInnerText());
+        s['WriteString2'](v);
     }
-    
-    if (null !== c.asc_getNumFormat()) {
+
+    v = xfs.asc_getNumFormat();
+    if (null !== v) {
         s['WriteByte'](16);
-        s['WriteString2'](c.asc_getNumFormat());
+        s['WriteString2'](v);
     }
     
     asc_WriteCHyperLink(17, c.asc_getHyperlink(), s);
     
     s['WriteByte'](18);
     s['WriteBool'](c.asc_getLocked());
-    
-    if (null != c.asc_getStyleName()) {
+
+    v = c.asc_getStyleName();
+    if (null != v) {
         s['WriteByte'](21);
-        s['WriteString2'](c.asc_getStyleName());
+        s['WriteString2'](v);
     }
-    
-    if (null != c.asc_getNumFormatInfo()) {
+
+    v = xfs.asc_getNumFormatInfo();
+    if (null != v) {
         s['WriteByte'](22);
-        s['WriteLong'](c.asc_getNumFormatInfo().asc_getType());
+        s['WriteLong'](v.asc_getType());
     }
-    
-    if (null != c.asc_getAngle()) {
+
+    v = xfs.asc_getAngle();
+    if (null != v) {
         s['WriteByte'](23);
-        s['WriteDouble2'](c.asc_getAngle());
+        s['WriteDouble2'](v);
     }
-    
-    if (c.asc_getAutoFilterInfo()) { asc_WriteAutoFilterInfo(30, c.asc_getAutoFilterInfo(), s); }
-    if (c.asc_getFormatTableInfo()) { asc_WriteFormatTableInfo(31, c.asc_getFormatTableInfo(), s); }
+
+    v = c.asc_getAutoFilterInfo();
+    if (v) {
+        asc_WriteAutoFilterInfo(30, v, s);
+    }
+    v = c.asc_getFormatTableInfo();
+    if (v) {
+        asc_WriteFormatTableInfo(31, v, s);
+    }
+
+    s['WriteByte'](32);
+    s['WriteString2'](asc_CellInfoToJson(c));
     
     s['WriteByte'](255);
+}
+function asc_CellInfoToJson(cellInfo) {
+    var json = {
+        asc_getSelectionType: cellInfo.asc_getSelectionType(),
+        asc_getLocked: cellInfo.asc_getLocked(),
+        asc_getLockedTable: cellInfo.asc_getLockedTable(),
+        asc_getComments: []
+    };
+
+    var cellComments = cellInfo.asc_getComments();
+    var jsonComments = [];
+    for (var i = 0; i < cellComments.length; ++i) {
+        jsonComments.push(JSON.stringify(readSDKComment(cellComments[i].asc_getId(), cellComments[i])));
+    }
+
+    json["asc_getComments"] = jsonComments;
+    
+    return JSON.stringify(json);
 }
 function asc_WriteColorSchemes(schemas, s) {
     
@@ -3050,7 +3091,7 @@ function asc_WriteAutoFiltersOptions(c, s) {
     }
     
     if (c.asc_getValues() && c.asc_getValues().length > 0) {
-        var count = c.asc_getValues().length
+        var count = c.asc_getValues().length;
         
         s['WriteByte'](5);
         s['WriteLong'](count);
@@ -3070,40 +3111,6 @@ function asc_WriteAutoFiltersOptions(c, s) {
     }
     
     s['WriteByte'](255);
-}
-
-function asc_WriteUsers(c, s) {
-    if (!c) return;
-    
-    var len = 0, name, user;
-    for (name in c) {
-        if (undefined !== name) {
-            len++;
-        }
-    }
-    
-    s["WriteLong"](len);
-    
-    for (name in c) {
-        if (undefined !== name) {
-            user = c[name];
-            if (user) {
-                s['WriteString2'](user.asc_getId());
-                s['WriteString2'](user.asc_getFirstName() === undefined ? "" : user.asc_getFirstName());
-                s['WriteString2'](user.asc_getLastName() === undefined ? "" : user.asc_getLastName());
-                s['WriteString2'](user.asc_getUserName() === undefined ? "" : user.asc_getUserName());
-                s['WriteBool'](user.asc_getView());
-                
-                var color = new Asc.asc_CColor();
-                
-                color.r = (user.color >> 16) & 255;
-                color.g = (user.color >> 8 ) & 255;
-                color.b = (user.color      ) & 255;
-                
-                asc_menu_WriteColor(0, color, s);
-            }
-        }
-    }
 }
 
 //--------------------------------------------------------------------------------
@@ -3138,6 +3145,7 @@ var sdkCheck = true;
 // OfflineEditor
 //--------------------------------------------------------------------------------
 
+var _api = null;
 function OfflineEditor () {
     
     this.zoom = 1.0;
@@ -3187,7 +3195,7 @@ function OfflineEditor () {
                 this.frozenPlaces[i].setTransform(shapeCtx, shapeOverlayCtx, autoShapeTrack);
                 
                 // Clip
-                this.frozenPlaces[i].clip(shapeOverlayCtx);
+                this.frozenPlaces[i].clip(shapeOverlayCtx, this.worksheet.rangeToRectRel(this.frozenPlaces[i].range, 0));
                 
                 if (null == drawingDocument.m_oDocumentRenderer) {
                     if (drawingDocument.m_bIsSelection) {
@@ -3402,7 +3410,7 @@ function OfflineEditor () {
             
             AscCommon.g_oTextMeasurer.Flush();
             
-            this.objectRender.showDrawingObjectsEx(false);
+            this.objectRender.showDrawingObjectsEx();
             
             this.cellsLeft = cellsLeft_Local;
             this.cellsTop = cellsTop_Local;
@@ -3413,8 +3421,6 @@ function OfflineEditor () {
             
             var selection = [];
             
-            var range = undefined;
-            
             this.visibleRange = new asc_Range(c1, r1, c2, r2);
             
             isFrozen = !!isFrozen;
@@ -3422,12 +3428,8 @@ function OfflineEditor () {
                 return;
             }
             
-            var offsetX = 0, offsetY = 0;
-            
-            offsetX = this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
-            offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop;
-            
-            var activeCell = this.model.selectionRange.activeCell;
+            var offsetX = this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
+            var offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop;
             
             selection.push(0);
             selection.push(0);
@@ -3438,8 +3440,9 @@ function OfflineEditor () {
             selection.push(0);
             selection.push(0);
             selection.push(0);
-            
-            var ranges = (this.isSelectionDialogMode ? this.copyActiveRange : this.model.selectionRange).ranges;
+
+            var oSelection = this.model.getSelection();
+            var ranges = oSelection.ranges;
             var range, selectionLineType, type;
             for (var i = 0, l = ranges.length; i < l; ++i) {
                 range = ranges[i].clone();
@@ -3469,13 +3472,13 @@ function OfflineEditor () {
                 if (1 === l) {
                     selectionLineType |=
                     AscCommonExcel.selectionLineType.ActiveCell | AscCommonExcel.selectionLineType.Promote;
-                } else if (i === this.model.selectionRange.activeCellId) {
+                } else if (i === oSelection.activeCellId) {
                     selectionLineType |= AscCommonExcel.selectionLineType.ActiveCell;
                 }
                 
                 var isActive = AscCommonExcel.selectionLineType.ActiveCell & selectionLineType;
                 if (isActive) {
-                    var cell = (this.isSelectionDialogMode ? this.copyActiveRange : this.model.selectionRange).activeCell;
+                    var cell = this.model.getSelection().activeCell;
                     var fs = this.model.getMergedByCell(cell.row, cell.col);
                     fs = range.intersectionSimple(fs ? fs : new asc_Range(cell.col, cell.row, cell.col, cell.row));
                     if (fs) {
@@ -3494,18 +3497,14 @@ function OfflineEditor () {
             }
             
             var formularanges = [];
-            
-            if (!isFrozen && this.isFormulaEditMode) {
-                if (this.arrActiveFormulaRanges.length) {
-                    formularanges = this.__selectedCellRanges(this.arrActiveFormulaRanges, offsetX, offsetY);
-                }
+            if (!isFrozen && this.getFormulaEditMode()) {
+                formularanges = this.__selectedCellRanges(offsetX, offsetY);
             }
             
             return {'selection': selection, 'formularanges': formularanges};
         };
         
         AscCommonExcel.WorksheetView.prototype.__changeSelectionPoint = function (x, y, isCoord, isSelectMode, isReverse) {
-            
             var isChangeSelectionShape = false;
             if (isCoord) {
                 isChangeSelectionShape = this._endSelectionShape();
@@ -3514,7 +3513,6 @@ function OfflineEditor () {
             var isMoveActiveCellToLeftTop = false;
             
             var selection = this._getSelection();
-            var lastRange = selection.getLast();
             
             var col = selection.activeCell.col;
             var row = selection.activeCell.row;
@@ -3532,9 +3530,6 @@ function OfflineEditor () {
             var newRange = isCoord ? this._calcSelectionEndPointByXY(x, y) :
             this._calcSelectionEndPointByOffset(x, y);
             var isEqual = newRange.isEqual(ar);
-            if (isEqual && !isCoord) {
-                // При движении стрелками можем попасть на замерженную ячейку
-            }
             if (!isEqual || isChangeSelectionShape) {
                 
                 if (newRange.c1 > col || newRange.c2 < col)  {
@@ -3556,17 +3551,14 @@ function OfflineEditor () {
                     selection.activeCell.col = newRange.c1;
                     selection.activeCell.row = newRange.r1;
                 }
-                
-                if (!this.isCellEditMode) {
-                    if (!this.isSelectionDialogMode) {
-                        this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/true));
-                        if (!isSelectMode) {
-                            this.handlers.trigger("selectionChanged");
-                            this.handlers.trigger("selectionMathInfoChanged", this.getSelectionMathInfo());
-                        }
-                    } else {
-                        // Смена диапазона
-                        this.handlers.trigger("selectionRangeChanged", this.getSelectionRangeValue());
+
+                if (this.getSelectionDialogMode()) {
+                    this.handlers.trigger("selectionRangeChanged", this.getSelectionRangeValue());
+                } else {
+                    this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/true));
+                    if (!isSelectMode) {
+                        this.handlers.trigger("selectionChanged");
+                        this.handlers.trigger("selectionMathInfoChanged", this.getSelectionMathInfo());
                     }
                 }
             } else {
@@ -3587,143 +3579,142 @@ function OfflineEditor () {
             }
             
             if (window["Asc"]["editor"].isStartAddShape || this.objectRender.selectedGraphicObjectsExists()) {
-                if (this.isChartAreaEditMode && this.arrActiveChartRanges.length) {
-                    return this.__selectedCellRanges(this.arrActiveChartRanges, 0, 0, Asc.c_oAscSelectionType.RangeChart);
+                if (this.isChartAreaEditMode && this.oOtherRanges) {
+                    return this.__selectedCellRanges(0, 0, Asc.c_oAscSelectionType.RangeChart);
                 }
             }
             
             return null;
         };
         
-        AscCommonExcel.WorksheetView.prototype.__selectedCellRanges = function (inputRanges, offsetX, offsetY, rangetype) {
-            
-            var ranges = [], j = 0, i = 0, type = 0, left = 0, right = 0, top = 0, bottom = 0;
-            
-            for (j = 0; j < inputRanges.length; ++j) {
-                
-                arrRanges = inputRanges[j].ranges;
-                
-                var type = 0, left = 0, right = 0, top = 0, bottom = 0;
-                var addt, addl, addr, addb, colsCount = this.nColsCount - 1, rowsCount = this.nRowsCount - 1;
-                var defaultRowHeight = AscCommonExcel.oDefaultMetrics.RowHeight;
-                
-                for (i = 0; i < arrRanges.length; ++i) {
-                    type = (arrRanges[i].getType == undefined) ? 0 : arrRanges[i].getType();
-                    ranges.push(undefined !== rangetype ? rangetype : type);
-                    ranges.push(arrRanges[i].c1);
-                    ranges.push(arrRanges[i].c2);
-                    ranges.push(arrRanges[i].r1);
-                    ranges.push(arrRanges[i].r2);
-                    
-                    addl = Math.max(arrRanges[i].c1 - colsCount,0);
-                    addt = Math.max(arrRanges[i].r1 - rowsCount,0);
-                    addr = Math.max(arrRanges[i].c2 - colsCount,0);
-                    addb = Math.max(arrRanges[i].r2 - rowsCount,0);
-                    
-                    if (1 === type) { // cells or chart
-                        if (addl > 0)
-                            left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
-                        else
-                            left = this._getColLeft(Math.max(0,arrRanges[i].c1,0)) - offsetX;
-                        
-                        if (addt > 0)
-                            top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
-                        else
-                            top = this._getRowTop(Math.max(0,arrRanges[i].r1,0)) - offsetY;
-                        
-                        if (addr > 0)
-                            right = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addr - offsetX;
-                        else
-                            right = this._getColLeft(arrRanges[i].c2) + this._getColumnWidth(arrRanges[i].c2) - offsetX;
-                        
-                        if (addb > 0)
-                            bottom = this._getRowTop(rowsCount - 1) + addb * defaultRowHeight - offsetY;
-                        else
-                            bottom = this._getRowTop(arrRanges[i].r2) + this._getRowHeight(arrRanges[i].r2) - offsetY;
-                    }
-                    else if (2 === type) {       // column range
-                        if (addl > 0)
-                            left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
-                        else
-                            left = this._getColLeft(Math.max(0,arrRanges[i].c1)) - offsetX;
-                        
-                        if (addt > 0)
-                            top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
-                        else
-                            top = this._getRowTop(Math.max(0,arrRanges[i].r1)) - offsetY;
-                        
-                        if (addr > 0)
-                            right = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addr - offsetX;
-                        else
-                            right = this._getColLeft(arrRanges[i].c2) + this._getColumnWidth(arrRanges[i].c2) - offsetX;
-                        
-                        bottom = 0;
-                    }
-                    else if (3 === type) {       // row range
-                        if (addl > 0)
-                            left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
-                        else
-                            left = this._getColLeft(arrRanges[i].c1) - offsetX;
-                        
-                        if (addt > 0)
-                            top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
-                        else
-                            top = this._getRowTop(arrRanges[i].r1) - offsetY;
-                        
-                        right = 0;
-                        
-                        if (addb > 0)
-                            bottom = this._getRowTop(rowsCount - 1) + addb * defaultRowHeight - offsetY;
-                        else
-                            bottom  = this._getRowTop(arrRanges[i].r2) + this._getRowHeight(arrRanges[i].r2) - offsetY;
-                    }
-                    else if (4 === type) {       // max
-                        if (addl > 0)
-                            left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
-                        else
-                            left = this._getColLeft(arrRanges[i].c1) - offsetX;
-                        
-                        if (addt > 0)
-                            top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
-                        else
-                            top = this._getRowTop(arrRanges[i].r1) - offsetY;
-                        
-                        right = 0;
-                        bottom = 0;
-                    } else {
-                        if (addl > 0)
-                            left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
-                        else
-                            left = this._getColLeft(Math.max(0,arrRanges[i].c1)) - offsetX;
-                        
-                        if (addt > 0)
-                            top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
-                        else
-                            top = this._getRowTop(Math.max(0,arrRanges[i].r1)) - offsetY;
-                        
-                        if (addr > 0)
-                            right = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addr - offsetX;
-                        else
-                            right = this._getColLeft(Math.max(0,arrRanges[i].c2)) + this._getColumnWidth(Math.max(0,arrRanges[i].c2)) - offsetX;
-                        
-                        if (addb > 0)
-                            bottom = this._getRowTop(rowsCount - 1) + addb * defaultRowHeight - offsetY;
-                        else
-                            bottom = this._getRowTop(Math.max(0,arrRanges[i].r2)) + this._getRowHeight(Math.max(0,arrRanges[i].r2)) - offsetY;
-                    }
-                    
-                    // else if (5 === type) { // range image
-                    // }
-                    // else if (6 === type) { // range chart
-                    // }
-                    
-                    ranges.push(left);
-                    ranges.push(top);
-                    ranges.push(right);
-                    ranges.push(bottom);
-                }
+        AscCommonExcel.WorksheetView.prototype.__selectedCellRanges = function (offsetX, offsetY, rangetype) {
+            var ranges = [];
+            if (!this.oOtherRanges) {
+                return ranges;
             }
-            
+        
+            var arrRanges = this.oOtherRanges.ranges;
+            var type, left, right, top, bottom;
+            var addt, addl, addr, addb, colsCount = this.nColsCount - 1, rowsCount = this.nRowsCount - 1;
+            var defaultRowHeight = AscCommonExcel.oDefaultMetrics.RowHeight;
+        
+            if (colsCount < 1 || rowsCount < 1) {
+                return [];
+            }
+        
+            for (var i = 0; i < arrRanges.length; ++i) {
+                type = arrRanges[i].getType();
+                ranges.push(undefined !== rangetype ? rangetype : type);
+                ranges.push(arrRanges[i].c1);
+                ranges.push(arrRanges[i].c2);
+                ranges.push(arrRanges[i].r1);
+                ranges.push(arrRanges[i].r2);
+        
+                addl = Math.max(arrRanges[i].c1 - colsCount, 0);
+                addt = Math.max(arrRanges[i].r1 - rowsCount, 0);
+                addr = Math.max(arrRanges[i].c2 - colsCount, 0);
+                addb = Math.max(arrRanges[i].r2 - rowsCount, 0);
+        
+                if (1 === type) { // cells or chart
+                    if (addl > 0)
+                        left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
+                    else
+                        left = this._getColLeft(Math.max(0, arrRanges[i].c1)) - offsetX;
+        
+                    if (addt > 0)
+                        top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
+                    else
+                        top = this._getRowTop(Math.max(0, arrRanges[i].r1)) - offsetY;
+        
+                    if (addr > 0)
+                        right = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addr - offsetX;
+                    else
+                        right = this._getColLeft(arrRanges[i].c2) + this._getColumnWidth(arrRanges[i].c2) - offsetX;
+        
+                    if (addb > 0)
+                        bottom = this._getRowTop(rowsCount - 1) + addb * defaultRowHeight - offsetY;
+                    else
+                        bottom = this._getRowTop(arrRanges[i].r2) + this._getRowHeight(arrRanges[i].r2) - offsetY;
+                } else if (2 === type) {       // column range
+                    if (addl > 0)
+                        left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
+                    else
+                        left = this._getColLeft(Math.max(0, arrRanges[i].c1)) - offsetX;
+        
+                    if (addt > 0)
+                        top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
+                    else
+                        top = this._getRowTop(Math.max(0, arrRanges[i].r1)) - offsetY;
+        
+                    if (addr > 0)
+                        right = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addr - offsetX;
+                    else
+                        right = this._getColLeft(arrRanges[i].c2) + this._getColumnWidth(arrRanges[i].c2) - offsetX;
+        
+                    bottom = 0;
+                } else if (3 === type) {       // row range
+                    if (addl > 0)
+                        left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
+                    else
+                        left = this._getColLeft(arrRanges[i].c1) - offsetX;
+        
+                    if (addt > 0)
+                        top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
+                    else
+                        top = this._getRowTop(arrRanges[i].r1) - offsetY;
+        
+                    right = 0;
+        
+                    if (addb > 0)
+                        bottom = this._getRowTop(rowsCount - 1) + addb * defaultRowHeight - offsetY;
+                    else
+                        bottom = this._getRowTop(arrRanges[i].r2) + this._getRowHeight(arrRanges[i].r2) - offsetY;
+                } else if (4 === type) {       // max
+                    if (addl > 0)
+                        left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
+                    else
+                        left = this._getColLeft(arrRanges[i].c1) - offsetX;
+        
+                    if (addt > 0)
+                        top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
+                    else
+                        top = this._getRowTop(arrRanges[i].r1) - offsetY;
+        
+                    right = 0;
+                    bottom = 0;
+                } else {
+                    if (addl > 0)
+                        left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
+                    else
+                        left = this._getColLeft(Math.max(0, arrRanges[i].c1)) - offsetX;
+        
+                    if (addt > 0)
+                        top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
+                    else
+                        top = this._getRowTop(Math.max(0, arrRanges[i].r1)) - offsetY;
+        
+                    if (addr > 0)
+                        right = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addr - offsetX;
+                    else
+                        right = this._getColLeft(Math.max(0, arrRanges[i].c2)) + this._getColumnWidth(Math.max(0, arrRanges[i].c2)) - offsetX;
+        
+                    if (addb > 0)
+                        bottom = this._getRowTop(rowsCount - 1) + addb * defaultRowHeight - offsetY;
+                    else
+                        bottom = this._getRowTop(Math.max(0, arrRanges[i].r2)) + this._getRowHeight(Math.max(0, arrRanges[i].r2)) - offsetY;
+                }
+        
+                // else if (5 === type) { // range image
+                // }
+                // else if (6 === type) { // range chart
+                // }
+        
+                ranges.push(left);
+                ranges.push(top);
+                ranges.push(right);
+                ranges.push(bottom);
+            }
+        
             return ranges;
         };
         
@@ -3734,6 +3725,10 @@ function OfflineEditor () {
             var type = 0, left = 0, right = 0, top = 0, bottom = 0;
             var addt, addl, addr, addb, colsCount = this.nColsCount - 1, rowsCount = this.nRowsCount - 1;
             var defaultRowHeight = AscCommonExcel.oDefaultMetrics.RowHeight;
+
+            if (colsCount < 1 || rowsCount < 1) {
+                return [];
+            }
             
             for (i = 0; i < arrRanges.length; ++i) {
                 type = (arrRanges[i].getType == undefined) ? 0 : arrRanges[i].getType();
@@ -3752,7 +3747,7 @@ function OfflineEditor () {
                     if (addl > 0)
                         left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
                     else
-                        left = this._getColLeft(Math.max(0,arrRanges[i].c1,0)) - offsetX;
+                        left = this._getColLeft(Math.max(0,arrRanges[i].c1)) - offsetX;
                     
                     if (addt > 0)
                         top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
@@ -3858,7 +3853,7 @@ function OfflineEditor () {
     this.openFile = function(settings) {
         
         window["NativeSupportTimeouts"] = true;
-        
+
         //        try
         //        {
         //            throw "OpenFile";
@@ -3867,19 +3862,19 @@ function OfflineEditor () {
         //        {
         //
         //        }
-        
+
         AscFonts.FontPickerByCharacter.IsUseNoSquaresMode = true;
-        
+
         this.initSettings = settings;
-        
+
         this.beforeOpen();
-        
+
         deviceScale = window["native"]["GetDeviceScale"]();
         sdkCheck = settings["sdkCheck"];
-        
+
         window.g_file_path = "native_open_file";
         window.NATIVE_DOCUMENT_TYPE = "";
-  
+
         var translations = this.initSettings["translations"];
         if (undefined != translations && null != translations && translations.length > 0) {
             translations = JSON.parse(translations)
@@ -3887,8 +3882,8 @@ function OfflineEditor () {
             translations = "";
         }
 
-        _api = new window["Asc"]["spreadsheet_api"](translations);
-        
+        window["_api"] = window["API"] = _api = new window["Asc"]["spreadsheet_api"](translations);
+
         AscCommon.g_clipboardBase.Init(_api);
         
         var userInfo = new Asc.asc_CUserInfo();
@@ -3903,6 +3898,9 @@ function OfflineEditor () {
         docInfo.put_Format("xlsx");
         docInfo.put_UserInfo(userInfo);
         docInfo.put_Token(this.initSettings["token"]);
+
+        _internalStorage.externalUserInfo = userInfo;
+        _internalStorage.externalDocInfo = docInfo;
         
         var permissions = this.initSettings["permissions"];
         if (undefined != permissions && null != permissions && permissions.length > 0) {
@@ -3923,61 +3921,64 @@ function OfflineEditor () {
             window["native"]["onTokenJWT"](_api.CoAuthoringApi.get_jwt());
             
         } else {
+
+        	 var t = this;
+
+             var thenCallback = function() {
+
+            	t.asc_WriteAllWorksheets(true);
+            	t.asc_WriteCurrentCell();
             
-            _api.asc_nativeOpenFile(window["native"]["GetFileString"](), undefined, true, window["native"]["GetXlsxPath"]());
+            	_api.sendColorThemes(_api.wbModel.theme);
+            	_api.asc_ApplyColorScheme(false);
+            	_api._applyFirstLoadChanges();
+            	// Go to if sent options
+            	_api.goTo();
             
-            this.asc_WriteAllWorksheets(true);
+            	var ws = _api.wb.getWorksheet();
             
-            _api.sendColorThemes(_api.wbModel.theme);
-            _api.asc_ApplyColorScheme(false);
-            _api._applyFirstLoadChanges();
-            // Go to if sent options
-            var options = _api.DocInfo && _api.DocInfo.asc_getOptions();
-            _api.goTo(options && options["action"]);
+            	_api.wb.showWorksheet(undefined, true);
+            	ws._fixSelectionOfMergedCells();
             
-            var ws = _api.wb.getWorksheet();
+            	if (ws.topLeftFrozenCell) {
+                	t.row0 = ws.topLeftFrozenCell.getRow0();
+                	t.col0 = ws.topLeftFrozenCell.getCol0();
+            	}
             
-            _api.wb.showWorksheet(undefined, true);
-            ws._fixSelectionOfMergedCells();
-            
-            if (ws.topLeftFrozenCell) {
-                this.row0 = ws.topLeftFrozenCell.getRow0();
-                this.col0 = ws.topLeftFrozenCell.getCol0();
-            }
-            
-            var chartData = this.initSettings["chartData"];
-            if (chartData.length > 0) {
-                var json = JSON.parse(chartData);
-                if (json) {
+            	var chartData = t.initSettings["chartData"];
+
+            	if (chartData.length > 0) {
+                	var json = JSON.parse(chartData);
+                	if (json) {
+
+                    	_api.asc_addChartDrawingObject(json);
                     
-                    var nativeToEditor = 1.0 / deviceScale;
-                    
-                    var screenWidth = this.initSettings["screenWidth"] * nativeToEditor / 2.54 - ws.headersWidth;
-                    var screenHeight = this.initSettings["screenHeight"] * nativeToEditor / 2.54 - ws.headersHeight;
-                    
-                    _api.asc_addChartDrawingObject(json);
-                    
-                    var objects = ws.objectRender.controller.drawingObjects.getDrawingObjects();
-                    if (objects.length > 0) {
+                    	var objects = ws.objectRender.controller.drawingObjects.getDrawingObjects();
+                    	if (objects.length > 0) {
+                            
+                            var left = t.initSettings["chartLeft"];
+                            var top = t.initSettings["chartTop"];
+                            var right = t.initSettings["chartRight"];
+                            var bottom = t.initSettings["chartBottom"];
                         
-                        var gr = objects[0].graphicObject;
+                        	var chart = objects[0].graphicObject;
                         
-                        var w = gr.spPr.xfrm.extX;
-                        var h = gr.spPr.xfrm.extY;
-                        
-                        var offX = Math.max(0, (screenWidth - w) * 0.5);
-                        var offY = Math.max(screenHeight * 0.2, (screenHeight - w) * 0.5);
-                        
-                        gr.spPr.xfrm.setOffX(offX);
-                        gr.spPr.xfrm.setOffY(offY);
-                        gr.checkDrawingBaseCoords();
-                        gr.recalculate();
-                    }
+                        	chart.spPr.xfrm.setOffX(parseInt(left));
+                        	chart.spPr.xfrm.setOffY(parseInt(top));
+                            chart.spPr.xfrm.setExtX(parseInt(right - left));
+                            chart.spPr.xfrm.setExtY(parseInt(bottom - top));
+                        	
+                            chart.checkDrawingBaseCoords();
+                            chart.recalculate();
+                    	}
                     
-                    //console.log(JSON.stringify(json));
-                }
-            }
-            
+                    	//console.log(JSON.stringify(json));
+                	}
+            	}
+            };
+
+            _api.asc_nativeOpenFile(window["native"]["GetFileString"](), undefined, true, window["native"]["GetXlsxPath"]()).then(thenCallback, thenCallback);
+           
             // TODO: Implement frozen places
             // TODO: Implement Text Art Styles
         }
@@ -4036,10 +4037,10 @@ function OfflineEditor () {
                                   window["native"]["OnCallMenuEvent"](2310, stream); // ASC_SPREADSHEETS_EVENT_TYPE_EDITOR_SELECTION_NAME_CHANGED
                                   });
         
-        _api.asc_registerCallback("asc_onEditorSelectionChanged", function(font) {
+        _api.asc_registerCallback("asc_onEditorSelectionChanged", function(xfs) {
                                   var stream = global_memory_stream_menu;
                                   stream["ClearNoAttack"]();
-                                  asc_WriteCFont(-1, font, stream);
+                                  asc_WriteCFont(-1, xfs, stream);
                                   window["native"]["OnCallMenuEvent"](2403, stream); // ASC_SPREADSHEETS_EVENT_TYPE_EDITOR_SELECTION_CHANGED
                                   });
         
@@ -4089,20 +4090,9 @@ function OfflineEditor () {
                                   asc_WriteAutoFiltersOptions(state, stream);
                                   window["native"]["OnCallMenuEvent"](3060, stream); // ASC_SPREADSHEETS_EVENT_TYPE_FILTER_DIALOG
                                   });
-        
-        _api.asc_registerCallback("asc_onAuthParticipantsChanged", function(users) {
-                                  var stream = global_memory_stream_menu;
-                                  stream["ClearNoAttack"]();
-                                  asc_WriteUsers(users, stream);
-                                  window["native"]["OnCallMenuEvent"](20101, stream); // ASC_COAUTH_EVENT_TYPE_PARTICIPANTS_CHANGED
-                                  });
-        
-        _api.asc_registerCallback("asc_onParticipantsChanged", function(users) {
-                                  var stream = global_memory_stream_menu;
-                                  stream["ClearNoAttack"]();
-                                  asc_WriteUsers(users, stream);
-                                  window["native"]["OnCallMenuEvent"](20101, stream); // ASC_COAUTH_EVENT_TYPE_PARTICIPANTS_CHANGED
-                                  });
+
+        _api.asc_registerCallback("asc_onAuthParticipantsChanged", onApiAuthParticipantsChanged);
+        _api.asc_registerCallback("asc_onParticipantsChanged", onApiParticipantsChanged);
         
         _api.asc_registerCallback("asc_onSheetsChanged", function () {
                                   t.asc_WriteAllWorksheets(true, true);
@@ -4153,6 +4143,20 @@ function OfflineEditor () {
                                   stream["WriteString2"](JSON.stringify(options));
                                   window["native"]["OnCallMenuEvent"](22000, stream); // ASC_MENU_EVENT_TYPE_ADVANCED_OPTIONS
                                   });
+
+        // Comments
+
+        _api.asc_registerCallback("asc_onAddComment", onApiAddComment);
+        _api.asc_registerCallback("asc_onAddComments", onApiAddComments);
+        _api.asc_registerCallback("asc_onRemoveComment", onApiRemoveComment);
+        _api.asc_registerCallback("asc_onChangeComments", onApiChangeComments);
+        _api.asc_registerCallback("asc_onRemoveComments", onApiRemoveComments);
+        _api.asc_registerCallback("asc_onChangeCommentData", onApiChangeCommentData);
+        _api.asc_registerCallback("asc_onLockComment", onApiLockComment);
+        _api.asc_registerCallback("asc_onUnLockComment", onApiUnLockComment);
+        _api.asc_registerCallback("asc_onShowComment", onApiShowComment);
+        _api.asc_registerCallback("asc_onHideComment", onApiHideComment);
+        _api.asc_registerCallback("asc_onUpdateCommentPosition", onApiUpdateCommentPosition);
     };
     this.updateFrozen = function () {
         var ws = _api.wb.getWorksheet();
@@ -4189,7 +4193,7 @@ function OfflineEditor () {
         var region = null;
         //var range = ws.activeRange.intersection(worksheet.visibleRange);
         
-        var ranges = ws.model.selectionRange.ranges;
+        var ranges = ws.model.getSelection().ranges;
         var range = ws.visibleRange;
         for (var i = 0, l = ranges.length; i < l; ++i) {
             range = range.intersection(ranges[i]);
@@ -4330,6 +4334,14 @@ function OfflineEditor () {
         
         _stream["WriteByte"](255);
     };
+
+    this.asc_WriteCurrentCell = function() {
+        var cellInfo = _api.asc_getCellInfo();
+        var stream = global_memory_stream_menu;
+        stream["ClearNoAttack"]();
+        asc_WriteCCellInfo(cellInfo, stream);
+        window["native"]["OnCallMenuEvent"](2402, stream); // ASC_SPREADSHEETS_EVENT_TYPE_SELECTION_CHANGED
+    };
     
     // render
     
@@ -4343,13 +4355,13 @@ function OfflineEditor () {
         var colRowHeaders = _api.asc_getSheetViewSettings();
         
         if (colRowHeaders.asc_getShowGridLines() && false == istoplayer) {
-            worksheet.__drawGrid(undefined,
+            worksheet.__drawGrid(null,
                                  region.columnBeg, region.rowBeg, region.columnEnd, region.rowEnd,
                                  region.columnOff, region.rowOff,
                                  width + region.columnOff, height + region.rowOff);
         }
         
-        worksheet.__drawCellsAndBorders(undefined,
+        worksheet.__drawCellsAndBorders(null,
                                         region.columnBeg, region.rowBeg, region.columnEnd, region.rowEnd,
                                         region.columnOff, region.rowOff, istoplayer);
     };
@@ -4464,11 +4476,11 @@ function OfflineEditor () {
         }
         
         return {
-        columnBeg: columnBeg,
-        columnEnd: columnEnd,
+        columnBeg: Math.max(0,columnBeg),
+        columnEnd: Math.max(0, columnEnd),
         columnOff: columnOff,
-        rowBeg: rowBeg,
-        rowEnd: rowEnd,
+        rowBeg: Math.max(0, rowBeg),
+        rowEnd: Math.max(0, rowEnd),
         rowOff: rowOff
         };
     };
@@ -4534,7 +4546,7 @@ function OfflineEditor () {
         var stream = global_memory_stream_menu;
         stream["ClearNoAttack"]();
         
-        var SelectedObjects = [], selectType = info.asc_getFlags().asc_getSelectionType();
+        var SelectedObjects = [], selectType = info.asc_getSelectionType();
         if (selectType == Asc.c_oAscSelectionType.RangeImage || selectType == Asc.c_oAscSelectionType.RangeShape ||
             selectType == Asc.c_oAscSelectionType.RangeChart || selectType == Asc.c_oAscSelectionType.RangeChartText ||
             selectType == Asc.c_oAscSelectionType.RangeShapeText)
@@ -4542,9 +4554,7 @@ function OfflineEditor () {
             SelectedObjects = _api.asc_getGraphicObjectProps();
             
             var count = SelectedObjects.length;
-            var naturalCount = count;
-            
-            stream["WriteLong"](naturalCount);
+            stream["WriteLong"](count);
             
             for (var i = 0; i < count; i++)
             {
@@ -4606,7 +4616,7 @@ function OfflineEditor () {
         if (imageUrl && objectRender.canEdit()) {
             
             var _image = new Image();
-            _image.src = imageUrl
+            _image.src = imageUrl;
             
             var isOption = true;//options && options.cell;
             
@@ -4654,19 +4664,10 @@ function OfflineEditor () {
                 
                 var coordsFrom = _this.calculateCoords(drawingObject.from);
                 var coordsTo = _this.calculateCoords(drawingObject.to);
-                
-                // CImage
-                _this.objectLocker.reset();
-                _this.objectLocker.addObjectId(AscCommon.g_oIdCounter.Get_NewId());
-                _this.objectLocker.checkObjects(function (bLock) {
-                                                if (bLock !== true)
-                                                return;
-                                                _this.controller.resetSelection();
-                                                History.Create_NewPoint();
-                                                _this.controller.addImageFromParams(_image.src, pxToMm(coordsFrom.x) + MOVE_DELTA, pxToMm(coordsFrom.y) + MOVE_DELTA, pxToMm(coordsTo.x - coordsFrom.x), pxToMm(coordsTo.y - coordsFrom.y));
-                                                _this.controller.startRecalculate();
-                                                });
-                
+                _this.controller.resetSelection();
+                History.Create_NewPoint();
+                _this.controller.addImageFromParams(_image.src, pxToMm(coordsFrom.x) + MOVE_DELTA, pxToMm(coordsFrom.y) + MOVE_DELTA, pxToMm(coordsTo.x - coordsFrom.x), pxToMm(coordsTo.y - coordsFrom.y));
+                _this.controller.startRecalculate();
                 worksheet.setSelectionShape(true);
                 
                 if (_this.controller.selectedObjects.length) {
@@ -4734,11 +4735,8 @@ function OfflineEditor () {
             var box = selectedRange.getBBox0();
             settings.putInColumns(!(box.r2 - box.r1 < box.c2 - box.c1));
         }
-        
-        var oRangeValue = ws.getSelectionRangeValue();
-        if (oRangeValue) {
-            settings.putRange(oRangeValue.asc_getName());
-        }
+
+        settings.putRanges(ws.getSelectionRangeValues(true, true));
         
         settings.putStyle(2);
         settings.putTitle(Asc.c_oAscChartTitleShowSettings.noOverlay);
@@ -4860,10 +4858,12 @@ window["native"]["offline_mouse_down"] = function(x, y, pin, isViewerMode, isFor
     
     _s._resizeWorkRegion(ws, x, y, true);
     
-    var range = ws.visibleRange.clone();
+    var range = wb.getWorksheet().getVisibleRange().clone();
+    
     range.c1 = _s.col0;
     range.r1 = _s.row0;
-    ws.visibleRange = range;
+    
+    wb.getWorksheet().visibleRange = range;
 
     ws._updateDrawingArea();
     var graphicsInfo = wb._onGetGraphicsInfo(x, y);
@@ -4923,7 +4923,6 @@ window["native"]["offline_mouse_down"] = function(x, y, pin, isViewerMode, isFor
     }
     
     _s.cellPin = pin;
-    _s.isFormulaEditMode = isFormulaEditMode;
     
     var ct = ws.getCursorTypeFromXY(x, y);
     if (ct.target && ct.target === AscCommonExcel.c_oTargetType.FilterObject) {
@@ -4939,14 +4938,11 @@ window["native"]["offline_mouse_down"] = function(x, y, pin, isViewerMode, isFor
             var ct = ws.getCursorTypeFromXY(x, y);
             
             ws.startCellMoveResizeRange = null;
-            
-            var rangeChange = new window["Asc"].Range(c1, r1, c2, r2);
+
             var target = {
-            formulaRange: rangeChange,
             row: ct.row,
             col: ct.col,
             target: ct.target,
-            targetArr: isChartRange ? -1 : 0,
             cursor: "se-resize",
             indexFormulaRange: indexRange
             };
@@ -4956,36 +4952,19 @@ window["native"]["offline_mouse_down"] = function(x, y, pin, isViewerMode, isFor
     } else {
         
         if (0 != _s.cellPin) {
-            
+
             var selection = ws._getSelection();
-            var lastRange = selection.getLast();
-            
-            ws.leftTopRange = lastRange.clone();
+            if (selection !== null) {
+                var lastRange = selection.getLast();
+                ws.leftTopRange = lastRange.clone();
+            }
             
         } else {
-            
-            var ret = false;
-            if (isFormulaEditMode) {
-                ret = wb.cellEditor.canEnterCellRange();
-                ret ? wb.cellEditor.activateCellRange() : true;
-            }
-            
-            if (isFormulaEditMode && !ret) {
-                _s.isFormulaEditMode = false;
-                return {'action':'closeCellEditor'};
-            }
-            
             wb._onChangeSelection(true, x, y, true);
-            
-            if (isFormulaEditMode) {
-                if (ret) {
-                    ws.enterCellRange(wb.cellEditor);
-                }
-            }
         }
     }
     
-    ws.visibleRange = range;
+    wb.getWorksheet().visibleRange = range;
     
     return null;
 }
@@ -4993,22 +4972,21 @@ window["native"]["offline_mouse_move"] = function(x, y, isViewerMode, isRangeRes
     var ws = _api.wb.getWorksheet();
     var wb = _api.wb;
     
-    var range =  ws.visibleRange.clone();
+    var range = wb.getWorksheet().getVisibleRange().clone();
+   
     range.c1 = _s.col0;
     range.r1 = _s.row0;
-    ws.visibleRange = range;
+
+    wb.getWorksheet().visibleRange = range;
     
     if (isRangeResize) {
         if (!isViewerMode) {
             var ct = ws.getCursorTypeFromXY(x, y);
-            
-            var rangeChange = new window["Asc"].Range(c1, r1, c2, r2);
+
             var target = {
-                //formulaRange: rangeChange,
             row: isChartRange ? ct.row : targetRow,
             col: isChartRange ? ct.col : targetCol,
             target: ct.target,
-            targetArr: isChartRange ? -1 : 0,
             cursor: "se-resize",
             indexFormulaRange: indexRange
             };
@@ -5029,20 +5007,8 @@ window["native"]["offline_mouse_move"] = function(x, y, isViewerMode, isRangeRes
                 }
             }
         } else {
-            if (_s.isFormulaEditMode) {
-                
-                var ret = false;
-                ret = wb.cellEditor.canEnterCellRange();
-                ret ? wb.cellEditor.activateCellRange() : true;
-                
-                if (!ret) {
-                    _s.isFormulaEditMode = false;
-                    ws.visibleRange = range;
-                    return {'action':'closeCellEditor'};
-                }
-                
+            if (wb.isFormulaEditMode) {
                 wb._onChangeSelection(false, x, y, true);
-                ws.enterCellRange(wb.cellEditor);
             } else {
                 if (-1 == _s.cellPin)
                     ws.__changeSelectionPoint(x, y, true, true, true);
@@ -5055,7 +5021,7 @@ window["native"]["offline_mouse_move"] = function(x, y, isViewerMode, isRangeRes
         }
     }
     
-    ws.visibleRange = range;
+    wb.getWorksheet().visibleRange = range;
     
     return null;
 }
@@ -5064,10 +5030,12 @@ window["native"]["offline_mouse_up"] = function(x, y, isViewerMode, isRangeResiz
     var ws = _api.wb.getWorksheet();
     var wb = _api.wb;
     
-    var range =  ws.visibleRange.clone();
+    var range = wb.getWorksheet().getVisibleRange().clone();
+   
     range.c1 = _s.col0;
     range.r1 = _s.row0;
-    ws.visibleRange = range;
+    
+    wb.getWorksheet().visibleRange = range;
     
     if (_s.isShapeAction) {
         var e = {isLocked: true, Button: 0, ClickCount: 1, shiftKey: false, metaKey: false, ctrlKey: false};
@@ -5081,13 +5049,6 @@ window["native"]["offline_mouse_up"] = function(x, y, isViewerMode, isRangeResiz
         
         if (isRangeResize) {
             if (!isViewerMode) {
-                var target = {
-                target: 5,
-                targetArr: isChartRange ? -1 : 0,
-                cursor: "se-resize",
-                indexFormulaRange: indexRange
-                };
-                
                 if (ws.moveRangeDrawingObjectTo) {
                     ws.moveRangeDrawingObjectTo.c1 = Math.max(0, ws.moveRangeDrawingObjectTo.c1);
                     ws.moveRangeDrawingObjectTo.c2 = Math.max(0, ws.moveRangeDrawingObjectTo.c2);
@@ -5095,7 +5056,7 @@ window["native"]["offline_mouse_up"] = function(x, y, isViewerMode, isRangeResiz
                     ws.moveRangeDrawingObjectTo.r2 = Math.max(0, ws.moveRangeDrawingObjectTo.r2);
                 }
                 
-                ws.applyMoveResizeRangeHandle(target);
+                ws.applyMoveResizeRangeHandle();
                 
                 var controller = ws.objectRender.controller;
                 controller.updateOverlay();
@@ -5108,7 +5069,7 @@ window["native"]["offline_mouse_up"] = function(x, y, isViewerMode, isRangeResiz
         }
     }
     
-    ws.visibleRange = range;
+    wb.getWorksheet().visibleRange = range;
     
     return ret;
 }
@@ -5158,8 +5119,8 @@ window["native"]["offline_keyboard_down"] = function(inputKeys) {
     
     AscCommon.g_oTextMeasurer.Flush();
     
-    var isFormulaEditMode = ws.isFormulaEditMode;
-    ws.isFormulaEditMode = false;
+    var isFormulaEditMode = wb.isFormulaEditMode;
+    wb.isFormulaEditMode = false;
     
     for (var i = 0; i < inputKeys.length; i += 3) {
         
@@ -5215,8 +5176,8 @@ window["native"]["offline_keyboard_down"] = function(inputKeys) {
         else if (13 === codeKey)     // ENTER
             wb._onChangeSelection(true, 0, 1, false);
     }
-    
-    ws.isFormulaEditMode = isFormulaEditMode;
+
+    wb.isFormulaEditMode = isFormulaEditMode;
 }
 
 window["native"]["offline_cell_editor_draw"] = function(width, height, ratio) {
@@ -5236,40 +5197,33 @@ window["native"]["offline_cell_editor_open"] = function(x, y, width, height, rat
     _null_object.height = height * ratio;
     
     var wb = _api.wb;
-    var ws = _api.wb.getWorksheet();
     
-    var range =  ws.visibleRange.clone();
-    ws.visibleRange.c1 = c1;
-    ws.visibleRange.r1 = r1;
-    ws.visibleRange.c2 = c2;
-    ws.visibleRange.r2 = r2;
+    var range = wb.getWorksheet().getVisibleRange().clone();
+   
+    wb.getWorksheet().visibleRange.c1 = c1;
+    wb.getWorksheet().visibleRange.r1 = r1;
+    wb.getWorksheet().visibleRange.c2 = c2;
+    wb.getWorksheet().visibleRange.r2 = r2;
     
     wb.cellEditor.isSelectAll = isSelectAll;
     
     if (!isFormulaInsertMode) {
-        
-        var isFocus = undefined, isClearCell = undefined, isHideCursor = true, isQuickInput = false;
-        
         var t = wb;
         
         var ws = t.getWorksheet();
-        var activeCellRange = ws.getActiveCell(0, 0, false);
         var selectionRange = ws.model.selectionRange.clone();
         
         t.setCellEditMode(true);
-        ws.setCellEditMode(true);
-        ws.openCellEditor(t.cellEditor, /*cursorPos*/undefined, isFocus, isClearCell,
-                          /*isHideCursor*/isHideCursor, /*isQuickInput*/isQuickInput, selectionRange);
+        var enterOptions = new AscCommonExcel.CEditorEnterOptions();
+        enterOptions.hideCursor = true;
+        ws.openCellEditor(t.cellEditor, enterOptions, selectionRange);
         //t.input.disabled = false;
 
         t.Api.cleanSpelling();
-        
-        // Эвент на обновление состояния редактора
-        t.cellEditor._updateEditorState();
     }
     
-    ws.visibleRange = range;
-}
+    wb.getWorksheet().visibleRange = range;
+};
 window["native"]["offline_cell_editor_test_cells"] = function(x, y, width, height, ratio, isSelectAll, isFormulaInsertMode, c1, r1, c2, r2)  {
     _null_object.width = width * ratio;
     _null_object.height = height * ratio;
@@ -5277,11 +5231,12 @@ window["native"]["offline_cell_editor_test_cells"] = function(x, y, width, heigh
     var wb = _api.wb;
     var ws = _api.wb.getWorksheet();
     
-    var range = ws.visibleRange.clone();
-    ws.visibleRange.c1 = c1;
-    ws.visibleRange.r1 = r1;
-    ws.visibleRange.c2 = c2;
-    ws.visibleRange.r2 = r2;
+    var range = wb.getWorksheet().getVisibleRange().clone();
+   
+    wb.getWorksheet().getVisibleRange().c1 = c1;
+    wb.getWorksheet().getVisibleRange().r1 = r1;
+    wb.getWorksheet().getVisibleRange().c2 = c2;
+    wb.getWorksheet().getVisibleRange().r2 = r2;
     
     wb.cellEditor.isSelectAll = isSelectAll;
     
@@ -5296,10 +5251,6 @@ window["native"]["offline_cell_editor_test_cells"] = function(x, y, width, heigh
             window["native"]["closeCellEditor"]();
             
             //t.setCellEditMode(false);
-            //t.controller.setStrictClose(false);
-            //t.controller.setFormulaEditMode(false);
-            //ws.setCellEditMode(false);
-            //ws.setFormulaEditMode(false);
             //t.input.disabled = true;
             
             // Выключаем lock для редактирования ячейки
@@ -5315,7 +5266,7 @@ window["native"]["offline_cell_editor_test_cells"] = function(x, y, width, heigh
         editFunction();
     }
     
-    wb.visibleRange = range;
+    wb.getWorksheet().visibleRange = range;
 }
 
 window["native"]["offline_cell_editor_process_input_commands"] = function(sendArguments) {
@@ -5422,6 +5373,21 @@ window["native"]["offline_cell_editor_process_input_commands"] = function(sendAr
     return [cellEditor.left, cellEditor.top, cellEditor.right, cellEditor.bottom,
             cellEditor.curLeft, cellEditor.curTop, cellEditor.curHeight,
             cellEditor.textRender.chars.length];
+}
+window["native"]["offline_cell_editor_get_cursor_position"] = function() {
+    var cellEditor = _api.wb.cellEditor;
+    var pos = 0;
+    pos = cellEditor.cursorPos;
+    return {'cursorPos': pos};
+}
+
+window["native"]["offline_cell_editor_get_selection_text"] = function() {
+    var cellEditor =  _api.wb.cellEditor;
+    var selectBegin = 0;
+    var selectEnd = 0;
+    selectBegin = cellEditor.selectionBegin;
+    selectEnd = cellEditor.selectionEnd;
+    return {'selectionBegin': selectBegin, 'selectionEnd': selectEnd};
 }
 
 window["native"]["offline_cell_editor_mouse_event"] = function(sendEvents) {
@@ -5792,6 +5758,18 @@ window["native"]["offline_calculate_complete_range"] = function(x, y, w, h) {
             ws._getRowTop(range.r2)  + ws._getRowHeight(range.r1)];
 }
 
+window["Asc"]["spreadsheet_api"].prototype.asc_nativeGetFileData = function() {
+    var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
+
+    oBinaryFileWriter.Write(true);
+
+    window["native"]["GetFileData"](
+        oBinaryFileWriter.Memory.ImData.data, 
+        oBinaryFileWriter.Memory.GetCurPosition());
+
+    return true;
+};
+
 window["native"]["offline_apply_event"] = function(type,params) {
     var _borderOptions = Asc.c_oAscBorderOptions;
     var _stream = null;
@@ -5943,20 +5921,23 @@ window["native"]["offline_apply_event"] = function(type,params) {
                             break;
                         }
                         case 21:
-                        {
-                            var urlSource = selectedImageProp[0].Value.ImageUrl;
-                            if (urlSource) {
-                                var bIsNeed = params[_current.pos++];
-                                if (bIsNeed)
-                                {
-                                    var _originSize = window["native"]["GetOriginalImageSize"](urlSource);
-                                    var _w = _originSize[0] * 25.4 / 96.0 / window["native"]["GetDeviceScale"]();
-                                    var _h = _originSize[1] * 25.4 / 96.0 / window["native"]["GetDeviceScale"]();
+                        { 
+                            var bIsNeed = params[_current.pos++];
+                            if (bIsNeed) {
+                            for (var j = 0; j < selectedImageProp.length; ++j) {
+                                if (selectedImageProp[j] && selectedImageProp[j].Value) {
+                                    var urlSource = selectedImageProp[j].Value.ImageUrl;
+                                    if (urlSource) {
+                                            var _originSize = window["native"]["GetOriginalImageSize"](urlSource);
+                                            var _w = _originSize[0] * 25.4 / 96.0 / window["native"]["GetDeviceScale"]();
+                                            var _h = _originSize[1] * 25.4 / 96.0 / window["native"]["GetDeviceScale"]();
                                     
-                                    _imagePr.ImageUrl = undefined;
+                                            _imagePr.ImageUrl = undefined;
                                     
-                                    _imagePr.Width = _w;
-                                    _imagePr.Height = _h;
+                                            _imagePr.Width = _w;
+                                            _imagePr.Height = _h;
+                                        }
+                                    }
                                 }
                             }
                             
@@ -6058,7 +6039,7 @@ window["native"]["offline_apply_event"] = function(type,params) {
         {
             _stream = global_memory_stream_menu;
             _stream["ClearNoAttack"]();
-            _stream["WriteStringA"](_api.asc_nativeGetFile());
+            _stream["WriteStringA"](_api.asc_nativeGetFileData());
             _return = _stream;
             break;
         }
@@ -6347,7 +6328,7 @@ window["native"]["offline_apply_event"] = function(type,params) {
             _stream = global_memory_stream_menu;
             _stream["ClearNoAttack"]();
             
-            var merged = _api.asc_getCellInfo().asc_getFlags().asc_getMerge();
+            var merged = _api.asc_getCellInfo().asc_getMerge();
             
             if (!merged && _api.asc_mergeCellsDataLost(params)) {
                 _stream["WriteBool"](true);
@@ -6492,7 +6473,7 @@ window["native"]["offline_apply_event"] = function(type,params) {
         }
         case 2160: // ASC_SPREADSHEETS_EVENT_TYPE_DELETE_WORKSHEET
         {
-            _api.asc_deleteWorksheet(params);
+            _api.asc_deleteWorksheet([params]);
             _s.asc_WriteAllWorksheets(true);
             break;
         }
@@ -6562,8 +6543,18 @@ window["native"]["offline_apply_event"] = function(type,params) {
         {
             if (undefined !== params) {
                 var indexScheme = parseInt(params);
-                _api.asc_ChangeColorScheme(indexScheme);
+                _api.asc_ChangeColorSchemeByIdx(indexScheme);
             }
+            break;
+        }
+
+        case 2416: // ASC_MENU_EVENT_TYPE_GET_COLOR_SCHEME
+        {
+            var index = _api.asc_GetCurrentColorSchemeIndex();
+            var stream = global_memory_stream_menu;
+            stream["ClearNoAttack"]();
+            stream["WriteLong"](index);
+            _return = stream;
             break;
         }
             
@@ -6614,7 +6605,7 @@ window["native"]["offline_apply_event"] = function(type,params) {
         case 4010: // ASC_SPREADSHEETS_EVENT_TYPE_INSERT_FORMULA
         {
             if (params && params.length && params[0]) {
-                _api.asc_insertFormula(params[0], Asc.c_oAscPopUpSelectorType.Func, params[1]);
+                _api.asc_insertInCell(params[0], Asc.c_oAscPopUpSelectorType.Func, params[1]);
             }
             break;
         }
@@ -6860,12 +6851,405 @@ window["native"]["offline_apply_event"] = function(type,params) {
             _api.asc_setDocumentPassword(params[0]);
             break;
         }
-            
+
+        case 23101: // ASC_MENU_EVENT_TYPE_DO_SELECT_COMMENT
+            {
+                var json = JSON.parse(params[0]);
+                if (json && json["id"]) {
+                    if (_api.asc_selectComment) {
+                        _api.asc_selectComment(json["id"]);
+                    }
+                }
+                break;
+            }
+
+        case 23102: // ASC_MENU_EVENT_TYPE_DO_SHOW_COMMENT
+            {
+                var json = JSON.parse(params[0]);
+                if (json && json["id"]) {
+                    if (_api.asc_showComment) {
+                        _api.asc_showComment(json["id"], json["isNew"] === true);
+                    }
+                }
+                break;
+            }
+
+        case 23103: // ASC_MENU_EVENT_TYPE_DO_SELECT_COMMENTS
+            {
+                var json = JSON.parse(params[0]);
+                if (json) {
+                    if (_api.asc_showComments) {
+                        _api.asc_showComments(json["resolved"] === true);
+                    }
+                }
+                break;
+            }
+
+        case 23104: // ASC_MENU_EVENT_TYPE_DO_DESELECT_COMMENTS
+            {
+                if (_api.asc_hideComments) {
+                    _api.asc_hideComments();
+                }
+                break;
+            }
+
+        case 23105: // ASC_MENU_EVENT_TYPE_DO_ADD_COMMENT
+            {
+                var json = JSON.parse(params[0]);
+                if (json) {
+                    var buildCommentData = function () {
+                        if (typeof Asc.asc_CCommentDataWord !== 'undefined') {
+                            return new Asc.asc_CCommentDataWord(null);
+                        }
+                        return new Asc.asc_CCommentData(null);
+                    };
+
+                    var comment = buildCommentData();
+                    var now = new Date();
+                    var timeZoneOffsetInMs = (new Date()).getTimezoneOffset() * 60000;
+                    var currentUserId = _internalStorage.externalUserInfo.asc_getId();
+                    var currentUserName = _internalStorage.externalUserInfo.asc_getFullName();
+
+                    if (comment) {
+                        comment.asc_putText(json["text"]);
+                        comment.asc_putTime((now.getTime() - timeZoneOffsetInMs).toString());
+                        comment.asc_putOnlyOfficeTime(now.getTime().toString());
+                        comment.asc_putUserId(currentUserId);
+                        comment.asc_putUserName(currentUserName);
+                        comment.asc_putSolved(false);
+
+                        if (comment.asc_putDocumentFlag) {
+                            comment.asc_putDocumentFlag(json["unattached"]);
+                        }
+
+                        _api.asc_addComment(comment);
+                    }
+                }
+                break;
+            }
+
+        case 23106: // ASC_MENU_EVENT_TYPE_DO_REMOVE_COMMENT
+            {
+                var json = JSON.parse(params[0]);
+                if (json && json["id"]) { // id - String
+                    if (_api.asc_removeComment) {
+                        _api.asc_removeComment(json["id"]);
+                    }
+                }
+                break;
+            }
+
+        case 23107: // ASC_MENU_EVENT_TYPE_DO_REMOVE_ALL_COMMENTS
+            {
+                var json = JSON.parse(params[0]),
+                    type = json["type"],
+                    canEditComments = json["canEditComments"];
+                if (json && type) {
+                    if (_api.asc_RemoveAllComments) {
+                        _api.asc_RemoveAllComments(type == 'my' || !(canEditComments === true), type == 'current'); // 1 param = true if remove only my comments, 2 param - remove current comments
+                    }
+                }
+                break;
+            }
+
+        case 23108: // ASC_MENU_EVENT_TYPE_DO_CHANGE_COMMENT
+            {
+                var json = JSON.parse(params[0]),
+                    commentId = json["id"],
+                    comment = json["comment"],
+                    updateAuthor = json["updateAuthor"] || false;
+
+                if (json && commentId) {
+                    var timeZoneOffsetInMs = (new Date()).getTimezoneOffset() * 60000;
+                    var currentUserId = _internalStorage.externalUserInfo.asc_getId();
+                    var currentUserName = _internalStorage.externalUserInfo.asc_getFullName();
+                    var buildCommentData = function () {
+                        if (typeof Asc.asc_CCommentDataWord !== 'undefined') {
+                            return new Asc.asc_CCommentDataWord(null);
+                        }
+                        return new Asc.asc_CCommentData(null);
+                    };
+                    var ooDateToString = function (date) {
+                        if (Object.prototype.toString.call(date) === '[object Date]')
+                            return (date.getTime()).toString();
+                        return "";
+                    };
+                    var utcDateToString = function (date) {
+                        if (Object.prototype.toString.call(date) === '[object Date]')
+                            return (date.getTime() - timeZoneOffsetInMs).toString();
+                        return "";
+                    };
+                    var ascComment = buildCommentData();
+
+                    if (ascComment && comment && _api.asc_changeComment) {
+                        var sTime = new Date(parseInt(comment["date"]));
+                        ascComment.asc_putText(comment["text"]);
+                        ascComment.asc_putQuoteText(comment["quoteText"]);
+                        ascComment.asc_putTime(utcDateToString(sTime));
+                        ascComment.asc_putOnlyOfficeTime(ooDateToString(sTime));
+                        ascComment.asc_putUserId(updateAuthor ? currentUserId : comment["userId"]);
+                        ascComment.asc_putUserName(updateAuthor ? currentUserName : comment["userName"]);
+                        ascComment.asc_putSolved(comment["solved"]);
+                        ascComment.asc_putGuid(comment["id"]);
+
+                        if (ascComment.asc_putDocumentFlag !== undefined) {
+                            ascComment.asc_putDocumentFlag(comment["unattached"]);
+                        }
+
+                        var replies = comment["replies"];
+
+                        if (replies && replies.length) {
+                            replies.forEach(function (reply) {
+                                var addReply = buildCommentData();   //  new asc_CCommentData(null);
+                                if (addReply) {
+                                    var sTime = new Date(parseInt(reply["date"]));
+                                    addReply.asc_putText(reply["text"]);
+                                    addReply.asc_putTime(utcDateToString(sTime));
+                                    addReply.asc_putOnlyOfficeTime(ooDateToString(sTime));
+                                    addReply.asc_putUserId(reply["userId"]);
+                                    addReply.asc_putUserName(reply["userName"]);
+
+                                    ascComment.asc_addReply(addReply);
+                                }
+                            });
+                        }
+                        _api.asc_changeComment(commentId, ascComment);
+                    }
+                }
+                break;
+            }
+
+        case 25001: // ASC_MENU_EVENT_TYPE_DO_API_FUNCTION_CALL
+        {
+            var json = JSON.parse(params[0]),
+                func = json["func"],
+                params = json["params"] || [],
+                returnable = json["returnable"] || false; // need return result
+
+            if (json && func) {
+                if (_api[func]) {
+                    if (returnable) {
+                        var _stream = global_memory_stream_menu;
+                        _stream["ClearNoAttack"]();
+                        var result = _api[func].apply(_api, params);
+                        _stream["WriteString2"](JSON.stringify({
+                            result: result
+                        }));
+                        _return = _stream;
+                    } else {
+                        _api[func].apply(_api, params);
+                    }
+                }
+            }
+            break;
+        }
+
         default:
             break;
     }
     
     return _return;
+}
+
+// Common
+
+function postDataAsJSONString(data, eventId) {
+    var stream = global_memory_stream_menu;
+    stream["ClearNoAttack"]();
+    if (data !== undefined && data !== null) {
+        stream["WriteString2"](JSON.stringify(data));
+    }
+    window["native"]["OnCallMenuEvent"](eventId, stream);
+}
+
+// Users
+
+function sdkUsersToJson(users) {
+    var arrUsers = [];
+
+    for (var userId in users) {
+        if (undefined !== userId) {
+            var user = users[userId];
+            if (user) {
+                arrUsers.push({
+                    id          : user.asc_getId(),
+                    idOriginal  : user.asc_getIdOriginal(),
+                    userName    : user.asc_getUserName(),
+                    online      : true,
+                    color       : user.asc_getColor(),
+                    view        : user.asc_getView()
+                });
+            }
+        }
+    }
+    return arrUsers;
+}
+
+function onApiAuthParticipantsChanged(users) {
+    var users = sdkUsersToJson(users) || [];
+    postDataAsJSONString(users, 20101); // ASC_COAUTH_EVENT_TYPE_PARTICIPANTS_CHANGED
+}
+
+function onApiParticipantsChanged(users) {
+    var users = sdkUsersToJson(users) || [];
+    postDataAsJSONString(users, 20101); // ASC_COAUTH_EVENT_TYPE_PARTICIPANTS_CHANGED
+}
+
+// Comments
+
+function stringOOToLocalDate (date) {
+    if (typeof date === 'string')
+        return parseInt(date);
+    return 0;
+}
+
+function stringUtcToLocalDate(date) {
+    if (typeof date === 'string')
+        return parseInt(date) + (new Date()).getTimezoneOffset() * 60000;
+    return 0;
+}
+
+function readSDKComment(id, data) {
+    var date = data.asc_getOnlyOfficeTime()
+            ? new Date(stringOOToLocalDate(data.asc_getOnlyOfficeTime()))
+            : (data.asc_getTime() == '') ? new Date() : new Date(stringUtcToLocalDate(data.asc_getTime())),
+        groupname = id.substr(0, id.lastIndexOf('_') + 1).match(/^(doc|sheet[0-9_]+)_/);
+
+    return {
+        id          : id,
+        guid        : data.asc_getGuid(),
+        userId      : data.asc_getUserId(),
+        userName    : data.asc_getUserName(),
+        date        : date.getTime().toString(),
+        quoteText   : data.asc_getQuoteText(),
+        text        : data.asc_getText(),
+        solved      : data.asc_getSolved(),
+        unattached  : (data.asc_getDocumentFlag === undefined) ? false : data.asc_getDocumentFlag(),
+        groupName   : (groupname && groupname.length>1) ? groupname[1] : null,
+        replies     : readSDKReplies(data)
+    };
+}
+
+function readSDKReplies (data) {
+    var i = 0,
+        replies = [],
+        date = null;
+    var repliesCount = data.asc_getRepliesCount();
+    if (repliesCount) {
+        for (i = 0; i < repliesCount; ++i) {
+            var reply = data.asc_getReply(i);
+            date = (reply.asc_getOnlyOfficeTime()) 
+                ? new Date(stringOOToLocalDate(reply.asc_getOnlyOfficeTime()))
+                : ((reply.asc_getTime() == '') ? new Date() : new Date(stringUtcToLocalDate(reply.asc_getTime())));
+            replies.push({
+                userId      : reply.asc_getUserId(),
+                userName    : reply.asc_getUserName(),
+                text        : reply.asc_getText(),
+                date        : date.getTime().toString()
+            });
+        }
+    }
+    return replies;
+}
+
+function onApiAddComment(id, data) {
+    setTimeout(function () {
+        var comment = readSDKComment(id, data) || {};
+        postDataAsJSONString(comment, 23001); // ASC_MENU_EVENT_TYPE_ADD_COMMENT
+    }, 5);
+}
+
+function onApiAddComments(data) {
+    setTimeout(function() {
+        var comments = [];
+        for (var i = 0; i < data.length; ++i) {
+            comments.push(readSDKComment(data[i].asc_getId(), data[i]));
+        }
+        postDataAsJSONString(comments, 23002); // ASC_MENU_EVENT_TYPE_ADD_COMMENTS
+    }, 5);
+}
+
+function onApiRemoveComment(id) {
+    var data = {
+        "id": id
+    };
+    postDataAsJSONString(data, 23003); // ASC_MENU_EVENT_TYPE_REMOVE_COMMENT
+}
+
+function onApiChangeComments(data) {
+    var comments = [];
+    for (var i = 0; i < data.length; ++i) {
+        comments.push(readSDKComment(data[i].asc_getId(), data[i]));
+    }
+    postDataAsJSONString(comments, 23004); // ASC_MENU_EVENT_TYPE_CHANGE_COMMENTS
+}
+
+function onApiRemoveComments(data) {
+    var ids = [];
+    for (var i = 0; i < data.length; ++i) {
+        ids.push({
+            "id": data[i]
+        });
+    }
+    postDataAsJSONString(ids, 23005); // ASC_MENU_EVENT_TYPE_REMOVE_COMMENTS
+}
+
+function onApiChangeCommentData(id, data) {
+    var comment = readSDKComment(id, data) || {},
+        change = {
+            "id": id,
+            "comment": comment
+        };
+
+    postDataAsJSONString(change, 23006); // ASC_MENU_EVENT_TYPE_CHANGE_COMMENTDATA
+}
+
+function onApiLockComment(id, userId) {
+    var data = {
+        "id": id,
+        "userId": userId
+    };
+    postDataAsJSONString(data, 23007); // ASC_MENU_EVENT_TYPE_LOCK_COMMENT
+}
+
+function onApiUnLockComment(id) {
+    var data = {
+        "id": id
+    };
+    postDataAsJSONString(data, 23008); // ASC_MENU_EVENT_TYPE_UNLOCK_COMMENT
+}
+
+function onApiShowComment(uids, posX, posY, leftX, opts, hint) {
+    var data = {
+        "uids": uids,
+        "posX": posX,
+        "posY": posY,
+        "leftX": leftX,
+        "opts": opts,
+        "hint": hint
+    };
+    postDataAsJSONString(data, 23009); // ASC_MENU_EVENT_TYPE_SHOW_COMMENT
+}
+
+function onApiHideComment(hint) {
+    var data = {
+        "hint": hint
+    };
+    postDataAsJSONString(data, 23010); // ASC_MENU_EVENT_TYPE_HIDE_COMMENT
+}
+
+function onApiUpdateCommentPosition(uids, posX, posY, leftX) {
+    var data = {
+        "uids": uids,
+        "posX": posX,
+        "posY": posY,
+        "leftX": leftX
+    };
+    postDataAsJSONString(data, 23011); // ASC_MENU_EVENT_TYPE_UPDATE_COMMENT_POSITION
+}
+
+function onDocumentPlaceChanged() {
+    postDataAsJSONString(null, 23012); // ASC_MENU_EVENT_TYPE_DOCUMENT_PLACE_CHANGED
 }
 
 window["Asc"]["spreadsheet_api"].prototype.asc_setDocumentPassword = function(password)
@@ -7054,6 +7438,7 @@ window["Asc"]["spreadsheet_api"].prototype.openDocument = function(file) {
                window["native"]["onEndLoadingFile"](ws.headersWidth, ws.headersHeight);
                
                _s.asc_WriteAllWorksheets(true);
+               _s.asc_WriteCurrentCell();
                
                return;
                }
@@ -7070,8 +7455,7 @@ window["Asc"]["spreadsheet_api"].prototype.openDocument = function(file) {
                // Применяем пришедшие при открытии изменения
                t._applyFirstLoadChanges();
                // Go to if sent options
-               var options = t.DocInfo && t.DocInfo.asc_getOptions();
-               t.goTo(options && options["action"]);
+               t.goTo();
 
                t.isDocumentLoadComplete = true;
                
@@ -7097,6 +7481,7 @@ window["Asc"]["spreadsheet_api"].prototype.openDocument = function(file) {
                           //console.log("JS - onEndLoadingFile()");
                           
                           _s.asc_WriteAllWorksheets(true);
+                          _s.asc_WriteCurrentCell();
                           
                           setInterval(function() {
                                       

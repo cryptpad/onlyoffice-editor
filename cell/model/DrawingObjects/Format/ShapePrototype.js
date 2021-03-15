@@ -174,7 +174,8 @@ function addToDrawings(worksheet, graphic, position, lockByDefault, anchor)
      worksheet.setSelectionShape(true);  */
     if(oldDrawingBase)
     {
-        drawingObject.Type = oldDrawingBase.Type;
+        graphic.setDrawingBaseType(oldDrawingBase.Type);
+        graphic.setDrawingBaseEditAs(oldDrawingBase.editAs);
         drawingObject.from.col = oldDrawingBase.from.col;
         drawingObject.from.colOff = oldDrawingBase.from.colOff;
         drawingObject.from.row = oldDrawingBase.from.row;
@@ -434,9 +435,21 @@ CShape.prototype.addToDrawingObjects =  function(pos, type)
     var position = addToDrawings(this.worksheet, this, pos, /*lockByDefault*/undefined, type);
     //var data = {Type: AscDFH.historyitem_AutoShapes_AddToDrawingObjects, Pos: position};
     History.Add(new CChangesDrawingObjectsAddToDrawingObjects(this, position));
-    if(AscFormat.isRealNumber(type) && this.setDrawingBaseType)
+    if(this.setDrawingBaseType)
     {
-        this.setDrawingBaseType(type);
+        if(this.drawingBase)
+        {
+            this.setDrawingBaseType && this.setDrawingBaseType(this.drawingBase.Type);
+            this.setDrawingBaseEditAs && this.setDrawingBaseEditAs(this.drawingBase.editAs);
+        }
+        if(AscFormat.isRealNumber(type))
+        {
+            this.setDrawingBaseType(type);
+            if(type === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell)
+            {
+                this.setDrawingBaseEditAs(AscCommon.c_oAscCellAnchorType.cellanchorTwoCell);
+            }
+        }
     }
     //this.worksheet.addContentChanges(new AscCommon.CContentChangesElement(AscCommon.contentchanges_Add, position, 1, data));
     var nv_sp_pr, bNeedSet = false;
@@ -471,6 +484,15 @@ CShape.prototype.addToDrawingObjects =  function(pos, type)
         nv_sp_pr.cNvPr.setId(++AscFormat.Ax_Counter.GLOBAL_AX_ID_COUNTER);
         this.setNvSpPr(nv_sp_pr);
     }
+    if(this.signatureLine)
+    {
+        this.setSignature(this.signatureLine);
+    }
+    var oApi = Asc.editor;
+    if(oApi && this.signatureLine)
+    {
+        oApi.sendEvent("asc_onAddSignature", this.signatureLine.id);
+    }
 };
 
 
@@ -484,9 +506,18 @@ CShape.prototype.deleteDrawingBase = function()
         var oExt = this.drawingBase.ext;
         if(oFrom && oTo && oPos && oExt && this.setDrawingBaseType && this.setDrawingBaseCoords)
         {
+            if(this.drawingBase.Type === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell)
+            {
+                this.setDrawingBaseEditAs(AscCommon.c_oAscCellAnchorType.cellanchorTwoCell);
+            }
             this.setDrawingBaseType(this.drawingBase.Type);
+
             this.setDrawingBaseCoords(oFrom.col, oFrom.colOff, oFrom.row, oFrom.rowOff, oTo.col, oTo.colOff, oTo.row, oTo.rowOff, oPos.X, oPos.Y, oExt.cx, oExt.cy)
         }
+    }
+    if(this.signatureLine && this.setSignature)
+    {
+        this.setSignature(this.signatureLine);
     }
     var position = AscFormat.deleteDrawingBase(this.worksheet.Drawings, this.Get_Id());
     if(AscFormat.isRealNumber(position))
@@ -494,6 +525,15 @@ CShape.prototype.deleteDrawingBase = function()
         //var data = {Type: AscDFH.historyitem_AutoShapes_RemoveFromDrawingObjects, Pos: position};
         History.Add(new CChangesDrawingObjectsRemoveFromDrawingObjects(this, position));
         //this.worksheet.addContentChanges(new AscCommon.CContentChangesElement(AscCommon.contentchanges_Remove, data.Pos, 1, data));
+    }
+    if(this.signatureLine && this.setSignature)
+    {
+        var oApi = Asc.editor;
+        if(oApi)
+        {
+            oApi.sendEvent("asc_onAddSignature", this.signatureLine.id);
+        }
+        this.setSignature(this.signatureLine);
     }
     return position;
 };
@@ -539,7 +579,7 @@ CShape.prototype.recalcContent = function()
 CShape.prototype.getDrawingDocument = function()
 {
     if(this.worksheet)
-        return this.worksheet.DrawingDocument;
+        return this.worksheet.getDrawingDocument();
     var drawingObjects =  getDrawingObjects_Sp(this);
     return drawingObjects && drawingObjects.drawingDocument;
 };
@@ -737,7 +777,7 @@ CShape.prototype.recalculate = function ()
 
     }, this, []);
 };
-    
+
 CShape.prototype.recalculateBounds = function()
 {
     var boundsChecker = new  AscFormat.CSlideBoundsChecker();
@@ -757,7 +797,6 @@ CShape.prototype.recalculateBounds = function()
         this.drawingBase.checkBoundsFromTo();
     }
 };
-
 CShape.prototype.recalculateContent = function()
 {
     var content = this.getDocContent();
@@ -855,7 +894,12 @@ AscFormat.CTextBody.prototype.Get_Worksheet = function()
 };
 AscFormat.CTextBody.prototype.getDrawingDocument = function()
 {
-    return this.parent && this.parent.getDrawingDocument && this.parent.getDrawingDocument();
+    var oCellApi = window["Asc"] && window["Asc"]["editor"];
+    if (oCellApi && oCellApi.wbModel)
+    {
+        return oCellApi.wbModel.DrawingDocument;
+    }
+    return null;
 };
 
     //------------------------------------------------------------export----------------------------------------------------

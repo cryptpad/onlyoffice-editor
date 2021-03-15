@@ -69,8 +69,6 @@ function CGraphicFrame()
 
     this.compiledHierarchy = [];
     this.Pages      = [];
-    this.Id = AscCommon.g_oIdCounter.Get_NewId();
-    AscCommon.g_oTableId.Add(this, this.Id);
     this.compiledStyles = [];
     this.recalcInfo =
     {
@@ -100,17 +98,11 @@ CGraphicFrame.prototype.Is_UseInDocument = CShape.prototype.Is_UseInDocument;
 CGraphicFrame.prototype.convertPixToMM = CShape.prototype.convertPixToMM;
 CGraphicFrame.prototype.hit = CShape.prototype.hit;
 
-CGraphicFrame.prototype.GetDocumentPositionFromObject= function(PosArray)
+CGraphicFrame.prototype.GetDocumentPositionFromObject = function(arrPos)
 {
-	if (!PosArray)
-		PosArray = [];
-
-	// TODO: Судя по тому как записывается позиция и как она читается
-	//       класс CGraphicFrame не должен попадать в позицию
-	if (PosArray && PosArray.length > 0 && PosArray[0].Class === this)
-		PosArray.splice(0, 1);
-
-	return PosArray;
+	if (!arrPos)
+		arrPos = [];
+	return arrPos;
 };
 
 CGraphicFrame.prototype.Is_DrawingShape = function(bRetShape)
@@ -243,17 +235,17 @@ CGraphicFrame.prototype.Search = function(Str, Props, SearchEngine, Type)
         }
 };
 
-CGraphicFrame.prototype.Search_GetId = function(bNext, bCurrent)
+CGraphicFrame.prototype.GetSearchElementId = function(bNext, bCurrent)
     {
         if(this.graphicObject)
         {
-            return this.graphicObject.Search_GetId(bNext, bCurrent);
+            return this.graphicObject.GetSearchElementId(bNext, bCurrent);
         }
 
         return null;
 };
 
-CGraphicFrame.prototype.copy= function()
+CGraphicFrame.prototype.copy = function(oPr)
     {
         var ret = new CGraphicFrame();
         if(this.graphicObject)
@@ -410,6 +402,7 @@ CGraphicFrame.prototype.recalculate = function()
                 this.transformText = this.transform;
                 this.invertTransformText = this.invertTransform;
                 this.cachedImage = null;
+                this.recalcInfo.recalculateSizes = true;
             }
             if(this.recalcInfo.recalculateTable)
             {
@@ -569,15 +562,6 @@ CGraphicFrame.prototype.canRotate = function()
         return false;
 };
 
-CGraphicFrame.prototype.canResize = function()
-    {
-        return true;
-};
-
-CGraphicFrame.prototype.canMove = function()
-    {
-        return true;
-};
 
 CGraphicFrame.prototype.canGroup = function()
     {
@@ -693,7 +677,7 @@ CGraphicFrame.prototype.Check_AutoFit = function()
         return false;
 };
 
-CGraphicFrame.prototype.Is_InTable = function()
+CGraphicFrame.prototype.IsInTable = function()
     {
         return null;
 };
@@ -814,6 +798,11 @@ CGraphicFrame.prototype.Is_TopDocument = function()
         return false;
 };
 
+CGraphicFrame.prototype.GetTopElement = function()
+    {
+        return null;
+};
+
 CGraphicFrame.prototype.drawAdjustments = function()
 {};
 
@@ -832,9 +821,13 @@ CGraphicFrame.prototype.deselect = CShape.prototype.deselect;
 CGraphicFrame.prototype.Update_ContentIndexing = function()
 {};
     
-CGraphicFrame.prototype.GetTopDocumentContent = function()
+CGraphicFrame.prototype.GetTopDocumentContent = function(isOneLevel)
 {
     return null;
+};
+CGraphicFrame.prototype.GetElement = function(nIndex)
+{
+    return this.graphicObject;
 };
 
 CGraphicFrame.prototype.draw = function(graphics)
@@ -1033,12 +1026,6 @@ CGraphicFrame.prototype.setParagraphIndent = function(val)
         }
 };
 
-CGraphicFrame.prototype.setParent2 = function(parent)
-    {
-        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_GraphicFrameSetSetParent, this.parent, parent));
-        this.parent = parent;
-};
-
 CGraphicFrame.prototype.setWordFlag = function(bPresentation, Document)
     {
         if(this.graphicObject)
@@ -1112,12 +1099,6 @@ CGraphicFrame.prototype.Get_PageContentStartPos2 = function()
         return this.Get_PageContentStartPos();
 };
 
-CGraphicFrame.prototype.hitToHandles = CShape.prototype.hitToHandles;
-CGraphicFrame.prototype.hitToAdjustment = function()
-    {
-        return {hit:false};
-};
-
 CGraphicFrame.prototype.Refresh_RecalcData = function()
     {
         this.Refresh_RecalcData2();
@@ -1159,9 +1140,12 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
            this.graphicObject.GetAllContentControls(arrContentControls);
        }
     };
+    CGraphicFrame.prototype.IsElementStartOnNewPage = function(){
+      return true;
+    };
 
     CGraphicFrame.prototype.getCopyWithSourceFormatting = function(){
-        var ret = this.copy();
+        var ret = this.copy(undefined);
         var oCopyTable = ret.graphicObject;
         var oSourceTable = this.graphicObject;
         var oTheme = this.Get_Theme();
@@ -1297,6 +1281,11 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
             }
         }
         return ret;
+    };
+    CGraphicFrame.prototype.documentCreateFontMap = function(oMap) {
+        if(this.graphicObject && this.graphicObject.Document_CreateFontMap) {
+            this.graphicObject.Document_CreateFontMap(oMap);
+        }
     };
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};

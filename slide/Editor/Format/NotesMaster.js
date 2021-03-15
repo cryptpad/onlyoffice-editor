@@ -129,6 +129,7 @@
         var _pos = Math.max(0, Math.min(pos, this.cSld.spTree.length));
         History.Add(new AscDFH.CChangesDrawingsContentPresentation(this, AscDFH.historyitem_NotesMasterAddToSpTree, _pos, [obj], true));
         this.cSld.spTree.splice(_pos, 0, obj);
+        obj.setParent2(this);
     };
 
     CNotesMaster.prototype.removeFromSpTreeByPos = function(pos){
@@ -189,6 +190,8 @@
 
     CNotesMaster.prototype.createDuplicate = function(IdMap){
         var oIdMap = IdMap || {};
+        var oPr = new AscFormat.CCopyObjectProperties();
+        oPr.idMap = oIdMap;
         var i;
         var copy = new CNotesMaster();
        // if(this.clrMap){
@@ -204,17 +207,8 @@
         }
         for(i = 0; i < this.cSld.spTree.length; ++i)
         {
-            var _copy;
-
-            if(this.cSld.spTree[i].getObjectType() === AscDFH.historyitem_type_GroupShape){
-                _copy = this.cSld.spTree[i].copy(oIdMap);
-            }
-            else{
-                _copy = this.cSld.spTree[i].copy();
-            }
-            if(AscCommon.isRealObject(oIdMap)){
-                oIdMap[this.cSld.spTree[i].Id] = _copy.Id;
-            }
+            var _copy = this.cSld.spTree[i].copy(oPr);
+            oIdMap[this.cSld.spTree[i].Id] = _copy.Id;
             copy.addToSpTreeToPos(copy.cSld.spTree.length, _copy);
             copy.cSld.spTree[copy.cSld.spTree.length - 1].setParent2(copy);
         }

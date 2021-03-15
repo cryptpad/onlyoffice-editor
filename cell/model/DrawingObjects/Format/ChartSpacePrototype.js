@@ -62,7 +62,6 @@ CChartSpace.prototype.recalcText = function()
 
 CChartSpace.prototype.recalculateBounds = CShape.prototype.recalculateBounds;
 CChartSpace.prototype.deselect = CShape.prototype.deselect;
-CChartSpace.prototype.hitToHandles = CShape.prototype.hitToHandles;
 CChartSpace.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CChartSpace.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CChartSpace.prototype.getInvertTransform = CShape.prototype.getInvertTransform;
@@ -152,25 +151,12 @@ CChartSpace.prototype.handleUpdatePosition = function()
     //this.setRecalculateInfo();
     for(var i = 0; i < this.userShapes.length; ++i)
     {
-        if(this.userShapes[i].object && this.userShapes[i].object.handleUpdateExtents)
+        if(this.userShapes[i].object)
         {
             this.userShapes[i].object.handleUpdateExtents();
         }
     }
     this.addToRecalculate();
-};
-CChartSpace.prototype.handleUpdateExtents = function(bExtX)
-{
-    var oXfrm = this.spPr && this.spPr.xfrm;
-    if(undefined === bExtX ||
-        !oXfrm || bExtX && !AscFormat.fApproxEqual(this.extX, oXfrm.extX, 0.01) || false === bExtX &&!AscFormat.fApproxEqual(this.extY, oXfrm.extY, 0.01))
-    {
-        this.recalcChart();
-        this.recalcBounds();
-        this.recalcTransform();
-        this.recalcTitles();
-        this.handleUpdateInternalChart(false);
-    }
 };
 CChartSpace.prototype.handleUpdateFlip = function()
 {
@@ -220,7 +206,6 @@ CChartSpace.prototype.handleUpdateLn = function()
 	this.recalcInfo.recalculateMarkers = true;
     this.addToRecalculate();
 };
-CChartSpace.prototype.canGroup = CShape.prototype.canGroup;
 CChartSpace.prototype.convertPixToMM = CShape.prototype.convertPixToMM;
 CChartSpace.prototype.getCanvasContext = CShape.prototype.getCanvasContext;
 CChartSpace.prototype.getHierarchy = CShape.prototype.getHierarchy;
@@ -234,14 +219,6 @@ CChartSpace.prototype.getParentObjects = function()
     return parents;
 };
 CChartSpace.prototype.recalculateTransform = CShape.prototype.recalculateTransform;
-
-CChartSpace.prototype.canResize = CShape.prototype.canResize;
-CChartSpace.prototype.canMove = CShape.prototype.canMove;
-CChartSpace.prototype.canRotate = function()
-{
-    return false;
-};
-
 
 CChartSpace.prototype.createResizeTrack = CShape.prototype.createResizeTrack;
 CChartSpace.prototype.createMoveTrack = CShape.prototype.createMoveTrack;

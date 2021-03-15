@@ -79,13 +79,16 @@
     CLockedCanvas.prototype.hitInPath = function () {
         return false;
     };
-    CLockedCanvas.prototype.copy = function (oIdMap, bSourceFormatting) {
+    CLockedCanvas.prototype.copy = function (oPr) {
         var copy = new CLockedCanvas();
-        return this.copy2(copy, oIdMap, bSourceFormatting);
+        return this.copy2(copy, oPr);
     };
 
     CLockedCanvas.prototype.hitInInnerArea = function (x, y) {
         var invert_transform = this.getInvertTransform();
+        if(!invert_transform) {
+            return false;
+        }
         var x_t = invert_transform.TransformPointX(x, y);
         var y_t = invert_transform.TransformPointY(x, y);
         return x_t > 0 && x_t < this.extX && y_t > 0 && y_t < this.extY;

@@ -89,6 +89,10 @@ AscDFH.changesFactory[AscDFH.historyitem_Styles_ChangeDefaultTitleId]           
 AscDFH.changesFactory[AscDFH.historyitem_Styles_ChangeDefaultSubtitleId]          = CChangesStylesChangeDefaultSubtitleId;
 AscDFH.changesFactory[AscDFH.historyitem_Styles_ChangeDefaultQuoteId]             = CChangesStylesChangeDefaultQuoteId;
 AscDFH.changesFactory[AscDFH.historyitem_Styles_ChangeDefaultIntenseQuoteId]      = CChangesStylesChangeDefaultIntenseQuoteId;
+AscDFH.changesFactory[AscDFH.historyitem_Styles_ChangeDefaultCaption]             = CChangesStylesChangeDefaultCaption;
+AscDFH.changesFactory[AscDFH.historyitem_Styles_ChangeDefaultEndnoteTextId]       = CChangesStylesChangeDefaultEndnoteTextId;
+AscDFH.changesFactory[AscDFH.historyitem_Styles_ChangeDefaultEndnoteTextCharId]   = CChangesStylesChangeDefaultEndnoteTextCharId;
+AscDFH.changesFactory[AscDFH.historyitem_Styles_ChangeDefaultEndnoteReferenceId]  = CChangesStylesChangeDefaultEndnoteReferenceId;
 
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
@@ -150,6 +154,10 @@ AscDFH.changesRelationMap[AscDFH.historyitem_Styles_ChangeDefaultTitleId]       
 AscDFH.changesRelationMap[AscDFH.historyitem_Styles_ChangeDefaultSubtitleId]          = [AscDFH.historyitem_Styles_ChangeDefaultSubtitleId];
 AscDFH.changesRelationMap[AscDFH.historyitem_Styles_ChangeDefaultQuoteId]             = [AscDFH.historyitem_Styles_ChangeDefaultQuoteId];
 AscDFH.changesRelationMap[AscDFH.historyitem_Styles_ChangeDefaultIntenseQuoteId]      = [AscDFH.historyitem_Styles_ChangeDefaultIntenseQuoteId];
+AscDFH.changesRelationMap[AscDFH.historyitem_Styles_ChangeDefaultCaption]             = [AscDFH.historyitem_Styles_ChangeDefaultCaption];
+AscDFH.changesRelationMap[AscDFH.historyitem_Styles_ChangeDefaultEndnoteTextId]       = [AscDFH.historyitem_Styles_ChangeDefaultEndnoteTextId];
+AscDFH.changesRelationMap[AscDFH.historyitem_Styles_ChangeDefaultEndnoteTextCharId]   = [AscDFH.historyitem_Styles_ChangeDefaultEndnoteTextCharId];
+AscDFH.changesRelationMap[AscDFH.historyitem_Styles_ChangeDefaultEndnoteReferenceId]  = [AscDFH.historyitem_Styles_ChangeDefaultEndnoteReferenceId];
 //----------------------------------------------------------------------------------------------------------------------
 
 
@@ -1378,4 +1386,65 @@ CChangesStylesChangeDefaultIntenseQuoteId.prototype.Type = AscDFH.historyitem_St
 CChangesStylesChangeDefaultIntenseQuoteId.prototype.private_SetValue = function(Value)
 {
 	this.Class.Default.IntenseQuote = Value;
+};
+
+/**
+ * @constructor
+ * @extends {CChangesStyleBaseStringProperty}
+ */
+function CChangesStylesChangeDefaultCaption(Class, Old, New)
+{
+	CChangesStyleBaseStringProperty.call(this, Class, Old, New);
+}
+CChangesStylesChangeDefaultCaption.prototype = Object.create(CChangesStyleBaseStringProperty.prototype);
+CChangesStylesChangeDefaultCaption.prototype.constructor = CChangesStylesChangeDefaultIntenseQuoteId;
+CChangesStylesChangeDefaultCaption.prototype.Type = AscDFH.historyitem_Styles_ChangeDefaultCaption;
+CChangesStylesChangeDefaultCaption.prototype.private_SetValue = function(Value)
+{
+	this.Class.Default.Caption = Value;
+};
+/**
+ * @constructor
+ * @extends {CChangesStyleBaseStringProperty}
+ */
+function CChangesStylesChangeDefaultEndnoteTextId(Class, Old, New)
+{
+	CChangesStyleBaseStringProperty.call(this, Class, Old, New);
+}
+CChangesStylesChangeDefaultEndnoteTextId.prototype = Object.create(CChangesStyleBaseStringProperty.prototype);
+CChangesStylesChangeDefaultEndnoteTextId.prototype.constructor = CChangesStylesChangeDefaultEndnoteTextId;
+CChangesStylesChangeDefaultEndnoteTextId.prototype.Type = AscDFH.historyitem_Styles_ChangeDefaultEndnoteTextId;
+CChangesStylesChangeDefaultEndnoteTextId.prototype.private_SetValue = function(Value)
+{
+	this.Class.Default.EndnoteText = Value;
+};
+/**
+ * @constructor
+ * @extends {CChangesStyleBaseStringProperty}
+ */
+function CChangesStylesChangeDefaultEndnoteTextCharId(Class, Old, New)
+{
+	CChangesStyleBaseStringProperty.call(this, Class, Old, New);
+}
+CChangesStylesChangeDefaultEndnoteTextCharId.prototype = Object.create(CChangesStyleBaseStringProperty.prototype);
+CChangesStylesChangeDefaultEndnoteTextCharId.prototype.constructor = CChangesStylesChangeDefaultEndnoteTextCharId;
+CChangesStylesChangeDefaultEndnoteTextCharId.prototype.Type = AscDFH.historyitem_Styles_ChangeDefaultEndnoteTextCharId;
+CChangesStylesChangeDefaultEndnoteTextCharId.prototype.private_SetValue = function(Value)
+{
+	this.Class.Default.EndnoteTextChar = Value;
+};
+/**
+ * @constructor
+ * @extends {CChangesStyleBaseStringProperty}
+ */
+function CChangesStylesChangeDefaultEndnoteReferenceId(Class, Old, New)
+{
+	CChangesStyleBaseStringProperty.call(this, Class, Old, New);
+}
+CChangesStylesChangeDefaultEndnoteReferenceId.prototype = Object.create(CChangesStyleBaseStringProperty.prototype);
+CChangesStylesChangeDefaultEndnoteReferenceId.prototype.constructor = CChangesStylesChangeDefaultEndnoteReferenceId;
+CChangesStylesChangeDefaultEndnoteReferenceId.prototype.Type = AscDFH.historyitem_Styles_ChangeDefaultEndnoteReferenceId;
+CChangesStylesChangeDefaultEndnoteReferenceId.prototype.private_SetValue = function(Value)
+{
+	this.Class.Default.EndnoteReference = Value;
 };

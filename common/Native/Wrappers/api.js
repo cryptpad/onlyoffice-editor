@@ -30,12 +30,15 @@
  *
  */
 
-window.IS_NATIVE_EDITOR = true;
-
 var sdkCheck = true;
 var spellCheck = true;
+var _api = null;
+var _internalStorage = {
+    changesReview : []
+};
 
 window['SockJS'] = createSockJS();
+window['JSZipUtils'] = JSZipUtils();
 
 Asc['asc_docs_api'].prototype.Update_ParaInd = function( Ind )
 {
@@ -54,7 +57,7 @@ Asc['asc_docs_api'].prototype.Internal_Update_Ind_Right = function(Right)
 Asc['asc_docs_api'].prototype["NativeAfterLoad"] = function()
 {
     this.WordControl.m_oDrawingDocument.AfterLoad();
-    this.WordControl.m_oLogicDocument.Set_UseTextShd(false);
+    this.WordControl.m_oLogicDocument.SetUseTextShd(false);
 };
 Asc['asc_docs_api'].prototype["GetNativePageMeta"] = function(pageIndex)
 {
@@ -189,7 +192,7 @@ Asc['asc_docs_api'].prototype["Call_HR_Margins"] = function(_margin_left, _margi
     if ( false === _logic.Document_Is_SelectionLocked(AscCommon.changestype_Document_SectPr) )
     {
         _logic.StartAction();
-        _logic.Set_DocumentMargin( { Left : _margin_left, Right : _margin_right });
+        _logic.SetDocumentMargin( { Left : _margin_left, Right : _margin_right });
 		_logic.FinalizeAction();
     }
 };
@@ -217,7 +220,7 @@ Asc['asc_docs_api'].prototype["Call_VR_Margins"] = function(_top, _bottom)
     if ( false === _logic.Document_Is_SelectionLocked(AscCommon.changestype_Document_SectPr) )
     {
         _logic.StartAction();
-        _logic.Set_DocumentMargin( { Top : _top, Bottom : _bottom });
+        _logic.SetDocumentMargin( { Top : _top, Bottom : _bottom });
         _logic.FinalizeAction();
     }
 };
@@ -665,7 +668,7 @@ function asc_menu_WriteParaBorder(_type, _border, _stream)
 // PARAASCBORDERS
 function asc_menu_ReadParaBorders(_params, _cursor)
 {
-    var _border = new asc_CParagraph();
+    var _border = new Asc.asc_CParagraphBorders();
     var _continue = true;
     while (_continue)
     {
@@ -1165,7 +1168,11 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                     case 8:
                     {
                         var color = asc_menu_ReadColor(_params, _current);
-                        _textPr.HighLight = { r: color.r, g: color.g, b: color.b };
+                        if (color.a < 1) {
+                            _textPr.HighLight = AscCommonWord.highlight_None;
+                        } else {
+                            _textPr.HighLight = { r: color.r, g: color.g, b: color.b };
+                        }
                         break;
                     }
                     case 9:
@@ -1911,19 +1918,8 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                     }
                 }
             }
-
-            if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Document_Content_Add) )
-            {
-                this.WordControl.m_oLogicDocument.StartAction();
-                this.WordControl.m_oLogicDocument.AddInlineTable(_rows, _cols);
-
-                if (_style != null)
-                {
-                    this.WordControl.m_oLogicDocument.SetTableProps({TableStyle : _style});
-                }
-
-                this.WordControl.m_oLogicDocument.FinalizeAction();
-            }
+            _style = _style + "";
+            this.put_Table(_rows, _cols, _style);
             break;
         }
         case 50: // ASC_MENU_EVENT_TYPE_INSERT_IMAGE
@@ -1939,19 +1935,8 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         case 53: // ASC_MENU_EVENT_TYPE_INSERT_SHAPE
         {
             var _shapeProp = asc_menu_ReadShapePr(_params, _current);
-
             var _pageNum = _shapeProp.InsertPageNum;
-            // получаем размеры страницы
-            var _sectionPr = this.WordControl.m_oLogicDocument.Get_PageLimits(_pageNum);
-
-            var _min = Math.min(_sectionPr.XLimit / 2, _sectionPr.YLimit / 2);
-
-            this.WordControl.m_oLogicDocument.DrawingObjects.addShapeOnPage(_shapeProp.type, _pageNum,
-                                                                            _sectionPr.X + _sectionPr.XLimit / 4,
-                                                                            _sectionPr.Y + _sectionPr.YLimit / 4,
-                                                                            _min,
-                                                                            _min);
-            //this.StartAddShape(_shapeProp.type, true);
+            this.WordControl.m_oLogicDocument.DrawingObjects.addShapeOnPage(_shapeProp.type, _shapeProp.InsertPageNum);
             break;
         }
         case 52: // ASC_MENU_EVENT_TYPE_INSERT_HYPERLINK
@@ -2143,7 +2128,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         {
             var _stream = global_memory_stream_menu;
             _stream["ClearNoAttack"]();
-            _stream["WriteStringA"](this["asc_nativeGetFile"]());
+            _stream["WriteStringA"](this["asc_nativeGetFileData"]());
             _return = _stream;
             break;
         }
@@ -2194,65 +2179,84 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         }
         case 71: // ASC_MENU_EVENT_TYPE_TABLE_INSERTDELETE_ROWCOLUMN
         {
-            var _type = 0;
-            var _is_add = true;
-            var _is_above = true;
-            while (_continue)
-            {
-                var _attr = _params[_current.pos++];
-                switch (_attr)
-                {
-                    case 0:
-                    {
-                        _type = _params[_current.pos++];
-                        break;
-                    }
-                    case 1:
-                    {
-                        _is_add = _params[_current.pos++];
-                        break;
-                    }
-                    case 2:
-                    {
-                        _is_above = _params[_current.pos++];
-                        break;
-                    }
-                    case 255:
-                    default:
-                    {
-                        _continue = false;
-                        break;
+            if (typeof _params[0] === 'string') {
+                var json = JSON.parse(_params[0]);
+                if (json) {
+                    var isInsert = json["insert"] || false;
+                    var isDelete = json["delete"] || false;
+                    var type = json["type"] || "table";
+
+                    if (isInsert) {
+                        if (type === "row") {
+                            json["above"] ? _api.addRowAbove() : _api.addRowBelow();
+                        } else if (type == "column") {
+                            json["left"] ? _api.addColumnLeft() : _api.addColumnRight();
+                        }
+                    } else if (isDelete) {
+                        if (type === "row") {
+                            _api.remRow();
+                        } else if (type === "column") {
+                            _api.remColumn();
+                        } else {
+                            _api.remTable();
+                        }
                     }
                 }
-            }
-
-            if (1 == _type)
-            {
-                if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Table_Properties) )
-                {
-                    this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_TableAddColumnLeft);
-                    if (_is_add)
-                        this.WordControl.m_oLogicDocument.AddTableColumn(!_is_above);
-                    else
-                        this.WordControl.m_oLogicDocument.RemoveTableColumn();
-
-					this.WordControl.m_oLogicDocument.FinalizeAction();
+            } else {
+                var _type = 0;
+                var _is_add = true;
+                var _is_above = true;
+                while (_continue) {
+                    var _attr = _params[_current.pos++];
+                    switch (_attr) {
+                        case 0:
+                            {
+                                _type = _params[_current.pos++];
+                                break;
+                            }
+                        case 1:
+                            {
+                                _is_add = _params[_current.pos++];
+                                break;
+                            }
+                        case 2:
+                            {
+                                _is_above = _params[_current.pos++];
+                                break;
+                            }
+                        case 255:
+                        default:
+                            {
+                                _continue = false;
+                                break;
+                            }
+                    }
                 }
-            }
-            else if (2 == _type)
-            {
-                if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Table_Properties) )
-                {
-                    this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_TableAddColumnLeft);
-                    if (_is_add)
-                        this.WordControl.m_oLogicDocument.AddTableRow(!_is_above);
-                    else
-                        this.WordControl.m_oLogicDocument.RemoveTableRow();
 
-					this.WordControl.m_oLogicDocument.FinalizeAction();
+                if (1 == _type) {
+                    if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Table_Properties)) {
+                        this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_TableAddColumnLeft);
+                        if (_is_add)
+                            this.WordControl.m_oLogicDocument.AddTableColumn(!_is_above);
+                        else
+                            this.WordControl.m_oLogicDocument.RemoveTableColumn();
+
+                        this.WordControl.m_oLogicDocument.FinalizeAction();
+                    }
                 }
-            }
+                else if (2 == _type) {
+                    if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Table_Properties)) {
+                        this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_TableAddColumnLeft);
+                        if (_is_add)
+                            this.WordControl.m_oLogicDocument.AddTableRow(!_is_above);
+                        else
+                            this.WordControl.m_oLogicDocument.RemoveTableRow();
 
+                        this.WordControl.m_oLogicDocument.FinalizeAction();
+                    }
+                }
+
+            }
             break;
         }
 
@@ -2282,7 +2286,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             var _stream = global_memory_stream_menu;
             _stream["ClearNoAttack"]();
             _stream["WriteStringA"](JSON.stringify(new Asc.asc_CChartBinary(chart)));
-            _return = _stream;           
+            _return = _stream;
             break;
         }
         
@@ -2304,11 +2308,20 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         {
             if (undefined !== _params) {
                 var indexScheme = parseInt(_params);
-                this.ChangeColorScheme(indexScheme);
+                _api.asc_ChangeColorSchemeByIdx(indexScheme);
             }
             break;
         }
 
+        case 2416: // ASC_MENU_EVENT_TYPE_GET_COLOR_SCHEME
+        {
+            var index = _api.asc_GetCurrentColorSchemeIndex();
+            var stream = global_memory_stream_menu;
+            stream["ClearNoAttack"]();
+            stream["WriteLong"](index);
+            _return = stream;
+            break;
+        }
 
         case 10000: // ASC_SOCKET_EVENT_TYPE_OPEN
         {
@@ -2404,7 +2417,320 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             var status = parseInt(_params[0]);
             if (status !== undefined) {
                 this.asc_setSpellCheck(status == 0 ? false : true);
-            } 
+            }
+            break;
+        }
+
+        case 22006: // ASC_EVENT_TYPE_DO_NONPRINTING_DISPLAY
+        {
+            var json = JSON.parse(_params[0]);
+            if (json) {
+                var display = json["display"] || false;
+                if (_api.put_ShowParaMarks) {
+                    _api.put_ShowParaMarks(display);
+                }
+                if (_api.put_ShowTableEmptyLine) {
+                    _api.put_ShowTableEmptyLine(display);
+                }
+                _api.WordControl.m_oDrawingDocument.ClearCachePages();
+                _api.WordControl.m_oDrawingDocument.FirePaint();
+            }
+            break;
+        }
+
+        case 23101: // ASC_MENU_EVENT_TYPE_DO_SELECT_COMMENT
+        {
+            var json = JSON.parse(_params[0]);
+            if (json && json["id"]) {
+                var id = parseInt(json["id"]);
+                if (_api.asc_selectComment && id) {
+                    _api.asc_selectComment(id);
+                }
+            }
+            break;
+        }
+
+        case 23102: // ASC_MENU_EVENT_TYPE_DO_SHOW_COMMENT
+        {
+            var json = JSON.parse(_params[0]);
+            if (json && json["id"]) {
+                if (_api.asc_showComment) {
+                    _api.asc_showComment(json["id"], json["isNew"] === true);
+                }
+            }
+            break;
+        }
+
+        case 23103: // ASC_MENU_EVENT_TYPE_DO_SELECT_COMMENTS
+        {
+            var json = JSON.parse(_params[0]);
+            if (json) {
+                if (_api.asc_showComments) {
+                    _api.asc_showComments(json["resolved"] === true);
+                }
+            }
+            break;
+        }
+
+        case 23104: // ASC_MENU_EVENT_TYPE_DO_DESELECT_COMMENTS
+        {
+            if (_api.asc_hideComments) {
+                _api.asc_hideComments();
+            }
+            break;
+        }
+
+        case 23105: // ASC_MENU_EVENT_TYPE_DO_ADD_COMMENT
+        {
+            var json = JSON.parse(_params[0]);
+            if (json) {
+                var buildCommentData = function () {
+                    if (typeof Asc.asc_CCommentDataWord !== 'undefined') {
+                        return new Asc.asc_CCommentDataWord(null);
+                    }
+                    return new Asc.asc_CCommentData(null);
+                };
+
+                var comment = buildCommentData();
+                var now = new Date();
+                var timeZoneOffsetInMs = (new Date()).getTimezoneOffset() * 60000;
+                var currentUserId = _internalStorage.externalUserInfo.asc_getId();
+                var currentUserName = _internalStorage.externalUserInfo.asc_getFullName();
+
+                if (comment) {
+                    comment.asc_putText(json["text"]);
+                    comment.asc_putTime((now.getTime() - timeZoneOffsetInMs).toString());
+                    comment.asc_putOnlyOfficeTime(now.getTime().toString());
+                    comment.asc_putUserId(currentUserId);
+                    comment.asc_putUserName(currentUserName);
+                    comment.asc_putSolved(false);
+
+                    if (comment.asc_putDocumentFlag) {
+                        comment.asc_putDocumentFlag(json["unattached"]);
+                    }
+
+                    _api.asc_addComment(comment);
+                }
+            }
+            break;
+        }
+
+        case 23106: // ASC_MENU_EVENT_TYPE_DO_REMOVE_COMMENT
+        {
+            var json = JSON.parse(_params[0]);
+            if (json && json["id"]) { // id - String
+                if (_api.asc_removeComment) {
+                    _api.asc_removeComment(json["id"]);
+                }
+            }
+            break;
+        }
+
+        case 23107: // ASC_MENU_EVENT_TYPE_DO_REMOVE_ALL_COMMENTS
+        {
+            var json = JSON.parse(_params[0]),
+                type = json["type"],
+                canEditComments = json["canEditComments"];
+            if (json && type) {
+                if (_api.asc_RemoveAllComments) {
+                    _api.asc_RemoveAllComments(type=='my' || !(canEditComments === true), type=='current'); // 1 param = true if remove only my comments, 2 param - remove current comments
+                }
+            }
+            break;
+        }
+
+        case 23108: // ASC_MENU_EVENT_TYPE_DO_CHANGE_COMMENT
+        {
+            var json = JSON.parse(_params[0]),
+                commentId = json["id"],
+                comment = json["comment"],
+                updateAuthor = json["updateAuthor"] || false;
+
+            if (json && commentId) {
+                var timeZoneOffsetInMs = (new Date()).getTimezoneOffset() * 60000;
+                var currentUserId = _internalStorage.externalUserInfo.asc_getId();
+                var currentUserName = _internalStorage.externalUserInfo.asc_getFullName();
+                var buildCommentData = function () {
+                    if (typeof Asc.asc_CCommentDataWord !== 'undefined') {
+                        return new Asc.asc_CCommentDataWord(null);
+                    }
+                    return new Asc.asc_CCommentData(null);
+                };
+                var ooDateToString = function (date) {
+                    if (Object.prototype.toString.call(date) === '[object Date]')
+                        return (date.getTime()).toString();
+                    return "";
+                };
+                var utcDateToString = function (date) {
+                    if (Object.prototype.toString.call(date) === '[object Date]')
+                        return (date.getTime() - timeZoneOffsetInMs).toString();
+                    return "";
+                };
+                var ascComment = buildCommentData();
+
+                if (ascComment && comment && _api.asc_changeComment) {
+                    var sTime = new Date(parseInt(comment["date"]));
+                    ascComment.asc_putText(comment["text"]);
+                    ascComment.asc_putQuoteText(comment["quoteText"]);
+                    ascComment.asc_putTime(utcDateToString(sTime));
+                    ascComment.asc_putOnlyOfficeTime(ooDateToString(sTime));
+                    ascComment.asc_putUserId(updateAuthor ? currentUserId : comment["userId"]);
+                    ascComment.asc_putUserName(updateAuthor ? currentUserName : comment["userName"]);
+                    ascComment.asc_putSolved(comment["solved"]);
+                    ascComment.asc_putGuid(comment["id"]);
+
+                    if (ascComment.asc_putDocumentFlag !== undefined) {
+                        ascComment.asc_putDocumentFlag(comment["unattached"]);
+                    }
+
+                    var replies = comment["replies"];
+
+                    if (replies && replies.length) {
+                        replies.forEach(function (reply) {
+                            var addReply = buildCommentData();   //  new asc_CCommentData(null);
+                            if (addReply) {
+                                var sTime = new Date(parseInt(reply["date"]));
+                                addReply.asc_putText(reply["text"]);
+                                addReply.asc_putTime(utcDateToString(sTime));
+                                addReply.asc_putOnlyOfficeTime(ooDateToString(sTime));
+                                addReply.asc_putUserId(reply["userId"]);
+                                addReply.asc_putUserName(reply["userName"]);
+
+                                ascComment.asc_addReply(addReply);
+                            }
+                        });
+                    }
+
+                    _api.asc_changeComment(commentId, ascComment);
+                }
+            }
+            break;
+        }
+
+        case 23109: // ASC_MENU_EVENT_TYPE_DO_CAN_ADD_QUOTED_COMMENT
+        {
+            var _stream = global_memory_stream_menu;
+            _stream["ClearNoAttack"]();
+            _stream["WriteString2"](JSON.stringify({
+                result: this.can_AddQuotedComment() !== false
+            }));
+            _return = _stream;
+            break;
+        }
+
+        case 24101: // ASC_MENU_EVENT_TYPE_DO_SET_TRACK_REVISIONS
+        {
+            var json = JSON.parse(_params[0]);
+            if (json) {
+                if (_api.asc_SetTrackRevisions) {
+                    _api.asc_SetTrackRevisions(json["state"] === true);
+                }
+            }
+            break;
+        }
+        case 24102: // ASC_MENU_EVENT_TYPE_DO_BEGIN_VIEWMODE_IN_REVIEW
+        {
+            var json = JSON.parse(_params[0]);
+            if (json) {
+                if (_api.asc_BeginViewModeInReview) {
+                    _api.asc_BeginViewModeInReview(json["review"] === true);
+                }
+            }
+            break;
+        }
+        case 24103: // ASC_MENU_EVENT_TYPE_DO_END_VIEWMODE_IN_REVIEW
+        {
+            if (_api.asc_EndViewModeInReview) {
+                _api.asc_EndViewModeInReview();
+            }
+            break;
+        }
+        case 24104: // ASC_MENU_EVENT_TYPE_DO_ACCEPT_ALL_CHANGES
+        {
+            if (_api.asc_AcceptAllChanges) {
+                _api.asc_AcceptAllChanges();
+            }
+            break;
+        }
+        case 24105: // ASC_MENU_EVENT_TYPE_DO_REJECT_ALL_CHANGES
+        {
+            if (_api.asc_RejectAllChanges) {
+                _api.asc_RejectAllChanges();
+            }
+            break;
+        }
+        case 24106: // ASC_MENU_EVENT_TYPE_DO_GET_PREV_REVISIONS_CHANGE
+        {
+            if (_api.asc_GetPrevRevisionsChange) {
+                _api.asc_GetPrevRevisionsChange();
+            }
+            break;
+        }
+        case 24107: // ASC_MENU_EVENT_TYPE_DO_GET_NEXT_REVISIONSCHANGE
+        {
+            if (_api.asc_GetNextRevisionsChange) {
+                _api.asc_GetNextRevisionsChange();
+            }
+            break;
+        }
+        case 24108: // ASC_MENU_EVENT_TYPE_DO_ACCEPT_CHANGES
+        {
+            var api = _api;
+            if (api.asc_AcceptChanges) {
+                api.asc_AcceptChanges(_internalStorage.changesReview[0]);
+
+                if (api.asc_GetNextRevisionsChange) {
+                    setTimeout(function () {
+                        api.asc_GetNextRevisionsChange();
+                    }, 10);
+                }
+            }
+            break;
+        }
+        case 24109: // ASC_MENU_EVENT_TYPE_DO_REJECT_CHANGES
+        {
+            var api = _api;
+            if (api.asc_RejectChanges) {
+                api.asc_RejectChanges(_internalStorage.changesReview[0]);
+                if (api.asc_GetNextRevisionsChange) {
+                    setTimeout(function () {
+                        api.asc_GetNextRevisionsChange();
+                    }, 10);
+                }
+            }
+            break;
+        }
+        case 24110: // ASC_MENU_EVENT_TYPE_DO_FOLLOW_REVISION_MOVE
+        {
+            if (_api.asc_FollowRevisionMove) {
+                _api.asc_FollowRevisionMove(_internalStorage.changesReview[0]);
+            }
+            break;
+        }
+
+        case 25001: // ASC_MENU_EVENT_TYPE_DO_API_FUNCTION_CALL
+        {
+            var json = JSON.parse(_params[0]),
+                func = json["func"],
+                params = json["params"] || [],
+                returnable = json["returnable"] || false; // need return result
+
+            if (json && func) {
+                if (_api[func]) {
+                    if (returnable) {
+                        var _stream = global_memory_stream_menu;
+                        _stream["ClearNoAttack"]();
+                        var result = _api[func].apply(_api, params);
+                        _stream["WriteString2"](JSON.stringify({
+                            result: result
+                        }));
+                        _return = _stream;
+                    } else {
+                        _api[func].apply(_api, params);
+                    }
+                }
+            }
+            break;
         }
 
         default:
@@ -3400,7 +3726,175 @@ function asc_menu_WriteAscValAxisSettings(_type, _settings, _stream)
 
     _stream["WriteByte"](255);
 };
+function asc_menu_ReadAscCatAxisSettings(_params, _cursor){
+    var _settings = new AscCommon.asc_CatAxisSettings();
 
+    var _continue = true;
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+        switch (_attr)
+        {
+            case 0:
+            {
+                _settings.putInternalBetweenTick(_params[_cursor.pos++]);
+                break;
+            }
+            case 1:
+            {
+                _settings.putIntervalBetweenLabelsRule(_params[_cursor.pos++]);
+                break;
+            }
+            case 2:
+            {
+                _settings.putInternalBetweenLabels(_params[_cursor.pos++]);
+                break;
+            }
+            case 3:
+            {
+                _settings.putInvertCatOrder(_params[_cursor.pos++]);
+                break;
+            }
+            case 4:
+            {
+                _settings.putLabelsAxisDistance(_params[_cursor.pos++]);
+                break;
+            }
+            case 5:
+            {
+                _settings.putLabelsPosition(_params[_cursor.pos++]);
+                break;
+            }
+            case 6:
+            {
+                _settings.putMajorTickMark(_params[_cursor.pos++]);
+                break;
+            }
+            case 7:
+            {
+                _settings.putMinorTickMark(_params[_cursor.pos++]);
+                break;
+            }
+            case 8:
+            {
+                _settings.putTickLabelsPos(_params[_cursor.pos++]);
+                break;
+            }
+            case 9:
+            {
+                _settings.putCrossesRule(_params[_cursor.pos++]);
+                break;
+            }
+            case 10:
+            {
+                _settings.putCrosses(_params[_cursor.pos++]);
+                break;
+            }
+            case 11:
+            {
+                _settings.putAxisType(_params[_cursor.pos++]);
+                break;
+            }
+            case 12:
+            {
+                _settings.putCrossMinVal(_params[_cursor.pos++]);
+                break;
+            }
+            case 13:
+            {
+                _settings.putCrossMaxVal(_params[_cursor.pos++]);
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+
+    return _settings;
+}
+function asc_menu_WriteAscCatAxisSettings(_type, _settings, _stream){
+    if (!_settings)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    if (_settings.getIntervalBetweenTick() !== undefined && _settings.getIntervalBetweenTick() !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteDouble2"](_settings.getIntervalBetweenTick());
+    }
+    if (_settings.getIntervalBetweenLabelsRule() !== undefined && _settings.getIntervalBetweenLabelsRule() !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteLong"](_settings.getIntervalBetweenLabelsRule());
+    }
+    if (_settings.getIntervalBetweenLabels() !== undefined && _settings.getIntervalBetweenLabels() !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteDouble2"](_settings.getIntervalBetweenLabels());
+    }
+    if (_settings.getInvertCatOrder() !== undefined && _settings.getInvertCatOrder() !== null)
+    {
+        _stream["WriteByte"](3);
+        _stream["WriteBool"](_settings.getInvertCatOrder());
+    }
+    if (_settings.getLabelsAxisDistance() !== undefined && _settings.getLabelsAxisDistance() !== null)
+    {
+        _stream["WriteByte"](4);
+        _stream["WriteDouble2"](_settings.getLabelsAxisDistance());
+    }
+    if (_settings.getTickLabelsPos() !== undefined && _settings.getTickLabelsPos() !== null)
+    {
+        _stream["WriteByte"](5);
+        _stream["WriteLong"](_settings.getTickLabelsPos());
+    }
+    if (_settings.getMajorTickMark() !== undefined && _settings.getMajorTickMark() !== null)
+    {
+        _stream["WriteByte"](6);
+        _stream["WriteLong"](_settings.getMajorTickMark());
+    }
+    if (_settings.getMinorTickMark() !== undefined && _settings.getMinorTickMark() !== null)
+    {
+        _stream["WriteByte"](7);
+        _stream["WriteLong"](_settings.getMinorTickMark());
+    }
+    if (_settings.getTickLabelsPos() !== undefined && _settings.getTickLabelsPos() !== null)
+    {
+        _stream["WriteByte"](8);
+        _stream["WriteLong"](_settings.getTickLabelsPos());
+    }
+    if (_settings.getCrossesRule() !== undefined && _settings.getCrossesRule() !== null)
+    {
+        _stream["WriteByte"](9);
+        _stream["WriteLong"](_settings.getCrossesRule());
+    }
+    if (_settings.getCrosses() !== undefined && _settings.getCrosses() !== null)
+    {
+        _stream["WriteByte"](10);
+        _stream["WriteLong"](_settings.getCrosses());
+    }
+    if (_settings.getAxisType() !== undefined && _settings.getAxisType() !== null)
+    {
+        _stream["WriteByte"](11);
+        _stream["WriteLong"](_settings.getAxisType());
+    }
+    if (_settings.getCrossMinVal() !== undefined && _settings.getCrossMinVal() !== null)
+    {
+        _stream["WriteByte"](12);
+        _stream["WriteLong"](_settings.getCrossMinVal());
+    }
+    if (_settings.getCrossMaxVal() !== undefined && _settings.getCrossMaxVal() !== null)
+    {
+        _stream["WriteByte"](13);
+        _stream["WriteLong"](_settings.getCrossMaxVal());
+    }
+
+    _stream["WriteByte"](255);
+}
 function asc_menu_ReadChartPr(_params, _cursor)
 {
     var _settings = new Asc.asc_ChartSettings();
@@ -3503,7 +3997,7 @@ function asc_menu_ReadChartPr(_params, _cursor)
             }
             case 18:
             {
-                _settings.range = _params[_cursor.pos++];
+                _settings.putRange(_params[_cursor.pos++]);
                 break;
             }
             case 19:
@@ -3524,6 +4018,16 @@ function asc_menu_ReadChartPr(_params, _cursor)
             case 22:
             {
                 _settings.smooth = _params[_cursor.pos++];
+                break;
+            }
+            case 23:
+            {
+                _settings.horAxisProps = asc_menu_ReadAscCatAxisSettings(_params, _cursor);
+                break;
+            }
+            case 24:
+            {
+                _settings.vertAxisProps = asc_menu_ReadAscCatAxisSettings(_params, _cursor);
                 break;
             }
             case 255:
@@ -3627,13 +4131,28 @@ function asc_menu_WriteChartPr(_type, _chartPr, _stream)
         _stream["WriteString2"](_chartPr.separator);
     }
 
-    asc_menu_WriteAscValAxisSettings(16, _chartPr.horAxisProps, _stream);
-    asc_menu_WriteAscValAxisSettings(17, _chartPr.vertAxisProps, _stream);
+    if (undefined != _chartPr.horAxisProps
+        && null != _chartPr.horAxisProps
+        && _chartPr.horAxisProps.getAxisType() == Asc.c_oAscAxisType.val) {
+        asc_menu_WriteAscValAxisSettings(16, _chartPr.horAxisProps, _stream);
+    }
 
-    if (_chartPr.range !== undefined && _chartPr.range !== null)
+    if (undefined != _chartPr.vertAxisProps
+        && null != _chartPr.vertAxisProps
+        && _chartPr.vertAxisProps.getAxisType() == Asc.c_oAscAxisType.val) {
+        asc_menu_WriteAscValAxisSettings(17, _chartPr.vertAxisProps, _stream);
+    }
+
+    var sRange = null;
+    sRange = _chartPr.getRange();
+    if(!sRange)
+    {
+        sRange = _chartPr.aRanges[0];
+    }
+    if (sRange !== undefined && sRange !== null)
     {
         _stream["WriteByte"](18);
-        _stream["WriteString2"](_chartPr.range);
+        _stream["WriteString2"](sRange);
     }
 
     if (_chartPr.inColumns !== undefined && _chartPr.inColumns !== null)
@@ -3655,6 +4174,18 @@ function asc_menu_WriteChartPr(_type, _chartPr, _stream)
     {
         _stream["WriteByte"](22);
         _stream["WriteBool"](_chartPr.showVal);
+    }
+
+    if (undefined != _chartPr.horAxisProps
+        && null != _chartPr.horAxisProps
+        && _chartPr.horAxisProps.getAxisType() == Asc.c_oAscAxisType.cat) {
+        asc_menu_WriteAscCatAxisSettings(23, _chartPr.horAxisProps, _stream);
+    }
+
+    if (undefined != _chartPr.vertAxisProps
+        && null != _chartPr.vertAxisProps
+        && _chartPr.vertAxisProps.getAxisType() == Asc.c_oAscAxisType.cat) {
+        asc_menu_WriteAscCatAxisSettings(24, _chartPr.vertAxisProps, _stream);
     }
 
     _stream["WriteByte"](255);
@@ -4462,42 +4993,6 @@ AscCommon.asc_WriteColorSchemes = asc_WriteColorSchemes;
 
 ///////////////////////////////////////////////////////////////////////
 
-function asc_WriteUsers(c, s) {
-    if (!c) return;
-
-    var len = 0, name, user;
-    for (name in c) {
-        if (undefined !== name) {
-            len++;
-        }
-    }
-
-    s["WriteLong"](len);
-
-    for (name in c) {
-        if (undefined !== name) {
-            user = c[name];
-            if (user) {
-                s['WriteString2'](user.asc_getId());
-                s['WriteString2'](user.asc_getFirstName() === undefined ? "" : user.asc_getFirstName());
-                s['WriteString2'](user.asc_getLastName() === undefined ? "" : user.asc_getLastName());
-                s['WriteString2'](user.asc_getUserName() === undefined ? "" : user.asc_getUserName());
-                s['WriteBool'](user.asc_getView());
-
-                var color = new Asc.asc_CColor();
-
-                color.r = (user.color >> 16) & 255;
-                color.g = (user.color >> 8 ) & 255;
-                color.b = (user.color      ) & 255;
-
-                asc_menu_WriteColor(0, color, s);
-            }
-        }
-    }
-}
-
-///////////////////////////////////////////////////////////////////////
-
 Asc['asc_docs_api'].prototype.UpdateTextPr = function(TextPr)
 {
     if (!TextPr)
@@ -4833,7 +5328,7 @@ Asc['asc_docs_api'].prototype.ImgApply = function(obj)
         return;
     }
 
-    if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Image_Properties, AdditionalData) )
+    if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Drawing_Props, AdditionalData) )
     {
 
         if (ImagePr.ShapeProperties)
@@ -4873,6 +5368,10 @@ Asc['asc_docs_api'].prototype.ImgApply = function(obj)
                 if(this.exucuteHistory)
                 {
                     this.exucuteHistory = false;
+                }
+                if(this.exucuteHistoryEnd)
+                {
+                    this.exucuteHistoryEnd = false;
                 }
             }
             else
@@ -4959,17 +5458,8 @@ Asc['asc_docs_api'].prototype.AddImageUrlNative = function(url, _w, _h, _pageNum
     }
 
     this.WordControl.m_oLogicDocument.StartAction();
-
-    if (undefined === _pageNum)
-    {
-        this.WordControl.m_oLogicDocument.AddInlineImage(wI, hI, url);
-    }
-    else
-    {
-        var _sectionPr = this.WordControl.m_oLogicDocument.Get_PageLimits(_pageNum);
-        this.AddImageToPage(url, _pageNum, (_sectionPr.XLimit - wI) / 2, (_sectionPr.YLimit - hI) / 2, wI, hI);
-    }
-
+    this.WordControl.m_oLogicDocument.AddInlineImage(wI, hI, url);
+	this.WordControl.m_oLogicDocument.Recalculate();
 	this.WordControl.m_oLogicDocument.FinalizeAction();
 };
 Asc['asc_docs_api'].prototype.AddImageUrlActionNative = function(src, _w, _h, _pageNum)
@@ -5000,39 +5490,19 @@ Asc['asc_docs_api'].prototype.AddImageUrlActionNative = function(src, _w, _h, _p
   _w = Math.max(5, boundingWidth);
   _h = Math.max(5, boundingHeight);  
 
-  if (this.isShapeImageChangeUrl)
+  if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Content))
   {
-    var AscShapeProp       = new Asc.asc_CShapeProperty();
-    AscShapeProp.fill      = new Asc.asc_CShapeFill();
-    AscShapeProp.fill.type = c_oAscFill.FILL_TYPE_BLIP;
-    AscShapeProp.fill.fill = new Asc.asc_CFillBlip();
-    AscShapeProp.fill.fill.asc_putUrl(src);
-    this.ImgApply(new Asc.asc_CImgProperty({ShapeProperties : AscShapeProp}));
-    this.isShapeImageChangeUrl = false;
-  }
-  else if (this.isImageChangeUrl)
-  {
-    var AscImageProp      = new Asc.asc_CImgProperty();
-    AscImageProp.ImageUrl = src;
-    this.ImgApply(AscImageProp);
-    this.isImageChangeUrl = false;
-  }
-  else
-  {
-    if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Content))
+    var imageLocal = AscCommon.g_oDocumentUrls.getImageLocal(src);
+    if (imageLocal)
     {
-      var imageLocal = AscCommon.g_oDocumentUrls.getImageLocal(src);
-      if (imageLocal)
-      {
-        src = imageLocal;
-      }
-      this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_AddImageUrlLong);
-      //if (undefined === imgProp || undefined === imgProp.WrappingStyle || 0 == imgProp.WrappingStyle)
-        this.WordControl.m_oLogicDocument.AddInlineImage(_w, _h, src);
-      //else
-      //  this.WordControl.m_oLogicDocument.AddInlineImage(_w, _h, src, null, true);
-      this.WordControl.m_oLogicDocument.FinalizeAction();
+      src = imageLocal;
     }
+    this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_AddImageUrlLong);
+    //if (undefined === imgProp || undefined === imgProp.WrappingStyle || 0 == imgProp.WrappingStyle)
+      this.WordControl.m_oLogicDocument.AddInlineImage(_w, _h, src);
+    //else
+    //  this.WordControl.m_oLogicDocument.AddInlineImage(_w, _h, src, null, true);
+    this.WordControl.m_oLogicDocument.FinalizeAction();
   }
 };
 
@@ -5244,10 +5714,10 @@ Asc['asc_docs_api'].prototype.asc_findText = function(text, isNext, isMatchCase)
 {
     var SearchEngine = editor.WordControl.m_oLogicDocument.Search( text, { MatchCase : isMatchCase } );
 
-    var Id = this.WordControl.m_oLogicDocument.Search_GetId( isNext );
+    var Id = this.WordControl.m_oLogicDocument.GetSearchElementId( isNext );
 
     if ( null != Id )
-        this.WordControl.m_oLogicDocument.Search_Select( Id );
+        this.WordControl.m_oLogicDocument.SelectSearchElement( Id );
 
     return SearchEngine.Count;
 };
@@ -5258,7 +5728,7 @@ Asc['asc_docs_api'].prototype.asc_replaceText = function(text, replaceWith, isRe
 
     if ( true === isReplaceAll )
     {
-        this.WordControl.m_oLogicDocument.Search_Replace(replaceWith, true, -1);
+        this.WordControl.m_oLogicDocument.ReplaceSearchElement(replaceWith, true, -1);
         return true;
     }
     else
@@ -5266,13 +5736,13 @@ Asc['asc_docs_api'].prototype.asc_replaceText = function(text, replaceWith, isRe
         var CurId = this.WordControl.m_oLogicDocument.SearchEngine.CurId;
         var bDirection = this.WordControl.m_oLogicDocument.SearchEngine.Direction;
         if ( -1 != CurId )
-            this.WordControl.m_oLogicDocument.Search_Replace(replaceWith, false, CurId);
+            this.WordControl.m_oLogicDocument.ReplaceSearchElement(replaceWith, false, CurId);
 
-        var Id = this.WordControl.m_oLogicDocument.Search_GetId( bDirection );
+        var Id = this.WordControl.m_oLogicDocument.GetSearchElementId( bDirection );
 
         if ( null != Id )
         {
-            this.WordControl.m_oLogicDocument.Search_Select( Id );
+            this.WordControl.m_oLogicDocument.SelectSearchElement( Id );
             return true;
         }
 
@@ -5282,12 +5752,12 @@ Asc['asc_docs_api'].prototype.asc_replaceText = function(text, replaceWith, isRe
 
 Asc['asc_docs_api'].prototype._selectSearchingResults = function(bShow)
 {
-    this.WordControl.m_oLogicDocument.Search_Set_Selection(bShow);
+    this.WordControl.m_oLogicDocument.HighlightSearchResults(bShow);
 };
 
 Asc['asc_docs_api'].prototype.asc_isSelectSearchingResults = function()
 {
-    return this.WordControl.m_oLogicDocument.Search_Get_Selection();
+    return this.WordControl.m_oLogicDocument.IsHighlightSearchResults();
 };
 // endfind ----------------------------------------------------------------------------------------------
 
@@ -5378,7 +5848,7 @@ function CStylesPainter()
 }
 CStylesPainter.prototype =
 {
-GenerateStyles: function(_api, ds)
+    GenerateStyles: function(_api, ds)
     {
         if (_api.WordControl.bIsRetinaSupport)
         {
@@ -5471,8 +5941,7 @@ GenerateStyles: function(_api, ds)
             var style = styles[i];
             if (true == style.qFormat)
             {
-                this.defaultStyles.push({ Name: AscCommon.translateManager.getValue(style.Name), Style: style });
-                //this.drawStyle(_graphics, style, _api);
+                this.defaultStyles.push({ Name: style.Name, Style: style });
             }
         }
     },
@@ -5500,12 +5969,11 @@ GenerateStyles: function(_api, ds)
                 var index = (res) ? res[1] - 1 : -1;
 
                 var _dr_style = __Styles.Get_Pr(i, styletype_Paragraph);
-                _dr_style.Name = AscCommon.translateManager.getValue(style.Name);
+                _dr_style.Name = style.Name;
                 _dr_style.Id = i;
 
-                //this.drawStyle(_graphics, _dr_style, _api);
-
                 var _name = _dr_style.Name;
+                
                 // алгоритм смены имени
                 if (style.Default)
                 {
@@ -5556,7 +6024,7 @@ GenerateStyles: function(_api, ds)
 
         var par = new AscCommonWord.Paragraph(_api.WordControl.m_oDrawingDocument, _dc, 0, 0, 0, 0, false);
         var run = new AscCommonWord.ParaRun(par, false);
-        run.AddText(style.Name);
+        run.AddText(AscCommon.translateManager.getValue(style.Name));
 
         _dc.Internal_Content_Add(0, par, false);
         par.Add_ToContent(0, run);
@@ -5654,7 +6122,7 @@ GenerateStyles: function(_api, ds)
         _stream["ClearNoAttack"]();
 
         _stream["WriteByte"](0);
-        _stream["WriteString2"](AscCommon.translateManager.getValue(style.Name));
+        _stream["WriteString2"](style.Name);
 
         _api.WordControl.m_oDrawingDocument.Native["DD_EndNativeDraw"](_stream);
         graphics.ClearParams();
@@ -5875,11 +6343,6 @@ Asc['asc_docs_api'].prototype.Call_Menu_Context_SelectAll = function()
 {
     this.WordControl.m_oLogicDocument.SelectAll();
 };
-Asc['asc_docs_api'].prototype.pre_Paste = function(_fonts, _images, callback)
-{
-    AscCommon.History.Create_NewPoint(AscDFH.historydescription_PasteNative);
-    callback();
-};
 /************************************************************************/
 
 // chat styles
@@ -5939,6 +6402,12 @@ AscCommon.ChartPreviewManager.prototype.getChartPreviews = function(chartType)
         }
     }
 };
+
+function initTrackRevisions() {
+    this.trackRevisionsTimerId = setInterval(function () {
+        _api.WordControl.m_oLogicDocument.ContinueTrackRevisions();
+    }, 40);
+}
 
 function initSpellCheckApi() {
     
@@ -6017,8 +6486,8 @@ function NativeOpenFile3(_params, documentInfo)
     window["CreateMainTextMeasurerWrapper"]();
 
     window.g_file_path = "native_open_file";
-    window.NATIVE_DOCUMENT_TYPE = window.native.GetEditorType();
-    var doc_bin = window.native.GetFileString(window.g_file_path);
+    window.NATIVE_DOCUMENT_TYPE = window["native"]["GetEditorType"]();
+    var doc_bin = window["native"]["GetFileString"](window.g_file_path);
     if (window.NATIVE_DOCUMENT_TYPE == "presentation" || window.NATIVE_DOCUMENT_TYPE == "document")
     {
         sdkCheck = documentInfo["sdkCheck"];
@@ -6031,13 +6500,14 @@ function NativeOpenFile3(_params, documentInfo)
             translations = "";
         }
 
-        _api = new window["Asc"]["asc_docs_api"](translations);
+        window["_api"] = window["API"] = _api = new window["Asc"]["asc_docs_api"](translations);
+        window["_editor"] = window.editor;
         
         AscCommon.g_clipboardBase.Init(_api);
 
-        if (undefined !== _api.Native_Editor_Initialize_Settings)
+        if (undefined !== _api["Native_Editor_Initialize_Settings"])
         {
-            _api.Native_Editor_Initialize_Settings(_params);
+            _api["Native_Editor_Initialize_Settings"](_params);
         }
 
         window.documentInfo = documentInfo;
@@ -6055,10 +6525,15 @@ function NativeOpenFile3(_params, documentInfo)
         docInfo.put_UserInfo(userInfo);
         docInfo.put_Token(window.documentInfo["token"]);
 
+        _internalStorage.externalUserInfo = userInfo;
+        _internalStorage.externalDocInfo = docInfo;
+
         var permissions = window.documentInfo["permissions"];
         if (undefined != permissions && null != permissions && permissions.length > 0) {
             docInfo.put_Permissions(JSON.parse(permissions));
-        }   
+        }
+
+        // Settings
 
         _api.asc_setDocInfo(docInfo);
 
@@ -6080,6 +6555,27 @@ function NativeOpenFile3(_params, documentInfo)
                                   window["native"]["OnCallMenuEvent"](2404, stream); // ASC_SPREADSHEETS_EVENT_TYPE_COLOR_SCHEMES
                                   });
 
+        // Comments
+
+        _api.asc_registerCallback("asc_onAddComment", onApiAddComment);
+        _api.asc_registerCallback("asc_onAddComments", onApiAddComments);
+        _api.asc_registerCallback("asc_onRemoveComment", onApiRemoveComment);
+        _api.asc_registerCallback("asc_onChangeComments", onChangeComments);
+        _api.asc_registerCallback("asc_onRemoveComments", onApiRemoveComments);
+        _api.asc_registerCallback("asc_onChangeCommentData", onApiChangeCommentData);
+        _api.asc_registerCallback("asc_onLockComment", onApiLockComment);
+        _api.asc_registerCallback("asc_onUnLockComment", onApiUnLockComment);
+        _api.asc_registerCallback("asc_onShowComment", onApiShowComment);
+        _api.asc_registerCallback("asc_onHideComment", onApiHideComment);
+        _api.asc_registerCallback("asc_onUpdateCommentPosition", onApiUpdateCommentPosition);
+
+        // Revisions Change
+
+        _api.asc_registerCallback("asc_onDocumentPlaceChanged", onDocumentPlaceChanged);
+        _api.asc_registerCallback("asc_onShowRevisionsChange", onApiShowRevisionsChange);
+
+        // Co-authoring
+
         if (window.documentInfo["iscoauthoring"]) {
 
             _api.isSpellCheckEnable = false;
@@ -6091,19 +6587,8 @@ function NativeOpenFile3(_params, documentInfo)
            
             window["native"]["onTokenJWT"](_api.CoAuthoringApi.get_jwt());
 
-            _api.asc_registerCallback("asc_onAuthParticipantsChanged", function(users) {
-                                      var stream = global_memory_stream_menu;
-                                      stream["ClearNoAttack"]();
-                                      asc_WriteUsers(users, stream);
-                                      window["native"]["OnCallMenuEvent"](20101, stream); // ASC_COAUTH_EVENT_TYPE_PARTICIPANTS_CHANGED
-                                      });
-
-            _api.asc_registerCallback("asc_onParticipantsChanged", function(users) {
-                                      var stream = global_memory_stream_menu;
-                                      stream["ClearNoAttack"]();
-                                      asc_WriteUsers(users, stream);
-                                      window["native"]["OnCallMenuEvent"](20101, stream); // ASC_COAUTH_EVENT_TYPE_PARTICIPANTS_CHANGED
-                                      });
+            _api.asc_registerCallback("asc_onAuthParticipantsChanged", onApiAuthParticipantsChanged);
+            _api.asc_registerCallback("asc_onParticipantsChanged", onApiParticipantsChanged);
 
             _api.asc_registerCallback("asc_onGetEditorPermissions", function(state) {
 
@@ -6129,8 +6614,8 @@ function NativeOpenFile3(_params, documentInfo)
 
 
         } else {
-            var doc_bin = window.native.GetFileString(window.g_file_path);
-            _api.asc_nativeOpenFile(doc_bin);
+            var doc_bin = window["native"]["GetFileString"](window.g_file_path);
+            _api["asc_nativeOpenFile"](doc_bin);
 
            	if (window.documentInfo["viewmode"]) {
             	_api.ShowParaMarks = false;
@@ -6144,16 +6629,426 @@ function NativeOpenFile3(_params, documentInfo)
                 _api.sendColorThemes(_api.WordControl.m_oLogicDocument.theme);
             }
 
-            if (_api.NativeAfterLoad)
-            {
-                _api.NativeAfterLoad();
-            }
+            _api["NativeAfterLoad"]();
 
             initSpellCheckApi();
+            initTrackRevisions();
         }
     }
-    Api = _api;
 }
+
+// Common
+
+function postDataAsJSONString(data, eventId) {
+    var stream = global_memory_stream_menu;
+    stream["ClearNoAttack"]();
+    if (data !== undefined && data !== null) {
+        stream["WriteString2"](JSON.stringify(data));
+    }
+    window["native"]["OnCallMenuEvent"](eventId, stream);
+}
+
+// Users
+
+function sdkUsersToJson(users) {
+    var arrUsers = [];
+
+    for (var userId in users) {
+        if (undefined !== userId) {
+            var user = users[userId];
+            if (user) {
+                arrUsers.push({
+                    id          : user.asc_getId(),
+                    idOriginal  : user.asc_getIdOriginal(),
+                    userName    : user.asc_getUserName(),
+                    online      : true,
+                    color       : user.asc_getColor(),
+                    view        : user.asc_getView()
+                });
+            }
+        }
+    }
+    return arrUsers;
+}
+
+function onApiAuthParticipantsChanged(users) {
+    var users = sdkUsersToJson(users) || [];
+    postDataAsJSONString(users, 20101); // ASC_COAUTH_EVENT_TYPE_PARTICIPANTS_CHANGED
+}
+
+function onApiParticipantsChanged(users) {
+    var users = sdkUsersToJson(users) || [];
+    postDataAsJSONString(users, 20101); // ASC_COAUTH_EVENT_TYPE_PARTICIPANTS_CHANGED
+}
+
+// Comments
+
+function stringOOToLocalDate (date) {
+    if (typeof date === 'string')
+        return parseInt(date);
+    return 0;
+}
+
+function stringUtcToLocalDate(date) {
+    if (typeof date === 'string')
+        return parseInt(date) + (new Date()).getTimezoneOffset() * 60000;
+    return 0;
+}
+
+function readSDKComment(id, data) {
+    var date = data.asc_getOnlyOfficeTime()
+            ? new Date(stringOOToLocalDate(data.asc_getOnlyOfficeTime()))
+            : (data.asc_getTime() == '') ? new Date() : new Date(stringUtcToLocalDate(data.asc_getTime())),
+        groupname = id.substr(0, id.lastIndexOf('_') + 1).match(/^(doc|sheet[0-9_]+)_/);
+
+    return {
+        id          : id,
+        guid        : data.asc_getGuid(),
+        userId      : data.asc_getUserId(),
+        userName    : data.asc_getUserName(),
+        date        : date.getTime().toString(),
+        quoteText   : data.asc_getQuoteText(),
+        text        : data.asc_getText(),
+        solved      : data.asc_getSolved(),
+        unattached  : (data.asc_getDocumentFlag === undefined) ? false : data.asc_getDocumentFlag(),
+        groupName   : (groupname && groupname.length>1) ? groupname[1] : null,
+        replies     : readSDKReplies(data)
+    };
+}
+
+function readSDKReplies (data) {
+    var i = 0,
+        replies = [],
+        date = null;
+    var repliesCount = data.asc_getRepliesCount();
+    if (repliesCount) {
+        for (i = 0; i < repliesCount; ++i) {
+            var reply = data.asc_getReply(i);
+            date = (reply.asc_getOnlyOfficeTime()) 
+                ? new Date(stringOOToLocalDate(reply.asc_getOnlyOfficeTime()))
+                : ((reply.asc_getTime() == '') ? new Date() : new Date(stringUtcToLocalDate(reply.asc_getTime())));
+            replies.push({
+                userId      : reply.asc_getUserId(),
+                userName    : reply.asc_getUserName(),
+                text        : reply.asc_getText(),
+                date        : date.getTime().toString()
+            });
+        }
+    }
+    return replies;
+}
+
+function onApiAddComment(id, data) {
+    var comment = readSDKComment(id, data) || {};
+    postDataAsJSONString(comment, 23001); // ASC_MENU_EVENT_TYPE_ADD_COMMENT
+}
+
+function onApiAddComments(data) {
+    var comments = [];
+    for (var i = 0; i < data.length; ++i) {
+        comments.push(readSDKComment(data[i].asc_getId(), data[i]));
+    }
+    postDataAsJSONString(comments, 23002); // ASC_MENU_EVENT_TYPE_ADD_COMMENTS
+}
+
+function onApiRemoveComment(id) {
+    var data = {
+        "id": id
+    };
+    postDataAsJSONString(data, 23003); // ASC_MENU_EVENT_TYPE_REMOVE_COMMENT
+}
+
+function onChangeComments(data) {
+    var comments = [];
+    for (var i = 0; i < data.length; ++i) {
+        comments.push(readSDKComment(data[i].asc_getId(), data[i]));
+    }
+    postDataAsJSONString(comments, 23004); // ASC_MENU_EVENT_TYPE_CHANGE_COMMENTS
+}
+
+function onApiRemoveComments(data) {
+    var ids = [];
+    for (var i = 0; i < data.length; ++i) {
+        ids.push({
+            "id": data[i]
+        });
+    }
+    postDataAsJSONString(ids, 23005); // ASC_MENU_EVENT_TYPE_REMOVE_COMMENTS
+}
+
+function onApiChangeCommentData(id, data) {
+    var comment = readSDKComment(id, data) || {},
+        data = {
+            "id": id,
+            "comment": comment
+        };
+
+    postDataAsJSONString(data, 23006); // ASC_MENU_EVENT_TYPE_CHANGE_COMMENTDATA
+}
+
+function onApiLockComment(id, userId) {
+    var data = {
+        "id": id,
+        "userId": userId
+    };
+    postDataAsJSONString(data, 23007); // ASC_MENU_EVENT_TYPE_LOCK_COMMENT
+}
+
+function onApiUnLockComment(id) {
+    var data = {
+        "id": id
+    };
+    postDataAsJSONString(data, 23008); // ASC_MENU_EVENT_TYPE_UNLOCK_COMMENT
+}
+
+function onApiShowComment(uids, posX, posY, leftX, opts, hint) {
+    var data = {
+        "uids": uids,
+        "posX": posX,
+        "posY": posY,
+        "leftX": leftX,
+        "opts": opts,
+        "hint": hint
+    };
+    postDataAsJSONString(data, 23009); // ASC_MENU_EVENT_TYPE_SHOW_COMMENT
+}
+
+function onApiHideComment(hint) {
+    var data = {
+        "hint": hint
+    };
+    postDataAsJSONString(data, 23010); // ASC_MENU_EVENT_TYPE_HIDE_COMMENT
+}
+
+function onApiUpdateCommentPosition(uids, posX, posY, leftX) {
+    var data = {
+        "uids": uids,
+        "posX": posX,
+        "posY": posY,
+        "leftX": leftX
+    };
+    postDataAsJSONString(data, 23011); // ASC_MENU_EVENT_TYPE_UPDATE_COMMENT_POSITION
+}
+
+function onDocumentPlaceChanged() {
+    postDataAsJSONString(null, 23012); // ASC_MENU_EVENT_TYPE_DOCUMENT_PLACE_CHANGED
+}
+
+// Revisions Change
+
+function onApiShowRevisionsChange(data) {
+    _internalStorage.changesReview = data
+    var revisionChanges = [];
+
+    if (data && data.length > 0) {
+        var recalcFromMM = function (value) {
+            return parseFloat((value / 10.).toFixed(4)); // value in mm need to convert to cm
+        };
+        var metricName = "|cm|";
+        var c_paragraphLinerule = {
+            LINERULE_LEAST: 0,
+            LINERULE_AUTO: 1,
+            LINERULE_EXACT: 2
+        };
+
+        data.forEach(function (item) {
+            var commonChanges = [], changes = [],
+                value = item.get_Value(),
+                movetype = item.get_MoveType();
+            switch (item.get_Type()) {
+                case Asc.c_oAscRevisionsChangeType.TextAdd:
+                    commonChanges.push((movetype == Asc.c_oAscRevisionsMove.NoMove) ? "|Inserted|" : "|Moved|");
+                    if (typeof value == 'object') {
+                        value.forEach(function (obj) {
+                            if (typeof obj === 'string') {
+                                changes.push(obj);
+                            } else {
+                                switch (obj) {
+                                    case 0:
+                                        changes.push("<|Image|>");
+                                        break;
+                                    case 1:
+                                        changes.push("<|Shape|>");
+                                        break;
+                                    case 2:
+                                        changes.push("<|Chart|>");
+                                        break;
+                                    case 3:
+                                        changes.push("<|Equation|>");
+                                        break;
+                                }
+                            }
+                        });
+                    } else if (typeof value === 'string') {
+                        changes.push(value);
+                    }
+                    break;
+                case Asc.c_oAscRevisionsChangeType.TextRem:
+                    commonChanges.push((movetype == Asc.c_oAscRevisionsMove.NoMove) ? "|Deleted|" : (item.is_MovedDown() ? "|Moved Down|" : "|Moved Up"));
+                    if (typeof value == 'object') {
+                        value.forEach(function (obj) {
+                            if (typeof obj === 'string') {
+                                changes.push(obj);
+                            } else {
+                                switch (obj) {
+                                    case 0:
+                                        changes.push("<|Image|>");
+                                        break;
+                                    case 1:
+                                        changes.push("<|Shape|>");
+                                        break;
+                                    case 2:
+                                        changes.push("<|Chart|>");
+                                        break;
+                                    case 3:
+                                        changes.push("<|Equation|>");
+                                        break;
+                                }
+                            }
+                        });
+                    } else if (typeof value === 'string') {
+                        changes.push(value);
+                    }
+                    break;
+                case Asc.c_oAscRevisionsChangeType.ParaAdd:
+                    commonChanges.push("|Paragraph Inserted|");
+                    break;
+                case Asc.c_oAscRevisionsChangeType.ParaRem:
+                    commonChanges.push("|Paragraph Deleted|");
+                    break;
+                case Asc.c_oAscRevisionsChangeType.TextPr:
+                    commonChanges.push("|Formatted|");
+                    if (value.Get_Bold() !== undefined)
+                        changes.push((value.Get_Bold() ? '' : ("|Not|" + " ")) + "|Bold|");
+                    if (value.Get_Italic() !== undefined)
+                        changes.push((value.Get_Italic() ? '' : ("|Not|" + " ")) + "|Italic|");
+                    if (value.Get_Underline() !== undefined)
+                        changes.push((value.Get_Underline() ? '' : ("|Not|" + " ")) + "|Underline|");
+                    if (value.Get_Strikeout() !== undefined)
+                        changes.push((value.Get_Strikeout() ? '' : ("|Not|" + " ")) + "|Strikeout|");
+                    if (value.Get_DStrikeout() !== undefined)
+                        changes.push((value.Get_DStrikeout() ? '' : ("|Not|" + " ")) + "|Double strikeout|");
+                    if (value.Get_Caps() !== undefined)
+                        changes.push((value.Get_Caps() ? '' : ("|Not|" + " ")) + "|All caps|");
+                    if (value.Get_SmallCaps() !== undefined)
+                        changes.push((value.Get_SmallCaps() ? '' : ("|Not|" + " ")) + "|Small caps|");
+                    if (value.Get_VertAlign() !== undefined)
+                        changes.push(((value.Get_VertAlign() == 1) ? "|Superscript|" : ((value.Get_VertAlign() == 2) ? "|Subscript|" : "|Baseline|")));
+                    if (value.Get_Color() !== undefined)
+                        changes.push("|Font color|");
+                    if (value.Get_Highlight() !== undefined)
+                        changes.push("|Highlight color|");
+                    if (value.Get_Shd() !== undefined)
+                        changes.push("|Background color|");
+                    if (value.Get_FontFamily() !== undefined)
+                        changes.push(value.Get_FontFamily());
+                    if (value.Get_FontSize() !== undefined)
+                        changes.push(value.Get_FontSize());
+                    if (value.Get_Spacing() !== undefined)
+                        changes.push("|Spacing|" + " " + recalcFromMM(value.Get_Spacing()).toFixed(2) + " " + metricName);
+                    if (value.Get_Position() !== undefined)
+                        changes.push("|Position|" + " " + recalcFromMM(value.Get_Position()).toFixed(2) + " " + metricName);
+                    if (value.Get_Lang() !== undefined)
+                        changes.push("[lang]" + value.Get_Lang());
+                    break;
+                case Asc.c_oAscRevisionsChangeType.ParaPr:
+                    commonChanges.push("|Paragraph Formatted|");
+                    if (value.Get_ContextualSpacing())
+                        changes.push(value.Get_ContextualSpacing() ? "|Don't add interval between paragraphs of the same style|" : "|Add interval between paragraphs of the same style|");
+                    if (value.Get_IndLeft() !== undefined)
+                        changes.push("|Indent left|" + " " + recalcFromMM(value.Get_IndLeft()).toFixed(2) + " " + metricName);
+                    if (value.Get_IndRight() !== undefined)
+                        changes.push("|Indent right|" + " " + recalcFromMM(value.Get_IndRight()).toFixed(2) + " " + metricName);
+                    if (value.Get_IndFirstLine() !== undefined)
+                        changes.push("|First line|" + " " + recalcFromMM(value.Get_IndFirstLine()).toFixed(2) + " " + metricName);
+                    if (value.Get_Jc() !== undefined) {
+                        switch (value.Get_Jc()) {
+                            case 0:
+                                changes.push("|Align right|");
+                                break;
+                            case 1:
+                                changes.push("|Align left|");
+                                break;
+                            case 2:
+                                changes.push("|Align center|");
+                                break;
+                            case 3:
+                                changes.push("|Align justify|");
+                                break;
+                        }
+                    }
+                    if (value.Get_KeepLines() !== undefined)
+                        changes.push(value.Get_KeepLines() ? "|Keep lines together|" : "|Don't keep lines together|");
+                    if (value.Get_KeepNext())
+                        changes.push(value.Get_KeepNext() ? "|Keep with next|" : "|Don't keep with next|");
+                    if (value.Get_PageBreakBefore())
+                        changes.push(value.Get_PageBreakBefore() ? "|Page break before|" : "|No page break before|");
+                    if (value.Get_SpacingLineRule() !== undefined && value.Get_SpacingLine() !== undefined) {
+                        changes.push("|Line Spacing|: ");
+                        changes.push((value.Get_SpacingLineRule() == c_paragraphLinerule.LINERULE_LEAST) ? "|at least|" : ((value.Get_SpacingLineRule() == c_paragraphLinerule.LINERULE_AUTO) ? "|multiple|" : "|exactly|"));
+                        changes.push((value.Get_SpacingLineRule() == c_paragraphLinerule.LINERULE_AUTO) ? value.Get_SpacingLine() : recalcFromMM(value.Get_SpacingLine()).toFixed(2) + " " + metricName);
+                    }
+                    if (value.Get_SpacingBeforeAutoSpacing())
+                        changes.push("|Spacing before| |auto|");
+                    else if (value.Get_SpacingBefore() !== undefined)
+                        changes.push("|Spacing before|" + " " + recalcFromMM(value.Get_SpacingBefore()).toFixed(2) + ' ' + metricName);
+                    if (value.Get_SpacingAfterAutoSpacing())
+                        changes.push("|Spacing after| |auto|");
+                    else if (value.Get_SpacingAfter() !== undefined)
+                        changes.push("|Spacing after| " + recalcFromMM(value.Get_SpacingAfter()).toFixed(2) + " " + metricName);
+                    if (value.Get_WidowControl())
+                        changes.push(value.Get_WidowControl() ? "|Widow control|" : "|No widow control|");
+                    if (value.Get_Tabs() !== undefined)
+                        changes.push("|Change tabs|");
+                    if (value.Get_NumPr() !== undefined)
+                        changes.push("|Change numbering|");
+                    if (value.Get_PStyle() !== undefined) {
+                        var style = me.api.asc_GetStyleNameById(value.Get_PStyle());
+                        if (!_.isEmpty(style)) {
+                            changes.push(style)
+                        }
+                    }
+                    break;
+                case Asc.c_oAscRevisionsChangeType.TablePr:
+                    commonChanges.push("|Table Settings Changed|");
+                    break;
+                case Asc.c_oAscRevisionsChangeType.RowsAdd:
+                    commonChanges.push("|Table Rows Added|");
+                    break;
+                case Asc.c_oAscRevisionsChangeType.RowsRem:
+                    commonChanges.push("|Table Rows Deleted|");
+                    break;
+            }
+
+            var userName = '';
+
+            if (item.get_UserName() != '') {
+                userName = item.get_UserName()
+            } else {
+                if (_internalStorage.externalUserInfo && _internalStorage.externalUserInfo.asc_getFullName) {
+                    userName = _internalStorage.externalUserInfo.asc_getFullName()
+                }
+            }
+
+            var revisionChange = {
+                userName: userName,
+                date: (item.get_DateTime() == '' ? new Date().getMilliseconds() : item.get_DateTime()),
+                goto: (item.get_MoveType() == Asc.c_oAscRevisionsMove.MoveTo || item.get_MoveType() == Asc.c_oAscRevisionsMove.MoveFrom),
+                commonChanges: commonChanges,
+                changes: changes
+            };
+
+            Object.keys(revisionChange).forEach(function (key) {
+                if (typeof revisionChange[key] === 'undefined') {
+                    delete revisionChange[key];
+                }
+            });
+
+            revisionChanges.push(revisionChange);
+        });
+    }
+    postDataAsJSONString(revisionChanges, 24001); // ASC_MENU_EVENT_TYPE_SHOW_REVISIONS_CHANGE
+};
 
 var DocumentPageSize = new function()
 {
@@ -6283,8 +7178,7 @@ Asc['asc_docs_api'].prototype.openDocument = function(file)
         
         console.log("OPEN FILE ONLINE READ MODE");
        
-        if (_api.NativeAfterLoad)
-            _api.NativeAfterLoad();
+        _api["NativeAfterLoad"]();
      
         this.ImageLoader.bIsLoadDocumentFirst = true;
         
@@ -6304,9 +7198,8 @@ Asc['asc_docs_api'].prototype.openDocument = function(file)
         this.VersionHistory.changes = file.changes;
         this.VersionHistory.applyChanges(this);
     }
-
-    if (_api.NativeAfterLoad)
-        _api.NativeAfterLoad();
+       
+    _api["NativeAfterLoad"]();
 
     //console.log("ImageMap : " + JSON.stringify(this.WordControl.m_oLogicDocument));
 
@@ -6327,11 +7220,24 @@ Asc['asc_docs_api'].prototype.openDocument = function(file)
     this.WordControl.m_oDrawingDocument.Collaborative_TargetsUpdate(true);
 
     initSpellCheckApi();
+    initTrackRevisions();
 
     var t = this;
-    setInterval(function() {
-                t._autoSave();
-                }, 40);
+    setInterval(function () {
+        t._autoSave();
+    }, 40);
+};
+
+window["asc_docs_api"].prototype["asc_nativeGetFileData"] = function()
+{
+    var oBinaryFileWriter = new AscCommonWord.BinaryFileWriter(this.WordControl.m_oLogicDocument);
+    var memory = oBinaryFileWriter.memory;
+
+    oBinaryFileWriter.Write(true);
+
+    window["native"]["GetFileData"](memory.ImData.data, memory.GetCurPosition());
+
+    return true;
 };
 
 Asc['asc_docs_api'].prototype.asc_setSpellCheck = function(isOn)
@@ -6386,3 +7292,5 @@ window["AscCommon"].sendImgUrls = function(api, images, callback)
 	var _data = [];
 	callback(_data);
 };
+
+window["native"]["offline_of"] = function(_params, documentInfo) {NativeOpenFile3(_params, documentInfo);};

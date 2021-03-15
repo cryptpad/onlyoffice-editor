@@ -613,13 +613,14 @@ CChartsDrawer.prototype =
 
 		var chartSpace = obj.chart;
 		var bLayout = AscCommon.isRealObject(obj.layout) && (AscFormat.isRealNumber(obj.layout.x) || AscFormat.isRealNumber(obj.layout.y));
-		var ser = obj.series.idx;
-		var val = obj.pt.idx;
+		var serIdx = obj.series.idx;
+		var valIdx = obj.pt.idx;
 
-		var chartId = this._getChartModelIdBySerIdx(chartSpace.chart.plotArea, ser);
-		if(null !== chartId && this.charts[chartId] && this.charts[chartId].chart && this.charts[chartId].chart.series ) {
-			var seriaIdx = this._getIndexByIdxSeria(this.charts[chartId].chart.series, ser);
-			res = this.charts[chartId]._calculateDLbl(chartSpace, seriaIdx, val, bLayout);
+		var chartId = this._getChartModelIdBySerIdx(chartSpace.chart.plotArea, serIdx);
+		if(null !== chartId && this.charts[chartId] && this.charts[chartId].chart && this.charts[chartId].chart.series) {
+			//TODO нужно переделать все массивы с патами по idx
+			var serIndex = this._getIndexByIdxSeria(this.charts[chartId].chart.series, serIdx);
+			res = this.charts[chartId]._calculateDLbl(chartSpace, serIndex, valIdx, bLayout, serIdx);
 		}
 
 		return res;
@@ -649,48 +650,97 @@ CChartsDrawer.prototype =
 			var widthAxisTitle = axis.title.extX;
 			var heightAxisTitle = axis.title.extY;
 
-			switch (axis.axPos) {
-				case window['AscFormat'].AX_POS_B: {
-					y = (this.calcProp.heightCanvas - standartMarginForCharts) / pxToMM - heightAxisTitle;
-					x = (this.calcProp.chartGutter._left + this.calcProp.trueWidth / 2) / pxToMM - widthAxisTitle / 2;
+			var layout = this.cChartSpace.chart.plotArea.layout;
+			if(layout) {
+				var x1 = layout.x * this.calcProp.widthCanvas;
+				var y1 = layout.y * this.calcProp.heightCanvas;
+				var w = layout.w * this.calcProp.widthCanvas;
+				var h = layout.h * this.calcProp.heightCanvas;
+				var hLabels = axis.labels ? axis.labels.extY : 0;
+				switch (axis.axPos) {
+					case window['AscFormat'].AX_POS_B: {
+						y = (y1 + h) / pxToMM + hLabels;
+						if(y + heightAxisTitle > this.calcProp.heightCanvas / pxToMM) {
+							y = this.calcProp.heightCanvas / pxToMM - heightAxisTitle;
+						}
+						x = (this.calcProp.chartGutter._left + this.calcProp.trueWidth / 2) / pxToMM - widthAxisTitle / 2;
 
-					if(legend && legend.legendPos === c_oAscChartLegendShowSettings.bottom) {
-						y -= legend.extY + (standartMarginForCharts / 2) / pxToMM;
+						break;
 					}
-					break;
+					case window['AscFormat'].AX_POS_T: {
+						y = standartMarginForCharts / pxToMM;
+						x = (this.calcProp.chartGutter._left + this.calcProp.trueWidth / 2) / pxToMM - widthAxisTitle / 2;
+
+						if(legend && legend.legendPos === c_oAscChartLegendShowSettings.top) {
+							y += legend.extY + (standartMarginForCharts / 2) / pxToMM;
+						}
+						if (title !== null && !title.overlay) {
+							y += title.extY + (standartMarginForCharts / 2) / pxToMM;
+						}
+						break;
+					}
+					case window['AscFormat'].AX_POS_L: {
+						y = (this.calcProp.chartGutter._top + this.calcProp.trueHeight / 2) / pxToMM - heightAxisTitle / 2;
+						x = standartMarginForCharts / pxToMM;
+
+						if(legend && legend.legendPos === c_oAscChartLegendShowSettings.left) {
+							x += legend.extX;
+						}
+						break;
+					}
+					case window['AscFormat'].AX_POS_R: {
+						y = (this.calcProp.chartGutter._top + this.calcProp.trueHeight / 2) / pxToMM - heightAxisTitle / 2;
+						x = (this.calcProp.widthCanvas - standartMarginForCharts) / pxToMM - widthAxisTitle;
+
+						if(legend && legend.legendPos === c_oAscChartLegendShowSettings.right) {
+							x -= legend.extX;
+						}
+						break;
+					}
 				}
-				case window['AscFormat'].AX_POS_T: {
-					y = standartMarginForCharts / pxToMM;
-					x = (this.calcProp.chartGutter._left + this.calcProp.trueWidth / 2) / pxToMM - widthAxisTitle / 2;
+			} else {
+				switch (axis.axPos) {
+					case window['AscFormat'].AX_POS_B: {
+						y = (this.calcProp.heightCanvas - standartMarginForCharts) / pxToMM - heightAxisTitle;
+						x = (this.calcProp.chartGutter._left + this.calcProp.trueWidth / 2) / pxToMM - widthAxisTitle / 2;
 
-					if(legend && legend.legendPos === c_oAscChartLegendShowSettings.top) {
-						y += legend.extY + (standartMarginForCharts / 2) / pxToMM;
+						if(legend && legend.legendPos === c_oAscChartLegendShowSettings.bottom) {
+							y -= legend.extY + (standartMarginForCharts / 2) / pxToMM;
+						}
+						break;
 					}
-					if (title !== null && !title.overlay) {
-						y += title.extY + (standartMarginForCharts / 2) / pxToMM;
-					}
-					break;
-				}
-				case window['AscFormat'].AX_POS_L: {
-					y = (this.calcProp.chartGutter._top + this.calcProp.trueHeight / 2) / pxToMM - heightAxisTitle / 2;
-					x = standartMarginForCharts / pxToMM;
+					case window['AscFormat'].AX_POS_T: {
+						y = standartMarginForCharts / pxToMM;
+						x = (this.calcProp.chartGutter._left + this.calcProp.trueWidth / 2) / pxToMM - widthAxisTitle / 2;
 
-					if(legend && legend.legendPos === c_oAscChartLegendShowSettings.left) {
-						x += legend.extX;
+						if(legend && legend.legendPos === c_oAscChartLegendShowSettings.top) {
+							y += legend.extY + (standartMarginForCharts / 2) / pxToMM;
+						}
+						if (title !== null && !title.overlay) {
+							y += title.extY + (standartMarginForCharts / 2) / pxToMM;
+						}
+						break;
 					}
-					break;
-				}
-				case window['AscFormat'].AX_POS_R: {
-					y = (this.calcProp.chartGutter._top + this.calcProp.trueHeight / 2) / pxToMM - heightAxisTitle / 2;
-					x = (this.calcProp.widthCanvas - standartMarginForCharts) / pxToMM - widthAxisTitle;
+					case window['AscFormat'].AX_POS_L: {
+						y = (this.calcProp.chartGutter._top + this.calcProp.trueHeight / 2) / pxToMM - heightAxisTitle / 2;
+						x = standartMarginForCharts / pxToMM;
 
-					if(legend && legend.legendPos === c_oAscChartLegendShowSettings.right) {
-						x -= legend.extX;
+						if(legend && legend.legendPos === c_oAscChartLegendShowSettings.left) {
+							x += legend.extX;
+						}
+						break;
 					}
-					break;
+					case window['AscFormat'].AX_POS_R: {
+						y = (this.calcProp.chartGutter._top + this.calcProp.trueHeight / 2) / pxToMM - heightAxisTitle / 2;
+						x = (this.calcProp.widthCanvas - standartMarginForCharts) / pxToMM - widthAxisTitle;
+
+						if(legend && legend.legendPos === c_oAscChartLegendShowSettings.right) {
+							x -= legend.extX;
+						}
+						break;
+					}
 				}
 			}
-
 
 			if(this.nDimensionCount === 3)
 			{
@@ -888,35 +938,34 @@ CChartsDrawer.prototype =
 
 		//исключение - когда среди диаграмм есть груговая
 		var pieChart = null;
-		if(!this._isSwitchCurrent3DChart(chartSpace)) {
-			var charts = plotArea.charts;
-			for(var i = 0; i < charts.length; i++) {
-				var chartType = this._getChartType(charts[i]);
-				if(c_oChartTypes.Pie === chartType || c_oChartTypes.DoughnutChart === chartType) {
-					pieChart = charts[i];
-					break;
-				}
-			}
-			if(null !== pieChart) {
-				//вычисляем истинную(первоначальную) ширину и высоту диаграммы
-				left = this._getStandartMargin(left, leftKey, leftTextLabels, 0) + leftKey + leftTextLabels;
-				bottom = this._getStandartMargin(bottom, bottomKey, bottomTextLabels, 0) + bottomKey + bottomTextLabels;
-				top = this._getStandartMargin(top, topKey, topTextLabels, topMainTitle) + topKey + topTextLabels + topMainTitle;
-				right = this._getStandartMargin(right, rightKey, rightTextLabels, 0) + rightKey + rightTextLabels;
-
-				var width = chartSpace.extX - left - right;
-				var height = chartSpace.extY - top - bottom;
-				var pieSize = width > height ? height : width;
-
-				//размещаем по центру относительно width/height
-				left += (width - pieSize)/2;
-				right += (width - pieSize)/2;
-				top += (height - pieSize)/2;
-				bottom += (height - pieSize)/2;
+		var charts = plotArea.charts;
+		for(i = 0; i < charts.length; i++) {
+			var chartType = this._getChartType(charts[i]);
+			if(c_oChartTypes.Pie === chartType || c_oChartTypes.DoughnutChart === chartType) {
+				pieChart = charts[i];
+				break;
 			}
 		}
+		var is3dChart = this._isSwitchCurrent3DChart(chartSpace);
+		if(!is3dChart && null !== pieChart) {
+			//вычисляем истинную(первоначальную) ширину и высоту диаграммы
+			left = this._getStandartMargin(left, leftKey, leftTextLabels, 0) + leftKey + leftTextLabels;
+			bottom = this._getStandartMargin(bottom, bottomKey, bottomTextLabels, 0) + bottomKey + bottomTextLabels;
+			top = this._getStandartMargin(top, topKey, topTextLabels, topMainTitle) + topKey + topTextLabels + topMainTitle;
+			right = this._getStandartMargin(right, rightKey, rightTextLabels, 0) + rightKey + rightTextLabels;
 
-		if(null === pieChart) {
+			var width = chartSpace.extX - left - right;
+			var height = chartSpace.extY - top - bottom;
+			var pieSize = width > height ? height : width;
+
+			//размещаем по центру относительно width/height
+			left += (width - pieSize)/2;
+			right += (width - pieSize)/2;
+			top += (height - pieSize)/2;
+			bottom += (height - pieSize)/2;
+		}
+
+		if(null === pieChart || is3dChart) {
 			left += this._getStandartMargin(left, leftKey, leftTextLabels, 0) + leftKey + leftTextLabels;
 			bottom += this._getStandartMargin(bottom, bottomKey, bottomTextLabels, 0) + bottomKey + bottomTextLabels;
 			top += this._getStandartMargin(top, topKey, topTextLabels, topMainTitle) + topKey + topTextLabels + topMainTitle;
@@ -1718,18 +1767,26 @@ CChartsDrawer.prototype =
 		if(yNumCache && xNumCache) {
 			yPoint = yNumCache.getPtByIndex(idx);
 			xPoint = xNumCache.getPtByIndex(idx);
-			if(yPoint && xPoint) {
-				yVal = parseFloat(yPoint.val);
+			if(xPoint) {
+				yVal = yPoint ? parseFloat(yPoint.val) : 0;
 				xVal = parseFloat(xPoint.val);
 				res = {x: xVal, y: yVal};
 			}
 		} else if(yNumCache) {
 			yPoint = yNumCache.getPtByIndex(idx);
+
+			var dispBlanksAs =  this.cChartSpace.chart.dispBlanksAs;
 			if(yPoint) {
 				yVal = parseFloat(yPoint.val);
-				xVal = idx + 1;
-				res = {x: xVal, y: yVal, xPoint: xPoint, yPoint: yPoint};
+			} else if(dispBlanksAs === AscFormat.DISP_BLANKS_AS_ZERO) {
+				yVal = 0;
+			} else {
+				yVal = null;
 			}
+
+			xVal = idx + 1;
+			res = {x: xVal, y: yVal, xPoint: xPoint, yPoint: yPoint};
+
 		}
 		return res;
 	},
@@ -1820,7 +1877,7 @@ CChartsDrawer.prototype =
 		}
 
 		//проверка на переход в другой диапазон из-за ограничения по высоте
-		if (!bIsManualStep) {
+		if (!bIsManualStep && !chartSpace.isSparkline) {
 			var props = {
 				arrayValues: arrayValues,
 				step: step,
@@ -2247,7 +2304,7 @@ CChartsDrawer.prototype =
         return {w: w , h: h , startX: this.calcProp.chartGutter._left / this.calcProp.pxToMM, startY: this.calcProp.chartGutter._top / this.calcProp.pxToMM};
 	},
 
-	drawPaths: function (paths, series, useNextPoint, bIsYVal) {
+	drawPaths: function (paths, series, useNextPoint, bIsYVal, byIdx) {
 
 		var seria, brush, pen, numCache, point;
 		var seriesPaths = paths.series;
@@ -2257,13 +2314,31 @@ CChartsDrawer.prototype =
 			return;
 		}
 
+		var getSerByIdx = function(_idx) {
+			for(var k = 0; k < series.length; k++) {
+				if(series[k] && series[k].idx === _idx) {
+					return series[k];
+				}
+			}
+			return null;
+		};
+
 		for (var i = 0; i < seriesPaths.length; i++) {
 
 			if (!seriesPaths[i]) {
 				continue;
 			}
 
-			seria = series[i];
+			if(byIdx) {
+				seria = getSerByIdx(i);
+			} else {
+				seria = series[i];
+			}
+
+			if(!seria) {
+				continue;
+			}
+
 			brush = seria.brush;
 			pen = seria.pen;
 
@@ -2276,7 +2351,12 @@ CChartsDrawer.prototype =
 				}
 
 				if(numCache){
-					point = numCache.pts[j + pointDiff];
+					if(byIdx) {
+						point = numCache.getPtByIndex(j + pointDiff);
+					} else {
+						point = numCache.pts[j + pointDiff];
+					}
+
 					if (point && point.pen) {
 						pen = point.pen;
 					}
@@ -2891,7 +2971,10 @@ CChartsDrawer.prototype =
 		}
 
 		//todo use getNumCache
-		var pts = ser.numRef && ser.numRef.numCache ? ser.numRef.numCache.pts : ser.numLit ? ser.numLit.pts : null;
+		var oCache = (ser.numRef && ser.numRef.numCache) ||  ser.numLit;
+		if(oCache) {
+			return oCache.getPtByIndex(index);
+		}
 
 		if (pts == null) {
 			return null;
@@ -4382,7 +4465,7 @@ drawBarChart.prototype = {
 		var bottom = this.chartProp.trueHeight / this.chartProp.pxToMM;
 		this.cChartDrawer.cShapeDrawer.Graphics.AddClipRect(left, top, right, bottom);
 
-		this.cChartDrawer.drawPaths(this.paths, this.chart.series);
+		this.cChartDrawer.drawPaths(this.paths, this.chart.series, null, null, true);
 		this.cChartDrawer.cShapeDrawer.Graphics.RestoreGrState();
 	},
 
@@ -4417,7 +4500,7 @@ drawBarChart.prototype = {
 		var nullPositionOX = this.catAx.posY * this.chartProp.pxToMM;
 
 		var height, startX, startY, val, paths, seriesHeight = [], tempValues = [], seria, startYColumnPosition, startXPosition, prevVal, idx, seriesCounter = 0;
-		var cubeCount = 0;
+		var cubeCount = 0, k;
 		for (var i = 0; i < this.chart.series.length; i++) {
 			numCache = this.cChartDrawer.getNumCache(this.chart.series[i].val);
 			seria = numCache ? numCache.pts : [];
@@ -4446,7 +4529,7 @@ drawBarChart.prototype = {
 
 				prevVal = 0;
 				if (this.subType === "stacked" || this.subType === "stackedPer") {
-					for (var k = 0; k < tempValues.length; k++) {
+					for (k = 0; k < tempValues.length; k++) {
 						if (tempValues[k][idx] && tempValues[k][idx] > 0) {
 							prevVal += tempValues[k][idx];
 						}
@@ -4517,7 +4600,7 @@ drawBarChart.prototype = {
 					//расскомментируем, чтобы включить старую схему отрисовки(+ переименовать функции _DrawBars3D -> _DrawBars3D2)
 					//this.sortZIndexPaths.push({seria: i, point: idx, paths: paths.paths, x: paths.x, y: paths.y, zIndex: paths.zIndex});
 
-					for (var k = 0; k < paths.paths.length; k++) {
+					for (k = 0; k < paths.paths.length; k++) {
 						this.sortZIndexPaths.push({
 							seria: i,
 							point: idx,
@@ -4556,19 +4639,20 @@ drawBarChart.prototype = {
 					paths = this._calculateRect(startX, startY, individualBarWidth, height);
 				}
 
+				var serIdx = this.chart.series[i].idx;
 				if (!this.paths.series) {
 					this.paths.series = [];
 				}
-				if (!this.paths.series[i]) {
-					this.paths.series[i] = [];
+				if (!this.paths.series[serIdx]) {
+					this.paths.series[serIdx] = [];
 				}
-				this.paths.series[i][idx] = paths;
+				this.paths.series[serIdx][idx] = paths;
 
 			}
 
-			if (seria.length) {
+			//if (seria.length) {
 				seriesCounter++;
-			}
+			//}
 		}
 
 		var cSortFaces;
@@ -4816,26 +4900,26 @@ drawBarChart.prototype = {
 		return result;
 	},
 
-	_calculateDLbl: function (chartSpace, ser, val) {
+	_calculateDLbl: function (chartSpace, ser, val, bLayout, serIdx) {
 		var point = this.cChartDrawer.getIdxPoint(this.chart.series[ser], val);
-		if (!this.paths.series[ser][val] || !point || !point.compiledDlb) {
+		if (!this.paths.series[serIdx][val] || !point || !point.compiledDlb) {
 			return;
 		}
 
-		var path = this.paths.series[ser][val];
+		var path = this.paths.series[serIdx][val];
 		//ToDo пересмотреть для 3d диаграмм
 		if (this.cChartDrawer.nDimensionCount === 3) {
-			if (AscFormat.isRealNumber(this.paths.series[ser][val][0])) {
-				path = this.paths.series[ser][val][0];
-			} else if (AscFormat.isRealNumber(this.paths.series[ser][val][5])) {
-				path = this.paths.series[ser][val][5];
-			} else if (AscFormat.isRealNumber(this.paths.series[ser][val][2])) {
-				path = this.paths.series[ser][val][2];
-			} else if (AscFormat.isRealNumber(this.paths.series[ser][val][3])) {
-				path = this.paths.series[ser][val][3];
-			} else if (AscFormat.isRealNumber(this.paths.series[ser][val][1])) {
+			if (AscFormat.isRealNumber(path[0])) {
+				path = path[0];
+			} else if (AscFormat.isRealNumber(path[5])) {
+				path = path[5];
+			} else if (AscFormat.isRealNumber(path[2])) {
+				path = path[2];
+			} else if (AscFormat.isRealNumber(path[3])) {
+				path = path[3];
+			} else if (AscFormat.isRealNumber(path[1])) {
 				//TODO добавлено для случая нулевой точки. возможно в данном случае сдвиги нужно считать иначе
-				path = this.paths.series[ser][val][1];
+				path = path[1];
 			}
 		}
 
@@ -5284,16 +5368,11 @@ drawLineChart.prototype = {
 			dataSeries = numCache.pts;
 
 			for (var n = 0; n < numCache.ptCount; n++) {
-				idx = dataSeries[n] && dataSeries[n].idx != null ? dataSeries[n].idx : null;
-
-				if(null === idx) {
-					continue;
-				}
-
 				//рассчитываем значения
+				//используем для поиска n - idx с 0 индексом может не существовать, а точку в нулевой позиции необходимо отрисовать
 				val = this._getYVal(n, i);
 
-				x = this.catAx ? this.cChartDrawer.getYPosition(idx + 1, this.catAx) : xPoints[n].pos;
+				x = this.catAx ? this.cChartDrawer.getYPosition(n + 1, this.catAx) : xPoints[n].pos;
 				y = this.cChartDrawer.getYPosition(val, this.valAx);
 
 				if (!this.paths.points) {
@@ -5314,12 +5393,16 @@ drawLineChart.prototype = {
 				compiledMarkerSize = idxPoint && idxPoint.compiledMarker && idxPoint.compiledMarker.size ? idxPoint.compiledMarker.size : null;
 				compiledMarkerSymbol = idxPoint && idxPoint.compiledMarker && AscFormat.isRealNumber(idxPoint.compiledMarker.symbol) ? idxPoint.compiledMarker.symbol : null;
 
+				/*if(val === null) {
+					val = 0;
+				}*/
+
 				if (val != null) {
-					this.paths.points[i][idx] = this.cChartDrawer.calculatePoint(x, y, compiledMarkerSize, compiledMarkerSymbol);
-					points[i][idx] = {x: x, y: y};
+					this.paths.points[i][n] = this.cChartDrawer.calculatePoint(x, y, compiledMarkerSize, compiledMarkerSymbol);
+					points[i][n] = {x: x, y: y};
 				} else {
 					this.paths.points[i][n] = null;
-					points[i][idx] = null;
+					points[i][n] = null;
 				}
 			}
 		}
@@ -5521,9 +5604,9 @@ drawLineChart.prototype = {
 		var tempVal;
 		var val = 0;
 		var idxPoint;
-
+		var k;
 		if (this.subType === "stacked") {
-			for (var k = 0; k <= i; k++) {
+			for (k = 0; k <= i; k++) {
 				idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[k], n);
 				tempVal = idxPoint ? parseFloat(idxPoint.val) : 0;
 				if (tempVal) {
@@ -5531,22 +5614,36 @@ drawLineChart.prototype = {
 				}
 			}
 		} else if (this.subType === "stackedPer") {
-			var summVal = 0;
-			for (var k = 0; k < this.chart.series.length; k++) {
+			var sumVal = 0;
+			for (k = 0; k < this.chart.series.length; k++) {
 				idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[k], n);
+				//TODO сейчас рисуем непрерывную линию, если нужно разорваться - не нужно 0 подставлять
 				tempVal = idxPoint ? parseFloat(idxPoint.val) : 0;
 				if (tempVal) {
 					if (k <= i) {
 						val += tempVal;
 					}
-					summVal += Math.abs(tempVal);
+					sumVal += Math.abs(tempVal);
 				}
 			}
-			val = val / summVal;
+			if(sumVal === 0) {
+				val = 0;
+			} else {
+				val = val / sumVal;
+			}
 		} else {
 			idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[i], n);
-			val = idxPoint ? parseFloat(idxPoint.val) : null;
+			//TODO blank SPAN option
+			var dispBlanksAs =  this.cChartSpace.chart.dispBlanksAs;
+			if(idxPoint) {
+				val = parseFloat(idxPoint.val);
+			} else if(dispBlanksAs === AscFormat.DISP_BLANKS_AS_ZERO) {
+				val = 0;
+			} else {
+				val = null;
+			}
 		}
+
 		return val;
 	},
 
@@ -5809,9 +5906,9 @@ drawAreaChart.prototype = {
 				//рассчитываем значения
 				val = this._getYVal(n, i);
 
-				/*if(null === val && this.cChartDrawer.nDimensionCount !== 3) {
+				if(null === val && this.cChartDrawer.nDimensionCount !== 3) {
 					continue;
-				}*/
+				}
 
 				x = this.xPoints[n].pos;
 				y = this.cChartDrawer.getYPosition(val, this.valAx);
@@ -5939,7 +6036,8 @@ drawAreaChart.prototype = {
 
 		//точки данной серии
 		if(this.subType === "stacked" || this.subType === "stackedPer") {
-			for (var i = 0; i < points.length; i++) {
+			var pointsLength = points.length;
+			for (var i = 0; i < pointsLength; i++) {
 				point = points[i];
 				if(!point) {
 
@@ -5951,8 +6049,8 @@ drawAreaChart.prototype = {
 			}
 
 			//точки предыдущей серии
-			if (prevPoints != null) {
-				for (var i = prevPoints.length - 1; i >= 0; i--) {
+			if (prevPoints != null && pointsLength) {
+				for (var i = pointsLength - 1; i >= 0; i--) {
 					point = prevPoints[i];
 					path.lnTo(point.x * pathW, point.y * pathH);
 
@@ -6778,6 +6876,7 @@ drawAreaChart.prototype = {
 			var plainEquation = t.cChartDrawer.getPlainEquation(p11, p22, p33);
 			var plainArea = t.cChartDrawer.getAreaQuadrilateral(p1, p2, p3, p4);
 
+			//TODO POINT = 0!!!!
 			if (faceIndex === 0) {
 				t.sortZIndexPathsFront.push({
 					seria: seria,
@@ -6988,35 +7087,49 @@ drawAreaChart.prototype = {
 	},
 
 	_getYVal: function (n, i) {
+		//TODO сделать общую функцию для line/area!
 		var tempVal;
 		var val = 0;
 		var idxPoint;
-
+		var k;
 		if (this.subType === "stacked") {
-			for (var k = 0; k <= i; k++) {
-				idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[k], n);
+			for (k = 0; k <= i; k++) {
+				idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[k], n);
 				tempVal = idxPoint ? parseFloat(idxPoint.val) : 0;
 				if (tempVal) {
 					val += tempVal;
 				}
 			}
 		} else if (this.subType === "stackedPer") {
-			var summVal = 0;
-			for (var k = 0; k < this.chart.series.length; k++) {
-				idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[k], n);
+			var sumVal = 0;
+			for (k = 0; k < this.chart.series.length; k++) {
+				idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[k], n);
 				tempVal = idxPoint ? parseFloat(idxPoint.val) : 0;
 				if (tempVal) {
 					if (k <= i) {
 						val += tempVal;
 					}
-					summVal += Math.abs(tempVal);
+					sumVal += Math.abs(tempVal);
 				}
 			}
-			val = val / summVal;
+			if(sumVal === 0) {
+				val = 0;
+			} else {
+				val = val / sumVal;
+			}
 		} else {
-			idxPoint = this.cChartDrawer.getIdxPoint(this.chart.series[i], n);
-			val = idxPoint ? parseFloat(idxPoint.val) : null;
+			idxPoint = this.cChartDrawer.getPointByIndex(this.chart.series[i], n);
+			//TODO blank SPAN option
+			var dispBlanksAs =  this.cChartSpace.chart.dispBlanksAs;
+			if(idxPoint) {
+				val = parseFloat(idxPoint.val);
+			} else if(dispBlanksAs === AscFormat.DISP_BLANKS_AS_ZERO) {
+				val = 0;
+			} else {
+				val = null;
+			}
 		}
+
 		return val;
 	},
 
@@ -7426,22 +7539,22 @@ drawHBarChart.prototype = {
 					paths = this._calculateRect(newStartX, newStartY / this.chartProp.pxToMM, width, individualBarHeight / this.chartProp.pxToMM);
 				}
 
-
+				var serIdx = this.chart.series[i].idx;
 				if (!this.paths.series) {
 					this.paths.series = [];
 				}
-				if (!this.paths.series[i]) {
-					this.paths.series[i] = [];
+				if (!this.paths.series[serIdx]) {
+					this.paths.series[serIdx] = [];
 				}
 
 				if (height !== 0) {
-					this.paths.series[i][idx] = paths;
+					this.paths.series[serIdx][idx] = paths;
 				}
 			}
 
-			if (seria.length) {
+			//if (seria.length) {
 				seriesCounter++;
-			}
+			//}
 		}
 
 		if (this.cChartDrawer.nDimensionCount === 3) {
@@ -7610,20 +7723,20 @@ drawHBarChart.prototype = {
 	_drawBars: function () {
 		this.cChartDrawer.cShapeDrawer.Graphics.SaveGrState();
 		this.cChartDrawer.cShapeDrawer.Graphics.AddClipRect((this.chartProp.chartGutter._left - 1) / this.chartProp.pxToMM, (this.chartProp.chartGutter._top - 1) / this.chartProp.pxToMM, this.chartProp.trueWidth / this.chartProp.pxToMM, this.chartProp.trueHeight / this.chartProp.pxToMM);
-		this.cChartDrawer.drawPaths(this.paths, this.chart.series);
+		this.cChartDrawer.drawPaths(this.paths, this.chart.series, null, null, true);
 		this.cChartDrawer.cShapeDrawer.Graphics.RestoreGrState();
 	},
 
-	_calculateDLbl: function (chartSpace, ser, val) {
+	_calculateDLbl: function (chartSpace, ser, val, bLayout, serIdx) {
 		var point = this.cChartDrawer.getIdxPoint(this.chart.series[ser], val);
-		var path = this.paths.series[ser][val];
+		var path = this.paths.series[serIdx][val];
 
 		if(!point) {
 			return;
 		}
 
-		if (this.cChartDrawer.nDimensionCount === 3 && this.paths.series[ser][val].frontPaths) {
-			var frontPaths = this.paths.series[ser][val].frontPaths;
+		if (this.cChartDrawer.nDimensionCount === 3 && path.frontPaths) {
+			var frontPaths = path.frontPaths;
 			if (this.cChartDrawer.nDimensionCount === 3) {
 				if (AscFormat.isRealNumber(frontPaths[0])) {
 					path = frontPaths[0];
@@ -8300,17 +8413,16 @@ drawPieChart.prototype = {
 	},
 
 	_drawPie: function () {
-		var numCache = this._getFirstRealNumCache();
+		var numCache = this._getFirstRealNumCache(true);
 		if(!numCache) {
 			return;
 		}
 
-		var brush, pen, val;
-		var path;
-		for (var i = 0, len = numCache.length; i < len; i++) {
-			val = numCache[i];
-			brush = val.brush;
-			pen = val.pen;
+		var brush, pen, val, path;
+		for (var i = numCache.ptCount - 1; i >= 0; i--) {
+			var point = numCache.getPtByIndex(i);
+			brush = point ? point.brush : null;
+			pen = point ? point.pen : null;
 			path = this.paths.series[i];
 
 			this.cChartDrawer.drawPath(path, pen, brush);
@@ -8321,12 +8433,12 @@ drawPieChart.prototype = {
 		var trueWidth = this.chartProp.trueWidth;
 		var trueHeight = this.chartProp.trueHeight;
 
-		var numCache = this._getFirstRealNumCache();
+		var numCache = this._getFirstRealNumCache(true);
 		if(!numCache) {
 			return;
 		}
 
-		var sumData = this.cChartDrawer._getSumArray(numCache, true);
+		var sumData = this.cChartDrawer._getSumArray(numCache.pts, true);
 
 		var radius = Math.min(trueHeight, trueWidth) / 2;
 		var xCenter = this.chartProp.chartGutter._left + trueWidth / 2;
@@ -8336,8 +8448,10 @@ drawPieChart.prototype = {
 		this.tempAngle = Math.PI / 2 - (firstSliceAng / 180) * Math.PI;
 		//рисуем против часовой стрелки, поэтому цикл с конца
 		var angle;
-		for (var i = numCache.length - 1; i >= 0; i--) {
-			angle = Math.abs((parseFloat(numCache[i].val / sumData)) * (Math.PI * 2));
+		for (var i = numCache.ptCount - 1; i >= 0; i--) {
+			var point = numCache.getPtByIndex(i);
+			var val = point ? point.val : 0;
+			angle = Math.abs((parseFloat(val / sumData)) * (Math.PI * 2));
 			//правка связана с реализацией arcTo, где swAng зануляется и приравнивается к значению
 			if(angle < 10e-16) {
 				angle = 0;
@@ -8355,19 +8469,31 @@ drawPieChart.prototype = {
 		}
 	},
 
-	_getFirstRealNumCache: function () {
+	_getFirstRealNumCache: function (returnCache) {
 		var series = this.chart.series;
 
 		//todo use getNumCache
 		var numCache;
 		for (var i = 0; i < series.length; i++) {
-			numCache = series[i].val.numRef && series[i].val.numRef.numCache ? series[i].val.numRef.numCache.pts : series[i].val.numLit.pts;
-			if (numCache && numCache.length) {
-				return numCache;
+			if(returnCache) {
+				numCache = series[i].val.numRef && series[i].val.numRef.numCache ? series[i].val.numRef.numCache : series[i].val.numLit;
+				if (numCache) {
+					return numCache;
+				}
+			} else {
+				numCache = series[i].val.numRef && series[i].val.numRef.numCache ? series[i].val.numRef.numCache.pts : series[i].val.numLit.pts;
+				if (numCache && numCache.length) {
+					return numCache;
+				}
 			}
 		}
 
-		return series[0].val.numRef && series[0].val.numRef.numCache ? series[0].val.numRef.numCache.pts : series[0].val.numLit.pts;
+		if(returnCache) {
+			numCache = series[0].val.numRef && series[0].val.numRef.numCache ? series[0].val.numRef.numCache : series[0].val.numLit;
+		} else {
+			numCache = series[0].val.numRef && series[0].val.numRef.numCache ? series[0].val.numRef.numCache.pts : series[0].val.numLit.pts;
+		}
+		return numCache;
 	},
 
 	_calculateSegment: function (angle, radius, xCenter, yCenter) {
@@ -8568,8 +8694,8 @@ drawPieChart.prototype = {
 			radius = getEllipseRadius(oCommand2.hR, oCommand2.wR, -1 * stAng - swAng / 2 - Math.PI / 2);
 		}
 
-		var point = this.chart.series[0].val.numRef ? this.chart.series[0].val.numRef.numCache.pts[val] :
-			this.chart.series[0].val.numLit.pts[val];
+		var _numCache = this.chart.series[0].val.numRef ? this.chart.series[0].val.numRef.numCache : this.chart.series[0].val.numLit;
+		var point = _numCache ? _numCache.getPtByIndex(val) : null;
 
 		if (!point || !point.compiledDlb) {
 			return;
@@ -8671,12 +8797,12 @@ drawPieChart.prototype = {
 		var trueWidth = this.chartProp.trueWidth;
 		var trueHeight = this.chartProp.trueHeight;
 
-		var numCache = this._getFirstRealNumCache();
-		if(!numCache) {
+		var numCache = this._getFirstRealNumCache(true);
+		if(!numCache || !numCache.pts) {
 			return;
 		}
 
-		var sumData = this.cChartDrawer._getSumArray(numCache, true);
+		var sumData = this.cChartDrawer._getSumArray(numCache.pts, true);
 
 		var radius = Math.min(trueHeight, trueWidth) / 2;
 		if (radius < 0) {
@@ -8692,8 +8818,10 @@ drawPieChart.prototype = {
 		this.angleFor3D = Math.PI / 2 - startAngle3D;
 		startAngle = startAngle + Math.PI / 2;
 
-		for (var i = numCache.length - 1; i >= 0; i--) {
-			var partOfSum = numCache[i].val / sumData;
+		for (var i = numCache.ptCount - 1; i >= 0; i--) {
+			var point = numCache.getPtByIndex(i);
+			var val = point ? point.val : 0;
+			var partOfSum = val / sumData;
 			var swapAngle = Math.abs((parseFloat(partOfSum)) * (Math.PI * 2));
 
 			if (!this.paths.series) {
@@ -8815,12 +8943,12 @@ drawPieChart.prototype = {
 		var t = this;
 		var widthCanvas = this.chartProp.widthCanvas;
 
-		var numCache = this._getFirstRealNumCache();
+		var numCache = this._getFirstRealNumCache(true);
 		if(!numCache) {
 			return;
 		}
 
-		var sumData = this.cChartDrawer._getSumArray(numCache, true);
+		var sumData = this.cChartDrawer._getSumArray(numCache.pts, true);
 
 		var startAngle = Math.PI / 2;
 		var newStartAngle = startAngle;
@@ -8859,13 +8987,15 @@ drawPieChart.prototype = {
 		};
 
 		var angles = [];
-		for (var i = numCache.length; i >= 0; i--) {
+		for (var i = numCache.ptCount; i >= 0; i--) {
 			//рассчитываем угол
 			var swapAngle;
-			if (i === numCache.length) {
-				swapAngle = firstAngle
+			if (i === numCache.ptCount) {
+				swapAngle = firstAngle;
 			} else {
-				var partOfSum = numCache[i].val / sumData;
+				var point = numCache.getPtByIndex(i);
+				var val = point ? point.val : 0;
+				var partOfSum = val / sumData;
 				swapAngle = Math.abs((parseFloat(partOfSum)) * (Math.PI * 2));
 			}
 
@@ -8893,11 +9023,11 @@ drawPieChart.prototype = {
 					{x: xCenter - p1.x, y: yCenter - p1.y}, {x: xCenter - p2.x, y: yCenter - p2.y});
 
 
-				if (i === numCache.length && swapAngle < 0) {
+				if (i === numCache.ptCount && swapAngle < 0) {
 					if (tempStartAngle - Math.PI / 2 > startAngle + swapAngle) {
 						tempStartAngle -= Math.PI / 2;
 					} else {
-						if (i !== numCache.length) {
+						if (i !== numCache.ptCount) {
 							angles.push(
 								{start: newStartAngle, swap: newSwapAngle, end: newStartAngle + newSwapAngle});
 						}
@@ -8908,7 +9038,7 @@ drawPieChart.prototype = {
 					if (tempStartAngle + Math.PI / 2 < startAngle + swapAngle) {
 						tempStartAngle += Math.PI / 2;
 					} else {
-						if (i !== numCache.length) {
+						if (i !== numCache.ptCount) {
 							angles.push(
 								{start: newStartAngle, swap: newSwapAngle, end: newStartAngle + newSwapAngle});
 						}
@@ -8920,7 +9050,7 @@ drawPieChart.prototype = {
 			}
 
 			startAngle += swapAngle;
-			if (i === numCache.length) {
+			if (i === numCache.ptCount) {
 				if (swapAngle < 0) {
 					newStartAngle -= newSwapAngle;
 				} else {
@@ -8935,8 +9065,7 @@ drawPieChart.prototype = {
 		return angles;
 	},
 
-	_calculateArc3D: function (radius, stAng, swAng, xCenter, yCenter, bIsNotDrawFrontFace, depth, radius1,
-							   radius2) {
+	_calculateArc3D: function (radius, stAng, swAng, xCenter, yCenter, bIsNotDrawFrontFace, depth, radius1, radius2) {
 		var properties = this.cChartDrawer.processor3D.calculatePropertiesForPieCharts();
 		var oChartSpace = this.cChartSpace;
 
@@ -8982,37 +9111,25 @@ drawPieChart.prototype = {
 		var breakAng = function (startAng, swapAng) {
 			var res = [];
 			var endAng = startAng + swapAng;
+			var _compare = function (_ang) {
+				var deltaAng = 0.00000000000001;
+				return startAng < _ang && endAng > _ang && _ang - startAng > deltaAng && endAng -_ang > deltaAng;
+			};
 
 			res.push({angle: startAng});
-			if (startAng < -2 * Math.PI && endAng > -2 * Math.PI) {
+			if (_compare(-2 * Math.PI)) {
 				res.push({angle: -2 * Math.PI});
 			}
-			/*if(startAng < -3/2*Math.PI && endAng > -3/2*Math.PI)
-			 {
-			 res.push({angle: -3/2*Math.PI});
-			 }*/
-			if (startAng < -Math.PI && endAng > -Math.PI) {
+			if (_compare(-Math.PI)) {
 				res.push({angle: -Math.PI});
 			}
-			/*if(startAng < -Math.PI/2 && endAng > -Math.PI/2)
-			 {
-			 res.push({angle: -Math.PI/2});
-			 }*/
 			if (startAng < 0 && endAng > 0) {
 				res.push({angle: 0});
 			}
-			/*if(startAng < Math.PI/2 && endAng > Math.PI/2)
-			 {
-			 res.push({angle: Math.PI/2});
-			 }*/
-			if (startAng < Math.PI && endAng > Math.PI) {
+			if (_compare(Math.PI)) {
 				res.push({angle: Math.PI});
 			}
-			/*if(startAng < 3/2*Math.PI && endAng > 3/2*Math.PI)
-			 {
-			 res.push({angle: 3/2*Math.PI});
-			 }*/
-			if (startAng < 2 * Math.PI && endAng > 2 * Math.PI) {
+			if (_compare(2 * Math.PI)) {
 				res.push({angle: 2 * Math.PI});
 			}
 			res.push({angle: endAng});
@@ -9332,7 +9449,7 @@ drawPieChart.prototype = {
 
 
 	_drawPie3D: function () {
-		var numCache = this._getFirstRealNumCache();
+		var numCache = this._getFirstRealNumCache(true);
 		var t = this;
 		var shade = "shade";
 		var shadeValue = 35000;
@@ -9365,15 +9482,16 @@ drawPieChart.prototype = {
 
 		};
 
-		var pen = numCache[0].pen;
+		var _firstPoint = numCache.getPtByIndex(0);
+		var pen = _firstPoint ? _firstPoint.pen : null;
 		drawPath(this.paths.test, pen, null);
 
 		var sides = {down: 0, inside: 1, up: 2, front: 3};
 		var drawPaths = function (side) {
-			for (var i = 0, len = numCache.length; i < len; i++) {
-				var val = numCache[i];
-				var brush = val.brush;
-				var pen = val.pen;
+			for (var i = 0, len = numCache.ptCount; i < len; i++) {
+				var point = numCache.getPtByIndex(i);
+				var brush = point ? point.brush : null;
+				var pen = point ? point.pen : null;
 				var path = t.paths.series[i];
 
 				if (path) {
@@ -9390,7 +9508,7 @@ drawPieChart.prototype = {
 							drawPath(path[j].insidePath, pen, brush, null, true);
 						} else if (side === sides.up) {
 							drawPath(path[j].upPath, pen, brush);
-						} else if (side === sides.frontPath) {
+						} else if (side === sides.front) {
 							for (var k = 0; k < path[j].frontPath.length; k++) {
 								drawPath(path[j].frontPath[k], pen, brush, true, true);
 							}
@@ -9404,9 +9522,9 @@ drawPieChart.prototype = {
 		drawPaths(sides.inside);
 		if (this.tempDrawOrder !== null) {
 			drawPaths(sides.up);
-			drawPaths(sides.frontPath);
+			drawPaths(sides.front);
 		} else {
-			drawPaths(sides.frontPath);
+			drawPaths(sides.front);
 			drawPaths(sides.up);
 		}
 	},
@@ -10152,7 +10270,7 @@ drawDoughnutChart.prototype = {
 		var numCache = this.cChartDrawer.getNumCache(this.chart.series[ser].val);
 		var point = null;
 		if(numCache){
-			point = numCache.pts[val];
+			point = numCache.getPtByIndex(val);
 		}
 		if (!point) {
 			return;
@@ -11000,7 +11118,8 @@ drawStockChart.prototype = {
 			val1 = null, val2 = null, val3 = null, val4 = null;
 			val1 = numCache.pts[i].val;
 
-			lastNamCache = this.cChartDrawer.getNumCache(this.chart.series[this.chart.series.length - 1].val).pts;
+			lastNamCache = this.cChartDrawer.getNumCache(this.chart.series[this.chart.series.length - 1].val);
+			lastNamCache = lastNamCache ? lastNamCache.pts : null;
 			val4 = lastNamCache && lastNamCache[i] ? lastNamCache[i].val : null;
 
 			for (var k = 1; k < this.chart.series.length - 1; k++) {

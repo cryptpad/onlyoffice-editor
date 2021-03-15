@@ -185,38 +185,28 @@ CGroupShape.prototype.recalculateBounds = function()
 };
 
 CGroupShape.prototype.deselect = CShape.prototype.deselect;
-CGroupShape.prototype.hitToHandles = CShape.prototype.hitToHandles;
 CGroupShape.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CGroupShape.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CGroupShape.prototype.handleUpdatePosition = function()
 {
     this.handleUpdateExtents(true);
 };
-CGroupShape.prototype.handleUpdateExtents = function(bCell)
+CGroupShape.prototype.handleUpdateExtents = function(bExt)
 {
     this.recalcTransform();
     this.recalcBounds();
     this.addToRecalculate();
-    if(bCell)
+    if(this.spTree)
     {
-        if(this.spTree)
+        for(var i = 0; i < this.spTree.length; ++i)
         {
-            for(var i = 0; i < this.spTree.length; ++i)
-            {
-                if(this.spTree[i].handleUpdateExtents)
-                {
-                    this.spTree[i].handleUpdateExtents(bCell);
-                }
-            }
+            this.spTree[i].handleUpdateExtents(bExt);
         }
     }
 };
 CGroupShape.prototype.handleUpdateRot = function()
 {
-    if(this.handleUpdateExtents)
-    {
-        this.handleUpdateExtents(true);
-    }
+    this.handleUpdateExtents(true);
 };
 CGroupShape.prototype.handleUpdateFlip = CGroupShape.prototype.handleUpdatePosition;
 CGroupShape.prototype.handleUpdateChildOffset = CGroupShape.prototype.handleUpdatePosition;

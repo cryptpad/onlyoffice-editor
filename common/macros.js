@@ -89,6 +89,45 @@ function (window, undefined)
 	{
 	};
 
+	CDocumentMacros.prototype.runAuto = function()
+	{
+		try
+		{
+			var obj = JSON.parse(this.Data);
+			if (!obj["macrosArray"])
+				return;
+			for (var i = 0; i < obj["macrosArray"].length; i++)
+			{
+				if (true !== obj["macrosArray"][i]["autostart"])
+					continue;
+
+                var script = "(function(){ var Api = window.g_asc_plugins.api;\n" + obj["macrosArray"][i]["value"] + "\n})();";
+                eval(script);
+			}
+		}
+		catch (err)
+		{
+		}
+	};
+    CDocumentMacros.prototype.isExistAuto = function()
+    {
+        try
+        {
+            var obj = JSON.parse(this.Data);
+            if (!obj["macrosArray"])
+                return;
+            for (var i = 0; i < obj["macrosArray"].length; i++)
+            {
+                if (true === obj["macrosArray"][i]["autostart"])
+                    return true;
+            }
+        }
+        catch (err)
+        {
+        }
+        return false;
+    };
+
 	AscDFH.changesFactory[AscDFH.historyitem_DocumentMacros_Data]     = CChangesDocumentMacrosData;
 	AscDFH.changesRelationMap[AscDFH.historyitem_DocumentMacros_Data] = [AscDFH.historyitem_DocumentMacros_Data];
 

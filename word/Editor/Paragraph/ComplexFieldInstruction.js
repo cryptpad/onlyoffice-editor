@@ -50,7 +50,13 @@ var fieldtype_NUMPAGES   = fieldtype_PAGECOUNT;
 var fieldtype_ASK        = 0x0007;
 var fieldtype_REF        = 0x0008;
 var fieldtype_HYPERLINK  = 0x0009;
+var fieldtype_TIME       = 0x000A;
+var fieldtype_DATE       = 0x000B;
 var fieldtype_FORMULA    = 0x0010;
+var fieldtype_SEQ        = 0x0011;
+var fieldtype_STYLEREF   = 0x0012;
+var fieldtype_NOTEREF    = 0x0013;
+
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
@@ -67,7 +73,12 @@ window['AscCommonWord'].fieldtype_NUMPAGES   = fieldtype_NUMPAGES;
 window['AscCommonWord'].fieldtype_ASK        = fieldtype_ASK;
 window['AscCommonWord'].fieldtype_REF        = fieldtype_REF;
 window['AscCommonWord'].fieldtype_HYPERLINK  = fieldtype_HYPERLINK;
+window['AscCommonWord'].fieldtype_TIME       = fieldtype_TIME;
+window['AscCommonWord'].fieldtype_DATE       = fieldtype_DATE;
 window['AscCommonWord'].fieldtype_FORMULA    = fieldtype_FORMULA;
+window['AscCommonWord'].fieldtype_SEQ        = fieldtype_SEQ;
+window['AscCommonWord'].fieldtype_STYLEREF   = fieldtype_STYLEREF;
+window['AscCommonWord'].fieldtype_NOTEREF    = fieldtype_NOTEREF;
 
 
 /**
@@ -76,7 +87,8 @@ window['AscCommonWord'].fieldtype_FORMULA    = fieldtype_FORMULA;
  */
 function CFieldInstructionBase()
 {
-	this.ComplexField = null;
+	this.ComplexField    = null;
+	this.InstructionLine = "";
 }
 CFieldInstructionBase.prototype.Type = fieldtype_UNKNOWN;
 CFieldInstructionBase.prototype.GetType = function()
@@ -97,6 +109,14 @@ CFieldInstructionBase.prototype.ToString = function()
 };
 CFieldInstructionBase.prototype.SetPr = function()
 {
+};
+CFieldInstructionBase.prototype.SetInstructionLine = function(sLine)
+{
+	this.InstructionLine = sLine;
+};
+CFieldInstructionBase.prototype.CheckInstructionLine = function(sLine)
+{
+	return (this.InstructionLine === sLine);
 };
 /**
 * FORMULA field
@@ -182,24 +202,23 @@ CFieldInstructionFORMULA.prototype.Calculate = function(oLogicDocument)
 		this.ResultStr = '';
 	}
 };
-
-
 CFieldInstructionFORMULA.prototype.private_Calculate = function (oLogicDocument)
 {
-	var sListSeparator = ",";
+	var sListSeparator  = ",";
 	var sDigitSeparator = ".";
-	if(oLogicDocument && oLogicDocument.Settings){
-		var oSettings = oLogicDocument.Settings;
-		if(oSettings.DecimalSymbol && oSettings.ListSeparator && oSettings.DecimalSymbol !== oSettings.ListSeparator){
-			sListSeparator = oSettings.ListSeparator;
-			sDigitSeparator = oSettings.DecimalSymbol;
-		}
+
+	if (oLogicDocument && oLogicDocument.GetDecimalSymbol && oLogicDocument.GetListSeparator && oLogicDocument.GetDecimalSymbol() !== oLogicDocument.GetListSeparator())
+	{
+		sListSeparator  = oLogicDocument.GetListSeparator();
+		sDigitSeparator = oLogicDocument.GetDecimalSymbol();
 	}
+
 	var oParser = new AscCommonWord.CFormulaParser(sListSeparator, sDigitSeparator);
 	oParser.parse(this.Formula, this.ParentContent);
 
 	this.SetParseQueue(oParser.parseQueue);
-	if(oParser.parseQueue){
+	if (oParser.parseQueue)
+	{
 		oParser.parseQueue.format = this.Format;
 	}
 	this.SetError(oParser.error);
@@ -292,6 +311,8 @@ function CFieldInstructionTOC()
 	this.SkipPageRefStart = -1;
 	this.SkipPageRefEnd   = -1;
 	this.ForceTabLeader   = undefined;
+	this.Caption          = undefined;
+	this.CaptionOnlyText  = undefined;
 }
 
 CFieldInstructionTOC.prototype = Object.create(CFieldInstructionBase.prototype);
@@ -344,16 +365,20 @@ CFieldInstructionTOC.prototype.GetHeadingRangeEnd = function()
 };
 CFieldInstructionTOC.prototype.SetStylesArrayRaw = function(sString)
 {
-	// В спецификации написано, то разделено запятыми, но на деле Word реагирует на точку с запятой
-	var arrValues = sString.split(";");
+	var oLogicDocument = editor.WordControl.m_oLogicDocument;
+	var sListSeparator = oLogicDocument.GetListSeparator();
+
+	var arrValues = sString.split(sListSeparator);
 	var arrStyles = [];
 
-	for (var nIndex = 0, nCount = arrValues.length; nIndex < nCount - 1; nIndex += 2)
+	for (var nIndex = 0, nCount = arrValues.length; nIndex < nCount; ++nIndex)
 	{
 		var sName = arrValues[nIndex];
-		var nLvl  = parseInt(arrValues[nIndex + 1]);
+		var nLvl  = nIndex + 1 >= nCount ? 1 : parseInt(arrValues[nIndex + 1]);
 		if (isNaN(nLvl))
-			break;
+			nLvl = undefined;
+		else
+			nIndex++;
 
 		arrStyles.push({
 			Name : sName,
@@ -403,6 +428,22 @@ CFieldInstructionTOC.prototype.IsSkipPageRefLvl = function(nLvl)
 
 	return  (nLvl >= this.SkipPageRefStart - 1 && nLvl <= this.SkipPageRefEnd - 1);
 };
+CFieldInstructionTOC.prototype.SetCaption = function (sCaption)
+{
+	this.Caption = sCaption;
+};
+CFieldInstructionTOC.prototype.GetCaption = function()
+{
+	return this.Caption;
+};
+CFieldInstructionTOC.prototype.SetCaptionOnlyText = function (sVal)
+{
+	this.CaptionOnlyText = sVal;
+};
+CFieldInstructionTOC.prototype.GetCaptionOnlyText = function()
+{
+	return this.CaptionOnlyText;
+};
 CFieldInstructionTOC.prototype.SetPr = function(oPr)
 {
 	if (!(oPr instanceof Asc.CTableOfContentsPr))
@@ -423,6 +464,24 @@ CFieldInstructionTOC.prototype.SetPr = function(oPr)
 		this.SetSeparator(" ");
 
 	this.ForceTabLeader = oPr.TabLeader;
+	var sCaption = oPr.get_CaptionForInstruction();
+	if(sCaption !== undefined)
+	{
+		if(sCaption || this.Styles.length > 0)
+		{
+			if(oPr.IsIncludeLabelAndNumber)
+			{
+				this.SetCaption(sCaption);
+				this.SetCaptionOnlyText(undefined);
+			}
+			else
+			{
+				this.SetCaptionOnlyText(sCaption);
+				this.SetCaption(undefined);
+			}
+			this.SetHeadingRange(-1, -1);
+		}
+	}
 };
 CFieldInstructionTOC.prototype.GetForceTabLeader = function()
 {
@@ -432,6 +491,9 @@ CFieldInstructionTOC.prototype.GetForceTabLeader = function()
 };
 CFieldInstructionTOC.prototype.ToString = function()
 {
+	var oLogicDocument = editor.WordControl.m_oLogicDocument;
+	var sListSeparator = oLogicDocument.GetListSeparator();
+
 	var sInstr = "TOC ";
 
 	if (this.HeadingS >= 1
@@ -469,15 +531,48 @@ CFieldInstructionTOC.prototype.ToString = function()
 
 		for (var nIndex = 0, nCount = this.Styles.length; nIndex < nCount; ++nIndex)
 		{
-			sInstr += this.Styles[nIndex].Name + ";" + this.Styles[nIndex].Lvl + ";";
+			if (0 === nIndex)
+				sInstr += this.Styles[nIndex].Name;
+			else
+				sInstr += sListSeparator + this.Styles[nIndex].Name;
+
+			if (undefined !== this.Styles[nIndex].Lvl && null !== this.Styles[nIndex].Lvl)
+				sInstr += sListSeparator + this.Styles[nIndex].Lvl;
 		}
 
 		sInstr += "\" ";
 	}
+	if(this.Caption !== undefined)
+	{
+		sInstr += "\\c ";
+		if(typeof this.Caption === "string" && this.Caption.length > 0)
+		{
+			sInstr += "\"" + this.Caption + "\"";
+		}
+	}
+	if(this.CaptionOnlyText !== undefined)
+	{
+		sInstr += "\\a ";
+		if(typeof this.CaptionOnlyText === "string" && this.CaptionOnlyText.length > 0)
+		{
+			sInstr += "\"" + this.CaptionOnlyText + "\"";
+		}
+	}
 
 	return sInstr;
 };
-
+CFieldInstructionTOC.prototype.IsTableOfFigures = function ()
+{
+	if(this.Caption !== undefined || this.CaptionOnlyText !== undefined)
+	{
+		return true;
+	}
+	return false;
+};
+CFieldInstructionTOC.prototype.IsTableOfContents = function ()
+{
+	return !this.IsTableOfFigures();
+};
 /**
  * ASK field
  * @constructor
@@ -520,11 +615,23 @@ function CFieldInstructionREF()
 {
 	CFieldInstructionBase.call(this);
 
+	this.GeneralSwitches = [];
 	this.BookmarkName = "";
+	this.Hyperlink = false; // \h - is hyperlink
+	this.bIsNumberNoContext = false; // \n - paragraph number (no context)
+	this.bIsNumberFullContext = false; // \w - paragraph number (full context)
+	this.bIsNumber = false; // \r - paragraph number in realtive context
+	this.bIsPosition = false; // \p - above/below
+	this.Delimiter = null;
 }
 CFieldInstructionREF.prototype = Object.create(CFieldInstructionBase.prototype);
 CFieldInstructionREF.prototype.constructor = CFieldInstructionREF;
 CFieldInstructionREF.prototype.Type = fieldtype_REF;
+
+CFieldInstructionREF.prototype.SetGeneralSwitches = function (aSwitches)
+{
+	this.GeneralSwitches = aSwitches;
+};
 CFieldInstructionREF.prototype.SetBookmarkName = function(sBookmarkName)
 {
 	this.BookmarkName = sBookmarkName;
@@ -533,12 +640,116 @@ CFieldInstructionREF.prototype.GetBookmarkName = function()
 {
 	return this.BookmarkName;
 };
+CFieldInstructionREF.prototype.SetHyperlink = function(bIsHyperlink)
+{
+	this.Hyperlink = bIsHyperlink;
+};
+CFieldInstructionREF.prototype.GetHyperlink = function()
+{
+	return this.Hyperlink;
+};
+CFieldInstructionREF.prototype.SetIsNumberNoContext = function(bVal)
+{
+	this.bIsNumberNoContext = bVal;
+};
+CFieldInstructionREF.prototype.IsNumberNoContext = function()
+{
+	return this.bIsNumberNoContext;
+};
+CFieldInstructionREF.prototype.SetIsNumberFullContext = function(bVal)
+{
+	this.bIsNumberFullContext = bVal;
+};
+CFieldInstructionREF.prototype.IsNumberFullContext = function()
+{
+	return this.bIsNumberFullContext;
+};
+CFieldInstructionREF.prototype.HaveNumberFlag = function()
+{
+	return this.IsNumber() || this.IsNumberFullContext() || this.IsNumberNoContext();
+};
+CFieldInstructionREF.prototype.SetIsNumber = function(bVal)
+{
+	this.bIsNumber = bVal;
+};
+CFieldInstructionREF.prototype.IsNumber = function()
+{
+	return this.bIsNumber;
+};
+CFieldInstructionREF.prototype.SetIsPosition = function(bVal)
+{
+	this.bIsPosition = bVal;
+};
+CFieldInstructionREF.prototype.IsPosition = function()
+{
+	return this.bIsPosition;
+};
+CFieldInstructionREF.prototype.SetDelimiter = function(bVal)
+{
+	this.Delimiter = bVal;
+};
+CFieldInstructionREF.prototype.GetDelimiter = function()
+{
+	return this.Delimiter;
+};
+CFieldInstructionREF.prototype.ToString = function()
+{
+	var sInstruction = " REF ";
+	sInstruction += this.BookmarkName;
+	for(var nSwitch = 0; i < this.GeneralSwitches.length; ++nSwitch)
+	{
+		sInstruction +=  " \\* " + this.GeneralSwitches[nSwitch];
+	}
+	if(this.GetHyperlink())
+	{
+		sInstruction += " \\h";
+	}
+	if(this.IsNumberNoContext())
+	{
+		sInstruction += " \\n";
+	}
+	if(this.IsNumberFullContext())
+	{
+		sInstruction += " \\w";
+	}
+	if(this.IsNumber())
+	{
+		sInstruction += " \\r"
+	}
+	if(this.IsPosition())
+	{
+		sInstruction += " \\p";
+	}
+	if(typeof this.Delimiter === "string" && this.Delimiter.length > 0)
+	{
+		sInstruction += " \\d " + this.Delimiter;
+	}
+	return sInstruction;
+};
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для совместимости с обычным ParaHyperlink
 //----------------------------------------------------------------------------------------------------------------------
 CFieldInstructionREF.prototype.GetAnchor = function()
 {
-	return this.GetBookmarkName();
+	var sBookmarkName = this.GetBookmarkName();
+	var sAnchor = sBookmarkName;
+	if(this.ComplexField)
+	{
+		var oLogicDoc = this.ComplexField.LogicDocument;
+		if(oLogicDoc)
+		{
+			var oBookmarksManager = oLogicDoc.GetBookmarksManager();
+			if(oBookmarksManager)
+			{
+				var oBookmark = oBookmarksManager.GetBookmarkByName(sBookmarkName);
+				if(!oBookmark)
+				{
+					sAnchor = "_top";
+				}
+			}
+		}
+	}
+	return sAnchor;
 };
 CFieldInstructionREF.prototype.GetValue = function()
 {
@@ -553,14 +764,19 @@ CFieldInstructionREF.prototype.SetVisited = function(isVisited)
  */
 CFieldInstructionREF.prototype.IsTopOfDocument = function()
 {
-	return (this.GetBookmarkName() === "_top");
+	return (this.GetAnchor() === "_top");
 };
 CFieldInstructionREF.prototype.SetToolTip = function(sToolTip)
 {
 };
 CFieldInstructionREF.prototype.GetToolTip = function()
 {
-	return "";
+	var sTooltip = this.BookmarkName;
+	if(!sTooltip || '_' === sTooltip.charAt(0))
+	{
+		sTooltip = AscCommon.translateManager.getValue("Current Document");
+	}
+	return sTooltip;
 };
 
 /**
@@ -597,7 +813,14 @@ CFieldInstructionHYPERLINK.prototype.SetToolTip = function(sToolTip)
 CFieldInstructionHYPERLINK.prototype.GetToolTip = function()
 {
 	if ("" === this.ToolTip)
-		return this.Link;
+	{
+		if (this.Link)
+			return (this.BookmarkName ? this.Link + "#" + this.BookmarkName : this.Link)
+		else if (this.BookmarkName)
+			return AscCommon.translateManager.getValue("Current Document");
+
+		return "";
+	}
 
 	return this.ToolTip;
 };
@@ -654,6 +877,681 @@ CFieldInstructionHYPERLINK.prototype.IsTopOfDocument = function()
 	return (this.GetBookmarkName() === "_top");
 };
 
+/**
+ * TIME field
+ * @constructor
+ */
+function CFieldInstructionTIME()
+{
+	CFieldInstructionBase.call(this);
+
+	this.Format = "";
+}
+CFieldInstructionTIME.prototype = Object.create(CFieldInstructionBase.prototype);
+CFieldInstructionTIME.prototype.constructor = CFieldInstructionTIME;
+CFieldInstructionTIME.prototype.Type = fieldtype_TIME;
+CFieldInstructionTIME.prototype.ToString = function()
+{
+	return ("TIME \\@ \"" + this.sFormat + "\"");
+};
+CFieldInstructionTIME.prototype.SetFormat = function(sFormat)
+{
+	this.Format = sFormat;
+};
+CFieldInstructionTIME.prototype.GetFormat = function()
+{
+	return this.Format;
+};
+
+/**
+ * TIME field
+ * @constructor
+ */
+function CFieldInstructionDATE()
+{
+	CFieldInstructionBase.call(this);
+
+	this.Format = "";
+}
+CFieldInstructionDATE.prototype = Object.create(CFieldInstructionBase.prototype);
+CFieldInstructionDATE.prototype.constructor = CFieldInstructionDATE;
+CFieldInstructionDATE.prototype.Type = fieldtype_DATE;
+CFieldInstructionDATE.prototype.ToString = function()
+{
+	return ("TIME \\@ \"" + this.sFormat + "\"");
+};
+CFieldInstructionDATE.prototype.SetFormat = function(sFormat)
+{
+	this.Format = sFormat;
+};
+CFieldInstructionDATE.prototype.GetFormat = function()
+{
+	return this.Format;
+};
+/**
+ * SEQ field
+ * @constructor
+ */
+function CFieldInstructionSEQ()
+{
+
+	CFieldInstructionBase.call(this);
+	this.Id = null;
+	this.C = false;
+	this.H = false;
+	this.N = false;
+	this.R = null;
+	this.S = null;
+	this.NumFormat = Asc.c_oAscNumberingFormat.Decimal;
+	this.GeneralSwitches = [];
+
+	this.ParentContent = null;
+}
+CFieldInstructionSEQ.prototype = Object.create(CFieldInstructionBase.prototype);
+CFieldInstructionSEQ.prototype.constructor = CFieldInstructionSEQ;
+CFieldInstructionSEQ.prototype.Type = fieldtype_SEQ;
+CFieldInstructionSEQ.prototype.ToString = function ()
+{
+	var sInstruction = " SEQ ";
+	if(this.Id)
+	{
+		sInstruction += this.Id;
+	}
+	for(var i = 0; i < this.GeneralSwitches.length; ++i)
+	{
+		sInstruction +=  " \\* " + this.GeneralSwitches[i];
+	}
+	if(this.C)
+	{
+		sInstruction += " \\c"
+	}
+	if(this.H)
+	{
+		sInstruction += " \\h";
+	}
+	if(this.R)
+	{
+		sInstruction += " \\r " + this.R;
+	}
+	if(this.S)
+	{
+		sInstruction += " \\s " + this.S;
+	}
+	return sInstruction;
+};
+CFieldInstructionSEQ.prototype.SetComplexField = function (oComplexField)
+{
+	CFieldInstructionBase.prototype.SetComplexField.call(this, oComplexField);
+	this.ParentContent = null;
+	var oBeginChar = oComplexField.BeginChar;
+	if(oBeginChar)
+	{
+		var oRun = oBeginChar.Run;
+		if(oRun)
+		{
+			var oParagraph = oRun.Paragraph;
+			if(oParagraph)
+			{
+				this.ParentContent = oParagraph.Parent;
+			}
+		}
+	}
+};
+
+CFieldInstructionSEQ.prototype.GetRestartNum = function ()
+{
+	if(typeof this.R === "string" && this.R.length > 0)
+	{
+		var aTest = /[0-9]+/.exec(this.R);
+		var nResult;
+		if(Array.isArray(aTest) && aTest.length > 0)
+		{
+			nResult = parseInt(aTest[0]);
+			if(!isNaN(nResult))
+			{
+				return nResult;
+			}
+		}
+	}
+	return null;
+};
+
+CFieldInstructionSEQ.prototype.GetText = function ()
+{
+	if(!this.ParentContent)
+	{
+		return "";
+	}
+	var oTopDocument = this.ParentContent.Is_TopDocument(true);
+	var aFields, oField, i, nIndex, nLvl, nCounter;
+	if(!oTopDocument)
+	{
+		return "";
+	}
+	if(oTopDocument.IsHdrFtr(false) || oTopDocument.IsFootnote(false))
+	{
+		return AscCommon.translateManager.getValue("Error! Main Document Only.");
+	}
+
+	if(this.H)
+	{
+		if(this.GeneralSwitches.length === 0)
+		{
+			return "";
+		}
+	}
+	nIndex = this.GetRestartNum();
+	if(nIndex === null)
+	{
+		aFields = [];
+		oTopDocument.GetAllSeqFieldsByType(this.Id, aFields);
+		nIndex = -1;
+		if(this.S)
+		{
+			nLvl = parseInt(this.S);
+			if(!isNaN(nLvl))
+			{
+				--nLvl;
+				for(i = aFields.length - 1; i > -1; --i)
+				{
+					oField = aFields[i];
+					if(AscCommon.isRealObject(oField) && this.ComplexField === oField)
+					{
+						break;
+					}
+				}
+				if(i > -1)
+				{
+					nCounter = i;
+					for(i = i - 1; i > -1; --i)
+					{
+						oField = aFields[i];
+						if(AscFormat.isRealNumber(oField) && oField >= nLvl)
+						{
+							aFields = aFields.splice(i + 1, nCounter - i);
+							break;
+						}
+					}
+				}
+			}
+		}
+		nCounter = 1;
+		for(i = 0; i < aFields.length; ++i)
+		{
+			oField = aFields[i];
+			if(AscCommon.isRealObject(oField))
+			{
+				if(this.ComplexField === oField)
+				{
+					nIndex = nCounter;
+					break;
+				}
+				if(!(oField.Instruction && oField.Instruction.C))
+				{
+					++nCounter;
+				}
+			}
+		}
+	}
+	if(nIndex > -1)
+	{
+		return AscCommon.IntToNumberFormat(nIndex, this.NumFormat);
+	}
+	return AscCommon.translateManager.getValue("Error! Main Document Only.");
+};
+CFieldInstructionSEQ.prototype.SetId = function (sVal)
+{
+	this.Id = sVal;
+};
+CFieldInstructionSEQ.prototype.SetC = function (sVal)
+{
+	this.C = sVal;
+};
+CFieldInstructionSEQ.prototype.SetH = function (sVal)
+{
+	this.H = sVal;
+};
+CFieldInstructionSEQ.prototype.SetN = function (sVal)
+{
+	this.N = sVal;
+};
+CFieldInstructionSEQ.prototype.SetR = function (sVal)
+{
+	this.R = sVal;
+};
+CFieldInstructionSEQ.prototype.SetS = function (sVal)
+{
+	this.S = sVal;
+};
+CFieldInstructionSEQ.prototype.SetGeneralSwitches = function (aSwitches)
+{
+	this.GeneralSwitches = aSwitches;
+	for(var i = 0; i < aSwitches.length; ++i)
+	{
+		this.NumFormat = GeneralToNumFormat(aSwitches[i]);
+	}
+};
+
+function GeneralToNumFormat(sFormat)
+{
+	if(typeof sFormat === 'string')
+	{
+		if(sFormat.toLowerCase() === 'arabic')
+		{
+			return Asc.c_oAscNumberingFormat.Decimal;
+		}
+		else if(sFormat.toLowerCase() === 'alphabetic')
+		{
+			if(sFormat[0] === 'A')
+			{
+				return Asc.c_oAscNumberingFormat.UpperLetter;
+			}
+			else
+			{
+				return Asc.c_oAscNumberingFormat.LowerLetter;
+			}
+		}
+		else if(sFormat.toLowerCase() === 'roman')
+		{
+			if(sFormat[0] === 'r')
+			{
+				return Asc.c_oAscNumberingFormat.LowerRoman;
+			}
+			else
+			{
+				return Asc.c_oAscNumberingFormat.UpperRoman;
+			}
+		}
+	}
+	return Asc.c_oAscNumberingFormat.Decimal;
+}
+
+/**
+ * STYLEREF field
+ * @constructor
+ */
+
+function CFieldInstructionSTYLEREF()
+{
+
+	CFieldInstructionBase.call(this);
+	this.StyleName = null;
+	this.L = null;
+	this.N = null;
+	this.P = null;
+	this.R = null;
+	this.T = null;
+	this.W = null;
+	this.S = null;
+	this.GeneralSwitches = [];
+	this.ParentContent = null;
+	this.ParentParagraph = null;
+}
+CFieldInstructionSTYLEREF.prototype = Object.create(CFieldInstructionBase.prototype);
+CFieldInstructionSTYLEREF.prototype.constructor = CFieldInstructionSTYLEREF;
+CFieldInstructionSTYLEREF.prototype.Type = fieldtype_STYLEREF;
+CFieldInstructionSTYLEREF.prototype.SetL = function(v){this.L = v;};
+CFieldInstructionSTYLEREF.prototype.SetN = function(v){this.N = v;};
+CFieldInstructionSTYLEREF.prototype.SetP = function(v){this.P = v;};
+CFieldInstructionSTYLEREF.prototype.SetR = function(v){this.R = v;};
+CFieldInstructionSTYLEREF.prototype.SetT = function(v){this.T = v;};
+CFieldInstructionSTYLEREF.prototype.SetW = function(v){this.W = v;};
+CFieldInstructionSTYLEREF.prototype.SetS = function(v){this.S = v;};
+CFieldInstructionSTYLEREF.prototype.SetGeneralSwitches = function(v){this.GeneralSwitches = v;};
+CFieldInstructionSTYLEREF.prototype.GetText = function()
+{
+	var sDefaultMessage = "Error! No text of specified style in document.";
+	if(this.ParentContent)
+	{
+		var oHdrFtr = this.ParentContent.IsHdrFtr(true);
+		if (oHdrFtr)
+		{
+			//TODO
+		}
+		else
+		{
+			var oFootNote = this.ParentContent.IsFootnote(true);
+			if(oFootNote)
+			{
+				//TODO
+			}
+			else
+			{
+				if(this.ParentParagraph)
+				{
+					var oParagraph = null;
+					var sRet = "";
+					var bAbove = true;
+					var oStyles = this.ParentContent.Styles;
+					var sId = oStyles.GetStyleIdByName(this.StyleName);
+					var nStartIndex, oTmpContent;
+					var oShape, oMainGroup, oDrawing, oCell, oRow, oTable, oBLSdt;
+					var oParentParagraph, oParentContent, nParentIdx;
+					if(sId)
+					{
+						oParentParagraph = this.ParentParagraph;
+						oParentContent = this.ParentContent;
+						nParentIdx = this.ParentParagraph.GetIndex();
+						oShape = this.ParentContent.Is_DrawingShape(true);
+						if(oShape)
+						{
+							if(oShape.group)
+							{
+								oMainGroup = oShape.getMainGroup();
+								oDrawing = oMainGroup.parent;
+							}
+							else
+							{
+								oDrawing = oShape.parent;
+							}
+							if(!oDrawing)
+							{
+								return AscCommon.translateManager.getValue(sDefaultMessage);
+							}
+							oParentParagraph = oDrawing.GetParagraph();
+							oParentContent = oParentParagraph.GetParent();
+							nParentIdx = oParentParagraph.GetIndex();
+						}
+						if(oParentParagraph.GetParagraphStyle() === sId)
+						{
+							oParagraph = oParentParagraph;
+						}
+						oTmpContent = oParentContent;
+						nStartIndex = nParentIdx;
+						while(oTmpContent && !oParagraph)
+						{
+							oParagraph = oTmpContent.FindParaWithStyle(sId, true, nStartIndex);
+							if(oParagraph)
+							{
+								break;
+							}
+							oCell = oTmpContent.IsTableCellContent(true);
+							if(oCell)
+							{
+								oRow = oCell.GetRow();
+								oTable = oRow.GetTable();
+								if(!oRow || !oTable)
+								{
+									return AscCommon.translateManager.getValue(sDefaultMessage);
+								}
+								oParagraph = oRow.FindParaWithStyle(sId, true, oCell.GetIndex() - 1);
+								if(!oParagraph)
+								{
+									oParagraph = oTable.FindParaWithStyle(sId, true, oRow.GetIndex() - 1);
+								}
+								oTmpContent = oTable.Parent;
+								nStartIndex = oTable.GetIndex() - 1;
+							}
+							else if(oTmpContent.IsBlockLevelSdtContent())
+							{
+								oBLSdt = oTmpContent.GetParent();
+								oTmpContent = oBLSdt.Parent;
+								nStartIndex = oBLSdt.GetIndex() - 1;
+							}
+							else
+							{
+								break;
+							}
+						}
+						if(!oParagraph)
+						{
+							oTmpContent = oParentContent;
+							nStartIndex = nParentIdx + 1;
+							while(oTmpContent && !oParagraph)
+							{
+								oParagraph = oTmpContent.FindParaWithStyle(sId, false, nStartIndex);
+								if(oParagraph)
+								{
+									break;
+								}
+								oCell = oTmpContent.IsTableCellContent(true);
+								if(oCell)
+								{
+									oRow = oCell.GetRow();
+									oTable = oRow.GetTable();
+									if(!oRow || !oTable)
+									{
+										return AscCommon.translateManager.getValue(sDefaultMessage);
+									}
+									oParagraph = oRow.FindParaWithStyle(sId, false, oCell.GetIndex() + 1);
+									if(!oParagraph)
+									{
+										oParagraph = oTable.FindParaWithStyle(sId, false, oRow.GetIndex() + 1);
+									}
+									oTmpContent = oTable.Parent;
+									nStartIndex = oTable.GetIndex() + 1;
+								}
+								else if(oTmpContent.IsBlockLevelSdtContent())
+								{
+									oBLSdt = oTmpContent.GetParent();
+									oTmpContent = oBLSdt.Parent;
+									nStartIndex = oBLSdt.GetIndex() + 1;
+								}
+								else
+								{
+									break;
+								}
+							}
+						}
+						if(oParagraph)
+						{
+							if(this.N || this.R || this.W || this.S)
+							{
+								if(oParagraph.IsNumberedNumbering())
+								{
+									sRet += oParagraph.GetNumberingText(true);
+								}
+								else
+								{
+									sRet += "0";
+								}
+							}
+							else
+							{
+								oParagraph.ApplyToAll = true;
+								sRet = oParagraph.GetSelectedText(true, {});
+								oParagraph.ApplyToAll = false;
+							}
+							if(this.P)
+							{
+								sRet += (" " + AscCommon.translateManager.getValue(bAbove ? "above" : "below"));
+							}
+							return sRet;
+						}
+					}
+					return AscCommon.translateManager.getValue(sDefaultMessage);
+				}
+			}
+		}
+	}
+    return AscCommon.translateManager.getValue(sDefaultMessage);
+};
+CFieldInstructionSTYLEREF.prototype.SetStyleName = function(v)
+{
+	this.StyleName = v;
+};
+CFieldInstructionSTYLEREF.prototype.ToString = function()
+{
+	var sRet = " STYLEREF ";
+
+	if(this.S)
+	{
+		sRet += " \\s"
+	}
+	if(this.StyleName)
+	{
+		sRet += this.StyleName;
+	}
+	if(this.L)
+	{
+		sRet += " \\l";
+	}
+	if(this.N)
+	{
+		sRet += " \\n"
+	}
+	if(this.P)
+	{
+		sRet += " \\p"
+	}
+	if(this.R)
+	{
+		sRet += " \\r"
+	}
+	if(this.T)
+	{
+		sRet += " \\t"
+	}
+	if(this.W)
+	{
+		sRet += " \\w"
+	}
+	return sRet;
+};
+CFieldInstructionSTYLEREF.prototype.SetComplexField = function (oComplexField)
+{
+	CFieldInstructionBase.prototype.SetComplexField.call(this, oComplexField);
+	this.ParentContent = null;
+	var oBeginChar = oComplexField.BeginChar;
+	if(oBeginChar)
+	{
+		var oRun = oBeginChar.Run;
+		if(oRun)
+		{
+			var oParagraph = oRun.Paragraph;
+			if(oParagraph)
+			{
+				this.ParentParagraph = oParagraph;
+				this.ParentContent = oParagraph.Parent;
+			}
+		}
+	}
+};
+
+
+/**
+ * NOTEREF field
+ * @constructor
+ */
+function CFieldInstructionNOTEREF()
+{
+	CFieldInstructionBase.call(this);
+
+	this.GeneralSwitches = [];
+	this.BookmarkName = "";
+	this.Hyperlink = false; // \h - is hyperlink
+	this.bIsPosition = false; // \p - above/below
+	this.bFormatting = false; // \p - format as notes or endnotes
+}
+CFieldInstructionNOTEREF.prototype = Object.create(CFieldInstructionBase.prototype);
+CFieldInstructionNOTEREF.prototype.constructor = CFieldInstructionNOTEREF;
+CFieldInstructionNOTEREF.prototype.Type = fieldtype_NOTEREF;
+
+
+CFieldInstructionNOTEREF.prototype.SetGeneralSwitches = function (aSwitches)
+{
+	this.GeneralSwitches = aSwitches;
+};
+CFieldInstructionNOTEREF.prototype.SetBookmarkName = function(sBookmarkName)
+{
+	this.BookmarkName = sBookmarkName;
+};
+CFieldInstructionNOTEREF.prototype.GetBookmarkName = function()
+{
+	return this.BookmarkName;
+};
+CFieldInstructionNOTEREF.prototype.SetHyperlink = function(bIsHyperlink)
+{
+	this.Hyperlink = bIsHyperlink;
+};
+CFieldInstructionNOTEREF.prototype.GetHyperlink = function()
+{
+	return this.Hyperlink;
+};
+CFieldInstructionNOTEREF.prototype.SetIsPosition = function(bVal)
+{
+	this.bIsPosition = bVal;
+};
+CFieldInstructionNOTEREF.prototype.IsPosition = function()
+{
+	return this.bIsPosition;
+};
+CFieldInstructionNOTEREF.prototype.SetIsFormatting = function(bVal)
+{
+	this.bFormatting = bVal;
+};
+CFieldInstructionNOTEREF.prototype.IsFormatting = function()
+{
+	return this.bFormatting;
+};
+CFieldInstructionNOTEREF.prototype.ToString = function()
+{
+	var sInstruction = " NOTEREF ";
+	sInstruction += this.BookmarkName;
+	for(var nSwitch = 0; i < this.GeneralSwitches.length; ++nSwitch)
+	{
+		sInstruction +=  " \\* " + this.GeneralSwitches[nSwitch];
+	}
+	if(this.GetHyperlink())
+	{
+		sInstruction += " \\h";
+	}
+	if(this.IsPosition())
+	{
+		sInstruction += " \\p";
+	}
+	if(this.IsFormatting())
+	{
+		sInstruction += " \\f";
+	}
+	return sInstruction;
+};
+//----------------------------------------------------------------------------------------------------------------------
+// Функции для совместимости с обычным ParaHyperlink
+//----------------------------------------------------------------------------------------------------------------------
+CFieldInstructionNOTEREF.prototype.IsTopOfDocument = function()
+{
+	return (this.GetAnchor() === "_top");
+};
+CFieldInstructionNOTEREF.prototype.GetAnchor = function()
+{
+	var sBookmarkName = this.GetBookmarkName();
+	var sAnchor = sBookmarkName;
+	if(this.ComplexField)
+	{
+		var oLogicDoc = this.ComplexField.LogicDocument;
+		if(oLogicDoc)
+		{
+			var oBookmarksManager = oLogicDoc.GetBookmarksManager();
+			if(oBookmarksManager)
+			{
+				var oBookmark = oBookmarksManager.GetBookmarkByName(sBookmarkName);
+				if(!oBookmark)
+				{
+					sAnchor = "_top";
+				}
+			}
+		}
+	}
+	return sAnchor;
+};
+CFieldInstructionNOTEREF.prototype.GetValue = function()
+{
+	return "";
+};
+CFieldInstructionNOTEREF.prototype.SetVisited = function(isVisited)
+{
+};
+
+CFieldInstructionREF.prototype.SetToolTip = function(sToolTip)
+{
+};
+CFieldInstructionNOTEREF.prototype.GetToolTip = function()
+{
+	return AscCommon.translateManager.getValue("Current Document");
+};
+
+
 
 /**
  * Класс для разбора строки с инструкцией
@@ -706,6 +1604,10 @@ CFieldInstructionParser.prototype.private_Parse = function()
 	{
 		this.private_ReadREF();
 	}
+	else if("NOTEREF" === sBuffer)
+	{
+		this.private_ReadNOTEREF();
+	}
 	else if("NUMPAGES" === sBuffer)
 	{
 		this.private_ReadNUMPAGES();
@@ -713,6 +1615,22 @@ CFieldInstructionParser.prototype.private_Parse = function()
 	else if("HYPERLINK" === sBuffer)
 	{
 		this.private_ReadHYPERLINK();
+	}
+	else if("SEQ" === sBuffer)
+	{
+		this.private_ParseSEQ();
+	}
+	else if("STYLEREF" === sBuffer)
+	{
+		this.private_ParseSTYLEREF();
+	}
+	else if ("TIME" === sBuffer)
+	{
+		this.private_ReadTIME();
+	}
+	else if ("DATE" === sBuffer)
+	{
+		this.private_ReadDATE();
 	}
 	else if(sBuffer.indexOf("=") === 0)
 	{
@@ -892,7 +1810,7 @@ CFieldInstructionParser.prototype.private_ReadFORMULA = function()
 	var oFormat;
 	if(null !== sFormat)
 	{
-        oFormat = AscCommon.oNumFormatCache.get(sFormat, true);
+        oFormat = AscCommon.oNumFormatCache.get(sFormat, AscCommon.NumFormatType.WordFieldNumeric);
         this.Result.SetFormat(oFormat);
 	}
 	this.Result.SetFormula(sFormula);
@@ -930,7 +1848,7 @@ CFieldInstructionParser.prototype.private_ReadTOC = function()
 	// TODO: \a, \b, \c, \d, \f, \l, \s, \z, \u
 
 	this.Result = new CFieldInstructionTOC();
-
+	var arrArguments;
 	while (this.private_ReadNext())
 	{
 		if (this.private_IsSwitch())
@@ -950,29 +1868,33 @@ CFieldInstructionParser.prototype.private_ReadTOC = function()
 			}
 			else if ('p' === sType)
 			{
-				var arrArguments = this.private_ReadArguments();
+				arrArguments = this.private_ReadArguments();
 				if (arrArguments.length > 0)
 					this.Result.SetSeparator(arrArguments[0]);
 			}
 			else if ('o' === sType)
 			{
-				var arrArguments = this.private_ReadArguments();
+				arrArguments = this.private_ReadArguments();
 				if (arrArguments.length > 0)
 				{
 					var arrRange = this.private_ParseIntegerRange(arrArguments[0]);
 					if (null !== arrRange)
 						this.Result.SetHeadingRange(arrRange[0], arrRange[1]);
 				}
+				else
+				{
+					this.Result.SetHeadingRange(1, 9);
+				}
 			}
 			else if ('t' === sType)
 			{
-				var arrArguments = this.private_ReadArguments();
+				arrArguments = this.private_ReadArguments();
 				if (arrArguments.length > 0)
 					this.Result.SetStylesArrayRaw(arrArguments[0]);
 			}
 			else if ('n' === sType)
 			{
-				var arrArguments = this.private_ReadArguments();
+				arrArguments = this.private_ReadArguments();
 				if (arrArguments.length > 0)
 				{
 					var arrRange = this.private_ParseIntegerRange(arrArguments[0]);
@@ -986,9 +1908,47 @@ CFieldInstructionParser.prototype.private_ReadTOC = function()
 					this.Result.SetPageRefSkippedLvls(true, -1, -1);
 				}
 			}
+			else if('c' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if(arrArguments.length > 0)
+				{
+					var sCaption = arrArguments[0];
+					if(typeof sCaption === "string" && sCaption.length > 0)
+					{
+						this.Result.SetCaption(sCaption);
+					}
+					else
+					{
+						this.Result.SetCaption(null);
+					}
+				}
+				else
+				{
+					this.Result.SetCaption(null);
+				}
+			}
+			else if('a' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if(arrArguments.length > 0)
+				{
+					var sCaptionOnlyText = arrArguments[0];
+					if(typeof sCaptionOnlyText === "string" && sCaptionOnlyText.length > 0)
+					{
+						this.Result.SetCaptionOnlyText(sCaptionOnlyText);
+					}
+					else
+					{
+						this.Result.SetCaptionOnlyText(null);
+					}
+				}
+				else
+				{
+					this.Result.SetCaptionOnlyText(null);
+				}
+			}
 		}
-
-
 	}
 
 };
@@ -1022,8 +1982,82 @@ CFieldInstructionParser.prototype.private_ReadREF = function(sBookmarkName)
 			this.Result.SetBookmarkName(arrArguments[0]);
 		}
 	}
+	while (this.private_ReadNext())
+	{
+		if (this.private_IsSwitch())
+		{
+			var sType = this.private_GetSwitchLetter();
+			if ('*' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+					this.Result.SetGeneralSwitches(arrArguments);
+			}
+			else if("d" === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+				{
+					if(typeof arrArguments[0] === "string" && arrArguments[0].length > 0)
+					{
+						this.Result.SetDelimiter(arrArguments[0]);
+					}
+				}
+			}
+			else if("h" === sType)
+			{
+				this.Result.SetHyperlink(true);
+			}
+			else if("n" === sType)
+			{
+				this.Result.SetIsNumberNoContext(true);
+			}
+			else if("w" === sType)
+			{
+				this.Result.SetIsNumberFullContext(true);
+			}
+			else if("r" === sType)
+			{
+				this.Result.SetIsNumber(true);
+			}
+			else if("p" === sType)
+			{
+				this.Result.SetIsPosition(true);
+			}
+		}
+	}
+};
+CFieldInstructionParser.prototype.private_ReadNOTEREF = function()
+{
+	this.Result = new CFieldInstructionNOTEREF();
 
-	// TODO: Switches
+	var arrArguments = this.private_ReadArguments();
+	if (arrArguments.length > 0)
+	{
+		this.Result.SetBookmarkName(arrArguments[0]);
+	}
+	while (this.private_ReadNext())
+	{
+		if (this.private_IsSwitch())
+		{
+			var sType = this.private_GetSwitchLetter();
+			if ('*' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+					this.Result.SetGeneralSwitches(arrArguments);
+			}
+			else if("h" === sType) {
+				this.Result.SetHyperlink(true);
+			}
+			else if("f" === sType) {
+				this.Result.SetIsFormatting(true);
+			}
+			else if("p" === sType) {
+				this.Result.SetIsPosition(true);
+			}
+		}
+	}
 };
 CFieldInstructionParser.prototype.private_ReadNUMPAGES = function()
 {
@@ -1075,4 +2109,136 @@ CFieldInstructionParser.prototype.private_ParseIntegerRange = function(sValue)
 		return null;
 
 	return [nValue1, nValue2];
+};
+CFieldInstructionParser.prototype.private_ParseSEQ = function()
+{
+	this.Result = new CFieldInstructionSEQ();
+	var arrArguments = this.private_ReadArguments();
+	if (arrArguments.length > 0)
+		this.Result.SetId(arrArguments[0]);
+
+	while (this.private_ReadNext())
+	{
+		if (this.private_IsSwitch())
+		{
+			var sType = this.private_GetSwitchLetter();
+			if ('*' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+					this.Result.SetGeneralSwitches(arrArguments);
+			}
+			else if ('c' === sType)
+			{
+				this.Result.SetC(true);
+			}
+			else if ('h' === sType)
+			{
+				this.Result.SetH(true);
+			}
+			else if ('n' === sType)
+			{
+				this.Result.SetN(true);
+			}
+			else if ('r' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+				{
+					this.Result.SetR(arrArguments[0]);
+				}
+			}
+			else if('s' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+				{
+					this.Result.SetS(arrArguments[0]);
+				}
+			}
+		}
+	}
+};
+CFieldInstructionParser.prototype.private_ParseSTYLEREF = function()
+{
+	this.Result = new CFieldInstructionSTYLEREF();
+	var arrArguments = this.private_ReadArguments();
+	if (arrArguments.length > 0)
+		this.Result.SetStyleName(arrArguments[0]);
+
+	while (this.private_ReadNext())
+	{
+		if (this.private_IsSwitch())
+		{
+			var sType = this.private_GetSwitchLetter();
+			if ('*' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+					this.Result.SetGeneralSwitches(arrArguments);
+			}
+			else if ('l' === sType)
+			{
+				this.Result.SetL(true);
+			}
+			else if ('n' === sType)
+			{
+				this.Result.SetN(true);
+			}
+			else if ('p' === sType)
+			{
+				this.Result.SetP(true);
+			}
+			else if ('r' === sType)
+			{
+				this.Result.SetR(true);
+			}
+			else if('t' === sType)
+			{
+				this.Result.SetT(true)
+			}
+			else if('w' === sType)
+			{
+				this.Result.SetW(true)
+			}
+			else if ('s' === sType)
+			{
+				this.Result.SetS(true);
+			}
+		}
+	}
+};
+CFieldInstructionParser.prototype.private_ReadTIME = function()
+{
+	this.Result = new CFieldInstructionTIME();
+
+	while (this.private_ReadNext())
+	{
+		if (this.private_IsSwitch())
+		{
+			if ('@' === this.Buffer.charAt(1))
+			{
+				var arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+					this.Result.SetFormat(arrArguments[0]);
+			}
+		}
+	}
+};
+CFieldInstructionParser.prototype.private_ReadDATE = function()
+{
+	this.Result = new CFieldInstructionDATE();
+
+	while (this.private_ReadNext())
+	{
+		if (this.private_IsSwitch())
+		{
+			if ('@' === this.Buffer.charAt(1))
+			{
+				var arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+					this.Result.SetFormat(arrArguments[0]);
+			}
+		}
+	}
 };

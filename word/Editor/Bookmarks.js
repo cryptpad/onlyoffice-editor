@@ -131,6 +131,27 @@ CParagraphBookmark.prototype.GoToBookmark = function()
 	oParagraph.Set_ParaContentPos(oCurPos, false, -1, -1, true); // Корректировать позицию нужно обязательно
 	oParagraph.Document_SetThisElementCurrent(true);
 };
+CParagraphBookmark.prototype.GetDestinationXY = function()
+{
+	var oParagraph = this.Paragraph;
+	if (!oParagraph)
+		return null;
+
+	var oLogicDocument = oParagraph.LogicDocument;
+	if (!oLogicDocument)
+		return null;
+
+	var oCurPos = oParagraph.Get_PosByElement(this);
+	if (!oCurPos)
+		return null;
+
+	var oState = oParagraph.SaveSelectionState();
+	oParagraph.Set_ParaContentPos(oCurPos, false, -1, -1, true); // Корректировать позицию нужно обязательно
+	var oResult = oParagraph.GetCalculatedCurPosXY();
+	oParagraph.LoadSelectionState(oState);
+
+	return oResult;
+};
 CParagraphBookmark.prototype.RemoveBookmark = function()
 {
 	var oParagraph = this.Paragraph;
@@ -147,7 +168,29 @@ CParagraphBookmark.prototype.RemoveBookmark = function()
 	if (!oParent || -1 === nPosInParent)
 		return;
 
-	oParent.Remove_FromContent(nPosInParent, 1);
+	oParent.RemoveFromContent(nPosInParent, 1);
+};
+CParagraphBookmark.prototype.ChangeBookmarkName = function(sNewName)
+{
+	var oParagraph = this.Paragraph;
+	if (!oParagraph)
+		return;
+
+	var oCurPos = oParagraph.Get_PosByElement(this);
+	if (!oCurPos)
+		return;
+
+	var oParent      = this.GetParent();
+	var nPosInParent = this.GetPosInParent(oParent);
+
+	if (!oParent || -1 === nPosInParent)
+		return;
+
+	var oNewMark = new CParagraphBookmark(this.IsStart(), this.GetBookmarkId(), sNewName);
+	oParent.RemoveFromContent(nPosInParent, 1);
+	oParent.AddToContent(nPosInParent, oNewMark);
+
+	return oNewMark;
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Функции совместного редактирования
@@ -193,6 +236,7 @@ function CBookmarksManager(oLogicDocument)
 
 	this.IdCounter    = 0;
 	this.IdCounterTOC = 0;
+	this.IdCounterRef = 0;
 }
 CBookmarksManager.prototype.SetNeedUpdate = function(isNeed)
 {
@@ -209,6 +253,7 @@ CBookmarksManager.prototype.BeginCollectingProcess = function()
 
 	this.IdCounter    = 0;
 	this.IdCounterTOC = 0;
+	this.IdCounterRef = 0;
 };
 CBookmarksManager.prototype.ProcessBookmarkChar = function(oParaBookmark)
 {
@@ -241,11 +286,21 @@ CBookmarksManager.prototype.ProcessBookmarkChar = function(oParaBookmark)
 	if (oParaBookmark.IsStart())
 	{
 		var sBookmarkName = oParaBookmark.GetBookmarkName();
-		if (sBookmarkName && 0 === sBookmarkName.indexOf("_Toc"))
+		var nId;
+		if(typeof sBookmarkName === "string")
 		{
-			var nId = parseInt(sBookmarkName.substring(4));
-			if (!isNaN(nId))
-				this.IdCounterTOC = Math.max(this.IdCounterTOC, nId);
+			if (0 === sBookmarkName.indexOf("_Toc"))
+			{
+				nId = parseInt(sBookmarkName.substring(4));
+				if (!isNaN(nId))
+					this.IdCounterTOC = Math.max(this.IdCounterTOC, nId);
+			}
+			else if(0 === sBookmarkName.indexOf("_Ref"))
+			{
+				nId = parseInt(sBookmarkName.substring(4));
+				if (!isNaN(nId))
+					this.IdCounterRef = Math.max(this.IdCounterRef, nId);
+			}
 		}
 
 		var nId = parseInt(sBookmarkId);
@@ -278,12 +333,14 @@ CBookmarksManager.prototype.GetBookmarkById = function(Id)
 };
 CBookmarksManager.prototype.GetBookmarkByName = function(sName)
 {
+	var _sName = sName.toLowerCase();
+
 	this.Update();
 
 	for (var nIndex = 0, nCount = this.Bookmarks.length; nIndex < nCount; ++nIndex)
 	{
 		var oStart = this.Bookmarks[nIndex][0];
-		if (oStart.GetBookmarkName() === sName)
+		if (oStart.GetBookmarkName().toLowerCase() === _sName)
 			return this.Bookmarks[nIndex];
 	}
 
@@ -291,12 +348,14 @@ CBookmarksManager.prototype.GetBookmarkByName = function(sName)
 };
 CBookmarksManager.prototype.HaveBookmark = function(sName)
 {
+	var _sName = sName.toLowerCase();
+
 	this.Update();
 
 	for (var nIndex = 0, nCount = this.Bookmarks.length; nIndex < nCount; ++nIndex)
 	{
 		var oStart = this.Bookmarks[nIndex][0];
-		if (oStart.GetBookmarkName() === sName)
+		if (oStart.GetBookmarkName().toLowerCase() === sName)
 			return true;
 	}
 
@@ -318,6 +377,13 @@ CBookmarksManager.prototype.GetNewBookmarkNameTOC = function()
 	this.Update();
 
 	return ("_Toc" + ++this.IdCounterTOC);
+};
+
+CBookmarksManager.prototype.GetNewBookmarkNameRef = function()
+{
+	this.Update();
+
+	return ("_Ref" + ++this.IdCounterRef);
 };
 CBookmarksManager.prototype.RemoveTOCBookmarks = function()
 {
@@ -373,9 +439,27 @@ CBookmarksManager.prototype.AddBookmark = function(sName)
 	this.Update();
 
 	if (this.GetBookmarkByName(sName))
-		return;
+	{
+		if (this.IsHiddenBookmark(sName))
+			return;
 
-	this.LogicDocument.AddBookmark(sName);
+		var sTempName = "_temp_" + sName;
+		this.LogicDocument.AddBookmark(sTempName);
+		this.LogicDocument.RemoveBookmark(sName);
+
+		this.NeedUpdate = true;
+		var oBookmark = this.GetBookmarkByName(sTempName);
+		if (oBookmark)
+		{
+			this.NeedUpdate = true;
+			oBookmark[0].ChangeBookmarkName(sName);
+			oBookmark[1].ChangeBookmarkName(sName);
+		}
+	}
+	else
+	{
+		this.LogicDocument.AddBookmark(sName);
+	}
 };
 CBookmarksManager.prototype.GoToBookmark = function(sName)
 {

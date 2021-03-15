@@ -1,13 +1,4 @@
 .idea/
-cell/sdk-all-min.js
-cell/sdk-all.js
-cell/sdk-all.cache
-slide/sdk-all-min.js
-slide/sdk-all.js
-slide/sdk-all.cache
-word/sdk-all-min.js
-word/sdk-all.js
-word/sdk-all.cache
 build/node_modules
 build/$weak$.js
 build/sdk-min-tmp.js
@@ -15,7 +6,9 @@ build/sdk-cell-tmp.js
 build/sdk-slide-tmp.js
 build/sdk-word-tmp.js
 common/libfont/wasm/build/emsdk
-common/libfont/wasm/build/freetype-2.9.1
+common/libfont/wasm/build/freetype*
+common/libfont/wasm/build/fonts.*
+common/AllFonts.js
 common/libfont/js/fonts.js
 common/libfont/wasm/fonts.js
 common/Images/themes_thumbnail.png
@@ -25,6 +18,7 @@ slide/themes/themes.js
 *~
 .DS_Store
 /deploy
+/develop
 cell/sdk-all.props.js.map
 cell/sdk-all.vars.js.map
 slide/sdk-all.props.js.map

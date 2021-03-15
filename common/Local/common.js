@@ -40,15 +40,43 @@
 		{
 			return this._openEmptyDocument();
 		}
+	};
+	AscCommon.baseEditorsApi.prototype.onEndLoadFile2 = AscCommon.baseEditorsApi.prototype.onEndLoadFile;
+	AscCommon.baseEditorsApi.prototype.onEndLoadFile = function(result)
+	{
+		if (this.isChartEditor)
+		{
+			return this.onEndLoadFile2(result);
+		}
 
-		this.asc_registerCallback('asc_onDocumentContentReady', function(){
-			DesktopOfflineUpdateLocalName(Asc.editor || editor);
+		if (this.isLoadFullApi && this.DocInfo && this.isLoadFonts)
+		{
+			this.asc_registerCallback('asc_onDocumentContentReady', function(){
+				DesktopOfflineUpdateLocalName(Asc.editor || editor);
 
-			setTimeout(function(){window["UpdateInstallPlugins"]();}, 10);
-		});
+				setTimeout(function(){window["UpdateInstallPlugins"]();}, 10);
+			});
 
-		AscCommon.History.UserSaveMode = true;
-		window["AscDesktopEditor"]["LocalStartOpen"]();
+			AscCommon.History.UserSaveMode = true;
+			window["AscDesktopEditor"]["LocalStartOpen"]();
+		}
+	};
+
+	AscCommon.baseEditorsApi.prototype["asc_setIsReadOnly"] = function(value, is_from_app)
+	{
+		if (value)
+			this.asc_addRestriction(Asc.c_oAscRestrictionType.View);
+		else
+			this.asc_removeRestriction(Asc.c_oAscRestrictionType.View);
+
+		if (is_from_app)
+			return;
+
+		window["AscDesktopEditor"] && window["AscDesktopEditor"]["SetIsReadOnly"] && window["AscDesktopEditor"]["SetIsReadOnly"](value);
+	};
+	AscCommon.baseEditorsApi.prototype["asc_isReadOnly"] = function()
+	{
+		return this.isRestrictionView();
 	};
 })(window);
 
@@ -126,7 +154,7 @@ window["DesktopOfflineAppDocumentEndLoad"] = function(_url, _data, _len)
 	AscCommon.g_oIdCounter.m_sUserId = window["AscDesktopEditor"]["CheckUserId"]();
 	if (_data == "")
 	{
-		this.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
+        editor.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
 		return;
 	}
 
@@ -145,58 +173,6 @@ window["DesktopOfflineAppDocumentEndLoad"] = function(_url, _data, _len)
 	// this.onUpdateDocumentModified(AscCommon.History.Have_Changes());
 
 	editor.sendEvent("asc_onDocumentPassword", ("" != editor.currentPassword) ? true : false);
-};
-
-window["DesktopUploadFileToUrl"] = function(url, dst, hash, pass)
-{
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', "ascdesktop://fonts/" + url, true);
-    xhr.responseType = 'arraybuffer';
-
-    if (xhr.overrideMimeType)
-        xhr.overrideMimeType('text/plain; charset=x-user-defined');
-    else
-        xhr.setRequestHeader('Accept-Charset', 'x-user-defined');
-
-    xhr.onload = function()
-    {
-        if (this.status != 200)
-        {
-            // error
-            return;
-        }
-
-        var fileData = new Uint8Array(this.response);
-
-        var req = new XMLHttpRequest();
-        req.open("PUT", dst, true);
-
-        req.onload = function()
-		{
-			if (this.response && this.status == 200)
-			{
-				try
-				{
-					var data = {
-						"accounts": this.response ? JSON.parse(this.response) : undefined,
-						"hash": hash,
-						"password" : pass,
-						"type": "share"
-					};
-
-					window["AscDesktopEditor"]["sendSystemMessage"](data);
-					window["AscDesktopEditor"]["CallInAllWindows"]("function(){ if (window.DesktopUpdateFile) { window.DesktopUpdateFile(undefined); } }");
-				}
-				catch (err)
-				{
-				}
-			}
-        };
-
-        req.send(fileData);
-    };
-
-    xhr.send(null);
 };
 
 /////////////////////////////////////////////////////////
@@ -276,11 +252,10 @@ window['Asc']["CAscWatermarkProperties"].prototype["showFileDialog"] = function 
     var _this = this;
 
     window["AscDesktopEditor"]["OpenFilenameDialog"]("images", false, function(_file) {
-        var file = _file;
-        if (Array.isArray(file))
-            file = file[0];
-
-        if (!file)
+		var file = _file;
+		if (Array.isArray(file))
+			file = file[0];
+		if (!file)
 			return;
 
         var url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](file);
@@ -446,7 +421,10 @@ AscCommon.InitDragAndDrop = function(oHtmlElement, callback) {
                 {
                     if (window["AscDesktopEditor"]["IsImageFile"](_files[i]))
                     {
-                        window["DesktopOfflineAppDocumentAddImageEnd"](_files[i]);
+						if (_files[i] == "")
+							continue;
+						var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](_files[i]);
+						editor.AddImageUrlAction(AscCommon.g_oDocumentUrls.getImageUrl(_url));
                         break;
                     }
                 }
@@ -518,21 +496,12 @@ window["DesktopOfflineAppDocumentSignatures"] = function(_json)
 		});
 		_editor.asc_registerCallback("asc_onUpdateSignatures", function (signatures, requested)
 		{
-
 			var _api = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
-			if (_api.editorId == AscCommon.c_oEditorId.Word || _api.editorId == AscCommon.c_oEditorId.Presentation)
-			{
-				if (0 == signatures.length)
-					_api.asc_setRestriction(Asc.c_oAscRestrictionType.None);
-				else
-					_api.asc_setRestriction(Asc.c_oAscRestrictionType.OnlySignatures);
-			}
-			else
-			{
-				//_api.asc_setViewMode((0 == signatures.length) ? false : true);
-				_api.collaborativeEditing.m_bGlobalLock = (0 == signatures.length) ? false : true;
-			}
 
+			if (0 === signatures.length)
+				_api.asc_removeRestriction(Asc.c_oAscRestrictionType.OnlySignatures);
+			else
+				_api.asc_addRestriction(Asc.c_oAscRestrictionType.OnlySignatures);
 		});
 	}
 	window.FirstSignaturesCall = true;
@@ -594,6 +563,9 @@ window["asc_LocalRequestSign"] = function(guid, width, height, isView)
 	}
 
 	var _editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
+	if (_editor.isRestrictionView())
+		return;
+
 	var _length = _editor.signatures.length;
 	for (var i = 0; i < _length; i++)
 	{
@@ -779,6 +751,8 @@ _proto.prototype["pluginMethod_OnEncryption"] = function(obj)
         }
 	}
 };
+
+AscCommon.getBinaryArray = getBinaryArray;
 // -------------------------------------------
 
 // меняем среду

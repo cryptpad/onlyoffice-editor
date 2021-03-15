@@ -377,6 +377,9 @@
 				this.handlers.trigger("updateAllLayoutsLock");
 				this.handlers.trigger("asc_onLockPrintArea");
 				this.handlers.trigger("updateAllHeaderFooterLock");
+				this.handlers.trigger("onUpdateAllPrintScaleLock");
+				this.handlers.trigger("updateAllSheetViewLock");
+
 
 				if (0 === this.m_nUseType)
 					this.m_nUseType = 1;

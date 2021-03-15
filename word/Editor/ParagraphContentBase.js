@@ -31,10 +31,12 @@
  */
 
 "use strict";
+var c_oAscRevisionsChangeType = Asc.c_oAscRevisionsChangeType;
 function CParagraphContentBase()
 {
 	this.Type      = para_Unknown;
 	this.Paragraph = null;
+	this.Parent    = null;
 
 	this.StartLine  = -1;
 	this.StartRange = -1;
@@ -72,6 +74,14 @@ CParagraphContentBase.prototype.PreDelete = function()
 CParagraphContentBase.prototype.SetParagraph = function(oParagraph)
 {
 	this.Paragraph = oParagraph;
+};
+/**
+ * ВЫставляем родительский класс
+ * @param oParent
+ */
+CParagraphContentBase.prototype.SetParent = function(oParent)
+{
+	this.Parent = oParent;
 };
 /**
  * Получаем параграф, в котором лежит данный элемент
@@ -112,6 +122,10 @@ CParagraphContentBase.prototype.Get_DrawingObjectRun = function(Id)
 CParagraphContentBase.prototype.Get_DrawingObjectContentPos = function(Id, ContentPos, Depth)
 {
 	return false;
+};
+CParagraphContentBase.prototype.GetRunByElement = function(oRunElement)
+{
+	return null;
 };
 CParagraphContentBase.prototype.Get_Layout = function(DrawingLayout, UseContentPos, ContentPos, Depth)
 {
@@ -154,9 +168,24 @@ CParagraphContentBase.prototype.GetSelectDirection = function()
 CParagraphContentBase.prototype.Clear_TextFormatting = function( DefHyper )
 {
 };
-CParagraphContentBase.prototype.Can_AddDropCap = function()
+/**
+ * Проверяем можно ли добавлять буквицу
+ * @returns {null | boolean}
+ */
+CParagraphContentBase.prototype.CanAddDropCap = function()
 {
 	return null;
+};
+/**
+ * Проверяем можно ли использовать селект для добавления буквицы
+ * @param isUsePos {boolean}
+ * @param oEndPos {CParagraphContentPos}
+ * @param nDepth {number}
+ * @returns {boolean}
+ */
+CParagraphContentBase.prototype.CheckSelectionForDropCap = function(isUsePos, oEndPos, nDepth)
+{
+	return true;
 };
 CParagraphContentBase.prototype.Get_TextForDropCap = function(DropCapText, UseContentPos, ContentPos, Depth)
 {
@@ -169,7 +198,7 @@ CParagraphContentBase.prototype.Remove_StartTabs = function(TabsCounter)
 {
 	return true;
 };
-CParagraphContentBase.prototype.Copy = function(Selected)
+CParagraphContentBase.prototype.Copy = function(Selected, oPr, isCopyReviewPr)
 {
 	return new this.constructor();
 };
@@ -207,6 +236,9 @@ CParagraphContentBase.prototype.CheckSpelling = function(oSpellCheckerEngine, nD
 };
 CParagraphContentBase.prototype.GetParent = function()
 {
+	if (this.Parent)
+		return this.Parent;
+
 	if (!this.Paragraph)
 		return null;
 
@@ -278,6 +310,10 @@ CParagraphContentBase.prototype.Recalculate_Range_Spaces = function(PRSA, CurLin
 CParagraphContentBase.prototype.Recalculate_PageEndInfo = function(PRSI, _CurLine, _CurRange)
 {
 };
+CParagraphContentBase.prototype.RecalculateEndInfo = function(oPRSI)
+{
+
+};
 CParagraphContentBase.prototype.SaveRecalculateObject = function(Copy)
 {
 	var RecalcObj = new CRunRecalculateObject(this.StartLine, this.StartRange);
@@ -304,16 +340,34 @@ CParagraphContentBase.prototype.IsEmptyRange = function(nCurLine, nCurRange)
 CParagraphContentBase.prototype.Check_Range_OnlyMath = function(Checker, CurRange, CurLine)
 {
 };
-CParagraphContentBase.prototype.Check_MathPara = function(Checker)
+/**
+ * Проверяем является ли элемент в заданной позиции неинлайновой формулой
+ * @param {number} nMathPos
+ * @return {boolean}
+ */
+CParagraphContentBase.prototype.CheckMathPara = function(nMathPos)
 {
+	return false;
+};
+CParagraphContentBase.prototype.ProcessNotInlineObjectCheck = function(oChecker)
+{
+};
+CParagraphContentBase.prototype.CheckNotInlineObject = function(nMathPos, nDirection)
+{
+	return false;
 };
 CParagraphContentBase.prototype.Check_PageBreak = function()
 {
 	return false;
 };
-CParagraphContentBase.prototype.Check_BreakPageEnd = function(PBChecker)
+/**
+ * Проверяем нужно ли разрывать страницу после заданного PageBreak элемента
+ * @param oPBChecker {CParagraphCheckSplitPageOnPageBreak}
+ * @returns {boolean}
+ */
+CParagraphContentBase.prototype.CheckSplitPageOnPageBreak = function(oPBChecker)
 {
-	return true;
+	return false;
 };
 CParagraphContentBase.prototype.Recalculate_CurPos = function(X, Y, CurrentRun, _CurRange, _CurLine, CurPage, UpdateCurPos, UpdateTarget, ReturnTarget)
 {
@@ -343,13 +397,9 @@ CParagraphContentBase.prototype.Draw_Lines = function(PDSL)
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для работы с курсором
 //----------------------------------------------------------------------------------------------------------------------
-CParagraphContentBase.prototype.Is_CursorPlaceable = function()
-{
-	return false;
-};
 CParagraphContentBase.prototype.IsCursorPlaceable = function()
 {
-	return this.Is_CursorPlaceable();
+	return false;
 };
 CParagraphContentBase.prototype.Cursor_Is_Start = function()
 {
@@ -552,11 +602,15 @@ CParagraphContentBase.prototype.Selection_CheckParaContentPos = function(Content
 	return true;
 };
 //----------------------------------------------------------------------------------------------------------------------
-CParagraphContentBase.prototype.Get_CurrentParaPos = function()
+CParagraphContentBase.prototype.GetCurrentParaPos = function()
 {
 	return new CParaPos(this.StartRange, this.StartLine, 0, 0);
 };
 CParagraphContentBase.prototype.Get_TextPr = function(ContentPos, Depth)
+{
+	return new CTextPr();
+};
+CParagraphContentBase.prototype.Get_FirstTextPr = function(bByPos)
 {
 	return new CTextPr();
 };
@@ -586,21 +640,20 @@ CParagraphContentBase.prototype.ApplyTextPr = function(oTextPr, isIncFontSize, i
 /**
  * Функция для поиска внутри элементов параграфа
  * @param {CParagraphSearch} oParaSearch
- * @param {number} nDepth
  */
-CParagraphContentBase.prototype.Search = function(oParaSearch, nDepth)
+CParagraphContentBase.prototype.Search = function(oParaSearch)
 {
 };
-CParagraphContentBase.prototype.Add_SearchResult = function(SearchResult, Start, ContentPos, Depth)
+CParagraphContentBase.prototype.AddSearchResult = function(oSearchResult, isStart, oContentPos, nDepth)
 {
 };
-CParagraphContentBase.prototype.Clear_SearchResults = function()
+CParagraphContentBase.prototype.ClearSearchResults = function()
 {
 };
-CParagraphContentBase.prototype.Remove_SearchResult = function(SearchResult)
+CParagraphContentBase.prototype.RemoveSearchResult = function(oSearchResult)
 {
 };
-CParagraphContentBase.prototype.Search_GetId = function(bNext, bUseContentPos, ContentPos, Depth)
+CParagraphContentBase.prototype.GetSearchElementId = function(bNext, bUseContentPos, ContentPos, Depth)
 {
 	return null;
 };
@@ -618,6 +671,9 @@ CParagraphContentBase.prototype.GetAllFields = function(isUseSelection, arrField
 {
 	return arrFields ? arrFields : [];
 };
+CParagraphContentBase.prototype.GetAllSeqFieldsByType = function(sType, aFields)
+{
+};
 /**
  * Проверяем можно ли добавлять комментарий по заданому селекту
  * @returns {boolean}
@@ -628,36 +684,82 @@ CParagraphContentBase.prototype.CanAddComment = function()
 };
 /**
  * Получаем позицию заданного элемента в документе
- * @param {?Array} arrPosArray
+ * @param {?Array} arrPos
  * @returns {Array}
  */
-CParagraphContentBase.prototype.GetDocumentPositionFromObject = function(arrPosArray)
+CParagraphContentBase.prototype.GetDocumentPositionFromObject = function(arrPos)
 {
-	if (!arrPosArray)
-		arrPosArray = [];
+	if (!arrPos)
+		arrPos = [];
 
-	if (this.Paragraph)
+	var oParagraph = this.GetParagraph();
+	if (oParagraph)
 	{
-		var oParaContentPos = this.Paragraph.Get_PosByElement(this);
-		if (oParaContentPos)
+		if (arrPos.length > 0)
 		{
-			var nDepth = oParaContentPos.Get_Depth();
-			while (nDepth > 0)
+			var oParaContentPos = oParagraph.Get_PosByElement(this);
+			if (oParaContentPos)
 			{
-				var Pos = oParaContentPos.Get(nDepth);
-				oParaContentPos.Decrease_Depth(1);
-				var Class = this.Paragraph.Get_ElementByPos(oParaContentPos);
-				nDepth--;
+				var nDepth = oParaContentPos.GetDepth();
+				while (nDepth > 0)
+				{
+					var Pos = oParaContentPos.Get(nDepth);
+					oParaContentPos.SetDepth(nDepth - 1);
+					var Class = oParagraph.Get_ElementByPos(oParaContentPos);
+					nDepth--;
 
-				arrPosArray.splice(0, 0, {Class : Class, Position : Pos});
+					arrPos.splice(0, 0, {Class : Class, Position : Pos});
+				}
+				arrPos.splice(0, 0, {Class : this.Paragraph, Position : oParaContentPos.Get(0)});
 			}
-			arrPosArray.splice(0, 0, {Class : this.Paragraph, Position : oParaContentPos.Get(0)});
-		}
 
-		this.Paragraph.GetDocumentPositionFromObject(arrPosArray);
+			this.Paragraph.GetDocumentPositionFromObject(arrPos);
+		}
+		else
+		{
+			this.Paragraph.GetDocumentPositionFromObject(arrPos);
+
+			var oParaContentPos = this.Paragraph.Get_PosByElement(this);
+			if (oParaContentPos)
+			{
+				arrPos.push({Class : this.Paragraph, Position : oParaContentPos.Get(0)});
+
+				var nDepth    = oParaContentPos.GetDepth();
+				var nCurDepth = 1;
+				while (nCurDepth <= nDepth)
+				{
+					var Pos = oParaContentPos.Get(nCurDepth);
+					oParaContentPos.SetDepth(nCurDepth - 1);
+					var Class = this.Paragraph.Get_ElementByPos(oParaContentPos);
+					++nCurDepth;
+
+					arrPos.push({Class : Class, Position : Pos});
+				}
+			}
+		}
 	}
 
-	return arrPosArray;
+	return arrPos;
+};
+/**
+ * Получаем массив всех конент контролов, внутри которых лежит данный класс
+ * @returns {Array}
+ */
+CParagraphContentBase.prototype.GetParentContentControls = function()
+{
+	var oDocPos = this.GetDocumentPositionFromObject();
+	oDocPos.push({Class : this, Pos : 0});
+
+	var arrContentControls = [];
+	for (var nIndex = 0, nCount = oDocPos.length; nIndex < nCount; ++nIndex)
+	{
+		if (oDocPos[nIndex].Class instanceof CInlineLevelSdt)
+			arrContentControls.push(oDocPos[nIndex].Class);
+		else if (oDocPos[nIndex].Class instanceof CDocumentContent && oDocPos[nIndex].Class.Parent instanceof CBlockLevelSdt)
+			arrContentControls.push(oDocPos[nIndex].Class.Parent);
+	}
+
+	return arrContentControls;
 };
 /**
  * Проверяем есть ли выделение внутри объекта
@@ -707,6 +809,62 @@ CParagraphContentBase.prototype.GetSelectedElementsInfo = function(oInfo, oConte
 CParagraphContentBase.prototype.IsSolid = function()
 {
 	return true;
+};
+/**
+ * Корректируем позицию внутри контента, для элементов с содержимым
+ */
+CParagraphContentBase.prototype.CorrectContentPos = function()
+{
+};
+/**
+ * Получаем самый первый ран в параграфе
+ * @returns {?ParaRun}
+ */
+CParagraphContentBase.prototype.GetFirstRun = function()
+{
+	return null;
+};
+/**
+ * Делаем данный элемент, состоящим из одного рана и возвращаем его, либо возвращаем null
+ * @returns {?ParaRun}
+ */
+CParagraphContentBase.prototype.MakeSingleRunElement = function()
+{
+	return null;
+};
+/**
+ * Очищаем полностью содержимое данного элемента
+ * !!!ПУСТОЙ РАН ТУТ НЕ ДОБАВЛЯЕТСЯ!!!
+ */
+CParagraphContentBase.prototype.ClearContent = function()
+{
+};
+/**
+ * Получаем позиции до и после первого элемента у рана заданного типа
+ * @param nType {number}
+ * @param oStartPos {CParagraphContentPos}
+ * @param oEndPos {CParagraphContentPos}
+ * @param nDepth {number} глубина данного элемента
+ * @returns {boolean}
+ */
+CParagraphContentBase.prototype.GetFirstRunElementPos = function(nType, oStartPos, oEndPos, nDepth)
+{
+	return false;
+};
+/**
+ * Устанавливаем текущие позиции на текущий элемент
+ */
+CParagraphContentBase.prototype.SetThisElementCurrentInParagraph = function()
+{
+	var oParagraph = this.GetParagraph();
+	if (!this.IsCursorPlaceable() || !oParagraph)
+		return;
+
+	var oContentPos = this.Paragraph.Get_PosByElement(this);
+	if (!oContentPos)
+		return;
+
+	this.Paragraph.Set_ParaContentPos(oContentPos, true, -1, -1, false);
 };
 
 /**
@@ -859,6 +1017,10 @@ CParagraphContentWithContentBase.prototype.Is_UseInDocument = function(Id)
     }
     return false;
 };
+CParagraphContentWithContentBase.prototype.IsUseInDocument = function(sId)
+{
+	return this.Is_UseInDocument(sId);
+};
 CParagraphContentWithContentBase.prototype.protected_GetPrevRangeEndPos = function(LineIndex, RangeIndex)
 {
     var RangeCount  = this.protected_GetRangesCount(LineIndex - 1);
@@ -890,6 +1052,15 @@ CParagraphContentWithContentBase.prototype.IsSolid = function()
 {
 	return false;
 };
+CParagraphContentWithContentBase.prototype.ConvertParaContentPosToRangePos = function(oContentPos, nDepth)
+{
+	return 0;
+};
+CParagraphContentWithContentBase.prototype.ProcessNotInlineObjectCheck = function(oChecker)
+{
+	oChecker.Result = false;
+	oChecker.Found  = true;
+};
 /**
  * Это базовый класс для элементов параграфа, которые сами по себе могут содержать элементы параграфа.
  * @constructor
@@ -920,34 +1091,34 @@ CParagraphContentWithParagraphLikeContent.prototype.Get_Type = function()
 };
 CParagraphContentWithParagraphLikeContent.prototype.Copy = function(Selected, oPr)
 {
-    var NewElement = new this.constructor();
+	var NewElement = new this.constructor();
 
-    var StartPos = 0;
-    var EndPos   = this.Content.length - 1;
+	var StartPos = 0;
+	var EndPos   = this.Content.length - 1;
 
-    if ( true === Selected && true === this.State.Selection.Use )
-    {
-        StartPos = this.State.Selection.StartPos;
-        EndPos   = this.State.Selection.EndPos;
+	if (true === Selected && true === this.State.Selection.Use)
+	{
+		StartPos = this.State.Selection.StartPos;
+		EndPos   = this.State.Selection.EndPos;
 
-        if ( StartPos > EndPos )
-        {
-            StartPos = this.State.Selection.EndPos;
-            EndPos   = this.State.Selection.StartPos;
-        }
-    }
+		if (StartPos > EndPos)
+		{
+			StartPos = this.State.Selection.EndPos;
+			EndPos   = this.State.Selection.StartPos;
+		}
+	}
 
-    for ( var CurPos = StartPos; CurPos <= EndPos; CurPos++ )
-    {
-        var Item = this.Content[CurPos];
+	for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
+	{
+		var Item = this.Content[CurPos];
 
-        if ( StartPos === CurPos || EndPos === CurPos )
-            NewElement.Add_ToContent( CurPos - StartPos, Item.Copy(Selected, oPr) );
-        else
-            NewElement.Add_ToContent( CurPos - StartPos, Item.Copy(false, oPr) );
-    }
+		if (StartPos === CurPos || EndPos === CurPos)
+			NewElement.Add_ToContent(CurPos - StartPos, Item.Copy(Selected, oPr));
+		else
+			NewElement.Add_ToContent(CurPos - StartPos, Item.Copy(false, oPr));
+	}
 
-    return NewElement;
+	return NewElement;
 };
 CParagraphContentWithParagraphLikeContent.prototype.GetSelectedContent = function(oSelectedContent)
 {
@@ -1010,7 +1181,7 @@ CParagraphContentWithParagraphLikeContent.prototype.CopyContent = function(Selec
         }
         else
         {
-            CopyContent.push(Item.Copy(false));
+            CopyContent.push(Item.Copy(false, {CopyReviewPr : true}));
         }
     }
 
@@ -1039,16 +1210,20 @@ CParagraphContentWithParagraphLikeContent.prototype.Recalc_RunsCompiledPr = func
             Item.Recalc_RunsCompiledPr();
     }
 };
-CParagraphContentWithParagraphLikeContent.prototype.GetAllDrawingObjects = function(DrawingObjs)
+CParagraphContentWithParagraphLikeContent.prototype.GetAllDrawingObjects = function(arrDrawingObjects)
 {
-    var Count = this.Content.length;
-    for (var Index = 0; Index < Count; Index++)
-    {
-        var Item = this.Content[Index];
+	if (!arrDrawingObjects)
+		arrDrawingObjects = [];
 
-        if (Item.GetAllDrawingObjects)
-            Item.GetAllDrawingObjects(DrawingObjs);
-    }
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		var oItem = this.Content[nPos];
+
+		if (oItem.GetAllDrawingObjects)
+			oItem.GetAllDrawingObjects(arrDrawingObjects);
+	}
+
+	return arrDrawingObjects;
 };
 CParagraphContentWithParagraphLikeContent.prototype.SetParagraph = function(Paragraph)
 {
@@ -1072,10 +1247,7 @@ CParagraphContentWithParagraphLikeContent.prototype.Is_Empty = function(oPr)
 };
 CParagraphContentWithParagraphLikeContent.prototype.Is_CheckingNearestPos = function()
 {
-    if (this.NearPosArray.length > 0)
-        return true;
-
-    return false;
+    return (this.NearPosArray.length > 0);
 };
 CParagraphContentWithParagraphLikeContent.prototype.IsStartFromNewLine = function()
 {
@@ -1146,36 +1318,45 @@ CParagraphContentWithParagraphLikeContent.prototype.Get_TextPr = function(_Conte
 };
 CParagraphContentWithParagraphLikeContent.prototype.Get_FirstTextPr = function(bByPos)
 {
-    var oElement = null;
-    if (this.Content.length > 0)
-    {
-        if (true === bByPos)
-        {
-            if (true === this.Selection.Use)
-            {
-                if (this.Selection.StartPos > this.Selection.EndPos)
-                    oElement = this.Content[this.Selection.EndPos];
-                else
-                    oElement = this.Content[this.Selection.StartPos];
-            }
-            else
-                oElement = this.Content[this.State.ContentPos];
-        }
-        else
-        {
-            oElement = this.Content[0];
-        }
-    }
+	var oElement = null;
+	if (this.Content.length > 0)
+	{
+		if (true === bByPos)
+		{
+			if (true === this.Selection.Use)
+			{
+				if (this.Selection.StartPos > this.Selection.EndPos)
+					oElement = this.Content[this.Selection.EndPos];
+				else
+					oElement = this.Content[this.Selection.StartPos];
+			}
+			else
+			{
+				oElement = this.Content[this.State.ContentPos];
+			}
+		}
+		else
+		{
+			for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+			{
+				if (this.Content[nPos].IsCursorPlaceable())
+				{
+					oElement = this.Content[nPos];
+					break;
+				}
+			}
+		}
+	}
 
-    if (null !== oElement && undefined !== oElement)
-    {
-        if (para_Run === this.Content[0].Type)
-            return this.Content[0].Get_TextPr();
-        else
-            return this.Content[0].Get_FirstTextPr();
-    }
-    else
-        return new CTextPr();
+	if (null !== oElement && undefined !== oElement)
+	{
+		if (para_Run === oElement.Type)
+			return oElement.Get_TextPr();
+		else
+			return oElement.Get_FirstTextPr();
+	}
+
+	return new CTextPr();
 };
 CParagraphContentWithParagraphLikeContent.prototype.Get_CompiledTextPr = function(Copy)
 {
@@ -1297,6 +1478,9 @@ CParagraphContentWithParagraphLikeContent.prototype.Add_ToContent = function(Pos
             ContentPos.Data[Depth]++;
     }
 
+	if (Item.SetParent)
+		Item.SetParent(this);
+
     if (Item.SetParagraph)
     	Item.SetParagraph(this.GetParagraph());
 };
@@ -1404,26 +1588,28 @@ CParagraphContentWithParagraphLikeContent.prototype.Remove_FromContent = functio
 };
 CParagraphContentWithParagraphLikeContent.prototype.Remove = function(Direction, bOnAddText)
 {
-    var Selection = this.State.Selection;
+	var Selection = this.State.Selection;
 
-    if (true === Selection.Use)
-    {
-        var StartPos = Selection.StartPos;
-        var EndPos   = Selection.EndPos;
+	if (true === Selection.Use)
+	{
+		var StartPos = Selection.StartPos;
+		var EndPos   = Selection.EndPos;
 
-        if (StartPos > EndPos)
-        {
-            StartPos = Selection.EndPos;
-            EndPos   = Selection.StartPos;
-        }
+		if (StartPos > EndPos)
+		{
+			StartPos = Selection.EndPos;
+			EndPos   = Selection.StartPos;
+		}
 
-        if (StartPos === EndPos)
-        {
-        	if (this.Content[StartPos].IsSolid())
+		var oTextPr = this.IsSelectedAll() ? this.GetDirectTextPr() : null;
+
+		if (StartPos === EndPos)
+		{
+			if (this.Content[StartPos].IsSolid())
 			{
 				this.RemoveFromContent(StartPos, 1, true);
 			}
-        	else
+			else
 			{
 				this.Content[StartPos].Remove(Direction, bOnAddText);
 
@@ -1432,10 +1618,10 @@ CParagraphContentWithParagraphLikeContent.prototype.Remove = function(Direction,
 					this.Remove_FromContent(StartPos, 1, true);
 				}
 			}
-        }
-        else
-        {
-        	if (this.Content[EndPos].IsSolid())
+		}
+		else
+		{
+			if (this.Content[EndPos].IsSolid())
 			{
 				this.RemoveFromContent(EndPos, 1, true);
 			}
@@ -1449,7 +1635,7 @@ CParagraphContentWithParagraphLikeContent.prototype.Remove = function(Direction,
 				}
 			}
 
-            if (this.Paragraph && this.Paragraph.LogicDocument && true === this.Paragraph.LogicDocument.IsTrackRevisions())
+			if (this.Paragraph && this.Paragraph.LogicDocument && true === this.Paragraph.LogicDocument.IsTrackRevisions())
 			{
 				for (var nCurPos = EndPos - 1; nCurPos > StartPos; --nCurPos)
 				{
@@ -1468,15 +1654,15 @@ CParagraphContentWithParagraphLikeContent.prototype.Remove = function(Direction,
 					}
 				}
 			}
-            else
-            {
-                for (var CurPos = EndPos - 1; CurPos > StartPos; CurPos--)
-                {
-                    this.Remove_FromContent(CurPos, 1, true);
-                }
-            }
+			else
+			{
+				for (var CurPos = EndPos - 1; CurPos > StartPos; CurPos--)
+				{
+					this.Remove_FromContent(CurPos, 1, true);
+				}
+			}
 
-            if (this.Content[StartPos].IsSolid())
+			if (this.Content[StartPos].IsSolid())
 			{
 				this.RemoveFromContent(StartPos, 1, true);
 			}
@@ -1487,59 +1673,70 @@ CParagraphContentWithParagraphLikeContent.prototype.Remove = function(Direction,
 				if (true === this.Content[StartPos].Is_Empty())
 					this.Remove_FromContent(StartPos, 1, true);
 			}
-        }
+		}
+		this.RemoveSelection();
 
-        this.RemoveSelection();
-        this.State.ContentPos = StartPos;
-    }
-    else
-    {
-        var ContentPos = this.State.ContentPos;
+		if (this.Content.length <= 0)
+		{
+			this.AddToContent(0, new ParaRun(this.GetParagraph(), false));
+			this.State.ContentPos = 0;
 
-        if (true === this.Cursor_Is_Start() || true === this.Cursor_Is_End())
-        {
-            this.SelectAll();
-            this.SelectThisElement(1);
-        }
-        else
-        {
-            while (false === this.Content[ContentPos].Remove(Direction, bOnAddText))
-            {
-                if (Direction < 0)
-                    ContentPos--;
-                else
-                    ContentPos++;
+			if (oTextPr)
+				this.Content[0].SetPr(oTextPr);
+		}
+		else
+		{
+			this.State.ContentPos = StartPos;
+		}
+	}
+	else
+	{
+		var ContentPos = this.State.ContentPos;
 
-                if (ContentPos < 0 || ContentPos >= this.Content.length)
-                    break;
+		if ((true === this.Cursor_Is_Start() || true === this.Cursor_Is_End()) && (!(this instanceof CInlineLevelSdt) || !(this.IsTextForm() || this.IsComboBox())))
+		{
+			this.SelectAll();
+			this.SelectThisElement(1);
+		}
+		else
+		{
+			while (false === this.Content[ContentPos].Remove(Direction, bOnAddText))
+			{
+				if (Direction < 0)
+					ContentPos--;
+				else
+					ContentPos++;
 
-                if (Direction < 0)
-                    this.Content[ContentPos].MoveCursorToEndPos(false);
-                else
-                    this.Content[ContentPos].MoveCursorToStartPos();
+				if (ContentPos < 0 || ContentPos >= this.Content.length)
+					break;
 
-            }
+				if (Direction < 0)
+					this.Content[ContentPos].MoveCursorToEndPos(false);
+				else
+					this.Content[ContentPos].MoveCursorToStartPos();
 
-            if (ContentPos < 0 || ContentPos >= this.Content.length)
-                return false;
-            else
-            {
-                if (ContentPos !== this.Content.length - 1 && true === this.Content[ContentPos].Is_Empty() && true !== bOnAddText)
-                    this.Remove_FromContent(ContentPos, 1, true);
+			}
 
-                this.State.ContentPos = ContentPos;
-            }
-        }
-    }
+			if (ContentPos < 0 || ContentPos >= this.Content.length)
+				return false;
+			else
+			{
+				if (ContentPos !== this.Content.length - 1 && true === this.Content[ContentPos].Is_Empty() && true !== bOnAddText)
+					this.Remove_FromContent(ContentPos, 1, true);
 
-    return true;
+				this.State.ContentPos = ContentPos;
+			}
+		}
+	}
+
+	return true;
 };
-CParagraphContentWithParagraphLikeContent.prototype.Get_CurrentParaPos = function()
+CParagraphContentWithParagraphLikeContent.prototype.GetCurrentParaPos = function()
 {
     var CurPos = this.State.ContentPos;
 
     if (CurPos >= 0 && CurPos < this.Content.length)
-        return this.Content[CurPos].Get_CurrentParaPos();
+        return this.Content[CurPos].GetCurrentParaPos();
 
     return new CParaPos(this.StartRange, this.StartLine, 0, 0);
 };
@@ -1710,6 +1907,17 @@ CParagraphContentWithParagraphLikeContent.prototype.Get_DrawingObjectContentPos 
 
     return false;
 };
+CParagraphContentWithParagraphLikeContent.prototype.GetRunByElement = function(oRunElement)
+{
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		var oResult = this.Content[nPos].GetRunByElement(oRunElement);
+		if (oResult)
+			return oResult;
+	}
+
+	return null;
+};
 CParagraphContentWithParagraphLikeContent.prototype.Get_Layout = function(DrawingLayout, UseContentPos, ContentPos, Depth)
 {
     var CurLine  = DrawingLayout.Line - this.StartLine;
@@ -1801,17 +2009,27 @@ CParagraphContentWithParagraphLikeContent.prototype.Clear_TextFormatting = funct
         Item.Clear_TextFormatting();
     }
 };
-CParagraphContentWithParagraphLikeContent.prototype.Can_AddDropCap = function()
+CParagraphContentWithParagraphLikeContent.prototype.CanAddDropCap = function()
 {
-    for (var Pos = 0, Count = this.Content.length; Pos < Count; Pos++)
-    {
-        var ItemResult = this.Content[Pos].Can_AddDropCap();
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		var bResult = this.Content[nPos].CanAddDropCap();
+		if (null !== bResult)
+			return bResult;
+	}
 
-        if (null !== ItemResult)
-            return ItemResult;
-    }
+	return null;
+};
+CParagraphContentWithParagraphLikeContent.prototype.CheckSelectionForDropCap = function(isUsePos, oEndPos, nDepth)
+{
+	var nEndPos = isUsePos ? oEndPos.Get(nDepth) : this.Content.length - 1;
+	for (var nPos = 0; nPos <= nEndPos; ++nPos)
+	{
+		if (!this.Content[nPos].CheckSelectionForDropCap(nPos === nEndPos && isUsePos, oEndPos, nDepth + 1))
+			return false;
+	}
 
-    return null;
+	return true;
 };
 CParagraphContentWithParagraphLikeContent.prototype.Get_TextForDropCap = function(DropCapText, UseContentPos, ContentPos, Depth)
 {
@@ -1929,6 +2147,19 @@ CParagraphContentWithParagraphLikeContent.prototype.GetAllParagraphs = function(
             this.Content[CurPos].GetAllParagraphs(Props, ParaArray);
     }
 };
+CParagraphContentWithParagraphLikeContent.prototype.GetAllTables = function(oProps, arrTables)
+{
+	if (!arrTables)
+		arrTables = [];
+
+	for (var nCurPos = 0, nLen = this.Content.length; nCurPos < nLen; ++nCurPos)
+	{
+		if (this.Content[nCurPos].GetAllTables)
+			this.Content[nCurPos].GetAllTables(oProps, arrTables);
+	}
+
+	return arrTables;
+};
 CParagraphContentWithParagraphLikeContent.prototype.Get_ClassesByPos = function(Classes, ContentPos, Depth)
 {
     Classes.push(this);
@@ -1969,7 +2200,7 @@ CParagraphContentWithParagraphLikeContent.prototype.Get_PosInParent = function(P
 CParagraphContentWithParagraphLikeContent.prototype.Correct_Content = function()
 {
     if (this.Content.length < 0)
-        this.Add_ToContent(0, new ParaRun(this.Paragraph, false));
+        this.Add_ToContent(0, new ParaRun(this.GetParagraph(), false));
 };
 CParagraphContentWithParagraphLikeContent.prototype.CorrectContent = function()
 {
@@ -2046,8 +2277,10 @@ CParagraphContentWithParagraphLikeContent.prototype.Recalculate_Range = function
     {
         var Item = this.Content[Pos];
 
-        if (para_Math === Item.Type)
-            Item.Set_Inline(true);
+		if (para_Math === Item.Type)
+		{
+			Item.Set_Inline(!this.CheckMathPara(Pos));
+		}
 
         if ( ( 0 === Pos && 0 === CurLine && 0 === CurRange ) || Pos !== RangeStartPos )
         {
@@ -2133,6 +2366,13 @@ CParagraphContentWithParagraphLikeContent.prototype.Recalculate_PageEndInfo = fu
         this.Content[CurPos].Recalculate_PageEndInfo( PRSI, _CurLine, _CurRange );
     }
 };
+CParagraphContentWithParagraphLikeContent.prototype.RecalculateEndInfo = function(oPRSI)
+{
+	for (var nCurPos = 0, nCount = this.Content.length; nCurPos < nCount; ++nCurPos)
+	{
+		this.Content[nCurPos].RecalculateEndInfo(oPRSI);
+	}
+};
 CParagraphContentWithParagraphLikeContent.prototype.SaveRecalculateObject = function(Copy)
 {
 	var RecalcObj = new CRunRecalculateObject(this.StartLine, this.StartRange);
@@ -2187,10 +2427,59 @@ CParagraphContentWithParagraphLikeContent.prototype.Check_Range_OnlyMath = funct
             break;
     }
 };
-CParagraphContentWithParagraphLikeContent.prototype.Check_MathPara = function(Checker)
+/**
+ * Проверяем является ли элемент в заданной позиции неинлайновой формулой
+ * @param {number} nMathPos
+ * @return {boolean}
+ */
+CParagraphContentWithParagraphLikeContent.prototype.CheckMathPara = function(nMathPos)
 {
-    Checker.Result = false;
-    Checker.Found  = true;
+	if (!this.Content[nMathPos] || para_Math !== this.Content[nMathPos].Type)
+		return false;
+
+	return this.CheckNotInlineObject(nMathPos);
+};
+CParagraphContentWithParagraphLikeContent.prototype.CheckNotInlineObject = function(nMathPos, nDirection)
+{
+	var oParent = this.GetParent();
+
+	var oChecker = new CParagraphMathParaChecker();
+	if (undefined === nDirection || -1 === nDirection)
+	{
+		oChecker.SetDirection(-1);
+		for (var nCurPos = nMathPos - 1; nCurPos >= 0; --nCurPos)
+		{
+			this.Content[nCurPos].ProcessNotInlineObjectCheck(oChecker);
+			if (oChecker.IsStop())
+				break;
+		}
+
+		if (!oChecker.GetResult())
+			return false;
+
+
+		if (!oChecker.IsStop() && oParent && !oParent.CheckNotInlineObject(this.GetPosInParent(oParent), -1))
+			return false
+	}
+
+	if (undefined === nDirection || 1 === nDirection)
+	{
+		oChecker.SetDirection(1);
+		for (var nCurPos = nMathPos + 1, nCount = this.Content.length; nCurPos < nCount; ++nCurPos)
+		{
+			this.Content[nCurPos].ProcessNotInlineObjectCheck(oChecker);
+			if (oChecker.IsStop())
+				break;
+		}
+
+		if (!oChecker.GetResult())
+			return false;
+
+		if (!oChecker.IsStop() && oParent && !oParent.CheckNotInlineObject(this.GetPosInParent(oParent), 1))
+			return false;
+	}
+
+	return true;
 };
 CParagraphContentWithParagraphLikeContent.prototype.Check_PageBreak = function()
 {
@@ -2203,18 +2492,15 @@ CParagraphContentWithParagraphLikeContent.prototype.Check_PageBreak = function()
 
     return false;
 };
-CParagraphContentWithParagraphLikeContent.prototype.Check_BreakPageEnd = function(PBChecker)
+CParagraphContentWithParagraphLikeContent.prototype.CheckSplitPageOnPageBreak = function(oPBChecker)
 {
-    var ContentLen = this.Content.length;
-    for ( var CurPos = 0; CurPos < ContentLen; CurPos++ )
-    {
-        var Element = this.Content[CurPos];
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		if (this.Content[nPos].CheckSplitPageOnPageBreak(oPBChecker))
+			return true;
+	}
 
-        if ( true !== Element.Check_BreakPageEnd(PBChecker) )
-            return false;
-    }
-
-    return true;
+	return false;
 };
 CParagraphContentWithParagraphLikeContent.prototype.Get_ParaPosByContentPos = function(ContentPos, Depth)
 {
@@ -2301,16 +2587,29 @@ CParagraphContentWithParagraphLikeContent.prototype.Draw_HighLights = function(P
 };
 CParagraphContentWithParagraphLikeContent.prototype.Draw_Elements = function(PDSE)
 {
-    var CurLine  = PDSE.Line - this.StartLine;
-    var CurRange = ( 0 === CurLine ? PDSE.Range - this.StartRange : PDSE.Range );
+	var isPlaceHolder = false;
+	var nTextAlpha;
 
-    var StartPos = this.protected_GetRangeStartPos(CurLine, CurRange);
-    var EndPos   = this.protected_GetRangeEndPos(CurLine, CurRange);
+	if (this.IsPlaceHolder && this.IsPlaceHolder() && PDSE.Graphics.setTextGlobalAlpha)
+	{
+		isPlaceHolder = true;
+		nTextAlpha    = PDSE.Graphics.getTextGlobalAlpha();
+		PDSE.Graphics.setTextGlobalAlpha(0.5);
+	}
 
-    for ( var CurPos = StartPos; CurPos <= EndPos; CurPos++ )
-    {
-        this.Content[CurPos].Draw_Elements( PDSE );
-    }
+	var CurLine  = PDSE.Line - this.StartLine;
+	var CurRange = (0 === CurLine ? PDSE.Range - this.StartRange : PDSE.Range);
+
+	var StartPos = this.protected_GetRangeStartPos(CurLine, CurRange);
+	var EndPos   = this.protected_GetRangeEndPos(CurLine, CurRange);
+
+	for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
+	{
+		this.Content[CurPos].Draw_Elements(PDSE);
+	}
+
+	if (isPlaceHolder)
+		PDSE.Graphics.setTextGlobalAlpha(nTextAlpha);
 };
 CParagraphContentWithParagraphLikeContent.prototype.Draw_Lines = function(PDSL)
 {
@@ -2332,7 +2631,7 @@ CParagraphContentWithParagraphLikeContent.prototype.Draw_Lines = function(PDSL)
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для работы с курсором
 //----------------------------------------------------------------------------------------------------------------------
-CParagraphContentWithParagraphLikeContent.prototype.Is_CursorPlaceable = function()
+CParagraphContentWithParagraphLikeContent.prototype.IsCursorPlaceable = function()
 {
     return true;
 };
@@ -2481,6 +2780,21 @@ CParagraphContentWithParagraphLikeContent.prototype.Get_ElementByPos = function(
 
     return this.Content[CurPos].Get_ElementByPos(ContentPos, Depth + 1);
 };
+CParagraphContentWithParagraphLikeContent.prototype.ConvertParaContentPosToRangePos = function(oContentPos, nDepth)
+{
+	var nRangePos = 0;
+
+	var nCurPos = oContentPos ? Math.max(0, Math.min(this.Content.length - 1, oContentPos.Get(nDepth))) : this.Content.length - 1;
+	for (var nPos = 0; nPos < nCurPos; ++nPos)
+	{
+		nRangePos += this.Content[nPos].ConvertParaContentPosToRangePos(null);
+	}
+
+	if (this.Content[nCurPos])
+		nRangePos += this.Content[nCurPos].ConvertParaContentPosToRangePos(oContentPos, nDepth + 1);
+
+	return nRangePos;
+};
 CParagraphContentWithParagraphLikeContent.prototype.Get_PosByDrawing = function(Id, ContentPos, Depth)
 {
     var Count = this.Content.length;
@@ -2608,67 +2922,125 @@ CParagraphContentWithParagraphLikeContent.prototype.Get_RightPos = function(Sear
 };
 CParagraphContentWithParagraphLikeContent.prototype.Get_WordStartPos = function(SearchPos, ContentPos, Depth, UseContentPos)
 {
-    var CurPos = ( true === UseContentPos ? ContentPos.Get(Depth) : this.Content.length - 1 );
+	var CurPos = ( true === UseContentPos ? ContentPos.Get(Depth) : this.Content.length - 1 );
 
-    this.Content[CurPos].Get_WordStartPos(SearchPos, ContentPos, Depth + 1, UseContentPos);
+	this.Content[CurPos].Get_WordStartPos(SearchPos, ContentPos, Depth + 1, UseContentPos);
 
-    if ( true === SearchPos.UpdatePos )
-        SearchPos.Pos.Update( CurPos, Depth );
+	if (true === SearchPos.UpdatePos)
+		SearchPos.Pos.Update(CurPos, Depth);
 
-    if ( true === SearchPos.Found )
-        return;
+	if (true === SearchPos.Found)
+		return;
 
-    CurPos--;
+	CurPos--;
 
-    var Count = this.Content.length;
-    while ( CurPos >= 0 )
-    {
-        var OldUpdatePos = SearchPos.UpdatePos;
+	if (SearchPos.Shift && CurPos >= 0 && this.Content[CurPos].IsStopCursorOnEntryExit())
+	{
+		SearchPos.Found = true;
+		return;
+	}
 
-        this.Content[CurPos].Get_WordStartPos(SearchPos, ContentPos, Depth + 1, false);
+	if (CurPos >= 0 && this.Content[CurPos + 1].IsStopCursorOnEntryExit())
+	{
+		this.Content[CurPos].Get_EndPos(false, SearchPos.Pos, Depth + 1);
+		SearchPos.Pos.Update(CurPos, Depth);
+		SearchPos.Found = true;
+		return;
+	}
 
-        if (true === SearchPos.UpdatePos)
-            SearchPos.Pos.Update( CurPos, Depth );
-        else
-            SearchPos.UpdatePos = OldUpdatePos;
+	while (CurPos >= 0)
+	{
+		var OldUpdatePos = SearchPos.UpdatePos;
 
-        if ( true === SearchPos.Found )
-            return;
+		this.Content[CurPos].Get_WordStartPos(SearchPos, ContentPos, Depth + 1, false);
 
-        CurPos--;
-    }
+		if (true === SearchPos.UpdatePos)
+			SearchPos.Pos.Update(CurPos, Depth);
+		else
+			SearchPos.UpdatePos = OldUpdatePos;
+
+		if (true === SearchPos.Found)
+			return;
+
+		CurPos--;
+
+		if (SearchPos.Shift && CurPos >= 0 && this.Content[CurPos].IsStopCursorOnEntryExit())
+		{
+			SearchPos.Found = true;
+			return;
+		}
+
+		if (CurPos >= 0 && this.Content[CurPos + 1].IsStopCursorOnEntryExit())
+		{
+			this.Content[CurPos].Get_EndPos(false, SearchPos.Pos, Depth + 1);
+			SearchPos.Pos.Update(CurPos, Depth);
+			SearchPos.Found = true;
+			return;
+		}
+	}
 };
 CParagraphContentWithParagraphLikeContent.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseContentPos, StepEnd)
 {
-    var CurPos = ( true === UseContentPos ? ContentPos.Get(Depth) : 0 );
+	var CurPos = ( true === UseContentPos ? ContentPos.Get(Depth) : 0 );
 
-    this.Content[CurPos].Get_WordEndPos(SearchPos, ContentPos, Depth + 1, UseContentPos, StepEnd);
+	this.Content[CurPos].Get_WordEndPos(SearchPos, ContentPos, Depth + 1, UseContentPos, StepEnd);
 
-    if ( true === SearchPos.UpdatePos )
-        SearchPos.Pos.Update( CurPos, Depth );
+	if (true === SearchPos.UpdatePos)
+		SearchPos.Pos.Update(CurPos, Depth);
 
-    if ( true === SearchPos.Found )
-        return;
+	if (true === SearchPos.Found)
+		return;
 
-    CurPos++;
+	CurPos++;
 
-    var Count = this.Content.length;
-    while ( CurPos < Count )
-    {
-        var OldUpdatePos = SearchPos.UpdatePos;
+	var Count = this.Content.length;
 
-        this.Content[CurPos].Get_WordEndPos(SearchPos, ContentPos, Depth + 1, false, StepEnd);
+	if (SearchPos.Shift && CurPos < Count && this.Content[CurPos].IsStopCursorOnEntryExit())
+	{
+		SearchPos.Found = true;
+		return;
+	}
 
-        if (true === SearchPos.UpdatePos)
-            SearchPos.Pos.Update( CurPos, Depth );
-        else
-            SearchPos.UpdatePos = OldUpdatePos;
+	if (CurPos < Count && this.Content[CurPos - 1].IsStopCursorOnEntryExit())
+	{
+		this.Content[CurPos].Get_StartPos(SearchPos.Pos, Depth + 1);
+		SearchPos.Pos.Update(CurPos, Depth);
+		SearchPos.Found     = true;
+		SearchPos.UpdatePos = true;
+		return;
+	}
 
-        if ( true === SearchPos.Found )
-            return;
+	while (CurPos < Count)
+	{
+		var OldUpdatePos = SearchPos.UpdatePos;
 
-        CurPos++;
-    }
+		this.Content[CurPos].Get_WordEndPos(SearchPos, ContentPos, Depth + 1, false, StepEnd);
+
+		if (true === SearchPos.UpdatePos)
+			SearchPos.Pos.Update(CurPos, Depth);
+		else
+			SearchPos.UpdatePos = OldUpdatePos;
+
+		if (true === SearchPos.Found)
+			return;
+
+		CurPos++;
+
+		if (SearchPos.Shift && CurPos < Count && this.Content[CurPos].IsStopCursorOnEntryExit())
+		{
+			SearchPos.Found = true;
+			return;
+		}
+
+		if (CurPos < Count && this.Content[CurPos - 1].IsStopCursorOnEntryExit())
+		{
+			this.Content[CurPos].Get_StartPos(SearchPos.Pos, Depth + 1);
+			SearchPos.Pos.Update(CurPos, Depth);
+			SearchPos.Found     = true;
+			SearchPos.UpdatePos = true;
+			return;
+		}
+	}
 };
 CParagraphContentWithParagraphLikeContent.prototype.Get_EndRangePos = function(nCurLine, nCurRange, oSearchPos, nDepth)
 {
@@ -3243,50 +3615,38 @@ CParagraphContentWithParagraphLikeContent.prototype.Clear_SpellingMarks = functi
 //----------------------------------------------------------------------------------------------------------------------
 // Search and Replace
 //----------------------------------------------------------------------------------------------------------------------
-CParagraphContentWithParagraphLikeContent.prototype.Search = function(ParaSearch, Depth)
+CParagraphContentWithParagraphLikeContent.prototype.Search = function(oParaSearch)
 {
-    this.SearchMarks = [];
-
-    var ContentLen = this.Content.length;
-    for ( var CurPos = 0; CurPos < ContentLen; CurPos++ )
-    {
-        var Element = this.Content[CurPos];
-
-        ParaSearch.ContentPos.Update( CurPos, Depth );
-
-        Element.Search( ParaSearch, Depth + 1 );
-    }
+	this.SearchMarks = [];
+	for (var nPos = 0, nContentLen = this.Content.length; nPos < nContentLen; ++nPos)
+	{
+		this.Content[nPos].Search(oParaSearch);
+	}
 };
-CParagraphContentWithParagraphLikeContent.prototype.Add_SearchResult = function(SearchResult, Start, ContentPos, Depth)
+CParagraphContentWithParagraphLikeContent.prototype.AddSearchResult = function(oSearchResult, isStart, oContentPos, nDepth)
 {
-    if ( true === Start )
-        SearchResult.ClassesS.push( this );
-    else
-        SearchResult.ClassesE.push( this );
-
-    this.SearchMarks.push( new CParagraphSearchMark( SearchResult, Start, Depth ) );
-
-    this.Content[ContentPos.Get(Depth)].Add_SearchResult( SearchResult, Start, ContentPos, Depth + 1 );
+	oSearchResult.RegisterClass(isStart, this);
+	this.SearchMarks.push(new CParagraphSearchMark(oSearchResult, isStart, nDepth));
+	this.Content[oContentPos.Get(nDepth)].AddSearchResult(oSearchResult, isStart, oContentPos, nDepth + 1);
 };
-CParagraphContentWithParagraphLikeContent.prototype.Clear_SearchResults = function()
+CParagraphContentWithParagraphLikeContent.prototype.ClearSearchResults = function()
 {
-    this.SearchMarks = [];
+	this.SearchMarks = [];
 };
-CParagraphContentWithParagraphLikeContent.prototype.Remove_SearchResult = function(SearchResult)
+CParagraphContentWithParagraphLikeContent.prototype.RemoveSearchResult = function(oSearchResult)
 {
-    var MarksCount = this.SearchMarks.length;
-    for ( var Index = 0; Index < MarksCount; Index++ )
-    {
-        var Mark = this.SearchMarks[Index];
-        if ( SearchResult === Mark.SearchResult )
-        {
-            this.SearchMarks.splice( Index, 1 );
-            Index--;
-            MarksCount--;
-        }
-    }
+	for (var nIndex = 0, nMarksCount = this.SearchMarks.length; nIndex < nMarksCount; ++nIndex)
+	{
+		var oMark = this.SearchMarks[nIndex];
+		if (oSearchResult === oMark.SearchResult)
+		{
+			this.SearchMarks.splice(nIndex, 1);
+			nIndex--;
+			nMarksCount--;
+		}
+	}
 };
-CParagraphContentWithParagraphLikeContent.prototype.Search_GetId = function(bNext, bUseContentPos, ContentPos, Depth)
+CParagraphContentWithParagraphLikeContent.prototype.GetSearchElementId = function(bNext, bUseContentPos, ContentPos, Depth)
 {
     // Определим позицию, начиная с которой мы будем искать ближайший найденный элемент
     var StartPos = 0;
@@ -3314,7 +3674,7 @@ CParagraphContentWithParagraphLikeContent.prototype.Search_GetId = function(bNex
 
         for ( var CurPos = StartPos; CurPos < ContentLen; CurPos++ )
         {
-            var ElementId = this.Content[CurPos].Search_GetId( true, bUseContentPos && CurPos === StartPos ? true : false, ContentPos, Depth + 1 );
+            var ElementId = this.Content[CurPos].GetSearchElementId( true, bUseContentPos && CurPos === StartPos ? true : false, ContentPos, Depth + 1 );
             if ( null !== ElementId )
                 return ElementId;
         }
@@ -3325,7 +3685,7 @@ CParagraphContentWithParagraphLikeContent.prototype.Search_GetId = function(bNex
 
         for ( var CurPos = StartPos; CurPos >= 0; CurPos-- )
         {
-            var ElementId = this.Content[CurPos].Search_GetId( false, bUseContentPos && CurPos === StartPos ? true : false, ContentPos, Depth + 1 );
+            var ElementId = this.Content[CurPos].GetSearchElementId( false, bUseContentPos && CurPos === StartPos ? true : false, ContentPos, Depth + 1 );
             if ( null !== ElementId )
                 return ElementId;
         }
@@ -3500,7 +3860,8 @@ CParagraphContentWithParagraphLikeContent.prototype.private_CheckUpdateBookmarks
 
 	for (var nIndex = 0, nCount = Items.length; nIndex < nCount; ++nIndex)
 	{
-		if (para_Bookmark === Items[nIndex].Type)
+		var oItem = Items[nIndex];
+		if (oItem && para_Bookmark === oItem.Type)
 		{
 			var oLogicDocument = this.Paragraph && this.Paragraph.LogicDocument ? this.Paragraph.LogicDocument : editor.WordControl.m_oLogicDocument;
 			oLogicDocument.GetBookmarksManager().SetNeedUpdate(true);
@@ -3519,7 +3880,7 @@ CParagraphContentWithParagraphLikeContent.prototype.GetFootnotesList = function(
 			return;
 	}
 };
-CParagraphContentWithParagraphLikeContent.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepOver)
+CParagraphContentWithParagraphLikeContent.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepOver, isStepFootnote, isStepEndnote)
 {
 	var nPos = 0;
 
@@ -3542,7 +3903,7 @@ CParagraphContentWithParagraphLikeContent.prototype.GotoFootnoteRef = function(i
 	{
 		for (var nIndex = nPos, nCount = this.Content.length - 1; nIndex < nCount; ++nIndex)
 		{
-			var nRes = this.Content[nIndex].GotoFootnoteRef ? this.Content[nIndex].GotoFootnoteRef(true, true === isCurrent && nPos === nIndex, isStepOver) : 0;
+			var nRes = this.Content[nIndex].GotoFootnoteRef ? this.Content[nIndex].GotoFootnoteRef(true, true === isCurrent && nPos === nIndex, isStepOver, isStepFootnote, isStepEndnote) : 0;
 
 			if (nRes > 0)
 				isStepOver = true;
@@ -3554,7 +3915,7 @@ CParagraphContentWithParagraphLikeContent.prototype.GotoFootnoteRef = function(i
 	{
 		for (var nIndex = nPos; nIndex >= 0; --nIndex)
 		{
-			var nRes = this.Content[nIndex].GotoFootnoteRef ? this.Content[nIndex].GotoFootnoteRef(true, true === isCurrent && nPos === nIndex, isStepOver) : 0;
+			var nRes = this.Content[nIndex].GotoFootnoteRef ? this.Content[nIndex].GotoFootnoteRef(true, true === isCurrent && nPos === nIndex, isStepOver, isStepFootnote, isStepEndnote) : 0;
 
 			if (nRes > 0)
 				isStepOver = true;
@@ -3783,6 +4144,8 @@ CParagraphContentWithParagraphLikeContent.prototype.AddContentControl = function
 			}
 
 			var oContentControl = new CInlineLevelSdt();
+			oContentControl.SetPlaceholder(c_oAscDefaultPlaceholderName.Text);
+			oContentControl.SetDefaultTextPr(this.GetDirectTextPr());
 
 			var oNewRun = this.Content[nEndPos].Split_Run(Math.max(this.Content[nEndPos].Selection.StartPos, this.Content[nEndPos].Selection.EndPos));
 			this.Add_ToContent(nEndPos + 1, oNewRun);
@@ -3810,7 +4173,9 @@ CParagraphContentWithParagraphLikeContent.prototype.AddContentControl = function
 	else
 	{
 		var oContentControl = new CInlineLevelSdt();
-		oContentControl.Add_ToContent(0, new ParaRun());
+		oContentControl.SetDefaultTextPr(this.GetDirectTextPr());
+		oContentControl.SetPlaceholder(c_oAscDefaultPlaceholderName.Text);
+		oContentControl.ReplaceContentWithPlaceHolder(false);
 		this.Add(oContentControl);
 		return oContentControl;
 	}
@@ -3921,6 +4286,148 @@ CParagraphContentWithParagraphLikeContent.prototype.ProcessComplexFields = funct
 		this.Content[nPos].ProcessComplexFields(oComplexFields);
 	}
 };
+CParagraphContentWithParagraphLikeContent.prototype.CorrectContentPos = function()
+{
+	if (this.IsSelectionUse())
+		return;
+
+	var nCount = this.Content.length;
+	var nCurPos = Math.min(Math.max(0, this.State.ContentPos), nCount - 1);
+
+	// Ищем элемент, в котором может стоять курсор
+	while (nCurPos > 0 && !this.Content[nCurPos].IsCursorPlaceable())
+	{
+		nCurPos--;
+		this.Content[nCurPos].MoveCursorToEndPos();
+	}
+
+	while (nCurPos < nCount && !this.Content[nCurPos].IsCursorPlaceable())
+	{
+		nCurPos++;
+		this.Content[nCurPos].MoveCursorToStartPos(false);
+	}
+
+	// Если курсор находится в начале или конце гиперссылки, тогда выводим его из гиперссылки
+	while (nCurPos > 0 && para_Run !== this.Content[nCurPos].Type && para_Math !== this.Content[nCurPos].Type && para_Field !== this.Content[nCurPos].Type && para_InlineLevelSdt !== this.Content[nCurPos].Type && true === this.Content[nCurPos].Cursor_Is_Start())
+	{
+		if (!this.Content[nCurPos - 1].IsCursorPlaceable())
+			break;
+
+		nCurPos--;
+		this.Content[nCurPos].MoveCursorToEndPos();
+	}
+
+	while (nCurPos < nCount && para_Run !== this.Content[nCurPos].Type && para_Math !== this.Content[nCurPos].Type && para_Field !== this.Content[nCurPos].Type && para_InlineLevelSdt !== this.Content[nCurPos].Type && true === this.Content[nCurPos].Cursor_Is_End())
+	{
+		if (!this.Content[nCurPos + 1].IsCursorPlaceable())
+			break;
+
+		nCurPos++;
+		this.Content[nCurPos].MoveCursorToStartPos(false);
+	}
+
+	this.State.ContentPos = nCurPos;
+
+	this.Content[this.State.ContentPos].CorrectContentPos();
+};
+CParagraphContentWithParagraphLikeContent.prototype.GetFirstRun = function()
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		var oRun = this.Content[nIndex].GetFirstRun();
+		if (oRun)
+			return oRun;
+	}
+
+	return null;
+};
+CParagraphContentWithParagraphLikeContent.prototype.MakeSingleRunElement = function(isClearRun)
+{
+	if (this.Content.length !== 1 || para_Run !== this.Content[0].Type)
+	{
+		var oRun = new ParaRun(this.GetParagraph(), false);
+
+		if (true !== isClearRun)
+		{
+			// У нас при открытии ран делится маскимально по 255 элементов внутри каждого рана, поэтому
+			// в формах, где должен быть только 1 ран после открытия их может быть несколько. Объединяем здесь
+			// все раны в один общий ран, чтобы исправить данную ситуцию
+
+			var oParagraph = this.GetParagraph();
+			var oCurrentRun = null;
+			if (oParagraph)
+			{
+				var oCurPos = oParagraph.Get_ParaContentPos(false, false, false);
+				oCurPos.DecreaseDepth(1);
+				oCurrentRun = oParagraph.GetClassByPos(oCurPos);
+				if (!oCurrentRun || !(oCurrentRun instanceof ParaRun))
+					oCurrentRun = null;
+			}
+
+			var nNewCurPos = 0;
+			var isFirst    = true;
+			this.CheckRunContent(function(_oRun)
+			{
+				if (_oRun === oCurrentRun)
+					nNewCurPos = _oRun.State.ContentPos + oRun.Content.length;
+
+				var arrContentToInsert = [];
+				for (var nPos = 0, nCount = _oRun.Content.length; nPos < nCount; ++nPos)
+				{
+					arrContentToInsert.push(_oRun.Content[nPos].Copy());
+				}
+
+				oRun.ConcatToContent(arrContentToInsert);
+
+				if (isFirst && arrContentToInsert.length > 0)
+				{
+					oRun.SetPr(_oRun.GetDirectTextPr().Copy());
+					isFirst = false;
+				}
+			});
+
+			oRun.State.ContentPos = nNewCurPos;
+		}
+
+		if (this.Content.length > 0)
+			this.RemoveFromContent(0, this.Content.length, true);
+
+		this.AddToContent(0, oRun, true);
+	}
+
+	var oRun = this.Content[0];
+
+	if (false !== isClearRun)
+		oRun.ClearContent();
+
+	return oRun;
+};
+CParagraphContentWithParagraphLikeContent.prototype.ClearContent = function()
+{
+	if (this.Content.length <= 0)
+		return;
+
+	this.RemoveFromContent(0, this.Content.length, true);
+};
+CParagraphContentWithParagraphLikeContent.prototype.GetFirstRunElementPos = function(nType, oStartPos, oEndPos, nDepth)
+{
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		oStartPos.Update(nPos, nDepth);
+		oEndPos.Update(nPos, nDepth);
+
+		if (this.Content[nPos].GetFirstRunElementPos(nType, oStartPos, oEndPos, nDepth + 1))
+			return true;
+	}
+
+	return false;
+};
+CParagraphContentWithParagraphLikeContent.prototype.SetIsRecalculated = function(isRecalculated)
+{
+	if (!isRecalculated && this.GetParagraph())
+		this.GetParagraph().SetIsRecalculated(false);
+};
+
 //----------------------------------------------------------------------------------------------------------------------
 // Функции, которые должны быть реализованы в классах наследниках
 //----------------------------------------------------------------------------------------------------------------------

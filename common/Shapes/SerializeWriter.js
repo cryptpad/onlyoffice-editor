@@ -70,7 +70,8 @@ var c_oMainTables = {
     FontMap			: 43,
 	SlideNotesRels	: 45,
 	NotesRels		: 46,
-	NotesMastersRels: 47
+	NotesMastersRels: 47,
+	CustomProperties: 48
 };
 
 function CSeekTableEntry()
@@ -120,7 +121,7 @@ function CBinaryFileWriter()
     this.pos = 0;
     this.Init();
 
-    this.UseContinueWriter = false;
+    this.UseContinueWriter = 0;
 
     this.IsUseFullUrl = false;
     this.PresentationThemesOrigin = "";
@@ -186,7 +187,7 @@ function CBinaryFileWriter()
             var oldPos = this.pos;
 
             this.len = Math.max(this.len * 2, this.pos + ((3 * count / 2) >> 0));
-			
+
             this.ImData = _ctx.createImageData(this.len / 4, 1);
             this.data = this.ImData.data;
             var newData = this.data;
@@ -203,6 +204,21 @@ function CBinaryFileWriter()
     {
         return AscCommon.Base64Encode(this.data, nLen, nPos);
     };
+    this.GetData   = function(nPos, nLen)
+    {
+        var _canvas = document.createElement('canvas');
+        var _ctx    = _canvas.getContext('2d');
+
+        var len = this.GetCurPosition();
+
+        //todo ImData.data.length multiple of 4
+        var ImData = _ctx.createImageData(Math.ceil(len / 4), 1);
+        var res = ImData.data;
+
+        for (var i = 0; i < len; i++)
+            res[i] = this.data[i];
+        return res;
+    }
     this.GetCurPosition = function()
     {
         return this.pos;
@@ -246,6 +262,22 @@ function CBinaryFileWriter()
     {
         this.WriteULong((val * 100000) >> 0);
     };
+    var tempHelp = new ArrayBuffer(8);
+    var tempHelpUnit = new Uint8Array(tempHelp);
+    var tempHelpFloat = new Float64Array(tempHelp);
+    this.WriteDoubleReal = function(val)
+    {
+        this.CheckSize(8);
+        tempHelpFloat[0] = val;
+        this.data[this.pos++] = tempHelpUnit[0];
+        this.data[this.pos++] = tempHelpUnit[1];
+        this.data[this.pos++] = tempHelpUnit[2];
+        this.data[this.pos++] = tempHelpUnit[3];
+        this.data[this.pos++] = tempHelpUnit[4];
+        this.data[this.pos++] = tempHelpUnit[5];
+        this.data[this.pos++] = tempHelpUnit[6];
+        this.data[this.pos++] = tempHelpUnit[7];
+    };
     this.WriteString = function(text)
     {
         var count = text.length & 0xFFFF;
@@ -259,6 +291,8 @@ function CBinaryFileWriter()
     };
     this.WriteString2 = function(text)
     {
+        if ("string" != typeof text)
+            text = text + "";
         var count = text.length & 0x7FFFFFFF;
         var countWrite = 2 * count;
         this.WriteULong(count);
@@ -360,6 +394,17 @@ function CBinaryFileWriter()
             this._WriteUChar1(type, val);
     };
 
+    this._WriteChar1 = function(type, val)
+    {
+        this.WriteUChar(type);
+        this.WriteUChar(val);
+    };
+    this._WriteChar2 = function(type, val)
+    {
+        if (val != null)
+            this._WriteChar1(type, val);
+    };
+
     this._WriteBool1 = function(type, val)
     {
         this.WriteUChar(type);
@@ -382,6 +427,17 @@ function CBinaryFileWriter()
             this._WriteInt1(type, val);
     };
 
+    this._WriteUInt1 = function(type, val)
+    {
+        this.WriteUChar(type);
+        this.WriteULong(val);
+    };
+    this._WriteUInt2 = function (type, val)
+    {
+        if (val != null)
+            this._WriteUInt1(type, val);
+    };
+
     this._WriteInt3 = function (type, val, scale)
     {
         this._WriteInt1(type, val * scale);
@@ -402,6 +458,16 @@ function CBinaryFileWriter()
     {
         if (val != null)
             this._WriteDouble1(type, val);
+    };
+    this._WriteDoubleReal1 = function(type, val)
+    {
+        this.WriteUChar(type);
+        this.WriteDoubleReal(val);
+    };
+    this._WriteDoubleReal2 = function(type, val)
+    {
+        if (val != null)
+            this._WriteDoubleReal1(type, val);
     };
 
     this._WriteLimit1 = this._WriteUChar1;
@@ -446,6 +512,15 @@ function CBinaryFileWriter()
 
         return false;
     };
+    this.WriteRecord4 = function(type, val)
+    {
+        if (null != val)
+        {
+            this.StartRecord(type);
+            val.toStream(this);
+            this.EndRecord();
+        }
+    };
 
     this.WriteRecordArray = function(type, subtype, val_array, func_element_write)
     {
@@ -456,6 +531,18 @@ function CBinaryFileWriter()
 
         for (var i = 0; i < len; i++)
             this.WriteRecord1(subtype, val_array[i], func_element_write);
+
+        this.EndRecord();
+    };
+    this.WriteRecordArray4 = function(type, subtype, val_array)
+    {
+        this.StartRecord(type);
+
+        var len = val_array.length;
+        this.WriteULong(len);
+
+        for (var i = 0; i < len; i++)
+            this.WriteRecord4(subtype, val_array[i]);
 
         this.EndRecord();
     };
@@ -497,13 +584,17 @@ function CBinaryFileWriter()
 		if (presentation.Core)
 			this.WriteCore(presentation.Core, presentation.Api);
 
+		// Core
+		if (presentation.CustomProperties)
+			this.WriteCustomProperties(presentation.CustomProperties, presentation.Api);
+
         // ViewProps
 		if (presentation.ViewProps)
 			this.WriteViewProps(presentation.ViewProps);
-        
+
         // PresProps
 		this.WritePresProps(presentation);
-        
+
         // presentation
         this.WritePresentation(presentation);
 
@@ -886,7 +977,7 @@ function CBinaryFileWriter()
         var ret = "PPTY;v1;" + this.pos + ";";
         return ret + this.GetBase64Memory();
     };
-	
+
 	this.WriteDocument3 = function(presentation, base64) {
 		var _memory = new AscCommon.CMemory(true);
 		_memory.ImData = this.ImData;
@@ -900,9 +991,9 @@ function CBinaryFileWriter()
 		this.data = _memory.data;
 		this.len = _memory.len;
 		this.pos = _memory.pos;
-		
+
 		this.WriteDocument2(presentation);
-		
+
 		_memory.ImData = this.ImData;
 		_memory.data = this.data;
 		_memory.len = this.len;
@@ -937,6 +1028,11 @@ function CBinaryFileWriter()
         this.StartMainRecord(c_oMainTables.Core);
         core.toStream(this, api);
     };
+    this.WriteCustomProperties = function(customProperties, api)
+    {
+        this.StartMainRecord(c_oMainTables.CustomProperties);
+        customProperties.toStream(this, api);
+    };
     this.WriteViewProps = function(viewprops)
     {
         this.StartMainRecord(c_oMainTables.ViewProps);
@@ -944,10 +1040,10 @@ function CBinaryFileWriter()
         this.EndRecord();
     };
     this.WritePresProps = function(presentation)
-    {       
+    {
         this.StartMainRecord(c_oMainTables.PresProps);
         this.StartRecord(c_oMainTables.PresProps);
-        
+
         //showPr
         var showPr = presentation.showPr;
         if (showPr) {
@@ -960,7 +1056,7 @@ function CBinaryFileWriter()
             this._WriteBool2(3, showPr.useTimings);
 
             this.WriteUChar(g_nodeAttributeEnd);
-            
+
             if (showPr.browse) {
                 this.StartRecord(0);
                 //todo browseShowScrollbar
@@ -1684,59 +1780,57 @@ function CBinaryFileWriter()
 
         oThis.WriteRecord1(0, uniPr, oThis.WriteUniNvPr);
         oThis.WriteRecord1(1, spPr, oThis.WriteSpPr);
-
         if (0 != _len)
         {
-            oThis.StartRecord(2);
-            oThis.WriteULong(_len);
-
             oThis.ClearIdMap();
-            for (var i = 0; i < _len; i++)
-            {
-                oThis.StartRecord(0);
-				
-				switch(spTree[i].getObjectType())
-                {
-                    case AscDFH.historyitem_type_Shape:
-                    case AscDFH.historyitem_type_Cnx:
-                    {
-						oThis.WriteShape(spTree[i]);
-                        break;
-                    }
-                    case AscDFH.historyitem_type_OleObject:
-                    case AscDFH.historyitem_type_ImageShape:
-                    {
-                        oThis.WriteImage(spTree[i]);
-                        break;
-                    }
-                    case AscDFH.historyitem_type_GroupShape:
-                    {
-                        oThis.WriteGroupShape(spTree[i]);
-                        break;
-                    }
-                    case AscDFH.historyitem_type_ChartSpace:
-                    {
-                        oThis.WriteChart(spTree[i]);
-                        break;
-                    }
-					default:
-					{
-						if (spTree[i] instanceof AscFormat.CGraphicFrame && spTree[i].graphicObject instanceof CTable)
-						{
-							oThis.WriteTable(spTree[i]);
-						}
-					}
-                }
-
-                oThis.EndRecord();
-            }
+            oThis.WriteSpTree(spTree);
             oThis.ClearIdMap();
+        }
+        oThis.EndRecord();
+        oThis.EndRecord();
+    };
+    this.WriteSpTree = function (spTree)
+    {
+        var _len = spTree.length;
+        oThis.StartRecord(2);
+        oThis.WriteULong(_len);
+        for (var i = 0; i < _len; i++)
+        {
+            oThis.StartRecord(0);
+            oThis.WriteSpTreeElem(spTree[i]);
             oThis.EndRecord();
         }
-
         oThis.EndRecord();
-
-        oThis.EndRecord();
+    };
+    this.WriteSpTreeElem = function (oSp)
+    {
+        switch(oSp.getObjectType())
+        {
+            case AscDFH.historyitem_type_Shape:
+            case AscDFH.historyitem_type_Cnx:
+            {
+                oThis.WriteShape(oSp);
+                break;
+            }
+            case AscDFH.historyitem_type_OleObject:
+            case AscDFH.historyitem_type_ImageShape:
+            {
+                oThis.WriteImage(oSp);
+                break;
+            }
+            case AscDFH.historyitem_type_GroupShape:
+            {
+                oThis.WriteGroupShape(oSp);
+                break;
+            }
+            case AscDFH.historyitem_type_GraphicFrame:
+            case AscDFH.historyitem_type_ChartSpace:
+            case AscDFH.historyitem_type_SlicerView:
+            {
+                oThis.WriteGrFrame(oSp);
+                break;
+            }
+        }
     };
     this.WriteClrMap = function(clrmap)
     {
@@ -2082,7 +2176,7 @@ function CBinaryFileWriter()
             oThis._WriteUChar1(4, _cap);
         }
 
-        oThis._WriteString2(10, g_oLcidIdToNameMap[rPr.Lang.Val]);
+        oThis._WriteString2(10, Asc.g_oLcidIdToNameMap[rPr.Lang.Val]);
 
         var _strike = null;
         if (rPr.DStrikeout === true)
@@ -2109,7 +2203,9 @@ function CBinaryFileWriter()
 
         if (undefined !== rPr.FontSize && null != rPr.FontSize)
         {
-            oThis._WriteInt1(17, rPr.FontSize * 100);
+            var nFontSize = rPr.FontSize * 100;
+            nFontSize = Math.max(100, nFontSize);
+            oThis._WriteInt1(17, nFontSize);
         }
 
         if (AscCommon.vertalign_SubScript == rPr.VertAlign)
@@ -2882,7 +2978,7 @@ function CBinaryFileWriter()
 
                 oThis.WriteUChar(g_nodeAttributeStart);
                 oThis.WriteUChar(g_nodeAttributeEnd);
-				
+
                 var _src = fill.RasterImageId;
 				var imageLocal = AscCommon.g_oDocumentUrls.getImageLocal(_src);
                 if(imageLocal)
@@ -2914,16 +3010,20 @@ function CBinaryFileWriter()
                         _src = oThis.PresentationThemesOrigin + _src;
                     }
                     else if (0 != _src.indexOf("http:") && 0 != _src.indexOf("data:") && 0 != _src.indexOf("https:") && 0 != _src.indexOf("ftp:") && 0 != _src.indexOf("file:")){
-                        var imageUrl = AscCommon.g_oDocumentUrls.getImageUrl(_src);
-						if(imageUrl){
-							_src = imageUrl;
+						if (AscCommon.EncryptionWorker && AscCommon.EncryptionWorker.isCryptoImages() &&
+							window["AscDesktopEditor"] && window["AscDesktopEditor"]["Crypto_GetLocalImageBase64"]) {
+						    _src = window["AscDesktopEditor"]["Crypto_GetLocalImageBase64"](_src);
+						} else {
+							var imageUrl = AscCommon.g_oDocumentUrls.getImageUrl(_src);
+							if (imageUrl)
+							    _src = imageUrl;
 						}
                     }
                     if(window["native"] && window["native"]["GetImageTmpPath"]){
                         if(!(window.documentInfo && window.documentInfo["iscoauthoring"])){
                             _src = window["native"]["GetImageTmpPath"](_src);
                         }
-                        
+
                     }
                 }
 
@@ -3037,8 +3137,8 @@ function CBinaryFileWriter()
 
                 if(fill.color){
                     oThis.CorrectUniColorAlpha(fill.color, trans);
-                    oThis.WriteRecord1(0, fill.color, oThis.WriteUniColor);
                 }
+                oThis.WriteRecord1(0, fill.color, oThis.WriteUniColor);
                 oThis.EndRecord();
                 break;
             }
@@ -3158,7 +3258,7 @@ function CBinaryFileWriter()
                             }
                             case para_Space :
                             {
-                                _run_text += ' ';
+                                _run_text += AscCommon.encodeSurrogateChar(_elem.Content[j].Value);
                                 break;
                             }
                             case para_Tab :
@@ -3283,7 +3383,7 @@ function CBinaryFileWriter()
                                     _memory.data = oThis.data;
                                     _memory.len = oThis.len;
                                     _memory.pos = oThis.pos;
-                                    oThis.UseContinueWriter = true;
+                                    oThis.UseContinueWriter++;
 
                                     if (!oThis.DocSaveParams) {
                                         oThis.DocSaveParams = new AscCommonWord.DocSaveParams(false, false);
@@ -3295,7 +3395,7 @@ function CBinaryFileWriter()
                                     oThis.data = _memory.data;
                                     oThis.len = _memory.len;
                                     oThis.pos = _memory.pos;
-                                    oThis.UseContinueWriter = false;
+                                    oThis.UseContinueWriter--;
 
                                     _memory.ImData = null;
                                     _memory.data = null;
@@ -3323,23 +3423,23 @@ function CBinaryFileWriter()
 						_memory.data = oThis.data;
 						_memory.len = oThis.len;
 						_memory.pos = oThis.pos;
-						oThis.UseContinueWriter = true;
+						oThis.UseContinueWriter++;
 
 						if (!oThis.DocSaveParams) {
 							oThis.DocSaveParams = new AscCommonWord.DocSaveParams(false, false);
 						}
 						var boMaths = new Binary_oMathWriter(_memory, null, oThis.DocSaveParams);
-						boMaths.bs.WriteItemWithLength(function(){boMaths.WriteOMathPara(_elem)});	
+						boMaths.bs.WriteItemWithLength(function(){boMaths.WriteOMathPara(_elem)});
 
 						oThis.ImData = _memory.ImData;
 						oThis.data = _memory.data;
 						oThis.len = _memory.len;
 						oThis.pos = _memory.pos;
-						oThis.UseContinueWriter = false;
+						oThis.UseContinueWriter--;
 
 						_memory.ImData = null;
 						_memory.data = null;
-						
+
 						oThis.EndRecord();
 						oThis.EndRecord();
 						_count++;
@@ -3519,6 +3619,8 @@ function CBinaryFileWriter()
         oThis.WriteRecord2(2, shape.style, oThis.WriteShapeStyle);
         oThis.WriteRecord2(3, shape.txBody, oThis.WriteTxBody);
 
+        oThis.WriteRecord2(7, shape.signatureLine, oThis.WriteSignatureLine);
+
         if (isUseTmpFill)
         {
             shape.spPr.Fill = tmpFill;
@@ -3613,7 +3715,7 @@ function CBinaryFileWriter()
         oThis._WriteString2(7, ole.m_sObjectFile);
         oThis.WriteUChar(g_nodeAttributeEnd);
 
-        if((ole.m_nOleType === 1 || ole.m_nOleType === 2) && ole.m_aBinaryData !== null)
+        if((ole.m_nOleType === 0 || ole.m_nOleType === 1 || ole.m_nOleType === 2) && ole.m_aBinaryData !== null)
         {
             oThis.WriteRecord1(1, ole.m_nOleType, function(val){
                 oThis.WriteUChar(val);
@@ -3623,14 +3725,11 @@ function CBinaryFileWriter()
             });
         }
     };
-    this.WriteTable = function(grObj)
+    this.WriteGrFrame = function(grObj)
     {
         oThis.StartRecord(5);
-
         oThis.WriteUChar(g_nodeAttributeStart);
         oThis.WriteUChar(g_nodeAttributeEnd);
-
-
         var nvGraphicFramePr;
         if(grObj.nvGraphicFramePr)
         {
@@ -3641,50 +3740,39 @@ function CBinaryFileWriter()
             nvGraphicFramePr = {};
         }
         nvGraphicFramePr.locks = grObj.locks;
-        nvGraphicFramePr.objectType = grObj.getObjectType();
-        if(nvGraphicFramePr.cNvPr){
+        var nObjectType = grObj.getObjectType();
+        nvGraphicFramePr.objectType = nObjectType;
+        if(nvGraphicFramePr.cNvPr)
+        {
             nvGraphicFramePr.cNvPr.shapeId = grObj.Id;
         }
-
         oThis.WriteRecord1(0, nvGraphicFramePr, oThis.WriteUniNvPr);
-
-        if (grObj.spPr.xfrm && grObj.spPr.xfrm.isNotNull())
-            oThis.WriteRecord2(1, grObj.spPr.xfrm, oThis.WriteXfrm);
-
-        oThis.WriteRecord2(2, grObj.graphicObject, oThis.WriteTable2);
-
-        oThis.EndRecord();
-    };
-
-    this.WriteChart = function(grObj)
-    {
-        oThis.StartRecord(5);
-
-        oThis.WriteUChar(g_nodeAttributeStart);
-        oThis.WriteUChar(g_nodeAttributeEnd);
-        var nvGraphicFramePr  = {};
-        if(grObj.nvGraphicFramePr)
-        {
-            nvGraphicFramePr = grObj.nvGraphicFramePr;
-        }
-        else
-        {
-            nvGraphicFramePr = {};
-        }
-
-        nvGraphicFramePr.locks = grObj.locks;
-        nvGraphicFramePr.objectType = grObj.getObjectType();
-        if(nvGraphicFramePr.cNvPr){
-            nvGraphicFramePr.cNvPr.shapeId = grObj.Id;
-        }
-
-        oThis.WriteRecord1(0, nvGraphicFramePr, oThis.WriteUniNvPr);
-
         if (grObj.spPr && grObj.spPr.xfrm && grObj.spPr.xfrm.isNotNull())
+        {
             oThis.WriteRecord2(1, grObj.spPr.xfrm, oThis.WriteXfrm);
-
-        oThis.WriteRecord2(3, grObj, oThis.WriteChart2);
-
+        }
+        switch(nObjectType)
+        {
+            case AscDFH.historyitem_type_GraphicFrame:
+            {
+                oThis.WriteRecord2(2, grObj.graphicObject, oThis.WriteTable2);
+                break;
+            }
+            case AscDFH.historyitem_type_ChartSpace:
+            {
+                oThis.WriteRecord2(3, grObj, oThis.WriteChart2);
+                break;
+            }
+            case AscDFH.historyitem_type_SlicerView:
+            {
+                var slicer = grObj.getSlicer();
+                var slicerType = (slicer && slicer.isExt()) ? 6 : 5;
+                oThis.WriteRecord2(slicerType, grObj, function () {
+                    grObj.toStream(oThis)
+                });
+                break;
+            }
+        }
         oThis.EndRecord();
     };
 
@@ -3696,7 +3784,7 @@ function CBinaryFileWriter()
         _memory.len = oThis.len;
         _memory.pos = oThis.pos;
 
-        oThis.UseContinueWriter = true;
+        oThis.UseContinueWriter++;
 
         var oBinaryChartWriter = new AscCommon.BinaryChartWriter(_memory);
         oBinaryChartWriter.WriteCT_ChartSpace(grObj);
@@ -3706,7 +3794,7 @@ function CBinaryFileWriter()
         oThis.len = _memory.len;
         oThis.pos = _memory.pos;
 
-        oThis.UseContinueWriter = false;
+        oThis.UseContinueWriter--;
 
         _memory.ImData = null;
         _memory.data = null;
@@ -3882,7 +3970,7 @@ function CBinaryFileWriter()
 			}
             oThis._WriteInt1(0, ( (row.Pr.Height.Value + fMaxBottomMargin + fMaxTopMargin + fMaxTopBorder/2 + fMaxBottomBorder/2) * 36000) >> 0);
 		}
-        
+
         oThis.WriteUChar(g_nodeAttributeEnd);
 
         oThis.StartRecord(0);
@@ -4108,50 +4196,7 @@ function CBinaryFileWriter()
         var _len = spTree.length;
         if (0 != _len)
         {
-            oThis.StartRecord(2);
-            oThis.WriteULong(_len);
-
-            for (var i = 0; i < _len; i++)
-            {
-                oThis.StartRecord(0);
-
-				switch(spTree[i].getObjectType())
-                {
-                    case AscDFH.historyitem_type_Shape:
-                    case AscDFH.historyitem_type_Cnx:
-                    {
-						oThis.WriteShape(spTree[i]);
-                        break;
-                    }
-                    case AscDFH.historyitem_type_OleObject:
-                    case AscDFH.historyitem_type_ImageShape:
-                    {
-                        oThis.WriteImage(spTree[i]);
-                        break;
-                    }
-                    case AscDFH.historyitem_type_GroupShape:
-                    {
-                        oThis.WriteGroupShape(spTree[i]);
-                        break;
-                    }
-                    case AscDFH.historyitem_type_ChartSpace:
-                    {
-                        oThis.WriteChart(spTree[i]);
-                        break;
-                    }
-					default:
-					{
-						if (spTree[i] instanceof AscFormat.CGraphicFrame && spTree[i].graphicObject instanceof CTable)
-						{
-							oThis.WriteTable(spTree[i]);
-						}
-					}
-                }
-				
-                oThis.EndRecord(0);
-            }
-
-            oThis.EndRecord();
+            oThis.WriteSpTree(spTree);
         }
 
         oThis.EndRecord();
@@ -4266,6 +4311,8 @@ function CBinaryFileWriter()
 		oThis._WriteString2(3, oSignatureLine.id);
 		oThis._WriteBool2(4, true);
 		oThis._WriteString2(5, "{00000000-0000-0000-0000-000000000000}");
+		oThis._WriteBool2(6, oSignatureLine.showDate);
+		oThis._WriteString2(7, oSignatureLine.instructions);
 		oThis._WriteString2(10, oSignatureLine.signer);
 		oThis._WriteString2(11, oSignatureLine.signer2);
 		oThis._WriteString2(12, oSignatureLine.email);
@@ -4475,6 +4522,7 @@ function CBinaryFileWriter()
                 }
                 case AscDFH.historyitem_type_GraphicFrame:
                 case AscDFH.historyitem_type_ChartSpace:
+                case AscDFH.historyitem_type_SlicerView:
                 {
                     oThis.WriteRecord1(1, nv.locks, oThis.WriteGrFrameCNvPr);
                     break;
@@ -5304,29 +5352,28 @@ function CBinaryFileWriter()
         this.Start_UseFullUrl = function()
         {
             this.BinaryFileWriter.Start_UseFullUrl();
-        }
+        };
         this.Start_UseDocumentOrigin = function(origin)
         {
             this.BinaryFileWriter.Start_UseDocumentOrigin(origin);
-        }
+        };
         this.End_UseFullUrl = function()
         {
             return this.BinaryFileWriter.End_UseFullUrl();
-        }
-
+        };
         this._Start = function()
         {
             this.ShapeTextBoxContent = new AscCommon.CMemory();
             this.arrayStackStartsTextBoxContent = [];
             this.arrayStackStarts = [];
-        }
+        };
         this._End = function()
         {
             this.ShapeTextBoxContent = null;
-        }
+        };
         this.WriteTextBody = function(memory, textBody)
         {
-            if (this.BinaryFileWriter.UseContinueWriter)
+            if (this.BinaryFileWriter.UseContinueWriter > 0)
             {
                 this.BinaryFileWriter.ImData = memory.ImData;
                 this.BinaryFileWriter.data = memory.data;
@@ -5344,7 +5391,7 @@ function CBinaryFileWriter()
             _writer.WriteTxBody(textBody);
             _writer.EndRecord();
 
-            if (this.BinaryFileWriter.UseContinueWriter)
+            if (this.BinaryFileWriter.UseContinueWriter > 0)
             {
                 memory.ImData = this.BinaryFileWriter.ImData;
                 memory.data = this.BinaryFileWriter.data;
@@ -5361,10 +5408,10 @@ function CBinaryFileWriter()
 
                 this.arrayStackStarts.splice(this.arrayStackStarts.length - 1, 1);
             }
-        }
+        };
         this.WriteClrMapOverride = function(memory, clrMapOverride)
         {
-            if (this.BinaryFileWriter.UseContinueWriter)
+            if (this.BinaryFileWriter.UseContinueWriter > 0)
             {
                 this.BinaryFileWriter.ImData = memory.ImData;
                 this.BinaryFileWriter.data = memory.data;
@@ -5384,7 +5431,7 @@ function CBinaryFileWriter()
             _writer.EndRecord();
             _writer.EndRecord();
 
-            if (this.BinaryFileWriter.UseContinueWriter)
+            if (this.BinaryFileWriter.UseContinueWriter > 0)
             {
                 memory.ImData = this.BinaryFileWriter.ImData;
                 memory.data = this.BinaryFileWriter.data;
@@ -5401,10 +5448,10 @@ function CBinaryFileWriter()
 
                 this.arrayStackStarts.splice(this.arrayStackStarts.length - 1, 1);
             }
-        }
+        };
         this.WriteSpPr = function(memory, spPr, type)
         {
-            if (this.BinaryFileWriter.UseContinueWriter)
+            if (this.BinaryFileWriter.UseContinueWriter > 0)
             {
                 this.BinaryFileWriter.ImData = memory.ImData;
                 this.BinaryFileWriter.data = memory.data;
@@ -5427,7 +5474,7 @@ function CBinaryFileWriter()
                 _writer.WriteSpPr(spPr);
             _writer.EndRecord();
 
-            if (this.BinaryFileWriter.UseContinueWriter)
+            if (this.BinaryFileWriter.UseContinueWriter > 0)
             {
                 memory.ImData = this.BinaryFileWriter.ImData;
                 memory.data = this.BinaryFileWriter.data;
@@ -5444,10 +5491,10 @@ function CBinaryFileWriter()
 
                 this.arrayStackStarts.splice(this.arrayStackStarts.length - 1, 1);
             }
-        }
+        };
 		this.WriteRunProperties = function(memory, rPr)
 		{
-			if (this.BinaryFileWriter.UseContinueWriter)
+			if (this.BinaryFileWriter.UseContinueWriter > 0)
 			{
 				this.BinaryFileWriter.ImData = memory.ImData;
 				this.BinaryFileWriter.data = memory.data;
@@ -5465,7 +5512,7 @@ function CBinaryFileWriter()
 			_writer.WriteRunProperties(rPr);
 			_writer.EndRecord();
 
-			if (this.BinaryFileWriter.UseContinueWriter)
+			if (this.BinaryFileWriter.UseContinueWriter > 0)
 			{
 				memory.ImData = this.BinaryFileWriter.ImData;
 				memory.data = this.BinaryFileWriter.data;
@@ -5482,10 +5529,10 @@ function CBinaryFileWriter()
 
 				this.arrayStackStarts.splice(this.arrayStackStarts.length - 1, 1);
 			}
-		}
+		};
         this.WriteDrawing = function(memory, grObject, Document, oMapCommentId, oNumIdMap, copyParams, saveParams)
         {
-            if (this.BinaryFileWriter.UseContinueWriter)
+            if (this.BinaryFileWriter.UseContinueWriter > 0)
             {
                 this.BinaryFileWriter.ImData = memory.ImData;
                 this.BinaryFileWriter.data = memory.data;
@@ -5500,6 +5547,30 @@ function CBinaryFileWriter()
 
             this.BinaryFileWriter.StartRecord(0);
             this.BinaryFileWriter.StartRecord(1);
+            this.WriteGrObj(grObject, Document, oMapCommentId, oNumIdMap, copyParams, saveParams);
+            this.BinaryFileWriter.EndRecord();
+            this.BinaryFileWriter.EndRecord();
+
+            if (this.BinaryFileWriter.UseContinueWriter > 0)
+            {
+                memory.ImData = this.BinaryFileWriter.ImData;
+                memory.data = this.BinaryFileWriter.data;
+                memory.len = this.BinaryFileWriter.len;
+                memory.pos = this.BinaryFileWriter.pos;
+            }
+            else
+            {
+                this.TreeDrawingIndex--;
+
+                var oldPos = this.arrayStackStarts[this.arrayStackStarts.length - 1];
+                memory.WriteBuffer(this.BinaryFileWriter.data, oldPos, this.BinaryFileWriter.pos - oldPos);
+                this.BinaryFileWriter.pos = oldPos;
+
+                this.arrayStackStarts.splice(this.arrayStackStarts.length - 1, 1);
+            }
+        };
+        this.WriteGrObj = function(grObject, Document, oMapCommentId, oNumIdMap, copyParams, saveParams)
+        {
             switch(grObject.getObjectType())
             {
                 case AscDFH.historyitem_type_Shape:
@@ -5518,14 +5589,14 @@ function CBinaryFileWriter()
                 case AscDFH.historyitem_type_OleObject:
                 case AscDFH.historyitem_type_ImageShape:
                 {
-					if(grObject.bWordShape)
-					{
-						this.WriteImage(grObject);
-					}
-					else
-					{
-						this.WriteImage2(grObject);
-					}
+                    if(grObject.bWordShape)
+                    {
+                        this.WriteImage(grObject);
+                    }
+                    else
+                    {
+                        this.WriteImage2(grObject);
+                    }
                     break;
                 }
                 case AscDFH.historyitem_type_GroupShape:
@@ -5535,43 +5606,25 @@ function CBinaryFileWriter()
                 }
                 case AscDFH.historyitem_type_LockedCanvas:
                 {
-                    this.BinaryFileWriter.WriteGroupShape(grObject, 9);
+                    if(!grObject.group)
+                    {
+                        this.BinaryFileWriter.WriteGroupShape(grObject, 9);
+                    }
                     break;
                 }
-				case AscDFH.historyitem_type_ChartSpace:
-				{
-					this.BinaryFileWriter.WriteChart(grObject);
-					break;
-				}
+                case AscDFH.historyitem_type_ChartSpace:
+                case AscDFH.historyitem_type_SlicerView:
+                {
+                    this.BinaryFileWriter.WriteGrFrame(grObject);
+                    break;
+                }
             }
-            this.BinaryFileWriter.EndRecord();
-            this.BinaryFileWriter.EndRecord();
-
-            if (this.BinaryFileWriter.UseContinueWriter)
-            {
-                memory.ImData = this.BinaryFileWriter.ImData;
-                memory.data = this.BinaryFileWriter.data;
-                memory.len = this.BinaryFileWriter.len;
-                memory.pos = this.BinaryFileWriter.pos;
-            }
-            else
-            {
-                this.TreeDrawingIndex--;
-
-                var oldPos = this.arrayStackStarts[this.arrayStackStarts.length - 1];
-                memory.WriteBuffer(this.BinaryFileWriter.data, oldPos, this.BinaryFileWriter.pos - oldPos);
-                this.BinaryFileWriter.pos = oldPos;
-
-                this.arrayStackStarts.splice(this.arrayStackStarts.length - 1, 1);
-            }
-        }
-
+        };
         this.WriteShape2 = function(shape, Document, oMapCommentId, oNumIdMap, copyParams, saveParams)
         {
             var _writer = this.BinaryFileWriter;
             _writer.WriteShape(shape);
-        }
-
+        };
         this.WriteShape = function(shape, Document, oMapCommentId, oNumIdMap, copyParams, saveParams)
         {
             var _writer = this.BinaryFileWriter;
@@ -5641,14 +5694,12 @@ function CBinaryFileWriter()
             delete shape.spPr.WriteXfrm;
 
             _writer.EndRecord();
-        }
-
+        };
 		this.WriteImage2 = function(image)
 		{
 			var _writer = this.BinaryFileWriter;
 			_writer.WriteImage(image);
-		}
-		
+		};
         this.WriteImage = function(image)
         {
             var _writer = this.BinaryFileWriter;
@@ -5703,7 +5754,7 @@ function CBinaryFileWriter()
             delete image.spPr.WriteXfrm;
 
             _writer.EndRecord();
-        }
+        };
         this.WriteOleInfo = function(ole)
         {
 			var ratio = 20 * 3 / 4;//px to twips
@@ -5717,8 +5768,7 @@ function CBinaryFileWriter()
             _writer._WriteUChar2(5, 0);
 			_writer._WriteString2(7, ole.m_sObjectFile);
             _writer.WriteUChar(g_nodeAttributeEnd);
-        }
-
+        };
         this.WriteGroup = function(group, Document, oMapCommentId, oNumIdMap, copyParams, saveParams)
         {
             var _writer = this.BinaryFileWriter;
@@ -5751,47 +5801,7 @@ function CBinaryFileWriter()
                     _writer.StartRecord(0);
 
                     var elem = spTree[i];
-                    switch(elem.getObjectType())
-                    {
-
-                        case AscDFH.historyitem_type_Cnx:
-                        case AscDFH.historyitem_type_Shape:
-                        {
-                            if(elem.bWordShape)
-                            {
-                                this.WriteShape(elem, Document, oMapCommentId, oNumIdMap, copyParams, saveParams);
-                            }
-                            else
-                            {
-                                this.WriteShape2(elem, Document, oMapCommentId, oNumIdMap, copyParams, saveParams);
-                            }
-                            break;
-                        }
-                        case AscDFH.historyitem_type_OleObject:
-                        case AscDFH.historyitem_type_ImageShape:
-                        {
-							if(elem.bWordShape)
-							{
-								this.WriteImage(elem);
-							}
-							else
-							{
-								this.WriteImage2(elem);
-							}
-                            break;
-                        }
-                        case AscDFH.historyitem_type_GroupShape:
-                        {
-                            this.WriteGroup(elem, Document, oMapCommentId, oNumIdMap, copyParams, saveParams);
-                            break;
-                        }
-                        case AscDFH.historyitem_type_ChartSpace:
-                        {
-                            this.BinaryFileWriter.WriteChart(elem);
-                            break;
-                        }
-                    }
-
+                    this.WriteGrObj(elem, Document, oMapCommentId, oNumIdMap, copyParams, saveParams);
                     _writer.EndRecord(0);
                 }
 
@@ -5799,11 +5809,10 @@ function CBinaryFileWriter()
             }
 
             _writer.EndRecord();
-        }
-
+        };
         this.WriteTheme = function(memory, theme)
         {
-			if (this.BinaryFileWriter.UseContinueWriter)
+			if (this.BinaryFileWriter.UseContinueWriter > 0)
 			{
 				this.BinaryFileWriter.ImData = memory.ImData;
 				this.BinaryFileWriter.data = memory.data;
@@ -5818,7 +5827,7 @@ function CBinaryFileWriter()
 
             this.BinaryFileWriter.WriteTheme(theme);
 
-			if (this.BinaryFileWriter.UseContinueWriter)
+			if (this.BinaryFileWriter.UseContinueWriter > 0)
 			{
 				memory.ImData = this.BinaryFileWriter.ImData;
 				memory.data = this.BinaryFileWriter.data;
@@ -5835,7 +5844,7 @@ function CBinaryFileWriter()
 
 				this.arrayStackStarts.splice(this.arrayStackStarts.length - 1, 1);
 			}
-        }
+        };
     }
 
     //--------------------------------------------------------export----------------------------------------------------

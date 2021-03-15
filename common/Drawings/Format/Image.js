@@ -88,9 +88,6 @@ function CImageShape()
     this.parentCrop = null;
 
     this.shdwSp = null;
-
-    this.Id = AscCommon.g_oIdCounter.Get_NewId();
-    AscCommon.g_oTableId.Add( this, this.Id );
 }
 
 	CImageShape.prototype = Object.create(AscFormat.CGraphicObjectBase.prototype);
@@ -137,7 +134,7 @@ CImageShape.prototype.setStyle = function(pr)
     this.style = pr;
 };
 
-CImageShape.prototype.copy = function()
+CImageShape.prototype.copy = function(oPr)
 {
     var copy = new CImageShape();
 
@@ -214,19 +211,9 @@ CImageShape.prototype.isGroup = function()
 };
 
 
-CImageShape.prototype.isWatermark = function()
-{
-    return this.getNoChangeAspect();
-};
-
 CImageShape.prototype.getWatermarkProps = function()
 {
     var oProps = new Asc.CAscWatermarkProperties();
-    if(!this.isWatermark())
-    {
-        oProps.put_Type(Asc.c_oAscWatermarkType.None);
-        return oProps;
-    }
     oProps.put_Type(Asc.c_oAscWatermarkType.Image);
     oProps.put_ImageUrl2(this.blipFill.RasterImageId);
     oProps.put_Scale(-1);
@@ -260,7 +247,7 @@ CImageShape.prototype.getWatermarkProps = function()
                         var oSectPr = oParentParagraph.Get_SectPr();
                         if(oSectPr)
                         {
-                            var Width = oSectPr.Get_PageWidth() - oSectPr.Get_PageMargin_Left() - oSectPr.Get_PageMargin_Right();
+                            var Width = oSectPr.GetContentFrameWidth();
                             if(AscFormat.fApproxEqual(this.extX, Width, 1))
                             {
                                 oProps.put_Scale(-1);
@@ -315,34 +302,17 @@ CImageShape.prototype.getRectBounds = function()
 
 CImageShape.prototype.canRotate = function()
 {
-    if(this.isCrop){
+    if(this.isCrop)
+    {
         return false;
     }
-    if(this.cropObject){
+    if(this.cropObject)
+    {
         return false;
     }
-    return true;
+    return AscFormat.CGraphicObjectBase.prototype.canRotate.call(this);
 };
 
-CImageShape.prototype.canResize = function()
-{
-    return true;//TODO
-};
-
-CImageShape.prototype.canMove = function()
-{
-    return true;//TODO
-};
-
-CImageShape.prototype.canGroup = function()
-{
-    return true;//TODO
-};
-
-CImageShape.prototype.canChangeAdjustments = function()
-{
-    return true;//TODO
-};
 
 CImageShape.prototype.createRotateTrack = function()
 {
@@ -379,14 +349,14 @@ CImageShape.prototype.getBase64Img = CShape.prototype.getBase64Img;
 CImageShape.prototype.convertToWord = function(document)
 {
     this.setBDeleted(true);
-    var oCopy = this.copy();
+    var oCopy = this.copy(undefined);
     oCopy.setBDeleted(false);
     return oCopy;
 };
 
 CImageShape.prototype.convertToPPTX = function(drawingDocument, worksheet)
 {
-    var ret = this.copy();
+    var ret = this.copy(undefined);
     ret.setWorksheet(worksheet);
     ret.setParent(null);
     ret.setBDeleted(false);
@@ -653,15 +623,11 @@ CImageShape.prototype.draw = function(graphics, transform)
     if(this.checkNeedRecalculate && this.checkNeedRecalculate()){
         return;
     }
-    if(graphics.updatedRect)
-    {
-        var rect = graphics.updatedRect;
-        var bounds = this.bounds;
-        if(bounds.x > rect.x + rect.w
-            || bounds.y > rect.y + rect.h
-            || bounds.x + bounds.w < rect.x
-            || bounds.y + bounds.h < rect.y)
+    var oUR = graphics.updatedRect;
+    if(oUR && this.bounds) {
+        if(!oUR.isIntersectOther(this.bounds)) {
             return;
+        }
     }
 
 

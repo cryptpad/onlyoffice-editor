@@ -37,6 +37,7 @@ var align_Right = AscCommon.align_Right;
 var align_Left = AscCommon.align_Left;
 var align_Center = AscCommon.align_Center;
 var align_Justify = AscCommon.align_Justify;
+var c_oAscRevisionsChangeType = Asc.c_oAscRevisionsChangeType;
 var g_oTableId = AscCommon.g_oTableId;
 var History = AscCommon.History;
 
@@ -1075,7 +1076,7 @@ ParaMath.prototype.Get_Id = function()
     return this.Id;
 };
 
-ParaMath.prototype.Copy = function(Selected)
+ParaMath.prototype.Copy = function(Selected, oPr)
 {
     var NewMath = new ParaMath();
     NewMath.Root.bRoot = true;
@@ -1083,11 +1084,11 @@ ParaMath.prototype.Copy = function(Selected)
     if(Selected)
     {
         var result = this.GetSelectContent();
-        result.Content.CopyTo(NewMath.Root, Selected);
+        result.Content.CopyTo(NewMath.Root, Selected, oPr);
     }
     else
     {
-        this.Root.CopyTo(NewMath.Root, Selected);
+        this.Root.CopyTo(NewMath.Root, Selected, oPr);
     }
 
     NewMath.Root.Correct_Content(true);
@@ -1411,7 +1412,7 @@ ParaMath.prototype.Remove = function(Direction, bOnAddText)
                         oContent.Select_ElementByPos(nStartPos + 1, true);
                     }
                 }
-                else //if (Direction < 0)
+                else
                 {
                     var oPrevElement = oContent.getElem(nStartPos - 1);
                     if (para_Math_Run === oPrevElement.Type)
@@ -1558,14 +1559,14 @@ ParaMath.prototype.Remove = function(Direction, bOnAddText)
     }
 };
 
-ParaMath.prototype.GetSelectContent = function()
+ParaMath.prototype.GetSelectContent = function(isAll)
 {
-    return this.Root.GetSelectContent();
+    return this.Root.GetSelectContent(isAll);
 };
 
-ParaMath.prototype.Get_CurrentParaPos = function()
+ParaMath.prototype.GetCurrentParaPos = function()
 {
-    return this.Root.Get_CurrentParaPos();
+    return this.Root.GetCurrentParaPos();
 };
 
 ParaMath.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
@@ -1629,6 +1630,11 @@ ParaMath.prototype.Get_DrawingObjectRun = function(Id)
     return null;
 };
 
+ParaMath.prototype.GetRunByElement = function(oRunElement)
+{
+	return null;
+};
+
 ParaMath.prototype.Get_DrawingObjectContentPos = function(Id, ContentPos, Depth)
 {
     return false;
@@ -1665,23 +1671,26 @@ ParaMath.prototype.Get_AllFontNames = function(AllFonts)
 
 ParaMath.prototype.GetSelectedElementsInfo = function(Info, ContentPos, Depth)
 {
-    Info.Set_Math(this);
+    Info.SetMath(this);
 };
 
 ParaMath.prototype.GetSelectedText = function(bAll, bClearText, oPr)
 {
-	if (true === bAll || true === this.IsSelectionUse()) {
+	if (true === bAll || true === this.IsSelectionUse())
+	{
 		if (true === bClearText)
 			return null;
 
-		var res = "";
-        var selectedContent = this.GetSelectContent();
-        if (selectedContent && selectedContent.Content && selectedContent.Content.GetTextContent) {
-            var textContent = selectedContent.Content.GetTextContent(!bAll);
-            if (textContent && textContent.str) {
-                res = textContent.str;
-            }
-        }
+		var res             = "";
+		var selectedContent = this.GetSelectContent(bAll);
+		if (selectedContent && selectedContent.Content && selectedContent.Content.GetTextContent)
+		{
+			var textContent = selectedContent.Content.GetTextContent(!bAll);
+			if (textContent && textContent.str)
+			{
+				res = textContent.str;
+			}
+		}
 		return res;
 	}
 	return "";
@@ -1708,7 +1717,7 @@ ParaMath.prototype.Clear_TextFormatting = function( DefHyper )
 {
 };
 
-ParaMath.prototype.Can_AddDropCap = function()
+ParaMath.prototype.CanAddDropCap = function()
 {
     return false;
 };
@@ -1743,6 +1752,12 @@ ParaMath.prototype.Set_MenuProps = function(Props)
     if(Props != undefined)
         this.Root.Set_MenuProps(Props);
 };
+
+ParaMath.prototype.CheckRunContent = function(fCheck)
+{
+    this.Root.CheckRunContent(fCheck);
+};
+
 //-----------------------------------------------------------------------------------
 // Функции пересчета
 //-----------------------------------------------------------------------------------
@@ -1791,7 +1806,6 @@ ParaMath.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 		// информация о пересчете
 		var RPI = new CRPI();
 		RPI.MergeMathInfo(this.ParaMathRPI);
-
 		this.Root.PreRecalc(null, this, new CMathArgSize(), RPI);
 
 		this.PageInfo.Reset();
@@ -1873,11 +1887,11 @@ ParaMath.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 				// Уберем из массива информацию о рассчитанных ширинах, чтобы не учлась рассчитанная ранее максимальная ширина (в связи с тем, что отрезок, в к-ом нужно расположить, изменился по ширине)
 				// выставляем EmptyLine = false, т.к. нужно сделать заново пересчет в новом отрезке (а не перенести формулу под картинку)
 				// т.к. инициируем пересчет заново, то в проверку на ParaNewLine : if (true === NotInlineMath && true !== PRS.EmptyLine) не зайдем, т.к. NewRange = true
+				this.private_SetRestartRecalcInfo(PRS);
 				this.PageInfo.Reset_Page(Page);
 				this.ParaMathRPI.bInternalRanges = true;
 				// не выставляем EmtyLine = false, т.к. так и так выйдем из пересчета данной строки при расчете Ranges, до пересчета картинок не дойдем, поэтому PRS.EmptyLine = false  выставлять не нужно
 				//PRS.EmptyLine = false;
-				this.private_SetRestartRecalcInfo(PRS);
 			}
 			else if (UpdWrap == MATH_UPDWRAP_UNDERFLOW)
 			{
@@ -2381,6 +2395,9 @@ ParaMath.prototype.Recalculate_PageEndInfo = function(PRSI, _CurLine, _CurRange)
 {
 
 };
+ParaMath.prototype.RecalculateEndInfo = function(oPRSI)
+{
+};
 ParaMath.prototype.SaveRecalculateObject = function(Copy)
 {
 	var RecalcObj = this.Root.SaveRecalculateObject(Copy);
@@ -2423,9 +2440,9 @@ ParaMath.prototype.Check_PageBreak = function()
     return false;
 };
 
-ParaMath.prototype.Check_BreakPageEnd = function(PBChecker)
+ParaMath.prototype.CheckSplitPageOnPageBreak = function(oPBChecker)
 {
-    return false;
+	return true;
 };
 ParaMath.prototype.Get_ParaPosByContentPos = function(ContentPos, Depth)
 {
@@ -2748,7 +2765,7 @@ ParaMath.prototype.Draw_HighLights = function(PDSH)
             var CommentsFlag  = PDSH.CommentsFlag;
 
             var Bounds = this.Root.Get_LineBound(PDSH.Line, PDSH.Range);
-            Comm.Add(Bounds.Y, Bounds.Y + Bounds.H, Bounds.X, Bounds.X + Bounds.W, 0, 0, 0, 0, { Active : CommentsFlag === comments_ActiveComment ? true : false, CommentId : CommentId } );
+            Comm.Add(Bounds.Y, Bounds.Y + Bounds.H, Bounds.X, Bounds.X + Bounds.W, 0, 0, 0, 0, { Active : CommentsFlag === AscCommon.comments_ActiveComment ? true : false, CommentId : CommentId } );
         }
 
         if (null !== CollFirst)
@@ -2838,7 +2855,7 @@ ParaMath.prototype.Draw_Lines = function(PDSL)
 //-----------------------------------------------------------------------------------
 // Функции для работы с курсором
 //-----------------------------------------------------------------------------------
-ParaMath.prototype.Is_CursorPlaceable = function()
+ParaMath.prototype.IsCursorPlaceable = function()
 {
     return true;
 };
@@ -3404,6 +3421,21 @@ ParaMath.prototype.IsStopCursorOnEntryExit = function()
 ParaMath.prototype.RemoveTabsForTOC = function(isTab)
 {
 	return isTab;
+};
+/**
+ * Проверяем, что данный класс лежит в плейсхолдере специального контейнера для формул
+ * @return {boolean}
+ */
+ParaMath.prototype.IsParentEquationPlaceholder = function()
+{
+	var arrContentControl = this.GetParentContentControls();
+	for (var nIndex = 0, nCount = arrContentControl.length; nIndex < nCount; ++nIndex)
+	{
+		if (arrContentControl[nIndex].IsContentControlEquation() && arrContentControl[nIndex].IsPlaceHolder())
+			return true;
+	}
+
+	return false;
 };
 
 function MatGetKoeffArgSize(FontSize, ArgSize)

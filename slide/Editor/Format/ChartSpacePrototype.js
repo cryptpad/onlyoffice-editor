@@ -41,7 +41,6 @@ CChartSpace.prototype.addToDrawingObjects =  CShape.prototype.addToDrawingObject
 CChartSpace.prototype.setDrawingObjects = CShape.prototype.setDrawingObjects;
 CChartSpace.prototype.setDrawingBase = CShape.prototype.setDrawingBase;
 CChartSpace.prototype.deleteDrawingBase = CShape.prototype.deleteDrawingBase;
-CChartSpace.prototype.setParent2 = CShape.prototype.setParent2;
 CChartSpace.prototype.getDrawingObjectsController = CShape.prototype.getDrawingObjectsController;
 CChartSpace.prototype.handleUpdateTheme = CShape.prototype.handleUpdateTheme;
 CChartSpace.prototype.getIsSingleBody = CShape.prototype.getIsSingleBody;
@@ -169,7 +168,6 @@ CChartSpace.prototype.recalcText = function()
 
 CChartSpace.prototype.recalculateBounds = CShape.prototype.recalculateBounds;
 CChartSpace.prototype.deselect = CShape.prototype.deselect;
-CChartSpace.prototype.hitToHandles = CShape.prototype.hitToHandles;
 CChartSpace.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CChartSpace.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CChartSpace.prototype.getInvertTransform = CShape.prototype.getInvertTransform;
@@ -253,25 +251,12 @@ CChartSpace.prototype.handleUpdatePosition = function()
     this.recalcBounds();
     for(var i = 0; i < this.userShapes.length; ++i)
     {
-        if(this.userShapes[i].object && this.userShapes[i].object.handleUpdateExtents)
+        if(this.userShapes[i].object)
         {
             this.userShapes[i].object.handleUpdateExtents();
         }
     }
     this.addToRecalculate();
-};
-CChartSpace.prototype.handleUpdateExtents = function(bExtX)
-{
-    var oXfrm = this.spPr && this.spPr.xfrm;
-    if(undefined === bExtX ||
-        !oXfrm || bExtX && !AscFormat.fApproxEqual(this.extX, oXfrm.extX, 0.01) || false === bExtX &&!AscFormat.fApproxEqual(this.extY, oXfrm.extY, 0.01))
-    {
-        this.recalcChart();
-        this.recalcBounds();
-        this.recalcTransform();
-        this.recalcTitles();
-        this.handleUpdateInternalChart(false);
-    }
 };
 CChartSpace.prototype.handleUpdateFlip = function()
 {
@@ -323,18 +308,11 @@ CChartSpace.prototype.handleUpdateLn = function()
 	this.recalcInfo.recalculateMarkers = true;
     this.addToRecalculate();
 };
-CChartSpace.prototype.canGroup = CShape.prototype.canGroup;
 CChartSpace.prototype.convertPixToMM = CShape.prototype.convertPixToMM;
 CChartSpace.prototype.getCanvasContext = CShape.prototype.getCanvasContext;
 CChartSpace.prototype.getHierarchy = CShape.prototype.getHierarchy;
 CChartSpace.prototype.getParentObjects = CShape.prototype.getParentObjects;
 CChartSpace.prototype.recalculateTransform = CShape.prototype.recalculateTransform;
-CChartSpace.prototype.canResize = CShape.prototype.canResize;
-CChartSpace.prototype.canMove = CShape.prototype.canMove;
-CChartSpace.prototype.canRotate = function()
-{
-    return false;
-};
 
 
 CChartSpace.prototype.createResizeTrack = CShape.prototype.createResizeTrack;
@@ -723,7 +701,7 @@ CStyle.prototype.Create_NormalTable = function()
     this.Set_TablePr( TablePr );
 };
 
-CTablePr.prototype.Init_Default = function()
+CTablePr.prototype.InitDefault = function()
 {
     this.TableStyleColBandSize = 1;
     this.TableStyleRowBandSize = 1;

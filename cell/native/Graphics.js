@@ -227,6 +227,12 @@ CGraphics.prototype =
             }
         }
     },
+    
+    p_dash : function(params)
+    {
+        this.Native["PD_p_dash"](params ? params : []);
+    },
+
     // brush methods
     b_color1 : function(r,g,b,a)
     {
@@ -804,11 +810,7 @@ CGraphics.prototype =
     {
         this.m_oTextPr = textPr.Copy();
         this.theme = theme;
-        var FontScheme = theme.themeElements.fontScheme;
-        this.m_oTextPr.RFonts.Ascii    = {Name: FontScheme.checkFont(this.m_oTextPr.RFonts.Ascii.Name), Index: -1};
-        this.m_oTextPr.RFonts.EastAsia = {Name: FontScheme.checkFont(this.m_oTextPr.RFonts.EastAsia.Name), Index: -1};
-        this.m_oTextPr.RFonts.HAnsi    = {Name: FontScheme.checkFont(this.m_oTextPr.RFonts.HAnsi.Name), Index: -1};
-        this.m_oTextPr.RFonts.CS       = {Name: FontScheme.checkFont(this.m_oTextPr.RFonts.CS.Name), Index: -1};
+        this.m_oTextPr.ReplaceThemeFonts(theme.themeElements.fontScheme);
     },
 
     SetFontSlot : function(slot, fontSizeKoef)

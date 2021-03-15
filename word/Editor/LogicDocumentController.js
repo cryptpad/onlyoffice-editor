@@ -49,9 +49,9 @@ CLogicDocumentController.prototype.CanUpdateTarget = function()
 {
 	return this.LogicDocument.controller_CanUpdateTarget();
 };
-CLogicDocumentController.prototype.RecalculateCurPos = function(bUpdateX, bUpdateY)
+CLogicDocumentController.prototype.RecalculateCurPos = function(bUpdateX, bUpdateY, isUpdateTarget)
 {
-	return this.LogicDocument.controller_RecalculateCurPos(bUpdateX, bUpdateY);
+	return this.LogicDocument.controller_RecalculateCurPos(bUpdateX, bUpdateY, isUpdateTarget);
 };
 CLogicDocumentController.prototype.GetCurPage = function()
 {
@@ -87,9 +87,9 @@ CLogicDocumentController.prototype.AddSignatureLine = function(oSignatureDrawing
 };
 
 
-CLogicDocumentController.prototype.AddInlineTable = function(nCols, nRows)
+CLogicDocumentController.prototype.AddInlineTable = function(nCols, nRows, nMode)
 {
-	this.LogicDocument.controller_AddInlineTable(nCols, nRows);
+	return this.LogicDocument.controller_AddInlineTable(nCols, nRows, nMode);
 };
 CLogicDocumentController.prototype.ClearParagraphFormatting = function(isClearParaPr, isClearTextPr)
 {
@@ -299,13 +299,13 @@ CLogicDocumentController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
 	this.LogicDocument.controller_GetSelectedElementsInfo(oInfo);
 };
-CLogicDocumentController.prototype.AddTableRow = function(bBefore)
+CLogicDocumentController.prototype.AddTableRow = function(bBefore, nCount)
 {
-	this.LogicDocument.controller_AddTableRow(bBefore);
+	this.LogicDocument.controller_AddTableRow(bBefore, nCount);
 };
-CLogicDocumentController.prototype.AddTableColumn = function(bBefore)
+CLogicDocumentController.prototype.AddTableColumn = function(bBefore, nCount)
 {
-	this.LogicDocument.controller_AddTableColumn(bBefore);
+	this.LogicDocument.controller_AddTableColumn(bBefore, nCount);
 };
 CLogicDocumentController.prototype.RemoveTableRow = function()
 {
@@ -442,4 +442,12 @@ CLogicDocumentController.prototype.GetPlaceHolderObject = function()
 CLogicDocumentController.prototype.GetAllFields = function(isUseSelection, arrFields)
 {
 	return this.LogicDocument.controller_GetAllFields(isUseSelection, arrFields);
+};
+CLogicDocumentController.prototype.IsTableCellSelection = function()
+{
+	return this.LogicDocument.controller_IsTableCellSelection();
+};
+CLogicDocumentController.prototype.IsSelectionLocked = function(CheckType)
+{
+	this.LogicDocument.controller_IsSelectionLocked(CheckType);
 };

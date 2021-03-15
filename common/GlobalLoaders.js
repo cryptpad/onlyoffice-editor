@@ -463,19 +463,19 @@
 
                     window["AscDesktopEditor"]["PreloadCryptoImage"](_url, AscCommon.g_oDocumentUrls.getLocal(_url));
 
-                    oThis.Api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
+                    oThis.Api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.LoadImage);
                 };
 
                 Image.prototype["onload_crypto"] = function(_src, _crypto_data)
                 {
                     if (_crypto_data && AscCommon.EncryptionWorker && AscCommon.EncryptionWorker.isCryptoImages())
                     {
-                        // TODO: send to plugin for decryption & call this method with empty _crypto_data
                         AscCommon.EncryptionWorker.decryptImage(_src, this, _crypto_data);
                         return;
                     }
+					this.crossOrigin = "";
                     this.src = _src;
-                    oThis.Api.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
+                    oThis.Api.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.LoadImage);
                 };
             }
         }
@@ -614,6 +614,9 @@
 						oThis._LoadImages();
 					}
 				};
+				AscCommon.backoffOnErrorImg(oImage.Image, function(img) {
+					oThis.loadImageByUrl(img, img.src);
+				});
 				//oImage.Image.crossOrigin = 'anonymous';
 				oThis.loadImageByUrl(oImage.Image, oImage.src);
 
@@ -645,6 +648,9 @@
                 oImage.Status = ImageLoadStatus.Complete;
                 oThis.Api.asyncImageEndLoaded(oImage);
             };
+            AscCommon.backoffOnErrorImg(oImage.Image, function(img) {
+                oThis.loadImageByUrl(img, img.src);
+            });
             //oImage.Image.crossOrigin = 'anonymous';
             this.loadImageByUrl(oImage.Image, oImage.src);
             return null;
@@ -667,6 +673,9 @@
                 oImage.Image = null;
                 oThat.Api.asyncImageEndLoadedBackground(oImage);
             };
+            AscCommon.backoffOnErrorImg(oImage.Image, function(img) {
+                oThis.loadImageByUrl(img, img.src);
+            });
             //oImage.Image.crossOrigin = 'anonymous';
             console.log("Loading image " + i);
             console.log(oImage);
@@ -728,6 +737,9 @@
 					if (oThis.loadImageCallBackCounter == oThis.loadImageCallBackCounterMax)
 						oThis.LoadImagesWithCallbackEnd();
 				};
+				AscCommon.backoffOnErrorImg(oImage.Image, function(img) {
+					oThis.loadImageByUrl(img, img.src);
+				});
 				//oImage.Image.crossOrigin = 'anonymous';
                 this.loadImageByUrl(oImage.Image, oImage.src);
 			}

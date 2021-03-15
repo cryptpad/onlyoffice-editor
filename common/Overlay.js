@@ -511,6 +511,12 @@ COverlay.prototype =
         this.m_oContext.arc(x,y,r,0,Math.PI*2,false);
         //this.m_oContext.closePath();
     },
+    AddEllipse2 : function(x,y,r)
+    {
+        this.m_oContext.moveTo(x+r,y);
+        this.m_oContext.arc(x,y,r,0,Math.PI*2,false);
+        //this.m_oContext.closePath();
+    },
 
 	AddDiamond : function(x,y,r)
 	{
@@ -560,6 +566,38 @@ COverlay.prototype =
         _ctx.quadraticCurveTo(x, y + h, x, y + h - r);
         _ctx.lineTo(x, y + r);
         _ctx.quadraticCurveTo(x, y, x + r, y);
+    },
+    DrawFrozenPlaceHorLine: function(y, left, right)
+    {
+        this.m_oContext.strokeStyle = "#AAAAAA";
+        var nW = 2;
+        if(AscCommon.AscBrowser.isRetina)
+        {
+            nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
+        }
+        this.CheckPoint1(left, y - nW);
+        this.CheckPoint2(right, y + nW);
+        this.m_oContext.lineWidth = nW;
+        this.m_oContext.beginPath();
+        this.m_oContext.moveTo(left, y);
+        this.m_oContext.lineTo(right, y);
+        this.m_oContext.stroke();
+    },
+    DrawFrozenPlaceVerLine: function(x, top, bottom)
+    {
+        this.m_oContext.strokeStyle = "#AAAAAA";
+        var nW = 2;
+        if(AscCommon.AscBrowser.isRetina)
+        {
+            nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
+        }
+        this.CheckPoint1(x - nW, top);
+        this.CheckPoint2(x + nW, bottom);
+        this.m_oContext.lineWidth = nW;
+        this.m_oContext.beginPath();
+        this.m_oContext.moveTo(x, top);
+        this.m_oContext.lineTo(x, bottom);
+        this.m_oContext.stroke();
     }
 };
 
@@ -938,7 +976,7 @@ CAutoshapeTrack.prototype =
         var x4 = dx4 >> 0;
         var y4 = dy4 >> 0;
 
-        var _eps = 0.001;
+        var _eps = 0.01;
         if (Math.abs(dx1 - dx3) < _eps &&
             Math.abs(dx2 - dx4) < _eps &&
             Math.abs(dy1 - dy2) < _eps &&
@@ -967,7 +1005,7 @@ CAutoshapeTrack.prototype =
             nIsCleverWithTransform = true;
             nType = 1;
 
-            if (true)
+            if (false)
             {
                 if (x1 > x2)
                 {
@@ -2574,6 +2612,7 @@ CAutoshapeTrack.prototype =
             return;
 
         var overlay = this.m_oOverlay;
+        overlay.SetBaseTransform();
         var ctx = overlay.m_oContext;
 
         this.CurrentPageInfo = overlay.m_oHtmlPage.GetDrawingPageInfo(this.PageIndex);
@@ -2632,6 +2671,7 @@ CAutoshapeTrack.prototype =
             return;
 
         var overlay = this.m_oOverlay;
+        overlay.SetBaseTransform();
         var ctx = overlay.m_oContext;
 
         this.CurrentPageInfo = overlay.m_oHtmlPage.GetDrawingPageInfo(this.PageIndex);
@@ -2892,7 +2932,24 @@ CAutoshapeTrack.prototype =
         this.m_oContext.drawImage(AscCommon.g_comment_image, _offset[0], _offset[1], _offset[2], _offset[3], __x, __y, _offset[2], _offset[3]);
 
         ctx.globalAlpha = _oldAlpha;
-    }
+    },
+
+    DrawFrozenPaneBorderHor: function(y, left, right)
+    {
+        this.m_oOverlay.SetBaseTransform();
+        autoShapeTrack.p_color(0xAA, 0xAA, 0xAA);
+        var nW = BORDER_WIDTH;
+        if(AscCommon.AscBrowser.isRetina) {
+            nW = AscCommon.AscBrowser.convertToRetinaValue(nW, true);
+        }
+        autoShapeTrack.Graphics.SetIntegerGrid(true);
+        autoShapeTrack.p_width(nW);
+        autoShapeTrack._s();
+        autoShapeTrack._m(left, y);
+        autoShapeTrack._l(right, y);
+        autoShapeTrack.ds();
+        autoShapeTrack.Graphics.SetIntegerGrid(false);
+    } 
 };
 
 	function DrawTextByCenter() // this!

@@ -67,7 +67,7 @@ CDocumentOutline.prototype.UpdateAll = function()
 
 	this.ParagraphsToUpdate = {};
 	this.Elements           = [];
-	this.LogicDocument.GetOutlineParagraphs(this.Elements, {SkipEmptyParagraphs : false, SkipTables : true, SkipDrawings : true});
+	this.LogicDocument.GetOutlineParagraphs(this.Elements, {SkipEmptyParagraphs : false, SkipTables : true, SkipDrawings : true, OutlineStart : 1, OutlineEnd : 9});
 
 	if (this.Elements.length > 0)
 	{
@@ -269,6 +269,7 @@ CDocumentOutline.prototype.GoTo = function(nIndex)
 	else
 	{
 		oParagraph.MoveCursorToStartPos();
+		oParagraph.SkipPageColumnBreaks();
 		oParagraph.Document_SetThisElementCurrent(true);
 	}
 };

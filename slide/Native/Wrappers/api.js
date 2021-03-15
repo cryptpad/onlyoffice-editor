@@ -32,16 +32,16 @@
 
 var global_memory_stream_menu = CreateNativeMemoryStream();
 
-window.IS_NATIVE_EDITOR = true;
-
-
+var _api = null;
 
 var sdkCheck = true;
 var spellCheck = true;
+var _internalStorage = {};
 
 // endsectionPr -----------------------------------------------------------------------------------------
 
 window['SockJS'] = createSockJS();
+window['JSZipUtils'] = JSZipUtils();
 
 // font engine -------------------------------------
 var FontStyle =
@@ -194,40 +194,6 @@ function asc_menu_WriteColor(_type, _color, _stream)
     }
 
     _stream["WriteByte"](255);
-}
-
-function asc_WriteUsers(c, s) {
-    if (!c) return;
-
-    var len = 0, name, user;
-    for (name in c) {
-        if (undefined !== name) {
-            len++;
-        }
-    }
-
-    s["WriteLong"](len);
-
-    for (name in c) {
-        if (undefined !== name) {
-            user = c[name];
-            if (user) {
-                s['WriteString2'](user.asc_getId());
-                s['WriteString2'](user.asc_getFirstName() === undefined ? "" : user.asc_getFirstName());
-                s['WriteString2'](user.asc_getLastName() === undefined ? "" : user.asc_getLastName());
-                s['WriteString2'](user.asc_getUserName() === undefined ? "" : user.asc_getUserName());
-                s['WriteBool'](user.asc_getView());
-
-                var color = new Asc.asc_CColor();
-
-                color.r = (user.color >> 16) & 255;
-                color.g = (user.color >> 8 ) & 255;
-                color.b = (user.color      ) & 255;
-
-                asc_menu_WriteColor(0, color, s);
-            }
-        }
-    }
 }
 
 function asc_WriteColorSchemes(schemas, s) {
@@ -467,7 +433,175 @@ function asc_menu_WriteAscValAxisSettings(_type, _settings, _stream)
 
     _stream["WriteByte"](255);
 };
+function asc_menu_ReadAscCatAxisSettings(_params, _cursor){
+    var _settings = new AscCommon.asc_CatAxisSettings();
 
+    var _continue = true;
+    while (_continue)
+    {
+        var _attr = _params[_cursor.pos++];
+        switch (_attr)
+        {
+            case 0:
+            {
+                _settings.putInternalBetweenTick(_params[_cursor.pos++]);
+                break;
+            }
+            case 1:
+            {
+                _settings.putIntervalBetweenLabelsRule(_params[_cursor.pos++]);
+                break;
+            }
+            case 2:
+            {
+                _settings.putInternalBetweenLabels(_params[_cursor.pos++]);
+                break;
+            }
+            case 3:
+            {
+                _settings.putInvertCatOrder(_params[_cursor.pos++]);
+                break;
+            }
+            case 4:
+            {
+                _settings.putLabelsAxisDistance(_params[_cursor.pos++]);
+                break;
+            }
+            case 5:
+            {
+                _settings.putLabelsPosition(_params[_cursor.pos++]);
+                break;
+            }
+            case 6:
+            {
+                _settings.putMajorTickMark(_params[_cursor.pos++]);
+                break;
+            }
+            case 7:
+            {
+                _settings.putMinorTickMark(_params[_cursor.pos++]);
+                break;
+            }
+            case 8:
+            {
+                _settings.putTickLabelsPos(_params[_cursor.pos++]);
+                break;
+            }
+            case 9:
+            {
+                _settings.putCrossesRule(_params[_cursor.pos++]);
+                break;
+            }
+            case 10:
+            {
+                _settings.putCrosses(_params[_cursor.pos++]);
+                break;
+            }
+            case 11:
+            {
+                _settings.putAxisType(_params[_cursor.pos++]);
+                break;
+            }
+            case 12:
+            {
+                _settings.putCrossMinVal(_params[_cursor.pos++]);
+                break;
+            }
+            case 13:
+            {
+                _settings.putCrossMaxVal(_params[_cursor.pos++]);
+                break;
+            }
+            case 255:
+            default:
+            {
+                _continue = false;
+                break;
+            }
+        }
+    }
+
+    return _settings;
+}
+function asc_menu_WriteAscCatAxisSettings(_type, _settings, _stream){
+    if (!_settings)
+        return;
+
+    _stream["WriteByte"](_type);
+
+    if (_settings.getIntervalBetweenTick() !== undefined && _settings.getIntervalBetweenTick() !== null)
+    {
+        _stream["WriteByte"](0);
+        _stream["WriteDouble2"](_settings.getIntervalBetweenTick());
+    }
+    if (_settings.getIntervalBetweenLabelsRule() !== undefined && _settings.getIntervalBetweenLabelsRule() !== null)
+    {
+        _stream["WriteByte"](1);
+        _stream["WriteLong"](_settings.getIntervalBetweenLabelsRule());
+    }
+    if (_settings.getIntervalBetweenLabels() !== undefined && _settings.getIntervalBetweenLabels() !== null)
+    {
+        _stream["WriteByte"](2);
+        _stream["WriteDouble2"](_settings.getIntervalBetweenLabels());
+    }
+    if (_settings.getInvertCatOrder() !== undefined && _settings.getInvertCatOrder() !== null)
+    {
+        _stream["WriteByte"](3);
+        _stream["WriteBool"](_settings.getInvertCatOrder());
+    }
+    if (_settings.getLabelsAxisDistance() !== undefined && _settings.getLabelsAxisDistance() !== null)
+    {
+        _stream["WriteByte"](4);
+        _stream["WriteDouble2"](_settings.getLabelsAxisDistance());
+    }
+    if (_settings.getTickLabelsPos() !== undefined && _settings.getTickLabelsPos() !== null)
+    {
+        _stream["WriteByte"](5);
+        _stream["WriteLong"](_settings.getTickLabelsPos());
+    }
+    if (_settings.getMajorTickMark() !== undefined && _settings.getMajorTickMark() !== null)
+    {
+        _stream["WriteByte"](6);
+        _stream["WriteLong"](_settings.getMajorTickMark());
+    }
+    if (_settings.getMinorTickMark() !== undefined && _settings.getMinorTickMark() !== null)
+    {
+        _stream["WriteByte"](7);
+        _stream["WriteLong"](_settings.getMinorTickMark());
+    }
+    if (_settings.getTickLabelsPos() !== undefined && _settings.getTickLabelsPos() !== null)
+    {
+        _stream["WriteByte"](8);
+        _stream["WriteLong"](_settings.getTickLabelsPos());
+    }
+    if (_settings.getCrossesRule() !== undefined && _settings.getCrossesRule() !== null)
+    {
+        _stream["WriteByte"](9);
+        _stream["WriteLong"](_settings.getCrossesRule());
+    }
+    if (_settings.getCrosses() !== undefined && _settings.getCrosses() !== null)
+    {
+        _stream["WriteByte"](10);
+        _stream["WriteLong"](_settings.getCrosses());
+    }
+    if (_settings.getAxisType() !== undefined && _settings.getAxisType() !== null)
+    {
+        _stream["WriteByte"](11);
+        _stream["WriteLong"](_settings.getAxisType());
+    }
+    if (_settings.getCrossMinVal() !== undefined && _settings.getCrossMinVal() !== null)
+    {
+        _stream["WriteByte"](12);
+        _stream["WriteLong"](_settings.getCrossMinVal());
+    }
+    if (_settings.getCrossMaxVal() !== undefined && _settings.getCrossMaxVal() !== null)
+    {
+        _stream["WriteByte"](13);
+        _stream["WriteLong"](_settings.getCrossMaxVal());
+    }
+
+    _stream["WriteByte"](255);
+}
 function asc_menu_ReadChartPr(_params, _cursor)
 {
     var _settings = new Asc.asc_ChartSettings();
@@ -570,7 +704,7 @@ function asc_menu_ReadChartPr(_params, _cursor)
             }
             case 18:
             {
-                _settings.range = _params[_cursor.pos++];
+                _settings.putRange(_params[_cursor.pos++]);
                 break;
             }
             case 19:
@@ -591,6 +725,16 @@ function asc_menu_ReadChartPr(_params, _cursor)
             case 22:
             {
                 _settings.smooth = _params[_cursor.pos++];
+                break;
+            }
+            case 23:
+            {
+                _settings.horAxisProps = asc_menu_ReadAscCatAxisSettings(_params, _cursor);
+                break;
+            }
+            case 24:
+            {
+                _settings.vertAxisProps = asc_menu_ReadAscCatAxisSettings(_params, _cursor);
                 break;
             }
             case 255:
@@ -698,13 +842,28 @@ function asc_menu_WriteChartPr(_type, _chartPr, _stream)
         _stream["WriteString2"](_chartPr.separator);
     }
 
-    asc_menu_WriteAscValAxisSettings(16, _chartPr.horAxisProps, _stream);
-    asc_menu_WriteAscValAxisSettings(17, _chartPr.vertAxisProps, _stream);
+    if (undefined != _chartPr.horAxisProps
+        && null != _chartPr.horAxisProps
+        && _chartPr.horAxisProps.getAxisType() == Asc.c_oAscAxisType.val) {
+        asc_menu_WriteAscValAxisSettings(16, _chartPr.horAxisProps, _stream);
+    }
 
-    if (_chartPr.range !== undefined && _chartPr.range !== null)
+    if (undefined != _chartPr.vertAxisProps
+        && null != _chartPr.vertAxisProps
+        && _chartPr.vertAxisProps.getAxisType() == Asc.c_oAscAxisType.val) {
+        asc_menu_WriteAscValAxisSettings(17, _chartPr.vertAxisProps, _stream);
+    }
+
+    var sRange = null;
+    sRange = _chartPr.getRange();
+    if(!sRange)
+    {
+        sRange = _chartPr.aRanges[0];
+    }
+    if (sRange !== undefined && sRange !== null)
     {
         _stream["WriteByte"](18);
-        _stream["WriteString2"](_chartPr.range);
+        _stream["WriteString2"](sRange);
     }
 
     if (_chartPr.inColumns !== undefined && _chartPr.inColumns !== null)
@@ -726,6 +885,18 @@ function asc_menu_WriteChartPr(_type, _chartPr, _stream)
     {
         _stream["WriteByte"](22);
         _stream["WriteBool"](_chartPr.showVal);
+    }
+
+    if (undefined != _chartPr.horAxisProps
+        && null != _chartPr.horAxisProps
+        && _chartPr.horAxisProps.getAxisType() == Asc.c_oAscAxisType.cat) {
+        asc_menu_WriteAscCatAxisSettings(23, _chartPr.horAxisProps, _stream);
+    }
+
+    if (undefined != _chartPr.vertAxisProps
+        && null != _chartPr.vertAxisProps
+        && _chartPr.vertAxisProps.getAxisType() == Asc.c_oAscAxisType.cat) {
+        asc_menu_WriteAscCatAxisSettings(24, _chartPr.vertAxisProps, _stream);
     }
 
     _stream["WriteByte"](255);
@@ -1491,7 +1662,7 @@ function asc_menu_WriteParaBorder(_type, _border, _stream)
 
 function asc_menu_ReadParaBorders(_params, _cursor)
 {
-    var _border = new asc_CParagraph();
+    var _border = new Asc.asc_CParagraphBorders();
     var _continue = true;
     while (_continue)
     {
@@ -3016,8 +3187,8 @@ function initSpellCheckApi() {
 function NativeOpenFileP(_params, documentInfo){
     window["CreateMainTextMeasurerWrapper"]();
     window.g_file_path = "native_open_file";
-    window.NATIVE_DOCUMENT_TYPE = window.native.GetEditorType();
-    var doc_bin = window.native.GetFileString(window.g_file_path);
+    window.NATIVE_DOCUMENT_TYPE = window["native"]["GetEditorType"]();
+    var doc_bin = window["native"]["GetFileString"](window.g_file_path);
     if ("presentation" !== window.NATIVE_DOCUMENT_TYPE){
         return;
     }
@@ -3032,9 +3203,11 @@ function NativeOpenFileP(_params, documentInfo){
         translations = "";
     }
 
-    _api = new window["Asc"]["asc_docs_api"](translations);
+    window["_api"] = window["API"] = _api = new window["Asc"]["asc_docs_api"](translations);
+    window["_editor"] = window.editor;
+
     AscCommon.g_clipboardBase.Init(_api);
-    _api.Native_Editor_Initialize_Settings(_params);
+    _api["Native_Editor_Initialize_Settings"](_params);
     window.documentInfo = documentInfo;
     var userInfo = new Asc.asc_CUserInfo();
     userInfo.asc_putId(window.documentInfo["docUserId"]);
@@ -3048,6 +3221,9 @@ function NativeOpenFileP(_params, documentInfo){
     docInfo.put_Format("pptx");
     docInfo.put_UserInfo(userInfo);
     docInfo.put_Token(window.documentInfo["token"]);
+
+    _internalStorage.externalUserInfo = userInfo;
+    _internalStorage.externalDocInfo = docInfo;
 
     var permissions = window.documentInfo["permissions"];
     if (undefined != permissions && null != permissions && permissions.length > 0) {
@@ -3080,6 +3256,19 @@ function NativeOpenFileP(_params, documentInfo){
         window["native"]["OnCallMenuEvent"](8093, stream); // ASC_PRESENTATIONS_EVENT_TYPE_THEME_INDEX
     });
 
+    // Comments
+
+    _api.asc_registerCallback("asc_onAddComment", onApiAddComment);
+    _api.asc_registerCallback("asc_onAddComments", onApiAddComments);
+    _api.asc_registerCallback("asc_onRemoveComment", onApiRemoveComment);
+    _api.asc_registerCallback("asc_onChangeComments", onChangeComments);
+    _api.asc_registerCallback("asc_onRemoveComments", onApiRemoveComments);
+    _api.asc_registerCallback("asc_onChangeCommentData", onApiChangeCommentData);
+    _api.asc_registerCallback("asc_onLockComment", onApiLockComment);
+    _api.asc_registerCallback("asc_onUnLockComment", onApiUnLockComment);
+    _api.asc_registerCallback("asc_onShowComment", onApiShowComment);
+    _api.asc_registerCallback("asc_onHideComment", onApiHideComment);
+    _api.asc_registerCallback("asc_onUpdateCommentPosition", onApiUpdateCommentPosition);
 
     if (window.documentInfo["iscoauthoring"]) {
         _api.isSpellCheckEnable = false;
@@ -3089,19 +3278,8 @@ function NativeOpenFileP(_params, documentInfo){
         _api.SetCollaborativeMarksShowType(Asc.c_oAscCollaborativeMarksShowType.None);
         window["native"]["onTokenJWT"](_api.CoAuthoringApi.get_jwt());
 
-        _api.asc_registerCallback("asc_onAuthParticipantsChanged", function(users) {
-            var stream = global_memory_stream_menu;
-            stream["ClearNoAttack"]();
-            asc_WriteUsers(users, stream);
-            window["native"]["OnCallMenuEvent"](20101, stream); // ASC_COAUTH_EVENT_TYPE_PARTICIPANTS_CHANGED
-        });
-
-        _api.asc_registerCallback("asc_onParticipantsChanged", function(users) {
-            var stream = global_memory_stream_menu;
-            stream["ClearNoAttack"]();
-            asc_WriteUsers(users, stream);
-            window["native"]["OnCallMenuEvent"](20101, stream); // ASC_COAUTH_EVENT_TYPE_PARTICIPANTS_CHANGED
-        });
+        _api.asc_registerCallback("asc_onAuthParticipantsChanged", onApiAuthParticipantsChanged);
+        _api.asc_registerCallback("asc_onParticipantsChanged", onApiParticipantsChanged);
 
         _api.asc_registerCallback("asc_onGetEditorPermissions", function(state) {
 
@@ -3124,10 +3302,11 @@ function NativeOpenFileP(_params, documentInfo){
             if (callback) callback.call(me);
         });
     } else {
-        _api.asc_nativeOpenFile(doc_bin);
+        _api["asc_nativeOpenFile"](doc_bin);
         _api.documentId = "1";
         _api.WordControl.m_oDrawingDocument.AfterLoad();
-        Api = _api;
+        window["_api"] = window["API"] = Api = _api;
+        window["_editor"] = window.editor;
         if (window.documentInfo["viewmode"]) {
             _api.ShowParaMarks = false;
             AscCommon.CollaborativeEditing.Set_GlobalLock(true);
@@ -3155,10 +3334,221 @@ function NativeOpenFileP(_params, documentInfo){
 
         initSpellCheckApi();
 
+        if (!_api.bNoSendComments) {
+            var _slides = _presentation.Slides;
+            var _slidesCount = _slides.length;
+            for (var i = 0; i < _slidesCount; i++) {
+                var slideComments = _slides[i].slideComments;
+                if (slideComments) {
+                    var _comments = slideComments.comments;
+                    var _commentsCount = _comments.length;
+                    for (var j = 0; j < _commentsCount; j++) {
+                        _api.sync_AddComment(_comments[j].Get_Id(), _comments[j].Data);
+                    }
+                }
+            }
+        }
+
         return [nSlidesCount, dPresentationWidth, dPresentationHeight, aTimings];
     }
 }
 
+// Common
+
+function postDataAsJSONString(data, eventId) {
+    var stream = global_memory_stream_menu;
+    stream["ClearNoAttack"]();
+    if (data !== undefined && data !== null) {
+        stream["WriteString2"](JSON.stringify(data));
+    }
+    window["native"]["OnCallMenuEvent"](eventId, stream);
+}
+
+// Users
+
+function sdkUsersToJson(users) {
+    var arrUsers = [];
+
+    for (var userId in users) {
+        if (undefined !== userId) {
+            var user = users[userId];
+            if (user) {
+                arrUsers.push({
+                    id          : user.asc_getId(),
+                    idOriginal  : user.asc_getIdOriginal(),
+                    userName    : user.asc_getUserName(),
+                    online      : true,
+                    color       : user.asc_getColor(),
+                    view        : user.asc_getView()
+                });
+            }
+        }
+    }
+    return arrUsers;
+}
+
+function onApiAuthParticipantsChanged(users) {
+    var users = sdkUsersToJson(users) || [];
+    postDataAsJSONString(users, 20101); // ASC_COAUTH_EVENT_TYPE_PARTICIPANTS_CHANGED
+}
+
+function onApiParticipantsChanged(users) {
+    var users = sdkUsersToJson(users) || [];
+    postDataAsJSONString(users, 20101); // ASC_COAUTH_EVENT_TYPE_PARTICIPANTS_CHANGED
+}
+
+// Comments
+
+function stringOOToLocalDate (date) {
+    if (typeof date === 'string')
+        return parseInt(date);
+    return 0;
+}
+
+function stringUtcToLocalDate(date) {
+    if (typeof date === 'string')
+        return parseInt(date) + (new Date()).getTimezoneOffset() * 60000;
+    return 0;
+}
+
+function readSDKComment(id, data) {
+    var date = data.asc_getOnlyOfficeTime()
+            ? new Date(stringOOToLocalDate(data.asc_getOnlyOfficeTime()))
+            : (data.asc_getTime() == '') ? new Date() : new Date(stringUtcToLocalDate(data.asc_getTime())),
+        groupname = id.substr(0, id.lastIndexOf('_') + 1).match(/^(doc|sheet[0-9_]+)_/);
+
+    return {
+        id          : id,
+        guid        : data.asc_getGuid(),
+        userId      : data.asc_getUserId(),
+        userName    : data.asc_getUserName(),
+        date        : date.getTime().toString(),
+        quoteText   : data.asc_getQuoteText(),
+        text        : data.asc_getText(),
+        solved      : data.asc_getSolved(),
+        unattached  : (data.asc_getDocumentFlag === undefined) ? false : data.asc_getDocumentFlag(),
+        groupName   : (groupname && groupname.length>1) ? groupname[1] : null,
+        replies     : readSDKReplies(data)
+    };
+}
+
+function readSDKReplies (data) {
+    var i = 0,
+        replies = [],
+        date = null;
+    var repliesCount = data.asc_getRepliesCount();
+    if (repliesCount) {
+        for (i = 0; i < repliesCount; ++i) {
+            var reply = data.asc_getReply(i);
+            date = (reply.asc_getOnlyOfficeTime()) 
+                ? new Date(stringOOToLocalDate(reply.asc_getOnlyOfficeTime()))
+                : ((reply.asc_getTime() == '') ? new Date() : new Date(stringUtcToLocalDate(reply.asc_getTime())));
+            replies.push({
+                userId      : reply.asc_getUserId(),
+                userName    : reply.asc_getUserName(),
+                text        : reply.asc_getText(),
+                date        : date.getTime().toString()
+            });
+        }
+    }
+    return replies;
+}
+
+function onApiAddComment(id, data) {
+    var comment = readSDKComment(id, data) || {};
+    postDataAsJSONString(comment, 23001); // ASC_MENU_EVENT_TYPE_ADD_COMMENT
+}
+
+function onApiAddComments(data) {
+    var comments = [];
+    for (var i = 0; i < data.length; ++i) {
+        comments.push(readSDKComment(data[i].asc_getId(), data[i]));
+    }
+    postDataAsJSONString(comments, 23002); // ASC_MENU_EVENT_TYPE_ADD_COMMENTS
+}
+
+function onApiRemoveComment(id) {
+    var data = {
+        "id": id
+    };
+    postDataAsJSONString(data, 23003); // ASC_MENU_EVENT_TYPE_REMOVE_COMMENT
+}
+
+function onChangeComments(data) {
+    var comments = [];
+    for (var i = 0; i < data.length; ++i) {
+        comments.push(readSDKComment(data[i].asc_getId(), data[i]));
+    }
+    postDataAsJSONString(comments, 23004); // ASC_MENU_EVENT_TYPE_CHANGE_COMMENTS
+}
+
+function onApiRemoveComments(data) {
+    var ids = [];
+    for (var i = 0; i < data.length; ++i) {
+        ids.push({
+            "id": data[i]
+        });
+    }
+    postDataAsJSONString(ids, 23005); // ASC_MENU_EVENT_TYPE_REMOVE_COMMENTS
+}
+
+function onApiChangeCommentData(id, data) {
+    var comment = readSDKComment(id, data) || {},
+        data = {
+            "id": id,
+            "comment": comment
+        };
+
+    postDataAsJSONString(data, 23006); // ASC_MENU_EVENT_TYPE_CHANGE_COMMENTDATA
+}
+
+function onApiLockComment(id, userId) {
+    var data = {
+        "id": id,
+        "userId": userId
+    };
+    postDataAsJSONString(data, 23007); // ASC_MENU_EVENT_TYPE_LOCK_COMMENT
+}
+
+function onApiUnLockComment(id) {
+    var data = {
+        "id": id
+    };
+    postDataAsJSONString(data, 23008); // ASC_MENU_EVENT_TYPE_UNLOCK_COMMENT
+}
+
+function onApiShowComment(uids, posX, posY, leftX, opts, hint) {
+    var data = {
+        "uids": uids,
+        "posX": posX,
+        "posY": posY,
+        "leftX": leftX,
+        "opts": opts,
+        "hint": hint
+    };
+    postDataAsJSONString(data, 23009); // ASC_MENU_EVENT_TYPE_SHOW_COMMENT
+}
+
+function onApiHideComment(hint) {
+    var data = {
+        "hint": hint
+    };
+    postDataAsJSONString(data, 23010); // ASC_MENU_EVENT_TYPE_HIDE_COMMENT
+}
+
+function onApiUpdateCommentPosition(uids, posX, posY, leftX) {
+    var data = {
+        "uids": uids,
+        "posX": posX,
+        "posY": posY,
+        "leftX": leftX
+    };
+    postDataAsJSONString(data, 23011); // ASC_MENU_EVENT_TYPE_UPDATE_COMMENT_POSITION
+}
+
+function onDocumentPlaceChanged() {
+    postDataAsJSONString(null, 23012); // ASC_MENU_EVENT_TYPE_DOCUMENT_PLACE_CHANGED
+}
 Asc['asc_docs_api'].prototype.UpdateTextPr = function(TextPr)
 {
     if (!TextPr)
@@ -3331,7 +3721,6 @@ Asc['asc_docs_api'].prototype["Native_Editor_Initialize_Settings"] = function(_p
 };
 
 
-
 Asc['asc_docs_api'].prototype["CheckSlideBounds"] = function(nSlideIndex){
     var oBoundsChecker = new AscFormat.CSlideBoundsChecker();
     this.WordControl.m_oLogicDocument.Draw(nSlideIndex, oBoundsChecker);
@@ -3345,7 +3734,6 @@ Asc['asc_docs_api'].prototype["GetNativePageMeta"] = function(pageIndex, bTh, bI
 {
     this.WordControl.m_oDrawingDocument.RenderPage(pageIndex, bTh, bIsPlayMode);
 };
-
 
 
 window["asc_docs_api"].prototype["asc_nativeOpenFile2"] = function(base64File, version)
@@ -3365,7 +3753,6 @@ window["asc_docs_api"].prototype["asc_nativeOpenFile2"] = function(base64File, v
     _loader.Api = this;
 
     _loader.Load(base64File, this.WordControl.m_oLogicDocument);
-    _loader.Check_TextFit();
     this.LoadedObject = 1;
     AscCommon.g_oIdCounter.Set_Load(false);
 };
@@ -3609,6 +3996,16 @@ Asc['asc_docs_api'].prototype.asc_setDocumentPassword = function(password)
     AscCommon.sendCommand(this, null, v);
 };
 
+Asc["asc_docs_api"].prototype["asc_nativeGetFileData"] = function()
+{
+    var oBinaryFileWriter = new AscCommon.CBinaryFileWriter();
+    this.WordControl.m_oLogicDocument.CalculateComments();
+    oBinaryFileWriter.WriteDocument3(this.WordControl.m_oLogicDocument);
+
+    window["native"]["GetFileData"](oBinaryFileWriter.ImData.data, oBinaryFileWriter.GetCurPosition());
+
+    return true;
+};
 
 Asc['asc_docs_api'].prototype.asc_setSpellCheck = function(isOn)
 {
@@ -3645,67 +4042,61 @@ if(!window.native){
 	}	
 }
 
-if(window.native){
-	window.native.Call_CheckSlideBounds = function(nIndex){
-        if(window.editor) {
-            return window.editor.CheckSlideBounds(nIndex);
+if (window["native"]) {
+	window["native"]["Call_CheckSlideBounds"] = function(nIndex){
+        if (window.editor) {
+            return window.editor["CheckSlideBounds"](nIndex);
         }
 	};
 	
-	window.native.Call_GetPageMeta = function(nIndex, bTh, bIsPlayMode){
-        if(window.editor) {
-            return window.editor.GetNativePageMeta(nIndex, bTh, bIsPlayMode);
+	window["native"]["Call_GetPageMeta"] = function(nIndex, bTh, bIsPlayMode){
+        if (window.editor) {
+            return window.editor["GetNativePageMeta"](nIndex, bTh, bIsPlayMode);
         }
 	};
 
-    window.native.Call_OnMouseDown = function(e) {
+    window["native"]["Call_OnMouseDown"] = function(e) {
         if (window.editor) {
           return window.editor.WordControl.m_oDrawingDocument.OnMouseDown(e);
         }
         return -1;
       };
 
-    window.native.Call_OnMouseUp = function(e){
-        if(window.editor)
-        {
+    window["native"]["Call_OnMouseUp"] = function(e) {
+        if(window.editor) {
             return window.editor.WordControl.m_oDrawingDocument.OnMouseUp(e);
         }
+
         return [];
     };
 
-    window.native.Call_OnMouseMove = function(e){
-        if(window.editor)
-        {
+    window["native"]["Call_OnMouseMove"] = function(e) {
+        if(window.editor) {
             window.editor.WordControl.m_oDrawingDocument.OnMouseMove(e);
         }
     };
 
-    window.native.Call_OnKeyboardEvent = function(e)
-    {
+    window["native"]["Call_OnKeyboardEvent"] = function(e) {
         return window.editor.WordControl.m_oDrawingDocument.OnKeyboardEvent(e);
     };
 
-    window.native.Call_OnCheckMouseDown = function(e)
-    {
+    window["native"]["Call_OnCheckMouseDown"] = function(e) {
         return window.editor.WordControl.m_oDrawingDocument.OnCheckMouseDown(e);
     };
 
-    window.native.Call_ResetSelection = function()
-    {
+    window["native"]["Call_ResetSelection"] = function() {
         window.editor.WordControl.m_oLogicDocument.RemoveSelection(false);
         window.editor.WordControl.m_oLogicDocument.Document_UpdateSelectionState();
         window.editor.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
     };
 
-    window.native.Call_OnUpdateOverlay = function(param){
-        if(window.editor)
-        {
+    window["native"]["Call_OnUpdateOverlay"] = function(param) {
+        if (window.editor) {
             window.editor.WordControl.OnUpdateOverlay(param);
         }
     };
-    window.native.Call_SetCurrentPage = function(param){
-        if(window.editor)
-        {
+    window["native"]["Call_SetCurrentPage"] = function(param){
+        if (window.editor) {
             var oWC = window.editor.WordControl;
             oWC.m_oLogicDocument.Set_CurPage(param);
             if(oWC.m_oDrawingDocument)
@@ -3718,9 +4109,9 @@ if(window.native){
     };
 }
 
-window.native.Call_Menu_Event = function (type, _params)
+window["native"]["Call_Menu_Event"] = function (type, _params)
 {
-    return _api.Call_Menu_Event(type, _params);
+    return _api["Call_Menu_Event"](type, _params);
 };
 
 
@@ -3730,3 +4121,6 @@ window["AscCommon"].sendImgUrls = function(api, images, callback)
 	var _data = [];
 	callback(_data);
 };
+
+window["native"]["offline_of"] = function(_params, documentInfo) { return NativeOpenFileP(_params, documentInfo); };
+

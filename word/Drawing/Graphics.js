@@ -114,6 +114,8 @@ function CGraphics()
     this.IsRetina           = false;
 
     this.dash_no_smart = null;
+
+    this.textAlpha = undefined;
 }
 
 CGraphics.prototype =
@@ -155,6 +157,19 @@ CGraphics.prototype =
     },
     EndDraw : function()
     {
+    },
+
+    setTextGlobalAlpha : function(alpha)
+    {
+        this.textAlpha = alpha;
+    },
+	getTextGlobalAlpha : function()
+	{
+		return this.textAlpha;
+	},
+    resetTextGlobalAlpha : function()
+    {
+        this.textAlpha = undefined;
     },
 
     put_GlobalAlpha : function(enable, alpha)
@@ -997,7 +1012,17 @@ CGraphics.prototype =
 
         if (null != pGlyph.oBitmap)
         {
+            var oldAlpha = undefined;
+            if (this.textAlpha)
+            {
+                oldAlpha = this.m_oContext.globalAlpha;
+                this.m_oContext.globalAlpha = oldAlpha * this.textAlpha;
+            }
+
             this.private_FillGlyph(pGlyph);
+
+            if (undefined !== oldAlpha)
+                this.m_oContext.globalAlpha = oldAlpha;
         }
         if (false === this.m_bIntegerGrid)
         {
@@ -1152,7 +1177,17 @@ CGraphics.prototype =
 
         if (null != pGlyph.oBitmap)
         {
+            var oldAlpha = undefined;
+            if (this.textAlpha)
+            {
+                oldAlpha = this.m_oContext.globalAlpha;
+                this.m_oContext.globalAlpha = oldAlpha * this.textAlpha;
+            }
+
             this.private_FillGlyph(pGlyph);
+
+            if (undefined !== oldAlpha)
+                this.m_oContext.globalAlpha = oldAlpha;
         }
         if (false === this.m_bIntegerGrid)
         {
@@ -2360,12 +2395,32 @@ CGraphics.prototype =
 
         if (this.m_bIntegerGrid)
         {
-            var _x = (this.m_oFullTransform.TransformPointX(x,y) + 0.5) >> 0;
-            var _y = (this.m_oFullTransform.TransformPointY(x,y) + 0.5) >> 0;
-            var _r = (this.m_oFullTransform.TransformPointX(x+w,y) + 0.5) >> 0;
-            var _b = (this.m_oFullTransform.TransformPointY(x,y+h) + 0.5) >> 0;
+            if (AscCommon.global_MatrixTransformer.IsIdentity2(this.m_oFullTransform))
+            {
+                var _x = (this.m_oFullTransform.TransformPointX(x, y) + 0.5) >> 0;
+                var _y = (this.m_oFullTransform.TransformPointY(x, y) + 0.5) >> 0;
+                var _r = (this.m_oFullTransform.TransformPointX(x + w, y) + 0.5) >> 0;
+                var _b = (this.m_oFullTransform.TransformPointY(x, y + h) + 0.5) >> 0;
 
-            ctx.rect(_x, _y, _r - _x, _b - _y);
+                ctx.rect(_x, _y, _r - _x, _b - _y);
+            }
+            else
+            {
+                var x1 = this.m_oFullTransform.TransformPointX(x, y);
+                var y1 = this.m_oFullTransform.TransformPointY(x, y);
+                var x2 = this.m_oFullTransform.TransformPointX(x + w, y);
+                var y2 = this.m_oFullTransform.TransformPointY(x + w, y);
+                var x3 = this.m_oFullTransform.TransformPointX(x + w, y + h);
+                var y3 = this.m_oFullTransform.TransformPointY(x + w, y + h);
+                var x4 = this.m_oFullTransform.TransformPointX(x, y + h);
+                var y4 = this.m_oFullTransform.TransformPointY(x, y + h);
+
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.lineTo(x3, y3);
+                ctx.lineTo(x4, y4);
+                ctx.closePath();
+            }
         }
         else
         {

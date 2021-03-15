@@ -183,7 +183,6 @@ CGroupShape.prototype.recalculateBounds = function()
 };
 
 CGroupShape.prototype.deselect = CShape.prototype.deselect;
-CGroupShape.prototype.hitToHandles = CShape.prototype.hitToHandles;
 CGroupShape.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CGroupShape.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CGroupShape.prototype.handleUpdatePosition = function()
@@ -209,7 +208,6 @@ CGroupShape.prototype.handleUpdateFlip = CGroupShape.prototype.handleUpdatePosit
 CGroupShape.prototype.handleUpdateChildOffset = CGroupShape.prototype.handleUpdatePosition;
 CGroupShape.prototype.handleUpdateChildExtents = CGroupShape.prototype.handleUpdatePosition;
 CGroupShape.prototype.updatePosition = CShape.prototype.updatePosition;
-CGroupShape.prototype.setParent2 = CShape.prototype.setParent2;
 CGroupShape.prototype.recalculate = function()
 {
     if(this.bDeleted || !this.parent)

@@ -72,13 +72,23 @@ var c_oAscError = Asc.c_oAscError;
 			ws.objectRender.addImageDrawingObject([AscCommon.g_oDocumentUrls.getImageUrl(_url)], null);
 		}
 	};
-	spreadsheet_api.prototype.asc_showImageFileDialog = function()
+	spreadsheet_api.prototype.asc_showImageFileDialog = spreadsheet_api.prototype.asc_addImage = function(obj)
 	{
-		window["AscDesktopEditor"]["LocalFileGetImageUrlFromOpenFileDialog"]();
+		var t = this;
+		window["AscDesktopEditor"]["OpenFilenameDialog"]("images", false, function(_file) {
+			var file = _file;
+			if (Array.isArray(file))
+				file = file[0];
+			if (!file)
+				return;
+
+			var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](file);
+			t._addImageUrl([AscCommon.g_oDocumentUrls.getImageUrl(_url)], obj);
+		});
 	};
-	spreadsheet_api.prototype.asc_addImage = function()
+	spreadsheet_api.prototype.AddImageUrlAction = function(url)
 	{
-	  window["AscDesktopEditor"]["LocalFileGetImageUrlFromOpenFileDialog"]();
+		this._addImageUrl([url]);
 	};
 	spreadsheet_api.prototype.asc_setAdvancedOptions = function(idOption, option)
 	{
@@ -132,7 +142,7 @@ var c_oAscError = Asc.c_oAscError;
 			this.LastUserSavedIndex = AscCommon.History.UserSavedIndex;
 		}
 
-		if (true === this.canSave && !this.isLongAction())
+		if (true === this.canSave && this._saveCheck())
 		{
 			var _isNaturalSave = this.IsUserSave;
 			this.canSave = false;
@@ -269,18 +279,6 @@ var c_oAscError = Asc.c_oAscError;
 
 		if (0 == error)
 			asc["editor"].sendEvent("asc_onDocumentPassword", ("" != asc["editor"].currentPassword) ? true : false);
-	};
-	window["DesktopOfflineAppDocumentAddImageEnd"] = function(url)
-	{
-		if (url == "")
-			return;
-
-		var ws = asc["editor"].wb.getWorksheet();
-		if (ws)
-		{
-			var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](url);
-			ws.objectRender.addImageDrawingObject([AscCommon.g_oDocumentUrls.getImageUrl(_url)] , null);
-		}
 	};
 	window["on_editor_native_message"] = function(sCommand, sParam)
 	{

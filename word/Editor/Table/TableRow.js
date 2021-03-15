@@ -115,7 +115,7 @@ CTableRow.prototype =
     },
 
 	// Создаем копию данного объекта
-	Copy : function(Table)
+	Copy : function(Table, oPr)
 	{
 		var Row = new CTableRow(Table, 0);
 
@@ -126,12 +126,16 @@ CTableRow.prototype =
 		var CellsCount = this.Content.length;
 		for (var Index = 0; Index < CellsCount; Index++)
 		{
-			Row.Content[Index] = this.Content[Index].Copy(Row);
+			Row.Content[Index] = this.Content[Index].Copy(Row, oPr);
 			History.Add(new CChangesTableRowAddCell(Row, Index, [Row.Content[Index]]));
 		}
 
 		Row.Internal_ReIndexing();
-
+		Row.private_UpdateTableGrid();
+        if(oPr && oPr.Comparison)
+        {
+            oPr.Comparison.updateReviewInfo(Row, reviewtype_Add, true);
+        }
 		return Row;
 	},
 
@@ -159,15 +163,6 @@ CTableRow.prototype =
         return false;
     },
 
-    Set_Index : function(Index)
-    {
-        if ( Index != this.Index )
-        {
-            this.Index = Index;
-            this.Recalc_CompiledPr();
-        }
-    },
-
     Set_Metrics_X : function(x_min, x_max)
     {
         this.Metrics.X_min = x_min;
@@ -185,6 +180,9 @@ CTableRow.prototype =
 
 	GetPrevElementEndInfo : function(CellIndex)
 	{
+		if (-1 === CellIndex || !this.Table)
+			return null;
+
 		if (0 === CellIndex)
 			return this.Table.GetPrevElementEndInfo(this.Index);
 		else
@@ -237,6 +235,10 @@ CTableRow.prototype =
     Recalc_CompiledPr : function()
     {
         this.CompiledPr.NeedRecalc = true;
+
+        var oTable = this.GetTable();
+        if (oTable)
+        	oTable.RecalcInfo.RecalcBorders();
     },
 
     // Формируем конечные свойства параграфа на основе стиля и прямых настроек.
@@ -330,6 +332,7 @@ CTableRow.prototype =
 		History.Add(new CChangesTableRowPr(this, this.Pr, RowPr));
 		this.Pr = RowPr;
 		this.Recalc_CompiledPr();
+		this.private_UpdateTableGrid();
 	},
 
     Get_Before : function()
@@ -375,6 +378,7 @@ CTableRow.prototype =
 			this.Pr.GridBefore = GridBefore;
 			this.Pr.WBefore    = NewBefore.WBefore;
 			this.Recalc_CompiledPr();
+			this.private_UpdateTableGrid();
 		}
 	},
 
@@ -421,6 +425,7 @@ CTableRow.prototype =
 			this.Pr.GridAfter = GridAfter;
 			this.Pr.WAfter    = NewAfter.WAfter;
 			this.Recalc_CompiledPr();
+			this.private_UpdateTableGrid();
 		}
 	},
 
@@ -439,6 +444,7 @@ CTableRow.prototype =
 		this.Pr.TableCellSpacing = Value;
 
 		this.Recalc_CompiledPr();
+		this.private_UpdateTableGrid();
 	},
 
     Get_Height : function()
@@ -586,6 +592,7 @@ CTableRow.prototype =
 		this.Internal_ReIndexing(Index);
 
 		this.private_CheckCurCell();
+		this.private_UpdateTableGrid();
 	},
 
 	Add_Cell : function(Index, Row, Cell, bReIndexing)
@@ -622,6 +629,7 @@ CTableRow.prototype =
 		}
 
 		this.private_CheckCurCell();
+		this.private_UpdateTableGrid();
 
 		return Cell;
 	},
@@ -650,7 +658,7 @@ CTableRow.prototype =
 
         for ( var Ind = StartIndex; Ind < this.Content.length; Ind++ )
         {
-            this.Content[Ind].Set_Index( Ind );
+            this.Content[Ind].SetIndex( Ind );
             this.Content[Ind].Prev = ( Ind > 0 ? this.Content[Ind - 1] : null );
             this.Content[Ind].Next = ( Ind < this.Content.length - 1 ? this.Content[Ind + 1] : null );
             this.Content[Ind].Row  = this;
@@ -694,7 +702,7 @@ CTableRow.prototype =
             this.Table.RecalcInfo.Add_Cell( this.Get_Cell(CurCell) );
         }
 
-        this.Table.RecalcInfo.Recalc_Borders();
+        this.Table.RecalcInfo.RecalcBorders();
 
         if ( true === bNeedRecalc )
             this.Refresh_RecalcData2( 0, 0 );
@@ -784,18 +792,39 @@ CTableRow.prototype.GetIndex = function()
 {
 	return this.Index;
 };
-CTableRow.prototype.GetDocumentPositionFromObject = function(PosArray)
+/**
+ * Выставляем номер данной строки в родительской таблице
+ * @param {number} nIndex
+ */
+CTableRow.prototype.SetIndex = function(nIndex)
 {
-    if (!PosArray)
-        PosArray = [];
+	if (nIndex != this.Index)
+	{
+		this.Index = nIndex;
+		this.Recalc_CompiledPr();
+	}
+};
+CTableRow.prototype.GetDocumentPositionFromObject = function(arrPos)
+{
+    if (!arrPos)
+		arrPos = [];
 
-    if (this.Table)
+    var oTable = this.GetTable();
+    if (oTable)
     {
-        PosArray.splice(0, 0, {Class : this.Table, Position : this.Index});
-        this.Table.GetDocumentPositionFromObject(PosArray);
+    	if (arrPos.length > 0)
+		{
+			arrPos.splice(0, 0, {Class : oTable, Position : this.GetIndex()});
+			oTable.GetDocumentPositionFromObject(arrPos);
+		}
+		else
+		{
+			oTable.GetDocumentPositionFromObject(arrPos);
+			arrPos.push({Class : oTable, Position : this.GetIndex()});
+		}
     }
 
-    return PosArray;
+    return arrPos;
 };
 /**
  * Получаем ячейку с заданным номером в строке
@@ -1110,9 +1139,61 @@ CTableRow.prototype.private_CheckCurCell = function()
 	if (this.GetTable())
 		this.GetTable().private_CheckCurCell();
 };
+/**
+ * Запрашиваем пересчет сетки таблицы
+ */
+CTableRow.prototype.private_UpdateTableGrid = function()
+{
+	var oTable = this.GetTable();
+	if (oTable)
+		oTable.private_UpdateTableGrid();
+};
 
-
-
+CTableRow.prototype.FindParaWithStyle = function (sStyleId, bBackward, nStartIdx)
+{
+	var nSearchStartIdx, nIdx, oResult, oContent;
+	if(bBackward)
+	{
+		if(nStartIdx !== null)
+		{
+			nSearchStartIdx = Math.min(nStartIdx, this.Content.length - 1);
+		}
+		else
+		{
+			nSearchStartIdx = this.Content.length - 1;
+		}
+		for(nIdx = nSearchStartIdx; nIdx >= 0; --nIdx)
+		{
+			oContent = this.Content[nIdx].GetContent();
+			oResult = oContent.FindParaWithStyle(sStyleId, bBackward, null);
+			if(oResult)
+			{
+				return oResult
+			}
+		}
+	}
+	else
+	{
+		if(nStartIdx !== null)
+		{
+			nSearchStartIdx = Math.max(nStartIdx, 0);
+		}
+		else
+		{
+			nSearchStartIdx = 0;
+		}
+		for(nIdx = nSearchStartIdx; nIdx < this.Content.length; ++nIdx)
+		{
+			oContent = this.Content[nIdx].GetContent();
+			oResult = oContent.FindParaWithStyle(sStyleId, bBackward, null);
+			if(oResult)
+			{
+				return oResult
+			}
+		}
+	}
+	return null;
+};
 
 function CTableRowRecalculateObject()
 {

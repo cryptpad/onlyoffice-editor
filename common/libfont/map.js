@@ -342,7 +342,7 @@ function FD_FontDictionary()
 
     this.ChangeGlyphsMap = {
         "Symbol" : { Name : "OpenSymbol", IsSymbolSrc : true, MapSrc : [0xB7, 0xA8], MapDst : [0xE12C, 0xE442] },
-        "Wingdings" : { Name : "OpenSymbol", IsSymbolSrc : true, MapSrc : [0x76, 0xD8, 0xA7, 0xFC, 0x71], MapDst : [0xE441, 0xE25F, 0xE46F, 0xE330, 0x2751] }
+        "Wingdings" : { Name : "OpenSymbol", IsSymbolSrc : true, MapSrc : [0x76, 0x77, 0xD8, 0xA7, 0xFC, 0x71], MapDst : [0xE441, 0xE442, 0xE25F, 0xE46F, 0xE330, 0x2751] }
     };
 	
 	this.MainUnicodeRanges = {
@@ -865,23 +865,70 @@ function CFontSelect()
     this.m_shLineGap        = 0;
     this.m_shXHeight        = 0;
     this.m_shCapHeight      = 0;
+
+    this.m_names = null;
 }
 CFontSelect.prototype =
 {
+	_readStringUtf8 : function(stream, len)
+	{
+	    if (undefined === len)
+	        len = stream.GetLong();
+		return AscCommon.GetStringUtf8(stream, len);
+	},
+
     fromStream : function(fs, bIsDictionary)
     {
+		var _version = window["__all_fonts_js_version__"];
+		if (undefined === _version)
+			_version = 0;
+
         // name
         var _len = fs.GetLong();
 
         if (bIsDictionary === false)
             this.m_wsFontName = fs.GetString1(_len);
         else
-            this.m_wsFontName = fs.GetString(_len >> 1);
+        {
+            switch (_version)
+            {
+                case 0:
+                {
+					this.m_wsFontName = fs.GetString(_len >> 1);
+                    break;
+                }
+                default:
+                {
+					this.m_wsFontName = this._readStringUtf8(fs, _len);
+
+					var _count = fs.GetLong();
+					if (0 < _count)
+						this.m_names = [];
+
+					for (var nameI = 0; nameI < _count; nameI++)
+						this.m_names.push(this._readStringUtf8(fs));
+
+                    break;
+                }
+            }
+		}
 
         if (bIsDictionary !== false)
         {
-            _len = fs.GetLong();
-            this.m_wsFontPath = fs.GetString(_len >> 1);
+			switch (_version)
+			{
+				case 0:
+				{
+					_len = fs.GetLong();
+					this.m_wsFontPath = fs.GetString(_len >> 1);
+					break;
+				}
+				default:
+				{
+					this.m_wsFontPath = this._readStringUtf8(fs);
+					break;
+				}
+			}
 
             if (undefined === window["AscDesktopEditor"])
             {
@@ -1140,7 +1187,7 @@ CFontSelect.prototype =
         return nPenalty;
     },
 
-    GetFaceNamePenalty : function(sReqName)
+    GetFaceNamePenalty_private : function(sReqName, sMyName)
     {
         // На MSDN написано, что если имена не совпадают, то вес 10000.
         // Мы будем сравнивать сколько совпало символов у запрашиваемого
@@ -1159,23 +1206,43 @@ CFontSelect.prototype =
         if ( 0 == sReqName.length )
             return 0;
 
-        if ( 0 == this.m_wsFontName.length )
+        if ( 0 == sMyName.length )
             return 10000;
 
-        if ( sReqName == this.m_wsFontName )
+        if ( sReqName == sMyName )
             return 0;
 
-        if (-1 != sReqName.indexOf(this.m_wsFontName) || -1 != this.m_wsFontName.indexOf(sReqName))
-        {
-			if (g_fontApplication.g_fontDictionary.CheckLikeFonts(this.m_wsFontName, sReqName))
-				return 700;
-			return 1000;
-		}
+        // check equals, inst
+        if (sReqName.replace(/[\s-,]/g, '').toLowerCase() == sMyName.replace(/[\s-,]/g, '').toLowerCase())
+            return 100;
 
-        if (g_fontApplication.g_fontDictionary.CheckLikeFonts(this.m_wsFontName, sReqName))
+        if (-1 != sReqName.indexOf(sMyName) || -1 != sMyName.indexOf(sReqName))
+        {
+            if (g_fontApplication.g_fontDictionary.CheckLikeFonts(sMyName, sReqName))
+                return 700;
+            return 1000;
+        }
+
+        if (g_fontApplication.g_fontDictionary.CheckLikeFonts(sMyName, sReqName))
             return 1000;
 
-        return this.CheckEqualFonts2(sReqName, this.m_wsFontName);
+        return this.CheckEqualFonts2(sReqName, sMyName);
+    },
+
+    GetFaceNamePenalty : function(sReqName)
+    {
+        var min = this.GetFaceNamePenalty_private(sReqName, this.m_wsFontName);
+        if (this.m_names)
+        {
+            var tmpMin = 0;
+            for (var i = 0, len = this.m_names.length; i < len; i++)
+            {
+                tmpMin = this.GetFaceNamePenalty_private(sReqName, this.m_names[i]);
+                if (tmpMin < min)
+                    min = tmpMin;
+            }
+        }
+        return min;
     },
 
     GetWidthPenalty : function(usReqWidth)
@@ -2935,6 +3002,7 @@ function CApplicationFonts()
                 return objDst.MapDst[i];
             }
         }
+        return src;
     };
 
     this.GetFontFile = function(name, lStyle)

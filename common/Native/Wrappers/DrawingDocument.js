@@ -47,19 +47,6 @@ var g_dKoef_mm_to_pix = AscCommon.g_dKoef_mm_to_pix;
 var _canvas_tables = null;
 var _table_styles = null;
 
-var c_oContentControlTrack = {
-	Hover 	: 0,
-	In 		: 1
-};
-
-function CContentControlTrack(_id, _type, _rects, _transform)
-{
-	this.id = (undefined == _id) ? -1 : _id;
-	this.type = (undefined == _type) ? -1 : _type;
-	this.rects = (undefined == _rects) ? null : _rects;
-	this.transform = (undefined == _transform) ? null : _transform;
-}
-
 function CColumnsMarkupColumn()
 {
 	this.W = 0;
@@ -77,108 +64,45 @@ function CColumnsMarkup()
 	this.Space = 30;
 	this.Cols = [];
 
-	this.SectPr = null;
+	this.SectPr    = null;
+	this.PageIndex = 0;
 }
-CColumnsMarkup.prototype.Update_FromSectPr = function (SectPr)
+CColumnsMarkup.prototype.UpdateFromSectPr = function(oSectPr, nPageIndex)
 {
-	if (!SectPr)
+	if (!oSectPr)
 		return;
 
-	this.SectPr = SectPr;
+	this.SectPr    = oSectPr;
+	this.PageIndex = nPageIndex;
 
-	var Columns = SectPr.Columns;
+	var Columns = oSectPr.Columns;
 
-	this.X = SectPr.Get_PageMargin_Left();
-	this.R = SectPr.Get_PageWidth() - SectPr.Get_PageMargin_Right();
+	var oFrame = oSectPr.GetContentFrame(nPageIndex);
+	this.X     = oFrame.Left;
+	this.R     = oFrame.Right;
+
 	this.EqualWidth = Columns.EqualWidth;
-	this.Num = Columns.Num;
-	this.Space = Columns.Space;
+	this.Num        = Columns.Num;
+	this.Space      = Columns.Space;
 
 	this.Cols = [];
 	for (var Index = 0, Count = Columns.Cols.length; Index < Count; ++Index)
 	{
-		this.Cols[Index] = new CColumnsMarkupColumn();
-		this.Cols[Index].W = Columns.Cols[Index].W;
+		this.Cols[Index]       = new CColumnsMarkupColumn();
+		this.Cols[Index].W     = Columns.Cols[Index].W;
 		this.Cols[Index].Space = Columns.Cols[Index].Space;
 	}
 };
-CColumnsMarkup.prototype.Set_CurCol = function (CurCol)
+CColumnsMarkup.prototype.SetCurCol = function(nCurCol)
 {
-	this.CurCol = CurCol;
+	this.CurCol = nCurCol;
 };
 CColumnsMarkup.prototype.CreateDuplicate = function ()
 {
 	var _ret = new CColumnsMarkup();
-	_ret.SectPr = this.SectPr;
-	_ret.CurCol = this.CurCol;
-	_ret.X = this.X;
-	_ret.R = this.R;
 
-	_ret.EqualWidth = this.EqualWidth;
-	_ret.Num = this.Num;
-	_ret.Space = this.Space;
+	_ret.PageIndex = this.PageIndex;
 
-	_ret.Cols = [];
-
-	for (var i = 0; i < this.Cols.length; i++)
-	{
-		var _col = new CColumnsMarkupColumn();
-		_col.W = this.Cols[i].W;
-		_col.Space = this.Cols[i].Space;
-		_ret.Cols.push(_col);
-	}
-	return _ret;
-};
-
-function CColumnsMarkupColumn()
-{
-	this.W = 0;
-	this.Space = 0;
-}
-
-function CColumnsMarkup()
-{
-	this.CurCol = 0;
-	this.X = 0; // левое поле
-	this.R = 0; // правое поле
-
-	this.EqualWidth = true;
-	this.Num = 1;
-	this.Space = 30;
-	this.Cols = [];
-
-	this.SectPr = null;
-}
-CColumnsMarkup.prototype.Update_FromSectPr = function (SectPr)
-{
-	if (!SectPr)
-		return;
-
-	this.SectPr = SectPr;
-
-	var Columns = SectPr.Columns;
-
-	this.X = SectPr.Get_PageMargin_Left();
-	this.R = SectPr.Get_PageWidth() - SectPr.Get_PageMargin_Right();
-	this.EqualWidth = Columns.EqualWidth;
-	this.Num = Columns.Num;
-	this.Space = Columns.Space;
-
-	this.Cols = [];
-	for (var Index = 0, Count = Columns.Cols.length; Index < Count; ++Index)
-	{
-		this.Cols[Index] = new CColumnsMarkupColumn();
-		this.Cols[Index].W = Columns.Cols[Index].W;
-		this.Cols[Index].Space = Columns.Cols[Index].Space;
-	}
-};
-CColumnsMarkup.prototype.Set_CurCol = function (CurCol)
-{
-	this.CurCol = CurCol;
-};
-CColumnsMarkup.prototype.CreateDuplicate = function ()
-{
-	var _ret = new CColumnsMarkup();
 	_ret.SectPr = this.SectPr;
 	_ret.CurCol = this.CurCol;
 	_ret.X = this.X;
@@ -723,8 +647,8 @@ function CDrawingDocument()
     this.FrameRect = { IsActive : false, Rect : { X : 0, Y : 0, R : 0, B : 0 }, Frame : null,
         Track : { X : 0, Y : 0, L : 0, T : 0, R : 0, B : 0, PageIndex : 0, Type : -1 }, IsTracked : false, PageIndex : 0 };
 
-	  // math rect
-	  this.MathRect = { IsActive : false, Rect : { X : 0, Y : 0, R : 0, B : 0, PageIndex : 0 } };
+    // math rect
+    this.MathTrack = new AscCommon.CMathTrack();
 
     // table track
     this.TableOutlineDr = new CTableOutlineDr();
@@ -875,12 +799,12 @@ CDrawingDocument.prototype =
     ConvertCoordsToCursorWR : function(x, y, pageIndex, transform)
     {
         var _return = null;
-        if (!transform)
+        if (!transform) {
             _return = this.__DD_ConvertCoordsToCursor(x, y, pageIndex);
-        else
-            _return = this.__DD_ConvertCoordsToCursor(x, y, pageIndex,
-                transform.sx, transform.shy, transform.shx, transform.sy, transform.tx, transform.ty);
-        return { X : _return[0], Y : _return[1], Error : _return[2] };
+        } else {
+            _return = this.__DD_ConvertCoordsToCursor(x, y, pageIndex, transform.sx, transform.shy, transform.shx, transform.sy, transform.tx, transform.ty);
+        }
+        return { X : _return.X, Y : _return.Y, Error : _return.Error };
     },
 
     ConvertCoordsToAnotherPage : function(x, y, pageCoord, pageNeed)
@@ -1030,18 +954,7 @@ CDrawingDocument.prototype =
         }
     },
 
-	  ContentControlsSaveLast : function()
-    {},
-
-    ContentControlsCheckLast : function()
-  	{
-  		return false;
-  	},
-
-  	DrawContentControlsTrack : function(overlay)
-    {},
-
-  	OnDrawContentControl : function(id, type, rects, transform)
+  	OnDrawContentControl : function(ctrl, state, rects)
   	{},
 
     // current page
@@ -1361,14 +1274,10 @@ CDrawingDocument.prototype =
         var _len = __tabs.length;
         for (var i = 0; i < _len; i++)
         {
-            if (__tabs[i].Value == tab_Left)
-                _arr_types.push(AscCommon.g_tabtype_left);
-            else if (__tabs[i].Value == tab_Center)
-                _arr_types.push(AscCommon.g_tabtype_center);
-            else if (__tabs[i].Value == tab_Right)
-                _arr_types.push(AscCommon.g_tabtype_right);
+            if (__tabs[i].Value == tab_Left || __tabs[i].Value == tab_Center || __tabs[i].Value == tab_Right)
+                _arr_types.push(__tabs[i].Value);
             else
-                _arr_types.push(AscCommon.g_tabtype_left);
+                _arr_types.push(tab_Left);
 
             _arr_pos.push(__tabs[i].Pos);
         }
@@ -1509,7 +1418,7 @@ CDrawingDocument.prototype =
     },
     OnUpdateOverlay : function()
     {
-        isSelectionMatrix = false;
+        this.isSelectionMatrix = false;
 
         if (this.IsUpdateOverlayOnlyEnd)
         {
@@ -2200,8 +2109,8 @@ CDrawingDocument.prototype =
 
     __DD_ConvertCoordsToCursor : function(x, y, page)
     {
-        var _arr = this.Native["DD_ConvertCoordsToCursor"](x, y, page);
-        return { X : _arr[0], Y : _arr[1] };
+        var _arr = window["native"]["DD_ConvertCoordsToCursor"](x, y, page);
+        return { X : _arr[0], Y : _arr[1], Error : _arr[2] };
     },
 
     __DD_ConvetToPageCoords : function(x, y, page)
@@ -2869,11 +2778,12 @@ CDrawingDocument.prototype =
 
     DrawMathTrack : function()
     {
-        if (!this.MathRect.IsActive)
-            return;
-
-        this.Native["DD_Overlay_DrawFrameTrack1"](this.MathRect.Rect.PageIndex,
-            this.MathRect.Rect.X, this.MathRect.Rect.Y, this.MathRect.Rect.R, this.MathRect.Rect.B);
+        //TODO: Implement!
+        //if (!this.MathRect.IsActive)
+        //    return;
+        //
+        //this.Native["DD_Overlay_DrawFrameTrack1"](this.MathRect.Rect.PageIndex,
+        //    this.MathRect.Rect.X, this.MathRect.Rect.Y, this.MathRect.Rect.R, this.MathRect.Rect.B);
     },
 
     DrawFieldTrack : function()
@@ -2886,18 +2796,10 @@ CDrawingDocument.prototype =
         // TODO:
     },
 
-    Update_MathTrack : function(IsActive, X, Y, W, H, PageIndex)
+    Update_MathTrack : function(IsActive, IsContentActive, oMath)
     {
-        this.MathRect.IsActive = IsActive;
-
-        if (true === IsActive)
-        {
-            this.MathRect.Rect.X = X;
-            this.MathRect.Rect.Y = Y;
-            this.MathRect.Rect.R = X + W;
-            this.MathRect.Rect.B = Y + H;
-            this.MathRect.Rect.PageIndex = PageIndex;
-        }
+        var PixelError = this.GetMMPerDot(1) * 3;
+        this.MathTrack.Update(IsActive, IsContentActive, oMath, PixelError);
     },
 
     DrawTableTrack : function()
