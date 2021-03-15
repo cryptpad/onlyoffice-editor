@@ -115,19 +115,26 @@ define([
         },
 
         onLaunch: function() {
-            this.editor = this.createView('CellEditor',{
-                el: '#cell-editing-box'
-            }).render();
-
+            this.editor = this.getView('CellEditor');
             this.bindViewEvents(this.editor, this.events);
 
             this.editor.$el.parent().find('.after').css({zIndex: '4'}); // for spreadsheets - bug 23127
+
+            var val = Common.localStorage.getItem('sse-celleditor-height');
+            this.editor.keep_height = (val!==null && parseInt(val)>0) ? parseInt(val) : 74;
+            if (Common.localStorage.getBool('sse-celleditor-expand')) {
+                this.editor.$el.height(this.editor.keep_height);
+                this.onLayoutResize(undefined, 'cell:edit');
+            }
+
             this.editor.btnNamedRanges.menu.on('item:click', _.bind(this.onNamedRangesMenu, this))
                                            .on('show:before', _.bind(this.onNameBeforeShow, this));
             this.namedrange_locked = false;
         },
 
         onApiEditCell: function(state) {
+            if (this.viewmode) return; // signed file
+
             if (state == Asc.c_oAscCellEditorState.editStart){
                 this.api.isCellEdited = true;
                 this.editor.cellNameDisabled(true);
@@ -146,14 +153,16 @@ define([
         },
 
         onApiSelectionChanged: function(info) {
-            var seltype = info.asc_getFlags().asc_getSelectionType(),
-                coauth_disable = (!this.mode.isEditMailMerge && !this.mode.isEditDiagram) ? (info.asc_getLocked() === true || info.asc_getLockedTable() === true) : false;
+            if (this.viewmode) return; // signed file
+
+            var seltype = info.asc_getSelectionType(),
+                coauth_disable = (!this.mode.isEditMailMerge && !this.mode.isEditDiagram) ? (info.asc_getLocked() === true || info.asc_getLockedTable() === true || info.asc_getLockedPivotTable()===true) : false;
 
             var is_chart_text   = seltype == Asc.c_oAscSelectionType.RangeChartText,
                 is_chart        = seltype == Asc.c_oAscSelectionType.RangeChart,
                 is_shape_text   = seltype == Asc.c_oAscSelectionType.RangeShapeText,
                 is_shape        = seltype == Asc.c_oAscSelectionType.RangeShape,
-                is_image        = seltype == Asc.c_oAscSelectionType.RangeImage,
+                is_image        = seltype == Asc.c_oAscSelectionType.RangeImage || seltype == Asc.c_oAscSelectionType.RangeSlicer,
                 is_mode_2       = is_shape_text || is_shape || is_chart_text || is_chart;
 
             this.editor.$btnfunc.toggleClass('disabled', is_image || is_mode_2 || coauth_disable);
@@ -183,8 +192,11 @@ define([
                 if (this.editor.$el.height() > 19) {
                     if (!this.editor.$btnexpand.hasClass('btn-collapse'))
                         this.editor.$btnexpand['addClass']('btn-collapse');
+                    o && Common.localStorage.setItem('sse-celleditor-height', this.editor.$el.height());
+                    o && Common.localStorage.setBool('sse-celleditor-expand', true);
                 } else {
                     this.editor.$btnexpand['removeClass']('btn-collapse');
+                    o && Common.localStorage.setBool('sse-celleditor-expand', false);
                 }
             }
         },
@@ -221,9 +233,11 @@ define([
                 this.editor.keep_height = this.editor.$el.height();
                 this.editor.$el.height(19);
                 this.editor.$btnexpand['removeClass']('btn-collapse');
+                Common.localStorage.setBool('sse-celleditor-expand', false);
             } else {
-                this.editor.$el.height(this.editor.keep_height||74);
+                this.editor.$el.height(this.editor.keep_height);
                 this.editor.$btnexpand['addClass']('btn-collapse');
+                Common.localStorage.setBool('sse-celleditor-expand', true);
             }
             
             Common.NotificationCenter.trigger('layout:changed', 'celleditor');
@@ -231,6 +245,8 @@ define([
         },
 
         onInsertFunction: function() {
+            if (this.viewmode) return; // signed file
+
             if ( this.mode.isEdit && !this.editor.$btnfunc['hasClass']('disabled')) {
                 var controller = this.getApplication().getController('FormulaDialog');
                 if (controller) {
@@ -256,7 +272,7 @@ define([
                 (new SSE.Views.NameManagerDlg({
                     api: this.api,
                     handler: function(result) {
-                        Common.NotificationCenter.trigger('edit:complete', this.editor);
+                        Common.NotificationCenter.trigger('edit:complete', me.editor);
                     },
                     locked: this.namedrange_locked,
                     sheets: items,
@@ -274,7 +290,7 @@ define([
         },
 
         onNameBeforeShow: function() {
-            var names = this.api.asc_getDefinedNames(Asc.c_oAscGetDefinedNamesList.WorksheetWorkbook),
+            var names = this.api.asc_getDefinedNames(Asc.c_oAscGetDefinedNamesList.WorksheetWorkbook, true),
                 rangesMenu = this.editor.btnNamedRanges.menu,
                 prev_name='';
 
@@ -299,6 +315,18 @@ define([
 
         onLockDefNameManager: function(state) {
             this.namedrange_locked = (state == Asc.c_oAscDefinedNameReason.LockDefNameManager);
+        },
+
+        disableEditing: function(disabled) {
+            this.editor.$btnfunc[!disabled?'removeClass':'addClass']('disabled');
+            this.editor.btnNamedRanges.setVisible(!disabled);
+        },
+
+        setPreviewMode: function(mode) {
+            if (this.viewmode === mode) return;
+            this.viewmode = mode;
+            this.editor.$btnfunc[!mode?'removeClass':'addClass']('disabled');
+            this.editor.cellNameDisabled(mode);
         }
     });
 });

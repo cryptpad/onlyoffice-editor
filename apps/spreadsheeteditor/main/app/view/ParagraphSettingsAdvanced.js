@@ -104,9 +104,9 @@ define([    'text!spreadsheeteditor/main/app/template/ParagraphSettingsAdvanced.
             ];
 
             this._arrTabAlign = [
-                { value: 1, displayValue: this.textTabLeft },
-                { value: 3, displayValue: this.textTabCenter },
-                { value: 2, displayValue: this.textTabRight }
+                { value: Asc.c_oAscTabType.Left, displayValue: this.textTabLeft },
+                { value: Asc.c_oAscTabType.Center, displayValue: this.textTabCenter },
+                { value: Asc.c_oAscTabType.Right, displayValue: this.textTabRight }
             ];
             this._arrKeyTabAlign = [];
             this._arrTabAlign.forEach(function(item) {
@@ -127,7 +127,8 @@ define([    'text!spreadsheeteditor/main/app/template/ParagraphSettingsAdvanced.
                 editable: false,
                 data: this._arrTextAlignment,
                 style: 'width: 173px;',
-                menuStyle   : 'min-width: 173px;'
+                menuStyle   : 'min-width: 173px;',
+                takeFocusOnClose: true
             });
             this.cmbTextAlignment.setValue('');
 
@@ -176,7 +177,8 @@ define([    'text!spreadsheeteditor/main/app/template/ParagraphSettingsAdvanced.
                 editable: false,
                 data: this._arrSpecial,
                 style: 'width: 85px;',
-                menuStyle   : 'min-width: 85px;'
+                menuStyle   : 'min-width: 85px;',
+                takeFocusOnClose: true
             });
             this.cmbSpecial.setValue('');
             this.cmbSpecial.on('selected', _.bind(this.onSpecialSelect, this));
@@ -210,7 +212,7 @@ define([    'text!spreadsheeteditor/main/app/template/ParagraphSettingsAdvanced.
                     var properties = (this._originalProps) ? this._originalProps : new Asc.asc_CParagraphProperty();
                     this.Spacing = properties.asc_getSpacing();
                 }
-                this.Spacing.Before = Common.Utils.Metric.fnRecalcToMM(field.getNumberValue());
+                this.Spacing.put_Before(Common.Utils.Metric.fnRecalcToMM(field.getNumberValue()));
             }, this));
             this.spinners.push(this.numSpacingBefore);
 
@@ -230,7 +232,7 @@ define([    'text!spreadsheeteditor/main/app/template/ParagraphSettingsAdvanced.
                     var properties = (this._originalProps) ? this._originalProps : new Asc.asc_CParagraphProperty();
                     this.Spacing = properties.asc_getSpacing();
                 }
-                this.Spacing.After = Common.Utils.Metric.fnRecalcToMM(field.getNumberValue());
+                this.Spacing.put_After(Common.Utils.Metric.fnRecalcToMM(field.getNumberValue()));
             }, this));
             this.spinners.push(this.numSpacingAfter);
 
@@ -240,7 +242,8 @@ define([    'text!spreadsheeteditor/main/app/template/ParagraphSettingsAdvanced.
                 editable: false,
                 data: this._arrLineRule,
                 style: 'width: 85px;',
-                menuStyle   : 'min-width: 85px;'
+                menuStyle   : 'min-width: 85px;',
+                takeFocusOnClose: true
             });
             this.cmbLineRule.setValue(this.CurLineRuleIdx);
             this.cmbLineRule.on('selected', _.bind(this.onLineRuleSelect, this));
@@ -355,7 +358,8 @@ define([    'text!spreadsheeteditor/main/app/template/ParagraphSettingsAdvanced.
                     '<div style="width: 117px;display: inline-block;"><%= value %></div>',
                     '<div style="display: inline-block;"><%= displayTabAlign %></div>',
                     '</div>'
-                ].join(''))
+                ].join('')),
+                tabindex: 1
             });
             this.tabList.store.comparator = function(rec) {
                 return rec.get("tabPos");
@@ -376,9 +380,10 @@ define([    'text!spreadsheeteditor/main/app/template/ParagraphSettingsAdvanced.
                 menuStyle   : 'min-width: 108px;',
                 editable    : false,
                 cls         : 'input-group-nr',
-                data        : this._arrTabAlign
+                data        : this._arrTabAlign,
+                takeFocusOnClose: true
             });
-            this.cmbAlign.setValue(1);
+            this.cmbAlign.setValue(Asc.c_oAscTabType.Left);
 
             this.btnAddTab = new Common.UI.Button({
                 el: $('#paraadv-button-add-tab')
@@ -395,11 +400,35 @@ define([    'text!spreadsheeteditor/main/app/template/ParagraphSettingsAdvanced.
             });
             this.btnRemoveAll.on('click', _.bind(this.removeAllTabs, this));
 
-            this.on('show', function(obj) {
-                obj.getChild('.footer .primary').focus();
-            });
-
             this.afterRender();
+        },
+
+        getFocusedComponents: function() {
+            return [
+                this.cmbTextAlignment, this.numIndentsLeft, this.numIndentsRight, this.cmbSpecial, this.numSpecialBy,
+                this.numSpacingBefore, this.numSpacingAfter, this.cmbLineRule, this.numLineHeight, // 0 tab
+                this.numSpacing, // 1 tab
+                this.numDefaultTab, this.numTab, this.cmbAlign, {cmp: this.tabList, selector: '.listview'} // 2 tab
+            ];
+        },
+
+        onCategoryClick: function(btn, index) {
+            Common.Views.AdvancedSettingsWindow.prototype.onCategoryClick.call(this, btn, index);
+
+            var me = this;
+            setTimeout(function(){
+                switch (index) {
+                    case 0:
+                        me.cmbTextAlignment.focus();
+                        break;
+                    case 1:
+                        me.numSpacing.focus();
+                        break;
+                    case 2:
+                        me.numDefaultTab.focus();
+                        break;
+                }
+            }, 10);
         },
 
         getSettings: function() {
@@ -748,14 +777,14 @@ define([    'text!spreadsheeteditor/main/app/template/ParagraphSettingsAdvanced.
                 var properties = (this._originalProps) ? this._originalProps : new Asc.asc_CParagraphProperty();
                 this.Spacing = properties.asc_getSpacing();
             }
-            this.Spacing.LineRule = record.value;
+            this.Spacing.put_LineRule(record.value);
             var selectItem = _.findWhere(this._arrLineRule, {value: record.value}),
                 indexSelectItem = this._arrLineRule.indexOf(selectItem);
             if ( this.CurLineRuleIdx !== indexSelectItem ) {
                 this.numLineHeight.setDefaultUnit(this._arrLineRule[indexSelectItem].defaultUnit);
                 this.numLineHeight.setMinValue(this._arrLineRule[indexSelectItem].minValue);
                 this.numLineHeight.setStep(this._arrLineRule[indexSelectItem].step);
-                if (this.Spacing.LineRule === c_paragraphLinerule.LINERULE_AUTO) {
+                if (this.Spacing.get_LineRule() === c_paragraphLinerule.LINERULE_AUTO) {
                     this.numLineHeight.setValue(this._arrLineRule[indexSelectItem].defaultValue);
                 } else {
                     this.numLineHeight.setValue(Common.Utils.Metric.fnRecalcFromMM(this._arrLineRule[indexSelectItem].defaultValue));
@@ -771,7 +800,7 @@ define([    'text!spreadsheeteditor/main/app/template/ParagraphSettingsAdvanced.
                 var properties = (this._originalProps) ? this._originalProps : new Asc.asc_CParagraphProperty();
                 this.Spacing = properties.asc_getSpacing();
             }
-            this.Spacing.Line = (this.cmbLineRule.getValue()==c_paragraphLinerule.LINERULE_AUTO) ? field.getNumberValue() : Common.Utils.Metric.fnRecalcToMM(field.getNumberValue());
+            this.Spacing.put_Line((this.cmbLineRule.getValue()==c_paragraphLinerule.LINERULE_AUTO) ? field.getNumberValue() : Common.Utils.Metric.fnRecalcToMM(field.getNumberValue()));
         },
 
         textTitle:      'Paragraph - Advanced Settings',
@@ -779,8 +808,6 @@ define([    'text!spreadsheeteditor/main/app/template/ParagraphSettingsAdvanced.
         strIndentsRightText:    'Right',
         strParagraphIndents:    'Indents & Spacing',
         strParagraphFont:   'Font',
-        cancelButtonText:       'Cancel',
-        okButtonText:           'Ok',
         textEffects: 'Effects',
         textCharacterSpacing: 'Character Spacing',
         strDoubleStrike: 'Double strikethrough',

@@ -52,7 +52,9 @@ define([
     SSE.Controllers.DocumentHolder = Backbone.Controller.extend(_.extend((function() {
         // private
         var _actionSheets = [],
-            _isEdit = false;
+            _isEdit = false,
+            _canViewComments = true,
+            _isComments = false;
 
         function openLink(url) {
             var newDocumentPage = window.open(url, '_blank');
@@ -82,6 +84,7 @@ define([
 
                 this.api.asc_registerCallback('asc_onShowPopMenu',      _.bind(this.onApiShowPopMenu, this));
                 this.api.asc_registerCallback('asc_onHidePopMenu',      _.bind(this.onApiHidePopMenu, this));
+                this.api.asc_registerCallback('asc_onHyperlinkClick',   _.bind(this.onApiHyperlinkClick, this));
                 Common.NotificationCenter.on('api:disconnect',          _.bind(this.onCoAuthoringDisconnect, this));
                 this.api.asc_registerCallback('asc_onCoAuthoringDisconnect', _.bind(this.onCoAuthoringDisconnect,this));
             },
@@ -91,6 +94,7 @@ define([
                 if (_isEdit) {
                     this.api.asc_registerCallback('asc_onSetAFDialog',          _.bind(this.onApiFilterOptions, this));
                 }
+                _canViewComments = mode.canViewComments;
             },
 
             // When our application is ready, lets get started
@@ -109,9 +113,80 @@ define([
                 var info = me.api.asc_getCellInfo();
 
                 switch (event) {
-                case 'cut': me.api.asc_Cut(); break;
-                case 'copy': me.api.asc_Copy(); break;
-                case 'paste': me.api.asc_Paste(); break;
+                case 'cut':
+                    var res = me.api.asc_Cut();
+                    if (!res) {
+                        me.view.hideMenu();
+                        if (!Common.localStorage.getBool("sse-hide-copy-cut-paste-warning")) {
+                            uiApp.modal({
+                                title: me.textCopyCutPasteActions,
+                                text: me.errorCopyCutPaste,
+                                afterText: '<label class="label-checkbox item-content no-ripple">' +
+                                    '<input type="checkbox" name="checkbox-show-cut">' +
+                                    '<div class="item-media" style="margin-top: 10px; display: flex; align-items: center;">' +
+                                    '<i class="icon icon-form-checkbox"></i><span style="margin-left: 10px;">' + me.textDoNotShowAgain + '</span>' +
+                                    '</div>' +
+                                    '</label>',
+                                buttons: [{
+                                    text: 'OK',
+                                    onClick: function () {
+                                        var dontshow = $('input[name="checkbox-show-cut"]').prop('checked');
+                                        if (dontshow) Common.localStorage.setItem("sse-hide-copy-cut-paste-warning", 1);
+                                    }
+                                }]
+                            });
+                        }
+                    }
+                    break;
+                case 'copy':
+                    var res = me.api.asc_Copy();
+                    if (!res) {
+                        me.view.hideMenu();
+                        if (!Common.localStorage.getBool("sse-hide-copy-cut-paste-warning")) {
+                            uiApp.modal({
+                                title: me.textCopyCutPasteActions,
+                                afterText: '<label class="label-checkbox item-content no-ripple">' +
+                                    '<input type="checkbox" name="checkbox-show-copy">' +
+                                    '<div class="item-media" style="margin-top: 10px; display: flex; align-items: center;">' +
+                                    '<i class="icon icon-form-checkbox"></i><span style="margin-left: 10px;">' + me.textDoNotShowAgain + '</span>' +
+                                    '</div>' +
+                                    '</label>',
+                                buttons: [{
+                                    text: 'OK',
+                                    onClick: function () {
+                                        var dontshow = $('input[name="checkbox-show-copy"]').prop('checked');
+                                        if (dontshow) Common.localStorage.setItem("sse-hide-copy-cut-paste-warning", 1);
+                                    }
+                                }]
+                            });
+                        }
+                    }
+                    break;
+                case 'paste':
+                    var res = me.api.asc_Paste();
+                    if (!res) {
+                        me.view.hideMenu();
+                        if (!Common.localStorage.getBool("sse-hide-copy-cut-paste-warning")) {
+                            uiApp.modal({
+                                title: me.textCopyCutPasteActions,
+                                text: me.errorCopyCutPaste,
+                                afterText: '<label class="label-checkbox item-content no-ripple">' +
+                                    '<input type="checkbox" name="checkbox-show-paste">' +
+                                    '<div class="item-media" style="margin-top: 10px; display: flex; align-items: center;">' +
+                                    '<i class="icon icon-form-checkbox"></i><span style="margin-left: 10px;">' + me.textDoNotShowAgain + '</span>' +
+                                    '</div>' +
+                                    '</label>',
+                                buttons: [{
+                                    text: 'OK',
+                                    onClick: function () {
+                                        var dontshow = $('input[name="checkbox-show-paste"]').prop('checked');
+                                        if (dontshow) Common.localStorage.setItem("sse-hide-copy-cut-paste-warning", 1);
+                                    }
+                                }]
+                            });
+                        }
+                    }
+                    break;
                 case 'del': me.api.asc_emptyCells(Asc.c_oAscCleanOptions.All); break;
                 case 'wrap': me.api.asc_setCellTextWrap(true); break;
                 case 'unwrap': me.api.asc_setCellTextWrap(false); break;
@@ -123,7 +198,7 @@ define([
                 case 'merge':
                     if (me.api.asc_mergeCellsDataLost(Asc.c_oAscMergeOptions.Merge)) {
                         _.defer(function () {
-                            uiApp.confirm(me.warnMergeLostData, undefined, function(){
+                            uiApp.confirm(me.warnMergeLostData, me.notcriticalErrorTitle, function(){
                                 me.api.asc_mergeCells(Asc.c_oAscMergeOptions.Merge);
                             });
                         });
@@ -135,10 +210,10 @@ define([
                     me.api.asc_mergeCells(Asc.c_oAscMergeOptions.None);
                     break;
                 case 'hide':
-                    me.api[info.asc_getFlags().asc_getSelectionType() == Asc.c_oAscSelectionType.RangeRow ? 'asc_hideRows' : 'asc_hideColumns']();
+                    me.api[info.asc_getSelectionType() == Asc.c_oAscSelectionType.RangeRow ? 'asc_hideRows' : 'asc_hideColumns']();
                     break;
                 case 'show':
-                    me.api[info.asc_getFlags().asc_getSelectionType() == Asc.c_oAscSelectionType.RangeRow ? 'asc_showRows' : 'asc_showColumns']();
+                    me.api[info.asc_getSelectionType() == Asc.c_oAscSelectionType.RangeRow ? 'asc_showRows' : 'asc_showColumns']();
                     break;
                 case 'addlink':
                     me.view.hideMenu();
@@ -149,7 +224,10 @@ define([
                 case 'openlink':
                     var linkinfo = info.asc_getHyperlink();
                     if ( linkinfo.asc_getType() == Asc.c_oAscHyperlinkType.RangeLink ) {
-                        /* not implemented in sdk */
+                        var nameSheet = linkinfo.asc_getSheet();
+                        var curActiveSheet = this.api.asc_getActiveWorksheetIndex();
+                        me.api.asc_setWorksheetRange(linkinfo);
+                        SSE.getController('Statusbar').onLinkWorksheetRange(nameSheet, curActiveSheet);
                     } else {
                         var url = linkinfo.asc_getHyperlinkUrl().replace(/\s/g, "%20");
                         me.api.asc_getUrlType(url) > 0 && openLink(url);
@@ -158,12 +236,25 @@ define([
                 case 'freezePanes':
                     me.api.asc_freezePane();
                     break;
+                case 'viewcomment':
+                    me.view.hideMenu();
+                    var cellinfo = this.api.asc_getCellInfo(),
+                        comments = cellinfo.asc_getComments();
+                    if (comments.length) {
+                        SSE.getController('Common.Controllers.Collaboration').apiShowComments(comments[0].asc_getId());
+                        SSE.getController('Common.Controllers.Collaboration').showCommentModal();
+                    }
+                    break;
+                case 'addcomment':
+                    me.view.hideMenu();
+                    SSE.getController('AddContainer').showModal();
+                    SSE.getController('AddOther').getView('AddOther').showPageComment(false);
                 }
 
                 if ('showActionSheet' == event && _actionSheets.length > 0) {
                     _.delay(function () {
                         _.each(_actionSheets, function (action) {
-                            action.text = action.caption
+                            action.text = action.caption;
                             action.onClick = function () {
                                 me.onContextMenuClick(null, action.event)
                             }
@@ -188,7 +279,7 @@ define([
             },
 
             onApiShowPopMenu: function(posX, posY) {
-                if ( !_isEdit || this.isDisconnected) return;
+                if (this.isDisconnected) return;
 
                 if ($('.popover.settings, .popup.settings, .picker-modal.settings, .modal-in, .actions-modal').length > 0) {
                     return;
@@ -206,17 +297,32 @@ define([
                 this.view.hideMenu();
             },
 
+            onApiHyperlinkClick: function(url) {
+                if (!url) {
+                    var me = this;
+                    _.defer(function () {
+                        uiApp.modal({
+                            title: me.notcriticalErrorTitle,
+                            text : me.errorInvalidLink,
+                            buttons: [{text: 'OK'}]
+                        });
+                    });
+                }
+            },
+
             // Internal
 
             _initMenu: function (cellinfo) {
                 var me = this,
-                    _actionSheets = [],
                     arrItems = [],
                     arrItemsIcon = [];
+                _actionSheets.length = 0;
 
                 var iscellmenu, isrowmenu, iscolmenu, isallmenu, ischartmenu, isimagemenu, istextshapemenu, isshapemenu, istextchartmenu;
                 var iscelllocked    = cellinfo.asc_getLocked(),
-                    seltype         = cellinfo.asc_getFlags().asc_getSelectionType();
+                    seltype         = cellinfo.asc_getSelectionType(),
+                    xfs             = cellinfo.asc_getXfs();
+                _isComments      = cellinfo.asc_getComments().length>0; //prohibit adding multiple comments in one cell;
 
                 switch (seltype) {
                     case Asc.c_oAscSelectionType.RangeCells:     iscellmenu  = true;     break;
@@ -230,127 +336,157 @@ define([
                     case Asc.c_oAscSelectionType.RangeShapeText: istextshapemenu = true; break;
                 }
 
-                if (!iscelllocked && (isimagemenu || isshapemenu || ischartmenu || istextshapemenu || istextchartmenu)) {
-                    this.api.asc_getGraphicObjectProps().every(function (object) {
-                        if (object.asc_getObjectType() == Asc.c_oAscTypeSelectElement.Image) {
-                            iscelllocked = object.asc_getObjectValue().asc_getLocked();
-                        }
+                if (!_isEdit) {
+                    if (iscellmenu || istextchartmenu || istextshapemenu) {
+                        arrItemsIcon = [{
+                            caption: me.menuCopy,
+                            event: 'copy',
+                            icon: 'icon-copy'
+                        }];
+                    }
+                    if (iscellmenu && cellinfo.asc_getHyperlink()) {
+                        arrItems.push({
+                            caption: me.menuOpenLink,
+                            event: 'openlink'
+                        });
+                    }
+                    if (_canViewComments && _isComments) {
+                        arrItems.push({
+                            caption: me.menuViewComment,
+                            event: 'viewcomment'
+                        });
+                    }
+                } else {
 
-                        return !iscelllocked;
-                    });
-                }
+                    if (!iscelllocked && (isimagemenu || isshapemenu || ischartmenu || istextshapemenu || istextchartmenu)) {
+                        this.api.asc_getGraphicObjectProps().every(function (object) {
+                            if (object.asc_getObjectType() == Asc.c_oAscTypeSelectElement.Image) {
+                                iscelllocked = object.asc_getObjectValue().asc_getLocked();
+                            }
 
-                if ( iscelllocked || this.api.isCellEdited ) {
-                    arrItemsIcon = [{
+                            return !iscelllocked;
+                        });
+                    }
+
+                    if (iscelllocked || this.api.isCellEdited) {
+                        arrItemsIcon = [{
                             caption: me.menuCopy,
                             event: 'copy',
                             icon: 'icon-copy'
                         }];
 
-                } else {
-                    var arrItemsIcon = [{
+                    } else {
+                        var arrItemsIcon = [{
                             caption: me.menuCut,
                             event: 'cut',
                             icon: 'icon-cut'
-                        },{
+                        }, {
                             caption: me.menuCopy,
                             event: 'copy',
                             icon: 'icon-copy'
-                        },{
+                        }, {
                             caption: me.menuPaste,
                             event: 'paste',
                             icon: 'icon-paste'
                         }];
-                    arrItems.push({
-                        caption: me.menuDelete,
-                        event: 'del'
-                    });
+                        arrItems.push({
+                            caption: me.menuDelete,
+                            event: 'del'
+                        });
 
                         // isTableLocked       = cellinfo.asc_getLockedTable()===true;
 
-                    if (isimagemenu || isshapemenu || ischartmenu ||
-                                istextshapemenu || istextchartmenu )
-                    {
-                        arrItems.push({
-                            caption: me.menuEdit,
-                            event: 'edit'
-                        });
-                    } else {
-                        if ( iscolmenu || isrowmenu) {
+                        if (isimagemenu || isshapemenu || ischartmenu ||
+                            istextshapemenu || istextchartmenu) {
                             arrItems.push({
+                                caption: me.menuEdit,
+                                event: 'edit'
+                            });
+                        } else {
+                            if (iscolmenu || isrowmenu) {
+                                arrItems.push({
                                     caption: me.menuHide,
                                     event: 'hide'
-                                },{
+                                }, {
                                     caption: me.menuShow,
                                     event: 'show'
                                 });
-                        } else
-                        if ( iscellmenu ) {
-                            !iscelllocked &&
-                            arrItems.push({
-                                caption: me.menuCell,
-                                event: 'edit'
-                            });
-
-                            (cellinfo.asc_getFlags().asc_getMerge() == Asc.c_oAscMergeOptions.None) &&
-                            arrItems.push({
-                                caption: me.menuMerge,
-                                event: 'merge'
-                            });
-
-                            (cellinfo.asc_getFlags().asc_getMerge() ==  Asc.c_oAscMergeOptions.Merge) &&
-                            arrItems.push({
-                                caption: me.menuUnmerge,
-                                event: 'unmerge'
-                            });
-
-                            arrItems.push(
-                                cellinfo.asc_getFlags().asc_getWrapText() ?
-                                    {
-                                        caption: me.menuUnwrap,
-                                        event: 'unwrap'
-                                    } :
-                                    {
-                                        caption: me.menuWrap,
-                                        event: 'wrap'
-                                    });
-
-                            if ( cellinfo.asc_getHyperlink() && !cellinfo.asc_getFlags().asc_getMultiselect() &&
-                                cellinfo.asc_getHyperlink().asc_getType() == Asc.c_oAscHyperlinkType.WebLink )
-                            {
+                            } else if (iscellmenu) {
+                                !iscelllocked &&
                                 arrItems.push({
-                                    caption: me.menuOpenLink,
-                                    event: 'openlink'
+                                    caption: me.menuCell,
+                                    event: 'edit'
                                 });
-                            } else
-                            if ( !cellinfo.asc_getHyperlink() && !cellinfo.asc_getFlags().asc_getMultiselect() &&
-                                !cellinfo.asc_getFlags().asc_getLockText() && !!cellinfo.asc_getText() )
-                            {
+
+                                (cellinfo.asc_getMerge() == Asc.c_oAscMergeOptions.None) &&
                                 arrItems.push({
-                                    caption: me.menuAddLink,
-                                    event: 'addlink'
+                                    caption: me.menuMerge,
+                                    event: 'merge'
+                                });
+
+                                (cellinfo.asc_getMerge() == Asc.c_oAscMergeOptions.Merge) &&
+                                arrItems.push({
+                                    caption: me.menuUnmerge,
+                                    event: 'unmerge'
+                                });
+
+                                arrItems.push(
+                                    xfs.asc_getWrapText() ?
+                                        {
+                                            caption: me.menuUnwrap,
+                                            event: 'unwrap'
+                                        } :
+                                        {
+                                            caption: me.menuWrap,
+                                            event: 'wrap'
+                                        });
+
+                                if (cellinfo.asc_getHyperlink() && !cellinfo.asc_getMultiselect()) {
+                                    arrItems.push({
+                                        caption: me.menuOpenLink,
+                                        event: 'openlink'
+                                    });
+                                } else if (!cellinfo.asc_getHyperlink() && !cellinfo.asc_getMultiselect() &&
+                                    !cellinfo.asc_getLockText() && !!cellinfo.asc_getText()) {
+                                    arrItems.push({
+                                        caption: me.menuAddLink,
+                                        event: 'addlink'
+                                    });
+                                }
+                            }
+
+                            arrItems.push({
+                                caption: this.api.asc_getSheetViewSettings().asc_getIsFreezePane() ? me.menuUnfreezePanes : me.menuFreezePanes,
+                                event: 'freezePanes'
+                            });
+
+                        }
+
+                        if (_canViewComments) {
+                            if (_isComments) {
+                                arrItems.push({
+                                    caption: me.menuViewComment,
+                                    event: 'viewcomment'
+                                });
+                            } else if (iscellmenu) {
+                                arrItems.push({
+                                    caption: me.menuAddComment,
+                                    event: 'addcomment'
                                 });
                             }
                         }
-
-                        arrItems.push({
-                            caption: this.api.asc_getSheetViewSettings().asc_getIsFreezePane() ? me.menuUnfreezePanes : me.menuFreezePanes,
-                            event: 'freezePanes'
-                        });
-
                     }
-                }
 
 
+                    if (Common.SharedSettings.get('phone') && arrItems.length > 2) {
+                        _actionSheets = arrItems.slice(2);
 
-                if (Common.SharedSettings.get('phone') && arrItems.length > 2) {
-                    _actionSheets = arrItems.slice(2);
-
-                    arrItems = arrItems.slice(0, 2);
-                    arrItems.push({
-                        caption: me.menuMore,
-                        event: 'showActionSheet'
-                    });
+                        arrItems = arrItems.slice(0, 2);
+                        arrItems.push({
+                            caption: me.menuMore,
+                            event: 'showActionSheet'
+                        });
+                    }
                 }
 
                 var menuItems = {itemsIcon: arrItemsIcon, items: arrItems};
@@ -390,7 +526,14 @@ define([
             menuMore:       'More',
             sheetCancel:    'Cancel',
             menuFreezePanes: 'Freeze Panes',
-            menuUnfreezePanes: 'Unfreeze Panes'
+            menuUnfreezePanes: 'Unfreeze Panes',
+            menuViewComment: 'View Comment',
+            menuAddComment: 'Add Comment',
+            textCopyCutPasteActions: 'Copy, Cut and Paste Actions',
+            errorCopyCutPaste: 'Copy, cut and paste actions using the context menu will be performed within the current file only.',
+            textDoNotShowAgain: 'Don\'t show again',
+            notcriticalErrorTitle: 'Warning',
+            errorInvalidLink: 'The link reference does not exist. Please correct the link or delete it.'
         }
     })(), SSE.Controllers.DocumentHolder || {}))
 });

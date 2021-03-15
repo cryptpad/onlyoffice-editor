@@ -57,19 +57,20 @@ define([
     Common.Views.ReviewChanges = Common.UI.BaseView.extend(_.extend((function(){
         var template =
             '<section id="review-changes-panel" class="panel" data-tab="review">' +
-                '<div class="group no-group-mask">' +
+                '<div class="group no-group-mask review">' +
                     '<span id="slot-btn-sharing" class="btn-slot text x-huge"></span>' +
                     '<span id="slot-btn-coauthmode" class="btn-slot text x-huge"></span>' +
                 '</div>' +
-                '<div class="separator long sharing"/>' +
+                '<div class="separator long sharing"></div>' +
                 '<div class="group">' +
                     '<span class="btn-slot text x-huge slot-comment"></span>' +
+                    '<span class="btn-slot text x-huge" id="slot-comment-remove"></span>' +
                 '</div>' +
-                '<div class="separator long comments"/>' +
+                '<div class="separator long comments"></div>' +
                 '<div class="group">' +
                     '<span id="btn-review-on" class="btn-slot text x-huge"></span>' +
                 '</div>' +
-                '<div class="group no-group-mask" style="padding-left: 0;">' +
+                '<div class="group no-group-mask review" style="padding-left: 0;">' +
                     '<span id="btn-review-view" class="btn-slot text x-huge"></span>' +
                 '</div>' +
                 '<div class="group move-changes" style="padding-left: 0;">' +
@@ -78,12 +79,16 @@ define([
                     '<span id="btn-change-accept" class="btn-slot text x-huge"></span>' +
                     '<span id="btn-change-reject" class="btn-slot text x-huge"></span>' +
                 '</div>' +
-                '<div class="separator long review"/>' +
-                '<div class="group no-group-mask">' +
+                '<div class="separator long review"></div>' +
+                '<div class="group">' +
+                    '<span id="btn-compare" class="btn-slot text x-huge"></span>' +
+                '</div>' +
+                '<div class="separator long compare"></div>' +
+                '<div class="group no-group-mask review form-view">' +
                     '<span id="slot-btn-chat" class="btn-slot text x-huge"></span>' +
                 '</div>' +
-                '<div class="separator long chat"/>' +
-                '<div class="group no-group-mask">' +
+                '<div class="separator long chat"></div>' +
+                '<div class="group no-group-mask review form-view">' +
                     '<span id="slot-btn-history" class="btn-slot text x-huge"></span>' +
                 '</div>' +
             '</section>';
@@ -103,7 +108,7 @@ define([
                     me.fireEvent('reviewchange:accept', [me.btnAccept, 'current']);
                 });
 
-                this.btnAccept.menu.on('item:click', function (menu, item, e) {
+                this.btnAccept.menu && this.btnAccept.menu.on('item:click', function (menu, item, e) {
                     me.fireEvent('reviewchange:accept', [menu, item]);
                 });
 
@@ -111,9 +116,19 @@ define([
                     me.fireEvent('reviewchange:reject', [me.btnReject, 'current']);
                 });
 
-                this.btnReject.menu.on('item:click', function (menu, item, e) {
+                this.btnReject.menu && this.btnReject.menu.on('item:click', function (menu, item, e) {
                     me.fireEvent('reviewchange:reject', [menu, item]);
                 });
+
+                if (me.appConfig.canFeatureComparison) {
+                    this.btnCompare.on('click', function (e) {
+                        me.fireEvent('reviewchange:compare', ['file']);
+                    });
+
+                    this.btnCompare.menu.on('item:click', function (menu, item, e) {
+                        me.fireEvent('reviewchange:compare', [item.value]);
+                    });
+                }
 
                 this.btnsTurnReview.forEach(function (button) {
                     button.on('click', _click_turnpreview.bind(me));
@@ -129,7 +144,7 @@ define([
                 });
 
                 this.btnReviewView && this.btnReviewView.menu.on('item:click', function (menu, item, e) {
-                    me.fireEvent('reviewchanges:view', [menu, item]);
+                    me.fireEvent('reviewchange:view', [menu, item]);
                 });
             }
 
@@ -161,6 +176,16 @@ define([
             this.btnChat && this.btnChat.on('click', function (btn, e) {
                 me.fireEvent('collaboration:chat', [btn.pressed]);
             });
+
+            if (this.btnCommentRemove) {
+                this.btnCommentRemove.on('click', function (e) {
+                    me.fireEvent('comment:removeComments', ['current']);
+                });
+
+                this.btnCommentRemove.menu.on('item:click', function (menu, item, e) {
+                    me.fireEvent('comment:removeComments', [item.value]);
+                });
+            }
         }
 
         return {
@@ -177,20 +202,28 @@ define([
                     this.btnAccept = new Common.UI.Button({
                         cls: 'btn-toolbar x-huge icon-top',
                         caption: this.txtAccept,
-                        split: true,
-                        iconCls: 'review-save'
+                        split: !this.appConfig.canUseReviewPermissions,
+                        iconCls: 'toolbar__icon btn-review-save'
                     });
 
                     this.btnReject = new Common.UI.Button({
                         cls: 'btn-toolbar x-huge icon-top',
                         caption: this.txtReject,
-                        split: true,
-                        iconCls: 'review-deny'
+                        split: !this.appConfig.canUseReviewPermissions,
+                        iconCls: 'toolbar__icon btn-review-deny'
                     });
+
+                    if (this.appConfig.canFeatureComparison)
+                        this.btnCompare = new Common.UI.Button({
+                            cls         : 'btn-toolbar  x-huge icon-top',
+                            caption     : this.txtCompare,
+                            split       : true,
+                            iconCls: 'toolbar__icon btn-compare'
+                        });
 
                     this.btnTurnOn = new Common.UI.Button({
                         cls: 'btn-toolbar x-huge icon-top',
-                        iconCls: 'btn-ic-review',
+                        iconCls: 'toolbar__icon btn-ic-review',
                         caption: this.txtTurnon,
                         enableToggle: true
                     });
@@ -199,13 +232,13 @@ define([
                 if (this.appConfig.canViewReview) {
                     this.btnPrev = new Common.UI.Button({
                         cls: 'btn-toolbar x-huge icon-top',
-                        iconCls: 'review-prev',
+                        iconCls: 'toolbar__icon btn-review-prev',
                         caption: this.txtPrev
                     });
 
                     this.btnNext = new Common.UI.Button({
                         cls: 'btn-toolbar x-huge icon-top',
-                        iconCls: 'review-next',
+                        iconCls: 'toolbar__icon btn-review-next',
                         caption: this.txtNext
                     });
 
@@ -216,7 +249,7 @@ define([
 
                         this.btnReviewView = new Common.UI.Button({
                             cls: 'btn-toolbar x-huge icon-top',
-                            iconCls: 'btn-ic-reviewview',
+                            iconCls: 'toolbar__icon btn-ic-reviewview',
                             caption: this.txtView,
                             menu: new Common.UI.Menu({
                                 cls: 'ppm-toolbar',
@@ -254,10 +287,10 @@ define([
                     }
                 }
 
-                if (!!this.appConfig.sharingSettingsUrl && this.appConfig.sharingSettingsUrl.length && this._readonlyRights!==true) {
+                if ((!!this.appConfig.sharingSettingsUrl && this.appConfig.sharingSettingsUrl.length || this.appConfig.canRequestSharingSettings) && this._readonlyRights!==true) {
                     this.btnSharing = new Common.UI.Button({
                         cls: 'btn-toolbar x-huge icon-top',
-                        iconCls: 'btn-ic-sharing',
+                        iconCls: 'toolbar__icon btn-ic-sharing',
                         caption: this.txtSharing
                     });
                 }
@@ -265,7 +298,7 @@ define([
                 if (this.appConfig.isEdit && !this.appConfig.isOffline && this.appConfig.canCoAuthoring) {
                     this.btnCoAuthMode = new Common.UI.Button({
                         cls: 'btn-toolbar x-huge icon-top',
-                        iconCls: 'btn-ic-coedit',
+                        iconCls: 'toolbar__icon btn-ic-coedit',
                         caption: this.txtCoAuthMode,
                         menu: true
                     });
@@ -277,7 +310,7 @@ define([
                 if (this.appConfig.canUseHistory && !this.appConfig.isDisconnected) {
                     this.btnHistory = new Common.UI.Button({
                         cls: 'btn-toolbar x-huge icon-top',
-                        iconCls: 'btn-ic-history',
+                        iconCls: 'toolbar__icon btn-ic-history',
                         caption: this.txtHistory
                     });
                 }
@@ -285,9 +318,18 @@ define([
                 if (this.appConfig.canCoAuthoring && this.appConfig.canChat) {
                     this.btnChat = new Common.UI.Button({
                         cls: 'btn-toolbar x-huge icon-top',
-                        iconCls: 'btn-ic-chat',
+                        iconCls: 'toolbar__icon btn-ic-chat',
                         caption: this.txtChat,
                         enableToggle: true
+                    });
+                }
+
+                if ( this.appConfig.canCoAuthoring && this.appConfig.canComments ) {
+                    this.btnCommentRemove = new Common.UI.Button({
+                        cls: 'btn-toolbar x-huge icon-top',
+                        caption: this.txtCommentRemove,
+                        split: true,
+                        iconCls: 'toolbar__icon btn-rem-comment'
                     });
                 }
 
@@ -316,37 +358,52 @@ define([
                     if ( config.canReview ) {
                         me.btnTurnOn.updateHint(me.tipReview);
 
-                        me.btnAccept.setMenu(
-                            new Common.UI.Menu({
-                                items: [
-                                    {
-                                        caption: me.txtAcceptCurrent,
-                                        value: 'current'
-                                    },
-                                    {
-                                        caption: me.txtAcceptAll,
-                                        value: 'all'
-                                    }
-                                ]
-                            })
-                        );
+                        if (!me.appConfig.canUseReviewPermissions) {
+                            me.btnAccept.setMenu(
+                                new Common.UI.Menu({
+                                    items: [
+                                        {
+                                            caption: me.txtAcceptCurrent,
+                                            value: 'current'
+                                        },
+                                        {
+                                            caption: me.txtAcceptAll,
+                                            value: 'all'
+                                        }
+                                    ]
+                                })
+                            );
+                            me.btnReject.setMenu(
+                                new Common.UI.Menu({
+                                    items: [
+                                        {
+                                            caption: me.txtRejectCurrent,
+                                            value: 'current'
+                                        },
+                                        {
+                                            caption: me.txtRejectAll,
+                                            value: 'all'
+                                        }
+                                    ]
+                                })
+                            );
+                        }
                         me.btnAccept.updateHint([me.tipAcceptCurrent, me.txtAcceptChanges]);
-
-                        me.btnReject.setMenu(
-                            new Common.UI.Menu({
-                                items: [
-                                    {
-                                        caption: me.txtRejectCurrent,
-                                        value: 'current'
-                                    },
-                                    {
-                                        caption: me.txtRejectAll,
-                                        value: 'all'
-                                    }
-                                ]
-                            })
-                        );
                         me.btnReject.updateHint([me.tipRejectCurrent, me.txtRejectChanges]);
+
+                        if (config.canFeatureComparison) {
+                            me.btnCompare.setMenu(new Common.UI.Menu({
+                                items: [
+                                    {caption: me.mniFromFile, value: 'file'},
+                                    {caption: me.mniFromUrl, value: 'url'},
+                                    {caption: me.mniFromStorage, value: 'storage'}
+                                    // ,{caption: '--'},
+                                    // {caption: me.mniSettings, value: 'settings'}
+                                ]
+                            }));
+                            me.btnCompare.menu.items[2].setVisible(me.appConfig.canRequestCompareFile || me.appConfig.fileChoiceUrl && me.appConfig.fileChoiceUrl.indexOf("{documentType}")>-1);
+                            me.btnCompare.updateHint(me.tipCompare);
+                        }
 
                         me.btnAccept.setDisabled(config.isReviewOnly);
                         me.btnReject.setDisabled(config.isReviewOnly);
@@ -397,9 +454,32 @@ define([
                         me.turnCoAuthMode((value===null || parseInt(value) == 1) && !(config.isDesktopApp && config.isOffline) && config.canCoAuthoring);
                     }
 
+                    if (me.btnCommentRemove) {
+                        var items = [
+                            {
+                                caption: config.canEditComments ? me.txtCommentRemCurrent : me.txtCommentRemMyCurrent,
+                                value: 'current'
+                            },
+                            {
+                                caption: me.txtCommentRemMy,
+                                value: 'my'
+                            }
+                        ];
+                        if (config.canEditComments)
+                            items.push({
+                                caption: me.txtCommentRemAll,
+                                value: 'all'
+                            });
+                        me.btnCommentRemove.setMenu(
+                            new Common.UI.Menu({items: items})
+                        );
+                        me.btnCommentRemove.updateHint([me.tipCommentRemCurrent, me.tipCommentRem]);
+                    }
+
                     var separator_sharing = !(me.btnSharing || me.btnCoAuthMode) ? me.$el.find('.separator.sharing') : '.separator.sharing',
                         separator_comments = !(config.canComments && config.canCoAuthoring) ? me.$el.find('.separator.comments') : '.separator.comments',
                         separator_review = !(config.canReview || config.canViewReview) ? me.$el.find('.separator.review') : '.separator.review',
+                        separator_compare = !(config.canReview && config.canFeatureComparison) ? me.$el.find('.separator.compare') : '.separator.compare',
                         separator_chat = !me.btnChat ? me.$el.find('.separator.chat') : '.separator.chat',
                         separator_last;
 
@@ -418,6 +498,11 @@ define([
                     else
                         separator_last = separator_review;
 
+                    if (typeof separator_compare == 'object')
+                        separator_compare.hide().prev('.group').hide();
+                    else
+                        separator_last = separator_compare;
+
                     if (typeof separator_chat == 'object')
                         separator_chat.hide().prev('.group').hide();
                     else
@@ -426,7 +511,7 @@ define([
                     if (!me.btnHistory && separator_last)
                         me.$el.find(separator_last).hide();
 
-                    Common.NotificationCenter.trigger('tab:visible', 'review', config.isEdit || config.canViewReview);
+                    Common.NotificationCenter.trigger('tab:visible', 'review', config.isEdit || config.canViewReview || config.canCoAuthoring && config.canComments);
 
                     setEvents.call(me);
                 });
@@ -438,6 +523,7 @@ define([
                 if ( this.appConfig.canReview ) {
                     this.btnAccept.render(this.$el.find('#btn-change-accept'));
                     this.btnReject.render(this.$el.find('#btn-change-reject'));
+                    this.appConfig.canFeatureComparison && this.btnCompare.render(this.$el.find('#btn-compare'));
                     this.btnTurnOn.render(this.$el.find('#btn-review-on'));
                 }
                 this.btnPrev && this.btnPrev.render(this.$el.find('#btn-change-prev'));
@@ -448,6 +534,7 @@ define([
                 this.btnCoAuthMode && this.btnCoAuthMode.render(this.$el.find('#slot-btn-coauthmode'));
                 this.btnHistory && this.btnHistory.render(this.$el.find('#slot-btn-history'));
                 this.btnChat && this.btnChat.render(this.$el.find('#slot-btn-chat'));
+                this.btnCommentRemove && this.btnCommentRemove.render(this.$el.find('#slot-comment-remove'));
 
                 return this.$el;
             },
@@ -461,7 +548,7 @@ define([
                 if ( type == 'turn' && parent == 'statusbar' ) {
                     var button = new Common.UI.Button({
                         cls         : 'btn-toolbar',
-                        iconCls     : 'btn-ic-review',
+                        iconCls     : 'toolbar__icon btn-ic-review',
                         hintAnchor  : 'top',
                         hint        : this.tipReview,
                         enableToggle: true
@@ -474,7 +561,7 @@ define([
                 if ( type == 'spelling' ) {
                     button = new Common.UI.Button({
                         cls: 'btn-toolbar',
-                        iconCls: 'btn-ic-docspell',
+                        iconCls: 'toolbar__icon btn-ic-docspell',
                         hintAnchor  : 'top',
                         hint: this.tipSetSpelling,
                         enableToggle: true
@@ -485,7 +572,7 @@ define([
                 } else if (type == 'doclang' && parent == 'statusbar' ) {
                     button = new Common.UI.Button({
                         cls: 'btn-toolbar',
-                        iconCls: 'btn-ic-doclang',
+                        iconCls: 'toolbar__icon btn-ic-doclang',
                         hintAnchor  : 'top',
                         hint: this.tipSetDocLang,
                         disabled: true
@@ -497,7 +584,7 @@ define([
             },
 
             getUserName: function (username) {
-                return Common.Utils.String.htmlEncode(username);
+                return Common.Utils.String.htmlEncode(Common.Utils.UserInfoParser.getParsedName(username));
             },
 
             turnChanges: function(state) {
@@ -560,7 +647,9 @@ define([
                         button.setDisabled(state);
                     }
                 }, this);
-                this.btnChat && this.btnChat.setDisabled(state);
+                // this.btnChat && this.btnChat.setDisabled(state);
+
+                this.btnCommentRemove && this.btnCommentRemove.setDisabled(state || !Common.Utils.InternalSettings.get(this.appPrefix + "settings-livecomment"));
             },
 
             onLostEditRights: function() {
@@ -609,7 +698,20 @@ define([
             txtFinalCap: 'Final',
             txtOriginalCap: 'Original',
             strFastDesc: 'Real-time co-editing. All changes are saved automatically.',
-            strStrictDesc: 'Use the \'Save\' button to sync the changes you and others make.'
+            strStrictDesc: 'Use the \'Save\' button to sync the changes you and others make.',
+            txtCompare: 'Compare',
+            tipCompare: 'Compare current document with another one',
+            mniFromFile: 'Document from File',
+            mniFromUrl: 'Document from URL',
+            mniFromStorage: 'Document from Storage',
+            mniSettings: 'Comparison Settings',
+            txtCommentRemove: 'Remove',
+            tipCommentRemCurrent: 'Remove current comments',
+            tipCommentRem: 'Remove comments',
+            txtCommentRemCurrent: 'Remove Current Comments',
+            txtCommentRemMyCurrent: 'Remove My Current Comments',
+            txtCommentRemMy: 'Remove My Comments',
+            txtCommentRemAll: 'Remove All Comments'
         }
     }()), Common.Views.ReviewChanges || {}));
 
@@ -670,7 +772,7 @@ define([
                 caption     : this.txtAccept,
                 split       : true,
                 disabled    : this.mode.isReviewOnly,
-                menu        : new Common.UI.Menu({
+                menu        : this.mode.canUseReviewPermissions ? false : new Common.UI.Menu({
                     items: [
                         this.mnuAcceptCurrent = new Common.UI.MenuItem({
                             caption: this.txtAcceptCurrent,
@@ -690,7 +792,7 @@ define([
                 caption     : this.txtReject,
                 split       : true,
                 disabled    : this.mode.isReviewOnly,
-                menu        : new Common.UI.Menu({
+                menu        : this.mode.canUseReviewPermissions ? false : new Common.UI.Menu({
                     items: [
                         this.mnuRejectCurrent = new Common.UI.MenuItem({
                             caption: this.txtRejectCurrent,
@@ -718,7 +820,7 @@ define([
                 me.fireEvent('reviewchange:accept', [me.btnAccept, 'current']);
             });
 
-            this.btnAccept.menu.on('item:click', function (menu, item, e) {
+            this.btnAccept.menu && this.btnAccept.menu.on('item:click', function (menu, item, e) {
                 me.fireEvent('reviewchange:accept', [menu, item]);
             });
 
@@ -726,7 +828,7 @@ define([
                 me.fireEvent('reviewchange:reject', [me.btnReject, 'current']);
             });
 
-            this.btnReject.menu.on('item:click', function (menu, item, e) {
+            this.btnReject.menu && this.btnReject.menu.on('item:click', function (menu, item, e) {
                 me.fireEvent('reviewchange:reject', [menu, item]);
             });
 

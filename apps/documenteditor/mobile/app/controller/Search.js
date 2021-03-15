@@ -69,6 +69,26 @@ define([
             return out;
         };
 
+        function iOSVersion() {
+            var ua = navigator.userAgent.toLowerCase();
+            var isAppleDevices = (ua.indexOf("ipad") > -1 || ua.indexOf("iphone") > -1 || ua.indexOf("ipod") > -1);
+            if (!isAppleDevices && Common.Utils.isSafari && Common.Utils.isMac && (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1))
+                isAppleDevices = true;
+
+            var iosversion = 0;
+            if (isAppleDevices) {
+                iosversion = 13;
+                try
+                {
+                    var v = (navigator.appVersion).match(/OS (\d+)_(\d+)_?(\d+)?/);
+                    if (!v) v = (navigator.appVersion).match(/Version\/(\d+).(\d+)/);
+                    iosversion = parseInt(v[1], 10);
+                }
+                catch (err) {}
+            }
+            return iosversion;
+        }
+
         return {
             models: [],
             collections: [],
@@ -99,8 +119,14 @@ define([
                 var me = this;
                 me.createView('Search').render();
 
-                $('#editor_sdk').single('mousedown touchstart', _.bind(me.onEditorTouchStart, me));
-                $('#editor_sdk').single('mouseup touchend',     _.bind(me.onEditorTouchEnd, me));
+                if (iOSVersion()<13) {
+                    $('#editor_sdk').single('mousedown touchstart', _.bind(me.onEditorTouchStart, me));
+                    $('#editor_sdk').single('mouseup touchend',     _.bind(me.onEditorTouchEnd, me));
+                } else {
+                    $('#editor_sdk').single('pointerdown', _.bind(me.onEditorTouchStart, me));
+                    $('#editor_sdk').single('pointerup',     _.bind(me.onEditorTouchEnd, me));
+                }
+
                 Common.NotificationCenter.on('readermode:change', function (reader) {
                     _startPoint = {};
                 });
@@ -294,7 +320,7 @@ define([
                     matchword = Common.SharedSettings.get('search-highlight') || false;
 
                 if (search && search.length) {
-                    if (!this.api.asc_replaceText(search, replace, false, matchcase, matchword)) {
+                    if (!this.api.asc_replaceText(search, replace || '', false, matchcase, matchword)) {
                         var me = this;
                         uiApp.alert(
                             '',
@@ -312,7 +338,7 @@ define([
                     matchword = Common.SharedSettings.get('search-highlight') || false;
 
                 if (search && search.length) {
-                    this.api.asc_replaceText(search, replace, true, matchcase, matchword);
+                    this.api.asc_replaceText(search, replace || '', true, matchcase, matchword);
                 }
             },
 

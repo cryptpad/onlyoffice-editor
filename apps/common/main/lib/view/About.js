@@ -45,6 +45,7 @@ define([
 
     Common.Views.About = Common.UI.BaseView.extend(_.extend({
         menu: undefined,
+        rendered: false,
         options: {
             alias: 'Common.Views.About'
         },
@@ -96,7 +97,7 @@ define([
                 '</table>',
                 '<table id="id-about-licensee-info" cols="1" style="width: 100%; margin-top: 20px;" class="hidden margin-bottom"><tbody>',
                     '<tr>',
-                        '<td align="center" class="padding-small"><div id="id-about-company-logo"/></td>',
+                        '<td align="center" class="padding-small"><div id="id-about-company-logo"></div></td>',
                     '</tr>',
                     '<tr>',
                         '<td align="center"><label class="asc-about-version">' + options.appName.toUpperCase()  + '</label></td>',
@@ -134,9 +135,9 @@ define([
                 '</table>',
                 '<table id="id-about-licensor-short" cols="1" style="width: 100%; margin-top: 31px;" class="hidden"><tbody>',
                     '<tr>',
-                        '<td style="width:50%;"><div class="separator horizontal short left"/></td>',
+                        '<td style="width:50%;"><div class="separator horizontal short left"></div></td>',
                         '<td align="center"><label class="asc-about-header">' + this.txtPoweredBy + '</label></td>',
-                        '<td style="width:50%;"><div class="separator horizontal short"/></td>',
+                        '<td style="width:50%;"><div class="separator horizontal short"></div></td>',
                     '</tr>',
                     '<tr>',
                         '<td colspan="3" align="center" style="padding: 9px 0 10px;"><label class="asc-about-companyname"><%= publishername %></label></td>',
@@ -152,81 +153,95 @@ define([
         },
 
         render: function() {
-            var el = $(this.el);
-            el.html(this.template({
-                publishername: '{{PUBLISHER_NAME}}',
-                publisheraddr: '{{PUBLISHER_ADDRESS}}',
-                publisherurl: '{{PUBLISHER_URL}}',
-                supportemail: '{{SUPPORT_EMAIL}}',
-                phonenum: '{{PUBLISHER_PHONE}}',
-                scope: this
-            }));
+            if ( !this.rendered ) {
+                this.rendered = true;
 
-            el.addClass('about-dlg');
-            this.cntLicenseeInfo = $('#id-about-licensee-info');
-            this.cntLicensorInfo = $('#id-about-licensor-info');
-            this.divCompanyLogo = $('#id-about-company-logo');
-            this.lblCompanyName = $('#id-about-company-name');
-            this.lblCompanyAddress = $('#id-about-company-address');
-            this.lblCompanyMail = $('#id-about-company-mail');
-            this.lblCompanyUrl = $('#id-about-company-url');
-            this.lblCompanyLic = $('#id-about-company-lic');
+                var _$l = $(this.template({
+                    publishername: '{{PUBLISHER_NAME}}',
+                    publisheraddr: '{{PUBLISHER_ADDRESS}}',
+                    publisherurl: '{{PUBLISHER_URL}}',
+                    supportemail: '{{SUPPORT_EMAIL}}',
+                    phonenum: '{{PUBLISHER_PHONE}}',
+                    scope: this
+                }));
 
-            if (_.isUndefined(this.scroller)) {
-                this.scroller = new Common.UI.Scroller({
-                    el: $(this.el),
-                    suppressScrollX: true
-                });
+                this.cntLicenseeInfo = _$l.findById('#id-about-licensee-info');
+                this.cntLicensorInfo = _$l.findById('#id-about-licensor-info');
+                this.divCompanyLogo = _$l.findById('#id-about-company-logo');
+                this.lblCompanyName = _$l.findById('#id-about-company-name');
+                this.lblCompanyAddress = _$l.findById('#id-about-company-address');
+                this.lblCompanyMail = _$l.findById('#id-about-company-mail');
+                this.lblCompanyUrl = _$l.findById('#id-about-company-url');
+                this.lblCompanyLic = _$l.findById('#id-about-company-lic');
+
+                this.$el.html(_$l);
+                this.$el.addClass('about-dlg');
+
+                if ( this.licData )
+                    this.setLicInfo(this.licData);
+
+                if (_.isUndefined(this.scroller)) {
+                    this.scroller = new Common.UI.Scroller({
+                        el: this.$el,
+                        suppressScrollX: true
+                    });
+                }
             }
 
             return this;
         },
 
         setLicInfo: function(data){
-            if (data && typeof data == 'object' && typeof(data.customer)=='object') {
-                var customer = data.customer;
-                
-                $('#id-about-licensor-logo').addClass('hidden');
-                $('#id-about-licensor-short').removeClass('hidden');
-                this.cntLicensorInfo.addClass('hidden');
+            if ( !this.rendered ) {
+                this.licData = data || true;
+            } else {
+                if (data && typeof data == 'object' && typeof(data.customer)=='object') {
+                    var customer = data.customer;
 
-                this.cntLicenseeInfo.removeClass('hidden');
-                this.cntLicensorInfo.removeClass('margin-bottom');
+                    $('#id-about-licensor-logo').addClass('hidden');
+                    $('#id-about-licensor-short').removeClass('hidden');
+                    this.cntLicensorInfo.addClass('hidden');
 
-                var value = customer.name;
-                value && value.length ?
+                    this.cntLicenseeInfo.removeClass('hidden');
+                    this.cntLicensorInfo.removeClass('margin-bottom');
+
+                    var value = customer.name;
+                    value && value.length ?
                         this.lblCompanyName.text(value) :
                         this.lblCompanyName.parents('tr').addClass('hidden');
 
-                value = customer.address;
-                value && value.length ?
+                    value = customer.address;
+                    value && value.length ?
                         this.lblCompanyAddress.text(value) :
                         this.lblCompanyAddress.parents('tr').addClass('hidden');
 
-                (value = customer.mail) && value.length ?
+                    (value = customer.mail) && value.length ?
                         this.lblCompanyMail.attr('href', "mailto:"+value).text(value) :
                         this.lblCompanyMail.parents('tr').addClass('hidden');
 
-                if ((value = customer.www) && value.length) {
-                    var http = !/^https?:\/{2}/i.test(value) ? "http:\/\/" : '';
-                    this.lblCompanyUrl.attr('href', http+value).text(value);
-                } else
-                    this.lblCompanyUrl.parents('tr').addClass('hidden');
+                    if ((value = customer.www) && value.length) {
+                        var http = !/^https?:\/{2}/i.test(value) ? "http:\/\/" : '';
+                        this.lblCompanyUrl.attr('href', http+value).text(value);
+                    } else
+                        this.lblCompanyUrl.parents('tr').addClass('hidden');
 
-                (value = customer.info) && value.length ?
+                    (value = customer.info) && value.length ?
                         this.lblCompanyLic.text(value) :
                         this.lblCompanyLic.parents('tr').addClass('hidden');
 
-                (value = customer.logo) && value.length ?
+                    (value = customer.logo) && value.length ?
                         this.divCompanyLogo.html('<img src="'+value+'" style="max-width:216px; max-height: 35px;" />') :
                         this.divCompanyLogo.parents('tr').addClass('hidden');
-            } else {
-                this.cntLicenseeInfo.addClass('hidden');
-                this.cntLicensorInfo.addClass('margin-bottom');
+                } else {
+                    this.cntLicenseeInfo.addClass('hidden');
+                    this.cntLicensorInfo.addClass('margin-bottom');
+                }
             }
         },
 
         show: function () {
+            if ( !this.rendered ) this.render();
+
             Common.UI.BaseView.prototype.show.call(this,arguments);
             this.fireEvent('show', this );
         },

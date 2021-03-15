@@ -61,7 +61,8 @@ require.config({
         gateway         : 'common/Gateway',
         locale          : 'common/locale',
         irregularstack  : 'common/IrregularStack',
-        sharedsettings  : 'common/mobile/utils/SharedSettings'
+        sharedsettings  : 'common/mobile/utils/SharedSettings',
+        features        : '../../web-apps-mobile/slide/patch'
     },
 
     shim: {
@@ -149,6 +150,7 @@ require([
             'AddImage',
             'AddLink',
             'AddSlide',
+            'AddOther',
             'Common.Controllers.Collaboration'
         ]
     });
@@ -170,6 +172,9 @@ require([
         // Default title for modals
         modalTitle: 'ONLYOFFICE',
 
+        // Enable tap hold events
+        tapHold: true,
+        
         // If it is webapp, we can enable hash navigation:
 //        pushState: false,
 
@@ -217,11 +222,13 @@ require([
             'presentationeditor/mobile/app/controller/add/AddImage',
             'presentationeditor/mobile/app/controller/add/AddLink',
             'presentationeditor/mobile/app/controller/add/AddSlide',
+            'presentationeditor/mobile/app/controller/add/AddOther',
             'common/mobile/lib/controller/Collaboration'
 
         ], function() {
             window.compareVersions = true;
-            app.start();
+            var _s = app.start.bind(app);
+            require(['features'], _s, _s);
         });
     });
 }, function(err) {

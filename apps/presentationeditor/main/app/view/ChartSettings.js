@@ -119,7 +119,7 @@ define([
 
                 value = props.get_SeveralChartTypes();
                 if (this._state.SeveralCharts && value) {
-                    this.btnChartType.setIconCls('');
+                    this.btnChartType.setIconCls('svgicon');
                     this._state.ChartType = null;
                 } else {
                     var type = props.getType();
@@ -127,9 +127,9 @@ define([
                         var record = this.mnuChartTypePicker.store.findWhere({type: type});
                         this.mnuChartTypePicker.selectRecord(record, true);
                         if (record) {
-                            this.btnChartType.setIconCls('item-chartlist ' + record.get('iconCls'));
+                            this.btnChartType.setIconCls('svgicon ' + 'chart-' + record.get('iconCls'));
                         } else
-                            this.btnChartType.setIconCls('');
+                            this.btnChartType.setIconCls('svgicon');
                         this.updateChartStyles(this.api.asc_getChartPreviews(type));
                         this._state.ChartType = type;
                     }
@@ -193,6 +193,8 @@ define([
                     spinner.setDefaultUnit(Common.Utils.Metric.getCurrentMetricName());
                     spinner.setStep(Common.Utils.Metric.getCurrentMetric()==Common.Utils.Metric.c_MetricUnits.pt ? 1 : 0.1);
                 }
+                this.spnWidth && this.spnWidth.setValue((this._state.Width!==null) ? Common.Utils.Metric.fnRecalcFromMM(this._state.Width) : '', true);
+                this.spnHeight && this.spnHeight.setValue((this._state.Height!==null) ? Common.Utils.Metric.fnRecalcFromMM(this._state.Height) : '', true);
             }
         },
 
@@ -200,9 +202,9 @@ define([
             var me = this;
             this.btnChartType = new Common.UI.Button({
                 cls         : 'btn-large-dataview',
-                iconCls     : 'item-chartlist bar-normal',
+                iconCls     : 'svgicon chart-bar-normal',
                 menu        : new Common.UI.Menu({
-                    style: 'width: 435px; padding-top: 12px;',
+                    style: 'width: 364px; padding-top: 12px;',
                     items: [
                         { template: _.template('<div id="id-chart-menu-type" class="menu-insertchart"  style="margin: 5px 5px 5px 10px;"></div>') }
                     ]
@@ -213,48 +215,9 @@ define([
                     el: $('#id-chart-menu-type'),
                     parentMenu: btn.menu,
                     restoreHeight: 421,
-                    groups: new Common.UI.DataViewGroupStore([
-                        { id: 'menu-chart-group-bar',     caption: me.textColumn },
-                        { id: 'menu-chart-group-line',    caption: me.textLine },
-                        { id: 'menu-chart-group-pie',     caption: me.textPie },
-                        { id: 'menu-chart-group-hbar',    caption: me.textBar },
-                        { id: 'menu-chart-group-area',    caption: me.textArea, inline: true },
-                        { id: 'menu-chart-group-scatter', caption: me.textPoint, inline: true },
-                        { id: 'menu-chart-group-stock',   caption: me.textStock, inline: true }
-                        // { id: 'menu-chart-group-surface', caption: me.textSurface}
-                    ]),
-                    store: new Common.UI.DataViewStore([
-                        { group: 'menu-chart-group-bar',     type: Asc.c_oAscChartTypeSettings.barNormal,          iconCls: 'column-normal', selected: true},
-                        { group: 'menu-chart-group-bar',     type: Asc.c_oAscChartTypeSettings.barStacked,         iconCls: 'column-stack'},
-                        { group: 'menu-chart-group-bar',     type: Asc.c_oAscChartTypeSettings.barStackedPer,      iconCls: 'column-pstack'},
-                        { group: 'menu-chart-group-bar',     type: Asc.c_oAscChartTypeSettings.barNormal3d,        iconCls: 'column-3d-normal'},
-                        { group: 'menu-chart-group-bar',     type: Asc.c_oAscChartTypeSettings.barStacked3d,       iconCls: 'column-3d-stack'},
-                        { group: 'menu-chart-group-bar',     type: Asc.c_oAscChartTypeSettings.barStackedPer3d,    iconCls: 'column-3d-pstack'},
-                        { group: 'menu-chart-group-bar',     type: Asc.c_oAscChartTypeSettings.barNormal3dPerspective,    iconCls: 'column-3d-normal-per'},
-                        { group: 'menu-chart-group-line',    type: Asc.c_oAscChartTypeSettings.lineNormal,         iconCls: 'line-normal'},
-                        { group: 'menu-chart-group-line',    type: Asc.c_oAscChartTypeSettings.lineStacked,        iconCls: 'line-stack'},
-                        { group: 'menu-chart-group-line',    type: Asc.c_oAscChartTypeSettings.lineStackedPer,     iconCls: 'line-pstack'},
-                        { group: 'menu-chart-group-line',    type: Asc.c_oAscChartTypeSettings.line3d,             iconCls: 'line-3d'},
-                        { group: 'menu-chart-group-pie',     type: Asc.c_oAscChartTypeSettings.pie,                iconCls: 'pie-normal'},
-                        { group: 'menu-chart-group-pie',     type: Asc.c_oAscChartTypeSettings.doughnut,           iconCls: 'pie-doughnut'},
-                        { group: 'menu-chart-group-pie',     type: Asc.c_oAscChartTypeSettings.pie3d,              iconCls: 'pie-3d-normal'},
-                        { group: 'menu-chart-group-hbar',    type: Asc.c_oAscChartTypeSettings.hBarNormal,         iconCls: 'bar-normal'},
-                        { group: 'menu-chart-group-hbar',    type: Asc.c_oAscChartTypeSettings.hBarStacked,        iconCls: 'bar-stack'},
-                        { group: 'menu-chart-group-hbar',    type: Asc.c_oAscChartTypeSettings.hBarStackedPer,     iconCls: 'bar-pstack'},
-                        { group: 'menu-chart-group-hbar',    type: Asc.c_oAscChartTypeSettings.hBarNormal3d,       iconCls: 'bar-3d-normal'},
-                        { group: 'menu-chart-group-hbar',    type: Asc.c_oAscChartTypeSettings.hBarStacked3d,      iconCls: 'bar-3d-stack'},
-                        { group: 'menu-chart-group-hbar',    type: Asc.c_oAscChartTypeSettings.hBarStackedPer3d,   iconCls: 'bar-3d-pstack'},
-                        { group: 'menu-chart-group-area',    type: Asc.c_oAscChartTypeSettings.areaNormal,         iconCls: 'area-normal'},
-                        { group: 'menu-chart-group-area',    type: Asc.c_oAscChartTypeSettings.areaStacked,        iconCls: 'area-stack'},
-                        { group: 'menu-chart-group-area',    type: Asc.c_oAscChartTypeSettings.areaStackedPer,     iconCls: 'area-pstack'},
-                        { group: 'menu-chart-group-scatter', type: Asc.c_oAscChartTypeSettings.scatter,            iconCls: 'point-normal'},
-                        { group: 'menu-chart-group-stock',   type: Asc.c_oAscChartTypeSettings.stock,              iconCls: 'stock-normal'}
-                        // { group: 'menu-chart-group-surface', type: Asc.c_oAscChartTypeSettings.surfaceNormal,      iconCls: 'surface-normal'},
-                        // { group: 'menu-chart-group-surface', type: Asc.c_oAscChartTypeSettings.surfaceWireframe,   iconCls: 'surface-wireframe'},
-                        // { group: 'menu-chart-group-surface', type: Asc.c_oAscChartTypeSettings.contourNormal,      iconCls: 'contour-normal'},
-                        // { group: 'menu-chart-group-surface', type: Asc.c_oAscChartTypeSettings.contourWireframe,   iconCls: 'contour-wireframe'}
-                    ]),
-                    itemTemplate: _.template('<div id="<%= id %>" class="item-chartlist <%= iconCls %>"></div>')
+                    groups: new Common.UI.DataViewGroupStore(Common.define.chartData.getChartGroupData()),
+                    store: new Common.UI.DataViewStore(Common.define.chartData.getChartData()),
+                    itemTemplate: _.template('<div id="<%= id %>" class="item-chartlist"><svg width="40" height="40" class=\"icon\"><use xlink:href=\"#chart-<%= iconCls %>\"></use></svg></div>')
                 });
             });
             this.btnChartType.render($('#chart-button-type'));
@@ -293,15 +256,17 @@ define([
 
             this.spnWidth.on('change', _.bind(this.onWidthChange, this));
             this.spnHeight.on('change', _.bind(this.onHeightChange, this));
+            this.spnWidth.on('inputleave', function(){ me.fireEvent('editcomplete', me);});
+            this.spnHeight.on('inputleave', function(){ me.fireEvent('editcomplete', me);});
 
             this.btnRatio = new Common.UI.Button({
+                parentEl: $('#chart-button-ratio'),
                 cls: 'btn-toolbar',
-                iconCls: 'advanced-btn-ratio',
+                iconCls: 'toolbar__icon advanced-btn-ratio',
                 style: 'margin-bottom: 1px;',
                 enableToggle: true,
                 hint: this.textKeepRatio
             });
-            this.btnRatio.render($('#chart-button-ratio')) ;
             this.lockedControls.push(this.btnRatio);
 
             this.btnRatio.on('click', _.bind(function(btn, e) {
@@ -357,7 +322,7 @@ define([
                 rawData = record;
             }
 
-            this.btnChartType.setIconCls('item-chartlist ' + rawData.iconCls);
+            this.btnChartType.setIconCls('svgicon ' + 'chart-' + rawData.iconCls);
             this._state.ChartType = -1;
 
             if (this.api && !this._noApply) {
@@ -455,8 +420,6 @@ define([
                 props.put_Height(Common.Utils.Metric.fnRecalcToMM(h));
                 this.api.ChartApply(props);
             }
-
-            this.fireEvent('editcomplete', this);
         },
 
         onHeightChange: function(field, newValue, oldValue, eOpts){
@@ -476,8 +439,6 @@ define([
                 props.put_Height(Common.Utils.Metric.fnRecalcToMM(h));
                 this.api.ChartApply(props);
             }
-
-            this.fireEvent('editcomplete', this);
         },
 
         openAdvancedSettings: function(e) {
@@ -534,15 +495,7 @@ define([
         textHeight:     'Height',
         textEditData: 'Edit Data',
         textChartType: 'Change Chart Type',
-        textLine:           'Line',
-        textColumn:         'Column',
-        textBar:            'Bar',
-        textArea:           'Area',
-        textPie:            'Pie',
-        textPoint:          'XY (Scatter)',
-        textStock:          'Stock',
         textStyle:          'Style',
-        textAdvanced:   'Show advanced settings',
-        textSurface: 'Surface'
+        textAdvanced:   'Show advanced settings'
     }, PE.Views.ChartSettings || {}));
 });

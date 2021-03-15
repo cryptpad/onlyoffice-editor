@@ -139,6 +139,12 @@ define([
                     Common.Gateway.requestHistoryData(rev); // получаем url-ы для ревизий
                  }, 10);
             } else {
+                var commentsController = this.getApplication().getController('Common.Controllers.Comments');
+                if (commentsController) {
+                    commentsController.onApiHideComment();
+                    commentsController.clearCollections();
+                }
+
                 var urlDiff = record.get('urlDiff'),
                     token   = record.get('token'),
                     hist = new Asc.asc_CVersionHistory();
@@ -152,11 +158,6 @@ define([
                 hist.asc_setServerVersion(this.currentServerVersion);
                 this.api.asc_showRevision(hist);
 
-                var commentsController = this.getApplication().getController('Common.Controllers.Comments');
-                if (commentsController) {
-                    commentsController.onApiHideComment();
-                    commentsController.clearCollections();
-                }
                 var reviewController = this.getApplication().getController('Common.Controllers.ReviewChanges');
                 if (reviewController)
                     reviewController.onApiShowChange();
@@ -175,12 +176,18 @@ define([
                 };
                 Common.UI.alert(config);
             } else {
+                var commentsController = this.getApplication().getController('Common.Controllers.Comments');
+                if (commentsController) {
+                    commentsController.onApiHideComment();
+                    commentsController.clearCollections();
+                }
+
                 var data = opts.data;
                 var historyStore = this.getApplication().getCollection('Common.Collections.HistoryVersions');
                 if (historyStore && data!==null) {
                     var rev, revisions = historyStore.findRevisions(data.version),
                         urlGetTime = new Date();
-                    var diff = (this.currentChangeId===undefined) ? null : opts.data.changesUrl, // if revision has changes, but serverVersion !== app.buildVersion -> hide revision changes
+                    var diff = (!opts.data.previous || this.currentChangeId===undefined) ? null : opts.data.changesUrl, // if revision has changes, but serverVersion !== app.buildVersion -> hide revision changes
                         url = (!_.isEmpty(diff) && opts.data.previous) ? opts.data.previous.url : opts.data.url,
                         docId = opts.data.key ? opts.data.key : this.currentDocId,
                         docIdPrev = opts.data.previous && opts.data.previous.key ? opts.data.previous.key : this.currentDocIdPrev,
@@ -210,11 +217,6 @@ define([
                     hist.asc_setServerVersion(this.currentServerVersion);
                     this.api.asc_showRevision(hist);
 
-                    var commentsController = this.getApplication().getController('Common.Controllers.Comments');
-                    if (commentsController) {
-                        commentsController.onApiHideComment();
-                        commentsController.clearCollections();
-                    }
                     var reviewController = this.getApplication().getController('Common.Controllers.ReviewChanges');
                     if (reviewController)
                         reviewController.onApiShowChange();

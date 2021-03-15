@@ -45,10 +45,11 @@ define([
     Common.Views.ExternalDiagramEditor = Common.UI.Window.extend(_.extend({
         initialize : function(options) {
             var _options = {};
+            var _inner_height = Common.Utils.innerHeight() - Common.Utils.InternalSettings.get('window-inactive-area-top');
             _.extend(_options,  {
                 title: this.textTitle,
                 width: 910,
-                height: (Common.Utils.innerHeight()-700)<0 ? Common.Utils.innerHeight(): 700,
+                height: (_inner_height - 700)<0 ? _inner_height : 700,
                 cls: 'advanced-settings-dlg',
                 header: true,
                 toolclose: 'hide',
@@ -59,9 +60,9 @@ define([
                 '<div id="id-diagram-editor-container" class="box" style="height:' + (_options.height-85) + 'px;">',
                     '<div id="id-diagram-editor-placeholder" style="width: 100%;height: 100%;"></div>',
                 '</div>',
-                '<div class="separator horizontal"/>',
+                '<div class="separator horizontal"></div>',
                 '<div class="footer" style="text-align: center;">',
-                    '<button id="id-btn-diagram-editor-apply" class="btn normal dlg-btn primary custom" result="ok" style="margin-right: 10px;">' + this.textSave + '</button>',
+                    '<button id="id-btn-diagram-editor-apply" class="btn normal dlg-btn primary custom" result="ok">' + this.textSave + '</button>',
                     '<button id="id-btn-diagram-editor-cancel" class="btn normal dlg-btn" result="cancel">' + this.textClose + '</button>',
                 '</div>'
             ].join('');
@@ -86,6 +87,11 @@ define([
             });
 
             this.$window.find('.dlg-btn').on('click', _.bind(this.onDlgBtnClick, this));
+        },
+
+        show: function() {
+            this.setPlaceholder();
+            Common.UI.Window.prototype.show.apply(this, arguments);
         },
 
         setChartData: function(data) {
@@ -135,12 +141,20 @@ define([
                 this.$window.find('> .body').css('height', height-header_height);
                 this.$window.find('> .body > .box').css('height', height-85);
 
-                var top  = (Common.Utils.innerHeight() - parseInt(height)) / 2;
+                var top  = (Common.Utils.innerHeight() - Common.Utils.InternalSettings.get('window-inactive-area-top') - parseInt(height)) / 2;
                 var left = (Common.Utils.innerWidth() - parseInt(this.initConfig.width)) / 2;
 
                 this.$window.css('left',left);
-                this.$window.css('top',top);
+                this.$window.css('top', Common.Utils.InternalSettings.get('window-inactive-area-top') + top);
             }
+        },
+
+        setPlaceholder: function(placeholder) {
+            this._placeholder = placeholder;
+        },
+
+        getPlaceholder: function() {
+            return this._placeholder;
         },
 
         textSave: 'Save & Exit',

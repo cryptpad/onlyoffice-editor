@@ -68,7 +68,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                     {panelId: 'id-adv-image-wrap',       panelCaption: this.textBtnWrap},
                     {panelId: 'id-adv-image-position',   panelCaption: this.textPosition},
                     {panelId: 'id-adv-image-shape',      panelCaption: this.textWeightArrows},
-                    {panelId: 'id-adv-image-margins',    panelCaption: this.strMargins},
+                    {panelId: 'id-adv-image-margins',    panelCaption: this.textTextBox},
                     {panelId: 'id-adv-image-alttext',    panelCaption: this.textAlt}
                 ],
                 contentTemplate: _.template(contentTemplate)({
@@ -103,6 +103,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
             this.sectionProps = this.options.sectionProps;
             this.pageWidth = this.options.sectionProps ? this.options.sectionProps.get_W() : 210;
             this.pageHeight = this.options.sectionProps ? this.options.sectionProps.get_H() : 297;
+            this.api = this.options.api;
             this._changedProps = null;
             this._changedShapeProps = null;
         },
@@ -184,13 +185,13 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
             }, this));
 
             this.btnRatio = new Common.UI.Button({
+                parentEl: $('#image-advanced-button-ratio'),
                 cls: 'btn-toolbar',
-                iconCls: 'advanced-btn-ratio',
+                iconCls: 'toolbar__icon advanced-btn-ratio',
                 style: 'margin-bottom: 1px;',
                 enableToggle: true,
                 hint: this.textKeepRatio
             });
-            this.btnRatio.render($('#image-advanced-button-ratio')) ;
             this.btnRatio.on('click', _.bind(function(btn, e) {
                 if (btn.pressed && this.spnHeight.getNumberValue()>0) {
                     this._nRatio = this.spnWidth.getNumberValue()/this.spnHeight.getNumberValue();
@@ -350,7 +351,8 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 cls: 'input-group-nr',
                 menuStyle: 'min-width: 115px;',
                 editable: false,
-                data: this._arrHRelativePc
+                data: this._arrHRelativePc,
+                takeFocusOnClose: true
             });
             this.cmbWidthPc.setDisabled(true);
             this.cmbWidthPc.setValue(this._state.ShapeWidthPcFrom);
@@ -368,7 +370,8 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 cls: 'input-group-nr',
                 menuStyle: 'min-width: 115px;',
                 editable: false,
-                data: this._arrVRelativePc
+                data: this._arrVRelativePc,
+                takeFocusOnClose: true
             });
             this.cmbHeightPc.setDisabled(true);
             this.cmbHeightPc.setValue(this._state.ShapeHeightPcFrom);
@@ -398,7 +401,8 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
             // Wrapping
 
             this.btnWrapInline = new Common.UI.Button({
-                cls: 'btn-options x-huge',
+                parentEl: $('#image-advanced-button-wrap-inline'),
+                cls: 'btn-options huge-1',
                 iconCls: 'icon-advanced-wrap btn-wrap-inline',
                 posId: Asc.c_oAscWrapStyle2.Inline,
                 hint: this.textWrapInlineTooltip,
@@ -406,11 +410,11 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 allowDepress: false,
                 toggleGroup : 'imgAdvWrapGroup'
             });
-            this.btnWrapInline.render( $('#image-advanced-button-wrap-inline')) ;
             this.btnWrapInline.on('click', _.bind(this.onBtnWrapClick, this));
 
             this.btnWrapSquare = new Common.UI.Button({
-                cls: 'btn-options x-huge',
+                parentEl: $('#image-advanced-button-wrap-square'),
+                cls: 'btn-options huge-1',
                 iconCls: 'icon-advanced-wrap btn-wrap-square',
                 posId: Asc.c_oAscWrapStyle2.Square,
                 hint: this.textWrapSquareTooltip,
@@ -418,11 +422,11 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 allowDepress: false,
                 toggleGroup : 'imgAdvWrapGroup'
             });
-            this.btnWrapSquare.render( $('#image-advanced-button-wrap-square')) ;
             this.btnWrapSquare.on('click', _.bind(this.onBtnWrapClick, this));
 
             this.btnWrapTight = new Common.UI.Button({
-                cls: 'btn-options x-huge',
+                parentEl: $('#image-advanced-button-wrap-tight'),
+                cls: 'btn-options huge-1',
                 iconCls: 'icon-advanced-wrap btn-wrap-tight',
                 posId: Asc.c_oAscWrapStyle2.Tight,
                 hint: this.textWrapTightTooltip,
@@ -430,11 +434,11 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 allowDepress: false,
                 toggleGroup : 'imgAdvWrapGroup'
             });
-            this.btnWrapTight.render( $('#image-advanced-button-wrap-tight')) ;
             this.btnWrapTight.on('click', _.bind(this.onBtnWrapClick, this));
 
             this.btnWrapThrough = new Common.UI.Button({
-                cls: 'btn-options x-huge',
+                parentEl: $('#image-advanced-button-wrap-through'),
+                cls: 'btn-options huge-1',
                 iconCls: 'icon-advanced-wrap btn-wrap-through',
                 posId: Asc.c_oAscWrapStyle2.Through,
                 hint: this.textWrapThroughTooltip,
@@ -442,11 +446,11 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 allowDepress: false,
                 toggleGroup : 'imgAdvWrapGroup'
             });
-            this.btnWrapThrough.render( $('#image-advanced-button-wrap-through')) ;
             this.btnWrapThrough.on('click', _.bind(this.onBtnWrapClick, this));
 
             this.btnWrapTopBottom = new Common.UI.Button({
-                cls: 'btn-options x-huge',
+                parentEl: $('#image-advanced-button-wrap-topbottom'),
+                cls: 'btn-options huge-1',
                 iconCls: 'icon-advanced-wrap btn-wrap-topbottom',
                 posId: Asc.c_oAscWrapStyle2.TopAndBottom,
                 hint: this.textWrapTopbottomTooltip,
@@ -454,11 +458,11 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 allowDepress: false,
                 toggleGroup : 'imgAdvWrapGroup'
             });
-            this.btnWrapTopBottom.render( $('#image-advanced-button-wrap-topbottom')) ;
             this.btnWrapTopBottom.on('click', _.bind(this.onBtnWrapClick, this));
 
             this.btnWrapBehind = new Common.UI.Button({
-                cls: 'btn-options x-huge',
+                parentEl: $('#image-advanced-button-wrap-behind'),
+                cls: 'btn-options huge-1',
                 iconCls: 'icon-advanced-wrap btn-wrap-behind',
                 posId: Asc.c_oAscWrapStyle2.Behind,
                 hint: this.textWrapBehindTooltip,
@@ -466,11 +470,11 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 allowDepress: false,
                 toggleGroup : 'imgAdvWrapGroup'
             });
-            this.btnWrapBehind.render( $('#image-advanced-button-wrap-behind')) ;
             this.btnWrapBehind.on('click', _.bind(this.onBtnWrapClick, this));
 
             this.btnWrapInFront = new Common.UI.Button({
-                cls: 'btn-options x-huge',
+                parentEl: $('#image-advanced-button-wrap-infront'),
+                cls: 'btn-options huge-1',
                 iconCls: 'icon-advanced-wrap btn-wrap-infront',
                 posId: Asc.c_oAscWrapStyle2.InFront,
                 hint: this.textWrapInFrontTooltip,
@@ -478,7 +482,6 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 allowDepress: false,
                 toggleGroup : 'imgAdvWrapGroup'
             });
-            this.btnWrapInFront.render( $('#image-advanced-button-wrap-infront')) ;
             this.btnWrapInFront.on('click', _.bind(this.onBtnWrapClick, this));
 
             this.spnTop = new Common.UI.MetricSpinner({
@@ -621,7 +624,8 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 cls: 'input-group-nr',
                 menuStyle: 'min-width: 115px;',
                 editable: false,
-                data: this._arrHAlign
+                data: this._arrHAlign,
+                takeFocusOnClose: true
             });
             this.cmbHAlign.setValue(this._state.HAlignType);
             this.cmbHAlign.on('selected', _.bind(this.onHAlignSelect, this));
@@ -640,7 +644,8 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 cls: 'input-group-nr',
                 menuStyle: 'min-width: 115px;',
                 editable: false,
-                data: this._arrHRelative
+                data: this._arrHRelative,
+                takeFocusOnClose: true
             });
             this.cmbHRelative.setValue(this._state.HAlignFrom);
             this.cmbHRelative.on('selected', _.bind(this.onHRelativeSelect, this));
@@ -650,7 +655,8 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 cls: 'input-group-nr',
                 menuStyle: 'min-width: 115px;',
                 editable: false,
-                data: this._arrHRelative
+                data: this._arrHRelative,
+                takeFocusOnClose: true
             });
             this.cmbHPosition.setDisabled(true);
             this.cmbHPosition.setValue(this._state.HPositionFrom);
@@ -685,7 +691,8 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 cls: 'input-group-nr',
                 menuStyle: 'min-width: 115px;',
                 editable: false,
-                data: this._arrHRelativePc
+                data: this._arrHRelativePc,
+                takeFocusOnClose: true
             });
             this.cmbHPositionPc.setDisabled(true);
             this.cmbHPositionPc.setValue(this._state.HPositionPcFrom);
@@ -703,7 +710,8 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 cls: 'input-group-nr',
                 menuStyle: 'min-width: 115px;',
                 editable: false,
-                data: this._arrVAlign
+                data: this._arrVAlign,
+                takeFocusOnClose: true
             });
             this.cmbVAlign.setValue(this._state.VAlignType);
             this.cmbVAlign.on('selected', _.bind(this.onVAlignSelect, this));
@@ -722,7 +730,8 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 cls: 'input-group-nr',
                 menuStyle: 'min-width: 115px;',
                 editable: false,
-                data: this._arrVRelative
+                data: this._arrVRelative,
+                takeFocusOnClose: true
             });
             this.cmbVRelative.setValue(this._state.VAlignFrom);
             this.cmbVRelative.on('selected', _.bind(this.onVRelativeSelect, this));
@@ -732,7 +741,8 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 cls: 'input-group-nr',
                 menuStyle: 'min-width: 115px;',
                 editable: false,
-                data: this._arrVRelative
+                data: this._arrVRelative,
+                takeFocusOnClose: true
             });
             this.cmbVPosition.setDisabled(true);
             this.cmbVPosition.setValue(this._state.VPositionFrom);
@@ -767,7 +777,8 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 cls: 'input-group-nr',
                 menuStyle: 'min-width: 115px;',
                 editable: false,
-                data: this._arrVRelativePc
+                data: this._arrVRelativePc,
+                takeFocusOnClose: true
             });
             this.cmbVPositionPc.setDisabled(true);
             this.cmbVPositionPc.setValue(this._state.VPositionPcFrom);
@@ -913,6 +924,16 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
             }, this));
             this.spinners.push(this.spnMarginRight);
 
+            this.chAutofit = new Common.UI.CheckBox({
+                el: $('#shape-checkbox-autofit'),
+                labelText: this.textResizeFit
+            });
+            this.chAutofit.on('change', _.bind(function(field, newValue, oldValue, eOpts){
+                if (this._changedShapeProps) {
+                    this._changedShapeProps.asc_putTextFitType(field.getValue()=='checked' ? AscFormat.text_fit_Auto : AscFormat.text_fit_No);
+                }
+            }, this));
+
             // Shape
             this._arrCapType = [
                 {displayValue: this.textFlat,   value: Asc.c_oAscLineCapType.Flat},
@@ -925,7 +946,8 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 cls: 'input-group-nr',
                 menuStyle: 'min-width: 100px;',
                 editable: false,
-                data: this._arrCapType
+                data: this._arrCapType,
+                takeFocusOnClose: true
             });
             this.cmbCapType.setValue(Asc.c_oAscLineCapType.Flat);
             this.cmbCapType.on('selected', _.bind(function(combo, record){
@@ -947,7 +969,8 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 cls: 'input-group-nr',
                 menuStyle: 'min-width: 100px;',
                 editable: false,
-                data: this._arrJoinType
+                data: this._arrJoinType,
+                takeFocusOnClose: true
             });
             this.cmbJoinType.setValue(Asc.c_oAscLineJoinType.Round);
             this.cmbJoinType.on('selected', _.bind(function(combo, record){
@@ -1119,6 +1142,59 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
             });
 
             this.afterRender();
+        },
+
+        getFocusedComponents: function() {
+            return [
+                this.spnWidth, this.spnHeight, // 0 tab
+                this.spnShapeWidth , this.spnShapeWidthPc, this.cmbWidthPc, this.spnShapeHeight, this.spnShapeHeightPc, this.cmbHeightPc, // 1 tab
+                this.spnAngle,  // 2 tab
+                this.spnTop, this.spnLeft, this.spnBottom, this.spnRight, // 3 tab
+                this.cmbHAlign , this.cmbHRelative, this.spnX, this.cmbHPosition, this.spnXPc, this.cmbHPositionPc,
+                this.cmbVAlign , this.cmbVRelative, this.spnY, this.cmbVPosition, this.spnYPc, this.cmbVPositionPc, // 4 tab
+                this.cmbCapType, this.cmbJoinType, // 5 tab
+                this.spnMarginTop, this.spnMarginLeft, this.spnMarginBottom, this.spnMarginRight, // 6 tab
+                this.inputAltTitle, this.textareaAltDescription  // 7 tab
+            ];
+        },
+
+        onCategoryClick: function(btn, index) {
+            Common.Views.AdvancedSettingsWindow.prototype.onCategoryClick.call(this, btn, index);
+
+            var me = this;
+            setTimeout(function(){
+                switch (index) {
+                    case 0:
+                        me.spnWidth.focus();
+                        break;
+                    case 1:
+                        me.spnShapeWidth.focus();
+                        break;
+                    case 2:
+                        me.spnAngle.focus();
+                        break;
+                    case 3:
+                        me.spnTop.focus();
+                        break;
+                    case 4:
+                        if (!me.cmbHAlign.isDisabled())
+                            me.cmbHAlign.focus();
+                        else if (!me.spnX.isDisabled())
+                            me.spnX.focus();
+                        else
+                            me.spnXPc.focus();
+                        break;
+                    case 5:
+                        me.cmbCapType.focus();
+                        break;
+                    case 6:
+                        me.spnMarginTop.focus();
+                        break;
+                    case 7:
+                        me.inputAltTitle.focus();
+                        break;
+                }
+            }, 10);
         },
 
         afterRender: function() {
@@ -1300,8 +1376,10 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 this.btnOriginalSize.setDisabled(props.get_ImageUrl()===null || props.get_ImageUrl()===undefined);
                 this.btnsCategory[5].setVisible(shapeprops!==null && !shapeprops.get_FromChart());   // Shapes
                 this.btnsCategory[6].setVisible(shapeprops!==null && !shapeprops.get_FromChart());   // Margins
-                this.btnsCategory[3].setDisabled(props.get_FromGroup()); // Wrapping
                 this.btnsCategory[2].setVisible(!chartprops && (pluginGuid === null || pluginGuid === undefined)); // Rotation
+
+                var control_props = this.api && this.api.asc_IsContentControl() ? this.api.asc_GetContentControlProperties() : null;
+                this.btnsCategory[3].setDisabled(props.get_FromGroup() || !!control_props && (control_props.get_SpecificType()==Asc.c_oAscContentControlSpecificType.Picture)); // Wrapping
 
                 if (shapeprops) {
                     this._objectType = Asc.c_oAscTypeSelectElement.Shape;
@@ -1363,6 +1441,8 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                         val = margins.get_Bottom();
                         this.spnMarginBottom.setValue((null !== val && undefined !== val) ? Common.Utils.Metric.fnRecalcFromMM(val) : '', true);
                     }
+
+                    this.chAutofit.setValue(shapeprops.asc_getTextFitType()==AscFormat.text_fit_Auto);
 
                     this.btnsCategory[6].setDisabled(null === margins);   // Margins
                     this.btnsCategory[5].setDisabled(shapeprops.get_stroke().get_type() == Asc.c_oAscStrokeType.STROKE_NONE);   // Weights & Arrows
@@ -1699,6 +1779,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
             }
             if (newValue) {
                 this.cmbHAlign.setDisabled(false);
+                this.cmbHAlign.focus();
                 this.cmbHRelative.setDisabled(false);
                 this.spnX.setDisabled(true);
                 this.cmbHPosition.setDisabled(true);
@@ -1723,6 +1804,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 this.cmbHAlign.setDisabled(true);
                 this.cmbHRelative.setDisabled(true);
                 this.spnX.setDisabled(false);
+                this.spnX.focus();
                 this.cmbHPosition.setDisabled(false);
                 this.spnXPc.setDisabled(true);
                 this.cmbHPositionPc.setDisabled(true);
@@ -1747,6 +1829,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 this.spnX.setDisabled(true);
                 this.cmbHPosition.setDisabled(true);
                 this.spnXPc.setDisabled(false);
+                this.spnXPc.focus();
                 this.cmbHPositionPc.setDisabled(false);
             }
         },
@@ -1765,6 +1848,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
             }
             if (newValue) {
                 this.cmbVAlign.setDisabled(false);
+                this.cmbVAlign.focus();
                 this.cmbVRelative.setDisabled(false);
                 this.spnY.setDisabled(true);
                 this.cmbVPosition.setDisabled(true);
@@ -1791,6 +1875,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 this.cmbVAlign.setDisabled(true);
                 this.cmbVRelative.setDisabled(true);
                 this.spnY.setDisabled(false);
+                this.spnY.focus();
                 this.cmbVPosition.setDisabled(false);
                 this.chMove.setValue(this._state.VPositionFrom==Asc.c_oAscRelativeFromV.Line || this._state.VPositionFrom==Asc.c_oAscRelativeFromV.Paragraph, true);
                 this.chMove.setDisabled(false);
@@ -1819,6 +1904,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 this.chMove.setValue(false, true);
                 this.chMove.setDisabled(true);
                 this.spnYPc.setDisabled(false);
+                this.spnYPc.focus();
                 this.cmbVPositionPc.setDisabled(false);
             }
         },
@@ -1835,6 +1921,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 this.cmbWidthPc.setDisabled(true);
                 this.spnShapeWidthPc.setDisabled(true);
                 this.spnShapeWidth.setDisabled(false);
+                this.spnShapeWidth.focus();
             }
         },
 
@@ -1852,6 +1939,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 this.chRatio.setDisabled(true);
                 this.cmbWidthPc.setDisabled(false);
                 this.spnShapeWidthPc.setDisabled(false);
+                this.spnShapeWidthPc.focus();
                 this.spnShapeWidth.setDisabled(true);
             }
         },
@@ -1868,6 +1956,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 this.cmbHeightPc.setDisabled(true);
                 this.spnShapeHeightPc.setDisabled(true);
                 this.spnShapeHeight.setDisabled(false);
+                this.spnShapeHeight.focus();
             }
         },
 
@@ -1885,6 +1974,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 this.chRatio.setDisabled(true);
                 this.cmbHeightPc.setDisabled(false);
                 this.spnShapeHeightPc.setDisabled(false);
+                this.spnShapeHeightPc.focus();
                 this.spnShapeHeight.setDisabled(true);
             }
         },
@@ -2013,7 +2103,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
         textLeft:       'Left',
         textBottom:     'Bottom',
         textRight:      'Right',
-        textOriginalSize: 'Default Size',
+        textOriginalSize: 'Actual Size',
         textPosition:   'Position',
         textDistance:   'Distance From Text',
         textSize:       'Size',
@@ -2029,8 +2119,6 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
         textWrapInFrontTooltip: 'In Front',
         textTitle:      'Image - Advanced Settings',
         textKeepRatio: 'Constant Proportions',
-        cancelButtonText: 'Cancel',
-        okButtonText:   'Ok',
         textBtnWrap:    'Text Wrapping',
         textCenter: 'Center',
         textCharacter: 'Character',
@@ -2082,7 +2170,10 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
         textAngle: 'Angle',
         textFlipped: 'Flipped',
         textHorizontally: 'Horizontally',
-        textVertically: 'Vertically'
+        textVertically: 'Vertically',
+        textTextBox: 'Text Box',
+        textAutofit: 'AutoFit',
+        textResizeFit: 'Resize shape to fit text'
 
     }, DE.Views.ImageSettingsAdvanced || {}));
 });

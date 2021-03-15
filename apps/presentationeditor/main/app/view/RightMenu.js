@@ -191,7 +191,7 @@ define([
                 });
                 this._settings[Common.Utils.documentSettingsType.Signature]   = {panel: "id-signature-settings",      btn: this.btnSignature};
 
-                this.btnSignature.el    = $('#id-right-menu-signature'); this.btnSignature.render().setVisible(true);
+                this.btnSignature.setElement($('#id-right-menu-signature'), false); this.btnSignature.render().setVisible(true);
                 this.btnSignature.on('click', _.bind(this.onBtnMenuClick, this));
                 this.signatureSettings = new PE.Views.SignatureSettings();
             }
@@ -228,7 +228,9 @@ define([
         },
 
         setMode: function(mode) {
-
+            this.imageSettings && this.imageSettings.setMode(mode);
+            this.shapeSettings && this.shapeSettings.setMode(mode);
+            this.slideSettings && this.slideSettings.setMode(mode);
         },
 
         onBtnMenuClick: function(btn, e) {

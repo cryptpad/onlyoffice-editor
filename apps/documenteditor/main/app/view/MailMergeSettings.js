@@ -91,8 +91,34 @@ define([
             this.mergeMailData = undefined;
 
             this.render();
+        },
+
+        render: function () {
+            this.$el.html(this.template({
+                scope: this
+            }));
+        },
+
+        setApi: function(api) {
+            this.api = api;
+            if (this.api) {
+                this.api.asc_registerCallback('asc_onPreviewMailMergeResult',    _.bind(this.onPreviewMailMergeResult, this));
+                this.api.asc_registerCallback('asc_onEndPreviewMailMergeResult', _.bind(this.onEndPreviewMailMergeResult, this));
+                this.api.asc_registerCallback('asc_onStartMailMerge',            _.bind(this.onStartMailMerge, this));
+                this.api.asc_registerCallback('asc_onSaveMailMerge',             _.bind(this.onSaveMailMerge, this));
+                this.api.asc_registerCallback('asc_onEndAction',                 _.bind(this.onLongActionEnd, this));
+                Common.Gateway.on('setemailaddresses',                           _.bind(this.onSetEmailAddresses, this));
+                Common.Gateway.on('processmailmerge',                            _.bind(this.onProcessMailMerge, this));
+            }
+            return this;
+        },
+
+        createDelayedControls: function() {
+            var me = this,
+                _set = DE.enumLockMM;
 
             this.btnInsField = new Common.UI.Button({
+                parentEl: $('#mmerge-btn-ins-field',me.$el),
                 cls: 'btn-text-menu-default',
                 caption: this.textInsertField,
                 style: 'width: 100%;',
@@ -103,7 +129,6 @@ define([
                     items: []
                 })
             });
-            this.btnInsField.render( $('#mmerge-btn-ins-field',me.$el)) ;
 
             this.txtFieldNum = new Common.UI.InputField({
                 el          : $('#mmerge-field-num', me.$el),
@@ -133,32 +158,7 @@ define([
                 }
             });
             this.emptyDBControls.push(this.txtFieldNum);
-        },
 
-        render: function () {
-            this.$el.html(this.template({
-                scope: this
-            }));
-        },
-
-        setApi: function(api) {
-            this.api = api;
-            if (this.api) {
-                this.api.asc_registerCallback('asc_onPreviewMailMergeResult',    _.bind(this.onPreviewMailMergeResult, this));
-                this.api.asc_registerCallback('asc_onEndPreviewMailMergeResult', _.bind(this.onEndPreviewMailMergeResult, this));
-                this.api.asc_registerCallback('asc_onStartMailMerge',            _.bind(this.onStartMailMerge, this));
-                this.api.asc_registerCallback('asc_onSaveMailMerge',             _.bind(this.onSaveMailMerge, this));
-                this.api.asc_registerCallback('asc_onEndAction',                 _.bind(this.onLongActionEnd, this));
-                Common.Gateway.on('setemailaddresses',                           _.bind(this.onSetEmailAddresses, this));
-                Common.Gateway.on('processmailmerge',                            _.bind(this.onProcessMailMerge, this));
-            }
-            return this;
-        },
-
-        createDelayedControls: function() {
-            var me = this,
-                _set = DE.enumLockMM;
-            
             this.btnEditData = new Common.UI.Button({
                 el: me.$el.find('#mmerge-button-edit-data'),
                 lock: [_set.preview, _set.lostConnect]
@@ -181,48 +181,48 @@ define([
             this.emptyDBControls.push(this.chPreview);
 
             this.btnFirst = new Common.UI.Button({
+                parentEl: $('#mmerge-button-first', me.$el),
                 cls: 'btn-toolbar',
-                iconCls: 'mmerge-first',
+                iconCls: 'toolbar__icon btn-firstitem',
                 disabled: true,
                 value: 0,
                 hint: this.txtFirst,
                 lock: [_set.noRecipients, _set.lostConnect]
             });
-            this.btnFirst.render( $('#mmerge-button-first', me.$el));
             this.btnFirst.on('click', _.bind(this.onBtnPreviewFieldClick, this));
             this.emptyDBControls.push(this.btnFirst);
 
             this.btnPrev = new Common.UI.Button({
+                parentEl: $('#mmerge-button-prev', me.$el),
                 cls: 'btn-toolbar',
-                iconCls: 'mmerge-prev',
+                iconCls: 'toolbar__icon btn-previtem',
                 disabled: true,
                 value: 1,
                 hint: this.txtPrev,
                 lock: [_set.noRecipients, _set.lostConnect]
             });
-            this.btnPrev.render( $('#mmerge-button-prev', me.$el));
             this.btnPrev.on('click', _.bind(this.onBtnPreviewFieldClick, this));
             this.emptyDBControls.push(this.btnPrev);
 
             this.btnNext = new Common.UI.Button({
+                parentEl: $('#mmerge-button-next', me.$el),
                 cls: 'btn-toolbar',
-                iconCls: 'mmerge-next',
+                iconCls: 'toolbar__icon btn-nextitem',
                 value: 2,
                 hint: this.txtNext,
                 lock: [_set.noRecipients, _set.lostConnect]
             });
-            this.btnNext.render( $('#mmerge-button-next', me.$el));
             this.btnNext.on('click', _.bind(this.onBtnPreviewFieldClick, this));
             this.emptyDBControls.push(this.btnNext);
 
             this.btnLast = new Common.UI.Button({
+                parentEl: $('#mmerge-button-last', me.$el),
                 cls: 'btn-toolbar',
-                iconCls: 'mmerge-last',
+                iconCls: 'toolbar__icon btn-lastitem',
                 value: 3,
                 hint: this.txtLast,
                 lock: [_set.noRecipients, _set.lostConnect]
             });
-            this.btnLast.render( $('#mmerge-button-last', me.$el));
             this.btnLast.on('click', _.bind(this.onBtnPreviewFieldClick, this));
             this.emptyDBControls.push(this.btnLast);
 
@@ -760,8 +760,8 @@ define([
         },
 
         onStartMailMerge: function() {
-            this.btnInsField.menu.removeAll();
-            this.txtFieldNum.setValue(1);
+            this.btnInsField && this.btnInsField.menu.removeAll();
+            this.txtFieldNum && this.txtFieldNum.setValue(1);
             this.ChangeSettings({
                 recipientsCount: this.api.asc_GetReceptionsCount(),
                 fieldsList: this.api.asc_GetMailMergeFieldsNameList()

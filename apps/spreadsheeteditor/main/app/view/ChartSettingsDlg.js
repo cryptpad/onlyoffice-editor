@@ -42,7 +42,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
     'common/main/lib/view/AdvancedSettingsWindow',
     'common/main/lib/component/CheckBox',
     'common/main/lib/component/InputField',
-    'spreadsheeteditor/main/app/view/CellRangeDialog'
+    'spreadsheeteditor/main/app/view/CellRangeDialog',
+    'spreadsheeteditor/main/app/view/ChartDataRangeDialog'
 ], function (contentTemplate) {
     'use strict';
 
@@ -58,12 +59,13 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
             _.extend(this.options, {
                 title: this.textTitle,
                 items: [
-                    {panelId: 'id-chart-settings-dlg-style',        panelCaption: this.textTypeData},
+                    {panelId: 'id-chart-settings-dlg-style',        panelCaption: this.textType},
                     {panelId: 'id-chart-settings-dlg-layout',       panelCaption: this.textLayout},
                     {panelId: 'id-chart-settings-dlg-vert',         panelCaption: this.textVertAxis},
                     {panelId: 'id-chart-settings-dlg-hor',          panelCaption: this.textHorAxis},
                     {panelId: 'id-spark-settings-dlg-style',        panelCaption: this.textTypeData},
                     {panelId: 'id-spark-settings-dlg-axis',         panelCaption: this.textAxisOptions},
+                    {panelId: 'id-chart-settings-dlg-snap',         panelCaption: this.textSnap},
                     {panelId: 'id-chart-settings-dlg-alttext',      panelCaption: this.textAlt}
                 ],
                 contentTemplate: _.template(contentTemplate)({
@@ -87,12 +89,14 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
             };
             this._noApply = true;
             this._changedProps = null;
+            this._changedImageProps = null;
 
             this.api = this.options.api;
             this.chartSettings = this.options.chartSettings;
             this.imageSettings = this.options.imageSettings;
             this.sparklineStyles = this.options.sparklineStyles;
             this.isChart       = this.options.isChart;
+            this.isDiagramMode = !!this.options.isDiagramMode;
             this.vertAxisProps = null;
             this.horAxisProps = null;
             this.currentAxisProps = null;
@@ -111,92 +115,52 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
 
             // Layout
 
-            this.btnChartType = new Common.UI.Button({
-                cls         : 'btn-large-dataview',
-                iconCls     : 'item-chartlist bar-normal',
-                menu        : new Common.UI.Menu({
-                    style: 'width: 435px; padding-top: 12px;',
-                    additionalAlign: this.menuAddAlign,
-                    items: [
-                        { template: _.template('<div id="id-chart-dlg-menu-type" class="menu-insertchart"  style="margin: 5px 5px 5px 10px;"></div>') }
-                    ]
-                })
-            });
-            this.btnChartType.on('render:after', function(btn) {
-                me.mnuChartTypePicker = new Common.UI.DataView({
-                    el: $('#id-chart-dlg-menu-type'),
-                    parentMenu: btn.menu,
-                    restoreHeight: 421,
-                    groups: new Common.UI.DataViewGroupStore([
-                        { id: 'menu-chart-group-bar',     caption: me.textColumn },
-                        { id: 'menu-chart-group-line',    caption: me.textLine },
-                        { id: 'menu-chart-group-pie',     caption: me.textPie },
-                        { id: 'menu-chart-group-hbar',    caption: me.textBar },
-                        { id: 'menu-chart-group-area',    caption: me.textArea, inline: true },
-                        { id: 'menu-chart-group-scatter', caption: me.textPoint, inline: true },
-                        { id: 'menu-chart-group-stock',   caption: me.textStock, inline: true }
-                        // { id: 'menu-chart-group-surface', caption: me.textSurface}
-                    ]),
-                    store: new Common.UI.DataViewStore([
-                        { group: 'menu-chart-group-bar',     type: Asc.c_oAscChartTypeSettings.barNormal,          iconCls: 'column-normal', selected: true},
-                        { group: 'menu-chart-group-bar',     type: Asc.c_oAscChartTypeSettings.barStacked,         iconCls: 'column-stack'},
-                        { group: 'menu-chart-group-bar',     type: Asc.c_oAscChartTypeSettings.barStackedPer,      iconCls: 'column-pstack'},
-                        { group: 'menu-chart-group-bar',     type: Asc.c_oAscChartTypeSettings.barNormal3d,        iconCls: 'column-3d-normal'},
-                        { group: 'menu-chart-group-bar',     type: Asc.c_oAscChartTypeSettings.barStacked3d,       iconCls: 'column-3d-stack'},
-                        { group: 'menu-chart-group-bar',     type: Asc.c_oAscChartTypeSettings.barStackedPer3d,    iconCls: 'column-3d-pstack'},
-                        { group: 'menu-chart-group-bar',     type: Asc.c_oAscChartTypeSettings.barNormal3dPerspective,    iconCls: 'column-3d-normal-per'},
-                        { group: 'menu-chart-group-line',    type: Asc.c_oAscChartTypeSettings.lineNormal,         iconCls: 'line-normal'},
-                        { group: 'menu-chart-group-line',    type: Asc.c_oAscChartTypeSettings.lineStacked,        iconCls: 'line-stack'},
-                        { group: 'menu-chart-group-line',    type: Asc.c_oAscChartTypeSettings.lineStackedPer,     iconCls: 'line-pstack'},
-                        { group: 'menu-chart-group-line',    type: Asc.c_oAscChartTypeSettings.line3d,             iconCls: 'line-3d'},
-                        { group: 'menu-chart-group-pie',     type: Asc.c_oAscChartTypeSettings.pie,                iconCls: 'pie-normal'},
-                        { group: 'menu-chart-group-pie',     type: Asc.c_oAscChartTypeSettings.doughnut,           iconCls: 'pie-doughnut'},
-                        { group: 'menu-chart-group-pie',     type: Asc.c_oAscChartTypeSettings.pie3d,              iconCls: 'pie-3d-normal'},
-                        { group: 'menu-chart-group-hbar',    type: Asc.c_oAscChartTypeSettings.hBarNormal,         iconCls: 'bar-normal'},
-                        { group: 'menu-chart-group-hbar',    type: Asc.c_oAscChartTypeSettings.hBarStacked,        iconCls: 'bar-stack'},
-                        { group: 'menu-chart-group-hbar',    type: Asc.c_oAscChartTypeSettings.hBarStackedPer,     iconCls: 'bar-pstack'},
-                        { group: 'menu-chart-group-hbar',    type: Asc.c_oAscChartTypeSettings.hBarNormal3d,       iconCls: 'bar-3d-normal'},
-                        { group: 'menu-chart-group-hbar',    type: Asc.c_oAscChartTypeSettings.hBarStacked3d,      iconCls: 'bar-3d-stack'},
-                        { group: 'menu-chart-group-hbar',    type: Asc.c_oAscChartTypeSettings.hBarStackedPer3d,   iconCls: 'bar-3d-pstack'},
-                        { group: 'menu-chart-group-area',    type: Asc.c_oAscChartTypeSettings.areaNormal,         iconCls: 'area-normal'},
-                        { group: 'menu-chart-group-area',    type: Asc.c_oAscChartTypeSettings.areaStacked,        iconCls: 'area-stack'},
-                        { group: 'menu-chart-group-area',    type: Asc.c_oAscChartTypeSettings.areaStackedPer,     iconCls: 'area-pstack'},
-                        { group: 'menu-chart-group-scatter', type: Asc.c_oAscChartTypeSettings.scatter,            iconCls: 'point-normal'},
-                        { group: 'menu-chart-group-stock',   type: Asc.c_oAscChartTypeSettings.stock,              iconCls: 'stock-normal'}
-                        // { group: 'menu-chart-group-surface', type: Asc.c_oAscChartTypeSettings.surfaceNormal,      iconCls: 'surface-normal'},
-                        // { group: 'menu-chart-group-surface', type: Asc.c_oAscChartTypeSettings.surfaceWireframe,   iconCls: 'surface-wireframe'},
-                        // { group: 'menu-chart-group-surface', type: Asc.c_oAscChartTypeSettings.contourNormal,      iconCls: 'contour-normal'},
-                        // { group: 'menu-chart-group-surface', type: Asc.c_oAscChartTypeSettings.contourWireframe,   iconCls: 'contour-wireframe'}
-                    ]),
-                    itemTemplate: _.template('<div id="<%= id %>" class="item-chartlist <%= iconCls %>"></div>')
+            if (this.isDiagramMode) {
+                this.btnChartType = new Common.UI.Button({
+                    cls         : 'btn-large-dataview',
+                    iconCls     : 'svgicon chart-bar-normal',
+                    menu        : new Common.UI.Menu({
+                        style: 'width: 364px; padding-top: 12px;',
+                        additionalAlign: this.menuAddAlign,
+                        items: [
+                            { template: _.template('<div id="id-chart-dlg-menu-type" class="menu-insertchart"  style="margin: 5px 5px 5px 10px;"></div>') }
+                        ]
+                    })
                 });
-            });
-            this.btnChartType.render($('#chart-dlg-button-type'));
-            this.mnuChartTypePicker.on('item:click', _.bind(this.onSelectType, this, this.btnChartType));
+                this.btnChartType.on('render:after', function(btn) {
+                    me.mnuChartTypePicker = new Common.UI.DataView({
+                        el: $('#id-chart-dlg-menu-type'),
+                        parentMenu: btn.menu,
+                        restoreHeight: 421,
+                        groups: new Common.UI.DataViewGroupStore(Common.define.chartData.getChartGroupData()),
+                        store: new Common.UI.DataViewStore(Common.define.chartData.getChartData()),
+                        itemTemplate: _.template('<div id="<%= id %>" class="item-chartlist"><svg width="40" height="40" class=\"icon\"><use xlink:href=\"#chart-<%= iconCls %>\"></use></svg></div>')
+                    });
+                });
+                this.btnChartType.render($('#chart-dlg-button-type'));
+                this.mnuChartTypePicker.on('item:click', _.bind(this.onSelectType, this, this.btnChartType));
+            }
 
-            this.cmbDataDirect = new Common.UI.ComboBox({
-                el          : $('#chart-dlg-combo-range'),
-                menuStyle   : 'min-width: 120px;',
-                editable    : false,
-                cls         : 'input-group-nr',
-                data        : [
-                    { value: 0, displayValue: this.textDataRows },
-                    { value: 1, displayValue: this.textDataColumns }
-                ]
-            });
-
-            this.txtDataRange = new Common.UI.InputField({
-                el          : $('#chart-dlg-txt-range'),
-                name        : 'range',
-                style       : 'width: 100%;',
-                allowBlank  : true,
-                validateOnChange: true
-            });
-
-            this.btnSelectData = new Common.UI.Button({
-                el: $('#chart-dlg-btn-data')
-            });
-            this.btnSelectData.on('click', _.bind(this.onSelectData, this));
+            // this.cmbDataDirect = new Common.UI.ComboBox({
+            //     el          : $('#chart-dlg-combo-range'),
+            //     menuStyle   : 'min-width: 120px;',
+            //     editable    : false,
+            //     cls         : 'input-group-nr',
+            //     data        : [
+            //         { value: 0, displayValue: this.textDataRows },
+            //         { value: 1, displayValue: this.textDataColumns }
+            //     ]
+            // });
+            //
+            // this.txtDataRange = new Common.UI.InputFieldBtn({
+            //     el          : $('#chart-dlg-txt-range'),
+            //     name        : 'range',
+            //     style       : 'width: 100%;',
+            //     btnHint     : this.textSelectData,
+            //     allowBlank  : true,
+            //     validateOnChange: true
+            // });
+            // this.txtDataRange.on('button:click', _.bind(this.onSelectData, this));
 
             this.cmbChartTitle = new Common.UI.ComboBox({
                 el          : $('#chart-dlg-combo-chart-title'),
@@ -207,7 +171,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     { value: Asc.c_oAscChartTitleShowSettings.none, displayValue: this.textNone },
                     { value: Asc.c_oAscChartTitleShowSettings.overlay, displayValue: this.textOverlay },
                     { value: Asc.c_oAscChartTitleShowSettings.noOverlay, displayValue: this.textNoOverlay }
-                ]
+                ],
+                takeFocusOnClose: true
             });
 
             this.cmbLegendPos = new Common.UI.ComboBox({
@@ -223,7 +188,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     { value: Asc.c_oAscChartLegendShowSettings.left, displayValue: this.textLegendLeft },
                     { value: Asc.c_oAscChartLegendShowSettings.leftOverlay, displayValue: this.textLeftOverlay },
                     { value: Asc.c_oAscChartLegendShowSettings.rightOverlay, displayValue: this.textRightOverlay }
-                ]
+                ],
+                takeFocusOnClose: true
             });
 
             this.cmbHorTitle = new Common.UI.ComboBox({
@@ -234,7 +200,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                 data        : [
                     { value: Asc.c_oAscChartHorAxisLabelShowSettings.none, displayValue: this.textNone },
                     { value: Asc.c_oAscChartHorAxisLabelShowSettings.noOverlay, displayValue: this.textNoOverlay }
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 if (this.chartSettings)
                     this.chartSettings.putHorAxisLabel(record.value);
@@ -249,7 +216,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     { value: Asc.c_oAscChartVertAxisLabelShowSettings.none, displayValue: this.textNone },
                     { value: Asc.c_oAscChartVertAxisLabelShowSettings.rotated, displayValue: this.textRotated },
                     { value: Asc.c_oAscChartVertAxisLabelShowSettings.horizontal, displayValue: this.textHorizontal }
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 if (this.chartSettings) 
                     this.chartSettings.putVertAxisLabel(record.value);
@@ -263,7 +231,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                 data        : [
                     { value: true, displayValue: this.textShow },
                     { value: false, displayValue: this.textHide }
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 if (this.chartSettings)
                     this.chartSettings.putShowHorAxis(record.value);
@@ -277,7 +246,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                 data        : [
                     { value: true, displayValue: this.textShow },
                     { value: false, displayValue: this.textHide }
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 if (this.chartSettings)
                     this.chartSettings.putShowVerAxis(record.value);
@@ -293,7 +263,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     { value: Asc.c_oAscGridLinesSettings.major, displayValue: this.textMajor },
                     { value: Asc.c_oAscGridLinesSettings.minor, displayValue: this.textMinor },
                     { value: Asc.c_oAscGridLinesSettings.majorMinor, displayValue: this.textMajorMinor }
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 if (this.chartSettings) 
                     this.chartSettings.putHorGridLines(record.value);
@@ -309,7 +280,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     { value: Asc.c_oAscGridLinesSettings.major, displayValue: this.textMajor },
                     { value: Asc.c_oAscGridLinesSettings.minor, displayValue: this.textMinor },
                     { value: Asc.c_oAscGridLinesSettings.majorMinor, displayValue: this.textMajorMinor }
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 if (this.chartSettings) 
                     this.chartSettings.putVertGridLines(record.value);
@@ -326,7 +298,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     { value: Asc.c_oAscChartDataLabelsPos.inBase, displayValue: this.textInnerBottom },
                     { value: Asc.c_oAscChartDataLabelsPos.inEnd, displayValue: this.textInnerTop },
                     { value: Asc.c_oAscChartDataLabelsPos.outEnd, displayValue: this.textOuterTop }
-                ]
+                ],
+                takeFocusOnClose: true
             });
 
             this.cmbDataLabels.on('selected', _.bind(me.onSelectDataLabels, this));
@@ -363,7 +336,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     { value: 0, displayValue: this.textNone },
                     { value: 1, displayValue: this.textStraight },
                     { value: 2, displayValue: this.textSmooth }
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 if (this.chartSettings) {
                     this.chartSettings.putLine(record.value!==0);
@@ -392,7 +366,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                 data        : [
                     {displayValue: this.textAuto, value: Asc.c_oAscValAxisRule.auto},
                     {displayValue: this.textFixed, value: Asc.c_oAscValAxisRule.fixed}
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 if (this.currentAxisProps) {
                     this.currentAxisProps.putMinValRule(record.value);
@@ -428,7 +403,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                 data        : [
                     {displayValue: this.textAuto, value: Asc.c_oAscValAxisRule.auto},
                     {displayValue: this.textFixed, value: Asc.c_oAscValAxisRule.fixed}
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 if (this.currentAxisProps) {
                     this.currentAxisProps.putMaxValRule(record.value);
@@ -466,7 +442,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     {displayValue: this.textValue, value: Asc.c_oAscCrossesRule.value},
                     {displayValue: this.textMinValue, value: Asc.c_oAscCrossesRule.minValue},
                     {displayValue: this.textMaxValue, value: Asc.c_oAscCrossesRule.maxValue}
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 if (this.currentAxisProps) {
                     this.currentAxisProps.putCrossesRule(record.value);
@@ -519,7 +496,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     {displayValue: this.textHundredMil, value: Asc.c_oAscValAxUnits.HUNDRED_MILLIONS},
                     {displayValue: this.textBillions, value: Asc.c_oAscValAxUnits.BILLIONS},
                     {displayValue: this.textTrillions, value: Asc.c_oAscValAxUnits.TRILLIONS}
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 if (this.currentAxisProps) {
                     this.currentAxisProps.putDispUnitsRule(record.value);
@@ -545,7 +523,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     {displayValue: this.textCross, value: Asc.c_oAscTickMark.TICK_MARK_CROSS},
                     {displayValue: this.textIn, value: Asc.c_oAscTickMark.TICK_MARK_IN},
                     {displayValue: this.textOut, value: Asc.c_oAscTickMark.TICK_MARK_OUT}
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 if (this.currentAxisProps) {
                     this.currentAxisProps.putMajorTickMark(record.value);
@@ -562,7 +541,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     {displayValue: this.textCross, value: Asc.c_oAscTickMark.TICK_MARK_CROSS},
                     {displayValue: this.textIn, value: Asc.c_oAscTickMark.TICK_MARK_IN},
                     {displayValue: this.textOut, value: Asc.c_oAscTickMark.TICK_MARK_OUT}
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 if (this.currentAxisProps) {
                     this.currentAxisProps.putMinorTickMark(record.value);
@@ -579,7 +559,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     {displayValue: this.textLow, value: Asc.c_oAscTickLabelsPos.TICK_LABEL_POSITION_LOW},
                     {displayValue: this.textHigh, value: Asc.c_oAscTickLabelsPos.TICK_LABEL_POSITION_HIGH},
                     {displayValue: this.textNextToAxis, value: Asc.c_oAscTickLabelsPos.TICK_LABEL_POSITION_NEXT_TO}
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 if (this.currentAxisProps) {
                     this.currentAxisProps.putTickLabelsPos(record.value);
@@ -598,7 +579,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     {displayValue: this.textValue, value: Asc.c_oAscCrossesRule.value},
                     {displayValue: this.textMinValue, value: Asc.c_oAscCrossesRule.minValue},
                     {displayValue: this.textMaxValue, value: Asc.c_oAscCrossesRule.maxValue}
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 if (this.currentAxisProps) {
                     this.currentAxisProps.putCrossesRule(record.value);
@@ -638,7 +620,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                 data        : [
                     {displayValue: this.textOnTickMarks, value: Asc.c_oAscLabelsPosition.byDivisions},
                     {displayValue: this.textBetweenTickMarks, value: Asc.c_oAscLabelsPosition.betweenDivisions}
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 if (this.currentAxisProps) {
                     this.currentAxisProps.putLabelsPosition(record.value);
@@ -664,7 +647,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     {displayValue: this.textCross, value: Asc.c_oAscTickMark.TICK_MARK_CROSS},
                     {displayValue: this.textIn, value: Asc.c_oAscTickMark.TICK_MARK_IN},
                     {displayValue: this.textOut, value: Asc.c_oAscTickMark.TICK_MARK_OUT}
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 if (this.currentAxisProps) {
                     this.currentAxisProps.putMajorTickMark(record.value);
@@ -681,7 +665,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     {displayValue: this.textCross, value: Asc.c_oAscTickMark.TICK_MARK_CROSS},
                     {displayValue: this.textIn, value: Asc.c_oAscTickMark.TICK_MARK_IN},
                     {displayValue: this.textOut, value: Asc.c_oAscTickMark.TICK_MARK_OUT}
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 if (this.currentAxisProps) {
                     this.currentAxisProps.putMinorTickMark(record.value);
@@ -712,7 +697,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     {displayValue: this.textLow, value: Asc.c_oAscTickLabelsPos.TICK_LABEL_POSITION_LOW},
                     {displayValue: this.textHigh, value: Asc.c_oAscTickLabelsPos.TICK_LABEL_POSITION_HIGH},
                     {displayValue: this.textNextToAxis, value: Asc.c_oAscTickLabelsPos.TICK_LABEL_POSITION_NEXT_TO}
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 if (this.currentAxisProps) {
                     this.currentAxisProps.putTickLabelsPos(record.value);
@@ -759,7 +745,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                 data        : [
                     {displayValue: this.textAuto, value: Asc.c_oAscBetweenLabelsRule.auto},
                     {displayValue: this.textManual, value: Asc.c_oAscBetweenLabelsRule.manual}
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 if (this.currentAxisProps) {
                     this.currentAxisProps.putIntervalBetweenLabelsRule(record.value);
@@ -768,15 +755,12 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                 }
             }, this));
 
-            this.btnsCategory[2].on('click', _.bind(this.onVCategoryClick, this));
-            this.btnsCategory[3].on('click', _.bind(this.onHCategoryClick, this));
-
             // Sparklines
             this.btnSparkType = new Common.UI.Button({
                 cls         : 'btn-large-dataview',
-                iconCls     : 'item-chartlist spark-column',
+                iconCls     : 'svgicon chart-spark-column',
                 menu        : new Common.UI.Menu({
-                    style: 'width: 200px; padding-top: 12px;',
+                    style: 'width: 167px; padding-top: 12px;',
                     additionalAlign: this.menuAddAlign,
                     items: [
                         { template: _.template('<div id="id-spark-dlg-menu-type" class="menu-insertchart"  style="margin: 5px 5px 0 10px;"></div>') }
@@ -788,17 +772,9 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     el: $('#id-spark-dlg-menu-type'),
                     parentMenu: btn.menu,
                     restoreHeight: 120,
-                    groups: new Common.UI.DataViewGroupStore([
-                        { id: 'menu-chart-group-sparkcolumn',   inline: true },
-                        { id: 'menu-chart-group-sparkline',     inline: true },
-                        { id: 'menu-chart-group-sparkwin',      inline: true }
-                    ]),
-                    store: new Common.UI.DataViewStore([
-                        { group: 'menu-chart-group-sparkcolumn',   type: Asc.c_oAscSparklineType.Column,    allowSelected: true, iconCls: 'spark-column', tip: me.textColumnSpark},
-                        { group: 'menu-chart-group-sparkline',     type: Asc.c_oAscSparklineType.Line,      allowSelected: true, iconCls: 'spark-line',   tip: me.textLineSpark},
-                        { group: 'menu-chart-group-sparkwin',      type: Asc.c_oAscSparklineType.Stacked,   allowSelected: true, iconCls: 'spark-win',    tip: me.textWinLossSpark}
-                    ]),
-                    itemTemplate: _.template('<div id="<%= id %>" class="item-chartlist <%= iconCls %>"></div>')
+                    groups: new Common.UI.DataViewGroupStore(Common.define.chartData.getSparkGroupData()),
+                    store: new Common.UI.DataViewStore(Common.define.chartData.getSparkData()),
+                    itemTemplate: _.template('<div id="<%= id %>" class="item-chartlist"><svg width="40" height="40" class=\"icon\"><use xlink:href=\"#chart-<%= iconCls %>\"></use></svg></div>')
                 });
             });
             this.btnSparkType.render($('#spark-dlg-button-type'));
@@ -836,33 +812,27 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                 name: 'asc-radio-sparkline'
             });
 
-            this.txtSparkDataRange = new Common.UI.InputField({
+            this.txtSparkDataRange = new Common.UI.InputFieldBtn({
                 el          : $('#spark-dlg-txt-range'),
                 name        : 'range',
                 style       : 'width: 100%;',
+                btnHint     : this.textSelectData,
                 allowBlank  : true,
                 blankError  : this.txtEmpty,
                 validateOnChange: true
             });
+             this.txtSparkDataRange.on('button:click', _.bind(this.onSelectSparkData, this));
 
-            this.btnSelectSparkData = new Common.UI.Button({
-                el: $('#spark-dlg-btn-data')
-            });
-           this.btnSelectSparkData.on('click', _.bind(this.onSelectSparkData, this));
-
-            this.txtSparkDataLocation = new Common.UI.InputField({
+            this.txtSparkDataLocation = new Common.UI.InputFieldBtn({
                 el          : $('#spark-dlg-txt-location'),
                 name        : 'range',
                 style       : 'width: 100%;',
+                btnHint     : this.textSelectData,
                 allowBlank  : true,
                 blankError  : this.txtEmpty,
                 validateOnChange: true
             });
-
-            this.btnSelectLocationData = new Common.UI.Button({
-                el: $('#spark-dlg-btn-location-data')
-            });
-           this.btnSelectLocationData.on('click', _.bind(this.onSelectLocationData, this));
+           this.txtSparkDataLocation.on('button:click', _.bind(this.onSelectLocationData, this));
              */
 
             this._arrEmptyCells = [
@@ -874,7 +844,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                 el          : $('#spark-dlg-combo-empty'),
                 menuStyle   : 'min-width: 220px;',
                 editable    : false,
-                cls         : 'input-group-nr'
+                cls         : 'input-group-nr',
+                takeFocusOnClose: true
             });
             this.cmbEmptyCells.on('selected', _.bind(function(combo, record){
                 if (this._changedProps) {
@@ -923,7 +894,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     {displayValue: this.textAutoEach, value: Asc.c_oAscSparklineAxisMinMax.Individual},
                     {displayValue: this.textSameAll, value: Asc.c_oAscSparklineAxisMinMax.Group},
                     {displayValue: this.textFixed, value: Asc.c_oAscSparklineAxisMinMax.Custom}
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 this.spnSparkMinValue.setDisabled(record.value!==Asc.c_oAscSparklineAxisMinMax.Custom);
                 if (this._changedProps) {
@@ -956,7 +928,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     {displayValue: this.textAutoEach, value: Asc.c_oAscSparklineAxisMinMax.Individual},
                     {displayValue: this.textSameAll, value: Asc.c_oAscSparklineAxisMinMax.Group},
                     {displayValue: this.textFixed, value: Asc.c_oAscSparklineAxisMinMax.Custom}
-                ]
+                ],
+                takeFocusOnClose: true
             }).on('selected', _.bind(function(combo, record) {
                 this.spnSparkMaxValue.setDisabled(record.value!==Asc.c_oAscSparklineAxisMinMax.Custom);
                 if (this._changedProps) {
@@ -980,6 +953,31 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                 }
             }, this));
 
+            // Snapping
+            this.radioTwoCell = new Common.UI.RadioBox({
+                el: $('#chart-dlg-radio-twocell'),
+                name: 'asc-radio-snap',
+                labelText: this.textTwoCell,
+                value: AscCommon.c_oAscCellAnchorType.cellanchorTwoCell
+            });
+            this.radioTwoCell.on('change', _.bind(this.onRadioSnapChange, this));
+
+            this.radioOneCell = new Common.UI.RadioBox({
+                el: $('#chart-dlg-radio-onecell'),
+                name: 'asc-radio-snap',
+                labelText: this.textOneCell,
+                value: AscCommon.c_oAscCellAnchorType.cellanchorOneCell
+            });
+            this.radioOneCell.on('change', _.bind(this.onRadioSnapChange, this));
+
+            this.radioAbsolute = new Common.UI.RadioBox({
+                el: $('#chart-dlg-radio-absolute'),
+                name: 'asc-radio-snap',
+                labelText: this.textAbsolute,
+                value: AscCommon.c_oAscCellAnchorType.cellanchorAbsolute
+            });
+            this.radioAbsolute.on('change', _.bind(this.onRadioSnapChange, this));
+
             // Alt Text
 
             this.inputAltTitle = new Common.UI.InputField({
@@ -1002,20 +1000,57 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
             this.afterRender();
         },
 
+        getFocusedComponents: function() {
+            return [
+                this.cmbChartTitle, this.cmbLegendPos, this.cmbDataLabels, this.txtSeparator, this.cmbHorShow, this.cmbVertShow,
+                this.cmbHorTitle, this.cmbVertTitle, this.cmbHorGrid, this.cmbVertGrid, // 1 tab
+                this.cmbMinType , this.spnMinValue, this.cmbMaxType, this.spnMaxValue, this.cmbVCrossType, this.spnVAxisCrosses,
+                this.cmbUnits , this.cmbVMajorType, this.cmbVMinorType, this.cmbVLabelPos, // 2 tab
+                this.cmbHCrossType , this.spnHAxisCrosses, this.cmbAxisPos, this.cmbHMajorType, this.cmbHMinorType, this.spnMarksInterval,
+                this.cmbHLabelPos , this.spnLabelDist, this.cmbLabelInterval, this.spnLabelInterval, // 3 tab
+                this.inputAltTitle, this.textareaAltDescription  // 7 tab
+            ];
+        },
+
+        onCategoryClick: function(btn, index) {
+            Common.Views.AdvancedSettingsWindow.prototype.onCategoryClick.call(this, btn, index);
+
+            var me = this;
+            setTimeout(function(){
+                switch (index) {
+                    case 1:
+                        me.cmbChartTitle.focus();
+                        break;
+                    case 2:
+                        me.onVCategoryClick(btn);
+                        me.cmbMinType.focus();
+                        break;
+                    case 3:
+                        me.onHCategoryClick(btn);
+                        me.cmbHCrossType.focus();
+                        break;
+                    case 7:
+                        me.inputAltTitle.focus();
+                        break;
+                }
+            }, 10);
+        },
+
         afterRender: function() {
             this._setDefaults(this.chartSettings);
 
             this.setTitle((this.isChart) ? this.textTitle : this.textTitleSparkline);
 
+            this.btnsCategory[0].setVisible(this.isDiagramMode); // hide type for charts
             if (this.isChart) {
                 this.btnsCategory[4].setVisible(false);
                 this.btnsCategory[5].setVisible(false);
             } else {
-                this.btnsCategory[0].setVisible(false);
                 this.btnsCategory[1].setVisible(false);
                 this.btnsCategory[2].setVisible(false);
                 this.btnsCategory[3].setVisible(false);
                 this.btnsCategory[6].setVisible(false);
+                this.btnsCategory[7].setVisible(false);
             }
 
             if (this.storageName) {
@@ -1044,7 +1079,7 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                 rawData = record;
             }
 
-            this.btnChartType.setIconCls('item-chartlist ' + rawData.iconCls);
+            this.btnChartType.setIconCls('svgicon ' + 'chart-' + rawData.iconCls);
             this.chartSettings.changeType(rawData.type);
             this.updateAxisProps(rawData.type, true);
             this.vertAxisProps = this.chartSettings.getVertAxisProps();
@@ -1268,7 +1303,7 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                 rawData = record;
             }
 
-            this.btnSparkType.setIconCls('item-chartlist ' + rawData.iconCls);
+            this.btnSparkType.setIconCls('svgicon ' + 'chart-' + rawData.iconCls);
             if (this._changedProps) {
                 this._changedProps.asc_setType(rawData.type);
             }
@@ -1299,7 +1334,7 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                 this._changedProps.asc_setStyle(record.get('data'));
             }
         },
-        
+
         _setDefaults: function(props) {
             var me = this;
             if (props ){
@@ -1311,33 +1346,35 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
 
                     // Layout
 
-                    var record = this.mnuChartTypePicker.store.findWhere({type: this._state.ChartType});
-                    this.mnuChartTypePicker.selectRecord(record, true);
-                    if (record) {
-                        this.btnChartType.setIconCls('item-chartlist ' + record.get('iconCls'));
-                    } else
-                        this.btnChartType.setIconCls('');
+                    if (this.isDiagramMode) {
+                        var record = this.mnuChartTypePicker.store.findWhere({type: this._state.ChartType});
+                        this.mnuChartTypePicker.selectRecord(record, true);
+                        if (record) {
+                            this.btnChartType.setIconCls('svgicon ' + 'chart-' + record.get('iconCls'));
+                        } else
+                            this.btnChartType.setIconCls('svgicon');
+                    }
 
                     this._noApply = false;
 
-                    var value = props.getRange();
-                    this.txtDataRange.setValue((value) ? value : '');
-                    this.dataRangeValid = value;
-
-                    this.txtDataRange.validation = function(value) {
-                        if (_.isEmpty(value)) {
-                            if (!me.cmbDataDirect.isDisabled()) me.cmbDataDirect.setDisabled(true);
-                            return true;
-                        }
-
-                        if (me.cmbDataDirect.isDisabled()) me.cmbDataDirect.setDisabled(false);
-
-                        var isvalid = me.api.asc_checkDataRange(Asc.c_oAscSelectionDialogType.Chart, value, false);
-                        return (isvalid==Asc.c_oAscError.ID.DataRangeError) ? me.textInvalidRange : true;
-                    };
-
-                    this.cmbDataDirect.setDisabled(value===null);
-                    this.cmbDataDirect.setValue(props.getInColumns() ? 1 : 0);
+                    // var value = props.getRange();
+                    // this.txtDataRange.setValue((value) ? value : '');
+                    // this.dataRangeValid = value;
+                    //
+                    // this.txtDataRange.validation = function(value) {
+                    //     if (_.isEmpty(value)) {
+                    //         if (!me.cmbDataDirect.isDisabled()) me.cmbDataDirect.setDisabled(true);
+                    //         return true;
+                    //     }
+                    //
+                    //     if (me.cmbDataDirect.isDisabled()) me.cmbDataDirect.setDisabled(false);
+                    //
+                    //     var isvalid = me.api.asc_checkDataRange(Asc.c_oAscSelectionDialogType.Chart, value, false);
+                    //     return (isvalid==Asc.c_oAscError.ID.DataRangeError) ? me.textInvalidRange : true;
+                    // };
+                    //
+                    // this.cmbDataDirect.setDisabled(value===null);
+                    // this.cmbDataDirect.setValue(props.getInColumns() ? 1 : 0);
 
                     this.cmbChartTitle.setValue(props.getTitle());
                     this.cmbLegendPos.setValue(props.getLegendPos());
@@ -1348,7 +1385,7 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     this.chCategoryName.setValue(this.chartSettings.getShowCatName(), true);
                     this.chValue.setValue(this.chartSettings.getShowVal(), true);
 
-                    value = props.getSeparator();
+                    var value = props.getSeparator();
                     this.txtSeparator.setValue((value) ? value : '');
 
                     // Vertical Axis
@@ -1366,15 +1403,28 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
 
                         value = this.imageSettings.asc_getDescription();
                         this.textareaAltDescription.val(value ? value : '');
+
+                        value = this.imageSettings.asc_getAnchor();
+                        switch (value) {
+                            case AscCommon.c_oAscCellAnchorType.cellanchorTwoCell:
+                                this.radioTwoCell.setValue(true, true);
+                                break;
+                            case AscCommon.c_oAscCellAnchorType.cellanchorOneCell:
+                                this.radioOneCell.setValue(true, true);
+                                break;
+                            case AscCommon.c_oAscCellAnchorType.cellanchorAbsolute:
+                                this.radioAbsolute.setValue(true, true);
+                                break;
+                        }
                     }
                 } else { // sparkline
                     this._state.SparkType = props.asc_getType();
                     var record = this.mnuSparkTypePicker.store.findWhere({type: this._state.SparkType});
                     this.mnuSparkTypePicker.selectRecord(record, true);
                     if (record)
-                        this.btnSparkType.setIconCls('item-chartlist ' + record.get('iconCls'));
+                        this.btnSparkType.setIconCls('svgicon ' + 'chart-' + record.get('iconCls'));
                     else
-                        this.btnSparkType.setIconCls('');
+                        this.btnSparkType.setIconCls('svgicon');
 
                     this.updateSparkStyles((this.sparklineStyles) ? this.sparklineStyles : props.asc_getStyles());
 
@@ -1432,13 +1482,16 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
             var value;
 
             if (this.isChart) {
-                var rec = this.mnuChartTypePicker.getSelectedRec(),
-                    type = (rec) ? rec.get('type') : this.currentChartType;
+                var type = this.currentChartType;
+                if (this.isDiagramMode) {
+                    var rec = this.mnuChartTypePicker.getSelectedRec();
+                    rec && (type = rec.get('type'));
+                }
 
                 this.chartSettings.putType(type);
 
-                this.chartSettings.putInColumns(this.cmbDataDirect.getValue()==1);
-                this.chartSettings.putRange(this.txtDataRange.getValue());
+                // this.chartSettings.putInColumns(this.cmbDataDirect.getValue()==1);
+                // this.chartSettings.putRange(this.txtDataRange.getValue());
 
                 this.chartSettings.putTitle(this.cmbChartTitle.getValue());
                 this.chartSettings.putLegendPos(this.cmbLegendPos.getValue());
@@ -1474,27 +1527,40 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                 this.chartSettings.putVertAxisProps(this.vertAxisProps);
                 this.chartSettings.putHorAxisProps(this.horAxisProps);
 
-                var imagesettings = (this.isAltTitleChanged || this.isAltDescChanged) ? new Asc.asc_CImgProperty() : null;
+                if ((this.isAltTitleChanged || this.isAltDescChanged) && !this._changedImageProps)
+                    this._changedImageProps = new Asc.asc_CImgProperty();
+
                 if (this.isAltTitleChanged)
-                    imagesettings.asc_putTitle(this.inputAltTitle.getValue());
+                    this._changedImageProps.asc_putTitle(this.inputAltTitle.getValue());
 
                 if (this.isAltDescChanged)
-                    imagesettings.asc_putDescription(this.textareaAltDescription.val());
+                    this._changedImageProps.asc_putDescription(this.textareaAltDescription.val());
 
-                return { chartSettings: this.chartSettings, imageSettings: imagesettings};
+                return { chartSettings: this.chartSettings, imageSettings: this._changedImageProps};
             } else {
                 return { chartSettings: this._changedProps };
             }
         },
 
+        onRadioSnapChange: function(field, newValue, eOpts) {
+            if (newValue) {
+                if (!this._changedImageProps)
+                    this._changedImageProps = new Asc.asc_CImgProperty();
+                this._changedImageProps.asc_putAnchor(field.options.value);
+            }
+        },
+
         isRangeValid: function() {
             if (this.isChart) {
-                var isvalid;
-                if (!_.isEmpty(this.txtDataRange.getValue())) {
-                    var rec = this.mnuChartTypePicker.getSelectedRec(),
-                        type = (rec) ? rec.get('type') : this.currentChartType;
-
-                    isvalid = this.api.asc_checkDataRange(Asc.c_oAscSelectionDialogType.Chart, this.txtDataRange.getValue(), true, this.cmbDataDirect.getValue()==0, type);
+                var isvalid,
+                    range = this.chartSettings.getRange();
+                if (!_.isEmpty(range)) {
+                    var type = this.currentChartType;
+                    if (this.isDiagramMode) {
+                        var rec = this.mnuChartTypePicker.getSelectedRec();
+                        rec && (type = rec.get('type'));
+                    }
+                    isvalid = this.api.asc_checkDataRange(Asc.c_oAscSelectionDialogType.Chart, range, true, !this.chartSettings.getInColumns(), type);
                     if (isvalid == Asc.c_oAscError.ID.No)
                         return true;
                 } else
@@ -1507,41 +1573,42 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
                     Common.UI.warning({msg: this.errorMaxRows});
                 } else if (isvalid == Asc.c_oAscError.ID.MaxDataPointsError)
                     Common.UI.warning({msg: this.errorMaxPoints});
-                else
-                    this.txtDataRange.cmpEl.find('input').focus();
                 return false;
             } else
                 return true;
         },
 
-        onSelectData: function() {
-            var me = this;
-            if (me.api) {
-                var handlerDlg = function(dlg, result) {
-                    if (result == 'ok') {
-                        me.dataRangeValid = dlg.getSettings();
-                        me.txtDataRange.setValue(me.dataRangeValid);
-                        me.txtDataRange.checkValidate();
-                    }
-                };
-
-                var win = new SSE.Views.CellRangeDialog({
-                    handler: handlerDlg
-                }).on('close', function() {
-                    me.show();
-                });
-
-                var xy = me.$window.offset();
-                me.hide();
-                win.show(xy.left + 160, xy.top + 125);
-                win.setSettings({
-                    api     : me.api,
-                    isRows  : (me.cmbDataDirect.getValue()==0),
-                    range   : (!_.isEmpty(me.txtDataRange.getValue()) && (me.txtDataRange.checkValidate()==true)) ? me.txtDataRange.getValue() : me.dataRangeValid,
-                    type    : Asc.c_oAscSelectionDialogType.Chart
-                });
-            }
-        },
+        // onSelectData: function() {
+        //     var me = this;
+        //     if (me.api) {
+        //         me.btnChartType.menu.options.additionalAlign = me.menuAddAlign;
+        //         me.btnSparkType.menu.options.additionalAlign = me.menuAddAlign;
+        //
+        //         var handlerDlg = function(dlg, result) {
+        //             if (result == 'ok') {
+        //                 me.dataRangeValid = dlg.getSettings();
+        //                 me.txtDataRange.setValue(me.dataRangeValid);
+        //                 me.txtDataRange.checkValidate();
+        //             }
+        //         };
+        //
+        //         var win = new SSE.Views.CellRangeDialog({
+        //             handler: handlerDlg
+        //         }).on('close', function() {
+        //             me.show();
+        //         });
+        //
+        //         var xy = me.$window.offset();
+        //         me.hide();
+        //         win.show(xy.left + 160, xy.top + 125);
+        //         win.setSettings({
+        //             api     : me.api,
+        //             isRows  : (me.cmbDataDirect.getValue()==0),
+        //             range   : (!_.isEmpty(me.txtDataRange.getValue()) && (me.txtDataRange.checkValidate()==true)) ? me.txtDataRange.getValue() : me.dataRangeValid,
+        //             type    : Asc.c_oAscSelectionDialogType.Chart
+        //         });
+        //     }
+        // },
 
         onSelectDataLabels: function(obj, rec, e) {
             var disable = rec.value == Asc.c_oAscChartDataLabelsPos.none;
@@ -1615,10 +1682,10 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
          show: function() {
             Common.Views.AdvancedSettingsWindow.prototype.show.apply(this, arguments);
 
-            var me = this;
-            _.delay(function(){
-                me.txtDataRange.cmpEl.find('input').focus();
-            },50);
+            // var me = this;
+            // _.delay(function(){
+            //     me.txtDataRange.cmpEl.find('input').focus();
+            // },50);
         },
 
         close: function () {
@@ -1629,13 +1696,6 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
         textTitle:          'Chart - Advanced Settings',
         textShowValues:     'Display chart values',
         textShowBorders:    'Display chart borders',
-        textLine:           'Line',
-        textColumn:         'Column',
-        textBar:            'Bar',
-        textArea:           'Area',
-        textPie:            'Pie',
-        textPoint:          'XY (Scatter)',
-        textStock:          'Stock',
         textDataRows:       'in rows',
         textDataColumns:    'in columns',
         textDisplayLegend:  'Display Legend',
@@ -1651,9 +1711,8 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
         textYAxisTitle:     'Y Axis Title',
         txtEmpty:           'This field is required',
         textInvalidRange:   'ERROR! Invalid cells range',
-        cancelButtonText:   'Cancel',
-        textTypeStyle: 'Chart Type, Style &<br/>Data Range',
-        textChartElementsLegend: 'Chart Elements &<br/>Chart Legend',
+        textTypeStyle: 'Chart Type, Style &<br>Data Range',
+        textChartElementsLegend: 'Chart Elements &<br>Chart Legend',
         textLayout: 'Layout',
         textLegendPos: 'Legend',
         textHorTitle: 'Horizontal Axis Title',
@@ -1724,7 +1783,7 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
         textType: 'Type',
         textTypeData: 'Type & Data',
         textStyle: 'Style',
-        textSelectData: 'Select Data',
+        textSelectData: 'Select data',
         textDataSeries: 'Data series',
         errorMaxRows: 'ERROR! The maximum number of data series per chart is 255.',
         errorStockChart: 'Incorrect row order. To build a stock chart place the data on the sheet in the following order:<br> opening price, max price, min price, closing price.',
@@ -1747,9 +1806,6 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
         textGaps: 'Gaps',
         textZero: 'Zero',
         textEmptyLine: 'Connect data points with line',
-        textLineSpark:      'Line',
-        textColumnSpark:    'Column',
-        textWinLossSpark:   'Win/Loss',
         textShowSparkAxis: 'Show Axis',
         textReverseOrder: 'Reverse order',
         textAutoEach: 'Auto for Each',
@@ -1759,8 +1815,11 @@ define([    'text!spreadsheeteditor/main/app/template/ChartSettingsDlg.template'
         textAltTitle: 'Title',
         textAltDescription: 'Description',
         textAltTip: 'The alternative text-based representation of the visual object information, which will be read to the people with vision or cognitive impairments to help them better understand what information there is in the image, autoshape, chart or table.',
-        textSurface: 'Surface',
-        errorMaxPoints: 'ERROR! The maximum number of points in series per chart is 4096.'
+        errorMaxPoints: 'ERROR! The maximum number of points in series per chart is 4096.',
+        textSnap: 'Cell Snapping',
+        textAbsolute: 'Don\'t move or size with cells',
+        textOneCell: 'Move but don\'t size with cells',
+        textTwoCell: 'Move and size with cells'
 
     }, SSE.Views.ChartSettingsDlg || {}));
 });

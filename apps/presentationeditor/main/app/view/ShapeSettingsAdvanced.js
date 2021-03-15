@@ -64,7 +64,7 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
                     {panelId: 'id-adv-shape-width',      panelCaption: this.textSize},
                     {panelId: 'id-adv-shape-rotate',     panelCaption: this.textRotation},
                     {panelId: 'id-adv-shape-shape',      panelCaption: this.textWeightArrows},
-                    {panelId: 'id-adv-shape-margins',    panelCaption: this.strMargins},
+                    {panelId: 'id-adv-shape-margins',    panelCaption: this.textTextBox},
                     {panelId: 'id-adv-shape-columns',    panelCaption: this.strColumns},
                     {panelId: 'id-adv-shape-alttext',    panelCaption: this.textAlt}
                 ],
@@ -143,13 +143,13 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
             this.spinners.push(this.spnHeight);
 
             this.btnRatio = new Common.UI.Button({
+                parentEl: $('#shape-advanced-button-ratio'),
                 cls: 'btn-toolbar',
-                iconCls: 'advanced-btn-ratio',
+                iconCls: 'toolbar__icon advanced-btn-ratio',
                 style: 'margin-bottom: 1px;',
                 enableToggle: true,
                 hint: this.textKeepRatio
             });
-            this.btnRatio.render($('#shape-advanced-button-ratio')) ;
             this.btnRatio.on('click', _.bind(function(btn, e) {
                 if (btn.pressed && this.spnHeight.getNumberValue()>0) {
                     this._nRatio = this.spnWidth.getNumberValue()/this.spnHeight.getNumberValue();
@@ -202,7 +202,7 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
                 width: 100,
                 defaultUnit : "cm",
                 value: '0.19 cm',
-                maxValue: 9.34,
+                maxValue: 55.87,
                 minValue: 0
             });
             this.spnMarginLeft.on('change', _.bind(function(field, newValue, oldValue, eOpts){
@@ -220,7 +220,7 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
                 width: 100,
                 defaultUnit : "cm",
                 value: '0.19 cm',
-                maxValue: 9.34,
+                maxValue: 55.87,
                 minValue: 0
             });
             this.spnMarginRight.on('change', _.bind(function(field, newValue, oldValue, eOpts){
@@ -231,6 +231,30 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
                 }
             }, this));
             this.spinners.push(this.spnMarginRight);
+
+            this.radioNofit = new Common.UI.RadioBox({
+                el: $('#shape-radio-nofit'),
+                name: 'asc-radio-fit',
+                labelText: this.textNofit,
+                value: AscFormat.text_fit_No
+            });
+            this.radioNofit.on('change', _.bind(this.onRadioFitChange, this));
+
+            this.radioShrink = new Common.UI.RadioBox({
+                el: $('#shape-radio-shrink'),
+                name: 'asc-radio-fit',
+                labelText: this.textShrink,
+                value: AscFormat.text_fit_NormAuto
+            });
+            this.radioShrink.on('change', _.bind(this.onRadioFitChange, this));
+
+            this.radioFit = new Common.UI.RadioBox({
+                el: $('#shape-radio-fit'),
+                name: 'asc-radio-fit',
+                labelText: this.textResizeFit,
+                value: AscFormat.text_fit_Auto
+            });
+            this.radioFit.on('change', _.bind(this.onRadioFitChange, this));
 
             // Rotation
             this.spnAngle = new Common.UI.MetricSpinner({
@@ -265,7 +289,8 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
                 cls: 'input-group-nr',
                 menuStyle: 'min-width: 100px;',
                 editable: false,
-                data: this._arrCapType
+                data: this._arrCapType,
+                takeFocusOnClose: true
             });
             this.cmbCapType.setValue(Asc.c_oAscLineCapType.Flat);
             this.cmbCapType.on('selected', _.bind(function(combo, record){
@@ -287,7 +312,8 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
                 cls: 'input-group-nr',
                 menuStyle: 'min-width: 100px;',
                 editable: false,
-                data: this._arrJoinType
+                data: this._arrJoinType,
+                takeFocusOnClose: true
             });
             this.cmbJoinType.setValue(Asc.c_oAscLineJoinType.Round);
             this.cmbJoinType.on('selected', _.bind(function(combo, record){
@@ -493,6 +519,45 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
             this.afterRender();
         },
 
+        getFocusedComponents: function() {
+            return [
+                this.spnWidth, this.spnHeight, // 0 tab
+                this.spnAngle,  // 1 tab
+                this.cmbCapType, this.cmbJoinType, // 2 tab
+                this.spnMarginTop, this.spnMarginLeft, this.spnMarginBottom, this.spnMarginRight, // 3 tab
+                this.spnColumns, this.spnSpacing, // 4 tab
+                this.inputAltTitle, this.textareaAltDescription  // 5 tab
+            ];
+        },
+
+        onCategoryClick: function(btn, index) {
+            Common.Views.AdvancedSettingsWindow.prototype.onCategoryClick.call(this, btn, index);
+
+            var me = this;
+            setTimeout(function(){
+                switch (index) {
+                    case 0:
+                        me.spnWidth.focus();
+                        break;
+                    case 1:
+                        me.spnAngle.focus();
+                        break;
+                    case 2:
+                        me.cmbCapType.focus();
+                        break;
+                    case 3:
+                        me.spnMarginTop.focus();
+                        break;
+                    case 4:
+                        me.spnColumns.focus();
+                        break;
+                    case 5:
+                        me.inputAltTitle.focus();
+                        break;
+                }
+            }, 10);
+        },
+
         afterRender: function() {
             this.updateMetricUnit();
             this._setDefaults(this._originalProps);
@@ -525,6 +590,18 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
                     this.spnMarginRight.setValue((null !== val && undefined !== val) ? Common.Utils.Metric.fnRecalcFromMM(val) : '', true);
                     val = margins.get_Bottom();
                     this.spnMarginBottom.setValue((null !== val && undefined !== val) ? Common.Utils.Metric.fnRecalcFromMM(val) : '', true);
+                }
+                value = props.asc_getTextFitType();
+                switch (value) {
+                    case AscFormat.text_fit_No:
+                        this.radioNofit.setValue(true, true);
+                        break;
+                    case AscFormat.text_fit_Auto:
+                        this.radioFit.setValue(true, true);
+                        break;
+                    case AscFormat.text_fit_NormAuto:
+                        this.radioShrink.setValue(true, true);
+                        break;
                 }
                 this.btnsCategory[3].setDisabled(null === margins);   // Margins
 
@@ -734,14 +811,18 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
             this._selectStyleItem(this.btnEndSize, record);
         },
 
+        onRadioFitChange: function(field, newValue, eOpts) {
+            if (newValue && this._changedProps) {
+                this._changedProps.asc_putTextFitType(field.options.value);
+            }
+        },
+
         textRound:      'Round',
         textMiter:      'Miter',
         textSquare:     'Square',
         textFlat:       'Flat',
         textBevel:      'Bevel',
         textTitle:      'Shape - Advanced Settings',
-        cancelButtonText: 'Cancel',
-        okButtonText:   'Ok',
         txtNone:        'None',
         textWeightArrows: 'Weights & Arrows',
         textArrows:     'Arrows',
@@ -772,7 +853,12 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
         textAngle: 'Angle',
         textFlipped: 'Flipped',
         textHorizontally: 'Horizontally',
-        textVertically: 'Vertically'
+        textVertically: 'Vertically',
+        textTextBox: 'Text Box',
+        textAutofit: 'AutoFit',
+        textNofit: 'Do not Autofit',
+        textShrink: 'Shrink text on overflow',
+        textResizeFit: 'Resize shape to fit text'
 
     }, PE.Views.ShapeSettingsAdvanced || {}));
 });

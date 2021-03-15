@@ -48,7 +48,8 @@ define([
             width: 214,
             header: true,
             style: 'min-width: 214px;',
-            cls: 'modal-dlg'
+            cls: 'modal-dlg',
+            buttons: ['ok', 'cancel']
         },
 
         initialize : function(options) {
@@ -61,9 +62,6 @@ define([
                     '<div class="input-row">',
                         '<div id="id-spin-set-value"></div>',
                     '</div>',
-                '<div class="footer center">',
-                '<button class="btn normal dlg-btn primary" result="ok" style="margin-right: 10px;">' + this.okButtonText + '</button>',
-                '<button class="btn normal dlg-btn" result="cancel">' + this.cancelButtonText + '</button>',
                 '</div>'
             ].join('');
 
@@ -83,7 +81,7 @@ define([
                 defaultUnit : "",
                 value: 1,
                 maxValue: 16383,
-                minValue: 1,
+                minValue: 0,
                 allowDecimal: false,
                 maskExp: /[0-9]/
             });
@@ -250,12 +248,11 @@ define([
                 }
 
                 result += val;
+                prev = Math.abs(val);
             }
 
             return result;
-        },
+        }
 
-        cancelButtonText: 'Cancel',
-        okButtonText:   'Ok'
     }, DE.Views.NumberingValueDialog || {}))
 });

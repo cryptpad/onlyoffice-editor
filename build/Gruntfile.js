@@ -12,53 +12,81 @@ module.exports = function(grunt) {
                     ' * Version: <%= pkg.version %> (build:<%= pkg.build %>)\n' +
                     ' */\n';
 
+    let iconv_lite, encoding = process.env.SYSTEM_ENCODING;
+    grunt.log.writeln('platform: ' + process.platform.green);
+    if (process.platform == 'win32') {
+        const cmdencoding = require('child_process').execSync('chcp');
+        grunt.log.writeln(cmdencoding);
+        if ( !encoding ) {
+            if ( cmdencoding.includes('866') ) encoding = '1251'; else
+            if ( cmdencoding.includes('437') ) encoding = '1252'; else
+            if ( cmdencoding.includes('65001') ) encoding = 'utf8';
+        }
+
+        if ( !!encoding && !/utf-?8/i.test(encoding) ) {
+            iconv_lite = require('iconv-lite');
+        }
+    }
+
+    let _encode = (string) => {
+        return !!string && !!iconv_lite ? iconv_lite.encode(string,encoding) : string;
+    };
+
     var jsreplacements = [
                 {
                     from: /\{\{SUPPORT_EMAIL\}\}/g,
-                    to: process.env['SUPPORT_EMAIL'] || 'support@onlyoffice.com'
+                    to: _encode(process.env.SUPPORT_EMAIL) || 'support@onlyoffice.com'
                 },{
                     from: /\{\{SUPPORT_URL\}\}/g,
-                    to: process.env['SUPPORT_URL'] || 'https://support.onlyoffice.com'
+                    to: _encode(process.env.SUPPORT_URL) || 'https://support.onlyoffice.com'
                 },{
                     from: /\{\{SALES_EMAIL\}\}/g,
-                    to: process.env['SALES_EMAIL'] || 'sales@onlyoffice.com'
+                    to: _encode(process.env.SALES_EMAIL) || 'sales@onlyoffice.com'
                 },{
                     from: /\{\{PUBLISHER_URL\}\}/g,
-                    to: process.env['PUBLISHER_URL'] || 'https://www.onlyoffice.com'
+                    to: _encode(process.env.PUBLISHER_URL) || 'https://www.onlyoffice.com'
                 },{
                     from: /\{\{PUBLISHER_PHONE\}\}/,
-                    to: process.env['PUBLISHER_PHONE'] || '+371 660-16425'
+                    to: process.env['PUBLISHER_PHONE'] || '+371 633-99867'
                 },{
                     from: /\{\{PUBLISHER_NAME\}\}/g,
-                    to: process.env['PUBLISHER_NAME'] || 'Ascensio System SIA'
+                    to: _encode(process.env.PUBLISHER_NAME) || 'Ascensio System SIA'
                 },{
                     from: /\{\{PUBLISHER_ADDRESS\}\}/,
-                    to: process.env['PUBLISHER_ADDRESS'] || '20A-12 Ernesta Birznieka-Upisha street, Riga, Latvia, EU, LV-1050'
+                    to: _encode(process.env.PUBLISHER_ADDRESS) || '20A-12 Ernesta Birznieka-Upisha street, Riga, Latvia, EU, LV-1050'
                 },{
                     from: /\{\{API_URL_EDITING_CALLBACK\}\}/,
-                    to: process.env['API_URL_EDITING_CALLBACK'] || 'https://api.onlyoffice.com/editors/callback'
+                    to: _encode(process.env.API_URL_EDITING_CALLBACK) || 'https://api.onlyoffice.com/editors/callback'
                 },{
                     from: /\{\{COMPANY_NAME\}\}/g,
-                    to: process.env['COMPANY_NAME'] || 'ONLYOFFICE'
+                    to: _encode(process.env.COMPANY_NAME) || 'ONLYOFFICE'
                 }, {
                     from: /\{\{APP_TITLE_TEXT\}\}/g,
-                    to: process.env['APP_TITLE_TEXT'] || 'ONLYOFFICE'
+                    to: _encode(process.env.APP_TITLE_TEXT) || 'ONLYOFFICE'
                 }, {
                     from: /\{\{HELP_URL\}\}/g,
-                    to: process.env['HELP_URL'] || 'https://helpcenter.onlyoffice.com'
+                    to: _encode(process.env.HELP_URL) || 'https://helpcenter.onlyoffice.com'
                 }];
 
     var helpreplacements = [
                 {
                     from: /\{\{COEDITING_DESKTOP\}\}/g,
-                    to: process.env['COEDITING_DESKTOP'] || 'Подключиться к облаку'
+                    to: _encode(process.env.COEDITING_DESKTOP) || 'Подключиться к облаку'
                 },{
                     from: /\{\{PLUGIN_LINK\}\}/g,
-                    to: process.env['PLUGIN_LINK'] || 'https://api.onlyoffice.com/plugin/basic'
+                    to: _encode(process.env.PLUGIN_LINK) || 'https://api.onlyoffice.com/plugin/basic'
                 },{
                     from: /\{\{PLUGIN_LINK_MACROS\}\}/g,
-                    to: process.env['PLUGIN_LINK_MACROS'] || 'https://api.onlyoffice.com/plugin/macros'
+                    to: _encode(process.env.PLUGIN_LINK_MACROS) || 'https://api.onlyoffice.com/plugin/macros'
                 }];
+
+    let path = require('path');
+    let addons = grunt.option('addon') || [];
+    if (!Array.isArray(addons))
+        addons = [addons];
+
+    addons.forEach((element,index,self) => self[index] = path.join('../..', element, '/build'));
+    addons = addons.filter(element => grunt.file.isDir(element));
 
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-copy');
@@ -102,14 +130,50 @@ module.exports = function(grunt) {
     }
 
     function doRegisterInitializeAppTask(name, appName, configFile) {
+        if (!!process.env['OO_BRANDING'] &&
+                grunt.file.exists('../../' + process.env['OO_BRANDING'] + '/web-apps-pro/build/' + configFile))
+        {
+            var _extConfig = require('../../' + process.env['OO_BRANDING'] + '/web-apps-pro/build/' + configFile);
+        }
+
+        function _merge(target, ...sources) {
+            if (!sources.length) return target;
+            const source = sources.shift();
+
+            if (_.isObject(target) && _.isObject(source)) {
+                for (const key in source) {
+                    if (_.isObject(source[key])) {
+                        if (!target[key]) Object.assign(target, { [key]: {} });
+                        else if (_.isArray(source[key])) target[key].push(...source[key]);
+                        else _merge(target[key], source[key]);
+                    } else {
+                        Object.assign(target, { [key]: source[key] });
+                    }
+                }
+            }
+
+            return _merge(target, ...sources);
+        }
+
         return grunt.registerTask('init-build-' + name, 'Initialize build ' + appName, function(){
             defaultConfig = configFile;
             packageFile = require('./' + defaultConfig);
 
-            if (packageFile)
+            if (packageFile) {
                 grunt.log.ok(appName + ' config loaded successfully'.green);
-            else
-                grunt.log.error().writeln('Could not load config file'.red);
+
+                addons.forEach(element => {
+                    let _path = path.join(element,configFile);
+                    if (grunt.file.exists(_path)) {
+                        _merge(packageFile, require(_path));
+                        grunt.log.ok('addon '.green + element + ' is merged successfully'.green);
+                    }
+                });
+
+                if ( !!_extConfig && _extConfig.name == packageFile.name ) {
+                    _merge(packageFile, _extConfig);
+                }
+            } else grunt.log.error().writeln('Could not load config file'.red);
         });
     }
 
@@ -151,6 +215,12 @@ module.exports = function(grunt) {
                       replacements: [{
                           from: /\{\{PRODUCT_VERSION\}\}/,
                           to: packageFile.version
+                      },{
+                          from: /\{\{APP_CUSTOMER_NAME\}\}/g,
+                          to: process.env['APP_CUSTOMER_NAME'] || 'ONLYOFFICE'
+                      },{
+                          from: /\/\*\*[\s\S]+\.com\s+\*\//,
+                          to: copyright
                       }]
                   }
             }
@@ -186,6 +256,11 @@ module.exports = function(grunt) {
                 }
             }
         }
+    });
+
+    grunt.registerTask('prebuild-icons-sprite', function() {
+        require('./sprites/Gruntfile.js')(grunt, '../');
+        grunt.task.run('all-icons-sprite');
     });
 
     grunt.registerTask('main-app-init', function() {
@@ -231,7 +306,7 @@ module.exports = function(grunt) {
                     src: ['<%= pkg.main.js.requirejs.options.out %>'],
                     overwrite: true,
                     replacements: [{
-                        from: /\{\{PRODUCT_VERSION\}\}/,
+                        from: /\{\{PRODUCT_VERSION\}\}/g,
                         to: packageFile.version
                     }]
                 },
@@ -277,15 +352,14 @@ module.exports = function(grunt) {
                 help: {
                     files: packageFile['main']['copy']['help']
                 },
-                'index-page': {
-                    files: packageFile['main']['copy']['index-page']
+                indexhtml: {
+                    files: packageFile['main']['copy']['indexhtml']
                 }
             },
 
             inline: {
                 dist: {
-                    src: packageFile.main.copy['index-page'][0].dest,
-                    dest: packageFile.main.copy['index-page'][0].dest
+                    src: '<%= pkg.main.copy.indexhtml[0].dest %>/*.html'
                 }
             },
 
@@ -514,8 +588,8 @@ module.exports = function(grunt) {
     grunt.registerTask('deploy-requirejs',              ['requirejs-init', 'clean', 'uglify']);
     grunt.registerTask('deploy-es6-promise',            ['es6-promise-init', 'clean', 'copy']);
 
-    grunt.registerTask('deploy-app-main',               ['main-app-init', 'clean:prebuild', 'imagemin', 'less', 'requirejs', 'concat',
-                                                            'copy', 'svgmin', 'inline', 'json-minify',
+    grunt.registerTask('deploy-app-main',               ['prebuild-icons-sprite', 'main-app-init', 'clean:prebuild', 'imagemin', 'less',
+                                                            'requirejs', 'concat', 'copy', 'svgmin', 'inline', 'json-minify',
                                                             'replace:writeVersion', 'replace:prepareHelp', 'clean:postbuild']);
 
     grunt.registerTask('deploy-app-mobile',             []);

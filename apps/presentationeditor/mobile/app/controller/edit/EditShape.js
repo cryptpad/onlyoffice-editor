@@ -160,7 +160,8 @@ define([
                 $('#edit-shape-bordersize .item-after').text(((borderType == Asc.c_oAscStrokeType.STROKE_NONE) ? 0 : borderSizeTransform.sizeByValue(borderSize)) + ' ' + Common.Utils.Metric.getMetricName(Common.Utils.Metric.c_MetricUnits.pt));
 
                 // Init style opacity
-                $('#edit-shape-effect input').val([_shapeObject.get_fill().asc_getTransparent() ? _shapeObject.get_fill().asc_getTransparent() / 2.55 : 100]);
+                var transparent = _shapeObject.get_fill().asc_getTransparent();
+                $('#edit-shape-effect input').val([transparent!==null && transparent!==undefined ? transparent / 2.55 : 100]);
                 $('#edit-shape-effect .item-after').text($('#edit-shape-effect input').val() + ' ' + "%");
 
                 paletteFillColor && paletteFillColor.on('select',       _.bind(me.onFillColor, me));
@@ -234,18 +235,6 @@ define([
             },
 
             onReorder: function (e) {
-                var $target = $(e.currentTarget),
-                    type = $target.data('type');
-
-                if ('all-up' == type) {
-                    this.api.shapes_bringToFront();
-                } else if ('all-down' == type) {
-                    this.api.shapes_bringToBack();
-                } else if ('move-up' == type) {
-                    this.api.shapes_bringForward();
-                } else if ('move-down' == type) {
-                    this.api.shapes_bringBackward();
-                }
             },
 
             onAlign: function (e) {
@@ -272,10 +261,6 @@ define([
             },
 
             onReplace: function (e) {
-                var $target = $(e.currentTarget),
-                    type = $target.data('type');
-
-                this.api.ChangeShapeType(type);
             },
 
             onBorderSize: function (e) {

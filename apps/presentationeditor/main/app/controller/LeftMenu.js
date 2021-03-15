@@ -62,8 +62,7 @@ define([
                     'hide': _.bind(this.onHideChat, this)
                 },
                 'Common.Views.Header': {
-                    'file:settings': _.bind(this.clickToolbarSettings,this),
-                    'click:users': _.bind(this.clickStatusbarUsers, this)
+                    'file:settings': _.bind(this.clickToolbarSettings,this)
                 },
                 'Common.Views.Plugins': {
                     'plugin:open': _.bind(this.onPluginOpen, this),
@@ -193,7 +192,7 @@ define([
                 this.leftMenu.btnChat.hide();
                 this.leftMenu.btnComments.hide();
             }
-            this.mode.trialMode && this.leftMenu.setDeveloperMode(this.mode.trialMode);
+            (this.mode.trialMode || this.mode.isBeta) && this.leftMenu.setDeveloperMode(this.mode.trialMode, this.mode.isBeta, this.mode.buildVersion);
             /** coauthoring end **/
             Common.util.Shortcuts.resumeEvents();
             this.leftMenu.btnThumbs.toggle(true);
@@ -206,7 +205,7 @@ define([
                 this.leftMenu.setOptionsPanel('plugins', this.getApplication().getController('Common.Controllers.Plugins').getView('Common.Views.Plugins'));
             } else
                 this.leftMenu.btnPlugins.hide();
-            this.mode.trialMode && this.leftMenu.setDeveloperMode(this.mode.trialMode);
+            (this.mode.trialMode || this.mode.isBeta) && this.leftMenu.setDeveloperMode(this.mode.trialMode, this.mode.isBeta, this.mode.buildVersion);
         },
 
         clickMenuFileItem: function(menu, action, isopts) {
@@ -311,6 +310,10 @@ define([
             }
             /** coauthoring end **/
 
+            value = Common.localStorage.getBool("pe-settings-cachemode", true);
+            Common.Utils.InternalSettings.set("pe-settings-cachemode", value);
+            this.api.asc_setDefaultBlitMode(value);
+
             value = Common.localStorage.getItem("pe-settings-fontrender");
             Common.Utils.InternalSettings.set("pe-settings-fontrender", value);
             this.api.SetFontRenderingMode(parseInt(value));
@@ -323,6 +326,10 @@ define([
                 value = Common.localStorage.getBool("pe-settings-spellcheck", true);
                 Common.Utils.InternalSettings.set("pe-settings-spellcheck", value);
                 this.api.asc_setSpellCheck(value);
+
+                value = parseInt(Common.localStorage.getItem("pe-settings-paste-button"));
+                Common.Utils.InternalSettings.set("pe-settings-paste-button", value);
+                this.api.asc_setVisiblePasteButton(!!value);
             }
 
             this.api.put_ShowSnapLines(Common.Utils.InternalSettings.get("pe-settings-showsnaplines"));
@@ -332,8 +339,12 @@ define([
 
         onCreateNew: function(menu, type) {
             if ( !Common.Controllers.Desktop.process('create:new') ) {
-                var newDocumentPage = window.open(type == 'blank' ? this.mode.createUrl : type, "_blank");
-                if (newDocumentPage) newDocumentPage.focus();
+                if (this.mode.canRequestCreateNew)
+                    Common.Gateway.requestCreateNew();
+                else {
+                    var newDocumentPage = window.open(type == 'blank' ? this.mode.createUrl : type, "_blank");
+                    if (newDocumentPage) newDocumentPage.focus();
+                }
             }
             if (menu) {
                 menu.hide();
@@ -368,10 +379,6 @@ define([
         },
 
         /** coauthoring begin **/
-        clickStatusbarUsers: function() {
-            this.leftMenu.menuFile.panels['rights'].changeAccessRights();
-        },
-
         onHideChat: function() {
             $(this.leftMenu.btnChat.el).blur();
             Common.NotificationCenter.trigger('layout:changed', 'leftmenu');
@@ -421,6 +428,10 @@ define([
                 this.dlgSearch = (new Common.UI.SearchDialog({
                     matchcase: true
                 }));
+                var me = this;
+                Common.NotificationCenter.on('preview:start', function() {
+                    me.dlgSearch.hide();
+                });
             }
 
             if (show) {

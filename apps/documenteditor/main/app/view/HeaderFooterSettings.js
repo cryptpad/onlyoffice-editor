@@ -84,7 +84,7 @@ define([
         },
 
         render: function () {
-            var el = $(this.el);
+            var el = this.$el || $(this.el);
             el.html(this.template({
                 scope: this
             }));
@@ -158,7 +158,6 @@ define([
         onNumPositionChange: function(field, newValue, oldValue, eOpts){
             if (this.api)
                 this.api.put_HeadersAndFootersDistance(Common.Utils.Metric.fnRecalcToMM(field.getNumberValue()));
-            this.fireEvent('editcomplete', this);
         },
 
         onDiffFirstChange: function(field, newValue, oldValue, eOpts){
@@ -206,7 +205,6 @@ define([
                 this.radioFrom.setValue(true, true);
                 this.api.asc_SetSectionStartPage(field.getNumberValue());
             }
-            this.fireEvent('editcomplete', this);
         },
 
         updateMetricUnit: function() {
@@ -216,10 +214,12 @@ define([
                     spinner.setDefaultUnit(Common.Utils.Metric.getCurrentMetricName());
                     spinner.setStep(Common.Utils.Metric.getCurrentMetric()==Common.Utils.Metric.c_MetricUnits.pt ? 1 : 0.01);
                 }
+                this.numPosition && this.numPosition.setValue(Common.Utils.Metric.fnRecalcFromMM(this._state.Position), true);
             }
         },
 
         createDelayedControls: function() {
+            var me = this;
             var _arrPosition = [
                 [c_pageNumPosition.PAGE_NUM_POSITION_TOP,     c_pageNumPosition.PAGE_NUM_POSITION_LEFT,      'icon-right-panel btn-colontitul-tl', 'headerfooter-button-top-left', this.textTopLeft],
                 [c_pageNumPosition.PAGE_NUM_POSITION_TOP,     c_pageNumPosition.PAGE_NUM_POSITION_CENTER,    'icon-right-panel btn-colontitul-tc', 'headerfooter-button-top-center', this.textTopCenter],
@@ -232,13 +232,13 @@ define([
             this._btnsPosition = [];
             _.each(_arrPosition, function(item, index, list){
                 var _btn = new Common.UI.Button({
-                    cls: 'btn-options huge',
+                    parentEl: $('#'+item[3]),
+                    cls: 'btn-options huge bg-white',
                     iconCls: item[2],
                     posWhere:item[0],
                     posAlign:item[1],
                     hint: item[4]
                 });
-                _btn.render( $('#'+item[3])) ;
                 _btn.on('click', _.bind(this.onBtnPositionClick, this));
                 this._btnsPosition.push( _btn );
                 this.lockedControls.push(_btn);
@@ -276,6 +276,7 @@ define([
             });
 
             this.numPosition.on('change', _.bind(this.onNumPositionChange, this));
+            this.numPosition.on('inputleave', function(){ me.fireEvent('editcomplete', me);});
             this.chDiffFirst.on('change', _.bind(this.onDiffFirstChange, this));
             this.chDiffOdd.on('change', _.bind(this.onDiffOddChange, this));
             this.chSameAs.on('change', _.bind(this.onSameAsChange, this));
@@ -313,6 +314,7 @@ define([
             });
             this.lockedControls.push(this.numFrom);
             this.numFrom.on('change', _.bind(this.onNumFromChange, this));
+            this.numFrom.on('inputleave', function(){ me.fireEvent('editcomplete', me);});
         },
         
         createDelayedElements: function() {

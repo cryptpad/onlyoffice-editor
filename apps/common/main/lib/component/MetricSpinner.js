@@ -128,7 +128,7 @@ define([
             Common.UI.BaseView.prototype.initialize.call(this, options);
 
             var me = this,
-                el = $(this.el);
+                el = me.$el || $(this.el);
 
             el.addClass('spinner');
 
@@ -144,6 +144,14 @@ define([
             el.on('input', '.form-control', _.bind(this.onInput, this));
             if (!this.options.allowDecimal)
                 el.on('keypress',   '.form-control', _.bind(this.onKeyPress, this));
+            el.on('focus', 'input.form-control', function() {
+                setTimeout(function(){me.$input && me.$input.select();}, 1);
+            });
+            Common.Utils.isGecko && el.on('blur', 'input.form-control', function() {
+                setTimeout(function(){
+                    me.$input && (me.$input[0].selectionStart = me.$input[0].selectionEnd = 0);
+                }, 1);
+            });
 
             this.switches = {
                 count: 1,
@@ -165,7 +173,7 @@ define([
             this.setRawValue(this.value);
 
             if (this.options.width) {
-                $(this.el).width(this.options.width);
+                el.width(this.options.width);
             }
 
             if (this.options.defaultValue===undefined)
@@ -176,7 +184,7 @@ define([
         },
 
         render: function () {
-            var el = $(this.el);
+            var el = this.$el || $(this.el);
             el.html(this.template);
 
             this.$input = el.find('.form-control');
@@ -189,7 +197,7 @@ define([
         },
 
         setDisabled: function(disabled) {
-            var el = $(this.el);
+            var el = this.$el || $(this.el);
             if (disabled !== this.disabled) {
                 el.find('button').toggleClass('disabled', disabled);
                 el.toggleClass('disabled', disabled);
@@ -226,10 +234,7 @@ define([
         },
 
         getNumberValue: function(){
-            if (this.options.allowAuto && this.value==this.options.autoText)
-                return -1;
-            else
-                return parseFloat(this.value);
+            return this.checkAutoText(this.value) ? -1 : parseFloat(this.value);
         },
 
         getUnitValue: function(){
@@ -254,10 +259,10 @@ define([
             this.lastValue = this.value;
             if ( typeof value === 'undefined' || value === ''){
                 this.value = '';
-            } else if (this.options.allowAuto && (Math.abs(parseFloat(value)+1.)<0.0001 || value==this.options.autoText)) {
+            } else if (this.options.allowAuto && (Math.abs(Common.Utils.String.parseFloat(value)+1.)<0.0001 || this.checkAutoText(value))) {
                 this.value = this.options.autoText;
             } else {
-                var number = this._add(parseFloat(value), 0, (this.options.allowDecimal) ? 3 : 0);
+                var number = this._add(Common.Utils.String.parseFloat(value), 0, (this.options.allowDecimal) ? 3 : 0);
                 if ( typeof value === 'undefined' || isNaN(number)) {
                     number = this.oldValue;
                     showError = true;
@@ -347,6 +352,7 @@ define([
                     var value = this.getRawValue();
                     if (this.value != value) {
                         this.onEnterValue();
+                        this.trigger('inputleave', this);
                         return (this.value == value);
                     }
                 } else {
@@ -355,6 +361,11 @@ define([
             } else {
                 this._fromKeyDown = true;
             }
+
+            if (e.keyCode == Common.UI.Keys.ESC)
+                this.setRawValue(this.value);
+            if (e.keyCode==Common.UI.Keys.RETURN || e.keyCode==Common.UI.Keys.ESC)
+                this.trigger('inputleave', this);
         },
 
         onKeyUp: function (e) {
@@ -434,12 +445,12 @@ define([
                 var val = me.options.step;
                 if (me._fromKeyDown) {
                     val = this.getRawValue();
-                    val = _.isEmpty(val) ? me.oldValue : parseFloat(val);
+                    val = _.isEmpty(val) ? me.oldValue : Common.Utils.String.parseFloat(val);
                 } else if(me.getValue() !== '') {
-                    if (me.options.allowAuto && me.getValue()==me.options.autoText) {
-                        val = me.options.minValue-me.options.step;
+                    if (me.checkAutoText(me.getValue())) {
+                        val = me.options.defaultValue-me.options.step;
                     } else
-                        val = parseFloat(me.getValue());
+                        val = Common.Utils.String.parseFloat(me.getValue());
                     if (isNaN(val))
                         val = this.oldValue;
                 } else {
@@ -455,12 +466,12 @@ define([
                 var val = me.options.step;
                 if (me._fromKeyDown) {
                     val = this.getRawValue();
-                    val = _.isEmpty(val) ? me.oldValue : parseFloat(val);
+                    val = _.isEmpty(val) ? me.oldValue : Common.Utils.String.parseFloat(val);
                 } else if(me.getValue() !== '') {
-                    if (me.options.allowAuto && me.getValue()==me.options.autoText) {
+                    if (me.checkAutoText(me.getValue())) {
                         val = me.options.minValue;
                     } else
-                        val = parseFloat(me.getValue());
+                        val = Common.Utils.String.parseFloat(me.getValue());
 
                     if (isNaN(val))
                         val = this.oldValue;
@@ -477,6 +488,8 @@ define([
 
         _step: function (type, suspend) {
             (type) ? this._increase(suspend) : this._decrease(suspend);
+            if (this.options.hold && this.switches.fromKeyDown)
+                this.$input && this.$input.select();
         },
 
         _add: function (a, b, precision) {
@@ -521,6 +534,22 @@ define([
                 v_out = parseFloat((v_out * 6.0 / 25.4).toFixed(6));
 
             return v_out;
+        },
+
+        focus: function() {
+            if (this.$input) this.$input.focus();
+        },
+
+        setDefaultValue: function(value) {
+            this.options.defaultValue = value;
+        },
+
+        checkAutoText: function(value) {
+            if (this.options.allowAuto && typeof value == 'string') {
+                var val = value.toLowerCase();
+                return (val==this.options.autoText.toLowerCase() || val=='auto');
+            }
+            return false;
         }
     });
 

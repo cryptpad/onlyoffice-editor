@@ -191,10 +191,10 @@ define([
                                 me.api.asc_setGraphicObjectProps(image);
                             });
                         } else {
-                            uiApp.alert(me.txtNotUrl);
+                            uiApp.alert(me.txtNotUrl, me.notcriticalErrorTitle);
                         }
                     } else {
-                        uiApp.alert(me.textEmptyImgUrl);
+                        uiApp.alert(me.textEmptyImgUrl, me.notcriticalErrorTitle);
                     }
                 }
             },
@@ -226,7 +226,7 @@ define([
 
                 var me = this,
                     selectedObjects = [],
-                    selectType = info.asc_getFlags().asc_getSelectionType();
+                    selectType = info.asc_getSelectionType();
 
                 if (selectType == Asc.c_oAscSelectionType.RangeImage) {
                     selectedObjects = me.api.asc_getGraphicObjectProps();
@@ -262,7 +262,8 @@ define([
             },
 
             textEmptyImgUrl: 'You need to specify image URL.',
-            txtNotUrl: 'This field should be a URL in the format \"http://www.example.com\"'
+            txtNotUrl: 'This field should be a URL in the format \"http://www.example.com\"',
+            notcriticalErrorTitle: 'Warning'
         }
     })(), SSE.Controllers.EditImage || {}))
 });

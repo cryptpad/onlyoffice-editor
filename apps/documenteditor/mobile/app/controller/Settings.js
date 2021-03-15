@@ -84,9 +84,9 @@ define([
             _canReview = false,
             _isReviewOnly = false,
             _fileKey,
-            templateInsert,
             _metricText = Common.Utils.Metric.getCurrentMetricName(),
-            _isEdit;
+            _isEdit,
+            _lang;
 
         var mm2Cm = function(mm) {
             return parseFloat((mm/10.).toFixed(2));
@@ -143,12 +143,17 @@ define([
 
             setMode: function (mode) {
                 this.getView('Settings').setMode(mode);
-                if (mode.canBranding)
-                    _licInfo = mode.customization;
-                _canReview = mode.canReview;
-                _isReviewOnly = mode.isReviewOnly;
-                _fileKey = mode.fileKey;
-                _isEdit = mode.isEdit;
+                if (mode.isDisconnected) {
+                    _canReview = _isReviewOnly = _isEdit = false;
+                } else {
+                    if (mode.canBranding)
+                        _licInfo = mode.customization;
+                    _canReview = mode.canReview;
+                    _isReviewOnly = mode.isReviewOnly;
+                    _fileKey = mode.fileKey;
+                    _isEdit = mode.isEdit;
+                    _lang = mode.lang;
+                }
             },
 
             initEvents: function () {
@@ -229,14 +234,15 @@ define([
                     Common.Utils.addScrollIfNeed('.page[data-page=settings-about-view]', '.page[data-page=settings-about-view] .page-content');
                 } else if ('#settings-advanced-view' == pageId) {
                     me.initPageAdvancedSettings();
-                    $('#settings-spellcheck input:checkbox').attr('checked', Common.localStorage.getBool("de-mobile-spellcheck", false));
+                    $('#settings-spellcheck input:checkbox').attr('checked', Common.Utils.InternalSettings.get("de-mobile-spellcheck"));
                     $('#settings-spellcheck input:checkbox').single('change',   _.bind(me.onSpellcheck, me));
-                    $('#settings-no-characters input:checkbox').attr('checked', (Common.localStorage.getItem("de-mobile-no-characters") == 'true') ? true : false);
+                    $('#settings-no-characters input:checkbox').attr('checked', Common.localStorage.getItem("de-mobile-no-characters") === 'true');
                     $('#settings-no-characters input:checkbox').single('change',   _.bind(me.onNoCharacters, me));
-                    $('#settings-hidden-borders input:checkbox').attr('checked', (Common.localStorage.getItem("de-mobile-hidden-borders") == 'true') ? true : false);
+                    var value = Common.localStorage.getItem("de-mobile-hidden-borders");
+                    $('#settings-hidden-borders input:checkbox').attr('checked', value===null || value==='true');
                     $('#settings-hidden-borders input:checkbox').single('change',   _.bind(me.onShowTableEmptyLine, me));
                     $('#settings-orthography').single('click',                  _.bind(me.onOrthographyCheck, me));
-                    var displayComments = Common.localStorage.getBool("de-settings-livecomment", true);
+                    var displayComments = Common.localStorage.getBool("de-mobile-settings-livecomment", true);
                     $('#settings-display-comments input:checkbox').attr('checked', displayComments);
                     $('#settings-display-comments input:checkbox').single('change',   _.bind(me.onChangeDisplayComments, me));
                     var displayResolved = Common.localStorage.getBool("de-settings-resolvedcomment", true);
@@ -253,6 +259,9 @@ define([
                 } else if ('#margins-view' == pageId) {
                     me.initPageMargin();
                     Common.Utils.addScrollIfNeed('.page[data-page=margin-view]', '.page[data-page=margin-view] .page-content');
+                } else if ('#macros-settings-view' == pageId) {
+                    me.initPageMacrosSettings();
+                    Common.Utils.addScrollIfNeed('.page[data-page=macros-settings-view]', '.page[data-page=macros-settings-view] .page-content');
                 } else {
                     $('#settings-readermode input:checkbox').attr('checked', Common.SharedSettings.get('readerMode'));
                     $('#settings-search').single('click',                       _.bind(me.onSearch, me));
@@ -265,11 +274,22 @@ define([
                     if(_stateDisplayMode == "final" || _stateDisplayMode == "original") {
                         $('#settings-document').addClass('disabled');
                     }
-                    var _userCount = DE.getController('Main').returnUserCount();
-                    if (_userCount > 0) {
-                        $('#settings-collaboration').show();
-                    }
+                    DE.getController('Toolbar').getDisplayCollaboration() && $('#settings-collaboration').show();
                 }
+            },
+
+            initPageMacrosSettings: function() {
+                var me = this,
+                    $pageMacrosSettings = $('.page[data-page="macros-settings-view"] input:radio[name=macros-settings]'),
+                    value = Common.Utils.InternalSettings.get("de-mobile-macros-mode") || 0;
+                $pageMacrosSettings.single('change', _.bind(me.onChangeMacrosSettings, me));
+                $pageMacrosSettings.val([value]);
+            },
+
+            onChangeMacrosSettings: function(e) {
+                var value = parseInt($(e.currentTarget).val());
+                Common.Utils.InternalSettings.set("de-mobile-macros-mode", value);
+                Common.localStorage.setItem("de-mobile-macros-mode", value);
             },
 
             onChangeDisplayComments: function(e) {
@@ -284,11 +304,11 @@ define([
                     this.api.asc_showComments(resolved);
                     $("#settings-display-resolved").removeClass("disabled");
                 }
-                Common.localStorage.setBool("de-settings-livecomment", displayComments);
+                Common.localStorage.setBool("de-mobile-settings-livecomment", displayComments);
             },
 
             onChangeDisplayResolved: function(e) {
-                var displayComments = Common.localStorage.getBool("de-settings-livecomment");
+                var displayComments = Common.localStorage.getBool("de-mobile-settings-livecomment");
                 if (displayComments) {
                     var resolved = $(e.currentTarget).is(':checked');
                     if (this.api) {
@@ -326,8 +346,8 @@ define([
                 me.localSectionProps = me.api.asc_GetSectionProps();
 
                 if (me.localSectionProps) {
-                    me.maxMarginsH = me.localSectionProps.get_H() - 26;
-                    me.maxMarginsW = me.localSectionProps.get_W() - 127;
+                    me.maxMarginsH = me.localSectionProps.get_H() - 2.6;
+                    me.maxMarginsW = me.localSectionProps.get_W() - 12.7;
 
                     var top = parseFloat(Common.Utils.Metric.fnRecalcFromMM(me.localSectionProps.get_TopMargin()).toFixed(2)),
                         bottom = parseFloat(Common.Utils.Metric.fnRecalcFromMM(me.localSectionProps.get_BottomMargin()).toFixed(2)),
@@ -346,27 +366,21 @@ define([
             },
 
             initPageColorSchemes: function() {
-                $('#color-schemes-content').html(templateInsert);
-                $('.color-schemes-menu').on('click', _.bind(this.onColorSchemaClick, this));
+                this.curSchemas = (this.api) ? this.api.asc_GetCurrentColorSchemeIndex() : 0;
+                this.getView('Settings').renderSchemaSettings(this.curSchemas, this.schemas);
+                $('.page[data-page=color-schemes-view] input:radio[name=color-schema]').single('change', _.bind(this.onColorSchemaChange, this));
+                Common.Utils.addScrollIfNeed('.page[data-page=color-schemes-view', '.page[data-page=color-schemes-view] .page-content');
             },
 
             onSendThemeColorSchemes: function (schemas) {
-                templateInsert = "";
-                _.each(schemas, function (schema, index) {
-                    var colors = schema.get_colors();//schema.colors;
-                    templateInsert = templateInsert + "<a class='color-schemes-menu item-link no-indicator'><input type='hidden' value='" + index + "'><div class='item-content'><div class='item-inner'><span class='color-schema-block'>";
-                    for (var j = 2; j < 7; j++) {
-                        var clr = '#' + Common.Utils.ThemeColor.getHexColor(colors[j].get_r(), colors[j].get_g(), colors[j].get_b());
-                        templateInsert =  templateInsert + "<span class='color' style='background: " + clr + ";'></span>"
-                    }
-                    templateInsert =  templateInsert + "</span><span class='text'>" + schema.get_name() + "</span></div></div></a>";
-                }, this);
+                this.schemas = schemas;
             },
 
-            onColorSchemaClick: function(event) {
+            onColorSchemaChange: function(event) {
                 if (this.api) {
-                    var ind = $(event.currentTarget).children('input').val();
-                    this.api.ChangeColorScheme(ind);
+                    var ind = $(event.currentTarget).val();
+                    if (this.curSchemas !== ind)
+                        this.api.asc_ChangeColorSchemeByIdx(parseInt(ind));
                 }
             },
 
@@ -374,8 +388,7 @@ define([
                 var me = this,
                     $unitMeasurement = $('.page[data-page=settings-advanced-view] input:radio[name=unit-of-measurement]');
                 $unitMeasurement.single('change', _.bind(me.unitMeasurementChange, me));
-                var value = Common.localStorage.getItem('de-mobile-settings-unit');
-                    value = (value!==null) ? parseInt(value) : Common.Utils.Metric.getDefaultMetric();
+                var value = Common.Utils.Metric.getCurrentMetric();
                 $unitMeasurement.val([value]);
                 var _stateDisplayMode = DE.getController('Common.Controllers.Collaboration').getDisplayMode();
                 if(_stateDisplayMode == "final" || _stateDisplayMode == "original") {
@@ -390,18 +403,25 @@ define([
             initPageDocumentSettings: function () {
                 var me = this,
                     $pageOrientation = $('.page[data-page=settings-document-view] input:radio[name=doc-orientation]'),
-                    $pageSize = $('#settings-document-format');
+                    $pageSize = $('#settings-document-format'),
+                    curMetricName = Common.Utils.Metric.getMetricName(Common.Utils.Metric.getCurrentMetric()),
+                    sizeW,
+                    sizeH;
 
                 // Init orientation
                 $pageOrientation.val([_isPortrait]);
                 $pageOrientation.single('change', _.bind(me.onOrientationChange, me));
 
                 // Init format
-                $pageSize.find('.item-title').text(_pageSizes[_pageSizesIndex]['caption']);
-                var curMetricName = Common.Utils.Metric.getMetricName(Common.Utils.Metric.getCurrentMetric()),
-                    sizeW = parseFloat(Common.Utils.Metric.fnRecalcFromMM(_pageSizes[_pageSizesIndex]['value'][0]).toFixed(2)),
+                if (_pageSizesIndex === -1) {
+                    $pageSize.find('.item-title').text(me.textCustomSize);
+                    sizeW = parseFloat(Common.Utils.Metric.fnRecalcFromMM(_pageSizesCurrent[0]).toFixed(2));
+                    sizeH = parseFloat(Common.Utils.Metric.fnRecalcFromMM(_pageSizesCurrent[1]).toFixed(2));
+                } else {
+                    $pageSize.find('.item-title').text(_pageSizes[_pageSizesIndex]['caption']);
+                    sizeW = parseFloat(Common.Utils.Metric.fnRecalcFromMM(_pageSizes[_pageSizesIndex]['value'][0]).toFixed(2));
                     sizeH = parseFloat(Common.Utils.Metric.fnRecalcFromMM(_pageSizes[_pageSizesIndex]['value'][1]).toFixed(2));
-
+                }
                 var pageSizeTxt = sizeW + ' ' + curMetricName + ' x ' + sizeH + ' ' + curMetricName;
                 $pageSize.find('.item-subtitle').text(pageSizeTxt);
             },
@@ -424,7 +444,7 @@ define([
 
                     var appProps = (this.api) ? this.api.asc_getAppProps() : null;
                     if (appProps) {
-                        var appName = (appProps.asc_getApplication() || '') + ' ' + (appProps.asc_getAppVersion() || '');
+                        var appName = (appProps.asc_getApplication() || '') + (appProps.asc_getAppVersion() ? ' ' : '') + (appProps.asc_getAppVersion() || '');
                         appName ? $('#settings-doc-application').html(appName) : $('.display-application').remove();
                     }
                     var props = (this.api) ? this.api.asc_getCoreProps() : null;
@@ -436,11 +456,11 @@ define([
                         value = props.asc_getDescription();
                         value ? $('#settings-doc-comment').html(value) : $('.display-comment').remove();
                         value = props.asc_getModified();
-                        value ? $('#settings-doc-last-mod').html(value.toLocaleString()) : $('.display-last-mode').remove();
+                        value ? $('#settings-doc-last-mod').html(value.toLocaleString(_lang, {year: 'numeric', month: '2-digit', day: '2-digit'}) + ' ' + value.toLocaleTimeString(_lang, {timeStyle: 'short'})) : $('.display-last-mode').remove();
                         value = props.asc_getLastModifiedBy();
-                        value ? $('#settings-doc-mod-by').html(value) : $('.display-mode-by').remove();
+                        value ? $('#settings-doc-mod-by').html(Common.Utils.UserInfoParser.getParsedName(value)) : $('.display-mode-by').remove();
                         value = props.asc_getCreated();
-                        value ? $('#settings-doc-date').html(value.toLocaleString()) : $('.display-created-date').remove();
+                        value ? $('#settings-doc-date').html(value.toLocaleString(_lang, {year: 'numeric', month: '2-digit', day: '2-digit'}) + ' ' + value.toLocaleTimeString(_lang, {timeStyle: 'short'})) : $('.display-created-date').remove();
                         value = props.asc_getCreator();
                         var templateCreator = "";
                         value && value.split(/\s*[,;]\s*/).forEach(function(item) {
@@ -543,6 +563,7 @@ define([
                 var $checkbox = $(e.currentTarget),
                     state = $checkbox.is(':checked');
                 Common.localStorage.setItem("de-mobile-spellcheck", state ? 1 : 0);
+                Common.Utils.InternalSettings.set("de-mobile-spellcheck", state);
                 this.api && this.api.asc_setSpellCheck(state);
             },
 
@@ -558,11 +579,11 @@ define([
                     url += '/';
                 }
                 if (Common.SharedSettings.get('sailfish')) {
-                    url+='mobile-applications/documents/sailfish/index.aspx';
+                    url+='mobile-applications/documents/mobile-web-editors/android/index.aspx';
                 } else if (Common.SharedSettings.get('android')) {
-                    url+='mobile-applications/documents/android/index.aspx';
+                    url+='mobile-applications/documents/mobile-web-editors/android/index.aspx';
                 } else {
-                    url+='mobile-applications/documents/index.aspx';
+                    url+='mobile-applications/documents/mobile-web-editors/ios/index.aspx';
                 }
                 window.open(url, "_blank");
                 this.hideModal();
@@ -587,9 +608,9 @@ define([
                             );
                         });
                     } else {
-                        _.defer(function () {
+                        _.delay(function () {
                             me.api.asc_DownloadAs(new Asc.asc_CDownloadOptions(format));
-                        });
+                        }, 300);
                     }
 
                     me.hideModal();
@@ -608,9 +629,9 @@ define([
             onPrint: function(e) {
                 var me = this;
 
-                _.defer(function () {
+                _.delay(function () {
                     me.api.asc_Print();
-                });
+                }, 300);
                 me.hideModal();
             },
 
@@ -639,7 +660,6 @@ define([
                 Common.Utils.Metric.setCurrentMetric(value);
                 Common.localStorage.setItem("de-mobile-settings-unit", value);
                 this.api.asc_SetDocumentUnits((value==Common.Utils.Metric.c_MetricUnits.inch) ? Asc.c_oAscDocumentUnits.Inch : ((value==Common.Utils.Metric.c_MetricUnits.pt) ? Asc.c_oAscDocumentUnits.Point : Asc.c_oAscDocumentUnits.Millimeter));
-
             },
 
             onPageMarginsChange: function (align, e) {
@@ -743,12 +763,16 @@ define([
                 if (Math.abs(_pageSizesCurrent[0] - w) > 0.1 ||
                     Math.abs(_pageSizesCurrent[1] - h) > 0.1) {
                     _pageSizesCurrent = [w, h];
-
+                    var ind = -1;
                     _.find(_pageSizes, function(size, index) {
                         if (Math.abs(size.value[0] - w) < 0.1 && Math.abs(size.value[1] - h) < 0.1) {
                             _pageSizesIndex = index;
+                            ind = index;
                         }
                     }, this);
+                    if (ind === -1) {
+                        _pageSizesIndex = -1;
+                    }
                 }
 
                 this.initPageDocumentSettings();
@@ -762,7 +786,8 @@ define([
             txtLoading              : 'Loading...',
             notcriticalErrorTitle   : 'Warning',
             warnDownloadAs          : 'If you continue saving in this format all features except the text will be lost.<br>Are you sure you want to continue?',
-            warnDownloadAsRTF       : 'If you continue saving in this format some of the formatting might be lost.<br>Are you sure you want to continue?'
+            warnDownloadAsRTF       : 'If you continue saving in this format some of the formatting might be lost.<br>Are you sure you want to continue?',
+            textCustomSize          : 'Custom Size'
         }
     })(), DE.Controllers.Settings || {}))
 });

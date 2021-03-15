@@ -44,7 +44,9 @@ define([
     'text!presentationeditor/mobile/app/template/EditSlide.template',
     'jquery',
     'underscore',
-    'backbone'
+    'backbone',
+    'common/mobile/lib/component/ThemeColorPalette',
+    'common/mobile/lib/component/HsbColorPicker'
 ], function (editTemplate, $, _, Backbone) {
     'use strict';
 
@@ -173,14 +175,50 @@ define([
             },
 
             showStyle: function () {
+                var me = this;
                 this.showPage('#edit-slide-style', true);
 
                 this.paletteFillColor = new Common.UI.ThemeColorPalette({
                     el: $('.page[data-page=edit-slide-style] .page-content'),
                     transparent: true
                 });
+                this.paletteFillColor.on('customcolor', function () {
+                    me.showCustomSlideColor();
+                });
+                var template = _.template(['<div class="list-block">',
+                    '<ul>',
+                    '<li>',
+                    '<a id="edit-slide-add-custom-color" class="item-link">',
+                    '<div class="item-content">',
+                    '<div class="item-inner">',
+                    '<div class="item-title"><%= scope.textAddCustomColor %></div>',
+                    '</div>',
+                    '</div>',
+                    '</a>',
+                    '</li>',
+                    '</ul>',
+                    '</div>'].join(''));
+                $('.page[data-page=edit-slide-style] .page-content').append(template({scope: this}));
+                $('#edit-slide-add-custom-color').single('click', _.bind(this.showCustomSlideColor, this));
 
                 this.fireEvent('page:show', [this, '#edit-slide-style']);
+            },
+
+            showCustomSlideColor: function () {
+                var me = this,
+                    selector = '#edit-slide-custom-color-view';
+                me.showPage(selector, true);
+
+                me.customColorPicker = new Common.UI.HsbColorPicker({
+                    el: $('.page[data-page=edit-slide-custom-color] .page-content'),
+                    color: me.paletteFillColor.currentColor
+                });
+                me.customColorPicker.on('addcustomcolor', function (colorPicker, color) {
+                    me.paletteFillColor.addNewDynamicColor(colorPicker, color);
+                    PE.getController('EditContainer').rootView.router.back();
+                });
+
+                me.fireEvent('page:show', [me, selector]);
             },
 
             showLayout: function () {
@@ -221,10 +259,14 @@ define([
             renderLayouts: function() {
                 var $layoutContainer = $('.container-edit .slide-layout');
                 if ($layoutContainer.length > 0 && _layouts.length>0) {
-                    var columns = parseInt(($layoutContainer.width()-20) / (_layouts[0].itemWidth+2)), // magic
+                    var itemWidth = _layouts[0].itemWidth,
+                        columns = parseInt(($layoutContainer.width()-20) / (itemWidth+2)), // magic
                         row = -1,
                         layouts = [];
-
+                    if (columns<1) {
+                        columns = 1;
+                        itemWidth = $layoutContainer.width()-20;
+                    }
                     _.each(_layouts, function (layout, index) {
                         if (0 == index % columns) {
                             layouts.push([]);
@@ -238,13 +280,14 @@ define([
                         '<ul class="row">',
                         '<% _.each(row, function(item) { %>',
                         '<li data-type="<%= item.idx %>">',
-                        '<img src="<%= item.imageUrl %>" width="<%= item.itemWidth %>" height="<%= item.itemHeight %>">',
+                        '<img src="<%= item.imageUrl %>" width="<%= itemWidth %>" height="<%= item.itemHeight %>">',
                         '</li>',
                         '<% }); %>',
                         '</ul>',
                         '<% }); %>'
                     ].join(''))({
-                        layouts: layouts
+                        layouts: layouts,
+                        itemWidth: itemWidth
                     });
 
                     $layoutContainer.html(template);
@@ -272,7 +315,7 @@ define([
                         '<% _.each(themes, function(row) { %>',
                             '<div class="row">',
                             '<% _.each(row, function(theme) { %>',
-                                '<div data-type="<%= theme.themeId %>"><img src="<%= theme.imageUrl %>"></div>',
+                                '<div class="item-theme" data-type="<%= theme.themeId %>" style="' + '<% if (typeof theme.imageUrl !== "undefined") { %>' + 'background-image: url(<%= theme.imageUrl %>);' + '<% } %> background-position: 0 -<%= theme.offsety %>px;"></div>',
                             '<% }); %>',
                             '</div>',
                         '<% }); %>'
@@ -397,7 +440,9 @@ define([
             textZoomRotate: 'Zoom and Rotate',
             textStartOnClick: 'Start On Click',
             textDelay: 'Delay',
-            textApplyAll: 'Apply to All Slides'
+            textApplyAll: 'Apply to All Slides',
+            textAddCustomColor: 'Add Custom Color',
+            textCustomColor: 'Custom Color'
         }
     })(), PE.Views.EditSlide || {}))
 });

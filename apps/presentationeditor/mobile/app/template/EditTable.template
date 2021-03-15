@@ -73,7 +73,7 @@
                     <div class="item-inner">
                         <div class="item-input">
                             <div class="range-slider">
-                                <input type="range" min="0" max="150" value="0" step="1">
+                                <input type="range" min="0" max="55" value="0" step="1">
                             </div>
                         </div>
                         <div class="item-after value">0 pt</div>
@@ -110,8 +110,7 @@
         </div>
     </div>
     <div class="page" data-page="edit-table-style">
-        <div class="tabs-animated-wrap">
-            <div class="tabs">
+            <div class="page-content tabs" style="padding-top: 0;">
                 <div id="tab-table-style" class="page-content tab active">
                     <div class="list-block">
                         <ul>
@@ -191,7 +190,6 @@
                     </div>
                 </div>
             </div>
-        </div>
     </div>
 </div>
 
@@ -470,6 +468,22 @@
                     </li>
                 </ul>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom color view -->
+<div id="edit-table-custom-color-view">
+    <div class="navbar">
+        <div class="navbar-inner" data-page="edit-table-custom-color">
+            <div class="left sliding"><a href="#" class="back link"><i class="icon icon-back"></i><% if (!android) { %><span><%= scope.textBack %></span><% } %></a></div>
+            <div class="center sliding"><%= scope.textCustomColor %></div>
+            <div class="right"><% if (phone) { %><a href="#" class="link icon-only close-picker"><i class="icon icon-expand-down"></i></a><% } %></div>
+        </div>
+    </div>
+    <div class="page" data-page="edit-table-custom-color">
+        <div class="page-content">
+            <!--Color HSB palette-->
         </div>
     </div>
 </div>

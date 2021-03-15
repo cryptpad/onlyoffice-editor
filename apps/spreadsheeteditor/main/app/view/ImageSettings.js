@@ -101,7 +101,12 @@ define([
             if (this.api) {
                 this.api.asc_registerCallback('asc_ChangeCropState', _.bind(this._changeCropState, this));
             }
+            Common.NotificationCenter.on('storage:image-insert', _.bind(this.insertImageFromStorage, this));
             return this;
+        },
+
+        setMode: function(mode) {
+            this.mode = mode;
         },
 
         updateMetricUnit: function() {
@@ -111,6 +116,8 @@ define([
                     spinner.setDefaultUnit(Common.Utils.Metric.getCurrentMetricName());
                     spinner.setStep(Common.Utils.Metric.getCurrentMetric()==Common.Utils.Metric.c_MetricUnits.pt ? 1 : 0.1);
                 }
+                this.spnWidth && this.spnWidth.setValue((this._state.Width!==null) ? Common.Utils.Metric.fnRecalcFromMM(this._state.Width) : '', true);
+                this.spnHeight && this.spnHeight.setValue((this._state.Height!==null) ? Common.Utils.Metric.fnRecalcFromMM(this._state.Height) : '', true);
             }
         },
 
@@ -141,13 +148,13 @@ define([
             this.lockedControls.push(this.spnHeight);
 
             this.btnRatio = new Common.UI.Button({
+                parentEl: $('#image-button-ratio'),
                 cls: 'btn-toolbar',
-                iconCls: 'advanced-btn-ratio',
+                iconCls: 'toolbar__icon advanced-btn-ratio',
                 style: 'margin-bottom: 1px;',
                 enableToggle: true,
                 hint: this.textKeepRatio
             });
-            this.btnRatio.render($('#image-button-ratio')) ;
             this.lockedControls.push(this.btnRatio);
 
             this.btnRatio.on('click', _.bind(function(btn, e) {
@@ -166,15 +173,24 @@ define([
             });
             this.lockedControls.push(this.btnOriginalSize);
 
-            this.btnInsertFromFile = new Common.UI.Button({
-                el: $('#image-button-from-file')
+            this.btnSelectImage = new Common.UI.Button({
+                parentEl: $('#image-button-replace'),
+                cls: 'btn-text-menu-default',
+                caption: this.textInsert,
+                style: "width:100%;",
+                menu: new Common.UI.Menu({
+                    style: 'min-width: 194px;',
+                    maxHeight: 200,
+                    items: [
+                        {caption: this.textFromFile, value: 0},
+                        {caption: this.textFromUrl, value: 1},
+                        {caption: this.textFromStorage, value: 2}
+                    ]
+                })
             });
-            this.lockedControls.push(this.btnInsertFromFile);
-
-            this.btnInsertFromUrl = new Common.UI.Button({
-                el: $('#image-button-from-url')
-            });
-            this.lockedControls.push(this.btnInsertFromUrl);
+            this.lockedControls.push(this.btnSelectImage);
+            this.btnSelectImage.menu.on('item:click', _.bind(this.onImageSelect, this));
+            this.btnSelectImage.menu.items[2].setVisible(this.mode.canRequestInsertImage || this.mode.fileChoiceUrl && this.mode.fileChoiceUrl.indexOf("{documentType}")>-1);
 
             this.btnEditObject = new Common.UI.Button({
                 el: $('#image-button-edit-object')
@@ -183,32 +199,26 @@ define([
 
             this.spnWidth.on('change', _.bind(this.onWidthChange, this));
             this.spnHeight.on('change', _.bind(this.onHeightChange, this));
+            this.spnWidth.on('inputleave', function(){ Common.NotificationCenter.trigger('edit:complete', me);});
+            this.spnHeight.on('inputleave', function(){ Common.NotificationCenter.trigger('edit:complete', me);});
             this.btnOriginalSize.on('click', _.bind(this.setOriginalSize, this));
-            this.btnInsertFromFile.on('click', _.bind(function(btn){
-                if (this._isFromFile) return;
-                this._isFromFile = true;
-                if (this.api) this.api.asc_changeImageFromFile();
-                Common.NotificationCenter.trigger('edit:complete', this);
-                this._isFromFile = false;
-            }, this));
             this.btnEditObject.on('click', _.bind(function(btn){
                 if (this.api) this.api.asc_startEditCurrentOleObject();
                 Common.NotificationCenter.trigger('edit:complete', this);
             }, this));
-            this.btnInsertFromUrl.on('click', _.bind(this.insertFromUrl, this));
 
-            this.lblReplace = $('#image-lbl-replace');
-
+            var w = this.btnOriginalSize.cmpEl.outerWidth();
             this.btnCrop = new Common.UI.Button({
+                parentEl: $('#image-button-crop'),
                 cls: 'btn-text-split-default',
                 caption: this.textCrop,
                 split: true,
                 enableToggle: true,
                 allowDepress: true,
                 pressed: this._state.cropMode,
-                width: 100,
+                width: w,
                 menu        : new Common.UI.Menu({
-                    style       : 'min-width: 100px;',
+                    style       : 'min-width:' + w + 'px;',
                     items: [
                         {
                             caption: this.textCrop,
@@ -227,48 +237,47 @@ define([
                         }]
                 })
             });
-            this.btnCrop.render( $('#image-button-crop')) ;
             this.btnCrop.on('click', _.bind(this.onCrop, this));
             this.btnCrop.menu.on('item:click', _.bind(this.onCropMenu, this));
             this.lockedControls.push(this.btnCrop);
 
             this.btnRotate270 = new Common.UI.Button({
+                parentEl: $('#image-button-270', me.$el),
                 cls: 'btn-toolbar',
-                iconCls: 'rotate-270',
+                iconCls: 'toolbar__icon btn-rotate-270',
                 value: 0,
                 hint: this.textHint270
             });
-            this.btnRotate270.render( $('#image-button-270', me.$el));
             this.btnRotate270.on('click', _.bind(this.onBtnRotateClick, this));
             this.lockedControls.push(this.btnRotate270);
 
             this.btnRotate90 = new Common.UI.Button({
+                parentEl: $('#image-button-90', me.$el),
                 cls: 'btn-toolbar',
-                iconCls: 'rotate-90',
+                iconCls: 'toolbar__icon btn-rotate-90',
                 value: 1,
                 hint: this.textHint90
             });
-            this.btnRotate90.render( $('#image-button-90', me.$el));
             this.btnRotate90.on('click', _.bind(this.onBtnRotateClick, this));
             this.lockedControls.push(this.btnRotate90);
 
             this.btnFlipV = new Common.UI.Button({
+                parentEl: $('#image-button-flipv', me.$el),
                 cls: 'btn-toolbar',
-                iconCls: 'flip-vert',
+                iconCls: 'toolbar__icon btn-flip-vert',
                 value: 0,
                 hint: this.textHintFlipV
             });
-            this.btnFlipV.render( $('#image-button-flipv', me.$el));
             this.btnFlipV.on('click', _.bind(this.onBtnFlipClick, this));
             this.lockedControls.push(this.btnFlipV);
 
             this.btnFlipH = new Common.UI.Button({
+                parentEl: $('#image-button-fliph', me.$el),
                 cls: 'btn-toolbar',
-                iconCls: 'flip-hor',
+                iconCls: 'toolbar__icon btn-flip-hor',
                 value: 1,
                 hint: this.textHintFlipH
             });
-            this.btnFlipH.render( $('#image-button-fliph', me.$el));
             this.btnFlipH.on('click', _.bind(this.onBtnFlipClick, this));
             this.lockedControls.push(this.btnFlipH);
 
@@ -352,10 +361,8 @@ define([
                 var pluginGuid = props.asc_getPluginGuid();
                 value = (pluginGuid !== null && pluginGuid !== undefined);
                 if (this._state.isOleObject!==value) {
-                    this.btnInsertFromUrl.setVisible(!value);
-                    this.btnInsertFromFile.setVisible(!value);
+                    this.btnSelectImage.setVisible(!value);
                     this.btnEditObject.setVisible(value);
-                    this.lblReplace.text(value ? this.textEditObject : this.textInsert);
                     this.btnRotate270.setDisabled(value);
                     this.btnRotate90.setDisabled(value);
                     this.btnFlipV.setDisabled(value);
@@ -367,8 +374,7 @@ define([
                     var plugin = SSE.getCollection('Common.Collections.Plugins').findWhere({guid: pluginGuid});
                     this.btnEditObject.setDisabled(plugin===null || plugin ===undefined || this._locked);
                 } else {
-                    this.btnInsertFromUrl.setDisabled(pluginGuid===null || this._locked);
-                    this.btnInsertFromFile.setDisabled(pluginGuid===null || this._locked);
+                    this.btnSelectImage.setDisabled(pluginGuid===null || this._locked);
                 }
             }
         },
@@ -391,7 +397,6 @@ define([
                 props.asc_putHeight(Common.Utils.Metric.fnRecalcToMM(h));
                 this.api.asc_setGraphicObjectProps(props);
             }
-            Common.NotificationCenter.trigger('edit:complete', this);
         },
 
         onHeightChange: function(field, newValue, oldValue, eOpts){
@@ -411,7 +416,6 @@ define([
                 props.asc_putHeight(Common.Utils.Metric.fnRecalcToMM(h));
                 this.api.asc_setGraphicObjectProps(props);
             }
-            Common.NotificationCenter.trigger('edit:complete', this);
         },
 
         setOriginalSize:  function() {
@@ -429,23 +433,43 @@ define([
             }
         },
 
-        insertFromUrl: function() {
-            var me = this;
-            (new Common.Views.ImageFromUrlDialog({
-                handler: function(result, value) {
-                    if (result == 'ok') {
-                        if (me.api) {
-                            var checkUrl = value.replace(/ /g, '');
-                            if (!_.isEmpty(checkUrl)) {
-                                var props = new Asc.asc_CImgProperty();
-                                props.asc_putImageUrl(checkUrl);
-                                me.api.asc_setGraphicObjectProps(props);
+        setImageUrl: function(url, token) {
+            var props = new Asc.asc_CImgProperty();
+            props.asc_putImageUrl(url, token);
+            this.api.asc_setGraphicObjectProps(props);
+        },
+        
+        insertImageFromStorage: function(data) {
+            if (data && data.url && data.c=='change') {
+                this.setImageUrl(data.url, data.token);
+            }
+        },
+
+        onImageSelect: function(menu, item) {
+            if (item.value==1) {
+                var me = this;
+                (new Common.Views.ImageFromUrlDialog({
+                    handler: function(result, value) {
+                        if (result == 'ok') {
+                            if (me.api) {
+                                var checkUrl = value.replace(/ /g, '');
+                                if (!_.isEmpty(checkUrl)) {
+                                    me.setImageUrl(checkUrl);
+                                }
                             }
                         }
+                        Common.NotificationCenter.trigger('edit:complete', me);
                     }
-                    Common.NotificationCenter.trigger('edit:complete', me);
-                }
-            })).show();
+                })).show();
+            } else if (item.value==2) {
+                Common.NotificationCenter.trigger('storage:image-load', 'change');
+            } else {
+                if (this._isFromFile) return;
+                this._isFromFile = true;
+                if (this.api) this.api.asc_changeImageFromFile();
+                Common.NotificationCenter.trigger('edit:complete', this);
+                this._isFromFile = false;
+            }
         },
 
         _changeCropState: function(state) {
@@ -514,7 +538,7 @@ define([
         textSize:       'Size',
         textWidth:      'Width',
         textHeight:     'Height',
-        textOriginalSize: 'Default Size',
+        textOriginalSize: 'Actual Size',
         textInsert:     'Replace Image',
         textFromUrl:    'From URL',
         textFromFile:   'From File',
@@ -530,6 +554,7 @@ define([
         textHintFlipH: 'Flip Horizontally',
         textCrop: 'Crop',
         textCropFill: 'Fill',
-        textCropFit: 'Fit'
+        textCropFit: 'Fit',
+        textFromStorage: 'From Storage'
     }, SSE.Views.ImageSettings || {}));
 });

@@ -53,7 +53,6 @@ define([
     Common.Views.Header =  Backbone.View.extend(_.extend(function(){
         var storeUsers, appConfig;
         var $userList, $panelUsers, $btnUsers;
-        var $saveStatus;
         var _readonlyRights = false;
 
         var templateUserItem =
@@ -74,37 +73,38 @@ define([
 
         var templateRightBox = '<section>' +
                             '<section id="box-doc-name">' +
-                                '<input type="text" id="rib-doc-name" spellcheck="false" data-can-copy="false" style="pointer-events: none;">' +
+                                // '<input type="text" id="rib-doc-name" spellcheck="false" data-can-copy="false" style="pointer-events: none;" disabled="disabled">' +
+                                '<label id="rib-doc-name" />' +
                             '</section>' +
-                            '<a id="rib-save-status" class="status-label locked"><%= textSaveEnd %></a>' +
-                            '<div class="hedset">' +
-                                '<div class="btn-slot" id="slot-hbtn-edit"></div>' +
-                                '<div class="btn-slot" id="slot-hbtn-print"></div>' +
-                                '<div class="btn-slot" id="slot-hbtn-download"></div>' +
-                            '</div>' +
-                            '<div class="hedset">' +
-                                // '<span class="btn-slot text" id="slot-btn-users"></span>' +
-                                '<section id="tlb-box-users" class="box-cousers dropdown"">' +
-                                    '<div class="btn-users">' +
-                                        '<svg class="icon"><use xlink:href="#svg-btn-users"></use></svg>' +
-                                        '<label class="caption">&plus;</label>' +
-                                    '</div>' +
-                                    '<div class="cousers-menu dropdown-menu">' +
-                                        '<label id="tlb-users-menu-descr"><%= tipUsers %></label>' +
-                                        '<div class="cousers-list"></div>' +
-                                        '<label id="tlb-change-rights" class="link"><%= txtAccessRights %></label>' +
-                                    '</div>' +
-                                '</section>'+
-                            '</div>' +
-                            '<div class="hedset">' +
-                                '<div class="btn-slot" id="slot-btn-undock"></div>' +
-                                '<div class="btn-slot" id="slot-btn-back"></div>' +
-                                '<div class="btn-slot" id="slot-btn-options"></div>' +
-                            '</div>' +
+                            '<section style="display: inherit;">' +
+                                '<div class="hedset">' +
+                                    '<div class="btn-slot" id="slot-hbtn-edit"></div>' +
+                                    '<div class="btn-slot" id="slot-hbtn-print"></div>' +
+                                    '<div class="btn-slot" id="slot-hbtn-download"></div>' +
+                                '</div>' +
+                                '<div class="hedset">' +
+                                    // '<span class="btn-slot text" id="slot-btn-users"></span>' +
+                                    '<section id="tlb-box-users" class="box-cousers dropdown"">' +
+                                        '<div class="btn-users">' +
+                                            '<i class="icon toolbar__icon icon--inverse btn-users"></i>' +
+                                            '<label class="caption">&plus;</label>' +
+                                        '</div>' +
+                                        '<div class="cousers-menu dropdown-menu">' +
+                                            '<label id="tlb-users-menu-descr"><%= tipUsers %></label>' +
+                                            '<div class="cousers-list"></div>' +
+                                            '<label id="tlb-change-rights" class="link"><%= txtAccessRights %></label>' +
+                                        '</div>' +
+                                    '</section>'+
+                                '</div>' +
+                                '<div class="hedset">' +
+                                    '<div class="btn-slot" id="slot-btn-back"></div>' +
+                                    '<div class="btn-slot" id="slot-btn-options"></div>' +
+                                '</div>' +
+                            '</section>' +
                         '</section>';
 
         var templateLeftBox = '<section class="logo">' +
-                                '<div id="header-logo"><i /></div>' +
+                                '<div id="header-logo"><i></i></div>' +
                             '</section>';
 
         var templateTitleBox = '<section id="box-document-title">' +
@@ -115,8 +115,9 @@ define([
                                     '<div class="btn-slot" id="slot-btn-dt-undo"></div>' +
                                     '<div class="btn-slot" id="slot-btn-dt-redo"></div>' +
                                 '</div>' +
-                                '<div class="lr-separator"></div>' +
-                                '<input type="text" id="title-doc-name" spellcheck="false" data-can-copy="false" style="pointer-events: none;">' +
+                                '<div class="lr-separator" id="id-box-doc-name">' +
+                                    '<label id="title-doc-name" />' +
+                                '</div>' +
                                 '<label id="title-user-name" style="pointer-events: none;"></label>' +
                             '</section>';
 
@@ -127,7 +128,9 @@ define([
                     $userList.html(templateUserList({
                         users: collection.chain().filter(function(item){return item.get('online') && !item.get('view')}).groupBy(function(item) {return item.get('idOriginal');}).value(),
                         usertpl: _.template(templateUserItem),
-                        fnEncode: Common.Utils.String.htmlEncode
+                        fnEncode: function(username) {
+                            return Common.Utils.String.htmlEncode(Common.Utils.UserInfoParser.getParsedName(username));
+                        }
                     }));
 
                     $userList.scroller = new Common.UI.Scroller({
@@ -166,7 +169,7 @@ define([
                     .removeClass('dropdown-toggle')
                     .menu = false;
 
-                $panelUsers[(!_readonlyRights && appConfig && !appConfig.isReviewOnly && appConfig.sharingSettingsUrl && appConfig.sharingSettingsUrl.length) ? 'show' : 'hide']();
+                $panelUsers[(!_readonlyRights && appConfig && (appConfig.sharingSettingsUrl && appConfig.sharingSettingsUrl.length || appConfig.canRequestSharingSettings)) ? 'show' : 'hide']();
             }
 
             $btnUsers.find('.caption')
@@ -183,14 +186,14 @@ define([
 
         function onLostEditRights() {
             _readonlyRights = true;
-            $panelUsers.find('#tlb-change-rights').hide();
+            $panelUsers && $panelUsers.find('#tlb-change-rights').hide();
             $btnUsers && !$btnUsers.menu && $panelUsers.hide();
         }
 
         function onUsersClick(e) {
             if ( !$btnUsers.menu ) {
                 $panelUsers.removeClass('open');
-                this.fireEvent('click:users', this);
+                Common.NotificationCenter.trigger('collaboration:sharing');
             } else {
                 var usertip = $btnUsers.data('bs.tooltip');
                 if ( usertip ) {
@@ -202,7 +205,24 @@ define([
             }
         }
 
-        function onAppShowed(config) {}
+        function onAppShowed(config) {
+            if ( this.labelDocName ) {
+                if ( config.isCrypted ) {
+                    this.labelDocName.before(
+                        '<div class="inner-box-icon crypted">' +
+                            '<svg class="icon"><use xlink:href="#svg-icon-crypted"></use></svg>' +
+                        '</div>');
+                }
+
+                var $parent = this.labelDocName.parent();
+                var _left_width = $parent.position().left,
+                    _right_width = $parent.next().outerWidth();
+
+                if ( _left_width < _right_width )
+                    this.labelDocName.parent().css('padding-left', _right_width - _left_width);
+                else this.labelDocName.parent().css('padding-right', _left_width - _right_width);
+            }
+        }
 
         function onAppReady(mode) {
             appConfig = mode;
@@ -222,44 +242,35 @@ define([
                     }
                 });
 
-            onResetUsers(storeUsers);
+            if ( $panelUsers ) {
+                onResetUsers(storeUsers);
 
-            $panelUsers.on('shown.bs.dropdown', function () {
-                $userList.scroller && $userList.scroller.update({minScrollbarLength: 40, alwaysVisibleY: true});
-            });
+                $panelUsers.on('shown.bs.dropdown', function () {
+                    $userList.scroller && $userList.scroller.update({minScrollbarLength: 40, alwaysVisibleY: true});
+                });
 
-            $panelUsers.find('.cousers-menu')
-                .on('click', function(e) { return false; });
+                $panelUsers.find('.cousers-menu')
+                    .on('click', function(e) { return false; });
 
-            var editingUsers = storeUsers.getEditingCount();
-            $btnUsers.tooltip({
-                title: (editingUsers > 1 || editingUsers>0 && !appConfig.isEdit && !appConfig.isRestrictedEdit) ? me.tipViewUsers : me.tipAccessRights,
-                titleNorm: me.tipAccessRights,
-                titleExt: me.tipViewUsers,
-                placement: 'bottom',
-                html: true
-            });
+                var editingUsers = storeUsers.getEditingCount();
+                $btnUsers.tooltip({
+                    title: (editingUsers > 1 || editingUsers>0 && !appConfig.isEdit && !appConfig.isRestrictedEdit) ? me.tipViewUsers : me.tipAccessRights,
+                    titleNorm: me.tipAccessRights,
+                    titleExt: me.tipViewUsers,
+                    placement: 'bottom',
+                    html: true
+                });
 
-            $btnUsers.on('click', onUsersClick.bind(me));
+                $btnUsers.on('click', onUsersClick.bind(me));
 
-            var $labelChangeRights = $panelUsers.find('#tlb-change-rights');
-            $labelChangeRights.on('click', function(e) {
-                $panelUsers.removeClass('open');
-                me.fireEvent('click:users', me);
-            });
+                var $labelChangeRights = $panelUsers.find('#tlb-change-rights');
+                $labelChangeRights.on('click', function(e) {
+                    $panelUsers.removeClass('open');
+                    Common.NotificationCenter.trigger('collaboration:sharing');
+                });
 
-            $labelChangeRights[(!mode.isOffline && !mode.isReviewOnly && mode.sharingSettingsUrl && mode.sharingSettingsUrl.length)?'show':'hide']();
-            $panelUsers[(editingUsers > 1  || editingUsers > 0 && !appConfig.isEdit && !appConfig.isRestrictedEdit || !mode.isOffline && !mode.isReviewOnly && mode.sharingSettingsUrl && mode.sharingSettingsUrl.length) ? 'show' : 'hide']();
-
-            if ( $saveStatus ) {
-                $saveStatus.attr('data-width', me.textSaveExpander);
-                if (appConfig.canUseHistory) {
-                    // $saveStatus.on('click', function(e) {
-                    //     me.fireEvent('history:show', ['header']);
-                    // });
-                } else {
-                    $saveStatus.addClass('locked');
-                }
+                $labelChangeRights[(!mode.isOffline && (mode.sharingSettingsUrl && mode.sharingSettingsUrl.length || mode.canRequestSharingSettings))?'show':'hide']();
+                $panelUsers[(editingUsers > 1  || editingUsers > 0 && !appConfig.isEdit && !appConfig.isRestrictedEdit || !mode.isOffline && (mode.sharingSettingsUrl && mode.sharingSettingsUrl.length || mode.canRequestSharingSettings)) ? 'show' : 'hide']();
             }
 
             if ( me.btnPrint ) {
@@ -310,24 +321,6 @@ define([
                 me.btnOptions.updateHint(me.tipViewSettings);
         }
 
-        function onAppConfig(config) {
-            var me = this;
-            if ( config.canUndock ) {
-                me.btnUndock = new Common.UI.Button({
-                    cls: 'btn-header no-caret',
-                    iconCls: 'svgicon svg-btn-undock',
-                    hint: me.tipUndock,
-                    split: true
-                });
-
-                me.btnUndock.on('click', function (e) {
-                    Common.NotificationCenter.trigger('action:undocking', 'undock');
-                });
-
-                me.btnUndock.render($('#toolbar .box-tabs #slot-btn-undock'));
-            }
-        }
-
         function onDocNameKeyDown(e) {
             var me = this;
 
@@ -362,13 +355,6 @@ define([
             }
         }
 
-        function onAppUndocked(c) {
-            var me = this;
-            if ( me.btnUndock ) {
-                c.status == 'undocked' ? me.btnUndock.hide() : me.btnUndock.show();
-            }
-        }
-
         return {
             options: {
                 branding: {},
@@ -397,7 +383,7 @@ define([
                 me.btnGoBack = new Common.UI.Button({
                     id: 'btn-goback',
                     cls: 'btn-header',
-                    iconCls: 'svgicon svg-btn-goback',
+                    iconCls: 'toolbar__icon icon--inverse btn-goback',
                     split: true
                 });
 
@@ -410,7 +396,7 @@ define([
 
                 me.btnOptions = new Common.UI.Button({
                     cls: 'btn-header no-caret',
-                    iconCls: 'svgicon svg-btn-options',
+                    iconCls: 'toolbar__icon icon--inverse btn-ic-options',
                     menu: true
                 });
 
@@ -418,9 +404,7 @@ define([
 
                 Common.NotificationCenter.on({
                     'app:ready': function(mode) {Common.Utils.asyncCall(onAppReady, me, mode);},
-                    'app:face': function(mode) {Common.Utils.asyncCall(onAppShowed, me, mode);},
-                    'app:config' : function (c) {Common.Utils.asyncCall(onAppConfig, me, c);},
-                    'undock:status': onAppUndocked.bind(this)
+                    'app:face': function(mode) {Common.Utils.asyncCall(onAppShowed, me, mode);}
                 });
                 Common.NotificationCenter.on('collaboration:sharingdeny', onLostEditRights);
             },
@@ -437,7 +421,7 @@ define([
                 function createTitleButton(iconid, slot, disabled) {
                     return (new Common.UI.Button({
                         cls: 'btn-header',
-                        iconCls: 'svgicon ' + iconid,
+                        iconCls: iconid,
                         disabled: disabled === true
                     })).render(slot);
                 }
@@ -457,29 +441,21 @@ define([
                 if ( role == 'right' ) {
                     var $html = $(_.template(templateRightBox)({
                         tipUsers: this.labelCoUsersDescr,
-                        txtAccessRights: this.txtAccessRights,
-                        textSaveEnd: this.textSaveEnd
+                        txtAccessRights: this.txtAccessRights
                     }));
 
                     if ( !me.labelDocName ) {
                         me.labelDocName = $html.find('#rib-doc-name');
-                        // this.labelDocName.attr('maxlength', 50);
-                        me.labelDocName.text = function (text) {
-                            this.val(text).attr('size', text.length);
-                        }
-
                         if ( me.documentCaption ) {
                             me.labelDocName.text(me.documentCaption);
                         }
+                    } else {
+                        $html.find('#rib-doc-name').hide();
                     }
 
                     if ( !_.isUndefined(this.options.canRename) ) {
                         this.setCanRename(this.options.canRename);
                     }
-
-                    // $saveStatus = $html.find('#rib-save-status');
-                    $html.find('#rib-save-status').hide();
-                    // if ( config.isOffline ) $saveStatus = false;
 
                     if ( this.options.canBack === true ) {
                         me.btnGoBack.render($html.find('#slot-btn-back'));
@@ -489,13 +465,13 @@ define([
 
                     if ( !config.isEdit ) {
                         if ( (config.canDownload || config.canDownloadOrigin) && !config.isOffline  )
-                            this.btnDownload = createTitleButton('svg-btn-download', $html.find('#slot-hbtn-download'));
+                            this.btnDownload = createTitleButton('toolbar__icon icon--inverse btn-download', $html.findById('#slot-hbtn-download'));
 
                         if ( config.canPrint )
-                            this.btnPrint = createTitleButton('svg-btn-print', $html.find('#slot-hbtn-print'));
+                            this.btnPrint = createTitleButton('toolbar__icon icon--inverse btn-print', $html.findById('#slot-hbtn-print'));
 
                         if ( config.canEdit && config.canRequestEditRights )
-                            this.btnEdit = createTitleButton('svg-btn-edit', $html.find('#slot-hbtn-edit'));
+                            this.btnEdit = createTitleButton('toolbar__icon icon--inverse btn-edit', $html.findById('#slot-hbtn-edit'));
                     }
                     me.btnOptions.render($html.find('#slot-btn-options'));
 
@@ -511,23 +487,22 @@ define([
                     var $html = $(_.template(templateTitleBox)());
 
                     !!me.labelDocName && me.labelDocName.hide().off();                  // hide document title if it was created in right box
-                    me.labelDocName = $html.find('> #title-doc-name');
-                    me.labelDocName.text = function (str) {this.val(str);};             // redefine text function to lock temporaly rename docuemnt option
+                    me.labelDocName = $html.find('#title-doc-name');
                     me.labelDocName.text( me.documentCaption );
 
                     me.labelUserName = $('> #title-user-name', $html);
                     me.setUserName(me.options.userName);
 
                     if ( config.canPrint && config.isEdit ) {
-                        me.btnPrint = createTitleButton('svg-btn-print', $('#slot-btn-dt-print', $html), true);
+                        me.btnPrint = createTitleButton('toolbar__icon icon--inverse btn-print', $html.findById('#slot-btn-dt-print'), true);
                     }
 
-                    me.btnSave = createTitleButton('svg-btn-save', $('#slot-btn-dt-save', $html), true);
-                    me.btnUndo = createTitleButton('svg-btn-undo', $('#slot-btn-dt-undo', $html), true);
-                    me.btnRedo = createTitleButton('svg-btn-redo', $('#slot-btn-dt-redo', $html), true);
+                    me.btnSave = createTitleButton('toolbar__icon icon--inverse btn-save', $html.findById('#slot-btn-dt-save'), true);
+                    me.btnUndo = createTitleButton('toolbar__icon icon--inverse btn-undo', $html.findById('#slot-btn-dt-undo'), true);
+                    me.btnRedo = createTitleButton('toolbar__icon icon--inverse btn-redo', $html.findById('#slot-btn-dt-redo'), true);
 
                     if ( me.btnSave.$icon.is('svg') ) {
-                        me.btnSave.$icon.addClass('icon-save');
+                        me.btnSave.$icon.addClass('icon-save btn-save');
                         var _create_use = function (extid, intid) {
                             var _use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
                             _use.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', extid);
@@ -640,21 +615,6 @@ define([
                 }
             },
 
-            setSaveStatus: function (status) {
-                if ( $saveStatus ) {
-                    if ( $saveStatus.is(':hidden') ) $saveStatus.show();
-
-                    var _text;
-                    switch ( status ) {
-                    case 'begin': _text = this.textSaveBegin; break;
-                    case 'changed': _text = this.textSaveChanged; break;
-                    default: _text = this.textSaveEnd;
-                    }
-
-                    $saveStatus.text( _text );
-                }
-            },
-
             setUserName: function(name) {
                 if ( !!this.labelUserName ) {
                     if ( !!name ) {
@@ -670,6 +630,8 @@ define([
             getButton: function(type) {
                 if (type == 'save')
                     return this.btnSave;
+                else if (type == 'users')
+                    return $panelUsers;
             },
 
             lockHeaderBtns: function (alias, lock) {
@@ -704,18 +666,16 @@ define([
 
             fakeMenuItem: function() {
                 return {
-                    conf: {checked: false},
+                    conf: {checked: false, disabled: false},
                     setChecked: function (val) { this.conf.checked = val; },
-                    isChecked: function () { return this.conf.checked; }
+                    isChecked: function () { return this.conf.checked; },
+                    setDisabled: function (val) { this.conf.disabled = val; },
+                    isDisabled: function () { return this.conf.disabled; }
                 };
             },
 
             textBack: 'Go to Documents',
             txtRename: 'Rename',
-            textSaveBegin: 'Saving...',
-            textSaveEnd: 'All changes saved',
-            textSaveChanged: 'Modified',
-            textSaveExpander: 'All changes saved',
             txtAccessRights: 'Change access rights',
             tipAccessRights: 'Manage document access rights',
             labelCoUsersDescr: 'Document is currently being edited by several users.',
@@ -726,7 +686,6 @@ define([
             tipSave: 'Save',
             tipUndo: 'Undo',
             tipRedo: 'Redo',
-            tipUndock: 'Undock',
             textCompactView: 'Hide Toolbar',
             textHideStatusBar: 'Hide Status Bar',
             textHideLines: 'Hide Rulers',

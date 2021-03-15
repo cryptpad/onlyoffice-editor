@@ -45,9 +45,10 @@ define([
     DE.Views.StyleTitleDialog = Common.UI.Window.extend(_.extend({
         options: {
             width: 350,
-            height: 200,
+            height: 196,
             style: 'min-width: 230px;',
-            cls: 'modal-dlg'
+            cls: 'modal-dlg',
+            buttons: ['ok', 'cancel']
         },
 
             initialize : function(options) {
@@ -62,11 +63,6 @@ define([
 
                         '<label class="input-row" style="margin-bottom: -5px; margin-top: 5px;">' + this.textNextStyle + '</label>',
                         '<div id="id-dlg-style-next-par" class="input-group-nr" style="margin-bottom: 5px;" ></div>',
-                    '</div>',
-
-                    '<div class="footer right">',
-                        '<button class="btn normal dlg-btn primary" result="ok" style="margin-right: 10px;">' + this.okButtonText + '</button>',
-                        '<button class="btn normal dlg-btn" result="cancel">' + this.cancelButtonText + '</button>',
                     '</div>'
                 ].join('');
 
@@ -107,6 +103,7 @@ define([
                 style       : 'width: 100%;',
                 menuStyle   : 'width: 100%; max-height: 210px;',
                 editable    : false,
+                takeFocusOnClose: true,
                 cls         : 'input-group-nr',
                 data        : this.options.formats,
                 disabled    : (this.options.formats.length==0)
@@ -114,13 +111,12 @@ define([
             this.cmbNextStyle.setValue(-1);
         },
 
-        show: function() {
-            Common.UI.Window.prototype.show.apply(this, arguments);
+        getFocusedComponents: function() {
+            return [this.inputTitle, this.cmbNextStyle];
+        },
 
-            var me = this;
-            _.delay(function(){
-                me.inputTitle.cmpEl.find('input').focus();
-            },500);
+        getDefaultFocusableComponent: function () {
+            return this.inputTitle;
         },
 
         getTitle: function () {
@@ -147,7 +143,7 @@ define([
                 if (state == 'ok') {
                     var checkurl = this.inputTitle.checkValidate();
                     if (checkurl !== true)  {
-                        this.inputTitle.cmpEl.find('input').focus();
+                        this.inputTitle.focus();
                         return;
                     }
                 }

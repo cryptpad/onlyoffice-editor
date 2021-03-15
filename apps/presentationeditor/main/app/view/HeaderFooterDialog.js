@@ -48,7 +48,8 @@ define(['text!presentationeditor/main/app/template/HeaderFooterDialog.template',
     PE.Views.HeaderFooterDialog = Common.Views.AdvancedSettingsWindow.extend(_.extend({
         options: {
             contentWidth: 360,
-            height: 380
+            height: 380,
+            buttons: null
         },
 
         initialize : function(options) {
@@ -64,7 +65,7 @@ define(['text!presentationeditor/main/app/template/HeaderFooterDialog.template',
                                 template,
                                 '</div></div>',
                             '</div>',
-                            '<div class="separator"/>',
+                            '<div class="separator"></div>',
                             '<div class="menu-panel" style="width: 130px; padding-top: 17px;">',
                                 '<label  style="display:block; margin-left: 15px;" class="input-label">' + me.textPreview + '</label>',
                                 '<div style="width: 100px; height: 80px; padding: 5px; margin-left: 15px; border: 1px solid #AFAFAF; border-radius: 2px; background: #ffffff;">',
@@ -72,10 +73,10 @@ define(['text!presentationeditor/main/app/template/HeaderFooterDialog.template',
                                 '</div>',
                             '</div>',
                         '</div>',
-                        '<div class="separator horizontal"/>',
+                        '<div class="separator horizontal"></div>',
                         '<div class="footer center">',
-                            '<button class="btn normal dlg-btn primary" result="all" style="margin-right: 10px;width: auto; min-width: 86px;">' + me.applyAllText + '</button>',
-                            '<button class="btn normal dlg-btn" result="ok" style="margin-right: 10px;width: auto; min-width: 86px;">' + me.applyText + '</button>',
+                            '<button class="btn normal dlg-btn primary" result="all" style="width: auto; min-width: 86px;">' + me.applyAllText + '</button>',
+                            '<button class="btn normal dlg-btn" result="ok" style="width: auto; min-width: 86px;">' + me.applyText + '</button>',
                             '<button class="btn normal dlg-btn" result="cancel">' + me.cancelButtonText + '</button>',
                         '</div>'
                     ].join('')
@@ -135,7 +136,10 @@ define(['text!presentationeditor/main/app/template/HeaderFooterDialog.template',
                 menuStyle   : 'min-width: 100%; max-height: 185px;',
                 cls         : 'input-group-nr',
                 editable    : false,
-                data        : data
+                data        : data,
+                search: true,
+                scrollAlwaysVisible: true,
+                takeFocusOnClose: true
             });
             this.cmbLang.setValue(0x0409);
             this.cmbLang.on('selected', _.bind(function(combo, record) {
@@ -148,7 +152,8 @@ define(['text!presentationeditor/main/app/template/HeaderFooterDialog.template',
                 menuStyle   : 'min-width: 100%; max-height: 185px;',
                 cls         : 'input-group-nr',
                 editable    : false,
-                data        : []
+                data        : [],
+                takeFocusOnClose: true
             });
             this.dateControls.push(this.cmbFormat);
 
@@ -182,6 +187,26 @@ define(['text!presentationeditor/main/app/template/HeaderFooterDialog.template',
             this.afterRender();
         },
 
+        getFocusedComponents: function() {
+            return [ this.cmbFormat, this.cmbLang, this.inputFixed, this.inputFooter ];
+        },
+
+        getDefaultFocusableComponent: function () {
+            if (!this.cmbFormat.isDisabled())
+                return this.cmbFormat;
+            else if (!this.inputFixed.isDisabled())
+                return this.inputFixed;
+            else if (!this.inputFooter.isDisabled())
+                return this.inputFooter;
+        },
+
+        focusControls: function() {
+            var el = this.getDefaultFocusableComponent();
+            el && setTimeout(function(){
+                el.focus();
+            }, 10);
+        },
+
         afterRender: function() {
             var me = this,
                 value =  Common.Utils.InternalSettings.get("pe-settings-datetime-default"),
@@ -204,6 +229,7 @@ define(['text!presentationeditor/main/app/template/HeaderFooterDialog.template',
                 });
                 newValue && this.setDateTimeType(this.radioFixed.getValue() ? 'fixed' : 'update', null, true);
                 this.props.put_ShowDateTime(newValue);
+                this.focusControls();
             } else if (type == 'slide') {
                 this.props.put_ShowSlideNum(newValue);
             } else if (type == 'footer') {
@@ -240,10 +266,7 @@ define(['text!presentationeditor/main/app/template/HeaderFooterDialog.template',
                 this.cmbLang.setDisabled(type == 'fixed');
                 this.cmbFormat.setDisabled(type == 'fixed');
                 this.inputFixed.setDisabled(type == 'update');
-                (type == 'fixed') && setTimeout(function(){
-                    me.inputFixed.cmpEl.find('input').focus();
-                },50);
-
+                this.focusControls();
             }
         },
 
@@ -345,8 +368,7 @@ define(['text!presentationeditor/main/app/template/HeaderFooterDialog.template',
             this.close();
         },
 
-        textTitle: 'Header/Footer Settings',
-        cancelButtonText: 'Cancel',
+        textTitle: 'Footer Settings',
         applyAllText: 'Apply to all',
         applyText: 'Apply',
         textLang: 'Language',

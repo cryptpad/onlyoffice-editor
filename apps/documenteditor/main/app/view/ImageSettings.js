@@ -74,7 +74,8 @@ define([
                 FromGroup: false,
                 DisabledControls: false,
                 isOleObject: false,
-                cropMode: false
+                cropMode: false,
+                isPictureControl: false
             };
             this.lockedControls = [];
             this._locked = false;
@@ -82,16 +83,16 @@ define([
             this._originalProps = null;
 
             this.render();
-
-            this.labelWidth = $(this.el).find('#image-label-width');
-            this.labelHeight = $(this.el).find('#image-label-height');
         },
 
         render: function () {
-            var el = $(this.el);
+            var el = this.$el || $(this.el);
             el.html(this.template({
                 scope: this
             }));
+
+            this.labelWidth = el.find('#image-label-width');
+            this.labelHeight = el.find('#image-label-height');
         },
 
         setApi: function(api) {
@@ -100,15 +101,21 @@ define([
                 this.api.asc_registerCallback('asc_onImgWrapStyleChanged', _.bind(this._ImgWrapStyleChanged, this));
                 this.api.asc_registerCallback('asc_ChangeCropState', _.bind(this._changeCropState, this));
             }
+            Common.NotificationCenter.on('storage:image-insert', _.bind(this.insertImageFromStorage, this));
+
             return this;
+        },
+
+        setMode: function(mode) {
+            this.mode = mode;
         },
 
         updateMetricUnit: function() {
             var value = Common.Utils.Metric.fnRecalcFromMM(this._state.Width);
-            this.labelWidth[0].innerHTML = this.textWidth + ': ' + value.toFixed(1) + ' ' + Common.Utils.Metric.getCurrentMetricName();
+            this.labelWidth[0].innerHTML = this.textWidth + ': ' + value.toFixed(2) + ' ' + Common.Utils.Metric.getCurrentMetricName();
 
             value = Common.Utils.Metric.fnRecalcFromMM(this._state.Height);
-            this.labelHeight[0].innerHTML = this.textHeight + ': ' + value.toFixed(1) + ' ' + Common.Utils.Metric.getCurrentMetricName();
+            this.labelHeight[0].innerHTML = this.textHeight + ': ' + value.toFixed(2) + ' ' + Common.Utils.Metric.getCurrentMetricName();
         },
 
         createDelayedControls: function() {
@@ -159,15 +166,9 @@ define([
             });
             this.lockedControls.push(this.btnFitMargins);
 
-            this.btnInsertFromFile = new Common.UI.Button({
-                el: $('#image-button-from-file')
-            });
-            this.lockedControls.push(this.btnInsertFromFile);
-
-            this.btnInsertFromUrl = new Common.UI.Button({
-                el: $('#image-button-from-url')
-            });
-            this.lockedControls.push(this.btnInsertFromUrl);
+            var w = Math.max(this.btnOriginalSize.cmpEl.width(), this.btnFitMargins.cmpEl.width());
+            this.btnOriginalSize.cmpEl.width(w);
+            this.btnFitMargins.cmpEl.width(w);
 
             this.btnEditObject = new Common.UI.Button({
                 el: $('#image-button-edit-object')
@@ -175,14 +176,7 @@ define([
             this.lockedControls.push(this.btnEditObject);
 
             this.btnOriginalSize.on('click', _.bind(this.setOriginalSize, this));
-            this.btnInsertFromFile.on('click', _.bind(function(btn){
-                if (this._isFromFile) return;
-                this._isFromFile = true;
-                if (this.api) this.api.ChangeImageFromFile();
-                this.fireEvent('editcomplete', this);
-                this._isFromFile = false;
-            }, this));
-            this.btnInsertFromUrl.on('click', _.bind(this.insertFromUrl, this));
+
             this.btnEditObject.on('click', _.bind(function(btn){
                 if (this.api) this.api.asc_startEditCurrentOleObject();
                 this.fireEvent('editcomplete', this);
@@ -190,55 +184,57 @@ define([
             this.btnFitMargins.on('click', _.bind(this.setFitMargins, this));
 
             this.btnRotate270 = new Common.UI.Button({
+                parentEl: $('#image-button-270', me.$el),
                 cls: 'btn-toolbar',
-                iconCls: 'rotate-270',
+                iconCls: 'toolbar__icon btn-rotate-270',
                 value: 0,
                 hint: this.textHint270
             });
-            this.btnRotate270.render( $('#image-button-270', me.$el));
             this.btnRotate270.on('click', _.bind(this.onBtnRotateClick, this));
             this.lockedControls.push(this.btnRotate270);
 
             this.btnRotate90 = new Common.UI.Button({
+                parentEl: $('#image-button-90', me.$el),
                 cls: 'btn-toolbar',
-                iconCls: 'rotate-90',
+                iconCls: 'toolbar__icon btn-rotate-90',
                 value: 1,
                 hint: this.textHint90
             });
-            this.btnRotate90.render( $('#image-button-90', me.$el));
             this.btnRotate90.on('click', _.bind(this.onBtnRotateClick, this));
             this.lockedControls.push(this.btnRotate90);
 
             this.btnFlipV = new Common.UI.Button({
+                parentEl: $('#image-button-flipv', me.$el),
                 cls: 'btn-toolbar',
-                iconCls: 'flip-vert',
+                iconCls: 'toolbar__icon btn-flip-vert',
                 value: 0,
                 hint: this.textHintFlipV
             });
-            this.btnFlipV.render( $('#image-button-flipv', me.$el));
             this.btnFlipV.on('click', _.bind(this.onBtnFlipClick, this));
             this.lockedControls.push(this.btnFlipV);
 
             this.btnFlipH = new Common.UI.Button({
+                parentEl: $('#image-button-fliph', me.$el),
                 cls: 'btn-toolbar',
-                iconCls: 'flip-hor',
+                iconCls: 'toolbar__icon btn-flip-hor',
                 value: 1,
                 hint: this.textHintFlipH
             });
-            this.btnFlipH.render( $('#image-button-fliph', me.$el));
             this.btnFlipH.on('click', _.bind(this.onBtnFlipClick, this));
             this.lockedControls.push(this.btnFlipH);
 
+            var w = this.btnOriginalSize.cmpEl.outerWidth();
             this.btnCrop = new Common.UI.Button({
+                parentEl: $('#image-button-crop'),
                 cls: 'btn-text-split-default',
                 caption: this.textCrop,
                 split: true,
                 enableToggle: true,
                 allowDepress: true,
                 pressed: this._state.cropMode,
-                width: 100,
+                width: w,
                 menu        : new Common.UI.Menu({
-                    style       : 'min-width: 100px;',
+                    style       : 'min-width:' + w + 'px;',
                     items: [
                         {
                             caption: this.textCrop,
@@ -257,13 +253,30 @@ define([
                         }]
                 })
             });
-            this.btnCrop.render( $('#image-button-crop')) ;
             this.btnCrop.on('click', _.bind(this.onCrop, this));
             this.btnCrop.menu.on('item:click', _.bind(this.onCropMenu, this));
             this.lockedControls.push(this.btnCrop);
 
+            this.btnSelectImage = new Common.UI.Button({
+                parentEl: $('#image-button-replace'),
+                cls: 'btn-text-menu-default',
+                caption: this.textInsert,
+                style: "width:100%;",
+                menu: new Common.UI.Menu({
+                    style: 'min-width: 194px;',
+                    maxHeight: 200,
+                    items: [
+                        {caption: this.textFromFile, value: 0},
+                        {caption: this.textFromUrl, value: 1},
+                        {caption: this.textFromStorage, value: 2}
+                    ]
+                })
+            });
+            this.lockedControls.push(this.btnSelectImage);
+            this.btnSelectImage.menu.on('item:click', _.bind(this.onImageSelect, this));
+            this.btnSelectImage.menu.items[2].setVisible(this.mode.canRequestInsertImage || this.mode.fileChoiceUrl && this.mode.fileChoiceUrl.indexOf("{documentType}")>-1);
+
             this.linkAdvanced = $('#image-advanced-link');
-            this.lblReplace = $('#image-lbl-replace');
             $(this.el).on('click', '#image-advanced-link', _.bind(this.openAdvancedSettings, this));
         },
 
@@ -303,21 +316,24 @@ define([
 
                 value = props.get_CanBeFlow() && !this._locked;
                 var fromgroup = props.get_FromGroup() || this._locked;
-                if (this._state.CanBeFlow!==value || this._state.FromGroup!==fromgroup) {
-                    this.cmbWrapType.setDisabled(!value || fromgroup);
+                var control_props = this.api.asc_IsContentControl() ? this.api.asc_GetContentControlProperties() : null,
+                    isPictureControl = !!control_props && (control_props.get_SpecificType()==Asc.c_oAscContentControlSpecificType.Picture) || this._locked;
+                if (this._state.CanBeFlow!==value || this._state.FromGroup!==fromgroup || this._state.isPictureControl!==isPictureControl) {
+                    this.cmbWrapType.setDisabled(!value || fromgroup || isPictureControl);
                     this._state.CanBeFlow=value;
                     this._state.FromGroup=fromgroup;
+                    this._state.isPictureControl=isPictureControl;
                 }
 
                 value = props.get_Width();
                 if ( Math.abs(this._state.Width-value)>0.001 ) {
-                    this.labelWidth[0].innerHTML = this.textWidth + ': ' + Common.Utils.Metric.fnRecalcFromMM(value).toFixed(1) + ' ' + Common.Utils.Metric.getCurrentMetricName();
+                    this.labelWidth[0].innerHTML = this.textWidth + ': ' + Common.Utils.Metric.fnRecalcFromMM(value).toFixed(2) + ' ' + Common.Utils.Metric.getCurrentMetricName();
                     this._state.Width = value;
                 }
 
                 value = props.get_Height();
                 if ( Math.abs(this._state.Height-value)>0.001 ) {
-                    this.labelHeight[0].innerHTML = this.textHeight + ': ' + Common.Utils.Metric.fnRecalcFromMM(value).toFixed(1) + ' ' + Common.Utils.Metric.getCurrentMetricName();
+                    this.labelHeight[0].innerHTML = this.textHeight + ': ' + Common.Utils.Metric.fnRecalcFromMM(value).toFixed(2) + ' ' + Common.Utils.Metric.getCurrentMetricName();
                     this._state.Height = value;
                 }
 
@@ -326,10 +342,8 @@ define([
                 var pluginGuid = props.asc_getPluginGuid();
                 value = (pluginGuid !== null && pluginGuid !== undefined);
                 if (this._state.isOleObject!==value) {
-                    this.btnInsertFromUrl.setVisible(!value);
-                    this.btnInsertFromFile.setVisible(!value);
+                    this.btnSelectImage.setVisible(!value);
                     this.btnEditObject.setVisible(value);
-                    this.lblReplace.text(value ? this.textEditObject : this.textInsert);
                     this.btnRotate270.setDisabled(value);
                     this.btnRotate90.setDisabled(value);
                     this.btnFlipV.setDisabled(value);
@@ -341,8 +355,7 @@ define([
                     var plugin = DE.getCollection('Common.Collections.Plugins').findWhere({guid: pluginGuid});
                     this.btnEditObject.setDisabled(plugin===null || plugin ===undefined || this._locked);
                 } else {
-                    this.btnInsertFromUrl.setDisabled(pluginGuid===null || this._locked);
-                    this.btnInsertFromFile.setDisabled(pluginGuid===null || this._locked);
+                    this.btnSelectImage.setDisabled(pluginGuid===null || this._locked);
                 }
             }
         },
@@ -391,8 +404,8 @@ define([
                 var w = imgsize.get_ImageWidth();
                 var h = imgsize.get_ImageHeight();
 
-                this.labelWidth[0].innerHTML = this.textWidth + ': ' + Common.Utils.Metric.fnRecalcFromMM(w).toFixed(1) + ' ' + Common.Utils.Metric.getCurrentMetricName();
-                this.labelHeight[0].innerHTML = this.textHeight + ': ' + Common.Utils.Metric.fnRecalcFromMM(h).toFixed(1) + ' ' + Common.Utils.Metric.getCurrentMetricName();
+                this.labelWidth[0].innerHTML = this.textWidth + ': ' + Common.Utils.Metric.fnRecalcFromMM(w).toFixed(2) + ' ' + Common.Utils.Metric.getCurrentMetricName();
+                this.labelHeight[0].innerHTML = this.textHeight + ': ' + Common.Utils.Metric.fnRecalcFromMM(h).toFixed(2) + ' ' + Common.Utils.Metric.getCurrentMetricName();
 
                 var properties = new Asc.asc_CImgProperty();
                 properties.put_Width(w);
@@ -423,8 +436,8 @@ define([
                     h = pageh;
                 }
 
-                this.labelWidth[0].innerHTML = this.textWidth + ': ' + Common.Utils.Metric.fnRecalcFromMM(w).toFixed(1) + ' ' + Common.Utils.Metric.getCurrentMetricName();
-                this.labelHeight[0].innerHTML = this.textHeight + ': ' + Common.Utils.Metric.fnRecalcFromMM(h).toFixed(1) + ' ' + Common.Utils.Metric.getCurrentMetricName();
+                this.labelWidth[0].innerHTML = this.textWidth + ': ' + Common.Utils.Metric.fnRecalcFromMM(w).toFixed(2) + ' ' + Common.Utils.Metric.getCurrentMetricName();
+                this.labelHeight[0].innerHTML = this.textHeight + ': ' + Common.Utils.Metric.fnRecalcFromMM(h).toFixed(2) + ' ' + Common.Utils.Metric.getCurrentMetricName();
 
                 var properties = new Asc.asc_CImgProperty();
                 properties.put_Width(w);
@@ -454,23 +467,43 @@ define([
             }
         },
 
-        insertFromUrl: function() {
-            var me = this;
-            (new Common.Views.ImageFromUrlDialog({
-                handler: function(result, value) {
-                    if (result == 'ok') {
-                        if (me.api) {
-                            var checkUrl = value.replace(/ /g, '');
-                            if (!_.isEmpty(checkUrl)) {
-                                var props = new Asc.asc_CImgProperty();
-                                props.put_ImageUrl(checkUrl);
-                                me.api.ImgApply(props);
+        setImageUrl: function(url, token) {
+            var props = new Asc.asc_CImgProperty();
+            props.put_ImageUrl(url, token);
+            this.api.ImgApply(props);
+        },
+
+        insertImageFromStorage: function(data) {
+            if (data && data.url && data.c=='change') {
+                this.setImageUrl(data.url, data.token);
+            }
+        },
+
+        onImageSelect: function(menu, item) {
+            if (item.value==1) {
+                var me = this;
+                (new Common.Views.ImageFromUrlDialog({
+                    handler: function(result, value) {
+                        if (result == 'ok') {
+                            if (me.api) {
+                                var checkUrl = value.replace(/ /g, '');
+                                if (!_.isEmpty(checkUrl)) {
+                                    me.setImageUrl(checkUrl);
+                                }
                             }
                         }
+                        me.fireEvent('editcomplete', me);
                     }
-                    me.fireEvent('editcomplete', me);
-                }
-            })).show();
+                })).show();
+            } else if (item.value==2) {
+                Common.NotificationCenter.trigger('storage:image-load', 'change');
+            } else {
+                if (this._isFromFile) return;
+                this._isFromFile = true;
+                if (this.api) this.api.ChangeImageFromFile();
+                this.fireEvent('editcomplete', this);
+                this._isFromFile = false;
+            }
         },
 
         onBtnRotateClick: function(btn) {
@@ -533,6 +566,7 @@ define([
                                 {
                                     imageProps: elValue,
                                     sizeOriginal: imgsizeOriginal,
+                                    api         : me.api,
                                     sectionProps: me.api.asc_GetSectionProps(),
                                     handler: function(result, value) {
                                         if (result == 'ok') {
@@ -572,7 +606,7 @@ define([
         textWrap:       'Wraping Style',
         textWidth:      'Width',
         textHeight:     'Height',
-        textOriginalSize: 'Default Size',
+        textOriginalSize: 'Actual Size',
         textInsert:     'Replace Image',
         textFromUrl:    'From URL',
         textFromFile:   'From File',
@@ -596,6 +630,7 @@ define([
         textHintFlipH: 'Flip Horizontally',
         textCrop: 'Crop',
         textCropFill: 'Fill',
-        textCropFit: 'Fit'
+        textCropFit: 'Fit',
+        textFromStorage: 'From Storage'
     }, DE.Views.ImageSettings || {}));
 });

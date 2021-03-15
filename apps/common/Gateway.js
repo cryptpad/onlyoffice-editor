@@ -118,6 +118,10 @@ if (Common === undefined) {
 
             'setMailMergeRecipients': function(data) {
                 $me.trigger('setmailmergerecipients', data);
+            },
+
+            'setRevisedFile': function(data) {
+                $me.trigger('setrevisedfile', data);
             }
         };
 
@@ -131,6 +135,8 @@ if (Common === undefined) {
 
         var _onMessage = function(msg) {
             // TODO: check message origin
+            if (msg.origin !== window.parentOrigin && msg.origin !== window.location.origin) return;
+
             var data = msg.data;
             if (Object.prototype.toString.apply(data) !== '[object String]' || !window.JSON) {
                 return;
@@ -289,23 +295,35 @@ if (Common === undefined) {
             },
 
             requestMakeActionLink: function (config) {
-                _postMessage({event:'onMakeActionLink', data: config})
+                _postMessage({event:'onMakeActionLink', data: config});
             },
 
             requestUsers:  function () {
-                _postMessage({event:'onRequestUsers'})
+                _postMessage({event:'onRequestUsers'});
             },
 
             requestSendNotify:  function (emails) {
-                _postMessage({event:'onRequestSendNotify', data: emails})
+                _postMessage({event:'onRequestSendNotify', data: emails});
             },
 
-            requestInsertImage:  function () {
-                _postMessage({event:'onRequestInsertImage'})
+            requestInsertImage:  function (command) {
+                _postMessage({event:'onRequestInsertImage', data: {c: command}});
             },
 
             requestMailMergeRecipients:  function () {
-                _postMessage({event:'onRequestMailMergeRecipients'})
+                _postMessage({event:'onRequestMailMergeRecipients'});
+            },
+
+            requestCompareFile:  function () {
+                _postMessage({event:'onRequestCompareFile'});
+            },
+
+            requestSharingSettings:  function () {
+                _postMessage({event:'onRequestSharingSettings'});
+            },
+
+            requestCreateNew:  function () {
+                _postMessage({event:'onRequestCreateNew'});
             },
 
             on: function(event, handler){

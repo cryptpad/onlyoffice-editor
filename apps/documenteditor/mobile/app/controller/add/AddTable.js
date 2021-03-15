@@ -51,9 +51,6 @@ define([
     'use strict';
 
     DE.Controllers.AddTable = Backbone.Controller.extend(_.extend((function() {
-        var _styles = [],
-            _initDefaultStyles = false;
-
         return {
             models: [],
             collections: [],
@@ -69,13 +66,14 @@ define([
                         'view:render' : this.onViewRender
                     }
                 });
+
+                this._styles = [];
+                this._initDefaultStyles = false;
             },
 
             setApi: function (api) {
                 var me = this;
                 me.api = api;
-
-                me.api.asc_registerCallback('asc_onInitTableTemplates', _.bind(me.onApiInitTemplates, me));
             },
 
             onLaunch: function () {
@@ -83,15 +81,6 @@ define([
             },
 
             initEvents: function () {
-                var me = this;
-
-                if (!_initDefaultStyles) {
-                    _initDefaultStyles = true;
-                    _styles = [];
-
-                    me.api.asc_GetDefaultTableStyles();
-                }
-
                 $('#add-table li').single('click',  _.buffered(this.onStyleClick, 100, this));
             },
 
@@ -134,12 +123,7 @@ define([
                                     var size = picker.value;
 
                                     if (me.api) {
-                                        me.api.put_Table(parseInt(size[0]), parseInt(size[1]));
-
-                                        var properties = new Asc.CTableProp();
-                                        properties.put_TableStyle(type);
-
-                                        me.api.tblApply(properties);
+                                        me.api.put_Table(parseInt(size[0]), parseInt(size[1]), type.toString());
                                     }
                                 }
                             }
@@ -172,22 +156,7 @@ define([
             // Public
 
             getStyles: function () {
-                return _styles;
-            },
-
-            // API handlers
-
-            onApiInitTemplates: function(templates) {
-                if (_styles.length < 1) {
-                    _.each(templates, function(template){
-                        _styles.push({
-                            imageUrl    : template.asc_getImage(),
-                            templateId  : template.asc_getId()
-                        });
-                    });
-
-                    this.getView('AddTable').render();
-                }
+                return this._styles;
             },
 
             textTableSize: 'Table Size',

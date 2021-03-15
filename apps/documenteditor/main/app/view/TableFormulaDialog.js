@@ -47,7 +47,8 @@ define([
         options: {
             width: 300,
             style: 'min-width: 230px;',
-            cls: 'modal-dlg'
+            cls: 'modal-dlg',
+            buttons: ['ok', 'cancel']
         },
 
         initialize : function(options) {
@@ -69,11 +70,7 @@ define([
                         '<div id="id-dlg-formula-function" style="display: inline-block; width: 50%; padding-right: 10px; float: left;"></div>',
                         '<div id="id-dlg-formula-bookmark" style="display: inline-block; width: 50%;"></div>',
                     '</div>',
-                    '</div>',
-                '<div class="footer right">',
-                    '<button class="btn normal dlg-btn primary" result="ok" style="margin-right: 10px;">' + this.okButtonText + '</button>',
-                    '<button class="btn normal dlg-btn" result="cancel">' + this.cancelButtonText + '</button>',
-                '</div>'
+                    '</div>'
             ].join('');
 
             this.options.tpl = _.template(this.template)(this.options);
@@ -99,7 +96,8 @@ define([
             this.cmbFormat = new Common.UI.ComboBox({
                 el          : $('#id-dlg-formula-format'),
                 cls         : 'input-group-nr',
-                menuStyle   : 'min-width: 100%; max-height: 200px;'
+                menuStyle   : 'min-width: 100%; max-height: 200px;',
+                takeFocusOnClose: true
             });
 
             this.cmbFunction = new Common.UI.ComboBox({
@@ -107,6 +105,7 @@ define([
                 cls         : 'input-group-nr',
                 menuStyle   : 'min-width: 100%; max-height: 150px;',
                 editable    : false,
+                takeFocusOnClose: true,
                 scrollAlwaysVisible: true,
                 data: [
                     {displayValue: 'ABS', value: 1},
@@ -115,6 +114,7 @@ define([
                     {displayValue: 'COUNT', value: 1},
                     {displayValue: 'DEFINED', value: 1},
                     {displayValue: 'FALSE', value: 0},
+                    {displayValue: 'IF', value: 1},
                     {displayValue: 'INT', value: 1},
                     {displayValue: 'MAX', value: 1},
                     {displayValue: 'MIN', value: 1},
@@ -143,7 +143,8 @@ define([
                 el          : $('#id-dlg-formula-bookmark'),
                 cls         : 'input-group-nr',
                 menuStyle   : 'min-width: 100%; max-height: 150px;',
-                editable    : false
+                editable    : false,
+                takeFocusOnClose: true
             });
             this.cmbBookmark.on('selected', _.bind(function(combo, record) {
                 combo.setValue(this.textBookmark);
@@ -164,17 +165,16 @@ define([
             this.afterRender();
         },
 
-        onSelectItem: function(picker, item, record, e){
-            this.btnOk.setDisabled(record.get('level')==0 && record.get('index')>0);
+        getFocusedComponents: function() {
+            return [this.inputFormula, this.cmbFormat, this.cmbFunction, this.cmbBookmark];
         },
 
-        show: function() {
-            Common.UI.Window.prototype.show.apply(this, arguments);
+        getDefaultFocusableComponent: function () {
+            return this.inputFormula;
+        },
 
-            var me = this;
-            _.delay(function(){
-                me.inputFormula.cmpEl.find('input').focus();
-            },500);
+        onSelectItem: function(picker, item, record, e){
+            this.btnOk.setDisabled(record.get('level')==0 && record.get('index')>0);
         },
 
         afterRender: function() {
@@ -240,8 +240,6 @@ define([
         textFormat: 'Number Format',
         textBookmark: 'Paste Bookmark',
         textInsertFunction: 'Paste Function',
-        cancelButtonText:   'Cancel',
-        okButtonText:       'Ok',
         textTitle:          'Formula Settings'
     }, DE.Views.TableFormulaDialog || {}))
 });

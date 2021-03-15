@@ -54,17 +54,18 @@ define([
                 _options = {};
 
             _.extend(_options,  {
-                width           : 350,
-                height          : 220,
+                width           : 395,
+                height          : 270,
                 header          : true,
                 cls             : 'modal-dlg',
                 contentTemplate : '',
-                title           : t.txtTitle
+                title           : t.txtTitle,
+                buttons: ['ok', 'cancel']
 
             }, options);
 
             this.template = options.template || [
-                '<div class="box" style="height:' + (_options.height - 85) + 'px;">',
+                '<div class="box">',
                     '<div class="input-row" style="margin-bottom: 10px;">',
                         '<label>' + t.txtDescription + '</label>',
                     '</div>',
@@ -75,12 +76,8 @@ define([
                     '<div class="input-row">',
                         '<label>' + t.txtRepeat + '</label>',
                     '</div>',
-                    '<div id="id-repeat-txt" class="input-row"></div>',
-                '</div>',
-                '<div class="separator horizontal"/>',
-                '<div class="footer center">',
-                    '<button class="btn normal dlg-btn primary" result="ok" style="margin-right:10px;">' + t.okButtonText + '</button>',
-                    '<button class="btn normal dlg-btn" result="cancel">' + t.cancelButtonText + '</button>',
+                    '<div id="id-repeat-txt" class="input-row" style="margin-bottom: 10px;"></div>',
+                    '<label>' + t.txtWarning + '</label>',
                 '</div>'
             ].join('');
 
@@ -154,13 +151,12 @@ define([
             this.close();
         },
 
-        okButtonText       : "OK",
-        cancelButtonText   : "Cancel",
         txtTitle           : "Set Password",
         txtPassword        : "Password",
         txtDescription     : "A Password is required to open this document",
         txtRepeat: 'Repeat password',
-        txtIncorrectPwd: 'Confirmation password is not identical'
+        txtIncorrectPwd: 'Confirmation password is not identical',
+        txtWarning: 'Warning: If you lose or forget the password, it cannot be recovered. Please keep it in a safe place.'
 
     }, Common.Views.PasswordDialog || {}));
 });

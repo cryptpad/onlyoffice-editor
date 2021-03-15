@@ -59,6 +59,12 @@
 
         cursor: move;
 
+        .tools {
+            position: absolute;
+            right: 0;
+            padding-right: 6px;
+        }
+
         .tool {
             float: right;
             width: 16px;
@@ -77,6 +83,25 @@
 
                 &.disabled {
                     background-position: @but-close-offset-x @but-close-offset-y - 32px;
+                    cursor: default;
+                }
+            }
+
+            &.help {
+                width: 20px;
+                margin-right:0;
+                line-height: 14px;
+                font-size: 14px;
+                font-weight: bold;
+                color: #444;
+                opacity: 0.7;
+
+                &:hover {
+                    opacity: 1;
+                }
+
+                &.disabled {
+                    opacity: 0.3;
                     cursor: default;
                 }
             }
@@ -113,33 +138,39 @@
         z-index: @zindex-modal - 2;
     }
 
-    &.alert {
-        min-height: 90px;
-        min-width: 230px;
+    .icon {
+        &.warn {
+            width: 35px;
+            height: 32px;
+            background-position: @alerts-offset-x @alerts-offset-y - 105px;
+        }
 
-        .icon {
-            float: left;
+        &.error, &.info, &.confirm {
             width: 35px;
             height: 35px;
-            margin: 0 0 0 10px;
-
-            &.warn {
-                height: 32px;
-                background-position: @alerts-offset-x @alerts-offset-y - 105px;
-            }
-
-            &.error {
-                background-position: @alerts-offset-x @alerts-offset-y - 0;
-            }
-
-            &.info {
-                background-position: @alerts-offset-x @alerts-offset-y - 35px;
-            }
-
-            &.confirm {
-                background-position: @alerts-offset-x @alerts-offset-y - 70px;
-            }
         }
+
+        &.error {
+            background-position: @alerts-offset-x @alerts-offset-y - 0;
+        }
+
+        &.info {
+            background-position: @alerts-offset-x @alerts-offset-y - 35px;
+        }
+
+        &.confirm {
+            background-position: @alerts-offset-x @alerts-offset-y - 70px;
+        }
+    }
+
+    &.alert {
+        .icon {
+            float: left;
+            margin: 0 0 0 10px;
+        }
+
+        min-height: 90px;
+        min-width: 230px;
 
         .body {
             .info-box {
@@ -236,6 +267,14 @@
             cursor: inherit !important;
         }
     }
+
+    .footer {
+        button {
+            &:not(:first-child) {
+                margin-left: 10px;
+            }
+        }
+    }
 }
 
 .modal-dlg {
@@ -250,7 +289,7 @@
                 line-height: @input-height-base;
             }
 
-            div {
+            & > div {
                 display: inline-block;
             }
         }

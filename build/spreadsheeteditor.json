@@ -1,7 +1,7 @@
 {
     "name": "spreadsheeteditor",
     "version": "4.3.0",
-    "build": 900,
+    "build": 903,
     "homepage": "http://www.onlyoffice.com",
     "private": true,
     "main": {
@@ -119,7 +119,8 @@
                     "expand": true,
                     "cwd": "../apps/spreadsheeteditor/main/resources/img/",
                     "src": [
-                        "**/*.{png,jpg,gif,ico}"
+                        "**/*.{png,jpg,gif,ico}",
+                        "!toolbar/*x/**/*"
                     ],
                     "dest": "../deploy/web-apps/apps/spreadsheeteditor/main/resources/img/"
                 }
@@ -137,7 +138,8 @@
                     "expand": true,
                     "cwd": "../apps/common/main/resources/img/",
                     "src": [
-                        "**/*.{png,jpg,gif}"
+                        "**/*.{png,jpg,gif}",
+                        "!toolbar/*x/**/*"
                     ],
                     "dest": "../deploy/web-apps/apps/spreadsheeteditor/main/resources/img/"
                 }
@@ -159,6 +161,12 @@
                     "cwd": "../apps/spreadsheeteditor/main/resources/formula-lang",
                     "src": "*",
                     "dest": "../deploy/web-apps/apps/spreadsheeteditor/main/resources/formula-lang"
+                },
+                {
+                    "expand": true,
+                    "cwd": "../apps/common/main/resources/symboltable",
+                    "src": "*",
+                    "dest": "../deploy/web-apps/apps/spreadsheeteditor/main/resources/symboltable"
                 }
             ],
             "help": [
@@ -172,10 +180,15 @@
                     "dest": "../deploy/web-apps/apps/spreadsheeteditor/main/resources/help/"
                 }
             ],
-            "index-page": [
+            "indexhtml": [
                 {
-                    "src": "../apps/spreadsheeteditor/main/index.html.deploy",
-                    "dest": "../deploy/web-apps/apps/spreadsheeteditor/main/index.html"
+                    "expand": true,
+                    "cwd": "../apps/spreadsheeteditor/main",
+                    "src": [
+                        "*.html.deploy"
+                    ],
+                    "ext": ".html",
+                    "dest": "../deploy/web-apps/apps/spreadsheeteditor/main"
                 }
             ]
         },
@@ -184,6 +197,12 @@
                 {
                     "expand": true,
                     "cwd": "../apps/common/main/resources/img",
+                    "src": "**/*.svg",
+                    "dest": "../deploy/web-apps/apps/spreadsheeteditor/main/resources/img"
+                },
+                {
+                    "expand": true,
+                    "cwd": "../apps/spreadsheeteditor/main/resources/img",
                     "src": "**/*.svg",
                     "dest": "../deploy/web-apps/apps/spreadsheeteditor/main/resources/img"
                 }
@@ -340,7 +359,8 @@
                 }
             ],
             "index-page": {
-                "../deploy/web-apps/apps/spreadsheeteditor/mobile/index.html": "../apps/spreadsheeteditor/mobile/index.html.deploy"
+                "../deploy/web-apps/apps/spreadsheeteditor/mobile/index.html": "../apps/spreadsheeteditor/mobile/index.html.deploy",
+                "../deploy/web-apps/apps/spreadsheeteditor/mobile/index_loader.html": "../apps/spreadsheeteditor/mobile/index_loader.html.deploy"
             },
             "localization": [
                 {
@@ -419,8 +439,9 @@
                 }
             ],
             "index-page": {
-                "../deploy/web-apps/apps/spreadsheeteditor/embed/index.html": "../apps/spreadsheeteditor/embed/index.html.deploy"
-            },
+                "../deploy/web-apps/apps/spreadsheeteditor/embed/index.html": "../apps/spreadsheeteditor/embed/index.html.deploy",
+                "../deploy/web-apps/apps/spreadsheeteditor/embed/index_loader.html": "../apps/spreadsheeteditor/embed/index_loader.html.deploy"
+           },
             "images-app": [
                 {
                     "expand": true,

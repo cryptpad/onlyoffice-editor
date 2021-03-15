@@ -85,7 +85,6 @@ define([
                 defaultUnit : "",
                 maxValue: 255,
                 minValue: 0,
-                tabindex: 1,
                 maskExp: /[0-9]/,
                 allowDecimal: false
             });
@@ -98,7 +97,6 @@ define([
                 defaultUnit : "",
                 maxValue: 255,
                 minValue: 0,
-                tabindex: 2,
                 maskExp: /[0-9]/,
                 allowDecimal: false
             });
@@ -111,7 +109,6 @@ define([
                 defaultUnit : "",
                 maxValue: 255,
                 minValue: 0,
-                tabindex: 3,
                 maskExp: /[0-9]/,
                 allowDecimal: false
             });
@@ -128,7 +125,6 @@ define([
             this.spinB.on('change', _.bind(this.showColor, this, null, true)).on('changing', _.bind(this.onChangingRGB, this, 3));
             this.textColor.on('change', _.bind(this.onChangeMaskedField, this));
             this.textColor.on('changed', _.bind(this.onChangedMaskedField, this));
-            this.textColor.$el.attr('tabindex', 4);
             this.spinR.$el.find('input').attr('maxlength', 3);
             this.spinG.$el.find('input').attr('maxlength', 3);
             this.spinB.$el.find('input').attr('maxlength', 3);
@@ -146,7 +142,16 @@ define([
             this.rendered = true;
             if (this.color!==undefined)
                 this.setColor(this.color);
+
             return this;
+        },
+
+        getFocusedComponents: function() {
+            return [this.spinR, this.spinG, this.spinB, {cmp: this.textColor, selector: 'input'}];
+        },
+
+        getDefaultFocusableComponent: function () {
+            return this.getChild('#extended-text-color');
         },
 
         onChangeColor: function(o, color) {
@@ -271,22 +276,12 @@ define([
             me.stopevents = false;
         },
 
-        show: function() {
-            Common.UI.Window.prototype.show.apply(this, arguments);
-
-            var me = this;
-            _.delay(function(){
-                me.getChild('#extended-text-color').focus();
-            },50);
-        },
-
         onPrimary: function() {
             this.trigger('onmodalresult', 1);
             this.close(true);
             return false;
         },
 
-        cancelButtonText: 'Cancel',
         addButtonText: 'Add',
         textNew: 'New',
         textCurrent: 'Current',

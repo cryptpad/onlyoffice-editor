@@ -47,13 +47,30 @@
         position: relative;
     }
 
+    &.form-control:focus,
+    .form-control:focus {
+        border-color: @gray-darker;
+    }
+
     &.error {
-        input {
+        input:not([disabled]) {
             border-color: @brand-danger;
         }
 
-        .input-error {
+        input:not([disabled]) + .input-error {
             display: block;
+        }
+    }
+
+    &.warning {
+        input:not([disabled]) + .input-error {
+            display: block;
+        }
+
+        .input-error {
+            &:before {
+                background-position: @input-warning-offset-x @input-warning-offset-y;
+            }
         }
     }
 }
@@ -84,4 +101,27 @@ input[type="password"] {
 input[type="text"]::selection, textarea::selection {
     background: #3494fb;
     color: white;
+}
+
+textarea.form-control:focus {
+    border-color: @gray-darker;
+}
+
+.input-field-btn {
+    position: relative;
+
+    .select-button {
+        position: absolute;
+        top: 1px;
+        right: 1px;
+    }
+    .input-error {
+        &:before {
+            right: 22px;
+        }
+    }
+    
+    input {
+        padding-right: 20px;
+    }
 }

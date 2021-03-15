@@ -49,7 +49,8 @@ define([
         options: {
             width: 350,
             style: 'min-width: 230px;',
-            cls: 'modal-dlg'
+            cls: 'modal-dlg',
+            buttons: ['ok', 'cancel']
         },
 
         initialize : function (options) {
@@ -69,15 +70,11 @@ define([
                     '<div class="input-row">',
                         '<label style="font-weight: bold;">' + this.textFormat + '</label>',
                     '</div>',
-                    '<div id="datetime-dlg-format" class="" style="margin-bottom: 10px;width: 100%; height: 165px; overflow: hidden;"></div>',
+                    '<div id="datetime-dlg-format" class="" style="margin-bottom: 10px;width: 100%; height: 162px; overflow: hidden;"></div>',
                     '<div class="input-row">',
                         '<div id="datetime-dlg-update" style="margin-top: 3px;"></div>',
                         '<button type="button" class="btn btn-text-default auto" id="datetime-dlg-default" style="float: right;">' + this.textDefault + '</button>',
                     '</div>',
-                '</div>',
-                '<div class="footer center">',
-                    '<button class="btn normal dlg-btn primary" result="ok" style="margin-right: 10px;">' + this.okButtonText + '</button>',
-                    '<button class="btn normal dlg-btn" result="cancel">' + this.cancelButtonText + '</button>',
                 '</div>'
             ].join('');
 
@@ -105,7 +102,10 @@ define([
                 menuStyle   : 'min-width: 100%; max-height: 185px;',
                 cls         : 'input-group-nr',
                 editable    : false,
-                data        : data
+                takeFocusOnClose: true,
+                data        : data,
+                search: true,
+                scrollAlwaysVisible: true
             });
             this.cmbLang.setValue(0x0409);
             this.cmbLang.on('selected', _.bind(function(combo, record) {
@@ -123,13 +123,13 @@ define([
             this.listFormats = new Common.UI.ListView({
                 el: $('#datetime-dlg-format'),
                 store: new Common.UI.DataViewStore(),
-                scrollAlwaysVisible: true
+                scrollAlwaysVisible: true,
+                tabindex: 1
             });
 
             this.listFormats.on('item:select', _.bind(this.onSelectFormat, this));
             this.listFormats.on('item:dblclick', _.bind(this.onDblClickFormat, this));
             this.listFormats.on('entervalue', _.bind(this.onPrimary, this));
-            this.listFormats.$el.find('.listview').focus();
 
             this.btnDefault = new Common.UI.Button({
                 el: $('#datetime-dlg-default')
@@ -173,6 +173,14 @@ define([
             });
 
             this._setDefaults();
+        },
+
+        getFocusedComponents: function() {
+            return [this.cmbLang, {cmp: this.listFormats, selector: '.listview'}];
+        },
+
+        getDefaultFocusableComponent: function () {
+            return this.cmbLang;
         },
 
         _setDefaults: function () {
@@ -244,8 +252,6 @@ define([
         },
 
         //
-        cancelButtonText: 'Cancel',
-        okButtonText: 'OK',
         txtTitle: 'Date & Time',
         textLang: 'Language',
         textFormat: 'Formats',

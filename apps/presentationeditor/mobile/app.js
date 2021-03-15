@@ -160,6 +160,7 @@ require([
             'AddImage',
             'AddLink',
             'AddSlide',
+            'AddOther',
             'Common.Controllers.Collaboration'
         ]
     });
@@ -181,6 +182,9 @@ require([
         // Default title for modals
         modalTitle: '{{APP_TITLE_TEXT}}',
 
+        // Enable tap hold events
+        tapHold: true,
+        
         // If it is webapp, we can enable hash navigation:
 //        pushState: false,
 
@@ -228,6 +232,7 @@ require([
             'presentationeditor/mobile/app/controller/add/AddImage',
             'presentationeditor/mobile/app/controller/add/AddLink',
             'presentationeditor/mobile/app/controller/add/AddSlide',
+            'presentationeditor/mobile/app/controller/add/AddOther',
             'common/mobile/lib/controller/Collaboration'
         ], function() {
             app.start();

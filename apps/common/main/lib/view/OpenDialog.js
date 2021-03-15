@@ -59,7 +59,7 @@ define([
                 width = 414;
                 height = 277;
             } else {
-                width = (options.type !== Common.Utils.importTextType.DRM) ? 340 : (options.warning ? 370 : 262);
+                width = (options.type !== Common.Utils.importTextType.DRM) ? 340 : (options.warning ? 420 : 280);
                 height = (options.type == Common.Utils.importTextType.CSV || options.type == Common.Utils.importTextType.Paste || options.type == Common.Utils.importTextType.Columns) ? 190 : (options.warning ? 187 : 147);
             }
 
@@ -68,6 +68,7 @@ define([
                 preview         : options.preview,
                 warning         : options.warning,
                 codepages       : options.codepages,
+                warningMsg      : options.warningMsg,
                 width           : width,
                 height          : height,
                 header          : true,
@@ -84,14 +85,14 @@ define([
                     '<% if (type == Common.Utils.importTextType.DRM) { %>',
                         '<% if (warning) { %>',
                         '<div>',
-                            '<div class="icon img-commonctrl warn"/>',
-                            '<div style="padding-left: 50px;"><div style="font-size: 12px;">' + t.txtProtected+ '</div>',
+                            '<div class="icon img-commonctrl warn"></div>',
+                            '<div style="padding-left: 50px;"><div style="font-size: 12px;">' + (typeof _options.warningMsg=='string' ? _options.warningMsg : t.txtProtected) + '</div>',
                                 '<label class="header" style="margin-top: 15px;">' + t.txtPassword + '</label>',
-                                '<div id="id-password-txt" style="width: 240px;"></div></div>',
+                                '<div id="id-password-txt" style="width: 290px;"></div></div>',
                         '</div>',
                         '<% } else { %>',
                         '<div>',
-                            '<label class="header">' + t.txtPassword + '</label>',
+                            '<label class="">' + t.txtOpenFile + '</label>',
                             '<div id="id-password-txt"></div>',
                         '</div>',
                         '<% } %>',
@@ -104,12 +105,22 @@ define([
                             '</div>',
                         '</div>',
                         '<% } %>',
-                        '<% if (type == Common.Utils.importTextType.CSV || type == Common.Utils.importTextType.Paste || type == Common.Utils.importTextType.Columns) { %>',
+                        '<% if (type == Common.Utils.importTextType.CSV) { %>',
                         '<div style="display: inline-block; margin-bottom:15px;">',
                             '<label class="header">' + t.txtDelimiter + '</label>',
                             '<div>',
                                 '<div id="id-delimiters-combo" class="input-group-nr" style="max-width: 100px;display: inline-block; vertical-align: middle;"></div>',
                                 '<div id="id-delimiter-other" class="input-row" style="display: inline-block; vertical-align: middle;margin-left: 10px;"></div>',
+                            '</div>',
+                        '</div>',
+                        '<% } %>',
+                        '<% if (type == Common.Utils.importTextType.Paste || type == Common.Utils.importTextType.Columns) { %>',
+                        '<div style="display: inline-block; margin-bottom:15px;width: 100%;">',
+                            '<label class="header">' + t.txtDelimiter + '</label>',
+                            '<div>',
+                                '<div id="id-delimiters-combo" class="input-group-nr" style="max-width: 100px;display: inline-block; vertical-align: middle;"></div>',
+                                '<div id="id-delimiter-other" class="input-row" style="display: inline-block; vertical-align: middle;margin-left: 10px;"></div>',
+                                '<button type="button" class="btn btn-text-default" id="id-delimiters-advanced" style="min-width:100px; display: inline-block;float:right;">' + t.txtAdvanced + '</button>',
                             '</div>',
                         '</div>',
                         '<% } %>',
@@ -231,7 +242,13 @@ define([
                         delimiter = this.cmbDelimiter ? this.cmbDelimiter.getValue() : null,
                         delimiterChar = (delimiter == -1) ? this.inputDelimiter.getValue() : null;
                     (delimiter == -1) && (delimiter = null);
-                    this.handler.call(this, state, encoding, delimiter, delimiterChar);
+                    if (!this.closable && this.type == Common.Utils.importTextType.TXT) { //save last encoding only for opening txt files
+                        Common.localStorage.setItem("de-settings-open-encoding", encoding);
+                    }
+
+                    var decimal = this.separatorOptions ? this.separatorOptions.decimal : undefined,
+                        thousands = this.separatorOptions ? this.separatorOptions.thousands : undefined;
+                    this.handler.call(this, state, encoding, delimiter, delimiterChar, decimal, thousands);
                 }
             }
 
@@ -284,11 +301,17 @@ define([
                     data: listItems,
                     editable: false,
                     disabled: true,
+                    search: true,
                     itemsTemplate: itemsTemplate
                 });
 
                 this.cmbEncoding.setDisabled(false);
-                this.cmbEncoding.setValue((this.settings && this.settings.asc_getCodePage()) ? this.settings.asc_getCodePage() : encodedata[0][0]);
+                var encoding = (this.settings && this.settings.asc_getCodePage()) ? this.settings.asc_getCodePage() : encodedata[0][0];
+                if (!this.closable && this.type == Common.Utils.importTextType.TXT) { // only for opening txt files
+                    var value = Common.localStorage.getItem("de-settings-open-encoding");
+                    value && (encoding = parseInt(value));
+                }
+                this.cmbEncoding.setValue(encoding);
                 if (this.preview)
                     this.cmbEncoding.on('selected', _.bind(this.onCmbEncodingSelect, this));
 
@@ -327,6 +350,13 @@ define([
                 this.inputDelimiter.setVisible(false);
                 if (this.preview)
                     this.inputDelimiter.on ('changing', _.bind(this.updatePreview, this));
+
+                if (this.type == Common.Utils.importTextType.Paste || this.type == Common.Utils.importTextType.Columns) {
+                    this.btnAdvanced = new Common.UI.Button({
+                        el: $('#id-delimiters-advanced')
+                    });
+                    this.btnAdvanced.on('click', _.bind(this.onAdvancedClick, this));
+                }
             }
         },
 
@@ -346,7 +376,12 @@ define([
                     break;
                 case Common.Utils.importTextType.Paste:
                 case Common.Utils.importTextType.Columns:
-                    this.api.asc_TextImport(new Asc.asc_CTextOptions(encoding, delimiter, delimiterChar), _.bind(this.previewCallback, this), this.type == Common.Utils.importTextType.Paste);
+                    var options = new Asc.asc_CTextOptions(encoding, delimiter, delimiterChar);
+                    if (this.separatorOptions) {
+                        options.asc_setNumberDecimalSeparator(this.separatorOptions.decimal);
+                        options.asc_setNumberGroupSeparator(this.separatorOptions.thousands);
+                    }
+                    this.api.asc_TextImport(options, _.bind(this.previewCallback, this), this.type == Common.Utils.importTextType.Paste);
                     break;
             }
         },
@@ -435,8 +470,28 @@ define([
             this.updatePreview();
         },
 
-        okButtonText       : "OK",
-        cancelButtonText   : "Cancel",
+        onAdvancedClick: function() {
+            if (!SSE) return;
+
+            var me = this,
+                decimal = this.api.asc_getDecimalSeparator(),
+                thousands = this.api.asc_getGroupSeparator();
+            (new SSE.Views.AdvancedSeparatorDialog({
+                props: {
+                    decimal: decimal,
+                    thousands: thousands
+                },
+                handler: function(result, value) {
+                    if (result == 'ok') {
+                        me.separatorOptions = {
+                            decimal: (value.decimal.length > 0) ? value.decimal : decimal,
+                            thousands: (value.thousands.length > 0) ? value.thousands : thousands
+                        };
+                    }
+                }
+            })).show();
+        },
+
         txtDelimiter       : "Delimiter",
         txtEncoding        : "Encoding ",
         txtSpace           : "Space",
@@ -451,7 +506,9 @@ define([
         txtComma: 'Comma',
         txtColon: 'Colon',
         txtSemicolon: 'Semicolon',
-        txtProtected: 'Once you enter the password and open the file, the current password to the file will be reset.'
+        txtProtected: 'Once you enter the password and open the file, the current password to the file will be reset.',
+        txtAdvanced: 'Advanced',
+        txtOpenFile: "Enter a password to open the file"
 
     }, Common.Views.OpenDialog || {}));
 });

@@ -126,6 +126,9 @@ define([
                     'comment:closeEditing':     _.bind(this.closeEditing, this),
                     'comment:disableHint':      _.bind(this.disableHint, this),
                     'comment:addDummyComment':  _.bind(this.onAddDummyComment, this)
+                },
+                'Common.Views.ReviewChanges': {
+                    'comment:removeComments':           _.bind(this.onRemoveComments, this)
                 }
             });
 
@@ -180,7 +183,7 @@ define([
                 this.api.asc_registerCallback('asc_onAddComments', _.bind(this.onApiAddComments, this));
                 this.api.asc_registerCallback('asc_onRemoveComment', _.bind(this.onApiRemoveComment, this));
                 this.api.asc_registerCallback('asc_onChangeComments', _.bind(this.onChangeComments, this));
-                this.api.asc_registerCallback('asc_onRemoveComments', _.bind(this.onRemoveComments, this));
+                this.api.asc_registerCallback('asc_onRemoveComments', _.bind(this.onApiRemoveComments, this));
                 this.api.asc_registerCallback('asc_onChangeCommentData', _.bind(this.onApiChangeCommentData, this));
                 this.api.asc_registerCallback('asc_onLockComment', _.bind(this.onApiLockComment, this));
                 this.api.asc_registerCallback('asc_onUnLockComment', _.bind(this.onApiUnLockComment, this));
@@ -233,6 +236,11 @@ define([
                 this.api.asc_removeComment(id);
             }
         },
+        onRemoveComments: function (type) {
+            if (this.api) {
+                this.api.asc_RemoveAllComments(type=='my' || !this.mode.canEditComments, type=='current');// 1 param = true if remove only my comments, 2 param - remove current comments
+            }
+        },
         onResolveComment: function (uid) {
             var t = this,
                 reply = null,
@@ -253,6 +261,7 @@ define([
                 ascComment.asc_putUserName(comment.get('username'));
                 ascComment.asc_putSolved(!comment.get('resolved'));
                 ascComment.asc_putGuid(comment.get('guid'));
+                ascComment.asc_putUserData(comment.get('userdata'));
 
                 if (!_.isUndefined(ascComment.asc_putDocumentFlag)) {
                     ascComment.asc_putDocumentFlag(comment.get('unattached'));
@@ -268,6 +277,7 @@ define([
                             addReply.asc_putOnlyOfficeTime(t.ooDateToString(new Date(reply.get('time'))));
                             addReply.asc_putUserId(reply.get('userid'));
                             addReply.asc_putUserName(reply.get('username'));
+                            addReply.asc_putUserData(reply.get('userdata'));
 
                             ascComment.asc_addReply(addReply);
                         }
@@ -281,7 +291,7 @@ define([
 
             return false;
         },
-        onShowComment: function (id, selected) {
+        onShowComment: function (id, selected, fromLeftPanelSelection) {
             var comment = this.findComment(id);
             if (comment) {
                 if (null !== comment.get('quote')) {
@@ -309,9 +319,11 @@ define([
                             this.isSelectedComment = selected;
                         }
 
-                        this.api.asc_selectComment(id);
-                        this._dontScrollToComment = true;
-                        this.api.asc_showComment(id,false);
+                        if (!fromLeftPanelSelection || !((0 === _.difference(this.uids, [id]).length) && (0 === _.difference([id], this.uids).length))) { 
+                            this.api.asc_selectComment(id);
+                            this._dontScrollToComment = true;
+                            this.api.asc_showComment(id,false);
+                        }
                     }
                 } else {
 
@@ -346,6 +358,7 @@ define([
                     ascComment.asc_putUserName(t.currentUserName);
                     ascComment.asc_putSolved(comment.get('resolved'));
                     ascComment.asc_putGuid(comment.get('guid'));
+                    ascComment.asc_putUserData(comment.get('userdata'));
 
                     if (!_.isUndefined(ascComment.asc_putDocumentFlag)) {
                         ascComment.asc_putDocumentFlag(comment.get('unattached'));
@@ -372,6 +385,7 @@ define([
                                 addReply.asc_putOnlyOfficeTime(t.ooDateToString(new Date(reply.get('time'))));
                                 addReply.asc_putUserId(reply.get('userid'));
                                 addReply.asc_putUserName(reply.get('username'));
+                                addReply.asc_putUserData(reply.get('userdata'));
 
                                 ascComment.asc_addReply(addReply);
                             }
@@ -403,6 +417,7 @@ define([
                     ascComment.asc_putUserName(comment.get('username'));
                     ascComment.asc_putSolved(comment.get('resolved'));
                     ascComment.asc_putGuid(comment.get('guid'));
+                    ascComment.asc_putUserData(comment.get('userdata'));
 
                     if (!_.isUndefined(ascComment.asc_putDocumentFlag)) {
                         ascComment.asc_putDocumentFlag(comment.get('unattached'));
@@ -426,6 +441,7 @@ define([
 
                                 addReply.asc_putTime(me.utcDateToString(new Date(reply.get('time'))));
                                 addReply.asc_putOnlyOfficeTime(me.ooDateToString(new Date(reply.get('time'))));
+                                addReply.asc_putUserData(reply.get('userdata'));
 
                                 ascComment.asc_addReply(addReply);
                             }
@@ -466,6 +482,7 @@ define([
                     ascComment.asc_putUserName(comment.get('username'));
                     ascComment.asc_putSolved(comment.get('resolved'));
                     ascComment.asc_putGuid(comment.get('guid'));
+                    ascComment.asc_putUserData(comment.get('userdata'));
 
                     if (!_.isUndefined(ascComment.asc_putDocumentFlag)) {
                         ascComment.asc_putDocumentFlag(comment.get('unattached'));
@@ -482,6 +499,7 @@ define([
                                 addReply.asc_putOnlyOfficeTime(me.ooDateToString(new Date(reply.get('time'))));
                                 addReply.asc_putUserId(reply.get('userid'));
                                 addReply.asc_putUserName(reply.get('username'));
+                                addReply.asc_putUserData(reply.get('userdata'));
 
                                 ascComment.asc_addReply(addReply);
                             }
@@ -499,7 +517,7 @@ define([
                         ascComment.asc_addReply(addReply);
 
                         me.api.asc_changeComment(id, ascComment);
-                        me.mode && me.mode.canRequestUsers && me.view.pickEMail(ascComment.asc_getGuid(), replyVal);
+                        me.mode && me.mode.canRequestSendNotify && me.view.pickEMail(ascComment.asc_getGuid(), replyVal);
 
                         return true;
                     }
@@ -525,6 +543,7 @@ define([
                     ascComment.asc_putUserName(comment.get('username'));
                     ascComment.asc_putSolved(comment.get('resolved'));
                     ascComment.asc_putGuid(comment.get('guid'));
+                    ascComment.asc_putUserData(comment.get('userdata'));
 
                     if (!_.isUndefined(ascComment.asc_putDocumentFlag)) {
                         ascComment.asc_putDocumentFlag(comment.get('unattached'));
@@ -541,6 +560,7 @@ define([
                                     addReply.asc_putOnlyOfficeTime(me.ooDateToString(new Date(reply.get('time'))));
                                     addReply.asc_putUserId(reply.get('userid'));
                                     addReply.asc_putUserName(reply.get('username'));
+                                    addReply.asc_putUserData(reply.get('userdata'));
 
                                     ascComment.asc_addReply(addReply);
                                 }
@@ -725,7 +745,7 @@ define([
 
             this.updateComments(true);
         },
-        onRemoveComments: function (data) {
+        onApiRemoveComments: function (data) {
             for (var i = 0; i < data.length; ++i) {
                 this.onApiRemoveComment(data[i], true);
             }
@@ -754,6 +774,7 @@ define([
                 comment.set('usercolor', (user) ? user.get('color') : null);
                 comment.set('resolved', data.asc_getSolved());
                 comment.set('quote',    data.asc_getQuoteText());
+                comment.set('userdata', data.asc_getUserData());
                 comment.set('time',     date.getTime());
                 comment.set('date',     t.dateToLocaleTimeString(date));
 
@@ -775,6 +796,7 @@ define([
                         usercolor           : (user) ? user.get('color') : null,
                         date                : t.dateToLocaleTimeString(dateReply),
                         reply               : data.asc_getReply(i).asc_getText(),
+                        userdata            : data.asc_getReply(i).asc_getUserData(),
                         time                : dateReply.getTime(),
                         editText            : false,
                         editTextInPopover   : false,
@@ -821,6 +843,7 @@ define([
             }
         },
         onApiShowComment: function (uids, posX, posY, leftX, opts, hint) {
+            var apihint = hint;
             var same_uids = (0 === _.difference(this.uids, uids).length) && (0 === _.difference(uids, this.uids).length);
             
             if (hint && this.isSelectedComment && same_uids && !this.isModeChanged) {
@@ -886,7 +909,7 @@ define([
                         this.animate = false;
                     }
 
-                    this.isSelectedComment = !hint || !this.hintmode;
+                    this.isSelectedComment = !apihint || !this.hintmode;
                     this.uids = _.clone(uids);
 
                     comments.push(comment);
@@ -1133,7 +1156,8 @@ define([
                     commentsStore : this.popoverComments,
                     renderTo : this.sdkViewName,
                     canRequestUsers: (this.mode) ? this.mode.canRequestUsers : undefined,
-                    canRequestSendNotify: (this.mode) ? this.mode.canRequestSendNotify : undefined
+                    canRequestSendNotify: (this.mode) ? this.mode.canRequestSendNotify : undefined,
+                    mentionShare: (this.mode) ? this.mode.mentionShare : true
                 });
                 this.popover.setCommentsStore(this.popoverComments);
             }
@@ -1207,6 +1231,7 @@ define([
                 comment             : data.asc_getText(),
                 resolved            : data.asc_getSolved(),
                 unattached          : !_.isUndefined(data.asc_getDocumentFlag) ? data.asc_getDocumentFlag() : false,
+                userdata            : data.asc_getUserData(),
                 id                  : Common.UI.getId(),
                 time                : date.getTime(),
                 showReply           : false,
@@ -1247,6 +1272,7 @@ define([
                         usercolor           : (user) ? user.get('color') : null,
                         date                : this.dateToLocaleTimeString(date),
                         reply               : data.asc_getReply(i).asc_getText(),
+                        userdata            : data.asc_getReply(i).asc_getUserData(),
                         time                : date.getTime(),
                         editText            : false,
                         editTextInPopover   : false,
@@ -1354,7 +1380,7 @@ define([
 
                     this.api.asc_addComment(comment);
                     this.view.showEditContainer(false);
-                    this.mode && this.mode.canRequestUsers && this.view.pickEMail(comment.asc_getGuid(), commentVal);
+                    this.mode && this.mode.canRequestSendNotify && this.view.pickEMail(comment.asc_getGuid(), commentVal);
                     if (!_.isUndefined(this.api.asc_SetDocumentPlaceChangedEnabled)) {
                         this.api.asc_SetDocumentPlaceChangedEnabled(false);
                     }

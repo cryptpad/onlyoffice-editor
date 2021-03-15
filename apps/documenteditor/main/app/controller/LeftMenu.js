@@ -62,7 +62,6 @@ define([
                     'hide': _.bind(this.onHideChat, this)
                 },
                 'Common.Views.Header': {
-                    'click:users': _.bind(this.clickStatusbarUsers, this),
                     'file:settings': _.bind(this.clickToolbarSettings,this),
                     'history:show': function () {
                         if ( !this.leftMenu.panelHistory.isVisible() )
@@ -207,7 +206,7 @@ define([
 
             this.leftMenu.setOptionsPanel('navigation', this.getApplication().getController('Navigation').getView('Navigation'));
 
-            this.mode.trialMode && this.leftMenu.setDeveloperMode(this.mode.trialMode);
+            (this.mode.trialMode || this.mode.isBeta) && this.leftMenu.setDeveloperMode(this.mode.trialMode, this.mode.isBeta, this.mode.buildVersion);
 
             Common.util.Shortcuts.resumeEvents();
             return this;
@@ -219,7 +218,7 @@ define([
                 this.leftMenu.setOptionsPanel('plugins', this.getApplication().getController('Common.Controllers.Plugins').getView('Common.Views.Plugins'));
             } else
                 this.leftMenu.btnPlugins.hide();
-            this.mode.trialMode && this.leftMenu.setDeveloperMode(this.mode.trialMode);
+            (this.mode.trialMode || this.mode.isBeta) && this.leftMenu.setDeveloperMode(this.mode.trialMode, this.mode.isBeta, this.mode.buildVersion);
         },
 
         clickMenuFileItem: function(menu, action, isopts) {
@@ -468,7 +467,12 @@ define([
             if (this.mode.canViewComments && this.leftMenu.panelComments.isVisible())
                 value = resolved = true;
             (value) ? this.api.asc_showComments(resolved) : this.api.asc_hideComments();
+            this.getApplication().getController('Common.Controllers.ReviewChanges').commentsShowHide(value ? 'show' : 'hide');
             /** coauthoring end **/
+
+            value = Common.localStorage.getBool("de-settings-cachemode", true);
+            Common.Utils.InternalSettings.set("de-settings-cachemode", value);
+            this.api.asc_setDefaultBlitMode(value);
 
             value = Common.localStorage.getItem("de-settings-fontrender");
             Common.Utils.InternalSettings.set("de-settings-fontrender", value);
@@ -486,6 +490,10 @@ define([
                 value = Common.localStorage.getBool("de-settings-spellcheck", true);
                 Common.Utils.InternalSettings.set("de-settings-spellcheck", value);
                 this.api.asc_setSpellCheck(value);
+
+                value = parseInt(Common.localStorage.getItem("de-settings-paste-button"));
+                Common.Utils.InternalSettings.set("de-settings-paste-button", value);
+                this.api.asc_setVisiblePasteButton(!!value);
             }
 
             this.api.put_ShowSnapLines(Common.Utils.InternalSettings.get("de-settings-showsnaplines"));
@@ -495,8 +503,12 @@ define([
 
         onCreateNew: function(menu, type) {
             if ( !Common.Controllers.Desktop.process('create:new') ) {
-                var newDocumentPage = window.open(type == 'blank' ? this.mode.createUrl : type, "_blank");
-                if (newDocumentPage) newDocumentPage.focus();
+                if (this.mode.canRequestCreateNew)
+                    Common.Gateway.requestCreateNew();
+                else {
+                    var newDocumentPage = window.open(type == 'blank' ? this.mode.createUrl : type, "_blank");
+                    if (newDocumentPage) newDocumentPage.focus();
+                }
             }
 
             if (menu) {
@@ -532,10 +544,6 @@ define([
         },
 
         /** coauthoring begin **/
-        clickStatusbarUsers: function() {
-            this.leftMenu.menuFile.panels['rights'].changeAccessRights();
-        },
-
         onHideChat: function() {
             $(this.leftMenu.btnChat.el).blur();
             Common.NotificationCenter.trigger('layout:changed', 'leftmenu');

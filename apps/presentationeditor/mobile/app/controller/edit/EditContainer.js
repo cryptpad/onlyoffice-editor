@@ -230,10 +230,7 @@ define([
                 var $layoutPages = $(
                     '<div class="pages">' +
                         '<div class="page" data-page="index">' +
-                            '<div class="page-content">' +
-                                '<div class="tabs-animated-wrap">' +
-                                    '<div class="tabs"></div>' +
-                                '</div>' +
+                            '<div class="page-content tabs">' +
                             '</div>' +
                         '</div>' +
                     '</div>'
@@ -365,7 +362,7 @@ define([
                         _settings.push('hyperlink');
                     }
                 });
-                if (!no_text)
+                if (!no_text && !_.contains(_settings, 'image'))
                     _settings.unshift('text');
 
                 // Exclude hyperlink if text is locked

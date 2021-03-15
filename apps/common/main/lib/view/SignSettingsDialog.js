@@ -86,7 +86,7 @@ define([
                     '<div id="id-dlg-sign-settings-date"></div>',
                 '</div>',
                 '<div class="footer center">',
-                    '<button class="btn normal dlg-btn primary" result="ok" style="margin-right: 10px;">' + this.okButtonText + '</button>',
+                    '<button class="btn normal dlg-btn primary" result="ok">' + this.okButtonText + '</button>',
                     '<% if (type == "edit") { %>',
                     '<button class="btn normal dlg-btn" result="cancel">' + this.cancelButtonText + '</button>',
                     '<% } %>',
@@ -142,13 +142,12 @@ define([
             $window.find('.dlg-btn').on('click', _.bind(this.onBtnClick, this));
         },
 
-        show: function() {
-            Common.UI.Window.prototype.show.apply(this, arguments);
+        getFocusedComponents: function() {
+            return [this.inputName, this.inputTitle, this.inputEmail, this.textareaInstructions];
+        },
 
-            var me = this;
-            _.delay(function(){
-                me.inputName.cmpEl.find('input').focus();
-            },500);
+        getDefaultFocusableComponent: function () {
+            return this.inputName;
         },
 
         setSettings: function (props) {
@@ -164,6 +163,8 @@ define([
                 value = props.asc_getInstructions();
                 me.textareaInstructions.val(value ? value : '');
                 me.chDate.setValue(props.asc_getShowDate());
+
+                me._currentGuid = props.asc_getGuid();
             }
         },
 
@@ -176,6 +177,7 @@ define([
             props.asc_setEmail(me.inputEmail.getValue());
             props.asc_setInstructions(me.textareaInstructions.val());
             props.asc_setShowDate(me.chDate.getValue()=='checked');
+            (me._currentGuid!==undefined) && props.asc_setGuid(me._currentGuid);
 
             return props;
         },
@@ -200,8 +202,6 @@ define([
         textInfoTitle:      'Signer Title',
         textInfoEmail:      'E-mail',
         textInstructions:   'Instructions for Signer',
-        cancelButtonText:   'Cancel',
-        okButtonText:       'Ok',
         txtEmpty:           'This field is required',
         textAllowComment:   'Allow signer to add comment in the signature dialog',
         textShowDate:       'Show sign date in signature line',

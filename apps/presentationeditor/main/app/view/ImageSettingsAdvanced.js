@@ -140,13 +140,13 @@ define([    'text!presentationeditor/main/app/template/ImageSettingsAdvanced.tem
             }, this));
 
             this.btnRatio = new Common.UI.Button({
+                parentEl: $('#image-advanced-button-ratio'),
                 cls: 'btn-toolbar',
-                iconCls: 'advanced-btn-ratio',
+                iconCls: 'toolbar__icon advanced-btn-ratio',
                 style: 'margin-bottom: 1px;',
                 enableToggle: true,
                 hint: this.textKeepRatio
             });
-            this.btnRatio.render($('#image-advanced-button-ratio')) ;
             this.btnRatio.on('click', _.bind(function(btn, e) {
                 if (btn.pressed && this.spnHeight.getNumberValue()>0) {
                     this._nRatio = this.spnWidth.getNumberValue()/this.spnHeight.getNumberValue();
@@ -218,6 +218,33 @@ define([    'text!presentationeditor/main/app/template/ImageSettingsAdvanced.tem
             });
 
             this.afterRender();
+        },
+
+        getFocusedComponents: function() {
+            return [
+                this.spnWidth, this.spnHeight, this.spnX, this.spnY,// 0 tab
+                this.spnAngle,  // 1 tab
+                this.inputAltTitle, this.textareaAltDescription  // 2 tab
+            ];
+        },
+
+        onCategoryClick: function(btn, index) {
+            Common.Views.AdvancedSettingsWindow.prototype.onCategoryClick.call(this, btn, index);
+
+            var me = this;
+            setTimeout(function(){
+                switch (index) {
+                    case 0:
+                        me.spnWidth.focus();
+                        break;
+                    case 1:
+                        me.spnAngle.focus();
+                        break;
+                    case 2:
+                        me.inputAltTitle.focus();
+                        break;
+                }
+            }, 10);
         },
 
         afterRender: function() {
@@ -316,15 +343,13 @@ define([    'text!presentationeditor/main/app/template/ImageSettingsAdvanced.tem
                 };
         },
 
-        textOriginalSize: 'Default Size',
+        textOriginalSize: 'Actual Size',
         textPosition:   'Position',
         textSize:       'Size',
         textWidth:      'Width',
         textHeight:     'Height',
         textTitle:      'Image - Advanced Settings',
         textKeepRatio: 'Constant Proportions',
-        cancelButtonText: 'Cancel',
-        okButtonText:   'Ok',
         textPlacement:  'Placement',
         textAlt: 'Alternative Text',
         textAltTitle: 'Title',

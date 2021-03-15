@@ -61,6 +61,8 @@ define([
                     'changerange': _.bind(this.onChangeRange,this)
                 }
             });
+            Common.NotificationCenter.on('print', _.bind(this.openPrintSettings, this, 'print'));
+            Common.NotificationCenter.on('download:settings', _.bind(this.openPrintSettings, this, 'download'));
         },
 
         onLaunch: function() {
@@ -70,8 +72,7 @@ define([
         onAfterRender: function(view) {
             this.printSettings.cmbSheet.on('selected', _.bind(this.comboSheetsChange, this, this.printSettings));
             this.printSettings.btnOk.on('click', _.bind(this.querySavePrintSettings, this));
-            Common.NotificationCenter.on('print', _.bind(this.openPrintSettings, this, 'print'));
-            Common.NotificationCenter.on('download:settings', _.bind(this.openPrintSettings, this, 'download'));
+            this.fillComponents(this.printSettings);
             this.registerControlEvents(this.printSettings);
         },
 
@@ -110,10 +111,10 @@ define([
         },
 
         comboSheetsChange: function(panel, combo, record) {
-            this.fillPageOptions(panel, this._changedProps[record.value] ? this._changedProps[record.value] : this.api.asc_getPageOptions(record.value));
+            this.fillPageOptions(panel, this._changedProps[record.value] ? this._changedProps[record.value] : this.api.asc_getPageOptions(record.value, true), record.value);
         },
 
-        fillPageOptions: function(panel, props) {
+        fillPageOptions: function(panel, props, sheet) {
             var opt = props.asc_getPageSetup();
             this._originalPageSettings = opt;
 
@@ -138,15 +139,13 @@ define([
             if (item)
                 panel.cmbPaperSize.setValue(item.get('value'));
             else
-                panel.cmbPaperSize.setValue('Custom (' + parseFloat(Common.Utils.Metric.fnRecalcFromMM(w).toFixed(2)) + Common.Utils.Metric.getCurrentMetricName() + ' x ' +
+                panel.cmbPaperSize.setValue(this.txtCustom + ' (' + parseFloat(Common.Utils.Metric.fnRecalcFromMM(w).toFixed(2)) + Common.Utils.Metric.getCurrentMetricName() + ' x ' +
                                                          parseFloat(Common.Utils.Metric.fnRecalcFromMM(h).toFixed(2)) + Common.Utils.Metric.getCurrentMetricName() + ')');
 
-            var fitwidth = opt.asc_getFitToWidth(),
-                fitheight = opt.asc_getFitToHeight();
-            if (!fitwidth && !fitheight) panel.cmbLayout.setValue(0);
-            else if (fitwidth && fitheight) panel.cmbLayout.setValue(1);
-            else if (fitwidth && !fitheight) panel.cmbLayout.setValue(2);
-            else panel.cmbLayout.setValue(3);
+            this.fitWidth = opt.asc_getFitToWidth();
+            this.fitHeight = opt.asc_getFitToHeight();
+            this.fitScale = opt.asc_getScale();
+            this.setScaling(panel, this.fitWidth, this.fitHeight, this.fitScale);
 
             item = panel.cmbPaperOrientation.store.findWhere({value: opt.asc_getOrientation()});
             if (item) panel.cmbPaperOrientation.setValue(item.get('value'));
@@ -159,6 +158,33 @@ define([
 
             panel.chPrintGrid.setValue(props.asc_getGridLines(), true);
             panel.chPrintRows.setValue(props.asc_getHeadings(), true);
+
+            var value = props.asc_getPrintTitlesHeight();
+            panel.txtRangeTop.setValue((value) ? value : '');
+            this._noApply = true;
+            panel.txtRangeTop.checkValidate();
+            this._noApply = false;
+            panel.dataRangeTop = value;
+
+            value = props.asc_getPrintTitlesWidth();
+            panel.txtRangeLeft.setValue((value) ? value : '');
+            this._noApply = true;
+            panel.txtRangeLeft.checkValidate();
+            this._noApply = false;
+            panel.dataRangeLeft = value;
+
+            value = (this.api.asc_getActiveWorksheetIndex()==sheet);
+            if (panel.btnPresetsTop.menu.items[0].value == 'select') {
+                panel.btnPresetsTop.menu.items[0].setVisible(value);
+                panel.txtRangeTop.setBtnDisabled && panel.txtRangeTop.setBtnDisabled(!value);
+            }
+            if (panel.btnPresetsLeft.menu.items[0].value == 'select') {
+                panel.btnPresetsLeft.menu.items[0].setVisible(value);
+                panel.txtRangeLeft.setBtnDisabled && panel.txtRangeLeft.setBtnDisabled(!value);
+            }
+
+            panel.btnPresetsTop.menu.items[panel.btnPresetsTop.menu.items[0].value == 'frozen' ? 0 : 1].setDisabled(!this.api.asc_getPrintTitlesRange(Asc.c_oAscPrintTitlesRangeType.frozen, false, sheet));
+            panel.btnPresetsLeft.menu.items[panel.btnPresetsLeft.menu.items[0].value == 'frozen' ? 0 : 1].setDisabled(!this.api.asc_getPrintTitlesRange(Asc.c_oAscPrintTitlesRangeType.frozen, true, sheet));
         },
 
         fillPrintOptions: function(props) {
@@ -181,8 +207,8 @@ define([
 
         getPageOptions: function(panel) {
             var props = new Asc.asc_CPageOptions();
-            props.asc_setGridLines(panel.chPrintGrid.getValue() == 'indeterminate' ? undefined : panel.chPrintGrid.getValue()=='checked'?1:0);
-            props.asc_setHeadings(panel.chPrintRows.getValue() == 'indeterminate' ? undefined : panel.chPrintRows.getValue()=='checked'?1:0);
+            props.asc_setGridLines(panel.chPrintGrid.getValue()==='checked');
+            props.asc_setHeadings(panel.chPrintRows.getValue()==='checked');
 
             var opt = new Asc.asc_CPageSetup();
             opt.asc_setOrientation(panel.cmbPaperOrientation.getValue() == '-' ? undefined : panel.cmbPaperOrientation.getValue());
@@ -194,9 +220,18 @@ define([
             opt.asc_setHeight(pageh? parseFloat(pageh[0]) : (this._originalPageSettings ? this._originalPageSettings.asc_getHeight() : undefined));
 
             var value = panel.cmbLayout.getValue();
-            opt.asc_setFitToWidth(value==1 || value==2);
-            opt.asc_setFitToHeight(value==1 || value==3);
-
+            if (value !== 4) {
+                var fitToWidth = (value==1 || value==2) ? 1 : 0,
+                    fitToHeight = (value==1 || value==3) ? 1 : 0;
+                opt.asc_setFitToWidth(fitToWidth);
+                opt.asc_setFitToHeight(fitToHeight);
+                !fitToWidth && !fitToHeight && opt.asc_setScale(100);
+                this.setScaling(panel, fitToWidth, fitToHeight, 100);
+            } else {
+                opt.asc_setFitToWidth(this.fitWidth);
+                opt.asc_setFitToHeight(this.fitHeight);
+                opt.asc_setScale(this.fitScale);
+            }
             props.asc_setPageSetup(opt);
 
             opt = new Asc.asc_CPageMargins();
@@ -206,6 +241,12 @@ define([
             opt.asc_setBottom(panel.spnMarginBottom.getValue() == '-' ? undefined : Common.Utils.Metric.fnRecalcToMM(panel.spnMarginBottom.getNumberValue()));
 
             props.asc_setPageMargins(opt);
+
+            var check = this.api.asc_checkDataRange(Asc.c_oAscSelectionDialogType.PrintTitles, panel.txtRangeTop.getValue(), false) !== Asc.c_oAscError.ID.DataRangeError;
+            props.asc_setPrintTitlesHeight(check ? panel.txtRangeTop.getValue() : panel.dataRangeTop);
+
+            check = this.api.asc_checkDataRange(Asc.c_oAscSelectionDialogType.PrintTitles, panel.txtRangeLeft.getValue(), false) !== Asc.c_oAscError.ID.DataRangeError;
+            props.asc_setPrintTitlesWidth(check ? panel.txtRangeLeft.getValue() : panel.dataRangeLeft);
 
             return props;
         },
@@ -237,6 +278,7 @@ define([
             }
 
             if (this.api) {
+                Common.UI.Menu.Manager.hideAll();
                 this.asUrl = asUrl;
                 this.downloadFormat = format;
                 this.printSettingsDlg = (new SSE.Views.PrintSettings({
@@ -246,6 +288,7 @@ define([
                         this._changedProps = [];
                         this.updateSettings(this.printSettingsDlg);
                         this.printSettingsDlg.cmbSheet.on('selected', _.bind(this.comboSheetsChange, this, this.printSettingsDlg));
+                        this.fillComponents(this.printSettingsDlg, true);
                         this.fillPrintOptions(this.adjPrintParams);
                         this.registerControlEvents(this.printSettingsDlg);
                     },this)
@@ -339,18 +382,55 @@ define([
         registerControlEvents: function(panel) {
             panel.cmbPaperSize.on('selected', _.bind(this.propertyChange, this, panel));
             panel.cmbPaperOrientation.on('selected', _.bind(this.propertyChange, this, panel));
-            panel.cmbLayout.on('selected', _.bind(this.propertyChange, this, panel));
+            panel.cmbLayout.on('selected', _.bind(this.propertyChange, this, panel, 'scale'));
             panel.spnMarginTop.on('change', _.bind(this.propertyChange, this, panel));
             panel.spnMarginBottom.on('change', _.bind(this.propertyChange, this, panel));
             panel.spnMarginLeft.on('change', _.bind(this.propertyChange, this, panel));
             panel.spnMarginRight.on('change', _.bind(this.propertyChange, this, panel));
             panel.chPrintGrid.on('change', _.bind(this.propertyChange, this, panel));
             panel.chPrintRows.on('change', _.bind(this.propertyChange, this, panel));
+            panel.txtRangeTop.on('changing', _.bind(this.propertyChange, this, panel));
+            panel.txtRangeLeft.on('changing', _.bind(this.propertyChange, this, panel));
+            panel.txtRangeTop.on('button:click', _.bind(this.onPresetSelect, this, panel, 'top', panel.btnPresetsTop.menu, {value: 'select'}));
+            panel.txtRangeLeft.on('button:click', _.bind(this.onPresetSelect, this, panel, 'left', panel.btnPresetsLeft.menu, {value: 'select'}));
+            panel.btnPresetsTop.menu.on('item:click', _.bind(this.onPresetSelect, this, panel, 'top'));
+            panel.btnPresetsLeft.menu.on('item:click', _.bind(this.onPresetSelect, this, panel, 'left'));
         },
 
-        propertyChange: function(panel) {
-            if (this._changedProps) {
-                this._changedProps[panel.cmbSheet.getValue()] = this.getPageOptions(panel);
+        propertyChange: function(panel, scale, combo, record) {
+            if (scale === 'scale' && record.value === 'customoptions') {
+                var me = this,
+                    props = (me._changedProps.length > 0 && me._changedProps[panel.cmbSheet.getValue()]) ? me._changedProps[panel.cmbSheet.getValue()] : me.api.asc_getPageOptions(panel.cmbSheet.getValue(), true);
+                var win = new SSE.Views.ScaleDialog({
+                    api: me.api,
+                    props: props,
+                    handler: function(dlg, result) {
+                        if (dlg == 'ok') {
+                            if (me.api && result) {
+                                me.fitWidth = result.width;
+                                me.fitHeight = result.height;
+                                me.fitScale = result.scale;
+                                me.setScaling(panel, me.fitWidth, me.fitHeight, me.fitScale);
+                                if (me._changedProps) {
+                                    me._changedProps[panel.cmbSheet.getValue()] = me.getPageOptions(panel);
+                                }
+                            }
+                        } else {
+                            var opt = props.asc_getPageSetup(),
+                                fitwidth = opt.asc_getFitToWidth(),
+                                fitheight = opt.asc_getFitToHeight(),
+                                fitscale = opt.asc_getScale();
+                            me.setScaling(panel, fitwidth, fitheight, fitscale);
+                        }
+                        Common.NotificationCenter.trigger('edit:complete');
+                    }
+                });
+                win.show();
+                Common.NotificationCenter.trigger('edit:complete', this.toolbar);
+            } else {
+                if (this._changedProps) {
+                    this._changedProps[panel.cmbSheet.getValue()] = this.getPageOptions(panel);
+                }
             }
         },
 
@@ -358,9 +438,132 @@ define([
             return this.adjPrintParams;
         },
 
+        setScaling: function (panel, width, height, scale) {
+            var value;
+            if (!width && !height && scale === 100) value = 0;
+            else if (width === 1 && height === 1) value = 1;
+            else if (width === 1 && !height) value = 2;
+            else if (!width && height === 1) value = 3;
+            else value = 4;
+            panel.addCustomScale(value === 4);
+            panel.cmbLayout.setValue(value, true);
+        },
+
+        fillComponents: function(panel, selectdata) {
+            var me = this;
+            panel.txtRangeTop.validation = function(value) {
+                !me._noApply && me.propertyChange(panel);
+                if (_.isEmpty(value)) {
+                    return true;
+                }
+                var isvalid = me.api.asc_checkDataRange(Asc.c_oAscSelectionDialogType.PrintTitles, value, false);
+                return (isvalid==Asc.c_oAscError.ID.DataRangeError) ? me.textInvalidRange : true;
+            };
+            selectdata && panel.txtRangeTop.updateBtnHint(this.textSelectRange);
+
+            panel.txtRangeLeft.validation = function(value) {
+                !me._noApply &&  me.propertyChange(panel);
+                if (_.isEmpty(value)) {
+                    return true;
+                }
+                var isvalid = me.api.asc_checkDataRange(Asc.c_oAscSelectionDialogType.PrintTitles, value, false);
+                return (isvalid==Asc.c_oAscError.ID.DataRangeError) ? me.textInvalidRange : true;
+            };
+            selectdata && panel.txtRangeLeft.updateBtnHint(this.textSelectRange);
+
+            var data = ((selectdata) ? [{caption: this.textSelectRange + '...', value: 'select'}] : []).concat([
+                {caption: this.textFrozenRows, value: 'frozen'},
+                {caption: this.textFirstRow, value: 'first'},
+                {caption: '--'},
+                {caption: this.textNoRepeat, value: 'empty'}
+            ]);
+            panel.btnPresetsTop.setMenu(new Common.UI.Menu({
+                style: 'min-width: 100px;',
+                maxHeight: 200,
+                additionalAlign: panel.menuAddAlign,
+                items: data
+            }));
+            data = ((selectdata) ? [{caption: this.textSelectRange + '...', value: 'select'}] : []).concat([
+                {caption: this.textFrozenCols, value: 'frozen'},
+                {caption: this.textFirstCol, value: 'first'},
+                {caption: '--'},
+                {caption: this.textNoRepeat, value: 'empty'}
+            ]);
+            panel.btnPresetsLeft.setMenu(new Common.UI.Menu({
+                style: 'min-width: 100px;',
+                maxHeight: 200,
+                additionalAlign: panel.menuAddAlign,
+                items: data
+            }));
+        },
+
+        onPresetSelect: function(panel, type, menu, item) {
+            var txtRange = (type=='top') ? panel.txtRangeTop : panel.txtRangeLeft;
+            if (item.value == 'select') {
+                var me = this;
+                if (me.api) {
+                    panel.btnPresetsTop.menu.options.additionalAlign = panel.menuAddAlign;
+                    panel.btnPresetsLeft.menu.options.additionalAlign = panel.menuAddAlign;
+
+                    var handlerDlg = function(dlg, result) {
+                        if (result == 'ok') {
+                            var valid = dlg.getSettings();
+                            if (type=='top')
+                                panel.dataRangeTop = valid;
+                            else
+                                panel.dataRangeLeft = valid;
+                            txtRange.setValue(valid);
+                            txtRange.checkValidate();
+                        }
+                    };
+
+                    var win = new SSE.Views.CellRangeDialog({
+                        handler: handlerDlg
+                    }).on('close', function() {
+                        panel.show();
+                        _.delay(function(){
+                            txtRange.focus();
+                        },1);
+                    });
+
+                    var xy = panel.$window.offset();
+                    panel.hide();
+                    win.show(xy.left + 160, xy.top + 125);
+                    win.setSettings({
+                        api     : me.api,
+                        range   : (!_.isEmpty(txtRange.getValue()) && (txtRange.checkValidate()==true)) ? txtRange.getValue() : ((type=='top') ? panel.dataRangeTop : panel.dataRangeLeft),
+                        type    : Asc.c_oAscSelectionDialogType.PrintTitles
+                    });
+                }
+            } else {
+                var value = '';
+                if (item.value == 'frozen')
+                    value = this.api.asc_getPrintTitlesRange(Asc.c_oAscPrintTitlesRangeType.frozen, type=='left', panel.cmbSheet.getValue());
+                else if (item.value == 'first')
+                    value = this.api.asc_getPrintTitlesRange(Asc.c_oAscPrintTitlesRangeType.first, type=='left', panel.cmbSheet.getValue());
+                txtRange.setValue(value);
+                txtRange.checkValidate();
+                if (type=='top')
+                    panel.dataRangeTop = value;
+                else
+                    panel.dataRangeLeft = value;
+                _.delay(function(){
+                    txtRange.focus();
+                },1);
+            }
+        },
+
         warnCheckMargings:      'Margins are incorrect',
         strAllSheets:           'All Sheets',
         textWarning: 'Warning',
-        txtCustom: 'Custom'
+        txtCustom: 'Custom',
+        textInvalidRange:   'ERROR! Invalid cells range',
+        textRepeat: 'Repeat...',
+        textNoRepeat: 'Not repeat',
+        textSelectRange: 'Select range',
+        textFrozenRows: 'Frozen rows',
+        textFrozenCols: 'Frozen columns',
+        textFirstRow: 'First row',
+        textFirstCol: 'First column'
     }, SSE.Controllers.Print || {}));
 });

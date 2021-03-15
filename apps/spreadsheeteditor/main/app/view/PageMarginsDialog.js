@@ -49,7 +49,8 @@ define([
             header: true,
             style: 'min-width: 216px;',
             cls: 'modal-dlg',
-            id: 'window-page-margins'
+            id: 'window-page-margins',
+            buttons: ['ok', 'cancel']
         },
 
         initialize : function(options) {
@@ -82,11 +83,7 @@ define([
                         '</tr>',
                     '</table>',
                 '</div>',
-                '<div class="separator horizontal"/>',
-                '<div class="footer center">',
-                    '<button class="btn normal dlg-btn primary" result="ok" style="margin-right: 10px;">' + this.okButtonText + '</button>',
-                    '<button class="btn normal dlg-btn" result="cancel">' + this.cancelButtonText + '</button>',
-                '</div>'
+                '<div class="separator horizontal"></div>'
             ].join('');
 
             this.options.tpl = _.template(this.template)(this.options);
@@ -152,6 +149,14 @@ define([
             this.updateMetricUnit();
         },
 
+        getFocusedComponents: function() {
+            return this.spinners;
+        },
+
+        getDefaultFocusableComponent: function () {
+            return this.spnTop;
+        },
+
         _handleInput: function(state) {
             if (this.options.handler)
                 this.options.handler.call(this, this, state);
@@ -202,8 +207,6 @@ define([
         textTop: 'Top',
         textLeft: 'Left',
         textBottom: 'Bottom',
-        textRight: 'Right',
-        cancelButtonText:   'Cancel',
-        okButtonText:       'Ok'
+        textRight: 'Right'
     }, SSE.Views.PageMarginsDialog || {}))
 });

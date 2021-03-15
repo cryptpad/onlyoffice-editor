@@ -129,12 +129,12 @@ define([
 
 
                 // Init font name
-                var fontName = _fontInfo.asc_getName() || this.textFonts;
+                var fontName = _fontInfo.asc_getFontName() || this.textFonts;
                 $('#font-fonts .item-title').html(fontName);
 
 
                 // Init font size
-                var displaySize = _fontInfo.asc_getSize();
+                var displaySize = _fontInfo.asc_getFontSize();
                 _.isUndefined(displaySize) ? displaySize = this.textAuto : displaySize = displaySize + ' ' + this.textPt;
 
                 $('#font-fonts .item-after span:first-child').html(displaySize);
@@ -142,13 +142,13 @@ define([
 
 
                 // Init font style
-                $('#font-bold').toggleClass('active', _fontInfo.asc_getBold() === true);
-                $('#font-italic').toggleClass('active', _fontInfo.asc_getItalic() === true);
-                $('#font-underline').toggleClass('active', _fontInfo.asc_getUnderline() === true);
+                $('#font-bold').toggleClass('active', _fontInfo.asc_getFontBold() === true);
+                $('#font-italic').toggleClass('active', _fontInfo.asc_getFontItalic() === true);
+                $('#font-underline').toggleClass('active', _fontInfo.asc_getFontUnderline() === true);
 
 
                 // Init font color
-                var color = _fontInfo.asc_getColor(),
+                var color = _fontInfo.asc_getFontColor(),
                     clr = me._sdkToThemeColor(color);
 
                 $('#font-color .color-preview').css('background-color', '#' + (_.isObject(clr) ? clr.color : clr));
@@ -156,8 +156,8 @@ define([
                 // Align
                 $('#edit-text-align-block').css('display', (_textIn == TextType.inShape) ? 'block' : 'none');
 
-                var hAlign = _cellInfo.asc_getHorAlign(),
-                    vAlign = _cellInfo.asc_getVertAlign();
+                var hAlign = _fontInfo.asc_getHorAlign(),
+                    vAlign = _fontInfo.asc_getVertAlign();
 
                 $('#font-left').toggleClass('active', hAlign===AscCommon.align_Left);
                 $('#font-center').toggleClass('active', hAlign===AscCommon.align_Center);
@@ -182,7 +182,7 @@ define([
 
             initFontsPage: function () {
                 var me = this,
-                    displaySize = _fontInfo.size;
+                    displaySize = _fontInfo.asc_getFontSize();
 
                 _.isUndefined(displaySize) ? displaySize = this.textAuto : displaySize = displaySize + ' ' + this.textPt;
 
@@ -196,10 +196,8 @@ define([
 
             initTextColorPage: function () {
                 var me = this,
-                    color = me._sdkToThemeColor(_fontInfo.color),
-                    palette = new Common.UI.ThemeColorPalette({
-                        el: $('.page[data-page=edit-text-color] .page-content')
-                    });
+                    color = me._sdkToThemeColor(_fontInfo.asc_getFontColor()),
+                    palette = me.getView('EditText').paletteTextColor;
 
                 if (palette) {
                     palette.select(color);
@@ -212,7 +210,7 @@ define([
             onFontSize: function (e) {
                 var me = this,
                     $button = $(e.currentTarget),
-                    fontSize = _fontInfo.size;
+                    fontSize = _fontInfo.asc_getFontSize();
 
                 if ($button.hasClass('decrement')) {
                     _.isUndefined(fontSize) ? me.api.asc_decreaseFontSize() : fontSize = Math.max(1, --fontSize);
@@ -324,9 +322,9 @@ define([
                 }
 
                 _cellInfo = info;
-                _fontInfo = info.asc_getFont();
+                _fontInfo = info.asc_getXfs();
 
-                var selectType = info.asc_getFlags().asc_getSelectionType();
+                var selectType = info.asc_getSelectionType();
 
                 switch (selectType) {
                     case Asc.c_oAscSelectionType.RangeChartText: _textIn = TextType.inChart; break;

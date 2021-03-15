@@ -142,7 +142,7 @@ define([
             if (record.get('value')>0) {
                 formcontrol[0].innerHTML = '';
                 formcontrol.removeClass('text').addClass('image');
-                formcontrol.css('background-position', '0 -' + record.get('offsety') + 'px');
+                formcontrol.css('background-position', '10px -' + record.get('offsety') + 'px');
             } else {
                 formcontrol[0].innerHTML = this.txtNoBorders;
                 formcontrol.removeClass('image').addClass('text');
@@ -229,7 +229,7 @@ define([
                 '<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret img-commonctrl"></span></button>',
                 '<ul class="dropdown-menu <%= menuCls %>" style="<%= menuStyle %>" role="menu">',
                     '<% _.each(items, function(item) { %>',
-                        '<li id="<%= item.id %>" data-value="<%= item.value %>"><a tabindex="-1" type="menuitem" style="padding: 2px 0;">',
+                        '<li id="<%= item.id %>" data-value="<%= item.value %>"><a tabindex="-1" type="menuitem" style="padding: 2px 0 2px 10px;">',
                             '<span style="margin-top: 0;"></span>',
                             '<% if (item.offsety!==undefined) { %>',
                                 '<img src="data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" align="left" style="background-position: 0 -<%= item.offsety %>px;">',
@@ -265,7 +265,111 @@ define([
             var formcontrol = $(this.el).find('.form-control');
             formcontrol[0].innerHTML = '';
             formcontrol.removeClass('text').addClass('image');
-            formcontrol.css('background-position', '0 -' + record.get('offsety') + 'px');
+            formcontrol.css('background-position', '10px -' + record.get('offsety') + 'px');
         }
     }, Common.UI.ComboBorderType || {}));
+
+    Common.UI.ComboBoxColor = Common.UI.ComboBox.extend(_.extend({
+        template: _.template([
+            '<div class="input-group combobox input-group-nr <%= cls %>" id="<%= id %>" style="<%= style %>">',
+            '<div class="form-control" style="padding:2px 14px 2px 3px; <%= style %> display: block;">',
+                '<div style="display: inline-block;overflow: hidden;width: 100%;height: 100%;"></div>',
+            '</div>',
+            '<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret img-commonctrl"></span></button>',
+            '<ul class="dropdown-menu <%= menuCls %>" style="<%= menuStyle %>" role="menu">',
+            '<% _.each(items, function(item) { %>',
+                '<% if (item.value==-1) { %>',
+                    '<li id="<%= item.id %>" data-value="<%= item.value %>"><a tabindex="-1" type="menuitem"><%= scope.getDisplayValue(item) %></a></li>',
+                '<% } else { %>',
+                    '<li id="<%= item.id %>" data-value="<%= item.value %>">',
+                    '<a tabindex="-1" type="menuitem" style="padding: 5px;"><div style="height: 15px;background-color: #<%= item.value %>"></div></a>',
+                    '</li>',
+                '<% } %>',
+            '<% }); %>',
+            '</ul>',
+            '</div>'
+        ].join('')),
+
+        itemClicked: function (e) {
+            var el = $(e.currentTarget).parent();
+
+            this._selectedItem = this.store.findWhere({
+                id: el.attr('id')
+            });
+            if (this._selectedItem) {
+                $('.selected', $(this.el)).removeClass('selected');
+                el.addClass('selected');
+                this.updateFormControl(this._selectedItem);
+
+                this.trigger('selected', this, _.extend({}, this._selectedItem.toJSON()), e);
+                e.preventDefault();
+            }
+        },
+
+        updateFormControl: function(record) {
+            var formcontrol = $(this.el).find('.form-control > div');
+
+            if (record.get('value')!=-1) {
+                formcontrol[0].innerHTML = '';
+                formcontrol.css({'background': '#' + record.get('value'), 'margin-top': '0'});
+            } else {
+                formcontrol[0].innerHTML = record.get('displayValue');
+                formcontrol.css({'background': '', 'margin-top': '1px'});
+            }
+        },
+
+        setValue: function(value) {
+            var obj;
+            this._selectedItem = this.store.findWhere((obj={}, obj[this.valueField]=value, obj));
+
+            $('.selected', $(this.el)).removeClass('selected');
+
+            if (this._selectedItem) {
+                this.updateFormControl(this._selectedItem);
+                $('#' + this._selectedItem.get('id'), $(this.el)).addClass('selected');
+            } else {
+                var formcontrol = $(this.el).find('.form-control > div');
+                formcontrol[0].innerHTML = '';
+                formcontrol.css('background', '');
+            }
+        },
+
+        onResetItems: function() {
+            if (this.itemsTemplate) {
+                $(this.el).find('ul').html( $(this.itemsTemplate({
+                    items: this.store.toJSON(),
+                    scope: this
+                })));
+            } else {
+                $(this.el).find('ul').html(_.template([
+                    '<% _.each(items, function(item) { %>',
+                    '<% if (item.value==-1) { %>',
+                    '<li id="<%= item.id %>" data-value="<%= item.value %>"><a tabindex="-1" type="menuitem"><%= scope.getDisplayValue(item) %></a></li>',
+                    '<% } else { %>',
+                    '<li id="<%= item.id %>" data-value="<%= item.value %>">',
+                    '<a tabindex="-1" type="menuitem" style="padding: 5px;"><div style="height: 15px;background-color: #<%= item.value %>"></div></a>',
+                    '</li>',
+                    '<% } %>',
+                    '<% }); %>'
+                ].join(''))({
+                    items: this.store.toJSON(),
+                    scope: this
+                }));
+            }
+
+            if (!_.isUndefined(this.scroller)) {
+                this.scroller.destroy();
+                delete this.scroller;
+            }
+            this.scroller = new Common.UI.Scroller(_.extend({
+                el: $('.dropdown-menu', this.cmpEl),
+                minScrollbarLength : 40,
+                includePadding     : true,
+                wheelSpeed: 10,
+                alwaysVisibleY: this.scrollAlwaysVisible
+            }, this.options.scroller));
+        }
+
+    }, Common.UI.ComboBoxColor || {}));
+
 });

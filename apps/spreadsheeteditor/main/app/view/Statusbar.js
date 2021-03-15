@@ -80,6 +80,7 @@ define([
                 }));
 
                 this.editMode = false;
+                this.rangeSelectionMode = Asc.c_oAscSelectionDialogType.None;
 
                 this.btnZoomDown = new Common.UI.Button({
                     el: $('#status-btn-zoomdown',this.el),
@@ -177,24 +178,116 @@ define([
                     //'tab:manual'        : _.bind(this.onAddTabClick, this),
                     'tab:contextmenu'   : _.bind(this.onTabMenu, this),
                     'tab:dblclick'      : _.bind(function () {
-                        if (me.editMode && (me.rangeSelectionMode !== Asc.c_oAscSelectionDialogType.Chart) &&
-                                           (me.rangeSelectionMode !== Asc.c_oAscSelectionDialogType.FormatTable)) {
+                        if (me.editMode && !(me.mode && me.mode.isDisconnected) && (me.rangeSelectionMode !== Asc.c_oAscSelectionDialogType.Chart) &&
+                                           (me.rangeSelectionMode !== Asc.c_oAscSelectionDialogType.FormatTable)&&
+                                           (me.rangeSelectionMode !== Asc.c_oAscSelectionDialogType.PrintTitles)) {
                             me.fireEvent('sheet:changename');
                         }
                     }, this),
-                    'tab:move'          : _.bind(function (tabIndex, index) {
+                    'tab:move'          : _.bind(function (selectTabs, index) {
                         me.tabBarScroll = {scrollLeft: me.tabbar.scrollX};
-
-                        if (_.isUndefined(index) || tabIndex === index) {
+                        if (_.isUndefined(selectTabs) || _.isUndefined(index) || (selectTabs && selectTabs.length === 1 && selectTabs[0] === index)) {
                             return;
                         }
+                        if (_.isArray(selectTabs)) {
+                            me.fireEvent('sheet:move', [selectTabs, false, true, undefined, index]);
+                        } else {
+                            var tabIndex = selectTabs;
 
-                        if (tabIndex < index) {
-                            ++index;
+                            if (tabIndex < index) {
+                                ++index;
+                            }
+
+                            me.fireEvent('sheet:move', [undefined, false, true, tabIndex, index]);
                         }
 
-                        me.fireEvent('sheet:move', [false, true, tabIndex, index]);
-
+                    }, this),
+                    'tab:dragstart': _.bind(function (dataTransfer, selectTabs) {
+                        Common.UI.Menu.Manager.hideAll();
+                        this.api.asc_closeCellEditor();
+                        var arrTabs = [],
+                            arrName = [],
+                            me = this;
+                        var wc = me.api.asc_getWorksheetsCount(), items = [], i = -1;
+                        while (++i < wc) {
+                            if (!this.api.asc_isWorksheetHidden(i)) {
+                                items.push({
+                                    value: me.api.asc_getWorksheetName(i),
+                                    inindex: i
+                                });
+                            }
+                        }
+                        var arrSelectIndex = [];
+                        selectTabs.forEach(function (item) {
+                            arrSelectIndex.push(item.sheetindex);
+                        });
+                        items.forEach(function (item) {
+                            if (arrSelectIndex.indexOf(item.inindex) !== -1) {
+                                arrTabs.push(item.inindex);
+                                arrName.push(item.value);
+                            }
+                        });
+                        var stringSheet, arr = [];
+                        stringSheet = this.api.asc_StartMoveSheet(_.clone(arrTabs));
+                        arr.push({type: 'onlyoffice', value: stringSheet});
+                        arr.push({type: 'indexes', value: arrTabs});
+                        arr.push({type: 'names', value: arrName});
+                        arr.push({type: 'key', value: Common.Utils.InternalSettings.get("sse-doc-info-key")});
+                        var json = JSON.stringify(arr);
+                        dataTransfer.setData("onlyoffice", json);
+                        this.dropTabs = selectTabs;
+                    }, this),
+                    'tab:drop': _.bind(function (dataTransfer, index) {
+                         if (this.isEditFormula) return;
+                         var data = dataTransfer.getData("onlyoffice");
+                         if (data) {
+                             var arrData = JSON.parse(data);
+                             if (arrData) {
+                                 var key = _.findWhere(arrData, {type: 'key'}).value;
+                                 if (Common.Utils.InternalSettings.get("sse-doc-info-key") === key) {
+                                     this.api.asc_moveWorksheet(_.isNumber(index) ? index : this.api.asc_getWorksheetsCount(), _.findWhere(arrData, {type: 'indexes'}).value);
+                                     this.api.asc_enableKeyEvents(true);
+                                     Common.NotificationCenter.trigger('tabs:dragend', this);
+                                 } else {
+                                     var names = [], wc = this.api.asc_getWorksheetsCount();
+                                     while (wc--) {
+                                         names.push(this.api.asc_getWorksheetName(wc).toLowerCase());
+                                     }
+                                     var newNames = [];
+                                     var arrNames = _.findWhere(arrData, {type: 'names'}).value;
+                                     arrNames.forEach(function (name) {
+                                         var ind = 1,
+                                             name = name;
+                                         var re = /^(.*)\((\d)\)$/.exec(name);
+                                         var first = re ? re[1] : name + ' ';
+                                         var arr = [];
+                                         newNames.length > 0 && newNames.forEach(function (item) {
+                                             arr.push(item.toLowerCase());
+                                         });
+                                         while (names.indexOf(name.toLowerCase()) !== -1 || arr.indexOf(name.toLowerCase()) !== -1) {
+                                             ind++;
+                                             name = first + '(' + ind + ')';
+                                         }
+                                         newNames.push(name);
+                                     });
+                                     var index = _.isNumber(index) ? index : this.api.asc_getWorksheetsCount();
+                                     this.api.asc_EndMoveSheet(index, newNames, _.findWhere(arrData, {type: 'onlyoffice'}).value);
+                                 }
+                             }
+                         }
+                    }, this),
+                    'tab:dragend':  _.bind(function (cut) {
+                        if (cut) {
+                            if (this.dropTabs.length > 0) {
+                                var arr = [];
+                                this.dropTabs.forEach(function (tab) {
+                                    arr.push(tab.sheetindex);
+                                });
+                                me.api.asc_deleteWorksheet(arr);
+                            }
+                        }
+                        this.dropTabs = undefined;
+                        Common.NotificationCenter.trigger('tabs:dragend', this);
                     }, this)
                 });
 
@@ -212,7 +305,7 @@ define([
                     menuAlign: 'tl-tr',
                     cls: 'color-tab',
                     items: [
-                        { template: _.template('<div id="id-tab-menu-color" style="width: 169px; height: 220px; margin: 10px;"></div>') },
+                        { template: _.template('<div id="id-tab-menu-color" style="width: 169px; height: 216px; margin: 10px;"></div>') },
                         { template: _.template('<a id="id-tab-menu-new-color" style="padding-left:12px;">' + me.textNewColor + '</a>') }
                     ]
                 });
@@ -241,7 +334,10 @@ define([
                         {
                             caption: this.itemTabColor,
                             menu: menuColorItems
-                        }
+                        },
+                        { caption: '--' },
+                        {caption: this.selectAllSheets,  value: 'selectall'},
+                        {caption: this.ungroupSheets,  value: 'noselect'}
                     ]
                 }).on('render:after', function(btn) {
                         var colorVal = $('<div class="btn-color-value-line"></div>');
@@ -258,7 +354,67 @@ define([
                         });
                     });
 
-                this.tabbar.$el.append('<div class="dropdown-toggle" data-toggle="dropdown" style="width:0; height:0;"/>');
+                var customizeStatusBarMenuTemplate = _.template('<a id="<%= id %>" tabindex="-1" type="menuitem">'+
+                    '<div style="position: relative;">'+
+                    '<div style="position: absolute; left: 0; width: 100px;"><%= caption %></div>' +
+                    '<label style="width: 100%; overflow: hidden; text-overflow: ellipsis; text-align: right; vertical-align: bottom; padding-left: 100px; color: silver;cursor: pointer;"><%= options.exampleval ? options.exampleval : "" %></label>' +
+                    '</div></a>');
+
+                this.customizeStatusBarMenu = new Common.UI.Menu({
+                    style: 'margin-top: -14px; margin-left: -7px;',
+                    menuAlign: 'bl-tl',
+                    items: [
+                        //{template: _.template('<div style="padding-left: 6px; padding-top: 2px;">' + this.textCustomizeStatusBar + '</div>')},
+                        //{caption: '--'},
+                        {
+                            id: 'math-item-average',
+                            caption: this.itemAverage,
+                            value: 'average',
+                            checkable: true,
+                            checked: true,
+                            template: customizeStatusBarMenuTemplate,
+                            exampleval: ''
+                        },
+                        {
+                            id: 'math-item-count',
+                            caption: this.itemCount,
+                            value: 'count',
+                            checkable: true,
+                            checked: true,
+                            template: customizeStatusBarMenuTemplate,
+                            exampleval: ''
+                        },
+                        {
+                            id: 'math-item-min',
+                            caption: this.itemMinimum,
+                            value: 'min',
+                            checkable: true,
+                            checked: true,
+                            template: customizeStatusBarMenuTemplate,
+                            exampleval: ''
+                        },
+                        {
+                            id: 'math-item-max',
+                            caption: this.itemMaximum,
+                            value: 'max',
+                            checkable: true,
+                            checked: true,
+                            template: customizeStatusBarMenuTemplate,
+                            exampleval: ''
+                        },
+                        {
+                            id: 'math-item-sum',
+                            caption: this.itemSum,
+                            value: 'sum',
+                            checkable: true,
+                            checked: true,
+                            template: customizeStatusBarMenuTemplate,
+                            exampleval: ''
+                        }
+                    ]
+                });
+
+                this.tabbar.$el.append('<div class="dropdown-toggle" data-toggle="dropdown" style="width:0; height:0;"></div>');
                 this.tabMenu.render(this.tabbar.$el);
                 this.tabMenu.cmpEl.attr({tabindex: -1});
                 this.tabMenu.on('show:after', _.bind(this.onTabMenuAfterShow, this));
@@ -279,6 +435,28 @@ define([
 
                 this.boxZoom = $('#status-zoom-box', this.el);
                 this.boxZoom.find('.separator').css('border-left-color','transparent');
+
+                this.$el.append('<div id="statusbar-menu" style="width:0; height:0;"></div>');
+                this.$customizeStatusBarMenu = this.$el.find('#statusbar-menu');
+                this.$customizeStatusBarMenu.on({
+                    'show.bs.dropdown': function () {
+                        _.defer(function(){
+                            me.$customizeStatusBarMenu.find('ul').focus();
+                         }, 100);
+                    },
+                    'hide.bs.dropdown': function () {
+                        _.defer(function(){
+                            me.api.asc_enableKeyEvents(true);
+                        }, 100);
+                    }
+                });
+                this.$customizeStatusBarMenu.append('<div class="dropdown-toggle" data-toggle="dropdown" style="width:0; height:0;"></div>');
+                this.customizeStatusBarMenu.render(this.$customizeStatusBarMenu);
+                this.customizeStatusBarMenu.cmpEl.attr({tabindex: -1});
+                this.customizeStatusBarMenu.on('show:after', _.bind(this.onCustomizeStatusBarAfterShow, this));
+                this.customizeStatusBarMenu.on('hide:after', _.bind(this.onCustomizeStatusBarAfterHide, this));
+                this.customizeStatusBarMenu.on('item:click', _.bind(this.onCustomizeStatusBarClick, this));
+                this.$el.on('contextmenu', _.bind(this.showCustomizeStatusBar, this));
 
                 return this;
             },
@@ -311,18 +489,23 @@ define([
 
                 if (this.api) {
                     var wc = this.api.asc_getWorksheetsCount(), i = -1;
-                    var hidentems = [], items = [], tab, locked;
+                    var hidentems = [], items = [], tab, locked, name;
                     var sindex = this.api.asc_getActiveWorksheetIndex();
 
                     while (++i < wc) {
                         locked = me.api.asc_isWorksheetLockedOrDeleted(i);
+                        name = me.api.asc_getActiveNamedSheetView ? me.api.asc_getActiveNamedSheetView(i) || '' : '';
                         tab = {
                             sheetindex    : i,
+                            index         : items.length,
                             active        : sindex == i,
                             label         : me.api.asc_getWorksheetName(i),
 //                          reorderable   : !locked,
                             cls           : locked ? 'coauth-locked':'',
-                            isLockTheDrag : locked
+                            isLockTheDrag : locked || me.mode.isDisconnected,
+                            iconCls       : 'btn-sheet-view',
+                            iconTitle     : name,
+                            iconVisible   : name!==''
                         };
 
                         this.api.asc_isWorksheetHidden(i)? hidentems.push(tab) : items.push(tab);
@@ -348,7 +531,7 @@ define([
                     if (!this.tabbar.isTabVisible(sindex))
                         this.tabbar.setTabVisible(sindex);
 
-                    this.btnAddWorksheet.setDisabled(me.mode.isDisconnected || me.api.asc_isWorkbookLocked());
+                    this.btnAddWorksheet.setDisabled(me.mode.isDisconnected || me.api.asc_isWorkbookLocked() || me.api.isCellEdited);
                     $('#status-label-zoom').text(Common.Utils.String.format(this.zoomText, Math.floor((this.api.asc_getZoom() +.005)*100)));
 
                     me.fireEvent('sheet:changed', [me, sindex]);
@@ -365,12 +548,35 @@ define([
                     this.labelMax.text((info.max && info.max.length) ? (this.textMax + ': ' + info.max) : '');
                     this.labelSum.text((info.sum && info.sum.length) ? (this.textSum + ': ' + info.sum) : '');
                     this.labelAverage.text((info.average && info.average.length) ? (this.textAverage + ': ' + info.average) : '');
+
+                    this.customizeStatusBarMenu.items.forEach(function (item) {
+                        if (item.options.id === 'math-item-average') {
+                            item.options.exampleval = (info.average && info.average.length) ? info.average : '';
+                        } else if (item.options.id === 'math-item-min') {
+                            item.options.exampleval = (info.min && info.min.length) ? info.min : '';
+                        } else if (item.options.id === 'math-item-max') {
+                            item.options.exampleval = (info.max && info.max.length) ? info.max : '';
+                        } else if (item.options.id === 'math-item-count') {
+                            item.options.exampleval = (info.count) ? String(info.count) : '';
+                        } else if (item.options.id === 'math-item-sum') {
+                            item.options.exampleval = (info.sum && info.sum.length) ? info.sum : '';
+                        } else {
+                            item.options.exampleval = '';
+                        }
+                        $(item.el).find('label').text(item.options.exampleval);
+                    });
                 } else {
+                    this.customizeStatusBarMenu.items.forEach(function (item) {
+                        item.options.exampleval = '';
+                        $(item.el).find('label').text('');
+                    });
                     if (this.boxMath.is(':visible')) this.boxMath.hide();
                 }
 
                 var me = this;
                 _.delay(function(){
+                    me.updateVisibleItemsBoxMath();
+                    me.updateTabbarBorders();
                     me.onTabInvisible(undefined, me.tabbar.checkInvisible(true));
                 },30);
             },
@@ -409,9 +615,11 @@ define([
                 // Common.NotificationCenter.trigger('comments:updatefilter', ['doc', 'sheet' + this.api.asc_getActiveWorksheetId()], false); //  hide popover
             },
 
-            onTabMenu: function (o, index, tab) {
+            onTabMenu: function (o, index, tab, select) {
+                var me = this;
                 if (this.mode.isEdit && !this.isEditFormula && (this.rangeSelectionMode !== Asc.c_oAscSelectionDialogType.Chart) &&
                                                                (this.rangeSelectionMode !== Asc.c_oAscSelectionDialogType.FormatTable) &&
+                                                               (this.rangeSelectionMode !== Asc.c_oAscSelectionDialogType.PrintTitles) &&
                     !this.mode.isDisconnected ) {
                     if (tab && tab.sheetindex >= 0) {
                         var rect = tab.$el.get(0).getBoundingClientRect(),
@@ -420,8 +628,18 @@ define([
 
                         if (!tab.isActive()) this.tabbar.setActive(tab);
 
-                        var issheetlocked   = this.api.asc_isWorksheetLockedOrDeleted(tab.sheetindex),
-                            isdoclocked     = this.api.asc_isWorkbookLocked();
+                        if (!_.isUndefined(select)) {
+                            var issheetlocked = false;
+                            select.forEach(function (item) {
+                                if (me.api.asc_isWorksheetLockedOrDeleted(item.sheetindex)) {
+                                    issheetlocked = true;
+                                }
+                            });
+                        } else {
+                            var issheetlocked = me.api.asc_isWorksheetLockedOrDeleted(tab.sheetindex);
+                        }
+
+                        var isdoclocked     = this.api.asc_isWorkbookLocked();
 
                         this.tabMenu.items[0].setDisabled(isdoclocked);
                         this.tabMenu.items[1].setDisabled(issheetlocked);
@@ -431,6 +649,15 @@ define([
                         this.tabMenu.items[5].setDisabled(issheetlocked);
                         this.tabMenu.items[6].setDisabled(isdoclocked);
                         this.tabMenu.items[7].setDisabled(issheetlocked);
+
+                        if (select.length === 1) {
+                            this.tabMenu.items[10].hide();
+                        } else {
+                            this.tabMenu.items[10].show();
+                        }
+
+                        this.tabMenu.items[9].setDisabled(issheetlocked);
+                        this.tabMenu.items[10].setDisabled(issheetlocked);
 
                         this.api.asc_closeCellEditor();
                         this.api.asc_enableKeyEvents(false);
@@ -473,6 +700,11 @@ define([
             onTabMenuClick: function (o, item) {
                 if (item && this.api) {
                     this.enableKeyEvents = (item.value === 'ins' || item.value === 'hide');
+                    if (item.value === 'selectall') {
+                        this.tabbar.setSelectAll(true);
+                    } else if (item.value === 'noselect') {
+                        this.tabbar.setSelectAll(false);
+                    }
                 }
             },
 
@@ -508,6 +740,21 @@ define([
                 this.tabBarBox.css('right',  right + 'px');
             },
 
+            updateVisibleItemsBoxMath: function () {
+                var widthStatusbar = parseInt(this.$el.css('width'));
+                var width = parseInt(this.boxZoom.css('width')) + parseInt($('#status-tabs-scroll').css('width')) + parseInt($('#status-addtabs-box').css('width'));
+                if (this.boxFiltered.is(':visible')) {
+                    width += parseInt(this.boxFiltered.css('width'));
+                }
+                this.$el.find('.over-box').removeClass('over-box');
+                while (width + parseInt(this.boxMath.css('width')) + 100 > widthStatusbar) {
+                    var items = this.boxMath.find('label:not(.hide, .over-box)');
+                    (items.length>0) && $(items[items.length - 1]).addClass('over-box');
+                    if (items.length<=1)
+                        break;
+                }
+            },
+
             changeViewMode: function (edit) {
                 if (edit) {
                     this.tabBarBox.css('left',  '152px');
@@ -517,6 +764,55 @@ define([
 
                 this.tabbar.options.draggable = edit;
                 this.editMode = edit;
+            },
+
+            showCustomizeStatusBar: function (e) {
+                var el = $(e.target);
+                if ($('#status-zoom-box').find(el).length > 0
+                    || $(e.target).closest('.statusbar .list-item').length>0
+                    || $('#status-tabs-scroll').find(el).length > 0
+                    || $('#status-addtabs-box').find(el).length > 0) return;
+                this.customizeStatusBarMenu.hide();
+                this.customizeStatusBarMenu.atposition = {
+                    left: e.clientX*Common.Utils.zoom(),
+                    top: e.clientY*Common.Utils.zoom()
+                };
+                this.customizeStatusBarMenu.show();
+            },
+
+            onCustomizeStatusBarAfterShow: function (obj) {
+                if (obj.atposition) {
+                    obj.setOffset(obj.atposition.left);
+                }
+                this.enableKeyEvents = true;
+            },
+
+            onCustomizeStatusBarAfterHide: function () {
+                if (!_.isUndefined(this.enableKeyEvents)) {
+                    if (this.api) {
+                        this.api.asc_enableKeyEvents(this.enableKeyEvents);
+                    }
+
+                    this.enableKeyEvents = undefined;
+                }
+            },
+
+            onCustomizeStatusBarClick: function (o, item, event) {
+                var value = item.value,
+                    checked = item.checked;
+                this.boxMath.find('#status-math-' + value)[checked ? 'removeClass' : 'addClass']('hide');
+                if (this.boxMath.find('label').length === this.boxMath.find('label.hide').length) {
+                    this.boxMath.find('.separator').hide();
+                } else {
+                    if (this.boxMath.find('.separator').is(":hidden")) {
+                        this.boxMath.find('.separator').show();
+                    }
+                }
+                this.updateVisibleItemsBoxMath();
+                this.updateTabbarBorders();
+                this.onTabInvisible(undefined, this.tabbar.checkInvisible(true));
+                event.stopPropagation();
+                item.$el.find('a').blur();
             },
 
             tipZoomIn           : 'Zoom In',
@@ -538,37 +834,41 @@ define([
             textNoColor         : 'No Color',
             textNewColor        : 'Add New Custom Color',
             zoomText            : 'Zoom {0}%',
-            textSum             : 'SUM',
-            textCount           : 'COUNT',
-            textAverage         : 'AVERAGE',
-            textMin             : 'MIN',
-            textMax             : 'MAX',
+            textSum             : 'Sum',
+            textCount           : 'Count',
+            textAverage         : 'Average',
+            textMin             : 'Min',
+            textMax             : 'Max',
             filteredRecordsText : '{0} of {1} records filtered',
-            filteredText        : 'Filter mode'
+            filteredText        : 'Filter mode',
+            selectAllSheets     : 'Select All Sheets',
+            ungroupSheets       : 'Ungroup Sheets',
+            //textCustomizeStatusBar: 'Customize status bar',
+            itemAverage         : 'Average',
+            itemCount           : 'Count',
+            itemMinimum         : 'Minimum',
+            itemMaximum         : 'Maximum',
+            itemSum             : 'Sum'
         }, SSE.Views.Statusbar || {}));
 
         SSE.Views.Statusbar.RenameDialog = Common.UI.Window.extend(_.extend({
             options: {
                 header: false,
                 width: 280,
-                cls: 'modal-dlg'
+                cls: 'modal-dlg',
+                buttons: ['ok', 'cancel']
             },
 
             template:   '<div class="box">' +
                             '<div class="input-row">' +
                                 '<label><%= label %></label>' +
                             '</div>' +
-                            '<div class="input-row" id="txt-sheet-name" />' +
-                        '</div>' +
-                        '<div class="footer right">' +
-                            '<button class="btn normal dlg-btn primary" result="ok" style="margin-right: 10px;"><%= btns.ok %></button>'+
-                            '<button class="btn normal dlg-btn" result="cancel"><%= btns.cancel %></button>'+
+                            '<div class="input-row" id="txt-sheet-name"></div>' +
                         '</div>',
 
             initialize : function(options) {
                 _.extend(this.options, options || {}, {
-                    label: this.labelSheetName,
-                    btns: {ok: this.okButtonText, cancel: this.cancelButtonText}
+                    label: this.labelSheetName
                 });
                 this.options.tpl = _.template(this.template)(this.options);
 
@@ -662,25 +962,20 @@ define([
         SSE.Views.Statusbar.CopyDialog = Common.UI.Window.extend(_.extend({
             options: {
                 width: 270,
-                height: 300,
-                cls: 'modal-dlg'
+                cls: 'modal-dlg',
+                buttons: ['ok', 'cancel']
             },
 
             template:   '<div class="box">' +
                             '<div class="input-row">' +
                                 '<label><%= label %></label>' +
                             '</div>' +
-                            '<div id="status-list-names" style="height: 170px;"/>' +
-                        '</div>' +
-                        '<div class="footer center">' +
-                            '<button class="btn normal dlg-btn primary" result="ok" style="margin-right: 10px;"><%= btns.ok %></button>'+
-                            '<button class="btn normal dlg-btn" result="cancel"><%= btns.cancel %></button>'+
+                            '<div id="status-list-names" style="height: 162px;"></div>' +
                         '</div>',
 
             initialize : function(options) {
                 _.extend(this.options, options || {}, {
-                    label: options.ismove ? this.textMoveBefore : this.textCopyBefore,
-                    btns: {ok: this.okButtonText, cancel: this.cancelButtonText}
+                    label: options.ismove ? this.textMoveBefore : this.textCopyBefore
                 });
                 this.options.tpl = _.template(this.template)(this.options);
 
@@ -723,7 +1018,7 @@ define([
                 Common.UI.Window.prototype.show.apply(this, arguments);
 
                 _.delay(function(me){
-                    me.listNames.$el.find('.listview').focus();
+                    me.listNames.focus();
                 }, 100, this);
             },
 
@@ -754,7 +1049,7 @@ define([
 
             onUpdateFocus: function () {
                 _.delay(function(me){
-                    me.listNames.$el.find('.listview').focus();
+                    me.listNames.focus();
                 }, 100, this);
             },
 

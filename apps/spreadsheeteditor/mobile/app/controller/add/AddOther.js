@@ -70,9 +70,19 @@ define([
                 var me = this;
                 me.api = api;
                 me.api.asc_registerCallback('asc_onError', _.bind(me.onError, me));
+                me.api.asc_registerCallback('asc_onSelectionChanged',   _.bind(me.onApiSelectionChanged, me));
 
                 // me.api.asc_registerCallback('asc_onInitEditorFonts',    _.bind(onApiLoadFonts, me));
 
+            },
+
+            setMode: function (mode) {
+                this.view = this.getView('AddOther');
+                this.view.canViewComments = mode.canViewComments;
+            },
+
+            onApiSelectionChanged: function(info) {
+                this.view.isComments = info.asc_getComments().length>0; //prohibit adding multiple comments in one cell
             },
 
             onLaunch: function () {
@@ -83,6 +93,17 @@ define([
                 if ( args && !(_.indexOf(args.panels, 'image') < 0) ) {
                     this.onPageShow(this.getView('AddOther'), '#addother-insimage');
                 }
+                this.view.hideInsertComments = this.isHideInsertComment();
+            },
+
+            isHideInsertComment: function() {
+                var cellinfo = this.api.asc_getCellInfo();
+                var iscelllocked    = cellinfo.asc_getLocked(),
+                    seltype         = cellinfo.asc_getSelectionType();
+                if (seltype === Asc.c_oAscSelectionType.RangeCells && !iscelllocked) {
+                    return false;
+                }
+                return true;
             },
 
             onPageShow: function (view, pageId) {
@@ -100,10 +121,51 @@ define([
                     $('#addimage-file').single('click', function () {
                         me.onInsertImage({islocal:true});
                     });
+                } else if (pageId === "#addother-insert-comment") {
+                    me.initInsertComment(false);
                 }
             },
 
             // Handlers
+
+            initInsertComment: function (documentFlag) {
+                var comment = SSE.getController('Common.Controllers.Collaboration').getCommentInfo();
+                if (comment) {
+                    this.getView('AddOther').renderComment(comment);
+                    $('#done-comment').single('click', _.bind(this.onDoneComment, this, documentFlag));
+                    $('.back-from-add-comment').single('click', _.bind(function () {
+                        if ($('#comment-text').val().length > 0) {
+                            uiApp.modal({
+                                title: '',
+                                text: this.textDeleteDraft,
+                                buttons: [
+                                    {
+                                        text: this.textCancel
+                                    },
+                                    {
+                                        text: this.textDelete,
+                                        bold: true,
+                                        onClick: function () {
+                                            SSE.getController('AddContainer').rootView.router.back();
+                                        }
+                                    }]
+                            })
+                        } else {
+                            SSE.getController('AddContainer').rootView.router.back();
+                        }
+                    }, this))
+                }
+            },
+
+            onDoneComment: function(documentFlag) {
+                var value = $('#comment-text').val().trim();
+                if (value.length > 0) {
+                    if (SSE.getController('Common.Controllers.Collaboration').onAddNewComment(value, documentFlag)) {
+                        this.view.isComments = true;
+                    }
+                    SSE.getController('AddContainer').hideModal();
+                }
+            },
 
             onInsertImage: function (args) {
                 if ( !args.islocal ) {
@@ -112,19 +174,14 @@ define([
                     if (!_.isEmpty(url)) {
                         if ((/((^https?)|(^ftp)):\/\/.+/i.test(url))) {
                             SSE.getController('AddContainer').hideModal();
-
-                            _.defer(function () {
-                                me.api.asc_addImageDrawingObject(url);
-                            });
                         } else {
-                            uiApp.alert(me.txtNotUrl);
+                            uiApp.alert(me.txtNotUrl, me.notcriticalErrorTitle);
                         }
                     } else {
-                        uiApp.alert(me.textEmptyImgUrl);
+                        uiApp.alert(me.textEmptyImgUrl, me.notcriticalErrorTitle);
                     }
                 } else {
                     SSE.getController('AddContainer').hideModal();
-                    this.api.asc_addImage();
                 }
             },
 
@@ -133,11 +190,6 @@ define([
             },
 
             onInsertFilter: function(checked) {
-                var formatTableInfo = this.api.asc_getCellInfo().asc_getFormatTableInfo();
-                var tablename = (formatTableInfo) ? formatTableInfo.asc_getTableName() : undefined;
-                if (checked)
-                    this.api.asc_addAutoFilter(); else
-                    this.api.asc_changeAutoFilter(tablename, Asc.c_oAscChangeFilterOptions.filter, checked);
             },
 
             onError: function(id, level, errData) {
@@ -147,7 +199,12 @@ define([
             },
 
             textEmptyImgUrl : 'You need to specify image URL.',
-            txtNotUrl: 'This field should be a URL in the format \"http://www.example.com\"'
+            txtNotUrl: 'This field should be a URL in the format \"http://www.example.com\"',
+            textDeleteDraft: 'Do you really want to delete draft?',
+            textCancel: 'Cancel',
+            //textContinue: 'Continue',
+            textDelete: 'Delete',
+            notcriticalErrorTitle: 'Warning'
         }
     })(), SSE.Controllers.AddOther || {}))
 });

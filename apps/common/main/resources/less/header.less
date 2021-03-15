@@ -50,7 +50,6 @@
 
     &.right {
         flex-grow: 1;
-        min-width: 100px;
     }
 
     .status-label {
@@ -70,21 +69,26 @@
     .btn-users,
     .btn-header {
         &:hover {
-            &:not(.disabled) {
+            &:not(.disabled):not(.icon) {
                 background-color: rgba(255,255,255,0.2);
             }
         }
 
         &:active, &.active {
-            &:not(.disabled) {
+            &:not(.disabled):not(.icon) {
                 background-color: rgba(0,0,0,0.2);
             }
+        }
+
+        &.icon {
+            pointer-events:none;
         }
     }
 
     #box-doc-name {
         flex-grow: 1;
         display: flex;
+        justify-content: center;
     }
 
     #rib-doc-name {
@@ -98,19 +102,19 @@
         background-color: transparent;
         border: 0 none;
         cursor: default;
+        line-height: 32px;
 
-        &:hover:not(:disabled) {
-            border: 1px solid @gray-dark;
-            background-color: rgba(255,255,255,0.2);
-        }
-
-        &:focus:not(:active) {
-            border: 1px solid @gray-dark;
-            cursor: text;
-            background-color: white;
-            color: @gray-deep;
-        }
-        width: 100%;
+        //&:hover:not(:disabled) {
+        //    border: 1px solid @gray-dark;
+        //    background-color: rgba(255,255,255,0.2);
+        //}
+        //
+        //&:focus:not(:active) {
+        //    border: 1px solid @gray-dark;
+        //    cursor: text;
+        //    background-color: white;
+        //    color: @gray-deep;
+        //}
     }
 
     #rib-save-status {
@@ -141,7 +145,18 @@
             height: 20px;
             display: inline-block;
             vertical-align: middle;
-            .background-ximage('@{common-image-path}/header/header-logo.png', '@{common-image-path}/header/header-logo@2x.png', 86px);
+
+            background-image: ~"url('@{common-image-const-path}/header/header-logo.png')";
+            background-repeat: no-repeat;
+
+            @media
+            only screen and (-webkit-min-device-pixel-ratio: 2),
+            only screen and (min-resolution: 2dppx),
+            only screen and (min-resolution: 192dpi) {
+                background-image: ~"url('@{common-image-const-path}/header/header-logo@2x.png')";
+                background-size: 86px auto;
+            }
+
         }
 
         &.link img {
@@ -172,6 +187,12 @@
         display: inline-block;
         width: 20px;
         height: 20px;
+        background-repeat: no-repeat;
+        padding: 0;
+
+        &.icon--inverse {
+            background-position-x: -20px;
+        }
     }
 
     .caption {
@@ -275,11 +296,24 @@
     .icon {
         width: 20px;
         height: 20px;
+        display: inline-block;
+        position: relative;
+
+        &.icon--inverse {
+            background-position-x: -20px;
+        }
     }
 
     svg.icon {
-        display: inline-block;
         vertical-align: middle;
+
+        @media
+        only screen and (-webkit-min-device-pixel-ratio: 1.5),
+        only screen and (min-resolution: 1.5dppx),
+        only screen and (min-resolution: 144dpi) {
+            width:calc(~"28px/1.5");
+            height:calc(~"28px/1.5");
+        }
     }
 
     .btn&[disabled],
@@ -340,26 +374,30 @@
         }
     }
 
+    #id-box-doc-name {
+        display: flex;
+        justify-content: center;
+        overflow: hidden;
+    }
+
     #title-doc-name {
-        position: absolute;
-        white-space: nowrap;
+        white-space: pre;
         text-overflow: ellipsis;
         overflow: hidden;
         text-align: center;
         font-size: 12px;
-        height: 100%;
-        width: 100%;
+        line-height: 28px;
         background-color: transparent;
         border: 0 none;
         cursor: default;
    }
     #title-user-name {
-        white-space: nowrap;
+        white-space: pre;
         text-overflow: ellipsis;
         overflow: hidden;
         text-align: right;
         font-size: 11px;
-        max-width: 50%;
+        width: 200px;
         height: 100%;
         padding: 0 12px;
         line-height: @height-title;
@@ -367,5 +405,20 @@
 
     .lr-separator {
         flex-grow: 1;
+    }
+}
+
+#box-doc-name, #box-document-title {
+    .inner-box-icon.crypted {
+        width: 20px;
+        position: relative;
+
+        > svg {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 50%;
+            margin-top: -10px;
+        }
     }
 }

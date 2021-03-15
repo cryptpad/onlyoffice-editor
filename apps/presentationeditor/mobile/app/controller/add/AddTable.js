@@ -43,14 +43,10 @@
 
 define([
     'core',
-    'presentationeditor/mobile/app/view/add/AddTable'
 ], function (core) {
     'use strict';
 
     PE.Controllers.AddTable = Backbone.Controller.extend(_.extend((function() {
-        var _styles = [],
-            _initDefaultStyles = false;
-
         return {
             models: [],
             collections: [],
@@ -59,31 +55,18 @@ define([
             ],
 
             initialize: function () {
-                Common.NotificationCenter.on('addcontainer:show', _.bind(this.initEvents, this));
+                this._styles = [];
+                this._initDefaultStyles = false;
             },
 
             setApi: function (api) {
                 var me = this;
                 me.api = api;
-
-                me.api.asc_registerCallback('asc_onInitTableTemplates', _.bind(me.onApiInitTemplates, me));
-            },
-
-            onLaunch: function () {
-                this.createView('AddTable').render();
             },
 
             initEvents: function () {
                 var me = this;
-
-                if (!_initDefaultStyles) {
-                    _initDefaultStyles = true;
-                    _styles = [];
-
-                    me.api.asc_GetDefaultTableStyles && me.api.asc_GetDefaultTableStyles();
-                }
-
-                $('#add-table li').single('click',  _.buffered(me.onStyleClick, 100, me));
+                $('.page[data-page="addother-insert-table"] li').single('click',  _.buffered(me.onStyleClick, 100, me));
             },
 
             onStyleClick: function (e) {
@@ -121,12 +104,7 @@ define([
                                     var size = picker.value;
 
                                     if (me.api) {
-                                        me.api.put_Table(parseInt(size[0]), parseInt(size[1]));
-
-                                        var properties = new Asc.CTableProp();
-                                        properties.put_TableStyle(type);
-
-                                        me.api.tblApply(properties);
+                                        me.api.put_Table(parseInt(size[0]), parseInt(size[1]), undefined, type.toString());
                                     }
                                 }
                             }
@@ -159,26 +137,10 @@ define([
             // Public
 
             getStyles: function () {
-                return _styles;
+                return this._styles;
             },
 
             // API handlers
-
-            onApiInitTemplates: function(templates){
-                if (_styles.length < 1) {
-                    _.each(templates, function(template){
-                        _styles.push({
-                            imageUrl    : template.asc_getImage(),
-                            templateId  : template.asc_getId()
-                        });
-                    });
-
-                    this.getView('AddTable').render();
-                }
-
-                Common.SharedSettings.set('tablestyles', _styles);
-                Common.NotificationCenter.trigger('tablestyles:load', _styles);
-            },
 
             textTableSize: 'Table Size',
             textColumns: 'Columns',

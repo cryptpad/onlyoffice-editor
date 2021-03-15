@@ -49,7 +49,8 @@ define([
             header: true,
             style: 'min-width: 250px;',
             cls: 'modal-dlg',
-            id: 'window-slide-size-settings'
+            id: 'window-slide-size-settings',
+            buttons: ['ok', 'cancel']
         },
 
         initialize : function(options) {
@@ -60,7 +61,7 @@ define([
             this.template = [
                 '<div class="box" style="height: 148px;">',
                     '<div class="input-row">',
-                        '<label class="text columns-text" style="font-weight: bold;">' + this.textSlideSize + '</label>',
+                        '<label class="text" style="font-weight: bold;">' + this.textSlideSize + '</label>',
                     '</div>',
                     '<div id="slide-size-combo" class="" style="margin-bottom: 10px;"></div>',
                     '<table cols="2" style="width: 100%;margin-bottom: 7px;">',
@@ -76,15 +77,11 @@ define([
                         '</tr>',
                     '</table>',
                     '<div class="input-row">',
-                        '<label class="text columns-text" style="font-weight: bold;">' + this.textSlideOrientation + '</label>',
+                        '<label class="text" style="font-weight: bold;">' + this.textSlideOrientation + '</label>',
                     '</div>',
                     '<div id="slide-orientation-combo" class="" style="margin-bottom: 10px;"></div>',
                 '</div>',
-                '<div class="separator horizontal"/>',
-                '<div class="footer center">',
-                    '<button class="btn normal dlg-btn primary" result="ok" style="margin-right: 10px;">' + this.okButtonText + '</button>',
-                    '<button class="btn normal dlg-btn" result="cancel">' + this.cancelButtonText + '</button>',
-                '</div>'
+                '<div class="separator horizontal"></div>'
             ].join('');
 
             this.options.tpl = _.template(this.template)(this.options);
@@ -104,6 +101,7 @@ define([
                 style: 'width: 100%;',
                 menuStyle: 'min-width: 218px;',
                 editable: false,
+                takeFocusOnClose: true,
                 data: [
                     {value:0, displayValue: this.txtStandard , size: [254, 190.5]},
                     {value:1, displayValue: this.txtWidescreen1 , size: [254, 143]},
@@ -182,6 +180,7 @@ define([
                 style: 'width: 100%;',
                 menuStyle: 'min-width: 218px;',
                 editable: false,
+                takeFocusOnClose: true,
                 data: [
                     {value:0, displayValue: this.strPortrait},
                     {value:1, displayValue: this.strLandscape}
@@ -203,6 +202,14 @@ define([
             $window.find('.dlg-btn').on('click', _.bind(this.onBtnClick, this));
 
             this.updateMetricUnit();
+        },
+
+        getFocusedComponents: function() {
+            return [this.cmbSlideSize, this.spnWidth, this.spnHeight, this.cmbSlideOrientation];
+        },
+
+        getDefaultFocusableComponent: function () {
+            return this.cmbSlideSize;
         },
 
         _handleInput: function(state) {
@@ -249,8 +256,6 @@ define([
         textSlideSize:      'Slide Size',
         textWidth:          'Width',
         textHeight:         'Height',
-        cancelButtonText:   'Cancel',
-        okButtonText:       'Ok',
         txtStandard:        'Standard (4:3)',
         txtWidescreen1:     'Widescreen (16:9)',
         txtWidescreen2:     'Widescreen (16:10)',

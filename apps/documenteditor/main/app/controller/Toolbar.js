@@ -47,6 +47,7 @@ define([
     'common/main/lib/view/ImageFromUrlDialog',
     'common/main/lib/view/InsertTableDialog',
     'common/main/lib/view/SelectFileDlg',
+    'common/main/lib/view/SymbolTableDialog',
     'common/main/lib/util/define',
     'documenteditor/main/app/view/Toolbar',
     'documenteditor/main/app/view/DropcapSettingsAdvanced',
@@ -56,7 +57,10 @@ define([
     'documenteditor/main/app/controller/PageLayout',
     'documenteditor/main/app/view/CustomColumnsDialog',
     'documenteditor/main/app/view/ControlSettingsDialog',
-    'documenteditor/main/app/view/WatermarkSettingsDialog'
+    'documenteditor/main/app/view/WatermarkSettingsDialog',
+    'documenteditor/main/app/view/ListSettingsDialog',
+    'documenteditor/main/app/view/DateTimeDialog',
+    'documenteditor/main/app/view/LineNumbersDialog'
 ], function () {
     'use strict';
 
@@ -97,18 +101,23 @@ define([
                 pgmargins: undefined,
                 fontsize: undefined,
                 in_equation: false,
-                in_chart: false
+                in_chart: false,
+                linenum_apply: Asc.c_oAscSectionApplyType.All,
+                suppress_num: undefined
             };
             this.flg = {};
             this.diagramEditor = null;
             this._isAddingShape = false;
             this.editMode = true;
+            this.binding = {};
 
             this.addListeners({
                 'Toolbar': {
                     'insert:break'      : this.onClickPageBreak,
                     'change:compact'    : this.onClickChangeCompact,
-                    'home:open'         : this.onHomeOpen
+                    'home:open'         : this.onHomeOpen,
+                    'add:chart'         : this.onSelectChart,
+                    'insert:textart'    : this.onInsertTextart
                 },
                 'FileMenu': {
                     'menu:hide': this.onFileMenu.bind(this, 'hide'),
@@ -261,7 +270,6 @@ define([
             toolbar.btnAlignCenter.on('click',                          _.bind(this.onHorizontalAlign, this, 2));
             toolbar.btnAlignRight.on('click',                           _.bind(this.onHorizontalAlign, this, 0));
             toolbar.btnAlignJust.on('click',                            _.bind(this.onHorizontalAlign, this, 3));
-            toolbar.btnHorizontalAlign.menu.on('item:click',            _.bind(this.onMenuHorizontalAlignSelect, this));
             toolbar.btnDecLeftOffset.on('click',                        _.bind(this.onDecOffset, this));
             toolbar.btnIncLeftOffset.on('click',                        _.bind(this.onIncOffset, this));
             toolbar.btnMarkers.on('click',                              _.bind(this.onMarkers, this));
@@ -281,6 +289,9 @@ define([
             toolbar.mnuMarkersPicker.on('item:click',                   _.bind(this.onSelectBullets, this, toolbar.btnMarkers));
             toolbar.mnuNumbersPicker.on('item:click',                   _.bind(this.onSelectBullets, this, toolbar.btnNumbers));
             toolbar.mnuMultilevelPicker.on('item:click',                _.bind(this.onSelectBullets, this, toolbar.btnMultilevels));
+            toolbar.mnuMarkerSettings.on('click',                       _.bind(this.onMarkerSettingsClick, this, 0));
+            toolbar.mnuNumberSettings.on('click',                       _.bind(this.onMarkerSettingsClick, this, 1));
+            toolbar.mnuMultilevelSettings.on('click',                   _.bind(this.onMarkerSettingsClick, this, 2));
             toolbar.btnHighlightColor.on('click',                       _.bind(this.onBtnHighlightColor, this));
             toolbar.btnFontColor.on('click',                            _.bind(this.onBtnFontColor, this));
             toolbar.btnParagraphColor.on('click',                       _.bind(this.onBtnParagraphColor, this));
@@ -301,7 +312,7 @@ define([
             toolbar.btnInsertShape.menu.on('hide:after',                _.bind(this.onInsertShapeHide, this));
             toolbar.btnDropCap.menu.on('item:click',                    _.bind(this.onDropCapSelect, this));
             toolbar.btnContentControls.menu.on('item:click',            _.bind(this.onControlsSelect, this));
-            toolbar.mnuDropCapAdvanced.on('click',                      _.bind(this.onDropCapAdvancedClick, this));
+            toolbar.mnuDropCapAdvanced.on('click',                      _.bind(this.onDropCapAdvancedClick, this, false));
             toolbar.btnColumns.menu.on('item:click',                    _.bind(this.onColumnsSelect, this));
             toolbar.btnPageOrient.menu.on('item:click',                 _.bind(this.onPageOrientSelect, this));
             toolbar.btnPageMargins.menu.on('item:click',                _.bind(this.onPageMarginsSelect, this));
@@ -312,9 +323,9 @@ define([
             toolbar.mnuColorSchema.on('item:click',                     _.bind(this.onColorSchemaClick, this));
             toolbar.mnuColorSchema.on('show:after',                     _.bind(this.onColorSchemaShow, this));
             toolbar.btnMailRecepients.on('click',                       _.bind(this.onSelectRecepientsClick, this));
-            toolbar.mnuInsertChartPicker.on('item:click',               _.bind(this.onSelectChart, this));
             toolbar.mnuPageNumberPosPicker.on('item:click',             _.bind(this.onInsertPageNumberClick, this));
             toolbar.btnEditHeader.menu.on('item:click',                 _.bind(this.onEditHeaderFooterClick, this));
+            toolbar.btnInsDateTime.on('click',                          _.bind(this.onInsDateTimeClick, this));
             toolbar.mnuPageNumCurrentPos.on('click',                    _.bind(this.onPageNumCurrentPosClick, this));
             toolbar.mnuInsertPageCount.on('click',                      _.bind(this.onInsertPageCountClick, this));
             toolbar.btnBlankPage.on('click',                            _.bind(this.onBtnBlankPageClick, this));
@@ -322,8 +333,11 @@ define([
             toolbar.listStyles.on('contextmenu',                        _.bind(this.onListStyleContextMenu, this));
             toolbar.styleMenu.on('hide:before',                         _.bind(this.onListStyleBeforeHide, this));
             toolbar.btnInsertEquation.on('click',                       _.bind(this.onInsertEquationClick, this));
+            toolbar.btnInsertSymbol.on('click',                         _.bind(this.onInsertSymbolClick, this));
             toolbar.mnuNoControlsColor.on('click',                      _.bind(this.onNoControlsColor, this));
             toolbar.mnuControlsColorPicker.on('select',                 _.bind(this.onSelectControlsColor, this));
+            toolbar.btnLineNumbers.menu.on('item:click',                _.bind(this.onLineNumbersSelect, this));
+            toolbar.btnLineNumbers.menu.on('show:after',                _.bind(this.onLineNumbersShow, this));
             Common.Gateway.on('insertimage',                            _.bind(this.insertImage, this));
             Common.Gateway.on('setmailmergerecipients',                 _.bind(this.setMailMergeRecipients, this));
             $('#id-toolbar-menu-new-control-color').on('click',         _.bind(this.onNewControlsColor, this));
@@ -331,6 +345,8 @@ define([
             $('#id-save-style-plus, #id-save-style-link', toolbar.$el).on('click', this.onMenuSaveStyle.bind(this));
 
             this.onSetupCopyStyleButton();
+            this.onBtnChangeState('undo:disabled', toolbar.btnUndo, toolbar.btnUndo.isDisabled());
+            this.onBtnChangeState('redo:disabled', toolbar.btnRedo, toolbar.btnRedo.isDisabled());            
         },
 
         setApi: function(api) {
@@ -370,13 +386,20 @@ define([
                 this.api.asc_registerCallback('asc_onCoAuthoringDisconnect', _.bind(this.onApiCoAuthoringDisconnect, this));
                 Common.NotificationCenter.on('api:disconnect', _.bind(this.onApiCoAuthoringDisconnect, this));
                 this.api.asc_registerCallback('asc_onCanCopyCut', _.bind(this.onApiCanCopyCut, this));
-                this.api.asc_registerCallback('asc_onMathTypes', _.bind(this.onMathTypes, this));
+                this.api.asc_registerCallback('asc_onMathTypes', _.bind(this.onApiMathTypes, this));
                 this.api.asc_registerCallback('asc_onColumnsProps', _.bind(this.onColumnsProps, this));
                 this.api.asc_registerCallback('asc_onSectionProps', _.bind(this.onSectionProps, this));
+                this.api.asc_registerCallback('asc_onLineNumbersProps', _.bind(this.onLineNumbersProps, this));
                 this.api.asc_registerCallback('asc_onContextMenu', _.bind(this.onContextMenu, this));
                 this.api.asc_registerCallback('asc_onShowParaMarks', _.bind(this.onShowParaMarks, this));
                 this.api.asc_registerCallback('asc_onChangeSdtGlobalSettings', _.bind(this.onChangeSdtGlobalSettings, this));
+                this.api.asc_registerCallback('asc_onTextLanguage',         _.bind(this.onTextLanguage, this));
                 Common.NotificationCenter.on('fonts:change',                _.bind(this.onApiChangeFont, this));
+                this.api.asc_registerCallback('asc_onTableDrawModeChanged', _.bind(this.onTableDraw, this));
+                this.api.asc_registerCallback('asc_onTableEraseModeChanged', _.bind(this.onTableErase, this));
+                Common.NotificationCenter.on('storage:image-load', _.bind(this.openImageFromStorage, this));
+                Common.NotificationCenter.on('storage:image-insert', _.bind(this.insertImageFromStorage, this));
+                Common.NotificationCenter.on('dropcap:settings', _.bind(this.onDropCapAdvancedClick, this));
             } else if (this.mode.isRestrictedEdit) {
                 this.api.asc_registerCallback('asc_onFocusObject', _.bind(this.onApiFocusObjectRestrictedEdit, this));
                 this.api.asc_registerCallback('asc_onCoAuthoringDisconnect', _.bind(this.onApiCoAuthoringDisconnect, this));
@@ -407,7 +430,7 @@ define([
         },
 
         onApiChangeFont: function(font) {
-            !this.getApplication().getController('Main').isModalShowed && this.toolbar.cmbFontName.onApiChangeFont(font);
+            !Common.Utils.ModalWindow.isVisible() && this.toolbar.cmbFontName.onApiChangeFont(font);
         },
 
         onApiFontSize: function(size) {
@@ -486,10 +509,16 @@ define([
                 switch(this._state.bullets.type) {
                     case 0:
                         this.toolbar.btnMarkers.toggle(true, true);
-                        this.toolbar.mnuMarkersPicker.selectByIndex(this._state.bullets.subtype, true);
+                        if (this._state.bullets.subtype>0)
+                            this.toolbar.mnuMarkersPicker.selectByIndex(this._state.bullets.subtype, true);
+                        else
+                            this.toolbar.mnuMarkersPicker.deselectAll(true);
+                        this.toolbar.mnuMultilevelPicker.deselectAll(true);
+                        this.toolbar.mnuMarkerSettings && this.toolbar.mnuMarkerSettings.setDisabled(this._state.bullets.subtype<0);
+                        this.toolbar.mnuMultilevelSettings && this.toolbar.mnuMultilevelSettings.setDisabled(this._state.bullets.subtype<0);
                         break;
                     case 1:
-                        var idx = 0;
+                        var idx;
                         switch(this._state.bullets.subtype) {
                             case 1:
                                 idx = 4;
@@ -514,7 +543,13 @@ define([
                                 break;
                         }
                         this.toolbar.btnNumbers.toggle(true, true);
-                        this.toolbar.mnuNumbersPicker.selectByIndex(idx, true);
+                        if (idx!==undefined)
+                            this.toolbar.mnuNumbersPicker.selectByIndex(idx, true);
+                        else
+                            this.toolbar.mnuNumbersPicker.deselectAll(true);
+                        this.toolbar.mnuMultilevelPicker.deselectAll(true);
+                        this.toolbar.mnuNumberSettings && this.toolbar.mnuNumberSettings.setDisabled(idx==0);
+                        this.toolbar.mnuMultilevelSettings && this.toolbar.mnuMultilevelSettings.setDisabled(idx==0);
                         break;
                     case 2:
                         this.toolbar.btnMultilevels.toggle(true, true);
@@ -538,18 +573,6 @@ define([
                     case 2: index = 1; align = 'btn-align-center'; break;
                     case 3: index = 3; align = 'btn-align-just'; break;
                     default:  index = -255; align = 'btn-align-left'; break;
-                }
-                if (!(index < 0)) {
-                    this.toolbar.btnHorizontalAlign.menu.items[index].setChecked(true);
-                } else if (index == -255) {
-                    this.toolbar.btnHorizontalAlign.menu.clearAll();
-                }
-
-                var btnHorizontalAlign = this.toolbar.btnHorizontalAlign;
-
-                if ( btnHorizontalAlign.rendered && btnHorizontalAlign.$icon ) {
-                    btnHorizontalAlign.$icon.removeClass(btnHorizontalAlign.options.icls).addClass(align);
-                    btnHorizontalAlign.options.icls = align;
                 }
 
                 if (v === null || v===undefined) {
@@ -651,21 +674,39 @@ define([
             var i = -1, type,
                 paragraph_locked = false,
                 header_locked = false,
-                image_locked = false;
+                image_locked = false,
+                in_image = false,
+                frame_pr = undefined;
 
             while (++i < selectedObjects.length) {
                 type = selectedObjects[i].get_ObjectType();
 
                 if (type === Asc.c_oAscTypeSelectElement.Paragraph) {
+                    frame_pr = selectedObjects[i].get_ObjectValue();
                     paragraph_locked = selectedObjects[i].get_ObjectValue().get_Locked();
                 } else if (type === Asc.c_oAscTypeSelectElement.Header) {
                     header_locked = selectedObjects[i].get_ObjectValue().get_Locked();
                 } else if (type === Asc.c_oAscTypeSelectElement.Image) {
+                    in_image = true;
                     image_locked = selectedObjects[i].get_ObjectValue().get_Locked();
                 }
             }
 
-            var need_disable = !this.api.can_AddQuotedComment() || paragraph_locked || header_locked || image_locked;
+            var rich_del_lock = (frame_pr) ? !frame_pr.can_DeleteBlockContentControl() : false,
+                rich_edit_lock = (frame_pr) ? !frame_pr.can_EditBlockContentControl() : false,
+                plain_del_lock = (frame_pr) ? !frame_pr.can_DeleteInlineContentControl() : false,
+                plain_edit_lock = (frame_pr) ? !frame_pr.can_EditInlineContentControl() : false;
+
+            var need_disable = !this.api.can_AddQuotedComment() || paragraph_locked || header_locked || image_locked || rich_del_lock || rich_edit_lock || plain_del_lock || plain_edit_lock;
+            if (this.mode.compatibleFeatures) {
+                need_disable = need_disable || in_image;
+            }
+            if (this.api.asc_IsContentControl()) {
+                var control_props = this.api.asc_GetContentControlProperties(),
+                    spectype = control_props ? control_props.get_SpecificType() : Asc.c_oAscContentControlSpecificType.None;
+                need_disable = need_disable || spectype==Asc.c_oAscContentControlSpecificType.CheckBox || spectype==Asc.c_oAscContentControlSpecificType.Picture ||
+                    spectype==Asc.c_oAscContentControlSpecificType.ComboBox || spectype==Asc.c_oAscContentControlSpecificType.DropDownList || spectype==Asc.c_oAscContentControlSpecificType.DateTime;
+            }
             if ( this.btnsComment && this.btnsComment.length > 0 )
                 this.btnsComment.setDisabled(need_disable);
         },
@@ -688,7 +729,8 @@ define([
                 in_equation = false,
                 btn_eq_state = false,
                 in_image = false,
-                in_control = false;
+                in_control = false,
+                in_para = false;
 
             while (++i < selectedObjects.length) {
                 type = selectedObjects[i].get_ObjectType();
@@ -700,6 +742,7 @@ define([
                     can_add_image = pr.get_CanAddImage();
                     frame_pr = pr;
                     sh = pr.get_Shade();
+                    in_para = true;
                 } else if (type === Asc.c_oAscTypeSelectElement.Header) {
                     header_locked = pr.get_Locked();
                     in_header = true;
@@ -725,7 +768,11 @@ define([
             if (sh)
                 this.onParagraphColor(sh);
 
-            var need_disable = paragraph_locked || header_locked;
+            var rich_del_lock = (frame_pr) ? !frame_pr.can_DeleteBlockContentControl() : false,
+                rich_edit_lock = (frame_pr) ? !frame_pr.can_EditBlockContentControl() : false,
+                plain_del_lock = (frame_pr) ? !frame_pr.can_DeleteInlineContentControl() : false,
+                plain_edit_lock = (frame_pr) ? !frame_pr.can_EditInlineContentControl() : false;
+            var need_disable = paragraph_locked || header_locked || rich_edit_lock || plain_edit_lock;
 
             if (this._state.prcontrolsdisable != need_disable) {
                 if (this._state.activated) this._state.prcontrolsdisable = need_disable;
@@ -739,15 +786,19 @@ define([
                 lock_type = (in_control&&control_props) ? control_props.get_Lock() : Asc.c_oAscSdtLockType.Unlocked,
                 control_plain = (in_control&&control_props) ? (control_props.get_ContentControlType()==Asc.c_oAscSdtLevelType.Inline) : false;
             (lock_type===undefined) && (lock_type = Asc.c_oAscSdtLockType.Unlocked);
+            var content_locked = lock_type==Asc.c_oAscSdtLockType.SdtContentLocked || lock_type==Asc.c_oAscSdtLockType.ContentLocked;
 
-            if (!paragraph_locked && !header_locked) {
-                toolbar.btnContentControls.menu.items[0].setDisabled(control_plain || lock_type==Asc.c_oAscSdtLockType.SdtContentLocked || lock_type==Asc.c_oAscSdtLockType.ContentLocked);
-                toolbar.btnContentControls.menu.items[1].setDisabled(control_plain || lock_type==Asc.c_oAscSdtLockType.SdtContentLocked || lock_type==Asc.c_oAscSdtLockType.ContentLocked);
-                toolbar.btnContentControls.menu.items[3].setDisabled(!in_control || lock_type==Asc.c_oAscSdtLockType.SdtContentLocked || lock_type==Asc.c_oAscSdtLockType.SdtLocked);
-                toolbar.btnContentControls.menu.items[5].setDisabled(!in_control);
+            toolbar.btnContentControls.setDisabled(paragraph_locked || header_locked);
+            if (!(paragraph_locked || header_locked)) {
+                var control_disable = control_plain || content_locked,
+                    if_form = control_props && control_props.get_FormPr();
+                for (var i=0; i<7; i++)
+                    toolbar.btnContentControls.menu.items[i].setDisabled(control_disable);
+                toolbar.btnContentControls.menu.items[8].setDisabled(!in_control || lock_type==Asc.c_oAscSdtLockType.SdtContentLocked || lock_type==Asc.c_oAscSdtLockType.SdtLocked || if_form);
+                toolbar.btnContentControls.menu.items[10].setDisabled(!in_control || if_form);
             }
 
-            var need_text_disable = paragraph_locked || header_locked || in_chart;
+            var need_text_disable = paragraph_locked || header_locked || in_chart || rich_edit_lock || plain_edit_lock;
             if (this._state.textonlycontrolsdisable != need_text_disable) {
                 if (this._state.activated) this._state.textonlycontrolsdisable = need_text_disable;
                 if (!need_disable) {
@@ -755,7 +806,7 @@ define([
                         item.setDisabled(need_text_disable);
                     }, this);
                 }
-                toolbar.btnCopyStyle.setDisabled(need_text_disable);
+                // toolbar.btnCopyStyle.setDisabled(need_text_disable);
                 toolbar.btnClearStyle.setDisabled(need_text_disable);
             }
 
@@ -781,54 +832,69 @@ define([
             if ( !toolbar.btnDropCap.isDisabled() )
                 toolbar.mnuDropCapAdvanced.setDisabled(disable_dropcapadv);
 
-            need_disable = !can_add_table || header_locked || in_equation || control_plain;
+            need_disable = !can_add_table || header_locked || in_equation || control_plain || rich_edit_lock || plain_edit_lock || rich_del_lock || plain_del_lock;
             toolbar.btnInsertTable.setDisabled(need_disable);
 
             need_disable = toolbar.mnuPageNumCurrentPos.isDisabled() && toolbar.mnuPageNumberPosPicker.isDisabled() || control_plain;
             toolbar.mnuInsertPageNum.setDisabled(need_disable);
 
-            var in_footnote = this.api.asc_IsCursorInFootnote();
-            need_disable = paragraph_locked || header_locked || in_header || in_image || in_equation && !btn_eq_state || in_footnote || in_control;
+            var in_footnote = this.api.asc_IsCursorInFootnote() || this.api.asc_IsCursorInEndnote();
+            need_disable = paragraph_locked || header_locked || in_header || in_image || in_equation && !btn_eq_state || in_footnote || in_control || rich_edit_lock || plain_edit_lock || rich_del_lock || plain_del_lock;
             toolbar.btnsPageBreak.setDisabled(need_disable);
             toolbar.btnBlankPage.setDisabled(need_disable);
 
-            need_disable = paragraph_locked || header_locked || in_equation || control_plain;
+            need_disable = paragraph_locked || header_locked || in_equation || control_plain || content_locked || in_footnote;
             toolbar.btnInsertShape.setDisabled(need_disable);
             toolbar.btnInsertText.setDisabled(need_disable);
 
-            need_disable = paragraph_locked || header_locked || !can_add_image || in_equation || control_plain;
+            need_disable = paragraph_locked || header_locked  || in_para && !can_add_image || in_equation || control_plain || rich_del_lock || plain_del_lock || content_locked;
             toolbar.btnInsertImage.setDisabled(need_disable);
-            toolbar.btnInsertTextArt.setDisabled(need_disable || in_image || in_footnote);
+            toolbar.btnInsertTextArt.setDisabled(need_disable || in_footnote);
 
             if (in_chart !== this._state.in_chart) {
                 toolbar.btnInsertChart.updateHint(in_chart ? toolbar.tipChangeChart : toolbar.tipInsertChart);
                 this._state.in_chart = in_chart;
             }
 
-            need_disable = in_chart && image_locked || !in_chart && need_disable || control_plain;
+            need_disable = in_chart && image_locked || !in_chart && need_disable || control_plain || rich_del_lock || plain_del_lock || content_locked;
             toolbar.btnInsertChart.setDisabled(need_disable);
 
-            need_disable = paragraph_locked || header_locked || in_chart || !can_add_image&&!in_equation || control_plain;
+            need_disable = paragraph_locked || header_locked || in_chart || !can_add_image&&!in_equation || control_plain || rich_edit_lock || plain_edit_lock || rich_del_lock || plain_del_lock;
             toolbar.btnInsertEquation.setDisabled(need_disable);
 
-            need_disable = paragraph_locked || header_locked || in_equation;
+            toolbar.btnInsertSymbol.setDisabled(!in_para || paragraph_locked || header_locked || rich_edit_lock || plain_edit_lock || rich_del_lock || plain_del_lock);
+            toolbar.btnInsDateTime.setDisabled(!in_para || paragraph_locked || header_locked || rich_edit_lock || plain_edit_lock || rich_del_lock || plain_del_lock);
+
+            need_disable = paragraph_locked || header_locked || in_equation || rich_edit_lock || plain_edit_lock;
             toolbar.btnSuperscript.setDisabled(need_disable);
             toolbar.btnSubscript.setDisabled(need_disable);
 
             toolbar.btnEditHeader.setDisabled(in_equation);
 
-            need_disable = paragraph_locked || header_locked || in_image || control_plain;
+            need_disable = paragraph_locked || header_locked || in_image || control_plain || rich_edit_lock || plain_edit_lock || this._state.lock_doc;
             if (need_disable != toolbar.btnColumns.isDisabled())
                 toolbar.btnColumns.setDisabled(need_disable);
 
             if (toolbar.listStylesAdditionalMenuItem && (frame_pr===undefined) !== toolbar.listStylesAdditionalMenuItem.isDisabled())
                 toolbar.listStylesAdditionalMenuItem.setDisabled(frame_pr===undefined);
 
-            need_disable = !this.api.can_AddQuotedComment() || paragraph_locked || header_locked || image_locked;
+            need_disable = !this.api.can_AddQuotedComment() || paragraph_locked || header_locked || image_locked || rich_del_lock || rich_edit_lock || plain_del_lock || plain_edit_lock;
+            if (this.mode.compatibleFeatures) {
+                need_disable = need_disable || in_image;
+            }
+            if (control_props) {
+                var spectype = control_props.get_SpecificType();
+                need_disable = need_disable || spectype==Asc.c_oAscContentControlSpecificType.CheckBox || spectype==Asc.c_oAscContentControlSpecificType.Picture ||
+                                spectype==Asc.c_oAscContentControlSpecificType.ComboBox || spectype==Asc.c_oAscContentControlSpecificType.DropDownList || spectype==Asc.c_oAscContentControlSpecificType.DateTime;
+            }
             if ( this.btnsComment && this.btnsComment.length > 0 )
                 this.btnsComment.setDisabled(need_disable);
 
             toolbar.btnWatermark.setDisabled(header_locked);
+
+            if (frame_pr) {
+                this._state.suppress_num = !!frame_pr.get_SuppressLineNumbers();
+            }
 
             this._state.in_equation = in_equation;
         },
@@ -836,6 +902,13 @@ define([
         onApiStyleChange: function(v) {
             this.toolbar.btnCopyStyle.toggle(v, true);
             this.modeAlwaysSetStyle = false;
+        },
+
+        onTableDraw: function(v) {
+            this.toolbar.mnuInsertTable && this.toolbar.mnuInsertTable.items[2].setChecked(!!v, true);
+        },
+        onTableErase: function(v) {
+            this.toolbar.mnuInsertTable && this.toolbar.mnuInsertTable.items[3].setChecked(!!v, true);
         },
 
         onApiParagraphStyleChange: function(name) {
@@ -867,6 +940,7 @@ define([
             if (this._state.lock_doc!==true) {
                 this.toolbar.btnPageOrient.setDisabled(true);
                 this.toolbar.btnPageSize.setDisabled(true);
+                this.toolbar.btnPageMargins.setDisabled(true);
                 if (this._state.activated) this._state.lock_doc = true;
             }
         },
@@ -875,6 +949,7 @@ define([
             if (this._state.lock_doc!==false) {
                 this.toolbar.btnPageOrient.setDisabled(false);
                 this.toolbar.btnPageSize.setDisabled(false);
+                this.toolbar.btnPageMargins.setDisabled(false);
                 if (this._state.activated) this._state.lock_doc = false;
             }
         },
@@ -940,13 +1015,13 @@ define([
 
         onChangeSdtGlobalSettings: function() {
             var show = this.api.asc_GetGlobalContentControlShowHighlight();
-            this.toolbar.mnuNoControlsColor.setChecked(!show, true);
-            this.toolbar.mnuControlsColorPicker.clearSelection();
+            this.toolbar.mnuNoControlsColor && this.toolbar.mnuNoControlsColor.setChecked(!show, true);
+            this.toolbar.mnuControlsColorPicker && this.toolbar.mnuControlsColorPicker.clearSelection();
             if (show){
                 var clr = this.api.asc_GetGlobalContentControlHighlightColor();
                 if (clr) {
                     clr = Common.Utils.ThemeColor.getHexColor(clr.get_r(), clr.get_g(), clr.get_b());
-                    this.toolbar.mnuControlsColorPicker.selectByRGB(clr, true);
+                    this.toolbar.mnuControlsColorPicker && this.toolbar.mnuControlsColorPicker.selectByRGB(clr, true);
                 }
             }
         },
@@ -981,7 +1056,7 @@ define([
             var toolbar = this.toolbar;
             if (this.api) {
                 var isModified = this.api.asc_isDocumentCanSave();
-                var isSyncButton = toolbar.btnCollabChanges && toolbar.btnCollabChanges.$icon.hasClass('btn-synch');
+                var isSyncButton = toolbar.btnCollabChanges && toolbar.btnCollabChanges.cmpEl.hasClass('notify');
                 if (!isModified && !isSyncButton && !toolbar.mode.forcesave)
                     return;
 
@@ -1139,20 +1214,6 @@ define([
             Common.component.Analytics.trackEvent('ToolBar', 'Align');
         },
 
-        onMenuHorizontalAlignSelect: function(menu, item) {
-            this._state.pralign = undefined;
-            var btnHorizontalAlign = this.toolbar.btnHorizontalAlign;
-
-            btnHorizontalAlign.$icon.removeClass(btnHorizontalAlign.options.icls);
-            btnHorizontalAlign.options.icls = !item.checked ? 'btn-align-left' : item.options.icls;
-            btnHorizontalAlign.$icon.addClass(btnHorizontalAlign.options.icls);
-
-            if (this.api && item.checked)
-                this.api.put_PrAlign(item.value);
-
-            Common.NotificationCenter.trigger('edit:complete', this.toolbar);
-            Common.component.Analytics.trackEvent('ToolBar', 'Horizontal Align');
-        },
 
         onMarkers: function(btn, e) {
             var record = {
@@ -1186,7 +1247,7 @@ define([
         onFontNameSelect: function(combo, record) {
             if (this.api) {
                 if (record.isNewFont) {
-                    !this.getApplication().getController('Main').isModalShowed &&
+                    !Common.Utils.ModalWindow.isVisible() &&
                     Common.UI.warning({
                         width: 500,
                         closable: false,
@@ -1238,7 +1299,7 @@ define([
                 });
 
                 if (!item) {
-                    value = /^\+?(\d*\.?\d+)$|^\+?(\d+\.?\d*)$/.exec(record.value);
+                    value = /^\+?(\d*(\.|,)?\d+)$|^\+?(\d+(\.|,)?\d*)$/.exec(record.value);
 
                     if (!value) {
                         value = this._getApiTextSize();
@@ -1259,9 +1320,9 @@ define([
                     }
                 }
             } else {
-                value = parseFloat(record.value);
-                value = value > 100
-                    ? 100
+                value = Common.Utils.String.parseFloat(record.value);
+                value = value > 300
+                    ? 300
                     : value < 1
                         ? 1
                         : Math.floor((value+0.4)*2)/2;
@@ -1295,13 +1356,37 @@ define([
                 btn.toggle(rawData.data.subtype > -1, true);
             }
 
-            this._state.bullets.type = rawData.data.type;
-            this._state.bullets.subtype = rawData.data.subtype;
+            this._state.bullets.type = undefined;
+            this._state.bullets.subtype = undefined;
             if (this.api)
                 this.api.put_ListType(rawData.data.type, rawData.data.subtype);
 
             Common.component.Analytics.trackEvent('ToolBar', 'List Type');
             Common.NotificationCenter.trigger('edit:complete', this.toolbar);
+        },
+
+        onMarkerSettingsClick: function(type) {
+            var me      = this;
+            var listId = me.api.asc_GetCurrentNumberingId(),
+                level = me.api.asc_GetCurrentNumberingLvl(),
+                props = (listId !== null) ? me.api.asc_GetNumberingPr(listId) : null;
+            if (props) {
+                (new DE.Views.ListSettingsDialog({
+                    api: me.api,
+                    props: props,
+                    level: level,
+                    type: type,
+                    interfaceLang: me.mode.lang,
+                    handler: function(result, value) {
+                        if (result == 'ok') {
+                            if (me.api) {
+                                me.api.asc_ChangeNumberingLvl(listId, value.props, value.num);
+                            }
+                        }
+                        Common.NotificationCenter.trigger('edit:complete', me.toolbar);
+                    }
+                })).show();
+            }
         },
 
         onLineSpaceToggle: function(menu, item, state, e) {
@@ -1394,6 +1479,12 @@ define([
                         Common.NotificationCenter.trigger('edit:complete', me.toolbar);
                     }
                 })).show();
+            } else if (item.value == 'draw') {
+                item.isChecked() && menu.items[3].setChecked(false, true);
+                this.api.SetTableDrawMode(item.isChecked());
+            } else if (item.value == 'erase') {
+                item.isChecked() && menu.items[2].setChecked(false, true);
+                this.api.SetTableEraseMode(item.isChecked());
             }
         },
 
@@ -1430,24 +1521,34 @@ define([
                     }
                 })).show();
             } else if (item.value === 'storage') {
-                if (this.toolbar.mode.canRequestInsertImage) {
-                    Common.Gateway.requestInsertImage();
-                } else {
-                    (new Common.Views.SelectFileDlg({
-                        fileChoiceUrl: this.toolbar.mode.fileChoiceUrl.replace("{fileExt}", "").replace("{documentType}", "ImagesOnly")
-                    })).on('selectfile', function(obj, file){
-                        me.insertImage(file);
-                    }).show();
-                }
+                Common.NotificationCenter.trigger('storage:image-load', 'add');
             }
         },
 
-        insertImage: function(data) {
-            if (data && data.url) {
+        openImageFromStorage: function(type) {
+            var me = this;
+            if (this.toolbar.mode.canRequestInsertImage) {
+                Common.Gateway.requestInsertImage(type);
+            } else {
+                (new Common.Views.SelectFileDlg({
+                    fileChoiceUrl: this.toolbar.mode.fileChoiceUrl.replace("{fileExt}", "").replace("{documentType}", "ImagesOnly")
+                })).on('selectfile', function(obj, file){
+                    file && (file.c = type);
+                    me.insertImage(file);
+                }).show();
+            }
+        },
+
+        insertImageFromStorage: function(data) {
+            if (data && data.url && (!data.c || data.c=='add')) {
                 this.toolbar.fireEvent('insertimage', this.toolbar);
                 this.api.AddImageUrl(data.url, undefined, data.token);// for loading from storage
                 Common.component.Analytics.trackEvent('ToolBar', 'Image');
             }
+        },
+
+        insertImage: function(data) { // gateway
+            Common.NotificationCenter.trigger('storage:image-insert', data);
         },
 
         onBtnInsertTextClick: function(btn, e) {
@@ -1554,6 +1655,7 @@ define([
                     var win, props,
                         me = this;
                     win = new DE.Views.PageMarginsDialog({
+                        api: me.api,
                         handler: function(dlg, result) {
                             if (result == 'ok') {
                                 props = dlg.getSettings();
@@ -1582,9 +1684,71 @@ define([
             Common.NotificationCenter.trigger('edit:complete', this.toolbar);
         },
 
+        onLineNumbersSelect: function(menu, item) {
+            if (_.isUndefined(item.value))
+                return;
+
+            switch (item.value) {
+                case 0:
+                    this.api.asc_SetLineNumbersProps(Asc.c_oAscSectionApplyType.Current, null);
+                    break;
+                case 1:
+                case 2:
+                case 3:
+                    this._state.linenum = undefined;
+                    if (this.api && item.checked) {
+                        var props = new Asc.CSectionLnNumType();
+                        props.put_Restart(item.value==1 ? Asc.c_oAscLineNumberRestartType.Continuous : (item.value==2 ? Asc.c_oAscLineNumberRestartType.NewPage : Asc.c_oAscLineNumberRestartType.NewSection));
+                        !!this.api.asc_GetLineNumbersProps() && props.put_CountBy(undefined); 
+                        this.api.asc_SetLineNumbersProps(Asc.c_oAscSectionApplyType.Current, props);
+                    }
+                    break;
+                case 4:
+                    this.api && this.api.asc_SetParagraphSuppressLineNumbers(item.checked);
+                    break;
+                case 5:
+                    var win,
+                        me = this;
+                    win = new DE.Views.LineNumbersDialog({
+                        applyTo: me._state.linenum_apply,
+                        handler: function(dlg, result) {
+                            if (result == 'ok') {
+                                var settings = dlg.getSettings();
+                                me.api.asc_SetLineNumbersProps(settings.type, settings.props);
+                                me._state.linenum_apply = settings.type;
+                                Common.NotificationCenter.trigger('edit:complete', me.toolbar);
+                            }
+                        }
+                    });
+                    win.show();
+                    win.setSettings(me.api.asc_GetLineNumbersProps());
+                    break;
+            }
+            Common.NotificationCenter.trigger('edit:complete', this.toolbar);
+        },
+
+        onLineNumbersProps: function(props) {
+            var index = 0;
+            if (props) {
+                switch (props.get_Restart()) {
+                    case Asc.c_oAscLineNumberRestartType.Continuous:   index = 1; break;
+                    case Asc.c_oAscLineNumberRestartType.NewPage:   index = 2; break;
+                    case Asc.c_oAscLineNumberRestartType.NewSection: index = 3; break;
+                }
+            }
+            if (this._state.linenum === index)
+                return;
+            this.toolbar.btnLineNumbers.menu.items[index].setChecked(true);
+            this._state.linenum = index;
+        },
+
+        onLineNumbersShow: function(menu) {
+            menu.items[4].setChecked(this._state.suppress_num);
+        },
+
         onColorSchemaClick: function(menu, item) {
             if (this.api) {
-                this.api.ChangeColorScheme(item.value);
+                this.api.asc_ChangeColorSchemeByIdx(item.value);
 
                 Common.component.Analytics.trackEvent('ToolBar', 'Color Scheme');
             }
@@ -1594,7 +1758,7 @@ define([
 
         onColorSchemaShow: function(menu) {
             if (this.api) {
-                var value = this.api.asc_GetCurrentColorSchemeName();
+                var value = this.api.asc_GetCurrentColorSchemeIndex();
                 var item = _.find(menu.items, function(item) { return item.value == value; });
                 (item) ? item.setChecked(true) : menu.clearAll();
             }
@@ -1651,11 +1815,11 @@ define([
             this._state.dropcap = v;
         },
 
-        onDropCapAdvancedClick: function() {
+        onDropCapAdvancedClick: function(isFrame) {
             var win, props, text,
                 me = this;
 
-            if (_.isUndefined(me.fontstore)) {
+            if (!isFrame && _.isUndefined(me.fontstore)) {
                 me.fontstore = new Common.Collections.Fonts();
                 var fonts = me.toolbar.cmbFontName.store.toJSON();
                 var arr = [];
@@ -1685,16 +1849,18 @@ define([
                     (new DE.Views.DropcapSettingsAdvanced({
                         tableStylerRows: 2,
                         tableStylerColumns: 1,
-                        fontStore: me.fontstore,
+                        fontStore: !isFrame ? me.fontstore : null,
                         paragraphProps: props,
                         borderProps: me.borderAdvancedProps,
                         api: me.api,
-                        isFrame: false,
+                        isFrame: !!isFrame,
                         handler: function(result, value) {
                             if (result == 'ok') {
                                 me.borderAdvancedProps = value.borderProps;
-                                if (value.paragraphProps && value.paragraphProps.get_DropCap() === Asc.c_oAscDropCap.None) {
-                                    me.api.removeDropcap(true);
+                                if (value.paragraphProps &&
+                                    ( !isFrame && value.paragraphProps.get_DropCap() === Asc.c_oAscDropCap.None ||
+                                      isFrame && value.paragraphProps.get_Wrap() === c_oAscFrameWrap.None)) {
+                                    me.api.removeDropcap(!isFrame);
                                 } else
                                     me.api.put_FramePr(value.paragraphProps);
                             }
@@ -1707,6 +1873,8 @@ define([
         },
 
         onControlsSelect: function(menu, item) {
+            if (!(this.mode && this.mode.canFeatureContentControl)) return;
+
             if (item.value == 'settings' || item.value == 'remove') {
                 if (this.api.asc_IsContentControl()) {
                     var props = this.api.asc_GetContentControlProperties();
@@ -1717,6 +1885,8 @@ define([
                             (new DE.Views.ControlSettingsDialog({
                                 props: props,
                                 api: me.api,
+                                controlLang: me._state.lang,
+                                interfaceLang: me.mode.lang,
                                 handler: function(result, value) {
                                     if (result == 'ok') {
                                         me.api.asc_SetContentControlProperties(value, id);
@@ -1733,7 +1903,31 @@ define([
                     }
                 }
             } else {
-                this.api.asc_AddContentControl(item.value);
+                var isnew = (item.value.indexOf('new-')==0),
+                    oPr, oFormPr;
+                if (isnew) {
+                    oFormPr = new AscCommon.CSdtFormPr();
+                    this.toolbar.fireEvent('insertcontrol', this.toolbar);
+                }
+                if (item.value == 'plain' || item.value == 'rich')
+                    this.api.asc_AddContentControl((item.value=='plain') ? Asc.c_oAscSdtLevelType.Inline : Asc.c_oAscSdtLevelType.Block);
+                else if (item.value.indexOf('picture')>=0)
+                    this.api.asc_AddContentControlPicture(oFormPr);
+                else if (item.value.indexOf('checkbox')>=0 || item.value.indexOf('radiobox')>=0) {
+                    if (isnew) {
+                        oPr = new AscCommon.CSdtCheckBoxPr();
+                        (item.value.indexOf('radiobox')>=0) && oPr.put_GroupKey('Group 1');
+                    }
+                    this.api.asc_AddContentControlCheckBox(oPr, oFormPr);
+                } else if (item.value == 'date')
+                    this.api.asc_AddContentControlDatePicker();
+                else if (item.value.indexOf('combobox')>=0 || item.value.indexOf('dropdown')>=0)
+                    this.api.asc_AddContentControlList(item.value.indexOf('combobox')>=0, oPr, oFormPr);
+                else if (item.value == 'new-field') {
+                    oPr = new AscCommon.CSdtTextFormPr();
+                    this.api.asc_AddContentControlTextForm(oPr, oFormPr);
+                }
+
                 Common.component.Analytics.trackEvent('ToolBar', 'Add Content Control');
             }
 
@@ -1768,7 +1962,7 @@ define([
 
             if (this.api) {
                 if (item.value == 'advanced') {
-                    var win, props = this.api.asc_GetSectionProps(),
+                    var win,
                         me = this;
                     win = new DE.Views.CustomColumnsDialog({
                         handler: function(dlg, result) {
@@ -1838,11 +2032,8 @@ define([
             }
         },
 
-        onSelectChart: function(picker, item, record) {
-            if (!record) return;
-
+        onSelectChart: function(type) {
             var me      = this,
-                type    = record.get('type'),
                 chart = false;
 
             var selectedElements = me.api.getSelectedElements();
@@ -1879,6 +2070,19 @@ define([
                     }
                     me.toolbar.fireEvent('insertchart', me.toolbar);
                 }
+            }
+        },
+
+        onInsertTextart: function (data) {
+            if (this.api) {
+                this.toolbar.fireEvent('inserttextart', this.toolbar);
+                this.api.AddTextArt(data);
+
+                if (this.toolbar.btnInsertShape.pressed)
+                    this.toolbar.btnInsertShape.toggle(false, true);
+
+                Common.NotificationCenter.trigger('edit:complete', this.toolbar, this.toolbar.btnInsertTextArt);
+                Common.component.Analytics.trackEvent('ToolBar', 'Add Text Art');
             }
         },
 
@@ -1951,6 +2155,8 @@ define([
                     (new DE.Views.WatermarkSettingsDialog({
                         props: me.api.asc_GetWatermarkProps(),
                         api: me.api,
+                        lang: me.mode.lang,
+                        storage: me.mode.canRequestInsertImage || me.mode.fileChoiceUrl && me.mode.fileChoiceUrl.indexOf("{documentType}")>-1,
                         fontStore: me.fontstore,
                         handler: function(result, value) {
                             if (result == 'ok') {
@@ -2138,6 +2344,9 @@ define([
             this.toolbar.mnuMarkersPicker.selectByIndex(0, true);
             this.toolbar.mnuNumbersPicker.selectByIndex(0, true);
             this.toolbar.mnuMultilevelPicker.selectByIndex(0, true);
+            this.toolbar.mnuMarkerSettings && this.toolbar.mnuMarkerSettings.setDisabled(true);
+            this.toolbar.mnuNumberSettings && this.toolbar.mnuNumberSettings.setDisabled(true);
+            this.toolbar.mnuMultilevelSettings && this.toolbar.mnuMultilevelSettings.setDisabled(true);
         },
 
         _getApiTextSize: function () {
@@ -2322,9 +2531,48 @@ define([
             this._state.clrtext_asccolor = color;
         },
 
+        onApiAutoShapes: function() {
+            var me = this;
+            var onShowBefore = function(menu) {
+                me.fillAutoShapes();
+                menu.off('show:before', onShowBefore);
+            };
+            me.toolbar.btnInsertShape.menu.on('show:before', onShowBefore);
+        },
+
         fillAutoShapes: function() {
             var me = this,
                 shapesStore = this.getApplication().getCollection('ShapeGroups');
+
+            var onShowAfter = function(menu) {
+                for (var i = 0; i < shapesStore.length; i++) {
+                    var shapePicker = new Common.UI.DataViewSimple({
+                        el: $('#id-toolbar-menu-shapegroup' + i, menu.items[i].$el),
+                        store: shapesStore.at(i).get('groupStore'),
+                        parentMenu: menu.items[i].menu,
+                        itemTemplate: _.template('<div class="item-shape" id="<%= id %>"><svg width="20" height="20" class=\"icon\"><use xlink:href=\"#svg-icon-<%= data.shapeType %>\"></use></svg></div>')
+                    });
+                    shapePicker.on('item:click', function(picker, item, record, e) {
+                        if (me.api) {
+                            if (record) {
+                                me._addAutoshape(true, record.get('data').shapeType);
+                                me._isAddingShape = true;
+                            }
+
+                            if (me.toolbar.btnInsertText.pressed) {
+                                me.toolbar.btnInsertText.toggle(false, true);
+                            }
+
+                            if (e.type !== 'click')
+                                me.toolbar.btnInsertShape.menu.hide();
+                            Common.NotificationCenter.trigger('edit:complete', me.toolbar, me.toolbar.btnInsertShape);
+                            Common.component.Analytics.trackEvent('ToolBar', 'Add Shape');
+                        }
+                    });
+                }
+                menu.off('show:after', onShowAfter);
+            };
+            me.toolbar.btnInsertShape.menu.on('show:after', onShowAfter);
 
             for (var i = 0; i < shapesStore.length; i++) {
                 var shapeGroup = shapesStore.at(i);
@@ -2338,34 +2586,7 @@ define([
                         ]
                     })
                 });
-
                 me.toolbar.btnInsertShape.menu.addItem(menuItem);
-
-                var shapePicker = new Common.UI.DataView({
-                    el: $('#id-toolbar-menu-shapegroup' + i),
-                    store: shapeGroup.get('groupStore'),
-                    parentMenu: menuItem.menu,
-                    showLast: false,
-                    itemTemplate: _.template('<div class="item-shape" id="<%= id %>"><svg width="20" height="20" class=\"icon\"><use xlink:href=\"#svg-icon-<%= data.shapeType %>\"></use></svg></div>')
-                });
-
-                shapePicker.on('item:click', function(picker, item, record, e) {
-                    if (me.api) {
-                        if (record) {
-                            me._addAutoshape(true, record.get('data').shapeType);
-                            me._isAddingShape = true;
-                        }
-
-                        if (me.toolbar.btnInsertText.pressed) {
-                            me.toolbar.btnInsertText.toggle(false, true);
-                        }
-
-                        if (e.type !== 'click')
-                            me.toolbar.btnInsertShape.menu.hide();
-                        Common.NotificationCenter.trigger('edit:complete', me.toolbar, me.toolbar.btnInsertShape);
-                        Common.component.Analytics.trackEvent('ToolBar', 'Add Shape');
-                    }
-                });
             }
         },
 
@@ -2374,12 +2595,44 @@ define([
 
             var me = this, equationsStore = this.getApplication().getCollection('EquationGroups');
 
-            me.equationPickers = [];
             me.toolbar.btnInsertEquation.menu.removeAll();
-            
+            var onShowAfter = function(menu) {
+                for (var i = 0; i < equationsStore.length; ++i) {
+                    var equationPicker = new Common.UI.DataViewSimple({
+                        el: $('#id-toolbar-menu-equationgroup' + i, menu.items[i].$el),
+                        parentMenu: menu.items[i].menu,
+                        store: equationsStore.at(i).get('groupStore'),
+                        scrollAlwaysVisible: true,
+                        itemTemplate: _.template('<div class="item-equation" '+
+                            'style="background-position:<%= posX %>px <%= posY %>px;" >' +
+                            '<div style="width:<%= width %>px;height:<%= height %>px;" id="<%= id %>"></div>' +
+                            '</div>')
+                    });
+                    equationPicker.on('item:click', function(picker, item, record, e) {
+                        if (me.api) {
+                            if (record)
+                                me.api.asc_AddMath(record.get('data').equationType);
+
+                            if (me.toolbar.btnInsertText.pressed) {
+                                me.toolbar.btnInsertText.toggle(false, true);
+                            }
+                            if (me.toolbar.btnInsertShape.pressed) {
+                                me.toolbar.btnInsertShape.toggle(false, true);
+                            }
+
+                            if (e.type !== 'click')
+                                me.toolbar.btnInsertEquation.menu.hide();
+                            Common.NotificationCenter.trigger('edit:complete', me.toolbar, me.toolbar.btnInsertEquation);
+                            Common.component.Analytics.trackEvent('ToolBar', 'Add Equation');
+                        }
+                    });
+                }
+                menu.off('show:after', onShowAfter);
+            };
+            me.toolbar.btnInsertEquation.menu.on('show:after', onShowAfter);
+
             for (var i = 0; i < equationsStore.length; ++i) {
                 var equationGroup = equationsStore.at(i);
-
                 var menuItem = new Common.UI.MenuItem({
                     caption: equationGroup.get('groupName'),
                     menu: new Common.UI.Menu({
@@ -2391,56 +2644,7 @@ define([
                         ]
                     })
                 });
-
                 me.toolbar.btnInsertEquation.menu.addItem(menuItem);
-
-                var equationPicker = new Common.UI.DataView({
-                    el: $('#id-toolbar-menu-equationgroup' + i),
-                    store: equationGroup.get('groupStore'),
-                    parentMenu: menuItem.menu,
-                    showLast: false,
-                    itemTemplate: _.template('<div class="item-equation" '+
-                        'style="background-position:<%= posX %>px <%= posY %>px;" >' +
-                        '<div style="width:<%= width %>px;height:<%= height %>px;" id="<%= id %>">')
-                });
-                if (equationGroup.get('groupHeight').length) {
-
-                    me.equationPickers.push(equationPicker);
-                    me.toolbar.btnInsertEquation.menu.on('show:after', function () {
-
-                        if (me.equationPickers.length) {
-                            var element = $(this.el).find('.over').find('.menu-shape');
-                            if (element.length) {
-                                for (var i = 0; i < me.equationPickers.length; ++i) {
-                                    if (element[0].id == me.equationPickers[i].el.id) {
-                                        me.equationPickers[i].scroller.update({alwaysVisibleY: true});
-                                        me.equationPickers.splice(i, 1);
-                                        return;
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-
-                equationPicker.on('item:click', function(picker, item, record, e) {
-                    if (me.api) {
-                        if (record)
-                            me.api.asc_AddMath(record.get('data').equationType);
-
-                        if (me.toolbar.btnInsertText.pressed) {
-                            me.toolbar.btnInsertText.toggle(false, true);
-                        }
-                        if (me.toolbar.btnInsertShape.pressed) {
-                            me.toolbar.btnInsertShape.toggle(false, true);
-                        }
-
-                         if (e.type !== 'click')
-                             me.toolbar.btnInsertEquation.menu.hide();
-                        Common.NotificationCenter.trigger('edit:complete', me.toolbar, me.toolbar.btnInsertEquation);
-                        Common.component.Analytics.trackEvent('ToolBar', 'Add Equation');
-                    }
-                });
             }
         },
 
@@ -2450,6 +2654,46 @@ define([
                 Common.component.Analytics.trackEvent('ToolBar', 'Add Equation');
             }
             Common.NotificationCenter.trigger('edit:complete', this.toolbar, this.toolbar.btnInsertEquation);
+        },
+
+        onInsertSymbolClick: function() {
+            if (this.dlgSymbolTable && this.dlgSymbolTable.isVisible()) return;
+
+            if (this.api) {
+                var me = this,
+                    selected = me.api.asc_GetSelectedText();
+                me.dlgSymbolTable = new Common.Views.SymbolTableDialog({
+                    api: me.api,
+                    lang: me.mode.lang,
+                    modal: false,
+                    type: 1,
+                    special: true,
+                    showShortcutKey: true,
+                    font: selected && selected.length>0 ? this.api.get_TextProps().get_TextPr().get_FontFamily().get_Name() : undefined,
+                    symbol: selected && selected.length>0 ? selected.charAt(0) : undefined,
+                    buttons: [{value: 'ok', caption: this.textInsert}, 'close'],
+                    handler: function(dlg, result, settings) {
+                        if (result == 'ok') {
+                            me.api.asc_insertSymbol(settings.font ? settings.font : me.api.get_TextProps().get_TextPr().get_FontFamily().get_Name(), settings.code, settings.special);
+                        } else
+                            Common.NotificationCenter.trigger('edit:complete', me.toolbar);
+                    }
+                });
+                me.dlgSymbolTable.show();
+                me.dlgSymbolTable.on('symbol:dblclick', function(cmp, result, settings) {
+                    me.api.asc_insertSymbol(settings.font ? settings.font : me.api.get_TextProps().get_TextPr().get_FontFamily().get_Name(), settings.code, settings.special);
+                });
+            }
+        },
+
+        onApiMathTypes: function(equation) {
+            this._equationTemp = equation;
+            var me = this;
+            var onShowBefore = function(menu) {
+                me.onMathTypes(me._equationTemp);
+                me.toolbar.btnInsertEquation.menu.off('show:before', onShowBefore);
+            };
+            me.toolbar.btnInsertEquation.menu.on('show:before', onShowBefore);
         },
 
         onMathTypes: function(equation) {
@@ -2492,35 +2736,29 @@ define([
                     translationTable[Common.define.c_oAscMathType[name]] = this[translate];
                 }
             }
-
-            var i,id = 0, count = 0, length = 0, width = 0, height = 0, store = null, list = null, eqStore = null, eq = null;
+            var i,id = 0, count = 0, length = 0, width = 0, height = 0, store = null, list = null, eqStore = null, eq = null, data;
 
             if (equation) {
-
-                count = equation.get_Data().length;
-
+                data = equation.get_Data();
+                count = data.length;
                 if (count) {
                     for (var j = 0; j < count; ++j) {
-                        id = equation.get_Data()[j].get_Id();
-                        width = equation.get_Data()[j].get_W();
-                        height = equation.get_Data()[j].get_H();
+                        var group = data[j];
+                        id = group.get_Id();
+                        width = group.get_W();
+                        height = group.get_H();
 
                         store = new Backbone.Collection([], {
                             model: DE.Models.EquationModel
                         });
 
                         if (store) {
-
-                            var allItemsCount = 0, itemsCount = 0, ids = 0;
-
-                            length = equation.get_Data()[j].get_Data().length;
-
+                            var allItemsCount = 0, itemsCount = 0, ids = 0, arr = [];
+                            length = group.get_Data().length;
                             for (i = 0; i < length; ++i) {
-                                eqStore = equation.get_Data()[j].get_Data()[i];
-
+                                eqStore = group.get_Data()[i];
                                 itemsCount = eqStore.get_Data().length;
                                 for (var p = 0; p < itemsCount; ++p) {
-
                                     eq = eqStore.get_Data()[p];
                                     ids = eq.get_Id();
 
@@ -2529,8 +2767,7 @@ define([
                                     if (translationTable.hasOwnProperty(ids)) {
                                         translate = translationTable[ids];
                                     }
-
-                                    store.add({
+                                    arr.push({
                                         data            : {equationType: ids},
                                         tip             : translate,
                                         allowSelected   : true,
@@ -2544,7 +2781,7 @@ define([
 
                                 allItemsCount += itemsCount;
                             }
-
+                            store.add(arr);
                             width = c_oAscMathMainTypeStrings[id][1] * (width + 10);  // 4px margin + 4px margin + 1px border + 1px border
 
                             var normHeight = parseInt(370 / (height + 10)) * (height + 10);
@@ -2556,54 +2793,9 @@ define([
                             });
                         }
                     }
-
                     equationsStore.add(equationgrouparray);
-
                     this.fillEquations();
                 }
-            }
-        },
-
-        fillTextArt: function() {
-            if (!this.toolbar.btnInsertTextArt.rendered) return;
-            
-            var me = this;
-            if (this.toolbar.mnuTextArtPicker) {
-                var models = this.getApplication().getCollection('Common.Collections.TextArt').models,
-                    count = this.toolbar.mnuTextArtPicker.store.length;
-                if (count>0 && count==models.length) {
-                    var data = this.toolbar.mnuTextArtPicker.store.models;
-                    _.each(models, function(template, index){
-                        data[index].set('imageUrl', template.get('imageUrl'));
-                    });
-                } else {
-                    this.toolbar.mnuTextArtPicker.store.reset(models);
-                }
-            } else {
-                this.toolbar.mnuTextArtPicker = new Common.UI.DataView({
-                    el: $('#id-toolbar-menu-insart'),
-                    store: this.getApplication().getCollection('Common.Collections.TextArt'),
-                    parentMenu: this.toolbar.btnInsertTextArt.menu,
-                    showLast: false,
-                    itemTemplate: _.template('<div class="item-art"><img src="<%= imageUrl %>" id="<%= id %>" style="width:50px;height:50px;"></div>')
-                });
-
-                this.toolbar.mnuTextArtPicker.on('item:click', function(picker, item, record, e) {
-                    if (me.api) {
-                        if (record) {
-                            me.toolbar.fireEvent('inserttextart', me.toolbar);
-                            me.api.AddTextArt(record.get('data'));
-                        }
-
-                        if (me.toolbar.btnInsertShape.pressed)
-                            me.toolbar.btnInsertShape.toggle(false, true);
-
-                         if (e.type !== 'click')
-                             me.toolbar.btnInsertTextArt.menu.hide();
-                        Common.NotificationCenter.trigger('edit:complete', me.toolbar, me.toolbar.btnInsertTextArt);
-                        Common.component.Analytics.trackEvent('ToolBar', 'Add Text Art');
-                    }
-                });
             }
         },
 
@@ -2669,9 +2861,6 @@ define([
                 this.onParagraphColor(this._state.clrshd_asccolor);
             }
             this._state.clrshd_asccolor = undefined;
-
-            updateColors(this.toolbar.mnuControlsColorPicker, 1);
-            this.onChangeSdtGlobalSettings();
         },
 
         _onInitEditorStyles: function(styles) {
@@ -2778,27 +2967,36 @@ define([
             this.DisableToolbar(true, true);
         },
 
-        DisableToolbar: function(disable, viewMode, reviewmode) {
+        DisableToolbar: function(disable, viewMode, reviewmode, fillformmode) {
             if (viewMode!==undefined) this.editMode = !viewMode;
             disable = disable || !this.editMode;
 
             var toolbar_mask = $('.toolbar-mask'),
                 group_mask = $('.toolbar-group-mask'),
-                mask = reviewmode ? group_mask : toolbar_mask;
+                mask = (reviewmode || fillformmode) ? group_mask : toolbar_mask;
             if (disable && mask.length>0 || !disable && mask.length==0) return;
 
             var toolbar = this.toolbar;
             if(disable) {
                 if (reviewmode) {
-                    mask = $("<div class='toolbar-group-mask'>").appendTo(toolbar.$el.find('.toolbar section.panel .group:not(.no-mask):not(.no-group-mask)'));
+                    mask = $("<div class='toolbar-group-mask'>").appendTo(toolbar.$el.find('.toolbar section.panel .group:not(.no-mask):not(.no-group-mask.review)'));
+                } else if (fillformmode) {
+                    mask = $("<div class='toolbar-group-mask'>").appendTo(toolbar.$el.find('.toolbar section.panel .group:not(.no-mask):not(.no-group-mask.form-view)'));
                 } else
                     mask = $("<div class='toolbar-mask'>").appendTo(toolbar.$el.find('.toolbar'));
             } else {
                 mask.remove();
             }
-            $('.no-group-mask').css('opacity', (reviewmode || !disable) ? 1 : 0.4);
+            $('.no-group-mask').each(function(index, item){
+                var $el = $(item);
+                if ($el.find('.toolbar-group-mask').length>0)
+                    $el.css('opacity', 0.4);
+                else {
+                    $el.css('opacity', reviewmode || fillformmode || !disable ? 1 : 0.4);
+                }
+            });
 
-            disable = disable || (reviewmode ? toolbar_mask.length>0 : group_mask.length>0);
+            disable = disable || ((reviewmode || fillformmode) ? toolbar_mask.length>0 : group_mask.length>0);
             toolbar.$el.find('.toolbar').toggleClass('masked', disable);
             if ( toolbar.synchTooltip )
                 toolbar.synchTooltip.hide();
@@ -2862,9 +3060,9 @@ define([
             me.toolbar.render(_.extend({isCompactView: compactview}, config));
 
             var tab = {action: 'review', caption: me.toolbar.textTabCollaboration};
-            var $panel = this.getApplication().getController('Common.Controllers.ReviewChanges').createToolbarPanel();
+            var $panel = me.application.getController('Common.Controllers.ReviewChanges').createToolbarPanel();
             if ( $panel )
-                me.toolbar.addTab(tab, $panel, 4);
+                me.toolbar.addTab(tab, $panel, 5);
 
             if ( config.isEdit ) {
                 me.toolbar.setMode(config);
@@ -2888,13 +3086,25 @@ define([
                         tab = {action: 'protect', caption: me.toolbar.textTabProtect};
                         $panel = me.getApplication().getController('Common.Controllers.Protection').createToolbarPanel();
 
-                        if ($panel) me.toolbar.addTab(tab, $panel, 5);
+                        if ($panel) me.toolbar.addTab(tab, $panel, 6);
                     }
                 }
 
                 var links = me.getApplication().getController('Links');
                 links.setApi(me.api).setConfig({toolbar: me});
                 Array.prototype.push.apply(me.toolbar.toolbarControls, links.getView('Links').getButtons());
+
+                if (config.canFeatureContentControl) {
+                    if (config.canFeatureForms) {
+                        tab = {caption: me.textTabForms, action: 'forms'};
+                        var forms = me.getApplication().getController('FormsTab');
+                        forms.setApi(me.api).setConfig({toolbar: me});
+                        me.toolbar.addTab(tab, $panel, 4);
+                        me.toolbar.setVisible('forms', true);
+                        Array.prototype.push.apply(me.toolbar.toolbarControls, forms.getView('FormsTab').getButtons());
+                    }
+                    me.onChangeSdtGlobalSettings();
+                }
             }
         },
 
@@ -2903,7 +3113,7 @@ define([
             me.appOptions = config;
 
             if ( config.canCoAuthoring && config.canComments ) {
-                this.btnsComment = Common.Utils.injectButtons(this.toolbar.$el.find('.slot-comment'), 'tlbtn-addcomment-', 'btn-menu-comments', this.toolbar.capBtnComment);
+                this.btnsComment = Common.Utils.injectButtons(this.toolbar.$el.find('.slot-comment'), 'tlbtn-addcomment-', 'toolbar__icon btn-menu-comments', this.toolbar.capBtnComment);
                 if ( this.btnsComment.length ) {
                     var _comments = DE.getController('Common.Controllers.Comments').getView();
                     this.btnsComment.forEach(function (btn) {
@@ -2911,6 +3121,8 @@ define([
                         btn.on('click', function (btn, e) {
                             Common.NotificationCenter.trigger('app:comment:add', 'toolbar');
                         });
+                        if (btn.cmpEl.closest('#review-changes-panel').length>0)
+                            btn.setCaption(me.toolbar.capBtnAddComment);
                     }, this);
                 }
             }
@@ -2945,9 +3157,30 @@ define([
             }
         },
 
+        onTextLanguage: function(langId) {
+            this._state.lang = langId;
+        },
+
+        onInsDateTimeClick: function() {
+            //insert date time
+            var me = this;
+            (new DE.Views.DateTimeDialog({
+                api: this.api,
+                lang: this._state.lang,
+                handler: function(result, value) {
+                    if (result == 'ok') {
+                        if (me.api) {
+                            me.api.asc_addDateTime(value);
+                        }
+                    }
+                    Common.NotificationCenter.trigger('edit:complete', me.toolbar);
+                }
+            })).show();
+        },
+
         textEmptyImgUrl                            : 'You need to specify image URL.',
         textWarning                                : 'Warning',
-        textFontSizeErr                            : 'The entered value is incorrect.<br>Please enter a numeric value between 1 and 100',
+        textFontSizeErr                            : 'The entered value is incorrect.<br>Please enter a numeric value between 1 and 300',
         textSymbols                                : 'Symbols',
         textFraction                               : 'Fraction',
         textScript                                 : 'Script',
@@ -3292,7 +3525,9 @@ define([
         confirmAddFontName: 'The font you are going to save is not available on the current device.<br>The text style will be displayed using one of the device fonts, the saved font will be used when it is available.<br>Do you want to continue?',
         notcriticalErrorTitle: 'Warning',
         txtMarginsW: 'Left and right margins are too high for a given page wight',
-        txtMarginsH: 'Top and bottom margins are too high for a given page height'
+        txtMarginsH: 'Top and bottom margins are too high for a given page height',
+        textInsert: 'Insert',
+        textTabForms: 'Forms'
 
     }, DE.Controllers.Toolbar || {}));
 });

@@ -67,17 +67,12 @@ define([
                                     '<tr>',
                                         '<td class="padding-small">',
                                             '<label class="input-label">', me.textNames,'</label>',
-                                            '<div id="named-range-paste-list" class="range-tableview" style="width:100%; height: 150px;"></div>',
+                                            '<div id="named-range-paste-list" class="range-tableview" style="width:100%; height: 169px;"></div>',
                                         '</td>',
                                     '</tr>',
                                 '</table>',
                             '</div></div>',
                         '</div>',
-                    '</div>',
-                    '<div class="separator horizontal"></div>',
-                    '<div class="footer center">',
-                    '<button class="btn normal dlg-btn primary" result="ok" style="margin-right: 10px;  width: 86px;">' + me.okButtonText + '</button>',
-                    '<button class="btn normal dlg-btn" result="cancel" style="width: 86px;">' + me.cancelButtonText + '</button>',
                     '</div>'
                 ].join('')
             }, options);
@@ -99,7 +94,7 @@ define([
                 itemTemplate: _.template([
                     '<div style="pointer-events:none;">',
                         '<div id="<%= id %>" class="list-item" style="pointer-events:none;width: 100%;display:inline-block;">',
-                            '<div class="listitem-icon <% if (isTable) {%>listitem-table<%} %>"></div>',
+                            '<div class="listitem-icon toolbar__icon <% print(isTable?"btn-menu-table":(isSlicer ? "btn-slicer" : "btn-named-range")) %>"></div>',
                             '<div style="width:186px;padding-right: 5px;"><%= name %></div>',
                         '</div>',
                     '</div>'
@@ -127,11 +122,14 @@ define([
                 for (var i=0; i<this.ranges.length; i++) {
                     var name = this.ranges[i].asc_getName(true);
                     if (name !== prev_name) {
+                        var type = this.ranges[i].asc_getType();
                         arr.push({
                             name: name,
                             scope: this.ranges[i].asc_getScope(),
                             range: this.ranges[i].asc_getRef(),
-                            isTable: (this.ranges[i].asc_getIsTable()===true)
+                            type: type,
+                            isTable: type===Asc.c_oAscDefNameType.table,
+                            isSlicer: type===Asc.c_oAscDefNameType.slicer
                         });
                     }
                     prev_name = name;
@@ -143,14 +141,14 @@ define([
                 this.rangeList.scroller.update({alwaysVisibleY: true});
 
                 _.delay(function () {
-                    me.rangeList.cmpEl.find('.listview').focus();
+                    me.rangeList.focus();
                 }, 100, this);
             }
         },
 
         getSettings: function() {
             var rec = this.rangeList.getSelectedRec();
-            return (rec) ? (new Asc.asc_CDefName(rec.get('name'), rec.get('range'), rec.get('scope'), rec.get('isTable'), undefined, undefined, undefined, true)) : null;
+            return (rec) ? (new Asc.asc_CDefName(rec.get('name'), rec.get('range'), rec.get('scope'), rec.get('type'), undefined, undefined, undefined, true)) : null;
         },
 
         onPrimary: function() {
@@ -171,8 +169,6 @@ define([
         },
 
         txtTitle: 'Paste Name',
-        cancelButtonText : 'Cancel',
-        okButtonText : 'Ok',
         textNames: 'Named Ranges'
     }, SSE.Views.NamedRangePasteDlg || {}));
 });

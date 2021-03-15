@@ -76,6 +76,7 @@ define([
             this.shapeprops = null;
             this._sendUndoPoint = true;
             this._sliderChanged = false;
+            this._texturearray = null;
 
             this.txtPt = Common.Utils.Metric.getMetricName(Common.Utils.Metric.c_MetricUnits.pt);
             
@@ -123,6 +124,10 @@ define([
             this.FillPatternContainer = $('#textart-panel-pattern-fill');
             this.FillGradientContainer = $('#textart-panel-gradient-fill');
             this.TransparencyContainer = $('#textart-panel-transparent-fill');
+
+            SSE.getCollection('Common.Collections.TextArt').bind({
+                reset: this.fillTextArt.bind(this)
+            });
         },
 
         render: function () {
@@ -234,8 +239,7 @@ define([
             Common.NotificationCenter.trigger('edit:complete', this);
         },
 
-        onColorsBackSelect: function(picker, color) {
-            this.btnBackColor.setColor(color);
+        onColorsBackSelect: function(btn, color) {
             this.ShapeColor = {Value: 1, Color: color};
 
             if (this.api && !this._noApply) {
@@ -258,10 +262,6 @@ define([
             Common.NotificationCenter.trigger('edit:complete', this);
         },
 
-        addNewColor: function(picker, btn) {
-            picker.addNewColor((typeof(btn.color) == 'object') ? btn.color.color : btn.color);
-        },
-
         onPatternSelect: function(combo, record){
             if (this.api && !this._noApply) {
                 this.PatternFillType = record.get('type');
@@ -281,8 +281,7 @@ define([
             Common.NotificationCenter.trigger('edit:complete', this);
         },
 
-        onColorsFGSelect: function(picker, color) {
-            this.btnFGColor.setColor(color);
+        onColorsFGSelect: function(btn, color) {
             this.FGColor = {Value: 1, Color: color};
             if (this.api && !this._noApply) {
                 var props = new Asc.asc_TextArtProperties();
@@ -301,8 +300,7 @@ define([
             Common.NotificationCenter.trigger('edit:complete', this);
         },
 
-        onColorsBGSelect: function(picker, color) {
-            this.btnBGColor.setColor(color);
+        onColorsBGSelect: function(btn, color) {
             this.BGColor = {Value: 1, Color: color};
             if (this.api && !this._noApply) {
                 var props = new Asc.asc_TextArtProperties();
@@ -350,7 +348,6 @@ define([
                 this.shapeprops.put_TextArtProperties(props);
                 this.api.asc_setGraphicObjectProps(this.imgprops);
             }
-            Common.NotificationCenter.trigger('edit:complete', this);
         },
 
         onTransparencyChange: function(field, newValue, oldValue){
@@ -399,6 +396,8 @@ define([
                     this.btnDirection.setIconCls('item-gradient ' + record.get('iconcls'));
                 else
                     this.btnDirection.setIconCls('');
+                this.numGradientAngle.setValue(this.GradLinearDirectionType, true);
+                this.numGradientAngle.setDisabled(this._locked);
             } else if (this.GradFillType == Asc.c_oAscFillGradType.GRAD_PATH) {
                 this.mnuDirectionPicker.store.reset(this._viewDataRadial);
                 this.mnuDirectionPicker.cmpEl.width(60);
@@ -408,6 +407,8 @@ define([
                     this.btnDirection.setIconCls('item-gradient ' + this._viewDataRadial[this.GradRadialDirectionIdx].iconcls);
                 else
                     this.btnDirection.setIconCls('');
+                this.numGradientAngle.setValue(0, true);
+                this.numGradientAngle.setDisabled(true);
             }
 
             if (this.api && !this._noApply) {
@@ -449,6 +450,8 @@ define([
             (this.GradFillType == Asc.c_oAscFillGradType.GRAD_LINEAR) ? this.GradLinearDirectionType = rawData.type : this.GradRadialDirectionIdx = 0;
             if (this.api) {
                 if (this.GradFillType == Asc.c_oAscFillGradType.GRAD_LINEAR) {
+                    this.numGradientAngle.setValue(rawData.type, true);
+
                     var props = new Asc.asc_TextArtProperties();
                     var fill = new Asc.asc_CShapeFill();
                     fill.asc_putType(Asc.c_oAscFill.FILL_TYPE_GRAD);
@@ -466,8 +469,7 @@ define([
             Common.NotificationCenter.trigger('edit:complete', this);
         },
 
-        onColorsGradientSelect: function(picker, color) {
-            this.btnGradColor.setColor(color);
+        onColorsGradientSelect: function(btn, color) {
             this.GradColor.colors[this.GradColor.currentIdx] = color;
             this.sldrGradient.setColorValue(Common.Utils.String.format('#{0}', (typeof(color) == 'object') ? color.color : color));
 
@@ -503,6 +505,7 @@ define([
 
         onGradientChange: function(slider, newValue, oldValue){
             this.GradColor.values = slider.getValues();
+            this.spnGradPosition.setValue(this.GradColor.values[this.GradColor.currentIdx], true);
             this._sliderChanged = true;
             if (this.api && !this._noApply) {
                 if (this._sendUndoPoint)  {
@@ -555,7 +558,7 @@ define([
         },
 
         applyBorderSize: function(value) {
-            value = parseFloat(value);
+            value = Common.Utils.String.parseFloat(value);
             value = isNaN(value) ? 0 : Math.max(0, Math.min(1584, value));
 
             this.BorderSize = value;
@@ -629,8 +632,7 @@ define([
             Common.NotificationCenter.trigger('edit:complete', this);
         },
 
-        onColorsBorderSelect: function(picker, color) {
-            this.btnBorderColor.setColor(color);
+        onColorsBorderSelect: function(btn, color) {
             this.BorderColor = {Value: 1, Color: color};
             if (this.api && this.BorderSize>0 && !this._noApply) {
                 var props = new Asc.asc_TextArtProperties();
@@ -811,13 +813,15 @@ define([
                                 this.btnDirection.setIconCls('item-gradient ' + record.get('iconcls'));
                             else
                                 this.btnDirection.setIconCls('');
+                            this.numGradientAngle.setValue(value, true);
                         }
-                    }
+                    } else
+                        this.numGradientAngle.setValue(0, true);
 
                     var me = this;
                     var colors = fill.asc_getColors(),
                         positions = fill.asc_getPositions(),
-                        length = colors.length;
+                        length = colors ? colors.length : this.GradColor.colors.length;
                     this.sldrGradient.setThumbs(length);
                     if (this.GradColor.colors.length>length) {
                         this.GradColor.colors.splice(length, this.GradColor.colors.length - length);
@@ -845,6 +849,11 @@ define([
                         me.sldrGradient.setColorValue(Common.Utils.String.format('#{0}', (typeof(me.GradColor.colors[index]) == 'object') ? me.GradColor.colors[index].color : me.GradColor.colors[index]), index);
                         me.sldrGradient.setValue(index, me.GradColor.values[index]);
                     }
+                    if (_.isUndefined(me.GradColor.currentIdx) || me.GradColor.currentIdx >= this.GradColor.colors.length) {
+                        me.GradColor.currentIdx = 0;
+                    }
+                    me.sldrGradient.setActiveThumb(me.GradColor.currentIdx);
+                    this.spnGradPosition.setValue(this.GradColor.values[this.GradColor.currentIdx]);
                     this.OriginalFillType = Asc.c_oAscFill.FILL_TYPE_GRAD;
                     this.FGColor = {Value: 1, Color: this.GradColor.colors[0]};
                     this.BGColor = {Value: 1, Color: 'ffffff'};
@@ -1151,6 +1160,7 @@ define([
                 minValue: 0
             });
             this.numTransparency.on('change', _.bind(this.onNumTransparencyChange, this));
+            this.numTransparency.on('inputleave', function(){ Common.NotificationCenter.trigger('edit:complete', me);});
             this.lockedControls.push(this.numTransparency);
 
             this.sldrTransparency = new Common.UI.SingleSlider({
@@ -1224,7 +1234,7 @@ define([
 
             this.sldrGradient = new Common.UI.MultiSliderGradient({
                 el: $('#textart-slider-gradient'),
-                width: 125,
+                width: 192,
                 minValue: 0,
                 maxValue: 100,
                 values: [0, 100]
@@ -1236,6 +1246,8 @@ define([
                 var color = me.GradColor.colors[me.GradColor.currentIdx];
                 me.btnGradColor.setColor(color);
                 me.colorsGrad.select(color,false);
+                var pos = me.GradColor.values[me.GradColor.currentIdx];
+                me.spnGradPosition.setValue(pos, true);
             });
             this.sldrGradient.on('thumbdblclick', function(cmp){
                 me.btnGradColor.cmpEl.find('button').dropdown('toggle');
@@ -1252,7 +1264,74 @@ define([
                 me.GradColor.colors = colors;
                 me.GradColor.currentIdx = currentIdx;
             });
+            this.sldrGradient.on('addthumb', function(cmp, index, pos){
+                me.GradColor.colors[index] = me.GradColor.colors[me.GradColor.currentIdx];
+                me.GradColor.currentIdx = index;
+                var color = me.sldrGradient.addNewThumb(index, pos);
+                me.GradColor.colors[me.GradColor.currentIdx] = color;
+            });
+            this.sldrGradient.on('removethumb', function(cmp, index){
+                me.sldrGradient.removeThumb(index);
+                me.GradColor.values.splice(index, 1);
+                me.sldrGradient.changeGradientStyle();
+                if (_.isUndefined(me.GradColor.currentIdx) || me.GradColor.currentIdx >= me.GradColor.colors.length) {
+                    var newIndex = index > 0 ? index - 1 : index;
+                    newIndex = (newIndex === 0 && me.GradColor.values.length > 2) ? me.GradColor.values.length - 2 : newIndex;
+                    me.GradColor.currentIdx = newIndex;
+                }
+                me.sldrGradient.setActiveThumb(me.GradColor.currentIdx);
+            });
             this.lockedControls.push(this.sldrGradient);
+
+            this.spnGradPosition = new Common.UI.MetricSpinner({
+                el: $('#textart-gradient-position'),
+                step: 1,
+                width: 60,
+                defaultUnit : "%",
+                value: '50 %',
+                allowDecimal: false,
+                maxValue: 100,
+                minValue: 0,
+                disabled: this._locked
+            });
+            this.lockedControls.push(this.spnGradPosition);
+            this.spnGradPosition.on('change', _.bind(this.onPositionChange, this));
+            this.spnGradPosition.on('inputleave', function(){ Common.NotificationCenter.trigger('edit:complete', me);});
+
+            this.btnAddGradientStep = new Common.UI.Button({
+                parentEl: $('#textart-gradient-add-step'),
+                cls: 'btn-toolbar',
+                iconCls: 'toolbar__icon btn-add-breakpoint',
+                disabled: this._locked,
+                hint: this.tipAddGradientPoint
+            });
+            this.btnAddGradientStep.on('click', _.bind(this.onAddGradientStep, this));
+            this.lockedControls.push(this.btnAddGradientStep);
+
+            this.btnRemoveGradientStep = new Common.UI.Button({
+                parentEl: $('#textart-gradient-remove-step'),
+                cls: 'btn-toolbar',
+                iconCls: 'toolbar__icon btn-remove-breakpoint',
+                disabled: this._locked,
+                hint: this.tipRemoveGradientPoint
+            });
+            this.btnRemoveGradientStep.on('click', _.bind(this.onRemoveGradientStep, this));
+            this.lockedControls.push(this.btnRemoveGradientStep);
+
+            this.numGradientAngle = new Common.UI.MetricSpinner({
+                el: $('#textart-spin-gradient-angle'),
+                step: 10,
+                width: 60,
+                defaultUnit : "°",
+                value: '0 °',
+                allowDecimal: true,
+                maxValue: 359.9,
+                minValue: 0,
+                disabled: this._locked
+            });
+            this.lockedControls.push(this.numGradientAngle);
+            this.numGradientAngle.on('change', _.bind(this.onGradientAngleChange, this));
+            this.numGradientAngle.on('inputleave', function(){ Common.NotificationCenter.trigger('edit:complete', me);});
 
             this.cmbBorderSize = new Common.UI.ComboBorderSizeEditable({
                 el: $('#textart-combo-border-size'),
@@ -1298,6 +1377,7 @@ define([
         },
 
         createDelayedElements: function() {
+            this._initSettings = false;
             this.createDelayedControls();
             
             var global_hatch_menu_map = [
@@ -1332,13 +1412,28 @@ define([
             }
 
             this.UpdateThemeColors();
+            this.onInitStandartTextures();
+            this.fillTextArt();
             this.fillTransform(this.api.asc_getPropertyEditorTextArts());
-            this._initSettings = false;
         },
 
         onInitStandartTextures: function(texture) {
             var me = this;
             if (texture && texture.length>0){
+                me._texturearray = [];
+                _.each(texture, function(item){
+                    me._texturearray.push({
+                        imageUrl: item.get_image(),
+                        name   : me.textureNames[item.get_id()],
+                        type    : item.get_id(),
+//                        allowSelected : false,
+                        selected: false
+                    });
+                });
+            }
+
+            if (!me._texturearray || me._texturearray.length<1) return;
+            if (!this._initSettings && !this.btnTexture) {
                 this.btnTexture = new Common.UI.ComboBox({
                     el: $('#textart-combo-fill-texture'),
                     template: _.template([
@@ -1357,24 +1452,19 @@ define([
                 this.textureMenu.render($('#textart-combo-fill-texture'));
                 this.lockedControls.push(this.btnTexture);
 
-                var texturearray = [];
-                _.each(texture, function(item){
-                    texturearray.push({
-                        imageUrl: item.get_image(),
-                        name   : me.textureNames[item.get_id()],
-                        type    : item.get_id(),
-                        selected: false
+                var onShowBefore = function(menu) {
+                    var mnuTexturePicker = new Common.UI.DataView({
+                        el: $('#id-textart-menu-texture'),
+                        restoreHeight: 174,
+                        parentMenu: menu,
+                        showLast: false,
+                        store: new Common.UI.DataViewStore(me._texturearray || []),
+                        itemTemplate: _.template('<div><img src="<%= imageUrl %>" id="<%= id %>"></div>')
                     });
-                });
-                var mnuTexturePicker = new Common.UI.DataView({
-                    el: $('#id-textart-menu-texture'),
-                    restoreHeight: 174,
-                    parentMenu: me.textureMenu,
-                    showLast: false,
-                    store: new Common.UI.DataViewStore(texturearray),
-                    itemTemplate: _.template('<div><img src="<%= imageUrl %>" id="<%= id %>"></div>')
-                });
-                mnuTexturePicker.on('item:click', _.bind(this.onSelectTexture, this));
+                    mnuTexturePicker.on('item:click', _.bind(me.onSelectTexture, me));
+                    menu.off('show:before', onShowBefore);
+                };
+                this.textureMenu.on('show:before', onShowBefore);
             }
         },
 
@@ -1399,8 +1489,8 @@ define([
         },
 
         fillTextArt: function() {
+            if (this._initSettings) return;
             var me = this;
-
             if (!this.cmbTextArt) {
                 this.cmbTextArt = new Common.UI.ComboDataView({
                     itemWidth: 50,
@@ -1424,6 +1514,10 @@ define([
 
             var models = this.application.getCollection('Common.Collections.TextArt').models,
                 count = this.cmbTextArt.menuPicker.store.length;
+            if (models.length<1) {
+                SSE.getController('Main').fillTextArt(this.api.asc_getTextArtPreviews());
+                return;
+            }
             if (count>0 && count==models.length) {
                 var data = this.cmbTextArt.menuPicker.store.models;
                 _.each(models, function(template, index){
@@ -1480,102 +1574,48 @@ define([
         },
 
         UpdateThemeColors: function() {
+            if (this._initSettings) return;
             if (!this.btnBackColor) {
                 this.btnBorderColor = new Common.UI.ColorButton({
-                    style: "width:45px;",
-                    menu        : new Common.UI.Menu({
-                        items: [
-                            { template: _.template('<div id="textart-border-color-menu" style="width: 169px; height: 220px; margin: 10px;"></div>') },
-                            { template: _.template('<a id="textart-border-color-new" style="padding-left:12px;">' + this.textNewColor + '</a>') }
-                        ]
-                    })
+                    parentEl: $('#textart-border-color-btn'),
+                    color: '000000'
                 });
-                this.btnBorderColor.render( $('#textart-border-color-btn'));
-                this.btnBorderColor.setColor('000000');
                 this.lockedControls.push(this.btnBorderColor);
-                this.colorsBorder = new Common.UI.ThemeColorPalette({
-                    el: $('#textart-border-color-menu'),
-                    value: '000000'
-                });
-                this.colorsBorder.on('select', _.bind(this.onColorsBorderSelect, this));
-                this.btnBorderColor.menu.items[1].on('click',  _.bind(this.addNewColor, this, this.colorsBorder, this.btnBorderColor));
+                this.colorsBorder = this.btnBorderColor.getPicker();
+                this.btnBorderColor.on('color:select', _.bind(this.onColorsBorderSelect, this));
 
                 this.btnBackColor = new Common.UI.ColorButton({
-                    style: "width:45px;",
-                    menu        : new Common.UI.Menu({
-                        items: [
-                            { template: _.template('<div id="textart-back-color-menu" style="width: 169px; height: 220px; margin: 10px;"></div>') },
-                            { template: _.template('<a id="textart-back-color-new" style="padding-left:12px;">' + this.textNewColor + '</a>') }
-                        ]
-                    })
+                    parentEl: $('#textart-back-color-btn'),
+                    transparent: true,
+                    color: 'transparent'
                 });
-                this.btnBackColor.render( $('#textart-back-color-btn'));
-                this.btnBackColor.setColor('transparent');
                 this.lockedControls.push(this.btnBackColor);
-                this.colorsBack = new Common.UI.ThemeColorPalette({
-                    el: $('#textart-back-color-menu'),
-                    value: 'transparent',
-                    transparent: true
-                });
-                this.colorsBack.on('select', _.bind(this.onColorsBackSelect, this));
-                this.btnBackColor.menu.items[1].on('click',  _.bind(this.addNewColor, this, this.colorsBack, this.btnBackColor));
+                this.colorsBack = this.btnBackColor.getPicker();
+                this.btnBackColor.on('color:select', _.bind(this.onColorsBackSelect, this));
 
                 this.btnFGColor = new Common.UI.ColorButton({
-                    style: "width:45px;",
-                    menu        : new Common.UI.Menu({
-                        items: [
-                            { template: _.template('<div id="textart-foreground-color-menu" style="width: 169px; height: 220px; margin: 10px;"></div>') },
-                            { template: _.template('<a id="textart-foreground-color-new" style="padding-left:12px;">' + this.textNewColor + '</a>') }
-                        ]
-                    })
+                    parentEl: $('#textart-foreground-color-btn'),
+                    color: '000000'
                 });
-                this.btnFGColor.render( $('#textart-foreground-color-btn'));
-                this.btnFGColor.setColor('000000');
                 this.lockedControls.push(this.btnFGColor);
-                this.colorsFG = new Common.UI.ThemeColorPalette({
-                    el: $('#textart-foreground-color-menu'),
-                    value: '000000'
-                });
-                this.colorsFG.on('select', _.bind(this.onColorsFGSelect, this));
-                this.btnFGColor.menu.items[1].on('click',  _.bind(this.addNewColor, this, this.colorsFG, this.btnFGColor));
+                this.colorsFG = this.btnFGColor.getPicker();
+                this.btnFGColor.on('color:select', _.bind(this.onColorsFGSelect, this));
 
                 this.btnBGColor = new Common.UI.ColorButton({
-                    style: "width:45px;",
-                    menu        : new Common.UI.Menu({
-                        items: [
-                            { template: _.template('<div id="textart-background-color-menu" style="width: 169px; height: 220px; margin: 10px;"></div>') },
-                            { template: _.template('<a id="textart-background-color-new" style="padding-left:12px;">' + this.textNewColor + '</a>') }
-                        ]
-                    })
+                    parentEl: $('#textart-background-color-btn'),
+                    color: 'ffffff'
                 });
-                this.btnBGColor.render( $('#textart-background-color-btn'));
-                this.btnBGColor.setColor('ffffff');
                 this.lockedControls.push(this.btnBGColor);
-                this.colorsBG = new Common.UI.ThemeColorPalette({
-                    el: $('#textart-background-color-menu'),
-                    value: 'ffffff'
-                });
-                this.colorsBG.on('select', _.bind(this.onColorsBGSelect, this));
-                this.btnBGColor.menu.items[1].on('click',  _.bind(this.addNewColor, this, this.colorsBG, this.btnBGColor));
+                this.colorsBG = this.btnBGColor.getPicker();
+                this.btnBGColor.on('color:select', _.bind(this.onColorsBGSelect, this));
 
                 this.btnGradColor = new Common.UI.ColorButton({
-                    style: "width:45px;",
-                    menu        : new Common.UI.Menu({
-                        items: [
-                            { template: _.template('<div id="textart-gradient-color-menu" style="width: 169px; height: 220px; margin: 10px;"></div>') },
-                            { template: _.template('<a id="textart-gradient-color-new" style="padding-left:12px;">' + this.textNewColor + '</a>') }
-                        ]
-                    })
+                    parentEl: $('#textart-gradient-color-btn'),
+                    color: '000000'
                 });
-                this.btnGradColor.render( $('#textart-gradient-color-btn'));
-                this.btnGradColor.setColor('000000');
                 this.lockedControls.push(this.btnGradColor);
-                this.colorsGrad = new Common.UI.ThemeColorPalette({
-                    el: $('#textart-gradient-color-menu'),
-                    value: '000000'
-                });
-                this.colorsGrad.on('select', _.bind(this.onColorsGradientSelect, this));
-                this.btnGradColor.menu.items[1].on('click',  _.bind(this.addNewColor, this, this.colorsGrad, this.btnGradColor));
+                this.colorsGrad = this.btnGradColor.getPicker();
+                this.btnGradColor.on('color:select', _.bind(this.onColorsGradientSelect, this));
             }
             this.colorsBorder.updateColors(Common.Utils.ThemeColor.getEffectColors(), Common.Utils.ThemeColor.getStandartColors());
             this.colorsBack.updateColors(Common.Utils.ThemeColor.getEffectColors(), Common.Utils.ThemeColor.getStandartColors());
@@ -1612,6 +1652,79 @@ define([
                 _.each(this.lockedControls, function(item) {
                     item.setDisabled(disable);
                 });
+                this.numGradientAngle.setDisabled(disable || this.GradFillType !== Asc.c_oAscFillGradType.GRAD_LINEAR);
+            }
+        },
+
+        onPositionChange: function(btn) {
+            var pos = btn.getNumberValue(),
+                minValue = (this.GradColor.currentIdx-1<0) ? 0 : this.GradColor.values[this.GradColor.currentIdx-1],
+                maxValue = (this.GradColor.currentIdx+1<this.GradColor.values.length) ? this.GradColor.values[this.GradColor.currentIdx+1] : 100,
+                needSort = pos < minValue || pos > maxValue;
+            if (this.api) {
+                this.GradColor.values[this.GradColor.currentIdx] = pos;
+                var props = new Asc.asc_TextArtProperties();
+                var fill = new Asc.asc_CShapeFill();
+                fill.asc_putType(Asc.c_oAscFill.FILL_TYPE_GRAD);
+                fill.asc_putFill( new Asc.asc_CFillGrad());
+                fill.asc_getFill().asc_putGradType(this.GradFillType);
+                var arr = [];
+                this.GradColor.values.forEach(function(item){
+                    arr.push(item*1000);
+                });
+                fill.asc_getFill().asc_putPositions(arr);
+                props.asc_putFill(fill);
+                this.shapeprops.put_TextArtProperties(props);
+                this.api.asc_setGraphicObjectProps(this.imgprops);
+                if (needSort) {
+                    this.sldrGradient.sortThumbs();
+                    this.sldrGradient.trigger('change', this.sldrGradient);
+                    this.sldrGradient.trigger('changecomplete', this.sldrGradient);
+                }
+            }
+        },
+
+        onAddGradientStep: function() {
+            if (this.GradColor.colors.length > 9) return;
+            var curIndex = this.GradColor.currentIdx;
+            var pos = (this.GradColor.values[curIndex] + this.GradColor.values[curIndex < this.GradColor.colors.length - 1 ? curIndex + 1 : curIndex - 1]) / 2;
+
+            this.GradColor.colors[this.GradColor.colors.length] = this.GradColor.colors[curIndex];
+            this.GradColor.currentIdx = this.GradColor.colors.length - 1;
+            var color = this.sldrGradient.addNewThumb(undefined, pos, curIndex);
+            this.GradColor.colors[this.GradColor.currentIdx] = color;
+
+            this.sldrGradient.trigger('change', this.sldrGradient);
+            this.sldrGradient.trigger('changecomplete', this.sldrGradient);
+        },
+
+        onRemoveGradientStep: function() {
+            if (this.GradColor.values.length < 3) return;
+            var index = this.GradColor.currentIdx;
+            this.GradColor.values.splice(this.GradColor.currentIdx, 1);
+            this.sldrGradient.removeThumb(this.GradColor.currentIdx);
+            if (_.isUndefined(this.GradColor.currentIdx) || this.GradColor.currentIdx >= this.GradColor.colors.length) {
+                var newIndex = index > 0 ? index - 1 : index;
+                newIndex = (newIndex === 0 && this.GradColor.values.length > 2) ? this.GradColor.values.length - 2 : newIndex;
+                this.GradColor.currentIdx = newIndex;
+            }
+            this.sldrGradient.setActiveThumb(this.GradColor.currentIdx);
+            this.sldrGradient.trigger('change', this.sldrGradient);
+            this.sldrGradient.trigger('changecomplete', this.sldrGradient);
+        },
+
+        onGradientAngleChange: function(field, newValue, oldValue, eOpts) {
+            if (this.api && !this._noApply) {
+                var props = new Asc.asc_TextArtProperties();
+                var fill = new Asc.asc_CShapeFill();
+                fill.asc_putType(Asc.c_oAscFill.FILL_TYPE_GRAD);
+                fill.asc_putFill( new Asc.asc_CFillGrad());
+                fill.asc_getFill().asc_putGradType(this.GradFillType);
+                fill.asc_getFill().asc_putLinearAngle(field.getNumberValue() * 60000);
+                fill.asc_getFill().asc_putLinearScale(true);
+                props.asc_putFill(fill);
+                this.shapeprops.put_TextArtProperties(props);
+                this.api.asc_setGraphicObjectProps(this.imgprops);
             }
         },
 
@@ -1638,7 +1751,6 @@ define([
         txtBrownPaper           : 'Brown Paper',
         txtPapyrus              : 'Papyrus',
         txtWood                 : 'Wood',
-        textNewColor            : 'Add New Custom Color',
         strTransparency         : 'Opacity',
         textNoFill              : 'No Fill',
         textSelectTexture       : 'Select',
@@ -1652,10 +1764,14 @@ define([
         textRadial: 'Radial',
         textDirection: 'Direction',
         textStyle: 'Style',
-        textGradient: 'Gradient',
+        textGradient: 'Gradient Points',
         textBorderSizeErr: 'The entered value is incorrect.<br>Please enter a value between 0 pt and 1584 pt.',
         textTransform: 'Transform',
         textTemplate: 'Template',
-        strType: 'Type'
+        strType: 'Type',
+        textPosition: 'Position',
+        tipAddGradientPoint: 'Add gradient point',
+        tipRemoveGradientPoint: 'Remove gradient point',
+        textAngle: 'Angle'
     }, SSE.Views.TextArtSettings || {}));
 });

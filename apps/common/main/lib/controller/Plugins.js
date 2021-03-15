@@ -151,15 +151,17 @@ define([
         setApi: function(api) {
             this.api = api;
 
-            this.api.asc_registerCallback("asc_onPluginShow", _.bind(this.onPluginShow, this));
-            this.api.asc_registerCallback("asc_onPluginClose", _.bind(this.onPluginClose, this));
-            this.api.asc_registerCallback("asc_onPluginResize", _.bind(this.onPluginResize, this));
-            this.api.asc_registerCallback("asc_onPluginMouseUp", _.bind(this.onPluginMouseUp, this));
-            this.api.asc_registerCallback("asc_onPluginMouseMove", _.bind(this.onPluginMouseMove, this));
-            this.api.asc_registerCallback('asc_onPluginsReset', _.bind(this.resetPluginsList, this));
-            this.api.asc_registerCallback('asc_onPluginsInit', _.bind(this.onPluginsInit, this));
+            if (!this.appOptions.customization || (this.appOptions.customization.plugins!==false)) {
+                this.api.asc_registerCallback("asc_onPluginShow", _.bind(this.onPluginShow, this));
+                this.api.asc_registerCallback("asc_onPluginClose", _.bind(this.onPluginClose, this));
+                this.api.asc_registerCallback("asc_onPluginResize", _.bind(this.onPluginResize, this));
+                this.api.asc_registerCallback("asc_onPluginMouseUp", _.bind(this.onPluginMouseUp, this));
+                this.api.asc_registerCallback("asc_onPluginMouseMove", _.bind(this.onPluginMouseMove, this));
+                this.api.asc_registerCallback('asc_onPluginsReset', _.bind(this.resetPluginsList, this));
+                this.api.asc_registerCallback('asc_onPluginsInit', _.bind(this.onPluginsInit, this));
 
-            this.loadPlugins();
+                this.loadPlugins();
+            }
             return this;
         },
 
@@ -172,7 +174,7 @@ define([
         },
 
         onAfterRender: function(panelPlugins) {
-            panelPlugins.viewPluginsList.on('item:click', _.bind(this.onSelectPlugin, this));
+            panelPlugins.viewPluginsList && panelPlugins.viewPluginsList.on('item:click', _.bind(this.onSelectPlugin, this));
             this.bindViewEvents(this.panelPlugins, this.events);
             var me = this;
             Common.NotificationCenter.on({
@@ -223,6 +225,7 @@ define([
                     variation.set_Size(itemVar.get('size'));
                     variation.set_InitOnSelectionChanged(itemVar.get('initOnSelectionChanged'));
                     variation.set_Events(itemVar.get('events'));
+                    variation.set_Help(itemVar.get('help'));
 
                     variationsArr.push(variation);
                 });
@@ -367,17 +370,18 @@ define([
                     var me = this,
                         isCustomWindow = variation.get_CustomWindow(),
                         arrBtns = variation.get_Buttons(),
-                        newBtns = {},
+                        newBtns = [],
                         size = variation.get_Size();
                         if (!size || size.length<2) size = [800, 600];
 
                     if (_.isArray(arrBtns)) {
                         _.each(arrBtns, function(b, index){
                             if (b.visible)
-                                newBtns[index] = {text: b.text, cls: 'custom' + ((b.primary) ? ' primary' : '')};
+                                newBtns[index] = {caption: b.text, value: index, primary: b.primary};
                         });
                     }
 
+                    var help = variation.get_Help();
                     me.pluginDlg = new Common.Views.PluginDlg({
                         cls: isCustomWindow ? 'plain' : '',
                         header: !isCustomWindow,
@@ -387,7 +391,8 @@ define([
                         url: url,
                         frameId : frameId,
                         buttons: isCustomWindow ? undefined : newBtns,
-                        toolcallback: _.bind(this.onToolClose, this)
+                        toolcallback: _.bind(this.onToolClose, this),
+                        help: !!help
                     });
                     me.pluginDlg.on({
                         'render:after': function(obj){
@@ -402,6 +407,9 @@ define([
                         },
                         'resize': function(args){
                             me.api.asc_pluginEnableMouseEvents(args[1]=='start');
+                        },
+                        'help': function(){
+                            help && window.open(help, '_blank');
                         }
                     });
 
@@ -533,7 +541,8 @@ define([
                                 url: itemVar.url,
                                 icons: itemVar.icons,
                                 buttons: itemVar.buttons,
-                                visible: visible
+                                visible: visible,
+                                help: itemVar.help
                             });
 
                             variationsArr.push(model);
@@ -635,23 +644,23 @@ define([
                     arr = [],
                     plugins = this.configPlugins,
                     warn = false;
-                if (plugins.plugins && plugins.plugins.length>0) {
+                if (plugins.plugins && plugins.plugins.length>0)
                     arr = plugins.plugins;
-                    var val = plugins.config.autostart || plugins.config.autoStartGuid;
-                    if (typeof (val) == 'string')
-                        val = [val];
-                    warn = !!plugins.config.autoStartGuid;
-                    autostart = val || [];
-                }
+                var val = plugins.config.autostart || plugins.config.autoStartGuid;
+                if (typeof (val) == 'string')
+                    val = [val];
+                warn = !!plugins.config.autoStartGuid;
+                autostart = val || [];
+
                 plugins = this.serverPlugins;
-                if (plugins.plugins && plugins.plugins.length>0) {
+                if (plugins.plugins && plugins.plugins.length>0)
                     arr = arr.concat(plugins.plugins);
-                    var val = plugins.config.autostart || plugins.config.autoStartGuid;
-                    if (typeof (val) == 'string')
-                        val = [val];
-                    (warn || plugins.config.autoStartGuid) && console.warn("Obsolete: The autoStartGuid parameter is deprecated. Please check the documentation for new plugin connection configuration.");
-                    autostart = autostart.concat(val || []);
-                }
+                val = plugins.config.autostart || plugins.config.autoStartGuid;
+                if (typeof (val) == 'string')
+                    val = [val];
+                (warn || plugins.config.autoStartGuid) && console.warn("Obsolete: The autoStartGuid parameter is deprecated. Please check the documentation for new plugin connection configuration.");
+                autostart = autostart.concat(val || []);
+
                 this.autostart = autostart;
                 this.parsePlugins(arr, false);
             }

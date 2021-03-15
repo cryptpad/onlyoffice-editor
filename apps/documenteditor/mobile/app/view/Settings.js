@@ -59,7 +59,8 @@ define([
             _canHelp = true,
             _canPrint = false,
             _canReview = false,
-            _isReviewOnly = false;
+            _isReviewOnly = false,
+            _isShowMacros = true;
 
         return {
             // el: '.view-main',
@@ -105,21 +106,29 @@ define([
             },
 
             setMode: function (mode) {
-                _isEdit = mode.isEdit;
-                _canEdit = !mode.isEdit && mode.canEdit && mode.canRequestEditRights;
-                _canDownload = mode.canDownload;
-                _canDownloadOrigin = mode.canDownloadOrigin;
-                _canReader = !mode.isEdit && mode.canReader;
-                _canPrint = mode.canPrint;
-                _canReview = mode.canReview;
-                _isReviewOnly = mode.isReviewOnly;
+                if (mode.isDisconnected) {
+                    _canEdit = _isEdit = false;
+                    _canReview = false;
+                    _isReviewOnly = false;
+                    if (!mode.enableDownload)
+                        _canPrint = _canDownload = _canDownloadOrigin = false;
+                } else {
+                    _isEdit = mode.isEdit;
+                    _canEdit = !mode.isEdit && mode.canEdit && mode.canRequestEditRights;
+                    _canReader = !mode.isEdit && !mode.isRestrictedEdit && mode.canReader;
+                    _canReview = mode.canReview;
+                    _isReviewOnly = mode.isReviewOnly;
+                    _canDownload = mode.canDownload;
+                    _canDownloadOrigin = mode.canDownloadOrigin;
+                    _canPrint = mode.canPrint;
+                    if (mode.customization && mode.canBrandingExt) {
+                        _canAbout = (mode.customization.about!==false);
+                    }
 
-                if (mode.customization && mode.canBrandingExt) {
-                    _canAbout = (mode.customization.about!==false);
-                }
-
-                if (mode.customization) {
-                    _canHelp = (mode.customization.help!==false);
+                    if (mode.customization) {
+                        _canHelp = (mode.customization.help!==false);
+                        _isShowMacros = (mode.customization.macros!==false);
+                    }
                 }
             },
 
@@ -149,6 +158,7 @@ define([
                     if (!_canPrint) $layour.find('#settings-print').hide();
                     if (!_canReview) $layour.find('#settings-review').hide();
                     if (_isReviewOnly) $layour.find('#settings-review').addClass('disabled');
+                    if (!_isShowMacros) $layour.find('#settings-macros').hide();
 
                     return $layour.html();
                 }
@@ -243,6 +253,31 @@ define([
                 }
             },
 
+            renderSchemaSettings: function(currentSchema, arrSchemas) {
+                if (arrSchemas) {
+                    var templateInsert = "";
+                    _.each(arrSchemas, function (schema, index) {
+                        var colors = schema.get_colors(),//schema.colors;
+                            name = schema.get_name();
+                        templateInsert += '<li class="color-schemes-menu"><label class="label-radio item-content"><input type="radio" name="color-schema" value="' + index + '"';
+                        if (index === currentSchema) {
+                            templateInsert += ' checked="checked"'
+                        }
+                        templateInsert += '>';
+                        if (Framework7.prototype.device.android) {
+                            templateInsert += '<div class="item-media"><i class="icon icon-form-radio"></i></div>';
+                        }
+                        templateInsert += '<div class="item-inner"><span class="color-schema-block">';
+                        for (var j = 2; j < 7; j++) {
+                            var clr = '#' + Common.Utils.ThemeColor.getHexColor(colors[j].get_r(), colors[j].get_g(), colors[j].get_b());
+                            templateInsert = templateInsert + "<span class='color' style='background: " + clr + ";'></span>"
+                        }
+                        templateInsert += '</span><span class="text">' + name + '</span></div></label></li>';
+                    }, this);
+                    $('#color-schemes-content ul').html(templateInsert);
+                }
+            },
+
             textFindAndReplace: 'Find and Replace',
             textSettings: 'Settings',
             textDone: 'Done',
@@ -307,7 +342,14 @@ define([
             textUploaded: 'Uploaded',
             textLastModified: 'Last Modified',
             textLastModifiedBy: 'Last Modified By',
-            textCreated: 'Created'
+            textCreated: 'Created',
+            textMacrosSettings: 'Macros Settings',
+            textDisableAll: 'Disable All',
+            textDisableAllMacrosWithoutNotification: 'Disable all macros without notification',
+            textShowNotification: 'Show Notification',
+            textDisableAllMacrosWithNotification: 'Disable all macros with notification',
+            textEnableAll: 'Enable All',
+            textEnableAllMacrosWithoutNotification: 'Enable all macros without notification'
 
 
     }

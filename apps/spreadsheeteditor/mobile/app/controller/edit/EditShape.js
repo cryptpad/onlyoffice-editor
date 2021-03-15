@@ -130,7 +130,7 @@ define([
             },
 
             initSettings: function (pageId) {
-                if ($('#edit-shape').length < 1) {
+                if ($('#edit-shape').length < 1 || !_shapeObject) {
                     return;
                 }
 
@@ -161,11 +161,7 @@ define([
 
                 // Fill
 
-                var paletteFillColor = new Common.UI.ThemeColorPalette({
-                    el: $('#tab-shape-fill'),
-                    transparent: true
-                });
-
+                var paletteFillColor = me.getView('EditShape').paletteFillColor;
                 paletteFillColor.on('select', _.bind(me.onFillColor, me));
 
                 var fill = shapeProperties.asc_getFill(),
@@ -192,7 +188,8 @@ define([
 
                 // Effect
                 // Init style opacity
-                $('#edit-shape-effect input').val([shapeProperties.get_fill().asc_getTransparent() ? shapeProperties.get_fill().asc_getTransparent() / 2.55 : 100]);
+                var transparent = shapeProperties.get_fill().asc_getTransparent();
+                $('#edit-shape-effect input').val([transparent!==null && transparent!==undefined ? transparent / 2.55 : 100]);
                 $('#edit-shape-effect .item-after').text($('#edit-shape-effect input').val() + ' ' + "%");
                 $('#edit-shape-effect input').single('change touchend',     _.buffered(me.onOpacity, 100, me));
                 $('#edit-shape-effect input').single('input',               _.bind(me.onOpacityChanging, me));
@@ -223,9 +220,7 @@ define([
 
             initBorderColorPage: function () {
                 var me = this,
-                    palette = new Common.UI.ThemeColorPalette({
-                        el: $('.page[data-page=edit-shape-border-color-view] .page-content')
-                    });
+                    palette = me.getView('EditShape').paletteBorderColor;
 
                 if (palette) {
                     palette.select(_borderInfo.color);
@@ -247,28 +242,9 @@ define([
             },
 
             onReorder: function(e) {
-                var $target = $(e.currentTarget),
-                    type = $target.data('type'),
-                    ascType;
-
-                if (type == 'all-up') {
-                    ascType = Asc.c_oAscDrawingLayerType.BringToFront;
-                } else if (type == 'all-down') {
-                    ascType = Asc.c_oAscDrawingLayerType.SendToBack;
-                } else if (type == 'move-up') {
-                    ascType = Asc.c_oAscDrawingLayerType.BringForward;
-                } else {
-                    ascType = Asc.c_oAscDrawingLayerType.SendBackward;
-                }
-
-                this.api.asc_setSelectedDrawingObjectLayer(ascType);
             },
 
             onReplace: function (e) {
-                var $target = $(e.currentTarget),
-                    type = $target.data('type');
-
-                this.api.asc_changeShapeType(type);
             },
 
             onBorderSize: function (e) {
@@ -386,7 +362,7 @@ define([
 
                 var me = this,
                     selectedObjects = [],
-                    selectType = info.asc_getFlags().asc_getSelectionType();
+                    selectType = info.asc_getSelectionType();
 
                 if (selectType == Asc.c_oAscSelectionType.RangeShape) {
                     selectedObjects = me.api.asc_getGraphicObjectProps();

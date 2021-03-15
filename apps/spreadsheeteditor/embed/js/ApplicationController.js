@@ -68,7 +68,7 @@ SSE.ApplicationController = new(function(){
 
         common.controller.modals.init(embedConfig);
 
-        if (config.canBackToFolder === false || !(config.customization && config.customization.goback && config.customization.goback.url))
+        if (config.canBackToFolder === false || !(config.customization && config.customization.goback && (config.customization.goback.url || config.customization.goback.requestClose && config.canRequestClose)))
             $('#id-btn-close').hide();
 
         // Docked toolbar
@@ -90,17 +90,28 @@ SSE.ApplicationController = new(function(){
             permissions = $.extend(permissions, docConfig.permissions);
 
             var _permissions = $.extend({}, docConfig.permissions),
-                docInfo = new Asc.asc_CDocInfo();
+                docInfo = new Asc.asc_CDocInfo(),
+                _user = new Asc.asc_CUserInfo();
+            _user.put_Id(config.user && config.user.id ? config.user.id : ('uid-' + Date.now()));
+
             docInfo.put_Id(docConfig.key);
             docInfo.put_Url(docConfig.url);
             docInfo.put_Title(docConfig.title);
             docInfo.put_Format(docConfig.fileType);
             docInfo.put_VKey(docConfig.vkey);
+            docInfo.put_UserInfo(_user);
             docInfo.put_Token(docConfig.token);
             docInfo.put_Permissions(_permissions);
+            docInfo.put_EncryptedInfo(config.encryptionKeys);
+
+            var enable = !config.customization || (config.customization.macros!==false);
+            docInfo.asc_putIsEnabledMacroses(!!enable);
+            enable = !config.customization || (config.customization.plugins!==false);
+            docInfo.asc_putIsEnabledPlugins(!!enable);
 
             if (api) {
                 api.asc_registerCallback('asc_onGetEditorPermissions', onEditorPermissions);
+                api.asc_registerCallback('asc_onRunAutostartMacroses', onRunAutostartMacroses);
                 api.asc_setDocInfo(docInfo);
                 api.asc_getEditorPermissions(config.licenseUrl, config.customerId);
                 api.asc_enableKeyEvents(true);
@@ -168,6 +179,9 @@ SSE.ApplicationController = new(function(){
     function onDocumentContentReady() {
         hidePreloader();
 
+        if ( permissions.print === false)
+            $('#idt-print').hide();
+
         if ( !embedConfig.saveUrl && permissions.print === false)
             $('#idt-download').hide();
 
@@ -214,9 +228,19 @@ SSE.ApplicationController = new(function(){
                 Common.Analytics.trackEvent('Save');
             });
 
+        SSE.ApplicationView.tools.get('#idt-print')
+            .on('click', function(){
+                api.asc_Print(new Asc.asc_CDownloadOptions(null, $.browser.chrome || $.browser.safari || $.browser.opera));
+                Common.Analytics.trackEvent('Print');
+            });
+
         $('#id-btn-close').on('click', function(){
-            if (config.customization && config.customization.goback && config.customization.goback.url)
-                window.parent.location.href = config.customization.goback.url;
+            if (config.customization && config.customization.goback) {
+                if (config.customization.goback.requestClose && config.canRequestClose)
+                    Common.Gateway.requestClose();
+                else if (config.customization.goback.url)
+                    window.parent.location.href = config.customization.goback.url;
+            }
         });
 
         $('#id-btn-zoom-in').on('click', function () {
@@ -410,6 +434,18 @@ SSE.ApplicationController = new(function(){
                 message = me.errorUserDrop;
                 break;
 
+            case Asc.c_oAscError.ID.ConvertationOpenLimitError:
+                message = me.errorFileSizeExceed;
+                break;
+
+            case Asc.c_oAscError.ID.UpdateVersion:
+                message = me.errorUpdateVersionOnDisconnect;
+                break;
+
+            case Asc.c_oAscError.ID.AccessDeny:
+                message = me.errorAccessDeny;
+                break;
+
             default:
                 message = me.errorDefaultMessage.replace('%1', id);
                 break;
@@ -421,7 +457,7 @@ SSE.ApplicationController = new(function(){
             Common.Gateway.reportError(id, message);
 
             $('#id-critical-error-title').text(me.criticalErrorTitle);
-            $('#id-critical-error-message').text(message);
+            $('#id-critical-error-message').html(message);
             $('#id-critical-error-close').text(me.txtClose).off().on('click', function(){
                 window.location.reload();
             });
@@ -430,7 +466,7 @@ SSE.ApplicationController = new(function(){
             Common.Gateway.reportWarning(id, message);
 
             $('#id-critical-error-title').text(me.notcriticalErrorTitle);
-            $('#id-critical-error-message').text(message);
+            $('#id-critical-error-message').html(message);
             $('#id-critical-error-close').text(me.txtClose).off().on('click', function(){
                 $('#id-critical-error-dialog').modal('hide');
             });
@@ -515,6 +551,11 @@ SSE.ApplicationController = new(function(){
         }
     }
 
+    function onRunAutostartMacroses() {
+        if (!config.customization || (config.customization.macros!==false))
+            if (api) api.asc_runAutostartMacroses();
+    }
+
     // Helpers
     // -------------------------
 
@@ -576,6 +617,8 @@ SSE.ApplicationController = new(function(){
         downloadTextText: 'Downloading spreadsheet...',
         waitText: 'Please, wait...',
         textLoadingDocument: 'Loading spreadsheet',
-        txtClose: 'Close'
+        txtClose: 'Close',
+        errorFileSizeExceed: 'The file size exceeds the limitation set for your server.<br>Please contact your Document Server administrator for details.',
+        errorUpdateVersionOnDisconnect: 'Internet connection has been restored, and the file version has been changed.<br>Before you can continue working, you need to download the file or copy its content to make sure nothing is lost, and then reload this page.'
     }
 })();

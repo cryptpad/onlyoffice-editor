@@ -42,7 +42,10 @@
 define([
     'core',
     'spreadsheeteditor/main/app/view/DataTab',
-    'spreadsheeteditor/main/app/view/GroupDialog'
+    'spreadsheeteditor/main/app/view/SortDialog',
+    'spreadsheeteditor/main/app/view/RemoveDuplicatesDialog',
+    'spreadsheeteditor/main/app/view/DataValidationDialog',
+    'common/main/lib/view/OptionsDialog'
 ], function () {
     'use strict';
 
@@ -86,12 +89,17 @@ define([
                     'data:tocolumns': this.onTextToColumn,
                     'data:show': this.onShowClick,
                     'data:hide': this.onHideClick,
-                    'data:groupsettings': this.onGroupSettings
+                    'data:groupsettings': this.onGroupSettings,
+                    'data:sortcustom': this.onCustomSort,
+                    'data:remduplicates': this.onRemoveDuplicates,
+                    'data:datavalidation': this.onDataValidation
                 },
                 'Statusbar': {
                     'sheet:changed': this.onApiSheetChanged
                 }
             });
+            Common.NotificationCenter.on('data:remduplicates', _.bind(this.onRemoveDuplicates, this));
+            Common.NotificationCenter.on('data:sortcustom', _.bind(this.onCustomSort, this));
         },
 
         SetDisabled: function(state) {
@@ -112,7 +120,7 @@ define([
 
             // special disable conditions
             Common.Utils.lockControls(SSE.enumLock.multiselectCols, info.asc_getSelectedColsCount()>1, {array: [this.view.btnTextToColumns]});
-            Common.Utils.lockControls(SSE.enumLock.multiselect, info.asc_getFlags().asc_getMultiselect(), {array: [this.view.btnTextToColumns]});
+            Common.Utils.lockControls(SSE.enumLock.multiselect, info.asc_getMultiselect(), {array: [this.view.btnTextToColumns]});
         },
 
         onUngroup: function(type) {
@@ -126,9 +134,12 @@ define([
             } else {
                 var val = me.api.asc_checkAddGroup(true);
                 if (val===null) {
-                    (new SSE.Views.GroupDialog({
+                    (new Common.Views.OptionsDialog({
                         title: me.view.capBtnUngroup,
-                        props: 'rows',
+                        items: [
+                            {caption: this.textRows, value: true, checked: true},
+                            {caption: this.textColumns, value: false, checked: false}
+                        ],
                         handler: function (dlg, result) {
                             if (result=='ok') {
                                 me.api.asc_ungroup(dlg.getSettings());
@@ -155,9 +166,12 @@ define([
                 var me = this,
                     val = me.api.asc_checkAddGroup();
                 if (val===null) {
-                    (new SSE.Views.GroupDialog({
+                    (new Common.Views.OptionsDialog({
                         title: me.view.capBtnGroup,
-                        props: 'rows',
+                        items: [
+                            {caption: this.textRows, value: true, checked: true},
+                            {caption: this.textColumns, value: false, checked: false}
+                        ],
                         handler: function (dlg, result) {
                             if (result=='ok') {
                                 me.api.asc_group(dlg.getSettings());
@@ -194,10 +208,13 @@ define([
                 previewData: data,
                 settings: me._state.CSVOptions,
                 api: me.api,
-                handler: function (result, encoding, delimiter, delimiterChar) {
+                handler: function (result, encoding, delimiter, delimiterChar, decimal, thousands) {
                     if (result == 'ok') {
                         if (me && me.api) {
-                            me.api.asc_TextToColumns(new Asc.asc_CTextOptions(encoding, delimiter, delimiterChar));
+                            var options = new Asc.asc_CTextOptions(encoding, delimiter, delimiterChar);
+                            decimal && options.asc_setNumberDecimalSeparator(decimal);
+                            thousands && options.asc_setNumberGroupSeparator(thousands);
+                            me.api.asc_TextToColumns(options);
                         }
                     }
                 }
@@ -212,9 +229,137 @@ define([
             this.api.asc_changeGroupDetails(false);
         },
 
+        onCustomSort: function() {
+            var me = this;
+            if (this.api) {
+                var res = this.api.asc_sortCellsRangeExpand();
+                if (res) {
+                    var config = {
+                        width: 500,
+                        title: this.toolbar.txtSorting,
+                        msg: this.toolbar.txtExpandSort,
+
+                        buttons: [  {caption: this.toolbar.txtExpand, primary: true, value: 'expand'},
+                            {caption: this.toolbar.txtSortSelected, primary: true, value: 'sort'},
+                            'cancel'],
+                        callback: function(btn){
+                            if (btn == 'expand' || btn == 'sort') {
+                                setTimeout(function(){
+                                    me.showCustomSort(btn == 'expand');
+                                },1);
+                            }
+                        }
+                    };
+                    Common.UI.alert(config);
+                } else
+                    me.showCustomSort(res !== null);
+            }
+        },
+
+        showCustomSort: function(expand) {
+            var me = this,
+                props = me.api.asc_getSortProps(expand);
+                // props = new Asc.CSortProperties();
+            if (props) {
+                (new SSE.Views.SortDialog({
+                    props: props,
+                    api: me.api,
+                    handler: function (result, settings) {
+                        if (me && me.api) {
+                            me.api.asc_setSortProps(settings, result != 'ok');
+                        }
+                    }
+                })).show();
+            }
+        },
+
+        onRemoveDuplicates: function() {
+            var me = this;
+            if (this.api) {
+                var res = this.api.asc_sortCellsRangeExpand();
+                if (res) {
+                    var config = {
+                        width: 500,
+                        title: this.txtRemDuplicates,
+                        msg: this.txtExpandRemDuplicates,
+                        buttons: [  {caption: this.txtExpand, primary: true, value: 'expand'},
+                            {caption: this.txtRemSelected, primary: true, value: 'remove'},
+                            'cancel'],
+                        callback: function(btn){
+                            if (btn == 'expand' || btn == 'remove') {
+                                setTimeout(function(){
+                                    me.showRemDuplicates(btn == 'expand');
+                                },1);
+                            }
+                        }
+                    };
+                    Common.UI.alert(config);
+                } else
+                    me.showRemDuplicates(res !== null);
+            }
+        },
+
+        showRemDuplicates: function(expand) {
+            var me = this,
+                props = me.api.asc_getRemoveDuplicates(expand);
+            if (props) {
+                (new SSE.Views.RemoveDuplicatesDialog({
+                    props: props,
+                    api: me.api,
+                    handler: function (result, settings) {
+                        if (me && me.api) {
+                            me.api.asc_setRemoveDuplicates(settings, result != 'ok');
+                        }
+                    }
+                })).show();
+            }
+        },
+
+        onDataValidation: function() {
+            var me = this;
+            if (this.api) {
+                var res = this.api.asc_getDataValidationProps();
+                if (typeof res !== 'object') {
+                    var config = {
+                        maxwidth: 500,
+                        title: this.txtDataValidation,
+                        msg: res===Asc.c_oAscError.ID.MoreOneTypeDataValidate ? this.txtRemoveDataValidation : this.txtExtendDataValidation,
+                        buttons: res===Asc.c_oAscError.ID.MoreOneTypeDataValidate ? ['ok', 'cancel'] : ['yes', 'no', 'cancel'],
+                        primary: res===Asc.c_oAscError.ID.MoreOneTypeDataValidate ? 'ok' : ['yes', 'no'],
+                        callback: function(btn){
+                            if (btn == 'yes' || btn == 'no' || btn == 'ok') {
+                                setTimeout(function(){
+                                    var props = me.api.asc_getDataValidationProps((btn=='ok') ? null : (btn == 'yes'));
+                                    me.showDataValidation(props);
+                                },1);
+                            }
+                        }
+                    };
+                    Common.UI.alert(config);
+                } else
+                    me.showDataValidation(res);
+            }
+        },
+
+        showDataValidation: function(props) {
+            var me = this;
+            if (props) {
+                (new SSE.Views.DataValidationDialog({
+                    title: this.txtDataValidation,
+                    props: props,
+                    api: me.api,
+                    handler: function (result, settings) {
+                        if (me && me.api && result == 'ok') {
+                            me.api.asc_setDataValidation(settings);
+                        }
+                    }
+                })).show();
+            }
+        },
+
         onWorksheetLocked: function(index,locked) {
             if (index == this.api.asc_getActiveWorksheetIndex()) {
-                Common.Utils.lockControls(SSE.enumLock.sheetLock, locked, {array: [this.view.btnGroup, this.view.btnUngroup]});
+                Common.Utils.lockControls(SSE.enumLock.sheetLock, locked, {array: this.view.btnsSortDown.concat(this.view.btnsSortUp, this.view.btnCustomSort, this.view.btnGroup, this.view.btnUngroup)});
             }
         },
 
@@ -225,7 +370,16 @@ define([
             this.onWorksheetLocked(currentSheet, this.api.asc_isWorksheetLockedOrDeleted(currentSheet));
         },
 
-        textWizard: 'Text to Columns Wizard'
+        textWizard: 'Text to Columns Wizard',
+        txtRemDuplicates: 'Remove Duplicates',
+        txtExpandRemDuplicates: 'The data next to the selection will not be removed. Do you want to expand the selection to include the adjacent data or continue with the currently selected cells only?',
+        txtExpand: 'Expand',
+        txtRemSelected: 'Remove in selected',
+        textRows: 'Rows',
+        textColumns: 'Columns',
+        txtDataValidation: 'Data Validation',
+        txtExtendDataValidation: 'The selection contains some cells without Data Validation settings.<br>Do you want to extend Data Validation to these cells?',
+        txtRemoveDataValidation: 'The selection contains more than one type of validation.<br>Erase current settings and continue?'
 
     }, SSE.Controllers.DataTab || {}));
 });

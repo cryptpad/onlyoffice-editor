@@ -62,6 +62,7 @@ define([
                     'contextmenu:click': this.onTabMenu
                 }
             });
+            this._moreAction = [];
         },
 
         events: function() {
@@ -101,7 +102,7 @@ define([
             this.api = api;
             this.api.asc_registerCallback('asc_onCoAuthoringDisconnect', _.bind(this.onApiDisconnect, this));
             Common.NotificationCenter.on('api:disconnect',               _.bind(this.onApiDisconnect, this));
-            // this.api.asc_registerCallback('asc_onUpdateTabColor', _.bind(this.onApiUpdateTabColor, this));
+            this.api.asc_registerCallback('asc_onUpdateTabColor', _.bind(this.onApiUpdateTabColor, this));
             // this.api.asc_registerCallback('asc_onEditCell', _.bind(this.onApiEditCell, this));
             this.api.asc_registerCallback('asc_onWorkbookLocked', _.bind(this.onWorkbookLocked, this));
             this.api.asc_registerCallback('asc_onWorksheetLocked', _.bind(this.onWorksheetLocked, this));
@@ -142,6 +143,8 @@ define([
 
             this.sheets.reset(items);
             this.hiddensheets.reset(hiddentems);
+
+            this.updateTabsColors();
 
             return;
 
@@ -251,12 +254,12 @@ define([
             var me = this;
 
             if (me.sheets.length == 1) {
-                uiApp.alert(me.errorLastSheet);
+                uiApp.alert(me.errorLastSheet, me.notcriticalErrorTitle);
             } else {
-                uiApp.confirm(me.warnDeleteSheet, undefined, _.buffered(function() {
+                uiApp.confirm(me.warnDeleteSheet, me.notcriticalErrorTitle, _.buffered(function() {
                     if ( !me.api.asc_deleteWorksheet() ) {
                         _.defer(function(){
-                            uiApp.alert(me.errorRemoveSheet);
+                            uiApp.alert(me.errorRemoveSheet, me.notcriticalErrorTitle);
                         });
                     }
                 }, 300));
@@ -266,11 +269,11 @@ define([
         hideWorksheet: function(hide, index) {
             if ( hide ) {
                 this.sheets.length == 1 ?
-                    uiApp.alert(this.errorLastSheet) :
-                    this.api['asc_hideWorksheet'](index);
+                    uiApp.alert(this.errorLastSheet, this.notcriticalErrorTitle) :
+                    this.api['asc_hideWorksheet']([index]);
             } else {
                 this.api['asc_showWorksheet'](index);
-                // this.loadTabColor(index);
+                this.loadTabColor(index);
             }
         },
 
@@ -435,11 +438,9 @@ define([
 
         loadTabColor: function (sheetindex) {
             if (this.api) {
-                if (!this.api.asc_isWorksheetHidden(sheetindex)) {
-                    var tab = _.findWhere(this.statusbar.tabbar.tabs, {sheetindex: sheetindex});
-                    if (tab) {
-                        this.setTabLineColor(tab, this.api.asc_getWorksheetTabColor(sheetindex));
-                    }
+                var tab = this.sheets.findWhere({index: sheetindex});
+                if (tab) {
+                    this.setTabLineColor(tab, this.api.asc_getWorksheetTabColor(sheetindex));
                 }
             }
         },
@@ -453,17 +454,24 @@ define([
                 }
 
                 if (color.length) {
-                    if (!tab.isActive()) {
-                        color = '0px 3px 0 ' + Common.Utils.RGBColor(color).toRGBA(0.7) + ' inset';
+                    if (!tab.get('active')) {
+                        color = '0px 4px 0 ' + Common.Utils.RGBColor(color).toRGBA(0.7) + ' inset';
                     } else {
-                        color = '0px 3px 0 ' + color + ' inset';
+                        color = '0px 4px 0 ' + color + ' inset';
                     }
 
-                    tab.$el.find('a').css('box-shadow', color);
+                    tab.get('el').find('a').css('box-shadow', color);
                 } else {
-                    tab.$el.find('a').css('box-shadow', '');
+                    tab.get('el').find('a').css('box-shadow', '');
                 }
             }
+        },
+
+        updateTabsColors: function () {
+            var me = this;
+            _.each(this.sheets.models, function (item) {
+                me.setTabLineColor(item, me.api.asc_getWorksheetTabColor(item.get('index')));
+            });
         },
 
         onError: function(id, level, errData) {
@@ -489,6 +497,18 @@ define([
                 this.statusbar.setActiveTab(index);
 
                 Common.NotificationCenter.trigger('sheet:active', sdkindex);
+            }
+        },
+
+        onLinkWorksheetRange: function(nameSheet, prevSheet) {
+            var tab = this.sheets.findWhere({name: nameSheet});
+            if (tab) {
+                var sdkIndex = tab.get('index');
+                if (sdkIndex !== prevSheet) {
+                    var index = this.sheets.indexOf(tab);
+                    this.statusbar.setActiveTab(index);
+                    Common.NotificationCenter.trigger('sheet:active', sdkIndex);
+                }
             }
         },
 
@@ -521,6 +541,25 @@ define([
                 });
                 break;
             case 'ren': me.renameWorksheet(); break;
+            case 'showMore':
+                if (me._moreAction.length > 0) {
+                    _.delay(function () {
+                        _.each(me._moreAction, function (action) {
+                            action.text = action.caption;
+                            action.onClick = function () {
+                                me.onTabMenu(null, action.event, model)
+                            }
+                        });
+
+                        uiApp.actions([me._moreAction, [
+                            {
+                                text: me.cancelButtonText,
+                                bold: true
+                            }
+                        ]]);
+                    }, 100);
+                }
+                break;
             default:
                 var _re = /reveal\:(\d+)/.exec(event);
                 if ( _re && !!_re[1] ) {
@@ -532,7 +571,7 @@ define([
 
         _getTabMenuItems: function(model) {
             var wbLocked = this.api.asc_isWorkbookLocked();
-            var shLocked   = this.api.asc_isWorksheetLockedOrDeleted(model.get('index'));
+            var shLocked = this.api.asc_isWorksheetLockedOrDeleted(model.get('index'));
 
             var items = [{
                     caption: this.menuDuplicate,
@@ -560,6 +599,16 @@ define([
                 });
             }
 
+            if (Common.SharedSettings.get('phone') && items.length > 3) {
+                this._moreAction = items.slice(2);
+
+                items = items.slice(0, 2);
+                items.push({
+                    caption: this.menuMore,
+                    event: 'showMore'
+                });
+            }
+
             return items;
         },
 
@@ -578,7 +627,8 @@ define([
         strRenameSheet: 'Rename Sheet',
         strSheetName  : 'Sheet Name',
         cancelButtonText: 'Cancel',
-        notcriticalErrorTitle: 'Warning'
+        notcriticalErrorTitle: 'Warning',
+        menuMore: 'More'
 
     }, SSE.Controllers.Statusbar || {}));
 });

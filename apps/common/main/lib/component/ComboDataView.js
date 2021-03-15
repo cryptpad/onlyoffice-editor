@@ -148,7 +148,7 @@ define([
 
                 me.trigger('render:before', me);
 
-                me.cmpEl = $(me.el);
+                me.cmpEl = me.$el || $(me.el);
 
                 var templateEl = me.template({
                     id      : me.id,
@@ -457,6 +457,13 @@ define([
                 this.fieldPicker.deselectAll();
 
             this.menuPicker.selectByIndex(index);
+        },
+
+        selectRecord: function(record) {
+            if (!record)
+                this.fieldPicker.deselectAll();
+
+            this.menuPicker.selectRecord(record);
         },
 
         setItemWidth: function(width) {

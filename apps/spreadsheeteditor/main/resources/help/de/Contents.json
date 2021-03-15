@@ -17,6 +17,18 @@
     "name": "Registerkarte Einfügen"
   },
   {
+    "src": "ProgramInterface/LayoutTab.htm",
+    "name": "Registerkarte Layout"
+  },
+  {
+    "src": "ProgramInterface/FormulaTab.htm",
+    "name": "Registerkarte Formel"
+  },
+  {
+    "src": "ProgramInterface/DataTab.htm",
+    "name": "Registerkarte Daten"
+  },
+  {
     "src": "ProgramInterface/PivotTableTab.htm",
     "name": "Registerkarte Pivot-Tabelle"
   },
@@ -27,6 +39,10 @@
   {
     "src": "ProgramInterface/PluginsTab.htm",
     "name": "Registerkarte Plug-ins"
+  },
+  {
+    "src": "ProgramInterface/ViewTab.htm",
+    "name": "Registerkarte Tabellenansicht"
   },
   {
     "src": "UsageInstructions/OpenCreateNew.htm",
@@ -45,6 +61,10 @@
     "src": "UsageInstructions/ManageSheets.htm",
     "name": "Tabellenblätter verwalten",
     "headername": "Mit Tabellenblättern arbeiten"
+  },
+  {
+    "src": "UsageInstructions/InsertHeadersFooters.htm",
+    "name": "Kopf- und Fußzeilen einfügen"
   },
   {
     "src": "UsageInstructions/FontTypeSizeStyle.htm",
@@ -86,8 +106,32 @@
     "name": "Daten filtern und sortieren"
   },
   {
+    "src": "UsageInstructions/FormattedTables.htm",
+    "name": "Tabellenvorlage formatieren"
+  },
+  {
+    "src": "UsageInstructions/Slicers.htm",
+    "name": "Datenschnitte in den formatierten Tabellen erstellen"
+  },
+  {
     "src": "UsageInstructions/PivotTables.htm",
-    "name": "Pivot-Tabellen bearbeiten"
+    "name": "Pivot-Tabellen erstellen und bearbeiten"
+  },
+  {
+    "src": "UsageInstructions/GroupData.htm",
+    "name": "Daten gruppieren"
+  },
+  {
+    "src": "UsageInstructions/RemoveDuplicates.htm",
+    "name": "Duplikate entfernen"
+  },
+  {
+    "src": "UsageInstructions/ConditionalFormatting.htm",
+    "name": "Bedingte Formatierung"
+  },
+  {
+    "src": "UsageInstructions/DataValidation.htm",
+    "name": "Datenüberprüfung"
   },
   {
     "src": "UsageInstructions/InsertFunction.htm",
@@ -115,6 +159,11 @@
     "src": "UsageInstructions/InsertTextObjects.htm",
     "name": "Textobjekte einfügen"
   },
+
+  {
+    "src": "UsageInstructions/InsertSymbols.htm",
+    "name": "Symbole und Sonderzeichen einfügen"
+  },
   {
     "src": "UsageInstructions/ManipulateObjects.htm",
     "name": "Objekte formatieren"
@@ -130,9 +179,17 @@
     "headername": "Co-Bearbeitung von Tabellenblättern"
   },
   {
+    "src": "UsageInstructions/SheetView.htm",
+    "name": "Tabellenansichten verwalten"
+  },
+  {
     "src": "UsageInstructions/ViewDocInfo.htm",
     "name": "Tabelleneigenschaften anzeigen",
     "headername": "Werkzeuge und Einstellungen"
+  },
+  {
+    "src": "UsageInstructions/ScaleToFit.htm",
+    "name": "Ein Arbeitsblatt skalieren"
   },
   {
     "src": "UsageInstructions/SavePrintDownload.htm",
@@ -149,6 +206,14 @@
   {
     "src": "HelpfulHints/Search.htm",
     "name": "Such- und Ersatzfunktionen"
+  },
+  {
+    "src": "HelpfulHints/SpellChecking.htm",
+    "name": "Rechtschreibprüfung"
+  },
+  {
+    "src": "UsageInstructions/MathAutoCorrect.htm",
+    "name": "AutoKorrekturfunktionen"
   },
   {
     "src": "HelpfulHints/About.htm",

@@ -63,6 +63,12 @@
  *      @cfg {Boolean} animate
  *      Makes the window to animate while showing or hiding
  *
+ *      @cfg {Object} buttons
+ *          Use an array for predefined buttons (ok, cancel, yes, no): @example ['yes', 'no']
+ *          Use a named array for the custom buttons: {value: caption, ...}
+ *              @param {String} value will be returned in callback function
+ *              @param {String} caption
+ *
  *      Methods
  *
  *      @method show
@@ -106,12 +112,6 @@
  *      @window Common.UI.warning
  *      Shows warning message.
  *      @cfg {String} msg
- *      @cfg {Object} buttons
- *          Use an array for predefined buttons (ok, cancel, yes, no): @example ['yes', 'no']
- *          Use a named array for the custom buttons: {value: caption, ...}
- *              @param {String} value will be returned in callback function
- *              @param {String} caption
- *
  *      @cfg {Function} callback
  *      @param {String} button
  *      If the window is closed via shortcut or header's close tool, the 'button' will be 'close'
@@ -136,7 +136,9 @@
     var Common = {};
 
 define([
-    'common/main/lib/component/BaseView'
+    'common/main/lib/component/BaseView',
+    'common/main/lib/component/CheckBox',
+    'common/main/lib/component/FocusManager'
 ], function () {
     'use strict';
 
@@ -151,6 +153,7 @@ define([
                 alias:      'Window',
                 cls:        '',
                 toolclose:  'close',
+                help:       false,
                 maxwidth: undefined,
                 maxheight: undefined,
                 minwidth: 0,
@@ -161,13 +164,26 @@ define([
         var template = '<div class="asc-window<%= modal?" modal":"" %><%= cls?" "+cls:"" %>" id="<%= id %>" style="width:<%= width %>px;">' +
                             '<% if (header==true) { %>' +
                                 '<div class="header">' +
+                                    '<div class="tools">' +
                                     '<% if (closable!==false) %>' +
                                         '<div class="tool close img-commonctrl"></div>' +
                                     '<% %>' +
+                                    '<% if (help===true) %>' +
+                                        '<div class="tool help">?</div>' +
+                                    '<% %>' +
+                                    '</div>' +
                                     '<div class="title"><%= title %></div> ' +
                                 '</div>' +
                             '<% } %>' +
-                            '<div class="body"><%= tpl %></div>' +
+                            '<div class="body"><%= tpl %>' +
+                                '<% if (typeof (buttons) !== "undefined" && _.size(buttons) > 0) { %>' +
+                                '<div class="footer">' +
+                                    '<% for(var bt in buttons) { %>' +
+                                        '<button class="btn normal dlg-btn <%= buttons[bt].cls %>" result="<%= bt %>"><%= buttons[bt].text %></button>'+
+                                    '<% } %>' +
+                                '</div>' +
+                                '<% } %>' +
+                            '</div>' +
                         '</div>';
 
         function _getMask() {
@@ -211,24 +227,42 @@ define([
             }
         }
 
-        function _centre() {
+        function _readDocumetGeometry() {
             if (window.innerHeight == undefined) {
-                var main_width  = document.documentElement.offsetWidth;
-                var main_height = document.documentElement.offsetHeight;
+                var width  = document.documentElement.offsetWidth,
+                height = document.documentElement.offsetHeight;
             } else {
-                main_width  = Common.Utils.innerWidth();
-                main_height = Common.Utils.innerHeight();
+                width  = Common.Utils.innerWidth();
+                height = Common.Utils.innerHeight();
             }
+            height -= Common.Utils.InternalSettings.get('window-inactive-area-top');
+            return {width: width, height: height, top: Common.Utils.InternalSettings.get('window-inactive-area-top')};
+        }
+
+        function _autoSize() {
+            if (this.initConfig.height == 'auto') {
+                var height = parseInt(this.$window.find('> .body').css('height'));
+                this.initConfig.header && (height += parseInt(this.$window.find('> .header').css('height')));
+                this.$window.height(height);
+            }
+        }
+
+        function _centre() {
+            var main_geometry = _readDocumetGeometry(),
+                main_width = main_geometry.width,
+                main_height = main_geometry.height;
 
             if (this.initConfig.height == 'auto') {
                 var win_height = parseInt(this.$window.find('.body').css('height'));
                 this.initConfig.header && (win_height += parseInt(this.$window.find('.header').css('height')));
-            } else
+            } else {
                 win_height = this.initConfig.height;
+                win_height > main_height && (win_height = main_height);
+            }
 
             var win_width = (this.initConfig.width=='auto') ? parseInt(this.$window.find('.body').css('width')) : this.initConfig.width;
             
-            var top  = Math.floor((parseInt(main_height) - parseInt(win_height)) / 2);
+            var top  = main_geometry.top + Math.floor((parseInt(main_height) - parseInt(win_height)) / 2);
             var left = Math.floor((parseInt(main_width) - parseInt(win_width)) / 2);
 
             this.$window.css('left',left);
@@ -236,18 +270,21 @@ define([
         }
 
         function _setVisible() {
-            if (window.innerHeight == undefined) {
-                var main_width  = document.documentElement.offsetWidth;
-                var main_height = document.documentElement.offsetHeight;
-            } else {
-                main_width  = Common.Utils.innerWidth();
-                main_height = Common.Utils.innerHeight();
-            }
+            var main_geometry = _readDocumetGeometry(),
+                main_width = main_geometry.width,
+                main_height = main_geometry.height;
 
             if (this.getLeft() + this.getWidth() > main_width)
                 this.$window.css('left', main_width - this.getWidth());
-            if (this.getTop() + this.getHeight() > main_height)
-                this.$window.css('top', main_height - this.getHeight());
+
+            if (this.getTop() < main_geometry.top )
+                this.$window.css('top', main_geometry.top);
+            else
+            if (this.getTop() + this.getHeight() > main_height) {
+                if (main_height - this.getHeight() < 0)
+                    this.$window.css('top', main_geometry.top);
+                else this.$window.css('top', main_geometry.top + main_height - this.getHeight());
+            }
         }
 
         function _getTransformation(end) {
@@ -262,23 +299,22 @@ define([
 
         /* window drag's functions */
         function _dragstart(event) {
-            if ( $(event.target).hasClass('close') ) return;
+            if ( $(event.target).hasClass('close') || $(event.target).hasClass('help') ) return;
             Common.UI.Menu.Manager.hideAll();
             var zoom = (event instanceof jQuery.Event) ? Common.Utils.zoom() : 1;
             this.dragging.enabled = true;
             this.dragging.initx = event.pageX*zoom - this.getLeft();
             this.dragging.inity = event.pageY*zoom - this.getTop();
 
-            if (window.innerHeight == undefined) {
-                var main_width  = document.documentElement.offsetWidth;
-                var main_height = document.documentElement.offsetHeight;
-            } else {
-                main_width  = Common.Utils.innerWidth();
-                main_height = Common.Utils.innerHeight();
-            }
+            var main_geometry = _readDocumetGeometry(),
+                main_width = main_geometry.width,
+                main_height = main_geometry.height;
 
             this.dragging.maxx  = main_width - this.getWidth();
             this.dragging.maxy  = main_height - this.getHeight();
+            if (this.dragging.maxy < 0)
+                    this.dragging.maxy = 0;
+            this.dragging.maxy += main_geometry.top;
 
             $(document).on('mousemove', this.binding.drag);
             $(document).on('mouseup', this.binding.dragStop);
@@ -303,10 +339,11 @@ define([
             if (this.dragging.enabled) {
                 var zoom = (event instanceof jQuery.Event) ? Common.Utils.zoom() : 1,
                     left    = event.pageX*zoom - this.dragging.initx,
-                    top     = event.pageY*zoom - this.dragging.inity;
+                    top     = event.pageY*zoom - this.dragging.inity,
+                    topedge = Common.Utils.InternalSettings.get('window-inactive-area-top');
 
                 left < 0 ? (left = 0) : left > this.dragging.maxx && (left = this.dragging.maxx);
-                top < 0 ? (top = 0) : top > this.dragging.maxy && (top = this.dragging.maxy);
+                top < topedge ? (top = topedge) : top > this.dragging.maxy && (top = this.dragging.maxy);
 
                 this.$window.css({left: left, top: top});
             }
@@ -335,25 +372,17 @@ define([
             this.resizing.inith = this.getHeight();
             this.resizing.type = [el.hasClass('left') ? -1 : (el.hasClass('right') ? 1 : 0), el.hasClass('top') ? -1 : (el.hasClass('bottom') ? 1 : 0)];
 
-            var main_width  = (window.innerHeight == undefined) ? document.documentElement.offsetWidth : Common.Utils.innerWidth(),
-                main_height = (window.innerHeight == undefined) ? document.documentElement.offsetHeight : Common.Utils.innerHeight(),
-                maxwidth = (this.initConfig.maxwidth) ? this.initConfig.maxwidth : main_width,
+            var main_geometry = _readDocumetGeometry(),
+                main_width = main_geometry.width,
+                main_height = main_geometry.height;
+            var maxwidth = (this.initConfig.maxwidth) ? this.initConfig.maxwidth : main_width,
                 maxheight = (this.initConfig.maxheight) ? this.initConfig.maxheight : main_height;
 
-            if (this.resizing.type[0]>0) {
-                this.resizing.maxx  = Math.min(main_width, left+maxwidth);
-                this.resizing.minx  = left+this.initConfig.minwidth;
-            } else if (this.resizing.type[0]<0) {
-                this.resizing.maxx  = left+this.resizing.initw-this.initConfig.minwidth;
-                this.resizing.minx  = Math.max(0, left+this.resizing.initw-maxwidth);
-            }
-            if (this.resizing.type[1]>0) {
-                this.resizing.maxy  = Math.min(main_height, top+maxheight);
-                this.resizing.miny  = top+this.initConfig.minheight;
-            } else if (this.resizing.type[1]<0) {
-                this.resizing.maxy  = top+this.resizing.inith-this.initConfig.minheight;
-                this.resizing.miny  = Math.max(0, top+this.resizing.inith-maxheight);
-            }
+            this.resizing.minw  = this.initConfig.minwidth;
+            this.resizing.maxw = (this.resizing.type[0]>0) ? Math.min(main_width-left, maxwidth) : Math.min(left+this.resizing.initw, maxwidth);
+
+            this.resizing.minh  = this.initConfig.minheight;
+            this.resizing.maxh  = (this.resizing.type[1]>0) ? Math.min(main_height-top, maxheight) : Math.min(top+this.resizing.inith, maxheight);
 
             $(document.body).css('cursor', el.css('cursor'));
             this.$window.find('.resize-border').addClass('resizing');
@@ -370,16 +399,34 @@ define([
                     zoom = (event instanceof jQuery.Event) ? Common.Utils.zoom() : 1,
                     pageX = event.pageX*zoom,
                     pageY = event.pageY*zoom;
-                if (this.resizing.type[0] && pageX<this.resizing.maxx && pageX>this.resizing.minx) {
+                if (this.resizing.type[0]) {
+                    var new_width = this.resizing.initw + (pageX - this.resizing.initpage_x) * this.resizing.type[0];
+                    if (new_width>this.resizing.maxw) {
+                        pageX = pageX - (new_width-this.resizing.maxw) * this.resizing.type[0];
+                        new_width = this.resizing.maxw;
+                    } else if (new_width<this.resizing.minw) {
+                        pageX = pageX - (new_width-this.resizing.minw) * this.resizing.type[0];
+                        new_width = this.resizing.minw;
+                    }
+
                     if (this.resizing.type[0]<0)
                         this.$window.css({left: pageX - this.resizing.initx});
-                    this.setWidth(this.resizing.initw + (pageX - this.resizing.initpage_x) * this.resizing.type[0]);
+                    this.setWidth(new_width);
                     resized = true;
                 }
-                if (this.resizing.type[1] && pageY<this.resizing.maxy && pageY>this.resizing.miny) {
+                if (this.resizing.type[1]) {
+                    var new_height = this.resizing.inith + (pageY - this.resizing.initpage_y) * this.resizing.type[1];
+                    if (new_height>this.resizing.maxh) {
+                        pageY = pageY - (new_height-this.resizing.maxh) * this.resizing.type[1];
+                        new_height = this.resizing.maxh;
+                    } else if (new_height<this.resizing.minh) {
+                        pageY = pageY - (new_height-this.resizing.minh) * this.resizing.type[1];
+                        new_height = this.resizing.minh;
+                    }
+
                     if (this.resizing.type[1]<0)
                         this.$window.css({top: pageY - this.resizing.inity});
-                    this.setHeight(this.resizing.inith + (pageY - this.resizing.initpage_y) * this.resizing.type[1]);
+                    this.setHeight(new_height);
                     resized = true;
                 }
                 if (resized) this.fireEvent('resizing');
@@ -399,50 +446,21 @@ define([
 
         Common.UI.alert = function(options) {
             var me = this.Window.prototype;
-            var arrBtns = {ok: me.okButtonText, cancel: me.cancelButtonText,
-                yes: me.yesButtonText, no: me.noButtonText,
-                close: me.closeButtonText};
 
             if (!options.buttons) {
-                options.buttons = {};
-                options.buttons['ok'] = {text: arrBtns['ok'], cls: 'primary'};
-            } else {
-                if (_.isArray(options.buttons)) {
-                    if (options.primary==undefined)
-                        options.primary = 'ok';
-                    var newBtns = {};
-                    _.each(options.buttons, function(b){
-                        if (typeof(b) == 'object') {
-                            if (b.value !== undefined)
-                                newBtns[b.value] = {text: b.caption, cls: 'custom' + ((b.primary || options.primary==b.value) ? ' primary' : '')};
-                        } else {
-                            newBtns[b] = {text: (b=='custom') ? options.customButtonText : arrBtns[b], cls: (options.primary==b) ? 'primary' : ''};
-                            if (b=='custom')
-                                newBtns[b].cls += ' custom';
-                        }
-                    });
-
-                    options.buttons = newBtns;
-                }
+                options.buttons = ['ok'];
             }
             options.dontshow = options.dontshow || false;
 
             if (!options.width) options.width = 'auto';
             
             var template =  '<div class="info-box">' +
-                                '<% if (typeof iconCls !== "undefined") { %><div class="icon img-commonctrl <%= iconCls %>" /><% } %>' +
+                                '<% if (typeof iconCls !== "undefined") { %><div class="icon img-commonctrl <%= iconCls %>"></div><% } %>' +
                                 '<div class="text" <% if (typeof iconCls == "undefined") { %> style="padding-left:10px;" <% } %>><span><%= msg %></span>' +
                                     '<% if (dontshow) { %><div class="dont-show-checkbox"></div><% } %>' +
                                 '</div>' +
                             '</div>' +
-                            '<% if (dontshow) { %><div class="separator horizontal" style="width: 100%;"/><% } %>' +
-                            '<% if (_.size(buttons) > 0) { %>' +
-                                '<div class="footer <% if (dontshow) { %> dontshow <% } %>">' +
-                                    '<% for(var bt in buttons) { %>' +
-                                        '<button class="btn normal dlg-btn <%= buttons[bt].cls %>" result="<%= bt %>"><%= buttons[bt].text %></button>'+
-                                    '<% } %>' +
-                                '</div>' +
-                            '<% } %>';
+                            '<% if (dontshow) { %><div class="separator horizontal" style="width: 100%;"></div><% } %>';
 
             _.extend(options, {
                 cls: 'alert',
@@ -500,10 +518,12 @@ define([
 
             win.on({
                 'render:after': function(obj){
-                    obj.getChild('.footer .dlg-btn').on('click', onBtnClick);
+                    var footer = obj.getChild('.footer');
+                    options.dontshow && footer.addClass('dontshow');
+                    footer.find('.dlg-btn').on('click', onBtnClick);
                     chDontShow = new Common.UI.CheckBox({
                         el: win.$window.find('.dont-show-checkbox'),
-                        labelText: win.textDontShow
+                        labelText: options.textDontShow || win.textDontShow
                     });
                     autoSize(obj);
                 },
@@ -516,13 +536,14 @@ define([
             });
 
             win.show();
+            return win;
         };
 
         Common.UI.error = function(options) {
             options = options || {};
             !options.title && (options.title = this.Window.prototype.textError);
 
-            Common.UI.alert(
+            return Common.UI.alert(
                 _.extend(options, {
                     iconCls: 'error'
                 })
@@ -533,7 +554,7 @@ define([
             options = options || {};
             !options.title && (options.title = this.Window.prototype.textConfirmation);
 
-            Common.UI.alert(
+            return Common.UI.alert(
                 _.extend(options, {
                     iconCls: 'confirm'
                 })
@@ -544,7 +565,7 @@ define([
             options = options || {};
             !options.title && (options.title = this.Window.prototype.textInformation);
 
-            Common.UI.alert(
+            return Common.UI.alert(
                 _.extend(options, {
                     iconCls: 'info'
                 })
@@ -555,7 +576,7 @@ define([
             options = options || {};
             !options.title && (options.title = this.Window.prototype.textWarning);
 
-            Common.UI.alert(
+            return Common.UI.alert(
                 _.extend(options, {
                     iconCls: 'warn'
                 })
@@ -572,6 +593,29 @@ define([
                 this.initConfig = {};
                 this.binding = {};
 
+                var arrBtns = {ok: this.okButtonText, cancel: this.cancelButtonText,
+                    yes: this.yesButtonText, no: this.noButtonText,
+                    close: this.closeButtonText};
+
+                if (options.buttons && _.isArray(options.buttons)) {
+                    if (options.primary==undefined)
+                        options.primary = 'ok';
+                    var newBtns = {};
+                    _.each(options.buttons, function(b){
+                        if (typeof(b) == 'object') {
+                            if (b.value !== undefined)
+                                newBtns[b.value] = {text: b.caption, cls: 'custom' + ((b.primary || options.primary==b.value) ? ' primary' : '')};
+                        } else {
+                            newBtns[b] = {text: (b=='custom') ? options.customButtonText : arrBtns[b], cls: (options.primary==b || _.indexOf(options.primary, b)>-1) ? 'primary' : ''};
+                            if (b=='custom')
+                                newBtns[b].cls += ' custom';
+                        }
+                    });
+
+                    options.buttons = newBtns;
+                    options.footerCls = options.footerCls || 'center';
+                }
+
                 _.extend(this.initConfig, config, options || {});
 
                 !this.initConfig.id && (this.initConfig.id = 'window-' + this.cid);
@@ -580,13 +624,16 @@ define([
                 Common.UI.BaseView.prototype.initialize.call(this, this.initConfig);
             },
 
-            render : function() {
+            render: function() {
                 var renderto = this.initConfig.renderTo || document.body;
                 $(renderto).append(
                     _.template(template)(this.initConfig)
                 );
 
                 this.$window = $('#' + this.initConfig.id);
+
+                if (Common.Locale.getCurrentLanguage() !== 'en')
+                    this.$window.attr('applang', Common.Locale.getCurrentLanguage());
 
                 this.binding.keydown = _.bind(_keydown,this);
                // $(document).on('keydown', this.binding.keydown);
@@ -603,8 +650,13 @@ define([
                         else
                             (this.initConfig.toolclose=='hide') ? this.hide() : this.close();
                     };
+                    var dohelp = function() {
+                        if ( this.$window.find('.tool.help').hasClass('disabled') ) return;
+                        this.fireEvent('help',this);
+                    };
                     this.$window.find('.header').on('mousedown', this.binding.dragStart);
                     this.$window.find('.tool.close').on('click', _.bind(doclose, this));
+                    this.$window.find('.tool.help').on('click', _.bind(dohelp, this));
 
                     if (!this.initConfig.modal)
                         Common.Gateway.on('processmouse', _.bind(_onProcessMouse, this));
@@ -615,11 +667,7 @@ define([
                     });
                 }
 
-                if (this.initConfig.height == 'auto') {
-                    var height = parseInt(this.$window.find('> .body').css('height'));
-                    this.initConfig.header && (height += parseInt(this.$window.find('> .header').css('height')));
-                    this.$window.height(height);
-                } else {
+                if (this.initConfig.height !== 'auto') {
                     this.$window.css('height',this.initConfig.height);
                 }
 
@@ -632,6 +680,24 @@ define([
                 };
                 Common.NotificationCenter.on('window:close', this.binding.winclose);
 
+                this.initConfig.footerCls && this.$window.find('.footer').addClass(this.initConfig.footerCls);
+
+                this.menuAddAlign = function(menuRoot, left, top) {
+                    var self = this;
+                    if (!me.$window.hasClass('notransform')) {
+                        me.$window.addClass('notransform');
+                        menuRoot.addClass('hidden');
+                        setTimeout(function() {
+                            menuRoot.removeClass('hidden');
+                            menuRoot.css({left: left, top: top});
+                            self.options.additionalAlign = null;
+                        }, 300);
+                    } else {
+                        menuRoot.css({left: left, top: top});
+                        self.options.additionalAlign = null;
+                    }
+                };
+
                 this.fireEvent('render:after',this);
                 return this;
             },
@@ -643,13 +709,12 @@ define([
                         mask.attr('counter', parseInt(mask.attr('counter'))+1);
                         mask.show();
                     } else {
-                        var opacity = mask.css('opacity');
                         mask.css('opacity', 0);
                         mask.attr('counter', parseInt(mask.attr('counter'))+1);
                         mask.show();
 
                         setTimeout(function () {
-                            mask.css(_getTransformation(opacity));
+                            mask.css(_getTransformation('0.2'));
                         }, 1);
                     }
 
@@ -659,6 +724,7 @@ define([
 
                 if (!this.$window) {
                     this.render();
+                    _autoSize.call(this);
 
                     if (_.isNumber(x) && _.isNumber(y)) {
                         this.$window.css('left',Math.floor(x));
@@ -713,7 +779,7 @@ define([
                     this.fireEvent('show', this);
                 }
 
-                Common.NotificationCenter.trigger('window:show');
+                Common.NotificationCenter.trigger('window:show', this);
             },
 
             close: function(suppressevent) {
@@ -735,12 +801,11 @@ define([
 
                     if ( hide_mask ) {
                         if (this.options.animate !== false) {
-                            var opacity = mask.css('opacity');
                             mask.css(_getTransformation(0));
 
                             setTimeout(function () {
-                                mask.css('opacity', opacity);
                                 if (parseInt(mask.attr('counter'))<1) {
+                                    mask.css('opacity', '0.2');
                                     mask.hide();
                                     mask.attr('counter', 0);
                                 }
@@ -753,7 +818,7 @@ define([
                         }
                     }
 
-                    Common.NotificationCenter.trigger('modal:close', this);
+                    Common.NotificationCenter.trigger('modal:close', this, hide_mask && (parseInt(mask.attr('counter'))<1));
                 }
 
                 this.$window.remove();
@@ -776,12 +841,11 @@ define([
 
                         if ( hide_mask ) {
                             if (this.options.animate !== false) {
-                                var opacity = mask.css('opacity');
                                 mask.css(_getTransformation(0));
 
                                 setTimeout(function () {
-                                    mask.css('opacity', opacity);
                                     if (parseInt(mask.attr('counter'))<1) {
+                                        mask.css('opacity', '0.2');
                                         mask.hide();
                                         mask.attr('counter', 0);
                                     }
@@ -793,7 +857,7 @@ define([
                                 }
                             }
                         }
-                        Common.NotificationCenter.trigger('modal:hide', this);
+                        Common.NotificationCenter.trigger('modal:hide', this, hide_mask && (parseInt(mask.attr('counter'))<1));
                     }
                     this.$window.hide();
                     this.$window.removeClass('notransform');
@@ -901,6 +965,13 @@ define([
                         this.$window.find('.resize-border').remove();
                     }
                     this.resizable = resizable;
+                } else {
+                    if (resizable) {
+                        (minSize && minSize.length>1) && (this.initConfig.minwidth = minSize[0]);
+                        (minSize && minSize.length>1) && (this.initConfig.minheight = minSize[1]);
+                        (maxSize && maxSize.length>1) && (this.initConfig.maxwidth = maxSize[0]);
+                        (maxSize && maxSize.length>1) && (this.initConfig.maxheight = maxSize[1]);
+                    }
                 }
             },
 
@@ -913,6 +984,13 @@ define([
             },
 
             onPrimary: function() {},
+
+            getFocusedComponents: function() {
+                return [];
+            },
+
+            getDefaultFocusableComponent: function() {
+            },
 
             cancelButtonText: 'Cancel',
             okButtonText: 'OK',

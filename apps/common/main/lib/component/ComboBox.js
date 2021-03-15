@@ -86,7 +86,8 @@ define([
                 displayField: 'displayValue',
                 valueField  : 'value',
                 search      : false,
-                scrollAlwaysVisible: false
+                scrollAlwaysVisible: false,
+                takeFocusOnClose: false
             },
 
             template: _.template([
@@ -104,8 +105,7 @@ define([
             initialize : function(options) {
                 Common.UI.BaseView.prototype.initialize.call(this, options);
 
-                var me = this,
-                    el = $(this.el);
+                var me = this;
 
                 this.id             = me.options.id || Common.UI.getId();
                 this.cls            = me.options.cls;
@@ -158,10 +158,10 @@ define([
                         this.setElement(parentEl, false);
                         parentEl.html(this.cmpEl);
                     } else {
-                        $(this.el).html(this.cmpEl);
+                        this.$el.html(this.cmpEl);
                     }
                 } else {
-                    this.cmpEl = $(this.el);
+                    this.cmpEl = me.$el || $(this.el);
                 }
 
                 if (!me.rendered) {
@@ -194,6 +194,18 @@ define([
                         var modalParents = el.closest('.asc-window');
                         if (modalParents.length > 0) {
                             el.data('bs.tooltip').tip().css('z-index', parseInt(modalParents.css('z-index')) + 10);
+                            var onModalClose = function(dlg) {
+                                if (modalParents[0] !== dlg.$window[0]) return;
+                                var tip = el.data('bs.tooltip');
+                                if (tip) {
+                                    if (tip.dontShow===undefined)
+                                        tip.dontShow = true;
+
+                                    tip.hide();
+                                }
+                                Common.NotificationCenter.off({'modal:close': onModalClose});
+                            };
+                            Common.NotificationCenter.on({'modal:close': onModalClose});
                         }
 
                         el.find('.dropdown-menu').on('mouseenter', function(){ // hide tooltip when mouse is over menu
@@ -204,6 +216,11 @@ define([
                                 tip.hide();
                             }
                         });
+                    }
+
+                    var $list = el.find('.dropdown-menu');
+                    if ($list.hasClass('menu-absolute')) {
+                        $list.css('min-width', el.outerWidth());
                     }
 
                     el.on('show.bs.dropdown',             _.bind(me.onBeforeShowMenu, me));
@@ -241,7 +258,6 @@ define([
                     this.scroller = new Common.UI.Scroller(_.extend({
                         el: $('.dropdown-menu', this.cmpEl),
                         minScrollbarLength: 40,
-                        scrollYMarginOffset: 30,
                         includePadding: true,
                         wheelSpeed: 10,
                         alwaysVisibleY: this.scrollAlwaysVisible
@@ -266,7 +282,6 @@ define([
                     this.scroller = new Common.UI.Scroller(_.extend({
                         el: $('.dropdown-menu', this.cmpEl),
                         minScrollbarLength: 40,
-                        scrollYMarginOffset: 30,
                         includePadding: true,
                         wheelSpeed: 10,
                         alwaysVisibleY: this.scrollAlwaysVisible
@@ -283,6 +298,15 @@ define([
                         tip.hide();
                     }
                 }
+
+                var $list = this.cmpEl.find('ul');
+                if ($list.hasClass('menu-absolute')) {
+                    var offset = this.cmpEl.offset();
+                    $list.css({left: offset.left, top: offset.top + this.cmpEl.outerHeight() + 2});
+                } else if ($list.hasClass('menu-aligned')) {
+                    var offset = this.cmpEl.offset();
+                    $list.toggleClass('show-top', offset.top + this.cmpEl.outerHeight() + $list.outerHeight() > Common.Utils.innerHeight());
+                }
             },
 
             onAfterShowMenu: function(e) {
@@ -291,13 +315,18 @@ define([
 
                 if ($selected.length) {
                     var itemTop = $selected.position().top,
-                        itemHeight = $selected.height(),
-                        listHeight = $list.height();
+                        itemHeight = $selected.outerHeight(),
+                        listHeight = $list.outerHeight();
 
                     if (itemTop < 0 || itemTop + itemHeight > listHeight) {
-                        $list.scrollTop($list.scrollTop() + itemTop + itemHeight - (listHeight/2));
+                        var height = $list.scrollTop() + itemTop + (itemHeight - listHeight)/2;
+                        height = (Math.floor(height/itemHeight) * itemHeight);
+                        $list.scrollTop(height);
                     }
                     setTimeout(function(){$selected.find('a').focus();}, 1);
+                } else {
+                    var me = this;
+                    setTimeout(function(){me.cmpEl.find('ul li:first a').focus();}, 1);
                 }
 
                 if (this.scroller)
@@ -318,10 +347,19 @@ define([
                 this.cmpEl.find('.dropdown-toggle').blur();
                 this.trigger('hide:after', this, e, isFromInputControl);
                 Common.NotificationCenter.trigger('menu:hide', this, isFromInputControl);
+                if (this.options.takeFocusOnClose) {
+                    var me = this;
+                    setTimeout(function(){me.focus();}, 1);
+                }
             },
 
             onAfterKeydownMenu: function(e) {
-                if (e.keyCode == Common.UI.Keys.RETURN) {
+                if (e.keyCode == Common.UI.Keys.DOWN && !this.editable && !this.isMenuOpen()) {
+                    this.openMenu();
+                    this.onAfterShowMenu();
+                    return false;
+                }
+                else if (e.keyCode == Common.UI.Keys.RETURN && (this.editable || this.isMenuOpen())) {
                     $(e.target).click();
                     var me = this;
                     if (this.rendered) {
@@ -333,10 +371,13 @@ define([
                     return false;
                 }
                 else if (e.keyCode == Common.UI.Keys.ESC && this.isMenuOpen()) {
+                    this._input.val(this.lastValue);
                     this.closeMenu();
                     this.onAfterHideMenu(e);
                     return false;
                 }  else if (this.search && e.keyCode > 64 && e.keyCode < 91 && e.key){
+                    if (typeof this._search !== 'object') return;
+
                     var me = this;
                     clearTimeout(this._search.timer);
                     this._search.timer = setTimeout(function () { me._search = {}; }, 1000);
@@ -380,10 +421,12 @@ define([
                         this.scroller.update({alwaysVisibleY: this.scrollAlwaysVisible});
                         var $list = $(this.el).find('ul');
                         var itemTop = item.position().top,
-                            itemHeight = item.height(),
-                            listHeight = $list.height();
+                            itemHeight = item.outerHeight(),
+                            listHeight = $list.outerHeight();
                         if (itemTop < 0 || itemTop + itemHeight > listHeight) {
-                            $list.scrollTop($list.scrollTop() + itemTop + itemHeight - (listHeight/2));
+                            var height = $list.scrollTop() + itemTop;
+                            height = (Math.floor(height/itemHeight) * itemHeight);
+                            $list.scrollTop(height);
                         }
                     }
                     item.focus();
@@ -394,6 +437,7 @@ define([
                 var me = this;
 
                 if (e.keyCode == Common.UI.Keys.ESC){
+                    this._input.val(this.lastValue);
                     this.closeMenu();
                     this.onAfterHideMenu(e);
                 } else if (e.keyCode == Common.UI.Keys.UP || e.keyCode == Common.UI.Keys.DOWN) {
@@ -616,7 +660,7 @@ define([
                 } else {
                     $(this.el).find('ul').html(_.template([
                         '<% _.each(items, function(item) { %>',
-                           '<li id="<%= item.id %>" data-value="<%= item.value %>"><a tabindex="-1" type="menuitem"><%= scope.getDisplayValue(item) %></a></li>',
+                           '<li id="<%= item.id %>" data-value="<%- item.value %>"><a tabindex="-1" type="menuitem"><%= scope.getDisplayValue(item) %></a></li>',
                         '<% }); %>'
                     ].join(''))({
                         items: this.store.toJSON(),
@@ -631,12 +675,39 @@ define([
                 this.scroller = new Common.UI.Scroller(_.extend({
                     el: $('.dropdown-menu', this.cmpEl),
                     minScrollbarLength : 40,
-                    scrollYMarginOffset: 30,
                     includePadding     : true,
                     wheelSpeed: 10,
                     alwaysVisibleY: this.scrollAlwaysVisible
                 }, this.options.scroller));
+            },
+
+            focus: function() {
+                this._input && this._input.focus();
             }
         }
     })());
+
+    Common.UI.ComboBoxCustom = Common.UI.ComboBox.extend(_.extend({
+        itemClicked: function (e) {
+            Common.UI.ComboBox.prototype.itemClicked.call(this, e);
+            if (this.options.updateFormControl)
+                this.options.updateFormControl.call(this, this._selectedItem);
+        },
+
+        setValue: function(value) {
+            Common.UI.ComboBox.prototype.setValue.call(this, value);
+            if (this.options.updateFormControl)
+                this.options.updateFormControl.call(this, this._selectedItem);
+        },
+
+        selectRecord: function(record) {
+            Common.UI.ComboBox.prototype.selectRecord.call(this, record);
+            if (this.options.updateFormControl)
+                this.options.updateFormControl.call(this, this._selectedItem);
+        },
+
+        focus: function() {
+            this.cmpEl && this.cmpEl.find('.form-control').focus();
+        }
+    }, Common.UI.ComboBoxCustom || {}));
 });

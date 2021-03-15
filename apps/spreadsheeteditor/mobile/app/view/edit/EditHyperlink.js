@@ -64,10 +64,13 @@ define([
                 _editCellController = SSE.getController('EditHyperlink');
 
                 Common.NotificationCenter.on('editcontainer:show', _.bind(this.initEvents, this));
+                this.on('page:show', _.bind(this.updateItemHandlers, this));
             },
 
             initEvents: function () {
                 var me = this;
+
+                me.updateItemHandlers();
 
                 Common.Utils.addScrollIfNeed('#edit-link .pages', '#edit-link .page');
                 me.initControls();
@@ -98,6 +101,49 @@ define([
                 //
             },
 
+            showPage: function (templateId, suspendEvent) {
+                var rootView = SSE.getController('EditContainer').rootView;
+
+                if (rootView && this.layout) {
+                    var $content = this.layout.find(templateId);
+
+                    // Android fix for navigation
+                    if (Framework7.prototype.device.android) {
+                        $content.find('.page').append($content.find('.navbar'));
+                    }
+
+                    rootView.router.load({
+                        content: $content.html()
+                    });
+
+                    if (suspendEvent !== true) {
+                        this.fireEvent('page:show', [this, templateId]);
+                    }
+                }
+            },
+
+            onItemClick: function (e) {
+                var $target = $(e.currentTarget),
+                    page = $target.data('page');
+
+                if (page && page.length > 0 ) {
+                    this.showPage(page);
+                }
+            },
+
+            updateItemHandlers: function () {
+                var selectorsDynamicPage = [
+                    '#edit-link'
+                ].map(function (selector) {
+                    return selector + ' a.item-link[data-page]';
+                }).join(', ');
+
+                Common.Utils.addScrollIfNeed('.page[data-page=edit-link-type]', '.page[data-page=edit-border-style] .page-content');
+                Common.Utils.addScrollIfNeed('.page[data-page=edit-link-sheet]', '.page[data-page=edit-cell-format] .page-content');
+
+                $(selectorsDynamicPage).single('click', _.bind(this.onItemClick, this));
+            },
+
             textBack: 'Back',
             textExternalLink: 'External Link',
             textInternalLink: 'Internal Data Range',
@@ -107,7 +153,7 @@ define([
             textLink: 'Link',
             textDisplay: 'Display',
             textScreenTip: 'Screen Tip',
-            textEditLink: 'Edit Link',
+            textEditLink: 'Save Link',
             textRemoveLink: 'Remove Link'
         }
     })(), SSE.Views.EditHyperlink || {}))

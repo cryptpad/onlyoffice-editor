@@ -64,8 +64,9 @@ define([    'text!spreadsheeteditor/main/app/template/ShapeSettingsAdvanced.temp
                     {panelId: 'id-adv-shape-width',      panelCaption: this.textSize},
                     {panelId: 'id-adv-shape-rotate',     panelCaption: this.textRotation},
                     {panelId: 'id-adv-shape-shape',      panelCaption: this.textWeightArrows},
-                    {panelId: 'id-adv-shape-margins',    panelCaption: this.strMargins},
+                    {panelId: 'id-adv-shape-margins',    panelCaption: this.textTextBox},
                     {panelId: 'id-adv-shape-columns',    panelCaption: this.strColumns},
+                    {panelId: 'id-adv-shape-snap',       panelCaption: this.textSnap},
                     {panelId: 'id-adv-shape-alttext',    panelCaption: this.textAlt}
                 ],
                 contentTemplate: _.template(contentTemplate)({
@@ -143,13 +144,13 @@ define([    'text!spreadsheeteditor/main/app/template/ShapeSettingsAdvanced.temp
             this.spinners.push(this.spnHeight);
 
             this.btnRatio = new Common.UI.Button({
+                parentEl: $('#shape-advanced-button-ratio'),
                 cls: 'btn-toolbar',
-                iconCls: 'advanced-btn-ratio',
+                iconCls: 'toolbar__icon advanced-btn-ratio',
                 style: 'margin-bottom: 1px;',
                 enableToggle: true,
                 hint: this.textKeepRatio
             });
-            this.btnRatio.render($('#shape-advanced-button-ratio')) ;
             this.btnRatio.on('click', _.bind(function(btn, e) {
                 if (btn.pressed && this.spnHeight.getNumberValue()>0) {
                     this._nRatio = this.spnWidth.getNumberValue()/this.spnHeight.getNumberValue();
@@ -248,6 +249,30 @@ define([    'text!spreadsheeteditor/main/app/template/ShapeSettingsAdvanced.temp
             }, this));
             this.spinners.push(this.spnMarginRight);
 
+            this.chAutofit = new Common.UI.CheckBox({
+                el: $('#shape-checkbox-autofit'),
+                labelText: this.textResizeFit
+            });
+            this.chAutofit.on('change', _.bind(function(field, newValue, oldValue, eOpts){
+                if (this._changedProps) {
+                    if (this._changedProps.asc_getShapeProperties()===null || this._changedProps.asc_getShapeProperties()===undefined)
+                        this._changedProps.asc_putShapeProperties(new Asc.asc_CShapeProperty());
+                    this._changedProps.asc_getShapeProperties().asc_putTextFitType(field.getValue()=='checked' ? AscFormat.text_fit_Auto : AscFormat.text_fit_No);
+                }
+            }, this));
+
+            this.chOverflow = new Common.UI.CheckBox({
+                el: $('#shape-checkbox-overflow'),
+                labelText: this.textOverflow
+            });
+            this.chOverflow.on('change', _.bind(function(field, newValue, oldValue, eOpts){
+                if (this._changedProps) {
+                    if (this._changedProps.asc_getShapeProperties()===null || this._changedProps.asc_getShapeProperties()===undefined)
+                        this._changedProps.asc_putShapeProperties(new Asc.asc_CShapeProperty());
+                    this._changedProps.asc_getShapeProperties().asc_putVertOverflowType(field.getValue()=='checked' ? AscFormat.nOTOwerflow : AscFormat.nOTClip);
+                }
+            }, this));
+
             // Rotation
             this.spnAngle = new Common.UI.MetricSpinner({
                 el: $('#shape-advanced-spin-angle'),
@@ -281,7 +306,8 @@ define([    'text!spreadsheeteditor/main/app/template/ShapeSettingsAdvanced.temp
                 cls: 'input-group-nr',
                 menuStyle: 'min-width: 100px;',
                 editable: false,
-                data: this._arrCapType
+                data: this._arrCapType,
+                takeFocusOnClose: true
             });
             this.cmbCapType.setValue(Asc.c_oAscLineCapType.Flat);
             this.cmbCapType.on('selected', _.bind(function(combo, record){
@@ -305,7 +331,8 @@ define([    'text!spreadsheeteditor/main/app/template/ShapeSettingsAdvanced.temp
                 cls: 'input-group-nr',
                 menuStyle: 'min-width: 100px;',
                 editable: false,
-                data: this._arrJoinType
+                data: this._arrJoinType,
+                takeFocusOnClose: true
             });
             this.cmbJoinType.setValue(Asc.c_oAscLineJoinType.Round);
             this.cmbJoinType.on('selected', _.bind(function(combo, record){
@@ -459,10 +486,6 @@ define([    'text!spreadsheeteditor/main/app/template/ShapeSettingsAdvanced.temp
             this.mnuEndSizePicker.on('item:click', _.bind(this.onSelectEndSize, this));
             this._selectStyleItem(this.btnEndSize, null);
 
-            this.on('show', function(obj) {
-                obj.getChild('.footer .primary').focus();
-            });
-
             // Columns
 
             this.spnColumns = new Common.UI.MetricSpinner({
@@ -503,6 +526,31 @@ define([    'text!spreadsheeteditor/main/app/template/ShapeSettingsAdvanced.temp
             }, this));
             this.spinners.push(this.spnSpacing);
 
+            // Snapping
+            this.radioTwoCell = new Common.UI.RadioBox({
+                el: $('#shape-radio-twocell'),
+                name: 'asc-radio-snap',
+                labelText: this.textTwoCell,
+                value: AscCommon.c_oAscCellAnchorType.cellanchorTwoCell
+            });
+            this.radioTwoCell.on('change', _.bind(this.onRadioSnapChange, this));
+
+            this.radioOneCell = new Common.UI.RadioBox({
+                el: $('#shape-radio-onecell'),
+                name: 'asc-radio-snap',
+                labelText: this.textOneCell,
+                value: AscCommon.c_oAscCellAnchorType.cellanchorOneCell
+            });
+            this.radioOneCell.on('change', _.bind(this.onRadioSnapChange, this));
+
+            this.radioAbsolute = new Common.UI.RadioBox({
+                el: $('#shape-radio-absolute'),
+                name: 'asc-radio-snap',
+                labelText: this.textAbsolute,
+                value: AscCommon.c_oAscCellAnchorType.cellanchorAbsolute
+            });
+            this.radioAbsolute.on('change', _.bind(this.onRadioSnapChange, this));
+
             // Alt Text
 
             this.inputAltTitle = new Common.UI.InputField({
@@ -523,6 +571,45 @@ define([    'text!spreadsheeteditor/main/app/template/ShapeSettingsAdvanced.temp
             });
 
             this.afterRender();
+        },
+
+        getFocusedComponents: function() {
+            return [
+                this.spnWidth, this.spnHeight, // 0 tab
+                this.spnAngle,  // 1 tab
+                this.cmbCapType, this.cmbJoinType, // 2 tab
+                this.spnMarginTop, this.spnMarginLeft, this.spnMarginBottom, this.spnMarginRight, // 3 tab
+                this.spnColumns, this.spnSpacing, // 4 tab
+                this.inputAltTitle, this.textareaAltDescription  // 6 tab
+            ];
+        },
+
+        onCategoryClick: function(btn, index) {
+            Common.Views.AdvancedSettingsWindow.prototype.onCategoryClick.call(this, btn, index);
+
+            var me = this;
+            setTimeout(function(){
+                switch (index) {
+                    case 0:
+                        me.spnWidth.focus();
+                        break;
+                    case 1:
+                        me.spnAngle.focus();
+                        break;
+                    case 2:
+                        me.cmbCapType.focus();
+                        break;
+                    case 3:
+                        me.spnMarginTop.focus();
+                        break;
+                    case 4:
+                        me.spnColumns.focus();
+                        break;
+                    case 6:
+                        me.inputAltTitle.focus();
+                        break;
+                }
+            }, 10);
         },
 
         afterRender: function() {
@@ -562,6 +649,9 @@ define([    'text!spreadsheeteditor/main/app/template/ShapeSettingsAdvanced.temp
                 }
                 this.btnsCategory[3].setDisabled(null === margins);   // Margins
 
+                this.chAutofit.setValue(shapeprops.asc_getTextFitType()==AscFormat.text_fit_Auto);
+                this.chOverflow.setValue(shapeprops.asc_getVertOverflowType()==AscFormat.nOTOwerflow);
+
                 var shapetype = shapeprops.asc_getType();
                 this.btnsCategory[4].setDisabled(shapetype=='line' || shapetype=='bentConnector2' || shapetype=='bentConnector3'
                     || shapetype=='bentConnector4' || shapetype=='bentConnector5' || shapetype=='curvedConnector2'
@@ -584,6 +674,19 @@ define([    'text!spreadsheeteditor/main/app/template/ShapeSettingsAdvanced.temp
                 this.spnAngle.setValue((value==undefined || value===null) ? '' : Math.floor(value*180/3.14159265358979+0.5), true);
                 this.chFlipHor.setValue(props.asc_getFlipH());
                 this.chFlipVert.setValue(props.asc_getFlipV());
+
+                value = props.asc_getAnchor();
+                switch (value) {
+                    case AscCommon.c_oAscCellAnchorType.cellanchorTwoCell:
+                        this.radioTwoCell.setValue(true, true);
+                        break;
+                    case AscCommon.c_oAscCellAnchorType.cellanchorOneCell:
+                        this.radioOneCell.setValue(true, true);
+                        break;
+                    case AscCommon.c_oAscCellAnchorType.cellanchorAbsolute:
+                        this.radioAbsolute.setValue(true, true);
+                        break;
+                }
 
                 this._changedProps = new Asc.asc_CImgProperty();
             }
@@ -779,6 +882,12 @@ define([    'text!spreadsheeteditor/main/app/template/ShapeSettingsAdvanced.temp
             this._selectStyleItem(this.btnEndSize, record);
         },
 
+        onRadioSnapChange: function(field, newValue, eOpts) {
+            if (newValue && this._changedProps) {
+                this._changedProps.asc_putAnchor(field.options.value);
+            }
+        },
+
         textTop:        'Top',
         textLeft:       'Left',
         textBottom:     'Bottom',
@@ -787,8 +896,6 @@ define([    'text!spreadsheeteditor/main/app/template/ShapeSettingsAdvanced.temp
         textWidth:      'Width',
         textHeight:     'Height',
         textKeepRatio: 'Constant Proportions',
-        cancelButtonText: 'Cancel',
-        okButtonText:   'Ok',
         textTitle:      'Shape - Advanced Settings',
         strMargins: 'Text Padding',
         textRound:      'Round',
@@ -816,7 +923,15 @@ define([    'text!spreadsheeteditor/main/app/template/ShapeSettingsAdvanced.temp
         textAngle: 'Angle',
         textFlipped: 'Flipped',
         textHorizontally: 'Horizontally',
-        textVertically: 'Vertically'
+        textVertically: 'Vertically',
+        textSnap: 'Cell Snapping',
+        textAbsolute: 'Don\'t move or size with cells',
+        textOneCell: 'Move but don\'t size with cells',
+        textTwoCell: 'Move and size with cells',
+        textTextBox: 'Text Box',
+        textAutofit: 'AutoFit',
+        textResizeFit: 'Resize shape to fit text',
+        textOverflow: 'Allow text to overflow shape'
 
     }, SSE.Views.ShapeSettingsAdvanced || {}));
 });

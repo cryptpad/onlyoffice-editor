@@ -88,22 +88,22 @@ define([
             el && (this.$el = $(el));
             this.$el.html(this.template({scope: this}));
 
-            this.viewPluginsList = new Common.UI.DataView({
-                el: $('#plugins-list'),
-                store: this.storePlugins,
-                enableKeyEvents: false,
-                itemTemplate: _.template([
-                    '<div id="<%= id %>" class="item-plugins" style="display: <% if (visible) {%> block; <%} else {%> none; <% } %>">',
-                        '<div class="plugin-icon" style="background-image: url(' + '<%= baseUrl %>' + '<%= variations[currentVariation].get("icons")[((window.devicePixelRatio > 1) ? 1 : 0) + (variations[currentVariation].get("icons").length>2 ? 2 : 0)] %>);"></div>',
-                        '<% if (variations.length>1) { %>',
-                        '<div class="plugin-caret img-commonctrl"></div>',
-                        '<% } %>',
-                        '<%= name %>',
-                    '</div>'
-                ].join(''))
-            });
-            this.lockedControls.push(this.viewPluginsList);
-            this.viewPluginsList.cmpEl.off('click');
+            // this.viewPluginsList = new Common.UI.DataView({
+            //     el: $('#plugins-list'),
+            //     store: this.storePlugins,
+            //     enableKeyEvents: false,
+            //     itemTemplate: _.template([
+            //         '<div id="<%= id %>" class="item-plugins" style="display: <% if (visible) {%> block; <%} else {%> none; <% } %>">',
+            //             '<div class="plugin-icon" style="background-image: url(' + '<%= baseUrl %>' + '<%= variations[currentVariation].get("icons")[((window.devicePixelRatio > 1) ? 1 : 0) + (variations[currentVariation].get("icons").length>2 ? 2 : 0)] %>);"></div>',
+            //             '<% if (variations.length>1) { %>',
+            //             '<div class="plugin-caret img-commonctrl"></div>',
+            //             '<% } %>',
+            //             '<%= name %>',
+            //         '</div>'
+            //     ].join(''))
+            // });
+            // this.lockedControls.push(this.viewPluginsList);
+            // this.viewPluginsList.cmpEl.off('click');
 
             this.pluginName = $('#current-plugin-header label');
             this.pluginsPanel = $('#plugins-box');
@@ -210,6 +210,7 @@ define([
                 this.iframePlugin.align        = "top";
                 this.iframePlugin.frameBorder  = 0;
                 this.iframePlugin.scrolling    = "no";
+                this.iframePlugin.allow = "camera; microphone; display-capture";
                 this.iframePlugin.onload       = _.bind(this._onLoad,this);
                 this.currentPluginFrame.append(this.iframePlugin);
 
@@ -365,12 +366,7 @@ define([
                     '<div id="id-plugin-placeholder" style="width: 100%;height: 100%;"></div>',
                 '</div>',
                 '<% if ((typeof buttons !== "undefined") && _.size(buttons) > 0) { %>',
-                    '<div class="separator horizontal"/>',
-                    '<div class="footer" style="text-align: center;">',
-                        '<% for(var bt in buttons) { %>',
-                            '<button class="btn normal dlg-btn <%= buttons[bt].cls %>" result="<%= bt %>" style="margin-right: 10px;"><%= buttons[bt].text %></button>',
-                        '<% } %>',
-                    '</div>',
+                    '<div class="separator horizontal"></div>',
                 '<% } %>'
             ].join('');
 
@@ -398,6 +394,7 @@ define([
             iframe.align        = "top";
             iframe.frameBorder  = 0;
             iframe.scrolling    = "no";
+            iframe.allow = "camera; microphone; display-capture";
             iframe.onload       = _.bind(this._onLoad,this);
 
             var me = this;

@@ -79,9 +79,11 @@ define([
             setApi: function (api) {
                 var me = this;
                 me.api = api;
+            },
 
-                // me.api.asc_registerCallback('asc_onInitEditorFonts',    _.bind(onApiLoadFonts, me));
-
+            setMode: function (mode) {
+                this.view = this.getView('AddOther');
+                this.view.canViewComments = mode.canViewComments;
             },
 
             onLaunch: function () {
@@ -89,9 +91,59 @@ define([
             },
 
             initEvents: function () {
-                var me = this;
-                $('#add-other-pagebreak').single('click',   _.bind(me.onPageBreak, me));
-                $('#add-other-columnbreak').single('click', _.bind(me.onColumnBreak, me));
+                this.setDisableMenuItem();
+            },
+
+            setDisableMenuItem: function() {
+                var isDisableComment = true,
+                    isDisableBreak = false,
+                    isDisableFootnote = false;
+                var stack = this.api.getSelectedElements();
+                var isText = false,
+                    isTable = false,
+                    isImage = false,
+                    isChart = false,
+                    isShape = false,
+                    isLink = false,
+                    lockedText = false,
+                    lockedTable = false,
+                    lockedImage = false,
+                    lockedHeader = false;
+                _.each(stack, function (item) {
+                    var objectType = item.get_ObjectType(),
+                        objectValue = item.get_ObjectValue();
+                    if (objectType == Asc.c_oAscTypeSelectElement.Header) {
+                        lockedHeader = objectValue.get_Locked();
+                    }
+                    if (objectType == Asc.c_oAscTypeSelectElement.Paragraph) {
+                        isText = true;
+                        lockedText = objectValue.get_Locked();
+                    } else if (objectType == Asc.c_oAscTypeSelectElement.Image) {
+                        lockedImage = objectValue.get_Locked();
+                        if (objectValue && objectValue.get_ChartProperties()) {
+                            isChart = true;
+                        } else if (objectType && objectValue.get_ShapeProperties()) {
+                            isShape = true;
+                        } else {
+                            isImage = true;
+                        }
+                    } else if (objectType == Asc.c_oAscTypeSelectElement.Table) {
+                        isTable = true;
+                        lockedTable = objectValue.get_Locked();
+                    } else if (objectType == Asc.c_oAscTypeSelectElement.Hyperlink) {
+                        isLink = true;
+                    }
+                });
+                if (stack.length > 0) {
+                    var isObject = isShape || isChart || isImage || isTable;
+                    isDisableComment = (this.api.can_AddQuotedComment() === false || lockedText || lockedTable || lockedImage || lockedHeader || (!isText && isObject));
+                    if (isShape && isText) {
+                        isDisableBreak = isDisableFootnote = true;
+                    }
+                }
+                this.view.isDisableComment = isDisableComment;
+                this.view.isDisableBreak = isDisableBreak;
+                this.view.isDisableFootnote = isDisableFootnote;
             },
 
             onPageShow: function (view, pageId) {
@@ -111,10 +163,51 @@ define([
                     }
                 } else if (pageId == '#addother-insert-footnote') {
                     me.initInsertFootnote();
+                } else if (pageId === "#addother-insert-comment") {
+                    me.initInsertComment(false);
+                } else if (pageId === "#addother-insert-break") {
+                    $('#add-other-pagebreak').single('click',   _.bind(me.onPageBreak, me));
+                    $('#add-other-columnbreak').single('click', _.bind(me.onColumnBreak, me));
                 }
             },
 
             // Handlers
+            initInsertComment: function (documentFlag) {
+                var comment = DE.getController('Common.Controllers.Collaboration').getCommentInfo();
+                if (comment) {
+                    this.getView('AddOther').renderComment(comment);
+                    $('#done-comment').single('click', _.bind(this.onDoneComment, this, documentFlag));
+                    $('.back-from-add-comment').single('click', _.bind(function () {
+                        if ($('#comment-text').val().length > 0) {
+                            uiApp.modal({
+                                title: '',
+                                text: this.textDeleteDraft,
+                                buttons: [
+                                    {
+                                        text: this.textCancel
+                                    },
+                                    {
+                                        text: this.textDelete,
+                                        bold: true,
+                                        onClick: function () {
+                                            DE.getController('AddContainer').rootView.router.back();
+                                        }
+                                    }]
+                            })
+                        } else {
+                            DE.getController('AddContainer').rootView.router.back();
+                        }
+                    }, this));
+                }
+            },
+
+            onDoneComment: function(documentFlag) {
+                var value = $('#comment-text').val().trim();
+                if (value.length > 0) {
+                    DE.getController('Common.Controllers.Collaboration').onAddNewComment(value, documentFlag);
+                    DE.getController('AddContainer').hideModal();
+                }
+            },
 
             initInsertFootnote: function () {
                 var me = this,
@@ -145,28 +238,7 @@ define([
             },
 
             onClickInsertFootnote: function() {
-                var me = this,
-                    format = $('input[name="doc-footnote-format"]:checked').data('value'),
-                    start = $('#start-at-footnote .item-after label').text(),
-                    position = $('input[name="doc-footnote-pos"]:checked').data('value'),
-                    props   = new Asc.CAscFootnotePr();
-                var startTo10;
-                if (me.fromCustomFormat) {
-                    startTo10 =  parseInt(me.fromCustomFormat(start));
-                } else {
-                    startTo10 = me.api.asc_GetFootnoteProps().get_NumStart();
-                }
-                props.put_Pos(position);
-                props.put_NumFormat(format);
-                props.put_NumStart(startTo10);
-                props.put_NumRestart(Asc.c_oAscFootnoteRestart.Continuous);
-                if (me.api) {
-                    me.api.asc_SetFootnoteProps(props, false);
-                    setTimeout(function() {
-                        me.api.asc_AddFootnote();
-                    }, 1);
-                    DE.getController('AddContainer').hideModal();
-                }
+                DE.getController('AddContainer').hideModal();
             },
 
             onFormatFootnoteChange: function(e) {
@@ -227,32 +299,6 @@ define([
             },
 
             onInsertLink: function (e) {
-                var me      = this,
-                    url     = $('#add-link-url input').val(),
-                    display = $('#add-link-display input').val(),
-                    tip     = $('#add-link-tip input').val(),
-                    urltype = me.api.asc_getUrlType($.trim(url)),
-                    isEmail = (urltype == 2);
-
-                if (urltype < 1) {
-                    uiApp.alert(me.txtNotUrl);
-                    return;
-                }
-
-                url = url.replace(/^\s+|\s+$/g,'');
-
-                if (! /(((^https?)|(^ftp)):\/\/)|(^mailto:)/i.test(url) )
-                    url = (isEmail ? 'mailto:' : 'http://' ) + url;
-
-                url = url.replace(new RegExp("%20",'g')," ");
-
-                var props = new Asc.CHyperlinkProperty();
-                props.put_Value(url);
-                props.put_Text(_.isEmpty(display) ? url : display);
-                props.put_ToolTip(tip);
-
-                me.api.add_Hyperlink(props);
-
                 DE.getController('AddContainer').hideModal();
             },
 
@@ -410,6 +456,7 @@ define([
                     }
 
                     result += val;
+                    prev = Math.abs(val);
                 }
 
                 return result;
@@ -417,8 +464,12 @@ define([
 
             txtNotUrl: 'This field should be a URL in the format \"http://www.example.com\"',
             textBottomOfPage: 'Bottom Of Page',
-            textBelowText: 'Below Text'
-
+            textBelowText: 'Below Text',
+            textDeleteDraft: 'Do you really want to delete draft?',
+            textCancel: 'Cancel',
+            //textContinue: 'Continue',
+            textDelete: 'Delete',
+            notcriticalErrorTitle: 'Warning'
         }
     })(), DE.Controllers.AddOther || {}))
 });

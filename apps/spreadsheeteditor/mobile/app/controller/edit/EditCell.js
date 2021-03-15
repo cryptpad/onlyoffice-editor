@@ -51,29 +51,8 @@ define([
     'use strict';
 
     SSE.Controllers.EditCell = Backbone.Controller.extend(_.extend((function() {
-        var _fontsArray = [],
-            _stack = [],
-            _cellInfo = undefined,
-            _cellStyles = [],
-            _fontInfo = {},
-            _borderInfo = {color: '000000', width: Asc.c_oAscBorderStyles.Medium},
-            _styleSize = {width: 100, height: 50},
-            _isEdit = false;
-
-        function onApiLoadFonts(fonts, select) {
-            _.each(fonts, function(font){
-                var fontId = font.asc_getFontId();
-                _fontsArray.push({
-                    id          : fontId,
-                    name        : font.asc_getFontName(),
-//                    displayValue: font.asc_getFontName(),
-                    imgidx      : font.asc_getFontThumbnail(),
-                    type        : font.asc_getFontType()
-                });
-            });
-
-            Common.NotificationCenter.trigger('fonts:load', _fontsArray, select);
-        }
+        var _stack = [],
+           _borderInfo = {color: '000000', width: Asc.c_oAscBorderStyles.Medium};
 
         return {
             models: [],
@@ -92,22 +71,26 @@ define([
                         'style:click'   : this.onStyleClick
                     }
                 });
+                this._fontsArray = [];
+                this._styleSize = {width: 100, height: 50};
+                this._cellStyles = [];
+                this._cellInfo = undefined;
+                this._fontInfo = {};
+                this._isEdit = false;
             },
 
             setApi: function (api) {
                 var me = this;
                 me.api = api;
 
-                me.api.asc_setThumbnailStylesSizes(_styleSize.width, _styleSize.height);
+                me.api.asc_setThumbnailStylesSizes(me._styleSize.width, me._styleSize.height);
 
-                me.api.asc_registerCallback('asc_onInitEditorFonts',            _.bind(onApiLoadFonts, me));
                 me.api.asc_registerCallback('asc_onSelectionChanged',           _.bind(me.onApiSelectionChanged, me));
                 me.api.asc_registerCallback('asc_onEditorSelectionChanged',     _.bind(me.onApiEditorSelectionChanged, me));
-                me.api.asc_registerCallback('asc_onInitEditorStyles',           _.bind(me.onApiInitEditorStyles, me));
             },
 
             setMode: function (mode) {
-                _isEdit = mode.isEdit;
+                this._isEdit = mode.isEdit;
             },
 
             onLaunch: function () {
@@ -125,12 +108,10 @@ define([
                 $('#font-italic').single('click',               _.bind(me.onItalic, me));
                 $('#font-underline').single('click',            _.bind(me.onUnderline, me));
 
-                me.getView('EditCell').renderStyles(_cellStyles);
+                me.getView('EditCell').renderStyles(me._cellStyles);
 
                 me.initSettings();
             },
-
-
 
             onPageShow: function (view, pageId) {
                 var me = this;
@@ -151,19 +132,21 @@ define([
                     me.initBorderColorPage();
                 } else if ('#edit-text-format' == pageId) {
                     me.initTextFormat();
+                } else if ('#edit-text-orientation' == pageId) {
+                    me.initTextOrientation();
                 } else if ('#edit-border-style' == pageId) {
                     me.initBorderStyle();
                 } else if (!_.isUndefined(pageId) && pageId.indexOf('#edit-cell-format') > -1) {
                     me.initCellFormat();
                 } else {
-                    me.initCellSettings(_cellInfo);
+                    me.initCellSettings(me._cellInfo);
                 }
             },
 
             // Public
 
             getFonts: function() {
-                return _fontsArray;
+                return this._fontsArray;
             },
 
             getStack: function() {
@@ -171,20 +154,20 @@ define([
             },
 
             getFontInfo: function () {
-                return _fontInfo;
+                return this._fontInfo;
             },
 
             getCell: function () {
-                return _cellInfo;
+                return this._cellInfo;
             },
 
             getStyleSize: function () {
-                return _styleSize;
+                return this._styleSize;
             },
 
             initFontsPage: function () {
                 var me = this,
-                    displaySize = _fontInfo.size;
+                    displaySize = this._fontInfo.size;
 
                 _.isUndefined(displaySize) ? displaySize = this.textAuto : displaySize = displaySize + ' ' + this.textPt;
 
@@ -195,7 +178,7 @@ define([
             initTextColorPage: function () {
                 var me = this,
                     palette = me.getView('EditCell').paletteTextColor,
-                    color = me._sdkToThemeColor(_fontInfo.color);
+                    color = me._sdkToThemeColor(this._fontInfo.color);
 
                 if (palette) {
                     palette.select(color);
@@ -204,9 +187,11 @@ define([
             },
 
             initFillColorPage: function () {
+                if (_.isUndefined(this._cellInfo)) return;
+
                 var me = this,
                     palette = me.getView('EditCell').paletteFillColor,
-                    color = me._sdkToThemeColor(_cellInfo.asc_getFill().asc_getColor());
+                    color = me._sdkToThemeColor(me._cellInfo.asc_getXfs().asc_getFillColor());
 
                 if (palette) {
                     palette.select(color);
@@ -215,11 +200,9 @@ define([
             },
 
             initBorderColorPage: function () {
-                var me = this,
-                    palette = new Common.UI.ThemeColorPalette({
-                        el: $('.page[data-page=edit-border-color] .page-content')
-                    });
-
+                var me = this;
+                me.getView('EditCell').showBorderColorPage();
+                var palette = me.getView('EditCell').paletteBorderColor;
                 if (palette) {
                     palette.select(_borderInfo.color);
                     palette.on('select', _.bind(function (palette, color) {
@@ -230,13 +213,16 @@ define([
             },
 
             initTextFormat: function () {
+                if (_.isUndefined(this._cellInfo)) return;
+
                 var me = this,
                     $pageTextFormat = $('.page[data-page=edit-text-format]'),
-                    hAlign = _cellInfo.asc_getHorAlign(),
-                    vAlign = _cellInfo.asc_getVertAlign(),
+                    xfs = me._cellInfo.asc_getXfs(),
+                    hAlign = xfs.asc_getHorAlign(),
+                    vAlign = xfs.asc_getVertAlign(),
                     hAlignStr = 'left',
                     vAlignStr = 'bottom',
-                    isWrapText = _cellInfo.asc_getFlags().asc_getWrapText();
+                    isWrapText = xfs.asc_getWrapText();
 
                 if (vAlign == Asc.c_oAscVAlign.Top)
                     vAlignStr = 'top';
@@ -295,21 +281,21 @@ define([
                 var me = this;
 
                 // Init font name
-                var fontName = fontObj.asc_getName() || this.textFonts;
-                _fontInfo.name = fontName;
+                var fontName = fontObj.asc_getFontName() || this.textFonts;
+                this._fontInfo.name = fontName;
 
                 $('#font-fonts .item-title').html(fontName);
 
 
                 // Init font style
-                $('#font-bold').toggleClass('active', fontObj.asc_getBold() === true);
-                $('#font-italic').toggleClass('active', fontObj.asc_getItalic() === true);
-                $('#font-underline').toggleClass('active', fontObj.asc_getUnderline() === true);
+                $('#font-bold').toggleClass('active', fontObj.asc_getFontBold() === true);
+                $('#font-italic').toggleClass('active', fontObj.asc_getFontItalic() === true);
+                $('#font-underline').toggleClass('active', fontObj.asc_getFontUnderline() === true);
 
 
                 // Init font size
-                _fontInfo.size = fontObj.asc_getSize();
-                var displaySize = _fontInfo.size;
+                this._fontInfo.size = fontObj.asc_getFontSize();
+                var displaySize = this._fontInfo.size;
 
                 _.isUndefined(displaySize) ? displaySize = this.textAuto : displaySize = displaySize + ' ' + this.textPt;
 
@@ -318,13 +304,14 @@ define([
 
 
                 // Init font color
-                _fontInfo.color = fontObj.asc_getColor();
+                this._fontInfo.color = fontObj.asc_getFontColor();
 
-                var color = _fontInfo.color,
+                var color = this._fontInfo.color,
                     clr = me._sdkToThemeColor(color);
 
                 $('#text-color .color-preview').css('background-color', '#' + (_.isObject(clr) ? clr.color : clr));
-
+                var palette = this.getView('EditCell').paletteTextColor;
+                palette && palette.select(clr);
             },
 
             initCellSettings: function (cellInfo) {
@@ -333,20 +320,22 @@ define([
                 }
 
                 var me = this,
-                    selectionType = cellInfo.asc_getFlags().asc_getSelectionType(),
+                    selectionType = cellInfo.asc_getSelectionType(),
                     // coAuthDisable = (!this.toolbar.mode.isEditMailMerge && !this.toolbar.mode.isEditDiagram) ? (cellInfo.asc_getLocked()===true || cellInfo.asc_getLockedTable()===true) : false,
                     // editOptionsDisabled = this._disableEditOptions(selectionType, coAuthDisable),
-                    _fontInfo = cellInfo.asc_getFont(),
+                    xfs = cellInfo.asc_getXfs(),
                     val,
                     need_disable = false;
 
-                me.initFontSettings(_fontInfo);
+                me.initFontSettings(xfs);
 
                 // Init fill color
-                var color = cellInfo.asc_getFill().asc_getColor(),
+                var color = xfs.asc_getFillColor(),
                     clr = me._sdkToThemeColor(color);
 
-                $('#fill-color .color-preview').css('background-color', '#' + (_.isObject(clr) ? clr.color : clr));
+                $('#fill-color .color-preview').css('background-color', ('transparent' == clr) ? clr : ('#' + (_.isObject(clr) ? clr.color : clr)));
+                var palette = this.getView('EditCell').paletteFillColor;
+                palette && palette.select(clr);
 
                 var styleName = cellInfo.asc_getStyleName();
                 $('#edit-cell .cell-styles li[data-type="' + styleName + '"]').addClass('active');
@@ -355,16 +344,9 @@ define([
                     return;
                 }
 
+                me.initTextOrientation();
+
                 me.initTextFormat();
-            },
-
-            onApiInitEditorStyles: function(styles){
-                window.styles_loaded = false;
-                _cellStyles = styles;
-
-                this.getView('EditCell').renderStyles(styles);
-
-                window.styles_loaded = true;
             },
 
             // Handlers
@@ -372,7 +354,7 @@ define([
             onFontSize: function (e) {
                 var me = this,
                     $button = $(e.currentTarget),
-                    fontSize = _fontInfo.size;
+                    fontSize = this._fontInfo.size;
 
                 if ($button.hasClass('decrement')) {
                     _.isUndefined(fontSize) ? me.api.asc_decreaseFontSize() : fontSize = Math.max(1, --fontSize);
@@ -466,10 +448,6 @@ define([
             },
 
             onCellFormat: function (e) {
-                var $target = $(e.currentTarget),
-                    type = decodeURIComponent(atob($target.data('type')));
-
-                this.api.asc_setCellFormat(type);
             },
 
             onBorderStyle: function (e) {
@@ -506,21 +484,9 @@ define([
             // API handlers
 
             onApiEditorSelectionChanged: function(fontObj) {
-                if (!_isEdit) {
-                    return;
-                }
-
-                _fontInfo = fontObj;
-                this.initFontSettings(fontObj);
             },
 
             onApiSelectionChanged: function(cellInfo) {
-                if (!_isEdit) {
-                    return;
-                }
-
-                _cellInfo = cellInfo;
-                this.initCellSettings(cellInfo);
             },
 
             // Helpers
@@ -543,6 +509,49 @@ define([
                 }
 
                 return clr;
+            },
+
+            initTextOrientation: function() {
+                if (_.isUndefined(this._cellInfo)) return;
+
+                var me = this,
+                    $pageTextOrientation = $('.page[data-page=edit-text-orientation]'),
+                    orientationStr = 'horizontal',
+                    xfs = this._cellInfo.asc_getXfs();
+
+                var textAngle = xfs.asc_getAngle();
+
+                switch(textAngle) {
+                    case 45:    orientationStr = 'anglecount'; break;
+                    case -45:   orientationStr = 'angleclock'; break;
+                    case 255:   orientationStr = 'vertical'; break;
+                    case 90:    orientationStr = 'rotateup'; break;
+                    case -90:   orientationStr = 'rotatedown'; break;
+                    case 0:     orientationStr = 'horizontal'; break;
+                }
+
+                $('#text-orientation .item-media i').removeClass().addClass(Common.Utils.String.format('icon icon-text-orientation-{0}', orientationStr));
+
+                if ($pageTextOrientation.length > 0) {
+                    var $radioOrientation = $pageTextOrientation.find('input:radio[name=text-orientation]');
+                    $radioOrientation.val([orientationStr]);
+                    $radioOrientation.single('change', _.bind(me.onTextOrientationChange, me));
+                }
+            },
+
+            onTextOrientationChange: function(e) {
+                var $target = $(e.currentTarget),
+                    value = $target.prop('value');
+                var angle = 0;
+                switch (value) {
+                    case 'anglecount':  angle =  45;    break;
+                    case 'angleclock':  angle = -45;    break;
+                    case 'vertical':    angle =  255;   break;
+                    case 'rotateup':    angle =  90;    break;
+                    case 'rotatedown':  angle = -90;    break;
+                }
+                if (this.api)
+                    this.api.asc_setCellAngle(angle);
             },
 
             textFonts: 'Fonts',

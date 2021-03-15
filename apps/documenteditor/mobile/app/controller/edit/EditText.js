@@ -51,25 +51,9 @@ define([
     'use strict';
 
     DE.Controllers.EditText = Backbone.Controller.extend(_.extend((function() {
-        var _fontsArray = [],
-            _stack = [],
+        var _stack = [],
             _paragraphObject = undefined,
             _fontInfo = {};
-
-        function onApiLoadFonts(fonts, select) {
-            _.each(fonts, function(font){
-                var fontId = font.asc_getFontId();
-                _fontsArray.push({
-                    id          : fontId,
-                    name        : font.asc_getFontName(),
-//                    displayValue: font.asc_getFontName(),
-                    imgidx      : font.asc_getFontThumbnail(),
-                    type        : font.asc_getFontType()
-                });
-            });
-
-            Common.NotificationCenter.trigger('fonts:load', _fontsArray, select);
-        }
 
         return {
             models: [],
@@ -87,26 +71,13 @@ define([
                         'font:click': this.onFontClick
                     }
                 });
+
+                this._fontsArray = [];
             },
 
             setApi: function (api) {
                 var me = this;
                 me.api = api;
-
-                me.api.asc_registerCallback('asc_onInitEditorFonts',    _.bind(onApiLoadFonts, me));
-                me.api.asc_registerCallback('asc_onFocusObject',        _.bind(me.onApiFocusObject, me));
-                me.api.asc_registerCallback('asc_onFontFamily',         _.bind(me.onApiChangeFont, me));
-                me.api.asc_registerCallback('asc_onFontSize',           _.bind(me.onApiFontSize, me));
-                me.api.asc_registerCallback('asc_onBold',               _.bind(me.onApiBold, me));
-                me.api.asc_registerCallback('asc_onItalic',             _.bind(me.onApiItalic, me));
-                me.api.asc_registerCallback('asc_onUnderline',          _.bind(me.onApiUnderline, me));
-                me.api.asc_registerCallback('asc_onStrikeout',          _.bind(me.onApiStrikeout, me));
-                me.api.asc_registerCallback('asc_onVerticalAlign',      _.bind(me.onApiVerticalAlign, me));
-                me.api.asc_registerCallback('asc_onListType',           _.bind(me.onApiBullets, me));
-                me.api.asc_registerCallback('asc_onPrAlign',            _.bind(me.onApiParagraphAlign, me));
-                me.api.asc_registerCallback('asc_onTextColor',          _.bind(me.onApiTextColor, me));
-                me.api.asc_registerCallback('asc_onParaSpacingLine',    _.bind(me.onApiLineSpacing, me));
-                me.api.asc_registerCallback('asc_onTextShd',            _.bind(me.onApiTextShd, me));
             },
 
             onLaunch: function () {
@@ -161,15 +132,15 @@ define([
                     _paragraphObject.get_SmallCaps() && $inputTextCaps.val(['small']).prop('prevValue', 'small');
                     _paragraphObject.get_AllCaps() && $inputTextCaps.val(['all']).prop('prevValue', 'all');
 
-                    _fontInfo.letterSpacing = Common.Utils.Metric.fnRecalcFromMM(_paragraphObject.get_TextSpacing());
-                    $('#letter-spacing .item-after label').text(_fontInfo.letterSpacing + ' ' + Common.Utils.Metric.getCurrentMetricName());
+                    _fontInfo.letterSpacing = (_paragraphObject.get_TextSpacing()===null || _paragraphObject.get_TextSpacing()===undefined) ? _paragraphObject.get_TextSpacing() : Common.Utils.Metric.fnRecalcFromMM(_paragraphObject.get_TextSpacing());
+                    $('#letter-spacing .item-after label').text((_fontInfo.letterSpacing===null || _fontInfo.letterSpacing===undefined) ? '' : _fontInfo.letterSpacing + ' ' + Common.Utils.Metric.getCurrentMetricName());
                 }
             },
 
             // Public
 
             getFonts: function() {
-                return _fontsArray;
+                return this._fontsArray;
             },
 
             getStack: function() {
@@ -356,9 +327,9 @@ define([
                     spacing = _fontInfo.letterSpacing;
 
                 if ($button.hasClass('decrement')) {
-                    spacing = Math.max(-100, --spacing);
+                    spacing = (spacing===null || spacing===undefined) ? 0 : Math.max(-100, --spacing);
                 } else {
-                    spacing = Math.min(100, ++spacing);
+                    spacing = (spacing===null || spacing===undefined) ? 0 : Math.min(100, ++spacing);
                 }
                 _fontInfo.letterSpacing = spacing;
 
@@ -399,7 +370,9 @@ define([
                 }
 
                 if (this.api) {
-                    this.api.put_TextColor(Common.Utils.ThemeColor.getRgbColor("000000"));
+                    var color = new Asc.asc_CColor();
+                    color.put_auto(true);
+                    this.api.put_TextColor(color);
                 }
             },
 
@@ -478,7 +451,8 @@ define([
             onApiBullets: function(data) {
                 var type    = data.get_ListType(),
                     subtype = data.get_ListSubType();
-
+                $('.dataview.bullets li').removeClass('active');
+                $('.dataview.numbers li').removeClass('active');
                 switch (type) {
                     case 0:
                         $('.dataview.bullets li[data-type=' + subtype + ']').addClass('active');
@@ -486,6 +460,9 @@ define([
                     case 1:
                         $('.dataview.numbers li[data-type=' + subtype + ']').addClass('active');
                         break;
+                    default:
+                        $('.dataview.bullets li[data-type="-1"]').addClass('active');
+                        $('.dataview.numbers li[data-type="-1"]').addClass('active');
                 }
             },
 
@@ -509,12 +486,17 @@ define([
 
             onApiTextColor: function (color) {
                 var me = this;
+                var palette = this.getView('EditText').paletteTextColor;
 
                 if (color.get_auto()) {
+                    if (palette) {
+                        palette.clearSelection();
+                    }
+
                     $('#font-color .color-preview').css('background-color', '#000');
+                    $('#font-color-auto').addClass('active');
                 } else {
-                    var palette = me.getView('EditText').paletteTextColor,
-                        clr;
+                    var clr;
 
                     if (color) {
                         if (color.get_type() == Asc.c_oAscColor.COLOR_TYPE_SCHEME) {
@@ -528,7 +510,7 @@ define([
 
                         $('#font-color .color-preview').css('background-color', '#' + (_.isObject(clr) ? clr.color : clr));
                     }
-
+                    $('#font-color-auto').removeClass('active');
                     if (palette) {
                         palette.select(clr);
                     }

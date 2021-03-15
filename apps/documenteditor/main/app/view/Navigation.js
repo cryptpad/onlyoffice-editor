@@ -70,7 +70,8 @@ define([
                 store: this.storeNavigation,
                 enableKeyEvents: false,
                 emptyText: this.txtEmpty,
-                emptyItemText: this.txtEmptyItem
+                emptyItemText: this.txtEmptyItem,
+                style: 'border: none;'
             });
             this.viewNavigationList.cmpEl.off('click');
             this.navigationMenu = new Common.UI.Menu({
@@ -155,7 +156,7 @@ define([
         txtExpand: 'Expand all',
         txtCollapse: 'Collapse all',
         txtExpandToLevel: 'Expand to level...',
-        txtEmpty: 'This document doesn\'t contain headings',
+        txtEmpty: 'There are no headings in the document.<br>Apply a heading style to the text so that it appears in the table of contents.',
         txtEmptyItem: 'Empty Heading'
 
     }, DE.Views.Navigation || {}));

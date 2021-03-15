@@ -53,7 +53,7 @@ define([
         // Private
         var _stack = [],
             _slideObject = undefined,
-            _themes = [],
+            _slideLayoutIndex = -1,
             _themeId = -1,
             _effect = Asc.c_oAscSlideTransitionTypes.None,
             _effectType = -1,
@@ -81,6 +81,7 @@ define([
                 uiApp.onPageBack('editslide-effect-type editslide-effect', function (page) {
                     me.initSettings('#edit-slide-transition');
                 });
+                this._themes = [];
             },
 
             setApi: function (api) {
@@ -88,7 +89,6 @@ define([
                 me.api = api;
 
                 me.api.asc_registerCallback('asc_onFocusObject',        _.bind(me.onApiFocusObject, me));
-                me.api.asc_registerCallback('asc_onInitEditorStyles',   _.bind(me.onApiInitEditorStyles, me));
                 me.api.asc_registerCallback('asc_onUpdateThemeIndex',   _.bind(me.onApiUpdateThemeIndex, me));
             },
 
@@ -121,7 +121,8 @@ define([
                         paletteFillColor && paletteFillColor.on('select', _.bind(me.onFillColor, me));
 
                     } else if (pageId == '#edit-slide-layout') {
-                        $('.container-edit .slide-layout li').single('click',  _.buffered(me.onLayoutClick, 100, me));
+                        $('.container-edit .slide-layout li').removeClass('active').single('click',  _.buffered(me.onLayoutClick, 100, me));
+                        $('.container-edit .slide-layout li[data-type=' + _slideLayoutIndex + ']').addClass('active');
                     } else if (pageId == '#edit-slide-theme') {
                         this.getView('EditSlide').renderThemes();
 
@@ -210,28 +211,15 @@ define([
             },
 
             getThemes: function () {
-                return _themes || [];
+                return this._themes || [];
             },
 
             // Handlers
 
             onLayoutClick: function (e) {
-                var me = this,
-                    $target = $(e.currentTarget),
-                    type = $target.data('type');
-
-                me.api.ChangeLayout(type);
             },
 
             onThemeClick: function (e) {
-                var me = this,
-                    $target = $(e.currentTarget),
-                    type = $target.data('type');
-
-                $('.container-edit .slide-theme div').removeClass('active');
-                $target.addClass('active');
-
-                me.api.ChangeTheme(type);
             },
 
             onRemoveSlide: function () {
@@ -267,6 +255,7 @@ define([
             updateLayouts: function(layouts){
                 this.getView('EditSlide').updateLayouts();
                 $('.container-edit .slide-layout li').single('click',  _.buffered(this.onLayoutClick, 100, this));
+                $('.container-edit .slide-layout li[data-type=' + _slideLayoutIndex + ']').addClass('active');
             },
 
             onEffectClick: function (e) {
@@ -381,29 +370,13 @@ define([
                 if (slides.length > 0) {
                     var object = slides[slides.length - 1]; // get top slide
                     _slideObject = object.get_ObjectValue();
+                    _slideLayoutIndex = _slideObject.get_LayoutIndex();
+                    if ($('.container-edit .slide-layout').length > 0) {
+                        $('.container-edit .slide-layout li').removeClass('active');
+                        $('.container-edit .slide-layout li[data-type=' + _slideLayoutIndex + ']').addClass('active');
+                    }
                 } else {
                     _slideObject = undefined;
-                }
-            },
-
-            onApiInitEditorStyles: function(themes) {
-                if (themes) {
-                    window.styles_loaded = false;
-
-                    var me = this,
-                        defaultThemes = themes[0] || [],
-                        docThemes     = themes[1] || [];
-
-                    _themes = [];
-
-                    _.each(defaultThemes.concat(docThemes), function(theme) {
-                        _themes.push({
-                            imageUrl: theme.get_Image(),
-                            themeId : theme.get_Index()
-                        });
-                    });
-
-                    window.styles_loaded = true;
                 }
             },
 

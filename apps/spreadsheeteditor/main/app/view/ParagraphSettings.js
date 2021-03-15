@@ -107,8 +107,6 @@ define([
                 return;
             if (this.api)
                 this.api.asc_putPrLineSpacing(this.cmbLineRule.getValue(), (this.cmbLineRule.getValue()==c_paragraphLinerule.LINERULE_AUTO) ? field.getNumberValue() : Common.Utils.Metric.fnRecalcToMM(field.getNumberValue()));
-
-            Common.NotificationCenter.trigger('edit:complete', this);
         },
 
         onNumSpacingBeforeChange: function(field, newValue, oldValue, eOpts){
@@ -119,8 +117,6 @@ define([
                 else
                     this.api.asc_putLineSpacingBeforeAfter(0, Common.Utils.Metric.fnRecalcToMM(field.getNumberValue()));
             }
-
-            Common.NotificationCenter.trigger('edit:complete', this);
         },
 
         onNumSpacingAfterChange: function(field, newValue, oldValue, eOpts){
@@ -131,8 +127,6 @@ define([
                 else
                     this.api.asc_putLineSpacingBeforeAfter(1, Common.Utils.Metric.fnRecalcToMM(field.getNumberValue()));
             }
-
-            Common.NotificationCenter.trigger('edit:complete', this);
         },
 
         onLineRuleSelect: function(combo, record) {
@@ -238,6 +232,10 @@ define([
                     spinner.setDefaultUnit(Common.Utils.Metric.getCurrentMetricName());
                     spinner.setStep(Common.Utils.Metric.getCurrentMetric()==Common.Utils.Metric.c_MetricUnits.pt ? 1 : 0.01);
                 }
+                var val = this._state.LineSpacingBefore;
+                this.numSpacingBefore && this.numSpacingBefore.setValue((val !== null) ? ((val<0) ? val : Common.Utils.Metric.fnRecalcFromMM(val) ) : '', true);
+                val = this._state.LineSpacingAfter;
+                this.numSpacingAfter && this.numSpacingAfter.setValue((val !== null) ? ((val<0) ? val : Common.Utils.Metric.fnRecalcFromMM(val) ) : '', true);
             }
             if (this.cmbLineRule) {
                 var rec = this.cmbLineRule.store.at(1);
@@ -251,7 +249,13 @@ define([
                     if (!rec) rec = this.cmbLineRule.store.at(0);
                     this.numLineHeight.setDefaultUnit(rec.get('defaultUnit'));
                     this.numLineHeight.setStep(rec.get('step'));
-
+                    var val = '';
+                    if ( this._state.LineRule == c_paragraphLinerule.LINERULE_AUTO ) {
+                        val = this._state.LineHeight;
+                    } else if (this._state.LineHeight !== null ) {
+                        val = Common.Utils.Metric.fnRecalcFromMM(this._state.LineHeight);
+                    }
+                    this.numLineHeight && this.numLineHeight.setValue((val !== null) ?  val : '', true);
                 }
             }
         },
@@ -317,6 +321,9 @@ define([
             this.numLineHeight.on('change', _.bind(this.onNumLineHeightChange, this));
             this.numSpacingBefore.on('change', _.bind(this.onNumSpacingBeforeChange, this));
             this.numSpacingAfter.on('change', _.bind(this.onNumSpacingAfterChange, this));
+            this.numLineHeight.on('inputleave', function(){ Common.NotificationCenter.trigger('edit:complete', me);});
+            this.numSpacingBefore.on('inputleave', function(){ Common.NotificationCenter.trigger('edit:complete', me);});
+            this.numSpacingAfter.on('inputleave', function(){ Common.NotificationCenter.trigger('edit:complete', me);});
             this.cmbLineRule.on('selected', _.bind(this.onLineRuleSelect, this));
             this.cmbLineRule.on('hide:after', _.bind(this.onHideMenus, this));
             $(this.el).on('click', '#paragraph-advanced-link', _.bind(this.openAdvancedSettings, this));

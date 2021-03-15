@@ -51,7 +51,8 @@ define([    'text!spreadsheeteditor/main/app/template/PrintSettings.template',
         options: {
             alias: 'PrintSettings',
             contentWidth: 280,
-            height: 475
+            height: 575,
+            buttons: null
         },
 
         initialize : function(options) {
@@ -66,15 +67,16 @@ define([    'text!spreadsheeteditor/main/app/template/PrintSettings.template',
                             '<div style="height: 38px; line-height: 38px;" class="div-category">' + this.textPageSize + '</div>',
                             '<div style="height: 38px; line-height: 38px;" class="div-category">' + this.textPageOrientation + '</div>',
                             '<div style="height: 38px; line-height: 38px;" class="div-category">' + this.textPageScaling + '</div>',
+                            '<div style="height: 98px; line-height: 33px;" class="div-category">' + this.strPrintTitles + '</div>',
                             '<div style="height: 108px; line-height: 33px;" class="div-category">' + this.strMargins + '</div>',
                             '<div style="height: 58px; line-height: 40px;" class="div-category">' + ((this.type == 'print') ? this.strPrint : this.strShow) + '</div>',
                         '</div>',
                         '<div class="content-panel">' + _.template(contentTemplate)({scope: this}) + '</div>',
                     '</div>',
-                    '<div class="separator horizontal"/>',
+                    '<div class="separator horizontal"></div>',
                     '<div class="footer justify">',
-                        '<button id="printadv-dlg-btn-hide" class="btn btn-text-default" style="margin-right: 55px; width: 100px;">' + this.textHideDetails + '</button>',
-                        '<button class="btn normal dlg-btn primary" result="ok" style="margin-right: 10px;  width: 150px;">' + ((this.type == 'print') ? this.btnPrint : this.btnDownload) + '</button>',
+                        '<button id="printadv-dlg-btn-hide" class="btn btn-text-default" style="width: 100px;">' + this.textHideDetails + '</button>',
+                        '<button class="btn normal dlg-btn primary" result="ok" style="margin-left: 55px;  width: 150px;">' + ((this.type == 'print') ? this.btnPrint : this.btnDownload) + '</button>',
                         '<button class="btn normal dlg-btn" result="cancel" style="width: 86px;">' + this.cancelButtonText + '</button>',
                     '</div>'
                 ].join('')
@@ -91,6 +93,7 @@ define([    'text!spreadsheeteditor/main/app/template/PrintSettings.template',
                 style       : 'width: 132px;',
                 menuStyle   : 'min-width: 132px;max-height: 280px;',
                 editable    : false,
+                takeFocusOnClose: true,
                 cls         : 'input-group-nr',
                  data        : [
                     { value: Asc.c_oAscPrintType.ActiveSheets, displayValue: this.textCurrentSheet },
@@ -111,7 +114,8 @@ define([    'text!spreadsheeteditor/main/app/template/PrintSettings.template',
                 menuStyle   : 'min-width: 242px;max-height: 280px;',
                 editable    : false,
                 cls         : 'input-group-nr',
-                data        : []
+                data        : [],
+                takeFocusOnClose: true
             });
 
             this.cmbPaperSize = new Common.UI.ComboBox({
@@ -119,6 +123,7 @@ define([    'text!spreadsheeteditor/main/app/template/PrintSettings.template',
                 style       : 'width: 242px;',
                 menuStyle   : 'max-height: 280px; min-width: 242px;',
                 editable    : false,
+                takeFocusOnClose: true,
                 cls         : 'input-group-nr',
                 data : [
                     {value:'215.9|279.4',    displayValue:'US Letter (21,59cm x 27,94cm)', caption: 'US Letter'},
@@ -142,6 +147,7 @@ define([    'text!spreadsheeteditor/main/app/template/PrintSettings.template',
                 style       : 'width: 132px;',
                 menuStyle   : 'min-width: 132px;',
                 editable    : false,
+                takeFocusOnClose: true,
                 cls         : 'input-group-nr',
                 data        : [
                     { value: Asc.c_oAscPageOrientation.PagePortrait, displayValue: this.strPortrait },
@@ -203,18 +209,59 @@ define([    'text!spreadsheeteditor/main/app/template/PrintSettings.template',
             });
             this.spinners.push(this.spnMarginRight);
 
+            var itemsTemplate =
+                _.template([
+                    '<% _.each(items, function(item) { %>',
+                    '<li id="<%= item.id %>" data-value="<%= item.value %>" <% if (item.value === "customoptions") { %> style="border-top: 1px solid #e5e5e5;margin-top: 5px;" <% } %> ><a tabindex="-1" type="menuitem">',
+                    '<%= scope.getDisplayValue(item) %>',
+                    '</a></li>',
+                    '<% }); %>'
+                ].join(''));
             this.cmbLayout = new Common.UI.ComboBox({
                 el          : $('#printadv-dlg-combo-layout'),
                 style       : 'width: 242px;',
                 menuStyle   : 'min-width: 242px;',
                 editable    : false,
+                takeFocusOnClose: true,
                 cls         : 'input-group-nr',
                 data        : [
                     { value: 0, displayValue: this.textActualSize },
                     { value: 1, displayValue: this.textFitPage },
                     { value: 2, displayValue: this.textFitCols },
-                    { value: 3, displayValue: this.textFitRows }
-                ]
+                    { value: 3, displayValue: this.textFitRows },
+                    { value: 'customoptions', displayValue: this.textCustomOptions }
+                ],
+                itemsTemplate: itemsTemplate
+            });
+
+            this.txtRangeTop = new Common.UI.InputFieldBtn({
+                el          : $('#printadv-dlg-txt-top'),
+                style       : 'width: 147px;',
+                allowBlank  : true,
+                validateOnChange: true
+            });
+
+            this.btnPresetsTop = new Common.UI.Button({
+                parentEl: $('#printadv-dlg-presets-top'),
+                cls: 'btn-text-menu-default',
+                caption: this.textRepeat,
+                style: 'width: 85px;',
+                menu: true
+            });
+
+            this.txtRangeLeft = new Common.UI.InputFieldBtn({
+                el          : $('#printadv-dlg-txt-left'),
+                style       : 'width: 147px;',
+                allowBlank  : true,
+                validateOnChange: true
+            });
+
+            this.btnPresetsLeft = new Common.UI.Button({
+                parentEl: $('#printadv-dlg-presets-left'),
+                cls: 'btn-text-menu-default',
+                caption: this.textRepeat,
+                style: 'width: 85px;',
+                menu: true
             });
 
             this.btnHide = new Common.UI.Button({
@@ -229,6 +276,38 @@ define([    'text!spreadsheeteditor/main/app/template/PrintSettings.template',
             var value = Common.localStorage.getItem("sse-hide-print-settings");
             this.extended = (value!==null && parseInt(value)==0);
             this.handlerShowDetails(this.btnHide);
+        },
+
+        getFocusedComponents: function() {
+            return [this.cmbRange, this.cmbSheet, this.cmbPaperSize, this.cmbPaperOrientation, this.cmbLayout, this.txtRangeTop, this.txtRangeLeft,
+                    this.spnMarginTop, this.spnMarginBottom, this.spnMarginLeft, this.spnMarginRight];
+        },
+
+        getDefaultFocusableComponent: function () {
+            if (this._alreadyRendered) return; // focus only at first show
+            this._alreadyRendered = true;
+            return this.cmbRange;
+        },
+
+        addCustomScale: function (add) {
+            if (add) {
+                this.cmbLayout.setData([
+                    { value: 0, displayValue: this.textActualSize },
+                    { value: 1, displayValue: this.textFitPage },
+                    { value: 2, displayValue: this.textFitCols },
+                    { value: 3, displayValue: this.textFitRows },
+                    { value: 4, displayValue: this.textCustom },
+                    { value: 'customoptions', displayValue: this.textCustomOptions }
+                ]);
+            } else {
+                this.cmbLayout.setData([
+                    { value: 0, displayValue: this.textActualSize },
+                    { value: 1, displayValue: this.textFitPage },
+                    { value: 2, displayValue: this.textFitCols },
+                    { value: 3, displayValue: this.textFitRows },
+                    { value: 'customoptions', displayValue: this.textCustomOptions }
+                ]);
+            }
         },
 
         setRange: function(value) {
@@ -282,7 +361,7 @@ define([    'text!spreadsheeteditor/main/app/template/PrintSettings.template',
             } else {
                 this.extended = false;
                 this.panelDetails.css({'display': 'block'});
-                this.setHeight(475);
+                this.setHeight(585);
                 btn.setCaption(this.textHideDetails);
                 Common.localStorage.setItem("sse-hide-print-settings", 0);
             }
@@ -312,7 +391,6 @@ define([    'text!spreadsheeteditor/main/app/template/PrintSettings.template',
         textFitCols:            'Fit All Columns on One Page',
         textFitRows:            'Fit All Rows on One Page',
         textShowDetails:        'Show Details',
-        cancelButtonText:       'Cancel',
         textHideDetails:        'Hide Details',
         textPageScaling:        'Scaling',
         textSettings:           'Sheet Settings',
@@ -322,7 +400,13 @@ define([    'text!spreadsheeteditor/main/app/template/PrintSettings.template',
         strShow:                'Show',
         btnDownload:            'Save & Download',
         textRange:              'Range',
-        textIgnore:             'Ignore Print Area'
+        textIgnore:             'Ignore Print Area',
+        textCustomOptions:      'Custom Options',
+        textCustom:             'Custom',
+        strPrintTitles:         'Print Titles',
+        textRepeatTop:          'Repeat rows at top',
+        textRepeatLeft:         'Repeat columns at left',
+        textRepeat:             'Repeat...'
 
     }, SSE.Views.PrintSettings || {}));
 });

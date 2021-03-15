@@ -87,12 +87,12 @@ Common.Utils = _.extend(new(function() {
         isSecure = /^https/i.test(window.location.protocol),
         emailRe = /^(mailto:)?([a-z0-9'\._-]+@[a-z0-9\.-]+\.[a-z0-9]{2,4})([a-яё0-9\._%+-=\? :&]*)/i,
         ipRe = /^(((https?)|(ftps?)):\/\/)?([\-\wа-яё]*:?[\-\wа-яё]*@)?(((1[0-9]{2}|2[0-4][0-9]|25[0-5]|[1-9][0-9]|[0-9])\.){3}(1[0-9]{2}|2[0-4][0-9]|25[0-5]|[1-9][0-9]|[0-9]))(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/+@&#;:`~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?/i,
-        hostnameRe = /^(((https?)|(ftps?)):\/\/)?([\-\wа-яё]*:?[\-\wа-яё]*@)?(([\-\wа-яё]+\.)+[\wа-яё\-]{2,}(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/+@&#;:`'~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?)/i,
-        localRe = /^(((https?)|(ftps?)):\/\/)([\-\wа-яё]*:?[\-\wа-яё]*@)?(([\-\wа-яё]+)(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/+@&#;:`'~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?)/i,
+        hostnameRe = /^(((https?)|(ftps?)):\/\/)?([\-\wа-яё]*:?[\-\wа-яё]*@)?(([\-\wа-яё]+\.)+[\wа-яё\-]{2,}(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/\+@&#;:`'~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?)/i,
+        localRe = /^(((https?)|(ftps?)):\/\/)([\-\wа-яё]*:?[\-\wа-яё]*@)?(([\-\wа-яё]+)(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/\+@&#;:`'~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?)/i,
         emailStrongRe = /(mailto:)?([a-z0-9'\._-]+@[a-z0-9\.-]+\.[a-z0-9]{2,4})([a-яё0-9\._%+-=\?:&]*)/ig,
-        emailAddStrongRe = /(mailto:|\s[@]|\s[+])?([a-z0-9'\._-]+@[a-z0-9\.-]+\.[a-z0-9]{2,4})([a-яё0-9\._%+-=\?:&]*)/ig,
-        ipStrongRe = /(((https?)|(ftps?)):\/\/([\-\wа-яё]*:?[\-\wа-яё]*@)?)(((1[0-9]{2}|2[0-4][0-9]|25[0-5]|[1-9][0-9]|[0-9])\.){3}(1[0-9]{2}|2[0-4][0-9]|25[0-5]|[1-9][0-9]|[0-9]))(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/+@&#;:`~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?/ig,
-        hostnameStrongRe = /((((https?)|(ftps?)):\/\/([\-\wа-яё]*:?[\-\wа-яё]*@)?)|(([\-\wа-яё]*:?[\-\wа-яё]*@)?www\.))((([\-\wа-яё]+\.)+[\wа-яё\-]{2,}|([\-\wа-яё]+))(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/+@&#;:`~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?)/ig,
+        emailAddStrongRe = /(mailto:|\s[@]|\s[+])?([a-z0-9'\._-]+@[a-z0-9\.-]+\.[a-z0-9]{2,4})([a-яё0-9\._%\+-=\?:&]*)/ig,
+        ipStrongRe = /(((https?)|(ftps?)):\/\/([\-\wа-яё]*:?[\-\wа-яё]*@)?)(((1[0-9]{2}|2[0-4][0-9]|25[0-5]|[1-9][0-9]|[0-9])\.){3}(1[0-9]{2}|2[0-4][0-9]|25[0-5]|[1-9][0-9]|[0-9]))(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/\+@&#;:`~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?/ig,
+        hostnameStrongRe = /((((https?)|(ftps?)):\/\/([\-\wа-яё]*:?[\-\wа-яё]*@)?)|(([\-\wа-яё]*:?[\-\wа-яё]*@)?www\.))((([\-\wа-яё]+\.)+[\wа-яё\-]{2,}|([\-\wа-яё]+))(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/\+@&#;:`~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?)/ig,
         documentSettingsType = {
         	Paragraph  : 0,
             Table      : 1,
@@ -105,7 +105,9 @@ Common.Utils = _.extend(new(function() {
             MailMerge  : 8,
             Signature  : 9,
             Pivot      : 10,
-            Cell       : 11
+            Cell       : 11,
+            Slicer     : 12,
+            Form       : 13
         },
         importTextType = {
             DRM: 0,
@@ -117,14 +119,12 @@ Common.Utils = _.extend(new(function() {
         isMobile = /android|avantgo|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od|ad)|iris|kindle|lge |maemo|midp|mmp|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(navigator.userAgent || navigator.vendor || window.opera),
         me = this,
         checkSize = function() {
-			me.zoom = 1;
-			if (isChrome && !isOpera && !isMobile && document && document.firstElementChild && document.body)
-			{
+            me.zoom = 1;
+            if (isChrome && !isOpera && !isMobile && document && document.firstElementChild && document.body) {
                 // делаем простую проверку
                 // считаем: 0 < window.devicePixelRatio < 2 => _devicePixelRatio = 1; zoom = window.devicePixelRatio / _devicePixelRatio;
                 // считаем: window.devicePixelRatio >= 2 => _devicePixelRatio = 2; zoom = window.devicePixelRatio / _devicePixelRatio;
-                if (window.devicePixelRatio > 0.1)
-                {
+                if (window.devicePixelRatio > 0.1) {
                     if (window.devicePixelRatio < 1.99)
                     {
                         var _devicePixelRatio = 1;
@@ -137,11 +137,11 @@ Common.Utils = _.extend(new(function() {
                     }
                     // chrome 54.x: zoom = "reset" - clear retina zoom (windows)
                     //document.firstElementChild.style.zoom = "reset";
-                    document.firstElementChild.style.zoom = 1.0 / me.zoom;
-                }
+                    document.firstElementChild.style.zoom = 1.0 / me.zoom;                }
                 else
                     document.firstElementChild.style.zoom = "normal";
-			}
+            }
+
             me.innerWidth = window.innerWidth * me.zoom;
             me.innerHeight = window.innerHeight * me.zoom;
         };
@@ -152,6 +152,8 @@ Common.Utils = _.extend(new(function() {
         $(window).on('resize', checkSize);
 
     return {
+        checkSize: checkSize,
+
         userAgent: userAgent,
         isStrict: isStrict,
         isIEQuirks: isIE && (!isStrict && (isIE6 || isIE7 || isIE8 || isIE9)),
@@ -214,8 +216,11 @@ Common.Utils = _.extend(new(function() {
         documentSettingsType: documentSettingsType,
         importTextType: importTextType,
         zoom: function() {return me.zoom;},
+        topOffset: 0,
         innerWidth: function() {return me.innerWidth;},
-        innerHeight: function() {return me.innerHeight;}
+        innerHeight: function() {return me.innerHeight;},
+        croppedGeometry: function() {return {left:0, top: Common.Utils.InternalSettings.get('window-inactive-area-top'),
+                                        width: me.innerWidth, height: me.innerHeight - Common.Utils.InternalSettings.get('window-inactive-area-top')}}
     }
 })(), Common.Utils || {});
 
@@ -585,6 +590,25 @@ Common.Utils.String = new (function() {
             }
 
             return Common.Utils.String.format(template, string);
+        },
+
+        parseFloat: function(string) {
+            (typeof string === 'string') && (string = string.replace(',', '.'));
+            return parseFloat(string)
+        },
+
+        encodeSurrogateChar: function(nUnicode) {
+            if (nUnicode < 0x10000)
+            {
+                return String.fromCharCode(nUnicode);
+            }
+            else
+            {
+                nUnicode = nUnicode - 0x10000;
+                var nLeadingChar = 0xD800 | (nUnicode >> 10);
+                var nTrailingChar = 0xDC00 | (nUnicode & 0x3FF);
+                return String.fromCharCode(nLeadingChar) + String.fromCharCode(nTrailingChar);
+            }
         }
     }
 })();
@@ -689,6 +713,7 @@ Common.Utils.fillUserInfo = function(info, lang, defname) {
     var _user = info || {};
     !_user.id && (_user.id = ('uid-' + Date.now()));
     _user.fullname = _.isEmpty(_user.name) ? defname : _user.name;
+    _user.group && (_user.fullname = (_user.group).toString() + Common.Utils.UserInfoParser.getSeparator() + _user.fullname);
     return _user;
 };
 
@@ -739,6 +764,8 @@ Common.Utils.loadConfig = function(url, callback) {
             else return 'error';
         }).then(function(json){
             callback(json);
+        }).catch(function(e) {
+            callback('error');
         });
 };
 
@@ -824,6 +851,7 @@ Common.Utils.injectButtons = function($slots, id, iconCls, caption, lock, split,
         /x-huge/.test(el.className) && (_cls += ' x-huge icon-top');
 
         var button = new Common.UI.Button({
+            parentEl: $slots.eq(index),
             id: id + index,
             cls: _cls,
             iconCls: iconCls,
@@ -833,7 +861,7 @@ Common.Utils.injectButtons = function($slots, id, iconCls, caption, lock, split,
             enableToggle: toggle || false,
             lock: lock,
             disabled: true
-        }).render( $slots.eq(index) );
+        });
 
         btnsArr.add(button);
     });
@@ -846,10 +874,126 @@ Common.Utils.injectComponent = function ($slot, cmp) {
     }
 };
 
+Common.Utils.warningDocumentIsLocked = function (opts) {
+    if ( opts.disablefunc )
+        opts.disablefunc(true);
+
+    var app = window.DE || window.PE || window.SSE;
+
+    Common.UI.warning({
+        msg: Common.Locale.get("warnFileLocked",{name:"Common.Translation", default: "You can't edit this file. Document is in use by another application."}),
+        buttons: [{
+            value: 'view',
+            caption: Common.Locale.get("warnFileLockedBtnView",{name:"Common.Translation", default: "Open for viewing"})
+        }, {
+            value: 'edit',
+            caption: Common.Locale.get("warnFileLockedBtnEdit",{name:"Common.Translation", default: "Create a copy"})
+        }],
+        primary: 'view',
+        callback: function(btn){
+            if (btn == 'edit') {
+                if ( opts.disablefunc ) opts.disablefunc(false);
+                app.getController('Main').api.asc_setIsReadOnly(false);
+            }
+        }
+    });
+};
+
+jQuery.fn.extend({
+    elementById: function (id, parent) {
+        /**
+         * usage:   $obj.findById('#id')
+         *          $().findById('#id', $obj | node)
+         *          $.fn.findById('#id', $obj | node)
+         *
+         * return:  dom element
+         * */
+        var _el = document.getElementById(id.substring(1));
+        if ( !_el ) {
+            parent = parent || this;
+            if ( parent instanceof jQuery ) {
+                parent.each(function (i, node) {
+                    _el = node.querySelectorAll(id);
+                    if ( _el.length == 0 ) {
+                        if ( ('#' + node.id) == id ) {
+                            _el = node;
+                            return false;
+                        }
+                    } else
+                    if ( _el.length ) {
+                        _el = _el[0];
+                        return false;
+                    }
+                })
+            } else {
+                _el = parent.querySelectorAll(id);
+                if ( _el && _el.length ) return _el[0];
+            }
+        }
+
+        return _el;
+    },
+
+    findById: function (id, parent) {
+        var _el = $.fn.elementById.apply(this, arguments);
+        return !!_el ? $(_el) : $();
+    }
+});
+
 Common.Utils.InternalSettings.set('toolbar-height-tabs', 32);
 Common.Utils.InternalSettings.set('toolbar-height-tabs-top-title', 28);
 Common.Utils.InternalSettings.set('toolbar-height-controls', 67);
 Common.Utils.InternalSettings.set('document-title-height', 28);
+Common.Utils.InternalSettings.set('window-inactive-area-top', 0);
 
 Common.Utils.InternalSettings.set('toolbar-height-compact', Common.Utils.InternalSettings.get('toolbar-height-tabs'));
 Common.Utils.InternalSettings.set('toolbar-height-normal', Common.Utils.InternalSettings.get('toolbar-height-tabs') + Common.Utils.InternalSettings.get('toolbar-height-controls'));
+
+Common.Utils.ModalWindow = new(function() {
+    var count = 0;
+    return {
+        show: function() {
+            count++;
+        },
+
+        close: function() {
+            count--;
+        },
+
+        isVisible: function() {
+            return count>0;
+        }
+    }
+})();
+
+Common.Utils.UserInfoParser = new(function() {
+    var parse = false;
+    var separator = String.fromCharCode(160);
+    return {
+        setParser: function(value) {
+            parse = !!value;
+        },
+
+        getSeparator: function() {
+            return separator;
+        },
+
+        getParsedName: function(username) {
+            if (parse && username) {
+                return username.substring(username.indexOf(separator)+1);
+            } else
+                return username;
+        },
+
+        getParsedGroups: function(username) {
+            if (parse && username) {
+                var idx = username.indexOf(separator),
+                    groups = (idx>-1) ? username.substring(0, idx).split(',') : [];
+                for (var i=0; i<groups.length; i++)
+                    groups[i] = groups[i].trim();
+                return groups;
+            } else
+                return undefined;
+        }
+    }
+})();

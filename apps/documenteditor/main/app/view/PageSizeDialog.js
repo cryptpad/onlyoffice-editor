@@ -49,7 +49,8 @@ define([
             header: true,
             style: 'min-width: 216px;',
             cls: 'modal-dlg',
-            id: 'window-page-size'
+            id: 'window-page-size',
+            buttons: ['ok', 'cancel']
         },
 
         initialize : function(options) {
@@ -78,11 +79,7 @@ define([
                         '</tr>',
                     '</table>',
                 '</div>',
-                '<div class="separator horizontal"/>',
-                '<div class="footer center">',
-                    '<button class="btn normal dlg-btn primary" result="ok" style="margin-right: 10px;">' + this.okButtonText + '</button>',
-                    '<button class="btn normal dlg-btn" result="cancel">' + this.cancelButtonText + '</button>',
-                '</div>'
+                '<div class="separator horizontal"></div>'
             ].join('');
 
             this.options.tpl = _.template(this.template)(this.options);
@@ -132,6 +129,7 @@ define([
                 cls: 'input-group-nr',
                 menuStyle: 'min-width: 183px;max-height: 208px;',
                 editable: false,
+                takeFocusOnClose: true,
                 scrollAlwaysVisible: true,
                 data: [
                     { value: 0, displayValue: 'US Letter', size: [215.9, 279.4]},
@@ -169,6 +167,14 @@ define([
             $window.find('.dlg-btn').on('click', _.bind(this.onBtnClick, this));
 
             this.updateMetricUnit();
+        },
+
+        getFocusedComponents: function() {
+            return [this.cmbPreset, this.spnWidth, this.spnHeight];
+        },
+
+        getDefaultFocusableComponent: function () {
+            return this.cmbPreset;
         },
 
         _handleInput: function(state) {
@@ -223,8 +229,6 @@ define([
         textTitle: 'Page Size',
         textWidth: 'Width',
         textHeight: 'Height',
-        cancelButtonText:   'Cancel',
-        okButtonText:       'Ok',
         textPreset: 'Preset',
         txtCustom: 'Custom'
     }, DE.Views.PageSizeDialog || {}))

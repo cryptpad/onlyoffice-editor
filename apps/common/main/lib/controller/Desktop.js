@@ -41,11 +41,24 @@ define([
 ], function () {
     'use strict';
 
-    var Desktop = function () {
-        var config = {};
-        var app = window.AscDesktopEditor;
+    var native = window.AscDesktopEditor;
+    !!native && native.execCommand('webapps:features', JSON.stringify({
+        version: '{{PRODUCT_VERSION}}',
+        eventloading: true,
+        titlebuttons: true
+    }));
 
-        if ( !!app ) {
+    var Desktop = function () {
+        var config = {version:'{{PRODUCT_VERSION}}'};
+        var webapp = window.DE || window.PE || window.SSE;
+        var titlebuttons;
+        var btnsave_icons = {
+            'btn-save': 'save',
+            'btn-save-coauth': 'coauth',
+            'btn-synch': 'synch' };
+
+
+        if ( !!native ) {
             window.on_native_message = function (cmd, param) {
                 if (/^style:change/.test(cmd)) {
                     var obj = JSON.parse(param);
@@ -65,32 +78,98 @@ define([
                 } else
                 if (/window:features/.test(cmd)) {
                     var obj = JSON.parse(param);
+                    if (_.isNumber(obj.skiptoparea)) {
+                        if ( $('.asc-window.modal').length && $('.asc-window.modal').position().top < obj.skiptoparea )
+                            $('.asc-window.modal').css('top', obj.skiptoparea);
 
-                    if ( obj.canUndock == 'true' ) {
-                        if ( !config.canUndock ) {
-                            config.canUndock = true;
-
-                            if ( !_.isEmpty(config) )
-                                Common.NotificationCenter.trigger('app:config', {canUndock:true});
-                        }
-                    }
-                } else
-                if (/window:status/.test(cmd)) {
-                    var obj = JSON.parse(param);
-
-                    if ( obj.action == 'undocking' ) {
-                        Common.NotificationCenter.trigger('undock:status', {status:obj.status=='undocked'?'undocked':'docked'});
+                        Common.Utils.InternalSettings.set('window-inactive-area-top', obj.skiptoparea);
                     }
                 } else
                 if (/editor:config/.test(cmd)) {
-                    if ( param == 'request' )
-                        app.execCommand('editor:config', JSON.stringify({user: config.user, 'extraleft': $('#box-document-title #slot-btn-dt-save').parent().width()}));
+                    if ( param == 'request' ) {
+                        if ( !!titlebuttons ) {
+                            var opts = {
+                                user: config.user,
+                                title: { buttons: [] }
+                            };
+
+                            var header = webapp.getController('Viewport').getView('Common.Views.Header');
+                            if ( header ) {
+                                for (var i in titlebuttons) {
+                                    opts.title.buttons.push(_serializeHeaderButton(i, titlebuttons[i]));
+                                }
+                            }
+
+                            native.execCommand('editor:config', JSON.stringify(opts));
+                        } else
+                        if ( !config.callback_editorconfig ) {
+                            config.callback_editorconfig = function() {
+                                setTimeout(function(){window.on_native_message(cmd, param);},0);
+                            }
+                        }
+                    }
+                } else
+                if (/button:click/.test(cmd)) {
+                    var obj = JSON.parse(param);
+                    if ( !!obj.action && !!titlebuttons[obj.action] ) {
+                        titlebuttons[obj.action].btn.click();
+                    }
+                } else
+                if (/element:show/.test(cmd)) {
+                    var _mr = /title:(?:(true|show)|(false|hide))/.exec(param);
+                    if ( _mr ) {
+                        if (!!_mr[1]) $('#app-title').show();
+                        else if (!!_mr[2]) $('#app-title').hide();
+                    }
                 }
             };
 
-            app.execCommand('webapps:events', 'loading');
-            app.execCommand('window:features', 'request');
+            window.on_native_message('editor:config', 'request');
+            if ( !!window.native_message_cmd ) {
+                for ( var c in window.native_message_cmd ) {
+                    window.on_native_message(c, window.native_message_cmd[c]);
+                }
+            }
+
+            native.execCommand('webapps:features', JSON.stringify({version: config.version, eventloading:true, titlebuttons:true}));
+
+            // hide mask for modal window
+            var style = document.createElement('style');
+            style.appendChild(document.createTextNode('.modals-mask{opacity:0 !important;}'));
+            document.getElementsByTagName('head')[0].appendChild(style);
         }
+
+        var _serializeHeaderButton = function(action, config) {
+            return {
+                action: action,
+                icon: config.icon || undefined,
+                hint: config.btn.options.hint,
+                disabled: config.btn.isDisabled()
+            };
+        };
+
+        var _onTitleButtonDisabled = function (action, e, status) {
+            var _buttons = {};
+            _buttons[action] = status;
+            native.execCommand('title:button', JSON.stringify({disabled: _buttons}));
+        };
+
+        var _onSaveIconChanged = function (e, opts) {
+            native.execCommand('title:button', JSON.stringify({'icon:changed': {'save': btnsave_icons[opts.next]}}));
+        };
+
+        var _onModalDialog = function (status) {
+            if ( status == 'open' ) {
+                native.execCommand('title:button', JSON.stringify({disabled: {'all':true}}));
+            } else {
+                var _buttons = {};
+                for (var i in titlebuttons) {
+                    _buttons[i] = titlebuttons[i].btn.isDisabled();
+                }
+
+                native.execCommand('title:button', JSON.stringify({'disabled': _buttons}));
+            }
+        };
 
         return {
             init: function (opts) {
@@ -99,36 +178,80 @@ define([
                 if ( config.isDesktopApp ) {
                     Common.NotificationCenter.on('app:ready', function (opts) {
                         _.extend(config, opts);
-                        !!app && app.execCommand('doc:onready', '');
+                        !!native && native.execCommand('doc:onready', '');
 
                         $('.toolbar').addClass('editor-native-color');
                     });
 
-                    Common.NotificationCenter.on('action:undocking', function (opts) {
-                        app.execCommand('editor:event', JSON.stringify({action:'undocking', state: opts == 'dock' ? 'dock' : 'undock'}));
+                    Common.NotificationCenter.on('document:ready', function () {
+                        if ( config.isEdit ) {
+                            var maincontroller = webapp.getController('Main');
+                            if (maincontroller.api.asc_isReadOnly && maincontroller.api.asc_isReadOnly()) {
+                                maincontroller.warningDocumentIsLocked();
+                            }
+                        }
                     });
 
                     Common.NotificationCenter.on('app:face', function (mode) {
-                        if ( config.canUndock ) {
-                            Common.NotificationCenter.trigger('app:config', {canUndock: true});
+                        native.execCommand('webapps:features', JSON.stringify(
+                            {version: config.version, eventloading:true, titlebuttons:true, viewmode:!mode.isEdit, crypted:mode.isCrypted} ));
+
+                        titlebuttons = {};
+                        if ( mode.isEdit ) {
+                            var header = webapp.getController('Viewport').getView('Common.Views.Header');
+                            if (!!header.btnSave) {
+                                titlebuttons['save'] = {btn: header.btnSave};
+
+                                var iconname = /\s?([^\s]+)$/.exec(titlebuttons.save.btn.$icon.attr('class'));
+                                !!iconname && iconname.length && (titlebuttons.save.icon = btnsave_icons[iconname]);
+                            }
+
+                            if (!!header.btnPrint)
+                                titlebuttons['print'] = {btn: header.btnPrint};
+
+                            if (!!header.btnUndo)
+                                titlebuttons['undo'] = {btn: header.btnUndo};
+
+                            if (!!header.btnRedo)
+                                titlebuttons['redo'] = {btn: header.btnRedo};
+
+                            for (var i in titlebuttons) {
+                                titlebuttons[i].btn.options.signals = ['disabled'];
+                                titlebuttons[i].btn.on('disabled', _onTitleButtonDisabled.bind(this, i));
+                            }
+
+                            if (!!titlebuttons.save) {
+                                titlebuttons.save.btn.options.signals.push('icon:changed');
+                                titlebuttons.save.btn.on('icon:changed', _onSaveIconChanged.bind(this));
+                            }
                         }
+
+                        if ( !!config.callback_editorconfig ) {
+                            config.callback_editorconfig();
+                            delete config.callback_editorconfig;
+                        }
+                    });
+
+                    Common.NotificationCenter.on({
+                        'modal:show': _onModalDialog.bind(this, 'open'),
+                        'modal:close': _onModalDialog.bind(this, 'close')
                     });
                 }
             },
             process: function (opts) {
-                if ( config.isDesktopApp && !!app ) {
+                if ( config.isDesktopApp && !!native ) {
                     if ( opts == 'goback' ) {
-                        app.execCommand('go:folder',
+                        native.execCommand('go:folder',
                             config.isOffline ? 'offline' : config.customization.goback.url);
                         return true;
                     } else
                     if ( opts == 'preloader:hide' ) {
-                        app.execCommand('editor:onready', '');
+                        native.execCommand('editor:onready', '');
                         return true;
                     } else
                     if ( opts == 'create:new' ) {
                         if (config.createUrl == 'desktop://create.new') {
-                            app.LocalFileCreate(!!window.SSE ? 2 : !!window.PE ? 1 : 0);
+                            native.execCommand("create:new", !!window.SSE ? 'cell' : !!window.PE ? 'slide' : 'word');
                             return true;
                         }
                     }
@@ -137,8 +260,8 @@ define([
                 return false;
             },
             requestClose: function () {
-                if ( config.isDesktopApp && !!app ) {
-                    app.execCommand('editor:event', JSON.stringify({action:'close', url: config.customization.goback.url}));
+                if ( config.isDesktopApp && !!native ) {
+                    native.execCommand('editor:event', JSON.stringify({action:'close', url: config.customization.goback.url}));
                 }
             }
         };

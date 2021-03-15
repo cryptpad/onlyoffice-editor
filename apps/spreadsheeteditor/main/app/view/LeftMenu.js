@@ -79,13 +79,11 @@ define([
         },
 
         render: function () {
-            var el = $(this.el);
-            el.html(this.template({
-            }));
+            var $markup = $(this.template({}));
 
             this.btnSearch = new Common.UI.Button({
                 action: 'search',
-                el: $('#left-btn-search', this.el),
+                el: $markup.elementById('#left-btn-search'),
                 hint: this.tipSearch + Common.Utils.String.platformKey('Ctrl+F'),
                 disabled: true,
                 enableToggle: true
@@ -93,7 +91,7 @@ define([
 
             this.btnAbout = new Common.UI.Button({
                 action: 'about',
-                el: $('#left-btn-about', this.el),
+                el: $markup.elementById('#left-btn-about'),
                 hint: this.tipAbout,
                 enableToggle: true,
                 disabled: true,
@@ -102,14 +100,14 @@ define([
 
             this.btnSupport = new Common.UI.Button({
                 action: 'support',
-                el: $('#left-btn-support', this.el),
+                el: $markup.elementById('#left-btn-support'),
                 hint: this.tipSupport,
                 disabled: true
             });
 
             /** coauthoring begin **/
             this.btnComments = new Common.UI.Button({
-                el: $('#left-btn-comments', this.el),
+                el: $markup.elementById('#left-btn-comments'),
                 hint: this.tipComments +  Common.Utils.String.platformKey('Ctrl+Shift+H'),
                 enableToggle: true,
                 disabled: true,
@@ -117,7 +115,7 @@ define([
             });
 
             this.btnChat = new Common.UI.Button({
-                el: $('#left-btn-chat', this.el),
+                el: $markup.elementById('#left-btn-chat'),
                 hint: this.tipChat + Common.Utils.String.platformKey('Alt+Q'),
                 enableToggle: true,
                 disabled: true,
@@ -127,13 +125,13 @@ define([
             this.btnComments.hide();
             this.btnChat.hide();
 
-            this.btnComments.on('click',        _.bind(this.onBtnMenuClick, this));
-            this.btnComments.on('toggle',       _.bind(this.onBtnCommentsToggle, this));
-            this.btnChat.on('click',            _.bind(this.onBtnMenuClick, this));
+            this.btnComments.on('toggle',       this.onBtnCommentsToggle.bind(this));
+            this.btnComments.on('click',        this.onBtnMenuClick.bind(this));
+            this.btnChat.on('click',            this.onBtnMenuClick.bind(this));
             /** coauthoring end **/
 
             this.btnPlugins = new Common.UI.Button({
-                el: $('#left-btn-plugins'),
+                el: $markup.elementById('#left-btn-plugins'),
                 hint: this.tipPlugins,
                 enableToggle: true,
                 disabled: true,
@@ -143,7 +141,7 @@ define([
             this.btnPlugins.on('click',         _.bind(this.onBtnMenuClick, this));
 
             this.btnSpellcheck = new Common.UI.Button({
-                el: $('#left-btn-spellcheck'),
+                el: $markup.elementById('#left-btn-spellcheck'),
                 hint: this.tipSpellcheck,
                 enableToggle: true,
                 disabled: true,
@@ -156,8 +154,8 @@ define([
             this.btnAbout.on('toggle',          _.bind(this.onBtnMenuToggle, this));
 
             this.menuFile = new SSE.Views.FileMenu({});
-            this.menuFile.render();
-            this.btnAbout.panel = (new Common.Views.About({el: $('#about-menu-panel'), appName: 'Spreadsheet Editor'})).render();
+            this.btnAbout.panel = (new Common.Views.About({el: '#about-menu-panel', appName: 'Spreadsheet Editor'}));
+            this.$el.html($markup);
 
             return this;
         },
@@ -351,15 +349,59 @@ define([
             return this;
         },
 
-        setDeveloperMode: function(mode) {
+        setDeveloperMode: function(mode, beta, version) {
             if ( !this.$el.is(':visible') ) return;
 
-            if (!this.developerHint) {
-                this.developerHint = $('<div id="developer-hint">' + ((mode == Asc.c_oLicenseMode.Trial) ? this.txtTrial : this.txtDeveloper) + '</div>').appendTo(this.$el);
-                this.devHeight = this.developerHint.outerHeight();
-                $(window).on('resize', _.bind(this.onWindowResize, this));
+            if ((mode & Asc.c_oLicenseMode.Trial) || (mode & Asc.c_oLicenseMode.Developer)) {
+                if (!this.developerHint) {
+                    var str = '';
+                    if ((mode & Asc.c_oLicenseMode.Trial) && (mode & Asc.c_oLicenseMode.Developer))
+                        str = this.txtTrialDev;
+                    else if ((mode & Asc.c_oLicenseMode.Trial)!==0)
+                        str = this.txtTrial;
+                    else if ((mode & Asc.c_oLicenseMode.Developer)!==0)
+                        str = this.txtDeveloper;
+                    str = str.toUpperCase();
+                    this.developerHint = $('<div id="developer-hint">' + str + '</div>').appendTo(this.$el);
+                    this.devHeight = this.developerHint.outerHeight();
+                    !this.devHintInited && $(window).on('resize', _.bind(this.onWindowResize, this));
+                    this.devHintInited = true;
+                }
             }
-            this.developerHint.toggleClass('hidden', !mode);
+            this.developerHint && this.developerHint.toggleClass('hidden', !((mode & Asc.c_oLicenseMode.Trial) || (mode & Asc.c_oLicenseMode.Developer)));
+
+            if (beta) {
+                if (!this.betaHint) {
+                    var style = (mode) ? 'style="margin-top: 4px;"' : '',
+                        arr = (version || '').split('.'),
+                        ver = '';
+                    (arr.length>0) && (ver += ('v. ' + arr[0]));
+                    (arr.length>1) && (ver += ('.' + arr[1]));
+                    this.betaHint = $('<div id="beta-hint"' + style + '>' + (ver + ' (beta)' ) + '</div>').appendTo(this.$el);
+                    this.betaHeight = this.betaHint.outerHeight();
+                    !this.devHintInited && $(window).on('resize', _.bind(this.onWindowResize, this));
+                    this.devHintInited = true;
+                }
+            }
+            this.betaHint && this.betaHint.toggleClass('hidden', !beta);
+
+            var btns = this.$el.find('button.btn-category:visible'),
+                lastbtn = (btns.length>0) ? $(btns[btns.length-1]) : null;
+            this.minDevPosition = (lastbtn) ? (lastbtn.offset().top - lastbtn.offsetParent().offset().top + lastbtn.height() + 20) : 20;
+            this.onWindowResize();
+        },
+
+        setLimitMode: function() {
+            if ( !this.$el.is(':visible') ) return;
+
+            if (!this.limitHint) {
+                var str = this.txtLimit.toUpperCase();
+                this.limitHint = $('<div id="limit-hint" style="margin-top: 4px;">' + str + '</div>').appendTo(this.$el);
+                this.limitHeight = this.limitHint.outerHeight();
+                !this.devHintInited && $(window).on('resize', _.bind(this.onWindowResize, this));
+                this.devHintInited = true;
+            }
+            this.limitHint && this.limitHint.toggleClass('hidden', false);
 
             var btns = this.$el.find('button.btn-category:visible'),
                 lastbtn = (btns.length>0) ? $(btns[btns.length-1]) : null;
@@ -368,7 +410,17 @@ define([
         },
 
         onWindowResize: function() {
-            this.developerHint.css('top', Math.max((this.$el.height()-this.devHeight)/2, this.minDevPosition));
+            var height = (this.devHeight || 0) + (this.betaHeight || 0) + (this.limitHeight || 0);
+            var top = Math.max((this.$el.height()-height)/2, this.minDevPosition);
+            if (this.developerHint) {
+                this.developerHint.css('top', top);
+                top += this.devHeight;
+            }
+            if (this.betaHint) {
+                this.betaHint.css('top', top);
+                top += (this.betaHeight + 4);
+            }
+            this.limitHint && this.limitHint.css('top', top);
         },
 
         /** coauthoring begin **/
@@ -382,6 +434,8 @@ define([
         tipPlugins  : 'Plugins',
         txtDeveloper: 'DEVELOPER MODE',
         txtTrial: 'TRIAL MODE',
-        tipSpellcheck: 'Spell checking'
+        tipSpellcheck: 'Spell checking',
+        txtTrialDev: 'Trial Developer Mode',
+        txtLimit: 'Limit Access'
     }, SSE.Views.LeftMenu || {}));
 });

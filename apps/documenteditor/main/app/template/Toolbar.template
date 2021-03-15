@@ -33,8 +33,8 @@
                     <div class="elset" style="width:260px;">
                         <span class="btn-slot" id="slot-field-fontname"></span>
                         <span class="btn-slot" id="slot-field-fontsize"></span>
-                        <span class="btn-slot border" id="slot-btn-incfont"></span>
-                        <span class="btn-slot border" id="slot-btn-decfont"></span>
+                        <span class="btn-slot" id="slot-btn-incfont"></span>
+                        <span class="btn-slot" id="slot-btn-decfont"></span>
                     </div>
                     <div class="elset font-attr">
                         <span class="btn-slot" id="slot-btn-bold"></span>
@@ -83,7 +83,6 @@
                 <div class="group">
                     <span class="btn-slot text x-huge" id="slot-btn-blankpage"></span>
                     <span class="btn-slot text x-huge btn-pagebreak"></span>
-                    <span class="btn-slot text x-huge" id="slot-btn-editheader"></span>
                 </div>
                 <div class="separator long"></div>
                 <div class="group">
@@ -97,8 +96,13 @@
                 </div>
                 <div class="separator long"></div>
                 <div class="group">
-                    <span class="btn-slot text x-huge slot-inshyperlink"></span>
                     <span class="btn-slot text x-huge slot-comment"></span>
+                    <span class="btn-slot text x-huge slot-inshyperlink"></span>
+                </div>
+                <div class="separator long"></div>
+                <div class="group">
+                    <span class="btn-slot text x-huge" id="slot-btn-editheader"></span>
+                    <span class="btn-slot text x-huge" id="slot-btn-datetime"></span>
                 </div>
                 <div class="separator long"></div>
                 <div class="group">
@@ -108,6 +112,7 @@
                 <div class="separator long"></div>
                 <div class="group">
                     <span class="btn-slot text x-huge" id="slot-btn-insequation"></span>
+                    <span class="btn-slot text x-huge" id="slot-btn-inssymbol"></span>
                 </div>
                 <div class="separator long"></div>
                 <div class="group">
@@ -125,6 +130,7 @@
                     <span class="btn-slot text x-huge" id="slot-btn-pagesize"></span>
                     <span class="btn-slot text x-huge" id="slot-btn-columns"></span>
                     <span class="btn-slot text x-huge btn-pagebreak"></span>
+                    <span class="btn-slot text x-huge" id="slot-btn-line-numbers"></span>
                 </div>
                 <div class="separator long"></div>
                 <div class="group">
@@ -152,6 +158,42 @@
                 <div class="group">
                     <span class="btn-slot text x-huge slot-inshyperlink"></span>
                     <span class="btn-slot text x-huge" id="slot-btn-bookmarks"></span>
+                </div>
+                <div class="separator long"></div>
+                <div class="group">
+                    <span class="btn-slot text x-huge" id="slot-btn-caption"></span>
+                    <span class="btn-slot text x-huge" id="slot-btn-crossref"></span>
+                </div>
+                <div class="group sheet-views" style="padding-left: 5px;">
+                    <div class="elset">
+                        <span class="btn-slot text" id="slot-btn-tof"></span>
+                    </div>
+                    <div class="elset">
+                        <span class="btn-slot text" id="slot-btn-tof-update"></span>
+                    </div>
+                </div>
+            </section>
+            <section class="panel" data-tab="forms">
+                <div class="group">
+                    <span class="btn-slot text x-huge" id="slot-btn-form-field"></span>
+                    <span class="btn-slot text x-huge" id="slot-btn-form-combobox"></span>
+                    <span class="btn-slot text x-huge" id="slot-btn-form-dropdown"></span>
+                    <span class="btn-slot text x-huge" id="slot-btn-form-checkbox"></span>
+                    <span class="btn-slot text x-huge" id="slot-btn-form-radiobox"></span>
+                    <span class="btn-slot text x-huge" id="slot-btn-form-image"></span>
+                </div>
+                <div class="separator long"></div>
+                <div class="group no-group-mask form-view">
+                    <div class="elset">
+                        <span class="btn-slot text" id="slot-form-clear-fields"></span>
+                    </div>
+                    <div class="elset">
+                        <span class="btn-slot text" id="slot-form-highlight"></span>
+                    </div>
+                </div>
+                <div class="separator long"></div>
+                <div class="group no-group-mask form-view">
+                    <span class="btn-slot text x-huge" id="slot-btn-form-view"></span>
                 </div>
             </section>
         </section>

@@ -49,7 +49,8 @@ define([
             width: 300,
             header: true,
             style: 'min-width: 216px;',
-            cls: 'modal-dlg'
+            cls: 'modal-dlg',
+            buttons: ['ok', 'cancel']
         },
 
         initialize : function(options) {
@@ -69,16 +70,13 @@ define([
                         '<div id="custom-columns-separator"></div>',
                     '</div>',
                 '</div>',
-                '<div class="separator horizontal"/>',
-                '<div class="footer center">',
-                    '<button class="btn normal dlg-btn primary" result="ok" style="margin-right: 10px;">' + this.okButtonText + '</button>',
-                    '<button class="btn normal dlg-btn" result="cancel">' + this.cancelButtonText + '</button>',
-                '</div>'
+                '<div class="separator horizontal"></div>'
             ].join('');
 
             this.options.tpl = _.template(this.template)(this.options);
 
             this.spinners = [];
+            this.totalWidth = 558.7;
             this._noApply = false;
 
             Common.UI.Window.prototype.initialize.call(this, this.options);
@@ -87,6 +85,7 @@ define([
         render: function() {
             Common.UI.Window.prototype.render.call(this);
 
+            var me = this;
             this.spnColumns = new Common.UI.MetricSpinner({
                 el: $('#custom-columns-spin-num'),
                 step: 1,
@@ -96,6 +95,18 @@ define([
                 value: '1',
                 maxValue: 12,
                 minValue: 1
+            });
+            this.spnColumns.on('change', function(field, newValue, oldValue, eOpts){
+                var space = Common.Utils.Metric.fnRecalcToMM(me.spnSpacing.getNumberValue()),
+                    num = me.spnColumns.getNumberValue();
+                me.chSeparator.setDisabled(num<2);
+                me.spnSpacing.setDisabled(num<2);
+                (num<2) && (num = 2);
+                var maxspace = parseFloat(((me.totalWidth-num*12.7)/(num-1)).toFixed(1));
+                me.spnSpacing.setMaxValue(Common.Utils.Metric.fnRecalcFromMM(maxspace));
+                if (space>maxspace) {
+                    me.spnSpacing.setValue(Common.Utils.Metric.fnRecalcFromMM(maxspace), true);
+                }
             });
 
             this.spnSpacing = new Common.UI.MetricSpinner({
@@ -117,6 +128,14 @@ define([
             this.getChild().find('.dlg-btn').on('click', _.bind(this.onBtnClick, this));
 
             this.updateMetricUnit();
+        },
+
+        getFocusedComponents: function() {
+            return [this.spnColumns, this.spnSpacing];
+        },
+
+        getDefaultFocusableComponent: function () {
+            return this.spnColumns;
         },
 
         _handleInput: function(state) {
@@ -142,9 +161,23 @@ define([
                     num = (equal) ? props.get_Num() : props.get_ColsCount(),
                     space = (equal) ? props.get_Space() : (num>1 ? props.get_Col(0).get_Space() : 12.5);
 
-                this.spnColumns.setValue(num, true);
-                this.spnSpacing.setValue(Common.Utils.Metric.fnRecalcFromMM(space), true);
                 this.chSeparator.setValue(props.get_Sep());
+
+                var total = props.get_TotalWidth(),
+                    minspace = 0.1,
+                    maxcols = parseInt((total+minspace)/(12.7+minspace));
+                this.spnColumns.setMaxValue(maxcols);
+                this.spnColumns.setValue(num, true);
+                this.chSeparator.setDisabled(num<2);
+                this.spnSpacing.setDisabled(num<2);
+
+                (num<2) && (num = 2);
+                (num>maxcols) && (num = maxcols);
+                var maxspace = parseFloat(((total-num*12.7)/(num-1)).toFixed(1));
+                this.spnSpacing.setMaxValue(Common.Utils.Metric.fnRecalcFromMM(maxspace));
+                this.spnSpacing.setValue(Common.Utils.Metric.fnRecalcFromMM(space), true);
+
+                this.totalWidth = total;
             }
         },
 
@@ -171,8 +204,6 @@ define([
         textTitle: 'Columns',
         textSpacing: 'Spacing between columns',
         textColumns: 'Number of columns',
-        textSeparator: 'Column divider',
-        cancelButtonText:   'Cancel',
-        okButtonText:       'Ok'
+        textSeparator: 'Column divider'
     }, DE.Views.CustomColumnsDialog || {}))
 });

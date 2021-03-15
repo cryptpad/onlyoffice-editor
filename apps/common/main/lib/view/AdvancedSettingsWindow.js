@@ -51,7 +51,8 @@ define([
                 cls: 'advanced-settings-dlg',
                 toggleGroup: 'advanced-settings-group',
                 contentTemplate: '',
-                items: []
+                items: [],
+                buttons: ['ok', 'cancel']
             }, options);
 
             this.template = options.template || [
@@ -61,14 +62,10 @@ define([
                         '<button class="btn btn-category" content-target="<%= item.panelId %>"><span class=""><%= item.panelCaption %></span></button>',
                     '<% }); %>',
                     '</div>',
-                    '<div class="separator"/>',
+                    '<div class="separator"></div>',
                     '<div class="content-panel" >' + _options.contentTemplate + '</div>',
                 '</div>',
-                '<div class="separator horizontal"/>',
-                '<div class="footer center">',
-                    '<button class="btn normal dlg-btn primary" result="ok" style="margin-right: 10px;">' + this.okButtonText + '</button>',
-                    '<button class="btn normal dlg-btn" result="cancel">' + this.cancelButtonText + '</button>',
-                '</div>'
+                '<div class="separator horizontal"></div>'
             ].join('');
 
             _options.tpl = _.template(this.template)(_options);
@@ -99,7 +96,7 @@ define([
                     allowDepress: false,
                     contentTarget: btnEl.attr('content-target')
                 });
-                btn.on('click', _.bind(me.onCategoryClick, me));
+                btn.on('click', _.bind(me.onCategoryClick, me, btn, index));
                 me.btnsCategory.push(btn);
             });
             var cnt_panel = $window.find('.content-panel'),
@@ -110,22 +107,6 @@ define([
             this.content_panels = $window.find('.settings-panel');
             if (this.btnsCategory.length>0)
                 this.btnsCategory[0].toggle(true, true);
-
-            me.menuAddAlign = function(menuRoot, left, top) {
-                var self = this;
-                if (!$window.hasClass('notransform')) {
-                    $window.addClass('notransform');
-                    menuRoot.addClass('hidden');
-                    setTimeout(function() {
-                        menuRoot.removeClass('hidden');
-                        menuRoot.css({left: left, top: top});
-                        self.options.additionalAlign = null;
-                    }, 300);
-                } else {
-                    menuRoot.css({left: left, top: top});
-                    self.options.additionalAlign = null;
-                }
-            }
         },
 
         setHeight: function(height) {
@@ -144,7 +125,7 @@ define([
             this.close();
         },
 
-        onCategoryClick: function(btn, event) {
+        onCategoryClick: function(btn, index) {
             this.content_panels.filter('.active').removeClass('active');
             $("#" + btn.options.contentTarget).addClass("active");
         },
@@ -163,19 +144,21 @@ define([
 
         setActiveCategory: function(index) {
             if (this.btnsCategory.length<1) return;
-            
-            var btnActive = this.btnsCategory[(index>=0 && index<this.btnsCategory.length) ? index : 0];
+
+            index = (index>=0 && index<this.btnsCategory.length) ? index : 0;
+            var btnActive = this.btnsCategory[index];
             if (!btnActive.isVisible() || btnActive.isDisabled()) {
                 for (var i = 0; i<this.btnsCategory.length; i++){
                     var btn = this.btnsCategory[i];
                     if (btn.isVisible() && !btn.isDisabled()) {
                         btnActive = btn;
+                        index = i;
                         break;
                     }
                 }
             }
             btnActive.toggle(true);
-            this.onCategoryClick(btnActive);
+            this.onCategoryClick(btnActive, index);
         },
 
         getActiveCategory: function() {
@@ -190,9 +173,6 @@ define([
             if (this.storageName)
                 Common.localStorage.setItem(this.storageName, this.getActiveCategory());
             Common.UI.Window.prototype.close.call(this, suppressevent);
-        },
-
-        cancelButtonText: 'Cancel',
-        okButtonText    : 'Ok'
+        }
     }, Common.Views.AdvancedSettingsWindow || {}));
 });

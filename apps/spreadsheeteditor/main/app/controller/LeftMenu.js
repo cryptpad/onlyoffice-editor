@@ -56,8 +56,7 @@ define([
                     'hide':        _.bind(this.onHidePlugins, this)
                 },
                 'Common.Views.Header': {
-                    'file:settings': _.bind(this.clickToolbarSettings,this),
-                    'click:users': _.bind(this.clickStatusbarUsers, this)
+                    'file:settings': _.bind(this.clickToolbarSettings,this)
                 },
                 'LeftMenu': {
                     'file:show': _.bind(this.fileShowHide, this, true),
@@ -76,6 +75,7 @@ define([
                     'saveas:format': _.bind(this.clickSaveAsFormat, this),
                     'savecopy:format': _.bind(this.clickSaveCopyAsFormat, this),
                     'settings:apply': _.bind(this.applySettings, this),
+                    'spellcheck:apply': _.bind(this.applySpellcheckSettings, this),
                     'create:new': _.bind(this.onCreateNew, this),
                     'recent:open': _.bind(this.onOpenRecent, this)
                 },
@@ -188,6 +188,15 @@ define([
             return this;
         },
 
+        disableEditing: function(disabled) {
+            this.leftMenu.btnComments.setDisabled(disabled);
+            this.leftMenu.btnChat.setDisabled(disabled);
+            this.leftMenu.btnPlugins.setDisabled(disabled);
+            this.leftMenu.btnSpellcheck.setDisabled(disabled);
+
+            this.leftMenu.getMenu('file').disableEditing(disabled);
+        },
+
         createDelayedElements: function() {
             /** coauthoring begin **/
             if ( this.mode.canCoAuthoring ) {
@@ -208,7 +217,7 @@ define([
                 this.leftMenu.setOptionsPanel('spellcheck', this.getApplication().getController('Spellcheck').getView('Spellcheck'));
             }
 
-            this.mode.trialMode && this.leftMenu.setDeveloperMode(this.mode.trialMode);
+            (this.mode.trialMode || this.mode.isBeta) && this.leftMenu.setDeveloperMode(this.mode.trialMode, this.mode.isBeta, this.mode.buildVersion);
             /** coauthoring end **/
             Common.util.Shortcuts.resumeEvents();
             if (!this.mode.isEditMailMerge && !this.mode.isEditDiagram)
@@ -222,7 +231,7 @@ define([
                 this.leftMenu.setOptionsPanel('plugins', this.getApplication().getController('Common.Controllers.Plugins').getView('Common.Views.Plugins'));
             } else
                 this.leftMenu.btnPlugins.hide();
-            this.mode.trialMode && this.leftMenu.setDeveloperMode(this.mode.trialMode);
+            (this.mode.trialMode || this.mode.isBeta) && this.leftMenu.setDeveloperMode(this.mode.trialMode, this.mode.isBeta, this.mode.buildVersion);
         },
 
         clickMenuFileItem: function(menu, action, isopts) {
@@ -355,7 +364,11 @@ define([
         },
 
         applySettings: function(menu) {
-            var value = Common.localStorage.getItem("sse-settings-fontrender");
+            var value = Common.localStorage.getBool("sse-settings-cachemode", true);
+            Common.Utils.InternalSettings.set("sse-settings-cachemode", value);
+            this.api.asc_setDefaultBlitMode(value);
+
+            value = Common.localStorage.getItem("sse-settings-fontrender");
             Common.Utils.InternalSettings.set("sse-settings-fontrender", value);
             this.api.asc_setFontRenderingMode(parseInt(value));
 
@@ -368,6 +381,7 @@ define([
             if (this.mode.canViewComments && this.leftMenu.panelComments.isVisible())
                 value = resolved = true;
             (value) ? this.api.asc_showComments(resolved) : this.api.asc_hideComments();
+            this.getApplication().getController('Common.Controllers.ReviewChanges').commentsShowHide(value ? 'show' : 'hide');
 
             value = Common.localStorage.getBool("sse-settings-r1c1");
             Common.Utils.InternalSettings.set("sse-settings-r1c1", value);
@@ -384,20 +398,54 @@ define([
                 value = parseInt(Common.localStorage.getItem("sse-settings-autosave"));
                 Common.Utils.InternalSettings.set("sse-settings-autosave", value);
                 this.api.asc_setAutoSaveGap(value);
+
+                value = parseInt(Common.localStorage.getItem("sse-settings-paste-button"));
+                Common.Utils.InternalSettings.set("sse-settings-paste-button", value);
+                this.api.asc_setVisiblePasteButton(!!value);
             }
 
-            value = Common.localStorage.getItem("sse-settings-reg-settings");
-            if (value!==null) this.api.asc_setLocale(parseInt(value));
+            var reg = Common.localStorage.getItem("sse-settings-reg-settings"),
+                baseRegSettings = Common.Utils.InternalSettings.get("sse-settings-use-base-separator");
+            if (reg === null) {
+                reg = this.api.asc_getLocale();
+            }
+            if (baseRegSettings) {
+                this.api.asc_setLocale(parseInt(reg), undefined, undefined);
+            }
+            else {
+                this.api.asc_setLocale(parseInt(reg), Common.localStorage.getItem("sse-settings-decimal-separator"), Common.localStorage.getItem("sse-settings-group-separator"));
+            }
 
             menu.hide();
 
             this.leftMenu.fireEvent('settings:apply');
         },
 
+        applySpellcheckSettings: function(menu) {
+            if (this.mode.isEdit && this.api) {
+                var value = Common.localStorage.getBool("sse-spellcheck-ignore-uppercase-words");
+                this.api.asc_ignoreUppercase(value);
+                value = Common.localStorage.getBool("sse-spellcheck-ignore-numbers-words");
+                this.api.asc_ignoreNumbers(value);
+                value = Common.localStorage.getItem("sse-spellcheck-locale");
+                if (value) {
+                    this.api.asc_setDefaultLanguage(parseInt(value));
+                }
+            }
+
+            menu.hide();
+
+            this.leftMenu.fireEvent('spellcheck:update');
+        },
+
         onCreateNew: function(menu, type) {
             if ( !Common.Controllers.Desktop.process('create:new') ) {
-                var newDocumentPage = window.open(type == 'blank' ? this.mode.createUrl : type, "_blank");
-                if (newDocumentPage) newDocumentPage.focus();
+                if (this.mode.canRequestCreateNew)
+                    Common.Gateway.requestCreateNew();
+                else {
+                    var newDocumentPage = window.open(type == 'blank' ? this.mode.createUrl : type, "_blank");
+                    if (newDocumentPage) newDocumentPage.focus();
+                }
             }
             if (menu) {
                 menu.hide();
@@ -432,10 +480,6 @@ define([
         },
 
         /** coauthoring begin **/
-        clickStatusbarUsers: function() {
-            this.leftMenu.menuFile.panels['rights'].changeAccessRights();
-        },
-
         onHideChat: function() {
             $(this.leftMenu.btnChat.el).blur();
             Common.NotificationCenter.trigger('layout:changed', 'leftmenu');
