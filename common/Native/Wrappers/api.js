@@ -5962,6 +5962,9 @@ function NativeOpenFile3(_params, documentInfo)
                                   });
 
         _api.asc_registerCallback("asc_onFocusObject", onFocusObject);
+        _api.asc_registerCallback('asc_onStartAction', onApiLongActionBegin);
+        _api.asc_registerCallback('asc_onEndAction', onApiLongActionEnd);
+        _api.asc_registerCallback('asc_onError', onApiError);
         
         // Comments
 
@@ -6722,6 +6725,31 @@ function onFocusObject(SelectedObjects) {
     }
 
     postDataAsJSONString(settings, 26101); // ASC_MENU_EVENT_TYPE_FOCUS_OBJECT
+}
+
+function onApiLongActionBegin(type, id) {
+    var info = {
+        "type" : type,
+        "id" : id
+    };
+    postDataAsJSONString(info, 26102); // ASC_MENU_EVENT_TYPE_LONGACTION_BEGIN
+}
+
+function onApiLongActionEnd(type, id) {
+    var info = {
+        "type" : type,
+        "id" : id
+    };
+    postDataAsJSONString(info, 26103); // ASC_MENU_EVENT_TYPE_LONGACTION_END
+}
+
+function onApiError(id, level, errData) {
+    var info = {
+        "level" : level,
+        "id" : id,
+        "errData" : JSON.prune(errData, 4),
+    };
+    postDataAsJSONString(info, 26104); // ASC_MENU_EVENT_TYPE_API_ERROR
 }
 
 // Others
