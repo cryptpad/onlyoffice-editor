@@ -11904,6 +11904,12 @@ var GLOBAL_PATH_COUNT = 0;
         this.applyChartStyle(this.chartStyle, this.chartColors, oChartStyleCache.getAdditionalData(this.getChartType(), this.chartStyle.id), true);
 
     };
+    CChartSpace.prototype.getChartStyleIdx = function() {
+        if(!this.chartStyle || !this.chartColors) {
+            return null;
+        }
+        return oChartStyleCache.getStyleIdx(this.getChartType(), this.chartStyle.id);
+    };
     CChartSpace.prototype.buildSeries = function(aRefs) {
         if(!Array.isArray(aRefs)) {
             return Asc.c_oAscError.ID.No;
@@ -13465,6 +13471,23 @@ var GLOBAL_PATH_COUNT = 0;
                 oAdditionalData.view3D = this.checkView3d(nView3D);
                 oAdditionalData.legend = this.checkLegend(nLegend);
                 return oAdditionalData;
+            }
+        }
+        return null;
+    };
+    CChartStyleCache.prototype.getStyleIdx = function(nType, nStyleId) {
+        var nStyleCrc = AscCommon.g_oChartStylesIdMap[nStyleId];
+        if(!AscFormat.isRealNumber(nStyleCrc)) {
+            return null;
+        }
+        var aStyles = AscCommon.g_oChartStyles[nType];
+        if(!Array.isArray(aStyles)) {
+            return null;
+        }
+        for(var nStyle = 0; nStyle < aStyles.length; ++nStyle) {
+            var aStyle = aStyles[nStyle];
+            if(aStyle[0] === nStyleCrc) {
+                return nStyle + 1;
             }
         }
         return null;

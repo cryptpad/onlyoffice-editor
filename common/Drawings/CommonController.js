@@ -4532,6 +4532,7 @@ DrawingObjectsController.prototype =
             }
         }
 
+        ret.putStyle(chart_space.getChartStyleIdx());
 
         ret.putTitle(isRealObject(chart.title) ? (chart.title.overlay ? c_oAscChartTitleShowSettings.overlay : c_oAscChartTitleShowSettings.noOverlay) : c_oAscChartTitleShowSettings.none);
 

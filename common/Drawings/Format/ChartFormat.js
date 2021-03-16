@@ -4106,8 +4106,7 @@
 
         var bResetLine = false;
         var nType = this.getObjectType();
-        if(nType === AscDFH.historyitem_type_LineSeries
-            || nType === AscDFH.historyitem_type_ScatterSer) {//TODO: radar chart
+        if(nType === AscDFH.historyitem_type_ScatterSer) {//TODO: radar chart
             if(this.parent.isNoLine()) {
                 bResetLine = true;
             }
