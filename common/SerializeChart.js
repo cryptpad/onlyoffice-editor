@@ -5575,7 +5575,7 @@ BinaryChartReader.prototype.ExternalReadCT_ChartSpace = function (length, val, c
             val.setRoundedCorners(false);
         }
     }
-    if(this.curWorksheet) {
+    /*if(this.curWorksheet) {
         var aStyles = null;
         var sName = this.curWorksheet.sName;
         if(sName === "Bar") {
@@ -5747,6 +5747,7 @@ BinaryChartReader.prototype.ExternalReadCT_ChartSpace = function (length, val, c
             }
             if(this.curChart.oChartStyleData) {
                 AscCommon.g_oStylesBinaries[this.curChart.oChartStyleData.crc32] = this.curChart.oChartStyleData.data;
+                AscCommon.g_oChartStylesIdMap[this.curChart.chartStyle.id] = this.curChart.oChartStyleData.crc32;
             }
             if(this.curChart.oChartColorsData) {
                 AscCommon.g_oColorsBinaries[this.curChart.oChartColorsData.crc32] = this.curChart.oChartColorsData.data;
@@ -5761,7 +5762,7 @@ BinaryChartReader.prototype.ExternalReadCT_ChartSpace = function (length, val, c
                 val.oLegendData && val.oLegendData.crc32 || null
             ]);
         }
-    }
+    }*/
     return res;
 };
 BinaryChartReader.prototype.ReadCT_ChartSpace = function (type, length, val, curWorksheet) {

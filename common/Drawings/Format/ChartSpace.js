@@ -11839,7 +11839,7 @@ var GLOBAL_PATH_COUNT = 0;
         oLastChart.addSer(oSeries);
         this.reorderSeries();
         if(this.chartStyle && this.chartColors) {
-            oSeries.applyChartStyle(this.chartStyle, this.chartColors, true);
+            oSeries.applyChartStyle(this.chartStyle, this.chartColors, oChartStyleCache.getAdditionalData(this.getChartType(), this.chartStyle.id), true);
         }
         else {
             oSeries.resetFormatting();
@@ -11864,7 +11864,7 @@ var GLOBAL_PATH_COUNT = 0;
             oSeries.setSpPr(null);
         }
         if(this.chartStyle && this.chartColors) {
-            oSeries.applyChartStyle(this.chartStyle, this.chartColors, true);
+            oSeries.applyChartStyle(this.chartStyle, this.chartColors, oChartStyleCache.getAdditionalData(this.getChartType(), this.chartStyle.id), true);
         }
         else {
             oSeries.resetFormatting();
@@ -11901,7 +11901,7 @@ var GLOBAL_PATH_COUNT = 0;
         if(!this.chartStyle || !this.chartColors) {
             return;
         }
-        this.applyChartStyle(this.chartStyle, this.chartColors, true);
+        this.applyChartStyle(this.chartStyle, this.chartColors, oChartStyleCache.getAdditionalData(this.getChartType(), this.chartStyle.id), true);
 
     };
     CChartSpace.prototype.buildSeries = function(aRefs) {
@@ -11942,7 +11942,7 @@ var GLOBAL_PATH_COUNT = 0;
 
             var bNewSeries = nRef >= aAllSeries.length;
             if(this.chartStyle && this.chartColors) {
-                oSeries.applyChartStyle(this.chartStyle, this.chartColors, bNewSeries);
+                oSeries.applyChartStyle(this.chartStyle, this.chartColors, oChartStyleCache.getAdditionalData(this.getChartType(), this.chartStyle.id), bNewSeries);
             }
             else {
                 if(bNewSeries) {
@@ -12106,13 +12106,13 @@ var GLOBAL_PATH_COUNT = 0;
     CChartSpace.prototype.resetOwnFormatting = function() {
         AscFormat.CBaseChartObject.prototype.resetOwnFormatting.call(this);
     };
-    CChartSpace.prototype.applyChartStyle = function(oChartStyle, oColors, bReset) {
+    CChartSpace.prototype.applyChartStyle = function(oChartStyle, oColors, oAdditionalData, bReset) {
         this.applyStyleEntry(oChartStyle.chartArea, oColors.generateColors(1), 0);
-        this.chart.applyChartStyle(oChartStyle, oColors, bReset);
+        this.chart.applyChartStyle(oChartStyle, oColors, oAdditionalData, bReset);
     };
     CChartSpace.prototype.resetToChartStyle = function() {
         if(this.chartStyle && this.chartColors) {
-            this.applyChartStyle(this.chartStyle, this.chartColors, true);
+            this.applyChartStyle(this.chartStyle, this.chartColors, oChartStyleCache.getAdditionalData(this.getChartType(), this.chartStyle.id), true);
         }
     };
     CChartSpace.prototype.getChildren = function() {
@@ -12126,6 +12126,14 @@ var GLOBAL_PATH_COUNT = 0;
             this.resetToChartStyle();
         }
     };
+
+    function CAdditionalStyleData() {
+        this.dLbls = null;
+        this.catAx = null;
+        this.valAx = null;
+        this.view3D = null;
+        this.legend = null;
+    }
 
     function fSaveChartObjectSourceFormatting(oObject, oObjectCopy, oTheme, oColorMap) {
         if(oObject === oObjectCopy || !oObjectCopy || !oObject) {
@@ -13271,6 +13279,11 @@ var GLOBAL_PATH_COUNT = 0;
     function CChartStyleCache() {
         this.cachedStyles = {};
         this.cachedColors = {};
+        this.cachedDLbls = {};
+        this.cachedCatAx = {};
+        this.cachedValAx = {};
+        this.cachedView3d = {};
+        this.cachedLegend = {};
     }
     CChartStyleCache.prototype.createBinaryReader = function(sBinary) {
         var oBinaryFileReader = new AscCommonExcel.BinaryFileReader();
@@ -13285,12 +13298,14 @@ var GLOBAL_PATH_COUNT = 0;
         if(!this.cachedStyles[nId]) {
             var sStyleBinary = AscCommon.g_oStylesBinaries[nId];
             if(sStyleBinary) {
-                var oReader = this.createBinaryReader(sStyleBinary);
-                var oNewVal = new AscFormat.CChartStyle();
-                oReader.bcr.Read1(oReader.stream.size, function (t, l) {
-                    return oReader.ReadCT_ChartStyle(t, l, oNewVal);
-                });
-                this.cachedStyles[nId] = oNewVal;
+                AscFormat.ExecuteNoHistory(function(){
+                    var oReader = this.createBinaryReader(sStyleBinary);
+                    var oNewVal = new AscFormat.CChartStyle();
+                    oReader.bcr.Read1(oReader.stream.size, function (t, l) {
+                        return oReader.ReadCT_ChartStyle(t, l, oNewVal);
+                    });
+                    this.cachedStyles[nId] = oNewVal;
+                }, this, []);
             }
         }
         return this.cachedStyles[nId];
@@ -13299,15 +13314,97 @@ var GLOBAL_PATH_COUNT = 0;
         if(!this.cachedStyles[nId]) {
             var sColorsBinary = AscCommon.g_oColorsBinaries[nId];
             if(sColorsBinary) {
-                var oReader = this.createBinaryReader(sColorsBinary);
-                var oNewVal = new AscFormat.CChartColors();
-                oReader.bcr.Read1(oReader.stream.size, function (t, l) {
-                    return oReader.ReadCT_ChartColors(t, l, oNewVal);
-                });
-                this.cachedColors[nId] = oNewVal;
+                AscFormat.ExecuteNoHistory(function(){
+                    var oReader = this.createBinaryReader(sColorsBinary);
+                    var oNewVal = new AscFormat.CChartColors();
+                    oReader.bcr.Read1(oReader.stream.size, function (t, l) {
+                        return oReader.ReadCT_ChartColors(t, l, oNewVal);
+                    });
+                    this.cachedColors[nId] = oNewVal;
+                }, this, []);
             }
         }
         return this.cachedColors[nId];
+    };
+    CChartStyleCache.prototype.checkDataLabels = function(nId) {
+        if(!this.cachedDLbls[nId]) {
+            var sBinary = AscCommon.g_oDataLabelsBinaries[nId];
+            if(sBinary) {
+                AscFormat.ExecuteNoHistory(function(){
+                    var oReader = this.createBinaryReader(sBinary);
+                    var oNewVal = new AscFormat.CDLbls();
+                    oReader.bcr.Read1(oReader.stream.size, function (t, l) {
+                        return oReader.ReadCT_DLbls(t, l, oNewVal);
+                    });
+                    this.cachedDLbls[nId] = oNewVal;
+                }, this, []);
+            }
+        }
+        return this.cachedDLbls[nId];
+    };
+    CChartStyleCache.prototype.checkCatAx = function(nId) {
+        if(!this.cachedCatAx[nId]) {
+            var sBinary = AscCommon.g_oCatBinaries[nId];
+            if(sBinary) {
+                AscFormat.ExecuteNoHistory(function(){
+                    var oReader = this.createBinaryReader(sBinary);
+                    var oNewVal = new AscFormat.CCatAx();
+                    oReader.bcr.Read1(oReader.stream.size, function (t, l) {
+                        return oReader.ReadCT_CatAx(t, l, oNewVal);
+                    });
+                    this.cachedCatAx[nId] = oNewVal;
+                }, this, []);
+            }
+        }
+        return this.cachedCatAx[nId];
+    };
+    CChartStyleCache.prototype.checkValAx = function(nId) {
+        if(!this.cachedValAx[nId]) {
+            var sBinary = AscCommon.g_oValBinaries[nId];
+            if(sBinary) {
+                AscFormat.ExecuteNoHistory(function(){
+                    var oReader = this.createBinaryReader(sBinary);
+                    var oNewVal = new AscFormat.CValAx();
+                    oReader.bcr.Read1(oReader.stream.size, function (t, l) {
+                        return oReader.ReadCT_ValAx(t, l, oNewVal);
+                    });
+                    this.cachedValAx[nId] = oNewVal;
+                }, this, []);
+            }
+        }
+        return this.cachedValAx[nId];
+    };
+    CChartStyleCache.prototype.checkView3d = function(nId) {
+        if(!this.cachedView3d[nId]) {
+            var sBinary = AscCommon.g_oView3dBinaries[nId];
+            if(sBinary) {
+                AscFormat.ExecuteNoHistory(function(){
+                    var oReader = this.createBinaryReader(sBinary);
+                    var oNewVal = new AscFormat.CView3d();
+                    oReader.bcr.Read1(oReader.stream.size, function (t, l) {
+                        return oReader.ReadCT_View3D(t, l, oNewVal);
+                    });
+                    this.cachedView3d[nId] = oNewVal;
+                }, this, []);
+            }
+        }
+        return this.cachedView3d[nId];
+    };
+    CChartStyleCache.prototype.checkLegend = function(nId) {
+        if(!this.cachedLegend[nId]) {
+            var sBinary = AscCommon.g_oLegendBinaries[nId];
+            if(sBinary) {
+                AscFormat.ExecuteNoHistory(function(){
+                    var oReader = this.createBinaryReader(sBinary);
+                    var oNewVal = new AscFormat.CLegend();
+                    oReader.bcr.Read1(oReader.stream.size, function (t, l) {
+                        return oReader.ReadCT_Legend(t, l, oNewVal);
+                    });
+                    this.cachedLegend[nId] = oNewVal;
+                }, this, []);
+            }
+        }
+        return this.cachedLegend[nId];
     };
     CChartStyleCache.prototype.getStyleObject = function(aId) {
         if(!Array.isArray(aId)) {
@@ -13315,6 +13412,11 @@ var GLOBAL_PATH_COUNT = 0;
         }
         var nStyle = aId[0];
         var nColor = aId[1];
+        var nDataLables = aId[2];
+        var nCatAx = aId[3];
+        var nValAx = aId[4];
+        var nView3D = aId[5];
+        var nLegend = aId[6];
         var oChartStyle = this.checkStyle(nStyle);
         if(!oChartStyle) {
             return null;
@@ -13323,7 +13425,49 @@ var GLOBAL_PATH_COUNT = 0;
         if(!oChartColors) {
             return null;
         }
-        return [oChartStyle, oChartColors];
+        //val.oDataLablesData && val.oDataLablesData.crc32 || null,
+        //val.oCatAxData && val.oCatAxData.crc32 || null,
+        //val.oValAxData && val.oValAxData.crc32 || null,
+        //val.oView3DData && val.oView3DData.crc32 || null,
+        //val.oLegendData && val.oLegendData.crc32 || null
+        return [
+            oChartStyle,
+            oChartColors,
+            this.checkDataLabels(nDataLables),
+            this.checkCatAx(nCatAx),
+            this.checkValAx(nValAx),
+            this.checkView3d(nView3D),
+            this.checkLegend(nLegend)
+        ];
+    };
+
+    CChartStyleCache.prototype.getAdditionalData = function(nType, nStyleId) {
+        var nStyleCrc = AscCommon.g_oChartStylesIdMap[nStyleId];
+        if(!AscFormat.isRealNumber(nStyleCrc)) {
+            return null;
+        }
+        var aStyles = AscCommon.g_oChartStyles[nType];
+        if(!Array.isArray(aStyles)) {
+            return null;
+        }
+        for(var nStyle = 0; nStyle < aStyles.length; ++nStyle) {
+            var aStyle = aStyles[nStyle];
+            if(aStyle[0] === nStyleCrc) {
+                var nDataLables = aStyle[2];
+                var nCatAx = aStyle[3];
+                var nValAx = aStyle[4];
+                var nView3D = aStyle[5];
+                var nLegend = aStyle[6];
+                var oAdditionalData = new CAdditionalStyleData();
+                oAdditionalData.dLbls = this.checkDataLabels(nDataLables);
+                oAdditionalData.catAx = this.checkCatAx(nCatAx);
+                oAdditionalData.valAx = this.checkValAx(nValAx);
+                oAdditionalData.view3D = this.checkView3d(nView3D);
+                oAdditionalData.legend = this.checkLegend(nLegend);
+                return oAdditionalData;
+            }
+        }
+        return null;
     };
     var oChartStyleCache = new CChartStyleCache();
     //--------------------------------------------------------export----------------------------------------------------
