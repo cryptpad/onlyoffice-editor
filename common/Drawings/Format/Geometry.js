@@ -806,6 +806,7 @@ function Geometry()
     this.ahPolarLstInfo = [];
     this.ahPolarLst     = [];
 
+    this.gmEditList = [];
     this.pathLst        = [];
     this.preset = null;
     this.rectS = null;
@@ -1277,6 +1278,11 @@ Geometry.prototype=
             drawingDocument.DrawAdjustment(transform, _adjustments[_adj_index].posX, _adjustments[_adj_index].posY, bTextWarp);
     },
 
+    drawGeometryEdit : function(drawingDocument, shape)
+    {
+        drawingDocument.AutoShapesTrack.DrawGeometryEdit(this, shape);
+    },
+
     canFill: function()
     {
         if(this.preset === "line")
@@ -1340,6 +1346,20 @@ Geometry.prototype=
             }
         }
         return {hit: false, adjPolarFlag: null, adjNum: null};
+    },
+
+    hitToGeomEdit: function(x, y, distance) {
+        var dx, dy;
+          for(var i=0; i < this.gmEditList.length; i++)
+          {
+              dx=x-this.gmEditList[i].x;
+              dy=y-this.gmEditList[i].y;
+
+              if(Math.sqrt(dx*dx+dy*dy) < distance)
+              {
+                  return {hit: true};
+              }
+          }
     },
 
     getArrayPolygonsByPaths: function(epsilon)

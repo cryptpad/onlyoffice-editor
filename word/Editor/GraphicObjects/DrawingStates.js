@@ -1641,7 +1641,26 @@ TextAddState.prototype =
 
 };
 
+function PreGeometryEditState(drawingObjects)
+{
+    this.drawingObjects = drawingObjects;
+    console.log('PreGeometryEditState')
+}
 
+PreGeometryEditState.prototype = {
+    onMouseDown: function(e, x, y, pageIndex)
+    {
+        var ret = AscFormat.handleSelectedObjects(this.drawingObjects, e, x, y, null, pageIndex, true);
+        console.log(ret);
+    },
+    onMouseMove: function(e, x, y, pageIndex)
+    {
+    },
+}
+function GeometryEditState(drawingObjects)
+{
+    console.log('GeometryEditState')
+}
 
 function StartChangeWrapContourState(drawingObjects, majorObject)
 {
@@ -2569,6 +2588,8 @@ window['AscFormat'].PreRotateInGroupState = PreRotateInGroupState;
 window['AscFormat'].PreResizeInGroupState = PreResizeInGroupState;
 window['AscFormat'].PreChangeAdjInGroupState = PreChangeAdjInGroupState;
 window['AscFormat'].TextAddState = TextAddState;
+window['AscFormat'].PreGeometryEditState = PreGeometryEditState;
+window['AscFormat'].GeometryEditState = GeometryEditState;
 window['AscFormat'].SplineBezierState = SplineBezierState;
 window['AscFormat'].PolyLineAddState = PolyLineAddState;
 window['AscFormat'].AddPolyLine2State = AddPolyLine2State;

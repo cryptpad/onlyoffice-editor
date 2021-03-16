@@ -4423,6 +4423,12 @@ CShape.prototype.drawAdjustments = function (drawingDocument) {
     }
 };
 
+CShape.prototype.drawGeometryEdit = function (drawingDocument) {
+        if (this.spPr && isRealObject(this.spPr.geometry)) {
+            this.spPr.geometry.drawGeometryEdit(drawingDocument, this);
+        }
+    };
+
 CShape.prototype.getHandlePosByIndex = function(numHandle){
     var t = this.transform;
     switch (numHandle){
@@ -5695,6 +5701,15 @@ CShape.prototype.hitToAdjustment = function (x, y) {
 
     return { hit: false, adjPolarFlag: null, adjNum: null, warp: false };
 };
+
+CShape.prototype.hitToGeometryEdit = function (x, y) {
+          var dx, dy;
+          var _calcGeom = this.calcGeometry;
+          var invert_transform = this.getInvertTransform();
+          var t_x = invert_transform.TransformPointX(x, y);
+          var t_y = invert_transform.TransformPointY(x, y);
+         return _calcGeom.hitToGeomEdit(t_x, t_y, this.convertPixToMM(global_mouseEvent.KoefPixToMM * AscCommon.TRACK_CIRCLE_RADIUS));
+    };
 
 CShape.prototype.hit = function (x, y) {
     return this.hitInInnerArea(x, y) || this.hitInPath(x, y) || this.hitInTextRect(x, y);

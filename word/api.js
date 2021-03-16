@@ -11132,6 +11132,35 @@ background-repeat: no-repeat;\
 		}
 	};
 
+	asc_docs_api.prototype.canEditGeometry = function () {
+		var document = this.private_GetLogicDocument();
+		var selectedObjs = document.DrawingObjects.selection.groupSelection;
+		if (document) {
+			for(var i = 0; i < 2; i++) {
+				if (selectedObjs && selectedObjs.selectedObjects && !selectedObjs.selection.textSelection && selectedObjs.selectedObjects.length === 1 &&
+					selectedObjs.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_Shape) {
+					return true;
+				}
+				if(selectedObjs)
+					return false;
+
+				selectedObjs = document.DrawingObjects;
+			}
+		}
+		return false;
+	};
+
+	asc_docs_api.prototype.editPointsGeometry = function() {
+		var drawingObjects = this.private_GetLogicDocument().DrawingObjects;
+		var selectedObject = drawingObjects.selection.groupSelection ? drawingObjects.selection.groupSelection.selectedObjects[0] :
+		drawingObjects.selectedObjects[0];
+
+		if (selectedObject) {
+			drawingObjects.selection.geometrySelection = selectedObject;
+			drawingObjects.drawSelect(selectedObject.selectStartPage);
+		}
+	};
+
 	//-------------------------------------------------------------export---------------------------------------------------
 	window['Asc']                                                       = window['Asc'] || {};
 	CAscSection.prototype['get_PageWidth']                              = CAscSection.prototype.get_PageWidth;
@@ -11815,6 +11844,9 @@ background-repeat: no-repeat;\
 	// passwords
 	asc_docs_api.prototype["asc_setCurrentPassword"] 					= asc_docs_api.prototype.asc_setCurrentPassword;
 	asc_docs_api.prototype["asc_resetPassword"] 						= asc_docs_api.prototype.asc_resetPassword;
+
+	asc_docs_api.prototype["canEditGeometry"] 					        = asc_docs_api.prototype.canEditGeometry;
+	asc_docs_api.prototype["editPointsGeometry"] 						= asc_docs_api.prototype.editPointsGeometry;
 
 	CDocInfoProp.prototype['get_PageCount']             = CDocInfoProp.prototype.get_PageCount;
 	CDocInfoProp.prototype['put_PageCount']             = CDocInfoProp.prototype.put_PageCount;

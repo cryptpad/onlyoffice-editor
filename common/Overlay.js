@@ -2774,6 +2774,65 @@ CAutoshapeTrack.prototype =
         ctx.beginPath();
     },
 
+    DrawGeometryEdit : function(geom, shape) {
+        var overlay = this.m_oOverlay;
+        overlay.Clear();
+        var ctx = overlay.m_oContext;
+        var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+        var drPage = this.CurrentPageInfo.drawingPage;
+        ctx.strokeStyle = "#ffffff";
+        ctx.fillStyle = "#000000";
+        ctx.lineWidth = Math.round(rPR);
+
+        var xDst = this.m_oOverlay.IsCellEditor ? drPage.left : drPage.left * rPR;
+        var yDst = this.m_oOverlay.IsCellEditor ? drPage.top : drPage.top * rPR;
+        var wDst = (drPage.right - drPage.left) * rPR;
+        var hDst = (drPage.bottom - drPage.top) * rPR;
+
+        var dKoefX = wDst / this.CurrentPageInfo.width_mm;
+        var dKoefY = hDst / this.CurrentPageInfo.height_mm;
+        var matrix =  shape.getTransformMatrix();
+        var pointsArray = geom.pathLst;
+        geom.gmEditList = [];
+
+        //временно, до корректного нахождения якорьков при изменении геометрии
+        for(var i = 0; i < pointsArray.length; i++) {
+                pointsArray[i].ArrPathCommand.forEach(function (elem) {
+                    var x = elem.X, y = elem.Y;
+                    switch(elem.id) {
+                        case 2:
+                            x = elem.stX;
+                            y = elem.stY;
+                            break;
+                        case 3:
+                            x = elem.X1;
+                            y = elem.Y1;
+                            break;
+                        case 4:
+                            break;
+                    }
+                    if(elem.X1) {
+                        var cx = (xDst + dKoefX * (matrix.TransformPointX(elem.X0, elem.Y0))) >> 0;
+                        var cy = (yDst + dKoefY * (matrix.TransformPointY(elem.X0, elem.Y0))) >> 0;
+                        geom.gmEditList.push({x: elem.X0, y : elem.Y0});
+                        overlay.AddRect2(cx, cy, TRACK_RECT_SIZE);
+                    }
+                    var cx = (xDst + dKoefX * (matrix.TransformPointX(x, y))) >> 0;
+                    var cy = (yDst + dKoefY * (matrix.TransformPointY(x, y))) >> 0;
+                    overlay.AddRect2(cx, cy, TRACK_RECT_SIZE);
+                    geom.gmEditList.push({x, y});
+                })
+            ctx.stroke();
+            ctx.fill();
+        }
+
+        var shape_drawer = new AscCommon.CShapeDrawer();
+        var boundsChecker = new  AscFormat.CSlideBoundsChecker();
+        shape_drawer.fromShape2(shape, boundsChecker, geom);
+        shape_drawer.StrokeUniColor = {A: 255, R: 255, G: 0, B: 0};
+        shape_drawer.draw(geom);
+    },
+
     DrawEditWrapPointsPolygon : function(points, matrix)
     {
         var _len = points.length;

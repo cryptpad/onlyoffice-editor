@@ -787,7 +787,8 @@ function DrawingObjectsController(drawingObjects)
         selectedObjects: [],
         groupSelection: null,
         chartSelection: null,
-        textSelection: null
+        textSelection: null,
+        geometrySelection: null
     };
     this.arrPreTrackObjects = [];
     this.arrTrackObjects = [];
@@ -2242,6 +2243,10 @@ DrawingObjectsController.prototype =
                     }
                 }
             }
+        }
+        else if (this.selection.geometrySelection) {
+            this.changeCurrentState(new AscFormat.PreGeometryEditState(this));
+            this.selection.geometrySelection.drawGeometryEdit(drawingDocument);
         }
         else if(this.selection.groupSelection)
         {
@@ -6674,7 +6679,8 @@ DrawingObjectsController.prototype =
             groupSelection: null,
             chartSelection: null,
             textSelection: null,
-            cropSelection: null
+            cropSelection: null,
+            geometrySelection: null
         };
     },
 
