@@ -24638,7 +24638,26 @@ CDocument.prototype.ConvertTableToText = function(oProps)
 	{
 		this.StartAction(AscDFH.historydescription_Document_ConvertTableToText);
 
-		var oNewContent = this.private_ConvertTableToText(oTable, oProps);
+		// здесь я поменял для того, чтобы можно было работать с вложенными таблицами
+		var ArrNewContent = this.private_ConvertTableToText(oTable, oProps);
+		var oNewContent = new CSelectedContent();
+		var oSkipStart = 0, oSkipEnd = 1;
+		var bEnd = false;
+		for (var i = 0; i < ArrNewContent.length; i++)
+		{
+			oNewContent.Add(new CSelectedElement(ArrNewContent[i], true));
+			if (ArrNewContent[i].IsParagraph())
+			{
+				bEnd = true;
+			}
+			else
+			{
+				if (bEnd)
+					oSkipEnd++;
+				else
+					oSkipStart++;
+			}
+		}
 		var oParent     = oTable.GetParent();
 		if (oNewContent && oParent)
 		{
@@ -24656,7 +24675,11 @@ CDocument.prototype.ConvertTableToText = function(oProps)
 			{
 				oParagraph.Check_NearestPos(oAnchorPos);
 				oParent.InsertContent(oNewContent, oAnchorPos);
-				this.MoveCursorRight(false, false, false);
+				oParent.RemoveFromContent(oParagraph.GetIndex(), 1, true);
+				// выставить селект, если мы внутри ячейки таблицы, преобразовали только часть таблицы, а не всю её целиком
+				if (oParent.SelectRange)
+					oParent.SelectRange(nIndex + oSkipStart, nIndex + ArrNewContent.length - oSkipEnd);
+				// this.MoveCursorRight(false, false, false);
 			}
 		}
 
@@ -24667,20 +24690,12 @@ CDocument.prototype.ConvertTableToText = function(oProps)
 };
 CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 {
-
-	var oSelectedContent = new CSelectedContent();
-	// TODO: выставить селект на весь вставненный контент
-	// TODO: Добавить ещё обработку вложенных таблиц (в ворде это доступно по checkbox, только если выбран в качестве разделителя символ абзаца)
-	// скорее всего надо возвращать в этой функции массив новых элементов, хотя можно и так всё оставить без проблем через рекунсивный вызов этой функции 
-	// (только надо будет поменять вставку сразу, а не в конце функции)
-	var oTable = this.GetCurrentTable();
 	if (oTable)
 	{
 		// посмотреть вся таблица выделена или только её часть
 		// если хоть одна строка выделена не до конца, то преобразуем всю таблицу (можно проверять только последнюю в выделении строку, а не все)
 		// если выделено несколько строк, но до конца или от самого начала, то только эти строки
 		
-		// var oSelected = oTable.GetSelectionArray();
 		var oSelectetRows = oTable.GetSelectedRowsRange();
 		oSelectetRows.IsSelectionToEnd = oTable.IsSelectionToEnd();
 		var oLastCell;
@@ -24706,29 +24721,52 @@ CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 			var oRow = oTable.GetRow(i);
 			var oNewParagraph = new Paragraph(this.DrawingDocument, this);
 			ArrNewContent.push(oNewParagraph);
+			var bAdd = true;
 			for (var k = 0; k < oRow.GetCellsCount(); k++)
 			{
 				var oCell = oRow.GetCell(k);
 				var oCDocumentContent = oCell.GetContent();
 				var isNewPar = false;
-				//возможно надо сделать ещё один цикл по CDocumentContent (если их может быть больше чем 1)
 				for (var j = 0; j < oCDocumentContent.GetElementsCount(); j++)
 				{
-					var oParagraph = oCDocumentContent.GetElement(j);
-					if (isNewPar)
-					{
-						oNewParagraph = new Paragraph(this.DrawingDocument, this);
-						ArrNewContent.push(oNewParagraph);
+					var oElement = oCDocumentContent.GetElement(j);
+					switch (oElement.GetType()) {
+						case type_Paragraph:
+							if (isNewPar)
+							{
+								oNewParagraph = new Paragraph(this.DrawingDocument, this);
+								ArrNewContent.push(oNewParagraph);
+							}
+							else
+							{
+								isNewPar = true;
+							}
+							oNewParagraph.Concat(oElement, true);
+							break;
+						case type_Table:
+							var oNestedContent = this.private_ConvertTableToText(oElement, oProps);
+							if (j == 0 && ArrNewContent[ArrNewContent.length-1].IsEmpty() && bAdd)
+								ArrNewContent.pop();
+							
+							if (k)
+								ArrNewContent[ArrNewContent.length - 1].Concat(oNestedContent.shift(), true);
+
+							ArrNewContent.push(...oNestedContent);
+							isNewPar = true;
+							break;
+						default:
+							ArrNewContent.push(oElement);
+							isNewPar = true;
+							if (j == 0 && ArrNewContent[ArrNewContent.length-1].IsEmpty() && bAdd)
+								ArrNewContent.pop();
+							break;
 					}
-					else
-					{
-						isNewPar = true;
-					}
-					oNewParagraph.Concat(oParagraph, true);
+					bAdd = false;
+					
 				}
 				if (k !== oRow.GetCellsCount() - 1)
 				{
-					var oRun = new ParaRun(oParagraph, false);
+					var oRun = new ParaRun(oNewParagraph, false);
 					var oText;
 					switch (oProps.Separator) {
 						case 9:
@@ -24778,12 +24816,10 @@ CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 		{
 			if (ArrNewContent[i].IsParagraph())
 				ArrNewContent[i].CorrectContent();
-			oSelectedContent.Add(new CSelectedElement(ArrNewContent[i], true));
 		}
 	
 	}
-	// oSelectedContent.Add(new CSelectedElement(oTable, true));
-	return oSelectedContent;
+	return ArrNewContent;
 };
 
 function CDocumentSelectionState()
