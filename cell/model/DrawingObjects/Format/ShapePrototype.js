@@ -114,10 +114,7 @@ CShape.prototype.hitInTextRect = function (x, y)
         var content = this.getDocContent && this.getDocContent();
         if ( content && this.invertTransformText)
         {
-            var t_x, t_y;
-            t_x = this.invertTransformText.TransformPointX(x, y);
-            t_y = this.invertTransformText.TransformPointY(x, y);
-            return t_x > 0 && t_x < this.contentWidth && t_y > 0 && t_y < this.contentHeight;
+            return AscFormat.HitToRect(x, y, this.invertTransform, 0, 0, this.contentWidth, this.contentHeight);
         }
     }
     else

@@ -2667,7 +2667,7 @@
 	 * */
 	Api.prototype.CreateSolidFill = function(oUniColor)
 	{
-		return new ApiFill(AscFormat.CreateUniFillByUniColor(oUniColor.Unicolor));
+		return new ApiFill(AscFormat.CreateUniFillByUniColorCopy(oUniColor.Unicolor));
 	};
 
 	/**

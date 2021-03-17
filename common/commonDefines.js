@@ -782,7 +782,8 @@
 		COLOR_TYPE_SRGB   : 1,
 		COLOR_TYPE_PRST   : 2,
 		COLOR_TYPE_SCHEME : 3,
-		COLOR_TYPE_SYS    : 4
+		COLOR_TYPE_SYS    : 4,
+		COLOR_TYPE_STYLE  : 5
 	};
 
 	var c_oAscFill = {
@@ -2685,6 +2686,7 @@
 	prot['COLOR_TYPE_PRST']     = prot.COLOR_TYPE_PRST;
 	prot['COLOR_TYPE_SCHEME']   = prot.COLOR_TYPE_SCHEME;
 	prot['COLOR_TYPE_SYS']      = prot.COLOR_TYPE_SYS;
+	prot['COLOR_TYPE_STYLE']      = prot.COLOR_TYPE_STYLE;
 	window['Asc']['c_oAscFill'] = window['Asc'].c_oAscFill = c_oAscFill;
 	prot                                = c_oAscFill;
 	prot['FILL_TYPE_NONE']              = prot.FILL_TYPE_NONE;

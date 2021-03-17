@@ -328,7 +328,7 @@ function CreateUniFillByUniColor(uniColor)
 {
     var ret = new AscFormat.CUniFill();
     ret.setFill(new AscFormat.CSolidFill());
-    ret.fill.setColor(uniColor.createDuplicate());
+    ret.fill.setColor(uniColor);
     return ret;
 }
 
@@ -2844,10 +2844,7 @@ CShape.prototype.recalculateTextStyles = function (level) {
         default_style.ParaPr.Align = AscCommon.align_Center;
         if(parent_objects.theme)
         {
-            default_style.TextPr.RFonts.Ascii = {Name: "+mn-lt", Index: -1};
-            default_style.TextPr.RFonts.EastAsia = {Name: "+mn-ea", Index: -1};
-            default_style.TextPr.RFonts.CS = {Name: "+mn-cs", Index: -1};
-            default_style.TextPr.RFonts.HAnsi = {Name: "+mn-lt", Index: -1};
+            default_style.TextPr.RFonts.SetFontStyle(AscFormat.fntStyleInd_minor);;
         }
         if(!this.bCheckAutoFitFlag)
         {
@@ -2950,22 +2947,9 @@ CShape.prototype.recalculateTextStyles = function (level) {
         var compiled_style = this.getCompiledStyle && this.getCompiledStyle();
         if (isRealObject(compiled_style) && isRealObject(compiled_style.fontRef)) {
             shape_text_style = new CStyle("shapeTextStyle", null, null, null, true);
-            var first_name;
-            if (compiled_style.fontRef.idx === AscFormat.fntStyleInd_major)
-                first_name = "+mj-";
-            else
-                first_name = "+mn-";
-
-            shape_text_style.TextPr.RFonts.Ascii = {Name: first_name + "lt", Index: -1};
-            shape_text_style.TextPr.RFonts.EastAsia = {Name: first_name + "ea", Index: -1};
-            shape_text_style.TextPr.RFonts.CS = {Name: first_name + "cs", Index: -1};
-            shape_text_style.TextPr.RFonts.HAnsi = {Name: first_name + "lt", Index: -1};
-
-            if (compiled_style.fontRef.Color != null && compiled_style.fontRef.Color.color != null) {
-                var unifill = new AscFormat.CUniFill();
-                unifill.fill = new AscFormat.CSolidFill();
-                unifill.fill.color = compiled_style.fontRef.Color;
-                shape_text_style.TextPr.Unifill = unifill;
+            shape_text_style.TextPr.RFonts.SetFontStyle(compiled_style.fontRef.idx);
+            if (compiled_style.fontRef.Color && compiled_style.fontRef.Color.isCorrect()) {
+                shape_text_style.TextPr.Unifill = AscFormat.CreateUniFillByUniColor(compiled_style.fontRef.Color);
             }
         }
         var Styles = new CStyles(false);
@@ -4509,12 +4493,7 @@ CShape.prototype.hitInTextRectWord = function(x, y)
     var content = this.getDocContent && this.getDocContent();
     if (content && this.invertTransform)
     {
-        var t_x, t_y;
-        t_x = this.invertTransform.TransformPointX(x, y);
-        t_y = this.invertTransform.TransformPointY(x, y);
-
         var w, h, x_, y_;
-
         if(this.spPr && this.spPr.geometry && this.spPr.geometry.rect
             && AscFormat.isRealNumber(this.spPr.geometry.rect.l) && AscFormat.isRealNumber(this.spPr.geometry.rect.t)
             && AscFormat.isRealNumber(this.spPr.geometry.rect.r) && AscFormat.isRealNumber(this.spPr.geometry.rect.r))
@@ -4531,7 +4510,7 @@ CShape.prototype.hitInTextRectWord = function(x, y)
             w = this.extX ;
             h = this.extY ;
         }
-        return t_x > x_  && t_x < x_ + w && t_y > y_ && t_y < y_ + h;
+        return AscFormat.HitToRect(x, y, this.invertTransform, x_, y_, w, h);
     }
     return false;
 };
@@ -4557,10 +4536,7 @@ CShape.prototype.hitInTextRect = function (x, y) {
         var content = this.getDocContent && this.getDocContent();
         if ( content && this.invertTransformText)
         {
-            var t_x, t_y;
-            t_x = this.invertTransformText.TransformPointX(x, y);
-            t_y = this.invertTransformText.TransformPointY(x, y);
-            return t_x > 0 && t_x < this.contentWidth && t_y > 0 && t_y < this.contentHeight;
+            return AscFormat.HitToRect(x, y, this.invertTransform, 0, 0, this.contentWidth, this.contentHeight);
         }
     }
     else

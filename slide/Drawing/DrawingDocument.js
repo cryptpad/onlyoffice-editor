@@ -5608,7 +5608,7 @@ function DrawBackground(graphics, unifill, w, h)
 		checker._l(0, this.extY);
 		checker._z();
 		checker._e();
-	}
+	};
 
 	var shape_drawer = new AscCommon.CShapeDrawer();
 	shape_drawer.fromShape2(_shape, graphics, null);
