@@ -1951,7 +1951,7 @@
 		var last = t._findFragment( endPos );
 
 		if ( !first || !last ) {
-			throw "Can not extract fragment of text";
+			throw new Error("Can not extract fragment of text");
 		}
 
 		if ( first.index === last.index ) {
@@ -1980,13 +1980,13 @@
 
 		fr = this._findFragment(startPos, fragments);
 		if (!fr) {
-			throw "Can not extract fragment of text";
+			throw new Error("Can not extract fragment of text");
 		}
 		this._splitFragment(fr, startPos, fragments);
 
 		fr = this._findFragment(startPos + length, fragments);
 		if (!fr) {
-			throw "Can not extract fragment of text";
+			throw new Error("Can not extract fragment of text");
 		}
 		this._splitFragment(fr, startPos + length, fragments);
 	};

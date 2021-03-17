@@ -8183,7 +8183,7 @@
             }
         }
         if (c1 < 0 || c2 < 0) {
-            throw "Error: all columns are hidden";
+            throw new Error("Error: all columns are hidden");
         }
 
         if (ar.r2 === ar.r1) {
@@ -8205,7 +8205,7 @@
             }
         }
         if (r1 < 0 || r2 < 0) {
-            throw "Error: all rows are hidden";
+            throw new Error("Error: all rows are hidden");
         }
 
         ar.assign(c1 !== undefined ? c1 : ar.c1, r1 !== undefined ? r1 : ar.r1, c2 !== undefined ? c2 : ar.c2,
