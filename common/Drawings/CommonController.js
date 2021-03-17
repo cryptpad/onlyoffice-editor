@@ -4337,12 +4337,20 @@ DrawingObjectsController.prototype =
         var oChart = oChartSpace.chart;
         var oPlotArea = oChart.plotArea;
         var nStyle = oProps.getStyle();
+        var nCurStyle = oCurProps.getStyle();
         if(AscFormat.isRealNumber(nStyle)){
-            var aStyle = AscCommon.g_oChartStyles[nCurType] && AscCommon.g_oChartStyles[nCurType][nStyle - 1];
-            if(aStyle) {
-                oChartSpace.applyChartStyleByIds(AscCommon.g_oChartStyles[nCurType][nStyle - 1]);
+            oProps.putStyle(null);
+            oCurProps.putStyle(null);
+            if(oCurProps.isEqual(oProps)) {
+                var aStyle = AscCommon.g_oChartStyles[nCurType] && AscCommon.g_oChartStyles[nCurType][nStyle - 1];
+                if(aStyle) {
+                    oChartSpace.applyChartStyleByIds(AscCommon.g_oChartStyles[nCurType][nStyle - 1]);
+                    return;
+                }
                 return;
             }
+            oCurProps.putStyle(nCurStyle);
+            oProps.putStyle(nStyle);
         }
 
         //Set the data range
@@ -4370,6 +4378,7 @@ DrawingObjectsController.prototype =
             if(oTitle.overlay !== bOverlay) {
                 oTitle.setOverlay(bOverlay);
             }
+            oChartSpace.checkElementChartStyle(oTitle);
         }
 
         //Legend
@@ -4401,6 +4410,7 @@ DrawingObjectsController.prototype =
                 if(oLegend.overlay !== bOverlay) {
                     oLegend.setOverlay(bOverlay);
                 }
+                oChartSpace.checkElementChartStyle(oLegend);
             }
         }
 
@@ -4412,6 +4422,7 @@ DrawingObjectsController.prototype =
         if(aAx.length === aAxSettings.length) {
             for(nAx = 0; nAx < aAx.length; ++nAx) {
                 aAx[nAx].setMenuProps(aAxSettings[nAx]);
+                oChartSpace.checkElementChartStyle(aAx[nAx]);
             }
         }
         aAx = oOrderedAxes.getVerticalAxes();
@@ -4419,6 +4430,7 @@ DrawingObjectsController.prototype =
         if(aAx.length === aAxSettings.length) {
             for(nAx = 0; nAx < aAx.length; ++nAx) {
                 aAx[nAx].setMenuProps(aAxSettings[nAx]);
+                oChartSpace.checkElementChartStyle(aAx[nAx]);
             }
         }
 

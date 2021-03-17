@@ -12066,6 +12066,7 @@ var GLOBAL_PATH_COUNT = 0;
         if(this.chart) {
             this.chart.changeChartType(nType);
             this.checkDlblsPosition();
+            this.resetToChartStyleSoft();
         }
     };
     CChartSpace.prototype.checkDlblsPosition = function() {
@@ -12119,6 +12120,16 @@ var GLOBAL_PATH_COUNT = 0;
     CChartSpace.prototype.resetToChartStyle = function() {
         if(this.chartStyle && this.chartColors) {
             this.applyChartStyle(this.chartStyle, this.chartColors, oChartStyleCache.getAdditionalData(this.getChartType(), this.chartStyle.id), true);
+        }
+    };
+    CChartSpace.prototype.resetToChartStyleSoft = function() {
+        if(this.chartStyle && this.chartColors) {
+            this.applyChartStyle(this.chartStyle, this.chartColors, oChartStyleCache.getAdditionalData(this.getChartType(), this.chartStyle.id), false);
+        }
+    };
+    CChartSpace.prototype.checkElementChartStyle = function(oElement) {
+        if(oElement && this.chartStyle && this.chartColors) {
+            oElement.applyChartStyle(this.chartStyle, this.chartColors, oChartStyleCache.getAdditionalData(this.getChartType(), this.chartStyle.id), false);
         }
     };
     CChartSpace.prototype.getChildren = function() {

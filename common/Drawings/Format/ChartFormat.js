@@ -3544,6 +3544,14 @@
         if(AscFormat.isRealNumber(this.order)) {
             oCopy.setOrder(this.order);
         }
+        if(this.dLbls && oCopy.setDLbls) {
+            oCopy.setDLbls(this.dLbls.createDuplicate());
+        }
+        if(this.dPt.length > 0 && oCopy.addDPt) {
+            for(var nDpt = 0; nDpt < this.dPt.length; ++nDpt) {
+                oCopy.addDPt(this.dPt[nDpt].createDuplicate());
+            }
+        }
         if(AscCommon.isRealObject(this.spPr)) {
             oCopy.setSpPr(this.spPr.createDuplicate());
             var nCopyType = oCopy.getObjectType();
@@ -3955,6 +3963,7 @@
             this.setDLbls(new AscFormat.CDLbls());
         }
         this.dLbls.setSettings(nPos, oProps);
+        this.dLbls.checkChartStyle();
     };
     CSeriesBase.prototype.getCatSourceNumFormat = function() {
         var oCat = this.cat || this.xVal;
@@ -5452,6 +5461,7 @@
     CPlotArea.prototype.createScatterChart = function(nType, aSeries, aAxes, oOldChart) {
         var oScatterChart = new AscFormat.CScatterChart();
         oScatterChart.mergeWithoutSeries(oOldChart);
+        oScatterChart.setVaryColors(false);
         var nSeries, oSeries;
         for(nSeries = 0; nSeries < aSeries.length; ++nSeries) {
             oSeries = new AscFormat.CScatterSeries();
@@ -5490,6 +5500,7 @@
     CPlotArea.prototype.createStockChart = function(nType, aSeries, aAxes, oOldChart) {
         var oStockChart = new AscFormat.CStockChart();
         oStockChart.mergeWithoutSeries(oOldChart);
+        oStockChart.setVaryColors(false);
         var nSeries, oSeries;
         for(nSeries = 0; nSeries < aSeries.length; ++nSeries) {
             oSeries = new AscFormat.CLineSeries();
@@ -6040,7 +6051,7 @@
     };
     CChartBase.prototype.fillObject = function(oCopy, oIdMap) {
         if(this.dLbls)
-            oCopy.setDLbls(this.dLbls);
+            oCopy.setDLbls(this.dLbls.createDuplicate());
         if(AscFormat.isRealBool(this.varyColors))
             oCopy.setVaryColors(this.varyColors);
         for(var nSeries = 0; nSeries < this.series.length; ++nSeries) {
@@ -6304,6 +6315,7 @@
                 this.setDLbls(new AscFormat.CDLbls());
             }
             this.dLbls.setSettings(nPos, oProps);
+            this.dLbls.checkChartStyle();
             for(var nSer = 0; nSer < this.series.length; ++nSer) {
                 this.series[nSer].setDlblsProps(oProps);
             }
@@ -6920,13 +6932,6 @@
     };
     CAreaSeries.prototype.fillObject = function(oCopy, oIdMap) {
         CSeriesBase.prototype.fillObject.call(this, oCopy, oIdMap);
-        if(this.dLbls && oCopy.setDLbls)
-            oCopy.setDLbls(this.dLbls.createDuplicate());
-        if(this.dPt.length > 0 && oCopy.addDPt) {
-            for(var nDpt = 0; nDpt < this.dPt.length; ++nDpt) {
-                oCopy.addDPt(this.dPt[nDpt].createDuplicate());
-            }
-        }
         if(this.errBars && oCopy.setErrBars)
             oCopy.setErrBars(this.errBars.createDuplicate());
         if(this.pictureOptions && oCopy.setPictureOptions)
@@ -8362,13 +8367,6 @@
     };
     CBarSeries.prototype.fillObject = function(oCopy, oIdMap) {
         CSeriesBase.prototype.fillObject.call(this, oCopy, oIdMap);
-        if(this.dLbls && oCopy.setDLbls)
-            oCopy.setDLbls(this.dLbls.createDuplicate());
-        if(oCopy.addDPt && this.dPt.length > 0) {
-            for(var nDpt = 0; nDpt < this.dPt.length; ++nDpt) {
-                oCopy.addDPt(this.dPt[nDpt].createDuplicate());
-            }
-        }
         if(oCopy.setErrBars && this.errBars)
             oCopy.setErrBars(this.errBars.createDuplicate());
         if(oCopy.setInvertIfNegative && AscFormat.isRealBool(this.invertIfNegative))
@@ -8507,14 +8505,6 @@
         }
         if(oCopy.setBubbleSize && this.bubbleSize) {
             oCopy.setBubbleSize(this.bubbleSize.createDuplicate());
-        }
-        if(oCopy.setDLbls && this.dLbls) {
-            oCopy.setDLbls(this.dLbls.createDuplicate());
-        }
-        if(this.dPt.length > 0 && oCopy.addDPt) {
-            for(var nDpt = 0; nDpt < this.dPt.length; ++nDpt) {
-                oCopy.addDPt(this.dPt[nDpt].createDuplicate());
-            }
         }
         if(oCopy.setErrBars && this.errBars) {
             oCopy.setErrBars(this.errBars.createDuplicate());
@@ -8890,6 +8880,14 @@
             }
         }
     };
+    CDLbls.prototype.checkChartStyle = function() {
+        var oChartSpace = this.getChartSpace();
+        if(!oChartSpace) {
+            return;
+        }
+        oChartSpace.checkElementChartStyle(this);
+    }
+
     function fCheckDLblSettings(oLbls, nPos, oProps) {
         if(oLbls.dLblPos !== nPos) {
             oLbls.setDLblPos(nPos);
@@ -10122,13 +10120,6 @@
     };
     CLineSeries.prototype.fillObject = function(oCopy, oIdMap) {
         CSeriesBase.prototype.fillObject.call(this, oCopy, oIdMap);
-        if(this.dLbls && oCopy.setDLbls)
-            oCopy.setDLbls(this.dLbls.createDuplicate());
-        if(oCopy.addDPt && this.dPt.length > 0) {
-            for(var nDpt = 0; nDpt < this.dPt.length; ++nDpt) {
-                oCopy.addDPt(this.dPt[nDpt].createDuplicate());
-            }
-        }
         if(oCopy.setErrBars && this.errBars)
             oCopy.setErrBars(this.errBars.createDuplicate());
         if(oCopy.setMarker && this.marker)
@@ -11341,11 +11332,6 @@
     };
     CPieSeries.prototype.fillObject = function(oCopy, oIdMap) {
         CSeriesBase.prototype.fillObject.call(this, oCopy, oIdMap);
-        if(this.dPt.length > 0 && oCopy.addDPt) {
-            for(var i = 0; i < this.dPt.length; ++i) {
-                oCopy.addDPt(this.dPt[i].createDuplicate());
-            }
-        }
         if(this.explosion !== null && oCopy.setExplosion) {
             oCopy.setExplosion(this.explosion);
         }
@@ -11524,14 +11510,6 @@
     };
     CRadarSeries.prototype.fillObject = function(oCopy, oIdMap) {
         CSeriesBase.prototype.fillObject.call(this, oCopy, oIdMap);
-        if(this.dLbls && oCopy.setDLbls) {
-            oCopy.setDLbls(this.dLbls.createDuplicate());
-        }
-        if(this.dPt.length > 0 && oCopy.addDPt) {
-            for(var i = 0; i < this.dPt.length; ++i) {
-                oCopy.addDPt(this.dPt[i].createDuplicate());
-            }
-        }
         if(this.marker && oCopy.setMarker) {
             oCopy.setMarker(this.marker.createDuplicate());
         }
@@ -11905,14 +11883,6 @@
     InitClass(CScatterSeries, CSeriesBase, AscDFH.historyitem_type_ScatterSer);
     CScatterSeries.prototype.fillObject = function(oCopy, oIdMap) {
         CSeriesBase.prototype.fillObject.call(this, oCopy, oIdMap);
-        if(this.dLbls && oCopy.setDLbls) {
-            oCopy.setDLbls(this.dLbls.createDuplicate());
-        }
-        if(this.dPt.length > 0 && oCopy.addDPt) {
-            for(var i = 0; i < this.dPt.length; ++i) {
-                oCopy.addDPt(this.dPt[i].createDuplicate());
-            }
-        }
         if(this.errBars && oCopy.setErrBars) {
             oCopy.setErrBars(this.errBars.createDuplicate());
         }
