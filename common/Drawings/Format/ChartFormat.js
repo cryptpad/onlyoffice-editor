@@ -6527,6 +6527,14 @@
         if(!this.parent) {
             return;
         }
+        if(oAdditionalData && bReset) {
+            if(!oAdditionalData.dLbls) {
+                this.setDLbls(null);
+            }
+            else {
+                this.setDLbls(oAdditionalData.dLbls.createDuplicate());
+            }
+        }
         for(var nSeries = 0; nSeries < this.series.length; ++nSeries) {
             this.series[nSeries].applyChartStyle(oChartStyle, oColors, oAdditionalData, bReset);
         }
