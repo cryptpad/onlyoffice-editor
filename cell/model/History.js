@@ -96,6 +96,9 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Worksheet_DataValidationDelete = 50;
 	window['AscCH'].historyitem_Worksheet_PivotReplaceKeepRecords = 51;
 
+	window['AscCH'].historyitem_Worksheet_CFRuleAdd = 52;
+	window['AscCH'].historyitem_Worksheet_CFRuleDelete = 53;
+
 	window['AscCH'].historyitem_RowCol_Fontname = 1;
 	window['AscCH'].historyitem_RowCol_Fontsize = 2;
 	window['AscCH'].historyitem_RowCol_Fontcolor = 3;
@@ -276,6 +279,24 @@ function (window, undefined) {
 	window['AscCH'].historyitem_NamedSheetView_SetName = 1;
 	window['AscCH'].historyitem_NamedSheetView_DeleteFilter = 2;
 
+	window['AscCH'].historyitem_CFRule_SetAboveAverage = 1;
+	window['AscCH'].historyitem_CFRule_SetActivePresent = 2;
+	window['AscCH'].historyitem_CFRule_SetBottom = 2;
+	window['AscCH'].historyitem_CFRule_SetEqualAverage = 3;
+	window['AscCH'].historyitem_CFRule_SetOperator = 4;
+	window['AscCH'].historyitem_CFRule_SetPercent = 5;
+	window['AscCH'].historyitem_CFRule_SetPriority = 6;
+	window['AscCH'].historyitem_CFRule_SetRank = 7;
+	window['AscCH'].historyitem_CFRule_SetStdDev = 8;
+	window['AscCH'].historyitem_CFRule_SetStopIfTrue = 9;
+	window['AscCH'].historyitem_CFRule_SetText = 10;
+	window['AscCH'].historyitem_CFRule_SetTimePeriod = 11;
+	window['AscCH'].historyitem_CFRule_SetType = 12;
+	window['AscCH'].historyitem_CFRule_SetPivot = 13;
+	window['AscCH'].historyitem_CFRule_SetTimePeriod = 14;
+	window['AscCH'].historyitem_CFRule_SetRuleElements = 15;
+	window['AscCH'].historyitem_CFRule_SetDxf = 16;
+	window['AscCH'].historyitem_CFRule_SetRanges = 17;
 
 
 function CHistory()

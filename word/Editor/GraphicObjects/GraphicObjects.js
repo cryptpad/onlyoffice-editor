@@ -2176,6 +2176,15 @@ CGraphicObjects.prototype =
         }
     },
 
+	getCurrentTablesStack : function(arrTables)
+	{
+		var oContent = this.getTargetDocContent(false, undefined);
+		if (oContent)
+			return oContent.GetCurrentTablesStack(arrTables);
+
+		return arrTables ? arrTables : [];
+	},
+
     GetSelectedText: DrawingObjectsController.prototype.GetSelectedText,
 
     getCurPosXY: function()

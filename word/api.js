@@ -9043,9 +9043,11 @@ background-repeat: no-repeat;\
 		if (!oContentControl)
 			return;
 
+		oLogicDocument.RemoveSelection();
 		oContentControl.SelectContentControl();
+		oContentControl.SkipSpecialContentControlLock(true);
 
-		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
+		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, undefined, false, oLogicDocument.IsFormFieldEditing()))
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_ClearContentControl);
 			oContentControl.ClearContentControlExt();
@@ -9056,6 +9058,34 @@ background-repeat: no-repeat;\
 
 			oLogicDocument.FinalizeAction();
 		}
+		oContentControl.SkipSpecialContentControlLock(false);
+	};
+	asc_docs_api.prototype.asc_GetContentControlRightAnchorPosition = function(sId)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return null;
+
+		var oContentControl = oLogicDocument.GetContentControl(sId);
+		if (!oContentControl)
+			return null;
+
+		var oAnchor = oContentControl.GetBoundingPolygonAnchorPoint();
+
+		if (!oAnchor || oAnchor.Page < 0)
+			return null;
+
+		var nX = oAnchor.X;
+		var nY = oAnchor.Y;
+
+		if (oAnchor.Transform)
+		{
+			nX = oAnchor.Transform.TransformPointX(oAnchor.X, oAnchor.Y);
+			nY = oAnchor.Transform.TransformPointY(oAnchor.X, oAnchor,Y);
+		}
+
+		var oRealCoords = oLogicDocument.GetDrawingDocument().ConvertCoordsToCursorWR(nX, nY, oAnchor.Page);
+		return [oRealCoords.X, oRealCoords.Y];
 	};
 	asc_docs_api.prototype.asc_SetGlobalContentControlHighlightColor = function(r, g, b)
 	{
@@ -11090,7 +11120,7 @@ background-repeat: no-repeat;\
 			if (contentControls && contentControls.ContentControlObjects.length !== 0)
 			{
 				contentControls.clearAttack();
-				oLogicDocument.UpdateSelectionState();
+				oLogicDocument.UpdateSelection();
 			}
 		}
 
@@ -11659,6 +11689,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["asc_GetContentControlProperties"]           = asc_docs_api.prototype.asc_GetContentControlProperties;
 	asc_docs_api.prototype["asc_GetCurrentContentControl"]              = asc_docs_api.prototype.asc_GetCurrentContentControl;
 	asc_docs_api.prototype["asc_ClearContentControl"]                   = asc_docs_api.prototype.asc_ClearContentControl;
+	asc_docs_api.prototype["asc_GetContentControlRightAnchorPosition"]  = asc_docs_api.prototype.asc_GetContentControlRightAnchorPosition;
 	asc_docs_api.prototype["asc_UncheckContentControlButtons"]          = asc_docs_api.prototype.asc_UncheckContentControlButtons;
 	asc_docs_api.prototype['asc_SetGlobalContentControlHighlightColor'] = asc_docs_api.prototype.asc_SetGlobalContentControlHighlightColor;
 	asc_docs_api.prototype['asc_GetGlobalContentControlHighlightColor'] = asc_docs_api.prototype.asc_GetGlobalContentControlHighlightColor;
