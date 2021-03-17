@@ -99,11 +99,11 @@ function hitToCropHandles(x, y, object)
 
 
     var widthCorner = (object.extX*fCoeff2 + 1) >> 1;
-    var isCentralMarkerX = widthCorner > 40 ? true : false;
+    var isCentralMarkerX = widthCorner > 40;
     if (widthCorner > 17)
         widthCorner = 17;
     var heightCorner = (object.extY*fCoeff2 + 1) >> 1;
-    var isCentralMarkerY = heightCorner > 40 ? true : false;
+    var isCentralMarkerY = heightCorner > 40;
     if (heightCorner > 17)
         heightCorner = 17;
 
@@ -4198,7 +4198,7 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
         {
             oMainGroup.normalize();
         }
-        
+
         this.tmpFontScale = undefined;
         this.tmpLnSpcReduction = undefined;
         this.bCheckAutoFitFlag = true;
