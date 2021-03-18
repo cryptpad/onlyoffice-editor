@@ -24593,6 +24593,8 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 		this.StartAction(AscDFH.historydescription_Document_ConvertTextToTable);
 
 		var oSelectedContent = this.GetSelectedContent(true);
+		// возможно здесь нет необходимости получать этот selectedContent, так как у него нет метода, чтобы из него достать этот контент
+		// но не факт, что весь контент будет находиться в параграфах, которые можно получить через this.GetSelectedParagraphs()
 		var oNewContent      = this.private_ConvertTextToTable(oSelectedContent, oProps);
 		if (oNewContent)
 		{
@@ -24618,6 +24620,94 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 };
 CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oProps)
 {
+	// возможно все эти параметры должны прийти в эту функцию, но пока будем принимать только separator, а дальше расширим при необходимости
+	// вообще количество строк и столбцов определяется ещё в диалоговом окне, где указываются некоторые настройки
+	// там можно поменять количество столбцов, но не строк
+	// указать ширину столбцов : фиксированная (может быть "Авто" или другое значение), по содержимому, по ширине окна
+	// и указывается знак по которому происходит разделение по столбцам, по строкам всегда используется знак абзаца
+	// хотя знак абзаца можно указать как разделитель и по ячейкам, но у меня не работает это и он всё равно воспринимается как новая строка
+	
+	
+	// нужно разбить сразу выделенный контент по строкам и столбцам, для этого будем использовать двухмерный массив и по нему уже посчитаем потом сколько строк и столбцов
+	var oArrRows = [];
+	var oCellsCount = 0;
+	
+	for (var i = oSelectedContent.Elements.length - 1; i >= 0; i--)
+	{
+		var oArrCells = [];
+		var oElement = oSelectedContent.Elements[i].Element;
+		// предполается, что новый параграф = новая строка (поэтому даже если separator == знаку абзаца), то сразу его в новую строку, в ворде работает также
+		if (oElement.IsParagraph() && oProps.Separator !== 182)
+		{
+			var oNewParagraph = new Paragraph(this.DrawingDocument, this);
+			for (var j = oElement.Content.length - 1; j >= 0; j--)
+			{
+				var oSecondEl = oElement.Content[j];
+				if (oSecondEl.Type === para_Run)
+				{
+					for (var k = oSecondEl.Content.length - 1; k >= 0; k--)
+					{
+						var oThirdEl = oSecondEl.Content[k];
+						//если в качестве separator у нас таб или конец абзаца, то не нужно проверять содержимое ранов
+						if (oProps.Separator === 9)
+						{
+							if (oThirdEl.Type === para_Tab)
+							{
+								var oNewRun = oSecondEl.Split2(k, oNewParagraph, 0);
+								oNewRun.Remove_FromContent(0, 1)
+								oNewParagraph.AddToContent(0, oNewRun);
+								oArrCells.unshift(oNewParagraph);
+								oNewParagraph = new Paragraph(this.DrawingDocument, this);
+								// разбить ран по этомй позиции
+							}
+						}
+						else
+						{
+							// если это Run, то пробегаемся по его контентку и уже там ищем separator, если нет, то пропускаем его, так как там separatora не может быть
+							// здесь делать каждый раз сплит параграфа по индексу нахождения сепаратора и отрезаную часть добавлять в массив ячеек, а оставшуюся часть проверять дальше
+							// если дошли до 0, то добавляем весь этот параграф в качестве ячейки, так как всё лишнее мы уже отрезали от него
+							if (oThirdEl.Type === para_Text && oThirdEl.value === oProps.Separator)
+							{
+								var oNewRun = oSecondEl.Split2(k, oNewParagraph, 0);
+								oNewRun.Remove_FromContent(0, 1);
+								oNewParagraph.AddToContent(0, oNewRun);
+								oArrCells.unshift(oNewParagraph);
+								oNewParagraph = new Paragraph(this.DrawingDocument, this);
+							}
+						}
+						if (!k && oSecondEl.Content.length)
+						{
+							oNewParagraph.AddToContent(0, oSecondEl);
+						}
+
+					}
+				}
+				else
+				{
+					oNewParagraph.AddToContent(0, oSecondEl);
+				}
+				if (!j && !oNewParagraph.IsEmpty())
+				{
+					oArrCells.unshift(oNewParagraph);
+				}
+			}
+		}
+		else
+		{
+			//возможно сделать нужно новый параграф и в него копировать этот
+			oArrRows.unshift([oElement]);
+		}
+		if (oArrCells.length)
+		{
+			if (oCellsCount < oArrCells.length)
+				oCellsCount = oArrCells.length;
+
+			oArrRows.unshift(oArrCells);
+		}
+	}
+	// для очистки содержимого и последующего помещения туда нового
+	oSelectedContent.Reset();
+	// здесь надо создать новую таблицу, но сначала надо проверить правильно ли сформировалась матрица таблицы
 	return oSelectedContent;
 };
 /**
@@ -24679,6 +24769,13 @@ CDocument.prototype.ConvertTableToText = function(oProps)
 				// выставить селект, если мы внутри ячейки таблицы, преобразовали только часть таблицы, а не всю её целиком
 				if (oParent.SelectRange)
 					oParent.SelectRange(nIndex + oSkipStart, nIndex + ArrNewContent.length - oSkipEnd);
+				else if (oParent.Selection)
+				{
+					// не нашёл другого способа выставить селект внутри ячейки
+					// возможно надо добавить такой метод в СDocumentContent
+					oParent.Selection.StartPos = nIndex + oSkipEnd;
+					oParent.Selection.EndPos = nIndex + ArrNewContent.length - oSkipEnd;
+				}
 				// this.MoveCursorRight(false, false, false);
 			}
 		}
