@@ -263,7 +263,17 @@
 			Password : -1000,
 
 			SecondaryAxis: 1001,
-			ComboSeriesError: 1002
+			ComboSeriesError: 1002,
+
+			//conditional formatting
+			NotValidPercentile : 1003,
+			CannotAddConditionalFormatting: 1004,
+			NotValidPercentage: 1005,
+			NotSingleReferenceCannotUsed: 1006,
+			CannotUseRelativeReference: 1007,
+			ValueMustBeGreaterThen: 1008,
+			IconDataRangesOverlap: 1009,
+			ErrorTop10Between: 1010
 		}
 	};
 
@@ -772,7 +782,8 @@
 		COLOR_TYPE_SRGB   : 1,
 		COLOR_TYPE_PRST   : 2,
 		COLOR_TYPE_SCHEME : 3,
-		COLOR_TYPE_SYS    : 4
+		COLOR_TYPE_SYS    : 4,
+		COLOR_TYPE_STYLE  : 5
 	};
 
 	var c_oAscFill = {
@@ -2333,6 +2344,16 @@
 	prot['FormulaEvaluateError']             = prot.FormulaEvaluateError;
 	prot['DataValidateInvalidList']          = prot.DataValidateInvalidList;
 
+	prot['NotValidPercentile']               = prot.NotValidPercentile;
+	prot['CannotAddConditionalFormatting']   = prot.CannotAddConditionalFormatting;
+	prot['NotValidPercentage']               = prot.NotValidPercentage;
+	prot['NotSingleReferenceCannotUsed']     = prot.NotSingleReferenceCannotUsed;
+	prot['CannotUseRelativeReference']       = prot.CannotUseRelativeReference;
+	prot['ValueMustBeGreaterThen']           = prot.ValueMustBeGreaterThen;
+	prot['IconDataRangesOverlap']            = prot.IconDataRangesOverlap;
+	prot['ErrorTop10Between']                = prot.ErrorTop10Between;
+
+
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
 	prot                                     = c_oAscAsyncAction;
 	prot['Open']                             = prot.Open;
@@ -2665,6 +2686,7 @@
 	prot['COLOR_TYPE_PRST']     = prot.COLOR_TYPE_PRST;
 	prot['COLOR_TYPE_SCHEME']   = prot.COLOR_TYPE_SCHEME;
 	prot['COLOR_TYPE_SYS']      = prot.COLOR_TYPE_SYS;
+	prot['COLOR_TYPE_STYLE']      = prot.COLOR_TYPE_STYLE;
 	window['Asc']['c_oAscFill'] = window['Asc'].c_oAscFill = c_oAscFill;
 	prot                                = c_oAscFill;
 	prot['FILL_TYPE_NONE']              = prot.FILL_TYPE_NONE;

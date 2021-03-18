@@ -528,6 +528,45 @@ CInlineLevelSdt.prototype.GetBoundingPolygonFirstLineH = function()
 
 	return 0;
 };
+/**
+ * Специальная функция для мобильных версий, возвращает правую среднюю точку границы
+ * @return {{X:number, Y:number, Page:number, Transform:object}}
+ */
+CInlineLevelSdt.prototype.GetBoundingPolygonAnchorPoint = function()
+{
+	var nR  = 0;
+	var nT = -1;
+	var nB = -1;
+
+	var nCurPage = -1;
+
+	for (var Key in this.Bounds)
+	{
+		if (this.Bounds[Key].H > 0.001 && this.Bounds[Key].W > 0.001 && (-1 === nCurPage || nCurPage > this.Bounds[Key].PageInternal))
+			nCurPage = this.Bounds[Key].PageInternal;
+	}
+
+	if (-1 === nCurPage)
+		return {X : 0, Y : 0, Page : -1, Transform : null};
+
+	var nPageAbs = this.Paragraph.GetAbsolutePage(nCurPage);
+	for (var Key in this.Bounds)
+	{
+		if (nCurPage !== this.Bounds[Key].PageInternal)
+			continue;
+
+		if (nR < this.Bounds[Key].X + this.Bounds[Key].W)
+			nR = this.Bounds[Key].X + this.Bounds[Key].W;
+
+		if (-1 === nT || nT > this.Bounds[Key].Y)
+			nT = this.Bounds[Key].Y;
+
+		if (-1 === nB || nB < this.Bounds[Key].Y + this.Bounds[Key].H)
+			nB = this.Bounds[Key].Y + this.Bounds[Key].H;
+	}
+
+	return {X : nR, Y : (nT + nB) / 2, Page : nPageAbs, Transform : this.Get_ParentTextTransform()};
+};
 CInlineLevelSdt.prototype.DrawContentControlsTrack = function(isHover, X, Y, nCurPage)
 {
 	if (!this.Paragraph && this.Paragraph.LogicDocument)

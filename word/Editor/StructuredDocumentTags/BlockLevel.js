@@ -869,6 +869,42 @@ CBlockLevelSdt.prototype.GetBoundingPolygonFirstLineH = function()
 	//       надо будет рассчитать тут
 	return 0;
 };
+/**
+ * Специальная функция для мобильных версий, возвращает правую среднюю точку границы
+ * @return {{X:number, Y:number, Page:number, Transform:object}}
+ */
+CBlockLevelSdt.prototype.GetBoundingPolygonAnchorPoint = function()
+{
+	var nR  = 0;
+	var nT = -1;
+	var nB = -1;
+
+	var nCurPage = -1;
+	for (var nPageIndex = 0, nPagesCount = this.GetPagesCount(); nPageIndex < nPagesCount; ++nPageIndex)
+	{
+		if (this.IsEmptyPage(nPageIndex))
+			continue;
+
+		if (-1 === nCurPage)
+			nCurPage = nPageIndex;
+		else if (nCurPage !== nPageIndex)
+			break;
+
+		var oBounds = this.Content.GetContentBounds(nPageIndex);
+
+		if (nR < oBounds.Right)
+			nR = oBounds.Right;
+
+		if (-1 === nT || nT > oBounds.Top)
+			nT = oBounds.Top;
+
+		if (-1 === nB || nB < oBounds.Bottom)
+			nB = oBounds.Bottom;
+	}
+	var nPageAbs = this.GetAbsolutePage(nCurPage);
+
+	return {X : nR, Y : (nT + nB) / 2, Page : nPageAbs, Transform : this.Get_ParentTextTransform()};
+};
 CBlockLevelSdt.prototype.DrawContentControlsTrack = function(isHover, X, Y, nCurPage)
 {
 	if (!this.IsRecalculated() || !this.LogicDocument)

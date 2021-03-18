@@ -2667,7 +2667,7 @@
 	 * */
 	Api.prototype.CreateSolidFill = function(oUniColor)
 	{
-		return new ApiFill(AscFormat.CreateUniFillByUniColor(oUniColor.Unicolor));
+		return new ApiFill(AscFormat.CreateUniFillByUniColorCopy(oUniColor.Unicolor));
 	};
 
 	/**
@@ -12047,7 +12047,7 @@
 		if (typeof sString !== 'string' || sString === '')
 			return false;
 
-		editor.asc_coAuthoringChatSendMessage(sString);
+		this.asc_coAuthoringChatSendMessage(sString);
 		return true;
 	};
 

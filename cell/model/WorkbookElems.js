@@ -63,6 +63,8 @@ var g_nColorTextDefault = 1;
 var g_nColorHyperlink = 10;
 var g_nColorHyperlinkVisited = 11;
 
+var previewConditionalFormattingNum = 38718;
+
 var g_oThemeColorsDefaultModsSpreadsheet = [
     [0, -4.9989318521683403E-2, -0.14999847407452621, -0.249977111117893, -0.34998626667073579, -0.499984740745262],
     [0, -9.9978637043366805E-2, -0.249977111117893, -0.499984740745262, -0.749992370372631, -0.89999084444715716],
@@ -2768,9 +2770,15 @@ var g_oBorderProperties = {
     };
     CellXfs.prototype.clone = function () {
         var res = new CellXfs();
-        res.border = this.border;
-        res.fill = this.fill;
-        res.font = this.font;
+		if (this.border) {
+			res.border = this.border.clone();
+		}
+		if (this.fill) {
+			res.fill = this.fill.clone();
+		}
+		if (this.font) {
+			res.font = this.font.clone();
+		}
         res.num = this.num;
         res.align = this.align;
         res.QuotePrefix = this.QuotePrefix;
@@ -2837,6 +2845,24 @@ var g_oBorderProperties = {
                 break;
         }
     };
+	CellXfs.prototype.Write_ToBinary2 = function (writer) {
+		var t = this;
+		var oBinaryStylesTableWriter = new AscCommonExcel.BinaryStylesTableWriter(writer);
+		oBinaryStylesTableWriter.bs.WriteItem(0, function(){oBinaryStylesTableWriter.WriteDxf(t);});
+	};
+	CellXfs.prototype.Read_FromBinary2 = function (reader) {
+		var api_sheet = Asc['editor'];
+		var wb = api_sheet.wbModel;
+		var bsr = new AscCommonExcel.Binary_StylesTableReader(reader, wb);
+		var bcr = new AscCommon.Binary_CommonReader(reader);
+		reader.GetUChar();
+		var oThis = this;
+		var length = reader.GetULongLE();
+		bcr.Read1(length, function (t, l) {
+			return bsr.ReadDxf(t, l, oThis);
+		});
+		return this;
+	};
     CellXfs.prototype.getBorder = function () {
         return this.border;
     };
@@ -2980,10 +3006,148 @@ var g_oBorderProperties = {
 	CellXfs.prototype.asc_getShrinkToFit = function () {
 		return this.getAlign2().getShrinkToFit();
 	};
-
 	CellXfs.prototype.asc_getPreview = function (api, text, width, height) {
 		return AscCommonExcel.generateXfsStyle(width, height, api.wb, this, text);
 	};
+	CellXfs.prototype.asc_getPreview2 = function (api, id, text) {
+		if (this.num) {
+			var oNumFormat = AscCommon.oNumFormatCache.get(this.num.getFormat());
+			if (false == oNumFormat.isGeneralFormat()) {
+				var aText = oNumFormat.format(previewConditionalFormattingNum);
+				text = AscCommonExcel.getStringFromMultiText(aText);
+			}
+		}
+
+		var oldAlign = this.align;
+		var oldAlignHor;
+		if (oldAlign) {
+			oldAlignHor = this.align.hor;
+		} else {
+			this.align = new Align();
+		}
+		this.align.hor = AscCommon.align_Center;
+
+		var res = AscCommonExcel.generateXfsStyle2(id, api.wb, this, text);
+		if (oldAlign) {
+			this.align.hor = oldAlignHor;
+		} else {
+			this.align = null;
+		}
+
+		return res;
+	};
+	CellXfs.prototype.asc_setFillColor = function (val) {
+		//TODO не применяю цвета темы?
+		var fill = null;
+		if (val) {
+			fill = new AscCommonExcel.Fill();
+			fill.fromColor(AscCommonExcel.createRgbColor(val.get_r(),val.get_g(),val.get_b()));
+		}
+		return this.setFill(fill);
+	};
+	CellXfs.prototype.asc_setFill = function (val) {
+		return this.setFill(val);
+	};
+	CellXfs.prototype.asc_setFontName = function (val) {
+		if (!this.font) {
+			this.font = new AscCommonExcel.Font();
+		}
+		this.getFont().setName(val);
+	};
+	CellXfs.prototype.asc_setFontSize = function (val) {
+		if (!this.font) {
+			this.font = new AscCommonExcel.Font();
+		}
+		this.getFont().setSize(val);
+	};
+	CellXfs.prototype.asc_setFontColor = function (val) {
+		if (!this.font) {
+			this.font = new AscCommonExcel.Font();
+		}
+		var color = AscCommonExcel.CorrectAscColor(val);
+		this.getFont().setColor(color);
+	};
+	CellXfs.prototype.asc_setFontBold = function (val) {
+		if (!this.font) {
+			this.font = new AscCommonExcel.Font();
+		}
+		this.getFont().setBold(val);
+	};
+	CellXfs.prototype.asc_setFontItalic = function (val) {
+		if (!this.font) {
+			this.font = new AscCommonExcel.Font();
+		}
+		this.getFont().setItalic(val);
+	};
+	CellXfs.prototype.asc_setFontUnderline = function (val) {
+		if (!this.font) {
+			this.font = new AscCommonExcel.Font();
+		}
+		this.getFont().setUnderline(val ? Asc.EUnderline.underlineSingle : Asc.EUnderline.underlineNone);
+	};
+	CellXfs.prototype.asc_setFontStrikeout = function (val) {
+		if (!this.font) {
+			this.font = new AscCommonExcel.Font();
+		}
+		this.getFont().setStrikeout(val);
+	};
+	CellXfs.prototype.asc_setFontSubscript = function (val) {
+		if (!this.font) {
+			this.font = new AscCommonExcel.Font();
+		}
+		this.getFont().setVerticalAlign(val ? AscCommon.vertalign_SubScript : AscCommon.vertalign_Baseline);
+	};
+	CellXfs.prototype.asc_setFontSuperscript = function () {
+		if (!this.font) {
+			this.font = new AscCommonExcel.Font();
+		}
+		this.getFont().setVerticalAlign(val ? AscCommon.vertalign_SuperScript : AscCommon.vertalign_Baseline);
+	};
+	CellXfs.prototype.asc_setBorder = function (val) {
+		if (val.length < 1) {
+			this.border = null;
+		}
+
+		//TODO duplicate
+		function makeBorder(b) {
+			var border = new AscCommonExcel.BorderProp();
+			if (b === false) {
+				border.setStyle(c_oAscBorderStyles.None);
+			} else if (b) {
+				if (b.style !== null && b.style !== undefined) {
+					border.setStyle(b.style);
+				}
+				if (b.color !== null && b.color !== undefined) {
+					if (b.color instanceof Asc.asc_CColor) {
+						border.c = AscCommonExcel.CorrectAscColor(b.color);
+					}
+				}
+			}
+			return border;
+		}
+		
+		var res = new AscCommonExcel.Border();
+		var c_oAscBorderOptions = Asc.c_oAscBorderOptions;
+		// Diagonal
+		res.d = makeBorder(val[c_oAscBorderOptions.DiagD] || val[c_oAscBorderOptions.DiagU]);
+		res.dd = !!val[c_oAscBorderOptions.DiagD];
+		res.du = !!val[c_oAscBorderOptions.DiagU];
+		// Vertical
+		res.l = makeBorder(val[c_oAscBorderOptions.Left]);
+		res.iv = makeBorder(val[c_oAscBorderOptions.InnerV]);
+		res.r = makeBorder(val[c_oAscBorderOptions.Right]);
+		// Horizontal
+		res.t = makeBorder(val[c_oAscBorderOptions.Top]);
+		res.ih = makeBorder(val[c_oAscBorderOptions.InnerH]);
+		res.b = makeBorder(val[c_oAscBorderOptions.Bottom]);
+		
+		this.border = res;
+	};
+
+	CellXfs.prototype.asc_setNumFormatInfo = function (val) {
+		this.num = new AscCommonExcel.Num({f:val});
+	};
+
 
 	function FromXml_ST_HorizontalAlignment(val) {
 		var res = -1;
@@ -10967,7 +11131,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window['AscCommonExcel'].BorderProp = BorderProp;
 	window['AscCommonExcel'].Border = Border;
 	window['AscCommonExcel'].Num = Num;
-	window['AscCommonExcel'].CellXfs = CellXfs;
+	window["Asc"]["asc_CellXfs"] = window['AscCommonExcel'].CellXfs = CellXfs;
 	prot = CellXfs.prototype;
 	prot["asc_getFillColor"] = prot.asc_getFillColor;
 	prot["asc_getFill"] = prot.asc_getFill;
@@ -10989,6 +11153,21 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getWrapText"] = prot.asc_getWrapText;
 	prot["asc_getShrinkToFit"] = prot.asc_getShrinkToFit;
 	prot["asc_getPreview"] = prot.asc_getPreview;
+	prot["asc_setFillColor"] = prot.asc_setFillColor;
+	prot["asc_setFill"] = prot.asc_setFill;
+	prot["asc_setFontName"] = prot.asc_setFontName;
+	prot["asc_setFontSize"] = prot.asc_setFontSize;
+	prot["asc_setFontColor"] = prot.asc_setFontColor;
+	prot["asc_setFontBold"] = prot.asc_setFontBold;
+	prot["asc_setFontItalic"] = prot.asc_setFontItalic;
+	prot["asc_setFontUnderline"] = prot.asc_setFontUnderline;
+	prot["asc_setFontStrikeout"] = prot.asc_setFontStrikeout;
+	prot["asc_getFontSubscript"] = prot.asc_setFontSubscript;
+	prot["asc_setFontSuperscript"] = prot.asc_setFontSuperscript;
+	prot["asc_setBorder"] = prot.asc_setBorder;
+	prot["asc_setNumFormatInfo"] = prot.asc_setNumFormatInfo;
+
+
 	window['AscCommonExcel'].Align = Align;
 	window['AscCommonExcel'].CCellStyles = CCellStyles;
 	window['AscCommonExcel'].CCellStyle = CCellStyle;

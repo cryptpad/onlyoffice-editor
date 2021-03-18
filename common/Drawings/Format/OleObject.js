@@ -60,6 +60,9 @@ function (window, undefined) {
 		AscDFH.changesFactory[AscDFH.historyitem_ImageShapeSetOleType] = AscDFH.CChangesDrawingsLong;
 
 
+        AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ChartStyleEntryDefRPr] = AscCommonWord.CTextPr;
+
+
 		function CChangesOleObjectBinary(Class, Old, New, Color){
             AscDFH.CChangesBaseProperty.call(this, Class, Old, New, Color);
         }

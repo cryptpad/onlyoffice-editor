@@ -1517,9 +1517,9 @@
 		this.style = parseInt(index, 10);
 		if(this.bStartEdit && this.chartSpace) {
 			if(AscFormat.isRealNumber(this.style)){
-				var oPreset = AscCommon.g_oChartPresets[this.type] && AscCommon.g_oChartPresets[this.type][this.style - 1];
-				if(oPreset) {
-					AscFormat.ApplyPresetToChartSpace(this.chartSpace, oPreset, false);
+				var aStyle = AscCommon.g_oChartStyles[this.type] && AscCommon.g_oChartStyles[this.type][this.style - 1];
+				if(Array.isArray(aStyle)) {
+					this.chartSpace.applyChartStyleByIds(aStyle);
 					this.updateChart();
 				}
 			}

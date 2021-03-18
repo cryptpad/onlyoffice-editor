@@ -12076,7 +12076,7 @@ CRFonts.prototype.Merge = function(oRFonts)
 
 	if (oRFonts.EastAsiaTheme)
 	{
-		this.EastAsiaTheme = oRFonts.EastAsiaTheme
+		this.EastAsiaTheme = oRFonts.EastAsiaTheme;
 		this.EastAsia      = undefined;
 	}
 	else if (oRFonts.EastAsia)
@@ -12225,6 +12225,24 @@ CRFonts.prototype.SetAll = function(sFontName, nFontIndex)
 	this.EastAsiaTheme = undefined;
 	this.HAnsiTheme    = undefined;
 	this.CSTheme       = undefined;
+};
+CRFonts.prototype.SetFontStyle = function(nFontStyleIdx)
+{
+	var sFirstPart;
+	if (nFontStyleIdx === AscFormat.fntStyleInd_major)
+	{
+		sFirstPart = "+mj-";
+	}
+	else
+	{
+		sFirstPart = "+mn-";
+	}
+	var oRFonts = {};
+	oRFonts.Ascii = {Name: sFirstPart + "lt", Index: -1};
+	oRFonts.EastAsia = {Name: sFirstPart + "ea", Index: -1};
+	oRFonts.CS = {Name: sFirstPart + "cs", Index: -1};
+	oRFonts.HAnsi = {Name: sFirstPart + "lt", Index: -1};
+	this.Set_FromObject(oRFonts, false);
 };
 CRFonts.prototype.IsEqual = function(oRFonts)
 {
@@ -12873,35 +12891,7 @@ CTextPr.prototype.Check_PresentationPr = function()
 {
 	if (this.FontRef && !this.Unifill)
 	{
-		var prefix;
-		if (this.FontRef.idx === AscFormat.fntStyleInd_minor)
-		{
-			prefix = "+mn-";
-		}
-		else
-		{
-			prefix = "+mj-";
-		}
-		this.RFonts.Set_FromObject(
-			{
-				Ascii    : {
-					Name  : prefix + "lt",
-					Index : -1
-				},
-				EastAsia : {
-					Name  : prefix + "ea",
-					Index : -1
-				},
-				HAnsi    : {
-					Name  : prefix + "lt",
-					Index : -1
-				},
-				CS       : {
-					Name  : prefix + "lt",
-					Index : -1
-				}
-			}
-		);
+		this.RFonts.SetFontStyle(this.FontRef.idx);
 		if (this.FontRef.Color && !this.Unifill)
 		{
 			this.Unifill = AscFormat.CreateUniFillByUniColorCopy(this.FontRef.Color);
@@ -14081,19 +14071,11 @@ CTextPr.prototype.FillFromExcelFont = function(oFont) {
 	var nSchemeFont = oFont.getScheme();
 	switch (nSchemeFont) {
 		case Asc.EFontScheme.fontschemeMajor: {
-			this.RFonts.Merge({
-				Ascii: {Name: "+mj-lt", Index: -1},
-				EastAsia: {Name: "+mj-ea", Index: -1},
-				CS: {Name: "+mj-cs", Index: -1}
-			});
+			this.RFonts.SetFontStyle(AscFormat.fntStyleInd_major);
 			break;
 		}
 		case Asc.EFontScheme.fontschemeMinor: {
-			this.RFonts.Merge({
-				Ascii: {Name: "+mn-lt", Index: -1},
-				EastAsia: {Name: "+mn-ea", Index: -1},
-				CS: {Name: "+mn-cs", Index: -1}
-			});
+			this.RFonts.SetFontStyle(AscFormat.fntStyleInd_minor);
 			break;
 		}
 		case Asc.EFontScheme.fontschemeNone: {
@@ -16557,7 +16539,7 @@ CParaPr.prototype.Get_PresentationBullet = function(theme, colorMap)
 				if (this.Bullet.bulletColor.UniColor && this.Bullet.bulletColor.UniColor.color && theme && colorMap)
 				{
 					Bullet.m_bColorTx = false;
-					Bullet.Unifill    = AscFormat.CreateUniFillByUniColor(this.Bullet.bulletColor.UniColor);
+					Bullet.Unifill    = AscFormat.CreateUniFillByUniColorCopy(this.Bullet.bulletColor.UniColor);
 				}
 			}
 		}
