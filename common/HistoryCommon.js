@@ -1512,6 +1512,7 @@
 	window['AscDFH'].historyitem_type_SldSz                  = 1196 << 16;
 
 	window['AscDFH'].historyitem_type_DocumentMacros         = 2000 << 16;
+	window['AscDFH'].historyitem_type_PrSet                  = 2001 << 16;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
@@ -3202,7 +3203,34 @@
 	AscDFH.historyitem_SldSzCY   = AscDFH.historyitem_type_SldSz | 2;
 	AscDFH.historyitem_SldSzType = AscDFH.historyitem_type_SldSz | 3;
 
-
+	AscDFH.historyitem_PrSetCoherent3DOff        = AscDFH.historyitem_type_PrSet | 1;
+	AscDFH.historyitem_PrSetCsCatId              = AscDFH.historyitem_type_PrSet | 2;
+	AscDFH.historyitem_PrSetCsTypeId             = AscDFH.historyitem_type_PrSet | 3;
+	AscDFH.historyitem_PrSetCustAng              = AscDFH.historyitem_type_PrSet | 4;
+	AscDFH.historyitem_PrSetCustFlipHor          = AscDFH.historyitem_type_PrSet | 5;
+	AscDFH.historyitem_PrSetCustFlipVert         = AscDFH.historyitem_type_PrSet | 6;
+	AscDFH.historyitem_PrSetCustLinFactNeighborX = AscDFH.historyitem_type_PrSet | 7;
+	AscDFH.historyitem_PrSetCustLinFactNeighborY = AscDFH.historyitem_type_PrSet | 8;
+	AscDFH.historyitem_PrSetCustLinFactX         = AscDFH.historyitem_type_PrSet | 9;
+	AscDFH.historyitem_PrSetCustLinFactY         = AscDFH.historyitem_type_PrSet | 10;
+	AscDFH.historyitem_PrSetCustRadScaleInc      = AscDFH.historyitem_type_PrSet | 11;
+	AscDFH.historyitem_PrSetCustRadScaleRad      = AscDFH.historyitem_type_PrSet | 12;
+	AscDFH.historyitem_PrSetCustScaleX           = AscDFH.historyitem_type_PrSet | 13;
+	AscDFH.historyitem_PrSetCustScaleY           = AscDFH.historyitem_type_PrSet | 14;
+	AscDFH.historyitem_PrSetCustSzX              = AscDFH.historyitem_type_PrSet | 15;
+	AscDFH.historyitem_PrSetCustSzY              = AscDFH.historyitem_type_PrSet | 16;
+	AscDFH.historyitem_PrSetCustT                = AscDFH.historyitem_type_PrSet | 17;
+	AscDFH.historyitem_PrSetLoCatId              = AscDFH.historyitem_type_PrSet | 18;
+	AscDFH.historyitem_PrSetLoTypeId             = AscDFH.historyitem_type_PrSet | 19;
+	AscDFH.historyitem_PrSetPhldr                = AscDFH.historyitem_type_PrSet | 20;
+	AscDFH.historyitem_PrSetPhldrT               = AscDFH.historyitem_type_PrSet | 21;
+	AscDFH.historyitem_PrSetPresAssocID          = AscDFH.historyitem_type_PrSet | 22;
+	AscDFH.historyitem_PrSetPresName             = AscDFH.historyitem_type_PrSet | 23;
+	AscDFH.historyitem_PrSetPresStyleCnt         = AscDFH.historyitem_type_PrSet | 24;
+	AscDFH.historyitem_PrSetPresStyleIdx         = AscDFH.historyitem_type_PrSet | 25;
+	AscDFH.historyitem_PrSetPresStyleLbl         = AscDFH.historyitem_type_PrSet | 26;
+	AscDFH.historyitem_PrSetQsCatId              = AscDFH.historyitem_type_PrSet | 27;
+	AscDFH.historyitem_PrSetQsTypeId             = AscDFH.historyitem_type_PrSet | 28;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
