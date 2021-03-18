@@ -3149,6 +3149,13 @@ Asc['asc_docs_api'].prototype.openDocument = function(file)
         return;
     }
 
+    var version;
+    if (file.changes && this.VersionHistory)
+    {
+        this.VersionHistory.changes = file.changes;
+        this.VersionHistory.applyChanges(this);
+    }
+
     this.WordControl.m_oDrawingDocument.AfterLoad();
 
     //console.log("ImageMap : " + JSON.stringify(this.WordControl.m_oLogicDocument));

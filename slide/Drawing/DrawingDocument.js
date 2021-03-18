@@ -1669,6 +1669,17 @@ function CDrawingDocument()
 			this.m_oWordControl.SlideDrawer.CheckSlide(this.SlideCurrent);
 	};
 
+
+	this.CloseFile = function ()
+	{
+		this.SlidesCount         = 0;
+		this.IsEmptyPresentation = true;
+		this.SlideCurrent     = -1;
+		this.ClearCachePages();
+		this.FirePaint();
+	};
+
+
 	this.FirePaint = function()
 	{
 		//this.m_oWordControl.OnScroll();
