@@ -526,10 +526,27 @@
             else
             {
                 var _len = this.images_loading.length;
+                if (_len === 0) {
+                    return void this.LoadDocumentImagesCallback();
+                }
+                var todo = _len;
+                var that = this;
+                var done = function () {
+                    todo--;
+                    if (todo === 0) {
+                        that.images_loading.splice(0, _len);
+                        setTimeout(function () {
+                            that.LoadDocumentImagesCallback();
+                        }, 100);
+                        done = function () {};
+                    }
+                };
                 for (var i = 0; i < _len; i++)
                 {
-                    this.LoadImageAsync(i);
+                    this.LoadImageAsync(i, done);
                 }
+
+                return;
                 this.images_loading.splice(0, _len);
 
                 var that = this;
@@ -656,7 +673,7 @@
             return null;
         };
 
-        this.LoadImageAsync = function(i)
+        this.LoadImageAsync = function(i, cb)
         {
             var _id = oThis.images_loading[i];
             var oImage = new CImage(_id);
@@ -688,6 +705,7 @@
                     oThis.loadImageByUrl(oImage.Image, url);
                     oThis.map_image_index[url] = oImage;
                   }
+                  if (typeof(cb) === "function") { cb(); }
             });
         };
 
