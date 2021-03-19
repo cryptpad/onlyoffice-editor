@@ -24620,6 +24620,7 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 };
 CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oProps)
 {
+	// TODO: подумать над изменением количества столбцов в таблице в меньшую сторону из диалогового окна с настройками
 	// возможно все эти параметры должны прийти в эту функцию, но пока будем принимать только separator, а дальше расширим при необходимости
 	// вообще количество строк и столбцов определяется ещё в диалоговом окне, где указываются некоторые настройки
 	// там можно поменять количество столбцов, но не строк
@@ -24648,6 +24649,9 @@ CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oPro
 					for (var k = oSecondEl.Content.length - 1; k >= 0; k--)
 					{
 						var oThirdEl = oSecondEl.Content[k];
+						if (oThirdEl.Type === para_End)
+							continue;
+
 						//если в качестве separator у нас таб или конец абзаца, то не нужно проверять содержимое ранов
 						if (oProps.Separator === 9)
 						{
@@ -24666,13 +24670,17 @@ CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oPro
 							// если это Run, то пробегаемся по его контентку и уже там ищем separator, если нет, то пропускаем его, так как там separatora не может быть
 							// здесь делать каждый раз сплит параграфа по индексу нахождения сепаратора и отрезаную часть добавлять в массив ячеек, а оставшуюся часть проверять дальше
 							// если дошли до 0, то добавляем весь этот параграф в качестве ячейки, так как всё лишнее мы уже отрезали от него
-							if (oThirdEl.Type === para_Text && oThirdEl.value === oProps.Separator)
+							if (oThirdEl.Type === para_Text && oThirdEl.Value === oProps.Separator)
 							{
 								var oNewRun = oSecondEl.Split2(k, oNewParagraph, 0);
 								oNewRun.Remove_FromContent(0, 1);
 								oNewParagraph.AddToContent(0, oNewRun);
 								oArrCells.unshift(oNewParagraph);
 								oNewParagraph = new Paragraph(this.DrawingDocument, this);
+								if (!k && !j)
+								{
+									oArrCells.unshift(oNewParagraph);
+								}
 							}
 						}
 						if (!k && oSecondEl.Content.length)
@@ -24708,6 +24716,38 @@ CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oPro
 	// для очистки содержимого и последующего помещения туда нового
 	oSelectedContent.Reset();
 	// здесь надо создать новую таблицу, но сначала надо проверить правильно ли сформировалась матрица таблицы
+
+	var SectPr = this.SectionsInfo.Get_SectPr(this.CurPos.ContentPos).SectPr;
+	var PageFields = this.Get_PageFields(this.CurPage);
+	var nAdd = this.GetCompatibilityMode() <= AscCommon.document_compatibility_mode_Word14 ?  2 * 1.9 : 0;
+	var W    = (PageFields.XLimit - PageFields.X + nAdd);
+	var Grid = [];
+	if (SectPr.Get_ColumnsCount() > 1)
+		{
+			for (var CurCol = 0, ColsCount = SectPr.Get_ColumnsCount(); CurCol < ColsCount; ++CurCol)
+			{
+				var ColumnWidth = SectPr.Get_ColumnWidth(CurCol);
+				if (W > ColumnWidth)
+					W = ColumnWidth;
+			}
+
+			W += nAdd;
+		}
+	W = Math.max(W, oCellsCount * 2 * 1.9);
+	for (var Index = 0; Index < oCellsCount; Index++)
+		Grid[Index] = W / oCellsCount;
+
+	var oTable = new CTable(this.DrawingDocument, this, true, oArrRows.length, oCellsCount, Grid);
+	for (var i = 0; i < oArrRows.length; i++)
+	{
+		for (var j = 0; j < oArrRows[i].length; j++)
+		{
+			var oCellContent = oTable.GetRow(i).GetCell(j).GetContent();
+			// oCellContent.ClearConten(false);
+			oCellContent.AddContent([oArrRows[i][j]]);
+		}
+	}
+	oSelectedContent.Add(new CSelectedElement(oTable, true));
 	return oSelectedContent;
 };
 /**
@@ -24765,6 +24805,7 @@ CDocument.prototype.ConvertTableToText = function(oProps)
 			{
 				oParagraph.Check_NearestPos(oAnchorPos);
 				oParent.InsertContent(oNewContent, oAnchorPos);
+				// удаляю этот ненужный параграф, который был вставлен ранее
 				oParent.RemoveFromContent(oParagraph.GetIndex(), 1, true);
 				// выставить селект, если мы внутри ячейки таблицы, преобразовали только часть таблицы, а не всю её целиком
 				if (oParent.SelectRange)
