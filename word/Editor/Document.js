@@ -2257,6 +2257,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.App = null;
 	this.Core = null;
     this.CustomProperties = null;
+    this.CustomXmls = [];
 
     // Сначала настраиваем размеры страницы и поля
     this.SectPr = new CSectionPr(this);
@@ -8986,18 +8987,25 @@ CDocument.prototype.InsertContent = function(SelectedContent, NearPos)
 	{
 		if (LastClass.GetParentForm())
 		{
+			var nInLastClassPos = ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 1]
+
 			var isPlaceHolder  = LastClass.GetParentForm().IsPlaceHolder();
+			if (isPlaceHolder && LastClass.GetParent() instanceof CInlineLevelSdt)
+			{
+				var oInlineLeveLSdt = LastClass.GetParent();
+				oInlineLeveLSdt.ReplacePlaceHolderWithContent();
+				LastClass       = oInlineLeveLSdt.GetElement(0);
+				nInLastClassPos = 0;
+			}
+
 			var nInRunStartPos = LastClass.State.ContentPos;
-			LastClass.AddText(SelectedContent.GetText({ParaEndToSpace : false}), ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 1]);
+			LastClass.AddText(SelectedContent.GetText({ParaEndToSpace : false}), nInLastClassPos);
 			var nInRunEndPos = LastClass.State.ContentPos;
 
 			LastClass.SelectThisElement();
-			if (!isPlaceHolder)
-			{
-				LastClass.Selection.Use      = true;
-				LastClass.Selection.StartPos = nInRunStartPos;
-				LastClass.Selection.EndPos   = nInRunEndPos;
-			}
+			LastClass.Selection.Use      = true;
+			LastClass.Selection.StartPos = nInRunStartPos;
+			LastClass.Selection.EndPos   = nInRunEndPos;
 			return;
 		}
 
@@ -16523,7 +16531,7 @@ CDocument.prototype.SetGlobalTrackRevisions = function(isTrack, isUpdateInterfac
 	if (isTrack !== this.Settings.TrackRevisions && !this.IsSelectionLocked(AscCommon.changestype_Document_Settings))
 	{
 		this.StartAction(AscDFH.historydescription_Document_SetTrackRevisions);
-		this.History.Add(new CChangesDocumentSettingsTrackRevisions(this, this.Settings.TrackRevisions, isTrack, this.Api.DocInfo.get_UserId()));
+		this.History.Add(new CChangesDocumentSettingsTrackRevisions(this, this.Settings.TrackRevisions, isTrack, this.GetUserId()));
 		this.Settings.TrackRevisions = isTrack;
 		this.FinalizeAction();
 	}
@@ -17230,6 +17238,17 @@ CDocument.prototype.Begin_CompositeInput = function()
 		if (oPara)
 		{
 			var oRun = oPara.Get_ElementByPos(oPara.Get_ParaContentPos(false, false));
+
+			if (oRun instanceof ParaRun)
+			{
+				var oRunParent = oRun.GetParent();
+				if (oRunParent instanceof CInlineLevelSdt && oRunParent.IsPlaceHolder())
+				{
+					oRunParent.ReplacePlaceHolderWithContent(false);
+					oRun = oRunParent.GetElement(0);
+				}
+			}
+
 			if (oRun instanceof ParaRun)
 			{
 				var oNewRun = oRun.CheckRunBeforeAdd();
@@ -22994,10 +23013,12 @@ CDocument.prototype.IsAutoCorrectFirstLetterOfSentences = function()
  */
 CDocument.prototype.GetUserId = function(isConnectionId)
 {
-	if (isConnectionId)
-		return this.GetApi().CoAuthoringApi.getUserConnectionId();
+	var oApi = this.GetApi();
 
-	return this.GetApi().DocInfo.get_UserId();
+	if (isConnectionId)
+		return oApi.CoAuthoringApi ? oApi.CoAuthoringApi.getUserConnectionId() : "";
+
+	return oApi.DocInfo ? oApi.DocInfo.get_UserId() : "";
 };
 /**
  * Получаем метки селекта, в зависимости от типа селекта
