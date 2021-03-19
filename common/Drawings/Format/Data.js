@@ -37,6 +37,8 @@
    * @param {undefined} undefined
    */
   function (window, undefined) {
+    // imports
+
     var InitClass = AscFormat.InitClass;
     var CBaseFormatObject = AscFormat.CBaseFormatObject;
     var oHistory = AscCommon.History;
@@ -54,11 +56,96 @@
     var changesFactory = AscDFH.changesFactory;
     var drawingConstructorsMap = window['AscDFH'].drawingsConstructorsMap;
 
+    // consts
+    var Point_type_asst     = 0;
+    var Point_type_doc      = 1;
+    var Point_type_node     = 2;
+    var Point_type_parTrans = 3;
+    var Point_type_pres     = 4;
+    var Point_type_sibTrans = 5;
+
+
+
+
+    function PtLst() {
+      CBaseFormatObject.call(this);
+      this.points = [];
+    }
+    InitClass(PtLst, CBaseFormatObject, AscDFH.historyitem_type_PtLst);
+
+
+
+
+
+    changesFactory[AscDFH.historyitem_PointCxnId] = CChangeString;
+    changesFactory[AscDFH.historyitem_PointModelId] = CChangeString;
+    changesFactory[AscDFH.historyitem_PointType] = CChangeLong;
+    changesFactory[AscDFH.historyitem_PointExtLst] = CChangeObject;
+    changesFactory[AscDFH.historyitem_PointPrSet] = CChangeObject;
+    changesFactory[AscDFH.historyitem_PointSpPr] = CChangeObject;
+    changesFactory[AscDFH.historyitem_PointT] = CChangeObject;
+
+    drawingsChangesMap[AscDFH.historyitem_PointCxnId] = function(oClass, value) {oClass.cxnId = value;};
+    drawingsChangesMap[AscDFH.historyitem_PointModelId] = function(oClass, value) {oClass.modelId = value;};
+    drawingsChangesMap[AscDFH.historyitem_PointType] = function(oClass, value) {oClass.type = value;};
+    drawingsChangesMap[AscDFH.historyitem_PointExtLst] = function(oClass, value) {oClass.extLst = value;};
+    drawingsChangesMap[AscDFH.historyitem_PointPrSet] = function(oClass, value) {oClass.prSet = value;};
+    drawingsChangesMap[AscDFH.historyitem_PointSpPr] = function(oClass, value) {oClass.spPr = value;};
+    drawingsChangesMap[AscDFH.historyitem_PointT] = function(oClass, value) {oClass.t = value;};
+
 
     function Point() {
+      CBaseFormatObject.call(this);
       this.cxnId = null;
-      this.modelId = null;
-      this.typeId = null;
+      this.modelId = null; // simple type TODO: set required field
+      this.type = null;
+
+      this.extLst = null;
+      this.prSet = null;
+      this.spPr = null;
+      this.t = null;
+    }
+    InitClass(Point, CBaseFormatObject, AscDFH.historyitem_type_Point);
+
+    Point.prototype.setCxnId = function (pr) {
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_PointCxnId, this.cxnId, pr));
+      this.cxnId = pr;
+    }
+
+    Point.prototype.setModelId = function (pr) {
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_PointModelId, this.modelId, pr));
+      this.modelId = pr;
+
+    }
+
+    Point.prototype.setType = function (pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_PointType, this.type, pr));
+      this.type = pr;
+    }
+
+    Point.prototype.setExtLst = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PointExtLst, this.extLst, oPr));
+      this.extLst = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    Point.prototype.setPrSet = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PointPrSet, this.prSet, oPr));
+      this.prSet = oPr;
+      this.setParentToChild(oPr);
+
+    }
+
+    Point.prototype.setSpPr = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PointSpPr, this.spPr, oPr));
+      this.spPr = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    Point.prototype.setT = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PointT, this.t, oPr));
+      this.t = oPr;
+      this.setParentToChild(oPr);
     }
 
     Point.prototype.getCxnId = function () {
@@ -70,9 +157,26 @@
 
     }
 
-    Point.prototype.getTypeId = function () {
-      return this.typeId;
+    Point.prototype.getType = function () {
+      return this.type;
     }
+
+    Point.prototype.getExtLst = function() {
+      return this.extLst;
+    }
+
+    Point.prototype.getPrSet = function() {
+      return this.prSet;
+    }
+
+    Point.prototype.getSpPr = function() {
+      return this.spPr;
+    }
+
+    Point.prototype.getT = function() {
+      return this.t;
+    }
+
 
     changesFactory[AscDFH.historyitem_PrSetCoherent3DOff] = CChangeBool;
     changesFactory[AscDFH.historyitem_PrSetCsCatId] = CChangeString;
@@ -80,14 +184,14 @@
     changesFactory[AscDFH.historyitem_PrSetCustAng] = CChangeLong;
     changesFactory[AscDFH.historyitem_PrSetCustFlipHor] = CChangeBool;
     changesFactory[AscDFH.historyitem_PrSetCustFlipVert] = CChangeBool;
-    changesFactory[AscDFH.historyitem_PrSetCustLinFactNeighborX] = CChangeLong;
-    changesFactory[AscDFH.historyitem_PrSetCustLinFactNeighborY] = CChangeLong;
-    changesFactory[AscDFH.historyitem_PrSetCustLinFactX] = CChangeLong;
-    changesFactory[AscDFH.historyitem_PrSetCustLinFactY] = CChangeLong;
-    changesFactory[AscDFH.historyitem_PrSetCustRadScaleInc] = CChangeLong;
-    changesFactory[AscDFH.historyitem_PrSetCustRadScaleRad] = CChangeLong;
-    changesFactory[AscDFH.historyitem_PrSetCustScaleX] = CChangeLong;
-    changesFactory[AscDFH.historyitem_PrSetCustScaleY] = CChangeLong;
+    changesFactory[AscDFH.historyitem_PrSetCustLinFactNeighborX] = CChangeDouble2;
+    changesFactory[AscDFH.historyitem_PrSetCustLinFactNeighborY] = CChangeDouble2;
+    changesFactory[AscDFH.historyitem_PrSetCustLinFactX] = CChangeDouble2;
+    changesFactory[AscDFH.historyitem_PrSetCustLinFactY] = CChangeDouble2;
+    changesFactory[AscDFH.historyitem_PrSetCustRadScaleInc] = CChangeDouble2;
+    changesFactory[AscDFH.historyitem_PrSetCustRadScaleRad] = CChangeDouble2;
+    changesFactory[AscDFH.historyitem_PrSetCustScaleX] = CChangeDouble2;
+    changesFactory[AscDFH.historyitem_PrSetCustScaleY] = CChangeDouble2;
     changesFactory[AscDFH.historyitem_PrSetCustSzX] = CChangeLong;
     changesFactory[AscDFH.historyitem_PrSetCustSzY] = CChangeLong;
     changesFactory[AscDFH.historyitem_PrSetCustT] = CChangeBool;
@@ -95,13 +199,15 @@
     changesFactory[AscDFH.historyitem_PrSetLoTypeId] = CChangeString;
     changesFactory[AscDFH.historyitem_PrSetPhldr] = CChangeBool;
     changesFactory[AscDFH.historyitem_PrSetPhldrT] = CChangeString;
-    changesFactory[AscDFH.historyitem_PrSetPresAssocID] = CChangeLong;
+    changesFactory[AscDFH.historyitem_PrSetPresAssocID] = CChangeString;
     changesFactory[AscDFH.historyitem_PrSetPresName] = CChangeString;
     changesFactory[AscDFH.historyitem_PrSetPresStyleCnt] = CChangeLong;
     changesFactory[AscDFH.historyitem_PrSetPresStyleIdx] = CChangeLong;
     changesFactory[AscDFH.historyitem_PrSetPresStyleLbl] = CChangeString;
     changesFactory[AscDFH.historyitem_PrSetQsCatId] = CChangeString;
     changesFactory[AscDFH.historyitem_PrSetQsTypeId] = CChangeString;
+    changesFactory[AscDFH.historyitem_PrSetStyle] = CChangeObject;
+    changesFactory[AscDFH.historyitem_PrSetPresLayoutStyle] = CChangeObject;
 
     drawingsChangesMap[AscDFH.historyitem_PrSetCoherent3DOff] = function(oClass, value) {oClass.coherent3DOff = value;};
     drawingsChangesMap[AscDFH.historyitem_PrSetCsCatId] = function(oClass, value) {oClass.csCatId = value;};
@@ -131,6 +237,8 @@
     drawingsChangesMap[AscDFH.historyitem_PrSetPresStyleLbl] = function(oClass, value) {oClass.presStyleLbl = value;};
     drawingsChangesMap[AscDFH.historyitem_PrSetQsCatId] = function(oClass, value) {oClass.qsCatId = value;};
     drawingsChangesMap[AscDFH.historyitem_PrSetQsTypeId] = function(oClass, value) {oClass.qsTypeId = value;};
+    drawingsChangesMap[AscDFH.historyitem_PrSetStyle] = function(oClass, value) {oClass.style = value;};
+    drawingsChangesMap[AscDFH.historyitem_PrSetPresLayoutStyle] = function(oClass, value) {oClass.presLayoutStyle = value;};
 
     function PrSet() {
       CBaseFormatObject.call(this);
@@ -162,6 +270,9 @@
       this.presStyleLbl = null;
       this.qsCatId = null;
       this.qsTypeId = null;
+
+      this.presLayoutStyle = null;
+      this.style = null;
     }
     InitClass(PrSet, CBaseFormatObject, AscDFH.historyitem_type_PrSet);
 
@@ -197,42 +308,42 @@
     }
 
     PrSet.prototype.setCustLinFactNeighborX = function (pr) {
-      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_PrSetCustLinFactNeighborX, this.custLinFactNeighborX, pr));
+      oHistory.Add(new CChangeDouble2(this, AscDFH.historyitem_PrSetCustLinFactNeighborX, this.custLinFactNeighborX, pr));
       this.custLinFactNeighborX = pr;
     }
 
     PrSet.prototype.setCustLinFactNeighborY = function (pr) {
-      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_PrSetCustLinFactNeighborY, this.custLinFactNeighborY, pr));
+      oHistory.Add(new CChangeDouble2(this, AscDFH.historyitem_PrSetCustLinFactNeighborY, this.custLinFactNeighborY, pr));
       this.custLinFactNeighborY = pr;
     }
 
     PrSet.prototype.setCustLinFactX = function (pr) {
-      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_PrSetCustLinFactX, this.custLinFactX, pr));
+      oHistory.Add(new CChangeDouble2(this, AscDFH.historyitem_PrSetCustLinFactX, this.custLinFactX, pr));
       this.custLinFactX = pr;
     }
 
     PrSet.prototype.setCustLinFactY = function (pr) {
-      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_PrSetCustLinFactY, this.custLinFactY, pr));
+      oHistory.Add(new CChangeDouble2(this, AscDFH.historyitem_PrSetCustLinFactY, this.custLinFactY, pr));
       this.custLinFactY = pr;
     }
 
     PrSet.prototype.setCustRadScaleInc = function (pr) {
-      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_PrSetCustRadScaleInc, this.custRadScaleInc, pr));
+      oHistory.Add(new CChangeDouble2(this, AscDFH.historyitem_PrSetCustRadScaleInc, this.custRadScaleInc, pr));
       this.custRadScaleInc = pr;
     }
 
     PrSet.prototype.setCustRadScaleRad = function (pr) {
-      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_PrSetCustRadScaleRad, this.custRadScaleRad, pr));
+      oHistory.Add(new CChangeDouble2(this, AscDFH.historyitem_PrSetCustRadScaleRad, this.custRadScaleRad, pr));
       this.custRadScaleRad = pr;
     }
 
     PrSet.prototype.setCustScaleX = function (pr) {
-      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_PrSetCustScaleX, this.custScaleX, pr));
+      oHistory.Add(new CChangeDouble2(this, AscDFH.historyitem_PrSetCustScaleX, this.custScaleX, pr));
       this.custScaleX = pr;
     }
 
     PrSet.prototype.setCustScaleY = function (pr) {
-      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_PrSetCustScaleY, this.custScaleY, pr));
+      oHistory.Add(new CChangeDouble2(this, AscDFH.historyitem_PrSetCustScaleY, this.custScaleY, pr));
       this.custScaleY = pr;
     }
 
@@ -272,7 +383,7 @@
     }
 
     PrSet.prototype.setPresAssocID = function (pr) {
-      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_PrSetPresAssocID, this.presAssocID, pr));
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_PrSetPresAssocID, this.presAssocID, pr));
       this.presAssocID = pr;
     }
 
@@ -303,6 +414,57 @@
     PrSet.prototype.setQsTypeId = function (pr) {
       oHistory.Add(new CChangeString(this, AscDFH.historyitem_PrSetQsTypeId, this.qsTypeId, pr));
       this.qsTypeId = pr;
+    }
+
+    PrSet.prototype.setStyle = function (oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PrSetStyle,this.style,oPr));
+      this.style = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    PrSet.prototype.setPresLayoutStyle = function (oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PrSetPresLayoutStyle,this.presLayoutStyle,oPr));
+      this.presLayoutStyle = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    PrSet.prototype.fillObject = function (oCopy, oIdMap) {
+      oCopy.setCoherent3DOff(this.getCoherent3DOff());
+      oCopy.setCsCatId(this.getCsCatId());
+      oCopy.setCsTypeId(this.getCsTypeId());
+      oCopy.setCustAng(this.getCustAng());
+      oCopy.setCustFlipHor(this.getCustFlipHor());
+      oCopy.setCustFlipVert(this.getCustFlipVert());
+      oCopy.setCustLinFactNeighborX(this.getCustLinFactNeighborX());
+      oCopy.setCustLinFactNeighborY(this.getCustLinFactNeighborY());
+      oCopy.setCustLinFactX(this.getCustLinFactX());
+      oCopy.setCustLinFactY(this.getCustLinFactY());
+      oCopy.setCustRadScaleInc(this.getCustRadScaleInc());
+      oCopy.setCustRadScaleRad(this.getCustRadScaleRad());
+      oCopy.setCustScaleX(this.getCustScaleX());
+      oCopy.setCustScaleY(this.getCustScaleY());
+      oCopy.setCustSzX(this.getCustSzX());
+      oCopy.setCustSzY(this.getCustSzY());
+      oCopy.setCustT(this.getCustT());
+      oCopy.setLoCatId(this.getLoCatId());
+      oCopy.setLoTypeId(this.getLoTypeId());
+      oCopy.setPhldr(this.getPhldr());
+      oCopy.setPhldrT(this.getPhldrT());
+      oCopy.setPresAssocID(this.getPresAssocID());
+      oCopy.setPresName(this.getPresName());
+      oCopy.setPresStyleCnt(this.getPresStyleCnt());
+      oCopy.setPresStyleIdx(this.getPresStyleIdx());
+      oCopy.setPresStyleLbl(this.getPresStyleLbl());
+      oCopy.setQsCatId(this.getQsCatId());
+      oCopy.setQsTypeId(this.getQsTypeId());
+      if (this.getStyle()) {
+        var style = this.getStyle();
+        oCopy.setStyle(this.style.createDuplicate(style));
+      }
+      if (this.getPresLayoutStyle()) {
+        var presLayoutStyle = this.getPresLayoutStyle();
+        oCopy.setPresLayoutStyle(this.presLayoutStyle.createDuplicate(presLayoutStyle));
+      }
     }
 
     PrSet.prototype.getCoherent3DOff = function () {
@@ -396,6 +558,7 @@
     PrSet.prototype.getPresName = function () {
       return this.presName;
     }
+
     PrSet.prototype.getPresStyleCnt = function () {
       return this.presStyleCnt;
     }
@@ -413,6 +576,14 @@
     }
 
     PrSet.prototype.getQsTypeId = function () {
+      return this.qsTypeId;
+    }
+
+    PrSet.prototype.getStyle= function () {
+      return this.qsTypeId;
+    }
+
+    PrSet.prototype.getPresLayoutStyle = function () {
       return this.qsTypeId;
     }
 
