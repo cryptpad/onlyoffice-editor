@@ -12469,7 +12469,9 @@ var GLOBAL_PATH_COUNT = 0;
 
         chart_space.printSettings.setDefault();
         line_chart.tryChangeType(oOptions.type);
-        chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
+        if(AscCommon.g_oChartStyles[oOptions.type]) {
+            chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
+        }
         return chart_space;
     }
 
@@ -12577,7 +12579,9 @@ var GLOBAL_PATH_COUNT = 0;
             legend.setOverlay(false);
         }
         chart_space.printSettings.setDefault();
-        chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
+        if(AscCommon.g_oChartStyles[oOptions.type]) {
+            chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
+        }
         return chart_space;
     }
 
@@ -12686,7 +12690,9 @@ var GLOBAL_PATH_COUNT = 0;
             legend.setOverlay(false);
         }
         chart_space.printSettings.setDefault();
-        chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
+        if(AscCommon.g_oChartStyles[oOptions.type]) {
+            chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
+        }
         return chart_space;
     }
 
@@ -12777,7 +12783,10 @@ var GLOBAL_PATH_COUNT = 0;
             legend.setOverlay(false);
         }
         chart_space.printSettings.setDefault();
-        chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
+
+        if(AscCommon.g_oChartStyles[oOptions.type]) {
+            chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
+        }
         return chart_space;
     }
 
@@ -12821,7 +12830,9 @@ var GLOBAL_PATH_COUNT = 0;
         chart.setShowDLblsOverMax(false);
         chart_space.setPrintSettings(new AscFormat.CPrintSettings());
         chart_space.printSettings.setDefault();
-        chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
+        if(AscCommon.g_oChartStyles[oOptions.type]) {
+            chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
+        }
         return chart_space;
     }
 
@@ -12898,7 +12909,9 @@ var GLOBAL_PATH_COUNT = 0;
         if(oOptions && oOptions.type !== Asc.c_oAscChartTypeSettings) {
             scatter_chart.tryChangeType(oOptions.type);
         }
-        chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
+        if(AscCommon.g_oChartStyles[oOptions.type]) {
+            chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
+        }
         return chart_space;
     }
 
@@ -12989,7 +13002,9 @@ var GLOBAL_PATH_COUNT = 0;
         legend.setLayout(new AscFormat.CLayout());
         legend.setOverlay(false);
         chart_space.printSettings.setDefault();
-        chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
+        if(AscCommon.g_oChartStyles[oOptions.type]) {
+            chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
+        }
         return chart_space;
     }
 
@@ -13114,7 +13129,9 @@ var GLOBAL_PATH_COUNT = 0;
         var oPrintSettings = new AscFormat.CPrintSettings();
         oPrintSettings.setDefault();
         oChartSpace.setPrintSettings(oPrintSettings);
-        oChartSpace.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
+        if(AscCommon.g_oChartStyles[oOptions.type]) {
+            oChartSpace.applyChartStyleByIds(AscCommon.g_oChartStyles[oOptions.type][0]);
+        }
         return oChartSpace;
     }
     function CreateDefaultAxes(valFormatCode) {
