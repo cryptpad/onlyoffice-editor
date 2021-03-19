@@ -4716,7 +4716,9 @@ DrawingObjectsController.prototype =
             case c_oAscChartTypeSettings.comboCustom: {
                 var oChartSpace = AscFormat.CreateBarChart(chartSeries, BAR_GROUPING_CLUSTERED, bUseCache, options);
                 oChartSpace.changeChartType(options.type);
-                oChartSpace.applyChartStyleByIds(AscCommon.g_oChartStyles[options.type][0]);
+                if(AscCommon.g_oChartStyles[options.type]) {
+                    oChartSpace.applyChartStyleByIds(AscCommon.g_oChartStyles[options.type][0]);
+                }
                 return oChartSpace;
             }
 		}

@@ -4286,6 +4286,10 @@
 		}
 	}
 
+	function loadChartStyles(onSuccess, onError) {
+		loadScript('../../../../sdkjs/common/ChartStyles/ChartStyles.js', onSuccess, onError);
+	}
+
 	function getAltGr(e)
 	{
 		var ctrlKey = e.metaKey || e.ctrlKey;
@@ -6462,6 +6466,7 @@
 
 	window["AscCommon"].loadSdk = loadSdk;
     window["AscCommon"].loadScript = loadScript;
+    window["AscCommon"].loadChartStyles = loadChartStyles;
 	window["AscCommon"].getAltGr = getAltGr;
 	window["AscCommon"].getColorSchemeByName = getColorSchemeByName;
 	window["AscCommon"].getColorSchemeByIdx = getColorSchemeByIdx;
