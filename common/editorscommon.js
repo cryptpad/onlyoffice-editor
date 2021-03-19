@@ -4287,7 +4287,7 @@
 	}
 
 	function loadChartStyles(onSuccess, onError) {
-		loadScript('../../../../sdkjs/common/ChartStyles/ChartStyles.js', onSuccess, onError);
+		loadScript('../../../../sdkjs/common/Charts/ChartStyles.js', onSuccess, onError);
 	}
 
 	function getAltGr(e)
