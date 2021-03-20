@@ -652,6 +652,7 @@ var g_PresetTxWarpTypes =
 	var g_oLegendBinaries = {};
 	var g_oCatBinaries = {};
 	var g_oValBinaries = {};
+	var g_oBarParams = {};
 	var g_oView3dBinaries = {};
 	var g_oChartStyles = {};
 	var g_oChartStylesIdMap = {};
@@ -659,12 +660,12 @@ var g_PresetTxWarpTypes =
 
 
 	function fSaveStream(oStream, nLength) {
-		//var aData = oStream.data.slice(oStream.cur, oStream.cur + nLength);
-		//var sData = "XLSY;;";
-		//sData += (nLength + ";");
-		//sData += AscCommon.Base64Encode(aData,aData.length, 0);
-		//var nCRC32 = AscCommon.g_oCRC32.Calculate_ByString(sData, sData.length);
-		//return {data: sData, crc32: nCRC32};
+		/*var aData = oStream.data.slice(oStream.cur, oStream.cur + nLength);
+		var sData = "XLSY;;";
+		sData += (nLength + ";");
+		sData += AscCommon.Base64Encode(aData,aData.length, 0);
+		var nCRC32 = AscCommon.g_oCRC32.Calculate_ByString(sData, sData.length);
+		return {data: sData, crc32: nCRC32};*/
 		return undefined;
 	}
 
@@ -692,8 +693,9 @@ var g_PresetTxWarpTypes =
 	window['AscCommon'].g_oLegendBinaries = window['AscCommon'].g_oLegendBinaries || g_oLegendBinaries;
 	window['AscCommon'].g_oCatBinaries = window['AscCommon'].g_oCatBinaries || g_oCatBinaries;
 	window['AscCommon'].g_oValBinaries = window['AscCommon'].g_oValBinaries || g_oValBinaries;
+	window['AscCommon'].g_oBarParams = window['AscCommon'].g_oBarParams || g_oBarParams;
 	window['AscCommon'].g_oView3dBinaries = window['AscCommon'].g_oView3dBinaries || g_oView3dBinaries;
-	window['AscCommon'].g_oChartStylesIdMap =window['AscCommon'].g_oChartStylesIdMap ||  g_oChartStylesIdMap;
+	window['AscCommon'].g_oChartStylesIdMap = window['AscCommon'].g_oChartStylesIdMap ||  g_oChartStylesIdMap;
 
 	function fGetAttributeString(attribute) {
 		if(Array.isArray(attribute)) {
@@ -718,14 +720,29 @@ var g_PresetTxWarpTypes =
 	}
 	function fGenerateScriptMap(sObjectName, oMap, bKeysAsIs) {
 		var sMapScript = sObjectName + " = {};\n";
+		var oKeysMap = {};
 		for(var key in oMap) {
 			if(oMap.hasOwnProperty(key)) {
-				if(!bKeysAsIs) {
-					sMapScript += (sObjectName + "[" + fGetAttributeString(key) + "] = " + fGetAttributeString(oMap[key]) + ";\n");
+				var sValue = fGetAttributeString(oMap[key]);
+				if(!Array.isArray(oKeysMap[sValue])) { 
+					oKeysMap[sValue] = [];
 				}
-				else {
-					sMapScript += (sObjectName + "[" + key + "] = " + fGetAttributeString(oMap[key]) + ";\n");
+				oKeysMap[sValue].push(key);
+			}
+		}
+		for(var sValues in oKeysMap) {
+			if(oKeysMap.hasOwnProperty(sValues)) {
+				var aKeys = oKeysMap[sValues];
+				for(var nKey = 0; nKey < aKeys.length; ++nKey) {
+					var sKey = aKeys[nKey];
+					if(!bKeysAsIs) {
+						sMapScript += (sObjectName + "[" + fGetAttributeString(sKey) + "] = ");
+					}
+					else {
+						sMapScript += (sObjectName + "[" + sKey + "] = ");
+					}
 				}
+				sMapScript += (sValues + ";\n");
 			}
 		}
 		sMapScript += "\n";
@@ -736,6 +753,7 @@ var g_PresetTxWarpTypes =
 		sResultScript += fGenerateScriptMap("g_oDataLabelsBinaries", AscCommon.g_oDataLabelsBinaries);
 		sResultScript += fGenerateScriptMap("g_oCatBinaries", AscCommon.g_oCatBinaries);
 		sResultScript += fGenerateScriptMap("g_oValBinaries", AscCommon.g_oValBinaries);
+		sResultScript += fGenerateScriptMap("g_oBarParams", AscCommon.g_oBarParams);
 		sResultScript += fGenerateScriptMap("g_oView3dBinaries", AscCommon.g_oView3dBinaries);
 		sResultScript += fGenerateScriptMap("g_oLegendBinaries", AscCommon.g_oLegendBinaries);
 		sResultScript += fGenerateScriptMap("g_oStylesBinaries", AscCommon.g_oStylesBinaries);

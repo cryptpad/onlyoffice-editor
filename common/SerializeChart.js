@@ -5686,12 +5686,6 @@ BinaryChartReader.prototype.ExternalReadCT_ChartSpace = function (length, val, c
             }
             aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.doughnut"];
         }
-        else if(sName === "Doughnut") {
-            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.doughnut"])) {
-                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.doughnut"] = [];
-            }
-            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.doughnut"];
-        }
         else if(sName === "Area") {
             if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.areaNormal"])) {
                 AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.areaNormal"] =
@@ -5702,21 +5696,19 @@ BinaryChartReader.prototype.ExternalReadCT_ChartSpace = function (length, val, c
         }
         else if(sName === "Stock") {
             if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.stock"])) {
-                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.stock"] =
-                    AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.stock"] =
-                        AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.stock"] = [];
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.stock"] = [];
             }
             aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.stock"];
         }
-        else if(sName === "Scatter") {
+        if(sName === "ScatterLine") {
             if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.scatter"])) {
-                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.scatter"] = [];
-            }
-            aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.scatter"];
-        }
-        else if(sName === "ScatterLine") {
-            if(!Array.isArray(AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.scatter"])) {
-                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.scatter"] = [];
+                AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.scatter"] =
+                    AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.scatterLine"] =
+                    AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.scatterLineMarker"] =
+                    AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.scatterMarker"] =
+                    AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.scatterNone"] =
+                    AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.scatterSmooth"] =
+                    AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.scatterSmoothMarker"] = [];
             }
             aStyles = AscCommon.g_oChartStyles["Asc.c_oAscChartTypeSettings.scatter"];
         }
@@ -5752,6 +5744,21 @@ BinaryChartReader.prototype.ExternalReadCT_ChartSpace = function (length, val, c
             if(this.curChart.oChartColorsData) {
                 AscCommon.g_oColorsBinaries[this.curChart.oChartColorsData.crc32] = this.curChart.oChartColorsData.data;
             }
+            var oBarChart;
+            var aCharts = val.chart.plotArea.charts;
+            if(aCharts.length === 1 && aCharts[0].getObjectType() === AscDFH.historyitem_type_BarChart) {
+                oBarChart = aCharts[0];
+            }
+            var crc32BarParams = null;
+            if(oBarChart) {
+                var aBarParams = [];
+                aBarParams.push(oBarChart.gapWidth);
+                aBarParams.push(oBarChart.overlap);
+                aBarParams.push(oBarChart.gapDepth);
+                var sJSON = JSON.stringify(aBarParams);
+                crc32BarParams = AscCommon.g_oCRC32.Calculate_ByString(sJSON, sJSON.length);
+                AscCommon.g_oBarParams[crc32BarParams] = aBarParams;
+            }
             aStyles.push([
                 val.oChartStyleData && val.oChartStyleData.crc32 || null,
                 val.oChartColorsData && val.oChartColorsData.crc32 || null,
@@ -5759,7 +5766,8 @@ BinaryChartReader.prototype.ExternalReadCT_ChartSpace = function (length, val, c
                 val.oCatAxData && val.oCatAxData.crc32 || null,
                 val.oValAxData && val.oValAxData.crc32 || null,
                 val.oView3DData && val.oView3DData.crc32 || null,
-                val.oLegendData && val.oLegendData.crc32 || null
+                val.oLegendData && val.oLegendData.crc32 || null,
+                crc32BarParams
             ]);
         }
     }*/

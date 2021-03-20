@@ -6534,6 +6534,11 @@
             else {
                 this.setDLbls(oAdditionalData.dLbls.createDuplicate());
             }
+			if(this.getObjectType() === AscDFH.historyitem_type_BarChart) {
+				this.setGapWidth(oAdditionalData.gapWidth);
+				this.setOverlap(oAdditionalData.overlap);
+				this.setGapDepth(oAdditionalData.gapDepth);
+			}
         }
         for(var nSeries = 0; nSeries < this.series.length; ++nSeries) {
             this.series[nSeries].applyChartStyle(oChartStyle, oColors, oAdditionalData, bReset);

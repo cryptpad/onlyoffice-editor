@@ -12153,6 +12153,9 @@ var GLOBAL_PATH_COUNT = 0;
         this.valAx = null;
         this.view3D = null;
         this.legend = null;
+		this.gapWidth = null;
+		this.overlap = null;
+		this.gapDepth = null;
     }
 
     function fSaveChartObjectSourceFormatting(oObject, oObjectCopy, oTheme, oColorMap) {
@@ -13495,12 +13498,20 @@ var GLOBAL_PATH_COUNT = 0;
                 var nValAx = aStyle[4];
                 var nView3D = aStyle[5];
                 var nLegend = aStyle[6];
+				var nBarData = aStyle[7];
                 var oAdditionalData = new CAdditionalStyleData();
                 oAdditionalData.dLbls = this.checkDataLabels(nDataLables);
                 oAdditionalData.catAx = this.checkCatAx(nCatAx);
                 oAdditionalData.valAx = this.checkValAx(nValAx);
                 oAdditionalData.view3D = this.checkView3d(nView3D);
                 oAdditionalData.legend = this.checkLegend(nLegend);
+				var aBarData;
+				if(Array.isArray(AscCommon.g_oBarParams[nBarData])) {
+					aBarData = AscCommon.g_oBarParams[nBarData];
+					oAdditionalData.gapWidth = aBarData[0];
+					oAdditionalData.overlap = aBarData[1];
+					oAdditionalData.gapDepth = aBarData[2];
+				}
                 return oAdditionalData;
             }
         }
