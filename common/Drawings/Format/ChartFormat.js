@@ -6787,6 +6787,8 @@
             if(this.b3D !== true) {
                 this.set3D(true);
             }
+			this.setGapDepth(null);  
+			this.setOverlap(null);
         }
         else {
             if(this.b3D !== false) {
