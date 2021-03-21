@@ -2667,234 +2667,238 @@ GraphicOption.prototype.union = function(oGraphicOption) {
             oNewChartSpace.documentGetAllFontNames(font_map);
             AscFormat.checkThemeFonts(font_map, model.workbook.theme.themeElements.fontScheme);
             window["Asc"]["editor"]._loadFonts(font_map,
-                function()
-                {
-                    var max_r = 0, max_c = 0;
-
-                    var series = oNewChartSpace.getAllSeries(), ser;
-
-					function fFillCell(oCell, sNumFormat, value)
-					{
-						var oCellValue = new AscCommonExcel.CCellValue();
-						if(AscFormat.isRealNumber(value))
-						{
-							oCellValue.number = value;
-							oCellValue.type = AscCommon.CellValueType.Number;
-						}
-						else
-						{
-							oCellValue.text = value;
-							oCellValue.type = AscCommon.CellValueType.String;
-						}
-						oCell.setNumFormat(sNumFormat);
-						oCell.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, oCellValue));
-					}
-
-                    function fillTableFromRef(ref)
-                    {
-                        var cache = ref.numCache ? ref.numCache : (ref.strCache ? ref.strCache : null);
-                        var lit_format_code;
-                        if(cache)
+                function() {
+                    AscCommonExcel.executeInR1C1Mode(false,
+                        function()
                         {
-							lit_format_code = (typeof cache.formatCode === "string" && cache.formatCode.length > 0) ? cache.formatCode : "General";
+                            var max_r = 0, max_c = 0;
 
-                            var sFormula = ref.f + "";
-                            if(sFormula[0] === '(')
-                                sFormula = sFormula.slice(1);
-                            if(sFormula[sFormula.length-1] === ')')
-                                sFormula = sFormula.slice(0, -1);
-                            var f1 = sFormula;
+                            var series = oNewChartSpace.getAllSeries(), ser;
 
-                            var arr_f = f1.split(",");
-                            var pt_index = 0, i, j, pt, nPtCount, k;
-                            for(i = 0; i < arr_f.length; ++i)
+                            function fFillCell(oCell, sNumFormat, value)
                             {
-                                var parsed_ref = parserHelp.parse3DRef(arr_f[i]);
-                                if(parsed_ref)
+                                var oCellValue = new AscCommonExcel.CCellValue();
+                                if(AscFormat.isRealNumber(value))
                                 {
-                                    var source_worksheet = model.workbook.getWorksheetByName(parsed_ref.sheet);
-                                    if(source_worksheet === model)
+                                    oCellValue.number = value;
+                                    oCellValue.type = AscCommon.CellValueType.Number;
+                                }
+                                else
+                                {
+                                    oCellValue.text = value;
+                                    oCellValue.type = AscCommon.CellValueType.String;
+                                }
+                                oCell.setNumFormat(sNumFormat);
+                                oCell.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, oCellValue));
+                            }
+
+                            function fillTableFromRef(ref)
+                            {
+                                var cache = ref.numCache ? ref.numCache : (ref.strCache ? ref.strCache : null);
+                                var lit_format_code;
+                                if(cache)
+                                {
+                                    lit_format_code = (typeof cache.formatCode === "string" && cache.formatCode.length > 0) ? cache.formatCode : "General";
+
+                                    var sFormula = ref.f + "";
+                                    if(sFormula[0] === '(')
+                                        sFormula = sFormula.slice(1);
+                                    if(sFormula[sFormula.length-1] === ')')
+                                        sFormula = sFormula.slice(0, -1);
+                                    var f1 = sFormula;
+
+                                    var arr_f = f1.split(",");
+                                    var pt_index = 0, i, j, pt, nPtCount, k;
+                                    for(i = 0; i < arr_f.length; ++i)
                                     {
-                                        var range = source_worksheet.getRange2(parsed_ref.range);
-                                        if(range)
+                                        var parsed_ref = parserHelp.parse3DRef(arr_f[i]);
+                                        if(parsed_ref)
                                         {
-											range = range.bbox;
-
-                                            if(range.r1 > max_r)
-                                                max_r = range.r1;
-                                            if(range.r2 > max_r)
-                                                max_r = range.r2;
-
-                                            if(range.c1 > max_c)
-                                                max_c = range.c1;
-                                            if(range.c2 > max_c)
-                                                max_c = range.c2;
-
-                                            if(i === arr_f.length - 1)
+                                            var source_worksheet = model.workbook.getWorksheetByName(parsed_ref.sheet);
+                                            if(source_worksheet === model)
                                             {
-                                                nPtCount = cache.getPtCount();
-                                                if((nPtCount - pt_index) <=(range.r2 - range.r1 + 1))
+                                                var range = source_worksheet.getRange2(parsed_ref.range);
+                                                if(range)
                                                 {
-                                                    for(k = range.c1; k <= range.c2; ++k)
+                                                    range = range.bbox;
+
+                                                    if(range.r1 > max_r)
+                                                        max_r = range.r1;
+                                                    if(range.r2 > max_r)
+                                                        max_r = range.r2;
+
+                                                    if(range.c1 > max_c)
+                                                        max_c = range.c1;
+                                                    if(range.c2 > max_c)
+                                                        max_c = range.c2;
+
+                                                    if(i === arr_f.length - 1)
                                                     {
-                                                        for(j = range.r1; j <= range.r2; ++j)
+                                                        nPtCount = cache.getPtCount();
+                                                        if((nPtCount - pt_index) <=(range.r2 - range.r1 + 1))
                                                         {
-                                                            source_worksheet._getCell(j, k, function(cell) {
-                                                                pt = cache.getPtByIndex(pt_index + j - range.r1);
-                                                                if(pt)
+                                                            for(k = range.c1; k <= range.c2; ++k)
+                                                            {
+                                                                for(j = range.r1; j <= range.r2; ++j)
                                                                 {
-                                                                    fFillCell(cell, typeof pt.formatCode === "string" && pt.formatCode.length > 0 ? pt.formatCode : lit_format_code, pt.val);
+                                                                    source_worksheet._getCell(j, k, function(cell) {
+                                                                        pt = cache.getPtByIndex(pt_index + j - range.r1);
+                                                                        if(pt)
+                                                                        {
+                                                                            fFillCell(cell, typeof pt.formatCode === "string" && pt.formatCode.length > 0 ? pt.formatCode : lit_format_code, pt.val);
+                                                                        }
+                                                                    });
                                                                 }
-                                                            });
+                                                            }
+                                                            pt_index += (range.r2 - range.r1 + 1);
+                                                        }
+                                                        else if((nPtCount - pt_index) <= (range.c2 - range.c1 + 1))
+                                                        {
+                                                            for(k = range.r1; k <= range.r2; ++k)
+                                                            {
+                                                                for(j = range.c1;  j <= range.c2; ++j)
+                                                                {
+                                                                    source_worksheet._getCell(k, j, function(cell) {
+                                                                        pt = cache.getPtByIndex(pt_index + j - range.c1);
+                                                                        if(pt)
+                                                                        {
+                                                                            fFillCell(cell, typeof pt.formatCode === "string" && pt.formatCode.length > 0 ? pt.formatCode : lit_format_code, pt.val);
+                                                                        }
+                                                                    });
+                                                                }
+                                                            }
+                                                            pt_index += (range.c2 - range.c1 + 1);
                                                         }
                                                     }
-                                                    pt_index += (range.r2 - range.r1 + 1);
-                                                }
-                                                else if((nPtCount - pt_index) <= (range.c2 - range.c1 + 1))
-                                                {
-                                                    for(k = range.r1; k <= range.r2; ++k)
+                                                    else
                                                     {
-                                                        for(j = range.c1;  j <= range.c2; ++j)
+                                                        if(range.r1 === range.r2)
                                                         {
-                                                            source_worksheet._getCell(k, j, function(cell) {
-                                                                pt = cache.getPtByIndex(pt_index + j - range.c1);
-                                                                if(pt)
-                                                                {
-                                                                    fFillCell(cell, typeof pt.formatCode === "string" && pt.formatCode.length > 0 ? pt.formatCode : lit_format_code, pt.val);
-                                                                }
-                                                            });
+                                                            for(j = range.c1;  j <= range.c2; ++j)
+                                                            {
+                                                                source_worksheet._getCell(range.r1, j, function(cell) {
+                                                                    pt = cache.getPtByIndex(pt_index);
+                                                                    if(pt)
+                                                                    {
+                                                                        fFillCell(cell, typeof pt.formatCode === "string" && pt.formatCode.length > 0 ? pt.formatCode : lit_format_code, pt.val);
+                                                                    }
+                                                                    ++pt_index;
+                                                                });
+                                                            }
                                                         }
-                                                    }
-                                                    pt_index += (range.c2 - range.c1 + 1);
-                                                }
-                                            }
-                                            else
-                                            {
-                                                if(range.r1 === range.r2)
-                                                {
-                                                    for(j = range.c1;  j <= range.c2; ++j)
-                                                    {
-                                                        source_worksheet._getCell(range.r1, j, function(cell) {
-                                                            pt = cache.getPtByIndex(pt_index);
-                                                            if(pt)
+                                                        else
+                                                        {
+                                                            for(j = range.r1; j <= range.r2; ++j)
                                                             {
-                                                                fFillCell(cell, typeof pt.formatCode === "string" && pt.formatCode.length > 0 ? pt.formatCode : lit_format_code, pt.val);
+                                                                source_worksheet._getCell(j, range.c1, function(cell) {
+                                                                    pt = cache.getPtByIndex(pt_index);
+                                                                    if(pt)
+                                                                    {
+                                                                        fFillCell(cell, typeof pt.formatCode === "string" && pt.formatCode.length > 0 ? pt.formatCode : lit_format_code, pt.val);
+                                                                    }
+                                                                    ++pt_index;
+                                                                });
                                                             }
-                                                            ++pt_index;
-                                                        });
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    for(j = range.r1; j <= range.r2; ++j)
-                                                    {
-                                                        source_worksheet._getCell(j, range.c1, function(cell) {
-                                                            pt = cache.getPtByIndex(pt_index);
-                                                            if(pt)
-                                                            {
-                                                                fFillCell(cell, typeof pt.formatCode === "string" && pt.formatCode.length > 0 ? pt.formatCode : lit_format_code, pt.val);
-                                                            }
-                                                            ++pt_index;
-                                                        });
-                                                    }
-                                                }
+                                                        }
 
+                                                    }
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
-                        }
-                    }
 
-                    var first_num_ref;
-                    if(series[0])
-                    {
-                        if(series[0].val)
-                            first_num_ref = series[0].val.numRef;
-                        else if(series[0].yVal)
-                            first_num_ref = series[0].yVal.numRef;
-                    }
-                    if(first_num_ref)
-                    {
-                        var resultRef = parserHelp.parse3DRef(first_num_ref.f);
-                        if(resultRef)
-                        {
-                            model.workbook.aWorksheets[0].sName = resultRef.sheet;
-                            var oCat, oVal;
-                            for(var i = 0; i < series.length; ++i)
+                            var first_num_ref;
+                            if(series[0])
                             {
-                                ser = series[i];
-                                oVal = ser.val || ser.yVal;
-                                if(oVal && oVal.numRef)
+                                if(series[0].val)
+                                    first_num_ref = series[0].val.numRef;
+                                else if(series[0].yVal)
+                                    first_num_ref = series[0].yVal.numRef;
+                            }
+                            if(first_num_ref)
+                            {
+                                var resultRef = parserHelp.parse3DRef(first_num_ref.f);
+                                if(resultRef)
                                 {
-                                    fillTableFromRef(oVal.numRef);
-                                }
-                                oCat = ser.cat || ser.xVal;
-                                if(oCat)
-                                {
-                                    if(oCat.numRef)
+                                    model.workbook.aWorksheets[0].sName = resultRef.sheet;
+                                    var oCat, oVal;
+                                    for(var i = 0; i < series.length; ++i)
                                     {
-                                        fillTableFromRef(oCat.numRef);
+                                        ser = series[i];
+                                        oVal = ser.val || ser.yVal;
+                                        if(oVal && oVal.numRef)
+                                        {
+                                            fillTableFromRef(oVal.numRef);
+                                        }
+                                        oCat = ser.cat || ser.xVal;
+                                        if(oCat)
+                                        {
+                                            if(oCat.numRef)
+                                            {
+                                                fillTableFromRef(oCat.numRef);
+                                            }
+                                            if(oCat.strRef)
+                                            {
+                                                fillTableFromRef(oCat.strRef);
+                                            }
+                                        }
+                                        if(ser.tx && ser.tx.strRef)
+                                        {
+                                            fillTableFromRef(ser.tx.strRef);
+                                        }
                                     }
-                                    if(oCat.strRef)
-                                    {
-                                        fillTableFromRef(oCat.strRef);
-                                    }
-                                }
-                                if(ser.tx && ser.tx.strRef)
-                                {
-                                    fillTableFromRef(ser.tx.strRef);
                                 }
                             }
-                        }
-                    }
-					oAllRange = oAllRange.bbox;
-					oAllRange.r2 = Math.max(oAllRange.r2, max_r);
-					oAllRange.c2 = Math.max(oAllRange.c2, max_c);
-					worksheet._updateRange(oAllRange);
-					worksheet.draw();
-                    aImagesSync.length = 0;
-                    oNewChartSpace.getAllRasterImages(aImagesSync);
-                    oNewChartSpace.setBDeleted(false);
-                    oNewChartSpace.setWorksheet(model);
-                    oNewChartSpace.addToDrawingObjects();
-                    oNewChartSpace.recalcInfo.recalculateReferences = false;
-                    var oDrawingBase_ = oNewChartSpace.drawingBase;
-                    oNewChartSpace.drawingBase = null;
-                    oNewChartSpace.recalculate();
-                    AscFormat.CheckSpPrXfrm(oNewChartSpace);
-                    oNewChartSpace.drawingBase = oDrawingBase_;
+                            oAllRange = oAllRange.bbox;
+                            oAllRange.r2 = Math.max(oAllRange.r2, max_r);
+                            oAllRange.c2 = Math.max(oAllRange.c2, max_c);
+                            worksheet._updateRange(oAllRange);
+                            worksheet.draw();
+                            aImagesSync.length = 0;
+                            oNewChartSpace.getAllRasterImages(aImagesSync);
+                            oNewChartSpace.setBDeleted(false);
+                            oNewChartSpace.setWorksheet(model);
+                            oNewChartSpace.addToDrawingObjects();
+                            oNewChartSpace.recalcInfo.recalculateReferences = false;
+                            var oDrawingBase_ = oNewChartSpace.drawingBase;
+                            oNewChartSpace.drawingBase = null;
+                            oNewChartSpace.recalculate();
+                            AscFormat.CheckSpPrXfrm(oNewChartSpace);
+                            oNewChartSpace.drawingBase = oDrawingBase_;
 
-                    var canvas_height = worksheet.drawingCtx.getHeight(3);
-                    var pos_y = (canvas_height - oNewChartSpace.spPr.xfrm.extY)/2;
-                    if(pos_y < 0)
-                    {
-                        pos_y = 0;
-                    }
+                            var canvas_height = worksheet.drawingCtx.getHeight(3);
+                            var pos_y = (canvas_height - oNewChartSpace.spPr.xfrm.extY)/2;
+                            if(pos_y < 0)
+                            {
+                                pos_y = 0;
+                            }
 
-                    var canvas_width = worksheet.drawingCtx.getWidth(3);
-                    var pos_x = (canvas_width - oNewChartSpace.spPr.xfrm.extX)/2;
-                    if(pos_x < 0)
-                    {
-                        pos_x = 0;
-                    }
-                    oNewChartSpace.spPr.xfrm.setOffX(pos_x);
-                    oNewChartSpace.spPr.xfrm.setOffY(pos_y);
-                    oNewChartSpace.checkDrawingBaseCoords();
-                    oNewChartSpace.recalculate();
-                    worksheet._scrollToRange(_this.getSelectedDrawingsRange());
-                    _this.showDrawingObjects();
-                    _this.controller.resetSelection();
-                    _this.controller.selectObject(oNewChartSpace, 0);
-                    _this.controller.updateSelectionState();
-                    _this.sendGraphicObjectProps();
-                    if(aImagesSync.length > 0)
-                    {
-                        window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImagesSync);
-                    }
-                    History.Clear();
-                });
+                            var canvas_width = worksheet.drawingCtx.getWidth(3);
+                            var pos_x = (canvas_width - oNewChartSpace.spPr.xfrm.extX)/2;
+                            if(pos_x < 0)
+                            {
+                                pos_x = 0;
+                            }
+                            oNewChartSpace.spPr.xfrm.setOffX(pos_x);
+                            oNewChartSpace.spPr.xfrm.setOffY(pos_y);
+                            oNewChartSpace.checkDrawingBaseCoords();
+                            oNewChartSpace.recalculate();
+                            worksheet._scrollToRange(_this.getSelectedDrawingsRange());
+                            _this.showDrawingObjects();
+                            _this.controller.resetSelection();
+                            _this.controller.selectObject(oNewChartSpace, 0);
+                            _this.controller.updateSelectionState();
+                            _this.sendGraphicObjectProps();
+                            if(aImagesSync.length > 0)
+                            {
+                                window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImagesSync);
+                            }
+                            History.Clear();
+                        });
+                }
+            );
 
 
         }
