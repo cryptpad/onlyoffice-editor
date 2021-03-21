@@ -10078,10 +10078,10 @@
         }
         var oChartSpace = this.getChartSpace();
         if(oChartSpace) {
-            var oChartStyle = oChartSpace.chartSpace;
+            var oChartStyle = oChartSpace.chartStyle;
             var oChartColors = oChartSpace.chartColors;
             if(oChartStyle && oChartColors) {
-                this.applyChartStyle(oChartStyle, oChartColors, oAdditionalData, false);
+                this.applyChartStyle(oChartStyle, oChartColors, null, false);
             }
         }
     };
@@ -11875,15 +11875,15 @@
                 }
             }
         }
+        this.setScatterStyle(new_scatter_style);
         var oChartSpace = this.getChartSpace();
         if(oChartSpace) {
-            var oChartStyle = oChartSpace.chartSpace;
+            var oChartStyle = oChartSpace.chartStyle;
             var oChartColors = oChartSpace.chartColors;
             if(oChartStyle && oChartColors) {
-                this.applyChartStyle(oChartStyle, oChartColors, oAdditionalData, false);
+                this.applyChartStyle(oChartStyle, oChartColors, null, false);
             }
         }
-        this.setScatterStyle(new_scatter_style);
     };
 
     function CScatterSeries() {
