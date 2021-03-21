@@ -6106,6 +6106,9 @@
             oCopy.setGrouping(this.grouping);
         if(AscFormat.isRealNumber(this.overlap) && oCopy.setOverlap)
             oCopy.setOverlap(this.overlap);
+        if(AscFormat.isRealBool(this.b3D) && oCopy.getObjectType() === AscDFH.historyitem_type_BarChart) {
+            oCopy.set3D(this.b3D);
+        }
     };
     CBarChart.prototype.getDefaultDataLabelsPosition = function() {
         if(!AscFormat.isRealNumber(this.grouping) || this.grouping === AscFormat.BAR_GROUPING_CLUSTERED || this.grouping === AscFormat.BAR_GROUPING_STANDARD) {
