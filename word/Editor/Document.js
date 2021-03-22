@@ -22484,6 +22484,7 @@ CDocument.prototype.AddTableOfFigures = function(oPr)
                 if (isNeedChangeStyles)
                     oStyles.SetTOFStyleType(nStylesType);
                 oComplexField.Update();
+                oComplexField.MoveCursorOutsideElement(false);
                 var oNextParagraph;
                 var oParagraph = this.GetCurrentParagraph();
                 if(oParagraph)
