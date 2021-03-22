@@ -6779,10 +6779,10 @@
     CAxisBase.prototype.getLabelSetting = function() {
         if(this.isHorizontal()) {
             if(this.title) {
-                return Asc.c_oAscChartTitleShowSettings.noOverlay;
+                return Asc.c_oAscChartHorAxisLabelShowSettings.noOverlay;
             }
             else {
-                return Asc.c_oAscChartTitleShowSettings.none;
+                return Asc.c_oAscChartHorAxisLabelShowSettings.none;
             }
         }
         else {
