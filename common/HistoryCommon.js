@@ -1513,8 +1513,16 @@
 
 	window['AscDFH'].historyitem_type_DocumentMacros         = 2000 << 16;
 	window['AscDFH'].historyitem_type_PrSet                  = 2001 << 16;
-	window['AscDFH'].historyitem_type_Point                  = 2002 << 16;
-	window['AscDFH'].historyitem_type_PtLst                  = 2003 << 16;
+	window['AscDFH'].historyitem_type_CCommonDataList        = 2002 << 16;
+	window['AscDFH'].historyitem_type_Point                  = 2003 << 16;
+	window['AscDFH'].historyitem_type_PtLst                  = 2004 << 16;
+	window['AscDFH'].historyitem_type_DataModel              = 2005 << 16;
+	window['AscDFH'].historyitem_type_CxnLst                 = 2006 << 16;
+	window['AscDFH'].historyitem_type_ExtLst                 = 2007 << 16;
+	window['AscDFH'].historyitem_type_BgFormat               = 2008 << 16;
+	window['AscDFH'].historyitem_type_Whole                  = 2009 << 16;
+	window['AscDFH'].historyitem_type_Cxn                    = 2010 << 16;
+
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
@@ -3238,11 +3246,44 @@
 
 	AscDFH.historyitem_PointCxnId   = AscDFH.historyitem_type_Point | 1;
 	AscDFH.historyitem_PointModelId = AscDFH.historyitem_type_Point | 2;
-	AscDFH.historyitem_PointType  = AscDFH.historyitem_type_Point | 3;
+	AscDFH.historyitem_PointType    = AscDFH.historyitem_type_Point | 3;
 	AscDFH.historyitem_PointExtLst  = AscDFH.historyitem_type_Point | 4;
 	AscDFH.historyitem_PointPrSet   = AscDFH.historyitem_type_Point | 5;
 	AscDFH.historyitem_PointSpPr    = AscDFH.historyitem_type_Point | 6;
 	AscDFH.historyitem_PointT       = AscDFH.historyitem_type_Point | 7;
+
+	AscDFH.historyitem_CCommonDataListAdd    = AscDFH.historyitem_type_CCommonDataList | 1;
+	AscDFH.historyitem_CCommonDataListRemove = AscDFH.historyitem_type_CCommonDataList | 2;
+
+	AscDFH.historyitem_BgFormatBlipFill  = AscDFH.historyitem_type_BgFormat | 1;
+	AscDFH.historyitem_BgFormatEffectDag = AscDFH.historyitem_type_BgFormat | 2;
+	AscDFH.historyitem_BgFormatEffectLst = AscDFH.historyitem_type_BgFormat | 3;
+	AscDFH.historyitem_BgFormatGradFill  = AscDFH.historyitem_type_BgFormat | 4;
+	AscDFH.historyitem_BgFormatGrpFill   = AscDFH.historyitem_type_BgFormat | 5;
+	AscDFH.historyitem_BgFormatNoFill    = AscDFH.historyitem_type_BgFormat | 6;
+	AscDFH.historyitem_BgFormatPattFill  = AscDFH.historyitem_type_BgFormat | 7;
+	AscDFH.historyitem_BgFormatSolidFill = AscDFH.historyitem_type_BgFormat | 8;
+
+	AscDFH.historyitem_WholeEffectDag = AscDFH.historyitem_type_Whole | 1;
+	AscDFH.historyitem_WholeEffectLst = AscDFH.historyitem_type_Whole | 2;
+	AscDFH.historyitem_WholeLn        = AscDFH.historyitem_type_Whole | 3;
+
+	AscDFH.historyitem_CxnDestId     = AscDFH.historyitem_type_Cxn | 1;
+	AscDFH.historyitem_CxnDestOrd    = AscDFH.historyitem_type_Cxn | 2;
+	AscDFH.historyitem_CxnModelId    = AscDFH.historyitem_type_Cxn | 3;
+	AscDFH.historyitem_CxnParTransId = AscDFH.historyitem_type_Cxn | 4;
+	AscDFH.historyitem_CxnPresId     = AscDFH.historyitem_type_Cxn | 5;
+	AscDFH.historyitem_CxnSibTransId = AscDFH.historyitem_type_Cxn | 6;
+	AscDFH.historyitem_CxnSrcId      = AscDFH.historyitem_type_Cxn | 7;
+	AscDFH.historyitem_CxnSrcOrd     = AscDFH.historyitem_type_Cxn | 8;
+	AscDFH.historyitem_CxnType       = AscDFH.historyitem_type_Cxn | 9;
+	AscDFH.historyitem_CxnExtLst     = AscDFH.historyitem_type_Cxn | 10;
+
+	AscDFH.historyitem_DataModelBg     = AscDFH.historyitem_type_DataModel | 1;
+	AscDFH.historyitem_DataModelCxnLst = AscDFH.historyitem_type_DataModel | 2;
+	AscDFH.historyitem_DataModelExtLst = AscDFH.historyitem_type_DataModel | 3;
+	AscDFH.historyitem_DataModelPtLst  = AscDFH.historyitem_type_DataModel | 4;
+	AscDFH.historyitem_DataModelWhole  = AscDFH.historyitem_type_DataModel | 5;
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
