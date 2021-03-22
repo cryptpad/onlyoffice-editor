@@ -24595,22 +24595,49 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 		var oSelectedContent = this.GetSelectedContent(true);
 		// возможно здесь нет необходимости получать этот selectedContent, так как у него нет метода, чтобы из него достать этот контент
 		// но не факт, что весь контент будет находиться в параграфах, которые можно получить через this.GetSelectedParagraphs()
-		var oNewContent      = this.private_ConvertTextToTable(oSelectedContent, oProps);
-		if (oNewContent)
+		var oNewContent = this.private_ConvertTextToTable(oSelectedContent, oProps);
+		var oParagraph = this.GetCurrentParagraph();
+		var oParent = oParagraph.GetParent();
+		if (oNewContent && oParent)
 		{
-			this.RemoveBeforePaste();
-
-			var oParagraph = this.GetCurrentParagraph();
-			if (oParagraph)
+			if (oParent === this)
 			{
-				var oAnchorPos = oParagraph.GetCurrentAnchorPosition();
-				if (oAnchorPos && this.Can_InsertContent(oNewContent, oAnchorPos))
+				this.RemoveBeforePaste();
+
+				if (oParagraph)
 				{
-					oParagraph.Check_NearestPos(oAnchorPos);
-					oParagraph.Parent.InsertContent(oNewContent, oAnchorPos);
-					this.MoveCursorRight(false, false, false);
+					var oAnchorPos = oParagraph.GetCurrentAnchorPosition();
+					if (oAnchorPos && this.Can_InsertContent(oNewContent, oAnchorPos))
+					{
+						oParagraph.Check_NearestPos(oAnchorPos);
+						oParagraph.Parent.InsertContent(oNewContent, oAnchorPos);
+						// удаляю этот ненужный параграф, который был вставлен ранее
+						this.RemoveFromContent(oParagraph.GetIndex(), 1, true);
+						// this.MoveCursorRight(false, false, false);
+					}
 				}
 			}
+			else if (oParent.Selection) // если внутри ячейки таблицы
+			{
+				var start, count;
+				if (oParent.Selection.StartPos >  oParent.Selection.EndPos)
+				{
+					start = oParent.Selection.EndPos;
+					count = oParent.Selection.StartPos - oParent.Selection.EndPos;
+				}
+				else
+				{
+					start = oParent.Selection.StartPos;
+					count = oParent.Selection.EndPos - oParent.Selection.StartPos;
+				}
+				oParent.Internal_Content_Remove(start, count + 1, false);
+				oParent.Internal_Content_Add(start, oSelectedContent.Elements[0].Element, false);
+				// я не знаю почему, но здесь не высталяется селект внутри ячейки
+				// TODO: надо как-то его выставить, пока не придумал как
+				oParent.Selection.StartPos = oParent.Selection.EndPos = start;
+				oParent.SetSelectionUse(true);			
+			}
+			
 		}
 
 		this.UpdateSelection();
@@ -24620,9 +24647,10 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 };
 CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oProps)
 {
+	// для примера oProps = {Separator : 92, CellsWidth : null - по радмеру содержимого | или какое-то число в мм}. Если CellsWidth не пришло, то делаем по размеру листа
 	// TODO: подумать над изменением количества столбцов в таблице в меньшую сторону из диалогового окна с настройками
-	// возможно все эти параметры должны прийти в эту функцию, но пока будем принимать только separator, а дальше расширим при необходимости
-	// вообще количество строк и столбцов определяется ещё в диалоговом окне, где указываются некоторые настройки
+	// возможно все эти параметры должны прийти в эту функцию
+	// вообще количество строк и столбцов определяется ещё в диалоговом окне, где указываются некоторые настройки (потом переместить это в отдельную функцию)
 	// там можно поменять количество столбцов, но не строк
 	// указать ширину столбцов : фиксированная (может быть "Авто" или другое значение), по содержимому, по ширине окна
 	// и указывается знак по которому происходит разделение по столбцам, по строкам всегда используется знак абзаца
@@ -24662,7 +24690,7 @@ CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oPro
 								oNewParagraph.AddToContent(0, oNewRun);
 								oArrCells.unshift(oNewParagraph);
 								oNewParagraph = new Paragraph(this.DrawingDocument, this);
-								// разбить ран по этомй позиции
+								// разбить ран по этой позиции
 							}
 						}
 						else
@@ -24713,9 +24741,9 @@ CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oPro
 			oArrRows.unshift(oArrCells);
 		}
 	}
-	// для очистки содержимого и последующего помещения туда нового
+	// для очистки содержимого
 	oSelectedContent.Reset();
-	// здесь надо создать новую таблицу, но сначала надо проверить правильно ли сформировалась матрица таблицы
+	// здесь надо создать новую таблицу и поместить в неё всё содержимое из массива
 
 	var SectPr = this.SectionsInfo.Get_SectPr(this.CurPos.ContentPos).SectPr;
 	var PageFields = this.Get_PageFields(this.CurPage);
@@ -24738,6 +24766,7 @@ CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oPro
 		Grid[Index] = W / oCellsCount;
 
 	var oTable = new CTable(this.DrawingDocument, this, true, oArrRows.length, oCellsCount, Grid);
+
 	for (var i = 0; i < oArrRows.length; i++)
 	{
 		for (var j = 0; j < oArrRows[i].length; j++)
@@ -24746,6 +24775,11 @@ CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oPro
 			// oCellContent.ClearConten(false);
 			oCellContent.AddContent([oArrRows[i][j]]);
 		}
+	}
+	if (oProps.CellsWidth || oProps.CellsWidth === null)
+	{
+		oTable.SelectAll();
+		oTable.SetTableProps({CellSelect : true, CellsWidth: oProps.CellsWidth, Locked : false});
 	}
 	oSelectedContent.Add(new CSelectedElement(oTable, true));
 	return oSelectedContent;
