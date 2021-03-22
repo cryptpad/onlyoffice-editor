@@ -6591,8 +6591,6 @@ function readSDKContentControl(props, selectedObjects) {
 }
 
 function onShowContentControlsActions(obj, x, y) {
-    console.log("onShowContentControlsActions x: " + x + " y: " + y);
-    
     var type = obj.type;
     var data = {
         "x": x,
@@ -6627,7 +6625,6 @@ function onShowContentControlsActions(obj, x, y) {
 }
 
 function onHideContentControlsActions() {
-    console.log("onHideContentControlsActions");
     postDataAsJSONString(null, 26002); // ASC_MENU_EVENT_TYPE_HIDE_CONTENT_CONTROLS_ACTIONS
 }
 
