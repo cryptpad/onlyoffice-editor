@@ -69,6 +69,76 @@
     var Cxn_type_presParOf = 2;
     var Cxn_type_unknownRelationShip = 3;
 
+    var LayoutNode_type_b = 0;
+    var LayoutNode_type_t = 1;
+
+    var Alg_type_composite = 0;
+    var Alg_type_conn = 1;
+    var Alg_type_cycle = 2;
+    var Alg_type_hierChild = 3;
+    var Alg_type_hierRoot = 4;
+    var Alg_type_lin = 5;
+    var Alg_type_pyra = 6;
+    var Alg_type_snake = 7;
+    var Alg_type_sp = 8;
+    var Alg_type_tx = 9;
+
+    var Param_type_alignTx = 0;
+    var Param_type_ar = 1;
+    var Param_type_autoTxRot = 2;
+    var Param_type_begPts = 3;
+    var Param_type_begSty = 4;
+    var Param_type_bendPt = 5;
+    var Param_type_bkpt = 6;
+    var Param_type_bkPtFixedVal = 7;
+    var Param_type_chAlign = 8;
+    var Param_type_chDir = 9;
+    var Param_type_connRout = 10;
+    var Param_type_contDir = 11;
+    var Param_type_ctrShpMap = 12;
+    var Param_type_dim = 13;
+    var Param_type_dstNode = 14;
+    var Param_type_endPts = 15;
+    var Param_type_endSty = 16;
+    var Param_type_fallback = 17;
+    var Param_type_flowDir = 18;
+    var Param_type_grDir = 19;
+    var Param_type_hierAlign = 20;
+    var Param_type_horzAlign = 21;
+    var Param_type_linDir = 22;
+    var Param_type_lnSpAfChP = 23;
+    var Param_type_lnSpAfParP = 24;
+    var Param_type_lnSpCh = 25;
+    var Param_type_lnSpPar = 26;
+    var Param_type_nodeHorzAlign = 27;
+    var Param_type_nodeVertAlign = 28;
+    var Param_type_off = 29;
+    var Param_type_parTxLTRAlign = 30;
+    var Param_type_parTxRTLAlign = 31;
+    var Param_type_pyraAcctBkgdNode = 32;
+    var Param_type_pyraAcctPos = 33;
+    var Param_type_pyraAcctTxMar = 34;
+    var Param_type_pyraAcctTxNode = 35;
+    var Param_type_pyraLvlNode = 36;
+    var Param_type_rotPath = 37;
+    var Param_type_rtShortDist = 38;
+    var Param_type_secChAlign = 39;
+    var Param_type_secLinDir = 40;
+    var Param_type_shpTxLTRAlignCh = 41;
+    var Param_type_shpTxRTLAlignCh = 42;
+    var Param_type_spanAng = 43;
+    var Param_type_srcNode = 44;
+    var Param_type_stAng = 45;
+    var Param_type_stBulletLvl = 46;
+    var Param_type_stElem = 47;
+    var Param_type_txAnchorHorz = 48;
+    var Param_type_txAnchorHorzCh = 49;
+    var Param_type_txAnchorVert = 50;
+    var Param_type_txAnchorVertCh = 51;
+    var Param_type_txBlDir = 52;
+    var Param_type_txDir = 53;
+    var Param_type_vertAlign = 54;
+
 
     changesFactory[AscDFH.historyitem_DataModelBg] = CChangeObject;
     changesFactory[AscDFH.historyitem_DataModelCxnLst] = CChangeObject;
@@ -170,7 +240,7 @@
 
     CCommonDataList.prototype.addToLst = function(nIdx, oPr) {
       var nInsertIdx = Math.min(this.list.length, Math.max(0, nIdx));
-      History.Add(new CChangeContent(this, AscDFH.historyitem_CCommonDataListAdd, nInsertIdx, [oPr], true));
+      oHistory.Add(new CChangeContent(this, AscDFH.historyitem_CCommonDataListAdd, nInsertIdx, [oPr], true));
       this.list.splice(nInsertIdx, 0, oPr);
       this.setParentToChild(oPr);
     };
@@ -178,7 +248,7 @@
     CCommonDataList.prototype.removeFromLst = function(nIdx) {
       if(nIdx > -1 && nIdx < this.list.length) {
         this.list[nIdx].setParent(null);
-        History.Add(new CChangeContent(this, AscDFH.historyitem_CCommonDataListRemove, nIdx, [this.list[nIdx]], false));
+        oHistory.Add(new CChangeContent(this, AscDFH.historyitem_CCommonDataListRemove, nIdx, [this.list[nIdx]], false));
         this.list.splice(nIdx, 1);
       }
     };
@@ -347,6 +417,26 @@
     }
     InitClass(ExtLst, CCommonDataList, AscDFH.historyitem_type_ExtLst);
 
+    changesFactory[AscDFH.historyitem_ExtUri] = CChangeString;
+    drawingsChangesMap[AscDFH.historyitem_ExtUri] = function (oClass, value) {oClass.uri = value;};
+    function Ext() {
+      CBaseFormatObject.call(this);
+      this.uri = null;
+    }
+    InitClass(Ext, CBaseFormatObject, AscDFH.historyitem_type_Ext);
+
+    Ext.prototype.setUri = function(pr) {
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_ExtUri, this.getUri(), pr));
+      this.uri = pr;
+    }
+
+    Ext.prototype.getUri = function() {
+      return this.uri;
+    }
+
+    Ext.prototype.fillObject = function (oCopy, oIdMap) {
+      oCopy.setUri(this.getUri());
+    }
 
     changesFactory[AscDFH.historyitem_BgFormatBlipFill] = CChangeObject;
     changesFactory[AscDFH.historyitem_BgFormatEffectDag] = CChangeObject;
@@ -485,6 +575,8 @@
     BgFormat.prototype.getSolidFill = function() {
       return this.solidFill;
     }
+
+
 
 
     changesFactory[AscDFH.historyitem_WholeEffectDag] = CChangeObject;
@@ -1106,5 +1198,482 @@
     PrSet.prototype.getPresLayoutStyle = function () {
       return this.qsTypeId;
     }
+
+    changesFactory[AscDFH.historyitem_LayoutDefDefStyle] = CChangeString;
+    changesFactory[AscDFH.historyitem_LayoutDefMinVer] = CChangeString;
+    changesFactory[AscDFH.historyitem_LayoutDefUniqueId] = CChangeString;
+    changesFactory[AscDFH.historyitem_LayoutDefCatLst] = CChangeObject;
+    changesFactory[AscDFH.historyitem_LayoutDefClrData] = CChangeObject;
+    changesFactory[AscDFH.historyitem_LayoutDefAddTitle] = CChangeContent;
+    changesFactory[AscDFH.historyitem_LayoutDefRemoveTitle] = CChangeContent;
+    changesFactory[AscDFH.historyitem_LayoutDefExtLst] = CChangeObject;
+    changesFactory[AscDFH.historyitem_LayoutDefLayoutNode] = CChangeObject;
+    changesFactory[AscDFH.historyitem_LayoutDefSampData] = CChangeObject;
+    changesFactory[AscDFH.historyitem_LayoutDefStyleData] = CChangeObject;
+    changesFactory[AscDFH.historyitem_LayoutDefAddDesc] = CChangeContent;
+    changesFactory[AscDFH.historyitem_LayoutDefRemoveDesc] = CChangeContent;
+    drawingsChangesMap[AscDFH.historyitem_LayoutDefDefStyle] = function (oClass, value) {oClass.defStyle = value;};
+    drawingsChangesMap[AscDFH.historyitem_LayoutDefMinVer] = function (oClass, value) {oClass.minVer = value;};
+    drawingsChangesMap[AscDFH.historyitem_LayoutDefUniqueId] = function (oClass, value) {oClass.uniqueId = value;};
+    drawingsChangesMap[AscDFH.historyitem_LayoutDefCatLst] = function (oClass, value) {oClass.catLst = value;};
+    drawingsChangesMap[AscDFH.historyitem_LayoutDefClrData] = function (oClass, value) {oClass.clrData = value;};
+    drawingsChangesMap[AscDFH.historyitem_LayoutDefExtLst] = function (oClass, value) {oClass.extLst = value;};
+    drawingsChangesMap[AscDFH.historyitem_LayoutDefLayoutNode] = function (oClass, value) {oClass.layoutNode = value;};
+    drawingsChangesMap[AscDFH.historyitem_LayoutDefSampData] = function (oClass, value) {oClass.sampData = value;};
+    drawingsChangesMap[AscDFH.historyitem_LayoutDefStyleData] = function (oClass, value) {oClass.styleData = value;};
+    drawingContentChanges[AscDFH.historyitem_LayoutDefAddTitle] = function(oClass) {return oClass.title;};
+    drawingContentChanges[AscDFH.historyitem_LayoutDefRemoveTitle] = function(oClass) {return oClass.title;};
+    drawingContentChanges[AscDFH.historyitem_LayoutDefAddDesc] = function(oClass) {return oClass.desc;};
+    drawingContentChanges[AscDFH.historyitem_LayoutDefRemoveDesc] = function(oClass) {return oClass.desc;};
+    function LayoutDef() {
+      CBaseFormatObject.call(this);
+      this.defStyle = null;
+      this.minVer = null;
+      this.uniqueId = null;
+      this.catLst = null;
+      this.clrData = null;
+      this.desc = [];
+      this.extLst = null;
+      this.layoutNode = null;
+      this.sampData = null;
+      this.styleData = null;
+      this.title = [];
+    }
+    InitClass(LayoutDef, CBaseFormatObject, AscDFH.historyitem_type_LayoutDef);
+
+    LayoutDef.prototype.setDefStyle = function(pr) {
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_LayoutDefDefStyle, this.getDefStyle(), pr));
+      this.defStyle = pr;
+    }
+
+    LayoutDef.prototype.setMinVer = function(pr) {
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_LayoutDefMinVer, this.getMinVer(), pr));
+      this.minVer = pr;
+    }
+
+    LayoutDef.prototype.setUniqueId = function(pr) {
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_LayoutDefUniqueId, this.getUniqueId(), pr));
+      this.uniqueId = pr;
+    }
+
+    LayoutDef.prototype.setCatLst = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_LayoutDefCatLst, this.getCatLst(), oPr));
+      this.catLst = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    LayoutDef.prototype.setClrData = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_LayoutDefClrData, this.getClrData(), oPr));
+      this.clrData = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    LayoutDef.prototype.setExtLst = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_LayoutDefExtLst, this.getExtLst(), oPr));
+      this.extLst = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    LayoutDef.prototype.setLayoutNode = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_LayoutDefLayoutNode, this.getLayoutNode(), oPr));
+      this.layoutNode = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    LayoutDef.prototype.setSampData = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_LayoutDefSampData, this.getSampData(), oPr));
+      this.sampData = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    LayoutDef.prototype.setStyleData = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_LayoutDefStyleData, this.getStyleData(), oPr));
+      this.styleData = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    LayoutDef.prototype.addToLstTitle = function(nIdx, oPr) {
+      var nInsertIdx = Math.min(this.title.length, Math.max(0, nIdx));
+      oHistory.Add(new CChangeContent(this, AscDFH.historyitem_LayoutDefAddTitle, nInsertIdx, [oPr], true));
+      this.title.splice(nInsertIdx, 0, oPr);
+      this.setParentToChild(oPr);
+    };
+
+    LayoutDef.prototype.removeFromLstTitle = function(nIdx) {
+      if(nIdx > -1 && nIdx < this.title.length) {
+        this.title[nIdx].setParent(null);
+        oHistory.Add(new CChangeContent(this, AscDFH.historyitem_LayoutDefRemoveTitle, nIdx, [this.title[nIdx]], false));
+        this.title.splice(nIdx, 1);
+      }
+    };
+
+    LayoutDef.prototype.addToLstDesc = function(nIdx, oPr) {
+      var nInsertIdx = Math.min(this.desc.length, Math.max(0, nIdx));
+      oHistory.Add(new CChangeContent(this, AscDFH.historyitem_LayoutDefAddDesc, nInsertIdx, [oPr], true));
+      this.desc.splice(nInsertIdx, 0, oPr);
+      this.setParentToChild(oPr);
+    };
+
+    LayoutDef.prototype.removeFromLstDesc = function(nIdx) {
+      if(nIdx > -1 && nIdx < this.desc.length) {
+        this.desc[nIdx].setParent(null);
+        oHistory.Add(new CChangeContent(this, AscDFH.historyitem_LayoutDefRemoveDesc, nIdx, [this.desc[nIdx]], false));
+        this.desc.splice(nIdx, 1);
+      }
+    };
+
+    LayoutDef.prototype.getDefStyle = function() {
+      return this.defStyle;
+    }
+
+    LayoutDef.prototype.getMinVer = function() {
+      return this.minVer;
+    }
+
+    LayoutDef.prototype.getUniqueId = function() {
+      return this.uniqueId;
+    }
+
+    LayoutDef.prototype.getCatLst = function() {
+      return this.catLst;
+    }
+
+    LayoutDef.prototype.getClrData = function() {
+      return this.clrData;
+    }
+
+    LayoutDef.prototype.getDesc = function() {
+      return this.desc;
+    }
+
+    LayoutDef.prototype.getExtLst = function() {
+      return this.extLst;
+    }
+
+    LayoutDef.prototype.getLayoutNode = function() {
+      return this.layoutNode;
+    }
+
+    LayoutDef.prototype.getSampData = function() {
+      return this.sampData;
+    }
+
+    LayoutDef.prototype.getStyleData = function() {
+      return this.styleData;
+    }
+
+    LayoutDef.prototype.getTitle = function() {
+      return this.title;
+    }
+
+    LayoutDef.prototype.fillObject = function (oCopy, oIdMap) {
+      oCopy.setDefStyle(this.getDefStyle());
+      oCopy.setMinVer(this.getMinVer());
+      oCopy.setUniqueId(this.getUniqueId());
+      if (this.getCatLst()) {
+        oCopy.setCatLst(this.getCatLst().createDuplicate(oIdMap));
+      }
+      if (this.getClrData()) {
+        oCopy.setClrData(this.getClrData().createDuplicate(oIdMap));
+      }
+      if (this.getExtLst()) {
+        oCopy.setExtLst(this.getExtLst().createDuplicate(oIdMap));
+      }
+      if (this.getLayoutNode()) {
+        oCopy.setLayoutNode(this.getLayoutNode().createDuplicate(oIdMap));
+      }
+      if (this.getSampData()) {
+        oCopy.setSampData(this.getSampData().createDuplicate(oIdMap));
+      }
+      if (this.getStyleData()) {
+        oCopy.setStyleData(this.getStyleData().createDuplicate(oIdMap));
+      }
+      for(var nIdx = 0; nIdx < this.title.length; ++nIdx) {
+        oCopy.addToLst(nIdx, this.title[nIdx].createDuplicate(oIdMap));
+      }
+      for(nIdx = 0; nIdx < this.desc.length; ++nIdx) {
+        oCopy.addToLst(nIdx, this.desc[nIdx].createDuplicate(oIdMap));
+      }
+    }
+
+    function CatLst() {
+      CCommonDataList.call(this);
+    }
+    InitClass(CatLst, CCommonDataList, AscDFH.historyitem_type_CatLst);
+
+    changesFactory[AscDFH.historyitem_SCatPri] = CChangeLong;
+    changesFactory[AscDFH.historyitem_SCatType] = CChangeString;
+    drawingsChangesMap[AscDFH.historyitem_SCatPri] = function (oClass, value) {oClass.pri = value;};
+    drawingsChangesMap[AscDFH.historyitem_SCatType] = function (oClass, value) {oClass.type = value;};
+    function SCat() {
+      CBaseFormatObject.call(this);
+      this.pri = null;
+      this.type = null;
+    }
+    InitClass(SCat, CBaseFormatObject, AscDFH.historyitem_type_SCat);
+
+    SCat.prototype.setPri = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_SCatPri, this.getPri(), pr));
+      this.pri = pr;
+    }
+
+    SCat.prototype.setType = function(pr) {
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_SCatType, this.getType(), pr));
+      this.type = pr;
+    }
+
+    SCat.prototype.getPri = function() {
+      return this.pri;
+    }
+
+    SCat.prototype.getType = function() {
+      return this.type;
+    }
+
+    SCat.prototype.fillObject = function (oCopy, oIdMap) {
+      oCopy.setPri(this.getPri());
+      oCopy.setType(this.getType());
+    }
+
+    changesFactory[AscDFH.historyitem_ClrDataUseDef] = CChangeBool;
+    changesFactory[AscDFH.historyitem_ClrDataDataModel] = CChangeObject;
+    drawingsChangesMap[AscDFH.historyitem_ClrDataUseDef] = function (oClass, value) {oClass.useDef = value;};
+    drawingsChangesMap[AscDFH.historyitem_ClrDataDataModel] = function (oClass, value) {oClass.dataModel = value;};
+    function ClrData() {
+      CBaseFormatObject.call(this);
+      this.useDef = null;
+      this.dataModel = null;
+    }
+    InitClass(ClrData, CBaseFormatObject, AscDFH.historyitem_type_ClrData);
+
+    ClrData.prototype.setUseDef = function(pr) {
+      oHistory.Add(new CChangeBool(this, AscDFH.historyitem_ClrDataUseDef, this.getUseDef(), pr));
+      this.useDef = pr;
+    }
+
+    ClrData.prototype.setDataModel = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_ClrDataDataModel, this.getDataModel(), oPr));
+      this.dataModel = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    ClrData.prototype.getUseDef = function() {
+      return this.useDef;
+    }
+
+    ClrData.prototype.getDataModel = function() {
+      return this.dataModel;
+    }
+
+    ClrData.prototype.fillObject = function (oCopy, oIdMap) {
+      oCopy.setUseDef(this.getUseDef());
+      if (this.getDataModel()) {
+        oCopy.setDataModel(this.getDataModel().createDuplicate(oIdMap));
+      }
+    }
+
+    changesFactory[AscDFH.historyitem_DescLang] = CChangeString;
+    changesFactory[AscDFH.historyitem_DescVal] = CChangeString;
+    drawingsChangesMap[AscDFH.historyitem_DescLang] = function (oClass, value) {oClass.lang = value;};
+    drawingsChangesMap[AscDFH.historyitem_DescVal] = function (oClass, value) {oClass.val = value;};
+    function Desc() {
+      CBaseFormatObject.call(this);
+      this.lang = null;
+      this.val = null;
+    }
+    InitClass(Desc, CBaseFormatObject, AscDFH.historyitem_type_Desc);
+
+    Desc.prototype.setLang = function(pr) {
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_DescLang, this.getLang(), pr));
+      this.lang = pr;
+    }
+
+    Desc.prototype.setVal = function(pr) {
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_DescVal, this.getVal(), pr));
+      this.val = pr;
+    }
+
+    Desc.prototype.getLang = function() {
+      return this.lang;
+    }
+
+    Desc.prototype.getVal = function() {
+      return this.val;
+    }
+
+    Desc.prototype.fillObject = function (oCopy, oIdMap) {
+      oCopy.setLang(this.getLang());
+      oCopy.setVal(this.getVal());
+    }
+
+    changesFactory[AscDFH.historyitem_LayoutNodeChOrder] = CChangeLong;
+    changesFactory[AscDFH.historyitem_LayoutNodeMoveWith] = CChangeString;
+    changesFactory[AscDFH.historyitem_LayoutNodeName] = CChangeString;
+    changesFactory[AscDFH.historyitem_LayoutNodeStyleLbl] = CChangeString;
+    drawingsChangesMap[AscDFH.historyitem_LayoutNodeChOrder] = function (oClass, value) {oClass.chOrder = value;};
+    drawingsChangesMap[AscDFH.historyitem_LayoutNodeMoveWith] = function (oClass, value) {oClass.moveWith = value;};
+    drawingsChangesMap[AscDFH.historyitem_LayoutNodeName] = function (oClass, value) {oClass.name = value;};
+    drawingsChangesMap[AscDFH.historyitem_LayoutNodeStyleLbl] = function (oClass, value) {oClass.styleLbl = value;};
+    function LayoutNode() {
+      CCommonDataList.call(this);
+      this.chOrder = null;
+      this.moveWith = null;
+      this.name = null;
+      this.styleLbl = null;
+    }
+    InitClass(LayoutNode, CCommonDataList, AscDFH.historyitem_type_LayoutNode);
+
+    LayoutNode.prototype.setChOrder = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_LayoutNodeChOrder, this.getChOrder(), pr));
+      this.chOrder = pr;
+    }
+
+    LayoutNode.prototype.setMoveWith = function(pr) {
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_LayoutNodeMoveWith, this.getMoveWith(), pr));
+      this.moveWith = pr;
+    }
+
+    LayoutNode.prototype.setName = function(pr) {
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_LayoutNodeName, this.getName(), pr));
+      this.name = pr;
+    }
+
+    LayoutNode.prototype.setStyleLbl = function(pr) {
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_LayoutNodeStyleLbl, this.getStyleLbl(), pr));
+      this.styleLbl = pr;
+    }
+
+    LayoutNode.prototype.getChOrder = function() {
+      return this.chOrder;
+    }
+
+    LayoutNode.prototype.getMoveWith = function() {
+      return this.moveWith;
+    }
+
+    LayoutNode.prototype.getName = function() {
+      return this.name;
+    }
+
+    LayoutNode.prototype.getStyleLbl = function() {
+      return this.styleLbl;
+    }
+
+    LayoutNode.prototype.fillObject = function (oCopy, oIdMap) {
+      oCopy.setChOrder(this.getChOrder());
+      oCopy.setMoveWith(this.getMoveWith());
+      oCopy.setName(this.getName());
+      oCopy.setStyleLbl(this.getStyleLbl());
+    }
+
+    changesFactory[AscDFH.historyitem_AlgRev] = CChangeLong;
+    changesFactory[AscDFH.historyitem_AlgType] = CChangeLong;
+    changesFactory[AscDFH.historyitem_AlgExtLst] = CChangeObject;
+    changesFactory[AscDFH.historyitem_AlgAddParam] = CChangeContent;
+    changesFactory[AscDFH.historyitem_AlgRemoveParam] = CChangeContent;
+    drawingsChangesMap[AscDFH.historyitem_AlgRev] = function (oClass, value) {oClass.rev = value;};
+    drawingsChangesMap[AscDFH.historyitem_AlgType] = function (oClass, value) {oClass.type = value;};
+    drawingsChangesMap[AscDFH.historyitem_AlgExtLst] = function (oClass, value) {oClass.extLst = value;};
+    drawingContentChanges[AscDFH.historyitem_AlgAddParam] = function(oClass) {return oClass.param;};
+    drawingContentChanges[AscDFH.historyitem_AlgRemoveParam] = function(oClass) {return oClass.param;};
+    function Alg() {
+      CBaseFormatObject.call(this);
+      this.rev = null;
+      this.type = null;
+      this.extLst = null;
+      this.param = [];
+    }
+    InitClass(Alg, CBaseFormatObject, AscDFH.historyitem_type_Alg);
+
+    Alg.prototype.setRev = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_AlgRev, this.getRev(), pr));
+      this.rev = pr;
+    }
+
+    Alg.prototype.setType = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_AlgType, this.getType(), pr));
+      this.type = pr;
+    }
+
+    Alg.prototype.setExtLst = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_AlgExtLst, this.getExtLst(), oPr));
+      this.extLst = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    Alg.prototype.addToLstParam = function(nIdx, oPr) {
+      var nInsertIdx = Math.min(this.param.length, Math.max(0, nIdx));
+      oHistory.Add(new CChangeContent(this, AscDFH.historyitem_AlgAddParam, nInsertIdx, [oPr], true));
+      this.param.splice(nInsertIdx, 0, oPr);
+      this.setParentToChild(oPr);
+    };
+
+    Alg.prototype.removeFromLstParam = function(nIdx) {
+      if(nIdx > -1 && nIdx < this.param.length) {
+        this.param[nIdx].setParent(null);
+        oHistory.Add(new CChangeContent(this, AscDFH.historyitem_AlgRemoveParam, nIdx, [this.param[nIdx]], false));
+        this.param.splice(nIdx, 1);
+      }
+    };
+
+    Alg.prototype.getRev = function() {
+      return this.rev;
+    }
+
+    Alg.prototype.getType = function() {
+      return this.type;
+    }
+
+    Alg.prototype.getExtLst = function() {
+      return this.extLst;
+    }
+
+    Alg.prototype.fillObject = function (oCopy, oIdMap) {
+      oCopy.setRev(this.getRev());
+      oCopy.setType(this.getType());
+      if (this.getExtLst()) {
+        oCopy.setExtLst(this.getExtLst().createDuplicate(oIdMap));
+      }
+      for(var nIdx = 0; nIdx < this.param.length; ++nIdx) {
+        oCopy.addToLst(nIdx, this.param[nIdx].createDuplicate(oIdMap));
+      }
+    }
+
+
+    changesFactory[AscDFH.historyitem_ParamType] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParamVal] = CChangeString;
+    drawingsChangesMap[AscDFH.historyitem_ParamType] = function (oClass, value) {oClass.type = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParamVal] = function (oClass, value) {oClass.val = value;};
+    function Param() {
+      CBaseFormatObject.call(this);
+      this.type = null;
+      this.val = null;
+    }
+    InitClass(Param, CBaseFormatObject, AscDFH.historyitem_type_Param);
+
+    Param.prototype.setType = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParamType, this.getType(), pr));
+      this.type = pr;
+    }
+
+    Param.prototype.setVal = function(pr) {
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_ParamVal, this.getVal(), pr));
+      this.val = pr;
+    }
+
+    Param.prototype.getType = function() {
+      return this.type;
+    }
+
+    Param.prototype.getVal = function() {
+      return this.val;
+    }
+
+    Param.prototype.fillObject = function (oCopy, oIdMap) {
+      oCopy.setType(this.getType());
+      oCopy.setVal(this.getVal());
+    }
+
+
 
   })(window)

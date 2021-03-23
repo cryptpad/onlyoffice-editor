@@ -1522,6 +1522,15 @@
 	window['AscDFH'].historyitem_type_BgFormat               = 2008 << 16;
 	window['AscDFH'].historyitem_type_Whole                  = 2009 << 16;
 	window['AscDFH'].historyitem_type_Cxn                    = 2010 << 16;
+	window['AscDFH'].historyitem_type_Ext                    = 2011 << 16;
+	window['AscDFH'].historyitem_type_LayoutDef              = 2012 << 16;
+	window['AscDFH'].historyitem_type_CatLst                 = 2013 << 16;
+	window['AscDFH'].historyitem_type_SCat                   = 2014 << 16;
+	window['AscDFH'].historyitem_type_ClrData                = 2015 << 16;
+	window['AscDFH'].historyitem_type_Desc                   = 2016 << 16;
+	window['AscDFH'].historyitem_type_LayoutNode             = 2017 << 16;
+	window['AscDFH'].historyitem_type_Alg                    = 2018 << 16;
+	window['AscDFH'].historyitem_type_Param                  = 2019 << 16;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3279,11 +3288,50 @@
 	AscDFH.historyitem_CxnType       = AscDFH.historyitem_type_Cxn | 9;
 	AscDFH.historyitem_CxnExtLst     = AscDFH.historyitem_type_Cxn | 10;
 
+	AscDFH.historyitem_ExtUri = AscDFH.historyitem_type_Ext | 1;
+
 	AscDFH.historyitem_DataModelBg     = AscDFH.historyitem_type_DataModel | 1;
 	AscDFH.historyitem_DataModelCxnLst = AscDFH.historyitem_type_DataModel | 2;
 	AscDFH.historyitem_DataModelExtLst = AscDFH.historyitem_type_DataModel | 3;
 	AscDFH.historyitem_DataModelPtLst  = AscDFH.historyitem_type_DataModel | 4;
 	AscDFH.historyitem_DataModelWhole  = AscDFH.historyitem_type_DataModel | 5;
+
+	AscDFH.historyitem_LayoutDefDefStyle    = AscDFH.historyitem_type_LayoutDef | 1;
+	AscDFH.historyitem_LayoutDefMinVer      = AscDFH.historyitem_type_LayoutDef | 2;
+	AscDFH.historyitem_LayoutDefUniqueId    = AscDFH.historyitem_type_LayoutDef | 3;
+	AscDFH.historyitem_LayoutDefCatLst      = AscDFH.historyitem_type_LayoutDef | 4;
+	AscDFH.historyitem_LayoutDefClrData     = AscDFH.historyitem_type_LayoutDef | 5;
+	AscDFH.historyitem_LayoutDefAddDesc     = AscDFH.historyitem_type_LayoutDef | 6;
+	AscDFH.historyitem_LayoutDefRemoveDesc  = AscDFH.historyitem_type_LayoutDef | 7;
+	AscDFH.historyitem_LayoutDefExtLst      = AscDFH.historyitem_type_LayoutDef | 8;
+	AscDFH.historyitem_LayoutDefLayoutNode  = AscDFH.historyitem_type_LayoutDef | 9;
+	AscDFH.historyitem_LayoutDefSampData    = AscDFH.historyitem_type_LayoutDef | 10;
+	AscDFH.historyitem_LayoutDefStyleData   = AscDFH.historyitem_type_LayoutDef | 11;
+	AscDFH.historyitem_LayoutDefAddTitle    = AscDFH.historyitem_type_LayoutDef | 12;
+	AscDFH.historyitem_LayoutDefRemoveTitle = AscDFH.historyitem_type_LayoutDef | 13;
+
+	AscDFH.historyitem_SCatPri = AscDFH.historyitem_type_SCat | 1;
+	AscDFH.historyitem_SCatType = AscDFH.historyitem_type_SCat | 2;
+
+	AscDFH.historyitem_ClrDataUseDef    = AscDFH.historyitem_type_ClrData | 1;
+	AscDFH.historyitem_ClrDataDataModel = AscDFH.historyitem_type_ClrData | 2;
+
+	AscDFH.historyitem_DescLang = AscDFH.historyitem_type_Desc | 1;
+	AscDFH.historyitem_DescVal = AscDFH.historyitem_type_Desc | 2;
+
+	AscDFH.historyitem_LayoutNodeChOrder  = AscDFH.historyitem_type_LayoutNode | 1;
+	AscDFH.historyitem_LayoutNodeMoveWith = AscDFH.historyitem_type_LayoutNode | 2;
+	AscDFH.historyitem_LayoutNodeName     = AscDFH.historyitem_type_LayoutNode | 3;
+	AscDFH.historyitem_LayoutNodeStyleLbl = AscDFH.historyitem_type_LayoutNode | 4;
+
+	AscDFH.historyitem_AlgRev         = AscDFH.historyitem_type_Alg | 1;
+	AscDFH.historyitem_AlgType        = AscDFH.historyitem_type_Alg | 2;
+	AscDFH.historyitem_AlgExtLst      = AscDFH.historyitem_type_Alg | 3;
+	AscDFH.historyitem_AlgAddParam    = AscDFH.historyitem_type_Alg | 4;
+	AscDFH.historyitem_AlgRemoveParam = AscDFH.historyitem_type_Alg | 5;
+
+	AscDFH.historyitem_ParamType = AscDFH.historyitem_type_Param | 1;
+	AscDFH.historyitem_ParamVal  = AscDFH.historyitem_type_Param | 2;
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
