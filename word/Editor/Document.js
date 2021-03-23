@@ -24586,13 +24586,24 @@ CDocument.prototype.ChangeTextCase = function(nCaseType)
 CDocument.prototype.ConvertTextToTable = function(oProps)
 {
 	if (!this.IsTextSelectionUse())
-		return;
+	return;
 
 	if (!this.IsSelectionLocked(AscCommon.changestype_Document_Contentt))
 	{
 		this.StartAction(AscDFH.historydescription_Document_ConvertTextToTable);
 
 		var oSelectedContent = this.GetSelectedContent(true);
+		var IsReplace = false;
+		var oTable = this.GetCurrentTablesStack().pop();
+		if (oTable && oSelectedContent.Elements.length == 1)
+		{
+			// значит у нас выделена только одна таблица
+			if (oTable.Parent === this && oTable.IsSelectedAll())
+			{
+				// значит эту таблицу надо удалить целиком и вместо неё вставить новую
+				IsReplace = true;
+			}
+		}
 		// возможно здесь нет необходимости получать этот selectedContent, так как у него нет метода, чтобы из него достать этот контент
 		// но не факт, что весь контент будет находиться в параграфах, которые можно получить через this.GetSelectedParagraphs()
 		var oNewContent = this.private_ConvertTextToTable(oSelectedContent, oProps);
@@ -24617,25 +24628,35 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 					}
 				}
 			}
-			else if (oParent.Selection) // если внутри ячейки таблицы
+			else if (IsReplace)
 			{
+				var RIndex = oTable.GetIndex();
+				this.RemoveFromContent(RIndex, 1, true);
+				this.AddToContent(RIndex, oSelectedContent.Elements[0].Element, true);
+				if (this.SelectRange)
+					this.SelectRange(RIndex, RIndex);
+
+			}
+			else if (oTable) // если внутри ячейки таблицы
+			{
+				var oElement = oTable.CurCell.Content;
+				// так как InsertContent внутри таблицы рабоатет не правильно!
 				var start, count;
-				if (oParent.Selection.StartPos >  oParent.Selection.EndPos)
+				if (oElement.Selection.StartPos >  oElement.Selection.EndPos)
 				{
-					start = oParent.Selection.EndPos;
-					count = oParent.Selection.StartPos - oParent.Selection.EndPos;
+					start = oElement.Selection.EndPos;
+					count = oElement.Selection.StartPos - oElement.Selection.EndPos;
 				}
 				else
 				{
-					start = oParent.Selection.StartPos;
-					count = oParent.Selection.EndPos - oParent.Selection.StartPos;
+					start = oElement.Selection.StartPos;
+					count = oElement.Selection.EndPos - oElement.Selection.StartPos;
 				}
-				oParent.Internal_Content_Remove(start, count + 1, false);
-				oParent.Internal_Content_Add(start, oSelectedContent.Elements[0].Element, false);
-				// я не знаю почему, но здесь не высталяется селект внутри ячейки
-				// TODO: надо как-то его выставить, пока не придумал как
-				oParent.Selection.StartPos = oParent.Selection.EndPos = start;
-				oParent.SetSelectionUse(true);			
+				oElement.Internal_Content_Remove(start, count + 1, false);
+				oElement.Internal_Content_Add(start, oSelectedContent.Elements[0].Element, false);
+				// выставляем селект внутри ячейки таблицы
+				oElement.Selection.StartPos = oElement.Selection.EndPos = start;
+				oElement.SetSelectionUse(true);			
 			}
 			
 		}
@@ -24732,6 +24753,8 @@ CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oPro
 		{
 			//возможно сделать нужно новый параграф и в него копировать этот
 			oArrRows.unshift([oElement]);
+			if (!oCellsCount)
+				oCellsCount = 1;
 		}
 		if (oArrCells.length)
 		{
@@ -24776,9 +24799,9 @@ CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oPro
 			oCellContent.AddContent([oArrRows[i][j]]);
 		}
 	}
+	oTable.SelectAll();
 	if (oProps.CellsWidth || oProps.CellsWidth === null)
 	{
-		oTable.SelectAll();
 		oTable.SetTableProps({CellSelect : true, CellsWidth: oProps.CellsWidth, Locked : false});
 	}
 	oSelectedContent.Add(new CSelectedElement(oTable, true));
@@ -24822,7 +24845,7 @@ CDocument.prototype.ConvertTableToText = function(oProps)
 					oSkipStart++;
 			}
 		}
-		var oParent     = oTable.GetParent();
+		var oParent = oTable.GetParent();
 		if (oNewContent && oParent)
 		{
 			var nIndex     = oTable.GetIndex();
@@ -24872,15 +24895,12 @@ CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 		oSelectetRows.IsSelectionToEnd = oTable.IsSelectionToEnd();
 		var oLastCell;
 		if (oSelectetRows.Start === oSelectetRows.End)
-		{
 			oLastCell = Math.max(oTable.Selection.StartPos.Pos.Cell, oTable.Selection.EndPos.Pos.Cell);
-		}
 		else
-		{
 			oLastCell = (oTable.Selection.StartPos.Pos.Row === oSelectetRows.End) ? oTable.Selection.StartPos.Pos.Cell : oTable.Selection.EndPos.Pos.Cell;
-		}
-		// не всегда работает IsSelectedAll, подумать, иможет ещё есть какой-то метод
-		var isConverAll = oTable.IsSelectedAll() || ((oTable.GetRow(oSelectetRows.End).GetCellsCount() - 1) !== oLastCell);
+		// не всегда работает oTable.IsSelectedAll(), подумать, иможет ещё есть какой-то метод
+		var oSelectionArr = oTable.GetSelectionArray();
+		var isConverAll = oTable.IsSelectedAll() || (!oSelectionArr[0].Row && !oSelectionArr[0].Cell && oSelectetRows.IsSelectionToEnd) || ((oTable.GetRow(oSelectetRows.End).GetCellsCount() - 1) !== oLastCell);
 
 		var ArrNewContent = [];
 		if (isConverAll)
