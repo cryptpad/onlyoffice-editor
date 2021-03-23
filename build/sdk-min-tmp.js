@@ -17027,6 +17027,15 @@ function isRealObject(obj)
 
 	function getUserColorById(userId, userName, isDark, isNumericValue)
 	{
+        if (window.parent.APP && window.parent.APP.getUserColor) {
+            try {
+                var CPColor = window.parent.APP.getUserColor(userId);
+                if (CPColor) {
+                    return true === isNumericValue ? ((CPColor.r << 16) & 0xFF0000) | ((CPColor.g << 8) & 0xFF00) | (CPColor.b & 0xFF) : CPColor;
+                }
+            } catch (e) {} // CRYPTPAD XXX
+        }
+
 		if ((!userId || "" === userId) && (!userName || "" === userName))
 			return new CColor(0, 0, 0, 255);
 
