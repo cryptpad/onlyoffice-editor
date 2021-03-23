@@ -5458,19 +5458,42 @@ CPresentation.prototype.GetSelectedSlides = function () {
     }
 };
 
-CPresentation.prototype.RemoveCurrentComment = function () {
+CPresentation.prototype.RemoveCurrentComment = function (isMine) {
     if (!this.FocusOnNotes) {
         var oCurSlide = this.Slides[this.CurPage];
         if (oCurSlide && oCurSlide.slideComments) {
             var oSelectedComment = oCurSlide.slideComments.getSelectedComment();
             if (oSelectedComment) {
                 var aCommentData = [{comment: oSelectedComment, slide: oCurSlide}];
-                if (this.Document_Is_SelectionLocked(AscCommon.changestype_MoveComment, aCommentData, this.IsEditCommentsMode()) === false) {
-                    this.Create_NewHistoryPoint(AscDFH.historydescription_Presentation_RemoveComment);
-                    this.RemoveComment(oSelectedComment.Id, true);
-                    return true;
+                if(isMine) {
+                    if(this.Api) {
+                        var oDocInfo = this.Api.DocInfo;
+                        if(oDocInfo) {
+                            var sUserId = oDocInfo.get_UserId();
+                            if(oSelectedComment.hasUserData(sUserId)) {
+                                if (this.Document_Is_SelectionLocked(AscCommon.changestype_MoveComment, aCommentData, this.IsEditCommentsMode()) === false) {
+                                    this.Create_NewHistoryPoint(AscDFH.historydescription_Presentation_RemoveComment);
+                                    if(oSelectedComment.isUserComment(sUserId)) {
+                                        oCurSlide.slideComments.removeComment(oSelectedComment.Get_Id());
+                                        editor.sync_HideComment();
+                                    }
+                                    else {
+                                        oSelectedComment.removeUserReplies(sUserId);
+                                    }
+                                    this.Recalculate();
+                                    return true;
+                                }
+                            }
+                        }
+                    }
                 }
-
+                else {
+                    if (this.Document_Is_SelectionLocked(AscCommon.changestype_MoveComment, aCommentData, this.IsEditCommentsMode()) === false) {
+                        this.Create_NewHistoryPoint(AscDFH.historydescription_Presentation_RemoveComment);
+                        this.RemoveComment(oSelectedComment.Id, true);
+                        return true;
+                    }
+                }
             }
         }
     }

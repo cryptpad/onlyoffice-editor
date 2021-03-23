@@ -4807,7 +4807,7 @@ background-repeat: no-repeat;\
 		}
 		if(isCurrent)
 		{
-			this.WordControl.m_oLogicDocument.RemoveCurrentComment();
+			this.WordControl.m_oLogicDocument.RemoveCurrentComment(isMine);
 		}
 		else
 		{
