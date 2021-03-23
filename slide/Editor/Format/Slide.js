@@ -1921,7 +1921,6 @@ SlideComments.prototype =
 
     removeMyComments: function()
     {
-        var oCommentDataCopy;
         if(!editor.DocInfo)
         {
             return;
@@ -1938,24 +1937,7 @@ SlideComments.prototype =
             }
             else
             {
-                oCommentDataCopy = null;
-                for(var j = oCommentData.m_aReplies.length - 1; j > -1 ; --j)
-                {
-                    if(oCommentData.m_aReplies[j].m_sUserId === sUserId)
-                    {
-                        if(!oCommentDataCopy)
-                        {
-                            oCommentDataCopy = oCommentData.Copy();
-                        }
-                        oCommentDataCopy.m_aReplies.splice(j, 1);
-                        break;
-                    }
-                }
-                if(oCommentDataCopy)
-                {
-                    oComment.Set_Data(oCommentDataCopy);
-                    editor.sync_ChangeCommentData( oComment.Get_Id(), oCommentDataCopy);
-                }
+                oComment.removeUserReplies(sUserId);
             }
         }
     },

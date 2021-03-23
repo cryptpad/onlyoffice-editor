@@ -4807,7 +4807,7 @@ background-repeat: no-repeat;\
 		}
 		if(isCurrent)
 		{
-			this.WordControl.m_oLogicDocument.RemoveCurrentComment();
+			this.WordControl.m_oLogicDocument.RemoveCurrentComment(isMine);
 		}
 		else
 		{
@@ -4822,6 +4822,11 @@ background-repeat: no-repeat;\
 		}
 	};
 
+	asc_docs_api.prototype.asc_onDeleteComment = function(Id, oCommentData)
+	{
+		var AscCommentData = new asc_CCommentData(oCommentData);
+		this.sendEvent("asc_onDeleteComment", Id, AscCommentData);
+	};
 
 	asc_docs_api.prototype.asc_changeComment = function(Id, AscCommentData)
 	{
