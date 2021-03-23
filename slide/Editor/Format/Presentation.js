@@ -5477,6 +5477,23 @@ CPresentation.prototype.RemoveCurrentComment = function () {
     return false;
 };
 
+CPresentation.prototype.SendRemoveCommentEvent = function () {
+    if(!this.Api) {
+        return false;
+    }
+    if (!this.FocusOnNotes) {
+        var oCurSlide = this.Slides[this.CurPage];
+        if (oCurSlide && oCurSlide.slideComments) {
+            var oSelectedComment = oCurSlide.slideComments.getSelectedComment();
+            if (oSelectedComment) {
+                this.Api.asc_onDeleteComment(oSelectedComment.Id, oSelectedComment.Data);
+                return true;
+            }
+        }
+    }
+    return false;
+};
+
 
 CPresentation.prototype.RemoveMyComments = function () {
     var aAllMyComments = [];
@@ -5527,7 +5544,7 @@ CPresentation.prototype.Remove = function (Count, bOnlyText, bRemoveOnlySelectio
         bRemoveOnlySelection = false;
 
     var oController = this.GetCurrentController();
-    if (this.RemoveCurrentComment()) {
+    if (this.SendRemoveCommentEvent()) {
         return;
     }
     if (oController && oController.selectedObjects.length !== 0) {
