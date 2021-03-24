@@ -282,6 +282,7 @@ function CShapeDrawer()
     this.IsArrowsDrawing = false;
     this.IsCurrentPathCanArrows = true;
 
+    this.geometryEditPoints = [];
     this.bIsCheckBounds = false;
 
     this.IsRectShape = false;

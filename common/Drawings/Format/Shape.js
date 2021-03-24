@@ -4865,7 +4865,7 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
             graphics._e();
         }
         else {
-            geometry.check_bounds(graphics);
+            geometry.check_bounds(graphics, this);
         }
 
         if (this.txBody) {

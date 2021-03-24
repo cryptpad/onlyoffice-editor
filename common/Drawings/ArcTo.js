@@ -37,7 +37,7 @@
     var HitInBezier4 = AscFormat.HitInBezier4;
     
     // arcTo new version
-    function Arc3(ctx, fX, fY, fWidth, fHeight, fStartAngle, fSweepAngle)
+    function Arc3(ctx, fX, fY, fWidth, fHeight, fStartAngle, fSweepAngle, geom)
     {
         var sin1 = Math.sin(fStartAngle);
         var cos1 = Math.cos(fStartAngle);
@@ -49,10 +49,10 @@
         var cx = fX - l * cos1;
         var cy = fY - l * sin1;
 
-        Arc2(ctx, cx - fWidth, cy - fHeight, 2 * fWidth, 2 * fHeight, fStartAngle, fSweepAngle);
+        Arc2(ctx, cx - fWidth, cy - fHeight, 2 * fWidth, 2 * fHeight, fStartAngle, fSweepAngle, geom);
     }
 
-    function Arc2(ctx, fX, fY, fWidth, fHeight, fStartAngle, fSweepAngle)
+    function Arc2(ctx, fX, fY, fWidth, fHeight, fStartAngle, fSweepAngle, geom)
     {
         if (0 >= fWidth || 0 >= fHeight)
             return;
@@ -79,11 +79,11 @@
 
         if(Math.abs(fSweepAngle) >= (2 * Math.PI))
         {
-            Ellipse(ctx, fX + fWidth / 2, fY + fHeight / 2, fWidth / 2, fHeight / 2);
+            Ellipse(ctx, fX + fWidth / 2, fY + fHeight / 2, fWidth / 2, fHeight / 2, geom);
         }
         else
         {
-            EllipseArc(ctx, fX + fWidth / 2, fY + fHeight / 2, fWidth / 2, fHeight / 2, fSrtAngle, fEndAngle, bClockDirection);
+            EllipseArc(ctx, fX + fWidth / 2, fY + fHeight / 2, fWidth / 2, fHeight / 2, fSrtAngle, fEndAngle, bClockDirection, geom);
         }
     }
 
@@ -92,7 +92,7 @@
         return Math.atan2( Math.sin( fAngle ) / fYRad,  Math.cos( fAngle ) / fXRad );
     }
 
-    function Ellipse(ctx, fX, fY, fXRad, fYRad)
+    function Ellipse(ctx, fX, fY, fXRad, fYRad, geom)
     {
         ctx._m(fX - fXRad, fY);
 
@@ -101,9 +101,15 @@
         ctx._c(fX + fXRad * c_fKappa, fY + fYRad, fX + fXRad, fY + fYRad * c_fKappa, fX + fXRad, fY);
         ctx._c(fX + fXRad, fY - fYRad * c_fKappa, fX + fXRad * c_fKappa, fY - fYRad, fX, fY - fYRad);
         ctx._c(fX - fXRad * c_fKappa, fY - fYRad, fX - fXRad, fY - fYRad * c_fKappa, fX - fXRad, fY);
+        if(geom) {
+            geom.gmEditList.push({X: fX, Y: fY + fYRad});
+            geom.gmEditList.push({X: fX + fXRad, Y: fY});
+            geom.gmEditList.push({X: fX, Y: fY - fYRad});
+            geom.gmEditList.push({X: fX - fXRad, Y: fY});
+        }
     }
 
-    function EllipseArc(ctx, fX, fY, fXRad, fYRad, fAngle1, fAngle2, bClockDirection)
+    function EllipseArc(ctx, fX, fY, fXRad, fYRad, fAngle1, fAngle2, bClockDirection, geom)
     {
         while ( fAngle1 < 0 )
             fAngle1 += (2 * Math.PI);
@@ -120,26 +126,26 @@
         if ( !bClockDirection )
         {
             if ( fAngle1 <= fAngle2 )
-                EllipseArc2(ctx, fX, fY, fXRad, fYRad, fAngle1, fAngle2, false);
+                EllipseArc2(ctx, fX, fY, fXRad, fYRad, fAngle1, fAngle2, false, geom);
             else
             {
-                EllipseArc2(ctx, fX, fY, fXRad, fYRad, fAngle1, 2 * Math.PI, false);
-                EllipseArc2(ctx, fX, fY, fXRad, fYRad, 0, fAngle2, false);
+                EllipseArc2(ctx, fX, fY, fXRad, fYRad, fAngle1, 2 * Math.PI, false, geom);
+                EllipseArc2(ctx, fX, fY, fXRad, fYRad, 0, fAngle2, false, geom);
             }
         }
         else
         {
             if ( fAngle1 >= fAngle2 )
-                EllipseArc2(ctx, fX, fY, fXRad, fYRad, fAngle1, fAngle2, true);
+                EllipseArc2(ctx, fX, fY, fXRad, fYRad, fAngle1, fAngle2, true, geom);
             else
             {
-                EllipseArc2(ctx, fX, fY, fXRad, fYRad, fAngle1, 0, true);
-                EllipseArc2(ctx, fX, fY, fXRad, fYRad, 2 * Math.PI, fAngle2, true);
+                EllipseArc2(ctx, fX, fY, fXRad, fYRad, fAngle1, 0, true, geom);
+                EllipseArc2(ctx, fX, fY, fXRad, fYRad, 2 * Math.PI, fAngle2, true, geom);
             }
         }
     }
 
-    function EllipseArc2(ctx, fX, fY, fXRad, fYRad, dAngle1, dAngle2, bClockDirection)
+    function EllipseArc2(ctx, fX, fY, fXRad, fYRad, dAngle1, dAngle2, bClockDirection, geom)
     {
         var nFirstPointQuard  = ((2 * dAngle1 / Math.PI) >> 0) + 1;
         var nSecondPointQuard = ((2 * dAngle2 / Math.PI) >> 0) + 1;
@@ -155,6 +161,10 @@
         var fCurX = fStartX, fCurY = fStartY;
         var dStartAngle = dAngle1;
         var dEndAngle = 0;
+        var editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
+
+        // if(geom)
+        // geom.gmEditList = [];
 
         if ( !bClockDirection )
         {
@@ -168,6 +178,8 @@
                     dStartAngle = (nIndex - 1 ) * Math.PI / 2;
 
                 EndPoint = EllipseArc3(ctx, fX, fY, fXRad, fYRad, AngToEllPrm( dStartAngle, fXRad, fYRad ), AngToEllPrm( dEndAngle, fXRad, fYRad ), false);
+                if (geom)
+                    geom.gmEditList.push(EndPoint);
             }
         }
         else
@@ -184,6 +196,8 @@
                     dEndAngle = dAngle2;
 
                 EndPoint = EllipseArc3(ctx, fX, fY, fXRad, fYRad, AngToEllPrm( dStartAngle, fXRad, fYRad ), AngToEllPrm( dEndAngle, fXRad, fYRad ), false);
+                if (geom)
+                    geom.gmEditList.push(EndPoint);
             }
         }
     }

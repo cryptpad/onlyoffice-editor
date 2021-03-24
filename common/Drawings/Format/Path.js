@@ -751,7 +751,7 @@ Path.prototype = {
         shape_drawer._e();
     },
 
-    check_bounds: function(checker)
+    check_bounds: function(checker, geom)
     {
         var path=this.ArrPathCommand;
         for(var j=0, l=path.length; j<l; ++j)
@@ -781,7 +781,7 @@ Path.prototype = {
                 }
                 case arcTo:
                 {
-                    ArcToCurvers(checker, cmd.stX, cmd.stY, cmd.wR, cmd.hR, cmd.stAng, cmd.swAng);
+                    ArcToCurvers(checker, cmd.stX, cmd.stY, cmd.wR, cmd.hR, cmd.stAng, cmd.swAng, geom);
                     break;
                 }
                 case close:

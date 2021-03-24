@@ -1644,6 +1644,7 @@ TextAddState.prototype =
 function PreGeometryEditState(drawingObjects)
 {
     this.drawingObjects = drawingObjects;
+    this.geometryEditPoints = [];
     console.log('PreGeometryEditState')
 }
 

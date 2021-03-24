@@ -2792,39 +2792,36 @@ CAutoshapeTrack.prototype =
         var dKoefX = wDst / this.CurrentPageInfo.width_mm;
         var dKoefY = hDst / this.CurrentPageInfo.height_mm;
         var matrix =  shape.getTransformMatrix();
-        var pointsArray = geom.pathLst;
-        geom.gmEditList = [];
+        var pointsArray = geom.gmEditList;
 
-        //временно, до корректного нахождения якорьков при изменении геометрии
-        for(var i = 0; i < pointsArray.length; i++) {
-                pointsArray[i].ArrPathCommand.forEach(function (elem) {
-                    var x = elem.X, y = elem.Y;
-                    switch(elem.id) {
-                        case 2:
-                            x = elem.stX;
-                            y = elem.stY;
-                            break;
-                        case 3:
-                            x = elem.X1;
-                            y = elem.Y1;
-                            break;
-                        case 4:
-                            break;
-                    }
-                    if(elem.X1) {
-                        var cx = (xDst + dKoefX * (matrix.TransformPointX(elem.X0, elem.Y0))) >> 0;
-                        var cy = (yDst + dKoefY * (matrix.TransformPointY(elem.X0, elem.Y0))) >> 0;
-                        geom.gmEditList.push({x: elem.X0, y : elem.Y0});
-                        overlay.AddRect2(cx, cy, TRACK_RECT_SIZE);
-                    }
-                    var cx = (xDst + dKoefX * (matrix.TransformPointX(x, y))) >> 0;
-                    var cy = (yDst + dKoefY * (matrix.TransformPointY(x, y))) >> 0;
-                    overlay.AddRect2(cx, cy, TRACK_RECT_SIZE);
-                    geom.gmEditList.push({x, y});
-                })
+        for(var i = 0; i < geom.pathLst.length; i++) {
+            var pathPoints = geom.pathLst[i].ArrPathCommand;
+            pathPoints.forEach(function (elem) {
+                switch (elem.id) {
+                    case 0:
+                        geom.gmEditList.push({X: elem.X, Y: elem.Y});
+                    case 1:
+                        geom.gmEditList.push({X: elem.X, Y: elem.Y});
+                        break;
+                    case 3:
+                        geom.gmEditList.push({X: elem.X1, Y: elem.Y1});
+                        break;
+                    case 4:
+                        geom.gmEditList.push({X: elem.X2, Y: elem.Y2});
+                        break;
+
+                }
+            });
+        }
+
+        for (var i = 0; i < geom.gmEditList.length; i++) {
+            var cx = (xDst + dKoefX * (matrix.TransformPointX(geom.gmEditList[i].X, geom.gmEditList[i].Y))) >> 0;
+            var cy = (yDst + dKoefY * (matrix.TransformPointY(geom.gmEditList[i].X, geom.gmEditList[i].Y))) >> 0;
+            overlay.AddRect2(cx, cy, TRACK_RECT_SIZE);
+        }
             ctx.stroke();
             ctx.fill();
-        }
+
 
         var shape_drawer = new AscCommon.CShapeDrawer();
         var boundsChecker = new  AscFormat.CSlideBoundsChecker();

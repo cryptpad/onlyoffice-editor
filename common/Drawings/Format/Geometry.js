@@ -1261,7 +1261,7 @@ Geometry.prototype=
     check_bounds: function(checker)
     {
         for(var i=0, n=this.pathLst.length; i<n;++i)
-            this.pathLst[i].check_bounds(checker);
+            this.pathLst[i].check_bounds(checker, this);
     },
 
     drawAdjustments: function(drawingDocument, transform, bTextWarp)
