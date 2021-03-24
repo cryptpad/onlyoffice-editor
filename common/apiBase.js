@@ -2924,12 +2924,22 @@
 
 	baseEditorsApi.prototype._beforeEvalCommand = function()
 	{
+		var oApi = this;
 		switch (this.editorId)
 		{
 			case AscCommon.c_oEditorId.Word:
 			{
 				if (this.WordControl && this.WordControl.m_oLogicDocument)
 					this.WordControl.m_oLogicDocument.LockPanelStyles();
+				break;
+			}
+			case AscCommon.c_oEditorId.Spreadsheet:
+			{
+				if (AscCommonExcel)
+				{
+					oApi.tmpR1C1mode = AscCommonExcel.g_R1C1Mode;
+					AscCommonExcel.g_R1C1Mode = false;
+				}
 				break;
 			}
 			default:
@@ -3005,6 +3015,12 @@
 
 					endAction && endAction();
 				});
+				
+				if (AscCommonExcel)
+				{
+					AscCommonExcel.g_R1C1Mode = oApi.tmpR1C1mode;
+					oApi.tmpR1C1mode = null;
+				}
 				break;
 			}
 			default:
