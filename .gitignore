@@ -12,9 +12,11 @@ common/AllFonts.js
 common/libfont/js/fonts.js
 common/libfont/wasm/fonts.js
 *~
+.*.swp
 .DS_Store
 /deploy
 /develop
+build/sdk-*-tmp.js
 cell/sdk-all.props.js.map
 cell/sdk-all.vars.js.map
 slide/sdk-all.props.js.map

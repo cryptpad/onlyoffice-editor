@@ -4159,7 +4159,8 @@
             try {
                 var CPColor = window.parent.APP.getUserColor(userId);
                 if (CPColor) {
-                    return true === isNumericValue ? ((CPColor.r << 16) & 0xFF0000) | ((CPColor.g << 8) & 0xFF00) | (CPColor.b & 0xFF) : CPColor;
+                    return true === isNumericValue ? ((CPColor.r << 16) & 0xFF0000) | ((CPColor.g << 8) & 0xFF00) | (CPColor.b & 0xFF)
+                                        : new CColor(CPColor.r, CPColor.g, CPColor.b, CPColor.a);
                 }
             } catch (e) {} // CRYPTPAD XXX
         }
