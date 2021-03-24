@@ -24595,7 +24595,8 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 		var oSelectedContent = this.GetSelectedContent(true);
 		var IsReplace = false;
 		var oTable = this.GetCurrentTablesStack().pop();
-		if (oTable && oSelectedContent.Elements.length == 1)
+		var ElCount = oSelectedContent.Elements.length;
+		if (oTable && ElCount == 1)
 		{
 			// значит у нас выделена только одна таблица
 			if (oTable.Parent === this && oTable.IsSelectedAll())
@@ -24603,6 +24604,11 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 				// значит эту таблицу надо удалить целиком и вместо неё вставить новую
 				IsReplace = true;
 			}
+		}
+		else if (oSelectedContent.HaveTable && oSelectedContent.Elements[ElCount-1].Element.IsTable())
+		{
+			// если выделена таблица и что-то ещё и последняя в выделении - таблица, то надо делать через replace иначе не правильно произойдёт вставка
+			IsReplace = true;
 		}
 		// возможно здесь нет необходимости получать этот selectedContent, так как у него нет метода, чтобы из него достать этот контент
 		// но не факт, что весь контент будет находиться в параграфах, которые можно получить через this.GetSelectedParagraphs()
@@ -24630,8 +24636,8 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 			}
 			else if (IsReplace)
 			{
-				var RIndex = oTable.GetIndex();
-				this.RemoveFromContent(RIndex, 1, true);
+				var RIndex = oTable ? oTable.GetIndex() : Math.min(this.Selection.StartPos, this.Selection.EndPos);
+				this.RemoveFromContent(RIndex, ElCount, true);
 				this.AddToContent(RIndex, oSelectedContent.Elements[0].Element, true);
 				if (this.SelectRange)
 					this.SelectRange(RIndex, RIndex);
@@ -24680,11 +24686,14 @@ CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oPro
 	
 	// нужно разбить сразу выделенный контент по строкам и столбцам, для этого будем использовать двухмерный массив и по нему уже посчитаем потом сколько строк и столбцов
 	var oArrRows = [];
+	var oArrCells = [];
+	var FNewArrCells = false;
 	var oCellsCount = 0;
 	
 	for (var i = oSelectedContent.Elements.length - 1; i >= 0; i--)
 	{
-		var oArrCells = [];
+		if (FNewArrCells)
+			oArrCells = [];
 		var oElement = oSelectedContent.Elements[i].Element;
 		// предполается, что новый параграф = новая строка (поэтому даже если separator == знаку абзаца), то сразу его в новую строку, в ворде работает также
 		if (oElement.IsParagraph() && oProps.Separator !== 182)
@@ -24726,7 +24735,7 @@ CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oPro
 								oNewParagraph.AddToContent(0, oNewRun);
 								oArrCells.unshift(oNewParagraph);
 								oNewParagraph = new Paragraph(this.DrawingDocument, this);
-								if (!k && !j)
+								if (!k && !j && (i == 0 || i > 0 && !oSelectedContent.Elements[i-1].Element.IsTable()))
 								{
 									oArrCells.unshift(oNewParagraph);
 								}
@@ -24749,6 +24758,11 @@ CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oPro
 				}
 			}
 		}
+		else if (oElement.IsTable() && !oProps.Separator !== 182)
+		{
+			FNewArrCells = false;
+			oArrCells.unshift(oElement);
+		}
 		else
 		{
 			//возможно сделать нужно новый параграф и в него копировать этот
@@ -24761,7 +24775,15 @@ CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oPro
 			if (oCellsCount < oArrCells.length)
 				oCellsCount = oArrCells.length;
 
-			oArrRows.unshift(oArrCells);
+			if (i == 0 || i > 0 && !oSelectedContent.Elements[i-1].Element.IsTable())
+			{
+				oArrRows.unshift(oArrCells);
+				FNewArrCells = true;
+			}
+			else
+			{
+				FNewArrCells = false;
+			}
 		}
 	}
 	// для очистки содержимого
