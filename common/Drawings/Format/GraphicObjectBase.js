@@ -1030,10 +1030,26 @@
     {
         AscCommon.History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_AutoShapes_SetWorksheet, this.worksheet ? this.worksheet.getId() : null, worksheet ? worksheet.getId() : null));
         this.worksheet = worksheet;
-        if(Array.isArray(this.spTree)){
+        if(Array.isArray(this.spTree))
+        {
             for(var i = 0; i < this.spTree.length; ++i)
             {
                 this.spTree[i].setWorksheet(worksheet);
+            }
+        }
+        if(Array.isArray(this.userShapes))
+        {
+            for(var nSp = 0; nSp < this.userShapes.length; ++nSp)
+            {
+                var oAnchor = this.userShapes[nSp];
+                if(oAnchor)
+                {
+                    var oSp = oAnchor.object;
+                    if(oSp && oSp.setWorksheet)
+                    {
+                        oSp.setWorksheet(worksheet);
+                    }
+                }
             }
         }
     };
