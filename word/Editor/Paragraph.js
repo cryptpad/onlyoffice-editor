@@ -11065,7 +11065,9 @@ Paragraph.prototype.Document_Get_AllFontNames = function(AllFonts)
 	var Count = this.Content.length;
 	for (var Index = 0; Index < Count; Index++)
 	{
-		this.Content[Index].Get_AllFontNames(AllFonts);
+		if (this.Content[Index] && typeof(this.Content[Index].Get_AllFontNames) === "function") {
+            this.Content[Index].Get_AllFontNames(AllFonts);
+        }
 	}
 };
 /**
