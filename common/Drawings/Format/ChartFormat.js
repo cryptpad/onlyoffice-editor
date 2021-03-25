@@ -2558,7 +2558,7 @@
     CDLbl.prototype.hitInTextRect = function(x, y) {
         var content = this.getDocContent && this.getDocContent();
         if (content && this.invertTransformText) {
-            return AscFormat.HitToRect(x, y, this.invertTransform, 0, 0, this.contentWidth, this.contentHeight);
+            return AscFormat.HitToRect(x, y, this.invertTransformText, 0, 0, this.contentWidth, this.contentHeight);
         }
     };
     CDLbl.prototype.getCompiledStyle = function() {
