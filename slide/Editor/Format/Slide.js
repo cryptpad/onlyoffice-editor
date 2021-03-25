@@ -159,6 +159,7 @@ function Slide(presentation, slideLayout, slideNum)
     this.graphicObjects = new AscFormat.DrawingObjectsController(this);
     this.maxId = 0;
     this.cSld = new AscFormat.CSld();
+    this.collaborativeMarks = new CRunCollaborativeMarks();
     this.clrMap = null; // override ClrMap
 
     this.show = true;
@@ -249,6 +250,11 @@ Slide.prototype =
         for(var i = 0; i < this.cSld.spTree.length; ++i){
             this.cSld.spTree[i].Reassign_ImageUrls(images_rename);
         }
+    },
+
+    Clear_CollaborativeMarks: function()
+    {
+        this.collaborativeMarks.Clear();
     },
 
     createDuplicate: function(IdMap)
@@ -776,6 +782,9 @@ Slide.prototype =
        History.Add(new AscDFH.CChangesDrawingsContentPresentation(this, AscDFH.historyitem_SlideAddToSpTree, _pos, [item], true));
         this.cSld.spTree.splice(_pos, 0, item);
         item.setParent2(this);
+        if(this.collaborativeMarks) {
+            this.collaborativeMarks.Update_OnAdd(_pos);
+        }
     },
 
     isVisible: function(){
@@ -888,6 +897,9 @@ Slide.prototype =
             this.cSld.spTree.splice(pos, 1);
             if(this.timing) {
                 this.timing.onRemoveObject(oSp.Get_Id());
+            }
+            if(this.collaborativeMarks) {
+                this.collaborativeMarks.Update_OnRemove(pos, 1);
             }
         }
     },
@@ -1286,9 +1298,26 @@ Slide.prototype =
                 graphics.rect(_bounds.l, _bounds.t, _bounds.w, _bounds.h);
             }
         }
+        this.collaborativeMarks.Init_Drawing();
+        var oCollColor;
+        var fDist = 3;
+        var oIdentityMtx = new AscCommon.CMatrix();
         for(i = 0; i < this.cSld.spTree.length; ++i)
         {
-            this.cSld.spTree[i].draw(graphics);
+            var oSp = this.cSld.spTree[i];
+            if(this.collaborativeMarks)
+            {
+                oCollColor = this.collaborativeMarks.Check(i);
+                if(oCollColor)
+                {
+                    var oBounds = oSp.bounds;
+                    graphics.transform3(oIdentityMtx);
+                    graphics.b_color1(oCollColor.r, oCollColor.g, oCollColor.b, 127);
+                    graphics.rect(oBounds.l - fDist, oBounds.t - fDist, oBounds.r - oBounds.l + 2*fDist, oBounds.b - oBounds.t + 2*fDist);
+                    graphics.df();
+                }
+            }
+            oSp.draw(graphics);
         }
         if(this.slideComments)
         {
