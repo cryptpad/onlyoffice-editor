@@ -1045,7 +1045,7 @@ CParagraphContentWithContentBase.prototype.PreDelete = function()
 };
 CParagraphContentWithContentBase.prototype.private_UpdateDocumentOutline = function()
 {
-	if (this.Paragraph)
+	if (this.Paragraph && this.Paragraph.UpdateDocumentOutline)
 		this.Paragraph.UpdateDocumentOutline();
 };
 CParagraphContentWithContentBase.prototype.IsSolid = function()
