@@ -2579,20 +2579,24 @@
 	 */
 	Api.prototype.CreateRange = function(oElement, nStart, nEnd)
 	{
-		switch (oElement.GetClassType())
+		if (oElement) 
 		{
-			case 'paragraph':
-			case 'hyperlink':
-			case 'run':
-			case 'table':
-			case 'documentContent':
-			case 'document':
-			case 'inlineLvlSdt':
-			case 'blockLvlSdt':
-				return oElement.GetRange(nStart, nEnd);
-			default:
-				return null;
+			switch (oElement.GetClassType())
+			{
+				case 'paragraph':
+				case 'hyperlink':
+				case 'run':
+				case 'table':
+				case 'documentContent':
+				case 'document':
+				case 'inlineLvlSdt':
+				case 'blockLvlSdt':
+					return oElement.GetRange(nStart, nEnd);
+				default:
+					return null;
+			}
 		}
+		return null;
 	};
 	/**
 	 * Create a new table with a specified number of rows and columns.
