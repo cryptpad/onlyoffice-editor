@@ -694,8 +694,8 @@
                 oThis.loadImageByUrl(img, img.src);
             });
             //oImage.Image.crossOrigin = 'anonymous';
-            console.log("Loading image " + i);
-            console.log(oImage);
+            //console.log("Loading image " + i);
+            //console.log(oImage);
             // CRYPTPAD: if we find an image URL with #channel= in it
             // then we need to ask cryptpad to get the blob
             window.parent.APP.getImageURL(oImage.src, function(url) {
