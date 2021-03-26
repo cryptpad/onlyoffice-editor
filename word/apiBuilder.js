@@ -3926,7 +3926,7 @@
 		var arrApiSections = [];
 
 		for (var Index = 0; Index < this.Document.SectionsInfo.Elements.length; Index++)
-			arrApiSections.push(new ApiSection(this.Document.SectionsInfo.Elements[Index]))
+			arrApiSections.push(new ApiSection(this.Document.SectionsInfo.Elements[Index].SectPr))
 
 		return arrApiSections;
 	};
@@ -6301,7 +6301,16 @@
 	{
 		var oDocument		= editor.GetDocument();
 		var arrApiSections	= oDocument.GetSections();
-		var sectionIndex	= arrApiSections.indexOf(this);
+		var sectionIndex	= -1;
+
+		for (var nSection = 0; nSection < arrApiSections.length; nSection++)
+		{
+			if (arrApiSections[nSection].Section.Id === this.Section.Id) 
+			{
+				sectionIndex = nSection;
+				break;
+			}
+		}
 		
 		if (sectionIndex !== - 1 && arrApiSections[sectionIndex + 1])
 		{
@@ -6320,7 +6329,16 @@
 	{
 		var oDocument		= editor.GetDocument();
 		var arrApiSections	= oDocument.GetSections();
-		var sectionIndex	= arrApiSections.indexOf(this);
+		var sectionIndex	= -1;
+
+		for (var nSection = 0; nSection < arrApiSections.length; nSection++)
+		{
+			if (arrApiSections[nSection].Section.Id === this.Section.Id) 
+			{
+				sectionIndex = nSection;
+				break;
+			}
+		}
 		
 		if (sectionIndex !== - 1 && arrApiSections[sectionIndex - 1])
 		{
