@@ -2,6 +2,7 @@
 	"sdk": {
 		"min": [
 			"common/device_scale.js",
+			"common/userinfo_parser.js",
 			"common/browser.js",
 			"common/skin.js",
 			"common/commonDefines.js",
