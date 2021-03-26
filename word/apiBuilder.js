@@ -11475,7 +11475,8 @@
 	 */
 	ApiBlockLvlSdt.prototype.GetAllContentControls = function()
 	{
-		var arrContentControls = [];
+		var arrContentControls    = [];
+		var arrApiContentControls = [];
 		this.Sdt.Content.GetAllContentControls(arrContentControls);
 
 		for (var Index = 0, nCount = arrContentControls.length; Index < nCount; Index++)
@@ -11483,12 +11484,12 @@
 			var oControl = arrContentControls[Index];
 
 			if (oControl instanceof CBlockLevelSdt)
-				arrContentControls.push(new ApiBlockLvlSdt(oControl));
+				arrApiContentControls.push(new ApiBlockLvlSdt(oControl));
 			else if (oControl instanceof CInlineLevelSdt)
-				arrContentControls.push(new ApiInlineLvlSdt(oControl));
+				arrApiContentControls.push(new ApiInlineLvlSdt(oControl));
 		}
 
-		return arrContentControls;
+		return arrApiContentControls;
 	};
 
 	/**
@@ -11519,7 +11520,7 @@
 	 * process to arrange tables on the specified page</note>
 	 * @memberof ApiBlockLvlSdt
 	 * @typeofeditors ["CDE"]
-	 * @param nPage - page number
+	 * @param nPage - page number, if not specified, will return an empty array
 	 * @return {ApiTable[]}  
 	 */
 	ApiBlockLvlSdt.prototype.GetAllTablesOnPage = function(nPage)
