@@ -5115,9 +5115,9 @@
 
 		for (var Index = ParaPosition.length - 1; Index >= 1; Index--)
 		{
-			if (ParaPosition[Index].Class.Parent)
-				if (ParaPosition[Index].Class.Parent instanceof CBlockLevelSdt)
-					return new ApiBlockLvlSdt(ParaPosition[Index].Class.Parent);
+			if (ParaPosition[Index].Class)
+				if (ParaPosition[Index].Class instanceof CBlockLevelSdt)
+					return new ApiBlockLvlSdt(ParaPosition[Index].Class);
 		}
 
 		return null;
@@ -5678,12 +5678,12 @@
 
         for (var Index = RunPosition.length - 1; Index >= 1; Index--)
         {
-            if (RunPosition[Index].Class.Parent)
+            if (RunPosition[Index].Class)
             {
-                if (RunPosition[Index].Class.Parent instanceof CBlockLevelSdt)
-                    return new ApiBlockLvlSdt(RunPosition[Index].Class.Parent);
-                else if (RunPosition[Index].Class.Parent instanceof CInlineLevelSdt)
-                    return new ApiInlineLvlSdt(RunPosition[Index].Class.Parent);
+                if (RunPosition[Index].Class instanceof CBlockLevelSdt)
+                    return new ApiBlockLvlSdt(RunPosition[Index].Class);
+                else if (RunPosition[Index].Class instanceof CInlineLevelSdt)
+                    return new ApiInlineLvlSdt(RunPosition[Index].Class);
             }
         }
 
@@ -6711,13 +6711,13 @@
 	 */
 	ApiTable.prototype.Copy = function()
 	{
-		var oTable = this.Table.Copy();
+		var oTable = this.Table.Copy(private_GetLogicDocument(), private_GetDrawingDocument());
 		return new ApiTable(oTable);
 	};
 	/**
 	 * Select a table.
 	 * @memberof ApiTable
-	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @typeofeditors ["CDE", "CPE"]
 	 * @returns {bool}
 	 */
 	ApiTable.prototype.Select = function()
@@ -6875,9 +6875,9 @@
 
         for (var Index = TablePosition.length - 1; Index >= 1; Index--)
         {
-            if (TablePosition[Index].Class.Parent)
-                if (TablePosition[Index].Class.Parent instanceof CBlockLevelSdt)
-                    return new ApiBlockLvlSdt(TablePosition[Index].Class.Parent);
+            if (TablePosition[Index].Class)
+                if (TablePosition[Index].Class instanceof CBlockLevelSdt)
+                    return new ApiBlockLvlSdt(TablePosition[Index].Class);
         }
 
         return null;
@@ -11604,9 +11604,9 @@
 
 		for (var Index = documentPos.length - 1; Index >= 1; Index--)
 		{
-			if (documentPos[Index].Class.Parent)
-				if (documentPos[Index].Class.Parent instanceof CBlockLevelSdt)
-					return new ApiBlockLvlSdt(documentPos[Index].Class.Parent);
+			if (documentPos[Index].Class)
+				if (documentPos[Index].Class instanceof CBlockLevelSdt)
+					return new ApiBlockLvlSdt(documentPos[Index].Class);
 		}
 
 		return null;
