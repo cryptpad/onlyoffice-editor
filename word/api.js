@@ -3479,21 +3479,28 @@ background-repeat: no-repeat;\
 			if (undefined !== Props.OutlineLvl)
 				this.WordControl.m_oLogicDocument.SetParagraphOutlineLvl(Props.OutlineLvl);
 
-			if ("undefined" != typeof(Props.Shd) && null != Props.Shd)
+			if (Props.Shd)
 			{
 				var Unifill        = new AscFormat.CUniFill();
 				Unifill.fill       = new AscFormat.CSolidFill();
 				Unifill.fill.color = AscFormat.CorrectUniColor(Props.Shd.Color, Unifill.fill.color, 1);
-				this.WordControl.m_oLogicDocument.SetParagraphShd(
-					{
-						Value   : Props.Shd.Value,
-						Color   : {
-							r : Props.Shd.Color.asc_getR(),
-							g : Props.Shd.Color.asc_getG(),
-							b : Props.Shd.Color.asc_getB()
-						},
-						Unifill : Unifill
-					});
+
+				this.WordControl.m_oLogicDocument.SetParagraphShd({
+					Value   : Asc.c_oAscShd.Clear,
+					Color   : {
+						r    : Props.Shd.Color.asc_getR(),
+						g    : Props.Shd.Color.asc_getG(),
+						b    : Props.Shd.Color.asc_getB(),
+						Auto : false
+					},
+					Fill    : {
+						r    : Props.Shd.Color.asc_getR(),
+						g    : Props.Shd.Color.asc_getG(),
+						b    : Props.Shd.Color.asc_getB(),
+						Auto : false
+					},
+					Unifill : Unifill
+				});
 			}
 
 			if ("undefined" != typeof(Props.Brd) && null != Props.Brd)
@@ -4170,14 +4177,19 @@ background-repeat: no-repeat;\
 			if (false === is_flag)
 			{
 				this.WordControl.m_oLogicDocument.SetParagraphShd({
-					Value   : Asc.c_oAscShdClear,
-					Color   : {
+					Value : Asc.c_oAscShd.Clear,
+					Color : {
+						r    : 0,
+						g    : 0,
+						b    : 0,
+						Auto : true
+					},
+					Fill  : {
 						r    : 255,
 						g    : 255,
 						b    : 255,
 						Auto : true
-					},
-					Unifill : undefined
+					}
 				});
 			}
 			else
@@ -4185,12 +4197,20 @@ background-repeat: no-repeat;\
 				var Unifill        = new AscFormat.CUniFill();
 				Unifill.fill       = new AscFormat.CSolidFill();
 				Unifill.fill.color = AscFormat.CorrectUniColor(color, Unifill.fill.color, 1);
+
 				this.WordControl.m_oLogicDocument.SetParagraphShd({
-					Value   : Asc.c_oAscShdClear,
+					Value   : Asc.c_oAscShd.Clear,
 					Color   : {
-						r : color.asc_getR(),
-						g : color.asc_getG(),
-						b : color.asc_getB()
+						r    : color.asc_getR(),
+						g    : color.asc_getG(),
+						b    : color.asc_getB(),
+						Auto : false
+					},
+					Fill    : {
+						r    : color.asc_getR(),
+						g    : color.asc_getG(),
+						b    : color.asc_getB(),
+						Auto : false
 					},
 					Unifill : Unifill
 				});

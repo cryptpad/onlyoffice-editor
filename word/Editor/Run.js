@@ -5950,8 +5950,8 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
         InfoMathText = new CMathInfoTextPr(InfoTextPr);
     }
 
-    if ( undefined !== CurTextPr.Shd && c_oAscShdNil !== CurTextPr.Shd.Value && !(CurTextPr.FontRef && CurTextPr.FontRef.Color) )
-        BgColor = CurTextPr.Shd.Get_Color( Para );
+	if (CurTextPr.Shd && !CurTextPr.Shd.IsNil() && !(CurTextPr.FontRef && CurTextPr.FontRef.Color))
+		BgColor = CurTextPr.Shd.GetSimpleColor(Para.GetTheme(), Para.GetColorMap());
 
     var AutoColor = ( undefined != BgColor && false === BgColor.Check_BlackAutoColor() ? new CDocumentColor( 255, 255, 255, false ) : new CDocumentColor( 0, 0, 0, false ) );
     var  RGBA, Theme = PDSE.Theme, ColorMap = PDSE.ColorMap;
@@ -12967,6 +12967,65 @@ ParaRun.prototype.ChangeTextCase = function(oEngine)
 				oEngine.SetStartSentence(false);
 		}
 	}
+};
+ParaRun.prototype.FindNextFillingForm = function(isNext, isCurrent, isStart)
+{
+	var nCurPos = this.Selection.Use === true ? this.Selection.EndPos : this.State.ContentPos;
+
+	var nStartPos = 0, nEndPos = 0;
+	if (isCurrent)
+	{
+		if (isStart)
+		{
+			nStartPos = nCurPos;
+			nEndPos   = isNext ? this.Content.length : 0;
+		}
+		else
+		{
+			nStartPos = isNext ? 0 : this.Content.length;
+			nEndPos   = nCurPos;
+		}
+	}
+	else
+	{
+		if (isNext)
+		{
+			nStartPos = 0;
+			nEndPos   = this.Content.length;
+		}
+		else
+		{
+			nStartPos = this.Content.length;
+			nEndPos   = 0;
+		}
+	}
+
+	if (isNext)
+	{
+		for (var nIndex = nStartPos; nIndex < nEndPos; ++nIndex)
+		{
+			if (this.Content[nIndex].FindNextFillingForm)
+			{
+				var oRes = this.Content[nIndex].FindNextFillingForm(true, false, false);
+				if (oRes)
+					return oRes;
+			}
+		}
+	}
+	else
+	{
+		for (var nIndex = nStartPos - 1; nIndex >= nEndPos; --nIndex)
+		{
+			if (this.Content[nIndex].FindNextFillingForm)
+			{
+				var oRes = this.Content[nIndex].FindNextFillingForm(false, false, false);
+				if (oRes)
+					return oRes;
+			}
+		}
+	}
+
+	return null;
 };
 
 function CParaRunStartState(Run)

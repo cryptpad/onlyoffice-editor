@@ -1956,9 +1956,16 @@ CTable.prototype.Set_Props = function(Props)
 					oCell.Set_Shd({
 						Value : Props.TableBackground.Value,
 						Color : {
-							r : Props.TableBackground.Color.r,
-							g : Props.TableBackground.Color.g,
-							b : Props.TableBackground.Color.b
+							r    : Props.TableBackground.Color.r,
+							g    : Props.TableBackground.Color.g,
+							b    : Props.TableBackground.Color.b,
+							Auto : false
+						},
+						Fill  : {
+							r    : Props.TableBackground.Color.r,
+							g    : Props.TableBackground.Color.g,
+							b    : Props.TableBackground.Color.b,
+							Auto : false
 						}
 					});
 				}
@@ -1977,17 +1984,23 @@ CTable.prototype.Set_Props = function(Props)
 				for (var CurCell = 0; CurCell < Row.Get_CellsCount(); CurCell++)
 				{
 					var Cell   = Row.Get_Cell(CurCell);
-					var NewShd =
-							{
-								Value : Props.CellsBackground.Value,
-								Color : {
-									r : Props.CellsBackground.Color.r,
-									g : Props.CellsBackground.Color.g,
-									b : Props.CellsBackground.Color.b
-								},
+					var NewShd = {
+						Value : Props.CellsBackground.Value,
+						Color : {
+							r    : Props.CellsBackground.Color.r,
+							g    : Props.CellsBackground.Color.g,
+							b    : Props.CellsBackground.Color.b,
+							Auto : false
+						},
+						Fill  : {
+							r    : Props.CellsBackground.Color.r,
+							g    : Props.CellsBackground.Color.g,
+							b    : Props.CellsBackground.Color.b,
+							Auto : false
+						},
 
-								Unifill : Props.CellsBackground.Unifill.createDuplicate()
-							};
+						Unifill : Props.CellsBackground.Unifill.createDuplicate()
+					};
 
 					Cell.Set_Shd(NewShd);
 
@@ -2005,17 +2018,24 @@ CTable.prototype.Set_Props = function(Props)
 
 				if (Props.CellsBackground.Value != Cell_shd.Value || Props.CellsBackground.Color.r != Cell_shd.Color.r || Props.CellsBackground.Color.g != Cell_shd.Color.g || Props.CellsBackground.Color.b != Cell_shd.Color.b || !AscFormat.CompareUnifillBool(Props.CellsBackground.Unifill, Cell_shd.Unifill))
 				{
-					var NewShd =
-							{
-								Value : Props.CellsBackground.Value,
-								Color : {
-									r : Props.CellsBackground.Color.r,
-									g : Props.CellsBackground.Color.g,
-									b : Props.CellsBackground.Color.b
-								},
+					var NewShd = {
+						Value : Props.CellsBackground.Value,
+						Color : {
+							r    : Props.CellsBackground.Color.r,
+							g    : Props.CellsBackground.Color.g,
+							b    : Props.CellsBackground.Color.b,
+							Auto : false
+						},
 
-								Unifill : Props.CellsBackground.Unifill.createDuplicate()
-							};
+						Fill : {
+							r    : Props.CellsBackground.Color.r,
+							g    : Props.CellsBackground.Color.g,
+							b    : Props.CellsBackground.Color.b,
+							Auto : false
+						},
+
+						Unifill : Props.CellsBackground.Unifill.createDuplicate()
+					};
 
 					Cell.Set_Shd(NewShd);
 
@@ -2030,17 +2050,23 @@ CTable.prototype.Set_Props = function(Props)
 
 			if (Props.CellsBackground.Value != Cell_shd.Value || Props.CellsBackground.Color.r != Cell_shd.Color.r || Props.CellsBackground.Color.g != Cell_shd.Color.g || Props.CellsBackground.Color.b != Cell_shd.Color.b || !AscFormat.CompareUnifillBool(Props.CellsBackground.Unifill, Cell_shd.Unifill))
 			{
-				var NewShd =
-						{
-							Value : Props.CellsBackground.Value,
-							Color : {
-								r : Props.CellsBackground.Color.r,
-								g : Props.CellsBackground.Color.g,
-								b : Props.CellsBackground.Color.b
-							},
+				var NewShd = {
+					Value : Props.CellsBackground.Value,
+					Color : {
+						r    : Props.CellsBackground.Color.r,
+						g    : Props.CellsBackground.Color.g,
+						b    : Props.CellsBackground.Color.b,
+						Auto : false
+					},
 
-							Unifill : Props.CellsBackground.Unifill.createDuplicate()
-						};
+					Fill    : {
+						r    : Props.CellsBackground.Color.r,
+						g    : Props.CellsBackground.Color.g,
+						b    : Props.CellsBackground.Color.b,
+						Auto : false
+					},
+					Unifill : Props.CellsBackground.Unifill.createDuplicate()
+				};
 
 				Cell.Set_Shd(NewShd);
 
@@ -2188,8 +2214,8 @@ CTable.prototype.Get_TextBackGroundColor = function()
 	// Сначала проверим заливку данной таблицы, если ее нет, тогда спрашиваем у родительского класса
 	var Shd = this.Get_Shd();
 
-	if (Asc.c_oAscShdNil !== Shd.Value)
-		return Shd.Get_Color2(this.Get_Theme(), this.Get_ColorMap());
+	if (Shd && !Shd.IsNil())
+		return Shd.GetSimpleColor(this.Get_Theme(), this.Get_ColorMap());
 
 	return this.Parent.Get_TextBackGroundColor();
 };
@@ -8774,7 +8800,8 @@ CTable.prototype.Set_TableShd = function(Value, r, g, b)
 	{
 		_Shd       = new CDocumentShd();
 		_Shd.Value = Value;
-		_Shd.Color.Set(r, g, b);
+		_Shd.Color = new CDocumentColor(r, g, b);
+		_Shd.Fill  = new CDocumentColor(r, g, b);
 	}
 
 	this.private_AddPrChange();
@@ -17186,6 +17213,35 @@ CTable.prototype.IsCellSelection = function()
 		return true;
 
 	return false;
+};
+/**
+ * Проверяем, идет ли выделение по целым строкам
+ * @return {boolean}
+ * @constructor
+ */
+CTable.prototype.IsRowSelection = function()
+{
+	if (!this.IsCellSelection())
+		return false;
+
+	var arrSelectionArray = this.GetSelectionArray(true);
+
+	var oPrevPos = null;
+	for (var nIndex = 0, nCount = arrSelectionArray.length; nIndex < nCount; ++nIndex)
+	{
+		var oPos = arrSelectionArray[nIndex];
+		if ((!oPrevPos && 0 !== oPos.Cell)
+			|| (oPrevPos
+				&& ((oPrevPos.Row === oPos.Row && oPos.Cell !== oPrevPos.Cell + 1)
+					|| (oPrevPos.Row !== oPos.Row
+						&& (0 !== oPos.Cell
+							|| this.GetRow(oPrevPos.Row).GetCellsCount() - 1 !== oPrevPos.Cell)))))
+				return false;
+
+		oPrevPos = oPos;
+	}
+
+	return !(!oPrevPos || this.GetRow(oPrevPos.Row).GetCellsCount() - 1 !== oPrevPos.Cell);
 };
 CTable.prototype.SetTableProps = function(oProps)
 {

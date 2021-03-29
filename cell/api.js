@@ -572,6 +572,7 @@ var editor;
     if (this.wb) {
       if (Math.abs(oldScale - AscCommon.AscBrowser.retinaPixelRatio) > 0.001) {
         this.wb.changeZoom(null);
+        this._sendWorkbookStyles();
       }
       this.wb.resize();
 
@@ -2775,8 +2776,9 @@ var editor;
     this.wb.getWorksheet().setSelectionInfo("sort", options);
   };
 
-  spreadsheet_api.prototype.asc_emptyCells = function(options) {
-    this.wb.emptyCells(options);
+  spreadsheet_api.prototype.asc_emptyCells = function(options, isMineComments) {
+    //TODO isMineComments - временный флаг, как только в сдк появится класс для групп, добавить этот флаг туда
+  	this.wb.emptyCells(options, isMineComments);
   };
 
   spreadsheet_api.prototype.asc_drawDepCells = function(se) {

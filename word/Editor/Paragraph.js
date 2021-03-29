@@ -666,6 +666,13 @@ Paragraph.prototype.Get_ColorMap = function()
 
 	return null;
 };
+Paragraph.prototype.GetColorMap = function()
+{
+	if (this.Parent)
+		return this.Parent.Get_ColorMap();
+
+	return null;
+};
 Paragraph.prototype.Reset = function(X, Y, XLimit, YLimit, PageNum, ColumnNum, ColumnsCount)
 {
 	this.X      = X;
@@ -1660,7 +1667,17 @@ Paragraph.prototype.GetNumberingTextPr = function()
 	oNumTextPr.Merge(this.TextPr.Value);
 	oNumTextPr.Merge(oLvl.GetTextPr());
 
-	oNumTextPr.FontFamily.Name = oNumTextPr.RFonts.Ascii.Name;
+	// TODO: Пока возвращаем всегда шрифт лежащий в Ascii, в будущем надо будет это переделать
+	if (undefined !== oNumTextPr.RFonts && null !== oNumTextPr.RFonts)
+	{
+		oNumTextPr.ReplaceThemeFonts(this.GetTheme().themeElements.fontScheme);
+
+		if (!oNumTextPr.FontFamily)
+			oNumTextPr.FontFamily = {Name : "", Index : -1};
+
+		oNumTextPr.FontFamily.Name  = oNumTextPr.RFonts.Ascii.Name;
+		oNumTextPr.FontFamily.Index = oNumTextPr.RFonts.Ascii.Index;
+	}
 
 	return oNumTextPr;
 };
@@ -1823,18 +1840,9 @@ Paragraph.prototype.Draw = function(CurPage, pGraphics)
 	var Theme    = this.Get_Theme();
 	var ColorMap = this.Get_ColorMap();
 	var BgColor  = undefined;
-	if (undefined !== Pr.ParaPr.Shd && Asc.c_oAscShdNil !== Pr.ParaPr.Shd.Value && true !== Pr.ParaPr.Shd.Color.Auto)
+	if (Pr.ParaPr.Shd && !Pr.ParaPr.Shd.IsNil() && (!Pr.ParaPr.Shd.Color || true !== Pr.ParaPr.Shd.Color.Auto))
 	{
-		if (Pr.ParaPr.Shd.Unifill)
-		{
-			Pr.ParaPr.Shd.Unifill.check(this.Get_Theme(), this.Get_ColorMap());
-			var RGBA = Pr.ParaPr.Shd.Unifill.getRGBAColor();
-			BgColor  = new CDocumentColor(RGBA.R, RGBA.G, RGBA.B, false);
-		}
-		else
-		{
-			BgColor = Pr.ParaPr.Shd.Color;
-		}
+		BgColor = Pr.ParaPr.Shd.GetSimpleColor(this.GetTheme(), this.GetColorMap());
 	}
 	else
 	{
@@ -2049,7 +2057,7 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 			//----------------------------------------------------------------------------------------------------------
 			// Заливка параграфа
 			//----------------------------------------------------------------------------------------------------------
-			if ((_Range.W > 0.001 || true === this.IsEmpty() || true !== this.IsEmptyRange(CurLine, CurRange) ) && ( ( this.Pages.length - 1 === CurPage ) || ( CurLine < this.Pages[CurPage + 1].FirstLine ) ) && Asc.c_oAscShdClear === Pr.ParaPr.Shd.Value && (Pr.ParaPr.Shd.Unifill || (Pr.ParaPr.Shd.Color && true !== Pr.ParaPr.Shd.Color.Auto)))
+			if ((_Range.W > 0.001 || true === this.IsEmpty() || true !== this.IsEmptyRange(CurLine, CurRange) ) && ( ( this.Pages.length - 1 === CurPage ) || ( CurLine < this.Pages[CurPage + 1].FirstLine ) ) && !Pr.ParaPr.Shd.IsNil())
 			{
 				if (pGraphics.Start_Command)
 				{
@@ -2150,20 +2158,12 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 						TempX1 += 0.5;
 				}
 
-				if (Pr.ParaPr.Shd.Unifill)
-				{
-					Pr.ParaPr.Shd.Unifill.check(this.Get_Theme(), this.Get_ColorMap());
-					var RGBA = Pr.ParaPr.Shd.Unifill.getRGBAColor();
-					pGraphics.b_color1(RGBA.R, RGBA.G, RGBA.B, 255);
-				}
-				else
-				{
-					pGraphics.b_color1(Pr.ParaPr.Shd.Color.r, Pr.ParaPr.Shd.Color.g, Pr.ParaPr.Shd.Color.b, 255);
-				}
+				var oShdColor = Pr.ParaPr.Shd.GetSimpleColor(this.GetTheme(), this.GetColorMap());
+				pGraphics.b_color1(oShdColor.r, oShdColor.g, oShdColor.b, 255);
+
 				if (pGraphics.SetShd)
-				{
 					pGraphics.SetShd(Pr.ParaPr.Shd);
-				}
+
 				pGraphics.rect(TempX0, this.Pages[CurPage].Y + TempTop, TempX1 - TempX0, TempBottom - TempTop);
 				pGraphics.df();
 
@@ -10297,6 +10297,13 @@ Paragraph.prototype.Set_Shd = function(_Shd, bDeleteUndefined)
 			this.private_AddPrChange();
 			History.Add(new CChangesParagraphShdUnifill(this, this.Pr.Shd.Unifill, Shd.Unifill));
 			this.Pr.Shd.Unifill = Shd.Unifill;
+		}
+
+		if (Shd.Fill || true === bDeleteUndefined)
+		{
+			this.private_AddPrChange();
+			History.Add(new CChangesParagraphShdFill(this, this.Pr.Shd.Fill, Shd.Fill));
+			this.Pr.Shd.Fill = Shd.Fill;
 		}
 	}
 

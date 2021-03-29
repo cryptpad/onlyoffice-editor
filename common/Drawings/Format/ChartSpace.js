@@ -11780,6 +11780,12 @@ var GLOBAL_PATH_COUNT = 0;
         }
         return null;
     };
+	CChartSpace.prototype.FindNextFillingForm = function(isNext, isCurrent) {
+		return null;
+	};
+    CChartSpace.prototype.isAccent1Background = function() {
+        return this.spPr && this.spPr.Fill && this.spPr.Fill.isAccent1();
+    };
     CChartSpace.prototype.addNewSeries = function() {
         var oLastChart = this.chart.plotArea.charts[this.chart.plotArea.charts.length - 1];
         if(!oLastChart) {
