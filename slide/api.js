@@ -1062,6 +1062,10 @@
 	{
 		return [];
 	};
+	asc_docs_api.prototype.asc_undoAllChanges       = function()
+	{
+		this.WordControl.m_oLogicDocument.Document_Undo({All : true});
+	};
 	asc_docs_api.prototype.asc_CloseFile            = function()
 	{
 		History.Clear();

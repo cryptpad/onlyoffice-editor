@@ -7980,7 +7980,7 @@ CPresentation.prototype.Create_NewHistoryPoint = function (Description) {
     this.History.Create_NewPoint(Description);
 };
 
-CPresentation.prototype.Document_Undo = function () {
+CPresentation.prototype.Document_Undo = function (Options) {
 
     if (true === AscCommon.CollaborativeEditing.Get_GlobalLock())
         return;
@@ -7992,7 +7992,7 @@ CPresentation.prototype.Document_Undo = function () {
         }
     } else {
         this.clearThemeTimeouts();
-        var arrChanges = this.History.Undo();
+        var arrChanges = this.History.Undo(Options);
         this.Recalculate(this.History.Get_RecalcData(null, arrChanges));
 
         this.Document_UpdateSelectionState();
