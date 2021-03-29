@@ -6998,8 +6998,19 @@ function CDrawingDocument()
         }
     };
 
-	this.SetDrawImagePreviewBulletForMenu = function(id, props, is_multi_level, isNoCheckFonts)
+	this.SetDrawImagePreviewBulletForMenu = function(id, type, props, isNoCheckFonts)
 	{
+		// TODO: подумать вообще оставить ли такой вариант работы с props (только надо будет написать или предлать функцию для их генерации, чтобы правильно всё возвращало)
+		// либо вообще отказаться от этих пропс, так как здесь однозначно определен стиль текста (только надо будет педелать или написать новую функцию для отрисовки текста)
+		if (!props)
+		{
+			var listId = this.m_oLogicDocument.Api.asc_GetCurrentNumberingId();
+			props = (listId !== null) ? this.m_oLogicDocument.Api.asc_GetNumberingPr(listId) : null;
+			if (!props)
+				return;
+			else
+				props.Lvl.length = 3;
+		}
 		if (!isNoCheckFonts)
 		{
             // check need load fonts
@@ -7044,17 +7055,16 @@ function CDrawingDocument()
 
             if (false === AscCommon.g_font_loader.CheckFontsNeedLoading(fonts))
             {
-                return this.SetDrawImagePreviewBulletForMenu(id, props, is_multi_level, true);
+                return this.SetDrawImagePreviewBulletForMenu(id, type, props, true);
             }
 
             this.m_oWordControl.m_oApi.asyncMethodCallback = function()
 			{
-                this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletForMenu(id, props, is_multi_level, true);
+                this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletForMenu(id, type, props, true);
             };
             AscCommon.g_font_loader.LoadDocumentFonts2(fonts);
             return;
         }
-
         var parent =  document.getElementById(id);
 		
 		//моё, чтобы убрать пока фон у картинки
@@ -7081,11 +7091,13 @@ function CDrawingDocument()
         canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
 
         var ctx = canvas.getContext("2d");
-
-        if (AscCommon.AscBrowser.retinaPixelRatio >= 2)
-            ctx.setTransform(2, 0, 0, 2, 0, 0);
-
-        if (!is_multi_level)
+		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+		
+		if (type == 0)
+		{
+			//TODO: Нарисовать просто большой знак
+		}
+        if (type == 1)
         {
             var offsetBase = 4;
             var line_w = 2;
@@ -7096,18 +7108,27 @@ function CDrawingDocument()
 
             var textYs = [];
 
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2 * Math.round(rPR);
             var y = offset + 6;
             var text_base_offset_x = offset + (2.75 * AscCommon.g_dKoef_mm_to_pix) >> 0;
             if (text_base_offset_x > (width_px - offsetBase << 1))
             	text_base_offset_x = width_px - offsetBase << 1;
             ctx.strokeStyle = "#CBCBCB";
-            textYs.push(y + line_w);
-            ctx.moveTo(text_base_offset_x + 2, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
-            textYs.push(y + line_w);
-            ctx.moveTo(text_base_offset_x + 2, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
-            textYs.push(y + line_w);
-            ctx.moveTo(text_base_offset_x + 2, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
+
+            textYs.push(y + line_w); y += (line_w + line_distance);
+            textYs.push(y + line_w); y += (line_w + line_distance);
+            textYs.push(y + line_w); y += (line_w + line_distance);
+
+			for (var i = 0; i < textYs.length; i++)
+			{
+				this.privateGetParagraphByString(props.Lvl[i], i, i + 1, text_base_offset_x - ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0),
+                    textYs[i], line_distance, ctx, width_px, height_px);
+            }
+  
+			y = Math.round((offset + 6) * rPR);
+            ctx.moveTo((text_base_offset_x + 2) * rPR, y); ctx.lineTo((width_px - offsetBase) * rPR, y); y += Math.round((line_w + line_distance) * rPR);
+			ctx.moveTo((text_base_offset_x + 2) * rPR, y); ctx.lineTo((width_px - offsetBase) * rPR, y); y += Math.round((line_w + line_distance) * rPR);
+			ctx.moveTo((text_base_offset_x + 2) * rPR, y); ctx.lineTo((width_px - offsetBase) * rPR, y); y += Math.round((line_w + line_distance) * rPR);
             ctx.stroke();
             ctx.beginPath();
 
@@ -7126,7 +7147,7 @@ function CDrawingDocument()
             // убираем погрешность в offset
             var offset = (height_px - (line_w * 3 + line_distance * 3)) >> 1;
 
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2 * Math.round(rPR);
             ctx.strokeStyle = "#CBCBCB";
             var y = offset + 6;
             var text_base_offset_x = offset + ((2.75 * AscCommon.g_dKoef_mm_to_pix) >> 0);
@@ -7136,7 +7157,7 @@ function CDrawingDocument()
             for (var i = 0; i < props.Lvl.length; i++)
 			{
                 textYs.push({x: text_base_offset_x - ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0), y: y + line_w});
-				ctx.moveTo(text_base_offset_x + 2, y); ctx.lineTo(width_px - offsetBase, y);
+				ctx.moveTo(Math.round((text_base_offset_x + 2) * rPR), Math.round(y * rPR)); ctx.lineTo(Math.round((width_px - offsetBase) * rPR), Math.round(y * rPR));
 				ctx.stroke();
 				ctx.beginPath();
 
@@ -7146,7 +7167,7 @@ function CDrawingDocument()
 
 			for (var i = 0; i < props.Lvl.length; i++)
 			{
-                this.privateGetParagraphByString(props.Lvl[i], 1, 1, textYs[i].x, textYs[i].y, line_distance, ctx, width_px, height_px);
+                this.privateGetParagraphByString(props.Lvl[i], 9, 1, textYs[i].x, textYs[i].y, line_distance, ctx, width_px, height_px);
             }
         }
 	};
