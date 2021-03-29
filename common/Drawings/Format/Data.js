@@ -403,195 +403,195 @@
     var Rule_type_wArH = 62;
     var Rule_type_wOff = 63;
 
-    var SShape_type_conn = 0;
-    var SShape_type_none = 1;
-    var SShape_type_accentBorderCallout1 = 2;
-    var SShape_type_accentBorderCallout2 = 3;
-    var SShape_type_accentBorderCallout3 = 4;
-    var SShape_type_accentCallout1 = 5;
-    var SShape_type_accentCallout2 = 6;
-    var SShape_type_accentCallout3 = 7;
-    var SShape_type_actionButtonBackPrevious = 8;
-    var SShape_type_actionButtonBeginning = 9;
-    var SShape_type_actionButtonBlank = 10;
-    var SShape_type_actionButtonDocument = 11;
-    var SShape_type_actionButtonEnd = 12;
-    var SShape_type_actionButtonForwardNext = 13;
-    var SShape_type_actionButtonHelp = 14;
-    var SShape_type_actionButtonHome = 15;
-    var SShape_type_actionButtonInformation = 16;
-    var SShape_type_actionButtonMovie = 17;
-    var SShape_type_actionButtonReturn = 18;
-    var SShape_type_actionButtonSound = 19;
-    var SShape_type_arc = 20;
-    var SShape_type_bentArrow = 21;
-    var SShape_type_bentConnector2 = 22;
-    var SShape_type_bentConnector3 = 23;
-    var SShape_type_bentConnector4 = 24;
-    var SShape_type_bentConnector5 = 25;
-    var SShape_type_bentUpArrow = 26;
-    var SShape_type_bevel = 27;
-    var SShape_type_blockArc = 28;
-    var SShape_type_borderCallout1 = 29;
-    var SShape_type_borderCallout2 = 30;
-    var SShape_type_borderCallout3 = 31;
-    var SShape_type_bracePair = 32;
-    var SShape_type_bracketPair = 33;
-    var SShape_type_callout1 = 34;
-    var SShape_type_callout2 = 35;
-    var SShape_type_callout3 = 36;
-    var SShape_type_can = 37;
-    var SShape_type_chartPlus = 38;
-    var SShape_type_chartStar = 39;
-    var SShape_type_chartX = 40;
-    var SShape_type_chevron = 41;
-    var SShape_type_chord = 42;
-    var SShape_type_circularArrow = 43;
-    var SShape_type_cloud = 44;
-    var SShape_type_cloudCallout = 45;
-    var SShape_type_corner = 46;
-    var SShape_type_cornerTabs = 47;
-    var SShape_type_cube = 48;
-    var SShape_type_curvedConnector2 = 49;
-    var SShape_type_curvedConnector3 = 50;
-    var SShape_type_curvedConnector4 = 51;
-    var SShape_type_curvedConnector5 = 52;
-    var SShape_type_curvedDownArrow = 53;
-    var SShape_type_curvedLeftArrow = 54;
-    var SShape_type_curvedRightArrow = 55;
-    var SShape_type_curvedUpArrow = 56;
-    var SShape_type_decagon = 57;
-    var SShape_type_diagStripe = 58;
-    var SShape_type_diamond = 59;
-    var SShape_type_dodecagon = 60;
-    var SShape_type_donut = 61;
-    var SShape_type_doubleWave = 62;
-    var SShape_type_downArrow = 63;
-    var SShape_type_downArrowCallout = 64;
-    var SShape_type_ellipse = 65;
-    var SShape_type_ellipseRibbon = 66;
-    var SShape_type_ellipseRibbon2 = 67;
-    var SShape_type_flowChartAlternateProcess = 68;
-    var SShape_type_flowChartCollate = 69;
-    var SShape_type_flowChartConnector = 70;
-    var SShape_type_flowChartDecision = 71;
-    var SShape_type_flowChartDelay = 72;
-    var SShape_type_flowChartDisplay = 73;
-    var SShape_type_flowChartDocument = 74;
-    var SShape_type_flowChartExtract = 75;
-    var SShape_type_flowChartInputOutput = 76;
-    var SShape_type_flowChartInternalStorage = 77;
-    var SShape_type_flowChartMagneticDisk = 78;
-    var SShape_type_flowChartMagneticDrum = 79;
-    var SShape_type_flowChartMagneticTape = 80;
-    var SShape_type_flowChartManualInput = 81;
-    var SShape_type_flowChartManualOperation = 82;
-    var SShape_type_flowChartMerge = 83;
-    var SShape_type_flowChartMultidocument = 84;
-    var SShape_type_flowChartOfflineStorage = 85;
-    var SShape_type_flowChartOffpageConnector = 86;
-    var SShape_type_flowChartOnlineStorage = 87;
-    var SShape_type_flowChartOr = 88;
-    var SShape_type_flowChartPredefinedProcess = 89;
-    var SShape_type_flowChartPreparation = 90;
-    var SShape_type_flowChartProcess = 91;
-    var SShape_type_flowChartPunchedCard = 92;
-    var SShape_type_flowChartPunchedTape = 93;
-    var SShape_type_flowChartSort = 94;
-    var SShape_type_flowChartSummingJunction = 95;
-    var SShape_type_flowChartTerminator = 96;
-    var SShape_type_foldedCorner = 97;
-    var SShape_type_frame = 98;
-    var SShape_type_funnel = 99;
-    var SShape_type_gear6 = 100;
-    var SShape_type_gear9 = 101;
-    var SShape_type_halfFrame = 102;
-    var SShape_type_heart = 103;
-    var SShape_type_heptagon = 104;
-    var SShape_type_hexagon = 105;
-    var SShape_type_homePlate = 106;
-    var SShape_type_horizontalScroll = 107;
-    var SShape_type_irregularSeal1 = 108;
-    var SShape_type_irregularSeal2 = 109;
-    var SShape_type_leftArrow = 110;
-    var SShape_type_leftArrowCallout = 111;
-    var SShape_type_leftBrace = 112;
-    var SShape_type_leftBracket = 113;
-    var SShape_type_leftCircularArrow = 114;
-    var SShape_type_leftRightArrow = 115;
-    var SShape_type_leftRightArrowCallout = 116;
-    var SShape_type_leftRightCircularArrow = 117;
-    var SShape_type_leftRightRibbon = 118;
-    var SShape_type_leftRightUpArrow = 119;
-    var SShape_type_leftUpArrow = 120;
-    var SShape_type_lightningBolt = 121;
-    var SShape_type_line = 122;
-    var SShape_type_lineInv = 123;
-    var SShape_type_mathDivide = 124;
-    var SShape_type_mathEqual = 125;
-    var SShape_type_mathMinus = 126;
-    var SShape_type_mathMultiply = 127;
-    var SShape_type_mathNotEqual = 128;
-    var SShape_type_mathPlus = 129;
-    var SShape_type_moon = 130;
-    var SShape_type_nonIsoscelesTrapezoid = 131;
-    var SShape_type_noSmoking = 132;
-    var SShape_type_notchedRightArrow = 133;
-    var SShape_type_octagon = 134;
-    var SShape_type_parallelogram = 135;
-    var SShape_type_pentagon = 136;
-    var SShape_type_pie = 137;
-    var SShape_type_pieWedge = 138;
-    var SShape_type_plaque = 139;
-    var SShape_type_plaqueTabs = 140;
-    var SShape_type_plus = 141;
-    var SShape_type_quadArrow = 142;
-    var SShape_type_quadArrowCallout = 143;
-    var SShape_type_rect = 144;
-    var SShape_type_ribbon = 145;
-    var SShape_type_ribbon2 = 146;
-    var SShape_type_rightArrow = 147;
-    var SShape_type_rightArrowCallout = 148;
-    var SShape_type_rightBrace = 149;
-    var SShape_type_rightBracket = 150;
-    var SShape_type_round1Rect = 151;
-    var SShape_type_round2DiagRect = 152;
-    var SShape_type_round2SameRect = 153;
-    var SShape_type_roundRect = 154;
-    var SShape_type_rtTriangle = 155;
-    var SShape_type_smileyFace = 156;
-    var SShape_type_snip1Rect = 157;
-    var SShape_type_snip2DiagRect = 158;
-    var SShape_type_snip2SameRect = 159;
-    var SShape_type_snipRoundRect = 160;
-    var SShape_type_squareTabs = 161;
-    var SShape_type_star10 = 162;
-    var SShape_type_star12 = 163;
-    var SShape_type_star16 = 164;
-    var SShape_type_star24 = 165;
-    var SShape_type_star32 = 166;
-    var SShape_type_star4 = 167;
-    var SShape_type_star5 = 168;
-    var SShape_type_star6 = 169;
-    var SShape_type_star7 = 170;
-    var SShape_type_star8 = 171;
-    var SShape_type_straightConnector1 = 172;
-    var SShape_type_stripedRightArrow = 173;
-    var SShape_type_sun = 174;
-    var SShape_type_swooshArrow = 175;
-    var SShape_type_teardrop = 176;
-    var SShape_type_trapezoid = 177;
-    var SShape_type_triangle = 178;
-    var SShape_type_upArrow = 179;
-    var SShape_type_upArrowCallout = 180;
-    var SShape_type_upDownArrow = 181;
-    var SShape_type_upDownArrowCallout = 182;
-    var SShape_type_uturnArrow = 183;
-    var SShape_type_verticalScroll = 184;
-    var SShape_type_wave = 185;
-    var SShape_type_wedgeEllipseCallout = 186;
-    var SShape_type_wedgeRectCallout = 187;
-    var SShape_type_wedgeRoundRectCallout = 188;
+    var LayoutShapeType_outputShapeType_conn = 0;
+    var LayoutShapeType_outputShapeType_none = 1;
+    var LayoutShapeType_shapeType_accentBorderCallout1 = 2;
+    var LayoutShapeType_shapeType_accentBorderCallout2 = 3;
+    var LayoutShapeType_shapeType_accentBorderCallout3 = 4;
+    var LayoutShapeType_shapeType_accentCallout1 = 5;
+    var LayoutShapeType_shapeType_accentCallout2 = 6;
+    var LayoutShapeType_shapeType_accentCallout3 = 7;
+    var LayoutShapeType_shapeType_actionButtonBackPrevious = 8;
+    var LayoutShapeType_shapeType_actionButtonBeginning = 9;
+    var LayoutShapeType_shapeType_actionButtonBlank = 10;
+    var LayoutShapeType_shapeType_actionButtonDocument = 11;
+    var LayoutShapeType_shapeType_actionButtonEnd = 12;
+    var LayoutShapeType_shapeType_actionButtonForwardNext = 13;
+    var LayoutShapeType_shapeType_actionButtonHelp = 14;
+    var LayoutShapeType_shapeType_actionButtonHome = 15;
+    var LayoutShapeType_shapeType_actionButtonInformation = 16;
+    var LayoutShapeType_shapeType_actionButtonMovie = 17;
+    var LayoutShapeType_shapeType_actionButtonReturn = 18;
+    var LayoutShapeType_shapeType_actionButtonSound = 19;
+    var LayoutShapeType_shapeType_arc = 20;
+    var LayoutShapeType_shapeType_bentArrow = 21;
+    var LayoutShapeType_shapeType_bentConnector2 = 22;
+    var LayoutShapeType_shapeType_bentConnector3 = 23;
+    var LayoutShapeType_shapeType_bentConnector4 = 24;
+    var LayoutShapeType_shapeType_bentConnector5 = 25;
+    var LayoutShapeType_shapeType_bentUpArrow = 26;
+    var LayoutShapeType_shapeType_bevel = 27;
+    var LayoutShapeType_shapeType_blockArc = 28;
+    var LayoutShapeType_shapeType_borderCallout1 = 29;
+    var LayoutShapeType_shapeType_borderCallout2 = 30;
+    var LayoutShapeType_shapeType_borderCallout3 = 31;
+    var LayoutShapeType_shapeType_bracePair = 32;
+    var LayoutShapeType_shapeType_bracketPair = 33;
+    var LayoutShapeType_shapeType_callout1 = 34;
+    var LayoutShapeType_shapeType_callout2 = 35;
+    var LayoutShapeType_shapeType_callout3 = 36;
+    var LayoutShapeType_shapeType_can = 37;
+    var LayoutShapeType_shapeType_chartPlus = 38;
+    var LayoutShapeType_shapeType_chartStar = 39;
+    var LayoutShapeType_shapeType_chartX = 40;
+    var LayoutShapeType_shapeType_chevron = 41;
+    var LayoutShapeType_shapeType_chord = 42;
+    var LayoutShapeType_shapeType_circularArrow = 43;
+    var LayoutShapeType_shapeType_cloud = 44;
+    var LayoutShapeType_shapeType_cloudCallout = 45;
+    var LayoutShapeType_shapeType_corner = 46;
+    var LayoutShapeType_shapeType_cornerTabs = 47;
+    var LayoutShapeType_shapeType_cube = 48;
+    var LayoutShapeType_shapeType_curvedConnector2 = 49;
+    var LayoutShapeType_shapeType_curvedConnector3 = 50;
+    var LayoutShapeType_shapeType_curvedConnector4 = 51;
+    var LayoutShapeType_shapeType_curvedConnector5 = 52;
+    var LayoutShapeType_shapeType_curvedDownArrow = 53;
+    var LayoutShapeType_shapeType_curvedLeftArrow = 54;
+    var LayoutShapeType_shapeType_curvedRightArrow = 55;
+    var LayoutShapeType_shapeType_curvedUpArrow = 56;
+    var LayoutShapeType_shapeType_decagon = 57;
+    var LayoutShapeType_shapeType_diagStripe = 58;
+    var LayoutShapeType_shapeType_diamond = 59;
+    var LayoutShapeType_shapeType_dodecagon = 60;
+    var LayoutShapeType_shapeType_donut = 61;
+    var LayoutShapeType_shapeType_doubleWave = 62;
+    var LayoutShapeType_shapeType_downArrow = 63;
+    var LayoutShapeType_shapeType_downArrowCallout = 64;
+    var LayoutShapeType_shapeType_ellipse = 65;
+    var LayoutShapeType_shapeType_ellipseRibbon = 66;
+    var LayoutShapeType_shapeType_ellipseRibbon2 = 67;
+    var LayoutShapeType_shapeType_flowChartAlternateProcess = 68;
+    var LayoutShapeType_shapeType_flowChartCollate = 69;
+    var LayoutShapeType_shapeType_flowChartConnector = 70;
+    var LayoutShapeType_shapeType_flowChartDecision = 71;
+    var LayoutShapeType_shapeType_flowChartDelay = 72;
+    var LayoutShapeType_shapeType_flowChartDisplay = 73;
+    var LayoutShapeType_shapeType_flowChartDocument = 74;
+    var LayoutShapeType_shapeType_flowChartExtract = 75;
+    var LayoutShapeType_shapeType_flowChartInputOutput = 76;
+    var LayoutShapeType_shapeType_flowChartInternalStorage = 77;
+    var LayoutShapeType_shapeType_flowChartMagneticDisk = 78;
+    var LayoutShapeType_shapeType_flowChartMagneticDrum = 79;
+    var LayoutShapeType_shapeType_flowChartMagneticTape = 80;
+    var LayoutShapeType_shapeType_flowChartManualInput = 81;
+    var LayoutShapeType_shapeType_flowChartManualOperation = 82;
+    var LayoutShapeType_shapeType_flowChartMerge = 83;
+    var LayoutShapeType_shapeType_flowChartMultidocument = 84;
+    var LayoutShapeType_shapeType_flowChartOfflineStorage = 85;
+    var LayoutShapeType_shapeType_flowChartOffpageConnector = 86;
+    var LayoutShapeType_shapeType_flowChartOnlineStorage = 87;
+    var LayoutShapeType_shapeType_flowChartOr = 88;
+    var LayoutShapeType_shapeType_flowChartPredefinedProcess = 89;
+    var LayoutShapeType_shapeType_flowChartPreparation = 90;
+    var LayoutShapeType_shapeType_flowChartProcess = 91;
+    var LayoutShapeType_shapeType_flowChartPunchedCard = 92;
+    var LayoutShapeType_shapeType_flowChartPunchedTape = 93;
+    var LayoutShapeType_shapeType_flowChartSort = 94;
+    var LayoutShapeType_shapeType_flowChartSummingJunction = 95;
+    var LayoutShapeType_shapeType_flowChartTerminator = 96;
+    var LayoutShapeType_shapeType_foldedCorner = 97;
+    var LayoutShapeType_shapeType_frame = 98;
+    var LayoutShapeType_shapeType_funnel = 99;
+    var LayoutShapeType_shapeType_gear6 = 100;
+    var LayoutShapeType_shapeType_gear9 = 101;
+    var LayoutShapeType_shapeType_halfFrame = 102;
+    var LayoutShapeType_shapeType_heart = 103;
+    var LayoutShapeType_shapeType_heptagon = 104;
+    var LayoutShapeType_shapeType_hexagon = 105;
+    var LayoutShapeType_shapeType_homePlate = 106;
+    var LayoutShapeType_shapeType_horizontalScroll = 107;
+    var LayoutShapeType_shapeType_irregularSeal1 = 108;
+    var LayoutShapeType_shapeType_irregularSeal2 = 109;
+    var LayoutShapeType_shapeType_leftArrow = 110;
+    var LayoutShapeType_shapeType_leftArrowCallout = 111;
+    var LayoutShapeType_shapeType_leftBrace = 112;
+    var LayoutShapeType_shapeType_leftBracket = 113;
+    var LayoutShapeType_shapeType_leftCircularArrow = 114;
+    var LayoutShapeType_shapeType_leftRightArrow = 115;
+    var LayoutShapeType_shapeType_leftRightArrowCallout = 116;
+    var LayoutShapeType_shapeType_leftRightCircularArrow = 117;
+    var LayoutShapeType_shapeType_leftRightRibbon = 118;
+    var LayoutShapeType_shapeType_leftRightUpArrow = 119;
+    var LayoutShapeType_shapeType_leftUpArrow = 120;
+    var LayoutShapeType_shapeType_lightningBolt = 121;
+    var LayoutShapeType_shapeType_line = 122;
+    var LayoutShapeType_shapeType_lineInv = 123;
+    var LayoutShapeType_shapeType_mathDivide = 124;
+    var LayoutShapeType_shapeType_mathEqual = 125;
+    var LayoutShapeType_shapeType_mathMinus = 126;
+    var LayoutShapeType_shapeType_mathMultiply = 127;
+    var LayoutShapeType_shapeType_mathNotEqual = 128;
+    var LayoutShapeType_shapeType_mathPlus = 129;
+    var LayoutShapeType_shapeType_moon = 130;
+    var LayoutShapeType_shapeType_nonIsoscelesTrapezoid = 131;
+    var LayoutShapeType_shapeType_noSmoking = 132;
+    var LayoutShapeType_shapeType_notchedRightArrow = 133;
+    var LayoutShapeType_shapeType_octagon = 134;
+    var LayoutShapeType_shapeType_parallelogram = 135;
+    var LayoutShapeType_shapeType_pentagon = 136;
+    var LayoutShapeType_shapeType_pie = 137;
+    var LayoutShapeType_shapeType_pieWedge = 138;
+    var LayoutShapeType_shapeType_plaque = 139;
+    var LayoutShapeType_shapeType_plaqueTabs = 140;
+    var LayoutShapeType_shapeType_plus = 141;
+    var LayoutShapeType_shapeType_quadArrow = 142;
+    var LayoutShapeType_shapeType_quadArrowCallout = 143;
+    var LayoutShapeType_shapeType_rect = 144;
+    var LayoutShapeType_shapeType_ribbon = 145;
+    var LayoutShapeType_shapeType_ribbon2 = 146;
+    var LayoutShapeType_shapeType_rightArrow = 147;
+    var LayoutShapeType_shapeType_rightArrowCallout = 148;
+    var LayoutShapeType_shapeType_rightBrace = 149;
+    var LayoutShapeType_shapeType_rightBracket = 150;
+    var LayoutShapeType_shapeType_round1Rect = 151;
+    var LayoutShapeType_shapeType_round2DiagRect = 152;
+    var LayoutShapeType_shapeType_round2SameRect = 153;
+    var LayoutShapeType_shapeType_roundRect = 154;
+    var LayoutShapeType_shapeType_rtTriangle = 155;
+    var LayoutShapeType_shapeType_smileyFace = 156;
+    var LayoutShapeType_shapeType_snip1Rect = 157;
+    var LayoutShapeType_shapeType_snip2DiagRect = 158;
+    var LayoutShapeType_shapeType_snip2SameRect = 159;
+    var LayoutShapeType_shapeType_snipRoundRect = 160;
+    var LayoutShapeType_shapeType_squareTabs = 161;
+    var LayoutShapeType_shapeType_star10 = 162;
+    var LayoutShapeType_shapeType_star12 = 163;
+    var LayoutShapeType_shapeType_star16 = 164;
+    var LayoutShapeType_shapeType_star24 = 165;
+    var LayoutShapeType_shapeType_star32 = 166;
+    var LayoutShapeType_shapeType_star4 = 167;
+    var LayoutShapeType_shapeType_star5 = 168;
+    var LayoutShapeType_shapeType_star6 = 169;
+    var LayoutShapeType_shapeType_star7 = 170;
+    var LayoutShapeType_shapeType_star8 = 171;
+    var LayoutShapeType_shapeType_straightConnector1 = 172;
+    var LayoutShapeType_shapeType_stripedRightArrow = 173;
+    var LayoutShapeType_shapeType_sun = 174;
+    var LayoutShapeType_shapeType_swooshArrow = 175;
+    var LayoutShapeType_shapeType_teardrop = 176;
+    var LayoutShapeType_shapeType_trapezoid = 177;
+    var LayoutShapeType_shapeType_triangle = 178;
+    var LayoutShapeType_shapeType_upArrow = 179;
+    var LayoutShapeType_shapeType_upArrowCallout = 180;
+    var LayoutShapeType_shapeType_upDownArrow = 181;
+    var LayoutShapeType_shapeType_upDownArrowCallout = 182;
+    var LayoutShapeType_shapeType_uturnArrow = 183;
+    var LayoutShapeType_shapeType_verticalScroll = 184;
+    var LayoutShapeType_shapeType_wave = 185;
+    var LayoutShapeType_shapeType_wedgeEllipseCallout = 186;
+    var LayoutShapeType_shapeType_wedgeRectCallout = 187;
+    var LayoutShapeType_shapeType_wedgeRoundRectCallout = 188;
 
     var AnimLvl_val_ctr = 0;
     var AnimLvl_val_lvl = 1;
@@ -747,6 +747,144 @@
     var Bevel_prst_riblet = 9;
     var Bevel_prst_slope = 10;
     var Bevel_prst_softRound = 11;
+
+    var ParameterVal_arrowheadStyle_arr = 0;
+    var ParameterVal_arrowheadStyle_auto = 1;
+    var ParameterVal_arrowheadStyle_noArr = 2;
+    var ParameterVal_autoTextRotation_grav = 0;
+    var ParameterVal_autoTextRotation_none = 1;
+    var ParameterVal_autoTextRotation_upr = 2;
+    var ParameterVal_bendPoint_beg = 0;
+    var ParameterVal_bendPoint_def = 1;
+    var ParameterVal_bendPoint_end = 2;
+    var ParameterVal_breakpoint_bal = 0;
+    var ParameterVal_breakpoint_endCnv = 1;
+    var ParameterVal_breakpoint_fixed = 2;
+    var ParameterVal_centerShapeMapping_fNode = 0;
+    var ParameterVal_centerShapeMapping_none = 1;
+    var ParameterVal_childAlignment_b = 0;
+    var ParameterVal_childAlignment_l = 1;
+    var ParameterVal_childAlignment_r = 2;
+    var ParameterVal_childAlignment_t = 3;
+    var ParameterVal_childDirection_horz = 0;
+    var ParameterVal_childDirection_vert = 1;
+    var ParameterVal_connectorDimension_1D = 0;
+    var ParameterVal_connectorDimension_2D = 1;
+    var ParameterVal_connectorDimension_cust = 2;
+    var ParameterVal_connectorPoint_auto = 0;
+    var ParameterVal_connectorPoint_bCtr = 1;
+    var ParameterVal_connectorPoint_bL = 2;
+    var ParameterVal_connectorPoint_bR = 3;
+    var ParameterVal_connectorPoint_ctr = 4;
+    var ParameterVal_connectorPoint_midL = 5;
+    var ParameterVal_connectorPoint_midR = 6;
+    var ParameterVal_connectorPoint_radial = 7;
+    var ParameterVal_connectorPoint_tCtr = 8;
+    var ParameterVal_connectorPoint_tL = 9;
+    var ParameterVal_connectorPoint_tR = 10;
+    var ParameterVal_connectorRouting_bend = 0;
+    var ParameterVal_connectorRouting_curve = 1;
+    var ParameterVal_connectorRouting_longCurve = 2;
+    var ParameterVal_connectorRouting_stra = 3;
+    var ParameterVal_continueDirection_revDir = 0;
+    var ParameterVal_continueDirection_sameDir = 1;
+    var ParameterVal_diagramHorizontalAlignment_ctr = 0;
+    var ParameterVal_diagramHorizontalAlignment_l = 1;
+    var ParameterVal_diagramHorizontalAlignment_none = 2;
+    var ParameterVal_diagramHorizontalAlignment_r = 3;
+    var ParameterVal_diagramTextAlignment_ctr = 0;
+    var ParameterVal_diagramTextAlignment_l = 1;
+    var ParameterVal_diagramTextAlignment_r = 2;
+    var ParameterVal_fallbackDimension_1D = 0;
+    var ParameterVal_fallbackDimension_2D = 1;
+    var ParameterVal_flowDirection_col = 0;
+    var ParameterVal_flowDirection_row = 1;
+    var ParameterVal_growDirection_bL = 0;
+    var ParameterVal_growDirection_bR = 1;
+    var ParameterVal_growDirection_tL = 2;
+    var ParameterVal_growDirection_tR = 3;
+    var ParameterVal_hierarchyAlignment_bCtrCh = 0;
+    var ParameterVal_hierarchyAlignment_bCtrDes = 1;
+    var ParameterVal_hierarchyAlignment_bL = 2;
+    var ParameterVal_hierarchyAlignment_bR = 3;
+    var ParameterVal_hierarchyAlignment_lB = 4;
+    var ParameterVal_hierarchyAlignment_lCtrCh = 5;
+    var ParameterVal_hierarchyAlignment_lCtrDes = 6;
+    var ParameterVal_hierarchyAlignment_lT = 7;
+    var ParameterVal_hierarchyAlignment_rB = 8;
+    var ParameterVal_hierarchyAlignment_rCtrCh = 9;
+    var ParameterVal_hierarchyAlignment_rCtrDes = 10;
+    var ParameterVal_hierarchyAlignment_rT = 11;
+    var ParameterVal_hierarchyAlignment_tCtrCh = 12;
+    var ParameterVal_hierarchyAlignment_tCtrDes = 13;
+    var ParameterVal_hierarchyAlignment_tL = 14;
+    var ParameterVal_hierarchyAlignment_tR = 15;
+    var ParameterVal_linearDirection_fromB = 0;
+    var ParameterVal_linearDirection_fromL = 1;
+    var ParameterVal_linearDirection_fromR = 2;
+    var ParameterVal_linearDirection_fromT = 3;
+    var ParameterVal_nodeHorizontalAlignment_ctr = 0;
+    var ParameterVal_nodeHorizontalAlignment_l = 1;
+    var ParameterVal_nodeHorizontalAlignment_r = 2;
+    var ParameterVal_nodeVerticalAlignment_b = 0;
+    var ParameterVal_nodeVerticalAlignment_mid = 1;
+    var ParameterVal_nodeVerticalAlignment_t = 2;
+    var ParameterVal_offset_ctr = 0;
+    var ParameterVal_offset_off = 1;
+    var ParameterVal_pyramidAccentPosition_aft = 0;
+    var ParameterVal_pyramidAccentPosition_bef = 1;
+    var ParameterVal_pyramidAccentTextMargin_stack = 0;
+    var ParameterVal_pyramidAccentTextMargin_step = 1;
+    var ParameterVal_rotationPath_alongPath = 0;
+    var ParameterVal_rotationPath_none = 1;
+    var ParameterVal_secondaryChildAlignment_b = 0;
+    var ParameterVal_secondaryChildAlignment_l = 1;
+    var ParameterVal_secondaryChildAlignment_none = 2;
+    var ParameterVal_secondaryChildAlignment_r = 3;
+    var ParameterVal_secondaryChildAlignment_t = 4;
+    var ParameterVal_secondaryLinearDirection_fromB = 0;
+    var ParameterVal_secondaryLinearDirection_fromL = 1;
+    var ParameterVal_secondaryLinearDirection_fromR = 2;
+    var ParameterVal_secondaryLinearDirection_fromT = 3;
+    var ParameterVal_secondaryLinearDirection_none = 4;
+    var ParameterVal_startingElement_node = 0;
+    var ParameterVal_startingElement_trans = 1;
+    var ParameterVal_textAnchorHorizontal_ctr = 0;
+    var ParameterVal_textAnchorHorizontal_none = 1;
+    var ParameterVal_textAnchorVertical_b = 0;
+    var ParameterVal_textAnchorVertical_mid = 1;
+    var ParameterVal_textAnchorVertical_top = 2;
+    var ParameterVal_textBlockDirection_horz = 0;
+    var ParameterVal_textBlockDirection_vert = 1;
+    var ParameterVal_textDirection_fromB = 0;
+    var ParameterVal_textDirection_fromT = 1;
+    var ParameterVal_verticalAlignment_b = 0;
+    var ParameterVal_verticalAlignment_mid = 1;
+    var ParameterVal_verticalAlignment_none = 2;
+    var ParameterVal_verticalAlignment_t = 3;
+
+    var FunctionValue_animLvlStr_ctr = 0;
+    var FunctionValue_animLvlStr_lvl = 1;
+    var FunctionValue_animLvlStr_none = 2;
+    var FunctionValue_animOneStr_branch = 0;
+    var FunctionValue_animOneStr_none = 1;
+    var FunctionValue_animOneStr_one = 2;
+    var FunctionValue_direction_norm = 0;
+    var FunctionValue_direction_rev = 1;
+    var FunctionValue_hierBranchStyle_hang = 0;
+    var FunctionValue_hierBranchStyle_init = 1;
+    var FunctionValue_hierBranchStyle_l = 2;
+    var FunctionValue_hierBranchStyle_r = 3;
+    var FunctionValue_hierBranchStyle_std = 4;
+    var FunctionValue_resizeHandlesStr_exact = 0;
+    var FunctionValue_resizeHandlesStr_rel = 1;
+
+    var Coordinate_universalMeasure_cm = 0;
+    var Coordinate_universalMeasure_mm = 1;
+    var Coordinate_universalMeasure_in = 2;
+    var Coordinate_universalMeasure_pt = 3;
+    var Coordinate_universalMeasure_pc = 4;
+    var Coordinate_universalMeasure_pi = 5;
 
     changesFactory[AscDFH.historyitem_DataModelBg] = CChangeObject;
     changesFactory[AscDFH.historyitem_DataModelCxnLst] = CChangeObject;
@@ -1046,170 +1184,64 @@
       oCopy.setUri(this.getUri());
     }
 
-    changesFactory[AscDFH.historyitem_BgFormatBlipFill] = CChangeObject;
-    changesFactory[AscDFH.historyitem_BgFormatEffectDag] = CChangeObject;
-    changesFactory[AscDFH.historyitem_BgFormatEffectLst] = CChangeObject;
-    changesFactory[AscDFH.historyitem_BgFormatGradFill] = CChangeObject;
-    changesFactory[AscDFH.historyitem_BgFormatGrpFill] = CChangeObject;
-    changesFactory[AscDFH.historyitem_BgFormatNoFill] = CChangeObject;
-    changesFactory[AscDFH.historyitem_BgFormatPattFill] = CChangeObject;
-    changesFactory[AscDFH.historyitem_BgFormatSolidFill] = CChangeObject;
-    drawingContentChanges[AscDFH.historyitem_BgFormatBlipFill] = function(oClass) {return oClass.blipFill;};
-    drawingContentChanges[AscDFH.historyitem_BgFormatEffectDag] = function(oClass) {return oClass.effectDag;};
-    drawingContentChanges[AscDFH.historyitem_BgFormatEffectLst] = function(oClass) {return oClass.effectLst;};
-    drawingContentChanges[AscDFH.historyitem_BgFormatGradFill] = function(oClass) {return oClass.gradFill;};
-    drawingContentChanges[AscDFH.historyitem_BgFormatGrpFill] = function(oClass) {return oClass.grpFill;};
-    drawingContentChanges[AscDFH.historyitem_BgFormatNoFill] = function(oClass) {return oClass.noFill;};
-    drawingContentChanges[AscDFH.historyitem_BgFormatPattFill] = function(oClass) {return oClass.pattFill;};
-    drawingContentChanges[AscDFH.historyitem_BgFormatSolidFill] = function(oClass) {return oClass.solidFill;};
+    changesFactory[AscDFH.historyitem_BgFormatFill] = CChangeObject;
+    changesFactory[AscDFH.historyitem_BgFormatEffect] = CChangeObject;
+    drawingContentChanges[AscDFH.historyitem_BgFormatFill] = function(oClass) {return oClass.fill;};
+    drawingContentChanges[AscDFH.historyitem_BgFormatEffect] = function(oClass) {return oClass.effect;};
     function BgFormat() {
       CBaseFormatObject.call(this);
-      this.blipFill = null;
-      this.effectDag = null;
-      this.effectLst = null;
-      this.gradFill = null;
-      this.grpFill = null;
-      this.noFill = null;
-      this.pattFill = null;
-      this.solidFill = null;
+      this.fill = null;
+      this.effect = null;
     }
     InitClass(BgFormat, CBaseFormatObject, AscDFH.historyitem_type_BgFormat);
 
 
-    BgFormat.prototype.setBlipFill = function(oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BgFormatBlipFill, this.getBlipFill(), oPr));
-      this.blipFill = oPr;
+    BgFormat.prototype.setFill = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BgFormatFill, this.getFill(), oPr));
+      this.fill = oPr;
       this.setParentToChild(oPr);
     }
 
-    BgFormat.prototype.setEffectDag = function(oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BgFormatEffectDag, this.getEffectDag(), oPr));
-      this.effectDag = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    BgFormat.prototype.setEffectLst = function(oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BgFormatEffectLst, this.getEffectLst(), oPr));
-      this.effectLst = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    BgFormat.prototype.setGradFill = function(oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BgFormatGradFill, this.getGradFill(), oPr));
-      this.gradFill = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    BgFormat.prototype.setGrpFill = function(oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BgFormatGrpFill, this.getGrpFill(), oPr));
-      this.grpFill = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    BgFormat.prototype.setNoFill = function(oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BgFormatNoFill, this.getNoFill(), oPr));
-      this.noFill = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    BgFormat.prototype.setPattFill = function(oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BgFormatPattFill, this.getPattFill(), oPr));
-      this.pattFill = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    BgFormat.prototype.setSolidFill = function(oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BgFormatSolidFill, this.getSolidFill(), oPr));
-      this.solidFill = oPr;
+    BgFormat.prototype.setEffect = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BgFormatEffect, this.getEffect(), oPr));
+      this.effect = oPr;
       this.setParentToChild(oPr);
     }
 
     BgFormat.prototype.fillObject = function(oCopy, oIdMap) {
-      if (this.getBlipFill()) {
-        oCopy.setBlipFill(this.getBlipFill().createDuplicate(oIdMap));
+      if (this.getFill()) {
+        oCopy.setFill(this.getFill().createDuplicate(oIdMap));
       }
-      if (this.getEffectDag()) {
-        oCopy.setEffectDag(this.getEffectDag().createDuplicate(oIdMap));
+      if (this.getEffect()) {
+        oCopy.setEffect(this.getEffect().createDuplicate(oIdMap));
       }
-      if (this.getEffectLst()) {
-        oCopy.setEffectLst(this.getEffectLst().createDuplicate(oIdMap));
-      }
-      if (this.getGradFill()) {
-        oCopy.setGradFill(this.getGradFill().createDuplicate(oIdMap));
-      }
-      if (this.getGrpFill()) {
-        oCopy.setGrpFill(this.getGrpFill().createDuplicate(oIdMap));
-      }
-      if (this.getNoFill()) {
-        oCopy.setNoFill(this.getNoFill().createDuplicate(oIdMap));
-      }
-      if (this.getPattFill()) {
-        oCopy.setPattFill(this.getPattFill().createDuplicate(oIdMap));
-      }
-      if (this.getSolidFill()) {
-        oCopy.setSolidFill(this.getSolidFill().createDuplicate(oIdMap));
-      }
-
     }
 
-    BgFormat.prototype.getBlipFill = function() {
-      return this.blipFill;
+    BgFormat.prototype.getFill = function() {
+      return this.fill;
     }
 
-    BgFormat.prototype.getEffectDag = function() {
-      return this.effectDag;
-    }
-
-    BgFormat.prototype.getEffectLst = function() {
-      return this.effectLst;
-    }
-
-    BgFormat.prototype.getGradFill = function() {
-      return this.gradFill;
-    }
-
-    BgFormat.prototype.getGrpFill = function() {
-      return this.grpFill;
-    }
-
-    BgFormat.prototype.getNoFill = function() {
-      return this.noFill;
-    }
-
-    BgFormat.prototype.getPattFill = function() {
-      return this.pattFill;
-    }
-
-    BgFormat.prototype.getSolidFill = function() {
-      return this.solidFill;
+    BgFormat.prototype.getEffect = function() {
+      return this.effect;
     }
 
 
 
 
-    changesFactory[AscDFH.historyitem_WholeEffectDag] = CChangeObject;
-    changesFactory[AscDFH.historyitem_WholeEffectLst] = CChangeObject;
+    changesFactory[AscDFH.historyitem_WholeEffect] = CChangeObject;
     changesFactory[AscDFH.historyitem_WholeLn] = CChangeObject;
-    drawingsChangesMap[AscDFH.historyitem_WholeEffectDag] = function (oClass, value) {oClass.effectDag = value;};
-    drawingsChangesMap[AscDFH.historyitem_WholeEffectLst] = function (oClass, value) {oClass.effectLst = value;};
+    drawingsChangesMap[AscDFH.historyitem_WholeEffect] = function (oClass, value) {oClass.effect = value;};
     drawingsChangesMap[AscDFH.historyitem_WholeLn] = function (oClass, value) {oClass.ln = value;};
     function Whole() {
       CBaseFormatObject.call(this);
-      this.effectDag = null;
-      this.effectLst = null;
+      this.effect = null;
       this.ln = null;
     }
     InitClass(Whole, CBaseFormatObject, AscDFH.historyitem_type_Whole);
 
-    Whole.prototype.setEffectDag = function(oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_WholeEffectDag, this.getEffectDag(), oPr));
-      this.effectDag = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    Whole.prototype.setEffectLst = function(oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_WholeEffectLst, this.getEffectLst(), oPr));
-      this.effectLst = oPr;
+    Whole.prototype.setEffect = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_WholeEffect, this.getEffect(), oPr));
+      this.effect = oPr;
       this.setParentToChild(oPr);
     }
 
@@ -1219,12 +1251,8 @@
       this.setParentToChild(oPr);
     }
 
-    Whole.prototype.getEffectDag = function() {
-      return this.effectDag;
-    }
-
-    Whole.prototype.getEffectLst = function() {
-      return this.effectLst;
+    Whole.prototype.getEffect = function() {
+      return this.effect;
     }
 
     Whole.prototype.getLn = function() {
@@ -1232,11 +1260,8 @@
     }
 
     Whole.prototype.fillObject = function (oCopy, oIdMap) {
-      if (this.getEffectDag()) {
-        oCopy.setEffectDag(this.effectDag.createDuplicate(oIdMap));
-      }
-      if (this.getEffectLst()) {
-        oCopy.setEffectLst(this.effectLst.createDuplicate(oIdMap));
+      if (this.getEffect()) {
+        oCopy.setEffect(this.effect.createDuplicate(oIdMap));
       }
       if (this.getLn()) {
         oCopy.setLn(this.ln.createDuplicate(oIdMap));
@@ -2401,8 +2426,485 @@
     }
 
 
+    changesFactory[AscDFH.historyitem_ParameterValArrowheadStyle] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValAutoTextRotation] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValBendPoint] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValBreakpoint] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValCenterShapeMapping] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValChildAlignment] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValChildDirection] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValConnectorDimension] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValConnectorPoint] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValConnectorRouting] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValContinueDirection] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValDiagramHorizontalAlignment] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValDiagramTextAlignment] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValFallbackDimension] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValFlowDirection] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValGrowDirection] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValHierarchyAlignment] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValLinearDirection] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValNodeHorizontalAlignment] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValNodeVerticalAlignment] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValOffset] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValPyramidAccentPosition] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValPyramidAccentTextMargin] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValRotationPath] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValSecondaryChildAlignment] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValSecondaryLinearDirection] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValStartingElement] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValTextAnchorHorizontal] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValTextAnchorVertical] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValTextBlockDirection] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValTextDirection] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValVerticalAlignment] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValBool] = CChangeBool;
+    changesFactory[AscDFH.historyitem_ParameterValDouble] = CChangeDouble2;
+    changesFactory[AscDFH.historyitem_ParameterValInt] = CChangeLong;
+    changesFactory[AscDFH.historyitem_ParameterValStr] = CChangeString;
+    drawingsChangesMap[AscDFH.historyitem_ParameterValArrowheadStyle] = function (oClass, value) {oClass.arrowheadStyle = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValAutoTextRotation] = function (oClass, value) {oClass.autoTextRotation = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValBendPoint] = function (oClass, value) {oClass.bendPoint = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValBreakpoint] = function (oClass, value) {oClass.breakpoint = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValCenterShapeMapping] = function (oClass, value) {oClass.centerShapeMapping = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValChildAlignment] = function (oClass, value) {oClass.childAlignment = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValChildDirection] = function (oClass, value) {oClass.childDirection = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValConnectorDimension] = function (oClass, value) {oClass.connectorDimension = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValConnectorPoint] = function (oClass, value) {oClass.connectorPoint = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValConnectorRouting] = function (oClass, value) {oClass.connectorRouting = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValContinueDirection] = function (oClass, value) {oClass.continueDirection = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValDiagramHorizontalAlignment] = function (oClass, value) {oClass.diagramHorizontalAlignment = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValDiagramTextAlignment] = function (oClass, value) {oClass.diagramTextAlignment = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValFallbackDimension] = function (oClass, value) {oClass.fallbackDimension = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValFlowDirection] = function (oClass, value) {oClass.flowDirection = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValGrowDirection] = function (oClass, value) {oClass.growDirection = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValHierarchyAlignment] = function (oClass, value) {oClass.hierarchyAlignment = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValLinearDirection] = function (oClass, value) {oClass.linearDirection = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValNodeHorizontalAlignment] = function (oClass, value) {oClass.nodeHorizontalAlignment = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValNodeVerticalAlignment] = function (oClass, value) {oClass.nodeVerticalAlignment = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValOffset] = function (oClass, value) {oClass.offset = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValPyramidAccentPosition] = function (oClass, value) {oClass.pyramidAccentPosition = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValPyramidAccentTextMargin] = function (oClass, value) {oClass.pyramidAccentTextMargin = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValRotationPath] = function (oClass, value) {oClass.rotationPath = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValSecondaryChildAlignment] = function (oClass, value) {oClass.secondaryChildAlignment = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValSecondaryLinearDirection] = function (oClass, value) {oClass.secondaryLinearDirection = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValStartingElement] = function (oClass, value) {oClass.startingElement = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValTextAnchorHorizontal] = function (oClass, value) {oClass.textAnchorHorizontal = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValTextAnchorVertical] = function (oClass, value) {oClass.textAnchorVertical = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValTextBlockDirection] = function (oClass, value) {oClass.textBlockDirection = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValTextDirection] = function (oClass, value) {oClass.textDirection = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValVerticalAlignment] = function (oClass, value) {oClass.verticalAlignment = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValBool] = function (oClass, value) {oClass.bool = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValDouble] = function (oClass, value) {oClass.double = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValInt] = function (oClass, value) {oClass.int = value;};
+    drawingsChangesMap[AscDFH.historyitem_ParameterValStr] = function (oClass, value) {oClass.str = value;};
+    function ParameterVal() {
+      CBaseFormatObject.call(this);
+      this.arrowheadStyle = null;
+      this.autoTextRotation = null;
+      this.bendPoint = null;
+      this.breakpoint = null;
+      this.centerShapeMapping = null;
+      this.childAlignment = null;
+      this.childDirection = null;
+      this.connectorDimension = null;
+      this.connectorPoint = null;
+      this.connectorRouting = null;
+      this.continueDirection = null;
+      this.diagramHorizontalAlignment = null;
+      this.diagramTextAlignment = null;
+      this.fallbackDimension = null;
+      this.flowDirection = null;
+      this.growDirection = null;
+      this.hierarchyAlignment = null;
+      this.linearDirection = null;
+      this.nodeHorizontalAlignment = null;
+      this.nodeVerticalAlignment = null;
+      this.offset = null;
+      this.pyramidAccentPosition = null;
+      this.pyramidAccentTextMargin = null;
+      this.rotationPath = null;
+      this.secondaryChildAlignment = null;
+      this.secondaryLinearDirection = null;
+      this.startingElement = null;
+      this.textAnchorHorizontal = null;
+      this.textAnchorVertical = null;
+      this.textBlockDirection = null;
+      this.textDirection = null;
+      this.verticalAlignment = null;
+      this.bool = null;
+      this.double = null;
+      this.int = null;
+      this.str = null;
+    }
+    InitClass(ParameterVal, CBaseFormatObject, AscDFH.historyitem_type_ParameterVal);
+
+    ParameterVal.prototype.setArrowheadStyle = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValArrowheadStyle, this.getArrowheadStyle(), pr));
+      this.arrowheadStyle = pr;
+    }
+
+    ParameterVal.prototype.setAutoTextRotation = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValAutoTextRotation, this.getAutoTextRotation(), pr));
+      this.autoTextRotation = pr;
+    }
+
+    ParameterVal.prototype.setBendPoint = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValBendPoint, this.getBendPoint(), pr));
+      this.bendPoint = pr;
+    }
+
+    ParameterVal.prototype.setBreakpoint = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValBreakpoint, this.getBreakpoint(), pr));
+      this.breakpoint = pr;
+    }
+
+    ParameterVal.prototype.setCenterShapeMapping = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValCenterShapeMapping, this.getCenterShapeMapping(), pr));
+      this.centerShapeMapping = pr;
+    }
+
+    ParameterVal.prototype.setChildAlignment = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValChildAlignment, this.getChildAlignment(), pr));
+      this.childAlignment = pr;
+    }
+
+    ParameterVal.prototype.setChildDirection = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValChildDirection, this.getChildDirection(), pr));
+      this.childDirection = pr;
+    }
+
+    ParameterVal.prototype.setConnectorDimension = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValConnectorDimension, this.getConnectorDimension(), pr));
+      this.connectorDimension = pr;
+    }
+
+    ParameterVal.prototype.setConnectorPoint = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValConnectorPoint, this.getConnectorPoint(), pr));
+      this.connectorPoint = pr;
+    }
+
+    ParameterVal.prototype.setConnectorRouting = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValConnectorRouting, this.getConnectorRouting(), pr));
+      this.connectorRouting = pr;
+    }
+
+    ParameterVal.prototype.setContinueDirection = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValContinueDirection, this.getContinueDirection(), pr));
+      this.continueDirection = pr;
+    }
+
+    ParameterVal.prototype.setDiagramHorizontalAlignment = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValDiagramHorizontalAlignment, this.getDiagramHorizontalAlignment(), pr));
+      this.diagramHorizontalAlignment = pr;
+    }
+
+    ParameterVal.prototype.setDiagramTextAlignment = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValDiagramTextAlignment, this.getDiagramTextAlignment(), pr));
+      this.diagramTextAlignment = pr;
+    }
+
+    ParameterVal.prototype.setFallbackDimension = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValFallbackDimension, this.getFallbackDimension(), pr));
+      this.fallbackDimension = pr;
+    }
+
+    ParameterVal.prototype.setFlowDirection = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValFlowDirection, this.getFlowDirection(), pr));
+      this.flowDirection = pr;
+    }
+
+    ParameterVal.prototype.setGrowDirection = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValGrowDirection, this.getGrowDirection(), pr));
+      this.growDirection = pr;
+    }
+
+    ParameterVal.prototype.setHierarchyAlignment = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValHierarchyAlignment, this.getHierarchyAlignment(), pr));
+      this.hierarchyAlignment = pr;
+    }
+
+    ParameterVal.prototype.setLinearDirection = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValLinearDirection, this.getLinearDirection(), pr));
+      this.linearDirection = pr;
+    }
+
+    ParameterVal.prototype.setNodeHorizontalAlignment = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValNodeHorizontalAlignment, this.getNodeHorizontalAlignment(), pr));
+      this.nodeHorizontalAlignment = pr;
+    }
+
+    ParameterVal.prototype.setNodeVerticalAlignment = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValNodeVerticalAlignment, this.getNodeVerticalAlignment(), pr));
+      this.nodeVerticalAlignment = pr;
+    }
+
+    ParameterVal.prototype.setOffset = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValOffset, this.getOffset(), pr));
+      this.offset = pr;
+    }
+
+    ParameterVal.prototype.setPyramidAccentPosition = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValPyramidAccentPosition, this.getPyramidAccentPosition(), pr));
+      this.pyramidAccentPosition = pr;
+    }
+
+    ParameterVal.prototype.setPyramidAccentTextMargin = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValPyramidAccentTextMargin, this.getPyramidAccentTextMargin(), pr));
+      this.pyramidAccentTextMargin = pr;
+    }
+
+    ParameterVal.prototype.setRotationPath = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValRotationPath, this.getRotationPath(), pr));
+      this.rotationPath = pr;
+    }
+
+    ParameterVal.prototype.setSecondaryChildAlignment = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValSecondaryChildAlignment, this.getSecondaryChildAlignment(), pr));
+      this.secondaryChildAlignment = pr;
+    }
+
+    ParameterVal.prototype.setSecondaryLinearDirection = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValSecondaryLinearDirection, this.getSecondaryLinearDirection(), pr));
+      this.secondaryLinearDirection = pr;
+    }
+
+    ParameterVal.prototype.setStartingElement = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValStartingElement, this.getStartingElement(), pr));
+      this.startingElement = pr;
+    }
+
+    ParameterVal.prototype.setTextAnchorHorizontal = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValTextAnchorHorizontal, this.getTextAnchorHorizontal(), pr));
+      this.textAnchorHorizontal = pr;
+    }
+
+    ParameterVal.prototype.setTextAnchorVertical = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValTextAnchorVertical, this.getTextAnchorVertical(), pr));
+      this.textAnchorVertical = pr;
+    }
+
+    ParameterVal.prototype.setTextBlockDirection = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValTextBlockDirection, this.getTextBlockDirection(), pr));
+      this.textBlockDirection = pr;
+    }
+
+    ParameterVal.prototype.setTextDirection = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValTextDirection, this.getTextDirection(), pr));
+      this.textDirection = pr;
+    }
+
+    ParameterVal.prototype.setVerticalAlignment = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValVerticalAlignment, this.getVerticalAlignment(), pr));
+      this.verticalAlignment = pr;
+    }
+
+    ParameterVal.prototype.setBool = function(pr) {
+      oHistory.Add(new CChangeBool(this, AscDFH.historyitem_ParameterValBool, this.getBool(), pr));
+      this.bool = pr;
+    }
+
+    ParameterVal.prototype.setDouble = function(pr) {
+      oHistory.Add(new CChangeDouble2(this, AscDFH.historyitem_ParameterValDouble, this.getDouble(), pr));
+      this.double = pr;
+    }
+
+    ParameterVal.prototype.setInt = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ParameterValInt, this.getInt(), pr));
+      this.int = pr;
+    }
+
+    ParameterVal.prototype.setStr = function(pr) {
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_ParameterValStr, this.getStr(), pr));
+      this.str = pr;
+    }
+
+    ParameterVal.prototype.getArrowheadStyle = function() {
+      return this.arrowheadStyle;
+    }
+
+    ParameterVal.prototype.getAutoTextRotation = function() {
+      return this.autoTextRotation;
+    }
+
+    ParameterVal.prototype.getBendPoint = function() {
+      return this.bendPoint;
+    }
+
+    ParameterVal.prototype.getBreakpoint = function() {
+      return this.breakpoint;
+    }
+
+    ParameterVal.prototype.getCenterShapeMapping = function() {
+      return this.centerShapeMapping;
+    }
+
+    ParameterVal.prototype.getChildAlignment = function() {
+      return this.childAlignment;
+    }
+
+    ParameterVal.prototype.getChildDirection = function() {
+      return this.childDirection;
+    }
+
+    ParameterVal.prototype.getConnectorDimension = function() {
+      return this.connectorDimension;
+    }
+
+    ParameterVal.prototype.getConnectorPoint = function() {
+      return this.connectorPoint;
+    }
+
+    ParameterVal.prototype.getConnectorRouting = function() {
+      return this.connectorRouting;
+    }
+
+    ParameterVal.prototype.getContinueDirection = function() {
+      return this.continueDirection;
+    }
+
+    ParameterVal.prototype.getDiagramHorizontalAlignment = function() {
+      return this.diagramHorizontalAlignment;
+    }
+
+    ParameterVal.prototype.getDiagramTextAlignment = function() {
+      return this.diagramTextAlignment;
+    }
+
+    ParameterVal.prototype.getFallbackDimension = function() {
+      return this.fallbackDimension;
+    }
+
+    ParameterVal.prototype.getFlowDirection = function() {
+      return this.flowDirection;
+    }
+
+    ParameterVal.prototype.getGrowDirection = function() {
+      return this.growDirection;
+    }
+
+    ParameterVal.prototype.getHierarchyAlignment = function() {
+      return this.hierarchyAlignment;
+    }
+
+    ParameterVal.prototype.getLinearDirection = function() {
+      return this.linearDirection;
+    }
+
+    ParameterVal.prototype.getNodeHorizontalAlignment = function() {
+      return this.nodeHorizontalAlignment;
+    }
+
+    ParameterVal.prototype.getNodeVerticalAlignment = function() {
+      return this.nodeVerticalAlignment;
+    }
+
+    ParameterVal.prototype.getOffset = function() {
+      return this.offset;
+    }
+
+    ParameterVal.prototype.getPyramidAccentPosition = function() {
+      return this.pyramidAccentPosition;
+    }
+
+    ParameterVal.prototype.getPyramidAccentTextMargin = function() {
+      return this.pyramidAccentTextMargin;
+    }
+
+    ParameterVal.prototype.getRotationPath = function() {
+      return this.rotationPath;
+    }
+
+    ParameterVal.prototype.getSecondaryChildAlignment = function() {
+      return this.secondaryChildAlignment;
+    }
+
+    ParameterVal.prototype.getSecondaryLinearDirection = function() {
+      return this.secondaryLinearDirection;
+    }
+
+    ParameterVal.prototype.getStartingElement = function() {
+      return this.startingElement;
+    }
+
+    ParameterVal.prototype.getTextAnchorHorizontal = function() {
+      return this.textAnchorHorizontal;
+    }
+
+    ParameterVal.prototype.getTextAnchorVertical = function() {
+      return this.textAnchorVertical;
+    }
+
+    ParameterVal.prototype.getTextBlockDirection = function() {
+      return this.textBlockDirection;
+    }
+
+    ParameterVal.prototype.getTextDirection = function() {
+      return this.textDirection;
+    }
+
+    ParameterVal.prototype.getVerticalAlignment = function() {
+      return this.verticalAlignment;
+    }
+
+    ParameterVal.prototype.getBool = function() {
+      return this.bool;
+    }
+
+    ParameterVal.prototype.getDouble = function() {
+      return this.double;
+    }
+
+    ParameterVal.prototype.getInt = function() {
+      return this.int;
+    }
+
+    ParameterVal.prototype.getStr = function() {
+      return this.str;
+    }
+
+    ParameterVal.prototype.fillObject = function (oCopy, oIdMap) {
+      oCopy.setArrowheadStyle(this.getArrowheadStyle());
+      oCopy.setAutoTextRotation(this.getAutoTextRotation());
+      oCopy.setBendPoint(this.getBendPoint());
+      oCopy.setBreakpoint(this.getBreakpoint());
+      oCopy.setCenterShapeMapping(this.getCenterShapeMapping());
+      oCopy.setChildAlignment(this.getChildAlignment());
+      oCopy.setChildDirection(this.getChildDirection());
+      oCopy.setConnectorDimension(this.getConnectorDimension());
+      oCopy.setConnectorPoint(this.getConnectorPoint());
+      oCopy.setConnectorRouting(this.getConnectorRouting());
+      oCopy.setContinueDirection(this.getContinueDirection());
+      oCopy.setDiagramHorizontalAlignment(this.getDiagramHorizontalAlignment());
+      oCopy.setDiagramTextAlignment(this.getDiagramTextAlignment());
+      oCopy.setFallbackDimension(this.getFallbackDimension());
+      oCopy.setFlowDirection(this.getFlowDirection());
+      oCopy.setGrowDirection(this.getGrowDirection());
+      oCopy.setHierarchyAlignment(this.getHierarchyAlignment());
+      oCopy.setLinearDirection(this.getLinearDirection());
+      oCopy.setNodeHorizontalAlignment(this.getNodeHorizontalAlignment());
+      oCopy.setNodeVerticalAlignment(this.getNodeVerticalAlignment());
+      oCopy.setOffset(this.getOffset());
+      oCopy.setPyramidAccentPosition(this.getPyramidAccentPosition());
+      oCopy.setPyramidAccentTextMargin(this.getPyramidAccentTextMargin());
+      oCopy.setRotationPath(this.getRotationPath());
+      oCopy.setSecondaryChildAlignment(this.getSecondaryChildAlignment());
+      oCopy.setSecondaryLinearDirection(this.getSecondaryLinearDirection());
+      oCopy.setStartingElement(this.getStartingElement());
+      oCopy.setTextAnchorHorizontal(this.getTextAnchorHorizontal());
+      oCopy.setTextAnchorVertical(this.getTextAnchorVertical());
+      oCopy.setTextBlockDirection(this.getTextBlockDirection());
+      oCopy.setTextDirection(this.getTextDirection());
+      oCopy.setVerticalAlignment(this.getVerticalAlignment());
+      oCopy.setBool(this.getBool());
+      oCopy.setDouble(this.getDouble());
+      oCopy.setInt(this.getInt());
+      oCopy.setStr(this.getStr());
+    }
+
+
     changesFactory[AscDFH.historyitem_ParamType] = CChangeLong;
-    changesFactory[AscDFH.historyitem_ParamVal] = CChangeString;
+    changesFactory[AscDFH.historyitem_ParamVal] = CChangeObject;
     drawingsChangesMap[AscDFH.historyitem_ParamType] = function (oClass, value) {oClass.type = value;};
     drawingsChangesMap[AscDFH.historyitem_ParamVal] = function (oClass, value) {oClass.val = value;};
     function Param() {
@@ -2417,9 +2919,9 @@
       this.type = pr;
     }
 
-    Param.prototype.setVal = function(pr) {
-      oHistory.Add(new CChangeString(this, AscDFH.historyitem_ParamVal, this.getVal(), pr));
-      this.val = pr;
+    Param.prototype.setVal = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_ParamVal, this.getVal(), oPr));
+      this.val = oPr;
     }
 
     Param.prototype.getType = function() {
@@ -2432,7 +2934,9 @@
 
     Param.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setType(this.getType());
-      oCopy.setVal(this.getVal());
+      if (this.getVal()) {
+        oCopy.setVal()(this.getVal().createDuplicate(oIdMap));
+      }
     }
 
 
@@ -2706,12 +3210,111 @@
       oCopy.setVal(this.getVal());
     }
 
+    changesFactory[AscDFH.historyitem_FunctionValueAnimLvlStr] = CChangeLong;
+    changesFactory[AscDFH.historyitem_FunctionValueAnimOneStr] = CChangeLong;
+    changesFactory[AscDFH.historyitem_FunctionValueDirection] = CChangeLong;
+    changesFactory[AscDFH.historyitem_FunctionValueHierBranchStyle] = CChangeLong;
+    changesFactory[AscDFH.historyitem_FunctionValueResizeHandlesStr] = CChangeLong;
+    changesFactory[AscDFH.historyitem_FunctionValueBool] = CChangeBool;
+    changesFactory[AscDFH.historyitem_FunctionValueInt] = CChangeLong;
+    drawingsChangesMap[AscDFH.historyitem_FunctionValueAnimLvlStr] = function (oClass, value) {oClass.animLvlStr = value;};
+    drawingsChangesMap[AscDFH.historyitem_FunctionValueAnimOneStr] = function (oClass, value) {oClass.animOneStr = value;};
+    drawingsChangesMap[AscDFH.historyitem_FunctionValueDirection] = function (oClass, value) {oClass.direction = value;};
+    drawingsChangesMap[AscDFH.historyitem_FunctionValueHierBranchStyle] = function (oClass, value) {oClass.hierBranchStyle = value;};
+    drawingsChangesMap[AscDFH.historyitem_FunctionValueResizeHandlesStr] = function (oClass, value) {oClass.resizeHandlesStr = value;};
+    drawingsChangesMap[AscDFH.historyitem_FunctionValueBool] = function (oClass, value) {oClass.bool = value;};
+    drawingsChangesMap[AscDFH.historyitem_FunctionValueInt] = function (oClass, value) {oClass.int = value;};
+    function FunctionValue() {
+      CBaseFormatObject.call(this);
+      this.animLvlStr = null;
+      this.animOneStr = null;
+      this.direction = null;
+      this.hierBranchStyle = null;
+      this.resizeHandlesStr = null;
+      this.bool = null;
+      this.int = null;
+    }
+    InitClass(FunctionValue, CBaseFormatObject, AscDFH.historyitem_type_FunctionValue);
+
+    FunctionValue.prototype.setAnimLvlStr = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_FunctionValueAnimLvlStr, this.getAnimLvlStr(), pr));
+      this.animLvlStr = pr;
+    }
+
+    FunctionValue.prototype.setAnimOneStr = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_FunctionValueAnimOneStr, this.getAnimOneStr(), pr));
+      this.animOneStr = pr;
+    }
+
+    FunctionValue.prototype.setDirection = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_FunctionValueDirection, this.getDirection(), pr));
+      this.direction = pr;
+    }
+
+    FunctionValue.prototype.setHierBranchStyle = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_FunctionValueHierBranchStyle, this.getHierBranchStyle(), pr));
+      this.hierBranchStyle = pr;
+    }
+
+    FunctionValue.prototype.setResizeHandlesStr = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_FunctionValueResizeHandlesStr, this.getResizeHandlesStr(), pr));
+      this.resizeHandlesStr = pr;
+    }
+
+    FunctionValue.prototype.setBool = function(pr) {
+      oHistory.Add(new CChangeBool(this, AscDFH.historyitem_FunctionValueBool, this.getBool(), pr));
+      this.bool = pr;
+    }
+
+    FunctionValue.prototype.setInt = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_FunctionValueInt, this.getInt(), pr));
+      this.int = pr;
+    }
+
+    FunctionValue.prototype.getAnimLvlStr = function() {
+      return this.animLvlStr;
+    }
+
+    FunctionValue.prototype.getAnimOneStr = function() {
+      return this.animOneStr;
+    }
+
+    FunctionValue.prototype.getDirection = function() {
+      return this.direction;
+    }
+
+    FunctionValue.prototype.getHierBranchStyle = function() {
+      return this.hierBranchStyle;
+    }
+
+    FunctionValue.prototype.getResizeHandlesStr = function() {
+      return this.resizeHandlesStr;
+    }
+
+    FunctionValue.prototype.getBool = function() {
+      return this.bool;
+    }
+
+    FunctionValue.prototype.getInt = function() {
+      return this.int;
+    }
+
+    FunctionValue.prototype.fillObject = function (oCopy, oIdMap) {
+      oCopy.setAnimLvlStr(this.getAnimLvlStr());
+      oCopy.setAnimOneStr(this.getAnimOneStr());
+      oCopy.setDirection(this.getDirection());
+      oCopy.setHierBranchStyle(this.getHierBranchStyle());
+      oCopy.setResizeHandlesStr(this.getResizeHandlesStr());
+      oCopy.setBool(this.getBool());
+      oCopy.setInt(this.getInt());
+    }
+
 
     changesFactory[AscDFH.historyitem_IfArg] = CChangeLong;
     changesFactory[AscDFH.historyitem_IfFunc] = CChangeLong;
     changesFactory[AscDFH.historyitem_IfName] = CChangeString;
     changesFactory[AscDFH.historyitem_IfOp] = CChangeLong;
-    changesFactory[AscDFH.historyitem_IfVal] = CChangeString;
+    changesFactory[AscDFH.historyitem_IfVal] = CChangeObject;
     changesFactory[AscDFH.historyitem_IfAddList] = CChangeContent;
     changesFactory[AscDFH.historyitem_IfRemoveList] = CChangeContent;
     drawingsChangesMap[AscDFH.historyitem_IfArg] = function (oClass, value) {oClass.arg = value;};
@@ -2752,9 +3355,9 @@
       this.op = pr;
     }
 
-    If.prototype.setVal = function(pr) {
-      oHistory.Add(new CChangeString(this, AscDFH.historyitem_IfVal, this.getVal(), pr));
-      this.val = pr;
+    If.prototype.setVal = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_IfVal, this.getVal(), oPr));
+      this.val = oPr;
     }
 
     If.prototype.addToLstList = function(nIdx, oPr) {
@@ -2797,7 +3400,9 @@
       oCopy.setFunc(this.getFunc());
       oCopy.setName(this.getName());
       oCopy.setOp(this.getOp());
-      oCopy.setVal(this.getVal());
+      if (this.getVal()) {
+        oCopy.setVal(this.getVal().createDuplicate(oIdMap));
+      }
       for(var nIdx = 0; nIdx < this.list.length; ++nIdx) {
         oCopy.addToLst(nIdx, this.list[nIdx].createDuplicate(oIdMap));
       }
@@ -3130,13 +3735,47 @@
       }
     }
 
+    changesFactory[AscDFH.historyitem_LayoutShapeTypeOutputShapeType] = CChangeLong;
+    changesFactory[AscDFH.historyitem_LayoutShapeTypeShapeType] = CChangeLong;
+    drawingsChangesMap[AscDFH.historyitem_LayoutShapeTypeOutputShapeType] = function (oClass, value) {oClass.outputShapeType = value;};
+    drawingsChangesMap[AscDFH.historyitem_LayoutShapeTypeShapeType] = function (oClass, value) {oClass.shapeType = value;};
+    function LayoutShapeType() {
+      CBaseFormatObject.call(this);
+      this.outputShapeType = null;
+      this.shapeType = null;
+    }
+    InitClass(LayoutShapeType, CBaseFormatObject, AscDFH.historyitem_type_LayoutShapeType);
+
+    LayoutShapeType.prototype.setOutputShapeType = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_LayoutShapeTypeOutputShapeType, this.getOutputShapeType(), pr));
+      this.outputShapeType = pr;
+    }
+
+    LayoutShapeType.prototype.setShapeType = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_LayoutShapeTypeShapeType, this.getShapeType(), pr));
+      this.shapeType = pr;
+    }
+
+    LayoutShapeType.prototype.getOutputShapeType = function() {
+      return this.outputShapeType;
+    }
+
+    LayoutShapeType.prototype.getShapeType = function() {
+      return this.shapeType;
+    }
+
+    LayoutShapeType.prototype.fillObject = function (oCopy, oIdMap) {
+      oCopy.setOutputShapeType(this.getOutputShapeType());
+      oCopy.setShapeType(this.getShapeType());
+    }
+
 
     changesFactory[AscDFH.historyitem_SShapeBlip] = CChangeString;
     changesFactory[AscDFH.historyitem_SShapeBlipPhldr] = CChangeBool;
     changesFactory[AscDFH.historyitem_SShapeHideGeom] = CChangeBool;
     changesFactory[AscDFH.historyitem_SShapeLkTxEntry] = CChangeBool;
     changesFactory[AscDFH.historyitem_SShapeRot] = CChangeDouble2;
-    changesFactory[AscDFH.historyitem_SShapeType] = CChangeLong;
+    changesFactory[AscDFH.historyitem_SShapeType] = CChangeObject;
     changesFactory[AscDFH.historyitem_SShapeZOrderOff] = CChangeLong;
     changesFactory[AscDFH.historyitem_SShapeAdjLst] = CChangeObject;
     changesFactory[AscDFH.historyitem_SShapeExtLst] = CChangeObject;
@@ -3188,9 +3827,9 @@
       this.rot = pr;
     }
 
-    SShape.prototype.setType = function(pr) {
-      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_SShapeType, this.getType(), pr));
-      this.type = pr;
+    SShape.prototype.setType = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SShapeType, this.getType(), oPr));
+      this.type = oPr;
     }
 
     SShape.prototype.setZOrderOff = function(pr) {
@@ -3252,7 +3891,9 @@
       oCopy.setHideGeom(this.getHideGeom());
       oCopy.setLkTxEntry(this.getLkTxEntry());
       oCopy.setRot(this.getRot());
-      oCopy.setType(this.getType());
+      if (this.getType()) {
+        oCopy.setType(this.getType().createDuplicate(oIdMap));
+      }
       oCopy.setZOrderOff(this.getZOrderOff());
       if (this.getAdjLst()) {
         oCopy.setAdjLst(this.getAdjLst().createDuplicate(oIdMap));
@@ -4809,79 +5450,6 @@
       }
     }
 
-    changesFactory[AscDFH.historyitem_Scene3dBackdrop] = CChangeObject;
-    changesFactory[AscDFH.historyitem_Scene3dCamera] = CChangeObject;
-    changesFactory[AscDFH.historyitem_Scene3dExtLst] = CChangeObject;
-    changesFactory[AscDFH.historyitem_Scene3dLightRig] = CChangeObject;
-    drawingsChangesMap[AscDFH.historyitem_Scene3dBackdrop] = function (oClass, value) {oClass.backdrop = value;};
-    drawingsChangesMap[AscDFH.historyitem_Scene3dCamera] = function (oClass, value) {oClass.camera = value;};
-    drawingsChangesMap[AscDFH.historyitem_Scene3dExtLst] = function (oClass, value) {oClass.extLst = value;};
-    drawingsChangesMap[AscDFH.historyitem_Scene3dLightRig] = function (oClass, value) {oClass.lightRig = value;};
-    function Scene3d() {
-      CBaseFormatObject.call(this);
-      this.backdrop = null;
-      this.camera = null;
-      this.extLst = null;
-      this.lightRig = null;
-    }
-    InitClass(Scene3d, CBaseFormatObject, AscDFH.historyitem_type_Scene3d);
-
-    Scene3d.prototype.setBackdrop = function(oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Scene3dBackdrop, this.getBackdrop(), oPr));
-      this.backdrop = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    Scene3d.prototype.setCamera = function(oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Scene3dCamera, this.getCamera(), oPr));
-      this.camera = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    Scene3d.prototype.setExtLst = function(oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Scene3dExtLst, this.getExtLst(), oPr));
-      this.extLst = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    Scene3d.prototype.setLightRig = function(oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Scene3dLightRig, this.getLightRig(), oPr));
-      this.lightRig = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    Scene3d.prototype.getBackdrop = function() {
-      return this.backdrop;
-    }
-
-    Scene3d.prototype.getCamera = function() {
-      return this.camera;
-    }
-
-    Scene3d.prototype.getExtLst = function() {
-      return this.extLst;
-    }
-
-    Scene3d.prototype.getLightRig = function() {
-      return this.lightRig;
-    }
-
-    Scene3d.prototype.fillObject = function (oCopy, oIdMap) {
-      if (this.getBackdrop()) {
-        oCopy.setBackdrop(this.getBackdrop().createDuplicate(oIdMap));
-      }
-      if (this.getCamera()) {
-        oCopy.setCamera(this.getCamera().createDuplicate(oIdMap));
-      }
-      if (this.getExtLst()) {
-        oCopy.setExtLst(this.getExtLst().createDuplicate(oIdMap));
-      }
-      if (this.getLightRig()) {
-        oCopy.setLightRig(this.getLightRig().createDuplicate(oIdMap));
-      }
-    }
-
-
     changesFactory[AscDFH.historyitem_BackdropAnchor] = CChangeObject;
     changesFactory[AscDFH.historyitem_BackdropExtLst] = CChangeObject;
     changesFactory[AscDFH.historyitem_BackdropNorm] = CChangeObject;
@@ -4954,9 +5522,43 @@
       }
     }
 
-    changesFactory[AscDFH.historyitem_BackdropAnchorX] = CChangeString;
-    changesFactory[AscDFH.historyitem_BackdropAnchorY] = CChangeString;
-    changesFactory[AscDFH.historyitem_BackdropAnchorZ] = CChangeString;
+    changesFactory[AscDFH.historyitem_CoordinateCoordinateUnqualified] = CChangeLong;
+    changesFactory[AscDFH.historyitem_CoordinateUniversalMeasure] = CChangeLong;
+    drawingsChangesMap[AscDFH.historyitem_CoordinateCoordinateUnqualified] = function (oClass, value) {oClass.coordinateUnqualified = value;};
+    drawingsChangesMap[AscDFH.historyitem_CoordinateUniversalMeasure] = function (oClass, value) {oClass.universalMeasure = value;};
+    function Coordinate() {
+      CBaseFormatObject.call(this);
+      this.coordinateUnqualified = null;
+      this.universalMeasure = null;
+    }
+    InitClass(Coordinate, CBaseFormatObject, AscDFH.historyitem_type_Coordinate);
+
+    Coordinate.prototype.setCoordinateUnqualified = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_CoordinateCoordinateUnqualified, this.getCoordinateUnqualified(), pr));
+      this.coordinateUnqualified = pr;
+    }
+
+    Coordinate.prototype.setUniversalMeasure = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_CoordinateUniversalMeasure, this.getUniversalMeasure(), pr));
+      this.universalMeasure = pr;
+    }
+
+    Coordinate.prototype.getCoordinateUnqualified = function() {
+      return this.coordinateUnqualified;
+    }
+
+    Coordinate.prototype.getUniversalMeasure = function() {
+      return this.universalMeasure;
+    }
+
+    Coordinate.prototype.fillObject = function (oCopy, oIdMap) {
+      oCopy.setCoordinateUnqualified(this.getCoordinateUnqualified());
+      oCopy.setUniversalMeasure(this.getUniversalMeasure());
+    }
+
+    changesFactory[AscDFH.historyitem_BackdropAnchorX] = CChangeObject;
+    changesFactory[AscDFH.historyitem_BackdropAnchorY] = CChangeObject;
+    changesFactory[AscDFH.historyitem_BackdropAnchorZ] = CChangeObject;
     drawingsChangesMap[AscDFH.historyitem_BackdropAnchorX] = function (oClass, value) {oClass.x = value;};
     drawingsChangesMap[AscDFH.historyitem_BackdropAnchorY] = function (oClass, value) {oClass.y = value;};
     drawingsChangesMap[AscDFH.historyitem_BackdropAnchorZ] = function (oClass, value) {oClass.z = value;};
@@ -4968,19 +5570,19 @@
     }
     InitClass(BackdropAnchor, CBaseFormatObject, AscDFH.historyitem_type_BackdropAnchor);
 
-    BackdropAnchor.prototype.setX = function(pr) {
-      oHistory.Add(new CChangeString(this, AscDFH.historyitem_BackdropAnchorX, this.getX(), pr));
-      this.x = pr;
+    BackdropAnchor.prototype.setX = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BackdropAnchorX, this.getX(), oPr));
+      this.x = oPr;
     }
 
-    BackdropAnchor.prototype.setY = function(pr) {
-      oHistory.Add(new CChangeString(this, AscDFH.historyitem_BackdropAnchorY, this.getY(), pr));
-      this.y = pr;
+    BackdropAnchor.prototype.setY = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BackdropAnchorY, this.getY(), oPr));
+      this.y = oPr;
     }
 
-    BackdropAnchor.prototype.setZ = function(pr) {
-      oHistory.Add(new CChangeString(this, AscDFH.historyitem_BackdropAnchorZ, this.getZ(), pr));
-      this.z = pr;
+    BackdropAnchor.prototype.setZ = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BackdropAnchorZ, this.getZ(), oPr));
+      this.z = oPr;
     }
 
     BackdropAnchor.prototype.getX = function() {
@@ -4996,14 +5598,20 @@
     }
 
     BackdropAnchor.prototype.fillObject = function (oCopy, oIdMap) {
-      oCopy.setX(this.getX());
-      oCopy.setY(this.getY());
-      oCopy.setZ(this.getZ());
+      if (this.getX()) {
+        oCopy.setX(this.getX().createDuplicate(oIdMap));
+      }
+      if (this.getY()) {
+        oCopy.setY(this.getY().createDuplicate(oIdMap));
+      }
+      if (this.getZ()) {
+        oCopy.setZ(this.getZ().createDuplicate(oIdMap));
+      }
     }
 
-    changesFactory[AscDFH.historyitem_BackdropNormDx] = CChangeString;
-    changesFactory[AscDFH.historyitem_BackdropNormDy] = CChangeString;
-    changesFactory[AscDFH.historyitem_BackdropNormDz] = CChangeString;
+    changesFactory[AscDFH.historyitem_BackdropNormDx] = CChangeObject;
+    changesFactory[AscDFH.historyitem_BackdropNormDy] = CChangeObject;
+    changesFactory[AscDFH.historyitem_BackdropNormDz] = CChangeObject;
     drawingsChangesMap[AscDFH.historyitem_BackdropNormDx] = function (oClass, value) {oClass.dx = value;};
     drawingsChangesMap[AscDFH.historyitem_BackdropNormDy] = function (oClass, value) {oClass.dy = value;};
     drawingsChangesMap[AscDFH.historyitem_BackdropNormDz] = function (oClass, value) {oClass.dz = value;};
@@ -5015,19 +5623,19 @@
     }
     InitClass(BackdropNorm, CBaseFormatObject, AscDFH.historyitem_type_BackdropNorm);
 
-    BackdropNorm.prototype.setDx = function(pr) {
-      oHistory.Add(new CChangeString(this, AscDFH.historyitem_BackdropNormDx, this.getDx(), pr));
-      this.dx = pr;
+    BackdropNorm.prototype.setDx = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BackdropNormDx, this.getDx(), oPr));
+      this.dx = oPr;
     }
 
-    BackdropNorm.prototype.setDy = function(pr) {
-      oHistory.Add(new CChangeString(this, AscDFH.historyitem_BackdropNormDy, this.getDy(), pr));
-      this.dy = pr;
+    BackdropNorm.prototype.setDy = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BackdropNormDy, this.getDy(), oPr));
+      this.dy = oPr;
     }
 
-    BackdropNorm.prototype.setDz = function(pr) {
-      oHistory.Add(new CChangeString(this, AscDFH.historyitem_BackdropNormDz, this.getDz(), pr));
-      this.dz = pr;
+    BackdropNorm.prototype.setDz = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BackdropNormDz, this.getDz(), oPr));
+      this.dz = oPr;
     }
 
     BackdropNorm.prototype.getDx = function() {
@@ -5043,14 +5651,21 @@
     }
 
     BackdropNorm.prototype.fillObject = function (oCopy, oIdMap) {
-      oCopy.setDx(this.getDx());
-      oCopy.setDy(this.getDy());
-      oCopy.setDz(this.getDz());
+      if (this.getDx()) {
+        oCopy.setDx(this.getDx().createDuplicate(oIdMap));
+      }
+      if (this.getDy()) {
+        oCopy.setDy(this.getDy().createDuplicate(oIdMap));
+      }
+      if (this.getDz()) {
+        oCopy.setDz(this.getDz().createDuplicate(oIdMap));
+      }
     }
 
-    changesFactory[AscDFH.historyitem_BackdropUpDx] = CChangeString;
-    changesFactory[AscDFH.historyitem_BackdropUpDy] = CChangeString;
-    changesFactory[AscDFH.historyitem_BackdropUpDz] = CChangeString;
+
+    changesFactory[AscDFH.historyitem_BackdropUpDx] = CChangeObject;
+    changesFactory[AscDFH.historyitem_BackdropUpDy] = CChangeObject;
+    changesFactory[AscDFH.historyitem_BackdropUpDz] = CChangeObject;
     drawingsChangesMap[AscDFH.historyitem_BackdropUpDx] = function (oClass, value) {oClass.dx = value;};
     drawingsChangesMap[AscDFH.historyitem_BackdropUpDy] = function (oClass, value) {oClass.dy = value;};
     drawingsChangesMap[AscDFH.historyitem_BackdropUpDz] = function (oClass, value) {oClass.dz = value;};
@@ -5062,19 +5677,19 @@
     }
     InitClass(BackdropUp, CBaseFormatObject, AscDFH.historyitem_type_BackdropUp);
 
-    BackdropUp.prototype.setDx = function(pr) {
-      oHistory.Add(new CChangeString(this, AscDFH.historyitem_BackdropUpDx, this.getDx(), pr));
-      this.dx = pr;
+    BackdropUp.prototype.setDx = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BackdropUpDx, this.getDx(), oPr));
+      this.dx = oPr;
     }
 
-    BackdropUp.prototype.setDy = function(pr) {
-      oHistory.Add(new CChangeString(this, AscDFH.historyitem_BackdropUpDy, this.getDy(), pr));
-      this.dy = pr;
+    BackdropUp.prototype.setDy = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BackdropUpDy, this.getDy(), oPr));
+      this.dy = oPr;
     }
 
-    BackdropUp.prototype.setDz = function(pr) {
-      oHistory.Add(new CChangeString(this, AscDFH.historyitem_BackdropUpDz, this.getDz(), pr));
-      this.dz = pr;
+    BackdropUp.prototype.setDz = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BackdropUpDz, this.getDz(), oPr));
+      this.dz = oPr;
     }
 
     BackdropUp.prototype.getDx = function() {
@@ -5090,9 +5705,15 @@
     }
 
     BackdropUp.prototype.fillObject = function (oCopy, oIdMap) {
-      oCopy.setDx(this.getDx());
-      oCopy.setDy(this.getDy());
-      oCopy.setDz(this.getDz());
+      if (this.getDx()) {
+        oCopy.setDx(this.getDx().createDuplicate(oIdMap));
+      }
+      if (this.getDy()) {
+        oCopy.setDy(this.getDy().createDuplicate(oIdMap));
+      }
+      if (this.getDz()) {
+        oCopy.setDz(this.getDz().createDuplicate(oIdMap));
+      }
     }
 
     changesFactory[AscDFH.historyitem_CameraFov] = CChangeDouble2;
@@ -5259,7 +5880,7 @@
     changesFactory[AscDFH.historyitem_Sp3dContourW] = CChangeLong;
     changesFactory[AscDFH.historyitem_Sp3dExtrusionH] = CChangeLong;
     changesFactory[AscDFH.historyitem_Sp3dPrstMaterial] = CChangeLong;
-    changesFactory[AscDFH.historyitem_Sp3dZ] = CChangeLong;
+    changesFactory[AscDFH.historyitem_Sp3dZ] = CChangeObject;
     changesFactory[AscDFH.historyitem_Sp3dBevelB] = CChangeObject;
     changesFactory[AscDFH.historyitem_Sp3dBevelT] = CChangeObject;
     changesFactory[AscDFH.historyitem_Sp3dContourClr] = CChangeObject;
@@ -5303,9 +5924,9 @@
       this.prstMaterial = pr;
     }
 
-    Sp3d.prototype.setZ = function(pr) {
-      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_Sp3dZ, this.getZ(), pr));
-      this.z = pr;
+    Sp3d.prototype.setZ = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Sp3dZ, this.getZ(), oPr));
+      this.z = oPr;
     }
 
     Sp3d.prototype.setBevelB = function(oPr) {
@@ -5378,7 +5999,9 @@
       oCopy.setContourW(this.getContourW());
       oCopy.setExtrusionH(this.getExtrusionH());
       oCopy.setPrstMaterial(this.getPrstMaterial());
-      oCopy.setZ(this.getZ());
+      if (this.getZ()) {
+        oCopy.setZ(this.getZ().createDuplicate(oIdMap));
+      }
       if (this.getBevelB()) {
         oCopy.setBevelB(this.getBevelB().createDuplicate(oIdMap));
       }
@@ -5494,7 +6117,7 @@
       }
     }
 
-    changesFactory[AscDFH.historyitem_FlatTxZ] = CChangeString;
+    changesFactory[AscDFH.historyitem_FlatTxZ] = CChangeObject;
     drawingsChangesMap[AscDFH.historyitem_FlatTxZ] = function (oClass, value) {oClass.z = value;};
     function FlatTx() {
       CBaseFormatObject.call(this);
@@ -5502,9 +6125,9 @@
     }
     InitClass(FlatTx, CBaseFormatObject, AscDFH.historyitem_type_FlatTx);
 
-    FlatTx.prototype.setZ = function(pr) {
-      oHistory.Add(new CChangeString(this, AscDFH.historyitem_FlatTxZ, this.getZ(), pr));
-      this.z = pr;
+    FlatTx.prototype.setZ = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_FlatTxZ, this.getZ(), oPr));
+      this.z = oPr;
     }
 
     FlatTx.prototype.getZ = function() {
@@ -5512,7 +6135,9 @@
     }
 
     FlatTx.prototype.fillObject = function (oCopy, oIdMap) {
-      oCopy.setZ(this.getZ());
+      if (this.getZ()) {
+        oCopy.setZ(this.getZ().createDuplicate(oIdMap));
+      }
     }
 
     function StyleDefHdrLst() {

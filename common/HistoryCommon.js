@@ -1594,6 +1594,8 @@
 	window['AscDFH'].historyitem_type_ResizeHandles          = 2081 << 16;
 	window['AscDFH'].historyitem_type_OrgChart               = 2082 << 16;
 	window['AscDFH'].historyitem_type_HierBranch             = 2083 << 16;
+	window['AscDFH'].historyitem_type_ParameterVal           = 2084 << 16;
+	window['AscDFH'].historyitem_type_Coordinate             = 2085 << 16;
 
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3328,18 +3330,12 @@
 	AscDFH.historyitem_CCommonDataListAdd    = AscDFH.historyitem_type_CCommonDataList | 1;
 	AscDFH.historyitem_CCommonDataListRemove = AscDFH.historyitem_type_CCommonDataList | 2;
 
-	AscDFH.historyitem_BgFormatBlipFill  = AscDFH.historyitem_type_BgFormat | 1;
-	AscDFH.historyitem_BgFormatEffectDag = AscDFH.historyitem_type_BgFormat | 2;
-	AscDFH.historyitem_BgFormatEffectLst = AscDFH.historyitem_type_BgFormat | 3;
-	AscDFH.historyitem_BgFormatGradFill  = AscDFH.historyitem_type_BgFormat | 4;
-	AscDFH.historyitem_BgFormatGrpFill   = AscDFH.historyitem_type_BgFormat | 5;
-	AscDFH.historyitem_BgFormatNoFill    = AscDFH.historyitem_type_BgFormat | 6;
-	AscDFH.historyitem_BgFormatPattFill  = AscDFH.historyitem_type_BgFormat | 7;
-	AscDFH.historyitem_BgFormatSolidFill = AscDFH.historyitem_type_BgFormat | 8;
+	AscDFH.historyitem_BgFormatFill  = AscDFH.historyitem_type_BgFormat | 1;
+	AscDFH.historyitem_BgFormatEffect = AscDFH.historyitem_type_BgFormat | 2;
 
-	AscDFH.historyitem_WholeEffectDag = AscDFH.historyitem_type_Whole | 1;
-	AscDFH.historyitem_WholeEffectLst = AscDFH.historyitem_type_Whole | 2;
-	AscDFH.historyitem_WholeLn        = AscDFH.historyitem_type_Whole | 3;
+
+	AscDFH.historyitem_WholeEffect    = AscDFH.historyitem_type_Whole | 1;
+	AscDFH.historyitem_WholeLn        = AscDFH.historyitem_type_Whole | 2;
 
 	AscDFH.historyitem_CxnDestId     = AscDFH.historyitem_type_Cxn | 1;
 	AscDFH.historyitem_CxnDestOrd    = AscDFH.historyitem_type_Cxn | 2;
@@ -3656,6 +3652,46 @@
 	AscDFH.historyitem_OrgChartVal = AscDFH.historyitem_type_OrgChart | 1;
 
 	AscDFH.historyitem_HierBranchVal = AscDFH.historyitem_type_HierBranch | 1;
+
+	AscDFH.historyitem_ParameterValArrowheadStyle             = AscDFH.historyitem_type_ParameterVal | 1;
+	AscDFH.historyitem_ParameterValAutoTextRotation           = AscDFH.historyitem_type_ParameterVal | 2;
+	AscDFH.historyitem_ParameterValBendPoint                  = AscDFH.historyitem_type_ParameterVal | 3;
+	AscDFH.historyitem_ParameterValBreakpoint                 = AscDFH.historyitem_type_ParameterVal | 4;
+	AscDFH.historyitem_ParameterValCenterShapeMapping         = AscDFH.historyitem_type_ParameterVal | 5;
+	AscDFH.historyitem_ParameterValChildAlignment             = AscDFH.historyitem_type_ParameterVal | 6;
+	AscDFH.historyitem_ParameterValChildDirection             = AscDFH.historyitem_type_ParameterVal | 7;
+	AscDFH.historyitem_ParameterValConnectorDimension         = AscDFH.historyitem_type_ParameterVal | 8;
+	AscDFH.historyitem_ParameterValConnectorPoint             = AscDFH.historyitem_type_ParameterVal | 9;
+	AscDFH.historyitem_ParameterValConnectorRouting           = AscDFH.historyitem_type_ParameterVal | 10;
+	AscDFH.historyitem_ParameterValContinueDirection          = AscDFH.historyitem_type_ParameterVal | 11;
+	AscDFH.historyitem_ParameterValDiagramHorizontalAlignment = AscDFH.historyitem_type_ParameterVal | 12;
+	AscDFH.historyitem_ParameterValDiagramTextAlignment       = AscDFH.historyitem_type_ParameterVal | 13;
+	AscDFH.historyitem_ParameterValFallbackDimension          = AscDFH.historyitem_type_ParameterVal | 14;
+	AscDFH.historyitem_ParameterValFlowDirection              = AscDFH.historyitem_type_ParameterVal | 15;
+	AscDFH.historyitem_ParameterValGrowDirection              = AscDFH.historyitem_type_ParameterVal | 16;
+	AscDFH.historyitem_ParameterValHierarchyAlignment         = AscDFH.historyitem_type_ParameterVal | 17;
+	AscDFH.historyitem_ParameterValLinearDirection            = AscDFH.historyitem_type_ParameterVal | 18;
+	AscDFH.historyitem_ParameterValNodeHorizontalAlignment    = AscDFH.historyitem_type_ParameterVal | 19;
+	AscDFH.historyitem_ParameterValNodeVerticalAlignment      = AscDFH.historyitem_type_ParameterVal | 20;
+	AscDFH.historyitem_ParameterValOffset                     = AscDFH.historyitem_type_ParameterVal | 21;
+	AscDFH.historyitem_ParameterValPyramidAccentPosition      = AscDFH.historyitem_type_ParameterVal | 22;
+	AscDFH.historyitem_ParameterValPyramidAccentTextMargin    = AscDFH.historyitem_type_ParameterVal | 23;
+	AscDFH.historyitem_ParameterValRotationPath               = AscDFH.historyitem_type_ParameterVal | 24;
+	AscDFH.historyitem_ParameterValSecondaryChildAlignment    = AscDFH.historyitem_type_ParameterVal | 25;
+	AscDFH.historyitem_ParameterValSecondaryLinearDirection   = AscDFH.historyitem_type_ParameterVal | 26;
+	AscDFH.historyitem_ParameterValStartingElement            = AscDFH.historyitem_type_ParameterVal | 27;
+	AscDFH.historyitem_ParameterValTextAnchorHorizontal       = AscDFH.historyitem_type_ParameterVal | 28;
+	AscDFH.historyitem_ParameterValTextAnchorVertical         = AscDFH.historyitem_type_ParameterVal | 29;
+	AscDFH.historyitem_ParameterValTextBlockDirection         = AscDFH.historyitem_type_ParameterVal | 30;
+	AscDFH.historyitem_ParameterValTextDirection              = AscDFH.historyitem_type_ParameterVal | 31;
+	AscDFH.historyitem_ParameterValVerticalAlignment          = AscDFH.historyitem_type_ParameterVal | 32;
+	AscDFH.historyitem_ParameterValBool                       = AscDFH.historyitem_type_ParameterVal | 33;
+	AscDFH.historyitem_ParameterValDouble                     = AscDFH.historyitem_type_ParameterVal | 34;
+	AscDFH.historyitem_ParameterValInt                        = AscDFH.historyitem_type_ParameterVal | 35;
+	AscDFH.historyitem_ParameterValStr                        = AscDFH.historyitem_type_ParameterVal | 36;
+
+	AscDFH.historyitem_CoordinateCoordinateUnqualified = AscDFH.historyitem_type_Coordinate | 1;
+	AscDFH.historyitem_CoordinateUniversalMeasure      = AscDFH.historyitem_type_Coordinate | 2;
 
 
 
