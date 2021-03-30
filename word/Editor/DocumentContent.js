@@ -3017,8 +3017,15 @@ CDocumentContent.prototype.AddToParagraph = function(ParaItem, bRecalculate)
 	{
 		if (true === this.Selection.Use)
 		{
-			var bAddSpace = this.LogicDocument ? this.LogicDocument.IsWordSelection() : false;
-			var Type      = ParaItem.Get_Type();
+			var nSpaceCharCode = -1;
+			if (this.LogicDocument && this.LogicDocument.IsWordSelection())
+			{
+				var sText = this.LogicDocument.GetSelectedText();
+				if (sText.length > 1 && AscCommon.IsSpace(sText.charCodeAt(sText.length - 1)))
+					nSpaceCharCode = sText.charCodeAt(sText.length - 1);
+			}
+
+			var Type = ParaItem.Get_Type();
 			switch (Type)
 			{
 				case para_Math:
@@ -3056,9 +3063,9 @@ CDocumentContent.prototype.AddToParagraph = function(ParaItem, bRecalculate)
 					// и т.д., тогда сначала удаляем весь селект.
 					this.Remove(1, true, false, true);
 
-					if (true === bAddSpace)
+					if (-1 !== nSpaceCharCode)
 					{
-						this.AddToParagraph(new ParaSpace());
+						this.AddToParagraph(new ParaSpace(nSpaceCharCode));
 						this.MoveCursorLeft(false, false);
 					}
 

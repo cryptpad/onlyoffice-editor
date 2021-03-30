@@ -18447,11 +18447,12 @@ CDocument.prototype.controller_AddToParagraph = function(ParaItem, bRecalculate)
 {
 	if (true === this.Selection.Use)
 	{
-		var bAddSpace = false;
+		var nSpaceCharCode = -1;
 		if (this.IsWordSelection())
 		{
-
-			bAddSpace = true;
+			var sText = this.GetSelectedText();
+			if (sText.length > 1 && AscCommon.IsSpace(sText.charCodeAt(sText.length - 1)))
+				nSpaceCharCode = sText.charCodeAt(sText.length - 1);
 		}
 
 		var Type = ParaItem.Get_Type();
@@ -18491,11 +18492,12 @@ CDocument.prototype.controller_AddToParagraph = function(ParaItem, bRecalculate)
 				// и т.д., тогда сначала удаляем весь селект.
 				this.Remove(1, true, false, true);
 
-				if (true === bAddSpace)
+				if (-1 !== nSpaceCharCode)
 				{
-					this.AddToParagraph(new ParaSpace());
+					this.AddToParagraph(new ParaSpace(nSpaceCharCode));
 					this.MoveCursorLeft(false, false);
 				}
+
 				break;
 			}
 			case para_TextPr:
