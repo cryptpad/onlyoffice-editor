@@ -140,6 +140,17 @@
     }
 
     window['AscCommon'] = window['AscCommon'] || {};
-    window['AscCommon'].UserInfoParser = UserInfoParser;
+    window['AscCommon']['UserInfoParser'] = window['AscCommon'].UserInfoParser = UserInfoParser;
+    UserInfoParser.prototype['setParser'] = UserInfoParser.prototype.setParser;
+    UserInfoParser.prototype['setCurrentName'] = UserInfoParser.prototype.setCurrentName;
+    UserInfoParser.prototype['getCurrentName'] = UserInfoParser.prototype.getCurrentName;
+    UserInfoParser.prototype['getSeparator'] = UserInfoParser.prototype.getSeparator;
+    UserInfoParser.prototype['getParsedName'] = UserInfoParser.prototype.getParsedName;
+    UserInfoParser.prototype['setReviewPermissions'] = UserInfoParser.prototype.setReviewPermissions;
+    UserInfoParser.prototype['setCommentPermissions'] = UserInfoParser.prototype.setCommentPermissions;
+    UserInfoParser.prototype['canEditReview'] = UserInfoParser.prototype.canEditReview;
+    UserInfoParser.prototype['canViewComment'] = UserInfoParser.prototype.canViewComment;
+    UserInfoParser.prototype['canEditComment'] = UserInfoParser.prototype.canEditComment;
+    UserInfoParser.prototype['canDeleteComment'] = UserInfoParser.prototype.canDeleteComment;
 
 })(window);
