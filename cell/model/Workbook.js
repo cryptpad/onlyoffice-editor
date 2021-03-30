@@ -3649,6 +3649,84 @@
 		}
 	};
 
+	Workbook.prototype.getRulesByType = function(type, id, needClone) {
+		var range, sheet;
+		var rules = null;
+		switch (type) {
+			case Asc.c_oAscSelectionForCFType.selection:
+				sheet = this.getActiveWs();
+				// ToDo multiselect
+				range = sheet.selectionRange.getLast();
+				break;
+			case Asc.c_oAscSelectionForCFType.worksheet:
+				sheet = id ? this.getWorksheet(id) : this.getActiveWs();
+				break;
+			case Asc.c_oAscSelectionForCFType.table:
+				var oTable;
+				if (id) {
+					oTable = this.getTableByName(id, true);
+					if (oTable) {
+						sheet = this.aWorksheets[oTable.index];
+						range = oTable.table.Ref;
+					}
+				} else {
+					//this table
+					sheet = this.getActiveWs();
+					var thisTableIndex = sheet.autoFilters.searchRangeInTableParts(sheet.selectionRange.getLast());
+					if (thisTableIndex >= 0) {
+						range = sheet.TableParts[thisTableIndex].Ref;
+					} else {
+						sheet = null;
+					}
+				}
+				break;
+			case Asc.c_oAscSelectionForCFType.pivot:
+				// ToDo
+				break;
+		}
+		if (sheet) {
+			var aRules = sheet.aConditionalFormattingRules.sort(function(v1, v2) {
+				return v1.priority - v2.priority;
+			});
+
+			rules = [];
+			if (range) {
+				var putRange = function (_range, _rule) {
+					multiplyRange = new AscCommonExcel.MultiplyRange(_range);
+					if (multiplyRange.isIntersect(range)) {
+						if (needClone) {
+							var _id = _rule.id;
+							var isLocked = _rule.isLock;
+							_rule = _rule.clone();
+							_rule.id = _id;
+							_rule.isLock = isLocked;
+						}
+						rules.push(_rule);
+					}
+				};
+				var oRule, ranges, multiplyRange, i, mapChangedRules = [];
+				for (i = 0; i < aRules.length; ++i) {
+					oRule = aRules[i];
+					ranges = oRule.ranges;
+					putRange(ranges, oRule);
+				}
+			} else {
+				for (i = 0; i < aRules.length; ++i) {
+					var _rule = aRules[i];
+					if (needClone) {
+						var _id = aRules[i].id;
+						var isLocked = _rule.isLock;
+						_rule = _rule.clone();
+						_rule.id = _id;
+						_rule.isLock = isLocked;
+					}
+					rules.push(_rule);
+				}
+			}
+		}
+		return rules;
+	};
+
 //-------------------------------------------------------------------------------------------------
 	var tempHelp = new ArrayBuffer(8);
 	var tempHelpUnit = new Uint8Array(tempHelp);
@@ -4988,6 +5066,9 @@
 			this.updateSortStateOffset(oActualRange, offset);
 			History.LocalChange = false;
 		}
+		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.updateConditionalFormattingOffset(oActualRange, offset);
+		}
 
 		var collapsedInfo = null, lastRowIndex;
 		var oDefRowPr = new AscCommonExcel.UndoRedoData_RowProp();
@@ -5081,6 +5162,9 @@
 			this.updateSortStateOffset(oActualRange, offset);
 			History.LocalChange = false;
 		}
+		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.updateConditionalFormattingOffset(oActualRange, offset);
+		}
 
 		this._updateFormulasParents(index, 0, gc_nMaxRow0, gc_nMaxCol0, oActualRange, offset, renameRes.shiftedShared);
 		var borders;
@@ -5155,6 +5239,9 @@
 			this.updateSortStateOffset(oActualRange, offset);
 			History.LocalChange = false;
 		}
+		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.updateConditionalFormattingOffset(oActualRange, offset);
+		}
 
 		var collapsedInfo = null, lastRowIndex;
 		var oDefColPr = new AscCommonExcel.UndoRedoData_ColProp();
@@ -5225,6 +5312,9 @@
 			History.LocalChange = true;
 			this.updateSortStateOffset(oActualRange, offset);
 			History.LocalChange = false;
+		}
+		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.updateConditionalFormattingOffset(oActualRange, offset);
 		}
 
 		this._updateFormulasParents(0, index, gc_nMaxRow0, gc_nMaxCol0, oActualRange, offset, renameRes.shiftedShared);
@@ -6247,7 +6337,7 @@
 				});
 			}
 		}
-	}
+	};
 	Worksheet.prototype._moveMergedAndHyperlinksPrepare = function(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset) {
 		var res = {merged: [], hyperlinks: []};
 		if (!(false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges))) {
@@ -6498,6 +6588,7 @@
 		this._moveCells(oBBoxFrom, oBBoxTo, copyRange, wsTo, offset);
 		this._moveMergedAndHyperlinks(prepared, oBBoxFrom, oBBoxTo, copyRange, wsTo, offset);
 		this._moveDataValidation(oBBoxFrom, oBBoxTo, copyRange, offset, wsTo);
+		this.moveConditionalFormatting(oBBoxFrom, oBBoxTo, copyRange, offset, wsTo);
 
 		if(true == this.workbook.bUndoChanges || true == this.workbook.bRedoChanges) {
 			wsTo.autoFilters.unmergeTablesAfterMove(oBBoxTo);
@@ -6529,6 +6620,9 @@
 		}
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
 			this.updatePivotOffset(oBBox, offset);
+		}
+		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.updateConditionalFormattingOffset(oBBox, offset);
 		}
 
 		this.getRange3(oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2)._foreachNoEmpty(function(cell){
@@ -6569,6 +6663,9 @@
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
 			this.updatePivotOffset(oBBox, offset);
 		}
+		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.updateConditionalFormattingOffset(oBBox, offset);
+		}
 
 		this.getRange3(oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2)._foreachNoEmpty(function(cell){
 			t._removeCell(null, null, cell);
@@ -6603,6 +6700,9 @@
 		}
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
 			this.updatePivotOffset(oBBox, offset);
+		}
+		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.updateConditionalFormattingOffset(oBBox, offset);
 		}
 
 		this._updateFormulasParents(oActualRange.r1, oActualRange.c1, oActualRange.r2, oActualRange.c2, oBBox, offset, renameRes.shiftedShared);
@@ -6660,6 +6760,9 @@
 		}
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
 			this.updatePivotOffset(oBBox, offset);
+		}
+		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.updateConditionalFormattingOffset(oBBox, offset);
 		}
 
 		this._updateFormulasParents(oActualRange.r1, oActualRange.c1, oActualRange.r2, oActualRange.c2, oBBox, offset, renameRes.shiftedShared);
@@ -9287,6 +9390,205 @@
 	};
 
 
+	Worksheet.prototype.setCFRule = function (val) {
+		if (!val) {
+			return;
+		}
+		var changedRule = this.getCFRuleById(val.id);
+		if (changedRule) {
+			this.changeCFRule(changedRule.val, val, true);
+		} else {
+			this.addCFRule(val, true);
+		}
+	};
+
+	Worksheet.prototype.getCFRuleById = function (id) {
+		if (this.aConditionalFormattingRules) {
+			for (var i = 0; i < this.aConditionalFormattingRules.length; i++) {
+				if (this.aConditionalFormattingRules[i].id === id) {
+					return {val: this.aConditionalFormattingRules[i], index: i};
+				}
+			}
+		}
+		return null;
+	};
+
+	Worksheet.prototype.changeCFRule = function (from, to, addToHistory) {
+		if (!from) {
+			return;
+		}
+		from.set(to, addToHistory, this);
+	};
+
+	Worksheet.prototype.addCFRule = function (val, addToHistory) {
+		if (!val) {
+			return;
+		}
+
+		if (!val.ranges) {
+			val.ranges = [];
+			for (var i = 0; i < this.selectionRange.ranges.length; i++) {
+				val.ranges.push(this.selectionRange.ranges[i].clone());
+			}
+		}
+
+		this.aConditionalFormattingRules.push(val);
+		if (addToHistory) {
+			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_CFRuleAdd, this.getId(), val.getUnionRange(), new AscCommonExcel.UndoRedoData_CF(val.id, null, val));
+		}
+	};
+
+	Worksheet.prototype.tryClearCFRule = function (rule, ranges) {
+		if (!rule) {
+			return;
+		}
+
+		if (ranges) {
+			var _newRanges = [];
+
+			var ruleRanges = rule.ranges;
+			for (var i = 0; i < ruleRanges.length; i++) {
+
+				var tempRanges = [];
+				for (var j = 0; j < ranges.length; j++) {
+					if (tempRanges.length) {
+						var tempRanges2 = [];
+						for (var k = 0; k < tempRanges.length; k++) {
+							tempRanges2 = tempRanges2.concat(ranges[j].intersection(tempRanges[k]) ? ranges[j].difference(tempRanges[k]) : tempRanges[k]);
+						}
+						tempRanges = tempRanges2;
+					} else {
+						tempRanges = ranges[j].intersection(ruleRanges[i]) ? ranges[j].difference(ruleRanges[i]) : ruleRanges[i];
+					}
+				}
+				_newRanges = _newRanges.concat(tempRanges);
+			}
+
+			if (!_newRanges.length) {
+				this.deleteCFRule(rule.id, true)
+			} else {
+				var newRule = rule.clone();
+				newRule.ranges = _newRanges;
+				this.changeCFRule(rule, newRule, true);
+			}
+		} else {
+			this.deleteCFRule(rule.id, true);
+		}
+	};
+
+	Worksheet.prototype.deleteCFRule = function (id, addToHistory) {
+		var oRule = this.getCFRuleById(id);
+		if (oRule) {
+			this.aConditionalFormattingRules.splice(oRule.index, 1);
+			if (addToHistory) {
+				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_CFRuleDelete, this.getId(), oRule.val.getUnionRange(),
+					new AscCommonExcel.UndoRedoData_CF(id, oRule.val));
+			}
+		}
+	};
+
+	Worksheet.prototype.generateCFRuleFromPreset = function (presetId) {
+		if (!presetId || !presetId.length) {
+			return null;
+		}
+
+		var oRule = new AscCommonExcel.CConditionalFormattingRule();
+		oRule.applyPreset(presetId);
+		return oRule;
+	};
+
+	Worksheet.prototype.updateConditionalFormattingOffset = function (range, offset) {
+		if (offset.row < 0 || offset.col < 0) {
+			for (var i = 0; i < this.aConditionalFormattingRules.length; ++i) {
+				if (this.aConditionalFormattingRules[i].containsIntoRange(range)) {
+					this.deleteCFRule(this.aConditionalFormattingRules[i].id, true);
+				}
+			}
+		}
+		this.setConditionalFormattingOffset(range, offset);
+	};
+	Worksheet.prototype.setConditionalFormattingOffset = function (range, offset) {
+		var oRule;
+		for (var i = 0; i < this.aConditionalFormattingRules.length; ++i) {
+			oRule = this.aConditionalFormattingRules[i];
+			oRule.setOffset(offset, range, this, true);
+		}
+	};
+	Worksheet.prototype.moveConditionalFormatting = function (oBBoxFrom, oBBoxTo, copyRange, offset, wsTo, wsFrom) {
+		var t = this;
+		if (!wsTo) {
+			wsTo = this;
+		}
+		if (false === this.workbook.bUndoChanges && false === this.workbook.bRedoChanges) {
+			//чистим ту область, куда переносим
+			wsTo.clearConditionalFormattingRulesByRanges([oBBoxTo]);
+
+			if (!wsFrom) {
+				wsFrom = this;
+			}
+			wsFrom.forEachConditionalFormattingRules(function (_rule) {
+				//если клонируем - то добавляем новое правило со смещенным диапазоном пересечения
+				//если нет + если в пределах одного листа - меняем диапазона у текущего правила
+				//если на другой лист - меняем диапазон у текущего правила + создаём новое со смещенным диапазоном пересечения
+
+				var isChanged = null;
+				var ruleRanges = _rule.ranges;
+				var constantPart, movePart;
+				var _moveRanges = [];
+				var _constantRanges = [];
+				for (var i = 0; i < ruleRanges.length; i++) {
+					movePart = ruleRanges[i].intersection(oBBoxFrom);
+					if (movePart) {
+						if (!copyRange) {
+							constantPart = oBBoxFrom.difference(ruleRanges[i]);
+							_constantRanges = _constantRanges.concat(constantPart);
+						}
+						movePart.setOffset(offset);
+						_moveRanges.push(movePart);
+						isChanged = true;
+					} else if (!copyRange) {
+						_constantRanges.push(ruleRanges[i]);
+					}
+				}
+				if (isChanged) {
+					//в случае клонирования фрагмента - создаём новое правило
+					var _newRule;
+					if (copyRange) {
+						_newRule = _rule.clone();
+						_newRule.ranges = _moveRanges;
+						wsTo.addCFRule(_newRule, true);
+					} else {
+						if (t !== wsTo) {
+							if (_moveRanges.length) {
+								_newRule = _rule.clone();
+								_newRule.ranges = _moveRanges;
+								wsTo.addCFRule(_newRule, true);
+							}
+							if (_constantRanges.length) {
+								_rule.setLocation(_constantRanges, t, true);
+							}
+						} else {
+							_rule.setLocation(_constantRanges.concat(_moveRanges), t, true);
+						}
+					}
+				}
+			});
+		}
+	};
+
+	Worksheet.prototype.clearConditionalFormattingRulesByRanges = function (ranges) {
+		var t = this;
+		this.forEachConditionalFormattingRules(function (_rule) {
+			t.tryClearCFRule(_rule, ranges);
+		});
+	};
+
+	Worksheet.prototype.forEachConditionalFormattingRules = function (callback) {
+		for (var i = 0, l = this.aConditionalFormattingRules.length; i < l; ++i) {
+			callback(this.aConditionalFormattingRules[i], i);
+		}
+	};
+
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
 	var g_nCellOffsetXf = g_nCellOffsetFlag + 1;
@@ -11863,7 +12165,7 @@
 			mapRes[v.toLowerCase()] = true;
 		};
 		if (withEmpty) {
-			this._setProperty(null, null, fAction);
+			this._foreach(fAction);
 		} else {
 			this._setPropertyNoEmpty(null, null, fAction);
 		}

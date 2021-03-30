@@ -567,9 +567,11 @@ CBlockLevelSdt.prototype.Is_Empty = function()
 };
 CBlockLevelSdt.prototype.Add = function(oParaItem)
 {
+	var isRemoveWrapper = false;
 	if (oParaItem && oParaItem.Type !== para_TextPr)
 	{
-		this.private_ReplacePlaceHolderWithContent();
+		isRemoveWrapper = this.IsPlaceHolder() && this.IsContentControlTemporary();
+		this.private_ReplacePlaceHolderWithContent(true);
 	}
 	else if (oParaItem && oParaItem.Type !== para_TextPr && this.IsPlaceHolder())
 	{
@@ -586,8 +588,11 @@ CBlockLevelSdt.prototype.Add = function(oParaItem)
 	}
 	else
 	{
-		return this.Content.AddToParagraph(oParaItem);
+		this.Content.AddToParagraph(oParaItem);
 	}
+
+	if (isRemoveWrapper)
+		this.RemoveContentControlWrapper();
 };
 CBlockLevelSdt.prototype.PreDelete = function()
 {
@@ -715,6 +720,13 @@ CBlockLevelSdt.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSel
 		this.private_ReplacePlaceHolderWithContent();
 
 	return this.Content.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
+};
+CBlockLevelSdt.prototype.GetCurrentTablesStack = function(arrTables)
+{
+	if (!arrTables)
+		arrTables = [];
+
+	return this.Content.GetCurrentTablesStack(arrTables);
 };
 CBlockLevelSdt.prototype.AddTableRow = function(bBefore, nCount)
 {
@@ -861,6 +873,42 @@ CBlockLevelSdt.prototype.GetBoundingPolygonFirstLineH = function()
 	// TODO: Когда специальные формы будут реализованы и с помощью блочного контрола, тогда
 	//       надо будет рассчитать тут
 	return 0;
+};
+/**
+ * Специальная функция для мобильных версий, возвращает правую среднюю точку границы
+ * @return {{X:number, Y:number, Page:number, Transform:object}}
+ */
+CBlockLevelSdt.prototype.GetBoundingPolygonAnchorPoint = function()
+{
+	var nR  = 0;
+	var nT = -1;
+	var nB = -1;
+
+	var nCurPage = -1;
+	for (var nPageIndex = 0, nPagesCount = this.GetPagesCount(); nPageIndex < nPagesCount; ++nPageIndex)
+	{
+		if (this.IsEmptyPage(nPageIndex))
+			continue;
+
+		if (-1 === nCurPage)
+			nCurPage = nPageIndex;
+		else if (nCurPage !== nPageIndex)
+			break;
+
+		var oBounds = this.Content.GetContentBounds(nPageIndex);
+
+		if (nR < oBounds.Right)
+			nR = oBounds.Right;
+
+		if (-1 === nT || nT > oBounds.Top)
+			nT = oBounds.Top;
+
+		if (-1 === nB || nB < oBounds.Bottom)
+			nB = oBounds.Bottom;
+	}
+	var nPageAbs = this.GetAbsolutePage(nCurPage);
+
+	return {X : nR, Y : (nT + nB) / 2, Page : nPageAbs, Transform : this.Get_ParentTextTransform()};
 };
 CBlockLevelSdt.prototype.DrawContentControlsTrack = function(isHover, X, Y, nCurPage)
 {
@@ -1149,6 +1197,9 @@ CBlockLevelSdt.prototype.Set_CurrentElement = function(bUpdateStates, PageAbs, o
 {
 	if (oDocContent === this.Content)
 	{
+		if (this.IsPlaceHolder())
+			this.SelectAll(1);
+
 		var nIndex = this.GetIndex();
 		if (-1 !== nIndex)
 			this.Parent.Set_CurrentElement(nIndex, bUpdateStates);
@@ -1585,7 +1636,7 @@ CBlockLevelSdt.prototype.IsPlaceHolder = function()
 {
 	return this.Pr.ShowingPlcHdr;
 };
-CBlockLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function()
+CBlockLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function(isSkipTemporaryCheck)
 {
 	if (!this.IsPlaceHolder())
 		return;
@@ -1615,7 +1666,7 @@ CBlockLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function()
 		oParaMath.MoveCursorToStartPos();
 	}
 
-	if (this.IsContentControlTemporary())
+	if (true !== isSkipTemporaryCheck && this.IsContentControlTemporary())
 		this.RemoveContentControlWrapper();
 };
 CBlockLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function(isSelect)
@@ -1794,17 +1845,21 @@ CBlockLevelSdt.prototype.GetCheckBoxPr = function()
 };
 /**
  * Выставляем состояние чекбокса
+ * @param {boolean|undefined} [isChecked=undefined]
  */
-CBlockLevelSdt.prototype.ToggleCheckBox = function()
+CBlockLevelSdt.prototype.ToggleCheckBox = function(isChecked)
 {
 	if (!this.IsCheckBox())
+		return;
+
+	if (undefined !== isChecked && this.Pr.CheckBox.Checked === isChecked)
 		return;
 
 	var oLogicDocument = this.GetLogicDocument();
 	if (oLogicDocument || this.IsRadioButton() || this.GetFormKey())
 		oLogicDocument.OnChangeForm(this.IsRadioButton() ? this.Pr.CheckBox.GroupKey : this.GetFormKey(), this);
 
-	if (this.IsRadioButton() && true === this.Pr.CheckBox.Checked)
+	if (undefined === isChecked && this.IsRadioButton() && true === this.Pr.CheckBox.Checked)
 		return;
 
 	this.SetCheckBoxChecked(!this.Pr.CheckBox.Checked);

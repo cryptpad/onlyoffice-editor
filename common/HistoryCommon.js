@@ -1199,6 +1199,18 @@
 			case AscDFH.historydescription_Document_SetNumberingLvl:
 				sString = "Document_SetNumberingLvl";
 				break;
+			case AscDFH.historydescription_Document_SetTrackRevisions:
+				sString = "Document_SetTrackRevisions";
+				break;
+			case AscDFH.historydescription_Document_SetContentControlText:
+				sString = "Document_SetContentControlText";
+				break;
+			case AscDFH.historydescription_Document_ClearContentControl:
+				sString = "Document_ClearContentControl";
+				break;
+			case AscDFH.historydescription_Document_AutoCorrectFirstLetterOfSentence:
+				sString = "Document_AutoCorrectFirstLetterOfSentence";
+				break;
 		}
 		return sString;
 	}
@@ -1498,6 +1510,9 @@
 	window['AscDFH'].historyitem_type_TnLst                  = 1194 << 16;
 	window['AscDFH'].historyitem_type_TavLst                 = 1195 << 16;
 	window['AscDFH'].historyitem_type_SldSz                  = 1196 << 16;
+	window['AscDFH'].historyitem_type_ChartStyle             = 1197 << 16;
+	window['AscDFH'].historyitem_type_ChartStyleEntry        = 1198 << 16;
+	window['AscDFH'].historyitem_type_MarkerLayout           = 1199 << 16;
 
 	window['AscDFH'].historyitem_type_DocumentMacros         = 2000 << 16;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1569,6 +1584,7 @@
 	window['AscDFH'].historyitem_Paragraph_OutlineLvl                = window['AscDFH'].historyitem_type_Paragraph | 37;
 	window['AscDFH'].historyitem_Paragraph_DefaultTabSize            = window['AscDFH'].historyitem_type_Paragraph | 38;
 	window['AscDFH'].historyitem_Paragraph_SuppressLineNumbers       = window['AscDFH'].historyitem_type_Paragraph | 39;
+	window['AscDFH'].historyitem_Paragraph_Shd_Fill                  = window['AscDFH'].historyitem_type_Paragraph | 40;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе ParaTextPr
 	//------------------------------------------------------------------------------------------------------------------
@@ -2187,6 +2203,8 @@
 	window['AscDFH'].historyitem_ChartSpace_SetNvGrFrProps    = window['AscDFH'].historyitem_type_ChartSpace | 17;
 	window['AscDFH'].historyitem_ChartSpace_AddUserShape      = window['AscDFH'].historyitem_type_ChartSpace | 18;
 	window['AscDFH'].historyitem_ChartSpace_RemoveUserShape   = window['AscDFH'].historyitem_type_ChartSpace | 19;
+	window['AscDFH'].historyitem_ChartSpace_ChartStyle        = window['AscDFH'].historyitem_type_ChartSpace | 20;
+	window['AscDFH'].historyitem_ChartSpace_ChartColors       = window['AscDFH'].historyitem_type_ChartSpace | 21;
 
 	window['AscDFH'].historyitem_Legend_SetLayout      = window['AscDFH'].historyitem_type_Legend | 1;
 	window['AscDFH'].historyitem_Legend_AddLegendEntry = window['AscDFH'].historyitem_type_Legend | 2;
@@ -3190,7 +3208,51 @@
 	AscDFH.historyitem_SldSzCY   = AscDFH.historyitem_type_SldSz | 2;
 	AscDFH.historyitem_SldSzType = AscDFH.historyitem_type_SldSz | 3;
 
+	AscDFH.historyitem_ChartStyleAxisTitle          = AscDFH.historyitem_type_ChartStyle | 1;
+	AscDFH.historyitem_ChartStyleCategoryAxis       = AscDFH.historyitem_type_ChartStyle | 2;
+	AscDFH.historyitem_ChartStyleChartArea          = AscDFH.historyitem_type_ChartStyle | 3;
+	AscDFH.historyitem_ChartStyleDataLabel          = AscDFH.historyitem_type_ChartStyle | 4;
+	AscDFH.historyitem_ChartStyleDataLabelCallout   = AscDFH.historyitem_type_ChartStyle | 5;
+	AscDFH.historyitem_ChartStyleDataPoint          = AscDFH.historyitem_type_ChartStyle | 5;
+	AscDFH.historyitem_ChartStyleDataPoint3D        = AscDFH.historyitem_type_ChartStyle | 6;
+	AscDFH.historyitem_ChartStyleDataPointLine      = AscDFH.historyitem_type_ChartStyle | 7;
+	AscDFH.historyitem_ChartStyleDataPointMarker    = AscDFH.historyitem_type_ChartStyle | 8;
+	AscDFH.historyitem_ChartStyleDataPointWireframe = AscDFH.historyitem_type_ChartStyle | 9;
+	AscDFH.historyitem_ChartStyleDataTable          = AscDFH.historyitem_type_ChartStyle | 10;
+	AscDFH.historyitem_ChartStyleDownBar            = AscDFH.historyitem_type_ChartStyle | 11;
+	AscDFH.historyitem_ChartStyleDropLine           = AscDFH.historyitem_type_ChartStyle | 12;
+	AscDFH.historyitem_ChartStyleErrorBar           = AscDFH.historyitem_type_ChartStyle | 13;
+	AscDFH.historyitem_ChartStyleFloor              = AscDFH.historyitem_type_ChartStyle | 14;
+	AscDFH.historyitem_ChartStyleGridlineMajor      = AscDFH.historyitem_type_ChartStyle | 15;
+	AscDFH.historyitem_ChartStyleGridlineMinor      = AscDFH.historyitem_type_ChartStyle | 16;
+	AscDFH.historyitem_ChartStyleHiLoLine           = AscDFH.historyitem_type_ChartStyle | 17;
+	AscDFH.historyitem_ChartStyleLeaderLine         = AscDFH.historyitem_type_ChartStyle | 18;
+	AscDFH.historyitem_ChartStyleLegend             = AscDFH.historyitem_type_ChartStyle | 19;
+	AscDFH.historyitem_ChartStylePlotArea           = AscDFH.historyitem_type_ChartStyle | 20;
+	AscDFH.historyitem_ChartStylePlotArea3D         = AscDFH.historyitem_type_ChartStyle | 21;
+	AscDFH.historyitem_ChartStyleSeriesAxis         = AscDFH.historyitem_type_ChartStyle | 22;
+	AscDFH.historyitem_ChartStyleSeriesLine         = AscDFH.historyitem_type_ChartStyle | 23;
+	AscDFH.historyitem_ChartStyleTitle              = AscDFH.historyitem_type_ChartStyle | 24;
+	AscDFH.historyitem_ChartStyleTrendline          = AscDFH.historyitem_type_ChartStyle | 25;
+	AscDFH.historyitem_ChartStyleTrendlineLabel     = AscDFH.historyitem_type_ChartStyle | 26;
+	AscDFH.historyitem_ChartStyleUpBar              = AscDFH.historyitem_type_ChartStyle | 27;
+	AscDFH.historyitem_ChartStyleValueAxis          = AscDFH.historyitem_type_ChartStyle | 28;
+	AscDFH.historyitem_ChartStyleWall               = AscDFH.historyitem_type_ChartStyle | 29;
+	AscDFH.historyitem_ChartStyleMarkerLayout       = AscDFH.historyitem_type_ChartStyle | 30;
+	AscDFH.historyitem_ChartStyleMarkerId           = AscDFH.historyitem_type_ChartStyle | 31;
 
+	AscDFH.historyitem_ChartStyleEntryType           = AscDFH.historyitem_type_ChartStyleEntry | 1;
+	AscDFH.historyitem_ChartStyleEntryLineWidthScale = AscDFH.historyitem_type_ChartStyleEntry | 2;
+	AscDFH.historyitem_ChartStyleEntryLnRef          = AscDFH.historyitem_type_ChartStyleEntry | 3;
+	AscDFH.historyitem_ChartStyleEntryFillRef        = AscDFH.historyitem_type_ChartStyleEntry | 4;
+	AscDFH.historyitem_ChartStyleEntryEffectRef      = AscDFH.historyitem_type_ChartStyleEntry | 5;
+	AscDFH.historyitem_ChartStyleEntryFontRef        = AscDFH.historyitem_type_ChartStyleEntry | 6;
+	AscDFH.historyitem_ChartStyleEntryDefRPr         = AscDFH.historyitem_type_ChartStyleEntry | 7;
+	AscDFH.historyitem_ChartStyleEntryBodyPr         = AscDFH.historyitem_type_ChartStyleEntry | 8;
+	AscDFH.historyitem_ChartStyleEntrySpPr           = AscDFH.historyitem_type_ChartStyleEntry | 9;
+
+	AscDFH.historyitem_MarkerLayoutSymbol = AscDFH.historyitem_type_MarkerLayout | 1;
+	AscDFH.historyitem_MarkerLayoutSize   = AscDFH.historyitem_type_MarkerLayout | 2;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3593,6 +3655,9 @@
 	window['AscDFH'].historydescription_Document_ChangeTextCase                     = 0x0183;
 	window['AscDFH'].historydescription_Document_SetNumberingLvl                    = 0x0184;
 	window['AscDFH'].historydescription_Document_SetTrackRevisions                  = 0x0185;
+	window['AscDFH'].historydescription_Document_SetContentControlText              = 0x0186;
+	window['AscDFH'].historydescription_Document_ClearContentControl                = 0x0187;
+	window['AscDFH'].historydescription_Document_AutoCorrectFirstLetterOfSentence   = 0x0188;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

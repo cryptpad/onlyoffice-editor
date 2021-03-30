@@ -469,8 +469,8 @@ CTableCell.prototype =
         // Сначала проверим заливку данной ячейки, если ее нет, тогда спрашиваем у таблицы
         var Shd = this.Get_Shd();
 
-        if ( Asc.c_oAscShdNil !== Shd.Value )
-            return Shd.Get_Color2(this.Get_Theme(), this.Get_ColorMap());
+        if (Shd && !Shd.IsNil())
+            return Shd.GetSimpleColor(this.Get_Theme(), this.Get_ColorMap());
 
         var oTable = this.GetTable();
         return oTable ? oTable.Get_TextBackGroundColor() : null;
@@ -998,7 +998,7 @@ CTableCell.prototype =
 			{
 				if (this.GetW().IsMM())
 				{
-					oResult.ContentMin = Math.max(oResult.ContentMin, oResult.Min - nAdd);
+					oResult.ContentMin = Math.max(oResult.ContentMin, oResult.Min);
 				}
 				else
 				{
@@ -1298,7 +1298,7 @@ CTableCell.prototype =
 		var nT = oDefaultMargins.Top;
 		var nB = oDefaultMargins.Bottom;
 		var nL = oDefaultMargins.Left;
-		var nR = oDefaultMargins.Right
+		var nR = oDefaultMargins.Right;
 
 		if (oCellMargins)
 		{
@@ -1316,7 +1316,7 @@ CTableCell.prototype =
 		}
 
 		// Делаем как MSWord, верхний отступ считаем общим для всей строки
-		if (true !== isDirectTop)
+		if (true !== isDirectTop && !this.Row.Table.bPresentation)
 			nT = new CTableMeasurement(tblwidth_Mm, this.private_GetRowTopMargin());
 
 		return {

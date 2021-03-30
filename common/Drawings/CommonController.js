@@ -135,16 +135,6 @@ var DISTANCE_TO_TEXT_LEFTRIGHT = 3.2;
         image.setBDeleted(false);
     }
 
-    function removeDPtsFromSeries(series)
-    {
-        if(Array.isArray(series.dPt))
-        {
-            for(var i = series.dPt.length - 1; i > -1; --i)
-            {
-                series.removeDPt(i);
-            }
-        }
-    }
 
     function fApproxEqual(a, b, fDelta){
         if ( a === b ) {
@@ -1664,6 +1654,42 @@ DrawingObjectsController.prototype =
             }
             if(!is_selected || b_check_internal)
                 this.updateOverlay();
+
+
+            if(e.ClickCount > 1 && !e.ShiftKey && !e.CtrlKey && ((this.selection.groupSelection && this.selection.groupSelection.selectedObjects.length === 1) || this.selectedObjects.length === 1))
+            {
+                var drawing = this.selectedObjects[0].parent;
+
+                if (object.getObjectType() === AscDFH.historyitem_type_ChartSpace && this.handleChartDoubleClick) {
+                    this.handleChartDoubleClick(drawing, object, e, x, y, pageIndex);
+                    return true;
+                }
+                if(object.getObjectType() === AscDFH.historyitem_type_Shape){
+                    if(null !== object.signatureLine){
+                        if(this.handleSignatureDblClick){
+                            this.handleSignatureDblClick(object.signatureLine.id, object.extX, object.extY);
+                            return true;
+                        }
+                    }
+                    else if(this.handleDblClickEmptyShape){
+                        if(!object.getDocContent()){
+                            this.handleDblClickEmptyShape(object);
+                            if(object.getDocContent()) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                if (object.getObjectType() === AscDFH.historyitem_type_OleObject && this.handleOleObjectDoubleClick){
+                    this.handleOleObjectDoubleClick(drawing, object, e, x, y, pageIndex);
+                    return true;
+                }
+                else if (2 == e.ClickCount && drawing instanceof ParaDrawing && drawing.IsMathEquation())
+                {
+                    this.handleMathDrawingDoubleClick(drawing, e, x, y, pageIndex);
+                    return true;
+                }
+            }
             if(object.canMove())
             {
                 this.checkSelectedObjectsForMove(group, pageIndex);
@@ -1687,32 +1713,6 @@ DrawingObjectsController.prototype =
                     group.resetInternalSelection();
                     this.updateOverlay();
                     this.changeCurrentState(new AscFormat.PreMoveInGroupState(this, group, x, y, e.ShiftKey, e.CtrlKey, object,  is_selected));
-                }
-                if(e.ClickCount > 1 && !e.ShiftKey && !e.CtrlKey && ((this.selection.groupSelection && this.selection.groupSelection.selectedObjects.length === 1) || this.selectedObjects.length === 1))
-                {
-                    var drawing = this.selectedObjects[0].parent;
-
-                    if (object.getObjectType() === AscDFH.historyitem_type_ChartSpace && this.handleChartDoubleClick)
-                        this.handleChartDoubleClick(drawing, object, e, x, y, pageIndex);
-                    if(object.getObjectType() === AscDFH.historyitem_type_Shape){
-                        if(null !== object.signatureLine){
-                            if(this.handleSignatureDblClick){
-                                this.handleSignatureDblClick(object.signatureLine.id, object.extX, object.extY)
-                            }
-                        }
-                        else if(this.handleDblClickEmptyShape){
-                            if(!object.getDocContent()){
-                                this.handleDblClickEmptyShape(object);
-                            }
-                        }
-                    }
-                    if (object.getObjectType() === AscDFH.historyitem_type_OleObject && this.handleOleObjectDoubleClick){
-                        this.handleOleObjectDoubleClick(drawing, object, e, x, y, pageIndex);
-                    }
-                    else if (2 == e.ClickCount && drawing instanceof ParaDrawing && drawing.IsMathEquation())
-                    {
-                        this.handleMathDrawingDoubleClick(drawing, e, x, y, pageIndex);
-                    }
                 }
             }
             return true;
@@ -4347,47 +4347,27 @@ DrawingObjectsController.prototype =
         var oChart = oChartSpace.chart;
         var oPlotArea = oChart.plotArea;
         var nStyle = oProps.getStyle();
+        var nCurStyle = oCurProps.getStyle();
         if(AscFormat.isRealNumber(nStyle)){
-            var nTypeForPreset = nCurType;
-            var bChanged = false;
-            if(oPlotArea.isLineType(nCurType)) {
-                if(Asc.c_oAscChartTypeSettings.lineNormalMarker === nCurType) {
-                    nTypeForPreset = Asc.c_oAscChartTypeSettings.lineNormal;
-                    bChanged = true;
-                }
-                if(Asc.c_oAscChartTypeSettings.lineStackedMarker === nCurType) {
-                    nTypeForPreset = Asc.c_oAscChartTypeSettings.lineStacked;
-                    bChanged = true;
-                }
-                if(Asc.c_oAscChartTypeSettings.lineStackedPerMarker === nCurType) {
-                    nTypeForPreset = Asc.c_oAscChartTypeSettings.lineStackedPer;
-                    bChanged = true;
-                }
-            }
-            else if(oPlotArea.isScatterType(nCurType)) {
-                if(Asc.c_oAscChartTypeSettings.scatter !== nCurType) {
-                    nTypeForPreset = Asc.c_oAscChartTypeSettings.scatter;
-                    bChanged = true;
-                }
-            }
-            var oPreset = AscCommon.g_oChartPresets[nTypeForPreset] && AscCommon.g_oChartPresets[nTypeForPreset][nStyle - 1];
-            if(oPreset) {
-                if(bChanged) {
-                    oChartSpace.changeChartType(nTypeForPreset);
-                }
-                AscFormat.ApplyPresetToChartSpace(oChartSpace, oPreset, oProps.bCreate);
-                if(bChanged) {
-                    oChartSpace.changeChartType(nCurType);
+            oProps.putStyle(null);
+            oCurProps.putStyle(null);
+            if(oCurProps.isEqual(oProps)) {
+                var aStyle = AscCommon.g_oChartStyles[nCurType] && AscCommon.g_oChartStyles[nCurType][nStyle - 1];
+                if(aStyle) {
+                    oChartSpace.applyChartStyleByIds(AscCommon.g_oChartStyles[nCurType][nStyle - 1]);
+                    return;
                 }
                 return;
             }
+            oCurProps.putStyle(nCurStyle);
+            oProps.putStyle(nStyle);
         }
 
         //Set the data range
         //TODO: Rework this
         var sRange = oProps.getRange();
         if(typeof sRange === "string") {
-            oChartSpace.setRange(sRange);
+           oChartSpace.setRange(sRange);
         }
 
         //Title
@@ -4408,6 +4388,7 @@ DrawingObjectsController.prototype =
             if(oTitle.overlay !== bOverlay) {
                 oTitle.setOverlay(bOverlay);
             }
+            oChartSpace.checkElementChartStyle(oTitle);
         }
 
         //Legend
@@ -4439,6 +4420,7 @@ DrawingObjectsController.prototype =
                 if(oLegend.overlay !== bOverlay) {
                     oLegend.setOverlay(bOverlay);
                 }
+                oChartSpace.checkElementChartStyle(oLegend);
             }
         }
 
@@ -4450,6 +4432,7 @@ DrawingObjectsController.prototype =
         if(aAx.length === aAxSettings.length) {
             for(nAx = 0; nAx < aAx.length; ++nAx) {
                 aAx[nAx].setMenuProps(aAxSettings[nAx]);
+                oChartSpace.checkElementChartStyle(aAx[nAx]);
             }
         }
         aAx = oOrderedAxes.getVerticalAxes();
@@ -4457,80 +4440,19 @@ DrawingObjectsController.prototype =
         if(aAx.length === aAxSettings.length) {
             for(nAx = 0; nAx < aAx.length; ++nAx) {
                 aAx[nAx].setMenuProps(aAxSettings[nAx]);
+                oChartSpace.checkElementChartStyle(aAx[nAx]);
             }
         }
 
         oChartSpace.setDlblsProps(oProps);
-        var oTypedChart, nChart, nSer, oSeries;
+        var oTypedChart;
         oTypedChart = oPlotArea.charts[0];
-        if(oTypedChart.getObjectType() === AscDFH.historyitem_type_LineChart )
+        if(oTypedChart.getObjectType() === AscDFH.historyitem_type_LineChart && !oChartSpace.is3dChart())
         {
-            if(!AscFormat.isRealBool(oProps.showMarker) || AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(oChartSpace))
-            {
-                oProps.showMarker = false;
-            }
-            if(!AscFormat.isRealBool(oProps.bLine) || AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(oChartSpace))
-            {
-                oProps.bLine = true;
-            }
-            oTypedChart.setMarkerValue(oProps.showMarker);
-            if(!oProps.bLine)
-            {
-                for(nSer = 0; nSer < oTypedChart.series.length; ++nSer)
-                {
-                    oSeries = oTypedChart.series[nSer];
-                    removeDPtsFromSeries(oSeries);
-                    if(!oSeries.spPr)
-                    {
-                        oSeries.setSpPr(new AscFormat.CSpPr());
-                    }
-
-                    if(AscFormat.isRealBool(oSeries.smooth))
-                    {
-                        oSeries.setSmooth(null);
-                    }
-                    oSeries.spPr.setLn(AscFormat.CreateNoFillLine());
-                }
-            }
-            else
-            {
-                for(nSer = 0; nSer < oTypedChart.series.length; ++nSer)
-                {
-                    oSeries = oTypedChart.series[nSer];
-                    removeDPtsFromSeries(oSeries);
-                    if(oSeries.smooth !== (oProps.smooth === true))
-                    {
-                        oSeries.setSmooth(oProps.smooth === true);
-                    }
-                    if(oSeries.spPr && oSeries.spPr.ln)
-                    {
-                        oSeries.spPr.setLn(null);
-                    }
-                }
-            }
-            if(oTypedChart.smooth !== (oProps.smooth === true))
-            {
-                oTypedChart.setSmooth(oProps.smooth === true);
-            }
-            for(nSer = 0; nSer < oTypedChart.series.length; ++nSer)
-            {
-                oSeries = oTypedChart.series[nSer];
-                if(oSeries.smooth !== (oProps.smooth === true))
-                {
-                    oSeries.setSmooth(oProps.smooth === true);
-                }
-            }
+            oTypedChart.setLineParams(oProps.showMarker, oProps.bLine, oProps.smooth)
         }
         if(oTypedChart.getObjectType() === AscDFH.historyitem_type_ScatterChart)
         {
-            if(!AscFormat.isRealBool(oProps.showMarker))
-            {
-                oProps.showMarker = true;
-            }
-            if(!AscFormat.isRealBool(oProps.bLine))
-            {
-                oProps.bLine = false;
-            }
             oTypedChart.setLineParams(oProps.showMarker, oProps.bLine, oProps.smooth);
         }
     },
@@ -4632,6 +4554,7 @@ DrawingObjectsController.prototype =
             }
         }
 
+        ret.putStyle(chart_space.getChartStyleIdx());
 
         ret.putTitle(isRealObject(chart.title) ? (chart.title.overlay ? c_oAscChartTitleShowSettings.overlay : c_oAscChartTitleShowSettings.noOverlay) : c_oAscChartTitleShowSettings.none);
 
@@ -4793,9 +4716,11 @@ DrawingObjectsController.prototype =
             case c_oAscChartTypeSettings.comboCustom: {
                 var oChartSpace = AscFormat.CreateBarChart(chartSeries, BAR_GROUPING_CLUSTERED, bUseCache, options);
                 oChartSpace.changeChartType(options.type);
+                if(AscCommon.g_oChartStyles[options.type]) {
+                    oChartSpace.applyChartStyleByIds(AscCommon.g_oChartStyles[options.type][0]);
+                }
                 return oChartSpace;
             }
-			// radar return CreateRadarChart(chartSeries);
 		}
 
 		return null;
@@ -8127,6 +8052,7 @@ DrawingObjectsController.prototype =
             shape_props.ShapeProperties.textFitType = props.shapeProps.textFitType;
             shape_props.ShapeProperties.vertOverflowType = props.shapeProps.vertOverflowType;
             shape_props.ShapeProperties.shadow = props.shapeProps.shadow;
+            shape_props.ShapeProperties.signatureId = props.shapeProps.signatureId;
             if(props.shapeProps.textArtProperties && oDrawingDocument)
             {
                 oTextArtProperties = props.shapeProps.textArtProperties;
@@ -10256,991 +10182,6 @@ function CalcLiterByLength(aAlphaBet, nLength)
 
 
 
-function CollectUniColor(oUniColor)
-{
-    if(!oUniColor || !oUniColor.color)
-    {
-        return 0;
-    }
-    var ret = [];
-    var oColor = oUniColor.color;
-    var oColorTypes = window['Asc'].c_oAscColor;
-    ret.push(oColor.type);
-
-    switch(oColor.type)
-    {
-        case oColorTypes.COLOR_TYPE_NONE:
-        {
-            break;
-        }
-        case oColorTypes.COLOR_TYPE_SRGB:
-        {
-            ret.push(((oColor.RGBA.R << 16) & 0xFF0000) + ((oColor.RGBA.G << 8) & 0xFF00) + oColor.RGBA.B);
-            break;
-        }
-        case oColorTypes.COLOR_TYPE_PRST:
-        case oColorTypes.COLOR_TYPE_SCHEME:
-        case oColorTypes.COLOR_TYPE_SYS:
-        {
-            ret.push(oColor.id);
-            break;
-        }
-    }
-    if(!oUniColor.Mods)
-    {
-        ret.push(0);
-    }
-    else
-    {
-        var aMods = oUniColor.Mods.Mods;
-        ret.push(aMods.length);
-        for(var i = 0; i < aMods.length; ++ i)
-        {
-            ret.push([aMods[i].name, aMods[i].val]);
-        }
-    }
-    return ret;
-}
-
-
-function CollectGs(oGs)
-{
-    if(!oGs)
-    {
-        return 0;
-    }
-    return [oGs.pos, CollectUniColor(oGs.color)];
-}
-
-function CreateGsFromParams(aParams, index, aBaseColors, bAccent1Background){
-    if(!aParams){
-        return null;
-    }
-    var oRet = new AscFormat.CGs();
-    oRet.pos = aParams[0];
-    oRet.color = CreateUniColorFromPreset(aParams[1], index, aBaseColors, bAccent1Background);
-    return oRet;
-}
-
-function CollectSettingsUniFill(oUniFill)
-{
-    if(!oUniFill || !oUniFill.fill){
-        return 0;
-    }
-    var ret = [];
-    var oFill = oUniFill.fill;
-    ret.push(oFill.type);
-    ret.push(oUniFill.transparent);
-    var oFillTypes = window['Asc'].c_oAscFill;
-    switch(oFill.type)
-    {
-        case oFillTypes.FILL_TYPE_BLIP:{
-            ret.push(oFill.RasterImageId);
-            break;
-        }
-        case oFillTypes.FILL_TYPE_NOFILL:{
-            break;
-        }
-        case oFillTypes.FILL_TYPE_SOLID:{
-            ret.push(CollectUniColor(oUniFill.fill.color));
-            break;
-        }
-        case oFillTypes.FILL_TYPE_GRAD:{
-            ret.push(oFill.lin ? [oFill.lin.angle, oFill.lin.scale] : 0);
-            ret.push(oFill.path ? [] : 0);
-            ret.push(oFill.rotateWithShape ? [] : 0);
-            ret.push(oFill.colors.length);
-            for(var i = 0; i < oFill.colors.length; ++i)
-            {
-                ret.push(CollectGs(oFill.colors[i]));
-            }
-            break;
-        }
-        case oFillTypes.FILL_TYPE_PATT:{
-            ret.push(oFill.ftype);
-            ret.push(CollectUniColor(oFill.fgClr || AscFormat.CreateUniColorRGB(0, 0, 0)));
-            ret.push(CollectUniColor(oFill.bgClr || AscFormat.CreateUniColorRGB(255, 255, 255)));
-            break;
-        }
-        case oFillTypes.FILL_TYPE_GRP:{
-            break;
-        }
-    }
-    return ret;
-}
-
-
-    function CreateUniColorFromPreset(aPreset, index, aBaseColors, bAccent1Background){
-        if(!aPreset){
-            return null;
-        }
-        var oRet = new AscFormat.CUniColor();
-        var oColorTypes = window['Asc'].c_oAscColor;
-        switch (aPreset[0]){
-            case oColorTypes.COLOR_TYPE_NONE:
-            {
-                oRet.color =  new AscFormat.CRGBColor();
-                break;
-            }
-            case oColorTypes.COLOR_TYPE_SRGB:
-            {
-                oRet.color =  new AscFormat.CRGBColor();
-                oRet.color.RGBA.R = (aPreset[1] >> 16) & 0xFF;
-                oRet.color.RGBA.G = (aPreset[1] >> 8) & 0xFF;
-                oRet.color.RGBA.R = aPreset[1] & 0xFF;
-                break;
-            }
-            case oColorTypes.COLOR_TYPE_PRST:
-            {
-                oRet.color = new AscFormat.CPrstColor();
-                oRet.color.id = aPreset[1];
-                break;
-            }
-            case oColorTypes.COLOR_TYPE_SCHEME:{
-                oRet.color = new AscFormat.CSchemeColor();
-                oRet.color.id = aPreset[1];
-                if(AscFormat.isRealNumber(index) && Array.isArray(aBaseColors) && aBaseColors[index]){
-                    if(aBaseColors[index].fill && aBaseColors[index].fill.color && aBaseColors[index].fill.color.color
-                        && aBaseColors[index].fill.color.color.type === oColorTypes.COLOR_TYPE_SCHEME
-                    &&  oRet.color.id === 0 && !bAccent1Background){
-                        oRet.color.id = aBaseColors[index].fill.color.color.id;
-                        if(aBaseColors[index].fill.color.Mods){
-                            oRet.Mods = aBaseColors[index].fill.color.Mods.createDuplicate();
-                        }
-                    }
-                }
-                break;
-            }
-            case oColorTypes.COLOR_TYPE_SYS:
-            {
-                oRet.color = new AscFormat.CSysColor();
-                oRet.color.id = aPreset[2];
-                break;
-            }
-        }
-        if(aPreset[2]){
-            if(!oRet.Mods){
-                oRet.Mods = new AscFormat.CColorModifiers();
-            }
-            for(var i = 0; i < aPreset[2]; ++i){
-                var oMod = new AscFormat.CColorMod();
-                oMod.name = aPreset[i + 3][0];
-                oMod.val = aPreset[i + 3][1];
-                oRet.Mods.Mods.push(oMod)
-            }
-
-        }
-        return oRet;
-    }
-
-
-    function CreateUnifillFromPreset(aPreset, index, aBaseColors, bAccent1Background){
-        var oRet = null;
-        if(!aPreset){
-            return oRet;
-        }
-
-        var oUnifill = new AscFormat.CUniFill();
-        oUnifill.transparent = aPreset[1];
-        var oFillTypes = window['Asc'].c_oAscFill;
-        switch(aPreset[0]){
-            case oFillTypes.FILL_TYPE_BLIP:{
-                oUnifill.fill =  new AscFormat.CBlipFill();
-                oUnifill.fill.RasterImageId = aPreset[2];
-                break;
-            }
-            case oFillTypes.FILL_TYPE_NOFILL:{
-                oUnifill.fill = new AscFormat.CNoFill();
-                break;
-            }
-            case oFillTypes.FILL_TYPE_SOLID:{
-                oUnifill.fill =  new AscFormat.CSolidFill();
-                oUnifill.fill.color = CreateUniColorFromPreset(aPreset[2], index, aBaseColors, bAccent1Background);
-                break;
-            }
-            case oFillTypes.FILL_TYPE_GRAD:{
-                oUnifill.fill = new AscFormat.CGradFill();
-                if(aPreset[2]){
-                    oUnifill.fill.lin = new AscFormat.GradLin();
-                    oUnifill.fill.lin.angle = aPreset[2][0];
-                    oUnifill.fill.lin.scale = aPreset[2][1];
-                }
-                if(Array.isArray(aPreset[3])){
-                    oUnifill.fill.path = new AscFormat.GradPath();
-                }
-                if(Array.isArray(aPreset[4])){
-                    oUnifill.fill.rotateWithShape = true;
-                }
-                for(var i = 0; i < aPreset[5]; ++i)
-                {
-                    oUnifill.fill.colors.push(CreateGsFromParams(aPreset[6+i], index, aBaseColors, bAccent1Background));
-                }
-                break;
-            }
-            case oFillTypes.FILL_TYPE_PATT:{
-                oUnifill.fill = new AscFormat.CPattFill();
-                oUnifill.fill.ftype = aPreset[2];
-                oUnifill.fill.fgClr = CreateUniColorFromPreset(aPreset[3], index, aBaseColors, bAccent1Background);
-                oUnifill.fill.bgClr = CreateUniColorFromPreset(aPreset[4], index, aBaseColors, bAccent1Background);
-                break;
-            }
-            case oFillTypes.FILL_TYPE_GRP:{
-                break;
-            }
-        }
-        return oUnifill;
-    }
-
-
-function CollectSettingsLn(oLn)
-{
-    if(!oLn)
-    {
-        return 0;
-    }
-    var ret = [];
-    ret.push(CollectSettingsUniFill(oLn.Fill));
-    ret.push(oLn.prstDash);
-
-    if(!oLn.Join)
-    {
-        ret.push(0);
-    }
-    else
-    {
-        ret.push([oLn.Join.type, oLn.Join.limit]);
-    }
-
-    if(oLn.headEnd)
-    {
-        ret.push([oLn.headEnd.type, oLn.headEnd.len, oLn.headEnd.w]);
-    }
-    else
-    {
-        ret.push(0);
-    }
-
-    if(oLn.tailEnd)
-    {
-        ret.push([oLn.tailEnd.type, oLn.tailEnd.len, oLn.tailEnd.w]);
-    }
-    else
-    {
-        ret.push(0);
-    }
-    ret.push(oLn.algn);
-    ret.push(oLn.cap);
-    ret.push(oLn.cmpd);
-    ret.push(oLn.w);
-    return ret;
-}
-
-
-function CollectSettingsSpPr(oSpPr)
-{
-    if(!oSpPr)
-    {
-        return 0;
-    }
-    return [CollectSettingsUniFill(oSpPr.Fill), CollectSettingsLn(oSpPr.ln)];
-
-}
-
-function CollectTextPr(oTxPr) {
-    if(!oTxPr || !oTxPr.content || !oTxPr.content.Content[0].Pr || !oTxPr.content.Content[0].Pr.DefaultRunPr){
-        return 0;
-    }
-    var oRet = [];
-    var oTextPr = oTxPr.content.Content[0].Pr.DefaultRunPr;
-    oRet.push(oTextPr.FontSize);
-    oRet.push(oTextPr.Bold);
-    oRet.push(oTextPr.Italic);
-    oRet.push(CollectSettingsUniFill(oTextPr.Unifill));
-    oRet.push(oTextPr.Caps);
-    if(oTxPr.bodyPr){
-        oRet.push([oTxPr.bodyPr.anchor, oTxPr.bodyPr.anchorCtr, oTxPr.bodyPr.rot, oTxPr.bodyPr.vert, oTxPr.bodyPr.horzOverflow, oTxPr.bodyPr.spcFirstLastPara, oTxPr.bodyPr.vertOverflow, oTxPr.bodyPr.wrap]);
-    }
-    else{
-        oRet.push(0);
-    }
-    return oRet;
-}
-
-function CollectCatAxisPr(oAxis){
-    var oRet = 0;
-    if(!oAxis){
-        return oRet;
-    }
-    oRet = [];
-    oRet.push(CollectTextPr(oAxis.txPr));
-    oRet.push(CollectSettingsSpPr(oAxis.spPr));
-    oRet.push(CollectSettingsSpPr(oAxis.majorGridlines));
-    oRet.push(CollectSettingsSpPr(oAxis.minorGridlines));
-    oRet.push(oAxis.majorTickMark);
-    oRet.push(oAxis.minorTickMark);
-    oRet.push(oAxis.bDelete);
-    oRet.push(oAxis.crossBetween);
-    oRet.push(oAxis.crosses);
-    return oRet;
-}
-function CollectValAxisPr(oAxis){
-    var oRet = 0;
-    if(!oAxis){
-        return oRet;
-    }
-    oRet = [];
-    oRet.push(CollectTextPr(oAxis.txPr));
-    oRet.push(CollectSettingsSpPr(oAxis.spPr));
-    oRet.push(CollectSettingsSpPr(oAxis.majorGridlines));
-    oRet.push(CollectSettingsSpPr(oAxis.minorGridlines));
-    oRet.push(oAxis.majorTickMark);
-    oRet.push(oAxis.minorTickMark);
-    oRet.push(oAxis.bDelete);
-    oRet.push(oAxis.crossBetween);
-    oRet.push(oAxis.crosses);
-    return oRet;
-}
-
-function CollectLegendPr(oLegend){
-    var oRet = 0;
-    if(!oLegend){
-        return oRet;
-    }
-
-    oRet = [];
-    oRet.push(CollectTextPr(oLegend.txPr));
-    oRet.push(CollectSettingsSpPr(oLegend.spPr));
-    oRet.push(oLegend.legendPos);
-    return oRet;
-}
-
-
-function CollectDLbls(oDlbls){
-    var oRet = 0;
-    if(!oDlbls){
-        return oRet;
-    }
-
-    oRet = [];
-    oRet.push(CollectTextPr(oDlbls.txPr));
-    oRet.push(CollectSettingsSpPr(oDlbls.spPr));
-    oRet.push(oDlbls.dLblPos);
-    oRet.push(oDlbls.separator);
-    oRet.push(oDlbls.showBubbleSize);
-    oRet.push(oDlbls.showCatName);
-    oRet.push(oDlbls.showLeaderLines);
-    oRet.push(oDlbls.showLegendKey);
-    oRet.push(oDlbls.showPercent);
-    oRet.push(oDlbls.showSerName);
-    oRet.push(oDlbls.showVal);
-    return oRet;
-}
-
-function CollectMarker(oMarker){
-    if(!oMarker){
-        return 0;
-    }
-    return [oMarker.size, CollectSettingsSpPr(oMarker.spPr), oMarker.symbol];
-}
-
-function ApplyMarker(aPreset, oObject, index, aBaseColors){
-
-    if(!oObject || !oObject.setMarker || (oObject instanceof AscFormat.CLineChart)){
-        return;
-    }
-    if(!aPreset){
-        oObject.setMarker(null);
-        return;
-    }
-    if(!oObject.marker){
-        oObject.setMarker(new AscFormat.CMarker());
-    }
-    oObject.marker.setSize(aPreset[0]);
-    ApplySpPr(aPreset[1], oObject.marker, index, aBaseColors);
-    oObject.marker.setSymbol(aPreset[2]);
-    if(AscFormat.MARKER_SYMBOL_TYPE[0] === oObject.marker.symbol){
-        oObject.marker.setSymbol(AscFormat.MARKER_SYMBOL_TYPE[index % 9]);
-    }
-}
-
-function CollectSettingsFromChart(oChartSpace)
-{
-    var oRet = [];
-    if(!oChartSpace){
-        return oRet;
-    }
-    oRet.push(oChartSpace.style);
-    oRet.push(CollectSettingsSpPr(oChartSpace.spPr));
-    oRet.push(CollectTextPr(oChartSpace.txPr));
-    if(oChartSpace.chart.title){
-        oRet.push(CollectSettingsSpPr(oChartSpace.chart.title.spPr));
-        oRet.push(CollectTextPr(oChartSpace.chart.title.txPr));
-    }
-    else{
-        oRet.push(0);
-        oRet.push(0);
-    }
-    oRet.push(CollectLegendPr(oChartSpace.chart.legend));
-    if(oChartSpace.chart.plotArea){
-        var oPlotArea = oChartSpace.chart.plotArea;
-        oRet.push(CollectSettingsSpPr(oPlotArea.spPr));
-        oRet.push(CollectTextPr(oPlotArea.txPr));
-        var oValAxData = 0, oCatAxData = 0;
-        for(var i = 0;  i < oPlotArea.axId.length; ++i){
-            if(oPlotArea.axId[i].getObjectType() === AscDFH.historyitem_type_CatAx
-            || oPlotArea.axId[i].getObjectType() === AscDFH.historyitem_type_DateAx
-            || oPlotArea.axId[i].getObjectType() === AscDFH.historyitem_type_SerAx){
-                oCatAxData = CollectCatAxisPr(oPlotArea.axId[i]);
-            }
-            if(oPlotArea.axId[i].getObjectType() === AscDFH.historyitem_type_ValAx ){
-                oValAxData = CollectValAxisPr(oPlotArea.axId[i]);
-            }
-
-        }
-        oRet.push(oCatAxData);
-        oRet.push(oValAxData);
-        var oChart = oPlotArea.charts[0];
-        oRet.push(CollectDLbls(oChart.dLbls));
-        if(oChart.getObjectType() === AscDFH.historyitem_type_PieChart || oChart.getObjectType() === AscDFH.historyitem_type_DoughnutChart){
-            oRet.push(CollectSettingsSpPr(oChart.series[0] && oChart.series[0].dPt[0] && oChart.series[0].dPt[0].spPr));
-        }
-        else{
-            oRet.push(CollectSettingsSpPr(oChart.series[0] && oChart.series[0].spPr));
-        }
-
-        if(oChart.getObjectType() === AscDFH.historyitem_type_PieChart || oChart.getObjectType() === AscDFH.historyitem_type_DoughnutChart){
-            if(oChart.series[0] && oChart.series[0].dLbls && oChart.series[0].dLbls.dLbl[0]){
-                oRet.push(CollectDLbls(oChart.series[0].dLbls && oChart.series[0].dLbls.dLbl[0] && oChart.series[0].dLbls.dLbl[0]));
-            }
-            else{
-                oRet.push(CollectDLbls(oChart.series[0] && oChart.series[0].dLbls));
-            }
-
-        }
-        else{
-            oRet.push(CollectDLbls(oChart.series[0] && oChart.series[0].dLbls));
-        }
-
-
-        oRet.push(oChart.gapWidth);
-        oRet.push(oChart.overlap);
-        oRet.push(oChart.gapDepth);
-        oRet.push(oChart.grouping);
-        if(oChartSpace.chart.view3D){
-            var oView3D = oChartSpace.chart.view3D;
-            oRet.push([oView3D.depthPercent, oView3D.hPercent, oView3D.perspective, oView3D.rAngAx, oView3D.rotX, oView3D.rotY]);
-        }
-        else{
-            oRet.push(0);
-        }
-    }
-    else{
-        oRet.push(0);
-    }
-
-    if(oChartSpace.chart.backWall){
-        oRet.push([CollectSettingsSpPr(oChartSpace.chart.backWall.spPr), oChartSpace.chart.backWall.thickness]);
-    }
-    else{
-        oRet.push(0);
-    }
-
-    if(oChartSpace.chart.floor){
-        oRet.push([CollectSettingsSpPr(oChartSpace.chart.floor.spPr), oChartSpace.chart.floor.thickness]);
-    }
-    else{
-        oRet.push(0);
-    }
-
-    if(oChartSpace.chart.sideWall){
-        oRet.push([CollectSettingsSpPr(oChartSpace.chart.sideWall.spPr), oChartSpace.chart.sideWall.thickness]);
-    }
-    else{
-        oRet.push(0);
-    }
-    oRet.push(CollectMarker(oChart.marker));
-    oRet.push(CollectMarker(oChart.series[0] && oChart.series[0].marker));
-    oRet.push(CollectSettingsSpPr(oChart.hiLowLines));
-    if(oChart.upDownBars){
-        oRet.push([CollectSettingsSpPr(oChart.upDownBars.downBars), oChart.upDownBars.gapWidth, CollectSettingsSpPr(oChart.upDownBars.upBars)]);
-    }
-    else{
-        oRet.push(0);
-    }
-    return oRet;
-}
-
-function CreateLnFromPreset(aPreset, index, aBaseColors, bAccent1Background){
-    var oRet = null;
-    if(!aPreset){
-        return oRet;
-    }
-    var oLn = new AscFormat.CLn();
-    oLn.Fill = CreateUnifillFromPreset(aPreset[0], index, aBaseColors, bAccent1Background);
-    oLn.prstDash = aPreset[1];
-    if(aPreset[2]){
-        oLn.Join = new AscFormat.LineJoin();
-        oLn.Join.type = aPreset[2][0];
-        oLn.Join.limit = aPreset[2][1];
-    }
-    if(aPreset[3]){
-        oLn.headEnd = new AscFormat.EndArrow();
-        oLn.headEnd.type = aPreset[3][0];
-        oLn.headEnd.len = aPreset[3][1];
-        oLn.headEnd.w = aPreset[3][2];
-    }
-    if(aPreset[4]){
-        oLn.headEnd = new AscFormat.EndArrow();
-        oLn.headEnd.type = aPreset[4][0];
-        oLn.headEnd.len = aPreset[4][1];
-        oLn.headEnd.w = aPreset[4][2];
-    }
-    oLn.algn = aPreset[5];
-    oLn.cap = aPreset[6];
-    oLn.cmpd = aPreset[7];
-    oLn.w = aPreset[8];
-    return oLn;
-}
-
-function ApplySpPr(aSpPrPr, oObject, index, aBaseColors, bAccent1Background){
-    if(!aSpPrPr){
-        if(oObject.spPr && oObject.spPr.xfrm){
-            oObject.spPr.setFill(null);
-            oObject.spPr.setLn(null);
-            return
-        }
-        oObject.setSpPr(null);
-        return;
-    }
-    if(!oObject.spPr){
-        oObject.setSpPr(new AscFormat.CSpPr());
-    }
-    oObject.spPr.setParent(oObject);
-    oObject.spPr.setFill(CreateUnifillFromPreset(aSpPrPr[0], index, aBaseColors, bAccent1Background));
-    oObject.spPr.setLn(CreateLnFromPreset(aSpPrPr[1], index, aBaseColors, bAccent1Background));
-}
-
-function ApplyTxPr(aTextPr, oObject, oDrawingDocument, i, baseFills, bAccent1Background){
-    if(!aTextPr){
-        return;
-    }
-    if(!oObject.txPr){
-        oObject.setTxPr(AscFormat.CreateTextBodyFromString("", oDrawingDocument, oObject));
-    }
-    var Pr = oObject.txPr.content.Content[0].Pr.Copy();
-    if(!Pr.DefaultRunPr){
-        Pr.DefaultRunPr = new CTextPr();
-    }
-    Pr.DefaultRunPr.FontSize = aTextPr[0];
-    Pr.DefaultRunPr.Bold = aTextPr[1];
-    Pr.DefaultRunPr.Italic = aTextPr[2];
-    Pr.DefaultRunPr.Unifill = CreateUnifillFromPreset(aTextPr[3], i, baseFills, bAccent1Background);
-    Pr.DefaultRunPr.Caps = aTextPr[4];
-    oObject.txPr.content.Content[0].Set_Pr(Pr);
-    if(aTextPr[5]){
-        var oBodyPr = new AscFormat.CBodyPr();
-        oBodyPr.anchor = aTextPr[5][0];
-        oBodyPr.anchorCtr = aTextPr[5][1];
-        oBodyPr.rot = aTextPr[5][2];
-        oBodyPr.vert = aTextPr[5][3];
-        oBodyPr.horzOverflow = aTextPr[5][4];
-        oBodyPr.spcFirstLastPara = aTextPr[5][5];
-        oBodyPr.vertOverflow = aTextPr[5][6];
-        oBodyPr.wrap = aTextPr[5][7];
-        oObject.txPr.setBodyPr(oBodyPr);
-    }
-}
-
-function ApplyPropsToCatAxis(aPr, oAxis, oDrawingDocument, bCreate){
-    if(!aPr){
-        return;
-    }
-    ApplyTxPr(aPr[0], oAxis, oDrawingDocument);
-    ApplySpPr(aPr[2], oAxis);
-    if(oAxis.spPr){
-        if(!bCreate || oAxis.majorGridlines){
-            oAxis.setMajorGridlines(oAxis.spPr);
-        }
-        oAxis.setSpPr(null);
-    }
-    else{
-        if(!bCreate){
-            oAxis.setMajorGridlines(null);
-        }
-    }
-    ApplySpPr(aPr[3], oAxis);
-    if(oAxis.spPr){
-        if(!bCreate || oAxis.minorGridlines){
-            oAxis.setMinorGridlines(oAxis.spPr);
-        }
-        oAxis.setSpPr(null);
-    }
-    else{
-        if(!bCreate){
-            oAxis.setMinorGridlines(null);
-        }
-    }
-    ApplySpPr(aPr[1], oAxis);
-
-    if(!bCreate){
-        oAxis.setMajorTickMark(aPr[4]);
-        oAxis.setMinorTickMark(aPr[5]);
-        oAxis.setDelete(aPr[6]);
-        if(aPr.length > 7){
-            oAxis.setCrossBetween && oAxis.setCrossBetween(aPr[7]);
-            oAxis.setCrosses && oAxis.setCrosses(aPr[8]);
-        }
-    }
-}
-function ApplyPropsToValAxis(aPr, oAxis, oDrawingDocument, bCreate){
-    if(!aPr){
-        return;
-    }
-    ApplyTxPr(aPr[0], oAxis, oDrawingDocument);
-    ApplySpPr(aPr[2], oAxis);
-    if(oAxis.spPr){
-        if(!bCreate || oAxis.majorGridlines){
-            oAxis.setMajorGridlines(oAxis.spPr);
-        }
-        oAxis.setSpPr(null);
-    }
-    else{
-        if(!bCreate){
-            oAxis.setMajorGridlines(null);
-        }
-    }
-    ApplySpPr(aPr[3], oAxis);
-    if(oAxis.spPr){
-        if(!bCreate || oAxis.minorGridlines){
-            oAxis.setMinorGridlines(oAxis.spPr);
-        }
-        oAxis.setSpPr(null);
-    }
-    else {
-        if(!bCreate){
-            oAxis.setMinorGridlines(null);
-        }
-    }
-    ApplySpPr(aPr[1], oAxis);
-    if(!bCreate){
-        oAxis.setMajorTickMark(aPr[4]);
-        oAxis.setMinorTickMark(aPr[5]);
-        oAxis.setDelete(aPr[6]);
-        if(aPr.length > 7){
-            oAxis.setCrossBetween && oAxis.setCrossBetween(aPr[7]);
-            oAxis.setCrosses && oAxis.setCrosses(aPr[8]);
-        }
-    }
-}
-
-function ApplyLegendProps(aPr, oLegend, oDrawingDocument, bCreate){
-    if(!aPr || !oLegend){
-        return;
-    }
-    ApplyTxPr(aPr[0], oLegend, oDrawingDocument);
-    ApplySpPr(aPr[1], oLegend);
-    if(!bCreate){
-        oLegend.setLegendPos(aPr[2]);
-    }
-    oLegend.setLayout(null);
-}
-
-function ApplyDLblsProps(aPr, oObj, oDrawingDocument, i, baseFills, bCreate){
-    if(!aPr || !oObj){
-        if(oObj){
-            oObj.setDLbls(null);
-        }
-        return;
-    }
-    //if(!bCreate)
-    {
-        if(!oObj.dLbls){
-            oObj.setDLbls(new AscFormat.CDLbls());
-        }
-    }
-    if(oObj.dLbls){
-        var lbls = oObj.dLbls;
-        lbls.setParent(oObj);
-        if(oObj.dLbls.bDelete){
-            if(oObj.dLbls.setDelete){
-                oObj.dLbls.setDelete(false);
-            }
-        }
-
-        ApplyTxPr(aPr[0], lbls, oDrawingDocument, i, baseFills);
-        ApplySpPr(aPr[1], lbls, i, baseFills);
-        //if(!bCreate)
-        {
-            lbls.setDLblPos(aPr[2]);
-            lbls.setSeparator(aPr[3]);
-            lbls.setShowBubbleSize(aPr[4]);
-            lbls.setShowCatName(aPr[5]);
-            lbls.setShowLeaderLines(aPr[6]);
-            lbls.setShowLegendKey(aPr[7]);
-            lbls.setShowPercent(aPr[8]);
-            lbls.setShowSerName(aPr[9]);
-            lbls.setShowVal(aPr[10]);
-        }
-    }
-}
-function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
-    var oDrawingDocument = oChartSpace.getDrawingDocument();
-    oChartSpace.setStyle(aPreset[0]);
-    ApplySpPr(aPreset[1], oChartSpace);
-    ApplyTxPr(aPreset[2], oChartSpace, oDrawingDocument);
-    var bAccent1Background = false;
-    if(oChartSpace.spPr && oChartSpace.spPr.Fill && oChartSpace.spPr.Fill.fill && oChartSpace.spPr.Fill.fill.color && oChartSpace.spPr.Fill.fill.color.color
-        && oChartSpace.spPr.Fill.fill.color.color.type === window['Asc'].c_oAscColor.COLOR_TYPE_SCHEME &&  oChartSpace.spPr.Fill.fill.color.color.id === 0){
-        bAccent1Background = true;
-    }
-    if(bCreate && !oChartSpace.chart.title){
-        oChartSpace.chart.setTitle(new AscFormat.CTitle());
-        oChartSpace.chart.title.setOverlay(false);
-    }
-    if(oChartSpace.chart.title){
-        ApplySpPr(aPreset[3], oChartSpace.chart.title);
-        ApplyTxPr(aPreset[4], oChartSpace.chart.title, oDrawingDocument);
-        if(oChartSpace.chart.title.layout){
-            oChartSpace.chart.title.setLayout(null);
-        }
-    }
-
-
-    var style = AscFormat.CHART_STYLE_MANAGER.getStyleByIndex(aPreset[0]);
-
-    if(!aPreset[5] && !bCreate){
-        oChartSpace.chart.setLegend(null);
-    }
-    else{
-        if(!bCreate && aPreset[5]){
-            // if(!oChartSpace.chart.legend){
-            //     oChartSpace.chart.setLegend(new AscFormat.CLegend());
-            // }
-            oChartSpace.chart.legend && oChartSpace.chart.legend.setOverlay(false);
-        }
-    }
-    ApplyLegendProps(aPreset[5], oChartSpace.chart.legend, oDrawingDocument, bCreate);
-
-    var oPlotArea = oChartSpace.chart.plotArea;
-    if(oPlotArea.layout){
-        oPlotArea.setLayout(null);
-    }
-    ApplySpPr(aPreset[6], oPlotArea);
-    ApplyTxPr(aPreset[7], oPlotArea, oDrawingDocument);
-    var oAxisByTypes = oPlotArea.getAxisByTypes();
-    for(var i = 0; i < oAxisByTypes.catAx.length; ++i){
-        ApplyPropsToCatAxis(aPreset[8], oAxisByTypes.catAx[i], oDrawingDocument, bCreate);
-    }
-    for(i = 0; i < oAxisByTypes.valAx.length; ++i){
-        ApplyPropsToValAxis(aPreset[9], oAxisByTypes.valAx[i], oDrawingDocument, bCreate);
-    }
-
-    var oChart = oPlotArea.charts[0], base_fills;
-    var ser, lit = null, val = null;
-    ApplyDLblsProps(aPreset[10], oChart, oDrawingDocument, undefined, undefined, bCreate);
-    for(i = 0; i < oChart.series.length; ++i){
-        lit = null;
-        ser = oChart.series[i];
-        val = ser.val || ser.yVal;
-        var pts = ser.getNumPts();
-        if(val){
-            if(val.numRef && val.numRef.numCache)
-            {
-                lit = val.numRef.numCache;
-            }
-            else if(val.numLit)
-            {
-                lit = val.numLit;
-            }
-        }
-        var ptCount;
-        if(lit && AscFormat.isRealNumber(lit.ptCount)){
-            ptCount = Math.max(lit.ptCount, AscFormat.getMaxIdx(pts));
-        }
-        else{
-            ptCount = AscFormat.getMaxIdx(pts);
-        }
-
-        var oDPt;
-        if(oChart.getObjectType() === AscDFH.historyitem_type_PieChart || oChart.getObjectType() === AscDFH.historyitem_type_DoughnutChart){
-            base_fills = AscFormat.getArrayFillsFromBase(style.fill2, ptCount);
-            for(j = 0; j < ptCount; ++j){
-                oDPt = null;
-                if(oChart.series[i].getDptByIdx){
-                    oDPt = oChart.series[i].getDptByIdx(j);
-                }
-                if(!oDPt){
-                    oDPt = new AscFormat.CDPt();
-                    oDPt.setIdx(j);
-                    oChart.series[i].addDPt(oDPt);
-                }
-                if(oDPt.bubble3D !== false){
-                    oDPt.setBubble3D(false);
-                }
-                ApplySpPr(aPreset[11], oDPt, j, base_fills, bAccent1Background);
-
-            }
-            for (j = 0; j < oChart.series[i].dPt.length; ++j ){
-                if(oChart.series[i].dPt[j].idx >= ptCount){
-                    oChart.series[i].removeDPt(j);
-                }
-            }
-        }
-        else{
-            for(var j = oChart.series[i].dPt.length - 1; j > -1; --j){
-                oChart.series[i].removeDPt(j);
-            }
-            base_fills = AscFormat.getArrayFillsFromBase(style.fill2, oChart.series.length);
-            ApplySpPr(aPreset[11], oChart.series[i], i, base_fills, bAccent1Background);
-        }
-        if(oChart.getObjectType() === AscDFH.historyitem_type_PieChart || oChart.getObjectType() === AscDFH.historyitem_type_DoughnutChart){
-            ApplyDLblsProps(aPreset[12], oChart.series[i], oDrawingDocument, i, base_fills, true);
-            if(oChart.series[i].dLbls){
-                for(var j = 0; j < ptCount; ++j){
-                    var oDLbl = oChart.series[i].dLbls.findDLblByIdx(j);
-                    if(!oDLbl) {
-                        oDLbl = new AscFormat.CDLbl();
-                        oChart.series[i].dLbls.addDLbl(oDLbl);
-                        oDLbl.setIdx(j);
-                    }
-                    ApplyTxPr(aPreset[12][0], oDLbl, oDrawingDocument, j, base_fills, bAccent1Background);
-                    ApplySpPr(aPreset[12][1], oDLbl, j, base_fills, bAccent1Background);
-                    oDLbl.setDLblPos(aPreset[12][2]);
-                    oDLbl.setSeparator(aPreset[12][3]);
-                    oDLbl.setShowBubbleSize(aPreset[12][4]);
-                    oDLbl.setShowCatName(aPreset[12][5]);
-                    oDLbl.setShowLegendKey(aPreset[12][7]);
-                    oDLbl.setShowPercent(aPreset[12][8]);
-                    oDLbl.setShowSerName(aPreset[12][9]);
-                    oDLbl.setShowVal(aPreset[12][10]);
-                }
-            }
-        }
-        else{
-            ApplyDLblsProps(aPreset[12], oChart.series[i], oDrawingDocument, i, base_fills, true);
-        }
-    }
-
-
-    if(oChart.getObjectType() === AscDFH.historyitem_type_PieChart || oChart.getObjectType() === AscDFH.historyitem_type_DoughnutChart){
-        oChart.setVaryColors(true);
-    }
-    else{
-        if(oChart.setVaryColors){
-            oChart.setVaryColors(false);
-        }
-    }
-
-    if(oChart.setGapWidth){
-        oChart.setGapWidth(aPreset[13]);
-    }
-    if(oChart.setOverlap){
-        oChart.setOverlap(aPreset[14]);
-    }
-    if(oChart.setGapDepth){
-        oChart.setGapDepth(aPreset[15]);
-    }
-    if(oChart.setGrouping){
-        oChart.setGrouping(aPreset[16]);
-    }
-
-    if(aPreset[17]){
-        if(!oChartSpace.chart.view3D){
-            oChartSpace.chart.setView3D(new AscFormat.CView3d());
-        }
-        oChartSpace.chart.view3D.setDepthPercent(aPreset[17][0]);
-        oChartSpace.chart.view3D.setHPercent(aPreset[17][1]);
-        oChartSpace.chart.view3D.setPerspective(aPreset[17][2]);
-        oChartSpace.chart.view3D.setRAngAx(aPreset[17][3]);
-        oChartSpace.chart.view3D.setRotX(aPreset[17][4]);
-        oChartSpace.chart.view3D.setRotY(aPreset[17][5]);
-    }
-    else{
-        oChartSpace.chart.setView3D(null);
-    }
-    if(aPreset[18]){
-        if(!oChartSpace.chart.backWall){
-            oChartSpace.chart.setBackWall(new AscFormat.CChartWall());
-        }
-        ApplySpPr(aPreset[18][0], oChartSpace.chart.backWall);
-        oChartSpace.chart.backWall.setThickness(aPreset[18][1]);
-    }
-    else{
-        oChartSpace.chart.setBackWall(null);
-    }
-
-    if(aPreset[19]){
-        if(!oChartSpace.chart.floor){
-            oChartSpace.chart.setFloor(new AscFormat.CChartWall());
-        }
-        ApplySpPr(aPreset[19][0], oChartSpace.chart.floor);
-        oChartSpace.chart.floor.setThickness(aPreset[19][1]);
-    }
-    else{
-        oChartSpace.chart.setFloor(null);
-    }
-
-    if(aPreset[20]){
-        if(!oChartSpace.chart.sideWall){
-            oChartSpace.chart.setSideWall(new AscFormat.CChartWall());
-        }
-        ApplySpPr(aPreset[20][0], oChartSpace.chart.sideWall);
-        oChartSpace.chart.sideWall.setThickness(aPreset[20][1]);
-    }
-    else{
-        oChartSpace.chart.setSideWall(null);
-    }
-    ApplyMarker(aPreset[21], oChart);
-    for(var i = 0; i < oChart.series.length; ++i){
-        ApplyMarker(aPreset[22], oChart.series[i], i, base_fills, bCreate);
-    }
-
-
-    if(oChart.getObjectType() === AscDFH.historyitem_type_StockChart){
-        var oSpPr = oChartSpace.spPr;
-        if(oChart.hiLowLines){
-            oChartSpace.spPr = oChart.hiLowLines;
-            ApplySpPr(aPreset[23], oChartSpace);
-        }
-        else{
-            oChartSpace.spPr = new AscFormat.CSpPr();
-            ApplySpPr(aPreset[23], oChartSpace);
-            oChart.setHiLowLines(oChartSpace.spPr);
-        }
-
-        if(!aPreset[24]){
-            oChart.setUpDownBars(null);
-        }
-        else{
-            if(!oChart.upDownBars){
-                oChart.setUpDownBars(new AscFormat.CUpDownBars());
-            }
-
-            if(oChart.upDownBars.downBars){
-                oChartSpace.spPr = oChart.upDownBars.downBars;
-                ApplySpPr(aPreset[24][0], oChartSpace);
-            }
-            else{
-                oChartSpace.spPr = new AscFormat.CSpPr();
-                ApplySpPr(aPreset[24][0], oChartSpace);
-                oChart.upDownBars.setDownBars(oChartSpace.spPr);
-            }
-
-            oChart.upDownBars.setGapWidth(aPreset[24][1]);
-
-            if(oChart.upDownBars.upBars){
-                oChartSpace.spPr = oChart.upDownBars.upBars;
-                ApplySpPr(aPreset[24][2], oChartSpace);
-            }
-            else{
-                oChartSpace.spPr = new AscFormat.CSpPr();
-                ApplySpPr(aPreset[24][2], oChartSpace);
-                oChart.upDownBars.setUpBars(oChartSpace.spPr);
-            }
-        }
-        oChartSpace.spPr = oSpPr;
-    }
-}
     function CMathPainter(_api)
     {
         this.Api = _api;
@@ -11281,18 +10222,18 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
 
             var _sizes =
                 [
-                    {w: 25, h: 25}, // Symbols
-                    {w: 50, h: 50}, // Fraction
-                    {w: 50, h: 50}, // Script
-                    {w: 115, h: 55}, // Radical
+                    {w: 24, h: 24}, // Symbols
+                    {w: 48, h: 48}, // Fraction
+                    {w: 48, h: 48}, // Script
+                    {w: 112, h: 56}, // Radical
                     {w: 60, h: 60}, // Integral
-                    {w: 100, h: 75}, // LargeOperator
-                    {w: 80, h: 75}, // Bracket, //{ w : 150, h : 75 }
-                    {w: 100, h: 50}, // Function
+                    {w: 100, h: 76}, // LargeOperator
+                    {w: 80, h: 76}, // Bracket, //{ w : 150, h : 75 }
+                    {w: 100, h: 48}, // Function
                     {w: 100, h: 40}, // Accent
                     {w: 100, h: 60}, // LimitLog
                     {w: 60, h: 40}, // Operator
-                    {w: 100, h: 70} // Matrix
+                    {w: 100, h: 72} // Matrix
                 ];
 
             var _excluded_arr = [c_oAscMathType.Bracket_Custom_5];
@@ -11334,6 +10275,9 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
                 var _category1 = (_type >> 24) & 0xFF;
                 var _category2 = (_type >> 16) & 0xFF;
                 _type &= 0xFFFF;
+
+                if (_category1 >= _sizes.length)
+                    continue;
 
                 if (undefined == _math.Data[_category1])
                 {
@@ -11397,7 +10341,7 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
 
         this.Generate = function ()
         {
-            var _math_json = JSON.parse('{"Id":0,"Data":[{"Id":0,"Data":[{"Id":0,"Data":[{"Id":0,"X":0,"Y":0},{"Id":1,"X":25,"Y":0},{"Id":2,"X":50,"Y":0},{"Id":3,"X":75,"Y":0},{"Id":4,"X":100,"Y":0},{"Id":5,"X":125,"Y":0},{"Id":6,"X":150,"Y":0},{"Id":7,"X":175,"Y":0},{"Id":8,"X":200,"Y":0},{"Id":9,"X":225,"Y":0},{"Id":10,"X":250,"Y":0},{"Id":11,"X":275,"Y":0},{"Id":12,"X":300,"Y":0},{"Id":13,"X":325,"Y":0},{"Id":14,"X":350,"Y":0},{"Id":15,"X":375,"Y":0},{"Id":16,"X":400,"Y":0},{"Id":17,"X":425,"Y":0},{"Id":18,"X":450,"Y":0},{"Id":19,"X":475,"Y":0},{"Id":20,"X":500,"Y":0},{"Id":21,"X":525,"Y":0},{"Id":22,"X":550,"Y":0},{"Id":23,"X":575,"Y":0},{"Id":24,"X":600,"Y":0},{"Id":25,"X":625,"Y":0},{"Id":26,"X":650,"Y":0},{"Id":27,"X":675,"Y":0},{"Id":28,"X":700,"Y":0},{"Id":29,"X":725,"Y":0},{"Id":30,"X":750,"Y":0},{"Id":31,"X":775,"Y":0},{"Id":32,"X":800,"Y":0},{"Id":33,"X":825,"Y":0},{"Id":34,"X":850,"Y":0},{"Id":35,"X":875,"Y":0},{"Id":36,"X":900,"Y":0},{"Id":37,"X":925,"Y":0},{"Id":38,"X":950,"Y":0},{"Id":39,"X":975,"Y":0},{"Id":40,"X":1000,"Y":0},{"Id":41,"X":1025,"Y":0},{"Id":42,"X":1050,"Y":0},{"Id":43,"X":1075,"Y":0},{"Id":44,"X":1100,"Y":0},{"Id":45,"X":1125,"Y":0},{"Id":46,"X":1150,"Y":0},{"Id":47,"X":1175,"Y":0},{"Id":48,"X":1200,"Y":0},{"Id":49,"X":1225,"Y":0},{"Id":50,"X":1250,"Y":0},{"Id":51,"X":1275,"Y":0},{"Id":52,"X":1300,"Y":0},{"Id":53,"X":1325,"Y":0},{"Id":54,"X":1350,"Y":0},{"Id":55,"X":1375,"Y":0}],"W":25,"H":25},{"Id":1,"Data":[{"Id":65536,"X":1400,"Y":0},{"Id":65537,"X":1425,"Y":0},{"Id":65538,"X":1450,"Y":0},{"Id":65539,"X":1475,"Y":0},{"Id":65540,"X":0,"Y":25},{"Id":65541,"X":25,"Y":25},{"Id":65542,"X":50,"Y":25},{"Id":65543,"X":75,"Y":25},{"Id":65544,"X":100,"Y":25},{"Id":65545,"X":125,"Y":25},{"Id":65546,"X":150,"Y":25},{"Id":65547,"X":175,"Y":25},{"Id":65548,"X":200,"Y":25},{"Id":65549,"X":225,"Y":25},{"Id":65550,"X":250,"Y":25},{"Id":65551,"X":275,"Y":25},{"Id":65552,"X":300,"Y":25},{"Id":65553,"X":325,"Y":25},{"Id":65554,"X":350,"Y":25},{"Id":65555,"X":375,"Y":25},{"Id":65556,"X":400,"Y":25},{"Id":65557,"X":425,"Y":25},{"Id":65558,"X":450,"Y":25},{"Id":65559,"X":475,"Y":25},{"Id":65560,"X":500,"Y":25},{"Id":65561,"X":525,"Y":25},{"Id":65562,"X":550,"Y":25},{"Id":65563,"X":575,"Y":25},{"Id":65564,"X":600,"Y":25},{"Id":65565,"X":625,"Y":25}],"W":25,"H":25},{"Id":2,"Data":[{"Id":131072,"X":650,"Y":25},{"Id":131073,"X":675,"Y":25},{"Id":131074,"X":700,"Y":25},{"Id":131075,"X":725,"Y":25},{"Id":131076,"X":750,"Y":25},{"Id":131077,"X":775,"Y":25},{"Id":131078,"X":800,"Y":25},{"Id":131079,"X":825,"Y":25},{"Id":131080,"X":850,"Y":25},{"Id":131081,"X":875,"Y":25},{"Id":131082,"X":900,"Y":25},{"Id":131083,"X":925,"Y":25},{"Id":131084,"X":950,"Y":25},{"Id":131085,"X":975,"Y":25},{"Id":131086,"X":1000,"Y":25},{"Id":131087,"X":1025,"Y":25},{"Id":131088,"X":1050,"Y":25},{"Id":131089,"X":1075,"Y":25},{"Id":131090,"X":1100,"Y":25},{"Id":131091,"X":1125,"Y":25},{"Id":131092,"X":1150,"Y":25},{"Id":131093,"X":1175,"Y":25},{"Id":131094,"X":1200,"Y":25},{"Id":131095,"X":1225,"Y":25}],"W":25,"H":25}],"W":25,"H":25},{"Id":1,"Data":[{"Id":0,"Data":[{"Id":16777216,"X":0,"Y":50},{"Id":16777217,"X":50,"Y":50},{"Id":16777218,"X":100,"Y":50},{"Id":16777219,"X":150,"Y":50}],"W":50,"H":50},{"Id":1,"Data":[{"Id":16842752,"X":200,"Y":50},{"Id":16842753,"X":250,"Y":50},{"Id":16842754,"X":300,"Y":50},{"Id":16842755,"X":350,"Y":50},{"Id":16842756,"X":400,"Y":50}],"W":50,"H":50}],"W":50,"H":50},{"Id":2,"Data":[{"Id":0,"Data":[{"Id":33554432,"X":450,"Y":50},{"Id":33554433,"X":500,"Y":50},{"Id":33554434,"X":550,"Y":50},{"Id":33554435,"X":600,"Y":50}],"W":50,"H":50},{"Id":1,"Data":[{"Id":33619968,"X":650,"Y":50},{"Id":33619969,"X":700,"Y":50},{"Id":33619970,"X":750,"Y":50},{"Id":33619971,"X":800,"Y":50}],"W":50,"H":50}],"W":50,"H":50},{"Id":3,"Data":[{"Id":0,"Data":[{"Id":50331648,"X":0,"Y":100},{"Id":50331649,"X":115,"Y":100},{"Id":50331650,"X":230,"Y":100},{"Id":50331651,"X":345,"Y":100}],"W":115,"H":55},{"Id":1,"Data":[{"Id":50397184,"X":460,"Y":100},{"Id":50397185,"X":575,"Y":100}],"W":115,"H":55}],"W":115,"H":55},{"Id":4,"Data":[{"Id":0,"Data":[{"Id":67108864,"X":690,"Y":100},{"Id":67108865,"X":805,"Y":100},{"Id":67108866,"X":920,"Y":100},{"Id":67108867,"X":1035,"Y":100},{"Id":67108868,"X":1150,"Y":100},{"Id":67108869,"X":1265,"Y":100},{"Id":67108870,"X":1380,"Y":100},{"Id":67108871,"X":0,"Y":215},{"Id":67108872,"X":60,"Y":215}],"W":60,"H":60},{"Id":1,"Data":[{"Id":67174400,"X":120,"Y":215},{"Id":67174401,"X":180,"Y":215},{"Id":67174402,"X":240,"Y":215},{"Id":67174403,"X":300,"Y":215},{"Id":67174404,"X":360,"Y":215},{"Id":67174405,"X":420,"Y":215},{"Id":67174406,"X":480,"Y":215},{"Id":67174407,"X":540,"Y":215},{"Id":67174408,"X":600,"Y":215}],"W":60,"H":60},{"Id":2,"Data":[{"Id":67239936,"X":660,"Y":215},{"Id":67239937,"X":720,"Y":215},{"Id":67239938,"X":780,"Y":215}],"W":60,"H":60}],"W":60,"H":60},{"Id":5,"Data":[{"Id":0,"Data":[{"Id":83886080,"X":0,"Y":275},{"Id":83886081,"X":100,"Y":275},{"Id":83886082,"X":200,"Y":275},{"Id":83886083,"X":300,"Y":275},{"Id":83886084,"X":400,"Y":275}],"W":100,"H":75},{"Id":1,"Data":[{"Id":83951616,"X":500,"Y":275},{"Id":83951617,"X":600,"Y":275},{"Id":83951618,"X":700,"Y":275},{"Id":83951619,"X":800,"Y":275},{"Id":83951620,"X":900,"Y":275},{"Id":83951621,"X":1000,"Y":275},{"Id":83951622,"X":1100,"Y":275},{"Id":83951623,"X":1200,"Y":275},{"Id":83951624,"X":1300,"Y":275},{"Id":83951625,"X":1400,"Y":275}],"W":100,"H":75},{"Id":2,"Data":[{"Id":84017152,"X":0,"Y":375},{"Id":84017153,"X":100,"Y":375},{"Id":84017154,"X":200,"Y":375},{"Id":84017155,"X":300,"Y":375},{"Id":84017156,"X":400,"Y":375},{"Id":84017157,"X":500,"Y":375},{"Id":84017158,"X":600,"Y":375},{"Id":84017159,"X":700,"Y":375},{"Id":84017160,"X":800,"Y":375},{"Id":84017161,"X":900,"Y":375}],"W":100,"H":75},{"Id":3,"Data":[{"Id":84082688,"X":1000,"Y":375},{"Id":84082689,"X":1100,"Y":375},{"Id":84082690,"X":1200,"Y":375},{"Id":84082691,"X":1300,"Y":375},{"Id":84082692,"X":1400,"Y":375},{"Id":84082693,"X":0,"Y":475},{"Id":84082694,"X":100,"Y":475},{"Id":84082695,"X":200,"Y":475},{"Id":84082696,"X":300,"Y":475},{"Id":84082697,"X":400,"Y":475}],"W":100,"H":75},{"Id":4,"Data":[{"Id":84148224,"X":500,"Y":475},{"Id":84148225,"X":600,"Y":475},{"Id":84148226,"X":700,"Y":475},{"Id":84148227,"X":800,"Y":475},{"Id":84148228,"X":900,"Y":475}],"W":100,"H":75}],"W":100,"H":75},{"Id":6,"Data":[{"Id":0,"Data":[{"Id":100663296,"X":1000,"Y":475},{"Id":100663297,"X":1100,"Y":475},{"Id":100663298,"X":1200,"Y":475},{"Id":100663299,"X":1300,"Y":475},{"Id":100663300,"X":1400,"Y":475},{"Id":100663301,"X":0,"Y":575},{"Id":100663302,"X":80,"Y":575},{"Id":100663303,"X":160,"Y":575},{"Id":100663304,"X":240,"Y":575},{"Id":100663305,"X":320,"Y":575},{"Id":100663306,"X":400,"Y":575},{"Id":100663307,"X":480,"Y":575}],"W":80,"H":75},{"Id":1,"Data":[{"Id":100728832,"X":560,"Y":575},{"Id":100728833,"X":640,"Y":575},{"Id":100728834,"X":720,"Y":575},{"Id":100728835,"X":800,"Y":575}],"W":80,"H":75},{"Id":2,"Data":[{"Id":100794368,"X":880,"Y":575},{"Id":100794369,"X":960,"Y":575},{"Id":100794370,"X":1040,"Y":575},{"Id":100794371,"X":1120,"Y":575},{"Id":100794372,"X":1200,"Y":575},{"Id":100794373,"X":1280,"Y":575},{"Id":100794374,"X":1360,"Y":575},{"Id":100794375,"X":0,"Y":655},{"Id":100794376,"X":80,"Y":655},{"Id":100794377,"X":160,"Y":655},{"Id":100794378,"X":240,"Y":655},{"Id":100794379,"X":320,"Y":655},{"Id":100794380,"X":400,"Y":655},{"Id":100794381,"X":480,"Y":655},{"Id":100794382,"X":560,"Y":655},{"Id":100794383,"X":640,"Y":655},{"Id":100794384,"X":720,"Y":655},{"Id":100794385,"X":800,"Y":655}],"W":80,"H":75},{"Id":3,"Data":[{"Id":100859904,"X":880,"Y":655},{"Id":100859905,"X":960,"Y":655},{"Id":100859906,"X":1040,"Y":655},{"Id":100859907,"X":1120,"Y":655}],"W":80,"H":75},{"Id":4,"Data":[{"Id":100925441,"X":1200,"Y":655},{"Id":100925442,"X":1280,"Y":655}],"W":80,"H":75}],"W":80,"H":75},{"Id":7,"Data":[{"Id":0,"Data":[{"Id":117440512,"X":0,"Y":735},{"Id":117440513,"X":100,"Y":735},{"Id":117440514,"X":200,"Y":735},{"Id":117440515,"X":300,"Y":735},{"Id":117440516,"X":400,"Y":735},{"Id":117440517,"X":500,"Y":735}],"W":100,"H":50},{"Id":1,"Data":[{"Id":117506048,"X":600,"Y":735},{"Id":117506049,"X":700,"Y":735},{"Id":117506050,"X":800,"Y":735},{"Id":117506051,"X":900,"Y":735},{"Id":117506052,"X":1000,"Y":735},{"Id":117506053,"X":1100,"Y":735}],"W":100,"H":50},{"Id":2,"Data":[{"Id":117571584,"X":1200,"Y":735},{"Id":117571585,"X":1300,"Y":735},{"Id":117571586,"X":1400,"Y":735},{"Id":117571587,"X":0,"Y":835},{"Id":117571588,"X":100,"Y":835},{"Id":117571589,"X":200,"Y":835}],"W":100,"H":50},{"Id":3,"Data":[{"Id":117637120,"X":300,"Y":835},{"Id":117637121,"X":400,"Y":835},{"Id":117637122,"X":500,"Y":835},{"Id":117637123,"X":600,"Y":835},{"Id":117637124,"X":700,"Y":835},{"Id":117637125,"X":800,"Y":835}],"W":100,"H":50},{"Id":4,"Data":[{"Id":117702656,"X":900,"Y":835},{"Id":117702657,"X":1000,"Y":835},{"Id":117702658,"X":1100,"Y":835}],"W":100,"H":50}],"W":100,"H":50},{"Id":8,"Data":[{"Id":0,"Data":[{"Id":134217728,"X":1200,"Y":835},{"Id":134217729,"X":1300,"Y":835},{"Id":134217730,"X":1400,"Y":835},{"Id":134217731,"X":0,"Y":935},{"Id":134217732,"X":100,"Y":935},{"Id":134217733,"X":200,"Y":935},{"Id":134217734,"X":300,"Y":935},{"Id":134217735,"X":400,"Y":935},{"Id":134217736,"X":500,"Y":935},{"Id":134217737,"X":600,"Y":935},{"Id":134217738,"X":700,"Y":935},{"Id":134217739,"X":800,"Y":935},{"Id":134217740,"X":900,"Y":935},{"Id":134217741,"X":1000,"Y":935},{"Id":134217742,"X":1100,"Y":935},{"Id":134217743,"X":1200,"Y":935},{"Id":134217744,"X":1300,"Y":935},{"Id":134217745,"X":1400,"Y":935},{"Id":134217746,"X":0,"Y":1035},{"Id":134217747,"X":100,"Y":1035}],"W":100,"H":40},{"Id":1,"Data":[{"Id":134283264,"X":200,"Y":1035},{"Id":134283265,"X":300,"Y":1035}],"W":100,"H":40},{"Id":2,"Data":[{"Id":134348800,"X":400,"Y":1035},{"Id":134348801,"X":500,"Y":1035}],"W":100,"H":40},{"Id":3,"Data":[{"Id":134414336,"X":600,"Y":1035},{"Id":134414337,"X":700,"Y":1035},{"Id":134414338,"X":800,"Y":1035}],"W":100,"H":40}],"W":100,"H":40},{"Id":9,"Data":[{"Id":0,"Data":[{"Id":150994944,"X":900,"Y":1035},{"Id":150994945,"X":1000,"Y":1035},{"Id":150994946,"X":1100,"Y":1035},{"Id":150994947,"X":1200,"Y":1035},{"Id":150994948,"X":1300,"Y":1035},{"Id":150994949,"X":1400,"Y":1035}],"W":100,"H":60},{"Id":1,"Data":[{"Id":151060480,"X":0,"Y":1135},{"Id":151060481,"X":100,"Y":1135}],"W":100,"H":60}],"W":100,"H":60},{"Id":10,"Data":[{"Id":0,"Data":[{"Id":167772160,"X":840,"Y":215},{"Id":167772161,"X":900,"Y":215},{"Id":167772162,"X":960,"Y":215},{"Id":167772163,"X":1020,"Y":215},{"Id":167772164,"X":1080,"Y":215},{"Id":167772165,"X":1140,"Y":215},{"Id":167772166,"X":1200,"Y":215}],"W":60,"H":40},{"Id":1,"Data":[{"Id":167837696,"X":1260,"Y":215},{"Id":167837697,"X":1320,"Y":215},{"Id":167837698,"X":1380,"Y":215},{"Id":167837699,"X":1440,"Y":215},{"Id":167837700,"X":1360,"Y":655},{"Id":167837701,"X":200,"Y":1135},{"Id":167837702,"X":300,"Y":1135},{"Id":167837703,"X":400,"Y":1135},{"Id":167837704,"X":500,"Y":1135},{"Id":167837705,"X":600,"Y":1135},{"Id":167837706,"X":700,"Y":1135},{"Id":167837707,"X":800,"Y":1135}],"W":60,"H":40},{"Id":2,"Data":[{"Id":167903232,"X":900,"Y":1135},{"Id":167903233,"X":1000,"Y":1135}],"W":60,"H":40}],"W":60,"H":40},{"Id":11,"Data":[{"Id":0,"Data":[{"Id":184549376,"X":1100,"Y":1135},{"Id":184549377,"X":1200,"Y":1135},{"Id":184549378,"X":1300,"Y":1135},{"Id":184549379,"X":1400,"Y":1135},{"Id":184549380,"X":0,"Y":1235},{"Id":184549381,"X":100,"Y":1235},{"Id":184549382,"X":200,"Y":1235},{"Id":184549383,"X":300,"Y":1235}],"W":100,"H":70},{"Id":1,"Data":[{"Id":184614912,"X":400,"Y":1235},{"Id":184614913,"X":500,"Y":1235},{"Id":184614914,"X":600,"Y":1235},{"Id":184614915,"X":700,"Y":1235}],"W":100,"H":70},{"Id":2,"Data":[{"Id":184680448,"X":800,"Y":1235},{"Id":184680449,"X":900,"Y":1235},{"Id":184680450,"X":1000,"Y":1235},{"Id":184680451,"X":1100,"Y":1235}],"W":100,"H":70},{"Id":3,"Data":[{"Id":184745984,"X":1200,"Y":1235},{"Id":184745985,"X":1300,"Y":1235},{"Id":184745986,"X":1400,"Y":1235},{"Id":184745987,"X":0,"Y":1335}],"W":100,"H":70},{"Id":4,"Data":[{"Id":184811520,"X":100,"Y":1335},{"Id":184811521,"X":200,"Y":1335}],"W":100,"H":70}],"W":100,"H":70}],"W":0,"H":0}');
+            var _math_json = JSON.parse('{"Id":0,"Data":[{"Id":0,"Data":[{"Id":0,"Data":[{"Id":0,"X":0,"Y":0},{"Id":1,"X":24,"Y":0},{"Id":2,"X":48,"Y":0},{"Id":3,"X":72,"Y":0},{"Id":4,"X":96,"Y":0},{"Id":5,"X":120,"Y":0},{"Id":6,"X":144,"Y":0},{"Id":7,"X":168,"Y":0},{"Id":8,"X":192,"Y":0},{"Id":9,"X":216,"Y":0},{"Id":10,"X":240,"Y":0},{"Id":11,"X":264,"Y":0},{"Id":12,"X":288,"Y":0},{"Id":13,"X":312,"Y":0},{"Id":14,"X":336,"Y":0},{"Id":15,"X":360,"Y":0},{"Id":16,"X":384,"Y":0},{"Id":17,"X":408,"Y":0},{"Id":18,"X":432,"Y":0},{"Id":19,"X":456,"Y":0},{"Id":20,"X":480,"Y":0},{"Id":21,"X":504,"Y":0},{"Id":22,"X":528,"Y":0},{"Id":23,"X":552,"Y":0},{"Id":24,"X":576,"Y":0},{"Id":25,"X":600,"Y":0},{"Id":26,"X":624,"Y":0},{"Id":27,"X":648,"Y":0},{"Id":28,"X":672,"Y":0},{"Id":29,"X":696,"Y":0},{"Id":30,"X":720,"Y":0},{"Id":31,"X":744,"Y":0},{"Id":32,"X":768,"Y":0},{"Id":33,"X":792,"Y":0},{"Id":34,"X":816,"Y":0},{"Id":35,"X":840,"Y":0},{"Id":36,"X":864,"Y":0},{"Id":37,"X":888,"Y":0},{"Id":38,"X":912,"Y":0},{"Id":39,"X":936,"Y":0},{"Id":40,"X":960,"Y":0},{"Id":41,"X":984,"Y":0},{"Id":42,"X":1008,"Y":0},{"Id":43,"X":1032,"Y":0},{"Id":44,"X":1056,"Y":0},{"Id":45,"X":1080,"Y":0},{"Id":46,"X":1104,"Y":0},{"Id":47,"X":1128,"Y":0},{"Id":48,"X":1152,"Y":0},{"Id":49,"X":1176,"Y":0},{"Id":50,"X":1200,"Y":0},{"Id":51,"X":1224,"Y":0},{"Id":52,"X":1248,"Y":0},{"Id":53,"X":1272,"Y":0},{"Id":54,"X":1296,"Y":0},{"Id":55,"X":1320,"Y":0}],"W":24,"H":24},{"Id":1,"Data":[{"Id":65536,"X":1344,"Y":0},{"Id":65537,"X":1368,"Y":0},{"Id":65538,"X":1392,"Y":0},{"Id":65539,"X":1416,"Y":0},{"Id":65540,"X":1440,"Y":0},{"Id":65541,"X":1464,"Y":0},{"Id":65542,"X":0,"Y":24},{"Id":65543,"X":24,"Y":24},{"Id":65544,"X":48,"Y":24},{"Id":65545,"X":72,"Y":24},{"Id":65546,"X":96,"Y":24},{"Id":65547,"X":120,"Y":24},{"Id":65548,"X":144,"Y":24},{"Id":65549,"X":168,"Y":24},{"Id":65550,"X":192,"Y":24},{"Id":65551,"X":216,"Y":24},{"Id":65552,"X":240,"Y":24},{"Id":65553,"X":264,"Y":24},{"Id":65554,"X":288,"Y":24},{"Id":65555,"X":312,"Y":24},{"Id":65556,"X":336,"Y":24},{"Id":65557,"X":360,"Y":24},{"Id":65558,"X":384,"Y":24},{"Id":65559,"X":408,"Y":24},{"Id":65560,"X":432,"Y":24},{"Id":65561,"X":456,"Y":24},{"Id":65562,"X":480,"Y":24},{"Id":65563,"X":504,"Y":24},{"Id":65564,"X":528,"Y":24},{"Id":65565,"X":552,"Y":24}],"W":24,"H":24},{"Id":2,"Data":[{"Id":131072,"X":576,"Y":24},{"Id":131073,"X":600,"Y":24},{"Id":131074,"X":624,"Y":24},{"Id":131075,"X":648,"Y":24},{"Id":131076,"X":672,"Y":24},{"Id":131077,"X":696,"Y":24},{"Id":131078,"X":720,"Y":24},{"Id":131079,"X":744,"Y":24},{"Id":131080,"X":768,"Y":24},{"Id":131081,"X":792,"Y":24},{"Id":131082,"X":816,"Y":24},{"Id":131083,"X":840,"Y":24},{"Id":131084,"X":864,"Y":24},{"Id":131085,"X":888,"Y":24},{"Id":131086,"X":912,"Y":24},{"Id":131087,"X":936,"Y":24},{"Id":131088,"X":960,"Y":24},{"Id":131089,"X":984,"Y":24},{"Id":131090,"X":1008,"Y":24},{"Id":131091,"X":1032,"Y":24},{"Id":131092,"X":1056,"Y":24},{"Id":131093,"X":1080,"Y":24},{"Id":131094,"X":1104,"Y":24},{"Id":131095,"X":1128,"Y":24}],"W":24,"H":24}],"W":24,"H":24},{"Id":1,"Data":[{"Id":0,"Data":[{"Id":16777216,"X":0,"Y":48},{"Id":16777217,"X":48,"Y":48},{"Id":16777218,"X":96,"Y":48},{"Id":16777219,"X":144,"Y":48}],"W":48,"H":48},{"Id":1,"Data":[{"Id":16842752,"X":192,"Y":48},{"Id":16842753,"X":240,"Y":48},{"Id":16842754,"X":288,"Y":48},{"Id":16842755,"X":336,"Y":48},{"Id":16842756,"X":384,"Y":48}],"W":48,"H":48}],"W":48,"H":48},{"Id":2,"Data":[{"Id":0,"Data":[{"Id":33554432,"X":432,"Y":48},{"Id":33554433,"X":480,"Y":48},{"Id":33554434,"X":528,"Y":48},{"Id":33554435,"X":576,"Y":48}],"W":48,"H":48},{"Id":1,"Data":[{"Id":33619968,"X":624,"Y":48},{"Id":33619969,"X":672,"Y":48},{"Id":33619970,"X":720,"Y":48},{"Id":33619971,"X":768,"Y":48}],"W":48,"H":48}],"W":48,"H":48},{"Id":3,"Data":[{"Id":0,"Data":[{"Id":50331648,"X":0,"Y":96},{"Id":50331649,"X":112,"Y":96},{"Id":50331650,"X":224,"Y":96},{"Id":50331651,"X":336,"Y":96}],"W":112,"H":56},{"Id":1,"Data":[{"Id":50397184,"X":448,"Y":96},{"Id":50397185,"X":560,"Y":96}],"W":112,"H":56}],"W":112,"H":56},{"Id":4,"Data":[{"Id":0,"Data":[{"Id":67108864,"X":672,"Y":96},{"Id":67108865,"X":784,"Y":96},{"Id":67108866,"X":896,"Y":96},{"Id":67108867,"X":1008,"Y":96},{"Id":67108868,"X":1120,"Y":96},{"Id":67108869,"X":1232,"Y":96},{"Id":67108870,"X":1344,"Y":96},{"Id":67108871,"X":0,"Y":208},{"Id":67108872,"X":60,"Y":208}],"W":60,"H":60},{"Id":1,"Data":[{"Id":67174400,"X":120,"Y":208},{"Id":67174401,"X":180,"Y":208},{"Id":67174402,"X":240,"Y":208},{"Id":67174403,"X":300,"Y":208},{"Id":67174404,"X":360,"Y":208},{"Id":67174405,"X":420,"Y":208},{"Id":67174406,"X":480,"Y":208},{"Id":67174407,"X":540,"Y":208},{"Id":67174408,"X":600,"Y":208}],"W":60,"H":60},{"Id":2,"Data":[{"Id":67239936,"X":660,"Y":208},{"Id":67239937,"X":720,"Y":208},{"Id":67239938,"X":780,"Y":208}],"W":60,"H":60}],"W":60,"H":60},{"Id":5,"Data":[{"Id":0,"Data":[{"Id":83886080,"X":0,"Y":268},{"Id":83886081,"X":100,"Y":268},{"Id":83886082,"X":200,"Y":268},{"Id":83886083,"X":300,"Y":268},{"Id":83886084,"X":400,"Y":268}],"W":100,"H":76},{"Id":1,"Data":[{"Id":83951616,"X":500,"Y":268},{"Id":83951617,"X":600,"Y":268},{"Id":83951618,"X":700,"Y":268},{"Id":83951619,"X":800,"Y":268},{"Id":83951620,"X":900,"Y":268},{"Id":83951621,"X":1000,"Y":268},{"Id":83951622,"X":1100,"Y":268},{"Id":83951623,"X":1200,"Y":268},{"Id":83951624,"X":1300,"Y":268},{"Id":83951625,"X":1400,"Y":268}],"W":100,"H":76},{"Id":2,"Data":[{"Id":84017152,"X":0,"Y":368},{"Id":84017153,"X":100,"Y":368},{"Id":84017154,"X":200,"Y":368},{"Id":84017155,"X":300,"Y":368},{"Id":84017156,"X":400,"Y":368},{"Id":84017157,"X":500,"Y":368},{"Id":84017158,"X":600,"Y":368},{"Id":84017159,"X":700,"Y":368},{"Id":84017160,"X":800,"Y":368},{"Id":84017161,"X":900,"Y":368}],"W":100,"H":76},{"Id":3,"Data":[{"Id":84082688,"X":1000,"Y":368},{"Id":84082689,"X":1100,"Y":368},{"Id":84082690,"X":1200,"Y":368},{"Id":84082691,"X":1300,"Y":368},{"Id":84082692,"X":1400,"Y":368},{"Id":84082693,"X":0,"Y":468},{"Id":84082694,"X":100,"Y":468},{"Id":84082695,"X":200,"Y":468},{"Id":84082696,"X":300,"Y":468},{"Id":84082697,"X":400,"Y":468}],"W":100,"H":76},{"Id":4,"Data":[{"Id":84148224,"X":500,"Y":468},{"Id":84148225,"X":600,"Y":468},{"Id":84148226,"X":700,"Y":468},{"Id":84148227,"X":800,"Y":468},{"Id":84148228,"X":900,"Y":468}],"W":100,"H":76}],"W":100,"H":76},{"Id":6,"Data":[{"Id":0,"Data":[{"Id":100663296,"X":1000,"Y":468},{"Id":100663297,"X":1100,"Y":468},{"Id":100663298,"X":1200,"Y":468},{"Id":100663299,"X":1300,"Y":468},{"Id":100663300,"X":1400,"Y":468},{"Id":100663301,"X":0,"Y":568},{"Id":100663302,"X":80,"Y":568},{"Id":100663303,"X":160,"Y":568},{"Id":100663304,"X":240,"Y":568},{"Id":100663305,"X":320,"Y":568},{"Id":100663306,"X":400,"Y":568},{"Id":100663307,"X":480,"Y":568}],"W":80,"H":76},{"Id":1,"Data":[{"Id":100728832,"X":560,"Y":568},{"Id":100728833,"X":640,"Y":568},{"Id":100728834,"X":720,"Y":568},{"Id":100728835,"X":800,"Y":568}],"W":80,"H":76},{"Id":2,"Data":[{"Id":100794368,"X":880,"Y":568},{"Id":100794369,"X":960,"Y":568},{"Id":100794370,"X":1040,"Y":568},{"Id":100794371,"X":1120,"Y":568},{"Id":100794372,"X":1200,"Y":568},{"Id":100794373,"X":1280,"Y":568},{"Id":100794374,"X":1360,"Y":568},{"Id":100794375,"X":0,"Y":648},{"Id":100794376,"X":80,"Y":648},{"Id":100794377,"X":160,"Y":648},{"Id":100794378,"X":240,"Y":648},{"Id":100794379,"X":320,"Y":648},{"Id":100794380,"X":400,"Y":648},{"Id":100794381,"X":480,"Y":648},{"Id":100794382,"X":560,"Y":648},{"Id":100794383,"X":640,"Y":648},{"Id":100794384,"X":720,"Y":648},{"Id":100794385,"X":800,"Y":648}],"W":80,"H":76},{"Id":3,"Data":[{"Id":100859904,"X":880,"Y":648},{"Id":100859905,"X":960,"Y":648},{"Id":100859906,"X":1040,"Y":648},{"Id":100859907,"X":1120,"Y":648}],"W":80,"H":76},{"Id":4,"Data":[{"Id":100925441,"X":1200,"Y":648},{"Id":100925442,"X":1280,"Y":648}],"W":80,"H":76}],"W":80,"H":76},{"Id":7,"Data":[{"Id":0,"Data":[{"Id":117440512,"X":0,"Y":728},{"Id":117440513,"X":100,"Y":728},{"Id":117440514,"X":200,"Y":728},{"Id":117440515,"X":300,"Y":728},{"Id":117440516,"X":400,"Y":728},{"Id":117440517,"X":500,"Y":728}],"W":100,"H":48},{"Id":1,"Data":[{"Id":117506048,"X":600,"Y":728},{"Id":117506049,"X":700,"Y":728},{"Id":117506050,"X":800,"Y":728},{"Id":117506051,"X":900,"Y":728},{"Id":117506052,"X":1000,"Y":728},{"Id":117506053,"X":1100,"Y":728}],"W":100,"H":48},{"Id":2,"Data":[{"Id":117571584,"X":1200,"Y":728},{"Id":117571585,"X":1300,"Y":728},{"Id":117571586,"X":1400,"Y":728},{"Id":117571587,"X":0,"Y":828},{"Id":117571588,"X":100,"Y":828},{"Id":117571589,"X":200,"Y":828}],"W":100,"H":48},{"Id":3,"Data":[{"Id":117637120,"X":300,"Y":828},{"Id":117637121,"X":400,"Y":828},{"Id":117637122,"X":500,"Y":828},{"Id":117637123,"X":600,"Y":828},{"Id":117637124,"X":700,"Y":828},{"Id":117637125,"X":800,"Y":828}],"W":100,"H":48},{"Id":4,"Data":[{"Id":117702656,"X":900,"Y":828},{"Id":117702657,"X":1000,"Y":828},{"Id":117702658,"X":1100,"Y":828}],"W":100,"H":48}],"W":100,"H":48},{"Id":8,"Data":[{"Id":0,"Data":[{"Id":134217728,"X":1200,"Y":828},{"Id":134217729,"X":1300,"Y":828},{"Id":134217730,"X":1400,"Y":828},{"Id":134217731,"X":0,"Y":928},{"Id":134217732,"X":100,"Y":928},{"Id":134217733,"X":200,"Y":928},{"Id":134217734,"X":300,"Y":928},{"Id":134217735,"X":400,"Y":928},{"Id":134217736,"X":500,"Y":928},{"Id":134217737,"X":600,"Y":928},{"Id":134217738,"X":700,"Y":928},{"Id":134217739,"X":800,"Y":928},{"Id":134217740,"X":900,"Y":928},{"Id":134217741,"X":1000,"Y":928},{"Id":134217742,"X":1100,"Y":928},{"Id":134217743,"X":1200,"Y":928},{"Id":134217744,"X":1300,"Y":928},{"Id":134217745,"X":1400,"Y":928},{"Id":134217746,"X":0,"Y":1028},{"Id":134217747,"X":100,"Y":1028}],"W":100,"H":40},{"Id":1,"Data":[{"Id":134283264,"X":200,"Y":1028},{"Id":134283265,"X":300,"Y":1028}],"W":100,"H":40},{"Id":2,"Data":[{"Id":134348800,"X":400,"Y":1028},{"Id":134348801,"X":500,"Y":1028}],"W":100,"H":40},{"Id":3,"Data":[{"Id":134414336,"X":600,"Y":1028},{"Id":134414337,"X":700,"Y":1028},{"Id":134414338,"X":800,"Y":1028}],"W":100,"H":40}],"W":100,"H":40},{"Id":9,"Data":[{"Id":0,"Data":[{"Id":150994944,"X":900,"Y":1028},{"Id":150994945,"X":1000,"Y":1028},{"Id":150994946,"X":1100,"Y":1028},{"Id":150994947,"X":1200,"Y":1028},{"Id":150994948,"X":1300,"Y":1028},{"Id":150994949,"X":1400,"Y":1028}],"W":100,"H":60},{"Id":1,"Data":[{"Id":151060480,"X":0,"Y":1128},{"Id":151060481,"X":100,"Y":1128}],"W":100,"H":60}],"W":100,"H":60},{"Id":10,"Data":[{"Id":0,"Data":[{"Id":167772160,"X":840,"Y":208},{"Id":167772161,"X":900,"Y":208},{"Id":167772162,"X":960,"Y":208},{"Id":167772163,"X":1020,"Y":208},{"Id":167772164,"X":1080,"Y":208},{"Id":167772165,"X":1140,"Y":208},{"Id":167772166,"X":1200,"Y":208}],"W":60,"H":40},{"Id":1,"Data":[{"Id":167837696,"X":1260,"Y":208},{"Id":167837697,"X":1320,"Y":208},{"Id":167837698,"X":1380,"Y":208},{"Id":167837699,"X":1440,"Y":208},{"Id":167837700,"X":1360,"Y":648},{"Id":167837701,"X":200,"Y":1128},{"Id":167837702,"X":300,"Y":1128},{"Id":167837703,"X":400,"Y":1128},{"Id":167837704,"X":500,"Y":1128},{"Id":167837705,"X":600,"Y":1128},{"Id":167837706,"X":700,"Y":1128},{"Id":167837707,"X":800,"Y":1128}],"W":60,"H":40},{"Id":2,"Data":[{"Id":167903232,"X":900,"Y":1128},{"Id":167903233,"X":1000,"Y":1128}],"W":60,"H":40}],"W":60,"H":40},{"Id":11,"Data":[{"Id":0,"Data":[{"Id":184549376,"X":1100,"Y":1128},{"Id":184549377,"X":1200,"Y":1128},{"Id":184549378,"X":1300,"Y":1128},{"Id":184549379,"X":1400,"Y":1128},{"Id":184549380,"X":0,"Y":1228},{"Id":184549381,"X":100,"Y":1228},{"Id":184549382,"X":200,"Y":1228},{"Id":184549383,"X":300,"Y":1228}],"W":100,"H":72},{"Id":1,"Data":[{"Id":184614912,"X":400,"Y":1228},{"Id":184614913,"X":500,"Y":1228},{"Id":184614914,"X":600,"Y":1228},{"Id":184614915,"X":700,"Y":1228}],"W":100,"H":72},{"Id":2,"Data":[{"Id":184680448,"X":800,"Y":1228},{"Id":184680449,"X":900,"Y":1228},{"Id":184680450,"X":1000,"Y":1228},{"Id":184680451,"X":1100,"Y":1228}],"W":100,"H":72},{"Id":3,"Data":[{"Id":184745984,"X":1200,"Y":1228},{"Id":184745985,"X":1300,"Y":1228},{"Id":184745986,"X":1400,"Y":1228},{"Id":184745987,"X":0,"Y":1328}],"W":100,"H":72},{"Id":4,"Data":[{"Id":184811520,"X":100,"Y":1328},{"Id":184811521,"X":200,"Y":1328}],"W":100,"H":72}],"W":100,"H":72}],"W":0,"H":0}');
 
             var _math = new AscCommon.CAscMathCategory();
 
@@ -11903,6 +10847,12 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
         return {x: ext_x, y: ext_y};
     }
 
+    function HitToRect(x, y, invertTransform, rx, ry, rw, rh) {
+        var tx = invertTransform.TransformPointX(x, y);
+        var ty = invertTransform.TransformPointY(x, y);
+        return tx > rx && ty > ry && tx < rw && ty < rh;
+    }
+
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].HANDLE_EVENT_MODE_HANDLE = HANDLE_EVENT_MODE_HANDLE;
@@ -11934,7 +10884,6 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
 
 
     window['AscFormat'].CURSOR_TYPES_BY_CARD_DIRECTION = CURSOR_TYPES_BY_CARD_DIRECTION;
-    window['AscFormat'].removeDPtsFromSeries = removeDPtsFromSeries;
     window['AscFormat'].checkTxBodyDefFonts = checkTxBodyDefFonts;
     window['AscFormat'].CheckShapeBodyAutoFitReset = CheckShapeBodyAutoFitReset;
     window['AscFormat'].CDistance = CDistance;
@@ -11965,12 +10914,6 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
 	window['AscFormat'].fApproxEqual = fApproxEqual;
 	window['AscFormat'].fCheckBoxIntersectionSegment = fCheckBoxIntersectionSegment;
 	window['AscFormat'].CMathPainter = CMathPainter;
-	window['AscFormat'].CollectSettingsFromChart = CollectSettingsFromChart;
-	window['AscFormat'].ApplyPresetToChartSpace = ApplyPresetToChartSpace;
-	window['AscFormat'].ApplySpPr = ApplySpPr;
-	window['AscFormat'].ApplyDLblsProps = ApplyDLblsProps;
-	window['AscFormat'].CollectDLbls = CollectDLbls;
-	window['AscFormat'].CollectSettingsSpPr = CollectSettingsSpPr;
 	window['AscFormat'].CheckLinePresetForParagraphAdd = CheckLinePresetForParagraphAdd;
 	window['AscFormat'].isConnectorPreset = isConnectorPreset;
 	window['AscFormat'].fCreateSignatureShape = fCreateSignatureShape;
@@ -11984,7 +10927,6 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
 	window['AscFormat'].getAbsoluteRectBoundsArr = getAbsoluteRectBoundsArr;
 	window['AscFormat'].fCheckObjectHyperlink = fCheckObjectHyperlink;
 	window['AscFormat'].getNumberingType = getNumberingType;
-	window['AscFormat'].CreateUnifillFromPreset = CreateUnifillFromPreset;
 	window['AscFormat'].fGetDefaultShapeExtents = fGetDefaultShapeExtents;
-	window['AscFormat'].removeDPtsFromSeries = removeDPtsFromSeries;
+	window['AscFormat'].HitToRect = HitToRect;
 })(window);

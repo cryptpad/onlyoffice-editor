@@ -246,6 +246,10 @@
             t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
         });
 
+		AscCommon.loadChartStyles(function() {}, function(err) {
+			t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.NoCritical);
+		});
+
 		var oldOnError = window.onerror;
 		window.onerror = function(errorMsg, url, lineNumber, column, errorObj) {
 			//send only first error to reduce number of requests. also following error may be consequences of first
@@ -543,6 +547,7 @@
 	baseEditorsApi.prototype.asc_removeRestriction           = function(val)
 	{
 		this.restrictions &= ~val;
+		this.onUpdateRestrictions();
 	};
 	baseEditorsApi.prototype.canEdit                         = function()
 	{
@@ -1385,39 +1390,6 @@
 	{
 		var t = this;
 
-		if (true)
-		{
-			this.SpellCheckApi = {};
-			this.SpellCheckApi.log = true;
-			this.SpellCheckApi.worker = new CSpellchecker({
-				enginePath: "../../../../sdkjs/common/spell/spell",
-				dictionariesPath: "./../../../../dictionaries"
-			});
-			this.SpellCheckApi.checkDictionary = function (lang) {
-				if (this.log) console.log("checkDictionary: " + lang + ": " + this.worker.checkDictionary(lang));
-				return this.worker.checkDictionary(lang);
-			};
-			this.SpellCheckApi.spellCheck = function (spellData) {
-				if (this.log) {
-					console.log("spellCheck:");
-					console.log(spellData);
-				}
-				this.worker.command(spellData);
-			};
-			this.SpellCheckApi.worker.oncommand = function (spellData) {
-				if (t.SpellCheckApi.log) {
-					console.log("onSpellCheck:");
-					console.log(spellData);
-				}
-				t.SpellCheck_CallBack(spellData);
-			};
-			this.SpellCheckApi.disconnect = function ()
-			{
-			};
-			return;
-		}
-
-
 		if (!this.SpellCheckApi)
 		{
 			return; // Error
@@ -1483,10 +1455,45 @@
                     "4105",
                     "7177",
                     "9242",
-                    "10266"
+                    "10266",
+                    "2067"
 				]);
 			}
 		} else {
+			if (!this.SpellCheckUrl) {
+				this.SpellCheckApi = {};
+				this.SpellCheckApi.log = false;
+				this.SpellCheckApi.worker = new CSpellchecker({
+					enginePath: "../../../../sdkjs/common/spell/spell",
+					dictionariesPath: "./../../../../dictionaries"
+				});
+				this.SpellCheckApi.checkDictionary = function (lang) {
+					if (this.log) console.log("checkDictionary: " + lang + ": " + this.worker.checkDictionary(lang));
+					return this.worker.checkDictionary(lang);
+				};
+				this.SpellCheckApi.spellCheck = function (spellData) {
+					if (this.log) {
+						console.log("spellCheck:");
+						console.log(spellData);
+					}
+					this.worker.command(spellData);
+				};
+				this.SpellCheckApi.worker.oncommand = function (spellData) {
+					if (t.SpellCheckApi.log) {
+						console.log("onSpellCheck:");
+						console.log(spellData);
+					}
+					t.SpellCheck_CallBack(spellData);
+				};
+				this.SpellCheckApi.disconnect = function ()
+				{
+				};
+
+				this.sendEvent('asc_onSpellCheckInit', this.SpellCheckApi.worker.getLanguages());
+				return;
+			}
+			
+			// Deprecated old scheme with server
 			if (this.SpellCheckUrl && this.isSpellCheckEnable) {
 				this.SpellCheckApi.set_url(this.SpellCheckUrl);
 			}
@@ -2920,12 +2927,22 @@
 
 	baseEditorsApi.prototype._beforeEvalCommand = function()
 	{
+		var oApi = this;
 		switch (this.editorId)
 		{
 			case AscCommon.c_oEditorId.Word:
 			{
 				if (this.WordControl && this.WordControl.m_oLogicDocument)
 					this.WordControl.m_oLogicDocument.LockPanelStyles();
+				break;
+			}
+			case AscCommon.c_oEditorId.Spreadsheet:
+			{
+				if (AscCommonExcel)
+				{
+					oApi.tmpR1C1mode = AscCommonExcel.g_R1C1Mode;
+					AscCommonExcel.g_R1C1Mode = false;
+				}
 				break;
 			}
 			default:
@@ -3001,6 +3018,12 @@
 
 					endAction && endAction();
 				});
+				
+				if (AscCommonExcel)
+				{
+					AscCommonExcel.g_R1C1Mode = oApi.tmpR1C1mode;
+					oApi.tmpR1C1mode = null;
+				}
 				break;
 			}
 			default:

@@ -1019,6 +1019,11 @@ CHeaderFooter.prototype =
 		return this.Content.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
 	},
 
+	GetCurrentTablesStack : function(arrTables)
+	{
+		return this.Content.GetCurrentTablesStack(arrTables);
+	},
+
 	StartSelectionFromCurPos : function()
 	{
 		this.Content.StartSelectionFromCurPos();
@@ -2408,6 +2413,11 @@ CHeaderFooterController.prototype =
 		return this.CurHdrFtr.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
 	},
 
+	GetCurrentTablesStack : function(arrTables)
+	{
+		return this.CurHdrFtr ? this.CurHdrFtr.GetCurrentTablesStack(arrTables) : arrTables;
+	},
+
 	StartSelectionFromCurPos : function()
 	{
 		if (null !== this.CurHdrFtr)
@@ -2649,6 +2659,10 @@ CHeaderFooterController.prototype.GetSelectionBounds = function()
 CHeaderFooterController.prototype.Get_CurHdrFtr = function()
 {
     return this.CurHdrFtr;
+};
+CHeaderFooterController.prototype.GetCurHdrFtr = function()
+{
+	return this.CurHdrFtr;
 };
 CHeaderFooterController.prototype.Set_CurHdrFtr = function(HdrFtr)
 {

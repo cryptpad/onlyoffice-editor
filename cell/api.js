@@ -125,6 +125,8 @@ var editor;
     this.formulasList = null;	// Список всех формул
 
 	this.openingEnd = {bin: false, xlsxStart: false, xlsx: false, data: null};
+	
+	this.tmpR1C1mode = null;
 
     this._init();
     return this;
@@ -373,6 +375,7 @@ var editor;
     AscCommonExcel.g_oUndoRedoSlicer = new AscCommonExcel.UndoRedoSlicer(wbModel);
     AscCommonExcel.g_oUndoRedoPivotTables = new AscCommonExcel.UndoRedoPivotTables(wbModel);
     AscCommonExcel.g_oUndoRedoPivotFields = new AscCommonExcel.UndoRedoPivotFields(wbModel);
+    AscCommonExcel.g_oUndoRedoCF = new AscCommonExcel.UndoRedoCF(wbModel);
     this.initGlobalObjectsNamedSheetView(wbModel);
   };
 
@@ -569,6 +572,7 @@ var editor;
     if (this.wb) {
       if (Math.abs(oldScale - AscCommon.AscBrowser.retinaPixelRatio) > 0.001) {
         this.wb.changeZoom(null);
+        this._sendWorkbookStyles();
       }
       this.wb.resize();
 
@@ -1317,6 +1321,12 @@ var editor;
           if (t._onUpdateAllSheetViewLock) {
             t._onUpdateAllSheetViewLock.apply(t, arguments);
           }
+      },
+      "unlockCF": function() {
+        t._onUnlockCF.apply(t, arguments);
+      },
+      "checkCFRemoveLock": function(lockElem) {
+        return t._onCheckCFRemoveLock(lockElem);
       }
     }, this.getViewMode());
 
@@ -1386,6 +1396,7 @@ var editor;
             t._onUpdateNamedSheetViewLock(lockElem);
           }
 
+          t._onUpdateCFLock(lockElem);
 
 
           var ws = t.wb.getWorksheet();
@@ -2700,20 +2711,31 @@ var editor;
     }
   };
 
-  spreadsheet_api.prototype.asc_groupPivot = function (opt_rangePr, opt_dateTypes) {
+  spreadsheet_api.prototype._canGroupPivot = function () {
     var ws = this.wbModel.getActiveWs();
     var activeCell = ws.selectionRange.activeCell;
     var pivotTable = ws.getPivotTable(activeCell.col, activeCell.row);
     if (pivotTable && ws.selectionRange.inContains(pivotTable.getReportRanges())) {
-      pivotTable.groupPivot(this, ws.selectionRange, opt_rangePr, opt_dateTypes);
+      var layout = pivotTable.getLayoutsForGroup(ws.selectionRange);
+      if (null !== layout.fld) {
+        return {pivotTable: pivotTable, layout: layout};
+      }
+    }
+    return null;
+  };
+  spreadsheet_api.prototype.asc_canGroupPivot = function () {
+    return !!this._canGroupPivot();
+  };
+  spreadsheet_api.prototype.asc_groupPivot = function (opt_rangePr, opt_dateTypes) {
+    var canGroupRes = this._canGroupPivot();
+    if(canGroupRes) {
+      canGroupRes.pivotTable.groupPivot(this, canGroupRes.layout, opt_rangePr, opt_dateTypes);
     }
   };
-    spreadsheet_api.prototype.asc_ungroupPivot = function () {
-    var ws = this.wbModel.getActiveWs();
-    var activeCell = ws.selectionRange.activeCell;
-    var pivotTable = ws.getPivotTable(activeCell.col, activeCell.row);
-    if (pivotTable && ws.selectionRange.inContains(pivotTable.getReportRanges())) {
-      pivotTable.ungroupPivot(this, ws.selectionRange);
+  spreadsheet_api.prototype.asc_ungroupPivot = function () {
+    var canGroupRes = this._canGroupPivot();
+    if(canGroupRes) {
+      canGroupRes.pivotTable.ungroupPivot(this, canGroupRes.layout);
     }
   };
 
@@ -2754,8 +2776,9 @@ var editor;
     this.wb.getWorksheet().setSelectionInfo("sort", options);
   };
 
-  spreadsheet_api.prototype.asc_emptyCells = function(options) {
-    this.wb.emptyCells(options);
+  spreadsheet_api.prototype.asc_emptyCells = function(options, isMineComments) {
+    //TODO isMineComments - временный флаг, как только в сдк появится класс для групп, добавить этот флаг туда
+  	this.wb.emptyCells(options, isMineComments);
   };
 
   spreadsheet_api.prototype.asc_drawDepCells = function(se) {
@@ -2922,18 +2945,19 @@ var editor;
                 var nSheetIdx = oWorksheet.getIndex();
                 if (this.asc_getActiveWorksheetIndex() !== nSheetIdx) {
                     this.asc_showWorksheet(nSheetIdx);
-                    var oWSView = this.wb.getWorksheet();
-                    if(oWSView) {
-                        var oRender = oWSView.objectRender;
-                        if(oRender) {
-                            var oController = oRender.controller;
-                            if(oController) {
-                                oSp.Set_CurrentElement(false);
-                                oController.selection.textSelection = null;
-                                oController.updateSelectionState();
-                                oController.updateOverlay();
-                                oRender.sendGraphicObjectProps();
-                            }
+                }
+                var oWSView = this.wb.getWorksheet();
+                if(oWSView) {
+                    var oRender = oWSView.objectRender;
+                    if(oRender) {
+                        var oController = oRender.controller;
+                        if(oController) {
+                            oSp.Set_CurrentElement(false);
+                            oController.selection.textSelection = null;
+                            oWSView.setSelectionShape(true);
+                            oController.updateSelectionState();
+                            oController.updateOverlay();
+                            oRender.sendGraphicObjectProps();
                         }
                     }
                 }
@@ -5028,46 +5052,149 @@ var editor;
       }
     };
 
-    spreadsheet_api.prototype.asc_getCF = function (type, id) {
-      var rules = null;
-      var range, sheet;
-      switch (type) {
-        case Asc.c_oAscSelectionForCFType.selection:
-          sheet = this.wbModel.getActiveWs();
-          // ToDo multiselect
-          range = sheet.selectionRange.getLast();
-          break;
-        case Asc.c_oAscSelectionForCFType.worksheet:
-          sheet = this.wbModel.getWorksheet(id);
-          break;
-        case Asc.c_oAscSelectionForCFType.table:
-          // ToDo
-          break;
-        case Asc.c_oAscSelectionForCFType.pivot:
-          // ToDo
-          break;
-      }
-      if (sheet) {
-        var aRules = sheet.aConditionalFormattingRules.sort(function(v1, v2) {
-          return v1.priority - v2.priority;
-        });
-        if (range) {
-          rules = [];
-          var oRule, ranges, multiplyRange;
-          for (var i = 0; i < aRules.length; ++i) {
-            oRule = aRules[i];
-            ranges = oRule.ranges;
-            multiplyRange = new AscCommonExcel.MultiplyRange(ranges);
-            if (multiplyRange.isIntersect(range)) {
-              rules.push(oRule);
-            }
-          }
-        } else {
-          rules = aRules;
-        }
-      }
-      return rules;
-    };
+	spreadsheet_api.prototype.asc_getCF = function (type, id) {
+		var sheet;
+		var rules = this.wbModel.getRulesByType(type, id, true);
+		var aSheet = type === Asc.c_oAscSelectionForCFType.selection ? sheet : this.wbModel.getActiveWs();
+		var activeRanges = aSheet.selectionRange.ranges;
+		var sActiveRanges = [];
+		if (activeRanges) {
+			activeRanges.forEach(function (item) {
+				sActiveRanges.push(item.getAbsName());
+			});
+		}
+
+		return [rules, "=" + sActiveRanges.join(AscCommon.FormulaSeparators.functionArgumentSeparator)];
+	};
+
+	spreadsheet_api.prototype.asc_getPreviewCF = function (id, props, text) {
+		if (!props && text) {
+			props = new AscCommonExcel.CellXfs();
+		}
+		if (props) {
+			props.asc_getPreview2(this, id, text);
+		}
+	};
+
+	spreadsheet_api.prototype.asc_setCF = function (arr, deleteIdArr, presetId) {
+		var ws = this.wb.getWorksheet();
+		ws.setCF(arr, deleteIdArr, presetId);
+	};
+
+	spreadsheet_api.prototype.asc_clearCF = function (type, id) {
+		var rules = this.wbModel.getRulesByType(type, id);
+		if (rules && rules.length) {
+			var ws = this.wb.getWorksheet();
+			ws.deleteCF(rules, type);
+		}
+	};
+
+	spreadsheet_api.prototype._onUpdateCFLock = function (lockElem) {
+		var t = this;
+		var sheetId = lockElem.Element["sheetId"];
+		if (-1 !== sheetId && 0 === sheetId.indexOf(AscCommonExcel.CConditionalFormattingRule.sStartLockCFId)) {
+			sheetId = sheetId.split(AscCommonExcel.CConditionalFormattingRule.sStartLockCFId)[1];
+			var wsModel = this.wbModel.getWorksheetById(sheetId);
+			if (wsModel) {
+				var wsIndex = wsModel.getIndex();
+				var cFRule = wsModel.getCFRuleById(lockElem.Element["rangeOrObjectId"]);
+				if (cFRule && cFRule.val) {
+					cFRule = cFRule.val;
+					cFRule.isLock = lockElem.UserId;
+					this.handlers.trigger("asc_onLockCFRule", wsIndex, cFRule.id, lockElem.UserId);
+				} else {
+					var wsView = this.wb.getWorksheetById(sheetId);
+					wsView._lockAddNewRule = true;
+				}
+				this.handlers.trigger("asc_onLockCFManager", wsModel.index);
+			}
+		}
+	};
+
+	spreadsheet_api.prototype._onUnlockCF = function () {
+		var t = this;
+		if (t.wbModel) {
+			var i, length, wsModel, wsIndex;
+			for (i = 0, length = t.wbModel.getWorksheetCount(); i < length; ++i) {
+				wsModel = t.wbModel.getWorksheet(i);
+				wsIndex = wsModel.getIndex();
+				//TODO необходимо добавить инофрмацию о локе нового добавленного правила!!!
+
+				var isLockedRules = false;
+				if (wsModel.aConditionalFormattingRules && wsModel.aConditionalFormattingRules.length) {
+					wsModel.aConditionalFormattingRules.forEach(function (_rule) {
+						if (_rule.isLock) {
+							isLockedRules = true;
+						}
+					});
+					if (!isLockedRules) {
+						var wsView = this.wb.getWorksheetById(wsModel.Id);
+						if (wsView._lockAddNewRule) {
+							isLockedRules = true;
+						}
+					}
+				}
+				if (!isLockedRules) {
+					t.handlers.trigger("asc_onUnLockCFManager", wsIndex);
+				}
+			}
+		}
+	};
+
+	spreadsheet_api.prototype.asc_getFullCFIcons = function () {
+		return AscCommonExcel.getFullCFIcons();
+	};
+
+	spreadsheet_api.prototype.asc_getCFPresets = function () {
+		return AscCommonExcel.getFullCFPresets();
+	};
+
+	spreadsheet_api.prototype.asc_getCFIconsByType = function () {
+		return AscCommonExcel.getCFIconsByType();
+	};
+
+	spreadsheet_api.prototype._onCheckCFRemoveLock = function (lockElem) {
+		//лок правила - с правилом делать ничего нельзя
+		//лок менеджера - незалоченное правило можно удалять и редактировать. новые правила добавлять нельзя.
+		//так же нельзя перемещать местами правила
+
+		//лочим правило как объект. в лок кладём id и лист с префиксом CConditionalFormattingRule.sStartLockCFId
+		//на принятии изменений удаляем локи с соответсвующих элементов
+		//разлочиваем менеджер если нет залоченных элементов(т.е. проверяем все на лок)
+		//+ проверяем нет ли нового добавленного правила другим юзером
+		//всего для передачи в интерфейс 4 события - asc_onLockCFRule/asc_onUnLockCFRule; asc_onLockCFManager/asc_onUnLockCFManager
+
+		var res = false;
+		var t = this;
+		var sheetId = lockElem["sheetId"];
+		if (-1 !== sheetId && 0 === sheetId.indexOf(AscCommonExcel.CConditionalFormattingRule.sStartLockCFId)) {
+			res = true;
+			if (t.wbModel) {
+				sheetId = sheetId.split(AscCommonExcel.CConditionalFormattingRule.sStartLockCFId)[1];
+				var wsModel = t.wbModel.getWorksheetById(sheetId);
+				if (wsModel) {
+					var wsIndex = wsModel.getIndex();
+					var wsView = this.wb.getWorksheetById(sheetId);
+					var cFRule = wsModel.getCFRuleById(lockElem["rangeOrObjectId"]);
+					if (cFRule) {
+						if (cFRule.val.isLock) {
+							cFRule.val.isLock = null;
+						} else {
+							wsView._lockAddNewRule = null;
+						}
+						this.handlers.trigger("asc_onUnLockCFRule", wsIndex, lockElem["rangeOrObjectId"]);
+					} else {
+						wsView._lockAddNewRule = null;
+					}
+				}
+			}
+		}
+		return res;
+	};
+
+	spreadsheet_api.prototype.asc_isValidDataRefCf = function (type, props) {
+		return AscCommonExcel.isValidDataRefCf(type, props);
+	};
 
   spreadsheet_api.prototype.asc_beforeInsertSlicer = function () {
     //пока возвращаю только данные о ф/т
@@ -5137,6 +5264,20 @@ var editor;
 		  ws.draw();
       }
     }
+  };
+
+  spreadsheet_api.prototype.onUpdateRestrictions = function () {
+    var oHistory = AscCommon.History;
+    if (this.isRestrictionSignatures() && oHistory && !oHistory.Have_Changes()) {
+        oHistory.Clear();
+    }
+  };
+
+  spreadsheet_api.prototype.asc_undoAllChanges = function() {
+  	if (this.wb.getCellEditMode()) {
+		this.asc_closeCellEditor();
+	}
+  	this.wb.undo({All : true});
   };
 
   /*
@@ -5320,6 +5461,7 @@ var editor;
   //Group data
   prot["asc_group"] = prot.asc_group;
   prot["asc_ungroup"] = prot.asc_ungroup;
+  prot["asc_canGroupPivot"] = prot.asc_canGroupPivot;
   prot["asc_groupPivot"] = prot.asc_groupPivot;
   prot["asc_ungroupPivot"] = prot.asc_ungroupPivot;
   prot["asc_clearOutline"] = prot.asc_clearOutline;
@@ -5567,7 +5709,15 @@ var editor;
   prot["asc_getRemoveDuplicates"] = prot.asc_getRemoveDuplicates;
   prot["asc_setRemoveDuplicates"] = prot.asc_setRemoveDuplicates;
 
-  prot["asc_getCF"] = prot.asc_getCF;
+  //conditional formatting
+  prot["asc_getCF"]            = prot.asc_getCF;
+  prot["asc_setCF"]            = prot.asc_setCF;
+  prot["asc_getPreviewCF"]     = prot.asc_getPreviewCF;
+  prot["asc_clearCF"]          = prot.asc_clearCF;
+  prot["asc_getCFIconsByType"] = prot.asc_getCFIconsByType;
+  prot["asc_getCFPresets"]     = prot.asc_getCFPresets;
+  prot["asc_getFullCFIcons"]   = prot.asc_getFullCFIcons;
+  prot["asc_isValidDataRefCf"] = prot.asc_isValidDataRefCf;
 
   prot["asc_beforeInsertSlicer"] = prot.asc_beforeInsertSlicer;
   prot["asc_insertSlicer"] = prot.asc_insertSlicer;

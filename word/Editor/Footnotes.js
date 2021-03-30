@@ -2735,6 +2735,13 @@ CFootnotesController.prototype.GetCurrentParagraph = function(bIgnoreSelection, 
 {
 	return this.CurFootnote.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
 };
+CFootnotesController.prototype.GetCurrentTablesStack = function(arrTables)
+{
+	if (!arrTables)
+		arrTables = [];
+
+	return this.CurFootnote.GetCurrentTablesStack(arrTables);
+};
 CFootnotesController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
 	if (true !== this.private_IsOnFootnoteSelected() || null === this.CurFootnote)
@@ -3409,6 +3416,61 @@ CFootnotesController.prototype.GetAllTablesOnPage = function(nPageAbs, arrTables
 	}
 
 	return arrTables;
+};
+CFootnotesController.prototype.FindNextFillingForm = function(isNext, isCurrent)
+{
+	var oCurFootnote = this.CurFootnote;
+
+	var arrFootnotes = this.LogicDocument.GetFootnotesList(null, null);
+	var nCurPos      = -1;
+	var nCount       = arrFootnotes.length;
+
+	if (nCount <= 0)
+		return null;
+
+	if (isCurrent)
+	{
+		for (var nIndex = 0; nIndex < nCount; ++nIndex)
+		{
+			if (arrFootnotes[nIndex] === oCurFootnote)
+			{
+				nCurPos = nIndex;
+				break;
+			}
+		}
+	}
+
+	if (-1 === nCurPos)
+	{
+		nCurPos      = isNext ? 0 : nCount - 1;
+		oCurFootnote = arrFootnotes[nCurPos];
+		isCurrent    = false;
+	}
+
+	var oRes = oCurFootnote.FindNextFillingForm(isNext, isCurrent, isCurrent);
+	if (oRes)
+		return oRes;
+
+	if (true === isNext)
+	{
+		for (var nIndex = nCurPos + 1; nIndex < nCount; ++nIndex)
+		{
+			oRes = arrFootnotes[nIndex].FindNextFillingForm(isNext, false);
+			if (oRes)
+				return oRes;
+		}
+	}
+	else
+	{
+		for (var nIndex = nCurPos - 1; nIndex >= 0; --nIndex)
+		{
+			oRes = arrFootnotes[nIndex].FindNextFillingForm(isNext, false);
+			if (oRes)
+				return oRes;
+		}
+	}
+
+	return null;
 };
 
 

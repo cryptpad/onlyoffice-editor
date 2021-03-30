@@ -120,6 +120,10 @@ CShape.prototype.addToDrawingObjects =  function(pos)
 {
     if(this.parent && this.parent.cSld && this.parent.cSld.spTree)
     {
+        if(this.signatureLine && this.setSignature)
+        {
+            this.setSignature(null);
+        }
         this.parent.shapeAdd(pos, this);
     }
 };
@@ -435,6 +439,24 @@ CShape.prototype.getParentObjects = function ()
                     return this.parent.parent.getParentObjects()
                 }
                 break;
+            }
+        }
+    }
+    else
+    {
+        var oPresentation = editor.WordControl.m_oLogicDocument;
+        if(oPresentation)
+        {
+            var oSlide = oPresentation.Slides[oPresentation.CurPage];
+            if(oSlide)
+            {
+                return {
+                    presentation: oPresentation,
+                    slide: oSlide,
+                    layout: oSlide.Layout,
+                    master: oSlide.Layout ? oSlide.Layout.Master : null,
+                    theme: this.themeOverride ? this.themeOverride : (oSlide.Layout && oSlide.Layout.Master ? oSlide.Layout.Master.Theme : null)
+                };
             }
         }
     }

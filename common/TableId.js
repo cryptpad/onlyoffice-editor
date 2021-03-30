@@ -274,6 +274,9 @@
 		this.m_oFactoryClass[AscDFH.historyitem_type_RunRevisionMove]        = AscCommon.CRunRevisionMove;
 		this.m_oFactoryClass[AscDFH.historyitem_type_DocPart]                = AscCommon.CDocPart;
 		this.m_oFactoryClass[AscDFH.historyitem_type_SlicerView]             = AscFormat.CSlicer;
+		this.m_oFactoryClass[AscDFH.historyitem_type_ChartStyle]             = AscFormat.CChartStyle;
+		this.m_oFactoryClass[AscDFH.historyitem_type_MarkerLayout]           = AscFormat.CMarkerLayout;
+		this.m_oFactoryClass[AscDFH.historyitem_type_ChartStyleEntry]        = AscFormat.CStyleEntry;
 
 
 		if (window['AscCommonSlide'])

@@ -2702,6 +2702,13 @@ CEndnotesController.prototype.GetCurrentParagraph = function(bIgnoreSelection, a
 {
 	return this.CurEndnote.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
 };
+CEndnotesController.prototype.GetCurrentTablesStack = function(arrTables)
+{
+	if (!arrTables)
+		arrTables = [];
+
+	return this.CurEndnote.GetCurrentTablesStack(arrTables);
+};
 CEndnotesController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
 	if (true !== this.private_IsOneEndnoteSelected() || null === this.CurEndnote)
@@ -3329,6 +3336,61 @@ CEndnotesController.prototype.GetAllTablesOnPage = function(nPageAbs, arrTables)
 	}
 
 	return arrTables;
+};
+CEndnotesController.prototype.FindNextFillingForm = function(isNext, isCurrent)
+{
+	var oCurEndnote = this.CurEndnote;
+
+	var arrEndnotes = this.LogicDocument.GetEndnotesList(null, null);
+	var nCurPos     = -1;
+	var nCount      = arrEndnotes.length;
+
+	if (nCount <= 0)
+		return null;
+
+	if (isCurrent)
+	{
+		for (var nIndex = 0; nIndex < nCount; ++nIndex)
+		{
+			if (arrEndnotes[nIndex] === oCurEndnote)
+			{
+				nCurPos = nIndex;
+				break;
+			}
+		}
+	}
+
+	if (-1 === nCurPos)
+	{
+		nCurPos      = isNext ? 0 : nCount - 1;
+		oCurEndnote = arrEndnotes[nCurPos];
+		isCurrent    = false;
+	}
+
+	var oRes = oCurEndnote.FindNextFillingForm(isNext, isCurrent, isCurrent);
+	if (oRes)
+		return oRes;
+
+	if (true === isNext)
+	{
+		for (var nIndex = nCurPos + 1; nIndex < nCount; ++nIndex)
+		{
+			oRes = arrEndnotes[nIndex].FindNextFillingForm(isNext, false);
+			if (oRes)
+				return oRes;
+		}
+	}
+	else
+	{
+		for (var nIndex = nCurPos - 1; nIndex >= 0; --nIndex)
+		{
+			oRes = arrEndnotes[nIndex].FindNextFillingForm(isNext, false);
+			if (oRes)
+				return oRes;
+		}
+	}
+
+	return null;
 };
 
 /**

@@ -724,7 +724,8 @@
         DataBar			: 15,
         FormulaCF		: 16,
 		IconSet			: 17,
-		Dxf				: 18
+		Dxf				: 18,
+		isExt			: 19
     };
     var c_oSer_ConditionalFormattingRuleColorScale = {
         CFVO			: 0,
@@ -8566,8 +8567,9 @@
             }
             else if (c_oSer_ConditionalFormatting.ConditionalFormattingRule === type) {
                 oConditionalFormattingRule = new AscCommonExcel.CConditionalFormattingRule();
+                var ext = {isExt: false};
                 res = this.bcr.Read1(length, function (t, l) {
-                    return oThis.ReadConditionalFormattingRule(t, l, oConditionalFormattingRule);
+                    return oThis.ReadConditionalFormattingRule(t, l, oConditionalFormattingRule, ext);
                 });
                 oConditionalFormatting.aRules.push(oConditionalFormattingRule);
             }
@@ -8575,7 +8577,7 @@
                 res = c_oSerConstants.ReadUnknown;
             return res;
         };
-        this.ReadConditionalFormattingRule = function (type, length, oConditionalFormattingRule) {
+        this.ReadConditionalFormattingRule = function (type, length, oConditionalFormattingRule, ext) {
             var res = c_oSerConstants.ReadOk;
             var oThis = this;
             var oConditionalFormattingRuleElement = null;
@@ -8639,6 +8641,8 @@
                     return oThis.ReadIconSet(t, l, oConditionalFormattingRuleElement);
                 });
                 oConditionalFormattingRule.aRuleElements.push(oConditionalFormattingRuleElement);
+            } else if (c_oSer_ConditionalFormattingRule.isExt === type) {
+                ext.isExt = this.stream.GetBool();
             } else
                 res = c_oSerConstants.ReadUnknown;
             return res;
@@ -10586,7 +10590,31 @@
     window["Asc"].EDateTimeGroup = EDateTimeGroup;
     window["Asc"].ETableStyleType = ETableStyleType;
     window["Asc"].EFontScheme = EFontScheme;
-    window["Asc"].EIconSetType = EIconSetType;
+
+	window['Asc']['EIconSetType'] = window["Asc"].EIconSetType = EIconSetType;
+	prot = EIconSetType;
+	prot['Arrows3'] = prot.Arrows3;
+	prot['Arrows3Gray'] = prot.Arrows3Gray;
+	prot['Flags3'] = prot.Flags3;
+	prot['Signs3'] = prot.Signs3;
+	prot['Symbols3'] = prot.Symbols3;
+	prot['Symbols3_2'] = prot.Symbols3_2;
+	prot['Traffic3Lights1'] = prot.Traffic3Lights1;
+	prot['Traffic3Lights2'] = prot.Traffic3Lights2;
+	prot['Arrows4'] = prot.Arrows4;
+	prot['Arrows4Gray'] = prot.Arrows4Gray;
+	prot['Rating4'] = prot.Rating4;
+	prot['RedToBlack4'] = prot.RedToBlack4;
+	prot['Traffic4Lights'] = prot.Traffic4Lights;
+	prot['Arrows5'] = prot.Arrows5;
+	prot['Arrows5Gray'] = prot.Arrows5Gray;
+	prot['Quarters5'] = prot.Quarters5;
+	prot['Rating5'] = prot.Rating5;
+	prot['Triangles3'] = prot.Triangles3;
+	prot['Stars3'] = prot.Stars3;
+	prot['Boxes5'] = prot.Boxes5;
+	prot['NoIcons'] = prot.NoIcons;
+
     window["Asc"].c_oSer_DrawingType = c_oSer_DrawingType;
     window["Asc"].c_oSer_DrawingPosType = c_oSer_DrawingPosType;
 
