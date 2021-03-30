@@ -6019,6 +6019,54 @@
       }
     }
 
+    changesFactory[AscDFH.historyitem_ContourClrColor] = CChangeObject;
+    drawingsChangesMap[AscDFH.historyitem_ContourClrColor] = function (oClass, value) {oClass.color = value;};
+    function ContourClr() {
+      CBaseFormatObject.call(this);
+      this.color = null;
+    }
+    InitClass(ContourClr, CBaseFormatObject, AscDFH.historyitem_type_ContourClr);
+
+    ContourClr.prototype.setColor = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_ContourClrColor, this.getColor(), oPr));
+      this.color = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    ContourClr.prototype.getColor = function() {
+      return this.color;
+    }
+
+    ContourClr.prototype.fillObject = function (oCopy, oIdMap) {
+      if (this.getColor()) {
+        oCopy.setColor(this.getColor().createDuplicate(oIdMap));
+      }
+    }
+
+    changesFactory[AscDFH.historyitem_ExtrusionClrColor] = CChangeObject;
+    drawingsChangesMap[AscDFH.historyitem_ExtrusionClrColor] = function (oClass, value) {oClass.color = value;};
+    function ExtrusionClr() {
+      CBaseFormatObject.call(this);
+      this.color = null;
+    }
+    InitClass(ExtrusionClr, CBaseFormatObject, AscDFH.historyitem_type_ExtrusionClr);
+
+    ExtrusionClr.prototype.setColor = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_ExtrusionClrColor, this.getColor(), oPr));
+      this.color = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    ExtrusionClr.prototype.getColor = function() {
+      return this.color;
+    }
+
+    ExtrusionClr.prototype.fillObject = function (oCopy, oIdMap) {
+      if (this.getColor()) {
+        oCopy.setColor(this.getColor().createDuplicate(oIdMap));
+      }
+    }
+
     changesFactory[AscDFH.historyitem_BevelH] = CChangeLong;
     changesFactory[AscDFH.historyitem_BevelPrst] = CChangeLong;
     changesFactory[AscDFH.historyitem_BevelW] = CChangeLong;

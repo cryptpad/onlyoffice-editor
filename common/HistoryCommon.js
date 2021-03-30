@@ -1596,6 +1596,8 @@
 	window['AscDFH'].historyitem_type_HierBranch             = 2083 << 16;
 	window['AscDFH'].historyitem_type_ParameterVal           = 2084 << 16;
 	window['AscDFH'].historyitem_type_Coordinate             = 2085 << 16;
+	window['AscDFH'].historyitem_type_ExtrusionClr           = 2086 << 16;
+	window['AscDFH'].historyitem_type_ContourClr             = 2087 << 16;
 
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3693,8 +3695,9 @@
 	AscDFH.historyitem_CoordinateCoordinateUnqualified = AscDFH.historyitem_type_Coordinate | 1;
 	AscDFH.historyitem_CoordinateUniversalMeasure      = AscDFH.historyitem_type_Coordinate | 2;
 
+	AscDFH.historyitem_ContourClrColor = AscDFH.historyitem_type_ContourClr | 1;
 
-
+	AscDFH.historyitem_ExtrusionClrColor = AscDFH.historyitem_type_ExtrusionClr | 1;
 
 
 
