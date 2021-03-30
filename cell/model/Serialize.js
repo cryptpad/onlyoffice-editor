@@ -10590,7 +10590,31 @@
     window["Asc"].EDateTimeGroup = EDateTimeGroup;
     window["Asc"].ETableStyleType = ETableStyleType;
     window["Asc"].EFontScheme = EFontScheme;
-    window["Asc"].EIconSetType = EIconSetType;
+
+	window['Asc']['EIconSetType'] = window["Asc"].EIconSetType = EIconSetType;
+	prot = EIconSetType;
+	prot['Arrows3'] = prot.Arrows3;
+	prot['Arrows3Gray'] = prot.Arrows3Gray;
+	prot['Flags3'] = prot.Flags3;
+	prot['Signs3'] = prot.Signs3;
+	prot['Symbols3'] = prot.Symbols3;
+	prot['Symbols3_2'] = prot.Symbols3_2;
+	prot['Traffic3Lights1'] = prot.Traffic3Lights1;
+	prot['Traffic3Lights2'] = prot.Traffic3Lights2;
+	prot['Arrows4'] = prot.Arrows4;
+	prot['Arrows4Gray'] = prot.Arrows4Gray;
+	prot['Rating4'] = prot.Rating4;
+	prot['RedToBlack4'] = prot.RedToBlack4;
+	prot['Traffic4Lights'] = prot.Traffic4Lights;
+	prot['Arrows5'] = prot.Arrows5;
+	prot['Arrows5Gray'] = prot.Arrows5Gray;
+	prot['Quarters5'] = prot.Quarters5;
+	prot['Rating5'] = prot.Rating5;
+	prot['Triangles3'] = prot.Triangles3;
+	prot['Stars3'] = prot.Stars3;
+	prot['Boxes5'] = prot.Boxes5;
+	prot['NoIcons'] = prot.NoIcons;
+
     window["Asc"].c_oSer_DrawingType = c_oSer_DrawingType;
     window["Asc"].c_oSer_DrawingPosType = c_oSer_DrawingPosType;
 

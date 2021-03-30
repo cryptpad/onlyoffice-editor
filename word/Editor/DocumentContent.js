@@ -3017,7 +3017,7 @@ CDocumentContent.prototype.AddToParagraph = function(ParaItem, bRecalculate)
 	{
 		if (true === this.Selection.Use)
 		{
-			var bAddSpace = this.LogicDocument ? this.LogicDocument.Is_WordSelection() : false;
+			var bAddSpace = this.LogicDocument ? this.LogicDocument.IsWordSelection() : false;
 			var Type      = ParaItem.Get_Type();
 			switch (Type)
 			{
@@ -4411,18 +4411,25 @@ CDocumentContent.prototype.InsertContent = function(SelectedContent, NearPos)
     {
 		if (LastClass.GetParentForm())
 		{
-			var isPlaceHolder  = LastClass.GetParentForm().IsPlaceHolder();
+			var nInLastClassPos = ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 1]
+
+			var isPlaceHolder = LastClass.GetParentForm().IsPlaceHolder();
+			if (isPlaceHolder && LastClass.GetParent() instanceof CInlineLevelSdt)
+			{
+				var oInlineLeveLSdt = LastClass.GetParent();
+				oInlineLeveLSdt.ReplacePlaceHolderWithContent();
+				LastClass       = oInlineLeveLSdt.GetElement(0);
+				nInLastClassPos = 0;
+			}
+
 			var nInRunStartPos = LastClass.State.ContentPos;
-			LastClass.AddText(SelectedContent.GetText({ParaEndToSpace : false}), ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 1]);
+			LastClass.AddText(SelectedContent.GetText({ParaEndToSpace : false}), nInLastClassPos);
 			var nInRunEndPos = LastClass.State.ContentPos;
 
 			LastClass.SelectThisElement();
-			if (!isPlaceHolder)
-			{
-				LastClass.Selection.Use      = true;
-				LastClass.Selection.StartPos = nInRunStartPos;
-				LastClass.Selection.EndPos   = nInRunEndPos;
-			}
+			LastClass.Selection.Use      = true;
+			LastClass.Selection.StartPos = nInRunStartPos;
+			LastClass.Selection.EndPos   = nInRunEndPos;
 			return;
 		}
 

@@ -2660,6 +2660,10 @@ CHeaderFooterController.prototype.Get_CurHdrFtr = function()
 {
     return this.CurHdrFtr;
 };
+CHeaderFooterController.prototype.GetCurHdrFtr = function()
+{
+	return this.CurHdrFtr;
+};
 CHeaderFooterController.prototype.Set_CurHdrFtr = function(HdrFtr)
 {
     if (null !== this.CurHdrFtr)

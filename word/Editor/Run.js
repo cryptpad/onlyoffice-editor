@@ -4418,6 +4418,13 @@ ParaRun.prototype.Recalculate_LineMetrics = function(PRS, ParaPr, _CurLine, _Cur
 		}
 	}
 
+	if (false === UpdateLineMetricsText)
+	{
+		var oTextForm  = this.GetTextForm();
+		if (oTextForm && oTextForm.IsComb())
+			UpdateLineMetricsText = true;
+	}
+
 	if (true === UpdateLineMetricsText)
 	{
 		// Пересчитаем метрику строки относительно размера данного текста
@@ -5943,8 +5950,8 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
         InfoMathText = new CMathInfoTextPr(InfoTextPr);
     }
 
-    if ( undefined !== CurTextPr.Shd && c_oAscShdNil !== CurTextPr.Shd.Value && !(CurTextPr.FontRef && CurTextPr.FontRef.Color) )
-        BgColor = CurTextPr.Shd.Get_Color( Para );
+	if (CurTextPr.Shd && !CurTextPr.Shd.IsNil() && !(CurTextPr.FontRef && CurTextPr.FontRef.Color))
+		BgColor = CurTextPr.Shd.GetSimpleColor(Para.GetTheme(), Para.GetColorMap());
 
     var AutoColor = ( undefined != BgColor && false === BgColor.Check_BlackAutoColor() ? new CDocumentColor( 255, 255, 255, false ) : new CDocumentColor( 0, 0, 0, false ) );
     var  RGBA, Theme = PDSE.Theme, ColorMap = PDSE.ColorMap;
@@ -12535,60 +12542,66 @@ ParaRun.prototype.private_ProcessHyperlinkAutoCorrect = function(oDocument, oPar
 	if (this.IsInHyperlink())
 		return false;
 
-	var nTypeHyper = AscCommon.getUrlType(sText);
-	if (AscCommon.c_oAscUrlType.Invalid !== nTypeHyper)
+	if (/(^(((http|https|ftp):\/\/)|(mailto:)|(www.)))|@/i.test(sText))
 	{
-		if (isPresentation || !oDocument.IsSelectionLocked({
-			Type      : AscCommon.changestype_2_ElementsArray_and_Type,
-			Elements  : [oParagraph],
-			CheckType : AscCommon.changestype_Paragraph_Properties
-		}))
-		{
-			oDocument.StartAction(AscDFH.historydescription_Document_AutomaticListAsType);
-			var oTopElement;
+		// Удаляем концевые пробелы и переводы строки перед проверкой гиперссылок
+		sText = sText.replace(/\s+$/, '');
 
-			if (isPresentation)
+		var nTypeHyper = AscCommon.getUrlType(sText);
+		if (AscCommon.c_oAscUrlType.Invalid !== nTypeHyper)
+		{
+			if (isPresentation || !oDocument.IsSelectionLocked({
+				Type      : AscCommon.changestype_2_ElementsArray_and_Type,
+				Elements  : [oParagraph],
+				CheckType : AscCommon.changestype_Paragraph_Properties
+			}))
 			{
-				var oParentContent = oParagraph.Parent;
-				var oTable         = oParentContent.IsInTable(true);
-				if (oTable)
+				oDocument.StartAction(AscDFH.historydescription_Document_AutomaticListAsType);
+				var oTopElement;
+
+				if (isPresentation)
 				{
-					oTopElement = oTable;
+					var oParentContent = oParagraph.Parent;
+					var oTable         = oParentContent.IsInTable(true);
+					if (oTable)
+					{
+						oTopElement = oTable;
+					}
+					else
+					{
+						oTopElement = oParentContent;
+					}
 				}
 				else
 				{
-					oTopElement = oParentContent;
+					oTopElement = oDocument;
 				}
+
+				var arrContentPosition = oRunElementsBefore.GetContentPositions();
+				var oStartPos          = arrContentPosition.length > 0 ? arrContentPosition[arrContentPosition.length - 1] : oRunElementsBefore.CurContentPos;
+				var oEndPos            = oContentPos;
+				oContentPos.Update(nPos, oContentPos.GetDepth());
+
+
+				var oDocPos = [{Class : this, Position : nPos + 1}];
+				this.GetDocumentPositionFromObject(oDocPos);
+				oDocument.TrackDocumentPositions([oDocPos]);
+
+
+				oParagraph.RemoveSelection();
+				oParagraph.SetSelectionUse(true);
+				oParagraph.SetSelectionContentPos(oStartPos, oEndPos, false);
+				oParagraph.AddHyperlink(new Asc.CHyperlinkProperty({Value : AscCommon.prepareUrl(sText, nTypeHyper)}));
+				oParagraph.RemoveSelection();
+
+				oDocument.RefreshDocumentPositions([oDocPos]);
+				oTopElement.SetContentPosition(oDocPos, 0, 0);
+				oDocument.Recalculate();
+				oDocument.FinalizeAction();
 			}
-			else
-			{
-				oTopElement = oDocument;
-			}
 
-			var arrContentPosition = oRunElementsBefore.GetContentPositions();
-			var oStartPos = arrContentPosition.length > 0 ? arrContentPosition[arrContentPosition.length - 1] : oRunElementsBefore.CurContentPos;
-			var oEndPos   = oContentPos;
-			oContentPos.Update(nPos, oContentPos.GetDepth());
-
-
-			var oDocPos = [{Class : this, Position : nPos + 1}];
-			this.GetDocumentPositionFromObject(oDocPos);
-			oDocument.TrackDocumentPositions([oDocPos]);
-
-
-			oParagraph.RemoveSelection();
-			oParagraph.SetSelectionUse(true);
-			oParagraph.SetSelectionContentPos(oStartPos, oEndPos, false);
-			oParagraph.AddHyperlink(new Asc.CHyperlinkProperty({Value : AscCommon.prepareUrl(sText, nTypeHyper)}));
-			oParagraph.RemoveSelection();
-
-			oDocument.RefreshDocumentPositions([oDocPos]);
-			oTopElement.SetContentPosition(oDocPos, 0, 0);
-			oDocument.Recalculate();
-			oDocument.FinalizeAction();
+			return true;
 		}
-
-		return true;
 	}
 
 	return false;
@@ -12954,6 +12967,65 @@ ParaRun.prototype.ChangeTextCase = function(oEngine)
 				oEngine.SetStartSentence(false);
 		}
 	}
+};
+ParaRun.prototype.FindNextFillingForm = function(isNext, isCurrent, isStart)
+{
+	var nCurPos = this.Selection.Use === true ? this.Selection.EndPos : this.State.ContentPos;
+
+	var nStartPos = 0, nEndPos = 0;
+	if (isCurrent)
+	{
+		if (isStart)
+		{
+			nStartPos = nCurPos;
+			nEndPos   = isNext ? this.Content.length : 0;
+		}
+		else
+		{
+			nStartPos = isNext ? 0 : this.Content.length;
+			nEndPos   = nCurPos;
+		}
+	}
+	else
+	{
+		if (isNext)
+		{
+			nStartPos = 0;
+			nEndPos   = this.Content.length;
+		}
+		else
+		{
+			nStartPos = this.Content.length;
+			nEndPos   = 0;
+		}
+	}
+
+	if (isNext)
+	{
+		for (var nIndex = nStartPos; nIndex < nEndPos; ++nIndex)
+		{
+			if (this.Content[nIndex].FindNextFillingForm)
+			{
+				var oRes = this.Content[nIndex].FindNextFillingForm(true, false, false);
+				if (oRes)
+					return oRes;
+			}
+		}
+	}
+	else
+	{
+		for (var nIndex = nStartPos - 1; nIndex >= nEndPos; --nIndex)
+		{
+			if (this.Content[nIndex].FindNextFillingForm)
+			{
+				var oRes = this.Content[nIndex].FindNextFillingForm(false, false, false);
+				if (oRes)
+					return oRes;
+			}
+		}
+	}
+
+	return null;
 };
 
 function CParaRunStartState(Run)

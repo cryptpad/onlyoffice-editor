@@ -8183,7 +8183,7 @@
             }
         }
         if (c1 < 0 || c2 < 0) {
-            throw "Error: all columns are hidden";
+            throw new Error("Error: all columns are hidden");
         }
 
         if (ar.r2 === ar.r1) {
@@ -8205,7 +8205,7 @@
             }
         }
         if (r1 < 0 || r2 < 0) {
-            throw "Error: all rows are hidden";
+            throw new Error("Error: all rows are hidden");
         }
 
         ar.assign(c1 !== undefined ? c1 : ar.c1, r1 !== undefined ? r1 : ar.r1, c2 !== undefined ? c2 : ar.c2,
@@ -10572,7 +10572,7 @@
         }
     };
 
-    WorksheetView.prototype.emptySelection = function ( options, bIsCut ) {
+    WorksheetView.prototype.emptySelection = function ( options, bIsCut, isMineComments ) {
         // Удаляем выделенные графичекие объекты
         if ( this.objectRender.selectedGraphicObjectsExists() ) {
 			var isIntoShape = this.objectRender.controller.getTargetDocContent();
@@ -10584,7 +10584,7 @@
 				this.objectRender.controller.deleteSelectedObjects();
 			}
 		} else {
-            this.setSelectionInfo( "empty", options );
+            this.setSelectionInfo( "empty", options, null, isMineComments );
         }
     };
 
@@ -10603,7 +10603,7 @@
 		return null;
 	};
 
-    WorksheetView.prototype.setSelectionInfo = function (prop, val, onlyActive) {
+    WorksheetView.prototype.setSelectionInfo = function (prop, val, onlyActive, isMineComments) {
         // Проверка глобального лока
         if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
             return;
@@ -10846,7 +10846,10 @@
 								t.model.clearDataValidation([range.bbox], true);
 								t.model.clearConditionalFormattingRulesByRanges([range.bbox]);
 								// Удаляем комментарии
-                                t.cellCommentator.deleteCommentsRange(range.bbox);
+								//TODO isMineComments - используется только здесь
+								// временный флаг, как только в сдк появится класс для групп, добавить этот флаг туда
+								isMineComments = isMineComments ? (t.model.workbook.oApi.DocInfo && t.model.workbook.oApi.DocInfo.get_UserId()) : null;
+								t.cellCommentator.deleteCommentsRange(range.bbox, isMineComments);
 								break;
 							case c_oAscCleanOptions.Text:
 							case c_oAscCleanOptions.Formula:
@@ -11401,7 +11404,7 @@
 		}
 
 		//conditional formatting
-		if (specialPasteProps.val && specialPasteProps.format) {
+		if (specialPasteProps.val && specialPasteProps.format && fromBinary) {
 			var offsetAll = new AscCommon.CellBase(arnToRange.r1 - refInsertBinary.r1, arnToRange.c1 - refInsertBinary.c1);
 			t.model.moveConditionalFormatting(refInsertBinary, arnToRange, true, offsetAll, this.model, val);
 		}
@@ -11562,7 +11565,7 @@
 			var _selection;
 			if (fromBinaryExcel) {
 				for (var n = 0; n < pastedInfo.length; n++) {
-					if (pastedInfo) {
+					if (pastedInfo && pastedInfo[n] && pastedInfo[n].selectData && pastedInfo[n].selectData[0]) {
 						_selection = t.model.selectionRange.ranges[n];
 						_selection.c2 = pastedInfo[n].selectData[0].c2;
 						_selection.r2 = pastedInfo[n].selectData[0].r2;
@@ -11571,7 +11574,7 @@
 				}
 			} else {
 				_selection = t.model.selectionRange.getLast();
-				if (pastedInfo) {
+				if (pastedInfo && pastedInfo[0] && pastedInfo[0].selectData && pastedInfo[0].selectData[0]) {
 					_selection.c2 = pastedInfo[0].selectData[0].c2;
 					_selection.r2 = pastedInfo[0].selectData[0].r2;
 				}
@@ -20858,14 +20861,7 @@
 		if (Asc.CT_pivotTableDefinition.prototype.asc_filterByCell) {
 			var pivotTable = this.model.inPivotTable(ar);
 			if (pivotTable) {
-				var pivotFields = pivotTable.asc_getPivotFields();
-				if(pivotFields){
-					var res = [];
-					for (var j = 0; j < pivotFields.length; j++) {
-						res.push(pivotTable.getCacheFieldName(j));
-					}
-					return res;
-				}
+				return pivotTable.getSlicerCaption();
 			}
 		}
 

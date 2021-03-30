@@ -544,6 +544,14 @@
                 var Element = this.Items[nIndex];
                 Pos = Math.min(Pos, aContent.length);
                 aContent.splice(Pos, 0, Element);
+
+                if(this.Class.collaborativeMarks) {
+                    if (Color) {
+                        this.Class.collaborativeMarks.Update_OnAdd(Pos);
+                        this.Class.collaborativeMarks.Add(Pos, Pos + 1, Color);
+                        AscCommon.CollaborativeEditing.Add_ChangedClass(this.Class);
+                    }
+                }
             }
         }
         else{
@@ -555,11 +563,17 @@
                 }
                 if(aContent[Pos] === this.Items[nIndex]){
                     aContent.splice(Pos, 1);
+                    if(this.Class.collaborativeMarks) {
+                        this.Class.collaborativeMarks.Update_OnRemove(Pos, 1);
+                    }
                     break;
                 }
                 for(var j = aContent.length - 1; j > -1 ; --j){
                     if(aContent[j] === this.Items[nIndex]){
                         aContent.splice(j, 1);
+                        if(this.Class.collaborativeMarks) {
+                            this.Class.collaborativeMarks.Update_OnRemove(j, 1);
+                        }
                         break;
                     }
                 }

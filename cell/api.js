@@ -125,6 +125,8 @@ var editor;
     this.formulasList = null;	// Список всех формул
 
 	this.openingEnd = {bin: false, xlsxStart: false, xlsx: false, data: null};
+	
+	this.tmpR1C1mode = null;
 
     this._init();
     return this;
@@ -570,6 +572,7 @@ var editor;
     if (this.wb) {
       if (Math.abs(oldScale - AscCommon.AscBrowser.retinaPixelRatio) > 0.001) {
         this.wb.changeZoom(null);
+        this._sendWorkbookStyles();
       }
       this.wb.resize();
 
@@ -2773,8 +2776,9 @@ var editor;
     this.wb.getWorksheet().setSelectionInfo("sort", options);
   };
 
-  spreadsheet_api.prototype.asc_emptyCells = function(options) {
-    this.wb.emptyCells(options);
+  spreadsheet_api.prototype.asc_emptyCells = function(options, isMineComments) {
+    //TODO isMineComments - временный флаг, как только в сдк появится класс для групп, добавить этот флаг туда
+  	this.wb.emptyCells(options, isMineComments);
   };
 
   spreadsheet_api.prototype.asc_drawDepCells = function(se) {
@@ -5267,6 +5271,13 @@ var editor;
     if (this.isRestrictionSignatures() && oHistory && !oHistory.Have_Changes()) {
         oHistory.Clear();
     }
+  };
+
+  spreadsheet_api.prototype.asc_undoAllChanges = function() {
+  	if (this.wb.getCellEditMode()) {
+		this.asc_closeCellEditor();
+	}
+  	this.wb.undo({All : true});
   };
 
   /*
