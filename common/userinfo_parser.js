@@ -141,16 +141,16 @@
 
     window['AscCommon'] = window['AscCommon'] || {};
     window['AscCommon']['UserInfoParser'] = window['AscCommon'].UserInfoParser = UserInfoParser;
-    UserInfoParser.prototype['setParser'] = UserInfoParser.prototype.setParser;
-    UserInfoParser.prototype['setCurrentName'] = UserInfoParser.prototype.setCurrentName;
-    UserInfoParser.prototype['getCurrentName'] = UserInfoParser.prototype.getCurrentName;
-    UserInfoParser.prototype['getSeparator'] = UserInfoParser.prototype.getSeparator;
-    UserInfoParser.prototype['getParsedName'] = UserInfoParser.prototype.getParsedName;
-    UserInfoParser.prototype['setReviewPermissions'] = UserInfoParser.prototype.setReviewPermissions;
-    UserInfoParser.prototype['setCommentPermissions'] = UserInfoParser.prototype.setCommentPermissions;
-    UserInfoParser.prototype['canEditReview'] = UserInfoParser.prototype.canEditReview;
-    UserInfoParser.prototype['canViewComment'] = UserInfoParser.prototype.canViewComment;
-    UserInfoParser.prototype['canEditComment'] = UserInfoParser.prototype.canEditComment;
-    UserInfoParser.prototype['canDeleteComment'] = UserInfoParser.prototype.canDeleteComment;
+    UserInfoParser['setParser'] = UserInfoParser.setParser;
+    UserInfoParser['setCurrentName'] = UserInfoParser.setCurrentName;
+    UserInfoParser['getCurrentName'] = UserInfoParser.getCurrentName;
+    UserInfoParser['getSeparator'] = UserInfoParser.getSeparator;
+    UserInfoParser['getParsedName'] = UserInfoParser.getParsedName;
+    UserInfoParser['setReviewPermissions'] = UserInfoParser.setReviewPermissions;
+    UserInfoParser['setCommentPermissions'] = UserInfoParser.setCommentPermissions;
+    UserInfoParser['canEditReview'] = UserInfoParser.canEditReview;
+    UserInfoParser['canViewComment'] = UserInfoParser.canViewComment;
+    UserInfoParser['canEditComment'] = UserInfoParser.canEditComment;
+    UserInfoParser['canDeleteComment'] = UserInfoParser.canDeleteComment;
 
 })(window);
