@@ -3866,15 +3866,15 @@ CPresentation.prototype.IsFillingFormMode = function () {
     return false;
 };
 
-CPresentation.prototype.Reset_WordSelection = function () {
+CPresentation.prototype.ResetWordSelection = function () {
     this.WordSelected = false;
 };
 
-CPresentation.prototype.Set_WordSelection = function () {
-    this.WordSelected = true;
+CPresentation.prototype.SetWordSelection = function (isWord) {
+    this.WordSelected = isWord;
 };
 
-CPresentation.prototype.Is_WordSelection = function () {
+CPresentation.prototype.IsWordSelection = function () {
     return this.WordSelected;
 };
 

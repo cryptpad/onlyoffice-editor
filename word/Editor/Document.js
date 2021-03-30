@@ -2706,7 +2706,7 @@ CDocument.prototype.Set_CurrentElement = function(Index, bUpdateStates)
 	this.SetDocPosType(docpostype_Content);
 	this.CurPos.ContentPos = Math.max(0, Math.min(this.Content.length - 1, Index));
 
-	this.Reset_WordSelection();
+	this.ResetWordSelection();
 	if (true === this.Content[ContentPos].IsSelectionUse())
 	{
 		this.Selection.Flag     = selectionflag_Common;
@@ -6471,7 +6471,7 @@ CDocument.prototype.MoveCursorToStartOfDocument = function()
 };
 CDocument.prototype.MoveCursorToStartPos = function(AddToSelect)
 {
-	this.Reset_WordSelection();
+	this.ResetWordSelection();
 	this.private_UpdateTargetForCollaboration();
 
 	this.Controller.MoveCursorToStartPos(AddToSelect);
@@ -6480,7 +6480,7 @@ CDocument.prototype.MoveCursorToStartPos = function(AddToSelect)
 };
 CDocument.prototype.MoveCursorToEndPos = function(AddToSelect)
 {
-	this.Reset_WordSelection();
+	this.ResetWordSelectionм();
 	this.private_UpdateTargetForCollaboration();
 
 	this.Controller.MoveCursorToEndPos(AddToSelect);
@@ -6489,7 +6489,7 @@ CDocument.prototype.MoveCursorToEndPos = function(AddToSelect)
 };
 CDocument.prototype.MoveCursorLeft = function(AddToSelect, Word)
 {
-	this.Reset_WordSelection();
+	this.ResetWordSelection();
 	this.private_UpdateTargetForCollaboration();
 
 	if (undefined === Word || null === Word)
@@ -6503,7 +6503,7 @@ CDocument.prototype.MoveCursorLeft = function(AddToSelect, Word)
 };
 CDocument.prototype.MoveCursorRight = function(AddToSelect, Word, FromPaste)
 {
-	this.Reset_WordSelection();
+	this.ResetWordSelection();
 	this.private_UpdateTargetForCollaboration();
 
 	if (undefined === Word || null === Word)
@@ -6517,19 +6517,19 @@ CDocument.prototype.MoveCursorRight = function(AddToSelect, Word, FromPaste)
 };
 CDocument.prototype.MoveCursorUp = function(AddToSelect, CtrlKey)
 {
-	this.Reset_WordSelection();
+	this.ResetWordSelection();
 	this.private_UpdateTargetForCollaboration();
 	this.Controller.MoveCursorUp(AddToSelect, CtrlKey);
 };
 CDocument.prototype.MoveCursorDown = function(AddToSelect, CtrlKey)
 {
-	this.Reset_WordSelection();
+	this.ResetWordSelection();
 	this.private_UpdateTargetForCollaboration();
 	this.Controller.MoveCursorDown(AddToSelect, CtrlKey);
 };
 CDocument.prototype.MoveCursorToEndOfLine = function(AddToSelect)
 {
-	this.Reset_WordSelection();
+	this.ResetWordSelection();
 	this.private_UpdateTargetForCollaboration();
 
 	this.Controller.MoveCursorToEndOfLine(AddToSelect);
@@ -6539,7 +6539,7 @@ CDocument.prototype.MoveCursorToEndOfLine = function(AddToSelect)
 };
 CDocument.prototype.MoveCursorToStartOfLine = function(AddToSelect)
 {
-	this.Reset_WordSelection();
+	this.ResetWordSelection();
 	this.private_UpdateTargetForCollaboration();
 
 	this.Controller.MoveCursorToStartOfLine(AddToSelect);
@@ -6549,13 +6549,13 @@ CDocument.prototype.MoveCursorToStartOfLine = function(AddToSelect)
 };
 CDocument.prototype.MoveCursorToXY = function(X, Y, AddToSelect)
 {
-	this.Reset_WordSelection();
+	this.ResetWordSelection();
 	this.private_UpdateTargetForCollaboration();
 	this.Controller.MoveCursorToXY(X, Y, this.CurPage, AddToSelect);
 };
 CDocument.prototype.MoveCursorToCell = function(bNext)
 {
-	this.Reset_WordSelection();
+	this.ResetWordSelection();
 	this.private_UpdateTargetForCollaboration();
 	this.Controller.MoveCursorToCell(bNext);
 };
@@ -8034,7 +8034,7 @@ CDocument.prototype.Internal_GetContentPosByXY = function(X, Y, nCurPage, Column
 };
 CDocument.prototype.RemoveSelection = function(bNoCheckDrawing)
 {
-	this.Reset_WordSelection();
+	this.ResetWordSelection();
 	this.Controller.RemoveSelection(bNoCheckDrawing);
 };
 CDocument.prototype.IsSelectionEmpty = function(bCheckHidden)
@@ -8053,7 +8053,7 @@ CDocument.prototype.GetSelectionBounds = function()
 };
 CDocument.prototype.Selection_SetStart         = function(X, Y, MouseEvent)
 {
-	this.Reset_WordSelection();
+	this.ResetWordSelection();
 
     var bInText      = (null === this.IsInText(X, Y, this.CurPage) ? false : true);
     var bTableBorder = (null === this.IsTableBorder(X, Y, this.CurPage) ? false : true);
@@ -8275,7 +8275,7 @@ CDocument.prototype.Selection_SetStart         = function(X, Y, MouseEvent)
  */
 CDocument.prototype.Selection_SetEnd = function(X, Y, MouseEvent)
 {
-	this.Reset_WordSelection();
+	this.ResetWordSelection();
 
 	// Работаем с колонтитулом
 	if (docpostype_HdrFtr === this.CurPos.Type)
@@ -8558,7 +8558,7 @@ CDocument.prototype.SelectAll = function()
 {
 	this.private_UpdateTargetForCollaboration();
 
-	this.Reset_WordSelection();
+	this.ResetWordSelection();
 	this.Controller.SelectAll();
 
 	// TODO: Пока делаем Start = true, чтобы при Ctrl+A не происходил переход к концу селекта, надо будет
@@ -9870,7 +9870,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			if (this.IsFillingFormMode())
 			{
 				this.DrawingDocument.UpdateTargetFromPaint = true;
-				this.Reset_WordSelection();
+				this.ResetWordSelection();
 				this.private_UpdateTargetForCollaboration();
 				this.MoveToFillingForm(true !== e.ShiftKey);
 				this.private_CheckCursorPosInFillingFormMode();
@@ -14492,15 +14492,15 @@ CDocument.prototype.private_CheckCursorInPlaceHolder = function()
 	}
 };
 
-CDocument.prototype.Reset_WordSelection = function()
+CDocument.prototype.ResetWordSelection = function()
 {
 	this.Selection.WordSelected = false;
 };
-CDocument.prototype.Set_WordSelection = function()
+CDocument.prototype.SetWordSelection = function(isWord)
 {
-	this.Selection.WordSelected = true;
+	this.Selection.WordSelected = isWord;
 };
-CDocument.prototype.Is_WordSelection = function()
+CDocument.prototype.IsWordSelection = function()
 {
 	return this.Selection.WordSelected;
 };
@@ -18447,7 +18447,12 @@ CDocument.prototype.controller_AddToParagraph = function(ParaItem, bRecalculate)
 {
 	if (true === this.Selection.Use)
 	{
-		var bAddSpace = this.Is_WordSelection();
+		var bAddSpace = false;
+		if (this.IsWordSelection())
+		{
+
+			bAddSpace = true;
+		}
 
 		var Type = ParaItem.Get_Type();
 		switch (Type)

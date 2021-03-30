@@ -3017,7 +3017,7 @@ CDocumentContent.prototype.AddToParagraph = function(ParaItem, bRecalculate)
 	{
 		if (true === this.Selection.Use)
 		{
-			var bAddSpace = this.LogicDocument ? this.LogicDocument.Is_WordSelection() : false;
+			var bAddSpace = this.LogicDocument ? this.LogicDocument.IsWordSelection() : false;
 			var Type      = ParaItem.Get_Type();
 			switch (Type)
 			{

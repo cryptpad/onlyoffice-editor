@@ -7489,7 +7489,7 @@ Paragraph.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent, bTabl
 				this.Set_SelectionContentPos(StartPos, EndPos);
 
 				if (this.LogicDocument)
-					this.LogicDocument.Set_WordSelection();
+					this.LogicDocument.SetWordSelection(true);
 			}
 			else // ( 1 == ClickCounter % 2 )
 			{
@@ -7719,7 +7719,7 @@ Paragraph.prototype.SelectCurrentWord = function()
 	this.Document_SetThisElementCurrent(false);
 
 	if (this.LogicDocument)
-		this.LogicDocument.Set_WordSelection();
+		this.LogicDocument.SetWordSelection(true);
 };
 Paragraph.prototype.Selection_CheckParaEnd = function()
 {
