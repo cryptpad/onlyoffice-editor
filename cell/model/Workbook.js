@@ -13765,6 +13765,7 @@
 	Range.prototype.setHyperlink=function(val, bWithoutStyle){
 		if(null != val && false == val.isValid())
 			return;
+
 		//проверяем, может эта ссылка уже существует
 		var i, length, hyp;
 		var bExist = false;

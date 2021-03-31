@@ -2576,6 +2576,7 @@ CDocumentContent.prototype.AddNewParagraph = function(bForceAdd)
                     NewParagraph.SetReviewType(ItemReviewType);
                     Item.SetReviewType(reviewtype_Common);
                 }
+				NewParagraph.CheckSignatureLinesOnAdd();
             }
         }
 		else if (type_Table === Item.GetType() || type_BlockLevelSdt === Item.GetType())

@@ -5471,7 +5471,7 @@ CPresentation.prototype.RemoveCurrentComment = function (isMine) {
                         var oDocInfo = this.Api.DocInfo;
                         if(oDocInfo) {
                             var sUserId = oDocInfo.get_UserId();
-                            if(oSelectedComment.hasUserData(sUserId)) {
+                            if(oSelectedComment.hasUserData(sUserId) && oSelectedComment.canBeDeleted()) {
                                 if (this.Document_Is_SelectionLocked(AscCommon.changestype_MoveComment, aCommentData, this.IsEditCommentsMode()) === false) {
                                     this.Create_NewHistoryPoint(AscDFH.historydescription_Presentation_RemoveComment);
                                     if(oSelectedComment.isUserComment(sUserId)) {
@@ -9976,7 +9976,7 @@ CPresentation.prototype.removeSlide = function (pos) {
         if (Array.isArray(aSlideComments)) {
             for (var i = aSlideComments.length - 1; i > -1; --i) {
                 var sId = aSlideComments[i].Id;
-                this.Slides[i].removeComment(sId);
+                this.Slides[i].removeComment(sId, true);
             }
         }
         return this.Slides.splice(pos, 1)[0];

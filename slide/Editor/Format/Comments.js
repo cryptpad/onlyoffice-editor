@@ -1054,6 +1054,16 @@ CComment.prototype =
         return this.Data.HasUserData(sUserId);
     },
 
+    canBeDeleted: function()
+    {
+        var sUserName = this.GetUserName();
+        if(AscCommon.UserInfoParser.canViewComment(sUserName)
+            && AscCommon.UserInfoParser.canDeleteComment(sUserName)) {
+            return true;
+        }
+        return false;
+    },
+
     hit: function(x, y)
     {
         if(AscCommon.UserInfoParser.canViewComment(this.GetUserName()) === false)

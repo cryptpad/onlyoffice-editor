@@ -1300,6 +1300,12 @@
 		leftToRight: 1,
 		rightToLeft: 2
 	};
+	var EActivePane = {
+		bottomLeft: 0,
+		bottomRight: 1,
+		topLeft: 2,
+		topRight: 3
+	};
 
     var g_nNumsMaxId = 160;
 
@@ -3742,13 +3748,25 @@
         };
         this.WriteSheetViewPane = function (oPane) {
             var oThis = this;
-			//this.bs.WriteItem(c_oSer_Pane.ActivePane, function(){oThis.memory.WriteByte();});
+			var col = oPane.topLeftFrozenCell.getCol0();
+			var row = oPane.topLeftFrozenCell.getRow0();
+
+			var activePane = null;
+			if (0 < col && 0 < row) {
+				activePane = EActivePane.bottomRight;
+            } else if (0 < row) {
+				activePane = EActivePane.bottomLeft;
+            } else if (0 < col) {
+	            activePane = EActivePane.topRight;
+            }
+            if (null !== activePane) {
+				this.bs.WriteItem(c_oSer_Pane.ActivePane, function(){oThis.memory.WriteByte(activePane);});
+            }
+
             // Всегда пишем Frozen
             this.bs.WriteItem(c_oSer_Pane.State, function(){oThis.memory.WriteString3(AscCommonExcel.c_oAscPaneState.Frozen);});
             this.bs.WriteItem(c_oSer_Pane.TopLeftCell, function(){oThis.memory.WriteString3(oPane.topLeftFrozenCell.getID());});
 
-            var col = oPane.topLeftFrozenCell.getCol0();
-            var row = oPane.topLeftFrozenCell.getRow0();
             if (0 < col)
                 this.bs.WriteItem(c_oSer_Pane.XSplit, function(){oThis.memory.WriteDouble2(col);});
             if (0 < row)
@@ -4069,8 +4087,9 @@
                 this.memory.WriteString2(oHyperlink.Ref.getName());
             }
             if (null != oHyperlink.Hyperlink) {
+                var sHyperlink = oHyperlink.Hyperlink.length > Asc.c_nMaxHyperlinkLength ? this.Hyperlink.substring(0, Asc.c_nMaxHyperlinkLength) : oHyperlink.Hyperlink;
                 this.memory.WriteByte(c_oSerHyperlinkTypes.Hyperlink);
-                this.memory.WriteString2(oHyperlink.Hyperlink);
+                this.memory.WriteString2(sHyperlink);
             }
             if (null !== oHyperlink.getLocation()) {
                 this.memory.WriteByte(c_oSerHyperlinkTypes.Location);

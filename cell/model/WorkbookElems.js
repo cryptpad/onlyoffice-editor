@@ -4138,7 +4138,8 @@ StyleManager.prototype =
 		return bRes;
 	};
 	Hyperlink.prototype.isValid = function () {
-		return null != this.Ref && (null != this.getLocation() || null != this.Hyperlink);
+		var isValidLength = !this.Hyperlink || (this.Hyperlink && this.Hyperlink.length <= Asc.c_nMaxHyperlinkLength);
+		return null != this.Ref && (null != this.getLocation() || null != this.Hyperlink) && isValidLength;
 	};
 	Hyperlink.prototype.setLocationSheet = function (LocationSheet) {
 		this.LocationSheet = LocationSheet;
@@ -4968,9 +4969,9 @@ StyleManager.prototype =
 		}
 	};
 	Row.prototype.setHidden = function (val, bViewLocalChange) {
-		var inViewAndFilter = this.ws.getActiveNamedSheetViewId() !== null && this.ws.autoFilters.containInFilter(this.index);
+		var inViewAndFilter = this.ws.getActiveNamedSheetViewId() !== null && this.ws.autoFilters && this.ws.autoFilters.containInFilter(this.index);
 		if (!bViewLocalChange) {
-			var bCollaborativeChanges = !this.ws.autoFilters.useViewLocalChange && this.ws.workbook.bCollaborativeChanges;
+			var bCollaborativeChanges = !(this.ws.autoFilters && this.ws.autoFilters.useViewLocalChange) && this.ws.workbook.bCollaborativeChanges;
 			bViewLocalChange = !bCollaborativeChanges && inViewAndFilter;
 		}
 		//если находимся в режиме вью, а приходят изменения для дефолта - не меняем hiddenManager
@@ -5014,7 +5015,7 @@ StyleManager.prototype =
 
 	Row.prototype.getHidden = function (bViewLocalChange) {
 		if (undefined === bViewLocalChange) {
-			var bCollaborativeChanges = !this.ws.autoFilters.useViewLocalChange && this.ws.workbook.bCollaborativeChanges;
+			var bCollaborativeChanges = !(this.ws.autoFilters && this.ws.autoFilters.useViewLocalChange) && this.ws.workbook.bCollaborativeChanges;
 			bViewLocalChange = !bCollaborativeChanges && this.ws.getActiveNamedSheetViewId() !== null && this.ws.autoFilters.containInFilter(this.index);
 		}
 		var _rowFlag_hd = bViewLocalChange ? g_nRowFlag_hdView : g_nRowFlag_hd;
