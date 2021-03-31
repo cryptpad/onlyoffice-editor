@@ -2063,7 +2063,7 @@ BinaryChartWriter.prototype.WriteCT_Tx = function (oVal) {
             oThis.WriteTxPr(oVal.rich);
         });
     }
-    if (null != oVal.strRef) {
+    else if (null != oVal.strRef) {
         this.bs.WriteItem(c_oserct_txSTRREF, function () {
             oThis.WriteCT_StrRef(oVal.strRef);
         });
@@ -2790,7 +2790,7 @@ BinaryChartWriter.prototype.WriteCT_SerTx = function (oVal) {
             oThis.WriteCT_StrRef(oVal.strRef);
         });
     }
-    if (null != oVal.val) {
+    else if (null != oVal.val) {
         this.bs.WriteItem(c_oserct_sertxV, function () {
             oThis.memory.WriteString3(oVal.val);
         });
@@ -3373,17 +3373,17 @@ BinaryChartWriter.prototype.WriteCT_ErrValType = function (oVal) {
 };
 BinaryChartWriter.prototype.WriteCT_NumDataSource = function (oVal) {
     var oThis = this;
-    if (null != oVal.numLit) {
-        this.bs.WriteItem(c_oserct_numdatasourceNUMLIT, function () {
-            oThis.WriteCT_NumData(oVal.numLit);
-        });
-    }
     if (null != oVal.numRef) {
         this.bs.WriteItem(c_oserct_numdatasourceNUMREF, function () {
             oThis.WriteCT_NumRef(oVal.numRef);
         });
     }
-};
+    else if (null != oVal.numLit) {
+        this.bs.WriteItem(c_oserct_numdatasourceNUMLIT, function () {
+            oThis.WriteCT_NumData(oVal.numLit);
+        });
+    }
+}
 BinaryChartWriter.prototype.WriteCT_NumData = function (oVal) {
     var oThis = this;
     if (null != oVal.formatCode) {
@@ -3457,22 +3457,22 @@ BinaryChartWriter.prototype.WriteCT_AxDataSource = function (oVal) {
             oThis.WriteCT_MultiLvlStrRef(oVal.multiLvlStrRef);
         });
     }
-    if (null != oVal.numLit) {
+    else if (null != oVal.numLit) {
         this.bs.WriteItem(c_oserct_axdatasourceNUMLIT, function () {
             oThis.WriteCT_NumData(oVal.numLit);
         });
     }
-    if (null != oVal.numRef) {
+    else if (null != oVal.numRef) {
         this.bs.WriteItem(c_oserct_axdatasourceNUMREF, function () {
             oThis.WriteCT_NumRef(oVal.numRef);
         });
     }
-    if (null != oVal.strLit) {
+    else if (null != oVal.strLit) {
         this.bs.WriteItem(c_oserct_axdatasourceSTRLIT, function () {
             oThis.WriteCT_StrData(oVal.strLit);
         });
     }
-    if (null != oVal.strRef) {
+    else if (null != oVal.strRef) {
         this.bs.WriteItem(c_oserct_axdatasourceSTRREF, function () {
             oThis.WriteCT_StrRef(oVal.strRef);
         });

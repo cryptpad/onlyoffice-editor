@@ -555,7 +555,7 @@
 	 */
 	ApiRange.prototype.AddHyperlink = function(sLink, sScreenTipText)
 	{
-		if (typeof(sLink) !== "string" || sLink === "")
+		if (typeof(sLink) !== "string" || sLink === "" || sLink.length > Asc.c_nMaxHyperlinkLength)
 			return null;
 		if (typeof(sScreenTipText) !== "string")
 			sScreenTipText = "";
@@ -1885,7 +1885,7 @@
 	 * */
 	ApiHyperlink.prototype.SetLink = function(sLink)
 	{
-		if (typeof(sLink) !== "string")
+		if (typeof(sLink) !== "string" || sLink.length > Asc.c_nMaxHyperlinkLength)
 			return false;
 		if (sLink == undefined)
 			sLink = "";
@@ -4543,13 +4543,13 @@
 	 */
 	ApiParagraph.prototype.AddHyperlink = function(sLink, sScreenTipText)
 	{
-		if (typeof(sLink) !== "string" || sLink === "")
+		if (typeof(sLink) !== "string" || sLink === "" || sLink.length > Asc.c_nMaxHyperlinkLength)
 			return null;
 		if (typeof(sScreenTipText) !== "string")
 			sScreenTipText = "";
 		
 		var oDocument	= editor.private_GetLogicDocument();
-		var hyperlinkPr	= new Asc.CHyperlinkProperty()
+		var hyperlinkPr	= new Asc.CHyperlinkProperty();
 		var urlType		= AscCommon.getUrlType(sLink);
 		var oHyperlink	= null;
 
@@ -5584,14 +5584,14 @@
 	 */
 	ApiRun.prototype.AddHyperlink = function(sLink, sScreenTipText)
 	{
-		if (typeof(sLink) !== "string" || sLink === "")
+		if (typeof(sLink) !== "string" || sLink === "" || sLink.length > Asc.c_nMaxHyperlinkLength)
 			return null;
 		if (typeof(sScreenTipText) !== "string")
 			sScreenTipText = "";
 
 		var Document	= editor.private_GetLogicDocument();
 		var parentPara	= this.Run.GetParagraph();
-		if (!parentPara | this.Run.Content.length === 0)
+		if (!parentPara || this.Run.Content.length === 0)
 			return null;
 		if (this.GetParentContentControl() instanceof ApiInlineLvlSdt)
 			return null;
@@ -5615,7 +5615,7 @@
 		StartPos[parentParaDepth].Class.SetContentSelection(StartPos, EndPos, parentParaDepth, 0, 0);
 
 		var oHyperlink	= null;
-		var hyperlinkPr	= new Asc.CHyperlinkProperty()
+		var hyperlinkPr	= new Asc.CHyperlinkProperty();
 		var urlType		= AscCommon.getUrlType(sLink);
 		if (!/(((^https?)|(^ftp)):\/\/)|(^mailto:)/i.test(sLink))
 			sLink = (urlType === 0) ? null :(( (urlType === 2) ? 'mailto:' : 'http://' ) + sLink);
