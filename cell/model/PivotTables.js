@@ -2415,8 +2415,8 @@ CT_PivotCacheRecords.prototype.fromWorksheetRange = function(location, cacheFiel
 		si.containsNonDate = false;
 		si.containsString = false;
 		si.containsInteger = true;
-		si.maxValue = si.maxDate = Number.NEGATIVE_INFINITY;
-		si.minValue = si.minDate = Number.POSITIVE_INFINITY;
+		var maxValue = Number.NEGATIVE_INFINITY, maxDate = Number.NEGATIVE_INFINITY;
+		var minValue = Number.POSITIVE_INFINITY, minDate = Number.POSITIVE_INFINITY;
 		var records = new PivotRecords();
 		var lastRow, lastRowWithText;
 		lastRow = lastRowWithText = firstRow - 1;
@@ -2440,16 +2440,16 @@ CT_PivotCacheRecords.prototype.fromWorksheetRange = function(location, cacheFiel
 							records.addNumber(num);
 							si.containsNumber = true;
 							si.containsNonDate = true;
-							si.minValue = Math.min(si.minValue, num);
-							si.maxValue = Math.max(si.maxValue, num);
+							minValue = Math.min(minValue, num);
+							maxValue = Math.max(maxValue, num);
 							if (si.containsInteger && !Number.isInteger(num)) {
 								si.containsInteger = false;
 							}
 						} else {
 							records.addDate(num);
 							si.containsDate = true;
-							si.minDate = Math.min(si.minDate, num);
-							si.maxDate = Math.max(si.maxDate, num);
+							minDate = Math.min(minDate, num);
+							maxDate = Math.max(maxDate, num);
 						}
 						break;
 					case AscCommon.CellValueType.String:
@@ -2475,6 +2475,14 @@ CT_PivotCacheRecords.prototype.fromWorksheetRange = function(location, cacheFiel
 			}
 			lastRow = cell.nRow;
 		});
+		if (maxValue !== Number.NEGATIVE_INFINITY) {
+			si.minValue = minValue;
+			si.maxValue = maxValue;
+		}
+		if (maxDate !== Number.NEGATIVE_INFINITY) {
+			si.minDate = Asc.cDate.prototype.getDateFromExcelWithTime2(minDate);
+			si.maxDate = Asc.cDate.prototype.getDateFromExcelWithTime2(maxDate);
+		}
 		lastRowMax = Math.max(lastRowMax, lastRow);
 		if (lastRowWithText < bbox.r2) {
 			si.containsBlank = true;
@@ -12477,12 +12485,12 @@ CT_SharedItems.prototype.readAttributes = function(attr, uq) {
 			this.maxValue = val - 0;
 		}
 		val = vals["minDate"];
-		if (undefined !== val) {
-			this.minDate = AscCommon.unleakString(uq(val));
+		if (undefined !== val && "" !== val) {//empty string was before 6.3
+			this.minDate = Asc.cDate.prototype.fromISO8601(val);
 		}
 		val = vals["maxDate"];
-		if (undefined !== val) {
-			this.maxDate = AscCommon.unleakString(uq(val));
+		if (undefined !== val && "" !== val) {//empty string was before 6.3
+			this.maxDate = Asc.cDate.prototype.fromISO8601(val);
 		}
 		val = vals["longText"];
 		if (undefined !== val) {
@@ -12536,10 +12544,10 @@ CT_SharedItems.prototype.toXml = function(writer, name) {
 		writer.WriteXmlAttributeNumber("maxValue", this.maxValue);
 	}
 	if (null !== this.minDate) {
-		writer.WriteXmlAttributeStringEncode("minDate", this.minDate);
+		writer.WriteXmlAttributeStringEncode("minDate", this.minDate.toISOString().slice(0, 19));
 	}
 	if (null !== this.maxDate) {
-		writer.WriteXmlAttributeStringEncode("maxDate", this.maxDate);
+		writer.WriteXmlAttributeStringEncode("maxDate", this.maxDate.toISOString().slice(0, 19));
 	}
 	var count = this.Items.getSize();
 	if (count > 0) {
@@ -13843,7 +13851,7 @@ CT_RangePr.prototype.generateGroupItems  = function (containsInteger, containsBl
 		} else if (this.groupBy === c_oAscGroupBy.Years) {
 			date = new Asc.cDate(this.startDate.getTime());
 			while (date < this.endDate) {
-				groupItems.addString(date.getYear().toString());
+				groupItems.addString(date.getUTCFullYear().toString());
 				date.addYears(1);
 			}
 		} else {
