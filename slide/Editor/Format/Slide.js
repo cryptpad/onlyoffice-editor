@@ -1984,8 +1984,11 @@ SlideComments.prototype =
         for(var i = this.comments.length - 1; i > -1; --i)
         {
             var oComment = this.comments[i];
-            History.Add(new AscDFH.CChangesDrawingsContentComments(this, AscDFH.historyitem_SlideCommentsRemoveComment, i, this.comments.splice(i, 1), false));
-            editor.sync_RemoveComment(oComment.Get_Id());
+            if(oComment.canBeDeleted())
+            {
+                History.Add(new AscDFH.CChangesDrawingsContentComments(this, AscDFH.historyitem_SlideCommentsRemoveComment, i, this.comments.splice(i, 1), false));
+                editor.sync_RemoveComment(oComment.Get_Id());
+            }
         }
     },
 
