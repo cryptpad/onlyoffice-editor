@@ -11054,15 +11054,8 @@ background-repeat: no-repeat;\
 	
 	asc_docs_api.prototype.SetDrawImagePreviewBulletChangeListLevel = function(id, props)
     {
-	// 	if (this.WordControl.m_oDrawingDocument)
-	// 		this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletChangeListLevel(id, props);
-	
-	// тоже моё пока, так как нет нигде вызова этой функции, я сделал его сам на вызове отрисовки для изменения уровней списка.
-		var id = "asc-gen2831";
-		var type = 2;
-		if (props.Lvl.length > 3) props.Lvl.length = 3;
 		if (this.WordControl.m_oDrawingDocument)
-		this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletForMenu(id, type);
+			this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletChangeListLevel(id, props);
     };
 
 	asc_docs_api.prototype.SetDrawImagePreviewBulletForMenu = function(id, type)

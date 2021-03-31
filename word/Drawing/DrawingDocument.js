@@ -7002,50 +7002,196 @@ function CDrawingDocument()
 
 	this.SetDrawImagePreviewBulletForMenu = function(id, type, props, isNoCheckFonts)
 	{
-		// TODO: подумать вообще оставить ли такой вариант работы с props (только надо будет написать или предлать функцию для их генерации, чтобы правильно всё возвращало)
-		// либо вообще отказаться от этих пропс, так как здесь однозначно определен стиль текста (только надо будет педелать или написать новую функцию для отрисовки текста)
 		if (!props)
 		{
-			var listId = this.m_oLogicDocument.Api.asc_GetCurrentNumberingId();
-			props = (listId !== null) ? this.m_oLogicDocument.Api.asc_GetNumberingPr(listId) : null;
-			if (!props)
-				return;
+			props = [];
+			var text = "None"; //переводить текст в соответствии с локалью
+			var olvl = new Asc.CAscNumberingLvl(0);
+			var level = new CNumberingLvl();
+			var arr = [];
+			for (var i = 0; i < text.length; i++)
+			{
+				var otext = new CNumberingLvlTextString(text[i]);
+				arr.push(otext);
+			}
+			level.SetLvlText(arr);
+			level.FillToAscNumberingLvl(olvl);
+			props.push((type == 2) ? [olvl] : olvl);
+			if (type === 0)
+			{
+				for (var i = 1; i < 9; i++)
+				{
+					var lvl 		= new CNumberingLvl(),
+						oLvl		= new Asc.CAscNumberingLvl(i),
+						oLvlTextPr	= new CTextPr(),
+						sLvlText	= "";
+					switch (i)
+					{
+						case 1:
+						{
+							sLvlText = String.fromCharCode(0x00B7);
+							oLvlTextPr.RFonts.SetAll("Symbol");
+							break;
+						}
+						case 2:
+						{
+							sLvlText = "o";
+							oLvlTextPr.RFonts.SetAll("Courier New");
+							break;
+						}
+						case 3:
+						{
+							sLvlText = String.fromCharCode(0x00A7);
+							oLvlTextPr.RFonts.SetAll("Wingdings");
+							break;
+						}
+						case 4:
+						{
+							sLvlText = String.fromCharCode(0x0076);
+							oLvlTextPr.RFonts.SetAll("Wingdings");
+							break;
+						}
+						case 5:
+						{
+							sLvlText = String.fromCharCode(0x00D8);
+							oLvlTextPr.RFonts.SetAll("Wingdings");
+							break;
+						}
+						case 6:
+						{
+							sLvlText = String.fromCharCode(0x00FC);
+							oLvlTextPr.RFonts.SetAll("Wingdings");
+							break;
+						}
+						case 7:
+						{
+							sLvlText = String.fromCharCode(0x00A8);
+							oLvlTextPr.RFonts.SetAll("Symbol");
+							break;
+						}
+						case 8:
+						{
+							sLvlText = String.fromCharCode(0x2013);
+							oLvlTextPr.RFonts.SetAll("Arial");
+							break;
+						}
+					}
+					lvl.SetByType(c_oAscNumberingLevel.Bullet, 0, sLvlText, oLvlTextPr);
+					lvl.FillToAscNumberingLvl(oLvl);
+					props.push(oLvl);
+				}
+			}
+			else if (type === 1)
+			{
+				var arrTypes = 
+				[
+					c_oAscNumberingLevel.UpperLetterDot_Left,
+					c_oAscNumberingLevel.LowerLetterBracket_Left,
+					c_oAscNumberingLevel.LowerLetterDot_Left,
+					c_oAscNumberingLevel.DecimalDot_Right,
+					c_oAscNumberingLevel.DecimalBracket_Right,
+					c_oAscNumberingLevel.UpperRomanDot_Right,
+					c_oAscNumberingLevel.LowerRomanDot_Right
+				];
+				for (var i = 0; i < arrTypes.length; i++)
+				{
+					var lvl = new CNumberingLvl();
+					var oLvl = new Asc.CAscNumberingLvl(i)
+					lvl.SetByType(arrTypes[i], 0);
+					lvl.FillToAscNumberingLvl(oLvl);
+					props.push(oLvl)
+				}
+			}
 			else
-				props.Lvl.length = 3;
+			{
+				var arrTypes = 
+				[
+					c_oAscMultiLevelNumbering.MultiLevel1,
+					c_oAscMultiLevelNumbering.MultiLevel2,
+					c_oAscMultiLevelNumbering.MultiLevel3
+				];
+				for (var i = 0; i < arrTypes.length; i++)
+				{
+					var tmpArr = [];
+					for (var j = 0; j < 3; j++)
+					{
+						var lvl = new CNumberingLvl();
+						var oLvl = new Asc.CAscNumberingLvl(j);
+						lvl.InitDefault(j, arrTypes[i]);
+						lvl.FillToAscNumberingLvl(oLvl);
+						tmpArr.push(oLvl)
+					}
+					props.push(tmpArr);
+				}
+			}
 		}
+		
 		if (!isNoCheckFonts)
 		{
             // check need load fonts
             var fontsDict = {};
-            for (var i = 0, count = props.Lvl.length; i < count; i++)
+            for (var i = 0, count = props.length; i < count; i++)
             {
-                var curLvl = props.Lvl[i];
-                var text = "";
-                for (var j = 0; j < curLvl.Text.length; j++)
-                {
-                    switch (curLvl.Text[j].Type)
+				if (type == 2)
+				{
+					for (var k = 0; k < props[i].length; k++)
 					{
-                        case Asc.c_oAscNumberingLvlTextType.Text:
-                            text += curLvl.Text[j].Value;
-                            break;
-                        case Asc.c_oAscNumberingLvlTextType.Num:
-                            text += AscCommon.IntToNumberFormat(1, curLvl.Format);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                AscFonts.FontPickerByCharacter.checkTextLight(text);
-
-                if (curLvl.TextPr && curLvl.TextPr.RFonts)
-                {
-                    if (curLvl.TextPr.RFonts.Ascii) fontsDict[curLvl.TextPr.RFonts.Ascii.Name] = true;
-                    if (curLvl.TextPr.RFonts.EastAsia) fontsDict[curLvl.TextPr.RFonts.EastAsia.Name] = true;
-                    if (curLvl.TextPr.RFonts.HAnsi) fontsDict[curLvl.TextPr.RFonts.HAnsi.Name] = true;
-                    if (curLvl.TextPr.RFonts.CS) fontsDict[curLvl.TextPr.RFonts.CS.Name] = true;
-                }
-				// чтобы убрать отступ у i
-				props.Lvl[i].Align = 1;
+						var curLvl = props[i][k];				
+						var text = "";
+						for (var j = 0; j < curLvl.Text.length; j++)
+						{
+							switch (curLvl.Text[j].Type)
+							{
+								case Asc.c_oAscNumberingLvlTextType.Text:
+									text += curLvl.Text[j].Value;
+									break;
+								case Asc.c_oAscNumberingLvlTextType.Num:
+									text += AscCommon.IntToNumberFormat(1, curLvl.Format);
+									break;
+								default:
+									break;
+							}
+						}
+						AscFonts.FontPickerByCharacter.checkTextLight(text);
+		
+						if (curLvl.TextPr && curLvl.TextPr.RFonts)
+						{
+							if (curLvl.TextPr.RFonts.Ascii) fontsDict[curLvl.TextPr.RFonts.Ascii.Name] = true;
+							if (curLvl.TextPr.RFonts.EastAsia) fontsDict[curLvl.TextPr.RFonts.EastAsia.Name] = true;
+							if (curLvl.TextPr.RFonts.HAnsi) fontsDict[curLvl.TextPr.RFonts.HAnsi.Name] = true;
+							if (curLvl.TextPr.RFonts.CS) fontsDict[curLvl.TextPr.RFonts.CS.Name] = true;
+						}	
+					}
+					
+				}
+				else
+				{
+					var curLvl = props[i];				
+					var text = "";
+					for (var j = 0; j < curLvl.Text.length; j++)
+					{
+						switch (curLvl.Text[j].Type)
+						{
+							case Asc.c_oAscNumberingLvlTextType.Text:
+								text += curLvl.Text[j].Value;
+								break;
+							case Asc.c_oAscNumberingLvlTextType.Num:
+								text += AscCommon.IntToNumberFormat(1, curLvl.Format);
+								break;
+							default:
+								break;
+						}
+					}
+					AscFonts.FontPickerByCharacter.checkTextLight(text);
+	
+					if (curLvl.TextPr && curLvl.TextPr.RFonts)
+					{
+						if (curLvl.TextPr.RFonts.Ascii) fontsDict[curLvl.TextPr.RFonts.Ascii.Name] = true;
+						if (curLvl.TextPr.RFonts.EastAsia) fontsDict[curLvl.TextPr.RFonts.EastAsia.Name] = true;
+						if (curLvl.TextPr.RFonts.HAnsi) fontsDict[curLvl.TextPr.RFonts.HAnsi.Name] = true;
+						if (curLvl.TextPr.RFonts.CS) fontsDict[curLvl.TextPr.RFonts.CS.Name] = true;
+					}
+				}
             }
 
             var fonts = [];
@@ -7067,111 +7213,156 @@ function CDrawingDocument()
             AscCommon.g_font_loader.LoadDocumentFonts2(fonts);
             return;
         }
-        var parent =  document.getElementById(id);
-		
-		//моё, чтобы убрать пока фон у картинки
-		parent.style.backgroundPositionY = "0px";
-		parent.style.backgroundPositionX = "60px";
-
-        if (!parent)
-            return;
-
-        var width_px = parent.clientWidth;
-        var height_px = parent.clientHeight;
-
-        var canvas = parent.firstChild;
-        if (!canvas)
-        {
-            canvas = document.createElement('canvas');
-            canvas.style.cssText = "padding:0;margin:0;user-select:none;";
-            canvas.style.width = width_px + "px";
-            canvas.style.height = height_px + "px";
-            parent.appendChild(canvas);
-        }
-
-        canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
-        canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
-
-        var ctx = canvas.getContext("2d");
-		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
-		
-		if (type == 0)
+		// сделать отрисовку none
+		var elNone = document.getElementById(id[0]);
+		if (elNone)
 		{
-			//TODO: Нарисовать просто большой знак
-		}
-        if (type == 1)
-        {
-            var offsetBase = 4;
-            var line_w = 2;
-            // считаем расстояние между линиями
-            var line_distance = (((height_px - (offsetBase)) - line_w * 3) / 3) >> 0;
-            // убираем погрешность в offset
-            var offset = (height_px - (line_w * 3 + line_distance * 3)) >> 1;
+			var width_px = elNone.clientWidth;
+			var height_px = elNone.clientHeight;
 
-            var textYs = [];
-
-            ctx.lineWidth = 2 * Math.round(rPR);
-            var y = offset + 6;
-            var text_base_offset_x = offset + (2.75 * AscCommon.g_dKoef_mm_to_pix) >> 0;
-            if (text_base_offset_x > (width_px - offsetBase << 1))
-            	text_base_offset_x = width_px - offsetBase << 1;
-            ctx.strokeStyle = "#CBCBCB";
-
-            textYs.push(y + line_w); y += (line_w + line_distance);
-            textYs.push(y + line_w); y += (line_w + line_distance);
-            textYs.push(y + line_w); y += (line_w + line_distance);
-
-			for (var i = 0; i < textYs.length; i++)
+			var canvas = elNone.firstChild;
+			if (!canvas)
 			{
-				this.privateGetParagraphByString(props.Lvl[i], i, i + 1, text_base_offset_x - ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0),
-                    textYs[i], line_distance, ctx, width_px, height_px);
-            }
-  
-			y = Math.round((offset + 6) * rPR);
-            ctx.moveTo((text_base_offset_x + 2) * rPR, y); ctx.lineTo((width_px - offsetBase) * rPR, y); y += Math.round((line_w + line_distance) * rPR);
-			ctx.moveTo((text_base_offset_x + 2) * rPR, y); ctx.lineTo((width_px - offsetBase) * rPR, y); y += Math.round((line_w + line_distance) * rPR);
-			ctx.moveTo((text_base_offset_x + 2) * rPR, y); ctx.lineTo((width_px - offsetBase) * rPR, y); y += Math.round((line_w + line_distance) * rPR);
-            ctx.stroke();
-            ctx.beginPath();
-
-            for (var i = 0; i < textYs.length; i++)
-			{
-				this.privateGetParagraphByString(props.Lvl[i], i, i + 1, text_base_offset_x - ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0),
-                    textYs[i], line_distance, ctx, width_px, height_px);
-            }
-        }
-        else
-        {
-            var offsetBase = 4;
-            var line_w = 2;
-            // считаем расстояние между линиями
-            var line_distance = (((height_px - (offsetBase)) - line_w * 3) / 3) >> 0;
-            // убираем погрешность в offset
-            var offset = (height_px - (line_w * 3 + line_distance * 3)) >> 1;
-
-            ctx.lineWidth = 2 * Math.round(rPR);
-            ctx.strokeStyle = "#CBCBCB";
-            var y = offset + 6;
-            var text_base_offset_x = offset + ((2.75 * AscCommon.g_dKoef_mm_to_pix) >> 0);
-            var text_base_offset_dist = (2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0;
-
-            var textYs = [];
-            for (var i = 0; i < props.Lvl.length; i++)
-			{
-                textYs.push({x: text_base_offset_x - ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0), y: y + line_w});
-				ctx.moveTo(Math.round((text_base_offset_x + 2) * rPR), Math.round(y * rPR)); ctx.lineTo(Math.round((width_px - offsetBase) * rPR), Math.round(y * rPR));
-				ctx.stroke();
-				ctx.beginPath();
-
-                text_base_offset_x += text_base_offset_dist;
-                y += (line_w + line_distance);
+				canvas = document.createElement('canvas');
+				canvas.style.cssText = "padding:0;margin:0;user-select:none;";
+				canvas.style.width = width_px + "px";
+				canvas.style.height = height_px + "px";
+				elNone.appendChild(canvas);
 			}
 
-			for (var i = 0; i < props.Lvl.length; i++)
+			canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
+			canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
+
+			var ctx = canvas.getContext("2d");
+			// подобрать это потом, размер шрифта подогнать под остальной текст, а отсупы возможно через создание параграфа посчитать, так как я не знаю как рассчитать отступы для разного текста
+			var x = (width_px >> 1 )- 4;
+			var y = (height_px >> 1) + 5;
+			var line_distance = height_px / 8;
+			this.privateGetParagraphByString((type == 2) ? props[0][0] : props[0], 0, 0, x, y, line_distance, ctx, width_px, height_px);
+		}
+
+		for (var i = 1; i < id.length; i++)
+		{
+			var parent =  document.getElementById(id[i]);
+
+			if (!parent)
+				continue;
+
+			var width_px = parent.clientWidth;
+			var height_px = parent.clientHeight;
+
+			var canvas = parent.firstChild;
+			if (!canvas)
 			{
-                this.privateGetParagraphByString(props.Lvl[i], 9, 1, textYs[i].x, textYs[i].y, line_distance, ctx, width_px, height_px);
-            }
-        }
+				canvas = document.createElement('canvas');
+				canvas.style.cssText = "padding:0;margin:0;user-select:none;";
+				canvas.style.width = width_px + "px";
+				canvas.style.height = height_px + "px";
+				parent.appendChild(canvas);
+			}
+
+			canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
+			canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
+
+			var ctx = canvas.getContext("2d");
+			var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+			
+			if (type == 0)
+			{
+				// нарисовать просто большой знак
+				var width_px = parent.clientWidth;
+				var height_px = parent.clientHeight;
+
+				var canvas = parent.firstChild;
+				if (!canvas)
+				{
+					canvas = document.createElement('canvas');
+					canvas.style.cssText = "padding:0;margin:0;user-select:none;";
+					canvas.style.width = width_px + "px";
+					canvas.style.height = height_px + "px";
+					parent.appendChild(canvas);
+				}
+
+				canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
+				canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
+
+				var ctx = canvas.getContext("2d");
+				var x = (width_px >> 1 ) - 4;
+				var y = (height_px >> 1) + 5;
+				var line_distance = height_px / 8;
+				this.privateGetParagraphByString(props[i], 0, 0, x, y, line_distance, ctx, width_px, height_px);
+			}
+			if (type == 1)
+			{
+				var offsetBase = 4;
+				var line_w = 2;
+				// считаем расстояние между линиями
+				var line_distance = (((height_px - (offsetBase)) - line_w * 3) / 3) >> 0;
+				// убираем погрешность в offset
+				var offset = (height_px - (line_w * 3 + line_distance * 3)) >> 1;
+
+				var textYs = [];
+
+				ctx.lineWidth = 2 * Math.round(rPR);
+				var y = offset + 6;
+				var text_base_offset_x = offset + (2.75 * AscCommon.g_dKoef_mm_to_pix) >> 0;
+				if (text_base_offset_x > (width_px - offsetBase << 1))
+					text_base_offset_x = width_px - offsetBase << 1;
+				ctx.strokeStyle = "#CBCBCB";
+
+				textYs.push(y + line_w); y += (line_w + line_distance);
+				textYs.push(y + line_w); y += (line_w + line_distance);
+				textYs.push(y + line_w); y += (line_w + line_distance);
+
+				for (var j = 0; j < textYs.length; j++)
+				{
+					this.privateGetParagraphByString(props[i], 0, j + 1, text_base_offset_x - ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0),
+						textYs[j], line_distance, ctx, width_px, height_px);
+				}
+	
+				// перенести это в цикл выше
+				y = Math.round((offset + 6) * rPR);
+				ctx.moveTo((text_base_offset_x + 2) * rPR, y); ctx.lineTo((width_px - offsetBase) * rPR, y); y += Math.round((line_w + line_distance) * rPR);
+				ctx.moveTo((text_base_offset_x + 2) * rPR, y); ctx.lineTo((width_px - offsetBase) * rPR, y); y += Math.round((line_w + line_distance) * rPR);
+				ctx.moveTo((text_base_offset_x + 2) * rPR, y); ctx.lineTo((width_px - offsetBase) * rPR, y); y += Math.round((line_w + line_distance) * rPR);
+				ctx.stroke();
+				ctx.beginPath();
+			}
+			else
+			{
+				var offsetBase = 4;
+				var line_w = 2;
+				// считаем расстояние между линиями
+				var line_distance = (((height_px - (offsetBase)) - line_w * 3) / 3) >> 0;
+				// убираем погрешность в offset
+				var offset = (height_px - (line_w * 3 + line_distance * 3)) >> 1;
+
+				ctx.lineWidth = 2 * Math.round(rPR);
+				ctx.strokeStyle = "#CBCBCB";
+				var y = offset + 6;
+				var text_base_offset_x = offset + ((2.75 * AscCommon.g_dKoef_mm_to_pix) >> 0);
+				var text_base_offset_dist = (2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0;
+
+				var textYs = [];
+				for (var j = 0; j < props[i].length; j++)
+				{
+					textYs.push({x: text_base_offset_x - ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0), y: y + line_w});
+					ctx.moveTo(Math.round((text_base_offset_x + 2) * rPR), Math.round(y * rPR)); ctx.lineTo(Math.round((width_px - offsetBase) * rPR), Math.round(y * rPR));
+					ctx.stroke();
+					ctx.beginPath();
+
+					text_base_offset_x += text_base_offset_dist;
+					y += (line_w + line_distance);
+				}
+
+				// попробовать тоже перенести в цикл выше
+				for (var j = 0; j < textYs.length; j++)
+				{
+					this.privateGetParagraphByString(props[i][j], 0, 1, textYs[j].x, textYs[j].y, line_distance, ctx, width_px, height_px);
+				}
+			}
+
+		}
 	};
 
 	this.StartTableStylesCheck = function ()
