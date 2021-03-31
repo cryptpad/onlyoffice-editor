@@ -6732,7 +6732,9 @@ background-repeat: no-repeat;\
 
 			for (var nIndex = 0, nCount = arrCommentsId.length; nIndex < nCount; ++nIndex)
 			{
-				oLogicDocument.RemoveComment(arrCommentsId[nIndex], true, false);
+				var oComment = oLogicDocument.Comments.Get_ById(arrCommentsId[nIndex]);
+				if (oComment && AscCommon.UserInfoParser.canDeleteComment(oComment.GetUserName()))
+					oLogicDocument.RemoveComment(arrCommentsId[nIndex], true, false);
 			}
 
 			oLogicDocument.Recalculate();
