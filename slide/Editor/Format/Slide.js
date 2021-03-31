@@ -625,11 +625,11 @@ Slide.prototype =
         }
     },
 
-    removeComment: function(id)
+    removeComment: function(id, bForce)
     {
         if(AscCommon.isRealObject(this.slideComments))
         {
-            this.slideComments.removeComment(id);
+            this.slideComments.removeComment(id, bForce);
         }
     },
 
@@ -1939,11 +1939,12 @@ SlideComments.prototype =
         }
     },
 
-    removeComment: function(id)
+    removeComment: function(id, bForce)
     {
         for(var i = 0; i < this.comments.length; ++i)
         {
-            if(this.comments[i].Get_Id() === id)
+            var oComment = this.comments[i];
+            if(oComment.Get_Id() === id && (bForce || oComment.canBeDeleted()))
             {
                 History.Add(new AscDFH.CChangesDrawingsContentComments(this, AscDFH.historyitem_SlideCommentsRemoveComment, i, this.comments.splice(i, 1), false));
                 editor.sync_RemoveComment(id);
@@ -1965,8 +1966,11 @@ SlideComments.prototype =
             var oCommentData = oComment.Data;
             if(oCommentData.m_sUserId === sUserId)
             {
-                History.Add(new AscDFH.CChangesDrawingsContentComments(this, AscDFH.historyitem_SlideCommentsRemoveComment, i, this.comments.splice(i, 1), false));
-                editor.sync_RemoveComment(oComment.Get_Id());
+                if(oComment.canBeDeleted())
+                {
+                    History.Add(new AscDFH.CChangesDrawingsContentComments(this, AscDFH.historyitem_SlideCommentsRemoveComment, i, this.comments.splice(i, 1), false));
+                    editor.sync_RemoveComment(oComment.Get_Id());
+                }
             }
             else
             {
