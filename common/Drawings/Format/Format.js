@@ -6555,6 +6555,15 @@ CNvPr.prototype =
     Read_FromBinary2: function (r)
     {
         this.Id = r.GetString2();
+    },
+
+    hasSameNameAndId: function(oPr)
+    {
+        if(!oPr)
+        {
+            return false;
+        }
+        return this.id === oPr.id && this.name === oPr.name;
     }
 };
 

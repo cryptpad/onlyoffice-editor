@@ -1985,6 +1985,14 @@
     CGraphicObjectBase.prototype.createFontMap = function(oMap) {
         this.documentCreateFontMap(oMap);
     };
+    CGraphicObjectBase.prototype.isComparable = function(oDrawing) {
+        var oPr = this.getCNvProps();
+        var oOtherPr = oDrawing.getCNvProps();
+        if(!oPr || !oOtherPr) {
+            return false;
+        }
+        return oPr.hasSameNameAndId(oOtherPr);
+    };
     
     function CRelSizeAnchor() {
         CBaseObject.call(this);
