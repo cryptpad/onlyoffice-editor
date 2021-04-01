@@ -2208,3 +2208,7 @@ CDocumentContentBase.prototype.UpdateLineNumbersInfo = function()
 		this.Content[nIndex].UpdateLineNumbersInfo();
 	}
 };
+CDocumentContentBase.prototype.IsEmptyParagraphAfterTableInTableCell = function(nIndex)
+{
+	return false;
+};

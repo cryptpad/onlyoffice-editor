@@ -1190,7 +1190,7 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
                 Element.Reset(X, Y, XLimit, YLimit, PageIndex, 0, 1);
             }
 
-            if (Index === Count - 1 && Index > 0 && type_Paragraph === Element.GetType() && this.Content[Index - 1].IsTable() && this.Content[Index - 1].IsInline() && true === Element.IsEmpty() && true === this.IsTableCellContent())
+            if (this.IsEmptyParagraphAfterTableInTableCell(Index))
             {
                 RecalcResult = recalcresult_NextElement;
 
@@ -1320,6 +1320,34 @@ CDocumentContent.prototype.RecalculateMinMaxContentWidth = function(isRotated)
 	}
 
 	return {Min : Min, Max : Max};
+};
+/**
+ * Специальная функция, которая проверяет, что по заданному индексу распологается пустой параграф,
+ * который идет после таблицы. При этом весь контент сам является контентом ячейки другой таблицы.
+ * @param nIndex {number}
+ * @returns {boolean}
+ */
+CDocumentContent.prototype.IsEmptyParagraphAfterTableInTableCell = function(nIndex)
+{
+	var nCount = this.Content.length;
+	if (nIndex !== nCount - 1 || nIndex <= 0)
+		return false;
+
+	var oElement     = this.Content[nIndex];
+	var oPrevElement = this.Content[nIndex - 1];
+
+	if (!oElement.IsParagraph() || !oPrevElement.IsTable() || !oPrevElement.IsInline() || !oElement.IsEmpty() || !this.IsTableCellContent())
+		return false;
+
+	// В 14-ой версии совместимости и ниже, если у такого параграфа есть нумерация, тогда он не считается пустым
+	// В версиях совместимости больше 14, даже если у него есть нумерация мы его считаем пустым
+
+	var oLogicDocument = this.GetLogicDocument();
+	if (!oLogicDocument)
+		return false;
+
+	var nCompatibilityMode = oLogicDocument.GetCompatibilityMode();
+	return !(nCompatibilityMode <= AscCommon.document_compatibility_mode_Word14 && oElement.HaveNumbering());
 };
 CDocumentContent.prototype.SaveRecalculateObject = function()
 {

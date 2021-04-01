@@ -2019,7 +2019,7 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 				if (para_Numbering === NumberingType)
 				{
 					var NumPr = Pr.ParaPr.NumPr;
-					if (undefined === NumPr || undefined === NumPr.NumId || 0 === NumPr.NumId || "0" === NumPr.NumId)
+					if (undefined === NumPr || undefined === NumPr.NumId || 0 === NumPr.NumId || "0" === NumPr.NumId || (this.Parent && this.Parent.IsEmptyParagraphAfterTableInTableCell(this.GetIndex())))
 					{
 						// Ничего не делаем
 					}
@@ -2543,6 +2543,7 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 					var isHaveNumbering = false;
 					if ((undefined === this.Get_SectionPr()
 						|| true !== this.IsEmpty())
+						&& (!this.Parent || !this.Parent.IsEmptyParagraphAfterTableInTableCell(this.GetIndex()))
 						&& ((NumPr
 						&& undefined !== NumPr.NumId
 						&& 0 !== NumPr.NumId
@@ -11350,6 +11351,10 @@ Paragraph.prototype.Is_Inline = function()
 Paragraph.prototype.IsInline = function()
 {
 	return this.Is_Inline();
+};
+Paragraph.prototype.IsLastEmptyParaAfterTableInTableCell = function()
+{
+
 };
 Paragraph.prototype.GetFramePr = function()
 {
