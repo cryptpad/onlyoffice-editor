@@ -5629,6 +5629,7 @@ function RangeDataManagerElem(bbox, data)
 			AscCommon.g_oTableId.Add(this, this.Id);
 		}
 	}
+
 	sparklineGroup.prototype.getObjectType = function () {
 		return AscDFH.historyitem_type_Sparkline;
 	};
@@ -5646,9 +5647,9 @@ function RangeDataManagerElem(bbox, data)
 		// ToDDo не самая лучшая схема добавления на лист...
 		var api_sheet = Asc['editor'];
 		this.worksheet = api_sheet.wbModel.getWorksheetById(r.GetString2());
-		if (this.worksheet) {
-			this.worksheet.insertSparklineGroup(this);
-		}
+		/*if (this.worksheet) {
+		 this.worksheet.insertSparklineGroup(this);
+		 }*/
 	};
 	sparklineGroup.prototype.default = function () {
 		this.type = Asc.c_oAscSparklineType.Line;
@@ -5696,13 +5697,13 @@ function RangeDataManagerElem(bbox, data)
 		}
 	};
 
-    sparklineGroup.prototype.checkProperty = function (propOld, propNew, type, fChangeConstructor) {
-        if (null !== propNew && propOld !== propNew) {
-            History.Add(new fChangeConstructor(this, type, propOld, propNew));
-            return propNew;
-        }
-        return propOld;
-    };
+	sparklineGroup.prototype.checkProperty = function (propOld, propNew, type, fChangeConstructor) {
+		if (null !== propNew && propOld !== propNew) {
+			History.Add(new fChangeConstructor(this, type, propOld, propNew));
+			return propNew;
+		}
+		return propOld;
+	};
 
 	sparklineGroup.prototype.set = function (val) {
 		var getColor = function (color) {
@@ -5846,6 +5847,88 @@ function RangeDataManagerElem(bbox, data)
 		});
 		var unionRange = isUnion ? result.getUnion() : result;
 		return unionRange.isSingleRange() ? unionRange : result;
+	};
+	sparklineGroup.prototype.setSparklinesFromRange = function (dataRange, locationRange, addToHistory) {
+		var isVertLocationRange = locationRange.c1 === locationRange.c2;
+		var count = !isVertLocationRange ? locationRange.c2 - locationRange.c1 + 1 :
+			locationRange.r2 - locationRange.r1 + 1;
+		var countDataRangeRow = dataRange.r2 - dataRange.r1 + 1;
+		var isVertDataRange = countDataRangeRow === count;
+
+		var newArrSparklines = [];
+		for (var i = 0; i < count; i++) {
+			var sL = new sparkline();
+
+			var _r1 = isVertDataRange ? dataRange.r1 + i : dataRange.r1;
+			var _r2 = isVertDataRange ? dataRange.r1 + i : dataRange.r2;
+			var _c1 = !isVertDataRange ? dataRange.c1 + i: dataRange.c1;
+			var _c2 = !isVertDataRange ? dataRange.c1 + i: dataRange.c2;
+			var f = (dataRange.sheet ? dataRange.sheet : this.worksheet.sName) + "!" + new Asc.Range(_c1, _r1, _c2, _r2).getName();
+			sL.setF(f);
+
+			var _col = !isVertLocationRange ? locationRange.c1 + i : locationRange.c1;
+			var _row = isVertLocationRange ? locationRange.r1 + i : locationRange.r1;
+			sL.sqRef = new Asc.Range(_col, _row, _col, _row);
+			sL.sqRef.setAbs(true, true, true, true);
+			newArrSparklines.push(sL);
+		}
+		this.setSparklines(newArrSparklines, addToHistory);
+	};
+	sparklineGroup.prototype.setSparklines = function (val, addToHistory, opt_addOldPr) {
+		var oldPr = null;
+		var i;
+		if (addToHistory && opt_addOldPr) {
+			oldPr = [];
+			for (i = 0; i < this.arrSparklines.length; i++) {
+				oldPr.push(this.arrSparklines[i].clone());
+			}
+		}
+		this.arrSparklines = val;
+		if (addToHistory) {
+			var newPr = [];
+			for (i = 0; i < this.arrSparklines.length; i++) {
+				newPr.push(this.arrSparklines[i].clone());
+			}
+			History.Add(new AscDFH.CChangesSparklinesChangeData(this, oldPr, newPr));
+		}
+	};
+	sparklineGroup.prototype.isValidDataRef = function (dataRange, locationRange) {
+		if (!dataRange || !locationRange) {
+			return Asc.c_oAscError.ID.DataRangeError;
+		}
+		var isOneRow = locationRange.r1 === locationRange.r2;
+		var isOneCol = locationRange.c1 === locationRange.c2;
+		if (!isOneRow && !isOneCol) {
+			return Asc.c_oAscError.ID.SingleColumnOrRowError;
+		}
+		var count = isOneRow ? locationRange.c2 - locationRange.c1 + 1 : locationRange.r2 - locationRange.r1 + 1;
+		var countDataRangeRow = dataRange.r2 - dataRange.r1 + 1;
+		var countDataRangeCol = dataRange.c2 - dataRange.c1 + 1;
+		if (count !== countDataRangeRow && count !== countDataRangeCol) {
+			return Asc.c_oAscError.ID.LocationOrDataRangeError;
+		}
+		return null;
+	};
+	sparklineGroup.prototype.getModifySparklinesForPromote = function (from, to, offset) {
+		var newArr = [];
+		var needAdd = false;
+		for (var i = 0; i < this.arrSparklines.length; i++) {
+			if (this.arrSparklines[i].sqRef && from.containsRange(this.arrSparklines[i].sqRef)) {
+				var cloneElem = this.arrSparklines[i].clone();
+				cloneElem.sqRef.setOffset(offset);
+				if (to.containsRange(cloneElem.sqRef)) {
+					newArr.push(this.arrSparklines[i]);
+					cloneElem._f.setOffset(offset);
+					cloneElem.f = cloneElem._f.getName();
+					needAdd = true;
+				}
+
+				newArr.push(cloneElem);
+			} else {
+				newArr.push(this.arrSparklines[i].clone());
+			}
+		}
+		return newArr.length && needAdd ? newArr : null;
 	};
 	sparklineGroup.prototype.asc_getId = function () {
 		return this.Id;
@@ -6014,13 +6097,12 @@ function RangeDataManagerElem(bbox, data)
 		this.colorLow = val;
 	};
 
-	sparklineGroup.prototype.createExcellColor = function(aColor) {
+	sparklineGroup.prototype.createExcellColor = function (aColor) {
 		var oExcellColor = null;
-		if(Array.isArray(aColor)) {
-			if(2 === aColor.length){
+		if (Array.isArray(aColor)) {
+			if (2 === aColor.length) {
 				oExcellColor = AscCommonExcel.g_oColorManager.getThemeColor(aColor[0], aColor[1]);
-			}
-			else if(1 === aColor.length){
+			} else if (1 === aColor.length) {
 				oExcellColor = new AscCommonExcel.RgbColor(0x00ffffff & aColor[0]);
 			}
 		}
@@ -6108,7 +6190,8 @@ function RangeDataManagerElem(bbox, data)
 			equalColors(this.colorMarkers, oSparklineGroup.colorMarkers) &&
 			equalColors(this.colorFirst, oSparklineGroup.colorFirst) &&
 			equalColors(this.colorLast, oSparklineGroup.colorLast) &&
-			equalColors(this.colorHigh, oSparklineGroup.colorHigh) && equalColors(this.colorLow, oSparklineGroup.colorLow);
+			equalColors(this.colorHigh, oSparklineGroup.colorHigh) &&
+			equalColors(this.colorLow, oSparklineGroup.colorLow);
 	};
 
 	sparklineGroup.prototype.asc_getStyles = function (type) {
@@ -6191,7 +6274,7 @@ function RangeDataManagerElem(bbox, data)
 		var t = this;
 		if (this._f && oldSheet === this._f.sheet && (null === this._f.sheet2 || oldSheet === this._f.sheet2)) {
 			this._f.setSheet(sheet);
-			AscCommonExcel.executeInR1C1Mode(false,function (){
+			AscCommonExcel.executeInR1C1Mode(false, function () {
 				t.f = t._f.getName();
 			});
 		}

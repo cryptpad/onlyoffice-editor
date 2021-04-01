@@ -3803,6 +3803,9 @@ var editor;
   };
 
 	spreadsheet_api.prototype.asc_setSparklineGroup = function (id, oSparklineGroup) {
+		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+			return;
+		}
 		var t = this;
 		var changeSparkline = function (res) {
 			if (res) {
@@ -3818,6 +3821,15 @@ var editor;
 			}
 		};
 		this._isLockedSparkline(id, changeSparkline);
+	};
+
+	spreadsheet_api.prototype.asc_addSparklineGroup = function (type, sDataRange, sLocationRange) {
+		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+			return;
+		}
+
+		var wsView = this.wb.getWorksheet();
+		return wsView.addSparklineGroup(type, sDataRange, sLocationRange);
 	};
 
     spreadsheet_api.prototype.asc_setListType = function (type, subtype) {
@@ -3875,6 +3887,24 @@ var editor;
 		  this.wb.cellEditor.options.menuEditor;
   };
 
+  spreadsheet_api.prototype.asc_getActiveRangeStr = function(referenceType, opt_getActiveCell) {
+  	var ws = this.wb.getWorksheet();
+  	var res = null;
+  	if (ws && ws.model && ws.model.selectionRange) {
+  		var range;
+  		if (opt_getActiveCell) {
+			var activeCell = ws.model.selectionRange.activeCell;
+			range = new Asc.Range(activeCell.col, activeCell.row, activeCell.col, activeCell.row);
+		} else {
+			var lastRange = ws.model.selectionRange.getLast();
+			range = new Asc.Range(lastRange.c1, lastRange.r1, lastRange.c2, lastRange.r2);
+		}
+
+		res = range.getName(referenceType);
+	}
+	return res;
+  };
+
   spreadsheet_api.prototype.asc_getIsTrackShape = function()  {
     return this.wb ? this.wb.getIsTrackShape() : false;
   };
@@ -3904,6 +3934,9 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_setCellBold = function(isBold) {
+    this.asc_addSparklineGroup();
+    return;
+
     var ws = this.wb.getWorksheet();
     if (ws.objectRender.selectedGraphicObjectsExists() && ws.objectRender.controller.setCellBold) {
       ws.objectRender.controller.setCellBold(isBold);
@@ -5561,6 +5594,7 @@ var editor;
 
   // Sparklines
   prot["asc_setSparklineGroup"] = prot.asc_setSparklineGroup;
+  prot["asc_addSparklineGroup"] = prot.asc_addSparklineGroup;
 
   // Cell interface
   prot["asc_getCellInfo"] = prot.asc_getCellInfo;
@@ -5593,6 +5627,8 @@ var editor;
   prot["asc_formatPainter"] = prot.asc_formatPainter;
   prot["asc_showAutoComplete"] = prot.asc_showAutoComplete;
   prot["asc_getHeaderFooterMode"] = prot.asc_getHeaderFooterMode;
+  prot["asc_getActiveRangeStr"] = prot.asc_getActiveRangeStr;
+
 
   prot["asc_onMouseUp"] = prot.asc_onMouseUp;
 

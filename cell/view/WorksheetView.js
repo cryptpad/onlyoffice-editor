@@ -5641,8 +5641,71 @@
 			this._drawSelection();
 		}
 	};
+	WorksheetView.prototype.addSparklineGroup = function (type, sDataRange, sLocationRange) {
+		var t = this;
+		if (!sDataRange || !sLocationRange) {
+			sDataRange = "a1:c2";
+			sLocationRange = "e4:e5";
+			//return Asc.c_oAscError.ID.DataRangeError;
+		}
 
-    // mouseX - это разница стартовых координат от мыши при нажатии и границы
+		var locationRange;
+
+		//временный код. locationRange - должен быть привязан только к текущему листу
+		var dataRange = AscCommonExcel.g_oRangeCache.getRange3D(sDataRange);
+		if (!dataRange) {
+			dataRange = AscCommonExcel.g_oRangeCache.getAscRange(sDataRange);
+		}
+
+		var result = parserHelp.parse3DRef(sLocationRange);
+		if (result)
+		{
+			var sheetModel = t.model.workbook.getWorksheetByName(result.sheet);
+			if (sheetModel)
+			{
+				locationRange = AscCommonExcel.g_oRangeCache.getAscRange(result.range);
+			}
+		} else {
+			locationRange = AscCommonExcel.g_oRangeCache.getAscRange(sLocationRange);
+		}
+
+		var addSparkline = function (res) {
+			if (res) {
+				History.Create_NewPoint();
+				History.StartTransaction();
+
+				ws.removeSparklines(locationRange);
+
+				var modelSparkline = new AscCommonExcel.sparklineGroup(true);
+				modelSparkline.worksheet = ws;
+				modelSparkline.set(newSparkLine);
+				modelSparkline.setSparklinesFromRange(dataRange, locationRange, true);
+				ws.addSparklineGroups(modelSparkline);
+
+				History.EndTransaction();
+				t.workbook._onWSSelectionChanged();
+				t.workbook.getWorksheet().draw();
+			}
+		};
+
+		//здесь добавляю проверку данных - поскольку требуется проверка одновременно двух значений
+		var error = AscCommonExcel.sparklineGroup.prototype.isValidDataRef(dataRange, locationRange);
+		if (!error) {
+			//чтобы добавить все данные в историю создаём ещё один sparklineGroup и заполняем его всеми необходимыми опциями
+			var ws = this.model;
+			var newSparkLine = new AscCommonExcel.sparklineGroup();
+			newSparkLine.default();
+			newSparkLine.type = type != undefined ? type : Asc.c_oAscSparklineType.Column;
+
+			this._isLockedCells(locationRange, /*subType*/null, addSparkline);
+
+			return Asc.c_oAscError.ID.No;
+		} else {
+			return error;
+		}
+	};
+
+	// mouseX - это разница стартовых координат от мыши при нажатии и границы
     WorksheetView.prototype.drawColumnGuides = function ( col, x, y, mouseX ) {
         // Учитываем координаты точки, где мы начали изменение размера
         x += mouseX;
@@ -11407,6 +11470,12 @@
 		if (specialPasteProps.val && specialPasteProps.format && fromBinary) {
 			var offsetAll = new AscCommon.CellBase(arnToRange.r1 - refInsertBinary.r1, arnToRange.c1 - refInsertBinary.c1);
 			t.model.moveConditionalFormatting(refInsertBinary, arnToRange, true, offsetAll, this.model, val);
+		}
+
+		//sparklines
+		if (specialPasteProps.val && specialPasteProps.format) {
+			var offsetAll = new AscCommon.CellBase(arnToRange.r1 - refInsertBinary.r1, arnToRange.c1 - refInsertBinary.c1);
+			t.model.moveSparklineGroup(refInsertBinary, arnToRange, false, offsetAll, this.model, val);
 		}
 
 		//делаем unmerge ф/т

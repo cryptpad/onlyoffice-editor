@@ -3290,7 +3290,12 @@
 		window["AscCommonExcel"].drawGradientPreview = drawGradientPreview;
 		window["AscCommonExcel"].drawIconSetPreview = drawIconSetPreview;
 
-		window["AscCommonExcel"].referenceType = referenceType;
+		window["Asc"]["referenceType"] = window["AscCommonExcel"].referenceType = referenceType;
+		prot = referenceType;
+		prot['A'] = prot.A;
+		prot['ARRC'] = prot.ARRC;
+		prot['RRAC'] = prot.RRAC;
+		prot['R'] = prot.R;
 		window["Asc"].Range = Range;
 		window["AscCommonExcel"].Range3D = Range3D;
 		window["AscCommonExcel"].SelectionRange = SelectionRange;

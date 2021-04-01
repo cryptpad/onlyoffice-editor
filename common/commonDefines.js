@@ -274,7 +274,10 @@
 			CannotUseRelativeReference: 1007,
 			ValueMustBeGreaterThen: 1008,
 			IconDataRangesOverlap: 1009,
-			ErrorTop10Between: 1010
+			ErrorTop10Between: 1010,
+
+			SingleColumnOrRowError: 1020,
+			LocationOrDataRangeError: 1021
 		}
 	};
 
@@ -2354,6 +2357,8 @@
 	prot['ValueMustBeGreaterThen']           = prot.ValueMustBeGreaterThen;
 	prot['IconDataRangesOverlap']            = prot.IconDataRangesOverlap;
 	prot['ErrorTop10Between']                = prot.ErrorTop10Between;
+	prot['SingleColumnOrRowError']           = prot.SingleColumnOrRowError;
+	prot['LocationOrDataRangeError']         = prot.LocationOrDataRangeError;
 
 
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
