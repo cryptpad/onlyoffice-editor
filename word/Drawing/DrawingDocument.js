@@ -7096,10 +7096,11 @@ function CDrawingDocument()
 				for (var i = 0; i < arrTypes.length; i++)
 				{
 					var lvl = new CNumberingLvl();
-					var oLvl = new Asc.CAscNumberingLvl(i)
+					var oLvl = new Asc.CAscNumberingLvl(0)
 					lvl.SetByType(arrTypes[i], 0);
 					lvl.FillToAscNumberingLvl(oLvl);
-					props.push(oLvl)
+					oLvl.Align = 1;
+					props.push(oLvl);
 				}
 			}
 			else
