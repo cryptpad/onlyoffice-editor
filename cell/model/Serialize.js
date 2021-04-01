@@ -4109,7 +4109,6 @@
         {
             var oThis = this;
             var oPPTXWriter = pptx_content_writer.BinaryFileWriter;
-            oPPTXWriter.ClearIdMap();
             for(var i = 0, length = aDrawings.length; i < length; ++i)
             {
                 //write only active drawing, if copy/paste
@@ -4153,7 +4152,6 @@
                     }
                 }
             }
-            oPPTXWriter.ClearIdMap();
         };
         this.WriteDrawing = function(oDrawing, curDrawing)
         {

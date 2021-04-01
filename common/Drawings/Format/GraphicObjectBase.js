@@ -1084,6 +1084,13 @@
         }
         return null;
     };
+    CGraphicObjectBase.prototype.getFormatId = function(){
+        var oCNvPr = this.getCNvProps();
+        if(oCNvPr) {
+            return oCNvPr.id;
+        }
+        return null;
+    };
 
     CGraphicObjectBase.prototype.getNvProps = function(){
         var oUniNvPr = this.getUniNvProps();

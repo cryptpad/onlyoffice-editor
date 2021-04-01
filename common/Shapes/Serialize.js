@@ -4267,7 +4267,6 @@ function BinaryPPTYLoader()
         this.ClearConnectedObjects();
         this.TempMainObject = slide;
 
-        slide.maxId = -1;
         var s = this.stream;
         s.Skip2(1); // type
         var end = s.cur + s.GetULong() + 4;
@@ -7913,10 +7912,6 @@ function BinaryPPTYLoader()
                 case 0:
                 {
                     cNvPr.setId(s.GetLong());
-                    if(this.TempMainObject && cNvPr.id > this.TempMainObject.maxId)
-                    {
-                        this.TempMainObject.maxId = cNvPr.id;
-                    }
                     break;
                 }
                 case 1:

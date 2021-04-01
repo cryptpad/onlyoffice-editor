@@ -6452,7 +6452,9 @@ function CNvPr()
     this.hlinkHover = null;
 
     this.Id = g_oIdCounter.Get_NewId();
-    g_oTableId.Add(this, this.Id)
+    g_oTableId.Add(this, this.Id);
+
+    this.setId(AscCommon.CreateDurableId());
 }
 
 
@@ -6474,7 +6476,6 @@ CNvPr.prototype =
     createDuplicate: function()
     {
         var duplicate = new CNvPr();
-        duplicate.setId(this.id);
         duplicate.setName(this.name);
         duplicate.setIsHidden(this.isHidden);
         duplicate.setDescr(this.descr);
@@ -6895,6 +6896,7 @@ UniNvPr.prototype =
         this.nvUniSpPr && duplicate.setUniSpPr(this.nvUniSpPr.copy());
         return duplicate;
     },
+
 
 
     Write_ToBinary2: function (w)
