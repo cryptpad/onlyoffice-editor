@@ -225,6 +225,8 @@ Paragraph.prototype.SetDirectParaPr = function(oParaPr)
 	if (!oParaPr)
 		return;
 
+	var oNumPr = this.Pr.NumPr;
+
 	var oNewPr = oParaPr.Copy(true);
 
 	History.Add(new CChangesParagraphPr(this, this.Pr, oNewPr));
@@ -234,6 +236,12 @@ Paragraph.prototype.SetDirectParaPr = function(oParaPr)
 	this.Recalc_CompiledPr();
 	this.private_UpdateTrackRevisionOnChangeParaPr(true);
 	this.UpdateDocumentOutline();
+
+	if (!oNumPr || !this.Pr.NumPr || oNumPr.NumId !== this.Pr.NumPr.NumId || oNumPr.Lvl !== this.Pr.NumPr.Lvl)
+	{
+		this.private_RefreshNumbering(oNumPr);
+		this.private_RefreshNumbering(this.Pr.NumPr);
+	}
 };
 /**
  * Устанавливаем прямые настройки для текста

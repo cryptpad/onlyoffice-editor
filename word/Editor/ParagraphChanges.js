@@ -1321,12 +1321,19 @@ CChangesParagraphPr.prototype.private_CreateObject = function()
 CChangesParagraphPr.prototype.private_SetValue = function(Value)
 {
 	var oParagraph = this.Class;
-	oParagraph.Pr = Value;
+	var oNumPr     = oParagraph.Pr.NumPr;
+	oParagraph.Pr  = Value;
 
 	oParagraph.RecalcCompiledPr(true);
 	oParagraph.private_UpdateTrackRevisionOnChangeParaPr(false);
 	oParagraph.UpdateDocumentOutline();
 	private_ParagraphChangesOnSetValue(this.Class);
+
+	if (!oNumPr || !oParagraph.Pr.NumPr || oNumPr.NumId !== oParagraph.Pr.NumPr.NumId || oNumPr.Lvl !== oParagraph.Pr.NumPr.Lvl)
+	{
+		oParagraph.private_RefreshNumbering(oNumPr);
+		oParagraph.private_RefreshNumbering(oParagraph.Pr.NumPr);
+	}
 };
 CChangesParagraphPr.prototype.private_IsCreateEmptyObject = function()
 {
