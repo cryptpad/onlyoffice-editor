@@ -4113,6 +4113,7 @@ function (window, undefined) {
 			return;
 		}
 
+		var collaborativeEditing = this.wb.oApi.collaborativeEditing;
 		var cfRule = oModel.getCFRuleById(Data.id);
 		if (cfRule && cfRule.val) {
 			var value = bUndo ? Data.from : Data.to;
@@ -4180,7 +4181,12 @@ function (window, undefined) {
 						var ascRanges = [];
 
 						for (var i = 0; i < _ranges.length; i++) {
-							ascRanges.push(new Asc.Range(_ranges[i].c1, _ranges[i].r1, _ranges[i].c2, _ranges[i].r2));
+							var r1 = collaborativeEditing.getLockOtherRow2(nSheetId, _ranges[i].r1);
+							var c1 = collaborativeEditing.getLockOtherColumn2(nSheetId, _ranges[i].c1);
+							var r2 = collaborativeEditing.getLockOtherRow2(nSheetId, _ranges[i].r2);
+							var c2 = collaborativeEditing.getLockOtherColumn2(nSheetId, _ranges[i].c2);
+
+							ascRanges.push(new Asc.Range(c1, r1, c2, r2));
 						}
 
 						return ascRanges;

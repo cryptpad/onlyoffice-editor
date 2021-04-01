@@ -5060,12 +5060,12 @@
 		var redrawTablesArr = this.autoFilters.insertRows("delCell", oActualRange, c_oAscDeleteOptions.DeleteRows);
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
 			this.updatePivotOffset(oActualRange, offset);
-			this.updateConditionalFormattingOffset(oActualRange, offset);
 		}
 		if (false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges)) {
 			History.LocalChange = true;
 			this.updateSortStateOffset(oActualRange, offset);
 			this.updateSparklineGroupOffset(oActualRange, offset);
+			this.updateConditionalFormattingOffset(oActualRange, offset);
 			History.LocalChange = false;
 		}
 
@@ -5155,12 +5155,12 @@
 		var redrawTablesArr = this.autoFilters.insertRows("insCell", oActualRange, c_oAscInsertOptions.InsertColumns);
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
 			this.updatePivotOffset(oActualRange, offset);
-			this.updateConditionalFormattingOffset(oActualRange, offset);
 		}
 		if (false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges)) {
 			History.LocalChange = true;
 			this.updateSortStateOffset(oActualRange, offset);
 			this.updateSparklineGroupOffset(oActualRange, offset);
+			this.updateConditionalFormattingOffset(oActualRange, offset);
 			History.LocalChange = false;
 		}
 
@@ -5231,12 +5231,12 @@
 		var redrawTablesArr = this.autoFilters.insertColumn(oActualRange, nDif);
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
 			this.updatePivotOffset(oActualRange, offset);
-			this.updateConditionalFormattingOffset(oActualRange, offset);
 		}
 		if (false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges)) {
 			History.LocalChange = true;
 			this.updateSortStateOffset(oActualRange, offset);
 			this.updateSparklineGroupOffset(oActualRange, offset);
+			this.updateConditionalFormattingOffset(oActualRange, offset);
 			History.LocalChange = false;
 		}
 
@@ -5304,12 +5304,12 @@
 		var redrawTablesArr = this.autoFilters.insertColumn(oActualRange, count);
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
 			this.updatePivotOffset(oActualRange, offset);
-			this.updateConditionalFormattingOffset(oActualRange, offset);
 		}
 		if (false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges)) {
 			History.LocalChange = true;
 			this.updateSortStateOffset(oActualRange, offset);
 			this.updateSparklineGroupOffset(oActualRange, offset);
+			this.updateConditionalFormattingOffset(oActualRange, offset);
 			History.LocalChange = false;
 		}
 
@@ -6615,11 +6615,11 @@
 			History.LocalChange = true;
 			this.updateSortStateOffset(oBBox, offset);
 			this.updateSparklineGroupOffset(oBBox, offset);
+			this.updateConditionalFormattingOffset(oBBox, offset);
 			History.LocalChange = false;
 		}
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
 			this.updatePivotOffset(oBBox, offset);
-			this.updateConditionalFormattingOffset(oBBox, offset);
 		}
 
 		this.getRange3(oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2)._foreachNoEmpty(function(cell){
@@ -6656,11 +6656,11 @@
 			History.LocalChange = true;
 			this.updateSortStateOffset(oBBox, offset);
 			this.updateSparklineGroupOffset(oBBox, offset);
+			this.updateConditionalFormattingOffset(oBBox, offset);
 			History.LocalChange = false;
 		}
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
 			this.updatePivotOffset(oBBox, offset);
-			this.updateConditionalFormattingOffset(oBBox, offset);
 		}
 
 		this.getRange3(oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2)._foreachNoEmpty(function(cell){
@@ -6693,11 +6693,11 @@
 			History.LocalChange = true;
 			this.updateSortStateOffset(oBBox, offset);
 			this.updateSparklineGroupOffset(oBBox, offset);
+			this.updateConditionalFormattingOffset(oBBox, offset);
 			History.LocalChange = false;
 		}
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
 			this.updatePivotOffset(oBBox, offset);
-			this.updateConditionalFormattingOffset(oBBox, offset);
 		}
 
 		this._updateFormulasParents(oActualRange.r1, oActualRange.c1, oActualRange.r2, oActualRange.c2, oBBox, offset, renameRes.shiftedShared);
@@ -6755,7 +6755,6 @@
 		}
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
 			this.updatePivotOffset(oBBox, offset);
-			this.updateConditionalFormattingOffset(oBBox, offset);
 		}
 
 		this._updateFormulasParents(oActualRange.r1, oActualRange.c1, oActualRange.r2, oActualRange.c2, oBBox, offset, renameRes.shiftedShared);
@@ -6763,6 +6762,7 @@
 			History.LocalChange = true;
 			this.updateSortStateOffset(oBBox, offset);
 			this.updateSparklineGroupOffset(oBBox, offset);
+			this.updateConditionalFormattingOffset(oBBox, offset);
 			History.LocalChange = false;
 		}
 
