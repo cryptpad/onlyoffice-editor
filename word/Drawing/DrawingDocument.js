@@ -6644,7 +6644,7 @@ function CDrawingDocument()
 
         ctx.fillStyle = "#FFFFFF";
 		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
-        ctx.fillRect(Math.round(rPR * xOffset), Math.round((y - lineHeight) * rPR), Math.round(parW * rPR), Math.round((lineHeight + (lineHeight >> 1)) * rPR));
+        ctx.fillRect(Math.round(rPR * xOffset), Math.round((y - lineHeight) * rPR), Math.round(backTextWidth * rPR), Math.round((lineHeight + (lineHeight >> 1)) * rPR));
         ctx.beginPath();
 
         ctx.save();
@@ -7002,10 +7002,10 @@ function CDrawingDocument()
 
 	this.SetDrawImagePreviewBulletForMenu = function(id, type, props, isNoCheckFonts)
 	{
+		var text = AscCommon.translateManager.getValue("None");
 		if (!props)
 		{
 			props = [];
-			var text = "None"; //переводить текст в соответствии с локалью
 			var olvl = new Asc.CAscNumberingLvl(0);
 			var level = new CNumberingLvl();
 			var arr = [];
@@ -7213,7 +7213,6 @@ function CDrawingDocument()
             AscCommon.g_font_loader.LoadDocumentFonts2(fonts);
             return;
         }
-		// сделать отрисовку none
 		var elNone = document.getElementById(id[0]);
 		if (elNone)
 		{
@@ -7234,11 +7233,31 @@ function CDrawingDocument()
 			canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
 
 			var ctx = canvas.getContext("2d");
-			// подобрать это потом, размер шрифта подогнать под остальной текст, а отсупы возможно через создание параграфа посчитать, так как я не знаю как рассчитать отступы для разного текста
-			var x = (width_px >> 1 )- 4;
-			var y = (height_px >> 1) + 5;
-			var line_distance = height_px / 8;
-			this.privateGetParagraphByString((type == 2) ? props[0][0] : props[0], 0, 0, x, y, line_distance, ctx, width_px, height_px);
+			var line_distance = (height_px == 80) ?  (height_px / 5 - 1) : ((height_px >> 2) + 2);
+			var par = new Paragraph(this, this.m_oWordControl.m_oLogicDocument);
+			par.MoveCursorToStartPos();
+
+			par.Pr = new CParaPr();
+			var lvl = (type == 2) ? props[0][0] : props[0];
+			var textPr = lvl.TextPr.Copy();
+			textPr.FontSize = ((2 * line_distance * 72 / 96) >> 0) / 2;
+
+			var parRun = new ParaRun(par);
+			parRun.Set_Pr(textPr);
+			parRun.AddText(text);
+			par.AddToContent(0, parRun);
+
+			par.Reset(0, 0, 1000, 1000, 0, 0, 1);
+			par.Recalculate_Page(0);
+
+			var bounds = par.Get_PageBounds(0);
+
+			var parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
+			var parH = (bounds.Bottom - bounds.Top);
+			var x = (width_px >> 1 ) - (parW >> 1);
+			var y = (height_px >> 1) + (parH >> 1);
+
+			this.privateGetParagraphByString(lvl, 0, 0, x, y, line_distance, ctx, width_px, height_px);
 		}
 
 		for (var i = 1; i < id.length; i++)
@@ -7267,9 +7286,8 @@ function CDrawingDocument()
 			var ctx = canvas.getContext("2d");
 			var rPR = AscCommon.AscBrowser.retinaPixelRatio;
 			
-			if (type == 0)
+			if (!type)
 			{
-				// нарисовать просто большой знак
 				var width_px = parent.clientWidth;
 				var height_px = parent.clientHeight;
 
@@ -7287,78 +7305,53 @@ function CDrawingDocument()
 				canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
 
 				var ctx = canvas.getContext("2d");
-				var x = (width_px >> 1 ) - 4;
+				var line_distance = (height_px >> 1) - 2;
+				// TODo: подумать над тем как рассчитать сдвиг влево, эти значения подобраны эксперементально
+				var xShift;
+				switch (i) {
+					case 1:
+					case 3:
+						xShift = 3;
+						break;
+					case 2:
+					case 8:
+						xShift = 5;
+						break;
+					default:
+						xShift = 7;
+						break;
+				} 
+				var x = (width_px >> 1 ) - xShift;
 				var y = (height_px >> 1) + 5;
-				var line_distance = height_px / 8;
+				// для размеров окна 38 на 38
 				this.privateGetParagraphByString(props[i], 0, 0, x, y, line_distance, ctx, width_px, height_px);
-			}
-			if (type == 1)
-			{
-				var offsetBase = 4;
-				var line_w = 2;
-				// считаем расстояние между линиями
-				var line_distance = (((height_px - (offsetBase)) - line_w * 3) / 3) >> 0;
-				// убираем погрешность в offset
-				var offset = (height_px - (line_w * 3 + line_distance * 3)) >> 1;
-
-				var textYs = [];
-
-				ctx.lineWidth = 2 * Math.round(rPR);
-				var y = offset + 6;
-				var text_base_offset_x = offset + (2.75 * AscCommon.g_dKoef_mm_to_pix) >> 0;
-				if (text_base_offset_x > (width_px - offsetBase << 1))
-					text_base_offset_x = width_px - offsetBase << 1;
-				ctx.strokeStyle = "#CBCBCB";
-
-				textYs.push(y + line_w); y += (line_w + line_distance);
-				textYs.push(y + line_w); y += (line_w + line_distance);
-				textYs.push(y + line_w); y += (line_w + line_distance);
-
-				for (var j = 0; j < textYs.length; j++)
-				{
-					this.privateGetParagraphByString(props[i], 0, j + 1, text_base_offset_x - ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0),
-						textYs[j], line_distance, ctx, width_px, height_px);
-				}
-	
-				// перенести это в цикл выше
-				y = Math.round((offset + 6) * rPR);
-				ctx.moveTo((text_base_offset_x + 2) * rPR, y); ctx.lineTo((width_px - offsetBase) * rPR, y); y += Math.round((line_w + line_distance) * rPR);
-				ctx.moveTo((text_base_offset_x + 2) * rPR, y); ctx.lineTo((width_px - offsetBase) * rPR, y); y += Math.round((line_w + line_distance) * rPR);
-				ctx.moveTo((text_base_offset_x + 2) * rPR, y); ctx.lineTo((width_px - offsetBase) * rPR, y); y += Math.round((line_w + line_distance) * rPR);
-				ctx.stroke();
-				ctx.beginPath();
 			}
 			else
 			{
 				var offsetBase = 4;
 				var line_w = 2;
 				// считаем расстояние между линиями
-				var line_distance = (((height_px - (offsetBase)) - line_w * 3) / 3) >> 0;
+				var line_distance = (((height_px - (offsetBase << 2)) - line_w * 3) / 3) >> 0;
 				// убираем погрешность в offset
 				var offset = (height_px - (line_w * 3 + line_distance * 3)) >> 1;
 
 				ctx.lineWidth = 2 * Math.round(rPR);
 				ctx.strokeStyle = "#CBCBCB";
-				var y = offset + 6;
-				var text_base_offset_x = offset + ((2.75 * AscCommon.g_dKoef_mm_to_pix) >> 0);
+				var y = offset + 11;
+				var text_base_offset_x = offset + ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
 				var text_base_offset_dist = (2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0;
 
-				var textYs = [];
-				for (var j = 0; j < props[i].length; j++)
+				for (var j = 0; j < 3; j++)
 				{
-					textYs.push({x: text_base_offset_x - ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0), y: y + line_w});
-					ctx.moveTo(Math.round((text_base_offset_x + 2) * rPR), Math.round(y * rPR)); ctx.lineTo(Math.round((width_px - offsetBase) * rPR), Math.round(y * rPR));
+					ctx.moveTo(Math.round(text_base_offset_x * rPR), Math.round(y * rPR)); ctx.lineTo(Math.round((width_px - offsetBase) * rPR), Math.round(y * rPR));
 					ctx.stroke();
 					ctx.beginPath();
-
-					text_base_offset_x += text_base_offset_dist;
+					var textYx =  text_base_offset_x - ((3.25 * AscCommon.g_dKoef_mm_to_pix) >> 0),
+						textYy = y + (line_w * 2.5);
+					this.privateGetParagraphByString((type == 2) ? props[i][j] : props[i], 0, 1 + ((type == 1) ? j : 0), textYx, textYy, (line_distance - 4), ctx, width_px, height_px);
 					y += (line_w + line_distance);
-				}
-
-				// попробовать тоже перенести в цикл выше
-				for (var j = 0; j < textYs.length; j++)
-				{
-					this.privateGetParagraphByString(props[i][j], 0, 1, textYs[j].x, textYs[j].y, line_distance, ctx, width_px, height_px);
+					if (type == 2)
+						text_base_offset_x += text_base_offset_dist;
 				}
 			}
 
