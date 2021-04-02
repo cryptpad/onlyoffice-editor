@@ -11473,7 +11473,7 @@
 		}
 
 		//sparklines
-		if (specialPasteProps.val && specialPasteProps.format) {
+		if (specialPasteProps.val && specialPasteProps.format && fromBinary) {
 			var offsetAll = new AscCommon.CellBase(arnToRange.r1 - refInsertBinary.r1, arnToRange.c1 - refInsertBinary.c1);
 			t.model.moveSparklineGroup(refInsertBinary, arnToRange, false, offsetAll, this.model, val);
 		}
