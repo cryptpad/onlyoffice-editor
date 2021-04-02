@@ -1988,7 +1988,10 @@
     CGraphicObjectBase.prototype.isComparable = function(oDrawing) {
         var oPr = this.getCNvProps();
         var oOtherPr = oDrawing.getCNvProps();
-        if(!oPr || !oOtherPr) {
+        if(!oPr && !oOtherPr) {
+            return true;
+        }
+        if(!oPr)  {
             return false;
         }
         return oPr.hasSameNameAndId(oOtherPr);

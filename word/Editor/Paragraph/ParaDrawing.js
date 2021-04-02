@@ -3045,6 +3045,10 @@ ParaDrawing.prototype.IsComparable = function(oDrawing)
 	{
 		return false;
 	}
+	if(this.GraphicObj.getObjectType() !== oDrawing.GraphicObj.getObjectType())
+	{
+		return false;
+	}
 	return this.GraphicObj.isComparable(oDrawing.GraphicObj);
 };
 /**
