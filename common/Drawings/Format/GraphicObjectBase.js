@@ -1084,6 +1084,13 @@
         }
         return null;
     };
+    CGraphicObjectBase.prototype.getFormatId = function(){
+        var oCNvPr = this.getCNvProps();
+        if(oCNvPr) {
+            return oCNvPr.id;
+        }
+        return null;
+    };
 
     CGraphicObjectBase.prototype.getNvProps = function(){
         var oUniNvPr = this.getUniNvProps();
@@ -1977,6 +1984,17 @@
     };
     CGraphicObjectBase.prototype.createFontMap = function(oMap) {
         this.documentCreateFontMap(oMap);
+    };
+    CGraphicObjectBase.prototype.isComparable = function(oDrawing) {
+        var oPr = this.getCNvProps();
+        var oOtherPr = oDrawing.getCNvProps();
+        if(!oPr && !oOtherPr) {
+            return true;
+        }
+        if(!oPr)  {
+            return false;
+        }
+        return oPr.hasSameNameAndId(oOtherPr);
     };
     
     function CRelSizeAnchor() {

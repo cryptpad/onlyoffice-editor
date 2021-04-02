@@ -533,7 +533,6 @@
 					sBase64 = this._getBinaryShapeContent(isIntoShape);
 				} else {
 					pptx_content_writer.Start_UseFullUrl();
-					pptx_content_writer.BinaryFileWriter.ClearIdMap();
 
 					var unselectedIndexes = [];
 					if(selectAll) {
@@ -596,7 +595,6 @@
 					//WRITE
 					var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(wb, !ignoreCopyPaste ? selectionRange : false);
 					sBase64 = "xslData;" + oBinaryFileWriter.Write();
-					pptx_content_writer.BinaryFileWriter.ClearIdMap();
 					pptx_content_writer.End_UseFullUrl();
 
 					if(selectAll) {

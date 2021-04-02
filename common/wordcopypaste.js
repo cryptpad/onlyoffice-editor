@@ -1243,7 +1243,6 @@ CopyProcessor.prototype =
 			oThis.oPresentationWriter.WriteULong(elements.length);
 
 			pptx_content_writer.Start_UseFullUrl();
-			pptx_content_writer.BinaryFileWriter.ClearIdMap();
 			for (var i = 0; i < elements.length; ++i) {
 				if (!(elements[i].Drawing instanceof CGraphicFrame)) {
 					oThis.oPresentationWriter.WriteBool(true);
