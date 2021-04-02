@@ -1669,6 +1669,17 @@ function CDrawingDocument()
 			this.m_oWordControl.SlideDrawer.CheckSlide(this.SlideCurrent);
 	};
 
+
+	this.CloseFile = function ()
+	{
+		this.SlidesCount         = 0;
+		this.IsEmptyPresentation = true;
+		this.SlideCurrent     = -1;
+		this.ClearCachePages();
+		this.FirePaint();
+	};
+
+
 	this.FirePaint = function()
 	{
 		//this.m_oWordControl.OnScroll();
@@ -2282,16 +2293,15 @@ function CDrawingDocument()
 		var yDst = this.SlideCurrectRect.top;
 		var wDst = this.SlideCurrectRect.right - this.SlideCurrectRect.left;
 		var hDst = this.SlideCurrectRect.bottom - this.SlideCurrectRect.top;
+
 		dKoefX = wDst / this.m_oLogicDocument.GetWidthMM();
 		dKoefY = hDst / this.m_oLogicDocument.GetHeightMM();
 		var oTextMatrix = this.TextMatrix;
-		var _1px_mm_x = 1 / Math.max(dKoefX, 0.001);
-		var _1px_mm_y = 1 / Math.max(dKoefY, 0.001);
 		for (nIndex = 0; nIndex < PathLng; nIndex++)
 		{
 			oPath = this.MathTrack.GetPolygon(nIndex);
-			this.MathTrack.DrawWithMatrix(overlay, oPath, 0, 0, "#939393", dKoefX, dKoefY, xDst, yDst, oTextMatrix);
-			this.MathTrack.DrawWithMatrix(overlay, oPath, _1px_mm_x, _1px_mm_y, "#FFFFFF", dKoefX, dKoefY, xDst, yDst, oTextMatrix);
+			this.MathTrack.Draw(overlay, oPath, 0, 0, "#939393", dKoefX, dKoefY, xDst, yDst, oTextMatrix);
+			this.MathTrack.Draw(overlay, oPath, 1, 1, "#FFFFFF", dKoefX, dKoefY, xDst, yDst, oTextMatrix);
 		}
 		for (nIndex = 0, nCount = this.MathTrack.GetSelectPathsCount(); nIndex < nCount; nIndex++)
 		{
@@ -5608,7 +5618,7 @@ function DrawBackground(graphics, unifill, w, h)
 		checker._l(0, this.extY);
 		checker._z();
 		checker._e();
-	}
+	};
 
 	var shape_drawer = new AscCommon.CShapeDrawer();
 	shape_drawer.fromShape2(_shape, graphics, null);

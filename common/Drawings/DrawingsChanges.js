@@ -544,6 +544,14 @@
                 var Element = this.Items[nIndex];
                 Pos = Math.min(Pos, aContent.length);
                 aContent.splice(Pos, 0, Element);
+
+                if(this.Class.collaborativeMarks) {
+                    if (Color) {
+                        this.Class.collaborativeMarks.Update_OnAdd(Pos);
+                        this.Class.collaborativeMarks.Add(Pos, Pos + 1, Color);
+                        AscCommon.CollaborativeEditing.Add_ChangedClass(this.Class);
+                    }
+                }
             }
         }
         else{
@@ -555,11 +563,17 @@
                 }
                 if(aContent[Pos] === this.Items[nIndex]){
                     aContent.splice(Pos, 1);
+                    if(this.Class.collaborativeMarks) {
+                        this.Class.collaborativeMarks.Update_OnRemove(Pos, 1);
+                    }
                     break;
                 }
                 for(var j = aContent.length - 1; j > -1 ; --j){
                     if(aContent[j] === this.Items[nIndex]){
                         aContent.splice(j, 1);
+                        if(this.Class.collaborativeMarks) {
+                            this.Class.collaborativeMarks.Update_OnRemove(j, 1);
+                        }
                         break;
                     }
                 }
@@ -826,6 +840,7 @@
 
     CChangesSparklinesChangeData.prototype.WriteToBinary = function(Writer){
         this.WritePr(Writer, this.OldPr);
+		this.applyCollaborative(this.NewPr);
         this.WritePr(Writer, this.NewPr);
     };
 
@@ -852,9 +867,60 @@
         this.Fill(this.OldPr);
     };
 
-    CChangesSparklinesChangeData.prototype.Redo = function(){
-        this.Fill(this.NewPr);
-    };
+	CChangesSparklinesChangeData.prototype.Redo = function () {
+		var wb = window["Asc"]["editor"].wb.model;
+		var t = this;
+
+		if (wb.bCollaborativeChanges) {
+			var collaborativeEditing = wb.oApi.collaborativeEditing;
+			var nSheetId = this.Class && this.Class.worksheet && this.Class.worksheet.Id;
+			if (collaborativeEditing && nSheetId) {
+				if (this.NewPr && this.NewPr.length) {
+					for (var i = 0; i < this.NewPr.length; i++) {
+						this.NewPr[i].sqRef.r1 = collaborativeEditing.getLockOtherRow2(nSheetId, this.NewPr[i].sqRef.r1);
+						this.NewPr[i].sqRef.c1 = collaborativeEditing.getLockOtherColumn2(nSheetId, this.NewPr[i].sqRef.c1);
+						this.NewPr[i].sqRef.r2 = collaborativeEditing.getLockOtherRow2(nSheetId, this.NewPr[i].sqRef.r2);
+						this.NewPr[i].sqRef.c2 = collaborativeEditing.getLockOtherColumn2(nSheetId, this.NewPr[i].sqRef.c2);
+
+						this.NewPr[i]._f.r1 = collaborativeEditing.getLockOtherRow2(nSheetId, this.NewPr[i]._f.r1);
+						this.NewPr[i]._f.c1 = collaborativeEditing.getLockOtherColumn2(nSheetId, this.NewPr[i]._f.c1);
+						this.NewPr[i]._f.r2 = collaborativeEditing.getLockOtherRow2(nSheetId, this.NewPr[i]._f.r2);
+						this.NewPr[i]._f.c2 = collaborativeEditing.getLockOtherColumn2(nSheetId, this.NewPr[i]._f.c2);
+
+						AscCommonExcel.executeInR1C1Mode(false, function () {
+							t.NewPr[i].f = t.NewPr[0]._f.getName();
+						});
+					}
+				}
+			}
+		}
+		this.Fill(this.NewPr);
+	};
+	CChangesSparklinesChangeData.prototype.applyCollaborative = function () {
+		var wb = window["Asc"]["editor"].wb.model;
+		var t = this;
+
+        var collaborativeEditing = wb.oApi.collaborativeEditing;
+        var nSheetId = this.Class && this.Class.worksheet && this.Class.worksheet.Id;
+
+        if (this.NewPr && this.NewPr.length) {
+            for (var i = 0; i < this.NewPr.length; i++) {
+                this.NewPr[i].sqRef.r1 = collaborativeEditing.getLockMeRow2(nSheetId, this.NewPr[i].sqRef.r1);
+                this.NewPr[i].sqRef.c1 = collaborativeEditing.getLockMeColumn2(nSheetId, this.NewPr[i].sqRef.c1);
+                this.NewPr[i].sqRef.r2 = collaborativeEditing.getLockMeRow2(nSheetId, this.NewPr[i].sqRef.r2);
+                this.NewPr[i].sqRef.c2 = collaborativeEditing.getLockMeColumn2(nSheetId, this.NewPr[i].sqRef.c2);
+
+                this.NewPr[i]._f.r1 = collaborativeEditing.getLockMeRow2(nSheetId, this.NewPr[i]._f.r1);
+                this.NewPr[i]._f.c1 = collaborativeEditing.getLockMeColumn2(nSheetId, this.NewPr[i]._f.c1);
+                this.NewPr[i]._f.r2 = collaborativeEditing.getLockMeRow2(nSheetId, this.NewPr[i]._f.r2);
+                this.NewPr[i]._f.c2 = collaborativeEditing.getLockMeColumn2(nSheetId, this.NewPr[i]._f.c2);
+
+                AscCommonExcel.executeInR1C1Mode(false, function () {
+                    t.NewPr[i].f = t.NewPr[0]._f.getName();
+                });
+            }
+        }
+	};
     CChangesSparklinesChangeData.prototype.Load = function(){
         this.Redo();
         this.RefreshRecalcData();

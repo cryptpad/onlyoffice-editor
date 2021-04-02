@@ -2656,9 +2656,9 @@ ParaMath.prototype.MathToImageConverter = function(bCopy, _canvasInput, _widthPx
         h_px *= raster_koef;
 
         if (undefined !== _widthPx)
-            _widthPx *= raster_koef;
+            _widthPx = (_widthPx * raster_koef) >> 0;
         if (undefined !== _heightPx)
-            _heightPx *= raster_koef;
+            _heightPx = (_heightPx * raster_koef) >> 0;
     }
 
     var _canvas = null;
@@ -2669,7 +2669,7 @@ ParaMath.prototype.MathToImageConverter = function(bCopy, _canvasInput, _widthPx
         _canvas = new CNativeGraphics();
         _canvas.width  = _width;
         _canvas.height = _height;
-        _canvas.init(window["native"], _width, _height, _width / dKoef, _height / dKoef);
+        _canvas.create(window["native"], _width, _height, _width / dKoef, _height / dKoef);
         _canvas.CoordTransformOffset(_widthPx  !== undefined ? (_widthPx  - w_px) / 2 : 0,
                                      _heightPx !== undefined ? (_heightPx - h_px) / 2 : 0);
         _canvas.transform(1, 0, 0, 1, 0, 0);

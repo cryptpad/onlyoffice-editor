@@ -4002,12 +4002,11 @@ function CDrawingDocument()
 				_page = this.m_arrPages[oPath.Page];
 				drPage = _page.drawingPage;
 
-				var rPR = AscCommon.AscBrowser.retinaPixelRatio;
-				dKoefX = (drPage.right - drPage.left) / _page.width_mm * rPR;
-				dKoefY = (drPage.bottom - drPage.top) / _page.height_mm * rPR;
+				dKoefX = (drPage.right - drPage.left) / _page.width_mm;
+				dKoefY = (drPage.bottom - drPage.top) / _page.height_mm;
 
-				this.MathTrack.Draw(overlay, oPath, 0, "#939393", dKoefX, dKoefY, drPage.left, drPage.top);
-				this.MathTrack.Draw(overlay, oPath, 1, "#FFFFFF", dKoefX, dKoefY, drPage.left, drPage.top);
+				this.MathTrack.Draw(overlay, oPath, 0, 0, "#939393", dKoefX, dKoefY, drPage.left, drPage.top);
+				this.MathTrack.Draw(overlay, oPath, 1, 1, "#FFFFFF", dKoefX, dKoefY, drPage.left, drPage.top);
 			}
 			for (nIndex = 0, nCount = this.MathTrack.GetSelectPathsCount(); nIndex < nCount; nIndex++)
 			{
@@ -4029,12 +4028,8 @@ function CDrawingDocument()
 
 				dKoefX = (drPage.right - drPage.left) / _page.width_mm;
 				dKoefY = (drPage.bottom - drPage.top) / _page.height_mm;
-
-				var _1px_mm_x = 1 / Math.max(dKoefX, 0.001);
-				var _1px_mm_y = 1 / Math.max(dKoefY, 0.001);
-
-				this.MathTrack.DrawWithMatrix(overlay, oPath, 0, 0, "#939393", dKoefX, dKoefY, drPage.left, drPage.top, this.TextMatrix);
-				this.MathTrack.DrawWithMatrix(overlay, oPath, _1px_mm_x, _1px_mm_y, "#FFFFFF", dKoefX, dKoefY, drPage.left, drPage.top, this.TextMatrix);
+				this.MathTrack.Draw(overlay, oPath, 0, 0, "#939393", dKoefX, dKoefY, drPage.left, drPage.top, this.TextMatrix);
+				this.MathTrack.Draw(overlay, oPath, 1, 1, "#FFFFFF", dKoefX, dKoefY, drPage.left, drPage.top, this.TextMatrix);
 			}
 
 
@@ -5659,12 +5654,16 @@ function CDrawingDocument()
 				if (0 == _height)
 					_height = 80;
 
-				if (this.GuiCanvasTextProps.width != _width || this.GuiCanvasTextProps.height != _height)
-				{
-					this.GuiCanvasTextProps.width = _width;
-					this.GuiCanvasTextProps.height = _height;
-				}
+				this.GuiCanvasTextProps.style.width = _width + "px";
+				this.GuiCanvasTextProps.style.height = _height + "px";
 			}
+
+			var old_width = this.GuiCanvasTextProps.width;
+			var old_height = this.GuiCanvasTextProps.height;
+			AscCommon.calculateCanvasSize(this.GuiCanvasTextProps);
+
+			if (old_width !== this.GuiCanvasTextProps.width || old_height !== this.GuiCanvasTextProps.height)
+				this.GuiLastTextProps = null;
 		}
 		else
 		{
@@ -5680,8 +5679,10 @@ function CDrawingDocument()
 			if (0 == _height)
 				_height = 80;
 
-			this.GuiCanvasTextProps.width = _width;
-			this.GuiCanvasTextProps.height = _height;
+			this.GuiCanvasTextProps.style.width = _width + "px";
+			this.GuiCanvasTextProps.style.height = _height + "px";
+
+			AscCommon.calculateCanvasSize(this.GuiCanvasTextProps);
 
 			_div_elem.appendChild(this.GuiCanvasTextProps);
 		}
@@ -5770,6 +5771,7 @@ function CDrawingDocument()
 		par.Pr = _paraPr;
 		var _textPr = new CTextPr();
 		_textPr.FontFamily = {Name: "Arial", Index: -1};
+		_textPr.FontSize = (AscCommon.AscBrowser.convertToRetinaValue(11 << 1, true) >> 0) * 0.5;
 
 		_textPr.Strikeout = this.GuiLastTextProps.Strikeout;
 
@@ -6979,16 +6981,14 @@ function CDrawingDocument()
             canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
 
             var ctx = canvas.getContext("2d");
+			var rPR = AscCommon.AscBrowser.retinaPixelRatio;
 
-            if (AscCommon.AscBrowser.retinaPixelRatio >= 2)
-                ctx.setTransform(2, 0, 0, 2, 0, 0);
-
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2 * Math.round(rPR);
             ctx.strokeStyle = "000000"; // "#CBCBCB";
 
             var textYs = {x: text_base_offset_x - ((4.25 * AscCommon.g_dKoef_mm_to_pix) >> 0), y: y + (line_w << 1)};
 
-            ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y);
+            ctx.moveTo(Math.round(text_base_offset_x * rPR), Math.round(y * rPR)); ctx.lineTo(Math.round((width_px - offsetBase) * rPR), Math.round(y * rPR));
             ctx.stroke();
             ctx.beginPath();
 

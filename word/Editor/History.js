@@ -105,7 +105,7 @@ CHistory.prototype =
         var pData = oStream.data;
         var nSize = oStream.size;
 
-        this.FileCheckSum = g_oCRC32.Calculate_ByByteArray(pData, nSize);
+        this.FileCheckSum = AscCommon.g_oCRC32.Calculate_ByByteArray(pData, nSize);
         this.FileSize     = nSize;
     },
 
@@ -1284,53 +1284,6 @@ CHistory.prototype.private_PostProcessingRecalcData = function()
 		return arrChanges;
 	};
 
-	function CRC32()
-	{
-		this.m_aTable = [];
-		this.private_InitTable();
-	}
-	CRC32.prototype.private_InitTable = function()
-	{
-		var CRC_POLY = 0xEDB88320;
-		var nChar;
-		for (var nIndex = 0; nIndex < 256; nIndex++)
-		{
-			nChar = nIndex;
-			for (var nCounter = 0; nCounter < 8; nCounter++)
-			{
-				nChar = ((nChar & 1) ? ((nChar >>> 1) ^ CRC_POLY) : (nChar >>> 1));
-			}
-			this.m_aTable[nIndex] = nChar;
-		}
-	};
-	CRC32.prototype.Calculate_ByString = function(sStr, nSize)
-	{
-		var CRC_MASK = 0xD202EF8D;
-		var nCRC     = 0 ^ (-1);
-
-		for (var nIndex = 0; nIndex < nSize; nIndex++)
-		{
-			nCRC = this.m_aTable[(nCRC ^ sStr.charCodeAt(nIndex)) & 0xFF] ^ (nCRC >>> 8);
-			nCRC ^= CRC_MASK;
-		}
-
-		return (nCRC ^ (-1)) >>> 0;
-	};
-	CRC32.prototype.Calculate_ByByteArray = function(aArray, nSize)
-	{
-		var CRC_MASK = 0xD202EF8D;
-		var nCRC     = 0 ^ (-1);
-
-		for (var nIndex = 0; nIndex < nSize; nIndex++)
-		{
-			nCRC = (nCRC >>> 8) ^ this.m_aTable[(nCRC ^ aArray[nIndex]) & 0xFF];
-			nCRC ^= CRC_MASK;
-		}
-
-		return (nCRC ^ (-1)) >>> 0;
-	};
-
-	var g_oCRC32 = new CRC32();
 
 	//----------------------------------------------------------export--------------------------------------------------
 	window['AscCommon']          = window['AscCommon'] || {};

@@ -1300,6 +1300,12 @@
 		leftToRight: 1,
 		rightToLeft: 2
 	};
+	var EActivePane = {
+		bottomLeft: 0,
+		bottomRight: 1,
+		topLeft: 2,
+		topRight: 3
+	};
 
     var g_nNumsMaxId = 160;
 
@@ -3742,13 +3748,25 @@
         };
         this.WriteSheetViewPane = function (oPane) {
             var oThis = this;
-			//this.bs.WriteItem(c_oSer_Pane.ActivePane, function(){oThis.memory.WriteByte();});
+			var col = oPane.topLeftFrozenCell.getCol0();
+			var row = oPane.topLeftFrozenCell.getRow0();
+
+			var activePane = null;
+			if (0 < col && 0 < row) {
+				activePane = EActivePane.bottomRight;
+            } else if (0 < row) {
+				activePane = EActivePane.bottomLeft;
+            } else if (0 < col) {
+	            activePane = EActivePane.topRight;
+            }
+            if (null !== activePane) {
+				this.bs.WriteItem(c_oSer_Pane.ActivePane, function(){oThis.memory.WriteByte(activePane);});
+            }
+
             // Всегда пишем Frozen
             this.bs.WriteItem(c_oSer_Pane.State, function(){oThis.memory.WriteString3(AscCommonExcel.c_oAscPaneState.Frozen);});
             this.bs.WriteItem(c_oSer_Pane.TopLeftCell, function(){oThis.memory.WriteString3(oPane.topLeftFrozenCell.getID());});
 
-            var col = oPane.topLeftFrozenCell.getCol0();
-            var row = oPane.topLeftFrozenCell.getRow0();
             if (0 < col)
                 this.bs.WriteItem(c_oSer_Pane.XSplit, function(){oThis.memory.WriteDouble2(col);});
             if (0 < row)
@@ -4069,8 +4087,9 @@
                 this.memory.WriteString2(oHyperlink.Ref.getName());
             }
             if (null != oHyperlink.Hyperlink) {
+                var sHyperlink = oHyperlink.Hyperlink.length > Asc.c_nMaxHyperlinkLength ? this.Hyperlink.substring(0, Asc.c_nMaxHyperlinkLength) : oHyperlink.Hyperlink;
                 this.memory.WriteByte(c_oSerHyperlinkTypes.Hyperlink);
-                this.memory.WriteString2(oHyperlink.Hyperlink);
+                this.memory.WriteString2(sHyperlink);
             }
             if (null !== oHyperlink.getLocation()) {
                 this.memory.WriteByte(c_oSerHyperlinkTypes.Location);
@@ -10590,7 +10609,31 @@
     window["Asc"].EDateTimeGroup = EDateTimeGroup;
     window["Asc"].ETableStyleType = ETableStyleType;
     window["Asc"].EFontScheme = EFontScheme;
-    window["Asc"].EIconSetType = EIconSetType;
+
+	window['Asc']['EIconSetType'] = window["Asc"].EIconSetType = EIconSetType;
+	prot = EIconSetType;
+	prot['Arrows3'] = prot.Arrows3;
+	prot['Arrows3Gray'] = prot.Arrows3Gray;
+	prot['Flags3'] = prot.Flags3;
+	prot['Signs3'] = prot.Signs3;
+	prot['Symbols3'] = prot.Symbols3;
+	prot['Symbols3_2'] = prot.Symbols3_2;
+	prot['Traffic3Lights1'] = prot.Traffic3Lights1;
+	prot['Traffic3Lights2'] = prot.Traffic3Lights2;
+	prot['Arrows4'] = prot.Arrows4;
+	prot['Arrows4Gray'] = prot.Arrows4Gray;
+	prot['Rating4'] = prot.Rating4;
+	prot['RedToBlack4'] = prot.RedToBlack4;
+	prot['Traffic4Lights'] = prot.Traffic4Lights;
+	prot['Arrows5'] = prot.Arrows5;
+	prot['Arrows5Gray'] = prot.Arrows5Gray;
+	prot['Quarters5'] = prot.Quarters5;
+	prot['Rating5'] = prot.Rating5;
+	prot['Triangles3'] = prot.Triangles3;
+	prot['Stars3'] = prot.Stars3;
+	prot['Boxes5'] = prot.Boxes5;
+	prot['NoIcons'] = prot.NoIcons;
+
     window["Asc"].c_oSer_DrawingType = c_oSer_DrawingType;
     window["Asc"].c_oSer_DrawingPosType = c_oSer_DrawingPosType;
 

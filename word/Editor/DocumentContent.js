@@ -1190,7 +1190,7 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
                 Element.Reset(X, Y, XLimit, YLimit, PageIndex, 0, 1);
             }
 
-            if (Index === Count - 1 && Index > 0 && type_Paragraph === Element.GetType() && this.Content[Index - 1].IsTable() && this.Content[Index - 1].IsInline() && true === Element.IsEmpty() && true === this.IsTableCellContent())
+            if (this.IsEmptyParagraphAfterTableInTableCell(Index))
             {
                 RecalcResult = recalcresult_NextElement;
 
@@ -1320,6 +1320,34 @@ CDocumentContent.prototype.RecalculateMinMaxContentWidth = function(isRotated)
 	}
 
 	return {Min : Min, Max : Max};
+};
+/**
+ * Специальная функция, которая проверяет, что по заданному индексу распологается пустой параграф,
+ * который идет после таблицы. При этом весь контент сам является контентом ячейки другой таблицы.
+ * @param nIndex {number}
+ * @returns {boolean}
+ */
+CDocumentContent.prototype.IsEmptyParagraphAfterTableInTableCell = function(nIndex)
+{
+	var nCount = this.Content.length;
+	if (nIndex !== nCount - 1 || nIndex <= 0)
+		return false;
+
+	var oElement     = this.Content[nIndex];
+	var oPrevElement = this.Content[nIndex - 1];
+
+	if (!oElement.IsParagraph() || !oPrevElement.IsTable() || !oPrevElement.IsInline() || !oElement.IsEmpty() || !this.IsTableCellContent())
+		return false;
+
+	// В 14-ой версии совместимости и ниже, если у такого параграфа есть нумерация, тогда он не считается пустым
+	// В версиях совместимости больше 14, даже если у него есть нумерация мы его считаем пустым
+
+	var oLogicDocument = this.GetLogicDocument();
+	if (!oLogicDocument)
+		return false;
+
+	var nCompatibilityMode = oLogicDocument.GetCompatibilityMode();
+	return !(nCompatibilityMode <= AscCommon.document_compatibility_mode_Word14 && oElement.HaveNumbering());
 };
 CDocumentContent.prototype.SaveRecalculateObject = function()
 {
@@ -2576,6 +2604,7 @@ CDocumentContent.prototype.AddNewParagraph = function(bForceAdd)
                     NewParagraph.SetReviewType(ItemReviewType);
                     Item.SetReviewType(reviewtype_Common);
                 }
+				NewParagraph.CheckSignatureLinesOnAdd();
             }
         }
 		else if (type_Table === Item.GetType() || type_BlockLevelSdt === Item.GetType())
@@ -3017,8 +3046,15 @@ CDocumentContent.prototype.AddToParagraph = function(ParaItem, bRecalculate)
 	{
 		if (true === this.Selection.Use)
 		{
-			var bAddSpace = this.LogicDocument ? this.LogicDocument.Is_WordSelection() : false;
-			var Type      = ParaItem.Get_Type();
+			var nSpaceCharCode = -1;
+			if (this.LogicDocument && this.LogicDocument.IsWordSelection())
+			{
+				var sText = this.LogicDocument.GetSelectedText();
+				if (sText.length > 1 && AscCommon.IsSpace(sText.charCodeAt(sText.length - 1)))
+					nSpaceCharCode = sText.charCodeAt(sText.length - 1);
+			}
+
+			var Type = ParaItem.Get_Type();
 			switch (Type)
 			{
 				case para_Math:
@@ -3056,9 +3092,9 @@ CDocumentContent.prototype.AddToParagraph = function(ParaItem, bRecalculate)
 					// и т.д., тогда сначала удаляем весь селект.
 					this.Remove(1, true, false, true);
 
-					if (true === bAddSpace)
+					if (-1 !== nSpaceCharCode)
 					{
-						this.AddToParagraph(new ParaSpace());
+						this.AddToParagraph(new ParaSpace(nSpaceCharCode));
 						this.MoveCursorLeft(false, false);
 					}
 
@@ -4411,18 +4447,25 @@ CDocumentContent.prototype.InsertContent = function(SelectedContent, NearPos)
     {
 		if (LastClass.GetParentForm())
 		{
-			var isPlaceHolder  = LastClass.GetParentForm().IsPlaceHolder();
+			var nInLastClassPos = ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 1]
+
+			var isPlaceHolder = LastClass.GetParentForm().IsPlaceHolder();
+			if (isPlaceHolder && LastClass.GetParent() instanceof CInlineLevelSdt)
+			{
+				var oInlineLeveLSdt = LastClass.GetParent();
+				oInlineLeveLSdt.ReplacePlaceHolderWithContent();
+				LastClass       = oInlineLeveLSdt.GetElement(0);
+				nInLastClassPos = 0;
+			}
+
 			var nInRunStartPos = LastClass.State.ContentPos;
-			LastClass.AddText(SelectedContent.GetText({ParaEndToSpace : false}), ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 1]);
+			LastClass.AddText(SelectedContent.GetText({ParaEndToSpace : false}), nInLastClassPos);
 			var nInRunEndPos = LastClass.State.ContentPos;
 
 			LastClass.SelectThisElement();
-			if (!isPlaceHolder)
-			{
-				LastClass.Selection.Use      = true;
-				LastClass.Selection.StartPos = nInRunStartPos;
-				LastClass.Selection.EndPos   = nInRunEndPos;
-			}
+			LastClass.Selection.Use      = true;
+			LastClass.Selection.StartPos = nInRunStartPos;
+			LastClass.Selection.EndPos   = nInRunEndPos;
 			return;
 		}
 

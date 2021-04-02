@@ -816,9 +816,12 @@
 		  }
 	  });
 
-    this.model.handlers.add("cleanCellCache", function(wsId, oRanges, skipHeight) {
+    this.model.handlers.add("cleanCellCache", function(wsId, oRanges, skipHeight, needResetCache) {
       var ws = self.getWorksheetById(wsId, true);
       if (ws) {
+        if (needResetCache) {
+          ws.cache && ws.cache.reset();
+        }
         ws.updateRanges(oRanges, skipHeight);
       }
     });
@@ -2459,12 +2462,12 @@
 		}
 	};
 
-  WorkbookView.prototype.undo = function() {
+  WorkbookView.prototype.undo = function(Options) {
     var oFormulaLocaleInfo = AscCommonExcel.oFormulaLocaleInfo;
     oFormulaLocaleInfo.Parse = false;
     oFormulaLocaleInfo.DigitSep = false;
     if (!this.getCellEditMode()) {
-      if (!History.Undo() && this.collaborativeEditing.getFast() && this.collaborativeEditing.getCollaborativeEditing()) {
+      if (!History.Undo(Options) && this.collaborativeEditing.getFast() && this.collaborativeEditing.getCollaborativeEditing()) {
         this.Api.sync_TryUndoInFastCollaborative();
       }
     } else {
@@ -2502,12 +2505,13 @@
 		this.getWorksheet().setSelectionInfo("format", format);
 	};
 
-	WorkbookView.prototype.emptyCells = function (options) {
+	WorkbookView.prototype.emptyCells = function (options, isMineComments) {
 		if (!this.getCellEditMode()) {
 			if (Asc.c_oAscCleanOptions.Comments === options) {
 				this.removeAllComments(false, true);
 			} else {
-				this.getWorksheet().emptySelection(options);
+				//TODO isMineComments - временный флаг, как только в сдк появится класс для групп, добавить этот флаг туда
+				this.getWorksheet().emptySelection(options, null, isMineComments);
 			}
 			this.restoreFocus();
 		} else {
@@ -3096,7 +3100,7 @@
     // Проверка для Calibri 11 должно быть this.maxDigitWidth = 7
 
     if (!this.maxDigitWidth) {
-      throw "Error: can't measure text string";
+      throw new Error("Error: can't measure text string");
     }
 
     // Padding рассчитывается исходя из maxDigitWidth (http://social.msdn.microsoft.com/Forums/en-US/9a6a9785-66ad-4b6b-bb9f-74429381bd72/margin-padding-in-cell-excel?forum=os_binaryfile)

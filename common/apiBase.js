@@ -246,6 +246,10 @@
             t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
         });
 
+		AscCommon.loadChartStyles(function() {}, function(err) {
+			t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.NoCritical);
+		});
+
 		var oldOnError = window.onerror;
 		window.onerror = function(errorMsg, url, lineNumber, column, errorObj) {
 			//send only first error to reduce number of requests. also following error may be consequences of first
@@ -1451,13 +1455,14 @@
                     "4105",
                     "7177",
                     "9242",
-                    "10266"
+                    "10266",
+                    "2067"
 				]);
 			}
 		} else {
 			if (!this.SpellCheckUrl) {
 				this.SpellCheckApi = {};
-				this.SpellCheckApi.log = true;
+				this.SpellCheckApi.log = false;
 				this.SpellCheckApi.worker = new CSpellchecker({
 					enginePath: "../../../../sdkjs/common/spell/spell",
 					dictionariesPath: "./../../../../dictionaries"
@@ -1483,6 +1488,8 @@
 				this.SpellCheckApi.disconnect = function ()
 				{
 				};
+
+				this.sendEvent('asc_onSpellCheckInit', this.SpellCheckApi.worker.getLanguages());
 				return;
 			}
 			
@@ -2920,12 +2927,22 @@
 
 	baseEditorsApi.prototype._beforeEvalCommand = function()
 	{
+		var oApi = this;
 		switch (this.editorId)
 		{
 			case AscCommon.c_oEditorId.Word:
 			{
 				if (this.WordControl && this.WordControl.m_oLogicDocument)
 					this.WordControl.m_oLogicDocument.LockPanelStyles();
+				break;
+			}
+			case AscCommon.c_oEditorId.Spreadsheet:
+			{
+				if (AscCommonExcel)
+				{
+					oApi.tmpR1C1mode = AscCommonExcel.g_R1C1Mode;
+					AscCommonExcel.g_R1C1Mode = false;
+				}
 				break;
 			}
 			default:
@@ -3001,6 +3018,12 @@
 
 					endAction && endAction();
 				});
+				
+				if (AscCommonExcel)
+				{
+					AscCommonExcel.g_R1C1Mode = oApi.tmpR1C1mode;
+					oApi.tmpR1C1mode = null;
+				}
 				break;
 			}
 			default:

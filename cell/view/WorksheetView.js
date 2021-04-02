@@ -445,6 +445,10 @@
         this.clickedGroupButton = null;
         this.ignoreGroupSize = null;//для печати не нужно учитывать отступы групп
 
+		//ифомарция о залоченности нового добавленного правила
+		//TODO пока сюда добавляю, пересмотреть!
+		this._lockAddNewRule = null;
+
         this._init();
 
         return this;
@@ -5637,8 +5641,71 @@
 			this._drawSelection();
 		}
 	};
+	WorksheetView.prototype.addSparklineGroup = function (type, sDataRange, sLocationRange) {
+		var t = this;
+		if (!sDataRange || !sLocationRange) {
+			sDataRange = "a1:c2";
+			sLocationRange = "e4:e5";
+			//return Asc.c_oAscError.ID.DataRangeError;
+		}
 
-    // mouseX - это разница стартовых координат от мыши при нажатии и границы
+		var locationRange;
+
+		//временный код. locationRange - должен быть привязан только к текущему листу
+		var dataRange = AscCommonExcel.g_oRangeCache.getRange3D(sDataRange);
+		if (!dataRange) {
+			dataRange = AscCommonExcel.g_oRangeCache.getAscRange(sDataRange);
+		}
+
+		var result = parserHelp.parse3DRef(sLocationRange);
+		if (result)
+		{
+			var sheetModel = t.model.workbook.getWorksheetByName(result.sheet);
+			if (sheetModel)
+			{
+				locationRange = AscCommonExcel.g_oRangeCache.getAscRange(result.range);
+			}
+		} else {
+			locationRange = AscCommonExcel.g_oRangeCache.getAscRange(sLocationRange);
+		}
+
+		var addSparkline = function (res) {
+			if (res) {
+				History.Create_NewPoint();
+				History.StartTransaction();
+
+				ws.removeSparklines(locationRange);
+
+				var modelSparkline = new AscCommonExcel.sparklineGroup(true);
+				modelSparkline.worksheet = ws;
+				modelSparkline.set(newSparkLine);
+				modelSparkline.setSparklinesFromRange(dataRange, locationRange, true);
+				ws.addSparklineGroups(modelSparkline);
+
+				History.EndTransaction();
+				t.workbook._onWSSelectionChanged();
+				t.workbook.getWorksheet().draw();
+			}
+		};
+
+		//здесь добавляю проверку данных - поскольку требуется проверка одновременно двух значений
+		var error = AscCommonExcel.sparklineGroup.prototype.isValidDataRef(dataRange, locationRange);
+		if (!error) {
+			//чтобы добавить все данные в историю создаём ещё один sparklineGroup и заполняем его всеми необходимыми опциями
+			var ws = this.model;
+			var newSparkLine = new AscCommonExcel.sparklineGroup();
+			newSparkLine.default();
+			newSparkLine.type = type != undefined ? type : Asc.c_oAscSparklineType.Column;
+
+			this._isLockedCells(locationRange, /*subType*/null, addSparkline);
+
+			return Asc.c_oAscError.ID.No;
+		} else {
+			return error;
+		}
+	};
+
+	// mouseX - это разница стартовых координат от мыши при нажатии и границы
     WorksheetView.prototype.drawColumnGuides = function ( col, x, y, mouseX ) {
         // Учитываем координаты точки, где мы начали изменение размера
         x += mouseX;
@@ -8179,7 +8246,7 @@
             }
         }
         if (c1 < 0 || c2 < 0) {
-            throw "Error: all columns are hidden";
+            throw new Error("Error: all columns are hidden");
         }
 
         if (ar.r2 === ar.r1) {
@@ -8201,7 +8268,7 @@
             }
         }
         if (r1 < 0 || r2 < 0) {
-            throw "Error: all rows are hidden";
+            throw new Error("Error: all rows are hidden");
         }
 
         ar.assign(c1 !== undefined ? c1 : ar.c1, r1 !== undefined ? r1 : ar.r1, c2 !== undefined ? c2 : ar.c2,
@@ -10568,7 +10635,7 @@
         }
     };
 
-    WorksheetView.prototype.emptySelection = function ( options, bIsCut ) {
+    WorksheetView.prototype.emptySelection = function ( options, bIsCut, isMineComments ) {
         // Удаляем выделенные графичекие объекты
         if ( this.objectRender.selectedGraphicObjectsExists() ) {
 			var isIntoShape = this.objectRender.controller.getTargetDocContent();
@@ -10580,7 +10647,7 @@
 				this.objectRender.controller.deleteSelectedObjects();
 			}
 		} else {
-            this.setSelectionInfo( "empty", options );
+            this.setSelectionInfo( "empty", options, null, isMineComments );
         }
     };
 
@@ -10599,7 +10666,7 @@
 		return null;
 	};
 
-    WorksheetView.prototype.setSelectionInfo = function (prop, val, onlyActive) {
+    WorksheetView.prototype.setSelectionInfo = function (prop, val, onlyActive, isMineComments) {
         // Проверка глобального лока
         if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
             return;
@@ -10840,8 +10907,12 @@
 								t.model.deletePivotTables(range.bbox);
 								t.model.removeSparklines(range.bbox);
 								t.model.clearDataValidation([range.bbox], true);
+								t.model.clearConditionalFormattingRulesByRanges([range.bbox]);
 								// Удаляем комментарии
-                                t.cellCommentator.deleteCommentsRange(range.bbox);
+								//TODO isMineComments - используется только здесь
+								// временный флаг, как только в сдк появится класс для групп, добавить этот флаг туда
+								isMineComments = isMineComments ? (t.model.workbook.oApi.DocInfo && t.model.workbook.oApi.DocInfo.get_UserId()) : null;
+								t.cellCommentator.deleteCommentsRange(range.bbox, isMineComments);
 								break;
 							case c_oAscCleanOptions.Text:
 							case c_oAscCleanOptions.Formula:
@@ -10849,6 +10920,7 @@
 								t.model.deletePivotTables(range.bbox);
 								break;
 							case c_oAscCleanOptions.Format:
+								t.model.clearConditionalFormattingRulesByRanges([range.bbox]);
 							    range.cleanFormat();
 								break;
 							case c_oAscCleanOptions.Hyperlinks:
@@ -11394,6 +11466,18 @@
 			}
 		}
 
+		//conditional formatting
+		if (specialPasteProps.val && specialPasteProps.format && fromBinary) {
+			var offsetAll = new AscCommon.CellBase(arnToRange.r1 - refInsertBinary.r1, arnToRange.c1 - refInsertBinary.c1);
+			t.model.moveConditionalFormatting(refInsertBinary, arnToRange, true, offsetAll, this.model, val);
+		}
+
+		//sparklines
+		if (specialPasteProps.val && specialPasteProps.format) {
+			var offsetAll = new AscCommon.CellBase(arnToRange.r1 - refInsertBinary.r1, arnToRange.c1 - refInsertBinary.c1);
+			t.model.moveSparklineGroup(refInsertBinary, arnToRange, false, offsetAll, this.model, val);
+		}
+
 		//делаем unmerge ф/т
 		intersectionRangeWithTableParts = t.model.autoFilters._intersectionRangeWithTableParts(arnToRange);
 		if (intersectionRangeWithTableParts && intersectionRangeWithTableParts.length) {
@@ -11550,7 +11634,7 @@
 			var _selection;
 			if (fromBinaryExcel) {
 				for (var n = 0; n < pastedInfo.length; n++) {
-					if (pastedInfo) {
+					if (pastedInfo && pastedInfo[n] && pastedInfo[n].selectData && pastedInfo[n].selectData[0]) {
 						_selection = t.model.selectionRange.ranges[n];
 						_selection.c2 = pastedInfo[n].selectData[0].c2;
 						_selection.r2 = pastedInfo[n].selectData[0].r2;
@@ -11559,7 +11643,7 @@
 				}
 			} else {
 				_selection = t.model.selectionRange.getLast();
-				if (pastedInfo) {
+				if (pastedInfo && pastedInfo[0] && pastedInfo[0].selectData && pastedInfo[0].selectData[0]) {
 					_selection.c2 = pastedInfo[0].selectData[0].c2;
 					_selection.r2 = pastedInfo[0].selectData[0].r2;
 				}
@@ -13092,6 +13176,20 @@
 		var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, null
             /*c_oAscLockTypeElemSubType.DefinedNames*/, -1, defNameId);
 		this.collaborativeEditing.lock([lockInfo], callback);
+	};
+
+	WorksheetView.prototype._isLockedCF = function (callback, cFIdArr) {
+		if (!cFIdArr || !cFIdArr.length) {
+			return;
+		}
+		var lockInfos = [];
+		var sheetId = AscCommonExcel.CConditionalFormattingRule.sStartLockCFId + this.model.getId();
+		for (var i = 0; i < cFIdArr.length; i++) {
+			var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, null, sheetId, cFIdArr[i]);
+			lockInfos.push(lockInfo);
+		}
+
+		this.collaborativeEditing.lock(lockInfos, callback);
 	};
 
 	// Залочен ли весь лист
@@ -20564,6 +20662,13 @@
 		var selection = t.model.selectionRange.getLast();
 		var activeCell = t.model.selectionRange.activeCell.clone();
 
+		/*var temp = this.model.aConditionalFormattingRules[0].clone();
+		temp.id = this.model.aConditionalFormattingRules[0].id;
+		//temp.ranges.push(Asc.Range(1,1,1,1));
+
+		this.deleteCF([temp]);
+		return;*/
+
 		var revertSelection = function() {
 			t.cleanSelection();
 			t.model.selectionRange.getLast().assign2(props.selection.clone());
@@ -20825,14 +20930,7 @@
 		if (Asc.CT_pivotTableDefinition.prototype.asc_filterByCell) {
 			var pivotTable = this.model.inPivotTable(ar);
 			if (pivotTable) {
-				var pivotFields = pivotTable.asc_getPivotFields();
-				if(pivotFields){
-					var res = [];
-					for (var j = 0; j < pivotFields.length; j++) {
-						res.push(pivotTable.getCacheFieldName(j));
-					}
-					return res;
-				}
+				return pivotTable.getSlicerCaption();
 			}
 		}
 
@@ -21248,7 +21346,7 @@
 	WorksheetView.prototype.setDataValidationProps = function (props) {
 		var t = this;
 		var _selection = this.model.getSelection().ranges;
-
+		
 		var callback = function (success) {
 			if (!success) {
 				return;
@@ -21304,6 +21402,168 @@
 		}
 	};
 
+
+	WorksheetView.prototype.setCF = function (arr, deleteIdArr, presetId) {
+		var t = this;
+
+		var callback = function (success) {
+			if (!success) {
+				return;
+			}
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			var j, n;
+			if (deleteIdArr) {
+				for (j = 0; j < deleteIdArr.length; j++) {
+					var _oRule = t.model.getCFRuleById(deleteIdArr[j]);
+					var _ranges;
+					if (_oRule && _oRule.val) {
+						_ranges = _oRule.val.ranges;
+					}
+					t.model.deleteCFRule(deleteIdArr[j], true);
+
+					if (_ranges) {
+						for (n = 0; n < _ranges.length; n++) {
+							t._updateRange(_ranges[n]);
+						}
+					}
+				}
+			}
+
+			if (arr && arr[nActive]) {
+				for (j = 0; j < arr[nActive].length; j++) {
+					t.model.setCFRule(arr[nActive][j]);
+
+					if (arr[nActive][j].ranges) {
+						for (n = 0; n < arr[nActive][j].ranges.length; n++) {
+							t._updateRange(arr[nActive][j].ranges[n]);
+						}
+					}
+				}
+			}
+
+			//TODO возможно здесь необходимо пересчитать формулы
+			t.draw();
+			History.EndTransaction();
+		};
+
+		var _checkRule = function (_rule) {
+			if (_rule) {
+				if (!arr) {
+					arr = [];
+				}
+				if (!arr[nActive]) {
+					arr[nActive] = [];
+				}
+				arr[nActive].push(_rule);
+
+				if (_rule.priority === null) {
+					_rule.priority = 1;
+					//двигаем приоритет у всех остальных и добавляем их в список измененных
+					if (t.model.aConditionalFormattingRules) {
+						for (i = 0; i < t.model.aConditionalFormattingRules.length; i++) {
+							var _id = t.model.aConditionalFormattingRules[i].id;
+							var oRule = t.model.aConditionalFormattingRules[i].clone();
+							oRule.id = _id;
+							oRule.priority++;
+							arr[nActive].push(oRule);
+						}
+					}
+				}
+				if (_rule.ranges === null) {
+					_rule.ranges = [];
+					if (t.model.selectionRange && t.model.selectionRange.ranges) {
+						for (var j = 0; j < t.model.selectionRange.ranges.length; j++) {
+							_rule.ranges.push(t.model.selectionRange.ranges[j].clone());
+						}
+					}
+				}
+			}
+		};
+
+		var nActive = this.model.workbook.nActive;
+		var i;
+		if (presetId !== undefined) {
+			//data bar/icons/scale presets
+			_checkRule(t.model.generateCFRuleFromPreset(presetId));
+		} else if (arr && arr.length === 1 && undefined === arr[0].length) {
+			//other presets
+			var presetRule = arr[0];
+			arr = [];
+			_checkRule(presetRule);
+		}
+
+		var unitedArr = [];
+		if (arr) {
+			if (arr[nActive]) {
+				for (i = 0; i < arr[nActive].length; i++) {
+					unitedArr.push(arr[nActive][i].id);
+				}
+			}
+		}
+		if (deleteIdArr && deleteIdArr.length) {
+			unitedArr = unitedArr.concat(deleteIdArr);
+		}
+
+		this._isLockedCF(callback, unitedArr);
+	};
+
+	WorksheetView.prototype.deleteCF = function (arr, type) {
+		var t = this, _ranges;
+
+		var callback = function (success) {
+			if (!success) {
+				return;
+			}
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			var updateRanges = [];
+			for (var i = 0; i < arr.length; i++) {
+				//TODO для мультиселекта - передать массив!
+				updateRanges = updateRanges.concat(arr[i].ranges);
+				t.model.tryClearCFRule(arr[i], _ranges);
+			}
+
+			//TODO возможно здесь необходимо пересчитать формулы
+			if (updateRanges) {
+				for (i = 0; i < updateRanges.length; i++) {
+					t._updateRange(updateRanges[i]);
+				}
+			}
+			t.draw();
+			History.EndTransaction();
+		};
+
+		switch (type) {
+			case Asc.c_oAscSelectionForCFType.selection:
+				_ranges = this.model.selectionRange.getLast();
+				break;
+			case Asc.c_oAscSelectionForCFType.table:
+				var thisTableIndex = this.model.autoFilters.searchRangeInTableParts(this.model.selectionRange.getLast());
+				if (thisTableIndex >= 0) {
+					_ranges = this.model.TableParts[thisTableIndex].Ref;
+				}
+				break;
+			case Asc.c_oAscSelectionForCFType.pivot:
+				// ToDo
+				break;
+		}
+
+		if (_ranges) {
+			_ranges = [_ranges];
+		}
+
+		var lockArr = [];
+		if (arr) {
+			for (var i = 0; i < arr.length; i++) {
+				lockArr.push(arr[i].id);
+			}
+		}
+
+		this._isLockedCF(callback, lockArr);
+	};
 
 	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};

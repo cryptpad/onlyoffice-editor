@@ -605,6 +605,7 @@
 			this._expand();
 			this._adjustCanvas();
 			this._showCanvas();
+			this._calculateCanvasSize();
 			this._renderText();
 			this.topLineIndex = 0;
 			this._updateCursorPosition();
@@ -1077,6 +1078,7 @@
 		this._cleanSelection();
 		this._adjustCanvas();
 		this._showCanvas();
+		this._calculateCanvasSize();
 		this._renderText();
 		if (!this.getMenuEditorMode()) {
 			this.input.value = AscCommonExcel.getFragmentsText((this.options.fragments));
@@ -1090,6 +1092,7 @@
 
 		if (this._expand()) {
 			this._adjustCanvas();
+			this._calculateCanvasSize();
 		}
 
 		this._renderText();  // вызов нужен для пересчета поля line.startX, которое используется в _updateCursorPosition
@@ -1323,8 +1326,17 @@
 
 		this.canvas.style.width = this.canvasOverlay.style.width = widthStyle + 'px';
 		this.canvas.style.height = this.canvasOverlay.style.height = heightStyle + 'px';
-		AscCommon.calculateCanvasSize(this.canvas);
-        AscCommon.calculateCanvasSize(this.canvasOverlay);
+	};
+
+	CellEditor.prototype._calculateCanvasSize = function () {
+		//этот код вызывается после showCanvas, потому что внутри calculateCanvasSize использууется getBoundingClientRect
+		//если у канвы будет display = 'none', то размеры будут возвращаться нулевые
+		if (this.canvas) {
+			AscCommon.calculateCanvasSize(this.canvas);
+		}
+		if (this.canvasOverlay) {
+			AscCommon.calculateCanvasSize(this.canvasOverlay);
+		}
 	};
 
 	CellEditor.prototype._renderText = function (dy) {
@@ -1463,7 +1475,7 @@
 			}
 			if (curTop < 0) {
 				--this.topLineIndex;
-				if (this.textRender.lines && this.textRender.lines.length && this.topLineIndex > this.textRender.lines.length) {
+				if (this.textRender.lines && this.textRender.lines.length && this.topLineIndex >= this.textRender.lines.length) {
 					this.topLineIndex = this.textRender.lines.length - 1;
 				}
 				dy = asc_round(this.textRender.getLineInfo(this.topLineIndex).th * zoom);
@@ -1951,7 +1963,7 @@
 		var last = t._findFragment( endPos );
 
 		if ( !first || !last ) {
-			throw "Can not extract fragment of text";
+			throw new Error("Can not extract fragment of text");
 		}
 
 		if ( first.index === last.index ) {
@@ -1980,13 +1992,13 @@
 
 		fr = this._findFragment(startPos, fragments);
 		if (!fr) {
-			throw "Can not extract fragment of text";
+			throw new Error("Can not extract fragment of text");
 		}
 		this._splitFragment(fr, startPos, fragments);
 
 		fr = this._findFragment(startPos + length, fragments);
 		if (!fr) {
-			throw "Can not extract fragment of text";
+			throw new Error("Can not extract fragment of text");
 		}
 		this._splitFragment(fr, startPos + length, fragments);
 	};

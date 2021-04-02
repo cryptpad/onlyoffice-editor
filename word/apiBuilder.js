@@ -76,7 +76,7 @@
 				nRange--;
 			}
 		}
-	}
+	};
 	function private_TrackRangesPositions(bClearTrackedPosition)
 	{
 		var Document  = private_GetLogicDocument();
@@ -91,7 +91,7 @@
 			Document.CollaborativeEditing.Add_DocumentPosition(Range.StartPos);
 			Document.CollaborativeEditing.Add_DocumentPosition(Range.EndPos);
 		}
-	}
+	};
 	function private_RefreshRangesPosition()
 	{
 		var Document  = private_GetLogicDocument();
@@ -102,7 +102,97 @@
 			Range = arrApiRanges[nRange];
 			Document.RefreshDocumentPositions([Range.StartPos, Range.EndPos]);
 		}
-	}
+	};
+	/**
+	 * Get the Run that is first in position
+	 * @typeofeditors ["CDE"]
+	 * @param {Array} arrRuns - Array of Runs
+	 * @return {ApiRun | null} - returns null if param is invalid 
+	 */
+	function private_GetFirstRunInArray(arrRuns)
+	{
+		if (!Array.isArray(arrRuns))
+			return null;
+			
+		var min_pos_Index = 0; // Индекс рана в массиве, с которого начнется выделение
+
+		var MinPos = arrRuns[0].Run.GetDocumentPositionFromObject();
+
+		for (var Index = 1; Index < arrRuns.length; Index++)
+		{
+			var TempPos = arrRuns[Index].Run.GetDocumentPositionFromObject();
+
+			var MinPosLength = MinPos.length;
+			var UsedLength1  = 0;
+
+
+			if (MinPosLength <= TempPos.length)
+				UsedLength1 = MinPosLength;
+			else 
+				UsedLength1 = TempPos.length;
+
+			for (var Pos = 0; Pos < UsedLength1; Pos++)
+			{
+				if (TempPos[Pos].Position < MinPos[Pos].Position)
+				{
+					MinPos = TempPos;
+					min_pos_Index = Index;
+					break;
+				}
+				else if (TempPos[Pos].Position === MinPos[Pos].Position)
+					continue;
+				else if (TempPos[Pos].Position > MinPos[Pos].Position)
+					break;
+			}
+		}
+		
+		return arrRuns[min_pos_Index];
+	};
+	/**
+	 * Get the Run that is last in position
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @param {Array} arrRuns - Array of Runs
+	 * @return {ApiRun | null} - returns null if param is invalid. 
+	 */
+	function private_GetLastRunInArray(arrRuns)
+	{
+		if (!Array.isArray(arrRuns))
+			return false;
+			
+		var max_pos_Index = 0; // Индекс рана в массиве, на котором закончится
+
+		var MaxPos = arrRuns[0].Run.GetDocumentPositionFromObject();
+
+		for (var Index = 1; Index < arrRuns.length; Index++)
+		{
+			var TempPos = arrRuns[Index].Run.GetDocumentPositionFromObject();
+
+			var MaxPosLength = MaxPos.length;
+			var UsedLength2  = 0;
+
+			if (MaxPosLength <= TempPos.length)
+				UsedLength2 = MaxPosLength;
+			else 
+				UsedLength2 = TempPos.length;
+			
+			for (var Pos = 0; Pos < UsedLength2; Pos++)
+			{
+				if (TempPos[Pos].Position > MaxPos[Pos].Position)
+				{
+					MaxPos = TempPos;
+					max_pos_Index = Index;
+					break;
+				}
+				else if (TempPos[Pos].Position === MaxPos[Pos].Position)
+					continue;
+				else if (TempPos[Pos].Position < MaxPos[Pos].Position)
+					break;
+			}
+		}
+		return arrRuns[max_pos_Index];
+	};
+
 	/**
 	 * Class representing a container for paragraphs and tables.
 	 * @param Document
@@ -465,7 +555,7 @@
 	 */
 	ApiRange.prototype.AddHyperlink = function(sLink, sScreenTipText)
 	{
-		if (typeof(sLink) !== "string" || sLink === "")
+		if (typeof(sLink) !== "string" || sLink === "" || sLink.length > Asc.c_nMaxHyperlinkLength)
 			return null;
 		if (typeof(sScreenTipText) !== "string")
 			sScreenTipText = "";
@@ -1795,7 +1885,7 @@
 	 * */
 	ApiHyperlink.prototype.SetLink = function(sLink)
 	{
-		if (typeof(sLink) !== "string")
+		if (typeof(sLink) !== "string" || sLink.length > Asc.c_nMaxHyperlinkLength)
 			return false;
 		if (sLink == undefined)
 			sLink = "";
@@ -1949,16 +2039,19 @@
 	 * */
 	ApiHyperlink.prototype.SetDefaultStyle = function()
 	{
-		var HyperRun = null;
+		var HyperRun    = null;
 		var Styles = editor.WordControl.m_oLogicDocument.Get_Styles();
-
+		
 		for (var nRun = 0; nRun < this.ParaHyperlink.Content.length; nRun++)
 		{
 			HyperRun = this.ParaHyperlink.Content[nRun];
 			if (!(HyperRun instanceof ParaRun))
 				continue;
 
-			HyperRun.Run.Set_RStyle(Styles.GetDefaultHyperlink());
+			HyperRun.Set_Underline(undefined);
+			HyperRun.Set_Color(undefined);
+			HyperRun.Set_Unifill(undefined);
+			HyperRun.Set_RStyle(Styles.GetDefaultHyperlink());
 		}
 			
 		return true;
@@ -2475,14 +2568,35 @@
 		return new ApiParagraph(new Paragraph(private_GetDrawingDocument(), private_GetLogicDocument()));
 	};
 	/**
-	 * Create a new paragraph.
+	 * Create range of element.
+	 * if you do not specify the start and end position, the range will be taken from the entire element.
 	 * @memberof Api
 	 * @typeofeditors ["CDE"]
-	 * @returns {ApiParagraph}
+	 * @param oElement - the element from which the range will be taken.
+	 * @param nStart - start position of range.
+	 * @param nEnd - end position of range.
+	 * @returns {ApiRange | null} - returns null if oElement doesn't supported.
 	 */
-	Api.prototype.CreateRange = function(oElement, Start, End)
+	Api.prototype.CreateRange = function(oElement, nStart, nEnd)
 	{
-		return new ApiRange(oElement, Start, End);
+		if (oElement) 
+		{
+			switch (oElement.GetClassType())
+			{
+				case 'paragraph':
+				case 'hyperlink':
+				case 'run':
+				case 'table':
+				case 'documentContent':
+				case 'document':
+				case 'inlineLvlSdt':
+				case 'blockLvlSdt':
+					return oElement.GetRange(nStart, nEnd);
+				default:
+					return null;
+			}
+		}
+		return null;
 	};
 	/**
 	 * Create a new table with a specified number of rows and columns.
@@ -2667,7 +2781,7 @@
 	 * */
 	Api.prototype.CreateSolidFill = function(oUniColor)
 	{
-		return new ApiFill(AscFormat.CreateUniFillByUniColor(oUniColor.Unicolor));
+		return new ApiFill(AscFormat.CreateUniFillByUniColorCopy(oUniColor.Unicolor));
 	};
 
 	/**
@@ -2694,10 +2808,6 @@
 	Api.prototype.CreateRadialGradientFill = function(aGradientStop)
 	{
 		return new ApiFill(AscFormat.builder_CreateRadialGradient(aGradientStop));
-	};
-	Api.prototype.CreateRange = function(oElement, Start, End)
-	{
-		return new ApiRange(oElement, Start, End);
 	};
 	/**
 	 * Create a pattern fill which allows to fill the object using a selected pattern as the object background.
@@ -3098,13 +3208,17 @@
 
 			var oDocument = private_GetLogicDocument();
 			
-			var StartRun = this.GetFirstRunInArray(oElement); 
-			var StartPos = StartRun.Run.GetDocumentPositionFromObject();
+			var oStartRun = private_GetFirstRunInArray(oElement); 
+			var StartPos = oStartRun.Run.GetDocumentPositionFromObject();
 
-			var EndRun	= this.GetLastRunInArray(oElement)
-			var EndPos	= EndRun.Run.GetDocumentPositionFromObject();
+			var oEndRun	= private_GetLastRunInArray(oElement)
+			var EndPos	= oEndRun.Run.GetDocumentPositionFromObject();
 
-			oDocument.SetContentSelection(StartPos, EndPos, 0, 1, -1);
+			StartPos.push({Class: oStartRun.Run, Position: 0});
+			EndPos.push({Class: oEndRun.Run, Position: oEndRun.Run.Content.length});
+
+			oDocument.Selection.Use = true;
+			oDocument.SetContentSelection(StartPos, EndPos, 0, 0, 0);
 			
 			var COMENT = oDocument.AddComment(CommentData, false);
 			oDocument.RemoveSelection();
@@ -3118,97 +3232,7 @@
 		}
 	};
 
-	/**
-	 * Get the Run that is first in position
-	 * @memberof Api
-	 * @typeofeditors ["CDE"]
-	 * @param {Array} Runs - Array of Runs
-	 * @return {ApiRun | null} - returns null if param is invalid 
-	 */
-	Api.prototype.GetFirstRunInArray = function(arrRuns)
-	{
-		if (!Array.isArray(Runs))
-			return null;
-			
-		var min_pos_Index = 0; // Индекс рана в массиве, с которого начнется выделение
-
-		var MinPos = Runs[0].Run.GetDocumentPositionFromObject();
-
-		for (var Index = 1; Index < Runs.length; Index++)
-		{
-			var TempPos = Runs[Index].Run.GetDocumentPositionFromObject();
-
-			var MinPosLength = MinPos.length;
-			var UsedLength1  = 0;
-
-
-			if (MinPosLength <= TempPos.length)
-				UsedLength1 = MinPosLength;
-			else 
-				UsedLength1 = TempPos.length;
-
-			for (var Pos = 0; Pos < UsedLength1; Pos++)
-			{
-				if (TempPos[Pos].Position < MinPos[Pos].Position)
-				{
-					MinPos = TempPos;
-					min_pos_Index = Index;
-					break;
-				}
-				else if (TempPos[Pos].Position === MinPos[Pos].Position)
-					continue;
-				else if (TempPos[Pos].Position > MinPos[Pos].Position)
-					break;
-			}
-		}
-		
-		return Runs[min_pos_Index];
-	};
 	
-	/**
-	 * Get the Run that is last in position
-	 * @memberof Api
-	 * @typeofeditors ["CDE"]
-	 * @param {Array} Runs - Array of Runs
-	 * @return {ApiRun | null} - returns null if param is invalid. 
-	 */
-	Api.prototype.GetLastRunInArray = function(arrRuns)
-	{
-		if (!Array.isArray(Runs))
-			return false;
-			
-		var max_pos_Index = 0; // Индекс рана в массиве, на котором закончится
-
-		var MaxPos = Runs[0].Run.GetDocumentPositionFromObject();
-
-		for (var Index = 1; Index < Runs.length; Index++)
-		{
-			var TempPos = Runs[Index].Run.GetDocumentPositionFromObject();
-
-			var MaxPosLength = MaxPos.length;
-			var UsedLength2  = 0;
-
-			if (MaxPosLength <= TempPos.length)
-				UsedLength2 = MaxPosLength;
-			else 
-				UsedLength2 = TempPos.length;
-			
-			for (var Pos = 0; Pos < UsedLength2; Pos++)
-			{
-				if (TempPos[Pos].Position > MaxPos[Pos].Position)
-				{
-					MaxPos = TempPos;
-					max_pos_Index = Index;
-					break;
-				}
-				else if (TempPos[Pos].Position === MaxPos[Pos].Position)
-					continue;
-				else if (TempPos[Pos].Position < MaxPos[Pos].Position)
-					break;
-			}
-		}
-		return Runs[max_pos_Index];
-	};
 
 	//------------------------------------------------------------------------------------------------------------------
 	//
@@ -3902,7 +3926,7 @@
 		var arrApiSections = [];
 
 		for (var Index = 0; Index < this.Document.SectionsInfo.Elements.length; Index++)
-			arrApiSections.push(new ApiSection(this.Document.SectionsInfo.Elements[Index]))
+			arrApiSections.push(new ApiSection(this.Document.SectionsInfo.Elements[Index].SectPr))
 
 		return arrApiSections;
 	};
@@ -4493,10 +4517,15 @@
 
 		var oDocument = private_GetLogicDocument()
 
-		var StartPos	= this.Paragraph.GetFirstRun().GetDocumentPositionFromObject();
-		var EndPos		= this.Paragraph.Content[this.Paragraph.Content.length - 2].GetDocumentPositionFromObject();
+		var oFirstun    = this.Paragraph.GetFirstRun();
+		var StartPos	= oFirstun.GetDocumentPositionFromObject();
+		var oEndRun     = this.Paragraph.Content[this.Paragraph.Content.length - 2];
+		var EndPos		= oEndRun.GetDocumentPositionFromObject();
+		StartPos.push({Class: oFirstun, Position: 0});
+		EndPos.push({Class: oEndRun, Position: oEndRun.Content.length});
 
-		oDocument.SetContentSelection(StartPos, EndPos, 0, 1, -1);
+		oDocument.Selection.Use = true;
+		oDocument.SetContentSelection(StartPos, EndPos, 0, 0, 0);
 
 		var COMENT = oDocument.AddComment(CommentData, false);
 		oDocument.RemoveSelection();
@@ -4518,13 +4547,13 @@
 	 */
 	ApiParagraph.prototype.AddHyperlink = function(sLink, sScreenTipText)
 	{
-		if (typeof(sLink) !== "string" || sLink === "")
+		if (typeof(sLink) !== "string" || sLink === "" || sLink.length > Asc.c_nMaxHyperlinkLength)
 			return null;
 		if (typeof(sScreenTipText) !== "string")
 			sScreenTipText = "";
 		
 		var oDocument	= editor.private_GetLogicDocument();
-		var hyperlinkPr	= new Asc.CHyperlinkProperty()
+		var hyperlinkPr	= new Asc.CHyperlinkProperty();
 		var urlType		= AscCommon.getUrlType(sLink);
 		var oHyperlink	= null;
 
@@ -5086,9 +5115,9 @@
 
 		for (var Index = ParaPosition.length - 1; Index >= 1; Index--)
 		{
-			if (ParaPosition[Index].Class.Parent)
-				if (ParaPosition[Index].Class.Parent instanceof CBlockLevelSdt)
-					return new ApiBlockLvlSdt(ParaPosition[Index].Class.Parent);
+			if (ParaPosition[Index].Class)
+				if (ParaPosition[Index].Class instanceof CBlockLevelSdt)
+					return new ApiBlockLvlSdt(ParaPosition[Index].Class);
 		}
 
 		return null;
@@ -5559,14 +5588,14 @@
 	 */
 	ApiRun.prototype.AddHyperlink = function(sLink, sScreenTipText)
 	{
-		if (typeof(sLink) !== "string" || sLink === "")
+		if (typeof(sLink) !== "string" || sLink === "" || sLink.length > Asc.c_nMaxHyperlinkLength)
 			return null;
 		if (typeof(sScreenTipText) !== "string")
 			sScreenTipText = "";
 
 		var Document	= editor.private_GetLogicDocument();
 		var parentPara	= this.Run.GetParagraph();
-		if (!parentPara | this.Run.Content.length === 0)
+		if (!parentPara || this.Run.Content.length === 0)
 			return null;
 		if (this.GetParentContentControl() instanceof ApiInlineLvlSdt)
 			return null;
@@ -5590,7 +5619,7 @@
 		StartPos[parentParaDepth].Class.SetContentSelection(StartPos, EndPos, parentParaDepth, 0, 0);
 
 		var oHyperlink	= null;
-		var hyperlinkPr	= new Asc.CHyperlinkProperty()
+		var hyperlinkPr	= new Asc.CHyperlinkProperty();
 		var urlType		= AscCommon.getUrlType(sLink);
 		if (!/(((^https?)|(^ftp)):\/\/)|(^mailto:)/i.test(sLink))
 			sLink = (urlType === 0) ? null :(( (urlType === 2) ? 'mailto:' : 'http://' ) + sLink);
@@ -5649,12 +5678,12 @@
 
         for (var Index = RunPosition.length - 1; Index >= 1; Index--)
         {
-            if (RunPosition[Index].Class.Parent)
+            if (RunPosition[Index].Class)
             {
-                if (RunPosition[Index].Class.Parent instanceof CBlockLevelSdt)
-                    return new ApiBlockLvlSdt(RunPosition[Index].Class.Parent);
-                else if (RunPosition[Index].Class.Parent instanceof CInlineLevelSdt)
-                    return new ApiInlineLvlSdt(RunPosition[Index].Class.Parent);
+                if (RunPosition[Index].Class instanceof CBlockLevelSdt)
+                    return new ApiBlockLvlSdt(RunPosition[Index].Class);
+                else if (RunPosition[Index].Class instanceof CInlineLevelSdt)
+                    return new ApiInlineLvlSdt(RunPosition[Index].Class);
             }
         }
 
@@ -5699,7 +5728,7 @@
         return null;
     };
 	/**
-	 * Sets text properties of the paragraph.
+	 * Sets text properties of the run.
 	 * @memberof ApiRun
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @param {ApiTextPr} oTextPr
@@ -6272,7 +6301,16 @@
 	{
 		var oDocument		= editor.GetDocument();
 		var arrApiSections	= oDocument.GetSections();
-		var sectionIndex	= arrApiSections.indexOf(this);
+		var sectionIndex	= -1;
+
+		for (var nSection = 0; nSection < arrApiSections.length; nSection++)
+		{
+			if (arrApiSections[nSection].Section.Id === this.Section.Id) 
+			{
+				sectionIndex = nSection;
+				break;
+			}
+		}
 		
 		if (sectionIndex !== - 1 && arrApiSections[sectionIndex + 1])
 		{
@@ -6291,7 +6329,16 @@
 	{
 		var oDocument		= editor.GetDocument();
 		var arrApiSections	= oDocument.GetSections();
-		var sectionIndex	= arrApiSections.indexOf(this);
+		var sectionIndex	= -1;
+
+		for (var nSection = 0; nSection < arrApiSections.length; nSection++)
+		{
+			if (arrApiSections[nSection].Section.Id === this.Section.Id) 
+			{
+				sectionIndex = nSection;
+				break;
+			}
+		}
 		
 		if (sectionIndex !== - 1 && arrApiSections[sectionIndex - 1])
 		{
@@ -6483,6 +6530,7 @@
 		if (CellVMergeCount > 1 && CellVMergeCount < nRow)
 			return null;
 
+		this.Table.Recalculate_Grid();
 		var Grid_start = oCell.Cell.GetRow().Get_CellInfo( oCell.Cell.GetIndex()).StartGridCol;
 		var Grid_span  = oCell.Cell.Get_GridSpan();
 		var Sum_before = this.Table.TableSumGrid[Grid_start - 1];
@@ -6682,13 +6730,13 @@
 	 */
 	ApiTable.prototype.Copy = function()
 	{
-		var oTable = this.Table.Copy();
+		var oTable = this.Table.Copy(private_GetLogicDocument(), private_GetDrawingDocument());
 		return new ApiTable(oTable);
 	};
 	/**
 	 * Select a table.
 	 * @memberof ApiTable
-	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @typeofeditors ["CDE", "CPE"]
 	 * @returns {bool}
 	 */
 	ApiTable.prototype.Select = function()
@@ -6846,9 +6894,9 @@
 
         for (var Index = TablePosition.length - 1; Index >= 1; Index--)
         {
-            if (TablePosition[Index].Class.Parent)
-                if (TablePosition[Index].Class.Parent instanceof CBlockLevelSdt)
-                    return new ApiBlockLvlSdt(TablePosition[Index].Class.Parent);
+            if (TablePosition[Index].Class)
+                if (TablePosition[Index].Class instanceof CBlockLevelSdt)
+                    return new ApiBlockLvlSdt(TablePosition[Index].Class);
         }
 
         return null;
@@ -10031,8 +10079,9 @@
 			return false;
 
 		var currentHeight = this.Drawing.getXfrmExtY();
+		var currentWidth  = this.Drawing.getXfrmExtX();
 
-		this.Drawing.setExtent(undefined, currentHeight * coefficient);
+		this.Drawing.setExtent(currentWidth, currentHeight * coefficient);
 		if(this.Drawing.GraphicObj && this.Drawing.GraphicObj.spPr && this.Drawing.GraphicObj.spPr.xfrm)
 		{
 			this.Drawing.GraphicObj.spPr.xfrm.setExtY(currentHeight * coefficient);
@@ -10052,9 +10101,10 @@
 		if (typeof(coefficient) !== "number")
 			return false;
 
-		var currentWidth = this.Drawing.getXfrmExtX();
+		var currentHeight = this.Drawing.getXfrmExtY();
+		var currentWidth  = this.Drawing.getXfrmExtX();
 
-		this.Drawing.setExtent(currentWidth * coefficient, undefined);
+		this.Drawing.setExtent(currentWidth * coefficient, currentHeight);
 		if(this.Drawing.GraphicObj && this.Drawing.GraphicObj.spPr && this.Drawing.GraphicObj.spPr.xfrm)
 		{
 			this.Drawing.GraphicObj.spPr.xfrm.setExtX(currentWidth * coefficient);
@@ -11428,7 +11478,8 @@
 	 */
 	ApiBlockLvlSdt.prototype.GetAllContentControls = function()
 	{
-		var arrContentControls = [];
+		var arrContentControls    = [];
+		var arrApiContentControls = [];
 		this.Sdt.Content.GetAllContentControls(arrContentControls);
 
 		for (var Index = 0, nCount = arrContentControls.length; Index < nCount; Index++)
@@ -11436,12 +11487,12 @@
 			var oControl = arrContentControls[Index];
 
 			if (oControl instanceof CBlockLevelSdt)
-				arrContentControls.push(new ApiBlockLvlSdt(oControl));
+				arrApiContentControls.push(new ApiBlockLvlSdt(oControl));
 			else if (oControl instanceof CInlineLevelSdt)
-				arrContentControls.push(new ApiInlineLvlSdt(oControl));
+				arrApiContentControls.push(new ApiInlineLvlSdt(oControl));
 		}
 
-		return arrContentControls;
+		return arrApiContentControls;
 	};
 
 	/**
@@ -11472,7 +11523,7 @@
 	 * process to arrange tables on the specified page</note>
 	 * @memberof ApiBlockLvlSdt
 	 * @typeofeditors ["CDE"]
-	 * @param nPage - page number
+	 * @param nPage - page number, if not specified, will return an empty array
 	 * @return {ApiTable[]}  
 	 */
 	ApiBlockLvlSdt.prototype.GetAllTablesOnPage = function(nPage)
@@ -11575,9 +11626,9 @@
 
 		for (var Index = documentPos.length - 1; Index >= 1; Index--)
 		{
-			if (documentPos[Index].Class.Parent)
-				if (documentPos[Index].Class.Parent instanceof CBlockLevelSdt)
-					return new ApiBlockLvlSdt(documentPos[Index].Class.Parent);
+			if (documentPos[Index].Class)
+				if (documentPos[Index].Class instanceof CBlockLevelSdt)
+					return new ApiBlockLvlSdt(documentPos[Index].Class);
 		}
 
 		return null;
@@ -11895,16 +11946,16 @@
 				for (var nInfo = 0; nInfo < allRunsInfo.length; nInfo++)
 				{
 					var oInfo = allRunsInfo[nInfo];
-					if ((oChange.pos >= oInfo.GlobStartPos || oChange.pos + DelCount > oInfo.GlobStartPos) && oChange.pos <= oInfo.GlobEndPos)
+					if (oChange.pos >= oInfo.GlobStartPos || oChange.pos + DelCount > oInfo.GlobStartPos)
 					{
-						var nPosToDel = Math.max(0, oChange.pos - oInfo.GlobStartPos + oInfo.StartPos);
-						var nPosToAdd = nPosToDel
-						var countToDel = Math.min(oChange.deleteCount, oInfo.StringCount);
+						var nPosToDel   = Math.max(0, oChange.pos - oInfo.GlobStartPos + oInfo.StartPos);
+						var nPosToAdd   = nPosToDel
+						var nCharsToDel = Math.min(oChange.deleteCount, oInfo.StringCount);
 						
-						if (nPosToDel >= oInfo.Run.Content.length || (countToDel === 0 && oChange.deleteCount !== 0))
+						if ((nPosToDel >= oInfo.Run.Content.length && nCharsToDel !== 0) || (nCharsToDel === 0 && oChange.deleteCount !== 0))
 							continue;
 
-						for (var nDelChar = 0; nDelChar < countToDel; nDelChar++)
+						for (var nChar = 0; nChar < nCharsToDel; nChar++)
 						{
 							if (!oInfo.Run.Content[nPosToDel])
 								break;
@@ -11912,14 +11963,14 @@
 							if (para_Text === oInfo.Run.Content[nPosToDel].Type || para_Space === oInfo.Run.Content[nPosToDel].Type || para_Tab === oInfo.Run.Content[nPosToDel].Type)
 							{
 								oInfo.Run.RemoveFromContent(nPosToDel, 1);
-								nDelChar--;
+								nChar--;
 								oChange.deleteCount--;
-								countToDel--;
+								nCharsToDel--;
 							}
 							else
 							{
 								nPosToDel++;
-								nDelChar--;
+								nChar--;
 							}
 						}
 						
@@ -11935,15 +11986,15 @@
 							};
 							continue;
 						}
-							
-						for (var nAddChar = 0; nAddChar < oChange.insert.length; nAddChar++)
+						
+						for (var nChar = 0; nChar < oChange.insert.length; nChar++)
 						{
 							var itemText = null;
 							
-							if (AscCommon.IsSpace(oChange.insert[nAddChar]))
-								itemText = new AscCommonWord.ParaSpace(oChange.insert[nAddChar]);
+							if (AscCommon.IsSpace(oChange.insert[nChar]))
+								itemText = new AscCommonWord.ParaSpace(oChange.insert[nChar]);
 							else
-								itemText = new AscCommonWord.ParaText(oChange.insert[nAddChar]);
+								itemText = new AscCommonWord.ParaText(oChange.insert[nChar]);
 
 							itemText.Parent = oInfo.Run.GetParagraph();
 							if (oInfo.Run.Content.length === 0 && infoToAdd)
@@ -11955,7 +12006,7 @@
 								oInfo.Run.AddToContent(nPosToAdd, itemText);
 
 							oChange.insert.shift();
-							nAddChar--;
+							nChar--;
 							nPosToAdd++;
 						}
 					}
@@ -12047,7 +12098,7 @@
 		if (typeof sString !== 'string' || sString === '')
 			return false;
 
-		editor.asc_coAuthoringChatSendMessage(sString);
+		this.asc_coAuthoringChatSendMessage(sString);
 		return true;
 	};
 
@@ -12057,7 +12108,9 @@
 	Api.prototype["GetDocument"]                     = Api.prototype.GetDocument;
 	Api.prototype["CreateParagraph"]                 = Api.prototype.CreateParagraph;
 	Api.prototype["CreateTable"]                     = Api.prototype.CreateTable;
+	Api.prototype["AddComment"]                      = Api.prototype.AddComment;
 	Api.prototype["CreateRun"]                       = Api.prototype.CreateRun;
+	Api.prototype["CreateHyperlink"]                 = Api.prototype.CreateHyperlink;
 	Api.prototype["CreateImage"]                     = Api.prototype.CreateImage;
 	Api.prototype["CreateShape"]                     = Api.prototype.CreateShape;
 	Api.prototype["CreateChart"]                     = Api.prototype.CreateChart;

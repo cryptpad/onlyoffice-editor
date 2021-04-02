@@ -1953,7 +1953,7 @@
 			var widthWithRetina = AscCommon.AscBrowser.convertToRetinaValue(w, true);
 			var heightWithRetina = AscCommon.AscBrowser.convertToRetinaValue(h, true);
 
-			var ctx = getContext(w, h, wb);
+			var ctx = getContext(widthWithRetina, heightWithRetina, wb);
 			var oCanvas = ctx.getCanvas();
 			var graphics = getGraphics(ctx);
 
@@ -1976,7 +1976,7 @@
 					if (window["IS_NATIVE_EDITOR"]) {
 						window["native"]["BeginDrawStyle"](type, name);
 					}
-					drawStyle(ctx, graphics, wb.stringRender, oStyle, displayName, w, h);
+					drawStyle(ctx, graphics, wb.stringRender, oStyle, displayName, widthWithRetina, heightWithRetina);
 					if (window["IS_NATIVE_EDITOR"]) {
 						window["native"]["EndDrawStyle"]();
 					} else {
@@ -1992,7 +1992,7 @@
 			return result;
 		}
 
-		function drawStyle(ctx, graphics, sr, oStyle, sStyleName, width, height) {
+		function drawStyle(ctx, graphics, sr, oStyle, sStyleName, width, height, opt_cf_preview) {
 			var bc = null, bs = AscCommon.c_oAscBorderStyles.None, isNotFirst = false; // cached border color
 			ctx.clear();
 			// Fill cell
@@ -2069,14 +2069,35 @@
 
 			format.setSize(nSize);
 
-			var width_padding = 4;
+			var tm;
+			if (!opt_cf_preview) {
+				tm = sr.measureString(sStyleName);
+			} else {
+				var cellFlags = new AscCommonExcel.CellFlags();
+				cellFlags.textAlign = oStyle.xfs.align && oStyle.xfs.align.hor;
 
-			var tm = sr.measureString(sStyleName);
+				var fragments = [];
+				var tempFragment = new AscCommonExcel.Fragment();
+				tempFragment.text = sStyleName;
+				tempFragment.format = format;
+				fragments.push(tempFragment);
+				tm = sr.measureString(fragments, cellFlags, width);
+			}
+
+			var width_padding = 4;
+			if (oStyle.xfs && oStyle.xfs.align && oStyle.xfs.align.hor === AscCommon.align_Center) {
+				width_padding = Asc.round(0.5 * (width - tm.width));
+			}
+
 			// Текст будем рисовать по центру (в Excel чуть по другому реализовано, у них постоянный отступ снизу)
 			var textY = Asc.round(0.5 * (height - tm.height));
-			ctx.setFont(format);
-			ctx.setFillStyle(oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
-			ctx.fillText(sStyleName, width_padding, textY + tm.baseline);
+			if (!opt_cf_preview) {
+				ctx.setFont(format);
+				ctx.setFillStyle(oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
+				ctx.fillText(sStyleName, width_padding, textY + tm.baseline);
+			} else {
+				sr.render(ctx, width_padding, textY, tm.width, oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
+			}
 		}
 		
 		function drawFillCell(ctx, graphics, fill, rect) {
@@ -2258,11 +2279,147 @@
 			var oCanvas = ctx.getCanvas();
 			var graphics = getGraphics(ctx);
 
-			var style = new AscCommonExcel.CCellStyle();
-			style.xfs = xfs;
+			var oStyle = new AscCommonExcel.CCellStyle();
+			oStyle.xfs = xfs;
 
 			drawStyle(ctx, graphics, wb.stringRender, oStyle, text, w, h);
 			return new AscCommon.CStyleImage(text, null, oCanvas.toDataURL("image/png"));
+		}
+
+		function createAndPutCanvas(id) {
+			var parent =  document.getElementById(id);
+			if (!parent)
+				return;
+
+			var w = parent.clientWidth;
+			var h = parent.clientHeight;
+			if (!w || !h) {
+				return;
+			}
+
+			var canvas = parent.firstChild;
+			if (!canvas)
+			{
+				canvas = document.createElement('canvas');
+				canvas.style.cssText = "pointer-events: none;padding:0;margin:0;user-select:none;";
+				canvas.style.width = w + "px";
+				canvas.style.height = h + "px";
+				parent.appendChild(canvas);
+			}
+
+			canvas.width = AscCommon.AscBrowser.convertToRetinaValue(w, true);
+			canvas.height = AscCommon.AscBrowser.convertToRetinaValue(h, true);
+
+			return canvas;
+		}
+
+		//TODO рассмотреть объединение с generateXfsStyle
+		function generateXfsStyle2(id, wb, xfs, text) {
+			var canvas = createAndPutCanvas(id);
+			if (!canvas) {
+				return;
+			}
+			var w = canvas.clientWidth;
+			var h = canvas.clientHeight;
+
+			var ctx = new Asc.DrawingContext({canvas: canvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont});
+			var graphics = getGraphics(ctx);
+
+			var oStyle = new AscCommonExcel.CCellStyle();
+			oStyle.xfs = xfs;
+
+			drawStyle(ctx, graphics, wb.stringRender, oStyle, text, w, h, true);
+		}
+
+		function drawGradientPreview(id, wb, colors, _colorBorderOut, _colorBorderIn, _realPercentWidth, _indent) {
+			if (!colors || !colors.length) {
+				return null;
+			}
+
+			var canvas = createAndPutCanvas(id);
+			if (!canvas) {
+				return;
+			}
+			var w = canvas.clientWidth;
+			var h = canvas.clientHeight;
+
+			var ctx = new Asc.DrawingContext({canvas: canvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont});
+			var graphics = getGraphics(ctx);
+
+			var fill = new AscCommonExcel.Fill();
+			if (colors.length === 1) {
+				fill.patternFill = new AscCommonExcel.PatternFill();
+				fill.patternFill.fromColor(colors[0]);
+			} else {
+				fill.gradientFill = new AscCommonExcel.GradientFill();
+				var arrColors = [];
+				for (var i = 0; i < colors.length; i++) {
+					var _stop = new AscCommonExcel.GradientStop();
+					_stop.position = (i + 1)/colors.length;
+					_stop.color = colors[i];
+					arrColors.push(_stop);
+				}
+				fill.gradientFill.asc_putGradientStops(arrColors);
+			}
+
+			if (!_indent) {
+				_indent = 0;
+			}
+			var rectX = _indent;
+			var rectY = _indent;
+			var rectW = w - _indent * 2;
+			var rectH = h - _indent * 2;
+			if (_realPercentWidth) {
+				if (_realPercentWidth > 0) {
+					rectW = rectW * _realPercentWidth;
+				} else {
+					rectX = rectW - rectW * Math.abs(_realPercentWidth) + 1;
+					rectW = rectW * Math.abs(_realPercentWidth) + 1;
+				}
+			}
+			AscCommonExcel.drawFillCell(ctx, graphics, fill,  new AscCommon.asc_CRect(rectX, rectY, rectW, rectH));
+
+			if (_colorBorderIn) {
+				ctx.setLineWidth(1).setStrokeStyle(_colorBorderIn).strokeRect(rectX, rectY, rectW - 1, rectH - 1);
+			}
+			if (_colorBorderOut) {
+				ctx.setLineWidth(1).setStrokeStyle(_colorBorderOut).strokeRect(0, 0, w - 1, h - 1);
+			}
+		}
+
+		function drawIconSetPreview(id, wb, iconImgs) {
+			if (!iconImgs || !iconImgs.length) {
+				return null;
+			}
+
+			var canvas = createAndPutCanvas(id);
+			if (!canvas) {
+				return;
+			}
+
+			var ctx = new Asc.DrawingContext({canvas: canvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont});
+			var graphics = getGraphics(ctx);
+
+			var shapeDrawer = new AscCommon.CShapeDrawer();
+			shapeDrawer.Graphics = graphics;
+
+			for (var i = 0; i < iconImgs.length; i++) {
+				var img = iconImgs[i];
+
+				var geometry = new AscFormat.CreateGeometry("rect");
+				geometry.Recalculate(5, 5, true);
+
+				var oUniFill = new AscFormat.builder_CreateBlipFill(img, "stretch");
+				graphics.save();
+				var oMatrix = new AscCommon.CMatrix();
+				oMatrix.tx = i*5;
+				oMatrix.ty = 0;
+				graphics.transform3(oMatrix);
+
+				shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
+				shapeDrawer.draw(geometry);
+				graphics.restore();
+			}
 		}
 
 		//-----------------------------------------------------------------
@@ -2928,6 +3085,14 @@
 		// durations of months for the leap year
 		cDate.prototype.getDaysInMonth.L = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
+		cDate.prototype.getDayOfYear = function () {
+			//https://stackoverflow.com/a/8619946
+			var start = new Date(this.getFullYear(), 0, 0);
+			var diff = (this - start) + ((start.getTimezoneOffset() - this.getTimezoneOffset()) * 60 * 1000);
+			var oneDay = 1000 * 60 * 60 * 24;
+			return Math.floor(diff / oneDay);
+		};
+
 		cDate.prototype.truncate = function () {
 			this.setUTCHours( 0, 0, 0, 0 );
 			return this;
@@ -3120,9 +3285,17 @@
 		window["AscCommonExcel"].generateCellStyles = generateCellStyles;
 		window["AscCommonExcel"].generateSlicerStyles = generateSlicerStyles;
 		window["AscCommonExcel"].generateXfsStyle = generateXfsStyle;
+		window["AscCommonExcel"].generateXfsStyle2 = generateXfsStyle2;
 		window["AscCommonExcel"].getIconsForLoad = getIconsForLoad;
+		window["AscCommonExcel"].drawGradientPreview = drawGradientPreview;
+		window["AscCommonExcel"].drawIconSetPreview = drawIconSetPreview;
 
-		window["AscCommonExcel"].referenceType = referenceType;
+		window["Asc"]["referenceType"] = window["AscCommonExcel"].referenceType = referenceType;
+		prot = referenceType;
+		prot['A'] = prot.A;
+		prot['ARRC'] = prot.ARRC;
+		prot['RRAC'] = prot.RRAC;
+		prot['R'] = prot.R;
 		window["Asc"].Range = Range;
 		window["AscCommonExcel"].Range3D = Range3D;
 		window["AscCommonExcel"].SelectionRange = SelectionRange;

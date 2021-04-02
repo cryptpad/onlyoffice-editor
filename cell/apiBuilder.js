@@ -526,6 +526,33 @@
 
 	Api.prototype.RecalculateAllFormulas = function(fLogger) {
 		var formulas = this.wbModel.getAllFormulas(true);
+
+		var _compare = function (_val1, _val2) {
+			if (!isNaN(parseFloat(_val1)) && isFinite(_val1) && !isNaN(parseFloat(_val2)) && isFinite(_val2)) {
+				var nRound = null;
+				//max count digits in number
+				var maxLengthAfterPoint = 9;
+				var sVal1 = _val1.toString();
+				if (sVal1) {
+					var aVal1 = sVal1.split('.');
+					if (aVal1 && aVal1[1] && aVal1[1].length) {
+						nRound = aVal1[1].length - 1;
+						if (nRound > maxLengthAfterPoint) {
+							nRound = maxLengthAfterPoint;
+						}
+					}
+				}
+
+				if (nRound) {
+					var kF = Math.pow(10, nRound);
+					_val1 = (parseInt(_val1 * kF)) / kF;
+					_val2 = (parseInt(_val2 * kF)) / kF;
+				}
+			}
+
+			return _val1 == _val2;
+		};
+
 		for (var i = 0; i < formulas.length; ++i) {
 			var formula = formulas[i];
 			var nRow;
@@ -573,7 +600,7 @@
 				}
 
 				if (fLogger) {
-					if (oldValue != newValue) {
+					if (!_compare(oldValue, newValue)) {
 						//error
 						fLogger({
 							sheet: formula.ws.sName,
@@ -1172,6 +1199,11 @@
 		var range = new ApiRange(this.worksheet.getRange2(sRange));
 		var p = /^(?:http:\/\/|https:\/\/)/;
 		if (range && range.range.isOneCell() && sAddress) {
+			var externalLink = sAddress.match(p) || sAddress.search(/mailto:/i) !== -1;
+			if (externalLink && sAddress.length > Asc.c_nMaxHyperlinkLength) {
+				return null;
+			}
+
 			this.worksheet.selectionRange.assign2(range.range.bbox);
 			var  Hyperlink = new Asc.asc_CHyperlink();
 			if (sScreenTip) {
@@ -1182,7 +1214,7 @@
 			if (sTextToDisplay) {
 				Hyperlink.asc_setTooltip(sTextToDisplay);
 			}
-			if (sAddress.match(p) || sAddress.search(/mailto:/i) !== -1) {
+			if (externalLink) {
 				Hyperlink.asc_setHyperlinkUrl(sAddress);
 			} else {
 				Hyperlink.asc_setRange(sAddress);
@@ -1688,6 +1720,7 @@
 				worksheet.setRowHidden(isHidden, bbox.r1, bbox.r2);
 				break;				
 		}
+		this.range.worksheet.workbook.oApi.wb.handlers.trigger("changeWorksheetUpdate", this.range.worksheet.getId());
 	};
 	Object.defineProperty(ApiRange.prototype, "Hidden", {
 		get: function () {
@@ -1720,6 +1753,7 @@
 	 */
 	ApiRange.prototype.SetColumnWidth = function (nWidth) {
 		this.range.worksheet.setColWidth(nWidth, this.range.bbox.c1, this.range.bbox.c2);
+		this.range.worksheet.workbook.oApi.wb.handlers.trigger("changeWorksheetUpdate", this.range.worksheet.getId());
 	};
 	Object.defineProperty(ApiRange.prototype, "ColumnWidth", {
 		get: function () {
@@ -1762,6 +1796,7 @@
 	 */
 	ApiRange.prototype.SetRowHeight = function (nHeight) {
 		this.range.worksheet.setRowHeight(nHeight, this.range.bbox.r1, this.range.bbox.r2, false);
+		this.range.worksheet.workbook.oApi.wb.handlers.trigger("changeWorksheetUpdate", this.range.worksheet.getId())
 	};
 	Object.defineProperty(ApiRange.prototype, "RowHeight", {
 		get: function () {
@@ -2699,9 +2734,8 @@
 			var plot_area = chart.plotArea;
 			var oCurChartSettings = AscFormat.DrawingObjectsController.prototype.getPropsFromChart.call(AscFormat.DrawingObjectsController.prototype, this.Chart);
 			var _cur_type = oCurChartSettings.type;
-			if(AscCommon.g_oChartPresets[_cur_type] && AscCommon.g_oChartPresets[_cur_type][nStyleIndex]){
-				plot_area.removeCharts(1, plot_area.charts.length - 1);
-				AscFormat.ApplyPresetToChartSpace(this.Chart, AscCommon.g_oChartPresets[_cur_type][nStyleIndex], false);
+			if(AscCommon.g_oChartStyles[_cur_type] && AscCommon.g_oChartStyles[_cur_type][nStyleIndex]){
+				this.Chart.applyChartStyleByIds(AscCommon.g_oChartStyles[_cur_type][nStyleIndex])
 			}
 		}
 	};

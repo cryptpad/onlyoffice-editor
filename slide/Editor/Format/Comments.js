@@ -907,6 +907,46 @@ CCommentData.prototype =
     Read_FromBinary: function(Reader)
     {
         this.Read_FromBinary2(Reader);
+    },
+
+    HasUserData: function(sUserId)
+    {
+        if(this.m_sUserId === sUserId)
+        {
+            return true;
+        }
+        return this.HasUserReplies(sUserId);
+    },
+
+    HasUserReplies: function(sUserId)
+    {
+        for(var nReply = 0; nReply < this.m_aReplies.length; ++nReply)
+        {
+            if(this.m_aReplies[nReply].HasUserData(sUserId))
+            {
+                return true;
+            }
+        }
+        return false;
+    },
+    IsUserComment: function(sUserId)
+    {
+        if(this.m_sUserId === sUserId)
+        {
+            return true;
+        }
+        return false;
+    },
+
+    RemoveUserReplies: function(sUserId)
+    {
+        for(var nReply = this.m_aReplies.length - 1; nReply > -1; --nReply)
+        {
+            if(this.m_aReplies[nReply].m_sUserId === sUserId)
+            {
+                this.m_aReplies.splice(nReply, 1);
+            }
+        }
     }
 };
 
@@ -965,15 +1005,71 @@ CComment.prototype =
         return AscDFH.historyitem_type_Comment;
     },
 
-    createDuplicate: function(Parent, bNewGuid){
+    createDuplicate: function(Parent, bNewGuid)
+    {
         var oData = this.Data ? this.Data.createDuplicate(bNewGuid) : null;
         var ret = new CComment(Parent, oData);
         ret.setPosition(this.x, this.y);
         return ret;
     },
 
+    removeUserReplies: function(sUserId)
+    {
+        if(this.Data)
+        {
+            var oDataCopy = this.Data.createDuplicate();
+            oDataCopy.RemoveUserReplies(sUserId);
+            if(this.Data.Get_RepliesCount() !== oDataCopy.Get_RepliesCount())
+            {
+                this.Set_Data(oDataCopy);
+                editor.sync_ChangeCommentData(this.Get_Id(), this.Data);
+            }
+        }
+    },
+
+    hasUserReplies: function(sUserId)
+    {
+        if(!this.Data)
+        {
+            return false;
+        }
+        return this.Data.HasUserReplies(sUserId);
+    },
+
+    isUserComment: function(sUserId)
+    {
+        if(!this.Data)
+        {
+            return false;
+        }
+        return this.Data.IsUserComment(sUserId);
+    },
+
+    hasUserData: function(sUserId)
+    {
+        if(!this.Data)
+        {
+            return false;
+        }
+        return this.Data.HasUserData(sUserId);
+    },
+
+    canBeDeleted: function()
+    {
+        var sUserName = this.GetUserName();
+        if(AscCommon.UserInfoParser.canViewComment(sUserName)
+            && AscCommon.UserInfoParser.canDeleteComment(sUserName)) {
+            return true;
+        }
+        return false;
+    },
+
     hit: function(x, y)
     {
+        if(AscCommon.UserInfoParser.canViewComment(this.GetUserName()) === false)
+        {
+            return false;
+        }
         var Flags = 0;
         if(this.selected)
         {
@@ -1212,6 +1308,15 @@ CComment.prototype =
 
         if ( false === bUse )
             editor.WordControl.m_oLogicDocument.RemoveComment( this.Id, true );
+    },
+
+    GetUserName: function()
+    {
+        if(this.Data)
+        {
+            return this.Data.Get_Name();
+        }
+        return "";
     }
 };
 

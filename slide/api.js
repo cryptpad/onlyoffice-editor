@@ -1062,7 +1062,26 @@
 	{
 		return [];
 	};
+	asc_docs_api.prototype.asc_undoAllChanges       = function()
+	{
+		this.WordControl.m_oLogicDocument.Document_Undo({All : true});
+	};
+	asc_docs_api.prototype.asc_CloseFile            = function()
+	{
+		History.Clear();
+		g_oIdCounter.Clear();
+		g_oTableId.Clear();
+		AscCommon.CollaborativeEditing.Clear();
+		this.isApplyChangesOnOpenEnabled = true;
+		this.isDocumentLoadComplete = false;
 
+		var oLogicDocument = this.WordControl.m_oLogicDocument;
+		oLogicDocument.StopRecalculate();
+		oLogicDocument.Stop_CheckSpelling();
+		AscCommon.pptx_content_loader.ImageMapChecker = {};
+
+		this.WordControl.m_oDrawingDocument.CloseFile();
+	};
 	asc_docs_api.prototype.asc_SetFastCollaborative = function(isOn)
 	{
 		if (AscCommon.CollaborativeEditing)
@@ -4807,7 +4826,7 @@ background-repeat: no-repeat;\
 		}
 		if(isCurrent)
 		{
-			this.WordControl.m_oLogicDocument.RemoveCurrentComment();
+			this.WordControl.m_oLogicDocument.RemoveCurrentComment(isMine);
 		}
 		else
 		{
@@ -4822,6 +4841,11 @@ background-repeat: no-repeat;\
 		}
 	};
 
+	asc_docs_api.prototype.asc_onDeleteComment = function(Id, oCommentData)
+	{
+		var AscCommentData = new asc_CCommentData(oCommentData);
+		this.sendEvent("asc_onDeleteComment", Id, AscCommentData);
+	};
 
 	asc_docs_api.prototype.asc_changeComment = function(Id, AscCommentData)
 	{
@@ -5330,6 +5354,11 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.openDocument = function(file)
 	{
+		if (file.changes && this.VersionHistory)
+		{
+			this.VersionHistory.changes = file.changes;
+			this.VersionHistory.applyChanges(this);
+		}
 		this.OpenDocument2(file.url, file.data);
 	};
 

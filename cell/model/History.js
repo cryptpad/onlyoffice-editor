@@ -96,6 +96,9 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Worksheet_DataValidationDelete = 50;
 	window['AscCH'].historyitem_Worksheet_PivotReplaceKeepRecords = 51;
 
+	window['AscCH'].historyitem_Worksheet_CFRuleAdd = 52;
+	window['AscCH'].historyitem_Worksheet_CFRuleDelete = 53;
+
 	window['AscCH'].historyitem_RowCol_Fontname = 1;
 	window['AscCH'].historyitem_RowCol_Fontsize = 2;
 	window['AscCH'].historyitem_RowCol_Fontcolor = 3;
@@ -276,6 +279,24 @@ function (window, undefined) {
 	window['AscCH'].historyitem_NamedSheetView_SetName = 1;
 	window['AscCH'].historyitem_NamedSheetView_DeleteFilter = 2;
 
+	window['AscCH'].historyitem_CFRule_SetAboveAverage = 1;
+	window['AscCH'].historyitem_CFRule_SetActivePresent = 2;
+	window['AscCH'].historyitem_CFRule_SetBottom = 2;
+	window['AscCH'].historyitem_CFRule_SetEqualAverage = 3;
+	window['AscCH'].historyitem_CFRule_SetOperator = 4;
+	window['AscCH'].historyitem_CFRule_SetPercent = 5;
+	window['AscCH'].historyitem_CFRule_SetPriority = 6;
+	window['AscCH'].historyitem_CFRule_SetRank = 7;
+	window['AscCH'].historyitem_CFRule_SetStdDev = 8;
+	window['AscCH'].historyitem_CFRule_SetStopIfTrue = 9;
+	window['AscCH'].historyitem_CFRule_SetText = 10;
+	window['AscCH'].historyitem_CFRule_SetTimePeriod = 11;
+	window['AscCH'].historyitem_CFRule_SetType = 12;
+	window['AscCH'].historyitem_CFRule_SetPivot = 13;
+	window['AscCH'].historyitem_CFRule_SetTimePeriod = 14;
+	window['AscCH'].historyitem_CFRule_SetRuleElements = 15;
+	window['AscCH'].historyitem_CFRule_SetDxf = 16;
+	window['AscCH'].historyitem_CFRule_SetRanges = 17;
 
 
 function CHistory()
@@ -339,7 +360,7 @@ CHistory.prototype.Can_Redo = function()
 	return this.Points.length > 0 && this.Index < this.Points.length - 1;
 };
 /** @returns {boolean} */
-CHistory.prototype.Undo = function()
+CHistory.prototype.Undo = function(Options)
 {
   // Проверяем можно ли сделать Undo
   if (true !== this.Can_Undo()) {
@@ -349,30 +370,46 @@ CHistory.prototype.Undo = function()
 	if (this.Index === this.Points.length - 1)
 		this.LastState = this.workbook.handlers.trigger("getSelectionState");
 
-	var Point = this.Points[this.Index--];
 	var oRedoObjectParam = new AscCommonExcel.RedoObjectParam();
 	this.UndoRedoPrepare(oRedoObjectParam, true);
 
-	// Откатываем все действия в обратном порядке (относительно их выполенения)
-	for ( var Index = Point.Items.length - 1; Index >= 0; Index-- )
-	{
-		var Item = Point.Items[Index];
-
-
-
-		if(!Item.Class.RefreshRecalcData)
-			Item.Class.Undo( Item.Type, Item.Data, Item.SheetId );
-		else
+	var t = this;
+	var doUndo = function () {
+		for ( var Index = Point.Items.length - 1; Index >= 0; Index-- )
 		{
-            if (Item.Class)
-            {
-                Item.Class.Undo();
-                Item.Class.RefreshRecalcData();
-            }
-        }
+			var Item = Point.Items[Index];
 
-		this._addRedoObjectParam(oRedoObjectParam, Item);
+			if(!Item.Class.RefreshRecalcData)
+				Item.Class.Undo( Item.Type, Item.Data, Item.SheetId );
+			else
+			{
+				if (Item.Class)
+				{
+					Item.Class.Undo();
+					Item.Class.RefreshRecalcData();
+				}
+			}
+
+			t._addRedoObjectParam(oRedoObjectParam, Item);
+		}
+	};
+
+	// Откатываем все действия в обратном порядке (относительно их выполенения)
+	var Point = null;
+	if (undefined !== Options && null !== Options && true === Options.All)
+	{
+		while (this.Index >= 0)
+		{
+			Point = this.Points[this.Index--];
+			doUndo();
+		}
 	}
+	else
+	{
+		Point = this.Points[this.Index--];
+		doUndo();
+	}
+
 	this.UndoRedoEnd(Point, oRedoObjectParam, true);
   return true;
 };
@@ -547,7 +584,9 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 				oRedoObjectParam.oChangeWorksheetUpdate[i],{lockDraw: true, reinitRanges: true});
 
 		for (i in Point.UpdateRigions) {
-			this.workbook.handlers.trigger("cleanCellCache", i, [Point.UpdateRigions[i]]);
+			//последним параметром передаю resetCache, при добавлении/удаление строк/столбцов в случая прямого действия
+			//всегда делается cache -> reset, здесь аналогично делаю
+			this.workbook.handlers.trigger("cleanCellCache", i, [Point.UpdateRigions[i]], null, oRedoObjectParam.bAddRemoveRowCol);
 			var curSheet = this.workbook.getWorksheetById(i);
 			if (curSheet)
 				this.workbook.getWorksheetById(i).updateSlicersByRange(Point.UpdateRigions[i]);
