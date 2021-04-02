@@ -4118,7 +4118,7 @@ function (window, undefined) {
 		if (cfRule && cfRule.val) {
 			var value = bUndo ? Data.from : Data.to;
 			cfRule = cfRule.val;
-			
+
 			switch (Type) {
 				case AscCH.historyitem_CFRule_SetAboveAverage: {
 					cfRule.asc_setAboveAverage(value);
