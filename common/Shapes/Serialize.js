@@ -11562,12 +11562,14 @@ CCore.prototype.Refresh_RecalcData2 = function(){
             oOtherStream.cur = this.stream.cur;
         };
         this.ReadPPTXElement = function(reader, stream, fReadFunction) {
+            var oOldReader = this.BaseReader;
             if(reader) {
                 this.BaseReader = reader;
             }
             this.CheckStreamStart(stream);
             var oResult = fReadFunction();
             this.CheckStreamEnd(stream);
+            this.BaseReader = oOldReader;
             return oResult;
         };
         this.ReadBodyPr = function(reader, stream) {
@@ -11608,6 +11610,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
 
         this.ReadDrawing = function(reader, stream, logicDocument, paraDrawing)
         {
+            var oOldReader = this.BaseReader;
             if(reader){
                 this.BaseReader = reader;
             }
@@ -11705,7 +11708,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
             s.Seek2(_end_rec);
             stream.pos = s.pos;
             stream.cur = s.cur;
-
+            this.BaseReader = oOldReader;
             return GrObject;
         }
 
@@ -11759,6 +11762,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
 
         this.ReadTextBody = function(reader, stream, shape, presentation, drawingDocument)
         {
+            var oOldReader = this.BaseReader;
             if(reader){
                 this.BaseReader = reader;
             }
@@ -11795,11 +11799,13 @@ CCore.prototype.Refresh_RecalcData2 = function(){
             stream.pos = s.pos;
             stream.cur = s.cur;
             this.LogicDocument = oLogicDocument;
+            this.BaseReader = oOldReader;
             return txBody;
         }
 
         this.ReadTextBodyTxPr = function(reader, stream, shape)
         {
+            var oOldReader = this.BaseReader;
             if(reader){
                 this.BaseReader = reader;
             }
@@ -11832,6 +11838,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
             stream.pos = s.pos;
             stream.cur = s.cur;
             this.LogicDocument = oLogicDocument;
+            this.BaseReader = oOldReader;
             return txBody;
         }
 
@@ -12673,6 +12680,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
 
         this.ReadTheme = function(reader, stream)
         {
+            var oOldReader = this.BaseReader;
             if(reader)
             {
                 this.BaseReader = reader;
@@ -12693,6 +12701,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
 
             this.Reader.stream = this.stream;
             this.Reader.ImageMapChecker = this.ImageMapChecker;
+            this.BaseReader = oOldReader;
             return this.Reader.ReadTheme();
         }
 
