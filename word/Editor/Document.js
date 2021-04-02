@@ -24717,6 +24717,7 @@ CDocument.prototype.ChangeTextCase = function(nCaseType)
  */
 CDocument.prototype.ConvertTextToTable = function(oProps)
 {
+	this.PreConvertTextToTable();
 	if (!this.IsTextSelectionUse())
 	return;
 
@@ -24744,7 +24745,7 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 		}
 		// возможно здесь нет необходимости получать этот selectedContent, так как у него нет метода, чтобы из него достать этот контент
 		// но не факт, что весь контент будет находиться в параграфах, которые можно получить через this.GetSelectedParagraphs()
-		var oNewContent = this.private_ConvertTextToTable(oSelectedContent, oProps);
+		var oNewContent = this.private_ConvertTextToTable(oProps);
 		var oParagraph = this.GetCurrentParagraph();
 		var oParent = oParagraph.GetParent();
 		if (oNewContent && oParent)
@@ -24804,23 +24805,121 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 		this.FinalizeAction();
 	}
 };
-CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oProps)
+CDocument.prototype.private_ConvertTextToTable = function(oProps)
 {
-	// для примера oProps = {Separator : 92, CellsWidth : null - по радмеру содержимого | или какое-то число в мм}. Если CellsWidth не пришло, то делаем по размеру листа
-	// TODO: подумать над изменением количества столбцов в таблице в меньшую сторону из диалогового окна с настройками
-	// возможно все эти параметры должны прийти в эту функцию
-	// вообще количество строк и столбцов определяется ещё в диалоговом окне, где указываются некоторые настройки (потом переместить это в отдельную функцию)
-	// там можно поменять количество столбцов, но не строк
-	// указать ширину столбцов : фиксированная (может быть "Авто" или другое значение), по содержимому, по ширине окна
-	// и указывается знак по которому происходит разделение по столбцам, по строкам всегда используется знак абзаца
-	// хотя знак абзаца можно указать как разделитель и по ячейкам, но у меня не работает это и он всё равно воспринимается как новая строка
-	
-	
+	//подумать, может в этой функции возвращать просто таблицу для удобства
+	var oNewContent = new CSelectedContent();
+	var TableSeize = oProps.get_Size();
+	var oArrRows = oProps.get_Rows();
+	// здесь надо создать новую таблицу и поместить в неё всё содержимое из массива
+	var SectPr = this.SectionsInfo.Get_SectPr(this.CurPos.ContentPos).SectPr;
+	var PageFields = this.Get_PageFields(this.CurPage);
+	var nAdd = this.GetCompatibilityMode() <= AscCommon.document_compatibility_mode_Word14 ?  2 * 1.9 : 0;
+	var W    = (PageFields.XLimit - PageFields.X + nAdd);
+	var Grid = [];
+	if (SectPr.Get_ColumnsCount() > 1)
+		{
+			for (var CurCol = 0, ColsCount = SectPr.Get_ColumnsCount(); CurCol < ColsCount; ++CurCol)
+			{
+				var ColumnWidth = SectPr.Get_ColumnWidth(CurCol);
+				if (W > ColumnWidth)
+					W = ColumnWidth;
+			}
+
+			W += nAdd;
+		}
+	W = Math.max(W, TableSeize.cols * 2 * 1.9);
+	for (var Index = 0; Index < TableSeize.cols; Index++)
+		Grid[Index] = W / TableSeize.cols;
+
+	var oTable = new CTable(this.DrawingDocument, this, true, TableSeize.rows, TableSeize.cols, Grid);
+
+	for (var i = 0; i < oArrRows.length; i++)
+	{
+		for (var j = 0; j < oArrRows[i].length; j++)
+		{
+			var oCellContent = oTable.GetRow(i).GetCell(j).GetContent();
+			// oCellContent.ClearConten(false);
+			oCellContent.AddContent([oArrRows[i][j]]);
+		}
+	}
+	oTable.SelectAll();
+	if (oProps.CellsWidth || oProps.CellsWidth === null)
+	{
+		oTable.SetTableProps({CellSelect : true, CellsWidth: oProps.CellsWidth, Locked : false});
+	}
+	oNewContent.Add(new CSelectedElement(oTable, true));
+	return oNewContent;
+};
+/**
+* Подготовка к преобразованию текста в таблицу
+*/
+CDocument.prototype.PreConvertTextToTable = function(oProps)
+{
+	if (!this.IsTextSelectionUse())
+		return;
+
+	if (!this.IsSelectionLocked(AscCommon.changestype_Document_Contentt))
+	{
+		var oSelectedContent = this.GetSelectedContent(true);
+		if (!oProps)
+		{
+			oProps = new Asc.CAscTextToTableProperties();
+			var separator = {tab : true, comma : true};
+			for (var i = 0; i < oSelectedContent.Elements.length && (separator.comma || separator.tab); i++)
+			{
+				var oEl = oSelectedContent.Elements[i].Element;
+				if (separator.comma)
+				{
+					var oElText = (oEl.GetText) ? oEl.GetText() : "";
+					separator.comma = oElText.indexOf(";") !== -1;
+				}
+				if (separator.tab)
+				{
+					var hasTab = false;
+					for (var j = 0; j < oEl.Content.length && !hasTab; j++)
+					{
+						var oInsideEl = oEl.Content[j];
+						if (oInsideEl.Type === para_Run)
+						{
+							for (var k = 0; k < oInsideEl.Content.length; k++)
+							{
+								if (oInsideEl.Content[k].Type === para_Tab)
+								{
+									hasTab = true;
+									break;
+								}
+							}
+						}
+					}
+					separator.tab = hasTab;
+				}
+			}
+
+			if (separator.tab)
+			{
+				oProps.put_SeparatorType(1);
+			}
+			else if (separator.comma)
+			{
+				oProps.put_SeparatorType(3);
+				oProps.put_Separator(0x003B);
+			}
+		}
+		this.private_PreConvertTextToTable(oSelectedContent, oProps);
+		oProps.put_ColsCount(3, true);
+		return oProps;
+	}
+};
+CDocument.prototype.private_PreConvertTextToTable = function(oSelectedContent, oProps)
+{
 	// нужно разбить сразу выделенный контент по строкам и столбцам, для этого будем использовать двухмерный массив и по нему уже посчитаем потом сколько строк и столбцов
 	var oArrRows = [];
 	var oArrCells = [];
 	var FNewArrCells = false;
 	var oCellsCount = 0;
+	var SeparatorType = oProps.get_SeparatorType();
+	var Separator = (SeparatorType == 3) ? oProps.get_Separator() : null;
 	
 	for (var i = oSelectedContent.Elements.length - 1; i >= 0; i--)
 	{
@@ -24828,7 +24927,7 @@ CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oPro
 			oArrCells = [];
 		var oElement = oSelectedContent.Elements[i].Element;
 		// предполается, что новый параграф = новая строка (поэтому даже если separator == знаку абзаца), то сразу его в новую строку, в ворде работает также
-		if (oElement.IsParagraph() && oProps.Separator !== 182)
+		if (oElement.IsParagraph() && SeparatorType !== 2)
 		{
 			var oNewParagraph = new Paragraph(this.DrawingDocument, this);
 			for (var j = oElement.Content.length - 1; j >= 0; j--)
@@ -24843,7 +24942,7 @@ CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oPro
 							continue;
 
 						//если в качестве separator у нас таб или конец абзаца, то не нужно проверять содержимое ранов
-						if (oProps.Separator === 9)
+						if (SeparatorType === 1)
 						{
 							if (oThirdEl.Type === para_Tab)
 							{
@@ -24860,7 +24959,7 @@ CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oPro
 							// если это Run, то пробегаемся по его контентку и уже там ищем separator, если нет, то пропускаем его, так как там separatora не может быть
 							// здесь делать каждый раз сплит параграфа по индексу нахождения сепаратора и отрезаную часть добавлять в массив ячеек, а оставшуюся часть проверять дальше
 							// если дошли до 0, то добавляем весь этот параграф в качестве ячейки, так как всё лишнее мы уже отрезали от него
-							if (oThirdEl.Type === para_Text && oThirdEl.Value === oProps.Separator)
+							if (oThirdEl.Type === para_Text && oThirdEl.Value === Separator)
 							{
 								var oNewRun = oSecondEl.Split2(k, oNewParagraph, 0);
 								oNewRun.Remove_FromContent(0, 1);
@@ -24890,7 +24989,7 @@ CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oPro
 				}
 			}
 		}
-		else if (oElement.IsTable() && !oProps.Separator !== 182)
+		else if (oElement.IsTable() && SeparatorType == 2)
 		{
 			FNewArrCells = false;
 			oArrCells.unshift(oElement);
@@ -24918,48 +25017,10 @@ CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oPro
 			}
 		}
 	}
-	// для очистки содержимого
-	oSelectedContent.Reset();
-	// здесь надо создать новую таблицу и поместить в неё всё содержимое из массива
 
-	var SectPr = this.SectionsInfo.Get_SectPr(this.CurPos.ContentPos).SectPr;
-	var PageFields = this.Get_PageFields(this.CurPage);
-	var nAdd = this.GetCompatibilityMode() <= AscCommon.document_compatibility_mode_Word14 ?  2 * 1.9 : 0;
-	var W    = (PageFields.XLimit - PageFields.X + nAdd);
-	var Grid = [];
-	if (SectPr.Get_ColumnsCount() > 1)
-		{
-			for (var CurCol = 0, ColsCount = SectPr.Get_ColumnsCount(); CurCol < ColsCount; ++CurCol)
-			{
-				var ColumnWidth = SectPr.Get_ColumnWidth(CurCol);
-				if (W > ColumnWidth)
-					W = ColumnWidth;
-			}
-
-			W += nAdd;
-		}
-	W = Math.max(W, oCellsCount * 2 * 1.9);
-	for (var Index = 0; Index < oCellsCount; Index++)
-		Grid[Index] = W / oCellsCount;
-
-	var oTable = new CTable(this.DrawingDocument, this, true, oArrRows.length, oCellsCount, Grid);
-
-	for (var i = 0; i < oArrRows.length; i++)
-	{
-		for (var j = 0; j < oArrRows[i].length; j++)
-		{
-			var oCellContent = oTable.GetRow(i).GetCell(j).GetContent();
-			// oCellContent.ClearConten(false);
-			oCellContent.AddContent([oArrRows[i][j]]);
-		}
-	}
-	oTable.SelectAll();
-	if (oProps.CellsWidth || oProps.CellsWidth === null)
-	{
-		oTable.SetTableProps({CellSelect : true, CellsWidth: oProps.CellsWidth, Locked : false});
-	}
-	oSelectedContent.Add(new CSelectedElement(oTable, true));
-	return oSelectedContent;
+	oProps.put_Rows(oArrRows);
+	oProps.put_ColsCount(oCellsCount);
+	oProps.put_RowsCount(oArrRows.length);
 };
 /**
  * Конвертируем текущую таблицу в текст

@@ -2304,4 +2304,184 @@
 		this.Name += AscCommon.IntToNumberFormat(1, this.Format);
 	};
 
+	/**
+	* Класс для настроек конвертации текста в таблицу
+	* @param CDocument
+	* @constructor
+	*/
+	function CAscTextToTableProperties()
+	{
+		/* Separator types:
+			1 - Tab
+			2 - ParaEnd
+			3 - Other symbol
+		*/
+		/* Autofit types:
+			1 - Fixed column width
+			2 - Autofit to content
+			3 - Autofit to window
+		*/
+		this.Rows			= 0;
+		this.Cols			= 0;
+		this.ArrRows		= [];
+		this.AutoFitType	= 1;
+		this.FitValue		= 0;
+		this.SeparatorType	= 2;
+		this.Separator		= null;
+		this.Document		= CDocument;
+	}
+	CAscTextToTableProperties.prototype.get_Size = function()
+	{
+		return {rows : this.Rows, cols : this.Cols};
+	};
+	CAscTextToTableProperties.prototype.put_ColsCount = function(count, needRecal)
+	{
+		var colscount = (count > 1) ? count : 1;
+		if (needRecal)
+		{
+			this.private_recalculate(colscount);
+			return this.get_Size();
+		}
+		else
+			this.Cols = colscount;
+	};
+	CAscTextToTableProperties.prototype.get_Rows = function()
+	{
+		return this.ArrRows;
+	};
+	CAscTextToTableProperties.prototype.put_RowsCount = function(count)
+	{
+		this.Rows = (count > 1) ? count : 1;
+	};
+	CAscTextToTableProperties.prototype.put_Rows = function(newRows)
+	{
+		this.ArrRows = newRows;
+	};
+	CAscTextToTableProperties.prototype.get_AutoFitType = function()
+	{
+		return this.AutoFitType;
+	};
+	CAscTextToTableProperties.prototype.put_AutoFitType = function(type)
+	{
+		this.AutoFitType = (type > 0 && type <= 3) ? type : 1;
+	};
+	CAscTextToTableProperties.prototype.get_Fit = function()
+	{
+		return this.FitValue;
+	};
+	CAscTextToTableProperties.prototype.put_Fit = function(val)
+	{
+		this.FitValue = (val > 0) ? val : 0;
+	};
+	CAscTextToTableProperties.prototype.get_SeparatorType = function()
+	{
+		return this.SeparatorType;
+	};
+	CAscTextToTableProperties.prototype.put_SeparatorType = function(type, needRecal)
+	{
+		this.SeparatorType = (type > 0 && type <= 3) ? type : 2;
+		if (needRecal)
+		{
+			this.private_recalculate();
+			return this.get_Size();
+		}
+	};
+	CAscTextToTableProperties.prototype.get_Separator = function()
+	{
+		return this.Separator;
+	};
+	CAscTextToTableProperties.prototype.put_Separator = function(val, needRecal)
+	{
+		this.Separator = val;
+		if (needRecal)
+		{
+			this.private_recalculate();
+			return this.get_Size();
+		}
+	};
+	CAscTextToTableProperties.prototype.private_recalculate = function(count)
+	{
+		// переделать и передумать алгоритм
+		// возможно нужно хранить первоначальную версию массива и каждый раз изменять уже её, подумать над этой концепцией
+		// либо может не добавлять параграфы, а просто какое-то своё обозначение, чтобы можно было узнать какие ячейки были добавлены при пересчёте, а какие были первоначально
+		if (count)
+		{
+			if (this.Cols < count){
+				if (this.get_SeparatorType() == 2)
+				{
+					// если в плюс и сепаратор абзац (то мы просто заполняем все ячейки по порядку абзацами до конца строки)
+					var newArrRows = [];
+					var newArrCells = [];
+					for (var i = 0; i < this.Rows; i++)
+					{
+						for (var j = 0; j < this.ArrRows[i].length; j++)
+						{
+							if (newArrCells.length >= count)
+							{
+								newArrRows.push(newArrCells);
+								newArrCells = []
+							}
+							newArrCells.push(this.ArrRows[i][j]);
+						}
+					}
+					this.put_Rows(newArrRows);
+				}
+				else
+				{
+					// если в плюс и сепаратор не абзац, то создаём просто пустые ячейки
+					for (var i = 0; i < this.Rows; i++)
+					{
+						for (var j = 0; j < (count - this.Cols); j++)
+						{
+							var oNewParagraph = new Paragraph(this.Document.DrawingDocument, this.Document);
+							this.ArrRows[i].push(oNewParagraph);
+						}
+					}
+				}
+			}
+			else if (this.Cols > count)
+			{
+				// удалять возможно надо добавленные при другом пересчете пустые параграфы, либо просто заного сделать парсинг контента просто (подумать над этим)
+				// если в минус переместить не убравшееся количество ячеек на новую строку
+				var newArrRows = [];
+				var newArrCells = [];
+				for (var i = 0; i < this.Rows; i++)
+				{
+					for (var j = 0; j < this.ArrRows[i].length; j++)
+					{
+						if (newArrCells.length >= count)
+						{
+							newArrRows.push(newArrCells);
+							newArrCells = []
+						}
+						newArrCells.push(this.ArrRows[i][j]);
+					}
+				}
+				this.put_Rows(newArrRows);
+			}
+
+			this.put_ColsCount(count);
+			this.put_RowsCount(this.ArrRows.length);
+		}
+		else
+		{
+			this.Document.PreConvertTextToTable(this);
+		}
+	};
+
+	window['Asc']['CAscTextToTableProperties']				 = window['Asc'].CAscTextToTableProperties = CAscTextToTableProperties;
+	CAscTextToTableProperties.prototype['get_Size']			 = CAscTextToTableProperties.prototype.get_Size;
+	CAscTextToTableProperties.prototype['get_Rows']			 = CAscTextToTableProperties.prototype.get_Rows;
+	CAscTextToTableProperties.prototype['put_RowsCount']	 = CAscTextToTableProperties.prototype.put_RowsCount;
+	CAscTextToTableProperties.prototype['put_ColsCount']	 = CAscTextToTableProperties.prototype.put_ColsCount;
+	CAscTextToTableProperties.prototype['put_Rows'] 		 = CAscTextToTableProperties.prototype.put_Rows;
+	CAscTextToTableProperties.prototype['get_AutoFitType']	 = CAscTextToTableProperties.prototype.get_AutoFitType;
+	CAscTextToTableProperties.prototype['put_AutoFitType'] 	 = CAscTextToTableProperties.prototype.put_AutoFitType;
+	CAscTextToTableProperties.prototype['get_Fit']			 = CAscTextToTableProperties.prototype.get_Fit;
+	CAscTextToTableProperties.prototype['put_Fit']			 = CAscTextToTableProperties.prototype.put_Fit;
+	CAscTextToTableProperties.prototype['get_SeparatorType'] = CAscTextToTableProperties.prototype.get_SeparatorType;
+	CAscTextToTableProperties.prototype['put_SeparatorType'] = CAscTextToTableProperties.prototype.put_SeparatorType;
+	CAscTextToTableProperties.prototype['get_Separator']	 = CAscTextToTableProperties.prototype.get_Separator;
+	CAscTextToTableProperties.prototype['put_Separator']	 = CAscTextToTableProperties.prototype.put_Separator;
+
 })(window, undefined);

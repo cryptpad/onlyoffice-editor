@@ -11060,6 +11060,15 @@ background-repeat: no-repeat;\
 			this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletChangeListLevel(id, props);
     };
 
+	asc_docs_api.prototype.asc_PreConvertTextToTable = function(oProps)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		return oLogicDocument.PreConvertTextToTable(oProps);
+	};
+
 	asc_docs_api.prototype.asc_ConvertTextToTable = function(oProps)
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
@@ -11837,6 +11846,7 @@ background-repeat: no-repeat;\
     asc_docs_api.prototype['SetTableDrawMode']         					= asc_docs_api.prototype.SetTableDrawMode;
     asc_docs_api.prototype['SetTableEraseMode']         				= asc_docs_api.prototype.SetTableEraseMode;
 
+	asc_docs_api.prototype['asc_PreConvertTextToTable']                 = asc_docs_api.prototype.asc_PreConvertTextToTable;
 	asc_docs_api.prototype['asc_ConvertTextToTable']                    = asc_docs_api.prototype.asc_ConvertTextToTable;
 	asc_docs_api.prototype['asc_ConvertTableToText']                    = asc_docs_api.prototype.asc_ConvertTableToText;
 
