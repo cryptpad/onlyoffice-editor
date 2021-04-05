@@ -7353,10 +7353,12 @@ CDocumentContent.prototype.Internal_Content_Add = function(Position, NewObject, 
 	if (Position <= this.CurPos.TableMove)
 		this.CurPos.TableMove++;
 
-	// Проверим, что последний элемент - параграф или SdtBlockLevel
+	// Проверим, что последний элемент - параграф или SdtBlockLevel.
+	// В самом CSdtBlockLevel такая проверка не нужна
 	if (false !== isCorrectContent
 		&& !this.Content[this.Content.length - 1].IsParagraph()
-		&& !this.Content[this.Content.length - 1].IsBlockLevelSdt())
+		&& !this.Content[this.Content.length - 1].IsBlockLevelSdt()
+		&& !this.IsBlockLevelSdtContent())
 		this.Internal_Content_Add(this.Content.length, new Paragraph(this.DrawingDocument, this, this.bPresentation === true));
 
 	this.private_ReindexContent(Position);
@@ -7383,11 +7385,14 @@ CDocumentContent.prototype.Internal_Content_Remove = function(Position, Count, i
 	if (null != NextObj)
 		NextObj.Set_DocumentPrev(PrevObj);
 
-	// Проверим, что последний элемент - параграф
+	// Проверим, что последний элемент - параграф или SdtBlockLevel.
+	// В самом CSdtBlockLevel такая проверка не нужна
+
 	if (false !== isCorrectContent
 		&& (this.Content.length <= 0
 			|| (!this.Content[this.Content.length - 1].IsParagraph()
-				&& !this.Content[this.Content.length - 1].IsBlockLevelSdt())))
+				&& !this.Content[this.Content.length - 1].IsBlockLevelSdt()
+				&& !this.IsBlockLevelSdtContent())))
 		this.Internal_Content_Add(this.Content.length, new Paragraph(this.DrawingDocument, this, this.bPresentation === true));
 
 	this.private_ReindexContent(Position);

@@ -5879,13 +5879,9 @@ CTable.prototype.IsCursorAtBegin = function(bOnlyPara)
 };
 CTable.prototype.IsCursorAtEnd = function()
 {
-	if (false === this.Selection.Use || ( true === this.Selection.Use && table_Selection_Text === this.Selection.Type ))
-	{
-		if (0 === this.CurCell.Index && 0 === this.CurCell.Row.Index)
-		{
-			return this.CurCell.Content.IsCursorAtEnd();
-		}
-	}
+	if ((false === this.Selection.Use || (true === this.Selection.Use && table_Selection_Text === this.Selection.Type))
+		&& this.CurCell.Row.Index === this.GetRowsCount() - 1)
+		return this.CurCell.Content.IsCursorAtEnd();
 
 	return false;
 };
