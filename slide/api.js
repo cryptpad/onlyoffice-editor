@@ -7662,6 +7662,12 @@ background-repeat: no-repeat;\
 		}
 	};
 
+	asc_docs_api.prototype.SetDrawImagePreviewBulletForMenu = function(id, type)
+    {
+		if (this.WordControl.m_oDrawingDocument)
+			this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletForMenu(id, type);
+    };
+
 	//-------------------------------------------------------------export---------------------------------------------------
 	window['Asc']                                                 = window['Asc'] || {};
 	window['AscCommonSlide']                                      = window['AscCommonSlide'] || {};
@@ -8104,7 +8110,9 @@ background-repeat: no-repeat;\
 
     asc_docs_api.prototype['sendEvent']								= asc_docs_api.prototype.sendEvent;
 	asc_docs_api.prototype['asc_setSkin']							= asc_docs_api.prototype.asc_setSkin;
-
+	
+	asc_docs_api.prototype['SetDrawImagePreviewBulletForMenu']		= asc_docs_api.prototype.SetDrawImagePreviewBulletForMenu;
+	
 	// mobile
 	asc_docs_api.prototype["asc_GetDefaultTableStyles"]           	= asc_docs_api.prototype.asc_GetDefaultTableStyles;
 	asc_docs_api.prototype["asc_Remove"] 							= asc_docs_api.prototype.asc_Remove;
