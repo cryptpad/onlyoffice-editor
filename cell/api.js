@@ -552,6 +552,34 @@ var editor;
 	spreadsheet_api.prototype._getTextFromFile = function (options, callback) {
 		var t = this;
 
+		function wrapper_callback(data) {
+			var cp = {
+				'codepage': AscCommon.c_oAscCodePageUtf8, "delimiter": AscCommon.c_oAscCsvDelimiter.Comma,
+				'encodings': AscCommon.getEncodingParams(),
+				'data': data
+			};
+			callback(new AscCommon.asc_CAdvancedOptions(cp));
+		}
+
+		if (window["AscDesktopEditor"]) {
+			// TODO: add translations
+			window["AscDesktopEditor"]["OpenFilenameDialog"]("All supported files (*txt *csv);;Txt File (*txt);;Csv File(*csv);;All files (*.*)", false, function (_file) {
+				var file = _file;
+				if (Array.isArray(file))
+					file = file[0];
+				if (!file)
+					return;
+
+				window["AscDesktopEditor"]["loadLocalFile"](file, function(uint8Array) {
+					if (!uint8Array)
+						return;
+
+					wrapper_callback(uint8Array);
+				});
+			});
+			return;
+		}
+
 		AscCommon.ShowTextFileDialog(function (error, files) {
 			if (Asc.c_oAscError.ID.No !== error) {
 				t.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
@@ -560,12 +588,7 @@ var editor;
 
 			var reader = new FileReader();
 			reader.onload = function () {
-				var cp = {
-					'codepage': AscCommon.c_oAscCodePageUtf8, "delimiter": AscCommon.c_oAscCsvDelimiter.Comma,
-					'encodings': AscCommon.getEncodingParams(),
-					'data': reader.result
-				};
-				callback(new AscCommon.asc_CAdvancedOptions(cp));
+				wrapper_callback(reader.result);
 			};
 
 			reader.onerror = function () {
