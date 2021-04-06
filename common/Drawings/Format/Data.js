@@ -55,10 +55,10 @@
     var drawingContentChanges = AscDFH.drawingContentChanges;
     var changesFactory = AscDFH.changesFactory;
     var drawingConstructorsMap = window['AscDFH'].drawingsConstructorsMap;
-    var CUniColor = AscDFH.CUniColor;
-    var SchemeClr = AscDFH.CSchemeColor;
-    var ColorMod = AscDFH.CColorMod;
-    var ColorModLst = AscDFH.CColorModifiers;
+    var CUniColor = AscFormat.CUniColor;
+    var SchemeClr = AscFormat.CSchemeColor;
+    var ColorMod = AscFormat.CColorMod;
+    var ColorModLst = AscFormat.CColorModifiers;
 
     // consts
     var Point_type_asst = 0;
@@ -8772,6 +8772,7 @@
     function createColorStyleLbl(name) {
       var styleLbl = new ColorDefStyleLbl();
       styleLbl.setName(name);
+      return styleLbl;
     }
 
     function createColorLstInLbl(styleLbl, type, meth) {
@@ -8863,23 +8864,25 @@
                 var uniColor = new CUniColor();
                 uniColor.setColor(new SchemeClr());
                 uniColor.color.setId(clrLstInfo.color.id);
-                uniColor.setMods(new ColorModLst());
-                clrLstInfo.color.mods.forEach(function (modInfo) {
-                  var mod = new ColorMod();
-                  mod.setName(modInfo.name);
-                  mod.setVal(modInfo.val);
-                  uniColor.mods.addMod(mod);
-                })
-                addToClrLst(styleLbl, uniColor, clrLstName);
+                if (clrLstInfo.color.mods) {
+                  uniColor.setMods(new ColorModLst());
+                  clrLstInfo.color.mods.forEach(function (modInfo) {
+                    var mod = new ColorMod();
+                    mod.setName(modInfo.name);
+                    mod.setVal(modInfo.val);
+                    uniColor.mods.addMod(mod);
+                  })
+                }
+                addToClrLst(styleLbl, uniColor, clrLstName); // TODO: fix unicolor;
               }
             });
-
+            smartart.getColorsDef().addToLstStyleLbl(0, styleLbl);
           });
           break;
       }
       return smartart;
     }
-
-
-
+    window['AscFormat'] = window['AscFormat'] || {};
+    window['AscFormat'].createSmartArt = createSmartArt;
+    window['AscFormat'].SmartArt = SmartArt;
   })(window)
