@@ -11132,6 +11132,172 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this.name;
 	};
 
+	function CSheetProtection(ws) {
+		this.algorithmName = null;
+		this.hashValue = null;
+		this.saltValue = null;
+		this.spinCount = null;
+
+		this.sheet = null;//false
+		this.objects = null;//false
+		this.scenarios = null;//false
+		this.formatCells = null;//true
+		this.formatColumns = null;//true
+		this.formatRows = null;//true
+		this.insertColumns = null;//true
+		this.insertRows = null;//true
+		this.insertHyperlinks = null;//true
+		this.deleteColumns = null;//true
+		this.selectLockedCells = null;//false
+		this.sort = null;//true
+		this.autoFilter = null;//true
+		this.pivotTables = null;//true
+		this.selectUnlockedCells = null;//false
+
+		this._ws = ws;
+
+		return this;
+	}
+
+	CSheetProtection.prototype.clone = function(ws) {
+		var res = new CSheetProtection(ws);
+
+		res.algorithmName = this.algorithmName;
+		res.hashValue = this.hashValue;
+		res.saltValue = this.saltValue;
+		res.spinCount = this.spinCount;
+		res.sheet = this.sheet;
+		res.objects = this.objects;
+		res.scenarios = this.scenarios;
+		res.formatCells = this.formatCells;
+		res.formatColumns = this.formatColumns;
+
+		res.formatRows = this.formatRows;
+		res.insertColumns = this.insertColumns;
+		res.insertHyperlinks = this.insertHyperlinks;
+		res.deleteColumns = this.deleteColumns;
+		res.selectLockedCells = this.selectLockedCells;
+		res.sort = this.sort;
+		res.autoFilter = this.autoFilter;
+		res.selectUnlockedCells = this.selectUnlockedCells;
+
+		return res;
+	};
+
+	CSheetProtection.prototype.Write_ToBinary2 = function(w) {
+		var _writeBool = function (val) {
+			if (null != val) {
+				w.WriteBool(true);
+				w.WriteBool(val);
+			} else {
+				w.WriteBool(false);
+			}
+		};
+
+		if (null != this.algorithmName) {
+			w.WriteBool(true);
+			w.WriteString2(this.algorithmName);
+		} else {
+			w.WriteBool(false);
+		}
+
+		/*<xsd:attribute name="hashValue" type="xsd:base64Binary" use="optional"/>
+		 <xsd:attribute name="saltValue" type="xsd:base64Binary" use="optional"/>*/
+		if (null != this.hashValue) {
+			w.WriteBool(true);
+			w.WriteString2(this.hashValue);
+		} else {
+			w.WriteBool(false);
+		}
+
+		if (null != this.saltValue) {
+			w.WriteBool(true);
+			w.WriteString2(this.saltValue);
+		} else {
+			w.WriteBool(false);
+		}
+
+		if (null != this.spinCount) {
+			w.WriteBool(true);
+			w.WriteLong(this.spinCount);
+		} else {
+			w.WriteBool(false);
+		}
+
+		_writeBool(this.sheet);
+		_writeBool(this.objects);
+		_writeBool(this.scenarios);
+		_writeBool(this.formatCells);
+		_writeBool(this.formatColumns);
+
+		_writeBool(this.formatRows);
+		_writeBool(this.insertColumns);
+		_writeBool(this.insertHyperlinks);
+		_writeBool(this.deleteColumns);
+		_writeBool(this.selectLockedCells);
+		_writeBool(this.sort);
+		_writeBool(this.autoFilter);
+		_writeBool(this.selectUnlockedCells);
+	};
+
+	CSheetProtection.prototype.Read_FromBinary2 = function(r) {
+		if (r.GetBool()) {
+			this.algorithmName = r.GetString2();
+		}
+		if (r.GetBool()) {
+			this.hashValue = r.GetString2();
+		}
+		if (r.GetBool()) {
+			this.saltValue = r.GetString2();
+		}
+		if (r.GetBool()) {
+			this.spinCount = r.GetLong();
+		}
+
+		if (r.GetBool()) {
+			this.sheet = r.GetBool();
+		}
+		if (r.GetBool()) {
+			this.objects = r.GetBool();
+		}
+		if (r.GetBool()) {
+			this.scenarios = r.GetBool();
+		}
+		if (r.GetBool()) {
+			this.formatCells = r.GetBool();
+		}
+		if (r.GetBool()) {
+			this.formatColumns = r.GetBool();
+		}
+		if (r.GetBool()) {
+			this.formatRows = r.GetBool();
+		}
+
+		if (r.GetBool()) {
+			this.insertColumns = r.GetBool();
+		}
+		if (r.GetBool()) {
+			this.insertHyperlinks = r.GetBool();
+		}
+		if (r.GetBool()) {
+			this.deleteColumns = r.GetBool();
+		}
+
+		if (r.GetBool()) {
+			this.selectLockedCells = r.GetBool();
+		}
+		if (r.GetBool()) {
+			this.sort = r.GetBool();
+		}
+		if (r.GetBool()) {
+			this.autoFilter = r.GetBool();
+		}
+		if (r.GetBool()) {
+			this.selectUnlockedCells = r.GetBool();
+		}
+	};
+
+
 	//----------------------------------------------------------export----------------------------------------------------
 	var prot;
 	window['Asc'] = window['Asc'] || {};
