@@ -1601,6 +1601,7 @@
 	window['AscDFH'].historyitem_type_Coordinate             = 2085 << 16;
 	window['AscDFH'].historyitem_type_ExtrusionClr           = 2086 << 16;
 	window['AscDFH'].historyitem_type_ContourClr             = 2087 << 16;
+	window['AscDFH'].historyitem_type_SmartArt               = 2088 << 16;
 
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3750,6 +3751,12 @@
 
 	AscDFH.historyitem_MarkerLayoutSymbol = AscDFH.historyitem_type_MarkerLayout | 1;
 	AscDFH.historyitem_MarkerLayoutSize   = AscDFH.historyitem_type_MarkerLayout | 2;
+
+	AscDFH.historyitem_SmartArtColorsDef = AscDFH.historyitem_type_SmartArt | 1;
+	AscDFH.historyitem_SmartArtDrawing   = AscDFH.historyitem_type_SmartArt | 2;
+	AscDFH.historyitem_SmartArtLayoutDef = AscDFH.historyitem_type_SmartArt | 3;
+	AscDFH.historyitem_SmartArtDataModel = AscDFH.historyitem_type_SmartArt | 4;
+	AscDFH.historyitem_SmartArtStyleDef  = AscDFH.historyitem_type_SmartArt | 5;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
