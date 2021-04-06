@@ -2324,6 +2324,7 @@
 		this.Rows			= 0;
 		this.Cols			= 0;
 		this.ArrRows		= [];
+		this.DefaultArrRows = [];
 		this.AutoFitType	= 1;
 		this.FitValue		= 0;
 		this.SeparatorType	= 2;
@@ -2353,9 +2354,23 @@
 	{
 		this.Rows = (count > 1) ? count : 1;
 	};
-	CAscTextToTableProperties.prototype.put_Rows = function(newRows)
+	CAscTextToTableProperties.prototype.put_Rows = function(newRows, isDefault)
 	{
-		this.ArrRows = newRows;
+		this.ArrRows = newRows.map(function (item) {
+			return [...item]
+		});
+		if (isDefault)
+			this.put_DefaultRows(newRows);
+	};
+	CAscTextToTableProperties.prototype.get_DefaultRows = function()
+	{
+		return this.DefaultArrRows;
+	};
+	CAscTextToTableProperties.prototype.put_DefaultRows = function(newRows)
+	{
+		this.DefaultArrRows = newRows.map(function (item) {
+			return [...item]
+		});
 	};
 	CAscTextToTableProperties.prototype.get_AutoFitType = function()
 	{
@@ -2401,18 +2416,17 @@
 	};
 	CAscTextToTableProperties.prototype.private_recalculate = function(count)
 	{
-		// переделать и передумать алгоритм
-		// возможно нужно хранить первоначальную версию массива и каждый раз изменять уже её, подумать над этой концепцией
-		// либо может не добавлять параграфы, а просто какое-то своё обозначение, чтобы можно было узнать какие ячейки были добавлены при пересчёте, а какие были первоначально
+		this.put_Rows(this.get_DefaultRows(), false);
+		var size = this.get_Size();
 		if (count)
 		{
-			if (this.Cols < count){
+			if (size.cols < count){
 				if (this.get_SeparatorType() == 2)
 				{
 					// если в плюс и сепаратор абзац (то мы просто заполняем все ячейки по порядку абзацами до конца строки)
 					var newArrRows = [];
 					var newArrCells = [];
-					for (var i = 0; i < this.Rows; i++)
+					for (var i = 0; i < size.Rows; i++)
 					{
 						for (var j = 0; j < this.ArrRows[i].length; j++)
 						{
@@ -2424,14 +2438,14 @@
 							newArrCells.push(this.ArrRows[i][j]);
 						}
 					}
-					this.put_Rows(newArrRows);
+					this.put_Rows(newArrRows, false);
 				}
 				else
 				{
 					// если в плюс и сепаратор не абзац, то создаём просто пустые ячейки
-					for (var i = 0; i < this.Rows; i++)
+					for (var i = 0; i < size.Rows; i++)
 					{
-						for (var j = 0; j < (count - this.Cols); j++)
+						for (var j = 0; j < (count - size.cols); j++)
 						{
 							var oNewParagraph = new Paragraph(this.Document.DrawingDocument, this.Document);
 							this.ArrRows[i].push(oNewParagraph);
@@ -2439,25 +2453,19 @@
 					}
 				}
 			}
-			else if (this.Cols > count)
+			else if (size.cols > count)
 			{
-				// удалять возможно надо добавленные при другом пересчете пустые параграфы, либо просто заного сделать парсинг контента просто (подумать над этим)
-				// если в минус переместить не убравшееся количество ячеек на новую строку
-				var newArrRows = [];
-				var newArrCells = [];
-				for (var i = 0; i < this.Rows; i++)
+				var remCount = size.cols - count;
+				if (remCount > 0)
 				{
-					for (var j = 0; j < this.ArrRows[i].length; j++)
+					var newArrRows = [];
+					for (var i = 0; i < size.rows; i++)
 					{
-						if (newArrCells.length >= count)
-						{
-							newArrRows.push(newArrCells);
-							newArrCells = []
-						}
-						newArrCells.push(this.ArrRows[i][j]);
+						newArrRows.push(this.ArrRows[i].splice(0, count));
+						newArrRows.push(this.ArrRows[i]);
 					}
+					this.put_Rows(newArrRows, false);
 				}
-				this.put_Rows(newArrRows);
 			}
 
 			this.put_ColsCount(count);
@@ -2475,6 +2483,8 @@
 	CAscTextToTableProperties.prototype['put_RowsCount']	 = CAscTextToTableProperties.prototype.put_RowsCount;
 	CAscTextToTableProperties.prototype['put_ColsCount']	 = CAscTextToTableProperties.prototype.put_ColsCount;
 	CAscTextToTableProperties.prototype['put_Rows'] 		 = CAscTextToTableProperties.prototype.put_Rows;
+	CAscTextToTableProperties.prototype['get_DefaultRows'] 	 = CAscTextToTableProperties.prototype.get_DefaultRows;
+	CAscTextToTableProperties.prototype['put_DefaultRows'] 	 = CAscTextToTableProperties.prototype.put_DefaultRows;
 	CAscTextToTableProperties.prototype['get_AutoFitType']	 = CAscTextToTableProperties.prototype.get_AutoFitType;
 	CAscTextToTableProperties.prototype['put_AutoFitType'] 	 = CAscTextToTableProperties.prototype.put_AutoFitType;
 	CAscTextToTableProperties.prototype['get_Fit']			 = CAscTextToTableProperties.prototype.get_Fit;

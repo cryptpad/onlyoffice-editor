@@ -24838,9 +24838,12 @@ CDocument.prototype.private_ConvertTextToTable = function(oProps)
 	{
 		for (var j = 0; j < oArrRows[i].length; j++)
 		{
-			var oCellContent = oTable.GetRow(i).GetCell(j).GetContent();
-			// oCellContent.ClearConten(false);
-			oCellContent.AddContent([oArrRows[i][j]]);
+			if (oArrRows[i][j] !== "New Empty Cell")
+			{
+				var oCellContent = oTable.GetRow(i).GetCell(j).GetContent();
+				// oCellContent.ClearConten(false);
+				oCellContent.AddContent([oArrRows[i][j]]);
+			}
 		}
 	}
 	oTable.SelectAll();
@@ -24853,7 +24856,8 @@ CDocument.prototype.private_ConvertTextToTable = function(oProps)
 };
 /**
 * Подготовка к преобразованию текста в таблицу
-*/
+ * @param oProps
+ */
 CDocument.prototype.PreConvertTextToTable = function(oProps)
 {
 	if (!this.IsTextSelectionUse())
@@ -25018,7 +25022,7 @@ CDocument.prototype.private_PreConvertTextToTable = function(oSelectedContent, o
 		}
 	}
 
-	oProps.put_Rows(oArrRows);
+	oProps.put_Rows(oArrRows, !oProps.get_DefaultRows().length);
 	oProps.put_ColsCount(oCellsCount);
 	oProps.put_RowsCount(oArrRows.length);
 };
