@@ -65,6 +65,7 @@
     function CTimeNodeBase() {
         CBaseAnimObject.call(this);
         this.isActive = false;
+        this.timingGraph = null;
     }
     InitClass(CTimeNodeBase, CBaseAnimObject, AscDFH.historyitem_type_Unknown);
     CTimeNodeBase.prototype.isTimingContainer = function() {
@@ -101,38 +102,35 @@
     CTimeNodeBase.prototype.getChildrenTimeNodesInternal = function() {
         return [];
     };
-    CTimeNodeBase.prototype.buildTimingGraph = function(oTimingGraph) {
-        var oParentNode = this.getParentTimeNode();
-        if(oParentNode) {
-            var nOwnIdx = oParentNode.getChildNodeIdx(this);
-            if(nOwnIdx > -1) {
-                var aSiblings = oParentNode.getChildenTimeNodes();
-                var oPrevSibling = nOwnIdx > 0 ? aSiblings[nOwnIdx - 1] : null;
-                var oNextSibling = nOwnIdx < aSiblings.length - 1 ? aSiblings[nOwnIdx + 1] : null;
-                var oBegin, oEnd;
-                if(oParentNode.isSeq()) {
-                    oBegin = oPrevSibling ? oPrevSibling : oParentNode;
-                    oEnd =  this;
-                    oTimingGraph.checkEdge(oBegin, oEnd, []);
-                    oBegin = this;
-                    oEnd =  oNextSibling ? oNextSibling : oParentNode;
-                    oTimingGraph.checkEdge(oBegin, oEnd, []);
-                }
-                else if(oParentNode.isPar()) {
-                    oTimingGraph.checkEdge(oParentNode, this, []);
-                    oTimingGraph.checkEdge(this, oParentNode, []);
-                }
-                else if(oParentNode.isExcl()) {
-                    if(oPrevSibling) {
-                        oTimingGraph.checkEdge(oPrevSibling, this, []);
-                        oTimingGraph.checkEdge(this, oPrevSibling);
+    CTimeNodeBase.prototype.buildTimingGraph = function() {
+        this.timingGraph = null;
+        if(this.isTimingContainer()) {
+            this.timingGraph = new CTimingGraph(this);
+            var aChildren = this.getChildenTimeNodes();
+            var nChild;
+            if(this.isSeq()) {
+                if(aChildren.length > 0) {
+                    this.timingGraph.checkEdge(this, aChildren[0], []);
+                    aChildren[0].buildTimingGraph();
+                    for(nChild = 0; nChild < aChildren.length - 1; ++nChild) {
+                        this.timingGraph.checkEdge(aChildren[nChild], aChildren[nChild + 1]);
+                        aChildren[nChild + 1].buildTimingGraph();
                     }
                 }
             }
-        }
-        var aChildren = this.getChildenTimeNodes();
-        for(var nChild = 0; nChild < aChildren.length; ++nChild) {
-            aChildren[nChild].buildTimingGraph(oTimingGraph);
+            else if(this.isPar()) {
+                for(nChild = 0; nChild < aChildren.length; ++nChild) {
+                    this.timingGraph.checkEdge(this, aChildren[nChild]);
+                    aChildren[nChild].buildTimingGraph();
+                }
+            }
+            else if(this.isExcl()) {
+                //todo: handle as par
+                for(nChild = 0; nChild < aChildren.length; ++nChild) {
+                    this.timingGraph.checkEdge(this, aChildren[nChild]);
+                    aChildren[nChild].buildTimingGraph();
+                }
+            }
         }
     };
 
@@ -4004,16 +4002,8 @@
     function CTimingGraph(oRoot) {
         this.root = oRoot;
         this.edges = {};
-        this.build();
     }
 
-    CTimingGraph.prototype.build = function() {
-        if(!this.root) {
-            this.edges = {};
-            return;
-        }
-        this.root.buildTimingGraph(this);
-    };
     CTimingGraph.prototype.checkEdge = function(oBegin, oEnd, aConditions) {
         var sBeginId = oBegin.Id;
         var sEndId = oEnd.Id;
