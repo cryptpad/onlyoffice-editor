@@ -1460,7 +1460,7 @@
 				]);
 			}
 		} else {
-			if (!this.SpellCheckUrl) {
+			if (!this.SpellCheckUrl && !window['NATIVE_EDITOR_ENJINE']) {
 				this.SpellCheckApi = {};
 				this.SpellCheckApi.log = false;
 				this.SpellCheckApi.worker = new CSpellchecker({
@@ -3304,8 +3304,14 @@
 	baseEditorsApi.prototype.asc_setSkin = function(obj)
 	{
 	};
+	//---------------------------------------------------------version----------------------------------------------------
+	baseEditorsApi.prototype["GetVersion"] = baseEditorsApi.prototype.GetVersion = function()
+	{
+		var ver = "@@Version";
+		return (ver === "0.0.0" || ver.substr(2) === "Version") ? "develop" : ver;
+	};
 	//----------------------------------------------------------addons----------------------------------------------------
-    baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)
+	baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)
 	{
 		return (window["Asc"] && window["Asc"]["Addons"] && window["Asc"]["Addons"][type] === true) ? true : false;
 	};
