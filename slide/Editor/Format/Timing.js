@@ -54,22 +54,116 @@
     var InitClass = AscFormat.InitClass;
     var CBaseFormatObject = AscFormat.CBaseFormatObject;
 
-
-    function CEmptyObject() {
+    function CBaseAnimObject() {
         CBaseFormatObject.call(this);
     }
-    InitClass(CEmptyObject, CBaseFormatObject, AscDFH.historyitem_type_EmptyObject);
+    InitClass(CBaseAnimObject, CBaseFormatObject, AscDFH.historyitem_type_Unknown);
+    CBaseAnimObject.prototype.isTimeNode = function() {
+        return false;
+    };
+
+    function CTimeNodeBase() {
+        CBaseAnimObject.call(this);
+        this.isActive = false;
+    }
+    InitClass(CTimeNodeBase, CBaseAnimObject, AscDFH.historyitem_type_Unknown);
+    CTimeNodeBase.prototype.isTimingContainer = function() {
+        return this.isPar() || this.isSeq() || this.isExcl();
+    };
+    CTimeNodeBase.prototype.isPar = function() {
+        var nType = this.getObjectType();
+        return (nType === AscDFH.historyitem_type_Par);
+    };
+    CTimeNodeBase.prototype.isSeq = function() {
+        var nType = this.getObjectType();
+        return (nType === AscDFH.historyitem_type_Seq);
+    };
+    CTimeNodeBase.prototype.isExcl = function() {
+        var nType = this.getObjectType();
+        return (nType === AscDFH.historyitem_type_Excl);
+    };
+    CTimeNodeBase.prototype.isTimeNode = function() {
+        return true;
+    };
+    CTimeNodeBase.prototype.getParentTimeNode = function() {
+        var oCurParent = this.parent;
+        while (oCurParent && !oCurParent.isTimeNode()) {
+            oCurParent = oCurParent.parent;
+        }
+        return oCurParent;
+    };
+    CTimeNodeBase.prototype.getChildenTimeNodes = function() {
+        if(!this.isTimingContainer()) {
+            return [];
+        }
+        return this.getChildrenTimeNodesInternal();
+    };
+    CTimeNodeBase.prototype.getChildrenTimeNodesInternal = function() {
+        return [];
+    };
+    CTimeNodeBase.prototype.buildTimingGraph = function(oTimingGraph) {
+        var oParentNode = this.getParentTimeNode();
+        if(oParentNode) {
+            var nOwnIdx = oParentNode.getChildNodeIdx(this);
+            if(nOwnIdx > -1) {
+                var aSiblings = oParentNode.getChildenTimeNodes();
+                var oPrevSibling = nOwnIdx > 0 ? aSiblings[nOwnIdx - 1] : null;
+                var oNextSibling = nOwnIdx < aSiblings.length - 1 ? aSiblings[nOwnIdx + 1] : null;
+                var oBegin, oEnd;
+                if(oParentNode.isSeq()) {
+                    oBegin = oPrevSibling ? oPrevSibling : oParentNode;
+                    oEnd =  this;
+                    oTimingGraph.checkEdge(oBegin, oEnd, []);
+                    oBegin = this;
+                    oEnd =  oNextSibling ? oNextSibling : oParentNode;
+                    oTimingGraph.checkEdge(oBegin, oEnd, []);
+                }
+                else if(oParentNode.isPar()) {
+                    oTimingGraph.checkEdge(oParentNode, this, []);
+                    oTimingGraph.checkEdge(this, oParentNode, []);
+                }
+                else if(oParentNode.isExcl()) {
+                    if(oPrevSibling) {
+                        oTimingGraph.checkEdge(oPrevSibling, this, []);
+                        oTimingGraph.checkEdge(this, oPrevSibling);
+                    }
+                }
+            }
+        }
+        var aChildren = this.getChildenTimeNodes();
+        for(var nChild = 0; nChild < aChildren.length; ++nChild) {
+            aChildren[nChild].buildTimingGraph(oTimingGraph);
+        }
+    };
+
+    CTimeNodeBase.prototype.getChildNodeIdx = function(oChildNode) {
+        var aChildNodes = this.getChildenTimeNodes();
+        var nRet = -1;
+        for(var nIdx = 0; nIdx < aChildNodes.length; ++nIdx) {
+            if(aChildNodes[nIdx] === oChildNode) {
+                return nIdx;
+            }
+        }
+        return nRet;
+    };
+
+
+
+    function CEmptyObject() {
+        CBaseAnimObject.call(this);
+    }
+    InitClass(CEmptyObject, CBaseAnimObject, AscDFH.historyitem_type_EmptyObject);
 
     changesFactory[AscDFH.historyitem_TimingBldLst] = CChangeObject;
     changesFactory[AscDFH.historyitem_TimingTnLst] = CChangeObject;
     drawingsChangesMap[AscDFH.historyitem_TimingBldLst] = function(oClass, value) {oClass.bldLst = value;};
     drawingsChangesMap[AscDFH.historyitem_TimingTnLst] = function(oClass, value) {oClass.tnLst = value;};
     function CTiming() {
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.bldLst = null;
         this.tnLst  = null;
     }
-    InitClass(CTiming, CBaseFormatObject, AscDFH.historyitem_type_Timing);
+    InitClass(CTiming, CBaseAnimObject, AscDFH.historyitem_type_Timing);
     CTiming.prototype.setBldLst = function(oPr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_TimingBldLst, this.bldLst, oPr));
         this.bldLst = oPr;
@@ -131,16 +225,27 @@
         }
     };
 
+    CTiming.prototype.getTimingRootNode = function() {
+        if(this.tnLst) {
+            if(this.tnLst) {
+                if(this.tnLst.list.length > 0) {
+                    return this.tnLst.list[0];
+                }
+            }
+        }
+        return null;
+    };
+
 
     changesFactory[AscDFH.historyitem_CommonTimingListAdd] = CChangeContent;
     changesFactory[AscDFH.historyitem_CommonTimingListRemove] = CChangeContent;
     drawingContentChanges[AscDFH.historyitem_CommonTimingListAdd] = function(oClass) {return oClass.list;};
     drawingContentChanges[AscDFH.historyitem_CommonTimingListRemove] = function(oClass) {return oClass.list;};
     function CCommonTimingList() {
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.list = [];
     }
-    InitClass(CCommonTimingList, CBaseFormatObject, AscDFH.historyitem_type_CommonTimingList);
+    InitClass(CCommonTimingList, CBaseAnimObject, AscDFH.historyitem_type_CommonTimingList);
     CCommonTimingList.prototype.addToLst = function(nIdx, oPr) {
         var nInsertIdx = Math.min(this.list.length, Math.max(0, nIdx));
         History.Add(new CChangeContent(this, AscDFH.historyitem_CommonTimingListAdd, nInsertIdx, [oPr], true));
@@ -362,10 +467,10 @@
     changesFactory[AscDFH.historyitem_ObjectTargetSpid] = CChangeString;
     drawingsChangesMap[AscDFH.historyitem_ObjectTargetSpid] = function(oClass, value) {oClass.spid = value;};
     function CObjectTarget() {//subsp
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.spid = null;
     }
-    InitClass(CObjectTarget, CBaseFormatObject, AscDFH.historyitem_type_ObjectTarget);
+    InitClass(CObjectTarget, CBaseAnimObject, AscDFH.historyitem_type_ObjectTarget);
     CObjectTarget.prototype.setSpid = function(pr, pReader) {
         if(pReader) {
             pReader.AddConnectedObject(this);
@@ -681,11 +786,11 @@
     drawingsChangesMap[AscDFH.historyitem_BldSubBldChart] = function(oClass, value) {oClass.bldChart = value;};
     drawingsChangesMap[AscDFH.historyitem_BldSubBldDgm] = function(oClass, value) {oClass.bldDgm = value;};
     function CBldSub() {
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.bldChart = null;
         this.bldDgm = null;
     }
-    InitClass(CBldSub, CBaseFormatObject, AscDFH.historyitem_type_BldSub);
+    InitClass(CBldSub, CBaseAnimObject, AscDFH.historyitem_type_BldSub);
     CBldSub.prototype.setBldChart = function(pr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BldSubBldChart, this.bldChart, pr));
         this.bldChart = pr;
@@ -723,10 +828,10 @@
     changesFactory[AscDFH.historyitem_DirTransitionDir] = CChangeLong;
     drawingsChangesMap[AscDFH.historyitem_DirTransitionDir] = function(oClass, value) {oClass.dir = value;};
     function CDirTransition() {//CBlinds, checker, comb, cover, pull, push, randomBar, strips, wipe, zoom
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.dir = null;
     }
-    InitClass(CDirTransition, CBaseFormatObject, AscDFH.historyitem_type_DirTransition);
+    InitClass(CDirTransition, CBaseAnimObject, AscDFH.historyitem_type_DirTransition);
     CDirTransition.prototype.setDir = function(pr) {
         oHistory.Add(new CChangeLong(this, AscDFH.historyitem_DirTransitionDir, this.dir, pr));
         this.dir = pr;
@@ -747,10 +852,10 @@
     changesFactory[AscDFH.historyitem_OptBlackTransitionThruBlk] = CChangeBool;
     drawingsChangesMap[AscDFH.historyitem_OptBlackTransitionThruBlk] = function(oClass, value) {oClass.thruBlk = value;};
     function COptionalBlackTransition() {//cut, fade
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.thruBlk = null;
     }
-    InitClass(COptionalBlackTransition, CBaseFormatObject, AscDFH.historyitem_type_OptBlackTransition);
+    InitClass(COptionalBlackTransition, CBaseAnimObject, AscDFH.historyitem_type_OptBlackTransition);
     COptionalBlackTransition.prototype.setThruBlk = function(pr) {
         oHistory.Add(new CChangeBool(this, AscDFH.historyitem_OptBlackTransitionThruBlk, this.thruBlk, pr));
         this.thruBlk = pr;
@@ -780,14 +885,14 @@
     drawingsChangesMap[AscDFH.historyitem_GraphicElCategoryIdx] = function(oClass, value) {oClass.categoryIdx = value;};
 
     function CGraphicEl() {
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.dgmId = null;
         this.dgmBuildStep = null;
         this.chartBuildStep = null;
         this.seriesIdx = null;
         this.categoryIdx = null;
     }
-    InitClass(CGraphicEl, CBaseFormatObject, AscDFH.historyitem_type_GraphicEl);
+    InitClass(CGraphicEl, CBaseAnimObject, AscDFH.historyitem_type_GraphicEl);
     CGraphicEl.prototype.setDgmId = function(pr, pReader) {
         if(pReader) {
             pReader.AddConnectedObject(this);
@@ -873,11 +978,11 @@
     drawingsChangesMap[AscDFH.historyitem_IndexRgSt] = function(oClass, value) {oClass.st = value;};
     drawingsChangesMap[AscDFH.historyitem_IndexRgEnd] = function(oClass, value) {oClass.st = value;};
     function CIndexRg() {//charrg, pRg
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.st = null;
         this.end = null;
     }
-    InitClass(CIndexRg, CBaseFormatObject, AscDFH.historyitem_type_IndexRg);
+    InitClass(CIndexRg, CBaseAnimObject, AscDFH.historyitem_type_IndexRg);
     CIndexRg.prototype.setSt = function(pr) {
         oHistory.Add(new CChangeLong(this, AscDFH.historyitem_IndexRgSt, this.st, pr));
         this.st = pr;
@@ -908,11 +1013,11 @@
     drawingsChangesMap[AscDFH.historyitem_TmplLvl] = function(oClass, value) {oClass.lvl = value;};
     drawingsChangesMap[AscDFH.historyitem_TmplTnLst] = function(oClass, value) {oClass.tnLst = value;};
     function CTmpl() {
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.lvl = null;
         this.tnLst = null
     }
-    InitClass(CTmpl, CBaseFormatObject, AscDFH.historyitem_type_Tmpl);
+    InitClass(CTmpl, CBaseAnimObject, AscDFH.historyitem_type_Tmpl);
     CTmpl.prototype.setLvl = function(pr) {
         oHistory.Add(new CChangeLong(this, AscDFH.historyitem_TmplLvl, this.lvl, pr));
         this.lvl = pr;
@@ -971,7 +1076,7 @@
     drawingsChangesMap[AscDFH.historyitem_AnimTo] = function(oClass, value) {oClass.to = value;};
     drawingsChangesMap[AscDFH.historyitem_AnimValueType] = function(oClass, value) {oClass.valueType = value;};
     function CAnim() {
-        CBaseFormatObject.call(this);
+        CTimeNodeBase.call(this);
         this.cBhvr = null;
         this.tavLst = null;
         this.by = null;
@@ -980,7 +1085,7 @@
         this.to = null;
         this.valueType = null;
     }
-    InitClass(CAnim, CBaseFormatObject, AscDFH.historyitem_type_Anim);
+    InitClass(CAnim, CTimeNodeBase, AscDFH.historyitem_type_Anim);
     CAnim.prototype.setCBhvr = function(pr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_AnimCBhvr, this.cBhvr, pr));
         this.cBhvr = pr;
@@ -1100,7 +1205,7 @@
     drawingsChangesMap[AscDFH.historyitem_CBhvrTo] = function(oClass, value) {this.to = value;};
     drawingsChangesMap[AscDFH.historyitem_CBhvrXfrmType] = function(oClass, value) {this.xfrmType = value;};
     function CCBhvr() {
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.attrNameLst = null;
         this.cTn = null;
         this.tgtEl = null;
@@ -1113,7 +1218,7 @@
         this.to = null;
         this.xfrmType = null;
     }
-    InitClass(CCBhvr, CBaseFormatObject, AscDFH.historyitem_type_CBhvr);
+    InitClass(CCBhvr, CBaseAnimObject, AscDFH.historyitem_type_CBhvr);
     CCBhvr.prototype.setAttrNameLst = function(pr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_CBhvrAttrNameLst, this.attrNameLst, pr));
         this.attrNameLst = pr;
@@ -1318,7 +1423,7 @@
     drawingsChangesMap[AscDFH.historyitem_CTnSyncBehavior] = function(oClass, value) {this.syncBehavior = value;};
     drawingsChangesMap[AscDFH.historyitem_CTnTmFilter] = function(oClass, value) {this.tmFilter = value;};
     function CCTn() {
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.childTnLst = null;
         this.endCondLst = null;
         this.endSync = null;
@@ -1349,7 +1454,7 @@
         this.syncBehavior = null;
         this.tmFilter = null;
     }
-    InitClass(CCTn, CBaseFormatObject, AscDFH.historyitem_type_CTn);
+    InitClass(CCTn, CBaseAnimObject, AscDFH.historyitem_type_CTn);
     CCTn.prototype.setChildTnLst = function(pr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_CTnChildTnLst, this.childTnLst, pr));
         this.childTnLst = pr;
@@ -1677,14 +1782,14 @@
     drawingsChangesMap[AscDFH.historyitem_CondEvt] = function(oClass, value) {this.evt = value;};
 
     function CCond() {
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.rtn = null;
         this.tgtEl = null;
         this.tn = null;
         this.delay = null;
         this.evt = null;
     }
-    InitClass(CCond, CBaseFormatObject, AscDFH.historyitem_type_Cond);
+    InitClass(CCond, CBaseAnimObject, AscDFH.historyitem_type_Cond);
     CCond.prototype.setRtn = function(pr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_CondRtn, this.rtn, pr));
         this.rtn = pr;
@@ -1757,10 +1862,10 @@
     changesFactory[AscDFH.historyitem_RtnVal] = CChangeLong;
     drawingsChangesMap[AscDFH.historyitem_RtnVal] = function(oClass, value) {this.val = value;};
     function CRtn() {
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.val = null;
     }
-    InitClass(CRtn, CBaseFormatObject, AscDFH.historyitem_type_Rtn);
+    InitClass(CRtn, CBaseAnimObject, AscDFH.historyitem_type_Rtn);
     CRtn.prototype.setVal = function(pr) {
         oHistory.Add(new CChangeLong(this, AscDFH.historyitem_RtnVal, this.val, pr));
         this.val = pr;
@@ -1789,13 +1894,13 @@
     drawingsChangesMap[AscDFH.historyitem_TgtElSndTgt] = function(oClass, value) {oClass.sndTgt = value;};
     drawingsChangesMap[AscDFH.historyitem_TgtElSpTgt] = function(oClass, value) {oClass.spTgt = value;};
     function CTgtEl() {
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.inkTgt = null;//CObjectTarget
         this.sldTgt = null;
         this.sndTgt = null;
         this.spTgt = null;
     }
-    InitClass(CTgtEl, CBaseFormatObject, AscDFH.historyitem_type_TgtEl);
+    InitClass(CTgtEl, CBaseAnimObject, AscDFH.historyitem_type_TgtEl);
     CTgtEl.prototype.setInkTgt = function(pr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_TgtElInkTgt, this.inkTgt, pr));
         this.inkTgt = pr;
@@ -1901,12 +2006,12 @@
     drawingsChangesMap[AscDFH.historyitem_SndTgtName] =  function(oClass, value) {oClass.name = value;};
     drawingsChangesMap[AscDFH.historyitem_SndTgtBuiltIn] =  function(oClass, value) {oClass.builtIn = value;};
     function CSndTgt() {//snd
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.embed = null;
         this.name = null;
         this.builtIn = null;
     }
-    InitClass(CSndTgt, CBaseFormatObject, AscDFH.historyitem_type_SndTgt);
+    InitClass(CSndTgt, CBaseAnimObject, AscDFH.historyitem_type_SndTgt);
     CSndTgt.prototype.setEmbed = function (pr) {
         oHistory.Add(new CChangeLong(this, AscDFH.historyitem_SndTgtEmbed, this.embed, pr));
         this.embed = pr;
@@ -2087,13 +2192,13 @@
     drawingsChangesMap[AscDFH.historyitem_IterateDataType] = function(oClass, value) {oClass.type = value;};
 
     function CIterateData() {//iterate
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.tmAbs = null;
         this.tmPct = null;
         this.backwards = null;
         this.type = null;
     }
-    InitClass(CIterateData, CBaseFormatObject, AscDFH.historyitem_type_IterateData);
+    InitClass(CIterateData, CBaseAnimObject, AscDFH.historyitem_type_IterateData);
     CIterateData.prototype.setTmAbs = function(pr) {
         oHistory.Add(new CChangeString(this, AscDFH.historyitem_IterateDataTmAbs, this.tmAbs, pr));
         this.tmAbs = pr;
@@ -2147,10 +2252,10 @@
     changesFactory[AscDFH.historyitem_TmVal] = CChangeDouble2;
     drawingsChangesMap[AscDFH.historyitem_TmVal] = function(oClass, value) {oClass.val = value;};
     function CTm() {
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.val = null
     }
-    InitClass(CTm, CBaseFormatObject, AscDFH.historyitem_type_Tm);
+    InitClass(CTm, CBaseAnimObject, AscDFH.historyitem_type_Tm);
     CTm.prototype.setVal = function(pr) {
         oHistory.Add(new CChangeDouble2(this, AscDFH.historyitem_TmVal, this.val, pr));
         this.val = pr;
@@ -2176,12 +2281,12 @@
     drawingsChangesMap[AscDFH.historyitem_TavFmla] = function(oClass, value) {oClass.fmla = value;};
     drawingsChangesMap[AscDFH.historyitem_TavTm] = function(oClass, value) {oClass.tm = value;};
     function CTav() {
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.val = null;
         this.fmla = null;
         this.tm = null;
     }
-    InitClass(CTav, CBaseFormatObject, AscDFH.historyitem_type_Tav);
+    InitClass(CTav, CBaseAnimObject, AscDFH.historyitem_type_Tav);
     CTav.prototype.setVal = function(pr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_TavVal, this.val, pr));
         this.val = pr;
@@ -2250,14 +2355,14 @@
     drawingsChangesMap[AscDFH.historyitem_AnimVariantIntVal] = function(oClass, value) {oClass.intVal = value;};
     drawingsChangesMap[AscDFH.historyitem_AnimVariantStrVal] = function(oClass, value) {oClass.strVal = value;};
     function CAnimVariant() {//progress, val
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.boolVal = null;
         this.clrVal = null;
         this.fltVal = null;
         this.intVal = null;
         this.strVal = null;
     }
-    InitClass(CAnimVariant, CBaseFormatObject, AscDFH.historyitem_type_AnimVariant);
+    InitClass(CAnimVariant, CBaseAnimObject, AscDFH.historyitem_type_AnimVariant);
     CAnimVariant.prototype.setBoolVal = function(pr) {
         oHistory.Add(new CChangeBool(this, AscDFH.historyitem_AnimVariantBoolVal, this.boolVal, pr));
         this.boolVal = pr;
@@ -2376,7 +2481,7 @@
         return this.copy();
     };
     function CAnimClr() {
-        CBaseFormatObject.call(this);
+        CTimeNodeBase.call(this);
         this.byRGB = null;
         this.byHSL = null;
 
@@ -2386,7 +2491,7 @@
         this.clrSpc = null;
         this.dir = null;
     }
-    InitClass(CAnimClr, CBaseFormatObject, AscDFH.historyitem_type_AnimClr);
+    InitClass(CAnimClr, CTimeNodeBase, AscDFH.historyitem_type_AnimClr);
     CAnimClr.prototype.setByRGB = function(pr) {
         oHistory.Add(new CChangeObjectNoId(this, AscDFH.historyitem_AnimClrByRGB, this.byRGB, pr));
         this.byRGB = pr;
@@ -2536,14 +2641,14 @@
     drawingsChangesMap[AscDFH.historyitem_AnimEffectPrLst] = function(oClass, value) {oClass.prLst = value;};
     drawingsChangesMap[AscDFH.historyitem_AnimEffectTransition] = function(oClass, value) {oClass.transition = value;};
     function CAnimEffect() {
-        CBaseFormatObject.call(this);
+        CTimeNodeBase.call(this);
         this.cBhvr = null;
         this.progress = null;
         this.filter = null;
         this.prLst = null;
         this.transition = null;
     }
-    InitClass(CAnimEffect, CBaseFormatObject, AscDFH.historyitem_type_AnimEffect);
+    InitClass(CAnimEffect, CTimeNodeBase, AscDFH.historyitem_type_AnimEffect);
     CAnimEffect.prototype.setCBhvr = function(pr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_AnimEffectCBhvr, this.cBhvr, pr));
         this.cBhvr = pr;
@@ -2643,7 +2748,7 @@
     drawingsChangesMap[AscDFH.historyitem_AnimMotionRAng] = function(oClass, value) {oClass.by = value;};
 
     function CAnimMotion() {
-        CBaseFormatObject.call(this);
+        CTimeNodeBase.call(this);
         this.by = null;
         this.cBhvr = null;
         this.from = null;
@@ -2655,7 +2760,7 @@
         this.ptsTypes = null;
         this.rAng = null;
     }
-    InitClass(CAnimMotion, CBaseFormatObject, AscDFH.historyitem_type_AnimMotion);
+    InitClass(CAnimMotion, CTimeNodeBase, AscDFH.historyitem_type_AnimMotion);
     CAnimMotion.prototype.setBy = function(pr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_AnimMotionBy, this.by, pr));
         this.by = pr;
@@ -2839,13 +2944,13 @@
     drawingsChangesMap[AscDFH.historyitem_AnimRotTo] = function(oClass, value) {oClass.to = value;};
 
     function CAnimRot() {
-        CBaseFormatObject.call(this);
+        CTimeNodeBase.call(this);
         this.cBhvr = null;
         this.by = null;
         this.from = null;
         this.to = null;
     }
-    InitClass(CAnimRot, CBaseFormatObject, AscDFH.historyitem_type_AnimRot);
+    InitClass(CAnimRot, CTimeNodeBase, AscDFH.historyitem_type_AnimRot);
     CAnimRot.prototype.setCBhvr = function(pr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_Unknown_Unknown, this.cBhvr, pr));
         this.cBhvr = pr;
@@ -2924,14 +3029,14 @@
     drawingsChangesMap[AscDFH.historyitem_AnimScaleTo] = function(oClass, value) {oClass.to = value;};
     drawingsChangesMap[AscDFH.historyitem_AnimScaleZoomContents] = function(oClass, value) {oClass.zoomContents = value;};
     function CAnimScale() {
-        CBaseFormatObject.call(this);
+        CTimeNodeBase.call(this);
         this.cBhvr = null;
         this.by = null;
         this.from = null;
         this.to = null;
         this.zoomContents = null;
     }
-    InitClass(CAnimScale, CBaseFormatObject, AscDFH.historyitem_type_AnimScale);
+    InitClass(CAnimScale, CTimeNodeBase, AscDFH.historyitem_type_AnimScale);
     CAnimScale.prototype.setCBhvr = function(pr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_AnimScaleCBhvr, this.cBhvr, pr));
         this.cBhvr = pr;
@@ -3053,11 +3158,11 @@
     drawingsChangesMap[AscDFH.historyitem_AudioIsNarration] = function(oClass, value) {oClass.isNarration = value;};
 
     function CAudio() {
-        CBaseFormatObject.call(this);
+        CTimeNodeBase.call(this);
         this.cMediaNode = null;
         this.isNarration = null;
     }
-    InitClass(CAudio, CBaseFormatObject, AscDFH.historyitem_type_Audio);
+    InitClass(CAudio, CTimeNodeBase, AscDFH.historyitem_type_Audio);
 
     CAudio.prototype.setCMediaNode = function(pr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_AudioCMediaNode, this.cMediaNode, pr));
@@ -3117,7 +3222,7 @@
     drawingsChangesMap[AscDFH.historyitem_CMediaNodeVol] = function(oClass, value) {oClass.vol = value;};
 
     function CCMediaNode() {
-        CBaseFormatObject.call(this);
+        CTimeNodeBase.call(this);
         this.cTn = null;
         this.tgtEl = null;
         this.mute = null;
@@ -3125,7 +3230,7 @@
         this.showWhenStopped = null;
         this.vol = null;
     }
-    InitClass(CCMediaNode, CBaseFormatObject, AscDFH.historyitem_type_CMediaNode);
+    InitClass(CCMediaNode, CTimeNodeBase, AscDFH.historyitem_type_CMediaNode);
     CCMediaNode.prototype.setCTn = function(pr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_CMediaNodeCTn, this.cTn, pr));
         this.cTn = pr;
@@ -3214,12 +3319,12 @@
     drawingsChangesMap[AscDFH.historyitem_CmdCmd] = function(oClass, value) {oClass.cmd = value;};
     drawingsChangesMap[AscDFH.historyitem_CmdType] = function(oClass, value) {oClass.type = value;};
     function CCmd() {
-        CBaseFormatObject.call(this);
+        CTimeNodeBase.call(this);
         this.cBhvr = null;
         this.cmd = null;
         this.type = null;
     }
-    InitClass(CCmd, CBaseFormatObject, AscDFH.historyitem_type_Cmd);
+    InitClass(CCmd, CTimeNodeBase, AscDFH.historyitem_type_Cmd);
     CCmd.prototype.setCBhvr = function(pr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_CmdCBhvr, this.cBhvr, pr));
         this.cBhvr = pr;
@@ -3278,10 +3383,10 @@
     drawingsChangesMap[AscDFH.historyitem_TimeNodeContainerCTn] = function(oClass, value) {oClass.cTn = value;};
 
     function CTimeNodeContainer() {//par, excl
-        CBaseFormatObject.call(this);
+        CTimeNodeBase.call(this);
         this.cTn = null;
     }
-    InitClass(CTimeNodeContainer, CBaseFormatObject, AscDFH.historyitem_type_TimeNodeContainer);
+    InitClass(CTimeNodeContainer, CTimeNodeBase, AscDFH.historyitem_type_TimeNodeContainer);
     CTimeNodeContainer.prototype.setCTn = function(pr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_TimeNodeContainerCTn, this.cTn, pr));
         this.cTn = pr;
@@ -3311,15 +3416,23 @@
     CTimeNodeContainer.prototype.getChildren = function() {
         return [this.cTn];
     };
+    CTimeNodeContainer.prototype.getChildrenTimeNodesInternal = function() {
+        if(this.cTn) {
+            if(this.cTn.childTnLst) {
+                return this.cTn.childTnLst.list;
+            }
+        }
+        return [];
+    };
 
-    function CPar() {//par, excl
-        CBaseFormatObject.call(this);
+    function CPar() {//par, seq, excl
+        CTimeNodeContainer.call(this);
         this.cTn = null;
     }
     InitClass(CPar, CTimeNodeContainer, AscDFH.historyitem_type_Par);
 
     function CExcl() {//par, excl
-        CBaseFormatObject.call(this);
+        CTimeNodeContainer.call(this);
         this.cTn = null;
     }
     InitClass(CExcl, CTimeNodeContainer, AscDFH.historyitem_type_Excl);
@@ -3424,12 +3537,12 @@
     changesFactory[AscDFH.historyitem_SetTo] = CChangeObject;
     drawingsChangesMap[AscDFH.historyitem_SetCBhvr] = function(oClass, value) {oClass.cBhvr = value;};
     drawingsChangesMap[AscDFH.historyitem_SetTo] = function(oClass, value) {oClass.to = value;};
-    function CSet() {//par, excl
-        CBaseFormatObject.call(this);
+    function CSet() {
+        CTimeNodeBase.call(this);
         this.cBhvr = null;
         this.to = null;
     }
-    InitClass(CSet, CBaseFormatObject, AscDFH.historyitem_type_Set);
+    InitClass(CSet, CTimeNodeBase, AscDFH.historyitem_type_Set);
     CSet.prototype.setCBhvr = function(pr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SetCBhvr, this.cBhvr, pr));
         this.cBhvr = pr;
@@ -3475,11 +3588,11 @@
     drawingsChangesMap[AscDFH.historyitem_VideoCMediaNode] = function(oClass, value) {oClass.cMediaNode = value;};
     drawingsChangesMap[AscDFH.historyitem_VideoFullScrn] = function(oClass, value) {oClass.fullScrn = value;};
     function CVideo() {//par, excl
-        CBaseFormatObject.call(this);
+        CTimeNodeBase.call(this);
         this.cMediaNode = null;
         this.fullScrn = null;
     }
-    InitClass(CVideo, CBaseFormatObject, AscDFH.historyitem_type_Video);
+    InitClass(CVideo, CTimeNodeBase, AscDFH.historyitem_type_Video);
     CVideo.prototype.setCMediaNode = function(pr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_VideoCMediaNode, this.cMediaNode, pr));
         this.cMediaNode = pr;
@@ -3529,11 +3642,11 @@
     drawingsChangesMap[AscDFH.historyitem_OleChartElLvl] = function(oClass, value) {oClass.lvl = value;};
     drawingsChangesMap[AscDFH.historyitem_OleChartElType] = function(oClass, value) {oClass.type = value;};
     function COleChartEl() {
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.lvl = null;
         this.type = null;
     }
-    InitClass(COleChartEl, CBaseFormatObject, AscDFH.historyitem_type_OleChartEl);
+    InitClass(COleChartEl, CBaseAnimObject, AscDFH.historyitem_type_OleChartEl);
     COleChartEl.prototype.setLvl = function(pr) {
         oHistory.Add(new CChangeLong(this, AscDFH.historyitem_OleChartElLvl, this.lvl, pr));
         this.lvl = pr;
@@ -3564,11 +3677,11 @@
     drawingsChangesMap[AscDFH.historyitem_TlPointX] = function(oClass, value) {oClass.x = value;};
     drawingsChangesMap[AscDFH.historyitem_TlPointY] = function(oClass, value) {oClass.y = value;};
     function CTLPoint() {//rCtr
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.x = null;
         this.y = null;
     }
-    InitClass(CTLPoint, CBaseFormatObject, AscDFH.historyitem_type_TlPoint);
+    InitClass(CTLPoint, CBaseAnimObject, AscDFH.historyitem_type_TlPoint);
     CTLPoint.prototype.setX = function(pr) {
         oHistory.Add(new CChangeDouble2(this, AscDFH.historyitem_TlPointX, this.x, pr));
         this.x = pr;
@@ -3600,11 +3713,11 @@
     drawingsChangesMap[AscDFH.historyitem_SndAcEndSnd] = function(oClass, value) {oClass.endSnd = value;};
     drawingsChangesMap[AscDFH.historyitem_SndAcStSnd] = function(oClass, value) {oClass.stSnd = value;};
     function CSndAc() {//
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.endSnd = null;
         this.stSnd = null;
     }
-    InitClass(CSndAc, CBaseFormatObject, AscDFH.historyitem_type_SndAc);
+    InitClass(CSndAc, CBaseAnimObject, AscDFH.historyitem_type_SndAc);
     CSndAc.prototype.setEndSnd = function(pr) {
         oHistory.Add(new CChangeLong(this, AscDFH.historyitem_SndAcEndSnd, this.endSnd, pr));
         this.endSnd = pr;
@@ -3636,11 +3749,11 @@
     drawingsChangesMap[AscDFH.historyitem_StSndSnd] = function(oClass, value) {oClass.snd = value;};
     drawingsChangesMap[AscDFH.historyitem_StSndLoop] = function(oClass, value) {oClass.loop = value;};
     function CStSnd() {//
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.snd = null;
         this.loop = null;
     }
-    InitClass(CStSnd, CBaseFormatObject, AscDFH.historyitem_type_StSnd);
+    InitClass(CStSnd, CBaseAnimObject, AscDFH.historyitem_type_StSnd);
     CStSnd.prototype.setSnd = function(pr) {
         oHistory.Add(new CChangeLong(this, AscDFH.historyitem_StSndSnd, this.snd, pr));
         this.snd = pr;
@@ -3673,11 +3786,11 @@
     drawingsChangesMap[AscDFH.historyitem_TxElCharRg] = function(oClass, value) {oClass.charRg = value;};
     drawingsChangesMap[AscDFH.historyitem_TxElPRg] = function(oClass, value) {oClass.pRg = value;};
     function CTxEl() {//rCtr
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.charRg = null;//CIndexRg
         this.pRg = null;
     }
-    InitClass(CTxEl, CBaseFormatObject, AscDFH.historyitem_type_TxEl);
+    InitClass(CTxEl, CBaseAnimObject, AscDFH.historyitem_type_TxEl);
     CTxEl.prototype.setCharRg = function(pr) {
         oHistory.Add(new CChangeObject(this, AscDFH.historyitem_TxElCharRg, this.charRg, pr));
         this.charRg = pr;
@@ -3747,10 +3860,10 @@
     changesFactory[AscDFH.historyitem_WheelSpokes] = CChangeLong;
     drawingsChangesMap[AscDFH.historyitem_WheelSpokes] = function(oClass, value) {oClass.spokes = value;};
     function CWheel() {
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.spokes = null;
     }
-    InitClass(CWheel, CBaseFormatObject, AscDFH.historyitem_type_Wheel);
+    InitClass(CWheel, CBaseAnimObject, AscDFH.historyitem_type_Wheel);
     CWheel.prototype.setSpokes = function(pr) {
         oHistory.Add(new CChangeLong(this, AscDFH.historyitem_WheelSpokes, this.spokes, pr));
         this.spokes = pr;
@@ -3773,10 +3886,10 @@
     changesFactory[AscDFH.historyitem_WheelSpokes] = CChangeString;
     drawingsChangesMap[AscDFH.historyitem_WheelSpokes] = function(oClass, value) {oClass.text = value;};
     function CAttrName() {
-        CBaseFormatObject.call(this);
+        CBaseAnimObject.call(this);
         this.text = null;
     }
-    InitClass(CAttrName, CBaseFormatObject, AscDFH.historyitem_type_AttrName);
+    InitClass(CAttrName, CBaseAnimObject, AscDFH.historyitem_type_AttrName);
     CAttrName.prototype.setText = function(pr) {
         oHistory.Add(new CChangeString(this, AscDFH.historyitem_AttrNameText, this.spokes, pr));
         this.text = pr;
@@ -3802,6 +3915,122 @@
         oStream.SkipRecord();
     };
 
+
+    function CEventsProcessor(player) {
+        this.player = player;
+        this.eventsQueue = [];
+    }
+
+    function CAnimationScheduler(player) {
+        this.player = player;
+    }
+
+    function CAnimationTimer(player) {
+        this.player = player;
+        this.curTime = null;
+        this.animFrameId = null;
+    }
+
+    CAnimationTimer.prototype.start = function() {
+        if(this.animFrameId === null) {
+            this.animFrameId = __nextFrame();
+        }
+    };
+    CAnimationTimer.prototype.stop = function() {
+        if(this.animFrameId !== null) {
+            __cancelFrame(this.animFrameId);
+            this.animFrameId = null;
+        }
+    };
+    CAnimationTimer.prototype.onFrame = function() {
+        this.curTime = (new Date()).getTime();
+        this.player.onFrame();
+        this.animFrameId = __nextFrame();
+    };
+    CAnimationTimer.prototype.getTime = function() {
+        return this.curTime;
+    };
+
+    var PLAYER_STATE_IDLE = 0;
+    var PLAYER_STATE_PLAYING = 1;
+    var PLAYER_STATE_PAUSING = 2;
+    var PLAYER_STATE_DONE = 3;
+
+    function CAnimationPlayer(aTimings) {
+        this.timings = aTimings;
+        this.eventProcessor = new CEventsProcessor(this);
+        this.scheduler = new CAnimationScheduler(this);
+        this.state = PLAYER_STATE_IDLE;
+    }
+
+    CAnimationPlayer.prototype.start = function() {
+
+    };
+
+    CAnimationPlayer.prototype.stop = function() {
+
+    };
+
+    CAnimationPlayer.prototype.pause = function() {
+
+    };
+    CAnimationPlayer.prototype.resume = function() {
+
+    };
+    CAnimationPlayer.prototype.onFrame = function() {
+
+    };
+    CAnimationPlayer.prototype.isPlaying = function() {
+        return this.state === PLAYER_STATE_PLAYING;
+    };
+    CAnimationPlayer.prototype.isPausing = function() {
+        return this.state === PLAYER_STATE_PAUSING;
+    };
+    CAnimationPlayer.prototype.isDone = function() {
+        return this.state === PLAYER_STATE_DONE;
+    };
+
+
+    function CTimingGraphEdge(oBegin, oEnd, aConditions) {
+        this.begin = oBegin;
+        this.end = oEnd;
+        this.conditions = [];
+    }
+    CTimingGraphEdge.prototype.addConditions = function(aConditions) {
+        this.conditions = this.conditions.concat(aConditions);
+    };
+
+
+    function CTimingGraph(oRoot) {
+        this.root = oRoot;
+        this.edges = {};
+        this.build();
+    }
+
+    CTimingGraph.prototype.build = function() {
+        if(!this.root) {
+            this.edges = {};
+            return;
+        }
+        this.root.buildTimingGraph(this);
+    };
+    CTimingGraph.prototype.checkEdge = function(oBegin, oEnd, aConditions) {
+        var sBeginId = oBegin.Id;
+        var sEndId = oEnd.Id;
+        if(!AscCommon.isRealObject(this.edges[sBeginId])) {
+            this.edges[sBeginId] = {};
+        }
+        if(!AscCommon.isRealObject(this.edges[sBeginId][sEndId])) {
+            this.edges[sBeginId][sEndId] = new CTimingGraphEdge(oBegin, oEnd);
+        }
+        var oEdge = this.edges[sBeginId][sEndId];
+        oEdge.addConditions(aConditions);
+    };
+
+
+
+
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CTiming = CTiming;
+    window['AscFormat'].CTimingGraph = CTimingGraph;
 })(window);
