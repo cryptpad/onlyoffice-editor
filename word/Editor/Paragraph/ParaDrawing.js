@@ -2955,9 +2955,18 @@ ParaDrawing.prototype.PreDelete = function()
 	var oGrObject = this.GraphicObj;
 	if(oGrObject && oGrObject.signatureLine)
 	{
-		var sId = oGrObject.signatureLine.id;
+		var oOldSignature = oGrObject.signatureLine;
 		oGrObject.setSignature(null);
-		editor && editor.sendEvent("asc_onRemoveSignature", sId);
+		editor && editor.sendEvent("asc_onRemoveSignature", oOldSignature);
+		oGrObject.setSignature(oOldSignature);
+	}
+};
+ParaDrawing.prototype.CheckSignatureLineOnAdd = function()
+{
+	var oGrObject = this.GraphicObj;
+	if(oGrObject && oGrObject.signatureLine)
+	{
+		editor && editor.sendEvent("asc_onAddSignature", oGrObject.signatureLine.id);
 	}
 };
 ParaDrawing.prototype.CheckContentControlEditingLock = function(){
@@ -3030,6 +3039,26 @@ ParaDrawing.prototype.IsShape = function()
 ParaDrawing.prototype.IsGroup = function()
 {
 	return (this.GraphicObj.getObjectType() === AscDFH.historyitem_type_GroupShape);
+};
+ParaDrawing.prototype.IsComparable = function(oDrawing)
+{
+	if(!oDrawing)
+	{
+		return false;
+	}
+	if(!this.docPr.hasSameNameAndId(oDrawing.docPr))
+	{
+		return false;
+	}
+	if(!this.GraphicObj || !oDrawing.GraphicObj)
+	{
+		return false;
+	}
+	if(this.GraphicObj.getObjectType() !== oDrawing.GraphicObj.getObjectType())
+	{
+		return false;
+	}
+	return this.GraphicObj.isComparable(oDrawing.GraphicObj);
 };
 /**
  * Класс, описывающий текущее положение параграфа при рассчете позиции автофигуры.

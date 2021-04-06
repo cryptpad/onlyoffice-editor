@@ -830,6 +830,7 @@ CNumberingLvl.prototype.FillToAscNumberingLvl = function(oAscLvl)
 	oAscLvl.put_Restart(this.GetRestart());
 	oAscLvl.put_Start(this.GetStart());
 	oAscLvl.put_Suff(this.GetSuff());
+	oAscLvl.put_PStyle(this.GetPStyle());
 
 	var arrText = [];
 	for (var nPos = 0, nCount = this.LvlText.length; nPos < nCount; ++nPos)
@@ -897,6 +898,9 @@ CNumberingLvl.prototype.FillFromAscNumberingLvl = function(oAscLvl)
 
 	if (undefined !== oAscLvl.get_ParaPr())
 		this.ParaPr = oAscLvl.get_ParaPr().Copy();
+
+	if (undefined !== oAscLvl.get_PStyle())
+		this.PStyle = oAscLvl.get_PStyle();
 };
 CNumberingLvl.prototype.WriteToBinary = function(oWriter)
 {

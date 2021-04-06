@@ -48,6 +48,7 @@
 	var c_nVersionNoBase64 = 10;
 	var c_dMaxParaRunContentLength = 256;
 	var c_rUneditableTypes = /^(?:(pdf|djvu|xps))$/;
+	var c_nMaxHyperlinkLength = 2083;
 
 	//files type for Saving & DownloadAs
 	var c_oAscFileType = {
@@ -273,7 +274,10 @@
 			CannotUseRelativeReference: 1007,
 			ValueMustBeGreaterThen: 1008,
 			IconDataRangesOverlap: 1009,
-			ErrorTop10Between: 1010
+			ErrorTop10Between: 1010,
+
+			SingleColumnOrRowError: 1020,
+			LocationOrDataRangeError: 1021
 		}
 	};
 
@@ -2178,6 +2182,7 @@
 	window['Asc']['c_nVersionNoBase64'] = window['Asc'].c_nVersionNoBase64 = c_nVersionNoBase64;
 	window['Asc']['c_dMaxParaRunContentLength'] = window['Asc'].c_dMaxParaRunContentLength = c_dMaxParaRunContentLength;
 	window['Asc']['c_rUneditableTypes'] = window['Asc'].c_rUneditableTypes = c_rUneditableTypes;
+	window['Asc']['c_nMaxHyperlinkLength'] = window['Asc'].c_nMaxHyperlinkLength = c_nMaxHyperlinkLength;
 	window['Asc']['c_oAscFileType'] = window['Asc'].c_oAscFileType = c_oAscFileType;
 	window['Asc'].g_oLcidNameToIdMap = g_oLcidNameToIdMap;
 	window['Asc'].g_oLcidIdToNameMap = g_oLcidIdToNameMap;
@@ -2352,6 +2357,8 @@
 	prot['ValueMustBeGreaterThen']           = prot.ValueMustBeGreaterThen;
 	prot['IconDataRangesOverlap']            = prot.IconDataRangesOverlap;
 	prot['ErrorTop10Between']                = prot.ErrorTop10Between;
+	prot['SingleColumnOrRowError']           = prot.SingleColumnOrRowError;
+	prot['LocationOrDataRangeError']         = prot.LocationOrDataRangeError;
 
 
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;

@@ -474,7 +474,10 @@ CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 	CCellCommentator.prototype._deleteCommentsRange = function (comments) {
 		History.StartTransaction();
 		for (var i = 0; i < comments.length; ++i) {
-			this.removeComment(comments[i].asc_getId());
+			if (AscCommon.UserInfoParser.canViewComment(comments[i].sUserName) &&
+				AscCommon.UserInfoParser.canDeleteComment(comments[i].sUserName)) {
+				this.removeComment(comments[i].asc_getId());
+			}
 		}
 		History.EndTransaction();
 	};

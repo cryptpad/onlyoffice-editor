@@ -225,6 +225,8 @@ Paragraph.prototype.SetDirectParaPr = function(oParaPr)
 	if (!oParaPr)
 		return;
 
+	var oNumPr = this.Pr.NumPr;
+
 	var oNewPr = oParaPr.Copy(true);
 
 	History.Add(new CChangesParagraphPr(this, this.Pr, oNewPr));
@@ -234,6 +236,12 @@ Paragraph.prototype.SetDirectParaPr = function(oParaPr)
 	this.Recalc_CompiledPr();
 	this.private_UpdateTrackRevisionOnChangeParaPr(true);
 	this.UpdateDocumentOutline();
+
+	if (!oNumPr || !this.Pr.NumPr || oNumPr.NumId !== this.Pr.NumPr.NumId || oNumPr.Lvl !== this.Pr.NumPr.Lvl)
+	{
+		this.private_RefreshNumbering(oNumPr);
+		this.private_RefreshNumbering(this.Pr.NumPr);
+	}
 };
 /**
  * Устанавливаем прямые настройки для текста
@@ -2019,7 +2027,7 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 				if (para_Numbering === NumberingType)
 				{
 					var NumPr = Pr.ParaPr.NumPr;
-					if (undefined === NumPr || undefined === NumPr.NumId || 0 === NumPr.NumId || "0" === NumPr.NumId)
+					if (undefined === NumPr || undefined === NumPr.NumId || 0 === NumPr.NumId || "0" === NumPr.NumId || (this.Parent && this.Parent.IsEmptyParagraphAfterTableInTableCell(this.GetIndex())))
 					{
 						// Ничего не делаем
 					}
@@ -2543,6 +2551,7 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 					var isHaveNumbering = false;
 					if ((undefined === this.Get_SectionPr()
 						|| true !== this.IsEmpty())
+						&& (!this.Parent || !this.Parent.IsEmptyParagraphAfterTableInTableCell(this.GetIndex()))
 						&& ((NumPr
 						&& undefined !== NumPr.NumId
 						&& 0 !== NumPr.NumId
@@ -11351,6 +11360,10 @@ Paragraph.prototype.IsInline = function()
 {
 	return this.Is_Inline();
 };
+Paragraph.prototype.IsLastEmptyParaAfterTableInTableCell = function()
+{
+
+};
 Paragraph.prototype.GetFramePr = function()
 {
 	return this.Get_CompiledPr2(false).ParaPr.FramePr;
@@ -15678,6 +15691,31 @@ Paragraph.prototype.CheckRunContent = function(fCheck)
 
 	return false;
 };
+
+/**
+* Check signature lines are present in the content and send asc_onAddSignature event
+ */
+Paragraph.prototype.CheckSignatureLinesOnAdd = function()
+{
+	this.CheckRunContent(
+		function(oRun)
+		{
+			if (!(oRun instanceof AscCommonWord.ParaRun))
+				return;
+
+			for (var nPos = 0, nCount = oRun.Content.length; nPos < nCount; ++nPos)
+			{
+				var oItem = oRun.Content[nPos];
+				if (oItem.Type === para_Drawing)
+				{
+					oItem.CheckSignatureLineOnAdd();
+				}
+			}
+
+		}
+	);
+};
+
 /**
  * Обрабатываем сложные поля данного параграфа
  */

@@ -1243,7 +1243,6 @@ CopyProcessor.prototype =
 			oThis.oPresentationWriter.WriteULong(elements.length);
 
 			pptx_content_writer.Start_UseFullUrl();
-			pptx_content_writer.BinaryFileWriter.ClearIdMap();
 			for (var i = 0; i < elements.length; ++i) {
 				if (!(elements[i].Drawing instanceof CGraphicFrame)) {
 					oThis.oPresentationWriter.WriteBool(true);
@@ -8291,6 +8290,9 @@ PasteProcessor.prototype =
 							text = child.innerText ? child.innerText : child.textContent;
 						}
 
+						if (href && href.length > Asc.c_nMaxHyperlinkLength) {
+							isPasteHyperlink = false;
+						}
 						if (isPasteHyperlink) {
 							var HyperProps = new Asc.CHyperlinkProperty({Text: text, Value: href, ToolTip: title});
 							oThis.oDocument.Content[Pos].AddHyperlink(HyperProps);

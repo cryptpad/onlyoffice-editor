@@ -6732,7 +6732,9 @@ background-repeat: no-repeat;\
 
 			for (var nIndex = 0, nCount = arrCommentsId.length; nIndex < nCount; ++nIndex)
 			{
-				oLogicDocument.RemoveComment(arrCommentsId[nIndex], true, false);
+				var oComment = oLogicDocument.Comments.Get_ById(arrCommentsId[nIndex]);
+				if (oComment && AscCommon.UserInfoParser.canDeleteComment(oComment.GetUserName()))
+					oLogicDocument.RemoveComment(arrCommentsId[nIndex], true, false);
 			}
 
 			oLogicDocument.Recalculate();
@@ -11708,6 +11710,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["SetDrawImagePlaceTableOfFigures"]			= asc_docs_api.prototype.SetDrawImagePlaceTableOfFigures;
     asc_docs_api.prototype["SetDrawImagePreviewMargins"]				= asc_docs_api.prototype.SetDrawImagePreviewMargins;
     asc_docs_api.prototype["SetDrawImagePreviewBullet"]					= asc_docs_api.prototype.SetDrawImagePreviewBullet;
+    asc_docs_api.prototype["SetDrawImagePreviewBulletChangeListLevel"]	= asc_docs_api.prototype.SetDrawImagePreviewBulletChangeListLevel;
 
 	asc_docs_api.prototype["asc_RemoveContentControl"]                  = asc_docs_api.prototype.asc_RemoveContentControl;
 	asc_docs_api.prototype["asc_RemoveContentControlWrapper"]           = asc_docs_api.prototype.asc_RemoveContentControlWrapper;

@@ -157,7 +157,6 @@ function Slide(presentation, slideLayout, slideNum)
 
     this.presentation = editor && editor.WordControl && editor.WordControl.m_oLogicDocument;
     this.graphicObjects = new AscFormat.DrawingObjectsController(this);
-    this.maxId = 0;
     this.cSld = new AscFormat.CSld();
     this.collaborativeMarks = new CRunCollaborativeMarks();
     this.clrMap = null; // override ClrMap
@@ -188,7 +187,6 @@ function Slide(presentation, slideLayout, slideNum)
 
 
     this.writecomments = [];
-    this.maxId = 1000;
 
     this.m_oContentChanges = new AscCommon.CContentChanges(); // список изменений(добавление/удаление элементов)
 
@@ -625,11 +623,11 @@ Slide.prototype =
         }
     },
 
-    removeComment: function(id)
+    removeComment: function(id, bForce)
     {
         if(AscCommon.isRealObject(this.slideComments))
         {
-            this.slideComments.removeComment(id);
+            this.slideComments.removeComment(id, bForce);
         }
     },
 
@@ -803,7 +801,6 @@ Slide.prototype =
                     if(!drawing.nvGraphicFramePr)
                     {
                         nv_sp_pr = new AscFormat.UniNvPr();
-                        nv_sp_pr.cNvPr.setId(++this.maxId);
                         drawing.setNvSpPr(nv_sp_pr);
                     }
                     break;
@@ -813,7 +810,6 @@ Slide.prototype =
                     if(!drawing.nvGrpSpPr)
                     {
                         nv_sp_pr = new AscFormat.UniNvPr();
-                        nv_sp_pr.cNvPr.setId(++this.maxId);
                         drawing.setNvSpPr(nv_sp_pr);
                     }
                     for(var i = 0; i < drawing.spTree.length; ++i)
@@ -828,7 +824,6 @@ Slide.prototype =
                     if(!drawing.nvPicPr)
                     {
                         nv_sp_pr = new AscFormat.UniNvPr();
-                        nv_sp_pr.cNvPr.setId(++this.maxId);
                         drawing.setNvSpPr(nv_sp_pr);
                     }
                     break;
@@ -838,7 +833,6 @@ Slide.prototype =
                     if(!drawing.nvSpPr)
                     {
                         nv_sp_pr = new AscFormat.UniNvPr();
-                        nv_sp_pr.cNvPr.setId(++this.maxId);
                         drawing.setNvSpPr(nv_sp_pr);
                     }
                     break;
@@ -1939,11 +1933,12 @@ SlideComments.prototype =
         }
     },
 
-    removeComment: function(id)
+    removeComment: function(id, bForce)
     {
         for(var i = 0; i < this.comments.length; ++i)
         {
-            if(this.comments[i].Get_Id() === id)
+            var oComment = this.comments[i];
+            if(oComment.Get_Id() === id && (bForce || oComment.canBeDeleted()))
             {
                 History.Add(new AscDFH.CChangesDrawingsContentComments(this, AscDFH.historyitem_SlideCommentsRemoveComment, i, this.comments.splice(i, 1), false));
                 editor.sync_RemoveComment(id);
@@ -1965,8 +1960,11 @@ SlideComments.prototype =
             var oCommentData = oComment.Data;
             if(oCommentData.m_sUserId === sUserId)
             {
-                History.Add(new AscDFH.CChangesDrawingsContentComments(this, AscDFH.historyitem_SlideCommentsRemoveComment, i, this.comments.splice(i, 1), false));
-                editor.sync_RemoveComment(oComment.Get_Id());
+                if(oComment.canBeDeleted())
+                {
+                    History.Add(new AscDFH.CChangesDrawingsContentComments(this, AscDFH.historyitem_SlideCommentsRemoveComment, i, this.comments.splice(i, 1), false));
+                    editor.sync_RemoveComment(oComment.Get_Id());
+                }
             }
             else
             {
@@ -1980,8 +1978,11 @@ SlideComments.prototype =
         for(var i = this.comments.length - 1; i > -1; --i)
         {
             var oComment = this.comments[i];
-            History.Add(new AscDFH.CChangesDrawingsContentComments(this, AscDFH.historyitem_SlideCommentsRemoveComment, i, this.comments.splice(i, 1), false));
-            editor.sync_RemoveComment(oComment.Get_Id());
+            if(oComment.canBeDeleted())
+            {
+                History.Add(new AscDFH.CChangesDrawingsContentComments(this, AscDFH.historyitem_SlideCommentsRemoveComment, i, this.comments.splice(i, 1), false));
+                editor.sync_RemoveComment(oComment.Get_Id());
+            }
         }
     },
 

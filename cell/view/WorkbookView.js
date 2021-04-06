@@ -816,9 +816,12 @@
 		  }
 	  });
 
-    this.model.handlers.add("cleanCellCache", function(wsId, oRanges, skipHeight) {
+    this.model.handlers.add("cleanCellCache", function(wsId, oRanges, skipHeight, needResetCache) {
       var ws = self.getWorksheetById(wsId, true);
       if (ws) {
+        if (needResetCache) {
+          ws.cache && ws.cache.reset();
+        }
         ws.updateRanges(oRanges, skipHeight);
       }
     });
@@ -1939,7 +1942,7 @@
       ws.objectRender.controller.updateOverlay();
     }
 
-    if (!window["NATIVE_EDITOR_ENJINE"]) {
+    if (!window["NATIVE_EDITOR_ENJINE"] || window["IS_NATIVE_EDITOR"]) {
       this._onSelectionNameChanged(ws.getSelectionName(/*bRangeText*/false));
       this._onWSSelectionChanged();
       this._onSelectionMathInfoChanged(ws.getSelectionMathInfo());

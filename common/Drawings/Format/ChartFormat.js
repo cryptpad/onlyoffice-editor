@@ -13377,43 +13377,38 @@
         if(oNumRef || oNumLit || oStrRef || oStrLit || oMultiLvl) {
             if(oNumRef) {
                 this.setNumRef(oNumRef);
+                this.setNumLit(null);
+                this.setStrRef(null);
+                this.setStrLit(null);
+                this.setMultiLvlStrRef(null);
             }
-            else {
-                if(this.numRef) {
-                    this.setNumRef(null);
-                }
-            }
-            if(oNumLit) {
-                this.setNumLit(oNumLit);
-            }
-            else {
-                if(this.numLit) {
-                    this.setNumLit(null);
-                }
-            }
-            if(oStrRef) {
+            else if(oStrRef) {
                 this.setStrRef(oStrRef);
+                this.setNumRef(null);
+                this.setNumLit(null);
+                this.setStrLit(null);
+                this.setMultiLvlStrRef(null);
             }
-            else {
-                if(this.strRef) {
-                    this.setStrRef(null);
-                }
-            }
-            if(oStrLit) {
-                this.setStrLit(oStrLit);
-            }
-            else {
-                if(this.strLit) {
-                    this.setStrLit(null);
-                }
-            }
-            if(oMultiLvl) {
+            else if(oMultiLvl) {
                 this.setMultiLvlStrRef(oMultiLvl);
+                this.setNumRef(null);
+                this.setNumLit(null);
+                this.setStrRef(null);
+                this.setStrLit(null);
             }
-            else {
-                if(this.multiLvlStrRef) {
-                    this.setMultiLvlStrRef(null);
-                }
+            else if(oNumLit) {
+                this.setNumLit(oNumLit);
+                this.setNumRef(null);
+                this.setStrRef(null);
+                this.setStrLit(null);
+                this.setMultiLvlStrRef(null);
+            }
+            else if(oStrLit) {
+                this.setStrLit(oStrLit);
+                this.setNumRef(null);
+                this.setNumLit(null);
+                this.setStrRef(null);
+                this.setMultiLvlStrRef(null);
             }
         }
         return oResult;

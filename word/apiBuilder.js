@@ -555,7 +555,7 @@
 	 */
 	ApiRange.prototype.AddHyperlink = function(sLink, sScreenTipText)
 	{
-		if (typeof(sLink) !== "string" || sLink === "")
+		if (typeof(sLink) !== "string" || sLink === "" || sLink.length > Asc.c_nMaxHyperlinkLength)
 			return null;
 		if (typeof(sScreenTipText) !== "string")
 			sScreenTipText = "";
@@ -1885,7 +1885,7 @@
 	 * */
 	ApiHyperlink.prototype.SetLink = function(sLink)
 	{
-		if (typeof(sLink) !== "string")
+		if (typeof(sLink) !== "string" || sLink.length > Asc.c_nMaxHyperlinkLength)
 			return false;
 		if (sLink == undefined)
 			sLink = "";
@@ -2579,20 +2579,24 @@
 	 */
 	Api.prototype.CreateRange = function(oElement, nStart, nEnd)
 	{
-		switch (oElement.GetClassType())
+		if (oElement) 
 		{
-			case 'paragraph':
-			case 'hyperlink':
-			case 'run':
-			case 'table':
-			case 'documentContent':
-			case 'document':
-			case 'inlineLvlSdt':
-			case 'blockLvlSdt':
-				return oElement.GetRange(nStart, nEnd);
-			default:
-				return null;
+			switch (oElement.GetClassType())
+			{
+				case 'paragraph':
+				case 'hyperlink':
+				case 'run':
+				case 'table':
+				case 'documentContent':
+				case 'document':
+				case 'inlineLvlSdt':
+				case 'blockLvlSdt':
+					return oElement.GetRange(nStart, nEnd);
+				default:
+					return null;
+			}
 		}
+		return null;
 	};
 	/**
 	 * Create a new table with a specified number of rows and columns.
@@ -3922,7 +3926,7 @@
 		var arrApiSections = [];
 
 		for (var Index = 0; Index < this.Document.SectionsInfo.Elements.length; Index++)
-			arrApiSections.push(new ApiSection(this.Document.SectionsInfo.Elements[Index]))
+			arrApiSections.push(new ApiSection(this.Document.SectionsInfo.Elements[Index].SectPr))
 
 		return arrApiSections;
 	};
@@ -4543,13 +4547,13 @@
 	 */
 	ApiParagraph.prototype.AddHyperlink = function(sLink, sScreenTipText)
 	{
-		if (typeof(sLink) !== "string" || sLink === "")
+		if (typeof(sLink) !== "string" || sLink === "" || sLink.length > Asc.c_nMaxHyperlinkLength)
 			return null;
 		if (typeof(sScreenTipText) !== "string")
 			sScreenTipText = "";
 		
 		var oDocument	= editor.private_GetLogicDocument();
-		var hyperlinkPr	= new Asc.CHyperlinkProperty()
+		var hyperlinkPr	= new Asc.CHyperlinkProperty();
 		var urlType		= AscCommon.getUrlType(sLink);
 		var oHyperlink	= null;
 
@@ -5111,9 +5115,9 @@
 
 		for (var Index = ParaPosition.length - 1; Index >= 1; Index--)
 		{
-			if (ParaPosition[Index].Class.Parent)
-				if (ParaPosition[Index].Class.Parent instanceof CBlockLevelSdt)
-					return new ApiBlockLvlSdt(ParaPosition[Index].Class.Parent);
+			if (ParaPosition[Index].Class)
+				if (ParaPosition[Index].Class instanceof CBlockLevelSdt)
+					return new ApiBlockLvlSdt(ParaPosition[Index].Class);
 		}
 
 		return null;
@@ -5584,14 +5588,14 @@
 	 */
 	ApiRun.prototype.AddHyperlink = function(sLink, sScreenTipText)
 	{
-		if (typeof(sLink) !== "string" || sLink === "")
+		if (typeof(sLink) !== "string" || sLink === "" || sLink.length > Asc.c_nMaxHyperlinkLength)
 			return null;
 		if (typeof(sScreenTipText) !== "string")
 			sScreenTipText = "";
 
 		var Document	= editor.private_GetLogicDocument();
 		var parentPara	= this.Run.GetParagraph();
-		if (!parentPara | this.Run.Content.length === 0)
+		if (!parentPara || this.Run.Content.length === 0)
 			return null;
 		if (this.GetParentContentControl() instanceof ApiInlineLvlSdt)
 			return null;
@@ -5615,7 +5619,7 @@
 		StartPos[parentParaDepth].Class.SetContentSelection(StartPos, EndPos, parentParaDepth, 0, 0);
 
 		var oHyperlink	= null;
-		var hyperlinkPr	= new Asc.CHyperlinkProperty()
+		var hyperlinkPr	= new Asc.CHyperlinkProperty();
 		var urlType		= AscCommon.getUrlType(sLink);
 		if (!/(((^https?)|(^ftp)):\/\/)|(^mailto:)/i.test(sLink))
 			sLink = (urlType === 0) ? null :(( (urlType === 2) ? 'mailto:' : 'http://' ) + sLink);
@@ -5674,12 +5678,12 @@
 
         for (var Index = RunPosition.length - 1; Index >= 1; Index--)
         {
-            if (RunPosition[Index].Class.Parent)
+            if (RunPosition[Index].Class)
             {
-                if (RunPosition[Index].Class.Parent instanceof CBlockLevelSdt)
-                    return new ApiBlockLvlSdt(RunPosition[Index].Class.Parent);
-                else if (RunPosition[Index].Class.Parent instanceof CInlineLevelSdt)
-                    return new ApiInlineLvlSdt(RunPosition[Index].Class.Parent);
+                if (RunPosition[Index].Class instanceof CBlockLevelSdt)
+                    return new ApiBlockLvlSdt(RunPosition[Index].Class);
+                else if (RunPosition[Index].Class instanceof CInlineLevelSdt)
+                    return new ApiInlineLvlSdt(RunPosition[Index].Class);
             }
         }
 
@@ -6297,7 +6301,16 @@
 	{
 		var oDocument		= editor.GetDocument();
 		var arrApiSections	= oDocument.GetSections();
-		var sectionIndex	= arrApiSections.indexOf(this);
+		var sectionIndex	= -1;
+
+		for (var nSection = 0; nSection < arrApiSections.length; nSection++)
+		{
+			if (arrApiSections[nSection].Section.Id === this.Section.Id) 
+			{
+				sectionIndex = nSection;
+				break;
+			}
+		}
 		
 		if (sectionIndex !== - 1 && arrApiSections[sectionIndex + 1])
 		{
@@ -6316,7 +6329,16 @@
 	{
 		var oDocument		= editor.GetDocument();
 		var arrApiSections	= oDocument.GetSections();
-		var sectionIndex	= arrApiSections.indexOf(this);
+		var sectionIndex	= -1;
+
+		for (var nSection = 0; nSection < arrApiSections.length; nSection++)
+		{
+			if (arrApiSections[nSection].Section.Id === this.Section.Id) 
+			{
+				sectionIndex = nSection;
+				break;
+			}
+		}
 		
 		if (sectionIndex !== - 1 && arrApiSections[sectionIndex - 1])
 		{
@@ -6508,6 +6530,7 @@
 		if (CellVMergeCount > 1 && CellVMergeCount < nRow)
 			return null;
 
+		this.Table.Recalculate_Grid();
 		var Grid_start = oCell.Cell.GetRow().Get_CellInfo( oCell.Cell.GetIndex()).StartGridCol;
 		var Grid_span  = oCell.Cell.Get_GridSpan();
 		var Sum_before = this.Table.TableSumGrid[Grid_start - 1];
@@ -6707,13 +6730,13 @@
 	 */
 	ApiTable.prototype.Copy = function()
 	{
-		var oTable = this.Table.Copy();
+		var oTable = this.Table.Copy(private_GetLogicDocument(), private_GetDrawingDocument());
 		return new ApiTable(oTable);
 	};
 	/**
 	 * Select a table.
 	 * @memberof ApiTable
-	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @typeofeditors ["CDE", "CPE"]
 	 * @returns {bool}
 	 */
 	ApiTable.prototype.Select = function()
@@ -6871,9 +6894,9 @@
 
         for (var Index = TablePosition.length - 1; Index >= 1; Index--)
         {
-            if (TablePosition[Index].Class.Parent)
-                if (TablePosition[Index].Class.Parent instanceof CBlockLevelSdt)
-                    return new ApiBlockLvlSdt(TablePosition[Index].Class.Parent);
+            if (TablePosition[Index].Class)
+                if (TablePosition[Index].Class instanceof CBlockLevelSdt)
+                    return new ApiBlockLvlSdt(TablePosition[Index].Class);
         }
 
         return null;
@@ -10056,8 +10079,9 @@
 			return false;
 
 		var currentHeight = this.Drawing.getXfrmExtY();
+		var currentWidth  = this.Drawing.getXfrmExtX();
 
-		this.Drawing.setExtent(undefined, currentHeight * coefficient);
+		this.Drawing.setExtent(currentWidth, currentHeight * coefficient);
 		if(this.Drawing.GraphicObj && this.Drawing.GraphicObj.spPr && this.Drawing.GraphicObj.spPr.xfrm)
 		{
 			this.Drawing.GraphicObj.spPr.xfrm.setExtY(currentHeight * coefficient);
@@ -10077,9 +10101,10 @@
 		if (typeof(coefficient) !== "number")
 			return false;
 
-		var currentWidth = this.Drawing.getXfrmExtX();
+		var currentHeight = this.Drawing.getXfrmExtY();
+		var currentWidth  = this.Drawing.getXfrmExtX();
 
-		this.Drawing.setExtent(currentWidth * coefficient, undefined);
+		this.Drawing.setExtent(currentWidth * coefficient, currentHeight);
 		if(this.Drawing.GraphicObj && this.Drawing.GraphicObj.spPr && this.Drawing.GraphicObj.spPr.xfrm)
 		{
 			this.Drawing.GraphicObj.spPr.xfrm.setExtX(currentWidth * coefficient);
@@ -11453,7 +11478,8 @@
 	 */
 	ApiBlockLvlSdt.prototype.GetAllContentControls = function()
 	{
-		var arrContentControls = [];
+		var arrContentControls    = [];
+		var arrApiContentControls = [];
 		this.Sdt.Content.GetAllContentControls(arrContentControls);
 
 		for (var Index = 0, nCount = arrContentControls.length; Index < nCount; Index++)
@@ -11461,12 +11487,12 @@
 			var oControl = arrContentControls[Index];
 
 			if (oControl instanceof CBlockLevelSdt)
-				arrContentControls.push(new ApiBlockLvlSdt(oControl));
+				arrApiContentControls.push(new ApiBlockLvlSdt(oControl));
 			else if (oControl instanceof CInlineLevelSdt)
-				arrContentControls.push(new ApiInlineLvlSdt(oControl));
+				arrApiContentControls.push(new ApiInlineLvlSdt(oControl));
 		}
 
-		return arrContentControls;
+		return arrApiContentControls;
 	};
 
 	/**
@@ -11497,7 +11523,7 @@
 	 * process to arrange tables on the specified page</note>
 	 * @memberof ApiBlockLvlSdt
 	 * @typeofeditors ["CDE"]
-	 * @param nPage - page number
+	 * @param nPage - page number, if not specified, will return an empty array
 	 * @return {ApiTable[]}  
 	 */
 	ApiBlockLvlSdt.prototype.GetAllTablesOnPage = function(nPage)
@@ -11600,9 +11626,9 @@
 
 		for (var Index = documentPos.length - 1; Index >= 1; Index--)
 		{
-			if (documentPos[Index].Class.Parent)
-				if (documentPos[Index].Class.Parent instanceof CBlockLevelSdt)
-					return new ApiBlockLvlSdt(documentPos[Index].Class.Parent);
+			if (documentPos[Index].Class)
+				if (documentPos[Index].Class instanceof CBlockLevelSdt)
+					return new ApiBlockLvlSdt(documentPos[Index].Class);
 		}
 
 		return null;
@@ -11920,16 +11946,16 @@
 				for (var nInfo = 0; nInfo < allRunsInfo.length; nInfo++)
 				{
 					var oInfo = allRunsInfo[nInfo];
-					if ((oChange.pos >= oInfo.GlobStartPos || oChange.pos + DelCount > oInfo.GlobStartPos) && oChange.pos <= oInfo.GlobEndPos)
+					if (oChange.pos >= oInfo.GlobStartPos || oChange.pos + DelCount > oInfo.GlobStartPos)
 					{
-						var nPosToDel = Math.max(0, oChange.pos - oInfo.GlobStartPos + oInfo.StartPos);
-						var nPosToAdd = nPosToDel
-						var countToDel = Math.min(oChange.deleteCount, oInfo.StringCount);
+						var nPosToDel   = Math.max(0, oChange.pos - oInfo.GlobStartPos + oInfo.StartPos);
+						var nPosToAdd   = nPosToDel
+						var nCharsToDel = Math.min(oChange.deleteCount, oInfo.StringCount);
 						
-						if (nPosToDel >= oInfo.Run.Content.length || (countToDel === 0 && oChange.deleteCount !== 0))
+						if ((nPosToDel >= oInfo.Run.Content.length && nCharsToDel !== 0) || (nCharsToDel === 0 && oChange.deleteCount !== 0))
 							continue;
 
-						for (var nDelChar = 0; nDelChar < countToDel; nDelChar++)
+						for (var nChar = 0; nChar < nCharsToDel; nChar++)
 						{
 							if (!oInfo.Run.Content[nPosToDel])
 								break;
@@ -11937,14 +11963,14 @@
 							if (para_Text === oInfo.Run.Content[nPosToDel].Type || para_Space === oInfo.Run.Content[nPosToDel].Type || para_Tab === oInfo.Run.Content[nPosToDel].Type)
 							{
 								oInfo.Run.RemoveFromContent(nPosToDel, 1);
-								nDelChar--;
+								nChar--;
 								oChange.deleteCount--;
-								countToDel--;
+								nCharsToDel--;
 							}
 							else
 							{
 								nPosToDel++;
-								nDelChar--;
+								nChar--;
 							}
 						}
 						
@@ -11960,15 +11986,15 @@
 							};
 							continue;
 						}
-							
-						for (var nAddChar = 0; nAddChar < oChange.insert.length; nAddChar++)
+						
+						for (var nChar = 0; nChar < oChange.insert.length; nChar++)
 						{
 							var itemText = null;
 							
-							if (AscCommon.IsSpace(oChange.insert[nAddChar]))
-								itemText = new AscCommonWord.ParaSpace(oChange.insert[nAddChar]);
+							if (AscCommon.IsSpace(oChange.insert[nChar]))
+								itemText = new AscCommonWord.ParaSpace(oChange.insert[nChar]);
 							else
-								itemText = new AscCommonWord.ParaText(oChange.insert[nAddChar]);
+								itemText = new AscCommonWord.ParaText(oChange.insert[nChar]);
 
 							itemText.Parent = oInfo.Run.GetParagraph();
 							if (oInfo.Run.Content.length === 0 && infoToAdd)
@@ -11980,7 +12006,7 @@
 								oInfo.Run.AddToContent(nPosToAdd, itemText);
 
 							oChange.insert.shift();
-							nAddChar--;
+							nChar--;
 							nPosToAdd++;
 						}
 					}

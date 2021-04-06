@@ -871,8 +871,9 @@ DrawingObjectsController.prototype =
                                     editor.sync_MouseMoveCallback(MMData);
                                     if(hit_in_text_rect)
                                     {
-                                        ret.cursorType = "text";
-                                        oDD.SetCursorType("text", MMData);
+                                        var sCursorType = e.CtrlKey ? "pointer" : "text";
+                                        ret.cursorType = sCursorType;
+                                        oDD.SetCursorType(sCursorType, MMData);
                                     }
                                 }
 
