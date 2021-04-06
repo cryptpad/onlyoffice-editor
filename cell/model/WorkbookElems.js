@@ -11166,6 +11166,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		res.hashValue = this.hashValue;
 		res.saltValue = this.saltValue;
 		res.spinCount = this.spinCount;
+
 		res.sheet = this.sheet;
 		res.objects = this.objects;
 		res.scenarios = this.scenarios;
@@ -11174,11 +11175,13 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 
 		res.formatRows = this.formatRows;
 		res.insertColumns = this.insertColumns;
+		res.insertRows = this.insertRows;
 		res.insertHyperlinks = this.insertHyperlinks;
 		res.deleteColumns = this.deleteColumns;
 		res.selectLockedCells = this.selectLockedCells;
 		res.sort = this.sort;
 		res.autoFilter = this.autoFilter;
+		res.pivotTables = this.pivotTables;
 		res.selectUnlockedCells = this.selectUnlockedCells;
 
 		return res;
@@ -11295,6 +11298,98 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		if (r.GetBool()) {
 			this.selectUnlockedCells = r.GetBool();
 		}
+	};
+
+	CSheetProtection.prototype.asc_getSheet = function () {
+		return this.sheet;
+	};
+	CSheetProtection.prototype.asc_getObjects = function () {
+		return this.objects;
+	};
+	CSheetProtection.prototype.asc_getScenarios = function () {
+		return this.scenarios;
+	};
+	CSheetProtection.prototype.asc_getFormatCells = function () {
+		return this.formatCells;
+	};
+	CSheetProtection.prototype.asc_getFormatColumns = function () {
+		return this.formatColumns;
+	};
+	CSheetProtection.prototype.asc_getFormatRows = function () {
+		return this.formatRows;
+	};
+	CSheetProtection.prototype.asc_getInsertColumns = function () {
+		return this.insertColumns;
+	};
+	CSheetProtection.prototype.asc_getInsertRows = function () {
+		return this.insertRows;
+	};
+	CSheetProtection.prototype.asc_getInsertHyperlinks = function () {
+		return this.insertHyperlinks;
+	};
+	CSheetProtection.prototype.asc_getDeleteColumns = function () {
+		return this.deleteColumns;
+	};
+	CSheetProtection.prototype.asc_getSelectLockedCells = function () {
+		return this.selectLockedCells;
+	};
+	CSheetProtection.prototype.asc_getSort = function () {
+		return this.sort;
+	};
+	CSheetProtection.prototype.asc_getAutoFilter = function () {
+		return this.autoFilter;
+	};
+	CSheetProtection.prototype.asc_getPivotTables = function () {
+		return this.pivotTables;
+	};
+	CSheetProtection.prototype.asc_getSelectUnlockedCells = function () {
+		return this.selectUnlockedCells;
+	};
+
+	CSheetProtection.prototype.asc_setSheet = function (val) {
+		this.sheet = val;
+	};
+	CSheetProtection.prototype.asc_setObjects = function (val) {
+		this.objects = val;
+	};
+	CSheetProtection.prototype.asc_setScenarios = function (val) {
+		this.scenarios = val;
+	};
+	CSheetProtection.prototype.asc_setFormatCells = function (val) {
+		this.formatCells = val;
+	};
+	CSheetProtection.prototype.asc_setFormatColumns = function (val) {
+		this.formatColumns = val;
+	};
+	CSheetProtection.prototype.asc_setFormatRows = function (val) {
+		this.formatRows = val;
+	};
+	CSheetProtection.prototype.asc_setInsertColumns = function (val) {
+		this.insertColumns = val;
+	};
+	CSheetProtection.prototype.asc_setInsertRows = function (val) {
+		this.insertRows = val;
+	};
+	CSheetProtection.prototype.asc_setInsertHyperlinks = function (val) {
+		this.insertHyperlinks = val;
+	};
+	CSheetProtection.prototype.asc_setDeleteColumns = function (val) {
+		this.deleteColumns = val;
+	};
+	CSheetProtection.prototype.asc_setSelectLockedCells = function (val) {
+		this.selectLockedCells = val;
+	};
+	CSheetProtection.prototype.asc_setSort = function (val) {
+		this.sort = val;
+	};
+	CSheetProtection.prototype.asc_setAutoFilter = function (val) {
+		this.autoFilter = val;
+	};
+	CSheetProtection.prototype.asc_setPivotTables = function (val) {
+		this.pivotTables = val;
+	};
+	CSheetProtection.prototype.asc_setSelectUnlockedCells = function (val) {
+		this.selectUnlockedCells = val;
 	};
 
 
@@ -11647,5 +11742,38 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getFormulaResult"] = prot.asc_getFormulaResult;
 	prot["asc_getFunctionResult"] = prot.asc_getFunctionResult;
 	prot["asc_getName"] = prot.asc_getName;
+	
+	window["AscCommonExcel"].CSheetProtection = CSheetProtection;
+	prot = CFunctionInfo.prototype;
+	prot["asc_getSheet"] = prot.asc_getSheet;
+	prot["asc_getObjects"] = prot.asc_getObjects;
+	prot["asc_getScenarios"] = prot.asc_getScenarios;
+	prot["asc_getFormatCells"] = prot.asc_getFormatCells;
+	prot["asc_getFormatColumns"] = prot.asc_getFormatColumns;
+	prot["asc_getFormatRows"] = prot.asc_getFormatRows;
+	prot["asc_getInsertColumns"] = prot.asc_getInsertColumns;
+	prot["asc_getInsertRows"] = prot.asc_getInsertRows;
+	prot["asc_getInsertHyperlinks"] = prot.asc_getInsertHyperlinks;
+	prot["asc_getDeleteColumns"] = prot.asc_getDeleteColumns;
+	prot["asc_getSelectLockedCells"] = prot.asc_getSelectLockedCells;
+	prot["asc_getSort"] = prot.asc_getSort;
+	prot["asc_getAutoFilter"] = prot.asc_getAutoFilter;
+	prot["asc_getPivotTables"] = prot.asc_getPivotTables;
+	prot["asc_getSelectUnlockedCells"] = prot.asc_getSelectUnlockedCells;
+	prot["asc_setSheet"] = prot.asc_setSheet;
+	prot["asc_setObjects"] = prot.asc_setObjects;
+	prot["asc_setScenarios"] = prot.asc_setScenarios;
+	prot["asc_setFormatCells"] = prot.asc_setFormatCells;
+	prot["asc_setFormatColumns"] = prot.asc_setFormatColumns;
+	prot["asc_setFormatRows"] = prot.asc_setFormatRows;
+	prot["asc_setInsertColumns"] = prot.asc_setInsertColumns;
+	prot["asc_setInsertRows"] = prot.asc_setInsertRows;
+	prot["asc_setInsertHyperlinks"] = prot.asc_setInsertHyperlinks;
+	prot["asc_setDeleteColumns"] = prot.asc_setDeleteColumns;
+	prot["asc_setSelectLockedCells"] = prot.asc_setSelectLockedCells;
+	prot["asc_setSort"] = prot.asc_setSort;
+	prot["asc_setAutoFilter"] = prot.asc_setAutoFilter;
+	prot["asc_setPivotTables"] = prot.asc_setPivotTables;
+	prot["asc_setSelectUnlockedCells"] = prot.asc_setSelectUnlockedCells;
 
 })(window);

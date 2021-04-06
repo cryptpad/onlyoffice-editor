@@ -4009,7 +4009,7 @@
 		this.activeNamedSheetViewId = null;
 		this.defaultViewHiddenRows = null;
 
-		this.sheetProtection = null;
+		this.sheetProtection = new AscCommonExcel.CSheetProtection(this);
 	}
 
 	Worksheet.prototype.getCompiledStyle = function (row, col, opt_cell, opt_styleComponents) {
