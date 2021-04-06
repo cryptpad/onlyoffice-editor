@@ -6742,6 +6742,37 @@ background-repeat: no-repeat;\
 			oLogicDocument.FinalizeAction();
 		}
 	};
+	asc_docs_api.prototype.asc_ResolveAllComments = function(isMine, isCurrent, arrIds)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		var arrCommentsId = undefined !== arrIds ? arrIds : oLogicDocument.GetAllComments(isMine, isCurrent);
+
+		if (!oLogicDocument.IsSelectionLocked(changestype_None, {
+			Type : AscCommon.changestype_2_Comment,
+			Id   : arrCommentsId
+		}, false, oLogicDocument.IsEditCommentsMode()))
+		{
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_ResolveAllComments);
+
+			for (var nIndex = 0, nCount = arrCommentsId.length; nIndex < nCount; ++nIndex)
+			{
+				var oComment = oLogicDocument.Comments.Get_ById(arrCommentsId[nIndex]);
+				if (oComment && AscCommon.UserInfoParser.canEditComment(oComment.GetUserName()) && !oComment.IsSolved() && oComment.GetData())
+				{
+					var oCommentData = oComment.GetData().Copy();
+					oCommentData.SetSolved(true);
+					oComment.SetData(oCommentData);
+				}
+			}
+
+			oLogicDocument.Recalculate();
+			oLogicDocument.UpdateInterface();
+			oLogicDocument.FinalizeAction();
+		}
+	};
 
 	//-----------------------------------------------------------------
 	asc_docs_api.prototype.sync_LockHeaderFooters = function()
@@ -11544,6 +11575,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['sync_LockComment']                          = asc_docs_api.prototype.sync_LockComment;
 	asc_docs_api.prototype['sync_UnLockComment']                        = asc_docs_api.prototype.sync_UnLockComment;
 	asc_docs_api.prototype['asc_RemoveAllComments']                     = asc_docs_api.prototype.asc_RemoveAllComments;
+	asc_docs_api.prototype['asc_ResolveAllComments']                    = asc_docs_api.prototype.asc_ResolveAllComments;
 	asc_docs_api.prototype['sync_LockHeaderFooters']                    = asc_docs_api.prototype.sync_LockHeaderFooters;
 	asc_docs_api.prototype['sync_LockDocumentProps']                    = asc_docs_api.prototype.sync_LockDocumentProps;
 	asc_docs_api.prototype['sync_UnLockHeaderFooters']                  = asc_docs_api.prototype.sync_UnLockHeaderFooters;
