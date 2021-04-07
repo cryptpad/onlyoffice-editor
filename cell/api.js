@@ -3283,6 +3283,14 @@ var editor;
   	this.wb.removeAllComments(isMine, isCurrent);
   };
 
+	spreadsheet_api.prototype.asc_ResolveAllComments = function(isMine, isCurrent, arrIds)
+	{
+		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+			return;
+		}
+		this.wb.resolveAllComments(isMine, isCurrent);
+	};
+
   spreadsheet_api.prototype.asc_showComments = function (isShowSolved) {
     this.wb.showComments(true, isShowSolved);
   };

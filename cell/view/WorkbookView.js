@@ -3047,6 +3047,24 @@
 		History.EndTransaction();
 	};
 
+	WorkbookView.prototype.resolveAllComments = function (isMine, isCurrent) {
+		var range;
+		var ws = this.getWorksheet();
+		isMine = isMine ? (this.Api.DocInfo && this.Api.DocInfo.get_UserId()) : null;
+		History.Create_NewPoint();
+		History.StartTransaction();
+		if (isCurrent) {
+			ws._getSelection().ranges.forEach(function (item) {
+				ws.cellCommentator.resolveCommentsRange(item, isMine);
+			});
+		} else {
+			range = new Asc.Range(0, 0, AscCommon.gc_nMaxCol0, AscCommon.gc_nMaxRow0);
+			this.cellCommentator.resolveCommentsRange(range, isMine);
+			ws.cellCommentator.resolveCommentsRange(range, isMine);
+		}
+		History.EndTransaction();
+	};
+
   /*
    * @param {c_oAscRenderingModeType} mode Режим отрисовки
    * @param {Boolean} isInit инициализация или нет

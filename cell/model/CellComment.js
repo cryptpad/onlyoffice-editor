@@ -374,6 +374,13 @@ function (window, undefined) {
 		}
 	};
 
+	asc_CCommentData.prototype.getSolved = function () {
+		return this.bSolved;
+	};
+	asc_CCommentData.prototype.setSolved = function (isSolved) {
+		this.bSolved = isSolved;
+	};
+
 /** @constructor */
 function CCellCommentator(currentSheet) {
 	this.worksheet = currentSheet;
@@ -480,6 +487,17 @@ CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 			}
 		}
 		History.EndTransaction();
+	};
+
+	CCellCommentator.prototype.resolveCommentsRange = function (range, sUserId) {
+		var newComment, comments = this.getCommentsRange(range, sUserId);
+		for (var i = 0; i < comments.length; ++i) {
+			if (AscCommon.UserInfoParser.canViewComment(comments[i].sUserName) && !comments[i].IsSolved()) {
+				newComment = comments[i].clone();
+				newComment.setSolved(true);
+				this.changeComment(newComment.nId, newComment);
+			}
+		}
 	};
 
 	CCellCommentator.prototype.getCommentByXY = function (x, y, excludeHidden) {
