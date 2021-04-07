@@ -7211,7 +7211,7 @@
           }
         ],
         styleLbls: {
-          node0: {
+          'node0': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7233,7 +7233,7 @@
             txFillClrLst: {},
             txEffectClrLst: {}
           },
-          alignNode1: {
+          'alignNode1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7255,29 +7255,7 @@
             txFillClrLst: {},
             txEffectClrLst: {}
           },
-          node1: {
-            fillClrLst: {
-              meth: 1,
-              color: {
-                schemeClr: {
-                  id: 0,
-                }
-              }
-            },
-            linClrLst: {
-              meth: 1,
-              color: {
-                schemeClr: {
-                  id: 10,
-                }
-              }
-            },
-            effectClrLst: {},
-            txLinClrLst: {},
-            txFillClrLst: {},
-            txEffectClrLst: {}
-          },
-          lnNode1: {
+          'node1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7299,7 +7277,29 @@
             txFillClrLst: {},
             txEffectClrLst: {}
           },
-          vennNode1: {
+          'lnNode1': {
+            fillClrLst: {
+              meth: 1,
+              color: {
+                schemeClr: {
+                  id: 0,
+                }
+              }
+            },
+            linClrLst: {
+              meth: 1,
+              color: {
+                schemeClr: {
+                  id: 10,
+                }
+              }
+            },
+            effectClrLst: {},
+            txLinClrLst: {},
+            txFillClrLst: {},
+            txEffectClrLst: {}
+          },
+          'vennNode1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7326,7 +7326,7 @@
             txFillClrLst: {},
             txEffectClrLst: {}
           },
-          node2: {
+          'node2': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7348,7 +7348,7 @@
             txFillClrLst: {},
             txEffectClrLst: {}
           },
-          node3: {
+          'node3': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7370,7 +7370,7 @@
             txFillClrLst: {},
             txEffectClrLst: {}
           },
-          node4: {
+          'node4': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7392,7 +7392,7 @@
             txFillClrLst: {},
             txEffectClrLst: {}
           },
-          fgImgPlace1: {
+          'fgImgPlace1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7426,7 +7426,7 @@
             },
             txEffectClrLst: {}
           },
-          alignImgPlace1: {
+          'alignImgPlace1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7460,7 +7460,7 @@
             },
             txEffectClrLst: {}
           },
-          bgImgPlace1: {
+          'bgImgPlace1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7494,7 +7494,7 @@
             },
             txEffectClrLst: {}
           },
-          sibTrans2D1: {
+          'sibTrans2D1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7526,7 +7526,7 @@
             txFillClrLst: {},
             txEffectClrLst: {}
           },
-          fgSibTrans2D1: {
+          'fgSibTrans2D1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7558,7 +7558,7 @@
             txFillClrLst: {},
             txEffectClrLst: {}
           },
-          bgSibTrans2D1: {
+          'bgSibTrans2D1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7590,7 +7590,7 @@
             txFillClrLst: {},
             txEffectClrLst: {}
           },
-          sibTrans1D1: {
+          'sibTrans1D1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7619,7 +7619,7 @@
             },
             txEffectClrLst: {}
           },
-          callout: {
+          'callout': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7653,7 +7653,7 @@
             },
             txEffectClrLst: {}
           },
-          asst0: {
+          'asst0': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7675,7 +7675,7 @@
             txFillClrLst: {},
             txEffectClrLst: {}
           },
-          asst1: {
+          'asst1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7697,7 +7697,7 @@
             txFillClrLst: {},
             txEffectClrLst: {}
           },
-          asst2: {
+          'asst2': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7719,7 +7719,7 @@
             txFillClrLst: {},
             txEffectClrLst: {}
           },
-          asst3: {
+          'asst3': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7741,7 +7741,7 @@
             txFillClrLst: {},
             txEffectClrLst: {}
           },
-          asst4: {
+          'asst4': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7763,7 +7763,7 @@
             txFillClrLst: {},
             txEffectClrLst: {}
           },
-          parChTrans2D1: {
+          'parChTrans2D1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7802,7 +7802,7 @@
             },
             txEffectClrLst: {}
           },
-          parChTrans2D2: {
+          'parChTrans2D2': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7831,7 +7831,7 @@
             },
             txEffectClrLst: {}
           },
-          parChTrans2D3: {
+          'parChTrans2D3': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7860,7 +7860,7 @@
             },
             txEffectClrLst: {}
           },
-          parChTrans2D4: {
+          'parChTrans2D4': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7889,7 +7889,7 @@
             },
             txEffectClrLst: {}
           },
-          parChTrans1D1: {
+          'parChTrans1D1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7923,7 +7923,7 @@
             },
             txEffectClrLst: {}
           },
-          parChTrans1D2: {
+          'parChTrans1D2': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -7957,41 +7957,7 @@
             },
             txEffectClrLst: {}
           },
-          parChTrans1D3: {
-            fillClrLst: {
-              meth: 1,
-              color: {
-                schemeClr: {
-                  id: 0,
-                }
-              }
-            },
-            linClrLst: {
-              meth: 1,
-              color: {
-                schemeClr: {
-                  id: 0,
-                  mods: [{
-                    name: 'shade',
-                    val: 80000,
-                  }
-                  ],
-                }
-              }
-            },
-            effectClrLst: {},
-            txLinClrLst: {},
-            txFillClrLst: {
-              meth: 1,
-              color: {
-                schemeClr: {
-                  id: 6,
-                }
-              }
-            },
-            txEffectClrLst: {}
-          },
-          parChTrans1D4: {
+          'parChTrans1D3': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -8025,7 +7991,41 @@
             },
             txEffectClrLst: {}
           },
-          fgAcc1: {
+          'parChTrans1D4': {
+            fillClrLst: {
+              meth: 1,
+              color: {
+                schemeClr: {
+                  id: 0,
+                }
+              }
+            },
+            linClrLst: {
+              meth: 1,
+              color: {
+                schemeClr: {
+                  id: 0,
+                  mods: [{
+                    name: 'shade',
+                    val: 80000,
+                  }
+                  ],
+                }
+              }
+            },
+            effectClrLst: {},
+            txLinClrLst: {},
+            txFillClrLst: {
+              meth: 1,
+              color: {
+                schemeClr: {
+                  id: 6,
+                }
+              }
+            },
+            txEffectClrLst: {}
+          },
+          'fgAcc1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -8059,7 +8059,7 @@
             },
             txEffectClrLst: {}
           },
-          conFgAcc1: {
+          'conFgAcc1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -8093,7 +8093,7 @@
             },
             txEffectClrLst: {}
           },
-          alignAcc1: {
+          'alignAcc1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -8127,7 +8127,7 @@
             },
             txEffectClrLst: {}
           },
-          trAlignAcc1: {
+          'trAlignAcc1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -8161,7 +8161,7 @@
             },
             txEffectClrLst: {}
           },
-          bgAcc1: {
+          'bgAcc1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -8195,7 +8195,7 @@
             },
             txEffectClrLst: {}
           },
-          solidFgAcc1: {
+          'solidFgAcc1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -8224,7 +8224,7 @@
             },
             txEffectClrLst: {}
           },
-          solidAlignAcc1: {
+          'solidAlignAcc1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -8253,7 +8253,7 @@
             },
             txEffectClrLst: {}
           },
-          solidBgAcc1: {
+          'solidBgAcc1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -8282,7 +8282,7 @@
             },
             txEffectClrLst: {}
           },
-          fgAccFollowNode1: {
+          'fgAccFollowNode1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -8329,7 +8329,7 @@
             },
             txEffectClrLst: {}
           },
-          alignAccFollowNode1: {
+          'alignAccFollowNode1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -8376,7 +8376,7 @@
             },
             txEffectClrLst: {}
           },
-          bgAccFollowNode1: {
+          'bgAccFollowNode1': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -8423,7 +8423,7 @@
             },
             txEffectClrLst: {}
           },
-          fgAcc0: {
+          'fgAcc0': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -8457,7 +8457,7 @@
             },
             txEffectClrLst: {}
           },
-          fgAcc2: {
+          'fgAcc2': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -8491,7 +8491,7 @@
             },
             txEffectClrLst: {}
           },
-          fgAcc3: {
+          'fgAcc3': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -8525,7 +8525,7 @@
             },
             txEffectClrLst: {}
           },
-          fgAcc4: {
+          'fgAcc4': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -8559,7 +8559,7 @@
             },
             txEffectClrLst: {}
           },
-          bgShp: {
+          'bgShp': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -8593,7 +8593,7 @@
             },
             txEffectClrLst: {}
           },
-          dkBgShp: {
+          'dkBgShp': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -8627,7 +8627,7 @@
             },
             txEffectClrLst: {}
           },
-          trBgShp: {
+          'trBgShp': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -8665,7 +8665,7 @@
             },
             txEffectClrLst: {}
           },
-          fgShp: {
+          'fgShp': {
             fillClrLst: {
               meth: 1,
               color: {
@@ -8699,7 +8699,7 @@
             },
             txEffectClrLst: {}
           },
-          revTx: {
+          'revTx': {
             fillClrLst: {
               meth: 1,
               color: {
