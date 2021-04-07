@@ -2088,7 +2088,6 @@ SlideComments.prototype =
                     if((!isMine || oComment.isMineComment()))
                     {
                         aAllComments.push({comment: oComment, slide: oSlide});
-                        return;
                     }
                 }
             }
