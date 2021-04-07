@@ -11613,6 +11613,147 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	};
 
 
+	function CProtectedRange(ws) {
+		this.sqref = null;
+		this.name = null;
+
+		this.algorithmName = null;
+		this.hashValue = null;
+		this.saltValue = null;
+		this.spinCount = null;
+
+		this._ws = ws;
+
+		return this;
+	}
+
+	CProtectedRange.prototype.clone = function(ws) {
+		var res = new CProtectedRange(ws);
+
+		res.sqref = this.sqref;
+		res.name = this.name;
+
+		res.algorithmName = this.algorithmName;
+		res.hashValue = this.hashValue;
+		res.saltValue = this.saltValue;
+		res.spinCount = this.spinCount;
+
+		return res;
+	};
+
+	CProtectedRange.prototype.Write_ToBinary2 = function(w) {
+
+		/*
+		 2945 <xsd:attribute name="sqref" type="ST_Sqref" use="required"/>
+		 2946 <xsd:attribute name="name" type="s:ST_Xstring" use="required"/>
+		 2947 <xsd:attribute name="algorithmName" type="s:ST_Xstring" use="optional"/>
+		 2948 <xsd:attribute name="hashValue" type="xsd:base64Binary" use="optional"/>
+		 2949 <xsd:attribute name="saltValue" type="xsd:base64Binary" use="optional"/>
+		 2950 <xsd:attribute name="spinCount" type="xsd:unsignedInt" use="optional"/>
+		 2951 </xsd:complexType>
+		 */
+
+		if (null != this.sqref) {
+			w.WriteBool(true);
+			w.WriteString2(this.sqref);
+		} else {
+			w.WriteBool(false);
+		}
+		if (null != this.name) {
+			w.WriteBool(true);
+			w.WriteString2(this.name);
+		} else {
+			w.WriteBool(false);
+		}
+
+		if (null != this.algorithmName) {
+			w.WriteBool(true);
+			w.WriteString2(this.algorithmName);
+		} else {
+			w.WriteBool(false);
+		}
+		if (null != this.hashValue) {
+			w.WriteBool(true);
+			w.WriteString2(this.hashValue);
+		} else {
+			w.WriteBool(false);
+		}
+		if (null != this.saltValue) {
+			w.WriteBool(true);
+			w.WriteString2(this.saltValue);
+		} else {
+			w.WriteBool(false);
+		}
+		if (null != this.spinCount) {
+			w.WriteBool(true);
+			w.WriteLong(this.spinCount);
+		} else {
+			w.WriteBool(false);
+		}
+	};
+
+	CProtectedRange.prototype.Read_FromBinary2 = function(r) {
+		if (r.GetBool()) {
+			this.sqref = r.GetString2();
+		}
+		if (r.GetBool()) {
+			this.name = r.GetString2();
+		}
+
+		if (r.GetBool()) {
+			this.algorithmName = r.GetString2();
+		}
+		if (r.GetBool()) {
+			this.hashValue = r.GetString2();
+		}
+		if (r.GetBool()) {
+			this.saltValue = r.GetString2();
+		}
+		if (r.GetBool()) {
+			this.spinCount = r.GetLong();
+		}
+	};
+
+	CProtectedRange.prototype.asc_getSqref = function () {
+		return this.sqref;
+	};
+	CProtectedRange.prototype.asc_getName = function () {
+		return this.name;
+	};
+	CProtectedRange.prototype.asc_getAlgorithmName = function () {
+		return this.algorithmName;
+	};
+	CProtectedRange.prototype.asc_getHashValue = function () {
+		return this.hashValue;
+	};
+	CProtectedRange.prototype.asc_getSaltValue = function () {
+		return this.saltValue;
+	};
+	CProtectedRange.prototype.asc_getSpinCount = function () {
+		return this.spinCount;
+	};
+
+	CProtectedRange.prototype.asc_setSqref = function (val) {
+		this.sqref = val;
+	};
+	CProtectedRange.prototype.asc_setName = function (val) {
+		this.name = val;
+	};
+	CProtectedRange.prototype.asc_setAlgorithmName = function (val) {
+		this.algorithmName = val;
+	};
+	CProtectedRange.prototype.asc_setHashValue = function (val) {
+		this.hashValue = val;
+	};
+	CProtectedRange.prototype.asc_setSaltValue = function (val) {
+		this.saltValue = val;
+	};
+	CProtectedRange.prototype.asc_setSpinCount = function (val) {
+		this.spinCount = val;
+	};
+
+
+
 	//----------------------------------------------------------export----------------------------------------------------
 	var prot;
 	window['Asc'] = window['Asc'] || {};
@@ -12020,5 +12161,21 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setWorkbookSaltValue"] = prot.asc_setWorkbookSaltValue;
 	prot["asc_setWorkbookSpinCount"] = prot.asc_setWorkbookSpinCount;
 	prot["asc_setSelectLockedCells"] = prot.asc_setSelectLockedCells;
+
+	window["AscCommonExcel"].CProtectedRange = CProtectedRange;
+	prot = CProtectedRange.prototype;
+	prot["asc_getSqref"] = prot.asc_getSqref;
+	prot["asc_getName"] = prot.asc_getName;
+	prot["asc_getAlgorithmName"] = prot.asc_getAlgorithmName;
+	prot["asc_getHashValue"] = prot.asc_getHashValue;
+	prot["asc_getSaltValue"] = prot.asc_getSaltValue;
+	prot["asc_getSpinCount"] = prot.asc_getSpinCount;
+
+	prot["asc_setSqref"] = prot.asc_setSqref;
+	prot["asc_setName"] = prot.asc_setName;
+	prot["asc_setAlgorithmName"] = prot.asc_setAlgorithmName;
+	prot["asc_setHashValue"] = prot.asc_setHashValue;
+	prot["asc_setSaltValue"] = prot.asc_setSaltValue;
+	prot["asc_setSpinCount"] = prot.asc_setSpinCount;
 
 })(window);

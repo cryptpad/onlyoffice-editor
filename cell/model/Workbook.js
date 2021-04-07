@@ -4010,6 +4010,7 @@
 		this.defaultViewHiddenRows = null;
 
 		this.sheetProtection = new AscCommonExcel.CSheetProtection(this);
+		this.aProtectedRanges = [];
 	}
 
 	Worksheet.prototype.getCompiledStyle = function (row, col, opt_cell, opt_styleComponents) {
