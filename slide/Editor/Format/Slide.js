@@ -644,11 +644,11 @@ Slide.prototype =
         }
     },
 
-    getAllComments: function(aAllComments)
+    getAllComments: function(aAllComments, isMine, isCurrent, aIds)
     {
         if(this.slideComments)
         {
-            this.slideComments.getAllComments(aAllComments, this);
+            this.slideComments.getAllComments(aAllComments, isMine, isCurrent, aIds);
         }
     },
 
@@ -2035,12 +2035,63 @@ SlideComments.prototype =
             }
         }
     },
-    getAllComments: function(aAllComments, oSlide)
+    getAllComments: function(aAllComments, isMine, isCurrent, aIds)
     {
-        for(var i = 0; i < this.comments.length; ++i)
+        var oSlide = null;
+        if(this.slide && (this.slide instanceof Slide))
         {
-            var oComment = this.comments[i];
-            aAllComments.push({comment: oComment, slide: oSlide});
+            oSlide = this.slide;
+        }
+        var nComment, oComment;
+        if(Array.isArray(aIds))
+        {
+            var oIdMap = {};
+            for(var nId = 0; nId < aIds.length; ++nId)
+            {
+                oIdMap[aIds[nId]] = true;
+            }
+            for(nComment = 0; nComment < this.comments.length; ++nComment)
+            {
+                oComment = this.comments[nComment];
+                if(oIdMap[oComment.Id])
+                {
+                    aAllComments.push({comment: oComment, slide: oSlide});
+                }
+            }
+        }
+        else
+        {
+            if(isCurrent)
+            {
+                if(oSlide)
+                {
+                    var oPresentation = oSlide.presentation;
+                    if(oPresentation && oPresentation.Slides[oPresentation.CurPage] === oSlide)
+                    {
+                        for(nComment = 0; nComment < this.comments.length; ++nComment)
+                        {
+                            oComment = this.comments[nComment];
+                            if(oComment.selected && (!isMine || oComment.isMineComment()))
+                            {
+                                aAllComments.push({comment: oComment, slide: oSlide});
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                for(nComment = 0; nComment < this.comments.length; ++nComment)
+                {
+                    oComment = this.comments[nComment];
+                    if((!isMine || oComment.isMineComment()))
+                    {
+                        aAllComments.push({comment: oComment, slide: oSlide});
+                        return;
+                    }
+                }
+            }
         }
     },
 
