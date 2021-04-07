@@ -11392,6 +11392,226 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.selectUnlockedCells = val;
 	};
 
+	function CWorkbookProtection(wb) {
+		this.lockStructure = null;//false
+		this.lockWindows = null;//false
+		this.lockRevision = null;//false
+
+		this.revisionsAlgorithmName = null;
+		this.revisionsHashValue = null;
+		this.revisionsSaltValue = null;
+		this.revisionsSpinCount = null;
+		this.workbookAlgorithmName = null;
+		this.workbookHashValue = null;
+		this.workbookSaltValue = null;
+		this.workbookSpinCount = null;
+
+		this._wb = wb;
+
+		return this;
+	}
+
+	CWorkbookProtection.prototype.clone = function(wb) {
+		var res = new CWorkbookProtection(wb);
+
+		res.lockStructure = this.lockStructure;
+		res.lockWindows = this.lockWindows;
+		res.lockRevision = this.lockRevision;
+
+		res.revisionsAlgorithmName = this.revisionsAlgorithmName;
+		res.revisionsHashValue = this.revisionsHashValue;
+		res.revisionsSaltValue = this.revisionsSaltValue;
+		res.revisionsSpinCount = this.revisionsSpinCount;
+		res.workbookAlgorithmName = this.workbookAlgorithmName;
+
+		res.workbookHashValue = this.workbookHashValue;
+		res.workbookSaltValue = this.workbookSaltValue;
+		res.workbookSpinCount = this.workbookSpinCount;
+
+		return res;
+	};
+
+	CWorkbookProtection.prototype.Write_ToBinary2 = function(w) {
+		if (null != this.lockStructure) {
+			w.WriteBool(true);
+			w.WriteBool(this.lockStructure);
+		} else {
+			w.WriteBool(false);
+		}
+		if (null != this.lockWindows) {
+			w.WriteBool(true);
+			w.WriteBool(this.lockWindows);
+		} else {
+			w.WriteBool(false);
+		}
+		if (null != this.lockRevision) {
+			w.WriteBool(true);
+			w.WriteBool(this.lockRevision);
+		} else {
+			w.WriteBool(false);
+		}
+
+		/*<xsd:attribute name="revisionsAlgorithmName" type="s:ST_Xstring" use="optional"/>
+		 <xsd:attribute name="revisionsHashValue" type="xsd:base64Binary" use="optional"/>
+		 <xsd:attribute name="revisionsSaltValue" type="xsd:base64Binary" use="optional"/>
+		 <xsd:attribute name="revisionsSpinCount" type="xsd:unsignedInt" use="optional"/>
+
+		 <xsd:attribute name="workbookAlgorithmName" type="s:ST_Xstring" use="optional"/>
+		 <xsd:attribute name="workbookHashValue" type="xsd:base64Binary" use="optional"/>
+		 <xsd:attribute name="workbookSaltValue" type="xsd:base64Binary" use="optional"/>
+		 <xsd:attribute name="workbookSpinCount" type="xsd:unsignedInt" use="optional"/>
+		 </xsd:complexType>*/
+		if (null != this.revisionsAlgorithmName) {
+			w.WriteBool(true);
+			w.WriteString2(this.revisionsAlgorithmName);
+		} else {
+			w.WriteBool(false);
+		}
+		if (null != this.revisionsHashValue) {
+			w.WriteBool(true);
+			w.WriteString2(this.revisionsHashValue);
+		} else {
+			w.WriteBool(false);
+		}
+		if (null != this.revisionsSaltValue) {
+			w.WriteBool(true);
+			w.WriteString2(this.revisionsSaltValue);
+		} else {
+			w.WriteBool(false);
+		}
+		if (null != this.revisionsSpinCount) {
+			w.WriteBool(true);
+			w.WriteLong(this.revisionsSpinCount);
+		} else {
+			w.WriteBool(false);
+		}
+
+		if (null != this.workbookAlgorithmName) {
+			w.WriteBool(true);
+			w.WriteString2(this.workbookAlgorithmName);
+		} else {
+			w.WriteBool(false);
+		}
+		if (null != this.workbookHashValue) {
+			w.WriteBool(true);
+			w.WriteString2(this.workbookHashValue);
+		} else {
+			w.WriteBool(false);
+		}
+		if (null != this.workbookSaltValue) {
+			w.WriteBool(true);
+			w.WriteString2(this.workbookSaltValue);
+		} else {
+			w.WriteBool(false);
+		}
+		if (null != this.workbookSpinCount) {
+			w.WriteBool(true);
+			w.WriteLong(this.workbookSpinCount);
+		} else {
+			w.WriteBool(false);
+		}
+	};
+
+	CWorkbookProtection.prototype.Read_FromBinary2 = function(r) {
+		if (r.GetBool()) {
+			this.lockStructure = r.GetBool();
+		}
+		if (r.GetBool()) {
+			this.lockWindows = r.GetBool();
+		}
+		if (r.GetBool()) {
+			this.lockRevision = r.GetBool();
+		}
+
+		if (r.GetBool()) {
+			this.revisionsAlgorithmName = r.GetString2();
+		}
+		if (r.GetBool()) {
+			this.revisionsHashValue = r.GetString2();
+		}
+		if (r.GetBool()) {
+			this.revisionsSaltValue = r.GetString2();
+		}
+		if (r.GetBool()) {
+			this.revisionsSpinCount = r.GetLong();
+		}
+
+		if (r.GetBool()) {
+			this.workbookAlgorithmName = r.GetString2();
+		}
+		if (r.GetBool()) {
+			this.workbookHashValue = r.GetString2();
+		}
+		if (r.GetBool()) {
+			this.workbookSaltValue = r.GetString2();
+		}
+		if (r.GetBool()) {
+			this.workbookSpinCount = r.GetLong();
+		}
+	};
+
+	CWorkbookProtection.prototype.asc_getLockStructure = function () {
+		return this.lockStructure;
+	};
+	CWorkbookProtection.prototype.asc_getLockWindows = function () {
+		return this.lockWindows;
+	};
+	CWorkbookProtection.prototype.asc_getLockRevision = function () {
+		return this.lockRevision;
+	};
+	CWorkbookProtection.prototype.asc_getRevisionsAlgorithmName = function () {
+		return this.revisionsAlgorithmName;
+	};
+	CWorkbookProtection.prototype.asc_getRevisionsSaltValue = function () {
+		return this.revisionsHashValue;
+	};
+	CWorkbookProtection.prototype.asc_getRevisionsSpinCount = function () {
+		return this.revisionsSaltValue;
+	};
+	CWorkbookProtection.prototype.asc_getWorkbookAlgorithmName = function () {
+		return this.revisionsSpinCount;
+	};
+	CWorkbookProtection.prototype.asc_getWorkbookHashValue = function () {
+		return this.workbookAlgorithmName;
+	};
+	CWorkbookProtection.prototype.asc_getWorkbookSaltValue = function () {
+		return this.workbookHashValue;
+	};
+	CWorkbookProtection.prototype.asc_getWorkbookSpinCount = function () {
+		return this.workbookSaltValue;
+	};
+
+	CWorkbookProtection.prototype.asc_setLockStructure = function (val) {
+		this.lockStructure = val;
+	};
+	CWorkbookProtection.prototype.asc_setLockWindows = function (val) {
+		this.lockWindows = val;
+	};
+	CWorkbookProtection.prototype.asc_setLockRevision = function (val) {
+		this.lockRevision = val;
+	};
+	CWorkbookProtection.prototype.asc_setRevisionsAlgorithmName = function (val) {
+		this.revisionsAlgorithmName = val;
+	};
+	CWorkbookProtection.prototype.asc_setRevisionsSaltValue = function (val) {
+		this.revisionsHashValue = val;
+	};
+	CWorkbookProtection.prototype.asc_setRevisionsSpinCount = function (val) {
+		this.revisionsSaltValue = val;
+	};
+	CWorkbookProtection.prototype.asc_setWorkbookAlgorithmName = function (val) {
+		this.revisionsSpinCount = val;
+	};
+	CWorkbookProtection.prototype.asc_setWorkbookHashValue = function (val) {
+		this.workbookAlgorithmName = val;
+	};
+	CWorkbookProtection.prototype.asc_setWorkbookSaltValue = function (val) {
+		this.workbookHashValue = val;
+	};
+	CWorkbookProtection.prototype.asc_setWorkbookSpinCount = function (val) {
+		this.workbookSaltValue = val;
+	};
+
 
 	//----------------------------------------------------------export----------------------------------------------------
 	var prot;
@@ -11744,7 +11964,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getName"] = prot.asc_getName;
 	
 	window["AscCommonExcel"].CSheetProtection = CSheetProtection;
-	prot = CFunctionInfo.prototype;
+	prot = CSheetProtection.prototype;
 	prot["asc_getSheet"] = prot.asc_getSheet;
 	prot["asc_getObjects"] = prot.asc_getObjects;
 	prot["asc_getScenarios"] = prot.asc_getScenarios;
@@ -11775,5 +11995,30 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setAutoFilter"] = prot.asc_setAutoFilter;
 	prot["asc_setPivotTables"] = prot.asc_setPivotTables;
 	prot["asc_setSelectUnlockedCells"] = prot.asc_setSelectUnlockedCells;
+
+	window["AscCommonExcel"].CWorkbookProtection = CWorkbookProtection;
+	prot = CWorkbookProtection.prototype;
+	prot["asc_getLockStructure"] = prot.asc_getLockStructure;
+	prot["asc_getLockWindows"] = prot.asc_getLockWindows;
+	prot["asc_getLockRevision"] = prot.asc_getLockRevision;
+	prot["asc_getRevisionsAlgorithmName"] = prot.asc_getRevisionsAlgorithmName;
+	prot["asc_getRevisionsSaltValue"] = prot.asc_getRevisionsSaltValue;
+	prot["asc_getRevisionsSpinCount"] = prot.asc_getRevisionsSpinCount;
+	prot["asc_getWorkbookAlgorithmName"] = prot.asc_getWorkbookAlgorithmName;
+	prot["asc_getWorkbookHashValue"] = prot.asc_getWorkbookHashValue;
+	prot["asc_getWorkbookSaltValue"] = prot.asc_getWorkbookSaltValue;
+	prot["asc_getWorkbookSpinCount"] = prot.asc_getWorkbookSpinCount;
+	prot["asc_getSelectLockedCells"] = prot.asc_getSelectLockedCells;
+	prot["asc_setLockStructure"] = prot.asc_setLockStructure;
+	prot["asc_setLockWindows"] = prot.asc_setLockWindows;
+	prot["asc_setLockRevision"] = prot.asc_setLockRevision;
+	prot["asc_setRevisionsAlgorithmName"] = prot.asc_setRevisionsAlgorithmName;
+	prot["asc_setRevisionsSaltValue"] = prot.asc_setRevisionsSaltValue;
+	prot["asc_setRevisionsSpinCount"] = prot.asc_setRevisionsSpinCount;
+	prot["asc_setWorkbookAlgorithmName"] = prot.asc_setWorkbookAlgorithmName;
+	prot["asc_setWorkbookHashValue"] = prot.asc_setWorkbookHashValue;
+	prot["asc_setWorkbookSaltValue"] = prot.asc_setWorkbookSaltValue;
+	prot["asc_setWorkbookSpinCount"] = prot.asc_setWorkbookSpinCount;
+	prot["asc_setSelectLockedCells"] = prot.asc_setSelectLockedCells;
 
 })(window);
