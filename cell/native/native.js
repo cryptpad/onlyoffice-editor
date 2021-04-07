@@ -2278,7 +2278,11 @@ function asc_WriteCCellInfo(c, s) {
     s['WriteBool'](c.asc_getLockText());
     
     asc_WriteCFont(6, xfs, s);
-    asc_menu_WriteColor(8, xfs.asc_getFillColor(), s);
+
+    if (null != xfs.asc_getFillColor() && xfs.asc_getFillColor().asc_getAuto() !== true) { 
+        asc_menu_WriteColor(8, xfs.asc_getFillColor(), s);
+    }
+
     asc_WriteCBorders(9, c.asc_getBorders(), s);
 
     v = c.asc_getInnerText();
