@@ -8837,47 +8837,51 @@
       }
     }
 
+    function fillColorsDef(smartArt, objectInfo) {
+      objectInfo.colorsDef.titles.forEach(function (e) {
+        smartArt.getColorsDef().addToLstTitle(0, createTitle(e));
+      });
+      objectInfo.colorsDef.descs.forEach(function (e) {
+        smartArt.getColorsDef().addToLstDesc(0, createDesc(e));
+      });
+      var catArr = objectInfo.colorsDef.catLst.map(function (e) {
+        return createCat(e.pri, e.type);
+      });
+      smartArt.getColorsDef().setCatLst(createCatLst(catArr));
+      var styleLblsName = Object.keys(objectInfo.colorsDef.styleLbls);
+      var colorLsts = ['fillClrLst', 'linClrLst', 'effectClrLst', 'txFillClrLst', 'txLinClrLst', 'txEffectClrLst'];
+      styleLblsName.forEach(function (Lbl) {
+        var styleLbl = createColorStyleLbl(Lbl);
+        colorLsts.forEach(function (clrLstName) {
+          var clrLstInfo = objectInfo.colorsDef.styleLbls[Lbl][clrLstName];
+          if (clrLstInfo.color) {
+            createColorLstInLbl(styleLbl, clrLstName, clrLstInfo.meth);
+            var uniColor = new CUniColor();
+            uniColor.setColor(new SchemeClr());
+            uniColor.color.setId(clrLstInfo.color.id);
+            if (clrLstInfo.color.mods) {
+              uniColor.setMods(new ColorModLst());
+              clrLstInfo.color.mods.forEach(function (modInfo) {
+                var mod = new ColorMod();
+                mod.setName(modInfo.name);
+                mod.setVal(modInfo.val);
+                uniColor.mods.addMod(mod);
+              })
+            }
+            addToClrLst(styleLbl, uniColor, clrLstName); // TODO: fix unicolor;
+          }
+        });
+        smartArt.getColorsDef().addToLstStyleLbl(0, styleLbl);
+      });
+    }
+
 
     function createSmartArt(type) {
       var smartart = new SmartArt();
       smartart.setColorsDef(new ColorsDef());
       switch (type) {
         case 'horizontalListOfPicture':
-          horizontalListOfPicture.colorsDef.titles.forEach(function (e) {
-            smartart.getColorsDef().addToLstTitle(0, createTitle(e));
-          });
-          horizontalListOfPicture.colorsDef.descs.forEach(function (e) {
-            smartart.getColorsDef().addToLstDesc(0, createDesc(e));
-          });
-          var catArr = horizontalListOfPicture.colorsDef.catLst.map(function (e) {
-            return createCat(e.pri, e.type);
-          });
-          smartart.getColorsDef().setCatLst(createCatLst(catArr));
-          var styleLblsName = Object.keys(horizontalListOfPicture.colorsDef.styleLbls);
-          var colorLsts = ['fillClrLst', 'linClrLst', 'effectClrLst', 'txFillClrLst', 'txLinClrLst', 'txEffectClrLst'];
-          styleLblsName.forEach(function (Lbl) {
-            var styleLbl = createColorStyleLbl(Lbl);
-            colorLsts.forEach(function (clrLstName) {
-              var clrLstInfo = horizontalListOfPicture.colorsDef.styleLbls[Lbl][clrLstName];
-              if (clrLstInfo.color) {
-                createColorLstInLbl(styleLbl, clrLstName, clrLstInfo.meth);
-                var uniColor = new CUniColor();
-                uniColor.setColor(new SchemeClr());
-                uniColor.color.setId(clrLstInfo.color.id);
-                if (clrLstInfo.color.mods) {
-                  uniColor.setMods(new ColorModLst());
-                  clrLstInfo.color.mods.forEach(function (modInfo) {
-                    var mod = new ColorMod();
-                    mod.setName(modInfo.name);
-                    mod.setVal(modInfo.val);
-                    uniColor.mods.addMod(mod);
-                  })
-                }
-                addToClrLst(styleLbl, uniColor, clrLstName); // TODO: fix unicolor;
-              }
-            });
-            smartart.getColorsDef().addToLstStyleLbl(0, styleLbl);
-          });
+          fillColorsDef(smartart, horizontalListOfPicture);
           break;
       }
       return smartart;
