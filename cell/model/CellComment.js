@@ -492,7 +492,7 @@ CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 	CCellCommentator.prototype.resolveCommentsRange = function (range, sUserId) {
 		var newComment, comments = this.getCommentsRange(range, sUserId);
 		for (var i = 0; i < comments.length; ++i) {
-			if (AscCommon.UserInfoParser.canViewComment(comments[i].sUserName) && !comments[i].IsSolved()) {
+			if (AscCommon.UserInfoParser.canViewComment(comments[i].sUserName) && !comments[i].getSolved()) {
 				newComment = comments[i].clone();
 				newComment.setSolved(true);
 				this.changeComment(newComment.nId, newComment);
