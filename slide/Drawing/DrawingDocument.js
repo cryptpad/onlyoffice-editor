@@ -3913,7 +3913,7 @@ function CDrawingDocument()
 			canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
 
 			var ctx = canvas.getContext("2d");
-			var line_distance = (height_px == 80) ?  (height_px / 5 - 1) : ((height_px >> 2) + 2);
+			var line_distance = (height_px == 80) ? (height_px / 5 - 1) : ((height_px >> 2) + ((text.length > 6) ? 1 : 2));
 
 			var oNewShape = new AscFormat.CShape();
 			oNewShape.createTextBody();
@@ -3937,7 +3937,7 @@ function CDrawingDocument()
 
 			var parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
 			var parH = (bounds.Bottom - bounds.Top);
-			var x = (width_px >> 1 ) - (parW >> 1);
+			var x = (width_px - (parW >> 0)) >> 1;
 			var y = (height_px >> 1) + (parH >> 0);
 
 			this.privateGetParagraphByString(lvl, 0, 0, x, y, line_distance, ctx, width_px, height_px);
