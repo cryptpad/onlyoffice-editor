@@ -6341,7 +6341,8 @@ function CDrawingDocument()
             canvas.style.cssText = "pointer-events: none;padding:0;margin:0;user-select:none;";
             canvas.style.width = width_px + "px";
             canvas.style.height = height_px + "px";
-            parent.appendChild(canvas);
+			if (width_px > 0 && height_px > 0)
+            	parent.appendChild(canvas);
 		}
 
 		canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
@@ -6741,7 +6742,8 @@ function CDrawingDocument()
             canvas.style.cssText = "padding:0;margin:0;user-select:none;";
             canvas.style.width = width_px + "px";
             canvas.style.height = height_px + "px";
-            parent.appendChild(canvas);
+			if (width_px > 0 && height_px > 0)
+            	parent.appendChild(canvas);
         }
 
         canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
@@ -6974,7 +6976,8 @@ function CDrawingDocument()
 				canvas.style.cssText = "padding:0;margin:0;user-select:none;";
 				canvas.style.width = width_px + "px";
 				canvas.style.height = height_px + "px";
-				parent.appendChild(canvas);
+				if (width_px > 0 && height_px > 0)
+					parent.appendChild(canvas);
 			}
 
             canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
@@ -7227,7 +7230,8 @@ function CDrawingDocument()
 				canvas.style.cssText = "padding:0;margin:0;user-select:none;";
 				canvas.style.width = width_px + "px";
 				canvas.style.height = height_px + "px";
-				elNone.appendChild(canvas);
+				if (width_px > 0 && height_px > 0)
+					elNone.appendChild(canvas);
 			}
 
 			canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
@@ -7278,7 +7282,8 @@ function CDrawingDocument()
 				canvas.style.cssText = "padding:0;margin:0;user-select:none;";
 				canvas.style.width = width_px + "px";
 				canvas.style.height = height_px + "px";
-				parent.appendChild(canvas);
+				if (width_px > 0 && height_px > 0)
+					parent.appendChild(canvas);
 			}
 
 			canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
@@ -7299,7 +7304,8 @@ function CDrawingDocument()
 					canvas.style.cssText = "padding:0;margin:0;user-select:none;";
 					canvas.style.width = width_px + "px";
 					canvas.style.height = height_px + "px";
-					parent.appendChild(canvas);
+					if (width_px > 0 && height_px > 0)
+						parent.appendChild(canvas);
 				}
 
 				canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);

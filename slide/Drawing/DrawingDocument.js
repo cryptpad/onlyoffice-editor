@@ -3905,7 +3905,8 @@ function CDrawingDocument()
 				canvas.style.cssText = "padding:0;margin:0;user-select:none;";
 				canvas.style.width = width_px + "px";
 				canvas.style.height = height_px + "px";
-				elNone.appendChild(canvas);
+				if (width_px > 0 && height_px > 0)
+					elNone.appendChild(canvas);
 			}
 
 			canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
@@ -3937,7 +3938,7 @@ function CDrawingDocument()
 			var parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
 			var parH = (bounds.Bottom - bounds.Top);
 			var x = (width_px >> 1 ) - (parW >> 1);
-			var y = (height_px >> 1) + (parH >> 1);
+			var y = (height_px >> 1) + (parH >> 0);
 
 			this.privateGetParagraphByString(lvl, 0, 0, x, y, line_distance, ctx, width_px, height_px);
 		}
@@ -3959,7 +3960,8 @@ function CDrawingDocument()
 				canvas.style.cssText = "padding:0;margin:0;user-select:none;";
 				canvas.style.width = width_px + "px";
 				canvas.style.height = height_px + "px";
-				parent.appendChild(canvas);
+				if (width_px > 0 && height_px > 0)
+					parent.appendChild(canvas);
 			}
 
 			canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
@@ -3980,7 +3982,8 @@ function CDrawingDocument()
 					canvas.style.cssText = "padding:0;margin:0;user-select:none;";
 					canvas.style.width = width_px + "px";
 					canvas.style.height = height_px + "px";
-					parent.appendChild(canvas);
+                    if (width_px > 0 && height_px > 0)
+						parent.appendChild(canvas);
 				}
 
 				canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
