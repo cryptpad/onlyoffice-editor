@@ -1251,7 +1251,6 @@ ParaRun.prototype.Search = function(ParaSearch)
 	for (var nPos = 0, nContentLen = this.Content.length; nPos < nContentLen; ++nPos)
 	{
 		var oItem = this.Content[nPos];
-
 		if (para_Drawing === oItem.Type)
 		{
 			oItem.Search(Str, Props, SearchEngine, Type);
@@ -1275,29 +1274,72 @@ ParaRun.prototype.Search = function(ParaSearch)
 		}
 
 		if (ParaSearch.Check(ParaSearch.SearchIndex, oItem))
-		{
+		{		
+		    var bCheck = true;
 			if (0 === ParaSearch.SearchIndex)
-				ParaSearch.StartPos = {Run : this, Pos : nPos};
-
-			if (1 === ParaSearch.GetPrefix(ParaSearch.SearchIndex))
-				ParaSearch.StartPosBuf.push({Run : this, Pos : nPos});
-
-			ParaSearch.SearchIndex++;
-
-			if (ParaSearch.SearchIndex === Str.length)
+			{    
+			    if (nPos === 0)
+			    {
+                    ParaSearch.StartPos = {Run : this, Pos : nPos};
+			    }
+			    else
+			    {
+			    	if (this.Content[nPos - 1].CanStartAutoCorrect() || this.Content[nPos - 1].Value === undefined)
+			    	{
+			    		ParaSearch.StartPos = {Run : this, Pos : nPos};
+			    	}
+			    	else 
+			    	{
+			    		bCheck = false;
+			    	}
+			    }
+			}
+			if (bCheck)
 			{
-				if (ParaSearch.StartPos)
-				{
-					Para.AddSearchResult(
-						SearchEngine.Add(Para),
-						ParaSearch.StartPos.Run.GetParagraphContentPosFromObject(ParaSearch.StartPos.Pos),
-						this.GetParagraphContentPosFromObject(nPos + 1),
-						Type
-					);
-				}
+				if (1 === ParaSearch.GetPrefix(ParaSearch.SearchIndex))
+					ParaSearch.StartPosBuf.push({Run : this, Pos : nPos});
 
+				ParaSearch.SearchIndex++;
+
+				if (ParaSearch.SearchIndex === Str.length)
+				{
+					if (nPos === nContentLen - 1)
+					{
+						if (ParaSearch.StartPos)
+						{
+							Para.AddSearchResult(
+								SearchEngine.Add(Para),
+								ParaSearch.StartPos.Run.GetParagraphContentPosFromObject(ParaSearch.StartPos.Pos),
+								this.GetParagraphContentPosFromObject(nPos + 1),
+								Type
+							);
+						}
+
+					ParaSearch.Reset();
+					}
+					else
+					{
+						if (this.Content[nPos + 1].CanStartAutoCorrect())
+						{
+							if (ParaSearch.StartPos)
+							{
+								Para.AddSearchResult(
+									SearchEngine.Add(Para),
+									ParaSearch.StartPos.Run.GetParagraphContentPosFromObject(ParaSearch.StartPos.Pos),
+									this.GetParagraphContentPosFromObject(nPos + 1),
+									Type
+								);
+							}
+						}
+						ParaSearch.Reset();
+					}
+				}
+			}
+			else
+			{
 				ParaSearch.Reset();
 			}
+			
 		}
 	}
 };
