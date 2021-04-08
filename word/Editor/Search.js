@@ -1256,6 +1256,22 @@ ParaRun.prototype.Search = function(ParaSearch)
 			oItem.Search(Str, Props, SearchEngine, Type);
 			ParaSearch.Reset();
 		}
+        if (Str === "^p" || Str === "^l")
+		{
+			if(this.Content[nPos].Value === undefined)
+			{
+				ParaSearch.StartPos = {Run : this, Pos : nPos};
+				if (ParaSearch.StartPos)
+						{
+							Para.AddSearchResult(
+								SearchEngine.Add(Para),
+								ParaSearch.StartPos.Run.GetParagraphContentPosFromObject(ParaSearch.StartPos.Pos),
+								this.GetParagraphContentPosFromObject(nPos + 1),
+								Type
+							);
+						}
+			}
+		}
 
 		while (ParaSearch.SearchIndex > 0 && !ParaSearch.Check(ParaSearch.SearchIndex, oItem))
 		{
@@ -1284,7 +1300,11 @@ ParaRun.prototype.Search = function(ParaSearch)
 			    }
 			    else
 			    {
-			    	if (this.Content[nPos - 1].CanStartAutoCorrect() || this.Content[nPos - 1].Value === undefined)
+			    	if (this.Content[nPos - 1].IsPunctuation() 
+			    	    || this.Content[nPos - 1].Value === undefined 
+			    	        || this.Content[nPos - 1].IsDot() 
+			    	            || this.Content[nPos - 1].IsDiacriticalSymbol()
+			    	                || this.Content[nPos - 1].Is_Number())
 			    	{
 			    		ParaSearch.StartPos = {Run : this, Pos : nPos};
 			    	}
@@ -1319,7 +1339,10 @@ ParaRun.prototype.Search = function(ParaSearch)
 					}
 					else
 					{
-						if (this.Content[nPos + 1].CanStartAutoCorrect())
+						if (this.Content[nPos + 1].IsPunctuation() 
+						    || this.Content[nPos + 1].IsDot() 
+						        || this.Content[nPos + 1].IsDiacriticalSymbol()
+						            || this.Content[nPos + 1].Is_Number())
 						{
 							if (ParaSearch.StartPos)
 							{
