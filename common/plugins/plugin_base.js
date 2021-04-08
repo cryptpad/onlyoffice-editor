@@ -445,11 +445,19 @@
 	var g_themes_map = {
 		"body" : { "background-color" : "background-toolbar" },
 		".defaultlable" : { "color" : "text-normal" },
+		".aboutlable" : { "color" : "text-normal" },
+		"a.aboutlink" : { "color" : "text-normal" },
 		".form-control" : { "color" : "text-normal", "background-color" : "background-normal", "border-color" : "border-regular-control" },
 		".form-control:focus" : { "border-color" : "border-control-focus" },
 		".btn-text-default" : { "background-color" : "background-normal", "border-color" : "border-regular-control", "color" : "text-normal" },
 		".btn-text-default:hover" : { "background-color" : "highlight-button-hover" },
-		".btn-text-default:active" : { "background-color" : "highlight-button-pressed !important" }
+		".btn-text-default:active" : { "background-color" : "highlight-button-pressed !important" },
+		".btn-text-default[disabled]:hover,\
+		.btn-text-default.disabled:hover,\
+		.btn-text-default[disabled]:active,\
+		.btn-text-default[disabled].active,\
+		.btn-text-default.disabled:active,\
+		.btn-text-default.disabled.active": {"background-color" : "background-normal !important", "color" : "text-normal"}
 	};
 
     var g_isMouseSendEnabled = false;
