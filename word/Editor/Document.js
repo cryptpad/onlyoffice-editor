@@ -24717,7 +24717,6 @@ CDocument.prototype.ChangeTextCase = function(nCaseType)
  */
 CDocument.prototype.ConvertTextToTable = function(oProps)
 {
-	this.PreConvertTextToTable();
 	if (!this.IsTextSelectionUse())
 	return;
 
@@ -24838,12 +24837,9 @@ CDocument.prototype.private_ConvertTextToTable = function(oProps)
 	{
 		for (var j = 0; j < oArrRows[i].length; j++)
 		{
-			if (oArrRows[i][j] !== "New Empty Cell")
-			{
-				var oCellContent = oTable.GetRow(i).GetCell(j).GetContent();
-				// oCellContent.ClearConten(false);
-				oCellContent.AddContent([oArrRows[i][j]]);
-			}
+			var oCellContent = oTable.GetRow(i).GetCell(j).GetContent();
+			// oCellContent.ClearConten(false);
+			oCellContent.AddContent([oArrRows[i][j]]);
 		}
 	}
 	oTable.SelectAll();
@@ -24868,7 +24864,7 @@ CDocument.prototype.PreConvertTextToTable = function(oProps)
 		var oSelectedContent = this.GetSelectedContent(true);
 		if (!oProps)
 		{
-			oProps = new Asc.CAscTextToTableProperties();
+			oProps = new Asc.CAscTextToTableProperties(this);
 			var separator = {tab : true, comma : true};
 			for (var i = 0; i < oSelectedContent.Elements.length && (separator.comma || separator.tab); i++)
 			{
@@ -24911,7 +24907,6 @@ CDocument.prototype.PreConvertTextToTable = function(oProps)
 			}
 		}
 		this.private_PreConvertTextToTable(oSelectedContent, oProps);
-		oProps.put_ColsCount(3, true);
 		return oProps;
 	}
 };

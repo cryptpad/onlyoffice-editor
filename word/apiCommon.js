@@ -2309,7 +2309,7 @@
 	* @param CDocument
 	* @constructor
 	*/
-	function CAscTextToTableProperties()
+	function CAscTextToTableProperties(CDocument)
 	{
 		/* Separator types:
 			1 - Tab
@@ -2408,11 +2408,7 @@
 	CAscTextToTableProperties.prototype.put_Separator = function(val, needRecal)
 	{
 		this.Separator = val;
-		if (needRecal)
-		{
-			this.private_recalculate();
-			return this.get_Size();
-		}
+		return this.put_SeparatorType(3, needRecal);
 	};
 	CAscTextToTableProperties.prototype.private_recalculate = function(count)
 	{
@@ -2461,7 +2457,9 @@
 					var newArrRows = [];
 					for (var i = 0; i < size.rows; i++)
 					{
-						newArrRows.push(this.ArrRows[i].splice(0, count));
+						while (this.ArrRows[i].length > count)
+							newArrRows.push(this.ArrRows[i].splice(0, count));
+						
 						newArrRows.push(this.ArrRows[i]);
 					}
 					this.put_Rows(newArrRows, false);
@@ -2474,6 +2472,7 @@
 		else
 		{
 			this.Document.PreConvertTextToTable(this);
+			this.put_DefaultRows(this.ArrRows);
 		}
 	};
 
