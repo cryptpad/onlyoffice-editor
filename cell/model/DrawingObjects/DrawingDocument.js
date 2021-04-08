@@ -1440,21 +1440,9 @@ function CDrawingDocument()
 
     this.SetDrawImagePreviewBulletForMenu = function(id, type, spApi, props, isNoCheckFonts)
     {
-        var text = AscCommon.translateManager.getValue("None");
         if (!props)
         {
             props = [];
-            var olvl = new Asc.CAscNumberingLvl(0);
-            var level = new CNumberingLvl();
-            var arr = [];
-            for (var i = 0; i < text.length; i++)
-            {
-                var otext = new CNumberingLvlTextString(text[i]);
-                arr.push(otext);
-            }
-            level.SetLvlText(arr);
-            level.FillToAscNumberingLvl(olvl);
-            props.push(olvl);
             if (type === 0)
             {
                 for (var i = 1; i < 9; i++)
@@ -1595,58 +1583,8 @@ function CDrawingDocument()
             AscCommon.g_font_loader.LoadDocumentFonts2(fonts);
             return;
         }
-        var elNone = document.getElementById(id[0]);
-        if (elNone)
-        {
-            var width_px = elNone.clientWidth;
-            var height_px = elNone.clientHeight;
 
-            var canvas = elNone.firstChild;
-            if (!canvas)
-            {
-                canvas = document.createElement('canvas');
-                canvas.style.cssText = "padding:0;margin:0;user-select:none;";
-                canvas.style.width = width_px + "px";
-                canvas.style.height = height_px + "px";
-                if (width_px > 0 && height_px > 0)
-                    elNone.appendChild(canvas);
-            }
-
-            canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
-            canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
-
-            var ctx = canvas.getContext("2d");
-            var line_distance = (height_px == 80) ? (height_px / 5 - 1) : ((height_px >> 2) + 2);
-
-            var shape = new AscFormat.CShape();
-            shape.setTxBody(AscFormat.CreateTextBodyFromString("", this, shape));
-            var par = shape.txBody.content.Content[0];
-            par.MoveCursorToStartPos();
-
-            par.Pr = new CParaPr();
-            var lvl = props[0];
-            var textPr = lvl.TextPr.Copy();
-            textPr.FontSize = ((2 * line_distance * 72 / 96) >> 0) / 2;
-
-            var parRun = new ParaRun(par);
-            parRun.Set_Pr(textPr);
-            parRun.AddText(text);
-            par.AddToContent(0, parRun);
-
-            par.Reset(0, 0, 1000, 1000, 0, 0, 1);
-            par.Recalculate_Page(0);
-
-            var bounds = par.Get_PageBounds(0);
-
-            var parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
-            var parH = (bounds.Bottom - bounds.Top);
-            var x = (width_px - (parW >> 0)) >> 1;
-            var y = (height_px >> 1) + (parH >> 0);
-
-            this.privateGetParagraphByString(lvl, 0, 0, x, y, line_distance, ctx, width_px, height_px, spApi);
-        }
-
-        for (var i = 1; i < id.length; i++)
+        for (var i = 0; i < id.length; i++)
         {
             var parent =  document.getElementById(id[i]);
 
@@ -1696,21 +1634,43 @@ function CDrawingDocument()
                 var line_distance = (height_px >> 1) - 2;
                 // TODo: подумать над тем как рассчитать сдвиг влево, эти значения подобраны эксперементально
                 var xShift;
+                var yShift;
                 switch (i) {
+                    case 0:
+                        xShift = 4;
+                        yShift = 5;
+                        break;
                     case 1:
-                    case 3:
-                        xShift = 3;
+                        xShift = 5;
+                        yShift = 4;
                         break;
                     case 2:
-                    case 8:
-                        xShift = 5;
+                        xShift = 4;
+                        yShift = 7;
                         break;
-                    default:
+                    case 3:
+                        xShift = 8;
+                        yShift = 7;
+                        break;
+                    case 4:
+                        xShift = 6;
+                        yShift = 6;
+                        break;
+                    case 5:
                         xShift = 7;
+                        yShift = 7;
+                        break;
+                    case 6:
+                        xShift = 6;
+                        yShift = 5;
+                        break;
+                    case 7:
+                        xShift = 5;
+                        yShift = 5;
                         break;
                 } 
                 var x = (width_px >> 1 ) - xShift;
-                var y = (height_px >> 1) + 5;
+                var y = (height_px >> 1) + yShift;
                 // для размеров окна 38 на 38
                 this.privateGetParagraphByString(props[i], 0, 0, x, y, line_distance, ctx, width_px, height_px, spApi);
             }

@@ -7315,21 +7315,43 @@ function CDrawingDocument()
 				var line_distance = (height_px >> 1) - 2;
 				// TODo: подумать над тем как рассчитать сдвиг влево, эти значения подобраны эксперементально
 				var xShift;
-				switch (i) {
-					case 1:
-					case 3:
-						xShift = 3;
-						break;
-					case 2:
-					case 8:
-						xShift = 5;
-						break;
-					default:
-						xShift = 7;
-						break;
-				} 
-				var x = (width_px >> 1 ) - xShift;
-				var y = (height_px >> 1) + 5;
+				var yShift;
+                switch (i) {
+                    case 1:
+                        xShift = 3;
+                        yShift = 5;
+                        break;
+                    case 2:
+                        xShift = 5;
+                        yShift = 4;
+                        break;
+                    case 3:
+                        xShift = 4;
+                        yShift = 7;
+                        break;
+                    case 4:
+                        xShift = 8;
+                        yShift = 7;
+                        break;
+                    case 5:
+                        xShift = 6;
+                        yShift = 6;
+                        break;
+                    case 6:
+                        xShift = 7;
+                        yShift = 7;
+                        break;
+                    case 7:
+                        xShift = 6;
+                        yShift = 5;
+                        break;
+                    case 8:
+                        xShift = 5;
+                        yShift = 5;
+                        break;
+                } 
+                var x = (width_px >> 1 ) - xShift;
+                var y = (height_px >> 1) + yShift;
 				// для размеров окна 38 на 38
 				this.privateGetParagraphByString(props[i], 0, 0, x, y, line_distance, ctx, width_px, height_px);
 			}
