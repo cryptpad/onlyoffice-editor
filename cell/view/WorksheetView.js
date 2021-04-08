@@ -15203,7 +15203,8 @@
 
 	WorksheetView.prototype.changeAutoFilter = function (tableName, optionType, val, opt_callback) {
 		// Проверка глобального лока
-		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit() ||
+			this.model.sheetProtection && this.model.sheetProtection.getAutoFilter() === true) {
 			if (opt_callback) {
 				opt_callback(false);
 			}
@@ -15331,6 +15332,9 @@
 	};
 
 	WorksheetView.prototype.applyAutoFilter = function (autoFilterObject) {
+		if (this.model.sheetProtection && this.model.sheetProtection.getAutoFilter() === true) {
+			return;
+		}
 		var t = this;
 		var ar = this.model.selectionRange.getLast().clone();
 		//todo filteringMode
@@ -15469,6 +15473,10 @@
 	};
 
 	WorksheetView.prototype.applyAutoFilterByType = function (autoFilterObject) {
+		if (!isReturnProps && this.model.sheetProtection && this.model.sheetProtection.getAutoFilter() === true) {
+			return;
+		}
+
 		var t = this;
 		var activeCell = this.model.selectionRange.activeCell.clone();
 		var ar = this.model.selectionRange.getLast().clone();
@@ -16610,6 +16618,10 @@
         if(!filterProp){
             return;
         }
+
+		if (!isReturnProps && this.model.sheetProtection && this.model.sheetProtection.getAutoFilter() === true) {
+			return;
+		}
 
         //get filter
         var filter, autoFilter, displayName = null;
