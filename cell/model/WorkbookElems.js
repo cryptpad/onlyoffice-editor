@@ -11138,7 +11138,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.saltValue = null;
 		this.spinCount = null;
 
-		this.sheet = false;
+		this.sheet = true;
 		this.objects = false;
 		this.scenarios = false;
 		this.formatCells = true;

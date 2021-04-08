@@ -15203,15 +15203,14 @@
 
 	WorksheetView.prototype.changeAutoFilter = function (tableName, optionType, val, opt_callback) {
 		// Проверка глобального лока
-		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit() ||
-			this.model.sheetProtection && this.model.sheetProtection.getAutoFilter() === true) {
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
 			if (opt_callback) {
 				opt_callback(false);
 			}
 			return;
 		}
 
-		if (!window['AscCommonExcel'].filteringMode) {
+		if (!window['AscCommonExcel'].filteringMode || this.model.getSheetProtection(Asc.c_oAscSheetProtectType.autoFilter)) {
 			if (opt_callback) {
 				opt_callback(false);
 			}
@@ -15332,9 +15331,10 @@
 	};
 
 	WorksheetView.prototype.applyAutoFilter = function (autoFilterObject) {
-		if (this.model.sheetProtection && this.model.sheetProtection.getAutoFilter() === true) {
+		if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.autoFilter)) {
 			return;
 		}
+
 		var t = this;
 		var ar = this.model.selectionRange.getLast().clone();
 		//todo filteringMode
@@ -15473,7 +15473,7 @@
 	};
 
 	WorksheetView.prototype.applyAutoFilterByType = function (autoFilterObject) {
-		if (!isReturnProps && this.model.sheetProtection && this.model.sheetProtection.getAutoFilter() === true) {
+		if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.autoFilter)) {
 			return;
 		}
 
@@ -16619,7 +16619,7 @@
             return;
         }
 
-		if (!isReturnProps && this.model.sheetProtection && this.model.sheetProtection.getAutoFilter() === true) {
+		if (!isReturnProps && this.model.getSheetProtection(Asc.c_oAscSheetProtectType.autoFilter)) {
 			return;
 		}
 

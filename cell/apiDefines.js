@@ -494,7 +494,25 @@ var c_oAscPopUpSelectorType = {
     icons: 3,
     format: 4
   };
-
+  
+  var c_oAscSheetProtectType = {
+    objects: 1,
+    scenarios: 2,
+    formatCells: 3,
+    formatColumns: 4,
+    formatRows: 5,
+    insertColumns: 6,
+    insertRows: 7,
+    insertHyperlinks: 8,
+    deleteColumns: 9,
+    deleteRows: 10,
+    selectLockedCells: 11,
+    sort: 12,
+    autoFilter: 13,
+    pivotTables: 14,
+    selectUnlockedCells: 15
+  };
+  
   //----------------------------------------------------------export----------------------------------------------------
   window['AscCommonExcel'] = window['AscCommonExcel'] || {};
   window['AscCommonExcel'].c_oAscDrawDepOptions = c_oAscDrawDepOptions;
@@ -796,8 +814,24 @@ var c_oAscPopUpSelectorType = {
   prot['colorScale'] = prot.colorScale;
   prot['icons'] = prot.icons;
   prot['format'] = prot.format;
-
-
-
+  
+  window['Asc']['c_oAscSheetProtectType'] = window['Asc'].c_oAscSheetProtectType = c_oAscSheetProtectType;
+  prot = c_oAscSheetProtectType;
+  prot['objects'] = prot.objects;
+  prot['scenarios'] = prot.scenarios;
+  prot['formatCells'] = prot.formatCells;
+  prot['formatColumns'] = prot.formatColumns;
+  prot['formatRows'] = prot.formatRows;
+  prot['insertColumns'] = prot.insertColumns;
+  prot['insertRows'] = prot.insertRows;
+  prot['insertHyperlinks'] = prot.insertHyperlinks;
+  prot['deleteColumns'] = prot.deleteColumns;
+  prot['deleteRows'] = prot.deleteRows;
+  prot['deleteRows'] = prot.deleteRows;
+  prot['selectLockedCells'] = prot.selectLockedCells;
+  prot['sort'] = prot.sort;
+  prot['autoFilter'] = prot.autoFilter;
+  prot['pivotTables'] = prot.pivotTables;
+  prot['selectUnlockedCells'] = prot.selectUnlockedCells;
 
 })(window);
