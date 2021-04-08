@@ -277,7 +277,9 @@
 			ErrorTop10Between: 1010,
 
 			SingleColumnOrRowError: 1020,
-			LocationOrDataRangeError: 1021
+			LocationOrDataRangeError: 1021,
+
+			ChangeOnProtectedSheet: 1030
 		}
 	};
 
@@ -2359,6 +2361,7 @@
 	prot['ErrorTop10Between']                = prot.ErrorTop10Between;
 	prot['SingleColumnOrRowError']           = prot.SingleColumnOrRowError;
 	prot['LocationOrDataRangeError']         = prot.LocationOrDataRangeError;
+	prot['ChangeOnProtectedSheet']           = prot.ChangeOnProtectedSheet;
 
 
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;

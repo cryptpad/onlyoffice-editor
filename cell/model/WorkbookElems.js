@@ -11132,7 +11132,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this.name;
 	};
 
-	/*this.sheet = true;
+	/*this.sheet = true;+
 	this.objects = false;
 	this.scenarios = false;
 	this.formatCells = true;
@@ -11140,11 +11140,11 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	this.formatRows = true;
 	this.insertColumns = true; +
 	this.insertRows = true; +
-	this.insertHyperlinks = true;
+	this.insertHyperlinks = true;+
 	this.deleteColumns = true; +
 	this.deleteRows = true; +
 	this.selectLockedCells = false;
-	this.sort = true;
+	this.sort = true;+
 	this.autoFilter = true; +
 	this.pivotTables = true;
 	this.selectUnlockedCells = false;*/
@@ -11765,6 +11765,16 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		if (r.GetBool()) {
 			this.spinCount = r.GetLong();
 		}
+	};
+
+	CProtectedRange.prototype.contains = function (c, r) {
+		//TODO  в каком виде будет хранится sqref?
+		for (var i = 0; i < this.sqref.length; i++) {
+			if (this.sqref[i].contains(c, r)) {
+				return true;
+			}
+		}
+		return false;
 	};
 
 	CProtectedRange.prototype.asc_getSqref = function () {

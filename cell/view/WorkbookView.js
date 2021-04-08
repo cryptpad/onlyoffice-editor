@@ -1668,6 +1668,10 @@
     var selectionRange = ws.model.selectionRange.clone();
 
     var activeWsModel = this.model.getActiveWs();
+    if (activeWsModel.getSheetProtection() && !activeWsModel.protectedRangesContains(activeCellRange.col, activeCellRange.row)) {
+		this.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+    	return;
+    }
     if (activeWsModel.inPivotTable(activeCellRange)) {
 		this.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
 		return;

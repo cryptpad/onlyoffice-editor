@@ -10990,7 +10990,10 @@
 						bIsUpdate = false;
                         break;
                     case "hyperlink":
-                        if (val && val.hyperlinkModel) {
+						if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.insertHyperlinks)) {
+							return;
+						}
+                    	if (val && val.hyperlinkModel) {
                             if (Asc.c_oAscHyperlinkType.RangeLink === val.asc_getType()) {
 								val.hyperlinkModel._updateLocation();
                                 if (null === val.hyperlinkModel.LocationRangeBbox && null !== val.hyperlinkModel.LocationSheet) {
@@ -15630,6 +15633,10 @@
         var t = this;
         var ar = this.model.selectionRange.getLast().clone();
 
+		if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.sort)) {
+			return;
+		}
+
 		if (!window['AscCommonExcel'].filteringMode) {
 			return;
 		}
@@ -20191,6 +20198,10 @@
 		var sortSettings = null;
 		var t = this;
 
+		if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.sort)) {
+			return;
+		}
+
 		//todo добавить локи
 
 		//перед этой функцией необходимо вызвать getSelectionSortInfo - необходимо ли расширять
@@ -20372,6 +20383,10 @@
 	};
 
 	WorksheetView.prototype.setSortProps = function(props, doNotSortRange, bCancel) {
+		if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.sort)) {
+			return;
+		}
+
 		var t = this;
 		var selection = t.model.selectionRange.getLast();
 		var activeCell = t.model.selectionRange.activeCell.clone();

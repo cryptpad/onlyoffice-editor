@@ -9772,6 +9772,17 @@
 		return res;
 	};
 
+	Worksheet.prototype.protectedRangesContains = function (c, r) {
+		if (this.aProtectedRanges && this.aProtectedRanges.length) {
+			for (var i = 0; i < this.aProtectedRanges.length; i++) {
+				if (this.aProtectedRanges[i].contains(c, r)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	};
+
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
 	var g_nCellOffsetXf = g_nCellOffsetFlag + 1;
