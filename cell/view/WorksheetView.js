@@ -13629,6 +13629,9 @@
 						this._isLockedCells(lockRange, null, onChangeWorksheetCallback);
 						break;
 					case c_oAscInsertOptions.InsertColumns:
+						if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.insertColumns)) {
+							return;
+						}
 						isCheckChangeAutoFilter = t.model.autoFilters.isRangeIntersectionSeveralTableParts(arn);
 						if (isCheckChangeAutoFilter === true) {
 							this.model.workbook.handlers.trigger("asc_onError",
@@ -13665,6 +13668,9 @@
 							onChangeWorksheetCallback);
 						break;
 					case c_oAscInsertOptions.InsertRows:
+						if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.insertRows)) {
+							return;
+						}
 						lockRange = new asc_Range(0, arn.r1, gc_nMaxCol0, arn.r2);
 						count = arn.r2 - arn.r1 + 1;
 						if (this.model.checkShiftPivotTable(lockRange, new AscCommon.CellBase(count, 0))) {
@@ -13780,6 +13786,9 @@
 						this._isLockedCells(lockRange, null, onChangeWorksheetCallback);
 						break;
 					case c_oAscDeleteOptions.DeleteColumns:
+						if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.deleteColumns)) {
+							return;
+						}
 						isCheckChangeAutoFilter = t.model.autoFilters.isActiveCellsCrossHalfFTable(checkRange,
 							c_oAscDeleteOptions.DeleteColumns, prop);
 						if (isCheckChangeAutoFilter === false) {
@@ -13816,6 +13825,9 @@
 							onChangeWorksheetCallback);
 						break;
 					case c_oAscDeleteOptions.DeleteRows:
+						if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.deleteRows)) {
+							return;
+						}
 						isCheckChangeAutoFilter =
 							t.model.autoFilters.isActiveCellsCrossHalfFTable(checkRange, c_oAscDeleteOptions.DeleteRows,
 								prop);
@@ -15034,6 +15046,9 @@
     };
 
 	WorksheetView.prototype.addAutoFilter = function (styleName, addFormatTableOptionsObj) {
+		if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.autoFilter)) {
+			return;
+		}
 		// Проверка глобального лока
 		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
 			return;
@@ -16513,6 +16528,10 @@
 	};
 
 	WorksheetView.prototype._checkAddAutoFilter = function (activeRange, styleName, oTableProps, filterByCellContextMenu) {
+		if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.autoFilter)) {
+			return;
+		}
+		
 		//write error, if not add autoFilter and return false
 		var result = true;
 		var worksheet = this.model;

@@ -11132,6 +11132,23 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this.name;
 	};
 
+	/*this.sheet = true;
+	this.objects = false;
+	this.scenarios = false;
+	this.formatCells = true;
+	this.formatColumns = true;
+	this.formatRows = true;
+	this.insertColumns = true; +
+	this.insertRows = true; +
+	this.insertHyperlinks = true;
+	this.deleteColumns = true; +
+	this.deleteRows = true; +
+	this.selectLockedCells = false;
+	this.sort = true;
+	this.autoFilter = true; +
+	this.pivotTables = true;
+	this.selectUnlockedCells = false;*/
+
 	function CSheetProtection(ws) {
 		this.algorithmName = null;
 		this.hashValue = null;
@@ -11187,6 +11204,30 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		res.selectUnlockedCells = this.selectUnlockedCells;
 
 		return res;
+	};
+
+	CSheetProtection.prototype.default = function() {
+		this.algorithmName = null;
+		this.hashValue = null;
+		this.saltValue = null;
+		this.spinCount = null;
+
+		this.sheet = true;
+		this.objects = false;
+		this.scenarios = false;
+		this.formatCells = true;
+		this.formatColumns = true;
+		this.formatRows = true;
+		this.insertColumns = true;
+		this.insertRows = true;
+		this.insertHyperlinks = true;
+		this.deleteColumns = true;
+		this.deleteRows = true;
+		this.selectLockedCells = false;
+		this.sort = true;
+		this.autoFilter = true;
+		this.pivotTables = true;
+		this.selectUnlockedCells = false;
 	};
 
 	CSheetProtection.prototype.Write_ToBinary2 = function(w) {
