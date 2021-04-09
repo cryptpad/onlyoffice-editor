@@ -59,6 +59,9 @@
     var SchemeClr = AscFormat.CSchemeColor;
     var ColorMod = AscFormat.CColorMod;
     var ColorModLst = AscFormat.CColorModifiers;
+    var StyleRef = AscFormat.StyleRef;
+    var RGBClr = AscFormat.CRGBColor;
+    var ShapeStyle = AscFormat.CShapeStyle;
 
     // consts
     var Point_type_asst = 0;
@@ -7213,7 +7216,7 @@
         styleLbls: {
           'node0': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7221,7 +7224,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7235,7 +7238,7 @@
           },
           'alignNode1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7243,7 +7246,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7257,7 +7260,7 @@
           },
           'node1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7265,7 +7268,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7279,7 +7282,7 @@
           },
           'lnNode1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7287,7 +7290,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7301,7 +7304,7 @@
           },
           'vennNode1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7314,7 +7317,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7328,7 +7331,7 @@
           },
           'node2': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7336,7 +7339,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7350,7 +7353,7 @@
           },
           'node3': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7358,7 +7361,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7372,7 +7375,7 @@
           },
           'node4': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7380,7 +7383,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7394,7 +7397,7 @@
           },
           'fgImgPlace1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7407,7 +7410,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7417,7 +7420,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7428,7 +7431,7 @@
           },
           'alignImgPlace1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7441,7 +7444,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7451,7 +7454,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7462,7 +7465,7 @@
           },
           'bgImgPlace1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7475,7 +7478,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7485,7 +7488,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7496,7 +7499,7 @@
           },
           'sibTrans2D1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7509,7 +7512,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7528,7 +7531,7 @@
           },
           'fgSibTrans2D1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7541,7 +7544,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7560,7 +7563,7 @@
           },
           'bgSibTrans2D1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7573,7 +7576,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7592,7 +7595,7 @@
           },
           'sibTrans1D1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7600,7 +7603,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7610,7 +7613,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -7621,7 +7624,7 @@
           },
           'callout': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7629,7 +7632,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7644,7 +7647,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -7655,7 +7658,7 @@
           },
           'asst0': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7663,7 +7666,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7677,7 +7680,7 @@
           },
           'asst1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7685,7 +7688,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7699,7 +7702,7 @@
           },
           'asst2': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7707,7 +7710,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7721,7 +7724,7 @@
           },
           'asst3': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7729,7 +7732,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7743,7 +7746,7 @@
           },
           'asst4': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7751,7 +7754,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7765,7 +7768,7 @@
           },
           'parChTrans2D1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7778,7 +7781,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7793,7 +7796,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7804,7 +7807,7 @@
           },
           'parChTrans2D2': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7812,7 +7815,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7822,7 +7825,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7833,7 +7836,7 @@
           },
           'parChTrans2D3': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7841,7 +7844,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7851,7 +7854,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7862,7 +7865,7 @@
           },
           'parChTrans2D4': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7870,7 +7873,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7880,7 +7883,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -7891,7 +7894,7 @@
           },
           'parChTrans1D1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7899,7 +7902,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7914,7 +7917,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -7925,7 +7928,7 @@
           },
           'parChTrans1D2': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7933,7 +7936,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7948,7 +7951,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -7959,7 +7962,7 @@
           },
           'parChTrans1D3': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7967,7 +7970,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -7982,7 +7985,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -7993,7 +7996,7 @@
           },
           'parChTrans1D4': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8001,7 +8004,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8016,7 +8019,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -8027,7 +8030,7 @@
           },
           'fgAcc1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -8040,7 +8043,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8050,7 +8053,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -8061,7 +8064,7 @@
           },
           'conFgAcc1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -8074,7 +8077,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8084,7 +8087,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -8095,7 +8098,7 @@
           },
           'alignAcc1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -8108,7 +8111,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8118,7 +8121,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -8129,7 +8132,7 @@
           },
           'trAlignAcc1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -8142,7 +8145,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8152,7 +8155,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -8163,7 +8166,7 @@
           },
           'bgAcc1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -8176,7 +8179,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8186,7 +8189,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -8197,7 +8200,7 @@
           },
           'solidFgAcc1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -8205,7 +8208,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8215,7 +8218,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -8226,7 +8229,7 @@
           },
           'solidAlignAcc1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -8234,7 +8237,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8244,7 +8247,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -8255,7 +8258,7 @@
           },
           'solidBgAcc1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -8263,7 +8266,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8273,7 +8276,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -8284,7 +8287,7 @@
           },
           'fgAccFollowNode1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8301,7 +8304,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8320,7 +8323,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -8331,7 +8334,7 @@
           },
           'alignAccFollowNode1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8348,7 +8351,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8367,7 +8370,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -8378,7 +8381,7 @@
           },
           'bgAccFollowNode1': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8395,7 +8398,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8414,7 +8417,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -8425,7 +8428,7 @@
           },
           'fgAcc0': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -8438,7 +8441,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8448,7 +8451,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -8459,7 +8462,7 @@
           },
           'fgAcc2': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -8472,7 +8475,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8482,7 +8485,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -8493,7 +8496,7 @@
           },
           'fgAcc3': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -8506,7 +8509,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8516,7 +8519,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -8527,7 +8530,7 @@
           },
           'fgAcc4': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -8540,7 +8543,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8550,7 +8553,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -8561,7 +8564,7 @@
           },
           'bgShp': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8574,7 +8577,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8584,7 +8587,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -8595,7 +8598,7 @@
           },
           'dkBgShp': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8608,7 +8611,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8618,7 +8621,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -8629,7 +8632,7 @@
           },
           'trBgShp': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8646,7 +8649,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8656,7 +8659,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -8667,7 +8670,7 @@
           },
           'fgShp': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 0,
@@ -8680,7 +8683,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -8690,7 +8693,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -8701,7 +8704,7 @@
           },
           'revTx': {
             fillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 10,
@@ -8714,7 +8717,7 @@
               }
             },
             linClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -8729,7 +8732,7 @@
             effectClrLst: {},
             txLinClrLst: {},
             txFillClrLst: {
-              meth: 1,
+              meth: ClrLst_meth_repeat,
               color: {
                 schemeClr: {
                   id: 6,
@@ -8739,6 +8742,2143 @@
             txEffectClrLst: {}
           },
         }
+      },
+      styleDef: {
+        titles: [''],
+        descs: [''],
+        catLst: [{
+          pri: 10100,
+          type: 'simple',
+        }],
+        scene3d: {
+          camera: {
+            prst: Camera_prst_orthographicFront,
+          },
+          lightRig: {
+            dir: LightRig_dir_t,
+            rig: LightRig_rig_threePt,
+          },
+        },
+        styleLbls: {
+          'node0': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+                schemeClr: {
+                  id: 10,
+                }
+              },
+            },
+          },
+          'alignNode1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+                schemeClr: {
+                  id: 10,
+                }
+              },
+            },
+          },
+          'node1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+                schemeClr: {
+                  id: 10,
+                }
+              },
+            },
+          },
+          'lnNode1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+                schemeClr: {
+                  id: 10,
+                }
+              },
+            },
+          },
+          'vennNode1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+                schemeClr: {
+                  id: 10,
+                }
+              },
+            },
+          },
+          'node2': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+                schemeClr: {
+                  id: 10,
+                }
+              },
+            },
+          },
+          'node3': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+                schemeClr: {
+                  id: 10,
+                }
+              },
+            },
+          },
+          'node4': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+                schemeClr: {
+                  id: 10,
+                }
+              },
+            },
+          },
+          'fgImgPlace1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'alignImgPlace1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'bgImgPlace1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'sibTrans2D1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+                schemeClr: {
+                  id: 10,
+                }
+              },
+            },
+          },
+          'fgSibTrans2D1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+                schemeClr: {
+                  id: 10,
+                }
+              },
+            },
+          },
+          'bgSibTrans2D1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+                schemeClr: {
+                  id: 10,
+                }
+              },
+            },
+          },
+          'sibTrans1D1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'callout': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'asst0': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+                schemeClr: {
+                  id: 10,
+                }
+              },
+            },
+          },
+          'asst1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+                schemeClr: {
+                  id: 10,
+                }
+              },
+            },
+          },
+          'asst2': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+                schemeClr: {
+                  id: 10,
+                }
+              },
+            },
+          },
+          'asst3': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+                schemeClr: {
+                  id: 10,
+                }
+              },
+            },
+          },
+          'asst4': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+                schemeClr: {
+                  id: 10,
+                }
+              },
+            },
+          },
+          'parChTrans2D1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+                schemeClr: {
+                  id: 10,
+                }
+              },
+            },
+          },
+          'parChTrans2D2': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+                schemeClr: {
+                  id: 10,
+                }
+              },
+            },
+          },
+          'parChTrans2D3': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+                schemeClr: {
+                  id: 10,
+                }
+              },
+            },
+          },
+          'parChTrans2D4': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+                schemeClr: {
+                  id: 10,
+                }
+              },
+            },
+          },
+          'parChTrans1D1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'parChTrans1D2': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'parChTrans1D3': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'parChTrans1D4': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'fgAcc1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'conFgAcc1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'alignAcc1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'trAlignAcc1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'bgAcc1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'solidFgAcc1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'solidAlignAcc1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'solidBgAcc1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'fgAccFollowNode1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'alignAccFollowNode1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'bgAccFollowNode1': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'fgAcc0': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'fgAcc2': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'fgAcc3': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'fgAcc4': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'bgShp': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'dkBgShp': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'trBgShp': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'fgShp': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+          'revTx': {
+            scene3d: {
+              camera: {
+                prst: Camera_prst_orthographicFront,
+              },
+              lightRig: {
+                dir: LightRig_dir_t,
+                rig: LightRig_rig_threePt,
+              },
+            },
+            sp3d: {},
+            txPr: {},
+            style: {
+              lnRef: {
+                idx: '2',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: '1',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: '0',
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 'minor',
+              },
+            },
+          },
+        },
       }
     };
 
@@ -8837,6 +10977,21 @@
       }
     }
 
+    function createUniClr(clr, mods) {
+      var uniClr = new CUniColor();
+      uniClr.setColor(clr);
+      if (mods) {
+        uniClr.setMods(new ColorModLst());
+        mods.forEach(function (modInfo) {
+          var mod = new ColorMod();
+          mod.setName(modInfo.name);
+          mod.setValue(modInfo.value);
+          uniClr.mods.addMod(mod);
+        })
+      }
+      return uniClr;
+    }
+
     function fillColorsDef(smartArt, objectInfo) {
       objectInfo.colorsDef.titles.forEach(function (e) {
         smartArt.getColorsDef().addToLstTitle(0, createTitle(e));
@@ -8856,22 +11011,107 @@
           var clrLstInfo = objectInfo.colorsDef.styleLbls[Lbl][clrLstName];
           if (clrLstInfo.color) {
             createColorLstInLbl(styleLbl, clrLstName, clrLstInfo.meth);
-            var uniColor = new CUniColor();
-            uniColor.setColor(new SchemeClr());
-            uniColor.color.setId(clrLstInfo.color.id);
-            if (clrLstInfo.color.mods) {
-              uniColor.setMods(new ColorModLst());
-              clrLstInfo.color.mods.forEach(function (modInfo) {
-                var mod = new ColorMod();
-                mod.setName(modInfo.name);
-                mod.setVal(modInfo.val);
-                uniColor.mods.addMod(mod);
-              })
-            }
-            addToClrLst(styleLbl, uniColor, clrLstName); // TODO: fix unicolor;
+            var schemeClr = new SchemeClr();
+            schemeClr.setId(clrLstInfo.color.id);
+            addToClrLst(styleLbl, createUniClr(schemeClr, clrLstInfo.color.mods), clrLstName); // TODO: fix unicolor;
           }
         });
         smartArt.getColorsDef().addToLstStyleLbl(0, styleLbl);
+      });
+    }
+
+    function createScene3d(camera, lightRig) {
+      var scene3d = new Scene3d();
+      scene3d.setCamera(camera);
+      scene3d.setLightRig(lightRig);
+      return scene3d;
+    }
+
+    function createCamera(prst) {
+      var camera = new Camera();
+      camera.setPrst(prst);
+      return camera;
+    }
+
+    function createLightRig(dir, rig) {
+      var lightRig = new LightRig();
+      lightRig.setDir(dir);
+      lightRig.setRig(rig);
+      return lightRig;
+    }
+
+    function createStyleDefStyleLbl(name) {
+      var styleLbl = new StyleDefStyleLbl();
+      styleLbl.setName(name);
+      return styleLbl;
+    }
+
+    function fillScene3dInObject(obj, scene3dInfo) {
+      obj.setScene3d(createScene3d(
+        createCamera(scene3dInfo.camera.prst),
+        createLightRig(scene3dInfo.lightRig.dir, scene3dInfo.lightRig.rig)
+      ));
+    }
+
+    function createStyleRef(idx, clr) {
+      var styleRef = new StyleRef();
+      styleRef.setIdx(idx);
+      styleRef.setColor(clr);
+      return styleRef;
+    }
+
+
+    function fillQuickStyle(smartArt, objectInfo) {
+      objectInfo.styleDef.titles.forEach(function (e) {
+        smartArt.getStyleDef().addToLstTitle(0, createTitle(e));
+      });
+
+      objectInfo.styleDef.descs.forEach(function (e) {
+        smartArt.getStyleDef().addToLstDesc(0, createDesc(e));
+      });
+
+      var scene3dInfo = objectInfo.styleDef.scene3d;
+      fillScene3dInObject(smartArt, scene3dInfo);
+
+      var catArr = objectInfo.styleDef.catLst.map(function (e) {
+        return createCat(e.pri, e.type);
+      });
+      smartArt.getStyleDef().setCatLst(createCatLst(catArr));
+
+      var styleLblsName = Object.keys(objectInfo.styleDef.styleLbls);
+      styleLblsName.forEach(function (Lbl) {
+        var LblInfo = objectInfo.styleDef.styleLbls[Lbl];
+        var styleLbl = createStyleDefStyleLbl(Lbl);
+
+        var scene3dInfo = LblInfo.scene3d;
+        fillScene3dInObject(styleLbl, scene3dInfo);
+
+        styleLbl.setStyle(new ShapeStyle());
+
+        var rgbClr = new RGBClr();
+        var clrLnInfo = LblInfo.lnRef.scrgbClr;
+        rgbClr.setColor(clrLnInfo.r, clrLnInfo.g, clrLnInfo.b);
+        var lnClr = createUniClr(rgbClr); // TODO: fix read from binary and fix set Parent to Child
+        styleLbl.style.setLnRef(createStyleRef(LblInfo.lnRef.idx, lnClr));
+
+        rgbClr = new RGBClr();
+        var clrFillInfo = LblInfo.fillRef.scrgbClr;
+        rgbClr.setColor(clrFillInfo.r, clrFillInfo.g, clrFillInfo.b);
+        var fillClr = createUniClr(rgbClr);
+        styleLbl.style.setLnRef(createStyleRef(LblInfo.fillRef.idx, fillClr));
+
+        rgbClr = new RGBClr();
+        var clrEffectInfo = LblInfo.effectRef.scrgbClr;
+        rgbClr.setColor(clrEffectInfo.r, clrEffectInfo.g, clrEffectInfo.b);
+        rgbClr.setIdx();
+        var effectClr = createUniClr(rgbClr);
+        styleLbl.style.setLnRef(createStyleRef(LblInfo.effectRef.idx, effectClr));
+
+        var schemeClr = new SchemeClr();
+        schemeClr.setId(LblInfo.fontRef.schemeClr.id);
+        var fontClr = createUniClr(schemeClr);
+        styleLbl.style.setFontRef(createStyleRef(LblInfo.fontRef.idx, fontClr));
+        smartArt.getStyleDef().addToLstStyleLbl(0, styleLbl);
       });
     }
 
@@ -8879,14 +11119,16 @@
     function createSmartArt(type) {
       var smartart = new SmartArt();
       smartart.setColorsDef(new ColorsDef());
+      smartart.setStyleDef(new StyleDef());
       switch (type) {
         case 'horizontalListOfPicture':
           fillColorsDef(smartart, horizontalListOfPicture);
+          fillQuickStyle(smartart, horizontalListOfPicture);
           break;
       }
       return smartart;
     }
+
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].createSmartArt = createSmartArt;
-    window['AscFormat'].SmartArt = SmartArt;
   })(window)
