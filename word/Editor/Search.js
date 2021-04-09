@@ -84,7 +84,7 @@ CDocumentSearch.prototype.Reset = function()
 };
 CDocumentSearch.prototype.Compare = function(Text, Props)
 {
-	return (this.Text === Text && this.MatchCase === Props.MatchCase);
+	return (this.Text === Text && this.MatchCase === Props.MatchCase && this.Word === Props.Word);
 };
 CDocumentSearch.prototype.Clear = function()
 {
@@ -237,6 +237,7 @@ CDocumentSearch.prototype.Set = function(sText, oProps)
 {
 	this.Text      = sText;
 	this.MatchCase = oProps ? oProps.MatchCase : false;
+	this.Word      = oProps ? oProps.Word : false;
 
 	this.private_CalculatePrefix();
 };
@@ -293,7 +294,7 @@ CDocumentSearch.prototype.GetPrefix = function(nIndex)
 CDocument.prototype.Search = function(sStr, oProps, bDraw)
 {
 	//var StartTime = new Date().getTime();
-
+    oProps.Word = true; // True только искомое слово, False любое совпадение искомого слова
 	if (this.SearchEngine.Compare(sStr, oProps))
 		return this.SearchEngine;
 
@@ -1241,108 +1242,109 @@ Paragraph.prototype.RemoveSearchResult = function(Id)
 ParaRun.prototype.Search = function(ParaSearch)
 {
 	this.SearchMarks = [];
-
+    
 	var Para         = ParaSearch.Paragraph;
 	var Str          = ParaSearch.Str;
 	var Props        = ParaSearch.Props;
 	var SearchEngine = ParaSearch.SearchEngine;
 	var Type         = ParaSearch.Type;
-
-	for (var nPos = 0, nContentLen = this.Content.length; nPos < nContentLen; ++nPos)
-	{
-		var oItem = this.Content[nPos];
-		if (para_Drawing === oItem.Type)
+    
+    if (Props.Word === true)
+    {
+		for (var nPos = 0, nContentLen = this.Content.length; nPos < nContentLen; ++nPos)
 		{
-			oItem.Search(Str, Props, SearchEngine, Type);
-			ParaSearch.Reset();
-		}
-        if (Str === "^p" || Str === "^l")
-		{
-			if(this.Content[nPos].Value === undefined)
+			var oItem = this.Content[nPos];
+			if (para_Drawing === oItem.Type)
 			{
-				ParaSearch.StartPos = {Run : this, Pos : nPos};
-				if (ParaSearch.StartPos)
-						{
-							Para.AddSearchResult(
-								SearchEngine.Add(Para),
-								ParaSearch.StartPos.Run.GetParagraphContentPosFromObject(ParaSearch.StartPos.Pos),
-								this.GetParagraphContentPosFromObject(nPos + 1),
-								Type
-							);
-						}
-			}
-		}
-
-		while (ParaSearch.SearchIndex > 0 && !ParaSearch.Check(ParaSearch.SearchIndex, oItem))
-		{
-			ParaSearch.SearchIndex = ParaSearch.GetPrefix(ParaSearch.SearchIndex - 1);
-
-			if (0 === ParaSearch.SearchIndex)
-			{
+				oItem.Search(Str, Props, SearchEngine, Type);
 				ParaSearch.Reset();
-				break;
 			}
-			else if (ParaSearch.Check(ParaSearch.SearchIndex, oItem))
+
+			if (Str === "^p")
 			{
-				ParaSearch.StartPos = ParaSearch.StartPosBuf.pop();
-				break;
-			}
-		}
-
-		if (ParaSearch.Check(ParaSearch.SearchIndex, oItem))
-		{		
-		    var bCheck = true;
-			if (0 === ParaSearch.SearchIndex)
-			{    
-			    if (nPos === 0)
-			    {
-                    ParaSearch.StartPos = {Run : this, Pos : nPos};
-			    }
-			    else
-			    {
-			    	if (this.Content[nPos - 1].IsPunctuation() 
-			    	    || this.Content[nPos - 1].Value === undefined 
-			    	        || this.Content[nPos - 1].IsDot() 
-			    	            || this.Content[nPos - 1].IsDiacriticalSymbol()
-			    	                || this.Content[nPos - 1].Is_Number())
-			    	{
-			    		ParaSearch.StartPos = {Run : this, Pos : nPos};
-			    	}
-			    	else 
-			    	{
-			    		bCheck = false;
-			    	}
-			    }
-			}
-			if (bCheck)
-			{
-				if (1 === ParaSearch.GetPrefix(ParaSearch.SearchIndex))
-					ParaSearch.StartPosBuf.push({Run : this, Pos : nPos});
-
-				ParaSearch.SearchIndex++;
-
-				if (ParaSearch.SearchIndex === Str.length)
+				if(this.Content[nPos].Value === undefined && nPos === this.Content.length - 1)
 				{
-					if (nPos === nContentLen - 1)
-					{
-						if (ParaSearch.StartPos)
-						{
-							Para.AddSearchResult(
-								SearchEngine.Add(Para),
-								ParaSearch.StartPos.Run.GetParagraphContentPosFromObject(ParaSearch.StartPos.Pos),
-								this.GetParagraphContentPosFromObject(nPos + 1),
-								Type
-							);
-						}
+					ParaSearch.StartPos = {Run : this, Pos : nPos};
+					if (ParaSearch.StartPos)
+							{
+								Para.AddSearchResult(
+									SearchEngine.Add(Para),
+									ParaSearch.StartPos.Run.GetParagraphContentPosFromObject(ParaSearch.StartPos.Pos),
+									this.GetParagraphContentPosFromObject(nPos + 1),
+									Type
+								);
+							}
+				}
+			}
 
+			if (Str === "^l")
+			{
+				if(this.Content[nPos].Value === undefined && nPos !== this.Content.length - 1)
+				{
+					ParaSearch.StartPos = {Run : this, Pos : nPos};
+					if (ParaSearch.StartPos)
+							{
+								Para.AddSearchResult(
+									SearchEngine.Add(Para),
+									ParaSearch.StartPos.Run.GetParagraphContentPosFromObject(ParaSearch.StartPos.Pos),
+									this.GetParagraphContentPosFromObject(nPos + 1),
+									Type
+								);
+							}
+				}
+			}
+
+
+			while (ParaSearch.SearchIndex > 0 && !ParaSearch.Check(ParaSearch.SearchIndex, oItem))
+			{
+				ParaSearch.SearchIndex = ParaSearch.GetPrefix(ParaSearch.SearchIndex - 1);
+
+				if (0 === ParaSearch.SearchIndex)
+				{
 					ParaSearch.Reset();
+					break;
+				}
+				else if (ParaSearch.Check(ParaSearch.SearchIndex, oItem))
+				{
+					ParaSearch.StartPos = ParaSearch.StartPosBuf.pop();
+					break;
+				}
+			}
+
+			if (ParaSearch.Check(ParaSearch.SearchIndex, oItem))
+			{		
+				var bCheck = true;
+				if (0 === ParaSearch.SearchIndex)
+				{    
+					if (nPos === 0)
+					{
+						ParaSearch.StartPos = {Run : this, Pos : nPos};
 					}
 					else
 					{
-						if (this.Content[nPos + 1].IsPunctuation() 
-						    || this.Content[nPos + 1].IsDot() 
-						        || this.Content[nPos + 1].IsDiacriticalSymbol()
-						            || this.Content[nPos + 1].Is_Number())
+						if (this.Content[nPos - 1].IsPunctuation() 
+							|| this.Content[nPos - 1].Value === undefined  
+								|| this.Content[nPos - 1].IsDiacriticalSymbol()
+									|| this.Content[nPos - 1].Is_Number())
+						{
+							ParaSearch.StartPos = {Run : this, Pos : nPos};
+						}
+						else 
+						{
+							bCheck = false;
+						}
+					}
+				}
+				if (bCheck)
+				{
+					if (1 === ParaSearch.GetPrefix(ParaSearch.SearchIndex))
+						ParaSearch.StartPosBuf.push({Run : this, Pos : nPos});
+
+					ParaSearch.SearchIndex++;
+
+					if (ParaSearch.SearchIndex === Str.length)
+					{
+						if (nPos === nContentLen - 1)
 						{
 							if (ParaSearch.StartPos)
 							{
@@ -1353,18 +1355,92 @@ ParaRun.prototype.Search = function(ParaSearch)
 									Type
 								);
 							}
-						}
+
 						ParaSearch.Reset();
+						}
+						else
+						{
+							if (this.Content[nPos + 1].IsPunctuation()  
+								|| this.Content[nPos + 1].IsDiacriticalSymbol()
+									|| this.Content[nPos + 1].Is_Number())
+							{
+								if (ParaSearch.StartPos)
+								{
+									Para.AddSearchResult(
+										SearchEngine.Add(Para),
+										ParaSearch.StartPos.Run.GetParagraphContentPosFromObject(ParaSearch.StartPos.Pos),
+										this.GetParagraphContentPosFromObject(nPos + 1),
+										Type
+									);
+								}
+							}
+							ParaSearch.Reset();
+						}
 					}
 				}
+				else
+				{
+					ParaSearch.Reset();
+				}
+
 			}
-			else
+		}
+    }
+    else
+    {
+		for (var nPos = 0, nContentLen = this.Content.length; nPos < nContentLen; ++nPos)
+		{
+			var oItem = this.Content[nPos];
+
+			if (para_Drawing === oItem.Type)
 			{
+				oItem.Search(Str, Props, SearchEngine, Type);
 				ParaSearch.Reset();
 			}
-			
+
+			while (ParaSearch.SearchIndex > 0 && !ParaSearch.Check(ParaSearch.SearchIndex, oItem))
+			{
+				ParaSearch.SearchIndex = ParaSearch.GetPrefix(ParaSearch.SearchIndex - 1);
+
+				if (0 === ParaSearch.SearchIndex)
+				{
+					ParaSearch.Reset();
+					break;
+				}
+				else if (ParaSearch.Check(ParaSearch.SearchIndex, oItem))
+				{
+					ParaSearch.StartPos = ParaSearch.StartPosBuf.pop();
+					break;
+				}
+			}
+
+			if (ParaSearch.Check(ParaSearch.SearchIndex, oItem))
+			{
+				if (0 === ParaSearch.SearchIndex)
+					ParaSearch.StartPos = {Run : this, Pos : nPos};
+
+				if (1 === ParaSearch.GetPrefix(ParaSearch.SearchIndex))
+					ParaSearch.StartPosBuf.push({Run : this, Pos : nPos});
+
+				ParaSearch.SearchIndex++;
+
+				if (ParaSearch.SearchIndex === Str.length)
+				{
+					if (ParaSearch.StartPos)
+					{
+						Para.AddSearchResult(
+							SearchEngine.Add(Para),
+							ParaSearch.StartPos.Run.GetParagraphContentPosFromObject(ParaSearch.StartPos.Pos),
+							this.GetParagraphContentPosFromObject(nPos + 1),
+							Type
+						);
+					}
+
+					ParaSearch.Reset();
+				}
+			}
 		}
-	}
+    }
 };
 ParaRun.prototype.AddSearchResult = function(oSearchResult, isStart, oContentPos, nDepth)
 {
