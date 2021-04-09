@@ -294,7 +294,7 @@ CDocumentSearch.prototype.GetPrefix = function(nIndex)
 CDocument.prototype.Search = function(sStr, oProps, bDraw)
 {
 	//var StartTime = new Date().getTime();
-    oProps.Word = true; // True только искомое слово, False любое совпадение искомого слова
+    oProps.Word = true; // True только искомое слово, False любое совпадение искомого слова 
 	if (this.SearchEngine.Compare(sStr, oProps))
 		return this.SearchEngine;
 
