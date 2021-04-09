@@ -6389,6 +6389,8 @@ function onApiShowRevisionsChange(data) {
 
             var revisionChange = {
                 userName: userName,
+                userId: item.get_UserId(),
+                lock: (item.get_LockUserId()!==null),
                 date: (item.get_DateTime() == '' ? new Date().getMilliseconds() : item.get_DateTime()),
                 goto: (item.get_MoveType() == Asc.c_oAscRevisionsMove.MoveTo || item.get_MoveType() == Asc.c_oAscRevisionsMove.MoveFrom),
                 commonChanges: commonChanges,
