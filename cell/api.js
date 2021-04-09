@@ -3172,6 +3172,11 @@ var editor;
     return ws.objectRender.getSelectedDrawingObjectsCount();
   };
 
+  spreadsheet_api.prototype.SetDrawImagePreviewBulletForMenu = function(id, type)
+  {
+    if (this.wbModel.DrawingDocument)
+      this.wbModel.DrawingDocument.SetDrawImagePreviewBulletForMenu(id, type, this);
+  };
 
   spreadsheet_api.prototype.asc_canEditCrop = function()
   {
@@ -5706,6 +5711,7 @@ var editor;
   prot["asc_DistributeSelectedDrawingObjectHor"] = prot.asc_DistributeSelectedDrawingObjectHor;
   prot["asc_DistributeSelectedDrawingObjectVer"] = prot.asc_DistributeSelectedDrawingObjectVer;
   prot["asc_getSelectedDrawingObjectsCount"] = prot.asc_getSelectedDrawingObjectsCount;
+  prot["SetDrawImagePreviewBulletForMenu"] = prot.SetDrawImagePreviewBulletForMenu;
   prot["asc_getChartPreviews"] = prot.asc_getChartPreviews;
   prot["asc_getTextArtPreviews"] = prot.asc_getTextArtPreviews;
   prot['asc_getPropertyEditorShapes'] = prot.asc_getPropertyEditorShapes;
