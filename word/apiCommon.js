@@ -2324,7 +2324,7 @@
 		this.Rows			= 0;
 		this.Cols			= 0;
 		this.ArrRows		= [];
-		this.DefaultArrRows = [];
+		this.Default		= {ArrRows : [], rows : 0, cols : 0};
 		this.AutoFitType	= 1;
 		this.FitValue		= 0;
 		this.SeparatorType	= 2;
@@ -2335,7 +2335,7 @@
 	{
 		return {rows : this.Rows, cols : this.Cols};
 	};
-	CAscTextToTableProperties.prototype.put_ColsCount = function(count, needRecal)
+	CAscTextToTableProperties.prototype.put_ColsCount = function(count, needRecal, isDefault)
 	{
 		var colscount = (count > 1) ? count : 1;
 		if (needRecal)
@@ -2345,6 +2345,9 @@
 		}
 		else
 			this.Cols = colscount;
+
+		if (isDefault)
+			this.Default.cols = colscount;
 	};
 	CAscTextToTableProperties.prototype.get_Rows = function()
 	{
@@ -2364,13 +2367,14 @@
 	};
 	CAscTextToTableProperties.prototype.get_DefaultRows = function()
 	{
-		return this.DefaultArrRows;
+		return this.Default.ArrRows;
 	};
 	CAscTextToTableProperties.prototype.put_DefaultRows = function(newRows)
 	{
-		this.DefaultArrRows = newRows.map(function (item) {
+		this.Default.ArrRows = newRows.map(function (item) {
 			return [...item]
 		});
+		this.Default.rows = newRows.length;
 	};
 	CAscTextToTableProperties.prototype.get_AutoFitType = function()
 	{
@@ -2413,7 +2417,13 @@
 	CAscTextToTableProperties.prototype.private_recalculate = function(count)
 	{
 		this.put_Rows(this.get_DefaultRows(), false);
-		var size = this.get_Size();
+		// size надо тоже сделать ещё дефолтный вариант, для восставноления
+		// и обновлять его надо тоже при каждом пересчете
+		var size =
+		{
+			rows : this.Default.rows,
+			cols : this.Default.cols
+		};
 		if (count)
 		{
 			if (size.cols < count){
@@ -2422,24 +2432,31 @@
 					// если в плюс и сепаратор абзац (то мы просто заполняем все ячейки по порядку абзацами до конца строки)
 					var newArrRows = [];
 					var newArrCells = [];
-					for (var i = 0; i < size.Rows; i++)
+					var tmpArr = [];
+					for (var i = 0; i < size.rows; i++)
 					{
-						for (var j = 0; j < this.ArrRows[i].length; j++)
-						{
-							if (newArrCells.length >= count)
-							{
-								newArrRows.push(newArrCells);
-								newArrCells = []
-							}
-							newArrCells.push(this.ArrRows[i][j]);
-						}
+						tmpArr.push(...this.ArrRows[i]);
 					}
+					var end = Math.max(tmpArr.length, count);
+					for (var i = 0; i < end; i ++)
+					{
+						if (newArrCells.length >= count)
+						{
+							newArrRows.push(newArrCells);
+							newArrCells = [];
+						}
+						newArrCells.push((tmpArr[i]) ? tmpArr[i] : new Paragraph(this.Document.DrawingDocument, this.Document));
+					}
+
+					if (newArrCells.length)
+						newArrRows.push(newArrCells);
+
 					this.put_Rows(newArrRows, false);
 				}
 				else
 				{
 					// если в плюс и сепаратор не абзац, то создаём просто пустые ячейки
-					for (var i = 0; i < size.Rows; i++)
+					for (var i = 0; i < size.rows; i++)
 					{
 						for (var j = 0; j < (count - size.cols); j++)
 						{

@@ -25018,7 +25018,7 @@ CDocument.prototype.private_PreConvertTextToTable = function(oSelectedContent, o
 	}
 
 	oProps.put_Rows(oArrRows, !oProps.get_DefaultRows().length);
-	oProps.put_ColsCount(oCellsCount);
+	oProps.put_ColsCount(oCellsCount, false, true);
 	oProps.put_RowsCount(oArrRows.length);
 };
 /**
