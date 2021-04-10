@@ -62,9 +62,15 @@
         return false;
     };
 
+    var TIME_NODE_STATE_IDLE = 0;
+    var TIME_NODE_STATE_ACTIVE = 1;
+    var TIME_NODE_STATE_FROZEN = 2;
+    var TIME_NODE_STATE_FINISHED = 3;
+
+
     function CTimeNodeBase() {
         CBaseAnimObject.call(this);
-        this.isActive = false;
+        this.state = TIME_NODE_STATE_IDLE;
         this.timingGraph = null;
     }
     InitClass(CTimeNodeBase, CBaseAnimObject, AscDFH.historyitem_type_Unknown);
@@ -93,7 +99,7 @@
         }
         return oCurParent;
     };
-    CTimeNodeBase.prototype.getChildenTimeNodes = function() {
+    CTimeNodeBase.prototype.getChildrenTimeNodes = function() {
         if(!this.isTimingContainer()) {
             return [];
         }
@@ -106,7 +112,7 @@
         this.timingGraph = null;
         if(this.isTimingContainer()) {
             this.timingGraph = new CTimingGraph(this);
-            var aChildren = this.getChildenTimeNodes();
+            var aChildren = this.getChildrenTimeNodes();
             var nChild;
             if(this.isSeq()) {
                 if(aChildren.length > 0) {
@@ -133,9 +139,8 @@
             }
         }
     };
-
     CTimeNodeBase.prototype.getChildNodeIdx = function(oChildNode) {
-        var aChildNodes = this.getChildenTimeNodes();
+        var aChildNodes = this.getChildrenTimeNodes();
         var nRet = -1;
         for(var nIdx = 0; nIdx < aChildNodes.length; ++nIdx) {
             if(aChildNodes[nIdx] === oChildNode) {
@@ -144,8 +149,39 @@
         }
         return nRet;
     };
+    CTimeNodeBase.prototype.onIdle = function(oChild) {
+        //TODO
+    };
+    CTimeNodeBase.prototype.onActivated = function(oChild) {
+        //TODO
+    };
+    CTimeNodeBase.prototype.onFrozen = function(oChild) {
+        //TODO
+    };
+    CTimeNodeBase.prototype.onFinished = function(oChild) {
+        //TODO
+    };
+    CTimeNodeBase.prototype.isIdle = function() {
+        return this.state === TIME_NODE_STATE_IDLE;
+    };
+    CTimeNodeBase.prototype.isActive = function() {
+        return this.state === TIME_NODE_STATE_ACTIVE;
+    };
+    CTimeNodeBase.prototype.isFrozen = function() {
+        return this.state === TIME_NODE_STATE_FROZEN;
+    };
+    CTimeNodeBase.prototype.isFinished = function() {
+        return this.state === TIME_NODE_STATE_FINISHED;
+    };
 
+    function CAnimationTime() {
+        this.val = null;
+    }
+    CAnimationTime.prototype.Indefinite = Number.MAX_SAFE_INTEGER;
+    CAnimationTime.prototype.Unresolved = Number.POSITIVE_INFINITY;
+    CAnimationTime.prototype.plusAssign = function (oTime) {
 
+    };
 
     function CEmptyObject() {
         CBaseAnimObject.call(this);
@@ -3919,77 +3955,135 @@
         this.eventsQueue = [];
     }
 
-    function CAnimationScheduler(player) {
-        this.player = player;
-    }
-
-    function CAnimationTimer(player) {
-        this.player = player;
-        this.curTime = null;
-        this.animFrameId = null;
-    }
-
-    CAnimationTimer.prototype.start = function() {
-        if(this.animFrameId === null) {
-            this.animFrameId = __nextFrame();
-        }
-    };
-    CAnimationTimer.prototype.stop = function() {
-        if(this.animFrameId !== null) {
-            __cancelFrame(this.animFrameId);
-            this.animFrameId = null;
-        }
-    };
-    CAnimationTimer.prototype.onFrame = function() {
-        this.curTime = (new Date()).getTime();
-        this.player.onFrame();
-        this.animFrameId = __nextFrame();
-    };
-    CAnimationTimer.prototype.getTime = function() {
-        return this.curTime;
-    };
-
     var PLAYER_STATE_IDLE = 0;
     var PLAYER_STATE_PLAYING = 1;
     var PLAYER_STATE_PAUSING = 2;
     var PLAYER_STATE_DONE = 3;
 
+
+    function CAnimationTimer(player) {
+        this.player = player;
+        this.elapsed = null;
+        this.lastTime = null;
+
+
+        this.lastFire = null;
+    }
+    CAnimationTimer.prototype.start = function () {
+        if(this.isStarted()) {
+            return;
+        }
+        if(this.isStopped()) {
+            this.elapsed = 0;
+        }
+        this.lastTime = (new Date()).getTime();
+    };
+    CAnimationTimer.prototype.stop = function () {
+        if(this.isStopped()) {
+            return;
+        }
+        this.elapsed = null;
+        this.lastTime = null;
+
+        this.lastFire = null;
+        console.log("Timer is stopped");
+    };
+    CAnimationTimer.prototype.pause = function () {
+        if(!this.isStarted()) {
+            return;
+        }
+        this.lastTime = null;
+
+
+        this.lastFire = null;
+        console.log("Timer is paused " + this.elapsed);
+    };
+    CAnimationTimer.prototype.getElapsed = function () {
+        if(this.isStopped()) {
+            return 0;
+        }
+        return this.elapsed;
+    };
+    CAnimationTimer.prototype.isPaused = function () {
+        if(this.elapsed !== null && this.lastTime === null) {
+            return true;
+        }
+        return false;
+    };
+    CAnimationTimer.prototype.isStopped = function () {
+        if(this.elapsed === null && this.lastTime === null) {
+            return true;
+        }
+        return false;
+    };
+    CAnimationTimer.prototype.isStarted = function () {
+        return !this.isPaused() && !this.isStopped();
+    };
+    CAnimationTimer.prototype.onFrame = function () {
+        if(this.isStarted()) {
+            var nCurTime = (new Date()).getTime();
+            var nDiff = nCurTime - this.lastTime;
+            this.elapsed += nDiff;
+            this.lastTime = nCurTime;
+            if(this.player) {
+                this.player.onElapsed(this.elapsed);
+            }
+            //for test
+            if(this.lastFire === null || this.elapsed - this.lastFire >= 5000) {
+                this.lastFire = this.elapsed;
+                console.log("Timer is ON " + this.elapsed)
+            }
+        }
+    };
+
+
+    CAnimationTimer.prototype.frameCallback = function () {
+        var oThis = this;
+        __nextFrame(function () {
+            oThis.onFrame();
+            oThis.frameCallback();
+        })
+    };
+    CAnimationTimer.prototype.runOwnTimer = function () {
+        this.start();
+        this.frameCallback();
+    };
+
     function CAnimationPlayer(aTimings) {
         this.timings = aTimings;
         this.eventProcessor = new CEventsProcessor(this);
-        this.scheduler = new CAnimationScheduler(this);
-        this.state = PLAYER_STATE_IDLE;
+        this.timer = new CAnimationTimer(this);
     }
 
     CAnimationPlayer.prototype.start = function() {
-
+        this.timer.start();
+        //TODO: nodes start
     };
-
     CAnimationPlayer.prototype.stop = function() {
-
+        this.timer.stop();
+        //TODO: reset nodes states
     };
-
     CAnimationPlayer.prototype.pause = function() {
-
-    };
-    CAnimationPlayer.prototype.resume = function() {
-
+        this.timer.pause();
     };
     CAnimationPlayer.prototype.onFrame = function() {
+        this.timer.onFrame();
+    };
+    CAnimationPlayer.prototype.isStarted = function() {
+        return this.timer.isStarted();
+    };
+    CAnimationPlayer.prototype.isPaused = function() {
+        return this.timer.isPaused();
+    };
+    CAnimationPlayer.prototype.isStopped = function() {
+        return this.timer.isStopped();
+    };
+    CAnimationPlayer.prototype.onElapsed = function(nElapsed) {
 
     };
-    CAnimationPlayer.prototype.isPlaying = function() {
-        return this.state === PLAYER_STATE_PLAYING;
-    };
-    CAnimationPlayer.prototype.isPausing = function() {
-        return this.state === PLAYER_STATE_PAUSING;
-    };
-    CAnimationPlayer.prototype.isDone = function() {
-        return this.state === PLAYER_STATE_DONE;
-    };
 
 
-    function CTimingGraphEdge(oBegin, oEnd, aConditions) {
+    function CTimingGraphEdge(oBegin, oEnd) {
         this.begin = oBegin;
         this.end = oEnd;
         this.conditions = [];
@@ -4023,4 +4117,5 @@
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CTiming = CTiming;
     window['AscFormat'].CTimingGraph = CTimingGraph;
+    window['AscFormat'].CAnimationTimer = CAnimationTimer;
 })(window);
