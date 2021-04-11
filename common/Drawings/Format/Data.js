@@ -62,6 +62,7 @@
     var StyleRef = AscFormat.StyleRef;
     var RGBClr = AscFormat.CRGBColor;
     var ShapeStyle = AscFormat.CShapeStyle;
+    var FontRef = AscFormat.FontRef;
 
     // consts
     var Point_type_asst = 0;
@@ -1013,7 +1014,7 @@
       var nInsertIdx = Math.min(this.list.length, Math.max(0, nIdx));
       oHistory.Add(new CChangeContent(this, AscDFH.historyitem_CCommonDataListAdd, nInsertIdx, [oPr], true));
       this.list.splice(nInsertIdx, 0, oPr);
-      this.setParentToChild(oPr);
+      // this.setParentToChild(oPr); TODO: fix set Parent
     };
 
     CCommonDataList.prototype.removeFromLst = function (nIdx) {
@@ -6048,7 +6049,7 @@
     StyleDefStyleLbl.prototype.setStyle = function (oPr) {
       oHistory.Add(new CChangeObject(this, AscDFH.historyitem_StyleDefStyleLblStyle, this.getStyle(), oPr));
       this.style = oPr;
-      this.setParentToChild(oPr);
+      // this.setParentToChild(oPr); TODO: fix set Parent
     }
 
     StyleDefStyleLbl.prototype.setTxPr = function (oPr) {
@@ -8798,7 +8799,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
                 schemeClr: {
                   id: 10,
                 }
@@ -8843,7 +8844,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
                 schemeClr: {
                   id: 10,
                 }
@@ -8888,7 +8889,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
                 schemeClr: {
                   id: 10,
                 }
@@ -8933,7 +8934,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
                 schemeClr: {
                   id: 10,
                 }
@@ -8978,7 +8979,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
                 schemeClr: {
                   id: 10,
                 }
@@ -9023,7 +9024,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
                 schemeClr: {
                   id: 10,
                 }
@@ -9068,7 +9069,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
                 schemeClr: {
                   id: 10,
                 }
@@ -9113,7 +9114,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
                 schemeClr: {
                   id: 10,
                 }
@@ -9158,7 +9159,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -9200,7 +9201,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -9242,7 +9243,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -9284,7 +9285,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
                 schemeClr: {
                   id: 10,
                 }
@@ -9329,7 +9330,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
                 schemeClr: {
                   id: 10,
                 }
@@ -9374,7 +9375,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
                 schemeClr: {
                   id: 10,
                 }
@@ -9419,7 +9420,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -9461,7 +9462,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -9503,7 +9504,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
                 schemeClr: {
                   id: 10,
                 }
@@ -9548,7 +9549,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
                 schemeClr: {
                   id: 10,
                 }
@@ -9593,7 +9594,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
                 schemeClr: {
                   id: 10,
                 }
@@ -9638,7 +9639,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
                 schemeClr: {
                   id: 10,
                 }
@@ -9683,7 +9684,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
                 schemeClr: {
                   id: 10,
                 }
@@ -9728,7 +9729,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
                 schemeClr: {
                   id: 10,
                 }
@@ -9773,7 +9774,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
                 schemeClr: {
                   id: 10,
                 }
@@ -9818,7 +9819,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
                 schemeClr: {
                   id: 10,
                 }
@@ -9863,7 +9864,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
                 schemeClr: {
                   id: 10,
                 }
@@ -9908,7 +9909,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -9950,7 +9951,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -9992,7 +9993,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10034,7 +10035,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10076,7 +10077,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10118,7 +10119,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10160,7 +10161,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10202,7 +10203,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10244,7 +10245,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10286,7 +10287,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10328,7 +10329,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10370,7 +10371,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10412,7 +10413,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10454,7 +10455,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10496,7 +10497,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10538,7 +10539,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10580,7 +10581,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10622,7 +10623,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10664,7 +10665,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10706,7 +10707,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10748,7 +10749,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10790,7 +10791,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10832,7 +10833,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -10874,7 +10875,7 @@
                 },
               },
               fontRef: {
-                idx: 'minor',
+                idx: 1,
               },
             },
           },
@@ -11053,8 +11054,13 @@
       ));
     }
 
-    function createStyleRef(idx, clr) {
-      var styleRef = new StyleRef();
+    function createStyleRef(idx, clr, isFontRef) {
+      var styleRef;
+      if (isFontRef) {
+        styleRef = new FontRef();
+      } else {
+        styleRef = new StyleRef();
+      }
       styleRef.setIdx(idx);
       styleRef.setColor(clr);
       return styleRef;
@@ -11071,7 +11077,7 @@
       });
 
       var scene3dInfo = objectInfo.styleDef.scene3d;
-      fillScene3dInObject(smartArt, scene3dInfo);
+      fillScene3dInObject(smartArt.getStyleDef(), scene3dInfo);
 
       var catArr = objectInfo.styleDef.catLst.map(function (e) {
         return createCat(e.pri, e.type);
@@ -11089,28 +11095,31 @@
         styleLbl.setStyle(new ShapeStyle());
 
         var rgbClr = new RGBClr();
-        var clrLnInfo = LblInfo.lnRef.scrgbClr;
+        var clrLnInfo = LblInfo.style.lnRef.scrgbClr;
         rgbClr.setColor(clrLnInfo.r, clrLnInfo.g, clrLnInfo.b);
         var lnClr = createUniClr(rgbClr); // TODO: fix read from binary and fix set Parent to Child
-        styleLbl.style.setLnRef(createStyleRef(LblInfo.lnRef.idx, lnClr));
+        styleLbl.style.setLnRef(createStyleRef(LblInfo.style.lnRef.idx, lnClr));
 
         rgbClr = new RGBClr();
-        var clrFillInfo = LblInfo.fillRef.scrgbClr;
+        var clrFillInfo = LblInfo.style.fillRef.scrgbClr;
         rgbClr.setColor(clrFillInfo.r, clrFillInfo.g, clrFillInfo.b);
         var fillClr = createUniClr(rgbClr);
-        styleLbl.style.setLnRef(createStyleRef(LblInfo.fillRef.idx, fillClr));
+        styleLbl.style.setFillRef(createStyleRef(LblInfo.style.fillRef.idx, fillClr));
 
         rgbClr = new RGBClr();
-        var clrEffectInfo = LblInfo.effectRef.scrgbClr;
+        var clrEffectInfo = LblInfo.style.effectRef.scrgbClr;
         rgbClr.setColor(clrEffectInfo.r, clrEffectInfo.g, clrEffectInfo.b);
-        rgbClr.setIdx();
         var effectClr = createUniClr(rgbClr);
-        styleLbl.style.setLnRef(createStyleRef(LblInfo.effectRef.idx, effectClr));
+        styleLbl.style.setEffectRef(createStyleRef(LblInfo.style.effectRef.idx, effectClr));
 
-        var schemeClr = new SchemeClr();
-        schemeClr.setId(LblInfo.fontRef.schemeClr.id);
-        var fontClr = createUniClr(schemeClr);
-        styleLbl.style.setFontRef(createStyleRef(LblInfo.fontRef.idx, fontClr));
+        if (LblInfo.style.fontRef.schemeClr) {
+          var schemeClr = new SchemeClr();
+          schemeClr.setId(LblInfo.style.fontRef.schemeClr.id);
+          var fontClr = createUniClr(schemeClr);
+          styleLbl.style.setFontRef(createStyleRef(LblInfo.style.fontRef.idx, fontClr, true));
+        } else {
+          styleLbl.style.setFontRef(createStyleRef(LblInfo.style.fontRef.idx, null, true));
+        }
         smartArt.getStyleDef().addToLstStyleLbl(0, styleLbl);
       });
     }
@@ -11122,7 +11131,6 @@
       smartart.setStyleDef(new StyleDef());
       switch (type) {
         case 'horizontalListOfPicture':
-          fillColorsDef(smartart, horizontalListOfPicture);
           fillQuickStyle(smartart, horizontalListOfPicture);
           break;
       }
