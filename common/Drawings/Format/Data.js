@@ -1002,7 +1002,6 @@
     drawingContentChanges[AscDFH.historyitem_CCommonDataListRemove] = function (oClass) {
       return oClass.list;
     };
-
     function CCommonDataList() {
       CBaseFormatObject.call(this);
       this.list = [];
@@ -1014,7 +1013,7 @@
       var nInsertIdx = Math.min(this.list.length, Math.max(0, nIdx));
       oHistory.Add(new CChangeContent(this, AscDFH.historyitem_CCommonDataListAdd, nInsertIdx, [oPr], true));
       this.list.splice(nInsertIdx, 0, oPr);
-      // this.setParentToChild(oPr); TODO: fix set Parent
+      this.setParentToChild(oPr);
     };
 
     CCommonDataList.prototype.removeFromLst = function (nIdx) {
@@ -5498,6 +5497,59 @@
       }
     }
 
+    function CChangesDrawingClrLst(Class, Type, Pos, Items, isAdd) {
+      CChangeContent.call(this, Class, Type, Pos, Items, isAdd);
+    }
+
+    CChangesDrawingClrLst.prototype.private_WriteItem = function (writer) {
+      writer.WriteBool(this.IsAdd());
+      writer.WriteLong(this.Pos);
+      AscDFH.CChangesBaseContentChange.prototype.WriteToBinary.call(this, writer);
+    }
+
+    CChangesDrawingClrLst.prototype.private_ReadItem = function (reader) {
+      reader.Seek2(reader.GetCurPos() - 4);
+      this.Type = reader.GetLong();
+      this.Add = reader.GetBool();
+      this.Pos = reader.GetLong();
+      AscDFH.CChangesBaseContentChange.prototype.ReadFromBinary.call(this, reader);
+    }
+
+    changesFactory[AscDFH.historyitem_CCommonDataClrListAdd] = CChangesDrawingClrLst;
+    changesFactory[AscDFH.historyitem_CCommonDataClrListRemove] = CChangesDrawingClrLst;
+    drawingContentChanges[AscDFH.historyitem_CCommonDataClrListAdd] = function (oClass) {
+      return oClass.list;
+    };
+    drawingContentChanges[AscDFH.historyitem_CCommonDataClrListRemove] = function (oClass) {
+      return oClass.list;
+    };
+    function CCommonDataClrList() {
+      CBaseFormatObject.call(this);
+      this.list = [];
+    }
+
+    InitClass(CCommonDataClrList, CBaseFormatObject, AscDFH.historyitem_type_CCommonDataClrList);
+
+    CCommonDataClrList.prototype.addToLst = function (nIdx, oPr) {
+      var nInsertIdx = Math.min(this.list.length, Math.max(0, nIdx));
+      oHistory.Add(new CChangesDrawingClrLst(this, AscDFH.historyitem_CCommonDataListAdd, nInsertIdx, [oPr], true));
+      this.list.splice(nInsertIdx, 0, oPr);
+    };
+
+    CCommonDataClrList.prototype.removeFromLst = function (nIdx) {
+      if (nIdx > -1 && nIdx < this.list.length) {
+        this.list[nIdx].setParent(null);
+        oHistory.Add(new CChangesDrawingClrLst(this, AscDFH.historyitem_CCommonDataListRemove, nIdx, [this.list[nIdx]], false));
+        this.list.splice(nIdx, 1);
+      }
+    };
+
+    CCommonDataClrList.prototype.fillObject = function (oCopy, oIdMap) {
+      for (var nIdx = 0; nIdx < this.list.length; ++nIdx) {
+        oCopy.addToLst(nIdx, this.list[nIdx].createDuplicate(oIdMap));
+      }
+    };
+
 
     changesFactory[AscDFH.historyitem_ClrLstHueDir] = CChangeLong;
     changesFactory[AscDFH.historyitem_ClrLstMeth] = CChangeLong;
@@ -5507,14 +5559,13 @@
     drawingsChangesMap[AscDFH.historyitem_ClrLstMeth] = function (oClass, value) {
       oClass.meth = value;
     };
-
     function ClrLst() {
-      CCommonDataList.call(this);
+      CCommonDataClrList.call(this);
       this.hueDir = null;
       this.meth = null;
     }
 
-    InitClass(ClrLst, CCommonDataList, AscDFH.historyitem_type_ClrLst);
+    InitClass(ClrLst, CCommonDataClrList, AscDFH.historyitem_type_ClrLst);
 
     ClrLst.prototype.setHueDir = function (pr) {
       oHistory.Add(new CChangeLong(this, AscDFH.historyitem_ClrLstHueDir, this.getHueDir(), pr));
@@ -8775,7 +8826,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -8783,7 +8834,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -8791,7 +8842,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -8820,7 +8871,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -8828,7 +8879,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -8836,7 +8887,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -8865,7 +8916,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -8873,7 +8924,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -8881,7 +8932,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -8910,7 +8961,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -8918,7 +8969,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -8926,7 +8977,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -8955,7 +9006,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -8963,7 +9014,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -8971,7 +9022,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9000,7 +9051,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9008,7 +9059,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9016,7 +9067,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9045,7 +9096,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9053,7 +9104,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9061,7 +9112,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9090,7 +9141,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9098,7 +9149,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9106,7 +9157,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9135,7 +9186,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9143,7 +9194,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9151,7 +9202,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9177,7 +9228,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9185,7 +9236,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9193,7 +9244,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9219,7 +9270,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9227,7 +9278,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9235,7 +9286,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9261,7 +9312,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9269,7 +9320,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9277,7 +9328,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9306,7 +9357,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9314,7 +9365,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9322,7 +9373,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9351,7 +9402,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9359,7 +9410,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9367,7 +9418,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9396,7 +9447,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9404,7 +9455,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9412,7 +9463,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9438,7 +9489,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9446,7 +9497,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9454,7 +9505,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9480,7 +9531,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9488,7 +9539,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9496,7 +9547,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9525,7 +9576,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9533,7 +9584,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9541,7 +9592,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9570,7 +9621,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9578,7 +9629,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9586,7 +9637,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9615,7 +9666,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9623,7 +9674,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9631,7 +9682,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9660,7 +9711,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9668,7 +9719,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9676,7 +9727,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9705,7 +9756,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9713,7 +9764,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9721,7 +9772,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9750,7 +9801,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9758,7 +9809,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9766,7 +9817,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9795,7 +9846,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9803,7 +9854,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9811,7 +9862,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9840,7 +9891,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9848,7 +9899,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9856,7 +9907,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9885,7 +9936,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9893,7 +9944,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9901,7 +9952,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9927,7 +9978,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9935,7 +9986,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9943,7 +9994,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9969,7 +10020,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9977,7 +10028,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -9985,7 +10036,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10011,7 +10062,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10019,7 +10070,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10027,7 +10078,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10053,7 +10104,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10061,7 +10112,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10069,7 +10120,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10095,7 +10146,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10103,7 +10154,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10111,7 +10162,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10137,7 +10188,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10145,7 +10196,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10153,7 +10204,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10179,7 +10230,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10187,7 +10238,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10195,7 +10246,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10221,7 +10272,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10229,7 +10280,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10237,7 +10288,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10263,7 +10314,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10271,7 +10322,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10279,7 +10330,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10305,7 +10356,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10313,7 +10364,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10321,7 +10372,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10347,7 +10398,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10355,7 +10406,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10363,7 +10414,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10389,7 +10440,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10397,7 +10448,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10405,7 +10456,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10431,7 +10482,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10439,7 +10490,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10447,7 +10498,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10473,7 +10524,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10481,7 +10532,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10489,7 +10540,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10515,7 +10566,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10523,7 +10574,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10531,7 +10582,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10557,7 +10608,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10565,7 +10616,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10573,7 +10624,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10599,7 +10650,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10607,7 +10658,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10615,7 +10666,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10641,7 +10692,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10649,7 +10700,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10657,7 +10708,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10683,7 +10734,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10691,7 +10742,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10699,7 +10750,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10725,7 +10776,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10733,7 +10784,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10741,7 +10792,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10767,7 +10818,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10775,7 +10826,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10783,7 +10834,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10809,7 +10860,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10817,7 +10868,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10825,7 +10876,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10851,7 +10902,7 @@
             txPr: {},
             style: {
               lnRef: {
-                idx: '2',
+                idx: 2,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10859,7 +10910,7 @@
                 },
               },
               fillRef: {
-                idx: '1',
+                idx: 1,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10867,7 +10918,7 @@
                 },
               },
               effectRef: {
-                idx: '0',
+                idx: 0,
                 scrgbClr: {
                   b: 0,
                   g: 0,
@@ -10925,7 +10976,7 @@
           styleLbl.setFillClrLst(clrLst);
           break;
         case 'linClrLst':
-          clrLst = LinClrLst();
+          clrLst = new LinClrLst();
           clrLst.setMeth(meth);
           styleLbl.setLinClrLst(clrLst);
           break;
@@ -10982,13 +11033,14 @@
       var uniClr = new CUniColor();
       uniClr.setColor(clr);
       if (mods) {
-        uniClr.setMods(new ColorModLst());
+        var modLst = new ColorModLst();
         mods.forEach(function (modInfo) {
           var mod = new ColorMod();
           mod.setName(modInfo.name);
-          mod.setValue(modInfo.value);
-          uniClr.mods.addMod(mod);
+          mod.setVal(modInfo.val);
+          modLst.addMod(mod);
         })
+        uniClr.setMods(modLst);
       }
       return uniClr;
     }
@@ -11013,8 +11065,8 @@
           if (clrLstInfo.color) {
             createColorLstInLbl(styleLbl, clrLstName, clrLstInfo.meth);
             var schemeClr = new SchemeClr();
-            schemeClr.setId(clrLstInfo.color.id);
-            addToClrLst(styleLbl, createUniClr(schemeClr, clrLstInfo.color.mods), clrLstName); // TODO: fix unicolor;
+            schemeClr.setId(clrLstInfo.color.schemeClr.id);
+            addToClrLst(styleLbl, createUniClr(schemeClr, clrLstInfo.color.schemeClr.mods), clrLstName);
           }
         });
         smartArt.getColorsDef().addToLstStyleLbl(0, styleLbl);
@@ -11097,7 +11149,7 @@
         var rgbClr = new RGBClr();
         var clrLnInfo = LblInfo.style.lnRef.scrgbClr;
         rgbClr.setColor(clrLnInfo.r, clrLnInfo.g, clrLnInfo.b);
-        var lnClr = createUniClr(rgbClr); // TODO: fix read from binary and fix set Parent to Child
+        var lnClr = createUniClr(rgbClr);
         styleLbl.style.setLnRef(createStyleRef(LblInfo.style.lnRef.idx, lnClr));
 
         rgbClr = new RGBClr();
@@ -11131,9 +11183,11 @@
       smartart.setStyleDef(new StyleDef());
       switch (type) {
         case 'horizontalListOfPicture':
+          fillColorsDef(smartart, horizontalListOfPicture);
           fillQuickStyle(smartart, horizontalListOfPicture);
           break;
       }
+      
       return smartart;
     }
 
