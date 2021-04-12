@@ -175,12 +175,216 @@
     };
 
     function CAnimationTime() {
-        this.val = null;
+        this.val = 0;
     }
     CAnimationTime.prototype.Indefinite = Number.MAX_SAFE_INTEGER;
     CAnimationTime.prototype.Unresolved = Number.POSITIVE_INFINITY;
+    CAnimationTime.prototype.Unspecified = CAnimationTime.prototype.Unresolved;
+    CAnimationTime.prototype.getVal = function() {
+        return this.val;
+    };
+    CAnimationTime.prototype.setVal = function(val) {
+        this.val = val;
+        return this;
+    };
+    CAnimationTime.prototype.copy = function() {
+        var oCopy = new CAnimationTime();
+        oCopy.setVal(this.val);
+        return oCopy;
+    };
+    CAnimationTime.prototype.isIndefinite = function() {
+        return this.val === this.Indefinite;
+    };
+    CAnimationTime.prototype.isUnresolved = function() {
+        return this.val === this.Unresolved;
+    };
+    CAnimationTime.prototype.isUnspecified = function() {
+        return this.val === this.Unspecified;
+    };
+    CAnimationTime.prototype.isDefinite = function() {
+        return !this.isIndefinite() && !this.isUnresolved();
+    };
+    CAnimationTime.prototype.isResolved = function() {
+        return this.val !== this.isUnresolved();
+    };
+    CAnimationTime.prototype.isSpecified = function() {
+        return this.val !== this.isUnspecified();
+    };
+    CAnimationTime.prototype.isUnspecified = function() {
+        return this.val === this.isUnspecified();
+    };
+    CAnimationTime.prototype.less = function(oTime) {
+        return this.val < oTime.val;
+    };
+    CAnimationTime.prototype.lessOrEquals = function(oTime) {
+        return this.val <= oTime.val;
+    };
+    CAnimationTime.prototype.equals = function(oTime) {
+        return this.val === oTime.val;
+    };
+    CAnimationTime.prototype.greater = function(oTime) {
+        return this.val > oTime.val;
+    };
+    CAnimationTime.prototype.greaterOrEquals = function(oTime) {
+        return this.val >= oTime.val;
+    };
+    CAnimationTime.prototype.notEquals = function(oTime) {
+        return !this.equals(oTime);
+    };
     CAnimationTime.prototype.plusAssign = function (oTime) {
+        if(this.isUnresolved()) {
+            return this;
+        }
+        else if(oTime.isUnresolved()) {
+            this.val = this.Unresolved;
+        }
+        else if(this.isIndefinite()) {
+            return this;
+        }
+        else if(oTime.isIndefinite()) {
+            this.val = this.Indefinite;
+        }
+        else {
+            this.val += oTime.getVal();
+        }
+        return this;
+    };
+    CAnimationTime.prototype.minusAssign = function (oTime) {
+        if(this.isUnresolved()) {
+            return this;
+        }
+        else if(oTime.isUnresolved()) {
+            this.val = this.Unresolved;
+        }
+        else if(this.isIndefinite()) {
+            return this;
+        }
+        else if(oTime.isIndefinite()) {
+            this.val = this.Indefinite;
+        }
+        else {
+            this.val -= oTime.getVal();
+        }
+        return this;
+    };
+    CAnimationTime.prototype.multiplyAssign = function (oTime) {
+        if(!(oTime instanceof CAnimationTime)) {
+            var oTimeObject = new CAnimationTime();
+            oTimeObject.setVal(oTime);
+            return this.multiplyAssign(oTimeObject);
+        }
+        if(this.isUnresolved()) {
+            return this;
+        }
+        else if(oTime.isUnresolved()) {
+            this.val = this.Unresolved;
+        }
+        else if(this.isIndefinite()) {
+            if(oTime.getVal() != 0) {
+                return this;
+            }
+            else {
+                this.val = 0;
+            }
+        }
+        else if(oTime.isIndefinite()) {
+            if(this.val != 0) {
+                this.val = this.Indefinite;
+            } else {
+                return this;
+            }
+        }
+        else {
+            this.val *= oTime.getVal();
+        }
+        return this;
+    };
+    CAnimationTime.prototype.divideAssign = function (nCount) {
+        this.val /= nCount;
+        return this;
+    };
+    CAnimationTime.prototype.unaryMinus = function () {
+        this.val = -this.val;
+        return this;
+    };
+    CAnimationTime.prototype.plus = function (oTime) {
+        return this.copy().plusAssign(oTime);
+    };
+    CAnimationTime.prototype.minus = function (oTime) {
+        return this.copy().minusAssign(oTime);
+    };
+    CAnimationTime.prototype.multiply = function (oTime) {
+        return this.copy().multiplyAssign(oTime);
+    };
+    CAnimationTime.prototype.divide = function (oTime) {
+        return this.copy().divideAssign(oTime.getVal());
+    };
 
+    function CAnimationTimeInterval(begin, end) {
+        this.begin = begin ? begin : new CAnimationTime();
+        this.end = end ? end : new CAnimationTime();
+    }
+    CAnimationTimeInterval.prototype.isValid = function() {
+        return this.begin.isDefinite() && this.begin.lessOrEquals(this.end);
+    };
+    CAnimationTimeInterval.prototype.isValidChild = function(oParent) {
+        return this.begin.less(oParent.end) && this.end.greaterOrEquals(oParent.begin);
+    };
+    CAnimationTimeInterval.prototype.isZeroDuration = function() {
+        return this.isValid() && this.begin.equals(this.end);
+    };
+    CAnimationTimeInterval.prototype.isDefinite = function() {
+        return this.isValid() && this.end.isDefinite();
+    };
+    CAnimationTimeInterval.prototype.translate = function(oTime) {
+        this.begin.plusAssign(oTime);
+        this.end.plusAssign(oTime);
+    };
+    CAnimationTimeInterval.prototype.translateToBegin = function() {
+        this.end.minusAssign(this.begin);
+        this.begin.setVal(0);
+    };
+    CAnimationTimeInterval.prototype.containsTime = function(oTime) {
+        return (this.begin.equals(oTime) || oTime.greater(this.begin) && oTime.less(this.end));
+    };
+    CAnimationTimeInterval.prototype.containsInterval = function(oInterval) {
+        return this.containsTime(oInterval.begin) && (this.containsTime(oInterval.end) || this.end.equals(oInterval.end));
+    };
+    CAnimationTimeInterval.prototype.contains = function(oObject) {
+        if(oObject instanceof CAnimationTime) {
+            return this.containsTime(oObject);
+        }
+        if(oObject instanceof CAnimationTimeInterval) {
+            return this.containsInterval(oObject);
+        }
+        return false;
+    };
+    CAnimationTimeInterval.prototype.before = function(oTime) {
+        return this.end.less(oTime);
+    };
+    CAnimationTimeInterval.prototype.after = function(oTime) {
+        return this.begin.greater(oTime);
+    };
+    CAnimationTimeInterval.prototype.overlaps = function(oTime1, oTime2) {
+        return oTime1.lessOrEquals(this.end) && oTime2.greaterOrEquals(this.begin);
+    };
+    CAnimationTimeInterval.prototype.equals = function(oInterval) {
+        return this.begin.equals(oInterval.begin) && this.end.equals(oInterval.end);
+    };
+    CAnimationTimeInterval.prototype.notEquals = function(oInterval) {
+        return !this.equals(oInterval);
+    };
+    CAnimationTimeInterval.prototype.less = function(oInterval) {
+        return this.begin.lessOrEquals(oInterval.begin) && this.end.less(oInterval.end);
+    };
+    CAnimationTimeInterval.prototype.greater = function(oInterval) {
+        return oInterval.less(this);
+    };
+    CAnimationTimeInterval.prototype.lessOrEquals = function(oInterval) {
+        return !(oInterval.less(this));
+    };
+    CAnimationTimeInterval.prototype.greaterOrEquals = function(oInterval) {
+        return !(this.less(oInterval));
     };
 
     function CEmptyObject() {
