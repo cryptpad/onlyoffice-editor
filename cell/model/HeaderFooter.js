@@ -667,9 +667,17 @@
 		return this.fragments;
 	};
 	CHeaderFooterEditorSection.prototype.drawText = function () {
+		var t = this;
 		this.canvasObj.drawingCtx.clear();
+
+		var drawBackground = function () {
+			t.canvasObj.drawingCtx.setFillStyle(new AscCommon.CColor(255, 255, 255))
+				.fillRect(0, 0, t.canvasObj.canvas.width, t.canvasObj.canvas.height);
+		};
+
 		if(!this.fragments) {
 			//возможно стоит очищать канву в данном случае
+			drawBackground();
 			return;
 		}
 
@@ -688,10 +696,11 @@
 
 		var cellEditorWidth = width - 2 * wb.defaults.worksheetView.cells.padding + 1;
 		ws.stringRender.setString(this.fragments, cellFlags);
-
 		var textMetrics = ws.stringRender._measureChars(cellEditorWidth);
 		var parentHeight = document.getElementById(this.canvasObj.idParent).clientHeight;
-		canvas.height = textMetrics.height > parentHeight ? textMetrics.height : parentHeight;
+		canvas.height = textMetrics.height > parentHeight ? textMetrics.height : AscCommon.AscBrowser.convertToRetinaValue(parentHeight + 1, true);
+
+		drawBackground();
 		ws.stringRender.render(drawingCtx, wb.defaults.worksheetView.cells.padding, 0, cellEditorWidth, ws.settings.activeCellBorderColor);
 	};
 	CHeaderFooterEditorSection.prototype.getElem = function () {
@@ -767,7 +776,7 @@
 		window.Asc.g_header_footer_editor = this;
 
 		this.parentWidth = AscCommon.AscBrowser.convertToRetinaValue(width, true);
-		this.parentHeight = 90;
+		this.parentHeight = AscCommon.AscBrowser.convertToRetinaValue(90, true);
 		this.pageType = undefined === pageType ? asc.c_oAscHeaderFooterType.odd : pageType;//odd, even, first
 		this.canvas = [];
 		this.sections = [];
@@ -802,6 +811,7 @@
 			obj.idParent = id;
 			obj.id = id + "-canvas";
 			obj.width = t.parentWidth;
+			obj.height = t.parentHeight;
 			obj.canvas = document.createElement('canvas');
 			obj.canvas.id = obj.id;
 			//TODO перепроверить код ниже. оставляю как было раньше
@@ -821,7 +831,7 @@
 			return obj;
 		};
 
-		this.parentHeight = document.getElementById(idArr[0]).clientHeight;
+		this.parentHeight = AscCommon.AscBrowser.convertToRetinaValue(document.getElementById(idArr[0]).clientHeight + 1, true);
 
 		this.canvas[c_nPortionLeftHeader] = createAndPushCanvasObj(idArr[0]);
 		this.canvas[c_nPortionCenterHeader] = createAndPushCanvasObj(idArr[1]);
