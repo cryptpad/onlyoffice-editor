@@ -15200,6 +15200,17 @@
             this.tx = oTxRefs;
             this.cat = oCatRefs;
             this.info = oFirstSeriesRefs.getInfo();
+            if((this.info & SERIES_FLAG_HOR_VALUE) &&
+                (this.info & SERIES_FLAG_VERT_VALUE)) {
+                if(nStartIdx < this.seriesRefs.length - 1) {
+                    if(nCompareResult === SERIES_COMPARE_RESULT_ABOVE) {
+                        this.info = (this.info & ~(SERIES_FLAG_VERT_VALUE));
+                    }
+                    else if(nCompareResult === SERIES_COMPARE_RESULT_LEFT) {
+                        this.info = (this.info & ~(SERIES_FLAG_HOR_VALUE));
+                    }
+                }
+            }
             return true;
         }
         return false;
