@@ -9783,6 +9783,21 @@
 		return false;
 	};
 
+	Worksheet.prototype.getProtectedRanges = function (needClone) {
+		var protectedRanges = this.aProtectedRanges;
+		var res = null;
+		if (needClone && protectedRanges && protectedRanges.length) {
+			res = [];
+			for (var i = 0; i < protectedRanges.length; i++) {
+				var id = protectedRanges[i].Id;
+				var cloneRange = protectedRanges[i].clone();
+				cloneRange.Id = id;
+				res.push(cloneRange);
+			}
+		}
+		return !res ? protectedRanges : res;
+	};
+
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
 	var g_nCellOffsetXf = g_nCellOffsetFlag + 1;

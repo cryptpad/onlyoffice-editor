@@ -11677,6 +11677,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 
 		this._ws = ws;
 
+		this.Id = AscCommon.g_oIdCounter.Get_NewId();
+
 		return this;
 	}
 

@@ -5107,11 +5107,19 @@ var editor;
 	};
 
 	spreadsheet_api.prototype.asc_setCF = function (arr, deleteIdArr, presetId) {
+		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+			return false;
+		}
+
 		var ws = this.wb.getWorksheet();
 		ws.setCF(arr, deleteIdArr, presetId);
 	};
 
 	spreadsheet_api.prototype.asc_clearCF = function (type, id) {
+		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+			return false;
+		}
+
 		var rules = this.wbModel.getRulesByType(type, id);
 		if (rules && rules.length) {
 			var ws = this.wb.getWorksheet();
@@ -5269,6 +5277,30 @@ var editor;
       }
     }
   };
+
+	spreadsheet_api.prototype.asc_getProtectedRanges = function() {
+		var ws = this.wbModel.getActiveWs();
+		if (ws) {
+			return ws.getProtectedRanges(true);
+		}
+	};
+
+	spreadsheet_api.prototype.asc_setProtectedRanges = function (arr, deleteIdArr) {
+		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+			return false;
+		}
+
+		var ws = this.wb.getWorksheet();
+		ws.setProtectedRanges(arr, deleteIdArr);
+	};
+
+	spreadsheet_api.prototype.asc_clearCF = function (type, id) {
+		var rules = this.wbModel.getRulesByType(type, id);
+		if (rules && rules.length) {
+			var ws = this.wb.getWorksheet();
+			ws.deleteCF(rules, type);
+		}
+	};
 
   spreadsheet_api.prototype.asc_setSkin = function (theme) {
     AscCommon.updateGlobalSkin(theme);
