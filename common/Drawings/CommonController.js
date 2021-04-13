@@ -8763,6 +8763,37 @@ DrawingObjectsController.prototype =
         this.startRecalculate();
     },
 
+    getCurrentDrawingMacrosName: function()
+    {
+        var aSelectedObjects;
+        if(this.selection.groupSelection) {
+            aSelectedObjects = this.selection.groupSelection;
+        }
+        else {
+            aSelectedObjects = this.selectedObjects;
+        }
+        if(aSelectedObjects.length === 1) {
+            return aSelectedObjects[0].getMacrosName();
+        }
+        return null;
+    },
+    assignMacrosToCurrentDrawing: function(sMacrosName)
+    {
+        var aSelectedObjects;
+        if(this.selection.groupSelection) {
+            aSelectedObjects = this.selection.groupSelection;
+        }
+        else {
+            aSelectedObjects = this.selectedObjects;
+        }
+        if(aSelectedObjects.length === 1) {
+
+            var oDrawing = aSelectedObjects[0];
+            this.checkSelectedObjectsAndCallback(function() {
+                oDrawing.setMacro(sMacrosName);
+            }, [], false, AscDFH.historydescription_Spreadsheet_GraphicObjectLayer);
+        }
+    },
     // layers
     setGraphicObjectLayer: function(layerType)
     {

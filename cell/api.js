@@ -3147,10 +3147,18 @@ var editor;
     };
     //-------------------------------------------------------
 
+    spreadsheet_api.prototype.asc_getCurrentDrawingMacrosName = function() {
+        var ws = this.wb.getWorksheet();
+        return ws.objectRender.getCurrentDrawingMacrosName();
+    };
+    spreadsheet_api.prototype.asc_assignMacrosToCurrentDrawing = function(sName) {
+        var ws = this.wb.getWorksheet();
+        return ws.objectRender.assignMacrosToCurrentDrawing(sName);
+    };
     spreadsheet_api.prototype.asc_setSelectedDrawingObjectLayer = function(layerType) {
-    var ws = this.wb.getWorksheet();
-    return ws.objectRender.setGraphicObjectLayer(layerType);
-  };
+        var ws = this.wb.getWorksheet();
+        return ws.objectRender.setGraphicObjectLayer(layerType);
+    };
 
   spreadsheet_api.prototype.asc_setSelectedDrawingObjectAlign = function(alignType) {
     var ws = this.wb.getWorksheet();
@@ -5706,6 +5714,8 @@ var editor;
   prot["asc_addChartDrawingObject"] = prot.asc_addChartDrawingObject;
   prot["asc_editChartDrawingObject"] = prot.asc_editChartDrawingObject;
   prot["asc_addImageDrawingObject"] = prot.asc_addImageDrawingObject;
+  prot["asc_getCurrentDrawingMacrosName"] = prot.asc_getCurrentDrawingMacrosName;
+  prot["asc_assignMacrosToCurrentDrawing"] = prot.asc_assignMacrosToCurrentDrawing;
   prot["asc_setSelectedDrawingObjectLayer"] = prot.asc_setSelectedDrawingObjectLayer;
   prot["asc_setSelectedDrawingObjectAlign"] = prot.asc_setSelectedDrawingObjectAlign;
   prot["asc_DistributeSelectedDrawingObjectHor"] = prot.asc_DistributeSelectedDrawingObjectHor;

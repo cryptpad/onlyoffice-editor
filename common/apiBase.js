@@ -3056,6 +3056,13 @@
 		this.macros.run(sName);
 		this._afterEvalCommand(undefined);
     };
+	baseEditorsApi.prototype.asc_getAllMacrosNames = function()
+    {
+    	if (!this.macros)
+    		return [];
+
+		return this.macros.getAllNames();
+    };
 
 	baseEditorsApi.prototype.asc_getSelectedDrawingObjectsCount = function()
 	{
@@ -3385,6 +3392,7 @@
 	prot['asc_GetCurrentColorSchemeIndex'] = prot.asc_GetCurrentColorSchemeIndex;
 	prot['asc_runAutostartMacroses'] = prot.asc_runAutostartMacroses;
 	prot['asc_runMacros'] = prot.asc_runMacros;
+	prot['asc_getAllMacrosNames'] = prot.asc_getAllMacrosNames;
 	prot['asc_setVisiblePasteButton'] = prot.asc_setVisiblePasteButton;
 	prot['asc_getAutoCorrectMathSymbols'] = prot.asc_getAutoCorrectMathSymbols;
 	prot['asc_getAutoCorrectMathFunctions'] = prot.asc_getAutoCorrectMathFunctions;

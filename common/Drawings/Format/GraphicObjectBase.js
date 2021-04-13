@@ -1547,6 +1547,9 @@
     CGraphicObjectBase.prototype.getSignatureLineGuid = function(){
         return null;
     };
+    CGraphicObjectBase.prototype.getMacrosName = function(){
+        return this.macro;
+    };
 
     CGraphicObjectBase.prototype.getCopyWithSourceFormatting = function(oIdMap){
         return this.copy(oIdMap);

@@ -130,6 +130,24 @@ function (window, undefined)
 		{
 		}
 	};
+	CDocumentMacros.prototype.getAllNames = function()
+	{
+		var obj = JSON.parse(this.Data);
+		if (!obj["macrosArray"])
+			return [];
+		var oNamesMap = {};
+		var aNames = [];
+		for (var i = 0; i < obj["macrosArray"].length; i++)
+		{
+			var sName = obj["macrosArray"][i]["name"];
+			if(!oNamesMap[sName])
+			{
+				oNamesMap[sName] = true;
+				aNames.push(sName);
+			}
+		}
+		return aNames;
+	};
     CDocumentMacros.prototype.isExistAuto = function()
     {
         try

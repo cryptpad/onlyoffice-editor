@@ -4110,6 +4110,12 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     // Position
     //-----------------------------------------------------------------------------------
 
+    _this.getCurrentDrawingMacrosName = function() {
+        return _this.controller.getCurrentDrawingMacrosName();
+    };
+    _this.assignMacrosToCurrentDrawing = function(sName) {
+        _this.controller.assignMacrosToCurrentDrawing(sName);
+    };
     _this.setGraphicObjectLayer = function(layerType) {
         _this.controller.setGraphicObjectLayer(layerType);
     };
