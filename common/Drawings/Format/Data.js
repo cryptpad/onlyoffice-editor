@@ -10931,6 +10931,480 @@
             },
           },
         },
+      },
+      layoutDef: {
+        titles: [''],
+        descs: [''],
+        catLst: [{
+          pri: 11000,
+          type: 'list'
+        },
+          {
+            pri: 24000,
+            type: 'picture'
+          },
+          {
+            pri: 24000,
+            type: 'pictureconvert'
+          },],
+        sampData: {
+          useDef: true,
+          dataModel: {
+            ptLst: {},
+            bg: {},
+            whole: {},
+          },
+        },
+        styleData: {
+          dataModel: {
+            ptLst: [
+              {
+                type: 'Point_type_doc',
+                modelId: '0',
+              },
+              {
+                modelId: '1',
+              },
+              {
+                modelId: '2',
+              },
+            ],
+            cxnLst: [
+              {
+                modelId: '3',
+                destOrd: 0,
+                srcOrd: 0,
+                destId: '1',
+                srcId: '0',
+              },
+              {
+                modelId: '4',
+                destOrd: 0,
+                srcOrd: 1,
+                destId: '2',
+                srcId: '0',
+              },
+            ],
+            bg: {},
+            whole: {},
+          },
+        },
+        clrData: {
+          dataModel: {
+            ptLst: [
+              {
+                type: 'Point_type_doc',
+                modelId: '0',
+              },
+              {
+                modelId: '1',
+              },
+              {
+                modelId: '2',
+              },
+              {
+                modelId: '3',
+              },
+              {
+                modelId: '4',
+              },
+            ],
+            cxnLst: [
+              {
+                modelId: '5',
+                destOrd: 0,
+                srcOrd: 0,
+                destId: '1',
+                srcId: '0',
+              },
+              {
+                modelId: '6',
+                destOrd: 0,
+                srcOrd: 1,
+                destId: '2',
+                srcId: '0',
+              },
+              {
+                modelId: '7',
+                destOrd: 0,
+                srcOrd: 2,
+                destId: '3',
+                srcId: '0',
+              },
+              {
+                modelId: '8',
+                destOrd: 0,
+                srcOrd: 3,
+                destId: '4',
+                srcId: '0',
+              },
+            ],
+            bg: {},
+            whole: {},
+          }
+        },
+        layoutNode: {
+          name: 'Name0',
+          varLst: {
+            dir: {},
+            resizeHandles: {
+              val: 'ResizeHandles_val_exact'
+            }
+          },
+          alg: {
+            type: 'Alg_type_composite',
+          },
+          shape: {
+            blip: '',
+            adjLst: [],
+          },
+          presOf: {},
+          constrLst: [
+            {
+              type: 'Constr_type_w',
+              refType: 'Constr_refType_w',
+              forName: 'bkgdShp',
+              for: 'Constr_for_ch',
+            },
+            {
+              type: 'Constr_type_h',
+              refType: 'Constr_refType_h',
+              forName: 'bkgdShp',
+              for: 'Constr_for_ch',
+              fact: 0.45,
+            },
+            {
+              type: 'Constr_type_t',
+              forName: 'bkgdShp',
+              for: 'Constr_for_ch',
+            },
+            {
+              type: 'Constr_type_w',
+              refType: 'Constr_refType_w',
+              forName: 'linComp',
+              for: 'Constr_for_ch',
+              fact: 0.94,
+            },
+            {
+              type: 'Constr_type_h',
+              refType: 'Constr_refType_h',
+              forName: 'linComp',
+              for: 'Constr_for_ch',
+            },
+            {
+              type: 'Constr_type_ctrX',
+              refType: 'Constr_refType_w',
+              forName: 'linComp',
+              for: 'Constr_for_ch',
+              fact: 0.5,
+            },
+          ],
+          ruleLst: [],
+          choose: {
+            name: 'Name1',
+            if: {
+              val: {
+                int: 1,
+              },
+              name: 'Name2',
+              op: 'If_op_gte',
+              func: 'If_func_cnt',
+              ptType: ['ElementType_value_node'],
+              axis: ['AxisType_value_ch'],
+              layoutNodes: {
+                'bkgdShp': {
+                  styleLbl: 'alignAccFollowNode1',
+                  alg: {
+                    type: 'Alg_type_sp',
+                  },
+                  shape: {
+                    type: 'LayoutShapeType_shapeType_roundRect',
+                    blip: '',
+                    adjLst: [
+                      {
+                        val: 0.1,
+                        idx: 1,
+                      }
+                    ],
+                  },
+                  presOf: {},
+                  constrLst: [],
+                  ruleLst: [],
+                },
+                'linComp': {
+                  choose: {
+                    name: 'Name3',
+                    if: {
+                      val: 'FunctionValue_direction_norm',
+                      name: 'Name4',
+                      op: 'If_op_equ',
+                      func: 'If_func_var',
+                      arg: 'If_arg_dir',
+                      alg: {
+                        type: 'Alg_type_lin',
+                      }
+                    },
+                    else: {
+                      name: 'Name5',
+                      alg: {
+                        type: 'Alg_type_lin',
+                        param: {
+                          val: 'ParameterVal_linearDirection_fromR',
+                          type: 'Param_type_linDir',
+                        }
+                      },
+                    }
+                  },
+                  shape: {
+                    blip: '',
+                    adjLst: [],
+                  },
+                  presOf: {},
+                  constrLst: [
+                    {
+                      type: 'Constr_type_w',
+                      refType: 'Constr_refType_w',
+                      forName: 'compNode',
+                      for: 'Constr_for_ch',
+                    },
+                    {
+                      type: 'Constr_type_h',
+                      refType: 'Constr_refType_h',
+                      forName: 'compNode',
+                      for: 'Constr_for_ch',
+                    },
+                    {
+                      type: 'Constr_type_w',
+                      refType: 'Constr_refType_w',
+                      for: 'Constr_for_ch',
+                      fact: 0.1,
+                      ptType: 'ElementType_value_sibTrans',
+                      refForName: 'compNode',
+                      refFor: 'Constr_refFor_ch',
+                    },
+                    {
+                      type: 'Constr_type_h',
+                      for: 'Constr_for_ch',
+                      op: 'Constr_op_equ',
+                      ptType: 'ElementType_value_sibTrans',
+                    },
+                    {
+                      type: 'Constr_type_h',
+                      forName: 'compNode',
+                      for: 'Constr_for_ch',
+                      op: 'Constr_op_equ',
+                    },
+                    {
+                      type: 'Constr_type_primFontSz',
+                      forName: 'node',
+                      for: 'Constr_for_des',
+                      op: 'Constr_op_equ',
+                    },
+                  ],
+                  ruleLst: [],
+                  forEach: {
+                    name: 'nodesForEach',
+                    ptType: ['ElementType_value_node'],
+                    axis: ['AxisType_value_ch'],
+                    layoutNodes: {
+                      'compName': {
+                        alg: {
+                          type: 'Alg_type_composite',
+                        },
+                        shape: {
+                          blip: '',
+                          adjLst: [],
+                        },
+                        presOf: {},
+                        constrLst: [
+                          {
+                            type: 'Constr_type_w',
+                            refType: 'Constr_refType_w',
+                            forName: 'node',
+                            for: 'Constr_for_ch',
+                          },
+                          {
+                            type: 'Constr_type_h',
+                            refType: 'Constr_refType_h',
+                            forName: 'node',
+                            for: 'Constr_for_ch',
+                            fact: 0.55,
+                          },
+                          {
+                            type: 'Constr_type_b',
+                            refType: 'Constr_refType_h',
+                            forName: 'node',
+                            for: 'Constr_for_ch',
+                          },
+                          {
+                            type: 'Constr_type_w',
+                            refType: 'Constr_refType_w',
+                            forName: 'invisiNode',
+                            for: 'Constr_for_ch',
+                            fact: 0.75,
+                          },
+                          {
+                            type: 'Constr_type_h',
+                            refType: 'Constr_refType_h',
+                            forName: 'invisiNode',
+                            for: 'Constr_for_ch',
+                            fact: 0.06,
+                          },
+                          {
+                            type: 'Constr_type_t',
+                            forName: 'invisiNode',
+                            for: 'Constr_for_ch',
+                          },
+                          {
+                            type: 'Constr_type_w',
+                            refType: 'Constr_refType_w',
+                            forName: 'imagNode',
+                            for: 'Constr_for_ch',
+                          },
+                          {
+                            type: 'Constr_type_h',
+                            refType: 'Constr_refType_h',
+                            forName: 'imagNode',
+                            for: 'Constr_for_ch',
+                            fact: 0.33,
+                          },
+                          {
+                            type: 'Constr_type_ctrX',
+                            refType: 'Constr_refType_w',
+                            forName: 'imagNode',
+                            for: 'Constr_for_ch',
+                            fact: 0.5,
+                          },
+                          {
+                            type: 'Constr_type_t',
+                            refType: 'Constr_refType_h',
+                            forName: 'imagNode',
+                            for: 'Constr_for_ch',
+                            fact: 0.06,
+                          },
+                        ],
+                        ruleLst: [],
+                        layoutNodes: {
+                          'node': {
+                            styleLbl: 'node1',
+                            varLst: {
+                              bulletEnabled: {
+                                val: true,
+                              }
+                            },
+                            alg: {
+                              type: 'Alg_type_tx',
+                              param: {
+                                val: 'ParameterVal_nodeVerticalAlignment_t',
+                                type: 'Param_type_txAnchorVert',
+                              }
+                            },
+                            shape: {
+                              type: 'LayoutShapeType_shapeType_round2SameRect',
+                              blip: '',
+                              rot: 180,
+                              adjLst: [
+                                {
+                                  val: 0.105,
+                                  idx: 1,
+                                }
+                              ],
+                            },
+                            presOf: {
+                              ptType: ['ElementType_value_node'],
+                              axis: ['AxisType_value_desOrSelf'],
+                            },
+                            constrLst: [
+                              {
+                                val: 65,
+                                type: 'Constr_type_primFontSz',
+                              }
+                            ],
+                            ruleLst: [
+                              {
+                                val: 5,
+                                type: 'Rule_type_primFontSz',
+                                fact: NaN,
+                                max: NaN,
+                              }
+                            ],
+                          },
+                          'invisiNode': {
+                            alg: {
+                              type: 'Alg_type_sp',
+                            },
+                            shape: {
+                              type: 'LayoutShapeType_shapeType_roundRect',
+                              blip: '',
+                              hideGeom: true,
+                              adjLst: [
+                                {
+                                  val: 0.1,
+                                  idx: 1,
+                                }
+                              ],
+                            },
+                            presOf: {},
+                            constrLst: [],
+                            ruleLst: [],
+                          },
+                          'imagNode': {
+                            styleLbl: 'fgImgPlace1',
+                            alg: {
+                              type: 'Alg_type_sp',
+                            },
+                            shape: {
+                              type: 'LayoutShapeType_shapeType_roundRect',
+                              blip: '',
+                              blipPhldr: true,
+                              zOrderOff: -2,
+                              adjLst: [
+                                {
+                                  val: 0.1,
+                                  idx: 1,
+                                }
+                              ],
+                            },
+                            presOf: {},
+                            constrLst: [],
+                            ruleLst: [],
+                          }
+                        },
+                        forEach: {
+                          name: 'sibTransForEach',
+                          ptType: ['ElementType_value_sibTrans'],
+                          axis: ['AxisType_value_followSib'],
+                          cnt: [1],
+                          layoutNodes: {
+                            'sibTrans': {
+                              alg: {
+                                type: 'Alg_type_sp',
+                              },
+                              shape: {
+                                type: 'LayoutShapeType_shapeType_rect',
+                                blip: '',
+                                hideGeom: true,
+                                adjLst: [],
+                              },
+                              presOf: {
+                                axis: ['AxisType_value_self'],
+                              },
+                              constrLst: [],
+                              ruleLst: [],
+                            }
+                          }
+                        }
+                      }
+                    },
+                  },
+                }
+              },
+            },
+            else: {
+              name: 'Name6'
+            }
+          }
+        }
       }
     };
 
@@ -11176,15 +11650,21 @@
       });
     }
 
+    function fillLayoutDef(smartArt, objectInfo) {
+
+    }
+
 
     function createSmartArt(type) {
       var smartart = new SmartArt();
       smartart.setColorsDef(new ColorsDef());
       smartart.setStyleDef(new StyleDef());
+      smartart.setLayoutDef(new LayoutDef());
       switch (type) {
         case 'horizontalListOfPicture':
           fillColorsDef(smartart, horizontalListOfPicture);
           fillQuickStyle(smartart, horizontalListOfPicture);
+          fillLayoutDef(smartart, horizontalListOfPicture);
           break;
       }
       
