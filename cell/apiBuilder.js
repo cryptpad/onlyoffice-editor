@@ -710,13 +710,26 @@
 	});
 
 	/**
-	 * Returns a ApiRange that represents all the cells on the worksheet (not just the cells that are currently in use).
+	 * Returns a ApiRange that represents all the cells on the worksheet (not just the cells that are currently in use) or specified cell.
 	 * @memberof ApiWorksheet
 	 * @typeofeditors ["CSE"]
+	 * @param {number} row - The number of the row or the number of cell (if only row defined)
+	 * @param {number} col - The number of col
 	 * @returns {ApiRange}
 	 */
-	ApiWorksheet.prototype.GetCells = function () {
-		return new ApiRange(this.worksheet.getRange3(0, 0, AscCommon.gc_nMaxRow0, AscCommon.gc_nMaxCol0));
+	ApiWorksheet.prototype.GetCells = function (row, col) {
+		if (row) row--;
+		if (typeof col !== "undefined" && typeof row !== "undefined") {
+			return new ApiRange(this.worksheet.getRange3(row, col, row, col));
+		} else if (typeof row !== "undefined") {
+			var r = (row) ?  (row / AscCommon.gc_nMaxCol0) >> 0 : row;
+			var c = (row) ? row % AscCommon.gc_nMaxCol0 : row;
+			if (r && c) c--;
+			return new ApiRange(this.worksheet.getRange3(r, c, r, c));
+		}
+		else {
+			return new ApiRange(this.worksheet.getRange3(0, 0, AscCommon.gc_nMaxRow0, AscCommon.gc_nMaxCol0));
+		}
 	};
 	Object.defineProperty(ApiWorksheet.prototype, "Cells", {
 		get: function () {
@@ -1497,12 +1510,103 @@
 			return new ApiWorksheet(this.range.worksheet).GetRows(nRow);
 		} else {
 			var bbox = this.range.bbox;
+			if (nRow)
+				nRow--;
 			return new ApiRange(this.range.worksheet.getRange3(nRow, bbox.c1, nRow, bbox.c2));
 		}
 	};
 	Object.defineProperty(ApiRange.prototype, "Rows", {
 		get: function () {
 			return this.GetRows();
+		}
+	});
+
+	/**
+	 * Returns a Range object that represents all the cells in the specified range or specified cell.
+	 * @memberof ApiRange
+	 * @typeofeditors ["CSE"]
+	 * @param {number} nCol - The number of the col. * 
+	 * @returns {ApiRange}
+	 */
+	 ApiRange.prototype.GetCols = function (nCol) {
+		if (nCol) nCol--;
+		if (typeof nCol === "undefined") {
+			return new ApiRange(this.range.worksheet.getRange3(0, this.range.bbox.c1, AscCommon.gc_nMaxRow0, this.range.bbox.c2));
+		} else if ( (nCol >= this.range.bbox.c1) && (nCol <= this.range.bbox.c2) ) {
+			return new ApiRange(this.range.worksheet.getRange3(0, nCol, AscCommon.gc_nMaxRow0, nCol));
+		} else {
+			return new ApiRange(this.range.worksheet.getRange3(this.range.bbox.r1, nCol, this.range.bbox.r2, nCol));
+		}
+	};
+	Object.defineProperty(ApiRange.prototype, "Cols", {
+		get: function () {
+			return this.GetCols();
+		}
+	});
+
+	/**
+	 * Returns a Range object that represents the end in the specified direction in the specified range.
+	 * @memberof ApiRange
+	 * @typeofeditors ["CSE"]
+	 * @param {string} direction - The direction of end in the specified range. * 
+	 * @returns {ApiRange}
+	 */
+	 ApiRange.prototype.End = function (direction) {
+		var bbox = this.range.bbox;
+		var r1, c1, r2, c2;
+		switch (direction) {
+			case "xlUp":
+				r1 = r2 = 0;
+				c1 = c2 = bbox.c1;
+				break;
+			case "xlDown":
+				r1 = r2 = AscCommon.gc_nMaxRow0;
+				c1 = c2 = bbox.c1;
+				break;
+			case "xlToRight":
+				r1 = r2 = bbox.r1;
+				c1 = c2 = AscCommon.gc_nMaxCol0;
+				break;
+			case "xlToLeft":
+				r1 = r2 = bbox.r1;
+				c1 = c2 = 0;
+				break;
+			default:
+				r1 = bbox.r1;
+				c1 = bbox.c1;
+				r2 = bbox.r2;
+				c2 = bbox.c2;
+				break;
+		}
+		return new ApiRange(this.range.worksheet.getRange3(r1, c1, r2, c2));
+	};
+
+	/**
+	 * Returns a Range object that represents the cols in the specified range.
+	 * @memberof ApiRange
+	 * @typeofeditors ["CSE"]
+	 * @param {number} row - The number of the row or the number of cell (if only row defined)
+	 * @param {number} col - The number of col
+	 * @returns {ApiRange}
+	 */
+	 ApiRange.prototype.GetCells = function (row, col) {
+		if (row) row--;
+		var bbox = this.range.bbox;
+		if (typeof col !== "undefined" && typeof row !== "undefined") {
+			return new ApiRange(this.range.worksheet.getRange3(row, col, row, col));
+		} else if (typeof row !== "undefined") {
+			var cellCount = bbox.c2 - bbox.c1 + 1; 
+			var r = bbox.r1 + ((row) ?  (row / cellCount) >> 0 : row);
+			var c = bbox.c1 + ((r) ? 1 : 0) + ((row) ? row % cellCount : row);
+			if (r && c) c--;
+			return new ApiRange(this.range.worksheet.getRange3(r, c, r, c));
+		} else {
+			return new ApiRange(this.range.worksheet.getRange3(bbox.r1, bbox.c1, bbox.r2, bbox.c2));
+		}
+	};
+	Object.defineProperty(ApiRange.prototype, "Cells", {
+		get: function () {
+			return this.GetCells();
 		}
 	});
 
@@ -2984,6 +3088,9 @@
 	ApiRange.prototype["GetCol"] = ApiRange.prototype.GetCol;
 	ApiRange.prototype["Clear"] = ApiRange.prototype.Clear;
 	ApiRange.prototype["GetRows"] = ApiRange.prototype.GetRows;
+	ApiRange.prototype["GetCols"] = ApiRange.prototype.GetCols;
+	ApiRange.prototype["End"] = ApiRange.prototype.End;
+	ApiRange.prototype["GetCells"] = ApiRange.prototype.GetCells;
 	ApiRange.prototype["SetOffset"] = ApiRange.prototype.SetOffset;
 	ApiRange.prototype["GetAddress"] = ApiRange.prototype.GetAddress;	
 	ApiRange.prototype["GetCount"] = ApiRange.prototype.GetCount;
