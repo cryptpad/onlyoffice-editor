@@ -18406,6 +18406,7 @@
 		var st = this.settings.header.style[kHeaderDefault];
 		var x1, y1, x2, y2, arrayLines, groupData;
 		var lineWidth = AscCommon.AscBrowser.convertToRetinaValue(2, true);
+		var lineWidthDiff = lineWidth % 2 === 0 ? lineWidth : lineWidth - 0.5;
 		var thickLineDiff = AscCommon.AscBrowser.isCustomScalingAbove2() ? 0.5 : 0;
 		var tempButtonMap = [];//чтобы не рисовать точки там где кпопки
 		var bFirstLine = true;
@@ -18494,7 +18495,7 @@
 							// _
 							//|
 							if(!collasedEndRow && startX === arrayLines[i][j].start) {
-								ctx.lineVerPrevPx(startPos, posY - 2 * padding + thickLineDiff, posY + 4 * padding);
+								ctx.lineVerPrevPx(startPos, posY - lineWidthDiff + thickLineDiff, posY + 4 * padding);
 							}
 						} else {
 
@@ -18545,7 +18546,7 @@
 								//  |
 								if(!collasedEndRow && endX === arrayLines[i][j].end + 1 && endPos > startPos + paddingTop - 1*padding) {
 									//ctx.lineHorPrevPx(posX - lineWidth + thickLineDiff, endPos, posX + 4*padding);
-									ctx.lineVerPrevPx(endPos, posY - 2 * padding + thickLineDiff, posY + 4 * padding);
+									ctx.lineVerPrevPx(endPos, posY - lineWidthDiff + thickLineDiff, posY + 4 * padding);
 								}
 							}
 						}
@@ -18665,7 +18666,7 @@
 							// _
 							//|
 							if(!collasedEndCol && startY === arrayLines[i][j].start) {
-								ctx.lineHorPrevPx(posX - lineWidth + thickLineDiff, startPos, posX + 4*padding);
+								ctx.lineHorPrevPx(posX - lineWidthDiff + thickLineDiff, startPos, posX + 4*padding);
 							}
 						} else {
 							if(endPosArr[arrayLines[i][j].start]) {
@@ -18712,7 +18713,7 @@
 
 								// |_
 								if(!collapsedStartRow && !hiddenStartRow && endY === arrayLines[i][j].end + 1 && !checkPrevHideLevel(i, arrayLines[i][j].start)) {
-									ctx.lineHorPrevPx(posX - lineWidth + thickLineDiff, endPos, posX + 4*padding);
+									ctx.lineHorPrevPx(posX - lineWidthDiff + thickLineDiff, endPos, posX + 4*padding);
 								}
 							}
 						}
@@ -18839,7 +18840,7 @@
 			ctx.AddClipRect(bCol ? pos.pos - offsetX : x, bCol ? y : pos.pos - offsetY, bCol ? pos.size : w, bCol ? h : pos.size);
 			ctx.beginPath();
 
-			var paddingLine = Math.floor((w - sizeLine) / 2);
+			var paddingLine = Math.floor((w - sizeLine - borderSize) / 2);
 
 			if(w > sizeLine + 2) {
 				if(this._getGroupCollapsed(val, bCol)/*rowLevelMap[val] && rowLevelMap[val].collapsed*/) {
@@ -18874,16 +18875,16 @@
 
 			var posY = padding * 2 + buttonSize / 2 - padding + (level - 1) * buttonSize;
 			x = endPosX + colW/2 - buttonSize / 2;
-			y = posY - Math.floor(6 * zoom) * padding;
+			y = posY - Math.floor(AscCommon.AscBrowser.convertToRetinaValue(6, true) * zoom);
 		} else {
 			var endPosY = this._getRowTop(val);
 			var rowH = this._getRowHeight(val);
 			var posX = padding * 2 + buttonSize / 2 - padding + (level - 1) * buttonSize;
-			var x = posX - Math.floor(6 * zoom) * padding;
+			var x = posX - Math.floor(AscCommon.AscBrowser.convertToRetinaValue(6, true) * zoom);
 			var y = endPosY + rowH/2 - buttonSize / 2;
 		}
-		var w = buttonSize - 1;
-		var h = buttonSize - 1;
+		var w = buttonSize - padding;
+		var h = buttonSize - padding;
 
 		return {x: x, y: y, w: w, h: h, size: bCol ? colW : rowH, pos: bCol ? endPosX : endPosY};
 	};
