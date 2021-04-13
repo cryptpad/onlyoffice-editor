@@ -21560,7 +21560,7 @@
 		this._isLockedCF(callback, unitedArr);
 	};
 
-	WorksheetView.prototype.setProtectedRanges = function (arr, type) {
+	WorksheetView.prototype.deleteCF = function (arr, type) {
 		var t = this, _ranges;
 
 		var callback = function (success) {
@@ -21616,7 +21616,7 @@
 		this._isLockedCF(callback, lockArr);
 	};
 
-	WorksheetView.prototype.setCF = function (arr, deleteIdArr, presetId) {
+	WorksheetView.prototype.setProtectedRanges = function (arr, deleteIdArr) {
 		var t = this;
 
 		var callback = function (success) {
@@ -21626,93 +21626,27 @@
 			History.Create_NewPoint();
 			History.StartTransaction();
 
-			var j, n;
+			var j;
 			if (deleteIdArr) {
 				for (j = 0; j < deleteIdArr.length; j++) {
-					var _oRule = t.model.getCFRuleById(deleteIdArr[j]);
-					var _ranges;
-					if (_oRule && _oRule.val) {
-						_ranges = _oRule.val.ranges;
-					}
-					t.model.deleteCFRule(deleteIdArr[j], true);
-
-					if (_ranges) {
-						for (n = 0; n < _ranges.length; n++) {
-							t._updateRange(_ranges[n]);
-						}
-					}
+					t.model.deleteProtectedRange(deleteIdArr[j], true);
 				}
 			}
 
-			if (arr && arr[nActive]) {
-				for (j = 0; j < arr[nActive].length; j++) {
-					t.model.setCFRule(arr[nActive][j]);
-
-					if (arr[nActive][j].ranges) {
-						for (n = 0; n < arr[nActive][j].ranges.length; n++) {
-							t._updateRange(arr[nActive][j].ranges[n]);
-						}
-					}
+			if (arr) {
+				for (j = 0; j < arr.length; j++) {
+					t.model.setProtectedRange(arr[j]);
 				}
 			}
 
-			//TODO возможно здесь необходимо пересчитать формулы
-			t.draw();
 			History.EndTransaction();
 		};
 
-		var _checkRule = function (_rule) {
-			if (_rule) {
-				if (!arr) {
-					arr = [];
-				}
-				if (!arr[nActive]) {
-					arr[nActive] = [];
-				}
-				arr[nActive].push(_rule);
-
-				if (_rule.priority === null) {
-					_rule.priority = 1;
-					//двигаем приоритет у всех остальных и добавляем их в список измененных
-					if (t.model.aConditionalFormattingRules) {
-						for (i = 0; i < t.model.aConditionalFormattingRules.length; i++) {
-							var _id = t.model.aConditionalFormattingRules[i].id;
-							var oRule = t.model.aConditionalFormattingRules[i].clone();
-							oRule.id = _id;
-							oRule.priority++;
-							arr[nActive].push(oRule);
-						}
-					}
-				}
-				if (_rule.ranges === null) {
-					_rule.ranges = [];
-					if (t.model.selectionRange && t.model.selectionRange.ranges) {
-						for (var j = 0; j < t.model.selectionRange.ranges.length; j++) {
-							_rule.ranges.push(t.model.selectionRange.ranges[j].clone());
-						}
-					}
-				}
-			}
-		};
-
-		var nActive = this.model.workbook.nActive;
-		var i;
-		if (presetId !== undefined) {
-			//data bar/icons/scale presets
-			_checkRule(t.model.generateCFRuleFromPreset(presetId));
-		} else if (arr && arr.length === 1 && undefined === arr[0].length) {
-			//other presets
-			var presetRule = arr[0];
-			arr = [];
-			_checkRule(presetRule);
-		}
 
 		var unitedArr = [];
 		if (arr) {
-			if (arr[nActive]) {
-				for (i = 0; i < arr[nActive].length; i++) {
-					unitedArr.push(arr[nActive][i].id);
-				}
+			for (var i = 0; i < arr.length; i++) {
+				unitedArr.push(arr[i].id);
 			}
 		}
 		if (deleteIdArr && deleteIdArr.length) {

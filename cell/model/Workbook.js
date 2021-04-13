@@ -9798,6 +9798,47 @@
 		return !res ? protectedRanges : res;
 	};
 
+	Worksheet.prototype.setProtectedRange = function (val) {
+		if (!val) {
+			return;
+		}
+		var pR = this.getProtectedRange(val.id);
+		if (pR) {
+			this.changeProtectedRange(pR.val, val, true);
+		} else {
+			this.addProtectedRange(val, true);
+		}
+	};
+
+	Worksheet.prototype.getProtectedRangeById = function (id) {
+		if (this.aProtectedRanges) {
+			for (var i = 0; i < this.aProtectedRanges.length; i++) {
+				if (this.aProtectedRanges[i].Id === id) {
+					return {val: this.aProtectedRanges[i], index: i};
+				}
+			}
+		}
+		return null;
+	};
+
+	Worksheet.prototype.changeProtectedRange = function (from, to, addToHistory) {
+		if (!from) {
+			return;
+		}
+		from.set(to, addToHistory, this);
+	};
+
+	Worksheet.prototype.addProtectedRange = function (val, addToHistory) {
+		if (!val) {
+			return;
+		}
+
+		this.aProtectedRanges.push(val);
+		if (addToHistory) {
+			//History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_CFRuleAdd, this.getId(), val.getUnionRange(), new AscCommonExcel.UndoRedoData_CF(val.id, null, val));
+		}
+	};
+
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
 	var g_nCellOffsetXf = g_nCellOffsetFlag + 1;
