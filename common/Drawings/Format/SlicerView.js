@@ -1139,6 +1139,12 @@
         if(this.name !== null) {
             copy.setName(this.name);
         }
+        if(this.macro !== null) {
+            copy.setMacro(this.macro);
+        }
+        if(this.textLink !== null) {
+            copy.setTextLink(this.textLink);
+        }
         return copy;
     };
     CSlicer.prototype.invertMultiSelect = function () {

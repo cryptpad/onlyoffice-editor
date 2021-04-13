@@ -4144,6 +4144,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                     objectInfo.id = graphicObjectInfo.objectId;
                     objectInfo.cursor = graphicObjectInfo.cursorType;
                     objectInfo.hyperlink = graphicObjectInfo.hyperlink;
+                    objectInfo.macro = graphicObjectInfo.macro;
                     objectInfo.tooltip = graphicObjectInfo.tooltip;
                 }
                 else{

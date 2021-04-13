@@ -804,7 +804,7 @@ function CanStartEditText(oController)
 DrawingObjectsController.prototype =
 {
 
-    checkDrawingHyperlink: function(drawing, e, hit_in_text_rect, x, y, pageIndex){
+    checkDrawingHyperlinkAndMacro: function(drawing, e, hit_in_text_rect, x, y, pageIndex){
         var oApi = this.getEditorApi();
         if(!oApi){
             return;
@@ -887,54 +887,33 @@ DrawingObjectsController.prototype =
         }
         else if(this.drawingObjects && this.drawingObjects.getWorksheetModel){
             oNvPr = drawing.getCNvProps();
-            if(oNvPr && oNvPr.hlinkClick && oNvPr.hlinkClick.id !== null){
-
+            var bHasLink = oNvPr && oNvPr.hlinkClick && oNvPr.hlinkClick.id !== null;
+            if(!drawing.selected && !e.CtrlKey && ( bHasLink || drawing.hasMacro() ) ) {
                 if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE) {
-                    if(e.CtrlKey || this.isSlideShow()){
-                        // var wsModel = this.drawingObjects.getWorksheetModel();
-                        //
-                        // var _link = oNvPr.hlinkClick.id;
-                        // var newHyperlink = new AscCommonExcel.Hyperlink();
-                        // if (_link.search('#') === 0) {
-                        //     var sLink2 = _link.replace('#', '');
-                        //     newHyperlink.setLocation(sLink2);
-                        //     var aRanges = AscCommonExcel.getRangeByRef(sLink2, wsModel);
-                        //     newHyperlink.Ref = aRanges[0];
-                        // }
-                        // else {
-                        //     newHyperlink.Hyperlink = _link;
-                        // }
-                        // newHyperlink.Tooltip = oNvPr.hlinkClick.tooltip;
-                        // var ascHyperlink = new Asc.asc_CHyperlink();
-                        // ascHyperlink.hyperlinkModel = newHyperlink;
-                        // oApi._asc_setWorksheetRange(ascHyperlink);
-                        //newHyperlink.Ref.setHyperlink(newHyperlink);
-                        // return AscCommonExcel.getRangeByRef(sFormula, this.worksheet);
-                        // editor.sync_HyperlinkClickCallback(oNvPr.hlinkClick.id);
-                        return true;
-                    }
-                    else{
-                        return false;
-                    }
+                    return true;
                 }
                 else{
-
-                    var _link = oNvPr.hlinkClick.id;
-                    var sLink2;
-                    if (_link.search('#') === 0) {
-                        sLink2 = _link.replace('#', '');
+                    if(bHasLink) {
+                        var _link = oNvPr.hlinkClick.id;
+                        var sLink2;
+                        if (_link.search('#') === 0) {
+                            sLink2 = _link.replace('#', '');
+                        }
+                        else {
+                            sLink2 = _link;
+                        }
+                        var oHyperlink = AscFormat.ExecuteNoHistory(function(){return new ParaHyperlink();}, this, []);
+                        oHyperlink.Value = sLink2;
+                        oHyperlink.Tooltip = oNvPr.hlinkClick.tooltip;
+                        if(hit_in_text_rect){
+                            return {objectId: drawing.Get_Id(), cursorType: "text", bMarker: false, hyperlink: oHyperlink, macro: null};
+                        }
+                        else{
+                            return {objectId: drawing.Get_Id(), cursorType: "move", bMarker: false, hyperlink: oHyperlink, macro: null};
+                        }
                     }
-                    else {
-                        sLink2 = _link;
-                    }
-                    var oHyperlink = AscFormat.ExecuteNoHistory(function(){return new ParaHyperlink();}, this, []);
-                    oHyperlink.Value = sLink2;
-                    oHyperlink.Tooltip = oNvPr.hlinkClick.tooltip;
-                    if(hit_in_text_rect){
-                        return {objectId: drawing.Get_Id(), cursorType: "text", bMarker: false, hyperlink: oHyperlink};
-                    }
-                    else{
-                        return {objectId: drawing.Get_Id(), cursorType: "move", bMarker: false, hyperlink: oHyperlink};
+                    else if(drawing.hasMacro()) {
+                        return {objectId: drawing.Get_Id(), cursorType: "pointer", bMarker: false, hyperlink: null, macro: drawing.macro};
                     }
                 }
             }

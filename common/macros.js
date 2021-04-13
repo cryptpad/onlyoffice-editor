@@ -109,6 +109,27 @@ function (window, undefined)
 		{
 		}
 	};
+	CDocumentMacros.prototype.run = function(sName)
+	{
+		try
+		{
+			var obj = JSON.parse(this.Data);
+			if (!obj["macrosArray"])
+				return;
+			for (var i = 0; i < obj["macrosArray"].length; i++)
+			{
+				if (sName === obj["macrosArray"][i]["name"])
+				{
+					var script = "(function(){ var Api = window.g_asc_plugins.api;\n" + obj["macrosArray"][i]["value"] + "\n})();";
+					eval(script);
+					break;
+				}
+			}
+		}
+		catch (err)
+		{
+		}
+	};
     CDocumentMacros.prototype.isExistAuto = function()
     {
         try

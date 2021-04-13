@@ -1208,46 +1208,59 @@
 
     var ct = ws.getCursorTypeFromXY(x, y);
 
-    if (c_oTargetType.Hyperlink === ct.target && !this.isFormulaEditMode && !formatPainterState) {
-      // Проверим замерженность
-      var isHyperlinkClick = false;
-     if(isSelectOnShape) {
-          var button = 0;
-          if(event) {
-              button = AscCommon.getMouseButton(event);
-          }
-          if(button === 0) {
-              isHyperlinkClick = true;
-          }
-     }
-     else if(ar.isOneCell()) {
-         isHyperlinkClick = true;
-     }
-     else {
-        var mergedRange = ws.model.getMergedByCell(ar.r1, ar.c1);
-        if (mergedRange && ar.isEqual(mergedRange)) {
-          isHyperlinkClick = true;
+    if(!this.isFormulaEditMode && !formatPainterState) {
+        if (c_oTargetType.Hyperlink === ct.target) {
+            // Проверим замерженность
+            var isHyperlinkClick = false;
+            if(isSelectOnShape) {
+                var button = 0;
+                if(event) {
+                    button = AscCommon.getMouseButton(event);
+                }
+                if(button === 0) {
+                    isHyperlinkClick = true;
+                }
+            }
+            else if(ar.isOneCell()) {
+                isHyperlinkClick = true;
+            }
+            else {
+                var mergedRange = ws.model.getMergedByCell(ar.r1, ar.c1);
+                if (mergedRange && ar.isEqual(mergedRange)) {
+                    isHyperlinkClick = true;
+                }
+            }
+            if (isHyperlinkClick && !this.timerEnd) {
+                if (false === ct.hyperlink.hyperlinkModel.getVisited() && !isSelectOnShape) {
+                    ct.hyperlink.hyperlinkModel.setVisited(true);
+                    if (ct.hyperlink.hyperlinkModel.Ref) {
+                        ws._updateRange(ct.hyperlink.hyperlinkModel.Ref.getBBox0());
+                        ws.draw();
+                    }
+                }
+                switch (ct.hyperlink.asc_getType()) {
+                    case Asc.c_oAscHyperlinkType.WebLink:
+                        this.handlers.trigger("asc_onHyperlinkClick", ct.hyperlink.asc_getHyperlinkUrl());
+                        break;
+                    case Asc.c_oAscHyperlinkType.RangeLink:
+                        // ToDo надо поправить отрисовку комментария для данной ячейки (с которой уходим)
+                        this.handlers.trigger("asc_onHideComment");
+                        this.Api._asc_setWorksheetRange(ct.hyperlink);
+                        break;
+                }
+            }
         }
-      }
-      if (isHyperlinkClick && !this.timerEnd) {
-        if (false === ct.hyperlink.hyperlinkModel.getVisited() && !isSelectOnShape) {
-          ct.hyperlink.hyperlinkModel.setVisited(true);
-          if (ct.hyperlink.hyperlinkModel.Ref) {
-          	ws._updateRange(ct.hyperlink.hyperlinkModel.Ref.getBBox0());
-          	ws.draw();
-          }
+        else if(isSelectOnShape && c_oTargetType.Shape === ct.target &&  ct.macro) {
+            var button = 0;
+            if(event) {
+                button = AscCommon.getMouseButton(event);
+            }
+            if(button === 0) {
+                if(!this.timerEnd) {
+                    this.Api.asc_runMacros(ct.macro);
+                }
+            }
         }
-        switch (ct.hyperlink.asc_getType()) {
-          case Asc.c_oAscHyperlinkType.WebLink:
-            this.handlers.trigger("asc_onHyperlinkClick", ct.hyperlink.asc_getHyperlinkUrl());
-            break;
-          case Asc.c_oAscHyperlinkType.RangeLink:
-            // ToDo надо поправить отрисовку комментария для данной ячейки (с которой уходим)
-            this.handlers.trigger("asc_onHideComment");
-            this.Api._asc_setWorksheetRange(ct.hyperlink);
-            break;
-        }
-      }
     }
     this.timerEnd = false;
   };

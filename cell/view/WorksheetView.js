@@ -7815,6 +7815,7 @@
                     tooltip: drawingInfo.tooltip,
 					target: c_oTargetType.Shape,
 					drawingId: drawingInfo.id,
+                    macro: drawingInfo.macro,
 					col: -1,
 					row: -1,
 					userId: userId,

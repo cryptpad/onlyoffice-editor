@@ -2823,6 +2823,12 @@ CShape.prototype.fillObject = function(copy, oPr){
     if(this.signatureLine && copy.setSignature){
         copy.setSignature(this.signatureLine.copy());
     }
+    if(this.macro !== null) {
+        copy.setMacro(this.macro);
+    }
+    if(this.textLink !== null) {
+        copy.setTextLink(this.textLink);
+    }
     copy.setWordShape(this.bWordShape);
     copy.setBDeleted(this.bDeleted);
     copy.setLocks(this.locks);
