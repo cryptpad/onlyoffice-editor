@@ -11696,6 +11696,74 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return res;
 	};
 
+	CProtectedRange.prototype.set = function (val, addToHistory, ws) {
+
+		this.sqref = null;
+		this.name = null;
+
+		this.algorithmName = null;
+		this.hashValue = null;
+		this.saltValue = null;
+		this.spinCount = null;
+
+		this._ws = ws;
+
+
+
+		this.aboveAverage = this.checkProperty(this.aboveAverage, val.aboveAverage, AscCH.historyitem_CFRule_SetAboveAverage, ws, addToHistory);
+		this.activePresent = this.checkProperty(this.activePresent, val.activePresent, AscCH.historyitem_CFRule_SetActivePresent, ws, addToHistory);
+		this.bottom = this.checkProperty(this.bottom, val.bottom, AscCH.historyitem_CFRule_SetBottom, ws, addToHistory);
+
+		this.equalAverage = this.checkProperty(this.equalAverage, val.equalAverage, AscCH.historyitem_CFRule_SetEqualAverage, ws, addToHistory);
+
+		this.operator = this.checkProperty(this.operator, val.operator, AscCH.historyitem_CFRule_SetOperator, ws, addToHistory);
+		this.percent = this.checkProperty(this.percent, val.percent, AscCH.historyitem_CFRule_SetPercent, ws, addToHistory);
+		this.priority = this.checkProperty(this.priority, val.priority, AscCH.historyitem_CFRule_SetPriority, ws, addToHistory);
+		this.rank = this.checkProperty(this.rank, val.rank, AscCH.historyitem_CFRule_SetRank, ws, addToHistory);
+		this.stdDev = this.checkProperty(this.stdDev, val.stdDev, AscCH.historyitem_CFRule_SetStdDev, ws, addToHistory);
+		this.stopIfTrue = this.checkProperty(this.stopIfTrue, val.stopIfTrue, AscCH.historyitem_CFRule_SetStopIfTrue, ws, addToHistory);
+		this.text = this.checkProperty(this.text, val.text, AscCH.historyitem_CFRule_SetText, ws, addToHistory);
+		this.timePeriod = this.checkProperty(this.timePeriod, val.timePeriod, AscCH.historyitem_CFRule_SetTimePeriod, ws, addToHistory);
+		this.type = this.checkProperty(this.type, val.type, AscCH.historyitem_CFRule_SetType, ws, addToHistory);
+		this.pivot = this.checkProperty(this.pivot, val.pivot, AscCH.historyitem_CFRule_SetPivot, ws, addToHistory);
+
+		var compareElements = function (_elem1, _elem2) {
+			if (_elem1.length === _elem2.length) {
+				for (var i = 0; i < _elem1.length; i++) {
+					if (!_elem1[i].isEqual(_elem2[i])) {
+						return false;
+					}
+				}
+				return true;
+			}
+			return false;
+		};
+
+
+		if (!compareElements(this.aRuleElements, val.aRuleElements)) {
+			if (addToHistory) {
+				History.Add(AscCommonExcel.g_oUndoRedoCF, AscCH.historyitem_CFRule_SetRuleElements,
+					ws.getId(), null, new AscCommonExcel.UndoRedoData_CF(this.id, this.aRuleElements, val.aRuleElements));
+			}
+
+			this.aRuleElements = val.aRuleElements;
+		}
+
+		if ((this.dxf && val.dxf && !this.dxf.isEqual(val.dxf)) || (this.dxf && !val.dxf) || (!this.dxf && val.dxf)) {
+			var elem = val.dxf ? val.dxf.clone() : null;
+			if (addToHistory) {
+				History.Add(AscCommonExcel.g_oUndoRedoCF, AscCH.historyitem_CFRule_SetDxf,
+					ws.getId(), null, new AscCommonExcel.UndoRedoData_CF(this.id, this.dxf, elem));
+			}
+
+			this.dxf = elem;
+		}
+
+		if (this.ranges && val.ranges && !compareElements(this.ranges, val.ranges)) {
+			this.setLocation(val.ranges, ws, true);
+		}
+	};
+
 	CProtectedRange.prototype.Write_ToBinary2 = function(w) {
 
 		/*

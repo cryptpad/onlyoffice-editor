@@ -9802,7 +9802,7 @@
 		if (!val) {
 			return;
 		}
-		var pR = this.getProtectedRange(val.id);
+		var pR = this.getProtectedRangeById(val.id);
 		if (pR) {
 			this.changeProtectedRange(pR.val, val, true);
 		} else {
