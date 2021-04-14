@@ -5295,6 +5295,30 @@ var editor;
 		ws.setProtectedRanges(arr, deleteIdArr);
 	};
 
+	spreadsheet_api.prototype.asc_setProtectedSheet = function(props, psw) {
+		// Проверка глобального лока
+		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+			return false;
+		}
+
+		var i = this.wbModel.getActive();
+		var sheetId = this.wbModel.getWorksheet(i).getId();
+		var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheetId, sheetId);
+
+		var t = this;
+		var renameCallback = function(res) {
+			if (res) {
+				//props - arr from c_oAscSheetProtectType
+				t.wbModel.getWorksheet(i).setProtectedSheet(props, psw);
+			} else {
+				//t.handlers.trigger("asc_onError", c_oAscError.ID.LockedWorksheetRename, c_oAscError.Level.NoCritical);
+			}
+		};
+
+		this.collaborativeEditing.lock([lockInfo], renameCallback);
+		return true;
+	};
+
 	spreadsheet_api.prototype.asc_clearCF = function (type, id) {
 		var rules = this.wbModel.getRulesByType(type, id);
 		if (rules && rules.length) {
