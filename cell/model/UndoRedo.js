@@ -3152,6 +3152,19 @@ function (window, undefined) {
 			} else {
 				ws.deleteCFRule(Data.id);
 			}
+		} else if (AscCH.historyitem_Worksheet_AddProtectedRange === Type) {
+			if (bUndo) {
+				ws.deleteProtectedRange(Data.id);
+			} else {
+				Data.to.id = Data.id;
+				ws.addProtectedRange(Data.to);
+			}
+		} else if (AscCH.historyitem_Worksheet_DelProtectedRange === Type) {
+			if (bUndo) {
+				ws.addProtectedRange(Data.from);
+			} else {
+				ws.deleteProtectedRange(Data.id);
+			}
 		}
 	};
 	UndoRedoWoorksheet.prototype.forwardTransformationIsAffect = function (Type) {

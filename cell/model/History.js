@@ -99,6 +99,9 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Worksheet_CFRuleAdd = 52;
 	window['AscCH'].historyitem_Worksheet_CFRuleDelete = 53;
 
+	window['AscCH'].historyitem_Worksheet_AddProtectedRange = 54;
+	window['AscCH'].historyitem_Worksheet_DelProtectedRange = 55;
+
 	window['AscCH'].historyitem_RowCol_Fontname = 1;
 	window['AscCH'].historyitem_RowCol_Fontsize = 2;
 	window['AscCH'].historyitem_RowCol_Fontcolor = 3;

@@ -11857,6 +11857,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.spinCount = val;
 	};
 
+	CProtectedRange.sStartLock = 'protectedRange_';
+
 
 
 	//----------------------------------------------------------export----------------------------------------------------

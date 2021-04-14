@@ -9835,7 +9835,21 @@
 
 		this.aProtectedRanges.push(val);
 		if (addToHistory) {
-			//History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_CFRuleAdd, this.getId(), val.getUnionRange(), new AscCommonExcel.UndoRedoData_CF(val.id, null, val));
+			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_AddProtectedRange,
+				this.getId(), /*val.getUnionRange()*/null,
+				new AscCommonExcel.UndoRedoData_ProtectedRange(val.Id, null, val));
+		}
+	};
+
+	Worksheet.prototype.deleteProtectedRange = function (id, addToHistory) {
+		var oRule = this.getProtectedRangeById(id);
+		if (oRule) {
+			this.aProtectedRanges.splice(oRule.index, 1);
+			if (addToHistory) {
+				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_DelProtectedRange,
+					this.getId(), /*oRule.val.getUnionRange()*/null,
+					new AscCommonExcel.UndoRedoData_ProtectedRange(id, oRule.val));
+			}
 		}
 	};
 

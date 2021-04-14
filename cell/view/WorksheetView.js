@@ -13196,6 +13196,20 @@
 		this.collaborativeEditing.lock(lockInfos, callback);
 	};
 
+	WorksheetView.prototype._isLockedProtectedRange = function (callback, arr) {
+		if (!arr || !arr.length) {
+			return;
+		}
+		var lockInfos = [];
+		var sheetId = AscCommonExcel.CProtectedRange.sStartLock + this.model.getId();
+		for (var i = 0; i < arr.length; i++) {
+			var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, null, sheetId, arr[i]);
+			lockInfos.push(lockInfo);
+		}
+
+		this.collaborativeEditing.lock(lockInfos, callback);
+	};
+
 	// Залочен ли весь лист
 	WorksheetView.prototype._isLockedAll = function (callback) {
 		var ar = this.model.getSelection().getLast();
@@ -21653,7 +21667,8 @@
 			unitedArr = unitedArr.concat(deleteIdArr);
 		}
 
-		this._isLockedCF(callback, unitedArr);
+		//TODO протащить всё для локов, аналогично CF
+		this._isLockedProtectedRange(callback, unitedArr);
 	};
 
 	//------------------------------------------------------------export---------------------------------------------------
