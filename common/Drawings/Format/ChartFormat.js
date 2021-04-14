@@ -14973,6 +14973,10 @@
         if(!this.cat.isEqual(oOther.cat)) {
             return SERIES_COMPARE_RESULT_NONE;
         }
+        return this.compareValAndTx(oOther);
+    };
+    CSeriesDataRefs.prototype.compareValAndTx = function(oOther) {
+        var nInfo = this.getInfo();
         if(this.val.isAboveInRows(oOther.val)) {
             if((nInfo & SERIES_FLAG_TX) && !this.tx.isAboveInRows(oOther.tx)) {
                 return SERIES_COMPARE_RESULT_NONE;
@@ -15185,11 +15189,26 @@
         var oTxRefs = oFirstSeriesRefs.tx.clone();
         var oCatRefs = oFirstSeriesRefs.cat.clone();
         var oPrevRefs = oFirstSeriesRefs;
-        var oSeriesRefs;
-        for(var nSeries = nStartIdx + 1; nSeries < this.seriesRefs.length; ++nSeries) {
+        var oSeriesRefs, nSeries;
+        var bFirstCatIsEmpty = oCatRefs.isEmpty();
+        for(nSeries = nStartIdx + 1; nSeries < this.seriesRefs.length; ++nSeries) {
             oSeriesRefs = this.seriesRefs[nSeries];
-            if(oPrevRefs.compare(oSeriesRefs) !== nCompareResult) {
-                break;
+            if(bFirstCatIsEmpty) {
+                if(oPrevRefs.compare(oSeriesRefs) !== nCompareResult) {
+                    break;
+                }
+            }
+            else {
+                if(oSeriesRefs.cat.isEmpty()) {
+                    if(oPrevRefs.compareValAndTx(oSeriesRefs) !== nCompareResult) {
+                        break;
+                    }
+                }
+                else {
+                    if(oPrevRefs.compare(oSeriesRefs) !== nCompareResult) {
+                        break;
+                    }
+                }
             }
             oValRefs.union(oSeriesRefs.val);
             oTxRefs.union(oSeriesRefs.tx);
