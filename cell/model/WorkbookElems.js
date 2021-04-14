@@ -11699,12 +11699,13 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	CProtectedRange.prototype.set = function (val, addToHistory, ws) {
 
 		//this.sqref = null;
+		//historyitem_Protected_SetSqRef
 
-		this.name = this.checkProperty(this.name, val.name, AscCH.historyitem_CFRule_SetAboveAverage, ws, addToHistory);
-		this.algorithmName = this.checkProperty(this.algorithmName, val.algorithmName, AscCH.historyitem_CFRule_SetActivePresent, ws, addToHistory);
-		this.hashValue = this.checkProperty(this.hashValue, val.hashValue, AscCH.historyitem_CFRule_SetBottom, ws, addToHistory);
-		this.saltValue = this.checkProperty(this.saltValue, val.saltValue, AscCH.historyitem_CFRule_SetBottom, ws, addToHistory);
-		this.spinCount = this.checkProperty(this.spinCount, val.spinCount, AscCH.historyitem_CFRule_SetBottom, ws, addToHistory);
+		this.name = this.checkProperty(this.name, val.name, AscCH.historyitem_Protected_SetName, ws, addToHistory);
+		this.algorithmName = this.checkProperty(this.algorithmName, val.algorithmName, AscCH.historyitem_Protected_SetAlgorithmName, ws, addToHistory);
+		this.hashValue = this.checkProperty(this.hashValue, val.hashValue, AscCH.historyitem_Protected_SetHashValue, ws, addToHistory);
+		this.saltValue = this.checkProperty(this.saltValue, val.saltValue, AscCH.historyitem_Protected_SetSaltValue, ws, addToHistory);
+		this.spinCount = this.checkProperty(this.spinCount, val.spinCount, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
 
 
 		/*var compareElements = function (_elem1, _elem2) {
@@ -11728,7 +11729,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		if (propOld !== propNew) {
 			if (addToHistory) {
 				History.Add(AscCommonExcel.g_oUndoRedoProtectedRange, type, ws.getId(), null,
-					new AscCommonExcel.UndoRedoData_CF(this.Id, propOld, propNew));
+					new AscCommonExcel.UndoRedoData_ProtectedRange(this.Id, propOld, propNew));
 			}
 			return propNew;
 		}

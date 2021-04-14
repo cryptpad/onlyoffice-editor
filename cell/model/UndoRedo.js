@@ -4266,6 +4266,7 @@ function (window, undefined) {
 	UndoRedoProtectedRange.prototype.Redo = function (Type, Data, nSheetId) {
 		this.UndoRedo(Type, Data, nSheetId, false);
 	};
+
 	UndoRedoProtectedRange.prototype.UndoRedo = function (Type, Data, nSheetId, bUndo) {
 		var oModel = (null == nSheetId) ? this.wb : this.wb.getWorksheetById(nSheetId);
 		var api = window["Asc"]["editor"];
@@ -4274,69 +4275,33 @@ function (window, undefined) {
 		}
 
 		var collaborativeEditing = this.wb.oApi.collaborativeEditing;
-		var cfRule = oModel.getCFRuleById(Data.id);
-		if (cfRule && cfRule.val) {
+		var protectedRange = oModel.getProtectedRangeById(Data.id);
+		if (protectedRange && protectedRange.val) {
 			var value = bUndo ? Data.from : Data.to;
-			cfRule = cfRule.val;
+			protectedRange = protectedRange.val;
 
 			switch (Type) {
-				case AscCH.historyitem_CFRule_SetAboveAverage: {
-					cfRule.asc_setAboveAverage(value);
+				case AscCH.historyitem_Protected_SetName: {
+					protectedRange.asc_setName(value);
 					break;
 				}
-				case AscCH.historyitem_CFRule_SetActivePresent: {
-					cfRule.activePresent = value;
+				case AscCH.historyitem_Protected_SetAlgorithmName: {
+					protectedRange.asc_setAlgorithmName(value);
 					break;
 				}
-				case AscCH.historyitem_CFRule_SetBottom: {
-					cfRule.asc_setBottom(value);
+				case AscCH.historyitem_Protected_SetHashValue: {
+					protectedRange.asc_setHashValue(value);
 					break;
 				}
-				case AscCH.historyitem_CFRule_SetEqualAverage: {
-					cfRule.asc_setEqualAverage(value);
+				case AscCH.historyitem_Protected_SetSaltValue: {
+					protectedRange.asc_setSaltValue(value);
 					break;
 				}
-				case AscCH.historyitem_CFRule_SetOperator: {
-					cfRule.asc_setOperator(value);
+				case AscCH.historyitem_Protected_SetSpinCount: {
+					protectedRange.asc_setSpinCount(value);
 					break;
 				}
-				case AscCH.historyitem_CFRule_SetPriority: {
-					cfRule.asc_setPriority(value);
-					break;
-				}
-				case AscCH.historyitem_CFRule_SetRank: {
-					cfRule.asc_setRank(value);
-					break;
-				}
-				case AscCH.historyitem_CFRule_SetStdDev: {
-					cfRule.asc_setStdDev(value);
-					break;
-				}
-				case AscCH.historyitem_CFRule_SetStopIfTrue: {
-					cfRule.asc_setStopIfTrue(value);
-					break;
-				}
-				case AscCH.historyitem_CFRule_SetText: {
-					cfRule.asc_setText(value);
-					break;
-				}
-				case AscCH.historyitem_CFRule_SetTimePeriod: {
-					cfRule.asc_setTimePeriod(value);
-					break;
-				}
-				case AscCH.historyitem_CFRule_SetType: {
-					cfRule.asc_setType(value);
-					break;
-				}
-				case AscCH.historyitem_CFRule_SetPivot: {
-					cfRule.pivot = value;
-					break;
-				}
-				case AscCH.historyitem_CFRule_SetDxf: {
-					cfRule.asc_setDxf(value);
-					break;
-				}
-				case AscCH.historyitem_CFRule_SetRanges: {
+				case AscCH.historyitem_Protected_SetSqRef: {
 					var toAscRanges = function (_ranges) {
 						var ascRanges = [];
 
@@ -4353,10 +4318,6 @@ function (window, undefined) {
 					};
 
 					cfRule.ranges = toAscRanges(value);
-					break;
-				}
-				case AscCH.historyitem_CFRule_SetRuleElements: {
-					cfRule.aRuleElements = value;
 					break;
 				}
 			}
