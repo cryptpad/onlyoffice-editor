@@ -4375,6 +4375,7 @@ function (window, undefined) {
 	window['AscCommonExcel'].UndoRedoPivotFields = UndoRedoPivotFields;
 	window['AscCommonExcel'].UndoRedoSlicer = UndoRedoSlicer;
 	window['AscCommonExcel'].UndoRedoCF = UndoRedoCF;
+	window['AscCommonExcel'].UndoRedoProtectedRange = UndoRedoProtectedRange;
 
 	window['AscCommonExcel'].g_oUndoRedoWorkbook = null;
 	window['AscCommonExcel'].g_oUndoRedoCell = null;
@@ -4393,6 +4394,6 @@ function (window, undefined) {
 	window['AscCommonExcel'].g_oUndoRedoSlicer = null;
 	window['AscCommonExcel'].g_oUndoRedoNamedSheetViews = null;
 	window['AscCommonExcel'].g_oUndoRedoCF = null;
-	window['AscCommonExcel'].UndoRedoProtectedRange = null;
+	window['AscCommonExcel'].g_UndoRedoProtectedRange = null;
 
 })(window);
