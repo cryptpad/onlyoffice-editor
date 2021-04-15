@@ -1405,6 +1405,7 @@ var editor;
           }
 
           t._onUpdateCFLock(lockElem);
+          t._onUpdateProtectedRangesLock(lockElem);
 
 
           var ws = t.wb.getWorksheet();
@@ -5302,7 +5303,7 @@ var editor;
 		ws.setProtectedRanges(arr, deleteIdArr);
 	};
 
-	spreadsheet_api.prototype._onUpdateProtectRangesLock = function (lockElem) {
+	spreadsheet_api.prototype._onUpdateProtectedRangesLock = function (lockElem) {
 		var t = this;
 		var sheetId = lockElem.Element["sheetId"];
 		if (-1 !== sheetId && 0 === sheetId.indexOf(AscCommonExcel.CProtectedRange.sStartLock)) {
@@ -5331,7 +5332,6 @@ var editor;
 			for (i = 0, length = t.wbModel.getWorksheetCount(); i < length; ++i) {
 				wsModel = t.wbModel.getWorksheet(i);
 				wsIndex = wsModel.getIndex();
-				//TODO необходимо добавить инофрмацию о локе нового добавленного правила!!!
 
 				var isLocked = false;
 				if (wsModel.aProtectedRanges && wsModel.aProtectedRanges.length) {
