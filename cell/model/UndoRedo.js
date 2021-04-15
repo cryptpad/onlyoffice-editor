@@ -4314,7 +4314,7 @@ function (window, undefined) {
 					protectedRange.asc_setSpinCount(value);
 					break;
 				}
-				case AscCH.historyitem_Protected_SetSqRef: {
+				case AscCH.historyitem_Protected_SetSqref: {
 					var toAscRanges = function (_ranges) {
 						var ascRanges = [];
 
@@ -4330,7 +4330,7 @@ function (window, undefined) {
 						return ascRanges;
 					};
 
-					cfRule.ranges = toAscRanges(value);
+					protectedRange.sqref = toAscRanges(value);
 					break;
 				}
 			}

@@ -301,7 +301,7 @@ function (window, undefined) {
 	window['AscCH'].historyitem_CFRule_SetDxf = 16;
 	window['AscCH'].historyitem_CFRule_SetRanges = 17;
 
-	window['AscCH'].historyitem_Protected_SetSqRef = 1;
+	window['AscCH'].historyitem_Protected_SetSqref = 1;
 	window['AscCH'].historyitem_Protected_SetName = 2;
 	window['AscCH'].historyitem_Protected_SetAlgorithmName = 3;
 	window['AscCH'].historyitem_Protected_SetHashValue = 4;

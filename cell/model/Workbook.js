@@ -5070,6 +5070,7 @@
 			this.updateSortStateOffset(oActualRange, offset);
 			this.updateSparklineGroupOffset(oActualRange, offset);
 			this.updateConditionalFormattingOffset(oActualRange, offset);
+			this.updateProtectedRangeOffset(oActualRange, offset);
 			History.LocalChange = false;
 		}
 
@@ -5165,6 +5166,7 @@
 			this.updateSortStateOffset(oActualRange, offset);
 			this.updateSparklineGroupOffset(oActualRange, offset);
 			this.updateConditionalFormattingOffset(oActualRange, offset);
+			this.updateProtectedRangeOffset(oActualRange, offset);
 			History.LocalChange = false;
 		}
 
@@ -5241,6 +5243,7 @@
 			this.updateSortStateOffset(oActualRange, offset);
 			this.updateSparklineGroupOffset(oActualRange, offset);
 			this.updateConditionalFormattingOffset(oActualRange, offset);
+			this.updateProtectedRangeOffset(oActualRange, offset);
 			History.LocalChange = false;
 		}
 
@@ -5314,6 +5317,7 @@
 			this.updateSortStateOffset(oActualRange, offset);
 			this.updateSparklineGroupOffset(oActualRange, offset);
 			this.updateConditionalFormattingOffset(oActualRange, offset);
+			this.updateProtectedRangeOffset(oActualRange, offset);
 			History.LocalChange = false;
 		}
 
@@ -6620,6 +6624,7 @@
 			this.updateSortStateOffset(oBBox, offset);
 			this.updateSparklineGroupOffset(oBBox, offset);
 			this.updateConditionalFormattingOffset(oBBox, offset);
+			this.updateProtectedRangeOffset(oBBox, offset);
 			History.LocalChange = false;
 		}
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
@@ -6661,6 +6666,7 @@
 			this.updateSortStateOffset(oBBox, offset);
 			this.updateSparklineGroupOffset(oBBox, offset);
 			this.updateConditionalFormattingOffset(oBBox, offset);
+			this.updateProtectedRangeOffset(oBBox, offset);
 			History.LocalChange = false;
 		}
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
@@ -6698,6 +6704,7 @@
 			this.updateSortStateOffset(oBBox, offset);
 			this.updateSparklineGroupOffset(oBBox, offset);
 			this.updateConditionalFormattingOffset(oBBox, offset);
+			this.updateProtectedRangeOffset(oBBox, offset);
 			History.LocalChange = false;
 		}
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
@@ -6767,6 +6774,7 @@
 			this.updateSortStateOffset(oBBox, offset);
 			this.updateSparklineGroupOffset(oBBox, offset);
 			this.updateConditionalFormattingOffset(oBBox, offset);
+			this.updateProtectedRangeOffset(oBBox, offset);
 			History.LocalChange = false;
 		}
 
@@ -9849,14 +9857,33 @@
 	};
 
 	Worksheet.prototype.deleteProtectedRange = function (id, addToHistory) {
-		var oRule = this.getProtectedRangeById(id);
-		if (oRule) {
-			this.aProtectedRanges.splice(oRule.index, 1);
+		var protectedRange = this.getProtectedRangeById(id);
+		if (protectedRange) {
+			this.aProtectedRanges.splice(protectedRange.index, 1);
 			if (addToHistory) {
 				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_DelProtectedRange,
 					this.getId(), /*oRule.val.getUnionRange()*/null,
-					new AscCommonExcel.UndoRedoData_ProtectedRange(id, oRule.val));
+					new AscCommonExcel.UndoRedoData_ProtectedRange(id, protectedRange.val));
 			}
+		}
+	};
+
+	Worksheet.prototype.updateProtectedRangeOffset = function (range, offset) {
+		if (offset.row < 0 || offset.col < 0) {
+			for (var i = 0; i < this.aProtectedRanges.length; ++i) {
+				if (this.aProtectedRanges[i].containsIntoRange(range)) {
+					this.deleteProtectedRange(this.aProtectedRanges[i].Id, true);
+				}
+			}
+		}
+		this.setProtectedRangeOffset(range, offset);
+	};
+
+	Worksheet.prototype.setProtectedRangeOffset = function (range, offset) {
+		var protectedRange;
+		for (var i = 0; i < this.aProtectedRanges.length; ++i) {
+			protectedRange = this.aProtectedRanges[i];
+			protectedRange.setOffset(offset, range, this, true);
 		}
 	};
 

@@ -11794,7 +11794,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.spinCount = this.checkProperty(this.spinCount, val.spinCount, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
 
 
-		/*var compareElements = function (_elem1, _elem2) {
+		var compareElements = function (_elem1, _elem2) {
 			if (_elem1.length === _elem2.length) {
 				for (var i = 0; i < _elem1.length; i++) {
 					if (!_elem1[i].isEqual(_elem2[i])) {
@@ -11806,9 +11806,9 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 			return false;
 		};
 
-		if (this.ranges && val.ranges && !compareElements(this.ranges, val.ranges)) {
-			this.setLocation(val.ranges, ws, true);
-		}*/
+		if (this.sqref && val.sqref && !compareElements(this.sqref, val.sqref)) {
+			this.setSqref(val.sqref, ws, true);
+		}
 	};
 
 	CProtectedRange.prototype.checkProperty = function (propOld, propNew, type, ws, addToHistory) {
@@ -11820,6 +11820,37 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 			return propNew;
 		}
 		return propOld;
+	};
+
+	CConditionalFormattingRule.prototype.setSqref = function (location, ws, addToHistory) {
+		if (addToHistory) {
+			var getUndoRedoRange = function (_ranges) {
+				var needRanges = [];
+				for (var i = 0; i < _ranges.length; i++) {
+					needRanges.push(new AscCommonExcel.UndoRedoData_BBox(_ranges[i]));
+				}
+				return needRanges;
+			};
+
+			History.Add(AscCommonExcel.g_oUndoRedoProtectedRange, AscCH.historyitem_Protected_SetSqref,
+				ws.getId(), null, new AscCommonExcel.UndoRedoData_CF(this.Id, getUndoRedoRange(this.ranges), getUndoRedoRange(location)));
+		}
+		this.ranges = location;
+	};
+
+	CProtectedRange.prototype.setOffset = function(offset, range, ws, addToHistory) {
+		var newRanges = [];
+		var isChange = false;
+		for (var i = 0; i < this.sqref.length; i++) {
+			var newRange = this.sqref[i].clone();
+			if (newRange.forShift(range, offset)) {
+				isChange = true;
+			}
+			newRanges.push(newRange);
+		}
+		if (isChange) {
+			this.setSqref(newRanges, ws, addToHistory);
+		}
 	};
 
 	CProtectedRange.prototype.Write_ToBinary2 = function(w) {
@@ -11905,8 +11936,24 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return false;
 	};
 
-	CProtectedRange.prototype.asc_getSqref = function () {
-		return this.sqref;
+	CProtectedRange.prototype.asc_getSqref = function (val) {
+		var t = this;
+		if (val) {
+			if (val[0] === "=") {
+				val = val.slice(1);
+			}
+			val = val.split(",");
+			this.sqref = [];
+			val.forEach(function (item) {
+				if (-1 !== item.indexOf("!")) {
+					var is3DRef = AscCommon.parserHelp.parse3DRef(item);
+					if (is3DRef) {
+						item = is3DRef.range;
+					}
+				}
+				t.sqref.push(AscCommonExcel.g_oRangeCache.getAscRange(item));
+			});
+		}
 	};
 	CProtectedRange.prototype.asc_getName = function () {
 		return this.name;
