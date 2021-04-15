@@ -448,6 +448,7 @@
 		//ифомарция о залоченности нового добавленного правила
 		//TODO пока сюда добавляю, пересмотреть!
 		this._lockAddNewRule = null;
+		this._lockAddProtectedRange = null;
 
         this._init();
 

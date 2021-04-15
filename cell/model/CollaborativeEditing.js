@@ -381,6 +381,7 @@
 				this.handlers.trigger("updateAllSheetViewLock");
 
 				this.handlers.trigger("unlockCF");
+				this.handlers.trigger("unlockProtectedRange");
 
 				if (0 === this.m_nUseType)
 					this.m_nUseType = 1;

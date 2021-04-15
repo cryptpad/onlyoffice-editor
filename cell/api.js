@@ -1329,6 +1329,12 @@ var editor;
       },
       "checkCFRemoveLock": function(lockElem) {
         return t._onCheckCFRemoveLock(lockElem);
+      },
+      "unlockProtectedRange": function() {
+      	t._onUnlockProtectedRange.apply(t, arguments);
+      },
+      "checkProtectedRangeRemoveLock": function(lockElem) {
+     	return t._onCheckProtectedRangeRemoveLock(lockElem);
       }
     }, this.getViewMode());
 
@@ -5294,6 +5300,97 @@ var editor;
 
 		var ws = this.wb.getWorksheet();
 		ws.setProtectedRanges(arr, deleteIdArr);
+	};
+
+	spreadsheet_api.prototype._onUpdateProtectRangesLock = function (lockElem) {
+		var t = this;
+		var sheetId = lockElem.Element["sheetId"];
+		if (-1 !== sheetId && 0 === sheetId.indexOf(AscCommonExcel.CProtectedRange.sStartLock)) {
+			sheetId = sheetId.split(AscCommonExcel.CProtectedRange.sStartLock)[1];
+			var wsModel = this.wbModel.getWorksheetById(sheetId);
+			if (wsModel) {
+				var wsIndex = wsModel.getIndex();
+				var protectedRange = wsModel.getProtectedRangeById(lockElem.Element["rangeOrObjectId"]);
+				if (protectedRange && protectedRange.val) {
+					protectedRange = protectedRange.val;
+					protectedRange.isLock = lockElem.UserId;
+					this.handlers.trigger("asc_onLockProtectedRange", wsIndex, protectedRange.Id, lockElem.UserId);
+				} else {
+					var wsView = this.wb.getWorksheetById(sheetId);
+					wsView._lockAddProtectedRange = true;
+				}
+				this.handlers.trigger("asc_onLockProtectedRangeManager", wsModel.index);
+			}
+		}
+	};
+
+	spreadsheet_api.prototype._onUnlockProtectedRange = function () {
+		var t = this;
+		if (t.wbModel) {
+			var i, length, wsModel, wsIndex;
+			for (i = 0, length = t.wbModel.getWorksheetCount(); i < length; ++i) {
+				wsModel = t.wbModel.getWorksheet(i);
+				wsIndex = wsModel.getIndex();
+				//TODO необходимо добавить инофрмацию о локе нового добавленного правила!!!
+
+				var isLocked = false;
+				if (wsModel.aProtectedRanges && wsModel.aProtectedRanges.length) {
+					wsModel.aProtectedRanges.forEach(function (pR) {
+						if (pR.isLock) {
+							isLocked = true;
+						}
+					});
+					if (!isLocked) {
+						var wsView = this.wb.getWorksheetById(wsModel.Id);
+						if (wsView._lockAddProtectedRange) {
+							isLocked = true;
+						}
+					}
+				}
+				if (!isLocked) {
+					t.handlers.trigger("asc_onUnLockProtectedRangeManager", wsIndex);
+				}
+			}
+		}
+	};
+
+	spreadsheet_api.prototype._onCheckProtectedRangeRemoveLock = function (lockElem) {
+		//лок правила - с правилом делать ничего нельзя
+		//лок менеджера - незалоченное правило можно удалять и редактировать. новые правила добавлять нельзя.
+		//так же нельзя перемещать местами правила
+
+		//лочим правило как объект. в лок кладём id и лист с префиксом AscCommonExcel.CProtectedRange.sStartLock
+		//на принятии изменений удаляем локи с соответсвующих элементов
+		//разлочиваем менеджер если нет залоченных элементов(т.е. проверяем все на лок)
+		//+ проверяем нет ли нового добавленного правила другим юзером
+		//всего для передачи в интерфейс 4 события - asc_onLockProtectedRange/asc_onUnLockProtectedRange; asc_onLockProtectedRangeManager/asc_onUnLockProtectedRangeManager
+
+		var res = false;
+		var t = this;
+		var sheetId = lockElem["sheetId"];
+		if (-1 !== sheetId && 0 === sheetId.indexOf(AscCommonExcel.CProtectedRange.sStartLock)) {
+			res = true;
+			if (t.wbModel) {
+				sheetId = sheetId.split(AscCommonExcel.CProtectedRange.sStartLock)[1];
+				var wsModel = t.wbModel.getWorksheetById(sheetId);
+				if (wsModel) {
+					var wsIndex = wsModel.getIndex();
+					var wsView = this.wb.getWorksheetById(sheetId);
+					var protectedRange = wsModel.getProtectedRangeById(lockElem["rangeOrObjectId"]);
+					if (protectedRange) {
+						if (protectedRange.val.isLock) {
+							protectedRange.val.isLock = null;
+						} else {
+							wsView._lockAddProtectedRange = null;
+						}
+						this.handlers.trigger("asc_onUnLockProtectedRange", wsIndex, lockElem["rangeOrObjectId"]);
+					} else {
+						wsView._lockAddProtectedRange = null;
+					}
+				}
+			}
+		}
+		return res;
 	};
 
 	spreadsheet_api.prototype.asc_getProtectedSheet = function() {
