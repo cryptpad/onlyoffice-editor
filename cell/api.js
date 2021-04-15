@@ -377,6 +377,7 @@ var editor;
     AscCommonExcel.g_oUndoRedoPivotFields = new AscCommonExcel.UndoRedoPivotFields(wbModel);
     AscCommonExcel.g_oUndoRedoCF = new AscCommonExcel.UndoRedoCF(wbModel);
     AscCommonExcel.g_oUndoRedoProtectedRange = new AscCommonExcel.UndoRedoProtectedRange(wbModel);
+    AscCommonExcel.g_oUndoRedoProtectedSheet = new AscCommonExcel.UndoRedoProtectedSheet(wbModel);
     this.initGlobalObjectsNamedSheetView(wbModel);
   };
 
@@ -5295,7 +5296,21 @@ var editor;
 		ws.setProtectedRanges(arr, deleteIdArr);
 	};
 
-	spreadsheet_api.prototype.asc_setProtectedSheet = function(props, psw) {
+	spreadsheet_api.prototype.asc_getProtectedSheet = function() {
+		var ws = this.wbModel.getActiveWs();
+		var res = null;
+		if (ws) {
+			if (ws.sheetProtection) {
+				res = ws.sheetProtection.clone();
+			} else {
+				res = new window["AscCommonExcel"].CSheetProtection();
+				res.setDefaultInterface();
+			}
+		}
+		return res;
+	};
+
+	spreadsheet_api.prototype.asc_setProtectedSheet = function(props) {
 		// Проверка глобального лока
 		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
 			return false;
@@ -5308,8 +5323,10 @@ var editor;
 		var t = this;
 		var renameCallback = function(res) {
 			if (res) {
-				//props - arr from c_oAscSheetProtectType
-				t.wbModel.getWorksheet(i).setProtectedSheet(props, psw);
+				History.Create_NewPoint();
+				History.StartTransaction();
+				t.wbModel.getWorksheet(i).setProtectedSheet(props, true);
+				History.EndTransaction();
 			} else {
 				//t.handlers.trigger("asc_onError", c_oAscError.ID.LockedWorksheetRename, c_oAscError.Level.NoCritical);
 			}
@@ -5817,5 +5834,12 @@ var editor;
   prot["asc_getDataValidationProps"] = prot.asc_getDataValidationProps;
 
   prot["asc_setSkin"] = prot.asc_setSkin;
+
+
+  prot["asc_getProtectedRanges"] = prot.asc_getProtectedRanges;
+  prot["asc_setProtectedRanges"] = prot.asc_setProtectedRanges;
+  prot["asc_getProtectedSheet"] = prot.asc_getProtectedSheet;
+  prot["asc_setProtectedSheet"] = prot.asc_setProtectedSheet;
+
 
 })(window);

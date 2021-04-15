@@ -4337,6 +4337,113 @@ function (window, undefined) {
 		}
 	};
 
+	function UndoRedoProtectedSheet(wb) {
+		this.wb = wb;
+		this.nType = UndoRedoClassTypes.Add(function () {
+			return AscCommonExcel.g_oUndoRedoProtectedSheet;
+		});
+	}
+
+	UndoRedoProtectedSheet.prototype.getClassType = function () {
+		return this.nType;
+	};
+	UndoRedoProtectedRange.prototype.Undo = function (Type, Data, nSheetId) {
+		this.UndoRedo(Type, Data, nSheetId, true);
+	};
+	UndoRedoProtectedRange.prototype.Redo = function (Type, Data, nSheetId) {
+		this.UndoRedo(Type, Data, nSheetId, false);
+	};
+
+	UndoRedoProtectedRange.prototype.UndoRedo = function (Type, Data, nSheetId, bUndo) {
+		var oModel = (null == nSheetId) ? this.wb : this.wb.getWorksheetById(nSheetId);
+		var api = window["Asc"]["editor"];
+		if (!api.wb || !oModel) {
+			return;
+		}
+		
+		var protectedSheet = oModel.sheetProtection;
+		if (!protectedSheet) {
+			protectedSheet = new window["AscCommonExcel"].CSheetProtection();
+		}
+
+		if (protectedSheet) {
+			var value = bUndo ? Data.from : Data.to;
+
+			switch (Type) {
+				case AscCH.historyitem_Protected_SetAlgorithmName: {
+					protectedSheet.setAlgorithmName(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetHashValue: {
+					protectedSheet.setHashValue(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetSaltValue: {
+					protectedSheet.setSaltValue(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetSpinCount: {
+					protectedSheet.setSpinCount(value);
+					break;
+				}
+
+				case AscCH.historyitem_Protected_SetSheet: {
+					protectedSheet.setSheet(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetObjects: {
+					protectedSheet.setObjects(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetScenarios: {
+					protectedSheet.setScenarios(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetFormatCells: {
+					protectedSheet.setFormatCells(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetInsertColumns: {
+					protectedSheet.setInsertColumns(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetInsertRows: {
+					protectedSheet.setInsertRows(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetInsertHyperlinks: {
+					protectedSheet.setInsertHyperlinks(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetDeleteRows: {
+					protectedSheet.setDeleteRows(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetSelectLockedCells: {
+					protectedSheet.setSelectLockedCells(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetSort: {
+					protectedSheet.setSort(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetAutoFilter: {
+					protectedSheet.setAutoFilter(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetPivotTables: {
+					protectedSheet.setPivotTables(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetSelectUnlockedCells: {
+					protectedSheet.setSelectUnlockedCells(value);
+					break;
+				}
+			}
+		}
+	};
+
+
 
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
@@ -4389,6 +4496,7 @@ function (window, undefined) {
 	window['AscCommonExcel'].UndoRedoSlicer = UndoRedoSlicer;
 	window['AscCommonExcel'].UndoRedoCF = UndoRedoCF;
 	window['AscCommonExcel'].UndoRedoProtectedRange = UndoRedoProtectedRange;
+	window['AscCommonExcel'].UndoRedoProtectedSheet = UndoRedoProtectedSheet;
 
 	window['AscCommonExcel'].g_oUndoRedoWorkbook = null;
 	window['AscCommonExcel'].g_oUndoRedoCell = null;
@@ -4408,5 +4516,6 @@ function (window, undefined) {
 	window['AscCommonExcel'].g_oUndoRedoNamedSheetViews = null;
 	window['AscCommonExcel'].g_oUndoRedoCF = null;
 	window['AscCommonExcel'].g_UndoRedoProtectedRange = null;
+	window['AscCommonExcel'].g_UndoRedoProtectedSheet = null;
 
 })(window);

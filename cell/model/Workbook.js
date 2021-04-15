@@ -9714,63 +9714,11 @@
 		}
 	};
 
-	Worksheet.prototype.setProtectedSheet = function (props, psw) {
-		var res = false;
-		
-
-		if (this.sheetProtection && this.sheetProtection.getSheet()) {
-			//если тип не определен возвращаем защищен лист или нет
-			res = true;
-			switch (type) {
-				case Asc.c_oAscSheetProtectType.objects:
-					res = this.sheetProtection.getObjects();
-					break;
-				case Asc.c_oAscSheetProtectType.scenarios:
-					res = this.sheetProtection.getScenarios();
-					break;
-				case Asc.c_oAscSheetProtectType.formatCells:
-					res = this.sheetProtection.getFormatCells();
-					break;
-				case Asc.c_oAscSheetProtectType.formatColumns:
-					res = this.sheetProtection.getFormatColumns();
-					break;
-				case Asc.c_oAscSheetProtectType.formatRows:
-					res = this.sheetProtection.getFormatRows();
-					break;
-				case Asc.c_oAscSheetProtectType.insertColumns:
-					res = this.sheetProtection.getInsertColumns();
-					break;
-				case Asc.c_oAscSheetProtectType.insertRows:
-					res = this.sheetProtection.getInsertRows();
-					break;
-				case Asc.c_oAscSheetProtectType.insertHyperlinks:
-					res = this.sheetProtection.getInsertHyperlinks();
-					break;
-				case Asc.c_oAscSheetProtectType.deleteColumns:
-					res = this.sheetProtection.getDeleteColumns();
-					break;
-				case Asc.c_oAscSheetProtectType.deleteRows:
-					res = this.sheetProtection.getDeleteRows();
-					break;
-				case Asc.c_oAscSheetProtectType.selectLockedCells:
-					res = this.sheetProtection.getSelectLockedCells();
-					break;
-				case Asc.c_oAscSheetProtectType.sort:
-					res = this.sheetProtection.getSort();
-					break;
-				case Asc.c_oAscSheetProtectType.autoFilter:
-					res = this.sheetProtection.getAutoFilter();
-					break;
-				case Asc.c_oAscSheetProtectType.pivotTables:
-					res = this.sheetProtection.getPivotTables();
-					break;
-				case Asc.c_oAscSheetProtectType.selectUnlockedCells:
-					res = this.sheetProtection.getSelectUnlockedCells();
-					break;
-			}
+	Worksheet.prototype.setProtectedSheet = function (props, addToHistory) {
+		if (!this.sheetProtection) {
+			this.sheetProtection = new window["AscCommonExcel"].CSheetProtection();
 		}
-
-		return res;
+		this.sheetProtection.set(props, addToHistory, this);
 	};
 
 	Worksheet.prototype.getSheetProtection = function (type) {

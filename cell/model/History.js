@@ -308,6 +308,22 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Protected_SetSaltValue = 5;
 	window['AscCH'].historyitem_Protected_SetSpinCount = 6;
 
+	window['AscCH'].historyitem_Protected_SetSheet = 7;
+	window['AscCH'].historyitem_Protected_SetObjects = 8;
+	window['AscCH'].historyitem_Protected_SetScenarios = 9;
+	window['AscCH'].historyitem_Protected_SetFormatCells = 10;
+	window['AscCH'].historyitem_Protected_SetFormatColumns = 11;
+	window['AscCH'].historyitem_Protected_SetFormatRows = 12;
+	window['AscCH'].historyitem_Protected_SetInsertColumns = 13;
+	window['AscCH'].historyitem_Protected_SetInsertRows = 14;
+	window['AscCH'].historyitem_Protected_SetInsertHyperlinks = 15;
+	window['AscCH'].historyitem_Protected_SetDeleteColumns = 16;
+	window['AscCH'].historyitem_Protected_SetDeleteRows = 17;
+	window['AscCH'].historyitem_Protected_SetSelectLockedCells = 18;
+	window['AscCH'].historyitem_Protected_SetSort = 19;
+	window['AscCH'].historyitem_Protected_SetAutoFilter = 20;
+	window['AscCH'].historyitem_Protected_SetPivotTables = 21;
+	window['AscCH'].historyitem_Protected_SetSelectUnlockedCells = 22;
 
 function CHistory()
 {

@@ -11230,6 +11230,41 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.selectUnlockedCells = false;
 	};
 
+	CSheetProtection.prototype.set = function (val, addToHistory, ws) {
+		this.algorithmName = this.checkProperty(this.algorithmName, val.algorithmName, AscCH.historyitem_Protected_SetAlgorithmName, ws, addToHistory);
+		this.hashValue = this.checkProperty(this.hashValue, val.hashValue, AscCH.historyitem_Protected_SetHashValue, ws, addToHistory);
+		this.saltValue = this.checkProperty(this.saltValue, val.saltValue, AscCH.historyitem_Protected_SetSaltValue, ws, addToHistory);
+		this.spinCount = this.checkProperty(this.spinCount, val.spinCount, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
+
+		this.sheet = this.checkProperty(this.sheet, val.sheet, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
+		this.objects = this.checkProperty(this.objects, val.objects, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
+		this.scenarios = this.checkProperty(this.scenarios, val.scenarios, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
+		this.formatCells = this.checkProperty(this.formatCells, val.formatCells, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
+		this.formatColumns = this.checkProperty(this.formatColumns, val.formatColumns, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
+		this.formatRows = this.checkProperty(this.formatRows, val.formatRows, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
+		this.insertColumns = this.checkProperty(this.insertColumns, val.insertColumns, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
+		this.insertHyperlinks = this.checkProperty(this.insertHyperlinks, val.insertHyperlinks, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
+		this.deleteColumns = this.checkProperty(this.deleteColumns, val.deleteColumns, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
+		this.deleteRows = this.checkProperty(this.deleteRows, val.deleteRows, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
+
+		this.selectLockedCells = this.checkProperty(this.selectLockedCells, val.selectLockedCells, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
+		this.sort = this.checkProperty(this.sort, val.sort, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
+		this.autoFilter = this.checkProperty(this.autoFilter, val.autoFilter, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
+		this.pivotTables = this.checkProperty(this.pivotTables, val.pivotTables, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
+		this.selectUnlockedCells = this.checkProperty(this.selectUnlockedCells, val.selectUnlockedCells, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
+	};
+
+	CProtectedRange.prototype.checkProperty = function (propOld, propNew, type, ws, addToHistory) {
+		if (propOld !== propNew) {
+			if (addToHistory) {
+				History.Add(AscCommonExcel.g_oUndoRedoProtectedSheet, type, ws.getId(), null,
+					new AscCommonExcel.UndoRedoData_ProtectedRange(null, propOld, propNew));
+			}
+			return propNew;
+		}
+		return propOld;
+	};
+
 	CSheetProtection.prototype.Write_ToBinary2 = function(w) {
 		var _writeBool = function (val) {
 			if (null != val) {
@@ -11347,6 +11382,19 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		}
 	};
 
+	CSheetProtection.prototype.getAlgorithmName = function () {
+		return this.algorithmName;
+	};
+	CSheetProtection.prototype.getHashValue = function () {
+		return this.hashValue;
+	};
+	CSheetProtection.prototype.getSaltValue = function () {
+		return this.saltValue;
+	};
+	CSheetProtection.prototype.getSpinCount = function () {
+		return this.spinCount;
+	};
+
 	CSheetProtection.prototype.getSheet = function () {
 		return this.sheet;
 	};
@@ -11394,6 +11442,19 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	};
 	CSheetProtection.prototype.getSelectUnlockedCells = function () {
 		return this.selectUnlockedCells;
+	};
+
+	CSheetProtection.prototype.setAlgorithmName = function (val) {
+		this.algorithmName = val;
+	};
+	CSheetProtection.prototype.setHashValue = function (val) {
+		this.hashValue = val;
+	};
+	CSheetProtection.prototype.setSaltValue = function (val) {
+		this.saltValue = val;
+	};
+	CSheetProtection.prototype.setSpinCount = function (val) {
+		this.spinCount = val;
 	};
 
 	CSheetProtection.prototype.setSheet = function (val) {
@@ -12213,6 +12274,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	
 	window["AscCommonExcel"].CSheetProtection = CSheetProtection;
 	prot = CSheetProtection.prototype;
+	prot["asc_getSpinCount"] = prot.getSpinCount;
 	prot["asc_getSheet"] = prot.getSheet;
 	prot["asc_getObjects"] = prot.getObjects;
 	prot["asc_getScenarios"] = prot.getScenarios;
@@ -12229,6 +12291,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getAutoFilter"] = prot.getAutoFilter;
 	prot["asc_getPivotTables"] = prot.getPivotTables;
 	prot["asc_getSelectUnlockedCells"] = prot.getSelectUnlockedCells;
+	prot["asc_setSpinCount"] = prot.setSpinCount;
 	prot["asc_setSheet"] = prot.setSheet;
 	prot["asc_setObjects"] = prot.setObjects;
 	prot["asc_setScenarios"] = prot.setScenarios;
