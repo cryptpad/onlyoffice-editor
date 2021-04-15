@@ -2247,26 +2247,35 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_PasteData = function(_format, data1, data2, text_data, useCurrentPoint, callback)
 	{
-	    if (AscCommon.CollaborativeEditing.Get_GlobalLock())
-	        return;
-	    
+		if (AscCommon.CollaborativeEditing.Get_GlobalLock())
+			return;
+
 		var _logicDoc = this.WordControl.m_oLogicDocument;
 		if (!_logicDoc)
 			return;
 
-		if (false === _logicDoc.IsSelectionLocked(changestype_Paragraph_Content, null, true, _logicDoc.IsFormFieldEditing()))
+		// TODO: isPasteImage заменить на проверку того, что вставляется просто картинка
+		var isPasteImage = AscCommon.checkOnlyOneImage(data1);
+
+		var isLocked = true;
+		var oCC      = null;
+
+		if (isPasteImage)
+			oCC = _logicDoc.GetContentControl();
+
+		if (oCC && oCC.IsPicture())
+			isLocked = _logicDoc.IsSelectionLocked(AscCommon.changestype_Image_Properties, null, true, _logicDoc.IsFormFieldEditing());
+		else
+			isLocked = _logicDoc.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, true, _logicDoc.IsFormFieldEditing());
+
+		if (!isLocked)
 		{
 			window['AscCommon'].g_specialPasteHelper.Paste_Process_Start(arguments[5]);
-			
-			if (!useCurrentPoint) {
+
+			if (!useCurrentPoint)
 				_logicDoc.StartAction(AscDFH.historydescription_Document_PasteHotKey);
-			}
 
 			AscCommon.Editor_Paste_Exec(this, _format, data1, data2, text_data, undefined, callback);
-
-			if (!useCurrentPoint) {
-				//_logicDoc.FinalizeAction();
-			}
 		}
 	};
 
@@ -7609,6 +7618,9 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.GetCurrentVisiblePage     = function()
 	{
+		if (window["IS_NATIVE_EDITOR"])
+			return window["native"]["GetDrawingEndPage"]();
+
 		var lPage1 = this.WordControl.m_oDrawingDocument.m_lDrawingFirst;
 		var lPage2 = lPage1 + 1;
 
@@ -11110,6 +11122,14 @@ background-repeat: no-repeat;\
 		if (this.WordControl.MobileTouchManager)
 		{
 			this.WordControl.checkBodyOffset();
+		}
+	};
+
+	window["asc_docs_api"].prototype["asc_getButtonsTOC"] = function(id1, id2)
+	{
+		if (this.WordControl && this.WordControl.m_oDrawingDocument)
+		{
+			this.WordControl.m_oDrawingDocument.GetTOC_Buttons(id1, id2);
 		}
 	};
 

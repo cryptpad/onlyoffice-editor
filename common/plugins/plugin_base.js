@@ -443,13 +443,38 @@
 
 	// className => { css property => key in theme object }
 	var g_themes_map = {
-		"body" : { "background-color" : "background-toolbar" },
+		"body" : { "color" : "text-normal", "background-color" : "background-toolbar" },
 		".defaultlable" : { "color" : "text-normal" },
+		".aboutlable" : { "color" : "text-normal" },
+		"a.aboutlink" : { "color" : "text-normal" },
 		".form-control" : { "color" : "text-normal", "background-color" : "background-normal", "border-color" : "border-regular-control" },
 		".form-control:focus" : { "border-color" : "border-control-focus" },
+		".form-control[disabled]" : { "color" : "text-invers" },
 		".btn-text-default" : { "background-color" : "background-normal", "border-color" : "border-regular-control", "color" : "text-normal" },
 		".btn-text-default:hover" : { "background-color" : "highlight-button-hover" },
-		".btn-text-default:active" : { "background-color" : "highlight-button-pressed !important" }
+		".btn-text-default:active" : { "background-color" : "highlight-button-pressed !important" },
+		".btn-text-default[disabled]:hover,\
+		.btn-text-default.disabled:hover,\
+		.btn-text-default[disabled]:active,\
+		.btn-text-default[disabled].active,\
+		.btn-text-default.disabled:active,\
+		.btn-text-default.disabled.active": {"background-color" : "background-normal !important", "color" : "text-normal"},
+		".select2-container--default .select2-selection--single" : { "color" : "text-normal", "background-color" : "background-normal" },
+		".select2-container--default .select2-selection--single .select2-selection__rendered" : { "color" : "text-normal" },
+		".select2-results" : { "background-color" : "background-normal" },
+		".select2-container--default .select2-results__option--highlighted[aria-selected]" : { "background-color" : "border-regular-control !important"},
+		".select2-container--default .select2-results__option[aria-selected=true]" : { "background-color" : "border-regular-control !important"},
+		".select2-dropdown, .select2-container--default .select2-selection--single" : { "border-color" : "border-regular-control !important"},
+		".select2-container--default.select2-container--open .select2-selection--single" : { "border-color" : "border-control-focus !important"},
+		".select2-container--default.select2-container--focus:not(.select2-container--open) .select2-selection--single" : { "border-color" : "border-regular-control !important"},
+		".select2-container--default.select2-container--open.select2-container--focus .select2-selection--single" : { "border-color" : "border-control-focus !important"},
+		".select2-search--dropdown" : { "background-color" : "background-normal !important"},
+		".select2-container--default .select2-search--dropdown .select2-search__field" : { "color" : "text-normal", "background-color" : "background-normal", "border-color" : "border-regular-control"},
+		".select2-container--default.select2-container--disabled .select2-selection--single" : { "background-color" : "background-normal" },
+		".ps .ps__rail-y:hover" : {"background-color" : "background-toolbar" },
+		".ps .ps__rail-y.ps--clicking" : {"background-color" : "background-toolbar" },
+		".ps__thumb-y" : {"background-color" : "background-normal", "border-color" : "background-normal" },
+		".ps__rail-y:hover > .ps__thumb-y" : {"border-color" : "canvas-scroll-thumb-hover" }
 	};
 
     var g_isMouseSendEnabled = false;
@@ -499,40 +524,49 @@
             if (type == "init")
                 window.Asc.plugin.info = pluginData;
 
-            if (!window.Asc.plugin.theme && undefined !== pluginData.theme)
+            if (undefined !== pluginData.theme)
 			{
-				var newTheme = pluginData.theme;
-
-				// correct theme
-				if (pluginData.theme.Name !== "theme-light") // default
+				if (!window.Asc.plugin.theme || type === "onThemeChanged")
 				{
-					var rules = "";
-					for (var className in g_themes_map)
+					window.Asc.plugin.theme = pluginData.theme;
+
+					if (!window.Asc.plugin.onThemeChangedBase)
 					{
-						rules += (className + " {");
-
-						var attributes = g_themes_map[className];
-						for (var attr in attributes)
+						window.Asc.plugin.onThemeChangedBase = function (newTheme)
 						{
-							var attrValue = attributes[attr];
-							var attrValueImportant = attrValue.indexOf(" !important");
-							if (-1 < attrValueImportant)
-								attrValue = attrValue.substr(0, attrValueImportant);
-							var newVal = newTheme[attrValue];
-							if (newVal)
-								rules += (attr + " : " + newVal + ((-1 === attrValueImportant) ? ";" : " !important;"));
-						}
+							// correct theme
+							var rules = "";
+							for (var className in g_themes_map)
+							{
+								rules += (className + " {");
 
-						rules += " }\n";
+								var attributes = g_themes_map[className];
+								for (var attr in attributes)
+								{
+									var attrValue = attributes[attr];
+									var attrValueImportant = attrValue.indexOf(" !important");
+									if (-1 < attrValueImportant)
+										attrValue = attrValue.substr(0, attrValueImportant);
+									var newVal = newTheme[attrValue];
+									if (newVal)
+										rules += (attr + " : " + newVal + ((-1 === attrValueImportant) ? ";" : " !important;"));
+								}
+
+								rules += " }\n";
+							}
+
+							var styleTheme = document.createElement('style');
+							styleTheme.type = 'text/css';
+							styleTheme.innerHTML = rules;
+							document.getElementsByTagName('head')[0].appendChild(styleTheme);
+						};
 					}
 
-					var styleTheme = document.createElement('style');
-					styleTheme.type = 'text/css';
-					styleTheme.innerHTML = rules;
-					document.getElementsByTagName('head')[0].appendChild(styleTheme);
+					if (window.Asc.plugin.onThemeChanged)
+						window.Asc.plugin.onThemeChanged(window.Asc.plugin.theme);
+					else
+						window.Asc.plugin.onThemeChangedBase(window.Asc.plugin.theme);
 				}
-
-				window.Asc.plugin.theme = newTheme;
 			}
 
             if (!window.Asc.plugin.tr || !window.Asc.plugin.tr_init)

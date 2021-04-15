@@ -337,12 +337,12 @@
 	 * @returns {ApiRange | Error}
 	 */
 	Api.prototype.Intersect  = function (Range1, Range2) {
-		if (Range1.Worksheet.Id === Range2.Worksheet.Id) {
+		if (Range1.GetWorksheet().Id === Range2.GetWorksheet().Id) {
 			var res = Range1.range.bbox.intersection(Range2.range.bbox);
 			if (!res) {
 				return "Ranges do not intersect.";
 			} else {
-				return new ApiRange(this.ActiveSheet.worksheet.getRange3(res.r1, res.c1, res.r2, res.c2));
+				return new ApiRange(this.GetActiveSheet().worksheet.getRange3(res.r1, res.c1, res.r2, res.c2));
 			}
 		} else {
 			return new Error('Ranges should be from one worksheet.');
@@ -526,49 +526,45 @@
 
 	Api.prototype.RecalculateAllFormulas = function(fLogger) {
 		var formulas = this.wbModel.getAllFormulas(true);
-
-		var _compare = function (_val1, _val2) {
-			var eps = 1e-12;
+		var _compare = function(_val1, _val2) {
 			if (!isNaN(parseFloat(_val1)) && isFinite(_val1) && !isNaN(parseFloat(_val2)) && isFinite(_val2)) {
+				var eps = 1e-12;
 				if (Math.abs(_val2 - _val1) < eps) {
 					return true;
 				}
-				//_val1 = _val1.toString().substring(0,15);
-				//_val2 = _val2.toString().substring(0,15);
-				var nRound = null;
-				//max count digits in number
-				var maxLengthAfterPoint = 9;
-				var sVal1 = _val1.toString();
-				if (sVal1) {
-					var aVal1 = sVal1.split('.');
-					if (aVal1 && aVal1[1] && aVal1[1].length) {
-						nRound = aVal1[1].length - 1;
-						if (nRound > maxLengthAfterPoint) {
-							nRound = maxLengthAfterPoint;
-						}
-					}
-				}
 
-				if (nRound) {
-					var kF = Math.pow(10, nRound);
-					_val1 = (parseInt(_val1 * kF)) / kF;
-					_val2 = (parseInt(_val2 * kF)) / kF;
-				}
-			} else if (_val1 && _val2) {
-				var complexVal1 = AscCommonExcel.Complex.prototype.ParseString(_val1);
-				if (complexVal1 && complexVal1.real && complexVal1.img) {
-					var complexVal2 = AscCommonExcel.Complex.prototype.ParseString(_val2);
-					if (complexVal2 && complexVal2.real && complexVal2.img) {
-						if (_compare(complexVal1.real, complexVal2.real) && _compare(complexVal1.img, complexVal2.img)) {
-							return true;
+				var _slice = function (_val) {
+					var sVal = _val.toString();
+					if (sVal) {
+						var aVal1 = sVal.split(".");
+						if (aVal1[1]) {
+							aVal1[1] = aVal1[1].slice(0, 9);
+							sVal = aVal1[0] + "." + aVal1[1];
+						}
+						sVal = sVal.slice(0, 14);
+						_val = parseFloat(sVal);
+					}
+					return _val;
+				};
+
+				_val1 = _slice(_val1);
+				_val2 = _slice(_val2);
+			} else {
+				if (_val1 && _val2) {
+
+					var complexVal1 = AscCommonExcel.Complex.prototype.ParseString(_val1 + "");
+					if (complexVal1 && complexVal1.real && complexVal1.img) {
+						var complexVal2 = AscCommonExcel.Complex.prototype.ParseString(_val2 + "");
+						if (complexVal2 && complexVal2.real && complexVal2.img) {
+							if (_compare(complexVal1.real, complexVal2.real) && _compare(complexVal1.img, complexVal2.img)) {
+								return true;
+							}
 						}
 					}
 				}
 			}
-
 			return _val1 == _val2;
 		};
-
 		for (var i = 0; i < formulas.length; ++i) {
 			var formula = formulas[i];
 			var nRow;
@@ -577,7 +573,9 @@
 				nRow = formula.r;
 				nCol = formula.c;
 				formula = formula.f;
-			} else if (formula.parent) {
+			}
+
+			if (formula.parent) {
 				nRow = formula.parent.nRow;
 				nCol = formula.parent.nCol;
 			}
@@ -588,36 +586,7 @@
 				formula.setFormula(formula.getFormula());
 				formula.parse();
 				var formulaRes = formula.calculate();
-				var arrayFormula = formula.getArrayFormulaRef();
-				var newValue = null;
-				if (arrayFormula && formulaRes.type === AscCommonExcel.cElementType.array) {
-					if (formulaRes.array) {
-						var isOneRow = formulaRes.array.length === 1;
-						var isOneCol = formulaRes.array[0] && formulaRes.array[0].length === 1;
-
-						var rowArray = nRow - arrayFormula.r1;
-						var colArray = nCol - arrayFormula.c1;
-						if (isOneRow && rowArray > 0 && colArray === 0) {
-							colArray = rowArray;
-							rowArray = 0;
-						}
-						if (isOneCol && colArray > 0 && rowArray === 0) {
-							rowArray = colArray;
-							colArray = 0;
-						}
-
-						if (formulaRes.array[rowArray]) {
-							newValue = formulaRes.getElementRowCol(rowArray, colArray);
-						}
-					}
-					newValue = newValue ? newValue.getValue() : "#N/A";
-				} else if (formulaRes.type === AscCommonExcel.cElementType.array) {
-					newValue = formulaRes.getElementRowCol(0, 0);
-					newValue = newValue ? newValue.getValue() : "#N/A";
-				} else {
-					newValue = formulaRes ? formulaRes.getValue() : "#N/A";
-				}
-
+				var newValue = formula.simplifyRefType(formulaRes, formula.ws, nRow, nCol);
 				if (fLogger) {
 					if (!_compare(oldValue, newValue)) {
 						//error
@@ -751,7 +720,7 @@
 	 */
 	ApiWorksheet.prototype.GetRows = function (value) {
 		if (typeof  value === "undefined") {
-			return this.Rows;
+			return this.GetCells();
 		} else if (typeof value == "number" || value.indexOf(':') == -1) {
 			value = parseInt(value);
 			if (value > 0) {
@@ -1250,7 +1219,7 @@
 				Hyperlink.asc_setHyperlinkUrl(sAddress);
 			} else {
 				Hyperlink.asc_setRange(sAddress);
-				Hyperlink.asc_setSheet(this.Name);
+				Hyperlink.asc_setSheet(this.GetName());
 			}
 			this.worksheet.workbook.oApi.wb.insertHyperlink(Hyperlink);
 		}
@@ -1502,10 +1471,10 @@
 	 */
 	ApiRange.prototype.GetRows = function (nRow) {
 		if (typeof nRow === "undefined") {
-			var r1 = this.range.bbox.r1;
-			var r2 = this.range.bbox.r2;
+			var r1 = this.range.bbox.r1 + 1;
+			var r2 = this.range.bbox.r2 + 1;
 			return new ApiWorksheet(this.range.worksheet).GetRows(r1 + ":" + r2);
-			// return new ApiWorksheet(this.range.worksheet).Rows;	// return all rows from current sheet
+			// return new ApiWorksheet(this.range.worksheet).GetRows();	// return all rows from current sheet
 		} else if ( (nRow >= this.range.bbox.r1) && (nRow <= this.range.bbox.r2) ) {
 			return new ApiWorksheet(this.range.worksheet).GetRows(nRow);
 		} else {

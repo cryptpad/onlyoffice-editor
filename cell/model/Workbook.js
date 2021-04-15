@@ -3595,14 +3595,18 @@
 			}
 		});
 
+		var sNewNameEscaped = parserHelp.getEscapeSheetName(sNewName);
 		var sOldName = parserHelp.getEscapeSheetName(oWorksheet.sName);
 		this.checkObjectsLock(aId, function(bNoLock) {
 			if(bNoLock) {
 				for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
-					aRefsToChange[nRef].handleOnChangeSheetName(sOldName, sNewName);
+					aRefsToChange[nRef].handleOnChangeSheetName(sOldName, sNewNameEscaped);
 				}
 				if(Asc.editor && Asc.editor.wb) {
+					var sOldSheetName = oWorksheet.sName;
+					oWorksheet.sName = sNewName;
 					Asc.editor.wb.recalculateDrawingObjects(null, false);
+					oWorksheet.sName = sOldSheetName;
 				}
 			}
 		});
@@ -4845,7 +4849,7 @@
 			History.Create_NewPoint();
 			if(!bFromUndoRedo)
 			{
-				this.workbook.handleChartsOnChangeSheetName(this, parserHelp.getEscapeSheetName(name));
+				this.workbook.handleChartsOnChangeSheetName(this, name);
 			}
 			var prepared = this.workbook.dependencyFormulas.prepareChangeSheet(this.getId(), {rename: {from: lastName, to: name}});
 			this.sName = name;
