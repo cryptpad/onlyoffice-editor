@@ -175,7 +175,7 @@
         return oTime;
     };
     CTimeNodeBase.prototype.calculateRepeatCount = function() {
-        return this.parseTime(this.getRepeatCount() || "1000"); //TODO
+        return this.parseTime(this.getRepeatCount() || "1000"); //TODO: Use getRepeatDur
     };
     CTimeNodeBase.prototype.activateCallback = function(oPlayer) {
         var oParent = this.getParentTimeNode();
@@ -184,31 +184,38 @@
                 return;
             }
         }
-
         this.startTick = oPlayer.getElapsedTicks();
         this.simpleDuration = this.calculateSimpleDuration();
         this.repeatCount = this.calculateRepeatCount();
         this.setState(TIME_NODE_STATE_ACTIVE);
+        this.scheduleChildrenActivation(oPlayer);
+    };
 
+    CTimeNodeBase.prototype.scheduleChildrenActivation = function(oPlayer) {
         if(this.isTimingContainer()) {
-            var aChildren = this.getChildrenTimeNodes();
-            var nChild;
-            if(this.isPar()) {
-                for(nChild = 0; nChild < aChildren.length; ++nChild) {
-                    aChildren[nChild].activateCallback(oPlayer);
-                }
+            for(var nRepeat = 0; nRepeat < this.repeatCount; ++nRepeat) {
+                oPlayer.scheduleEvent(new CAnimEvent(this.getActivateChildrenCallback(oPlayer), this.getTimeTrigger(oPlayer, this.startTick + nRepeat*this.simpleDuration)));
             }
-            else if(this.isExcl()) {
-                //Todo: Activate a as for par by now. Rework.
-                for(nChild = 0; nChild < aChildren.length; ++nChild) {
-                    aChildren[nChild].activateCallback(oPlayer);
-                }
+        }
+    };
+    CTimeNodeBase.prototype.getActivateChildrenCallback = function(oPlayer) {
+        var aChildren = this.getChildrenTimeNodes();
+        var nChild;
+        if(this.isPar()) {
+            for(nChild = 0; nChild < aChildren.length; ++nChild) {
+                aChildren[nChild].activateCallback(oPlayer);
             }
-            else if(this.isSeq()) {
-                //Activate first element
-                if(aChildren.length > 0) {
-                    aChildren[0].activateCallback(oPlayer);
-                }
+        }
+        else if(this.isExcl()) {
+            //Todo: Activate a as for par by now. Rework.
+            for(nChild = 0; nChild < aChildren.length; ++nChild) {
+                aChildren[nChild].activateCallback(oPlayer);
+            }
+        }
+        else if(this.isSeq()) {
+            //Activate first element
+            if(aChildren.length > 0) {
+                aChildren[0].activateCallback(oPlayer);
             }
         }
     };
@@ -222,6 +229,11 @@
         var oThis = this;
         return function() {
             return oThis.defaultTrigger(oPlayer);
+        }
+    };
+    CTimeNodeBase.prototype.getTimeTrigger = function(oPlayer, nTime) {
+        return function() {
+            return nTime >= oPlayer.getElapsedTicks();
         }
     };
     CTimeNodeBase.prototype.setState = function(nState) {
