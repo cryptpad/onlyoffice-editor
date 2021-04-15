@@ -5310,6 +5310,18 @@ var editor;
 		return res;
 	};
 
+	spreadsheet_api.prototype.asc_isProtectedSheet = function(index) {
+		var sheetIndex = (undefined !== index && null !== index) ? index : this.wbModel.getActive();
+		var ws = this.wb.getWorksheet(sheetIndex);
+		var res = null;
+		if (ws) {
+			if (ws.getSheetProtection()) {
+				res = true;
+			}
+		}
+		return res;
+	};
+
 	spreadsheet_api.prototype.asc_setProtectedSheet = function(props) {
 		// Проверка глобального лока
 		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
@@ -5840,6 +5852,7 @@ var editor;
   prot["asc_setProtectedRanges"] = prot.asc_setProtectedRanges;
   prot["asc_getProtectedSheet"] = prot.asc_getProtectedSheet;
   prot["asc_setProtectedSheet"] = prot.asc_setProtectedSheet;
+  prot["asc_isProtectedSheet"] = prot.asc_isProtectedSheet;
 
 
 })(window);

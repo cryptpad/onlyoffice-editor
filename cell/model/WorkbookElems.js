@@ -11230,6 +11230,30 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.selectUnlockedCells = false;
 	};
 
+	CSheetProtection.prototype.setDefaultInterface = function() {
+		this.algorithmName = null;
+		this.hashValue = null;
+		this.saltValue = null;
+		this.spinCount = null;
+
+		this.sheet = true;
+		this.objects = true;
+		this.scenarios = true;
+		this.formatCells = true;
+		this.formatColumns = true;
+		this.formatRows = true;
+		this.insertColumns = true;
+		this.insertRows = true;
+		this.insertHyperlinks = true;
+		this.deleteColumns = true;
+		this.deleteRows = true;
+		this.selectLockedCells = false;
+		this.sort = true;
+		this.autoFilter = true;
+		this.pivotTables = true;
+		this.selectUnlockedCells = false;
+	};
+
 	CSheetProtection.prototype.set = function (val, addToHistory, ws) {
 		this.algorithmName = this.checkProperty(this.algorithmName, val.algorithmName, AscCH.historyitem_Protected_SetAlgorithmName, ws, addToHistory);
 		this.hashValue = this.checkProperty(this.hashValue, val.hashValue, AscCH.historyitem_Protected_SetHashValue, ws, addToHistory);
