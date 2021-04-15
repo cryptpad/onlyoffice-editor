@@ -134,9 +134,6 @@
     CTimeNodeBase.prototype.defaultTrigger = function(oPlayer) {
         return true;
     };
-    CTimeNodeBase.prototype.calculateSimpleDuration = function() {
-
-    };
     CTimeNodeBase.prototype.getDur = function() {
         return this.parseTime(this.getAttributesObject().dur);
     };
@@ -189,8 +186,27 @@
         this.repeatCount = this.calculateRepeatCount();
         this.setState(TIME_NODE_STATE_ACTIVE);
         this.scheduleChildrenActivation(oPlayer);
+        this.scheduleFinish(oPlayer);
     };
-
+    CTimeNodeBase.prototype.scheduleFinish = function(oPlayer) {
+        oPlayer.scheduleEvent(new CAnimEvent(
+            this.getFinishCallback(oPlayer),
+            this.getTimeTrigger(oPlayer, this.startTick + this.simpleDuration * this.repeatCount)
+        ));
+    };
+    CTimeNodeBase.prototype.finishCallback = function(oPlayer) {
+        this.setState(TIME_NODE_STATE_FINISHED);
+        var aChildren = this.getChildrenTimeNodes();
+        for(var nChild = 0; nChild < aChildren.length; ++nChild) {
+            aChildren[nChild].finishCallback(oPlayer);
+        }
+    };
+    CTimeNodeBase.prototype.getFinishCallback = function(oPlayer) {
+        var oThis = this;
+        return function () {
+            oThis.finishCallback(oPlayer);
+        };
+    };
     CTimeNodeBase.prototype.scheduleChildrenActivation = function(oPlayer) {
         if(this.isTimingContainer()) {
             for(var nRepeat = 0; nRepeat < this.repeatCount; ++nRepeat) {
