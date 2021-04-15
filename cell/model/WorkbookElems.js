@@ -11822,7 +11822,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return propOld;
 	};
 
-	CConditionalFormattingRule.prototype.setSqref = function (location, ws, addToHistory) {
+	CProtectedRange.prototype.setSqref = function (location, ws, addToHistory) {
 		if (addToHistory) {
 			var getUndoRedoRange = function (_ranges) {
 				var needRanges = [];
