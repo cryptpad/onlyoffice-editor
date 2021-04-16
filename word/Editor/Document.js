@@ -24833,6 +24833,7 @@ CDocument.prototype.private_ConvertTextToTable = function(oProps)
 
 	var oTable = new CTable(this.DrawingDocument, this, true, TableSeize.rows, TableSeize.cols, Grid);
 
+	// переделать вставку через nearpos
 	for (var i = 0; i < oArrRows.length; i++)
 	{
 		for (var j = 0; j < oArrRows[i].length; j++)
@@ -24843,9 +24844,22 @@ CDocument.prototype.private_ConvertTextToTable = function(oProps)
 		}
 	}
 	oTable.SelectAll();
-	if (oProps.CellsWidth || oProps.CellsWidth === null)
+	if (oProps.get_AutoFitType() !== 3)
 	{
-		oTable.SetTableProps({CellSelect : true, CellsWidth: oProps.CellsWidth, Locked : false});
+		var width = oProps.get_Fit();
+		var oTableProps = new Asc.CTableProp();
+		oTableProps.put_CellsWidth((width > 0) ? width : null);
+		oTableProps.put_CellSelect(true);
+		oTable.SetTableProps(oTableProps);
+
+		// this.StartAction(AscDFH.historydescription_Document_ApplyTablePr);
+		// this.SetTableProps(oTableProps);
+		// this.FinalizeAction();
+		// this.private_Recalculate()
+		// this.private_UpdateInterface();
+		// this.private_UpdateSelection();
+		// this.private_UpdateRulers();
+		// this.private_UpdateUndoRedo();
 	}
 	oNewContent.Add(new CSelectedElement(oTable, true));
 	return oNewContent;
@@ -24898,7 +24912,7 @@ CDocument.prototype.PreConvertTextToTable = function(oProps)
 
 			if (separator.tab)
 			{
-				oProps.put_SeparatorType(1);
+				oProps.put_SeparatorType(2);
 			}
 			else if (separator.comma)
 			{
@@ -24926,7 +24940,7 @@ CDocument.prototype.private_PreConvertTextToTable = function(oSelectedContent, o
 			oArrCells = [];
 		var oElement = oSelectedContent.Elements[i].Element;
 		// предполается, что новый параграф = новая строка (поэтому даже если separator == знаку абзаца), то сразу его в новую строку, в ворде работает также
-		if (oElement.IsParagraph() && SeparatorType !== 2)
+		if (oElement.IsParagraph() && SeparatorType !== 1)
 		{
 			var oNewParagraph = new Paragraph(this.DrawingDocument, this);
 			for (var j = oElement.Content.length - 1; j >= 0; j--)
@@ -24941,7 +24955,7 @@ CDocument.prototype.private_PreConvertTextToTable = function(oSelectedContent, o
 							continue;
 
 						//если в качестве separator у нас таб или конец абзаца, то не нужно проверять содержимое ранов
-						if (SeparatorType === 1)
+						if (SeparatorType === 2)
 						{
 							if (oThirdEl.Type === para_Tab)
 							{
@@ -24988,7 +25002,7 @@ CDocument.prototype.private_PreConvertTextToTable = function(oSelectedContent, o
 				}
 			}
 		}
-		else if (oElement.IsTable() && SeparatorType == 2)
+		else if (oElement.IsTable() && SeparatorType == 1)
 		{
 			FNewArrCells = false;
 			oArrCells.unshift(oElement);
@@ -25150,6 +25164,7 @@ CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 							oNewParagraph.Concat(oElement, true);
 							break;
 						case type_Table:
+							//добавить обработку влох таблиц
 							var oNestedContent = this.private_ConvertTableToText(oElement, oProps);
 							if (j == 0 && ArrNewContent[ArrNewContent.length-1].IsEmpty() && bAdd)
 								ArrNewContent.pop();
@@ -25174,18 +25189,17 @@ CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 				{
 					var oRun = new ParaRun(oNewParagraph, false);
 					var oText;
-					switch (oProps.Separator) {
-						case 9:
+					switch (oProps.type) {
+						case 2:
 							// TODO: подумать над тем, что водр меняет размеры этой табуляции (может нам тоже надо)
 							oText = new ParaTab();
 							break;
-						case 182:
-							// уточнить какой будет знак конца абзаца
+						case 1:
 							oNewParagraph = new Paragraph(this.DrawingDocument, this);
 							ArrNewContent.push(oNewParagraph);
 							break;
 						default:
-							oText = new ParaText(oProps.Separator);
+							oText = new ParaText(oProps.separator);
 							break;
 					}
 					if (oText)

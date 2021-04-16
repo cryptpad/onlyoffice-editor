@@ -11076,15 +11076,21 @@ background-repeat: no-repeat;\
 			return;
 
 		return oLogicDocument.ConvertTextToTable(oProps);
+		
+		// var width = oProps.get_Fit();
+		// var oTableProps = new Asc.CTableProp();
+		// oTableProps.put_CellsWidth((width > 0) ? width : null);
+		// oTableProps.put_CellSelect(true);
+		// this.tblApply(oTableProps);
 	};
 
-	asc_docs_api.prototype.asc_ConvertTableToText = function(oProps)
+	asc_docs_api.prototype.asc_ConvertTableToText = function(sep_type, sep, nested)
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
 		if (!oLogicDocument)
 			return;
 
-		return oLogicDocument.ConvertTableToText(oProps);
+		return oLogicDocument.ConvertTableToText({type: sep_type, separator: sep, nested: nested});
 	};
 
 	asc_docs_api.prototype.asc_OnHideContextMenu = function()

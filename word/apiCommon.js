@@ -2312,8 +2312,8 @@
 	function CAscTextToTableProperties(CDocument)
 	{
 		/* Separator types:
-			1 - Tab
-			2 - ParaEnd
+			1 - ParaEnd
+			2 - Tab
 			3 - Other symbol
 		*/
 		/* Autofit types:
@@ -2326,8 +2326,8 @@
 		this.ArrRows		= [];
 		this.Default		= {ArrRows : [], rows : 0, cols : 0};
 		this.AutoFitType	= 1;
-		this.FitValue		= 0;
-		this.SeparatorType	= 2;
+		this.FitValue		= -1;
+		this.SeparatorType	= 1;
 		this.Separator		= null;
 		this.Document		= CDocument;
 	}
@@ -2390,7 +2390,7 @@
 	};
 	CAscTextToTableProperties.prototype.put_Fit = function(val)
 	{
-		this.FitValue = (val > 0) ? val : 0;
+		this.FitValue = val;
 	};
 	CAscTextToTableProperties.prototype.get_SeparatorType = function()
 	{
@@ -2398,7 +2398,7 @@
 	};
 	CAscTextToTableProperties.prototype.put_SeparatorType = function(type, needRecal)
 	{
-		this.SeparatorType = (type > 0 && type <= 3) ? type : 2;
+		this.SeparatorType = (type > 0 && type <= 3) ? type : 1;
 		if (needRecal)
 		{
 			this.private_recalculate();
@@ -2427,7 +2427,7 @@
 		if (count)
 		{
 			if (size.cols < count){
-				if (this.get_SeparatorType() == 2)
+				if (this.get_SeparatorType() == 1)
 				{
 					// если в плюс и сепаратор абзац (то мы просто заполняем все ячейки по порядку абзацами до конца строки)
 					var newArrRows = [];
