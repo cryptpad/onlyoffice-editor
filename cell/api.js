@@ -5287,171 +5287,171 @@ var editor;
     }
   };
 
-	spreadsheet_api.prototype.asc_getProtectedRanges = function() {
-		var ws = this.wbModel.getActiveWs();
-		if (ws) {
-			return ws.getProtectedRanges(true);
-		}
-	};
+  spreadsheet_api.prototype.asc_getProtectedRanges = function () {
+    var ws = this.wbModel.getActiveWs();
+    if (ws) {
+      return ws.getProtectedRanges(true);
+    }
+  };
 
-	spreadsheet_api.prototype.asc_setProtectedRanges = function (arr, deleteIdArr) {
-		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
-			return false;
-		}
+  spreadsheet_api.prototype.asc_setProtectedRanges = function (arr, deleteIdArr) {
+    if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+      return false;
+    }
 
-		var ws = this.wb.getWorksheet();
-		ws.setProtectedRanges(arr, deleteIdArr);
-	};
+    var ws = this.wb.getWorksheet();
+    ws.setProtectedRanges(arr, deleteIdArr);
+  };
 
-	spreadsheet_api.prototype._onUpdateProtectedRangesLock = function (lockElem) {
-		var t = this;
-		var sheetId = lockElem.Element["sheetId"];
-		if (-1 !== sheetId && 0 === sheetId.indexOf(AscCommonExcel.CProtectedRange.sStartLock)) {
-			sheetId = sheetId.split(AscCommonExcel.CProtectedRange.sStartLock)[1];
-			var wsModel = this.wbModel.getWorksheetById(sheetId);
-			if (wsModel) {
-				var wsIndex = wsModel.getIndex();
-				var protectedRange = wsModel.getProtectedRangeById(lockElem.Element["rangeOrObjectId"]);
-				if (protectedRange && protectedRange.val) {
-					protectedRange = protectedRange.val;
-					protectedRange.isLock = lockElem.UserId;
-					this.handlers.trigger("asc_onLockProtectedRange", wsIndex, protectedRange.Id, lockElem.UserId);
-				} else {
-					var wsView = this.wb.getWorksheetById(sheetId);
-					wsView._lockAddProtectedRange = true;
-				}
-				this.handlers.trigger("asc_onLockProtectedRangeManager", wsModel.index);
-			}
-		}
-	};
+  spreadsheet_api.prototype._onUpdateProtectedRangesLock = function (lockElem) {
+    var t = this;
+    var sheetId = lockElem.Element["sheetId"];
+    if (-1 !== sheetId && 0 === sheetId.indexOf(AscCommonExcel.CProtectedRange.sStartLock)) {
+      sheetId = sheetId.split(AscCommonExcel.CProtectedRange.sStartLock)[1];
+      var wsModel = this.wbModel.getWorksheetById(sheetId);
+      if (wsModel) {
+        var wsIndex = wsModel.getIndex();
+        var protectedRange = wsModel.getProtectedRangeById(lockElem.Element["rangeOrObjectId"]);
+        if (protectedRange && protectedRange.val) {
+          protectedRange = protectedRange.val;
+          protectedRange.isLock = lockElem.UserId;
+          this.handlers.trigger("asc_onLockProtectedRange", wsIndex, protectedRange.Id, lockElem.UserId);
+        } else {
+          var wsView = this.wb.getWorksheetById(sheetId);
+          wsView._lockAddProtectedRange = true;
+        }
+        this.handlers.trigger("asc_onLockProtectedRangeManager", wsModel.index);
+      }
+    }
+  };
 
-	spreadsheet_api.prototype._onUnlockProtectedRange = function () {
-		var t = this;
-		if (t.wbModel) {
-			var i, length, wsModel, wsIndex;
-			for (i = 0, length = t.wbModel.getWorksheetCount(); i < length; ++i) {
-				wsModel = t.wbModel.getWorksheet(i);
-				wsIndex = wsModel.getIndex();
+  spreadsheet_api.prototype._onUnlockProtectedRange = function () {
+    var t = this;
+    if (t.wbModel) {
+      var i, length, wsModel, wsIndex;
+      for (i = 0, length = t.wbModel.getWorksheetCount(); i < length; ++i) {
+        wsModel = t.wbModel.getWorksheet(i);
+        wsIndex = wsModel.getIndex();
 
-				var isLocked = false;
-				if (wsModel.aProtectedRanges && wsModel.aProtectedRanges.length) {
-					wsModel.aProtectedRanges.forEach(function (pR) {
-						if (pR.isLock) {
-							isLocked = true;
-						}
-					});
-					if (!isLocked) {
-						var wsView = this.wb.getWorksheetById(wsModel.Id);
-						if (wsView._lockAddProtectedRange) {
-							isLocked = true;
-						}
-					}
-				}
-				if (!isLocked) {
-					t.handlers.trigger("asc_onUnLockProtectedRangeManager", wsIndex);
-				}
-			}
-		}
-	};
+        var isLocked = false;
+        if (wsModel.aProtectedRanges && wsModel.aProtectedRanges.length) {
+          wsModel.aProtectedRanges.forEach(function (pR) {
+            if (pR.isLock) {
+              isLocked = true;
+            }
+          });
+          if (!isLocked) {
+            var wsView = this.wb.getWorksheetById(wsModel.Id);
+            if (wsView._lockAddProtectedRange) {
+              isLocked = true;
+            }
+          }
+        }
+        if (!isLocked) {
+          t.handlers.trigger("asc_onUnLockProtectedRangeManager", wsIndex);
+        }
+      }
+    }
+  };
 
-	spreadsheet_api.prototype._onCheckProtectedRangeRemoveLock = function (lockElem) {
-		//лок правила - с правилом делать ничего нельзя
-		//лок менеджера - незалоченное правило можно удалять и редактировать. новые правила добавлять нельзя.
-		//так же нельзя перемещать местами правила
+  spreadsheet_api.prototype._onCheckProtectedRangeRemoveLock = function (lockElem) {
+    //лок правила - с правилом делать ничего нельзя
+    //лок менеджера - незалоченное правило можно удалять и редактировать. новые правила добавлять нельзя.
+    //так же нельзя перемещать местами правила
 
-		//лочим правило как объект. в лок кладём id и лист с префиксом AscCommonExcel.CProtectedRange.sStartLock
-		//на принятии изменений удаляем локи с соответсвующих элементов
-		//разлочиваем менеджер если нет залоченных элементов(т.е. проверяем все на лок)
-		//+ проверяем нет ли нового добавленного правила другим юзером
-		//всего для передачи в интерфейс 4 события - asc_onLockProtectedRange/asc_onUnLockProtectedRange; asc_onLockProtectedRangeManager/asc_onUnLockProtectedRangeManager
+    //лочим правило как объект. в лок кладём id и лист с префиксом AscCommonExcel.CProtectedRange.sStartLock
+    //на принятии изменений удаляем локи с соответсвующих элементов
+    //разлочиваем менеджер если нет залоченных элементов(т.е. проверяем все на лок)
+    //+ проверяем нет ли нового добавленного правила другим юзером
+    //всего для передачи в интерфейс 4 события - asc_onLockProtectedRange/asc_onUnLockProtectedRange; asc_onLockProtectedRangeManager/asc_onUnLockProtectedRangeManager
 
-		var res = false;
-		var t = this;
-		var sheetId = lockElem["sheetId"];
-		if (-1 !== sheetId && 0 === sheetId.indexOf(AscCommonExcel.CProtectedRange.sStartLock)) {
-			res = true;
-			if (t.wbModel) {
-				sheetId = sheetId.split(AscCommonExcel.CProtectedRange.sStartLock)[1];
-				var wsModel = t.wbModel.getWorksheetById(sheetId);
-				if (wsModel) {
-					var wsIndex = wsModel.getIndex();
-					var wsView = this.wb.getWorksheetById(sheetId);
-					var protectedRange = wsModel.getProtectedRangeById(lockElem["rangeOrObjectId"]);
-					if (protectedRange) {
-						if (protectedRange.val.isLock) {
-							protectedRange.val.isLock = null;
-						} else {
-							wsView._lockAddProtectedRange = null;
-						}
-						this.handlers.trigger("asc_onUnLockProtectedRange", wsIndex, lockElem["rangeOrObjectId"]);
-					} else {
-						wsView._lockAddProtectedRange = null;
-					}
-				}
-			}
-		}
-		return res;
-	};
+    var res = false;
+    var t = this;
+    var sheetId = lockElem["sheetId"];
+    if (-1 !== sheetId && 0 === sheetId.indexOf(AscCommonExcel.CProtectedRange.sStartLock)) {
+      res = true;
+      if (t.wbModel) {
+        sheetId = sheetId.split(AscCommonExcel.CProtectedRange.sStartLock)[1];
+        var wsModel = t.wbModel.getWorksheetById(sheetId);
+        if (wsModel) {
+          var wsIndex = wsModel.getIndex();
+          var wsView = this.wb.getWorksheetById(sheetId);
+          var protectedRange = wsModel.getProtectedRangeById(lockElem["rangeOrObjectId"]);
+          if (protectedRange) {
+            if (protectedRange.val.isLock) {
+              protectedRange.val.isLock = null;
+            } else {
+              wsView._lockAddProtectedRange = null;
+            }
+            this.handlers.trigger("asc_onUnLockProtectedRange", wsIndex, lockElem["rangeOrObjectId"]);
+          } else {
+            wsView._lockAddProtectedRange = null;
+          }
+        }
+      }
+    }
+    return res;
+  };
 
-	spreadsheet_api.prototype.asc_getProtectedSheet = function() {
-		var ws = this.wbModel.getActiveWs();
-		var res = null;
-		if (ws) {
-			if (ws.sheetProtection) {
-				res = ws.sheetProtection.clone();
-			} else {
-				res = new window["AscCommonExcel"].CSheetProtection();
-				res.setDefaultInterface();
-			}
-		}
-		return res;
-	};
+  spreadsheet_api.prototype.asc_getProtectedSheet = function () {
+    var ws = this.wbModel.getActiveWs();
+    var res = null;
+    if (ws) {
+      if (ws.sheetProtection) {
+        res = ws.sheetProtection.clone();
+      } else {
+        res = new window["AscCommonExcel"].CSheetProtection();
+        res.setDefaultInterface();
+      }
+    }
+    return res;
+  };
 
-	spreadsheet_api.prototype.asc_isProtectedSheet = function(index) {
-		var sheetIndex = (undefined !== index && null !== index) ? index : this.wbModel.getActive();
-		var ws = this.wb.getWorksheet(sheetIndex);
-		var res = null;
-		if (ws) {
-			if (ws.getSheetProtection()) {
-				res = true;
-			}
-		}
-		return res;
-	};
+  spreadsheet_api.prototype.asc_isProtectedSheet = function (index) {
+    var sheetIndex = (undefined !== index && null !== index) ? index : this.wbModel.getActive();
+    var ws = this.wb.getWorksheet(sheetIndex);
+    var res = null;
+    if (ws) {
+      if (ws.getSheetProtection()) {
+        res = true;
+      }
+    }
+    return res;
+  };
 
-	spreadsheet_api.prototype.asc_setProtectedSheet = function(props) {
-		// Проверка глобального лока
-		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
-			return false;
-		}
+  spreadsheet_api.prototype.asc_setProtectedSheet = function (props) {
+    // Проверка глобального лока
+    if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+      return false;
+    }
 
-		var i = this.wbModel.getActive();
-		var sheetId = this.wbModel.getWorksheet(i).getId();
-		var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheetId, sheetId);
+    var i = this.wbModel.getActive();
+    var sheetId = this.wbModel.getWorksheet(i).getId();
+    var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheetId, sheetId);
 
-		var t = this;
-		var renameCallback = function(res) {
-			if (res) {
-				History.Create_NewPoint();
-				History.StartTransaction();
-				t.wbModel.getWorksheet(i).setProtectedSheet(props, true);
-				History.EndTransaction();
-			} else {
-				//t.handlers.trigger("asc_onError", c_oAscError.ID.LockedWorksheetRename, c_oAscError.Level.NoCritical);
-			}
-		};
+    var t = this;
+    var renameCallback = function (res) {
+      if (res) {
+        History.Create_NewPoint();
+        History.StartTransaction();
+        t.wbModel.getWorksheet(i).setProtectedSheet(props, true);
+        History.EndTransaction();
+      } else {
+        //t.handlers.trigger("asc_onError", c_oAscError.ID.LockedWorksheetRename, c_oAscError.Level.NoCritical);
+      }
+    };
 
-		this.collaborativeEditing.lock([lockInfo], renameCallback);
-		return true;
-	};
+    this.collaborativeEditing.lock([lockInfo], renameCallback);
+    return true;
+  };
 
-	spreadsheet_api.prototype.asc_clearCF = function (type, id) {
-		var rules = this.wbModel.getRulesByType(type, id);
-		if (rules && rules.length) {
-			var ws = this.wb.getWorksheet();
-			ws.deleteCF(rules, type);
-		}
-	};
+  spreadsheet_api.prototype.asc_clearCF = function (type, id) {
+    var rules = this.wbModel.getRulesByType(type, id);
+    if (rules && rules.length) {
+      var ws = this.wb.getWorksheet();
+      ws.deleteCF(rules, type);
+    }
+  };
 
   spreadsheet_api.prototype.asc_setSkin = function (theme) {
     AscCommon.updateGlobalSkin(theme);
