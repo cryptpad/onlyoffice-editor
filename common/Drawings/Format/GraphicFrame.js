@@ -274,7 +274,14 @@ CGraphicFrame.prototype.copy = function(oPr)
             ret.spPr.setParent(ret);
         }
         ret.setBDeleted(false);
-
+        if(this.macro !== null)
+        {
+            ret.setMacro(this.macro);
+        }
+        if(this.textLink !== null)
+        {
+            ret.setTextLink(this.textLink);
+        }
         if(!this.recalcInfo.recalculateTable && !this.recalcInfo.recalculateSizes && !this.recalcInfo.recalculateTransform)
         {
             ret.cachedImage = this.getBase64Img();

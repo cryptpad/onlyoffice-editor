@@ -2421,9 +2421,18 @@
 			if (null !== this.Value && this.Value !== Asc.c_oAscShd.Nil)
 				this.Value = Asc.c_oAscShd.Clear;
 
-			if (obj.GetSimpleColor){
-				var oColor = obj.GetSimpleColor();
-				this.Color = CreateAscColorCustom(oColor.r, oColor.g, oColor.b, oColor.Auto);
+			if (obj.GetSimpleColor) {
+
+				if (Asc.c_oAscShd.Clear === obj.Value
+					&& obj.Unifill
+					&& obj.Unifill.fill
+					&& obj.Unifill.fill.type === c_oAscFill.FILL_TYPE_SOLID
+					&& obj.Unifill.fill.color) {
+					this.Color = CreateAscColor(obj.Unifill.fill.color);
+				} else {
+					var oColor = obj.GetSimpleColor();
+					this.Color = CreateAscColorCustom(oColor.r, oColor.g, oColor.b, oColor.Auto);
+				}
 			}
 			else {
 				if (obj.Unifill && obj.Unifill.fill && obj.Unifill.fill.type === c_oAscFill.FILL_TYPE_SOLID &&
@@ -5356,6 +5365,7 @@
 		this.name    = "";
 		this.guid    = "";
 		this.baseUrl = "";
+		this.minVersion = "";
 
 		this.variations = [];
 	}
@@ -5383,6 +5393,14 @@
 	CPlugin.prototype["set_BaseUrl"] = function(value)
 	{
 		this.baseUrl = value;
+	};
+	CPlugin.prototype["get_MinVersion"] = function()
+	{
+		return this.minVersion;
+	};
+	CPlugin.prototype["set_MinVersion"] = function(value)
+	{
+		this.minVersion = value;
 	};
 
 	CPlugin.prototype["get_Variations"] = function()

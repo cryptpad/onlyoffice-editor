@@ -228,7 +228,8 @@ function CopyProcessor(api, onlyBinaryCopy)
     if (this.api.ThemeLoader) {
         this.oPresentationWriter.Start_UseDocumentOrigin(this.api.ThemeLoader.ThemesUrlAbs);
     }
-	
+
+    this.aFootnoteReference = [];
 	this.oRoot = new CopyElement("root");
 }
 CopyProcessor.prototype =
@@ -422,7 +423,8 @@ CopyProcessor.prototype =
     },
     ParseItem : function(ParaItem, oTarget, nextParaItem, lengthContent)
     {
-        switch ( ParaItem.Type )
+        var oSpan;
+    	switch ( ParaItem.Type )
         {
             case para_Text:
 				//экранируем спецсимволы
@@ -440,7 +442,7 @@ CopyProcessor.prototype =
 					oTarget.addChild(new CopyElement(" ", true));	
 				break;
 			case para_Tab:
-				var oSpan = new CopyElement("span");
+				oSpan = new CopyElement("span");
 				oSpan.oAttributes["style"] = "white-space:pre;";
 				oSpan.oAttributes["style"] = "mso-tab-count:1;";
 				oSpan.addChild(new CopyElement(String.fromCharCode(0x09), true));
@@ -458,7 +460,7 @@ CopyProcessor.prototype =
 				oTarget.addChild(oBr);
 				//todo закончить этот параграф и начать новый
 				//добавил неразрвной пробел для того, чтобы информация попадала в буфер обмена
-				var oSpan = new CopyElement("span");
+				oSpan = new CopyElement("span");
 				oSpan.addChild(new CopyElement("&nbsp;", true));
 				oTarget.addChild(oSpan);
                 break;
@@ -486,59 +488,77 @@ CopyProcessor.prototype =
 					oTarget.addChild(oImg);
                     break;
                 }
-                // var _canvas     = document.createElement('canvas');
-                // var w = img.width;
-                // var h = img.height;
-
-                // _canvas.width   = w;
-                // _canvas.height  = h;
-
-                // var _ctx        = _canvas.getContext('2d');
-                // _ctx.globalCompositeOperation = "copy";
-                // _ctx.drawImage(img, 0, 0);
-
-                // var _data = _ctx.getImageData(0, 0, w, h);
-                // _ctx = null;
-                // delete _canvas;
                 break;
 			case para_PageNum:
 				if(null != ParaItem.String && "string" === typeof(ParaItem.String))
 					oTarget.addChild(new CopyElement(CopyPasteCorrectString(ParaItem.String), true));
 				break;
+			case para_FootnoteReference:
+				var oLink = new CopyElement("a");
+				var index = this.aFootnoteReference.length + 1;
+				var prefix = "ftn";
+				oLink.oAttributes["style"] = "mso-footnote-id:" + prefix + index;
+				oLink.oAttributes["href"] = "#_" + prefix + index;
+				oLink.oAttributes["name"] = "_" + prefix + "ref" + index;
+				oLink.oAttributes["title"] = "";
+
+				oSpan = new CopyElement("span");
+				oSpan.oAttributes["class"] = "MsoFootnoteReference";
+
+
+				var _oSpan2 = new CopyElement("span");
+				//_oSpan2.addChild(new CopyElement(CopyPasteCorrectString("[" + index + "]"), true));
+				if (_oSpan2.oAttributes["style"]) {
+					_oSpan2.oAttributes["style"] += ";"
+				} else {
+					_oSpan2.oAttributes["style"] = "";
+				}
+				_oSpan2.oAttributes["style"] += "mso-special-character:footnote";
+
+				oSpan.addChild(_oSpan2);
+				this.parse_para_TextPr(ParaItem.Run.Get_CompiledTextPr(), oSpan);
+				oLink.addChild(oSpan);
+				oTarget.addChild(oLink);
+				this.aFootnoteReference.push(ParaItem.Footnote);
+				break;
         }
     },
     CopyRun: function (Item, oTarget) {
-        for (var i = 0; i < Item.Content.length; i++)
-            this.ParseItem(Item.Content[i], oTarget, Item.Content[i + 1], Item.Content.length);
+		for (var i = 0; i < Item.Content.length; i++) {
+			this.ParseItem(Item.Content[i], oTarget, Item.Content[i + 1], Item.Content.length);
+		}
     },
     CopyRunContent: function (Container, oTarget, bOmitHyperlink) {
-        for (var i = 0; i < Container.Content.length; i++) {
-            var item = Container.Content[i];
-            if (para_Run === item.Type) {
-				var oSpan = new CopyElement("span");
-                this.CopyRun(item, oSpan);
-                if(!oSpan.isEmptyChild()){
-					this.parse_para_TextPr(item.Get_CompiledTextPr(), oSpan);
-					oTarget.addChild(oSpan);
+		for (var i = 0; i < Container.Content.length; i++) {
+			var item = Container.Content[i];
+			if (para_Run === item.Type) {
+				//отдельная обработка для сносок, добавляем внутри данные
+				if (item.Content && item.Content.length === 1 && item.Content[0] && item.Content[0].Type === para_FootnoteReference) {
+					this.CopyRun(item, oTarget);
+				} else {
+					var oSpan = new CopyElement("span");
+					this.CopyRun(item, oSpan);
+					if (!oSpan.isEmptyChild()) {
+						this.parse_para_TextPr(item.Get_CompiledTextPr(), oSpan);
+						oTarget.addChild(oSpan);
+					}
 				}
-            }
-            else if (para_Hyperlink === item.Type) {
-                if (!bOmitHyperlink) {
+			} else if (para_Hyperlink === item.Type) {
+				if (!bOmitHyperlink) {
 					var oHyperlink = new CopyElement("a");
-                    var sValue = item.GetValue();
-                    var sToolTip = item.GetToolTip();
+					var sValue = item.GetValue();
+					var sToolTip = item.GetToolTip();
 					oHyperlink.oAttributes["href"] = CopyPasteCorrectString(sValue);
 					oHyperlink.oAttributes["title"] = CopyPasteCorrectString(sToolTip);
 					//вложенные ссылки в html запрещены.
 					this.CopyRunContent(item, oHyperlink, true);
 					oTarget.addChild(oHyperlink);
-                }
-				else
+				} else {
 					this.CopyRunContent(item, oTarget, true);
-            }
-			else if(para_Math === item.Type){
-                var sSrc = item.MathToImageConverter();
-				if (null != sSrc && null != sSrc.ImageUrl){
+				}
+			} else if (para_Math === item.Type) {
+				var sSrc = item.MathToImageConverter();
+				if (null != sSrc && null != sSrc.ImageUrl) {
 					var oImg = new CopyElement("img");
 					if (sSrc.w_px > 0) {
 						oImg.oAttributes["width"] = sSrc.w_px;
@@ -549,11 +569,12 @@ CopyProcessor.prototype =
 					oImg.oAttributes["src"] = sSrc.ImageUrl;
 					oTarget.addChild(oImg);
 				}
-			} else if(para_InlineLevelSdt === item.Type) {
+			} else if (para_InlineLevelSdt === item.Type) {
 				this.CopyRunContent(item, oTarget);
-			} else if(para_Field === item.Type)
+			} else if (para_Field === item.Type) {
 				this.CopyRunContent(item, oTarget);
-        }
+			}
+		}
     },
     CopyParagraph : function(oDomTarget, Item, selectedAll)
     {
@@ -1504,15 +1525,17 @@ CopyProcessor.prototype =
 
 		window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
 
+		var sBase64, oElem, sStyle;
 		var selectedContent;
 		if (PasteElementsId.g_bIsDocumentCopyPaste) {
 			selectedContent = oDocument.GetSelectedContent();
 
 			var elementsContent;
-			if (selectedContent && selectedContent.Elements && selectedContent.Elements[0] && selectedContent.Elements[0].Element)
+			if (selectedContent && selectedContent.Elements && selectedContent.Elements[0] && selectedContent.Elements[0].Element) {
 				elementsContent = selectedContent.Elements;
-			else
+			} else {
 				return "";
+			}
 
 			//TODO заглушка для презентационных параграфов(выделен текст внутри диаграммы) - пока не пишем в бинарник
 			if (selectedContent.Elements[0].Element && selectedContent.Elements[0].Element.bFromDocument === false) {
@@ -1524,42 +1547,51 @@ CopyProcessor.prototype =
 
 			this.oBinaryFileWriter.CopyStart();
 			this.CopyDocument2(this.oRoot, oDocument, elementsContent, bFromPresentation);
+			this.CopyFootnotes(this.oRoot, this.aFootnoteReference);
 			this.oBinaryFileWriter.CopyEnd();
 		} else {
 			selectedContent = oDocument.GetSelectedContent2();
-			if (!selectedContent[0].DocContent && (!selectedContent[0].Drawings || (selectedContent[0].Drawings && !selectedContent[0].Drawings.length)) && (!selectedContent[0].SlideObjects || (selectedContent[0].SlideObjects && !selectedContent[0].SlideObjects.length)))
+			if (!selectedContent[0].DocContent && (!selectedContent[0].Drawings ||
+				(selectedContent[0].Drawings && !selectedContent[0].Drawings.length)) &&
+				(!selectedContent[0].SlideObjects ||
+				(selectedContent[0].SlideObjects && !selectedContent[0].SlideObjects.length))) {
 				return false;
+			}
 
 			this.CopyDocument2(this.oRoot, oDocument, selectedContent);
 
-			var sBase64 = this.oPresentationWriter.GetBase64Memory();
+			sBase64 = this.oPresentationWriter.GetBase64Memory();
 			sBase64 = "pptData;" + this.oPresentationWriter.pos + ";" + sBase64;
 			if (this.oRoot.aChildren && this.oRoot.aChildren.length === 1 && AscBrowser.isSafariMacOs) {
-				var oElem = this.oRoot.aChildren[0];
-				var sStyle = oElem.oAttributes["style"];
-				if (null == sStyle)
+				oElem = this.oRoot.aChildren[0];
+				sStyle = oElem.oAttributes["style"];
+				if (null == sStyle) {
 					oElem.oAttributes["style"] = "font-weight:normal";
-				else
-					oElem.oAttributes["style"] = sStyle + ";font-weight:normal";//просто добавляем потому что в sStyle не могло быть font-weight, мы всегда пишем <b>
+				} else {
+					oElem.oAttributes["style"] = sStyle + ";font-weight:normal";
+				}//просто добавляем потому что в sStyle не могло быть font-weight, мы всегда пишем <b>
 				this.oRoot.wrapChild(new CopyElement("b"));
 			}
-			if (this.oRoot.aChildren && this.oRoot.aChildren.length > 0)
+			if (this.oRoot.aChildren && this.oRoot.aChildren.length > 0) {
 				this.oRoot.aChildren[0].oAttributes["class"] = sBase64;
+			}
 		}
 
 		if (PasteElementsId.g_bIsDocumentCopyPaste && PasteElementsId.copyPasteUseBinary && this.oBinaryFileWriter.copyParams.itemCount > 0 && !bFromPresentation) {
-			var sBase64 = "docData;" + this.oBinaryFileWriter.GetResult();
+			sBase64 = "docData;" + this.oBinaryFileWriter.GetResult();
 			if (this.oRoot.aChildren && this.oRoot.aChildren.length == 1 && AscBrowser.isSafariMacOs) {
-				var oElem = this.oRoot.aChildren[0];
-				var sStyle = oElem.oAttributes["style"];
-				if (null == sStyle)
+				oElem = this.oRoot.aChildren[0];
+				sStyle = oElem.oAttributes["style"];
+				if (null == sStyle) {
 					oElem.oAttributes["style"] = "font-weight:normal";
-				else
-					oElem.oAttributes["style"] = sStyle + ";font-weight:normal";//просто добавляем потому что в sStyle не могло быть font-weight, мы всегда пишем <b>
+				} else {
+					oElem.oAttributes["style"] = sStyle + ";font-weight:normal";
+				}//просто добавляем потому что в sStyle не могло быть font-weight, мы всегда пишем <b>
 				this.oRoot.wrapChild(new CopyElement("b"));
 			}
-			if (this.oRoot.aChildren && this.oRoot.aChildren.length > 0)
+			if (this.oRoot.aChildren && this.oRoot.aChildren.length > 0) {
 				this.oRoot.aChildren[0].oAttributes["class"] = sBase64;
+			}
 		}
 
 		return sBase64;
@@ -1838,6 +1870,42 @@ CopyProcessor.prototype =
 			oDomTarget.addChild(oImg);
 		}
 		this.oPresentationWriter.WriteSpTreeElem(oGraphicObj);
+	},
+
+	CopyFootnotes: function (oDomTarget, aFootnotes) {
+		if (aFootnotes && aFootnotes.length) {
+			var _mainDiv = new CopyElement("div");
+			_mainDiv.oAttributes["style"] = "mso-element:footnote-list";
+
+			for (var i = 0; i < aFootnotes.length; i++) {
+				var prefix = "ftn";
+				var index = i + 1;
+				var _div = new CopyElement("div");
+				_div.oAttributes["style"] = "mso-element:footnote";
+				_div.oAttributes["id"] = prefix + index;
+
+				var _p = new CopyElement("p");
+				_p.oAttributes["class"] = "MsoFootnoteText";
+
+				var _link = new CopyElement("a");
+
+				_link.oAttributes["style"] = "mso-footnote-id:" + prefix + index;
+				_link.oAttributes["href"] = "_" + prefix + "ref" + index;
+				_link.oAttributes["name"] = "#_" + prefix + index;
+				_link.oAttributes["title"] = "";
+
+				var _span = new CopyElement("span");
+				_span.oAttributes["class"] = "MsoFootnoteReference";
+
+				this.CopyDocument2(_span, null, aFootnotes[i].Content, true);
+				_link.addChild(_span);
+				_p.addChild(_link);
+				_div.addChild(_p);
+				_mainDiv.addChild(_div);
+			}
+
+			oDomTarget.addChild(_mainDiv);
+		}
 	}
 };
 
@@ -8947,6 +9015,33 @@ SpecialPasteShowOptions.prototype = {
 	}
 };
 
+function checkOnlyOneImage(node)
+{
+	var res = false;
+
+	if (node && node.childNodes) {
+		for (var i = 0; i < node.childNodes.length; i++) {
+			var sChildNodeName = node.childNodes[i].nodeName.toLowerCase();
+			if (sChildNodeName === "style" || sChildNodeName === "#comment" || sChildNodeName === "script") {
+				continue;
+			}
+			if (sChildNodeName === "img") {
+				if (res) {
+					res = false;
+					break;
+				} else {
+					res = true;
+				}
+			} else {
+				res = false;
+				break;
+			}
+		}
+	}
+
+	return res;
+}
+
   //---------------------------------------------------------export---------------------------------------------------
   window['AscCommon'] = window['AscCommon'] || {};
   window["AscCommon"].Check_LoadingDataBeforePrepaste = Check_LoadingDataBeforePrepaste;
@@ -8972,5 +9067,8 @@ SpecialPasteShowOptions.prototype = {
   prot["asc_getOptions"]					= prot.asc_getOptions;
   prot["asc_getShowPasteSpecial"]			= prot.asc_getShowPasteSpecial;
   prot["asc_getContainTables"]			    = prot.asc_getContainTables;
+
+  window["AscCommon"].checkOnlyOneImage = checkOnlyOneImage;
+
 
 })(window);

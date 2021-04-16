@@ -646,16 +646,6 @@ var g_PresetTxWarpTypes =
         ]
     ];
 
-	var g_oStylesBinaries = {};
-	var g_oColorsBinaries = {};
-	var g_oDataLabelsBinaries = {};
-	var g_oLegendBinaries = {};
-	var g_oCatBinaries = {};
-	var g_oValBinaries = {};
-	var g_oBarParams = {};
-	var g_oView3dBinaries = {};
-	var g_oChartStyles = {};
-	var g_oChartStylesIdMap = {};
 
 
 
@@ -685,17 +675,38 @@ var g_PresetTxWarpTypes =
   window['AscCommon'].g_PresetTxWarpTypes = g_PresetTxWarpTypes;
   window['AscCommon'].sChartStyles = "";
 
-  window['AscCommon'].g_oChartStyles = window['AscCommon'].g_oChartStyles || g_oChartStyles;
-  window['AscCommon'].g_oStylesBinaries = window['AscCommon'].g_oStylesBinaries || g_oStylesBinaries;
-  window['AscCommon'].g_oColorsBinaries = window['AscCommon'].g_oColorsBinaries || g_oColorsBinaries;
 
-	window['AscCommon'].g_oDataLabelsBinaries = window['AscCommon'].g_oDataLabelsBinaries || g_oDataLabelsBinaries;
-	window['AscCommon'].g_oLegendBinaries = window['AscCommon'].g_oLegendBinaries || g_oLegendBinaries;
-	window['AscCommon'].g_oCatBinaries = window['AscCommon'].g_oCatBinaries || g_oCatBinaries;
-	window['AscCommon'].g_oValBinaries = window['AscCommon'].g_oValBinaries || g_oValBinaries;
-	window['AscCommon'].g_oBarParams = window['AscCommon'].g_oBarParams || g_oBarParams;
-	window['AscCommon'].g_oView3dBinaries = window['AscCommon'].g_oView3dBinaries || g_oView3dBinaries;
-	window['AscCommon'].g_oChartStylesIdMap = window['AscCommon'].g_oChartStylesIdMap ||  g_oChartStylesIdMap;
+
+
+	window['AscCommon'].g_oChartStyles = window['AscCommon']['g_oChartStyles'] || {};
+	window['AscCommon']['g_oChartStyles'] = window['AscCommon'].g_oChartStyles;
+
+	window['AscCommon'].g_oStylesBinaries = window['AscCommon']['g_oStylesBinaries'] || {};
+	window['AscCommon']['g_oStylesBinaries'] = window['AscCommon'].g_oStylesBinaries;
+
+	window['AscCommon'].g_oColorsBinaries = window['AscCommon']['g_oColorsBinaries'] || {};
+	window['AscCommon']['g_oColorsBinaries'] = window['AscCommon'].g_oColorsBinaries;
+
+	window['AscCommon'].g_oDataLabelsBinaries = window['AscCommon']['g_oDataLabelsBinaries'] || {};
+	window['AscCommon']['g_oDataLabelsBinaries'] = window['AscCommon'].g_oDataLabelsBinaries;
+
+	window['AscCommon'].g_oLegendBinaries = window['AscCommon']['g_oLegendBinaries'] || {};
+	window['AscCommon']['g_oLegendBinaries'] = window['AscCommon'].g_oLegendBinaries;
+
+	window['AscCommon'].g_oCatBinaries = window['AscCommon'].g_oCatBinaries || {};
+	window['AscCommon']['g_oCatBinaries'] = window['AscCommon'].g_oCatBinaries;
+
+	window['AscCommon'].g_oValBinaries = window['AscCommon'].g_oValBinaries || {};
+	window['AscCommon']['g_oValBinaries'] = window['AscCommon'].g_oValBinaries;
+
+	window['AscCommon'].g_oBarParams = window['AscCommon'].g_oBarParams || {};
+	window['AscCommon']['g_oBarParams'] = window['AscCommon'].g_oBarParams;
+
+	window['AscCommon'].g_oView3dBinaries = window['AscCommon'].g_oView3dBinaries || {};
+	window['AscCommon']['g_oView3dBinaries'] = window['AscCommon'].g_oView3dBinaries;
+
+	window['AscCommon'].g_oChartStylesIdMap = window['AscCommon'].g_oChartStylesIdMap || {};
+	window['AscCommon']['g_oChartStylesIdMap'] = window['AscCommon'].g_oChartStylesIdMap;
 
 	function fGetAttributeString(attribute) {
 		if(Array.isArray(attribute)) {

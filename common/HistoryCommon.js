@@ -1211,6 +1211,9 @@
 			case AscDFH.historydescription_Document_AutoCorrectFirstLetterOfSentence:
 				sString = "Document_AutoCorrectFirstLetterOfSentence";
 				break;
+			case AscDFH.historydescription_Document_ResolveAllComments:
+				sString = "Document_ResolveAllComments";
+				break;
 		}
 		return sString;
 	}
@@ -2772,6 +2775,8 @@
 	window['AscDFH'].historyitem_ShapeSetBodyPr         = window['AscDFH'].historyitem_type_Shape | 9;
 	window['AscDFH'].historyitem_ShapeSetWordShape      = window['AscDFH'].historyitem_type_Shape | 10;
 	window['AscDFH'].historyitem_ShapeSetSignature      = window['AscDFH'].historyitem_type_Shape | 11;
+	window['AscDFH'].historyitem_ShapeSetMacro          = window['AscDFH'].historyitem_type_Shape | 12;
+	window['AscDFH'].historyitem_ShapeSetTextLink       = window['AscDFH'].historyitem_type_Shape | 13;
 
 	window['AscDFH'].historyitem_DispUnitsSetBuiltInUnit  = window['AscDFH'].historyitem_type_DispUnits | 1;
 	window['AscDFH'].historyitem_DispUnitsSetCustUnit     = window['AscDFH'].historyitem_type_DispUnits | 2;
@@ -3096,8 +3101,11 @@
 	AscDFH.historyitem_BldPBuild            = AscDFH.historyitem_type_BldP | 5;
 	AscDFH.historyitem_BldPRev              = AscDFH.historyitem_type_BldP | 6;
 
-	AscDFH.historyitem_BldSubBldChart = AscDFH.historyitem_type_BldSub | 1;
-	AscDFH.historyitem_BldSubBldDgm   = AscDFH.historyitem_type_BldSub | 2;
+	AscDFH.historyitem_BldSubChart = AscDFH.historyitem_type_BldSub    | 1;
+	AscDFH.historyitem_BldSubAnimBg = AscDFH.historyitem_type_BldSub   | 2;
+	AscDFH.historyitem_BldSubBldChart = AscDFH.historyitem_type_BldSub | 3;
+	AscDFH.historyitem_BldSubBldDgm = AscDFH.historyitem_type_BldSub   | 4;
+	AscDFH.historyitem_BldSubRev = AscDFH.historyitem_type_BldSub      | 5;
 
 	AscDFH.historyitem_DirTransitionDir = AscDFH.historyitem_type_DirTransition | 1;
 
@@ -4166,6 +4174,7 @@
 	window['AscDFH'].historydescription_Document_SetContentControlText              = 0x0186;
 	window['AscDFH'].historydescription_Document_ClearContentControl                = 0x0187;
 	window['AscDFH'].historydescription_Document_AutoCorrectFirstLetterOfSentence   = 0x0188;
+	window['AscDFH'].historydescription_Document_ResolveAllComments                 = 0x0189;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
