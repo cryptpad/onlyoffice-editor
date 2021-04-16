@@ -764,7 +764,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 				{
 					this.RemoveTableCells();
 				}
-				else if (false === this.Content[StartPos].Remove(Count, isRemoveWholeElement, bRemoveOnlySelection, bOnTextAdd))
+				else if (false === this.Content[StartPos].Remove(Count, isRemoveWholeElement, bRemoveOnlySelection, (this.Content[StartPos].IsTable() ? false : bOnTextAdd)))
 				{
 					// При добавлении текста, параграф не объединяется
 					if (true !== bOnTextAdd || (isRemoveOnDrag && this.Content[StartPos].IsEmpty()))
