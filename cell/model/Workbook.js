@@ -6594,6 +6594,7 @@
 		this._moveDataValidation(oBBoxFrom, oBBoxTo, copyRange, offset, wsTo);
 		this.moveConditionalFormatting(oBBoxFrom, oBBoxTo, copyRange, offset, wsTo);
 		this.moveSparklineGroup(oBBoxFrom, oBBoxTo, copyRange, offset, wsTo);
+		this.moveProtectedRange(oBBoxFrom, oBBoxTo, copyRange, offset, wsTo);
 
 
 		if(true == this.workbook.bUndoChanges || true == this.workbook.bRedoChanges) {
@@ -9886,6 +9887,115 @@
 			protectedRange.setOffset(offset, range, this, true);
 		}
 	};
+
+	Worksheet.prototype.moveProtectedRange = function (oBBoxFrom, oBBoxTo, copyRange, offset, wsTo, wsFrom) {
+		var t = this;
+		if (!wsTo) {
+			wsTo = this;
+		}
+		if (false === this.workbook.bUndoChanges && false === this.workbook.bRedoChanges) {
+			//чистим ту область, куда переносим
+			if (wsTo.aProtectedRanges && wsTo.aProtectedRanges.length) {
+				wsTo.aProtectedRanges.forEach(function (_protectedRange) {
+					t.tryClearProtectedRange(_protectedRange, [oBBoxTo]);
+				});
+			}
+
+			if (!wsFrom) {
+				wsFrom = this;
+			}
+
+			if (wsFrom.aProtectedRanges && wsFrom.aProtectedRanges.length) {
+				wsFrom.aProtectedRanges.forEach(function (_protectedRange) {
+					/если клонируем - то добавляем новое правило со смещенным диапазоном пересечения
+					//если нет + если в пределах одного листа - меняем диапазона у текущего правила
+					//если на другой лист - меняем диапазон у текущего правила + создаём новое со смещенным диапазоном пересечения
+
+					var isChanged = null;
+					var _protectedSqref = _protectedRange.sqref;
+					var constantPart, movePart;
+					var _moveRanges = [];
+					var _constantRanges = [];
+					for (var i = 0; i < _protectedSqref.length; i++) {
+						movePart = _protectedSqref[i].intersection(oBBoxFrom);
+						if (movePart) {
+							if (!copyRange) {
+								constantPart = oBBoxFrom.difference(_protectedSqref[i]);
+								_constantRanges = _constantRanges.concat(constantPart);
+							}
+							movePart.setOffset(offset);
+							_moveRanges.push(movePart);
+							isChanged = true;
+						} else if (!copyRange) {
+							_constantRanges.push(_protectedSqref[i]);
+						}
+					}
+					if (isChanged) {
+						//в случае клонирования фрагмента - создаём новое правило
+						var _newProtectedRange;
+						if (copyRange) {
+							_newProtectedRange = _protectedRange.clone();
+							_newProtectedRange.ranges = _moveRanges;
+							wsTo.addProtectedRange(_newProtectedRange, true);
+						} else {
+							if (t !== wsTo) {
+								if (_moveRanges.length) {
+									_newProtectedRange = _protectedRange.clone();
+									_newProtectedRange.sqref = _moveRanges;
+									wsTo.addProtectedRange(_newProtectedRange, true);
+								}
+								if (_constantRanges.length) {
+									_protectedRange.setSqref(_constantRanges, t, true);
+								}
+							} else {
+								_protectedRange.setSqref(_constantRanges.concat(_moveRanges), t, true);
+							}
+						}
+					}
+				});
+			}
+		}
+	};
+
+	Worksheet.prototype.tryClearProtectedRange = function (protectedRange, ranges) {
+		if (!protectedRange) {
+			return;
+		}
+
+		if (ranges) {
+			var _newRanges = [];
+
+			var protectedSqref = protectedRange.sqref;
+			for (var i = 0; i < protectedSqref.length; i++) {
+
+				var tempRanges = [];
+				for (var j = 0; j < ranges.length; j++) {
+					if (tempRanges.length) {
+						var tempRanges2 = [];
+						for (var k = 0; k < tempRanges.length; k++) {
+							tempRanges2 = tempRanges2.concat(ranges[j].intersection(tempRanges[k]) ? ranges[j].difference(tempRanges[k]) : tempRanges[k]);
+						}
+						tempRanges = tempRanges2;
+					} else {
+						tempRanges = ranges[j].intersection(protectedSqref[i]) ? ranges[j].difference(protectedSqref[i]) : protectedSqref[i];
+					}
+				}
+				_newRanges = _newRanges.concat(tempRanges);
+			}
+
+			if (!_newRanges.length) {
+				this.deleteProtectedRange(protectedRange.Id, true)
+			} else {
+				var newProtectedRange = protectedRange.clone();
+				newProtectedRange.sqref = _newRanges;
+				this.changeProtectedRange(protectedRange, newProtectedRange, true);
+			}
+		} else {
+			this.deleteProtectedRange(protectedRange.Id, true);
+		}
+	};
+
+
 
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
