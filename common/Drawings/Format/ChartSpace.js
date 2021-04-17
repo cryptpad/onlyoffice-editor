@@ -9110,10 +9110,8 @@ var GLOBAL_PATH_COUNT = 0;
                         bResetLegendPos = true;
                         this.chart.legend.legendPos = Asc.c_oAscChartLegendShowSettings.bottom;
                     }
-                    if(!this.chartObj) {
-                        this.chartObj = new AscFormat.CChartsDrawer();
-                    }
-                    this.chartObj.preCalculateData(this);
+
+                    this.checkPrecalculateChartObject();
                     var pos = this.chartObj.recalculatePositionText(this.chart.legend);
                     if(this.chart.legend.layout) {
                         if(AscFormat.isRealNumber(legend.layout.x)) {
@@ -10444,18 +10442,20 @@ var GLOBAL_PATH_COUNT = 0;
         }
     };
     CChartSpace.prototype.getXValAxisValues = function() {
-        if(!this.chartObj) {
-            this.chartObj = new AscFormat.CChartsDrawer()
-        }
-        this.chartObj.preCalculateData(this);
+        this.checkPrecalculateChartObject();
         return [].concat(this.chart.plotArea.catAx.scale)
     };
     CChartSpace.prototype.getValAxisValues = function() {
-        if(!this.chartObj) {
-            this.chartObj = new AscFormat.CChartsDrawer()
-        }
-        this.chartObj.preCalculateData(this);
+        this.checkPrecalculateChartObject();
         return [].concat(this.chart.plotArea.valAx.scale);
+    };
+    CChartSpace.prototype.checkPrecalculateChartObject = function() {
+        if(!this.chartObj || this.recalcInfo.recalculateChart) {
+            if(!this.chartObj) {
+                this.chartObj = new AscFormat.CChartsDrawer();
+            }
+            this.chartObj.preCalculateData(this);
+        }
     };
     CChartSpace.prototype.recalculateDLbls = function() {
         if(this.chart && this.chart.plotArea) {
