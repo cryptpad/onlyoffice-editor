@@ -2916,6 +2916,7 @@ define([
                             }, 10);
                         }),
                         new Common.UI.MenuItem({
+                            cls         : 'cp-from-url',
                             caption     : this.textFromUrl
                         }).on('click', _.bind(me.onInsertImageUrl, me, false)),
                         new Common.UI.MenuItem({

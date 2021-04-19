@@ -652,7 +652,7 @@ define([
                     menuAlign: 'tl-tr',
                     items: [
                         new Common.UI.MenuItem({caption     : this.textFromFile, value: 'file'}),
-                        new Common.UI.MenuItem({caption     : this.textFromUrl, value: 'url'}),
+                        new Common.UI.MenuItem({cls: 'cp-from-url', caption     : this.textFromUrl, value: 'url'}),
                         new Common.UI.MenuItem({caption     : this.textFromStorage, value: 'storage'})
                     ]
                 })

@@ -108,7 +108,7 @@ define([
         tagName : 'li',
 
         template: _.template([
-            '<a id="<%= id %>" style="<%= style %>" <% if(options.canFocused) { %> tabindex="-1" type="menuitem" <% }; if(!_.isUndefined(options.stopPropagation)) { %> data-stopPropagation="true" <% }; %> >',
+            '<a id="<%= id %>" class="<%= cls %>" style="<%= style %>" <% if(options.canFocused) { %> tabindex="-1" type="menuitem" <% }; if(!_.isUndefined(options.stopPropagation)) { %> data-stopPropagation="true" <% }; %> >',
                 '<% if (!_.isEmpty(iconCls)) { %>',
                     '<span class="menu-item-icon <%= iconCls %>"></span>',
                 '<% } %>',
@@ -160,6 +160,7 @@ define([
 
                     el.html(this.template({
                         id      : me.id,
+                        cls     : me.cls,
                         caption : me.caption,
                         iconCls : me.iconCls,
                         style   : me.style,

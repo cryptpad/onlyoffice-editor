@@ -455,7 +455,7 @@ define([
                         menu: new Common.UI.Menu({
                             items: [
                                 {caption: this.mniImageFromFile, value: 'file'},
-                                {caption: this.mniImageFromUrl, value: 'url'},
+                                {cls: 'cp-from-url', caption: this.mniImageFromUrl, value: 'url'},
                                 {caption: this.mniImageFromStorage, value: 'storage'}
                             ]
                         })

@@ -2417,7 +2417,8 @@ define([
                             }, 10);
                         }),
                         new Common.UI.MenuItem({
-                            caption     : this.textFromUrl
+                            caption     : this.textFromUrl,
+                            cls: 'cp-from-url'
                         }).on('click', function(item) {
                             (new Common.Views.ImageFromUrlDialog({
                                 handler: function(result, value) {
