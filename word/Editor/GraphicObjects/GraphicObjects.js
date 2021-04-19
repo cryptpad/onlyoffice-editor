@@ -3920,7 +3920,7 @@ CGraphicObjects.prototype =
         var object = g_oTableId.Get_ById(id);
         if(isRealObject(object))
         {
-            var hdr_ftr = object.DocumentContent.IsHdrFtr(true);
+            var hdr_ftr = object.DocumentContent && object.DocumentContent.IsHdrFtr(true);
             var page = !hdr_ftr ? this.graphicPages[pageIndex] : null;
             if(isRealObject(page))
             {
