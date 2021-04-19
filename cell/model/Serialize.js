@@ -315,7 +315,9 @@
         Slicers: 37,
         SlicersExt: 38,
 		Slicer: 39,
-		NamedSheetView: 40
+		NamedSheetView: 40,
+		ProtectionSheet: 41,
+		ProtectionRange: 42
     };
     /** @enum */
     var c_oSerWorksheetPropTypes =
@@ -987,6 +989,39 @@
         Rhf: 20,
         Rho: 21
     };
+	var c_oSerWorksheetProtection = {
+		AlgorithmName: 0,
+		SpinCount: 1,
+		HashValue: 2,
+		SaltValue: 3,
+		Password: 4,
+		AutoFilter: 5,
+		Content: 6,
+		DeleteColumns: 7,
+		DeleteRows: 8,
+		FormatCells: 9,
+		FormatColumns: 10,
+		FormatRows: 11,
+		InsertColumns: 12,
+		InsertHyperlinks: 13,
+		InsertRows: 14,
+		Objects: 15,
+		PivotTables: 16,
+		Scenarios: 17,
+		SelectLockedCells: 18,
+		SelectUnlockedCell: 19,
+		Sheet: 20,
+		Sort: 21
+	};
+	var c_oSerProtectedRangeTypes = {
+		AlgorithmName: 0,
+        SpinCount: 1,
+        HashValue: 2,
+        SaltValue: 3,
+        Name: 4,
+        SqRef: 5,
+        SecurityDescriptor: 6
+	};
 	/** @enum */
     var EBorderStyle =
     {
@@ -7537,6 +7572,11 @@
 				namedSheetViews.fromStream(fileStream, this.wb);
 				oWorksheet.aNamedSheetViews = namedSheetViews.namedSheetView;
 				this.stream.FromFileStream(fileStream);
+			} else if (c_oSerWorksheetsTypes.ProtectionSheet === type && typeof AscCommonExcel.CSheetProtection != "undefined") {
+				oWorksheet.sheetProtection = new AscCommonExcel.CSheetProtection();
+				res = this.bcr.Read1(length, function(t, l) {
+					return oThis.ReadSheetProtection(t, l, oWorksheet.sheetProtection);
+				});
 			} else
 				res = c_oSerConstants.ReadUnknown;
 			return res;
@@ -7641,6 +7681,55 @@
 			    dataValidation.formula1 = new Asc.CDataFormula(this.stream.GetString2LE(length));
 			} else if (c_oSer_DataValidation.Formula2 == type) {
                 dataValidation.formula2 = new Asc.CDataFormula(this.stream.GetString2LE(length));
+			} else
+				res = c_oSerConstants.ReadUnknown;
+			return res;
+		};
+		this.ReadSheetProtection = function(type, length, sheetProtection)
+		{
+			var res = c_oSerConstants.ReadOk;
+			if (c_oSerWorksheetProtection.AlgorithmName == type) {
+				sheetProtection.algorithmName = this.stream.GetString2LE();
+			} else if (c_oSerWorksheetProtection.SpinCount == type) {
+				sheetProtection.spinCount = this.stream.GetLong();
+			} else if (c_oSerWorksheetProtection.HashValue == type) {
+				sheetProtection.hashValue = this.stream.GetString2LE(length);
+			} else if (c_oSerWorksheetProtection.SaltValue == type) {
+				sheetProtection.saltValue = this.stream.GetString2LE(length);
+			} else if (c_oSerWorksheetProtection.Password == type) {
+				sheetProtection.password = this.stream.GetBool();
+			} else if (c_oSerWorksheetProtection.AutoFilter == type) {
+				sheetProtection.autoFilter = this.stream.GetBool();
+			} else if (c_oSerWorksheetProtection.Content == type) {
+				sheetProtection.content = this.stream.GetBool();
+			} else if (c_oSerWorksheetProtection.DeleteColumns == type) {
+				sheetProtection.deleteColumns = this.stream.GetBool(length);
+			} else if (c_oSerWorksheetProtection.DeleteRows == type) {
+				sheetProtection.deleteRows = this.stream.GetBool(length);
+			} else if (c_oSerWorksheetProtection.FormatCells == type) {
+				sheetProtection.formatCells = this.stream.GetBool();
+			} else if (c_oSerWorksheetProtection.FormatColumns == type) {
+				sheetProtection.formatColumns = this.stream.GetBool();
+			} else if (c_oSerWorksheetProtection.InsertColumns == type) {
+				sheetProtection.InsertColumns = this.stream.GetBool();
+			} else if (c_oSerWorksheetProtection.InsertHyperlinks == type) {
+				sheetProtection.insertHyperlinks = this.stream.GetBool();
+			} else if (c_oSerWorksheetProtection.InsertRows == type) {
+				sheetProtection.insertRows = this.stream.GetBool();
+			} else if (c_oSerWorksheetProtection.Objects == type) {
+				sheetProtection.objects = this.stream.GetBool();
+			} else if (c_oSerWorksheetProtection.PivotTables == type) {
+				sheetProtection.pivotTables = this.stream.GetBool();
+			} else if (c_oSerWorksheetProtection.Scenarios == type) {
+				sheetProtection.scenarios = this.stream.GetBool();
+			} else if (c_oSerWorksheetProtection.SelectLockedCells == type) {
+				sheetProtection.selectLockedCells = this.stream.GetBool();
+			} else if (c_oSerWorksheetProtection.SelectUnlockedCell == type) {
+				sheetProtection.selectUnlockedCell = this.stream.GetBool();
+			} else if (c_oSerWorksheetProtection.Sheet == type) {
+				sheetProtection.sheet = this.stream.GetBool();
+			} else if (c_oSerWorksheetProtection.Sort == type) {
+				sheetProtection.sort = this.stream.GetBool();
 			} else
 				res = c_oSerConstants.ReadUnknown;
 			return res;
