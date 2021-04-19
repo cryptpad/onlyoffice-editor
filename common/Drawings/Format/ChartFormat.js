@@ -4810,7 +4810,7 @@
         else if(nType === Asc.c_oAscChartTypeSettings.comboAreaBar) {
             aAllAxes = aFirstAxes = aSecondAxes = this.createRegularAxes(this.getAxisNumFormatByType(Asc.c_oAscChartTypeSettings.barNormal, aFirstChartSeries), false);
             oTypedChart = this.charts[0];
-            oAreaChart = this.createAreaChart(Asc.c_oAscChartTypeSettings.areaNormal, aFirstChartSeries, aFirstAxes, oTypedChart);
+            oAreaChart = this.createAreaChart(Asc.c_oAscChartTypeSettings.areaStacked, aFirstChartSeries, aFirstAxes, oTypedChart);
             oBarChart = this.createBarChart(Asc.c_oAscChartTypeSettings.barNormal, aSecondChartSeries, aSecondAxes, oTypedChart);
             aAllCharts.push(oAreaChart);
             aAllCharts.push(oBarChart);

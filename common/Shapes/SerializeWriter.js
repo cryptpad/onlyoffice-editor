@@ -2544,7 +2544,7 @@ function CBinaryFileWriter()
         var len__ = oEffect.effectList.length;
         oThis._WriteInt2(0, len__);
 
-        for (i = 0; i < len__; ++i)
+        for (var i = 0; i < len__; ++i)
         {
             oThis.WriteRecord1(1, oEffect.effectList[i], oThis.WriteEffect); // id неважен
         }
