@@ -317,7 +317,8 @@
 		Slicer: 39,
 		NamedSheetView: 40,
 		ProtectionSheet: 41,
-		ProtectionRange: 42
+		ProtectedRanges: 42,
+		ProtectedRange: 43
     };
     /** @enum */
     var c_oSerWorksheetPropTypes =
@@ -7577,6 +7578,10 @@
 				res = this.bcr.Read1(length, function(t, l) {
 					return oThis.ReadSheetProtection(t, l, oWorksheet.sheetProtection);
 				});
+			} else if (c_oSerWorksheetsTypes.ProtectedRanges === type) {
+				res = this.bcr.Read1(length, function(t, l) {
+					return oThis.ReadProtectedRanges(t, l, oWorksheet);
+				});
 			} else
 				res = c_oSerConstants.ReadUnknown;
 			return res;
@@ -7689,7 +7694,7 @@
 		{
 			var res = c_oSerConstants.ReadOk;
 			if (c_oSerWorksheetProtection.AlgorithmName == type) {
-				sheetProtection.algorithmName = this.stream.GetString2LE();
+				sheetProtection.algorithmName = this.stream.GetUChar();
 			} else if (c_oSerWorksheetProtection.SpinCount == type) {
 				sheetProtection.spinCount = this.stream.GetLong();
 			} else if (c_oSerWorksheetProtection.HashValue == type) {
@@ -7730,6 +7735,43 @@
 				sheetProtection.sheet = this.stream.GetBool();
 			} else if (c_oSerWorksheetProtection.Sort == type) {
 				sheetProtection.sort = this.stream.GetBool();
+			} else
+				res = c_oSerConstants.ReadUnknown;
+			return res;
+		};
+		this.ReadProtectedRanges = function (type, length, aProtectedRanges) {
+			var res = c_oSerConstants.ReadOk;
+			var oThis = this;
+			var oProtectedRange = null;
+
+			if (c_oSerWorksheetsTypes.ProtectedRange === type && 0 == aProtectedRanges.length) {
+				oProtectedRange = new AscCommonExcel.CProtectedRange();
+				res = this.bcr.Read1(length, function (t, l) {
+					return oThis.ReadProtectedRange(t, l, oProtectedRange);
+				});
+				aProtectedRanges.push(oProtectedRange);
+			}
+			else
+				res = c_oSerConstants.ReadUnknown;
+			return res;
+		};
+		this.ReadProtectedRange = function (type, length, oProtectedRange) {
+			var oThis = this;
+			var res = c_oSerConstants.ReadOk;
+			if (c_oSerProtectedRangeTypes.AlgorithmName === type) {
+				oProtectedRange.algorithmName = this.stream.GetUChar();
+			} else if (c_oSerProtectedRangeTypes.SpinCount === type) {
+				oProtectedRange.spinCount = this.stream.GetLong();
+			} else if (c_oSerProtectedRangeTypes.HashValue === type) {
+				oProtectedRange.hashValue = this.stream.GetString2();
+			} else if (c_oSerProtectedRangeTypes.SaltValue === type) {
+				oProtectedRange.saltValue = this.stream.GetString2();
+			} else if (c_oSerProtectedRangeTypes.Name === type) {
+				oProtectedRange.name = this.stream.GetString2();
+			} else if (c_oSerProtectedRangeTypes.SqRef === type) {
+				oProtectedRange.sqRef = this.stream.GetString2();
+			} else if (c_oSerProtectedRangeTypes.SecurityDescriptor === type) {
+				oProtectedRange.securityDescriptor = this.stream.GetString2();
 			} else
 				res = c_oSerConstants.ReadUnknown;
 			return res;
