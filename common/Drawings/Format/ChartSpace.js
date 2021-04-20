@@ -11941,21 +11941,24 @@ var GLOBAL_PATH_COUNT = 0;
 
         var nRef, oRef;
         var nSeries, oSeries = null;
-        var oFirstChart = this.chart.plotArea.charts[0];
-        var oPrevSeries = null;
+        var aAllCharts = this.chart.plotArea.charts;
+        var oFirstChart = aAllCharts[0];
+        var oLastChart = aAllCharts[aAllCharts.length - 1];
+        var oLastSeries;
         for(nRef = 0; nRef < aRefs.length; ++nRef) {
             oRef = aRefs[nRef];
             if(nRef < aAllSeries.length) {
                 oSeries = aAllSeries[nRef];
             }
             else {
-                if(oPrevSeries) {
-                    oSeries = oPrevSeries.createDuplicate();
-                    oPrevSeries.parent.addSerSilent(oSeries);
+                oLastSeries = oLastChart.series[oLastChart.series.length - 1];
+                if(oLastSeries) {
+                    oSeries = oLastSeries.createDuplicate();
+                    oLastSeries.parent.addSerSilent(oSeries);
                 }
                 else {
-                    oSeries = oFirstChart.getEmptySeries();
-                    oFirstChart.addSerSilent(oSeries);
+                    oSeries = oLastChart.getEmptySeries();
+                    oLastChart.addSerSilent(oSeries);
                 }
                 oSeries.setIdx(nRef);
                 oSeries.setOrder(nRef);
@@ -11971,7 +11974,6 @@ var GLOBAL_PATH_COUNT = 0;
                     oSeries.resetFormatting();
                 }
             }
-            oPrevSeries = oSeries;
         }
         for(nSeries = aAllSeries.length - 1; nSeries >= aRefs.length; --nSeries) {
             aAllSeries[nSeries].remove();
