@@ -1812,7 +1812,6 @@
 				worksheet.setRowHidden(isHidden, bbox.r1, bbox.r2);
 				break;				
 		}
-		this.range.worksheet.workbook.oApi.wb.handlers.trigger("changeWorksheetUpdate", this.range.worksheet.getId());
 	};
 	Object.defineProperty(ApiRange.prototype, "Hidden", {
 		get: function () {
@@ -1845,7 +1844,6 @@
 	 */
 	ApiRange.prototype.SetColumnWidth = function (nWidth) {
 		this.range.worksheet.setColWidth(nWidth, this.range.bbox.c1, this.range.bbox.c2);
-		this.range.worksheet.workbook.oApi.wb.handlers.trigger("changeWorksheetUpdate", this.range.worksheet.getId());
 	};
 	Object.defineProperty(ApiRange.prototype, "ColumnWidth", {
 		get: function () {
@@ -1888,7 +1886,6 @@
 	 */
 	ApiRange.prototype.SetRowHeight = function (nHeight) {
 		this.range.worksheet.setRowHeight(nHeight, this.range.bbox.r1, this.range.bbox.r2, false);
-		this.range.worksheet.workbook.oApi.wb.handlers.trigger("changeWorksheetUpdate", this.range.worksheet.getId())
 	};
 	Object.defineProperty(ApiRange.prototype, "RowHeight", {
 		get: function () {
