@@ -3470,7 +3470,7 @@
 				});
 			}
 			if (null !== ws.sheetProtection) {
-				this.bs.WriteItem(c_oSerWorksheetsTypes.DataValidations, function () {oThis.WriteSheetProtection(ws.sheetProtection);});
+				this.bs.WriteItem(c_oSerWorksheetsTypes.ProtectionSheet, function () {oThis.WriteSheetProtection(ws.sheetProtection);});
 			}
 			if (ws.aProtectedRanges && ws.aProtectedRanges.length > 0) {
 				this.bs.WriteItem(c_oSerWorksheetsTypes.ProtectedRanges, function(){oThis.WriteProtectedRanges(ws.aProtectedRanges);});
@@ -3686,14 +3686,15 @@
 				this.memory.WriteBool(sheetProtection.sort);
 			}
 		};
-		this.WriteProtectedRanges = function(aProtectedRanges)
-		{
+		this.WriteProtectedRanges = function (aProtectedRanges) {
 			var oThis = this;
-			for(var i = 0, length = aProtectedRanges.length; i < length; ++i)
-				this.bs.WriteItem( c_oSerWorksheetsTypes.ProtectedRange, function(){oThis.WriteProtectedRange(aProtectedRanges[i]);});
+			for (var i = 0, length = aProtectedRanges.length; i < length; ++i) {
+				this.bs.WriteItem(c_oSerWorksheetsTypes.ProtectedRange, function () {
+					oThis.WriteProtectedRange(aProtectedRanges[i]);
+				});
+			}
 		};
-		this.WriteProtectedRange = function(oProtectedRange)
-		{
+		this.WriteProtectedRange = function (oProtectedRange) {
 			if (null != oProtectedRange.algorithmName) {
 				this.memory.WriteByte(c_oSerProtectedRangeTypes.AlgorithmName);
 				this.memory.WriteByte(c_oSerPropLenType.Variable);
@@ -3727,7 +3728,7 @@
 				this.memory.WriteString2(sqRef);
 			}
 
-            //TODO
+			//TODO
 			if (null != oProtectedRange.securityDescriptor) {
 				this.memory.WriteByte(c_oSerProtectedRangeTypes.SecurityDescriptor);
 				this.memory.WriteByte(c_oSerPropLenType.Variable);
