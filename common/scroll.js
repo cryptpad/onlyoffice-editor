@@ -1758,7 +1758,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 						this.that.scroller.x =  this.that.arrowPosition;
 					}
 				}
-				var destX = (this.that.scroller.x - this.that.arrowPosition + Math.round(dPR)) * this.that.scrollCoeff;
+				var destX = (this.that.scroller.x - this.that.arrowPosition) * this.that.scrollCoeff;
 
 				this.that._scrollH( this.that, evt, destX, isTop, isBottom );
 
