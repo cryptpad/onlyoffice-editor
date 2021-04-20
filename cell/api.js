@@ -5445,6 +5445,61 @@ var editor;
     return true;
   };
 
+	spreadsheet_api.prototype.asc_getProtectedWorkbook = function () {
+		var wb = this.wbModel;
+		var res = null;
+		if (wb) {
+			if (wb.workbookProtection) {
+				res = wb.workbookProtection.clone();
+			} else {
+				res = new window["AscCommonExcel"].CWorkbookProtection();
+			}
+		}
+		return res;
+	};
+
+	spreadsheet_api.prototype.asc_isProtectedWorkbook = function (isWindowLocked) {
+		var wb = this.wbModel;
+		var res = null;
+		if (wb) {
+			var workbookProtection = wb.workbookProtection;
+			if (workbookProtection) {
+				if (!isWindowLocked) {
+					res = workbookProtection.asc_getLockStructure();
+				} else {
+					res = workbookProtection.asc_getLockWindows();
+				}
+			}
+		}
+		return res;
+	};
+
+	spreadsheet_api.prototype.asc_setProtectedWorkbook = function (props) {
+		// Проверка глобального лока
+		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+			return false;
+		}
+
+		var i = this.wbModel.getActive();
+		var sheetId = this.wbModel.getWorksheet(i).getId();
+		var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheetId, sheetId);
+
+		var t = this;
+		var renameCallback = function (res) {
+			if (res) {
+				History.Create_NewPoint();
+				History.StartTransaction();
+				t.wbModel.getWorksheet(i).setProtectedSheet(props, true);
+				History.EndTransaction();
+			} else {
+				//t.handlers.trigger("asc_onError", c_oAscError.ID.LockedWorksheetRename, c_oAscError.Level.NoCritical);
+			}
+		};
+
+		this.collaborativeEditing.lock([lockInfo], renameCallback);
+		return true;
+	};
+
   spreadsheet_api.prototype.asc_clearCF = function (type, id) {
     var rules = this.wbModel.getRulesByType(type, id);
     if (rules && rules.length) {
