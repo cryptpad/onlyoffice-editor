@@ -24749,7 +24749,16 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 		var oParent = oParagraph.GetParent();
 		if (oNewContent && oParent)
 		{
-			if (oParent === this)
+			if (IsReplace)
+			{
+				var RIndex = oTable ? oTable.GetIndex() : Math.min(this.Selection.StartPos, this.Selection.EndPos);
+				this.RemoveFromContent(RIndex, ElCount, true);
+				this.AddToContent(RIndex, oNewContent.Elements[0].Element, true);
+				if (this.SelectRange)
+					this.SelectRange(RIndex, RIndex);
+
+			}
+			else if (oParent === this)
 			{
 				this.RemoveBeforePaste();
 
@@ -24765,16 +24774,7 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 						// this.MoveCursorRight(false, false, false);
 					}
 				}
-			}
-			else if (IsReplace)
-			{
-				var RIndex = oTable ? oTable.GetIndex() : Math.min(this.Selection.StartPos, this.Selection.EndPos);
-				this.RemoveFromContent(RIndex, ElCount, true);
-				this.AddToContent(RIndex, oSelectedContent.Elements[0].Element, true);
-				if (this.SelectRange)
-					this.SelectRange(RIndex, RIndex);
-
-			}
+			} 
 			else if (oTable) // если внутри ячейки таблицы
 			{
 				var oElement = oTable.CurCell.Content;
@@ -24791,7 +24791,7 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 					count = oElement.Selection.EndPos - oElement.Selection.StartPos;
 				}
 				oElement.Internal_Content_Remove(start, count + 1, false);
-				oElement.Internal_Content_Add(start, oSelectedContent.Elements[0].Element, false);
+				oElement.Internal_Content_Add(start, oNewContent.Elements[0].Element, false);
 				// выставляем селект внутри ячейки таблицы
 				oElement.Selection.StartPos = oElement.Selection.EndPos = start;
 				oElement.SetSelectionUse(true);			
@@ -24841,9 +24841,19 @@ CDocument.prototype.private_ConvertTextToTable = function(oProps)
 			var oCellContent = oTable.GetRow(i).GetCell(j).GetContent();
 			// oCellContent.ClearConten(false);
 			oCellContent.AddContent([oArrRows[i][j]]);
+
+
+
+			// var oParagraph = oCellContent.Content[0];
+			// var oAnchorPos = oParagraph.GetCurrentAnchorPosition();
+			// oParagraph.Check_NearestPos(oAnchorPos);
+			// var oSelectedContent = new CSelectedContent();
+			// oSelectedContent.Add(new CSelectedElement(oArrRows[i][j], true));
+			// oParagraph.Parent.InsertContent(oSelectedContent, oAnchorPos);
 		}
 	}
 	oTable.SelectAll();
+	// поправить, когда фиксированный auto стоит
 	if (oProps.get_AutoFitType() !== 3)
 	{
 		var width = oProps.get_Fit();
