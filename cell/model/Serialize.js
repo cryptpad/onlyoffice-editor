@@ -3472,6 +3472,9 @@
 			if (null !== ws.sheetProtection) {
 				this.bs.WriteItem(c_oSerWorksheetsTypes.DataValidations, function () {oThis.WriteSheetProtection(ws.sheetProtection);});
 			}
+			if (ws.aProtectedRanges && ws.aProtectedRanges.length > 0) {
+				this.bs.WriteItem(c_oSerWorksheetsTypes.ProtectedRanges, function(){oThis.WriteProtectedRanges(ws.aProtectedRanges);});
+			}
         };
 		this.WriteDataValidations = function(dataValidations)
 		{
@@ -3578,7 +3581,7 @@
 			if (null != sheetProtection.algorithmName) {
 				this.memory.WriteByte(c_oSerWorksheetProtection.AlgorithmName);
 				this.memory.WriteByte(c_oSerPropLenType.Variable);
-				this.memory.WriteString2(sheetProtection.AlgorithmName);
+				this.memory.WriteString2(sheetProtection.algorithmName);
 			}
 			if (null != sheetProtection.spinCount) {
 				this.memory.WriteByte(c_oSerWorksheetProtection.SpinCount);
@@ -3589,11 +3592,6 @@
 				this.memory.WriteByte(c_oSerWorksheetProtection.HashValue);
 				this.memory.WriteByte(c_oSerPropLenType.Variable);
 				this.memory.WriteString2(sheetProtection.hashValue);
-			}
-			if (null != sheetProtection.saltValue) {
-				this.memory.WriteByte(c_oSerWorksheetProtection.SaltValue);
-				this.memory.WriteByte(c_oSerPropLenType.Variable);
-				this.memory.WriteString2(sheetProtection.saltValue);
 			}
 			if (null != sheetProtection.saltValue) {
 				this.memory.WriteByte(c_oSerWorksheetProtection.SaltValue);
@@ -3687,7 +3685,54 @@
 				this.memory.WriteByte(c_oSerPropLenType.Byte);
 				this.memory.WriteBool(sheetProtection.sort);
 			}
+		};
+		this.WriteProtectedRanges = function(aProtectedRanges)
+		{
+			var oThis = this;
+			for(var i = 0, length = aProtectedRanges.length; i < length; ++i)
+				this.bs.WriteItem( c_oSerWorksheetsTypes.ProtectedRange, function(){oThis.WriteProtectedRange(aProtectedRanges[i]);});
+		};
+		this.WriteProtectedRange = function(oProtectedRange)
+		{
+			if (null != oProtectedRange.algorithmName) {
+				this.memory.WriteByte(c_oSerProtectedRangeTypes.AlgorithmName);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
+				this.memory.WriteString2(oProtectedRange.algorithmName);
+			}
+			if (null != oProtectedRange.spinCount) {
+				this.memory.WriteByte(c_oSerProtectedRangeTypes.SpinCount);
+				this.memory.WriteByte(c_oSerPropLenType.Long);
+				this.memory.WriteLong(oProtectedRange.spinCount);
+			}
+			if (null != oProtectedRange.hashValue) {
+				this.memory.WriteByte(c_oSerProtectedRangeTypes.HashValue);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
+				this.memory.WriteString2(oProtectedRange.hashValue);
+			}
+			if (null != oProtectedRange.saltValue) {
+				this.memory.WriteByte(c_oSerProtectedRangeTypes.SaltValue);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
+				this.memory.WriteString2(oProtectedRange.saltValue);
+			}
+			if (null != oProtectedRange.name) {
+				this.memory.WriteByte(c_oSerProtectedRangeTypes.Name);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
+				this.memory.WriteString2(oProtectedRange.name);
+			}
 
+			if (null != oProtectedRange.sqRef) {
+				this.memory.WriteByte(c_oSerProtectedRangeTypes.SqRef);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
+				var sqRef = getSqRefString(oProtectedRange.sqRef);
+				this.memory.WriteString2(sqRef);
+			}
+
+            //TODO
+			if (null != oProtectedRange.securityDescriptor) {
+				this.memory.WriteByte(c_oSerProtectedRangeTypes.SecurityDescriptor);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
+				this.memory.WriteString2(oProtectedRange.securityDescriptor);
+			}
 		};
         this.WriteWorksheetProp = function(ws)
         {
@@ -7888,7 +7933,11 @@
 			} else if (c_oSerProtectedRangeTypes.Name === type) {
 				oProtectedRange.name = this.stream.GetString2LE();
 			} else if (c_oSerProtectedRangeTypes.SqRef === type) {
-				oProtectedRange.sqRef = this.stream.GetString2LE();
+				var sqRef = this.stream.GetString2LE(length);
+				var newSqRef = AscCommonExcel.g_oRangeCache.getRangesFromSqRef(sqRef);
+				if (newSqRef.length > 0) {
+					oProtectedRange.sqref = newSqRef;
+				}
 			} else if (c_oSerProtectedRangeTypes.SecurityDescriptor === type) {
 				oProtectedRange.securityDescriptor = this.stream.GetString2LE();
 			} else {
