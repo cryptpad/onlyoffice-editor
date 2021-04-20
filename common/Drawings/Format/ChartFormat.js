@@ -2272,6 +2272,9 @@
                 }
             }
         }
+        if(this.setSymbol && this.symbol !== SYMBOL_NONE && this.symbol !== null) {
+            this.setSymbol(null);
+        }
     };
 
     function getMinMaxFromArrPoints(aPoints) {
