@@ -3335,7 +3335,7 @@
 	AscDFH.historyitem_PrSetQsCatId              = AscDFH.historyitem_type_PrSet | 27;
 	AscDFH.historyitem_PrSetQsTypeId             = AscDFH.historyitem_type_PrSet | 28;
 	AscDFH.historyitem_PrSetStyle                = AscDFH.historyitem_type_PrSet | 29;
-	AscDFH.historyitem_PrSetPresLayoutStyle      = AscDFH.historyitem_type_PrSet | 30;
+	AscDFH.historyitem_PrSetPresLayoutVars       = AscDFH.historyitem_type_PrSet | 30;
 
 	AscDFH.historyitem_PointCxnId   = AscDFH.historyitem_type_Point | 1;
 	AscDFH.historyitem_PointModelId = AscDFH.historyitem_type_Point | 2;

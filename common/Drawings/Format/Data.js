@@ -958,19 +958,19 @@
 
     DataModel.prototype.fillObject = function (oCopy, oIdMap) {
       if (this.bg) {
-        this.set(this.bg.createDuplicate(oIdMap));
+        this.setBg(this.bg.createDuplicate(oIdMap));
       }
       if (this.cxnLst) {
-        this.set(this.cxnLst.createDuplicate(oIdMap));
+        this.setCxnLst(this.cxnLst.createDuplicate(oIdMap));
       }
       if (this.extLst) {
-        this.set(this.extLst.createDuplicate(oIdMap));
+        this.setExtLst(this.extLst.createDuplicate(oIdMap));
       }
       if (this.ptLst) {
-        this.set(this.ptLst.createDuplicate(oIdMap));
+        this.setPtLst(this.ptLst.createDuplicate(oIdMap));
       }
       if (this.whole) {
-        this.set(this.whole.createDuplicate(oIdMap));
+        this.setWhole(this.whole.createDuplicate(oIdMap));
       }
     }
 
@@ -1597,7 +1597,7 @@
       this.qsCatId = null;
       this.qsTypeId = null;
 
-      this.presLayoutStyle = null;
+      this.presLayoutVars = null;
       this.style = null;
     }
 
@@ -1749,9 +1749,9 @@
       this.setParentToChild(oPr);
     }
 
-    PrSet.prototype.setPresLayoutStyle = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PrSetPresLayoutStyle, this.getPresLayoutStyle(), oPr));
-      this.presLayoutStyle = oPr;
+    PrSet.prototype.setPresLayoutVars = function (oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PrSetPresLayoutVars, this.getPresLayoutVars(), oPr));
+      this.presLayoutVars = oPr;
       this.setParentToChild(oPr);
     }
 
@@ -1787,8 +1787,8 @@
       if (this.getStyle()) {
         oCopy.setStyle(this.style.createDuplicate(oIdMap));
       }
-      if (this.getPresLayoutStyle()) {
-        oCopy.setPresLayoutStyle(this.presLayoutStyle.createDuplicate(oIdMap));
+      if (this.getPresLayoutVars()) {
+        oCopy.setPresLayoutVars(this.presLayoutVars.createDuplicate(oIdMap));
       }
     }
 
@@ -1905,11 +1905,11 @@
     }
 
     PrSet.prototype.getStyle = function () {
-      return this.qsTypeId;
+      return this.style;
     }
 
-    PrSet.prototype.getPresLayoutStyle = function () {
-      return this.qsTypeId;
+    PrSet.prototype.getPresLayoutVars = function () {
+      return this.presLayoutVars;
     }
 
     changesFactory[AscDFH.historyitem_PresLayoutVarsAnimLvl] = CChangeObject;
@@ -10950,7 +10950,7 @@
         sampData: {
           useDef: true,
           dataModel: {
-            ptLst: {},
+            ptLst: [],
             bg: {},
             whole: {},
           },
@@ -10959,7 +10959,7 @@
           dataModel: {
             ptLst: [
               {
-                type: 'Point_type_doc',
+                type: Point_type_doc,
                 modelId: '0',
               },
               {
@@ -10993,7 +10993,7 @@
           dataModel: {
             ptLst: [
               {
-                type: 'Point_type_doc',
+                type: Point_type_doc,
                 modelId: '0',
               },
               {
@@ -11048,11 +11048,11 @@
           varLst: {
             dir: {},
             resizeHandles: {
-              val: 'ResizeHandles_val_exact'
+              val: ResizeHandles_val_exact
             }
           },
           alg: {
-            type: 'Alg_type_composite',
+            type: Alg_type_composite,
           },
           shape: {
             blip: '',
@@ -11061,41 +11061,41 @@
           presOf: {},
           constrLst: [
             {
-              type: 'Constr_type_w',
-              refType: 'Constr_refType_w',
+              type: Constr_type_w,
+              refType: Constr_refType_w,
               forName: 'bkgdShp',
-              for: 'Constr_for_ch',
+              for: Constr_for_ch,
             },
             {
-              type: 'Constr_type_h',
-              refType: 'Constr_refType_h',
+              type: Constr_type_h,
+              refType: Constr_refType_h,
               forName: 'bkgdShp',
-              for: 'Constr_for_ch',
+              for: Constr_for_ch,
               fact: 0.45,
             },
             {
-              type: 'Constr_type_t',
+              type: Constr_type_t,
               forName: 'bkgdShp',
-              for: 'Constr_for_ch',
+              for: Constr_for_ch,
             },
             {
-              type: 'Constr_type_w',
-              refType: 'Constr_refType_w',
+              type: Constr_type_w,
+              refType: Constr_refType_w,
               forName: 'linComp',
-              for: 'Constr_for_ch',
+              for: Constr_for_ch,
               fact: 0.94,
             },
             {
-              type: 'Constr_type_h',
-              refType: 'Constr_refType_h',
+              type: Constr_type_h,
+              refType: Constr_refType_h,
               forName: 'linComp',
-              for: 'Constr_for_ch',
+              for: Constr_for_ch,
             },
             {
-              type: 'Constr_type_ctrX',
-              refType: 'Constr_refType_w',
+              type: Constr_type_ctrX,
+              refType: Constr_refType_w,
               forName: 'linComp',
-              for: 'Constr_for_ch',
+              for: Constr_for_ch,
               fact: 0.5,
             },
           ],
@@ -11107,18 +11107,18 @@
                 int: 1,
               },
               name: 'Name2',
-              op: 'If_op_gte',
-              func: 'If_func_cnt',
-              ptType: ['ElementType_value_node'],
-              axis: ['AxisType_value_ch'],
+              op: If_op_gte,
+              func: If_func_cnt,
+              ptType: [ElementType_value_node],
+              axis: [AxisType_value_ch],
               layoutNodes: {
                 'bkgdShp': {
                   styleLbl: 'alignAccFollowNode1',
                   alg: {
-                    type: 'Alg_type_sp',
+                    type: Alg_type_sp,
                   },
                   shape: {
-                    type: 'LayoutShapeType_shapeType_roundRect',
+                    type: LayoutShapeType_shapeType_roundRect,
                     blip: '',
                     adjLst: [
                       {
@@ -11135,22 +11135,22 @@
                   choose: {
                     name: 'Name3',
                     if: {
-                      val: 'FunctionValue_direction_norm',
+                      val: FunctionValue_direction_norm,
                       name: 'Name4',
-                      op: 'If_op_equ',
-                      func: 'If_func_var',
-                      arg: 'If_arg_dir',
+                      op: If_op_equ,
+                      func: If_func_var,
+                      arg: If_arg_dir,
                       alg: {
-                        type: 'Alg_type_lin',
+                        type: Alg_type_lin,
                       }
                     },
                     else: {
                       name: 'Name5',
                       alg: {
-                        type: 'Alg_type_lin',
+                        type: Alg_type_lin,
                         param: {
-                          val: 'ParameterVal_linearDirection_fromR',
-                          type: 'Param_type_linDir',
+                          val: ParameterVal_linearDirection_fromR,
+                          type: Param_type_linDir,
                         }
                       },
                     }
@@ -11162,54 +11162,54 @@
                   presOf: {},
                   constrLst: [
                     {
-                      type: 'Constr_type_w',
-                      refType: 'Constr_refType_w',
+                      type: Constr_type_w,
+                      refType: Constr_refType_w,
                       forName: 'compNode',
-                      for: 'Constr_for_ch',
+                      for: Constr_for_ch,
                     },
                     {
-                      type: 'Constr_type_h',
-                      refType: 'Constr_refType_h',
+                      type: Constr_type_h,
+                      refType: Constr_refType_h,
                       forName: 'compNode',
-                      for: 'Constr_for_ch',
+                      for: Constr_for_ch,
                     },
                     {
-                      type: 'Constr_type_w',
-                      refType: 'Constr_refType_w',
-                      for: 'Constr_for_ch',
+                      type: Constr_type_w,
+                      refType: Constr_refType_w,
+                      for: Constr_for_ch,
                       fact: 0.1,
-                      ptType: 'ElementType_value_sibTrans',
+                      ptType: ElementType_value_sibTrans,
                       refForName: 'compNode',
-                      refFor: 'Constr_refFor_ch',
+                      refFor: Constr_refFor_ch,
                     },
                     {
-                      type: 'Constr_type_h',
-                      for: 'Constr_for_ch',
-                      op: 'Constr_op_equ',
-                      ptType: 'ElementType_value_sibTrans',
+                      type: Constr_type_h,
+                      for: Constr_for_ch,
+                      op: Constr_op_equ,
+                      ptType: ElementType_value_sibTrans,
                     },
                     {
-                      type: 'Constr_type_h',
+                      type: Constr_type_h,
                       forName: 'compNode',
-                      for: 'Constr_for_ch',
-                      op: 'Constr_op_equ',
+                      for: Constr_for_ch,
+                      op: Constr_op_equ,
                     },
                     {
-                      type: 'Constr_type_primFontSz',
+                      type: Constr_type_primFontSz,
                       forName: 'node',
-                      for: 'Constr_for_des',
-                      op: 'Constr_op_equ',
+                      for: Constr_for_des,
+                      op: Constr_op_equ,
                     },
                   ],
                   ruleLst: [],
                   forEach: {
                     name: 'nodesForEach',
-                    ptType: ['ElementType_value_node'],
-                    axis: ['AxisType_value_ch'],
+                    ptType: [ElementType_value_node],
+                    axis: [AxisType_value_ch],
                     layoutNodes: {
                       'compName': {
                         alg: {
-                          type: 'Alg_type_composite',
+                          type: Alg_type_composite,
                         },
                         shape: {
                           blip: '',
@@ -11218,68 +11218,68 @@
                         presOf: {},
                         constrLst: [
                           {
-                            type: 'Constr_type_w',
-                            refType: 'Constr_refType_w',
+                            type: Constr_type_w,
+                            refType: Constr_refType_w,
                             forName: 'node',
-                            for: 'Constr_for_ch',
+                            for: Constr_for_ch,
                           },
                           {
-                            type: 'Constr_type_h',
-                            refType: 'Constr_refType_h',
+                            type: Constr_type_h,
+                            refType: Constr_refType_h,
                             forName: 'node',
-                            for: 'Constr_for_ch',
+                            for: Constr_for_ch,
                             fact: 0.55,
                           },
                           {
-                            type: 'Constr_type_b',
-                            refType: 'Constr_refType_h',
+                            type: Constr_type_b,
+                            refType: Constr_refType_h,
                             forName: 'node',
-                            for: 'Constr_for_ch',
+                            for: Constr_for_ch,
                           },
                           {
-                            type: 'Constr_type_w',
-                            refType: 'Constr_refType_w',
+                            type: Constr_type_w,
+                            refType: Constr_refType_w,
                             forName: 'invisiNode',
-                            for: 'Constr_for_ch',
+                            for: Constr_for_ch,
                             fact: 0.75,
                           },
                           {
-                            type: 'Constr_type_h',
-                            refType: 'Constr_refType_h',
+                            type: Constr_type_h,
+                            refType: Constr_refType_h,
                             forName: 'invisiNode',
-                            for: 'Constr_for_ch',
+                            for: Constr_for_ch,
                             fact: 0.06,
                           },
                           {
-                            type: 'Constr_type_t',
+                            type: Constr_type_t,
                             forName: 'invisiNode',
-                            for: 'Constr_for_ch',
+                            for: Constr_for_ch,
                           },
                           {
-                            type: 'Constr_type_w',
-                            refType: 'Constr_refType_w',
+                            type: Constr_type_w,
+                            refType: Constr_refType_w,
                             forName: 'imagNode',
-                            for: 'Constr_for_ch',
+                            for: Constr_for_ch,
                           },
                           {
-                            type: 'Constr_type_h',
-                            refType: 'Constr_refType_h',
+                            type: Constr_type_h,
+                            refType: Constr_refType_h,
                             forName: 'imagNode',
-                            for: 'Constr_for_ch',
+                            for: Constr_for_ch,
                             fact: 0.33,
                           },
                           {
-                            type: 'Constr_type_ctrX',
-                            refType: 'Constr_refType_w',
+                            type: Constr_type_ctrX,
+                            refType: Constr_refType_w,
                             forName: 'imagNode',
-                            for: 'Constr_for_ch',
+                            for: Constr_for_ch,
                             fact: 0.5,
                           },
                           {
-                            type: 'Constr_type_t',
-                            refType: 'Constr_refType_h',
+                            type: Constr_type_t,
+                            refType: Constr_refType_h,
                             forName: 'imagNode',
-                            for: 'Constr_for_ch',
+                            for: Constr_for_ch,
                             fact: 0.06,
                           },
                         ],
@@ -11293,14 +11293,14 @@
                               }
                             },
                             alg: {
-                              type: 'Alg_type_tx',
+                              type: Alg_type_tx,
                               param: {
-                                val: 'ParameterVal_nodeVerticalAlignment_t',
-                                type: 'Param_type_txAnchorVert',
+                                val: ParameterVal_nodeVerticalAlignment_t,
+                                type: Param_type_txAnchorVert,
                               }
                             },
                             shape: {
-                              type: 'LayoutShapeType_shapeType_round2SameRect',
+                              type: LayoutShapeType_shapeType_round2SameRect,
                               blip: '',
                               rot: 180,
                               adjLst: [
@@ -11311,19 +11311,19 @@
                               ],
                             },
                             presOf: {
-                              ptType: ['ElementType_value_node'],
-                              axis: ['AxisType_value_desOrSelf'],
+                              ptType: [ElementType_value_node],
+                              axis: [AxisType_value_desOrSelf],
                             },
                             constrLst: [
                               {
                                 val: 65,
-                                type: 'Constr_type_primFontSz',
+                                type: Constr_type_primFontSz,
                               }
                             ],
                             ruleLst: [
                               {
                                 val: 5,
-                                type: 'Rule_type_primFontSz',
+                                type: Rule_type_primFontSz,
                                 fact: NaN,
                                 max: NaN,
                               }
@@ -11331,10 +11331,10 @@
                           },
                           'invisiNode': {
                             alg: {
-                              type: 'Alg_type_sp',
+                              type: Alg_type_sp,
                             },
                             shape: {
-                              type: 'LayoutShapeType_shapeType_roundRect',
+                              type: LayoutShapeType_shapeType_roundRect,
                               blip: '',
                               hideGeom: true,
                               adjLst: [
@@ -11351,10 +11351,10 @@
                           'imagNode': {
                             styleLbl: 'fgImgPlace1',
                             alg: {
-                              type: 'Alg_type_sp',
+                              type: Alg_type_sp,
                             },
                             shape: {
-                              type: 'LayoutShapeType_shapeType_roundRect',
+                              type: LayoutShapeType_shapeType_roundRect,
                               blip: '',
                               blipPhldr: true,
                               zOrderOff: -2,
@@ -11372,22 +11372,22 @@
                         },
                         forEach: {
                           name: 'sibTransForEach',
-                          ptType: ['ElementType_value_sibTrans'],
-                          axis: ['AxisType_value_followSib'],
+                          ptType: [ElementType_value_sibTrans],
+                          axis: [AxisType_value_followSib],
                           cnt: [1],
                           layoutNodes: {
                             'sibTrans': {
                               alg: {
-                                type: 'Alg_type_sp',
+                                type: Alg_type_sp,
                               },
                               shape: {
-                                type: 'LayoutShapeType_shapeType_rect',
+                                type: LayoutShapeType_shapeType_rect,
                                 blip: '',
                                 hideGeom: true,
                                 adjLst: [],
                               },
                               presOf: {
-                                axis: ['AxisType_value_self'],
+                                axis: [AxisType_value_self],
                               },
                               constrLst: [],
                               ruleLst: [],
@@ -11404,6 +11404,1079 @@
               name: 'Name6'
             }
           }
+        }
+      },
+      drawing: {
+        spTree: {
+          nvGrpSpPr: {
+            cNvPr: {
+              name: '',
+              id: 0,
+            },
+            cNvGrpSpPr: {},
+          },
+          grpSpPr: {},
+          sps: [{
+            modelId: '',
+            nvSpPr: {
+              cNvPr: {
+                name: '',
+                id: 0,
+              },
+              cNvSpPr: {},
+            },
+            spPr: {
+              xfrm: {
+                off: {
+                  y: 0,
+                  x: 0,
+                },
+                ext: {
+                  cy: 2438400,
+                  cx: 8218000,
+                }
+              },
+              prstGeom: {
+                prst: 'roundRect',
+                avLst: [
+                  {
+                    name: 'adj',
+                    fmla: 'val 10000',
+                  }
+                ],
+              },
+              solidFill: {
+                schemeClr: {
+                  val: 0,
+                  mods: [
+                    {
+                      name: 'alpha',
+                      val: 90000,
+                    },
+                    {
+                      name: 'tint',
+                      val: 40000,
+                    },
+                    {
+                      name: 'hueOff',
+                      val: 0,
+                    },
+                    {
+                      name: 'satOff',
+                      val: 0,
+                    },
+                    {
+                      name: 'lumOff',
+                      val: 0,
+                    },
+                    {
+                      name: 'alphaOff',
+                      val: 0,
+                    }
+                  ]
+                }
+              },
+              ln: {
+                algn: 0,
+                cmpd: 1,
+                cap: 0,
+                w: 12700,
+                solidFill: {
+                  schemeClr: {
+                    val: 0,
+                    mods: [
+                      {
+                        name: 'alpha',
+                        val: 90000,
+                      },
+                      {
+                        name: 'tint',
+                        val: 40000,
+                      },
+                      {
+                        name: 'hueOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'satOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'lumOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'alphaOff',
+                        val: 0,
+                      }
+                    ]
+                  }
+                },
+                prstDash: {
+                  val: 6,
+                },
+                miter: {
+                  lim: 800000,
+                }
+              },
+              effectLst: [],
+            },
+            style: {
+              lnRef: {
+                idx: 2,
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fillRef: {
+                idx: 1,
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              effectRef: {
+                idx: 0,
+                scrgbClr: {
+                  b: 0,
+                  g: 0,
+                  r: 0,
+                },
+              },
+              fontRef: {
+                idx: 1,
+              },
+            },
+          },
+            {
+              modelId: '',
+              nvSpPr: {
+                cNvPr: {
+                  name: '',
+                  id: 0,
+                },
+                cNvSpPr: {},
+              },
+              spPr: {
+                xfrm: {
+                  off: {
+                    y: 325120,
+                    x: 243839,
+                  },
+                  ext: {
+                    cy: 1788160,
+                    cx: 2387600,
+                  }
+                },
+                prstGeom: {
+                  prst: 'roundRect',
+                  avLst: [
+                    {
+                      name: 'adj',
+                      fmla: 'val 10000',
+                    }
+                  ],
+                },
+                solidFill: {
+                  schemeClr: {
+                    val: 0,
+                    mods: [
+                      {
+                        name: 'tint',
+                        val: 50000,
+                      },
+                      {
+                        name: 'hueOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'satOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'lumOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'alphaOff',
+                        val: 0,
+                      },
+                    ]
+                  }
+                },
+                ln: {
+                  algn: 0,
+                  cmpd: 1,
+                  cap: 0,
+                  w: 12700,
+                  solidFill: {
+                    schemeClr: {
+                      val: 10,
+                      mods: [
+                        {
+                          name: 'hueOff',
+                          val: 0,
+                        },
+                        {
+                          name: 'satOff',
+                          val: 0,
+                        },
+                        {
+                          name: 'lumOff',
+                          val: 0,
+                        },
+                        {
+                          name: 'alphaOff',
+                          val: 0,
+                        },
+                      ]
+                    }
+                  },
+                  prstDash: {
+                    val: 6,
+                  },
+                  miter: {
+                    lim: 800000,
+                  }
+                },
+                effectLst: [],
+              },
+              style: {
+                lnRef: {
+                  idx: 2,
+                  scrgbClr: {
+                    b: 0,
+                    g: 0,
+                    r: 0,
+                  },
+                },
+                fillRef: {
+                  idx: 1,
+                  scrgbClr: {
+                    b: 0,
+                    g: 0,
+                    r: 0,
+                  },
+                },
+                effectRef: {
+                  idx: 0,
+                  scrgbClr: {
+                    b: 0,
+                    g: 0,
+                    r: 0,
+                  },
+                },
+                fontRef: {
+                  idx: 1,
+                },
+              },
+            },
+            {
+              modelId: '',
+              nvSpPr: {
+                cNvPr: {
+                  name: '',
+                  id: 0,
+                },
+                cNvSpPr: {},
+              },
+              spPr: {
+                xfrm: {
+                  rot: 10800000,
+                  off: {
+                    y: 2438400,
+                    x: 243839,
+                  },
+                  ext: {
+                    cy: 2980266,
+                    cx: 2387600,
+                  }
+                },
+                prstGeom: {
+                  prst: 'round2SameRect',
+                  avLst: [
+                    {
+                      name: 'adj1',
+                      fmla: 'val 10500',
+                    },
+                    {
+                      name: 'adj2',
+                      fmla: 'val 0',
+                    }
+                  ],
+                },
+                solidFill: {
+                  schemeClr: {
+                    val: 0,
+                    mods: [
+                      {
+                        name: 'hueOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'satOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'lumOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'alphaOff',
+                        val: 0,
+                      },
+                    ]
+                  }
+                },
+                ln: {
+                  algn: 0,
+                  cmpd: 1,
+                  cap: 0,
+                  w: 12700,
+                  solidFill: {
+                    schemeClr: {
+                      val: 10,
+                      mods: [
+                        {
+                          name: 'hueOff',
+                          val: 0,
+                        },
+                        {
+                          name: 'satOff',
+                          val: 0,
+                        },
+                        {
+                          name: 'lumOff',
+                          val: 0,
+                        },
+                        {
+                          name: 'alphaOff',
+                          val: 0,
+                        },
+                      ]
+                    }
+                  },
+                  prstDash: {
+                    val: 6,
+                  },
+                  miter: {
+                    lim: 800000,
+                  }
+                },
+                effectLst: [],
+              },
+              style: {
+                lnRef: {
+                  idx: 2,
+                  scrgbClr: {
+                    b: 0,
+                    g: 0,
+                    r: 0,
+                  },
+                },
+                fillRef: {
+                  idx: 1,
+                  scrgbClr: {
+                    b: 0,
+                    g: 0,
+                    r: 0,
+                  },
+                },
+                effectRef: {
+                  idx: 0,
+                  scrgbClr: {
+                    b: 0,
+                    g: 0,
+                    r: 0,
+                  },
+                },
+                fontRef: {
+                  idx: 1,
+                  schemeClr: {
+                    val: 10,
+                  }
+                },
+              },
+              txBody: {
+                bodyPr: {
+                  anchorCtr: false,
+                  anchor: 4,
+                  spcCol: 1270,
+                  numCol: 1,
+                  bIns: 320040,
+                  rIns: 320040,
+                  tIns: 320040,
+                  lIns: 320040,
+                  wrap: 1,
+                  vert: 1,
+                  spcFirstLastPara: false,
+                  noAutoFit: {},
+                },
+                lstStyle: {},
+                p: {
+                  pPr: { // TODO: create PPr in diagrams
+                    algn: 'PPr_algn_ctr',
+                    defTabSz: 2000250,
+                    indent: 0,
+                    lvl: 0,
+                    marL: 0,
+                    lnSpc: {
+                      spcPct: {
+                        val: 90000,
+                      }
+                    },
+                    spcBef: {
+                      spcPct: {
+                        val: 0,
+                      }
+                    },
+                    spcAft: {
+                      spcPct: {
+                        val: 35000,
+                      }
+                    },
+                    buNone: {},
+                  },
+                  endParaRPr: {
+                    lang: 'ru-RU',
+                    kern: 1200,
+                    sz: 4500,
+                  }
+                }
+              },
+              txXfrm: {
+                rot: 10800000,
+                off: {
+                  y: 2438400,
+                  x: 317266,
+                },
+                ext: {
+                  cy: 2906839,
+                  cx: 2240746,
+                },
+              }
+            },
+            {
+              modelId: '',
+              nvSpPr: {
+                cNvPr: {
+                  name: '',
+                  id: 0,
+                },
+                cNvSpPr: {},
+              },
+              spPr: {
+                xfrm: {
+                  off: {
+                    y: 325120,
+                    x: 2870200,
+                  },
+                  ext: {
+                    cy: 1788160,
+                    cx: 2387600,
+                  }
+                },
+                prstGeom: {
+                  prst: 'roundRect',
+                  avLst: [
+                    {
+                      name: 'adj',
+                      fmla: 'val 10000',
+                    }
+                  ],
+                },
+                solidFill: {
+                  schemeClr: {
+                    val: 0,
+                    mods: [
+                      {
+                        name: 'tint',
+                        val: 50000,
+                      },
+                      {
+                        name: 'hueOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'satOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'lumOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'alphaOff',
+                        val: 0,
+                      },
+                    ]
+                  }
+                },
+                ln: {
+                  algn: 0,
+                  cmpd: 1,
+                  cap: 0,
+                  w: 12700,
+                  solidFill: {
+                    schemeClr: {
+                      val: 10,
+                      mods: [
+                        {
+                          name: 'hueOff',
+                          val: 0,
+                        },
+                        {
+                          name: 'satOff',
+                          val: 0,
+                        },
+                        {
+                          name: 'lumOff',
+                          val: 0,
+                        },
+                        {
+                          name: 'alphaOff',
+                          val: 0,
+                        },
+                      ]
+                    }
+                  },
+                  prstDash: {
+                    val: 6,
+                  },
+                  miter: {
+                    lim: 800000,
+                  }
+                },
+                effectLst: [],
+              },
+              style: {
+                lnRef: {
+                  idx: 2,
+                  scrgbClr: {
+                    b: 0,
+                    g: 0,
+                    r: 0,
+                  },
+                },
+                fillRef: {
+                  idx: 1,
+                  scrgbClr: {
+                    b: 0,
+                    g: 0,
+                    r: 0,
+                  },
+                },
+                effectRef: {
+                  idx: 0,
+                  scrgbClr: {
+                    b: 0,
+                    g: 0,
+                    r: 0,
+                  },
+                },
+                fontRef: {
+                  idx: 1,
+                },
+              },
+            },
+            {
+              modelId: '',
+              nvSpPr: {
+                cNvPr: {
+                  name: '',
+                  id: 0,
+                },
+                cNvSpPr: {},
+              },
+              spPr: {
+                xfrm: {
+                  rot: 10800000,
+                  off: {
+                    y: 2438400,
+                    x: 2870200,
+                  },
+                  ext: {
+                    cy: 2980266,
+                    cx: 2387600,
+                  }
+                },
+                prstGeom: {
+                  prst: 'round2SameRect',
+                  avLst: [
+                    {
+                      name: 'adj1',
+                      fmla: 'val 10500',
+                    },
+                    {
+                      name: 'adj2',
+                      fmla: 'val 0',
+                    }
+                  ],
+                },
+                solidFill: {
+                  schemeClr: {
+                    val: 0,
+                    mods: [
+                      {
+                        name: 'hueOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'satOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'lumOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'alphaOff',
+                        val: 0,
+                      },
+                    ]
+                  }
+                },
+                ln: {
+                  algn: 0,
+                  cmpd: 1,
+                  cap: 0,
+                  w: 12700,
+                  solidFill: {
+                    schemeClr: {
+                      val: 10,
+                      mods: [
+                        {
+                          name: 'hueOff',
+                          val: 0,
+                        },
+                        {
+                          name: 'satOff',
+                          val: 0,
+                        },
+                        {
+                          name: 'lumOff',
+                          val: 0,
+                        },
+                        {
+                          name: 'alphaOff',
+                          val: 0,
+                        },
+                      ]
+                    }
+                  },
+                  prstDash: {
+                    val: 6,
+                  },
+                  miter: {
+                    lim: 800000,
+                  }
+                },
+                effectLst: [],
+              },
+              style: {
+                lnRef: {
+                  idx: 2,
+                  scrgbClr: {
+                    b: 0,
+                    g: 0,
+                    r: 0,
+                  },
+                },
+                fillRef: {
+                  idx: 1,
+                  scrgbClr: {
+                    b: 0,
+                    g: 0,
+                    r: 0,
+                  },
+                },
+                effectRef: {
+                  idx: 0,
+                  scrgbClr: {
+                    b: 0,
+                    g: 0,
+                    r: 0,
+                  },
+                },
+                fontRef: {
+                  idx: 1,
+                  schemeClr: {
+                    val: 10
+                  }
+                },
+              },
+              txBody: {
+                bodyPr: {
+                  anchorCtr: false,
+                  anchor: 4,
+                  spcCol: 1270,
+                  numCol: 1,
+                  bIns: 320040,
+                  rIns: 320040,
+                  tIns: 320040,
+                  lIns: 320040,
+                  wrap: 1,
+                  vert: 1,
+                  spcFirstLastPara: false,
+                  noAutoFit: {},
+                },
+                lstStyle: {},
+                p: {
+                  pPr: { // TODO: create PPr in diagrams
+                    algn: 'PPr_algn_ctr',
+                    defTabSz: 2000250,
+                    indent: 0,
+                    lvl: 0,
+                    marL: 0,
+                    lnSpc: {
+                      spcPct: {
+                        val: 90000,
+                      }
+                    },
+                    spcBef: {
+                      spcPct: {
+                        val: 0,
+                      }
+                    },
+                    spcAft: {
+                      spcPct: {
+                        val: 35000,
+                      }
+                    },
+                    buNone: {},
+                  },
+                  endParaRPr: {
+                    lang: 'ru-RU',
+                    kern: 1200,
+                    sz: 4500,
+                  }
+                }
+              },
+              txXfrm: {
+                rot: 10800000,
+                off: {
+                  y: 2438400,
+                  x: 2943627,
+                },
+                ext: {
+                  cy: 2906839,
+                  cx: 2240746,
+                },
+              }
+            },
+            {
+              modelId: '',
+              nvSpPr: {
+                cNvPr: {
+                  name: '',
+                  id: 0,
+                },
+                cNvSpPr: {},
+              },
+              spPr: {
+                xfrm: {
+                  off: {
+                    y: 325120,
+                    x: 5496559,
+                  },
+                  ext: {
+                    cy: 1788160,
+                    cx: 2387600,
+                  }
+                },
+                prstGeom: {
+                  prst: 'roundRect',
+                  avLst: [
+                    {
+                      name: 'adj',
+                      fmla: 'val 10000',
+                    }
+                  ],
+                },
+                solidFill: {
+                  schemeClr: {
+                    val: 0,
+                    mods: [
+                      {
+                        name: 'tint',
+                        val: 50000,
+                      },
+                      {
+                        name: 'hueOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'satOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'lumOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'alphaOff',
+                        val: 0,
+                      },
+                    ]
+                  }
+                },
+                ln: {
+                  algn: 0,
+                  cmpd: 1,
+                  cap: 0,
+                  w: 12700,
+                  solidFill: {
+                    schemeClr: {
+                      val: 10,
+                      mods: [
+                        {
+                          name: 'hueOff',
+                          val: 0,
+                        },
+                        {
+                          name: 'satOff',
+                          val: 0,
+                        },
+                        {
+                          name: 'lumOff',
+                          val: 0,
+                        },
+                        {
+                          name: 'alphaOff',
+                          val: 0,
+                        },
+                      ]
+                    }
+                  },
+                  prstDash: {
+                    val: 6,
+                  },
+                  miter: {
+                    lim: 800000,
+                  }
+                },
+                effectLst: [],
+              },
+              style: {
+                lnRef: {
+                  idx: 2,
+                  scrgbClr: {
+                    b: 0,
+                    g: 0,
+                    r: 0,
+                  },
+                },
+                fillRef: {
+                  idx: 1,
+                  scrgbClr: {
+                    b: 0,
+                    g: 0,
+                    r: 0,
+                  },
+                },
+                effectRef: {
+                  idx: 0,
+                  scrgbClr: {
+                    b: 0,
+                    g: 0,
+                    r: 0,
+                  },
+                },
+                fontRef: {
+                  idx: 1,
+                },
+              },
+            },
+            {
+              modelId: '',
+              nvSpPr: {
+                cNvPr: {
+                  name: '',
+                  id: 0,
+                },
+                cNvSpPr: {},
+              },
+              spPr: {
+                xfrm: {
+                  rot: 10800000,
+                  off: {
+                    y: 2438400,
+                    x: 5496559,
+                  },
+                  ext: {
+                    cy: 2980266,
+                    cx: 2387600,
+                  }
+                },
+                prstGeom: {
+                  prst: 'round2SameRect',
+                  avLst: [
+                    {
+                      name: 'adj1',
+                      fmla: 'val 10500',
+                    },
+                    {
+                      name: 'adj2',
+                      fmla: 'val 0',
+                    }
+                  ],
+                },
+                solidFill: {
+                  schemeClr: {
+                    val: 0,
+                    mods: [
+                      {
+                        name: 'hueOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'satOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'lumOff',
+                        val: 0,
+                      },
+                      {
+                        name: 'alphaOff',
+                        val: 0,
+                      },
+                    ]
+                  }
+                },
+                ln: {
+                  algn: 0,
+                  cmpd: 1,
+                  cap: 0,
+                  w: 12700,
+                  solidFill: {
+                    schemeClr: {
+                      val: 10,
+                      mods: [
+                        {
+                          name: 'hueOff',
+                          val: 0,
+                        },
+                        {
+                          name: 'satOff',
+                          val: 0,
+                        },
+                        {
+                          name: 'lumOff',
+                          val: 0,
+                        },
+                        {
+                          name: 'alphaOff',
+                          val: 0,
+                        },
+                      ]
+                    }
+                  },
+                  prstDash: {
+                    val: 6,
+                  },
+                  miter: {
+                    lim: 800000,
+                  }
+                },
+                effectLst: [],
+              },
+              style: {
+                lnRef: {
+                  idx: 2,
+                  scrgbClr: {
+                    b: 0,
+                    g: 0,
+                    r: 0,
+                  },
+                },
+                fillRef: {
+                  idx: 1,
+                  scrgbClr: {
+                    b: 0,
+                    g: 0,
+                    r: 0,
+                  },
+                },
+                effectRef: {
+                  idx: 0,
+                  scrgbClr: {
+                    b: 0,
+                    g: 0,
+                    r: 0,
+                  },
+                },
+                fontRef: {
+                  idx: 1,
+                  schemeClr: {
+                    val: 10,
+                  }
+                },
+              },
+              txBody: {
+                bodyPr: {
+                  anchorCtr: false,
+                  anchor: 4,
+                  spcCol: 1270,
+                  numCol: 1,
+                  bIns: 320040,
+                  rIns: 320040,
+                  tIns: 320040,
+                  lIns: 320040,
+                  wrap: 1,
+                  vert: 1,
+                  spcFirstLastPara: false,
+                  noAutoFit: {},
+                },
+                lstStyle: {},
+                p: {
+                  pPr: { // TODO: create PPr function
+                    algn: 'PPr_algn_ctr',
+                    defTabSz: 2000250,
+                    indent: 0,
+                    lvl: 0,
+                    marL: 0,
+                    lnSpc: {
+                      spcPct: {
+                        val: 90000,
+                      }
+                    },
+                    spcBef: {
+                      spcPct: {
+                        val: 0,
+                      }
+                    },
+                    spcAft: {
+                      spcPct: {
+                        val: 35000,
+                      }
+                    },
+                    buNone: {},
+                  },
+                  endParaRPr: {
+                    lang: 'ru-RU',
+                    kern: 1200,
+                    sz: 4500,
+                  }
+                }
+              },
+              txXfrm: {
+                rot: 10800000,
+                off: {
+                  y: 2438400,
+                  x: 5569986,
+                },
+                ext: {
+                  cy: 2906839,
+                  cx: 2240746,
+                },
+              }
+            },
+          ],
+
         }
       }
     };
@@ -11519,31 +12592,31 @@
       return uniClr;
     }
 
-    function fillColorsDef(smartArt, objectInfo) {
-      objectInfo.colorsDef.titles.forEach(function (e) {
-        smartArt.getColorsDef().addToLstTitle(0, createTitle(e));
+    function fillColorsDef(colorsDef, colorsDefInfo) {
+      colorsDefInfo.titles.forEach(function (e) {
+        colorsDef.addToLstTitle(0, createTitle(e));
       });
-      objectInfo.colorsDef.descs.forEach(function (e) {
-        smartArt.getColorsDef().addToLstDesc(0, createDesc(e));
+      colorsDefInfo.descs.forEach(function (e) {
+        colorsDef.addToLstDesc(0, createDesc(e));
       });
-      var catArr = objectInfo.colorsDef.catLst.map(function (e) {
+      var catArr = colorsDefInfo.catLst.map(function (e) {
         return createCat(e.pri, e.type);
       });
-      smartArt.getColorsDef().setCatLst(createCatLst(catArr));
-      var styleLblsName = Object.keys(objectInfo.colorsDef.styleLbls);
+      colorsDef.setCatLst(createCatLst(catArr));
+      var styleLblsName = Object.keys(colorsDefInfo.styleLbls);
       var colorLsts = ['fillClrLst', 'linClrLst', 'effectClrLst', 'txFillClrLst', 'txLinClrLst', 'txEffectClrLst'];
       styleLblsName.forEach(function (Lbl) {
         var styleLbl = createColorStyleLbl(Lbl);
         colorLsts.forEach(function (clrLstName) {
-          var clrLstInfo = objectInfo.colorsDef.styleLbls[Lbl][clrLstName];
-          if (clrLstInfo.color) {
+          var clrLstInfo = colorsDefInfo.styleLbls[Lbl][clrLstName];
+          if (clrLstInfo.color && Object.keys(clrLstInfo.color)) {
             createColorLstInLbl(styleLbl, clrLstName, clrLstInfo.meth);
             var schemeClr = new SchemeClr();
             schemeClr.setId(clrLstInfo.color.schemeClr.id);
             addToClrLst(styleLbl, createUniClr(schemeClr, clrLstInfo.color.schemeClr.mods), clrLstName);
           }
         });
-        smartArt.getColorsDef().addToLstStyleLbl(0, styleLbl);
+        colorsDef.addToLstStyleLbl(0, styleLbl);
       });
     }
 
@@ -11593,26 +12666,26 @@
     }
 
 
-    function fillQuickStyle(smartArt, objectInfo) {
-      objectInfo.styleDef.titles.forEach(function (e) {
-        smartArt.getStyleDef().addToLstTitle(0, createTitle(e));
+    function fillQuickStyle(quickStyle, quickStyleInfo) {
+      quickStyleInfo.titles.forEach(function (e) {
+        quickStyle.addToLstTitle(0, createTitle(e));
       });
 
-      objectInfo.styleDef.descs.forEach(function (e) {
-        smartArt.getStyleDef().addToLstDesc(0, createDesc(e));
+      quickStyleInfo.descs.forEach(function (e) {
+        quickStyle.addToLstDesc(0, createDesc(e));
       });
 
-      var scene3dInfo = objectInfo.styleDef.scene3d;
-      fillScene3dInObject(smartArt.getStyleDef(), scene3dInfo);
+      var scene3dInfo = quickStyleInfo.scene3d;
+      fillScene3dInObject(quickStyle, scene3dInfo);
 
-      var catArr = objectInfo.styleDef.catLst.map(function (e) {
+      var catArr = quickStyleInfo.catLst.map(function (e) {
         return createCat(e.pri, e.type);
       });
-      smartArt.getStyleDef().setCatLst(createCatLst(catArr));
+      quickStyle.setCatLst(createCatLst(catArr));
 
-      var styleLblsName = Object.keys(objectInfo.styleDef.styleLbls);
+      var styleLblsName = Object.keys(quickStyleInfo.styleLbls);
       styleLblsName.forEach(function (Lbl) {
-        var LblInfo = objectInfo.styleDef.styleLbls[Lbl];
+        var LblInfo = quickStyleInfo.styleLbls[Lbl];
         var styleLbl = createStyleDefStyleLbl(Lbl);
 
         var scene3dInfo = LblInfo.scene3d;
@@ -11638,7 +12711,7 @@
         var effectClr = createUniClr(rgbClr);
         styleLbl.style.setEffectRef(createStyleRef(LblInfo.style.effectRef.idx, effectClr));
 
-        if (LblInfo.style.fontRef.schemeClr) {
+        if (LblInfo.style.fontRef.schemeClr && Object.keys(LblInfo.style.fontRef.schemeClr)) {
           var schemeClr = new SchemeClr();
           schemeClr.setId(LblInfo.style.fontRef.schemeClr.id);
           var fontClr = createUniClr(schemeClr);
@@ -11646,12 +12719,283 @@
         } else {
           styleLbl.style.setFontRef(createStyleRef(LblInfo.style.fontRef.idx, null, true));
         }
-        smartArt.getStyleDef().addToLstStyleLbl(0, styleLbl);
+        quickStyle.addToLstStyleLbl(0, styleLbl);
       });
     }
 
-    function fillLayoutDef(smartArt, objectInfo) {
+    function fillResizeHandles(resizeHandles, resizeHandlesInfo) {
+      if (resizeHandlesInfo.val) {
+        resizeHandles.setVal(val);
+      }
+    }
 
+    function fillPresLayoutVars(presLayoutVars, presLayoutVarsInfo) {
+      if (presLayoutVarsInfo.dir) {
+        presLayoutVars.setDir(new Dir()); //TODO: create Dir
+      }
+      if (presLayoutVarsInfo.resizeHandles) {
+        var resizeHandles = new ResizeHandles();
+        fillResizeHandles(resizeHandles, presLayoutVarsInfo.resizeHandles);
+        presLayoutVars.setResizeHandles(resizeHandles);
+      }
+      if (presLayoutVarsInfo.bulletEnabled) {
+        presLayoutVars.setBulletEnabled(presLayoutVarsInfo.bulletEnabled);
+      }
+    }
+
+    function fillPrSet(prSet, prSetInfo) {
+      prSet.setPhldr(prSetInfo.phldr);
+      if (prSet.getPhldr()) {
+        prSet.setPhldrT(prSetInfo.phldrT);
+      }
+      if (prSetInfo.csCatId) {
+        prSet.setCsCatId(prSetInfo.csCatId);
+      }
+      if (prSetInfo.csTypeId) {
+        prSet.setCsTypeId(prSetInfo.csTypeId);
+      }
+      if (prSetInfo.qsCatId) {
+        prSet.setQsCatId(prSetInfo.qsCatId);
+      }
+      if (prSetInfo.qsTypeId) {
+        prSet.setQsTypeId(prSetInfo.qsTypeId);
+      }
+      if (prSetInfo.loCatId) {
+        prSet.setLoCatId(prSetInfo.loCatId);
+      }
+      if (prSetInfo.loTypeId) {
+        prSet.setLoTypeId(prSetInfo.loTypeId);
+      }
+      if (prSetInfo.presStyleCnt) {
+        prSet.setPresStyleCnt(prSetInfo.presStyleCnt);
+      }
+      if (prSetInfo.presName) {
+        prSet.setPresName(prSetInfo.presName);
+      }
+      if (prSetInfo.presAssocID) {
+        prSet.setPresAssocID(prSetInfo.presAssocID);
+      }
+      if (prSetInfo.presStyleIdx) {
+        prSet.setPresStyleIdx(prSetInfo.presStyleIdx);
+      }
+      if (prSetInfo.presStyleLbl) {
+        prSet.setPresStyleLbl(prSetInfo.presStyleLbl);
+      }
+      if (Object.keys(prSetInfo.presLayoutVars)) {
+        var presLayoutVars = new PresLayoutVars();
+        fillPresLayoutVars(presLayoutVars, prSetInfo.presLayoutVars);
+        prSet.setPresLayoutVars(presLayoutVars);
+      }
+    }
+    
+    function fillP(paragraph, paragraphInfo) {
+      var endParaRPr = new EndParaPRr(); // TODO: add import ParaEnd
+      endParaRPr.setLang()
+    }
+
+    function fillT(t, tInfo) {
+      var bodyPr = new BodyPr();
+      t.setBodyPr(bodyPr);
+      var lstStyle = new LstStyle();
+      t.setLstStyle(lstStyle);
+      var p = new Paragraph();
+      fillP(p, tInfo.p);
+      t.setParagraph(p);
+    }
+
+    function createPoint(pointInfo) {
+      var point = new Point();
+      if (pointInfo.modelId) {
+        point.setModelId(pointInfo.modelId);
+      }
+      if (pointInfo.type) {
+        point.setType(pointInfo.type);
+      }
+      var prSet = new PrSet();
+      if (pointInfo.prSet && Object.keys(pointInfo.prSet)) {
+        fillPrSet(prSet, pointInfo.prSet);
+      }
+      point.setPrSet(prSet);
+
+      if (pointInfo.spPr && object.keys(pointInfo.prSet)) {
+        var spPr = new SpPr(); // add in imports
+        point.setSpPr(spPr);
+      }
+
+      if (pointInfo.t && object.keys(pointInfo.t)) {
+        var t = new T();
+        fillT(t, pointInfo.t);
+        point.setT(t);
+      }
+      return point;
+    }
+
+    function fillPtLst(ptLst, points) {
+      points.forEach(function (point) {
+        ptLst.addToLst(0, point);
+      })
+    }
+
+    function createCxn(cxnInfo) {
+      var cxn = new Cxn();
+      if (cxnInfo.type) {
+        cxn.setType(cxnInfo.type);
+      }
+      if (cxnInfo.modelId) {
+        cxn.setModelId(cxnInfo.modelId);
+      }
+      if (cxnInfo.presId) {
+        cxn.setPresId(cxnInfo.presId);
+      }
+      if (cxnInfo.destOrd) {
+        cxn.setDestOrd(cxnInfo.destOrd);
+      }
+      if (cxnInfo.srcOrd) {
+        cxn.setSrcOrd(cxnInfo.srcOrd);
+      }
+      if (cxnInfo.destId) {
+        cxn.setDestId(cxnInfo.destId);
+      }
+      if (cxnInfo.srcId) {
+        cxn.setSrcId(cxnInfo.srcId);
+      }
+      return cxn;
+    }
+
+    function fillCxnLst(cxnLst, cxns) {
+      cxns.forEach(function (cxn) {
+        cxnLst.addToLst(0, cxn);
+      });
+    }
+
+    function createExt(extInfo) {
+      var ext = new Ext();
+      if (extInfo.uri) {
+        ext.setUri(extInfo.uri);
+      }
+      if (extInfo.dataModelExt) {
+        var dataModelExt = new DataModelExt(); // TODO: create class DataModelExt
+        if (extInfo.dataModelExt.minVer) {
+          dataModelExt.setMinVer(extInfo.dataModelExt.minVer);
+        }
+        if (extInfo.dataModelExt.relId) {
+          dataModelExt.setRelId(extInfo.dataModelExt.relId);
+        }
+        ext.setDataModelExt(dataModelExt);
+      }
+    }
+
+    function fillExtLst(extLst, exts) {
+      exts.forEach(function (ext) {
+        extLst.addToLst(0, ext)
+      });
+    }
+
+    function fillDataModel(dataModel, dataModelObj) {
+        var points = dataModelObj.ptLst.map(function (pointInfo) {
+          return createPoint(pointInfo);
+        });
+        var ptLst = new PtLst();
+        fillPtLst(ptLst, points);
+        dataModel.setPtLst(ptLst);
+
+        if (dataModelObj.cxnLst) {
+          var cxns = dataModelObj.cxnLst.map(function (cxnInfo) {
+            return createCxn(cxnInfo);
+          });
+          var cxnLst = new CxnLst();
+          fillCxnLst(cxnLst, cxns);
+          dataModel.setCxnLst(cxns);
+        }
+
+        if (dataModelObj.extLst) {
+          var exts = dataModelObj.extLst.map(function (extInfo) {
+            return createExt(extInfo);
+          });
+          var extLst = new ExtLst();
+          fillExtLst(extLst, exts);
+          dataModel.setExtLst(extLst);
+        }
+
+        var bg = new BgFormat();
+        dataModel.setBg(bg);
+        var whole = new Whole();
+        dataModel.setWhole(whole);
+
+    }
+
+    function fillSampData(sampData, sampDataObj) {
+      sampData.setUseDef(sampDataObj.useDef);
+
+      var dataModel = new DataModel();
+      fillDataModel(dataModel, sampDataObj.dataModel);
+      sampData.setDataModel(dataModel);
+
+    }
+    
+    function fillClrData(clrData, clrDataInfo) {
+      var dataModel = new DataModel();
+      fillDataModel(dataModel, clrDataInfo.dataModel);
+      clrData.setDataModel(dataModel);
+    }
+
+    function fillStyleData(styleData, styleDataInfo) {
+      var dataModel = new DataModel();
+      fillDataModel(dataModel, styleDataInfo.dataModel);
+      styleData.setDataModel(dataModel);
+    }
+
+    function fillLayoutNode(layoutNode, layoutNodeInfo) {
+      if (layoutNodeInfo.name) {
+        layoutNode.setName(layoutNodeInfo.name);
+      } // TODO: Continue fill
+    }
+
+    function fillLayoutDef(layoutDef, layoutDefInfo) {
+        layoutDefInfo.titles.forEach(function (title) {
+          layoutDef.addToLstTitle(createTitle(title));
+        });
+
+      layoutDefInfo.descs.forEach(function (desc) {
+        layoutDef.addToLstDesc(createDesc(desc));
+      });
+
+      var catArr = layoutDefInfo.catLst.map(function (cat) {
+        return createCat(cat.pri, cat.type);
+      });
+      layoutDef.setCatLst(createCatLst(catArr));
+
+      var sampData = new SampData();
+      fillSampData(sampData, layoutDefInfo.sampData);
+      layoutDef.setSampData(sampData);
+
+      var styleData = new StyleData();
+      fillStyleData(styleData, layoutDefInfo.styleData);
+      layoutDef.setStyleData(styleData);
+
+      var clrData = new ClrData();
+      fillClrData(clrData, layoutDefInfo.clrData);
+      layoutDef.setClrData(clrData);
+
+      var layoutNode = new LayoutNode();
+      fillLayoutNode(layoutNode, layoutDefInfo.layoutNode);
+      layoutDef.setLayoutNode(layoutNode);
+
+    }
+
+    function fillSpTree(spTree, spTreeInfo) {
+      var nvGrpSpPr = new NvGrpSpPr();
+      var grpSpPr = new GrpSpPr();
+      spTreeInfo.sps.forEach(function (sp) {
+        createSp(sp);
+      }); // TODO: add to SpTree
+
+    }
+
+    function fillDrawing(drawing, drawingInfo) {
+      var spTree = new SpTree();
+      fillSpTree(spTree, drawingInfo.spTree);
+      drawing.setSpTree(spTree);
     }
 
 
@@ -11662,9 +13006,10 @@
       smartart.setLayoutDef(new LayoutDef());
       switch (type) {
         case 'horizontalListOfPicture':
-          fillColorsDef(smartart, horizontalListOfPicture);
-          fillQuickStyle(smartart, horizontalListOfPicture);
-          fillLayoutDef(smartart, horizontalListOfPicture);
+          fillColorsDef(smartart.getColorsDef(), horizontalListOfPicture.colorsDef);
+          fillQuickStyle(smartart.getStyleDef(), horizontalListOfPicture.styleDef);
+          fillLayoutDef(smartart.getLayoutDef(), horizontalListOfPicture.layoutDef);
+          fillDrawing(smartart.getDrawing(), horizontalListOfPicture.drawing);
           break;
       }
       
