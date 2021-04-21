@@ -325,6 +325,19 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Protected_SetPivotTables = 21;
 	window['AscCH'].historyitem_Protected_SetSelectUnlockedCells = 22;
 
+	window['AscCH'].historyitem_Protected_SetLockStructure = 23;
+	window['AscCH'].historyitem_Protected_SetLockWindows = 24;
+	window['AscCH'].historyitem_Protected_SetLockRevision = 25;
+	window['AscCH'].historyitem_Protected_SetRevisionsAlgorithmName = 26;
+	window['AscCH'].historyitem_Protected_SetRevisionsHashValue = 27;
+	window['AscCH'].historyitem_Protected_SetRevisionsSaltValue = 28;
+	window['AscCH'].historyitem_Protected_SetRevisionsSpinCount = 29;
+	window['AscCH'].historyitem_Protected_SetWorkbookAlgorithmName = 30;
+	window['AscCH'].historyitem_Protected_SetWorkbookHashValue = 31;
+	window['AscCH'].historyitem_Protected_SetWorkbookSaltValue = 32;
+	window['AscCH'].historyitem_Protected_SetWorkbookSpinCount = 33;
+
+
 function CHistory()
 {
 	this.workbook = null;

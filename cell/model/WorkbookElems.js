@@ -11278,7 +11278,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.selectUnlockedCells = this.checkProperty(this.selectUnlockedCells, val.selectUnlockedCells, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
 	};
 
-	CProtectedRange.prototype.checkProperty = function (propOld, propNew, type, ws, addToHistory) {
+	CSheetProtection.prototype.checkProperty = function (propOld, propNew, type, ws, addToHistory) {
 		if (propOld !== propNew) {
 			if (addToHistory) {
 				History.Add(AscCommonExcel.g_oUndoRedoProtectedSheet, type, ws.getId(), null,
@@ -11560,13 +11560,40 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		res.revisionsHashValue = this.revisionsHashValue;
 		res.revisionsSaltValue = this.revisionsSaltValue;
 		res.revisionsSpinCount = this.revisionsSpinCount;
-		res.workbookAlgorithmName = this.workbookAlgorithmName;
 
+		res.workbookAlgorithmName = this.workbookAlgorithmName;
 		res.workbookHashValue = this.workbookHashValue;
 		res.workbookSaltValue = this.workbookSaltValue;
 		res.workbookSpinCount = this.workbookSpinCount;
 
 		return res;
+	};
+
+	CWorkbookProtection.prototype.set = function (val, addToHistory, ws) {
+		this.lockStructure = this.checkProperty(this.lockStructure, val.lockStructure, AscCH.historyitem_Protected_SetAlgorithmName, addToHistory);
+		this.lockWindows = this.checkProperty(this.lockWindows, val.lockWindows, AscCH.historyitem_Protected_SetHashValue, addToHistory);
+		this.lockRevision = this.checkProperty(this.lockRevision, val.lockRevision, AscCH.historyitem_Protected_SetSaltValue, addToHistory);
+
+		this.revisionsAlgorithmName = this.checkProperty(this.revisionsAlgorithmName, val.revisionsAlgorithmName, AscCH.historyitem_Protected_SetSpinCount, addToHistory);
+		this.revisionsHashValue = this.checkProperty(this.revisionsHashValue, val.revisionsHashValue, AscCH.historyitem_Protected_SetSpinCount, addToHistory);
+		this.revisionsSaltValue = this.checkProperty(this.revisionsSaltValue, val.revisionsSaltValue, AscCH.historyitem_Protected_SetSpinCount, addToHistory);
+		this.revisionsSpinCount = this.checkProperty(this.revisionsSpinCount, val.revisionsSpinCount, AscCH.historyitem_Protected_SetSpinCount, addToHistory);
+
+		this.workbookAlgorithmName = this.checkProperty(this.workbookAlgorithmName, val.workbookAlgorithmName, AscCH.historyitem_Protected_SetSpinCount, addToHistory);
+		this.workbookHashValue = this.checkProperty(this.workbookHashValue, val.workbookHashValue, AscCH.historyitem_Protected_SetSpinCount, addToHistory);
+		this.workbookSaltValue = this.checkProperty(this.workbookSaltValue, val.workbookSaltValue, AscCH.historyitem_Protected_SetSpinCount, addToHistory);
+		this.workbookSpinCount = this.checkProperty(this.workbookSpinCount, val.workbookSpinCount, AscCH.historyitem_Protected_SetSpinCount, addToHistory);
+	};
+
+	CWorkbookProtection.prototype.checkProperty = function (propOld, propNew, type, addToHistory) {
+		if (propOld !== propNew) {
+			if (addToHistory) {
+				History.Add(AscCommonExcel.g_oUndoRedoProtectedWorkbook, type, null, null,
+					new AscCommonExcel.UndoRedoData_ProtectedRange(null, propOld, propNew));
+			}
+			return propNew;
+		}
+		return propOld;
 	};
 
 	CWorkbookProtection.prototype.Write_ToBinary2 = function(w) {
@@ -11731,23 +11758,26 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	CWorkbookProtection.prototype.asc_setRevisionsAlgorithmName = function (val) {
 		this.revisionsAlgorithmName = val;
 	};
-	CWorkbookProtection.prototype.asc_setRevisionsSaltValue = function (val) {
+	CWorkbookProtection.prototype.asc_setRevisionsHashValue = function (val) {
 		this.revisionsHashValue = val;
 	};
-	CWorkbookProtection.prototype.asc_setRevisionsSpinCount = function (val) {
+	CWorkbookProtection.prototype.asc_setRevisionsSaltValue = function (val) {
 		this.revisionsSaltValue = val;
 	};
-	CWorkbookProtection.prototype.asc_setWorkbookAlgorithmName = function (val) {
+	CWorkbookProtection.prototype.asc_setRevisionsSpinCount = function (val) {
 		this.revisionsSpinCount = val;
 	};
-	CWorkbookProtection.prototype.asc_setWorkbookHashValue = function (val) {
+	CWorkbookProtection.prototype.asc_setWorkbookAlgorithmName = function (val) {
 		this.workbookAlgorithmName = val;
 	};
-	CWorkbookProtection.prototype.asc_setWorkbookSaltValue = function (val) {
+	CWorkbookProtection.prototype.asc_setWorkbookHashValue = function (val) {
 		this.workbookHashValue = val;
 	};
-	CWorkbookProtection.prototype.asc_setWorkbookSpinCount = function (val) {
+	CWorkbookProtection.prototype.asc_setWorkbookSaltValue = function (val) {
 		this.workbookSaltValue = val;
+	};
+	CWorkbookProtection.prototype.asc_setWorkbookSpinCount = function (val) {
+		this.workbookSpinCount = val;
 	};
 
 
@@ -12404,7 +12434,6 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setWorkbookHashValue"] = prot.asc_setWorkbookHashValue;
 	prot["asc_setWorkbookSaltValue"] = prot.asc_setWorkbookSaltValue;
 	prot["asc_setWorkbookSpinCount"] = prot.asc_setWorkbookSpinCount;
-	prot["asc_setSelectLockedCells"] = prot.asc_setSelectLockedCells;
 
 	window["AscCommonExcel"].CProtectedRange = CProtectedRange;
 	prot = CProtectedRange.prototype;

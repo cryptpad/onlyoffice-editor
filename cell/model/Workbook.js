@@ -3729,6 +3729,13 @@
 		return rules;
 	};
 
+	Workbook.prototype.setProtectedWorkbook = function (props, addToHistory) {
+		if (!this.workbookProtection) {
+			this.workbookProtection = new window["AscCommonExcel"].CWorkbookProtection();
+		}
+		this.workbookProtection.set(props, addToHistory, this);
+	};
+
 //-------------------------------------------------------------------------------------------------
 	var tempHelp = new ArrayBuffer(8);
 	var tempHelpUnit = new Uint8Array(tempHelp);

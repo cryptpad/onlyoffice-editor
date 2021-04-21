@@ -4363,7 +4363,7 @@ function (window, undefined) {
 		
 		var protectedSheet = oModel.sheetProtection;
 		if (!protectedSheet) {
-			protectedSheet = new window["AscCommonExcel"].CSheetProtection();
+			oModel.sheetProtection = protectedSheet = new window["AscCommonExcel"].CSheetProtection();
 		}
 
 		if (protectedSheet) {
@@ -4437,6 +4437,88 @@ function (window, undefined) {
 				}
 				case AscCH.historyitem_Protected_SetSelectUnlockedCells: {
 					protectedSheet.setSelectUnlockedCells(value);
+					break;
+				}
+			}
+		}
+	};
+
+	function UndoRedoProtectedWorkbook(wb) {
+		this.wb = wb;
+		this.nType = UndoRedoClassTypes.Add(function () {
+			return AscCommonExcel.g_oUndoRedoProtectedWorkbook;
+		});
+	}
+
+	UndoRedoProtectedSheet.prototype.getClassType = function () {
+		return this.nType;
+	};
+	UndoRedoProtectedRange.prototype.Undo = function (Type, Data, nSheetId) {
+		this.UndoRedo(Type, Data, nSheetId, true);
+	};
+	UndoRedoProtectedRange.prototype.Redo = function (Type, Data, nSheetId) {
+		this.UndoRedo(Type, Data, nSheetId, false);
+	};
+
+	UndoRedoProtectedRange.prototype.UndoRedo = function (Type, Data, nSheetId, bUndo) {
+		var oModel = (null == nSheetId) ? this.wb : this.wb.getWorksheetById(nSheetId);
+		var api = window["Asc"]["editor"];
+		if (!api.wb || !oModel) {
+			return;
+		}
+
+		var protectedWorkbook = oModel.workbookProtection;
+		if (!protectedWorkbook) {
+			oModel.workbookProtection = protectedWorkbook = new window["AscCommonExcel"].CWorkbookProtection();
+		}
+
+		if (protectedWorkbook) {
+			var value = bUndo ? Data.from : Data.to;
+
+			switch (Type) {
+				case AscCH.historyitem_Protected_SetLockStructure: {
+					protectedWorkbook.asc_setLockStructure(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetLockWindows: {
+					protectedWorkbook.asc_setLockWindows(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetLockRevision: {
+					protectedWorkbook.asc_setLockRevision(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetRevisionsAlgorithmName: {
+					protectedWorkbook.asc_setRevisionsAlgorithmName(value);
+					break;
+				}
+
+				case AscCH.historyitem_Protected_SetRevisionsHashValue: {
+					protectedWorkbook.asc_setRevisionsHashValue(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetRevisionsSaltValue: {
+					protectedWorkbook.asc_setRevisionsSaltValue(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetRevisionsSpinCount: {
+					protectedWorkbook.asc_setRevisionsSpinCount(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetWorkbookAlgorithmName: {
+					protectedWorkbook.asc_setWorkbookAlgorithmName(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetWorkbookHashValue: {
+					protectedWorkbook.asc_setWorkbookHashValue(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetWorkbookSaltValue: {
+					protectedWorkbook.asc_setWorkbookSaltValue(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetWorkbookSpinCount: {
+					protectedWorkbook.asc_setWorkbookSpinCount(value);
 					break;
 				}
 			}
@@ -4517,5 +4599,6 @@ function (window, undefined) {
 	window['AscCommonExcel'].g_oUndoRedoCF = null;
 	window['AscCommonExcel'].g_UndoRedoProtectedRange = null;
 	window['AscCommonExcel'].g_UndoRedoProtectedSheet = null;
+	window['AscCommonExcel'].g_UndoRedoProtectedWorkbook = null;
 
 })(window);

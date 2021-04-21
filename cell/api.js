@@ -378,6 +378,7 @@ var editor;
     AscCommonExcel.g_oUndoRedoCF = new AscCommonExcel.UndoRedoCF(wbModel);
     AscCommonExcel.g_oUndoRedoProtectedRange = new AscCommonExcel.UndoRedoProtectedRange(wbModel);
     AscCommonExcel.g_oUndoRedoProtectedSheet = new AscCommonExcel.UndoRedoProtectedSheet(wbModel);
+    AscCommonExcel.g_oUndoRedoProtectedWorkbook = new AscCommonExcel.UndoRedoProtectedWorkbook(wbModel);
     this.initGlobalObjectsNamedSheetView(wbModel);
   };
 
@@ -5430,7 +5431,7 @@ var editor;
     var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheetId, sheetId);
 
     var t = this;
-    var renameCallback = function (res) {
+    var callback = function (res) {
       if (res) {
         History.Create_NewPoint();
         History.StartTransaction();
@@ -5441,7 +5442,7 @@ var editor;
       }
     };
 
-    this.collaborativeEditing.lock([lockInfo], renameCallback);
+    this.collaborativeEditing.lock([lockInfo], callback);
     return true;
   };
 
@@ -5475,28 +5476,33 @@ var editor;
 	};
 
 	spreadsheet_api.prototype.asc_setProtectedWorkbook = function (props) {
+
 		// Проверка глобального лока
 		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
 			return false;
 		}
 
-		var i = this.wbModel.getActive();
-		var sheetId = this.wbModel.getWorksheet(i).getId();
-		var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheetId, sheetId);
+		var wb = this.wbModel;
+		var sheet, i, arrLocks = [];
+		for (i = 0; i < wb.aWorksheets.length; ++i) {
+			sheet = wb.aWorksheets[i];
+			arrLocks.push(this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheet.getId(), sheet.getId()));
+		}
 
 		var t = this;
-		var renameCallback = function (res) {
+		var callback = function (res) {
 			if (res) {
 				History.Create_NewPoint();
 				History.StartTransaction();
-				t.wbModel.getWorksheet(i).setProtectedSheet(props, true);
+				t.wbModel.setProtectedWorkbook(props, true);
 				History.EndTransaction();
 			} else {
 				//t.handlers.trigger("asc_onError", c_oAscError.ID.LockedWorksheetRename, c_oAscError.Level.NoCritical);
 			}
 		};
 
-		this.collaborativeEditing.lock([lockInfo], renameCallback);
+		//TODO проверить, может быть нужен глобальный лок?
+		this.collaborativeEditing.lock(arrLocks, callback);
 		return true;
 	};
 
