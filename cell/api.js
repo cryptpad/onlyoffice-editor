@@ -5169,6 +5169,18 @@ var editor;
         oHistory.Clear();
     }
   };
+  spreadsheet_api.prototype.isShowShapeAdjustments = function()
+  {
+    return this.canEdit();
+  };
+  spreadsheet_api.prototype.isShowTableAdjustments = function()
+  {
+      return this.canEdit();
+  };
+  spreadsheet_api.prototype.isShowEquationTrack = function()
+  {
+      return this.canEdit();
+  };
 
   /*
    * Export

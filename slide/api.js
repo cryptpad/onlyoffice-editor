@@ -7630,6 +7630,19 @@ background-repeat: no-repeat;\
 		}
 	};
 
+	asc_docs_api.prototype.isShowShapeAdjustments = function()
+	{
+		return this.canEdit();
+	};
+	asc_docs_api.prototype.isShowTableAdjustments = function()
+	{
+		return this.canEdit();
+	};
+	asc_docs_api.prototype.isShowEquationTrack = function()
+	{
+		return this.canEdit();
+	};
+
 	//-------------------------------------------------------------export---------------------------------------------------
 	window['Asc']                                                 = window['Asc'] || {};
 	window['AscCommonSlide']                                      = window['AscCommonSlide'] || {};
