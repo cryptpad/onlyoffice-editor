@@ -4851,6 +4851,14 @@ var editor;
   };
   spreadsheet_api.prototype.asc_Recalculate = function () {
       History.EndTransaction();
+      //в _onUpdateAfterApplyChanges нет очистки кэша, добавляю -
+	  var lastPointIndex = History.Points && History.Points.length - 1;
+	  var lastPoint = History.Points[lastPointIndex];
+	  if (lastPoint && lastPoint.UpdateRigions) {
+		  for (var i in lastPoint.UpdateRigions) {
+			  this.wb.handlers.trigger("cleanCellCache", i, [lastPoint.UpdateRigions[i]], null, true);
+		  }
+	  }
       this._onUpdateAfterApplyChanges();
   };
 
