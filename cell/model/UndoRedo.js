@@ -4347,14 +4347,14 @@ function (window, undefined) {
 	UndoRedoProtectedSheet.prototype.getClassType = function () {
 		return this.nType;
 	};
-	UndoRedoProtectedRange.prototype.Undo = function (Type, Data, nSheetId) {
+	UndoRedoProtectedSheet.prototype.Undo = function (Type, Data, nSheetId) {
 		this.UndoRedo(Type, Data, nSheetId, true);
 	};
-	UndoRedoProtectedRange.prototype.Redo = function (Type, Data, nSheetId) {
+	UndoRedoProtectedSheet.prototype.Redo = function (Type, Data, nSheetId) {
 		this.UndoRedo(Type, Data, nSheetId, false);
 	};
 
-	UndoRedoProtectedRange.prototype.UndoRedo = function (Type, Data, nSheetId, bUndo) {
+	UndoRedoProtectedSheet.prototype.UndoRedo = function (Type, Data, nSheetId, bUndo) {
 		var oModel = (null == nSheetId) ? this.wb : this.wb.getWorksheetById(nSheetId);
 		var api = window["Asc"]["editor"];
 		if (!api.wb || !oModel) {
@@ -4450,17 +4450,17 @@ function (window, undefined) {
 		});
 	}
 
-	UndoRedoProtectedSheet.prototype.getClassType = function () {
+	UndoRedoProtectedWorkbook.prototype.getClassType = function () {
 		return this.nType;
 	};
-	UndoRedoProtectedRange.prototype.Undo = function (Type, Data, nSheetId) {
+	UndoRedoProtectedWorkbook.prototype.Undo = function (Type, Data, nSheetId) {
 		this.UndoRedo(Type, Data, nSheetId, true);
 	};
-	UndoRedoProtectedRange.prototype.Redo = function (Type, Data, nSheetId) {
+	UndoRedoProtectedWorkbook.prototype.Redo = function (Type, Data, nSheetId) {
 		this.UndoRedo(Type, Data, nSheetId, false);
 	};
 
-	UndoRedoProtectedRange.prototype.UndoRedo = function (Type, Data, nSheetId, bUndo) {
+	UndoRedoProtectedWorkbook.prototype.UndoRedo = function (Type, Data, nSheetId, bUndo) {
 		var oModel = (null == nSheetId) ? this.wb : this.wb.getWorksheetById(nSheetId);
 		var api = window["Asc"]["editor"];
 		if (!api.wb || !oModel) {
@@ -4579,6 +4579,7 @@ function (window, undefined) {
 	window['AscCommonExcel'].UndoRedoCF = UndoRedoCF;
 	window['AscCommonExcel'].UndoRedoProtectedRange = UndoRedoProtectedRange;
 	window['AscCommonExcel'].UndoRedoProtectedSheet = UndoRedoProtectedSheet;
+	window['AscCommonExcel'].UndoRedoProtectedWorkbook = UndoRedoProtectedWorkbook;
 
 	window['AscCommonExcel'].g_oUndoRedoWorkbook = null;
 	window['AscCommonExcel'].g_oUndoRedoCell = null;
