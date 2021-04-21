@@ -2403,9 +2403,6 @@
 				break;
 		}
 		this.range.setAngle(angle);
-		var ws = this.range.worksheet.workbook.oApi.wb.getWorksheet();
-		ws._updateRange(this.range);
-		ws.draw();
 	};
 
 	Object.defineProperty(ApiRange.prototype, "Orientation", {
