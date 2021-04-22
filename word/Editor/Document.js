@@ -24730,20 +24730,15 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 		var ElCount = oSelectedContent.Elements.length;
 		if (oTable && ElCount == 1)
 		{
-			// значит у нас выделена только одна таблица
 			if (oTable.Parent === this && oTable.IsSelectedAll())
 			{
-				// значит эту таблицу надо удалить целиком и вместо неё вставить новую
 				IsReplace = true;
 			}
 		}
 		else if (oSelectedContent.HaveTable && oSelectedContent.Elements[ElCount-1].Element.IsTable())
 		{
-			// если выделена таблица и что-то ещё и последняя в выделении - таблица, то надо делать через replace иначе не правильно произойдёт вставка
 			IsReplace = true;
 		}
-		// возможно здесь нет необходимости получать этот selectedContent, так как у него нет метода, чтобы из него достать этот контент
-		// но не факт, что весь контент будет находиться в параграфах, которые можно получить через this.GetSelectedParagraphs()
 		this.private_ConvertTextToTable(oSelectedContent, oProps);
 		var oParagraph = this.GetCurrentParagraph();
 		var oParent = oParagraph.GetParent();
@@ -24769,7 +24764,6 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 					{
 						oParagraph.Check_NearestPos(oAnchorPos);
 						oParagraph.Parent.InsertContent(oSelectedContent, oAnchorPos);
-						// удаляю этот ненужный параграф, который был вставлен ранее
 						this.RemoveFromContent(oParagraph.GetIndex(), 1, true);
 						// this.MoveCursorRight(false, false, false);
 					}
@@ -24778,7 +24772,6 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 			else if (oTable) // если внутри ячейки таблицы
 			{
 				var oElement = oTable.CurCell.Content;
-				// так как InsertContent внутри таблицы рабоатет не правильно!
 				var start, count;
 				if (oElement.Selection.StartPos >  oElement.Selection.EndPos)
 				{
@@ -24792,7 +24785,6 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 				}
 				oElement.Internal_Content_Remove(start, count + 1, false);
 				oElement.Internal_Content_Add(start, oSelectedContent.Elements[0].Element, false);
-				// выставляем селект внутри ячейки таблицы
 				oElement.Selection.StartPos = oElement.Selection.EndPos = start;
 				oElement.SetSelectionUse(true);			
 			}
@@ -24806,18 +24798,16 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 };
 CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oProps)
 {
-	// запоминаем размеры таблицы
 	var TableSeize = oProps.get_Size();
+	TableSeize = {rows: TableSeize[0], cols : TableSeize[1]};
 	var oFirstItem = oSelectedContent.Elements[0].Element.GetParent();
 	this.private_PreConvertTextToTable(oSelectedContent, oProps);
 	oSelectedContent.Reset();
 	oProps.put_ColsCount(TableSeize.cols, true);
 	var oArrRows = oProps.get_Rows();
-	// здесь надо создать новую таблицу и поместить в неё всё содержимое из массива
 	var oItem = (oFirstItem === this) ? oFirstItem : this.GetCurrentParagraph().GetParent();
 	var Grid = [];
 	var W;
-	//и возможно надо уменьшать размер вложенных таблиц
 	if (oItem === this)
 	{
 		var SectPr = this.SectionsInfo.Get_SectPr(this.CurPos.ContentPos).SectPr;
@@ -24937,7 +24927,6 @@ CDocument.prototype.PreConvertTextToTable = function(oProps)
 };
 CDocument.prototype.private_PreConvertTextToTable = function(oSelectedContent, oProps)
 {
-	// нужно разбить сразу выделенный контент по строкам и столбцам, для этого будем использовать двухмерный массив и по нему уже посчитаем потом сколько строк и столбцов
 	var oArrRows = [];
 	var oArrCells = [];
 	var FNewArrCells = false;
@@ -24950,7 +24939,6 @@ CDocument.prototype.private_PreConvertTextToTable = function(oSelectedContent, o
 		if (FNewArrCells)
 			oArrCells = [];
 		var oElement = oSelectedContent.Elements[i].Element;
-		// предполается, что новый параграф = новая строка (поэтому даже если separator == знаку абзаца), то сразу его в новую строку, в ворде работает также
 		if (oElement.IsParagraph() && SeparatorType !== 1)
 		{
 			var oNewParagraph = new Paragraph(this.DrawingDocument, this);
@@ -24966,7 +24954,6 @@ CDocument.prototype.private_PreConvertTextToTable = function(oSelectedContent, o
 						if (oThirdEl.Type === para_End)
 							continue;
 
-						//если в качестве separator у нас таб или конец абзаца, то не нужно проверять содержимое ранов
 						if (SeparatorType === 2)
 						{
 							if (oThirdEl.Type === para_Tab)
@@ -24974,29 +24961,19 @@ CDocument.prototype.private_PreConvertTextToTable = function(oSelectedContent, o
 								var oNewRun = oSecondEl.Split2(k, oNewParagraph, 0);
 								oNewRun.Remove_FromContent(0, 1)
 								oNewParagraph.AddToContent(0, oNewRun);
-								// oArrCells.unshift(oNewParagraph);
 								oNewParagraph = new Paragraph(this.DrawingDocument, this);
 								oArrCells.unshift(oNewParagraph);
-								// разбить ран по этой позиции
 							}
 						}
 						else
 						{
-							// если это Run, то пробегаемся по его контентку и уже там ищем separator, если нет, то пропускаем его, так как там separatora не может быть
-							// здесь делать каждый раз сплит параграфа по индексу нахождения сепаратора и отрезаную часть добавлять в массив ячеек, а оставшуюся часть проверять дальше
-							// если дошли до 0, то добавляем весь этот параграф в качестве ячейки, так как всё лишнее мы уже отрезали от него
 							if (oThirdEl.Type === para_Text && oThirdEl.Value === Separator)
 							{
 								var oNewRun = oSecondEl.Split2(k, oNewParagraph, 0);
 								oNewRun.Remove_FromContent(0, 1);
 								oNewParagraph.AddToContent(0, oNewRun);
-								// oArrCells.unshift(oNewParagraph);
 								oNewParagraph = new Paragraph(this.DrawingDocument, this);
 								oArrCells.unshift(oNewParagraph);
-								// if (!k && !j && (i == 0 || i > 0 && !oSelectedContent.Elements[i-1].Element.IsTable()))
-								// {
-								// 	oArrCells.unshift(oNewParagraph);
-								// }
 							}
 						}
 						if (!k && oSecondEl.Content.length)
@@ -25019,7 +24996,6 @@ CDocument.prototype.private_PreConvertTextToTable = function(oSelectedContent, o
 		}
 		else
 		{
-			//возможно сделать нужно новый параграф и в него копировать этот
 			oArrRows.unshift([oElement]);
 			if (!oCellsCount)
 				oCellsCount = 1;
@@ -25061,8 +25037,6 @@ CDocument.prototype.ConvertTableToText = function(oProps)
 	}))
 	{
 		this.StartAction(AscDFH.historydescription_Document_ConvertTableToText);
-
-		// здесь я поменял для того, чтобы можно было работать с вложенными таблицами
 		var ArrNewContent = this.private_ConvertTableToText(oTable, oProps);
 		var oNewContent = new CSelectedContent();
 		var oSkipStart = 0, oSkipEnd = 1;
@@ -25086,7 +25060,6 @@ CDocument.prototype.ConvertTableToText = function(oProps)
 		if (oNewContent && oParent)
 		{
 			var nIndex     = oTable.GetIndex();
-			//не понятно мне зачем создаётся этот параграф, так как он просто остаётся пустым и добавлет лишь одну пустую строку в конце
 			var oParagraph = new Paragraph(this.GetDrawingDocument());
 
 			oParent.RemoveFromContent(nIndex, 1, true);
@@ -25099,15 +25072,11 @@ CDocument.prototype.ConvertTableToText = function(oProps)
 			{
 				oParagraph.Check_NearestPos(oAnchorPos);
 				oParent.InsertContent(oNewContent, oAnchorPos);
-				// удаляю этот ненужный параграф, который был вставлен ранее
 				oParent.RemoveFromContent(oParagraph.GetIndex(), 1, true);
-				// выставить селект, если мы внутри ячейки таблицы, преобразовали только часть таблицы, а не всю её целиком
 				if (oParent.SelectRange)
 					oParent.SelectRange(nIndex + oSkipStart, nIndex + ArrNewContent.length - oSkipEnd);
 				else if (oParent.Selection)
 				{
-					// не нашёл другого способа выставить селект внутри ячейки
-					// возможно надо добавить такой метод в СDocumentContent
 					oParent.Selection.StartPos = nIndex + oSkipEnd;
 					oParent.Selection.EndPos = nIndex + ArrNewContent.length - oSkipEnd;
 				}
@@ -25124,10 +25093,8 @@ CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 {
 	if (oTable)
 	{
-		// посмотреть вся таблица выделена или только её часть
 		// если хоть одна строка выделена не до конца, то преобразуем всю таблицу (можно проверять только последнюю в выделении строку, а не все)
 		// если выделено несколько строк, но до конца или от самого начала, то только эти строки
-		
 		var oSelectetRows = oTable.GetSelectedRowsRange();
 		oSelectetRows.IsSelectionToEnd = oTable.IsSelectionToEnd();
 		var oLastCell;
@@ -25135,7 +25102,6 @@ CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 			oLastCell = Math.max(oTable.Selection.StartPos.Pos.Cell, oTable.Selection.EndPos.Pos.Cell);
 		else
 			oLastCell = (oTable.Selection.StartPos.Pos.Row === oSelectetRows.End) ? oTable.Selection.StartPos.Pos.Cell : oTable.Selection.EndPos.Pos.Cell;
-		// не всегда работает oTable.IsSelectedAll(), подумать, иможет ещё есть какой-то метод
 		var oSelectionArr = oTable.GetSelectionArray();
 		var isConverAll = oTable.IsSelectedAll() || (!oSelectionArr[0].Row && !oSelectionArr[0].Cell && oSelectetRows.IsSelectionToEnd) || ((oTable.GetRow(oSelectetRows.End).GetCellsCount() - 1) !== oLastCell);
 
@@ -25173,7 +25139,6 @@ CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 							oNewParagraph.Concat(oElement, true);
 							break;
 						case type_Table:
-							//добавить обработку влох таблиц
 							var oNestedContent = (oProps.nested) ? this.private_ConvertTableToText(oElement, oProps) : [oElement];
 							if (j == 0 && ArrNewContent[ArrNewContent.length-1].IsEmpty() && bAdd)
 								ArrNewContent.pop();

@@ -2333,8 +2333,7 @@
 	}
 	CAscTextToTableProperties.prototype.get_Size = function()
 	{
-		// Юля говорит, что надо переделать и возвращать массив
-		return {rows : this.Rows, cols : this.Cols};
+		return [this.Rows, this.Cols];
 	};
 	CAscTextToTableProperties.prototype.put_ColsCount = function(count, needRecal, isDefault)
 	{
