@@ -102,10 +102,10 @@
         ctx._c(fX + fXRad, fY - fYRad * c_fKappa, fX + fXRad * c_fKappa, fY - fYRad, fX, fY - fYRad);
         ctx._c(fX - fXRad * c_fKappa, fY - fYRad, fX - fXRad, fY - fYRad * c_fKappa, fX - fXRad, fY);
         if(geom) {
-            geom.gmEditList.push({X: fX, Y: fY + fYRad});
-            geom.gmEditList.push({X: fX + fXRad, Y: fY});
-            geom.gmEditList.push({X: fX, Y: fY - fYRad});
-            geom.gmEditList.push({X: fX - fXRad, Y: fY});
+            geom.ellipsePointsList.push({X: fX, Y: fY + fYRad});
+            geom.ellipsePointsList.push({X: fX + fXRad, Y: fY});
+            geom.ellipsePointsList.push({X: fX, Y: fY - fYRad});
+            geom.ellipsePointsList.push({X: fX - fXRad, Y: fY});
         }
     }
 
@@ -163,9 +163,6 @@
         var dEndAngle = 0;
         var editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
 
-        // if(geom)
-        // geom.gmEditList = [];
-
         if ( !bClockDirection )
         {
             for( var nIndex = nFirstPointQuard; nIndex <= nSecondPointQuard; nIndex++ )
@@ -179,7 +176,7 @@
 
                 EndPoint = EllipseArc3(ctx, fX, fY, fXRad, fYRad, AngToEllPrm( dStartAngle, fXRad, fYRad ), AngToEllPrm( dEndAngle, fXRad, fYRad ), false);
                 if (geom)
-                    geom.gmEditList.push(EndPoint);
+                    geom.ellipsePointsList.push(EndPoint);
             }
         }
         else
@@ -197,7 +194,7 @@
 
                 EndPoint = EllipseArc3(ctx, fX, fY, fXRad, fYRad, AngToEllPrm( dStartAngle, fXRad, fYRad ), AngToEllPrm( dEndAngle, fXRad, fYRad ), false);
                 if (geom)
-                    geom.gmEditList.push(EndPoint);
+                    geom.ellipsePointsList.push(EndPoint);
             }
         }
     }

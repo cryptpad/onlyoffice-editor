@@ -1653,10 +1653,21 @@ PreGeometryEditState.prototype = {
     {
         var ret = AscFormat.handleSelectedObjects(this.drawingObjects, e, x, y, null, pageIndex, true);
         console.log(ret);
+        if(e.Type === 0 && ((ret && !ret.hit) || !ret)) {
+            this.drawingObjects.selection.geometrySelection.calcGeometry.gmEditList = [];
+            this.drawingObjects.selection.geometrySelection = null;
+            this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
+            this.drawingObjects.clearTrackObjects();
+            this.drawingObjects.updateOverlay();
+        }
+        return ret;
     },
     onMouseMove: function(e, x, y, pageIndex)
     {
     },
+    onMouseUp: function(e, x, y, pageIndex)
+    {
+    }
 }
 function GeometryEditState(drawingObjects)
 {

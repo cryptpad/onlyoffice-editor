@@ -226,8 +226,12 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
     }
 
     if(!ret) {
-        if(oGeometryEditSelection) {
+        if(oGeometryEditSelection && oGeometryEditSelection.length !== 0) {
            ret = oGeometryEditSelection.hitToGeometryEdit(x, y, e);
+           if(!ret) {
+               ret = AscFormat.handleFloatObjects(drawingObjectsController, selected_objects, e, x, y, null, pageIndex, true);
+               drawing = selected_objects[0];
+           }
         }
     }
 

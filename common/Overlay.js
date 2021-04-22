@@ -2792,9 +2792,9 @@ CAutoshapeTrack.prototype =
         var dKoefX = wDst / this.CurrentPageInfo.width_mm;
         var dKoefY = hDst / this.CurrentPageInfo.height_mm;
         var matrix =  shape.getTransformMatrix();
-        var pointsArray = geom.gmEditList;
-
-        for(var i = 0; i < geom.pathLst.length; i++) {
+            geom.gmEditList = [];
+            geom.gmEditList = geom.gmEditList.concat(geom.ellipsePointsList);
+        for (var i = 0; i < geom.pathLst.length; i++) {
             var pathPoints = geom.pathLst[i].ArrPathCommand;
             pathPoints.forEach(function (elem) {
                 switch (elem.id) {
@@ -2821,13 +2821,6 @@ CAutoshapeTrack.prototype =
         }
             ctx.stroke();
             ctx.fill();
-
-
-        var shape_drawer = new AscCommon.CShapeDrawer();
-        var boundsChecker = new  AscFormat.CSlideBoundsChecker();
-        shape_drawer.fromShape2(shape, boundsChecker, geom);
-        shape_drawer.StrokeUniColor = {A: 255, R: 255, G: 0, B: 0};
-        shape_drawer.draw(geom);
     },
 
     DrawEditWrapPointsPolygon : function(points, matrix)

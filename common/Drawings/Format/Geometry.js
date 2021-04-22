@@ -807,6 +807,7 @@ function Geometry()
     this.ahPolarLst     = [];
 
     this.gmEditList = [];
+    this.ellipsePointsList = []
     this.pathLst        = [];
     this.preset = null;
     this.rectS = null;
@@ -1158,6 +1159,7 @@ Geometry.prototype=
         this.gdLst["ssd8"]=this.gdLst["ss"]/8;
         this.gdLst["ssd16"]=this.gdLst["ss"]/16;
         this.gdLst["ssd32"]=this.gdLst["ss"]/32;
+        this.ellipsePointsList = [];
         CalculateGuideLst(this.gdLstInfo, this.gdLst);
         CalculateCnxLst(this.cnxLstInfo, this.cnxLst, this.gdLst);
         CalculateAhXYList(this.ahXYLstInfo, this.ahXYLst, this.gdLst);
@@ -1352,8 +1354,8 @@ Geometry.prototype=
         var dx, dy;
           for(var i=0; i < this.gmEditList.length; i++)
           {
-              dx=x-this.gmEditList[i].x;
-              dy=y-this.gmEditList[i].y;
+              dx=x-this.gmEditList[i].X;
+              dy=y-this.gmEditList[i].Y;
 
               if(Math.sqrt(dx*dx+dy*dy) < distance)
               {
