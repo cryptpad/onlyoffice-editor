@@ -2372,9 +2372,10 @@
 	};
 	CAscTextToTableProperties.prototype.put_DefaultRows = function(newRows)
 	{
-		this.Default.ArrRows = newRows.map(function (item) {
-			return [...item]
-		});
+		this.Default.ArrRows = newRows;
+		// newRows.map(function (item) {
+		// 	return [...item]
+		// });
 		this.Default.rows = newRows.length;
 	};
 	CAscTextToTableProperties.prototype.get_AutoFitType = function()

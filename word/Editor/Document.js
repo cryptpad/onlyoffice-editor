@@ -24744,16 +24744,16 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 		}
 		// возможно здесь нет необходимости получать этот selectedContent, так как у него нет метода, чтобы из него достать этот контент
 		// но не факт, что весь контент будет находиться в параграфах, которые можно получить через this.GetSelectedParagraphs()
-		var oNewContent = this.private_ConvertTextToTable(oProps);
+		this.private_ConvertTextToTable(oSelectedContent, oProps);
 		var oParagraph = this.GetCurrentParagraph();
 		var oParent = oParagraph.GetParent();
-		if (oNewContent && oParent)
+		if (oSelectedContent && oParent)
 		{
 			if (IsReplace)
 			{
 				var RIndex = oTable ? oTable.GetIndex() : Math.min(this.Selection.StartPos, this.Selection.EndPos);
 				this.RemoveFromContent(RIndex, ElCount, true);
-				this.AddToContent(RIndex, oNewContent.Elements[0].Element, true);
+				this.AddToContent(RIndex, oSelectedContent.Elements[0].Element, true);
 				if (this.SelectRange)
 					this.SelectRange(RIndex, RIndex);
 
@@ -24765,10 +24765,10 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 				if (oParagraph)
 				{
 					var oAnchorPos = oParagraph.GetCurrentAnchorPosition();
-					if (oAnchorPos && this.Can_InsertContent(oNewContent, oAnchorPos))
+					if (oAnchorPos && this.Can_InsertContent(oSelectedContent, oAnchorPos))
 					{
 						oParagraph.Check_NearestPos(oAnchorPos);
-						oParagraph.Parent.InsertContent(oNewContent, oAnchorPos);
+						oParagraph.Parent.InsertContent(oSelectedContent, oAnchorPos);
 						// удаляю этот ненужный параграф, который был вставлен ранее
 						this.RemoveFromContent(oParagraph.GetIndex(), 1, true);
 						// this.MoveCursorRight(false, false, false);
@@ -24791,7 +24791,7 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 					count = oElement.Selection.EndPos - oElement.Selection.StartPos;
 				}
 				oElement.Internal_Content_Remove(start, count + 1, false);
-				oElement.Internal_Content_Add(start, oNewContent.Elements[0].Element, false);
+				oElement.Internal_Content_Add(start, oSelectedContent.Elements[0].Element, false);
 				// выставляем селект внутри ячейки таблицы
 				oElement.Selection.StartPos = oElement.Selection.EndPos = start;
 				oElement.SetSelectionUse(true);			
@@ -24804,36 +24804,51 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 		this.FinalizeAction();
 	}
 };
-CDocument.prototype.private_ConvertTextToTable = function(oProps)
+CDocument.prototype.private_ConvertTextToTable = function(oSelectedContent, oProps)
 {
-	//подумать, может в этой функции возвращать просто таблицу для удобства
-	var oNewContent = new CSelectedContent();
+	// запоминаем размеры таблицы
 	var TableSeize = oProps.get_Size();
+	var oFirstItem = oSelectedContent.Elements[0].Element.GetParent();
+	this.private_PreConvertTextToTable(oSelectedContent, oProps);
+	oSelectedContent.Reset();
+	oProps.put_ColsCount(TableSeize.cols, true);
 	var oArrRows = oProps.get_Rows();
 	// здесь надо создать новую таблицу и поместить в неё всё содержимое из массива
-	var SectPr = this.SectionsInfo.Get_SectPr(this.CurPos.ContentPos).SectPr;
-	var PageFields = this.Get_PageFields(this.CurPage);
-	var nAdd = this.GetCompatibilityMode() <= AscCommon.document_compatibility_mode_Word14 ?  2 * 1.9 : 0;
-	var W    = (PageFields.XLimit - PageFields.X + nAdd);
+	var oItem = (oFirstItem === this) ? oFirstItem : this.GetCurrentParagraph().GetParent();
 	var Grid = [];
-	if (SectPr.Get_ColumnsCount() > 1)
-		{
-			for (var CurCol = 0, ColsCount = SectPr.Get_ColumnsCount(); CurCol < ColsCount; ++CurCol)
+	var W;
+	//и возможно надо уменьшать размер вложенных таблиц
+	if (oItem === this)
+	{
+		var SectPr = this.SectionsInfo.Get_SectPr(this.CurPos.ContentPos).SectPr;
+		var PageFields = this.Get_PageFields(this.CurPage);
+		var nAdd = this.GetCompatibilityMode() <= AscCommon.document_compatibility_mode_Word14 ?  2 * 1.9 : 0;
+		W = (PageFields.XLimit - PageFields.X + nAdd);
+		if (SectPr.Get_ColumnsCount() > 1)
 			{
-				var ColumnWidth = SectPr.Get_ColumnWidth(CurCol);
-				if (W > ColumnWidth)
-					W = ColumnWidth;
+				for (var CurCol = 0, ColsCount = SectPr.Get_ColumnsCount(); CurCol < ColsCount; ++CurCol)
+				{
+					var ColumnWidth = SectPr.Get_ColumnWidth(CurCol);
+					if (W > ColumnWidth)
+						W = ColumnWidth;
+				}
+	
+				W += nAdd;
 			}
+		W = Math.max(W, TableSeize.cols * 2 * 1.9);
+	}
+	else
+	{
+		var nAdd = this.GetCompatibilityMode() <= AscCommon.document_compatibility_mode_Word14 && oItem.IsTableCellContent() ?  2 * 1.9 : 0;
+		W = Math.max(oItem.XLimit - oItem.X + nAdd, TableSeize.cols * 2 * 1.9);
+	}
 
-			W += nAdd;
-		}
-	W = Math.max(W, TableSeize.cols * 2 * 1.9);
 	for (var Index = 0; Index < TableSeize.cols; Index++)
 		Grid[Index] = W / TableSeize.cols;
-
+	
 	var oTable = new CTable(this.DrawingDocument, this, true, TableSeize.rows, TableSeize.cols, Grid);
 
-	// переделать вставку через nearpos
+	var haveTable = false;
 	for (var i = 0; i < oArrRows.length; i++)
 	{
 		for (var j = 0; j < oArrRows[i].length; j++)
@@ -24841,38 +24856,24 @@ CDocument.prototype.private_ConvertTextToTable = function(oProps)
 			var oCellContent = oTable.GetRow(i).GetCell(j).GetContent();
 			// oCellContent.ClearConten(false);
 			oCellContent.AddContent([oArrRows[i][j]]);
-
-
-
-			// var oParagraph = oCellContent.Content[0];
-			// var oAnchorPos = oParagraph.GetCurrentAnchorPosition();
-			// oParagraph.Check_NearestPos(oAnchorPos);
-			// var oSelectedContent = new CSelectedContent();
-			// oSelectedContent.Add(new CSelectedElement(oArrRows[i][j], true));
-			// oParagraph.Parent.InsertContent(oSelectedContent, oAnchorPos);
+			if (oArrRows[i][j].IsTable())
+				haveTable = true;
 		}
 	}
 	oTable.SelectAll();
-	// поправить, когда фиксированный auto стоит
 	if (oProps.get_AutoFitType() !== 3)
 	{
 		var width = oProps.get_Fit();
 		var oTableProps = new Asc.CTableProp();
 		oTableProps.put_CellsWidth((width > 0) ? width : null);
 		oTableProps.put_CellSelect(true);
+		if (width === -10 && !haveTable)
+			oTableProps.put_TableLayout(1);
+		
 		oTable.SetTableProps(oTableProps);
-
-		// this.StartAction(AscDFH.historydescription_Document_ApplyTablePr);
-		// this.SetTableProps(oTableProps);
-		// this.FinalizeAction();
-		// this.private_Recalculate()
-		// this.private_UpdateInterface();
-		// this.private_UpdateSelection();
-		// this.private_UpdateRulers();
-		// this.private_UpdateUndoRedo();
 	}
-	oNewContent.Add(new CSelectedElement(oTable, true));
-	return oNewContent;
+	oSelectedContent.Add(new CSelectedElement(oTable, true));
+	return oSelectedContent;
 };
 /**
 * Подготовка к преобразованию текста в таблицу
@@ -24953,6 +24954,7 @@ CDocument.prototype.private_PreConvertTextToTable = function(oSelectedContent, o
 		if (oElement.IsParagraph() && SeparatorType !== 1)
 		{
 			var oNewParagraph = new Paragraph(this.DrawingDocument, this);
+			oArrCells.unshift(oNewParagraph);
 			for (var j = oElement.Content.length - 1; j >= 0; j--)
 			{
 				var oSecondEl = oElement.Content[j];
@@ -24972,8 +24974,9 @@ CDocument.prototype.private_PreConvertTextToTable = function(oSelectedContent, o
 								var oNewRun = oSecondEl.Split2(k, oNewParagraph, 0);
 								oNewRun.Remove_FromContent(0, 1)
 								oNewParagraph.AddToContent(0, oNewRun);
-								oArrCells.unshift(oNewParagraph);
+								// oArrCells.unshift(oNewParagraph);
 								oNewParagraph = new Paragraph(this.DrawingDocument, this);
+								oArrCells.unshift(oNewParagraph);
 								// разбить ран по этой позиции
 							}
 						}
@@ -24987,12 +24990,13 @@ CDocument.prototype.private_PreConvertTextToTable = function(oSelectedContent, o
 								var oNewRun = oSecondEl.Split2(k, oNewParagraph, 0);
 								oNewRun.Remove_FromContent(0, 1);
 								oNewParagraph.AddToContent(0, oNewRun);
-								oArrCells.unshift(oNewParagraph);
+								// oArrCells.unshift(oNewParagraph);
 								oNewParagraph = new Paragraph(this.DrawingDocument, this);
-								if (!k && !j && (i == 0 || i > 0 && !oSelectedContent.Elements[i-1].Element.IsTable()))
-								{
-									oArrCells.unshift(oNewParagraph);
-								}
+								oArrCells.unshift(oNewParagraph);
+								// if (!k && !j && (i == 0 || i > 0 && !oSelectedContent.Elements[i-1].Element.IsTable()))
+								// {
+								// 	oArrCells.unshift(oNewParagraph);
+								// }
 							}
 						}
 						if (!k && oSecondEl.Content.length)
@@ -25005,10 +25009,6 @@ CDocument.prototype.private_PreConvertTextToTable = function(oSelectedContent, o
 				else
 				{
 					oNewParagraph.AddToContent(0, oSecondEl);
-				}
-				if (!j && !oNewParagraph.IsEmpty())
-				{
-					oArrCells.unshift(oNewParagraph);
 				}
 			}
 		}
@@ -25040,8 +25040,7 @@ CDocument.prototype.private_PreConvertTextToTable = function(oSelectedContent, o
 			}
 		}
 	}
-
-	oProps.put_Rows(oArrRows, !oProps.get_DefaultRows().length);
+	oProps.put_Rows(oArrRows, true);
 	oProps.put_ColsCount(oCellsCount, false, true);
 	oProps.put_RowsCount(oArrRows.length);
 };
@@ -25175,7 +25174,7 @@ CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 							break;
 						case type_Table:
 							//добавить обработку влох таблиц
-							var oNestedContent = this.private_ConvertTableToText(oElement, oProps);
+							var oNestedContent = (oProps.nested) ? this.private_ConvertTableToText(oElement, oProps) : [oElement];
 							if (j == 0 && ArrNewContent[ArrNewContent.length-1].IsEmpty() && bAdd)
 								ArrNewContent.pop();
 							
