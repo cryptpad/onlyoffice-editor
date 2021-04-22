@@ -4019,7 +4019,7 @@
 		this.defaultViewHiddenRows = null;
 
 		//по умолчанию null, создаю объект для отладки
-		this.sheetProtection = /*null*/new AscCommonExcel.CSheetProtection(this);
+		this.sheetProtection = null;
 		this.aProtectedRanges = [];
 	}
 
