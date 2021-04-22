@@ -2929,6 +2929,9 @@
 					this.bs.WriteItem(c_oSerWorkbookTypes.Connections, function() {oThis.memory.WriteBuffer(oThis.wb.connections, 0, oThis.wb.connections.length)});
 				}
 			}
+			if (this.wb.workbookProtection) {
+				this.bs.WriteItem(c_oSerWorkbookTypes.WorkbookProtection, function(){oThis.WriteWorkbookProtection();});
+            }
         };
         this.WriteWorkbookPr = function()
         {
@@ -3277,6 +3280,67 @@
                 this.bs.WriteItem( c_oSer_Comments.CommentData, function(){t.oBinaryWorksheetsTableWriter.WriteCommentData(aComments[i]);});
             }
         };
+		this.WriteWorkbookProtection = function(workbookProtection)
+		{
+			if (null != workbookProtection.lockStructure) {
+				this.memory.WriteByte(c_oSerWorksheetProtection.LockStructure);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteBool(workbookProtection.lockStructure);
+			}
+			if (null != workbookProtection.lockWindows) {
+				this.memory.WriteByte(c_oSerWorkbookProtection.LockWindows);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteBool(workbookProtection.lockWindows);
+			}
+			if (null != workbookProtection.lockRevision) {
+				this.memory.WriteByte(c_oSerWorkbookProtection.LockRevision);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteBool(workbookProtection.lockRevision);
+			}
+
+		    if (null != workbookProtection.revisionsAlgorithmName) {
+				this.memory.WriteByte(c_oSerWorkbookProtection.RevisionsAlgorithmName);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteByte(workbookProtection.revisionsAlgorithmName);
+			}
+			if (null != workbookProtection.revisionsSpinCount) {
+				this.memory.WriteByte(c_oSerWorkbookProtection.RevisionsSpinCount);
+				this.memory.WriteByte(c_oSerPropLenType.Long);
+				this.memory.WriteLong(workbookProtection.revisionsSpinCount);
+			}
+			if (null != workbookProtection.revisionsHashValue) {
+				this.memory.WriteByte(c_oSerWorkbookProtection.RevisionsHashValue);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
+				this.memory.WriteString2(workbookProtection.revisionsHashValue);
+			}
+			if (null != workbookProtection.revisionsSaltValue) {
+				this.memory.WriteByte(c_oSerWorkbookProtection.RevisionsSaltValue);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
+				this.memory.WriteString2(workbookProtection.revisionsSaltValue);
+			}
+
+			if (null != workbookProtection.workbookAlgorithmName) {
+				this.memory.WriteByte(c_oSerWorkbookProtection.WorkbookAlgorithmName);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteByte(workbookProtection.workbookAlgorithmName);
+			}
+			if (null != workbookProtection.workbookSpinCount) {
+				this.memory.WriteByte(c_oSerWorkbookProtection.WorkbookSpinCount);
+				this.memory.WriteByte(c_oSerPropLenType.Long);
+				this.memory.WriteLong(workbookProtection.workbookSpinCount);
+			}
+			if (null != workbookProtection.workbookHashValue) {
+				this.memory.WriteByte(c_oSerWorkbookProtection.WorkbookHashValue);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
+				this.memory.WriteString2(workbookProtection.workbookHashValue);
+			}
+			if (null != workbookProtection.workbookSaltValue) {
+				this.memory.WriteByte(c_oSerWorkbookProtection.WorkbookSaltValue);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
+				this.memory.WriteString2(workbookProtection.workbookSaltValue);
+			}
+		
+		};
     }
 	function BinaryWorksheetsTableWriter(memory, wb, oSharedStrings, aDxfs, personList, isCopyPaste, bsw, saveThreadedComments, commentUniqueGuids, tableIds, sheetIds)
     {
@@ -3592,10 +3656,10 @@
 		};
 		this.WriteSheetProtection = function(sheetProtection)
 		{
-			if (null != sheetProtection.algorithmName) {
+		    if (null != sheetProtection.algorithmName) {
 				this.memory.WriteByte(c_oSerWorksheetProtection.AlgorithmName);
-				this.memory.WriteByte(c_oSerPropLenType.Variable);
-				this.memory.WriteString2(sheetProtection.algorithmName);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteByte(sheetProtection.algorithmName);
 			}
 			if (null != sheetProtection.spinCount) {
 				this.memory.WriteByte(c_oSerWorksheetProtection.SpinCount);
@@ -7158,7 +7222,7 @@
 			{
 				this.oWorkbook.workbookProtection = new Asc.CWorkbookProtection(this.oWorkbook);
 			    res = this.bcr.Read2Spreadsheet(length, function(t,l){
-					return oThis.ReadWorkbookProtection(t,l, oThis.oWorkbook.workbookProtection);
+					return oThis.ReadWorkbookProtection(t,l, this.oWorkbook.workbookProtection);
 				});
 			}
             else
