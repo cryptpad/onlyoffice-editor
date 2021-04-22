@@ -5446,65 +5446,65 @@ var editor;
     return true;
   };
 
-	spreadsheet_api.prototype.asc_getProtectedWorkbook = function () {
-		var wb = this.wbModel;
-		var res = null;
-		if (wb) {
-			if (wb.workbookProtection) {
-				res = wb.workbookProtection.clone();
-			} else {
-				res = new window["AscCommonExcel"].CWorkbookProtection();
-			}
-		}
-		return res;
-	};
+  spreadsheet_api.prototype.asc_getProtectedWorkbook = function () {
+    var wb = this.wbModel;
+    var res = null;
+    if (wb) {
+      if (wb.workbookProtection) {
+        res = wb.workbookProtection.clone();
+      } else {
+        res = new window["AscCommonExcel"].CWorkbookProtection();
+      }
+    }
+    return res;
+  };
 
-	spreadsheet_api.prototype.asc_isProtectedWorkbook = function (isWindowLocked) {
-		var wb = this.wbModel;
-		var res = null;
-		if (wb) {
-			var workbookProtection = wb.workbookProtection;
-			if (workbookProtection) {
-				if (!isWindowLocked) {
-					res = workbookProtection.asc_getLockStructure();
-				} else {
-					res = workbookProtection.asc_getLockWindows();
-				}
-			}
-		}
-		return res;
-	};
+  spreadsheet_api.prototype.asc_isProtectedWorkbook = function (isWindowLocked) {
+    var wb = this.wbModel;
+    var res = null;
+    if (wb) {
+      var workbookProtection = wb.workbookProtection;
+      if (workbookProtection) {
+        if (!isWindowLocked) {
+          res = workbookProtection.asc_getLockStructure();
+        } else {
+          res = workbookProtection.asc_getLockWindows();
+        }
+      }
+    }
+    return res;
+  };
 
-	spreadsheet_api.prototype.asc_setProtectedWorkbook = function (props) {
+  spreadsheet_api.prototype.asc_setProtectedWorkbook = function (props) {
 
-		// Проверка глобального лока
-		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
-			return false;
-		}
+    // Проверка глобального лока
+    if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+      return false;
+    }
 
-		var wb = this.wbModel;
-		var sheet, i, arrLocks = [];
-		for (i = 0; i < wb.aWorksheets.length; ++i) {
-			sheet = wb.aWorksheets[i];
-			arrLocks.push(this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheet.getId(), sheet.getId()));
-		}
+    var wb = this.wbModel;
+    var sheet, i, arrLocks = [];
+    for (i = 0; i < wb.aWorksheets.length; ++i) {
+      sheet = wb.aWorksheets[i];
+      arrLocks.push(this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheet.getId(), sheet.getId()));
+    }
 
-		var t = this;
-		var callback = function (res) {
-			if (res) {
-				History.Create_NewPoint();
-				History.StartTransaction();
-				t.wbModel.setProtectedWorkbook(props, true);
-				History.EndTransaction();
-			} else {
-				//t.handlers.trigger("asc_onError", c_oAscError.ID.LockedWorksheetRename, c_oAscError.Level.NoCritical);
-			}
-		};
+    var t = this;
+    var callback = function (res) {
+      if (res) {
+        History.Create_NewPoint();
+        History.StartTransaction();
+        t.wbModel.setProtectedWorkbook(props, true);
+        History.EndTransaction();
+      } else {
+        //t.handlers.trigger("asc_onError", c_oAscError.ID.LockedWorksheetRename, c_oAscError.Level.NoCritical);
+      }
+    };
 
-		//TODO проверить, может быть нужен глобальный лок?
-		this.collaborativeEditing.lock(arrLocks, callback);
-		return true;
-	};
+    //TODO проверить, может быть нужен глобальный лок?
+    this.collaborativeEditing.lock(arrLocks, callback);
+    return true;
+  };
 
   spreadsheet_api.prototype.asc_clearCF = function (type, id) {
     var rules = this.wbModel.getRulesByType(type, id);
