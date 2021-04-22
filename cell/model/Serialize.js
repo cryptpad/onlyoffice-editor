@@ -7740,7 +7740,7 @@
 				this.stream.FromFileStream(fileStream);
 			} else if (c_oSerWorksheetsTypes.ProtectionSheet === type && typeof AscCommonExcel.CSheetProtection != "undefined") {
 				oWorksheet.sheetProtection = new AscCommonExcel.CSheetProtection();
-				res = this.bcr.Read1(length, function(t, l) {
+				res = this.bcr.Read2(length, function(t, l) {
 					return oThis.ReadSheetProtection(t, l, oWorksheet.sheetProtection);
 				});
 			} else if (c_oSerWorksheetsTypes.ProtectedRanges === type) {
@@ -7911,7 +7911,7 @@
 
 			if (c_oSerWorksheetsTypes.ProtectedRange === type && 0 == aProtectedRanges.length) {
 				oProtectedRange = new AscCommonExcel.CProtectedRange();
-				res = this.bcr.Read1(length, function (t, l) {
+				res = this.bcr.Read2(length, function (t, l) {
 					return oThis.ReadProtectedRange(t, l, oProtectedRange);
 				});
 				aProtectedRanges.push(oProtectedRange);
