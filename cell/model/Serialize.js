@@ -7745,7 +7745,7 @@
 				});
 			} else if (c_oSerWorksheetsTypes.ProtectedRanges === type) {
 				res = this.bcr.Read1(length, function(t, l) {
-					return oThis.ReadProtectedRanges(t, l, oWorksheet);
+					return oThis.ReadProtectedRanges(t, l, oWorksheet.aProtectedRanges);
 				});
 			} else
 				res = c_oSerConstants.ReadUnknown;
@@ -7921,18 +7921,17 @@
 			return res;
 		};
 		this.ReadProtectedRange = function (type, length, oProtectedRange) {
-			var oThis = this;
 			var res = c_oSerConstants.ReadOk;
 			if (c_oSerProtectedRangeTypes.AlgorithmName === type) {
-				oProtectedRange.algorithmName = this.stream.GetUChar();
+				oProtectedRange.algorithmName = this.stream.GetString2LE(length);
 			} else if (c_oSerProtectedRangeTypes.SpinCount === type) {
 				oProtectedRange.spinCount = this.stream.GetLong();
 			} else if (c_oSerProtectedRangeTypes.HashValue === type) {
-				oProtectedRange.hashValue = this.stream.GetString2LE();
+				oProtectedRange.hashValue = this.stream.GetString2LE(length);
 			} else if (c_oSerProtectedRangeTypes.SaltValue === type) {
-				oProtectedRange.saltValue = this.stream.GetString2LE();
+				oProtectedRange.saltValue = this.stream.GetString2LE(length);
 			} else if (c_oSerProtectedRangeTypes.Name === type) {
-				oProtectedRange.name = this.stream.GetString2LE();
+				oProtectedRange.name = this.stream.GetString2LE(length);
 			} else if (c_oSerProtectedRangeTypes.SqRef === type) {
 				var sqRef = this.stream.GetString2LE(length);
 				var newSqRef = AscCommonExcel.g_oRangeCache.getRangesFromSqRef(sqRef);
@@ -7940,7 +7939,7 @@
 					oProtectedRange.sqref = newSqRef;
 				}
 			} else if (c_oSerProtectedRangeTypes.SecurityDescriptor === type) {
-				oProtectedRange.securityDescriptor = this.stream.GetString2LE();
+				oProtectedRange.securityDescriptor = this.stream.GetString2LE(length);
 			} else {
 				res = c_oSerConstants.ReadUnknown;
 			}
