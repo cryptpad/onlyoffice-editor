@@ -291,6 +291,17 @@ function updateGlobalSkin(obj)
 	{
 		if (obj["name"] && undefined !== EditorSkins[obj["name"]])
 			GlobalSkin = EditorSkins[obj["name"]];
+		else if (obj["type"])
+		{
+			for (var item in EditorSkins)
+			{
+				if (obj["type"] === EditorSkins[item].Type)
+				{
+					GlobalSkin = EditorSkins[item];
+					break;
+				}
+			}
+		}
 
 		for (var item in obj)
 			GlobalSkin[item] = obj[item];
