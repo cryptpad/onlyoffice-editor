@@ -1037,6 +1037,18 @@
 		WorkbookSaltValue: 9,
 		WorkbookSpinCount: 10
 	};
+	var c_oSerProtectedAlgorithmNameTypes = {
+		MD2: 1,
+		MD4: 2,
+		MD5: 3,
+		RIPEMD_128: 4,
+		RIPEMD_160: 5,
+		SHA_1: 6,
+		SHA_256: 7,
+		SHA_384: 8,
+		SHA_512: 9,
+		WHIRLPOOL: 10
+	};
 	/** @enum */
     var EBorderStyle =
     {
