@@ -4600,12 +4600,6 @@ CShape.prototype.hitInTextRect = function (x, y) {
 
 CShape.prototype.updateCursorType = function (x, y, e)
 {
-    var oApi = Asc.editor || editor;
-    var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
-    if(isDrawHandles === false)
-    {
-        return;
-    }
     if(this.invertTransformText)
     {
         var tx = this.invertTransformText.TransformPointX(x, y);

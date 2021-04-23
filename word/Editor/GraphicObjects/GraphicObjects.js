@@ -238,15 +238,17 @@ CGraphicObjects.prototype =
         this.handleEventMode = HANDLE_EVENT_MODE_HANDLE;
         if(ret)
         {
-            var oApi = Asc.editor || editor;
-            var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
-            if(isDrawHandles === false)
-            {
-                this.drawingDocument.SetCursorType("default");
-                return true;
-            }
             if(ret.cursorType !== "text")
+            {
+                var oApi = Asc.editor || editor;
+                var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
+                if(isDrawHandles === false)
+                {
+                    this.drawingDocument.SetCursorType("default");
+                    return true;
+                }
                 this.drawingDocument.SetCursorType(ret.cursorType);
+            }
             return true;
         }
         return false;

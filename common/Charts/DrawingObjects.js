@@ -4142,7 +4142,16 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                 objectInfo.object = _this.getDrawingBase(graphicObjectInfo.objectId);
                 if(objectInfo.object){
                     objectInfo.id = graphicObjectInfo.objectId;
-                    objectInfo.cursor = graphicObjectInfo.cursorType;
+                    var sCursorType = graphicObjectInfo.cursorType;
+                    var oApi = Asc.editor || editor;
+                    if(oApi) {
+                        if(!oApi.isShowShapeAdjustments()) {
+                            if(sCursorType !== "text") {
+                                sCursorType = "default";
+                            }
+                        }
+                    }
+                    objectInfo.cursor = sCursorType;
                     objectInfo.hyperlink = graphicObjectInfo.hyperlink;
                     objectInfo.tooltip = graphicObjectInfo.tooltip;
                 }

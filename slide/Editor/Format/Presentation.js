@@ -6100,18 +6100,21 @@ CPresentation.prototype.UpdateCursorType = function (X, Y, MouseEvent) {
 
     var oApi = Asc.editor || editor;
     var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
-    if(isDrawHandles === false)
-    {
-        return;
-    }
+
     var oController = this.GetCurrentController();
     if (oController) {
         var graphicObjectInfo = oController.isPointInDrawingObjects(X, Y, MouseEvent);
         if (graphicObjectInfo) {
             if (!graphicObjectInfo.updated) {
-                this.DrawingDocument.SetCursorType(graphicObjectInfo.cursorType);
+                if(isDrawHandles !== false) {
+                    this.DrawingDocument.SetCursorType(graphicObjectInfo.cursorType);
+                }
+                else {
+                    this.DrawingDocument.SetCursorType("default");
+                }
             }
-        } else {
+        }
+        else {
             this.DrawingDocument.SetCursorType("default");
         }
         AscCommon.CollaborativeEditing.Check_ForeignCursorsLabels(X, Y, this.CurPage);
