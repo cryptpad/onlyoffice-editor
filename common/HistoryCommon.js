@@ -1211,6 +1211,11 @@
 			case AscDFH.historydescription_Document_AutoCorrectFirstLetterOfSentence:
 				sString = "Document_AutoCorrectFirstLetterOfSentence";
 				break;
+			case AscDFH.historydescription_Document_ConvertTextToTable:
+				sString = "Document_ConvertTextToTable";
+				break;
+			case AscDFH.historydescription_Document_ConvertTableToText:
+				sString = "Document_ConvertTableToText";
 			case AscDFH.historydescription_Document_ResolveAllComments:
 				sString = "Document_ResolveAllComments";
 				break;
@@ -3666,6 +3671,8 @@
 	window['AscDFH'].historydescription_Document_SetContentControlText              = 0x0186;
 	window['AscDFH'].historydescription_Document_ClearContentControl                = 0x0187;
 	window['AscDFH'].historydescription_Document_AutoCorrectFirstLetterOfSentence   = 0x0188;
+	window['AscDFH'].historydescription_Document_ConvertTextToTable                 = 0x0189;
+	window['AscDFH'].historydescription_Document_ConvertTableToText                 = 0x018a;
 	window['AscDFH'].historydescription_Document_ResolveAllComments                 = 0x0189;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -11103,6 +11103,33 @@ background-repeat: no-repeat;\
 			this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletChangeListLevel(id, props);
     };
 
+	asc_docs_api.prototype.asc_PreConvertTextToTable = function(oProps)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		return oLogicDocument.PreConvertTextToTable(oProps);
+	};
+
+	asc_docs_api.prototype.asc_ConvertTextToTable = function(oProps)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		return oLogicDocument.ConvertTextToTable(oProps);
+	};
+
+	asc_docs_api.prototype.asc_ConvertTableToText = function(sep_type, sep, nested)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		return oLogicDocument.ConvertTableToText({type: sep_type, separator: sep, nested: nested});
+	};
+
 	asc_docs_api.prototype.SetDrawImagePreviewBulletForMenu = function(id, type)
     {
 		if (this.WordControl.m_oDrawingDocument)
@@ -11768,6 +11795,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["SetDrawImagePlaceTableOfFigures"]			= asc_docs_api.prototype.SetDrawImagePlaceTableOfFigures;
     asc_docs_api.prototype["SetDrawImagePreviewMargins"]				= asc_docs_api.prototype.SetDrawImagePreviewMargins;
     asc_docs_api.prototype["SetDrawImagePreviewBullet"]					= asc_docs_api.prototype.SetDrawImagePreviewBullet;
+    asc_docs_api.prototype["ConvertTextToTable"]						= asc_docs_api.prototype.ConvertTextToTable;
+    asc_docs_api.prototype["ConvertTableToText"]						= asc_docs_api.prototype.ConvertTableToText;
     asc_docs_api.prototype["SetDrawImagePreviewBulletChangeListLevel"]	= asc_docs_api.prototype.SetDrawImagePreviewBulletChangeListLevel;
     asc_docs_api.prototype["SetDrawImagePreviewBulletForMenu"]			= asc_docs_api.prototype.SetDrawImagePreviewBulletForMenu;
 
@@ -11876,6 +11905,11 @@ background-repeat: no-repeat;\
 
     asc_docs_api.prototype['SetTableDrawMode']         					= asc_docs_api.prototype.SetTableDrawMode;
     asc_docs_api.prototype['SetTableEraseMode']         				= asc_docs_api.prototype.SetTableEraseMode;
+
+	asc_docs_api.prototype['asc_PreConvertTextToTable']                 = asc_docs_api.prototype.asc_PreConvertTextToTable;
+	asc_docs_api.prototype['asc_ConvertTextToTable']                    = asc_docs_api.prototype.asc_ConvertTextToTable;
+	asc_docs_api.prototype['asc_ConvertTableToText']                    = asc_docs_api.prototype.asc_ConvertTableToText;
+
 
 	// mobile
 	asc_docs_api.prototype["asc_GetDefaultTableStyles"]             	= asc_docs_api.prototype.asc_GetDefaultTableStyles;
