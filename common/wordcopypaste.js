@@ -2301,27 +2301,53 @@ PasteProcessor.prototype =
 		var specialPasteHelper = window['AscCommon'].g_specialPasteHelper;
 		var bIsSpecialPaste = specialPasteHelper.specialPasteStart;
 
-        var paragraphs = [oDoc.GetCurrentParagraph()];
+        var paragraphs = [];
 		// если это таблица, то надо бы пустить цикл по заселекченным ячейкам и в каждую вставить
 		// и надо бы селект тоже сохранить до самого конца
 		// поправить вставку, когда таблица вставляется в таблицу (чтобы было копирование контента во все выделенные ячейки)
 		if (oDoc.IsInTable() && !aNewContent[0].IsTable())
 		{
 			var oTable = oDoc.GetParent().GetTable();
-			var oCells_array = oTable.GetSelectionArray();
-			for (var Index = 1; Index < oCells_array.length; Index++)
+			if (oTable.Selection.Use)
 			{
-				var oPos  = oCells_array[Index];
-				var oRow  = oTable.Content[oPos.Row];
-				var oCell = oRow.Get_Cell(oPos.Cell);
-
-				var oCell_Content = oCell.Content;
-				paragraphs.push(oCell_Content.GetCurrentParagraph());
+				var oRows = oTable.GetSelectedRowsRange();
+				var oSelectedRows = oTable.GetSelectedRowsRange();
+				var oLastCell, oFirstCell;
+				if (oSelectedRows.Start === oSelectedRows.End)
+				{
+					oLastCell = Math.max(oTable.Selection.StartPos.Pos.Cell, oTable.Selection.EndPos.Pos.Cell);
+					oFirstCell = Math.min(oTable.Selection.StartPos.Pos.Cell, oTable.Selection.EndPos.Pos.Cell);
+				}
+				else
+				{
+					oLastCell = (oTable.Selection.StartPos.Pos.Row === oSelectedRows.End) ? oTable.Selection.StartPos.Pos.Cell : oTable.Selection.EndPos.Pos.Cell;
+					oFirstCell = (oTable.Selection.StartPos.Pos.Row === oSelectedRows.Start) ? oTable.Selection.StartPos.Pos.Cell : oTable.Selection.EndPos.Pos.Cell;
+				}
+				for (var Index = oRows.Start; Index <= oRows.End; Index++)
+				{
+					var oRow  = oTable.Content[Index];
+					for (var j = oFirstCell; j <= oLastCell; j++)
+					{
+						var oCell = oRow.Get_Cell(j);
+						var oCell_Content = oCell.Content;
+						paragraphs.push(oCell_Content.GetCurrentParagraph());
+					}
+				}
 			}
+			else
+			{
+				//если нет селекта
+				paragraphs.push(oTable.CurCell.GetContent().GetCurrentParagraph());
+			}
+			
 		}
-		for (var k = 0; paragraphs[k] !== null && k < paragraphs.length; k++)
+		else
 		{
-			var NearPos = paragraphs[k].GetCurrentAnchorPosition();
+			paragraphs = [oDoc.GetCurrentParagraph()]
+		}
+		for (var i = 0, k = 0; paragraphs[i] !== null && i < paragraphs.length; i++)
+		{
+			var NearPos = paragraphs[i].GetCurrentAnchorPosition();
 			//делаем небольшой сдвиг по y, потому что сама точка TargetPos для двухстрочного параграфа определяется как верхняя
 			//var NearPos = oDoc.Get_NearestPos(this.oLogicDocument.TargetPos.PageNum, this.oLogicDocument.TargetPos.X, this.oLogicDocument.TargetPos.Y + 0.05);//0.05 == 2pix
 
@@ -2339,45 +2365,49 @@ PasteProcessor.prototype =
 					oSelectedContent.SetInsertOptionForTable(specialPasteHelper.specialPasteProps);
 				}
 			}
-			for (var i = 0; i < aNewContent.length; ++i) {
-				if(bIsSpecialPaste && !tableSpecialPaste)
+
+			if (k > aNewContent.length - 1)
+				k = 0;
+			
+			// если это таблица, то надо смотреть больше ли k, чем количество строк в выделении (если да, то обнулять опять k - часть копируемого контента потеряется)
+
+			if(bIsSpecialPaste && !tableSpecialPaste)
+			{
+				var parseItem = this._specialPasteItemConvert(aNewContent[k]);
+				if(parseItem && parseItem.length)
 				{
-					var parseItem = this._specialPasteItemConvert(aNewContent[i]);
-					if(parseItem && parseItem.length)
+					for(var j = 0; j < parseItem.length; j++)
 					{
-						for(var j = 0; j < parseItem.length; j++)
+						if(j === 0)
 						{
-							if(j === 0)
-							{
-								aNewContent.splice(i + j, 1, parseItem[j]);
-							}
-							else
-							{
-								aNewContent.splice(i + j, 0, parseItem[j]);
-							}
+							aNewContent.splice(k + j, 1, parseItem[j]);
+						}
+						else
+						{
+							aNewContent.splice(k + j, 0, parseItem[j]);
 						}
 					}
 				}
-
-				var oSelectedElement = new CSelectedElement();
-				oSelectedElement.Element = aNewContent[i];
-
-				var type = this._specialPasteGetElemType(aNewContent[i]);
-				if(0 === i)
-				{
-					this.pasteTypeContent = type;
-				}
-				else if(type !== this.pasteTypeContent)
-				{
-					this.pasteTypeContent = null;
-				}
-
-				if (i === aNewContent.length - 1 && true != this.bInBlock && type_Paragraph === oSelectedElement.Element.GetType())
-					oSelectedElement.SelectedAll = false;
-				else
-					oSelectedElement.SelectedAll = true;
-				oSelectedContent.Add(oSelectedElement);
 			}
+
+			var oSelectedElement = new CSelectedElement();
+			oSelectedElement.Element = aNewContent[k];
+
+			var type = this._specialPasteGetElemType(aNewContent[k]);
+			if(0 === i)
+			{
+				this.pasteTypeContent = type;
+			}
+			else if(type !== this.pasteTypeContent)
+			{
+				this.pasteTypeContent = null;
+			}
+
+			if (k === aNewContent.length - 1 && true != this.bInBlock && type_Paragraph === oSelectedElement.Element.GetType())
+				oSelectedElement.SelectedAll = false;
+			else
+				oSelectedElement.SelectedAll = true;
+			oSelectedContent.Add(oSelectedElement);
 			
 			//проверка на возможность втавки в формулу
 			//TODO проверку на excel пеерсмотреть!!!!
@@ -2433,7 +2463,7 @@ PasteProcessor.prototype =
 
 			if(!bPasteMath)
 			{
-				paragraphs[k].Parent.InsertContent(oSelectedContent, NearPos);
+				paragraphs[i].Parent.InsertContent(oSelectedContent, NearPos);
 			}
 
 			//если вставляем таблицу в ячейку таблицы
@@ -2442,7 +2472,7 @@ PasteProcessor.prototype =
 				Asc.c_oSpecialPasteProps.overwriteCells === specialPasteHelper.specialPasteProps))) {
 				//TODO пересмотреть положение кнопки специальной вставки при вставке в таблицу
 				var table;
-				var tableCell = paragraphs[k] && paragraphs[k].Parent && paragraphs[k].Parent.Parent;
+				var tableCell = paragraphs[i] && paragraphs[i].Parent && paragraphs[i].Parent.Parent;
 				if (tableCell && tableCell.GetTable) {
 					table = tableCell.GetTable()
 				} else {
@@ -2478,9 +2508,10 @@ PasteProcessor.prototype =
 				oTargetTextObject && oTargetTextObject.checkExtentsByDocContent && oTargetTextObject.checkExtentsByDocContent();
 			}
 
-			this._selectShapesBeforeInsert(aNewContent, oDoc);
+			this._selectShapesBeforeInsert([aNewContent[k]], oDoc);
 			
-			paragraphs[k].Clear_NearestPosArray(aNewContent);	
+			paragraphs[i].Clear_NearestPosArray([aNewContent[k]]);
+			k++;
 		}
     },
 
