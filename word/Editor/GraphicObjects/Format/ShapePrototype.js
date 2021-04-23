@@ -726,15 +726,11 @@ CShape.prototype.recalculateShapeStyleForParagraph = function()
         }
         if(this.style.fontRef.idx === AscFormat.fntStyleInd_major)
         {
-            shape_text_pr.RFonts.Ascii = { Name: "+mj-lt", Index : -1 };
-            shape_text_pr.RFonts.EastAsia = { Name: "+mj-ea", Index : -1 };
-            shape_text_pr.RFonts.CS = { Name: "+mj-cs", Index : -1 };
+            shape_text_pr.RFonts.SetFontStyle(AscFormat.fntStyleInd_major);
         }
         else if( this.style.fontRef.idx === AscFormat.fntStyleInd_minor)
         {
-            shape_text_pr.RFonts.Ascii = { Name: "+mn-lt", Index : -1 };
-            shape_text_pr.RFonts.EastAsia = { Name: "+mn-ea", Index : -1 };
-            shape_text_pr.RFonts.CS = { Name: "+mn-cs", Index : -1 };
+            shape_text_pr.RFonts.SetFontStyle(AscFormat.fntStyleInd_minor);
         }
         shape_text_pr.FontRef = this.style.fontRef.createDuplicate();
         this.textStyleForParagraph.TextPr.Merge(shape_text_pr);

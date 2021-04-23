@@ -366,6 +366,14 @@ CCommentData.prototype.ReadFromSimpleObject = function(oData)
 		}
 	}
 };
+CCommentData.prototype.GetSolved = function()
+{
+	return this.m_bSolved;
+};
+CCommentData.prototype.SetSolved = function(isSolved)
+{
+	this.m_bSolved = isSolved;
+};
 
 function CCommentDrawingRect(X, Y, W, H, CommentId, InvertTransform)
 {
@@ -436,8 +444,7 @@ function CComment(Parent, Data)
 
 	this.Set_Data = function(Data)
 	{
-		History.Add(new CChangesCommentChange(this, this.Data, Data));
-		this.Data = Data;
+		this.SetData(Data);
 	};
 
     this.Remove_Marks = function()
@@ -597,6 +604,18 @@ CComment.prototype.GetData = function()
 {
 	return this.Data;
 };
+CComment.prototype.SetData = function(oData)
+{
+	History.Add(new CChangesCommentChange(this, this.Data, oData));
+	this.Data = oData;
+};
+CComment.prototype.GetUserName = function()
+{
+	if (this.Data)
+		return this.Data.GetUserName();
+
+	return "";
+};
 CComment.prototype.IsSolved = function()
 {
 	if (this.Data)
@@ -615,7 +634,8 @@ CComment.prototype.GetDurableId = function()
 
 	return -1;
 };
-CComment.prototype.CreateNewCommentsGuid = function() {
+CComment.prototype.CreateNewCommentsGuid = function()
+{
 	this.Data && this.Data.CreateNewCommentsGuid();
 };
 /**

@@ -1280,16 +1280,16 @@ CCollaborativeEditingBase.prototype.UpdateDocumentPositionsByState = function(Do
         oHistory.Remove_LastPoint();
         this.Clear_DCChanges();
 
-        editor.CoAuthoringApi.saveChanges(aSendingChanges, null, null, false, this.getCollaborativeEditing());
+		editor.CoAuthoringApi.saveChanges(aSendingChanges, null, null, false, this.getCollaborativeEditing());
 
-        this.private_RestoreDocumentState(DocState);
+		this.private_RestoreDocumentState(DocState);
+		this.private_RecalculateDocument(arrReverseChanges);
 
-        oLogicDocument.TurnOnCheckChartSelection();
-        this.private_RecalculateDocument(arrReverseChanges);
+		oLogicDocument.TurnOnCheckChartSelection();
 
-        oLogicDocument.Document_UpdateSelectionState();
-        oLogicDocument.Document_UpdateInterfaceState();
-        oLogicDocument.Document_UpdateRulersState();
+		oLogicDocument.UpdateSelection();
+		oLogicDocument.UpdateInterface();
+		oLogicDocument.UpdateRulers();
     };
     CCollaborativeEditingBase.prototype.CanUndo = function()
     {

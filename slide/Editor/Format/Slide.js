@@ -157,8 +157,8 @@ function Slide(presentation, slideLayout, slideNum)
 
     this.presentation = editor && editor.WordControl && editor.WordControl.m_oLogicDocument;
     this.graphicObjects = new AscFormat.DrawingObjectsController(this);
-    this.maxId = 0;
     this.cSld = new AscFormat.CSld();
+    this.collaborativeMarks = new CRunCollaborativeMarks();
     this.clrMap = null; // override ClrMap
 
     this.show = true;
@@ -187,7 +187,6 @@ function Slide(presentation, slideLayout, slideNum)
 
 
     this.writecomments = [];
-    this.maxId = 1000;
 
     this.m_oContentChanges = new AscCommon.CContentChanges(); // список изменений(добавление/удаление элементов)
 
@@ -249,6 +248,11 @@ Slide.prototype =
         for(var i = 0; i < this.cSld.spTree.length; ++i){
             this.cSld.spTree[i].Reassign_ImageUrls(images_rename);
         }
+    },
+
+    Clear_CollaborativeMarks: function()
+    {
+        this.collaborativeMarks.Clear();
     },
 
     createDuplicate: function(IdMap)
@@ -619,11 +623,11 @@ Slide.prototype =
         }
     },
 
-    removeComment: function(id)
+    removeComment: function(id, bForce)
     {
         if(AscCommon.isRealObject(this.slideComments))
         {
-            this.slideComments.removeComment(id);
+            this.slideComments.removeComment(id, bForce);
         }
     },
 
@@ -640,11 +644,11 @@ Slide.prototype =
         }
     },
 
-    getAllComments: function(aAllComments)
+    getAllComments: function(aAllComments, isMine, isCurrent, aIds)
     {
         if(this.slideComments)
         {
-            this.slideComments.getAllComments(aAllComments, this);
+            this.slideComments.getAllComments(aAllComments, isMine, isCurrent, aIds);
         }
     },
 
@@ -776,6 +780,9 @@ Slide.prototype =
        History.Add(new AscDFH.CChangesDrawingsContentPresentation(this, AscDFH.historyitem_SlideAddToSpTree, _pos, [item], true));
         this.cSld.spTree.splice(_pos, 0, item);
         item.setParent2(this);
+        if(this.collaborativeMarks) {
+            this.collaborativeMarks.Update_OnAdd(_pos);
+        }
     },
 
     isVisible: function(){
@@ -794,7 +801,6 @@ Slide.prototype =
                     if(!drawing.nvGraphicFramePr)
                     {
                         nv_sp_pr = new AscFormat.UniNvPr();
-                        nv_sp_pr.cNvPr.setId(++this.maxId);
                         drawing.setNvSpPr(nv_sp_pr);
                     }
                     break;
@@ -804,7 +810,6 @@ Slide.prototype =
                     if(!drawing.nvGrpSpPr)
                     {
                         nv_sp_pr = new AscFormat.UniNvPr();
-                        nv_sp_pr.cNvPr.setId(++this.maxId);
                         drawing.setNvSpPr(nv_sp_pr);
                     }
                     for(var i = 0; i < drawing.spTree.length; ++i)
@@ -819,7 +824,6 @@ Slide.prototype =
                     if(!drawing.nvPicPr)
                     {
                         nv_sp_pr = new AscFormat.UniNvPr();
-                        nv_sp_pr.cNvPr.setId(++this.maxId);
                         drawing.setNvSpPr(nv_sp_pr);
                     }
                     break;
@@ -829,7 +833,6 @@ Slide.prototype =
                     if(!drawing.nvSpPr)
                     {
                         nv_sp_pr = new AscFormat.UniNvPr();
-                        nv_sp_pr.cNvPr.setId(++this.maxId);
                         drawing.setNvSpPr(nv_sp_pr);
                     }
                     break;
@@ -888,6 +891,9 @@ Slide.prototype =
             this.cSld.spTree.splice(pos, 1);
             if(this.timing) {
                 this.timing.onRemoveObject(oSp.Get_Id());
+            }
+            if(this.collaborativeMarks) {
+                this.collaborativeMarks.Update_OnRemove(pos, 1);
             }
         }
     },
@@ -1286,16 +1292,37 @@ Slide.prototype =
                 graphics.rect(_bounds.l, _bounds.t, _bounds.w, _bounds.h);
             }
         }
+        this.collaborativeMarks.Init_Drawing();
+        var oCollColor;
+        var fDist = 3;
+        var oIdentityMtx = new AscCommon.CMatrix();
         for(i = 0; i < this.cSld.spTree.length; ++i)
         {
-            this.cSld.spTree[i].draw(graphics);
+            var oSp = this.cSld.spTree[i];
+            if(this.collaborativeMarks)
+            {
+                oCollColor = this.collaborativeMarks.Check(i);
+                if(oCollColor)
+                {
+                    var oBounds = oSp.bounds;
+                    graphics.transform3(oIdentityMtx);
+                    graphics.b_color1(oCollColor.r, oCollColor.g, oCollColor.b, 127);
+                    graphics.rect(oBounds.l - fDist, oBounds.t - fDist, oBounds.r - oBounds.l + 2*fDist, oBounds.b - oBounds.t + 2*fDist);
+                    graphics.df();
+                }
+            }
+            oSp.draw(graphics);
         }
         if(this.slideComments)
         {
             var comments = this.slideComments.comments;
             for(i = 0; i < comments.length; ++i)
             {
-                comments[i].draw(graphics);
+                var oComment = comments[i];
+                if(AscCommon.UserInfoParser.canViewComment(oComment.GetUserName()) !== false)
+                {
+                    oComment.draw(graphics);
+                }
             }
         }
     },
@@ -1906,11 +1933,12 @@ SlideComments.prototype =
         }
     },
 
-    removeComment: function(id)
+    removeComment: function(id, bForce)
     {
         for(var i = 0; i < this.comments.length; ++i)
         {
-            if(this.comments[i].Get_Id() === id)
+            var oComment = this.comments[i];
+            if(oComment.Get_Id() === id && (bForce || oComment.canBeDeleted()))
             {
                 History.Add(new AscDFH.CChangesDrawingsContentComments(this, AscDFH.historyitem_SlideCommentsRemoveComment, i, this.comments.splice(i, 1), false));
                 editor.sync_RemoveComment(id);
@@ -1921,7 +1949,6 @@ SlideComments.prototype =
 
     removeMyComments: function()
     {
-        var oCommentDataCopy;
         if(!editor.DocInfo)
         {
             return;
@@ -1933,29 +1960,15 @@ SlideComments.prototype =
             var oCommentData = oComment.Data;
             if(oCommentData.m_sUserId === sUserId)
             {
-                History.Add(new AscDFH.CChangesDrawingsContentComments(this, AscDFH.historyitem_SlideCommentsRemoveComment, i, this.comments.splice(i, 1), false));
-                editor.sync_RemoveComment(oComment.Get_Id());
+                if(oComment.canBeDeleted())
+                {
+                    History.Add(new AscDFH.CChangesDrawingsContentComments(this, AscDFH.historyitem_SlideCommentsRemoveComment, i, this.comments.splice(i, 1), false));
+                    editor.sync_RemoveComment(oComment.Get_Id());
+                }
             }
             else
             {
-                oCommentDataCopy = null;
-                for(var j = oCommentData.m_aReplies.length - 1; j > -1 ; --j)
-                {
-                    if(oCommentData.m_aReplies[j].m_sUserId === sUserId)
-                    {
-                        if(!oCommentDataCopy)
-                        {
-                            oCommentDataCopy = oCommentData.Copy();
-                        }
-                        oCommentDataCopy.m_aReplies.splice(j, 1);
-                        break;
-                    }
-                }
-                if(oCommentDataCopy)
-                {
-                    oComment.Set_Data(oCommentDataCopy);
-                    editor.sync_ChangeCommentData( oComment.Get_Id(), oCommentDataCopy);
-                }
+                oComment.removeUserReplies(sUserId);
             }
         }
     },
@@ -1965,8 +1978,11 @@ SlideComments.prototype =
         for(var i = this.comments.length - 1; i > -1; --i)
         {
             var oComment = this.comments[i];
-            History.Add(new AscDFH.CChangesDrawingsContentComments(this, AscDFH.historyitem_SlideCommentsRemoveComment, i, this.comments.splice(i, 1), false));
-            editor.sync_RemoveComment(oComment.Get_Id());
+            if(oComment.canBeDeleted())
+            {
+                History.Add(new AscDFH.CChangesDrawingsContentComments(this, AscDFH.historyitem_SlideCommentsRemoveComment, i, this.comments.splice(i, 1), false));
+                editor.sync_RemoveComment(oComment.Get_Id());
+            }
         }
     },
 
@@ -2019,12 +2035,62 @@ SlideComments.prototype =
             }
         }
     },
-    getAllComments: function(aAllComments, oSlide)
+    getAllComments: function(aAllComments, isMine, isCurrent, aIds)
     {
-        for(var i = 0; i < this.comments.length; ++i)
+        var oSlide = null;
+        if(this.slide && (this.slide instanceof Slide))
         {
-            var oComment = this.comments[i];
-            aAllComments.push({comment: oComment, slide: oSlide});
+            oSlide = this.slide;
+        }
+        var nComment, oComment;
+        if(Array.isArray(aIds))
+        {
+            var oIdMap = {};
+            for(var nId = 0; nId < aIds.length; ++nId)
+            {
+                oIdMap[aIds[nId]] = true;
+            }
+            for(nComment = 0; nComment < this.comments.length; ++nComment)
+            {
+                oComment = this.comments[nComment];
+                if(oIdMap[oComment.Id])
+                {
+                    aAllComments.push({comment: oComment, slide: oSlide});
+                }
+            }
+        }
+        else
+        {
+            if(isCurrent)
+            {
+                if(oSlide)
+                {
+                    var oPresentation = oSlide.presentation;
+                    if(oPresentation && oPresentation.Slides[oPresentation.CurPage] === oSlide)
+                    {
+                        for(nComment = 0; nComment < this.comments.length; ++nComment)
+                        {
+                            oComment = this.comments[nComment];
+                            if(oComment.selected && (!isMine || oComment.isMineComment()))
+                            {
+                                aAllComments.push({comment: oComment, slide: oSlide});
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                for(nComment = 0; nComment < this.comments.length; ++nComment)
+                {
+                    oComment = this.comments[nComment];
+                    if((!isMine || oComment.isMineComment()))
+                    {
+                        aAllComments.push({comment: oComment, slide: oSlide});
+                    }
+                }
+            }
         }
     },
 

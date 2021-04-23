@@ -225,6 +225,8 @@ Paragraph.prototype.SetDirectParaPr = function(oParaPr)
 	if (!oParaPr)
 		return;
 
+	var oNumPr = this.Pr.NumPr;
+
 	var oNewPr = oParaPr.Copy(true);
 
 	History.Add(new CChangesParagraphPr(this, this.Pr, oNewPr));
@@ -234,6 +236,12 @@ Paragraph.prototype.SetDirectParaPr = function(oParaPr)
 	this.Recalc_CompiledPr();
 	this.private_UpdateTrackRevisionOnChangeParaPr(true);
 	this.UpdateDocumentOutline();
+
+	if (!oNumPr || !this.Pr.NumPr || oNumPr.NumId !== this.Pr.NumPr.NumId || oNumPr.Lvl !== this.Pr.NumPr.Lvl)
+	{
+		this.private_RefreshNumbering(oNumPr);
+		this.private_RefreshNumbering(this.Pr.NumPr);
+	}
 };
 /**
  * Устанавливаем прямые настройки для текста
@@ -666,6 +674,13 @@ Paragraph.prototype.Get_ColorMap = function()
 
 	return null;
 };
+Paragraph.prototype.GetColorMap = function()
+{
+	if (this.Parent)
+		return this.Parent.Get_ColorMap();
+
+	return null;
+};
 Paragraph.prototype.Reset = function(X, Y, XLimit, YLimit, PageNum, ColumnNum, ColumnsCount)
 {
 	this.X      = X;
@@ -949,7 +964,12 @@ Paragraph.prototype.Internal_Content_Concat = function(arrItems)
 	{
 		this.Content.push(arrItems[nIndex]);
 
-		arrItems[nIndex].SetParagraph(this);
+		if (arrItems[nIndex].SetParent)
+			arrItems[nIndex].SetParent(this);
+
+		if (arrItems[nIndex].SetParagraph)
+			arrItems[nIndex].SetParagraph(this);
+
 		if (arrItems[nIndex].Recalc_RunsCompiledPr)
 			arrItems[nIndex].Recalc_RunsCompiledPr();
 	}
@@ -1660,7 +1680,17 @@ Paragraph.prototype.GetNumberingTextPr = function()
 	oNumTextPr.Merge(this.TextPr.Value);
 	oNumTextPr.Merge(oLvl.GetTextPr());
 
-	oNumTextPr.FontFamily.Name = oNumTextPr.RFonts.Ascii.Name;
+	// TODO: Пока возвращаем всегда шрифт лежащий в Ascii, в будущем надо будет это переделать
+	if (undefined !== oNumTextPr.RFonts && null !== oNumTextPr.RFonts)
+	{
+		oNumTextPr.ReplaceThemeFonts(this.GetTheme().themeElements.fontScheme);
+
+		if (!oNumTextPr.FontFamily)
+			oNumTextPr.FontFamily = {Name : "", Index : -1};
+
+		oNumTextPr.FontFamily.Name  = oNumTextPr.RFonts.Ascii.Name;
+		oNumTextPr.FontFamily.Index = oNumTextPr.RFonts.Ascii.Index;
+	}
 
 	return oNumTextPr;
 };
@@ -1823,18 +1853,9 @@ Paragraph.prototype.Draw = function(CurPage, pGraphics)
 	var Theme    = this.Get_Theme();
 	var ColorMap = this.Get_ColorMap();
 	var BgColor  = undefined;
-	if (undefined !== Pr.ParaPr.Shd && Asc.c_oAscShdNil !== Pr.ParaPr.Shd.Value && true !== Pr.ParaPr.Shd.Color.Auto)
+	if (Pr.ParaPr.Shd && !Pr.ParaPr.Shd.IsNil() && (!Pr.ParaPr.Shd.Color || true !== Pr.ParaPr.Shd.Color.Auto))
 	{
-		if (Pr.ParaPr.Shd.Unifill)
-		{
-			Pr.ParaPr.Shd.Unifill.check(this.Get_Theme(), this.Get_ColorMap());
-			var RGBA = Pr.ParaPr.Shd.Unifill.getRGBAColor();
-			BgColor  = new CDocumentColor(RGBA.R, RGBA.G, RGBA.B, false);
-		}
-		else
-		{
-			BgColor = Pr.ParaPr.Shd.Color;
-		}
+		BgColor = Pr.ParaPr.Shd.GetSimpleColor(this.GetTheme(), this.GetColorMap());
 	}
 	else
 	{
@@ -2011,7 +2032,7 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 				if (para_Numbering === NumberingType)
 				{
 					var NumPr = Pr.ParaPr.NumPr;
-					if (undefined === NumPr || undefined === NumPr.NumId || 0 === NumPr.NumId || "0" === NumPr.NumId)
+					if (undefined === NumPr || undefined === NumPr.NumId || 0 === NumPr.NumId || "0" === NumPr.NumId || (this.Parent && this.Parent.IsEmptyParagraphAfterTableInTableCell(this.GetIndex())))
 					{
 						// Ничего не делаем
 					}
@@ -2049,7 +2070,7 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 			//----------------------------------------------------------------------------------------------------------
 			// Заливка параграфа
 			//----------------------------------------------------------------------------------------------------------
-			if ((_Range.W > 0.001 || true === this.IsEmpty() || true !== this.IsEmptyRange(CurLine, CurRange) ) && ( ( this.Pages.length - 1 === CurPage ) || ( CurLine < this.Pages[CurPage + 1].FirstLine ) ) && Asc.c_oAscShdClear === Pr.ParaPr.Shd.Value && (Pr.ParaPr.Shd.Unifill || (Pr.ParaPr.Shd.Color && true !== Pr.ParaPr.Shd.Color.Auto)))
+			if ((_Range.W > 0.001 || true === this.IsEmpty() || true !== this.IsEmptyRange(CurLine, CurRange) ) && ( ( this.Pages.length - 1 === CurPage ) || ( CurLine < this.Pages[CurPage + 1].FirstLine ) ) && !Pr.ParaPr.Shd.IsNil())
 			{
 				if (pGraphics.Start_Command)
 				{
@@ -2150,20 +2171,12 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 						TempX1 += 0.5;
 				}
 
-				if (Pr.ParaPr.Shd.Unifill)
-				{
-					Pr.ParaPr.Shd.Unifill.check(this.Get_Theme(), this.Get_ColorMap());
-					var RGBA = Pr.ParaPr.Shd.Unifill.getRGBAColor();
-					pGraphics.b_color1(RGBA.R, RGBA.G, RGBA.B, 255);
-				}
-				else
-				{
-					pGraphics.b_color1(Pr.ParaPr.Shd.Color.r, Pr.ParaPr.Shd.Color.g, Pr.ParaPr.Shd.Color.b, 255);
-				}
+				var oShdColor = Pr.ParaPr.Shd.GetSimpleColor(this.GetTheme(), this.GetColorMap());
+				pGraphics.b_color1(oShdColor.r, oShdColor.g, oShdColor.b, 255);
+
 				if (pGraphics.SetShd)
-				{
 					pGraphics.SetShd(Pr.ParaPr.Shd);
-				}
+
 				pGraphics.rect(TempX0, this.Pages[CurPage].Y + TempTop, TempX1 - TempX0, TempBottom - TempTop);
 				pGraphics.df();
 
@@ -2543,6 +2556,7 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 					var isHaveNumbering = false;
 					if ((undefined === this.Get_SectionPr()
 						|| true !== this.IsEmpty())
+						&& (!this.Parent || !this.Parent.IsEmptyParagraphAfterTableInTableCell(this.GetIndex()))
 						&& ((NumPr
 						&& undefined !== NumPr.NumId
 						&& 0 !== NumPr.NumId
@@ -3505,6 +3519,10 @@ Paragraph.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlyS
 					this.Content[StartPos].MoveCursorToStartPos();
 					this.Correct_ContentPos2();
 				}
+				else
+				{
+					this.CurPos.ContentPos = StartPos;
+				}
 			}
 		}
 		else
@@ -3983,8 +4001,17 @@ Paragraph.prototype.Internal_CalculateTextPr = function(LetterPos, StartPr)
 		TextPr.Merge(CurTextPr);
 	}
 
-	TextPr.FontFamily.Name  = TextPr.RFonts.Ascii.Name;
-	TextPr.FontFamily.Index = TextPr.RFonts.Ascii.Index;
+	// TODO: Пока возвращаем всегда шрифт лежащий в Ascii, в будущем надо будет это переделать
+	if (undefined !== TextPr.RFonts && null !== TextPr.RFonts)
+	{
+		TextPr.ReplaceThemeFonts(this.GetTheme().themeElements.fontScheme);
+
+		if (!TextPr.FontFamily)
+			TextPr.FontFamily = {Name : "", Index : -1};
+
+		TextPr.FontFamily.Name  = TextPr.RFonts.Ascii.Name;
+		TextPr.FontFamily.Index = TextPr.RFonts.Ascii.Index;
+	}
 
 	return TextPr;
 };
@@ -7476,7 +7503,7 @@ Paragraph.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent, bTabl
 				this.Set_SelectionContentPos(StartPos, EndPos);
 
 				if (this.LogicDocument)
-					this.LogicDocument.Set_WordSelection();
+					this.LogicDocument.SetWordSelection(true);
 			}
 			else // ( 1 == ClickCounter % 2 )
 			{
@@ -7521,7 +7548,10 @@ Paragraph.prototype.RemoveSelection = function()
 };
 Paragraph.prototype.DrawSelectionOnPage = function(CurPage)
 {
-	if (true != this.Selection.Use)
+	if (!this.IsRecalculated())
+		return;
+
+	if (true !== this.Selection.Use)
 		return;
 
 	if (CurPage < 0 || CurPage >= this.Pages.length)
@@ -7706,7 +7736,7 @@ Paragraph.prototype.SelectCurrentWord = function()
 	this.Document_SetThisElementCurrent(false);
 
 	if (this.LogicDocument)
-		this.LogicDocument.Set_WordSelection();
+		this.LogicDocument.SetWordSelection(true);
 };
 Paragraph.prototype.Selection_CheckParaEnd = function()
 {
@@ -8904,14 +8934,19 @@ Paragraph.prototype.SetNumPr = function(sNumId, nLvl)
 			nLvl = 0;
 
 		var oNumPrOld = this.Pr.NumPr;
-		this.Pr.NumPr = new CNumPr(sNumId, nLvl);
+		if (oNumPrOld && oNumPrOld.NumId === sNumId && oNumPrOld.Lvl === nLvl)
+			return;
 
 		this.private_AddPrChange();
-		History.Add(new CChangesParagraphNumbering(this, oNumPrOld, this.Pr.NumPr));
-		this.private_RefreshNumbering(oNumPrOld);
+
+		var oNewNumPr = new CNumPr(sNumId, nLvl);
+
+		History.Add(new CChangesParagraphNumbering(this, this.Pr.NumPr, oNewNumPr));
+		this.private_RefreshNumbering(oNewNumPr);
 		this.private_RefreshNumbering(this.Pr.NumPr);
 
-		// Надо пересчитать конечный стиль
+		this.Pr.NumPr = oNewNumPr;
+
 		this.CompiledPr.NeedRecalc = true;
 		this.private_UpdateTrackRevisionOnChangeParaPr(true);
 		this.UpdateDocumentOutline();
@@ -10285,6 +10320,13 @@ Paragraph.prototype.Set_Shd = function(_Shd, bDeleteUndefined)
 			History.Add(new CChangesParagraphShdUnifill(this, this.Pr.Shd.Unifill, Shd.Unifill));
 			this.Pr.Shd.Unifill = Shd.Unifill;
 		}
+
+		if (Shd.Fill || true === bDeleteUndefined)
+		{
+			this.private_AddPrChange();
+			History.Add(new CChangesParagraphShdFill(this, this.Pr.Shd.Fill, Shd.Fill));
+			this.Pr.Shd.Fill = Shd.Fill;
+		}
 	}
 
 	// Надо пересчитать конечный стиль
@@ -11330,6 +11372,10 @@ Paragraph.prototype.Is_Inline = function()
 Paragraph.prototype.IsInline = function()
 {
 	return this.Is_Inline();
+};
+Paragraph.prototype.IsLastEmptyParaAfterTableInTableCell = function()
+{
+
 };
 Paragraph.prototype.GetFramePr = function()
 {
@@ -15658,6 +15704,31 @@ Paragraph.prototype.CheckRunContent = function(fCheck)
 
 	return false;
 };
+
+/**
+* Check signature lines are present in the content and send asc_onAddSignature event
+ */
+Paragraph.prototype.CheckSignatureLinesOnAdd = function()
+{
+	this.CheckRunContent(
+		function(oRun)
+		{
+			if (!(oRun instanceof AscCommonWord.ParaRun))
+				return;
+
+			for (var nPos = 0, nCount = oRun.Content.length; nPos < nCount; ++nPos)
+			{
+				var oItem = oRun.Content[nPos];
+				if (oItem.Type === para_Drawing)
+				{
+					oItem.CheckSignatureLineOnAdd();
+				}
+			}
+
+		}
+	);
+};
+
 /**
  * Обрабатываем сложные поля данного параграфа
  */
@@ -17060,7 +17131,7 @@ CParagraphDrawStateHighlights.prototype.AddComment = function(Id)
 		return;
 
 	var oComment = AscCommon.g_oTableId.Get_ById(Id);
-	if (!oComment || (!this.DrawSolvedComments && oComment.IsSolved()))
+	if (!oComment || (!this.DrawSolvedComments && oComment.IsSolved()) || !AscCommon.UserInfoParser.canViewComment(oComment.GetUserName()))
 		return;
 
 	this.Comments.push(Id);
@@ -17072,7 +17143,7 @@ CParagraphDrawStateHighlights.prototype.RemoveComment = function(Id)
 		return;
 
 	var oComment = AscCommon.g_oTableId.Get_ById(Id);
-	if (!oComment || (!this.DrawSolvedComments && oComment.IsSolved()))
+	if (!oComment || (!this.DrawSolvedComments && oComment.IsSolved()) || !AscCommon.UserInfoParser.canViewComment(oComment.GetUserName()))
 		return;
 
 	for (var nIndex = 0, nCount = this.Comments.length; nIndex < nCount; ++nIndex)

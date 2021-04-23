@@ -1062,7 +1062,26 @@
 	{
 		return [];
 	};
+	asc_docs_api.prototype.asc_undoAllChanges       = function()
+	{
+		this.WordControl.m_oLogicDocument.Document_Undo({All : true});
+	};
+	asc_docs_api.prototype.asc_CloseFile            = function()
+	{
+		History.Clear();
+		g_oIdCounter.Clear();
+		g_oTableId.Clear();
+		AscCommon.CollaborativeEditing.Clear();
+		this.isApplyChangesOnOpenEnabled = true;
+		this.isDocumentLoadComplete = false;
 
+		var oLogicDocument = this.WordControl.m_oLogicDocument;
+		oLogicDocument.StopRecalculate();
+		oLogicDocument.Stop_CheckSpelling();
+		AscCommon.pptx_content_loader.ImageMapChecker = {};
+
+		this.WordControl.m_oDrawingDocument.CloseFile();
+	};
 	asc_docs_api.prototype.asc_SetFastCollaborative = function(isOn)
 	{
 		if (AscCommon.CollaborativeEditing)
@@ -4807,7 +4826,7 @@ background-repeat: no-repeat;\
 		}
 		if(isCurrent)
 		{
-			this.WordControl.m_oLogicDocument.RemoveCurrentComment();
+			this.WordControl.m_oLogicDocument.RemoveCurrentComment(isMine);
 		}
 		else
 		{
@@ -4822,6 +4841,21 @@ background-repeat: no-repeat;\
 		}
 	};
 
+	asc_docs_api.prototype.asc_ResolveAllComments = function(isMine, isCurrent, arrIds)
+	{
+		var oPresentation = this.WordControl && this.WordControl.m_oLogicDocument;
+		if(!oPresentation)
+		{
+			return;
+		}
+		oPresentation.ResolveAllComments(isMine, isCurrent, arrIds);
+	};
+
+	asc_docs_api.prototype.asc_onDeleteComment = function(Id, oCommentData)
+	{
+		var AscCommentData = new asc_CCommentData(oCommentData);
+		this.sendEvent("asc_onDeleteComment", Id, AscCommentData);
+	};
 
 	asc_docs_api.prototype.asc_changeComment = function(Id, AscCommentData)
 	{
@@ -5330,6 +5364,11 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.openDocument = function(file)
 	{
+		if (file.changes && this.VersionHistory)
+		{
+			this.VersionHistory.changes = file.changes;
+			this.VersionHistory.applyChanges(this);
+		}
 		this.OpenDocument2(file.url, file.data);
 	};
 
@@ -7633,6 +7672,12 @@ background-repeat: no-repeat;\
 		}
 	};
 
+	asc_docs_api.prototype.SetDrawImagePreviewBulletForMenu = function(id, type)
+    {
+		if (this.WordControl.m_oDrawingDocument)
+			this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletForMenu(id, type);
+    };
+
 	//-------------------------------------------------------------export---------------------------------------------------
 	window['Asc']                                                 = window['Asc'] || {};
 	window['AscCommonSlide']                                      = window['AscCommonSlide'] || {};
@@ -7905,6 +7950,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_getAnchorPosition']               = asc_docs_api.prototype.asc_getAnchorPosition;
 	asc_docs_api.prototype['asc_removeComment']                   = asc_docs_api.prototype.asc_removeComment;
 	asc_docs_api.prototype['asc_RemoveAllComments']               = asc_docs_api.prototype.asc_RemoveAllComments;
+	asc_docs_api.prototype['asc_ResolveAllComments']              = asc_docs_api.prototype.asc_ResolveAllComments;
 	asc_docs_api.prototype['asc_changeComment']                   = asc_docs_api.prototype.asc_changeComment;
 	asc_docs_api.prototype['asc_selectComment']                   = asc_docs_api.prototype.asc_selectComment;
 	asc_docs_api.prototype['asc_showComment']                     = asc_docs_api.prototype.asc_showComment;
@@ -8075,7 +8121,9 @@ background-repeat: no-repeat;\
 
     asc_docs_api.prototype['sendEvent']								= asc_docs_api.prototype.sendEvent;
 	asc_docs_api.prototype['asc_setSkin']							= asc_docs_api.prototype.asc_setSkin;
-
+	
+	asc_docs_api.prototype['SetDrawImagePreviewBulletForMenu']		= asc_docs_api.prototype.SetDrawImagePreviewBulletForMenu;
+	
 	// mobile
 	asc_docs_api.prototype["asc_GetDefaultTableStyles"]           	= asc_docs_api.prototype.asc_GetDefaultTableStyles;
 	asc_docs_api.prototype["asc_Remove"] 							= asc_docs_api.prototype.asc_Remove;

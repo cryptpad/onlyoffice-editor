@@ -374,6 +374,13 @@ function (window, undefined) {
 		}
 	};
 
+	asc_CCommentData.prototype.getSolved = function () {
+		return this.bSolved;
+	};
+	asc_CCommentData.prototype.setSolved = function (isSolved) {
+		this.bSolved = isSolved;
+	};
+
 /** @constructor */
 function CCellCommentator(currentSheet) {
 	this.worksheet = currentSheet;
@@ -474,9 +481,24 @@ CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 	CCellCommentator.prototype._deleteCommentsRange = function (comments) {
 		History.StartTransaction();
 		for (var i = 0; i < comments.length; ++i) {
-			this.removeComment(comments[i].asc_getId());
+			if (AscCommon.UserInfoParser.canViewComment(comments[i].sUserName) &&
+				AscCommon.UserInfoParser.canDeleteComment(comments[i].sUserName)) {
+				this.removeComment(comments[i].asc_getId());
+			}
 		}
 		History.EndTransaction();
+	};
+
+	CCellCommentator.prototype.resolveCommentsRange = function (range, sUserId) {
+		var newComment, comments = this.getCommentsRange(range, sUserId);
+		for (var i = 0; i < comments.length; ++i) {
+			if (AscCommon.UserInfoParser.canViewComment(comments[i].sUserName) &&
+				AscCommon.UserInfoParser.canEditComment(comments[i].sUserName) && !comments[i].getSolved()) {
+				newComment = comments[i].clone();
+				newComment.setSolved(true);
+				this.changeComment(newComment.nId, newComment);
+			}
+		}
 	};
 
 	CCellCommentator.prototype.getCommentByXY = function (x, y, excludeHidden) {
@@ -495,7 +517,7 @@ CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 		var aComments = this.model.aComments;
 		for (var i = 0; i < aComments.length; ++i) {
 			commentCell = aComments[i];
-			if (this._checkHidden(commentCell)) {
+			if (this._checkHidden(commentCell) || !AscCommon.UserInfoParser.canViewComment(commentCell.sUserName)) {
 				continue;
 			}
 
@@ -827,7 +849,7 @@ CCellCommentator.prototype.cleanLastSelection = function() {
 	};
 
 	CCellCommentator.prototype._showComment = function (comment, bNew) {
-		if (comment && !this._checkHidden(comment)) {
+		if (comment && !this._checkHidden(comment) && AscCommon.UserInfoParser.canViewComment(comment.sUserName)) {
 			var coords = this.getCommentTooltipPosition(comment);
 			this.model.workbook.handlers.trigger("asc_onShowComment", [comment.asc_getId()], coords.dLeftPX,
 				coords.dTopPX, coords.dReverseLeftPX, bNew);
@@ -1040,7 +1062,7 @@ CCellCommentator.prototype.removeComment = function(id, bNoEvent, bNoAscLock, bN
 					}
 				}
 				if (comment) {
-					return (excludeHidden && this._checkHidden(comment)) ? null : comment;
+					return ((excludeHidden && this._checkHidden(comment)) || !AscCommon.UserInfoParser.canViewComment(comment.sUserName)) ? null : comment;
 				}
 			}
 		}

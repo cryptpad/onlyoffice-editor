@@ -68,6 +68,11 @@ ChartPreviewManager.prototype.getAscChartSeriesDefault = function(type) {
 	switch(type)
 	{
 		case c_oAscChartTypeSettings.lineNormal:
+		case c_oAscChartTypeSettings.lineNormalMarker:
+		case c_oAscChartTypeSettings.scatterLine:
+		case c_oAscChartTypeSettings.scatterLineMarker:
+		case c_oAscChartTypeSettings.scatterSmooth:
+		case c_oAscChartTypeSettings.scatterSmoothMarker:
 		{
 			ser = new AscFormat.asc_CChartSeria();
 			ser.Val.NumCache = [ createItem(2), createItem(3), createItem(2), createItem(3) ];
@@ -88,6 +93,7 @@ ChartPreviewManager.prototype.getAscChartSeriesDefault = function(type) {
             break;
         }
 		case c_oAscChartTypeSettings.lineStacked:
+		case c_oAscChartTypeSettings.lineStackedMarker:
 		{
 			ser = new AscFormat.asc_CChartSeria();
 			ser.Val.NumCache = [ createItem(1), createItem(6), createItem(2), createItem(8) ];
@@ -98,6 +104,7 @@ ChartPreviewManager.prototype.getAscChartSeriesDefault = function(type) {
 			break;
 		}
 		case c_oAscChartTypeSettings.lineStackedPer:
+		case c_oAscChartTypeSettings.lineStackedPerMarker:
 		{
 			ser = new AscFormat.asc_CChartSeria();
 			ser.Val.NumCache = [ createItem(2), createItem(4), createItem(2), createItem(4) ];
@@ -361,9 +368,6 @@ ChartPreviewManager.prototype.getChartByType = function(type)
 				vert_axis_settings = val_ax_props;
 				hor_axis_settings = val_ax_props;
 				isScatter = true;
-                settings.showMarker = true;
-                settings.smooth = false;
-                settings.bLine = false;
 				break;
 			}
             case c_oAscChartTypeSettings.areaNormal:
@@ -432,12 +436,12 @@ ChartPreviewManager.prototype.clearPreviews = function()
 {
 	this.previewGroups.length = 0;
 };
-ChartPreviewManager.prototype.createChartPreview = function(graphics, type, preset) {
+ChartPreviewManager.prototype.createChartPreview = function(graphics, type, aStyle) {
 	if (!this.chartsByTypes[type]) {
 		this.chartsByTypes[type] = this.getChartByType(type);
 	}
 	var chart_space = this.chartsByTypes[type];
-	AscFormat.ApplyPresetToChartSpace(chart_space, preset);
+	chart_space.applyChartStyleByIds(aStyle);
 	chart_space.recalcInfo.recalculateReferences = false;
 	chart_space.recalculate();
 	graphics.save();
@@ -471,12 +475,12 @@ ChartPreviewManager.prototype._getGraphics = function() {
 ChartPreviewManager.prototype.getChartPreviews = function(chartType) {
 	if (AscFormat.isRealNumber(chartType)) {
 		if (!this._isCachedChartStyles(chartType)) {
-			var presets = AscCommon.g_oChartPresets[chartType];
-			if (presets) {
+			var aStyles = AscCommon.g_oChartStyles[chartType];
+			if (Array.isArray(aStyles)) {
 				AscFormat.ExecuteNoHistory(function () {
 					var graphics = this._getGraphics();
-					for (var i = 0; i < presets.length; ++i) {
-						this.createChartPreview(graphics, chartType, presets[i]);
+					for (var i = 0; i < aStyles.length; ++i) {
+						this.createChartPreview(graphics, chartType, aStyles[i]);
 						if (!window["IS_NATIVE_EDITOR"]) {
 							var chartStyle = new AscCommon.CStyleImage();
 							chartStyle.name = i + 1;

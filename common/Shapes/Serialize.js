@@ -1825,6 +1825,35 @@ function BinaryPPTYLoader()
 
                     break;
                 }
+                case c_oAscColor.COLOR_TYPE_STYLE:
+                {
+                    var oColor = new AscFormat.CStyleColor();
+                    s.Skip2(1);
+                    while(true)
+                    {
+                        var _at2 = s.GetUChar();
+                        if (_at2 == g_nodeAttributeEnd)
+                            break;
+                        switch (_at2) {
+                            case 0:
+                            {
+                                oColor.val = s.GetULong();
+                                break;
+                            }
+                            case 1:
+                            {
+                                oColor.bAuto = s.GetBool();
+                                break;
+                            }
+                            default:
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    uni_color.setColor(oColor);
+                    break;
+                }
             }
         }
 
@@ -1848,6 +1877,39 @@ function BinaryPPTYLoader()
         return ret;
     };
 
+    this.ReadColorMod = function()
+    {
+        var s = this.stream;
+        var _s1 = s.cur;
+        var _e1 = _s1 + s.GetULong() + 4;
+        var _mod = null;
+        if (_s1 < _e1)
+        {
+            s.Skip2(1);
+            _mod = new AscFormat.CColorMod();
+            while (true)
+            {
+                var _type = s.GetUChar();
+
+                if (0 == _type)
+                {
+                    _mod.setName(s.GetString2());
+                    var _find = _mod.name.indexOf(":");
+                    if (_find >= 0 && _find < (_mod.name.length - 1))
+                        _mod.setName(_mod.name.substring(_find + 1));
+                }
+                else if (1 == _type)
+                    _mod.setVal(s.GetLong());
+                else if (g_nodeAttributeEnd == _type)
+                    break;
+                else
+                    break;
+            }
+        }
+        s.Seek2(_e1);
+        return _mod;
+    };
+
     this.ReadColorModifiers = function()
     {
         var s = this.stream;
@@ -1864,45 +1926,18 @@ function BinaryPPTYLoader()
 
             s.Skip2(1);
 
-            var _s1 = s.cur;
-            var _e1 = _s1 + s.GetULong() + 4;
-
-            if (_s1 < _e1)
+            var _mod = this.ReadColorMod();
+            if(_mod)
             {
-                s.Skip2(1);
-
                 if (null == _ret)
                     _ret = [];
-
-                var _mod = new AscFormat.CColorMod();
                 _ret[_ret.length] = _mod;
-
-                while (true)
-                {
-                    var _type = s.GetUChar();
-
-                    if (0 == _type)
-                    {
-                        _mod.setName(s.GetString2());
-                        var _find = _mod.name.indexOf(":");
-                        if (_find >= 0 && _find < (_mod.name.length - 1))
-                            _mod.setName(_mod.name.substring(_find + 1));
-                    }
-                    else if (1 == _type)
-                        _mod.setVal(s.GetLong());
-                    else if (g_nodeAttributeEnd == _type)
-                        break;
-                    else
-                        break;
-                }
             }
-
-            s.Seek2(_e1);
         }
 
         s.Seek2(_end);
         return _ret;
-    }
+    };
 
     // ------------------------------------------
 
@@ -4232,7 +4267,6 @@ function BinaryPPTYLoader()
         this.ClearConnectedObjects();
         this.TempMainObject = slide;
 
-        slide.maxId = -1;
         var s = this.stream;
         s.Skip2(1); // type
         var end = s.cur + s.GetULong() + 4;
@@ -6616,6 +6650,11 @@ function BinaryPPTYLoader()
                     shape.attrUseBgFill = s.GetBool();
                     break;
                 }
+                case 1:
+                {
+                    shape.setMacro(s.GetString2());
+                    break;
+                }
                 default:
                     break;
             }
@@ -7006,6 +7045,26 @@ function BinaryPPTYLoader()
         var _rec_start = s.cur;
         var _end_rec = _rec_start + s.GetULong() + 4;
 
+        s.Skip2(1); // start attributes
+
+        while (true)
+        {
+            var _at = s.GetUChar();
+            if (_at == g_nodeAttributeEnd)
+                break;
+
+            switch (_at)
+            {
+                case 0:
+                {
+                    pic.setMacro(s.GetString2());
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+
         var sMaskFileName;
         while (s.cur < _end_rec)
         {
@@ -7121,6 +7180,28 @@ function BinaryPPTYLoader()
 
         var _rec_start = s.cur;
         var _end_rec = _rec_start + s.GetULong() + 4;
+
+
+        s.Skip2(1); // start attributes
+
+        while (true)
+        {
+            var _at = s.GetUChar();
+            if (_at == g_nodeAttributeEnd)
+                break;
+
+            switch (_at)
+            {
+                case 0:
+                {
+                    shape.setMacro(s.GetString2());
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+
 
         while (s.cur < _end_rec)
         {
@@ -7292,6 +7373,12 @@ function BinaryPPTYLoader()
                 case 0:
                 {
                     var spid = s.GetString2();
+                    break;
+                }
+                case 1:
+                {
+                    var sMacro = s.GetString2();
+                    _graphic_frame.setMacro(sMacro);
                     break;
                 }
                 default:
@@ -7878,10 +7965,6 @@ function BinaryPPTYLoader()
                 case 0:
                 {
                     cNvPr.setId(s.GetLong());
-                    if(this.TempMainObject && cNvPr.id > this.TempMainObject.maxId)
-                    {
-                        this.TempMainObject.maxId = cNvPr.id;
-                    }
                     break;
                 }
                 case 1:
@@ -11512,9 +11595,75 @@ CCore.prototype.Refresh_RecalcData2 = function(){
         {
             return this.Reader.End_UseFullUrl();
         }
+        this.CheckStreamStart = function(oOtherStream) {
+            if (!this.Reader) {
+                this.Reader = new AscCommon.BinaryPPTYLoader();
+            }
+            this.Reader.ImageMapChecker = this.ImageMapChecker;
+            if (!this.stream) {
+                this.stream = new AscCommon.FileStream();
+                this.stream.obj    = oOtherStream.obj;
+                this.stream.data   = oOtherStream.data;
+                this.stream.size   = oOtherStream.size;
+            }
+            this.stream.pos    = oOtherStream.pos;
+            this.stream.cur    = oOtherStream.cur;
+            this.Reader.stream = this.stream;
+        };
+        this.CheckStreamEnd = function(oOtherStream) {
+            oOtherStream.pos = this.stream.pos;
+            oOtherStream.cur = this.stream.cur;
+        };
+        this.ReadPPTXElement = function(reader, stream, fReadFunction) {
+            var oOldReader = this.BaseReader;
+            if(reader) {
+                this.BaseReader = reader;
+            }
+            this.CheckStreamStart(stream);
+            var oResult = fReadFunction();
+            this.CheckStreamEnd(stream);
+            this.BaseReader = oOldReader;
+            return oResult;
+        };
+        this.ReadBodyPr = function(reader, stream) {
+            var oThis = this;
+            return this.ReadPPTXElement(reader, stream, function() {
+                oThis.stream.GetUChar();
+                return oThis.Reader.ReadBodyPr();
+            });
+        };
+        this.ReadFontRef = function(reader, stream) {
+            var oThis = this;
+            return this.ReadPPTXElement(reader, stream, function() {
+                oThis.stream.GetUChar();
+                return oThis.Reader.ReadFontRef();
+            });
+        };
+        this.ReadStyleRef = function(reader, stream) {
+            var oThis = this;
+            return this.ReadPPTXElement(reader, stream, function() {
+                oThis.stream.GetUChar();
+                return oThis.Reader.ReadStyleRef();
+            });
+        };
+        this.ReadUniColor = function(reader, stream) {
+            var oThis = this;
+            return this.ReadPPTXElement(reader, stream, function() {
+                oThis.stream.GetUChar();
+                return oThis.Reader.ReadUniColor();
+            });
+        };
+        this.ReadColorMod = function(reader, stream) {
+            var oThis = this;
+            return this.ReadPPTXElement(reader, stream, function() {
+                oThis.stream.GetUChar();
+                return oThis.Reader.ReadColorMod();
+            });
+        };
 
         this.ReadDrawing = function(reader, stream, logicDocument, paraDrawing)
         {
+            var oOldReader = this.BaseReader;
             if(reader){
                 this.BaseReader = reader;
             }
@@ -11612,7 +11761,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
             s.Seek2(_end_rec);
             stream.pos = s.pos;
             stream.cur = s.cur;
-
+            this.BaseReader = oOldReader;
             return GrObject;
         }
 
@@ -11666,6 +11815,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
 
         this.ReadTextBody = function(reader, stream, shape, presentation, drawingDocument)
         {
+            var oOldReader = this.BaseReader;
             if(reader){
                 this.BaseReader = reader;
             }
@@ -11702,11 +11852,13 @@ CCore.prototype.Refresh_RecalcData2 = function(){
             stream.pos = s.pos;
             stream.cur = s.cur;
             this.LogicDocument = oLogicDocument;
+            this.BaseReader = oOldReader;
             return txBody;
         }
 
         this.ReadTextBodyTxPr = function(reader, stream, shape)
         {
+            var oOldReader = this.BaseReader;
             if(reader){
                 this.BaseReader = reader;
             }
@@ -11739,6 +11891,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
             stream.pos = s.pos;
             stream.cur = s.cur;
             this.LogicDocument = oLogicDocument;
+            this.BaseReader = oOldReader;
             return txBody;
         }
 
@@ -11846,6 +11999,11 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                     case 0:
                     {
                         shape.attrUseBgFill = s.GetBool();
+                        break;
+                    }
+                    case 1:
+                    {
+                        shape.setMacro(s.GetString2());
                         break;
                     }
                     default:
@@ -12024,6 +12182,27 @@ CCore.prototype.Refresh_RecalcData2 = function(){
             var _rec_start = s.cur;
             var _end_rec = _rec_start + s.GetULong() + 4;
 
+            s.Skip2(1); // start attributes
+
+            while (true)
+            {
+                var _at = s.GetUChar();
+                if (_at == g_nodeAttributeEnd)
+                    break;
+
+                switch (_at)
+                {
+                    case 0:
+                    {
+                        shape.setMacro(s.GetString2());
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+
+
             while (s.cur < _end_rec)
             {
                 var _at = s.GetUChar();
@@ -12068,6 +12247,27 @@ CCore.prototype.Refresh_RecalcData2 = function(){
 
             var _rec_start = s.cur;
             var _end_rec = _rec_start + s.GetULong() + 4;
+
+            s.Skip2(1); // start attributes
+
+            while (true)
+            {
+                var _at = s.GetUChar();
+                if (_at == g_nodeAttributeEnd)
+                    break;
+
+                switch (_at)
+                {
+                    case 0:
+                    {
+                        pic.setMacro(s.GetString2());
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+
 
             var sMaskFileName = "";
             while (s.cur < _end_rec)
@@ -12580,6 +12780,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
 
         this.ReadTheme = function(reader, stream)
         {
+            var oOldReader = this.BaseReader;
             if(reader)
             {
                 this.BaseReader = reader;
@@ -12600,6 +12801,7 @@ CCore.prototype.Refresh_RecalcData2 = function(){
 
             this.Reader.stream = this.stream;
             this.Reader.ImageMapChecker = this.ImageMapChecker;
+            this.BaseReader = oOldReader;
             return this.Reader.ReadTheme();
         }
 

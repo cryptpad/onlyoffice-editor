@@ -42,15 +42,39 @@
 	{
 		if (obj)
 		{
-			if (obj.Unifill && obj.Unifill.fill && obj.Unifill.fill.type === window['Asc'].c_oAscFill.FILL_TYPE_SOLID && obj.Unifill.fill.color)
+			this.Value = (undefined != obj.Value) ? obj.Value : null;
+
+			if (obj.GetSimpleColor)
 			{
-				this.Color = AscCommon.CreateAscColor(obj.Unifill.fill.color);
+				// TODO: Поддерживаем пока только Asc.c_oAscShd.Clear и Asc.c_oAscShd.Nil
+				if (undefined !== obj.Value && Asc.c_oAscShd.Nil !== this.Value)
+					this.Value = Asc.c_oAscShd.Clear;
+
+				if (Asc.c_oAscShd.Clear === obj.Value
+					&& obj.Unifill
+					&& obj.Unifill.fill
+					&& obj.Unifill.fill.type === window['Asc'].c_oAscFill.FILL_TYPE_SOLID
+					&& obj.Unifill.fill.color)
+				{
+					this.Color = AscCommon.CreateAscColor(obj.Unifill.fill.color);
+				}
+				else
+				{
+					var oColor = obj.GetSimpleColor();
+					this.Color = AscCommon.CreateAscColorCustom(oColor.r, oColor.g, oColor.b, oColor.Auto);
+				}
 			}
 			else
 			{
-				this.Color = (undefined != obj.Color && null != obj.Color) ? AscCommon.CreateAscColorCustom(obj.Color.r, obj.Color.g, obj.Color.b) : null;
+				if (obj.Unifill && obj.Unifill.fill && obj.Unifill.fill.type === window['Asc'].c_oAscFill.FILL_TYPE_SOLID && obj.Unifill.fill.color)
+				{
+					this.Color = AscCommon.CreateAscColor(obj.Unifill.fill.color);
+				}
+				else
+				{
+					this.Color = (undefined != obj.Color && null != obj.Color) ? AscCommon.CreateAscColorCustom(obj.Color.r, obj.Color.g, obj.Color.b) : null;
+				}
 			}
-			this.Value = (undefined != obj.Value) ? obj.Value : null;
 		}
 		else
 		{
@@ -1756,6 +1780,7 @@
 		this.Restart = -1;
 		this.Suff    = Asc.c_oAscNumberingSuff.Tab;
 		this.Align   = AscCommon.align_Left;
+		this.PStyle  = undefined;
 	}
 	CAscNumberingLvl.prototype.get_LvlNum = function()
 	{
@@ -1817,6 +1842,14 @@
 	{
 		this.Align = nAlign;
 	};
+	CAscNumberingLvl.prototype.get_PStyle = function()
+	{
+		return this.PStyle;
+	};
+	CAscNumberingLvl.prototype.put_PStyle = function(sStyleId)
+	{
+		this.PStyle = sStyleId;
+	};
 	window['Asc']['CAscNumberingLvl'] = window['Asc'].CAscNumberingLvl = CAscNumberingLvl;
 	CAscNumberingLvl.prototype['get_LvlNum']  = CAscNumberingLvl.prototype.get_LvlNum;
 	CAscNumberingLvl.prototype['get_Format']  = CAscNumberingLvl.prototype.get_Format;
@@ -1833,6 +1866,8 @@
 	CAscNumberingLvl.prototype['put_Suff']    = CAscNumberingLvl.prototype.put_Suff;
 	CAscNumberingLvl.prototype['get_Align']   = CAscNumberingLvl.prototype.get_Align;
 	CAscNumberingLvl.prototype['put_Align']   = CAscNumberingLvl.prototype.put_Align;
+	CAscNumberingLvl.prototype['get_PStyle']  = CAscNumberingLvl.prototype.get_PStyle;
+	CAscNumberingLvl.prototype['put_PStyle']  = CAscNumberingLvl.prototype.put_PStyle;
 
 
 	function CAscWatermarkProperties()

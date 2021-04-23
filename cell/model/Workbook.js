@@ -3595,14 +3595,18 @@
 			}
 		});
 
+		var sNewNameEscaped = parserHelp.getEscapeSheetName(sNewName);
 		var sOldName = parserHelp.getEscapeSheetName(oWorksheet.sName);
 		this.checkObjectsLock(aId, function(bNoLock) {
 			if(bNoLock) {
 				for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
-					aRefsToChange[nRef].handleOnChangeSheetName(sOldName, sNewName);
+					aRefsToChange[nRef].handleOnChangeSheetName(sOldName, sNewNameEscaped);
 				}
 				if(Asc.editor && Asc.editor.wb) {
+					var sOldSheetName = oWorksheet.sName;
+					oWorksheet.sName = sNewName;
 					Asc.editor.wb.recalculateDrawingObjects(null, false);
+					oWorksheet.sName = sOldSheetName;
 				}
 			}
 		});
@@ -4845,7 +4849,7 @@
 			History.Create_NewPoint();
 			if(!bFromUndoRedo)
 			{
-				this.workbook.handleChartsOnChangeSheetName(this, parserHelp.getEscapeSheetName(name));
+				this.workbook.handleChartsOnChangeSheetName(this, name);
 			}
 			var prepared = this.workbook.dependencyFormulas.prepareChangeSheet(this.getId(), {rename: {from: lastName, to: name}});
 			this.sName = name;
@@ -5064,10 +5068,9 @@
 		if (false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges)) {
 			History.LocalChange = true;
 			this.updateSortStateOffset(oActualRange, offset);
-			History.LocalChange = false;
-		}
-		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.updateSparklineGroupOffset(oActualRange, offset);
 			this.updateConditionalFormattingOffset(oActualRange, offset);
+			History.LocalChange = false;
 		}
 
 		var collapsedInfo = null, lastRowIndex;
@@ -5160,10 +5163,9 @@
 		if (false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges)) {
 			History.LocalChange = true;
 			this.updateSortStateOffset(oActualRange, offset);
-			History.LocalChange = false;
-		}
-		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.updateSparklineGroupOffset(oActualRange, offset);
 			this.updateConditionalFormattingOffset(oActualRange, offset);
+			History.LocalChange = false;
 		}
 
 		this._updateFormulasParents(index, 0, gc_nMaxRow0, gc_nMaxCol0, oActualRange, offset, renameRes.shiftedShared);
@@ -5237,10 +5239,9 @@
 		if (false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges)) {
 			History.LocalChange = true;
 			this.updateSortStateOffset(oActualRange, offset);
-			History.LocalChange = false;
-		}
-		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.updateSparklineGroupOffset(oActualRange, offset);
 			this.updateConditionalFormattingOffset(oActualRange, offset);
+			History.LocalChange = false;
 		}
 
 		var collapsedInfo = null, lastRowIndex;
@@ -5311,10 +5312,9 @@
 		if (false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges)) {
 			History.LocalChange = true;
 			this.updateSortStateOffset(oActualRange, offset);
-			History.LocalChange = false;
-		}
-		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.updateSparklineGroupOffset(oActualRange, offset);
 			this.updateConditionalFormattingOffset(oActualRange, offset);
+			History.LocalChange = false;
 		}
 
 		this._updateFormulasParents(0, index, gc_nMaxRow0, gc_nMaxCol0, oActualRange, offset, renameRes.shiftedShared);
@@ -6589,6 +6589,8 @@
 		this._moveMergedAndHyperlinks(prepared, oBBoxFrom, oBBoxTo, copyRange, wsTo, offset);
 		this._moveDataValidation(oBBoxFrom, oBBoxTo, copyRange, offset, wsTo);
 		this.moveConditionalFormatting(oBBoxFrom, oBBoxTo, copyRange, offset, wsTo);
+		this.moveSparklineGroup(oBBoxFrom, oBBoxTo, copyRange, offset, wsTo);
+
 
 		if(true == this.workbook.bUndoChanges || true == this.workbook.bRedoChanges) {
 			wsTo.autoFilters.unmergeTablesAfterMove(oBBoxTo);
@@ -6616,13 +6618,12 @@
 		if (false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges)) {
 			History.LocalChange = true;
 			this.updateSortStateOffset(oBBox, offset);
+			this.updateSparklineGroupOffset(oBBox, offset);
+			this.updateConditionalFormattingOffset(oBBox, offset);
 			History.LocalChange = false;
 		}
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
 			this.updatePivotOffset(oBBox, offset);
-		}
-		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
-			this.updateConditionalFormattingOffset(oBBox, offset);
 		}
 
 		this.getRange3(oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2)._foreachNoEmpty(function(cell){
@@ -6658,13 +6659,12 @@
 		if (false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges)) {
 			History.LocalChange = true;
 			this.updateSortStateOffset(oBBox, offset);
+			this.updateSparklineGroupOffset(oBBox, offset);
+			this.updateConditionalFormattingOffset(oBBox, offset);
 			History.LocalChange = false;
 		}
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
 			this.updatePivotOffset(oBBox, offset);
-		}
-		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
-			this.updateConditionalFormattingOffset(oBBox, offset);
 		}
 
 		this.getRange3(oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2)._foreachNoEmpty(function(cell){
@@ -6696,13 +6696,12 @@
 		if (false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges)) {
 			History.LocalChange = true;
 			this.updateSortStateOffset(oBBox, offset);
+			this.updateSparklineGroupOffset(oBBox, offset);
+			this.updateConditionalFormattingOffset(oBBox, offset);
 			History.LocalChange = false;
 		}
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
 			this.updatePivotOffset(oBBox, offset);
-		}
-		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
-			this.updateConditionalFormattingOffset(oBBox, offset);
 		}
 
 		this._updateFormulasParents(oActualRange.r1, oActualRange.c1, oActualRange.r2, oActualRange.c2, oBBox, offset, renameRes.shiftedShared);
@@ -6761,14 +6760,13 @@
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
 			this.updatePivotOffset(oBBox, offset);
 		}
-		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
-			this.updateConditionalFormattingOffset(oBBox, offset);
-		}
 
 		this._updateFormulasParents(oActualRange.r1, oActualRange.c1, oActualRange.r2, oActualRange.c2, oBBox, offset, renameRes.shiftedShared);
 		if (false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges)) {
 			History.LocalChange = true;
 			this.updateSortStateOffset(oBBox, offset);
+			this.updateSparklineGroupOffset(oBBox, offset);
+			this.updateConditionalFormattingOffset(oBBox, offset);
 			History.LocalChange = false;
 		}
 
@@ -7043,12 +7041,12 @@
 		//this.workbook.handlers.trigger("toggleAutoCorrectOptions", null,true);
 		this.clearFindResults();
 	};
-	Worksheet.prototype.updateSparklineCache = function(sheet, ranges) {
+	Worksheet.prototype.updateSparklineCache = function (sheet, ranges) {
 		for (var i = 0; i < this.aSparklineGroups.length; ++i) {
 			this.aSparklineGroups[i].updateCache(sheet, ranges);
 		}
 	};
-	Worksheet.prototype.getSparklineGroup = function(c, r) {
+	Worksheet.prototype.getSparklineGroup = function (c, r) {
 		for (var i = 0; i < this.aSparklineGroups.length; ++i) {
 			if (-1 !== this.aSparklineGroups[i].contains(c, r)) {
 				return this.aSparklineGroups[i];
@@ -7057,19 +7055,25 @@
 		return null;
 	};
 	Worksheet.prototype.removeSparklines = function (range) {
-		for (var i = this.aSparklineGroups.length - 1; i > -1 ; --i) {
+		for (var i = this.aSparklineGroups.length - 1; i > -1; --i) {
 			if (this.aSparklineGroups[i].remove(range)) {
 				History.Add(new AscDFH.CChangesDrawingsSparklinesRemove(this.aSparklineGroups[i]));
-                this.aSparklineGroups.splice(i, 1);
+				this.aSparklineGroups.splice(i, 1);
 			}
 		}
 	};
 	Worksheet.prototype.removeSparklineGroups = function (range) {
-		for (var i = this.aSparklineGroups.length - 1; i > -1 ; --i) {
+		for (var i = this.aSparklineGroups.length - 1; i > -1; --i) {
 			if (-1 !== this.aSparklineGroups[i].intersectionSimple(range)) {
-                History.Add(new AscDFH.CChangesDrawingsSparklinesRemove(this.aSparklineGroups[i]));
-                this.aSparklineGroups.splice(i, 1);
-            }
+				History.Add(new AscDFH.CChangesDrawingsSparklinesRemove(this.aSparklineGroups[i]));
+				this.aSparklineGroups.splice(i, 1);
+			}
+		}
+	};
+	Worksheet.prototype.addSparklineGroups = function (sparklineGroups) {
+		if (sparklineGroups) {
+			History.Add(new AscDFH.CChangesDrawingsSparklinesRemove(sparklineGroups, true));
+			this.insertSparklineGroup(sparklineGroups);
 		}
 	};
 	Worksheet.prototype.insertSparklineGroup = function (sparklineGroup) {
@@ -7081,6 +7085,127 @@
 				this.aSparklineGroups.splice(i, 1);
 				break;
 			}
+		}
+	};
+	Worksheet.prototype.updateSparklineGroupOffset = function (range, offset) {
+		if ((offset.row < 0 || offset.col < 0)) {
+			this.removeSparklines(range);
+		}
+		this.setSparklinesOffset(range, offset);
+	};
+	Worksheet.prototype.setSparklinesOffset = function (range, offset) {
+		this.aSparklineGroups.forEach(function (val) {
+			if (val) {
+				var aSparklines = [];
+				var isChange = false;
+				for (var i = 0; i < val.arrSparklines.length; i++) {
+					var _elem = val.arrSparklines[i];
+
+					var cloneElem = _elem.clone();
+					var _isChange = false;
+					if (range.isIntersectForShift(cloneElem.sqRef, offset)) {
+						_isChange = cloneElem.sqRef.forShift(range, offset);
+					}
+					if (_isChange) {
+						isChange = true;
+					}
+
+					//необходимо ещё сдвинуть _f
+					if ((offset.row < 0 || offset.col < 0) && _elem && range.containsRange(_elem._f)) {
+						_elem.f = null;
+						_elem._f = null;
+					} else {
+						_isChange = false;
+						if (range.isIntersectForShift(cloneElem._f, offset)) {
+							_isChange = cloneElem._f.forShift(range, offset);
+						}
+						if (_isChange) {
+							isChange = true;
+							AscCommonExcel.executeInR1C1Mode(false, function () {
+								cloneElem.f = cloneElem._f.getName();
+							});
+						}
+					}
+
+					aSparklines.push(cloneElem);
+				}
+				if (isChange) {
+					val.setSparklines(aSparklines, true, true);
+				}
+			}
+		});
+	};
+	Worksheet.prototype.moveSparklineGroup = function (oBBoxFrom, oBBoxTo, copyRange, offset, wsTo, wsFrom) {
+		var t = this;
+		if (!wsTo) {
+			wsTo = this;
+		}
+		if (false === this.workbook.bUndoChanges && false === this.workbook.bRedoChanges && !copyRange) {
+			if (!wsFrom) {
+				wsFrom = this;
+			}
+
+			wsFrom.aSparklineGroups.forEach(function (val) {
+				if (val) {
+					var aSparklines = [];
+					var aSparkLinesToSheet = [];
+					var isChange = false;
+					for (var i = 0; i < val.arrSparklines.length; i++) {
+						var _elem = val.arrSparklines[i];
+
+						var cloneElem = _elem.clone();
+						var _isChange = false;
+						var moveOnNewSheet = false;
+
+						if (wsTo === wsFrom) {
+							if (oBBoxFrom.containsRange(cloneElem.sqRef)) {
+								cloneElem.sqRef.setOffset(offset);
+								_isChange = true;
+							}
+							if (_isChange) {
+								isChange = true;
+							}
+						} else {
+							if (oBBoxFrom.containsRange(cloneElem.sqRef)) {
+								//тут необходимо добавить новый спакрлайн на новом листе
+								moveOnNewSheet = true;
+								cloneElem.sqRef.setOffset(offset);
+								aSparkLinesToSheet.push(cloneElem);
+								isChange = true;
+							}
+						}
+
+						//необходимо ещё сдвинуть _f
+						if (_elem && oBBoxFrom.containsRange(_elem._f)) {
+							cloneElem._f.setOffset(offset);
+							if (wsTo.sName !== cloneElem._f.sheet) {
+								cloneElem._f.setSheet(wsTo.sName);
+							}
+							AscCommonExcel.executeInR1C1Mode(false, function () {
+								cloneElem.f = cloneElem._f.getName();
+							});
+							isChange = true;
+						}
+
+						if (!moveOnNewSheet) {
+							aSparklines.push(cloneElem);
+						}
+					}
+					if (isChange) {
+						//если, допустим, перенесли все спарклайны на другой лист, то необходимо удалить группы здесь и добавить новую группы
+						if (aSparklines.length !== 0) {
+							val.setSparklines(aSparklines, true, true);
+						}
+						if (aSparkLinesToSheet.length !== 0) {
+							var modelSparkline = new AscCommonExcel.sparklineGroup(true);
+							modelSparkline.worksheet = wsTo;
+							modelSparkline.set(val);
+							modelSparkline.setSparklines(aSparkLinesToSheet, true);
+							wsTo.addSparklineGroups(modelSparkline);
+						}
+					}
+				}
+			});
 		}
 	};
 	Worksheet.prototype.getCwf = function() {
@@ -12165,7 +12290,7 @@
 			mapRes[v.toLowerCase()] = true;
 		};
 		if (withEmpty) {
-			this._setProperty(null, null, fAction);
+			this._foreach(fAction);
 		} else {
 			this._setPropertyNoEmpty(null, null, fAction);
 		}
@@ -13258,6 +13383,18 @@
 		}
 		return align;
 	};
+
+	Range.prototype.getAngle = function () {
+		var nRow = this.bbox.r1;
+		var nCol = this.bbox.c1;
+		var angle;
+		this.worksheet._getCellNoEmpty(nRow, nCol, function (cell) {
+			var align = cell.getAlign();
+			angle = align.getAngle();
+		});
+		return angle;
+	}
+
 	Range.prototype.getFillColor = function () {
 		return this.getFill().bg();
 	};
@@ -13765,6 +13902,7 @@
 	Range.prototype.setHyperlink=function(val, bWithoutStyle){
 		if(null != val && false == val.isValid())
 			return;
+
 		//проверяем, может эта ссылка уже существует
 		var i, length, hyp;
 		var bExist = false;
@@ -15429,6 +15567,22 @@
 									var toDataValidation = fromDataValidation.clone();
 									toDataValidation.ranges = fromDataValidation.ranges.concat(newDataValidations[i]);
 									wsTo.dataValidations.change(wsTo, fromDataValidation, toDataValidation, true);
+								}
+							}
+						}
+					}
+				}
+
+				if (wsTo.aSparklineGroups && wsTo.aSparklineGroups.length) {
+					wsTo.removeSparklines(to);
+				}
+				if(wsFrom === wsTo && wsFrom.aSparklineGroups && wsFrom.aSparklineGroups.length) {
+					for (var i = to.c1; i <= to.c2; i += nDx) {
+						for (var j = to.r1; j <= to.r2; j += nDy) {
+							for(var k = 0, length3 = wsFrom.aSparklineGroups.length; k < length3; k++){
+								var _arrSparklines = wsFrom.aSparklineGroups[k].getModifySparklinesForPromote(from, to, new AscCommon.CellBase(j - from.r1, i - from.c1));
+								if (_arrSparklines) {
+									wsFrom.aSparklineGroups[k].setSparklines(_arrSparklines, true, true);
 								}
 							}
 						}

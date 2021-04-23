@@ -567,9 +567,11 @@ CBlockLevelSdt.prototype.Is_Empty = function()
 };
 CBlockLevelSdt.prototype.Add = function(oParaItem)
 {
+	var isRemoveWrapper = false;
 	if (oParaItem && oParaItem.Type !== para_TextPr)
 	{
-		this.private_ReplacePlaceHolderWithContent();
+		isRemoveWrapper = this.IsPlaceHolder() && this.IsContentControlTemporary();
+		this.private_ReplacePlaceHolderWithContent(true);
 	}
 	else if (oParaItem && oParaItem.Type !== para_TextPr && this.IsPlaceHolder())
 	{
@@ -586,8 +588,11 @@ CBlockLevelSdt.prototype.Add = function(oParaItem)
 	}
 	else
 	{
-		return this.Content.AddToParagraph(oParaItem);
+		this.Content.AddToParagraph(oParaItem);
 	}
+
+	if (isRemoveWrapper)
+		this.RemoveContentControlWrapper();
 };
 CBlockLevelSdt.prototype.PreDelete = function()
 {
@@ -1192,6 +1197,9 @@ CBlockLevelSdt.prototype.Set_CurrentElement = function(bUpdateStates, PageAbs, o
 {
 	if (oDocContent === this.Content)
 	{
+		if (this.IsPlaceHolder())
+			this.SelectAll(1);
+
 		var nIndex = this.GetIndex();
 		if (-1 !== nIndex)
 			this.Parent.Set_CurrentElement(nIndex, bUpdateStates);
@@ -1628,7 +1636,7 @@ CBlockLevelSdt.prototype.IsPlaceHolder = function()
 {
 	return this.Pr.ShowingPlcHdr;
 };
-CBlockLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function()
+CBlockLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function(isSkipTemporaryCheck)
 {
 	if (!this.IsPlaceHolder())
 		return;
@@ -1658,7 +1666,7 @@ CBlockLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function()
 		oParaMath.MoveCursorToStartPos();
 	}
 
-	if (this.IsContentControlTemporary())
+	if (true !== isSkipTemporaryCheck && this.IsContentControlTemporary())
 		this.RemoveContentControlWrapper();
 };
 CBlockLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function(isSelect)

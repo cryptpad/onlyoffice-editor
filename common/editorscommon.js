@@ -1330,6 +1330,11 @@
 		SupportedFormats: ["docx", "doc", "docm", "dot", "dotm", "dotx", "epub", "fodt", "odt", "ott", "rtf", "wps"]
 	};
 
+	var c_oAscTextUploadProp = {
+		MaxFileSize:      25000000, //25 mb
+		SupportedFormats: ["txt", "csv"]
+	};
+
 	/**
 	 *
 	 * @param sName
@@ -1674,6 +1679,11 @@
 			callback(Asc.c_oAscError.ID.Unknown);
 		}
 	}
+	function ShowTextFileDialog(callback) {
+		if (false === _ShowFileDialog(getAcceptByArray(c_oAscTextUploadProp.SupportedFormats), false, false, ValidateUploadText, callback)) {
+			callback(Asc.c_oAscError.ID.Unknown);
+		}
+	}
 
 	function InitDragAndDrop(oHtmlElement, callback)
 	{
@@ -1932,6 +1942,10 @@
 	function ValidateUploadDocument(files)
 	{
 		return ValidateUpload(files, c_oAscServerError.UploadDocumentExtension, c_oAscServerError.UploadDocumentContentLength, c_oAscServerError.UploadDocumentCountFiles, c_oAscDocumentUploadProp);
+	}
+	function ValidateUploadText(files)
+	{
+		return ValidateUpload(files, c_oAscServerError.UploadDocumentExtension, c_oAscServerError.UploadDocumentContentLength, c_oAscServerError.UploadDocumentCountFiles, c_oAscTextUploadProp);
 	}
 
 	function CanDropFiles(event)
@@ -4096,6 +4110,7 @@
 	c_oAscSpaces[0x2003] = 1;
 	c_oAscSpaces[0x2005] = 1;
 	c_oAscSpaces[0x3000] = 1;
+	c_oAscSpaces[0xFEFF] = 1;
 
 	/**
 	 * Проверяем является ли заданный юников пробелом
@@ -4284,6 +4299,10 @@
 		{
 			loadScript('./../../../../sdkjs/' + sdkName + '/sdk-all.js', onSuccess, onError);
 		}
+	}
+
+	function loadChartStyles(onSuccess, onError) {
+		loadScript('../../../../sdkjs/common/Charts/ChartStyles.js', onSuccess, onError);
 	}
 
 	function getAltGr(e)
@@ -5751,134 +5770,83 @@
 			this.MathPolygons = MPolygon.GetPaths(PixelError);
 		}
 	};
-	CMathTrack.prototype.Draw = function (overlay, oPath, shift, color, dKoefX, dKoefY, left, top)
+	CMathTrack.prototype.Draw = function (overlay, oPath, shiftX, shiftY, color, dKoefX, dKoefY, left, top, transform)
 	{
 		var ctx = overlay.m_oContext;
 		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
 		ctx.strokeStyle = color;
-		ctx.lineWidth = Math.round(window.devicePixelRatio);
+		var lineW = Math.round(rPR);
+		ctx.lineWidth = lineW;
 		ctx.beginPath();
 
-        left *= rPR;
-        top *= rPR;
-		var Points = oPath.Points;
+		if (shiftX > 0.1 || shiftY > 0.1)
+		{
+			shiftX = Math.round(shiftX * rPR);
+			shiftY = Math.round(shiftY * rPR);
+		}
 
+		var isRoundDraw = (transform && !AscCommon.global_MatrixTransformer.IsIdentity2(transform)) ? false : true;
+
+		var Points = oPath.Points;
 		var nCount = Points.length;
+
 		// берем предпоследнюю точку, т.к. последняя совпадает с первой
 		var PrevX = Points[nCount - 2].X, PrevY = Points[nCount - 2].Y;
-		var _x = left + dKoefX * Points[nCount - 2].X,
-			_y = top + dKoefY * Points[nCount - 2].Y;
-		var StartX, StartY;
+		var x, y;
+		var eps = 0.0001;
 
 		for (var nIndex = 0; nIndex < nCount; nIndex++)
 		{
-			if (PrevX > Points[nIndex].X)
-			{
-				_y = top + dKoefY * Points[nIndex].Y - shift;
-			}
-			else if (PrevX < Points[nIndex].X)
-			{
-				_y = top + dKoefY * Points[nIndex].Y + shift;
-			}
+			x = transform ? transform.TransformPointX(Points[nIndex].X, Points[nIndex].Y) : Points[nIndex].X;
+			y = transform ? transform.TransformPointY(Points[nIndex].X, Points[nIndex].Y) : Points[nIndex].Y;
 
-			if (PrevY < Points[nIndex].Y)
+			x = (left + dKoefX * x) * rPR;
+			y = (top + dKoefY * y) * rPR;
+
+			if (shiftX > 0.1 || shiftY > 0.1)
 			{
-				_x = left + dKoefX * Points[nIndex].X - shift;
-			}
-			else if (PrevY > Points[nIndex].Y)
-			{
-				_x = left + dKoefX * Points[nIndex].X + shift;
+				// заточка на то, что это ректы
+				if (PrevX > (Points[nIndex].X + eps))
+				{
+					x -= shiftX;
+					y -= shiftY;
+				}
+				else if (PrevX < (Points[nIndex].X - eps))
+				{
+					x += shiftX;
+					y += shiftY;
+				}
+
+				if (PrevY > (Points[nIndex].Y + eps))
+				{
+					x += shiftX;
+					y -= shiftY;
+				}
+				else if (PrevY < (Points[nIndex].Y - eps))
+				{
+					x -= shiftX;
+					y += shiftY;
+				}
 			}
 
 			PrevX = Points[nIndex].X;
 			PrevY = Points[nIndex].Y;
 
-			if (nIndex > 0)
+			if (isRoundDraw)
 			{
-				overlay.CheckPoint(_x, _y);
-
-				if (1 == nIndex)
-				{
-					StartX = _x;
-					StartY = _y;
-					overlay.m_oContext.moveTo((_x >> 0) + 0.5, (_y >> 0) + 0.5);
-				}
-				else
-				{
-					overlay.m_oContext.lineTo((_x >> 0) + 0.5, (_y >> 0) + 0.5);
-				}
+				x = (x >> 0) + lineW / 2;
+				y = (y >> 0) + lineW / 2;
 			}
+
+			overlay.CheckPoint(x, y);
+
+			if (0 == nIndex)
+				overlay.m_oContext.moveTo(x, y);
+			else
+				overlay.m_oContext.lineTo(x, y);
 		}
 
-		overlay.m_oContext.lineTo((StartX >> 0) + 0.5, (StartY >> 0) + 0.5);
-
-		ctx.closePath();
-		ctx.stroke();
-		ctx.beginPath();
-	};
-
-	CMathTrack.prototype.DrawWithMatrix = function(overlay, oPath, ShiftX, ShiftY, color, dKoefX, dKoefY, left, top, m)
-	{
-		var ctx = overlay.m_oContext;
-		ctx.strokeStyle = color;
-		ctx.lineWidth = 1;
-		ctx.beginPath();
-
-		var Points = oPath.Points;
-
-		var nCount = Points.length;
-		// берем предпоследнюю точку, т.к. последняя совпадает с первой
-		var x = Points[nCount - 2].X, y = Points[nCount - 2].Y;
-		var _x, _y;
-
-		var PrevX = Points[nCount - 2].X, PrevY = Points[nCount - 2].Y;
-		var StartX, StartY;
-
-		for (var nIndex = 0; nIndex < nCount; nIndex++)
-		{
-			if (PrevX > Points[nIndex].X)
-			{
-				y = Points[nIndex].Y - ShiftY;
-			}
-			else if (PrevX < Points[nIndex].X)
-			{
-				y = Points[nIndex].Y + ShiftY;
-			}
-
-			if (PrevY < Points[nIndex].Y)
-			{
-				x = Points[nIndex].X - ShiftX;
-			}
-			else if (PrevY > Points[nIndex].Y)
-			{
-				x = Points[nIndex].X + ShiftX;
-			}
-
-			PrevX = Points[nIndex].X;
-			PrevY = Points[nIndex].Y;
-
-			if (nIndex > 0)
-			{
-				_x = (left + dKoefX * m.TransformPointX(x, y));
-				_y = (top + dKoefY * m.TransformPointY(x, y));
-
-				overlay.CheckPoint(_x, _y);
-
-				if (1 == nIndex)
-				{
-					StartX = _x;
-					StartY = _y;
-					overlay.m_oContext.moveTo((_x >> 0) + 0.5, (_y >> 0) + 0.5);
-				}
-				else
-				{
-					overlay.m_oContext.lineTo((_x >> 0) + 0.5, (_y >> 0) + 0.5);
-				}
-			}
-
-		}
-
-		overlay.m_oContext.lineTo((StartX >> 0) + 0.5, (StartY >> 0) + 0.5);
+		overlay.m_oContext.closePath();
 
 		ctx.closePath();
 		ctx.stroke();
@@ -6305,48 +6273,126 @@
 		return aDelta;
 	}
 
-    function _getIntegerByDivide(val)
-    {
-        // поддерживаем scale, который
-        // 1) рациональное число
-        // 2) знаменатель несократимой дроби <= 10 (поддерживаем проценты кратные 1/10, 1/9, ... 1/2)
-        var test = val;
-        for (var i = 0; i < 10; i++)
-        {
-            test = (val - i) * AscCommon.AscBrowser.retinaPixelRatio;
-            if (test > 0 && Math.abs(test - (test >> 0)) < 0.001)
-                return { start: (val - i), end : (test >> 0) };
-        }
-        return { start : val, end: AscCommon.AscBrowser.convertToRetinaValue(val, true) };
-    };
-
-    function calculateCanvasSize(element)
+	function _getIntegerByDivide(val)
 	{
-        var scale = AscCommon.AscBrowser.retinaPixelRatio;
-        if (Math.abs(scale - (scale >> 0)) < 0.001)
+		// поддерживаем scale, который
+		// 1) рациональное число
+		// 2) знаменатель несократимой дроби <= 10 (поддерживаем проценты кратные 1/10, 1/9, ... 1/2)
+		var test = val;
+		for (var i = 0; i < 10; i++)
 		{
-            element.width = (scale * parseInt(element.style.width));
-            element.height = (scale * parseInt(element.style.height));
-            return;
+			test = (val - i) * AscCommon.AscBrowser.retinaPixelRatio;
+			if (test > 0 && Math.abs(test - (test >> 0)) < 0.001)
+				return { start: (val - i), end : (test >> 0) };
+		}
+		return { start : val, end: AscCommon.AscBrowser.convertToRetinaValue(val, true) };
+	};
+
+	function calculateCanvasSize(element)
+	{
+		var scale = AscCommon.AscBrowser.retinaPixelRatio;
+		var new_width = 0;
+		var new_height = 0;
+		if (Math.abs(scale - (scale >> 0)) < 0.001)
+		{
+			new_width = (scale * parseInt(element.style.width));
+			new_height = (scale * parseInt(element.style.height));
+
+			if (element.width !== new_width)
+				element.width = new_width;
+
+			if (element.height !== new_height)
+				element.height = new_height;
+
+			return;
 		}
 
-        var rect = element.getBoundingClientRect();
-        if (!AscCommon.AscBrowser.isMozilla)
-        {
-            element.width = Math.round(scale * rect.right) - Math.round(scale * rect.left);
-            element.height = Math.round(scale * rect.bottom) - Math.round(scale * rect.top);
-        }
-        else
-        {
-            var sizeW = _getIntegerByDivide(rect.width);
-            var sizeH = _getIntegerByDivide(rect.height);
-            if (sizeW.start !== rect.width) element.style.width = sizeW.start + "px";
-            if (sizeH.start !== rect.height) element.style.height = sizeH.start + "px";
+		var rect = element.getBoundingClientRect();
+		if (rect.width === 0 && rect.height === 0)
+		{
+			var style_width = parseInt(element.style.width);
+			var style_height = parseInt(element.style.height);
 
-            element.width = sizeW.end;
-            element.height = sizeH.end;
-        }
-    };
+			rect = {
+				x : 0, left : 0,
+				y : 0, top : 0,
+				width : style_width, right : style_width,
+				height : style_height, bottom : style_height
+			};
+		}
+
+		if (!AscCommon.AscBrowser.isMozilla)
+		{
+			new_width = Math.round(scale * rect.right) - Math.round(scale * rect.left);
+			new_height = Math.round(scale * rect.bottom) - Math.round(scale * rect.top);
+		}
+		else
+		{
+			var sizeW = _getIntegerByDivide(rect.width);
+			var sizeH = _getIntegerByDivide(rect.height);
+			if (sizeW.start !== rect.width) element.style.width = sizeW.start + "px";
+			if (sizeH.start !== rect.height) element.style.height = sizeH.start + "px";
+
+			new_width = sizeW.end;
+			new_height = sizeH.end;
+		}
+
+		if (element.width !== new_width)
+			element.width = new_width;
+
+		if (element.height !== new_height)
+			element.height = new_height;
+	};
+
+
+	function CRC32()
+	{
+		this.m_aTable = [];
+		this.private_InitTable();
+	}
+	CRC32.prototype.private_InitTable = function()
+	{
+		var CRC_POLY = 0xEDB88320;
+		var nChar;
+		for (var nIndex = 0; nIndex < 256; nIndex++)
+		{
+			nChar = nIndex;
+			for (var nCounter = 0; nCounter < 8; nCounter++)
+			{
+				nChar = ((nChar & 1) ? ((nChar >>> 1) ^ CRC_POLY) : (nChar >>> 1));
+			}
+			this.m_aTable[nIndex] = nChar;
+		}
+	};
+	CRC32.prototype.Calculate_ByString = function(sStr, nSize)
+	{
+		var CRC_MASK = 0xD202EF8D;
+		var nCRC     = 0 ^ (-1);
+
+		for (var nIndex = 0; nIndex < nSize; nIndex++)
+		{
+			nCRC = this.m_aTable[(nCRC ^ sStr.charCodeAt(nIndex)) & 0xFF] ^ (nCRC >>> 8);
+			nCRC ^= CRC_MASK;
+		}
+
+		return (nCRC ^ (-1)) >>> 0;
+	};
+	CRC32.prototype.Calculate_ByByteArray = function(aArray, nSize)
+	{
+		var CRC_MASK = 0xD202EF8D;
+		var nCRC     = 0 ^ (-1);
+
+		for (var nIndex = 0; nIndex < nSize; nIndex++)
+		{
+			nCRC = (nCRC >>> 8) ^ this.m_aTable[(nCRC ^ aArray[nIndex]) & 0xFF];
+			nCRC ^= CRC_MASK;
+		}
+
+		return (nCRC ^ (-1)) >>> 0;
+	};
+
+	var g_oCRC32 = new CRC32();
+
 
 	//------------------------------------------------------------export---------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
@@ -6380,6 +6426,7 @@
 	window["AscCommon"].InitOnMessage = InitOnMessage;
 	window["AscCommon"].ShowImageFileDialog = ShowImageFileDialog;
 	window["AscCommon"].ShowDocumentFileDialog = ShowDocumentFileDialog;
+	window["AscCommon"].ShowTextFileDialog = ShowTextFileDialog;
 	window["AscCommon"].InitDragAndDrop = InitDragAndDrop;
 	window["AscCommon"].UploadImageFiles = UploadImageFiles;
     window["AscCommon"].UploadImageUrls = UploadImageUrls;
@@ -6412,6 +6459,7 @@
 
 	window["AscCommon"].loadSdk = loadSdk;
     window["AscCommon"].loadScript = loadScript;
+    window["AscCommon"].loadChartStyles = loadChartStyles;
 	window["AscCommon"].getAltGr = getAltGr;
 	window["AscCommon"].getColorSchemeByName = getColorSchemeByName;
 	window["AscCommon"].getColorSchemeByIdx = getColorSchemeByIdx;
@@ -6485,7 +6533,7 @@
 	prot["AddCustomActionSymbol"] = prot.AddCustomActionSymbol;
 
 	window["AscCommon"].CCustomShortcutActionSymbol = window["AscCommon"]["CCustomShortcutActionSymbol"] = CCustomShortcutActionSymbol;
-
+	window['AscCommon'].g_oCRC32  = g_oCRC32;
 })(window);
 
 window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)

@@ -125,6 +125,10 @@ var editor;
     this.formulasList = null;	// Список всех формул
 
 	this.openingEnd = {bin: false, xlsxStart: false, xlsx: false, data: null};
+	
+	this.tmpR1C1mode = null;
+
+    this.insertDocumentUrlsData = null;
 
     this._init();
     return this;
@@ -471,38 +475,192 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_TextImport = function(options, callback, bPaste) {
-      if (this.canEdit()) {
-        var text;
-        if(bPaste) {
-			text = AscCommon.g_specialPasteHelper.GetPastedData(true);
-        } else {
-			var ws = this.wb.getWorksheet();
-			text = ws.getRangeText();
-        }
-        if(!text) {
-            //error
-            //no data was selected to parse
-			this.sendEvent('asc_onError', c_oAscError.ID.NoDataToParse, c_oAscError.Level.NoCritical);
-			callback(false);
-			return;
-        }
-        callback(AscCommon.parseText(text, options, true));
+    //return this.asc_TextFromUrl(null, options, callback);
+    //return this.asc_TextFromFile(options, callback);
+    if (this.canEdit()) {
+      var text;
+      if(bPaste) {
+        text = AscCommon.g_specialPasteHelper.GetPastedData(true);
+      } else {
+        var ws = this.wb.getWorksheet();
+        text = ws.getRangeText();
       }
+      if(!text) {
+        //error
+        //no data was selected to parse
+        this.sendEvent('asc_onError', c_oAscError.ID.NoDataToParse, c_oAscError.Level.NoCritical);
+        callback(false);
+        return;
+      }
+      callback(AscCommon.parseText(text, options, true));
+    }
   };
 
-  spreadsheet_api.prototype.asc_TextToColumns = function(options) {
-	  if (this.canEdit()) {
-          var ws = this.wb.getWorksheet();
-		  var text = ws.getRangeText();
-		  var specialPasteHelper = window['AscCommon'].g_specialPasteHelper;
-		  if(!specialPasteHelper.specialPasteProps) {
-			  specialPasteHelper.specialPasteProps = new Asc.SpecialPasteProps();
-          }
-		  specialPasteHelper.specialPasteProps.property = Asc.c_oSpecialPasteProps.useTextImport;
-		  specialPasteHelper.specialPasteProps.asc_setAdvancedOptions(options);
-		  this.wb.pasteData(AscCommon.c_oAscClipboardDataFormat.Text, text, null, null, true);
-	  }
-  };
+	spreadsheet_api.prototype.asc_TextFromFileOrUrl = function (options, callback, url) {
+		if (this.canEdit()) {
+			if (url) {
+				this._getTextFromUrl(url, options, callback);
+			} else {
+				this._getTextFromFile(options, callback);
+			}
+		}
+	};
+
+	spreadsheet_api.prototype._getTextFromUrl = function (url, options, callback) {
+		if (this.canEdit()) {
+			var document = {url: url, format: "TXT"};
+			this.insertDocumentUrlsData = {
+				imageMap: null, documents: [document], convertCallback: function (_api, url) {
+					_api.insertDocumentUrlsData.imageMap = url;
+					if (!url['output.txt']) {
+						_api.endInsertDocumentUrls();
+						_api.sendEvent("asc_onError", Asc.c_oAscError.ID.DirectUrl, Asc.c_oAscError.Level.NoCritical);
+						return;
+					}
+
+					if (typeof Blob !== 'undefined' && typeof FileReader !== 'undefined') {
+						AscCommon.getJSZipUtils().getBinaryContent(url['output.txt'], function (err, data) {
+							var cp = {
+								'codepage': AscCommon.c_oAscCodePageUtf8, "delimiter": AscCommon.c_oAscCsvDelimiter.Comma,
+								'encodings': AscCommon.getEncodingParams()
+							};
+
+							if (err) {
+								t.handlers.trigger("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
+							} else {
+								var dataUint = new Uint8Array(data);
+								var bom = AscCommon.getEncodingByBOM(dataUint);
+								if (AscCommon.c_oAscCodePageNone !== bom.encoding) {
+									cp['codepage'] = bom.encoding;
+									data = dataUint.subarray(bom.size);
+								}
+								cp['data'] = data;
+								callback(new AscCommon.asc_CAdvancedOptions(cp));
+							}
+						});
+					}
+				}, endCallback: function (_api) {
+				}
+			};
+
+			var _options = new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.TXT);
+			_options.isNaturalDownload = true;
+			this.asc_DownloadAs(_options);
+		}
+	};
+
+	spreadsheet_api.prototype._getTextFromFile = function (options, callback) {
+		var t = this;
+
+		function wrapper_callback(data) {
+			var cp = {
+				'codepage': AscCommon.c_oAscCodePageUtf8, "delimiter": AscCommon.c_oAscCsvDelimiter.Comma,
+				'encodings': AscCommon.getEncodingParams(),
+				'data': data
+			};
+			callback(new AscCommon.asc_CAdvancedOptions(cp));
+		}
+
+		if (window["AscDesktopEditor"]) {
+			// TODO: add translations
+			window["AscDesktopEditor"]["OpenFilenameDialog"]("All supported files (*txt *csv);;Txt File (*txt);;Csv File(*csv);;All files (*.*)", false, function (_file) {
+				var file = _file;
+				if (Array.isArray(file))
+					file = file[0];
+				if (!file)
+					return;
+
+				window["AscDesktopEditor"]["loadLocalFile"](file, function(uint8Array) {
+					if (!uint8Array)
+						return;
+
+					wrapper_callback(uint8Array);
+				});
+			});
+			return;
+		}
+
+		AscCommon.ShowTextFileDialog(function (error, files) {
+			if (Asc.c_oAscError.ID.No !== error) {
+				t.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
+				return;
+			}
+
+			var reader = new FileReader();
+			reader.onload = function () {
+				wrapper_callback(reader.result);
+			};
+
+			reader.onerror = function () {
+				t.sendEvent("asc_onError", Asc.c_oAscError.ID.Unknown, Asc.c_oAscError.Level.NoCritical);
+			};
+
+			reader.readAsArrayBuffer(files[0]);
+		});
+	};
+
+	spreadsheet_api.prototype.endInsertDocumentUrls = function()
+	{
+		if (this.insertDocumentUrlsData) {
+			this.insertDocumentUrlsData.endCallback(this);
+			this.insertDocumentUrlsData = null;
+			//this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.DownloadAs);
+		}
+	};
+
+	spreadsheet_api.prototype.asc_TextToColumns = function (options, opt_text, opt_activeRange) {
+		if (this.canEdit()) {
+			var ws = this.wb.getWorksheet();
+			var text = opt_text ? opt_text : ws.getRangeText();
+			var specialPasteHelper = window['AscCommon'].g_specialPasteHelper;
+			if (!specialPasteHelper.specialPasteProps) {
+				specialPasteHelper.specialPasteProps = new Asc.SpecialPasteProps();
+			}
+			specialPasteHelper.specialPasteProps.property = Asc.c_oSpecialPasteProps.useTextImport;
+			specialPasteHelper.specialPasteProps.asc_setAdvancedOptions(options);
+
+			var selectionRange;
+			var activeSheet = null;
+			if (opt_activeRange) {
+				var is3dRef = parserHelp.parse3DRef(opt_activeRange);
+				//TODO вставка на другой лист
+				var range, sheetModel;
+				if (is3dRef) {
+					sheetModel = this.wb.model.getWorksheetByName(is3dRef.sheet);
+					if (sheetModel) {
+						range = AscCommonExcel.g_oRangeCache.getAscRange(is3dRef.range);
+					}
+				} else {
+					range = AscCommonExcel.g_oRangeCache.getAscRange(opt_activeRange);
+				}
+				if (sheetModel && sheetModel !== ws.model) {
+					activeSheet = sheetModel;
+					this.wb.model.nActive = sheetModel.index;
+				}
+				if (range) {
+					if (activeSheet) {
+						selectionRange = activeSheet.selectionRange.clone();
+						activeSheet.selectionRange.ranges = [range];
+					} else {
+						selectionRange = ws.model.selectionRange.clone();
+						ws.model.selectionRange.ranges = [range];
+					}
+				}
+			}
+
+			this.wb.pasteData(AscCommon.c_oAscClipboardDataFormat.Text, text, null, null, true);
+
+			if (selectionRange) {
+				if (activeSheet !== null) {
+					activeSheet.selectionRange = selectionRange;
+					this.wb.model.nActive = ws.model.index;
+					ws.draw();
+				} else {
+					ws.model.selectionRange = selectionRange;
+				}
+			}
+		}
+	};
 
   spreadsheet_api.prototype.asc_ShowSpecialPasteButton = function(props) {
       if (this.canEdit()) {
@@ -570,6 +728,7 @@ var editor;
     if (this.wb) {
       if (Math.abs(oldScale - AscCommon.AscBrowser.retinaPixelRatio) > 0.001) {
         this.wb.changeZoom(null);
+        this._sendWorkbookStyles();
       }
       this.wb.resize();
 
@@ -948,6 +1107,19 @@ var editor;
       var printPagesData = this.wb.calcPagesPrint(options.advancedOptions);
       var pdfPrinterMemory = this.wb.printSheets(printPagesData).DocumentRenderer.Memory;
       dataContainer.data = oAdditionalData["nobase64"] ? pdfPrinterMemory.GetData() : pdfPrinterMemory.GetBase64Memory();
+    } else if (this.insertDocumentUrlsData) {
+      var last = this.insertDocumentUrlsData.documents.shift();
+      oAdditionalData['url'] = last.url;
+      oAdditionalData['format'] = last.format;
+      if (last.token) {
+        oAdditionalData['tokenDownload'] = last.token;
+        //remove to reduce message size
+        oAdditionalData['tokenSession'] = undefined;
+      }
+      oAdditionalData['outputurls']= true;
+      // ToDo select txt params
+      oAdditionalData["codepage"] = AscCommon.c_oAscCodePageUtf8;
+      dataContainer.data = last.data;
     } else {
       var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
       if (c_oAscFileType.CSV === fileType) {
@@ -965,6 +1137,18 @@ var editor;
       sParamXml += ("<m_nCsvDelimiter>" + oAdditionalData["delimiter"] + "</m_nCsvDelimiter>");
       window["AscDesktopEditor"]["CryptoDownloadAs"](dataContainer.data, fileType, sParamXml);
       return true;
+    }
+  };
+
+  spreadsheet_api.prototype.processSavedFile             = function(url, downloadType)
+  {
+    if (this.insertDocumentUrlsData && this.insertDocumentUrlsData.convertCallback)
+    {
+      this.insertDocumentUrlsData.convertCallback(this, url);
+    }
+    else
+    {
+      AscCommon.baseEditorsApi.prototype.processSavedFile.call(this, url, downloadType);
     }
   };
 
@@ -2773,8 +2957,9 @@ var editor;
     this.wb.getWorksheet().setSelectionInfo("sort", options);
   };
 
-  spreadsheet_api.prototype.asc_emptyCells = function(options) {
-    this.wb.emptyCells(options);
+  spreadsheet_api.prototype.asc_emptyCells = function(options, isMineComments) {
+    //TODO isMineComments - временный флаг, как только в сдк появится класс для групп, добавить этот флаг туда
+  	this.wb.emptyCells(options, isMineComments);
   };
 
   spreadsheet_api.prototype.asc_drawDepCells = function(se) {
@@ -2962,10 +3147,18 @@ var editor;
     };
     //-------------------------------------------------------
 
+    spreadsheet_api.prototype.asc_getCurrentDrawingMacrosName = function() {
+        var ws = this.wb.getWorksheet();
+        return ws.objectRender.getCurrentDrawingMacrosName();
+    };
+    spreadsheet_api.prototype.asc_assignMacrosToCurrentDrawing = function(sName) {
+        var ws = this.wb.getWorksheet();
+        return ws.objectRender.assignMacrosToCurrentDrawing(sName);
+    };
     spreadsheet_api.prototype.asc_setSelectedDrawingObjectLayer = function(layerType) {
-    var ws = this.wb.getWorksheet();
-    return ws.objectRender.setGraphicObjectLayer(layerType);
-  };
+        var ws = this.wb.getWorksheet();
+        return ws.objectRender.setGraphicObjectLayer(layerType);
+    };
 
   spreadsheet_api.prototype.asc_setSelectedDrawingObjectAlign = function(alignType) {
     var ws = this.wb.getWorksheet();
@@ -2987,6 +3180,11 @@ var editor;
     return ws.objectRender.getSelectedDrawingObjectsCount();
   };
 
+  spreadsheet_api.prototype.SetDrawImagePreviewBulletForMenu = function(id, type)
+  {
+    if (this.wbModel.DrawingDocument)
+      this.wbModel.DrawingDocument.SetDrawImagePreviewBulletForMenu(id, type, this);
+  };
 
   spreadsheet_api.prototype.asc_canEditCrop = function()
   {
@@ -3097,6 +3295,14 @@ var editor;
 	}
   	this.wb.removeAllComments(isMine, isCurrent);
   };
+
+	spreadsheet_api.prototype.asc_ResolveAllComments = function(isMine, isCurrent, arrIds)
+	{
+		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+			return;
+		}
+		this.wb.resolveAllComments(isMine, isCurrent);
+	};
 
   spreadsheet_api.prototype.asc_showComments = function (isShowSolved) {
     this.wb.showComments(true, isShowSolved);
@@ -3799,6 +4005,9 @@ var editor;
   };
 
 	spreadsheet_api.prototype.asc_setSparklineGroup = function (id, oSparklineGroup) {
+		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+			return;
+		}
 		var t = this;
 		var changeSparkline = function (res) {
 			if (res) {
@@ -3814,6 +4023,15 @@ var editor;
 			}
 		};
 		this._isLockedSparkline(id, changeSparkline);
+	};
+
+	spreadsheet_api.prototype.asc_addSparklineGroup = function (type, sDataRange, sLocationRange) {
+		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+			return;
+		}
+
+		var wsView = this.wb.getWorksheet();
+		return wsView.addSparklineGroup(type, sDataRange, sLocationRange);
 	};
 
     spreadsheet_api.prototype.asc_setListType = function (type, subtype) {
@@ -3869,6 +4087,24 @@ var editor;
   spreadsheet_api.prototype.asc_getHeaderFooterMode = function() {
 	  return this.wb && this.wb.getCellEditMode() && this.wb.cellEditor && this.wb.cellEditor.options &&
 		  this.wb.cellEditor.options.menuEditor;
+  };
+
+  spreadsheet_api.prototype.asc_getActiveRangeStr = function(referenceType, opt_getActiveCell) {
+  	var ws = this.wb.getWorksheet();
+  	var res = null;
+  	if (ws && ws.model && ws.model.selectionRange) {
+  		var range;
+  		if (opt_getActiveCell) {
+			var activeCell = ws.model.selectionRange.activeCell;
+			range = new Asc.Range(activeCell.col, activeCell.row, activeCell.col, activeCell.row);
+		} else {
+			var lastRange = ws.model.selectionRange.getLast();
+			range = new Asc.Range(lastRange.c1, lastRange.r1, lastRange.c2, lastRange.r2);
+		}
+
+		res = range.getName(referenceType);
+	}
+	return res;
   };
 
   spreadsheet_api.prototype.asc_getIsTrackShape = function()  {
@@ -4615,6 +4851,14 @@ var editor;
   };
   spreadsheet_api.prototype.asc_Recalculate = function () {
       History.EndTransaction();
+      //в _onUpdateAfterApplyChanges нет очистки кэша, добавляю -
+	  var lastPointIndex = History.Points && History.Points.length - 1;
+	  var lastPoint = History.Points[lastPointIndex];
+	  if (lastPoint && lastPoint.UpdateRigions) {
+		  for (var i in lastPoint.UpdateRigions) {
+			  this.wb.handlers.trigger("cleanCellCache", i, [lastPoint.UpdateRigions[i]], null, true);
+		  }
+	  }
       this._onUpdateAfterApplyChanges();
   };
 
@@ -4835,10 +5079,10 @@ var editor;
 		});
 		this.collaborativeEditing.lock(lockInfos, callback);
 	};
-	spreadsheet_api.prototype._changePivotWithLock = function (pivot, onAction) {
-		this._changePivotWithLockExt(pivot, false, true, onAction);
+	spreadsheet_api.prototype._changePivotWithLock = function (pivot, onAction, doNotCheckUnderlyingData) {
+		this._changePivotWithLockExt(pivot, false, true, onAction, doNotCheckUnderlyingData);
 	};
-	spreadsheet_api.prototype._changePivotWithLockExt = function (pivot, confirmation, updateSelection, onAction) {
+	spreadsheet_api.prototype._changePivotWithLockExt = function (pivot, confirmation, updateSelection, onAction, doNotCheckUnderlyingData) {
 		// Проверка глобального лока
 		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
 			return;
@@ -4852,7 +5096,7 @@ var editor;
 			History.Create_NewPoint();
 			History.StartTransaction();
 			t.wbModel.dependencyFormulas.lockRecal();
-			var changeRes = t._changePivot(pivot, confirmation, updateSelection, onAction);
+			var changeRes = t._changePivot(pivot, confirmation, updateSelection, onAction, doNotCheckUnderlyingData);
 			t.wbModel.dependencyFormulas.unlockRecal();
 			History.EndTransaction();
 			t._changePivotEndCheckError(pivot, changeRes, function () {
@@ -4893,7 +5137,10 @@ var editor;
 			});
 		});
 	};
-	spreadsheet_api.prototype._changePivot = function(pivot, confirmation, updateSelection, onAction) {
+	spreadsheet_api.prototype._changePivot = function(pivot, confirmation, updateSelection, onAction, doNotCheckUnderlyingData) {
+		if (!doNotCheckUnderlyingData && !pivot.checkPivotUnderlyingData()) {
+			return {error: c_oAscError.ID.PivotWithoutUnderlyingData, warning: c_oAscError.ID.No, updateRes: undefined};
+		}
 		var wsModel = pivot.GetWS();
 		pivot.stashCurReportRange();
 
@@ -5269,6 +5516,13 @@ var editor;
     }
   };
 
+  spreadsheet_api.prototype.asc_undoAllChanges = function() {
+  	if (this.wb.getCellEditMode()) {
+		this.asc_closeCellEditor();
+	}
+  	this.wb.undo({All : true});
+  };
+
   /*
    * Export
    * -----------------------------------------------------------------------------
@@ -5308,6 +5562,8 @@ var editor;
   prot["asc_Redo"] = prot.asc_Redo;
   prot["asc_TextImport"] = prot.asc_TextImport;
   prot["asc_TextToColumns"] = prot.asc_TextToColumns;
+  prot["asc_TextFromFileOrUrl"] = prot.asc_TextFromFileOrUrl;
+
 
 
   prot["asc_getDocumentName"] = prot.asc_getDocumentName;
@@ -5469,11 +5725,14 @@ var editor;
   prot["asc_addChartDrawingObject"] = prot.asc_addChartDrawingObject;
   prot["asc_editChartDrawingObject"] = prot.asc_editChartDrawingObject;
   prot["asc_addImageDrawingObject"] = prot.asc_addImageDrawingObject;
+  prot["asc_getCurrentDrawingMacrosName"] = prot.asc_getCurrentDrawingMacrosName;
+  prot["asc_assignMacrosToCurrentDrawing"] = prot.asc_assignMacrosToCurrentDrawing;
   prot["asc_setSelectedDrawingObjectLayer"] = prot.asc_setSelectedDrawingObjectLayer;
   prot["asc_setSelectedDrawingObjectAlign"] = prot.asc_setSelectedDrawingObjectAlign;
   prot["asc_DistributeSelectedDrawingObjectHor"] = prot.asc_DistributeSelectedDrawingObjectHor;
   prot["asc_DistributeSelectedDrawingObjectVer"] = prot.asc_DistributeSelectedDrawingObjectVer;
   prot["asc_getSelectedDrawingObjectsCount"] = prot.asc_getSelectedDrawingObjectsCount;
+  prot["SetDrawImagePreviewBulletForMenu"] = prot.SetDrawImagePreviewBulletForMenu;
   prot["asc_getChartPreviews"] = prot.asc_getChartPreviews;
   prot["asc_getTextArtPreviews"] = prot.asc_getTextArtPreviews;
   prot['asc_getPropertyEditorShapes'] = prot.asc_getPropertyEditorShapes;
@@ -5550,6 +5809,7 @@ var editor;
 
   // Sparklines
   prot["asc_setSparklineGroup"] = prot.asc_setSparklineGroup;
+  prot["asc_addSparklineGroup"] = prot.asc_addSparklineGroup;
 
   // Cell interface
   prot["asc_getCellInfo"] = prot.asc_getCellInfo;
@@ -5582,6 +5842,8 @@ var editor;
   prot["asc_formatPainter"] = prot.asc_formatPainter;
   prot["asc_showAutoComplete"] = prot.asc_showAutoComplete;
   prot["asc_getHeaderFooterMode"] = prot.asc_getHeaderFooterMode;
+  prot["asc_getActiveRangeStr"] = prot.asc_getActiveRangeStr;
+
 
   prot["asc_onMouseUp"] = prot.asc_onMouseUp;
 

@@ -245,6 +245,14 @@ CGraphicFrame.prototype.GetSearchElementId = function(bNext, bCurrent)
         return null;
 };
 
+CGraphicFrame.prototype.FindNextFillingForm = function(isNext, isCurrent)
+{
+	if (this.graphicObject)
+		return this.graphicObject.FindNextFillingForm(isNext, isCurrent);
+
+	return null;
+};
+
 CGraphicFrame.prototype.copy = function(oPr)
     {
         var ret = new CGraphicFrame();
@@ -266,7 +274,14 @@ CGraphicFrame.prototype.copy = function(oPr)
             ret.spPr.setParent(ret);
         }
         ret.setBDeleted(false);
-
+        if(this.macro !== null)
+        {
+            ret.setMacro(this.macro);
+        }
+        if(this.textLink !== null)
+        {
+            ret.setTextLink(this.textLink);
+        }
         if(!this.recalcInfo.recalculateTable && !this.recalcInfo.recalculateSizes && !this.recalcInfo.recalculateTransform)
         {
             ret.cachedImage = this.getBase64Img();

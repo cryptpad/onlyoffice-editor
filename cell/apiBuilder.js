@@ -337,12 +337,12 @@
 	 * @returns {ApiRange | Error}
 	 */
 	Api.prototype.Intersect  = function (Range1, Range2) {
-		if (Range1.Worksheet.Id === Range2.Worksheet.Id) {
+		if (Range1.GetWorksheet().Id === Range2.GetWorksheet().Id) {
 			var res = Range1.range.bbox.intersection(Range2.range.bbox);
 			if (!res) {
 				return "Ranges do not intersect.";
 			} else {
-				return new ApiRange(this.ActiveSheet.worksheet.getRange3(res.r1, res.c1, res.r2, res.c2));
+				return new ApiRange(this.GetActiveSheet().worksheet.getRange3(res.r1, res.c1, res.r2, res.c2));
 			}
 		} else {
 			return new Error('Ranges should be from one worksheet.');
@@ -526,6 +526,45 @@
 
 	Api.prototype.RecalculateAllFormulas = function(fLogger) {
 		var formulas = this.wbModel.getAllFormulas(true);
+		var _compare = function(_val1, _val2) {
+			if (!isNaN(parseFloat(_val1)) && isFinite(_val1) && !isNaN(parseFloat(_val2)) && isFinite(_val2)) {
+				var eps = 1e-12;
+				if (Math.abs(_val2 - _val1) < eps) {
+					return true;
+				}
+
+				var _slice = function (_val) {
+					var sVal = _val.toString();
+					if (sVal) {
+						var aVal1 = sVal.split(".");
+						if (aVal1[1]) {
+							aVal1[1] = aVal1[1].slice(0, 9);
+							sVal = aVal1[0] + "." + aVal1[1];
+						}
+						sVal = sVal.slice(0, 14);
+						_val = parseFloat(sVal);
+					}
+					return _val;
+				};
+
+				_val1 = _slice(_val1);
+				_val2 = _slice(_val2);
+			} else {
+				if (_val1 && _val2) {
+
+					var complexVal1 = AscCommonExcel.Complex.prototype.ParseString(_val1 + "");
+					if (complexVal1 && complexVal1.real && complexVal1.img) {
+						var complexVal2 = AscCommonExcel.Complex.prototype.ParseString(_val2 + "");
+						if (complexVal2 && complexVal2.real && complexVal2.img) {
+							if (_compare(complexVal1.real, complexVal2.real) && _compare(complexVal1.img, complexVal2.img)) {
+								return true;
+							}
+						}
+					}
+				}
+			}
+			return _val1 == _val2;
+		};
 		for (var i = 0; i < formulas.length; ++i) {
 			var formula = formulas[i];
 			var nRow;
@@ -534,7 +573,9 @@
 				nRow = formula.r;
 				nCol = formula.c;
 				formula = formula.f;
-			} else if (formula.parent) {
+			}
+
+			if (formula.parent) {
 				nRow = formula.parent.nRow;
 				nCol = formula.parent.nCol;
 			}
@@ -545,35 +586,9 @@
 				formula.setFormula(formula.getFormula());
 				formula.parse();
 				var formulaRes = formula.calculate();
-				var arrayFormula = formula.getArrayFormulaRef();
-				var newValue = null;
-				if (arrayFormula && formulaRes.type === AscCommonExcel.cElementType.array) {
-					if (formulaRes.array) {
-						var isOneRow = formulaRes.array.length === 1;
-						var isOneCol = formulaRes.array[0] && formulaRes.array[0].length === 1;
-
-						var rowArray = nRow - arrayFormula.r1;
-						var colArray = nCol - arrayFormula.c1;
-						if (isOneRow && rowArray > 0 && colArray === 0) {
-							colArray = rowArray;
-							rowArray = 0;
-						}
-						if (isOneCol && colArray > 0 && rowArray === 0) {
-							rowArray = colArray;
-							colArray = 0;
-						}
-
-						if (formulaRes.array[rowArray]) {
-							newValue = formulaRes.getElementRowCol(rowArray, colArray);
-						}
-					}
-					newValue = newValue ? newValue.getValue() : "#N/A";
-				} else {
-					newValue = formulaRes ? formulaRes.getValue() : "#N/A";
-				}
-
+				var newValue = formula.simplifyRefType(formulaRes, formula.ws, nRow, nCol);
 				if (fLogger) {
-					if (oldValue != newValue) {
+					if (!_compare(oldValue, newValue)) {
 						//error
 						fLogger({
 							sheet: formula.ws.sName,
@@ -664,13 +679,26 @@
 	});
 
 	/**
-	 * Returns a ApiRange that represents all the cells on the worksheet (not just the cells that are currently in use).
+	 * Returns a ApiRange that represents all the cells on the worksheet (not just the cells that are currently in use) or specified cell.
 	 * @memberof ApiWorksheet
 	 * @typeofeditors ["CSE"]
+	 * @param {number} row - The number of the row or the number of cell (if only row defined)
+	 * @param {number} col - The number of col
 	 * @returns {ApiRange}
 	 */
-	ApiWorksheet.prototype.GetCells = function () {
-		return new ApiRange(this.worksheet.getRange3(0, 0, AscCommon.gc_nMaxRow0, AscCommon.gc_nMaxCol0));
+	ApiWorksheet.prototype.GetCells = function (row, col) {
+		if (row) row--;
+		if (typeof col !== "undefined" && typeof row !== "undefined") {
+			return new ApiRange(this.worksheet.getRange3(row, col, row, col));
+		} else if (typeof row !== "undefined") {
+			var r = (row) ?  (row / AscCommon.gc_nMaxCol0) >> 0 : row;
+			var c = (row) ? row % AscCommon.gc_nMaxCol0 : row;
+			if (r && c) c--;
+			return new ApiRange(this.worksheet.getRange3(r, c, r, c));
+		}
+		else {
+			return new ApiRange(this.worksheet.getRange3(0, 0, AscCommon.gc_nMaxRow0, AscCommon.gc_nMaxCol0));
+		}
 	};
 	Object.defineProperty(ApiWorksheet.prototype, "Cells", {
 		get: function () {
@@ -692,7 +720,7 @@
 	 */
 	ApiWorksheet.prototype.GetRows = function (value) {
 		if (typeof  value === "undefined") {
-			return this.Rows;
+			return this.GetCells();
 		} else if (typeof value == "number" || value.indexOf(':') == -1) {
 			value = parseInt(value);
 			if (value > 0) {
@@ -1172,6 +1200,11 @@
 		var range = new ApiRange(this.worksheet.getRange2(sRange));
 		var p = /^(?:http:\/\/|https:\/\/)/;
 		if (range && range.range.isOneCell() && sAddress) {
+			var externalLink = sAddress.match(p) || sAddress.search(/mailto:/i) !== -1;
+			if (externalLink && sAddress.length > Asc.c_nMaxHyperlinkLength) {
+				return null;
+			}
+
 			this.worksheet.selectionRange.assign2(range.range.bbox);
 			var  Hyperlink = new Asc.asc_CHyperlink();
 			if (sScreenTip) {
@@ -1182,11 +1215,11 @@
 			if (sTextToDisplay) {
 				Hyperlink.asc_setTooltip(sTextToDisplay);
 			}
-			if (sAddress.match(p) || sAddress.search(/mailto:/i) !== -1) {
+			if (externalLink) {
 				Hyperlink.asc_setHyperlinkUrl(sAddress);
 			} else {
 				Hyperlink.asc_setRange(sAddress);
-				Hyperlink.asc_setSheet(this.Name);
+				Hyperlink.asc_setSheet(this.GetName());
 			}
 			this.worksheet.workbook.oApi.wb.insertHyperlink(Hyperlink);
 		}
@@ -1438,20 +1471,111 @@
 	 */
 	ApiRange.prototype.GetRows = function (nRow) {
 		if (typeof nRow === "undefined") {
-			var r1 = this.range.bbox.r1;
-			var r2 = this.range.bbox.r2;
+			var r1 = this.range.bbox.r1 + 1;
+			var r2 = this.range.bbox.r2 + 1;
 			return new ApiWorksheet(this.range.worksheet).GetRows(r1 + ":" + r2);
-			// return new ApiWorksheet(this.range.worksheet).Rows;	// return all rows from current sheet
+			// return new ApiWorksheet(this.range.worksheet).GetRows();	// return all rows from current sheet
 		} else if ( (nRow >= this.range.bbox.r1) && (nRow <= this.range.bbox.r2) ) {
 			return new ApiWorksheet(this.range.worksheet).GetRows(nRow);
 		} else {
 			var bbox = this.range.bbox;
+			if (nRow)
+				nRow--;
 			return new ApiRange(this.range.worksheet.getRange3(nRow, bbox.c1, nRow, bbox.c2));
 		}
 	};
 	Object.defineProperty(ApiRange.prototype, "Rows", {
 		get: function () {
 			return this.GetRows();
+		}
+	});
+
+	/**
+	 * Returns a Range object that represents all the cells in the specified range or specified cell.
+	 * @memberof ApiRange
+	 * @typeofeditors ["CSE"]
+	 * @param {number} nCol - The number of the col. * 
+	 * @returns {ApiRange}
+	 */
+	 ApiRange.prototype.GetCols = function (nCol) {
+		if (nCol) nCol--;
+		if (typeof nCol === "undefined") {
+			return new ApiRange(this.range.worksheet.getRange3(0, this.range.bbox.c1, AscCommon.gc_nMaxRow0, this.range.bbox.c2));
+		} else if ( (nCol >= this.range.bbox.c1) && (nCol <= this.range.bbox.c2) ) {
+			return new ApiRange(this.range.worksheet.getRange3(0, nCol, AscCommon.gc_nMaxRow0, nCol));
+		} else {
+			return new ApiRange(this.range.worksheet.getRange3(this.range.bbox.r1, nCol, this.range.bbox.r2, nCol));
+		}
+	};
+	Object.defineProperty(ApiRange.prototype, "Cols", {
+		get: function () {
+			return this.GetCols();
+		}
+	});
+
+	/**
+	 * Returns a Range object that represents the end in the specified direction in the specified range.
+	 * @memberof ApiRange
+	 * @typeofeditors ["CSE"]
+	 * @param {string} direction - The direction of end in the specified range. * 
+	 * @returns {ApiRange}
+	 */
+	 ApiRange.prototype.End = function (direction) {
+		var bbox = this.range.bbox;
+		var r1, c1, r2, c2;
+		switch (direction) {
+			case "xlUp":
+				r1 = r2 = 0;
+				c1 = c2 = bbox.c1;
+				break;
+			case "xlDown":
+				r1 = r2 = AscCommon.gc_nMaxRow0;
+				c1 = c2 = bbox.c1;
+				break;
+			case "xlToRight":
+				r1 = r2 = bbox.r1;
+				c1 = c2 = AscCommon.gc_nMaxCol0;
+				break;
+			case "xlToLeft":
+				r1 = r2 = bbox.r1;
+				c1 = c2 = 0;
+				break;
+			default:
+				r1 = bbox.r1;
+				c1 = bbox.c1;
+				r2 = bbox.r2;
+				c2 = bbox.c2;
+				break;
+		}
+		return new ApiRange(this.range.worksheet.getRange3(r1, c1, r2, c2));
+	};
+
+	/**
+	 * Returns a Range object that represents the cols in the specified range.
+	 * @memberof ApiRange
+	 * @typeofeditors ["CSE"]
+	 * @param {number} row - The number of the row or the number of cell (if only row defined)
+	 * @param {number} col - The number of col
+	 * @returns {ApiRange}
+	 */
+	 ApiRange.prototype.GetCells = function (row, col) {
+		if (row) row--;
+		var bbox = this.range.bbox;
+		if (typeof col !== "undefined" && typeof row !== "undefined") {
+			return new ApiRange(this.range.worksheet.getRange3(row, col, row, col));
+		} else if (typeof row !== "undefined") {
+			var cellCount = bbox.c2 - bbox.c1 + 1; 
+			var r = bbox.r1 + ((row) ?  (row / cellCount) >> 0 : row);
+			var c = bbox.c1 + ((r) ? 1 : 0) + ((row) ? row % cellCount : row);
+			if (r && c) c--;
+			return new ApiRange(this.range.worksheet.getRange3(r, c, r, c));
+		} else {
+			return new ApiRange(this.range.worksheet.getRange3(bbox.r1, bbox.c1, bbox.r2, bbox.c2));
+		}
+	};
+	Object.defineProperty(ApiRange.prototype, "Cells", {
+		get: function () {
+			return this.GetCells();
 		}
 	});
 
@@ -2249,6 +2373,46 @@
 		}
 	};
 
+	/**
+	 * returns getAngle
+	 * @memberof ApiRange
+	 * @return {getAngle}
+	 */
+	ApiRange.prototype.GetOrientation = function() {
+	  return this.range.getAngle();
+	};
+
+	/**
+	 * Sets the angle for the range
+	 * @memberof ApiRange
+	 * @param {angle}
+	 */
+	ApiRange.prototype.SetOrientation = function(angle) {
+        switch(angle) {
+			case 'xlDownward':
+				angle = -90;
+				break;
+			case 'xlHorizontal':
+				angle = 0;
+				break;
+			case 'xlUpward':
+				angle = 90;
+				break;
+			case 'xlVertical':
+				angle = 255;
+				break;
+		}
+		this.range.setAngle(angle);
+	};
+
+	Object.defineProperty(ApiRange.prototype, "Orientation", {
+		get: function () {
+			return this.GetOrientation();
+		},
+		set: function () {
+			return this.SetOrientation();
+		}
+	});
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiDrawing
@@ -2699,9 +2863,8 @@
 			var plot_area = chart.plotArea;
 			var oCurChartSettings = AscFormat.DrawingObjectsController.prototype.getPropsFromChart.call(AscFormat.DrawingObjectsController.prototype, this.Chart);
 			var _cur_type = oCurChartSettings.type;
-			if(AscCommon.g_oChartPresets[_cur_type] && AscCommon.g_oChartPresets[_cur_type][nStyleIndex]){
-				plot_area.removeCharts(1, plot_area.charts.length - 1);
-				AscFormat.ApplyPresetToChartSpace(this.Chart, AscCommon.g_oChartPresets[_cur_type][nStyleIndex], false);
+			if(AscCommon.g_oChartStyles[_cur_type] && AscCommon.g_oChartStyles[_cur_type][nStyleIndex]){
+				this.Chart.applyChartStyleByIds(AscCommon.g_oChartStyles[_cur_type][nStyleIndex])
 			}
 		}
 	};
@@ -2931,6 +3094,9 @@
 	ApiRange.prototype["GetCol"] = ApiRange.prototype.GetCol;
 	ApiRange.prototype["Clear"] = ApiRange.prototype.Clear;
 	ApiRange.prototype["GetRows"] = ApiRange.prototype.GetRows;
+	ApiRange.prototype["GetCols"] = ApiRange.prototype.GetCols;
+	ApiRange.prototype["End"] = ApiRange.prototype.End;
+	ApiRange.prototype["GetCells"] = ApiRange.prototype.GetCells;
 	ApiRange.prototype["SetOffset"] = ApiRange.prototype.SetOffset;
 	ApiRange.prototype["GetAddress"] = ApiRange.prototype.GetAddress;	
 	ApiRange.prototype["GetCount"] = ApiRange.prototype.GetCount;
@@ -2969,6 +3135,8 @@
 	ApiRange.prototype["GetDefName"] = ApiRange.prototype.GetDefName;
 	ApiRange.prototype["GetComment"] = ApiRange.prototype.GetComment;
 	ApiRange.prototype["Select"] = ApiRange.prototype.Select;
+	ApiRange.prototype["SetOrientation"] = ApiRange.prototype.SetOrientation;
+	ApiRange.prototype["GetOrientation"] = ApiRange.prototype.GetOrientation;
 
 
 	ApiDrawing.prototype["GetClassType"]               =  ApiDrawing.prototype.GetClassType;

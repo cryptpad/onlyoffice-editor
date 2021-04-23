@@ -852,6 +852,12 @@ CParagraphContentBase.prototype.GetFirstRunElementPos = function(nType, oStartPo
 	return false;
 };
 /**
+ * @param isRecalculated
+ */
+CParagraphContentBase.prototype.SetIsRecalculated = function(isRecalculated)
+{
+};
+/**
  * Устанавливаем текущие позиции на текущий элемент
  */
 CParagraphContentBase.prototype.SetThisElementCurrentInParagraph = function()
@@ -1233,6 +1239,16 @@ CParagraphContentWithParagraphLikeContent.prototype.SetParagraph = function(Para
 	for (var CurPos = 0; CurPos < ContentLen; CurPos++)
 	{
 		this.Content[CurPos].SetParagraph(Paragraph);
+	}
+};
+CParagraphContentWithParagraphLikeContent.prototype.SetParent = function(oParent)
+{
+	this.Parent = oParent;
+
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		if (this.Content[nPos].SetParent)
+			this.Content[nPos].SetParent(this);
 	}
 };
 CParagraphContentWithParagraphLikeContent.prototype.Is_Empty = function(oPr)
@@ -4088,7 +4104,7 @@ CParagraphContentWithParagraphLikeContent.prototype.FindNextFillingForm = functi
 		{
 			if (this.Content[nIndex].FindNextFillingForm)
 			{
-				var oRes = this.Content[nIndex].FindNextFillingForm(true, isCurrent && nIndex === nCurPos ? true : false, isStart);
+				var oRes = this.Content[nIndex].FindNextFillingForm(true, isCurrent && nIndex === nCurPos, isStart);
 				if (oRes)
 					return oRes;
 			}
@@ -4100,7 +4116,7 @@ CParagraphContentWithParagraphLikeContent.prototype.FindNextFillingForm = functi
 		{
 			if (this.Content[nIndex].FindNextFillingForm)
 			{
-				var oRes = this.Content[nIndex].FindNextFillingForm(false, isCurrent && nIndex === nCurPos ? true : false, isStart);
+				var oRes = this.Content[nIndex].FindNextFillingForm(false, isCurrent && nIndex === nCurPos, isStart);
 				if (oRes)
 					return oRes;
 			}
