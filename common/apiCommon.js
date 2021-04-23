@@ -1649,6 +1649,9 @@
 					var oApi = Asc.editor || editor;
 					if(oApi) {
 						oApi.sendEvent("asc_onError", Asc.c_oAscError.ID.StockChartError, Asc.c_oAscError.Level.NoCritical);
+						if(oApi.UpdateInterfaceState) {
+							oApi.UpdateInterfaceState();
+						}
 					}
 					return false;
 				}
