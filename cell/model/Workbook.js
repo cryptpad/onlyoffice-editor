@@ -3736,6 +3736,27 @@
 		this.workbookProtection.set(props, addToHistory, this);
 	};
 
+	Workbook.prototype.getWorkbookProtection = function (type) {
+		var res = false;
+
+		if (this.workbookProtection) {
+			switch (type) {
+				case Asc.c_oAscSheetProtectType.lockWindows:
+					res = this.workbookProtection.asc_getLockWindows();
+					break;
+				case Asc.c_oAscSheetProtectType.lockRevisions:
+					res = this.workbookProtection.asc_getLockRevision();
+					break;
+				case Asc.c_oAscWorkbookProtectType.lockStructure:
+				default:
+					res = this.workbookProtection.asc_getLockStructure();
+					break;
+			}
+		}
+
+		return res;
+	};
+
 //-------------------------------------------------------------------------------------------------
 	var tempHelp = new ArrayBuffer(8);
 	var tempHelpUnit = new Uint8Array(tempHelp);

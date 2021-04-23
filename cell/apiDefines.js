@@ -512,6 +512,12 @@ var c_oAscPopUpSelectorType = {
     pivotTables: 14,
     selectUnlockedCells: 15
   };
+
+	var c_oAscWorkbookProtectType = {
+		lockStructure: 0,
+		lockWindows: 1,
+		lockRevisions: 2
+	};
   
   //----------------------------------------------------------export----------------------------------------------------
   window['AscCommonExcel'] = window['AscCommonExcel'] || {};
@@ -833,5 +839,11 @@ var c_oAscPopUpSelectorType = {
   prot['autoFilter'] = prot.autoFilter;
   prot['pivotTables'] = prot.pivotTables;
   prot['selectUnlockedCells'] = prot.selectUnlockedCells;
+
+  window['Asc']['c_oAscWorkbookProtectType'] = window['Asc'].c_oAscWorkbookProtectType = c_oAscWorkbookProtectType;
+  prot = c_oAscWorkbookProtectType;
+  prot['lockStructure'] = prot.lockStructure;
+  prot['lockWindows'] = prot.lockWindows;
+  prot['lockRevisions'] = prot.lockRevisions;
 
 })(window);
