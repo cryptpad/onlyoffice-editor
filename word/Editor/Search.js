@@ -1257,8 +1257,23 @@ ParaRun.prototype.Search = function(ParaSearch)
 			oItem.Search(Str, Props, SearchEngine, Type);
 			ParaSearch.Reset();
 		}
-
-		if (Str === "^p")
+        if (Str === "^tab" && this.Content[nPos].Leader !== undefined)
+        {
+        	if(this.Content[nPos].Value === undefined)
+			{
+				ParaSearch.StartPos = {Run : this, Pos : nPos};
+				if (ParaSearch.StartPos)
+						{
+							Para.AddSearchResult(
+								SearchEngine.Add(Para),
+								ParaSearch.StartPos.Run.GetParagraphContentPosFromObject(ParaSearch.StartPos.Pos),
+								this.GetParagraphContentPosFromObject(nPos + 1),
+								Type
+							);
+						}
+			}
+        }
+		if (Str === "^p" && this.Content[nPos].Leader === undefined)
 		{
 			if(this.Content[nPos].Value === undefined && nPos === this.Content.length - 1)
 			{
@@ -1275,9 +1290,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 			}
 		}
 
-		if (Str === "^l")
+		if (Str === "^l" && this.Content[nPos].Leader === undefined)
 		{
-			if(this.Content[nPos].Value === undefined && nPos !== this.Content.length - 1)
+			if(this.Content[nPos].Value === undefined && this.Content[nPos].Flags.Use === true)
 			{
 				ParaSearch.StartPos = {Run : this, Pos : nPos};
 				if (ParaSearch.StartPos)
