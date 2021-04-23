@@ -1292,7 +1292,6 @@ CopyProcessor.prototype =
 					oThis.oPresentationWriter.WriteString2(elements[i].ImageUrl);
 				}
 			}
-			pptx_content_writer.BinaryFileWriter.ClearIdMap();
 			pptx_content_writer.End_UseFullUrl();
 
 		};
