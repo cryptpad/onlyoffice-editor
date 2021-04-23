@@ -964,7 +964,12 @@ Paragraph.prototype.Internal_Content_Concat = function(arrItems)
 	{
 		this.Content.push(arrItems[nIndex]);
 
-		arrItems[nIndex].SetParagraph(this);
+		if (arrItems[nIndex].SetParent)
+			arrItems[nIndex].SetParent(this);
+
+		if (arrItems[nIndex].SetParagraph)
+			arrItems[nIndex].SetParagraph(this);
+
 		if (arrItems[nIndex].Recalc_RunsCompiledPr)
 			arrItems[nIndex].Recalc_RunsCompiledPr();
 	}
@@ -7543,7 +7548,10 @@ Paragraph.prototype.RemoveSelection = function()
 };
 Paragraph.prototype.DrawSelectionOnPage = function(CurPage)
 {
-	if (true != this.Selection.Use)
+	if (!this.IsRecalculated())
+		return;
+
+	if (true !== this.Selection.Use)
 		return;
 
 	if (CurPage < 0 || CurPage >= this.Pages.length)
@@ -8926,14 +8934,19 @@ Paragraph.prototype.SetNumPr = function(sNumId, nLvl)
 			nLvl = 0;
 
 		var oNumPrOld = this.Pr.NumPr;
-		this.Pr.NumPr = new CNumPr(sNumId, nLvl);
+		if (oNumPrOld && oNumPrOld.NumId === sNumId && oNumPrOld.Lvl === nLvl)
+			return;
 
 		this.private_AddPrChange();
-		History.Add(new CChangesParagraphNumbering(this, oNumPrOld, this.Pr.NumPr));
-		this.private_RefreshNumbering(oNumPrOld);
+
+		var oNewNumPr = new CNumPr(sNumId, nLvl);
+
+		History.Add(new CChangesParagraphNumbering(this, this.Pr.NumPr, oNewNumPr));
+		this.private_RefreshNumbering(oNewNumPr);
 		this.private_RefreshNumbering(this.Pr.NumPr);
 
-		// Надо пересчитать конечный стиль
+		this.Pr.NumPr = oNewNumPr;
+
 		this.CompiledPr.NeedRecalc = true;
 		this.private_UpdateTrackRevisionOnChangeParaPr(true);
 		this.UpdateDocumentOutline();

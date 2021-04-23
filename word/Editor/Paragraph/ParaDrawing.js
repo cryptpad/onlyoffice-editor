@@ -3040,6 +3040,26 @@ ParaDrawing.prototype.IsGroup = function()
 {
 	return (this.GraphicObj.getObjectType() === AscDFH.historyitem_type_GroupShape);
 };
+ParaDrawing.prototype.IsComparable = function(oDrawing)
+{
+	if(!oDrawing)
+	{
+		return false;
+	}
+	if(!this.docPr.hasSameNameAndId(oDrawing.docPr))
+	{
+		return false;
+	}
+	if(!this.GraphicObj || !oDrawing.GraphicObj)
+	{
+		return false;
+	}
+	if(this.GraphicObj.getObjectType() !== oDrawing.GraphicObj.getObjectType())
+	{
+		return false;
+	}
+	return this.GraphicObj.isComparable(oDrawing.GraphicObj);
+};
 /**
  * Класс, описывающий текущее положение параграфа при рассчете позиции автофигуры.
  * @constructor

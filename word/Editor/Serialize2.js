@@ -6067,7 +6067,7 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 	this.WriteDocPr = function(docPr)
 	{
 		var oThis = this;
-		this.bs.WriteItem(c_oSerDocPr.Id, function(){oThis.memory.WriteLong(oThis.saveParams.docPrId++);});
+		this.bs.WriteItem(c_oSerDocPr.Id, function(){oThis.memory.WriteLong(docPr.id);});
 		if (null != docPr.name) {
 			this.memory.WriteByte(c_oSerDocPr.Name);
 			this.memory.WriteString2(docPr.name);
@@ -16993,7 +16993,6 @@ function DocSaveParams(bMailMergeDocx, bMailMergeHtml, isCompatible, docParts) {
 	this.footnotesIndex = 0;
 	this.endnotes = {};
 	this.endnotesIndex = 0;
-	this.docPrId = 1;
 	this.moveRangeFromNameToId = {};
 	this.moveRangeToNameToId = {};
 	this.isCompatible = isCompatible;

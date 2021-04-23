@@ -1330,6 +1330,11 @@
 		SupportedFormats: ["docx", "doc", "docm", "dot", "dotm", "dotx", "epub", "fodt", "odt", "ott", "rtf", "wps"]
 	};
 
+	var c_oAscTextUploadProp = {
+		MaxFileSize:      25000000, //25 mb
+		SupportedFormats: ["txt", "csv"]
+	};
+
 	/**
 	 *
 	 * @param sName
@@ -1674,6 +1679,11 @@
 			callback(Asc.c_oAscError.ID.Unknown);
 		}
 	}
+	function ShowTextFileDialog(callback) {
+		if (false === _ShowFileDialog(getAcceptByArray(c_oAscTextUploadProp.SupportedFormats), false, false, ValidateUploadText, callback)) {
+			callback(Asc.c_oAscError.ID.Unknown);
+		}
+	}
 
 	function InitDragAndDrop(oHtmlElement, callback)
 	{
@@ -1932,6 +1942,10 @@
 	function ValidateUploadDocument(files)
 	{
 		return ValidateUpload(files, c_oAscServerError.UploadDocumentExtension, c_oAscServerError.UploadDocumentContentLength, c_oAscServerError.UploadDocumentCountFiles, c_oAscDocumentUploadProp);
+	}
+	function ValidateUploadText(files)
+	{
+		return ValidateUpload(files, c_oAscServerError.UploadDocumentExtension, c_oAscServerError.UploadDocumentContentLength, c_oAscServerError.UploadDocumentCountFiles, c_oAscTextUploadProp);
 	}
 
 	function CanDropFiles(event)
@@ -4096,6 +4110,7 @@
 	c_oAscSpaces[0x2003] = 1;
 	c_oAscSpaces[0x2005] = 1;
 	c_oAscSpaces[0x3000] = 1;
+	c_oAscSpaces[0xFEFF] = 1;
 
 	/**
 	 * Проверяем является ли заданный юников пробелом
@@ -6411,6 +6426,7 @@
 	window["AscCommon"].InitOnMessage = InitOnMessage;
 	window["AscCommon"].ShowImageFileDialog = ShowImageFileDialog;
 	window["AscCommon"].ShowDocumentFileDialog = ShowDocumentFileDialog;
+	window["AscCommon"].ShowTextFileDialog = ShowTextFileDialog;
 	window["AscCommon"].InitDragAndDrop = InitDragAndDrop;
 	window["AscCommon"].UploadImageFiles = UploadImageFiles;
     window["AscCommon"].UploadImageUrls = UploadImageUrls;

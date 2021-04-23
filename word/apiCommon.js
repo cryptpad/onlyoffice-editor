@@ -50,8 +50,19 @@
 				if (undefined !== obj.Value && Asc.c_oAscShd.Nil !== this.Value)
 					this.Value = Asc.c_oAscShd.Clear;
 
-				var oColor = obj.GetSimpleColor();
-				this.Color = AscCommon.CreateAscColorCustom(oColor.r, oColor.g, oColor.b, oColor.Auto);
+				if (Asc.c_oAscShd.Clear === obj.Value
+					&& obj.Unifill
+					&& obj.Unifill.fill
+					&& obj.Unifill.fill.type === window['Asc'].c_oAscFill.FILL_TYPE_SOLID
+					&& obj.Unifill.fill.color)
+				{
+					this.Color = AscCommon.CreateAscColor(obj.Unifill.fill.color);
+				}
+				else
+				{
+					var oColor = obj.GetSimpleColor();
+					this.Color = AscCommon.CreateAscColorCustom(oColor.r, oColor.g, oColor.b, oColor.Auto);
+				}
 			}
 			else
 			{
@@ -1769,6 +1780,7 @@
 		this.Restart = -1;
 		this.Suff    = Asc.c_oAscNumberingSuff.Tab;
 		this.Align   = AscCommon.align_Left;
+		this.PStyle  = undefined;
 	}
 	CAscNumberingLvl.prototype.get_LvlNum = function()
 	{
@@ -1830,6 +1842,14 @@
 	{
 		this.Align = nAlign;
 	};
+	CAscNumberingLvl.prototype.get_PStyle = function()
+	{
+		return this.PStyle;
+	};
+	CAscNumberingLvl.prototype.put_PStyle = function(sStyleId)
+	{
+		this.PStyle = sStyleId;
+	};
 	window['Asc']['CAscNumberingLvl'] = window['Asc'].CAscNumberingLvl = CAscNumberingLvl;
 	CAscNumberingLvl.prototype['get_LvlNum']  = CAscNumberingLvl.prototype.get_LvlNum;
 	CAscNumberingLvl.prototype['get_Format']  = CAscNumberingLvl.prototype.get_Format;
@@ -1846,6 +1866,8 @@
 	CAscNumberingLvl.prototype['put_Suff']    = CAscNumberingLvl.prototype.put_Suff;
 	CAscNumberingLvl.prototype['get_Align']   = CAscNumberingLvl.prototype.get_Align;
 	CAscNumberingLvl.prototype['put_Align']   = CAscNumberingLvl.prototype.put_Align;
+	CAscNumberingLvl.prototype['get_PStyle']  = CAscNumberingLvl.prototype.get_PStyle;
+	CAscNumberingLvl.prototype['put_PStyle']  = CAscNumberingLvl.prototype.put_PStyle;
 
 
 	function CAscWatermarkProperties()
