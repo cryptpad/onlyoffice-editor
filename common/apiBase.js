@@ -3037,7 +3037,7 @@
 		this.macros.runAuto();
 		this._afterEvalCommand(undefined);
     };
-	baseEditorsApi.prototype.asc_runMacros = function(sName)
+	baseEditorsApi.prototype.asc_runMacros = function(sGuid)
     {
     	if (!this.macros)
     		return;
@@ -3046,7 +3046,7 @@
     		return;
 
     	this._beforeEvalCommand();
-		this.macros.run(sName);
+		this.macros.run(sGuid);
 		this._afterEvalCommand(undefined);
     };
 	baseEditorsApi.prototype.asc_getAllMacrosNames = function()
@@ -3055,6 +3055,20 @@
     		return [];
 
 		return this.macros.getAllNames();
+    };
+	baseEditorsApi.prototype.asc_getMacrosGuidByName = function(sName)
+    {
+    	if (!this.macros)
+    		return "";
+
+		return this.macros.getGuidByName(sName);
+    };
+	baseEditorsApi.prototype.asc_getMacrosByGuid = function(sGuid)
+    {
+    	if (!this.macros)
+    		return "";
+
+		return this.macros.getNameByGuid(sGuid);
     };
 
 	baseEditorsApi.prototype.asc_getSelectedDrawingObjectsCount = function()
