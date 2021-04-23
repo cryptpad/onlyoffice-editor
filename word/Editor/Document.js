@@ -24756,9 +24756,11 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 			else if (oParent === this)
 			{
 				this.RemoveBeforePaste();
-
 				if (oParagraph)
 				{
+					if (oParagraph.GetIndex() < 0)
+						oParagraph = this.GetCurrentParagraph();
+
 					var oAnchorPos = oParagraph.GetCurrentAnchorPosition();
 					if (oAnchorPos && this.Can_InsertContent(oSelectedContent, oAnchorPos))
 					{
