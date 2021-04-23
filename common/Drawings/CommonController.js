@@ -888,7 +888,7 @@ DrawingObjectsController.prototype =
         else if(this.drawingObjects && this.drawingObjects.getWorksheetModel){
             oNvPr = drawing.getCNvProps();
             var bHasLink = oNvPr && oNvPr.hlinkClick && oNvPr.hlinkClick.id !== null;
-            if(!drawing.selected && !e.CtrlKey && ( bHasLink || drawing.hasMacro() ) ) {
+            if(!drawing.selected && !e.CtrlKey && ( bHasLink || drawing.hasJSAMacro() ) ) {
                 if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE) {
                     return true;
                 }
@@ -912,8 +912,8 @@ DrawingObjectsController.prototype =
                             return {objectId: drawing.Get_Id(), cursorType: "move", bMarker: false, hyperlink: oHyperlink, macro: null};
                         }
                     }
-                    else if(drawing.hasMacro()) {
-                        return {objectId: drawing.Get_Id(), cursorType: "pointer", bMarker: false, hyperlink: null, macro: drawing.macro};
+                    else if(drawing.hasJSAMacro()) {
+                        return {objectId: drawing.Get_Id(), cursorType: "pointer", bMarker: false, hyperlink: null, macro: drawing.getJSAMacroId()};
                     }
                 }
             }
@@ -8777,7 +8777,7 @@ DrawingObjectsController.prototype =
         }
         return null;
     },
-    assignMacrosToCurrentDrawing: function(sMacrosName)
+    assignMacrosToCurrentDrawing: function(sGuid)
     {
         var aSelectedObjects;
         if(this.selection.groupSelection) {
@@ -8790,7 +8790,7 @@ DrawingObjectsController.prototype =
 
             var oDrawing = aSelectedObjects[0];
             this.checkSelectedObjectsAndCallback(function() {
-                oDrawing.setMacro(sMacrosName);
+                oDrawing.assignMacro(sGuid);
             }, [], false, AscDFH.historydescription_Spreadsheet_GraphicObjectLayer);
         }
     },

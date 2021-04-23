@@ -573,6 +573,10 @@
         History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_ShapeSetMacro, this.macro, sMacroName));
         this.macro = sMacroName;
     };
+    CGraphicObjectBase.prototype.assignMacro = function(sGuid)
+    {
+        this.setMacro(AscFormat.MACRO_PREFIX + sGuid);
+    };
     CGraphicObjectBase.prototype.setTextLink = function(sLink)
     {
         History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_ShapeSetTextLink, this.textLink, sLink));
@@ -584,6 +588,21 @@
             return true;
         }
         return false;
+    };
+
+    CGraphicObjectBase.prototype.hasJSAMacro = function()
+    {
+        if(typeof this.macro === "string" && this.macro.indexOf(AscFormat.MACRO_PREFIX) === 0) {
+            return true;
+        }
+        return false;
+    };
+    CGraphicObjectBase.prototype.getJSAMacroId = function()
+    {
+        if(typeof this.macro === "string" && this.macro.indexOf(AscFormat.MACRO_PREFIX) === 0) {
+            return this.macro.slice(AscFormat.MACRO_PREFIX.length);
+        }
+        return null;
     };
 
     CGraphicObjectBase.prototype.getLockValue = function(nMask) {
@@ -1548,6 +1567,13 @@
         return null;
     };
     CGraphicObjectBase.prototype.getMacrosName = function(){
+        var sGuid = this.getJSAMacroId();
+        if(sGuid) {
+            var oApi = Asc.editor || editor;
+            if(oApi) {
+                return oApi.asc_getMacrosByGuid(sGuid);
+            }
+        }
         return this.macro;
     };
 
@@ -2229,4 +2255,5 @@
     window['AscFormat'].CalculateSrcRect      = CalculateSrcRect;
     window['AscFormat'].CCopyObjectProperties = CCopyObjectProperties;
     window['AscFormat'].LOCKS_MASKS           = LOCKS_MASKS;
+    window['AscFormat'].MACRO_PREFIX = "jsaProject_"
 })(window);
