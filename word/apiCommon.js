@@ -2326,4 +2326,211 @@
 		this.Name += AscCommon.IntToNumberFormat(1, this.Format);
 	};
 
+	/**
+	* Класс для настроек конвертации текста в таблицу
+	* @param CDocument
+	* @constructor
+	*/
+	function CAscTextToTableProperties(CDocument)
+	{
+		/* Separator types:
+			1 - ParaEnd
+			2 - Tab
+			3 - Other symbol
+		*/
+		/* Autofit types:
+			1 - Fixed column width
+			2 - Autofit to content
+			3 - Autofit to window
+		*/
+		this.Rows			= 0;
+		this.Cols			= 0;
+		this.ArrRows		= [];
+		this.Default		= {ArrRows : [], rows : 0, cols : 0};
+		this.AutoFitType	= 1;
+		this.FitValue		= -1;
+		this.SeparatorType	= 1;
+		this.Separator		= null;
+		this.Document		= CDocument;
+	}
+	CAscTextToTableProperties.prototype.get_Size = function()
+	{
+		return [this.Rows, this.Cols];
+	};
+	CAscTextToTableProperties.prototype.put_ColsCount = function(count, needRecal, isDefault)
+	{
+		var colscount = (count > 1) ? count : 1;
+		if (needRecal)
+		{
+			this.private_recalculate(colscount);
+			return this.get_Size();
+		}
+		else
+			this.Cols = colscount;
+
+		if (isDefault)
+			this.Default.cols = colscount;
+	};
+	CAscTextToTableProperties.prototype.get_Rows = function()
+	{
+		return this.ArrRows;
+	};
+	CAscTextToTableProperties.prototype.put_RowsCount = function(count)
+	{
+		this.Rows = (count > 1) ? count : 1;
+	};
+	CAscTextToTableProperties.prototype.put_Rows = function(newRows, isDefault)
+	{
+		this.ArrRows = newRows.map(function (item) {
+			return [...item]
+		});
+		if (isDefault)
+			this.put_DefaultRows(newRows);
+	};
+	CAscTextToTableProperties.prototype.get_DefaultRows = function()
+	{
+		return this.Default.ArrRows;
+	};
+	CAscTextToTableProperties.prototype.put_DefaultRows = function(newRows)
+	{
+		this.Default.ArrRows = newRows;
+		// newRows.map(function (item) {
+		// 	return [...item]
+		// });
+		this.Default.rows = newRows.length;
+	};
+	CAscTextToTableProperties.prototype.get_AutoFitType = function()
+	{
+		return this.AutoFitType;
+	};
+	CAscTextToTableProperties.prototype.put_AutoFitType = function(type)
+	{
+		this.AutoFitType = (type > 0 && type <= 3) ? type : 1;
+	};
+	CAscTextToTableProperties.prototype.get_Fit = function()
+	{
+		return this.FitValue;
+	};
+	CAscTextToTableProperties.prototype.put_Fit = function(val)
+	{
+		this.FitValue = val;
+	};
+	CAscTextToTableProperties.prototype.get_SeparatorType = function()
+	{
+		return this.SeparatorType;
+	};
+	CAscTextToTableProperties.prototype.put_SeparatorType = function(type, needRecal)
+	{
+		this.SeparatorType = (type > 0 && type <= 3) ? type : 1;
+		if (needRecal)
+		{
+			this.private_recalculate();
+			return this.get_Size();
+		}
+	};
+	CAscTextToTableProperties.prototype.get_Separator = function()
+	{
+		return this.Separator;
+	};
+	CAscTextToTableProperties.prototype.put_Separator = function(val, needRecal)
+	{
+		this.Separator = val;
+		return this.put_SeparatorType(3, needRecal);
+	};
+	CAscTextToTableProperties.prototype.private_recalculate = function(count)
+	{
+		this.put_Rows(this.get_DefaultRows(), false);
+		// size надо тоже сделать ещё дефолтный вариант, для восставноления
+		// и обновлять его надо тоже при каждом пересчете
+		var size =
+		{
+			rows : this.Default.rows,
+			cols : this.Default.cols
+		};
+		if (count)
+		{
+			if (size.cols < count){
+				if (this.get_SeparatorType() == 1)
+				{
+					// если в плюс и сепаратор абзац (то мы просто заполняем все ячейки по порядку абзацами до конца строки)
+					var newArrRows = [];
+					var newArrCells = [];
+					var tmpArr = [];
+					for (var i = 0; i < size.rows; i++)
+					{
+						tmpArr.push(...this.ArrRows[i]);
+					}
+					var end = Math.max(tmpArr.length, count);
+					for (var i = 0; i < end; i ++)
+					{
+						if (newArrCells.length >= count)
+						{
+							newArrRows.push(newArrCells);
+							newArrCells = [];
+						}
+						newArrCells.push((tmpArr[i]) ? tmpArr[i] : new Paragraph(this.Document.DrawingDocument, this.Document));
+					}
+
+					if (newArrCells.length)
+						newArrRows.push(newArrCells);
+
+					this.put_Rows(newArrRows, false);
+				}
+				else
+				{
+					// если в плюс и сепаратор не абзац, то создаём просто пустые ячейки
+					for (var i = 0; i < size.rows; i++)
+					{
+						for (var j = 0; j < (count - size.cols); j++)
+						{
+							var oNewParagraph = new Paragraph(this.Document.DrawingDocument, this.Document);
+							this.ArrRows[i].push(oNewParagraph);
+						}
+					}
+				}
+			}
+			else if (size.cols > count)
+			{
+				var remCount = size.cols - count;
+				if (remCount > 0)
+				{
+					var newArrRows = [];
+					for (var i = 0; i < size.rows; i++)
+					{
+						while (this.ArrRows[i].length > count)
+							newArrRows.push(this.ArrRows[i].splice(0, count));
+						
+						newArrRows.push(this.ArrRows[i]);
+					}
+					this.put_Rows(newArrRows, false);
+				}
+			}
+
+			this.put_ColsCount(count);
+			this.put_RowsCount(this.ArrRows.length);
+		}
+		else
+		{
+			this.Document.PreConvertTextToTable(this);
+			this.put_DefaultRows(this.ArrRows);
+		}
+	};
+
+	window['Asc']['CAscTextToTableProperties']				 = window['Asc'].CAscTextToTableProperties = CAscTextToTableProperties;
+	CAscTextToTableProperties.prototype['get_Size']			 = CAscTextToTableProperties.prototype.get_Size;
+	CAscTextToTableProperties.prototype['get_Rows']			 = CAscTextToTableProperties.prototype.get_Rows;
+	CAscTextToTableProperties.prototype['put_RowsCount']	 = CAscTextToTableProperties.prototype.put_RowsCount;
+	CAscTextToTableProperties.prototype['put_ColsCount']	 = CAscTextToTableProperties.prototype.put_ColsCount;
+	CAscTextToTableProperties.prototype['put_Rows'] 		 = CAscTextToTableProperties.prototype.put_Rows;
+	CAscTextToTableProperties.prototype['get_DefaultRows'] 	 = CAscTextToTableProperties.prototype.get_DefaultRows;
+	CAscTextToTableProperties.prototype['put_DefaultRows'] 	 = CAscTextToTableProperties.prototype.put_DefaultRows;
+	CAscTextToTableProperties.prototype['get_AutoFitType']	 = CAscTextToTableProperties.prototype.get_AutoFitType;
+	CAscTextToTableProperties.prototype['put_AutoFitType'] 	 = CAscTextToTableProperties.prototype.put_AutoFitType;
+	CAscTextToTableProperties.prototype['get_Fit']			 = CAscTextToTableProperties.prototype.get_Fit;
+	CAscTextToTableProperties.prototype['put_Fit']			 = CAscTextToTableProperties.prototype.put_Fit;
+	CAscTextToTableProperties.prototype['get_SeparatorType'] = CAscTextToTableProperties.prototype.get_SeparatorType;
+	CAscTextToTableProperties.prototype['put_SeparatorType'] = CAscTextToTableProperties.prototype.put_SeparatorType;
+	CAscTextToTableProperties.prototype['get_Separator']	 = CAscTextToTableProperties.prototype.get_Separator;
+	CAscTextToTableProperties.prototype['put_Separator']	 = CAscTextToTableProperties.prototype.put_Separator;
+
 })(window, undefined);

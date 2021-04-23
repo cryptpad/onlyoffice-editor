@@ -132,21 +132,28 @@ function (window, undefined)
 	};
 	CDocumentMacros.prototype.getAllNames = function()
 	{
-		var obj = JSON.parse(this.Data);
-		if (!obj["macrosArray"])
-			return [];
-		var oNamesMap = {};
-		var aNames = [];
-		for (var i = 0; i < obj["macrosArray"].length; i++)
+		try
 		{
-			var sName = obj["macrosArray"][i]["name"];
-			if(!oNamesMap[sName])
+			var obj = JSON.parse(this.Data);
+			if (!obj["macrosArray"])
+				return [];
+			var oNamesMap = {};
+			var aNames = [];
+			for (var i = 0; i < obj["macrosArray"].length; i++)
 			{
-				oNamesMap[sName] = true;
-				aNames.push(sName);
+				var sName = obj["macrosArray"][i]["name"];
+				if(!oNamesMap[sName])
+				{
+					oNamesMap[sName] = true;
+					aNames.push(sName);
+				}
 			}
+			return aNames;
 		}
-		return aNames;
+		catch (err)
+		{
+		}
+		return [];
 	};
     CDocumentMacros.prototype.isExistAuto = function()
     {
