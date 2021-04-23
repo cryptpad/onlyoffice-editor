@@ -192,6 +192,12 @@ function (window, undefined) {
         {
             copy.setBinaryData(this.m_aBinaryData.slice(0, this.m_aBinaryData.length));
         }
+        if(this.macro !== null) {
+            copy.setMacro(this.macro);
+        }
+        if(this.textLink !== null) {
+            copy.setTextLink(this.textLink);
+        }
         copy.cachedImage = this.getBase64Img();
         copy.cachedPixH = this.cachedPixH;
         copy.cachedPixW = this.cachedPixW;

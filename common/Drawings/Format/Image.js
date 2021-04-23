@@ -156,6 +156,12 @@ CImageShape.prototype.copy = function(oPr)
         copy.setStyle(this.style.createDuplicate());
     }
     copy.setBDeleted(this.bDeleted);
+    if(this.macro !== null) {
+        copy.setMacro(this.macro);
+    }
+    if(this.textLink !== null) {
+        copy.setTextLink(this.textLink);
+    }
     copy.cachedImage = this.getBase64Img();
     copy.cachedPixH = this.cachedPixH;
     copy.cachedPixW = this.cachedPixW;

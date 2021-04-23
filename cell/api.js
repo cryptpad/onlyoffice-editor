@@ -552,6 +552,34 @@ var editor;
 	spreadsheet_api.prototype._getTextFromFile = function (options, callback) {
 		var t = this;
 
+		function wrapper_callback(data) {
+			var cp = {
+				'codepage': AscCommon.c_oAscCodePageUtf8, "delimiter": AscCommon.c_oAscCsvDelimiter.Comma,
+				'encodings': AscCommon.getEncodingParams(),
+				'data': data
+			};
+			callback(new AscCommon.asc_CAdvancedOptions(cp));
+		}
+
+		if (window["AscDesktopEditor"]) {
+			// TODO: add translations
+			window["AscDesktopEditor"]["OpenFilenameDialog"]("All supported files (*txt *csv);;Txt File (*txt);;Csv File(*csv);;All files (*.*)", false, function (_file) {
+				var file = _file;
+				if (Array.isArray(file))
+					file = file[0];
+				if (!file)
+					return;
+
+				window["AscDesktopEditor"]["loadLocalFile"](file, function(uint8Array) {
+					if (!uint8Array)
+						return;
+
+					wrapper_callback(uint8Array);
+				});
+			});
+			return;
+		}
+
 		AscCommon.ShowTextFileDialog(function (error, files) {
 			if (Asc.c_oAscError.ID.No !== error) {
 				t.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
@@ -560,12 +588,7 @@ var editor;
 
 			var reader = new FileReader();
 			reader.onload = function () {
-				var cp = {
-					'codepage': AscCommon.c_oAscCodePageUtf8, "delimiter": AscCommon.c_oAscCsvDelimiter.Comma,
-					'encodings': AscCommon.getEncodingParams(),
-					'data': reader.result
-				};
-				callback(new AscCommon.asc_CAdvancedOptions(cp));
+				wrapper_callback(reader.result);
 			};
 
 			reader.onerror = function () {
@@ -3124,10 +3147,18 @@ var editor;
     };
     //-------------------------------------------------------
 
+    spreadsheet_api.prototype.asc_getCurrentDrawingMacrosName = function() {
+        var ws = this.wb.getWorksheet();
+        return ws.objectRender.getCurrentDrawingMacrosName();
+    };
+    spreadsheet_api.prototype.asc_assignMacrosToCurrentDrawing = function(sName) {
+        var ws = this.wb.getWorksheet();
+        return ws.objectRender.assignMacrosToCurrentDrawing(sName);
+    };
     spreadsheet_api.prototype.asc_setSelectedDrawingObjectLayer = function(layerType) {
-    var ws = this.wb.getWorksheet();
-    return ws.objectRender.setGraphicObjectLayer(layerType);
-  };
+        var ws = this.wb.getWorksheet();
+        return ws.objectRender.setGraphicObjectLayer(layerType);
+    };
 
   spreadsheet_api.prototype.asc_setSelectedDrawingObjectAlign = function(alignType) {
     var ws = this.wb.getWorksheet();
@@ -3149,6 +3180,11 @@ var editor;
     return ws.objectRender.getSelectedDrawingObjectsCount();
   };
 
+  spreadsheet_api.prototype.SetDrawImagePreviewBulletForMenu = function(id, type)
+  {
+    if (this.wbModel.DrawingDocument)
+      this.wbModel.DrawingDocument.SetDrawImagePreviewBulletForMenu(id, type, this);
+  };
 
   spreadsheet_api.prototype.asc_canEditCrop = function()
   {
@@ -3259,6 +3295,14 @@ var editor;
 	}
   	this.wb.removeAllComments(isMine, isCurrent);
   };
+
+	spreadsheet_api.prototype.asc_ResolveAllComments = function(isMine, isCurrent, arrIds)
+	{
+		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+			return;
+		}
+		this.wb.resolveAllComments(isMine, isCurrent);
+	};
 
   spreadsheet_api.prototype.asc_showComments = function (isShowSolved) {
     this.wb.showComments(true, isShowSolved);
@@ -4807,6 +4851,14 @@ var editor;
   };
   spreadsheet_api.prototype.asc_Recalculate = function () {
       History.EndTransaction();
+      //в _onUpdateAfterApplyChanges нет очистки кэша, добавляю -
+	  var lastPointIndex = History.Points && History.Points.length - 1;
+	  var lastPoint = History.Points[lastPointIndex];
+	  if (lastPoint && lastPoint.UpdateRigions) {
+		  for (var i in lastPoint.UpdateRigions) {
+			  this.wb.handlers.trigger("cleanCellCache", i, [lastPoint.UpdateRigions[i]], null, true);
+		  }
+	  }
       this._onUpdateAfterApplyChanges();
   };
 
@@ -5027,10 +5079,10 @@ var editor;
 		});
 		this.collaborativeEditing.lock(lockInfos, callback);
 	};
-	spreadsheet_api.prototype._changePivotWithLock = function (pivot, onAction) {
-		this._changePivotWithLockExt(pivot, false, true, onAction);
+	spreadsheet_api.prototype._changePivotWithLock = function (pivot, onAction, doNotCheckUnderlyingData) {
+		this._changePivotWithLockExt(pivot, false, true, onAction, doNotCheckUnderlyingData);
 	};
-	spreadsheet_api.prototype._changePivotWithLockExt = function (pivot, confirmation, updateSelection, onAction) {
+	spreadsheet_api.prototype._changePivotWithLockExt = function (pivot, confirmation, updateSelection, onAction, doNotCheckUnderlyingData) {
 		// Проверка глобального лока
 		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
 			return;
@@ -5044,7 +5096,7 @@ var editor;
 			History.Create_NewPoint();
 			History.StartTransaction();
 			t.wbModel.dependencyFormulas.lockRecal();
-			var changeRes = t._changePivot(pivot, confirmation, updateSelection, onAction);
+			var changeRes = t._changePivot(pivot, confirmation, updateSelection, onAction, doNotCheckUnderlyingData);
 			t.wbModel.dependencyFormulas.unlockRecal();
 			History.EndTransaction();
 			t._changePivotEndCheckError(pivot, changeRes, function () {
@@ -5085,7 +5137,10 @@ var editor;
 			});
 		});
 	};
-	spreadsheet_api.prototype._changePivot = function(pivot, confirmation, updateSelection, onAction) {
+	spreadsheet_api.prototype._changePivot = function(pivot, confirmation, updateSelection, onAction, doNotCheckUnderlyingData) {
+		if (!doNotCheckUnderlyingData && !pivot.checkPivotUnderlyingData()) {
+			return {error: c_oAscError.ID.PivotWithoutUnderlyingData, warning: c_oAscError.ID.No, updateRes: undefined};
+		}
 		var wsModel = pivot.GetWS();
 		pivot.stashCurReportRange();
 
@@ -5670,11 +5725,14 @@ var editor;
   prot["asc_addChartDrawingObject"] = prot.asc_addChartDrawingObject;
   prot["asc_editChartDrawingObject"] = prot.asc_editChartDrawingObject;
   prot["asc_addImageDrawingObject"] = prot.asc_addImageDrawingObject;
+  prot["asc_getCurrentDrawingMacrosName"] = prot.asc_getCurrentDrawingMacrosName;
+  prot["asc_assignMacrosToCurrentDrawing"] = prot.asc_assignMacrosToCurrentDrawing;
   prot["asc_setSelectedDrawingObjectLayer"] = prot.asc_setSelectedDrawingObjectLayer;
   prot["asc_setSelectedDrawingObjectAlign"] = prot.asc_setSelectedDrawingObjectAlign;
   prot["asc_DistributeSelectedDrawingObjectHor"] = prot.asc_DistributeSelectedDrawingObjectHor;
   prot["asc_DistributeSelectedDrawingObjectVer"] = prot.asc_DistributeSelectedDrawingObjectVer;
   prot["asc_getSelectedDrawingObjectsCount"] = prot.asc_getSelectedDrawingObjectsCount;
+  prot["SetDrawImagePreviewBulletForMenu"] = prot.SetDrawImagePreviewBulletForMenu;
   prot["asc_getChartPreviews"] = prot.asc_getChartPreviews;
   prot["asc_getTextArtPreviews"] = prot.asc_getTextArtPreviews;
   prot['asc_getPropertyEditorShapes'] = prot.asc_getPropertyEditorShapes;

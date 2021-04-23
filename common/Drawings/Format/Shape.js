@@ -2410,6 +2410,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
     var _text_rect_height = _b - _t;
     var _text_rect_width = _r - _l;
     var oClipRect;
+    var Diff = 1.6;
     if (!oBodyPr.upright) {
         if (!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert)) {
             if (bWordArtTransform) {
@@ -2481,12 +2482,16 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                         }
                     }
                     else{
-                        _vertical_shift = _text_rect_height - _content_height;
-                        if (oBodyPr.anchor === 0) {
-                            _vertical_shift = _text_rect_height - _content_height;
+                        if(this.bWordShape) {
+                            _vertical_shift = 0;
                         }
                         else {
-                            _vertical_shift = 0;
+                            if (oBodyPr.anchor === 0) {
+                                _vertical_shift = _text_rect_height - _content_height;
+                            }
+                            else {
+                                _vertical_shift = 0;
+                            }
                         }
                     }
 
@@ -2540,12 +2545,16 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                 }
                 else {
 
-
-                    if (oBodyPr.anchor === 0) {
-                        _vertical_shift = _text_rect_width - _content_height;
+                    if(this.bWordShape) {
+                        _vertical_shift = 0;
                     }
                     else {
-                        _vertical_shift = 0;
+                        if (oBodyPr.anchor === 0) {
+                            _vertical_shift = _text_rect_width - _content_height;
+                        }
+                        else {
+                            _vertical_shift = 0;
+                        }
                     }
                 }
             }
@@ -2575,7 +2584,6 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
         }
         if (this.spPr && isRealObject(this.spPr.geometry) && isRealObject(this.spPr.geometry.rect)) {
             var rect = this.spPr.geometry.rect;
-            var Diff = 1.6;
             var clipW = rect.r - rect.l + Diff;
             if(clipW <= 0)
             {
@@ -2660,11 +2668,16 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                 }
             }
             else {
-                if (oBodyPr.anchor === 0) {
-                    _vertical_shift = content_height2 - _content_height;
+                if(this.bWordShape) {
+                    _vertical_shift = 0;
                 }
                 else {
-                    _vertical_shift = 0;
+                    if (oBodyPr.anchor === 0) {
+                        _vertical_shift = content_height2 - _content_height;
+                    }
+                    else {
+                        _vertical_shift = 0;
+                    }
                 }
             }
 
@@ -2704,9 +2717,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
             global_MatrixTransformer.TranslateAppend(oMatrix, _content_width * 0.5, content_height2 * 0.5);
         }
         global_MatrixTransformer.TranslateAppend(oMatrix, _transformed_text_xc - _content_width * 0.5, _transformed_text_yc - content_height2 * 0.5);
-
-
-        var Diff = 1.6;
+        
         if(this.bWordShape)
         {
             var DiffLeft = 0.8;
@@ -2822,6 +2833,12 @@ CShape.prototype.fillObject = function(copy, oPr){
     }
     if(this.signatureLine && copy.setSignature){
         copy.setSignature(this.signatureLine.copy());
+    }
+    if(this.macro !== null) {
+        copy.setMacro(this.macro);
+    }
+    if(this.textLink !== null) {
+        copy.setTextLink(this.textLink);
     }
     copy.setWordShape(this.bWordShape);
     copy.setBDeleted(this.bDeleted);

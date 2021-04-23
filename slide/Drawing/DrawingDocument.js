@@ -1014,7 +1014,7 @@ function CDrawingDocument()
 			return "rgb(" + this.TargetCursorColor.R + "," + this.TargetCursorColor.G + "," + this.TargetCursorColor.B + ")";
 
 		// check dark theme
-		if (AscCommon.GlobalSkin.Name !== "flatDark" || (this.TargetCursorColor.R > 10 || this.TargetCursorColor.R > 10 || this.TargetCursorColor.R > 10))
+		if (AscCommon.GlobalSkin.Type !== "dark" || (this.TargetCursorColor.R > 10 || this.TargetCursorColor.R > 10 || this.TargetCursorColor.R > 10))
 			return "rgb(" + this.TargetCursorColor.R + "," + this.TargetCursorColor.G + "," + this.TargetCursorColor.B + ")";
 		return "rgb(" + (255 - this.TargetCursorColor.R) + "," + (255 - this.TargetCursorColor.G) + "," + (255 - this.TargetCursorColor.B) + ")";
 	};
@@ -3616,6 +3616,451 @@ function CDrawingDocument()
 		this.InlineTextTrackPage = -1;
 		this.InlineTextInNotes = false;
 	};
+
+	this.privateGetParagraphByString = function(level, levelNum, counterCurrent, x, y, lineHeight, ctx, w, h)
+    {
+        var text = "";
+        for (var i = 0; i < level.Text.length; i++)
+        {
+            switch (level.Text[i].Type)
+            {
+                case Asc.c_oAscNumberingLvlTextType.Text:
+                    text += level.Text[i].Value;
+                    break;
+                case Asc.c_oAscNumberingLvlTextType.Num:
+                    var correctNum = 1;
+                    if (levelNum === level.Text[i].Value)
+                        correctNum = counterCurrent;
+                    text += AscCommon.IntToNumberFormat(correctNum, level.Format);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        var api = this.m_oWordControl.m_oApi;
+
+        History.TurnOff();
+        var oldViewMode = api.isViewMode;
+        var oldMarks = api.ShowParaMarks;
+
+        api.isViewMode = true;
+        api.ShowParaMarks = false;
+
+		var oNewShape = new AscFormat.CShape();
+		oNewShape.createTextBody();
+
+        var par = oNewShape.txBody.content.GetAllParagraphs()[0];
+        par.MoveCursorToStartPos();
+
+        //par.Pr = level.ParaPr.Copy();
+		par.Pr = new CParaPr();
+        var textPr = level.TextPr.Copy();
+        textPr.FontSize = textPr.FontSizeCS = ((2 * lineHeight * 72 / 96) >> 0) / 2;
+
+        var parRun = new ParaRun(par);
+        parRun.Set_Pr(textPr);
+        parRun.AddText(text);
+        par.AddToContent(0, parRun);
+
+        par.Reset(0, 0, 1000, 1000, 0, 0, 1);
+        par.Recalculate_Page(0);
+
+        var baseLineOffset = par.Lines[0].Y;
+        var bounds = par.Get_PageBounds(0);
+
+        var parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
+        var parH = (bounds.Bottom - bounds.Top) * AscCommon.g_dKoef_mm_to_pix;
+
+        var yOffset = y - ((baseLineOffset * g_dKoef_mm_to_pix) >> 0);
+        var xOffset = x;
+        switch (level.Align)
+        {
+            case AscCommon.align_Right:
+                xOffset -= parW;
+                break;
+            case AscCommon.align_Center:
+                xOffset -= (parW >> 1);
+                break;
+            default:
+                break;
+        }
+
+        // debug: text rect:
+        //ctx.beginPath();
+        //ctx.fillStyle = "#FFFF00";
+        //ctx.fillRect(xOffset, y, parW, parH);
+        //ctx.beginPath();
+
+		var backTextWidth = parW + 4; // 4 - чтобы линия никогде не была 'совсем рядом'
+		switch (level.Suff)
+		{
+			case Asc.c_oAscNumberingSuff.Space:
+			case Asc.c_oAscNumberingSuff.None:
+				backTextWidth += 4;
+				break;
+			case Asc.c_oAscNumberingSuff.Tab:
+				break;
+			default:
+				break;
+		}
+
+        ctx.fillStyle = "#FFFFFF";
+		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+        ctx.fillRect(Math.round(rPR * xOffset), Math.round((y - lineHeight) * rPR), Math.round(backTextWidth * rPR), Math.round((lineHeight + (lineHeight >> 1)) * rPR));
+        ctx.beginPath();
+
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+        var graphics = new AscCommon.CGraphics();
+        graphics.init(ctx,
+			AscCommon.AscBrowser.convertToRetinaValue(w, true),
+			AscCommon.AscBrowser.convertToRetinaValue(h, true),
+			w * AscCommon.g_dKoef_pix_to_mm, h * AscCommon.g_dKoef_pix_to_mm);
+        graphics.m_oFontManager = AscCommon.g_fontManager;
+
+        graphics.m_oCoordTransform.tx = AscCommon.AscBrowser.convertToRetinaValue(xOffset, true);
+        graphics.m_oCoordTransform.ty = AscCommon.AscBrowser.convertToRetinaValue(yOffset, true);
+
+        graphics.transform(1, 0, 0, 1, 0, 0);
+
+        par.Draw(0, graphics);
+
+        ctx.restore();
+        ctx.restore();
+
+        History.TurnOn();
+        api.isViewMode = oldViewMode;
+        api.ShowParaMarks = oldMarks;
+    };
+
+	this.SetDrawImagePreviewBulletForMenu = function(id, type, props, isNoCheckFonts)
+	{
+		var text = AscCommon.translateManager.getValue("None");
+		if (!props)
+		{
+			props = [];
+			var olvl = new Asc.CAscNumberingLvl(0);
+			var level = new CNumberingLvl();
+			var arr = [];
+			for (var i = 0; i < text.length; i++)
+			{
+				var otext = new CNumberingLvlTextString(text[i]);
+				arr.push(otext);
+			}
+			level.SetLvlText(arr);
+			level.FillToAscNumberingLvl(olvl);
+			props.push(olvl);
+			if (type === 0)
+			{
+				for (var i = 1; i < 9; i++)
+				{
+					var lvl 		= new CNumberingLvl(),
+						oLvl		= new Asc.CAscNumberingLvl(i),
+						oLvlTextPr	= new CTextPr(),
+						sLvlText	= "";
+					switch (i)
+					{
+						case 1:
+						{
+							sLvlText = String.fromCharCode(0x00B7);
+							oLvlTextPr.RFonts.SetAll("Symbol");
+							break;
+						}
+						case 2:
+						{
+							sLvlText = "o";
+							oLvlTextPr.RFonts.SetAll("Courier New");
+							break;
+						}
+						case 3:
+						{
+							sLvlText = String.fromCharCode(0x00A7);
+							oLvlTextPr.RFonts.SetAll("Wingdings");
+							break;
+						}
+						case 4:
+						{
+							sLvlText = String.fromCharCode(0x0076);
+							oLvlTextPr.RFonts.SetAll("Wingdings");
+							break;
+						}
+						case 5:
+						{
+							sLvlText = String.fromCharCode(0x00D8);
+							oLvlTextPr.RFonts.SetAll("Wingdings");
+							break;
+						}
+						case 6:
+						{
+							sLvlText = String.fromCharCode(0x00FC);
+							oLvlTextPr.RFonts.SetAll("Wingdings");
+							break;
+						}
+						case 7:
+						{
+							sLvlText = String.fromCharCode(0x00A8);
+							oLvlTextPr.RFonts.SetAll("Symbol");
+							break;
+						}
+						case 8:
+						{
+							sLvlText = String.fromCharCode(0x2013);
+							oLvlTextPr.RFonts.SetAll("Arial");
+							break;
+						}
+					}
+					lvl.SetByType(c_oAscNumberingLevel.Bullet, 0, sLvlText, oLvlTextPr);
+					lvl.FillToAscNumberingLvl(oLvl);
+					props.push(oLvl);
+				}
+			}
+			else
+			{
+				var arrTypes = 
+				[
+					c_oAscNumberingLevel.UpperLetterDot_Left,
+					c_oAscNumberingLevel.LowerLetterBracket_Left,
+					c_oAscNumberingLevel.LowerLetterDot_Left,
+					c_oAscNumberingLevel.DecimalDot_Right,
+					c_oAscNumberingLevel.DecimalBracket_Right,
+					c_oAscNumberingLevel.UpperRomanDot_Right,
+					c_oAscNumberingLevel.LowerRomanDot_Right
+				];
+				for (var i = 0; i < arrTypes.length; i++)
+				{
+					var lvl = new CNumberingLvl();
+					var oLvl = new Asc.CAscNumberingLvl(0)
+					lvl.SetByType(arrTypes[i], 0);
+					lvl.FillToAscNumberingLvl(oLvl);
+					oLvl.Align = 1;
+					props.push(oLvl);
+				}
+			}
+		}
+		
+		if (!isNoCheckFonts)
+		{
+            // check need load fonts
+            var fontsDict = {};
+            for (var i = 0, count = props.length; i < count; i++)
+            {
+				var curLvl = props[i];				
+				var text = "";
+				for (var j = 0; j < curLvl.Text.length; j++)
+				{
+					switch (curLvl.Text[j].Type)
+					{
+						case Asc.c_oAscNumberingLvlTextType.Text:
+							text += curLvl.Text[j].Value;
+							break;
+						case Asc.c_oAscNumberingLvlTextType.Num:
+							text += AscCommon.IntToNumberFormat(1, curLvl.Format);
+							break;
+						default:
+							break;
+					}
+				}
+				AscFonts.FontPickerByCharacter.checkTextLight(text);
+
+				if (curLvl.TextPr && curLvl.TextPr.RFonts)
+				{
+					if (curLvl.TextPr.RFonts.Ascii) fontsDict[curLvl.TextPr.RFonts.Ascii.Name] = true;
+					if (curLvl.TextPr.RFonts.EastAsia) fontsDict[curLvl.TextPr.RFonts.EastAsia.Name] = true;
+					if (curLvl.TextPr.RFonts.HAnsi) fontsDict[curLvl.TextPr.RFonts.HAnsi.Name] = true;
+					if (curLvl.TextPr.RFonts.CS) fontsDict[curLvl.TextPr.RFonts.CS.Name] = true;
+				}
+            }
+
+            var fonts = [];
+            for (var familyName in fontsDict)
+            {
+                fonts.push(new AscFonts.CFont(AscFonts.g_fontApplication.GetFontInfoName(familyName), 0, "", 0, null));
+            }
+            AscFonts.FontPickerByCharacter.extendFonts(fonts);
+
+            if (false === AscCommon.g_font_loader.CheckFontsNeedLoading(fonts))
+            {
+                return this.SetDrawImagePreviewBulletForMenu(id, type, props, true);
+            }
+
+            this.m_oWordControl.m_oApi.asyncMethodCallback = function()
+			{
+                this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletForMenu(id, type, props, true);
+            };
+            AscCommon.g_font_loader.LoadDocumentFonts2(fonts);
+            return;
+        }
+		var elNone = document.getElementById(id[0]);
+		if (elNone)
+		{
+			var width_px = elNone.clientWidth;
+			var height_px = elNone.clientHeight;
+
+			var canvas = elNone.firstChild;
+			if (!canvas)
+			{
+				canvas = document.createElement('canvas');
+				canvas.style.cssText = "padding:0;margin:0;user-select:none;";
+				canvas.style.width = width_px + "px";
+				canvas.style.height = height_px + "px";
+				if (width_px > 0 && height_px > 0)
+					elNone.appendChild(canvas);
+			}
+
+			canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
+			canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
+
+			var ctx = canvas.getContext("2d");
+			var line_distance = (height_px == 80) ? (height_px / 5 - 1) : ((height_px >> 2) + ((text.length > 6) ? 1 : 2));
+
+			var oNewShape = new AscFormat.CShape();
+			oNewShape.createTextBody();
+			var par = oNewShape.txBody.content.GetAllParagraphs()[0];
+			par.MoveCursorToStartPos();
+
+			par.Pr = new CParaPr();
+			var lvl = props[0];
+			var textPr = lvl.TextPr.Copy();
+			textPr.FontSize = ((2 * line_distance * 72 / 96) >> 0) / 2;
+
+			var parRun = new ParaRun(par);
+			parRun.Set_Pr(textPr);
+			parRun.AddText(text);
+			par.AddToContent(0, parRun);
+
+			par.Reset(0, 0, 1000, 1000, 0, 0, 1);
+			par.Recalculate_Page(0);
+
+			var bounds = par.Get_PageBounds(0);
+
+			var parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
+			var parH = (bounds.Bottom - bounds.Top);
+			var x = (width_px - (parW >> 0)) >> 1;
+			var y = (height_px >> 1) + (parH >> 0);
+
+			this.privateGetParagraphByString(lvl, 0, 0, x, y, line_distance, ctx, width_px, height_px);
+		}
+
+		for (var i = 1; i < id.length; i++)
+		{
+			var parent =  document.getElementById(id[i]);
+
+			if (!parent)
+				continue;
+
+			var width_px = parent.clientWidth;
+			var height_px = parent.clientHeight;
+
+			var canvas = parent.firstChild;
+			if (!canvas)
+			{
+				canvas = document.createElement('canvas');
+				canvas.style.cssText = "padding:0;margin:0;user-select:none;";
+				canvas.style.width = width_px + "px";
+				canvas.style.height = height_px + "px";
+				if (width_px > 0 && height_px > 0)
+					parent.appendChild(canvas);
+			}
+
+			canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
+			canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
+
+			var ctx = canvas.getContext("2d");
+			var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+			
+			if (!type)
+			{
+				var width_px = parent.clientWidth;
+				var height_px = parent.clientHeight;
+
+				var canvas = parent.firstChild;
+				if (!canvas)
+				{
+					canvas = document.createElement('canvas');
+					canvas.style.cssText = "padding:0;margin:0;user-select:none;";
+					canvas.style.width = width_px + "px";
+					canvas.style.height = height_px + "px";
+                    if (width_px > 0 && height_px > 0)
+						parent.appendChild(canvas);
+				}
+
+				canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
+				canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
+
+				var ctx = canvas.getContext("2d");
+				var line_distance = (height_px >> 1) - 2;
+				// TODo: подумать над тем как рассчитать сдвиг влево, эти значения подобраны эксперементально
+				var xShift;
+				var yShift;
+                switch (i) {
+                    case 1:
+                        xShift = 4;
+                        yShift = 5;
+                        break;
+                    case 2:
+                        xShift = 5;
+                        yShift = 4;
+                        break;
+                    case 3:
+                        xShift = 4;
+                        yShift = 7;
+                        break;
+                    case 4:
+                        xShift = 8;
+                        yShift = 7;
+                        break;
+                    case 5:
+                        xShift = 6;
+                        yShift = 6;
+                        break;
+                    case 6:
+                        xShift = 7;
+                        yShift = 7;
+                        break;
+                    case 7:
+                        xShift = 6;
+                        yShift = 5;
+                        break;
+                    case 8:
+                        xShift = 5;
+                        yShift = 5;
+                        break;
+                } 
+                var x = (width_px >> 1 ) - xShift;
+                var y = (height_px >> 1) + yShift;
+				// для размеров окна 38 на 38
+				this.privateGetParagraphByString(props[i], 0, 0, x, y, line_distance, ctx, width_px, height_px);
+			}
+			else
+			{
+				var offsetBase = 4;
+				var line_w = 2;
+				// считаем расстояние между линиями
+				var line_distance = (((height_px - (offsetBase << 2)) - line_w * 3) / 3) >> 0;
+				// убираем погрешность в offset
+				var offset = (height_px - (line_w * 3 + line_distance * 3)) >> 1;
+
+				ctx.lineWidth = 2 * Math.round(rPR);
+				ctx.strokeStyle = "#CBCBCB";
+				var y = offset + 11;
+				var text_base_offset_x = offset + ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
+
+				for (var j = 0; j < 3; j++)
+				{
+					ctx.moveTo(Math.round(text_base_offset_x * rPR), Math.round(y * rPR)); ctx.lineTo(Math.round((width_px - offsetBase) * rPR), Math.round(y * rPR));
+					ctx.stroke();
+					ctx.beginPath();
+					var textYx =  text_base_offset_x - ((3.25 * AscCommon.g_dKoef_mm_to_pix) >> 0),
+						textYy = y + (line_w * 2.5);
+					this.privateGetParagraphByString(props[i], 0, 1 + ((type == 1) ? j : 0), textYx, textYy, (line_distance - 4), ctx, width_px, height_px);
+					y += (line_w + line_distance);
+				}
+			}
+
+		}
+	};
 }
 
 function CThPage()
@@ -3772,6 +4217,9 @@ function CThumbnailsManager()
 		Pos.X -= this.m_oWordControl.X;
 		Pos.Y -= this.m_oWordControl.Y;
 
+		Pos.X = AscCommon.AscBrowser.convertToRetinaValue(Pos.X, true);
+		Pos.Y = AscCommon.AscBrowser.convertToRetinaValue(Pos.Y, true);
+
 		if (isFixed && isPage)
 		{
 			Pos.Page = -1;
@@ -3821,9 +4269,12 @@ function CThumbnailsManager()
 		Pos.X -= this.m_oWordControl.X;
 		Pos.Y -= this.m_oWordControl.Y;
 
+		Pos.X = AscCommon.AscBrowser.convertToRetinaValue(Pos.X, true);
+		Pos.Y = AscCommon.AscBrowser.convertToRetinaValue(Pos.Y, true);
+
 		var _abs_pos  = this.m_oWordControl.m_oThumbnails.AbsolutePosition;
-		var _controlW = (_abs_pos.R - _abs_pos.L) * g_dKoef_mm_to_pix;
-		var _controlH = (_abs_pos.B - _abs_pos.T) * g_dKoef_mm_to_pix;
+		var _controlW = (_abs_pos.R - _abs_pos.L) * g_dKoef_mm_to_pix * AscCommon.AscBrowser.retinaPixelRatio;
+		var _controlH = (_abs_pos.B - _abs_pos.T) * g_dKoef_mm_to_pix * AscCommon.AscBrowser.retinaPixelRatio;
 
 		if (Pos.X < 0 || Pos.X > _controlW || Pos.Y < 0 || Pos.Y > _controlH)
 			return -1;
@@ -4503,9 +4954,11 @@ function CThumbnailsManager()
 	{
 		var word_control = this.m_oWordControl;
 
+		var dKoefToPix = AscCommon.AscBrowser.retinaPixelRatio * g_dKoef_mm_to_pix;
+
 		var __w         = word_control.m_oThumbnailsContainer.AbsolutePosition.R - word_control.m_oThumbnailsContainer.AbsolutePosition.L;
 		var __h         = word_control.m_oThumbnailsContainer.AbsolutePosition.B - word_control.m_oThumbnailsContainer.AbsolutePosition.T;
-		var nWidthSlide = (__w * g_dKoef_mm_to_pix) >> 0;
+		var nWidthSlide = (__w * dKoefToPix) >> 0;
 
 		if (__w < 1 || __h < 0)
 		{
@@ -4520,7 +4973,7 @@ function CThumbnailsManager()
 		if (this.DigitWidths.length > 5)
 			_tmpDig = this.DigitWidths[5];
 
-		this.const_offset_x = (_tmpDig * g_dKoef_mm_to_pix * (("") + (this.SlidesCount + 1)).length) >> 0;
+		this.const_offset_x = (_tmpDig * dKoefToPix * (("") + (this.SlidesCount + 1)).length) >> 0;
 		if (this.const_offset_x < 25)
 			this.const_offset_x = 25;
 
@@ -4537,7 +4990,7 @@ function CThumbnailsManager()
 			dPosition = this.m_dScrollY / this.m_dScrollY_max;
 		}
 
-		var heightThumbs = (__h * g_dKoef_mm_to_pix) >> 0;
+		var heightThumbs = (__h * dKoefToPix) >> 0;
 		if (nHeightPix < heightThumbs)
 		{
 			// все убралось. скролл не нужен
@@ -4547,7 +5000,7 @@ function CThumbnailsManager()
 				word_control.m_oThumbnailsBack.Bounds.R       = 0;
 				word_control.m_oThumbnails_scroll.Bounds.AbsW = 0;
 
-				word_control.m_oThumbnailsContainer.Resize(__w, __h);
+				word_control.m_oThumbnailsContainer.Resize(__w, __h, word_control);
 			}
 			else
 			{
@@ -4563,24 +5016,24 @@ function CThumbnailsManager()
 			{
 				if (GlobalSkin.ThumbnailScrollWidthNullIfNoScrolling)
 				{
-					word_control.m_oThumbnailsBack.Bounds.R = word_control.ScrollWidthPx * g_dKoef_pix_to_mm;
-					word_control.m_oThumbnails.Bounds.R     = word_control.ScrollWidthPx * g_dKoef_pix_to_mm;
+					word_control.m_oThumbnailsBack.Bounds.R = word_control.ScrollWidthPx * dKoefToPix;
+					word_control.m_oThumbnails.Bounds.R     = word_control.ScrollWidthPx * dKoefToPix;
 
 					var _width_mm_scroll                          = (true) ? 10 : word_control.ScrollWidthPx;
-					word_control.m_oThumbnails_scroll.Bounds.AbsW = _width_mm_scroll * g_dKoef_pix_to_mm;
+					word_control.m_oThumbnails_scroll.Bounds.AbsW = _width_mm_scroll * dKoefToPix;
 				}
 				else
 				{
 					word_control.m_oThumbnails_scroll.HtmlElement.style.display = "block";
 				}
 
-				word_control.m_oThumbnailsContainer.Resize(__w, __h);
+				word_control.m_oThumbnailsContainer.Resize(__w, __h, word_control);
 			}
 			this.m_bIsScrollVisible = true;
 
 			__w         = word_control.m_oThumbnails.AbsolutePosition.R - word_control.m_oThumbnails.AbsolutePosition.L;
 			__h         = word_control.m_oThumbnails.AbsolutePosition.B - word_control.m_oThumbnails.AbsolutePosition.T;
-			nWidthSlide = (__w * g_dKoef_mm_to_pix) >> 0;
+			nWidthSlide = (__w * dKoefToPix) >> 0;
 
 			nWidthSlide -= (this.const_offset_x + this.const_offset_r);
 
@@ -4656,6 +5109,8 @@ function CThumbnailsManager()
 
 		var word_control = this.m_oWordControl;
 
+		var dKoefToPix = AscCommon.AscBrowser.retinaPixelRatio * g_dKoef_mm_to_pix;
+
 		if (word_control && word_control.MobileTouchManagerThumbnails)
 			word_control.MobileTouchManagerThumbnails.ClearContextMenu();
 
@@ -4673,7 +5128,7 @@ function CThumbnailsManager()
 
 		var __w         = word_control.m_oThumbnails.AbsolutePosition.R - word_control.m_oThumbnails.AbsolutePosition.L;
 		var __h         = word_control.m_oThumbnails.AbsolutePosition.B - word_control.m_oThumbnails.AbsolutePosition.T;
-		var nWidthSlide = (__w * g_dKoef_mm_to_pix) >> 0;
+		var nWidthSlide = (__w * dKoefToPix) >> 0;
 
 		nWidthSlide -= (this.const_offset_x + this.const_offset_r);
 		var nHeightSlide = (nWidthSlide * this.SlideHeight / this.SlideWidth) >> 0;
@@ -6006,7 +6461,7 @@ function CNotesDrawer(page)
 		g.init(ctx, w_px, h_px, w_mm, h_mm);
 		g.m_oFontManager = this.fontManager;
 
-		if (AscCommon.GlobalSkin.Name === "flatDark")
+		if (AscCommon.GlobalSkin.Type === "dark")
 		{
 			g.darkModeOverride();
 		}
@@ -6034,6 +6489,44 @@ function CNotesDrawer(page)
 		g.RestoreGrState();
 	};
 
+	this.CreateScrollSettings = function(height)
+	{
+		var element = this.HtmlPage.m_oNotes.HtmlElement;
+		var settings = new AscCommon.ScrollSettings();
+		settings.screenW = element.width;
+		settings.screenH = element.height;
+		settings.vscrollStep = 45;
+		settings.hscrollStep = 45;
+		settings.contentW = 1;
+		settings.contentH = 2 * this.OffsetY + ((height * g_dKoef_mm_to_pix) >> 0);
+		settings.scrollerMinHeight = 5;
+
+		settings.screenW = AscCommon.AscBrowser.convertToRetinaValue(settings.screenW);
+		settings.screenH = AscCommon.AscBrowser.convertToRetinaValue(settings.screenH);
+
+		settings.scrollBackgroundColor = GlobalSkin.ScrollBackgroundColor;
+		settings.scrollBackgroundColorHover = GlobalSkin.ScrollBackgroundColor;
+		settings.scrollBackgroundColorActive = GlobalSkin.ScrollBackgroundColor;
+
+		settings.scrollerColor = GlobalSkin.ScrollerColor;
+		settings.scrollerHoverColor = GlobalSkin.ScrollerHoverColor;
+		settings.scrollerActiveColor = GlobalSkin.ScrollerActiveColor;
+
+		settings.arrowColor = GlobalSkin.ScrollArrowColor;
+		settings.arrowHoverColor = GlobalSkin.ScrollArrowHoverColor;
+		settings.arrowActiveColor = GlobalSkin.ScrollArrowActiveColor;
+
+		settings.strokeStyleNone = GlobalSkin.ScrollOutlineColor;
+		settings.strokeStyleOver = GlobalSkin.ScrollOutlineHoverColor;
+		settings.strokeStyleActive = GlobalSkin.ScrollOutlineActiveColor;
+
+		settings.targetColor = GlobalSkin.ScrollerTargetColor;
+		settings.targetHoverColor = GlobalSkin.ScrollerTargetHoverColor;
+		settings.targetActiveColor = GlobalSkin.ScrollerTargetActiveColor;
+
+		return settings;
+	};
+
 	this.OnRecalculateNote = function (slideNum, width, height)
 	{
 		var isChangedSlide = (this.Slide != slideNum) ? true : false;
@@ -6052,22 +6545,7 @@ function CNotesDrawer(page)
 			this.IsEmptyDraw = true;
 		}
 
-		var element = this.HtmlPage.m_oNotes.HtmlElement;
-		var settings = new AscCommon.ScrollSettings();
-		settings.screenW = element.width;
-		settings.screenH = element.height;
-		settings.vsscrollStep = 45;
-		settings.hsscrollStep = 45;
-		settings.contentW = 1;
-		settings.contentH = 2 * this.OffsetY + ((height * g_dKoef_mm_to_pix) >> 0);
-		settings.scrollerMinHeight = 5;
-
-		settings.scrollBackgroundColor = GlobalSkin.ScrollBackgroundColor;
-		settings.scrollBackgroundColorHover = GlobalSkin.ScrollBackgroundColor;
-		settings.scrollBackgroundColorActive = GlobalSkin.ScrollBackgroundColor;
-
-		settings.screenW = AscCommon.AscBrowser.convertToRetinaValue(settings.screenW);
-		settings.screenH = AscCommon.AscBrowser.convertToRetinaValue(settings.screenH);
+		var settings = this.CreateScrollSettings(height);
 
 		this.ScrollMax = Math.max(0, settings.contentH - settings.screenH);
 		if (this.Scroll > this.ScrollMax)
