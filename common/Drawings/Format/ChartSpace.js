@@ -12652,8 +12652,11 @@ var GLOBAL_PATH_COUNT = 0;
         chart.setShowDLblsOverMax(false);
         var plot_area = chart.plotArea;
         plot_area.setLayout(new AscFormat.CLayout());
-        plot_area.addChart(new AscFormat.CBarChart());
-
+        var oBarChart = new AscFormat.CBarChart();
+        plot_area.addChart(oBarChart);
+        if(b3D) {
+            oBarChart.set3D(true);
+        }
 
         var cat_ax = new AscFormat.CCatAx();
         var val_ax = new AscFormat.CValAx();
