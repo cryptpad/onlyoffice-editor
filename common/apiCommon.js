@@ -4868,7 +4868,7 @@
 
 				var _oldTrackRevision = false;
                 if (oApi.getEditorId() == AscCommon.c_oEditorId.Word && oApi.WordControl && oApi.WordControl.m_oLogicDocument)
-                    _oldTrackRevision = oApi.WordControl.GetLocalTrackRevisions();
+                    _oldTrackRevision = oApi.WordControl.m_oLogicDocument.GetLocalTrackRevisions();
 
                 if (false !== _oldTrackRevision)
                     oApi.WordControl.m_oLogicDocument.SetLocalTrackRevisions(false);
