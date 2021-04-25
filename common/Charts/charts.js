@@ -769,7 +769,7 @@ TextArtPreviewManager.prototype.getShapeByPrst = function(prst)
 	}
 	oContent.SetApplyToAll(true);
 	oContent.SetParagraphAlign(AscCommon.align_Center);
-	oContent.AddToParagraph(new ParaTextPr({FontSize: 36, Spacing: TextSpacing}));
+	oContent.AddToParagraph(new ParaTextPr({FontSize: 36, Spacing: TextSpacing, Unifill: AscFormat.CreateUnfilFromRGB(0, 0, 0)}));
 	oContent.SetApplyToAll(false);
 
 	var oBodypr = oShape.getBodyPr().createDuplicate();
@@ -791,7 +791,12 @@ TextArtPreviewManager.prototype.getShapeByPrst = function(prst)
 		oShape.setBodyPr(oBodypr);
 	}
 	oShape.setBDeleted(false);
+	oShape.recalcText();
 	oShape.recalculate();
+	if(oShape.bWordShape)
+	{
+		oShape.recalculateText();
+	}
 	return oShape;
 };
 TextArtPreviewManager.prototype.getShape =  function()
@@ -924,15 +929,6 @@ TextArtPreviewManager.prototype.getWordArtPreviewCanvas = function(prst)
     {
         return "";
     }
-	oShape.recalcText();
-	if(!oShape.bWordShape)
-	{
-		oShape.recalculate();
-	}
-	else
-	{
-		oShape.recalculateText();
-	}
 	graphics.init(ctx, _canvas.width, _canvas.height, oShape.extX, oShape.extY);
 	graphics.m_oFontManager = AscCommon.g_fontManager;
 	graphics.transform(1,0,0,1,0,0);
