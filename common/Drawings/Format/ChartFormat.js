@@ -8378,7 +8378,7 @@
             return null;
         }
         for(var nIndex = 0; nIndex < aPositions.length; ++nIndex) {
-            if(aPositions[nIndex] === nIndex) {
+            if(aPositions[nIndex] === nPostion) {
                 return nPostion;
             }
         }
