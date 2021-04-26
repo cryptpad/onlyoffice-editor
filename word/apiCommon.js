@@ -2382,7 +2382,7 @@
 	CAscTextToTableProperties.prototype.put_Rows = function(newRows, isDefault)
 	{
 		this.ArrRows = newRows.map(function (item) {
-			return [...item]
+			return [[].concat(item)]
 		});
 		if (isDefault)
 			this.put_DefaultRows(newRows);
