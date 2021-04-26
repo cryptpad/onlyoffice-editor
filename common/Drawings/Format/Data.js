@@ -601,6 +601,19 @@
     var LayoutShapeType_shapeType_wedgeRectCallout = 187;
     var LayoutShapeType_shapeType_wedgeRoundRectCallout = 188;
 
+    var DiagramPPr_algn_ctr = 0;
+    var DiagramPPr_algn_dist = 1;
+    var DiagramPPr_algn_just = 2;
+    var DiagramPPr_algn_justLow = 3;
+    var DiagramPPr_algn_l = 4;
+    var DiagramPPr_algn_r = 5;
+    var DiagramPPr_algn_thaiDist = 6;
+    var DiagramPPr_fontAlgn_auto = 7;
+    var DiagramPPr_fontAlgn_b = 8;
+    var DiagramPPr_fontAlgn_base = 9;
+    var DiagramPPr_fontAlgn_ctr = 10;
+    var DiagramPPr_fontAlgn_t = 11;
+
     var AnimLvl_val_ctr = 0;
     var AnimLvl_val_lvl = 1;
     var AnimLvl_val_none = 2;
@@ -1002,6 +1015,7 @@
     drawingContentChanges[AscDFH.historyitem_CCommonDataListRemove] = function (oClass) {
       return oClass.list;
     };
+
     function CCommonDataList() {
       CBaseFormatObject.call(this);
       this.list = [];
@@ -1374,6 +1388,10 @@
     }
 
     InitClass(Point, CBaseFormatObject, AscDFH.historyitem_type_Point);
+
+    Point.prototype.getDrawingDocument = function() {
+
+    }
 
     Point.prototype.setCxnId = function (pr) {
       oHistory.Add(new CChangeString(this, AscDFH.historyitem_PointCxnId, this.getCxnId(), pr));
@@ -1911,6 +1929,618 @@
     PrSet.prototype.getPresLayoutVars = function () {
       return this.presLayoutVars;
     }
+
+    changesFactory[AscDFH.historyitem_EndParaRPrAltLang] = CChangeString;
+    changesFactory[AscDFH.historyitem_EndParaRPrB] = CChangeBool;
+    changesFactory[AscDFH.historyitem_EndParaRPrBaseline] = CChangeDouble;
+    changesFactory[AscDFH.historyitem_EndParaRPrBmk] = CChangeString;
+    changesFactory[AscDFH.historyitem_EndParaRPrCap] = CChangeLong;
+    changesFactory[AscDFH.historyitem_EndParaRPrDirty] = CChangeBool;
+    changesFactory[AscDFH.historyitem_EndParaRPrErr] = CChangeBool;
+    changesFactory[AscDFH.historyitem_EndParaRPrI] = CChangeBool;
+    changesFactory[AscDFH.historyitem_EndParaRPrKern] = CChangeLong;
+    changesFactory[AscDFH.historyitem_EndParaRPrKumimoji] = CChangeBool;
+    changesFactory[AscDFH.historyitem_EndParaRPrLang] = CChangeString;
+    changesFactory[AscDFH.historyitem_EndParaRPrNoProof] = CChangeBool;
+    changesFactory[AscDFH.historyitem_EndParaRPrNormalizeH] = CChangeBool;
+    changesFactory[AscDFH.historyitem_EndParaRPrSmtClean] = CChangeBool;
+    changesFactory[AscDFH.historyitem_EndParaRPrSmtId] = CChangeLong;
+    changesFactory[AscDFH.historyitem_EndParaRPrStrike] = CChangeLong;
+    changesFactory[AscDFH.historyitem_EndParaRPrSz] = CChangeLong;
+    changesFactory[AscDFH.historyitem_EndParaRPrU] = CChangeLong;
+    changesFactory[AscDFH.historyitem_EndParaRPrBlipFill] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrCs] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrEa] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrEffectDag] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrEffectLst] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrExtLst] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrGradFill] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrGrpFill] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrHighlight] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrHlinkClick] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrHlinkMouseOver] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrLatin] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrLn] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrNoFill] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrPattFill] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrRtl] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrSolidFill] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrSym] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrUFill] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrUFillTx] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrULn] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrULnTx] = CChangeObject;
+    changesFactory[AscDFH.historyitem_EndParaRPrSpc] = CChangeObject;
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrAltLang] = function (oClass, value) {oClass.altLang = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrB] = function (oClass, value) {oClass.b = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrBaseline] = function (oClass, value) {oClass.baseline = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrBmk] = function (oClass, value) {oClass.bmk = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrCap] = function (oClass, value) {oClass.cap = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrDirty] = function (oClass, value) {oClass.dirty = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrErr] = function (oClass, value) {oClass.err = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrI] = function (oClass, value) {oClass.i = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrKern] = function (oClass, value) {oClass.kern = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrKumimoji] = function (oClass, value) {oClass.kumimoji = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrLang] = function (oClass, value) {oClass.lang = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrNoProof] = function (oClass, value) {oClass.noProof = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrNormalizeH] = function (oClass, value) {oClass.normalizeH = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrSmtClean] = function (oClass, value) {oClass.smtClean = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrSmtId] = function (oClass, value) {oClass.smtId = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrStrike] = function (oClass, value) {oClass.strike = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrSz] = function (oClass, value) {oClass.sz = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrU] = function (oClass, value) {oClass.u = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrBlipFill] = function (oClass, value) {oClass.blipFill = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrCs] = function (oClass, value) {oClass.cs = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrEa] = function (oClass, value) {oClass.ea = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrEffectDag] = function (oClass, value) {oClass.effectDag = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrEffectLst] = function (oClass, value) {oClass.effectLst = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrExtLst] = function (oClass, value) {oClass.extLst = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrGradFill] = function (oClass, value) {oClass.gradFill = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrGrpFill] = function (oClass, value) {oClass.grpFill = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrHighlight] = function (oClass, value) {oClass.highlight = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrHlinkClick] = function (oClass, value) {oClass.hlinkClick = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrHlinkMouseOver] = function (oClass, value) {oClass.hlinkMouseOver = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrLatin] = function (oClass, value) {oClass.latin = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrLn] = function (oClass, value) {oClass.ln = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrNoFill] = function (oClass, value) {oClass.noFill = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrPattFill] = function (oClass, value) {oClass.pattFill = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrRtl] = function (oClass, value) {oClass.rtl = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrSolidFill] = function (oClass, value) {oClass.solidFill = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrSym] = function (oClass, value) {oClass.sym = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrUFill] = function (oClass, value) {oClass.uFill = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrUFillTx] = function (oClass, value) {oClass.uFillTx = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrULn] = function (oClass, value) {oClass.uLn = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrULnTx] = function (oClass, value) {oClass.uLnTx = value;};
+    drawingsChangesMap[AscDFH.historyitem_EndParaRPrSpc] = function (oClass, value) {oClass.spc = value;};
+    function EndParaRPr() {
+      CBaseFormatObject.call(this);
+      this.altLang = null;
+      this.b = null;
+      this.baseline = null;
+      this.bmk = null;
+      this.cap = null;
+      this.dirty = null;
+      this.err = null;
+      this.i = null;
+      this.kern = null;
+      this.kumimoji = null;
+      this.lang = null;
+      this.noProof = null;
+      this.normalizeH = null;
+      this.smtClean = null;
+      this.smtId = null;
+      this.strike = null;
+      this.sz = null;
+      this.u = null;
+      this.blipFill = null;
+      this.cs = null;
+      this.ea = null;
+      this.effectDag = null;
+      this.effectLst = null;
+      this.extLst = null;
+      this.gradFill = null;
+      this.grpFill = null;
+      this.highlight = null;
+      this.hlinkClick = null;
+      this.hlinkMouseOver = null;
+      this.latin = null;
+      this.ln = null;
+      this.noFill = null;
+      this.pattFill = null;
+      this.rtl = null;
+      this.solidFill = null;
+      this.sym = null;
+      this.uFill = null;
+      this.uFillTx = null;
+      this.uLn = null;
+      this.uLnTx = null;
+      this.spc = null;
+    }
+    InitClass(EndParaRPr, CBaseFormatObject, AscDFH.historyitem_type_EndParaRPr);
+
+    EndParaRPr.prototype.setAltLang = function(pr) {
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_EndParaRPrAltLang, this.getAltLang(), pr));
+      this.altLang = pr;
+    }
+
+    EndParaRPr.prototype.setB = function(pr) {
+      oHistory.Add(new CChangeBool(this, AscDFH.historyitem_EndParaRPrB, this.getB(), pr));
+      this.b = pr;
+    }
+
+    EndParaRPr.prototype.setBaseline = function(pr) {
+      oHistory.Add(new CChangeDouble(this, AscDFH.historyitem_EndParaRPrBaseline, this.getBaseline(), pr));
+      this.baseline = pr;
+    }
+
+    EndParaRPr.prototype.setBmk = function(pr) {
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_EndParaRPrBmk, this.getBmk(), pr));
+      this.bmk = pr;
+    }
+
+    EndParaRPr.prototype.setCap = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_EndParaRPrCap, this.getCap(), pr));
+      this.cap = pr;
+    }
+
+    EndParaRPr.prototype.setDirty = function(pr) {
+      oHistory.Add(new CChangeBool(this, AscDFH.historyitem_EndParaRPrDirty, this.getDirty(), pr));
+      this.dirty = pr;
+    }
+
+    EndParaRPr.prototype.setErr = function(pr) {
+      oHistory.Add(new CChangeBool(this, AscDFH.historyitem_EndParaRPrErr, this.getErr(), pr));
+      this.err = pr;
+    }
+
+    EndParaRPr.prototype.setI = function(pr) {
+      oHistory.Add(new CChangeBool(this, AscDFH.historyitem_EndParaRPrI, this.getI(), pr));
+      this.i = pr;
+    }
+
+    EndParaRPr.prototype.setKern = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_EndParaRPrKern, this.getKern(), pr));
+      this.kern = pr;
+    }
+
+    EndParaRPr.prototype.setKumimoji = function(pr) {
+      oHistory.Add(new CChangeBool(this, AscDFH.historyitem_EndParaRPrKumimoji, this.getKumimoji(), pr));
+      this.kumimoji = pr;
+    }
+
+    EndParaRPr.prototype.setLang = function(pr) {
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_EndParaRPrLang, this.getLang(), pr));
+      this.lang = pr;
+    }
+
+    EndParaRPr.prototype.setNoProof = function(pr) {
+      oHistory.Add(new CChangeBool(this, AscDFH.historyitem_EndParaRPrNoProof, this.getNoProof(), pr));
+      this.noProof = pr;
+    }
+
+    EndParaRPr.prototype.setNormalizeH = function(pr) {
+      oHistory.Add(new CChangeBool(this, AscDFH.historyitem_EndParaRPrNormalizeH, this.getNormalizeH(), pr));
+      this.normalizeH = pr;
+    }
+
+    EndParaRPr.prototype.setSmtClean = function(pr) {
+      oHistory.Add(new CChangeBool(this, AscDFH.historyitem_EndParaRPrSmtClean, this.getSmtClean(), pr));
+      this.smtClean = pr;
+    }
+
+    EndParaRPr.prototype.setSmtId = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_EndParaRPrSmtId, this.getSmtId(), pr));
+      this.smtId = pr;
+    }
+
+    EndParaRPr.prototype.setStrike = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_EndParaRPrStrike, this.getStrike(), pr));
+      this.strike = pr;
+    }
+
+    EndParaRPr.prototype.setSz = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_EndParaRPrSz, this.getSz(), pr));
+      this.sz = pr;
+    }
+
+    EndParaRPr.prototype.setU = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_EndParaRPrU, this.getU(), pr));
+      this.u = pr;
+    }
+
+    EndParaRPr.prototype.setBlipFill = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrBlipFill, this.getBlipFill(), oPr));
+      this.blipFill = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setCs = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrCs, this.getCs(), oPr));
+      this.cs = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setEa = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrEa, this.getEa(), oPr));
+      this.ea = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setEffectDag = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrEffectDag, this.getEffectDag(), oPr));
+      this.effectDag = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setEffectLst = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrEffectLst, this.getEffectLst(), oPr));
+      this.effectLst = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setExtLst = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrExtLst, this.getExtLst(), oPr));
+      this.extLst = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setGradFill = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrGradFill, this.getGradFill(), oPr));
+      this.gradFill = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setGrpFill = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrGrpFill, this.getGrpFill(), oPr));
+      this.grpFill = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setHighlight = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrHighlight, this.getHighlight(), oPr));
+      this.highlight = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setHlinkClick = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrHlinkClick, this.getHlinkClick(), oPr));
+      this.hlinkClick = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setHlinkMouseOver = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrHlinkMouseOver, this.getHlinkMouseOver(), oPr));
+      this.hlinkMouseOver = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setLatin = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrLatin, this.getLatin(), oPr));
+      this.latin = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setLn = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrLn, this.getLn(), oPr));
+      this.ln = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setNoFill = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrNoFill, this.getNoFill(), oPr));
+      this.noFill = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setPattFill = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrPattFill, this.getPattFill(), oPr));
+      this.pattFill = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setRtl = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrRtl, this.getRtl(), oPr));
+      this.rtl = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setSolidFill = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrSolidFill, this.getSolidFill(), oPr));
+      this.solidFill = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setSym = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrSym, this.getSym(), oPr));
+      this.sym = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setUFill = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrUFill, this.getUFill(), oPr));
+      this.uFill = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setUFillTx = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrUFillTx, this.getUFillTx(), oPr));
+      this.uFillTx = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setULn = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrULn, this.getULn(), oPr));
+      this.uLn = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setULnTx = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrULnTx, this.getULnTx(), oPr));
+      this.uLnTx = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.setSpc = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_EndParaRPrSpc, this.getSpc(), oPr));
+      this.spc = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    EndParaRPr.prototype.getAltLang = function() {
+      return this.altLang;
+    }
+
+    EndParaRPr.prototype.getB = function() {
+      return this.b;
+    }
+
+    EndParaRPr.prototype.getBaseline = function() {
+      return this.baseline;
+    }
+
+    EndParaRPr.prototype.getBmk = function() {
+      return this.bmk;
+    }
+
+    EndParaRPr.prototype.getCap = function() {
+      return this.cap;
+    }
+
+    EndParaRPr.prototype.getDirty = function() {
+      return this.dirty;
+    }
+
+    EndParaRPr.prototype.getErr = function() {
+      return this.err;
+    }
+
+    EndParaRPr.prototype.getI = function() {
+      return this.i;
+    }
+
+    EndParaRPr.prototype.getKern = function() {
+      return this.kern;
+    }
+
+    EndParaRPr.prototype.getKumimoji = function() {
+      return this.kumimoji;
+    }
+
+    EndParaRPr.prototype.getLang = function() {
+      return this.lang;
+    }
+
+    EndParaRPr.prototype.getNoProof = function() {
+      return this.noProof;
+    }
+
+    EndParaRPr.prototype.getNormalizeH = function() {
+      return this.normalizeH;
+    }
+
+    EndParaRPr.prototype.getSmtClean = function() {
+      return this.smtClean;
+    }
+
+    EndParaRPr.prototype.getSmtId = function() {
+      return this.smtId;
+    }
+
+    EndParaRPr.prototype.getStrike = function() {
+      return this.strike;
+    }
+
+    EndParaRPr.prototype.getSz = function() {
+      return this.sz;
+    }
+
+    EndParaRPr.prototype.getU = function() {
+      return this.u;
+    }
+
+    EndParaRPr.prototype.getBlipFill = function() {
+      return this.blipFill;
+    }
+
+    EndParaRPr.prototype.getCs = function() {
+      return this.cs;
+    }
+
+    EndParaRPr.prototype.getEa = function() {
+      return this.ea;
+    }
+
+    EndParaRPr.prototype.getEffectDag = function() {
+      return this.effectDag;
+    }
+
+    EndParaRPr.prototype.getEffectLst = function() {
+      return this.effectLst;
+    }
+
+    EndParaRPr.prototype.getExtLst = function() {
+      return this.extLst;
+    }
+
+    EndParaRPr.prototype.getGradFill = function() {
+      return this.gradFill;
+    }
+
+    EndParaRPr.prototype.getGrpFill = function() {
+      return this.grpFill;
+    }
+
+    EndParaRPr.prototype.getHighlight = function() {
+      return this.highlight;
+    }
+
+    EndParaRPr.prototype.getHlinkClick = function() {
+      return this.hlinkClick;
+    }
+
+    EndParaRPr.prototype.getHlinkMouseOver = function() {
+      return this.hlinkMouseOver;
+    }
+
+    EndParaRPr.prototype.getLatin = function() {
+      return this.latin;
+    }
+
+    EndParaRPr.prototype.getLn = function() {
+      return this.ln;
+    }
+
+    EndParaRPr.prototype.getNoFill = function() {
+      return this.noFill;
+    }
+
+    EndParaRPr.prototype.getPattFill = function() {
+      return this.pattFill;
+    }
+
+    EndParaRPr.prototype.getRtl = function() {
+      return this.rtl;
+    }
+
+    EndParaRPr.prototype.getSolidFill = function() {
+      return this.solidFill;
+    }
+
+    EndParaRPr.prototype.getSym = function() {
+      return this.sym;
+    }
+
+    EndParaRPr.prototype.getUFill = function() {
+      return this.uFill;
+    }
+
+    EndParaRPr.prototype.getUFillTx = function() {
+      return this.uFillTx;
+    }
+
+    EndParaRPr.prototype.getULn = function() {
+      return this.uLn;
+    }
+
+    EndParaRPr.prototype.getULnTx = function() {
+      return this.uLnTx;
+    }
+
+    EndParaRPr.prototype.getSpc = function() {
+      return this.spc;
+    }
+
+    EndParaRPr.prototype.fillObject = function (oCopy, oIdMap) {
+      oCopy.setAltLang(this.getAltLang());
+      oCopy.setB(this.getB());
+      oCopy.setBaseline(this.getBaseline());
+      oCopy.setBmk(this.getBmk());
+      oCopy.setCap(this.getCap());
+      oCopy.setDirty(this.getDirty());
+      oCopy.setErr(this.getErr());
+      oCopy.setI(this.getI());
+      oCopy.setKern(this.getKern());
+      oCopy.setKumimoji(this.getKumimoji());
+      oCopy.setLang(this.getLang());
+      oCopy.setNoProof(this.getNoProof());
+      oCopy.setNormalizeH(this.getNormalizeH());
+      oCopy.setSmtClean(this.getSmtClean());
+      oCopy.setSmtId(this.getSmtId());
+      oCopy.setStrike(this.getStrike());
+      oCopy.setSz(this.getSz());
+      oCopy.setU(this.getU());
+      if (this.getBlipFill()) {
+        oCopy.setBlipFill(this.getBlipFill().createDuplicate(oIdMap));
+      }
+      if (this.getCs()) {
+        oCopy.setCs(this.getCs().createDuplicate(oIdMap));
+      }
+      if (this.getEa()) {
+        oCopy.setEa(this.getEa().createDuplicate(oIdMap));
+      }
+      if (this.getEffectDag()) {
+        oCopy.setEffectDag(this.getEffectDag().createDuplicate(oIdMap));
+      }
+      if (this.getEffectLst()) {
+        oCopy.setEffectLst(this.getEffectLst().createDuplicate(oIdMap));
+      }
+      if (this.getExtLst()) {
+        oCopy.setExtLst(this.getExtLst().createDuplicate(oIdMap));
+      }
+      if (this.getGradFill()) {
+        oCopy.setGradFill(this.getGradFill().createDuplicate(oIdMap));
+      }
+      if (this.getGrpFill()) {
+        oCopy.setGrpFill(this.getGrpFill().createDuplicate(oIdMap));
+      }
+      if (this.getHighlight()) {
+        oCopy.setHighlight(this.getHighlight().createDuplicate(oIdMap));
+      }
+      if (this.getHlinkClick()) {
+        oCopy.setHlinkClick(this.getHlinkClick().createDuplicate(oIdMap));
+      }
+      if (this.getHlinkMouseOver()) {
+        oCopy.setHlinkMouseOver(this.getHlinkMouseOver().createDuplicate(oIdMap));
+      }
+      if (this.getLatin()) {
+        oCopy.setLatin(this.getLatin().createDuplicate(oIdMap));
+      }
+      if (this.getLn()) {
+        oCopy.setLn(this.getLn().createDuplicate(oIdMap));
+      }
+      if (this.getNoFill()) {
+        oCopy.setNoFill(this.getNoFill().createDuplicate(oIdMap));
+      }
+      if (this.getPattFill()) {
+        oCopy.setPattFill(this.getPattFill().createDuplicate(oIdMap));
+      }
+      if (this.getRtl()) {
+        oCopy.setRtl(this.getRtl().createDuplicate(oIdMap));
+      }
+      if (this.getSolidFill()) {
+        oCopy.setSolidFill(this.getSolidFill().createDuplicate(oIdMap));
+      }
+      if (this.getSym()) {
+        oCopy.setSym(this.getSym().createDuplicate(oIdMap));
+      }
+      if (this.getUFill()) {
+        oCopy.setUFill(this.getUFill().createDuplicate(oIdMap));
+      }
+      if (this.getUFillTx()) {
+        oCopy.setUFillTx(this.getUFillTx().createDuplicate(oIdMap));
+      }
+      if (this.getULn()) {
+        oCopy.setULn(this.getULn().createDuplicate(oIdMap));
+      }
+      if (this.getULnTx()) {
+        oCopy.setULnTx(this.getULnTx().createDuplicate(oIdMap));
+      }
+      if (this.getSpc()) {
+        oCopy.setSpc(this.getSpc().createDuplicate(oIdMap));
+      }
+    }
+
+
 
     changesFactory[AscDFH.historyitem_PresLayoutVarsAnimLvl] = CChangeObject;
     changesFactory[AscDFH.historyitem_PresLayoutVarsAnimOne] = CChangeObject;
@@ -5523,6 +6153,7 @@
     drawingContentChanges[AscDFH.historyitem_CCommonDataClrListRemove] = function (oClass) {
       return oClass.list;
     };
+
     function CCommonDataClrList() {
       CBaseFormatObject.call(this);
       this.list = [];
@@ -5559,6 +6190,7 @@
     drawingsChangesMap[AscDFH.historyitem_ClrLstMeth] = function (oClass, value) {
       oClass.meth = value;
     };
+
     function ClrLst() {
       CCommonDataClrList.call(this);
       this.hueDir = null;
@@ -5951,6 +6583,420 @@
       }
       for (nIdx = 0; nIdx < this.styleLbl.length; ++nIdx) {
         oCopy.addToLst(nIdx, this.styleLbl[nIdx].createDuplicate(oIdMap));
+      }
+    }
+
+    function BuNone() {
+      CBaseFormatObject.call(this);
+    }
+    InitClass(BuNone, CBaseFormatObject, AscDFH.historyitem_type_BuNone);
+
+
+    changesFactory[AscDFH.historyitem_DiagramPPrAlgn] = CChangeLong;
+    changesFactory[AscDFH.historyitem_DiagramPPrDefTabSz] = CChangeObject;
+    changesFactory[AscDFH.historyitem_DiagramPPrEaLnBrk] = CChangeBool;
+    changesFactory[AscDFH.historyitem_DiagramPPrFontAlgn] = CChangeLong;
+    changesFactory[AscDFH.historyitem_DiagramPPrHangingPunct] = CChangeBool;
+    changesFactory[AscDFH.historyitem_DiagramPPrIndent] = CChangeLong;
+    changesFactory[AscDFH.historyitem_DiagramPPrLatinLnBrk] = CChangeBool;
+    changesFactory[AscDFH.historyitem_DiagramPPrLvl] = CChangeLong;
+    changesFactory[AscDFH.historyitem_DiagramPPrMarL] = CChangeLong;
+    changesFactory[AscDFH.historyitem_DiagramPPrMarR] = CChangeLong;
+    changesFactory[AscDFH.historyitem_DiagramPPrRtl] = CChangeBool;
+    changesFactory[AscDFH.historyitem_DiagramPPrBuAutoNum] = CChangeObject;
+    changesFactory[AscDFH.historyitem_DiagramPPrBuBlip] = CChangeObject;
+    changesFactory[AscDFH.historyitem_DiagramPPrBuChar] = CChangeObject;
+    changesFactory[AscDFH.historyitem_DiagramPPrBuClr] = CChangeObject;
+    changesFactory[AscDFH.historyitem_DiagramPPrBuClrTx] = CChangeObject;
+    changesFactory[AscDFH.historyitem_DiagramPPrBuFont] = CChangeObject;
+    changesFactory[AscDFH.historyitem_DiagramPPrBuFontTx] = CChangeObject;
+    changesFactory[AscDFH.historyitem_DiagramPPrBuNone] = CChangeObject;
+    changesFactory[AscDFH.historyitem_DiagramPPrBuSzPct] = CChangeObject;
+    changesFactory[AscDFH.historyitem_DiagramPPrBuSzTx] = CChangeObject;
+    changesFactory[AscDFH.historyitem_DiagramPPrDefRPr] = CChangeObject;
+    changesFactory[AscDFH.historyitem_DiagramPPrExtLst] = CChangeObject;
+    changesFactory[AscDFH.historyitem_DiagramPPrLnSpc] = CChangeDouble;
+    changesFactory[AscDFH.historyitem_DiagramPPrSpcAft] = CChangeDouble;
+    changesFactory[AscDFH.historyitem_DiagramPPrSpcBef] = CChangeDouble;
+    changesFactory[AscDFH.historyitem_DiagramPPrTabLst] = CChangeObject;
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrAlgn] = function (oClass, value) {oClass.algn = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrDefTabSz] = function (oClass, value) {oClass.defTabSz = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrEaLnBrk] = function (oClass, value) {oClass.eaLnBrk = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrFontAlgn] = function (oClass, value) {oClass.fontAlgn = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrHangingPunct] = function (oClass, value) {oClass.hangingPunct = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrIndent] = function (oClass, value) {oClass.indent = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrLatinLnBrk] = function (oClass, value) {oClass.latinLnBrk = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrLvl] = function (oClass, value) {oClass.lvl = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrMarL] = function (oClass, value) {oClass.marL = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrMarR] = function (oClass, value) {oClass.marR = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrRtl] = function (oClass, value) {oClass.rtl = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrBuAutoNum] = function (oClass, value) {oClass.buAutoNum = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrBuBlip] = function (oClass, value) {oClass.buBlip = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrBuChar] = function (oClass, value) {oClass.buChar = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrBuClr] = function (oClass, value) {oClass.buClr = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrBuClrTx] = function (oClass, value) {oClass.buClrTx = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrBuFont] = function (oClass, value) {oClass.buFont = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrBuFontTx] = function (oClass, value) {oClass.buFontTx = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrBuNone] = function (oClass, value) {oClass.buNone = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrBuSzPct] = function (oClass, value) {oClass.buSzPct = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrBuSzTx] = function (oClass, value) {oClass.buSzTx = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrDefRPr] = function (oClass, value) {oClass.defRPr = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrExtLst] = function (oClass, value) {oClass.extLst = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrLnSpc] = function (oClass, value) {oClass.lnSpc = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrSpcAft] = function (oClass, value) {oClass.spcAft = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrSpcBef] = function (oClass, value) {oClass.spcBef = value;};
+    drawingsChangesMap[AscDFH.historyitem_DiagramPPrTabLst] = function (oClass, value) {oClass.tabLst = value;};
+    function DiagramPPr() {
+      CBaseFormatObject.call(this);
+      this.algn = null;
+      this.defTabSz = null;
+      this.eaLnBrk = null;
+      this.fontAlgn = null;
+      this.hangingPunct = null;
+      this.indent = null;
+      this.latinLnBrk = null;
+      this.lvl = null;
+      this.marL = null;
+      this.marR = null;
+      this.rtl = null;
+      this.buAutoNum = null;
+      this.buBlip = null;
+      this.buChar = null;
+      this.buClr = null;
+      this.buClrTx = null;
+      this.buFont = null;
+      this.buFontTx = null;
+      this.buNone = null;
+      this.buSzPct = null;
+      this.buSzTx = null;
+      this.defRPr = null;
+      this.extLst = null;
+      this.lnSpc = null;
+      this.spcAft = null;
+      this.spcBef = null;
+      this.tabLst = null;
+    }
+    InitClass(DiagramPPr, CBaseFormatObject, AscDFH.historyitem_type_DiagramPPr);
+
+    DiagramPPr.prototype.setAlgn = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_DiagramPPrAlgn, this.getAlgn(), pr)); // TODO: add CChange
+      this.algn = pr;
+    }
+
+    DiagramPPr.prototype.setDefTabSz = function(pr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_DiagramPPrDefTabSz, this.getDefTabSz(), pr)); // TODO: add CChange
+      this.setParentToChild(pr);
+      this.defTabSz = pr;
+    }
+
+    DiagramPPr.prototype.setEaLnBrk = function(pr) {
+      oHistory.Add(new CChangeBool(this, AscDFH.historyitem_DiagramPPrEaLnBrk, this.getEaLnBrk(), pr)); // TODO: add CChange
+      this.eaLnBrk = pr;
+    }
+
+    DiagramPPr.prototype.setFontAlgn = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_DiagramPPrFontAlgn, this.getFontAlgn(), pr)); // TODO: add CChange
+      this.fontAlgn = pr;
+    }
+
+    DiagramPPr.prototype.setHangingPunct = function(pr) {
+      oHistory.Add(new CChangeBool(this, AscDFH.historyitem_DiagramPPrHangingPunct, this.getHangingPunct(), pr)); // TODO: add CChange
+      this.hangingPunct = pr;
+    }
+
+    DiagramPPr.prototype.setIndent = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_DiagramPPrIndent, this.getIndent(), pr)); // TODO: add CChange
+      this.indent = pr;
+    }
+
+    DiagramPPr.prototype.setLatinLnBrk = function(pr) {
+      oHistory.Add(new CChangeBool(this, AscDFH.historyitem_DiagramPPrLatinLnBrk, this.getLatinLnBrk(), pr)); // TODO: add CChange
+      this.latinLnBrk = pr;
+    }
+
+    DiagramPPr.prototype.setLvl = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_DiagramPPrLvl, this.getLvl(), pr)); // TODO: add CChange
+      this.lvl = pr;
+    }
+
+    DiagramPPr.prototype.setMarL = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_DiagramPPrMarL, this.getMarL(), pr)); // TODO: add CChange
+      this.marL = pr;
+    }
+
+    DiagramPPr.prototype.setMarR = function(pr) {
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_DiagramPPrMarR, this.getMarR(), pr)); // TODO: add CChange
+      this.marR = pr;
+    }
+
+    DiagramPPr.prototype.setRtl = function(pr) {
+      oHistory.Add(new CChangeBool(this, AscDFH.historyitem_DiagramPPrRtl, this.getRtl(), pr)); // TODO: add CChange
+      this.rtl = pr;
+    }
+
+    DiagramPPr.prototype.setBuAutoNum = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_DiagramPPrBuAutoNum, this.getBuAutoNum(), oPr));
+      this.buAutoNum = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    DiagramPPr.prototype.setBuBlip = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_DiagramPPrBuBlip, this.getBuBlip(), oPr));
+      this.buBlip = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    DiagramPPr.prototype.setBuChar = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_DiagramPPrBuChar, this.getBuChar(), oPr));
+      this.buChar = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    DiagramPPr.prototype.setBuClr = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_DiagramPPrBuClr, this.getBuClr(), oPr));
+      this.buClr = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    DiagramPPr.prototype.setBuClrTx = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_DiagramPPrBuClrTx, this.getBuClrTx(), oPr));
+      this.buClrTx = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    DiagramPPr.prototype.setBuFont = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_DiagramPPrBuFont, this.getBuFont(), oPr));
+      this.buFont = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    DiagramPPr.prototype.setBuFontTx = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_DiagramPPrBuFontTx, this.getBuFontTx(), oPr));
+      this.buFontTx = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    DiagramPPr.prototype.setBuNone = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_DiagramPPrBuNone, this.getBuNone(), oPr));
+      this.buNone = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    DiagramPPr.prototype.setBuSzPct = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_DiagramPPrBuSzPct, this.getBuSzPct(), oPr));
+      this.buSzPct = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    DiagramPPr.prototype.setBuSzTx = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_DiagramPPrBuSzTx, this.getBuSzTx(), oPr));
+      this.buSzTx = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    DiagramPPr.prototype.setDefRPr = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_DiagramPPrDefRPr, this.getDefRPr(), oPr));
+      this.defRPr = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    DiagramPPr.prototype.setExtLst = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_DiagramPPrExtLst, this.getExtLst(), oPr));
+      this.extLst = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    DiagramPPr.prototype.setLnSpc = function(oPr) {
+      oHistory.Add(new CChangeDouble(this, AscDFH.historyitem_DiagramPPrLnSpc, this.getLnSpc(), oPr));
+      this.lnSpc = oPr;
+
+    }
+
+    DiagramPPr.prototype.setSpcAft = function(oPr) {
+      oHistory.Add(new CChangeDouble(this, AscDFH.historyitem_DiagramPPrSpcAft, this.getSpcAft(), oPr));
+      this.spcAft = oPr;
+
+    }
+
+    DiagramPPr.prototype.setSpcBef = function(oPr) {
+      oHistory.Add(new CChangeDouble(this, AscDFH.historyitem_DiagramPPrSpcBef, this.getSpcBef(), oPr));
+      this.spcBef = oPr;
+
+    }
+
+    DiagramPPr.prototype.setTabLst = function(oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_DiagramPPrTabLst, this.getTabLst(), oPr));
+      this.tabLst = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    DiagramPPr.prototype.getAlgn = function() {
+      return this.algn;
+    }
+
+    DiagramPPr.prototype.getDefTabSz = function() {
+      return this.defTabSz;
+    }
+
+    DiagramPPr.prototype.getEaLnBrk = function() {
+      return this.eaLnBrk;
+    }
+
+    DiagramPPr.prototype.getFontAlgn = function() {
+      return this.fontAlgn;
+    }
+
+    DiagramPPr.prototype.getHangingPunct = function() {
+      return this.hangingPunct;
+    }
+
+    DiagramPPr.prototype.getIndent = function() {
+      return this.indent;
+    }
+
+    DiagramPPr.prototype.getLatinLnBrk = function() {
+      return this.latinLnBrk;
+    }
+
+    DiagramPPr.prototype.getLvl = function() {
+      return this.lvl;
+    }
+
+    DiagramPPr.prototype.getMarL = function() {
+      return this.marL;
+    }
+
+    DiagramPPr.prototype.getMarR = function() {
+      return this.marR;
+    }
+
+    DiagramPPr.prototype.getRtl = function() {
+      return this.rtl;
+    }
+
+    DiagramPPr.prototype.getBuAutoNum = function() {
+      return this.buAutoNum;
+    }
+
+    DiagramPPr.prototype.getBuBlip = function() {
+      return this.buBlip;
+    }
+
+    DiagramPPr.prototype.getBuChar = function() {
+      return this.buChar;
+    }
+
+    DiagramPPr.prototype.getBuClr = function() {
+      return this.buClr;
+    }
+
+    DiagramPPr.prototype.getBuClrTx = function() {
+      return this.buClrTx;
+    }
+
+    DiagramPPr.prototype.getBuFont = function() {
+      return this.buFont;
+    }
+
+    DiagramPPr.prototype.getBuFontTx = function() {
+      return this.buFontTx;
+    }
+
+    DiagramPPr.prototype.getBuNone = function() {
+      return this.buNone;
+    }
+
+    DiagramPPr.prototype.getBuSzPct = function() {
+      return this.buSzPct;
+    }
+
+    DiagramPPr.prototype.getBuSzTx = function() {
+      return this.buSzTx;
+    }
+
+    DiagramPPr.prototype.getDefRPr = function() {
+      return this.defRPr;
+    }
+
+    DiagramPPr.prototype.getExtLst = function() {
+      return this.extLst;
+    }
+
+    DiagramPPr.prototype.getLnSpc = function() {
+      return this.lnSpc;
+    }
+
+    DiagramPPr.prototype.getSpcAft = function() {
+      return this.spcAft;
+    }
+
+    DiagramPPr.prototype.getSpcBef = function() {
+      return this.spcBef;
+    }
+
+    DiagramPPr.prototype.getTabLst = function() {
+      return this.tabLst;
+    }
+
+    DiagramPPr.prototype.fillObject = function (oCopy, oIdMap) {
+      oCopy.setAlgn(this.getAlgn());
+      if (this.getDefTabSz()) {
+        oCopy.setDefTabSz(this.getDefTabSz());
+      }
+      oCopy.setEaLnBrk(this.getEaLnBrk());
+      oCopy.setFontAlgn(this.getFontAlgn());
+      oCopy.setHangingPunct(this.getHangingPunct());
+      oCopy.setIndent(this.getIndent());
+      oCopy.setLatinLnBrk(this.getLatinLnBrk());
+      oCopy.setLvl(this.getLvl());
+      oCopy.setMarL(this.getMarL());
+      oCopy.setMarR(this.getMarR());
+      oCopy.setRtl(this.getRtl());
+      if (this.getBuAutoNum()) {
+        oCopy.setBuAutoNum(this.getBuAutoNum().createDuplicate(oIdMap));
+      }
+      if (this.getBuBlip()) {
+        oCopy.setBuBlip(this.getBuBlip().createDuplicate(oIdMap));
+      }
+      if (this.getBuChar()) {
+        oCopy.setBuChar(this.getBuChar().createDuplicate(oIdMap));
+      }
+      if (this.getBuClr()) {
+        oCopy.setBuClr(this.getBuClr().createDuplicate(oIdMap));
+      }
+      if (this.getBuClrTx()) {
+        oCopy.setBuClrTx(this.getBuClrTx().createDuplicate(oIdMap));
+      }
+      if (this.getBuFont()) {
+        oCopy.setBuFont(this.getBuFont().createDuplicate(oIdMap));
+      }
+      if (this.getBuFontTx()) {
+        oCopy.setBuFontTx(this.getBuFontTx().createDuplicate(oIdMap));
+      }
+      if (this.getBuNone()) {
+        oCopy.setBuNone(this.getBuNone().createDuplicate(oIdMap));
+      }
+      if (this.getBuSzPct()) {
+        oCopy.setBuSzPct(this.getBuSzPct().createDuplicate(oIdMap));
+      }
+      if (this.getBuSzTx()) {
+        oCopy.setBuSzTx(this.getBuSzTx().createDuplicate(oIdMap));
+      }
+      if (this.getDefRPr()) {
+        oCopy.setDefRPr(this.getDefRPr().createDuplicate(oIdMap));
+      }
+      if (this.getExtLst()) {
+        oCopy.setExtLst(this.getExtLst().createDuplicate(oIdMap));
+      }
+        oCopy.setLnSpc(this.getLnSpc().createDuplicate(oIdMap));
+
+        oCopy.setSpcAft(this.getSpcAft().createDuplicate(oIdMap));
+
+
+        oCopy.setSpcBef(this.getSpcBef().createDuplicate(oIdMap));
+
+      if (this.getTabLst()) {
+        oCopy.setTabLst(this.getTabLst().createDuplicate(oIdMap));
       }
     }
 
@@ -11406,6 +12452,629 @@
           }
         }
       },
+      dataModel: {
+        ptLst: [
+          {
+            type: 'Point_type_doc',
+            modelId: '',
+            prSet: {
+              phldr: false,
+              csCatId: 'accent1',
+              csTypeId: 'urn:microsoft.com/office/officeart/2005/8/colors/accent1_2',
+              qsCatId: 'simple',
+              qsTypeId: 'urn:microsoft.com/office/officeart/2005/8/quickstyle/simple1',
+              loCatId: 'picture',
+              loTypeId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            },
+            spPr: {},
+          },
+          {
+            modelId: '',
+            prSet: {
+              phldr: true,
+              phldrT: '[Текст]',
+            },
+            spPr: {},
+            t: {
+              bodyPr: {},
+              lstStyle: {},
+              p: {
+                endParaRPr: {
+                  lang: 'ru-RU',
+                  dirty: false,
+                }
+              }
+            }
+          },
+          {
+            type: 'Point_type_parTrans',
+            modelId: '',
+            cxnId: '',
+            prSet: {},
+            spPr: {},
+            t: {
+              bodyPr: {},
+              lstStyle: {},
+              p: {
+                endParaRPr: {
+                  lang: 'ru-RU'
+                }
+              }
+            }
+          },
+          {
+            type: 'Point_type_sibTrans',
+            modelId: '',
+            cxnId: '',
+            prSet: {},
+            spPr: {},
+            t: {
+              bodyPr: {},
+              lstStyle: {},
+              p: {
+                endParaRPr: {
+                  lang: 'ru-RU'
+                }
+              }
+            }
+          },
+          {
+            modelId: '',
+            prSet: {
+              phldr: true,
+              phldrT: '[Текст]',
+            },
+            spPr: {},
+            t: {
+              bodyPr: {},
+              lstStyle: {},
+              p: {
+                endParaRPr: {
+                  lang: 'ru-RU',
+                  dirty: false,
+                }
+              }
+            }
+          },
+          {
+            type: 'Point_type_parTrans',
+            modelId: '',
+            cxnId: {},
+            prSet: {},
+            spPr: {},
+            t: {
+              bodyPr: {},
+              lstStyle: {},
+              p: {
+                endParaRPr: {
+                  lang: 'ru-RU'
+                }
+              }
+            }
+          },
+          {
+            type: 'Point_type_sibTrans',
+            modelId: '',
+            cxnId: '',
+            prSet: {},
+            spPr: {},
+            t: {
+              bodyPr: {},
+              lstStyle: {},
+              p: {
+                endParaRPr: {
+                  lang: 'ru-RU'
+                }
+              }
+            }
+          },
+          {
+            modelId: '',
+            prSet: {
+              phldr: true,
+              phldrT: '[Текст]',
+            },
+            spPr: {},
+            t: {
+              bodyPr: {},
+              lstStyle: {},
+              p: {
+                endParaRPr: {
+                  lang: 'ru-RU',
+                  dirty: false,
+                }
+              }
+            }
+          },
+          {
+            type: 'Point_type_parTrans',
+            modelId: '',
+            cxnId: '',
+            prSet: {},
+            spPr: {},
+            t: {
+              bodyPr: {},
+              lstStyle: {},
+              p: {
+                endParaRPr: {
+                  lang: 'ru-RU'
+                }
+              }
+            }
+          },
+          {
+            type: 'Point_type_sibTrans',
+            modelId: '',
+            cxnId: '',
+            prSet: {},
+            spPr: {},
+            t: {
+              bodyPr: {},
+              lstStyle: {},
+              p: {
+                endParaRPr: {
+                  lang: 'ru-RU'
+                }
+              }
+            }
+          },
+          {
+            type: 'Point_type_pres',
+            modelId: '',
+            prSet: {
+              presStyleCnt: 0,
+              presName: 'Name0',
+              presAssocID: '',
+              presLayoutVars: {
+                dir: {},
+                resizeHandles: {
+                  val: 'ResizeHandles_val_exact',
+                }
+              },
+            },
+            spPr: {},
+          },
+          {
+            type: 'Point_type_pres',
+            modelId: '',
+            prSet: {
+              presStyleCnt: 1,
+              presName: 'bkgdShp',
+              presAssocID: '',
+              presStyleIdx: 0,
+              presStyleLbl: 'alignAccFollowNode1',
+            },
+            spPr: {},
+          },
+          {
+            type: 'Point_type_pres',
+            modelId: '',
+            prSet: {
+              presStyleCnt: 0,
+              presName: 'linComp',
+              presAssocID: '',
+            },
+            spPr: {},
+          },
+          {
+            type: 'Point_type_pres',
+            modelId: '',
+            prSet: {
+              presStyleCnt: 0,
+              presName: 'compNode',
+              presAssocID: '',
+            },
+            spPr: {},
+          },
+          {
+            type: 'Point_type_pres',
+            modelId: '',
+            prSet: {
+              presStyleCnt: 3,
+              presName: 'node',
+              presAssocID: '',
+              presStyleIdx: 0,
+              presStyleLbl: 'node1',
+              presLayoutVars: {
+                bulletEnabled: {
+                  val: true,
+                }
+              }
+            },
+            spPr: {},
+          },
+          {
+            type: 'Point_type_pres',
+            modelId: '',
+            prSet: {
+              presStyleCnt: 3,
+              presName: 'invisiNode',
+              presAssocID: '',
+              presStyleIdx: 0,
+              presStyleLbl: 'node1',
+            },
+            spPr: {},
+          },
+          {
+            type: 'Point_type_pres',
+            modelId: '',
+            prSet: {
+              presStyleCnt: 3,
+              presName: 'imagNode',
+              presAssocID: '',
+              presStyleIdx: 0,
+              presStyleLbl: 'fgImgPlace1',
+            },
+            spPr: {},
+          },
+          {
+            type: 'Point_type_pres',
+            modelId: '',
+            prSet: {
+              presStyleCnt: 0,
+              presName: 'sibTrans',
+              presAssocID: '',
+              presStyleIdx: 0,
+              presStyleLbl: 'sibTrans2D1',
+            },
+            spPr: {},
+          },
+          {
+            type: 'Point_type_pres',
+            modelId: '',
+            prSet: {
+              presStyleCnt: 0,
+              presName: 'compNode',
+              presAssocID: '',
+            },
+            spPr: {},
+          },
+          {
+            type: 'Point_type_pres',
+            modelId: '',
+            prSet: {
+              presStyleCnt: 3,
+              presName: 'node',
+              presAssocID: '',
+              presStyleIdx: 1,
+              presStyleLbl: 'node1',
+              presLayoutVars: {
+                bulletEnabled: true,
+              }
+            },
+            spPr: {},
+          },
+          {
+            type: 'Point_type_pres',
+            modelId: '',
+            prSet: {
+              presStyleCnt: 3,
+              presName: 'imagNode',
+              presAssocID: '',
+              presStyleIdx: 1,
+              presStyleLbl: 'fgImgPlace1',
+            },
+            spPr: {},
+          },
+          {
+            type: 'Point_type_pres',
+            modelId: '',
+            prSet: {
+              presStyleCnt: 3,
+              presName: 'invisiNode',
+              presAssocID: '',
+              presStyleIdx: 1,
+              presStyleLbl: 'node1',
+            },
+            spPr: {},
+          },
+          {
+            type: 'Point_type_pres',
+            modelId: '',
+            prSet: {
+              presStyleCnt: 3,
+              presName: 'imagNode',
+              presAssocID: '',
+              presStyleIdx: 1,
+              presStyleLbl: 'fgImgPlace1',
+            },
+            spPr: {},
+          },
+          {
+            type: 'Point_type_pres',
+            modelId: '',
+            prSet: {
+              presStyleCnt: 0,
+              presName: 'sibTrans',
+              presAssocID: '',
+              presStyleIdx: 0,
+              presStyleLbl: 'sibTrans2D1',
+            },
+            spPr: {},
+          },
+          {
+            type: 'Point_type_pres',
+            modelId: '',
+            prSet: {
+              presStyleCnt: 0,
+              presName: 'compNode',
+              presAssocID: '',
+            },
+            spPr: {},
+          },
+          {
+            type: 'Point_type_pres',
+            modelId: '',
+            prSet: {
+              presStyleCnt: 3,
+              presName: 'node',
+              presAssocID: '',
+              presStyleIdx: 2,
+              presStyleLbl: 'node1',
+              presLayoutVars: {
+                bulletEnabled: true,
+              }
+            },
+            spPr: {},
+          },
+          {
+            type: 'Point_type_pres',
+            modelId: '',
+            prSet: {
+              presStyleCnt: 3,
+              presName: 'invisiNode',
+              presAssocID: '',
+              presStyleIdx: 2,
+              presStyleLbl: 'node1',
+            },
+            spPr: {},
+          },
+          {
+            type: 'Point_type_pres',
+            modelId: '',
+            prSet: {
+              presStyleCnt: 3,
+              presName: 'imagNode',
+              presAssocID: '',
+              presStyleIdx: 2,
+              presStyleLbl: 'fgImgPlace1',
+            },
+            spPr: {},
+          },
+        ],
+        cxnLst: [
+          {
+            type: 'Cxn_type_presOf',
+            modelId: '',
+            presId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            destOrd: 0,
+            srcOrd: 0,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 0,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 0,
+            destId: '',
+            srcId: '',
+          },
+          {
+            presId: '',
+            destOrd: 0,
+            srcOrd: 1,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 0,
+            destId: '',
+            srcId: '',
+          },
+          {
+            presId: '',
+            destOrd: 0,
+            srcOrd: 2,
+            destId: '',
+            srcId: '',
+          },
+          {
+            presId: '',
+            destOrd: 0,
+            srcOrd: 0,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 0,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 0,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presParOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 0,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presParOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 1,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presParOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 0,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presParOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 0,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presParOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 1,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presParOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 2,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presParOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 1,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presParOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 2,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presParOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 0,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presParOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 1,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presParOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 2,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presParOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 3,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presParOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 4,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presParOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 0,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presParOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 1,
+            destId: '',
+            srcId: '',
+          },
+          {
+            type: 'Cxn_type_presParOf',
+            modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
+            presId: '',
+            destOrd: 0,
+            srcOrd: 2,
+            destId: '',
+            srcId: '',
+          },
+        ],
+        bg: {},
+        whole: {},
+        extLst: [
+          {
+            uri: 'http://schemas.microsoft.com/office/drawing/2008/diagram',
+            dataModelExt: {
+              minVer: 'http://schemas.openxmlformats.org/drawingml/2006/diagra',
+              relId: 'rId6',
+            }
+          }
+        ],
+      },
       drawing: {
         spTree: {
           nvGrpSpPr: {
@@ -12665,6 +14334,34 @@
       return styleRef;
     }
 
+    function fillStyle(style, styleInfo) {
+      var rgbClr = new RGBClr();
+      var clrLnInfo = styleInfo.lnRef.scrgbClr;
+      rgbClr.setColor(clrLnInfo.r, clrLnInfo.g, clrLnInfo.b);
+      var lnClr = createUniClr(rgbClr);
+      style.setLnRef(createStyleRef(styleInfo.lnRef.idx, lnClr));
+
+      rgbClr = new RGBClr();
+      var clrFillInfo = styleInfo.fillRef.scrgbClr;
+      rgbClr.setColor(clrFillInfo.r, clrFillInfo.g, clrFillInfo.b);
+      var fillClr = createUniClr(rgbClr);
+      style.setFillRef(createStyleRef(styleInfo.fillRef.idx, fillClr));
+
+      rgbClr = new RGBClr();
+      var clrEffectInfo = styleInfo.effectRef.scrgbClr;
+      rgbClr.setColor(clrEffectInfo.r, clrEffectInfo.g, clrEffectInfo.b);
+      var effectClr = createUniClr(rgbClr);
+      style.setEffectRef(createStyleRef(styleInfo.effectRef.idx, effectClr));
+
+      if (styleInfo.fontRef.schemeClr && Object.keys(styleInfo.fontRef.schemeClr)) {
+        var schemeClr = new SchemeClr();
+        schemeClr.setId(styleInfo.fontRef.schemeClr.id);
+        var fontClr = createUniClr(schemeClr);
+        style.setFontRef(createStyleRef(styleInfo.fontRef.idx, fontClr, true));
+      } else {
+        style.setFontRef(createStyleRef(styleInfo.fontRef.idx, null, true));
+      }
+    }
 
     function fillQuickStyle(quickStyle, quickStyleInfo) {
       quickStyleInfo.titles.forEach(function (e) {
@@ -12691,47 +14388,23 @@
         var scene3dInfo = LblInfo.scene3d;
         fillScene3dInObject(styleLbl, scene3dInfo);
 
-        styleLbl.setStyle(new ShapeStyle());
+        var style = new ShapeStyle();
+        fillStyle(style, LblInfo.style);
+        styleLbl.setStyle(style);
 
-        var rgbClr = new RGBClr();
-        var clrLnInfo = LblInfo.style.lnRef.scrgbClr;
-        rgbClr.setColor(clrLnInfo.r, clrLnInfo.g, clrLnInfo.b);
-        var lnClr = createUniClr(rgbClr);
-        styleLbl.style.setLnRef(createStyleRef(LblInfo.style.lnRef.idx, lnClr));
-
-        rgbClr = new RGBClr();
-        var clrFillInfo = LblInfo.style.fillRef.scrgbClr;
-        rgbClr.setColor(clrFillInfo.r, clrFillInfo.g, clrFillInfo.b);
-        var fillClr = createUniClr(rgbClr);
-        styleLbl.style.setFillRef(createStyleRef(LblInfo.style.fillRef.idx, fillClr));
-
-        rgbClr = new RGBClr();
-        var clrEffectInfo = LblInfo.style.effectRef.scrgbClr;
-        rgbClr.setColor(clrEffectInfo.r, clrEffectInfo.g, clrEffectInfo.b);
-        var effectClr = createUniClr(rgbClr);
-        styleLbl.style.setEffectRef(createStyleRef(LblInfo.style.effectRef.idx, effectClr));
-
-        if (LblInfo.style.fontRef.schemeClr && Object.keys(LblInfo.style.fontRef.schemeClr)) {
-          var schemeClr = new SchemeClr();
-          schemeClr.setId(LblInfo.style.fontRef.schemeClr.id);
-          var fontClr = createUniClr(schemeClr);
-          styleLbl.style.setFontRef(createStyleRef(LblInfo.style.fontRef.idx, fontClr, true));
-        } else {
-          styleLbl.style.setFontRef(createStyleRef(LblInfo.style.fontRef.idx, null, true));
-        }
         quickStyle.addToLstStyleLbl(0, styleLbl);
       });
     }
 
     function fillResizeHandles(resizeHandles, resizeHandlesInfo) {
       if (resizeHandlesInfo.val) {
-        resizeHandles.setVal(val);
+        resizeHandles.setVal(resizeHandlesInfo.val);
       }
     }
 
     function fillPresLayoutVars(presLayoutVars, presLayoutVarsInfo) {
       if (presLayoutVarsInfo.dir) {
-        presLayoutVars.setDir(new Dir()); //TODO: create Dir
+        presLayoutVars.setDir(new DiagramDirection()); //TODO: create Dir
       }
       if (presLayoutVarsInfo.resizeHandles) {
         var resizeHandles = new ResizeHandles();
@@ -12781,26 +14454,181 @@
       if (prSetInfo.presStyleLbl) {
         prSet.setPresStyleLbl(prSetInfo.presStyleLbl);
       }
-      if (Object.keys(prSetInfo.presLayoutVars)) {
+      if (prSetInfo.presLayoutVars && Object.keys(prSetInfo.presLayoutVars)) {
         var presLayoutVars = new PresLayoutVars();
         fillPresLayoutVars(presLayoutVars, prSetInfo.presLayoutVars);
         prSet.setPresLayoutVars(presLayoutVars);
       }
     }
-    
-    function fillP(paragraph, paragraphInfo) {
-      var endParaRPr = new EndParaPRr(); // TODO: add import ParaEnd
-      endParaRPr.setLang()
+
+    function fillPPr(pPr, pPrInfo) {
+      if (pPrInfo.algn) {
+        pPr.setAlgn(pPrInfo.algn);
+      }
+      if (pPrInfo.defTabSz) {
+        pPr.setDefTabSz(pPrInfo.defTabSz);
+      }
+      if (pPrInfo.indent) {
+        pPr.setIndent(pPrInfo.indent);
+      }
+      if (pPrInfo.lvl) {
+        pPr.setLvl(pPrInfo.lvl);
+      }
+      if (pPrInfo.marL) {
+        pPr.setMarL(pPrInfo.marL);
+      }
+      if (pPrInfo.lnSpc) {
+        pPr.setLnSpc(pPrInfo.lnSpc.spcPct.val);
+      }
+      if (pPrInfo.spcBef) {
+        pPr.setSpcBef(pPrInfo.spcBef.spcPct.val);
+      }
+      if (pPrInfo.spcAft) {
+        pPr.setSpcAft(pPrInfo.spcAft.spcPct.val);
+      }
+      if (pPrInfo.buNone) {
+        pPr.setBuNone(new BuNone());
+      }
     }
 
-    function fillT(t, tInfo) {
-      var bodyPr = new BodyPr();
+    function fillP(paragraph, paragraphInfo) {
+      if (paragraphInfo.pPr) {
+        var pPr = new DiagramPPr();
+        fillPPr(pPr, paragraphInfo.pPr);
+        // TODO: add ppr in paragraph
+      }
+
+
+      var endParaRPr = new EndParaRPr(); // TODO: add import ParaEnd
+      if (paragraphInfo.endParaRPr.lang) {
+        endParaRPr.setLang(paragraphInfo.endParaRPr.lang);
+      }
+      if (paragraphInfo.endParaRPr.kern) {
+        endParaRPr.setKern(paragraphInfo.endParaRPr.kern);
+      }
+      if (paragraphInfo.endParaRPr.sz) {
+        endParaRPr.setSz(paragraphInfo.endParaRPr.sz);
+      }
+      if (typeof paragraphInfo.endParaRPr.dirty === 'boolean') {
+        endParaRPr.setDirty(paragraphInfo.endParaRPr.dirty);
+      }
+      // TODO: add endParaRPr to p
+    }
+
+    function fillBodyPr(bodyPr, bodyPrInfo) {
+      if (typeof bodyPrInfo.anchorCtr === 'boolean') {
+        bodyPr.anchorCtr = bodyPrInfo.anchorCtr;
+      }
+      if (bodyPrInfo.anchor) {
+        bodyPr.anchor = bodyPrInfo.anchor;
+      }
+      if (bodyPrInfo.spcCol) {
+        bodyPr.spcCol = bodyPrInfo.spcCol;
+      }
+      if (bodyPrInfo.numCol) {
+        bodyPr.numCol = bodyPrInfo.numCol;
+      }
+      if (bodyPrInfo.bIns) {
+        bodyPr.bIns = bodyPrInfo.bIns;
+      }
+      if (bodyPrInfo.rIns) {
+        bodyPr.rIns = bodyPrInfo.rIns;
+      }
+      if (bodyPrInfo.tIns) {
+        bodyPr.tIns = bodyPrInfo.tIns;
+      }
+      if (bodyPrInfo.lIns) {
+        bodyPr.lIns = bodyPrInfo.lIns;
+      }
+      if (bodyPrInfo.wrap) {
+        bodyPr.wrap = bodyPrInfo.wrap;
+      }
+      if (bodyPrInfo.vert) {
+        bodyPr.vert = bodyPrInfo.vert;
+      }
+      if (typeof bodyPrInfo.spcFirstLastPara === 'boolean') {
+        bodyPr.spcFirstLastPara = bodyPrInfo.spcFirstLastPara;
+      }
+      // TODO: add noautofit
+    }
+
+    function fillTextBody(t, tInfo, content) {
+      var bodyPr = new AscFormat.CBodyPr();
+      fillBodyPr(bodyPr, tInfo.bodyPr);
       t.setBodyPr(bodyPr);
-      var lstStyle = new LstStyle();
+      var lstStyle = new AscFormat.TextListStyle();
       t.setLstStyle(lstStyle);
-      var p = new Paragraph();
-      fillP(p, tInfo.p);
-      t.setParagraph(p);
+      if (tInfo.p) {
+        var p = new Paragraph();
+        fillP(p, tInfo.p);
+        // content.addToContent(0, p); TODO: разобраться
+        t.setContent(content);
+      }
+    }
+
+    function fillSolidFill(solidFill, solidFillInfo) {
+      var uniClr = new CUniColor();
+      var schemeClr = new SchemeClr();
+      schemeClr.setId(solidFillInfo.schemeClr.val); // TODO: id?
+      var mods = new ColorModLst();
+      solidFillInfo.schemeClr.mods.forEach(function (modInfo) {
+        var mod = new ColorMod();
+        mod.setName(modInfo.name);
+        mod.setVal(modInfo.val);
+        mods.addMod(mod);
+      })
+      uniClr.setMods(mods);
+      uniClr.setColor(schemeClr);
+
+    }
+
+    function fillSpPr(spPr, spPrInfo) {
+      if (spPrInfo.xfrm) {
+        var xfrm = new AscFormat.CXfrm();
+        if (spPrInfo.xfrm.rot) {
+          xfrm.setRot(spPrInfo.xfrm.rot);
+        }
+        xfrm.setOffX(spPrInfo.xfrm.off.x);
+        xfrm.setOffY(spPrInfo.xfrm.off.y);
+        xfrm.setExtX(spPrInfo.xfrm.ext.cy);
+        xfrm.setExtY(spPrInfo.xfrm.ext.cx);
+        spPr.setXfrm(xfrm);
+      }
+      if (spPrInfo.prstGeom) {
+        spPr.setGeometry(AscFormat.CreateGeometry(spPrInfo.prstGeom.prst));
+      } //TODO: add fill
+      if (spPrInfo.ln) {
+        var ln = new AscFormat.CLn();
+        if (spPrInfo.ln.algn) {
+          ln.setAlgn(spPrInfo.ln.algn);
+        }
+        if (spPrInfo.ln.cmpd) {
+          ln.setCmpd(spPrInfo.ln.cmpd);
+        }
+        if (spPrInfo.ln.cap) {
+          ln.setCap(spPrInfo.ln.cap);
+        }
+        if (spPrInfo.ln.w) {
+          ln.setW(spPrInfo.ln.w);
+        }
+        if (spPrInfo.ln.prstDash) {
+          ln.setPrstDash(spPrInfo.ln.prstDash.val);
+        }
+        if (spPrInfo.ln.solidFill) {
+          var uniFill = new AscFormat.CUniFill();
+          uniFill.setFill(new AscFormat.CSolidFill());
+          fillSolidFill(uniFill.fill, spPrInfo.ln.solidFill);
+          ln.setFill(uniFill);
+        }
+        spPr.setLn(ln);
+        // TODO: add fill
+      }
+      if (spPrInfo.solidFill) {
+        uniFill = new AscFormat.CUniFill();
+        uniFill.setFill(new AscFormat.CSolidFill());
+        fillSolidFill(uniFill.fill, spPrInfo.solidFill);
+        spPr.setFill(uniFill);
+      }
     }
 
     function createPoint(pointInfo) {
@@ -12812,19 +14640,21 @@
         point.setType(pointInfo.type);
       }
       var prSet = new PrSet();
-      if (pointInfo.prSet && Object.keys(pointInfo.prSet)) {
+      if (pointInfo.prSet) {
         fillPrSet(prSet, pointInfo.prSet);
       }
       point.setPrSet(prSet);
 
-      if (pointInfo.spPr && object.keys(pointInfo.prSet)) {
-        var spPr = new SpPr(); // add in imports
+      if (pointInfo.spPr) {
+        var spPr = new AscFormat.CSpPr(); // add in imports
+        fillSpPr(spPr, pointInfo.spPr);
         point.setSpPr(spPr);
       }
 
-      if (pointInfo.t && object.keys(pointInfo.t)) {
-        var t = new T();
-        fillT(t, pointInfo.t);
+      if (pointInfo.t) {
+        var t = new AscFormat.CTextBody();
+        var content = new AscFormat.CDrawingDocContent(t, point.getDrawingDocument(), 0, 0, 0, 0, false, false, true);
+        fillTextBody(t, pointInfo.t, content);
         point.setT(t);
       }
       return point;
@@ -12873,16 +14703,16 @@
       if (extInfo.uri) {
         ext.setUri(extInfo.uri);
       }
-      if (extInfo.dataModelExt) {
-        var dataModelExt = new DataModelExt(); // TODO: create class DataModelExt
-        if (extInfo.dataModelExt.minVer) {
-          dataModelExt.setMinVer(extInfo.dataModelExt.minVer);
-        }
-        if (extInfo.dataModelExt.relId) {
-          dataModelExt.setRelId(extInfo.dataModelExt.relId);
-        }
-        ext.setDataModelExt(dataModelExt);
-      }
+      // if (extInfo.dataModelExt) {
+      //   var dataModelExt = new DataModelExt(); // TODO: create class DataModelExt
+      //   if (extInfo.dataModelExt.minVer) {
+      //     dataModelExt.setMinVer(extInfo.dataModelExt.minVer);
+      //   }
+      //   if (extInfo.dataModelExt.relId) {
+      //     dataModelExt.setRelId(extInfo.dataModelExt.relId);
+      //   }
+      //   ext.setDataModelExt(dataModelExt);
+      // }
     }
 
     function fillExtLst(extLst, exts) {
@@ -12892,35 +14722,35 @@
     }
 
     function fillDataModel(dataModel, dataModelObj) {
-        var points = dataModelObj.ptLst.map(function (pointInfo) {
-          return createPoint(pointInfo);
+      var points = dataModelObj.ptLst.map(function (pointInfo) {
+        return createPoint(pointInfo);
+      });
+      var ptLst = new PtLst();
+      fillPtLst(ptLst, points);
+      dataModel.setPtLst(ptLst);
+
+      if (dataModelObj.cxnLst) {
+        var cxns = dataModelObj.cxnLst.map(function (cxnInfo) {
+          return createCxn(cxnInfo);
         });
-        var ptLst = new PtLst();
-        fillPtLst(ptLst, points);
-        dataModel.setPtLst(ptLst);
+        var cxnLst = new CxnLst();
+        fillCxnLst(cxnLst, cxns);
+        dataModel.setCxnLst(cxns);
+      }
 
-        if (dataModelObj.cxnLst) {
-          var cxns = dataModelObj.cxnLst.map(function (cxnInfo) {
-            return createCxn(cxnInfo);
-          });
-          var cxnLst = new CxnLst();
-          fillCxnLst(cxnLst, cxns);
-          dataModel.setCxnLst(cxns);
-        }
+      if (dataModelObj.extLst) {
+        var exts = dataModelObj.extLst.map(function (extInfo) {
+          return createExt(extInfo);
+        });
+        var extLst = new ExtLst();
+        fillExtLst(extLst, exts);
+        dataModel.setExtLst(extLst);
+      }
 
-        if (dataModelObj.extLst) {
-          var exts = dataModelObj.extLst.map(function (extInfo) {
-            return createExt(extInfo);
-          });
-          var extLst = new ExtLst();
-          fillExtLst(extLst, exts);
-          dataModel.setExtLst(extLst);
-        }
-
-        var bg = new BgFormat();
-        dataModel.setBg(bg);
-        var whole = new Whole();
-        dataModel.setWhole(whole);
+      var bg = new BgFormat();
+      dataModel.setBg(bg);
+      var whole = new Whole();
+      dataModel.setWhole(whole);
 
     }
 
@@ -12932,7 +14762,7 @@
       sampData.setDataModel(dataModel);
 
     }
-    
+
     function fillClrData(clrData, clrDataInfo) {
       var dataModel = new DataModel();
       fillDataModel(dataModel, clrDataInfo.dataModel);
@@ -12945,19 +14775,266 @@
       styleData.setDataModel(dataModel);
     }
 
-    function fillLayoutNode(layoutNode, layoutNodeInfo) {
-      if (layoutNodeInfo.name) {
+    function fillVarLst(varLst, varLstInfo) {
+      if (varLstInfo.dir) {
+        var dir = new DiagramDirection();
+        varLst.setDir(dir);
+      }
+      if (varLstInfo.resizeHandles) {
+        var resizeHandles = new ResizeHandles();
+        fillResizeHandles(resizeHandles, varLstInfo.resizeHandles);
+        varLst.setResizeHandles(resizeHandles);
+      }
+    }
+
+    function createParam(paramInfo) {
+      var param = new Param();
+      if (paramInfo.val) {
+        param.setVal(paramInfo.val);
+      }
+      if (paramInfo.type) {
+        param.setType(paramInfo.type);
+      }
+      return param;
+    }
+
+    function fillAlg(alg, algInfo) {
+      if (algInfo.type) {
+        alg.setType(algInfo.type);
+      }
+      if (algInfo.param) {
+        algInfo.forEach(function (param) {
+          alg.addToLstParam(0, createParam(param));
+        })
+      }
+    }
+
+    function createAdj(adjInfo) {
+      var adj = new Adj();
+      if (adjInfo.val) {
+        adj.setVal(adjInfo.val);
+      }
+      if (adjInfo.idx) {
+        adj.setIdx(adjInfo.idx);
+      }
+      return adj;
+    }
+
+    function fillSShape(shape, shapeInfo) {
+      if (shapeInfo.blip) {
+        shape.setBlip(shapeInfo.blip);
+      }
+      if (shapeInfo.adjLst) {
+        var adjLst = new AdjLst();
+        shapeInfo.adjLst.forEach(function (adj) {
+          adjLst.addToLst(0, createAdj(adj));
+        });
+      }
+      if (shapeInfo.type) {
+        shape.setType(shapeInfo.type);
+      }
+      if (typeof shapeInfo.hideGeom === 'boolean') {
+        shape.setHideGeom(shapeInfo.hideGeom);
+      }
+      if (typeof shapeInfo.blipPhldr === 'boolean') {
+        shape.setBlipPhldr(shapeInfo.blipPhldr);
+      }
+      if (shapeInfo.zOrderOff) {
+        shape.setZOrderOff(shapeInfo.zOrderOff);
+      }
+    }
+
+    function createConstr(constrInfo) {
+      var constr = new Constr();
+      if (constrInfo.type) {
+        constr.setType(constrInfo.type);
+      }
+      if (constrInfo.refType) {
+        constr.setRefType(constrInfo.refType);
+      }
+      if (constrInfo.forName) {
+        constr.setForName(constrInfo.forName);
+      }
+      if (constrInfo.for) {
+        constr.setFor(constrInfo.for);
+      }
+      if (constrInfo.fact) {
+        constr.setFact(constrInfo.fact);
+      }
+      if (constrInfo.val) {
+        constr.setVal(constrInfo.val);
+      }
+      if (constrInfo.max) {
+        constr.setMax(constrInfo.max);
+      }
+      return constr;
+    }
+
+    function createRule(ruleInfo) {
+      var rule = new Rule();
+      if (ruleInfo.val) {
+        rule.setVal(ruleInfo.val);
+      }
+      if (ruleInfo.type) {
+        rule.setType(ruleInfo.type);
+      }
+      if (ruleInfo.fact) {
+        rule.setFact(ruleInfo.fact);
+      }
+      if (ruleInfo.max) {
+        rule.setMax(ruleInfo.max);
+      }
+      return rule;
+    }
+
+    function fillPresOf(presOf, presOfInfo) {
+      if (presOfInfo.axis) {
+        presOfInfo.axis.forEach(function (ax) {
+          var axisObj = new AxisType();
+          axisObj.setVal(ax);
+          presOf.addToLstAxis(0, axisObj);
+        });
+      }
+      if (presOfInfo.ptType) {
+        presOfInfo.ptType.forEach(function (ptType) {
+          var elemType = new ElementType();
+          elemType.setVal(ptType);
+          presOf.addToLstPtType(0, elemType);
+        });
+      }
+    }
+
+    function fillForEach(forEach, forEachInfo) {
+      if (forEachInfo.name) {
+        forEach.setName(forEachInfo.name);
+      }
+      if (forEachInfo.ptType) {
+        forEachInfo.ptType.forEach(function (ptType) {
+          var elemType = new ElementType();
+          elemType.setVal(ptType);
+          forEach.addToLstPtType(0, elemType);
+        });
+      }
+      if (forEachInfo.axis) {
+        forEachInfo.axis.forEach(function (ax) {
+          var axisObj = new AxisType();
+          axisObj.setVal(ax);
+          forEach.addToLstAxis(0, axisObj);
+        });
+      }
+      if (forEachInfo.layoutNodes) {
+        var layoutNodesNames = Object.keys(forEachInfo.layoutNodes);
+        layoutNodesNames.forEach(function (name) {
+          var layoutNode = new LayoutNode();
+          fillLayoutNode(layoutNode, forEachInfo.layoutNodes[name], name);
+          forEach.addToLstList(0, layoutNode);
+        });
+      }
+    }
+
+    function fillLayoutNode(layoutNode, layoutNodeInfo, layoutNodeName) {
+      if (layoutNodeName) {
+        layoutNode.setName(layoutNodeName);
+      } else if (layoutNodeInfo.name) {
         layoutNode.setName(layoutNodeInfo.name);
       } // TODO: Continue fill
+      if (layoutNodeInfo.varLst) {
+        var varLst = new VarLst();
+        fillVarLst(varLst, layoutNodeInfo.varLst);
+        layoutNode.addToLst(0, varLst);
+      }
+      if (layoutNodeInfo.alg) {
+        var alg = new Alg();
+        fillAlg(alg, layoutNodeInfo.alg);
+        layoutNode.addToLst(0, alg);
+      }
+      if (layoutNodeInfo.shape) {
+        var shape = new SShape();
+        fillSShape(shape, layoutNodeInfo.shape);
+        layoutNode.addToLst(0, shape);
+      }
+      if (layoutNodeInfo.presOf) {
+        var presOf = new PresOf();
+        fillPresOf(presOf, layoutNodeInfo.presOf);
+        layoutNode.addToLst(0, presOf);
+      }
+      if (layoutNodeInfo.constrLst) {
+        var constrLst = new ConstrLst();
+        layoutNodeInfo.constrLst.forEach(function (constr) {
+          constrLst.addToLst(0, createConstr(constr));
+        });
+        layoutNode.addToLst(0, constrLst);
+      }
+      if (layoutNodeInfo.ruleLst) {
+        var ruleLst = new RuleLst();
+        layoutNodeInfo.ruleLst.forEach(function (rule) {
+          ruleLst.addToLst(0, createRule(rule));
+        });
+        layoutNode.addToLst(0, ruleLst);
+      }
+      if (layoutNodeInfo.choose) {
+        var choose = new Choose();
+        fillChoose(choose, layoutNodeInfo.choose);
+        layoutNode.addToLst(0, choose);
+      }
+      if (layoutNodeInfo.forEach) {
+        var forEach = new ForEach();
+        fillForEach(forEach, layoutNodeInfo);
+        layoutNode.addToLst(0, forEach);
+      }
+      if (layoutNodeInfo.layoutNodes) {
+        var layoutNodesNames = Object.keys(layoutNodeInfo.layoutNodes);
+        layoutNodesNames.forEach(function (name) {
+          var layoutNodeObj = new LayoutNode();
+          fillLayoutNode(layoutNodeObj, layoutNodeInfo.layoutNodes[name], name);
+          layoutNode.addToLst(0, layoutNodeObj);
+        });
+      }
+      if (layoutNodeInfo.styleLbl) {
+        layoutNode.setStyleLbl(layoutNodeInfo.styleLbl);
+      }
+    }
+
+    function fillIfObj(ifObj, ifObjInfo) {
+      if (ifObjInfo.val) {
+        var val = new FunctionValue();
+        if (ifObjInfo.val.int) {
+          val.setInt(ifObjInfo.val.int);
+        }
+        ifObj.setVal(val);
+      }
+      if (ifObjInfo.op) {
+        ifObj.setOp(ifObjInfo.op);
+      }
+      if (ifObjInfo.func) {
+        ifObj.setFunc(ifObjInfo.func);
+      }
+      fillForEach(ifObj, ifObjInfo);
+    }
+
+    function fillChoose(choose, chooseInfo) {
+      if (chooseInfo.name) {
+        choose.setName(chooseInfo.name);
+      }
+      if (chooseInfo.if) {
+        var ifObj = new If();
+        fillIfObj(ifObj, chooseInfo.if);
+        choose.addToLstIf(0, ifObj);
+      }
+      if (chooseInfo.else) {
+        var elseObj = new Else();
+        fillIfObj(elseObj, chooseInfo.else);
+        choose.setElse(elseObj);
+      }
     }
 
     function fillLayoutDef(layoutDef, layoutDefInfo) {
-        layoutDefInfo.titles.forEach(function (title) {
-          layoutDef.addToLstTitle(createTitle(title));
-        });
+      layoutDefInfo.titles.forEach(function (title) {
+        layoutDef.addToLstTitle(0, createTitle(title));
+      });
 
       layoutDefInfo.descs.forEach(function (desc) {
-        layoutDef.addToLstDesc(createDesc(desc));
+        layoutDef.addToLstDesc(0, createDesc(desc));
       });
 
       var catArr = layoutDefInfo.catLst.map(function (cat) {
@@ -12980,6 +15057,57 @@
       var layoutNode = new LayoutNode();
       fillLayoutNode(layoutNode, layoutDefInfo.layoutNode);
       layoutDef.setLayoutNode(layoutNode);
+    }
+
+
+    function fillCNvPr(cNvPr, cNvPrInfo) {
+      cNvPr.setName(cNvPrInfo.name);
+      cNvPr.setId(cNvPrInfo.id); // TODO: check
+    }
+
+
+    function fillNvSpPr(nvSpPr, nvSpPrInfo) {
+      if (nvSpPrInfo.name) {
+        nvSpPr.cNvPr.setName(nvSpPrInfo.cNvPr.name);
+      }
+      if (nvSpPr.id) {
+        nvSpPr.cNvPr.setId(nvSpPrInfo.cNvPr.id);
+      }
+    }
+
+    function createSp(spInfo) {
+      var sp = new AscFormat.CShape();
+      // sp.setModelId(spInfo.setId); TODO: add model id
+
+      var nvSpPr = new AscFormat.UniNvPr();
+      fillNvSpPr(nvSpPr, spInfo.nvSpPr);
+      sp.setNvSpPr(nvSpPr);
+
+      var spPr = new AscFormat.CSpPr();
+      fillSpPr(spPr, spInfo.spPr);
+      sp.setSpPr(spPr);
+
+      var style = new ShapeStyle();
+      fillStyle(style, spInfo.style);
+      sp.setStyle(style);
+      if (spInfo.txBody) {
+        var txBody = new AscFormat.CTextBody();
+        var content = new AscFormat.CDrawingDocContent(txBody, sp.getDrawingDocument(), 0, 0, 0, 0, false, false, true);
+        fillTextBody(txBody, spInfo.txBody, content);
+        sp.setTxBody(txBody);
+      }
+      if (spInfo.txXfrm) { // TODO: add to shape xfrm
+        var xfrm = new AscFormat.CXfrm();
+        if (spInfo.txXfrm.rot) {
+          xfrm.setRot(spInfo.txXfrm.rot);
+        }
+        xfrm.setOffX(spInfo.txXfrm.off.x);
+        xfrm.setOffY(spInfo.txXfrm.off.y);
+        xfrm.setExtX(spInfo.txXfrm.ext.cx);
+        xfrm.setExtY(spInfo.txXfrm.ext.cy);
+       // sp.setXfrm(xfrm);
+      }
+
 
     }
 
@@ -12993,9 +15121,9 @@
     }
 
     function fillDrawing(drawing, drawingInfo) {
-      var spTree = new SpTree();
-      fillSpTree(spTree, drawingInfo.spTree);
-      drawing.setSpTree(spTree);
+      var spTree = drawingInfo.spTree.sps.map(function (sp) {
+        return createSp(sp);
+      });
     }
 
 
@@ -13004,15 +15132,18 @@
       smartart.setColorsDef(new ColorsDef());
       smartart.setStyleDef(new StyleDef());
       smartart.setLayoutDef(new LayoutDef());
+      smartart.setDataModel(new DataModel());
+      smartart.setDrawing([]);
       switch (type) {
         case 'horizontalListOfPicture':
           fillColorsDef(smartart.getColorsDef(), horizontalListOfPicture.colorsDef);
           fillQuickStyle(smartart.getStyleDef(), horizontalListOfPicture.styleDef);
           fillLayoutDef(smartart.getLayoutDef(), horizontalListOfPicture.layoutDef);
+          fillDataModel(smartart.getDataModel(), horizontalListOfPicture.dataModel);
           fillDrawing(smartart.getDrawing(), horizontalListOfPicture.drawing);
           break;
       }
-      
+
       return smartart;
     }
 

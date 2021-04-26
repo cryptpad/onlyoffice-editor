@@ -1611,6 +1611,12 @@
 	window['AscDFH'].historyitem_type_ContourClr             = 2087 << 16;
 	window['AscDFH'].historyitem_type_SmartArt               = 2088 << 16;
 	window['AscDFH'].historyitem_type_CCommonDataClrList     = 2089 << 16;
+	window['AscDFH'].historyitem_type_DiagramPPr             = 2090 << 16;
+	window['AscDFH'].historyitem_type_BuNone                 = 2091 << 16;
+	window['AscDFH'].historyitem_type_EndParaRPr             = 2092 << 16;
+
+
+
 
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3775,7 +3781,79 @@
 	AscDFH.historyitem_CCommonDataClrListAdd    = AscDFH.historyitem_type_CCommonDataClrList | 1;
 	AscDFH.historyitem_CCommonDataClrListRemove = AscDFH.historyitem_type_CCommonDataClrList | 2;
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	AscDFH.historyitem_DiagramPPrAlgn = AscDFH.historyitem_type_DiagramPPr | 1;
+	AscDFH.historyitem_DiagramPPrDefTabSz = AscDFH.historyitem_type_DiagramPPr | 2;
+	AscDFH.historyitem_DiagramPPrEaLnBrk = AscDFH.historyitem_type_DiagramPPr | 3;
+	AscDFH.historyitem_DiagramPPrFontAlgn = AscDFH.historyitem_type_DiagramPPr | 4;
+	AscDFH.historyitem_DiagramPPrHangingPunct = AscDFH.historyitem_type_DiagramPPr | 5;
+	AscDFH.historyitem_DiagramPPrIndent = AscDFH.historyitem_type_DiagramPPr | 6;
+	AscDFH.historyitem_DiagramPPrLatinLnBrk = AscDFH.historyitem_type_DiagramPPr | 7;
+	AscDFH.historyitem_DiagramPPrLvl = AscDFH.historyitem_type_DiagramPPr | 8;
+	AscDFH.historyitem_DiagramPPrMarL = AscDFH.historyitem_type_DiagramPPr | 9;
+	AscDFH.historyitem_DiagramPPrMarR = AscDFH.historyitem_type_DiagramPPr | 10;
+	AscDFH.historyitem_DiagramPPrRtl = AscDFH.historyitem_type_DiagramPPr | 11;
+	AscDFH.historyitem_DiagramPPrBuAutoNum = AscDFH.historyitem_type_DiagramPPr | 12;
+	AscDFH.historyitem_DiagramPPrBuBlip = AscDFH.historyitem_type_DiagramPPr | 13;
+	AscDFH.historyitem_DiagramPPrBuChar = AscDFH.historyitem_type_DiagramPPr | 14;
+	AscDFH.historyitem_DiagramPPrBuClr = AscDFH.historyitem_type_DiagramPPr | 15;
+	AscDFH.historyitem_DiagramPPrBuClrTx = AscDFH.historyitem_type_DiagramPPr | 16;
+	AscDFH.historyitem_DiagramPPrBuFont = AscDFH.historyitem_type_DiagramPPr | 17;
+	AscDFH.historyitem_DiagramPPrBuFontTx = AscDFH.historyitem_type_DiagramPPr | 18;
+	AscDFH.historyitem_DiagramPPrBuNone = AscDFH.historyitem_type_DiagramPPr | 19;
+	AscDFH.historyitem_DiagramPPrBuSzPct = AscDFH.historyitem_type_DiagramPPr | 20;
+	AscDFH.historyitem_DiagramPPrBuSzTx = AscDFH.historyitem_type_DiagramPPr | 21;
+	AscDFH.historyitem_DiagramPPrDefRPr = AscDFH.historyitem_type_DiagramPPr | 22;
+	AscDFH.historyitem_DiagramPPrExtLst = AscDFH.historyitem_type_DiagramPPr | 23;
+	AscDFH.historyitem_DiagramPPrLnSpc = AscDFH.historyitem_type_DiagramPPr | 24;
+	AscDFH.historyitem_DiagramPPrSpcAft = AscDFH.historyitem_type_DiagramPPr | 25;
+	AscDFH.historyitem_DiagramPPrSpcBef = AscDFH.historyitem_type_DiagramPPr | 26;
+	AscDFH.historyitem_DiagramPPrTabLst = AscDFH.historyitem_type_DiagramPPr | 27;
+
+	AscDFH.historyitem_EndParaRPrAltLang = AscDFH.historyitem_type_EndParaRPr | 1;
+	AscDFH.historyitem_EndParaRPrB = AscDFH.historyitem_type_EndParaRPr | 2;
+	AscDFH.historyitem_EndParaRPrBaseline = AscDFH.historyitem_type_EndParaRPr | 3;
+	AscDFH.historyitem_EndParaRPrBmk = AscDFH.historyitem_type_EndParaRPr | 4;
+	AscDFH.historyitem_EndParaRPrCap = AscDFH.historyitem_type_EndParaRPr | 5;
+	AscDFH.historyitem_EndParaRPrDirty = AscDFH.historyitem_type_EndParaRPr | 6;
+	AscDFH.historyitem_EndParaRPrErr = AscDFH.historyitem_type_EndParaRPr | 7;
+	AscDFH.historyitem_EndParaRPrI = AscDFH.historyitem_type_EndParaRPr | 8;
+	AscDFH.historyitem_EndParaRPrKern = AscDFH.historyitem_type_EndParaRPr | 9;
+	AscDFH.historyitem_EndParaRPrKumimoji = AscDFH.historyitem_type_EndParaRPr | 10;
+	AscDFH.historyitem_EndParaRPrLang = AscDFH.historyitem_type_EndParaRPr | 11;
+	AscDFH.historyitem_EndParaRPrNoProof = AscDFH.historyitem_type_EndParaRPr | 12;
+	AscDFH.historyitem_EndParaRPrNormalizeH = AscDFH.historyitem_type_EndParaRPr | 13;
+	AscDFH.historyitem_EndParaRPrSmtClean = AscDFH.historyitem_type_EndParaRPr | 14;
+	AscDFH.historyitem_EndParaRPrSmtId = AscDFH.historyitem_type_EndParaRPr | 15;
+	AscDFH.historyitem_EndParaRPrStrike = AscDFH.historyitem_type_EndParaRPr | 16;
+	AscDFH.historyitem_EndParaRPrSz = AscDFH.historyitem_type_EndParaRPr | 17;
+	AscDFH.historyitem_EndParaRPrU = AscDFH.historyitem_type_EndParaRPr | 18;
+	AscDFH.historyitem_EndParaRPrBlipFill = AscDFH.historyitem_type_EndParaRPr | 19;
+	AscDFH.historyitem_EndParaRPrCs = AscDFH.historyitem_type_EndParaRPr | 20;
+	AscDFH.historyitem_EndParaRPrEa = AscDFH.historyitem_type_EndParaRPr | 21;
+	AscDFH.historyitem_EndParaRPrEffectDag = AscDFH.historyitem_type_EndParaRPr | 22;
+	AscDFH.historyitem_EndParaRPrEffectLst = AscDFH.historyitem_type_EndParaRPr | 23;
+	AscDFH.historyitem_EndParaRPrExtLst = AscDFH.historyitem_type_EndParaRPr | 24;
+	AscDFH.historyitem_EndParaRPrGradFill = AscDFH.historyitem_type_EndParaRPr | 25;
+	AscDFH.historyitem_EndParaRPrGrpFill = AscDFH.historyitem_type_EndParaRPr | 26;
+	AscDFH.historyitem_EndParaRPrHighlight = AscDFH.historyitem_type_EndParaRPr | 27;
+	AscDFH.historyitem_EndParaRPrHlinkClick = AscDFH.historyitem_type_EndParaRPr | 28;
+	AscDFH.historyitem_EndParaRPrHlinkMouseOver = AscDFH.historyitem_type_EndParaRPr | 29;
+	AscDFH.historyitem_EndParaRPrLatin = AscDFH.historyitem_type_EndParaRPr | 30;
+	AscDFH.historyitem_EndParaRPrLn = AscDFH.historyitem_type_EndParaRPr | 31;
+	AscDFH.historyitem_EndParaRPrNoFill = AscDFH.historyitem_type_EndParaRPr | 32;
+	AscDFH.historyitem_EndParaRPrPattFill = AscDFH.historyitem_type_EndParaRPr | 33;
+	AscDFH.historyitem_EndParaRPrRtl = AscDFH.historyitem_type_EndParaRPr | 34;
+	AscDFH.historyitem_EndParaRPrSolidFill = AscDFH.historyitem_type_EndParaRPr | 35;
+	AscDFH.historyitem_EndParaRPrSym = AscDFH.historyitem_type_EndParaRPr | 36;
+	AscDFH.historyitem_EndParaRPrUFill = AscDFH.historyitem_type_EndParaRPr | 37;
+	AscDFH.historyitem_EndParaRPrUFillTx = AscDFH.historyitem_type_EndParaRPr | 38;
+	AscDFH.historyitem_EndParaRPrULn = AscDFH.historyitem_type_EndParaRPr | 39;
+	AscDFH.historyitem_EndParaRPrULnTx = AscDFH.historyitem_type_EndParaRPr | 40;
+	AscDFH.historyitem_EndParaRPrSpc = AscDFH.historyitem_type_EndParaRPr | 41;
+
+
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	// Типы действий, который может совершить пользователь
