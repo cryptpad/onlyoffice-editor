@@ -2311,24 +2311,23 @@ PasteProcessor.prototype =
 			if (oTable.Selection.Use)
 			{
 				var oRows = oTable.GetSelectedRowsRange();
-				var oSelectedRows = oTable.GetSelectedRowsRange();
 				var oLastCell, oFirstCell;
-				if (oSelectedRows.Start === oSelectedRows.End)
+				if (oRows.Start === oRows.End)
 				{
 					oLastCell = Math.max(oTable.Selection.StartPos.Pos.Cell, oTable.Selection.EndPos.Pos.Cell);
 					oFirstCell = Math.min(oTable.Selection.StartPos.Pos.Cell, oTable.Selection.EndPos.Pos.Cell);
 				}
 				else
 				{
-					oLastCell = (oTable.Selection.StartPos.Pos.Row === oSelectedRows.End) ? oTable.Selection.StartPos.Pos.Cell : oTable.Selection.EndPos.Pos.Cell;
-					oFirstCell = (oTable.Selection.StartPos.Pos.Row === oSelectedRows.Start) ? oTable.Selection.StartPos.Pos.Cell : oTable.Selection.EndPos.Pos.Cell;
+					oLastCell = (oTable.Selection.StartPos.Pos.Row === oRows.End) ? oTable.Selection.StartPos.Pos.Cell : oTable.Selection.EndPos.Pos.Cell;
+					oFirstCell = (oTable.Selection.StartPos.Pos.Row === oRows.Start) ? oTable.Selection.StartPos.Pos.Cell : oTable.Selection.EndPos.Pos.Cell;
 				}
-				for (var Index = oRows.Start; Index <= oRows.End; Index++)
+				for (var Index = oFirstCell; Index <= oLastCell; Index++)
 				{
-					var oRow  = oTable.Content[Index];
-					for (var j = oFirstCell; j <= oLastCell; j++)
+					for (var j = oRows.Start; j <= oRows.End; j++)
 					{
-						var oCell = oRow.Get_Cell(j);
+						var oRow = oTable.Content[j];
+						var oCell = oRow.Get_Cell(Index);
 						var oCell_Content = oCell.Content;
 						paragraphs.push(oCell_Content.GetCurrentParagraph());
 					}
@@ -2391,7 +2390,7 @@ PasteProcessor.prototype =
 			}
 
 			var oSelectedElement = new CSelectedElement();
-			oSelectedElement.Element = aNewContent[k];
+			oSelectedElement.Element = aNewContent[k].Copy();
 
 			var type = this._specialPasteGetElemType(aNewContent[k]);
 			if(0 === i)
