@@ -2024,7 +2024,10 @@ function CEditorPage(api)
 				{
 					oWordControl.Splitter2Pos = _posY;
 					oWordControl.OnResizeSplitter();
-					oWordControl.m_oApi.syncOnNotesShow();
+					if(oWordControl.m_oLogicDocument)
+					{
+						oWordControl.m_oLogicDocument.CheckNotesShow();
+					}
 				}
 			}
 

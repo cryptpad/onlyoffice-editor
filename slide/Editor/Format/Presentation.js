@@ -5138,6 +5138,18 @@ CPresentation.prototype.RemoveSelection = function (bNoResetChartSelection) {
         oController.resetSelection(undefined, bNoResetChartSelection);
     }
 };
+CPresentation.prototype.CheckNotesShow = function () {
+    if(this.Api) {
+        var bIsShow = this.Api.syncOnNotesShow();
+        if(!bIsShow) {
+            if(this.FocusOnNotes) {
+                this.FocusOnNotes = false;
+                this.Document_UpdateInterfaceState();
+                this.Document_UpdateSelectionState();
+            }
+        }
+    }
+};
 
 CPresentation.prototype.EditChart = function (binary) {
     var _this = this;

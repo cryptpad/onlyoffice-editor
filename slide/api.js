@@ -5698,6 +5698,7 @@ background-repeat: no-repeat;\
 			this.WordControl.Splitter2Pos = 0;
 			this.WordControl.OnResizeSplitter();
 			this.WordControl.OldSplitter2Pos = old;
+			this.WordControl.m_oLogicDocument.CheckNotesShow();
 		}
 	};
 
@@ -5718,10 +5719,11 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.syncOnNotesShow = function()
 	{
 		var bIsShow = true;
-		if (0 == this.WordControl.Splitter2Pos)
+		if (1 >= this.WordControl.Splitter2Pos)
 			bIsShow = false;
 
 		this.sendEvent("asc_onNotesShow", bIsShow);
+		return bIsShow;
 	};
 
 
