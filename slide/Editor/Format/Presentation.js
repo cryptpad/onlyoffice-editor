@@ -5140,7 +5140,7 @@ CPresentation.prototype.RemoveSelection = function (bNoResetChartSelection) {
 };
 CPresentation.prototype.CheckNotesShow = function () {
     if(this.Api) {
-        var bIsShow = this.Api.syncOnNotesShow();
+        var bIsShow = this.Api.getIsNotesShow();
         if(!bIsShow) {
             if(this.FocusOnNotes) {
                 this.FocusOnNotes = false;

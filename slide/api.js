@@ -5716,14 +5716,17 @@ background-repeat: no-repeat;\
 		this.sendEvent("asc_onThumbnailsShow", bIsShow);
 	};
 
-	asc_docs_api.prototype.syncOnNotesShow = function()
+	asc_docs_api.prototype.getIsNotesShow = function()
 	{
 		var bIsShow = true;
 		if (1 >= this.WordControl.Splitter2Pos)
 			bIsShow = false;
 
-		this.sendEvent("asc_onNotesShow", bIsShow);
 		return bIsShow;
+	};
+	asc_docs_api.prototype.syncOnNotesShow = function()
+	{
+		this.sendEvent("asc_onNotesShow", this.getIsNotesShow());
 	};
 
 

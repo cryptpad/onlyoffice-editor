@@ -2024,6 +2024,7 @@ function CEditorPage(api)
 				{
 					oWordControl.Splitter2Pos = _posY;
 					oWordControl.OnResizeSplitter();
+					oWordControl.m_oApi.syncOnNotesShow();
 					if(oWordControl.m_oLogicDocument)
 					{
 						oWordControl.m_oLogicDocument.CheckNotesShow();
@@ -3901,7 +3902,6 @@ function CEditorPage(api)
 		this.UpdateVerRuler();
 
 		this.m_oApi.syncOnThumbnailsShow();
-		this.m_oApi.syncOnNotesShow();
 
 		if (true)
 		{
