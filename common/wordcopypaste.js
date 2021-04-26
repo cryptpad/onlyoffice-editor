@@ -2295,66 +2295,132 @@ PasteProcessor.prototype =
     },
     InsertInPlace : function(oDoc, aNewContent)
     {
-        if(!PasteElementsId.g_bIsDocumentCopyPaste)
-            return;
+		if(!PasteElementsId.g_bIsDocumentCopyPaste)
+		return;
 
 		var specialPasteHelper = window['AscCommon'].g_specialPasteHelper;
 		var bIsSpecialPaste = specialPasteHelper.specialPasteStart;
+		var paragraph = oDoc.GetCurrentParagraph();
+		var oTable = oDoc.IsInTable() ? oDoc.GetParent().GetTable() : null;
 
-        var paragraphs = [];
-		// если это таблица, то надо бы пустить цикл по заселекченным ячейкам и в каждую вставить
-		// и надо бы селект тоже сохранить до самого конца
-		// поправить вставку, когда таблица вставляется в таблицу (чтобы было копирование контента во все выделенные ячейки)
-		if (oDoc.IsInTable() && !aNewContent[0].IsTable())
+		//pasteTypeContent - если все содержимое одного типа
+		//TODO пересмотреть pasteTypeContent
+		this.pasteTypeContent = null;
+		var oSelectedContent = new CSelectedContent();
+		var tableSpecialPaste = false;
+
+		if (oTable && !aNewContent[0].IsTable() && oTable.Selection.Use)
 		{
-			var oTable = oDoc.GetParent().GetTable();
-			if (oTable.Selection.Use)
+			var oRows = oTable.GetSelectedRowsRange();
+			var arrRows = [];
+			var oLastCell, oFirstCell;
+			if (oRows.Start === oRows.End)
 			{
-				var oRows = oTable.GetSelectedRowsRange();
-				var oLastCell, oFirstCell;
-				if (oRows.Start === oRows.End)
-				{
-					oLastCell = Math.max(oTable.Selection.StartPos.Pos.Cell, oTable.Selection.EndPos.Pos.Cell);
-					oFirstCell = Math.min(oTable.Selection.StartPos.Pos.Cell, oTable.Selection.EndPos.Pos.Cell);
-				}
-				else
-				{
-					oLastCell = (oTable.Selection.StartPos.Pos.Row === oRows.End) ? oTable.Selection.StartPos.Pos.Cell : oTable.Selection.EndPos.Pos.Cell;
-					oFirstCell = (oTable.Selection.StartPos.Pos.Row === oRows.Start) ? oTable.Selection.StartPos.Pos.Cell : oTable.Selection.EndPos.Pos.Cell;
-				}
-				for (var Index = oFirstCell; Index <= oLastCell; Index++)
-				{
-					for (var j = oRows.Start; j <= oRows.End; j++)
-					{
-						var oRow = oTable.Content[j];
-						var oCell = oRow.Get_Cell(Index);
-						var oCell_Content = oCell.Content;
-						paragraphs.push(oCell_Content.GetCurrentParagraph());
-					}
-				}
+				oLastCell = Math.max(oTable.Selection.StartPos.Pos.Cell, oTable.Selection.EndPos.Pos.Cell);
+				oFirstCell = Math.min(oTable.Selection.StartPos.Pos.Cell, oTable.Selection.EndPos.Pos.Cell);
 			}
 			else
 			{
-				//если нет селекта
-				paragraphs.push(oTable.CurCell.GetContent().GetCurrentParagraph());
+				oLastCell = (oTable.Selection.StartPos.Pos.Row === oRows.End) ? oTable.Selection.StartPos.Pos.Cell : oTable.Selection.EndPos.Pos.Cell;
+				oFirstCell = (oTable.Selection.StartPos.Pos.Row === oRows.Start) ? oTable.Selection.StartPos.Pos.Cell : oTable.Selection.EndPos.Pos.Cell;
 			}
-			
+			for (var Index = oFirstCell; Index <= oLastCell; Index++)
+			{
+				var arrCells = [];
+				for (var j = oRows.Start; j <= oRows.End; j++)
+				{
+					var oRow = oTable.Content[j];
+					var oCell = oRow.Get_Cell(Index);
+					var oCell_Content = oCell.Content;
+					arrCells.push(oCell_Content.GetCurrentParagraph());
+				}
+				arrRows.push(arrCells);
+			}
+			for (var i = 0; i < arrRows.length; i++)
+			{
+				for (var j = 0, k = 0; j < arrRows[i].length; j++)
+				{
+					oSelectedContent.Reset();
+					var Elem = arrRows[i][j];
+					var NewElem = aNewContent[k].Copy();
+					k = (k > aNewContent.length - 2) ? 0 : k + 1;
+					var NearPos = Elem.GetCurrentAnchorPosition();
+					//делаем небольшой сдвиг по y, потому что сама точка TargetPos для двухстрочного параграфа определяется как верхняя
+					//var NearPos = oDoc.Get_NearestPos(this.oLogicDocument.TargetPos.PageNum, this.oLogicDocument.TargetPos.X, this.oLogicDocument.TargetPos.Y + 0.05);//0.05 == 2pix
+
+					
+					// Под вопросом, надо ли здесь это? Может быть вынести из условия или в этой ветке if вообще не нужно
+					// Нужно выянить что это за специальная вставка
+					if(bIsSpecialPaste){
+						if (Asc.c_oSpecialPasteProps.insertAsNestedTable === specialPasteHelper.specialPasteProps ||
+							Asc.c_oSpecialPasteProps.overwriteCells === specialPasteHelper.specialPasteProps)
+						{
+							tableSpecialPaste = true;
+							oSelectedContent.SetInsertOptionForTable(specialPasteHelper.specialPasteProps);
+						}
+					}
+
+	
+					if(bIsSpecialPaste && !tableSpecialPaste)
+					{
+						var parseItem = this._specialPasteItemConvert(NewElem);
+						if(parseItem && parseItem.length)
+						{
+							for(var j = 0; j < parseItem.length; j++)
+							{
+								if(j === 0)
+								{
+									aNewContent.splice(k + j, 1, parseItem[j]);
+								}
+								else
+								{
+									aNewContent.splice(k + j, 0, parseItem[j]);
+								}
+							}
+						}
+					}
+					
+
+					var oSelectedElement = new CSelectedElement();
+					oSelectedElement.Element = NewElem;
+
+					var type = this._specialPasteGetElemType(NewElem);
+					if(0 === i)
+					{
+						this.pasteTypeContent = type;
+					}
+					else if(type !== this.pasteTypeContent)
+					{
+						this.pasteTypeContent = null;
+					}
+
+					oSelectedElement.SelectedAll = true;
+					oSelectedContent.Add(oSelectedElement);
+					
+
+					oSelectedContent.On_EndCollectElements(this.oLogicDocument, true);
+					if(!this.pasteInExcel && !this.oLogicDocument.Can_InsertContent(oSelectedContent, NearPos))
+					{
+						if(!this.pasteInExcel)
+						{
+							this.oLogicDocument.Document_Undo();
+							History.Clear_Redo();
+						}
+						return;
+					}
+
+					Elem.Parent.InsertContent(oSelectedContent, NearPos);
+				}
+				
+			}
 		}
 		else
 		{
-			paragraphs = [oDoc.GetCurrentParagraph()]
-		}
-		for (var i = 0, k = 0; paragraphs[i] !== null && i < paragraphs.length; i++)
-		{
-			var NearPos = paragraphs[i].GetCurrentAnchorPosition();
+			alert(2)
+			var paragraph = oDoc.GetCurrentParagraph();
+			var NearPos = paragraph.GetCurrentAnchorPosition();
 			//делаем небольшой сдвиг по y, потому что сама точка TargetPos для двухстрочного параграфа определяется как верхняя
 			//var NearPos = oDoc.Get_NearestPos(this.oLogicDocument.TargetPos.PageNum, this.oLogicDocument.TargetPos.X, this.oLogicDocument.TargetPos.Y + 0.05);//0.05 == 2pix
-
-			//pasteTypeContent - если все содержимое одного типа
-			//TODO пересмотреть pasteTypeContent
-			this.pasteTypeContent = null;
-			var oSelectedContent = new CSelectedContent();
-			var tableSpecialPaste = false;
 
 			if(bIsSpecialPaste){
 				if (Asc.c_oSpecialPasteProps.insertAsNestedTable === specialPasteHelper.specialPasteProps ||
@@ -2364,49 +2430,45 @@ PasteProcessor.prototype =
 					oSelectedContent.SetInsertOptionForTable(specialPasteHelper.specialPasteProps);
 				}
 			}
-
-			if (k > aNewContent.length - 1)
-				k = 0;
-			
-			// если это таблица, то надо смотреть больше ли k, чем количество строк в выделении (если да, то обнулять опять k - часть копируемого контента потеряется)
-
-			if(bIsSpecialPaste && !tableSpecialPaste)
-			{
-				var parseItem = this._specialPasteItemConvert(aNewContent[k]);
-				if(parseItem && parseItem.length)
+			for (var i = 0; i < aNewContent.length; ++i) {
+				if(bIsSpecialPaste && !tableSpecialPaste)
 				{
-					for(var j = 0; j < parseItem.length; j++)
+					var parseItem = this._specialPasteItemConvert(aNewContent[i]);
+					if(parseItem && parseItem.length)
 					{
-						if(j === 0)
+						for(var j = 0; j < parseItem.length; j++)
 						{
-							aNewContent.splice(k + j, 1, parseItem[j]);
-						}
-						else
-						{
-							aNewContent.splice(k + j, 0, parseItem[j]);
+							if(j === 0)
+							{
+								aNewContent.splice(i + j, 1, parseItem[j]);
+							}
+							else
+							{
+								aNewContent.splice(i + j, 0, parseItem[j]);
+							}
 						}
 					}
 				}
-			}
 
-			var oSelectedElement = new CSelectedElement();
-			oSelectedElement.Element = aNewContent[k].Copy();
+				var oSelectedElement = new CSelectedElement();
+				oSelectedElement.Element = aNewContent[i];
 
-			var type = this._specialPasteGetElemType(aNewContent[k]);
-			if(0 === i)
-			{
-				this.pasteTypeContent = type;
-			}
-			else if(type !== this.pasteTypeContent)
-			{
-				this.pasteTypeContent = null;
-			}
+				var type = this._specialPasteGetElemType(aNewContent[i]);
+				if(0 === i)
+				{
+					this.pasteTypeContent = type;
+				}
+				else if(type !== this.pasteTypeContent)
+				{
+					this.pasteTypeContent = null;
+				}
 
-			if (k === aNewContent.length - 1 && true != this.bInBlock && type_Paragraph === oSelectedElement.Element.GetType())
-				oSelectedElement.SelectedAll = false;
-			else
-				oSelectedElement.SelectedAll = true;
-			oSelectedContent.Add(oSelectedElement);
+				if (i === aNewContent.length - 1 && true != this.bInBlock && type_Paragraph === oSelectedElement.Element.GetType())
+					oSelectedElement.SelectedAll = false;
+				else
+					oSelectedElement.SelectedAll = true;
+				oSelectedContent.Add(oSelectedElement);
+			}
 			
 			//проверка на возможность втавки в формулу
 			//TODO проверку на excel пеерсмотреть!!!!
@@ -2462,56 +2524,57 @@ PasteProcessor.prototype =
 
 			if(!bPasteMath)
 			{
-				paragraphs[i].Parent.InsertContent(oSelectedContent, NearPos);
+				paragraph.Parent.InsertContent(oSelectedContent, NearPos);
 			}
+			paragraph.Clear_NearestPosArray(aNewContent);
+		}
 
-			//если вставляем таблицу в ячейку таблицы
-			if (this.pasteIntoElem && 1 === this.aContent.length && type_Table === this.aContent[0].GetType() &&
-				this.pasteIntoElem.Parent && this.pasteIntoElem.Parent.IsInTable() && (!bIsSpecialPaste || (bIsSpecialPaste &&
-				Asc.c_oSpecialPasteProps.overwriteCells === specialPasteHelper.specialPasteProps))) {
-				//TODO пересмотреть положение кнопки специальной вставки при вставке в таблицу
-				var table;
-				var tableCell = paragraphs[i] && paragraphs[i].Parent && paragraphs[i].Parent.Parent;
-				if (tableCell && tableCell.GetTable) {
-					table = tableCell.GetTable()
-				} else {
-					table = this.pasteIntoElem.Parent.Parent.Get_Table();
-				}
-				specialPasteHelper.showButtonIdParagraph = table.Id;
+	
+
+		//если вставляем таблицу в ячейку таблицы
+		if (this.pasteIntoElem && 1 === this.aContent.length && type_Table === this.aContent[0].GetType() &&
+			this.pasteIntoElem.Parent && this.pasteIntoElem.Parent.IsInTable() && (!bIsSpecialPaste || (bIsSpecialPaste &&
+			Asc.c_oSpecialPasteProps.overwriteCells === specialPasteHelper.specialPasteProps))) {
+			//TODO пересмотреть положение кнопки специальной вставки при вставке в таблицу
+			var table;
+			var tableCell = paragraph && paragraph.Parent && paragraph.Parent.Parent;
+			if (tableCell && tableCell.GetTable) {
+				table = tableCell.GetTable()
 			} else {
-				if(oSelectedContent.Elements.length === 1)
+				table = this.pasteIntoElem.Parent.Parent.Get_Table();
+			}
+			specialPasteHelper.showButtonIdParagraph = table.Id;
+		} else {
+			if(oSelectedContent.Elements.length === 1)
+			{
+				var curDocSelection = this.oDocument.GetSelectionState();
+				if(curDocSelection && curDocSelection[1] && curDocSelection[1].CurPos)
 				{
-					var curDocSelection = this.oDocument.GetSelectionState();
-					if(curDocSelection && curDocSelection[1] && curDocSelection[1].CurPos)
-					{
-						var selectParagraph = this.oDocument.Content[curDocSelection[1].CurPos.ContentPos];
-						specialPasteHelper.showButtonIdParagraph = selectParagraph.Id;
+					var selectParagraph = this.oDocument.Content[curDocSelection[1].CurPos.ContentPos];
+					specialPasteHelper.showButtonIdParagraph = selectParagraph.Id;
 
-						//TODO пересмотреть для случая когда вставляем таблицу внутри BlockLevelSdt
-						if(selectParagraph.GetType && type_BlockLevelSdt === selectParagraph.GetType()) {
-							var currentParagraph = this.oDocument.GetCurrentParagraph();
-							specialPasteHelper.showButtonIdParagraph = currentParagraph ? currentParagraph.Id : null
-						}
+					//TODO пересмотреть для случая когда вставляем таблицу внутри BlockLevelSdt
+					if(selectParagraph.GetType && type_BlockLevelSdt === selectParagraph.GetType()) {
+						var currentParagraph = this.oDocument.GetCurrentParagraph();
+						specialPasteHelper.showButtonIdParagraph = currentParagraph ? currentParagraph.Id : null
 					}
 				}
-				else
-				{
-					specialPasteHelper.showButtonIdParagraph = oSelectedContent.Elements[oSelectedContent.Elements.length - 1].Element.Id;
-				}
 			}
-
-
-			if(this.oLogicDocument && this.oLogicDocument.DrawingObjects)
+			else
 			{
-				var oTargetTextObject = AscFormat.getTargetTextObject(this.oLogicDocument.DrawingObjects);
-				oTargetTextObject && oTargetTextObject.checkExtentsByDocContent && oTargetTextObject.checkExtentsByDocContent();
+				specialPasteHelper.showButtonIdParagraph = oSelectedContent.Elements[oSelectedContent.Elements.length - 1].Element.Id;
 			}
-
-			this._selectShapesBeforeInsert([aNewContent[k]], oDoc);
-			
-			paragraphs[i].Clear_NearestPosArray([aNewContent[k]]);
-			k++;
 		}
+
+
+		if(this.oLogicDocument && this.oLogicDocument.DrawingObjects)
+		{
+			var oTargetTextObject = AscFormat.getTargetTextObject(this.oLogicDocument.DrawingObjects);
+			oTargetTextObject && oTargetTextObject.checkExtentsByDocContent && oTargetTextObject.checkExtentsByDocContent();
+		}
+
+		this._selectShapesBeforeInsert(aNewContent, oDoc);
+		
     },
 
 	//***functions for special paste***
