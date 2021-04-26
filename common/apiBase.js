@@ -770,9 +770,8 @@
 		}
 		this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.Open);
 		this.sendEvent('asc_onDocumentContentReady');
-		this.sendEvent('asc_LoadPluginsOrDocument');
 
-		if (window.g_asc_plugins && window.g_asc_plugins.countEventDocContOrPluginsReady == 2)
+		if (window.g_asc_plugins)
             window.g_asc_plugins.onPluginEvent("onDocumentContentReady");
 
         if (c_oEditorId.Spreadsheet === this.editorId) {
@@ -1460,7 +1459,7 @@
 				]);
 			}
 		} else {
-			if (!this.SpellCheckUrl) {
+			if (!this.SpellCheckUrl && !window['NATIVE_EDITOR_ENJINE']) {
 				this.SpellCheckApi = {};
 				this.SpellCheckApi.log = false;
 				this.SpellCheckApi.worker = new CSpellchecker({
@@ -2220,14 +2219,8 @@
 
 	baseEditorsApi.prototype.asc_pluginsRegister   = function(basePath, plugins)
 	{
-		this.sendEvent('asc_LoadPluginsOrDocument');
-
-		if (null != this.pluginsManager) {
+		if (null != this.pluginsManager)
 			this.pluginsManager.register(basePath, plugins);
-			
-			if (this.pluginsManager.countEventDocContOrPluginsReady == 2)
-				this.pluginsManager.onPluginEvent("onDocumentContentReady");
-		}
 	};
 	baseEditorsApi.prototype.asc_pluginRun         = function(guid, variation, pluginData)
 	{
@@ -3044,6 +3037,39 @@
 		this.macros.runAuto();
 		this._afterEvalCommand(undefined);
     };
+	baseEditorsApi.prototype.asc_runMacros = function(sGuid)
+    {
+    	if (!this.macros)
+    		return;
+
+    	if (!this.asc_canPaste())
+    		return;
+
+    	this._beforeEvalCommand();
+		this.macros.run(sGuid);
+		this._afterEvalCommand(undefined);
+    };
+	baseEditorsApi.prototype.asc_getAllMacrosNames = function()
+    {
+    	if (!this.macros)
+    		return [];
+
+		return this.macros.getAllNames();
+    };
+	baseEditorsApi.prototype.asc_getMacrosGuidByName = function(sName)
+    {
+    	if (!this.macros)
+    		return "";
+
+		return this.macros.getGuidByName(sName);
+    };
+	baseEditorsApi.prototype.asc_getMacrosByGuid = function(sGuid)
+    {
+    	if (!this.macros)
+    		return "";
+
+		return this.macros.getNameByGuid(sGuid);
+    };
 
 	baseEditorsApi.prototype.asc_getSelectedDrawingObjectsCount = function()
 	{
@@ -3304,8 +3330,14 @@
 	baseEditorsApi.prototype.asc_setSkin = function(obj)
 	{
 	};
+	//---------------------------------------------------------version----------------------------------------------------
+	baseEditorsApi.prototype["GetVersion"] = baseEditorsApi.prototype.GetVersion = function()
+	{
+		var ver = "@@Version";
+		return (ver === "0.0.0" || ver.substr(2) === "Version") ? "develop" : ver;
+	};
 	//----------------------------------------------------------addons----------------------------------------------------
-    baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)
+	baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)
 	{
 		return (window["Asc"] && window["Asc"]["Addons"] && window["Asc"]["Addons"][type] === true) ? true : false;
 	};
@@ -3366,6 +3398,8 @@
 	prot['asc_GetCurrentColorSchemeName'] = prot.asc_GetCurrentColorSchemeName;
 	prot['asc_GetCurrentColorSchemeIndex'] = prot.asc_GetCurrentColorSchemeIndex;
 	prot['asc_runAutostartMacroses'] = prot.asc_runAutostartMacroses;
+	prot['asc_runMacros'] = prot.asc_runMacros;
+	prot['asc_getAllMacrosNames'] = prot.asc_getAllMacrosNames;
 	prot['asc_setVisiblePasteButton'] = prot.asc_setVisiblePasteButton;
 	prot['asc_getAutoCorrectMathSymbols'] = prot.asc_getAutoCorrectMathSymbols;
 	prot['asc_getAutoCorrectMathFunctions'] = prot.asc_getAutoCorrectMathFunctions;

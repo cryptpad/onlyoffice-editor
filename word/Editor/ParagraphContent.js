@@ -242,6 +242,22 @@ CRunElementBase.prototype.IsDiacriticalSymbol = function()
 	return false;
 };
 /**
+ * Может ли строка начинаться с данного элемента
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.CanBeAtBeginOfLine = function()
+{
+	return true;
+};
+/**
+ * Может ли строка заканчиваться данным элементом
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.CanBeAtEndOfLine = function()
+{
+	return true;
+};
+/**
  * Проверять ли автозамену на вводе данного элемента
  * @returns {boolean}
  */
@@ -296,6 +312,14 @@ CRunElementBase.prototype.IsHyphen = function()
 CRunElementBase.prototype.IsEqual = function(oElement)
 {
 	return (this.Type === oElement.Type)
+};
+/**
+ * Нужно ли ставить разрыв слова после данного элемента
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsSpaceAfter = function()
+{
+	return false;
 };
 
 /**
@@ -669,6 +693,9 @@ function ParaSpace(nCharCode)
     this.Width        = 0x00000000 | 0;
     this.WidthVisible = 0x00000000 | 0;
     this.WidthOrigin  = 0x00000000 | 0;
+
+	if (AscFonts.IsCheckSymbols)
+		AscFonts.FontPickerByCharacter.getFontBySymbol(this.Value);
 }
 ParaSpace.prototype = Object.create(CRunElementBase.prototype);
 ParaSpace.prototype.constructor = ParaSpace;

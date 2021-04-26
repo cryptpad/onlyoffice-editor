@@ -44,6 +44,9 @@
     AscDFH.changesFactory[AscDFH.historyitem_AutoShapes_SetWorksheet] = AscDFH.CChangesDrawingsString;
     AscDFH.changesFactory[AscDFH.historyitem_ShapeSetBDeleted] = AscDFH.CChangesDrawingsBool;
 
+    AscDFH.changesFactory[AscDFH.historyitem_ShapeSetMacro]   = AscDFH.CChangesDrawingsString;
+    AscDFH.changesFactory[AscDFH.historyitem_ShapeSetTextLink]   = AscDFH.CChangesDrawingsString;
+
 
 
     AscDFH.changesFactory[AscDFH.historyitem_AutoShapes_SetDrawingBasePos] = AscDFH.CChangesDrawingsObjectNoId;
@@ -121,6 +124,14 @@
                 oClass.handleUpdateExtents();
             }
         }
+    };
+
+
+    drawingsChangesMap[AscDFH.historyitem_ShapeSetMacro]            = function(oClass, value){
+        oClass.macro = value;
+    };
+    drawingsChangesMap[AscDFH.historyitem_ShapeSetTextLink]         = function(oClass, value){
+        oClass.textLink = value;
     };
 
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_AutoShapes_SetDrawingBasePos] = CDrawingBaseCoordsWritable;
@@ -384,6 +395,8 @@
         this.parent = null;
         this.bDeleted = true;
         this.locks = 0;
+        this.macro = null;
+        this.textLink = null;
 
         /*Calculated fields*/
         this.posX = null;
@@ -554,6 +567,42 @@
     CGraphicObjectBase.prototype.setLocks = function(nLocks){
         AscCommon.History.Add( new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_AutoShapes_SetLocks, this.locks, nLocks));
         this.locks = nLocks;
+    };
+    CGraphicObjectBase.prototype.setMacro = function(sMacroName)
+    {
+        History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_ShapeSetMacro, this.macro, sMacroName));
+        this.macro = sMacroName;
+    };
+    CGraphicObjectBase.prototype.assignMacro = function(sGuid)
+    {
+        this.setMacro(AscFormat.MACRO_PREFIX + sGuid);
+    };
+    CGraphicObjectBase.prototype.setTextLink = function(sLink)
+    {
+        History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_ShapeSetTextLink, this.textLink, sLink));
+        this.textLink = sLink;
+    };
+    CGraphicObjectBase.prototype.hasMacro = function()
+    {
+        if(typeof this.macro === "string" && this.macro.length > 0) {
+            return true;
+        }
+        return false;
+    };
+
+    CGraphicObjectBase.prototype.hasJSAMacro = function()
+    {
+        if(typeof this.macro === "string" && this.macro.indexOf(AscFormat.MACRO_PREFIX) === 0) {
+            return true;
+        }
+        return false;
+    };
+    CGraphicObjectBase.prototype.getJSAMacroId = function()
+    {
+        if(typeof this.macro === "string" && this.macro.indexOf(AscFormat.MACRO_PREFIX) === 0) {
+            return this.macro.slice(AscFormat.MACRO_PREFIX.length);
+        }
+        return null;
     };
 
     CGraphicObjectBase.prototype.getLockValue = function(nMask) {
@@ -1517,6 +1566,16 @@
     CGraphicObjectBase.prototype.getSignatureLineGuid = function(){
         return null;
     };
+    CGraphicObjectBase.prototype.getMacrosName = function(){
+        var sGuid = this.getJSAMacroId();
+        if(sGuid) {
+            var oApi = Asc.editor || editor;
+            if(oApi) {
+                return oApi.asc_getMacrosByGuid(sGuid);
+            }
+        }
+        return this.macro;
+    };
 
     CGraphicObjectBase.prototype.getCopyWithSourceFormatting = function(oIdMap){
         return this.copy(oIdMap);
@@ -2196,4 +2255,5 @@
     window['AscFormat'].CalculateSrcRect      = CalculateSrcRect;
     window['AscFormat'].CCopyObjectProperties = CCopyObjectProperties;
     window['AscFormat'].LOCKS_MASKS           = LOCKS_MASKS;
+    window['AscFormat'].MACRO_PREFIX = "jsaProject_"
 })(window);

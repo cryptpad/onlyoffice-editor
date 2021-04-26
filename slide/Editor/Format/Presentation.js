@@ -5552,10 +5552,29 @@ CPresentation.prototype.RemoveAllComments = function () {
         this.Recalculate();
     }
 };
-CPresentation.prototype.GetAllComments = function (aAllComments) {
-    this.comments.getAllComments(aAllComments, null);
+CPresentation.prototype.ResolveAllComments = function (isMine, isCurrent, arrIds) {
+    var aAllMyComments = [];
+    this.GetAllComments(aAllMyComments, isMine, isCurrent, arrIds);
+    if (this.Document_Is_SelectionLocked(AscCommon.changestype_MoveComment, aAllMyComments, this.IsEditCommentsMode()) === false) {
+        this.Create_NewHistoryPoint(AscDFH.historydescription_Presentation_RemoveComment);
+        for(var nComment = 0; nComment < aAllMyComments.length; ++nComment) {
+            var oComment = aAllMyComments[nComment].comment;
+            if(oComment && !oComment.IsSolved() && AscCommon.UserInfoParser.canEditComment(oComment.GetUserName())) {
+                if(oComment.Data) {
+                    var oCopyData = oComment.Data.createDuplicate(false);
+                    oCopyData.Set_Solved(true);
+                    oComment.Set_Data(oCopyData);
+                    this.Api.sync_ChangeCommentData(oComment.Id, oCopyData);
+                }
+            }
+        }
+        this.Recalculate();
+    }
+};
+CPresentation.prototype.GetAllComments = function (aAllComments, isMine, isCurrent, aIds) {
+    this.comments.getAllComments(aAllComments, isMine, isCurrent, aIds);
     for (var i = 0; i < this.Slides.length; ++i) {
-        this.Slides[i].getAllComments(aAllComments);
+        this.Slides[i].getAllComments(aAllComments, isMine, isCurrent, aIds);
     }
 };
 
