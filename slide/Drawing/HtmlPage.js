@@ -237,6 +237,7 @@ function CEditorPage(api)
 	this.SplitterType = 0;
 
 	this.OldSplitter1Pos = 0;
+	this.OldSplitter2Pos = 0;
 
 	// ----
 	this.OldDocumentWidth  = 0;
@@ -381,6 +382,7 @@ function CEditorPage(api)
 		this.Splitter2Pos    = (this.IsSupportNotes === true) ? 11 : 0;
 
 		this.OldSplitter1Pos = this.Splitter1Pos;
+		this.OldSplitter2Pos = this.Splitter2Pos;
 
 		this.Splitter1PosMin = 20;
 		this.Splitter1PosMax = 80;
@@ -1924,6 +1926,7 @@ function CEditorPage(api)
 	this.OnResizeSplitter = function(isNoNeedResize)
 	{
 		this.OldSplitter1Pos = this.Splitter1Pos;
+		this.OldSplitter2Pos = this.Splitter2Pos;
 
 		this.m_oThumbnailsContainer.Bounds.R    = this.Splitter1Pos;
 		this.m_oThumbnailsContainer.Bounds.AbsW = this.Splitter1Pos;
@@ -2021,6 +2024,7 @@ function CEditorPage(api)
 				{
 					oWordControl.Splitter2Pos = _posY;
 					oWordControl.OnResizeSplitter();
+					oWordControl.m_oApi.syncOnNotesShow();
 				}
 			}
 
@@ -3894,6 +3898,7 @@ function CEditorPage(api)
 		this.UpdateVerRuler();
 
 		this.m_oApi.syncOnThumbnailsShow();
+		this.m_oApi.syncOnNotesShow();
 
 		if (true)
 		{
