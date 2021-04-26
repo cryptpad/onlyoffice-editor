@@ -1614,6 +1614,8 @@
 	window['AscDFH'].historyitem_type_DiagramPPr             = 2090 << 16;
 	window['AscDFH'].historyitem_type_BuNone                 = 2091 << 16;
 	window['AscDFH'].historyitem_type_EndParaRPr             = 2092 << 16;
+	window['AscDFH'].historyitem_type_Drawing                = 2093 << 16;
+
 
 
 

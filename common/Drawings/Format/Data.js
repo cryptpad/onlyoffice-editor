@@ -7381,6 +7381,12 @@
       }
     }
 
+    function Drawing() {
+      CCommonDataList.call(this);
+    }
+    InitClass(Drawing, CCommonDataList, AscDFH.historyitem_type_Drawing);
+
+
     changesFactory[AscDFH.historyitem_BackdropNormDx] = CChangeObject;
     changesFactory[AscDFH.historyitem_BackdropNormDy] = CChangeObject;
     changesFactory[AscDFH.historyitem_BackdropNormDz] = CChangeObject;
@@ -15060,12 +15066,6 @@
     }
 
 
-    function fillCNvPr(cNvPr, cNvPrInfo) {
-      cNvPr.setName(cNvPrInfo.name);
-      cNvPr.setId(cNvPrInfo.id); // TODO: check
-    }
-
-
     function fillNvSpPr(nvSpPr, nvSpPrInfo) {
       if (nvSpPrInfo.name) {
         nvSpPr.cNvPr.setName(nvSpPrInfo.cNvPr.name);
@@ -15107,22 +15107,13 @@
         xfrm.setExtY(spInfo.txXfrm.ext.cy);
        // sp.setXfrm(xfrm);
       }
-
-
-    }
-
-    function fillSpTree(spTree, spTreeInfo) {
-      var nvGrpSpPr = new NvGrpSpPr();
-      var grpSpPr = new GrpSpPr();
-      spTreeInfo.sps.forEach(function (sp) {
-        createSp(sp);
-      }); // TODO: add to SpTree
+      return sp;
 
     }
 
     function fillDrawing(drawing, drawingInfo) {
-      var spTree = drawingInfo.spTree.sps.map(function (sp) {
-        return createSp(sp);
+      drawingInfo.spTree.sps.forEach(function (sp) {
+        drawing.addToLst(0, createSp(sp));
       });
     }
 
@@ -15133,7 +15124,7 @@
       smartart.setStyleDef(new StyleDef());
       smartart.setLayoutDef(new LayoutDef());
       smartart.setDataModel(new DataModel());
-      smartart.setDrawing([]);
+      smartart.setDrawing(new Drawing());
       switch (type) {
         case 'horizontalListOfPicture':
           fillColorsDef(smartart.getColorsDef(), horizontalListOfPicture.colorsDef);
