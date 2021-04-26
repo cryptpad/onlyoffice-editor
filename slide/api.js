@@ -5688,7 +5688,7 @@ background-repeat: no-repeat;\
 		if (bIsShow)
 		{
 			this.WordControl.Splitter2Pos = this.WordControl.OldSplitter2Pos;
-			if (this.WordControl.Splitter2Pos == 0)
+			if (this.WordControl.Splitter2Pos <= 1)
 				this.WordControl.Splitter2Pos = 11;
 			this.WordControl.OnResizeSplitter();
 		}
