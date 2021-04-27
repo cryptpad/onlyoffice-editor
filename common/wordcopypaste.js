@@ -2312,7 +2312,7 @@ PasteProcessor.prototype =
 		if (oTable && !aNewContent[0].IsTable() && oTable.Selection.Use)
 		{
 			var oRows = oTable.GetSelectedRowsRange();
-			var arrRows = [];
+			var arrColums = [];
 			var oLastCell, oFirstCell;
 			if (oRows.Start === oRows.End)
 			{
@@ -2334,23 +2334,20 @@ PasteProcessor.prototype =
 					var oCell_Content = oCell.Content;
 					arrCells.push(oCell_Content.GetCurrentParagraph());
 				}
-				arrRows.push(arrCells);
+				arrColums.push(arrCells);
 			}
-			for (var i = 0; i < arrRows.length; i++)
+			for (var i = 0; i < arrColums.length; i++)
 			{
-				for (var j = 0, k = 0; j < arrRows[i].length; j++)
+				for (var j = 0, k = 0; j < arrColums[i].length; j++)
 				{
 					oSelectedContent.Reset();
-					var Elem = arrRows[i][j];
+					var Elem = arrColums[i][j];
 					var NewElem = aNewContent[k].Copy();
 					k = (k > aNewContent.length - 2) ? 0 : k + 1;
 					var NearPos = Elem.GetCurrentAnchorPosition();
 					//делаем небольшой сдвиг по y, потому что сама точка TargetPos для двухстрочного параграфа определяется как верхняя
 					//var NearPos = oDoc.Get_NearestPos(this.oLogicDocument.TargetPos.PageNum, this.oLogicDocument.TargetPos.X, this.oLogicDocument.TargetPos.Y + 0.05);//0.05 == 2pix
 
-					
-					// Под вопросом, надо ли здесь это? Может быть вынести из условия или в этой ветке if вообще не нужно
-					// Нужно выянить что это за специальная вставка
 					if(bIsSpecialPaste){
 						if (Asc.c_oSpecialPasteProps.insertAsNestedTable === specialPasteHelper.specialPasteProps ||
 							Asc.c_oSpecialPasteProps.overwriteCells === specialPasteHelper.specialPasteProps)
@@ -2416,7 +2413,7 @@ PasteProcessor.prototype =
 		}
 		else
 		{
-			alert(2)
+			oTable = null;
 			var paragraph = oDoc.GetCurrentParagraph();
 			var NearPos = paragraph.GetCurrentAnchorPosition();
 			//делаем небольшой сдвиг по y, потому что сама точка TargetPos для двухстрочного параграфа определяется как верхняя
@@ -2529,8 +2526,6 @@ PasteProcessor.prototype =
 			paragraph.Clear_NearestPosArray(aNewContent);
 		}
 
-	
-
 		//если вставляем таблицу в ячейку таблицы
 		if (this.pasteIntoElem && 1 === this.aContent.length && type_Table === this.aContent[0].GetType() &&
 			this.pasteIntoElem.Parent && this.pasteIntoElem.Parent.IsInTable() && (!bIsSpecialPaste || (bIsSpecialPaste &&
@@ -2545,7 +2540,7 @@ PasteProcessor.prototype =
 			}
 			specialPasteHelper.showButtonIdParagraph = table.Id;
 		} else {
-			if(oSelectedContent.Elements.length === 1)
+			if(oSelectedContent.Elements.length === 1 && !oTable)
 			{
 				var curDocSelection = this.oDocument.GetSelectionState();
 				if(curDocSelection && curDocSelection[1] && curDocSelection[1].CurPos)
