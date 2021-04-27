@@ -1348,7 +1348,7 @@ ParaRun.prototype.Search = function(ParaSearch)
 						if (this.Content[nPos - 1].IsPunctuation() 
 							|| this.Content[nPos - 1].Value === undefined  
 								|| this.Content[nPos - 1].IsDiacriticalSymbol()
-									|| this.Content[nPos - 1].Is_Number())
+									|| this.Content[nPos - 1].Value === 32)
 						{
 							ParaSearch.StartPos = {Run : this, Pos : nPos};
 						}
@@ -1385,7 +1385,7 @@ ParaRun.prototype.Search = function(ParaSearch)
 						{
 							if (this.Content[nPos + 1].IsPunctuation()  
 								|| this.Content[nPos + 1].IsDiacriticalSymbol()
-									|| this.Content[nPos + 1].Is_Number())
+					                || this.Content[nPos + 1].Value === 32)
 							{
 								if (ParaSearch.StartPos)
 								{
