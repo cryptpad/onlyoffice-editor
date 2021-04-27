@@ -5824,6 +5824,10 @@ CShape.prototype.createMoveTrack = function () {
     return new AscFormat.MoveShapeImageTrack(this);
 };
 
+CShape.prototype.createGeometryEditTrack = function () {
+    return new AscFormat.EditShapeGeometryTrack(this);
+};
+
 
 CShape.prototype.remove = function (Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord) {
     if (this.txBody) {

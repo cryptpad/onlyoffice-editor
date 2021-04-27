@@ -31,8 +31,20 @@
  */
 
 "use strict";
+(function(window, undefined) {
 
-function EditShapeGeometryTrack(originalObject) {
+    function EditShapeGeometryTrack(originalShape) {
+        this.geometry = originalShape.calcGeometry.createDuplicate();
+    }
 
-}
+    EditShapeGeometryTrack.prototype.draw = function(overlay, transform)
+    {
+    };
+
+    EditShapeGeometryTrack.prototype.track = function(posX, posY) {
+        this.geometry.Recalculate(posX, posY);
+    }
+    window['AscFormat'] = window['AscFormat'] || {};
+    window['AscFormat'].EditShapeGeometryTrack = EditShapeGeometryTrack;
+})(window);
 
