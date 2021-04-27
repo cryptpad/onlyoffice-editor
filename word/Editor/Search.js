@@ -403,6 +403,15 @@ CDocument.prototype.ReplaceSearchElement = function(NewStr, bAll, Id, bInterface
     this.Document_UpdateSelectionState();
     this.Document_UpdateRulersState();
 
+	var oObj = {
+    	Word: this.SearchEngine.Word,
+    	MatchCase: this.SearchEngine.MatchCase
+    };
+    var eEl = undefined;
+    var ssstr = this.SearchEngine.Text;
+    this.SearchEngine.Clear();
+    this.SearchEngine = this.Search(ssstr, oObj, eEl);
+	
     return bResult;
 };
 CDocument.prototype.GetSearchElementId = function(bNext)
@@ -1273,7 +1282,7 @@ ParaRun.prototype.Search = function(ParaSearch)
 						}
 			}
         }
-		if (Str === "^p" && this.Content[nPos].Leader === undefined)
+		if (Str === "^p" && this.Content[nPos].Leader === undefined && oItem.Flags === 0)
 		{
 			if(this.Content[nPos].Value === undefined && nPos === this.Content.length - 1)
 			{
@@ -1290,7 +1299,7 @@ ParaRun.prototype.Search = function(ParaSearch)
 			}
 		}
 
-		if (Str === "^l" && this.Content[nPos].Leader === undefined)
+		if (Str === "^l" && this.Content[nPos].Leader === undefined && oItem.Use !== true)
 		{
 			if(this.Content[nPos].Value === undefined && this.Content[nPos].Flags.Use === true)
 			{
