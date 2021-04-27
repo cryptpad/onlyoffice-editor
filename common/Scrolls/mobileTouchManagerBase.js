@@ -652,55 +652,7 @@
 	// грузим в конструкторе, используем тогда, когда загружено (asc_complete)
 	CMobileTouchManagerBase.prototype.LoadMobileImages = function()
 	{
-		window.g_table_track_mobile_move = document.createElement("canvas");
-
-        window.g_table_track_mobile_move.width = AscCommon.AscBrowser.convertToRetinaValue(20, true);
-        window.g_table_track_mobile_move.height = AscCommon.AscBrowser.convertToRetinaValue(20, true);
-
-		window.g_table_track_mobile_move.asc_complete = true;
-		window.g_table_track_mobile_move.size = 20;
-
-		var _ctx = window.g_table_track_mobile_move.getContext("2d");
-		if (AscCommon.AscBrowser.isCustomScaling())
-			_ctx.setTransform(AscCommon.AscBrowser.retinaPixelRatio, 0, 0, AscCommon.AscBrowser.retinaPixelRatio, 0, 0);
-
-		_ctx.lineWidth = 1;
-
-		var r = 4;
-		var w = 19;
-		var h = 19;
-		var x = 0.5;
-		var y = 0.5;
-
-		_ctx.moveTo(x + r, y);
-		_ctx.lineTo(x + w - r, y);
-		_ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-		_ctx.lineTo(x + w, y + h - r);
-		_ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-		_ctx.lineTo(x + r, y + h);
-		_ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-		_ctx.lineTo(x, y + r);
-		_ctx.quadraticCurveTo(x, y, x + r, y);
-
-		_ctx.strokeStyle = "#747474";
-		_ctx.fillStyle = "#DFDFDF";
-		_ctx.fill();
-		_ctx.stroke();
-		_ctx.beginPath();
-
-		_ctx.moveTo(2, 10);
-		_ctx.lineTo(10, 2);
-		_ctx.lineTo(18, 10);
-		_ctx.lineTo(10, 18);
-		_ctx.closePath();
-
-		_ctx.fillStyle = "#146FE1";
-		_ctx.fill();
-		_ctx.beginPath();
-
-		_ctx.fillStyle = "#DFDFDF";
-		_ctx.fillRect(6, 6, 8, 8);
-		_ctx.beginPath();
+		// если нужно подгрузить/сгенерировать картинки - это делать тут
 	};
 
 	// onTouchStart => попали ли в якорьки селекта, чтобы не начинать скроллы/зумы
@@ -1559,7 +1511,7 @@
 
 		var HtmlPage = this.delegate.HtmlPage;
 		var DrawingDocument = this.delegate.DrawingDocument;
-
+		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
 		var horRuler = HtmlPage.m_oHorRuler;
 		var verRuler = HtmlPage.m_oVerRuler;
 
@@ -1573,9 +1525,6 @@
 			this.TableVerRulerPoints = null;
 			return;
 		}
-
-		if (!window.g_table_track_mobile_move.asc_complete)
-			return;
 
 		var _table_markup = horRuler.m_oTableMarkup;
 		if (_table_markup.Rows.length == 0)
@@ -1611,6 +1560,9 @@
 
 		var _PageNum = _table_outline_dr.CurrentPageIndex;
 
+		var _lineW = Math.round(rPR);
+		var _pixelNet = _lineW / 2;
+
 		if (!_table_outline_dr.TableMatrix || global_MatrixTransformer.IsIdentity(_table_outline_dr.TableMatrix))
 		{
 			this.TableMovePoint = {X : _tableOutline.X, Y : _tableOutline.Y};
@@ -1626,12 +1578,10 @@
 			overlay.CheckPoint(TableMoveRect_x, TableMoveRect_y);
 			overlay.CheckPoint(TableMoveRect_x + _rectWidth, TableMoveRect_y + _rectWidth);
 
-			if (this.delegate.Name != "slide")
-				ctx.drawImage(window.g_table_track_mobile_move, TableMoveRect_x, TableMoveRect_y, window.g_table_track_mobile_move.size, window.g_table_track_mobile_move.size);
+			ctx.lineWidth = _lineW;
 
+			overlay.AddRoundRect(Math.round(pos1.X * rPR) + _pixelNet, Math.round(TableMoveRect_y * rPR) - _pixelNet, Math.round((pos2.X - pos1.X) * rPR), Math.round(_rectWidth * rPR), Math.round(4 * rPR));
 			ctx.fillStyle = _mainFillStyle;
-
-			overlay.AddRoundRect((pos1.X >> 0) + 0.5, TableMoveRect_y, (pos2.X - pos1.X) >> 0, _rectWidth, 4);
 
 			ctx.fill();
 			ctx.stroke();
@@ -1653,11 +1603,61 @@
 			var pos3 = DrawingDocument.ConvertCoordsToCursorWR(_tableOutline.X, _y1, DrawingDocument.m_lCurrentPage);
 			var pos4 = DrawingDocument.ConvertCoordsToCursorWR(_tableOutline.X, _y2, DrawingDocument.m_lCurrentPage);
 
-			var _ttX = (pos1.X >> 0) + 0.5 - (_epsRects + _rectWidth);
+			if (this.delegate.Name != "slide")
+			{
+				var moveX = Math.round(pos1.X * rPR) + 1 + _pixelNet - Math.round((_epsRects + _rectWidth) * rPR);
+				var moveY = Math.round(TableMoveRect_y * rPR) - _pixelNet;
+				var moveW = Math.round(_rectWidth * rPR);
+				var moveH = Math.round(_rectWidth * rPR);
+				overlay.AddRoundRect(moveX, moveY, moveW, moveH, Math.round(4 * rPR));
+
+				ctx.fill();
+				ctx.stroke();
+
+				ctx.beginPath();
+
+				var offsetMove = 2;
+				var cellMoveX = moveX - _pixelNet;
+				var cellMoveY = moveY - _pixelNet;
+				var cellMoveW = moveW + 2 * _pixelNet;
+				var cellMoveH = moveH + 2 * _pixelNet;
+
+				var moveX2 = cellMoveX + cellMoveW / 2;
+				var moveY2 = cellMoveY + cellMoveH / 2;
+
+				var dist_moveX4 = (cellMoveW / 4 + offsetMove / 2) >> 0;
+				var dist_moveY4 = (cellMoveH / 4 + offsetMove / 2) >> 0;
+
+				var offset_distY4_NotCeil = cellMoveH / 2 - dist_moveX4 + offsetMove;
+				var offset_distX4_NotCeil = cellMoveW / 2 - dist_moveY4 + offsetMove;
+
+				ctx.moveTo(cellMoveX + offsetMove, moveY2);
+				ctx.lineTo(cellMoveX + dist_moveX4, cellMoveY + offset_distY4_NotCeil);
+				ctx.lineTo(cellMoveX + dist_moveX4, cellMoveY + cellMoveH - offset_distY4_NotCeil);
+				ctx.closePath();
+
+				ctx.moveTo(moveX2, cellMoveY + offsetMove);
+				ctx.lineTo(cellMoveX + offset_distX4_NotCeil, cellMoveY + dist_moveY4);
+				ctx.lineTo(cellMoveX + cellMoveW - offset_distX4_NotCeil, cellMoveY + dist_moveY4);
+				ctx.closePath();
+
+				ctx.moveTo(cellMoveX + cellMoveW - offsetMove, moveY2);
+				ctx.lineTo(cellMoveX + cellMoveW - dist_moveX4, cellMoveY + offset_distY4_NotCeil);
+				ctx.lineTo(cellMoveX + cellMoveW - dist_moveX4, cellMoveY + cellMoveH - offset_distY4_NotCeil);
+				ctx.closePath();
+
+				ctx.moveTo(moveX2, cellMoveY + cellMoveH - offsetMove);
+				ctx.lineTo(cellMoveX + offset_distX4_NotCeil, cellMoveY + cellMoveH - dist_moveY4);
+				ctx.lineTo(cellMoveX + cellMoveW - offset_distX4_NotCeil, cellMoveY + cellMoveH - dist_moveY4);
+				ctx.closePath();
+
+				ctx.fillStyle = "#146FE1";
+				ctx.fill();
+				ctx.beginPath();
+			}
 
 			ctx.fillStyle = _mainFillStyle;
-
-			overlay.AddRoundRect((pos1.X >> 0) + 1.5 - (_epsRects + _rectWidth), (pos3.Y >> 0) + 0.5, _rectWidth - 1, (pos4.Y - pos3.Y) >> 0, 4);
+			overlay.AddRoundRect(Math.round(pos1.X  * rPR) + 1 + _pixelNet - Math.round((_epsRects + _rectWidth) * rPR), Math.round(pos3.Y * rPR) + _pixelNet, Math.round((_rectWidth - 1) * rPR), Math.round((pos4.Y - pos3.Y) * rPR), Math.round(4 * rPR));
 
 			ctx.fill();
 			ctx.stroke();
@@ -1683,7 +1683,7 @@
 				var _y = DrawingDocument.ConvertCoordsToCursorWR(0, _oldY, _PageNum);
 
 				ctx.beginPath();
-				overlay.AddDiamond(_x + 1.5 + (_rectWidth >> 1), _y.Y, AscCommon.MOBILE_TABLE_RULER_DIAMOND);
+				overlay.AddDiamond(Math.round(_x * rPR) + 1.5 + Math.round(Math.round(_rectWidth * rPR) / 2), Math.round(_y.Y * rPR), Math.round(AscCommon.MOBILE_TABLE_RULER_DIAMOND * rPR));
 				ctx.fill();
 				ctx.beginPath();
 
@@ -1702,10 +1702,10 @@
 				var _x = _col - _table_markup.Margins[i - 1].Right;
 				var _r = _col + ((i == _cols.length) ? 0 : _table_markup.Margins[i].Left);
 
-				var __c = ((xDst + dKoef * _col) >> 0) + 0.5;
+				var __c = ((xDst + dKoef * _col) >> 0);
 
 				ctx.beginPath();
-				overlay.AddDiamond(__c, TableMoveRect_y +_rectWidth / 2, AscCommon.MOBILE_TABLE_RULER_DIAMOND);
+				overlay.AddDiamond(Math.round(__c * rPR) + 0.5, Math.round(TableMoveRect_y * rPR) + Math.round(_rectWidth * rPR / 2), Math.round(AscCommon.MOBILE_TABLE_RULER_DIAMOND * rPR));
 				ctx.fill();
 				ctx.beginPath();
 
@@ -1767,10 +1767,59 @@
 			_offset *= AscCommon.AscBrowser.retinaPixelRatio;
 
 			if (this.delegate.Name != "slide")
-				ctx.drawImage(window.g_table_track_mobile_move, this.TableMovePoint.X - _offset, this.TableMovePoint.Y - _offset, _rectW, _rectW);
+			{
+				var moveX = this.TableMovePoint.X - _offset;
+				var moveY = this.TableMovePoint.Y - _offset;
+				var moveW = _rectW;
+				var moveH = _rectW;
+
+				ctx.fillStyle = _mainFillStyle;
+				overlay.AddRoundRectCtx(ctx, moveX, moveY, moveW, moveH, 5 / dKoef);
+				ctx.fill();
+				ctx.stroke();
+				ctx.beginPath();
+
+				var offsetMove = 2 / dKoef;
+				var cellMoveX = moveX;
+				var cellMoveY = moveY;
+				var cellMoveW = moveW;
+				var cellMoveH = moveH;
+
+				var moveX2 = cellMoveX + cellMoveW / 2;
+				var moveY2 = cellMoveY + cellMoveH / 2;
+
+				var dist_moveX4 = (cellMoveW / 4 + offsetMove / 2);
+				var dist_moveY4 = (cellMoveH / 4 + offsetMove / 2);
+
+				var offset_distY4_NotCeil = cellMoveH / 2 - dist_moveX4 + offsetMove;
+				var offset_distX4_NotCeil = cellMoveW / 2 - dist_moveY4 + offsetMove;
+
+				ctx.moveTo(cellMoveX + offsetMove, moveY2);
+				ctx.lineTo(cellMoveX + dist_moveX4, cellMoveY + offset_distY4_NotCeil);
+				ctx.lineTo(cellMoveX + dist_moveX4, cellMoveY + cellMoveH - offset_distY4_NotCeil);
+				ctx.closePath();
+
+				ctx.moveTo(moveX2, cellMoveY + offsetMove);
+				ctx.lineTo(cellMoveX + offset_distX4_NotCeil, cellMoveY + dist_moveY4);
+				ctx.lineTo(cellMoveX + cellMoveW - offset_distX4_NotCeil, cellMoveY + dist_moveY4);
+				ctx.closePath();
+
+				ctx.moveTo(cellMoveX + cellMoveW - offsetMove, moveY2);
+				ctx.lineTo(cellMoveX + cellMoveW - dist_moveX4, cellMoveY + offset_distY4_NotCeil);
+				ctx.lineTo(cellMoveX + cellMoveW - dist_moveX4, cellMoveY + cellMoveH - offset_distY4_NotCeil);
+				ctx.closePath();
+
+				ctx.moveTo(moveX2, cellMoveY + cellMoveH - offsetMove);
+				ctx.lineTo(cellMoveX + offset_distX4_NotCeil, cellMoveY + cellMoveH - dist_moveY4);
+				ctx.lineTo(cellMoveX + cellMoveW - offset_distX4_NotCeil, cellMoveY + cellMoveH - dist_moveY4);
+				ctx.closePath();
+
+				ctx.fillStyle = "#146FE1";
+				ctx.fill();
+				ctx.beginPath();
+			}
 
 			ctx.fillStyle = _mainFillStyle;
-
 			overlay.AddRoundRectCtx(ctx, this.TableMovePoint.X, this.TableMovePoint.Y - _offset, _tableW, _rectW, 5 / dKoef);
 
 			ctx.fill();
