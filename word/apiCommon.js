@@ -2382,7 +2382,7 @@
 	CAscTextToTableProperties.prototype.put_Rows = function(newRows, isDefault)
 	{
 		this.ArrRows = newRows.map(function (item) {
-			return [...item]
+			return item.slice();
 		});
 		if (isDefault)
 			this.put_DefaultRows(newRows);
@@ -2458,7 +2458,7 @@
 					var tmpArr = [];
 					for (var i = 0; i < size.rows; i++)
 					{
-						tmpArr.push(...this.ArrRows[i]);
+						tmpArr = tmpArr.concat(this.ArrRows[i]);
 					}
 					var end = Math.max(tmpArr.length, count);
 					for (var i = 0; i < end; i ++)

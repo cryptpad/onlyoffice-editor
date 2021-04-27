@@ -25184,7 +25184,7 @@ CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 							if (k)
 								ArrNewContent[ArrNewContent.length - 1].Concat(oNestedContent.shift(), true);
 
-							ArrNewContent.push(...oNestedContent);
+							ArrNewContent = ArrNewContent.concat(oNestedContent);
 							isNewPar = true;
 							break;
 						default:
