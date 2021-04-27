@@ -230,6 +230,7 @@ function CopyProcessor(api, onlyBinaryCopy)
     }
 	
 	this.oRoot = new CopyElement("root");
+    this.listNextNumMap = [];
 }
 CopyProcessor.prototype =
 {
@@ -700,12 +701,25 @@ CopyProcessor.prototype =
 					if((bBullet && "ul" === oPrevElem.sName) || (!bBullet && "ol" === oPrevElem.sName))
 						oTargetList = oPrevElem;
 				}
-				if(null == oTargetList){
-					if(bBullet)
+
+				if (!bBullet) {
+					if (!this.listNextNumMap[oNumPr.NumId]) {
+						this.listNextNumMap[oNumPr.NumId] = 1;
+					} else {
+						this.listNextNumMap[oNumPr.NumId]++;
+					}
+				}
+				if (null == oTargetList) {
+					if (bBullet) {
 						oTargetList = new CopyElement("ul");
-					else
+					} else {
 						oTargetList = new CopyElement("ol");
+					}
 					oTargetList.oAttributes["style"] = "padding-left:40px";
+					//если список идёт с промежуточными элементами, добавляем аттрибут start
+					if (!bBullet && this.listNextNumMap[oNumPr.NumId] > 1) {
+						oTargetList.oAttributes["start"] = this.listNextNumMap[oNumPr.NumId];
+					}
 					oDomTarget.addChild(oTargetList);
 				}
 				oTargetList.addChild(Li);
