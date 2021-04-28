@@ -5507,19 +5507,22 @@
     function CChangesDrawingClrLst(Class, Type, Pos, Items, isAdd) {
       CChangeContent.call(this, Class, Type, Pos, Items, isAdd);
     }
+      CChangesDrawingClrLst.prototype = Object.create(CChangeContent.prototype);
+      CChangesDrawingClrLst.prototype.superclass = CChangeContent;
+      CChangesDrawingClrLst.prototype.constructor = CChangeContent;
 
     CChangesDrawingClrLst.prototype.private_WriteItem = function (writer) {
-      writer.WriteBool(this.IsAdd());
-      writer.WriteLong(this.Pos);
-      AscDFH.CChangesBaseContentChange.prototype.WriteToBinary.call(this, writer);
+    // writer.WriteBool(this.IsAdd());
+    // writer.WriteLong(this.Pos);
+    // AscDFH.CChangesBaseContentChange.prototype.WriteToBinary.call(this, writer);
     }
 
     CChangesDrawingClrLst.prototype.private_ReadItem = function (reader) {
-      reader.Seek2(reader.GetCurPos() - 4);
-      this.Type = reader.GetLong();
-      this.Add = reader.GetBool();
-      this.Pos = reader.GetLong();
-      AscDFH.CChangesBaseContentChange.prototype.ReadFromBinary.call(this, reader);
+     // reader.Seek2(reader.GetCurPos() - 4);
+     // this.Type = reader.GetLong();
+     // this.Add = reader.GetBool();
+     // this.Pos = reader.GetLong();
+     // AscDFH.CChangesBaseContentChange.prototype.ReadFromBinary.call(this, reader);
     }
 
     changesFactory[AscDFH.historyitem_CCommonDataClrListAdd] = CChangesDrawingClrLst;
@@ -7287,10 +7290,9 @@
       }
     }
 
-    SmartArt.prototype.draw = function () {
+    SmartArt.prototype.draw = function (graphics) {
       this.getDrawing().list.forEach(function (shape) {
-        var _bounds_cheker = new AscFormat.CSlideBoundsChecker();
-        shape.draw(_bounds_cheker);
+        shape.draw(graphics);
       });
     }
     SmartArt.prototype.recalculate = function () {
@@ -13715,9 +13717,9 @@
     }
 
     function fillExtLst(extLst, exts) {
-      exts.forEach(function (ext) {
-        extLst.addToLst(0, ext)
-      });
+     // exts.forEach(function (ext) {
+     //   extLst.addToLst(0, ext)
+     // });
     }
 
     function fillDataModel(dataModel, dataModelObj) {
@@ -14068,10 +14070,11 @@
       }
     }
 
-    function createSp(spInfo) {
+    function createSp(spInfo, parent) {
       var sp = new AscFormat.CShape();
       // sp.setModelId(spInfo.setId); TODO: add model id
-
+        sp.setBDeleted(false);
+        sp.setParent(parent);
       var nvSpPr = new AscFormat.UniNvPr();
       fillNvSpPr(nvSpPr, spInfo.nvSpPr);
       sp.setNvSpPr(nvSpPr);
@@ -14106,15 +14109,22 @@
 
     }
 
-    function fillDrawing(drawing, drawingInfo) {
+    function fillDrawing(drawing, drawingInfo, parent) {
       drawingInfo.spTree.sps.forEach(function (sp) {
-        drawing.addToLst(0, createSp(sp));
+          var oSp = createSp(sp, parent);
+        drawing.addToLst(0, oSp);
+          oSp.setParent(parent);//TODO: parent of shape shuold be a slide
       });
     }
 
 
     function createSmartArt(type) {
+        AscCommon.History.Create_NewPoint(0);
+
+        var _pres = editor.WordControl.m_oLogicDocument;
+        var _slide = _pres.Slides[_pres.CurPage];
       var smartart = new SmartArt();
+        smartart.setBDeleted(false);
       smartart.setColorsDef(new ColorsDef());
       smartart.setStyleDef(new StyleDef());
       smartart.setLayoutDef(new LayoutDef());
@@ -14126,12 +14136,11 @@
           fillQuickStyle(smartart.getStyleDef(), horizontalListOfPicture.styleDef);
           fillLayoutDef(smartart.getLayoutDef(), horizontalListOfPicture.layoutDef);
           fillDataModel(smartart.getDataModel(), horizontalListOfPicture.dataModel);
-          fillDrawing(smartart.getDrawing(), horizontalListOfPicture.drawing);
+          fillDrawing(smartart.getDrawing(), horizontalListOfPicture.drawing, _slide);
           break;
       }
-      var _pres = editor.WordControl.m_oLogicDocument;
-      var _slide = _pres.Slides[_pres.CurPage];
       _slide.addToSpTreeToPos(_slide.cSld.spTree.length, smartart);
+        _pres.Recalculate();
       return smartart;
     }
 
