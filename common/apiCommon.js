@@ -4936,6 +4936,10 @@
 						oShd.Color.r = oCurParS['fill'][0];
 						oShd.Color.g = oCurParS['fill'][1];
 						oShd.Color.b = oCurParS['fill'][2];
+						oShd.Fill = new AscCommonWord.CDocumentColor();
+						oShd.Fill.r = oCurParS['fill'][0];
+						oShd.Fill.g = oCurParS['fill'][1];
+						oShd.Fill.b = oCurParS['fill'][2];
 						oNewParagraph.Set_Shd(oShd, true);
 					}
 					if(AscFormat.isRealNumber(oCurParS['linespacing'])){
