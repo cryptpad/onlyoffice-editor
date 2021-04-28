@@ -7114,6 +7114,9 @@ function CDrawingDocument()
                             break;
                     }
                 }
+				if (i == 2 && text.indexOf("1.1.") !== -1)
+					props.IsOnes = true;
+
                 AscFonts.FontPickerByCharacter.checkTextLight(text);
 
                 if (curLvl.TextPr && curLvl.TextPr.RFonts)
@@ -7151,7 +7154,7 @@ function CDrawingDocument()
 		var offset = (height_px_p - (line_w << 1)) >> 1;
         var y = (height_px_p >> 1) - (line_w >> 1);
         var text_base_offset_x = offset + ((3.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
-        var text_base_offset_dist = (3.25 * AscCommon.g_dKoef_mm_to_pix) >> 0;
+        var text_base_offset_dist = ( (props.IsOnes ? 2.25 : 3.25) * AscCommon.g_dKoef_mm_to_pix) >> 0;
 
         for (var k = 0; k < 9; k++) 
         {
@@ -7182,7 +7185,7 @@ function CDrawingDocument()
 			var rPR = AscCommon.AscBrowser.retinaPixelRatio;
 
             ctx.lineWidth = 2 * Math.round(rPR);
-            ctx.strokeStyle = "000000"; // "#CBCBCB";
+            ctx.strokeStyle = "#CBCBCB";
 
             var textYs = {x: text_base_offset_x - ((4.25 * AscCommon.g_dKoef_mm_to_pix) >> 0), y: y + (line_w << 1)};
 
