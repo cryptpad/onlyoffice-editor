@@ -1023,6 +1023,7 @@ function CShape()
     this.bWordShape     = null;//если этот флаг стоит в true то автофигура имеет формат как в редакторе документов
     this.bCheckAutoFitFlag = false;
     this.signatureLine = null;
+    this.txXfrm = null;
 
 
     this.transformText = new CMatrix();
@@ -1197,6 +1198,12 @@ CShape.prototype.setNvSpPr = function (pr) {
     History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_ShapeSetNvSpPr, this.nvSpPr, pr));
     this.nvSpPr = pr;
 };
+
+    CShape.prototype.setTxXfrm = function (pr) {
+        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_ShapeSetTxXfrm, this.txXfrm, pr));
+        this.txXfrm = pr;
+        this.txXfrm.setParent(this);
+    };
 
 CShape.prototype.setSpPr = function (spPr) {
     History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_ShapeSetSpPr, this.spPr, spPr));

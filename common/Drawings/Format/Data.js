@@ -5531,8 +5531,8 @@
       return oClass.list;
     };
 
-    function CCommonDataClrList() {
-      CBaseFormatObject.call(this);
+    function CCommonDataClrList(type, ind, item, isAdd) {
+      CBaseFormatObject.call(this, type, ind, item, isAdd);
       this.list = [];
     }
 
@@ -7182,6 +7182,7 @@
     changesFactory[AscDFH.historyitem_SmartArtLayoutDef] = CChangeObject;
     changesFactory[AscDFH.historyitem_SmartArtDataModel] = CChangeObject;
     changesFactory[AscDFH.historyitem_SmartArtStyleDef] = CChangeObject;
+    changesFactory[AscDFH.historyitem_SmartArtParent] = CChangeObject;
     drawingsChangesMap[AscDFH.historyitem_SmartArtColorsDef] = function (oClass, value) {
       oClass.colorsDef = value;
     };
@@ -7197,6 +7198,9 @@
     drawingsChangesMap[AscDFH.historyitem_SmartArtStyleDef] = function (oClass, value) {
       oClass.styleDef = value;
     };
+    drawingsChangesMap[AscDFH.historyitem_SmartArtParent] = function (oClass, value) {
+      oClass.parent = value;
+    };
 
     function SmartArt() {
       CGraphicObjectBase.call(this);
@@ -7205,38 +7209,44 @@
       this.layoutDef = null;
       this.dataModel = null;
       this.styleDef = null;
+      this.parent = null;
     }
 
     InitClass(SmartArt, CGraphicObjectBase, AscDFH.historyitem_type_SmartArt);
 
+    SmartArt.prototype.setParent = function (parent) {
+      History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_SmartArtParent, this.parent, parent));
+      this.parent = parent;
+    };
+
     SmartArt.prototype.setColorsDef = function (oPr) {
       oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SmartArtColorsDef, this.getColorsDef(), oPr));
       this.colorsDef = oPr;
-      this.setParentToChild(oPr);
+      oPr.setParent(this);
     }
 
     SmartArt.prototype.setDrawing = function (oPr) {
       oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SmartArtDrawing, this.getDrawing(), oPr));
       this.drawing = oPr;
-      this.setParentToChild(oPr);
+      oPr.setParent(this);
     }
 
     SmartArt.prototype.setLayoutDef = function (oPr) {
       oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SmartArtLayoutDef, this.getLayoutDef(), oPr));
       this.layoutDef = oPr;
-      this.setParentToChild(oPr);
+      oPr.setParent(this);
     }
 
     SmartArt.prototype.setDataModel = function (oPr) {
       oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SmartArtDataModel, this.getDataModel(), oPr));
       this.dataModel = oPr;
-      this.setParentToChild(oPr);
+      oPr.setParent(this);
     }
 
     SmartArt.prototype.setStyleDef = function (oPr) {
       oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SmartArtStyleDef, this.getStyleDef(), oPr));
       this.styleDef = oPr;
-      this.setParentToChild(oPr);
+      oPr.setParent(this);
     }
 
     SmartArt.prototype.getColorsDef = function () {
@@ -7276,6 +7286,23 @@
         oCopy.setStyleDef(this.getStyleDef().createDuplicate(oIdMap));
       }
     }
+
+    SmartArt.prototype.draw = function () {
+      this.getDrawing().list.forEach(function (shape) {
+        var _bounds_cheker = new AscFormat.CSlideBoundsChecker();
+        shape.draw(_bounds_cheker);
+      });
+    }
+    SmartArt.prototype.recalculate = function () {
+      this.getDrawing().list.forEach(function (shape) {
+        shape.recalculate();
+      });
+    }
+
+    SmartArt.prototype.isPlaceholder = function () {
+      return false;
+    }
+
 
     var horizontalListOfPicture = {
       colorsDef: {
@@ -11431,7 +11458,7 @@
       dataModel: {
         ptLst: [
           {
-            type: 'Point_type_doc',
+            type: Point_type_doc,
             modelId: '',
             prSet: {
               phldr: false,
@@ -11456,14 +11483,14 @@
               lstStyle: {},
               p: {
                 endParaRPr: {
-                  lang: 'ru-RU',
+                  lang: 0x0419,
                   dirty: false,
                 }
               }
             }
           },
           {
-            type: 'Point_type_parTrans',
+            type: Point_type_parTrans,
             modelId: '',
             cxnId: '',
             prSet: {},
@@ -11473,13 +11500,13 @@
               lstStyle: {},
               p: {
                 endParaRPr: {
-                  lang: 'ru-RU'
+                  lang: 0x0419
                 }
               }
             }
           },
           {
-            type: 'Point_type_sibTrans',
+            type: Point_type_sibTrans,
             modelId: '',
             cxnId: '',
             prSet: {},
@@ -11489,7 +11516,7 @@
               lstStyle: {},
               p: {
                 endParaRPr: {
-                  lang: 'ru-RU'
+                  lang: 0x0419
                 }
               }
             }
@@ -11506,14 +11533,14 @@
               lstStyle: {},
               p: {
                 endParaRPr: {
-                  lang: 'ru-RU',
+                  lang: 0x0419,
                   dirty: false,
                 }
               }
             }
           },
           {
-            type: 'Point_type_parTrans',
+            type: Point_type_parTrans,
             modelId: '',
             cxnId: {},
             prSet: {},
@@ -11523,13 +11550,13 @@
               lstStyle: {},
               p: {
                 endParaRPr: {
-                  lang: 'ru-RU'
+                  lang: 0x0419
                 }
               }
             }
           },
           {
-            type: 'Point_type_sibTrans',
+            type: Point_type_sibTrans,
             modelId: '',
             cxnId: '',
             prSet: {},
@@ -11539,7 +11566,7 @@
               lstStyle: {},
               p: {
                 endParaRPr: {
-                  lang: 'ru-RU'
+                  lang: 0x0419
                 }
               }
             }
@@ -11556,14 +11583,14 @@
               lstStyle: {},
               p: {
                 endParaRPr: {
-                  lang: 'ru-RU',
+                  lang: 0x0419,
                   dirty: false,
                 }
               }
             }
           },
           {
-            type: 'Point_type_parTrans',
+            type: Point_type_parTrans,
             modelId: '',
             cxnId: '',
             prSet: {},
@@ -11579,7 +11606,7 @@
             }
           },
           {
-            type: 'Point_type_sibTrans',
+            type: Point_type_sibTrans,
             modelId: '',
             cxnId: '',
             prSet: {},
@@ -11595,7 +11622,7 @@
             }
           },
           {
-            type: 'Point_type_pres',
+            type: Point_type_pres,
             modelId: '',
             prSet: {
               presStyleCnt: 0,
@@ -11604,14 +11631,14 @@
               presLayoutVars: {
                 dir: {},
                 resizeHandles: {
-                  val: 'ResizeHandles_val_exact',
+                  val: ResizeHandles_val_exact,
                 }
               },
             },
             spPr: {},
           },
           {
-            type: 'Point_type_pres',
+            type: Point_type_pres,
             modelId: '',
             prSet: {
               presStyleCnt: 1,
@@ -11623,7 +11650,7 @@
             spPr: {},
           },
           {
-            type: 'Point_type_pres',
+            type: Point_type_pres,
             modelId: '',
             prSet: {
               presStyleCnt: 0,
@@ -11633,7 +11660,7 @@
             spPr: {},
           },
           {
-            type: 'Point_type_pres',
+            type: Point_type_pres,
             modelId: '',
             prSet: {
               presStyleCnt: 0,
@@ -11643,7 +11670,7 @@
             spPr: {},
           },
           {
-            type: 'Point_type_pres',
+            type: Point_type_pres,
             modelId: '',
             prSet: {
               presStyleCnt: 3,
@@ -11660,7 +11687,7 @@
             spPr: {},
           },
           {
-            type: 'Point_type_pres',
+            type: Point_type_pres,
             modelId: '',
             prSet: {
               presStyleCnt: 3,
@@ -11672,7 +11699,7 @@
             spPr: {},
           },
           {
-            type: 'Point_type_pres',
+            type: Point_type_pres,
             modelId: '',
             prSet: {
               presStyleCnt: 3,
@@ -11684,7 +11711,7 @@
             spPr: {},
           },
           {
-            type: 'Point_type_pres',
+            type: Point_type_pres,
             modelId: '',
             prSet: {
               presStyleCnt: 0,
@@ -11696,7 +11723,7 @@
             spPr: {},
           },
           {
-            type: 'Point_type_pres',
+            type: Point_type_pres,
             modelId: '',
             prSet: {
               presStyleCnt: 0,
@@ -11706,7 +11733,7 @@
             spPr: {},
           },
           {
-            type: 'Point_type_pres',
+            type: Point_type_pres,
             modelId: '',
             prSet: {
               presStyleCnt: 3,
@@ -11721,7 +11748,7 @@
             spPr: {},
           },
           {
-            type: 'Point_type_pres',
+            type: Point_type_pres,
             modelId: '',
             prSet: {
               presStyleCnt: 3,
@@ -11733,7 +11760,7 @@
             spPr: {},
           },
           {
-            type: 'Point_type_pres',
+            type: Point_type_pres,
             modelId: '',
             prSet: {
               presStyleCnt: 3,
@@ -11745,7 +11772,7 @@
             spPr: {},
           },
           {
-            type: 'Point_type_pres',
+            type: Point_type_pres,
             modelId: '',
             prSet: {
               presStyleCnt: 3,
@@ -11757,7 +11784,7 @@
             spPr: {},
           },
           {
-            type: 'Point_type_pres',
+            type: Point_type_pres,
             modelId: '',
             prSet: {
               presStyleCnt: 0,
@@ -11769,7 +11796,7 @@
             spPr: {},
           },
           {
-            type: 'Point_type_pres',
+            type: Point_type_pres,
             modelId: '',
             prSet: {
               presStyleCnt: 0,
@@ -11779,7 +11806,7 @@
             spPr: {},
           },
           {
-            type: 'Point_type_pres',
+            type: Point_type_pres,
             modelId: '',
             prSet: {
               presStyleCnt: 3,
@@ -11794,7 +11821,7 @@
             spPr: {},
           },
           {
-            type: 'Point_type_pres',
+            type: Point_type_pres,
             modelId: '',
             prSet: {
               presStyleCnt: 3,
@@ -11806,7 +11833,7 @@
             spPr: {},
           },
           {
-            type: 'Point_type_pres',
+            type: Point_type_pres,
             modelId: '',
             prSet: {
               presStyleCnt: 3,
@@ -11820,7 +11847,7 @@
         ],
         cxnLst: [
           {
-            type: 'Cxn_type_presOf',
+            type: Cxn_type_presOf,
             modelId: '',
             presId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             destOrd: 0,
@@ -11829,7 +11856,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presOf',
+            type: Cxn_type_presOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -11838,7 +11865,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presOf',
+            type: Cxn_type_presOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -11854,7 +11881,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presOf',
+            type: Cxn_type_presOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -11877,7 +11904,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presOf',
+            type: Cxn_type_presOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -11886,7 +11913,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presOf',
+            type: Cxn_type_presOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -11895,7 +11922,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presParOf',
+            type: Cxn_type_presParOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -11904,7 +11931,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presParOf',
+            type: Cxn_type_presParOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -11913,7 +11940,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presParOf',
+            type: Cxn_type_presParOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -11922,7 +11949,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presParOf',
+            type: Cxn_type_presParOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -11931,7 +11958,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presParOf',
+            type: Cxn_type_presParOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -11940,7 +11967,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presParOf',
+            type: Cxn_type_presParOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -11949,7 +11976,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presParOf',
+            type: Cxn_type_presParOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -11958,7 +11985,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presParOf',
+            type: Cxn_type_presParOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -11967,7 +11994,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presParOf',
+            type: Cxn_type_presParOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -11976,7 +12003,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presParOf',
+            type: Cxn_type_presParOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -11985,7 +12012,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presParOf',
+            type: Cxn_type_presParOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -11994,7 +12021,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presParOf',
+            type: Cxn_type_presParOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -12003,7 +12030,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presParOf',
+            type: Cxn_type_presParOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -12012,7 +12039,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presParOf',
+            type: Cxn_type_presParOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -12021,7 +12048,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presParOf',
+            type: Cxn_type_presParOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -12030,7 +12057,7 @@
             srcId: '',
           },
           {
-            type: 'Cxn_type_presParOf',
+            type: Cxn_type_presParOf,
             modelId: 'urn:microsoft.com/office/officeart/2005/8/layout/pList2',
             presId: '',
             destOrd: 0,
@@ -12462,7 +12489,7 @@
                 },
                 lstStyle: {},
                 p: {
-                  pPr: { // TODO: create PPr in diagrams
+                  pPr: {
                     algn: 'PPr_algn_ctr',
                     defTabSz: 2000250,
                     indent: 0,
@@ -12770,7 +12797,7 @@
                 },
                 lstStyle: {},
                 p: {
-                  pPr: { // TODO: create PPr in diagrams
+                  pPr: {
                     algn: 'PPr_algn_ctr',
                     defTabSz: 2000250,
                     indent: 0,
@@ -13078,7 +13105,7 @@
                 },
                 lstStyle: {},
                 p: {
-                  pPr: { // TODO: create PPr function
+                  pPr: {
                     algn: 'PPr_algn_ctr',
                     defTabSz: 2000250,
                     indent: 0,
@@ -13380,7 +13407,7 @@
 
     function fillPresLayoutVars(presLayoutVars, presLayoutVarsInfo) {
       if (presLayoutVarsInfo.dir) {
-        presLayoutVars.setDir(new DiagramDirection()); //TODO: create Dir
+        presLayoutVars.setDir(new DiagramDirection());
       }
       if (presLayoutVarsInfo.resizeHandles) {
         var resizeHandles = new ResizeHandles();
@@ -13438,108 +13465,104 @@
     }
 
     function fillPPr(pPr, pPrInfo) {
-      if (pPrInfo.algn) {
-        pPr.setAlgn(pPrInfo.algn);
-      }
-      if (pPrInfo.defTabSz) {
-        pPr.setDefTabSz(pPrInfo.defTabSz);
-      }
-      if (pPrInfo.indent) {
-        pPr.setIndent(pPrInfo.indent);
-      }
-      if (pPrInfo.lvl) {
-        pPr.setLvl(pPrInfo.lvl);
-      }
-      if (pPrInfo.marL) {
-        pPr.setMarL(pPrInfo.marL);
-      }
-      if (pPrInfo.lnSpc) {
-        pPr.setLnSpc(pPrInfo.lnSpc.spcPct.val);
-      }
-      if (pPrInfo.spcBef) {
-        pPr.setSpcBef(pPrInfo.spcBef.spcPct.val);
-      }
-      if (pPrInfo.spcAft) {
-        pPr.setSpcAft(pPrInfo.spcAft.spcPct.val);
-      }
-      if (pPrInfo.buNone) {
-        pPr.setBuNone(new BuNone());
-      }
+      // if (pPrInfo.algn) {
+      //   pPr.setAlgn(pPrInfo.algn);
+      // } TODO: check algn
+      // if (pPrInfo.defTabSz) {
+      //   pPr.DefaultTab = pPrInfo.defTabSz;
+      // }
+      // if (pPrInfo.indent) {
+      //   pPr.setIndent(pPrInfo.indent);
+      // }
+      // if (pPrInfo.lvl) {
+      //   pPr.setLvl(pPrInfo.lvl);
+      // } TODO: fill pr
+      // if (pPrInfo.marL) {
+      //   pPr.setMarL(pPrInfo.marL);
+      // }
+      // if (pPrInfo.lnSpc) {
+      //   pPr.setLnSpc(pPrInfo.lnSpc.spcPct.val);
+      // }
+      // if (pPrInfo.spcBef) {
+      //   pPr.setSpcBef(pPrInfo.spcBef.spcPct.val);
+      // }
+      // if (pPrInfo.spcAft) {
+      //   pPr.setSpcAft(pPrInfo.spcAft.spcPct.val);
+      // }
+      // if (pPrInfo.buNone) {
+      //   pPr.setBuNone(new BuNone());
+      // }
     }
 
     function fillP(paragraph, paragraphInfo) {
-      if (paragraphInfo.pPr) {
-        var pPr = new DiagramPPr();
-        fillPPr(pPr, paragraphInfo.pPr);
-        // TODO: add ppr in paragraph
-      }
-
-
-      var endParaRPr = new EndParaRPr(); // TODO: add import ParaEnd
-      if (paragraphInfo.endParaRPr.lang) {
-        endParaRPr.setLang(paragraphInfo.endParaRPr.lang);
-      }
-      if (paragraphInfo.endParaRPr.kern) {
-        endParaRPr.setKern(paragraphInfo.endParaRPr.kern);
-      }
-      if (paragraphInfo.endParaRPr.sz) {
-        endParaRPr.setSz(paragraphInfo.endParaRPr.sz);
-      }
-      if (typeof paragraphInfo.endParaRPr.dirty === 'boolean') {
-        endParaRPr.setDirty(paragraphInfo.endParaRPr.dirty);
-      }
-      // TODO: add endParaRPr to p
+      // if (paragraphInfo.pPr) {
+      //   var pPr = paragraph.Pr;
+      //   fillPPr(pPr, paragraphInfo.pPr);
+      //    TODO: add ppr in paragraph
+      // }
+      // var endParaRPr = paragraph.TextPr.Value;
+      // if (paragraphInfo.endParaRPr.lang) {
+      //   endParaRPr.SetLang(paragraphInfo.endParaRPr.lang);
+      // }
+      // if (paragraphInfo.endParaRPr.sz) {
+      //   endParaRPr.setFontSize(paragraphInfo.endParaRPr.sz);
+      // }
+      // if (typeof paragraphInfo.endParaRPr.dirty === 'boolean') {
+      //   endParaRPr.setDirty(paragraphInfo.endParaRPr.dirty);
+      // }TODO: add dirty
+      //
     }
 
     function fillBodyPr(bodyPr, bodyPrInfo) {
-      if (typeof bodyPrInfo.anchorCtr === 'boolean') {
-        bodyPr.anchorCtr = bodyPrInfo.anchorCtr;
-      }
-      if (bodyPrInfo.anchor) {
-        bodyPr.anchor = bodyPrInfo.anchor;
-      }
-      if (bodyPrInfo.spcCol) {
-        bodyPr.spcCol = bodyPrInfo.spcCol;
-      }
-      if (bodyPrInfo.numCol) {
-        bodyPr.numCol = bodyPrInfo.numCol;
-      }
-      if (bodyPrInfo.bIns) {
-        bodyPr.bIns = bodyPrInfo.bIns;
-      }
-      if (bodyPrInfo.rIns) {
-        bodyPr.rIns = bodyPrInfo.rIns;
-      }
-      if (bodyPrInfo.tIns) {
-        bodyPr.tIns = bodyPrInfo.tIns;
-      }
-      if (bodyPrInfo.lIns) {
-        bodyPr.lIns = bodyPrInfo.lIns;
-      }
-      if (bodyPrInfo.wrap) {
-        bodyPr.wrap = bodyPrInfo.wrap;
-      }
-      if (bodyPrInfo.vert) {
-        bodyPr.vert = bodyPrInfo.vert;
-      }
-      if (typeof bodyPrInfo.spcFirstLastPara === 'boolean') {
-        bodyPr.spcFirstLastPara = bodyPrInfo.spcFirstLastPara;
-      }
+      // if (typeof bodyPrInfo.anchorCtr === 'boolean') {
+      //   bodyPr.anchorCtr = bodyPrInfo.anchorCtr;
+      // }
+      // if (bodyPrInfo.anchor) {
+      //   bodyPr.anchor = bodyPrInfo.anchor;
+      // }
+      // if (bodyPrInfo.spcCol) {
+      //   bodyPr.spcCol = bodyPrInfo.spcCol;
+      // }
+      // if (bodyPrInfo.numCol) {
+      //   bodyPr.numCol = bodyPrInfo.numCol;
+      // }
+      // if (bodyPrInfo.bIns) {
+      //   bodyPr.bIns = bodyPrInfo.bIns;
+      // }
+      // if (bodyPrInfo.rIns) {
+      //   bodyPr.rIns = bodyPrInfo.rIns;
+      // }
+      // if (bodyPrInfo.tIns) {
+      //   bodyPr.tIns = bodyPrInfo.tIns;
+      // }
+      // if (bodyPrInfo.lIns) {
+      //   bodyPr.lIns = bodyPrInfo.lIns;
+      // }
+      // if (bodyPrInfo.wrap) {
+      //   bodyPr.wrap = bodyPrInfo.wrap;
+      // }
+      // if (bodyPrInfo.vert) {
+      //   bodyPr.vert = bodyPrInfo.vert;
+      // }
+      // if (typeof bodyPrInfo.spcFirstLastPara === 'boolean') {
+      //   bodyPr.spcFirstLastPara = bodyPrInfo.spcFirstLastPara;
+      // }
       // TODO: add noautofit
     }
 
     function fillTextBody(t, tInfo, content) {
-      var bodyPr = new AscFormat.CBodyPr();
-      fillBodyPr(bodyPr, tInfo.bodyPr);
-      t.setBodyPr(bodyPr);
-      var lstStyle = new AscFormat.TextListStyle();
-      t.setLstStyle(lstStyle);
-      if (tInfo.p) {
-        var p = new Paragraph();
-        fillP(p, tInfo.p);
-        content.addToContent(0, p);
-        t.setContent(content);
-      }
+      // var bodyPr = new AscFormat.CBodyPr();
+      // fillBodyPr(bodyPr, tInfo.bodyPr);
+      // t.setBodyPr(bodyPr);
+      // var lstStyle = new AscFormat.TextListStyle();
+      // t.setLstStyle(lstStyle);
+      // if (tInfo.p) {
+      //   var p = new Paragraph();
+      //   fillP(p, tInfo.p);
+      //   p.Correct_Content();
+      //   t.setContent(content);
+      //   content.Internal_Content_Add(content.Content.length, p);
+      // }
     }
 
     function fillSolidFill(solidFill, solidFillInfo) {
@@ -13555,24 +13578,25 @@
       })
       uniClr.setMods(mods);
       uniClr.setColor(schemeClr);
-
+      solidFill.setColor(uniClr);
     }
 
     function fillSpPr(spPr, spPrInfo) {
       if (spPrInfo.xfrm) {
         var xfrm = new AscFormat.CXfrm();
         if (spPrInfo.xfrm.rot) {
-          xfrm.setRot(spPrInfo.xfrm.rot);
+          xfrm.setRot(spPrInfo.xfrm.rot / 100000);
         }
-        xfrm.setOffX(spPrInfo.xfrm.off.x);
-        xfrm.setOffY(spPrInfo.xfrm.off.y);
-        xfrm.setExtX(spPrInfo.xfrm.ext.cy);
-        xfrm.setExtY(spPrInfo.xfrm.ext.cx);
+        xfrm.setOffX(spPrInfo.xfrm.off.x / 100000);
+        xfrm.setOffY(spPrInfo.xfrm.off.y / 100000);
+        xfrm.setExtX(spPrInfo.xfrm.ext.cx / 100000);
+        xfrm.setExtY(spPrInfo.xfrm.ext.cy / 100000);
+
         spPr.setXfrm(xfrm);
       }
       if (spPrInfo.prstGeom) {
         spPr.setGeometry(AscFormat.CreateGeometry(spPrInfo.prstGeom.prst));
-      } //TODO: add fill
+      }
       if (spPrInfo.ln) {
         var ln = new AscFormat.CLn();
         if (spPrInfo.ln.algn) {
@@ -13597,7 +13621,6 @@
           ln.setFill(uniFill);
         }
         spPr.setLn(ln);
-        // TODO: add fill
       }
       if (spPrInfo.solidFill) {
         uniFill = new AscFormat.CUniFill();
@@ -13627,12 +13650,12 @@
         point.setSpPr(spPr);
       }
 
-      if (pointInfo.t) {
-        var t = new AscFormat.CTextBody();
-        var content = new AscFormat.CDrawingDocContent(t, editor.WordControl.m_oDrawingDocument, 0, 0, 0, 0, false, false, true);
-        fillTextBody(t, pointInfo.t, content);
-        point.setT(t);
-      }
+      // if (pointInfo.t) {
+      //   var t = new AscFormat.CTextBody();
+      //   var content = new AscFormat.CDrawingDocContent(t, editor.WordControl.m_oDrawingDocument, 0, 0, 0, 0, false, false, true);
+      //   fillTextBody(t, pointInfo.t, content);
+      //   point.setT(t);
+      // }
       return point;
     }
 
@@ -13913,7 +13936,7 @@
         layoutNode.setName(layoutNodeName);
       } else if (layoutNodeInfo.name) {
         layoutNode.setName(layoutNodeInfo.name);
-      } // TODO: Continue fill
+      }
       if (layoutNodeInfo.varLst) {
         var varLst = new VarLst();
         fillVarLst(varLst, layoutNodeInfo.varLst);
@@ -14057,25 +14080,27 @@
       fillSpPr(spPr, spInfo.spPr);
       sp.setSpPr(spPr);
 
+      sp.x = spPr.xfrm.offX;
+      sp.y = spPr.xfrm.offY;
+      sp.extX = spPr.xfrm.extX;
+      sp.extY = spPr.xfrm.extY;
+
       var style = new ShapeStyle();
       fillStyle(style, spInfo.style);
       sp.setStyle(style);
       if (spInfo.txBody) {
-        var txBody = new AscFormat.CTextBody();
-        var content = new AscFormat.CDrawingDocContent(txBody, editor.WordControl.m_oDrawingDocument, 0, 0, 0, 0, false, false, true);
-        fillTextBody(txBody, spInfo.txBody, content);
-        sp.setTxBody(txBody);
+        sp.setTxBody(AscFormat.CreateTextBodyFromString('hello', editor.WordControl.m_oDrawingDocument, sp));
       }
-      if (spInfo.txXfrm) { // TODO: add to shape xfrm
+      if (spInfo.txXfrm) {
         var xfrm = new AscFormat.CXfrm();
         if (spInfo.txXfrm.rot) {
-          xfrm.setRot(spInfo.txXfrm.rot);
+          xfrm.setRot(spInfo.txXfrm.rot/ 100000);
         }
-        xfrm.setOffX(spInfo.txXfrm.off.x);
-        xfrm.setOffY(spInfo.txXfrm.off.y);
-        xfrm.setExtX(spInfo.txXfrm.ext.cx);
-        xfrm.setExtY(spInfo.txXfrm.ext.cy);
-       // sp.setXfrm(xfrm);
+        xfrm.setOffX(spInfo.txXfrm.off.x / 100000);
+        xfrm.setOffY(spInfo.txXfrm.off.y/ 100000);
+        xfrm.setExtX(spInfo.txXfrm.ext.cx / 100000);
+        xfrm.setExtY(spInfo.txXfrm.ext.cy / 100000);
+        sp.setTxXfrm(xfrm);
       }
       return sp;
 
@@ -14104,7 +14129,9 @@
           fillDrawing(smartart.getDrawing(), horizontalListOfPicture.drawing);
           break;
       }
-
+      var _pres = editor.WordControl.m_oLogicDocument;
+      var _slide = _pres.Slides[_pres.CurPage];
+      _slide.addToSpTreeToPos(_slide.cSld.spTree.length, smartart);
       return smartart;
     }
 
