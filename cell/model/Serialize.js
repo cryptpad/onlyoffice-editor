@@ -2538,6 +2538,12 @@
 				this.memory.WriteByte(c_oSerPropLenType.Variable);
 				this.bs.WriteItemWithLength(function(){oThis.WriteAlign(xfForWrite.alignMinimized);});
 			}
+			if(null != xfForWrite.applyProtection)
+			{
+				this.memory.WriteByte(c_oSerXfsTypes.ApplyProtection);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteBool(xfForWrite.applyProtection);
+			}
 
 			if (xf) {
 				if(null != xf.QuotePrefix)
@@ -6791,6 +6797,9 @@
                 res = this.bcr.Read2Spreadsheet(length, function(t,l){
                     return oThis.ReadAligment(t,l,oXfs.align);
                 });
+            }
+            else if (c_oSerXfsTypes.ApplyProtection == type) {
+				oXfs.applyProtection = this.stream.GetBool();
             }
             else
                 res = c_oSerConstants.ReadUnknown;

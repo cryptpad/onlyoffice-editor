@@ -2685,6 +2685,8 @@ var g_oBorderProperties = {
         this.PivotButton = null;
         this.XfId = null;
 
+        this.applyProtection = null;
+
         //inner
         this._hash;
         this._index;
