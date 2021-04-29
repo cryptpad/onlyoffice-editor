@@ -13595,6 +13595,7 @@
         xfrm.setExtY(spPrInfo.xfrm.ext.cy / 36000);
 
         spPr.setXfrm(xfrm);
+          xfrm.setParent(spPr);
       }
       if (spPrInfo.prstGeom) {
         spPr.setGeometry(AscFormat.CreateGeometry(spPrInfo.prstGeom.prst));
@@ -14082,6 +14083,7 @@
       var spPr = new AscFormat.CSpPr();
       fillSpPr(spPr, spInfo.spPr);
       sp.setSpPr(spPr);
+        spPr.setParent(sp);
 
       sp.x = spPr.xfrm.offX;
       sp.y = spPr.xfrm.offY;
@@ -14093,6 +14095,7 @@
       sp.setStyle(style);
       if (spInfo.txBody) {
         sp.setTxBody(AscFormat.CreateTextBodyFromString('hello', editor.WordControl.m_oDrawingDocument, sp));
+          sp.txBody.setParent(sp);
       }
       if (spInfo.txXfrm) {
         var xfrm = new AscFormat.CXfrm();
