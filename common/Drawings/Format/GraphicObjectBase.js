@@ -2093,6 +2093,27 @@
         }
         return this;
     };
+
+    CGraphicObjectBase.prototype.hitInBoundingRect = function (x, y) {
+        if(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES){
+            return false;
+        }
+        var invert_transform = this.getInvertTransform();
+        if(!invert_transform)
+        {
+            return false;
+        }
+        var x_t = invert_transform.TransformPointX(x, y);
+        var y_t = invert_transform.TransformPointY(x, y);
+
+        var _hit_context = this.getCanvasContext();
+
+        return !(CheckObjectLine(this)) && (AscFormat.HitInLine(_hit_context, x_t, y_t, 0, 0, this.extX, 0) ||
+            AscFormat.HitInLine(_hit_context, x_t, y_t, this.extX, 0, this.extX, this.extY) ||
+            AscFormat.HitInLine(_hit_context, x_t, y_t, this.extX, this.extY, 0, this.extY) ||
+            AscFormat.HitInLine(_hit_context, x_t, y_t, 0, this.extY, 0, 0) ||
+            (this.canRotate && this.canRotate() && AscFormat.HitInLine(_hit_context, x_t, y_t, this.extX * 0.5, 0, this.extX * 0.5, -this.convertPixToMM(AscCommon.TRACK_DISTANCE_ROTATE))));
+    };
     
     function CRelSizeAnchor() {
         CBaseObject.call(this);
