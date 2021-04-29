@@ -1024,18 +1024,28 @@
         SqRef: 5,
         SecurityDescriptor: 6
 	};
+
+	//TODO в x2t следующий набор констант
+	/*namespace c_oSerWorkbookProtection{ enum c_oSerWorkbookProtection
+		{
+			AlgorithmName = 0,
+				SpinCount = 1,
+				HashValue = 2,
+				SaltValue = 3
+		}; }*/
+
 	var c_oSerWorkbookProtection = {
-		LockStructure: 0,
-		LockWindows: 1,
-		LockRevision: 2,
-		RevisionsAlgorithmName: 3,
-		RevisionsHashValue: 4,
-		RevisionsSaltValue: 5,
-		RevisionsSpinCount: 6,
-		WorkbookAlgorithmName: 7,
-		WorkbookHashValue: 8,
-		WorkbookSaltValue: 9,
-		WorkbookSpinCount: 10
+		WorkbookAlgorithmName: 0,
+		WorkbookSpinCount: 1,
+		WorkbookHashValue: 2,
+		WorkbookSaltValue: 3,
+		RevisionsAlgorithmName: 4,
+		RevisionsHashValue: 5,
+		RevisionsSaltValue: 6,
+		RevisionsSpinCount: 7,
+		LockRevision: 8,
+		LockStructure: 9,
+		LockWindows: 10
 	};
 	var c_oSerProtectedAlgorithmNameTypes = {
 		MD2: 1,
@@ -7230,11 +7240,11 @@
                     return oThis.ReadSlicerCaches(t,l);
                 });
             }
-			else if (c_oSerWorkbookTypes.WorkbookProtection == type && typeof Asc.CWorkbookProtection != "undefined")
+			else if (c_oSerWorkbookTypes.WorkbookProtection == type && typeof AscCommonExcel.CWorkbookProtection != "undefined")
 			{
-				this.oWorkbook.workbookProtection = new Asc.CWorkbookProtection(this.oWorkbook);
+				this.oWorkbook.workbookProtection = new AscCommonExcel.CWorkbookProtection(this.oWorkbook);
 			    res = this.bcr.Read2Spreadsheet(length, function(t,l){
-					return oThis.ReadWorkbookProtection(t,l, this.oWorkbook.workbookProtection);
+					return oThis.ReadWorkbookProtection(t,l, oThis.oWorkbook.workbookProtection);
 				});
 			}
             else
@@ -7528,29 +7538,30 @@
 			}
 			return res;
 		};
+
 		this.ReadWorkbookProtection = function (type, length, workbookProtection) {
 		    var res = c_oSerConstants.ReadOk;
 			if (c_oSerWorkbookProtection.LockStructure == type) {
 				workbookProtection.LockStructure = this.stream.GetBool();
-			} else if (c_oSerWorksheetProtection.LockWindows == type) {
+			} else if (c_oSerWorkbookProtection.LockWindows == type) {
 				workbookProtection.lockWindows = this.stream.GetBool();
-			} else if (c_oSerWorksheetProtection.LockRevision == type) {
+			} else if (c_oSerWorkbookProtection.LockRevision == type) {
 				workbookProtection.lockRevision = this.stream.GetBool();
-			} else if (c_oSerWorksheetProtection.RevisionsAlgorithmName == type) {
+			} else if (c_oSerWorkbookProtection.RevisionsAlgorithmName == type) {
 				workbookProtection.revisionsAlgorithmName = this.stream.GetUChar();
-			} else if (c_oSerWorksheetProtection.RevisionsSpinCount == type) {
+			} else if (c_oSerWorkbookProtection.RevisionsSpinCount == type) {
 				workbookProtection.revisionsSpinCount = this.stream.GetLong();
-			} else if (c_oSerWorksheetProtection.RevisionsHashValue == type) {
+			} else if (c_oSerWorkbookProtection.RevisionsHashValue == type) {
 				workbookProtection.revisionsHashValue = this.stream.GetString2LE(length);
-			} else if (c_oSerWorksheetProtection.RevisionsSaltValue == type) {
+			} else if (c_oSerWorkbookProtection.RevisionsSaltValue == type) {
 				workbookProtection.revisionsSaltValue = this.stream.GetString2LE(length);
-			} else if (c_oSerWorksheetProtection.WorkbookAlgorithmName == type) {
+			} else if (c_oSerWorkbookProtection.WorkbookAlgorithmName == type) {
 				workbookProtection.workbookAlgorithmName = this.stream.GetUChar();
-			} else if (c_oSerWorksheetProtection.WorkbookSpinCount == type) {
+			} else if (c_oSerWorkbookProtection.WorkbookSpinCount == type) {
 				workbookProtection.workbookSpinCount = this.stream.GetLong();
-			} else if (c_oSerWorksheetProtection.WorkbookHashValue == type) {
+			} else if (c_oSerWorkbookProtection.WorkbookHashValue == type) {
 				workbookProtection.workbookHashValue = this.stream.GetString2LE(length);
-			} else if (c_oSerWorksheetProtection.WorkbookSaltValue == type) {
+			} else if (c_oSerWorkbookProtection.WorkbookSaltValue == type) {
 				workbookProtection.workbookSaltValue = this.stream.GetString2LE(length);
 			} else {
 				res = c_oSerConstants.ReadUnknown;
