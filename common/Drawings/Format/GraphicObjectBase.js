@@ -2055,6 +2055,44 @@
         }
         return oPr.hasSameNameAndId(oOtherPr);
     };
+    CGraphicObjectBase.prototype.select = function (drawingObjectsController, pageIndex)
+    {
+        this.selected = true;
+        this.selectStartPage = pageIndex;
+        var content = this.getDocContent && this.getDocContent();
+        if(content)
+            content.Set_StartPage(pageIndex);
+        var selected_objects;
+        if (!AscCommon.isRealObject(this.group))
+            selected_objects = drawingObjectsController.selectedObjects;
+        else
+            selected_objects = this.group.getMainGroup().selectedObjects;
+        for (var i = 0; i < selected_objects.length; ++i) {
+            if (selected_objects[i] === this)
+                break;
+        }
+        if (i === selected_objects.length)
+            selected_objects.push(this);
+    };
+    CGraphicObjectBase.prototype.deselect = function (drawingObjectsController) {
+        this.selected = false;
+        var selected_objects;
+        if (!AscCommon.isRealObject(this.group))
+            selected_objects = drawingObjectsController.selectedObjects;
+        else
+            selected_objects = this.group.getMainGroup().selectedObjects;
+        for (var i = 0; i < selected_objects.length; ++i) {
+            if (selected_objects[i] === this) {
+                selected_objects.splice(i, 1);
+                break;
+            }
+        }
+        if(this.graphicObject)
+        {
+            this.graphicObject.RemoveSelection();
+        }
+        return this;
+    };
     
     function CRelSizeAnchor() {
         CBaseObject.call(this);

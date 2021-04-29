@@ -709,8 +709,6 @@ CImageShape.prototype.draw = function(graphics, transform)
     graphics.SetIntegerGrid(true);
 };
 
-CImageShape.prototype.select = CShape.prototype.select;
-
 
     CImageShape.prototype.handleUpdateLn = function()
     {
@@ -749,24 +747,6 @@ CImageShape.prototype.hit = CShape.prototype.hit;
         this.spPr.setLn(stroke);
     };
 
-CImageShape.prototype.deselect = function(drawingObjectsController)
-{
-    this.selected = false;
-    var selected_objects;
-    if(!isRealObject(this.group))
-        selected_objects = drawingObjectsController.selectedObjects;
-    else
-        selected_objects = this.group.getMainGroup().selectedObjects;
-    for(var i = 0; i < selected_objects.length; ++i)
-    {
-        if(selected_objects[i] === this)
-        {
-            selected_objects.splice(i, 1);
-            break;
-        }
-    }
-    return this;
-};
 
 CImageShape.prototype.drawAdjustments = function(drawingDocument)
 {
