@@ -174,8 +174,9 @@
 	 * Class representing a comments
 	 * @constructor
 	 */
-	function ApiComment(comment) {
+	function ApiComment(comment, ws) {
 		this.Comment = comment;
+		this.WS = ws;
 	}
 
 	/**
@@ -1168,7 +1169,7 @@
 	ApiWorksheet.prototype.GetComments = function () {
 		var comments = [];
 		for (var i = 0; i < this.worksheet.aComments.length; i++) {
-			comments.push(new ApiComment(this.worksheet.aComments[i]));
+			comments.push(new ApiComment(this.worksheet.aComments[i], this.worksheet.workbook.getWorksheet(this.Index)));
 		}
 		return comments;
 	};
@@ -2352,7 +2353,8 @@
 		if (!this.range.isOneCell()) {
 			return null;
 		}
-		return new ApiComment(this.range.worksheet.workbook.oApi.wb.getWorksheet(this.range.worksheet.getIndex()).cellCommentator.getComment(this.range.bbox.c1, this.range.bbox.r1, false));
+		var ws = this.range.worksheet.workbook.oApi.wb.getWorksheet(this.range.worksheet.getIndex());
+		return new ApiComment(ws.cellCommentator.getComment(this.range.bbox.c1, this.range.bbox.r1, false), ws);
 	};
 	Object.defineProperty(ApiRange.prototype, "Comments", {
 		get: function () {
@@ -3023,7 +3025,7 @@
 	 * @typeofeditors ["CSE"]
 	 */
 	ApiComment.prototype.Delete = function () {
-		this.Comment.worksheet.cellCommentator.removeComment(this.Comment.asc_getId());
+		this.WS.cellCommentator.removeComment(this.Comment.asc_getId());
 	};
 
 	Api.prototype["Format"]                = Api.prototype.Format;
