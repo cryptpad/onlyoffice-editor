@@ -61,7 +61,6 @@ CChartSpace.prototype.recalcText = function()
 };
 
 CChartSpace.prototype.recalculateBounds = CShape.prototype.recalculateBounds;
-CChartSpace.prototype.deselect = CShape.prototype.deselect;
 CChartSpace.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CChartSpace.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CChartSpace.prototype.getInvertTransform = CShape.prototype.getInvertTransform;
@@ -420,8 +419,6 @@ CChartSpace.prototype.recalculate = function()
 };
 
 
-
-CChartSpace.prototype.deselect = CShape.prototype.deselect;
 CChartSpace.prototype.getDrawingDocument = CShape.prototype.getDrawingDocument;
 CChartSpace.prototype.recalculateLocalTransform = CShape.prototype.recalculateLocalTransform;
 

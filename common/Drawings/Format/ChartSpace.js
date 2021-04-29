@@ -1118,7 +1118,6 @@ var GLOBAL_PATH_COUNT = 0;
     }
     CChartSpace.prototype = Object.create(AscFormat.CGraphicObjectBase.prototype);
     CChartSpace.prototype.constructor = CChartSpace;
-    CChartSpace.prototype.select = CShape.prototype.select;
     CChartSpace.prototype.checkDrawingBaseCoords = CShape.prototype.checkDrawingBaseCoords;
     CChartSpace.prototype.setDrawingBaseCoords = CShape.prototype.setDrawingBaseCoords;
     CChartSpace.prototype.changeSize = CShape.prototype.changeSize;

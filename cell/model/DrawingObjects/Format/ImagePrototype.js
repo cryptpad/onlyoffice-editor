@@ -49,7 +49,6 @@ CImageShape.prototype.getHierarchy = CShape.prototype.getHierarchy;
 CImageShape.prototype.getParentObjects = CShape.prototype.getParentObjects;
 CImageShape.prototype.recalculateTransform = CShape.prototype.recalculateTransform;
 CImageShape.prototype.recalculateBounds = CShape.prototype.recalculateBounds;
-CImageShape.prototype.deselect = CShape.prototype.deselect;
 CImageShape.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CImageShape.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CImageShape.prototype.setWorksheet = CShape.prototype.setWorksheet;

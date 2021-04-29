@@ -829,9 +829,6 @@ CGraphicFrame.prototype.deleteDrawingBase = CShape.prototype.deleteDrawingBase;
 
 CGraphicFrame.prototype.addToDrawingObjects = CShape.prototype.addToDrawingObjects;
 
-CGraphicFrame.prototype.select = CShape.prototype.select;
-
-CGraphicFrame.prototype.deselect = CShape.prototype.deselect;
 
 CGraphicFrame.prototype.Update_ContentIndexing = function()
 {};
