@@ -2108,7 +2108,7 @@
 
         var _hit_context = this.getCanvasContext();
 
-        return !(CheckObjectLine(this)) && (AscFormat.HitInLine(_hit_context, x_t, y_t, 0, 0, this.extX, 0) ||
+        return !(AscFormat.CheckObjectLine(this)) && (AscFormat.HitInLine(_hit_context, x_t, y_t, 0, 0, this.extX, 0) ||
             AscFormat.HitInLine(_hit_context, x_t, y_t, this.extX, 0, this.extX, this.extY) ||
             AscFormat.HitInLine(_hit_context, x_t, y_t, this.extX, this.extY, 0, this.extY) ||
             AscFormat.HitInLine(_hit_context, x_t, y_t, 0, this.extY, 0, 0) ||
