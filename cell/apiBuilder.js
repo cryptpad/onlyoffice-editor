@@ -3028,6 +3028,16 @@
 		this.WS.cellCommentator.removeComment(this.Comment.asc_getId());
 	};
 
+	/**
+	 * Returns the type of comment class.
+	 * @memberof ApiComment
+	 * @typeofeditors ["CSE"]
+	 * @returns {number}
+	 */
+	 ApiComment.prototype.GetClassType = function () {
+		return this.Comment.getType();
+	};
+
 	Api.prototype["Format"]                = Api.prototype.Format;
 	Api.prototype["AddSheet"]              = Api.prototype.AddSheet;
 	Api.prototype["GetSheets"]             = Api.prototype.GetSheets;
@@ -3194,6 +3204,7 @@
 
 	ApiComment.prototype["GetText"]              =  ApiComment.prototype.GetText;
 	ApiComment.prototype["Delete"]               =  ApiComment.prototype.Delete;
+	ApiComment.prototype["GetClassType"]         =  ApiComment.prototype.GetClassType;
 
 
 	function private_SetCoords(oDrawing, oWorksheet, nExtX, nExtY, nFromCol, nColOffset,  nFromRow, nRowOffset, pos){
