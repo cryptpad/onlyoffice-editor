@@ -1026,6 +1026,7 @@
 	};
 
 	//TODO в x2t следующий набор констант
+    //самое главное, что отсутвует LockStructure
 	/*namespace c_oSerWorkbookProtection{ enum c_oSerWorkbookProtection
 		{
 			AlgorithmName = 0,
@@ -2952,7 +2953,7 @@
 				}
 			}
 			if (this.wb.workbookProtection) {
-				this.bs.WriteItem(c_oSerWorkbookTypes.WorkbookProtection, function(){oThis.WriteWorkbookProtection();});
+				this.bs.WriteItem(c_oSerWorkbookTypes.WorkbookProtection, function(){oThis.WriteWorkbookProtection(oThis.wb.workbookProtection);});
             }
         };
         this.WriteWorkbookPr = function()
