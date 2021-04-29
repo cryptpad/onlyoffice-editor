@@ -61,7 +61,6 @@ CChartSpace.prototype.recalcText = function()
 };
 
 CChartSpace.prototype.recalculateBounds = CShape.prototype.recalculateBounds;
-CChartSpace.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CChartSpace.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CChartSpace.prototype.getInvertTransform = CShape.prototype.getInvertTransform;
 CChartSpace.prototype.hit = CShape.prototype.hit;

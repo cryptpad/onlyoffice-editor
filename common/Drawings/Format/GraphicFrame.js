@@ -632,23 +632,6 @@ CGraphicFrame.prototype.getInvertTransform = function()
         return this.invertTransform;
 };
 
-CGraphicFrame.prototype.hitInBoundingRect = function(x, y)
-    {
-        var invert_transform = this.getInvertTransform();
-        if(!invert_transform){
-            return false;
-        }
-        var x_t = invert_transform.TransformPointX(x, y);
-        var y_t = invert_transform.TransformPointY(x, y);
-
-        var _hit_context = this.getParentObjects().presentation.DrawingDocument.CanvasHitContext;
-
-        return (HitInLine(_hit_context, x_t, y_t, 0, 0, this.extX, 0) ||
-            HitInLine(_hit_context, x_t, y_t, this.extX, 0, this.extX, this.extY)||
-            HitInLine(_hit_context, x_t, y_t, this.extX, this.extY, 0, this.extY)||
-            HitInLine(_hit_context, x_t, y_t, 0, this.extY, 0, 0));
-};
-
 CGraphicFrame.prototype.Document_UpdateRulersState  = function(margins)
     {
         if(this.graphicObject)

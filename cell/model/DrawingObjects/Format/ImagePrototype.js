@@ -49,7 +49,6 @@ CImageShape.prototype.getHierarchy = CShape.prototype.getHierarchy;
 CImageShape.prototype.getParentObjects = CShape.prototype.getParentObjects;
 CImageShape.prototype.recalculateTransform = CShape.prototype.recalculateTransform;
 CImageShape.prototype.recalculateBounds = CShape.prototype.recalculateBounds;
-CImageShape.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CImageShape.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CImageShape.prototype.setWorksheet = CShape.prototype.setWorksheet;
 CImageShape.prototype.getDrawingObjectsController = CShape.prototype.getDrawingObjectsController;
@@ -200,7 +199,6 @@ CImageShape.prototype.recalculate = function ()
 CImageShape.prototype.recalculateBounds = CShape.prototype.recalculateBounds;
 CImageShape.prototype.hitInInnerArea = CShape.prototype.hitInInnerArea;
 CImageShape.prototype.hitInPath = CShape.prototype.hitInPath;
-CImageShape.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CImageShape.prototype.check_bounds = CShape.prototype.check_bounds;
 
 

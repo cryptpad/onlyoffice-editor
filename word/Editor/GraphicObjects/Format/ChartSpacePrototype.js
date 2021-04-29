@@ -60,7 +60,6 @@ CChartSpace.prototype.recalculateBounds =  function()
     this.bounds.w = this.bounds.r - this.bounds.l;
     this.bounds.h = this.bounds.b - this.bounds.t;
 };
-CChartSpace.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CChartSpace.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CChartSpace.prototype.getInvertTransform = CShape.prototype.getInvertTransform;
 CChartSpace.prototype.hit = CShape.prototype.hit;
