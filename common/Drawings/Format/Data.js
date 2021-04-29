@@ -13587,12 +13587,12 @@
       if (spPrInfo.xfrm) {
         var xfrm = new AscFormat.CXfrm();
         if (spPrInfo.xfrm.rot) {
-          xfrm.setRot(spPrInfo.xfrm.rot / 100000);
+          xfrm.setRot(spPrInfo.xfrm.rot * AscFormat.cToRad);
         }
-        xfrm.setOffX(spPrInfo.xfrm.off.x / 100000);
-        xfrm.setOffY(spPrInfo.xfrm.off.y / 100000);
-        xfrm.setExtX(spPrInfo.xfrm.ext.cx / 100000);
-        xfrm.setExtY(spPrInfo.xfrm.ext.cy / 100000);
+        xfrm.setOffX(spPrInfo.xfrm.off.x / 36000);
+        xfrm.setOffY(spPrInfo.xfrm.off.y / 36000);
+        xfrm.setExtX(spPrInfo.xfrm.ext.cx / 36000);
+        xfrm.setExtY(spPrInfo.xfrm.ext.cy / 36000);
 
         spPr.setXfrm(xfrm);
       }
@@ -14097,12 +14097,12 @@
       if (spInfo.txXfrm) {
         var xfrm = new AscFormat.CXfrm();
         if (spInfo.txXfrm.rot) {
-          xfrm.setRot(spInfo.txXfrm.rot/ 100000);
+          xfrm.setRot(spInfo.txXfrm.rot * AscFormat.cToRad);
         }
-        xfrm.setOffX(spInfo.txXfrm.off.x / 100000);
-        xfrm.setOffY(spInfo.txXfrm.off.y/ 100000);
-        xfrm.setExtX(spInfo.txXfrm.ext.cx / 100000);
-        xfrm.setExtY(spInfo.txXfrm.ext.cy / 100000);
+        xfrm.setOffX(spInfo.txXfrm.off.x / 36000);
+        xfrm.setOffY(spInfo.txXfrm.off.y/ 36000);
+        xfrm.setExtX(spInfo.txXfrm.ext.cx / 36000);
+        xfrm.setExtY(spInfo.txXfrm.ext.cy / 36000);
         sp.setTxXfrm(xfrm);
       }
       return sp;
