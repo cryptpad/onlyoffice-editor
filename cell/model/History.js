@@ -149,6 +149,9 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Cell_SetPivotButton = 25;
 	window['AscCH'].historyitem_Cell_RemoveSharedFormula = 26;
 	window['AscCH'].historyitem_Cell_Indent = 27;
+	window['AscCH'].historyitem_Cell_SetApplyProtection = 28;
+	window['AscCH'].historyitem_Cell_SetHidden = 29;
+	window['AscCH'].historyitem_Cell_SetLocked = 30;
 
 	window['AscCH'].historyitem_Comment_Add = 1;
 	window['AscCH'].historyitem_Comment_Remove = 2;

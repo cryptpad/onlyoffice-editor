@@ -2483,6 +2483,12 @@ function (window, undefined) {
 						cell.setFormulaParsed(parsed);
 					}
 				}
+			} else if (AscCH.historyitem_Cell_SetApplyProtection == Type) {
+				cell.setApplyProtection(Val);
+			}  else if (AscCH.historyitem_Cell_SetLocked == Type) {
+				cell.setLocked(Val);
+			}  else if (AscCH.historyitem_Cell_SetHidden == Type) {
+				cell.setHidden(Val);
 			}
 		});
 	};

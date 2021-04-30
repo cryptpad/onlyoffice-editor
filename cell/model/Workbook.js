@@ -10816,6 +10816,21 @@
 		if(History.Is_On() && oRes.oldVal != oRes.newVal)
 			History.Add(AscCommonExcel.g_oUndoRedoCell, AscCH.historyitem_Cell_SetQuotePrefix, this.ws.getId(), new Asc.Range(this.nCol, this.nRow, this.nCol, this.nRow), new UndoRedoData_CellSimpleData(this.nRow, this.nCol, oRes.oldVal, oRes.newVal));
 	};
+	Cell.prototype.setApplyProtection=function(val){
+		var oRes = this.ws.workbook.oStyleManager.setApplyProtection(this, val);
+		if(History.Is_On() && oRes.oldVal != oRes.newVal)
+			History.Add(AscCommonExcel.g_oUndoRedoCell, AscCH.historyitem_Cell_SetApplyProtection, this.ws.getId(), new Asc.Range(this.nCol, this.nRow, this.nCol, this.nRow), new UndoRedoData_CellSimpleData(this.nRow, this.nCol, oRes.oldVal, oRes.newVal));
+	};
+	Cell.prototype.setLocked=function(val){
+		var oRes = this.ws.workbook.oStyleManager.setLocked(this, val);
+		if(History.Is_On() && oRes.oldVal != oRes.newVal)
+			History.Add(AscCommonExcel.g_oUndoRedoCell, AscCH.historyitem_Cell_SetLocked, this.ws.getId(), new Asc.Range(this.nCol, this.nRow, this.nCol, this.nRow), new UndoRedoData_CellSimpleData(this.nRow, this.nCol, oRes.oldVal, oRes.newVal));
+	};
+	Cell.prototype.setHidden=function(val){
+		var oRes = this.ws.workbook.oStyleManager.setHidden(this, val);
+		if(History.Is_On() && oRes.oldVal != oRes.newVal)
+			History.Add(AscCommonExcel.g_oUndoRedoCell, AscCH.historyitem_Cell_SetHidden, this.ws.getId(), new Asc.Range(this.nCol, this.nRow, this.nCol, this.nRow), new UndoRedoData_CellSimpleData(this.nRow, this.nCol, oRes.oldVal, oRes.newVal));
+	};
 	Cell.prototype.setPivotButton=function(val){
 		var oRes = this.ws.workbook.oStyleManager.setPivotButton(this, val);
 		if(History.Is_On() && oRes.oldVal != oRes.newVal)
