@@ -2633,13 +2633,13 @@
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscCommonExcel'].CConditionalFormatting = CConditionalFormatting;
 	window['AscCommonExcel'].CConditionalFormattingFormulaParent = CConditionalFormattingFormulaParent;
-	window['AscCommonExcel'].CConditionalFormattingRule = CConditionalFormattingRule;
-	window['AscCommonExcel'].CColorScale = CColorScale;
-	window['AscCommonExcel'].CDataBar = CDataBar;
+	window['Asc']["asc_CConditionalFormattingRule"] = window['AscCommonExcel'].CConditionalFormattingRule = CConditionalFormattingRule;
+	window['Asc']["asc_CColorScale"] = window['AscCommonExcel'].CColorScale = CColorScale;
+	window['Asc']["asc_CDataBar"] = window['AscCommonExcel'].CDataBar = CDataBar;
 	window['AscCommonExcel'].CFormulaCF = CFormulaCF;
-	window['AscCommonExcel'].CIconSet = CIconSet;
-	window['AscCommonExcel'].CConditionalFormatValueObject = CConditionalFormatValueObject;
-	window['AscCommonExcel'].CConditionalFormatIconSet = CConditionalFormatIconSet;
+	window['Asc']["asc_CIconSet"] = window['AscCommonExcel'].CIconSet = CIconSet;
+	window['Asc']["asc_CConditionalFormatValueObject"] = window['AscCommonExcel'].CConditionalFormatValueObject = CConditionalFormatValueObject;
+	window['Asc']["asc_CConditionalFormatIconSet"] = window['AscCommonExcel'].CConditionalFormatIconSet = CConditionalFormatIconSet;
 	window['AscCommonExcel'].CGradient = CGradient;
 
 	window['AscCommonExcel'].cDefIconSize = cDefIconSize;
