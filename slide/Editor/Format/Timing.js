@@ -145,7 +145,7 @@
         return oVal.getVal();
     };
     CTimeNodeBase.prototype.getImplicitDuration = function() {
-        return 1000;//TODO:
+        return 2000;//TODO:
     };
     CTimeNodeBase.prototype.calculateSimpleDuration = function() {
         var oAttr = this.getAttributesObject();
@@ -183,12 +183,18 @@
                 return;
             }
         }
-        this.startTick = oPlayer.getElapsedTicks();
-        this.simpleDuration = this.calculateSimpleDuration().getVal();
-        this.repeatCount = this.calculateRepeatCount();
+        this.calculateParams(oPlayer);
         this.setState(TIME_NODE_STATE_ACTIVE);
         this.scheduleChildrenActivation(oPlayer);
         this.scheduleFinish(oPlayer);
+    };
+    CTimeNodeBase.prototype.calculateParams = function(oPlayer) {
+        this.startTick = oPlayer.getElapsedTicks();
+        this.simpleDuration = this.calculateSimpleDuration().getVal();
+        this.repeatCount = this.calculateRepeatCount();
+        this.privateCalculateParams()
+    };
+    CTimeNodeBase.prototype.privateCalculateParams = function(oPlayer) {
     };
     CTimeNodeBase.prototype.scheduleFinish = function(oPlayer) {
         oPlayer.scheduleEvent(new CAnimEvent(
@@ -353,6 +359,15 @@
         }
         if(this.cMediaNode) {
             return this.cMediaNode.cBhvr;
+        }
+    };
+    CTimeNodeBase.prototype.traverseActive = function(fCallback) {
+        if(this.isActive()) {
+            fCallback(this);
+        }
+        var aChildern = this.getChildrenTimeNodes();
+        for(var nChild = 0; nChild < aChildern.length; ++nChild) {
+            aChildern[nChild].traverseActive(fCallback);
         }
     };
 
@@ -3395,6 +3410,228 @@
         return [this.cBhvr];
     };
 
+
+
+    CAnimMotion.prototype.privateCalculateParams = function() {
+        if(this.path) {
+            this.parsedPath = new CSVGPath(this.path);
+        }
+        else {
+            this.parsedPath = null;
+        }
+    };
+
+    function CSVGPath(sPath) {
+        this.pathString = sPath;
+        this.commands = [];
+        this.lengths = [];
+        this.parsePath(this.pathString);
+    }
+    CSVGPath.prototype.numberRegExp = /-?[0-9]*\.?[0-9]+(?:e[-+]?\d+)?/ig;
+    CSVGPath.prototype.setEmpty = function() {
+        this.commands.length = 0;
+        this.lengths.length = 0;
+    };
+    CSVGPath.prototype.parsePath = function(sPath) {
+        var aLastCommand = null;
+        var aElements = sPath.split(" ");
+        var nCurElement = 0;
+        var sCurElement;
+        var aCurCommand;
+        var dPX1, dPY1, dPX2, dPY2, dPX3, dPY3;
+        var aLastPoint = null;
+        var fLastLength = 0.0;
+        var fL;
+        while(nCurElement < aElements.length) {
+            sCurElement = aElements[nCurElement];
+            if(sCurElement.length === 0) {
+                nCurElement++;
+                continue;
+            }
+            aCurCommand = [];
+            fL = 0;
+            if("M" === sCurElement || "m" === sCurElement
+            || "L" === sCurElement || "l" === sCurElement) {
+                if("L" === sCurElement || "l" === sCurElement) {
+                    if(!aLastPoint) {
+                        this.setEmpty();
+                        return;
+                    }
+                }
+                aCurCommand.push(sCurElement.toUpperCase());
+                dPX1 = this.parseValues(aElements[++nCurElement])[0];
+                dPY1 = this.parseValues(aElements[++nCurElement])[0];
+                if(sCurElement.toLowerCase() === sCurElement) {
+                    if(!aLastPoint) {
+                        this.setEmpty();
+                        return;
+                    }
+                    dPX1 += aLastPoint[0];
+                    dPY1 += aLastPoint[1];
+                }
+                aCurCommand.push(dPX1);
+                aCurCommand.push(dPY1);
+                if("L" === sCurElement || "l" === sCurElement) {
+                    fL = this.calculateLineLength(aLastPoint, aCurCommand.slice(1));
+                }
+            }
+            else if("C" === sCurElement || "c" === sCurElement) {
+                if(!aLastPoint) {
+                    this.setEmpty();
+                    return;
+                }
+                aCurCommand.push(sCurElement.toUpperCase());
+                dPX1 = this.parseValues(aElements[++nCurElement])[0];
+                dPY1 = this.parseValues(aElements[++nCurElement])[0];
+                dPX2 = this.parseValues(aElements[++nCurElement])[0];
+                dPY2 = this.parseValues(aElements[++nCurElement])[0];
+                dPX3 = this.parseValues(aElements[++nCurElement])[0];
+                dPY3 = this.parseValues(aElements[++nCurElement])[0];
+                if(sCurElement.toLowerCase() === sCurElement) {
+                    if(!aLastPoint) {
+                        this.setEmpty();
+                        return;
+                    }
+                    dPX1 += aLastPoint[0];
+                    dPY1 += aLastPoint[1];
+                    dPX2 += aLastPoint[0];
+                    dPY2 += aLastPoint[1];
+                    dPX3 += aLastPoint[0];
+                    dPY3 += aLastPoint[1];
+                }
+                aCurCommand.push(dPX1);
+                aCurCommand.push(dPY1);
+                aCurCommand.push(dPX2);
+                aCurCommand.push(dPY2);
+                aCurCommand.push(dPX3);
+                aCurCommand.push(dPY3);
+                fL = this.calculateBezierLength(aLastPoint, [dPX1, dPY1], [dPX2, dPY2], [dPX3, dPY3]);
+            }
+            else if("Z" === sCurElement || "z" === sCurElement) {
+                if(!aLastPoint) {
+                    this.setEmpty();
+                    return;
+                }
+                aCurCommand.push("Z");
+                var aMoveToCommand = this.findMoveToCommand(this.commands.length - 1);
+                if(!aMoveToCommand) {
+                    this.setEmpty();
+                    return;
+                }
+                fL = this.calculateLineLength(aLastPoint, aMoveToCommand.slice(1));
+            }
+            else if("E" === sCurElement || "e" === sCurElement) {
+                aCurCommand.push("E");
+                this.commands.push(aCurCommand);
+                this.lengths.push(fLastLength + fL);
+                return;
+            }
+            else {
+                this.setEmpty();
+                return;
+            }
+            if(aCurCommand.length > 0) {
+                this.commands.push(aCurCommand);
+                this.lengths.push(fLastLength + fL);
+                aLastCommand = aCurCommand;
+                fLastLength += fL;
+                if(aLastCommand.length > 2) {
+                    aLastPoint = aLastCommand.slice(aLastCommand.length - 2);
+                }
+                else {
+                    aLastPoint = null;
+                }
+            }
+            nCurElement++;
+        }
+    };
+    CSVGPath.prototype.parseValues = function(args) {
+        var numbers = args.match(this.numberRegExp);
+        return numbers ? numbers.map(Number) : []
+    };
+    CSVGPath.prototype.findMoveToCommand = function(nStartIdx) {
+        for(var nIdx = nStartIdx; nIdx > -1; nIdx--) {
+            var aCommand = this.commands[nIdx];
+            if(aCommand[0] === "M") {
+                return aCommand;
+            }
+        }
+        return null;
+    };
+    CSVGPath.prototype.calculateLineLength = function(aP0, aP1) {
+        var dx = aP0[0] - aP1[0];
+        var dy = aP0[1] - aP1[1];
+        return Math.sqrt(dx * dx + dy * dy);
+    };
+    CSVGPath.prototype.calculateBezierLength = function(aP0, aP1, aP2, aP3) {
+        var chord = this.calculateLineLength(aP3, aP0);
+        var p0_p1 = this.calculateLineLength(aP0, aP1);
+        var p2_p1 = this.calculateLineLength(aP2, aP1);
+        var p3_p2 = this.calculateLineLength(aP3, aP2);
+        var cont_net = (p0_p1) + (p2_p1) + (p3_p2);
+        return (cont_net + chord) / 2;
+    };
+    CSVGPath.prototype.calculateBezierLength = function(aP0, aP1, aP2, aP3) {
+        var chord = this.calculateLineLength(aP3, aP0);
+        var p0_p1 = this.calculateLineLength(aP0, aP1);
+        var p2_p1 = this.calculateLineLength(aP2, aP1);
+        var p3_p2 = this.calculateLineLength(aP3, aP2);
+        var cont_net = (p0_p1) + (p2_p1) + (p3_p2);
+        return (cont_net + chord) / 2;
+    };
+    CSVGPath.prototype.getPosition = function(fTime) {
+        if(this.lengths.length === 0) {
+            return null;
+        }
+        var fLength = this.lengths[this.lengths.length - 1];
+        var fCurLen = fLength * fTime;
+        for(var nP = 0; nP < this.lengths.length - 1; ++nP) {
+            if(this.lengths[nP] >= fCurLen) {
+                break;
+            }
+        }
+        var oCommand = this.commands[nP];
+        var fX = 0.0, fY = 0.0;
+        var fCurveLength= this.lengths[nP] - (this.lengths[nP - 1] || 0);
+        var fLenInCurve = fCurLen - (this.lengths[nP - 1] || 0);
+        var t = fLenInCurve / fCurveLength;
+        var fPrevX = 0;
+        var fPrevY = 0;
+        var oPrevCommand = this.commands[nP - 1];
+        if(oPrevCommand) {
+            fPrevX = oPrevCommand[oPrevCommand.length - 2];
+            fPrevY = oPrevCommand[oPrevCommand.length - 1];
+        }
+        if(oCommand[0] === "M") {
+            fX = oCommand[1];
+            fY = oCommand[2];
+        }
+        else if(oCommand[0] === "L") {
+            fX = (1 - t)*fPrevX + t*oCommand[1];
+            fY = (1 - t)*fPrevY + t*oCommand[2];
+        }
+        else if(oCommand[0] === "C") {
+            var x0 = fPrevX;
+            var y0 = fPrevY;
+            var x1 = oCommand[1];
+            var y1 = oCommand[2];
+            var x2 = oCommand[3];
+            var y2 = oCommand[4];
+            var x3 = oCommand[5];
+            var y3 = oCommand[6];
+            fX = (1 - t)*(1 - t)*(1 - t)*x0  + 3*(1-t)*(1-t)*t*x1 + 3*(1-t)*t*t*x2 + t*t*t*x3;
+            fY = (1 - t)*(1 - t)*(1 - t)*y0  + 3*(1-t)*(1-t)*t*y1 + 3*(1-t)*t*t*y2 + t*t*t*y3;
+        }
+        else if(oCommand[0] === "Z") {
+            var aMoveToCommand = this.findMoveToCommand(nP - 1);
+            if(aMoveToCommand) {
+                fX = (1 - t)*fPrevX + t*aMoveToCommand[1];
+                fY = (1 - t)*fPrevY + t*aMoveToCommand[2];
+            }
+        }
+        return {x: fX, y: fY};
+    };
+
     changesFactory[AscDFH.historyitem_AnimRotCBhvr] = CChangeObject;
     changesFactory[AscDFH.historyitem_AnimRotBy] = CChangeLong;
     changesFactory[AscDFH.historyitem_AnimRotFrom] = CChangeLong;
@@ -4419,7 +4656,7 @@
         this.lastTime = null;
 
         this.lastFire = null;
-        console.log("Timer is stopped");
+      //  console.log("Timer is stopped");
     };
     CAnimationTimer.prototype.pause = function () {
         if(!this.isStarted()) {
@@ -4429,7 +4666,7 @@
 
 
         this.lastFire = null;
-        console.log("Timer is paused " + this.elapsed);
+  //      console.log("Timer is paused " + this.elapsed);
     };
     CAnimationTimer.prototype.getElapsedTicks = function () {
         if(this.isStopped()) {
@@ -4470,7 +4707,7 @@
             //for test
             if(this.lastFire === null || this.elapsed - this.lastFire >= 5000) {
                 this.lastFire = this.elapsed;
-                console.log("Timer is ON " + this.elapsed)
+              //  console.log("Timer is ON " + this.elapsed)
             }
         }
     };
@@ -4495,11 +4732,11 @@
     }
     CAnimEvent.prototype.fire = function() {
         this.callback.call();
+        this.fired = true;
     };
     CAnimEvent.prototype.checkTrigger = function() {
         if(this.trigger()) {
-            this.callback();
-            this.fired = true;
+            this.fire();
         }
         return this.fired;
     };
@@ -4534,9 +4771,51 @@
 
     function CAnimationDrawer(player) {
         this.player = player;
+        this.oParamsMap = {};
     }
     CAnimationDrawer.prototype.onFrame = function() {
-        return false;
+        var oThis = this;
+
+        for(var nTiming = 0; nTiming < this.player.timings.length; ++nTiming) {
+            var oRoot = this.player.timings[nTiming].getTimingRootNode();
+            if(oRoot) {
+                oRoot.traverseActive(function(oNode) {
+                    if(oNode instanceof CAnimMotion) {
+
+                        var fRelTime = (oThis.player.getElapsedTicks() - oNode.startTick) / oNode.simpleDuration;//TODO
+                        if(oNode.parsedPath) {
+                            var oPos = oNode.parsedPath.getPosition(fRelTime);
+                            if(oPos) {
+                                var oPresentation = editor.WordControl.m_oLogicDocument;
+                                var W = oPresentation.GetWidthMM();
+                                var H = oPresentation.GetHeightMM();
+                                var DX = W*oPos.x;
+                                var DY = H*oPos.y;
+                                //console.log("Elapsed " + oThis.player.getElapsedTicks());
+                                //console.log("DX " + DX);
+                                //console.log("DY " + DY);
+                                var sId = oNode.cBhvr.tgtEl.spTgt.spid;
+                                var oDrawing = AscCommon.g_oTableId.Get_ById(sId);
+                                if(oDrawing) {
+                                    if(!oDrawing.origX) {
+                                        oDrawing.origX = oDrawing.transform.tx;
+                                        oDrawing.origY = oDrawing.transform.ty;
+                                    }
+                                    oDrawing.transform.tx = oDrawing.origX + DX;
+                                    oDrawing.transform.ty = oDrawing.origY + DY;
+                                    oDrawing.x = oDrawing.origX + DX;
+                                    oDrawing.y = oDrawing.origY + DY;
+                                }
+                            }
+                        }
+
+                    }
+                });
+            }
+        }
+        var oPresentation = editor.WordControl.m_oLogicDocument;
+        oPresentation.DrawingDocument.OnRecalculatePage(0, oPresentation.Slides[0]);
+        editor.WordControl.OnPaint();
     };
 
     function CAnimationPlayer(aTimings) {
@@ -4619,9 +4898,20 @@
         oEdge.addConditions(aConditions);
     };
 
+
+    function StartTestAnimation() {
+        var oSlide = editor.WordControl.m_oLogicDocument.Slides[0];
+        var oRootNode = oSlide.timing.getTimingRootNode();
+        oRootNode.buildTimingGraph();
+        var oPlayer = new AscFormat.CAnimationPlayer([oSlide.timing]);
+        oPlayer.timer.runOwnTimer();
+        oPlayer.start();
+    }
+
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CTiming = CTiming;
     window['AscFormat'].CTimingGraph = CTimingGraph;
     window['AscFormat'].CAnimationTimer = CAnimationTimer;
     window['AscFormat'].CAnimationPlayer = CAnimationPlayer;
+    window['AscFormat'].StartTestAnimation = StartTestAnimation;
 })(window);
