@@ -8374,11 +8374,23 @@
     WorksheetView.prototype._calcSelectionEndPointByOffset = function (dc, dr) {
         var selection = this._getSelection();
         var ar = selection.getLast();
+        var activeCell = selection.activeCell;
         var c1, r1, c2, r2, tmp;
-        tmp = asc.getEndValueRange(dc, selection.activeCell.col, ar.c1, ar.c2);
+        var indivisibleCell = ar.clone(true);
+        indivisibleCell.c1 = activeCell.col;
+        indivisibleCell.c2 = activeCell.col;
+        this._fixSelectionOfMergedCells(indivisibleCell);
+
+        tmp = asc.getEndValueRange(dc, ar.c1, ar.c2, indivisibleCell.c1, indivisibleCell.c2);
         c1 = tmp.x1;
         c2 = tmp.x2;
-        tmp = asc.getEndValueRange(dr, selection.activeCell.row, ar.r1, ar.r2);
+        indivisibleCell = ar.clone(true);
+        indivisibleCell.r1 = activeCell.row;
+        indivisibleCell.r2 = activeCell.row;
+        this._fixSelectionOfMergedCells(indivisibleCell);
+
+        tmp = asc.getEndValueRange(dr, ar.r1, ar.r2, indivisibleCell.r1, indivisibleCell.r2);
+
         r1 = tmp.x1;
         r2 = tmp.x2;
 
@@ -8392,7 +8404,7 @@
 			p2 = this._calcCellPosition(c2, r2, dc, dr);
 			res.assign(c1, r1, c2 = p2.col, r2 = p2.row, true);
 			this._fixSelectionOfMergedCells(res);
-			if (p1.c2 === p2.c2 && p1.r2 === p2.r2) {
+            if (p1.col === p2.col && p1.row === p2.row) {
 				break;
 			}
 			p1 = p2;

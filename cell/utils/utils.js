@@ -1895,29 +1895,32 @@
 			return ret;
 		}
 
-		function getEndValueRange(dx, start, v1, v2) {
-			var x1, x2;
+		function getEndValueRange(dx, v1, v2, coord1, coord2) {
+			var leftDir = {x1: v2, x2: v1},
+				rightDir = {x1: v1, x2: v2},
+			    res;
 			if (0 !== dx) {
-				if (start === v1) {
-					x1 = v1;
-					x2 = v2;
-				} else if (start === v2) {
-					x1 = v2;
-					x2 = v1;
-				} else {
+				if (coord1 > v1 && coord2 < v2) {
 					if (0 > dx) {
-						x1 = v2;
-						x2 = v1;
+						res = coord1 === coord2 ? leftDir : rightDir;
 					} else {
-						x1 = v1;
-						x2 = v2;
+						res = coord1 === coord2 ? rightDir : leftDir;
 					}
+				} else if (coord1 === v1 && coord2 === v2) {
+					if (0 > dx) {
+						res = leftDir;
+					} else {
+						res = rightDir;
+					}
+				} else if (coord1 > v1 && coord2 === v2) {
+					res = leftDir;
+				} else if (coord1 === v1 && coord2 < v2) {
+					res = rightDir;
 				}
 			} else {
-				x1 = v1;
-				x2 = v2;
+				res = rightDir;
 			}
-			return {x1: x1, x2: x2};
+			return res;
 		}
 
 		function checkStylesNames(cellStyles) {
