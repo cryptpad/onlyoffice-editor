@@ -3045,7 +3045,7 @@ var g_oBorderProperties = {
 		var fill = null;
 		if (val) {
 			fill = new AscCommonExcel.Fill();
-			fill.fromColor(AscCommonExcel.createRgbColor(val.get_r(),val.get_g(),val.get_b()));
+			fill.fromColor(AscCommonExcel.createRgbColor(val.asc_getR(),val.asc_getG(),val.asc_getB()));
 		}
 		return this.setFill(fill);
 	};
