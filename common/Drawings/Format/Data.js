@@ -14094,7 +14094,7 @@
       fillStyle(style, spInfo.style);
       sp.setStyle(style);
       if (spInfo.txBody) {
-        sp.setTxBody(AscFormat.CreateTextBodyFromString('hello', editor.WordControl.m_oDrawingDocument, sp));
+        sp.setTxBody(AscFormat.CreateTextBodyFromString('Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut blanditiis earum error incidunt minima nisi quia quis rem tenetur totam.', editor.WordControl.m_oDrawingDocument, sp));
           sp.txBody.setParent(sp);
       }
       if (spInfo.txXfrm) {
