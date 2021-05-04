@@ -2338,6 +2338,8 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
     var r_ins = bIgnoreInsets ? 0 : (AscFormat.isRealNumber(oBodyPr.rIns) ? oBodyPr.rIns : 2.54);
     var b_ins = bIgnoreInsets ? 0 : (AscFormat.isRealNumber(oBodyPr.bIns) ? oBodyPr.bIns : 1.27);
 
+
+
     if(this.bWordShape)
     {
         var oPen = this.pen;
@@ -2386,6 +2388,18 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
     var YC = _content_height/2.0;
 
     var _rot_angle = AscFormat.normalizeRotate((AscFormat.isRealNumber(oBodyPr.rot) ? oBodyPr.rot : 0)*AscFormat.cToRad);
+    if (this.txXfrm) {
+        if (this.txXfrm.rot) {
+            global_MatrixTransformer.RotateRadAppend(oMatrix, -this.txXfrm.rot);
+        }
+        if (this.txXfrm.offX) {
+            global_MatrixTransformer.TranslateAppend(oMatrix, this.contentWidth, 0);
+        }
+        if (this.txXfrm.offY) {
+            global_MatrixTransformer.TranslateAppend(oMatrix, 0, 2 * this.y - this.txXfrm.offY);
+        }
+
+    }
 
     if(!AscFormat.fApproxEqual(_rot_angle, 0.0))
     {
@@ -2724,7 +2738,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
             global_MatrixTransformer.TranslateAppend(oMatrix, _content_width * 0.5, content_height2 * 0.5);
         }
         global_MatrixTransformer.TranslateAppend(oMatrix, _transformed_text_xc - _content_width * 0.5, _transformed_text_yc - content_height2 * 0.5);
-        
+
         if(this.bWordShape)
         {
             var DiffLeft = 0.8;
@@ -2888,7 +2902,7 @@ CShape.prototype.recalculateTextStyles = function (level) {
         default_style.ParaPr.Align = AscCommon.align_Center;
         if(parent_objects.theme)
         {
-            default_style.TextPr.RFonts.SetFontStyle(AscFormat.fntStyleInd_minor);;
+            default_style.TextPr.RFonts.SetFontStyle(AscFormat.fntStyleInd_minor);
         }
         if(!this.bCheckAutoFitFlag)
         {
