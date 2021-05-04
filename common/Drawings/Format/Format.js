@@ -2073,10 +2073,13 @@ CUniColor.prototype =
                 {
                     this.color = unicolor.color.createDuplicate();
                 }
-                //if(unicolor.Mods)
-                //{
-                //    this.Mods = unicolor.Mods.createDuplicate();
-                //}
+                if(unicolor.Mods)
+                {
+                    if(!this.Mods || this.Mods.Mods.length === 0)
+                    {
+                        this.Mods = unicolor.Mods.createDuplicate();
+                    }
+                }
             }
         }
     },
