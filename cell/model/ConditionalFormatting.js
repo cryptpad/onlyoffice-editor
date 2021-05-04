@@ -2652,7 +2652,7 @@
 	window['AscCommonExcel'].getCFIconsByType = getCFIconsByType;
 	window['AscCommonExcel'].isValidDataRefCf = isValidDataRefCf;
 
-	prot = CConditionalFormattingRule;
+	prot = CConditionalFormattingRule.prototype;
 	prot['asc_getDxf'] = prot.asc_getDxf;
 	prot['asc_getType'] = prot.asc_getType;
 	prot['asc_getLocation'] = prot.asc_getLocation;
@@ -2689,14 +2689,14 @@
 	prot['asc_setColorScaleOrDataBarOrIconSetRule'] = prot.asc_setColorScaleOrDataBarOrIconSetRule;
 
 
-	prot = CColorScale;
+	prot = CColorScale.prototype;
 	prot['asc_getCFVOs'] = prot.asc_getCFVOs;
 	prot['asc_getColors'] = prot.asc_getColors;
 	prot['asc_getPreview'] = prot.asc_getPreview;
 	prot['asc_setCFVOs'] = prot.asc_setCFVOs;
 	prot['asc_setColors'] = prot.asc_setColors;
 
-	prot = CDataBar;
+	prot = CDataBar.prototype;
 	prot['asc_getShowValue'] = prot.asc_getShowValue;
 	prot['asc_getAxisPosition'] = prot.asc_getAxisPosition;
 	prot['asc_getGradient'] = prot.asc_getGradient;
@@ -2722,7 +2722,7 @@
 	prot['asc_setNegativeBorderColor'] = prot.asc_setNegativeBorderColor;
 	prot['asc_setAxisColor'] = prot.asc_setAxisColor;
 
-	prot = CIconSet;
+	prot = CIconSet.prototype;
 	prot['asc_getIconSet'] = prot.asc_getIconSet;
 	prot['asc_getReverse'] = prot.asc_getReverse;
 	prot['asc_getShowValue'] = prot.asc_getShowValue;
@@ -2734,7 +2734,7 @@
 	prot['asc_setCFVOs'] = prot.asc_setCFVOs;
 	prot['asc_setIconSets'] = prot.asc_setIconSets;
 
-	prot = CConditionalFormatValueObject;
+	prot = CConditionalFormatValueObject.prototype;
 	prot['asc_getGte'] = prot.asc_getGte;
 	prot['asc_getType'] = prot.asc_getType;
 	prot['asc_getVal'] = prot.asc_getVal;
@@ -2742,11 +2742,11 @@
 	prot['asc_setType'] = prot.asc_setType;
 	prot['asc_setVal'] = prot.asc_setVal;
 
-	prot = CFormulaCF;
+	prot = CFormulaCF.prototype;
 	prot['asc_getText'] = prot.asc_getText;
 	prot['asc_setText'] = prot.asc_setText;
 
-	prot = CConditionalFormatIconSet;
+	prot = CConditionalFormatIconSet.prototype;
 	prot['asc_getIconSet'] = prot.asc_getIconSet;
 	prot['asc_getIconId'] = prot.asc_getIconId;
 	prot['asc_setIconSet'] = prot.asc_setIconSet;
