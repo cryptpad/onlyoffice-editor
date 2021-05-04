@@ -204,7 +204,6 @@ CChartSpace.prototype.handleUpdateLn = function()
     this.addToRecalculate();
 };
 CChartSpace.prototype.convertPixToMM = CShape.prototype.convertPixToMM;
-CChartSpace.prototype.getCanvasContext = CShape.prototype.getCanvasContext;
 CChartSpace.prototype.getHierarchy = CShape.prototype.getHierarchy;
 CChartSpace.prototype.getParentObjects = function()
 {

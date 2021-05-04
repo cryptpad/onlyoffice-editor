@@ -2114,6 +2114,10 @@
             AscFormat.HitInLine(_hit_context, x_t, y_t, 0, this.extY, 0, 0) ||
             (this.canRotate && this.canRotate() && AscFormat.HitInLine(_hit_context, x_t, y_t, this.extX * 0.5, 0, this.extX * 0.5, -this.convertPixToMM(AscCommon.TRACK_DISTANCE_ROTATE))));
     };
+    CGraphicObjectBase.prototype.getCanvasContext = function()
+    {
+        return CShape.prototype.getCanvasContext.call(this);
+    };
     
     function CRelSizeAnchor() {
         CBaseObject.call(this);
