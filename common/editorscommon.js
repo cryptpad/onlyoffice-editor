@@ -6223,13 +6223,13 @@
 		var oReplaceNode = new CStringNode(sReplace, null);
 		var oMatching = new CDiffMatching();
 		oMatching.put(oBaseNode, oReplaceNode);
-		var oDiff  = new Diff(oBaseNode, oReplaceNode);
+		var oDiff  = new AscCommon.Diff(oBaseNode, oReplaceNode);
 		oDiff.equals = function(a, b)
 		{
 			return a.equals(b);
 		};
 		oDiff.matchTrees(oMatching);
-		var oDeltaCollector = new DeltaCollector(oMatching, oBaseNode, oReplaceNode);
+		var oDeltaCollector = new AscCommon.DeltaCollector(oMatching, oBaseNode, oReplaceNode);
 		oDeltaCollector.forEachChange(function(oOperation){
 			aDelta.push(new CStringChange(oOperation));
 		});
