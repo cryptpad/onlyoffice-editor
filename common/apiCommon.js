@@ -1643,18 +1643,36 @@
 		return this.separator;
 	};
 	asc_ChartSettings.prototype.changeType = function(type) {
-		this.putType(type);
 		if(this.chartSpace) {
-			var oController = this.chartSpace.getDrawingObjectsController();
-			if(oController) {
-				var oThis = this;
-				var oChartSpace = this.chartSpace;
-				oController.checkSelectedObjectsAndCallback(function() {
-					oChartSpace.changeChartType(type);
-					oThis.updateChart();
-				}, [], false, 0, []);
+			if(type === Asc.c_oAscChartTypeSettings.stock) {
+				if(!this.chartSpace.canChangeToStockChart()){
+					var oApi = Asc.editor || editor;
+					if(oApi) {
+						oApi.sendEvent("asc_onError", Asc.c_oAscError.ID.StockChartError, Asc.c_oAscError.Level.NoCritical);
+						if(oApi.UpdateInterfaceState) {
+							oApi.UpdateInterfaceState();
+						}
+					}
+					return false;
+				}
+			}
+			this.putType(type);
+			if(this.chartSpace) {
+				var oController = this.chartSpace.getDrawingObjectsController();
+				if(oController) {
+					var oThis = this;
+					var oChartSpace = this.chartSpace;
+					oController.checkSelectedObjectsAndCallback(function() {
+						oChartSpace.changeChartType(type);
+						oThis.updateChart();
+					}, [], false, 0, []);
+				}
 			}
 		}
+		else {
+			this.putType(type);
+		}
+		return true;
 	};
 	asc_ChartSettings.prototype.getSeries = function() {
 		if(this.chartSpace) {
@@ -1719,6 +1737,10 @@
 		AscCommon.History.StartTransaction();
 	};
 	asc_ChartSettings.prototype.endEdit = function() {
+		if(AscCommon.History.Is_LastPointEmpty()) {
+			this.cancelEdit();
+			return;
+		}
 		this.bStartEdit = false;
 		AscCommon.History.EndTransaction();
 		this.updateChart();
@@ -2445,8 +2467,11 @@
 				}
 			}
 		} else {
+
+			// TODO: Пока мы не работает отдельно с Color и Fill, поэтому пишем и тот и другой
 			this.Value = Asc.c_oAscShdNil;
 			this.Color = CreateAscColorCustom(255, 255, 255);
+			this.Fill  = CreateAscColorCustom(255, 255, 255);
 		}
 	}
 
@@ -2459,6 +2484,7 @@
 			return this.Color;
 		}, asc_putColor: function (v) {
 			this.Color = (v) ? v : null;
+			this.Fill  = (v) ? v : null;
 		}
 	};
 
@@ -4842,7 +4868,7 @@
 
 				var _oldTrackRevision = false;
                 if (oApi.getEditorId() == AscCommon.c_oEditorId.Word && oApi.WordControl && oApi.WordControl.m_oLogicDocument)
-                    _oldTrackRevision = oApi.WordControl.GetLocalTrackRevisions();
+                    _oldTrackRevision = oApi.WordControl.m_oLogicDocument.GetLocalTrackRevisions();
 
                 if (false !== _oldTrackRevision)
                     oApi.WordControl.m_oLogicDocument.SetLocalTrackRevisions(false);
@@ -4910,6 +4936,10 @@
 						oShd.Color.r = oCurParS['fill'][0];
 						oShd.Color.g = oCurParS['fill'][1];
 						oShd.Color.b = oCurParS['fill'][2];
+						oShd.Fill = new AscCommonWord.CDocumentColor();
+						oShd.Fill.r = oCurParS['fill'][0];
+						oShd.Fill.g = oCurParS['fill'][1];
+						oShd.Fill.b = oCurParS['fill'][2];
 						oNewParagraph.Set_Shd(oShd, true);
 					}
 					if(AscFormat.isRealNumber(oCurParS['linespacing'])){

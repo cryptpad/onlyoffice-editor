@@ -239,7 +239,16 @@ CGraphicObjects.prototype =
         if(ret)
         {
             if(ret.cursorType !== "text")
+            {
+                var oApi = Asc.editor || editor;
+                var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
+                if(isDrawHandles === false)
+                {
+                    this.drawingDocument.SetCursorType("default");
+                    return true;
+                }
                 this.drawingDocument.SetCursorType(ret.cursorType);
+            }
             return true;
         }
         return false;

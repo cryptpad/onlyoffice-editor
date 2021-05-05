@@ -231,6 +231,7 @@ function CopyProcessor(api, onlyBinaryCopy)
 
     this.aFootnoteReference = [];
 	this.oRoot = new CopyElement("root");
+    this.listNextNumMap = [];
 }
 CopyProcessor.prototype =
 {
@@ -261,7 +262,7 @@ CopyProcessor.prototype =
             sB = "0" + sB;
         return "#" + sR + sG + sB;
     },
-    Commit_pPr : function(Item, Para)
+    Commit_pPr : function(Item, Para, nextElem)
     {
         //pPr
         var apPr = [];
@@ -346,7 +347,23 @@ CopyProcessor.prototype =
             if(null != Item_pPr.Brd)
             {
                 apPr.push("border:none");
-                var borderStyle = this._BordersToStyle(Item_pPr.Brd, false, true, "mso-", "-alt");
+
+                //сравниваю бордеры со следующим параграфом
+                var isNeedPrefix = true;
+                if (Item && type_Paragraph === Item.GetType() && Item.IsTableCellContent && !Item.IsTableCellContent()) {
+					isNeedPrefix = false;
+                	if (nextElem && type_Paragraph === nextElem.GetType()) {
+						isNeedPrefix = true;
+						var Item_pPrCompile = Item.CompiledPr && Item.CompiledPr.Pr && Item.CompiledPr.Pr.ParaPr;
+						var Next_pPrCompile = nextElem.Get_CompiledPr2 && nextElem.Get_CompiledPr2(false);
+						Next_pPrCompile = Next_pPrCompile && Next_pPrCompile.ParaPr;
+						if (Next_pPrCompile && Item_pPrCompile && !nextElem.private_CompareBorderSettings(Next_pPrCompile, Item_pPrCompile)) {
+							isNeedPrefix = false;
+						}
+					}
+				}
+
+                var borderStyle = this._BordersToStyle(Item_pPr.Brd, false, true, isNeedPrefix ? "mso-" : null, isNeedPrefix ? "-alt" : null);
                 if(null != borderStyle)
                 {
                     var nborderStyleLength = borderStyle.length;
@@ -576,7 +593,7 @@ CopyProcessor.prototype =
 			}
 		}
     },
-    CopyParagraph : function(oDomTarget, Item, selectedAll)
+    CopyParagraph : function(oDomTarget, Item, selectedAll, nextElem)
     {
         var oDocument = this.oDocument;
 		var Para = null;
@@ -695,7 +712,7 @@ CopyProcessor.prototype =
             }
         }
         //pPr
-        this.Commit_pPr(Item, Para);
+        this.Commit_pPr(Item, Para, nextElem);
 
         if(false === selectedAll)
         {
@@ -721,12 +738,25 @@ CopyProcessor.prototype =
 					if((bBullet && "ul" === oPrevElem.sName) || (!bBullet && "ol" === oPrevElem.sName))
 						oTargetList = oPrevElem;
 				}
-				if(null == oTargetList){
-					if(bBullet)
+
+				if (!bBullet) {
+					if (!this.listNextNumMap[oNumPr.NumId]) {
+						this.listNextNumMap[oNumPr.NumId] = 1;
+					} else {
+						this.listNextNumMap[oNumPr.NumId]++;
+					}
+				}
+				if (null == oTargetList) {
+					if (bBullet) {
 						oTargetList = new CopyElement("ul");
-					else
+					} else {
 						oTargetList = new CopyElement("ol");
+					}
 					oTargetList.oAttributes["style"] = "padding-left:40px";
+					//если список идёт с промежуточными элементами, добавляем аттрибут start
+					if (!bBullet && this.listNextNumMap[oNumPr.NumId] > 1) {
+						oTargetList.oAttributes["start"] = this.listNextNumMap[oNumPr.NumId];
+					}
 					oDomTarget.addChild(oTargetList);
 				}
 				oTargetList.addChild(Li);
@@ -740,7 +770,8 @@ CopyProcessor.prototype =
             res += name + ":none;";
         else
         {
-            var size = 0.5;
+            //TODO получение цвета рассмотреть аналогично получению фону у ячейки с ипользованием функции GetSimpleColor
+        	var size = 0.5;
             var color = border.Color;
             var unifill = border.Unifill;
             if(null != border.Size)
@@ -836,7 +867,7 @@ CopyProcessor.prototype =
 			var presentation = editor.WordControl.m_oLogicDocument;
 			var curSlide = presentation.Slides[presentation.CurPage];
 			if(presentation && curSlide && curSlide.Layout && curSlide.Layout.Master && curSlide.Layout.Master.Theme)
-        AscFormat.checkTableCellPr(cell.CompiledPr.Pr, curSlide, curSlide.Layout, curSlide.Layout.Master, curSlide.Layout.Master.Theme);	
+        AscFormat.checkTableCellPr(cell.CompiledPr.Pr, curSlide, curSlide.Layout, curSlide.Layout.Master, curSlide.Layout.Master.Theme);
 		}
 		
 		if(null != cell.CompiledPr && null != cell.CompiledPr.Pr)
@@ -848,8 +879,16 @@ CopyProcessor.prototype =
         }
         if(null != cellPr && null != cellPr.Shd)
         {
-            if (c_oAscShdNil !== cellPr.Shd.Value && (null != cellPr.Shd.Color || null != cellPr.Shd.Unifill))
-                tcStyle += "background-color:" + this.RGBToCSS(cellPr.Shd.Color, cellPr.Shd.Unifill) + ";";
+			if (c_oAscShdNil !== cellPr.Shd.Value && (null != cellPr.Shd.Color || null != cellPr.Shd.Unifill)) {
+				var _shdColor = cellPr.Shd.GetSimpleColor(this.oDocument.Get_Theme(), this.oDocument.Get_ColorMap());
+				//todo проверить и убрать else, всегда использовать GetSimpleColor
+				if (_shdColor) {
+					_shdColor = this.RGBToCSS(_shdColor);
+				} else {
+					_shdColor = this.RGBToCSS(cellPr.Shd.Color, cellPr.Shd.Unifill);
+				}
+				tcStyle += "background-color:" + _shdColor + ";";
+			}
         }
         else if(null != tablePr && null != tablePr.Shd)
         {
@@ -1118,11 +1157,19 @@ CopyProcessor.prototype =
 				{
 					var SelectedAll = Index === elementsContent.length - 1 ? elementsContent[Index].SelectedAll : true;
 					//todo может только для верхнего уровня надо Index == End
-					if(!dNotGetBinary)
+					if (!dNotGetBinary) {
 						this.oBinaryFileWriter.CopyParagraph(Item, SelectedAll);
-						
-					if(!this.onlyBinaryCopy)
-						this.CopyParagraph(oDomTarget, Item, SelectedAll);
+					}
+
+					if (!this.onlyBinaryCopy) {
+						var _nextElem;
+						if (elementsContent[Index + 1] && elementsContent[Index + 1].Element) {
+							_nextElem = elementsContent[Index + 1].Element;
+						} else {
+							_nextElem = elementsContent[Index + 1];
+						}
+						this.CopyParagraph(oDomTarget, Item, SelectedAll, _nextElem);
+					}
 				}
 				else if(type_BlockLevelSdt === Item.GetType() )
 				{

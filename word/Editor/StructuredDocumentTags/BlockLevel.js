@@ -1964,7 +1964,7 @@ CBlockLevelSdt.prototype.SetPicturePr = function(isPicture)
 		this.Pr.Picture = isPicture;
 	}
 };
-CBlockLevelSdt.prototype.private_UpdatePictureContent = function()
+CBlockLevelSdt.prototype.private_UpdatePictureContent = function(_nW, _nH)
 {
 	if (!this.IsPicture())
 		return;
@@ -1996,8 +1996,8 @@ CBlockLevelSdt.prototype.private_UpdatePictureContent = function()
 		if (!oDrawingObjects)
 			return;
 
-		var nW = 50;
-		var nH = 50;
+		var nW = _nW ? _nW : 50;
+		var nH = _nH ? _nH : 50;
 
 		oDrawing   = new ParaDrawing(nW, nH, null, oDrawingObjects, this.LogicDocument, null);
 		var oImage = oDrawingObjects.createImage(AscCommon.g_sWordPlaceholderImage, 0, 0, nW, nH);
@@ -2010,12 +2010,14 @@ CBlockLevelSdt.prototype.private_UpdatePictureContent = function()
 /**
  * Применяме к данному контейнеру настройку того, что это специальный контейнер для картинок
  * @param isPicture {boolean}
+ * @param [nW=-1] {number} если не задано (или значение не положительное), тогда используется стандартное значение
+ * @param [nH=-1] {number} если не задано (или значение не положительное), тогда используется стандартное значение
  */
-CBlockLevelSdt.prototype.ApplyPicturePr = function(isPicture)
+CBlockLevelSdt.prototype.ApplyPicturePr = function(isPicture, nW, nH)
 {
 	this.SetPicturePr(isPicture);
 	this.SetPlaceholder(undefined);
-	this.private_UpdatePictureContent();
+	this.private_UpdatePictureContent(nW, nH);
 };
 /**
  * Выделяем изображение, если это специальный контейнер для изображения
@@ -2536,6 +2538,35 @@ CBlockLevelSdt.prototype.UpdateLineNumbersInfo = function()
 CBlockLevelSdt.prototype.private_OnAddFormPr = function()
 {
 	this.Content.Recalc_AllParagraphs_CompiledPr();
+};
+CBlockLevelSdt.prototype.CheckHitInContentControlByXY = function(X, Y, nPageAbs)
+{
+	var oTransform = this.Get_ParentTextTransform();
+
+	var _X = X;
+	var _Y = Y;
+	if (oTransform)
+	{
+		oTransform = oTransform.Invert();
+		_X = oTransform.TransformPointX(X, Y);
+		_Y = oTransform.TransformPointY(X, Y);
+	}
+
+	for (var nPageIndex = 0, nPagesCount = this.GetPagesCount(); nPageIndex < nPagesCount; ++nPageIndex)
+	{
+		if (this.IsEmptyPage(nPageIndex))
+			continue;
+
+		if (this.GetAbsolutePage(nPageIndex) === nPageAbs)
+		{
+			var oBounds = this.Content.GetContentBounds(nPageIndex);
+
+			if (oBounds.Left <= _X && _X <= oBounds.Right && oBounds.Top <= _Y && _Y <= oBounds.Bottom)
+				return true;
+		}
+	}
+
+	return false;
 };
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

@@ -2458,8 +2458,15 @@ var editor;
       if (res) {
         AscFonts.FontPickerByCharacter.getFontsByString(name);
         t._loadFonts([], function() {
-            t.wbModel.getWorksheet(i).setName(name);
+            var oWorkbook = t.wbModel;
+            var oWorksheet = oWorkbook.getWorksheet(i);
+            var sOldName = oWorksheet.getName();
+            oWorksheet.setName(name);
             t.sheetsChanged();
+            if(t.wb) {
+                //change sheet name in chart references
+                t.wb.handleChartsOnChangeSheetName(oWorksheet, sOldName, name);
+            }
         });
       } else {
         t.handlers.trigger("asc_onError", c_oAscError.ID.LockedWorksheetRename, c_oAscError.Level.NoCritical);
@@ -2907,17 +2914,31 @@ var editor;
   spreadsheet_api.prototype.asc_canGroupPivot = function () {
     return !!this._canGroupPivot();
   };
-  spreadsheet_api.prototype.asc_groupPivot = function (opt_rangePr, opt_dateTypes) {
+  spreadsheet_api.prototype._groupPivot = function (confirmation, onRepeat, opt_rangePr, opt_dateTypes) {
     var canGroupRes = this._canGroupPivot();
     if(canGroupRes) {
-      canGroupRes.pivotTable.groupPivot(this, canGroupRes.layout, opt_rangePr, opt_dateTypes);
+      canGroupRes.pivotTable.groupPivot(this, canGroupRes.layout, confirmation, onRepeat, opt_rangePr, opt_dateTypes);
+    }
+  };
+  spreadsheet_api.prototype.asc_groupPivot = function (opt_rangePr, opt_dateTypes) {
+    var t = this;
+    var onRepeat = function(){
+      t._groupPivot(true, onRepeat, opt_rangePr, opt_dateTypes);
+    };
+    this._groupPivot(false, onRepeat, opt_rangePr, opt_dateTypes);
+  };
+  spreadsheet_api.prototype._ungroupPivot = function (confirmation, onRepeat) {
+    var canGroupRes = this._canGroupPivot();
+    if(canGroupRes) {
+      canGroupRes.pivotTable.ungroupPivot(this, canGroupRes.layout, confirmation, onRepeat);
     }
   };
   spreadsheet_api.prototype.asc_ungroupPivot = function () {
-    var canGroupRes = this._canGroupPivot();
-    if(canGroupRes) {
-      canGroupRes.pivotTable.ungroupPivot(this, canGroupRes.layout);
-    }
+    var t = this;
+    var onRepeat = function(){
+      t._ungroupPivot(true, onRepeat);
+    };
+    this._ungroupPivot(false, onRepeat);
   };
 
   spreadsheet_api.prototype.asc_ungroup = function(val) {
@@ -3258,7 +3279,7 @@ var editor;
 
   // Cell comment interface
   spreadsheet_api.prototype.asc_addComment = function(oComment) {
-    if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+    if (this.collaborativeEditing.getGlobalLock() || (!this.canEdit() && !this.isRestrictionComments())) {
       return false;
     }
     var oPlace = oComment.bDocument ? this.wb : this.wb.getWorksheet();
@@ -3293,7 +3314,7 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_RemoveAllComments = function(isMine, isCurrent) {
-	if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+	if (this.collaborativeEditing.getGlobalLock() || (!this.canEdit() && !this.isRestrictionComments())) {
 	  return;
 	}
   	this.wb.removeAllComments(isMine, isCurrent);
@@ -5119,7 +5140,7 @@ var editor;
 			onAction();
 		});
 	};
-	spreadsheet_api.prototype._changePivotAndConnectedByPivotCacheWithLock = function (pivot, confirmation, onAction) {
+	spreadsheet_api.prototype._changePivotAndConnectedByPivotCacheWithLock = function (pivot, confirmation, onAction, onRepeat) {
 		// Проверка глобального лока
 
 		var t = this;
@@ -5135,9 +5156,7 @@ var editor;
 			var changeRes = onAction(confirmation, pivotTables);
 			t.wbModel.dependencyFormulas.unlockRecal();
 			History.EndTransaction();
-			t._changePivotEndCheckError(pivot, changeRes, function () {
-				t._changePivotAndConnectedByPivotCacheWithLock(pivot, true, onAction);
-			});
+			t._changePivotEndCheckError(pivot, changeRes, onRepeat);
 		});
 	};
 	spreadsheet_api.prototype._changePivot = function(pivot, confirmation, updateSelection, onAction, doNotCheckUnderlyingData) {
@@ -5517,6 +5536,23 @@ var editor;
     if (this.isRestrictionSignatures() && oHistory && !oHistory.Have_Changes()) {
         oHistory.Clear();
     }
+  };
+  spreadsheet_api.prototype.isShowShapeAdjustments = function()
+  {
+    return this.canEdit();
+  };
+  spreadsheet_api.prototype.isShowTableAdjustments = function()
+  {
+      return this.canEdit();
+  };
+  spreadsheet_api.prototype.isShowEquationTrack = function()
+  {
+      return this.canEdit();
+  };
+
+  spreadsheet_api.prototype.asc_getEscapeSheetName = function(sheet)
+  {
+      return AscCommon.parserHelp.getEscapeSheetName(sheet)
   };
 
   spreadsheet_api.prototype.asc_undoAllChanges = function() {
@@ -5983,4 +6019,5 @@ var editor;
 
   prot["asc_setSkin"] = prot.asc_setSkin;
 
+  prot["asc_getEscapeSheetName"] = prot.asc_getEscapeSheetName;
 })(window);

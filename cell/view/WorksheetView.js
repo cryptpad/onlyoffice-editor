@@ -4033,10 +4033,19 @@
 					textX += (this._getFilterButtonSize(true)+ _diff) * this.getZoom();
 				}
 				if (ct.indent) {
-					if (AscCommon.align_Right === ct.cellHA) {
-						textX -= ct.indent * 3 * this.defaultSpaceWidth;
-					} else if (AscCommon.align_Left === ct.cellHA) {
-						textX += ct.indent * 3 * this.defaultSpaceWidth;
+					var verticalText = ct.angle === AscCommonExcel.g_nVerticalTextAngle || (ct.flags && ct.flags.verticalText);
+					if (verticalText) {
+						if (Asc.c_oAscVAlign.Bottom === ct.cellVA) {
+							//textY -= ct.indent * 3 * this.defaultSpaceWidth;
+						} else if (Asc.c_oAscVAlign.Top === ct.cellVA) {
+							textY += ct.indent * 3 * this.defaultSpaceWidth;
+						}
+					} else {
+						if (AscCommon.align_Right === ct.cellHA) {
+							textX -= ct.indent * 3 * this.defaultSpaceWidth;
+						} else if (AscCommon.align_Left === ct.cellHA) {
+							textX += ct.indent * 3 * this.defaultSpaceWidth;
+						}
 					}
 				}
 				this.stringRender.restoreInternalState(ct.state).render(drawingCtx, textX, textY, textW, color);
@@ -5463,7 +5472,7 @@
         selectionRange.ranges.forEach(function (item, index) {
             var arnIntersection = item.intersectionSimple(range);
             if (arnIntersection) {
-                _x1 = t._getColLeft(arnIntersection.c1) - offsetX - 2;
+                _x1 = t._getColLeft(arnIntersection.c1) - offsetX - 3;
                 _x2 = t._getColLeft(arnIntersection.c2 + 1) - offsetX +
                   1 + /* Это ширина "квадрата" для автофильтра от границы ячейки */2;
                 _y1 = t._getRowTop(arnIntersection.r1) - offsetY - 2;
@@ -5614,9 +5623,8 @@
             if(this.workbook.Api.isMobileVersion) {
                 //Add radius of mobile pins
                 var nRad = (AscCommon.MOBILE_SELECT_TRACK_ROUND / 2 + 0.5) >> 0;
-                if (AscCommon.AscBrowser.isRetina) {
-                    nRad = AscCommon.AscBrowser.convertToRetinaValue(nRad, true);
-                }
+                nRad = AscCommon.AscBrowser.convertToRetinaValue(nRad, true);
+
                 x1 -= nRad;
                 x2 += nRad;
                 y1 -= nRad;
@@ -6059,10 +6067,18 @@
 		tm = this._roundTextMetrics(this.stringRender.measureString(str, fl, maxW));
 
 		if (indent) {
-			if (AscCommon.align_Right === alignH) {
-				tm.width += indent * 3 * this.defaultSpaceWidth + 1;
-			} else if (AscCommon.align_Left === alignH) {
-				tm.width += indent * 3 * this.defaultSpaceWidth;
+			if (verticalText) {
+				if (Asc.c_oAscVAlign.Bottom === va) {
+					tm.height += indent * 3 * this.defaultSpaceWidth;
+				} else if (Asc.c_oAscVAlign.Top === va) {
+					tm.height += indent * 3 * this.defaultSpaceWidth;
+				}
+			} else {
+				if (AscCommon.align_Right === alignH) {
+					tm.width += indent * 3 * this.defaultSpaceWidth + 1;
+				} else if (AscCommon.align_Left === alignH) {
+					tm.width += indent * 3 * this.defaultSpaceWidth;
+				}
 			}
 		}
 
@@ -8124,32 +8140,30 @@
 				commentCoords: coords
 			};
 			if(!oHyperlink) {
-				var formulaParsed;
 				this.model.getCell3(r.row, c.col)._foreachNoEmpty(function (cell) {
 					if (cell.isFormula()) {
-						formulaParsed = cell.getFormulaParsed();
+						cell.processFormula(function(formulaParsed) {
+							var formulaHyperlink = formulaParsed.getFormulaHyperlink();
+							if (formulaHyperlink) {
+								//запсускаю пересчет в связи с тем, что после открытия значение не рассчитано,
+								// но показывать результат при наведении на ссылку нужно
+								if(null === formulaParsed.value || formulaParsed.getShared()) {
+									formulaParsed.calculate();
+								}
+								if(formulaParsed.value && formulaParsed.value.hyperlink) {
+									oHyperlink = new AscCommonExcel.Hyperlink();
+									oHyperlink.Hyperlink = formulaParsed.value.hyperlink;
+								} else if(formulaParsed.value && AscCommonExcel.cElementType.array === formulaParsed.value.type) {
+									var firstArrayElem = formulaParsed.value.getElementRowCol(0,0);
+									if(firstArrayElem && firstArrayElem.hyperlink) {
+										oHyperlink = new AscCommonExcel.Hyperlink();
+										oHyperlink.Hyperlink = firstArrayElem.hyperlink;
+									}
+								}
+							}
+						});
 					}
 				});
-				if (formulaParsed) {
-					var formulaHyperlink = formulaParsed.getFormulaHyperlink();
-					if (formulaHyperlink) {
-						//запсускаю пересчет в связи с тем, что после открытия значение не рассчитано,
-						// но показывать результат при наведении на ссылку нужно
-						if(null === formulaParsed.value) {
-							formulaParsed.calculate();
-						}
-						if(formulaParsed.value && formulaParsed.value.hyperlink) {
-							oHyperlink = new AscCommonExcel.Hyperlink();
-							oHyperlink.Hyperlink = formulaParsed.value.hyperlink;
-						} else if(formulaParsed.value && AscCommonExcel.cElementType.array === formulaParsed.value.type) {
-							var firstArrayElem = formulaParsed.value.getElementRowCol(0,0);
-							if(firstArrayElem && firstArrayElem.hyperlink) {
-								oHyperlink = new AscCommonExcel.Hyperlink();
-								oHyperlink.Hyperlink = firstArrayElem.hyperlink;
-							}
-						}
-					}
-				}
 			}
 
 			if (oHyperlink) {
@@ -10732,7 +10746,7 @@
             History.StartTransaction();
 
             checkRange.forEach(function (item, i) {
-                var c;
+                var c, _align, _verticalText;
 				var bIsUpdate = true;
                 var range = t.model.getRange3(item.r1, item.c1, item.r2, item.c2);
                 var isLargeRange = t._isLargeRange(range.bbox);
@@ -10767,7 +10781,9 @@
                         range.setFontAlign(val);
                         break;
                     case "a":
-						if (!(val === AscCommon.align_Right || val === AscCommon.align_Left) && checkIndent(range)) {
+						_align = range.getAlign();
+						_verticalText = _align && _align.angle === AscCommonExcel.g_nVerticalTextAngle;
+						if (!(val === AscCommon.align_Right || val === AscCommon.align_Left) && !_verticalText && checkIndent(range)) {
 							range.setIndent(0);
 						}
                         range.setAlignHorizontal(val);
@@ -10812,18 +10828,19 @@
                         canChangeColWidth = c_oAscCanChangeColWidth.numbers;
                         break;
                     case "angle":
-						if (val !== 0 && checkIndent(range)) {
+						if (val !== 0 && val !== AscCommonExcel.g_nVerticalTextAngle && checkIndent(range)) {
 							range.setIndent(0);
 						}
                         range.setAngle(val);
                         break;
 					case "indent":
-						var _align = range.getAlign();
+						_align = range.getAlign();
 						if (_align) {
-							if (!(_align.hor === AscCommon.align_Right || _align.hor === AscCommon.align_Left)) {
+							_verticalText = _align.angle === AscCommonExcel.g_nVerticalTextAngle;
+							if (!_verticalText && !(_align.hor === AscCommon.align_Right || _align.hor === AscCommon.align_Left)) {
 								range.setAlignHorizontal(AscCommon.align_Left);
 							}
-							if (_align.angle !== 0) {
+							if (_align.angle !== 0 && !_verticalText) {
 								range.setAngle(0);
 							}
 						}
@@ -10863,7 +10880,9 @@
                             callTrigger = true;
                             t.handlers.trigger("slowOperation", true);
                         }
-						if (val === c_oAscMergeOptions.MergeCenter && checkIndent(range)) {
+						_align = range.getAlign();
+						_verticalText = _align && _align.angle === AscCommonExcel.g_nVerticalTextAngle;
+						if (val === c_oAscMergeOptions.MergeCenter && checkIndent(range) && !_verticalText) {
 							range.setIndent(0);
 						}
                         switch (val) {
@@ -13422,11 +13441,35 @@
 						updateDrawingObjectsInfo2.operType, updateDrawingObjectsInfo2.updateRange);
 				}
 				t.model.onUpdateRanges(arrChangedRanges);
+
+
                 var aRanges = [];
                 var oBBox;
                 for(var nRange = 0; nRange < arrChangedRanges.length; ++nRange) {
                     oBBox = arrChangedRanges[nRange];
                     aRanges.push(new AscCommonExcel.Range(t.model, oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2));
+                }
+                if (updateDrawingObjectsInfo2 && updateDrawingObjectsInfo2.updateRange) {
+                    var nOperType = updateDrawingObjectsInfo2.operType;
+                    var oUpdateRange = updateDrawingObjectsInfo2.updateRange;
+                    switch(nOperType) {
+                        case c_oAscInsertOptions.InsertColumns:
+                        case c_oAscDeleteOptions.DeleteColumns:
+                        case c_oAscInsertOptions.InsertCellsAndShiftRight:
+                        case c_oAscDeleteOptions.DeleteCellsAndShiftLeft:
+                        {
+                            aRanges.push(new AscCommonExcel.Range(t.model, oUpdateRange.r1, oUpdateRange.c1, oUpdateRange.r2, gc_nMaxCol0));
+                            break;
+                        }
+                        case c_oAscInsertOptions.InsertRows:
+                        case c_oAscInsertOptions.InsertCellsAndShiftDown:
+                        case c_oAscDeleteOptions.DeleteRows:
+                        case c_oAscDeleteOptions.DeleteCellsAndShiftTop:
+                        {
+                            aRanges.push(new AscCommonExcel.Range(t.model, oUpdateRange.r1, oUpdateRange.c1, gc_nMaxRow0, oUpdateRange.c2));
+                            break;
+                        }
+                    }
                 }
                 Asc.editor.wb.handleChartsOnWorkbookChange(aRanges);
 			}
@@ -17651,6 +17694,14 @@
 		//TODO возможно не стоит лочить весь диапазон. проверить: когда один ползователь меняет диапазон, другой снимает а/ф с ф/т. в этом случае в deleteAutoFilter передавать не range а имя ф/т
 		var table = t.model.autoFilters._getFilterByDisplayName(tableName);
 		var tableRange = null !== table ? table.Ref : null;
+
+		if (tableRange && range && tableRange.isEqual(range)) {
+			if (callbackAfterChange) {
+				callbackAfterChange(false);
+			} else {
+				return false;
+			}
+		}
 
 		var lockRange = range;
 		if (null !== tableRange) {

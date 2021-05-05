@@ -6130,14 +6130,23 @@ CPresentation.prototype.SelectAll = function () {
 
 CPresentation.prototype.UpdateCursorType = function (X, Y, MouseEvent) {
 
+    var oApi = Asc.editor || editor;
+    var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
+
     var oController = this.GetCurrentController();
     if (oController) {
         var graphicObjectInfo = oController.isPointInDrawingObjects(X, Y, MouseEvent);
         if (graphicObjectInfo) {
             if (!graphicObjectInfo.updated) {
-                this.DrawingDocument.SetCursorType(graphicObjectInfo.cursorType);
+                if(isDrawHandles !== false) {
+                    this.DrawingDocument.SetCursorType(graphicObjectInfo.cursorType);
+                }
+                else {
+                    this.DrawingDocument.SetCursorType("default");
+                }
             }
-        } else {
+        }
+        else {
             this.DrawingDocument.SetCursorType("default");
         }
         AscCommon.CollaborativeEditing.Check_ForeignCursorsLabels(X, Y, this.CurPage);
@@ -7190,6 +7199,39 @@ CPresentation.prototype.OnEndTextDrag = function (NearPos, bCopy) {
             oController.onMouseUp(AscCommon.global_mouseEvent, AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
         }
     }
+};
+
+
+/**
+ * @returns {boolean}
+ */
+CPresentation.prototype.IsShowShapeAdjustments = function()
+{
+    return (!!this.CanEdit());
+};
+/**
+ * Рисовать ли трек у таблицы и давать ли возможность таскать границы
+ * @returns {boolean}
+ */
+CPresentation.prototype.IsShowTableAdjustments = function()
+{
+    return (!!this.CanEdit());
+};
+/**
+ * Рисовать ли трек у таблицы и давать ли возможность таскать границы
+ * @returns {boolean}
+ */
+CPresentation.prototype.IsShowEquationTrack = function()
+{
+    return (!!this.CanEdit());
+};
+/**
+ * Можем ли перетаскивать текст
+ * @returns {boolean}
+ */
+CPresentation.prototype.CanDragAndDrop = function()
+{
+    return (!!this.CanEdit());
 };
 
 CPresentation.prototype.IsFocusOnNotes = function () {
@@ -8641,6 +8683,12 @@ CPresentation.prototype.GetSelectedContent2 = function () {
                                     AscCommon.IsShapeToImageConverter = true;
                                     for (i = 0; i < oController2.selectedObjects.length; ++i) {
                                         oController2.selectedObjects[i].draw(g);
+                                    }
+                                    if (AscCommon.g_fontManager) {
+                                        AscCommon.g_fontManager.m_pFont = null;
+                                    }
+                                    if (AscCommon.g_fontManager2) {
+                                        AscCommon.g_fontManager2.m_pFont = null;
                                     }
                                     AscCommon.IsShapeToImageConverter = false;
 
