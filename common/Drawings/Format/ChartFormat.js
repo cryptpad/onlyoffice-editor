@@ -5124,8 +5124,8 @@
         var oDataRefs = oChartSpace.getDataRefs();
         var sRange = oDataRefs.getRange();
         var nInfo = oDataRefs.getInfo();
-        var bVert = (nInfo & AscFormat.SERIES_FLAG_HOR_VALUE) !== 0;
-        var nTestResult = oTestDataRefs.checkDataRange(sRange, !bVert, Asc.c_oAscChartTypeSettings.stock);
+        var bHorValue = (nInfo & AscFormat.SERIES_FLAG_HOR_VALUE) !== 0;
+        var nTestResult = oTestDataRefs.checkDataRange(sRange, bHorValue, Asc.c_oAscChartTypeSettings.stock);
         if(nTestResult === Asc.c_oAscError.ID.No) {
             return true;
         }
