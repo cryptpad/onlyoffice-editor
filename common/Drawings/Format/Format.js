@@ -3638,7 +3638,7 @@ var  EFFECT_TYPE_BLEND			=	30;
     CInnerShdw.prototype.createDuplicate = function()
     {
         var oCopy = new CInnerShdw();
-        oCopy.color = oCopy.color.createDuplicate();
+        oCopy.color = this.color.createDuplicate();
         oCopy.blurRad = this.blurRad;
         oCopy.dir = this.dir;
         oCopy.dist = this.dist;
