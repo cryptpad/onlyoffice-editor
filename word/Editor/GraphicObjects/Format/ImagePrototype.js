@@ -40,7 +40,6 @@ CImageShape.prototype.Get_Theme = CShape.prototype.Get_Theme;
 CImageShape.prototype.Get_ColorMap = CShape.prototype.Get_ColorMap;
 CImageShape.prototype.addToRecalculate = CShape.prototype.addToRecalculate;
 CImageShape.prototype.convertPixToMM = CShape.prototype.convertPixToMM;
-CImageShape.prototype.getCanvasContext = CShape.prototype.getCanvasContext;
 CImageShape.prototype.getHierarchy = CShape.prototype.getHierarchy;
 CImageShape.prototype.getParentObjects = CShape.prototype.getParentObjects;
 CImageShape.prototype.recalculateTransform = CShape.prototype.recalculateTransform;
@@ -158,7 +157,6 @@ CImageShape.prototype.handleUpdateGeometry = function()
 
 CImageShape.prototype.recalculateLocalTransform = CShape.prototype.recalculateLocalTransform;
 CImageShape.prototype.convertPixToMM = CShape.prototype.convertPixToMM;
-CImageShape.prototype.getCanvasContext = CShape.prototype.getCanvasContext;
 CImageShape.prototype.getCompiledStyle = CShape.prototype.getCompiledStyle;
 CImageShape.prototype.getHierarchy = CShape.prototype.getHierarchy;
 CImageShape.prototype.getParentObjects = CShape.prototype.getParentObjects;

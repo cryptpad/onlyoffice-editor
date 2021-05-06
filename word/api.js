@@ -1247,7 +1247,11 @@ background-repeat: no-repeat;\
 		}
 
 		if (this.WordControl && this.WordControl.m_oBody)
+		{
 			this.WordControl.OnResize(true);
+			if (this.WordControl.m_oEditor && this.WordControl.m_oEditor.HtmlElement)
+				this.WordControl.m_oEditor.HtmlElement.fullRepaint = true;
+		}
 	};
 
 	asc_docs_api.prototype.GetCopyPasteDivId = function()
@@ -9744,7 +9748,7 @@ background-repeat: no-repeat;\
 		if (!oRun)
 			return null;
 
-		return oRun.GetTextFormAutoWidth();
+		return AscCommon.MMToTwips(oRun.GetTextFormAutoWidth());
 	};
 	asc_docs_api.prototype.asc_GetFormsCountByKey = function(sKey)
 	{
@@ -11222,6 +11226,9 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.onUpdateRestrictions = function()
 	{
+		if (this.WordControl)
+			this.WordControl.checkMouseHandMode();
+
 		var oLogicDocument = this.private_GetLogicDocument();
 		if (!oLogicDocument)
 			return;
@@ -11243,6 +11250,56 @@ background-repeat: no-repeat;\
 			oHistory.Clear();
 			oLogicDocument.UpdateInterface();
 		}
+
+		if (this.isDrawTablePen || this.isDrawTableErase)
+		{
+			this.isDrawTablePen && this.sync_TableDrawModeCallback(false);
+			this.isDrawTableErase && this.sync_TableEraseModeCallback(false);
+			oLogicDocument.UpdateCursorType(oLogicDocument.CurPos.RealX, oLogicDocument.CurPos.RealY, oLogicDocument.CurPage, new AscCommon.CMouseEventHandler());
+		}
+		else if (true === this.isMarkerFormat)
+		{
+			this.sync_MarkerFormatCallback(false);
+			oLogicDocument.UpdateCursorType(oLogicDocument.CurPos.RealX, oLogicDocument.CurPos.RealY, oLogicDocument.CurPage, new AscCommon.CMouseEventHandler());
+		}
+		else if (c_oAscFormatPainterState.kOff !== this.isPaintFormat)
+		{
+			this.sync_PaintFormatCallback(c_oAscFormatPainterState.kOff);
+			oLogicDocument.UpdateCursorType(oLogicDocument.CurPos.RealX, oLogicDocument.CurPos.RealY, oLogicDocument.CurPage, new AscCommon.CMouseEventHandler());
+		}
+		else if (this.isStartAddShape)
+		{
+			this.sync_StartAddShapeCallback(false);
+			this.sync_EndAddShape();
+			oLogicDocument.DrawingObjects.endTrackNewShape();
+			oLogicDocument.UpdateCursorType(oLogicDocument.CurPos.RealX, oLogicDocument.CurPos.RealY, oLogicDocument.CurPage, new AscCommon.CMouseEventHandler());
+		}
+
+		oLogicDocument.UpdateSelection();
+	};
+	asc_docs_api.prototype.isShowShapeAdjustments = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (oLogicDocument)
+			return oLogicDocument.IsShowShapeAdjustments();
+
+		return true;
+	};
+	asc_docs_api.prototype.isShowTableAdjustments = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (oLogicDocument)
+			return oLogicDocument.IsShowTableAdjustments();
+
+		return true;
+	};
+	asc_docs_api.prototype.isShowEquationTrack = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (oLogicDocument)
+			return oLogicDocument.IsShowEquationTrack();
+
+		return true;
 	};
 
 	//-------------------------------------------------------------export---------------------------------------------------

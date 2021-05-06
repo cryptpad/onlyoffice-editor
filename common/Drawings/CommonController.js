@@ -484,14 +484,11 @@ function CheckStockChart(oDrawingObjects, oApi)
     if(selectedObjectsByType.charts[0])
     {
         var chartSpace = selectedObjectsByType.charts[0];
-        if(chartSpace && chartSpace.chart && chartSpace.chart.plotArea && chartSpace.chart.plotArea.charts[0] && chartSpace.chart.plotArea.charts[0].getObjectType() !== AscDFH.historyitem_type_StockChart)
+        if(!chartSpace.canChangeToStockChart())
         {
-            if(chartSpace.chart.plotArea.charts[0].series.length !== 4)
-            {
-                oApi.sendEvent("asc_onError", c_oAscError.ID.StockChartError, c_oAscError.Level.NoCritical);
-                oApi.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
-                return false;
-            }
+            oApi.sendEvent("asc_onError", c_oAscError.ID.StockChartError, c_oAscError.Level.NoCritical);
+            oApi.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
+            return false;
         }
     }
     return true;
@@ -2179,12 +2176,14 @@ DrawingObjectsController.prototype =
 		if (undefined !== drawingDocument.BeginDrawTracking)
             drawingDocument.BeginDrawTracking();
 
+        var oApi = Asc.editor || editor;
+        var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
         var i;
         if(this.selection.textSelection)
         {
             if(this.selection.textSelection.selectStartPage === pageIndex)
             {
-                drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.TEXT, this.selection.textSelection.getTransformMatrix(), 0, 0, this.selection.textSelection.extX, this.selection.textSelection.extY, AscFormat.CheckObjectLine(this.selection.textSelection), this.selection.textSelection.canRotate());
+                drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.TEXT, this.selection.textSelection.getTransformMatrix(), 0, 0, this.selection.textSelection.extX, this.selection.textSelection.extY, AscFormat.CheckObjectLine(this.selection.textSelection), this.selection.textSelection.canRotate(), undefined, isDrawHandles);
                 if(this.selection.textSelection.drawAdjustments)
                     this.selection.textSelection.drawAdjustments(drawingDocument);
             }
@@ -2217,8 +2216,8 @@ DrawingObjectsController.prototype =
                         {
                             drawingDocument.AutoShapesTrack.Graphics.put_GlobalAlpha(true, oldGlobalAlpha);
                         }
-                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, cropObject.getTransformMatrix(), 0, 0, cropObject.extX, cropObject.extY, false, false);
-                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CROP, oCropSelection.getTransformMatrix(), 0, 0, oCropSelection.extX, oCropSelection.extY, false, false);
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, cropObject.getTransformMatrix(), 0, 0, cropObject.extX, cropObject.extY, false, false, undefined, isDrawHandles);
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CROP, oCropSelection.getTransformMatrix(), 0, 0, oCropSelection.extX, oCropSelection.extY, false, false, undefined, isDrawHandles);
                     }
                 }
             }
@@ -2227,12 +2226,12 @@ DrawingObjectsController.prototype =
         {
             if(this.selection.groupSelection.selectStartPage === pageIndex)
             {
-                drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.GROUP_PASSIVE, this.selection.groupSelection.getTransformMatrix(), 0, 0, this.selection.groupSelection.extX, this.selection.groupSelection.extY, false, this.selection.groupSelection.canRotate());
+                drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.GROUP_PASSIVE, this.selection.groupSelection.getTransformMatrix(), 0, 0, this.selection.groupSelection.extX, this.selection.groupSelection.extY, false, this.selection.groupSelection.canRotate(), undefined, isDrawHandles);
                 if(this.selection.groupSelection.selection.textSelection)
                 {
                     for(i = 0; i < this.selection.groupSelection.selectedObjects.length ; ++i)
                     {
-                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.TEXT, this.selection.groupSelection.selectedObjects[i].transform, 0, 0, this.selection.groupSelection.selectedObjects[i].extX, this.selection.groupSelection.selectedObjects[i].extY, AscFormat.CheckObjectLine(this.selection.groupSelection.selectedObjects[i]), this.selection.groupSelection.selectedObjects[i].canRotate());
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.TEXT, this.selection.groupSelection.selectedObjects[i].transform, 0, 0, this.selection.groupSelection.selectedObjects[i].extX, this.selection.groupSelection.selectedObjects[i].extY, AscFormat.CheckObjectLine(this.selection.groupSelection.selectedObjects[i]), this.selection.groupSelection.selectedObjects[i].canRotate(), undefined, isDrawHandles);
                     }
                 }
                 else if(this.selection.groupSelection.selection.chartSelection)
@@ -2243,7 +2242,7 @@ DrawingObjectsController.prototype =
                 {
                     for(i = 0; i < this.selection.groupSelection.selectedObjects.length ; ++i)
                     {
-                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, this.selection.groupSelection.selectedObjects[i].transform, 0, 0, this.selection.groupSelection.selectedObjects[i].extX, this.selection.groupSelection.selectedObjects[i].extY, AscFormat.CheckObjectLine(this.selection.groupSelection.selectedObjects[i]), this.selection.groupSelection.selectedObjects[i].canRotate());
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, this.selection.groupSelection.selectedObjects[i].transform, 0, 0, this.selection.groupSelection.selectedObjects[i].extX, this.selection.groupSelection.selectedObjects[i].extY, AscFormat.CheckObjectLine(this.selection.groupSelection.selectedObjects[i]), this.selection.groupSelection.selectedObjects[i].canRotate(), undefined, isDrawHandles);
                     }
                 }
 
@@ -2268,7 +2267,7 @@ DrawingObjectsController.prototype =
             {
                 if(this.selectedObjects[i].selectStartPage === pageIndex)
                 {
-                    drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, this.selectedObjects[i].getTransformMatrix(), 0, 0, this.selectedObjects[i].extX, this.selectedObjects[i].extY, AscFormat.CheckObjectLine(this.selectedObjects[i]), this.selectedObjects[i].canRotate());
+                    drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, this.selectedObjects[i].getTransformMatrix(), 0, 0, this.selectedObjects[i].extX, this.selectedObjects[i].extY, AscFormat.CheckObjectLine(this.selectedObjects[i]), this.selectedObjects[i].canRotate(), undefined, isDrawHandles);
                 }
             }
             if(this.selectedObjects.length === 1 && this.selectedObjects[0].drawAdjustments && this.selectedObjects[0].selectStartPage === pageIndex)
@@ -2419,6 +2418,12 @@ DrawingObjectsController.prototype =
                 AscCommon.IsShapeToImageConverter = true;
                 for (i = 0; i < oController2.selectedObjects.length; ++i) {
                     oController2.selectedObjects[i].draw(g);
+                }
+                if (AscCommon.g_fontManager) {
+                    AscCommon.g_fontManager.m_pFont = null;
+                }
+                if (AscCommon.g_fontManager2) {
+                    AscCommon.g_fontManager2.m_pFont = null;
                 }
                 AscCommon.IsShapeToImageConverter = false;
 
@@ -3517,6 +3522,11 @@ DrawingObjectsController.prototype =
         var objects_by_types = this.getSelectedObjectsByTypes();
         if(objects_by_types.charts.length === 1)
         {
+            var oCurProps = this.getPropsFromChart(objects_by_types.charts[0]);
+            if(oCurProps.isEqual(chart))
+            {
+                return;
+            }
             this.checkSelectedObjectsAndCallback(this.editChartCallback, [chart], false, AscDFH.historydescription_Spreadsheet_EditChart);
         }
     },

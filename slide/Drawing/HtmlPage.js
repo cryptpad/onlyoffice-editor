@@ -1015,10 +1015,7 @@ function CEditorPage(api)
         AscCommon.addMouseEvent(this.m_oOverlay.HtmlElement, "move", this.onMouseMove);
         AscCommon.addMouseEvent(this.m_oOverlay.HtmlElement, "up", this.onMouseUp);
 
-        var _cur         = document.getElementById('id_target_cursor');
-        AscCommon.addMouseEvent(_cur, "down", this.onMouseDownTarget);
-        AscCommon.addMouseEvent(_cur, "move", this.onMouseMoveTarget);
-        AscCommon.addMouseEvent(_cur, "up", this.onMouseUpTarget);
+		document.getElementById('id_target_cursor').style.pointerEvents = "none";
 
 		this.m_oMainContent.HtmlElement.onmousewheel = this.onMouseWhell;
 		if (this.m_oMainContent.HtmlElement.addEventListener)
@@ -1520,31 +1517,48 @@ function CEditorPage(api)
 
 		_ctx.lineWidth   = Math.round(dPR);
 		_ctx.strokeStyle = GlobalSkin.RulerOutline;
+		var rectSize = Math.round(14 * dPR);
+		var lineWidth = _ctx.lineWidth;
 
-		_ctx.strokeRect(2.5 * _ctx.lineWidth, 3.5 * _ctx.lineWidth, Math.round(14 * dPR), Math.round(14 * dPR));
+		_ctx.strokeRect(2.5 * lineWidth, 3.5 * lineWidth, Math.round(14 * dPR), Math.round(14 * dPR));
 		_ctx.beginPath();
 
 		_ctx.strokeStyle = GlobalSkin.RulerTabsColor;
 
-		_ctx.lineWidth = 2 * Math.round(dPR);
+		_ctx.lineWidth = (dPR - Math.floor(dPR) === 0.5) ? 2 * Math.round(dPR) - 1 : 2 * Math.round(dPR);
+
+		var tab_width = Math.round(5 * dPR);
+		var offset = _ctx.lineWidth % 2 === 1 ? 0.5 : 0;
+
+		var dx = Math.round((rectSize - 2 * Math.round(dPR) - tab_width) / 7 * 4);
+		var dy = Math.round((rectSize - 2 * Math.round(dPR) - tab_width) / 7 * 4);
+		var x = 4 * Math.round(dPR) + dx;
+		var y = 4 * Math.round(dPR) + dy;
+
 		if (this.m_nTabsType == tab_Left)
 		{
-			_ctx.moveTo(Math.round(8 * dPR), Math.round(9 * dPR));
-			_ctx.lineTo(Math.round(8 * dPR), Math.round(14 * dPR));
-			_ctx.lineTo(Math.round(13 * dPR), Math.round(14 * dPR));
+			_ctx.moveTo(x + offset, y);
+			_ctx.lineTo(x + offset, y + tab_width + offset);
+			_ctx.lineTo(x + tab_width, y + tab_width + offset);
 		}
 		else if (this.m_nTabsType == tab_Center)
 		{
-			_ctx.moveTo(Math.round(6 * dPR), Math.round(14 * dPR));
-			_ctx.lineTo(Math.round(14 * dPR), Math.round(14 * dPR));
-			_ctx.moveTo(Math.round(10 * dPR), Math.round(9 * dPR));
-			_ctx.lineTo(Math.round(10 * dPR), Math.round(14 * dPR));
+			tab_width = Math.round(8 * dPR);
+			tab_width = (tab_width % 2 === 1) ? tab_width - 1 : tab_width;
+			var dx = Math.round((rectSize - Math.round(dPR) - tab_width) / 2);
+			var x = 3 * Math.round(dPR) + dx;
+			var vert_tab_width = Math.round(5 * dPR);
+			_ctx.moveTo(x , y + vert_tab_width + offset);
+			_ctx.lineTo(x + tab_width, y + vert_tab_width + offset);
+			_ctx.moveTo(x - offset + tab_width / 2, y);
+			_ctx.lineTo(x - offset + tab_width / 2, y + vert_tab_width);
 		}
 		else
 		{
-			_ctx.moveTo(Math.round(12 * dPR), Math.round(9 * dPR));
-			_ctx.lineTo(Math.round(12 * dPR), Math.round(14 * dPR));
-			_ctx.lineTo(Math.round(7 * dPR), Math.round(14 * dPR));
+			var x = 3 * Math.round(dPR) + dx;
+			_ctx.moveTo(x, tab_width + y + offset);
+			_ctx.lineTo(x + tab_width + offset,  tab_width + y + offset);
+			_ctx.lineTo(x + tab_width + offset, y);
 		}
 
 		_ctx.stroke();
@@ -3458,6 +3472,7 @@ function CEditorPage(api)
 		{
 			ctx.fillStyle   = "rgba(51,102,204,255)";
 			ctx.strokeStyle = "#9ADBFE";
+			ctx.lineWidth = Math.round(AscCommon.AscBrowser.retinaPixelRatio);
 
 			ctx.beginPath();
 
@@ -3489,6 +3504,7 @@ function CEditorPage(api)
 			var ctxOverlay = overlayNotes.m_oContext;
 			ctxOverlay.fillStyle   = "rgba(51,102,204,255)";
 			ctxOverlay.strokeStyle = "#9ADBFE";
+			ctxOverlay.lineWidth = Math.round(AscCommon.AscBrowser.retinaPixelRatio);
 
 			ctxOverlay.beginPath();
 
@@ -3500,7 +3516,6 @@ function CEditorPage(api)
 			ctxOverlay.globalAlpha = 1.0;
 			ctxOverlay.stroke();
 			ctxOverlay.beginPath();
-			ctxOverlay.globalAlpha = 1.0;
 		}
 
 		if (this.MobileTouchManager)

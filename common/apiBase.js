@@ -630,6 +630,18 @@
 		}
 		return res;
 	};
+	baseEditorsApi.prototype.isShowShapeAdjustments = function()
+	{
+		return true;
+	};
+	baseEditorsApi.prototype.isShowTableAdjustments = function()
+	{
+		return true;
+	};
+	baseEditorsApi.prototype.isShowEquationTrack = function()
+	{
+		return true;
+	};
 	baseEditorsApi.prototype.onPrint                             = function()
 	{
 		this.sendEvent("asc_onPrint");
@@ -1570,6 +1582,7 @@
 		oAdditionalData["nobase64"] = isNoBase64;
 		if (DownloadType.Print === downloadType)
 		{
+			oAdditionalData["withoutPassword"] = true;
 			oAdditionalData["inline"] = 1;
 		}
 
@@ -1648,7 +1661,7 @@
 	};
 	baseEditorsApi.prototype.asc_getPropertyEditorTextArts       = function()
 	{
-		return [AscCommon.g_oPresetTxWarpGroups, AscCommon.g_PresetTxWarpTypes];
+		return this.textArtPreviewManager.getWordArtPreviews();
 	};
 	// Add image
 	baseEditorsApi.prototype._addImageUrl                        = function()

@@ -2073,10 +2073,13 @@ CUniColor.prototype =
                 {
                     this.color = unicolor.color.createDuplicate();
                 }
-                //if(unicolor.Mods)
-                //{
-                //    this.Mods = unicolor.Mods.createDuplicate();
-                //}
+                if(unicolor.Mods)
+                {
+                    if(!this.Mods || this.Mods.Mods.length === 0)
+                    {
+                        this.Mods = unicolor.Mods.createDuplicate();
+                    }
+                }
             }
         }
     },
@@ -3635,7 +3638,7 @@ var  EFFECT_TYPE_BLEND			=	30;
     CInnerShdw.prototype.createDuplicate = function()
     {
         var oCopy = new CInnerShdw();
-        oCopy.color = oCopy.color.createDuplicate();
+        oCopy.color = this.color.createDuplicate();
         oCopy.blurRad = this.blurRad;
         oCopy.dir = this.dir;
         oCopy.dist = this.dist;

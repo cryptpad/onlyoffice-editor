@@ -2208,6 +2208,20 @@ CDocumentContentBase.prototype.UpdateLineNumbersInfo = function()
 		this.Content[nIndex].UpdateLineNumbersInfo();
 	}
 };
+CDocumentContentBase.prototype.GetPrevDocumentElement = function()
+{
+	if (this.Parent && this.Parent.GetPrevDocumentElement)
+		return this.Parent.GetPrevDocumentElement();
+
+	return null;
+};
+CDocumentContentBase.prototype.GetNextDocumentElement = function()
+{
+	if (this.Parent && this.Parent.GetNextDocumentElement)
+		return this.Parent.GetNextDocumentElement();
+
+	return null;
+};
 CDocumentContentBase.prototype.IsEmptyParagraphAfterTableInTableCell = function(nIndex)
 {
 	return false;

@@ -701,6 +701,8 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		this.reinit = false;
 
 		if (this.isResizeArrows || isChangeTheme) {
+			this.context.fillStyle = this.settings.scrollBackgroundColor;
+			this.context.fillRect(0,0,this.canvasW,this.canvasH);
 
 		    this.firstArrow = {arrowColor: _HEXTORGB_(this.settings.arrowColor).R, arrowBackColor: _HEXTORGB_(this.settings.scrollerColor).R, arrowStrokeColor: _HEXTORGB_(this.settings.strokeStyleNone).R};
 		    this.secondArrow = {arrowColor: _HEXTORGB_(this.settings.arrowColor).R, arrowBackColor: _HEXTORGB_(this.settings.scrollerColor).R, arrowStrokeColor: _HEXTORGB_(this.settings.strokeStyleNone).R};
@@ -1758,7 +1760,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 						this.that.scroller.x =  this.that.arrowPosition;
 					}
 				}
-				var destX = (this.that.scroller.x - this.that.arrowPosition + Math.round(dPR)) * this.that.scrollCoeff;
+				var destX = (this.that.scroller.x - this.that.arrowPosition) * this.that.scrollCoeff;
 
 				this.that._scrollH( this.that, evt, destX, isTop, isBottom );
 

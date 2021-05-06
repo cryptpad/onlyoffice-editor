@@ -1572,6 +1572,12 @@ Slide.prototype =
 
         this.draw(g, /*pageIndex*/0);
 
+        if (AscCommon.g_fontManager) {
+            AscCommon.g_fontManager.m_pFont = null;
+        }
+        if (AscCommon.g_fontManager2) {
+            AscCommon.g_fontManager2.m_pFont = null;
+        }
         AscCommon.IsShapeToImageConverter = false;
 
         var _ret = { ImageNative : _canvas, ImageUrl : "" };

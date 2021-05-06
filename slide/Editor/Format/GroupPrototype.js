@@ -128,7 +128,6 @@ CGroupShape.prototype.setDrawingBase = CShape.prototype.setDrawingBase;
 CGroupShape.prototype.deleteDrawingBase = CShape.prototype.deleteDrawingBase;
 CGroupShape.prototype.addToRecalculate = CShape.prototype.addToRecalculate;
 CGroupShape.prototype.convertPixToMM = CShape.prototype.convertPixToMM;
-CGroupShape.prototype.getCanvasContext = CShape.prototype.getCanvasContext;
 CGroupShape.prototype.getHierarchy = CShape.prototype.getHierarchy;
 CGroupShape.prototype.getIsSingleBody = CShape.prototype.getIsSingleBody;
 CGroupShape.prototype.getParentObjects = CShape.prototype.getParentObjects;

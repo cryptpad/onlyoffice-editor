@@ -1316,37 +1316,42 @@ function CDrawingDocument()
 			}
 			else
 			{
-				var _width  = parseInt(_div_elem.offsetWidth);
+				var _width = parseInt(_div_elem.offsetWidth);
 				var _height = parseInt(_div_elem.offsetHeight);
 				if (0 == _width)
 					_width = 300;
 				if (0 == _height)
 					_height = 80;
 
-				if (this.GuiCanvasTextProps.width != _width || this.GuiCanvasTextProps.height != _height)
-				{
-					this.GuiCanvasTextProps.width  = _width;
-					this.GuiCanvasTextProps.height = _height;
-				}
+				this.GuiCanvasTextProps.style.width = _width + "px";
+				this.GuiCanvasTextProps.style.height = _height + "px";
 			}
+
+			var old_width = this.GuiCanvasTextProps.width;
+			var old_height = this.GuiCanvasTextProps.height;
+			AscCommon.calculateCanvasSize(this.GuiCanvasTextProps);
+
+			if (old_width !== this.GuiCanvasTextProps.width || old_height !== this.GuiCanvasTextProps.height)
+				this.GuiLastTextProps = null;
 		}
 		else
 		{
-			this.GuiCanvasTextProps                = document.createElement('canvas');
+			this.GuiCanvasTextProps = document.createElement('canvas');
 			this.GuiCanvasTextProps.style.position = "absolute";
-			this.GuiCanvasTextProps.style.left     = "0px";
-			this.GuiCanvasTextProps.style.top      = "0px";
-			this.GuiCanvasTextProps.id             = this.GuiCanvasTextPropsId;
+			this.GuiCanvasTextProps.style.left = "0px";
+			this.GuiCanvasTextProps.style.top = "0px";
 
-			var _width  = parseInt(_div_elem.offsetWidth);
+			var _width = parseInt(_div_elem.offsetWidth);
 			var _height = parseInt(_div_elem.offsetHeight);
 			if (0 == _width)
 				_width = 300;
 			if (0 == _height)
 				_height = 80;
 
-			this.GuiCanvasTextProps.width  = _width;
-			this.GuiCanvasTextProps.height = _height;
+			this.GuiCanvasTextProps.style.width = _width + "px";
+			this.GuiCanvasTextProps.style.height = _height + "px";
+
+			AscCommon.calculateCanvasSize(this.GuiCanvasTextProps);
 
 			_div_elem.appendChild(this.GuiCanvasTextProps);
 		}
@@ -1437,6 +1442,7 @@ function CDrawingDocument()
 			par.Set_Pr(new CParaPr());
 			var _textPr        = new CTextPr();
 			_textPr.FontFamily = {Name : "Arial", Index : -1};
+			_textPr.FontSize = (AscCommon.AscBrowser.convertToRetinaValue(11 << 1, true) >> 0) * 0.5;
 
 			_textPr.Strikeout = this.GuiLastTextProps.Strikeout;
 
@@ -2340,7 +2346,7 @@ function CDrawingDocument()
 		if (pageIndex < 0 || pageIndex != this.SlideCurrent || Math.abs(width) < 0.001 || Math.abs(height) < 0.001)
 			return;
 
-		var dPR = window.devicePixelRatio;
+		var dPR = AscCommon.AscBrowser.retinaPixelRatio;
 		var xDst = this.SlideCurrectRect.left * dPR;
 		var yDst = this.SlideCurrectRect.top * dPR;
 		var wDst = (this.SlideCurrectRect.right - this.SlideCurrectRect.left) * dPR;
@@ -2354,10 +2360,10 @@ function CDrawingDocument()
 		if (this.m_oWordControl.IsSupportNotes && this.m_oWordControl.m_oNotesApi && this.m_oLogicDocument.IsFocusOnNotes())
 		{
 			overlay = this.m_oWordControl.m_oNotesApi.m_oOverlayApi;
-			xDst = AscCommon.AscBrowser.convertToRetinaValue(this.m_oWordControl.m_oNotesApi.OffsetX);
-			yDst = -this.m_oWordControl.m_oNotesApi.Scroll;
-			dKoefX = g_dKoef_mm_to_pix;
-			dKoefY = g_dKoef_mm_to_pix;
+			xDst = this.m_oWordControl.m_oNotesApi.OffsetX;
+			yDst = -dPR * this.m_oWordControl.m_oNotesApi.Scroll;
+			dKoefX = g_dKoef_mm_to_pix * dPR;
+			dKoefY = g_dKoef_mm_to_pix * dPR;
 		}
 
 		if (null == this.TextMatrix || global_MatrixTransformer.IsIdentity(this.TextMatrix))
@@ -2427,7 +2433,6 @@ function CDrawingDocument()
 			overlay.CheckPoint(x4, y4);
 
 			var ctx = overlay.m_oContext;
-			ctx.lineWidth = Math.round(dPR);
 			ctx.moveTo(x1, y1);
 			ctx.lineTo(x2, y2);
 			ctx.lineTo(x3, y3);
@@ -2789,9 +2794,9 @@ function CDrawingDocument()
 	};
 
 	// вот здесь весь трекинг
-	this.DrawTrack = function(type, matrix, left, top, width, height, isLine, canRotate, isNoMove)
+	this.DrawTrack = function(type, matrix, left, top, width, height, isLine, canRotate, isNoMove, isDrawHandles)
 	{
-		this.AutoShapesTrack.DrawTrack(type, matrix, left, top, width, height, isLine, canRotate, isNoMove);
+		this.AutoShapesTrack.DrawTrack(type, matrix, left, top, width, height, isLine, canRotate, isNoMove, isDrawHandles);
 	};
 
 	this.LockSlide = function(slideNum)
@@ -5049,9 +5054,27 @@ function CThumbnailsManager()
 			settings.screenH = word_control.m_oThumbnails.HtmlElement.height;
 			settings.cornerRadius = 1;
 			settings.slimScroll = true;
+			
 			settings.scrollBackgroundColor = GlobalSkin.BackgroundColorThumbnails;
 			settings.scrollBackgroundColorHover = GlobalSkin.BackgroundColorThumbnails;
 			settings.scrollBackgroundColorActive = GlobalSkin.BackgroundColorThumbnails;
+
+			settings.scrollerColor = GlobalSkin.ScrollerColor;
+			settings.scrollerHoverColor = GlobalSkin.ScrollerHoverColor;
+			settings.scrollerActiveColor = GlobalSkin.ScrollerActiveColor;
+
+			settings.arrowColor = GlobalSkin.ScrollArrowColor;
+			settings.arrowHoverColor = GlobalSkin.ScrollArrowHoverColor;
+			settings.arrowActiveColor = GlobalSkin.ScrollArrowActiveColor;
+
+			settings.strokeStyleNone = GlobalSkin.ScrollOutlineColor;
+			settings.strokeStyleOver = GlobalSkin.ScrollOutlineHoverColor;
+			settings.strokeStyleActive = GlobalSkin.ScrollOutlineActiveColor;
+
+			settings.targetColor = GlobalSkin.ScrollerTargetColor;
+			settings.targetHoverColor = GlobalSkin.ScrollerTargetHoverColor;
+			settings.targetActiveColor = GlobalSkin.ScrollerTargetActiveColor;
+
             settings.contentH = nHeightPix;
 
 			if (word_control.m_oScrollThumb_)
