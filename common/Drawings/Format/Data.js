@@ -6358,6 +6358,7 @@
 
     function Drawing() {
       CGroupShape.call(this);
+      this.spPr = {};
     }
 
     InitClass(Drawing, CGroupShape, AscDFH.historyitem_type_Drawing);
@@ -7216,6 +7217,7 @@
       this.dataModel = null;
       this.styleDef = null;
       this.parent = null;
+      this.spPr = {};
     }
 
     InitClass(SmartArt, CGroupShape, AscDFH.historyitem_type_SmartArt);
@@ -13582,8 +13584,8 @@
         if (spPrInfo.xfrm.rot) {
           xfrm.setRot(spPrInfo.xfrm.rot * AscFormat.cToRad);
         }
-        xfrm.setOffX(spPrInfo.xfrm.off.x / 36000);
-        xfrm.setOffY(spPrInfo.xfrm.off.y / 36000);
+        xfrm.setOffX(spPrInfo.xfrm.off.x / 36000 + 2342719 / 36000); // TODO: add xfrm from smartart
+        xfrm.setOffY(spPrInfo.xfrm.off.y / 36000 + 648645 / 36000);
         xfrm.setExtX(spPrInfo.xfrm.ext.cx / 36000);
         xfrm.setExtY(spPrInfo.xfrm.ext.cy / 36000);
 
@@ -14113,6 +14115,14 @@
         drawing.addToSpTree(0, oSp);
         oSp.setParent(parent);//TODO: parent of shape shuold be a slide
       });
+
+      var xfrm = new AscFormat.CXfrm();
+      xfrm.setOffX(0);
+      xfrm.setOffY(0);
+      xfrm.setExtX(8128000 / 36000);
+      xfrm.setExtY(5418667 / 36000);
+      drawing.spPr.xfrm = xfrm;
+
     }
 
 
@@ -14137,6 +14147,13 @@
           fillDataModel(smartart.getDataModel(), horizontalListOfPicture.dataModel);
           fillDrawing(smartart.getDrawing(), horizontalListOfPicture.drawing, _slide);
           smartart.addToSpTree(0, smartart.getDrawing());
+
+          var xfrm = new AscFormat.CXfrm();
+          xfrm.setOffX(2342719 / 36000);
+          xfrm.setOffY(648645 / 36000);
+          xfrm.setExtX(8128000 / 36000);
+          xfrm.setExtY(5418667 / 36000);
+          smartart.spPr.xfrm = xfrm;
           break;
       }
       _slide.addToSpTreeToPos(_slide.cSld.spTree.length, smartart);

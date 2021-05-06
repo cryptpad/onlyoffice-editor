@@ -2389,16 +2389,10 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
 
     var _rot_angle = AscFormat.normalizeRotate((AscFormat.isRealNumber(oBodyPr.rot) ? oBodyPr.rot : 0)*AscFormat.cToRad);
     if (this.txXfrm) {
-        if (this.txXfrm.rot) {
-            global_MatrixTransformer.RotateRadAppend(oMatrix, -this.txXfrm.rot);
+        if (this.txXfrm.rot === Math.PI) {
+            global_MatrixTransformer.Reflect(oMatrix, true, true);
         }
-        if (this.txXfrm.offX) {
-            global_MatrixTransformer.TranslateAppend(oMatrix, this.contentWidth, 0);
-        }
-        if (this.txXfrm.offY) {
-            global_MatrixTransformer.TranslateAppend(oMatrix, 0, 2 * this.y - this.txXfrm.offY);
-        }
-
+        global_MatrixTransformer.TranslateAppend(oMatrix, this.contentWidth, 0);
     }
 
     if(!AscFormat.fApproxEqual(_rot_angle, 0.0))
