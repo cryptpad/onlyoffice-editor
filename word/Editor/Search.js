@@ -1307,15 +1307,11 @@ ParaRun.prototype.Search = function(ParaSearch)
 						}
 					}
 				}
-				if (ParaSearch.Str[ParaSearch.SearchIndex] === "^" && ParaSearch.Str[ParaSearch.SearchIndex + 1] === "^")
+				if (ParaSearch.Str[ParaSearch.SearchIndex] === "^")
 				{
-					ParaSearch.SearchIndex++;
-					bCheck = ParaSearch.Check(ParaSearch.SearchIndex, oItem);
-				}
-				else if (ParaSearch.Str[ParaSearch.SearchIndex] === "^")
+					switch(ParaSearch.Str[ParaSearch.SearchIndex + 1])
 					{
-						if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "l")
-						{
+						case "l":
 							if (this.Content[nPos].Type === 16)
 							{
 								ParaSearch.SearchIndex++;
@@ -1325,23 +1321,21 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-							
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "t")
+							break;
+						
+						case "t":
+							if (this.Content[nPos].Type === 21)
 							{
-								if (this.Content[nPos].Type === 21)
-								{
-									ParaSearch.SearchIndex++;
-								}
-								else
-								{
-									ParaSearch.Reset();
-									bCheck = false;
-								}
-								
+								ParaSearch.SearchIndex++;
 							}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "p")
-						{
+							else
+							{
+								ParaSearch.Reset();
+								bCheck = false;
+							}
+							break;
+
+						case "p":
 							if (this.Content[nPos].Type === 4)
 							{
 								ParaSearch.SearchIndex++;
@@ -1351,9 +1345,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "?")
-						{
+							break;
+
+						case "?":
 							if (this.Content[nPos].Value !== undefined && this.Content[nPos].Value !== 32 &&
 								!((this.Content[nPos].Value >=1040 && this.Content[nPos].Value <= 1071)
 								|| (this.Content[nPos].Value >=1072 && this.Content[nPos].Value <= 1103)
@@ -1368,9 +1362,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "#")
-						{
+							break;
+
+						case "#":
 							if (this.Content[nPos].Value >= 48 && this.Content[nPos].Value <=57)
 							{
 								ParaSearch.SearchIndex++;
@@ -1380,14 +1374,14 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "$")
-						{
+							break;
+
+						case "$":
 							if ((this.Content[nPos].Value >=1040 && this.Content[nPos].Value <= 1071)
-								|| (this.Content[nPos].Value >=1072 && this.Content[nPos].Value <= 1103)
-									|| (this.Content[nPos].Value === 1105 || this.Content[nPos].Value === 1025)
-										|| (this.Content[nPos].Value >= 65 && this.Content[nPos].Value <= 90)
-											|| (this.Content[nPos].Value >= 97 && this.Content[nPos].Value <= 122))
+							|| (this.Content[nPos].Value >=1072 && this.Content[nPos].Value <= 1103)
+								|| (this.Content[nPos].Value === 1105 || this.Content[nPos].Value === 1025)
+									|| (this.Content[nPos].Value >= 65 && this.Content[nPos].Value <= 90)
+										|| (this.Content[nPos].Value >= 97 && this.Content[nPos].Value <= 122))
 							{
 								ParaSearch.SearchIndex++;
 							}
@@ -1396,9 +1390,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "n")
-						{
+							break;
+
+						case "n":
 							if (this.Content[nPos].BreakType === 3)
 							{
 								ParaSearch.SearchIndex++;
@@ -1408,9 +1402,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "e")
-						{
+							break;
+
+						case "e":
 							if (this.Content[nPos].Type === 64)
 							{
 								ParaSearch.SearchIndex++;
@@ -1420,9 +1414,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "d")
-						{
+							break;
+
+						case "d":
 							if (this.Content[nPos].Type === 69)
 							{
 								ParaSearch.SearchIndex++;
@@ -1432,9 +1426,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "f")
-						{
+							break;
+
+						case "f":
 							if (this.Content[nPos].Type === 57)
 							{
 								ParaSearch.SearchIndex++;
@@ -1444,9 +1438,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "g")
-						{
+							break;
+
+						case "g":
 							if (this.Content[nPos].DrawingType === 1)
 							{
 								ParaSearch.SearchIndex++;
@@ -1456,9 +1450,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "m")
-						{
+							break;
+
+						case "m":
 							if (this.Content[nPos].BreakType === 2)
 							{
 								ParaSearch.SearchIndex++;
@@ -1468,9 +1462,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "~")
-						{
+							break;
+
+						case "~":
 							if (this.Content[nPos].Value === 45)
 							{
 								ParaSearch.SearchIndex++;
@@ -1480,9 +1474,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "s")
-						{
+							break;
+
+						case "s":
 							if (this.Content[nPos].Value === 160)
 							{
 								ParaSearch.SearchIndex++;
@@ -1492,13 +1486,89 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else
-						{
+							break;
+
+						case "^":
+							if (this.Content[nPos].Value === 94)
+							{
+								ParaSearch.SearchIndex++;
+							}
+							else
+							{
+								ParaSearch.Reset();
+								bCheck = false;
+							}
+							break;
+
+						case "w":
+							if (this.Content[nPos].Value === 32 
+								|| this.Content[nPos].Value === 160 
+									|| this.Content[nPos].Type === 21)
+							{
+								ParaSearch.SearchIndex++;
+							}
+							else
+							{
+								ParaSearch.Reset();
+								bCheck = false;
+							}
+							break;
+
+						case "+":
+							if (this.Content[nPos].Value >=8208 && this.Content[nPos].Value <= 8213)
+							{
+								ParaSearch.SearchIndex++;
+							}
+							else
+							{
+								ParaSearch.Reset();
+								bCheck = false;
+							}
+							break;
+							
+						case "=":
+							if (this.Content[nPos].Value === 45)
+							{
+								ParaSearch.SearchIndex++;
+							}
+							else
+							{
+								ParaSearch.Reset();
+								bCheck = false;
+							}
+							break;
+
+						case "%":
+							if (this.Content[nPos].Value === 167)
+							{
+								ParaSearch.SearchIndex++;
+							}
+							else
+							{
+								ParaSearch.Reset();
+								bCheck = false;
+							}
+							break;
+
+						case "v":
+							if (this.Content[nPos].Value === 182)
+							{
+								ParaSearch.SearchIndex++;
+							}
+							else
+							{
+								ParaSearch.Reset();
+								bCheck = false;
+							}
+							break;
+						
+						default:
 							ParaSearch.Reset();
 							bCheck = false;
-						}
+							break;
+
 					}
+				}
 				if (bCheck)
 				{
 					if (1 === ParaSearch.GetPrefix(ParaSearch.SearchIndex))
@@ -1558,15 +1628,11 @@ ParaRun.prototype.Search = function(ParaSearch)
 				if (0 === ParaSearch.SearchIndex)
 					ParaSearch.StartPos = {Run : this, Pos : nPos};
                 
-				if (ParaSearch.Str[ParaSearch.SearchIndex] === "^" && ParaSearch.Str[ParaSearch.SearchIndex + 1] === "^")
+				if (ParaSearch.Str[ParaSearch.SearchIndex] === "^")
 				{
-					ParaSearch.SearchIndex++;
-					bCheck = ParaSearch.Check(ParaSearch.SearchIndex, oItem);
-				}
-				else if (ParaSearch.Str[ParaSearch.SearchIndex] === "^")
+					switch(ParaSearch.Str[ParaSearch.SearchIndex + 1])
 					{
-						if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "l")
-						{
+						case "l":
 							if (this.Content[nPos].Type === 16)
 							{
 								ParaSearch.SearchIndex++;
@@ -1576,23 +1642,21 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-							
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "t")
+							break;
+						
+						case "t":
+							if (this.Content[nPos].Type === 21)
 							{
-								if (this.Content[nPos].Type === 21)
-								{
-									ParaSearch.SearchIndex++;
-								}
-								else
-								{
-									ParaSearch.Reset();
-									bCheck = false;
-								}
-								
+								ParaSearch.SearchIndex++;
 							}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "p")
-						{
+							else
+							{
+								ParaSearch.Reset();
+								bCheck = false;
+							}
+							break;
+
+						case "p":
 							if (this.Content[nPos].Type === 4)
 							{
 								ParaSearch.SearchIndex++;
@@ -1602,9 +1666,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "?")
-						{
+							break;
+
+						case "?":
 							if (this.Content[nPos].Value !== undefined && this.Content[nPos].Value !== 32 &&
 								!((this.Content[nPos].Value >=1040 && this.Content[nPos].Value <= 1071)
 								|| (this.Content[nPos].Value >=1072 && this.Content[nPos].Value <= 1103)
@@ -1619,9 +1683,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "#")
-						{
+							break;
+
+						case "#":
 							if (this.Content[nPos].Value >= 48 && this.Content[nPos].Value <=57)
 							{
 								ParaSearch.SearchIndex++;
@@ -1631,14 +1695,14 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "$")
-						{
+							break;
+
+						case "$":
 							if ((this.Content[nPos].Value >=1040 && this.Content[nPos].Value <= 1071)
-								|| (this.Content[nPos].Value >=1072 && this.Content[nPos].Value <= 1103)
-									|| (this.Content[nPos].Value === 1105 || this.Content[nPos].Value === 1025)
-										|| (this.Content[nPos].Value >= 65 && this.Content[nPos].Value <= 90)
-											|| (this.Content[nPos].Value >= 97 && this.Content[nPos].Value <= 122))
+							|| (this.Content[nPos].Value >=1072 && this.Content[nPos].Value <= 1103)
+								|| (this.Content[nPos].Value === 1105 || this.Content[nPos].Value === 1025)
+									|| (this.Content[nPos].Value >= 65 && this.Content[nPos].Value <= 90)
+										|| (this.Content[nPos].Value >= 97 && this.Content[nPos].Value <= 122))
 							{
 								ParaSearch.SearchIndex++;
 							}
@@ -1647,9 +1711,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "n")
-						{
+							break;
+
+						case "n":
 							if (this.Content[nPos].BreakType === 3)
 							{
 								ParaSearch.SearchIndex++;
@@ -1659,9 +1723,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "e")
-						{
+							break;
+
+						case "e":
 							if (this.Content[nPos].Type === 64)
 							{
 								ParaSearch.SearchIndex++;
@@ -1671,9 +1735,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "d")
-						{
+							break;
+
+						case "d":
 							if (this.Content[nPos].Type === 69)
 							{
 								ParaSearch.SearchIndex++;
@@ -1683,9 +1747,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "f")
-						{
+							break;
+
+						case "f":
 							if (this.Content[nPos].Type === 57)
 							{
 								ParaSearch.SearchIndex++;
@@ -1695,9 +1759,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "g")
-						{
+							break;
+
+						case "g":
 							if (this.Content[nPos].DrawingType === 1)
 							{
 								ParaSearch.SearchIndex++;
@@ -1707,9 +1771,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "m")
-						{
+							break;
+
+						case "m":
 							if (this.Content[nPos].BreakType === 2)
 							{
 								ParaSearch.SearchIndex++;
@@ -1719,9 +1783,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "~")
-						{
+							break;
+
+						case "~":
 							if (this.Content[nPos].Value === 45)
 							{
 								ParaSearch.SearchIndex++;
@@ -1731,9 +1795,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else if (ParaSearch.Str[ParaSearch.SearchIndex + 1] === "s")
-						{
+							break;
+
+						case "s":
 							if (this.Content[nPos].Value === 160)
 							{
 								ParaSearch.SearchIndex++;
@@ -1743,13 +1807,89 @@ ParaRun.prototype.Search = function(ParaSearch)
 								ParaSearch.Reset();
 								bCheck = false;
 							}
-						}
-						else
-						{
+							break;
+
+						case "^":
+							if (this.Content[nPos].Value === 94)
+							{
+								ParaSearch.SearchIndex++;
+							}
+							else
+							{
+								ParaSearch.Reset();
+								bCheck = false;
+							}
+							break;
+
+						case "w":
+							if (this.Content[nPos].Value === 32 
+								|| this.Content[nPos].Value === 160 
+									|| this.Content[nPos].Type === 21)
+							{
+								ParaSearch.SearchIndex++;
+							}
+							else
+							{
+								ParaSearch.Reset();
+								bCheck = false;
+							}
+							break;
+
+						case "+":
+							if (this.Content[nPos].Value >=8208 && this.Content[nPos].Value <= 8213)
+							{
+								ParaSearch.SearchIndex++;
+							}
+							else
+							{
+								ParaSearch.Reset();
+								bCheck = false;
+							}
+							break;
+							
+						case "=":
+							if (this.Content[nPos].Value === 45)
+							{
+								ParaSearch.SearchIndex++;
+							}
+							else
+							{
+								ParaSearch.Reset();
+								bCheck = false;
+							}
+							break;
+
+						case "%":
+							if (this.Content[nPos].Value === 167)
+							{
+								ParaSearch.SearchIndex++;
+							}
+							else
+							{
+								ParaSearch.Reset();
+								bCheck = false;
+							}
+							break;
+
+						case "v":
+							if (this.Content[nPos].Value === 182)
+							{
+								ParaSearch.SearchIndex++;
+							}
+							else
+							{
+								ParaSearch.Reset();
+								bCheck = false;
+							}
+							break;
+						
+						default:
 							ParaSearch.Reset();
 							bCheck = false;
-						}
+							break;
+
 					}
+				}
 
 				if (1 === ParaSearch.GetPrefix(ParaSearch.SearchIndex))
 					ParaSearch.StartPosBuf.push({Run : this, Pos : nPos});
