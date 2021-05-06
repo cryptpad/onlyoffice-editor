@@ -6358,7 +6358,6 @@
 
     function Drawing() {
       CGroupShape.call(this);
-      this.spPr = {};
     }
 
     InitClass(Drawing, CGroupShape, AscDFH.historyitem_type_Drawing);
@@ -7217,7 +7216,6 @@
       this.dataModel = null;
       this.styleDef = null;
       this.parent = null;
-      this.spPr = {};
     }
 
     InitClass(SmartArt, CGroupShape, AscDFH.historyitem_type_SmartArt);
@@ -7297,6 +7295,9 @@
 
 
     SmartArt.prototype.isPlaceholder = function () {
+      return false;
+    }
+    SmartArt.prototype.canRotate = function () {
       return false;
     }
 
@@ -12102,7 +12103,7 @@
                 },
                 ext: {
                   cy: 2438400,
-                  cx: 8218000,
+                  cx: 8128000,
                 }
               },
               prstGeom: {
@@ -14114,15 +14115,22 @@
         var oSp = createSp(sp, parent);
         drawing.addToSpTree(0, oSp);
         oSp.setParent(parent);//TODO: parent of shape shuold be a slide
+        oSp.setGroup(drawing);
       });
 
+      drawing.setSpPr(new AscFormat.CSpPr());
+      drawing.spPr.setParent(drawing);
       var xfrm = new AscFormat.CXfrm();
       xfrm.setOffX(0);
       xfrm.setOffY(0);
       xfrm.setExtX(8128000 / 36000);
       xfrm.setExtY(5418667 / 36000);
-      drawing.spPr.xfrm = xfrm;
-
+      xfrm.setChOffX(0);
+      xfrm.setChOffY(0);
+      xfrm.setChExtX(8128000 / 36000);
+      xfrm.setChExtY(5418667 / 36000);
+      drawing.spPr.setXfrm(xfrm);
+      xfrm.setParent(drawing.spPr);
     }
 
 
@@ -14147,13 +14155,20 @@
           fillDataModel(smartart.getDataModel(), horizontalListOfPicture.dataModel);
           fillDrawing(smartart.getDrawing(), horizontalListOfPicture.drawing, _slide);
           smartart.addToSpTree(0, smartart.getDrawing());
-
+          smartart.getDrawing().setGroup(smartart);
+          smartart.setSpPr(new AscFormat.CSpPr());
+          smartart.spPr.setParent(smartart);
           var xfrm = new AscFormat.CXfrm();
           xfrm.setOffX(2342719 / 36000);
           xfrm.setOffY(648645 / 36000);
           xfrm.setExtX(8128000 / 36000);
           xfrm.setExtY(5418667 / 36000);
-          smartart.spPr.xfrm = xfrm;
+          xfrm.setChOffX(2342719 / 36000);
+          xfrm.setChOffY(648645 / 36000);
+          xfrm.setChExtX(8128000 / 36000);
+          xfrm.setChExtY(5418667 / 36000);
+          smartart.spPr.setXfrm(xfrm);
+          xfrm.setParent(smartart.spPr);
           break;
       }
       _slide.addToSpTreeToPos(_slide.cSld.spTree.length, smartart);
