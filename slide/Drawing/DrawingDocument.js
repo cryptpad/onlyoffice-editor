@@ -4800,25 +4800,12 @@ function CThumbnailsManager()
 
 			page.Draw(context, page.left, page.top, page.right - page.left, page.bottom - page.top);
 
-			/*
-			 if (!page.IsSelected)
-			 g.b_color1(0, 0, 0, 255);
-			 else
-			 g.b_color1(210, 72, 72, 255);
-			 */
+			var text_color = null;
 			if (!page.IsLocked)
-			{
-				/*
-				if (i == this.m_oWordControl.m_oDrawingDocument.SlideCurrent || !page.IsSelected)
-					g.b_color1(0, 0, 0, 255);
-				else
-					g.b_color1(191, 191, 191, 255);
-				*/
-				// теперь рисуем не выделяя текущий
-				g.b_color1(0, 0, 0, 255);
-			}
+				text_color = AscCommon.RgbaHexToRGBA(AscCommon.GlobalSkin.ThumbnailsPageNumberText);
 			else
-				g.b_color1(211, 79, 79, 255);
+				text_color = AscCommon.RgbaHexToRGBA(AscCommon.GlobalSkin.ThumbnailsLockColor);
+			g.b_color1(text_color.R, text_color.G, text_color.B, 255);
 
 			var _bounds = g.t("" + (i + 1), (_digit_distance - num_slide_text_width) / 2, (page.top * g_dKoef_pix_to_mm + 3), true);
 			if (_logicDocument.Slides[i] && !_logicDocument.Slides[i].isVisible())
@@ -4855,14 +4842,9 @@ function CThumbnailsManager()
 		context.fillStyle = GlobalSkin.BackgroundColorThumbnails;
 		context.fillRect(0, 0, _width, _height);
 
-		//var _style_select     = "#FFE063";
-		//var _style_focus      = "#E8EAEC";
-		//var _style_select_focus = "#FFEF9D";
-
-		//var _style_select       = "#E98859";
-		var _style_select       = "#848484";
-		var _style_focus        = "#CFCFCF";
-		var _style_select_focus = "#848484";
+		var _style_select       = GlobalSkin.ThumbnailsPageOutlineActive;
+		var _style_focus        = GlobalSkin.ThumbnailsPageOutlineHover;
+		var _style_select_focus = GlobalSkin.ThumbnailsPageOutlineActive;
 
 		// selected pages
 		context.fillStyle = _style_select;
@@ -4873,26 +4855,8 @@ function CThumbnailsManager()
 
 			if (page.IsLocked)
 			{
-				var _lock_focus = "#D34F4F";
-				var _lock_color = "#D34F4F";
-				/*
-				 if (page.IsSelected && page.IsFocused)
-				 {
-				 this.FocusRectFlat("#CA2B1F", context, page.left, page.top, page.right, page.bottom);
-				 }
-				 else if (page.IsSelected)
-				 {
-				 this.FocusRectFlat("#9F1F15", context, page.left, page.top, page.right, page.bottom);
-				 }
-				 else if (page.IsFocused)
-				 {
-				 this.FocusRectFlat("#FF5E52", context, page.left, page.top, page.right, page.bottom);
-				 }
-				 else
-				 {
-				 this.FocusRectFlat("#EE3525", context, page.left, page.top, page.right, page.bottom);
-				 }
-				 */
+				var _lock_focus = AscCommon.GlobalSkin.ThumbnailsLockColor;
+				var _lock_color = AscCommon.GlobalSkin.ThumbnailsLockColor;
 
 				if (page.IsFocused)
 				{
