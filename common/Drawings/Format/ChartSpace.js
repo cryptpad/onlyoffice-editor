@@ -12182,6 +12182,9 @@ var GLOBAL_PATH_COUNT = 0;
     CChartSpace.prototype.canChangeToStockChart = function() {
         return this.chart.plotArea.canChangeToStockChart();
     };
+    CChartSpace.prototype.canChangeToComboChart = function() {
+        return this.chart.plotArea.canChangeToComboChart();
+    };
     CChartSpace.prototype.checkDlblsPosition = function() {
         this.chart.checkDlblsPosition();
     };

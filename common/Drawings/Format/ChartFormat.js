@@ -4748,6 +4748,13 @@
         return oBarChart;
 
     };
+    CPlotArea.prototype.canChangeToComboChart = function() {
+        var aSeries = this.getAllSeries();
+        if(aSeries.length < 2) {
+            return false;
+        }
+        return true;
+    }
     CPlotArea.prototype.switchToCombo = function(nType) {
         if(this.charts.length < 1) {
             return;
@@ -4757,10 +4764,11 @@
             return;
         }
         //TODO: Use type
-        var aSeries = this.getAllSeries(), oTypedChart;
-        if(aSeries.length < 2) {
+        if(!this.canChangeToComboChart()) {
             return;
         }
+        var aSeries = this.getAllSeries();
+        var oTypedChart;
         var nAx, oAxis, aAllAxes, aFirstAxes, aSecondAxes, aFirstChartSeries, aSecondChartSeries;
         var aAllCharts = [], nChart;
         var oBarChart, oLineChart, oAreaChart;
@@ -5119,17 +5127,7 @@
         if(nType === Asc.c_oAscChartTypeSettings.stock) {
             return true;
         }
-        var oTestDataRefs = new AscFormat.CChartDataRefs(null);
-
-        var oDataRefs = oChartSpace.getDataRefs();
-        var sRange = oDataRefs.getRange();
-        var nInfo = oDataRefs.getInfo();
-        var bHorValue = (nInfo & AscFormat.SERIES_FLAG_HOR_VALUE) !== 0;
-        var nTestResult = oTestDataRefs.checkDataRange(sRange, bHorValue, Asc.c_oAscChartTypeSettings.stock);
-        if(nTestResult === Asc.c_oAscError.ID.No) {
-            return true;
-        }
-        return false;
+        return (this.getAllSeries().length === AscFormat.MIN_STOCK_COUNT);
     };
     CPlotArea.prototype.changeChartType = function(nType) {
         if(!this.parent) {
