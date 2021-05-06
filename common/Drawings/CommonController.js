@@ -2225,8 +2225,11 @@ DrawingObjectsController.prototype =
             }
         }
         else if (this.selection.geometrySelection) {
-            this.changeCurrentState(new AscFormat.PreGeometryEditState(this));
-            this.selection.geometrySelection.drawGeometryEdit(drawingDocument);
+           if(this.curState instanceof AscFormat.NullState) {
+               this.changeCurrentState(new AscFormat.PreGeometryEditState(this));
+           }
+               this.selection.geometrySelection.drawGeometryEdit(drawingDocument);
+
         }
         else if(this.selection.groupSelection)
         {
@@ -2283,7 +2286,7 @@ DrawingObjectsController.prototype =
         }
         if(this.document)
         {
-            if(this.selectedObjects.length === 1 && this.selectedObjects[0].parent && !this.selectedObjects[0].parent.Is_Inline())
+            if(this.selectedObjects.length === 1 && this.selectedObjects[0].parent && !this.selectedObjects[0].parent.Is_Inline() && !this.selection.geometrySelection)
             {
                 var anchor_pos;
                 if(this.arrTrackObjects.length === 1 && !(this.arrTrackObjects[0] instanceof TrackPointWrapPointWrapPolygon || this.arrTrackObjects[0] instanceof  TrackNewPointWrapPolygon))

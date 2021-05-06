@@ -2793,24 +2793,29 @@ CAutoshapeTrack.prototype =
         var dKoefY = hDst / this.CurrentPageInfo.height_mm;
         var matrix =  shape.getTransformMatrix();
             geom.gmEditList = [];
+            for(var i = 0; i < geom.ellipsePointsList.length; i++) {
+                geom.ellipsePointsList[i].type = 2;
+            }
             geom.gmEditList = geom.gmEditList.concat(geom.ellipsePointsList);
         for (var i = 0; i < geom.pathLst.length; i++) {
             var pathPoints = geom.pathLst[i].ArrPathCommand;
+            var count = 0;
             pathPoints.forEach(function (elem) {
                 switch (elem.id) {
                     case 0:
-                        geom.gmEditList.push({X: elem.X, Y: elem.Y});
+                        geom.gmEditList.push({X: elem.X, Y: elem.Y, pathCommand: count});
+                        break;
                     case 1:
-                        geom.gmEditList.push({X: elem.X, Y: elem.Y});
+                        geom.gmEditList.push({X: elem.X, Y: elem.Y, pathCommand: count});
                         break;
                     case 3:
-                        geom.gmEditList.push({X: elem.X1, Y: elem.Y1});
+                        geom.gmEditList.push({X: elem.X1, Y: elem.Y1, pathCommand: count});
                         break;
                     case 4:
-                        geom.gmEditList.push({X: elem.X2, Y: elem.Y2});
+                        geom.gmEditList.push({X: elem.X2, Y: elem.Y2, pathCommand: count});
                         break;
-
                 }
+                ++count;
             });
         }
 

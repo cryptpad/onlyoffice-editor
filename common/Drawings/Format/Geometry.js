@@ -807,6 +807,7 @@ function Geometry()
     this.ahPolarLst     = [];
 
     this.gmEditList = [];
+    this.gmEditPoint = null;
     this.ellipsePointsList = []
     this.pathLst        = [];
     this.preset = null;
@@ -894,6 +895,10 @@ Geometry.prototype=
         for(i = 0; i < this.pathLst.length; ++i)
         {
             g.AddPath(this.pathLst[i].createDuplicate());
+        }
+        for(i = 0; i < this.gmEditList.length; ++i)
+        {
+            g.AddPath(this.gmEditList[i].createDuplicate());
         }
         if(this.rectS)
         {
@@ -1352,16 +1357,17 @@ Geometry.prototype=
 
     hitToGeomEdit: function(x, y, distance) {
         var dx, dy;
-          for(var i=0; i < this.gmEditList.length; i++)
-          {
+          for(var i=0; i < this.gmEditList.length; i++) {
               dx=x-this.gmEditList[i].X;
               dy=y-this.gmEditList[i].Y;
 
               if(Math.sqrt(dx*dx+dy*dy) < distance)
               {
-                  return {hit: true};
+                  this.gmEditPoint = {x: this.gmEditList[i].X, y: this.gmEditList[i].Y, pathCommand: this.gmEditList[i].pathCommand}
+                  return {hit: true, objectId: this.Id};
               }
           }
+           return  {hit: false};
     },
 
     getArrayPolygonsByPaths: function(epsilon)

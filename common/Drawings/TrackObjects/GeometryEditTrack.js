@@ -34,16 +34,37 @@
 (function(window, undefined) {
 
     function EditShapeGeometryTrack(originalShape) {
-        this.geometry = originalShape.calcGeometry.createDuplicate();
+        this.geometry = originalShape.calcGeometry;
+        this.originalShape = originalShape;
+        this.shapeWidth = originalShape.extX;
+        this.shapeHeight = originalShape.extY;
+        var oPen = originalShape.pen;
+        var oBrush = originalShape.brush;
+        this.transform = originalShape.transform.CreateDublicate();
+        this.overlayObject = new AscFormat.OverlayObject(this.geometry, this.shapeWidth, this.shapeHeight, oBrush, oPen, this.transform);
+        this.invertTransform = originalShape.invertTransform;
     }
 
     EditShapeGeometryTrack.prototype.draw = function(overlay, transform)
     {
+        if(AscFormat.isRealNumber(this.originalShape.selectStartPage) && overlay.SetCurrentPage)
+        {
+            overlay.SetCurrentPage(this.originalShape.selectStartPage);
+        }
+        this.overlayObject.draw(overlay);
     };
 
     EditShapeGeometryTrack.prototype.track = function(posX, posY) {
-        this.geometry.Recalculate(posX, posY);
+        var invert_transform = this.invertTransform;
+        var _relative_x = invert_transform.TransformPointX(posX, posY);
+        var _relative_y = invert_transform.TransformPointY(posX, posY);
+
+        this.geometry.pathLst[0].ArrPathCommand[this.geometry.gmEditPoint.pathCommand].X = _relative_x;
+        this.geometry.pathLst[0].ArrPathCommand[this.geometry.gmEditPoint.pathCommand].Y = _relative_y;
     }
+    EditShapeGeometryTrack.prototype.getBounds = function() {
+    }
+
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].EditShapeGeometryTrack = EditShapeGeometryTrack;
 })(window);
