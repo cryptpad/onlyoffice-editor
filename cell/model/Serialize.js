@@ -152,6 +152,11 @@
         Aligment: 13,
         Protection: 14
     };
+	var c_oSerProtectionTypes =
+    {
+        Hidden: 0,
+        Locked: 1
+    };
     /** @enum */
     var c_oSerAligmentTypes =
     {
@@ -2564,8 +2569,29 @@
 					this.memory.WriteByte(c_oSerPropLenType.Long);
 					this.memory.WriteLong(xf.XfId);
 				}
+				if (null != xf.locked || null != xf.hidden)
+				{
+					this.memory.WriteByte(c_oSerXfsTypes.Protection);
+					this.memory.WriteByte(c_oSerPropLenType.Variable);
+					this.bs.WriteItemWithLength(function(){oThis.WriteProtection(xf);});
+                }
             }
         };
+		this.WriteProtection = function(xf)
+		{
+			if(null != xf.hidden)
+			{
+				this.memory.WriteByte(c_oSerProtectionTypes.Hidden);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteByte(xf.hidden);
+			}
+			if(null != xf.locked)
+			{
+				this.memory.WriteByte(c_oSerProtectionTypes.Locked);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteByte(xf.locked);
+			}
+		};
         this.WriteAlign = function(align)
         {
             if(null != align.hor)
@@ -6801,10 +6827,27 @@
             else if (c_oSerXfsTypes.ApplyProtection == type) {
 				oXfs.applyProtection = this.stream.GetBool();
             }
+            else if ( c_oSerXfsTypes.Protection == type )
+			{
+				res = this.bcr.Read2Spreadsheet(length, function(t,l){
+					return oThis.ReadProtection(t,l,oXfs);
+				});
+			}
             else
                 res = c_oSerConstants.ReadUnknown;
             return res;
         };
+		this.ReadProtection = function(type, length, oXfs)
+		{
+			var res = c_oSerConstants.ReadOk;
+			if ( c_oSerProtectionTypes.Hidden == type )
+				oXfs.hidden = this.stream.GetBool();
+			else if ( c_oSerAligmentTypes.Locked == type )
+				oXfs.locked = this.stream.GetBool();
+			else
+				res = c_oSerConstants.ReadUnknown;
+			return res;
+		};
         this.ReadAligment = function(type, length, oAligment)
         {
             var res = c_oSerConstants.ReadOk;
