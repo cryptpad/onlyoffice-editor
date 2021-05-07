@@ -1399,7 +1399,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
                 Bold: true,
                 FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
                 Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
-            },
+            };
             style.TableLastRow.Set_FromObject(styleObject);
         styleObject.TableCellPr.TableCellBorders =
             {
@@ -2536,8 +2536,8 @@ CShowPr.prototype.Write_ToBinary = function (w) {
         if (!this.show.showAll) {
             if (this.show.range) {
                 Flags |= 32;
-                w.WriteLong(this.range.start);
-                w.WriteLong(this.range.end);
+                w.WriteLong(this.show.range.start);
+                w.WriteLong(this.show.range.end);
             } else if (AscFormat.isRealNumber(this.show.custShow)) {
                 Flags |= 64;
                 w.WriteLong(this.show.custShow);
@@ -5121,7 +5121,7 @@ CPresentation.prototype.addChart = function (binary, isFromInterface, Placeholde
             _this.Document_UpdateInterfaceState();
             _this.CheckEmptyPlaceholderNotes();
 
-            this.DrawingDocument.m_oWordControl.OnUpdateOverlay();
+            _this.DrawingDocument.m_oWordControl.OnUpdateOverlay();
         }, false, false, false);
     } else {
         _this.Recalculate();
