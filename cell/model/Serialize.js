@@ -6396,6 +6396,12 @@
 				//PivotButton
 				if(null != oCellStyleXfs.PivotButton)
 					newXf.PivotButton = oCellStyleXfs.PivotButton;
+				// hidden
+				if(null != oCellStyleXfs.hidden)
+					newXf.hidden = oCellStyleXfs.hidden;
+				// locked
+				if(null != oCellStyleXfs.locked)
+					newXf.locked = oCellStyleXfs.locked;
                 // align
                 if(null != oCellStyleXfs.align)
 					newXf.align = oCellStyleXfs.align;
@@ -6468,6 +6474,12 @@
 					newXf.QuotePrefix = xfs.QuotePrefix;
 				if(null != xfs.PivotButton)
 					newXf.PivotButton = xfs.PivotButton;
+				// hidden
+				if(null != xfs.hidden)
+					newXf.hidden = xfs.hidden;
+				// locked
+				if(null != xfs.locked)
+					newXf.locked = xfs.locked;
                 if(null != xfs.align)
 					newXf.align = xfs.align;
                 if (null !== xfs.XfId) {
@@ -10846,6 +10858,12 @@
 				// PivotButton
 				if(null != oStyleObject.xfs.PivotButton)
 					newXf.PivotButton = oStyleObject.xfs.PivotButton;
+				// hidden
+				if(null != oStyleObject.xfs.hidden)
+					newXf.hidden = oStyleObject.xfs.hidden;
+				// locked
+				if(null != oStyleObject.xfs.locked)
+					newXf.locked = oStyleObject.xfs.locked;
                 // align
                 if(null != oStyleObject.xfs.align)
 					newXf.align = g_StyleCache.addAlign(oStyleObject.xfs.align);
