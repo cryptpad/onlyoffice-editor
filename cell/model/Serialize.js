@@ -1026,27 +1026,27 @@
 	};
 
 	//TODO в x2t следующий набор констант
-    //самое главное, что отсутвует LockStructure
-	/*namespace c_oSerWorkbookProtection{ enum c_oSerWorkbookProtection
-		{
-			AlgorithmName = 0,
-				SpinCount = 1,
-				HashValue = 2,
-				SaltValue = 3
-		}; }*/
+	/*	namespace c_oSerWorkbookProtection {enum c_oSerWorkbookProtection{
+     AlgorithmName = 0,
+     SpinCount = 1,
+     HashValue = 2,
+     SaltValue = 3,
+     LockStructure = 4,
+     LockWindows = 5
+     }*/
 
 	var c_oSerWorkbookProtection = {
 		WorkbookAlgorithmName: 0,
 		WorkbookSpinCount: 1,
 		WorkbookHashValue: 2,
 		WorkbookSaltValue: 3,
-		RevisionsAlgorithmName: 4,
-		RevisionsHashValue: 5,
-		RevisionsSaltValue: 6,
-		RevisionsSpinCount: 7,
-		LockRevision: 8,
-		LockStructure: 9,
-		LockWindows: 10
+		LockStructure: 4,
+		LockWindows: 5,
+		RevisionsAlgorithmName: 6,
+		RevisionsHashValue: 7,
+		RevisionsSaltValue: 8,
+		RevisionsSpinCount: 9,
+		LockRevision: 10
 	};
 	var c_oSerProtectedAlgorithmNameTypes = {
 		MD2: 1,
