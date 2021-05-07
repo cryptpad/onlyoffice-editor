@@ -3397,6 +3397,21 @@
 		this.hideVideoControl();
 	};
 
+	// ---------------------------------------------------- wopi ---------------------------------------------
+	baseEditorsApi.prototype.asc_wopi_renameFile = function(name) {
+		var t = this;
+		var callback = function(isTimeout, response) {
+			if (response) {
+				t.CoAuthoringApi.onMeta({'title': name});
+			} else {
+				t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
+			}
+		};
+		if (!this.CoAuthoringApi.callPRC({'type': 'wopi_RenameFile', 'name': name}, 1000, callback)) {
+			callback(false, undefined);
+		}
+	};
+
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommon']                = window['AscCommon'] || {};
 	window['AscCommon'].baseEditorsApi = baseEditorsApi;
@@ -3429,6 +3444,7 @@
 	prot['asc_getShortcutAction'] = prot.asc_getShortcutAction;
 	prot['asc_removeShortcuts'] = prot.asc_removeShortcuts;
 	prot['asc_addCustomShortcutInsertSymbol'] = prot.asc_addCustomShortcutInsertSymbol;
+	prot['asc_wopi_renameFile'] = prot.asc_wopi_renameFile;
 
 	prot['asc_isCrypto'] = prot.asc_isCrypto;
 
