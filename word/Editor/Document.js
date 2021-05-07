@@ -24791,7 +24791,7 @@ CDocument.prototype.GetSectionsByApplyType = function(nType)
 
 		var oSectPr = oParagraph.GetDocumentSectPr();
 		if (!oSectPr)
-			[];
+			return [];
 
 		var nIndex = this.SectionsInfo.Find(oSectPr);
 		if (-1 === nIndex)
