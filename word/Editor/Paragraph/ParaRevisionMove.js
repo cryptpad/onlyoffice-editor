@@ -280,7 +280,7 @@ CRunRevisionMove.prototype.SetParent = function(oParent)
 	else
 	{
 		this.Run = null;
-		oManager
+		oManager.UnregisterMoveMark(this);
 	}
 };
 CRunRevisionMove.prototype.GetMarkId = function()

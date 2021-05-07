@@ -8109,7 +8109,7 @@ CTable.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedPar
 		if (this.CurCell)
 			return this.CurCell.Content.GetCurrentParagraph(bIgnoreSelection, null, oPr);
 		else
-			null;
+			return null;
 	}
 	else
 	{
