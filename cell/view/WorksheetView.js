@@ -14343,87 +14343,92 @@
 		return this._replaceCellsText(aReplaceCells, options, lockDraw, callback);
 	};
 
-        WorksheetView.prototype._replaceCellsText = function (aReplaceCells, options, lockDraw, callback) {
-            var t = this;
-            if (this.model.inPivotTable(aReplaceCells)) {
-				this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot,
-					c_oAscError.Level.NoCritical);
-                options.error = true;
-				this.draw(lockDraw);
-                return callback(options);
-            }
+	WorksheetView.prototype._replaceCellsText = function (aReplaceCells, options, lockDraw, callback) {
+		var t = this;
+		if (this.model.inPivotTable(aReplaceCells)) {
+			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot,
+				c_oAscError.Level.NoCritical);
+			options.error = true;
+			this.draw(lockDraw);
+			return callback(options);
+		}
 
-            options.indexInArray = 0;
-            options.countFind = aReplaceCells.length;
-            options.countReplace = 0;
-            if (options.isReplaceAll && false === this.collaborativeEditing.getCollaborativeEditing()) {
-                this._isLockedCells(aReplaceCells, /*subType*/null, function () {
-                    t._replaceCellText(aReplaceCells, options, lockDraw, callback, true);
-                });
-            } else {
-                this._replaceCellText(aReplaceCells, options, lockDraw, callback, false);
-            }
-        };
+		options.indexInArray = 0;
+		options.countFind = aReplaceCells.length;
+		options.countReplace = 0;
+		if (options.isReplaceAll && false === this.collaborativeEditing.getCollaborativeEditing()) {
+			this._isLockedCells(aReplaceCells, /*subType*/null, function () {
+				t._replaceCellText(aReplaceCells, options, lockDraw, callback, true);
+			});
+		} else {
+			this._replaceCellText(aReplaceCells, options, lockDraw, callback, false);
+		}
+	};
 
-        WorksheetView.prototype._replaceCellText = function (aReplaceCells, options, lockDraw, callback, oneUser) {
-                var t = this;
-                var needLockCell = !oneUser;
-                var isSC = options.isSpellCheck;
-                if (options.indexInArray >= aReplaceCells.length) {
-                    this.draw(lockDraw);
-                    return callback(options);
-                }
-            if (!oneUser && isSC) {
-                needLockCell = false;
-                var cell = aReplaceCells[options.indexInArray];
-                ++options.indexInArray;
-                var cellValue = t._getVisibleCell(cell.c1, cell.r1).getValueForEdit();
-                var newCellValue = AscCommonExcel.replaceSpellCheckWords(cellValue, options);
-                if (cellValue !== newCellValue) {
-                    needLockCell = true;
-                }
-                --options.indexInArray;
-            }
-                var onReplaceCallback = function (isSuccess) {
-                    var cell = aReplaceCells[options.indexInArray];
-                    ++options.indexInArray;
-                    if (false !== isSuccess) {
-						var c = t._getVisibleCell(cell.c1, cell.r1);
-						var cellValue = c.getValueForEdit();
-                        var v, newValue, oldCellValue = cellValue;
-                    	// Check replace cell for spell. Replace full cell to fix skip first words (otherwise replace)
-                    	if (!isSC) {
-							cellValue = cellValue.replace(options.findRegExp, function () {
-								++options.countReplace;
-								return options.replaceWith;
-							});
-						} else {
-                           cellValue = AscCommonExcel.replaceSpellCheckWords(cellValue, options);
-						}
+	WorksheetView.prototype._replaceCellText = function (aReplaceCells, options, lockDraw, callback, oneUser) {
+		var t = this;
+		var needLockCell = !oneUser;
+		var isSC = options.isSpellCheck;
+		if (options.indexInArray >= aReplaceCells.length) {
+			//49467 - проблема в том, что пересчёт запускается после отрисовки на endTransaction
+			//либо перерисовку переносить после endTransaction, либо всегда переесчёт запускать здесь
+			//TODO необходимо перепроверить
+			//this.model.workbook.dependencyFormulas.unlockRecal();
+			this.draw(lockDraw);
+			return callback(options);
+		}
+		if (!oneUser && isSC) {
+			needLockCell = false;
+			var cell = aReplaceCells[options.indexInArray];
+			++options.indexInArray;
+			var cellValue = t._getVisibleCell(cell.c1, cell.r1).getValueForEdit();
+			var newCellValue = AscCommonExcel.replaceSpellCheckWords(cellValue, options);
+			if (cellValue !== newCellValue) {
+				needLockCell = true;
+			}
+			--options.indexInArray;
+		}
+		var onReplaceCallback = function (isSuccess) {
+			var cell = aReplaceCells[options.indexInArray];
+			++options.indexInArray;
+			if (false !== isSuccess) {
+				var c = t._getVisibleCell(cell.c1, cell.r1);
+				var cellValue = c.getValueForEdit();
+				var v, newValue, oldCellValue = cellValue;
+				// Check replace cell for spell. Replace full cell to fix skip first words (otherwise replace)
+				if (!isSC) {
+					cellValue = cellValue.replace(options.findRegExp, function () {
+						++options.countReplace;
+						return options.replaceWith;
+					});
+				} else {
+					cellValue = AscCommonExcel.replaceSpellCheckWords(cellValue, options);
+				}
 
-                    	var isNeedToSave = oldCellValue === cellValue ? false : true;
-						// get first fragment and change its text
-						v = c.getValueForEdit2().slice(0, 1);
-						// Создаем новый массив, т.к. getValueForEdit2 возвращает ссылку
-						newValue = [];
-						newValue[0] = new AscCommonExcel.Fragment({ text: cellValue, format: v[0].format.clone() });
+				var isNeedToSave = oldCellValue === cellValue ? false : true;
+				// get first fragment and change its text
+				v = c.getValueForEdit2().slice(0, 1);
+				// Создаем новый массив, т.к. getValueForEdit2 возвращает ссылку
+				newValue = [];
+				newValue[0] = new AscCommonExcel.Fragment({text: cellValue, format: v[0].format.clone()});
 
-						if (isNeedToSave && !t._saveCellValueAfterEdit(c, newValue, /*flags*/undefined, /*isNotHistory*/true,
-							/*lockDraw*/true)) {
-							options.error = true;
-							t.draw(lockDraw);
-							return callback(options);
-						}
-                    }
+				if (isNeedToSave &&
+					!t._saveCellValueAfterEdit(c, newValue, /*flags*/undefined, /*isNotHistory*/true, /*lockDraw*/
+						true)) {
+					options.error = true;
+					t.draw(lockDraw);
+					return callback(options);
+				}
+			}
 
-                    window.setTimeout(function () {
-                        t._replaceCellText(aReplaceCells, options, lockDraw, callback, oneUser);
-                    }, 1);
-                };
-
-            return !needLockCell ? onReplaceCallback(true) :
-                this._isLockedCells(aReplaceCells[options.indexInArray], /*subType*/null, onReplaceCallback);
+			window.setTimeout(function () {
+				t._replaceCellText(aReplaceCells, options, lockDraw, callback, oneUser);
+			}, 1);
 		};
+
+		return !needLockCell ? onReplaceCallback(true) :
+			this._isLockedCells(aReplaceCells[options.indexInArray], /*subType*/null, onReplaceCallback);
+	};
 
 	WorksheetView.prototype.findCell = function (reference) {
 		var mc;

@@ -2659,6 +2659,7 @@
 	prot['asc_getContainsText'] = prot.asc_getContainsText;
 	prot['asc_getTimePeriod'] = prot.asc_getTimePeriod;
 	prot['asc_getOperator'] = prot.asc_getOperator;
+	prot['asc_getPriority'] = prot.asc_getPriority;
 	prot['asc_getRank'] = prot.asc_getRank;
 	prot['asc_getBottom'] = prot.asc_getBottom;
 	prot['asc_getPercent'] = prot.asc_getPercent;
@@ -2677,6 +2678,7 @@
 	prot['asc_setContainsText'] = prot.asc_setContainsText;
 	prot['asc_setTimePeriod'] = prot.asc_setTimePeriod;
 	prot['asc_setOperator'] = prot.asc_setOperator;
+	prot['asc_setPriority'] = prot.asc_setPriority;
 	prot['asc_setRank'] = prot.asc_setRank;
 	prot['asc_setBottom'] = prot.asc_setBottom;
 	prot['asc_setPercent'] = prot.asc_setPercent;

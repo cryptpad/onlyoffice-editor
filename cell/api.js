@@ -4875,6 +4875,10 @@ var editor;
   };
   spreadsheet_api.prototype.asc_Recalculate = function () {
       History.EndTransaction();
+
+	  var ws = this.wbModel.getActiveWs();
+	  this.wbModel.handlers.trigger('showWorksheet', ws.getId());
+
       //в _onUpdateAfterApplyChanges нет очистки кэша, добавляю -
 	  var lastPointIndex = History.Points && History.Points.length - 1;
 	  var lastPoint = History.Points[lastPointIndex];
