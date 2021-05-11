@@ -632,7 +632,7 @@ var g_sWordPlaceholderImage = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMg
 		"textArchDown",
 		"textCircle",
 		"textButton"
-	]
+	];
 
 
 

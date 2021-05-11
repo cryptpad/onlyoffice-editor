@@ -17244,7 +17244,7 @@
         }
         return false;
     };
-    CStyleEntry.prototype.specialPatterns = ["wdDnDiag", "pct60", "wdDnDiag", "lgCheck", "pct75", "wdUpDiag", "plaid", "pct80", "lgConfetti", "narHorz", "pct90", "diagBrick", "cross", "pct30", "dkDnDiag", "smCheck",
+    CStyleEntry.prototype.specialPatterns = ["smGrid", "pct60", "wdDnDiag", "lgCheck", "pct75", "wdUpDiag", "plaid", "pct80", "lgConfetti", "narHorz", "pct90", "diagBrick", "cross", "pct30", "dkDnDiag", "smCheck",
         "pct70", "dkUpDiag", "dkVert", "trellis", "smConfetti", "dkHorz", "sphere", "diagCross", "lgGrid", "pct40", "ltDnDiag", "solidDmnd", "pct50", "ltUpDiag", "ltVert", "pct25",
         "pct5", "horz", "weave", "divot", "dotGrid", "pct10", "dnDiag", "zigZag", "pct20", "dashUpDiag", "narVert", "dashVert", "dotDmnd", "horzBrick", "shingle", "wave", "dashDnDiag",
         "dashVert"];
