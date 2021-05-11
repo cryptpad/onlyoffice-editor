@@ -2184,7 +2184,14 @@
         oFill = oTheme.getFillStyle(oFillRef.idx, oFillRefUnicolor || aColors[nIdx]);
         if(oSpPr && oSpPr.Fill) {
             oFill = oSpPr.Fill.createDuplicate();
-            oFill.checkPhColor(oFillRefUnicolor || aColors[nIdx]);
+            var bIsSpecialStyle = oStyleEntry.isSpecialStyle();
+            oFill.checkPhColor(oFillRefUnicolor || aColors[nIdx], bIsSpecialStyle);
+            if(bIsSpecialStyle) {
+                if(AscFormat.isRealNumber(nIdx)) {
+                    var nPatternType = oStyleEntry.getSpecialPatternType(nIdx);
+                    oFill.checkPatternType(nPatternType);
+                }
+            }
         }
         //line
         var oLn;
@@ -2193,7 +2200,7 @@
         oLn = oTheme.getLnStyle(oLineRef.idx, oLineRefUnicolor);
         if(oSpPr && oSpPr.ln) {
             oLn = oSpPr.ln.createDuplicate();
-            oLn.Fill.checkPhColor(oLineRefUnicolor);
+            oLn.Fill.checkPhColor(oLineRefUnicolor, false);
         }
         if(AscFormat.isRealNumber(oLn.w) && AscFormat.isRealNumber(oStyleEntry.lineWidthScale)) {
             oLn.w *= oStyleEntry.lineWidthScale;
@@ -2216,7 +2223,7 @@
         if(oStyleEntry.defRPr) {
             oTextPr.Merge(oStyleEntry.defRPr);
             if(oTextPr.Unifill) {
-                oTextPr.Unifill.checkPhColor(oFontUnicolor);
+                oTextPr.Unifill.checkPhColor(oFontUnicolor, false);
             }
         }
         oParaPr.DefaultRunPr = oTextPr;
@@ -16934,126 +16941,157 @@
     CChartStyle.prototype.setAxisTitle = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleAxisTitle, this.axisTitle, pr));
         this.axisTitle = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setCategoryAxis = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleCategoryAxis, this.categoryAxis, pr));
         this.categoryAxis = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setChartArea = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleChartArea, this.chartArea, pr));
         this.chartArea = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setDataLabel = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleDataLabel, this.dataLabel, pr));
         this.dataLabel = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setDataLabelCallout = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleDataLabelCallout, this.dataLabelCallout, pr));
         this.dataLabelCallout = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setDataPoint = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleDataPoint, this.dataPoint, pr));
         this.dataPoint = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setDataPoint3D = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleDataPoint3D, this.dataPoint3D, pr));
         this.dataPoint3D = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setDataPointLine = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleDataPointLine, this.dataPointLine, pr));
         this.dataPointLine = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setDataPointMarker = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleDataPointMarker, this.dataPointMarker, pr));
         this.dataPointMarker = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setDataPointWireframe = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleDataPointWireframe, this.dataPointWireframe, pr));
         this.dataPointWireframe = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setDataTable = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleDataTable, this.dataTable, pr));
         this.dataTable = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setDownBar = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleDownBar, this.downBar, pr));
         this.downBar = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setDropLine = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleDropLine, this.dropLine, pr));
         this.dropLine = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setErrorBar = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleErrorBar, this.errorBar, pr));
         this.errorBar = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setFloor = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleFloor, this.floor, pr));
         this.floor = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setGridlineMajor = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleGridlineMajor, this.gridlineMajor, pr));
         this.gridlineMajor = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setGridlineMinor = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleGridlineMinor, this.gridlineMinor, pr));
         this.gridlineMinor = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setHiLoLine = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleHiLoLine, this.hiLoLine, pr));
         this.hiLoLine = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setLeaderLine = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleLeaderLine, this.leaderLine, pr));
         this.leaderLine = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setLegend = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleLegend, this.legend, pr));
         this.legend = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setPlotArea = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStylePlotArea, this.plotArea, pr));
         this.plotArea = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setPlotArea3D = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStylePlotArea3D, this.plotArea3D, pr));
         this.plotArea3D = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setSeriesAxis = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleSeriesAxis, this.seriesAxis, pr));
         this.seriesAxis = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setSeriesLine = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleSeriesLine, this.seriesLine, pr));
         this.seriesLine = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setTitle = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleTitle, this.title, pr));
         this.title = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setTrendline = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleTrendline, this.trendline, pr));
         this.trendline = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setTrendlineLabel = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleTrendlineLabel, this.trendlineLabel, pr));
         this.trendlineLabel = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setUpBar = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleUpBar, this.upBar, pr));
         this.upBar = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setValueAxis = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleValueAxis, this.valueAxis, pr));
         this.valueAxis = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setWall = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleWall, this.wall, pr));
         this.wall = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.setMarkerLayout = function(pr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartStyleMarkerLayout, this.markerLayout, pr));
         this.markerLayout = pr;
+        this.setParentToChild(pr);
     };
     CChartStyle.prototype.readAttribute = function(nType, pReader) {
     };
@@ -17103,6 +17141,10 @@
             }
         }
         return oStyleEntry;
+    };
+    CChartStyle.prototype.specilaStyles = {1001: true, 1002: true};
+    CChartStyle.prototype.isSpecialStyle = function() {
+        return this.specilaStyles[this.id] === true;
     };
 
     function CStyleEntry() {
@@ -17195,6 +17237,20 @@
     };
     CStyleEntry.prototype.getChildren = function() {
         return [];
+    };
+    CStyleEntry.prototype.isSpecialStyle = function() {
+        if(this.parent) {
+            return this.parent.isSpecialStyle();
+        }
+        return false;
+    };
+    CStyleEntry.prototype.specialPatterns = ["wdDnDiag", "pct60", "wdDnDiag", "lgCheck", "pct75", "wdUpDiag", "plaid", "pct80", "lgConfetti", "narHorz", "pct90", "diagBrick", "cross", "pct30", "dkDnDiag", "smCheck",
+        "pct70", "dkUpDiag", "dkVert", "trellis", "smConfetti", "dkHorz", "sphere", "diagCross", "lgGrid", "pct40", "ltDnDiag", "solidDmnd", "pct50", "ltUpDiag", "ltVert", "pct25",
+        "pct5", "horz", "weave", "divot", "dotGrid", "pct10", "dnDiag", "zigZag", "pct20", "dashUpDiag", "narVert", "dashVert", "dotDmnd", "horzBrick", "shingle", "wave", "dashDnDiag",
+        "dashVert"];
+    CStyleEntry.prototype.getSpecialPatternType = function(nIdx) {
+        var nArrayIdx = nIdx % this.specialPatterns.length;
+        return AscCommon.global_hatch_offsets[this.specialPatterns[nArrayIdx]];
     };
 
     function CMarkerLayout() {
