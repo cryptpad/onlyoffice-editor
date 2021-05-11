@@ -13585,8 +13585,8 @@
         if (spPrInfo.xfrm.rot) {
           xfrm.setRot(spPrInfo.xfrm.rot * AscFormat.cToRad);
         }
-        xfrm.setOffX(spPrInfo.xfrm.off.x / 36000 + 2342719 / 36000); // TODO: add xfrm from smartart
-        xfrm.setOffY(spPrInfo.xfrm.off.y / 36000 + 648645 / 36000);
+        xfrm.setOffX(spPrInfo.xfrm.off.x / 36000); // TODO: add xfrm from smartart
+        xfrm.setOffY(spPrInfo.xfrm.off.y / 36000);
         xfrm.setExtX(spPrInfo.xfrm.ext.cx / 36000);
         xfrm.setExtY(spPrInfo.xfrm.ext.cy / 36000);
 
@@ -14091,7 +14091,11 @@
       sp.setStyle(style);
       if (spInfo.txBody) {
         sp.setTxBody(AscFormat.CreateTextBodyFromString('Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut blanditiis earum error incidunt minima nisi quia quis rem tenetur totam.', editor.WordControl.m_oDrawingDocument, sp));
-        sp.txBody.content.Content[0].Set_Align(2);
+        // sp.txBody.content.Content[0].Set_Align(2);
+        sp.txBody.bodyPr.lIns = 0;
+        sp.txBody.bodyPr.rIns = 0;
+        sp.txBody.bodyPr.bIns = 0;
+        sp.txBody.bodyPr.tIns = 0;
         sp.txBody.setParent(sp);
       }
       if (spInfo.txXfrm) {
@@ -14127,8 +14131,8 @@
       xfrm.setExtY(5418667 / 36000);
       xfrm.setChOffX(0);
       xfrm.setChOffY(0);
-      xfrm.setChExtX(8128000 / 36000);
-      xfrm.setChExtY(5418667 / 36000);
+      xfrm.setChExtX(0);
+      xfrm.setChExtY(0);
       drawing.spPr.setXfrm(xfrm);
       xfrm.setParent(drawing.spPr);
     }
@@ -14163,10 +14167,10 @@
           xfrm.setOffY(648645 / 36000);
           xfrm.setExtX(8128000 / 36000);
           xfrm.setExtY(5418667 / 36000);
-          xfrm.setChOffX(2342719 / 36000);
-          xfrm.setChOffY(648645 / 36000);
-          xfrm.setChExtX(8128000 / 36000);
-          xfrm.setChExtY(5418667 / 36000);
+          xfrm.setChOffX(0);
+          xfrm.setChOffY(0);
+          xfrm.setChExtX(0);
+          xfrm.setChExtY(0);
           smartart.spPr.setXfrm(xfrm);
           xfrm.setParent(smartart.spPr);
           break;

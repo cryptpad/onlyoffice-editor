@@ -2392,14 +2392,21 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
 
     var XC = oContent.XLimit/2.0;
     var YC = _content_height/2.0;
+    if (this.txXfrm) {
+        if (this.txXfrm.rot) {
+            global_MatrixTransformer.RotateRadAppend(oMatrix, this.txXfrm.rot);
+        }
+        var offL = this.getTextRect().l;
+        var offB = this.getTextRect().t;
+        if (this.txXfrm.offX) {
+            global_MatrixTransformer.TranslateAppend(oMatrix, this.extX - offL - (this.txXfrm.offX - this.x), 0);
+        }
+        if (this.txXfrm.offY) {
+            global_MatrixTransformer.TranslateAppend(oMatrix, 0,this.extY - offB - (this.txXfrm.offY - this.y));
+        }
+    }
 
     var _rot_angle = AscFormat.normalizeRotate((AscFormat.isRealNumber(oBodyPr.rot) ? oBodyPr.rot : 0)*AscFormat.cToRad);
-    if (this.txXfrm) {
-        if (this.txXfrm.rot === Math.PI) {
-            global_MatrixTransformer.Reflect(oMatrix, true, true);
-        }
-        global_MatrixTransformer.TranslateAppend(oMatrix, this.contentWidth, 0);
-    }
 
     if(!AscFormat.fApproxEqual(_rot_angle, 0.0))
     {
@@ -4019,6 +4026,10 @@ CShape.prototype.recalculateDocContent = function(oDocContent, oBodyPr)
         r_ins = 2.54;
         t_ins = 1.27;
         b_ins = 1.27;
+    }
+
+    if (this.txXfrm) {
+        oDocContent.Content[0].XLimit = this.txXfrm.extX;
     }
     if(this.bWordShape)
     {

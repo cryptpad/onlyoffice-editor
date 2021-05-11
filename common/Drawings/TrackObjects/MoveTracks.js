@@ -326,7 +326,17 @@ function MoveShapeImageTrack(originalObject)
         {
             this.originalObject.spPr.xfrm.setOffX(this.x/scale_coefficients.cx + ch_off_x);
             this.originalObject.spPr.xfrm.setOffY(this.y/scale_coefficients.cy + ch_off_y);
+            if (this.originalObject.txXfrm) {
+                var previousTxXfrmX = this.originalObject.txXfrm.offX;
+                var previousTxXfrmY = this.originalObject.txXfrm.offY;
+                var currentXfrmX = _xfrm.offX;
+                var currentXfrmY = _xfrm.offY;
+
+                this.originalObject.txXfrm.setOffX( currentXfrmX + (previousTxXfrmX - _x));
+                this.originalObject.txXfrm.setOffY( currentXfrmY + (previousTxXfrmY - _y));
+            }
         }
+
 
         if(this.originalObject.getObjectType() === AscDFH.historyitem_type_Cnx){
             if(!AscFormat.fApproxEqual(_x, _xfrm.offX) || !AscFormat.fApproxEqual(_y, _xfrm.offY)){
