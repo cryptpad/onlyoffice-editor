@@ -1702,7 +1702,7 @@ PreGeometryEditState.prototype = {
         var ret = AscFormat.handleSelectedObjects(this.drawingObjects, e, x, y, null, pageIndex, true);
         if(e.Type === 0 && ret.hit) {
             this.drawingObjects.arrTrackObjects.push(new AscFormat.EditShapeGeometryTrack(this.drawingObjects.selectedObjects[0], this.majorObject));
-            this.drawingObjects.changeCurrentState(new GeometryEditState(this.drawingObjects));
+            this.drawingObjects.changeCurrentState(new GeometryEditState(this.drawingObjects, this.drawingObjects.selectedObjects[0]));
             // this.drawingObjects.curState.onMouseDown(e, x, y, pageIndex);
             console.log(ret);
         }
@@ -1722,9 +1722,10 @@ PreGeometryEditState.prototype = {
     {
     }
 }
-function GeometryEditState(drawingObjects)
+function GeometryEditState(drawingObjects, majorObject)
 {
     this.drawingObjects = drawingObjects;
+    this.majorObject = majorObject;
 }
 GeometryEditState.prototype = {
     onMouseDown: function(e, x, y, pageIndex)
@@ -1738,6 +1739,7 @@ GeometryEditState.prototype = {
     onMouseMove: function(e, x, y, pageIndex)
     {
         var track_object = this.drawingObjects.arrTrackObjects[0];
+        track_object.geometry.preset = null;
         console.log('GeomEditState_MouseMove');
         track_object.track(x, y);
         this.drawingObjects.updateOverlay();
@@ -1747,6 +1749,7 @@ GeometryEditState.prototype = {
         this.drawingObjects.changeCurrentState(new PreGeometryEditState(this.drawingObjects));
         // this.drawingObjects.clearTrackObjects();
         this.drawingObjects.updateOverlay();
+        RotateState.prototype.onMouseUp.call(this, e, x, y, pageIndex);
     }
 }
 

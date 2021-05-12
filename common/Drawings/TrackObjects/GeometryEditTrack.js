@@ -36,6 +36,7 @@
     function EditShapeGeometryTrack(originalShape) {
         this.geometry = originalShape.calcGeometry;
         this.originalShape = originalShape;
+        this.originalObject = originalShape;
         this.shapeWidth = originalShape.extX;
         this.shapeHeight = originalShape.extY;
         var oPen = originalShape.pen;
@@ -43,7 +44,7 @@
         this.transform = originalShape.transform.CreateDublicate();
         this.overlayObject = new AscFormat.OverlayObject(this.geometry, this.shapeWidth, this.shapeHeight, oBrush, oPen, this.transform);
         this.invertTransform = originalShape.invertTransform;
-    }
+    };
 
     EditShapeGeometryTrack.prototype.draw = function(overlay, transform)
     {
@@ -61,9 +62,46 @@
 
         this.geometry.pathLst[0].ArrPathCommand[this.geometry.gmEditPoint.pathCommand].X = _relative_x;
         this.geometry.pathLst[0].ArrPathCommand[this.geometry.gmEditPoint.pathCommand].Y = _relative_y;
-    }
+    };
+
     EditShapeGeometryTrack.prototype.getBounds = function() {
-    }
+        //временно, в качестве заглушки
+        var bounds_checker = new  AscFormat.CSlideBoundsChecker();
+        bounds_checker.init(Page_Width, Page_Height, Page_Width, Page_Height);
+        this.draw(bounds_checker);
+        var tr = this.originalShape.transform;
+        var arr_p_x = [];
+        var arr_p_y = [];
+        arr_p_x.push(tr.TransformPointX(0,0));
+        arr_p_y.push(tr.TransformPointY(0,0));
+        arr_p_x.push(tr.TransformPointX(this.originalShape.extX,0));
+        arr_p_y.push(tr.TransformPointY(this.originalShape.extX,0));
+        arr_p_x.push(tr.TransformPointX(this.originalShape.extX,this.originalShape.extY));
+        arr_p_y.push(tr.TransformPointY(this.originalShape.extX,this.originalShape.extY));
+        arr_p_x.push(tr.TransformPointX(0,this.originalShape.extY));
+        arr_p_y.push(tr.TransformPointY(0,this.originalShape.extY));
+
+        arr_p_x.push(bounds_checker.Bounds.min_x);
+        arr_p_x.push(bounds_checker.Bounds.max_x);
+        arr_p_y.push(bounds_checker.Bounds.min_y);
+        arr_p_y.push(bounds_checker.Bounds.max_y);
+
+        bounds_checker.Bounds.min_x = Math.min.apply(Math, arr_p_x);
+        bounds_checker.Bounds.max_x = Math.max.apply(Math, arr_p_x);
+        bounds_checker.Bounds.min_y = Math.min.apply(Math, arr_p_y);
+        bounds_checker.Bounds.max_y = Math.max.apply(Math, arr_p_y);
+
+        bounds_checker.Bounds.posX = this.originalShape.x;
+        bounds_checker.Bounds.posY = this.originalShape.y;
+        bounds_checker.Bounds.extX = this.originalShape.extX;
+        bounds_checker.Bounds.extY = this.originalShape.extY;
+
+        return bounds_checker.Bounds;
+    };
+
+    EditShapeGeometryTrack.prototype.trackEnd = function() {
+
+    };
 
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].EditShapeGeometryTrack = EditShapeGeometryTrack;
