@@ -10818,6 +10818,12 @@
 						}
 						range.setIndent(val);
 						break;
+					case "applyProtection":
+						range.setApplyProtection(val);
+						break;
+					case "locked":
+						range.setLocked(val);
+						break;
                     case "rh":
                         range.removeHyperlink(null, true);
                         break;

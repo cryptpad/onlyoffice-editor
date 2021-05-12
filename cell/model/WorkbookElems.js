@@ -4646,6 +4646,20 @@ StyleManager.prototype =
 				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, false, oRes.oldVal, oRes.newVal));
 		}
 	};
+	Col.prototype.setApplyProtection = function (val) {
+		var oRes = this.ws.workbook.oStyleManager.setApplyProtection(this, val);
+		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoCol, AscCH.historyitem_RowCol_ApplyProtection, this.ws.getId(),
+				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
+		}
+	};
+	Col.prototype.setLocked = function (val) {
+		var oRes = this.ws.workbook.oStyleManager.setLocked(this, val);
+		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoCol, AscCH.historyitem_RowCol_Locked, this.ws.getId(),
+				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
+		}
+	};
 	Col.prototype.setHidden = function (val) {
 		if (this.index >= 0 && (!this.hd !== !val)) {
 			this.ws.hiddenManager.addHidden(false, this.index);
@@ -5028,6 +5042,20 @@ StyleManager.prototype =
 		var oRes = this.ws.workbook.oStyleManager.setIndent(this, val);
 		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
 			History.Add(AscCommonExcel.g_oUndoRedoRow, AscCH.historyitem_RowCol_Indent, this.ws.getId(),
+				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
+		}
+	};
+	Row.prototype.setApplyProtection = function (val) {
+		var oRes = this.ws.workbook.oStyleManager.setApplyProtection(this, val);
+		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoRow, AscCH.historyitem_RowCol_ApplyProtection, this.ws.getId(),
+				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
+		}
+	};
+	Row.prototype.setLocked = function (val) {
+		var oRes = this.ws.workbook.oStyleManager.setLocked(this, val);
+		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoRow, AscCH.historyitem_RowCol_Locked, this.ws.getId(),
 				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
 		}
 	};

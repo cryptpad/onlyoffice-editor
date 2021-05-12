@@ -122,6 +122,8 @@ function (window, undefined) {
 	window['AscCH'].historyitem_RowCol_SetCellStyle = 19;
 	window['AscCH'].historyitem_RowCol_Num = 20;
 	window['AscCH'].historyitem_RowCol_Indent = 21;
+	window['AscCH'].historyitem_RowCol_ApplyProtection = 22;
+	window['AscCH'].historyitem_RowCol_Locked = 23;
 
 	window['AscCH'].historyitem_Cell_Fontname = 1;
 	window['AscCH'].historyitem_Cell_Fontsize = 2;

@@ -3295,6 +3295,10 @@ function (window, undefined) {
 				row.setCellStyle(Val);
 			} else if (AscCH.historyitem_RowCol_Indent == Type) {
 				row.setIndent(Val);
+			} else if (AscCH.historyitem_RowCol_ApplyProtection == Type) {
+				row.setApplyProtection(Val);
+			} else if (AscCH.historyitem_RowCol_Locked == Type) {
+				row.setLocked(Val);
 			}
 		}
 

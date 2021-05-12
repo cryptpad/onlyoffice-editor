@@ -13408,6 +13408,46 @@
 			cell.setIndent(val);
 		});
 	};
+	Range.prototype.setApplyProtection = function (val) {
+		History.Create_NewPoint();
+		this.createCellOnRowColCross();
+		var fSetProperty = this._setProperty;
+		var nRangeType = this._getRangeType();
+		if (c_oRangeType.All == nRangeType) {
+			this.worksheet.getAllCol().setApplyProtection(val);
+			fSetProperty = this._setPropertyNoEmpty;
+		}
+		fSetProperty.call(this, function (row) {
+			if (c_oRangeType.All == nRangeType && null == row.xfs) {
+				return;
+			}
+			row.setApplyProtection(val);
+		}, function (col) {
+			col.setApplyProtection(val);
+		}, function (cell) {
+			cell.setApplyProtection(val);
+		});
+	};
+	Range.prototype.setLocked = function (val) {
+		History.Create_NewPoint();
+		this.createCellOnRowColCross();
+		var fSetProperty = this._setProperty;
+		var nRangeType = this._getRangeType();
+		if (c_oRangeType.All == nRangeType) {
+			this.worksheet.getAllCol().setlocked(val);
+			fSetProperty = this._setPropertyNoEmpty;
+		}
+		fSetProperty.call(this, function (row) {
+			if (c_oRangeType.All == nRangeType && null == row.xfs) {
+				return;
+			}
+			row.setlocked(val);
+		}, function (col) {
+			col.setlocked(val);
+		}, function (cell) {
+			cell.setlocked(val);
+		});
+	};
 	Range.prototype.setType=function(type){
 		History.Create_NewPoint();
 		this.createCellOnRowColCross();
