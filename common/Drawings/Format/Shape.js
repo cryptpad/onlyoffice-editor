@@ -2396,8 +2396,8 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
         if (this.txXfrm.rot) {
             global_MatrixTransformer.RotateRadAppend(oMatrix, this.txXfrm.rot);
         }
-        var offL = this.getTextRect().l;
-        var offB = this.getTextRect().t;
+        var offL = oRect.l;
+        var offB = oRect.t;
         if (this.txXfrm.offX) {
             global_MatrixTransformer.TranslateAppend(oMatrix, this.extX - offL - (this.txXfrm.offX - this.x), 0);
         }
@@ -4028,9 +4028,7 @@ CShape.prototype.recalculateDocContent = function(oDocContent, oBodyPr)
         b_ins = 1.27;
     }
 
-    if (this.txXfrm) {
-        oDocContent.Content[0].XLimit = this.txXfrm.extX;
-    }
+
     if(this.bWordShape)
     {
         var oPen = this.pen;
@@ -4201,7 +4199,12 @@ CShape.prototype.recalculateDocContent = function(oDocContent, oBodyPr)
         while ( recalcresult2_End !== RecalcResult  )
             RecalcResult = oDocContent.Recalculate_Page( CurPage++, true );*/
 
-        oDocContent.RecalculateContent(oRet.w, oRet.h, nStartPage);
+
+        if (this.txXfrm && this.txXfrm.extX) {
+            oDocContent.RecalculateContent(this.txXfrm.extX, oRet.h, nStartPage);
+        } else {
+            oDocContent.RecalculateContent(oRet.w, oRet.h, nStartPage);
+        }
 
         oRet.contentH = oDocContent.GetSummaryHeight();
 
