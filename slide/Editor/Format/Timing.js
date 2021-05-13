@@ -255,14 +255,16 @@
     };
     CTimeNodeBase.prototype.getDefaultTrigger = function(oPlayer) {
         var oThis = this;
-        return function() {
+        var fTrigger = function() {
             return oThis.defaultTrigger(oPlayer);
-        }
+        };
+        return new CAnimTrigger([fTrigger]);
     };
     CTimeNodeBase.prototype.getTimeTrigger = function(oPlayer, nTime) {
-        return function() {
+        var fTrigger = function() {
             return nTime <= oPlayer.getElapsedTicks();
-        }
+        };
+        return new CAnimTrigger([fTrigger]);
     };
     CTimeNodeBase.prototype.setState = function(nState) {
         this.state = nState;
@@ -4725,8 +4727,21 @@
         this.frameCallback();
     };
 
-    function CAnimEvent(fCallback, fTrigger) {
-        this.trigger = fTrigger;
+    function CAnimTrigger(triggers) {
+        this.triggers = triggers;
+    }
+    CAnimTrigger.prototype.isFired = function() {
+        for(var nTrigger = 0; nTrigger < this.triggers.length; ++nTrigger) {
+            if(!this.triggers[nTrigger]()) {
+                return false;
+            }
+        }
+        return this.triggers.length > 0;
+    };
+    
+
+    function CAnimEvent(fCallback, oTrigger) {
+        this.trigger = oTrigger;
         this.callback = fCallback;
         this.fired = false;
     }
@@ -4735,7 +4750,7 @@
         this.fired = true;
     };
     CAnimEvent.prototype.checkTrigger = function() {
-        if(this.trigger()) {
+        if(this.trigger.isFired()) {
             this.fire();
         }
         return this.fired;
