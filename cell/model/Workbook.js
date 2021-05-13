@@ -3731,7 +3731,7 @@
 
 	Workbook.prototype.setProtectedWorkbook = function (props, addToHistory) {
 		if (!this.workbookProtection) {
-			this.workbookProtection = new window["AscCommonExcel"].CWorkbookProtection();
+			this.workbookProtection = new window["Asc"].CWorkbookProtection();
 		}
 		this.workbookProtection.set(props, addToHistory, this);
 	};
@@ -9755,7 +9755,7 @@
 
 	Worksheet.prototype.setProtectedSheet = function (props, addToHistory) {
 		if (!this.sheetProtection) {
-			this.sheetProtection = new window["AscCommonExcel"].CSheetProtection();
+			this.sheetProtection = new window["Asc"].CSheetProtection();
 		}
 		this.sheetProtection.set(props, addToHistory, this);
 	};

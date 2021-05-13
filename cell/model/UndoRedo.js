@@ -4373,7 +4373,7 @@ function (window, undefined) {
 		
 		var protectedSheet = oModel.sheetProtection;
 		if (!protectedSheet) {
-			oModel.sheetProtection = protectedSheet = new window["AscCommonExcel"].CSheetProtection();
+			oModel.sheetProtection = protectedSheet = new window["Asc"].CSheetProtection();
 		}
 
 		if (protectedSheet) {
@@ -4479,7 +4479,7 @@ function (window, undefined) {
 
 		var protectedWorkbook = oModel.workbookProtection;
 		if (!protectedWorkbook) {
-			oModel.workbookProtection = protectedWorkbook = new window["AscCommonExcel"].CWorkbookProtection();
+			oModel.workbookProtection = protectedWorkbook = new window["Asc"].CWorkbookProtection();
 		}
 
 		if (protectedWorkbook) {

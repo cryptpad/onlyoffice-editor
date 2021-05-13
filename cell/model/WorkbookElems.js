@@ -12474,7 +12474,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getFunctionResult"] = prot.asc_getFunctionResult;
 	prot["asc_getName"] = prot.asc_getName;
 	
-	window["AscCommonExcel"].CSheetProtection = CSheetProtection;
+	window["Asc"].CSheetProtection = CSheetProtection;
 	prot = CSheetProtection.prototype;
 	prot["asc_getSpinCount"] = prot.getSpinCount;
 	prot["asc_getSheet"] = prot.getSheet;
@@ -12511,7 +12511,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setPivotTables"] = prot.setPivotTables;
 	prot["asc_setSelectUnlockedCells"] = prot.setSelectUnlockedCells;
 
-	window["AscCommonExcel"].CWorkbookProtection = CWorkbookProtection;
+	window["Asc"].CWorkbookProtection = CWorkbookProtection;
 	prot = CWorkbookProtection.prototype;
 	prot["asc_getLockStructure"] = prot.asc_getLockStructure;
 	prot["asc_getLockWindows"] = prot.asc_getLockWindows;

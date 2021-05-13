@@ -7305,9 +7305,9 @@
                     return oThis.ReadSlicerCaches(t,l);
                 });
             }
-			else if (c_oSerWorkbookTypes.WorkbookProtection == type && typeof AscCommonExcel.CWorkbookProtection != "undefined")
+			else if (c_oSerWorkbookTypes.WorkbookProtection == type && typeof Asc.CWorkbookProtection != "undefined")
 			{
-				this.oWorkbook.workbookProtection = new AscCommonExcel.CWorkbookProtection(this.oWorkbook);
+				this.oWorkbook.workbookProtection = new Asc.CWorkbookProtection(this.oWorkbook);
 			    res = this.bcr.Read2Spreadsheet(length, function(t,l){
 					return oThis.ReadWorkbookProtection(t,l, oThis.oWorkbook.workbookProtection);
 				});
@@ -7940,8 +7940,8 @@
 				namedSheetViews.fromStream(fileStream, this.wb);
 				oWorksheet.aNamedSheetViews = namedSheetViews.namedSheetView;
 				this.stream.FromFileStream(fileStream);
-			} else if (c_oSerWorksheetsTypes.ProtectionSheet === type && typeof AscCommonExcel.CSheetProtection != "undefined") {
-				oWorksheet.sheetProtection = new AscCommonExcel.CSheetProtection(oWorksheet);
+			} else if (c_oSerWorksheetsTypes.ProtectionSheet === type && typeof Asc.CSheetProtection != "undefined") {
+				oWorksheet.sheetProtection = new Asc.CSheetProtection(oWorksheet);
 				res = this.bcr.Read2Spreadsheet(length, function(t,l){
 					return oThis.ReadSheetProtection(t,l, oWorksheet.sheetProtection);
 				});
