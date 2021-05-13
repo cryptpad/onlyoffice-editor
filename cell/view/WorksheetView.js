@@ -13208,7 +13208,7 @@
 			return;
 		}
 		var lockInfos = [];
-		var sheetId = AscCommonExcel.CProtectedRange.sStartLock + this.model.getId();
+		var sheetId = Asc.CProtectedRange.sStartLock + this.model.getId();
 		for (var i = 0; i < arr.length; i++) {
 			var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, null, sheetId, arr[i]);
 			lockInfos.push(lockInfo);

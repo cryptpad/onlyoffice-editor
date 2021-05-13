@@ -10203,7 +10203,7 @@
 		return this.xfs;
 	};
 	Cell.prototype.getCompiledStyle = function (opt_styleComponents) {
-		return this.ws.getCompiledStyle(this.nRow, this.nCol, this, opt_styleComponents);
+		return null;
 	};
 	Cell.prototype.getCompiledStyleCustom = function(needTable, needCell, needConditional) {
 		return this.ws.getCompiledStyleCustom(this.nRow, this.nCol, needTable, needCell, needConditional, this);

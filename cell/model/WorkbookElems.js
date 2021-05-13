@@ -12535,7 +12535,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setWorkbookSaltValue"] = prot.asc_setWorkbookSaltValue;
 	prot["asc_setWorkbookSpinCount"] = prot.asc_setWorkbookSpinCount;
 
-	window["AscCommonExcel"].CProtectedRange = CProtectedRange;
+	window["Asc"].CProtectedRange = CProtectedRange;
 	prot = CProtectedRange.prototype;
 	prot["asc_getSqref"] = prot.asc_getSqref;
 	prot["asc_getName"] = prot.asc_getName;

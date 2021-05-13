@@ -8112,7 +8112,7 @@
 			var oProtectedRange = null;
 
 			if (c_oSerWorksheetsTypes.ProtectedRange === type && 0 == aProtectedRanges.length) {
-				oProtectedRange = new AscCommonExcel.CProtectedRange();
+				oProtectedRange = new Asc.CProtectedRange();
 				res = this.bcr.Read2(length, function (t, l) {
 					return oThis.ReadProtectedRange(t, l, oProtectedRange);
 				});

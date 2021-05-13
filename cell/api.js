@@ -5317,8 +5317,8 @@ var editor;
   spreadsheet_api.prototype._onUpdateProtectedRangesLock = function (lockElem) {
     var t = this;
     var sheetId = lockElem.Element["sheetId"];
-    if (-1 !== sheetId && 0 === sheetId.indexOf(AscCommonExcel.CProtectedRange.sStartLock)) {
-      sheetId = sheetId.split(AscCommonExcel.CProtectedRange.sStartLock)[1];
+    if (-1 !== sheetId && 0 === sheetId.indexOf(Asc.CProtectedRange.sStartLock)) {
+      sheetId = sheetId.split(Asc.CProtectedRange.sStartLock)[1];
       var wsModel = this.wbModel.getWorksheetById(sheetId);
       if (wsModel) {
         var wsIndex = wsModel.getIndex();
@@ -5370,7 +5370,7 @@ var editor;
     //лок менеджера - незалоченное правило можно удалять и редактировать. новые правила добавлять нельзя.
     //так же нельзя перемещать местами правила
 
-    //лочим правило как объект. в лок кладём id и лист с префиксом AscCommonExcel.CProtectedRange.sStartLock
+    //лочим правило как объект. в лок кладём id и лист с префиксом Asc.CProtectedRange.sStartLock
     //на принятии изменений удаляем локи с соответсвующих элементов
     //разлочиваем менеджер если нет залоченных элементов(т.е. проверяем все на лок)
     //+ проверяем нет ли нового добавленного правила другим юзером
@@ -5379,10 +5379,10 @@ var editor;
     var res = false;
     var t = this;
     var sheetId = lockElem["sheetId"];
-    if (-1 !== sheetId && 0 === sheetId.indexOf(AscCommonExcel.CProtectedRange.sStartLock)) {
+    if (-1 !== sheetId && 0 === sheetId.indexOf(Asc.CProtectedRange.sStartLock)) {
       res = true;
       if (t.wbModel) {
-        sheetId = sheetId.split(AscCommonExcel.CProtectedRange.sStartLock)[1];
+        sheetId = sheetId.split(Asc.CProtectedRange.sStartLock)[1];
         var wsModel = t.wbModel.getWorksheetById(sheetId);
         if (wsModel) {
           var wsIndex = wsModel.getIndex();
@@ -6019,11 +6019,14 @@ var editor;
   prot["asc_setSkin"] = prot.asc_setSkin;
 
 
-  prot["asc_getProtectedRanges"] = prot.asc_getProtectedRanges;
-  prot["asc_setProtectedRanges"] = prot.asc_setProtectedRanges;
-  prot["asc_getProtectedSheet"] = prot.asc_getProtectedSheet;
-  prot["asc_setProtectedSheet"] = prot.asc_setProtectedSheet;
-  prot["asc_isProtectedSheet"] = prot.asc_isProtectedSheet;
+  prot["asc_getProtectedRanges"]   = prot.asc_getProtectedRanges;
+  prot["asc_setProtectedRanges"]   = prot.asc_setProtectedRanges;
+  prot["asc_getProtectedSheet"]    = prot.asc_getProtectedSheet;
+  prot["asc_setProtectedSheet"]    = prot.asc_setProtectedSheet;
+  prot["asc_isProtectedSheet"]     = prot.asc_isProtectedSheet;
+  prot["asc_getProtectedWorkbook"] = prot.asc_getProtectedWorkbook;
+  prot["asc_setProtectedWorkbook"] = prot.asc_setProtectedWorkbook;
+  prot["asc_isProtectedWorkbook"]  = prot.asc_isProtectedWorkbook;
 
 
 })(window);
