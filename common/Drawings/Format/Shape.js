@@ -4056,6 +4056,14 @@ CShape.prototype.recalculateDocContent = function(oDocContent, oBodyPr)
         }
     }
     var oRect = this.getTextRect();
+    if (this.txXfrm) {
+        oRect = {
+            l: this.txXfrm.offX - this.spPr.xfrm.offX,
+            r: this.txXfrm.extX + (this.txXfrm.offX - this.spPr.xfrm.offX),
+            b: this.txXfrm.extY + (this.txXfrm.offX - this.spPr.xfrm.offX),
+            t: this.txXfrm.offY - this.spPr.xfrm.offY,
+        };
+    }
     var w, h;
     w = oRect.r - oRect.l - (l_ins + r_ins);
     h = oRect.b - oRect.t - (t_ins + b_ins);
@@ -4199,13 +4207,7 @@ CShape.prototype.recalculateDocContent = function(oDocContent, oBodyPr)
         while ( recalcresult2_End !== RecalcResult  )
             RecalcResult = oDocContent.Recalculate_Page( CurPage++, true );*/
 
-
-        if (this.txXfrm && this.txXfrm.extX) {
-            oDocContent.RecalculateContent(this.txXfrm.extX, oRet.h, nStartPage);
-        } else {
-            oDocContent.RecalculateContent(oRet.w, oRet.h, nStartPage);
-        }
-
+        oDocContent.RecalculateContent(oRet.w, oRet.h, nStartPage);
         oRet.contentH = oDocContent.GetSummaryHeight();
 
         if(this.bWordShape)

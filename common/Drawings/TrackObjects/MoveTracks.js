@@ -331,12 +331,10 @@ function MoveShapeImageTrack(originalObject)
                 var previousTxXfrmY = this.originalObject.txXfrm.offY;
                 var currentXfrmX = _xfrm.offX;
                 var currentXfrmY = _xfrm.offY;
-
                 this.originalObject.txXfrm.setOffX( currentXfrmX + (previousTxXfrmX - _x));
                 this.originalObject.txXfrm.setOffY( currentXfrmY + (previousTxXfrmY - _y));
             }
         }
-
 
         if(this.originalObject.getObjectType() === AscDFH.historyitem_type_Cnx){
             if(!AscFormat.fApproxEqual(_x, _xfrm.offX) || !AscFormat.fApproxEqual(_y, _xfrm.offY)){
