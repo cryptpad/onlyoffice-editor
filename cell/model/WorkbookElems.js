@@ -3087,6 +3087,13 @@ var g_oBorderProperties = {
 
 		return res;
 	};
+	CellXfs.prototype.asc_getLocked = function () {
+		return this.locked;
+	};
+	CellXfs.prototype.asc_getHidden = function () {
+		return this.hidden;
+	};
+
 	CellXfs.prototype.asc_setFillColor = function (val) {
 		//TODO не применяю цвета темы?
 		var fill = null;
@@ -12220,6 +12227,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getWrapText"] = prot.asc_getWrapText;
 	prot["asc_getShrinkToFit"] = prot.asc_getShrinkToFit;
 	prot["asc_getPreview"] = prot.asc_getPreview;
+	prot["asc_getLocked"] = prot.asc_getLocked;
+	prot["asc_getHidden"] = prot.asc_getHidden;
 	prot["asc_setFillColor"] = prot.asc_setFillColor;
 	prot["asc_setFill"] = prot.asc_setFill;
 	prot["asc_setFontName"] = prot.asc_setFontName;
