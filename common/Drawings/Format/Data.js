@@ -14110,7 +14110,7 @@
         xfrm.setExtY(spInfo.txXfrm.ext.cy / 36000);
         sp.setTxXfrm(xfrm);
       }
-
+      sp.isSpInSmartArt = true;
       return sp;
 
     }

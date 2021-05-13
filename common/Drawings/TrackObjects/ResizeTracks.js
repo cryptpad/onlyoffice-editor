@@ -1220,7 +1220,6 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                     this.originalObject.txXfrm.setOffY( currentXfrmY + (previousTxXfrmY - xfrm.offY));
                     this.originalObject.txXfrm.setExtX( previousTxXfrmExtX - (xfrm.extX - currentXfrmExtX));
                     this.originalObject.txXfrm.setExtY( previousTxXfrmExtY - (xfrm.extY - currentXfrmExtY));
-
                 }
                 if(this.originalObject.getObjectType() !== AscDFH.historyitem_type_GraphicFrame)
                 {
@@ -2200,6 +2199,23 @@ function ShapeForResizeInGroup(originalObject, parentTrack)
                 this.originalObject.spPr.xfrm.setParent(this.originalObject.spPr);
             }
             var xfrm = this.originalObject.spPr.xfrm;
+
+            if (this.originalObject.txXfrm) {
+                var previousTxXfrmX = this.originalObject.txXfrm.offX;
+                var previousTxXfrmY = this.originalObject.txXfrm.offY;
+                var previousTxXfrmExtX = this.originalObject.txXfrm.extX;
+                var previousTxXfrmExtY = this.originalObject.txXfrm.extY;
+                var currentXfrmX = this.x;
+                var currentXfrmY = this.y;
+                var currentXfrmExtX = this.extX;
+                var currentXfrmExtY = this.extY;
+                this.originalObject.txXfrm.setOffX( currentXfrmX + (previousTxXfrmX - xfrm.offX));
+                this.originalObject.txXfrm.setOffY( currentXfrmY + (previousTxXfrmY - xfrm.offY));
+                this.originalObject.txXfrm.setExtX( previousTxXfrmExtX - (xfrm.extX - currentXfrmExtX));
+                this.originalObject.txXfrm.setExtY( previousTxXfrmExtY - (xfrm.extY - currentXfrmExtY));
+            }
+
+
             xfrm.setOffX(this.x);
             xfrm.setOffY(this.y);
             xfrm.setExtX(this.extX);
