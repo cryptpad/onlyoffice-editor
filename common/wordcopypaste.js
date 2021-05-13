@@ -231,6 +231,7 @@ function CopyProcessor(api, onlyBinaryCopy)
 	
 	this.oRoot = new CopyElement("root");
     this.listNextNumMap = [];
+    this.instructionHyperlinkStart = null;
 }
 CopyProcessor.prototype =
 {
@@ -531,6 +532,15 @@ CopyProcessor.prototype =
 				if(null != ParaItem.String && "string" === typeof(ParaItem.String))
 					oTarget.addChild(new CopyElement(CopyPasteCorrectString(ParaItem.String), true));
 				break;
+			case para_FieldChar:
+				if (ParaItem.ComplexField && ParaItem.ComplexField.Instruction && ParaItem.ComplexField.Instruction instanceof CFieldInstructionHYPERLINK) {
+					if (fldchartype_Begin === ParaItem.CharType && ParaItem.ComplexField.Instruction.BookmarkName) {
+						this.instructionHyperlinkStart = "#" + ParaItem.ComplexField.Instruction.BookmarkName;
+					} else if (fldchartype_End === ParaItem.CharType) {
+						this.instructionHyperlinkStart = null;
+					}
+				}
+				break;
         }
     },
     CopyRun: function (Item, oTarget) {
@@ -550,18 +560,35 @@ CopyProcessor.prototype =
 			}
 		};
 
+
+		var realTarget;
+		var oHyperlink;
     	for (var i = 0; i < Container.Content.length; i++) {
 			var item = Container.Content[i];
 			if (para_Run === item.Type) {
 				var oSpan = new CopyElement("span");
 				this.CopyRun(item, oSpan);
+
+				if (this.instructionHyperlinkStart && !realTarget) {
+					oHyperlink = new CopyElement("a");
+					oHyperlink.oAttributes["href"] = CopyPasteCorrectString(this.instructionHyperlinkStart);
+					oTarget.addChild(oHyperlink);
+					realTarget = oTarget;
+					oTarget = oHyperlink;
+					bOmitHyperlink = true;
+				} else if (realTarget && !this.instructionHyperlinkStart) {
+					oTarget = realTarget;
+					bOmitHyperlink = false;
+					realTarget = null;
+				}
+
 				if (!oSpan.isEmptyChild()) {
 					this.parse_para_TextPr(item.Get_CompiledTextPr(), oSpan);
 					oTarget.addChild(oSpan);
 				}
 			} else if (para_Hyperlink === item.Type) {
 				if (!bOmitHyperlink) {
-					var oHyperlink = new CopyElement("a");
+					oHyperlink = new CopyElement("a");
 					var sValue = item.IsAnchor() ? "#" + item.Anchor : item.GetValue();
 					var sToolTip = item.GetToolTip();
 					oHyperlink.oAttributes["href"] = CopyPasteCorrectString(sValue);
@@ -588,6 +615,7 @@ CopyProcessor.prototype =
 			} else if (para_InlineLevelSdt === item.Type) {
 				this.CopyRunContent(item, oTarget);
 			} else if (para_Field === item.Type) {
+
 				this.CopyRunContent(item, oTarget);
 			} else if (para_Bookmark === item.Type) {
 				//для внутренних ссылок
@@ -617,6 +645,9 @@ CopyProcessor.prototype =
 				closeBookmarks(bookmarkLevel);
 				bookmarkLevel--;
 			}
+		}
+		if (this.instructionHyperlinkStart) {
+			this.instructionHyperlinkStart = null;
 		}
     },
     CopyParagraph : function(oDomTarget, Item, selectedAll, nextElem)
