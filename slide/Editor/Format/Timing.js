@@ -128,7 +128,16 @@
     CTimeNodeBase.prototype.scheduleStart = function(oPlayer) {
         oPlayer.scheduleEvent(new CAnimEvent(this.getActivateCallback(oPlayer), this.getDefaultTrigger(oPlayer)));
     };
+    CTimeNodeBase.getStartTrigger = function() {
+        var aTriggers = [];
+        aTriggers.push(this.getDefaultTrigger());
+        
+        return new CAnimTrigger(aTriggers);
+    };
     CTimeNodeBase.prototype.defaultTrigger = function(oPlayer) {
+        return true;
+    };
+    CTimeNodeBase.prototype.getCondTrigger = function(oPlayer, oCond) {
         return true;
     };
     CTimeNodeBase.prototype.getDur = function() {
@@ -230,19 +239,19 @@
             var nChild;
             if(oThis.isPar()) {
                 for(nChild = 0; nChild < aChildren.length; ++nChild) {
-                    aChildren[nChild].activateCallback(oPlayer);
+                    aChildren[nChild].scheduleStart(oPlayer);
                 }
             }
             else if(oThis.isExcl()) {
                 //Todo: Activate a as for par by now. Rework.
                 for(nChild = 0; nChild < aChildren.length; ++nChild) {
-                    aChildren[nChild].activateCallback(oPlayer);
+                    aChildren[nChild].scheduleStart(oPlayer);
                 }
             }
             else if(oThis.isSeq()) {
                 //Activate first element
                 if(aChildren.length > 0) {
-                    aChildren[0].activateCallback(oPlayer);
+                    aChildren[0].scheduleStart(oPlayer);
                 }
             }
         }
@@ -360,8 +369,9 @@
             return this.cBhvr.cTn;
         }
         if(this.cMediaNode) {
-            return this.cMediaNode.cBhvr;
+            return this.cMediaNode.getAttributesObject();
         }
+        return null;
     };
     CTimeNodeBase.prototype.traverseActive = function(fCallback) {
         if(this.isActive()) {
@@ -823,6 +833,8 @@
         pReader.stream.GetUChar(); //skip ..
         oElement.fromPPTY(pReader);
         return oElement;
+    };
+    CCondLst.prototype.createTrigger = function(oPlayer) {
     };
 
     function CChildTnLst() {
@@ -4737,6 +4749,12 @@
             }
         }
         return this.triggers.length > 0;
+    };
+    CAnimTrigger.prototype.addDefault = function() {
+        var fTrigger = function() {
+            return true;
+        };
+        this.triggers.push(fTrigger);
     };
     
 
