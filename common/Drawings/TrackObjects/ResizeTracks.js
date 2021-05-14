@@ -1155,6 +1155,25 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             if(!this.bIsTracked){
                 return;
             }
+
+            if (this.originalObject.isSpInSmartArt) {
+                if (this.resizedPosX < 0) {
+                    this.resizedExtX = this.originalExtX + this.originalObject.x;
+                    this.resizedPosX = 0;
+
+                }
+                if (this.resizedPosY < 0) {
+                    this.resizedPosY = 0.000001; // TODO: fix this
+                    this.resizedExtY = this.originalExtY + this.originalObject.y;
+                }
+                if (this.originalObject.group && (this.originalObject.group.x + this.originalObject.group.extX < this.resizedPosX + this.resizedExtX)) {
+                    this.resizedExtX = this.originalObject.group.extX - this.resizedPosX;
+                }
+                if (this.originalObject.group && (this.originalObject.group.y + this.originalObject.group.extY < this.resizedPosY + this.resizedExtY)) {
+                    this.resizedExtY = this.originalObject.group.extY - this.resizedPosY;
+                }
+
+            }
             if(this.chartSpace)
             {
                 var oObjectToSet = this.originalObject;
