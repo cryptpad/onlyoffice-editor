@@ -15766,6 +15766,10 @@ Paragraph.prototype.CheckSignatureLinesOnAdd = function()
  */
 Paragraph.prototype.ProcessComplexFields = function()
 {
+	if(!this.bFromDocument)
+	{
+		return;
+	}
 	var oComplexFields = new CParagraphComplexFieldsInfo();
 	oComplexFields.ResetPage(this, 0);
 
