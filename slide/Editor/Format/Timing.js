@@ -128,11 +128,8 @@
     CTimeNodeBase.prototype.scheduleStart = function(oPlayer) {
         oPlayer.scheduleEvent(new CAnimEvent(this.getActivateCallback(oPlayer), this.getDefaultTrigger(oPlayer)));
     };
-    CTimeNodeBase.getStartTrigger = function() {
-        var aTriggers = [];
-        aTriggers.push(this.getDefaultTrigger());
-        
-        return new CAnimTrigger(aTriggers);
+    CTimeNodeBase.getStartTrigger = function(oPlayer) {
+        return this.getDefaultTrigger(oPlayer);//TODO
     };
     CTimeNodeBase.prototype.defaultTrigger = function(oPlayer) {
         return true;
@@ -263,17 +260,12 @@
         }
     };
     CTimeNodeBase.prototype.getDefaultTrigger = function(oPlayer) {
-        var oThis = this;
-        var fTrigger = function() {
-            return oThis.defaultTrigger(oPlayer);
-        };
-        return new CAnimTrigger([fTrigger]);
+        return new CAnimComplexTrigger();
     };
     CTimeNodeBase.prototype.getTimeTrigger = function(oPlayer, nTime) {
-        var fTrigger = function() {
+        return new CAnimComplexTrigger(function() {
             return nTime <= oPlayer.getElapsedTicks();
-        };
-        return new CAnimTrigger([fTrigger]);
+        });
     };
     CTimeNodeBase.prototype.setState = function(nState) {
         this.state = nState;
@@ -4739,10 +4731,17 @@
         this.frameCallback();
     };
 
-    function CAnimTrigger(triggers) {
-        this.triggers = triggers;
+    function CAnimComplexTrigger(param) {
+        this.triggers = [];
+        this.addDefault();
+        if(Array.isArray(param)) {
+            this.addTriggers(param);
+        }
+        else if(typeof param === "function") {
+            this.addTrigger(param);
+        }
     }
-    CAnimTrigger.prototype.isFired = function() {
+    CAnimComplexTrigger.prototype.isFired = function() {
         for(var nTrigger = 0; nTrigger < this.triggers.length; ++nTrigger) {
             if(!this.triggers[nTrigger]()) {
                 return false;
@@ -4750,11 +4749,18 @@
         }
         return this.triggers.length > 0;
     };
-    CAnimTrigger.prototype.addDefault = function() {
-        var fTrigger = function() {
+    CAnimComplexTrigger.prototype.addDefault = function() {
+        this.addTrigger(function() {
             return true;
-        };
+        });
+    };
+    CAnimComplexTrigger.prototype.addTrigger = function(fTrigger) {
         this.triggers.push(fTrigger);
+    };
+    CAnimComplexTrigger.prototype.addTriggers = function(aTriggers) {
+        for(var nTrigger = 0; nTrigger < aTriggers.length; ++nTrigger) {
+            this.addTrigger(aTriggers[nTrigger]);
+        }
     };
     
 
