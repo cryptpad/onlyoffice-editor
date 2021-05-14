@@ -3402,7 +3402,7 @@
 		var t = this;
 		var callback = function(isTimeout, response) {
 			if (response) {
-				t.CoAuthoringApi.onMeta({'title': name});
+				t.CoAuthoringApi.onMeta({'title': response['Name'] + '.' + AscCommon.GetFileExtension(t.documentTitle)});
 			} else {
 				t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
 			}
