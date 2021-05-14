@@ -7191,7 +7191,7 @@ drawAreaChart.prototype = {
 				cColorMod.val = 35000;
 			}
 			cColorMod.name = "shade";
-			duplicateBrush.fill.color.Mods.addMod(cColorMod);
+			duplicateBrush.addColorMod(cColorMod);
 			duplicateBrush.calculate(props.theme, props.slide, props.layout, props.master,
 				new AscFormat.CUniColor().RGBA, this.cChartSpace.clrMapOvr);
 

@@ -2125,7 +2125,7 @@ function (window, undefined) {
 	cXLOOKUP.prototype.argumentsMin = 3;
 	cXLOOKUP.prototype.argumentsMax = 6;
 	cXLOOKUP.prototype.arrayIndexes = {1: 1, 2: 1};
-	cXLOOKUP.prototype.argumentsType = [argType.any, argType.reference, argType.reference];
+	cXLOOKUP.prototype.argumentsType = [argType.any, argType.reference, argType.reference, argType.any, argType.number, argType.number];
 	cXLOOKUP.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cXLOOKUP.prototype.isXLFN = true;
 	cXLOOKUP.prototype.Calculate = function (arg) {
@@ -2229,10 +2229,14 @@ function (window, undefined) {
 					var _range = new Asc.Range(_cl, _r1, _c2, _r2);
 
 					var _res;
+					var rangeName;
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						rangeName = _range.getName();
+					});
 					if (cElementType.cellsRange === arg2.type) {
-						_res = _range.isOneCell() ? new cRef(_range.getName(), arg2.getWS()) : new cArea(_range.getName(), arg2.getWS());
+						_res = _range.isOneCell() ? new cRef(rangeName, arg2.getWS()) : new cArea(rangeName, arg2.getWS());
 					} else {
-						_res = _range.isOneCell() ?  new cRef3D(_range.getName(), arg2.getWS()) : new cArea3D(_range.getName(), arg2.getWS());
+						_res = _range.isOneCell() ?  new cRef3D(rangeName, arg2.getWS()) : new cArea3D(rangeName, arg2.getWS());
 					}
 					return _res;
 				} else {

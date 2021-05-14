@@ -6260,13 +6260,13 @@
 		var oReplaceNode = new CStringNode(sReplace, null);
 		var oMatching = new CDiffMatching();
 		oMatching.put(oBaseNode, oReplaceNode);
-		var oDiff  = new Diff(oBaseNode, oReplaceNode);
+		var oDiff  = new AscCommon.Diff(oBaseNode, oReplaceNode);
 		oDiff.equals = function(a, b)
 		{
 			return a.equals(b);
 		};
 		oDiff.matchTrees(oMatching);
-		var oDeltaCollector = new DeltaCollector(oMatching, oBaseNode, oReplaceNode);
+		var oDeltaCollector = new AscCommon.DeltaCollector(oMatching, oBaseNode, oReplaceNode);
 		oDeltaCollector.forEachChange(function(oOperation){
 			aDelta.push(new CStringChange(oOperation));
 		});
@@ -6288,28 +6288,58 @@
 		return { start : val, end: AscCommon.AscBrowser.convertToRetinaValue(val, true) };
 	};
 
-	function calculateCanvasSize(element)
+	function setCanvasSize(element, width, height, is_correction)
 	{
+		if (element.width === width && element.height === height)
+			return;
+
+		if (true !== is_correction)
+		{
+			element.width = width;
+			element.height = height;
+			return;
+		}
+
+		var data = element.getContext("2d").getImageData(0, 0, element.width, element.height);
+		element.width = width;
+		element.height = height;
+		element.getContext("2d").putImageData(data, 0, 0);
+	};
+
+	function calculateCanvasSize(element, is_correction)
+	{
+		if (true !== is_correction && undefined !== element.correctionTimeout)
+		{
+			clearTimeout(element.correctionTimeout);
+			element.correctionTimeout = undefined;
+		}
+
 		var scale = AscCommon.AscBrowser.retinaPixelRatio;
-		var new_width = 0;
-		var new_height = 0;
 		if (Math.abs(scale - (scale >> 0)) < 0.001)
 		{
-			new_width = (scale * parseInt(element.style.width));
-			new_height = (scale * parseInt(element.style.height));
-
-			if (element.width !== new_width)
-				element.width = new_width;
-
-			if (element.height !== new_height)
-				element.height = new_height;
-
+			setCanvasSize(element,
+				scale * parseInt(element.style.width),
+				scale * parseInt(element.style.height),
+				is_correction);
 			return;
 		}
 
 		var rect = element.getBoundingClientRect();
 		if (rect.width === 0 && rect.height === 0)
 		{
+			var isNoVisibleElement = false;
+			if (element.style.display === "none")
+				isNoVisibleElement = true;
+			else if (element.parentNode && element.parentNode.style.display === "none")
+				isNoVisibleElement = true;
+
+			if (!isNoVisibleElement)
+			{
+				element.correctionTimeout = setTimeout(function (){
+					calculateCanvasSize(element, true);
+				}, 100);
+			}
+
 			var style_width = parseInt(element.style.width);
 			var style_height = parseInt(element.style.height);
 
@@ -6321,7 +6351,11 @@
 			};
 		}
 
-		if (!AscCommon.AscBrowser.isMozilla)
+		var new_width = 0;
+		var new_height = 0;
+
+		// в мозилле поправили баг. отключаем особую ветку
+		if (true || !AscCommon.AscBrowser.isMozilla)
 		{
 			new_width = Math.round(scale * rect.right) - Math.round(scale * rect.left);
 			new_height = Math.round(scale * rect.bottom) - Math.round(scale * rect.top);
@@ -6337,11 +6371,10 @@
 			new_height = sizeH.end;
 		}
 
-		if (element.width !== new_width)
-			element.width = new_width;
-
-		if (element.height !== new_height)
-			element.height = new_height;
+		setCanvasSize(element,
+			new_width,
+			new_height,
+			is_correction);
 	};
 
 

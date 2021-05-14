@@ -5688,7 +5688,7 @@ background-repeat: no-repeat;\
 		if (bIsShow)
 		{
 			this.WordControl.Splitter2Pos = this.WordControl.OldSplitter2Pos;
-			if (this.WordControl.Splitter2Pos == 0)
+			if (this.WordControl.Splitter2Pos <= 1)
 				this.WordControl.Splitter2Pos = 11;
 			this.WordControl.OnResizeSplitter();
 		}
@@ -5698,6 +5698,7 @@ background-repeat: no-repeat;\
 			this.WordControl.Splitter2Pos = 0;
 			this.WordControl.OnResizeSplitter();
 			this.WordControl.OldSplitter2Pos = old;
+			this.WordControl.m_oLogicDocument.CheckNotesShow();
 		}
 	};
 
@@ -5715,13 +5716,17 @@ background-repeat: no-repeat;\
 		this.sendEvent("asc_onThumbnailsShow", bIsShow);
 	};
 
-	asc_docs_api.prototype.syncOnNotesShow = function()
+	asc_docs_api.prototype.getIsNotesShow = function()
 	{
 		var bIsShow = true;
-		if (0 == this.WordControl.Splitter2Pos)
+		if (1 >= this.WordControl.Splitter2Pos)
 			bIsShow = false;
 
-		this.sendEvent("asc_onNotesShow", bIsShow);
+		return bIsShow;
+	};
+	asc_docs_api.prototype.syncOnNotesShow = function()
+	{
+		this.sendEvent("asc_onNotesShow", this.getIsNotesShow());
 	};
 
 
@@ -7698,6 +7703,19 @@ background-repeat: no-repeat;\
 			AscCommon.History.Clear();
 			logicDocument.Document_UpdateInterfaceState();
 		}
+	};
+
+	asc_docs_api.prototype.isShowShapeAdjustments = function()
+	{
+		return this.canEdit();
+	};
+	asc_docs_api.prototype.isShowTableAdjustments = function()
+	{
+		return this.canEdit();
+	};
+	asc_docs_api.prototype.isShowEquationTrack = function()
+	{
+		return this.canEdit();
 	};
 
 	asc_docs_api.prototype.SetDrawImagePreviewBulletForMenu = function(id, type)

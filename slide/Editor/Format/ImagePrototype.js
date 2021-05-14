@@ -42,13 +42,10 @@ CImageShape.prototype.setDrawingBase = CShape.prototype.setDrawingBase;
 CImageShape.prototype.deleteDrawingBase = CShape.prototype.deleteDrawingBase;
 CImageShape.prototype.addToRecalculate = CShape.prototype.addToRecalculate;
 CImageShape.prototype.convertPixToMM = CShape.prototype.convertPixToMM;
-CImageShape.prototype.getCanvasContext = CShape.prototype.getCanvasContext;
 CImageShape.prototype.getHierarchy = CShape.prototype.getHierarchy;
 CImageShape.prototype.getParentObjects = CShape.prototype.getParentObjects;
 CImageShape.prototype.recalculateTransform = CShape.prototype.recalculateTransform;
 CImageShape.prototype.recalculateBounds = CShape.prototype.recalculateBounds;
-CImageShape.prototype.deselect = CShape.prototype.deselect;
-CImageShape.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CImageShape.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CImageShape.prototype.setWorksheet = CShape.prototype.setWorksheet;
 CImageShape.prototype.getDrawingObjectsController = CShape.prototype.getDrawingObjectsController;
@@ -152,7 +149,6 @@ CImageShape.prototype.handleUpdateGeometry = function()
     this.addToRecalculate();
 };
 CImageShape.prototype.convertPixToMM = CShape.prototype.convertPixToMM;
-CImageShape.prototype.getCanvasContext = CShape.prototype.getCanvasContext;
 CImageShape.prototype.getCompiledStyle = CShape.prototype.getCompiledStyle;
 CImageShape.prototype.getHierarchy = CShape.prototype.getHierarchy;
 CImageShape.prototype.getParentObjects = CShape.prototype.getParentObjects;
@@ -200,5 +196,4 @@ CImageShape.prototype.recalculate = function ()
 CImageShape.prototype.recalculateBounds = CShape.prototype.recalculateBounds;
 CImageShape.prototype.hitInInnerArea = CShape.prototype.hitInInnerArea;
 CImageShape.prototype.hitInPath = CShape.prototype.hitInPath;
-CImageShape.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CImageShape.prototype.check_bounds = CShape.prototype.check_bounds;

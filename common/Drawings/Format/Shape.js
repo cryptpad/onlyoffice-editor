@@ -177,6 +177,12 @@ function hitToCropHandles(x, y, object)
 
 function hitToHandles(x, y, object)
 {
+    var oApi = Asc.editor || editor;
+    var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
+    if(isDrawHandles === false)
+    {
+        return -1;
+    }
     if(object.cropObject)
     {
         return hitToCropHandles(x, y, object);
@@ -4467,45 +4473,6 @@ CShape.prototype.getHandlePosByIndex = function(numHandle){
     }
 };
 
-CShape.prototype.select = function (drawingObjectsController, pageIndex)
-{
-    this.selected = true;
-    this.selectStartPage = pageIndex;
-    var content = this.getDocContent && this.getDocContent();
-    if(content)
-        content.Set_StartPage(pageIndex);
-    var selected_objects;
-    if (!isRealObject(this.group))
-        selected_objects = drawingObjectsController.selectedObjects;
-    else
-        selected_objects = this.group.getMainGroup().selectedObjects;
-    for (var i = 0; i < selected_objects.length; ++i) {
-        if (selected_objects[i] === this)
-            break;
-    }
-    if (i === selected_objects.length)
-        selected_objects.push(this);
-};
-
-CShape.prototype.deselect = function (drawingObjectsController) {
-    this.selected = false;
-    var selected_objects;
-    if (!isRealObject(this.group))
-        selected_objects = drawingObjectsController.selectedObjects;
-    else
-        selected_objects = this.group.getMainGroup().selectedObjects;
-    for (var i = 0; i < selected_objects.length; ++i) {
-        if (selected_objects[i] === this) {
-            selected_objects.splice(i, 1);
-            break;
-        }
-    }
-    if(this.graphicObject)
-    {
-        this.graphicObject.RemoveSelection();
-    }
-    return this;
-};
 
 CShape.prototype.getGroupHierarchy = function () {
     if (this.recalcInfo.recalculateGroupHierarchy) {
@@ -4653,6 +4620,8 @@ CShape.prototype.updateSelectionState = function ()
         var content = this.getDocContent();
         if(content)
         {
+        	var oLogicDocument = content.GetLogicDocument ? content.GetLogicDocument() : null;
+
             var oMatrix = null;
             if(this.transformText)
             {
@@ -4695,6 +4664,13 @@ CShape.prototype.updateSelectionState = function ()
 
                         drawing_document.TargetStart();
                         drawing_document.TargetShow();
+
+						if (oLogicDocument && oLogicDocument.IsFillingFormMode && oLogicDocument.IsFillingFormMode())
+						{
+							var oContentControl = oLogicDocument.GetContentControl();
+							if (oContentControl && oContentControl.IsCheckBox())
+								drawing_document.TargetEnd();
+						}
                     }
                 }
             }
@@ -4705,6 +4681,13 @@ CShape.prototype.updateSelectionState = function ()
 
                 drawing_document.TargetStart();
                 drawing_document.TargetShow();
+
+				if (oLogicDocument && oLogicDocument.IsFillingFormMode && oLogicDocument.IsFillingFormMode())
+				{
+					var oContentControl = oLogicDocument.GetContentControl();
+					if (oContentControl && oContentControl.IsCheckBox())
+						drawing_document.TargetEnd();
+				}
             }
         }
         else
@@ -5664,6 +5647,13 @@ CShape.prototype.changeLine = function (line)
 };
 
 CShape.prototype.hitToAdjustment = function (x, y) {
+
+    var oApi = Asc.editor || editor;
+    var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
+    if(isDrawHandles === false)
+    {
+        return { hit: false, adjPolarFlag: null, adjNum: null, warp: false };
+    }
     var invert_transform;
     var t_x, t_y, ret;
     var _calcGeoem = this.calcGeometry || (this.spPr && this.spPr.geometry);
@@ -5993,6 +5983,10 @@ CShape.prototype.recalculateBounds = function()
 
 CShape.prototype.checkContentWordArt = function(oContent)
 {
+    if(!oContent)
+    {
+        return false;
+    }
     return oContent.CheckRunContent(CheckWordArtTextPr);
 };
 

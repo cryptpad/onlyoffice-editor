@@ -231,6 +231,7 @@ function CopyProcessor(api, onlyBinaryCopy)
 
     this.aFootnoteReference = [];
 	this.oRoot = new CopyElement("root");
+    this.listNextNumMap = [];
 }
 CopyProcessor.prototype =
 {
@@ -261,7 +262,7 @@ CopyProcessor.prototype =
             sB = "0" + sB;
         return "#" + sR + sG + sB;
     },
-    Commit_pPr : function(Item, Para)
+    Commit_pPr : function(Item, Para, nextElem)
     {
         //pPr
         var apPr = [];
@@ -346,7 +347,23 @@ CopyProcessor.prototype =
             if(null != Item_pPr.Brd)
             {
                 apPr.push("border:none");
-                var borderStyle = this._BordersToStyle(Item_pPr.Brd, false, true, "mso-", "-alt");
+
+                //сравниваю бордеры со следующим параграфом
+                var isNeedPrefix = true;
+                if (Item && type_Paragraph === Item.GetType() && Item.IsTableCellContent && !Item.IsTableCellContent()) {
+					isNeedPrefix = false;
+                	if (nextElem && type_Paragraph === nextElem.GetType()) {
+						isNeedPrefix = true;
+						var Item_pPrCompile = Item.CompiledPr && Item.CompiledPr.Pr && Item.CompiledPr.Pr.ParaPr;
+						var Next_pPrCompile = nextElem.Get_CompiledPr2 && nextElem.Get_CompiledPr2(false);
+						Next_pPrCompile = Next_pPrCompile && Next_pPrCompile.ParaPr;
+						if (Next_pPrCompile && Item_pPrCompile && !nextElem.private_CompareBorderSettings(Next_pPrCompile, Item_pPrCompile)) {
+							isNeedPrefix = false;
+						}
+					}
+				}
+
+                var borderStyle = this._BordersToStyle(Item_pPr.Brd, false, true, isNeedPrefix ? "mso-" : null, isNeedPrefix ? "-alt" : null);
                 if(null != borderStyle)
                 {
                     var nborderStyleLength = borderStyle.length;
@@ -576,7 +593,7 @@ CopyProcessor.prototype =
 			}
 		}
     },
-    CopyParagraph : function(oDomTarget, Item, selectedAll)
+    CopyParagraph : function(oDomTarget, Item, selectedAll, nextElem)
     {
         var oDocument = this.oDocument;
 		var Para = null;
@@ -695,7 +712,7 @@ CopyProcessor.prototype =
             }
         }
         //pPr
-        this.Commit_pPr(Item, Para);
+        this.Commit_pPr(Item, Para, nextElem);
 
         if(false === selectedAll)
         {
@@ -721,12 +738,25 @@ CopyProcessor.prototype =
 					if((bBullet && "ul" === oPrevElem.sName) || (!bBullet && "ol" === oPrevElem.sName))
 						oTargetList = oPrevElem;
 				}
-				if(null == oTargetList){
-					if(bBullet)
+
+				if (!bBullet) {
+					if (!this.listNextNumMap[oNumPr.NumId]) {
+						this.listNextNumMap[oNumPr.NumId] = 1;
+					} else {
+						this.listNextNumMap[oNumPr.NumId]++;
+					}
+				}
+				if (null == oTargetList) {
+					if (bBullet) {
 						oTargetList = new CopyElement("ul");
-					else
+					} else {
 						oTargetList = new CopyElement("ol");
+					}
 					oTargetList.oAttributes["style"] = "padding-left:40px";
+					//если список идёт с промежуточными элементами, добавляем аттрибут start
+					if (!bBullet && this.listNextNumMap[oNumPr.NumId] > 1) {
+						oTargetList.oAttributes["start"] = this.listNextNumMap[oNumPr.NumId];
+					}
 					oDomTarget.addChild(oTargetList);
 				}
 				oTargetList.addChild(Li);
@@ -740,7 +770,8 @@ CopyProcessor.prototype =
             res += name + ":none;";
         else
         {
-            var size = 0.5;
+            //TODO получение цвета рассмотреть аналогично получению фону у ячейки с ипользованием функции GetSimpleColor
+        	var size = 0.5;
             var color = border.Color;
             var unifill = border.Unifill;
             if(null != border.Size)
@@ -836,7 +867,7 @@ CopyProcessor.prototype =
 			var presentation = editor.WordControl.m_oLogicDocument;
 			var curSlide = presentation.Slides[presentation.CurPage];
 			if(presentation && curSlide && curSlide.Layout && curSlide.Layout.Master && curSlide.Layout.Master.Theme)
-        AscFormat.checkTableCellPr(cell.CompiledPr.Pr, curSlide, curSlide.Layout, curSlide.Layout.Master, curSlide.Layout.Master.Theme);	
+        AscFormat.checkTableCellPr(cell.CompiledPr.Pr, curSlide, curSlide.Layout, curSlide.Layout.Master, curSlide.Layout.Master.Theme);
 		}
 		
 		if(null != cell.CompiledPr && null != cell.CompiledPr.Pr)
@@ -848,8 +879,16 @@ CopyProcessor.prototype =
         }
         if(null != cellPr && null != cellPr.Shd)
         {
-            if (c_oAscShdNil !== cellPr.Shd.Value && (null != cellPr.Shd.Color || null != cellPr.Shd.Unifill))
-                tcStyle += "background-color:" + this.RGBToCSS(cellPr.Shd.Color, cellPr.Shd.Unifill) + ";";
+			if (c_oAscShdNil !== cellPr.Shd.Value && (null != cellPr.Shd.Color || null != cellPr.Shd.Unifill)) {
+				var _shdColor = cellPr.Shd.GetSimpleColor(this.oDocument.Get_Theme(), this.oDocument.Get_ColorMap());
+				//todo проверить и убрать else, всегда использовать GetSimpleColor
+				if (_shdColor) {
+					_shdColor = this.RGBToCSS(_shdColor);
+				} else {
+					_shdColor = this.RGBToCSS(cellPr.Shd.Color, cellPr.Shd.Unifill);
+				}
+				tcStyle += "background-color:" + _shdColor + ";";
+			}
         }
         else if(null != tablePr && null != tablePr.Shd)
         {
@@ -1118,11 +1157,19 @@ CopyProcessor.prototype =
 				{
 					var SelectedAll = Index === elementsContent.length - 1 ? elementsContent[Index].SelectedAll : true;
 					//todo может только для верхнего уровня надо Index == End
-					if(!dNotGetBinary)
+					if (!dNotGetBinary) {
 						this.oBinaryFileWriter.CopyParagraph(Item, SelectedAll);
-						
-					if(!this.onlyBinaryCopy)
-						this.CopyParagraph(oDomTarget, Item, SelectedAll);
+					}
+
+					if (!this.onlyBinaryCopy) {
+						var _nextElem;
+						if (elementsContent[Index + 1] && elementsContent[Index + 1].Element) {
+							_nextElem = elementsContent[Index + 1].Element;
+						} else {
+							_nextElem = elementsContent[Index + 1];
+						}
+						this.CopyParagraph(oDomTarget, Item, SelectedAll, _nextElem);
+					}
 				}
 				else if(type_BlockLevelSdt === Item.GetType() )
 				{
@@ -2294,23 +2341,129 @@ PasteProcessor.prototype =
     },
     InsertInPlace : function(oDoc, aNewContent)
     {
-        if(!PasteElementsId.g_bIsDocumentCopyPaste)
-            return;
+		if(!PasteElementsId.g_bIsDocumentCopyPaste)
+		return;
 
 		var specialPasteHelper = window['AscCommon'].g_specialPasteHelper;
 		var bIsSpecialPaste = specialPasteHelper.specialPasteStart;
+		var paragraph = oDoc.GetCurrentParagraph();
+		var oTable = oDoc.IsInTable() ? oDoc.GetParent().GetTable() : null;
 
-        var paragraph = oDoc.GetCurrentParagraph();
-        if (null != paragraph) {
-            var NearPos = paragraph.GetCurrentAnchorPosition();
-            //делаем небольшой сдвиг по y, потому что сама точка TargetPos для двухстрочного параграфа определяется как верхняя
-            //var NearPos = oDoc.Get_NearestPos(this.oLogicDocument.TargetPos.PageNum, this.oLogicDocument.TargetPos.X, this.oLogicDocument.TargetPos.Y + 0.05);//0.05 == 2pix
+		//pasteTypeContent - если все содержимое одного типа
+		//TODO пересмотреть pasteTypeContent
+		this.pasteTypeContent = null;
+		var oSelectedContent = new CSelectedContent();
+		var tableSpecialPaste = false;
 
-			//pasteTypeContent - если все содержимое одного типа
-			//TODO пересмотреть pasteTypeContent
-			this.pasteTypeContent = null;
-			var oSelectedContent = new CSelectedContent();
-			var tableSpecialPaste = false;
+		if (oTable && !aNewContent[0].IsTable() && oTable.Selection.Use)
+		{
+			var oRows = oTable.GetSelectedRowsRange();
+			var arrColums = [];
+			var oLastCell, oFirstCell;
+			if (oRows.Start === oRows.End)
+			{
+				oLastCell = Math.max(oTable.Selection.StartPos.Pos.Cell, oTable.Selection.EndPos.Pos.Cell);
+				oFirstCell = Math.min(oTable.Selection.StartPos.Pos.Cell, oTable.Selection.EndPos.Pos.Cell);
+			}
+			else
+			{
+				oLastCell = (oTable.Selection.StartPos.Pos.Row === oRows.End) ? oTable.Selection.StartPos.Pos.Cell : oTable.Selection.EndPos.Pos.Cell;
+				oFirstCell = (oTable.Selection.StartPos.Pos.Row === oRows.Start) ? oTable.Selection.StartPos.Pos.Cell : oTable.Selection.EndPos.Pos.Cell;
+			}
+			for (var Index = oFirstCell; Index <= oLastCell; Index++)
+			{
+				var arrCells = [];
+				for (var j = oRows.Start; j <= oRows.End; j++)
+				{
+					var oRow = oTable.Content[j];
+					var oCell = oRow.Get_Cell(Index);
+					var oCell_Content = oCell.Content;
+					arrCells.push(oCell_Content.GetCurrentParagraph());
+				}
+				arrColums.push(arrCells);
+			}
+			for (var i = 0; i < arrColums.length; i++)
+			{
+				for (var j = 0, k = 0; j < arrColums[i].length; j++)
+				{
+					oSelectedContent.Reset();
+					var Elem = arrColums[i][j];
+					var NewElem = aNewContent[k].Copy();
+					k = (k > aNewContent.length - 2) ? 0 : k + 1;
+					var NearPos = Elem.GetCurrentAnchorPosition();
+					//делаем небольшой сдвиг по y, потому что сама точка TargetPos для двухстрочного параграфа определяется как верхняя
+					//var NearPos = oDoc.Get_NearestPos(this.oLogicDocument.TargetPos.PageNum, this.oLogicDocument.TargetPos.X, this.oLogicDocument.TargetPos.Y + 0.05);//0.05 == 2pix
+
+					if(bIsSpecialPaste){
+						if (Asc.c_oSpecialPasteProps.insertAsNestedTable === specialPasteHelper.specialPasteProps ||
+							Asc.c_oSpecialPasteProps.overwriteCells === specialPasteHelper.specialPasteProps)
+						{
+							tableSpecialPaste = true;
+							oSelectedContent.SetInsertOptionForTable(specialPasteHelper.specialPasteProps);
+						}
+					}
+
+	
+					if(bIsSpecialPaste && !tableSpecialPaste)
+					{
+						var parseItem = this._specialPasteItemConvert(NewElem);
+						if(parseItem && parseItem.length)
+						{
+							for(var j = 0; j < parseItem.length; j++)
+							{
+								if(j === 0)
+								{
+									aNewContent.splice(k + j, 1, parseItem[j]);
+								}
+								else
+								{
+									aNewContent.splice(k + j, 0, parseItem[j]);
+								}
+							}
+						}
+					}
+					
+
+					var oSelectedElement = new CSelectedElement();
+					oSelectedElement.Element = NewElem;
+
+					var type = this._specialPasteGetElemType(NewElem);
+					if(0 === i)
+					{
+						this.pasteTypeContent = type;
+					}
+					else if(type !== this.pasteTypeContent)
+					{
+						this.pasteTypeContent = null;
+					}
+
+					oSelectedElement.SelectedAll = true;
+					oSelectedContent.Add(oSelectedElement);
+					
+
+					oSelectedContent.On_EndCollectElements(this.oLogicDocument, true);
+					if(!this.pasteInExcel && !this.oLogicDocument.Can_InsertContent(oSelectedContent, NearPos))
+					{
+						if(!this.pasteInExcel)
+						{
+							this.oLogicDocument.Document_Undo();
+							History.Clear_Redo();
+						}
+						return;
+					}
+
+					Elem.Parent.InsertContent(oSelectedContent, NearPos);
+				}
+				
+			}
+		}
+		else
+		{
+			oTable = null;
+			var paragraph = oDoc.GetCurrentParagraph();
+			var NearPos = paragraph.GetCurrentAnchorPosition();
+			//делаем небольшой сдвиг по y, потому что сама точка TargetPos для двухстрочного параграфа определяется как верхняя
+			//var NearPos = oDoc.Get_NearestPos(this.oLogicDocument.TargetPos.PageNum, this.oLogicDocument.TargetPos.X, this.oLogicDocument.TargetPos.Y + 0.05);//0.05 == 2pix
 
 			if(bIsSpecialPaste){
 				if (Asc.c_oSpecialPasteProps.insertAsNestedTable === specialPasteHelper.specialPasteProps ||
@@ -2320,7 +2473,7 @@ PasteProcessor.prototype =
 					oSelectedContent.SetInsertOptionForTable(specialPasteHelper.specialPasteProps);
 				}
 			}
-            for (var i = 0; i < aNewContent.length; ++i) {
+			for (var i = 0; i < aNewContent.length; ++i) {
 				if(bIsSpecialPaste && !tableSpecialPaste)
 				{
 					var parseItem = this._specialPasteItemConvert(aNewContent[i]);
@@ -2353,116 +2506,116 @@ PasteProcessor.prototype =
 					this.pasteTypeContent = null;
 				}
 
-                if (i === aNewContent.length - 1 && true != this.bInBlock && type_Paragraph === oSelectedElement.Element.GetType())
-                    oSelectedElement.SelectedAll = false;
-                else
-                    oSelectedElement.SelectedAll = true;
-                oSelectedContent.Add(oSelectedElement);
-            }
+				if (i === aNewContent.length - 1 && true != this.bInBlock && type_Paragraph === oSelectedElement.Element.GetType())
+					oSelectedElement.SelectedAll = false;
+				else
+					oSelectedElement.SelectedAll = true;
+				oSelectedContent.Add(oSelectedElement);
+			}
 			
 			//проверка на возможность втавки в формулу
 			//TODO проверку на excel пеерсмотреть!!!!
 			oSelectedContent.On_EndCollectElements(this.oLogicDocument, true);
 			if(!this.pasteInExcel && !this.oLogicDocument.Can_InsertContent(oSelectedContent, NearPos))
-            {
-                if(!this.pasteInExcel)
-                {
-                    this.oLogicDocument.Document_Undo();
-                    History.Clear_Redo();
-                }
-                return;
-            }
-
-            var bPasteMath = false;
-            if(this.pasteInExcel)
-            {
-                var Para        = NearPos.Paragraph;
-                var ParaNearPos = Para.Get_ParaNearestPos(NearPos);
-                var LastClass   = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
-                if (para_Math_Run === LastClass.Type)
-                {
-                    var MathRun        = LastClass;
-                    var NewMathRun     = MathRun.Split(ParaNearPos.NearPos.ContentPos, ParaNearPos.Classes.length - 1);
-                    var MathContent    = ParaNearPos.Classes[ParaNearPos.Classes.length - 2];
-                    var MathContentPos = ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 2];
-                    var Element        = oSelectedContent.Elements[0].Element;
-
-                    var InsertMathContent = null;
-                    for (var nPos = 0, nParaLen = Element.Content.length; nPos < nParaLen; nPos++)
-                    {
-                        if (para_Math === Element.Content[nPos].Type)
-                        {
-                            InsertMathContent = Element.Content[nPos];
-                            break;
-                        }
-                    }
-
-                    if(null === InsertMathContent)
-                    {
-                        //try to convert content to ParaMath in simple cases.
-                        InsertMathContent = oSelectedContent.ConvertToMath();
-                    }
-
-                    if (null !== InsertMathContent)
-                    {
-                        MathContent.Add_ToContent(MathContentPos + 1, NewMathRun);
-                        MathContent.Insert_MathContent(InsertMathContent.Root, MathContentPos + 1, true);
-                        bPasteMath = true;
-                    }
-                }
-            }
-
-            if(!bPasteMath)
-            {
-                paragraph.Parent.InsertContent(oSelectedContent, NearPos);
-            }
-
-			//если вставляем таблицу в ячейку таблицы
-			if (this.pasteIntoElem && 1 === this.aContent.length && type_Table === this.aContent[0].GetType() &&
-				this.pasteIntoElem.Parent && this.pasteIntoElem.Parent.IsInTable() && (!bIsSpecialPaste || (bIsSpecialPaste &&
-				Asc.c_oSpecialPasteProps.overwriteCells === specialPasteHelper.specialPasteProps))) {
-				//TODO пересмотреть положение кнопки специальной вставки при вставке в таблицу
-				var table;
-				var tableCell = paragraph && paragraph.Parent && paragraph.Parent.Parent;
-				if (tableCell && tableCell.GetTable) {
-					table = tableCell.GetTable()
-				} else {
-					table = this.pasteIntoElem.Parent.Parent.Get_Table();
-				}
-				specialPasteHelper.showButtonIdParagraph = table.Id;
-			} else {
-				if(oSelectedContent.Elements.length === 1)
+			{
+				if(!this.pasteInExcel)
 				{
-					var curDocSelection = this.oDocument.GetSelectionState();
-					if(curDocSelection && curDocSelection[1] && curDocSelection[1].CurPos)
-					{
-						var selectParagraph = this.oDocument.Content[curDocSelection[1].CurPos.ContentPos];
-						specialPasteHelper.showButtonIdParagraph = selectParagraph.Id;
+					this.oLogicDocument.Document_Undo();
+					History.Clear_Redo();
+				}
+				return;
+			}
 
-						//TODO пересмотреть для случая когда вставляем таблицу внутри BlockLevelSdt
-						if(selectParagraph.GetType && type_BlockLevelSdt === selectParagraph.GetType()) {
-							var currentParagraph = this.oDocument.GetCurrentParagraph();
-							specialPasteHelper.showButtonIdParagraph = currentParagraph ? currentParagraph.Id : null
+			var bPasteMath = false;
+			if(this.pasteInExcel)
+			{
+				var Para        = NearPos.Paragraph;
+				var ParaNearPos = Para.Get_ParaNearestPos(NearPos);
+				var LastClass   = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
+				if (para_Math_Run === LastClass.Type)
+				{
+					var MathRun        = LastClass;
+					var NewMathRun     = MathRun.Split(ParaNearPos.NearPos.ContentPos, ParaNearPos.Classes.length - 1);
+					var MathContent    = ParaNearPos.Classes[ParaNearPos.Classes.length - 2];
+					var MathContentPos = ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 2];
+					var Element        = oSelectedContent.Elements[0].Element;
+
+					var InsertMathContent = null;
+					for (var nPos = 0, nParaLen = Element.Content.length; nPos < nParaLen; nPos++)
+					{
+						if (para_Math === Element.Content[nPos].Type)
+						{
+							InsertMathContent = Element.Content[nPos];
+							break;
 						}
 					}
-				}
-				else
-				{
-					specialPasteHelper.showButtonIdParagraph = oSelectedContent.Elements[oSelectedContent.Elements.length - 1].Element.Id;
+
+					if(null === InsertMathContent)
+					{
+						//try to convert content to ParaMath in simple cases.
+						InsertMathContent = oSelectedContent.ConvertToMath();
+					}
+
+					if (null !== InsertMathContent)
+					{
+						MathContent.Add_ToContent(MathContentPos + 1, NewMathRun);
+						MathContent.Insert_MathContent(InsertMathContent.Root, MathContentPos + 1, true);
+						bPasteMath = true;
+					}
 				}
 			}
 
+			if(!bPasteMath)
+			{
+				paragraph.Parent.InsertContent(oSelectedContent, NearPos);
+			}
+			paragraph.Clear_NearestPosArray(aNewContent);
+		}
 
-            if(this.oLogicDocument && this.oLogicDocument.DrawingObjects)
-            {
-                var oTargetTextObject = AscFormat.getTargetTextObject(this.oLogicDocument.DrawingObjects);
-                oTargetTextObject && oTargetTextObject.checkExtentsByDocContent && oTargetTextObject.checkExtentsByDocContent();
-            }
+		//если вставляем таблицу в ячейку таблицы
+		if (this.pasteIntoElem && 1 === this.aContent.length && type_Table === this.aContent[0].GetType() &&
+			this.pasteIntoElem.Parent && this.pasteIntoElem.Parent.IsInTable() && (!bIsSpecialPaste || (bIsSpecialPaste &&
+			Asc.c_oSpecialPasteProps.overwriteCells === specialPasteHelper.specialPasteProps))) {
+			//TODO пересмотреть положение кнопки специальной вставки при вставке в таблицу
+			var table;
+			var tableCell = paragraph && paragraph.Parent && paragraph.Parent.Parent;
+			if (tableCell && tableCell.GetTable) {
+				table = tableCell.GetTable()
+			} else {
+				table = this.pasteIntoElem.Parent.Parent.Get_Table();
+			}
+			specialPasteHelper.showButtonIdParagraph = table.Id;
+		} else {
+			if(oSelectedContent.Elements.length === 1 && !oTable)
+			{
+				var curDocSelection = this.oDocument.GetSelectionState();
+				if(curDocSelection && curDocSelection[1] && curDocSelection[1].CurPos)
+				{
+					var selectParagraph = this.oDocument.Content[curDocSelection[1].CurPos.ContentPos];
+					specialPasteHelper.showButtonIdParagraph = selectParagraph.Id;
 
-			this._selectShapesBeforeInsert(aNewContent, oDoc);
-			
-            paragraph.Clear_NearestPosArray(aNewContent);
-        }
+					//TODO пересмотреть для случая когда вставляем таблицу внутри BlockLevelSdt
+					if(selectParagraph.GetType && type_BlockLevelSdt === selectParagraph.GetType()) {
+						var currentParagraph = this.oDocument.GetCurrentParagraph();
+						specialPasteHelper.showButtonIdParagraph = currentParagraph ? currentParagraph.Id : null
+					}
+				}
+			}
+			else
+			{
+				specialPasteHelper.showButtonIdParagraph = oSelectedContent.Elements[oSelectedContent.Elements.length - 1].Element.Id;
+			}
+		}
+
+
+		if(this.oLogicDocument && this.oLogicDocument.DrawingObjects)
+		{
+			var oTargetTextObject = AscFormat.getTargetTextObject(this.oLogicDocument.DrawingObjects);
+			oTargetTextObject && oTargetTextObject.checkExtentsByDocContent && oTargetTextObject.checkExtentsByDocContent();
+		}
+
+		this._selectShapesBeforeInsert(aNewContent, oDoc);
+		
     },
 
 	//***functions for special paste***

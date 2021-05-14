@@ -447,7 +447,7 @@
 		".defaultlable" : { "color" : "text-normal" },
 		".aboutlable" : { "color" : "text-normal" },
 		"a.aboutlink" : { "color" : "text-normal" },
-		".form-control" : { "color" : "text-normal", "background-color" : "background-normal", "border-color" : "border-regular-control" },
+		".form-control, .form-control[readonly], .form-control[disabled]" : { "color" : "text-normal", "background-color" : "background-normal", "border-color" : "border-regular-control" },
 		".form-control:focus" : { "border-color" : "border-control-focus" },
 		".form-control[disabled]" : { "color" : "text-invers" },
 		".btn-text-default" : { "background-color" : "background-normal", "border-color" : "border-regular-control", "color" : "text-normal" },
@@ -471,10 +471,23 @@
 		".select2-search--dropdown" : { "background-color" : "background-normal !important"},
 		".select2-container--default .select2-search--dropdown .select2-search__field" : { "color" : "text-normal", "background-color" : "background-normal", "border-color" : "border-regular-control"},
 		".select2-container--default.select2-container--disabled .select2-selection--single" : { "background-color" : "background-normal" },
+		".select2-container--default .select2-selection--single .select2-selection__arrow b" : { "border-color" : "text-normal !important" },
 		".ps .ps__rail-y:hover" : {"background-color" : "background-toolbar" },
 		".ps .ps__rail-y.ps--clicking" : {"background-color" : "background-toolbar" },
-		".ps__thumb-y" : {"background-color" : "background-normal", "border-color" : "background-normal" },
-		".ps__rail-y:hover > .ps__thumb-y" : {"border-color" : "canvas-scroll-thumb-hover" }
+		".ps__thumb-y" : { "background-color" : "background-normal", "border-color" : "Border !important" },
+		".ps__rail-y:hover > .ps__thumb-y" : {"border-color" : "canvas-scroll-thumb-hover" },
+		".ps .ps__rail-x:hover" : {"background-color" : "background-toolbar" },
+		".ps .ps__rail-x.ps--clicking" : {"background-color" : "background-toolbar" },
+		".ps__thumb-x" : { "background-color" : "background-normal", "border-color" : "Border !important" },
+		".ps__rail-x:hover > .ps__thumb-x" : {"border-color" : "canvas-scroll-thumb-hover" },
+		"a" : { "color" : "text-link !important" },
+		"a:hover" : { "color" : "text-link-hover !important" },
+		"a:active" : { "color" : "text-link-active !important" },
+		"a:visited" : { "color" : "text-link-visited !important" },
+		"*::-webkit-scrollbar-track" : { "background" : "background-normal" },
+		"*::-webkit-scrollbar-track:hover" : { "background" : "background-toolbar-additional" },
+		"*::-webkit-scrollbar-thumb" : { "background-color" : "background-toolbar", "border-color" : "border-regular-control" },
+		"*::-webkit-scrollbar-thumb:hover" : { "background-color" : "canvas-scroll-thumb-hover" }
 	};
 
     var g_isMouseSendEnabled = false;

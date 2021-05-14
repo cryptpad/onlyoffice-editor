@@ -630,6 +630,18 @@
 		}
 		return res;
 	};
+	baseEditorsApi.prototype.isShowShapeAdjustments = function()
+	{
+		return true;
+	};
+	baseEditorsApi.prototype.isShowTableAdjustments = function()
+	{
+		return true;
+	};
+	baseEditorsApi.prototype.isShowEquationTrack = function()
+	{
+		return true;
+	};
 	baseEditorsApi.prototype.onPrint                             = function()
 	{
 		this.sendEvent("asc_onPrint");
@@ -1570,6 +1582,7 @@
 		oAdditionalData["nobase64"] = isNoBase64;
 		if (DownloadType.Print === downloadType)
 		{
+			oAdditionalData["withoutPassword"] = true;
 			oAdditionalData["inline"] = 1;
 		}
 
@@ -1648,7 +1661,7 @@
 	};
 	baseEditorsApi.prototype.asc_getPropertyEditorTextArts       = function()
 	{
-		return [AscCommon.g_oPresetTxWarpGroups, AscCommon.g_PresetTxWarpTypes];
+		return this.textArtPreviewManager.getWordArtPreviews();
 	};
 	// Add image
 	baseEditorsApi.prototype._addImageUrl                        = function()
@@ -3384,6 +3397,21 @@
 		this.hideVideoControl();
 	};
 
+	// ---------------------------------------------------- wopi ---------------------------------------------
+	baseEditorsApi.prototype.asc_wopi_renameFile = function(name) {
+		var t = this;
+		var callback = function(isTimeout, response) {
+			if (response) {
+				t.CoAuthoringApi.onMeta({'title': response['Name'] + '.' + AscCommon.GetFileExtension(t.documentTitle)});
+			} else {
+				t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
+			}
+		};
+		if (!this.CoAuthoringApi.callPRC({'type': 'wopi_RenameFile', 'name': name}, Asc.c_nCommonRequestTime, callback)) {
+			callback(false, undefined);
+		}
+	};
+
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommon']                = window['AscCommon'] || {};
 	window['AscCommon'].baseEditorsApi = baseEditorsApi;
@@ -3416,6 +3444,7 @@
 	prot['asc_getShortcutAction'] = prot.asc_getShortcutAction;
 	prot['asc_removeShortcuts'] = prot.asc_removeShortcuts;
 	prot['asc_addCustomShortcutInsertSymbol'] = prot.asc_addCustomShortcutInsertSymbol;
+	prot['asc_wopi_renameFile'] = prot.asc_wopi_renameFile;
 
 	prot['asc_isCrypto'] = prot.asc_isCrypto;
 

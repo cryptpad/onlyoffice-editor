@@ -8060,8 +8060,9 @@ CDocument.prototype.Selection_SetStart         = function(X, Y, MouseEvent)
     var nInDrawing   = this.DrawingObjects.IsInDrawingObject(X, Y, this.CurPage, this);
 	var bFlowTable   = (null === this.DrawingObjects.getTableByXY(X, Y, this.CurPage, this) ? false : true);
 
-    // Сначала посмотрим, попалили мы в текстовый селект (но при этом не в границу таблицы и не более чем одинарным кликом)
-    if (-1 !== this.Selection.DragDrop.Flag
+	// Сначала посмотрим, попалили мы в текстовый селект (но при этом не в границу таблицы и не более чем одинарным кликом)
+	if (this.CanDragAndDrop()
+		&& -1 !== this.Selection.DragDrop.Flag
 		&& MouseEvent.ClickCount <= 1
 		&& false === bTableBorder
 		&& (nInDrawing < 0
@@ -9404,6 +9405,55 @@ CDocument.prototype.IsInDrawing = function(X, Y, PageIndex)
 		}
 	}
 };
+/**
+ * Проверяем, попали ли мы в форму
+ * @param X
+ * @param Y
+ * @param nPageAbs
+ * @returns {boolean}
+ */
+CDocument.prototype.IsInForm = function(X, Y, nPageAbs)
+{
+	var oAnchor = this.Get_NearestPos(nPageAbs, X, Y);
+	if (!oAnchor || !oAnchor.Paragraph)
+		return false;
+
+	var oClass = oAnchor.Paragraph.GetClassByPos(oAnchor.ContentPos);
+	if (!oClass || !(oClass instanceof ParaRun))
+		return false;
+
+	var oForm = oClass.GetParentForm();
+	if (!oForm)
+		return false;
+
+	return oForm.CheckHitInContentControlByXY(X, Y, nPageAbs);
+};
+/**
+ * Проверяем, попали ли мы в контейнер
+ * @param X
+ * @param Y
+ * @param nPageAbs
+ * @returns {boolean}
+ */
+CDocument.prototype.IsInContentControl = function(X, Y, nPageAbs)
+{
+	var oAnchor = this.Get_NearestPos(nPageAbs, X, Y);
+	if (!oAnchor || !oAnchor.Paragraph)
+		return false;
+
+	var oClass = oAnchor.Paragraph.GetClassByPos(oAnchor.ContentPos);
+	if (!oClass || !(oClass instanceof ParaRun))
+		return false;
+
+	var arrContentControls = oClass.GetParentContentControls();
+	for (var nIndex = 0, nCount = arrContentControls.length; nIndex < nCount; ++nIndex)
+	{
+		if (arrContentControls[nIndex].CheckHitInContentControlByXY(X, Y, nPageAbs))
+			return true;
+	}
+
+	return false;
+};
 CDocument.prototype.Is_UseInDocument = function(Id)
 {
 	var Count = this.Content.length;
@@ -10637,6 +10687,36 @@ CDocument.prototype.OnMouseDown = function(e, X, Y, PageIndex)
 		}
 
 		this.Selection_SetStart(X, Y, e);
+		
+		var oSelectedContent = this.GetSelectedElementsInfo();
+		var oInlineSdt       = oSelectedContent.GetInlineLevelSdt();
+		var oBlockSdt        = oSelectedContent.GetBlockLevelSdt();
+
+		if ((oInlineSdt && oInlineSdt.IsCheckBox()) || (oBlockSdt && oBlockSdt.IsCheckBox()))
+		{
+			var oCC = (oInlineSdt && oInlineSdt.IsCheckBox()) ? oInlineSdt : oBlockSdt;
+			if (oCC.CheckHitInContentControlByXY(X, Y, PageIndex) && (!oCC.IsForm() || this.IsFillingFormMode() || oCC === this.CurPos.CC))
+			{
+				this.CurPos.CC = oCC;
+				oCC.SkipSpecialContentControlLock(true);
+				if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, true, this.IsFillingFormMode()))
+				{
+					this.RemoveTextSelection();
+					this.StartAction();
+					oCC.ToggleCheckBox();
+					this.Recalculate();
+					this.UpdateTracks();
+					this.FinalizeAction();
+				}
+				oCC.SkipSpecialContentControlLock(false);
+			}
+			this.UpdateSelection();
+		}
+
+		if (this.IsFillingFormMode() && (oBlockSdt || oInlineSdt))
+		{
+			this.CurPos.CC = oInlineSdt ? oInlineSdt : oBlockSdt;
+		}
 
 		if (e.ClickCount <= 1 && 1 !== this.Selection.DragDrop.Flag)
 		{
@@ -10649,6 +10729,22 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 {
 	if (PageIndex < 0)
 		return;
+
+	if (this.IsFillingFormMode() && this.CurPos.CC && !this.CurPos.CC.CheckHitInContentControlByXY(X, Y, PageIndex))
+	{
+		var oCorrectedPos = this.CurPos.CC.CorrectXYToHitIn(X, Y, PageIndex);
+		if (!oCorrectedPos)
+		{
+			if (this.Selection.Start)
+				this.StopSelection();
+
+			return;
+		}
+
+		X = oCorrectedPos.X;
+		Y = oCorrectedPos.Y;
+	}
+
 
 	if (this.DrawTableMode.Draw || this.DrawTableMode.Erase)
 	{
@@ -10884,28 +10980,7 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 		}
 	}
 
-	var oSelectedContent = this.GetSelectedElementsInfo();
-	var oInlineSdt       = oSelectedContent.GetInlineLevelSdt();
-	var oBlockSdt        = oSelectedContent.GetBlockLevelSdt();
-	if ((oInlineSdt && oInlineSdt.IsCheckBox()) || (oBlockSdt && oBlockSdt.IsCheckBox()))
-	{
-		var oCC = (oInlineSdt && oInlineSdt.IsCheckBox()) ? oInlineSdt : oBlockSdt;
-		if (!oCC.IsForm() || this.IsFillingFormMode() || oCC === this.CurPos.CC)
-		{
-			oCC.SkipSpecialContentControlLock(true);
-			if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, true, this.IsFillingFormMode()))
-			{
-				this.StartAction();
-				oCC.ToggleCheckBox();
-				this.Recalculate();
-				this.UpdateTracks();
-				this.FinalizeAction();
-			}
-			oCC.SkipSpecialContentControlLock(false);
-		}
-	}
-
-	this.private_CheckCursorPosInFillingFormMode();
+	this.private_CheckCursorPosInFillingFormMode(12);
 
 	this.private_UpdateCursorXY(true, true);
 };
@@ -10956,6 +11031,16 @@ CDocument.prototype.OnMouseMove = function(e, X, Y, PageIndex)
 		}
 
 		return;
+	}
+
+	if (this.IsFillingFormMode() && this.CurPos.CC && !this.CurPos.CC.CheckHitInContentControlByXY(X, Y, PageIndex))
+	{
+		var oCorrectedPos = this.CurPos.CC.CorrectXYToHitIn(X, Y, PageIndex);
+		if (!oCorrectedPos)
+			return;
+
+		X = oCorrectedPos.X;
+		Y = oCorrectedPos.Y;
 	}
 
 	if (true === this.Selection.Use && true === this.Selection.Start)
@@ -12051,7 +12136,7 @@ CDocument.prototype.private_UpdateTracks = function(bSelection, bEmptySelection)
 	var oSelectedInfo = this.GetSelectedElementsInfo();
 
 	var Math = oSelectedInfo.GetMath();
-	if (null !== Math)
+	if (null !== Math && this.IsShowEquationTrack())
 		this.DrawingDocument.Update_MathTrack(true, (false === bSelection || true === bEmptySelection ? true : false), Math);
 	else
 		this.DrawingDocument.Update_MathTrack(false);
@@ -14849,7 +14934,7 @@ CDocument.prototype.Continue_FastCollaborativeEditing = function()
 		}
 	}
 };
-CDocument.prototype.Save_DocumentStateBeforeLoadChanges = function()
+CDocument.prototype.Save_DocumentStateBeforeLoadChanges = function(isRemoveSelection)
 {
 	var State = {};
 
@@ -14884,7 +14969,10 @@ CDocument.prototype.Save_DocumentStateBeforeLoadChanges = function()
 	State.EndPos     = [];
 
 	this.Controller.SaveDocumentStateBeforeLoadChanges(State);
-	this.RemoveSelection();
+
+	// TODO: Разобраться зачем здесь делается RemoveSelection, по логике надо вынести за пределы данной функции
+	if (false !== isRemoveSelection)
+		this.RemoveSelection();
 
 	this.CollaborativeEditing.WatchDocumentPositionsByState(State);
 
@@ -14929,9 +15017,9 @@ CDocument.prototype.Load_DocumentStateAfterLoadChanges = function(State)
 
 	this.UpdateSelection();
 };
-CDocument.prototype.SaveDocumentState = function()
+CDocument.prototype.SaveDocumentState = function(isRemoveSelection)
 {
-	return this.Save_DocumentStateBeforeLoadChanges();
+	return this.Save_DocumentStateBeforeLoadChanges(isRemoveSelection);
 };
 CDocument.prototype.LoadDocumentState = function(oState)
 {
@@ -16067,7 +16155,7 @@ CDocument.prototype.AddContentControlTextForm = function(oPr)
 
 	if (this.IsTextSelectionUse())
 		this.RemoveBeforePaste();
-	else
+	else if (this.IsSelectionUse())
 		this.RemoveSelection();
 
 	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
@@ -18077,61 +18165,75 @@ CDocument.prototype.controller_AddNewParagraph = function(bRecalculate, bForceAd
 			// Создаем новый параграф
 			var NewParagraph   = new Paragraph(this.DrawingDocument, this);
 
-			// Проверим позицию в текущем параграфе
-			if (true === Item.IsCursorAtEnd())
+			if (Item.IsCursorAtBegin())
 			{
-				var StyleId = Item.Style_Get();
-				var NextId  = undefined;
+				// Продолжаем (в плане настроек) новый параграф
+				Item.Continue(NewParagraph);
 
-				if (undefined != StyleId)
-				{
-					NextId = this.Styles.Get_Next(StyleId);
+				NewParagraph.Correct_Content();
+				NewParagraph.MoveCursorToStartPos();
 
-					var oNextStyle = this.Styles.Get(NextId);
-					if (!NextId || !oNextStyle || !oNextStyle.IsParagraphStyle())
-						NextId = StyleId;
-				}
-
-				if (StyleId === NextId)
-				{
-					// Продолжаем (в плане настроек) новый параграф
-					Item.Continue(NewParagraph);
-				}
-				else
-				{
-					// Простое добавление стиля, без дополнительных действий
-					if (NextId === this.Styles.Get_Default_Paragraph())
-						NewParagraph.Style_Remove();
-					else
-						NewParagraph.Style_Add(NextId, true);
-				}
-
-				var SectPr = Item.Get_SectionPr();
-				if (undefined !== SectPr)
-				{
-					Item.Set_SectionPr(undefined);
-					NewParagraph.Set_SectionPr(SectPr);
-				}
-
-				var LastRun = Item.Content[Item.Content.length - 1];
-				if (LastRun && LastRun.Pr.Lang && LastRun.Pr.Lang.Val)
-				{
-					NewParagraph.SelectAll();
-					NewParagraph.Add(new ParaTextPr({Lang : LastRun.Pr.Lang.Copy()}));
-					NewParagraph.RemoveSelection();
-				}
+				var nContentPos = this.CurPos.ContentPos;
+				this.AddToContent(nContentPos, NewParagraph);
+				this.CurPos.ContentPos = nContentPos + 1;
 			}
 			else
 			{
-				Item.Split(NewParagraph);
+				if (true === Item.IsCursorAtEnd())
+				{
+					var StyleId = Item.Style_Get();
+					var NextId  = undefined;
+
+					if (undefined != StyleId)
+					{
+						NextId = this.Styles.Get_Next(StyleId);
+
+						var oNextStyle = this.Styles.Get(NextId);
+						if (!NextId || !oNextStyle || !oNextStyle.IsParagraphStyle())
+							NextId = StyleId;
+					}
+
+					if (StyleId === NextId)
+					{
+						// Продолжаем (в плане настроек) новый параграф
+						Item.Continue(NewParagraph);
+					}
+					else
+					{
+						// Простое добавление стиля, без дополнительных действий
+						if (NextId === this.Styles.Get_Default_Paragraph())
+							NewParagraph.Style_Remove();
+						else
+							NewParagraph.Style_Add(NextId, true);
+					}
+
+					var SectPr = Item.Get_SectionPr();
+					if (undefined !== SectPr)
+					{
+						Item.Set_SectionPr(undefined);
+						NewParagraph.Set_SectionPr(SectPr);
+					}
+
+					var LastRun = Item.Content[Item.Content.length - 1];
+					if (LastRun && LastRun.Pr.Lang && LastRun.Pr.Lang.Val)
+					{
+						NewParagraph.SelectAll();
+						NewParagraph.Add(new ParaTextPr({Lang : LastRun.Pr.Lang.Copy()}));
+						NewParagraph.RemoveSelection();
+					}
+				}
+				else
+				{
+					Item.Split(NewParagraph);
+				}
+
+				NewParagraph.Correct_Content();
+				NewParagraph.MoveCursorToStartPos();
+
+				var nContentPos = this.CurPos.ContentPos + 1;
+				this.AddToContent(nContentPos, NewParagraph);
+				this.CurPos.ContentPos = nContentPos;
 			}
-
-			NewParagraph.Correct_Content();
-			NewParagraph.MoveCursorToStartPos();
-
-			var nContentPos = this.CurPos.ContentPos + 1;
-			this.AddToContent(nContentPos, NewParagraph);
-			this.CurPos.ContentPos = nContentPos;
 
 			if (true === this.IsTrackRevisions())
 			{
@@ -20897,6 +20999,13 @@ CDocument.prototype.controller_UpdateSelectionState = function()
 				this.DrawingDocument.SelectEnabled(false);
 				this.DrawingDocument.TargetStart();
 				this.DrawingDocument.TargetShow();
+
+				if (this.IsFillingFormMode())
+				{
+					var oContentControl = this.GetContentControl();
+					if (oContentControl && oContentControl.IsCheckBox())
+						this.DrawingDocument.TargetEnd();
+				}
 			}
 		}
 	}
@@ -20909,6 +21018,13 @@ CDocument.prototype.controller_UpdateSelectionState = function()
 
 		this.DrawingDocument.SelectEnabled(false);
 		this.DrawingDocument.TargetShow();
+
+		if (this.IsFillingFormMode())
+		{
+			var oContentControl = this.GetContentControl();
+			if (oContentControl && oContentControl.IsCheckBox())
+				this.DrawingDocument.TargetEnd();
+		}
 	}
 };
 CDocument.prototype.controller_GetSelectionState = function()
@@ -24424,7 +24540,32 @@ CDocument.prototype.ClearAllSpecialForms = function()
 			if (!oCurrentForm && oForm.Is_UseInDocument())
 				oCurrentForm = oForm;
 
-			oForm.ClearContentControlExt();
+			if (oForm.IsCheckBox())
+			{
+				oForm.SetCheckBoxChecked(false);
+			}
+			else if (oForm.IsPicture())
+			{
+				var arrDrawings = oForm.GetAllDrawingObjects();
+				if (arrDrawings.length > 0 && arrDrawings[0].IsPicture())
+				{
+					var nW = arrDrawings[0].Extent.W;
+					var nH = arrDrawings[0].Extent.H;
+
+					oForm.ReplaceContentWithPlaceHolder();
+					oForm.ApplyPicturePr(true, nW, nH);
+				}
+				else
+				{
+					oForm.ReplaceContentWithPlaceHolder();
+					oForm.ApplyPicturePr(true);
+				}
+			}
+			else
+			{
+				oForm.ReplaceContentWithPlaceHolder();
+			}
+
 			oForm.RemoveSelection();
 		}
 
@@ -24650,7 +24791,7 @@ CDocument.prototype.GetSectionsByApplyType = function(nType)
 
 		var oSectPr = oParagraph.GetDocumentSectPr();
 		if (!oSectPr)
-			[];
+			return [];
 
 		var nIndex = this.SectionsInfo.Find(oSectPr);
 		if (-1 === nIndex)
@@ -24700,7 +24841,7 @@ CDocument.prototype.ChangeTextCase = function(nCaseType)
 	var oState = null;
 	if (!this.IsSelectionUse())
 	{
-		oState = this.SaveDocumentState();
+		oState = this.SaveDocumentState(false);
 		if (!this.SelectCurrentWord())
 		{
 			this.LoadDocumentState(oState);
@@ -24746,6 +24887,37 @@ CDocument.prototype.ChangeTextCase = function(nCaseType)
 		this.LoadDocumentState(oState);
 		this.UpdateSelection();
 	}
+};
+/**
+ * @returns {boolean}
+ */
+CDocument.prototype.IsShowShapeAdjustments = function()
+{
+	return (!!this.CanEdit());
+};
+/**
+ * Рисовать ли трек у таблицы и давать ли возможность таскать границы
+ * @returns {boolean}
+ */
+CDocument.prototype.IsShowTableAdjustments = function()
+{
+	return (!!this.CanEdit());
+};
+/**
+ * Рисовать ли трек у таблицы и давать ли возможность таскать границы
+ * @returns {boolean}
+ */
+CDocument.prototype.IsShowEquationTrack = function()
+{
+	return (!!this.CanEdit());
+};
+/**
+ * Можем ли перетаскивать текст
+ * @returns {boolean}
+ */
+CDocument.prototype.CanDragAndDrop = function()
+{
+	return (!!this.CanEdit());
 };
 /**
  * Конвертируем выделенный текст в таблицу

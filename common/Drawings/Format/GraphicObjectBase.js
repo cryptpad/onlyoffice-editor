@@ -676,6 +676,12 @@
         return this.getNoResize() === false;
     };
     CGraphicObjectBase.prototype.canMove = function() {
+        var oApi = Asc.editor || editor;
+        var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
+        if(isDrawHandles === false)
+        {
+            return false;
+        }
         return this.getNoMove() === false;
     };
     CGraphicObjectBase.prototype.canGroup = function() {
@@ -2054,6 +2060,68 @@
             return false;
         }
         return oPr.hasSameNameAndId(oOtherPr);
+    };
+    CGraphicObjectBase.prototype.select = function (drawingObjectsController, pageIndex)
+    {
+        this.selected = true;
+        this.selectStartPage = pageIndex;
+        var content = this.getDocContent && this.getDocContent();
+        if(content)
+            content.Set_StartPage(pageIndex);
+        var selected_objects;
+        if (!AscCommon.isRealObject(this.group))
+            selected_objects = drawingObjectsController.selectedObjects;
+        else
+            selected_objects = this.group.getMainGroup().selectedObjects;
+        for (var i = 0; i < selected_objects.length; ++i) {
+            if (selected_objects[i] === this)
+                break;
+        }
+        if (i === selected_objects.length)
+            selected_objects.push(this);
+    };
+    CGraphicObjectBase.prototype.deselect = function (drawingObjectsController) {
+        this.selected = false;
+        var selected_objects;
+        if (!AscCommon.isRealObject(this.group))
+            selected_objects = drawingObjectsController.selectedObjects;
+        else
+            selected_objects = this.group.getMainGroup().selectedObjects;
+        for (var i = 0; i < selected_objects.length; ++i) {
+            if (selected_objects[i] === this) {
+                selected_objects.splice(i, 1);
+                break;
+            }
+        }
+        if(this.graphicObject)
+        {
+            this.graphicObject.RemoveSelection();
+        }
+        return this;
+    };
+
+    CGraphicObjectBase.prototype.hitInBoundingRect = function (x, y) {
+        if(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES){
+            return false;
+        }
+        var invert_transform = this.getInvertTransform();
+        if(!invert_transform)
+        {
+            return false;
+        }
+        var x_t = invert_transform.TransformPointX(x, y);
+        var y_t = invert_transform.TransformPointY(x, y);
+
+        var _hit_context = this.getCanvasContext();
+
+        return !(AscFormat.CheckObjectLine(this)) && (AscFormat.HitInLine(_hit_context, x_t, y_t, 0, 0, this.extX, 0) ||
+            AscFormat.HitInLine(_hit_context, x_t, y_t, this.extX, 0, this.extX, this.extY) ||
+            AscFormat.HitInLine(_hit_context, x_t, y_t, this.extX, this.extY, 0, this.extY) ||
+            AscFormat.HitInLine(_hit_context, x_t, y_t, 0, this.extY, 0, 0) ||
+            (this.canRotate && this.canRotate() && AscFormat.HitInLine(_hit_context, x_t, y_t, this.extX * 0.5, 0, this.extX * 0.5, -this.convertPixToMM(AscCommon.TRACK_DISTANCE_ROTATE))));
+    };
+    CGraphicObjectBase.prototype.getCanvasContext = function() {
+        return AscFormat.CShape.prototype.getCanvasContext.call(this);
     };
     
     function CRelSizeAnchor() {

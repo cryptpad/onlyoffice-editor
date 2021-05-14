@@ -2168,7 +2168,6 @@ function CDrawingDocument()
 	this.LastDrawingUrl = "";
 
 	this.GuiCanvasTextProps = null;
-	this.GuiCanvasTextPropsId = "gui_textprops_canvas_id";
 	this.GuiLastTextProps = null;
 
 	this.GuiCanvasFillTOCParentId = "";
@@ -4529,7 +4528,7 @@ function CDrawingDocument()
 		if (this.IsTextMatrixUse && this.IsTextSelectionOutline)
 		{
 			ctx.strokeStyle = "#9ADBFE";
-			ctx.lineWidth = Math.round(window.devicePixelRatio);
+			ctx.lineWidth = Math.round(AscCommon.AscBrowser.retinaPixelRatio);
 			ctx.globalAlpha = 1.0;
 			ctx.stroke();
 		}
@@ -4566,7 +4565,7 @@ function CDrawingDocument()
 			var _h = _b - _y + 1;
 
 			this.Overlay.CheckRect(rPR * _x, rPR * _y, rPR * _w, rPR * _h);
-			this.Overlay.m_oContext.rect(rPR * _x, rPR *_y, _w * rPR, _h * rPR);
+			this.Overlay.m_oContext.rect((rPR * _x) >> 0, (rPR *_y) >> 0, (_w * rPR) >> 0, (_h * rPR) >> 0);
 			// this.Overlay.
 		}
 		else
@@ -5371,9 +5370,9 @@ function CDrawingDocument()
 	};
 
 	// вот здесь весь трекинг
-	this.DrawTrack = function (type, matrix, left, top, width, height, isLine, canRotate, isNoMove)
+	this.DrawTrack = function (type, matrix, left, top, width, height, isLine, canRotate, isNoMove, isDrawHandles)
 	{
-		this.AutoShapesTrack.DrawTrack(type, matrix, left, top, width, height, isLine, canRotate, isNoMove);
+		this.AutoShapesTrack.DrawTrack(type, matrix, left, top, width, height, isLine, canRotate, isNoMove, isDrawHandles);
 	};
 
 	this.DrawTrackSelectShapes = function (x, y, w, h)
@@ -6537,8 +6536,8 @@ function CDrawingDocument()
 
         var ctx = canvas.getContext("2d");
 
-        if (AscCommon.AscBrowser.retinaPixelRatio >= 2)
-        	ctx.setTransform(2, 0, 0, 2, 0, 0);
+        var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+
 
         var offset = 10;
         var page_width_mm = props.W;
@@ -6605,29 +6604,41 @@ function CDrawingDocument()
 
 		ctx.fillStyle = "#FFFFFF";
         ctx.strokeStyle = "#000000";
-        ctx.lineWidth = 1;
+        ctx.lineWidth = Math.round(rPR);
+		var indent = 0.5 * Math.round(rPR);
+
+		var __move = function(ctx, x, y) {
+			ctx.moveTo(((x * rPR) >> 0) + indent, ((y * rPR) >> 0) + indent);
+		};
+		var __line = function(ctx, x, y) {
+			ctx.lineTo(((x * rPR) >> 0) + indent, ((y * rPR) >> 0) + indent);
+		};
+		var __rect = function(ctx, x, y, w, h) {
+			ctx.rect(((x * rPR) >> 0) + indent, ((y * rPR) >> 0) + indent, w * rPR, h * rPR);
+		};
+
         for (var page = 0; page < pageRects.length; page++)
 		{
 			// page
 			ctx.beginPath();
-			ctx.rect(pageRects[page].X + 0.5, pageRects[page].Y + 0.5, pageRects[page].W, pageRects[page].H);
+			__rect(ctx, pageRects[page].X, pageRects[page].Y, pageRects[page].W, pageRects[page].H);
 			ctx.fill();
 			ctx.stroke();
 
 			// gutter
 			if (gutterSize > 0)
 			{
-                ctx.setLineDash([2, 2]);
+                ctx.setLineDash([Math.round(2 * rPR), Math.round(2 * rPR)]);
                 var gutterEvenOdd = 0;
 				switch (gutterPos)
 				{
 					case 0:
 					{
-                        var x = pageRects[page].X + 0.5;
+                        var x = pageRects[page].X;
 						for (var i = 0; i < gutterSize; i++)
 						{
-							ctx.moveTo(x + i, pageRects[page].Y + gutterEvenOdd);
-                            ctx.lineTo(x + i, pageRects[page].Y + pageRects[page].H);
+							__move(ctx, x + i, pageRects[page].Y + gutterEvenOdd);
+                            __line(ctx, x + i, pageRects[page].Y + pageRects[page].H);
                             ctx.stroke();
                             ctx.beginPath();
                             gutterEvenOdd = (0 === gutterEvenOdd) ? 2 : 0;
@@ -6636,11 +6647,11 @@ function CDrawingDocument()
 					}
 					case 1:
 					{
-                        var x = pageRects[page].X + pageRects[page].W - 0.5;
+                        var x = pageRects[page].X + pageRects[page].W;
                         for (var i = 0; i < gutterSize; i++)
                         {
-                            ctx.moveTo(x - i, pageRects[page].Y + gutterEvenOdd);
-                            ctx.lineTo(x - i, pageRects[page].Y + pageRects[page].H);
+							__move(ctx, x - i, pageRects[page].Y + gutterEvenOdd);
+							__line(ctx, x - i, pageRects[page].Y + pageRects[page].H);
                             ctx.stroke();
                             ctx.beginPath();
                             gutterEvenOdd = (0 === gutterEvenOdd) ? 2 : 0;
@@ -6649,11 +6660,11 @@ function CDrawingDocument()
 					}
 					case 2:
 					{
-                        var y = pageRects[page].Y + 0.5;
+                        var y = pageRects[page].Y;
                         for (var i = 0; i < gutterSize; i++)
                         {
-                            ctx.moveTo(pageRects[page].X + gutterEvenOdd, y + i);
-                            ctx.lineTo(pageRects[page].X + pageRects[page].W, y + i);
+							__move(ctx, pageRects[page].X + gutterEvenOdd, y + i);
+							__line(ctx, pageRects[page].X + pageRects[page].W, y + i);
                             ctx.stroke();
                             ctx.beginPath();
                             gutterEvenOdd = (0 === gutterEvenOdd) ? 2 : 0;
@@ -6719,22 +6730,22 @@ function CDrawingDocument()
             var cur = t;
             while (cur < b)
 			{
-				ctx.moveTo(lf, cur + 0.5); ctx.lineTo(r, cur + 0.5);
+				__move(ctx, lf, cur); __line(ctx, r, cur);
 
 				cur += 2;
 				if (cur >= b) break;
 
-                ctx.moveTo(l, cur + 0.5); ctx.lineTo(r, cur + 0.5);
+				__move(ctx, l, cur); __line(ctx, r, cur);
 
                 cur += 2;
                 if (cur >= b) break;
 
-                ctx.moveTo(l, cur + 0.5); ctx.lineTo(r, cur + 0.5);
+				__move(ctx, l, cur); __line(ctx, r, cur);
 
                 cur += 2;
                 if (cur >= b) break;
 
-                ctx.moveTo(l, cur + 0.5); ctx.lineTo(rf, cur + 0.5);
+				__move(ctx, l, cur); __line(ctx, rf, cur);
 
                 cur += 6;
 			}
@@ -7114,6 +7125,9 @@ function CDrawingDocument()
                             break;
                     }
                 }
+				if (i == 2 && text.indexOf("1.1.") !== -1)
+					props.IsOnes = true;
+
                 AscFonts.FontPickerByCharacter.checkTextLight(text);
 
                 if (curLvl.TextPr && curLvl.TextPr.RFonts)
@@ -7151,7 +7165,7 @@ function CDrawingDocument()
 		var offset = (height_px_p - (line_w << 1)) >> 1;
         var y = (height_px_p >> 1) - (line_w >> 1);
         var text_base_offset_x = offset + ((3.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
-        var text_base_offset_dist = (3.25 * AscCommon.g_dKoef_mm_to_pix) >> 0;
+        var text_base_offset_dist = ( (props.IsOnes ? 2.25 : 3.25) * AscCommon.g_dKoef_mm_to_pix) >> 0;
 
         for (var k = 0; k < 9; k++) 
         {
@@ -7182,7 +7196,7 @@ function CDrawingDocument()
 			var rPR = AscCommon.AscBrowser.retinaPixelRatio;
 
             ctx.lineWidth = 2 * Math.round(rPR);
-            ctx.strokeStyle = "000000"; // "#CBCBCB";
+            ctx.strokeStyle = "#CBCBCB";
 
             var textYs = {x: text_base_offset_x - ((4.25 * AscCommon.g_dKoef_mm_to_pix) >> 0), y: y + (line_w << 1)};
 
@@ -7818,6 +7832,8 @@ function CDrawingDocument()
         var koefX = (drawingPage.right - drawingPage.left) / page.width_mm;
         var koefY = (drawingPage.bottom - drawingPage.top) / page.height_mm;
 
+        var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+
         var x1, y1, x2, y2;
 
         if (!logicObj.Table)
@@ -7825,10 +7841,10 @@ function CDrawingDocument()
             ctx.strokeStyle = "rgba(0, 0, 0, 0.75)";
             ctx.lineWidth = 1;
 
-            x1 = ((drawingPage.left + koefX * logicObj.StartX) >> 0);
-            y1 = ((drawingPage.top + koefY * logicObj.StartY) >> 0);
-            x2 = ((drawingPage.left + koefX * logicObj.EndX) >> 0);
-            y2 = ((drawingPage.top + koefY * logicObj.EndY) >> 0);
+            x1 = (rPR * (drawingPage.left + koefX * logicObj.StartX)) >> 0;
+            y1 = (rPR * (drawingPage.top + koefY * logicObj.StartY)) >> 0;
+            x2 = (rPR * (drawingPage.left + koefX * logicObj.EndX)) >> 0;
+            y2 = (rPR * (drawingPage.top + koefY * logicObj.EndY)) >> 0;
 
             overlay.CheckPoint(x1, y1);
             overlay.CheckPoint(x2, y2);
@@ -7846,10 +7862,10 @@ function CDrawingDocument()
                 ctx.strokeStyle = (elem.Color === "Red") ? "#FF7B7B" : "#000000";
                 ctx.lineWidth = elem.Bold ? 2 : 1;
 
-                x1 = (drawingPage.left + koefX * elem.X1) >> 0;
-                y1 = (drawingPage.top + koefY * elem.Y1) >> 0;
-                x2 = (drawingPage.left + koefX * elem.X2) >> 0;
-                y2 = (drawingPage.top + koefY * elem.Y2) >> 0;
+                x1 = (rPR * (drawingPage.left + koefX * elem.X1)) >> 0;
+                y1 = (rPR * (drawingPage.top + koefY * elem.Y1)) >> 0;
+                x2 = (rPR * (drawingPage.left + koefX * elem.X2)) >> 0;
+                y2 = (rPR * (drawingPage.top + koefY * elem.Y2)) >> 0;
 
                 if (!elem.Bold) {
                     x1 += 0.5;
@@ -7872,10 +7888,10 @@ function CDrawingDocument()
             ctx.strokeStyle = "rgba(255, 123, 123, 0.75)";
             ctx.lineWidth = 1;
 
-            x1 = ((drawingPage.left + koefX * logicObj.StartX) >> 0);
-            y1 = ((drawingPage.top + koefY * logicObj.StartY) >> 0);
-            x2 = ((drawingPage.left + koefX * logicObj.EndX) >> 0);
-            y2 = ((drawingPage.top + koefY * logicObj.EndY) >> 0);
+			x1 = (rPR * (drawingPage.left + koefX * logicObj.StartX)) >> 0;
+			y1 = (rPR * (drawingPage.top + koefY * logicObj.StartY)) >> 0;
+			x2 = (rPR * (drawingPage.left + koefX * logicObj.EndX)) >> 0;
+			y2 = (rPR * (drawingPage.top + koefY * logicObj.EndY)) >> 0;
 
             overlay.CheckPoint(x1, y1);
             overlay.CheckPoint(x2, y2);
@@ -7887,10 +7903,10 @@ function CDrawingDocument()
 
             for (var i = 0; i < drawObj.length; i++)
             {
-                x1 = (drawingPage.left + koefX * drawObj[i].X1) >> 0;
-                y1 = (drawingPage.top  + koefY * drawObj[i].Y1) >> 0;
-                x2 = (drawingPage.left + koefX * drawObj[i].X2) >> 0;
-                y2 = (drawingPage.top  + koefY * drawObj[i].Y2) >> 0;
+                x1 = (rPR * (drawingPage.left + koefX * drawObj[i].X1)) >> 0;
+                y1 = (rPR * (drawingPage.top  + koefY * drawObj[i].Y1)) >> 0;
+                x2 = (rPR * (drawingPage.left + koefX * drawObj[i].X2)) >> 0;
+                y2 = (rPR * (drawingPage.top  + koefY * drawObj[i].Y2)) >> 0;
 
                 overlay.CheckPoint(x1, y1);
                 overlay.CheckPoint(x2, y2);

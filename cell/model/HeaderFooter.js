@@ -775,7 +775,7 @@
 	function CHeaderFooterEditor(idArr, width, pageType) {
 		window.Asc.g_header_footer_editor = this;
 
-		this.parentWidth = AscCommon.AscBrowser.convertToRetinaValue(width, true);
+		this.parentWidth = AscCommon.AscBrowser.convertToRetinaValue(this.correctCanvasWidth(width), true);
 		this.parentHeight = AscCommon.AscBrowser.convertToRetinaValue(90, true);
 		this.pageType = undefined === pageType ? asc.c_oAscHeaderFooterType.odd : pageType;//odd, even, first
 		this.canvas = [];
@@ -966,6 +966,18 @@
 		};
 
 		editLockCallback();
+	};
+
+	CHeaderFooterEditor.prototype.correctCanvasWidth = function (val) {
+		if (!val) {
+			return val;
+		}
+
+		if (AscBrowser.retinaPixelRatio === 1.5 && 0 !== val % 4) {
+			val -= val % 4;
+		}
+
+		return val;
 	};
 
 	CHeaderFooterEditor.prototype._openCellEditor = function (editor, fragments, x, y) {
@@ -1821,7 +1833,7 @@
 	window["AscCommonExcel"].HeaderFooterParser = HeaderFooterParser;
 	window["AscCommonExcel"].CHeaderFooterEditorSection = CHeaderFooterEditorSection;
 
-	window["AscCommonExcel"].CHeaderFooterEditor = window["AscCommonExcel"]["CHeaderFooterEditor"] = CHeaderFooterEditor;
+	window["Asc"]["asc_CHeaderFooterEditor"] = window["AscCommonExcel"].CHeaderFooterEditor = CHeaderFooterEditor;
 	var prot = CHeaderFooterEditor.prototype;
 	prot["click"] 	= prot.click;
 	prot["destroy"] = prot.destroy;
