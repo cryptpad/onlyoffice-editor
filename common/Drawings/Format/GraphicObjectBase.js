@@ -806,6 +806,11 @@
         fCallback(this);
     };
 
+    CGraphicObjectBase.prototype.isObjectInSmartArt = function () {
+        return this.group && this.group.getName &&
+          (this.group.getName() === 'Drawing' || this.group.getName() === 'SmartArt');
+    }
+
 
     CGraphicObjectBase.prototype.drawShdw = function(graphics){
         var outerShdw = this.getOuterShdw && this.getOuterShdw();

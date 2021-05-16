@@ -6362,6 +6362,10 @@
 
     InitClass(Drawing, CGroupShape, AscDFH.historyitem_type_Drawing);
 
+    Drawing.prototype.getName = function () {
+      return 'Drawing';
+    }
+
 
     changesFactory[AscDFH.historyitem_BackdropNormDx] = CChangeObject;
     changesFactory[AscDFH.historyitem_BackdropNormDy] = CChangeObject;
@@ -7219,6 +7223,10 @@
     }
 
     InitClass(SmartArt, CGroupShape, AscDFH.historyitem_type_SmartArt);
+
+    SmartArt.prototype.getName = function () {
+      return 'SmartArt';
+    }
 
     SmartArt.prototype.setParent = function (parent) {
       History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_SmartArtParent, this.parent, parent));
@@ -14110,7 +14118,6 @@
         xfrm.setExtY(spInfo.txXfrm.ext.cy / 36000);
         sp.setTxXfrm(xfrm);
       }
-      sp.isSpInSmartArt = true;
       return sp;
 
     }

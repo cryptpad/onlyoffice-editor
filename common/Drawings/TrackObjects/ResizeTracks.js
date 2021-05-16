@@ -1156,7 +1156,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 return;
             }
 
-            if (this.originalObject.isSpInSmartArt) {
+            if (this.originalObject.isObjectInSmartArt()) {
                 if (this.resizedPosX < 0) {
                     this.resizedExtX = this.originalExtX + this.originalObject.x;
                     this.resizedPosX = 0;

@@ -253,7 +253,7 @@ function MoveShapeImageTrack(originalObject)
             if(this.originalObject.selectStartPage !== this.pageIndex)
                 this.originalObject.selectStartPage = this.pageIndex;
         }
-        if (this.originalObject.isSpInSmartArt) {
+        if (this.originalObject.isObjectInSmartArt()) {
             if (this.x < 0) {
                 this.x = 0;
             }
@@ -266,7 +266,6 @@ function MoveShapeImageTrack(originalObject)
             if (this.originalObject.group && (this.originalObject.group.y + this.originalObject.group.extY < this.y + this.originalObject.extY)) {
                 this.y = this.originalObject.group.y + this.originalObject.group.extY - this.originalObject.extY;
             }
-
         }
         var scale_coefficients, ch_off_x, ch_off_y;
         if(this.originalObject.isCrop)

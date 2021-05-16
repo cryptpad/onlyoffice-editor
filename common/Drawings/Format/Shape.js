@@ -1030,7 +1030,6 @@ function CShape()
     this.bCheckAutoFitFlag = false;
     this.signatureLine = null;
     this.txXfrm = null;
-    this.isSpInSmartArt = null;
 
 
     this.transformText = new CMatrix();
