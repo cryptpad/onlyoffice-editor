@@ -62,9 +62,7 @@
         return false;
     };
     CBaseAnimObject.prototype.parseTime = function(val) {
-        var oTime = new CAnimationTime();
-        oTime.setVal(this.parseTimeValue(val));
-        return oTime;
+        return new CAnimationTime(this.parseTimeValue(val));
     };
     CBaseAnimObject.prototype.parseTimeValue = function(val) {
         if(!(typeof val === "string")) {
@@ -90,6 +88,8 @@
         CBaseAnimObject.call(this);
         this.state = TIME_NODE_STATE_IDLE;
         this.timingGraph = null;
+
+        this.simpleDurationIdx = -1;
     }
     InitClass(CTimeNodeBase, CBaseAnimObject, AscDFH.historyitem_type_Unknown);
     CTimeNodeBase.prototype.isTimingContainer = function() {
@@ -144,7 +144,7 @@
         return oCurElem;
     };
     CTimeNodeBase.prototype.scheduleStart = function(oPlayer) {
-        oPlayer.scheduleEvent(new CAnimEvent(this.getActivateCallback(oPlayer), this.getStartTrigger(oPlayer)));
+        oPlayer.scheduleEvent(new CAnimEvent(this.getActivateCallback(oPlayer), this.getStartTrigger(oPlayer), this));
     };
     CTimeNodeBase.prototype.getStartTrigger = function(oPlayer) {
         var oAttributes = this.getAttributesObject();
@@ -160,11 +160,7 @@
         return this.parseTime(this.getAttributesObject().repeatDur);
     };
     CTimeNodeBase.prototype.getRepeatCount = function() {
-         var oVal = this.parseTimeValue(this.getAttributesObject().repeatCount);
-        if(!oVal.isDefinite() || oVal.isUnspecified()) {
-            oVal.setVal(1000);
-        }
-        return oVal.getVal();
+         return this.parseTime(this.getAttributesObject().repeatCount);
     };
     CTimeNodeBase.prototype.getImplicitDuration = function() {
         return 2000;//TODO:
@@ -194,8 +190,21 @@
         return oTime;
     };
     CTimeNodeBase.prototype.calculateRepeatCount = function() {
-        return 1000;
-        return this.parseTime(this.getRepeatCount() || "1000"); //TODO: Use getRepeatDur
+        var oCount = new CAnimationTime();
+        var oRepeatDur = this.getRepeatDur();
+        if(oRepeatDur.isDefinite()) {
+            oCount.assign(oRepeatDur);
+            var oSimpleDur = this.calculateSimpleDuration();
+            oCount.divideAssign(oSimpleDur);
+            oCount.multiplyAssign(1000);
+            return oCount;
+        }
+        var oRepeatCount = this.getRepeatCount();
+        if(!oRepeatCount.isUnspecified()) {
+            return oRepeatCount;
+        }
+        oCount.setVal(1000);
+        return oCount;
     };
     CTimeNodeBase.prototype.activateCallback = function(oPlayer) {
         var oParent = this.getParentTimeNode();
@@ -206,34 +215,57 @@
         }
         this.calculateParams(oPlayer);
         this.setState(TIME_NODE_STATE_ACTIVE);
-        this.scheduleChildrenActivation(oPlayer);
+        this.scheduleSimpleDuration(0, oPlayer);
         this.scheduleFinish(oPlayer);
+    };
+    CTimeNodeBase.prototype.scheduleSimpleDuration = function(nIdx, oPlayer) {
+        var oThis = this;
+        oPlayer.scheduleEvent(new CAnimEvent(
+            function() {
+                oThis.simpleDurationIdx = nIdx;
+                oThis.activateChildrenCallback(oPlayer);
+            },
+            oThis.getTimeTrigger(oPlayer, oPlayer.getElapsedTicks()),
+            oThis
+        ))
     };
     CTimeNodeBase.prototype.calculateParams = function(oPlayer) {
         this.startTick = oPlayer.getElapsedTicks();
-        this.simpleDuration = this.calculateSimpleDuration().getVal();
+        this.simpleDuration = this.calculateSimpleDuration();
         this.repeatCount = this.calculateRepeatCount();
         this.privateCalculateParams()
     };
     CTimeNodeBase.prototype.privateCalculateParams = function(oPlayer) {
     };
     CTimeNodeBase.prototype.scheduleFinish = function(oPlayer) {
-        oPlayer.scheduleEvent(new CAnimEvent(
-            this.getFinishCallback(oPlayer),
-            this.getTimeTrigger(oPlayer, this.startTick + this.simpleDuration * this.repeatCount / 1000)
-        ));
+        var fFinishTrigger = this.getFinishTrigger(oPlayer);
+        if(fFinishTrigger !== null) {
+            oPlayer.scheduleEvent(new CAnimEvent(
+                this.getFinishCallback(oPlayer),
+                fFinishTrigger,
+                this
+            ));
+        }
     };
     CTimeNodeBase.prototype.getFinishTrigger = function(oPlayer) {
-        oPlayer.scheduleEvent(new CAnimEvent(
-            this.getFinishCallback(oPlayer),
-            this.getTimeTrigger(oPlayer, this.startTick + this.simpleDuration * this.repeatCount / 1000)
-        ));
+        if(this.simpleDuration.isDefinite() && this.repeatCount.isDefinite()) {
+            return this.getTimeTrigger(
+                oPlayer,
+                this.startTick + this.simpleDuration.getVal() * this.repeatCount.getVal() / 1000
+            );
+        }
+        return null;
     };
     CTimeNodeBase.prototype.finishCallback = function(oPlayer) {
         this.setState(TIME_NODE_STATE_FINISHED);
         var aChildren = this.getChildrenTimeNodes();
         for(var nChild = 0; nChild < aChildren.length; ++nChild) {
             aChildren[nChild].finishCallback(oPlayer);
+        }
+        oPlayer.cancelCallerEvent(this);
+        var oParentNode = this.getParentTimeNode();
+        if(oParentNode) {
+            oParentNode.onFinished(this, oPlayer);
         }
     };
     CTimeNodeBase.prototype.getFinishCallback = function(oPlayer) {
@@ -244,40 +276,62 @@
     };
     CTimeNodeBase.prototype.scheduleChildrenActivation = function(oPlayer) {
         if(this.isTimingContainer()) {
-            var oTime = new CAnimationTime();
-            oTime.setVal(this.simpleDuration);
-            if(oTime.isDefinite()) {
-                var nCount = Math.floor(this.repeatCount / 1000 + 0.5);//TODO
-                for(var nRepeat = 0; nRepeat < nCount; ++nRepeat) {
-                    oPlayer.scheduleEvent(new CAnimEvent(this.getActivateChildrenCallback(oPlayer), this.getTimeTrigger(oPlayer, this.startTick + nRepeat*this.simpleDuration)));
-                }
-            }
-            else {
-                oPlayer.scheduleEvent(new CAnimEvent(this.getActivateChildrenCallback(oPlayer), this.getTimeTrigger(oPlayer, this.startTick)));
-            }
+            oPlayer.scheduleEvent(new CAnimEvent(this.getActivateChildrenCallback(oPlayer), this.getTimeTrigger(oPlayer, this.startTick), this));
+            //
+            //var oTime = new CAnimationTime(this.simpleDuration);
+            //var oRepeatCount = new CAnimationTime(this.repeatCount);
+            //if(oTime.isDefinite() && oRepeatCount.isDefinite()) {
+            //    var nCount = this.repeatCount.getVal() / 1000 + 0.5 >> 0;
+            //    for(var nRepeat = 0; nRepeat < nCount; ++nRepeat) {
+            //        oPlayer.scheduleEvent(new CAnimEvent(this.getActivateChildrenCallback(oPlayer), this.getTimeTrigger(oPlayer, this.startTick + nRepeat*this.simpleDuration.getVal()), this));
+            //    }
+            //}
+            //else {
+            //    oPlayer.scheduleEvent(new CAnimEvent(this.getActivateChildrenCallback(oPlayer), this.getTimeTrigger(oPlayer, this.startTick), this));
+            //}
+        }
+    };
+    CTimeNodeBase.prototype.onSimpleTimeElapsed = function(oPlayer) {
+
+    };
+    CTimeNodeBase.prototype.getInfiniteActivateChildrenCallback = function(oPlayer) {
+        var fActivateCallback = this.getActivateChildrenCallback(oPlayer);
+        var oThis = this;
+        return function () {
+            fActivateCallback();
+            oPlayer.scheduleEvent(new CAnimEvent(
+                function() {
+                    oThis.cancelChildrenEventsRecursive(oPlayer);
+                    oThis.scheduleChildrenActivation(oPlayer);
+                }, oThis.getTimeTrigger(oPlayer, oPlayer.getElapsedTime() + oThis.simpleDuration.getVal()), oThis
+            ));
         }
     };
     CTimeNodeBase.prototype.getActivateChildrenCallback = function(oPlayer) {
         var oThis = this;
         return function () {
-            var aChildren = oThis.getChildrenTimeNodes();
-            var nChild;
-            if(oThis.isPar()) {
-                for(nChild = 0; nChild < aChildren.length; ++nChild) {
-                    aChildren[nChild].scheduleStart(oPlayer);
-                }
+            oThis.activateChildrenCallback();
+        }
+    };
+    CTimeNodeBase.prototype.activateChildrenCallback = function(oPlayer) {
+        var oThis = this;
+        var aChildren = oThis.getChildrenTimeNodes();
+        var nChild;
+        if(oThis.isPar()) {
+            for(nChild = 0; nChild < aChildren.length; ++nChild) {
+                aChildren[nChild].scheduleStart(oPlayer);
             }
-            else if(oThis.isExcl()) {
-                //Todo: Activate a as for par by now. Rework.
-                for(nChild = 0; nChild < aChildren.length; ++nChild) {
-                    aChildren[nChild].scheduleStart(oPlayer);
-                }
+        }
+        else if(oThis.isExcl()) {
+            //Todo: Activate a as for par by now. Rework.
+            for(nChild = 0; nChild < aChildren.length; ++nChild) {
+                aChildren[nChild].scheduleStart(oPlayer);
             }
-            else if(oThis.isSeq()) {
-                //Activate first element
-                if(aChildren.length > 0) {
-                    aChildren[0].scheduleStart(oPlayer);
-                }
+        }
+        else if(oThis.isSeq()) {
+            //Activate first element
+            if(aChildren.length > 0) {
+                aChildren[0].scheduleStart(oPlayer);
             }
         }
     };
@@ -297,6 +351,20 @@
     };
     CTimeNodeBase.prototype.setState = function(nState) {
         this.state = nState;
+    };
+    CTimeNodeBase.prototype.cancelEventsRecursive = function(oPlayer) {
+        oPlayer.cancelCallerEvent(this);
+        if(this.isTimingContainer()) {
+            this.cancelChildrenEventsRecursive(oPlayer);
+        }
+    };
+    CTimeNodeBase.prototype.cancelChildrenEventsRecursive = function(oPlayer) {
+        if(this.isTimingContainer()) {
+            var aChildren = this.getChildrenTimeNodes();
+            for(var nChild = 0; nChild < aChildren.length; ++nChild) {
+                aChildren[nChild].cancelEventsRecursive(oPlayer);
+            }
+        }
     };
     CTimeNodeBase.prototype.buildTimingGraph = function() {
         this.timingGraph = null;
@@ -339,17 +407,32 @@
         }
         return nRet;
     };
-    CTimeNodeBase.prototype.onIdle = function(oChild) {
+    CTimeNodeBase.prototype.onIdle = function(oChild, oPlayer) {
         //TODO
     };
-    CTimeNodeBase.prototype.onActivated = function(oChild) {
+    CTimeNodeBase.prototype.onActivated = function(oChild, oPlayer) {
         //TODO
     };
-    CTimeNodeBase.prototype.onFrozen = function(oChild) {
+    CTimeNodeBase.prototype.onFrozen = function(oChild, oPlayer) {
         //TODO
     };
-    CTimeNodeBase.prototype.onFinished = function(oChild) {
-        //TODO
+    CTimeNodeBase.prototype.onFinished = function(oChild, oPlayer) {
+        if(this.isTimingContainer()) {
+            var aChildren = this.getChildrenTimeNodes();
+            var nChild;
+            if(this.isPar()) {
+                if(this.repeatCount.isIndefinite()) {
+                    for(nChild = 0; nChild < aChildren.length; ++nChild) {
+                        if(!aChildren[nChild].isFinished()) {
+                            break;
+                        }
+                    }
+                    if(nChild === aChildren.length) {
+                        this.scheduleSimpleDuration(++this.simpleDurationIdx, oPlayer);
+                    }
+                }
+            }
+        }
     };
     CTimeNodeBase.prototype.isIdle = function() {
         return this.state === TIME_NODE_STATE_IDLE;
@@ -385,8 +468,14 @@
         }
     };
 
-    function CAnimationTime() {
+    function CAnimationTime(val) {
         this.val = 0;
+        if(typeof val === "number") {
+            this.val = val;
+        }
+        else if(val instanceof CAnimationTime) {
+            this.assign(val);
+        }
     }
     CAnimationTime.prototype.Indefinite = Number.MAX_SAFE_INTEGER;
     CAnimationTime.prototype.Unresolved = Number.POSITIVE_INFINITY;
@@ -412,9 +501,7 @@
         return this.setVal(this.Media);
     };
     CAnimationTime.prototype.copy = function() {
-        var oCopy = new CAnimationTime();
-        oCopy.setVal(this.val);
-        return oCopy;
+        return new CAnimationTime(this.val);
     };
     CAnimationTime.prototype.isIndefinite = function() {
         return this.val === this.Indefinite;
@@ -493,8 +580,7 @@
     };
     CAnimationTime.prototype.multiplyAssign = function (oTime) {
         if(!(oTime instanceof CAnimationTime)) {
-            var oTimeObject = new CAnimationTime();
-            oTimeObject.setVal(oTime);
+            var oTimeObject = new CAnimationTime(oTime);
             return this.multiplyAssign(oTimeObject);
         }
         if(this.isUnresolved()) {
@@ -542,6 +628,9 @@
     };
     CAnimationTime.prototype.divide = function (oTime) {
         return this.copy().divideAssign(oTime.getVal());
+    };
+    CAnimationTime.prototype.assign = function (oTime) {
+        return this.setVal(oTime.getVal());
     };
 
     function CAnimationTimeInterval(begin, end) {
@@ -3741,8 +3830,15 @@
             var y2 = oCommand[4];
             var x3 = oCommand[5];
             var y3 = oCommand[6];
-            fX = (1 - t)*(1 - t)*(1 - t)*x0  + 3*(1-t)*(1-t)*t*x1 + 3*(1-t)*t*t*x2 + t*t*t*x3;
-            fY = (1 - t)*(1 - t)*(1 - t)*y0  + 3*(1-t)*(1-t)*t*y1 + 3*(1-t)*t*t*y2 + t*t*t*y3;
+            var dt = (1 - t);
+            var dt2 = dt * dt;
+            var dt3 = dt2 * dt;
+            var t2 = t*t;
+            var t3 = t*t2;
+            var p1 = 3*dt2*t;
+            var p2 = 3*dt*t2;
+            fX = dt3*x0 + p1*x1 + p2*x2 + t3*x3;
+            fY = dt3*y0 + p1*y1 + p2*y2 + t3*y3;
         }
         else if(oCommand[0] === "Z") {
             var aMoveToCommand = this.findMoveToCommand(nP - 1);
@@ -4878,10 +4974,11 @@
     };
     
 
-    function CAnimEvent(fCallback, oTrigger) {
+    function CAnimEvent(fCallback, oTrigger, oCaller) {
         this.trigger = oTrigger;
         this.callback = fCallback;
         this.fired = false;
+        this.caller = oCaller;
     }
     CAnimEvent.prototype.fire = function() {
         this.callback.call();
@@ -4893,6 +4990,12 @@
         }
         return this.fired;
     };
+    CAnimEvent.prototype.checkCaller = function(oCaller) {
+        if(this.caller === oCaller) {
+            return true;
+        }
+        return false;
+    };
 
     function CAnimationScheduler(player) {
         this.player = player;
@@ -4903,8 +5006,9 @@
     };
     CAnimationScheduler.prototype.handleEvents = function() {
         for(var nCallbacks = this.events.length - 1; nCallbacks > -1; --nCallbacks) {
-            if(this.events[nCallbacks].checkTrigger()) {
-                this.events.splice(nCallbacks, 1);
+            var oEvent = this.events[nCallbacks];
+            if(oEvent.checkTrigger()) {
+                this.removeEvent(oEvent);
                 //event fire may call changing event list
                 return this.handleEvents();
             }
@@ -4915,8 +5019,23 @@
     CAnimationScheduler.prototype.addEvent = function(oEvent) {
         this.events.push(oEvent);
     };
-    CAnimationScheduler.prototype.cancellAll = function() {
+    CAnimationScheduler.prototype.removeEvent = function(oEvent) {
+        for(var nEvent = 0; nEvent < this.events.length; ++nEvent) {
+            if(this.events[nEvent] === oEvent) {
+                this.events.splice(nEvent, 1);
+                return;
+            }
+        }
+    };
+    CAnimationScheduler.prototype.cancelAll = function() {
         this.events.length = 0;
+    };
+    CAnimationScheduler.prototype.cancelCallerEvents = function(oCaller) {
+        for(var nCallbacks = this.events.length - 1; nCallbacks > -1; --nCallbacks) {
+            if(this.events[nCallbacks].checkCaller(oCaller)) {
+                this.events.splice(nCallbacks, 1);
+            }
+        }
     };
     CAnimationScheduler.prototype.getElapsedTicks = function() {
         return this.player.getElapsedTicks();
@@ -4935,7 +5054,7 @@
                 oRoot.traverseActive(function(oNode) {
                     if(oNode instanceof CAnimMotion) {
 
-                        var fRelTime = (oThis.player.getElapsedTicks() - oNode.startTick) / oNode.simpleDuration;//TODO
+                        var fRelTime = (oThis.player.getElapsedTicks() - oNode.startTick) / oNode.simpleDuration.getVal();//TODO
                         if(oNode.parsedPath) {
                             var oPos = oNode.parsedPath.getPosition(fRelTime);
                             if(oPos) {
@@ -5020,12 +5139,14 @@
     };
     CAnimationPlayer.prototype.onClicked = function(sId, nTime) {
     };
-
     CAnimationPlayer.prototype.scheduleEvent = function(oEvent) {
         if(!this.isStarted()) {
             return;
         }
         this.animationScheduler.addEvent(oEvent);
+    };
+    CAnimationPlayer.prototype.cancelCallerEvent = function(oCaller) {
+        this.animationScheduler.cancelCallerEvents(oCaller);
     };
 
     function CTimingGraphEdge(oBegin, oEnd) {
