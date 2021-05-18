@@ -4150,15 +4150,15 @@ var editor;
 	  this.wb.restoreFocus();
   };
 
-	spreadsheet_api.prototype.asc_setCellProtection = function(val) {
-		this.wb.getWorksheet().setSelectionInfo("applyProtection", val);
-		this.wb.restoreFocus();
-	};
+  spreadsheet_api.prototype.asc_setCellProtection = function (val) {
+    this.wb.getWorksheet().setSelectionInfo("applyProtection", val);
+    this.wb.restoreFocus();
+  };
 
-	spreadsheet_api.prototype.asc_setCellLocked = function(val) {
-		this.wb.getWorksheet().setSelectionInfo("locked", val);
-		this.wb.restoreFocus();
-	};
+  spreadsheet_api.prototype.asc_setCellLocked = function (val) {
+    this.wb.getWorksheet().setSelectionInfo("locked", val);
+    this.wb.restoreFocus();
+  };
 
   // Формат по образцу
   spreadsheet_api.prototype.asc_formatPainter = function(formatPainterState) {
