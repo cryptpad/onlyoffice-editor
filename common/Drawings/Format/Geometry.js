@@ -896,10 +896,6 @@ Geometry.prototype=
         {
             g.AddPath(this.pathLst[i].createDuplicate());
         }
-        for(i = 0; i < this.gmEditList.length; ++i)
-        {
-            g.AddPath(this.gmEditList[i].createDuplicate());
-        }
         if(this.rectS)
         {
             g.AddRect(this.rectS.l, this.rectS.t, this.rectS.r, this.rectS.b);

@@ -33,17 +33,17 @@
 "use strict";
 (function(window, undefined) {
 
-    function EditShapeGeometryTrack(originalShape) {
-        this.geometry = originalShape.calcGeometry;
-        this.originalShape = originalShape;
-        this.originalObject = originalShape;
-        this.shapeWidth = originalShape.extX;
-        this.shapeHeight = originalShape.extY;
-        var oPen = originalShape.pen;
-        var oBrush = originalShape.brush;
-        this.transform = originalShape.transform.CreateDublicate();
-        this.overlayObject = new AscFormat.OverlayObject(this.geometry, this.shapeWidth, this.shapeHeight, oBrush, oPen, this.transform);
-        this.invertTransform = originalShape.invertTransform;
+    function EditShapeGeometryTrack(originalObject) {
+        this.geometry = originalObject.calcGeometry;
+        this.originalShape = originalObject;
+        this.originalObject = originalObject;
+        this.shapeWidth = originalObject.extX;
+        this.shapeHeight = originalObject.extY;
+        var oPen = originalObject.pen;
+        var oBrush = originalObject.brush;
+        this.transform = originalObject.transform;
+        this.invertTransform = originalObject.invertTransform;
+        this.overlayObject = new AscFormat.OverlayObject(this.geometry, this.resizedExtX, this.originalExtY, oBrush, oPen, this.transform);
     };
 
     EditShapeGeometryTrack.prototype.draw = function(overlay, transform)
@@ -55,13 +55,88 @@
         this.overlayObject.draw(overlay);
     };
 
-    EditShapeGeometryTrack.prototype.track = function(posX, posY) {
+    EditShapeGeometryTrack.prototype.track = function(kd1, kd2, e, posX, posY) {
+
+        var geometry = this.originalObject.calcGeometry;
+        var arrPathCommand = geometry.pathLst[0].ArrPathCommand;
+        geometry.gdLstInfo = [];
+        geometry.cnxLstInfo = [];
+        geometry.pathLst[0].ArrPathCommandInfo = [];
+        geometry.rectS = null;
+
         var invert_transform = this.invertTransform;
+        var transform = this.transform;
         var _relative_x = invert_transform.TransformPointX(posX, posY);
         var _relative_y = invert_transform.TransformPointY(posX, posY);
+        
+        arrPathCommand[geometry.gmEditPoint.pathCommand].X = _relative_x;
+        arrPathCommand[geometry.gmEditPoint.pathCommand].Y = _relative_y;
 
-        this.geometry.pathLst[0].ArrPathCommand[this.geometry.gmEditPoint.pathCommand].X = _relative_x;
-        this.geometry.pathLst[0].ArrPathCommand[this.geometry.gmEditPoint.pathCommand].Y = _relative_y;
+
+        var xMin, yMin, xMax, yMax;
+        for(var i = 0;  i < arrPathCommand.length; ++i) {
+            var pCommandX = transform.TransformPointX(arrPathCommand[i].X, arrPathCommand[i].Y);
+            var pCommandY = transform.TransformPointY(arrPathCommand[i].X, arrPathCommand[i].Y);
+            xMin = (pCommandX && !xMin || xMin > pCommandX) ? pCommandX : xMin;
+            yMin = (pCommandY && !yMin || yMin > pCommandY) ? pCommandY : yMin;
+            xMax = (pCommandX && !xMax || xMax < pCommandX) ? pCommandX : xMax;
+            yMax = (pCommandY && !yMax || yMax < pCommandY) ? pCommandY : yMax;
+        }
+
+
+        var shape = this.originalShape;
+        shape.spPr.xfrm.setExtX(xMax-xMin);
+        shape.spPr.xfrm.setExtY(yMax - yMin);
+        shape.setStyle(AscFormat.CreateDefaultShapeStyle());
+
+        var w = xMax - xMin, h = yMax-yMin;
+        var kw, kh, pathW, pathH;
+        if(w > 0)
+        {
+            pathW = 43200;
+            kw = 43200 / w;
+        }
+        else
+        {
+            pathW = 0;
+            kw = 0;
+        }
+        if(h > 0)
+        {
+            pathH = 43200;
+            kh = 43200 / h;
+        }
+        else
+        {
+            pathH = 0;
+            kh = 0;
+        }
+
+        for(var i = 0;  i < arrPathCommand.length; ++i)
+        {
+            var pCommandX = transform.TransformPointX(arrPathCommand[i].X, arrPathCommand[i].Y);
+            var pCommandY = transform.TransformPointY(arrPathCommand[i].X, arrPathCommand[i].Y);
+            switch (arrPathCommand[i].id)
+            {
+                case 0:
+                {
+                    geometry.AddPathCommand(1, ((( pCommandX - xMin) * kw) >> 0) + "", (((pCommandY - yMin) * kh) >> 0) + "");
+                    break;
+                }
+                case 1:
+                {
+                    geometry.AddPathCommand(2, (((pCommandX - xMin) * kw) >> 0) + "", (((pCommandY - yMin) * kh) >> 0) + "");
+                    break;
+                }
+                // case 2:
+                // {
+                //     geometry.AddPathCommand(5, (((this.path[i].x1 - xMin) * kw) >> 0) + "", (((this.path[i].y1 - yMin) * kh) >> 0) + "", (((this.path[i].x2 - xMin)* kw) >> 0) + "", (((this.path[i].y2 - yMin) * kh) >> 0) + "", (((this.path[i].x3 - xMin) * kw) >> 0) + "", (((this.path[i].y3 - yMin) * kh) >> 0) + "");
+                //     break;
+                // }
+            }
+        }
+
+        geometry.pathLst[0].pathW = pathW, geometry.pathLst[0].pathH = pathH;
     };
 
     EditShapeGeometryTrack.prototype.getBounds = function() {
@@ -100,6 +175,8 @@
     };
 
     EditShapeGeometryTrack.prototype.trackEnd = function() {
+
+        AscFormat.CheckSpPrXfrm(this.originalShape);
 
     };
 
