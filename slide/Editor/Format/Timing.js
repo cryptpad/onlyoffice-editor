@@ -421,7 +421,7 @@
             var aChildren = this.getChildrenTimeNodes();
             var nChild;
             if(this.isPar()) {
-                if(this.repeatCount.isIndefinite()) {
+                if(this.repeatCount.isSpecified() && this.simpleDurationIdx + 1 < this.repeatCount.getVal() / 1000) {
                     for(nChild = 0; nChild < aChildren.length; ++nChild) {
                         if(!aChildren[nChild].isFinished()) {
                             break;
@@ -5051,38 +5051,85 @@
         for(var nTiming = 0; nTiming < this.player.timings.length; ++nTiming) {
             var oRoot = this.player.timings[nTiming].getTimingRootNode();
             if(oRoot) {
+                var oMap = {};
                 oRoot.traverseActive(function(oNode) {
-                    if(oNode instanceof CAnimMotion) {
+                    if (oNode instanceof CAnimMotion) {
 
+                        var oParentNode = oNode.getParentTimeNode();
+                        var bAutoRev = false;
+                        if(oParentNode) {
+                            bAutoRev = oParentNode.getAttributesObject().autoRev;
+                            if(bAutoRev) {
+                                bAutoRev = (oParentNode.simpleDurationIdx % 2 === 1);
+                            }
+                        }
                         var fRelTime = (oThis.player.getElapsedTicks() - oNode.startTick) / oNode.simpleDuration.getVal();//TODO
-                        if(oNode.parsedPath) {
+                        //if(bAutoRev) {
+                        //    fRelTime = 1 - fRelTime;
+                        //}
+                        if (oNode.parsedPath) {
                             var oPos = oNode.parsedPath.getPosition(fRelTime);
-                            if(oPos) {
+                            if (oPos) {
                                 var oPresentation = editor.WordControl.m_oLogicDocument;
                                 var W = oPresentation.GetWidthMM();
                                 var H = oPresentation.GetHeightMM();
-                                var DX = W*oPos.x;
-                                var DY = H*oPos.y;
+                                var DX = W * oPos.x;
+                                var DY = H * oPos.y;
                                 //console.log("Elapsed " + oThis.player.getElapsedTicks());
                                 //console.log("DX " + DX);
                                 //console.log("DY " + DY);
                                 var sId = oNode.cBhvr.tgtEl.spTgt.spid;
                                 var oDrawing = AscCommon.g_oTableId.Get_ById(sId);
-                                if(oDrawing) {
-                                    if(!oDrawing.origX) {
-                                        oDrawing.origX = oDrawing.transform.tx;
-                                        oDrawing.origY = oDrawing.transform.ty;
+                                var fMoveDr = function (oDrawing) {
+                                    if (oDrawing) {
+                                        if (!oDrawing.origX) {
+                                            oDrawing.origX = oDrawing.spPr.xfrm.offX;
+                                            oDrawing.origY = oDrawing.spPr.xfrm.offY;
+                                        }
+                                        oDrawing.spPr.xfrm.offX = oDrawing.origX + DX;
+                                        oDrawing.spPr.xfrm.offY = oDrawing.origY + DY;
+                                        oMap[oDrawing.Id] = oDrawing;
                                     }
-                                    oDrawing.transform.tx = oDrawing.origX + DX;
-                                    oDrawing.transform.ty = oDrawing.origY + DY;
-                                    oDrawing.x = oDrawing.origX + DX;
-                                    oDrawing.y = oDrawing.origY + DY;
-                                }
+                                };
+                                fMoveDr(oDrawing);
                             }
                         }
+                    }
+                    if (oNode instanceof CAnimRot) {
+                        var fRelTime = (oThis.player.getElapsedTicks() - oNode.startTick) / oNode.simpleDuration.getVal();//TODO
+                        var dR = 2 * Math.PI * fRelTime;
+                        var sId = oNode.cBhvr.tgtEl.spTgt.spid;
+                        var oDrawing = AscCommon.g_oTableId.Get_ById(sId);
+                        var fMoveDr = function (oDrawing) {
+                            if (oDrawing) {
+                                if (!AscFormat.isRealNumber(oDrawing.origRot)) {
+                                    oDrawing.origRot = oDrawing.rot;
+                                }
 
+                                oDrawing.spPr.xfrm.rot =  oDrawing.origRot  + dR;
+
+                                oMap[oDrawing.Id] = oDrawing;
+                            }
+                        };
+                        fMoveDr(oDrawing);
                     }
                 });
+                var oDrawing;
+                for(var key in oMap) {
+                    oDrawing = oMap[key];
+                    oDrawing.recalculateTransform();
+                    oDrawing.localTransform = oDrawing.transform;
+                    var  fRecursiveRecalcTransfrom = function(aSpTree) {
+                        if (Array.isArray(aSpTree)) {
+                            for (var i = 0; i < aSpTree.length; ++i) {
+                                aSpTree[i].recalculateTransform();
+                                aSpTree[i].localTransform = aSpTree[i].transform;
+                                fRecursiveRecalcTransfrom(aSpTree[i].spTree);
+                            }
+                        }
+                    }
+                    fRecursiveRecalcTransfrom(oDrawing.spTree);
+                }
             }
         }
         var oPresentation = editor.WordControl.m_oLogicDocument;
