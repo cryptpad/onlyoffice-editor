@@ -253,7 +253,17 @@ function MoveShapeImageTrack(originalObject)
             if(this.originalObject.selectStartPage !== this.pageIndex)
                 this.originalObject.selectStartPage = this.pageIndex;
         }
+
         if (this.originalObject.isObjectInSmartArt()) {
+            // var _rot = this.originalObject.rot;
+            //
+            // if (((_rot >= Math.PI / 4) && (_rot <= 3 * Math.PI / 4)) || ((_rot >= 5 * Math.PI / 4) && (_rot <= 7 * Math.PI / 4))) {
+            //     this.x = this.x - (this.originalObject.extX - this.originalObject.extX);
+            // }
+            // } else {
+            //
+            // }
+
             if (this.x < 0) {
                 this.x = 0;
             }
@@ -590,7 +600,7 @@ function MoveComment(comment)
         }
         return Flags;
     };
-    
+
     this.draw = function(overlay)
     {
         var Flags = this.getFlags();
@@ -605,7 +615,7 @@ function MoveComment(comment)
         }
         this.comment.setPosition(this.x, this.y);
     };
-    
+
     this.getBounds = function()
     {
         var dd = editor.WordControl.m_oDrawingDocument;
@@ -707,7 +717,7 @@ function MoveChartObjectTrack(oObject, oChartSpace)
         oObjectToSet.layout.setX(fLayoutX);
         oObjectToSet.layout.setY(fLayoutY);
     };
-    
+
     this.getBounds = function ()
     {
         var boundsChecker = new  AscFormat.CSlideBoundsChecker();

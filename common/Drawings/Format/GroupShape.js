@@ -1528,7 +1528,7 @@ function CGroupShape()
             xfrm  = sp.spPr.xfrm;
             rot = xfrm.rot == null ? 0 : xfrm.rot;
 
-            if(AscFormat.checkNormalRotate(rot))
+            if(AscFormat.checkNormalRotate(rot)) //  || (this.getName && this.getName() === 'Drawing')
             {
                 cur_min_x = xfrm.offX;
                 cur_min_y = xfrm.offY;

@@ -11478,7 +11478,7 @@
             spPr: {},
           },
           {
-            modelId: '',
+            modelId: '{F9DB856B-59E5-4A6B-AC64-C95EBF38BE48}',
             prSet: {
               phldr: true,
               phldrT: '[Текст]',
@@ -11667,21 +11667,21 @@
           },
           {
             type: Point_type_pres,
-            modelId: '',
+            modelId: '{FB7F3A92-AB47-4AAE-A31C-A45781667FEC}',
             prSet: {
               presStyleCnt: 0,
               presName: 'compNode',
-              presAssocID: '',
+              presAssocID: '{F9DB856B-59E5-4A6B-AC64-C95EBF38BE48}',
             },
             spPr: {},
           },
           {
             type: Point_type_pres,
-            modelId: '',
+            modelId: '{9D638842-3BB7-4992-B59E-40DEC315618A}',
             prSet: {
               presStyleCnt: 3,
               presName: 'node',
-              presAssocID: '',
+              presAssocID: '{F9DB856B-59E5-4A6B-AC64-C95EBF38BE48}',
               presStyleIdx: 0,
               presStyleLbl: 'node1',
               presLayoutVars: {
@@ -11694,11 +11694,11 @@
           },
           {
             type: Point_type_pres,
-            modelId: '',
+            modelId: '{B5CCFC87-9305-4D30-911A-E6EF7A216726}',
             prSet: {
               presStyleCnt: 3,
               presName: 'invisiNode',
-              presAssocID: '',
+              presAssocID: '{F9DB856B-59E5-4A6B-AC64-C95EBF38BE48}',
               presStyleIdx: 0,
               presStyleLbl: 'node1',
             },
@@ -12353,7 +12353,7 @@
               },
             },
             {
-              modelId: '',
+              modelId: '{9D638842-3BB7-4992-B59E-40DEC315618A}',
               nvSpPr: {
                 cNvPr: {
                   name: '',
@@ -13646,10 +13646,10 @@
         point.setType(pointInfo.type);
       }
       var prSet = new PrSet();
+      point.setPrSet(prSet);
       if (pointInfo.prSet) {
         fillPrSet(prSet, pointInfo.prSet);
       }
-      point.setPrSet(prSet);
 
       if (pointInfo.spPr) {
         var spPr = new AscFormat.CSpPr(); // add in imports
@@ -14077,7 +14077,9 @@
 
     function createSp(spInfo, parent) {
       var sp = new AscFormat.CShape();
-      // sp.setModelId(spInfo.setId); TODO: add model id
+      if (spInfo.modelId) {
+        sp.setModelId(spInfo.modelId);
+      }
       sp.setBDeleted(false);
       sp.setParent(parent);
       var nvSpPr = new AscFormat.UniNvPr();
@@ -14125,7 +14127,7 @@
     function fillDrawing(drawing, drawingInfo, parent) {
       drawingInfo.spTree.sps.forEach(function (sp) {
         var oSp = createSp(sp, parent);
-        drawing.addToSpTree(0, oSp);
+        drawing.addToSpTree(drawing.spTree.length, oSp);
         oSp.setParent(parent);//TODO: parent of shape shuold be a slide
         oSp.setGroup(drawing);
       });

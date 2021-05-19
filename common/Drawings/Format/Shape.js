@@ -1030,6 +1030,7 @@ function CShape()
     this.bCheckAutoFitFlag = false;
     this.signatureLine = null;
     this.txXfrm = null;
+    this.modelId = null;
 
 
     this.transformText = new CMatrix();
@@ -1205,11 +1206,16 @@ CShape.prototype.setNvSpPr = function (pr) {
     this.nvSpPr = pr;
 };
 
-    CShape.prototype.setTxXfrm = function (pr) {
-        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_ShapeSetTxXfrm, this.txXfrm, pr));
-        this.txXfrm = pr;
-        this.txXfrm.setParent(this);
+CShape.prototype.setTxXfrm = function (pr) {
+    History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_ShapeSetTxXfrm, this.txXfrm, pr));
+    this.txXfrm = pr;
+    this.txXfrm.setParent(this);
     };
+
+CShape.prototype.setModelId = function (pr) {
+    History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_ShapeSetModelId, this.modelId, pr));
+    this.modelId = pr;
+}
 
 CShape.prototype.setSpPr = function (spPr) {
     History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_ShapeSetSpPr, this.spPr, spPr));
@@ -1781,7 +1787,36 @@ CShape.prototype.getCompiledTransparent = function () {
     return this.compiledTransparent;
 };
 
+CShape.prototype.getPlaceholderTextInSmartArt = function () {
+    var ptLst = this.group.group.dataModel.ptLst.list;
+    if (this.isObjectInSmartArt()) {
+        for (var i = 0; i < ptLst.length; i += 1) {
+            if (this.modelId && this.modelId === ptLst[i].modelId) {
+                for (var j = 0; j < ptLst.length; j += 1) {
+                    if (ptLst[i].prSet && ptLst[i].prSet.presAssocID && ptLst[i].prSet.presAssocID === ptLst[j].modelId) {
+                        return ptLst[i].prSet.phldrT;
+                    }
+                }
+            }
+        }
+    }
+}
+
 CShape.prototype.isPlaceholder = function () {
+    if (this.isObjectInSmartArt()) {
+        var ptLst = this.group.group.dataModel.ptLst.list;
+        for (var i = 0; i < ptLst.length; i += 1) {
+            if (this.modelId && this.modelId === ptLst[i].modelId) {
+                for (var j = 0; j < ptLst.length; j += 1) {
+                    if (ptLst[i].prSet && ptLst[i].prSet.presAssocID && ptLst[i].prSet.presAssocID === ptLst[j].modelId) {
+                        console.log(ptLst[i].prSet.phldr);
+                        return ptLst[i].prSet.phldr;
+                    }
+                }
+            }
+        }
+        return false;
+    }
     return isRealObject(this.nvSpPr) && isRealObject(this.nvSpPr.nvPr) && isRealObject(this.nvSpPr.nvPr.ph);
 };
 

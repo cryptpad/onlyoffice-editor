@@ -612,8 +612,9 @@ CShape.prototype.recalculateContent2 = function()
             var text;
             if(this.parent instanceof AscCommonSlide.CNotes && this.nvSpPr.nvPr.ph.type === AscFormat.phType_body){
                 text = "Click to add notes";
-            }
-            else{
+            } else if (this.isObjectInSmartArt()) {
+                text = this.getPlaceholderTextInSmartArt();
+            } else {
                 text = typeof pHText[0][this.nvSpPr.nvPr.ph.type] === "string" && pHText[0][this.nvSpPr.nvPr.ph.type].length > 0 ?  pHText[0][this.nvSpPr.nvPr.ph.type] : pHText[0][AscFormat.phType_body];
             }
 
