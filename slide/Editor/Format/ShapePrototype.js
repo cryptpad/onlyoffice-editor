@@ -603,17 +603,22 @@ CShape.prototype.recalculateContent2 = function()
 {
     if(this.txBody)
     {
-        if(this.isPlaceholder())
+        var isPlaceholderInSmartArt = this.isObjectInSmartArt() && this.getPoint() && this.getPoint().prSet && this.getPoint().prSet.phldr;
+        if(this.isPlaceholder() || isPlaceholderInSmartArt)
         {
             if(!this.isEmptyPlaceholder())
             {
+                if (this.isObjectInSmartArt() && this.getPoint().prSet.phldr) {
+                    this.getPoint().prSet.phldr = false;
+                    this.txBody.content2 = null;
+                }
                 return;
             }
             var text;
             if(this.parent instanceof AscCommonSlide.CNotes && this.nvSpPr.nvPr.ph.type === AscFormat.phType_body){
                 text = "Click to add notes";
             } else if (this.isObjectInSmartArt()) {
-                text = this.getPlaceholderTextInSmartArt();
+                text = this.getPoint().prSet.phldrT;
             } else {
                 text = typeof pHText[0][this.nvSpPr.nvPr.ph.type] === "string" && pHText[0][this.nvSpPr.nvPr.ph.type].length > 0 ?  pHText[0][this.nvSpPr.nvPr.ph.type] : pHText[0][AscFormat.phType_body];
             }

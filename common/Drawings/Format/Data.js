@@ -13426,7 +13426,9 @@
     }
 
     function fillPrSet(prSet, prSetInfo) {
-      prSet.setPhldr(prSetInfo.phldr);
+      if (typeof prSetInfo.phldr === 'boolean') {
+        prSet.setPhldr(prSetInfo.phldr);
+      }
       if (prSet.getPhldr()) {
         prSet.setPhldrT(prSetInfo.phldrT);
       }
@@ -14100,7 +14102,7 @@
       fillStyle(style, spInfo.style);
       sp.setStyle(style);
       if (spInfo.txBody) {
-        sp.setTxBody(AscFormat.CreateTextBodyFromString('Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut blanditiis earum error incidunt minima nisi quia quis rem tenetur totam.', editor.WordControl.m_oDrawingDocument, sp));
+        sp.setTxBody(AscFormat.CreateTextBodyFromString('', editor.WordControl.m_oDrawingDocument, sp));
         // sp.txBody.content.Content[0].Set_Align(2);
 
         sp.txBody.bodyPr.lIns = 0;

@@ -1787,36 +1787,22 @@ CShape.prototype.getCompiledTransparent = function () {
     return this.compiledTransparent;
 };
 
-CShape.prototype.getPlaceholderTextInSmartArt = function () {
-    var ptLst = this.group.group.dataModel.ptLst.list;
-    if (this.isObjectInSmartArt()) {
-        for (var i = 0; i < ptLst.length; i += 1) {
-            if (this.modelId && this.modelId === ptLst[i].modelId) {
-                for (var j = 0; j < ptLst.length; j += 1) {
-                    if (ptLst[i].prSet && ptLst[i].prSet.presAssocID && ptLst[i].prSet.presAssocID === ptLst[j].modelId) {
-                        return ptLst[i].prSet.phldrT;
+    CShape.prototype.getPoint = function () {
+        if (this.isObjectInSmartArt()) {
+            var ptLst = this.group.group.dataModel.ptLst.list;
+            for (var i = 0; i < ptLst.length; i += 1) {
+                if (this.modelId && this.modelId === ptLst[i].modelId) {
+                    for (var j = 0; j < ptLst.length; j += 1) {
+                        if (ptLst[i].prSet && ptLst[i].prSet.presAssocID && ptLst[i].prSet.presAssocID === ptLst[j].modelId) {
+                            return ptLst[j];
+                        }
                     }
                 }
             }
         }
     }
-}
 
 CShape.prototype.isPlaceholder = function () {
-    if (this.isObjectInSmartArt()) {
-        var ptLst = this.group.group.dataModel.ptLst.list;
-        for (var i = 0; i < ptLst.length; i += 1) {
-            if (this.modelId && this.modelId === ptLst[i].modelId) {
-                for (var j = 0; j < ptLst.length; j += 1) {
-                    if (ptLst[i].prSet && ptLst[i].prSet.presAssocID && ptLst[i].prSet.presAssocID === ptLst[j].modelId) {
-                        console.log(ptLst[i].prSet.phldr);
-                        return ptLst[i].prSet.phldr;
-                    }
-                }
-            }
-        }
-        return false;
-    }
     return isRealObject(this.nvSpPr) && isRealObject(this.nvSpPr.nvPr) && isRealObject(this.nvSpPr.nvPr.ph);
 };
 
@@ -3208,6 +3194,15 @@ CShape.prototype.Get_ParentTextTransform = function()
 };
 
 CShape.prototype.isEmptyPlaceholder = function () {
+    var isPlaceholderInSmartArt = this.isObjectInSmartArt() && this.getPoint() && this.getPoint().prSet && this.getPoint().prSet.phldr;
+    if (isPlaceholderInSmartArt) {
+        if (this.txBody) {
+            if (this.txBody.content) {
+                return this.txBody.content.Is_Empty();
+            }
+            return true;
+        }
+    }
     if (this.isPlaceholder()) {
         if (this.nvSpPr.nvPr.ph.type == AscFormat.phType_title
             || this.nvSpPr.nvPr.ph.type == AscFormat.phType_ctrTitle
