@@ -2558,7 +2558,7 @@
             }
         })();
     };
-    CCond.prototype.createTimeNodeTrigger = function(fTimeNodeCheck) {
+    CCond.prototype.createTimeNodeTrigger = function(oPlayer, fTimeNodeCheck) {
         var oTimeNode = null;
         if(this.tn !== null) {
             oTimeNode = this.findTimeNodeById(this.tn);
@@ -2566,17 +2566,17 @@
         if(!oTimeNode) {
             return DEFAULT_NEVER_TRIGGER;
         }
-        return function () {
+        return this.createEventTrigger(oPlayer, function() {
             return fTimeNodeCheck(oTimeNode);
-        };
+        });
     };
     CCond.prototype.createOnBeginTrigger = function(oPlayer) {
-        return this.createEventTrigger(oPlayer, function (oTimeNode) {
+        return this.createTimeNodeTrigger(oPlayer, function (oTimeNode) {
             return oTimeNode.isActive();
         });
     };
     CCond.prototype.createOnEndTrigger = function(oPlayer) {
-        return this.createEventTrigger(oPlayer, function (oTimeNode) {
+        return this.createTimeNodeTrigger(oPlayer, function (oTimeNode) {
             return oTimeNode.isFinished();
         });
     };
