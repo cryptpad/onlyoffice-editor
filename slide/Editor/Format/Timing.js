@@ -2455,10 +2455,37 @@
             return oElapsedTime.greaterOrEquals(oEnd);
         };
     };
-    CCond.prototype.createEventSimpleTrigger = function (oPlayer, oEvent) {
-        return function () {
-            return oPlayer.checkExternalEvent(oEvent);
-        }
+    CCond.prototype.createEventSimpleTrigger = function (oPlayer, nType) {
+        var oThis = this;
+        return (function() {
+            var nSpId;
+            if(oThis.tgtEl) {
+                if(oThis.tgtEl.spTgt) {
+                    nSpId = oThis.tgtEl.spTgt.spid;
+                }
+            }
+            if(!nSpId) {
+                return DEFAULT_NEVER_TRIGGER;
+            }
+            var oEvent = new CExternalEvent(nType, nSpId);
+            var oEnd = null;
+            var oDelay = oThis.parseTime(oThis.delay);
+            return function () {
+                if(oEnd) {
+                    var oElapsedTime = oPlayer.getElapsedTime();
+                    return oElapsedTime.greaterOrEquals(oEnd);
+                }
+                if(oPlayer.checkExternalEvent(oEvent)) {
+                    if(oDelay.isIndefinite() || oDelay.getVal() === 0) {
+                        return true;
+                    }
+                    else {
+                        var oStart = oPlayer.getElapsedTime();
+                        oEnd = oStart.plus(oDelay);
+                    }
+                }
+            }
+        })();
     };
     CCond.prototype.createSimpleTrigger = function(oPlayer) {
         switch (this.evt) {
@@ -2474,22 +2501,22 @@
                 break;
             }
             case COND_EVNT_ON_CLICK: {
-                return this.createEventSimpleTrigger(oPlayer, new CExternalEvent(COND_EVNT_ON_CLICK, this.tgtEl));
+                return this.createEventSimpleTrigger(oPlayer, COND_EVNT_ON_CLICK);
                 break;
             }
             case COND_EVNT_ON_DBLCLICK: {
-                return this.createEventSimpleTrigger(oPlayer, new CExternalEvent(COND_EVNT_ON_DBLCLICK, this.tgtEl));
+                return this.createEventSimpleTrigger(oPlayer, COND_EVNT_ON_DBLCLICK);
                 break;
             }
             case COND_EVNT_ON_END: {
                 break;
             }
             case COND_EVNT_ON_MOUSEOUT: {
-                return this.createEventSimpleTrigger(oPlayer, new CExternalEvent(COND_EVNT_ON_MOUSEOUT, this.tgtEl));
+                return this.createEventSimpleTrigger(oPlayer, COND_EVNT_ON_MOUSEOUT);
                 break;
             }
             case COND_EVNT_ON_MOUSEOVER: {
-                return this.createEventSimpleTrigger(oPlayer, new CExternalEvent(COND_EVNT_ON_MOUSEOVER, this.tgtEl));
+                return this.createEventSimpleTrigger(oPlayer, COND_EVNT_ON_MOUSEOVER);
                 break;
             }
             case COND_EVNT_ON_NEXT: {
@@ -5201,30 +5228,33 @@
         if(!oSp) {
             return;
         }
-        this.eventsProcessor.addEvent(new CExternalEvent(COND_EVNT_ON_CLICK, oSp.getFormatId()));
+        this.eventsProcessor.addEvent(new CExternalEvent(COND_EVNT_ON_CLICK, oSp.Get_Id()));
     };
     CAnimationPlayer.prototype.onSpDblClick = function(oSp) {
         if(!oSp) {
             return;
         }
-        this.eventsProcessor.addEvent(new CExternalEvent(COND_EVNT_ON_DBLCLICK, oSp.getFormatId()));
+        this.eventsProcessor.addEvent(new CExternalEvent(COND_EVNT_ON_DBLCLICK, oSp.Get_Id()));
     };
     CAnimationPlayer.prototype.onSpMouseOver = function(oSp) {
         if(!oSp) {
             return;
         }
-        this.eventsProcessor.addEvent(new CExternalEvent(COND_EVNT_ON_MOUSEOVER, oSp.getFormatId()));
+        this.eventsProcessor.addEvent(new CExternalEvent(COND_EVNT_ON_MOUSEOVER, oSp.Get_Id()));
     };
     CAnimationPlayer.prototype.onSpMouseOut = function(oSp) {
         if(!oSp) {
             return;
         }
-        this.eventsProcessor.addEvent(new CExternalEvent(COND_EVNT_ON_MOUSEOUT, oSp.getFormatId()));
+        this.eventsProcessor.addEvent(new CExternalEvent(COND_EVNT_ON_MOUSEOUT, oSp.Get_Id()));
     };
 
 
     var DEFAULT_SIMPLE_TRIGGER = function() {
         return true;
+    };
+    var DEFAULT_NEVER_TRIGGER = function() {
+        return false;
     };
 
     var GLOBAL_PLAYER = null;
