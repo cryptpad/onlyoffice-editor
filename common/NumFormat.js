@@ -3844,8 +3844,12 @@ FormatParser.prototype =
                                     }
                                 }
                             }
-                        }
-                        else {
+                        } else if(3 == nDateLength && aDate[0] > 1000) {
+                            res.y = aDate[0];
+                            res.m = aDate[1];
+                            res.d = aDate[2];
+                            res.sDateFormat = getShortDateFormat(cultureInfo);
+                        } else {
                             for (var i = 0, length = cultureInfo.ShortDatePattern.length; i < length; i++)
                             {
                                 var nIndex = cultureInfo.ShortDatePattern[i] - 0;
@@ -4328,6 +4332,14 @@ function setCurrentCultureInfo (LCID, decimalSeparator, groupSeparator) {
 			return 'h:mm;@'
 		}
 	}
+	function getLongTimeFormat(opt_cultureInfo) {
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : g_oDefaultCultureInfo;
+		if (cultureInfo.AMDesignator.length > 0 && cultureInfo.PMDesignator.length > 0) {
+			return 'h:mm:ss AM/PM;@';
+		} else {
+			return 'h:mm:ss;@'
+		}
+	}
 
 	function getNumberFormatSimple(opt_separate, opt_fraction) {
 		var numberFormat = opt_separate ? '#,##0' : '0';
@@ -4685,10 +4697,11 @@ function setCurrentCultureInfo (LCID, decimalSeparator, groupSeparator) {
 					res.push(locale + 'd' + separator + 'mmm' + separator + 'yyyy;@');
 					res.push(locale + 'yyyy' + separator + 'mmm' + separator + 'd;@');
 					res.push(locale + 'yy' + separator + 'mmm' + separator + 'd;@');
+					res.push('yy' + separator + 'm' + separator + 'd;@');
+					res.push('yy' + separator + 'mm' + separator + 'dd;@');
+					res.push('yyyy' + separator + 'm' + separator + 'd;@');
+					res.push('yyyy' + separator + 'mm' + separator + 'dd;@');
 				}
-				res.push('yy/m/d;@');
-				res.push('yy/mm/dd;@');
-				res.push('yyyy/m/d;@');
 			} else if (Asc.c_oAscNumFormatType.Time === info.type) {
 				res = gc_aTimeFormats;
 			} else if (Asc.c_oAscNumFormatType.Percent === info.type) {
@@ -4963,6 +4976,7 @@ setCurrentCultureInfo(1033);//en-US//1033//fr-FR//1036//basq//1069//ru-Ru//1049/
 	window['AscCommon'].getShortDateFormat = getShortDateFormat;
 	window['AscCommon'].getShortDateFormat2 = getShortDateFormat2;
 	window['AscCommon'].getShortTimeFormat = getShortTimeFormat;
+	window['AscCommon'].getLongTimeFormat = getLongTimeFormat;
 	window['AscCommon'].getShortDateMonthFormat = getShortDateMonthFormat;
 	window['AscCommon'].getNumberFormatSimple = getNumberFormatSimple;
 	window['AscCommon'].getNumberFormat = getNumberFormat;

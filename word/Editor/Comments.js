@@ -1023,10 +1023,6 @@ ParaComment.prototype.IsCommentStart = function()
 {
 	return this.Start;
 };
-ParaComment.prototype.CheckRunContent = function(fCheck)
-{
-    return fCheck(this);
-};
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommon'] = window['AscCommon'] || {};
 

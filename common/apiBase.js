@@ -140,6 +140,7 @@
 		// Переменная, которая отвечает, послали ли мы окончание открытия документа
 		this.isPreOpenLocks = true;
 		this.isApplyChangesOnOpenEnabled = true;
+		this.isProtectionSupport = true;
 
 		this.canSave    = true;        // Флаг нужен чтобы не происходило сохранение пока не завершится предыдущее сохранение
 		this.IsUserSave = false;    // Флаг, контролирующий сохранение было сделано пользователем или нет (по умолчанию - нет)
@@ -147,6 +148,7 @@
         this.forceSaveButtonTimeout = null;
         this.forceSaveButtonContinue = false;
         this.forceSaveTimeoutTimeout = null;
+		this.forceSaveForm = null;
 		this.disconnectOnSave = null;
 		this.forceSaveUndoRequest = false; // Флаг нужен, чтобы мы знали, что данное сохранение пришло по запросу Undo в совместке
 
@@ -194,6 +196,8 @@
 		// macros & plugins events
 		this.internalEvents = {};
 
+		this.skinObject = config['skin'];
+
 		this.Shortcuts = new AscCommon.CShortcuts();
 		this.initDefaultShortcuts();
 
@@ -208,6 +212,11 @@
 		var t            = this;
 		//Asc.editor = Asc['editor'] = AscCommon['editor'] = AscCommon.editor = this; // ToDo сделать это!
 		this.HtmlElement = document.getElementById(this.HtmlElementName);
+		if (this.HtmlElement)
+		{
+			// запрещаем действия браузера по умолчанию
+			this.HtmlElement.style.touchAction = "none";
+		}
 
 		// init OnMessage
 		AscCommon.InitOnMessage(function(error, url)
@@ -413,6 +422,33 @@
 			this.onEndLoadDocInfo();
 		}
 	};
+	baseEditorsApi.prototype.asc_changeDocInfo = function(oDocInfo)
+	{
+		var rData = {
+			"c": 'changedocinfo',
+			"id": this.documentId,
+			"username": oDocInfo.asc_getUserName()
+		};
+		var t            = this;
+		t.fCurCallback   = function(input)
+		{
+			if (null != input && "changedocinfo" == input["type"])
+			{
+				if ('ok' === input["status"]) {
+					t.DocInfo.asc_getUserInfo().asc_putFullName(oDocInfo.asc_getUserName());
+					t.User.setUserName(oDocInfo.asc_getUserName());
+				} else {
+					t.sendEvent("asc_onError", AscCommon.mapAscServerErrorToAscError(parseInt(input["data"])),
+						c_oAscError.Level.NoCritical);
+				}
+			}
+			else
+			{
+				t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
+			}
+		};
+		AscCommon.sendCommand(this, null, rData);
+	};
 	baseEditorsApi.prototype.asc_isCrypto = function()
 	{
 		if (this.DocInfo && this.DocInfo.get_Encrypted() === true)
@@ -595,6 +631,18 @@
 		}
 		return res;
 	};
+	baseEditorsApi.prototype.isShowShapeAdjustments = function()
+	{
+		return true;
+	};
+	baseEditorsApi.prototype.isShowTableAdjustments = function()
+	{
+		return true;
+	};
+	baseEditorsApi.prototype.isShowEquationTrack = function()
+	{
+		return true;
+	};
 	baseEditorsApi.prototype.onPrint                             = function()
 	{
 		this.sendEvent("asc_onPrint");
@@ -735,9 +783,8 @@
 		}
 		this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.Open);
 		this.sendEvent('asc_onDocumentContentReady');
-		this.sendEvent('asc_LoadPluginsOrDocument');
 
-		if (window.g_asc_plugins && window.g_asc_plugins.countEventDocContOrPluginsReady == 2)
+		if (window.g_asc_plugins)
             window.g_asc_plugins.onPluginEvent("onDocumentContentReady");
 
         if (c_oEditorId.Spreadsheet === this.editorId) {
@@ -771,6 +818,20 @@
 	{
 		return this.CoAuthoringApi.forceSave();
 	};
+	baseEditorsApi.prototype.saveFromChanges = function(data, timeout, callback) {
+		var t = this;
+		var fAfterSaveChanges = function() {
+			t.forceSaveForm = null;
+			if (!t.CoAuthoringApi.callPRC(data, timeout, callback)) {
+				callback(false, undefined);
+			}
+		};
+		if (this.asc_Save(true)) {
+			this.forceSaveForm = fAfterSaveChanges;
+		} else {
+			fAfterSaveChanges();
+		}
+	};
 	baseEditorsApi.prototype.asc_setIsForceSaveOnUserSave = function(val)
 	{
 		this.isForceSaveOnUserSave = val;
@@ -794,6 +855,13 @@
 				// Мы не можем в этот момент сохранять, т.к. попали в ситуацию, когда мы залочили сохранение и успели нажать вставку до ответа
 				// Нужно снять lock с сохранения
 				this.CoAuthoringApi.onUnSaveLock = function () {
+					if (t.isForceSaveOnUserSave && t.IsUserSave) {
+						t.forceSaveButtonContinue = t.forceSave();
+					}
+					if (t.forceSaveForm) {
+						t.forceSaveForm();
+					}
+
 					t.canSave = true;
 					t.IsUserSave = false;
 					t.lastSaveTime = null;
@@ -932,6 +1000,10 @@
 				oResult.setRights(this.licenseResult['rights']);
 				oResult.setBuildVersion(this.licenseResult['buildVersion']);
 				oResult.setBuildNumber(this.licenseResult['buildNumber']);
+
+				if (undefined !== this.licenseResult['protectionSupport']) {
+					this.isProtectionSupport = this.licenseResult['protectionSupport'];
+				}
 			}
 			this.sendEvent('asc_onGetEditorPermissions', oResult);
 		}
@@ -1328,12 +1400,13 @@
 	};
 	baseEditorsApi.prototype._coSpellCheckInit                   = function()
 	{
+		var t = this;
+
 		if (!this.SpellCheckApi)
 		{
 			return; // Error
 		}
 
-		var t = this;
 		if (window["AscDesktopEditor"]) {
 
             window["asc_nativeOnSpellCheck"] = function(response) {
@@ -1394,10 +1467,45 @@
                     "4105",
                     "7177",
                     "9242",
-                    "10266"
+                    "10266",
+                    "2067"
 				]);
 			}
 		} else {
+			if (!this.SpellCheckUrl && !window['NATIVE_EDITOR_ENJINE']) {
+				this.SpellCheckApi = {};
+				this.SpellCheckApi.log = false;
+				this.SpellCheckApi.worker = new CSpellchecker({
+					enginePath: "../../../../sdkjs/common/spell/spell",
+					dictionariesPath: "./../../../../dictionaries"
+				});
+				this.SpellCheckApi.checkDictionary = function (lang) {
+					if (this.log) console.log("checkDictionary: " + lang + ": " + this.worker.checkDictionary(lang));
+					return this.worker.checkDictionary(lang);
+				};
+				this.SpellCheckApi.spellCheck = function (spellData) {
+					if (this.log) {
+						console.log("spellCheck:");
+						console.log(spellData);
+					}
+					this.worker.command(spellData);
+				};
+				this.SpellCheckApi.worker.oncommand = function (spellData) {
+					if (t.SpellCheckApi.log) {
+						console.log("onSpellCheck:");
+						console.log(spellData);
+					}
+					t.SpellCheck_CallBack(spellData);
+				};
+				this.SpellCheckApi.disconnect = function ()
+				{
+				};
+
+				this.sendEvent('asc_onSpellCheckInit', this.SpellCheckApi.worker.getLanguages());
+				return;
+			}
+			
+			// Deprecated old scheme with server
 			if (this.SpellCheckUrl && this.isSpellCheckEnable) {
 				this.SpellCheckApi.set_url(this.SpellCheckUrl);
 			}
@@ -1475,6 +1583,7 @@
 		oAdditionalData["nobase64"] = isNoBase64;
 		if (DownloadType.Print === downloadType)
 		{
+			oAdditionalData["withoutPassword"] = true;
 			oAdditionalData["inline"] = 1;
 		}
 
@@ -1553,7 +1662,7 @@
 	};
 	baseEditorsApi.prototype.asc_getPropertyEditorTextArts       = function()
 	{
-		return [AscCommon.g_oPresetTxWarpGroups, AscCommon.g_PresetTxWarpTypes];
+		return this.textArtPreviewManager.getWordArtPreviews();
 	};
 	// Add image
 	baseEditorsApi.prototype._addImageUrl                        = function()
@@ -1860,6 +1969,7 @@
 		if (this.isLoadFullApi && this.DocInfo && this.openResult && this.isLoadFonts)
 		{
 			this.openDocument(this.openResult);
+			this.sendEvent("asc_onDocumentPassword", ("" !== this.currentPassword));
 			this.openResult = null;
 		}
 
@@ -2083,8 +2193,8 @@
                     {
                         var _w = transition.Rect.w;
                         var _h = transition.Rect.h;
-                        var _w_mm = manager.HtmlPage.m_oLogicDocument.Width;
-                        var _h_mm = manager.HtmlPage.m_oLogicDocument.Height;
+                        var _w_mm = manager.HtmlPage.m_oLogicDocument.GetWidthMM();
+                        var _h_mm = manager.HtmlPage.m_oLogicDocument.GetHeightMM();
 
                         var _x = transition.Rect.x;
                         if (this.isReporterMode)
@@ -2123,14 +2233,8 @@
 
 	baseEditorsApi.prototype.asc_pluginsRegister   = function(basePath, plugins)
 	{
-		this.sendEvent('asc_LoadPluginsOrDocument');
-
-		if (null != this.pluginsManager) {
+		if (null != this.pluginsManager)
 			this.pluginsManager.register(basePath, plugins);
-			
-			if (this.pluginsManager.countEventDocContOrPluginsReady == 2)
-				this.pluginsManager.onPluginEvent("onDocumentContentReady");
-		}
 	};
 	baseEditorsApi.prototype.asc_pluginRun         = function(guid, variation, pluginData)
 	{
@@ -2469,7 +2573,7 @@
     {
         if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsProtectionSupport"])
             return window["AscDesktopEditor"]["IsProtectionSupport"]();
-        return false;
+        return !(this.DocInfo && this.DocInfo.get_OfflineApp()) && this.isProtectionSupport;
     };
 
 	baseEditorsApi.prototype.asc_gotoSignature = function(guid)
@@ -2758,11 +2862,38 @@
 	{
 		this.currentPassword = password;
 		this.asc_Save(false, undefined, true);
+		if (!(this.DocInfo && this.DocInfo.get_OfflineApp())) {
+			var rData = {
+				"c": 'setpassword',
+				"id": this.documentId,
+				"password": password
+			};
+			var t            = this;
+			t.fCurCallback   = function(input)
+			{
+				if (null != input && "setpassword" == input["type"])
+				{
+					if ('ok' === input["status"])
+					{
+						t.sendEvent("asc_onDocumentPassword", "" !== t.currentPassword);
+					}
+					else
+					{
+						t.sendEvent("asc_onError", AscCommon.mapAscServerErrorToAscError(parseInt(input["data"])),
+							c_oAscError.Level.NoCritical);
+					}
+				}
+				else
+				{
+					t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
+				}
+			};
+			AscCommon.sendCommand(this, null, rData);
+		}
 	};
 	baseEditorsApi.prototype.asc_resetPassword = function()
 	{
-		this.currentPassword = "";
-		this.asc_Save(false, undefined, true);
+		this.asc_setCurrentPassword("");
 	};
 
 	baseEditorsApi.prototype.asc_setMacros = function(sData)
@@ -2778,11 +2909,8 @@
 
 		if (this.editorId == AscCommon.c_oEditorId.Spreadsheet)
 		{
-			var locker = Asc.editor.wb.getWorksheet().objectRender.objectLocker;
-			locker.addObjectId(this.macros.Get_Id());
-
 			var _this = this;
-			locker.checkObjects(function(bNoLock) {
+			Asc.editor.checkObjectsLock([this.macros.Get_Id()], function(bNoLock) {
 				if (bNoLock)
 				{
 					AscCommon.History.Create_NewPoint(AscDFH.historydescription_DocumentMacros_Data);
@@ -3164,8 +3292,17 @@
 		this.Shortcuts.Add(nActionType, sShortcut[0], sShortcut[1], sShortcut[2], sShortcut[3]);
 		return nActionType;
 	};
+	baseEditorsApi.prototype.asc_setSkin = function(obj)
+	{
+	};
+	//---------------------------------------------------------version----------------------------------------------------
+	baseEditorsApi.prototype["GetVersion"] = baseEditorsApi.prototype.GetVersion = function()
+	{
+		var ver = "@@Version";
+		return (ver === "0.0.0" || ver.substr(2) === "Version") ? "develop" : ver;
+	};
 	//----------------------------------------------------------addons----------------------------------------------------
-    baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)
+	baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)
 	{
 		return (window["Asc"] && window["Asc"]["Addons"] && window["Asc"]["Addons"][type] === true) ? true : false;
 	};

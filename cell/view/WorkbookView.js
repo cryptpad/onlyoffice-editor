@@ -80,47 +80,74 @@
     return null;
   };
 
-  function WorksheetViewSettings() {
-    //TODO темные цвета необходимо скорректировать
-    this.header = {
-      style: [// Header colors
-        { // kHeaderDefault
-          background: new CColor(241, 241, 241), border: new CColor(213, 213, 213), color: new CColor(54, 54, 54),
-            backgroundDark: new CColor(68, 68, 68), colorDark: new CColor(255, 255, 255)}, { // kHeaderActive
-          background: new CColor(193, 193, 193), border: new CColor(146, 146, 146), color: new CColor(54, 54, 54),
-            backgroundDark: new CColor(0, 0, 0), colorDark: new CColor(255, 255, 255)}, { // kHeaderHighlighted
-          background: new CColor(223, 223, 223), border: new CColor(175, 175, 175), color: new CColor(101, 106, 112),
-            backgroundDark: new CColor(102, 102, 102), colorDark: new CColor(255, 255, 255)}], cornerColor: new CColor(193, 193, 193)
-    };
-    this.cells = {
-      defaultState: {
-        background: new CColor(255, 255, 255), border: new CColor(202, 202, 202)
-      }, padding: -1 /*px horizontal padding*/
-    };
-    this.activeCellBorderColor = new CColor(72, 121, 92);
-    this.activeCellBorderColor2 = new CColor(255, 255, 255, 1);
-    this.findFillColor = new CColor(255, 238, 128, 1);
+	function WorksheetViewSettings() {
+		//TODO темные цвета необходимо скорректировать
+		this.getCColor = function (_color) {
+			var rgb = parseInt(_color.split('#')[1], 16);
+			return new CColor((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
+		};
+		this.updateStyle = function () {
+			this.header.style = this._generateStyle();
+			this.header.groupDataBorder = this.getCColor(AscCommon.GlobalSkin.GroupDataBorder);
+			this.header.editorBorder = this.getCColor(AscCommon.GlobalSkin.EditorBorder);
+		};
+		this._generateStyle = function () {
+			return [// Header colors
+				{ // kHeaderDefault
+					background: this.getCColor(AscCommon.GlobalSkin.Background),
+					border: this.getCColor(AscCommon.GlobalSkin.Border),
+					color: this.getCColor(AscCommon.GlobalSkin.Color),
+					backgroundDark: this.getCColor(AscCommon.GlobalSkin.BackgroundDark),
+					colorDark: this.getCColor(AscCommon.GlobalSkin.ColorDark)
+				}, { // kHeaderActive
+					background: this.getCColor(AscCommon.GlobalSkin.BackgroundActive),
+					border: this.getCColor(AscCommon.GlobalSkin.BorderActive),
+					color: this.getCColor(AscCommon.GlobalSkin.ColorActive),
+					backgroundDark: this.getCColor(AscCommon.GlobalSkin.BackgroundDarkActive),
+					colorDark: this.getCColor(AscCommon.GlobalSkin.ColorDarkActive)
+				}, { // kHeaderHighlighted
+					background: this.getCColor(AscCommon.GlobalSkin.BackgroundHighlighted),
+					border: this.getCColor(AscCommon.GlobalSkin.BorderHighlighted),
+					color: this.getCColor(AscCommon.GlobalSkin.ColorHighlighted),
+					backgroundDark: this.getCColor(AscCommon.GlobalSkin.BackgroundDarkHighlighted),
+					colorDark: this.getCColor(AscCommon.GlobalSkin.ColorDarkHighlighted)
+				}];
+		};
+		this.header = {
+			style: this._generateStyle(),
+			cornerColor: new CColor(193, 193, 193),
+			groupDataBorder: this.getCColor(AscCommon.GlobalSkin.GroupDataBorder),
+			editorBorder: this.getCColor(AscCommon.GlobalSkin.EditorBorder)
+		};
+		this.cells = {
+			defaultState: {
+				background: new CColor(255, 255, 255), border: new CColor(202, 202, 202)
+			}, padding: -1 /*px horizontal padding*/
+		};
+		this.activeCellBorderColor = new CColor(72, 121, 92);
+		this.activeCellBorderColor2 = new CColor(255, 255, 255, 1);
+		this.findFillColor = new CColor(255, 238, 128, 1);
 
-    // Цвет закрепленных областей
-    this.frozenColor = new CColor(105, 119, 62, 1);
+		// Цвет закрепленных областей
+		this.frozenColor = new CColor(105, 119, 62, 1);
 
-    // Число знаков для математической информации
-    this.mathMaxDigCount = 9;
+		// Число знаков для математической информации
+		this.mathMaxDigCount = 9;
 
-    var cnv = document.createElement("canvas");
-    cnv.width = 2;
-    cnv.height = 2;
-    var ctx = cnv.getContext("2d");
-    ctx.clearRect(0, 0, 2, 2);
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, 1, 1);
-    ctx.fillRect(1, 1, 1, 1);
-    this.ptrnLineDotted1 = ctx.createPattern(cnv, "repeat");
+		var cnv = document.createElement("canvas");
+		cnv.width = 2;
+		cnv.height = 2;
+		var ctx = cnv.getContext("2d");
+		ctx.clearRect(0, 0, 2, 2);
+		ctx.fillStyle = "#000";
+		ctx.fillRect(0, 0, 1, 1);
+		ctx.fillRect(1, 1, 1, 1);
+		this.ptrnLineDotted1 = ctx.createPattern(cnv, "repeat");
 
-    this.halfSelection = false;
+		this.halfSelection = false;
 
-    return this;
-  }
+		return this;
+	}
 
 
   /**
@@ -407,6 +434,8 @@
 				  self._onTableTotalClick.apply(self, arguments);
 			  }, "pivotFiltersClick": function () {
 				  self._onPivotFiltersClick.apply(self, arguments);
+			  }, "pivotCollapseClick": function () {
+				  self._onPivotCollapseClick.apply(self, arguments);
 			  }, "commentCellClick": function () {
 				  self._onCommentCellClick.apply(self, arguments);
 			  }, "isGlobalLockEditCell": function () {
@@ -467,7 +496,10 @@
 			  "onDataValidation": function () {
 				  if (self.oSelectionInfo && self.oSelectionInfo.dataValidation) {
 					  var list = self.oSelectionInfo.dataValidation.getListValues(self.model.getActiveWs());
-					  self.handlers.trigger("asc_onValidationListMenu", list[0], list[1]);
+					  if (list) {
+						  self.handlers.trigger("asc_onValidationListMenu", list[0], list[1]);
+					  }
+					  return !!list;
 				  }
 			  },
 
@@ -621,7 +653,7 @@
       	if (ws && ws.isSelectOnShape) {
       		var textPr = new CTextPr();
 			textPr.RFonts = new CRFonts();
-			textPr.RFonts.Set_All(familyName, -1);
+			textPr.RFonts.SetAll(familyName, -1);
       		ws.objectRender.controller.addTextWithPr(new AscCommon.CUnicodeStringEmulator(arrCharCodes), textPr, true);
       		return;
       	}
@@ -644,8 +676,11 @@
       	self.controller._onMouseMove(event);
 	  };
       this.Api.endInlineDropTarget = function (event) {
-      	self.controller.isMoveRangeMode = false;
       	var ws = self.getWorksheet();
+      	if (!ws.activeMoveRange) {
+      		return;
+      	}
+      	self.controller.isMoveRangeMode = false;
       	var newSelection = ws.activeMoveRange.clone();
       	ws._cleanSelectionMoveRange();
       	ws.dragAndDropRange = null;
@@ -784,9 +819,12 @@
 		  }
 	  });
 
-    this.model.handlers.add("cleanCellCache", function(wsId, oRanges, skipHeight) {
+    this.model.handlers.add("cleanCellCache", function(wsId, oRanges, skipHeight, needResetCache) {
       var ws = self.getWorksheetById(wsId, true);
       if (ws) {
+        if (needResetCache) {
+          ws.cache && ws.cache.reset();
+        }
         ws.updateRanges(oRanges, skipHeight);
       }
     });
@@ -1025,10 +1063,10 @@
 
 		var ws = this.getWorksheet();
 		if (AscCommonExcel.c_oAscScrollType.ScrollHorizontal & type) {
-			this.controller.reinitScrollX(ws.getFirstVisibleCol(true), ws.getHorizontalScrollRange(), ws.getHorizontalScrollMax());
+			this.controller.reinitScrollX(this.controller.hsbApi.settings, ws.getFirstVisibleCol(true), ws.getHorizontalScrollRange(), ws.getHorizontalScrollMax());
 		}
 		if (AscCommonExcel.c_oAscScrollType.ScrollVertical & type) {
-			this.controller.reinitScrollY(ws.getFirstVisibleRow(true), ws.getVerticalScrollRange(), ws.getVerticalScrollMax());
+			this.controller.reinitScrollY(this.controller.vsbApi.settings, ws.getFirstVisibleRow(true), ws.getVerticalScrollRange(), ws.getVerticalScrollMax());
 		}
 
 		if (this.Api.isMobileVersion) {
@@ -1476,6 +1514,16 @@
       this.handlers.trigger("asc_onSetAFDialog", filterObj);
     }
   };
+  WorkbookView.prototype._onPivotCollapseClick = function(idPivotCollapse) {
+    if (!idPivotCollapse) {
+      return;
+    }
+    var pivotTable = this.model.getPivotTableById(idPivotCollapse.id);
+    if (!pivotTable) {
+      return;
+    }
+    pivotTable.setVisibleFieldItem(this.Api, !idPivotCollapse.sd, idPivotCollapse.fld, idPivotCollapse.index);
+  };
 
   WorkbookView.prototype._onGroupRowClick = function(x, y, target, type) {
   	return this.getWorksheet().groupRowClick(x, y, target, type);
@@ -1897,7 +1945,7 @@
       ws.objectRender.controller.updateOverlay();
     }
 
-    if (!window["NATIVE_EDITOR_ENJINE"]) {
+    if (!window["NATIVE_EDITOR_ENJINE"] || window["IS_NATIVE_EDITOR"]) {
       this._onSelectionNameChanged(ws.getSelectionName(/*bRangeText*/false));
       this._onWSSelectionChanged();
       this._onSelectionMathInfoChanged(ws.getSelectionMathInfo());
@@ -1949,28 +1997,19 @@
   };
 
   WorkbookView.prototype._canResize = function() {
-    var isRetina = AscBrowser.isRetina;
-    var oldWidth = this.canvas.width;
-    var oldHeight = this.canvas.height;
-    var width, height, styleWidth, styleHeight;
-    width = styleWidth = this.element.offsetWidth - (this.Api.isMobileVersion ? 0 : this.defaults.scroll.widthPx);
-    height = styleHeight = this.element.offsetHeight - (this.Api.isMobileVersion ? 0 : this.defaults.scroll.heightPx);
-
-    if (isRetina) {
-      width = AscCommon.AscBrowser.convertToRetinaValue(width, true);
-      height = AscCommon.AscBrowser.convertToRetinaValue(height, true);
-    }
-
-    if (oldWidth === width && oldHeight === height && this.isInit) {
-      return false;
-    }
+    var styleWidth, styleHeight;
+    styleWidth = this.element.offsetWidth - (this.Api.isMobileVersion ? 0 : this.defaults.scroll.widthPx);
+    styleHeight = this.element.offsetHeight - (this.Api.isMobileVersion ? 0 : this.defaults.scroll.heightPx);
 
     this.isInit = true;
 
-    this.canvas.width = this.canvasOverlay.width = this.canvasGraphic.width = this.canvasGraphicOverlay.width = width;
-    this.canvas.height = this.canvasOverlay.height = this.canvasGraphic.height = this.canvasGraphicOverlay.height = height;
     this.canvas.style.width = this.canvasOverlay.style.width = this.canvasGraphic.style.width = this.canvasGraphicOverlay.style.width = styleWidth + 'px';
     this.canvas.style.height = this.canvasOverlay.style.height = this.canvasGraphic.style.height = this.canvasGraphicOverlay.style.height = styleHeight + 'px';
+
+    AscCommon.calculateCanvasSize(this.canvas);
+    AscCommon.calculateCanvasSize(this.canvasOverlay);
+    AscCommon.calculateCanvasSize(this.canvasGraphic);
+    AscCommon.calculateCanvasSize(this.canvasGraphicOverlay);
 
     this._reInitGraphics();
 
@@ -2469,12 +2508,13 @@
 		this.getWorksheet().setSelectionInfo("format", format);
 	};
 
-	WorkbookView.prototype.emptyCells = function (options) {
+	WorkbookView.prototype.emptyCells = function (options, isMineComments) {
 		if (!this.getCellEditMode()) {
 			if (Asc.c_oAscCleanOptions.Comments === options) {
 				this.removeAllComments(false, true);
 			} else {
-				this.getWorksheet().emptySelection(options);
+				//TODO isMineComments - временный флаг, как только в сдк появится класс для групп, добавить этот флаг туда
+				this.getWorksheet().emptySelection(options, null, isMineComments);
 			}
 			this.restoreFocus();
 		} else {
@@ -2498,39 +2538,83 @@
 
       this._setSelectionDialogType(selectionDialogType);
       var drawSelection = false;
-
+      var index;
       if (newSelectionDialogMode) {
           this.copyActiveSheet = this.wsActive;
-
-          var tmpSelectRange;
           if(c_oAscSelectionDialogType.Chart === selectionDialogType) {
-              if(typeof selectRange === "string" && selectRange[0] === '=') {
-                  tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange.slice(1));
+              var sRef = selectRange;
+              if(sRef.charAt(0) === '=') {
+                  sRef = sRef.slice(1);
+              }
+              var aRefs = sRef.split(',');
+              var aSelectRanges = [];
+              var oRange, oAscRange;
+              var sWSName = null;
+              for(var nRef = 0; nRef < aRefs.length; ++nRef) {
+                  oRange = AscCommon.parserHelp.parse3DRef(aRefs[nRef]);
+                  if(!oRange) {
+                      aSelectRanges.length = 0;
+                      break;
+                  }
+                  if(sWSName === null) {
+                      sWSName = oRange.sheet;
+                  }
+                  else {
+                      if(sWSName !== oRange.sheet) {
+                          aSelectRanges.length = 0;
+                          break;
+                      }
+                  }
+                  oAscRange = AscCommonExcel.g_oRangeCache.getAscRange(oRange.range);
+                  if(oAscRange) {
+                      aSelectRanges.push(oAscRange);
+                  }
+                  else {
+                      aSelectRanges.length = 0;
+                      break;
+                  }
+              }
+              if(aSelectRanges.length > 0) {
+                  var oWS = this.model.getWorksheetByName(sWSName);
+                  if (!oWS || oWS.getHidden()) {
+                      this.getWorksheet().cloneSelection(true, null);
+                  } else {
+                      index = oWS.getIndex();
+                      if (index !== this.wsActive) {
+                          this.showWorksheet(index);
+                      }
+                      this.getWorksheet().cloneSelection(true, new Asc.Range(0, 0, 0, 0));
+                      oWS.selectionRange.assign2(aSelectRanges[0]);
+                      for(nRef = 1; nRef < aSelectRanges.length; ++nRef) {
+                          oWS.selectionRange.addRange();
+                          oWS.selectionRange.getLast().assign2(aSelectRanges[nRef]);
+                      }
+                      oWS.selectionRange.update();
+                  }
               }
               else {
-                  tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange);
+                  this.getWorksheet().cloneSelection(true, null);
               }
           }
           else {
-              tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange);
-          }
-          if (tmpSelectRange) {
-              var ws = this.model.getWorksheetByName(tmpSelectRange.sheet);
-              if (!ws || ws.getHidden()) {
-                  tmpSelectRange = null;
-              } else {
-                  var index = ws.getIndex();
-                  if (index !== this.wsActive) {
-                      this.showWorksheet(index);
+              var tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange);
+              if (tmpSelectRange) {
+                  var ws = this.model.getWorksheetByName(tmpSelectRange.sheet);
+                  if (!ws || ws.getHidden()) {
+                      tmpSelectRange = null;
+                  } else {
+                      index = ws.getIndex();
+                      if (index !== this.wsActive) {
+                          this.showWorksheet(index);
+                      }
+
+                      tmpSelectRange = tmpSelectRange.range;
                   }
-
-                  tmpSelectRange = tmpSelectRange.range;
+              } else {
+                  tmpSelectRange = selectRange;
               }
-          } else {
-              tmpSelectRange = selectRange;
+              this.getWorksheet().cloneSelection(true, tmpSelectRange && AscCommonExcel.g_oRangeCache.getAscRange(tmpSelectRange));
           }
-
-          this.getWorksheet().cloneSelection(true, tmpSelectRange && AscCommonExcel.g_oRangeCache.getAscRange(tmpSelectRange));
           this.selectionDialogMode = newSelectionDialogMode;
           this.input.disabled = !this.isFormulaEditMode || this.isWizardMode;
           drawSelection = true;
@@ -2862,9 +2946,74 @@
     this.getWorksheet().draw();
   };
   WorkbookView.prototype.onShowDrawingObjects = function() {
-    var ws = this.getWorksheet();
-    ws.objectRender.showDrawingObjects();
+      var oWSView = this.getWorksheet();
+      var oDrawingsRender;
+      if(oWSView) {
+          oDrawingsRender = oWSView.objectRender;
+          if(oDrawingsRender) {
+              oDrawingsRender.showDrawingObjects(null);
+          }
+      }
   };
+    WorkbookView.prototype.handleChartsOnWorkbookChange = function (aRanges) {
+        if(!Array.isArray(aRanges) || aRanges.length === 0) {
+            return;
+        }
+        var aRefsToChange = [];
+        var aCharts = [];
+        this.model.handleDrawings(function(oDrawing) {
+            if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+                var nPrevLength = aRefsToChange.length;
+                oDrawing.collectIntersectionRefs(aRanges, aRefsToChange);
+                if(aRefsToChange.length > nPrevLength) {
+                    aCharts.push(oDrawing);
+                }
+            }
+        });
+        if(aRefsToChange.length > 0) {
+            for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
+                aRefsToChange[nRef].updateCacheAndCat();
+            }
+            for(var nChart = 0; nChart < aCharts.length; ++nChart) {
+                aCharts[nChart].recalculate();
+            }
+            this.onShowDrawingObjects();
+        }
+    };
+    WorkbookView.prototype.handleChartsOnChangeSheetName = function (oWorksheet, sOldName, sNewName) {
+        //change sheet name in chart references
+        var oWorkbook = this.model;
+        var oRenameData = oWorkbook.getChartSheetRenameData(oWorksheet, sOldName);
+        var oThis = this;
+        if(oRenameData.refs.length > 0) {
+            oWorkbook.checkObjectsLock(oRenameData.ids, function(bNoLock) {
+                if(bNoLock) {
+                    oWorkbook.changeSheetNameInRefs(oRenameData.refs, sOldName, sNewName);
+                }
+                //recalculate in any case. Some charts might depend on new chart name
+                oThis.recalculateDrawingObjects(null, false);
+            });
+        }
+        else {
+            //recalculate in any case. Some charts might depend on new chart name
+            oThis.recalculateDrawingObjects(null, false);
+        }
+    };
+    WorkbookView.prototype.recalculateDrawingObjects = function(oHistoryPoint, bAll) {
+        var aWSVies = this.wsViews;
+        var oWSView, oDrawingsRender;
+        History.Get_RecalcData(oHistoryPoint);
+        for (var i = 0; i < aWSVies.length; ++i) {
+            oWSView = aWSVies[i];
+            if(oWSView) {
+                oDrawingsRender = oWSView.objectRender;
+                if(oDrawingsRender) {
+                    oDrawingsRender.recalculate(bAll);
+                }
+            }
+        }
+        this.onShowDrawingObjects();
+    };
 
   WorkbookView.prototype.insertHyperlink = function(options) {
     var ws = this.getWorksheet();
@@ -3104,11 +3253,9 @@
 			}
 		}
 
-		if (AscBrowser.isRetina)
-		{
-			styleThumbnailWidth = AscCommon.AscBrowser.convertToRetinaValue(styleThumbnailWidth, true);
-			styleThumbnailHeight = AscCommon.AscBrowser.convertToRetinaValue(styleThumbnailHeight, true);
-		}
+		styleThumbnailWidth = AscCommon.AscBrowser.convertToRetinaValue(styleThumbnailWidth, true);
+		styleThumbnailHeight = AscCommon.AscBrowser.convertToRetinaValue(styleThumbnailHeight, true);
+
 		canvas.width = styleThumbnailWidth;
 		canvas.height = styleThumbnailHeight;
 		var sizeInfo = {w: styleThumbnailWidth, h: styleThumbnailHeight, row: row, col: col};
@@ -3256,26 +3403,26 @@
 			color = AscCommonExcel.getMatchingBorder(prevStyle && prevStyle.border && prevStyle.border.r, curStyle && curStyle.border && curStyle.border.l);
 			if(color && color.w > 0)
 			{
-				calculateLineVer(color.c, j * lineStepX, i * stepY, (i + 1) * stepY);
+				calculateLineVer(color.getColorOrDefault(), j * lineStepX, i * stepY, (i + 1) * stepY);
 			}
 			//right
 			color = curStyle && curStyle.border && curStyle.border.r;
 			if(color && color.w > 0)
 			{
-				calculateLineVer(color.c, (j + 1) * lineStepX, i * stepY, (i + 1) * stepY);
+				calculateLineVer(color.getColorOrDefault(), (j + 1) * lineStepX, i * stepY, (i + 1) * stepY);
 			}
 			//top
 			prevStyle = (i - 1 >= 0) ? compiledStylesArr[i - 1][j] : null;
 			color = AscCommonExcel.getMatchingBorder(prevStyle && prevStyle.border && prevStyle.border.b, curStyle && curStyle.border && curStyle.border.t);
 			if(color && color.w > 0)
 			{
-				calculateLineHor(color.c, j * stepX, i * stepY, (j + 1) * stepX);
+				calculateLineHor(color.getColorOrDefault(), j * stepX, i * stepY, (j + 1) * stepX);
 			}
 			//bottom
 			color = curStyle && curStyle.border && curStyle.border.b;
 			if(color && color.w > 0)
 			{
-				calculateLineHor(color.c, j * stepX, (i + 1) * stepY, (j + 1) * stepX);
+				calculateLineHor(color.getColorOrDefault(), j * stepX, (i + 1) * stepY, (j + 1) * stepX);
 			}
 
 			//marks
@@ -3648,6 +3795,10 @@
 		} else {
 			_callback(true);
 		}
+	};
+
+	WorkbookView.prototype.updateSkin = function () {
+		this.defaults.worksheetView.updateStyle();
 	};
 
 

@@ -1376,7 +1376,8 @@
 						}
 					}
 
-					var text = val[i].text.replace(/\n/g, '<br>');
+					var text = CopyPasteCorrectString(val[i].text);
+					text = text.replace(/\n/g, '<br>');
 
 					f = val[i].format;
 					var fn = f.getName();
@@ -1651,11 +1652,11 @@
 
 				AscFormat.ExecuteNoHistory(function(){
 					pptx_content_loader.Start_UseFullUrl();
-					pptx_content_loader.Reader.ClearConnectorsMaps();
+					pptx_content_loader.Reader.ClearConnectedObjects();
 					oBinaryFileReader.Read(base64, tempWorkbook);
 					t.activeRange = oBinaryFileReader.copyPasteObj.activeRange;
 					aPastedImages = pptx_content_loader.End_UseFullUrl();
-					pptx_content_loader.Reader.AssignConnectorsId();
+					pptx_content_loader.Reader.AssignConnectedObjects();
 				}, this, []);
 
 				return aPastedImages;
@@ -2052,10 +2053,10 @@
 						cellsLeft;
 					var posY = curShape.transformText.TransformPointY(cursorPos.X, cursorPos.Y) * mmToPx - offsetY +
 						cellsTop;
-					if (AscCommon.AscBrowser.isRetina) {
-						posX = AscCommon.AscBrowser.convertToRetinaValue(posX);
-						posY = AscCommon.AscBrowser.convertToRetinaValue(posY);
-					}
+
+					posX = AscCommon.AscBrowser.convertToRetinaValue(posX);
+					posY = AscCommon.AscBrowser.convertToRetinaValue(posY);
+
 					var position = {x: posX, y: posY};
 
 					var allowedSpecialPasteProps = [sProps.sourceformatting, sProps.destinationFormatting];
@@ -2324,18 +2325,10 @@
 
 						drawingObject.graphicObject.setDrawingObjects(ws.objectRender);
 						drawingObject.graphicObject.setWorksheet(ws.model);
-
 						xfrm.setOffX(curCol);
 						xfrm.setOffY(curRow);
-
-
-						drawingObject.graphicObject.checkRemoveCache && drawingObject.graphicObject.checkRemoveCache();
-
 						drawingObject.graphicObject.addToDrawingObjects();
-
-						if (drawingObject.graphicObject.checkDrawingBaseCoords) {
-							drawingObject.graphicObject.checkDrawingBaseCoords();
-						}
+						drawingObject.graphicObject.checkDrawingBaseCoords();
 						drawingObject.graphicObject.recalculate();
 						drawingObject.graphicObject.select(ws.objectRender.controller, 0);
 
@@ -2445,8 +2438,8 @@
 					drawingObject = ws.objectRender.createDrawingObject();
 					drawingObject.graphicObject = graphicObject;
 
-					if (drawingObject.graphicObject.spPr && drawingObject.graphicObject.spPr.xfrm) {
-						xfrm = drawingObject.graphicObject.spPr.xfrm;
+					if (graphicObject.spPr && graphicObject.spPr.xfrm) {
+						xfrm = graphicObject.spPr.xfrm;
 						offX = 0;
 						offY = 0;
 						rot = AscFormat.isRealNumber(xfrm.rot) ? xfrm.rot : 0;
@@ -2490,8 +2483,8 @@
 					}
 
 
-					AscFormat.CheckSpPrXfrm2(drawingObject.graphicObject);
-					xfrm = drawingObject.graphicObject.spPr.xfrm;
+					AscFormat.CheckSpPrXfrm2(graphicObject);
+					xfrm = graphicObject.spPr.xfrm;
 
 					curCol = xfrm.offX - startCol + ws.objectRender.convertMetric(ws._getColLeft(addImagesFromWord[i].col + activeRange.c1) - ws._getColLeft(0), 0, 3);
 					curRow = xfrm.offY - startRow + ws.objectRender.convertMetric(ws._getRowTop(addImagesFromWord[i].row + activeRange.r1) - ws._getRowTop(0), 0, 3);
@@ -2500,28 +2493,23 @@
 					xfrm.setOffY(curRow);
 
 					drawingObject = ws.objectRender.cloneDrawingObject(drawingObject);
-					drawingObject.graphicObject.setDrawingBase(drawingObject);
-
-					drawingObject.graphicObject.setDrawingObjects(ws.objectRender);
-					drawingObject.graphicObject.setWorksheet(ws.model);
-
-					drawingObject.graphicObject.checkRemoveCache && drawingObject.graphicObject.checkRemoveCache();
-					if(drawingObject.graphicObject.checkExtentsByDocContent) {
-						if (drawingObject.graphicObject.checkDrawingBaseCoords) {
-							drawingObject.graphicObject.checkDrawingBaseCoords();
-						}
-						drawingObject.graphicObject.checkExtentsByDocContent();
+					graphicObject.setDrawingBase(drawingObject);
+					graphicObject.setDrawingObjects(ws.objectRender);
+					graphicObject.setWorksheet(ws.model);
+					var nAnchorType = AscCommon.c_oAscCellAnchorType.cellanchorTwoCell;
+					if(graphicObject.getObjectType() === AscDFH.historyitem_type_ImageShape) {
+						nAnchorType = AscCommon.c_oAscCellAnchorType.cellanchorOneCell;
 					}
-					//drawingObject.graphicObject.setDrawingDocument(ws.objectRender.drawingDocument);
-					drawingObject.graphicObject.addToDrawingObjects();
-
-
-					if (drawingObject.graphicObject.checkDrawingBaseCoords) {
-						drawingObject.graphicObject.checkDrawingBaseCoords();
+					graphicObject.setDrawingBaseType(nAnchorType);
+					if(graphicObject.checkExtentsByDocContent) {
+						graphicObject.checkDrawingBaseCoords();
+						graphicObject.checkExtentsByDocContent();
 					}
-					drawingObject.graphicObject.recalculate();
+					graphicObject.addToDrawingObjects();
+					graphicObject.checkDrawingBaseCoords();
+					graphicObject.recalculate();
 					if (0 === data.content.length) {
-						drawingObject.graphicObject.select(ws.objectRender.controller, 0);
+						graphicObject.select(ws.objectRender.controller, 0);
 					}
 				}
 
@@ -2871,7 +2859,7 @@
 				loader.DrawingDocument = worksheet.getDrawingDocument();
 				loader.Start_UseFullUrl();
 
-				loader.ClearConnectorsMaps();
+				loader.ClearConnectedObjects();
 				loader.stream = stream;
 
 				var count = stream.GetULong();
@@ -2913,10 +2901,16 @@
 							new AscCommon.CBuilderImages(drawing.blipFill, base64, drawing, drawing.spPr, null));
 					}
 
-					arr_shapes[i] = worksheet.objectRender.createDrawingObject();
-					arr_shapes[i].graphicObject = drawing;
+					var oDrawingBase = worksheet.objectRender.createDrawingObject();
+					oDrawingBase.graphicObject = drawing;
+					var nAnchorType = AscCommon.c_oAscCellAnchorType.cellanchorTwoCell;
+					if(drawing.getObjectType() === AscDFH.historyitem_type_ImageShape) {
+						nAnchorType = AscCommon.c_oAscCellAnchorType.cellanchorOneCell;
+					}
+					oDrawingBase.Type = nAnchorType;
+					arr_shapes[i] = oDrawingBase;
 				}
-				loader.AssignConnectorsId();
+				loader.AssignConnectedObjects();
 				History.TurnOn();
 
 				var arrImages = arrBase64Img.concat(loader.End_UseFullUrl());
@@ -4142,6 +4136,8 @@
 					}
 
 					cloneNewItem = oNewItem.clone();
+					cloneNewItem.rowSpan = null;
+					cloneNewItem.colSpan = null;
 
 					//переходим в следующую ячейку
 					cell = aResult.getCell(row + t.maxLengthRowCount, innerCol + col);

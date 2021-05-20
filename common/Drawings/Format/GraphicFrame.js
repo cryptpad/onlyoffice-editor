@@ -245,6 +245,14 @@ CGraphicFrame.prototype.GetSearchElementId = function(bNext, bCurrent)
         return null;
 };
 
+CGraphicFrame.prototype.FindNextFillingForm = function(isNext, isCurrent)
+{
+	if (this.graphicObject)
+		return this.graphicObject.FindNextFillingForm(isNext, isCurrent);
+
+	return null;
+};
+
 CGraphicFrame.prototype.copy = function(oPr)
     {
         var ret = new CGraphicFrame();
@@ -355,10 +363,10 @@ CGraphicFrame.prototype.Set_Props= function(props)
         {
             var bApplyToAll = this.parent.graphicObjects.State.textObject !== this;
            // if(bApplyToAll)
-           //     this.graphicObject.Set_ApplyToAll(true);
+           //     this.graphicObject.SetApplyToAll(true);
             this.graphicObject.Set_Props(props, bApplyToAll);
             //if(bApplyToAll)
-            //    this.graphicObject.Set_ApplyToAll(false);
+            //    this.graphicObject.SetApplyToAll(false);
             this.OnContentRecalculate();
             editor.WordControl.m_oLogicDocument.recalcMap[this.Id] = this;
         }
@@ -366,6 +374,12 @@ CGraphicFrame.prototype.Set_Props= function(props)
 
 CGraphicFrame.prototype.updateCursorType= function(x, y, e)
     {
+        var oApi = Asc.editor || editor;
+        var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
+        if(isDrawHandles === false)
+        {
+            return;
+        }
         var tx = this.invertTransform.TransformPointX(x, y);
         var ty = this.invertTransform.TransformPointY(x, y);
         this.graphicObject.UpdateCursorType(tx, ty, 0)
@@ -986,9 +1000,9 @@ CGraphicFrame.prototype.applyAllAlign = function(val)
     {
         if(isRealObject(this.graphicObject))
         {
-            this.graphicObject.Set_ApplyToAll(true);
+            this.graphicObject.SetApplyToAll(true);
             this.graphicObject.SetParagraphAlign(val);
-            this.graphicObject.Set_ApplyToAll(false);
+            this.graphicObject.SetApplyToAll(false);
         }
 };
 
@@ -1004,9 +1018,9 @@ CGraphicFrame.prototype.applyAllSpacing = function(val)
     {
         if(isRealObject(this.graphicObject))
         {
-            this.graphicObject.Set_ApplyToAll(true);
+            this.graphicObject.SetApplyToAll(true);
             this.graphicObject.SetParagraphSpacing(val);
-            this.graphicObject.Set_ApplyToAll(false);
+            this.graphicObject.SetApplyToAll(false);
         }
 };
 
@@ -1085,9 +1099,9 @@ CGraphicFrame.prototype.Get_PageContentStartPos = function(PageNum)
         var presentation = editor.WordControl.m_oLogicDocument;
         return {
             X : 0,
-            XLimit: presentation.Width,
+            XLimit: presentation.GetWidthMM(),
             Y : 0,
-            YLimit : presentation.Height,
+            YLimit : presentation.GetHeightMM(),
             MaxTopBorder : 0
         };
 

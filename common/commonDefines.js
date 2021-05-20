@@ -48,6 +48,7 @@
 	var c_nVersionNoBase64 = 10;
 	var c_dMaxParaRunContentLength = 256;
 	var c_rUneditableTypes = /^(?:(pdf|djvu|xps))$/;
+	var c_nMaxHyperlinkLength = 2083;
 
 	//files type for Saving & DownloadAs
 	var c_oAscFileType = {
@@ -215,9 +216,12 @@
 			LockedCellPivot				: -312,
 			PivotLabledColumns			: -313,
 			PivotOverlap				: -314,
+			PivotGroup					: -315,
+			PivotWithoutUnderlyingData	: -316,
 
 			ForceSaveButton: -331,
 			ForceSaveTimeout: -332,
+			Submit: -333,
 
 			OpenWarning : 500,
 
@@ -256,7 +260,12 @@
 
 			LargeRangeWarning: -900,
 
-			LockedEditView: -950
+			LockedEditView: -950,
+
+			Password : -1000,
+
+			SecondaryAxis: 1001,
+			ComboSeriesError: 1002
 		}
 	};
 
@@ -280,7 +289,8 @@
 		SendMailMerge     : 15,  // рассылка mail merge по почте
 		ForceSaveButton   : 16,
 		ForceSaveTimeout  : 17,
-		Waiting	: 18
+		Waiting	: 18,
+		Submit : 19
 	};
 
 	var c_oAscAdvancedOptionsID = {
@@ -400,6 +410,7 @@
 	var align_Left    = 1;
 	var align_Center  = 2;
 	var align_Justify = 3;
+	var align_Distributed = 4;
 
 
 	var linerule_AtLeast = 0x00;
@@ -507,7 +518,8 @@
 		l       : 6,
 		outEnd  : 7,
 		r       : 8,
-		t       : 9
+		t       : 9,
+		show    : 10
 	};
 
 	var c_oAscGridLinesSettings = {
@@ -556,7 +568,11 @@
 		surfaceWireframe       : 35,
 		contourNormal          : 36,
 		contourWireframe       : 37,
-		unknown                : 38
+		comboCustom            : 38,
+		comboBarLine           : 39,
+		comboBarLineSecondary  : 40,
+		comboAreaBar           : 41,
+		unknown                : 42
 	};
 
 	var c_oAscValAxisRule = {
@@ -611,11 +627,10 @@
 	};
 
 	var c_oAscAxisType = {
-		auto : 0,
-		date : 1,
-		text : 2,
-		cat  : 3,
-		val  : 4
+		date : 0,
+		cat  : 1,
+		val  : 2,
+		ser  : 3
 	};
 
 	var c_oAscHAnchor = {
@@ -1214,7 +1229,7 @@
 	var changestype_Theme                     = 64; // Изменение темы;
 	var changestype_SlideSize                 = 65; // Изменение цветовой схемы;
 	var changestype_SlideBg                   = 66; // Изменение цветовой схемы;
-	var changestype_SlideTiming               = 67; // Изменение цветовой схемы;
+	var changestype_SlideTransition           = 67; // Изменение цветовой схемы;
 	var changestype_MoveComment               = 68;
 	var changestype_AddSp                     = 69;
 	var changestype_AddComment                = 70;
@@ -1224,6 +1239,7 @@
 	var changestype_PresDefaultLang           = 74;
 	var changestype_SlideHide                 = 75;
 	var changestype_CorePr                    = 76;
+	var changestype_Document_Settings         = 77; // Изменение общих настроек документа Document.Settings
 
 	var changestype_2_InlineObjectMove       = 1; // Передвигаем объект в заданную позцию (проверяем место, в которое пытаемся передвинуть)
 	var changestype_2_HdrFtr                 = 2; // Изменения с колонтитулом
@@ -1689,6 +1705,14 @@
 		slicer: 2
 	};
 
+	var c_oAscChangeTextCaseType = {
+		SentenceCase    : 0,
+		LowerCase       : 1,
+		UpperCase       : 2,
+		CapitalizeWords : 3,
+		ToggleCase      : 4
+	};
+
 	var g_aLcidNameIdArray = [
 		"ar", 0x0001 ,
 		"bg", 0x0002 ,
@@ -2114,6 +2138,26 @@
 		All     : 2
 	};
 
+	var c_oAscSlideSZType = {
+			Sz35mm: 0,
+			SzA3: 1,
+			SzA4: 2,
+			SzB4ISO: 3,
+			SzB4JIS: 4,
+			SzB5ISO: 5,
+			SzB5JIS: 6,
+			SzBanner: 7,
+			SzCustom: 8,
+			SzHagakiCard: 9,
+			SzLedger: 10,
+			SzLetter: 11,
+			SzOverhead: 12,
+			SzScreen16x10: 13,
+			SzScreen16x9: 14,
+			SzScreen4x3: 15,
+			SzWidescreen: 16
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -2125,6 +2169,7 @@
 	window['Asc']['c_nVersionNoBase64'] = window['Asc'].c_nVersionNoBase64 = c_nVersionNoBase64;
 	window['Asc']['c_dMaxParaRunContentLength'] = window['Asc'].c_dMaxParaRunContentLength = c_dMaxParaRunContentLength;
 	window['Asc']['c_rUneditableTypes'] = window['Asc'].c_rUneditableTypes = c_rUneditableTypes;
+	window['Asc']['c_nMaxHyperlinkLength'] = window['Asc'].c_nMaxHyperlinkLength = c_nMaxHyperlinkLength;
 	window['Asc']['c_oAscFileType'] = window['Asc'].c_oAscFileType = c_oAscFileType;
 	window['Asc'].g_oLcidNameToIdMap = g_oLcidNameToIdMap;
 	window['Asc'].g_oLcidIdToNameMap = g_oLcidIdToNameMap;
@@ -2260,8 +2305,11 @@
 	prot['LockedCellPivot']                  = prot.LockedCellPivot;
 	prot['PivotLabledColumns']               = prot.PivotLabledColumns;
 	prot['PivotOverlap']                     = prot.PivotOverlap;
+	prot['PivotGroup']                       = prot.PivotGroup;
+	prot['PivotWithoutUnderlyingData']       = prot.PivotWithoutUnderlyingData;
 	prot['ForceSaveButton']                  = prot.ForceSaveButton;
 	prot['ForceSaveTimeout']                 = prot.ForceSaveTimeout;
+	prot['Submit']                           = prot.Submit;
 	prot['CannotChangeFormulaArray']         = prot.CannotChangeFormulaArray;
 	prot['MultiCellsInTablesFormulaArray']   = prot.MultiCellsInTablesFormulaArray;
 	prot['MailToClientMissing']				 = prot.MailToClientMissing;
@@ -2278,7 +2326,10 @@
 	prot['RemoveDuplicates']                 = prot.RemoveDuplicates;
 	prot['LargeRangeWarning']                = prot.LargeRangeWarning;
 	prot['LockedEditView']                   = prot.LockedEditView;
-	
+	prot['Password']                         = prot.Password;
+	prot['SecondaryAxis']                    = prot.SecondaryAxis;
+	prot['ComboSeriesError']                 = prot.ComboSeriesError;
+
 	prot['DataValidateNotNumeric']           = prot.DataValidateNotNumeric;
 	prot['DataValidateNegativeTextLength']   = prot.DataValidateNegativeTextLength;
 	prot['DataValidateMustEnterValue']       = prot.DataValidateMustEnterValue;
@@ -2307,6 +2358,8 @@
 	prot['SendMailMerge']                    = prot.SendMailMerge;
 	prot['ForceSaveButton']                  = prot.ForceSaveButton;
 	prot['ForceSaveTimeout']                 = prot.ForceSaveTimeout;
+	prot['Waiting']                          = prot.Waiting;
+	prot['Submit']                           = prot.Submit;
 	window['Asc']['c_oAscAdvancedOptionsID'] = window['Asc'].c_oAscAdvancedOptionsID = c_oAscAdvancedOptionsID;
 	prot                                         = c_oAscAdvancedOptionsID;
 	prot['CSV']                                  = prot.CSV;
@@ -2442,6 +2495,7 @@
 	prot['outEnd']                           = prot.outEnd;
 	prot['r']                                = prot.r;
 	prot['t']                                = prot.t;
+	prot['show']                             = prot.show;
 	window['Asc']['c_oAscGridLinesSettings'] = window['Asc'].c_oAscGridLinesSettings = c_oAscGridLinesSettings;
 	prot                                     = c_oAscGridLinesSettings;
 	prot['none']                             = prot.none;
@@ -2484,7 +2538,16 @@
 	prot['scatterNone']                = prot.scatterNone;
 	prot['scatterSmooth']              = prot.scatterSmooth;
 	prot['scatterSmoothMarker']        = prot.scatterSmoothMarker;
+	prot['surfaceNormal']              = prot.surfaceNormal;
+	prot['surfaceWireframe']           = prot.surfaceWireframe;
+	prot['contourNormal']              = prot.contourNormal;
+	prot['contourWireframe']           = prot.contourWireframe;
+	prot['comboCustom']                = prot.comboCustom;
+	prot['comboBarLine']               = prot.comboBarLine;
+	prot['comboBarLineSecondary']      = prot.comboBarLineSecondary;
+	prot['comboAreaBar']               = prot.comboAreaBar;
 	prot['unknown']                    = prot.unknown;
+
 	window['Asc']['c_oAscValAxisRule'] = window['Asc'].c_oAscValAxisRule = c_oAscValAxisRule;
 	prot                              = c_oAscValAxisRule;
 	prot['auto']                      = prot.auto;
@@ -2535,6 +2598,7 @@
 	prot['text']                   = prot.text;
 	prot['cat']                    = prot.cat;
 	prot['val']                    = prot.val;
+	prot['ser']                    = prot.ser;
 	window['Asc']['c_oAscHAnchor'] = window['Asc'].c_oAscHAnchor = c_oAscHAnchor;
 	prot                          = c_oAscHAnchor;
 	prot['Margin']                = prot.Margin;
@@ -2923,7 +2987,7 @@
 	window["AscCommon"].changestype_Theme                     = changestype_Theme;
 	window["AscCommon"].changestype_SlideSize                 = changestype_SlideSize;
 	window["AscCommon"].changestype_SlideBg                   = changestype_SlideBg;
-	window["AscCommon"].changestype_SlideTiming               = changestype_SlideTiming;
+	window["AscCommon"].changestype_SlideTransition           = changestype_SlideTransition;
 	window["AscCommon"].changestype_MoveComment               = changestype_MoveComment;
 	window["AscCommon"].changestype_AddComment                = changestype_AddComment;
 	window["AscCommon"].changestype_Layout                    = changestype_Layout;
@@ -2932,6 +2996,8 @@
 	window["AscCommon"].changestype_PresDefaultLang           = changestype_PresDefaultLang;
 	window["AscCommon"].changestype_SlideHide                 = changestype_SlideHide;
 	window["AscCommon"].changestype_CorePr                    = changestype_CorePr;
+	window["AscCommon"].changestype_Document_Settings         = changestype_Document_Settings;
+
 	window["AscCommon"].changestype_2_InlineObjectMove        = changestype_2_InlineObjectMove;
 	window["AscCommon"].changestype_2_HdrFtr                  = changestype_2_HdrFtr;
 	window["AscCommon"].changestype_2_Comment                 = changestype_2_Comment;
@@ -2957,6 +3023,7 @@
 	window['AscCommon']['align_Left'] = window['AscCommon'].align_Left = align_Left;
 	window['AscCommon']['align_Center'] = window['AscCommon'].align_Center = align_Center;
 	window['AscCommon']['align_Justify'] = window['AscCommon'].align_Justify = align_Justify;
+	window['AscCommon']['align_Distributed'] = window['AscCommon'].align_Distributed = align_Distributed;
 
 
 	window["AscCommon"]["c_oAscFormatPainterState"]    = c_oAscFormatPainterState;
@@ -3142,6 +3209,14 @@
 	prot['table'] = prot.table;
 	prot['slicer'] = prot.slicer;
 
+	window['Asc']['c_oAscChangeTextCaseType'] = window['Asc'].c_oAscChangeTextCaseType = c_oAscChangeTextCaseType;
+	prot = c_oAscChangeTextCaseType;
+	prot['SentenceCase']    = prot.SentenceCase;
+	prot['LowerCase']       = prot.LowerCase;
+	prot['UpperCase']       = prot.UpperCase;
+	prot['CapitalizeWords'] = prot.CapitalizeWords;
+	prot['ToggleCase']      = prot.ToggleCase;
+
 	window["AscCommon"].document_compatibility_mode_Word11  = document_compatibility_mode_Word11;
 	window["AscCommon"].document_compatibility_mode_Word12  = document_compatibility_mode_Word12;
 	window["AscCommon"].document_compatibility_mode_Word14  = document_compatibility_mode_Word14;
@@ -3160,5 +3235,24 @@
 	prot['Current'] = c_oAscSectionApplyType.Current;
 	prot['ToEnd']   = c_oAscSectionApplyType.ToEnd;
 	prot['All']     = c_oAscSectionApplyType.All;
+
+	prot = window['Asc']['c_oAscSlideSZType'] = window['Asc'].c_oAscSlideSZType = c_oAscSlideSZType;
+	prot['Sz35mm'] = prot.Sz35mm;
+	prot['SzA3'] = prot.SzA3;
+	prot['SzA4'] = prot.SzA4;
+	prot['SzB4ISO'] = prot.SzB4ISO;
+	prot['SzB4JIS'] = prot.SzB4JIS;
+	prot['SzB5ISO'] = prot.SzB5ISO;
+	prot['SzB5JIS'] = prot.SzB5JIS;
+	prot['SzBanner'] = prot.SzBanner;
+	prot['SzCustom'] = prot.SzCustom;
+	prot['SzHagakiCard'] = prot.SzHagakiCard;
+	prot['SzLedger'] = prot.SzLedger;
+	prot['SzLetter'] = prot.SzLetter;
+	prot['SzOverhead'] = prot.SzOverhead;
+	prot['SzScreen16x10'] = prot.SzScreen16x10;
+	prot['SzScreen16x9'] = prot.SzScreen16x9;
+	prot['SzScreen4x3'] = prot.SzScreen4x3;
+	prot['SzWidescreen'] = prot.SzWidescreen;
 
 })(window);

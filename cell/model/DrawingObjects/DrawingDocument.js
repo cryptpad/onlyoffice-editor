@@ -142,7 +142,6 @@ function CDrawingDocument()
 	this.SelectionMatrix = null;
 
     this.GuiCanvasTextProps = null;
-    this.GuiCanvasTextPropsId = "gui_textprops_canvas_id";
     this.GuiLastTextProps = null;
 
     this.TableStylesLastLook = null;
@@ -173,7 +172,6 @@ function CDrawingDocument()
 
     this.LockCursorType = function(sType)
     {
-
     };
 
     this.LockCursorTypeCur = function()
@@ -361,7 +359,6 @@ function CDrawingDocument()
             _offX = this.AutoShapesTrack.Graphics.m_oCoordTransform.tx;
             _offY = this.AutoShapesTrack.Graphics.m_oCoordTransform.ty;
         }
-
 
         var targetPosX = 0;
         var targetPosY = 0;
@@ -583,15 +580,12 @@ function CDrawingDocument()
 
     this.DrawMathTrack = function (overlay)
     {
-        if (!this.MathTrack.IsActive())
+        if (!this.MathTrack.IsActive() || !this.TextMatrix)
             return;
         var drawingObjects = this.getDrawingObjects();
-        if(!drawingObjects) {
+        if (!drawingObjects)
             return;
-        }
 
-        if(!this.TextMatrix)
-            return;
         overlay.Show();
         var nIndex, nCount;
         var oPath;
@@ -600,6 +594,7 @@ function CDrawingDocument()
 
         dKoefX = drawingObjects.convertMetric(1, 3, 0);
         dKoefY = dKoefX;
+
         var _offX = 0;
         var _offY = 0;
         if (this.AutoShapesTrack && this.AutoShapesTrack.Graphics && this.AutoShapesTrack.Graphics.m_oCoordTransform)
@@ -607,19 +602,27 @@ function CDrawingDocument()
             _offX = this.AutoShapesTrack.Graphics.m_oCoordTransform.tx;
             _offY = this.AutoShapesTrack.Graphics.m_oCoordTransform.ty;
         }
-        var oTextMatrix = this.TextMatrix || AscCommon.CMatrix();
-        var _1px_mm_x = 1 / Math.max(dKoefX, 0.001);
-        var _1px_mm_y = 1 / Math.max(dKoefY, 0.001);
+
+        // Draw methods apply retina scaling.
+        if (true)
+        {
+            var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+			dKoefX /= rPR;
+			dKoefY /= rPR;
+			_offX /= rPR;
+			_offY /= rPR;
+        }
+
         for (nIndex = 0; nIndex < PathLng; nIndex++)
         {
             oPath = this.MathTrack.GetPolygon(nIndex);
-            this.MathTrack.DrawWithMatrix(overlay, oPath, 0, 0, "#939393", dKoefX, dKoefY, _offX, _offY, oTextMatrix);
-            this.MathTrack.DrawWithMatrix(overlay, oPath, _1px_mm_x, _1px_mm_y, "#FFFFFF", dKoefX, dKoefY, _offX, _offY, oTextMatrix);
+            this.MathTrack.Draw(overlay, oPath, 0, 0, "#939393", dKoefX, dKoefY, _offX, _offY, this.TextMatrix);
+            this.MathTrack.Draw(overlay, oPath, 1, 1, "#FFFFFF", dKoefX, dKoefY, _offX, _offY, this.TextMatrix);
         }
         for (nIndex = 0, nCount = this.MathTrack.GetSelectPathsCount(); nIndex < nCount; nIndex++)
         {
             oPath =  this.MathTrack.GetSelectPath(nIndex);
-            this.MathTrack.DrawSelectPolygon(overlay, oPath, dKoefX, dKoefY, _offX, _offY, oTextMatrix);
+            this.MathTrack.DrawSelectPolygon(overlay, oPath, dKoefX, dKoefY, _offX, _offY, this.TextMatrix);
         }
     };
 
@@ -693,6 +696,7 @@ function CDrawingDocument()
         if (this.IsTextMatrixUse)
         {
             ctx.globalAlpha = 1.0;
+			ctx.lineWidth = Math.round(AscCommon.AscBrowser.retinaPixelRatio);
             ctx.stroke();
         }
 
@@ -711,16 +715,10 @@ function CDrawingDocument()
         }
 		if (null == this.SelectionMatrix)
 			this.SelectionMatrix = this.TextMatrix;
-       /*    if (pageIndex < this.m_lDrawingFirst || pageIndex > this.m_lDrawingEnd)
-        {
-            return;
-        }     */
 
-       // var page = this.m_arrPages[pageIndex];
-      //  var drawPage = page.drawingPage;
-
-        var dKoefX = drawingObjects.convertMetric(1, 3, 0);//(drawPage.right - drawPage.left) / page.width_mm;
-        var dKoefY = dKoefX;//(drawPage.bottom - drawPage.top) / page.height_mm;
+        var dKoefX = drawingObjects.convertMetric(1, 3, 0);
+        var dKoefY = dKoefX;
+		var indent = 0.5 * Math.round(AscCommon.AscBrowser.retinaPixelRatio);
 
         var _offX = 0;
         var _offY = 0;
@@ -730,55 +728,70 @@ function CDrawingDocument()
             _offY = this.AutoShapesTrack.Graphics.m_oCoordTransform.ty;
         }
 
-        if (!this.IsTextMatrixUse)
-        {
-            var _x = ((_offX + dKoefX * x) >> 0) - 0.5;
-            var _y = ((_offY + dKoefY * y) >> 0) - 0.5;
+		if (null == this.TextMatrix || global_MatrixTransformer.IsIdentity(this.TextMatrix))
+		{
+			var _x = ((_offX + dKoefX * x + indent) >> 0) - indent;
+			var _y = ((_offY + dKoefY * y + indent) >> 0) - indent;
 
-            var _w = (dKoefX * w + 1) >> 0;
-            var _h = (dKoefY * h + 1) >> 0;
+			var _w = (dKoefX * w + 1) >> 0;
+			var _h = (dKoefY * h + 1) >> 0;
 
-            this.Overlay.CheckRect(_x, _y, _w, _h);
-            this.Overlay.m_oContext.rect(_x,_y,_w,_h);
-        }
-        else
-        {
-            var _x1 = this.TextMatrix.TransformPointX(x, y);
-            var _y1 = this.TextMatrix.TransformPointY(x, y);
+			this.Overlay.CheckRect(_x, _y, _w, _h);
+			this.Overlay.m_oContext.rect(_x,_y,_w,_h);
+		}
+		else
+		{
+			var _x1 = this.TextMatrix.TransformPointX(x, y);
+			var _y1 = this.TextMatrix.TransformPointY(x, y);
 
-            var _x2 = this.TextMatrix.TransformPointX(x + w, y);
-            var _y2 = this.TextMatrix.TransformPointY(x + w, y);
+			var _x2 = this.TextMatrix.TransformPointX(x + w, y);
+			var _y2 = this.TextMatrix.TransformPointY(x + w, y);
 
-            var _x3 = this.TextMatrix.TransformPointX(x + w, y + h);
-            var _y3 = this.TextMatrix.TransformPointY(x + w, y + h);
+			var _x3 = this.TextMatrix.TransformPointX(x + w, y + h);
+			var _y3 = this.TextMatrix.TransformPointY(x + w, y + h);
 
-            var _x4 = this.TextMatrix.TransformPointX(x, y + h);
-            var _y4 = this.TextMatrix.TransformPointY(x, y + h);
+			var _x4 = this.TextMatrix.TransformPointX(x, y + h);
+			var _y4 = this.TextMatrix.TransformPointY(x, y + h);
 
-            var x1 = _offX + dKoefX * _x1;
-            var y1 = _offY + dKoefY * _y1;
+			var x1 = _offX + dKoefX * _x1;
+			var y1 = _offY + dKoefY * _y1;
 
-            var x2 = _offX + dKoefX * _x2;
-            var y2 = _offY + dKoefY * _y2;
+			var x2 = _offX + dKoefX * _x2;
+			var y2 = _offY + dKoefY * _y2;
 
-            var x3 = _offX + dKoefX * _x3;
-            var y3 = _offY + dKoefY * _y3;
+			var x3 = _offX + dKoefX * _x3;
+			var y3 = _offY + dKoefY * _y3;
 
-            var x4 = _offX + dKoefX * _x4;
-            var y4 = _offY + dKoefY * _y4;
+			var x4 = _offX + dKoefX * _x4;
+			var y4 = _offY + dKoefY * _y4;
 
-            this.Overlay.CheckPoint(x1, y1);
-            this.Overlay.CheckPoint(x2, y2);
-            this.Overlay.CheckPoint(x3, y3);
-            this.Overlay.CheckPoint(x4, y4);
+			if (global_MatrixTransformer.IsIdentity2(this.TextMatrix))
+			{
+				x1 = (x1 >> 0) + indent;
+				y1 = (y1 >> 0) + indent;
 
-            var ctx = this.Overlay.m_oContext;
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
-            ctx.lineTo(x3, y3);
-            ctx.lineTo(x4, y4);
-            ctx.closePath();
-        }
+				x2 = (x2 >> 0) + indent;
+				y2 = (y2 >> 0) + indent;
+
+				x3 = (x3 >> 0) + indent;
+				y3 = (y3 >> 0) + indent;
+
+				x4 = (x4 >> 0) + indent;
+				y4 = (y4 >> 0) + indent;
+			}
+
+			this.Overlay.CheckPoint(x1, y1);
+			this.Overlay.CheckPoint(x2, y2);
+			this.Overlay.CheckPoint(x3, y3);
+			this.Overlay.CheckPoint(x4, y4);
+
+			var ctx = this.Overlay.m_oContext;
+			ctx.moveTo(x1, y1);
+			ctx.lineTo(x2, y2);
+			ctx.lineTo(x3, y3);
+			ctx.lineTo(x4, y4);
+			ctx.closePath();
+		}
     };
 
     this.SelectShow = function()
@@ -846,9 +859,9 @@ function CDrawingDocument()
     };
 
     // вот здесь весь трекинг
-    this.DrawTrack = function(type, matrix, left, top, width, height, isLine, canRotate, isNoMove)
+    this.DrawTrack = function(type, matrix, left, top, width, height, isLine, canRotate, isNoMove, isDrawHandles)
     {
-        this.AutoShapesTrack.DrawTrack(type, matrix, left, top, width, height, isLine, canRotate, isNoMove);
+        this.AutoShapesTrack.DrawTrack(type, matrix, left, top, width, height, isLine, canRotate, isNoMove, isDrawHandles);
     };
 
     this.DrawTrackSelectShapes = function(x, y, w, h)
@@ -1065,50 +1078,55 @@ function CDrawingDocument()
 
     this.InitGuiCanvasTextProps = function(div_id)
     {
-        var _div_elem = document.getElementById(div_id);
-        if (null != this.GuiCanvasTextProps)
-        {
-            var elem = _div_elem.getElementsByTagName('canvas');
-            if (elem.length == 0)
-            {
-                _div_elem.appendChild(this.GuiCanvasTextProps);
-            }
-            else
-            {
-                var _width = parseInt(_div_elem.offsetWidth);
-                var _height = parseInt(_div_elem.offsetHeight);
-                if (0 == _width)
-                    _width = 300;
-                if (0 == _height)
-                    _height = 80;
+		var _div_elem = document.getElementById(div_id);
+		if (null != this.GuiCanvasTextProps)
+		{
+			var elem = _div_elem.getElementsByTagName('canvas');
+			if (elem.length == 0)
+			{
+				_div_elem.appendChild(this.GuiCanvasTextProps);
+			}
+			else
+			{
+				var _width = parseInt(_div_elem.offsetWidth);
+				var _height = parseInt(_div_elem.offsetHeight);
+				if (0 == _width)
+					_width = 300;
+				if (0 == _height)
+					_height = 80;
 
-                if (this.GuiCanvasTextProps.width != _width || this.GuiCanvasTextProps.height != _height)
-                {
-                    this.GuiCanvasTextProps.width = _width;
-                    this.GuiCanvasTextProps.height = _height;
-                }
-            }
-        }
-        else
-        {
-            this.GuiCanvasTextProps = document.createElement('canvas');
-            this.GuiCanvasTextProps.style.position = "absolute";
-            this.GuiCanvasTextProps.style.left = "0px";
-            this.GuiCanvasTextProps.style.top = "0px";
-            this.GuiCanvasTextProps.id = this.GuiCanvasTextPropsId;
+				this.GuiCanvasTextProps.style.width = _width + "px";
+				this.GuiCanvasTextProps.style.height = _height + "px";
+			}
 
-            var _width = parseInt(_div_elem.offsetWidth);
-            var _height = parseInt(_div_elem.offsetHeight);
-            if (0 == _width)
-                _width = 300;
-            if (0 == _height)
-                _height = 80;
+			var old_width = this.GuiCanvasTextProps.width;
+			var old_height = this.GuiCanvasTextProps.height;
+			AscCommon.calculateCanvasSize(this.GuiCanvasTextProps);
 
-            this.GuiCanvasTextProps.width = _width;
-            this.GuiCanvasTextProps.height = _height;
+			if (old_width !== this.GuiCanvasTextProps.width || old_height !== this.GuiCanvasTextProps.height)
+				this.GuiLastTextProps = null;
+		}
+		else
+		{
+			this.GuiCanvasTextProps = document.createElement('canvas');
+			this.GuiCanvasTextProps.style.position = "absolute";
+			this.GuiCanvasTextProps.style.left = "0px";
+			this.GuiCanvasTextProps.style.top = "0px";
 
-            _div_elem.appendChild(this.GuiCanvasTextProps);
-        }
+			var _width = parseInt(_div_elem.offsetWidth);
+			var _height = parseInt(_div_elem.offsetHeight);
+			if (0 == _width)
+				_width = 300;
+			if (0 == _height)
+				_height = 80;
+
+			this.GuiCanvasTextProps.style.width = _width + "px";
+			this.GuiCanvasTextProps.style.height = _height + "px";
+
+			AscCommon.calculateCanvasSize(this.GuiCanvasTextProps);
+
+			_div_elem.appendChild(this.GuiCanvasTextProps);
+		}
     };
 
     this.InitGuiCanvasTextArt = function(div_id)
@@ -1233,6 +1251,7 @@ function CDrawingDocument()
             par.Pr = _paraPr;
             var _textPr = new CTextPr();
             _textPr.FontFamily = { Name : "Arial", Index : -1 };
+			_textPr.FontSize = (AscCommon.AscBrowser.convertToRetinaValue(11 << 1, true) >> 0) * 0.5;
 
             _textPr.Strikeout  = this.GuiLastTextProps.Strikeout;
 

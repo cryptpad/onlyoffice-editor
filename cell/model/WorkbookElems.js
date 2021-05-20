@@ -581,7 +581,7 @@ ThemeColor.prototype =
 };
 function CorrectAscColor(asc_color)
 {
-	if (null == asc_color)
+	if (null == asc_color || asc_color.asc_getAuto())
 		return null;
 
 	var ret = null;
@@ -865,8 +865,12 @@ var g_oFontProperties = {
 			oRes.u = this.u || font.u;
 			oRes.va = this.va || font.va;
 		}
-		if (isTable && isTableColor) {
-			oRes.c = font.c || this.c;
+		if (isTable) {
+			if (isTableColor) {
+				oRes.c = font.c || this.c;
+			} else {
+				oRes.c = this.c;
+			}
 		} else {
 			oRes.c = this.c || font.c;
 		}
@@ -979,6 +983,9 @@ var g_oFontProperties = {
 	};
 	Font.prototype.getColor = function () {
 		return this.c || g_oDefaultFormat.ColorAuto;
+	};
+	Font.prototype.getColorNotDefault = function () {
+		return this.c;
 	};
 	Font.prototype.setColor = function(val) {
 		return this.c = val;
@@ -2090,6 +2097,9 @@ var g_oFontProperties = {
 		}
 		return nRes;
 	};
+	BorderProp.prototype.getColorOrDefault = function () {
+		return this.c || g_oDefaultFormat.ColorAuto;
+	};
 	BorderProp.prototype.isEmpty = function () {
 		return c_oAscBorderStyles.None === this.s;
 	};
@@ -2105,9 +2115,7 @@ var g_oFontProperties = {
 		if (null != oBorderProp.s && c_oAscBorderStyles.None !== oBorderProp.s) {
 			this.s = oBorderProp.s;
 			this.w = oBorderProp.w;
-			if (null != oBorderProp.c) {
-				this.c = oBorderProp.c;
-			}
+			this.c = oBorderProp.c;
 		}
 	};
 	BorderProp.prototype.getType = function () {
@@ -2928,7 +2936,7 @@ var g_oBorderProperties = {
         return this.getFont2().getSize();
     };
     CellXfs.prototype.asc_getFontColor = function () {
-        return Asc.colorObjToAscColor(this.getFont2().getColor());
+        return Asc.colorObjToAscColor(this.getFont2().getColorNotDefault());
     };
     CellXfs.prototype.asc_getFontBold = function () {
         return this.getFont2().getBold();
@@ -2966,8 +2974,12 @@ var g_oBorderProperties = {
 	CellXfs.prototype.asc_getAngle = function () {
 		return this.getAlign2().getAngle();
 	};
+	CellXfs.prototype.asc_getIndent = function () {
+		return this.getAlign2().getIndent();
+	};
 	CellXfs.prototype.asc_getWrapText = function () {
-		return this.getAlign2().getWrap();
+		var align = this.getAlign2();
+		return align.getWrap() || align.hor === AscCommon.align_Distributed;
 	};
 	CellXfs.prototype.asc_getShrinkToFit = function () {
 		return this.getAlign2().getShrinkToFit();
@@ -3027,8 +3039,9 @@ var g_oBorderProperties = {
 
 	/** @constructor */
 	function Align(val) {
-		if (null == val)
+		if (null == val) {
 			val = g_oDefaultFormat.AlignAbs;
+		}
 		this.hor = val.hor;
 		this.indent = val.indent;
 		this.RelativeIndent = val.RelativeIndent;
@@ -3056,10 +3069,11 @@ var g_oBorderProperties = {
 		this._index = val;
 	};
 	Align.prototype._mergeProperty = function (first, second, def) {
-		if (def != first)
+		if (def != first) {
 			return first;
-		else
+		} else {
 			return second;
+		}
 	};
 	Align.prototype.merge = function (align) {
 		var defaultAlign = g_oDefaultFormat.Align;
@@ -3076,36 +3090,44 @@ var g_oBorderProperties = {
 	Align.prototype.getDif = function (val) {
 		var oRes = new Align(this);
 		var bEmpty = true;
-		if (this.hor == val.hor)
+		if (this.hor == val.hor) {
 			oRes.hor = null;
-		else
+		} else {
 			bEmpty = false;
-		if (this.indent == val.indent)
+		}
+		if (this.indent == val.indent) {
 			oRes.indent = null;
-		else
+		} else {
 			bEmpty = false;
-		if (this.RelativeIndent == val.RelativeIndent)
+		}
+		if (this.RelativeIndent == val.RelativeIndent) {
 			oRes.RelativeIndent = null;
-		else
+		} else {
 			bEmpty = false;
-		if (this.shrink == val.shrink)
+		}
+		if (this.shrink == val.shrink) {
 			oRes.shrink = null;
-		else
+		} else {
 			bEmpty = false;
-		if (this.angle == val.angle)
+		}
+		if (this.angle == val.angle) {
 			oRes.angle = null;
-		else
+		} else {
 			bEmpty = false;
-		if (this.ver == val.ver)
+		}
+		if (this.ver == val.ver) {
 			oRes.ver = null;
-		else
+		} else {
 			bEmpty = false;
-		if (this.wrap == val.wrap)
+		}
+		if (this.wrap == val.wrap) {
 			oRes.wrap = null;
-		else
+		} else {
 			bEmpty = false;
-		if (bEmpty)
+		}
+		if (bEmpty) {
 			oRes = null;
+		}
 		return oRes;
 	};
 	Align.prototype.isEqual = function (val) {
@@ -3207,6 +3229,12 @@ var g_oBorderProperties = {
 	};
 	Align.prototype.setAlignVertical = function (val) {
 		this.ver = val;
+	};
+	Align.prototype.getIndent = function () {
+		return this.indent;
+	};
+	Align.prototype.setIndent = function (val) {
+		this.indent = val;
 	};
 	Align.prototype.readAttributes = function (attr, uq) {
 		if (attr()) {
@@ -3556,6 +3584,10 @@ StyleManager.prototype =
 			return AscCommonExcel.angleFormatToInterface2(this.angle);
 		}, Align.prototype.setAngle);
     },
+	setIndent : function(oItemWithXfs, val)
+	{
+		return this._setAlignProperty(oItemWithXfs, val, "indent", Align.prototype.getIndent, Align.prototype.setIndent);
+	},
 	_initXf: function(oItemWithXfs){
 		var xfs = oItemWithXfs.xfs;
 		if (!xfs) {
@@ -3946,7 +3978,8 @@ StyleManager.prototype =
 		return bRes;
 	};
 	Hyperlink.prototype.isValid = function () {
-		return null != this.Ref && (null != this.getLocation() || null != this.Hyperlink);
+		var isValidLength = !this.Hyperlink || (this.Hyperlink && AscCommonExcel.getFullHyperlinkLength(this.Hyperlink) <= Asc.c_nMaxHyperlinkLength);
+		return null != this.Ref && (null != this.getLocation() || null != this.Hyperlink) && isValidLength;
 	};
 	Hyperlink.prototype.setLocationSheet = function (LocationSheet) {
 		this.LocationSheet = LocationSheet;
@@ -4383,6 +4416,13 @@ StyleManager.prototype =
 				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, false, oRes.oldVal, oRes.newVal));
 		}
 	};
+	Col.prototype.setIndent = function (val) {
+		var oRes = this.ws.workbook.oStyleManager.setIndent(this, val);
+		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoCol, AscCH.historyitem_RowCol_Indent, this.ws.getId(),
+				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, false, oRes.oldVal, oRes.newVal));
+		}
+	};
 	Col.prototype.setHidden = function (val) {
 		if (this.index >= 0 && (!this.hd !== !val)) {
 			this.ws.hiddenManager.addHidden(false, this.index);
@@ -4761,10 +4801,17 @@ StyleManager.prototype =
 				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
 		}
 	};
+	Row.prototype.setIndent = function (val) {
+		var oRes = this.ws.workbook.oStyleManager.setIndent(this, val);
+		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoRow, AscCH.historyitem_RowCol_Indent, this.ws.getId(),
+				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
+		}
+	};
 	Row.prototype.setHidden = function (val, bViewLocalChange) {
-		var inViewAndFilter = this.ws.getActiveNamedSheetViewId() !== null && this.ws.autoFilters.containInFilter(this.index);
+		var inViewAndFilter = this.ws.getActiveNamedSheetViewId() !== null && this.ws.autoFilters && this.ws.autoFilters.containInFilter(this.index);
 		if (!bViewLocalChange) {
-			var bCollaborativeChanges = !this.ws.autoFilters.useViewLocalChange && this.ws.workbook.bCollaborativeChanges;
+			var bCollaborativeChanges = !(this.ws.autoFilters && this.ws.autoFilters.useViewLocalChange) && this.ws.workbook.bCollaborativeChanges;
 			bViewLocalChange = !bCollaborativeChanges && inViewAndFilter;
 		}
 		//если находимся в режиме вью, а приходят изменения для дефолта - не меняем hiddenManager
@@ -4808,7 +4855,7 @@ StyleManager.prototype =
 
 	Row.prototype.getHidden = function (bViewLocalChange) {
 		if (undefined === bViewLocalChange) {
-			var bCollaborativeChanges = !this.ws.autoFilters.useViewLocalChange && this.ws.workbook.bCollaborativeChanges;
+			var bCollaborativeChanges = !(this.ws.autoFilters && this.ws.autoFilters.useViewLocalChange) && this.ws.workbook.bCollaborativeChanges;
 			bViewLocalChange = !bCollaborativeChanges && this.ws.getActiveNamedSheetViewId() !== null && this.ws.autoFilters.containInFilter(this.index);
 		}
 		var _rowFlag_hd = bViewLocalChange ? g_nRowFlag_hdView : g_nRowFlag_hd;
@@ -4961,7 +5008,6 @@ StyleManager.prototype =
 		return sRes;
 	}
 	function isEqualMultiText(multiText1, multiText2) {
-		var sRes = "";
 		if (multiText1 && multiText2) {
 			if (multiText1.length === multiText2.length) {
 				for (var i = 0, length = multiText1.length; i < length; ++i) {
@@ -5914,12 +5960,9 @@ function RangeDataManagerElem(bbox, data)
 		}
 
 		var canvas = document.createElement('canvas');
-		canvas.width = 50;
-		canvas.height = 50;
-		if (AscCommon.AscBrowser.isRetina) {
-			canvas.width = AscCommon.AscBrowser.convertToRetinaValue(canvas.width, true);
-			canvas.height = AscCommon.AscBrowser.convertToRetinaValue(canvas.height, true);
-		}
+		canvas.width = AscCommon.AscBrowser.convertToRetinaValue(50, true);
+		canvas.height = AscCommon.AscBrowser.convertToRetinaValue(50, true);
+
 		var oSparklineView = new AscFormat.CSparklineView();
 		var oSparkline = new sparkline();
 		oSparkline.oCache = this._generateThumbCache();
@@ -6147,6 +6190,9 @@ function RangeDataManagerElem(bbox, data)
 
 				for (var j = 0; j < newTableColumns.length; j++) {
 					tableColumn = newTableColumns[j];
+					if (!tableColumn) {
+						tableColumn = newTableColumns[j] = new TableColumn();
+					}
 					if (tableColumn.Name === null) {
 						tableColumn.Name = autoFilters._generateColumnName2(newTableColumns);
 					}
@@ -9576,8 +9622,8 @@ AutoFilterDateElem.prototype.Read_FromBinary2 = function(r) {
 AutoFilterDateElem.prototype.clone = function() {
 	var res = new AutoFilterDateElem();
 	res.start = this.start;
-	this.end = this.end;
-	this.dateTimeGrouping = this.dateTimeGrouping;
+	res.end = this.end;
+	res.dateTimeGrouping = this.dateTimeGrouping;
 
 	return res;
 };
@@ -9651,6 +9697,13 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 				},
 				has: function(key) {
 					return !!this.storage[key];
+				},
+				forEach: function(callback, context) {
+					for (var i in this.storage) {
+						if (this.storage.hasOwnProperty(i)) {
+							callback.call(context, this.storage[i], i, this);
+						}
+					}
 				}
 			};
 
@@ -9664,9 +9717,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	function CSharedStrings () {
 		this.all = [];
 		this.text = new Map();
-		//
-		this.multiText = [];
-		this.multiTextIndex = [];
+		this.multiTextMap = new Map();
 	}
 
 	CSharedStrings.prototype.addText = function(text) {
@@ -9683,17 +9734,24 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	};
 	CSharedStrings.prototype.addMultiText = function(multiText) {
 		var index, i;
-		for (i = 0; i < this.multiText.length; ++i) {
-			if (AscCommonExcel.isEqualMultiText(multiText, this.multiText[i])) {
-				index = this.multiTextIndex[i];
+		var text = multiText.reduce(function(accumulator, currentValue) {
+			return accumulator + currentValue.text;
+		}, '');
+		var mapElem = this.multiTextMap.get(text);
+		if (!mapElem) {
+			mapElem = [];
+			this.multiTextMap.set(text, mapElem);
+		}
+		for (i = 0; i < mapElem.length; ++i) {
+			if (AscCommonExcel.isEqualMultiText(multiText, this.all[mapElem[i] - 1])) {
+				index = mapElem[i];
 				break;
 			}
 		}
 		if (undefined === index) {
 			this.all.push(multiText);
 			index = this.all.length;
-			this.multiText.push(multiText);
-			this.multiTextIndex.push(index);
+			mapElem.push(index);
 			if (AscFonts.IsCheckSymbols) {
 				for (i = 0; i < multiText.length; ++i) {
 					AscFonts.FontPickerByCharacter.getFontsByString(multiText[i].text);
@@ -9709,15 +9767,17 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this.all.length;
 	};
 	CSharedStrings.prototype.generateFontMap = function(oFontMap) {
-		for (var i = 0; i < this.multiText.length; ++i) {
-			var multiText = this.multiText[i];
-			for (var j = 0; j < multiText.length; ++j) {
-				var part = multiText[j];
-				if (null != part.format) {
-					oFontMap[part.format.getName()] = 1;
+		this.multiTextMap.forEach(function(mapElem) {
+			for (var i = 0; i < mapElem.length; ++i) {
+				var multiText = this.all[mapElem[i] - 1];
+				for (var j = 0; j < multiText.length; ++j) {
+					var part = multiText[j];
+					if (part && part.format) {
+						oFontMap[part.format.getName()] = 1;
+					}
 				}
 			}
-		}
+		}, this);
 	};
 
 	/**
@@ -10946,6 +11006,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getHorAlign"] = prot.asc_getHorAlign;
 	prot["asc_getVertAlign"] = prot.asc_getVertAlign;
 	prot["asc_getAngle"] = prot.asc_getAngle;
+	prot["asc_getIndent"] = prot.asc_getIndent;
 	prot["asc_getWrapText"] = prot.asc_getWrapText;
 	prot["asc_getShrinkToFit"] = prot.asc_getShrinkToFit;
 	prot["asc_getPreview"] = prot.asc_getPreview;

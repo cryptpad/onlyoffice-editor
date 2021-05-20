@@ -659,6 +659,13 @@ CHeaderFooter.prototype =
 
                         this.DrawingDocument.TargetStart();
                         this.DrawingDocument.TargetShow();
+
+						if (this.LogicDocument && this.LogicDocument.IsFillingFormMode())
+						{
+							var oContentControl = this.LogicDocument.GetContentControl();
+							if (oContentControl && oContentControl.IsCheckBox())
+								this.DrawingDocument.TargetEnd();
+						}
                     }
                 }
             }
@@ -669,6 +676,13 @@ CHeaderFooter.prototype =
 
                 this.DrawingDocument.TargetStart();
                 this.DrawingDocument.TargetShow();
+
+				if (this.LogicDocument && this.LogicDocument.IsFillingFormMode())
+				{
+					var oContentControl = this.LogicDocument.GetContentControl();
+					if (oContentControl && oContentControl.IsCheckBox())
+						this.DrawingDocument.TargetEnd();
+				}
             }
         }
     },
@@ -2649,6 +2663,10 @@ CHeaderFooterController.prototype.GetSelectionBounds = function()
 CHeaderFooterController.prototype.Get_CurHdrFtr = function()
 {
     return this.CurHdrFtr;
+};
+CHeaderFooterController.prototype.GetCurHdrFtr = function()
+{
+	return this.CurHdrFtr;
 };
 CHeaderFooterController.prototype.Set_CurHdrFtr = function(HdrFtr)
 {

@@ -232,8 +232,6 @@ var c_oAscError = Asc.c_oAscError;
 		var _param = "";
 		if (isSaveAs === true)
 			_param += "saveas=true;";
-		if (AscCommon.AscBrowser.isRetina)
-			_param += "retina=true;";
 
 		window["AscDesktopEditor"]["LocalFileSave"](_param, (password === undefined) ? asc["editor"].currentPassword : password, docinfo);
 	};

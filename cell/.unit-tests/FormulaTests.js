@@ -598,6 +598,20 @@ $( function () {
 		}
 	}
 
+	function _getValue(from, row, col) {
+		var res;
+		if (from.type === AscCommonExcel.cElementType.array) {
+			res = from.getElementRowCol(row !== undefined ? row : 0, col !== undefined ? col : 0).getValue();
+		} else if (from.type === AscCommonExcel.cElementType.cellsRange || from.type === AscCommonExcel.cElementType.cellsRange3D) {
+			res = from.getValueByRowCol(row !== undefined ? row : 0, col !== undefined ? col : 0).getValue();
+		} else if (from.type === AscCommonExcel.cElementType.cell || from.type === AscCommonExcel.cElementType.cell3D) {
+			res = from.getValue().getValue();
+		} else {
+			res = from.getValue();
+		}
+		return res;
+	}
+
 	function consoleLog(val) {
 		//console.log(val);
 	}
@@ -10010,6 +10024,144 @@ $( function () {
 	});
 
 
+	test( "Test: \"XLOOKUP\"", function () {
+
+		ws.getRange2( "A551" ).setValue( "6" );
+		ws.getRange2( "A552" ).setValue( "2" );
+		ws.getRange2( "A553" ).setValue( "test" );
+		ws.getRange2( "A554" ).setValue( "5" );
+		ws.getRange2( "A555" ).setValue( "4" );
+		ws.getRange2( "A556" ).setValue( "12" );
+		ws.getRange2( "A557" ).setValue( "16" );
+		ws.getRange2( "A558" ).setValue( "14" );
+		ws.getRange2( "A559" ).setValue( "99" );
+		ws.getRange2( "A560" ).setValue( "tt" );
+		ws.getRange2( "A561" ).setValue( "t4" );
+
+		ws.getRange2( "B551" ).setValue( "a" );
+		ws.getRange2( "B552" ).setValue( "b" );
+		ws.getRange2( "B553" ).setValue( "c" );
+		ws.getRange2( "B554" ).setValue( "d" );
+		ws.getRange2( "B555" ).setValue( "e" );
+		ws.getRange2( "B556" ).setValue( "f" );
+		ws.getRange2( "B557" ).setValue( "g" );
+		ws.getRange2( "B558" ).setValue( "l" );
+		ws.getRange2( "B559" ).setValue( "n" );
+		ws.getRange2( "B560" ).setValue( "u" );
+		ws.getRange2( "B561" ).setValue( "p" );
+
+		ws.getRange2( "C551" ).setValue( "a1" );
+		ws.getRange2( "C552" ).setValue( "b1" );
+		ws.getRange2( "C553" ).setValue( "test2" );
+		ws.getRange2( "C554" ).setValue( "c2" );
+		ws.getRange2( "C555" ).setValue( "d2" );
+		ws.getRange2( "C556" ).setValue( "h3" );
+		ws.getRange2( "C557" ).setValue( "j5" );
+		ws.getRange2( "C558" ).setValue( "u2" );
+		ws.getRange2( "C559" ).setValue( "m1" );
+		ws.getRange2( "C560" ).setValue( "k" );
+		ws.getRange2( "C561" ).setValue( "l" );
+
+		ws.getRange2( "C565" ).setValue( "99" );
+
+		oParser = new parserFormula( "XLOOKUP(14,A551:A561,C551:C561)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate()), "u2" );
+
+		oParser = new parserFormula( "XLOOKUP(C565,A551:A561,B551:C561)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate(), 0, 0), "n" );
+		strictEqual( _getValue(oParser.calculate(), 0, 1), "m1" );
+
+		oParser = new parserFormula( 'XLOOKUP(1,A551:A561,B551:C561,"not found")', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate()), "not found" );
+
+		oParser = new parserFormula( 'XLOOKUP(10,A551:A561,B551:C561,0,1,1)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate(), 0, 0), "f" );
+		strictEqual( _getValue(oParser.calculate(), 0, 1), "h3" );
+
+		oParser = new parserFormula( 'XLOOKUP(10,A551:A561,B551:C561,0,-1,1)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate(), 0, 0), "a" );
+		strictEqual( _getValue(oParser.calculate(), 0, 1), "a1" );
+
+		oParser = new parserFormula( 'XLOOKUP(10,A551:A561,B551:C561,0,0)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate()), 0 );
+
+		oParser = new parserFormula( 'XLOOKUP(10,A551:A561,B551:C561)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate()), "#N/A" );
+
+		oParser = new parserFormula( 'XLOOKUP(10,A551:A561,B551:C561,,,2)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate()), "#N/A" );
+
+		oParser = new parserFormula( 'XLOOKUP(10,A551:A561,B551:C561,,,-2)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate()), "#N/A" );
+
+		oParser = new parserFormula( 'XLOOKUP(10,A551:A561,B551:C561,,-1,-2)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate()), "#N/A" );
+
+		oParser = new parserFormula( 'XLOOKUP("test",A551:A561,B551:C561,,-1,2)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate(), 0, 0), "n" );
+
+		oParser = new parserFormula( 'XLOOKUP("tt",A551:A561,B551:C561,,-1,2)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate(), 0, 0), "u" );
+
+		oParser = new parserFormula( 'XLOOKUP("t???",A551:A561,B551:C561,,2)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate(), 0, 0), "c" );
+
+		oParser = new parserFormula( 'XLOOKUP("t???",A551:A561,B551:C561,,2)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate(), 0, 0), "c" );
+
+		oParser = new parserFormula( 'XLOOKUP("t?",A551:A561,B551:C561,,2)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate(), 0, 0), "u" );
+
+		oParser = new parserFormula( 'XLOOKUP("t?",A551:A561,B551:C561,,0)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate()), "#N/A" );
+
+		oParser = new parserFormula( 'XLOOKUP("t*",A551:A561,B551:C561,,0)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate()), "#N/A" );
+
+		oParser = new parserFormula( 'XLOOKUP("t*",A551:A561,B551:C561,,2)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate(), 0, 0), "c" );
+		strictEqual( _getValue(oParser.calculate(), 0, 1), "test2" );
+
+		oParser = new parserFormula( 'XLOOKUP(1,{1,2,3},{2,2,3})', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate(), 0, 0), 2 );
+
+		oParser = new parserFormula( 'XLOOKUP(1,{1,2,3,4},{2,2,3})', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate()), "#VALUE!" );
+
+		oParser = new parserFormula( 'XLOOKUP(4,{1,2,6},{2,2,3},,1)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate()), 3 );
+
+		oParser = new parserFormula( 'XLOOKUP(4,{1,2,6},{2,2,3},,-1)', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate()), 2 );
+
+		oParser = new parserFormula( 'XLOOKUP(4,{1,2,6},{2,2,3})', "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( _getValue(oParser.calculate()), "#N/A" );
+	} );
+
+
 	test( "Test: \"MATCH\"", function () {
 
         ws.getRange2( "A551" ).setValue( "28" );
@@ -12060,105 +12212,122 @@ $( function () {
 
     } );
 
-    test( "Test: \"VDB\"", function () {
+	test("Test: \"VDB\"", function () {
 
 
-        function _getVDB( cost, salvage, life, life1, startperiod, factor){
-            var fVdb=0, nLoopEnd = end = Math.ceil(startperiod),
-                fTerm, fLia = 0, fRestwert = cost - salvage, bNowLia = false, fGda;
+		function _getVDB(cost, salvage, life, life1, startperiod, factor) {
+			var fVdb = 0, nLoopEnd = end = Math.ceil(startperiod), fTerm, fLia = 0, fRestwert = cost -
+				salvage, bNowLia = false, fGda;
 
-            for ( var i = 1; i <= nLoopEnd; i++){
-                if(!bNowLia){
+			for (var i = 1; i <= nLoopEnd; i++) {
+				if (!bNowLia) {
 
-                    fGda = _getDDB(cost, salvage, life, i, factor);
-                    fLia = fRestwert/ (life1 - (i-1));
+					fGda = _getDDB(cost, salvage, life, i, factor);
+					fLia = fRestwert / (life1 - (i - 1));
 
-                    if (fLia > fGda){
-                        fTerm = fLia;
-                        bNowLia = true;
-                    }
-                    else{
-                        fTerm = fGda;
-                        fRestwert -= fGda;
-                    }
+					if (fLia > fGda) {
+						fTerm = fLia;
+						bNowLia = true;
+					} else {
+						fTerm = fGda;
+						fRestwert -= fGda;
+					}
 
-                }
-                else{
-                    fTerm = fLia;
-                }
+				} else {
+					fTerm = fLia;
+				}
 
-                if ( i == nLoopEnd)
-                    fTerm *= ( startperiod + 1.0 - end );
+				if (i == nLoopEnd) {
+					fTerm *= ( startperiod + 1.0 - end );
+				}
 
-                fVdb += fTerm;
-            }
-            return fVdb;
-        }
+				fVdb += fTerm;
+			}
+			return fVdb;
+		}
 
-        function vdb( cost, salvage, life, startPeriod, endPeriod, factor, flag ) {
+		function vdb(cost, salvage, life, startPeriod, endPeriod, factor, flag) {
 
-            if( factor === undefined || factor === null ) factor = 2;
-            if( flag === undefined || flag === null ) flag = false;
+			if (factor === undefined || factor === null) {
+				factor = 2;
+			}
+			if (flag === undefined || flag === null) {
+				flag = false;
+			}
 
-            var start = Math.floor(startPeriod),
-                end   = Math.ceil(endPeriod),
-                loopStart = start,
-                loopEnd   = end;
+			var start = Math.floor(startPeriod), end = Math.ceil(endPeriod), loopStart = start, loopEnd = end;
 
-            var res = 0;
-            if ( flag ) {
-                for ( var i = loopStart + 1; i <= loopEnd; i++ ) {
-                    var ddb = _getDDB( cost, salvage, life, i, factor );
+			var res = 0;
+			if (flag) {
+				for (var i = loopStart + 1; i <= loopEnd; i++) {
+					var ddb = _getDDB(cost, salvage, life, i, factor);
 
-                    if ( i == loopStart + 1 )
-                        ddb *= ( Math.min( endPeriod, start + 1 ) - startPeriod );
-                    else if ( i == loopEnd )
-                        ddb *= ( endPeriod + 1 - end );
+					if (i == loopStart + 1) {
+						ddb *= ( Math.min(endPeriod, start + 1) - startPeriod );
+					} else if (i ==
+						loopEnd) {
+						ddb *= ( endPeriod + 1 - end );
+					}
 
-                    res += ddb;
-                }
-            }
-            else {
+					res += ddb;
+				}
+			} else {
 
-                var life1 = life;
+				var life1 = life;
 
-                if ( !Math.approxEqual( startPeriod, Math.floor( startPeriod ) ) ) {
-                    if ( factor > 1 ) {
-                        if ( startPeriod > life / 2 || Math.approxEqual( startPeriod, life / 2 ) ) {
-                            var fPart = startPeriod - life / 2;
-                            startPeriod = life / 2;
-                            endPeriod -= fPart;
-                            life1 += 1;
-                        }
-                    }
-                }
+				if (!Math.approxEqual(startPeriod, Math.floor(startPeriod))) {
+					if (factor > 1) {
+						if (startPeriod > life / 2 || Math.approxEqual(startPeriod, life / 2)) {
+							var fPart = startPeriod - life / 2;
+							startPeriod = life / 2;
+							endPeriod -= fPart;
+							life1 += 1;
+						}
+					}
+				}
 
-                cost -= _getVDB( cost, salvage, life, life1, startPeriod, factor );
-                res = _getVDB( cost, salvage, life, life - startPeriod, endPeriod - startPeriod, factor );
-            }
+				cost -= _getVDB(cost, salvage, life, life1, startPeriod, factor);
+				res = _getVDB(cost, salvage, life, life - startPeriod, endPeriod - startPeriod, factor);
+			}
 
-            return res;
+			return res;
 
-        }
+		}
 
-        oParser = new parserFormula( "VDB(2400,300,10*365,0,1)", "A2", ws );
-        ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), vdb(2400,300,10*365,0,1) );
+		oParser = new parserFormula("VDB(2400,300,10*365,0,1)", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), vdb(2400, 300, 10 * 365, 0, 1));
 
-        oParser = new parserFormula( "VDB(2400,300,10*12,0,1)", "A2", ws );
-        ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), vdb(2400,300,10*12,0,1) );
+		oParser = new parserFormula("VDB(2400,300,10*12,0,1)", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), vdb(2400, 300, 10 * 12, 0, 1));
 
-        oParser = new parserFormula( "VDB(2400,300,10*12,6,18)", "A2", ws );
-        ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), vdb(2400,300,10*12,6,18) );
+		oParser = new parserFormula("VDB(2400,300,10*12,6,18)", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), vdb(2400, 300, 10 * 12, 6, 18));
 
-		oParser = new parserFormula( "VDB(0,0,0,0,0)", "A2", ws );
-		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue(), "#DIV/0!" );
+		oParser = new parserFormula("VDB(0,0,0,0,0)", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), "#DIV/0!");
 
-        testArrayFormula2("VDB", 5, 7);
-    } );
+		oParser = new parserFormula("VDB(100,0,5,3,4,2,{1,2,3})", "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue().toFixed(2) - 0, 8.64);
+
+		oParser = new parserFormula('VDB(100,0,5,3,4,2,1)', "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue().toFixed(2) - 0, 8.64);
+
+		oParser = new parserFormula('VDB(100,0,5,3,4,2,FALSE)', "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue().toFixed(2) - 0, 10.8);
+
+		oParser = new parserFormula('VDB(100,0,5,3,4,2,"test")', "A2", ws);
+		ok(oParser.parse());
+		strictEqual(oParser.calculate().getValue(), "#VALUE!");
+
+		testArrayFormula2("VDB", 5, 7);
+	});
 
     test( "Test: \"ODDFPRICE\"", function () {
 

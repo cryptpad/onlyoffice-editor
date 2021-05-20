@@ -241,18 +241,18 @@
 			return this.view.selectionDialogMode;
 		};
 
-		asc_CEventsController.prototype.reinitScrollX = function (pos, max, max2) {
+		asc_CEventsController.prototype.reinitScrollX = function (settings, pos, max, max2) {
 			var step = this.settings.hscrollStep;
 			this.hsbMax = Math.max(max * step, 1);
-			this.hsbApi.settings.contentW = this.hsbMax - 1;
-			this.hsbApi.Repos(this.hsbApi.settings, false, false, pos * step);
+			settings.contentW = this.hsbMax - 1;
+			this.hsbApi.Repos(settings, false, false, pos * step);
 			this.hsbApi.maxScrollX2 = Math.max(max2 * step, 1);
 		};
-		asc_CEventsController.prototype.reinitScrollY = function (pos, max, max2) {
+		asc_CEventsController.prototype.reinitScrollY = function (settings, pos, max, max2) {
 			var step = this.settings.vscrollStep;
 			this.vsbMax = Math.max(max * step, 1);
-			this.vsbApi.settings.contentH = this.vsbMax - 1;
-			this.vsbApi.Repos(this.vsbApi.settings, false, false, pos * step);
+			settings.contentH = this.vsbMax - 1;
+			this.vsbApi.Repos(settings, false, false, pos * step);
 			this.vsbApi.maxScrollY2 = Math.max(max2 * step, 1);
 		};
 
@@ -343,16 +343,70 @@
 			}
 		};
 
+		asc_CEventsController.prototype.createScrollSettings = function () {
+			var settings = new AscCommon.ScrollSettings();
+
+			settings.scrollBackgroundColor = GlobalSkin.ScrollBackgroundColor;
+			settings.scrollBackgroundColorHover = GlobalSkin.ScrollBackgroundColor;
+			settings.scrollBackgroundColorActive = GlobalSkin.ScrollBackgroundColor;
+
+			settings.scrollerColor = GlobalSkin.ScrollerColor;
+			settings.scrollerHoverColor = GlobalSkin.ScrollerHoverColor;
+			settings.scrollerActiveColor = GlobalSkin.ScrollerActiveColor;
+
+			settings.arrowColor = GlobalSkin.ScrollArrowColor;
+			settings.arrowHoverColor = GlobalSkin.ScrollArrowHoverColor;
+			settings.arrowActiveColor = GlobalSkin.ScrollArrowActiveColor;
+
+			settings.strokeStyleNone = GlobalSkin.ScrollOutlineColor;
+			settings.strokeStyleOver = GlobalSkin.ScrollOutlineHoverColor;
+			settings.strokeStyleActive = GlobalSkin.ScrollOutlineActiveColor;
+
+			settings.targetColor = GlobalSkin.ScrollerTargetColor;
+			settings.targetHoverColor = GlobalSkin.ScrollerTargetHoverColor;
+			settings.targetActiveColor = GlobalSkin.ScrollerTargetActiveColor;
+
+			return settings;
+		};
+
+		asc_CEventsController.prototype.updateScrollSettings = function () {
+			var opt = this.settings, settings;
+			var ws = window["Asc"]["editor"].wb.getWorksheet();
+			if (this.vsbApi) {
+				settings = this.createScrollSettings();
+
+				settings.vscrollStep = opt.vscrollStep;
+				settings.hscrollStep = opt.hscrollStep;
+				settings.wheelScrollLines = opt.wheelScrollLinesV;
+				settings.isVerticalScroll = true;
+				settings.isHorizontalScroll = false;
+				this.vsbApi.canvasH = null;
+				this.reinitScrollY(settings, ws.getFirstVisibleRow(true), ws.getVerticalScrollRange(), ws.getVerticalScrollMax());
+				this.vsbApi.settings = settings;
+			}
+			if (this.hsbApi) {
+				settings = this.createScrollSettings();
+				settings.vscrollStep = opt.vscrollStep;
+				settings.hscrollStep = opt.hscrollStep;
+				settings.isVerticalScroll = false;
+				settings.isHorizontalScroll = true;
+				this.hsbApi.canvasW = null;
+				this.reinitScrollX(settings, ws.getFirstVisibleCol(true), ws.getHorizontalScrollRange(), ws.getHorizontalScrollMax());
+				this.hsbApi.settings = settings;
+			}
+		};
+
 		asc_CEventsController.prototype._createScrollBars = function () {
 			var self = this, settings, opt = this.settings;
 
 			// vertical scroll bar
 			this.vsb = document.createElement('div');
 			this.vsb.id = "ws-v-scrollbar";
+			this.vsb.style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
 			this.widget.appendChild(this.vsb);
 
 			if (!this.vsbApi) {
-				settings = new AscCommon.ScrollSettings();
+				settings = this.createScrollSettings();
 				settings.vscrollStep = opt.vscrollStep;
 				settings.hscrollStep = opt.hscrollStep;
 				settings.wheelScrollLines = opt.wheelScrollLinesV;
@@ -379,10 +433,11 @@
 			// horizontal scroll bar
 			this.hsb = document.createElement('div');
 			this.hsb.id = "ws-h-scrollbar";
+			this.hsb.style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
 			this.widget.appendChild(this.hsb);
 
 			if (!this.hsbApi) {
-				settings = new AscCommon.ScrollSettings();
+				settings = this.createScrollSettings();
 				settings.vscrollStep = opt.vscrollStep;
 				settings.hscrollStep = opt.hscrollStep;
 				settings.isVerticalScroll = false;
@@ -409,6 +464,7 @@
                 // right bottom corner
                 var corner = document.createElement('div');
                 corner.id = "ws-scrollbar-corner";
+				corner.style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor
                 this.widget.appendChild(corner);
             }
             else{
@@ -664,6 +720,7 @@
 		asc_CEventsController.prototype._onWindowKeyDown = function (event) {
 			var t = this, dc = 0, dr = 0, canEdit = this.canEdit(), action = false, enterOptions;
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
+			var macCmdKey = AscCommon.AscBrowser.isMacOs && event.metaKey;
 			var shiftKey = event.shiftKey;
 			var selectionDialogMode = this.getSelectionDialogMode();
 			var isFormulaEditMode = this.getFormulaEditMode();
@@ -884,6 +941,9 @@
 
 				case 38: // up
 					stop();                          // Отключим стандартную обработку браузера нажатия up
+					if (canEdit && !t.getCellEditMode() && !selectionDialogMode && event.altKey && t.handlers.trigger("onDataValidation")) {
+						return result;
+					}
 					dr = ctrlKey ? -1.5 : -1;  // Движение стрелками (влево-вправо, вверх-вниз)
 					break;
 
@@ -896,6 +956,9 @@
 					stop();                          // Отключим стандартную обработку браузера нажатия down
 					// Обработка Alt + down
 					if (canEdit && !t.getCellEditMode() && !selectionDialogMode && event.altKey) {
+						if (t.handlers.trigger("onDataValidation")) {
+							return result;
+						}
 						t.handlers.trigger("showAutoComplete");
 						return result;
 					}
@@ -1060,9 +1123,11 @@
 					return result;
 
 				case 93:
-					stop();
-					this.handlers.trigger('onContextMenu', event);
-					return result;
+					if (!macCmdKey) {
+						stop();
+						this.handlers.trigger('onContextMenu', event);
+						return result;
+					}
 
 				default:
 					this.skipKeyPress = false;
@@ -1403,6 +1468,8 @@
 								this.handlers.trigger('onDataValidation');
 							} else if (t.targetInfo.idPivot && Asc.CT_pivotTableDefinition.prototype.asc_filterByCell) {
 								this.handlers.trigger("pivotFiltersClick", t.targetInfo.idPivot);
+							} else if (t.targetInfo.idPivotCollapse) {
+								this.handlers.trigger("pivotCollapseClick", t.targetInfo.idPivotCollapse);
 							} else if (t.targetInfo.idTableTotal) {
 								this.handlers.trigger("tableTotalClick", t.targetInfo.idTableTotal);
 							} else {
@@ -1672,7 +1739,14 @@
 				deltaY = event.detail;
 			} else if (undefined !== event.deltaY && 0 !== event.deltaY) {
 				// FF
-				deltaY = event.deltaY;
+				//ограничиваем шаг из-за некорректного значения deltaY после обновления FF
+				//TODO необходимо пересмотреть. нужны корректные значения и учетом системного шага.
+				var _maxDelta = 3;
+				if (AscCommon.AscBrowser.isMozilla && Math.abs(event.deltaY) > _maxDelta) {
+					deltaY = Math.sign(event.deltaY) * _maxDelta;
+				} else {
+					deltaY = event.deltaY;
+				}
 			}
             if (undefined !== event.deltaX && 0 !== event.deltaX) {
                 deltaX = event.deltaX;
@@ -1753,10 +1827,8 @@
 			var x = ((event.pageX * AscBrowser.zoom) >> 0) - offs.left;
 			var y = ((event.pageY * AscBrowser.zoom) >> 0) - offs.top;
 
-			if (AscBrowser.isRetina) {
-				x *= AscCommon.AscBrowser.retinaPixelRatio;
-				y *= AscCommon.AscBrowser.retinaPixelRatio;
-			}
+			x *= AscCommon.AscBrowser.retinaPixelRatio;
+			y *= AscCommon.AscBrowser.retinaPixelRatio;
 
 			return {x: x, y: y};
 		};

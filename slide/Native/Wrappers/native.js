@@ -1001,10 +1001,10 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                 var oDrawingObjects = logicDocument.Slides[logicDocument.CurPage].graphicObjects;
                 oDrawingObjects.changeCurrentState(new AscFormat.StartAddNewShape(oDrawingObjects, shapeProp.type));
 
-                var dsx = logicDocument.Height / 2.5 * aspect
-                var dsy = logicDocument.Height / 2.5
-                var dx  = logicDocument.Width * 0.5 - dsx * 0.5
-                var dy  = logicDocument.Height * 0.5 - dsy * 0.5
+                var dsx = logicDocument.GetHeightMM() / 2.5 * aspect;
+                var dsy = logicDocument.GetHeightMM() / 2.5;
+                var dx  = logicDocument.GetWidthMM() * 0.5 - dsx * 0.5;
+                var dy  = logicDocument.GetHeightMM() * 0.5 - dsy * 0.5;
 
                 logicDocument.OnMouseDown({}, dx, dy, logicDocument.CurPage);
                 logicDocument.OnMouseMove({IsLocked: true}, dx + dsx, dy + dsy, logicDocument.CurPage);
@@ -1252,12 +1252,12 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
         case 8001: //ASC_PRESENTATIONS_EVENT_TYPE_ALL_TRANSITIONS
         {
-            var aTimings = [];
+            var aTransitions = [];
             var slides = this.WordControl.m_oLogicDocument.Slides;
             for(var i = 0; i < slides.length; ++i){
-                aTimings.push(slides[i].timing.ToArray());
+                aTransitions.push(slides[i].transition.ToArray());
             }
-            _return = aTimings;
+            _return = aTransitions;
             break;
         }
 
@@ -1362,7 +1362,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
         case 8124: // ASC_PRESENTATIONS_EVENT_TYPE_SLIDE_TIMIN_GALL
         {
-            this.SlideTimingApplyToAll();
+            this.SlideTransitionApplyToAll();
             break;
         }
 

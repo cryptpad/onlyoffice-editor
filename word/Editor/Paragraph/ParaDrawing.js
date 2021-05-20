@@ -226,7 +226,13 @@ ParaDrawing.prototype.GetSearchElementId = function(bNext, bCurrent)
 
 	return null;
 };
+ParaDrawing.prototype.FindNextFillingForm = function(isNext, isCurrent)
+{
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.FindNextFillingForm === "function")
+		return this.GraphicObj.FindNextFillingForm(isNext, isCurrent);
 
+	return null;
+};
 ParaDrawing.prototype.CheckCorrect = function(){
 	if(!this.GraphicObj){
 		return false;
@@ -2981,9 +2987,9 @@ ParaDrawing.prototype.CheckDeletingLock = function()
 	var arrDocContents = this.GetAllDocContents();
 	for (var nIndex = 0, nCount = arrDocContents.length; nIndex < nCount; ++nIndex)
 	{
-		arrDocContents[nIndex].Set_ApplyToAll(true);
+		arrDocContents[nIndex].SetApplyToAll(true);
 		arrDocContents[nIndex].Document_Is_SelectionLocked(AscCommon.changestype_Remove);
-		arrDocContents[nIndex].Set_ApplyToAll(false);
+		arrDocContents[nIndex].SetApplyToAll(false);
 	}
 };
 ParaDrawing.prototype.GetAllFields = function(isUseSelection, arrFields)

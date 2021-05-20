@@ -344,3 +344,25 @@ CSdtBase.prototype.SetCurrent = function(isCurrent)
 CSdtBase.prototype.UpdatePlaceHolderTextPrForForm = function()
 {
 };
+/**
+ * Проверяем попадание в контейнер
+ * @param X
+ * @param Y
+ * @param nPageAbs
+ * @returns {boolean}
+ */
+CSdtBase.prototype.CheckHitInContentControlByXY = function(X, Y, nPageAbs)
+{
+	return false;
+};
+/**
+ * Ищем ближаюшую позицию, которая попадала бы в контейнер
+ * @param X
+ * @param Y
+ * @param nPageAbs
+ * @returns {?{X:number,Y:number}}
+ */
+CSdtBase.prototype.CorrectXYToHitIn = function(X, Y, nPageAbs)
+{
+	return null;
+};

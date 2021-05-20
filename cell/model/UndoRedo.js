@@ -2347,6 +2347,8 @@ function (window, undefined) {
 				cell.setNum(Val);
 			} else if (AscCH.historyitem_Cell_Angle == Type) {
 				cell.setAngle(Val);
+			} else if (AscCH.historyitem_Cell_Indent == Type) {
+				cell.setIndent(Val);
 			} else if (AscCH.historyitem_Cell_ChangeArrayValueFormat == Type) {
 				var multiText = [];
 				for (var i = 0, length = Val.length; i < length; ++i) {
@@ -2729,9 +2731,9 @@ function (window, undefined) {
 			worksheetView.model.autoFilters.reDrawFilter(from);
 		} else if (AscCH.historyitem_Worksheet_Rename == Type) {
 			if (bUndo) {
-				ws.setName(Data.from, true);
+				ws.setName(Data.from);
 			} else {
-				ws.setName(Data.to, true);
+				ws.setName(Data.to);
 			}
 		} else if (AscCH.historyitem_Worksheet_Hide == Type) {
 			if (bUndo) {
@@ -2936,6 +2938,17 @@ function (window, undefined) {
 			}
 			ws.deletePivotTable(Data.pivot);
 			ws.insertPivotTable(pivot, false, true);
+		} else if (AscCH.historyitem_Worksheet_PivotReplaceKeepRecords === Type) {
+			var data = bUndo ? Data.from : Data.to;
+			var pivot = data.getData();
+			pivot.init();
+			var oldPivot = ws.getPivotTableById(Data.pivot);
+			if (oldPivot) {
+				pivot.cacheDefinition.cacheRecords = oldPivot.cacheDefinition.cacheRecords;
+				pivot.replaceSlicersPivotCacheDefinition(oldPivot.cacheDefinition, pivot.cacheDefinition);
+				ws.deletePivotTable(Data.pivot);
+				ws.insertPivotTable(pivot, false, true);
+			}
 		} else if (AscCH.historyitem_Worksheet_SlicerAdd === Type) {
 			if (bUndo) {
 				ws.deleteSlicer(Data.to.name);
@@ -3145,6 +3158,8 @@ function (window, undefined) {
 				row.setStyle(Val);
 			} else if (AscCH.historyitem_RowCol_SetCellStyle == Type) {
 				row.setCellStyle(Val);
+			} else if (AscCH.historyitem_RowCol_Indent == Type) {
+				row.setIndent(Val);
 			}
 		}
 
@@ -3755,53 +3770,57 @@ function (window, undefined) {
 			return;
 		}
 		var fields;
-		if (Type < AscCH.historyitem_PivotTable_DataFieldSetName) {
-			fields = pivotTable.asc_getPivotFields();
-		} else {
+		if (AscCH.historyitem_PivotTable_DataFieldSetName === Type || Type === AscCH.historyitem_PivotTable_DataFieldSetSubtotal) {
 			fields = pivotTable.asc_getDataFields();
+		} else {
+			fields = pivotTable.asc_getPivotFields();
 		}
-		if (!fields || !fields[Data.index]) {
+		var index = AscCH.historyitem_PivotTable_PivotFieldVisible === Type ? Data.index.from : Data.index;
+		if (!fields || !fields[index]) {
 			return;
 		}
-		var field = fields[Data.index];
+		var field = fields[index];
 		pivotTable.stashCurReportRange();
 
 		var value = bUndo ? Data.from : Data.to;
 		switch (Type) {
 			case AscCH.historyitem_PivotTable_PivotFieldSetName:
-				field.asc_setName(value, pivotTable, Data.index);
+				field.asc_setName(value, pivotTable, index);
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldSetOutline:
-				field.asc_setOutline(value, pivotTable, Data.index);
+				field.asc_setOutline(value, pivotTable, index);
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldSetCompact:
-				field.asc_setCompact(value, pivotTable, Data.index);
+				field.asc_setCompact(value, pivotTable, index);
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldFillDownLabelsDefault:
-				field.setFillDownLabelsDefault(value, pivotTable, Data.index);
+				field.setFillDownLabelsDefault(value, pivotTable, index);
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldSetInsertBlankRow:
-				field.asc_setInsertBlankRow(value, pivotTable, Data.index);
+				field.asc_setInsertBlankRow(value, pivotTable, index);
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldSetDefaultSubtotal:
-				field.asc_setDefaultSubtotal(value, pivotTable, Data.index);
+				field.asc_setDefaultSubtotal(value, pivotTable, index);
 				field.checkSubtotal();
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldSetSubtotalTop:
-				field.asc_setSubtotalTop(value, pivotTable, Data.index);
+				field.asc_setSubtotalTop(value, pivotTable, index);
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldSetShowAll:
-				field.asc_setShowAll(value, pivotTable, Data.index);
+				field.asc_setShowAll(value, pivotTable, index);
+				break;
+			case AscCH.historyitem_PivotTable_PivotFieldVisible:
+				field.asc_setVisible(value, pivotTable, index, Data.index.to);
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldSetSubtotals:
-				field.setSubtotals(value, pivotTable, Data.index);
+				field.setSubtotals(value, pivotTable, index);
 				field.checkSubtotal();
 				break;
 			case AscCH.historyitem_PivotTable_DataFieldSetName:
-				field.asc_setName(value, pivotTable, Data.index);
+				field.asc_setName(value, pivotTable, index);
 				break;
 			case AscCH.historyitem_PivotTable_DataFieldSetSubtotal:
-				field.asc_setSubtotal(value, pivotTable, Data.index);
+				field.asc_setSubtotal(value, pivotTable, index);
 				break;
 		}
 	};
