@@ -87,7 +87,6 @@
     function CTimeNodeBase() {
         CBaseAnimObject.call(this);
         this.state = TIME_NODE_STATE_IDLE;
-        this.timingGraph = null;
 
         this.simpleDurationIdx = -1;
     }
@@ -363,37 +362,6 @@
             var aChildren = this.getChildrenTimeNodes();
             for(var nChild = 0; nChild < aChildren.length; ++nChild) {
                 aChildren[nChild].cancelEventsRecursive(oPlayer);
-            }
-        }
-    };
-    CTimeNodeBase.prototype.buildTimingGraph = function() {
-        this.timingGraph = null;
-        if(this.isTimingContainer()) {
-            this.timingGraph = new CTimingGraph(this);
-            var aChildren = this.getChildrenTimeNodes();
-            var nChild;
-            if(this.isSeq()) {
-                if(aChildren.length > 0) {
-                    this.timingGraph.checkEdge(this, aChildren[0], []);
-                    aChildren[0].buildTimingGraph();
-                    for(nChild = 0; nChild < aChildren.length - 1; ++nChild) {
-                        this.timingGraph.checkEdge(aChildren[nChild], aChildren[nChild + 1]);
-                        aChildren[nChild + 1].buildTimingGraph();
-                    }
-                }
-            }
-            else if(this.isPar()) {
-                for(nChild = 0; nChild < aChildren.length; ++nChild) {
-                    this.timingGraph.checkEdge(this, aChildren[nChild]);
-                    aChildren[nChild].buildTimingGraph();
-                }
-            }
-            else if(this.isExcl()) {
-                //todo: handle as par
-                for(nChild = 0; nChild < aChildren.length; ++nChild) {
-                    this.timingGraph.checkEdge(this, aChildren[nChild]);
-                    aChildren[nChild].buildTimingGraph();
-                }
             }
         }
     };
@@ -2475,7 +2443,6 @@
     CCond.prototype.getChildren = function() {
         return [this.tgtEl];
     };
-
     CCond.prototype.createDelaySimpleTrigger = function (oPlayer) {
         var oDelay = this.parseTime(this.delay);
         if(oDelay.isIndefinite()) {
@@ -2487,6 +2454,11 @@
             var oElapsedTime = oPlayer.getElapsedTime();
             return oElapsedTime.greaterOrEquals(oEnd);
         };
+    };
+    CCond.prototype.createEventSimpleTrigger = function (oPlayer, oEvent) {
+        return function () {
+            return oPlayer.checkExternalEvent(oEvent);
+        }
     };
     CCond.prototype.createSimpleTrigger = function(oPlayer) {
         switch (this.evt) {
@@ -2502,6 +2474,7 @@
                 break;
             }
             case COND_EVNT_ON_CLICK: {
+
                 break;
             }
             case COND_EVNT_ON_DBLCLICK: {
@@ -4833,14 +4806,37 @@
         oStream.SkipRecord();
     };
 
+    function CExternalEvent(type, target) {
+        this.type = type;
+        this.target = target;
+    }
+    CExternalEvent.prototype.isEqual = function(oEvent) {
+        if(!oEvent) {
+            return false;
+        }
+        return oEvent.type === this.type && this.target === oEvent.target;
+    };
+
     function CEventsProcessor(player) {
         this.player = player;
+        this.events = [];
     }
     CEventsProcessor.prototype.addEvent = function(oEvent) {
+        this.events.push(oEvent);
     };
     CEventsProcessor.prototype.clear = function() {
+        this.events.length = 0;
     };
     CEventsProcessor.prototype.onFrame = function() {
+        this.clear();
+    };
+    CEventsProcessor.prototype.checkExternalEvent = function(oEvent) {
+        for(var nEvent = 0; nEvent < this.events.length; ++nEvent) {
+            if(this.events[nEvent].isEqual(oEvent)) {
+                return true;
+            }
+        }
+        return false;
     };
 
     var PLAYER_STATE_IDLE = 0;
@@ -5165,9 +5161,9 @@
             return;
         }
         this.timer.onFrame();
-        this.eventsProcessor.onFrame();
         this.animationScheduler.onFrame();
         this.animationDrawer.onFrame();
+        this.eventsProcessor.onFrame();
     };
     CAnimationPlayer.prototype.getElapsedTicks = function() {
         return this.timer.getElapsedTicks();
@@ -5196,33 +5192,9 @@
         this.animationScheduler.cancelCallerEvents(oCaller);
     };
 
-    function CTimingGraphEdge(oBegin, oEnd) {
-        this.begin = oBegin;
-        this.end = oEnd;
-        this.conditions = [];
-    }
-    CTimingGraphEdge.prototype.addConditions = function(aConditions) {
-        this.conditions = this.conditions.concat(aConditions);
+    CAnimationPlayer.prototype.checkExternalEvent = function(oEvent) {
+        return this.eventsProcessor.checkExternalEvent(oEvent);
     };
-
-    function CTimingGraph(oRoot) {
-        this.root = oRoot;
-        this.edges = {};
-    }
-    CTimingGraph.prototype.checkEdge = function(oBegin, oEnd, aConditions) {
-        var sBeginId = oBegin.Id;
-        var sEndId = oEnd.Id;
-        if(!AscCommon.isRealObject(this.edges[sBeginId])) {
-            this.edges[sBeginId] = {};
-        }
-        if(!AscCommon.isRealObject(this.edges[sBeginId][sEndId])) {
-            this.edges[sBeginId][sEndId] = new CTimingGraphEdge(oBegin, oEnd);
-        }
-        var oEdge = this.edges[sBeginId][sEndId];
-        oEdge.addConditions(aConditions);
-    };
-
-
 
 
     var DEFAULT_SIMPLE_TRIGGER = function() {
@@ -5234,7 +5206,6 @@
     function StartTestAnimation() {
         var oSlide = editor.WordControl.m_oLogicDocument.Slides[0];
         var oRootNode = oSlide.timing.getTimingRootNode();
-        oRootNode.buildTimingGraph();
         var oPlayer = new AscFormat.CAnimationPlayer([oSlide.timing]);
         GLOBAL_PLAYER = oPlayer;
         oPlayer.timer.runOwnTimer();
@@ -5297,7 +5268,6 @@
     window['AscFormat'].CTxEl = CTxEl;
     window['AscFormat'].CWheel = CWheel;
     window['AscFormat'].CAttrName = CAttrName;
-    window['AscFormat'].CTimingGraph = CTimingGraph;
     window['AscFormat'].CAnimationTimer = CAnimationTimer;
     window['AscFormat'].CAnimationPlayer = CAnimationPlayer;
     window['AscFormat'].StartTestAnimation = StartTestAnimation;
