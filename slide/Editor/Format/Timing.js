@@ -2474,19 +2474,22 @@
                 break;
             }
             case COND_EVNT_ON_CLICK: {
-
+                return this.createEventSimpleTrigger(oPlayer, new CExternalEvent(COND_EVNT_ON_CLICK, this.tgtEl));
                 break;
             }
             case COND_EVNT_ON_DBLCLICK: {
+                return this.createEventSimpleTrigger(oPlayer, new CExternalEvent(COND_EVNT_ON_DBLCLICK, this.tgtEl));
                 break;
             }
             case COND_EVNT_ON_END: {
                 break;
             }
             case COND_EVNT_ON_MOUSEOUT: {
+                return this.createEventSimpleTrigger(oPlayer, new CExternalEvent(COND_EVNT_ON_MOUSEOUT, this.tgtEl));
                 break;
             }
             case COND_EVNT_ON_MOUSEOVER: {
+                return this.createEventSimpleTrigger(oPlayer, new CExternalEvent(COND_EVNT_ON_MOUSEOVER, this.tgtEl));
                 break;
             }
             case COND_EVNT_ON_NEXT: {
@@ -5191,9 +5194,32 @@
     CAnimationPlayer.prototype.cancelCallerEvent = function(oCaller) {
         this.animationScheduler.cancelCallerEvents(oCaller);
     };
-
     CAnimationPlayer.prototype.checkExternalEvent = function(oEvent) {
         return this.eventsProcessor.checkExternalEvent(oEvent);
+    };
+    CAnimationPlayer.prototype.onSpClick = function(oSp) {
+        if(!oSp) {
+            return;
+        }
+        this.eventsProcessor.addEvent(new CExternalEvent(COND_EVNT_ON_CLICK, oSp.getFormatId()));
+    };
+    CAnimationPlayer.prototype.onSpDblClick = function(oSp) {
+        if(!oSp) {
+            return;
+        }
+        this.eventsProcessor.addEvent(new CExternalEvent(COND_EVNT_ON_DBLCLICK, oSp.getFormatId()));
+    };
+    CAnimationPlayer.prototype.onSpMouseOver = function(oSp) {
+        if(!oSp) {
+            return;
+        }
+        this.eventsProcessor.addEvent(new CExternalEvent(COND_EVNT_ON_MOUSEOVER, oSp.getFormatId()));
+    };
+    CAnimationPlayer.prototype.onSpMouseOut = function(oSp) {
+        if(!oSp) {
+            return;
+        }
+        this.eventsProcessor.addEvent(new CExternalEvent(COND_EVNT_ON_MOUSEOUT, oSp.getFormatId()));
     };
 
 
@@ -5208,6 +5234,7 @@
         var oRootNode = oSlide.timing.getTimingRootNode();
         var oPlayer = new AscFormat.CAnimationPlayer([oSlide.timing]);
         GLOBAL_PLAYER = oPlayer;
+        oSlide.graphicObjects.animPlayer = oPlayer;
         oPlayer.timer.runOwnTimer();
         oPlayer.start();
     }

@@ -1612,6 +1612,7 @@ DrawingObjectsController.prototype =
             }
         }
         var b_is_selected_inline = this.selectedObjects.length === 1 && (this.selectedObjects[0].parent && this.selectedObjects[0].parent.Is_Inline && this.selectedObjects[0].parent.Is_Inline());
+        var oAnimPlayer = this.getAnimPlayer();
         if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
         {
             var selector = group ? group : this;
@@ -1666,6 +1667,13 @@ DrawingObjectsController.prototype =
                     this.handleMathDrawingDoubleClick(drawing, e, x, y, pageIndex);
                     return true;
                 }
+                if(oAnimPlayer) {
+                    oAnimPlayer.onSpDblClick(group || object);
+                }
+            }
+            if(oAnimPlayer) {
+                oAnimPlayer.onSpClick(group || object);
+                return;
             }
             if(object.canMove())
             {
@@ -1710,10 +1718,19 @@ DrawingObjectsController.prototype =
                     sCursorType = "pointer";
                 }
             }
+            if(oAnimPlayer) {
+                oAnimPlayer.onSpMouseOver(group || object);
+            }
             return {objectId: sId, cursorType: sCursorType, bMarker: bInSelect};
         }
     },
 
+    getAnimPlayer: function() {
+        if(this.animPlayer) {
+            return this.animPlayer;
+        }
+        return null;
+    },
 
     handleChartTitleMoveHit: function(title, e, x, y, drawing, group, pageIndex)
     {
