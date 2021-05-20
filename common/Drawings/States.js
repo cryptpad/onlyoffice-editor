@@ -289,6 +289,10 @@ NullState.prototype =
                 }
             }
             this.startTargetTextObject = AscFormat.getTargetTextObject(this.drawingObjects);
+            var oAnimPlayer = this.drawingObjects.getAnimPlayer && this.drawingObjects.getAnimPlayer();
+            if(oAnimPlayer) {
+                oAnimPlayer.onClick();
+            }
         }
         var ret;
         ret = this.drawingObjects.handleSlideComments(e, x, y, pageIndex);

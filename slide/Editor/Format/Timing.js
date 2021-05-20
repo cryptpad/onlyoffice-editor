@@ -77,12 +77,44 @@
         }
         return CAnimationTime.prototype.Unspecified;
     };
+    CBaseAnimObject.prototype.getNearestParentOrEqualTimeNode = function() {
+        var oCurObj = this;
+        while(oCurObj && !oCurObj.isTimeNode()) {
+            oCurObj = oCurObj.parent;
+        }
+        return oCurObj;
+    };
+    CBaseAnimObject.prototype.getRootNode = function() {
+        var oNode = this.getNearestParentOrEqualTimeNode();
+        if(oNode) {
+            return oNode.getRoot();
+        }
+        return null;
+    };
+    CBaseAnimObject.prototype.findTimeNodeById = function(id) {
+        var oRoot = this.getRootNode();
+        if(oRoot) {
+            return oRoot.getTimeNodeById(id);
+        }
+        return null;
+    };
 
     var TIME_NODE_STATE_IDLE = 0;
     var TIME_NODE_STATE_ACTIVE = 1;
     var TIME_NODE_STATE_FROZEN = 2;
     var TIME_NODE_STATE_FINISHED = 3;
 
+
+
+    var NODE_TYPE_AFTEREFFECT	 = 0;
+    var NODE_TYPE_AFTERGROUP	 = 1;
+    var NODE_TYPE_CLICKEFFECT	 = 2;
+    var NODE_TYPE_CLICKPAR		 = 3;
+    var NODE_TYPE_INTERACTIVESEQ = 4;
+    var NODE_TYPE_MAINSEQ		 = 5;
+    var NODE_TYPE_TMROOT		 = 6;
+    var NODE_TYPE_WITHEFFECT	 = 7;
+    var NODE_TYPE_WITHGROUP		 = 8;
 
     function CTimeNodeBase() {
         CBaseAnimObject.call(this);
@@ -150,7 +182,20 @@
         if(!oAttributes || !oAttributes.stCondLst) {
             return this.getDefaultTrigger(oPlayer);
         }
-        return oAttributes.stCondLst.createComplexTrigger(oPlayer);
+        var oTrigger = oAttributes.stCondLst.createComplexTrigger(oPlayer);
+        var nNodeType = this.getNodeType();
+        switch (nNodeType) {
+            case NODE_TYPE_CLICKEFFECT: {
+                var oEvent = new CExternalEvent(COND_EVNT_ON_CLICK, null);
+                oTrigger.addTrigger(
+                    function () {
+                        return oPlayer.checkExternalEvent(oEvent);
+                    }
+                );
+                break;
+            }
+        }
+        return oTrigger;
     };
     CTimeNodeBase.prototype.getDur = function() {
         return this.parseTime(this.getAttributesObject().dur);
@@ -160,6 +205,9 @@
     };
     CTimeNodeBase.prototype.getRepeatCount = function() {
          return this.parseTime(this.getAttributesObject().repeatCount);
+    };
+    CTimeNodeBase.prototype.getNodeType = function() {
+         return this.getAttributesObject().nodeType;
     };
     CTimeNodeBase.prototype.getImplicitDuration = function() {
         return 2000;//TODO:
@@ -289,9 +337,6 @@
             //    oPlayer.scheduleEvent(new CAnimEvent(this.getActivateChildrenCallback(oPlayer), this.getTimeTrigger(oPlayer, this.startTick), this));
             //}
         }
-    };
-    CTimeNodeBase.prototype.onSimpleTimeElapsed = function(oPlayer) {
-
     };
     CTimeNodeBase.prototype.getInfiniteActivateChildrenCallback = function(oPlayer) {
         var fActivateCallback = this.getActivateChildrenCallback(oPlayer);
@@ -434,6 +479,22 @@
         for(var nChild = 0; nChild < aChildern.length; ++nChild) {
             aChildern[nChild].traverseActive(fCallback);
         }
+    };
+    CTimeNodeBase.prototype.getTimeNodeById = function(id) {
+        if(this.getAttributesObject().id === id) {
+            return this;
+        }
+        if(this.isTimingContainer()) {
+            var aChildern = this.getChildrenTimeNodes();
+            var oNode = null;
+            for(var nChild = 0; nChild < aChildern.length; ++nChild) {
+                oNode = aChildern[nChild].getTimeNodeById(id);
+                if(oNode) {
+                    return oNode;
+                }
+            }
+        }
+        return null;
     };
 
     function CAnimationTime(val) {
@@ -2455,7 +2516,7 @@
             return oElapsedTime.greaterOrEquals(oEnd);
         };
     };
-    CCond.prototype.createEventSimpleTrigger = function (oPlayer, nType) {
+    CCond.prototype.createExternalEventSimpleTrigger = function (oPlayer, nType) {
         var oThis = this;
         return (function() {
             var nSpId;
@@ -2470,12 +2531,22 @@
             var oEvent = new CExternalEvent(nType, nSpId);
             var oEnd = null;
             var oDelay = oThis.parseTime(oThis.delay);
+            return oThis.createEventTrigger(oPlayer, function() {
+                return oPlayer.checkExternalEvent(oEvent);
+            })
+        })();
+    };
+    CCond.prototype.createEventTrigger = function (oPlayer, fEvent) {
+        var oThis = this;
+        return (function() {
+            var oEnd = null;
+            var oDelay = oThis.parseTime(oThis.delay);
             return function () {
                 if(oEnd) {
                     var oElapsedTime = oPlayer.getElapsedTime();
                     return oElapsedTime.greaterOrEquals(oEnd);
                 }
-                if(oPlayer.checkExternalEvent(oEvent)) {
+                if(fEvent()) {
                     if(oDelay.isIndefinite() || oDelay.getVal() === 0) {
                         return true;
                     }
@@ -2486,6 +2557,28 @@
                 }
             }
         })();
+    };
+    CCond.prototype.createTimeNodeTrigger = function(fTimeNodeCheck) {
+        var oTimeNode = null;
+        if(this.tn !== null) {
+            oTimeNode = this.findTimeNodeById(this.tn);
+        }
+        if(!oTimeNode) {
+            return DEFAULT_NEVER_TRIGGER;
+        }
+        return function () {
+            return fTimeNodeCheck(oTimeNode);
+        };
+    };
+    CCond.prototype.createOnBeginTrigger = function(oPlayer) {
+        return this.createEventTrigger(oPlayer, function (oTimeNode) {
+            return oTimeNode.isActive();
+        });
+    };
+    CCond.prototype.createOnEndTrigger = function(oPlayer) {
+        return this.createEventTrigger(oPlayer, function (oTimeNode) {
+            return oTimeNode.isFinished();
+        });
     };
     CCond.prototype.createSimpleTrigger = function(oPlayer) {
         switch (this.evt) {
@@ -2498,25 +2591,27 @@
                 break;
             }
             case COND_EVNT_ON_BEGIN: {
+                return this.createOnBeginTrigger(oPlayer);
                 break;
             }
             case COND_EVNT_ON_CLICK: {
-                return this.createEventSimpleTrigger(oPlayer, COND_EVNT_ON_CLICK);
+                return this.createExternalEventSimpleTrigger(oPlayer, COND_EVNT_ON_CLICK);
                 break;
             }
             case COND_EVNT_ON_DBLCLICK: {
-                return this.createEventSimpleTrigger(oPlayer, COND_EVNT_ON_DBLCLICK);
+                return this.createExternalEventSimpleTrigger(oPlayer, COND_EVNT_ON_DBLCLICK);
                 break;
             }
             case COND_EVNT_ON_END: {
+                return this.createOnEndTrigger(oPlayer);
                 break;
             }
             case COND_EVNT_ON_MOUSEOUT: {
-                return this.createEventSimpleTrigger(oPlayer, COND_EVNT_ON_MOUSEOUT);
+                return this.createExternalEventSimpleTrigger(oPlayer, COND_EVNT_ON_MOUSEOUT);
                 break;
             }
             case COND_EVNT_ON_MOUSEOVER: {
-                return this.createEventSimpleTrigger(oPlayer, COND_EVNT_ON_MOUSEOVER);
+                return this.createExternalEventSimpleTrigger(oPlayer, COND_EVNT_ON_MOUSEOVER);
                 break;
             }
             case COND_EVNT_ON_NEXT: {
@@ -5069,7 +5164,6 @@
 
     function CAnimationDrawer(player) {
         this.player = player;
-        this.oParamsMap = {};
     }
     CAnimationDrawer.prototype.onFrame = function() {
         var oThis = this;
@@ -5145,16 +5239,16 @@
                     oDrawing = oMap[key];
                     oDrawing.recalculateTransform();
                     oDrawing.localTransform = oDrawing.transform;
-                    var  fRecursiveRecalcTransfrom = function(aSpTree) {
+                    var  fRecursiveRecalcTransform = function(aSpTree) {
                         if (Array.isArray(aSpTree)) {
                             for (var i = 0; i < aSpTree.length; ++i) {
                                 aSpTree[i].recalculateTransform();
                                 aSpTree[i].localTransform = aSpTree[i].transform;
-                                fRecursiveRecalcTransfrom(aSpTree[i].spTree);
+                                fRecursiveRecalcTransform(aSpTree[i].spTree);
                             }
                         }
-                    }
-                    fRecursiveRecalcTransfrom(oDrawing.spTree);
+                    };
+                    fRecursiveRecalcTransform(oDrawing.spTree);
                 }
             }
         }
@@ -5223,6 +5317,9 @@
     };
     CAnimationPlayer.prototype.checkExternalEvent = function(oEvent) {
         return this.eventsProcessor.checkExternalEvent(oEvent);
+    };
+    CAnimationPlayer.prototype.onClick = function() {
+        this.eventsProcessor.addEvent(new CExternalEvent(COND_EVNT_ON_CLICK, null));
     };
     CAnimationPlayer.prototype.onSpClick = function(oSp) {
         if(!oSp) {
