@@ -171,6 +171,7 @@
             if(!oCurParent) {
                 break;
             }
+            oCurElem = oCurParent;
         }
         return oCurElem;
     };
