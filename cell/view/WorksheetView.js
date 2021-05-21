@@ -16271,6 +16271,10 @@
 		var c = this._getVisibleCell(col, row);
 		var isMerged = ct.flags.isMerged(), range, isWrapped = ct.flags.wrapText;
 
+		if (isMerged) {
+			range = ct.flags.merged;
+		}
+
 		var colL = isMerged ? range.c1 : Math.max(col, col - ct.sideL);
 		var colR = isMerged ? Math.min(range.c2, this.nColsCount - 1) : Math.min(col, col + ct.sideR);
 		var rowT = isMerged ? range.r1 : row;
