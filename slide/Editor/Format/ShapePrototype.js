@@ -609,7 +609,7 @@ CShape.prototype.recalculateContent2 = function()
             if(!this.isEmptyPlaceholder())
             {
                 if (this.isObjectInSmartArt() && this.getPoint().prSet.phldr) {
-                    this.getPoint().prSet.phldr = false;
+                    this.getPoint().prSet.setPhldr(false);
                     this.txBody.content2 = null;
                 }
                 return;

@@ -6365,6 +6365,9 @@
     Drawing.prototype.getName = function () {
       return 'Drawing';
     }
+    Drawing.prototype.updateCoordinatesAfterInternalResize = function () {
+
+    }
 
 
     changesFactory[AscDFH.historyitem_BackdropNormDx] = CChangeObject;
@@ -7307,6 +7310,10 @@
     }
     SmartArt.prototype.canRotate = function () {
       return false;
+    }
+
+    SmartArt.prototype.updateCoordinatesAfterInternalResize = function () {
+
     }
 
 

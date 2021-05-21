@@ -255,6 +255,19 @@ function MoveShapeImageTrack(originalObject)
         }
 
         if (this.originalObject.isObjectInSmartArt()) {
+            var _rot = this.originalObject.rot;
+            var isSwapBounds = ((_rot >= Math.PI / 4) && (_rot <= 3 * Math.PI / 4)) || ((_rot >= 5 * Math.PI / 4) && (_rot <= 7 * Math.PI / 4));
+            if (isSwapBounds) {
+                var l = this.x + (this.originalObject.extX - this.originalObject.extY) / 2;
+                var t = this.y + (this.originalObject.extY - this.originalObject.extX) / 2;
+                var b = t + this.originalObject.extX;
+                var r = l + this.originalObject.extY;
+            } else {
+                l = this.x;
+                t = this.y;
+                b = t + this.originalObject.extY;
+                r = l + this.originalObject.extX;
+            }
             // var _rot = this.originalObject.rot;
             //
             // if (((_rot >= Math.PI / 4) && (_rot <= 3 * Math.PI / 4)) || ((_rot >= 5 * Math.PI / 4) && (_rot <= 7 * Math.PI / 4))) {
@@ -264,17 +277,17 @@ function MoveShapeImageTrack(originalObject)
             //
             // }
 
-            if (this.x < 0) {
-                this.x = 0;
+            if (l < 0) {
+                this.x = this.x - l;
             }
-            if (this.y < 0) {
-                this.y = 0.000001; // TODO: fix this
+            if (t < 0) {
+                this.y = this.y - t + 0.00001; // TODO: fix this
             }
-            if (this.originalObject.group && (this.originalObject.group.x + this.originalObject.group.extX < this.x + this.originalObject.extX)) {
-                this.x = this.originalObject.group.x + this.originalObject.group.extX - this.originalObject.extX;
+            if (this.originalObject.group && (this.originalObject.group.extX < r)) {
+                this.x = this.originalObject.group.extX - this.originalObject.bounds.w;
             }
-            if (this.originalObject.group && (this.originalObject.group.y + this.originalObject.group.extY < this.y + this.originalObject.extY)) {
-                this.y = this.originalObject.group.y + this.originalObject.group.extY - this.originalObject.extY;
+            if (this.originalObject.group && (this.originalObject.group.extY < b)) {
+                this.y = this.originalObject.group.extY - (b - t);
             }
         }
         var scale_coefficients, ch_off_x, ch_off_y;
