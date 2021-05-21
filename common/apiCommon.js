@@ -1642,17 +1642,29 @@
 	asc_ChartSettings.prototype.getSeparator = function() {
 		return this.separator;
 	};
+	asc_ChartSettings.prototype.sendErrorOnChangeType = function(nType) {
+		var oApi = Asc.editor || editor;
+		if(oApi) {
+			oApi.sendEvent("asc_onError", nType, Asc.c_oAscError.Level.NoCritical);
+			if(oApi.UpdateInterfaceState) {
+				oApi.UpdateInterfaceState();
+			}
+		}
+	};
 	asc_ChartSettings.prototype.changeType = function(type) {
 		if(this.chartSpace) {
 			if(type === Asc.c_oAscChartTypeSettings.stock) {
 				if(!this.chartSpace.canChangeToStockChart()){
-					var oApi = Asc.editor || editor;
-					if(oApi) {
-						oApi.sendEvent("asc_onError", Asc.c_oAscError.ID.StockChartError, Asc.c_oAscError.Level.NoCritical);
-						if(oApi.UpdateInterfaceState) {
-							oApi.UpdateInterfaceState();
-						}
-					}
+					this.sendErrorOnChangeType(Asc.c_oAscError.ID.StockChartError);
+					return false;
+				}
+			}
+			if(type === Asc.c_oAscChartTypeSettings.comboCustom
+				|| type === Asc.c_oAscChartTypeSettings.comboAreaBar
+				|| type === Asc.c_oAscChartTypeSettings.comboBarLine
+				|| type === Asc.c_oAscChartTypeSettings.comboBarLineSecondary) {
+				if(!this.chartSpace.canChangeToComboChart()){
+					this.sendErrorOnChangeType(Asc.c_oAscError.ID.ComboSeriesError);
 					return false;
 				}
 			}
@@ -1665,6 +1677,12 @@
 					oController.checkSelectedObjectsAndCallback(function() {
 						oChartSpace.changeChartType(type);
 						oThis.updateChart();
+						var oApi = Asc.editor || editor;
+						if(oApi) {
+							if(oApi.UpdateInterfaceState) {
+								oApi.UpdateInterfaceState();
+							}
+						}
 					}, [], false, 0, []);
 				}
 			}

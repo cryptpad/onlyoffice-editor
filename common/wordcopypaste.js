@@ -232,6 +232,7 @@ function CopyProcessor(api, onlyBinaryCopy)
     this.aFootnoteReference = [];
 	this.oRoot = new CopyElement("root");
     this.listNextNumMap = [];
+    this.instructionHyperlinkStart = null;
 }
 CopyProcessor.prototype =
 {
@@ -328,8 +329,17 @@ CopyProcessor.prototype =
             //if(Def_pPr.Spacing.After != Item_pPr.Spacing.After)
             apPr.push("margin-bottom:" + (Item_pPr.Spacing.After * g_dKoef_mm_to_pt) + "pt");
             //Shd
-            if (null != Item_pPr.Shd && c_oAscShdNil !== Item_pPr.Shd.Value && (null != Item_pPr.Shd.Color || null != Item_pPr.Shd.Unifill))
-                apPr.push("background-color:" + this.RGBToCSS(Item_pPr.Shd.Color, Item_pPr.Shd.Unifill));
+            if (null != Item_pPr.Shd && c_oAscShdNil !== Item_pPr.Shd.Value && (null != Item_pPr.Shd.Color || null != Item_pPr.Shd.Unifill)){
+				var _shdColor = Item_pPr.Shd.GetSimpleColor && Item_pPr.Shd.GetSimpleColor(this.oDocument.Get_Theme(), this.oDocument.Get_ColorMap());
+				//TODO проверить сохранение в epub
+				//todo проверить и убрать else, всегда использовать GetSimpleColor
+				if (_shdColor) {
+					_shdColor = this.RGBToCSS(_shdColor);
+				} else {
+					_shdColor = this.RGBToCSS(Item_pPr.Shd.Color, Item_pPr.Shd.Unifill);
+				}
+            	apPr.push("background-color:" + _shdColor);
+			}
             //Tabs
             if(Item_pPr.Tabs.Get_Count() > 0)
             {
@@ -538,6 +548,15 @@ CopyProcessor.prototype =
 				oTarget.addChild(oLink);
 				this.aFootnoteReference.push(ParaItem.Footnote);
 				break;
+			case para_FieldChar:
+				if (ParaItem.ComplexField && ParaItem.ComplexField.Instruction && ParaItem.ComplexField.Instruction instanceof CFieldInstructionHYPERLINK) {
+					if (fldchartype_Begin === ParaItem.CharType && ParaItem.ComplexField.Instruction.BookmarkName) {
+						this.instructionHyperlinkStart = "#" + ParaItem.ComplexField.Instruction.BookmarkName;
+					} else if (fldchartype_End === ParaItem.CharType) {
+						this.instructionHyperlinkStart = null;
+					}
+				}
+				break;
         }
     },
     CopyRun: function (Item, oTarget) {
@@ -546,24 +565,48 @@ CopyProcessor.prototype =
 		}
     },
     CopyRunContent: function (Container, oTarget, bOmitHyperlink) {
-		for (var i = 0; i < Container.Content.length; i++) {
+		var bookmarksStartMap = {};
+		var bookmarkPrviousTargetMap = {};
+		var bookmarkLevel = 0;
+
+		var closeBookmarks = function (_level) {
+			var tempTarget = bookmarkPrviousTargetMap[_level];
+			if (tempTarget) {
+				tempTarget.addChild(oTarget);
+				oTarget = tempTarget;
+			}
+		};
+
+
+		var realTarget;
+		var oHyperlink;
+    	for (var i = 0; i < Container.Content.length; i++) {
 			var item = Container.Content[i];
 			if (para_Run === item.Type) {
-				//отдельная обработка для сносок, добавляем внутри данные
-				if (item.Content && item.Content.length === 1 && item.Content[0] && item.Content[0].Type === para_FootnoteReference) {
-					this.CopyRun(item, oTarget);
-				} else {
-					var oSpan = new CopyElement("span");
-					this.CopyRun(item, oSpan);
-					if (!oSpan.isEmptyChild()) {
-						this.parse_para_TextPr(item.Get_CompiledTextPr(), oSpan);
-						oTarget.addChild(oSpan);
-					}
+				var oSpan = new CopyElement("span");
+				this.CopyRun(item, oSpan);
+
+				if (this.instructionHyperlinkStart && !realTarget) {
+					oHyperlink = new CopyElement("a");
+					oHyperlink.oAttributes["href"] = CopyPasteCorrectString(this.instructionHyperlinkStart);
+					oTarget.addChild(oHyperlink);
+					realTarget = oTarget;
+					oTarget = oHyperlink;
+					bOmitHyperlink = true;
+				} else if (realTarget && !this.instructionHyperlinkStart) {
+					oTarget = realTarget;
+					bOmitHyperlink = false;
+					realTarget = null;
+				}
+
+				if (!oSpan.isEmptyChild()) {
+					this.parse_para_TextPr(item.Get_CompiledTextPr(), oSpan);
+					oTarget.addChild(oSpan);
 				}
 			} else if (para_Hyperlink === item.Type) {
 				if (!bOmitHyperlink) {
-					var oHyperlink = new CopyElement("a");
-					var sValue = item.GetValue();
+					oHyperlink = new CopyElement("a");
+					var sValue = item.IsAnchor() ? "#" + item.Anchor : item.GetValue();
 					var sToolTip = item.GetToolTip();
 					oHyperlink.oAttributes["href"] = CopyPasteCorrectString(sValue);
 					oHyperlink.oAttributes["title"] = CopyPasteCorrectString(sToolTip);
@@ -589,8 +632,39 @@ CopyProcessor.prototype =
 			} else if (para_InlineLevelSdt === item.Type) {
 				this.CopyRunContent(item, oTarget);
 			} else if (para_Field === item.Type) {
+
 				this.CopyRunContent(item, oTarget);
+			} else if (para_Bookmark === item.Type) {
+				//для внутренних ссылок
+				//если конец ссылки находится в тепкущем параграфе, то закрываем тэг ссылки здесь
+				//если он находится в следующем параграфе, то закрываем после того, как прошлись по всему содержимому данного параграфа
+				//ms в данном случае берёт только первый элемент
+				//чтобы заранее не проходиться по всему контенту параграфа в поисках закрытия bookmark - закрываю его после всего цикла
+				//на следующий параграф не переносим
+				if (item.Start) {
+					bookmarkLevel++;
+					bookmarksStartMap[item.BookmarkId] = 1;
+					var oBookmark = new CopyElement("a");
+					var name = item.GetBookmarkName();
+					oBookmark.oAttributes["name"] = CopyPasteCorrectString(name);
+					bookmarkPrviousTargetMap[bookmarkLevel] = oTarget;
+					oTarget = oBookmark;
+				} else if (bookmarksStartMap[item.BookmarkId]) {
+					bookmarksStartMap[item.BookmarkId] = 0;
+					closeBookmarks(bookmarkLevel);
+					bookmarkLevel--;
+				}
 			}
+		}
+
+		if (bookmarkLevel > 0) {
+    		while(bookmarkLevel > 0) {
+				closeBookmarks(bookmarkLevel);
+				bookmarkLevel--;
+			}
+		}
+		if (this.instructionHyperlinkStart) {
+			this.instructionHyperlinkStart = null;
 		}
     },
     CopyParagraph : function(oDomTarget, Item, selectedAll, nextElem)

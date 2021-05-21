@@ -4407,6 +4407,10 @@ var editor;
     this.wb.removeHyperlink();
   };
 
+  spreadsheet_api.prototype.asc_getFullHyperlinkLength = function(str) {
+    return window["AscCommonExcel"].getFullHyperlinkLength(str);
+  };
+
     spreadsheet_api.prototype.asc_cleanSelectRange = function () {
         this.wb._onCleanSelectRange();
     };
@@ -5906,6 +5910,8 @@ var editor;
   prot["asc_selectFunction"] = prot.asc_selectFunction;
   prot["asc_insertHyperlink"] = prot.asc_insertHyperlink;
   prot["asc_removeHyperlink"] = prot.asc_removeHyperlink;
+  prot["asc_getFullHyperlinkLength"] = prot.asc_getFullHyperlinkLength;
+
 
   prot["asc_cleanSelectRange"] = prot.asc_cleanSelectRange;
   prot["asc_insertInCell"] = prot.asc_insertInCell;

@@ -73,8 +73,8 @@ function Paragraph(DrawingDocument, Parent, bFromPresentation)
     };
     this.Pr = new CParaPr();
 
-    // Рассчитанное положение рамки
-    this.CalculatedFrame = new CCalculatedFrame();
+    // Рассчитанное положение рамки (CCalculatedFrame | null)
+    this.CalculatedFrame = null;
 
     // Данный TextPr будет относится только к символу конца параграфа
     this.TextPr = new ParaTextPr();
@@ -11200,7 +11200,7 @@ Paragraph.prototype.Document_Get_AllFontNames = function(AllFonts)
  */
 Paragraph.prototype.Document_UpdateRulersState = function()
 {
-	if (this.CalculatedFrame)
+	if (this.IsRecalculated() && this.CalculatedFrame)
 	{
 		var oFrame = this.CalculatedFrame;
 		this.Parent.DrawingDocument.Set_RulerState_Paragraph({
@@ -11212,15 +11212,9 @@ Paragraph.prototype.Document_UpdateRulersState = function()
 			Frame     : this
 		}, false);
 	}
-	else
+	else if (this.Parent instanceof CDocument && this.LogicDocument)
 	{
-		if (this.Parent instanceof CDocument)
-		{
-			if(this.LogicDocument)
-			{
-				this.LogicDocument.Document_UpdateRulersStateBySection();
-			}
-		}
+		this.LogicDocument.Document_UpdateRulersStateBySection();
 	}
 };
 /**
@@ -15786,6 +15780,10 @@ Paragraph.prototype.CheckSignatureLinesOnAdd = function()
  */
 Paragraph.prototype.ProcessComplexFields = function()
 {
+	if(!this.bFromDocument)
+	{
+		return;
+	}
 	var oComplexFields = new CParagraphComplexFieldsInfo();
 	oComplexFields.ResetPage(this, 0);
 
