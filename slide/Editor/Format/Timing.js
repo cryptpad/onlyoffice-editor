@@ -305,11 +305,14 @@
         return null;
     };
     CTimeNodeBase.prototype.finishCallback = function(oPlayer) {
-        this.setState(TIME_NODE_STATE_FINISHED);
         var aChildren = this.getChildrenTimeNodes();
         for(var nChild = 0; nChild < aChildren.length; ++nChild) {
             aChildren[nChild].finishCallback(oPlayer);
         }
+        this.setFinished(oPlayer);
+    };
+    CTimeNodeBase.prototype.setFinished = function(oPlayer) {
+        this.setState(TIME_NODE_STATE_FINISHED);
         oPlayer.cancelCallerEvent(this);
         var oParentNode = this.getParentTimeNode();
         if(oParentNode) {
@@ -325,31 +328,6 @@
     CTimeNodeBase.prototype.scheduleChildrenActivation = function(oPlayer) {
         if(this.isTimingContainer()) {
             oPlayer.scheduleEvent(new CAnimEvent(this.getActivateChildrenCallback(oPlayer), this.getTimeTrigger(oPlayer, this.startTick), this));
-            //
-            //var oTime = new CAnimationTime(this.simpleDuration);
-            //var oRepeatCount = new CAnimationTime(this.repeatCount);
-            //if(oTime.isDefinite() && oRepeatCount.isDefinite()) {
-            //    var nCount = this.repeatCount.getVal() / 1000 + 0.5 >> 0;
-            //    for(var nRepeat = 0; nRepeat < nCount; ++nRepeat) {
-            //        oPlayer.scheduleEvent(new CAnimEvent(this.getActivateChildrenCallback(oPlayer), this.getTimeTrigger(oPlayer, this.startTick + nRepeat*this.simpleDuration.getVal()), this));
-            //    }
-            //}
-            //else {
-            //    oPlayer.scheduleEvent(new CAnimEvent(this.getActivateChildrenCallback(oPlayer), this.getTimeTrigger(oPlayer, this.startTick), this));
-            //}
-        }
-    };
-    CTimeNodeBase.prototype.getInfiniteActivateChildrenCallback = function(oPlayer) {
-        var fActivateCallback = this.getActivateChildrenCallback(oPlayer);
-        var oThis = this;
-        return function () {
-            fActivateCallback();
-            oPlayer.scheduleEvent(new CAnimEvent(
-                function() {
-                    oThis.cancelChildrenEventsRecursive(oPlayer);
-                    oThis.scheduleChildrenActivation(oPlayer);
-                }, oThis.getTimeTrigger(oPlayer, oPlayer.getElapsedTime() + oThis.simpleDuration.getVal()), oThis
-            ));
         }
     };
     CTimeNodeBase.prototype.getActivateChildrenCallback = function(oPlayer) {
@@ -359,26 +337,6 @@
         }
     };
     CTimeNodeBase.prototype.activateChildrenCallback = function(oPlayer) {
-        var oThis = this;
-        var aChildren = oThis.getChildrenTimeNodes();
-        var nChild;
-        if(oThis.isPar()) {
-            for(nChild = 0; nChild < aChildren.length; ++nChild) {
-                aChildren[nChild].scheduleStart(oPlayer);
-            }
-        }
-        else if(oThis.isExcl()) {
-            //Todo: Activate a as for par by now. Rework.
-            for(nChild = 0; nChild < aChildren.length; ++nChild) {
-                aChildren[nChild].scheduleStart(oPlayer);
-            }
-        }
-        else if(oThis.isSeq()) {
-            //Activate first element
-            if(aChildren.length > 0) {
-                aChildren[0].scheduleStart(oPlayer);
-            }
-        }
     };
     CTimeNodeBase.prototype.getActivateCallback = function(oPlayer) {
         var oThis = this;
@@ -435,14 +393,31 @@
             var aChildren = this.getChildrenTimeNodes();
             var nChild;
             if(this.isPar()) {
-                if(this.repeatCount.isSpecified() && this.simpleDurationIdx + 1 < this.repeatCount.getVal() / 1000) {
-                    for(nChild = 0; nChild < aChildren.length; ++nChild) {
-                        if(!aChildren[nChild].isFinished()) {
-                            break;
-                        }
+                for(nChild = 0; nChild < aChildren.length; ++nChild) {
+                    if(!aChildren[nChild].isFinished()) {
+                        break;
                     }
-                    if(nChild === aChildren.length) {
+                }
+                if(nChild === aChildren.length) {
+                    if(this.repeatCount.isSpecified() && this.simpleDurationIdx + 1 < this.repeatCount.getVal() / 1000) {
                         this.scheduleSimpleDuration(++this.simpleDurationIdx, oPlayer);
+                    }
+                    else {
+                        this.setFinished(oPlayer);
+                    }
+                }
+            }
+            else if(this.isSeq()) {
+                var nChildIdx = this.getChildNodeIdx(oChild);
+                if(nChildIdx < aChildren.length - 1) {
+                    aChildren[nChildIdx + 1].scheduleStart(oPlayer);
+                }
+                else {
+                    if(this.repeatCount.isSpecified() && this.simpleDurationIdx + 1 < this.repeatCount.getVal() / 1000) {
+                        this.scheduleSimpleDuration(++this.simpleDurationIdx, oPlayer);
+                    }
+                    else {
+                        this.setFinished(oPlayer);
                     }
                 }
             }
@@ -2508,10 +2483,16 @@
     CCond.prototype.createDelaySimpleTrigger = function (oPlayer) {
         var oDelay = this.parseTime(this.delay);
         if(oDelay.isIndefinite()) {
-            return DEFAULT_SIMPLE_TRIGGER;
+            return null;
         }
         var oStart = oPlayer.getElapsedTime();
-        var oEnd = oStart.plus(oDelay);
+        var oEnd;
+        if(oDelay.isUnspecified()) {
+            oEnd = oStart.copy();
+        }
+        else {
+            oEnd = oStart.plus(oDelay);
+        }
         return function () {
             var oElapsedTime = oPlayer.getElapsedTime();
             return oElapsedTime.greaterOrEquals(oEnd);
@@ -2530,7 +2511,6 @@
                 return DEFAULT_NEVER_TRIGGER;
             }
             var oEvent = new CExternalEvent(nType, nSpId);
-            var oEnd = null;
             var oDelay = oThis.parseTime(oThis.delay);
             return oThis.createEventTrigger(oPlayer, function() {
                 return oPlayer.checkExternalEvent(oEvent);
@@ -2565,7 +2545,7 @@
             oTimeNode = this.findTimeNodeById(this.tn);
         }
         if(!oTimeNode) {
-            return DEFAULT_NEVER_TRIGGER;
+            return null;
         }
         return this.createEventTrigger(oPlayer, function() {
             return fTimeNodeCheck(oTimeNode);
@@ -2580,6 +2560,51 @@
         return this.createTimeNodeTrigger(oPlayer, function (oTimeNode) {
             return oTimeNode.isFinished();
         });
+    };
+    CCond.prototype.createOnNextTrigger = function(oPlayer) {
+
+    };
+    CCond.prototype.createOnPrevTrigger = function(oPlayer) {
+        var oTimeNode = this.getNearestParentOrEqualTimeNode();
+        if(oTimeNode && oTimeNode.isSeq()) {
+            var oTrigger = null;
+            return function () {
+                if(!oTrigger) {
+                    var nActiveIdx = oTimeNode.getActiveChildIdx();
+                    if(nActiveIdx > 0) {
+                        var aChildren = oTimeNode.getChildrenTimeNodes();
+                        oTrigger = aChildren[nActiveIdx - 1].getStartTrigger();
+                    }
+                }
+                if(oTrigger) {
+                    return oTrigger.isFired()
+                }
+                return false;
+            }
+        }
+        return DEFAULT_SIMPLE_TRIGGER;
+    };
+    CCond.prototype.createOnNextTrigger = function(oPlayer) {
+        var oTimeNode = this.getNearestParentOrEqualTimeNode();
+        if(oTimeNode && oTimeNode.isSeq()) {
+            var oTrigger = null;
+            return function () {
+                if(!oTrigger) {
+                    var nActiveIdx = oTimeNode.getActiveChildIdx();
+                    if(nActiveIdx > -1) {
+                        var aChildren = oTimeNode.getChildrenTimeNodes();
+                        if(nActiveIdx < aChildren.length - 1) {
+                            oTrigger = aChildren[nActiveIdx + 1].getStartTrigger();
+                        }
+                    }
+                }
+                if(oTrigger) {
+                    return oTrigger.isFired()
+                }
+                return false;
+            }
+        }
+        return DEFAULT_SIMPLE_TRIGGER;
     };
     CCond.prototype.createSimpleTrigger = function(oPlayer) {
         switch (this.evt) {
@@ -2616,9 +2641,11 @@
                 break;
             }
             case COND_EVNT_ON_NEXT: {
+                return this.createOnNextTrigger(oPlayer);
                 break;
             }
             case COND_EVNT_ON_PREV: {
+                return this.createOnPrevTrigger(oPlayer);
                 break;
             }
             case COND_EVNT_ON_STOPAUDIO: {
@@ -4447,13 +4474,29 @@
         this.cTn = null;
     }
     InitClass(CPar, CTimeNodeContainer, AscDFH.historyitem_type_Par);
+    CPar.prototype.activateChildrenCallback = function(oPlayer) {
+        var oThis = this;
+        var aChildren = oThis.getChildrenTimeNodes();
+        var nChild;
+        for(nChild = 0; nChild < aChildren.length; ++nChild) {
+            aChildren[nChild].scheduleStart(oPlayer);
+        }
+    };
 
     function CExcl() {//par, excl
         CTimeNodeContainer.call(this);
         this.cTn = null;
     }
     InitClass(CExcl, CTimeNodeContainer, AscDFH.historyitem_type_Excl);
-
+    CExcl.prototype.activateChildrenCallback = function(oPlayer) {
+        //TODO:
+        var oThis = this;
+        var aChildren = oThis.getChildrenTimeNodes();
+        var nChild;
+        for(nChild = 0; nChild < aChildren.length; ++nChild) {
+            aChildren[nChild].scheduleStart(oPlayer);
+        }
+    };
 
 
     changesFactory[AscDFH.historyitem_SeqNextCondLst] = CChangeObject;
@@ -4548,12 +4591,71 @@
     CSeq.prototype.getChildren = function() {
         return [this.prevCondLst, this.nextCondLst, this.cTn];
     };
+    CSeq.prototype.activateChildrenCallback = function(oPlayer) {
+        var oThis = this;
+        var aChildren = oThis.getChildrenTimeNodes();
 
+        if(aChildren.length > 0) {
+            aChildren[0].scheduleStart(oPlayer);
+        }
+        this.scheduleNext(oPlayer);
+        this.schedulePrev(oPlayer);
+    };
+    CSeq.prototype.getActiveChildIdx = function() {
+        var aChildren = this.getChildrenTimeNodes();
+        var oChild;
+        for(var nChild = 0; nChild < aChildren.length; ++nChild) {
+            oChild = aChildren[nChild];
+            if(oChild.isActive()) {
+                return nChild;
+            }
+        }
+        return -1;
+    };
+    CSeq.prototype.getActiveChild = function() {
+        var nIdx = this.getActiveChildIdx();
+        if(nIdx > -1) {
+            var aChildrent = this.getChildrenTimeNodes();
+            return aChildrent[nIdx];
+        }
+        return null;
+    };
+    CSeq.prototype.scheduleNext = function(oPlayer) {
+        if(this.nextCondLst) {
+            var oThis = this;
+            oPlayer.scheduleEvent(new CAnimEvent(function() {
+                var aChildren = oThis.getChildrenTimeNodes();
+                var nActive  = oThis.getActiveChildIdx();
+                if(nActive > -1 && nActive < aChildren.length - 1) {
+                    aChildren[nActive].finishCallback(oPlayer);
+                    aChildren[nActive + 1].activateCallback(oPlayer);
+                    oThis.scheduleNext(oPlayer);
+                    oThis.schedulePrev(oPlayer);
+                }
+            }, this.nextCondLst.createComplexTrigger(), this));
+        }
+    };
+    CSeq.prototype.schedulePrev = function(oPlayer) {
+        if(this.prevCondLst) {
+            var oThis = this;
+            oPlayer.scheduleEvent(new CAnimEvent(function() {
+                var aChildren = oThis.getChildrenTimeNodes();
+                var nActive  = oThis.getActiveChildIdx();
+                if(nActive > -1 && nActive > 0) {
+                    aChildren[nActive].finishCallback(oPlayer);
+                    aChildren[nActive - 1].activateCallback(oPlayer);
+                    oThis.scheduleNext(oPlayer);
+                    oThis.schedulePrev(oPlayer);
+                }
+            }, this.prevCondLst.createComplexTrigger(), this));
+        }
+    };
 
     changesFactory[AscDFH.historyitem_SetCBhvr] = CChangeObject;
     changesFactory[AscDFH.historyitem_SetTo] = CChangeObject;
     drawingsChangesMap[AscDFH.historyitem_SetCBhvr] = function(oClass, value) {oClass.cBhvr = value;};
     drawingsChangesMap[AscDFH.historyitem_SetTo] = function(oClass, value) {oClass.to = value;};
+
     function CSet() {
         CTimeNodeBase.call(this);
         this.cBhvr = null;
@@ -5087,7 +5189,9 @@
         this.addTrigger(DEFAULT_SIMPLE_TRIGGER);
     };
     CAnimComplexTrigger.prototype.addTrigger = function(fTrigger) {
-        this.triggers.push(fTrigger);
+        if(fTrigger !== null) {
+            this.triggers.push(fTrigger);
+        }
     };
     CAnimComplexTrigger.prototype.addTriggers = function(aTriggers) {
         for(var nTrigger = 0; nTrigger < aTriggers.length; ++nTrigger) {

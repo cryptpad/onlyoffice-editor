@@ -4299,6 +4299,10 @@ CGraphicObjects.prototype.documentIsSelectionLocked = function(CheckType)
     if (oDocContent)
         oDocContent.Document_Is_SelectionLocked(CheckType);
 };
+CGraphicObjects.prototype.getAnimPlayer = function()
+{
+    return null;
+};
 
 function ComparisonByZIndexSimpleParent(obj1, obj2)
 {
