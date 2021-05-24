@@ -4400,15 +4400,22 @@ DrawingObjectsController.prototype =
             }
             else {
                 oLegend = oChart.legend;
+                var bChange = false;
                 if(!oLegend) {
                     oLegend = new AscFormat.CLegend();
                     oChart.setLegend(oLegend);
+                    bChange = true;
                 }
                 if(oLegend.legendPos !== nLegend && nLegend !== c_oAscChartLegendShowSettings.layout) {
                     oLegend.setLegendPos(nLegend);
+                    bChange = true;
                 }
                 if(oLegend.overlay !== bOverlay) {
                     oLegend.setOverlay(bOverlay);
+                    bChange = true;
+                }
+                if(bChange) {
+                    oLegend.setLayout(new AscFormat.CLayout());
                 }
                 oChartSpace.checkElementChartStyle(oLegend);
             }
