@@ -7701,7 +7701,7 @@
             else if(crossesRule === c_oAscCrossesRule.value) {
                 if(AscFormat.isRealNumber(crosses)) {
                     if(this.crossAx.crossesAt !== crosses) {
-                        this.crossAx.setCrossesAt(crosses);
+                        this.crossAx.setCrossesAt(crosses >> 0);
                         bChanged = true;
                     }
                     if(this.crossAx !== null) {

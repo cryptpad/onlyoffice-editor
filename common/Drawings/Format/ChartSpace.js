@@ -4335,14 +4335,7 @@ var GLOBAL_PATH_COUNT = 0;
 
             var oCrossGrid = oCrossAxis.grid;
             if(AscFormat.isRealNumber(oCurAxis.crossesAt) && oCrossAxis.scale[0] <= oCurAxis.crossesAt && oCrossAxis.scale[oCrossAxis.scale.length - 1] >= oCurAxis.crossesAt) {
-
-                if(oCrossAxis.getObjectType() === AscDFH.historyitem_type_ValAx) {
-                    fCrossValue = oCurAxis.crossesAt;
-                }
-                else {
-                    fCrossValue = oCurAxis.crossesAt - 1;
-                }
-
+                fCrossValue = oCurAxis.crossesAt;
                 bCrossAt = true;
             }
             else {
