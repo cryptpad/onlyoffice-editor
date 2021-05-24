@@ -5036,7 +5036,9 @@ var editor;
 		}
 	};
 	spreadsheet_api.prototype.asc_insertPivotExistingWorksheet = function(dataRef, pivotRef, confirmation) {
-		var location = Asc.CT_pivotTableDefinition.prototype.parseDataRef(pivotRef);
+		var location = AscFormat.ExecuteNoHistory(function() {
+			return Asc.CT_pivotTableDefinition.prototype.parseDataRef(pivotRef);
+		}, this, []);
 		if (location) {
 			var wb = this.wbModel;
 			var ws = location.ws;
