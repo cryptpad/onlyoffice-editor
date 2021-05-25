@@ -432,6 +432,30 @@ function RotateTrackShapeImage(originalObject)
         }
         AscFormat.CheckSpPrXfrm(this.originalObject);
         this.originalObject.spPr.xfrm.setRot(this.angle);
+        if(this.originalObject.isObjectInSmartArt()) {
+            this.originalObject.recalculate();
+            var oBounds = this.originalObject.bounds;
+            var oSmartArt = this.originalObject.group.group;
+            var diffX = null, diffY = null;
+            if(oBounds.r > oSmartArt.x + oSmartArt.extX) {
+                diffX = oSmartArt.x + oSmartArt.extX - oBounds.r;
+            }
+            if(oBounds.l < oSmartArt.x) {
+                diffX = oSmartArt.x - oBounds.l;
+            }
+            if(oBounds.b > oSmartArt.y + oSmartArt.extY) {
+                diffY = oSmartArt.y + oSmartArt.extY - oBounds.b;
+            }
+            if(oBounds.t < oSmartArt.y) {
+                diffY = oSmartArt.y - oBounds.t;
+            }
+            if(diffX !== null) {
+                this.originalObject.spPr.xfrm.setOffX(this.originalObject.spPr.xfrm.offX + diffX);
+            }
+            if(diffY !== null) {
+                this.originalObject.spPr.xfrm.setOffY(this.originalObject.spPr.xfrm.offY + diffY);
+            }
+        }
     };
 
     this.getBounds = function()

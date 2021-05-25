@@ -4336,6 +4336,26 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
     {
         var oBodyPr = this.getBodyPr && this.getBodyPr();
         var oContent = this.getDocContent && this.getDocContent();
+        var isPlaceholderInSmartArt = this.isObjectInSmartArt() && this.getPoint() && this.getPoint().prSet && this.getPoint().prSet.phldr;
+        if (isPlaceholderInSmartArt) {
+            this.getPoint().prSet.setPhldr(false);
+            this.txBody.content2 = null;
+        }
+        if (this.isObjectInSmartArt() && this.txBody.content.Content[0].Lines.length > 1) { // TODO: add && for FontSize === 5
+            var contentLength = this.txBody.content.Content[0].Content[2].Content.length;
+            this.group.arrGraphicObjects.forEach(function (shape) {
+                isPlaceholderInSmartArt = shape.getPoint() && shape.getPoint().prSet && shape.getPoint().prSet.phldrT;
+            if (isPlaceholderInSmartArt) {
+                shape.txBody.content.Content.forEach(function (paragraph) {
+                    var paragraphFontSize = paragraph.CompiledPr.Pr.TextPr.FontSize;
+                    paragraph.Content.forEach(function (paraRun) {
+                        var paraRunFontSize = paraRun.Pr.FontSize ? paraRun.Pr.FontSize : paragraphFontSize;
+                        paraRun.Set_FontSize(Math.floor(paraRunFontSize * (1 - 2 / contentLength)));
+                    })
+                })
+            }
+            })
+        }
         if(oBodyPr && oContent && this.clipRect)
         {
             var oTextFit = oBodyPr.textFit;
