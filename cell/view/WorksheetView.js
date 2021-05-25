@@ -8359,12 +8359,11 @@
 			var cellTo = this._getVisibleCell(range.c1, range.r1);
 			if (cellTo) {
 				var cellxfs = cellTo.getXfs(false);
-				var lockedCell = cellxfs.asc_getLocked();
-				if (cellxfs && (lockedCell && lockedCell === null)) {
+				var lockedCell = cellxfs && cellxfs.asc_getLocked();
+				if (lockedCell || lockedCell === null) {
 					return;
 				}
 			}
-			return;
 		}
 
 		ar.assign(range.c1, range.r1, range.c2, range.r2);
@@ -9347,6 +9346,22 @@
 			this._calcSelectionEndPointByOffset(x, y);
         var isEqual = newRange.isEqual(ar);
         if (!isEqual || isChangeSelectionShape) {
+
+			//protection
+			if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.selectUnlockedCells)) {
+				return;
+			}
+			if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.selectLockedCells)) {
+				var cellTo = this._getVisibleCell(newRange.c2, newRange.r2);
+				if (cellTo) {
+					var cellxfs = cellTo.getXfs(false);
+					var lockedCell = cellxfs && cellxfs.asc_getLocked();
+					if (lockedCell || lockedCell === null) {
+						return;
+					}
+				}
+			}
+
             this.cleanSelection();
             ar.assign2(newRange);
             this._drawSelection();
