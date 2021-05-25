@@ -8350,6 +8350,23 @@
 		var selection = this._getSelection();
 		var ar = selection.getLast();
 		var range = this._getRangeByXY(x, y);
+
+		//protection
+		if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.selectUnlockedCells)) {
+			return;
+		}
+		if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.selectLockedCells)) {
+			var cellTo = this._getVisibleCell(range.c1, range.r1);
+			if (cellTo) {
+				var cellxfs = cellTo.getXfs(false);
+				var lockedCell = cellxfs.asc_getLocked();
+				if (cellxfs && (lockedCell && lockedCell === null)) {
+					return;
+				}
+			}
+			return;
+		}
+
 		ar.assign(range.c1, range.r1, range.c2, range.r2);
 		var r = range.r1, c = range.c1;
 		switch (ar.getType()) {
@@ -9219,7 +9236,6 @@
 	};
 
 	WorksheetView.prototype.changeSelectionStartPoint = function (x, y, isCoord, isCtrl) {
-		console.log("asd");
 		this.cleanSelection();
         this.endEditChart();
 

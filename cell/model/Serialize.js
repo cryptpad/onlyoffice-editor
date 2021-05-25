@@ -6856,7 +6856,7 @@
 			var res = c_oSerConstants.ReadOk;
 			if ( c_oSerProtectionTypes.Hidden == type )
 				oXfs.hidden = this.stream.GetBool();
-			else if ( c_oSerAligmentTypes.Locked == type )
+			else if ( c_oSerProtectionTypes.Locked == type )
 				oXfs.locked = this.stream.GetBool();
 			else
 				res = c_oSerConstants.ReadUnknown;
