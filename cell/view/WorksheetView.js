@@ -8356,13 +8356,9 @@
 			return;
 		}
 		if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.selectLockedCells)) {
-			var cellTo = this._getVisibleCell(range.c1, range.r1);
-			if (cellTo) {
-				var cellxfs = cellTo.getXfs(false);
-				var lockedCell = cellxfs && cellxfs.asc_getLocked();
-				if (lockedCell || lockedCell === null) {
-					return;
-				}
+			var lockedCell = this.model.getLockedCell(range.c1, range.r1);
+			if (lockedCell || lockedCell === null) {
+				return;
 			}
 		}
 
@@ -9352,13 +9348,9 @@
 				return;
 			}
 			if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.selectLockedCells)) {
-				var cellTo = this._getVisibleCell(newRange.c2, newRange.r2);
-				if (cellTo) {
-					var cellxfs = cellTo.getXfs(false);
-					var lockedCell = cellxfs && cellxfs.asc_getLocked();
-					if (lockedCell || lockedCell === null) {
-						return;
-					}
+				var lockedCell = this.model.getLockedCell(newRange.c2, newRange.r2);
+				if (lockedCell || lockedCell === null) {
+					return;
 				}
 			}
 

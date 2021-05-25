@@ -9844,6 +9844,14 @@
 		return res;
 	};
 
+	Worksheet.prototype.getLockedCell = function (c, r) {
+		var cellTo =  this.getCell3(r, c);
+		if (cellTo) {
+			var cellxfs = cellTo.getXfs(false);
+			return cellxfs && cellxfs.asc_getLocked();
+		}
+	};
+
 	Worksheet.prototype.protectedRangesContains = function (c, r) {
 		if (this.aProtectedRanges && this.aProtectedRanges.length) {
 			for (var i = 0; i < this.aProtectedRanges.length; i++) {
