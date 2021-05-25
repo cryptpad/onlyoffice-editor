@@ -2793,35 +2793,60 @@ CAutoshapeTrack.prototype =
         var dKoefY = hDst / this.CurrentPageInfo.height_mm;
         var matrix =  shape.getTransformMatrix();
             geom.gmEditList = [];
-            for(var i = 0; i < geom.ellipsePointsList.length; i++) {
-                geom.ellipsePointsList[i].type = 2;
-            }
-            geom.gmEditList = geom.gmEditList.concat(geom.ellipsePointsList);
+
         for (var i = 0; i < geom.pathLst.length; i++) {
             var pathPoints = geom.pathLst[i].ArrPathCommand;
             var count = 0;
             pathPoints.forEach(function (elem) {
+                var flag = false;
+                var elemX , elemY;
                 switch (elem.id) {
-                    case 0:
-                        geom.gmEditList.push({X: elem.X, Y: elem.Y, pathCommand: count});
-                        break;
+                    // case 0:
                     case 1:
-                        geom.gmEditList.push({X: elem.X, Y: elem.Y, pathCommand: count});
+                        elemX = elem.X;
+                        elemY = elem.Y;
                         break;
                     case 3:
-                        geom.gmEditList.push({X: elem.X1, Y: elem.Y1, pathCommand: count});
+                        elemX = elem.X1;
+                        elemY = elem.Y1;
                         break;
                     case 4:
-                        geom.gmEditList.push({X: elem.X2, Y: elem.Y2, pathCommand: count});
+                        elemX = elem.X2;
+                        elemY = elem.Y2;
                         break;
+                }
+
+                if (elemX !== undefined && elemY !== undefined) {
+                    for (var i = 0; i < geom.ellipsePointsList.length; i++) {
+                        var ellX = parseFloat(geom.ellipsePointsList[i].curCoords.X.toFixed(4));
+                        var ellY = parseFloat(geom.ellipsePointsList[i].curCoords.Y.toFixed(4));
+                        elemX = parseFloat(elemX.toFixed(4));
+                        elemY = parseFloat(elemY.toFixed(4));
+                        if (ellX === elemX && ellY === elemY && elem.id !== 4 && elem.id !== 0) {
+                            geom.ellipsePointsList[i].curCoords.pathCommand = count;
+                            flag = true;
+                        }
+                    }
+                    if (!flag) {
+                        geom.gmEditList.push({curCoords: {id: elem.id, X: elemX, Y: elemY, pathCommand: count}});
+                    }
                 }
                 ++count;
             });
         }
 
+        geom.gmEditList = geom.gmEditList.concat(geom.ellipsePointsList);
+
+        if(geom.gmEditList[geom.gmEditList.length - 1])
+        geom.gmEditList[geom.gmEditList.length - 1].nextCoords =  geom.gmEditList[0].curCoords;
+
         for (var i = 0; i < geom.gmEditList.length; i++) {
-            var cx = (xDst + dKoefX * (matrix.TransformPointX(geom.gmEditList[i].X, geom.gmEditList[i].Y))) >> 0;
-            var cy = (yDst + dKoefY * (matrix.TransformPointY(geom.gmEditList[i].X, geom.gmEditList[i].Y))) >> 0;
+
+            if (i + 1 < geom.gmEditList.length)
+                geom.gmEditList[i].nextCoords = geom.gmEditList[i + 1].curCoords;
+
+            var cx = (xDst + dKoefX * (matrix.TransformPointX(geom.gmEditList[i].curCoords.X, geom.gmEditList[i].curCoords.Y))) >> 0;
+            var cy = (yDst + dKoefY * (matrix.TransformPointY(geom.gmEditList[i].curCoords.X, geom.gmEditList[i].curCoords.Y))) >> 0;
             overlay.AddRect2(cx, cy, TRACK_RECT_SIZE);
         }
             ctx.stroke();

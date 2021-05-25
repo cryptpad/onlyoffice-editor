@@ -1354,12 +1354,14 @@ Geometry.prototype=
     hitToGeomEdit: function(x, y, distance) {
         var dx, dy;
           for(var i=0; i < this.gmEditList.length; i++) {
-              dx=x-this.gmEditList[i].X;
-              dy=y-this.gmEditList[i].Y;
+              dx=x-this.gmEditList[i].curCoords.X;
+              dy=y-this.gmEditList[i].curCoords.Y;
 
               if(Math.sqrt(dx*dx+dy*dy) < distance)
               {
-                  this.gmEditPoint = {x: this.gmEditList[i].X, y: this.gmEditList[i].Y, pathCommand: this.gmEditList[i].pathCommand}
+                  var gmArr = this.gmEditList[i];
+
+                  this.gmEditPoint = gmArr;
                   return {hit: true, objectId: this.Id};
               }
           }

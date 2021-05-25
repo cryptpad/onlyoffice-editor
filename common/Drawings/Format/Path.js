@@ -732,7 +732,7 @@ Path.prototype = {
                 case arcTo:
                 {
                     bIsDrawLast = true;
-                    ArcToCurvers(shape_drawer, cmd.stX, cmd.stY, cmd.wR, cmd.hR, cmd.stAng, cmd.swAng);
+                    ArcToCurvers(shape_drawer, cmd.stX, cmd.stY, cmd.wR, cmd.hR, cmd.stAng, cmd.swAng, shape_drawer.Shape.calcGeometry, j);
                     break;
                 }
                 case close:
@@ -781,7 +781,7 @@ Path.prototype = {
                 }
                 case arcTo:
                 {
-                    ArcToCurvers(checker, cmd.stX, cmd.stY, cmd.wR, cmd.hR, cmd.stAng, cmd.swAng, geom);
+                    ArcToCurvers(checker, cmd.stX, cmd.stY, cmd.wR, cmd.hR, cmd.stAng, cmd.swAng);
                     break;
                 }
                 case close:
