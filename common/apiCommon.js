@@ -4460,6 +4460,7 @@
 		this.EncryptedInfo;
 		this.IsEnabledPlugins = true;
         this.IsEnabledMacroses = true;
+		this.IsAnonymousUser = false;
 	}
 
 	prot = asc_CDocInfo.prototype;
@@ -4583,6 +4584,12 @@
     prot.put_IsEnabledMacroses = prot.asc_putIsEnabledMacroses = function (v) {
         this.IsEnabledMacroses = v;
     };
+	prot.get_IsAnonymousUser = prot.asc_getIsAnonymousUser = function () {
+		return this.IsAnonymousUser;
+	};
+	prot.put_IsAnonymousUser = prot.asc_putIsAnonymousUser = function (v) {
+		this.IsAnonymousUser = v;
+	};
 
 	function COpenProgress() {
 		this.Type = Asc.c_oAscAsyncAction.Open;
@@ -6351,6 +6358,8 @@
     prot["put_IsEnabledPlugins"] = prot["asc_putIsEnabledPlugins"] = prot.asc_putIsEnabledPlugins;
     prot["get_IsEnabledMacroses"] = prot["asc_getIsEnabledMacroses"] = prot.asc_getIsEnabledMacroses;
     prot["put_IsEnabledMacroses"] = prot["asc_putIsEnabledMacroses"] = prot.asc_putIsEnabledMacroses;
+	prot["get_IsAnonymousUser"] = prot["asc_getIsAnonymousUser"] = prot.asc_getIsAnonymousUser;
+	prot["put_IsAnonymousUser"] = prot["asc_putIsAnonymousUser"] = prot.asc_putIsAnonymousUser;
 
 	window["AscCommon"].COpenProgress = COpenProgress;
 	prot = COpenProgress.prototype;
