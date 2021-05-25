@@ -11535,7 +11535,7 @@
             }
           },
           {
-            modelId: '',
+            modelId: '{21EF0D98-BDDA-4EBB-BCC3-2E510289F688}',
             prSet: {
               phldr: true,
               phldrT: '[Текст]',
@@ -11585,7 +11585,7 @@
             }
           },
           {
-            modelId: '',
+            modelId: '{B525BD3B-5E13-4E0D-A475-CC122D1AB32B}',
             prSet: {
               phldr: true,
               phldrT: '[Текст]',
@@ -11747,11 +11747,11 @@
           },
           {
             type: Point_type_pres,
-            modelId: '',
+            modelId: '{1BE7E1A4-4CDB-477C-BBB3-A09D36D387A5}',
             prSet: {
               presStyleCnt: 3,
               presName: 'node',
-              presAssocID: '',
+              presAssocID: '{21EF0D98-BDDA-4EBB-BCC3-2E510289F688}',
               presStyleIdx: 1,
               presStyleLbl: 'node1',
               presLayoutVars: {
@@ -11820,11 +11820,11 @@
           },
           {
             type: Point_type_pres,
-            modelId: '',
+            modelId: '{2C60D663-CEF4-4EB2-A29C-BCEC1D1111DC}',
             prSet: {
               presStyleCnt: 3,
               presName: 'node',
-              presAssocID: '',
+              presAssocID: '{B525BD3B-5E13-4E0D-A475-CC122D1AB32B}',
               presStyleIdx: 2,
               presStyleLbl: 'node1',
               presLayoutVars: {
@@ -12668,7 +12668,7 @@
               },
             },
             {
-              modelId: '',
+              modelId: '{1BE7E1A4-4CDB-477C-BBB3-A09D36D387A5}',
               nvSpPr: {
                 cNvPr: {
                   name: '',
@@ -12976,7 +12976,7 @@
               },
             },
             {
-              modelId: '',
+              modelId: '{2C60D663-CEF4-4EB2-A29C-BCEC1D1111DC}',
               nvSpPr: {
                 cNvPr: {
                   name: '',

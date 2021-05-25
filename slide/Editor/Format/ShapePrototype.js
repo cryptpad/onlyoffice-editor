@@ -603,7 +603,8 @@ CShape.prototype.recalculateContent2 = function()
 {
     if(this.txBody)
     {
-        var isPlaceholderInSmartArt = this.isObjectInSmartArt() && this.getPoint() && this.getPoint().prSet && this.getPoint().prSet.phldr;
+        var point = this.isObjectInSmartArt() && this.getPoint();
+        var isPlaceholderInSmartArt = point && point.prSet && point.prSet.phldr;
         if(this.isPlaceholder() || isPlaceholderInSmartArt)
         {
             if(!this.isEmptyPlaceholder())
@@ -614,7 +615,7 @@ CShape.prototype.recalculateContent2 = function()
             if(this.parent instanceof AscCommonSlide.CNotes && this.nvSpPr.nvPr.ph.type === AscFormat.phType_body){
                 text = "Click to add notes";
             } else if (this.isObjectInSmartArt()) {
-                text = this.getPoint().prSet.phldrT;
+                text = point.prSet.phldrT;
             } else {
                 text = typeof pHText[0][this.nvSpPr.nvPr.ph.type] === "string" && pHText[0][this.nvSpPr.nvPr.ph.type].length > 0 ?  pHText[0][this.nvSpPr.nvPr.ph.type] : pHText[0][AscFormat.phType_body];
             }

@@ -3194,7 +3194,8 @@ CShape.prototype.Get_ParentTextTransform = function()
 };
 
 CShape.prototype.isEmptyPlaceholder = function () {
-    var isPlaceholderInSmartArt = this.isObjectInSmartArt() && this.getPoint() && this.getPoint().prSet && this.getPoint().prSet.phldr;
+    var point = this.isObjectInSmartArt() && this.getPoint();
+    var isPlaceholderInSmartArt = point && point.prSet && point.prSet.phldr;
     if (isPlaceholderInSmartArt) {
         if (this.txBody) {
             if (this.txBody.content) {
@@ -4277,6 +4278,71 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
         }
     };
 
+    CShape.prototype.setFontSizeInSmartArt = function (fontSize) {
+        var point = this.getPoint();
+            var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
+            if (isFitText) {
+                this.txBody.content.Content.forEach(function (paragraph) {
+                    var paragraphFontSize = paragraph.CompiledPr.Pr.TextPr.FontSize;
+                    var paraRunFontSize;
+                    paragraph.Content.forEach(function (paraRun) {
+                        paraRunFontSize = paraRun.Pr.FontSize ? paraRun.Pr.FontSize : paragraph.CompiledPr.Pr.TextPr.FontSize;
+                        paraRun.Set_FontSize(fontSize);
+                    })
+                })
+                this.recalculateContentWitCompiledPr();
+            }
+    }
+
+    CShape.prototype.findFitFontSizeForSmartArt = function () {
+        var point = this.isObjectInSmartArt() && this.getPoint();
+        var isPlaceholderInSmartArt = point && point.prSet && point.prSet.phldr;
+        var content;
+            // if (isPlaceholderInSmartArt) {
+            //     content = this.txBody.content2;
+            // } else {
+                content = this.txBody.content;
+            // }
+        function findParagraphsWithLines() {
+            var paragraphWithMaxLines = content.Content[0];
+            content.Content.forEach(function (paragraph) {
+                if (paragraphWithMaxLines.Lines.length < paragraph.Lines.length) {
+                    paragraphWithMaxLines = paragraph;
+                }
+            })
+            return paragraphWithMaxLines;
+        }
+        var scalesForSmartArt = Array(61).fill(0).map(function (e, ind) {
+            return ind + 5;
+        });
+        var a = 0;
+        var b = scalesForSmartArt.length - 1;
+        var averageAmount = Math.floor((a + b) / 2);
+        this.setFontSizeInSmartArt(scalesForSmartArt[b]);
+        var paragraphWithMaxLines = findParagraphsWithLines();
+        if (paragraphWithMaxLines.Lines.length > 1) {
+            while (true) {
+                this.setFontSizeInSmartArt(scalesForSmartArt[averageAmount]);
+                paragraphWithMaxLines = findParagraphsWithLines();
+
+                if (paragraphWithMaxLines.Lines.length > 1) {
+                    b = averageAmount;
+                    averageAmount = Math.floor((a + b) / 2);
+                } else {
+                    a = averageAmount;
+                    averageAmount = Math.floor((a + b) / 2);
+                }
+                if (a === averageAmount || b === averageAmount) {
+                    break;
+                }
+            }
+            this.setFontSizeInSmartArt(scalesForSmartArt[averageAmount]);
+            return scalesForSmartArt[averageAmount];
+        } else {
+            return scalesForSmartArt[b];
+        }
+    }
+
 CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
 {
     if((!this.bWordShape || this.group || bForce) && this.checkAutofit(true))
@@ -4336,25 +4402,28 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
     {
         var oBodyPr = this.getBodyPr && this.getBodyPr();
         var oContent = this.getDocContent && this.getDocContent();
-        var isPlaceholderInSmartArt = this.isObjectInSmartArt() && this.getPoint() && this.getPoint().prSet && this.getPoint().prSet.phldr;
+        var point = this.isObjectInSmartArt() && this.getPoint();
+        var isPlaceholderInSmartArt = point && point.prSet && point.prSet.phldr;
         if (isPlaceholderInSmartArt) {
-            this.getPoint().prSet.setPhldr(false);
+            point.prSet.setPhldr(false);
             this.txBody.content2 = null;
         }
-        if (this.isObjectInSmartArt() && this.txBody.content.Content[0].Lines.length > 1) { // TODO: add && for FontSize === 5
-            var contentLength = this.txBody.content.Content[0].Content[2].Content.length;
+
+        if (this.isObjectInSmartArt()) {
+            var thisShape = this;
+            var thisFontSize = this.findFitFontSizeForSmartArt();
             this.group.arrGraphicObjects.forEach(function (shape) {
-                isPlaceholderInSmartArt = shape.getPoint() && shape.getPoint().prSet && shape.getPoint().prSet.phldrT;
-            if (isPlaceholderInSmartArt) {
-                shape.txBody.content.Content.forEach(function (paragraph) {
-                    var paragraphFontSize = paragraph.CompiledPr.Pr.TextPr.FontSize;
-                    paragraph.Content.forEach(function (paraRun) {
-                        var paraRunFontSize = paraRun.Pr.FontSize ? paraRun.Pr.FontSize : paragraphFontSize;
-                        paraRun.Set_FontSize(Math.floor(paraRunFontSize * (1 - 2 / contentLength)));
-                    })
-                })
-            }
-            })
+                var point = shape.getPoint();
+                var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
+                if (shape !== thisShape && isFitText) {
+                     var shapeFontSize = shape.findFitFontSizeForSmartArt();
+                    if (shapeFontSize > thisFontSize) {
+                        shape.setFontSizeInSmartArt(thisFontSize);
+                    } else {
+                        shape.setFontSizeInSmartArt(shapeFontSize);
+                    }
+                }
+            });
         }
         if(oBodyPr && oContent && this.clipRect)
         {
