@@ -123,7 +123,7 @@ CGraphicObjects.prototype =
     handleTextHit: DrawingObjectsController.prototype.handleTextHit,
     getConnectorsForCheck: DrawingObjectsController.prototype.getConnectorsForCheck,
     getConnectorsForCheck2: DrawingObjectsController.prototype.getConnectorsForCheck2,
-    checkDrawingHyperlink: DrawingObjectsController.prototype.checkDrawingHyperlink,
+    checkDrawingHyperlinkAndMacro: DrawingObjectsController.prototype.checkDrawingHyperlinkAndMacro,
 
     checkSelectedObjectsAndCallback: function(callback, args, bNoSendProps, nHistoryPointType, aAdditionaObjects)
     {
@@ -239,7 +239,16 @@ CGraphicObjects.prototype =
         if(ret)
         {
             if(ret.cursorType !== "text")
+            {
+                var oApi = Asc.editor || editor;
+                var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
+                if(isDrawHandles === false)
+                {
+                    this.drawingDocument.SetCursorType("default");
+                    return true;
+                }
                 this.drawingDocument.SetCursorType(ret.cursorType);
+            }
             return true;
         }
         return false;
@@ -613,9 +622,10 @@ CGraphicObjects.prototype =
                 shape_props.flipH = props_by_types.shapeProps.flipH;
                 shape_props.flipV = props_by_types.shapeProps.flipV;
                 shape_props.lockAspect = props_by_types.shapeProps.lockAspect;
-                if(this.selection.group){
+                if(this.selection.groupSelection){
                     shape_props.description = props_by_types.shapeProps.description;
                     shape_props.title = props_by_types.shapeProps.title;
+                    shape_props.fromGroup = true;
                 }
             }
             if(props_by_types.imageProps)
@@ -634,9 +644,10 @@ CGraphicObjects.prototype =
 
                 image_props.oleWidth = props_by_types.imageProps.oleWidth;
                 image_props.oleHeight = props_by_types.imageProps.oleHeight;
-                if(this.selection.group){
+                if(this.selection.groupSelection){
                     image_props.description = props_by_types.imageProps.description;
                     image_props.title = props_by_types.imageProps.title;
+                    image_props.fromGroup = true;
                 }
             }
             if(props_by_types.chartProps && !(props_by_types.chartProps.severalCharts === true))
@@ -647,9 +658,10 @@ CGraphicObjects.prototype =
                 chart_props.severalChartStyles = props_by_types.chartProps.severalChartStyles;
                 chart_props.severalChartTypes = props_by_types.chartProps.severalChartTypes;
                 chart_props.lockAspect = props_by_types.chartProps.lockAspect;
-                if(this.selection.group){
+                if(this.selection.groupSelection){
                     chart_props.description = props_by_types.chartProps.description;
                     chart_props.title = props_by_types.chartProps.title;
+                    chart_props.fromGroup = true;
                 }
             }
         }

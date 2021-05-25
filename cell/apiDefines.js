@@ -513,6 +513,11 @@ var c_oAscPopUpSelectorType = {
     selectUnlockedCells: 15
   };
 
+  var c_oAscFrozenPaneAddType = {
+    firstRow: 1,
+    firstCol: 2
+  };
+
 	var c_oAscWorkbookProtectType = {
 		lockStructure: 0,
 		lockWindows: 1,
@@ -794,7 +799,7 @@ var c_oAscPopUpSelectorType = {
   prot['current'] = prot.current;
 
   window['Asc']['c_oAscFormulaArgumentType'] = window['Asc'].c_oAscFormulaArgumentType = c_oAscFormulaArgumentType;
-  prot = c_oAscPrintTitlesRangeType;
+  prot = c_oAscFormulaArgumentType;
   prot['number'] = prot.number;
   prot['text'] = prot.text;
   prot['reference'] = prot.reference;
@@ -840,10 +845,15 @@ var c_oAscPopUpSelectorType = {
   prot['pivotTables'] = prot.pivotTables;
   prot['selectUnlockedCells'] = prot.selectUnlockedCells;
 
+  window['Asc']['c_oAscFrozenPaneAddType'] = window['Asc'].c_oAscFrozenPaneAddType = c_oAscFrozenPaneAddType;
+  prot = c_oAscFrozenPaneAddType;
+  prot['firstRow'] = prot.firstRow;
+  prot['firstCol'] = prot.firstCol;
   window['Asc']['c_oAscWorkbookProtectType'] = window['Asc'].c_oAscWorkbookProtectType = c_oAscWorkbookProtectType;
   prot = c_oAscWorkbookProtectType;
   prot['lockStructure'] = prot.lockStructure;
   prot['lockWindows'] = prot.lockWindows;
   prot['lockRevisions'] = prot.lockRevisions;
+
 
 })(window);

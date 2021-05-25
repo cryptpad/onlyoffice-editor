@@ -237,6 +237,7 @@ function CEditorPage(api)
 	this.SplitterType = 0;
 
 	this.OldSplitter1Pos = 0;
+	this.OldSplitter2Pos = 0;
 
 	// ----
 	this.OldDocumentWidth  = 0;
@@ -364,6 +365,25 @@ function CEditorPage(api)
 		return false;
 	};
 
+	this.getStylesReporter = function()
+	{
+		var styleContent = "";
+		styleContent += (".btn-text-default { position: absolute; background: " + AscCommon.GlobalSkin.DemButtonBackgroundColor + "; border: 1px solid " + AscCommon.GlobalSkin.DemButtonBorderColor + "; border-radius: 2px; color: " + AscCommon.GlobalSkin.DemButtonTextColor + "; font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; height: 22px; cursor: pointer; }");
+		styleContent += ".btn-text-default-img { background-repeat: no-repeat; position: absolute; background: transparent; border: none; height: 22px; cursor: pointer; }";
+		styleContent += (".btn-text-default-img:focus { outline: 0; outline-offset: 0; } .btn-text-default-img:hover { background-color: " + AscCommon.GlobalSkin.DemButtonBackgroundColorHover + "; }");
+		styleContent += (".btn-text-default-img:active, .btn-text-default.active { background-color: " + AscCommon.GlobalSkin.DemButtonBackgroundColorActive + " !important; -webkit-box-shadow: none; box-shadow: none; }");
+		styleContent += (".btn-text-default:focus { outline: 0; outline-offset: 0; } .btn-text-default:hover { background-color: " + AscCommon.GlobalSkin.DemButtonBackgroundColorHover + "; }");
+		styleContent += (".btn-text-default:active, .btn-text-default.active { background-color: " + AscCommon.GlobalSkin.DemButtonBackgroundColorActive + " !important; color: " + AscCommon.GlobalSkin.DemButtonTextColorActive + "; -webkit-box-shadow: none; box-shadow: none; }");
+		styleContent += (".separator { margin: 0px 10px; height: 19px; display: inline-block; position: absolute; border-left: 1px solid " + AscCommon.GlobalSkin.DemSplitterColor + "; vertical-align: top; padding: 0; width: 0; box-sizing: border-box; }");
+		styleContent += (".btn-text-default-img2 { background-repeat: no-repeat; position: absolute; background-color: " + AscCommon.GlobalSkin.DemButtonBackgroundColorActive + "; border: none; color: #7d858c; font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; height: 22px; cursor: pointer; }");
+		styleContent += ".btn-text-default-img2:focus { outline: 0; outline-offset: 0; }";
+		styleContent += ".btn-text-default::-moz-focus-inner { border: 0; padding: 0; }";
+		styleContent += ".btn-text-default-img::-moz-focus-inner { border: 0; padding: 0; }";
+		styleContent += ".btn-text-default-img2::-moz-focus-inner { border: 0; padding: 0; }";
+		styleContent += (".dem-text-color { color:" + AscCommon.GlobalSkin.DemTextColor + "; }");
+		return styleContent;
+	};
+
 	this.Init = function()
 	{
 		if (this.m_oApi.isReporterMode)
@@ -381,6 +401,7 @@ function CEditorPage(api)
 		this.Splitter2Pos    = (this.IsSupportNotes === true) ? 11 : 0;
 
 		this.OldSplitter1Pos = this.Splitter1Pos;
+		this.OldSplitter2Pos = this.Splitter2Pos;
 
 		this.Splitter1PosMin = 20;
 		this.Splitter1PosMax = 80;
@@ -389,8 +410,12 @@ function CEditorPage(api)
 
 		if (this.m_oApi.isReporterMode)
 		{
-			this.Splitter2Pos = 90;
+			this.Splitter2Pos = window.innerHeight * 0.5 * AscCommon.g_dKoef_pix_to_mm;
 			this.Splitter2PosMax = 200;
+			if (this.Splitter2Pos > this.Splitter2PosMax)
+				this.Splitter2Pos = this.Splitter2PosMax;
+			if (this.Splitter2Pos < this.Splitter2PosMin)
+				this.Splitter2Pos = this.Splitter2PosMin;
 		}
 
 		var ScrollWidthMm  = this.ScrollWidthPx * g_dKoef_pix_to_mm;
@@ -583,7 +608,7 @@ function CEditorPage(api)
 			_documentDem.setAttribute("id", "id_reporter_dem");
 			_documentDem.setAttribute("class", "block_elem");
 			_documentDem.style.overflow = "hidden";
-			_documentDem.style.backgroundColor = GlobalSkin.BackgroundColor;
+			_documentDem.style.backgroundColor = GlobalSkin.BackgroundColorThumbnails;
 			_documentParent.appendChild(_documentDem);
 
 			this.m_oDemonstrationDivId = CreateControlContainer("id_reporter_dem");
@@ -597,7 +622,7 @@ function CEditorPage(api)
 			demBottonsDiv.setAttribute("id", "id_reporter_dem_controller");
 			demBottonsDiv.setAttribute("class", "block_elem");
 			demBottonsDiv.style.overflow = "hidden";
-			demBottonsDiv.style.backgroundColor = GlobalSkin.BackgroundColor;
+			demBottonsDiv.style.backgroundColor = GlobalSkin.BackgroundColorThumbnails;
 			demBottonsDiv.style.cursor = "default";
 			_documentParent.appendChild(demBottonsDiv);
 
@@ -608,41 +633,44 @@ function CEditorPage(api)
 			_ctrl.Anchor = (g_anchor_left | g_anchor_right | g_anchor_bottom);
 			this.m_oDemonstrationDivParent.AddControl(_ctrl);
 
+			var _images_url = "../../../../sdkjs/common/Images/reporter/";
 			var _head = document.getElementsByTagName('head')[0];
 
 			var styleContent = ".block_elem_no_select { -khtml-user-select: none; user-select: none; -moz-user-select: none; -webkit-user-select: none; }";
-			styleContent += ".back_image_buttons { position:absolute; left: 0px; top: 0px; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAB4CAQAAAAEPFmDAAAEQElEQVR4Ae2XQWtUVxiGr2JiTE3ENGgrKJYmm6gCsYBIEsA+hcjYwnSjSagrvYBb951xnV0ghEj2oroPtAEF7Gb+QiBBEqAmPyGGt4ePXrhM7nxnoKQDcp6PO3xneOHhnJl7OCdL/K8kmGAdxXOa0Lq6yHGee+Sx0CjL7PMsJtaolrWvZzExA0zxiJuumP4g3A/i0dDLkfYH4X4Qh5wn5mQQPgrigSxzxNTZZJ2JzEBYVWjr2tS6/s3JqNJzlYfc43xmkFsd1fOCQ+ayNo6K9UKHOpI7KmaGJ4xlbVSJB1lih9moeFBL2tFsVHyKOyxwOSY2uMs2qww5S23orra1qiFnqQ0uMcc0fc5SFzDMGlvM2FwdNKw1bSnk5OboZybIv7W5xqDGLouu2FBNu1pUNMcVFrht4hiM8MrEETSiVyaOwGkwcSKRSHxJIF4yEs9JeqkucuT8yOnuxIvsUutCvKhd1eJibrPAlS7E4ZlmizWGfXF4prWlNQ374vB8wxwz9HdUYmX9EKtsc7daKcP6Ia1qW+25I2cs+pgO8ksdxG3jWXZY4kzsdKVZ7WhJZ2KnKy6zwB1O+WKDOQ5ZccWG5nSoFVdsMMYTprylLu4Sm9TdpS7uEpuqu0td3CUectX/cxV3if7In6u4Szg58tJd4qT/Oj1lz+4SLpKeai+IIzlyJoq7hAuyu0QUqbhLRMV2l0gkEonjArFCXzwnaUVd5MiZ6rRDt399Kfsztk8XOXWT+yqrMdCNuJ79lbW4mcWwnOK5P7K/s3r0+Ijs8wGf+NVfavt8oE9yc+T2+T2/8V1MbDDJRxqccMSGJvVRDZ1wxAajzHMrJja4wAfectYRG7qgD3qrs47Y4Ay/8BN9vtjgInu8ccWGLmpPb2JiUz+CmLg4Yw5GxMUZc9ARe2fMgtipuiB2qi7wT9W9vUf0/ObEa762NiZ+rWjOxDCQJRKJxDHCNX9coGv+uIDz7riAG3zm99K4EcY3KrQ39FmlnBphXJFjhCdMlsa3wnikWv0cmdq0iGZWiZ5LpjatpA45fiA3tWnJneOPqRuetqRuuNpCbTpfa9BEvHO1hpqS3rlaw5T3Y1rDtO+yKKbtImfa+/FYA/HeFtzFFvm9LXh8xj9HZ1z8tjR9dfHbqumrTRv/jWma1vDUprOcry7pHLW9x2UVTec9LnKmdt5jU8Xf4+td7lzXu9y5RvydK5FIJP47CKFyV42MclcNOaHKnXcxV9F5YnuKzhHbU3RJnMRJfHziHmwgiUQi8QXAPC0OQrWY93KaV0sHoVpyc4xR53GoOmNebBmVarmjdlllOuaYIi/VVOfZqq3mO8y2nfkOs83bqnrWtEy2wXioDetbleKWyTY0HmrD+socdZPVOBeqZn29WnxgsnHrx60/qBQfmMxyGre+Msdjk52z/pz1j3sm7uVS9/7P1fvXqRcbSCJxDPwD2RsvhewoOKQAAAAASUVORK5CYII=') }";
+			styleContent += ".back_image_buttons { position:absolute; left: 0px; top: 0px; background-image: url('" + _images_url + "buttons.png') }";
 
-			styleContent += "@media all and (-webkit-min-device-pixel-ratio : 1.5),\
-		all and (-o-min-device-pixel-ratio: 3/2),\
-		all and (min--moz-device-pixel-ratio: 1.5),\
-		all and (min-device-pixel-ratio: 1.5) {\n\
-		\
-		.back_image_buttons { position:absolute; left: 0px; top: 0px; background-image: url('data:image/png;base64,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');background-size: 60px 120px; }\
-		\
-		}";
+			styleContent += "@media all and (-webkit-min-device-pixel-ratio : 1.5),all and (-o-min-device-pixel-ratio: 3/2),all and (min--moz-device-pixel-ratio: 1.5),all and (min-device-pixel-ratio: 1.5) {\n\
+				.back_image_buttons { position:absolute; left: 0px; top: 0px; background-image: url('" + _images_url + "buttons@1.5x.png');background-size: 40px 120px; }\
+			}";
+			styleContent += "@media all and (-webkit-min-device-pixel-ratio : 2),all and (-o-min-device-pixel-ratio: 2),all and (min--moz-device-pixel-ratio: 2),all and (min-device-pixel-ratio: 2) {\n\
+				.back_image_buttons { position:absolute; left: 0px; top: 0px; background-image: url('" + _images_url + "buttons@2x.png');background-size: 40px 120px; }\
+			}";
 
+			var xOffset1 = "0";
+			var xOffset2 = "-20";
+			if (AscCommon.GlobalSkin.Type === "dark")
+			{
+				xOffset1 = "-20";
+				xOffset2 = "0";
+			}
 
-			styleContent += "";
-			styleContent += ".btn-text-default { position: absolute; background: #fff; border: 1px solid #cfcfcf; border-radius: 2px; color: #444444; font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; height: 22px; cursor: pointer; }";
-			styleContent += ".btn-text-default-img { background-repeat: no-repeat; position: absolute; background: transparent; border: none; color: #444444; font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; height: 22px; cursor: pointer; }";
-			styleContent += ".btn-text-default-img:focus { outline: 0; outline-offset: 0; } .btn-text-default-img:hover { background-color: #d8dadc; }";
-			styleContent += ".btn-text-default-img:active, .btn-text-default.active { background-color: #7d858c !important; color: white; -webkit-box-shadow: none; box-shadow: none; }";
-			styleContent += ".btn-text-default:focus { outline: 0; outline-offset: 0; } .btn-text-default:hover { background-color: #d8dadc; }";
-			styleContent += ".btn-text-default:active, .btn-text-default.active { background-color: #7d858c !important; color: white; -webkit-box-shadow: none; box-shadow: none; }";
-			styleContent += ".separator { margin: 0px 10px; height: 19px; display: inline-block; position: absolute; border-left: 1px solid #cbcbcb; vertical-align: top; padding: 0; width: 0; box-sizing: border-box; }";
-			styleContent += ".btn-play { background-position: 0px -40px; } .btn-play:active { background-position: -20px -40px; }";
-			styleContent += ".btn-prev { background-position: 0px 0px; } .btn-prev:active { background-position: -20px 0px; }";
-			styleContent += ".btn-next { background-position: 0px -20px; } .btn-next:active { background-position: -20px -20px; }";
-			styleContent += ".btn-pause { background-position: 0px -80px; } .btn-pause:active { background-position: -20px -80px; }";
-			styleContent += ".btn-pointer { background-position: 0px -100px; } .btn-pointer-active { background-position: -20px -100px; }";
-			styleContent += ".btn-pointer:active { background-position: -20px -100px; }";
-			styleContent += ".btn-text-default-img2 { background-repeat: no-repeat; position: absolute; background-color: #7d858c; border: none; color: #7d858c; font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; height: 22px; cursor: pointer; }";
-			styleContent += ".btn-text-default-img2:focus { outline: 0; outline-offset: 0; }";
-			styleContent += ".btn-text-default::-moz-focus-inner { border: 0; padding: 0; }";
-			styleContent += ".btn-text-default-img::-moz-focus-inner { border: 0; padding: 0; }";
-			styleContent += ".btn-text-default-img2::-moz-focus-inner { border: 0; padding: 0; }";
+			styleContent += (".btn-play { background-position: " + xOffset1 + "px -40px; }");
+			styleContent += (".btn-prev { background-position: " + xOffset1 + "px 0px; }");
+			styleContent += (".btn-next { background-position: " + xOffset1 + "px -20px; }");
+			styleContent += (".btn-pause { background-position: " + xOffset1 + "px -80px; }");
+			styleContent += (".btn-pointer { background-position: " + xOffset1 + "px -100px; }");
+			styleContent += (".btn-pointer-active { background-position: " + xOffset2 + "px -100px; }");
 
+			if (false) // менять цвет при нажатии
+			{
+				styleContent += (".btn-play:active { background-position: " + xOffset2 + "px -40px; }");
+				styleContent += (".btn-prev:active { background-position: " + xOffset2 + "px 0px; }");
+				styleContent += (".btn-next:active { background-position: " + xOffset2 + "px -20px; }");
+				styleContent += (".btn-pause:active { background-position: " + xOffset2 + "px -80px; }");
+				styleContent += (".btn-pointer:active { background-position: " + xOffset2 + "px -100px; }");
+			}
+
+			styleContent += this.getStylesReporter();
 
 			var style		 = document.createElement('style');
 			style.type 	 = 'text/css';
@@ -662,17 +690,17 @@ function CEditorPage(api)
 			}
 
 			var _buttonsContent = "";
-			_buttonsContent += "<label class=\"block_elem_no_select\" id=\"dem_id_time\" style=\"color:#666666;text-shadow: none;white-space: nowrap;font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11px; position:absolute; left:10px; bottom: 7px;\">00:00:00</label>";
+			_buttonsContent += "<label class=\"block_elem_no_select dem-text-color\" id=\"dem_id_time\" style=\"text-shadow: none;white-space: nowrap;font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11px; position:absolute; left:10px; bottom: 7px;\">00:00:00</label>";
 			_buttonsContent += "<button class=\"btn-text-default-img\" id=\"dem_id_play\" style=\"left: 60px; bottom: 3px; width: 20px; height: 20px;\"><span class=\"btn-play back_image_buttons\" id=\"dem_id_play_span\" style=\"width:100%;height:100%;\"></span></button>";
-			_buttonsContent += ("<button class=\"btn-text-default\"     id=\"dem_id_reset\" style=\"left: 85px; bottom: 2px; \">" + this.reporterTranslates[0] + "</button>");
-			_buttonsContent += ("<button class=\"btn-text-default\"     id=\"dem_id_end\" style=\"right: 10px; bottom: 2px; \">" + this.reporterTranslates[2] + "</button>");
+			_buttonsContent += ("<button class=\"btn-text-default\" id=\"dem_id_reset\" style=\"left: 85px; bottom: 2px; \">" + this.reporterTranslates[0] + "</button>");
+			_buttonsContent += ("<button class=\"btn-text-default\" id=\"dem_id_end\" style=\"right: 10px; bottom: 2px; \">" + this.reporterTranslates[2] + "</button>");
 
 			_buttonsContent += "<button class=\"btn-text-default-img\" id=\"dem_id_prev\"  style=\"left: 150px; bottom: 3px; width: 20px; height: 20px;\"><span class=\"btn-prev back_image_buttons\" style=\"width:100%;height:100%;\"></span></button>";
 			_buttonsContent += "<button class=\"btn-text-default-img\" id=\"dem_id_next\"  style=\"left: 170px; bottom: 3px; width: 20px; height: 20px;\"><span class=\"btn-next back_image_buttons\" style=\"width:100%;height:100%;\"></span></button>";
 
 			_buttonsContent += "<div class=\"separator block_elem_no_select\" id=\"dem_id_sep\" style=\"left: 185px; bottom: 3px;\"></div>";
 
-			_buttonsContent += "<label class=\"block_elem_no_select\" id=\"dem_id_slides\" style=\"color:#666666;text-shadow: none;white-space: nowrap;font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11px; position:absolute; left:207px; bottom: 7px;\"></label>";
+			_buttonsContent += "<label class=\"block_elem_no_select dem-text-color\" id=\"dem_id_slides\" style=\"text-shadow: none;white-space: nowrap;font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11px; position:absolute; left:207px; bottom: 7px;\"></label>";
 
 			_buttonsContent += "<div class=\"separator block_elem_no_select\" id=\"dem_id_sep2\" style=\"left: 350px; bottom: 3px;\"></div>";
 
@@ -939,6 +967,8 @@ function CEditorPage(api)
             case "id_buttonTabs":
             case "id_notes":
             case "id_notes_overlay":
+			case "id_thumbnails_background":
+			case "id_thumbnails":
             	return true;
 			default:
 				break;
@@ -1005,10 +1035,7 @@ function CEditorPage(api)
         AscCommon.addMouseEvent(this.m_oOverlay.HtmlElement, "move", this.onMouseMove);
         AscCommon.addMouseEvent(this.m_oOverlay.HtmlElement, "up", this.onMouseUp);
 
-        var _cur         = document.getElementById('id_target_cursor');
-        AscCommon.addMouseEvent(_cur, "down", this.onMouseDownTarget);
-        AscCommon.addMouseEvent(_cur, "move", this.onMouseMoveTarget);
-        AscCommon.addMouseEvent(_cur, "up", this.onMouseUpTarget);
+		document.getElementById('id_target_cursor').style.pointerEvents = "none";
 
 		this.m_oMainContent.HtmlElement.onmousewheel = this.onMouseWhell;
 		if (this.m_oMainContent.HtmlElement.addEventListener)
@@ -1500,9 +1527,9 @@ function CEditorPage(api)
 	this.onButtonTabsDraw = function()
 	{
 		var _ctx = this.m_oLeftRuler_buttonsTabs.HtmlElement.getContext('2d');
-		_ctx.setTransform(AscCommon.AscBrowser.retinaPixelRatio, 0, 0, AscCommon.AscBrowser.retinaPixelRatio, 0, 0);
+		_ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-		var dPR = window.devicePixelRatio;
+		var dPR = AscCommon.AscBrowser.retinaPixelRatio;
 		var _width  = Math.round(19 * dPR);
 		var _height = Math.round(19 * dPR);
 
@@ -1510,30 +1537,48 @@ function CEditorPage(api)
 
 		_ctx.lineWidth   = Math.round(dPR);
 		_ctx.strokeStyle = GlobalSkin.RulerOutline;
-		_ctx.strokeRect(2.5 * _ctx.lineWidth, 3.5 * _ctx.lineWidth, Math.round(14 * dPR), Math.round(14 * dPR));
+		var rectSize = Math.round(14 * dPR);
+		var lineWidth = _ctx.lineWidth;
+
+		_ctx.strokeRect(2.5 * lineWidth, 3.5 * lineWidth, Math.round(14 * dPR), Math.round(14 * dPR));
 		_ctx.beginPath();
 
 		_ctx.strokeStyle = GlobalSkin.RulerTabsColor;
 
-		_ctx.lineWidth = 2 * Math.round(dPR);
+		_ctx.lineWidth = (dPR - Math.floor(dPR) === 0.5) ? 2 * Math.round(dPR) - 1 : 2 * Math.round(dPR);
+
+		var tab_width = Math.round(5 * dPR);
+		var offset = _ctx.lineWidth % 2 === 1 ? 0.5 : 0;
+
+		var dx = Math.round((rectSize - 2 * Math.round(dPR) - tab_width) / 7 * 4);
+		var dy = Math.round((rectSize - 2 * Math.round(dPR) - tab_width) / 7 * 4);
+		var x = 4 * Math.round(dPR) + dx;
+		var y = 4 * Math.round(dPR) + dy;
+
 		if (this.m_nTabsType == tab_Left)
 		{
-			_ctx.moveTo(Math.round(8 * dPR), Math.round(9 * dPR));
-			_ctx.lineTo(Math.round(8 * dPR), Math.round(14 * dPR));
-			_ctx.lineTo(Math.round(13 * dPR), Math.round(14 * dPR));
+			_ctx.moveTo(x + offset, y);
+			_ctx.lineTo(x + offset, y + tab_width + offset);
+			_ctx.lineTo(x + tab_width, y + tab_width + offset);
 		}
 		else if (this.m_nTabsType == tab_Center)
 		{
-			_ctx.moveTo(Math.round(6 * dPR), Math.round(14 * dPR));
-			_ctx.lineTo(Math.round(14 * dPR), Math.round(14 * dPR));
-			_ctx.moveTo(Math.round(10 * dPR), Math.round(9 * dPR));
-			_ctx.lineTo(Math.round(10 * dPR), Math.round(14 * dPR));
+			tab_width = Math.round(8 * dPR);
+			tab_width = (tab_width % 2 === 1) ? tab_width - 1 : tab_width;
+			var dx = Math.round((rectSize - Math.round(dPR) - tab_width) / 2);
+			var x = 3 * Math.round(dPR) + dx;
+			var vert_tab_width = Math.round(5 * dPR);
+			_ctx.moveTo(x , y + vert_tab_width + offset);
+			_ctx.lineTo(x + tab_width, y + vert_tab_width + offset);
+			_ctx.moveTo(x - offset + tab_width / 2, y);
+			_ctx.lineTo(x - offset + tab_width / 2, y + vert_tab_width);
 		}
 		else
 		{
-			_ctx.moveTo(Math.round(12 * dPR), Math.round(9 * dPR));
-			_ctx.lineTo(Math.round(12 * dPR), Math.round(14 * dPR));
-			_ctx.lineTo(Math.round(7 * dPR), Math.round(14 * dPR));
+			var x = 3 * Math.round(dPR) + dx;
+			_ctx.moveTo(x, tab_width + y + offset);
+			_ctx.lineTo(x + tab_width + offset,  tab_width + y + offset);
+			_ctx.lineTo(x + tab_width + offset, y);
 		}
 
 		_ctx.stroke();
@@ -1915,6 +1960,7 @@ function CEditorPage(api)
 	this.OnResizeSplitter = function(isNoNeedResize)
 	{
 		this.OldSplitter1Pos = this.Splitter1Pos;
+		this.OldSplitter2Pos = this.Splitter2Pos;
 
 		this.m_oThumbnailsContainer.Bounds.R    = this.Splitter1Pos;
 		this.m_oThumbnailsContainer.Bounds.AbsW = this.Splitter1Pos;
@@ -2012,6 +2058,11 @@ function CEditorPage(api)
 				{
 					oWordControl.Splitter2Pos = _posY;
 					oWordControl.OnResizeSplitter();
+					oWordControl.m_oApi.syncOnNotesShow();
+					if(oWordControl.m_oLogicDocument)
+					{
+						oWordControl.m_oLogicDocument.CheckNotesShow();
+					}
 				}
 			}
 
@@ -3089,6 +3140,8 @@ function CEditorPage(api)
 
 		this.m_oBoundsController.ClearNoAttack();
 
+		this.UpdateScrolls();
+
 		this.OnScroll();
 		this.onTimerScroll_sync(true);
 
@@ -3439,6 +3492,7 @@ function CEditorPage(api)
 		{
 			ctx.fillStyle   = "rgba(51,102,204,255)";
 			ctx.strokeStyle = "#9ADBFE";
+			ctx.lineWidth = Math.round(AscCommon.AscBrowser.retinaPixelRatio);
 
 			ctx.beginPath();
 
@@ -3470,6 +3524,7 @@ function CEditorPage(api)
 			var ctxOverlay = overlayNotes.m_oContext;
 			ctxOverlay.fillStyle   = "rgba(51,102,204,255)";
 			ctxOverlay.strokeStyle = "#9ADBFE";
+			ctxOverlay.lineWidth = Math.round(AscCommon.AscBrowser.retinaPixelRatio);
 
 			ctxOverlay.beginPath();
 
@@ -3481,7 +3536,6 @@ function CEditorPage(api)
 			ctxOverlay.globalAlpha = 1.0;
 			ctxOverlay.stroke();
 			ctxOverlay.beginPath();
-			ctxOverlay.globalAlpha = 1.0;
 		}
 
 		if (this.MobileTouchManager)
@@ -3521,7 +3575,12 @@ function CEditorPage(api)
 
         if (drDoc.placeholders.objects.length > 0 && drDoc.SlideCurrent >= 0)
         {
-        	drDoc.placeholders.draw(overlay, drDoc.SlideCurrent, drDoc.SlideCurrectRect, this.m_oLogicDocument.GetWidthMM(), this.m_oLogicDocument.GetHeightMM());
+			var rectSlide = {};
+			rectSlide.left = AscCommon.AscBrowser.convertToRetinaValue(drDoc.SlideCurrectRect.left, true);
+			rectSlide.top = AscCommon.AscBrowser.convertToRetinaValue(drDoc.SlideCurrectRect.top, true);
+			rectSlide.right = AscCommon.AscBrowser.convertToRetinaValue(drDoc.SlideCurrectRect.right, true);
+			rectSlide.bottom = AscCommon.AscBrowser.convertToRetinaValue(drDoc.SlideCurrectRect.bottom, true);
+        	drDoc.placeholders.draw(overlay, drDoc.SlideCurrent, rectSlide, this.m_oLogicDocument.GetWidthMM(), this.m_oLogicDocument.GetHeightMM());
         }
 
 		drDoc.DrawHorVerAnchor();
@@ -4157,8 +4216,8 @@ function CEditorPage(api)
 				}
 
 				arr[i].Image  = master.sldLayoutLst[i].ImageBase64;
-				arr[i].Width  = master.sldLayoutLst[i].Width64;
-				arr[i].Height = master.sldLayoutLst[i].Height64;
+				arr[i].Width  = AscCommon.AscBrowser.convertToRetinaValue(master.sldLayoutLst[i].Width64);
+				arr[i].Height =  AscCommon.AscBrowser.convertToRetinaValue(master.sldLayoutLst[i].Height64);
 			}
 
 			this.m_oApi.sendEvent("asc_onUpdateLayout", arr);

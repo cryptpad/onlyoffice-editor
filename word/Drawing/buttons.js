@@ -32,6 +32,89 @@
 
 "use strict";
 
+(function(window, undefined){
+
+	var AscCommon = window['AscCommon'];
+	function BaseImageCtrl()
+	{
+		this.images = [];
+		this.images_active = [];
+		this.support = [1, 1.5, 2];
+		this.baseUrl = "";
+	}
+
+	BaseImageCtrl.prototype.getAddon = function(val)
+	{
+		val = (val * 10) >> 0;
+		if (10 === val)
+			return "";
+
+		var val1 = (val / 10) >> 0;
+		var val2 = val - (10 * val1);
+
+		if (0 === val2)
+			return "@" + val1 + "x";
+
+		return "@" + val1 + "." + val2 + "x";
+	};
+
+	BaseImageCtrl.prototype.getIndex = function()
+	{
+		var scale = AscCommon.AscBrowser.retinaPixelRatio;
+		var index = 0;
+		var len = this.support.length;
+		while (index < len)
+		{
+			if (this.support[index] > (scale + 0.01))
+				break;
+			++index;
+		}
+		--index;
+		if (index < 0)
+			return 0;
+		if (index >= len)
+			return len - 1;
+		return index;
+	};
+
+	BaseImageCtrl.prototype.load = function(type, url)
+	{
+		for (var i = 0, len = this.support.length; i < len; i++)
+		{
+			var img = new Image();
+			img.onload = function() { this.asc_complete = true; };
+			img.src = this.baseUrl + "/" + url + this.getAddon(this.support[i]) + ".png";
+			AscCommon.backoffOnErrorImg(img);
+			this.images.push(img);
+		}
+	};
+	BaseImageCtrl.prototype.loadActive = function(url)
+	{
+		for (var i = 0, len = this.support.length; i < len; i++)
+		{
+			var img = new Image();
+			img.onload = function() { this.asc_complete = true; };
+			img.src = this.baseUrl + "/" + url + "_active" + this.getAddon(this.support[i]) + ".png";
+			AscCommon.backoffOnErrorImg(img);
+			this.images_active.push(img);
+		}
+	};
+	BaseImageCtrl.prototype.get = function(isActive)
+	{
+		if (isActive) return this.getActive();
+		var index = this.getIndex();
+		return this.images[index].asc_complete ? this.images[index] : null;
+	};
+	BaseImageCtrl.prototype.getActive = function()
+	{
+		var index = this.getIndex();
+		return this.images_active[index].asc_complete ? this.images_active[index] : null;
+	};
+
+	AscCommon.BaseImageCtrl = BaseImageCtrl;
+
+})(window);
+
 /*
     PLACEHOLDERS
  */
@@ -67,47 +150,20 @@
 	var ButtonImageSize1x = 28;
 	var ButtonBetweenSize1x = 8;
 
+	/**
+	 * @constructor
+	 * @extends {AscCommon.BaseImageCtrl}
+	 */
+	function PI()
+	{
+		AscCommon.BaseImageCtrl.call(this);
+		this.baseUrl = "../../../../sdkjs/common/Images/placeholders";
+	}
+	PI.prototype = Object.create(AscCommon.BaseImageCtrl.prototype);
+	PI.prototype.constructor = PI;
+
 	function PlaceholderIcons()
 	{
-		function PI()
-		{
-			this.images = [];
-			this.load = function(type, url)
-			{
-				this.images[0] = new Image();
-				this.images[0].onload = function() { this.asc_complete = true; };
-				this.images[0].src = "../../../../sdkjs/common/Images/placeholders/" + url + ".png";
-				AscCommon.backoffOnErrorImg(this.images[0]);
-
-				this.images[1] = new Image();
-				this.images[1].onload = function() { this.asc_complete = true; };
-				this.images[1].src = "../../../../sdkjs/common/Images/placeholders/" + url + "@2x.png";
-				AscCommon.backoffOnErrorImg(this.images[1]);
-			};
-			this.loadActive = function(url)
-			{
-				this.images[2] = new Image();
-				this.images[2].onload = function() { this.asc_complete = true; };
-				this.images[2].src = "../../../../sdkjs/common/Images/placeholders/" + url + "_active.png";
-				AscCommon.backoffOnErrorImg(this.images[2]);
-
-				this.images[3] = new Image();
-				this.images[3].onload = function() { this.asc_complete = true; };
-				this.images[3].src = "../../../../sdkjs/common/Images/placeholders/" + url + "_active@2x.png";
-				AscCommon.backoffOnErrorImg(this.images[3]);
-			};
-			this.get = function()
-			{
-				var index = AscCommon.AscBrowser.isCustomScalingAbove2() ? 1 : 0;
-				return this.images[index].asc_complete ? this.images[index] : null;
-			};
-			this.getActive = function()
-			{
-				var index = AscCommon.AscBrowser.isCustomScalingAbove2() ? 3 : 2;
-				return this.images[index].asc_complete ? this.images[index] : null;
-			};
-		}
-
 		this.images = [];
 
 		this.register = function(type, url, support_active)
@@ -181,11 +237,17 @@
 	};
 
 	// расчет всех ректов кнопок
-	Placeholder.prototype.getButtonRects = function(pointCenter, scale)
+	Placeholder.prototype.getButtonRects = function(pointCenter, scale, isDraw)
 	{
 		//координаты ретины - масштабируются при отрисовке
 		var ButtonSize = ButtonSize1x;//AscCommon.AscBrowser.convertToRetinaValue(ButtonSize1x, true);
 		var ButtonBetweenSize = ButtonBetweenSize1x;//AscCommon.AscBrowser.convertToRetinaValue(ButtonBetweenSize1x, true);
+
+		if (isDraw)
+		{
+			ButtonSize = AscCommon.AscBrowser.convertToRetinaValue(ButtonSize, true);
+			ButtonBetweenSize = AscCommon.AscBrowser.convertToRetinaValue(ButtonBetweenSize, true);
+		}
 
 		// максимум 2 ряда
 		var buttonsCount = this.buttons.length;
@@ -359,12 +421,12 @@
 			x : (pixelsRect.right - pixelsRect.left) / pageWidthMM,
 			y : (pixelsRect.bottom - pixelsRect.top) / pageHeightMM
 		};
-		var rects = this.getButtonRects(pointCenter, scale);
+		var rects = this.getButtonRects(pointCenter, scale, true);
 		if (rects.length != this.buttons.length)
 			return;
 
-		var ButtonSize = ButtonSize1x;//AscCommon.AscBrowser.convertToRetinaValue(ButtonSize1x, true);
-		var ButtonImageSize = ButtonImageSize1x;//AscCommon.AscBrowser.convertToRetinaValue(ButtonImageSize1x, true);
+		var ButtonSize = AscCommon.AscBrowser.convertToRetinaValue(ButtonSize1x, true);
+		var ButtonImageSize = AscCommon.AscBrowser.convertToRetinaValue(ButtonImageSize1x, true);
 		var offsetImage = (ButtonSize - ButtonImageSize) >> 1;
 
 		var ctx = overlay.m_oContext;
@@ -626,45 +688,17 @@
 
 	function CCIcons()
 	{
+		/**
+		 * @constructor
+		 * @extends {AscCommon.BaseImageCtrl}
+		 */
 		function CCI()
 		{
-			this.type = 0;
-			this.images = [];
-
-			this.load = function(type, url)
-			{
-				this.type = type;
-				this.images[0] = new Image();
-				this.images[0].onload = function() { this.asc_complete = true; };
-				this.images[0].src = "../../../../sdkjs/common/Images/content_controls/" + url + ".png";
-				AscCommon.backoffOnErrorImg(this.images[0]);
-
-				this.images[1] = new Image();
-				this.images[1].onload = function() { this.asc_complete = true; };
-				this.images[1].src = "../../../../sdkjs/common/Images/content_controls/" + url + "_active.png";
-				AscCommon.backoffOnErrorImg(this.images[1]);
-
-				this.images[2] = new Image();
-				this.images[2].onload = function() { this.asc_complete = true; };
-				this.images[2].src = "../../../../sdkjs/common/Images/content_controls/" + url + "@2x.png";
-				AscCommon.backoffOnErrorImg(this.images[2]);
-
-				this.images[3] = new Image();
-				this.images[3].onload = function() { this.asc_complete = true; };
-				this.images[3].src = "../../../../sdkjs/common/Images/content_controls/" + url + "_active@2x.png";
-				AscCommon.backoffOnErrorImg(this.images[3]);
-			};
-
-			this.get = function(isActive)
-			{
-				var index = AscCommon.AscBrowser.isCustomScalingAbove2() ? 2 : 0;
-				if (isActive)
-					index++;
-				if (this.images[index].asc_complete)
-					return this.images[index];
-				return null;
-			};
+			AscCommon.BaseImageCtrl.call(this);
+			this.baseUrl = "../../../../sdkjs/common/Images/content_controls";
 		}
+		CCI.prototype = Object.create(AscCommon.BaseImageCtrl.prototype);
+		CCI.prototype.constructor = CCI;
 
 		this.images = [];
 
@@ -672,6 +706,7 @@
 		{
 			var image = new CCI();
 			image.load(type, url);
+			image.loadActive(url);
 			this.images[type] = image;
 		};
 
@@ -689,9 +724,12 @@
 			this.images[AscCommon.CCButtonType.Combo] = imageCC;
 			imageCC.type = AscCommon.CCButtonType.Combo;
 
-			for (var i = 0; i < 4; i++)
+			var sizes = [20, 30, 40];
+			for (var i = 0; i < 6; i++)
 			{
-				var size = (i > 1) ? 40 : 20;
+				var index = i >> 1;
+				var isActive = (0x01 === (0x01 & i));
+				var size = sizes[index];
 
 				var image = document.createElement("canvas");
 				image.width = size;
@@ -706,7 +744,7 @@
 				var x = (size - len) >> 1;
 				var y = (size - count) >> 1;
 
-				var color = (0x01 === (0x01 & i)) ? 255 : 0;
+				var color = isActive ? 255 : 0;
 
 				while ( len > 0 )
 				{
@@ -728,7 +766,10 @@
 
 				image.asc_complete = true;
 
-				imageCC.images[i] = image;
+				if (isActive)
+					imageCC.images_active[index] = image;
+				else
+					imageCC.images[index] = image;
 			}
 		};
 	}
@@ -1594,7 +1635,7 @@
 							var widthHeader = (widthName + 20 * _object.Buttons.length * rPR) >> 0 ;
 							var xText = _x;
 
-							if (!_object.IsNoButtons)
+							if (_object.IsUseMoveRect())
 							{
 								widthHeader += Math.round(15 * rPR);
 								xText += Math.round(15 * rPR);
@@ -1627,57 +1668,26 @@
 										ctx.beginPath();
 									}
 
-									var cx = _x - 0.5 * Math.round(rPR) + Math.round(4 * rPR);
-									var cy = _y - 0.5 * Math.round(rPR) + Math.round(4 * rPR);
+									var cx = _x - 0.5 * Math.round(rPR) + Math.round(5 * rPR);
+									var cy = _y - 0.5 * Math.round(rPR) + Math.round(5 * rPR);
 
-									var _color1 = "#ADADAD";
-									var _color2 = "#D4D4D4";
+									var px3 = Math.round(2 * rPR);
+									var px5 = Math.round(4 * rPR);
+									var px10 = Math.round(8 * rPR);
 
+									var _color = "#ADADAD";
 									if (0 == this.ContentControlObjectState || 1 == this.ContentControlObjectState)
-									{
-										_color1 = "#444444";
-										_color2 = "#9D9D9D";
-									}
+										_color = "#444444";
 
-									overlay.AddRect(cx, cy, Math.round(3 * rPR), Math.round(3 * rPR));
-									overlay.AddRect(cx + Math.round(5 * rPR), cy, Math.round(3 * rPR), Math.round(3 * rPR));
-									overlay.AddRect(cx, cy + Math.round(5 * rPR), Math.round(3 * rPR), Math.round(3 * rPR));
-									overlay.AddRect(cx + Math.round(5 * rPR), cy + Math.round(5 * rPR), Math.round(3 * rPR), Math.round(3 * rPR));
-									overlay.AddRect(cx, cy + Math.round(10 * rPR), Math.round(3 * rPR), Math.round(3 * rPR));
-									overlay.AddRect(cx + Math.round(5 * rPR), cy + Math.round(10 * rPR), Math.round(3 * rPR), Math.round(3 * rPR));
+									overlay.AddRect(cx, cy, px3, px3);
+									overlay.AddRect(cx, cy + px5, px3, px3);
+									overlay.AddRect(cx, cy + px10, px3, px3);
+									overlay.AddRect(cx + px5, cy, px3, px3);
+									overlay.AddRect(cx + px5, cy + px5, px3, px3);
+									overlay.AddRect(cx + px5, cy + px10, px3, px3);
 
-									ctx.fillStyle = _color2;
+									ctx.fillStyle = _color;
 									ctx.fill();
-									ctx.beginPath();
-
-									ctx.moveTo(cx + Math.round(1 * rPR) + 0.5 * Math.round(rPR), cy);
-									ctx.lineTo(cx + Math.round(1 * rPR) + 0.5 * Math.round(rPR), cy + Math.round(3 * rPR));
-									ctx.moveTo(cx + Math.round(6 * rPR) + 0.5 * Math.round(rPR), cy);
-									ctx.lineTo(cx + Math.round(6 * rPR) + 0.5 * Math.round(rPR), cy + Math.round(3 * rPR));
-									ctx.moveTo(cx + Math.round(1 * rPR) + 0.5 * Math.round(rPR), cy + Math.round(5 * rPR));
-									ctx.lineTo(cx + Math.round(1 * rPR) + 0.5 * Math.round(rPR), cy + Math.round(8 * rPR));
-									ctx.moveTo(cx + Math.round(6 * rPR) + 0.5 * Math.round(rPR), cy + Math.round(5 * rPR));
-									ctx.lineTo(cx + Math.round(6 * rPR) + 0.5 * Math.round(rPR), cy + Math.round(8 * rPR));
-									ctx.moveTo(cx + Math.round(1 * rPR) + 0.5 * Math.round(rPR), cy + Math.round(10 * rPR));
-									ctx.lineTo(cx + Math.round(1 * rPR) + 0.5 * Math.round(rPR), cy + Math.round(13 * rPR));
-									ctx.moveTo(cx + Math.round(6 * rPR) + 0.5 * Math.round(rPR), cy + Math.round(10 * rPR));
-									ctx.lineTo(cx + Math.round(6 * rPR) + 0.5 * Math.round(rPR), cy + Math.round(13 * rPR));
-
-									ctx.moveTo(cx, cy + Math.round(1 * rPR) + 0.5 * Math.round(rPR));
-									ctx.lineTo(cx + Math.round(3 * rPR), cy + Math.round(1 * rPR) + 0.5 * Math.round(rPR));
-									ctx.moveTo(cx + Math.round(5 * rPR), cy + Math.round(1 * rPR) + 0.5 * Math.round(rPR));
-									ctx.lineTo(cx + Math.round(8 * rPR), cy + Math.round(1 * rPR) + 0.5 * Math.round(rPR));
-									ctx.moveTo(cx, cy + Math.round(6.5 * rPR));
-									ctx.lineTo(cx + Math.round(3 * rPR), cy + Math.round(6 * rPR) + 0.5 * Math.round(rPR));
-									ctx.moveTo(cx + Math.round(5 * rPR), cy + Math.round(6 * rPR) + 0.5 * Math.round(rPR));
-									ctx.lineTo(cx + Math.round(8 * rPR), cy + Math.round(6 * rPR) + 0.5 * Math.round(rPR));
-									ctx.moveTo(cx, cy + Math.round(11 * rPR) + 0.5 * Math.round(rPR));
-									ctx.lineTo(cx + Math.round(3 * rPR), cy + Math.round(11 * rPR) + 0.5 * Math.round(rPR));
-									ctx.moveTo(cx + Math.round(5 * rPR), cy + Math.round(11 * rPR) + 0.5 * Math.round(rPR));
-									ctx.lineTo(cx + Math.round(8 * rPR), cy + Math.round(11 * rPR) + 0.5 * Math.round(rPR));
-
-									ctx.strokeStyle = _color1;
-									ctx.stroke();
 									ctx.beginPath();
 								}
 
@@ -1758,8 +1768,8 @@
 							if (_object.ComboRect)
 							{
 								_x = (((_drawingPage.left + _koefX * (_object.ComboRect.X + _object.OffsetX)) * rPR) >> 0) + 0.5 * Math.round(rPR);
-								_y = (((_drawingPage.top + _koefY * (_object.ComboRect.Y + _object.OffsetY)) >> 0)) * rPR + 0.5 * Math.round(rPR);
-								_b = (((_drawingPage.top + _koefY * (_object.ComboRect.B + _object.OffsetY))) * rPR >> 0) + 0.5 * Math.round(rPR);
+								_y = (((_drawingPage.top  + _koefY * (_object.ComboRect.Y + _object.OffsetY)) * rPR) >> 0) + 0.5 * Math.round(rPR);
+								_b = (((_drawingPage.top  + _koefY * (_object.ComboRect.B + _object.OffsetY)) * rPR) >> 0) + 0.5 * Math.round(rPR);
 								var nIndexB = _object.Buttons.length;
 
 								ctx.beginPath();
@@ -1778,12 +1788,21 @@
 
 								var image = this.icons.getImage(AscCommon.CCButtonType.Combo, _object.Buttons.length == _object.ActiveButtonIndex);
 								if (image && Math.round(7 * rPR) < (_b - _y))
-									ctx.drawImage(image, _x, _y + ((_b - _y - Math.round(20 * rPR)) >> 1) + 0.5 * Math.round(rPR), Math.round(20 * rPR), Math.round(20 * rPR));
+									ctx.drawImage(image, _x + 0.5 * Math.round(rPR), _y + 1.5 * Math.round(rPR) + ((_b - _y - Math.round(20 * rPR)) >> 1), Math.round(20 * rPR), Math.round(20 * rPR));
 							}
 						}
 						else
 						{
 							var _ft = _object.transform.CreateDublicate();
+
+							var coords = new AscCommon.CMatrix();
+							coords.sx = _koefX * rPR;
+							coords.sy = _koefY * rPR;
+							coords.tx = _drawingPage.left * rPR;
+							coords.ty = _drawingPage.top * rPR;
+							global_MatrixTransformer.MultiplyAppend(_ft, coords);
+							ctx.transform(_ft.sx, _ft.shy, _ft.shx, _ft.sy, _ft.tx, _ft.ty);
+
 							var scaleX_15 = 15 / _koefX;
 							var scaleX_20 = 20 / _koefX;
 							var scaleY_20 = 20 / _koefY;
@@ -1811,7 +1830,7 @@
 								xText += scaleX_15;
 							}
 
-							if (widthHeader < 0.001)
+							if (widthHeader > 0.001)
 							{
 								_r = _x + widthHeader;
 								_b = _y + scaleY_20;
@@ -1839,15 +1858,6 @@
 								overlay.CheckPoint(x3, y3);
 								overlay.CheckPoint(x4, y4);
 								// --------------------------------
-
-								var coords = new AscCommon.CMatrix();
-								coords.sx = _koefX;
-								coords.sy = _koefY;
-								coords.tx = _drawingPage.left;
-								coords.ty = _drawingPage.top;
-
-								global_MatrixTransformer.MultiplyAppend(_ft, coords);
-								ctx.transform(_ft.sx, _ft.shy, _ft.shx, _ft.sy, _ft.tx, _ft.ty);
 
 								// рисуем подложку
 								ctx.fillStyle = AscCommon.GlobalSkin.ContentControlsBack;
@@ -1992,7 +2002,7 @@
 								var image = this.icons.getImage(AscCommon.CCButtonType.Combo, _object.Buttons.length == _object.ActiveButtonIndex);
 								var scaleY_7 = 7 / _koefY;
 								if (image && scaleY_7 < (_b - _y))
-									ctx.drawImage(image, _x, _y + ((_b - _y - scaleY_20) >> 1) + 0.5, scaleX_20, scaleY_20);
+									ctx.drawImage(image, _x, _y + ((_b - _y - scaleY_20) / 2), scaleX_20, scaleY_20);
 							}
 
 							// рисуем единую обводку
@@ -2080,6 +2090,112 @@
 		this.isInlineTrack = function()
 		{
 			return (this.ContentControlObjectState == 1) ? true : false;
+		};
+
+		this.checkPointerInButtons = function(pos)
+		{
+			for (var i = 0; i < this.ContentControlObjects.length; i++)
+			{
+				var _object = this.ContentControlObjects[i];
+				if (_object.state !== AscCommon.ContentControlTrack.In)
+					continue;
+
+				// check header
+				var _page = this.document.m_arrPages[_object.Pos.Page];
+				if (!_page)
+					return false;
+
+				var drawingPage = _page.drawingPage;
+
+				var koefX = (drawingPage.right - drawingPage.left) / _page.width_mm;
+				var koefY = (drawingPage.bottom - drawingPage.top) / _page.height_mm;
+
+				var xPos = pos.X - _object.OffsetX;
+				var yPos = pos.Y - _object.OffsetY;
+
+				if (_object.transform)
+				{
+					var tmp = _object.invertTransform.TransformPointX(xPos, yPos);
+					yPos = _object.invertTransform.TransformPointY(xPos, yPos);
+					xPos = tmp;
+				}
+
+				if (_object.Pos.Page == pos.Page && !_object.IsNoUseButtons())
+				{
+					// move
+					var rectMove = _object.CalculateMoveRect(koefX, koefY, true);
+					if (rectMove && rectMove.W > 0.001 && xPos > rectMove.X && xPos < (rectMove.X + rectMove.W) && yPos > rectMove.Y && yPos < (rectMove.Y + rectMove.H))
+					{
+						return true;
+					}
+
+					// check buttons
+					if (_object.Buttons.length > 0)
+					{
+						var indexButton = -1;
+						var xCC, yCC;
+
+						var x, y, w, h;
+						if (_object.formInfo)
+						{
+							w = 20 / koefX;
+							h = 20 / koefY;
+
+							x = _object.formInfo.bounds.x + (_object.formInfo.bounds.w - w) / 2;
+							y = _object.formInfo.bounds.y + (_object.formInfo.bounds.h - h) / 2;
+
+							if (xPos > x && xPos < (x + w) && yPos > y && yPos < (y + h))
+							{
+								indexButton = 0;
+								xCC = x;
+								yCC = y + h;
+							}
+						}
+						else
+						{
+							var rectOrigin = rectMove;
+							if (!rectOrigin)
+								return false;
+							x = rectOrigin.X + rectOrigin.W;
+							y = rectOrigin.Y;
+							w = 20 / koefX;
+							h = 20 / koefY;
+
+							for (var indexB = 0; indexB < _object.Buttons.length; indexB++)
+							{
+								if (xPos > x && xPos < (x + w) && yPos > y && yPos < (y + h))
+								{
+									xCC = x + _object.OffsetX;
+									yCC = rectOrigin.Y + rectOrigin.H + _object.OffsetY;
+
+									indexButton = indexB;
+									break;
+								}
+								x += w;
+							}
+						}
+
+						if (-1 !== indexButton)
+						{
+							return true;
+						}
+					}
+				}
+
+				var rectCombo = _object.CalculateComboRect(koefX, koefY);
+
+				if (rectCombo && pos.Page == rectCombo.Page)
+				{
+					if (xPos > rectCombo.X && xPos < (rectCombo.X + rectCombo.W) && yPos > rectCombo.Y && yPos < (rectCombo.Y + rectCombo.H))
+					{
+						return true;
+					}
+				}
+
+				break;
+			}
+
+			return false;
 		};
 
 		this.onPointerDown = function(pos)
@@ -2700,8 +2816,11 @@
 		this.rectComboWidth = this.rectComboWidthPx / koef;
 		this.roundSize = this.roundSizePx / koef;
 
-		//this.wideOutlineX = 1 / koef;
-		this.wideOutlineY = 1 / koef;
+		if (!object.transform)
+		{
+			//this.wideOutlineX = 1 / koef;
+			this.wideOutlineY = 1 / koef;
+		}
 		this.koef = koef;
 	};
 	CPolygonCC.prototype.moveTo = function(x, y)
@@ -3429,10 +3548,10 @@
 
 			var matrix = object.transform;
 			var coordMatrix = new AscCommon.CMatrix();
-			coordMatrix.sx = koefX;
-			coordMatrix.sy = koefY;
-			coordMatrix.tx = drPage.left;
-			coordMatrix.ty = drPage.top;
+			coordMatrix.sx = koefX * rPR;
+			coordMatrix.sy = koefY * rPR;
+			coordMatrix.tx = drPage.left * rPR;
+			coordMatrix.ty = drPage.top * rPR;
 			AscCommon.global_MatrixTransformer.MultiplyPrepend(coordMatrix, matrix);
 
 			while (true)
@@ -3569,8 +3688,8 @@
 					_x = matrix.TransformPointX(point.x, point.y);
 					_y = matrix.TransformPointY(point.x, point.y);
 
-					_x = drPage.left + koefX * _x;
-					_y = drPage.top + koefY * _y;
+					_x = (drPage.left + koefX * _x) * rPR;
+					_y = (drPage.top + koefY * _y) * rPR;
 
 					overlay.CheckPoint(_x, _y);
 
@@ -3585,31 +3704,32 @@
 					{
 						var x1, y1, x2, y2, xCP, yCP;
 						var isX = true;
+						var roundSizePxTmp = 0; // this.roundSizePx
 						switch (point.inDir)
 						{
 							case PointDirection.Left:
 							{
-								x1 = _x + this.roundSizePx;
+								x1 = _x + roundSizePxTmp;
 								y1 = _y;
 								break;
 							}
 							case PointDirection.Right:
 							{
-								x1 = _x - this.roundSizePx;
+								x1 = _x - roundSizePxTmp;
 								y1 = _y;
 								break;
 							}
 							case PointDirection.Up:
 							{
 								x1 = _x;
-								y1 = _y + this.roundSizePx;
+								y1 = _y + roundSizePxTmp;
 								isX = false;
 								break;
 							}
 							case PointDirection.Down:
 							{
 								x1 = _x;
-								y1 = _y - this.roundSizePx;
+								y1 = _y - roundSizePxTmp;
 								isX = false;
 								break;
 							}
@@ -3620,26 +3740,26 @@
 						{
 							case PointDirection.Left:
 							{
-								x2 = _x - this.roundSizePx;
+								x2 = _x - roundSizePxTmp;
 								y2 = _y;
 								break;
 							}
 							case PointDirection.Right:
 							{
-								x2 = _x + this.roundSizePx;
+								x2 = _x + roundSizePxTmp;
 								y2 = _y;
 								break;
 							}
 							case PointDirection.Up:
 							{
 								x2 = _x;
-								y2 = _y - this.roundSizePx;
+								y2 = _y - roundSizePxTmp;
 								break;
 							}
 							case PointDirection.Down:
 							{
 								x2 = _x;
-								y2 = _y + this.roundSizePx;
+								y2 = _y + roundSizePxTmp;
 								break;
 							}
 							default:

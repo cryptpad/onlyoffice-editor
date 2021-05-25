@@ -1423,6 +1423,22 @@ background-repeat: no-repeat;\
 			document.getElementById("id_notes").style.backgroundColor = AscCommon.GlobalSkin.BackgroundColorNotes;
 		}
 
+		if (this.isReporterMode)
+		{
+			if (document.getElementById("dem_id_pointer") && this.WordControl)
+			{
+				var _head = document.getElementsByTagName('head')[0];
+				var style = document.createElement('style');
+				style.type = 'text/css';
+				style.innerHTML = this.WordControl.getStylesReporter();
+				_head.appendChild(style);
+
+				["id_reporter_dem", "id_reporter_dem_controller", "id_main_parent", "id_reporter_dem_parent", "id_main"].forEach(function (id) {
+					document.getElementById(id).style.backgroundColor = GlobalSkin.BackgroundColorThumbnails;
+				});
+			}
+		}
+
 		if (this.WordControl && this.WordControl.m_oBody)
 			this.WordControl.OnResize(true);
 	};
@@ -4841,6 +4857,16 @@ background-repeat: no-repeat;\
 		}
 	};
 
+	asc_docs_api.prototype.asc_ResolveAllComments = function(isMine, isCurrent, arrIds)
+	{
+		var oPresentation = this.WordControl && this.WordControl.m_oLogicDocument;
+		if(!oPresentation)
+		{
+			return;
+		}
+		oPresentation.ResolveAllComments(isMine, isCurrent, arrIds);
+	};
+
 	asc_docs_api.prototype.asc_onDeleteComment = function(Id, oCommentData)
 	{
 		var AscCommentData = new asc_CCommentData(oCommentData);
@@ -5672,6 +5698,26 @@ background-repeat: no-repeat;\
 			this.WordControl.OldSplitter1Pos = old;
 		}
 	};
+
+	asc_docs_api.prototype.asc_ShowNotes = function(bIsShow)
+	{
+		if (bIsShow)
+		{
+			this.WordControl.Splitter2Pos = this.WordControl.OldSplitter2Pos;
+			if (this.WordControl.Splitter2Pos <= 1)
+				this.WordControl.Splitter2Pos = 11;
+			this.WordControl.OnResizeSplitter();
+		}
+		else
+		{
+			var old = this.WordControl.OldSplitter2Pos;
+			this.WordControl.Splitter2Pos = 0;
+			this.WordControl.OnResizeSplitter();
+			this.WordControl.OldSplitter2Pos = old;
+			this.WordControl.m_oLogicDocument.CheckNotesShow();
+		}
+	};
+
 	asc_docs_api.prototype.asc_DeleteVerticalScroll = function()
 	{
 		this.WordControl.DeleteVerticalScroll();
@@ -5684,6 +5730,19 @@ background-repeat: no-repeat;\
 			bIsShow = false;
 
 		this.sendEvent("asc_onThumbnailsShow", bIsShow);
+	};
+
+	asc_docs_api.prototype.getIsNotesShow = function()
+	{
+		var bIsShow = true;
+		if (1 >= this.WordControl.Splitter2Pos)
+			bIsShow = false;
+
+		return bIsShow;
+	};
+	asc_docs_api.prototype.syncOnNotesShow = function()
+	{
+		this.sendEvent("asc_onNotesShow", this.getIsNotesShow());
 	};
 
 
@@ -6401,6 +6460,7 @@ background-repeat: no-repeat;\
 	{
 		this.reporterStartObject = startObject;
 		this.reporterStartObject["translate"] = AscCommon.translateManager.mapTranslate;
+		this.reporterStartObject["skin"] = AscCommon.GlobalSkin;
 
 		if (window["AscDesktopEditor"])
 		{
@@ -6580,6 +6640,8 @@ background-repeat: no-repeat;\
 	{
 		if (data["translate"])
 			this.translateManager = AscCommon.translateManager.init(data["translate"]);
+		if (data["skin"])
+			this.asc_setSkin(data["skin"]);
 
 		this.reporterTranslates = [data["translations"]["reset"], data["translations"]["slideOf"], data["translations"]["endSlideshow"], data["translations"]["finalMessage"]];
 
@@ -7662,6 +7724,25 @@ background-repeat: no-repeat;\
 		}
 	};
 
+	asc_docs_api.prototype.isShowShapeAdjustments = function()
+	{
+		return this.canEdit();
+	};
+	asc_docs_api.prototype.isShowTableAdjustments = function()
+	{
+		return this.canEdit();
+	};
+	asc_docs_api.prototype.isShowEquationTrack = function()
+	{
+		return this.canEdit();
+	};
+
+	asc_docs_api.prototype.SetDrawImagePreviewBulletForMenu = function(id, type)
+    {
+		if (this.WordControl.m_oDrawingDocument)
+			this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletForMenu(id, type);
+    };
+
 	//-------------------------------------------------------------export---------------------------------------------------
 	window['Asc']                                                 = window['Asc'] || {};
 	window['AscCommonSlide']                                      = window['AscCommonSlide'] || {};
@@ -7934,6 +8015,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_getAnchorPosition']               = asc_docs_api.prototype.asc_getAnchorPosition;
 	asc_docs_api.prototype['asc_removeComment']                   = asc_docs_api.prototype.asc_removeComment;
 	asc_docs_api.prototype['asc_RemoveAllComments']               = asc_docs_api.prototype.asc_RemoveAllComments;
+	asc_docs_api.prototype['asc_ResolveAllComments']              = asc_docs_api.prototype.asc_ResolveAllComments;
 	asc_docs_api.prototype['asc_changeComment']                   = asc_docs_api.prototype.asc_changeComment;
 	asc_docs_api.prototype['asc_selectComment']                   = asc_docs_api.prototype.asc_selectComment;
 	asc_docs_api.prototype['asc_showComment']                     = asc_docs_api.prototype.asc_showComment;
@@ -7982,6 +8064,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['sync_MouseMoveEndCallback']           = asc_docs_api.prototype.sync_MouseMoveEndCallback;
 	asc_docs_api.prototype['sync_MouseMoveCallback']              = asc_docs_api.prototype.sync_MouseMoveCallback;
 	asc_docs_api.prototype['ShowThumbnails']                      = asc_docs_api.prototype.ShowThumbnails;
+	asc_docs_api.prototype['asc_ShowNotes']                       = asc_docs_api.prototype.asc_ShowNotes;
 	asc_docs_api.prototype['asc_DeleteVerticalScroll']            = asc_docs_api.prototype.asc_DeleteVerticalScroll;
 	asc_docs_api.prototype['syncOnThumbnailsShow']                = asc_docs_api.prototype.syncOnThumbnailsShow;
 	asc_docs_api.prototype['can_AddHyperlink']                    = asc_docs_api.prototype.can_AddHyperlink;
@@ -8104,7 +8187,9 @@ background-repeat: no-repeat;\
 
     asc_docs_api.prototype['sendEvent']								= asc_docs_api.prototype.sendEvent;
 	asc_docs_api.prototype['asc_setSkin']							= asc_docs_api.prototype.asc_setSkin;
-
+	
+	asc_docs_api.prototype['SetDrawImagePreviewBulletForMenu']		= asc_docs_api.prototype.SetDrawImagePreviewBulletForMenu;
+	
 	// mobile
 	asc_docs_api.prototype["asc_GetDefaultTableStyles"]           	= asc_docs_api.prototype.asc_GetDefaultTableStyles;
 	asc_docs_api.prototype["asc_Remove"] 							= asc_docs_api.prototype.asc_Remove;

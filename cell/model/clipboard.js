@@ -1374,7 +1374,8 @@
 						}
 					}
 
-					var text = val[i].text.replace(/\n/g, '<br>');
+					var text = CopyPasteCorrectString(val[i].text);
+					text = text.replace(/\n/g, '<br>');
 
 					f = val[i].format;
 					var fn = f.getName();
@@ -3307,7 +3308,9 @@
 
 				if (textImport) {
 					var advancedOptions = specialPasteProps.asc_getAdvancedOptions();
-					text = AscCommon.parseText(text, advancedOptions, true);
+					if (Asc.typeOf(text) !== "array") {
+						text = AscCommon.parseText(text, advancedOptions, true);
+					}
 				}
 				var aResult = this._getTableFromText(text, textImport);
 				if (aResult && !(aResult.onlyImages && window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor)) {

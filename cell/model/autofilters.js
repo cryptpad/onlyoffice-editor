@@ -5793,11 +5793,19 @@
 				var nextIndex;
 
 				//ищем среди tableColumns, возможно такое имя уже имеется
+				var tableColumnsNameMap = null;
 				var checkNextName = function () {
 					var nextName = columnName + nextIndex;
-					for (var i = 0; i < tableColumns.length; i++) {
-						if (tableColumns[i].Name === nextName)
-							return false;
+					if (!tableColumnsNameMap) {
+						tableColumnsNameMap = {};
+						for (var i = 0; i < tableColumns.length; i++) {
+							if (tableColumns[i]) {
+								tableColumnsNameMap[tableColumns[i].Name] = 1;
+							}
+						}
+					}
+					if (tableColumnsNameMap[nextName]) {
+						return false;
 					}
 					return true;
 				};

@@ -212,6 +212,11 @@
 		var t            = this;
 		//Asc.editor = Asc['editor'] = AscCommon['editor'] = AscCommon.editor = this; // ToDo сделать это!
 		this.HtmlElement = document.getElementById(this.HtmlElementName);
+		if (this.HtmlElement)
+		{
+			// запрещаем действия браузера по умолчанию
+			this.HtmlElement.style.touchAction = "none";
+		}
 
 		// init OnMessage
 		AscCommon.InitOnMessage(function(error, url)
@@ -630,6 +635,18 @@
 		}
 		return res;
 	};
+	baseEditorsApi.prototype.isShowShapeAdjustments = function()
+	{
+		return true;
+	};
+	baseEditorsApi.prototype.isShowTableAdjustments = function()
+	{
+		return true;
+	};
+	baseEditorsApi.prototype.isShowEquationTrack = function()
+	{
+		return true;
+	};
 	baseEditorsApi.prototype.onPrint                             = function()
 	{
 		this.sendEvent("asc_onPrint");
@@ -770,9 +787,8 @@
 		}
 		this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.Open);
 		this.sendEvent('asc_onDocumentContentReady');
-		this.sendEvent('asc_LoadPluginsOrDocument');
 
-		if (window.g_asc_plugins && window.g_asc_plugins.countEventDocContOrPluginsReady == 2)
+		if (window.g_asc_plugins)
             window.g_asc_plugins.onPluginEvent("onDocumentContentReady");
 
         if (c_oEditorId.Spreadsheet === this.editorId) {
@@ -1460,7 +1476,7 @@
 				]);
 			}
 		} else {
-			if (!this.SpellCheckUrl) {
+			if (!this.SpellCheckUrl && !window['NATIVE_EDITOR_ENJINE']) {
 				this.SpellCheckApi = {};
 				this.SpellCheckApi.log = false;
 				this.SpellCheckApi.worker = new CSpellchecker({
@@ -1571,6 +1587,7 @@
 		oAdditionalData["nobase64"] = isNoBase64;
 		if (DownloadType.Print === downloadType)
 		{
+			oAdditionalData["withoutPassword"] = true;
 			oAdditionalData["inline"] = 1;
 		}
 
@@ -1649,7 +1666,7 @@
 	};
 	baseEditorsApi.prototype.asc_getPropertyEditorTextArts       = function()
 	{
-		return [AscCommon.g_oPresetTxWarpGroups, AscCommon.g_PresetTxWarpTypes];
+		return this.textArtPreviewManager.getWordArtPreviews();
 	};
 	// Add image
 	baseEditorsApi.prototype._addImageUrl                        = function()
@@ -2220,14 +2237,8 @@
 
 	baseEditorsApi.prototype.asc_pluginsRegister   = function(basePath, plugins)
 	{
-		this.sendEvent('asc_LoadPluginsOrDocument');
-
-		if (null != this.pluginsManager) {
+		if (null != this.pluginsManager)
 			this.pluginsManager.register(basePath, plugins);
-			
-			if (this.pluginsManager.countEventDocContOrPluginsReady == 2)
-				this.pluginsManager.onPluginEvent("onDocumentContentReady");
-		}
 	};
 	baseEditorsApi.prototype.asc_pluginRun         = function(guid, variation, pluginData)
 	{
@@ -3044,6 +3055,39 @@
 		this.macros.runAuto();
 		this._afterEvalCommand(undefined);
     };
+	baseEditorsApi.prototype.asc_runMacros = function(sGuid)
+    {
+    	if (!this.macros)
+    		return;
+
+    	if (!this.asc_canPaste())
+    		return;
+
+    	this._beforeEvalCommand();
+		this.macros.run(sGuid);
+		this._afterEvalCommand(undefined);
+    };
+	baseEditorsApi.prototype.asc_getAllMacrosNames = function()
+    {
+    	if (!this.macros)
+    		return [];
+
+		return this.macros.getAllNames();
+    };
+	baseEditorsApi.prototype.asc_getMacrosGuidByName = function(sName)
+    {
+    	if (!this.macros)
+    		return "";
+
+		return this.macros.getGuidByName(sName);
+    };
+	baseEditorsApi.prototype.asc_getMacrosByGuid = function(sGuid)
+    {
+    	if (!this.macros)
+    		return "";
+
+		return this.macros.getNameByGuid(sGuid);
+    };
 
 	baseEditorsApi.prototype.asc_getSelectedDrawingObjectsCount = function()
 	{
@@ -3304,8 +3348,14 @@
 	baseEditorsApi.prototype.asc_setSkin = function(obj)
 	{
 	};
+	//---------------------------------------------------------version----------------------------------------------------
+	baseEditorsApi.prototype["GetVersion"] = baseEditorsApi.prototype.GetVersion = function()
+	{
+		var ver = "@@Version";
+		return (ver === "0.0.0" || ver.substr(2) === "Version") ? "develop" : ver;
+	};
 	//----------------------------------------------------------addons----------------------------------------------------
-    baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)
+	baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)
 	{
 		return (window["Asc"] && window["Asc"]["Addons"] && window["Asc"]["Addons"][type] === true) ? true : false;
 	};
@@ -3352,6 +3402,21 @@
 		this.hideVideoControl();
 	};
 
+	// ---------------------------------------------------- wopi ---------------------------------------------
+	baseEditorsApi.prototype.asc_wopi_renameFile = function(name) {
+		var t = this;
+		var callback = function(isTimeout, response) {
+			if (response) {
+				t.CoAuthoringApi.onMeta({'title': response['Name'] + '.' + AscCommon.GetFileExtension(t.documentTitle)});
+			} else {
+				t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
+			}
+		};
+		if (!this.CoAuthoringApi.callPRC({'type': 'wopi_RenameFile', 'name': name}, Asc.c_nCommonRequestTime, callback)) {
+			callback(false, undefined);
+		}
+	};
+
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommon']                = window['AscCommon'] || {};
 	window['AscCommon'].baseEditorsApi = baseEditorsApi;
@@ -3366,6 +3431,8 @@
 	prot['asc_GetCurrentColorSchemeName'] = prot.asc_GetCurrentColorSchemeName;
 	prot['asc_GetCurrentColorSchemeIndex'] = prot.asc_GetCurrentColorSchemeIndex;
 	prot['asc_runAutostartMacroses'] = prot.asc_runAutostartMacroses;
+	prot['asc_runMacros'] = prot.asc_runMacros;
+	prot['asc_getAllMacrosNames'] = prot.asc_getAllMacrosNames;
 	prot['asc_setVisiblePasteButton'] = prot.asc_setVisiblePasteButton;
 	prot['asc_getAutoCorrectMathSymbols'] = prot.asc_getAutoCorrectMathSymbols;
 	prot['asc_getAutoCorrectMathFunctions'] = prot.asc_getAutoCorrectMathFunctions;
@@ -3382,6 +3449,7 @@
 	prot['asc_getShortcutAction'] = prot.asc_getShortcutAction;
 	prot['asc_removeShortcuts'] = prot.asc_removeShortcuts;
 	prot['asc_addCustomShortcutInsertSymbol'] = prot.asc_addCustomShortcutInsertSymbol;
+	prot['asc_wopi_renameFile'] = prot.asc_wopi_renameFile;
 
 	prot['asc_isCrypto'] = prot.asc_isCrypto;
 

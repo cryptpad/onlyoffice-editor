@@ -2516,6 +2516,7 @@ CTable.prototype.GetTableOffsetCorrection = function()
 	if (true === this.Parent.IsTableCellContent()
 		|| this.bPresentation
 		|| !this.LogicDocument
+		|| !this.LogicDocument.GetCompatibilityMode
 		|| this.LogicDocument.GetCompatibilityMode() >= AscCommon.document_compatibility_mode_Word15)
 		return 0;
 
@@ -2559,6 +2560,7 @@ CTable.prototype.GetRightTableOffsetCorrection = function()
 	if (true === this.Parent.IsTableCellContent()
 		|| this.bPresentation
 		|| !this.LogicDocument
+		|| !this.LogicDocument.GetCompatibilityMode
 		|| this.LogicDocument.GetCompatibilityMode() >= AscCommon.document_compatibility_mode_Word15)
 		return 0;
 
@@ -2691,10 +2693,12 @@ CTable.prototype.Copy = function(Parent, DrawingDocument, oPr)
 	for (Index = 0; Index < Rows; Index++)
 	{
 		Table.Content[Index] = this.Content[Index].Copy(Table, oPr);
+		Table.Content[Index].Recalc_CompiledPr();
 		History.Add(new CChangesTableAddRow(Table, Index, [Table.Content[Index]]));
 	}
 	Table.Internal_ReIndexing(0);
 	Table.private_UpdateTableGrid();
+	Table.Recalc_CompiledPr();
 
 	if (Table.Content.length > 0 && Table.Content[0].Get_CellsCount() > 0)
 		Table.CurCell = Table.Content[0].Get_Cell(0);
@@ -3460,46 +3464,61 @@ CTable.prototype.UpdateCursorType = function(X, Y, CurPage)
 	if (true === this.Selection.Start || table_Selection_Border === this.Selection.Type2 || table_Selection_Border_InnerTable === this.Selection.Type2)
 		return;
 
-	// Случай, когда у нас уже есть трэк вложенной таблицы и курсор выходит во внешнюю. Чтобы трэк сразу не пропадал,
-	// пока курсор находится в области табличного трэка для вложенной таблицы.
-	if (true !== this.DrawingDocument.IsCursorInTableCur(X, Y, this.GetAbsolutePage(CurPage))
-		&& true === this.Check_EmptyPages(CurPage - 1)
-		&& true !== this.IsEmptyPage(CurPage))
+	if (this.LogicDocument && this.LogicDocument.IsShowTableAdjustments && this.LogicDocument.IsShowTableAdjustments())
 	{
-		this.private_StartTrackTable(CurPage);
-	}
-
-	var oHitInfo = this.private_CheckHitInBorder(X, Y, CurPage);
-	if (true === oHitInfo.RowSelection)
-	{
-		return this.DrawingDocument.SetCursorType("select-table-row", new CMouseMoveData());
-	}
-	else if (true === oHitInfo.ColumnSelection)
-	{
-		return this.DrawingDocument.SetCursorType("select-table-column", new CMouseMoveData());
-	}
-	else if (true === oHitInfo.CellSelection)
-	{
-		return this.DrawingDocument.SetCursorType("select-table-cell", new CMouseMoveData());
-	}
-	else if (-1 !== oHitInfo.Border)
-	{
-		var Transform = this.Get_ParentTextTransform();
-		if (null !== Transform)
+		// Случай, когда у нас уже есть трэк вложенной таблицы и курсор выходит во внешнюю. Чтобы трэк сразу не пропадал,
+		// пока курсор находится в области табличного трэка для вложенной таблицы.
+		if (true !== this.DrawingDocument.IsCursorInTableCur(X, Y, this.GetAbsolutePage(CurPage))
+			&& true === this.Check_EmptyPages(CurPage - 1)
+			&& true !== this.IsEmptyPage(CurPage))
 		{
-			var dX = Math.abs(Transform.TransformPointX(0, 0) - Transform.TransformPointX(0, 1));
-			var dY = Math.abs(Transform.TransformPointY(0, 0) - Transform.TransformPointY(0, 1));
+			this.private_StartTrackTable(CurPage);
+		}
 
-			if (Math.abs(dY) > Math.abs(dX))
+		var oHitInfo = this.private_CheckHitInBorder(X, Y, CurPage);
+		if (true === oHitInfo.RowSelection)
+		{
+			return this.DrawingDocument.SetCursorType("select-table-row", new CMouseMoveData());
+		}
+		else if (true === oHitInfo.ColumnSelection)
+		{
+			return this.DrawingDocument.SetCursorType("select-table-column", new CMouseMoveData());
+		}
+		else if (true === oHitInfo.CellSelection)
+		{
+			return this.DrawingDocument.SetCursorType("select-table-cell", new CMouseMoveData());
+		}
+		else if (-1 !== oHitInfo.Border)
+		{
+			var Transform = this.Get_ParentTextTransform();
+			if (null !== Transform)
 			{
-				switch (oHitInfo.Border)
+				var dX = Math.abs(Transform.TransformPointX(0, 0) - Transform.TransformPointX(0, 1));
+				var dY = Math.abs(Transform.TransformPointY(0, 0) - Transform.TransformPointY(0, 1));
+
+				if (Math.abs(dY) > Math.abs(dX))
 				{
-					case 0:
-					case 2:
-						return this.DrawingDocument.SetCursorType("row-resize", new CMouseMoveData());
-					case 1:
-					case 3:
-						return this.DrawingDocument.SetCursorType("col-resize", new CMouseMoveData());
+					switch (oHitInfo.Border)
+					{
+						case 0:
+						case 2:
+							return this.DrawingDocument.SetCursorType("row-resize", new CMouseMoveData());
+						case 1:
+						case 3:
+							return this.DrawingDocument.SetCursorType("col-resize", new CMouseMoveData());
+					}
+				}
+				else
+				{
+					switch (oHitInfo.Border)
+					{
+						case 0:
+						case 2:
+							return this.DrawingDocument.SetCursorType("col-resize", new CMouseMoveData());
+						case 1:
+						case 3:
+							return this.DrawingDocument.SetCursorType("row-resize", new CMouseMoveData());
+					}
 				}
 			}
 			else
@@ -3508,23 +3527,11 @@ CTable.prototype.UpdateCursorType = function(X, Y, CurPage)
 				{
 					case 0:
 					case 2:
-						return this.DrawingDocument.SetCursorType("col-resize", new CMouseMoveData());
+						return this.DrawingDocument.SetCursorType("row-resize", new CMouseMoveData());
 					case 1:
 					case 3:
-						return this.DrawingDocument.SetCursorType("row-resize", new CMouseMoveData());
+						return this.DrawingDocument.SetCursorType("col-resize", new CMouseMoveData());
 				}
-			}
-		}
-		else
-		{
-			switch (oHitInfo.Border)
-			{
-				case 0:
-				case 2:
-					return this.DrawingDocument.SetCursorType("row-resize", new CMouseMoveData());
-				case 1:
-				case 3:
-					return this.DrawingDocument.SetCursorType("col-resize", new CMouseMoveData());
 			}
 		}
 	}
@@ -3605,7 +3612,7 @@ CTable.prototype.Document_UpdateInterfaceState = function()
 	{
 		this.CurCell.Content.Document_UpdateInterfaceState();
 
-		if (this.LogicDocument && !this.bPresentation)
+		if (this.LogicDocument && !this.bPresentation && this.LogicDocument.GetTrackRevisionsManager)
 		{
 			var oTrackManager = this.LogicDocument.GetTrackRevisionsManager();
 
@@ -5879,13 +5886,9 @@ CTable.prototype.IsCursorAtBegin = function(bOnlyPara)
 };
 CTable.prototype.IsCursorAtEnd = function()
 {
-	if (false === this.Selection.Use || ( true === this.Selection.Use && table_Selection_Text === this.Selection.Type ))
-	{
-		if (0 === this.CurCell.Index && 0 === this.CurCell.Row.Index)
-		{
-			return this.CurCell.Content.IsCursorAtEnd();
-		}
-	}
+	if ((false === this.Selection.Use || (true === this.Selection.Use && table_Selection_Text === this.Selection.Type))
+		&& this.CurCell.Row.Index === this.GetRowsCount() - 1)
+		return this.CurCell.Content.IsCursorAtEnd();
 
 	return false;
 };
@@ -6064,11 +6067,15 @@ CTable.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTe
 			var Cell     = this.Content[Pos.Row].Get_Cell(Pos.Cell);
 			this.CurCell = Cell;
 
-			this.Selection.Use   = false;
-			this.Selection.Start = false;
+			// Я пока закоментировал, потому что нужно сохранять селект для вставки контента во все заселекченные ячейки.
+			// Я не знаю, нужно ли оно в каких-то ещё случаях, кроме как при вставке
 
-			this.Selection.StartPos.Pos = {Row : Cell.Row.Index, Cell : Cell.Index};
-			this.Selection.EndPos.Pos   = {Row : Cell.Row.Index, Cell : Cell.Index};
+			
+			// this.Selection.Use   = false;
+			// this.Selection.Start = false;
+
+			// this.Selection.StartPos.Pos = {Row : Cell.Row.Index, Cell : Cell.Index};
+			// this.Selection.EndPos.Pos   = {Row : Cell.Row.Index, Cell : Cell.Index};
 
 			if (Cells_array[0].Row - 1 >= 0)
 				this.Internal_RecalculateFrom(Cells_array[0].Row - 1, 0, true, true);
@@ -8102,7 +8109,7 @@ CTable.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedPar
 		if (this.CurCell)
 			return this.CurCell.Content.GetCurrentParagraph(bIgnoreSelection, null, oPr);
 		else
-			null;
+			return null;
 	}
 	else
 	{

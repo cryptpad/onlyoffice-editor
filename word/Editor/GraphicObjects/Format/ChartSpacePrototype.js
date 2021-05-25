@@ -60,8 +60,6 @@ CChartSpace.prototype.recalculateBounds =  function()
     this.bounds.w = this.bounds.r - this.bounds.l;
     this.bounds.h = this.bounds.b - this.bounds.t;
 };
-CChartSpace.prototype.deselect = CShape.prototype.deselect;
-CChartSpace.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CChartSpace.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CChartSpace.prototype.getInvertTransform = CShape.prototype.getInvertTransform;
 CChartSpace.prototype.hit = CShape.prototype.hit;
@@ -210,7 +208,6 @@ CChartSpace.prototype.handleUpdateStyle = function()
     this.addToRecalculate();
 };
 CChartSpace.prototype.convertPixToMM = CShape.prototype.convertPixToMM;
-CChartSpace.prototype.getCanvasContext = CShape.prototype.getCanvasContext;
 CChartSpace.prototype.getHierarchy = CShape.prototype.getHierarchy;
 CChartSpace.prototype.getParentObjects = CShape.prototype.getParentObjects;
 CChartSpace.prototype.recalculateTransform = CShape.prototype.recalculateTransform;
@@ -431,9 +428,6 @@ CChartSpace.prototype.recalculate = function()
 };
 
 
-
-CChartSpace.prototype.deselect = CShape.prototype.deselect;
-
 CChartSpace.prototype.getDrawingDocument = CShape.prototype.getDrawingDocument;
 
 CChartSpace.prototype.updatePosition = CShape.prototype.updatePosition;
@@ -536,7 +530,6 @@ CChartSpace.prototype.updateTransformMatrix  = function()
     this.checkShapeChildTransform(oParentTransform);
 };
 CChartSpace.prototype.getArrayWrapIntervals = CShape.prototype.getArrayWrapIntervals;
-CChartSpace.prototype.select = CShape.prototype.select;
 CChartSpace.prototype.Is_UseInDocument = CShape.prototype.Is_UseInDocument;
 CChartSpace.prototype.getDrawingObjectsController = CShape.prototype.getDrawingObjectsController;
 //CChartSpace.prototype.Refresh_RecalcData = function(data)

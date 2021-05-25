@@ -37,37 +37,39 @@
 // если хочется скрыть - то везде GlobalSkin => AscCommon.GlobalSkin
 
 var EditorSkins = {
-	"flat" : {
-		Name                      : "flat",
+	"theme-light" : {
+		Name                      : "theme-light",
+		Type                      : "light",
 
 		RulersButton              : false,
 		NavigationButtons         : false,
 
-		BackgroundColor           : "#F0F0F0",
+		BackgroundColor           : "#EEEEEE",
 		PageOutline               : "#BBBEC2",
 
 		RulerDark                 : "#D9D9D9",
 		RulerLight                : "#FFFFFF",
-		RulerOutline              : "#BBBEC2",
-		RulerMarkersOutlineColor  : "#81878F",
+		RulerOutline              : "#CBCBCB",
+		RulerMarkersOutlineColor  : "#555555",
+		RulerMarkersOutlineColorOld : "#AAAAAA",
 		RulerMarkersFillColor     : "#FFFFFF",
-		RulerMarkersFillColorOld  : "#CDD1D6",
-		RulerTextColor            : "#585B5E",
+		RulerMarkersFillColorOld  : "#FFFFFF",
+		RulerTextColor            : "#555555",
 		RulerTabsColor            : "#000000",
-		RulerTabsColorOld         : "#81878F",
+		RulerTabsColorOld         : "#828282",
 		RulerTableColor1          : "#FFFFFF",
-		RulerTableColor2          : "#646464",
+		RulerTableColor2          : "#555555",
 
-		ScrollBackgroundColor     : "#F0F0F0",
-		ScrollOutlineColor        : "#CFCFCF",
-		ScrollOutlineHoverColor   : "#CFCFCF",
+		ScrollBackgroundColor     : "#EEEEEE",
+		ScrollOutlineColor        : "#CBCBCB",
+		ScrollOutlineHoverColor   : "#CBCBCB",
 		ScrollOutlineActiveColor  : "#ADADAD",
-		ScrollerColor             : "#F1F1F1",
-		ScrollerHoverColor        : "#CFCFCF",
+		ScrollerColor             : "#F7F7F7",
+		ScrollerHoverColor        : "#C0C0C0",
 		ScrollerActiveColor       : "#ADADAD",
 		ScrollArrowColor          : "#ADADAD",
-		ScrollArrowHoverColor     : "#F1F1F1",
-		ScrollArrowActiveColor    : "#F1F1F1",
+		ScrollArrowHoverColor     : "#F7F7F7",
+		ScrollArrowActiveColor    : "#F7F7F7",
 		ScrollerTargetColor       : "#CFCFCF",
 		ScrollerTargetHoverColor  : "#F1F1F1",
 		ScrollerTargetActiveColor : "#F1F1F1",
@@ -77,7 +79,7 @@ var EditorSkins = {
 		STYLE_THUMBNAIL_HEIGHT    : 38,
 
 		isNeedInvertOnActive      : false,
-		ContentControlsBack	   : "#F1F1F1",
+		ContentControlsBack    : "#F1F1F1",
 		ContentControlsHover   : "#D8DADC",
 		ContentControlsActive  : "#7C838A",
 		ContentControlsText    : "#444444",
@@ -102,7 +104,8 @@ var EditorSkins = {
 		ThumbnailsPageNumberText        : "#000000",
 		ThumbnailsPageNumberTextActive  : "#000000",
 		ThumbnailsPageNumberTextHover   : "#000000",
-		BackgroundColorNotes       	    : "#F0F0F0",
+		ThumbnailsLockColor             : "#D34F4F",
+		BackgroundColorNotes            : "#F0F0F0",
 
 		THEMES_THUMBNAIL_WIDTH          : 85,
 		THEMES_THUMBNAIL_HEIGHT         : 38,
@@ -111,6 +114,17 @@ var EditorSkins = {
 		SupportNotes                    : true,
 		SplitterWidthMM                 : 1,
 		ThumbnailScrollWidthNullIfNoScrolling : false,
+
+		// demonstration
+		DemBackgroundColor              : "#F0F0F0",
+		DemButtonBackgroundColor        : "#FFFFFF",
+		DemButtonBackgroundColorHover   : "#D8DADC",
+		DemButtonBackgroundColorActive  : "#7D858C",
+		DemButtonBorderColor            : "#CFCFCF",
+		DemButtonTextColor              : "#444444",
+		DemButtonTextColorActive        : "#FFFFFF",
+		DemSplitterColor                : "#CBCBCB",
+		DemTextColor                    : "#666666",
 
 		/* spreadsheets */
 		//TODO названия не менял. использую такие же как и были ранее. пересмотреть!
@@ -138,8 +152,9 @@ var EditorSkins = {
 		EditorBorder             : "#cbcbcb"
 
 	},
-	"flatDark" : {
-		Name                      : "flatDark",
+	"theme-dark" : {
+		Name                      : "theme-dark",
+		Type                      : "dark",
 
 		RulersButton              : false,
 		NavigationButtons         : false,
@@ -147,20 +162,21 @@ var EditorSkins = {
 		BackgroundColor           : "#666666",
 		PageOutline               : "#BBBEC2",
 
-		RulerDark                 : "#444444",
+		RulerDark                 : "#373737",
 		RulerLight                : "#555555",
-		RulerOutline              : "#B2B2B2",
-		RulerMarkersOutlineColor  : "#81878F",
-		RulerMarkersFillColor     : "#666666",
-		RulerMarkersFillColorOld  : "#CDD1D6",
-		RulerTextColor            : "#B2B2B2",
+		RulerOutline              : "#2A2A2A",
+		RulerMarkersOutlineColor  : "#B6B6B6",
+		RulerMarkersOutlineColorOld : "#808080",
+		RulerMarkersFillColor     : "#555555",
+		RulerMarkersFillColorOld  : "#555555",
+		RulerTextColor            : "#B6B6B6",
 		RulerTabsColor            : "#FFFFFF",
-		RulerTabsColorOld         : "#888888",
+		RulerTabsColorOld         : "#999999",
 		RulerTableColor1          : "#FFFFFF",
-		RulerTableColor2          : "#646464",
+		RulerTableColor2          : "#B2B2B2",
 
 		ScrollBackgroundColor       : "#666666",
-		ScrollOutlineColor          : "#404040",
+		ScrollOutlineColor          : "#2A2A2A",
 		ScrollOutlineHoverColor     : "#999999",
 		ScrollOutlineActiveColor    : "#ADADAD",
 		ScrollerColor               : "#404040",
@@ -203,7 +219,8 @@ var EditorSkins = {
 		ThumbnailsPageNumberText        : "#FFFFFF",
 		ThumbnailsPageNumberTextActive  : "#FFFFFF",
 		ThumbnailsPageNumberTextHover   : "#FFFFFF",
-		BackgroundColorNotes       	    : "#666666",
+		ThumbnailsLockColor             : "#D34F4F",
+		BackgroundColorNotes            : "#666666",
 
 		THEMES_THUMBNAIL_WIDTH  : 85,
 		THEMES_THUMBNAIL_HEIGHT : 38,
@@ -212,6 +229,17 @@ var EditorSkins = {
 		SupportNotes                          : true,
 		SplitterWidthMM                       : 1,
 		ThumbnailScrollWidthNullIfNoScrolling : false,
+
+		// demonstration
+		DemBackgroundColor              : "#666666",
+		DemButtonBackgroundColor        : "#333333",
+		DemButtonBackgroundColorHover   : "#555555",
+		DemButtonBackgroundColorActive  : "#DDDDDD",
+		DemButtonBorderColor            : "#CFCFCF",
+		DemButtonTextColor              : "#FFFFFF",
+		DemButtonTextColorActive        : "#333333",
+		DemSplitterColor                : "#CBCBCB",
+		DemTextColor                    : "#FFFFFF",
 
 		/* spreadsheets */
 		Background               : "#666666",
@@ -245,96 +273,168 @@ function setter_from_interface(obj)
 {
 	var code = "";
 	for (var i in obj) {
-		code += ("if (undefined !== obj[\"" + i + "\"]) GlobalSkin." + i + " = obj[\"" + i + "\"];\n");
+		code += ("if (obj[\"" + i + "\"]) GlobalSkin." + i + " = obj[\"" + i + "\"];\n");
 	}
 	copy(code);
 }
 */
 
-var GlobalSkin = EditorSkins["flat"];
+var GlobalSkin = EditorSkins["theme-light"];
+
+function updateGlobalSkinColors(theme)
+{
+	var skin = GlobalSkin;
+
+	var correctColor = function (c) {
+		return AscCommon.RgbaTextToRgbaHex(c);
+	};
+
+	var colorMap = {
+		BackgroundColor                : "canvas-background",
+		PageOutline                    : "canvas-page-border",
+
+		RulerDark                      : "canvas-ruler-margins-background",
+		RulerLight                     : "canvas-ruler-background",
+		RulerOutline                   : "border-toolbar",
+		RulerMarkersOutlineColor       : "canvas-ruler-handle-border",
+		RulerMarkersOutlineColorOld    : "canvas-ruler-handle-border-disabled",
+		RulerMarkersFillColor          : "background-normal",
+		RulerMarkersFillColorOld       : "background-normal",
+		RulerTextColor                 : "canvas-ruler-mark",
+		RulerTabsColor                 : "canvas-high-contrast",
+		RulerTabsColorOld              : "canvas-high-contrast-disabled",
+		RulerTableColor1               : "background-normal",
+		RulerTableColor2               : "canvas-ruler-handle-border",
+
+		ScrollBackgroundColor          : "canvas-background",
+		ScrollOutlineColor             : "canvas-scroll-thumb-border",
+		ScrollOutlineHoverColor        : "canvas-scroll-thumb-border-hover",
+		ScrollOutlineActiveColor       : "canvas-scroll-thumb-border-pressed",
+		ScrollerColor                  : "canvas-scroll-thumb",
+		ScrollerHoverColor             : "canvas-scroll-thumb-hover",
+		ScrollerActiveColor            : "canvas-scroll-thumb-pressed",
+		ScrollArrowColor               : "canvas-scroll-arrow",
+		ScrollArrowHoverColor          : "canvas-scroll-arrow-hover",
+		ScrollArrowActiveColor         : "canvas-scroll-arrow-pressed",
+		ScrollerTargetColor            : "canvas-scroll-thumb-target",
+		ScrollerTargetHoverColor       : "canvas-scroll-thumb-target-hover",
+		ScrollerTargetActiveColor      : "canvas-scroll-thumb-target-pressed",
+
+		/* presentations */
+		BackgroundColorThumbnails       : "background-toolbar",
+		BackgroundColorThumbnailsActive : "background-toolbar",
+		BackgroundColorThumbnailsHover  : "background-toolbar",
+		ThumbnailsPageOutlineActive     : "border-preview-select",
+		ThumbnailsPageOutlineHover      : "border-preview-hover",
+		ThumbnailsPageNumberText        : "text-normal",
+		ThumbnailsPageNumberTextActive  : "text-normal",
+		ThumbnailsPageNumberTextHover   : "text-normal",
+		BackgroundColorNotes            : "canvas-background",
+
+		BorderSplitterColor             : "border-toolbar",
+
+		// demonstration
+		DemBackgroundColor              : "background-toolbar",
+		DemButtonBackgroundColor        : "background-normal",
+		DemButtonBackgroundColorHover   : "highlight-buttin-hover",
+		DemButtonBackgroundColorActive  : "highlight-button-pressed",
+		DemButtonBorderColor            : "border-regular-control",
+		DemButtonTextColor              : "text-normal",
+		DemButtonTextColorActive        : "text-normal-pressed",
+		DemSplitterColor                : "border-divider",
+		DemTextColor                    : "text-normal",
+
+		/* spreadsheets */
+		Background                      : "canvas-background",
+		BackgroundActive                : "canvas-cell-title-selected",
+		BackgroundHighlighted           : "canvas-cell-title-hover",
+
+		Border                          : "canvas-cell-title-border",
+		BorderActive                    : "canvas-cell-title-border-selected",
+		BorderHighlighted               : "canvas-cell-title-border-hover",
+
+		Color                           : "text-normal",
+		ColorActive                     : "text-normal",
+		ColorHighlighted                : "text-normal",
+
+		BackgroundDark                  : "canvas-dark-cell-title",
+		BackgroundDarkActive            : "canvas-dark-cell-title-selected",
+		BackgroundDarkHighlighted       : "canvas-dark-cell-title-hover",
+
+		ColorDark                       : "text-contrast-background",
+		ColorDarkActive                 : "text-contrast-background",
+		ColorDarkHighlighted            : "text-contrast-background",
+
+		GroupDataBorder                 : "canvas-high-contrast",
+		EditorBorder                    : "border-toolbar"
+	};
+
+	// корректируем цвета для старого хрома:
+	// в старых хромах (desktop windows XP)
+	// если начинается цвет с цифры (#0-9) - то помечается символом \3 (конец текста)
+	for (var item in theme)
+	{
+		var testValue = theme[item];
+		if (typeof testValue !== "string")
+			continue;
+
+		if (0 === testValue.indexOf("#\\3"))
+		{
+			testValue = testValue.replace("\\3", "");
+			testValue = testValue.replace(" ", "");
+			theme[item] = testValue;
+		}
+	}
+
+	for (var color in colorMap)
+	{
+		if (undefined === GlobalSkin[color])
+			continue;
+		if ("" === colorMap[color])
+			continue;
+		if (undefined === theme[colorMap[color]])
+			continue;
+
+		if (0 === GlobalSkin[color].indexOf("rgb"))
+			GlobalSkin[color] = theme[colorMap[color]];
+		else
+			GlobalSkin[color] = correctColor(theme[colorMap[color]]);
+	}
+}
 
 function updateGlobalSkin(obj)
 {
 	if (!obj) return;
 
-	if (typeof obj === "string" && undefined !== EditorSkins[obj])
+	if (typeof obj === "string")
 	{
-		GlobalSkin = EditorSkins[obj];
+		var name = obj;
+		obj = {
+			"name" : name,
+			"type" : ((-1 !== name.indexOf("dark")) ? "dark" : "light")
+		};
 	}
-	else
+
+	if (obj["name"] && undefined !== EditorSkins[obj["name"]])
+		GlobalSkin = EditorSkins[obj["name"]];
+	else if (obj["type"])
 	{
-		if (undefined !== obj["Name"]) GlobalSkin.Name = obj["Name"];
-		if (undefined !== obj["RulersButton"]) GlobalSkin.RulersButton = obj["RulersButton"];
-		if (undefined !== obj["NavigationButtons"]) GlobalSkin.NavigationButtons = obj["NavigationButtons"];
-		if (undefined !== obj["BackgroundColor"]) GlobalSkin.BackgroundColor = obj["BackgroundColor"];
-		if (undefined !== obj["PageOutline"]) GlobalSkin.PageOutline = obj["PageOutline"];
-		if (undefined !== obj["RulerDark"]) GlobalSkin.RulerDark = obj["RulerDark"];
-		if (undefined !== obj["RulerLight"]) GlobalSkin.RulerLight = obj["RulerLight"];
-		if (undefined !== obj["RulerOutline"]) GlobalSkin.RulerOutline = obj["RulerOutline"];
-		if (undefined !== obj["RulerMarkersOutlineColor"]) GlobalSkin.RulerMarkersOutlineColor = obj["RulerMarkersOutlineColor"];
-		if (undefined !== obj["RulerMarkersFillColor"]) GlobalSkin.RulerMarkersFillColor = obj["RulerMarkersFillColor"];
-		if (undefined !== obj["RulerMarkersFillColorOld"]) GlobalSkin.RulerMarkersFillColorOld = obj["RulerMarkersFillColorOld"];
-		if (undefined !== obj["RulerTextColor"]) GlobalSkin.RulerTextColor = obj["RulerTextColor"];
-		if (undefined !== obj["RulerTabsColor"]) GlobalSkin.RulerTabsColor = obj["RulerTabsColor"];
-		if (undefined !== obj["RulerTabsColorOld"]) GlobalSkin.RulerTabsColorOld = obj["RulerTabsColorOld"];
-		if (undefined !== obj["RulerTableColor1"]) GlobalSkin.RulerTableColor1 = obj["RulerTableColor1"];
-		if (undefined !== obj["RulerTableColor2"]) GlobalSkin.RulerTableColor2 = obj["RulerTableColor2"];
-		if (undefined !== obj["ScrollBackgroundColor"]) GlobalSkin.ScrollBackgroundColor = obj["ScrollBackgroundColor"];
-		if (undefined !== obj["ScrollOutlineColor"]) GlobalSkin.ScrollOutlineColor = obj["ScrollOutlineColor"];
-		if (undefined !== obj["ScrollOutlineHoverColor"]) GlobalSkin.ScrollOutlineHoverColor = obj["ScrollOutlineHoverColor"];
-		if (undefined !== obj["ScrollOutlineActiveColor"]) GlobalSkin.ScrollOutlineActiveColor = obj["ScrollOutlineActiveColor"];
-		if (undefined !== obj["ScrollerColor"]) GlobalSkin.ScrollerColor = obj["ScrollerColor"];
-		if (undefined !== obj["ScrollerHoverColor"]) GlobalSkin.ScrollerHoverColor = obj["ScrollerHoverColor"];
-		if (undefined !== obj["ScrollerActiveColor"]) GlobalSkin.ScrollerActiveColor = obj["ScrollerActiveColor"];
-		if (undefined !== obj["ScrollArrowColor"]) GlobalSkin.ScrollArrowColor = obj["ScrollArrowColor"];
-		if (undefined !== obj["ScrollArrowHoverColor"]) GlobalSkin.ScrollArrowHoverColor = obj["ScrollArrowHoverColor"];
-		if (undefined !== obj["ScrollArrowActiveColor"]) GlobalSkin.ScrollArrowActiveColor = obj["ScrollArrowActiveColor"];
-		if (undefined !== obj["ScrollerTargetColor"]) GlobalSkin.ScrollerTargetColor = obj["ScrollerTargetColor"];
-		if (undefined !== obj["ScrollerTargetHoverColor"]) GlobalSkin.ScrollerTargetHoverColor = obj["ScrollerTargetHoverColor"];
-		if (undefined !== obj["ScrollerTargetActiveColor"]) GlobalSkin.ScrollerTargetActiveColor = obj["ScrollerTargetActiveColor"];
-		if (undefined !== obj["STYLE_THUMBNAIL_WIDTH"]) GlobalSkin.STYLE_THUMBNAIL_WIDTH = obj["STYLE_THUMBNAIL_WIDTH"];
-		if (undefined !== obj["STYLE_THUMBNAIL_HEIGHT"]) GlobalSkin.STYLE_THUMBNAIL_HEIGHT = obj["STYLE_THUMBNAIL_HEIGHT"];
-		if (undefined !== obj["isNeedInvertOnActive"]) GlobalSkin.isNeedInvertOnActive = obj["isNeedInvertOnActive"];
-		if (undefined !== obj["ContentControlsBack"]) GlobalSkin.ContentControlsBack = obj["ContentControlsBack"];
-		if (undefined !== obj["ContentControlsHover"]) GlobalSkin.ContentControlsHover = obj["ContentControlsHover"];
-		if (undefined !== obj["ContentControlsActive"]) GlobalSkin.ContentControlsActive = obj["ContentControlsActive"];
-		if (undefined !== obj["ContentControlsText"]) GlobalSkin.ContentControlsText = obj["ContentControlsText"];
-		if (undefined !== obj["ContentControlsTextActive"]) GlobalSkin.ContentControlsTextActive = obj["ContentControlsTextActive"];
-		if (undefined !== obj["ContentControlsAnchorActive"]) GlobalSkin.ContentControlsAnchorActive = obj["ContentControlsAnchorActive"];
-		if (undefined !== obj["BackgroundColorThumbnails"]) GlobalSkin.BackgroundColorThumbnails = obj["BackgroundColorThumbnails"];
-		if (undefined !== obj["BackgroundColorThumbnailsActive"]) GlobalSkin.BackgroundColorThumbnailsActive = obj["BackgroundColorThumbnailsActive"];
-		if (undefined !== obj["BackgroundColorThumbnailsHover"]) GlobalSkin.BackgroundColorThumbnailsHover = obj["BackgroundColorThumbnailsHover"];
-		if (undefined !== obj["ThumbnailsPageOutlineActive"]) GlobalSkin.ThumbnailsPageOutlineActive = obj["ThumbnailsPageOutlineActive"];
-		if (undefined !== obj["ThumbnailsPageOutlineHover"]) GlobalSkin.ThumbnailsPageOutlineHover = obj["ThumbnailsPageOutlineHover"];
-		if (undefined !== obj["ThumbnailsPageNumberText"]) GlobalSkin.ThumbnailsPageNumberText = obj["ThumbnailsPageNumberText"];
-		if (undefined !== obj["ThumbnailsPageNumberTextActive"]) GlobalSkin.ThumbnailsPageNumberTextActive = obj["ThumbnailsPageNumberTextActive"];
-		if (undefined !== obj["ThumbnailsPageNumberTextHover"]) GlobalSkin.ThumbnailsPageNumberTextHover = obj["ThumbnailsPageNumberTextHover"];
-		if (undefined !== obj["THEMES_THUMBNAIL_WIDTH"]) GlobalSkin.THEMES_THUMBNAIL_WIDTH = obj["THEMES_THUMBNAIL_WIDTH"];
-		if (undefined !== obj["THEMES_THUMBNAIL_HEIGHT"]) GlobalSkin.THEMES_THUMBNAIL_HEIGHT = obj["THEMES_THUMBNAIL_HEIGHT"];
-		if (undefined !== obj["BorderSplitterColor"]) GlobalSkin.BorderSplitterColor = obj["BorderSplitterColor"];
-		if (undefined !== obj["SupportNotes"]) GlobalSkin.SupportNotes = obj["SupportNotes"];
-		if (undefined !== obj["SplitterWidthMM"]) GlobalSkin.SplitterWidthMM = obj["SplitterWidthMM"];
-		if (undefined !== obj["ThumbnailScrollWidthNullIfNoScrolling"]) GlobalSkin.ThumbnailScrollWidthNullIfNoScrolling = obj["ThumbnailScrollWidthNullIfNoScrolling"];
-
-		if (undefined !== obj["Background"]) GlobalSkin.Background = obj["Background"];
-		if (undefined !== obj["Border"]) GlobalSkin.Border = obj["Border"];
-		if (undefined !== obj["Color"]) GlobalSkin.Color = obj["Color"];
-		if (undefined !== obj["BackgroundDark"]) GlobalSkin.BackgroundDark = obj["BackgroundDark"];
-		if (undefined !== obj["ColorDark"]) GlobalSkin.ColorDark = obj["ColorDark"];
-		if (undefined !== obj["BackgroundActive"]) GlobalSkin.BackgroundActive = obj["BackgroundActive"];
-		if (undefined !== obj["BorderActive"]) GlobalSkin.BorderActive = obj["BorderActive"];
-		if (undefined !== obj["ColorActive"]) GlobalSkin.ColorActive = obj["ColorActive"];
-		if (undefined !== obj["BackgroundDarkActive"]) GlobalSkin.BackgroundDarkActive = obj["BackgroundDarkActive"];
-		if (undefined !== obj["ColorDarkActive"]) GlobalSkin.ColorDarkActive = obj["ColorDarkActive"];
-		if (undefined !== obj["BackgroundHighlighted"]) GlobalSkin.BackgroundHighlighted = obj["BackgroundHighlighted"];
-		if (undefined !== obj["BorderHighlighted"]) GlobalSkin.BorderHighlighted = obj["BorderHighlighted"];
-		if (undefined !== obj["ColorHighlighted"]) GlobalSkin.ColorHighlighted = obj["ColorHighlighted"];
-		if (undefined !== obj["BackgroundDarkHighlighted"]) GlobalSkin.BackgroundDarkHighlighted = obj["BackgroundDarkHighlighted"];
-		if (undefined !== obj["ColorDarkHighlighted"]) GlobalSkin.ColorDarkHighlighted = obj["ColorDarkHighlighted"];
-		if (undefined !== obj["GroupDataBorder"]) GlobalSkin.GroupDataBorder = obj["GroupDataBorder"];
-		if (undefined !== obj["EditorBorder"]) GlobalSkin.EditorBorder = obj["EditorBorder"];
-
+		for (var item in EditorSkins)
+		{
+			if (obj["type"] === EditorSkins[item].Type)
+			{
+				GlobalSkin = EditorSkins[item];
+				break;
+			}
+		}
 	}
+
+	updateGlobalSkinColors(obj);
+	for (var item in obj)
+		GlobalSkin[item] = obj[item];
+
+	if (window.g_asc_plugins)
+		window.g_asc_plugins.onThemeChanged(GlobalSkin);
 
 	window['AscCommon'].GlobalSkin = GlobalSkin;
 }
@@ -342,6 +442,71 @@ function updateGlobalSkin(obj)
 window['AscCommon'] = window['AscCommon'] || {};
 window['AscCommon'].GlobalSkin = GlobalSkin;
 window['AscCommon'].updateGlobalSkin = updateGlobalSkin;
+
+window['AscCommon'].RgbaHexToRGBA = function(color)
+{
+	var index = 0;
+	if ("#".charCodeAt(0) === color.charCodeAt(0))
+		index++;
+
+	var ret = {
+		R : 0,
+		G : 0,
+		B : 0,
+		A : 255
+	};
+
+	if (6 <= color.length)
+	{
+		ret.R = parseInt( color.substring( index, index + 2 ), 16 );
+		ret.G = parseInt( color.substring( index + 2, index + 4 ), 16 );
+		ret.B = parseInt( color.substring( index + 4, index + 6 ), 16 );
+	}
+	else
+	{
+		ret.R = parseInt( color.substring( index, index + 1 ), 16 );
+		ret.G = parseInt( color.substring( index + 1, index + 2 ), 16 );
+		ret.B = parseInt( color.substring( index + 2, index + 3 ), 16 );
+
+		ret.R = (ret.R << 4) | ret.R;
+		ret.G = (ret.G << 4) | ret.G;
+		ret.B = (ret.B << 4) | ret.B;
+	}
+
+	return ret;
+};
+window['AscCommon'].RgbaTextToRgbaHex = function(color)
+{
+	var toHex = function (c) {
+		var res = Number(c).toString(16);
+		return res.length === 1 ? "0" + res : res;
+	};
+
+	if (0 !== color.indexOf("rgb"))
+	{
+		if (color.length < 6)
+		{
+			var rgba = AscCommon.RgbaHexToRGBA(color);
+			return "#" + toHex(rgba.R) + toHex(rgba.G) + toHex(rgba.B);
+		}
+		return color;
+	}
+
+	var start = color.indexOf("(");
+	var end = color.indexOf(")");
+	var tmp = color.substring(start + 1, end);
+	var colors = tmp.split(",");
+
+	for (var i in colors)
+		colors[i] = colors[i].trim();
+
+	var r = colors[0] || 0;
+	var g = colors[1] || 0;
+	var b = colors[2] || 0;
+	var a = (colors[3] === undefined) ? 255 : colors[3];
+
+	return "#" + toHex(r) + toHex(g) + toHex(b);
+};
 
 if (AscCommon.TEMP_STYLE_THUMBNAIL_WIDTH !== undefined && AscCommon.TEMP_STYLE_THUMBNAIL_HEIGHT !== undefined)
 {

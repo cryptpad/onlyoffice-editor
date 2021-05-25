@@ -2542,56 +2542,70 @@ CDocumentContent.prototype.AddNewParagraph = function(bForceAdd)
                 // Создаем новый параграф
                 var NewParagraph   = new Paragraph(this.DrawingDocument, this, this.bPresentation === true);
 
-                // Проверим позицию в текущем параграфе
-                if (true === Item.IsCursorAtEnd())
-                {
-                    var StyleId = Item.Style_Get();
-                    var NextId  = undefined;
-
-                    if (undefined != StyleId)
-                    {
-                        var Styles = this.Parent.Get_Styles();
-                        NextId     = Styles.Get_Next(StyleId);
-
-						var oNextStyle = Styles.Get(NextId);
-						if (!NextId || !oNextStyle || !oNextStyle.IsParagraphStyle())
-							NextId = StyleId;
-                    }
-
-
-                    if (StyleId === NextId)
-                    {
-                        // Продолжаем (в плане настроек) новый параграф
-                        Item.Continue(NewParagraph);
-                    }
-                    else
-                    {
-                        // Простое добавление стиля, без дополнительных действий
-                        if (NextId === this.Get_Styles().Get_Default_Paragraph())
-                            NewParagraph.Style_Remove();
-                        else
-                            NewParagraph.Style_Add(NextId, true);
-                    }
-
-					var LastRun = Item.Content[Item.Content.length - 1];
-					if (LastRun && LastRun.Pr.Lang && LastRun.Pr.Lang.Val)
-					{
-						NewParagraph.SelectAll();
-						NewParagraph.Add(new ParaTextPr({Lang : LastRun.Pr.Lang.Copy()}));
-						NewParagraph.RemoveSelection();
-					}
-                }
-                else
+				if (Item.IsCursorAtBegin())
 				{
-					Item.Split(NewParagraph);
+					// Продолжаем (в плане настроек) новый параграф
+					Item.Continue(NewParagraph);
+
+					NewParagraph.Correct_Content();
+					NewParagraph.MoveCursorToStartPos();
+
+					var nContentPos = this.CurPos.ContentPos;
+					this.AddToContent(nContentPos, NewParagraph);
+					this.CurPos.ContentPos = nContentPos + 1;
 				}
+				else
+				{
+					if (true === Item.IsCursorAtEnd())
+					{
+						var StyleId = Item.Style_Get();
+						var NextId  = undefined;
 
-				NewParagraph.Correct_Content();
-                NewParagraph.MoveCursorToStartPos();
+						if (undefined != StyleId)
+						{
+							var Styles = this.Parent.Get_Styles();
+							NextId     = Styles.Get_Next(StyleId);
 
-                var nContentPos = this.CurPos.ContentPos + 1;
-                this.AddToContent(nContentPos, NewParagraph);
-                this.CurPos.ContentPos = nContentPos;
+							var oNextStyle = Styles.Get(NextId);
+							if (!NextId || !oNextStyle || !oNextStyle.IsParagraphStyle())
+								NextId = StyleId;
+						}
+
+
+						if (StyleId === NextId)
+						{
+							// Продолжаем (в плане настроек) новый параграф
+							Item.Continue(NewParagraph);
+						}
+						else
+						{
+							// Простое добавление стиля, без дополнительных действий
+							if (NextId === this.Get_Styles().Get_Default_Paragraph())
+								NewParagraph.Style_Remove();
+							else
+								NewParagraph.Style_Add(NextId, true);
+						}
+
+						var LastRun = Item.Content[Item.Content.length - 1];
+						if (LastRun && LastRun.Pr.Lang && LastRun.Pr.Lang.Val)
+						{
+							NewParagraph.SelectAll();
+							NewParagraph.Add(new ParaTextPr({Lang : LastRun.Pr.Lang.Copy()}));
+							NewParagraph.RemoveSelection();
+						}
+					}
+					else
+					{
+						Item.Split(NewParagraph);
+					}
+
+					NewParagraph.Correct_Content();
+					NewParagraph.MoveCursorToStartPos();
+
+					var nContentPos = this.CurPos.ContentPos + 1;
+					this.AddToContent(nContentPos, NewParagraph);
+					this.CurPos.ContentPos = nContentPos;
+				}
 
                 if (true === this.IsTrackRevisions())
                 {
@@ -4445,7 +4459,35 @@ CDocumentContent.prototype.InsertContent = function(SelectedContent, NearPos)
     }
     else if (para_Run === LastClass.Type)
     {
-		if (LastClass.GetParentForm())
+		var oDstPictureCC = LastClass.GetParentPictureContentControl();
+		if (oDstPictureCC)
+		{
+			var oSrcPicture = null;
+			for (var nIndex = 0, nCount = SelectedContent.DrawingObjects.length; nIndex < nCount; ++nIndex)
+			{
+				if (SelectedContent.DrawingObjects[nIndex].IsPicture())
+				{
+					oSrcPicture = SelectedContent.DrawingObjects[nIndex].GraphicObj;
+					break;
+				}
+			}
+
+			var arrParaDrawings = oDstPictureCC.GetAllDrawingObjects();
+			if (arrParaDrawings.length > 0 && oSrcPicture)
+			{
+				oSrcPicture.setParent(arrParaDrawings[0]);
+				arrParaDrawings[0].Set_GraphicObject(oSrcPicture);
+
+				if (this.LogicDocument)
+				{
+					this.LogicDocument.RemoveSelection();
+					oDstPictureCC.SelectContentControl();
+				}
+			}
+
+			return;
+		}
+		else if (LastClass.GetParentForm())
 		{
 			var nInLastClassPos = ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 1]
 
@@ -7135,19 +7177,30 @@ CDocumentContent.prototype.RemoveTable = function()
 			}
 			else
 			{
-				this.RemoveSelection();
-				Table.PreDelete();
-				this.Internal_Content_Remove(Pos, 1);
+				var oLogicDocument    = this.GetLogicDocument();
+				var isNeedRemoveTable = true;
+				if (oLogicDocument && oLogicDocument.IsTrackRevisions())
+				{
+					this.Content[Pos].SelectAll();
+					isNeedRemoveTable = !this.Content[Pos].RemoveTableRow();
+				}
 
-				if (Pos >= this.Content.length - 1)
-					Pos--;
+				if (isNeedRemoveTable)
+				{
+					this.RemoveSelection();
+					Table.PreDelete();
+					this.Internal_Content_Remove(Pos, 1);
 
-				if (Pos < 0)
-					Pos = 0;
+					if (Pos >= this.Content.length - 1)
+						Pos--;
 
-				this.SetDocPosType(docpostype_Content);
-				this.CurPos.ContentPos = Pos;
-				this.Content[Pos].MoveCursorToStartPos();
+					if (Pos < 0)
+						Pos = 0;
+
+					this.SetDocPosType(docpostype_Content);
+					this.CurPos.ContentPos = Pos;
+					this.Content[Pos].MoveCursorToStartPos();
+				}
 			}
 
 			return true;
@@ -7353,10 +7406,12 @@ CDocumentContent.prototype.Internal_Content_Add = function(Position, NewObject, 
 	if (Position <= this.CurPos.TableMove)
 		this.CurPos.TableMove++;
 
-	// Проверим, что последний элемент - параграф или SdtBlockLevel
+	// Проверим, что последний элемент - параграф или SdtBlockLevel.
+	// В самом CSdtBlockLevel такая проверка не нужна
 	if (false !== isCorrectContent
 		&& !this.Content[this.Content.length - 1].IsParagraph()
-		&& !this.Content[this.Content.length - 1].IsBlockLevelSdt())
+		&& !this.Content[this.Content.length - 1].IsBlockLevelSdt()
+		&& !this.IsBlockLevelSdtContent())
 		this.Internal_Content_Add(this.Content.length, new Paragraph(this.DrawingDocument, this, this.bPresentation === true));
 
 	this.private_ReindexContent(Position);
@@ -7383,11 +7438,14 @@ CDocumentContent.prototype.Internal_Content_Remove = function(Position, Count, i
 	if (null != NextObj)
 		NextObj.Set_DocumentPrev(PrevObj);
 
-	// Проверим, что последний элемент - параграф
+	// Проверим, что последний элемент - параграф или SdtBlockLevel.
+	// В самом CSdtBlockLevel такая проверка не нужна
+
 	if (false !== isCorrectContent
 		&& (this.Content.length <= 0
 			|| (!this.Content[this.Content.length - 1].IsParagraph()
-				&& !this.Content[this.Content.length - 1].IsBlockLevelSdt())))
+				&& !this.Content[this.Content.length - 1].IsBlockLevelSdt()
+				&& !this.IsBlockLevelSdtContent())))
 		this.Internal_Content_Add(this.Content.length, new Paragraph(this.DrawingDocument, this, this.bPresentation === true));
 
 	this.private_ReindexContent(Position);

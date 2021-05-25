@@ -3580,34 +3580,45 @@
 			}
 		});
 	};
-	Workbook.prototype.handleChartsOnChangeSheetName = function (oWorksheet, sNewName) {
-		if(!History.CanAddChanges()) {
-			return;
-		}
+	Workbook.prototype.getChartsWithSheetData = function(oWorksheet) {
 		var aRefsToChange = [];
 		var aId = [];
+		var aCharts = [];
 		var aRanges = [new AscCommonExcel.Range(oWorksheet, 0, 0, gc_nMaxRow0, gc_nMaxCol0)];
 		this.handleDrawings(function(oDrawing) {
 			if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
 				var nPrevLength = aRefsToChange.length;
+				oDrawing.clearDataRefs();
 				oDrawing.collectIntersectionRefs(aRanges, aRefsToChange);
+				oDrawing.clearDataRefs();
 				if(aRefsToChange.length > nPrevLength) {
+					aCharts.push(oDrawing);
 					aId.push(oDrawing.Get_Id());
 				}
 			}
 		});
+		return {refs: aRefsToChange, ids: aId, charts: aCharts};
 
-		var sOldName = parserHelp.getEscapeSheetName(oWorksheet.sName);
-		this.checkObjectsLock(aId, function(bNoLock) {
-			if(bNoLock) {
-				for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
-					aRefsToChange[nRef].handleOnChangeSheetName(sOldName, sNewName);
-				}
-				if(Asc.editor && Asc.editor.wb) {
-					Asc.editor.wb.recalculateDrawingObjects(null, false);
-				}
+	};
+	Workbook.prototype.getChartSheetRenameData = function (oWorksheet, sOldName) {
+		var sOldSheetName = oWorksheet.sName;
+		oWorksheet.sName = sOldName;
+		var oData = this.getChartsWithSheetData(oWorksheet);
+		oWorksheet.sName = sOldSheetName;
+		return oData;
+	};
+	Workbook.prototype.changeSheetNameInRefs = function (aRefsToChange, sOldName, sNewName) {
+		if(aRefsToChange.length > 0) {
+			var sNewNameEscaped = parserHelp.getEscapeSheetName(sNewName);
+			var sOldNameEscaped = parserHelp.getEscapeSheetName(sOldName);
+			for(var nRef = 0; nRef < aRefsToChange.length; ++nRef) {
+				aRefsToChange[nRef].handleOnChangeSheetName(sOldNameEscaped, sNewNameEscaped);
 			}
-		});
+		}
+	};
+	Workbook.prototype.handleChartsOnChangeSheetName = function (oWorksheet, sOldName, sNewName) {
+		var oData = this.getChartSheetRenameData(oWorksheet, sOldName);
+		this.changeSheetNameInRefs(oData.refs, sOldName, sNewName);
 	};
 	Workbook.prototype.handleChartsOnMoveRange = function (oRangeFrom, oRangeTo) {
 		if(!History.CanAddChanges()) {
@@ -4377,7 +4388,7 @@
 			var aRefsToChange = [];
 			var sNewName = parserHelp.getEscapeSheetName(oNewWs.sName);
 			var aRanges = [new AscCommonExcel.Range(this, 0, 0, gc_nMaxRow0, gc_nMaxCol0)];
-			this.handleDrawings(function(oDrawing) {
+			oNewWs.handleDrawings(function(oDrawing) {
 				if(oDrawing.getObjectType() === AscDFH.historyitem_type_ChartSpace) {
 					oDrawing.collectIntersectionRefs(aRanges, aRefsToChange);
 				}
@@ -4872,15 +4883,11 @@
 	Worksheet.prototype.getName=function(){
 		return this.sName !== undefined && this.sName.length > 0 ? this.sName : "";
 	};
-	Worksheet.prototype.setName=function(name, bFromUndoRedo){
+	Worksheet.prototype.setName=function(name){
 		if(name.length <= g_nSheetNameMaxLength)
 		{
 			var lastName = this.sName;
 			History.Create_NewPoint();
-			if(!bFromUndoRedo)
-			{
-				this.workbook.handleChartsOnChangeSheetName(this, parserHelp.getEscapeSheetName(name));
-			}
 			var prepared = this.workbook.dependencyFormulas.prepareChangeSheet(this.getId(), {rename: {from: lastName, to: name}});
 			this.sName = name;
 			this.workbook.dependencyFormulas.changeSheet(prepared);
@@ -4966,6 +4973,21 @@
 				this.getId(), null, new UndoRedoData_FromTo(view.showRowColHeaders, value));
 			view.showRowColHeaders = value;
 
+			this.workbook.handlers.trigger("changeSheetViewSettings", this.getId(), AscCH.historyitem_Worksheet_SetDisplayHeadings);
+			if (!this.workbook.bUndoChanges && !this.workbook.bRedoChanges) {
+				this.workbook.handlers.trigger("asc_onUpdateSheetViewSettings");
+			}
+		}
+	};
+	Worksheet.prototype.setShowZeros = function (value) {
+		var view = this.sheetViews[0];
+		if (value !== view.showZeros) {
+			History.Create_NewPoint();
+			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SetShowZeros,
+				this.getId(), null, new UndoRedoData_FromTo(view.showZeros, value));
+			view.showZeros = value;
+
+			//TODO
 			this.workbook.handlers.trigger("changeSheetViewSettings", this.getId(), AscCH.historyitem_Worksheet_SetDisplayHeadings);
 			if (!this.workbook.bUndoChanges && !this.workbook.bRedoChanges) {
 				this.workbook.handlers.trigger("asc_onUpdateSheetViewSettings");
@@ -7554,7 +7576,7 @@
 				}
 				oCellValue = new AscCommonExcel.CCellValue();
 				oCellValue.type = AscCommon.CellValueType.String;
-				oCellValue.text = AscCommonExcel.ToName_ST_ItemType(Asc.c_oAscItemType.Default);
+				oCellValue.text = AscCommon.translateManager.getValue(AscCommonExcel.ToName_ST_ItemType(Asc.c_oAscItemType.Default));
 				cells.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, oCellValue));
 			}
 			if (rowFieldsOffset && false === pivotTable.showHeaders && false === pivotTable.gridDropZones && pivotTable.getDataFieldsCount() > 0) {
@@ -7609,7 +7631,7 @@
 					if (-1 === valuesIndex) {
 						oCellValue.text = pivotTable.grandTotalCaption || AscCommon.translateManager.getValue(AscCommonExcel.GRAND_TOTAL_CAPTION);
 					} else {
-						oCellValue.text = AscCommonExcel.ToName_ST_ItemType(item.t);
+						oCellValue.text = AscCommon.translateManager.getValue(AscCommonExcel.ToName_ST_ItemType(item.t));
 						oCellValue.text += ' ' + pivotTable.getDataFieldName(item.i);
 					}
 				} else if (Asc.c_oAscItemType.Blank === item.t) {
@@ -7625,7 +7647,7 @@
 								oCellValue.text = field.subtotalCaption;
 							} else {
 								oCellValue.text = totalTitleRange[r + j].getValueWithFormatSkipToSpace();
-								oCellValue.text += ' ' + AscCommonExcel.ToName_ST_ItemType(item.t);
+								oCellValue.text += ' ' + AscCommon.translateManager.getValue(AscCommonExcel.ToName_ST_ItemType(item.t));
 							}
 						}
 					} else {
@@ -8849,7 +8871,7 @@
 	};
 
 	Worksheet.prototype.calculateWizardFormula = function (formula, type) {
-		var res = null, resultStr = "";
+		var res = null, resultStr = null;
 		if (formula) {
 			var parser = new AscCommonExcel.parserFormula(formula, /*formulaParsed.parent*/null, this);
 			var parseResultArg = new AscCommonExcel.ParseResult([], []);
@@ -8858,6 +8880,7 @@
 				res = parser.calculate();
 			}
 
+			resultStr = "";
 			if (res) {
 				//TODO рассчеты аргументов зависят от конкретных функций
 				//допустим, sum и acos - типа аргумента number, но результат для cellsRange3D разный
@@ -9459,6 +9482,9 @@
 								})));
 						}
 					});
+				}
+				if (table.TableColumns.length < (table.Ref.c2 - table.Ref.c1 + 1)) {
+					table.Ref.c2 = table.Ref.c1 + table.TableColumns.length - 1;
 				}
 			}
 		}
@@ -10392,7 +10418,7 @@
 			}
 		} else if (val) {
 			this._setValue(val, ignoreHyperlink);
-			if (!ignoreHyperlink) {
+			if (!ignoreHyperlink && window['AscCommonExcel'].g_AutoCorrectHyperlinks) {
 				this._autoformatHyperlink(val);
 			}
 			wb.dependencyFormulas.addToChangedCell(this);
@@ -11531,7 +11557,7 @@
 		for(var i = 0, length = aVal.length; i < length; ++i)
 			sSimpleText += aVal[i].text;
 		this._setValue(sSimpleText);
-		if (!ignoreHyperlink) {
+		if (!ignoreHyperlink && window['AscCommonExcel'].g_AutoCorrectHyperlinks) {
 			this._autoformatHyperlink(sSimpleText);
 		}
 		var nRow = this.nRow;
@@ -11852,7 +11878,15 @@
 		}
 		if (0 !== (flags & 0x2000)) {
 			this.setTypeInternal(CellValueType.String);
-			this.setValueMultiTextInternal(this.fromXLSBRichText(stream));
+			var multiText = [];
+			if (this.fromXLSBRichText(stream, multiText)) {
+				this.setValueMultiTextInternal(multiText);
+			} else {
+				var text = multiText.reduce(function(accumulator, currentValue) {
+					return accumulator + currentValue.text;
+				}, '');
+				this.setValueTextInternal(text);
+			}
 		}
 
 		stream.Seek2(end);
@@ -11898,8 +11932,8 @@
 			formula.si = stream.GetULongLE();
 		}
 	};
-	Cell.prototype.fromXLSBRichText = function(stream) {
-		var res = [];
+	Cell.prototype.fromXLSBRichText = function(stream, richText) {
+		var hasFormat = false;
 		var count = stream.GetULongLE();
 		while (count-- > 0) {
 			var typeRun = stream.GetUChar();
@@ -11908,6 +11942,7 @@
 				run = new AscCommonExcel.CMultiTextElem();
 				run.text = "";
 				if (stream.GetBool()) {
+					hasFormat = true;
 					run.format = new AscCommonExcel.Font();
 					run.format.fromXLSB(stream);
 					run.format.checkSchemeFont(this.ws.workbook.theme);
@@ -11916,15 +11951,15 @@
 				while (textCount-- > 0) {
 					run.text += stream.GetString();
 				}
-				res.push(run);
+				richText.push(run);
 			}
 			else if (0x2 === typeRun) {
 				run = new AscCommonExcel.CMultiTextElem();
 				run.text = stream.GetString();
-				res.push(run);
+				richText.push(run);
 			}
 		}
-		return res;
+		return hasFormat;
 	};
 	Cell.prototype.toXLSB = function(stream, nXfsId, formulaToWrite, oSharedStrings) {
 		var len = 4 + 4 + 2;
@@ -13751,6 +13786,18 @@
 		}
 		return align;
 	};
+
+	Range.prototype.getAngle = function () {
+		var nRow = this.bbox.r1;
+		var nCol = this.bbox.c1;
+		var angle;
+		this.worksheet._getCellNoEmpty(nRow, nCol, function (cell) {
+			var align = cell.getAlign();
+			angle = align.getAngle();
+		});
+		return angle;
+	}
+
 	Range.prototype.getFillColor = function () {
 		return this.getFill().bg();
 	};

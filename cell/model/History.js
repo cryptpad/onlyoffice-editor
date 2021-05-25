@@ -99,8 +99,10 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Worksheet_CFRuleAdd = 52;
 	window['AscCH'].historyitem_Worksheet_CFRuleDelete = 53;
 
-	window['AscCH'].historyitem_Worksheet_AddProtectedRange = 54;
-	window['AscCH'].historyitem_Worksheet_DelProtectedRange = 55;
+	window['AscCH'].historyitem_Worksheet_SetShowZeros = 54;
+
+	window['AscCH'].historyitem_Worksheet_AddProtectedRange = 55;
+	window['AscCH'].historyitem_Worksheet_DelProtectedRange = 56;
 
 	window['AscCH'].historyitem_RowCol_Fontname = 1;
 	window['AscCH'].historyitem_RowCol_Fontsize = 2;
@@ -289,22 +291,22 @@ function (window, undefined) {
 
 	window['AscCH'].historyitem_CFRule_SetAboveAverage = 1;
 	window['AscCH'].historyitem_CFRule_SetActivePresent = 2;
-	window['AscCH'].historyitem_CFRule_SetBottom = 2;
-	window['AscCH'].historyitem_CFRule_SetEqualAverage = 3;
-	window['AscCH'].historyitem_CFRule_SetOperator = 4;
-	window['AscCH'].historyitem_CFRule_SetPercent = 5;
-	window['AscCH'].historyitem_CFRule_SetPriority = 6;
-	window['AscCH'].historyitem_CFRule_SetRank = 7;
-	window['AscCH'].historyitem_CFRule_SetStdDev = 8;
-	window['AscCH'].historyitem_CFRule_SetStopIfTrue = 9;
-	window['AscCH'].historyitem_CFRule_SetText = 10;
-	window['AscCH'].historyitem_CFRule_SetTimePeriod = 11;
-	window['AscCH'].historyitem_CFRule_SetType = 12;
-	window['AscCH'].historyitem_CFRule_SetPivot = 13;
-	window['AscCH'].historyitem_CFRule_SetTimePeriod = 14;
-	window['AscCH'].historyitem_CFRule_SetRuleElements = 15;
-	window['AscCH'].historyitem_CFRule_SetDxf = 16;
-	window['AscCH'].historyitem_CFRule_SetRanges = 17;
+	window['AscCH'].historyitem_CFRule_SetBottom = 3;
+	window['AscCH'].historyitem_CFRule_SetEqualAverage = 4;
+	window['AscCH'].historyitem_CFRule_SetOperator = 5;
+	window['AscCH'].historyitem_CFRule_SetPercent = 6;
+	window['AscCH'].historyitem_CFRule_SetPriority = 7;
+	window['AscCH'].historyitem_CFRule_SetRank = 8;
+	window['AscCH'].historyitem_CFRule_SetStdDev = 9;
+	window['AscCH'].historyitem_CFRule_SetStopIfTrue = 10;
+	window['AscCH'].historyitem_CFRule_SetText = 11;
+	window['AscCH'].historyitem_CFRule_SetTimePeriod = 12;
+	window['AscCH'].historyitem_CFRule_SetType = 13;
+	window['AscCH'].historyitem_CFRule_SetPivot = 14;
+	window['AscCH'].historyitem_CFRule_SetTimePeriod = 15;
+	window['AscCH'].historyitem_CFRule_SetRuleElements = 16;
+	window['AscCH'].historyitem_CFRule_SetDxf = 17;
+	window['AscCH'].historyitem_CFRule_SetRanges = 18;
 
 	window['AscCH'].historyitem_Protected_SetSqref = 1;
 	window['AscCH'].historyitem_Protected_SetName = 2;
@@ -575,7 +577,6 @@ CHistory.prototype.RedoExecute = function(Point, oRedoObjectParam)
 		this._addRedoObjectParam(oRedoObjectParam, Item);
 	}
 	AscCommon.CollaborativeEditing.Apply_LinkData();
-	Asc["editor"].wb.recalculateDrawingObjects(Point, false);
 };
 CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 	var wsViews, i, oState = null, bCoaut = false, t = this;
@@ -583,7 +584,7 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 		Point = this.Points[this.Index];
 		AscCommon.CollaborativeEditing.Apply_LinkData();
 		bCoaut = true;
-        if(!window["NATIVE_EDITOR_ENJINE"] || window['IS_NATIVE_EDITOR']) {
+        if(!AscCommon.isFileBuild()) {
 			Asc["editor"].wb.recalculateDrawingObjects(Point, true);
         }
 	}
@@ -644,7 +645,7 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 				this.workbook.handlers.trigger("asc_onUpdateTabColor", curSheet.getIndex());
 		}
 
-        if(!window["NATIVE_EDITOR_ENJINE"] || window['IS_NATIVE_EDITOR']) {
+        if(!AscCommon.isFileBuild()) {
 			Asc["editor"].wb.recalculateDrawingObjects(Point, false);
         }
 
@@ -784,14 +785,54 @@ CHistory.prototype.Get_RecalcData = function(Point2)
                         Item.Class.RefreshRecalcData();
 					if(Item.Type === AscCH.historyitem_Workbook_ChangeColorScheme && Item.Class === AscCommonExcel.g_oUndoRedoWorkbook)
 					{
-						var wsViews = Asc["editor"].wb.wsViews;
-						for(var i = 0; i < wsViews.length; ++i)
+						if(Asc["editor"].wb)
 						{
-							if(wsViews[i] && wsViews[i].objectRender && wsViews[i].objectRender.controller)
+							var wsViews = Asc["editor"].wb.wsViews;
+							for(var i = 0; i < wsViews.length; ++i)
 							{
-								wsViews[i].objectRender.controller.RefreshAfterChangeColorScheme();
+								if(wsViews[i] && wsViews[i].objectRender && wsViews[i].objectRender.controller)
+								{
+									wsViews[i].objectRender.controller.RefreshAfterChangeColorScheme();
+								}
 							}
 						}
+					}
+					if(Item.Type === AscCH.historyitem_Worksheet_Rename)
+					{
+						var oWorkbook = Asc["editor"].wbModel;
+						var oData = Item.Data;
+						if(oWorkbook && oData)
+						{
+							var oWorksheet = oWorkbook.getWorksheetById(Item.SheetId);
+							if(oWorksheet)
+							{
+								var oOldNameData = oWorkbook.getChartSheetRenameData(oWorksheet, oData.from);
+								var oNewNameData = oWorkbook.getChartSheetRenameData(oWorksheet, oData.to);
+								var oAllIdMap = {};
+								var nId, sKey;
+								for(nId = 0; nId < oOldNameData.ids.length; ++nId)
+								{
+									oAllIdMap[oOldNameData.ids[nId]] = true;
+								}
+								for(nId = 0; nId < oNewNameData.ids.length; ++nId)
+								{
+									oAllIdMap[oNewNameData.ids[nId]] = true;
+								}
+								for(sKey in oAllIdMap)
+								{
+									var oChart = AscCommon.g_oTableId.Get_ById(sKey);
+									if(oChart &&
+										oChart.onDataUpdateRecalc &&
+										oChart.addToRecalculate)
+									{
+										oChart.onDataUpdateRecalc();
+										oChart.addToRecalculate();
+									}
+								}
+
+							}
+						}
+
 					}
 				}
 			}
@@ -1222,7 +1263,13 @@ CHistory.prototype.GetSerializeArray = function()
 		}
 		this.PosInCurPoint = null; 
 	};
+	CHistory.prototype.Is_LastPointEmpty = function()
+	{
+		if (!this.Points[this.Index] || this.Points[this.Index].Items.length <= 0)
+			return true;
 
+		return false;
+	};
 	//------------------------------------------------------------export--------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window['AscCommon'].CHistory = CHistory;

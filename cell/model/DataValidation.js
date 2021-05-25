@@ -538,6 +538,18 @@
 		if (list && AscCommonExcel.cElementType.error !== list.type) {
 			if (AscCommonExcel.cElementType.string === list.type) {
 				aValue = list.getValue().split(AscCommon.FormulaSeparators.functionArgumentSeparatorDef);
+				if (aValue && aValue.length) {
+					for (var i = 0; i < aValue.length; i++) {
+						//обрезаем только вначале строки
+						if (aValue[i] && aValue[i].length) {
+							var pos = 0;
+							while((pos < aValue[i].length) && (aValue[i][pos] == ' ')){
+								++pos;
+							}
+							aValue[i] = pos ? aValue[i].substr(pos) : aValue[i];
+						}
+					}
+				}
 			} else {
 				list = list.getRange();
 				if (list) {

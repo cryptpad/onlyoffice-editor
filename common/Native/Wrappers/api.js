@@ -754,6 +754,31 @@ function asc_menu_ReadParaShd(_params, _cursor)
             }
         }
     }
+    if(_shd.Value === Asc.c_oAscShd.Clear) {
+        if(_shd.Color) {
+            if(_shd.Color.Auto) {
+                _shd.Color.r = 0;
+                _shd.Color.g = 0;
+                _shd.Color.b = 0;
+                _shd.Fill = {};
+                _shd.Fill.Auto = true;
+                _shd.Fill.r = 255;
+                _shd.Fill.g = 255;
+                _shd.Fill.b = 255;
+            }
+            else {
+                _shd.Color.Auto = false;
+                _shd.Fill.Auto = false;
+                _shd.Fill.r = _shd.Color.r;
+                _shd.Fill.g = _shd.Color.g;
+                _shd.Fill.b = _shd.Color.b;
+                var Unifill        = new AscFormat.CUniFill();
+                Unifill.fill       = new AscFormat.CSolidFill();
+                Unifill.fill.color = AscFormat.CorrectUniColor(_shd.Color, Unifill.fill.color, 1);
+                _shd.Unifill = Unifill;
+            }
+        }
+    }
     return _shd;
 }
 function asc_menu_WriteParaShd(_type, _shd, _stream)
@@ -6449,6 +6474,8 @@ function onApiShowRevisionsChange(data) {
 
             var revisionChange = {
                 userName: userName,
+                userId: item.get_UserId(),
+                lock: (item.get_LockUserId()!==null),
                 date: (item.get_DateTime() == '' ? new Date().getMilliseconds() : item.get_DateTime()),
                 goto: (item.get_MoveType() == Asc.c_oAscRevisionsMove.MoveTo || item.get_MoveType() == Asc.c_oAscRevisionsMove.MoveFrom),
                 commonChanges: commonChanges,

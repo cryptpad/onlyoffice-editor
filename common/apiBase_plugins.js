@@ -50,7 +50,7 @@
 	 * @property {?string} [baseUrl=""]
 	 * Path to the plugin. All the other paths are calculated relative to this path. In case the plugin is installed on the server, an additional parameter (path to the plugins) is added there. If baseUrl == "" the path to all plugins will be used.
      *
-	 * @property {Variation[]}
+	 * @property {Variation[]} variations
 	 * Plugin variations or "subplugins" - see the Plugin variations section
      */
 
@@ -131,7 +131,7 @@
 
     /**
 	 * Plugin buttons
-	 * @typedef Button
+	 * @typedef {object} Button
 	 * @property {string} text
 	 * @property {string} textLocale
 	 * @property {boolean} primary
@@ -145,6 +145,15 @@
      */
 
     var Api = window["AscCommon"].baseEditorsApi;
+
+    /**
+     * Get version of editor
+     * @memberof Api
+     * @typeofeditors ["CDE", "CSE", "CPE"]
+     * @alias GetVersion
+     * @returns {string} version
+     */
+    Api.prototype["pluginMethod_GetVersion"] = function() { return this.GetVersion(); };
 
     /**
      * Adding ole object to editor
@@ -586,7 +595,7 @@
      * @param {string} guid Guid helper
      * @param {number} w Width
      * @param {number} h Height
-	 * @param {boolean} isKeyboardTake Is catch keyboard
+     * @param {boolean} isKeyboardTake Is catch keyboard
      */
     Api.prototype["pluginMethod_ShowInputHelper"] = function(guid, w, h, isKeyboardTake)
     {
@@ -717,5 +726,105 @@
     {
         return this.CoAuthoringChatSendMessage(sText);
     };
+
+	/**
+	 * A current selection type
+	 * @typedef {("none" | "text" | "drawing" | "slide")} SelectionType
+	 */
+
+	/**
+	 * Get current selection type
+	 * @memberof Api
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @alias GetSelectionType
+	 * @param {SelectionType} selection type
+	 */
+	Api.prototype["pluginMethod_GetSelectionType"] = function()
+	{
+		switch (this.editorId)
+		{
+			case AscCommon.c_oEditorId.Word:
+			{
+				if (!this.WordControl || !this.WordControl.m_oLogicDocument)
+					return "none";
+				var logicDoc = this.WordControl.m_oLogicDocument;
+
+				if (!logicDoc.IsSelectionUse())
+					return "none";
+
+				var selectionBounds = logicDoc.GetSelectionBounds();
+				var eps = 0.0001;
+				if (selectionBounds && selectionBounds.Start && selectionBounds.End &&
+					(Math.abs(selectionBounds.Start.W) > eps) &&
+					(Math.abs(selectionBounds.End.W) > eps))
+				{
+					return "text";
+				}
+
+				if (logicDoc.DrawingObjects.getSelectedObjectsBounds())
+					return "drawing";
+
+				return "none";
+			}
+			case AscCommon.c_oEditorId.Presentation:
+			{
+				if (!this.WordControl || !this.WordControl.m_oLogicDocument)
+					return "none";
+				var logicDoc = this.WordControl.m_oLogicDocument;
+
+				if (-1 === logicDoc.CurPage)
+					return "none";
+
+				var _controller = logicDoc.Slides[logicDoc.CurPage].graphicObjects;
+				var _elementsCount = _controller.selectedObjects.length;
+
+				var retType = "slide";
+				if (!_controller.IsSelectionUse() && _elementsCount > 0)
+					retType = "none";
+
+				var selectionBounds = logicDoc.GetSelectionBounds();
+				var eps = 0.0001;
+				if (selectionBounds && selectionBounds.Start && selectionBounds.End &&
+					(Math.abs(selectionBounds.Start.W) > eps) &&
+					(Math.abs(selectionBounds.End.W) > eps))
+				{
+					return "text";
+				}
+				
+				if (retType === "slide" && _controller.getSelectedObjectsBounds())
+					retType = "drawing";
+
+				return retType;
+			}
+			case AscCommon.c_oEditorId.Spreadsheet:
+			{
+				if (!this.wb || !this.wb.getWorksheet())
+					return "none";
+
+				var objectRender = this.wb.getWorksheet().objectRender;
+				if (!objectRender)
+					return "none";
+
+				var controller = objectRender.controller;
+				if (!controller)
+					return "none";
+
+				var selection = this.wb.GetSelectionRectsBounds();
+				var retType = "none";
+
+				if (!controller.IsSelectionUse() && !selection)
+					retType = "none";
+				if (controller.GetSelectionBounds() || selection)
+					retType = "text";
+				if (controller.getSelectedObjectsBounds())
+					retType = "drawing";
+
+				return retType;
+			}
+			default:
+				break;
+		}
+		return "none";
+	};
 
 })(window);

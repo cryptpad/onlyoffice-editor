@@ -175,7 +175,8 @@
 		}
 		function convertPxToPt(value) {
 			value = value * sizePxinPt;
-			value = Asc.ceil(value / AscBrowser.retinaPixelRatio * 10) / 10;
+			//пункты округляем до сотых
+			value = Asc.ceil(value / AscBrowser.retinaPixelRatio * 100) / 100;
 			return value;
 		}
 
@@ -346,6 +347,38 @@
 			}
 			return oUniFill;
 		}
+
+		function getFullHyperlinkLength(str) {
+			var res = 0;
+			if (!str) {
+				return res;
+			}
+
+			var validStr = "ABCDEFabcdef0123456789";
+			//new RegExp('/^[xX]?[0-9a-fA-F]{6}$/', 'g')
+			var checkHex = function (_val) {
+				if (_val !== undefined && validStr.indexOf(_val) !== -1) {
+					return true;
+				}
+				return false;
+			};
+
+
+			for (var i = 0; i < str.length; i++) {
+				if (str[i] === "%") {
+					if (checkHex(str[i + 1]) && checkHex(str[i + 2])) {
+						res++;
+					} else {
+						res += 3;
+					}
+				} else {
+					res++;
+				}
+			}
+
+			return res;
+		}
+
 		var referenceType = {
 			A: 0,			// Absolute
 			ARRC: 1,	// Absolute row; relative column
@@ -1895,29 +1928,32 @@
 			return ret;
 		}
 
-		function getEndValueRange(dx, start, v1, v2) {
-			var x1, x2;
+		function getEndValueRange(dx, v1, v2, coord1, coord2) {
+			var leftDir = {x1: v2, x2: v1},
+				rightDir = {x1: v1, x2: v2},
+			    res;
 			if (0 !== dx) {
-				if (start === v1) {
-					x1 = v1;
-					x2 = v2;
-				} else if (start === v2) {
-					x1 = v2;
-					x2 = v1;
-				} else {
+				if (coord1 > v1 && coord2 < v2) {
 					if (0 > dx) {
-						x1 = v2;
-						x2 = v1;
+						res = coord1 === coord2 ? leftDir : rightDir;
 					} else {
-						x1 = v1;
-						x2 = v2;
+						res = coord1 === coord2 ? rightDir : leftDir;
 					}
+				} else if (coord1 === v1 && coord2 === v2) {
+					if (0 > dx) {
+						res = leftDir;
+					} else {
+						res = rightDir;
+					}
+				} else if (coord1 > v1 && coord2 === v2) {
+					res = leftDir;
+				} else if (coord1 === v1 && coord2 < v2) {
+					res = rightDir;
 				}
 			} else {
-				x1 = v1;
-				x2 = v2;
+				res = rightDir;
 			}
-			return {x1: x1, x2: x2};
+			return res;
 		}
 
 		function checkStylesNames(cellStyles) {
@@ -2620,6 +2656,8 @@
 			//current view zoom
 			this.zoomScale = 100;
 
+			this.showZeros = null;
+
 			return this;
 		}
 
@@ -2630,11 +2668,14 @@
 				result.showGridLines = this.showGridLines;
 				result.showRowColHeaders = this.showRowColHeaders;
 				result.zoom = this.zoom;
-				if (this.pane)
+				if (this.pane) {
 					result.pane = this.pane.clone();
+				}
+				result.showZeros = this.showZeros;
 				return result;
 			},
 			isEqual: function (settings) {
+				//TODO showzeros?
 				return this.asc_getShowGridLines() === settings.asc_getShowGridLines() &&
 					this.asc_getShowRowColHeaders() === settings.asc_getShowRowColHeaders();
 			},
@@ -2642,9 +2683,11 @@
 			asc_getShowRowColHeaders: function () { return false !== this.showRowColHeaders; },
 			asc_getZoomScale: function () { return this.zoomScale; },
 			asc_getIsFreezePane: function () { return null !== this.pane && this.pane.isInit(); },
+			asc_getShowZeros: function () { return false !== this.showZeros; },
 			asc_setShowGridLines: function (val) { this.showGridLines = val; },
 			asc_setShowRowColHeaders: function (val) { this.showRowColHeaders = val; },
-			asc_setZoomScale: function (val) { this.zoomScale = val; }
+			asc_setZoomScale: function (val) { this.zoomScale = val; },
+			asc_setShowZeros: function (val) { this.showZeros = val; }
 		};
 
 		/** @constructor */
@@ -3247,6 +3290,7 @@
 		window['AscCommonExcel'].c_msPerDay = c_msPerDay;
 		window["AscCommonExcel"].applyFunction = applyFunction;
 		window['AscCommonExcel'].g_IncludeNewRowColInTable = true;
+		window['AscCommonExcel'].g_AutoCorrectHyperlinks = true;
 
 		window["Asc"]["cDate"] = window["Asc"].cDate = window['AscCommonExcel'].cDate = cDate;
 		prot = cDate.prototype;
@@ -3270,6 +3314,7 @@
 		window["AscCommonExcel"].getFindRegExp = getFindRegExp;
 		window["AscCommonExcel"].convertFillToUnifill = convertFillToUnifill;
 		window["AscCommonExcel"].replaceSpellCheckWords = replaceSpellCheckWords;
+		window["AscCommonExcel"].getFullHyperlinkLength = getFullHyperlinkLength;
 		window["Asc"].outputDebugStr = outputDebugStr;
 		window["Asc"].isNumberInfinity = isNumberInfinity;
 		window["Asc"].trim = trim;
@@ -3362,8 +3407,10 @@
 		prot["asc_getShowGridLines"] = prot.asc_getShowGridLines;
 		prot["asc_getShowRowColHeaders"] = prot.asc_getShowRowColHeaders;
 		prot["asc_getIsFreezePane"] = prot.asc_getIsFreezePane;
+		prot["asc_getShowZeros"] = prot.asc_getShowZeros;
 		prot["asc_setShowGridLines"] = prot.asc_setShowGridLines;
 		prot["asc_setShowRowColHeaders"] = prot.asc_setShowRowColHeaders;
+		prot["asc_setShowZeros"] = prot.asc_setShowZeros;
 
 		window["AscCommonExcel"].asc_CPane = asc_CPane;
 		window["AscCommonExcel"].asc_CSheetPr = asc_CSheetPr;

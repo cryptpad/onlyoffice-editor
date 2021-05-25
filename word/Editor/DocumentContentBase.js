@@ -764,7 +764,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 				{
 					this.RemoveTableCells();
 				}
-				else if (false === this.Content[StartPos].Remove(Count, isRemoveWholeElement, bRemoveOnlySelection, bOnTextAdd))
+				else if (false === this.Content[StartPos].Remove(Count, isRemoveWholeElement, bRemoveOnlySelection, (this.Content[StartPos].IsTable() ? false : bOnTextAdd)))
 				{
 					// При добавлении текста, параграф не объединяется
 					if (true !== bOnTextAdd || (isRemoveOnDrag && this.Content[StartPos].IsEmpty()))
@@ -2207,6 +2207,20 @@ CDocumentContentBase.prototype.UpdateLineNumbersInfo = function()
 	{
 		this.Content[nIndex].UpdateLineNumbersInfo();
 	}
+};
+CDocumentContentBase.prototype.GetPrevDocumentElement = function()
+{
+	if (this.Parent && this.Parent.GetPrevDocumentElement)
+		return this.Parent.GetPrevDocumentElement();
+
+	return null;
+};
+CDocumentContentBase.prototype.GetNextDocumentElement = function()
+{
+	if (this.Parent && this.Parent.GetNextDocumentElement)
+		return this.Parent.GetNextDocumentElement();
+
+	return null;
 };
 CDocumentContentBase.prototype.IsEmptyParagraphAfterTableInTableCell = function(nIndex)
 {

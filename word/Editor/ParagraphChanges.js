@@ -341,6 +341,7 @@ CChangesParagraphAddItem.prototype.Undo = function()
 	oParagraph.private_UpdateTrackRevisions();
 	oParagraph.private_CheckUpdateBookmarks(this.Items);
 	oParagraph.private_UpdateSelectionPosOnRemove(this.Pos, this.Items.length);
+	oParagraph.SetIsRecalculated(false);
 	private_ParagraphChangesOnSetValue(this.Class);
 };
 CChangesParagraphAddItem.prototype.Redo = function()
@@ -353,12 +354,17 @@ CChangesParagraphAddItem.prototype.Redo = function()
 	oParagraph.private_UpdateTrackRevisions();
 	oParagraph.private_CheckUpdateBookmarks(this.Items);
 	oParagraph.private_UpdateSelectionPosOnAdd(this.Pos, this.Items.length);
+	oParagraph.SetIsRecalculated(false);
 	private_ParagraphChangesOnSetValue(this.Class);
 
 	for (var nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
 	{
 		var oItem = this.Items[nIndex];
 		oItem.Parent = this.Class;
+
+		if (oItem.SetParent)
+			oItem.SetParent(this.Class);
+
 		if (oItem.SetParagraph)
 			oItem.SetParagraph(this.Class);
 
@@ -414,6 +420,7 @@ CChangesParagraphAddItem.prototype.Load = function(Color)
 	oParagraph.private_UpdateTrackRevisions();
 	oParagraph.private_CheckUpdateBookmarks(this.Items);
 	oParagraph.UpdateDocumentOutline();
+	oParagraph.SetIsRecalculated(false);
 
 	private_ParagraphChangesOnSetValue(this.Class);
 };
@@ -465,6 +472,7 @@ CChangesParagraphRemoveItem.prototype.Undo = function()
 	oParagraph.private_UpdateTrackRevisions();
 	oParagraph.private_CheckUpdateBookmarks(this.Items);
 	oParagraph.private_UpdateSelectionPosOnAdd(this.Pos, this.Items.length);
+	oParagraph.SetIsRecalculated(false);
 	private_ParagraphChangesOnSetValue(this.Class);
 
 	for (var nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
@@ -486,6 +494,7 @@ CChangesParagraphRemoveItem.prototype.Redo = function()
 	oParagraph.private_UpdateTrackRevisions();
 	oParagraph.private_CheckUpdateBookmarks(this.Items);
 	oParagraph.private_UpdateSelectionPosOnRemove(this.Pos, this.Items.length);
+	oParagraph.SetIsRecalculated(false);
 	private_ParagraphChangesOnSetValue(this.Class);
 };
 CChangesParagraphRemoveItem.prototype.private_WriteItem = function(Writer, Item)
@@ -514,7 +523,7 @@ CChangesParagraphRemoveItem.prototype.Load = function(Color)
 	oParagraph.private_UpdateTrackRevisions();
 	oParagraph.private_CheckUpdateBookmarks(this.Items);
 	oParagraph.UpdateDocumentOutline();
-
+	oParagraph.SetIsRecalculated(false);
 	private_ParagraphChangesOnSetValue(this.Class);
 };
 CChangesParagraphRemoveItem.prototype.IsRelated = function(oChanges)

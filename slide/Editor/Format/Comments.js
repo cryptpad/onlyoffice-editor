@@ -1036,6 +1036,20 @@ CComment.prototype =
         return this.Data.HasUserReplies(sUserId);
     },
 
+    isMineComment: function ()
+    {
+        var oDocInfo = editor && editor.DocInfo;
+        if(oDocInfo)
+        {
+            return this.isUserComment(oDocInfo.get_UserId());
+        }
+        return false;
+    },
+
+    IsSolved: function() {
+        return this.Data.Get_Solved();
+    },
+
     isUserComment: function(sUserId)
     {
         if(!this.Data)

@@ -6650,6 +6650,11 @@ function BinaryPPTYLoader()
                     shape.attrUseBgFill = s.GetBool();
                     break;
                 }
+                case 1:
+                {
+                    shape.setMacro(s.GetString2());
+                    break;
+                }
                 default:
                     break;
             }
@@ -7040,6 +7045,26 @@ function BinaryPPTYLoader()
         var _rec_start = s.cur;
         var _end_rec = _rec_start + s.GetULong() + 4;
 
+        s.Skip2(1); // start attributes
+
+        while (true)
+        {
+            var _at = s.GetUChar();
+            if (_at == g_nodeAttributeEnd)
+                break;
+
+            switch (_at)
+            {
+                case 0:
+                {
+                    pic.setMacro(s.GetString2());
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+
         var sMaskFileName;
         while (s.cur < _end_rec)
         {
@@ -7155,6 +7180,28 @@ function BinaryPPTYLoader()
 
         var _rec_start = s.cur;
         var _end_rec = _rec_start + s.GetULong() + 4;
+
+
+        s.Skip2(1); // start attributes
+
+        while (true)
+        {
+            var _at = s.GetUChar();
+            if (_at == g_nodeAttributeEnd)
+                break;
+
+            switch (_at)
+            {
+                case 0:
+                {
+                    shape.setMacro(s.GetString2());
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+
 
         while (s.cur < _end_rec)
         {
@@ -7326,6 +7373,12 @@ function BinaryPPTYLoader()
                 case 0:
                 {
                     var spid = s.GetString2();
+                    break;
+                }
+                case 1:
+                {
+                    var sMacro = s.GetString2();
+                    _graphic_frame.setMacro(sMacro);
                     break;
                 }
                 default:
@@ -8157,8 +8210,6 @@ function BinaryPPTYLoader()
 
     this.ReadCell = function(cell)
     {
-        // cell.Content.Content.splice(0, cell.Content.Content.length);
-        cell.Content.Internal_Content_RemoveAll();
         var s = this.stream;
 
         var _rec_start = s.cur;
@@ -9904,6 +9955,10 @@ function BinaryPPTYLoader()
                 {
                     s.Skip2(4);
                     var _c = s.GetULong();
+                    if(_c > 0)
+                    {
+                        content.Internal_Content_RemoveAll();
+                    }
                     for (var i = 0; i < _c; i++)
                     {
                         s.Skip2(1); // type
@@ -11948,6 +12003,11 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                         shape.attrUseBgFill = s.GetBool();
                         break;
                     }
+                    case 1:
+                    {
+                        shape.setMacro(s.GetString2());
+                        break;
+                    }
                     default:
                         break;
                 }
@@ -12124,6 +12184,27 @@ CCore.prototype.Refresh_RecalcData2 = function(){
             var _rec_start = s.cur;
             var _end_rec = _rec_start + s.GetULong() + 4;
 
+            s.Skip2(1); // start attributes
+
+            while (true)
+            {
+                var _at = s.GetUChar();
+                if (_at == g_nodeAttributeEnd)
+                    break;
+
+                switch (_at)
+                {
+                    case 0:
+                    {
+                        shape.setMacro(s.GetString2());
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+
+
             while (s.cur < _end_rec)
             {
                 var _at = s.GetUChar();
@@ -12168,6 +12249,27 @@ CCore.prototype.Refresh_RecalcData2 = function(){
 
             var _rec_start = s.cur;
             var _end_rec = _rec_start + s.GetULong() + 4;
+
+            s.Skip2(1); // start attributes
+
+            while (true)
+            {
+                var _at = s.GetUChar();
+                if (_at == g_nodeAttributeEnd)
+                    break;
+
+                switch (_at)
+                {
+                    case 0:
+                    {
+                        pic.setMacro(s.GetString2());
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+
 
             var sMaskFileName = "";
             while (s.cur < _end_rec)

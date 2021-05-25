@@ -82,7 +82,7 @@
 
         setReviewPermissions: function(groups, permissions) {
             if (groups) {
-                if  (typeof groups == 'object' && groups.length>0)
+                if  (typeof groups == 'object' && groups.length>=0)
                     reviewGroups = groups;
             } else if (permissions) { // old version of review permissions
                 var arr = [],
@@ -99,9 +99,9 @@
         setCommentPermissions: function(groups) {
             if (groups && typeof groups == 'object') {
                 commentGroups = {
-                    view: (typeof groups.view == 'object' && groups.view.length>0) ? groups.view : null,
-                    edit: (typeof groups.edit == 'object' && groups.edit.length>0) ? groups.edit : null,
-                    remove: (typeof groups.remove == 'object' && groups.remove.length>0) ? groups.remove : null
+                    view: (typeof groups.view == 'object' && groups.view.length>=0) ? groups.view : null,
+                    edit: (typeof groups.edit == 'object' && groups.edit.length>=0) ? groups.edit : null,
+                    remove: (typeof groups.remove == 'object' && groups.remove.length>=0) ? groups.remove : null
                 };
             }
         },

@@ -2633,13 +2633,13 @@
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscCommonExcel'].CConditionalFormatting = CConditionalFormatting;
 	window['AscCommonExcel'].CConditionalFormattingFormulaParent = CConditionalFormattingFormulaParent;
-	window['AscCommonExcel'].CConditionalFormattingRule = CConditionalFormattingRule;
-	window['AscCommonExcel'].CColorScale = CColorScale;
-	window['AscCommonExcel'].CDataBar = CDataBar;
+	window['Asc']["asc_CConditionalFormattingRule"] = window['AscCommonExcel'].CConditionalFormattingRule = CConditionalFormattingRule;
+	window['Asc']["asc_CColorScale"] = window['AscCommonExcel'].CColorScale = CColorScale;
+	window['Asc']["asc_CDataBar"] = window['AscCommonExcel'].CDataBar = CDataBar;
 	window['AscCommonExcel'].CFormulaCF = CFormulaCF;
-	window['AscCommonExcel'].CIconSet = CIconSet;
-	window['AscCommonExcel'].CConditionalFormatValueObject = CConditionalFormatValueObject;
-	window['AscCommonExcel'].CConditionalFormatIconSet = CConditionalFormatIconSet;
+	window['Asc']["asc_CIconSet"] = window['AscCommonExcel'].CIconSet = CIconSet;
+	window['Asc']["asc_CConditionalFormatValueObject"] = window['AscCommonExcel'].CConditionalFormatValueObject = CConditionalFormatValueObject;
+	window['Asc']["asc_CConditionalFormatIconSet"] = window['AscCommonExcel'].CConditionalFormatIconSet = CConditionalFormatIconSet;
 	window['AscCommonExcel'].CGradient = CGradient;
 
 	window['AscCommonExcel'].cDefIconSize = cDefIconSize;
@@ -2652,13 +2652,14 @@
 	window['AscCommonExcel'].getCFIconsByType = getCFIconsByType;
 	window['AscCommonExcel'].isValidDataRefCf = isValidDataRefCf;
 
-	prot = CConditionalFormattingRule;
+	prot = CConditionalFormattingRule.prototype;
 	prot['asc_getDxf'] = prot.asc_getDxf;
 	prot['asc_getType'] = prot.asc_getType;
 	prot['asc_getLocation'] = prot.asc_getLocation;
 	prot['asc_getContainsText'] = prot.asc_getContainsText;
 	prot['asc_getTimePeriod'] = prot.asc_getTimePeriod;
 	prot['asc_getOperator'] = prot.asc_getOperator;
+	prot['asc_getPriority'] = prot.asc_getPriority;
 	prot['asc_getRank'] = prot.asc_getRank;
 	prot['asc_getBottom'] = prot.asc_getBottom;
 	prot['asc_getPercent'] = prot.asc_getPercent;
@@ -2677,6 +2678,7 @@
 	prot['asc_setContainsText'] = prot.asc_setContainsText;
 	prot['asc_setTimePeriod'] = prot.asc_setTimePeriod;
 	prot['asc_setOperator'] = prot.asc_setOperator;
+	prot['asc_setPriority'] = prot.asc_setPriority;
 	prot['asc_setRank'] = prot.asc_setRank;
 	prot['asc_setBottom'] = prot.asc_setBottom;
 	prot['asc_setPercent'] = prot.asc_setPercent;
@@ -2689,14 +2691,14 @@
 	prot['asc_setColorScaleOrDataBarOrIconSetRule'] = prot.asc_setColorScaleOrDataBarOrIconSetRule;
 
 
-	prot = CColorScale;
+	prot = CColorScale.prototype;
 	prot['asc_getCFVOs'] = prot.asc_getCFVOs;
 	prot['asc_getColors'] = prot.asc_getColors;
 	prot['asc_getPreview'] = prot.asc_getPreview;
 	prot['asc_setCFVOs'] = prot.asc_setCFVOs;
 	prot['asc_setColors'] = prot.asc_setColors;
 
-	prot = CDataBar;
+	prot = CDataBar.prototype;
 	prot['asc_getShowValue'] = prot.asc_getShowValue;
 	prot['asc_getAxisPosition'] = prot.asc_getAxisPosition;
 	prot['asc_getGradient'] = prot.asc_getGradient;
@@ -2722,7 +2724,7 @@
 	prot['asc_setNegativeBorderColor'] = prot.asc_setNegativeBorderColor;
 	prot['asc_setAxisColor'] = prot.asc_setAxisColor;
 
-	prot = CIconSet;
+	prot = CIconSet.prototype;
 	prot['asc_getIconSet'] = prot.asc_getIconSet;
 	prot['asc_getReverse'] = prot.asc_getReverse;
 	prot['asc_getShowValue'] = prot.asc_getShowValue;
@@ -2734,7 +2736,7 @@
 	prot['asc_setCFVOs'] = prot.asc_setCFVOs;
 	prot['asc_setIconSets'] = prot.asc_setIconSets;
 
-	prot = CConditionalFormatValueObject;
+	prot = CConditionalFormatValueObject.prototype;
 	prot['asc_getGte'] = prot.asc_getGte;
 	prot['asc_getType'] = prot.asc_getType;
 	prot['asc_getVal'] = prot.asc_getVal;
@@ -2742,11 +2744,11 @@
 	prot['asc_setType'] = prot.asc_setType;
 	prot['asc_setVal'] = prot.asc_setVal;
 
-	prot = CFormulaCF;
+	prot = CFormulaCF.prototype;
 	prot['asc_getText'] = prot.asc_getText;
 	prot['asc_setText'] = prot.asc_setText;
 
-	prot = CConditionalFormatIconSet;
+	prot = CConditionalFormatIconSet.prototype;
 	prot['asc_getIconSet'] = prot.asc_getIconSet;
 	prot['asc_getIconId'] = prot.asc_getIconId;
 	prot['asc_setIconSet'] = prot.asc_setIconSet;

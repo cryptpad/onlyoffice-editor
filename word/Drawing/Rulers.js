@@ -542,8 +542,8 @@ function CHorRuler()
         var isDraw1_4 = (mm_1_4 > 7) ? true : false;
 
         var middleVert = (this.m_nTop + this.m_nBottom) / 2;
-        var part1 = dPR;
-        var part2 = 2.5 * dPR;
+        var part1 = 1.5 * Math.round(dPR);
+        var part2 = 2.5 * Math.round(dPR);
 
         context.font = Math.round(7 * dPR) + "pt Arial";
 
@@ -2397,7 +2397,6 @@ function CHorRuler()
 
             var _positon_y = this.m_nBottom - 5 * dPR;
 
-            context.strokeStyle = GlobalSkin.RulerMarkersOutlineColor;
             // не менять!!!
             var2 = 5 * dPR;//(1.4 * g_dKoef_mm_to_pix) >> 0;
             var3 = 3 * dPR;//(1 * g_dKoef_mm_to_pix) >> 0;
@@ -2405,26 +2404,31 @@ function CHorRuler()
             checker.BlitMarginLeftInd = _margin_left;
             checker.BlitMarginRightInd = _margin_right;
 
+			var _1mm_to_pix = g_dKoef_mm_to_pix * dPR;
+
             // old position --------------------------------------
+			context.strokeStyle = GlobalSkin.RulerMarkersOutlineColorOld;
             context.fillStyle = GlobalSkin.RulerMarkersFillColorOld;
             if ((-10000 != this.m_dIndentLeft_old) && (this.m_dIndentLeft_old != this.m_dIndentLeft))
             {
                 dCenterX = left + (_margin_left +  this.m_dIndentLeft_old) * dKoef_mm_to_pix;
+				var1 = parseInt(dCenterX - _1mm_to_pix) - indent + Math.round(dPR) - 1;
+				var4 = parseInt(dCenterX + _1mm_to_pix) + indent + Math.round(dPR) - 1;
 
-                var1 = parseInt(dCenterX - 1 * g_dKoef_mm_to_pix * dPR) - indent + Math.round(dPR) - 1;
-                var4 = parseInt(dCenterX + 1 * g_dKoef_mm_to_pix * dPR) + indent + Math.round(dPR) - 1;
+				if ( 0 != ((var1 - var4 + Math.round(dPR)) & 1))
+					var4 += 1;
 
                 context.beginPath();
                 context.lineWidth = Math.round(dPR);
-                context.moveTo(var1, this.m_nBottom + indent);
-                context.lineTo(var4, this.m_nBottom + indent);
-                context.lineTo(var4, this.m_nBottom + indent + var2);
-                context.lineTo(var1, this.m_nBottom + indent + var2);
-                context.lineTo(var1, this.m_nBottom + indent);
-                context.lineTo(var1, this.m_nBottom + indent - var3);
-                context.lineTo((var1 + var4) / 2, this.m_nBottom - var2 * 1.2);
-                context.lineTo(var4, this.m_nBottom + indent - var3);
-                context.lineTo(var4, this.m_nBottom + indent);
+				context.moveTo(var1, this.m_nBottom + indent);
+				context.lineTo(var4, this.m_nBottom + indent);
+				context.lineTo(var4, this.m_nBottom + indent + Math.round(var2));
+				context.lineTo(var1, this.m_nBottom + indent + Math.round(var2));
+				context.lineTo(var1, this.m_nBottom + indent);
+				context.lineTo(var1, this.m_nBottom + indent - Math.round(var3));
+				context.lineTo((var1 + var4) / 2, this.m_nBottom - Math.round(var2 * 1.2));
+				context.lineTo(var4, this.m_nBottom + indent - Math.round(var3));
+				context.lineTo(var4, this.m_nBottom + indent);
 
                 context.fill();
                 context.stroke();
@@ -2432,18 +2436,21 @@ function CHorRuler()
             if ((-10000 != this.m_dIndentLeftFirst_old) && (this.m_dIndentLeftFirst_old != this.m_dIndentLeftFirst))
             {
                 dCenterX = left + (_margin_left +  this.m_dIndentLeftFirst_old) * dKoef_mm_to_pix;
-                var1 = parseInt(dCenterX - 1 * g_dKoef_mm_to_pix * dPR) - indent + Math.round(dPR) - 1;
-                var4 = parseInt(dCenterX + 1 * g_dKoef_mm_to_pix * dPR) + indent + Math.round(dPR) - 1;
+				var1 = parseInt(dCenterX - _1mm_to_pix) - indent + Math.round(dPR) - 1;
+				var4 = parseInt(dCenterX + _1mm_to_pix) + indent + Math.round(dPR) - 1;
+
+				if ( 0 != ((var1 - var4 + Math.round(dPR)) & 1))
+					var4 += 1;
 
                 // first line indent
                 context.beginPath();
                 context.lineWidth = Math.round(dPR);
-                context.moveTo(var1, this.m_nTop + indent);
-                context.lineTo(var1, this.m_nTop + indent - var3);
-                context.lineTo(var4, this.m_nTop + indent - var3);
-                context.lineTo(var4, this.m_nTop + indent);
-                context.lineTo((var1 + var4) / 2, this.m_nTop + var2 * 1.2);
-                context.closePath();
+				context.moveTo(var1, this.m_nTop + indent);
+				context.lineTo(var1, this.m_nTop + indent - Math.round(var3));
+				context.lineTo(var4, this.m_nTop + indent - Math.round(var3));
+				context.lineTo(var4, this.m_nTop + indent);
+				context.lineTo((var1 + var4) / 2, this.m_nTop + Math.round(var2 * 1.2));
+				context.closePath();
 
                 context.fill();
                 context.stroke();
@@ -2451,22 +2458,26 @@ function CHorRuler()
             if ((-10000 != this.m_dIndentRight_old) && (this.m_dIndentRight_old != this.m_dIndentRight))
             {
                 dCenterX = left + (_margin_right -  this.m_dIndentRight_old) * dKoef_mm_to_pix;
-                var1 = parseInt(dCenterX - 1 * g_dKoef_mm_to_pix * dPR) - indent + Math.round(dPR) - 1;
-                var4 = parseInt(dCenterX + 1 * g_dKoef_mm_to_pix * dPR) + indent + Math.round(dPR) - 1;
+				var1 = parseInt(dCenterX - _1mm_to_pix) - indent + Math.round(dPR) - 1;
+				var4 = parseInt(dCenterX + _1mm_to_pix) + indent + Math.round(dPR) - 1;
+
+				if ( 0 != ((var1 - var4 + Math.round(dPR)) & 1))
+					var4 += 1;
 
                 context.beginPath();
                 context.lineWidth = Math.round(dPR);
-                context.moveTo(var1, this.m_nBottom + indent);
-                context.lineTo(var4, this.m_nBottom + indent);
-                context.lineTo(var4, this.m_nBottom + indent - var3);
-                context.lineTo((var1 + var4) / 2, this.m_nBottom - var2 * 1.2);
-                context.lineTo(var1, this.m_nBottom + indent - var3);
-                context.closePath();
+				context.moveTo(var1, this.m_nBottom + indent);
+				context.lineTo(var4, this.m_nBottom + indent);
+				context.lineTo(var4, this.m_nBottom + indent - Math.round(var3));
+				context.lineTo((var1 + var4) / 2, this.m_nBottom - Math.round(var2 * 1.2));
+				context.lineTo(var1, this.m_nBottom + indent - Math.round(var3));
+				context.closePath();
 
                 context.fill();
                 context.stroke();
             }
 
+			context.strokeStyle = GlobalSkin.RulerTabsColorOld;
             if (-1 != this.m_lCurrentTab && this.m_lCurrentTab < this.m_arrTabs.length)
             {
                 var _tab = this.m_arrTabs[this.m_lCurrentTab];
@@ -2526,6 +2537,7 @@ function CHorRuler()
 
             if (posL < posR)
             {
+				context.strokeStyle = GlobalSkin.RulerMarkersOutlineColor;
                 context.fillStyle = GlobalSkin.RulerMarkersFillColor;
 
                 // left indent
@@ -2929,6 +2941,11 @@ function CVerRuler()
         var part1 = dPR;
         var part2 = 2.5 * dPR;
 
+		var l_part1 = Math.floor(middleHor - part1);
+		var r_part1 = Math.ceil(middleHor + part1);
+		var l_part2 = Math.floor(middleHor - part2);
+		var r_part2 = Math.ceil(middleHor + part2);
+
         context.font = Math.round(7 * dPR) + "pt Arial";
 
         if (this.Units == c_oAscDocumentUnits.Millimeter)
@@ -2963,24 +2980,24 @@ function CVerRuler()
             {
                 // 1/4
                 context.beginPath();
-                context.moveTo(middleHor - part1, lYPos);
-                context.lineTo(middleHor + part1, lYPos);
+                context.moveTo(l_part1, lYPos);
+                context.lineTo(r_part1, lYPos);
                 context.stroke();
             }
             else if (2 == index)
             {
                 // 1/2
                 context.beginPath();
-                context.moveTo(middleHor - part2, lYPos);
-                context.lineTo(middleHor + part2, lYPos);
+                context.moveTo(l_part2, lYPos);
+                context.lineTo(r_part2, lYPos);
                 context.stroke();
             }
             else if (isDraw1_4)
             {
                 // 1/4
                 context.beginPath();
-                context.moveTo(middleHor - part1, lYPos);
-                context.lineTo(middleHor + part1, lYPos);
+                context.moveTo(l_part1, lYPos);
+                context.lineTo(r_part1, lYPos);
                 context.stroke();
             }
         }
@@ -3011,24 +3028,24 @@ function CVerRuler()
             {
                 // 1/4
                 context.beginPath();
-                context.moveTo(middleHor - part1, lYPos);
-                context.lineTo(middleHor + part1, lYPos);
+                context.moveTo(l_part1, lYPos);
+                context.lineTo(r_part1, lYPos);
                 context.stroke();
             }
             else if (2 == index)
             {
                 // 1/2
                 context.beginPath();
-                context.moveTo(middleHor - part2, lYPos);
-                context.lineTo(middleHor + part2, lYPos);
+                context.moveTo(l_part2, lYPos);
+                context.lineTo(r_part2, lYPos);
                 context.stroke();
             }
             else if (isDraw1_4)
             {
                 // 1/4
                 context.beginPath();
-                context.moveTo(middleHor - part1, lYPos);
-                context.lineTo(middleHor + part1, lYPos);
+                context.moveTo(l_part1, lYPos);
+                context.lineTo(r_part1, lYPos);
                 context.stroke();
             }
         }
@@ -3065,16 +3082,16 @@ function CVerRuler()
                 {
                     // 1/2
                     context.beginPath();
-                    context.moveTo(middleHor - part2, lYPos);
-                    context.lineTo(middleHor + part2, lYPos);
+                    context.moveTo(l_part2, lYPos);
+                    context.lineTo(r_part2, lYPos);
                     context.stroke();
                 }
                 else if (inch_1_8 > 8)
                 {
                     // 1/8
                     context.beginPath();
-                    context.moveTo(middleHor - part1, lYPos);
-                    context.lineTo(middleHor + part1, lYPos);
+                    context.moveTo(l_part1, lYPos);
+                    context.lineTo(r_part1, lYPos);
                     context.stroke();
                 }
             }
@@ -3154,8 +3171,8 @@ function CVerRuler()
                 {
                     // 1/8
                     context.beginPath();
-                    context.moveTo(middleHor - part1, lYPos);
-                    context.lineTo(middleHor + part1, lYPos);
+                    context.moveTo(l_part1, lYPos);
+                    context.lineTo(r_part1, lYPos);
                     context.stroke();
                 }
             }
@@ -3186,8 +3203,8 @@ function CVerRuler()
                 {
                     // 1/8
                     context.beginPath();
-                    context.moveTo(middleHor - part1, lYPos);
-                    context.lineTo(middleHor + part1, lYPos);
+                    context.moveTo(l_part1, lYPos);
+                    context.lineTo(r_part1, lYPos);
                     context.stroke();
                 }
             }

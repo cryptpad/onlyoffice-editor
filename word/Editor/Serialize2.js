@@ -1668,18 +1668,29 @@ function writeNestedReviewType(type, reviewInfo, fWriteRecord, fCallback) {
 
 function ReadDocumentShd(length, bcr, oShd) {
 	var themeColor = { Auto: null, Color: null, Tint: null, Shade: null };
+	var themeFill = { Auto: null, Color: null, Tint: null, Shade: null };
 	oShd.Color = undefined;
 	var res = bcr.Read2(length, function (t, l) {
-		return bcr.ReadShd(t, l, oShd, themeColor);
+		return bcr.ReadShd(t, l, oShd, themeColor, themeFill);
 	});
+	//1. this.Color по умолчанию должен быть undefined
 	if(!oShd.Color) {
 		oShd.Color = new AscCommonWord.CDocumentColor(255, 255, 255, true);
 	}
 	if (true == themeColor.Auto && null != oShd.Color)
 		oShd.Color.Auto = true;//todo менять полностью цвет
+	if (true === themeFill.Auto) {
+		if(!oShd.Fill) {
+			oShd.Fill = new AscCommonWord.CDocumentColor(255, 255, 255, true);
+		}
+		oShd.Fill.Auto = true;//todo менять полностью цвет
+	}
 	var unifill = CreateThemeUnifill(themeColor.Color, themeColor.Tint, themeColor.Shade);
 	if (null != unifill)
 		oShd.Unifill = unifill;
+	unifill = CreateThemeUnifill(themeFill.Color, themeFill.Tint, themeFill.Shade);
+	if (null != unifill)
+		oShd.themeFill = unifill;
 	return oShd;
 }
 
@@ -6729,7 +6740,7 @@ function BinaryCommentsTableWriter(memory, doc, oMapCommentId, commentUniqueGuid
 		{
 			this.bs.WriteItem(c_oSer_CommentsType.Replies, function(){oThis.WriteReplies(comment.m_aReplies);});
 		}
-		if (null != comment.m_sOOTime)
+		if (null != comment.m_sOOTime && "" != comment.m_sOOTime)
 		{
 			this.memory.WriteByte(c_oSer_CommentsType.DateUtc);
 			this.memory.WriteString2(new Date(comment.m_sOOTime - 0).toISOString().slice(0, 19) + 'Z');
@@ -8292,6 +8303,8 @@ function BinaryFileReader(doc, openParams)
 				oCommentObj.m_sProviderId = comment.ProviderId;
 			if(null != comment.Date)
 				oCommentObj.m_sTime = comment.Date;
+			if(null != comment.OODate)
+				oCommentObj.m_sOOTime = comment.OODate;
 			if(null != comment.m_sQuoteText)
 				oCommentObj.m_sQuoteText = comment.m_sQuoteText;
 			if(null != comment.Text)
