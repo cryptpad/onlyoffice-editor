@@ -444,25 +444,28 @@ CSelectedContent.prototype =
 
         var isNonParagraph = false;
         for (var Pos = 0; Pos < Count; Pos++)
-        {
-            var Element = this.Elements[Pos].Element;
-            Element.GetAllDrawingObjects(this.DrawingObjects);
-            Element.GetAllComments(this.Comments);
-            Element.GetAllMaths(this.Maths);
+		{
+			var oElement = this.Elements[Pos].Element;
 
-            var nElementType = Element.GetType();
+			oElement.Set_DocumentPrev(0 === Pos ? null : this.Elements[Pos - 1].Element);
+			oElement.Set_DocumentNext(Pos === Count - 1 ? null : this.Elements[Pos + 1].Element);
+			oElement.ProcessComplexFields();
 
-			if (type_Paragraph === nElementType && Count > 1)
-				Element.Correct_Content();
+			oElement.GetAllDrawingObjects(this.DrawingObjects);
+			oElement.GetAllComments(this.Comments);
+			oElement.GetAllMaths(this.Maths);
 
-			if (type_Table === nElementType)
+			if (oElement.IsParagraph() && Count > 1)
+				oElement.CorrectContent();
+
+			if (oElement.IsTable())
 				this.HaveTable = true;
 
-			if (type_Paragraph !== nElementType)
+			if (!oElement.IsParagraph())
 				isNonParagraph = true;
 
-			Element.MoveCursorToEndPos(false);
-        }
+			oElement.MoveCursorToEndPos(false);
+		}
 
         this.HaveMath = (this.Maths.length > 0 ? true : false);
 
@@ -10425,7 +10428,7 @@ CDocument.prototype.OnKeyDown = function(e)
 				bRetValue = keydownresult_PreventAll;
 			}
 		}
-		else if ((e.KeyCode === 93) || (/*в Opera такой код*/AscCommon.AscBrowser.isOpera && (57351 === e.KeyCode)) ||
+		else if ((e.KeyCode === 93 && !e.MacCmdKey) || (/*в Opera такой код*/AscCommon.AscBrowser.isOpera && (57351 === e.KeyCode)) ||
 			(e.KeyCode === 121 && true === e.ShiftKey)) // // Shift + F10 - контекстное меню
 		{
 			var X_abs, Y_abs, oPosition, ConvertedPos;

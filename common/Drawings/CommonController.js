@@ -4417,15 +4417,22 @@ DrawingObjectsController.prototype =
             }
             else {
                 oLegend = oChart.legend;
+                var bChange = false;
                 if(!oLegend) {
                     oLegend = new AscFormat.CLegend();
                     oChart.setLegend(oLegend);
+                    bChange = true;
                 }
                 if(oLegend.legendPos !== nLegend && nLegend !== c_oAscChartLegendShowSettings.layout) {
                     oLegend.setLegendPos(nLegend);
+                    bChange = true;
                 }
                 if(oLegend.overlay !== bOverlay) {
                     oLegend.setOverlay(bOverlay);
+                    bChange = true;
+                }
+                if(bChange) {
+                    oLegend.setLayout(new AscFormat.CLayout());
                 }
                 oChartSpace.checkElementChartStyle(oLegend);
             }
@@ -5702,6 +5709,8 @@ DrawingObjectsController.prototype =
     onKeyDown: function(e)
     {
         var ctrlKey = e.metaKey || e.ctrlKey;
+		var macCmdKey = AscCommon.AscBrowser.isMacOs && e.metaKey;
+
         var drawingObjectsController = this;
         var bRetValue = false;
         var canEdit = drawingObjectsController.canEdit();
@@ -6089,7 +6098,7 @@ DrawingObjectsController.prototype =
         else if ( e.keyCode == 90 && canEdit && true === ctrlKey ) // Ctrl + Z - Undo
         {
         }
-        else if ( e.keyCode == 93 || 57351 == e.keyCode /*в Opera такой код*/ ) // контекстное меню
+        else if ( (e.keyCode == 93 && !macCmdKey) || 57351 == e.keyCode /*в Opera такой код*/ ) // контекстное меню
         {
             bRetValue = true;
         }

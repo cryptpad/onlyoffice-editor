@@ -4945,6 +4945,21 @@
 			}
 		}
 	};
+	Worksheet.prototype.setShowZeros = function (value) {
+		var view = this.sheetViews[0];
+		if (value !== view.showZeros) {
+			History.Create_NewPoint();
+			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SetShowZeros,
+				this.getId(), null, new UndoRedoData_FromTo(view.showZeros, value));
+			view.showZeros = value;
+
+			//TODO
+			this.workbook.handlers.trigger("changeSheetViewSettings", this.getId(), AscCH.historyitem_Worksheet_SetDisplayHeadings);
+			if (!this.workbook.bUndoChanges && !this.workbook.bRedoChanges) {
+				this.workbook.handlers.trigger("asc_onUpdateSheetViewSettings");
+			}
+		}
+	};
 	Worksheet.prototype.getRowsCount=function(){
 		var result = this.nRowsCount;
 		var pane = this.sheetViews.length && this.sheetViews[0].pane;
@@ -10086,7 +10101,7 @@
 			}
 		} else if (val) {
 			this._setValue(val, ignoreHyperlink);
-			if (!ignoreHyperlink) {
+			if (!ignoreHyperlink && window['AscCommonExcel'].g_AutoCorrectHyperlinks) {
 				this._autoformatHyperlink(val);
 			}
 			wb.dependencyFormulas.addToChangedCell(this);
@@ -11210,7 +11225,7 @@
 		for(var i = 0, length = aVal.length; i < length; ++i)
 			sSimpleText += aVal[i].text;
 		this._setValue(sSimpleText);
-		if (!ignoreHyperlink) {
+		if (!ignoreHyperlink && window['AscCommonExcel'].g_AutoCorrectHyperlinks) {
 			this._autoformatHyperlink(sSimpleText);
 		}
 		var nRow = this.nRow;
@@ -11531,7 +11546,15 @@
 		}
 		if (0 !== (flags & 0x2000)) {
 			this.setTypeInternal(CellValueType.String);
-			this.setValueMultiTextInternal(this.fromXLSBRichText(stream));
+			var multiText = [];
+			if (this.fromXLSBRichText(stream, multiText)) {
+				this.setValueMultiTextInternal(multiText);
+			} else {
+				var text = multiText.reduce(function(accumulator, currentValue) {
+					return accumulator + currentValue.text;
+				}, '');
+				this.setValueTextInternal(text);
+			}
 		}
 
 		stream.Seek2(end);
@@ -11577,8 +11600,8 @@
 			formula.si = stream.GetULongLE();
 		}
 	};
-	Cell.prototype.fromXLSBRichText = function(stream) {
-		var res = [];
+	Cell.prototype.fromXLSBRichText = function(stream, richText) {
+		var hasFormat = false;
 		var count = stream.GetULongLE();
 		while (count-- > 0) {
 			var typeRun = stream.GetUChar();
@@ -11587,6 +11610,7 @@
 				run = new AscCommonExcel.CMultiTextElem();
 				run.text = "";
 				if (stream.GetBool()) {
+					hasFormat = true;
 					run.format = new AscCommonExcel.Font();
 					run.format.fromXLSB(stream);
 					run.format.checkSchemeFont(this.ws.workbook.theme);
@@ -11595,15 +11619,15 @@
 				while (textCount-- > 0) {
 					run.text += stream.GetString();
 				}
-				res.push(run);
+				richText.push(run);
 			}
 			else if (0x2 === typeRun) {
 				run = new AscCommonExcel.CMultiTextElem();
 				run.text = stream.GetString();
-				res.push(run);
+				richText.push(run);
 			}
 		}
-		return res;
+		return hasFormat;
 	};
 	Cell.prototype.toXLSB = function(stream, nXfsId, formulaToWrite, oSharedStrings) {
 		var len = 4 + 4 + 2;
