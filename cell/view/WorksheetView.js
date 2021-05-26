@@ -15195,7 +15195,7 @@
 					t.model.autoFilters.changeAutoFilterToTablePart(styleName, ar, addFormatTableOptionsObj);
 
 					t._updateRange(filterRange);
-					t._autoFitColumnsWidth([new Asc.Range(filterRange.c1, filterRange.r1, filterRange.c2, filterRange.r1)]);
+					t._autoFitColumnsWidth([new Asc.Range(filterRange.c1, filterRange.r1, filterRange.c2, filterRange.r1)], true);
 					t.draw();
 
 					History.EndTransaction();
@@ -15244,7 +15244,7 @@
 
 						if (styleName) {
 							t._updateRange(filterRange);
-							t._autoFitColumnsWidth([new Asc.Range(filterRange.c1, filterRange.r1, filterRange.c2, filterRange.r1)]);
+							t._autoFitColumnsWidth([new Asc.Range(filterRange.c1, filterRange.r1, filterRange.c2, filterRange.r1)], true);
 						}
 						t.draw();
 						t.handlers.trigger("selectionChanged");
