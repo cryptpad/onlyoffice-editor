@@ -4413,6 +4413,7 @@
 		this.FullName = null;
 		this.FirstName = null;
 		this.LastName = null;
+		this.IsAnonymousUser = false;
 	}
 
 	asc_CUserInfo.prototype.asc_putId = asc_CUserInfo.prototype.put_Id = function (v) {
@@ -4438,6 +4439,12 @@
 	};
 	asc_CUserInfo.prototype.asc_getLastName = asc_CUserInfo.prototype.get_LastName = function () {
 		return this.LastName;
+	};
+	asc_CUserInfo.prototype.asc_getIsAnonymousUser = asc_CUserInfo.prototype.get_IsAnonymousUser = function () {
+		return this.IsAnonymousUser;
+	};
+	asc_CUserInfo.prototype.asc_putIsAnonymousUser = asc_CUserInfo.prototype.put_IsAnonymousUser = function (v) {
+		this.IsAnonymousUser = v;
 	};
 
 	/** @constructor */
@@ -4516,6 +4523,9 @@
 	};
 	prot.get_LastName = prot.asc_getLastName = function () {
 		return (this.UserInfo ? this.UserInfo.get_LastName() : null );
+	};
+	prot.get_IsAnonymousUser = prot.get_IsAnonymousUser = function () {
+		return (this.UserInfo ? this.UserInfo.get_IsAnonymousUser() : null );
 	};
 	prot.get_Options = prot.asc_getOptions = function () {
 		return this.Options;
@@ -6312,6 +6322,8 @@
 	prot["asc_getFirstName"] = prot["get_FirstName"] = prot.asc_getFirstName;
 	prot["asc_putLastName"] = prot["put_LastName"] = prot.asc_putLastName;
 	prot["asc_getLastName"] = prot["get_LastName"] = prot.asc_getLastName;
+	prot["asc_putIsAnonymousUser"] = prot["put_IsAnonymousUser"] = prot.asc_putIsAnonymousUser;
+	prot["asc_getIsAnonymousUser"] = prot["get_IsAnonymousUser"] = prot.asc_getIsAnonymousUser;
 
 	window["Asc"]["asc_CDocInfo"] = window["Asc"].asc_CDocInfo = asc_CDocInfo;
 	prot = asc_CDocInfo.prototype;
