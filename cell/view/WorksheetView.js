@@ -15289,8 +15289,24 @@
 
 		var checkFilterRange = filterInfo ? filterInfo.rangeWithoutDiff : filterRange;
 		if (t._checkAddAutoFilter(checkFilterRange, styleName, addFormatTableOptionsObj) === true) {
-			this._isLockedAll(onChangeAutoFilterCallback);
-			this._isLockedDefNames(null, null);
+			var _doAdd = function () {
+				t._isLockedAll(onChangeAutoFilterCallback);
+				t._isLockedDefNames(null, null);
+			};
+
+			var oRange = this.model.getRange3(checkFilterRange.r1, checkFilterRange.c1, checkFilterRange.r1, checkFilterRange.c2);
+			if (!addNameColumn && oRange.isFormulaContains()) {
+				this.model.workbook.handlers.trigger("asc_onConfirmAction", Asc.c_oAscConfirm.ConfirmReplaceFormulaInTable,
+					function (can) {
+						if (can) {
+							_doAdd();
+						} else {
+							t.handlers.trigger("selectionChanged");
+						}
+					});
+			} else {
+				_doAdd();
+			}
 		} else//для того, чтобы в случае ошибки кнопка отжималась!
 		{
 			t.handlers.trigger("selectionChanged");

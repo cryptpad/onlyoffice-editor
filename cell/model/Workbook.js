@@ -13161,6 +13161,14 @@
 		});
 		return isFormula;
 	};
+	Range.prototype.isFormulaContains=function(){
+		var isFormula;
+		this._foreachNoEmpty(function(cell) {
+			isFormula = (null != cell) ? cell.isFormula() : false;
+			return isFormula ? isFormula : null;
+		});
+		return isFormula;
+	};
 	Range.prototype.getFormula=function(){
 		var formula;
 		this.worksheet._getCellNoEmpty(this.bbox.r1,this.bbox.c1, function(cell) {
