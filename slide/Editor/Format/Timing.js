@@ -435,6 +435,9 @@
     CTimeNodeBase.prototype.isFinished = function() {
         return this.state === TIME_NODE_STATE_FINISHED;
     };
+    CTimeNodeBase.prototype.isDrawable = function() {
+        return this.isActive() || this.isFrozen();
+    };
     CTimeNodeBase.prototype.getAttributesObject = function() {
         if(this.cTn) {
             return this.cTn;
@@ -456,6 +459,23 @@
             aChildern[nChild].traverseActive(fCallback);
         }
     };
+    CTimeNodeBase.prototype.traverseDrawable = function(oPlayer) {
+        if(!this.isDrawable()) {
+            return;
+        }
+        if(this.isTimingContainer()) {
+            var aChildren = this.getChildrenTimeNodes();
+            for(var nChild = 0; nChild < aChildren.length; ++nChild) {
+                aChildren[nChild].traverseDrawable(oPlayer);
+            }
+        }
+        else {
+            var sTargertId = this.getTargetObjectId();
+            if(sTargertId) {
+                oPlayer.addAnimationToDraw(sTargertId, this);
+            }
+        }
+    };
     CTimeNodeBase.prototype.getTimeNodeById = function(id) {
         if(this.getAttributesObject().id === id) {
             return this;
@@ -469,6 +489,86 @@
                     return oNode;
                 }
             }
+        }
+        return null;
+    };
+    CTimeNodeBase.prototype.getTargetObjectId = function() {
+        if(this.cBhvr) {
+           return this.cBhvr.getTargetObjectId();
+        }
+        return null;
+    };
+    CTimeNodeBase.prototype.getTargetObject = function() {
+        return AscCommon.g_oTableId.Get_ById(this.getTargetObjectId());
+    };
+    CTimeNodeBase.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
+    };
+    CTimeNodeBase.prototype.getRelativeTime = function(nElapsedTime) {
+        if(this.isFrozen()) {
+            return 1.0;
+        }
+        var oParentNode = this.getParentTimeNode();
+        var bAutoRev = false;
+        if(oParentNode) {
+            bAutoRev = oParentNode.getAttributesObject().autoRev;
+            if(bAutoRev) {
+                bAutoRev = (oParentNode.simpleDurationIdx % 2 === 1);
+            }
+        }
+        var fRelTime = (nElapsedTime - this.startTick) / this.simpleDuration.getVal();
+        if(bAutoRev) {
+            fRelTime = 1 - fRelTime;
+        }
+        return fRelTime;
+    };
+    CTimeNodeBase.prototype.getPresentation = function() {
+        return editor.WordControl.m_oLogicDocument;
+    };
+    CTimeNodeBase.prototype.getSlideWidth = function() {
+        return this.getPresentation().GetWidthMM();
+    };
+    CTimeNodeBase.prototype.getSlideHeight = function() {
+        return this.getPresentation().GetHeightMM();
+    };
+    CTimeNodeBase.prototype.getTargetObjectPosX = function() {
+        var oObject = this.getTargetObject();
+        if(!oObject) {
+            return null;
+        }
+        return oObject.x;
+    };
+    CTimeNodeBase.prototype.getTargetObjectPosY = function() {
+        var oObject = this.getTargetObject();
+        if(!oObject) {
+            return null;
+        }
+        return oObject.y;
+    };
+    CTimeNodeBase.prototype.getTargetObjectExtX = function() {
+        var oObject = this.getTargetObject();
+        if(!oObject) {
+            return null;
+        }
+        return oObject.extX;
+    };
+    CTimeNodeBase.prototype.getTargetObjectExtY = function() {
+        var oObject = this.getTargetObject();
+        if(!oObject) {
+            return null;
+        }
+        return oObject.extY;
+    };
+    CTimeNodeBase.prototype.getTargetObjectRelPosX = function() {
+        var x = this.getTargetObjectPosX();
+        if(x !== null) {
+            return x/ this.getSlideWidth();
+        }
+        return null;
+    };
+    CTimeNodeBase.prototype.getTargetObjectRelPosY = function() {
+        var y = this.getTargetObjectPosY();
+        if(y !== null) {
+            return y/ this.getSlideHeight();
         }
         return null;
     };
@@ -1970,6 +2070,12 @@
             }
         }
     };
+    CCBhvr.prototype.getTargetObjectId = function() {
+        if(this.tgtEl) {
+            return this.tgtEl.getSpId();
+        }
+        return null;
+    };
 
     changesFactory[AscDFH.historyitem_CTnChildTnLst] = CChangeObject;
     changesFactory[AscDFH.historyitem_CTnEndCondLst] = CChangeObject;
@@ -2501,16 +2607,14 @@
     CCond.prototype.createExternalEventSimpleTrigger = function (oPlayer, nType) {
         var oThis = this;
         return (function() {
-            var nSpId;
+            var sSpId;
             if(oThis.tgtEl) {
-                if(oThis.tgtEl.spTgt) {
-                    nSpId = oThis.tgtEl.spTgt.spid;
-                }
+                sSpId = oThis.tgtEl.getSpId();
             }
-            if(!nSpId) {
+            if(!sSpId) {
                 return DEFAULT_NEVER_TRIGGER;
             }
-            var oEvent = new CExternalEvent(nType, nSpId);
+            var oEvent = new CExternalEvent(nType, sSpId);
             var oDelay = oThis.parseTime(oThis.delay);
             return oThis.createEventTrigger(oPlayer, function() {
                 return oPlayer.checkExternalEvent(oEvent);
@@ -2796,6 +2900,12 @@
         if(this.parent) {
             this.parent.onRemoveChild(this);
         }
+    };
+    CTgtEl.prototype.getSpId = function() {
+        if(this.spTgt) {
+            return this.spTgt.spid;
+        }
+        return null;
     };
 
 
@@ -3561,6 +3671,10 @@
     drawingsChangesMap[AscDFH.historyitem_AnimMotionPtsTypes] = function(oClass, value) {oClass.by = value;};
     drawingsChangesMap[AscDFH.historyitem_AnimMotionRAng] = function(oClass, value) {oClass.by = value;};
 
+
+    var ORIGIN_PARENT = 0;
+    var ORIGIN_LAYOUT = 1;
+
     function CAnimMotion() {
         CTimeNodeBase.call(this);
         this.by = null;
@@ -3755,6 +3869,44 @@
         }
         else {
             this.parsedPath = null;
+        }
+    };
+    CAnimMotion.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
+        var oTargetObject = this.getTargetObject();
+        if(!oTargetObject) {
+            return;
+        }
+        var fRelTime = this.getRelativeTime(nElapsedTime);
+        var dPosX = null, dPosY = null;
+        var dRelX = null, dRelY = null;
+        if (this.parsedPath) {
+            var oPos = this.parsedPath.getPosition(fRelTime);
+            dRelX = oPos.x;
+            dRelY = oPos.y;
+        }
+        else if(this.by) {
+            dRelX = (this.by.x / 100)*fRelTime;
+            dRelY = (this.by.y / 100)*fRelTime;
+        }
+        else if(this.to) {
+            dRelX = (this.to.x / 100)*fRelTime;
+            dRelY = (this.to.y / 100)*fRelTime;
+            if(this.from) {
+                dRelX += (this.from.x / 100)*(1.0 - fRelTime);
+                dRelY += (this.from.y / 100)*(1.0 - fRelTime);
+            }
+        }
+        if(dRelX !== null && dRelY !== null) {
+            if(this.origin === ORIGIN_LAYOUT) {
+                dPosX = this.getTargetObjectPosX() + dRelX*this.getSlideWidth();
+                dPosY = this.getTargetObjectPosY() + dRelY*this.getSlideHeight();
+            }
+            else {
+                dPosX = dRelX * this.getSlideWidth() - this.getTargetObjectExtX() / 2.0;
+                dPosY = dRelY * this.getSlideHeight() - this.getTargetObjectExtY() / 2.0;
+            }
+            oAttributes["ppt_x"] = dPosX;
+            oAttributes["ppt_y"] = dPosY;
         }
     };
 
@@ -4057,6 +4209,9 @@
     };
     CAnimRot.prototype.getChildren = function() {
         return [this.cBhvr];
+    };
+    CAnimRot.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
+
     };
 
 
@@ -4598,8 +4753,8 @@
         if(aChildren.length > 0) {
             aChildren[0].scheduleStart(oPlayer);
         }
-        this.scheduleNext(oPlayer);
-        this.schedulePrev(oPlayer);
+        //this.scheduleNext(oPlayer);
+        //this.schedulePrev(oPlayer);
     };
     CSeq.prototype.getActiveChildIdx = function() {
         var aChildren = this.getChildrenTimeNodes();
@@ -5269,95 +5424,107 @@
 
     function CAnimationDrawer(player) {
         this.player = player;
+        this.sandwiches = {};//map by drawing id
     }
+    CAnimationDrawer.prototype.clearSandwiches = function() {
+        this.sandwiches = {};
+    };
+    CAnimationDrawer.prototype.addAnimationToDraw = function(sDrawingId, oAnimation) {
+        if(!this.sandwiches[sDrawingId]) {
+            this.sandwiches[sDrawingId] = new CAnimSandwich(sDrawingId);
+        }
+        var oSandwich = this.sandwiches[sDrawingId];
+        oSandwich.addAnimation(oAnimation);
+    };
     CAnimationDrawer.prototype.onFrame = function() {
+        this.clearSandwiches();
         var oThis = this;
 
+        var oPresentation = editor.WordControl.m_oLogicDocument;
         for(var nTiming = 0; nTiming < this.player.timings.length; ++nTiming) {
             var oRoot = this.player.timings[nTiming].getTimingRootNode();
             if(oRoot) {
-                var oMap = {};
-                oRoot.traverseActive(function(oNode) {
-                    if (oNode instanceof CAnimMotion) {
+                oRoot.traverseDrawable(this.player);
+                for(var sKey in this.sandwiches) {
+                    if(this.sandwiches.hasOwnProperty(sKey)) {
+                        var oSandwich = this.sandwiches[sKey];
+                        var oDrawing = AscCommon.g_oTableId.Get_ById(sKey);
+                        if(oDrawing) {
 
-                        var oParentNode = oNode.getParentTimeNode();
-                        var bAutoRev = false;
-                        if(oParentNode) {
-                            bAutoRev = oParentNode.getAttributesObject().autoRev;
-                            if(bAutoRev) {
-                                bAutoRev = (oParentNode.simpleDurationIdx % 2 === 1);
-                            }
-                        }
-                        var fRelTime = (oThis.player.getElapsedTicks() - oNode.startTick) / oNode.simpleDuration.getVal();//TODO
-                        //if(bAutoRev) {
-                        //    fRelTime = 1 - fRelTime;
-                        //}
-                        if (oNode.parsedPath) {
-                            var oPos = oNode.parsedPath.getPosition(fRelTime);
-                            if (oPos) {
-                                var oPresentation = editor.WordControl.m_oLogicDocument;
-                                var W = oPresentation.GetWidthMM();
-                                var H = oPresentation.GetHeightMM();
-                                var DX = W * oPos.x;
-                                var DY = H * oPos.y;
-                                //console.log("Elapsed " + oThis.player.getElapsedTicks());
-                                //console.log("DX " + DX);
-                                //console.log("DY " + DY);
-                                var sId = oNode.cBhvr.tgtEl.spTgt.spid;
-                                var oDrawing = AscCommon.g_oTableId.Get_ById(sId);
-                                var fMoveDr = function (oDrawing) {
-                                    if (oDrawing) {
-                                        if (!oDrawing.origX) {
-                                            oDrawing.origX = oDrawing.spPr.xfrm.offX;
-                                            oDrawing.origY = oDrawing.spPr.xfrm.offY;
+                            for(var nNode = 0; nNode < oSandwich.animations.length; ++nNode) {
+                                var oNode = oSandwich.animations[nNode];
+                                if (oNode instanceof CAnimMotion) {
+
+                                    var oParentNode = oNode.getParentTimeNode();
+                                    var bAutoRev = false;
+                                    if(oParentNode) {
+                                        bAutoRev = oParentNode.getAttributesObject().autoRev;
+                                        if(bAutoRev) {
+                                            bAutoRev = (oParentNode.simpleDurationIdx % 2 === 1);
                                         }
-                                        oDrawing.spPr.xfrm.offX = oDrawing.origX + DX;
-                                        oDrawing.spPr.xfrm.offY = oDrawing.origY + DY;
-                                        oMap[oDrawing.Id] = oDrawing;
                                     }
-                                };
-                                fMoveDr(oDrawing);
-                            }
-                        }
-                    }
-                    if (oNode instanceof CAnimRot) {
-                        var fRelTime = (oThis.player.getElapsedTicks() - oNode.startTick) / oNode.simpleDuration.getVal();//TODO
-                        var dR = 2 * Math.PI * fRelTime;
-                        var sId = oNode.cBhvr.tgtEl.spTgt.spid;
-                        var oDrawing = AscCommon.g_oTableId.Get_ById(sId);
-                        var fMoveDr = function (oDrawing) {
-                            if (oDrawing) {
-                                if (!AscFormat.isRealNumber(oDrawing.origRot)) {
-                                    oDrawing.origRot = oDrawing.rot;
+                                    var fRelTime = (oThis.player.getElapsedTicks() - oNode.startTick) / oNode.simpleDuration.getVal();//TODO
+                                    //if(bAutoRev) {
+                                    //    fRelTime = 1 - fRelTime;
+                                    //}
+                                    if (oNode.parsedPath) {
+                                        var oPos = oNode.parsedPath.getPosition(fRelTime);
+                                        if (oPos) {
+                                            var W = oPresentation.GetWidthMM();
+                                            var H = oPresentation.GetHeightMM();
+                                            var DX = W * oPos.x;
+                                            var DY = H * oPos.y;
+                                            //console.log("Elapsed " + oThis.player.getElapsedTicks());
+                                            //console.log("DX " + DX);
+                                            //console.log("DY " + DY);
+                                            var fMoveDr = function (oDrawing) {
+                                                if (oDrawing) {
+                                                    if (!oDrawing.origX) {
+                                                        oDrawing.origX = oDrawing.spPr.xfrm.offX;
+                                                        oDrawing.origY = oDrawing.spPr.xfrm.offY;
+                                                    }
+                                                    oDrawing.spPr.xfrm.offX = oDrawing.origX + DX;
+                                                    oDrawing.spPr.xfrm.offY = oDrawing.origY + DY;
+                                                }
+                                            };
+                                            fMoveDr(oDrawing);
+                                        }
+                                    }
                                 }
+                                if (oNode instanceof CAnimRot) {
+                                    var fRelTime = (oThis.player.getElapsedTicks() - oNode.startTick) / oNode.simpleDuration.getVal();//TODO
+                                    var dR = 2 * Math.PI * fRelTime;
+                                    var fMoveDr = function (oDrawing) {
+                                        if (oDrawing) {
+                                            if (!AscFormat.isRealNumber(oDrawing.origRot)) {
+                                                oDrawing.origRot = oDrawing.rot;
+                                            }
 
-                                oDrawing.spPr.xfrm.rot =  oDrawing.origRot  + dR;
-
-                                oMap[oDrawing.Id] = oDrawing;
+                                            oDrawing.spPr.xfrm.rot =  oDrawing.origRot  + dR;
+                                        }
+                                    };
+                                    fMoveDr(oDrawing);
+                                }
                             }
-                        };
-                        fMoveDr(oDrawing);
-                    }
-                });
-                var oDrawing;
-                for(var key in oMap) {
-                    oDrawing = oMap[key];
-                    oDrawing.recalculateTransform();
-                    oDrawing.localTransform = oDrawing.transform;
-                    var  fRecursiveRecalcTransform = function(aSpTree) {
-                        if (Array.isArray(aSpTree)) {
-                            for (var i = 0; i < aSpTree.length; ++i) {
-                                aSpTree[i].recalculateTransform();
-                                aSpTree[i].localTransform = aSpTree[i].transform;
-                                fRecursiveRecalcTransform(aSpTree[i].spTree);
-                            }
+                            oDrawing.recalculateTransform();
+                            oDrawing.localTransform = oDrawing.transform;
+                            var  fRecursiveRecalcTransform = function(aSpTree) {
+                                if (Array.isArray(aSpTree)) {
+                                    for (var i = 0; i < aSpTree.length; ++i) {
+                                        aSpTree[i].recalculateTransform();
+                                        aSpTree[i].localTransform = aSpTree[i].transform;
+                                        fRecursiveRecalcTransform(aSpTree[i].spTree);
+                                    }
+                                }
+                            };
+                            fRecursiveRecalcTransform(oDrawing.spTree);
                         }
-                    };
-                    fRecursiveRecalcTransform(oDrawing.spTree);
+                    }
+
                 }
             }
+
         }
-        var oPresentation = editor.WordControl.m_oLogicDocument;
         oPresentation.DrawingDocument.OnRecalculatePage(0, oPresentation.Slides[0]);
         editor.WordControl.OnPaint();
     };
@@ -5450,6 +5617,9 @@
         }
         this.eventsProcessor.addEvent(new CExternalEvent(COND_EVNT_ON_MOUSEOUT, oSp.Get_Id()));
     };
+    CAnimationPlayer.prototype.addAnimationToDraw = function(sDrawingId, oAnimation) {
+        this.animationDrawer.addAnimationToDraw(sDrawingId, oAnimation);
+    };
 
 
     var DEFAULT_SIMPLE_TRIGGER = function() {
@@ -5457,6 +5627,28 @@
     };
     var DEFAULT_NEVER_TRIGGER = function() {
         return false;
+    };
+
+    function CAnimSandwich(sDrawingId) {
+        this.drawingId = sDrawingId;
+        this.animations = [];
+    }
+    CAnimSandwich.prototype.getDrawingId = function() {
+        return this.drawingId;
+    };
+    CAnimSandwich.prototype.addAnimation = function(oAnimation) {
+        this.animations.push(oAnimation);
+        this.checkOnAdd();
+    };
+    CAnimSandwich.prototype.checkOnAdd = function() {
+        //TODO: sort
+    };
+    CAnimSandwich.prototype.getAttributesMap = function(nElapsedTime) {
+        var oAttributes = {};
+        for(var nAnim = 0; nAnim < this.animations.length; ++nAnim) {
+            this.animations[nAnim].calculateAttributes(nElapsedTime, oAttributes);
+        }
+        return oAttributes;
     };
 
     var GLOBAL_PLAYER = null;
