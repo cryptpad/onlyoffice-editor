@@ -4066,7 +4066,6 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 
         worksheet.endEditChart();
         _this.controller.resetSelectionState();
-        _this.OnUpdateOverlay();
     };
 
     _this.getDrawingObject = function(id) {

@@ -449,7 +449,6 @@
 		//TODO пока сюда добавляю, пересмотреть!
 		this._lockAddNewRule = null;
 
-		this._lockDrawSelection = null;
 
         this._init();
 
@@ -5261,9 +5260,6 @@
         if (window['IS_NATIVE_EDITOR']) {
             return;
         }
-		if (this._lockDrawSelection) {
-			return;
-		}
 
         var selectionDialogMode = this.getSelectionDialogMode();
         var dialogOtherRanges = this.getDialogOtherRanges();
@@ -7175,10 +7171,7 @@
 
             this._drawCellsAndBorders(null, range);
             this.af_drawButtons(range, offsetX, offsetY);
-            //TODO добавил во избежание повторной отрисовки селекта. пересмотреть.
-			this._lockDrawSelection = true;
 			this.objectRender.updateRange(range);
-			this._lockDrawSelection = null;
             if (0 < cFrozen) {
                 range.c1 = 0;
                 range.c2 = cFrozen - 1;
@@ -7334,11 +7327,7 @@
 			this._drawGroupData(null, range, undefined, undefined, true);
             this._drawCellsAndBorders(null, range);
             this.af_drawButtons(range, offsetX, offsetY);
-			//TODO добавил во избежание повторной отрисовки селекта. пересмотреть.
-			//с клавиатуры зажимаем shift, двигаем стрелками вниз(или вправо). доводим до момента, когда scroll сработает
-            this._lockDrawSelection = true;
             this.objectRender.updateRange(range);
-			this._lockDrawSelection = null;
             if (rFrozen) {
                 range.r1 = 0;
                 range.r2 = rFrozen - 1;
@@ -9163,6 +9152,7 @@
         if (this.isSelectOnShape) {
             this.isSelectOnShape = false;
             this.objectRender.unselectDrawingObjects();
+            this._drawSelection();
 			window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Update_Position();
         }
         return isSelectOnShape;
