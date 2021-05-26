@@ -10761,6 +10761,11 @@
         var activeCell = this.model.selectionRange.activeCell.clone();
         var arn = this.model.selectionRange.getLast().clone(true);
 
+        if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatCells)) {
+			this.handlers.trigger("onErrorEvent", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+        	return false;
+		}
+
         var onSelectionCallback = function (isSuccess) {
             if (false === isSuccess) {
                 return;
