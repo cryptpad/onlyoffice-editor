@@ -9877,6 +9877,10 @@
 	Worksheet.prototype.getLockedRange = function (range) {
 		var res = false;
 		this.getRange3(range.r1, range.c1, range.r2, range.c2)._foreach2(function(cell){
+			if (!cell) {
+				res = true;
+				return true;
+			}
 			var cellxfs = cell.xfs;
 			var isLocked = cellxfs && cellxfs.asc_getLocked();
 			if (isLocked === null || isLocked === true) {

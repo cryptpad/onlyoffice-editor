@@ -10990,7 +10990,7 @@
                         //t.cellCommentator.sortComments(range.sort(val.type, opt_by_rows ? activeCell.row : activeCell.col, val.color, true, opt_by_rows, props.levels));
 
 						if (t.model.getSheetProtection()) {
-							if (!t.model.protectedRangesContainsRange(range) || t.model.getLockedRange(range)) {
+							if (!(t.model.protectedRangesContainsRange(range.bbox) || !t.model.getLockedRange(range.bbox))) {
 								t.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
 								return;
 							}
@@ -11007,7 +11007,7 @@
 						}
 
 						if (t.model.getSheetProtection()) {
-							if (!t.model.protectedRangesContainsRange(range) || t.model.getLockedRange(range)) {
+							if (!(t.model.protectedRangesContainsRange(range.bbox) || !t.model.getLockedRange(range.bbox))) {
 								t.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
 								return;
 							}
@@ -20414,7 +20414,7 @@
 		var selection = t.model.selectionRange.getLast();
 
 		if (this.model.getSheetProtection()) {
-			if (!this.model.protectedRangesContainsRange(selection) && this.model.getLockedRange(selection)) {
+			if (!(t.model.protectedRangesContainsRange(selection) || !t.model.getLockedRange(selection))) {
 				this.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
 				return;
 			}
@@ -20603,7 +20603,7 @@
 		var selection = t.model.selectionRange.getLast();
 
 		if (this.model.getSheetProtection()) {
-			if (!this.model.protectedRangesContainsRange(selection) || this.model.getLockedRange(selection)) {
+			if (!(t.model.protectedRangesContainsRange(selection) || !t.model.getLockedRange(selection))) {
 				this.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
 				return;
 			}
