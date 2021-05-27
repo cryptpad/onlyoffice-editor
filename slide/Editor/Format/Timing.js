@@ -49,7 +49,7 @@
     var changesFactory = AscDFH.changesFactory;
     var drawingConstructorsMap = window['AscDFH'].drawingsConstructorsMap;
 
-
+    var oPercentageRegeExp = new RegExp("((100)|([0-9][0-9]?))(\.[0-9][0-9]?)?%", "g");
 
     var InitClass = AscFormat.InitClass;
     var CBaseFormatObject = AscFormat.CBaseFormatObject;
@@ -97,6 +97,19 @@
             return oRoot.getTimeNodeById(id);
         }
         return null;
+    };
+    CBaseAnimObject.prototype.parsePercentage = function(sVal) {
+        var oResult = oPercentageRegeExp.exec(sVal);
+        if(oResult && oResult.index === 0) {
+            var sValue = sVal.slice(0, sVal.length - 1);
+            var aParts = sValue.split(".");
+            var dResult = parseInt(aParts[0]) / 100;
+            if(aParts.length > 1) {
+                dResult += parseInt(aParts[1]) / 100/ Math.pow(10, aParts[1].length);
+            }
+            return dResult;
+        }
+        return 0;
     };
 
     var TIME_NODE_STATE_IDLE = 0;
@@ -317,6 +330,9 @@
         var oParentNode = this.getParentTimeNode();
         if(oParentNode) {
             oParentNode.onFinished(this, oPlayer);
+        }
+        if(this.isRoot()) {
+            oPlayer.stop();
         }
     };
     CTimeNodeBase.prototype.getFinishCallback = function(oPlayer) {
@@ -596,6 +612,21 @@
     CTimeNodeBase.prototype.getAnimatedVal = function(fTime, fStart, fEnd) {
         return fStart*(1 - fTime) + fEnd * fTime;
     };
+    CTimeNodeBase.prototype.getAnimatedClr = function(fTime, oStartUniColor, oEndUniColor) {
+        var oTargetObject = this.getTargetObject();
+        if(!oTargetObject) {
+            return null;
+        }
+        var parents = oTargetObject.getParentObjects();
+        oEndUniColor.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA);
+        oStartUniColor.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA);
+        var oEndColor = oEndUniColor.getRGBAColor();
+        var oStartColor = oStartUniColor.getRGBAColor();
+        var R = this.getAnimatedVal(fTime, oStartColor.R, oEndColor.R);
+        var G = this.getAnimatedVal(fTime, oStartColor.G, oEndColor.G);
+        var B = this.getAnimatedVal(fTime, oStartColor.B, oEndColor.B);
+        return AscFormat.CreateUniColorRGB(R, G, B);
+    };
     CTimeNodeBase.prototype.getAttributes = function() {
         if(!this.cBhvr) {
             return [];
@@ -610,6 +641,22 @@
                 oAttributes[oAttr.text] = val;
             }
         }
+    };
+    CTimeNodeBase.prototype.getTargetObjectAttributeValue = function(sAttrName) {
+        if(sAttrName === "ppt_x") {
+            return this.getTargetObjectPosX();
+        }
+        else if(sAttrName === "ppt_y") {
+            return this.getTargetObjectPosY();
+        }
+        if(sAttrName === "ppt_w") {
+            return this.getTargetObjectExtX();
+        }
+        else if(sAttrName === "ppt_h") {
+            return this.getTargetObjectExtY();
+        }
+        //TODO: other attributes
+        return null;
     };
 
     function CAnimationTime(val) {
@@ -1926,6 +1973,60 @@
     };
     CAnim.prototype.getChildren = function() {
         return [this.cBhvr, this.tavLst];
+    };
+    CAnim.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
+        var oTargetObject = this.getTargetObject();
+        if(!oTargetObject) {
+            return;
+        }
+        var aAttributes = this.getAttributes();
+        if(aAttributes.length < 1) {
+            return;
+        }
+        var oFirstAttribute = aAttributes[0];
+        var val;
+        var fRelTime = this.getRelativeTime(nElapsedTime);
+        if(this.by !== null) {
+            //TODO: parse by
+        }
+        else if(this.to !== null) {
+            //TODO: to, from
+        }
+        else if(this.tavLst) {
+            var aTav = this.tavLst.list;
+            var aTavPct = [];
+            for(var nTav = 0; nTav < aTav.length; ++nTav) {
+                aTavPct.push(this.parsePercentage(aTav[nTav].tm));
+                if(nTav > 0 && fRelTime <= aTavPct[nTav]) {
+                    break;
+                }
+            }
+            if(nTav < aTav.length) {
+                var fTimeInsideInterval = (fRelTime - aTavPct[nTav - 1]) / (aTavPct[nTav] - aTavPct[nTav - 1]);
+                val = this.calculateBetweenTwoVals(aTav[nTav - 1].val, aTav[nTav].val, fTimeInsideInterval);
+                if(val !== null) {
+                    oAttributes[oFirstAttribute.text] = val;
+                }
+            }
+        }
+    };
+    CAnim.prototype.calculateBetweenTwoVals = function(oVal1, oVal2, fRelTime) {
+        if(!oVal1 || !oVal2) {
+            return null;
+        }
+        if(!oVal1.isSameType(oVal2)) {
+            return null;
+        }
+        if(oVal1.isFlt()) {
+            return this.getAnimatedVal(fRelTime, oVal1.fltVal, oVal2.fltVal);
+        }
+        if(oVal1.isInt()) {
+            return this.getAnimatedVal(fRelTime, oVal1.intVal, oVal2.intVal);
+        }
+        if(oVal1.isClr()) {
+            return this.getAnimatedClr(fRelTime, oVal1.clrVal, oVal2.clrVal);
+        }
+        return null;
     };
 
     changesFactory[AscDFH.historyitem_CBhvrAttrNameLst] = CChangeObject;
@@ -3404,6 +3505,60 @@
             this.setClrVal(pReader.ReadUniColor());
         }
     };
+    CAnimVariant.prototype.getVal = function(nType, pReader) {
+        if(this.boolVal !== null) {
+            return this.boolVal;
+        }
+        else if(this.clrVal !== null) {
+            return this.clrVal;
+        }
+        else if(this.fltVal !== null) {
+            return this.fltVal;
+        }
+        else if(this.intVal !== null) {
+            return this.intVal;
+        }
+        else if(this.strVal !== null) {
+            return this.strVal;
+        }
+        return null;
+    };
+    CAnimVariant.prototype.isBool = function() {
+        return this.boolVal !== null;
+    };
+    CAnimVariant.prototype.isClr = function() {
+        return this.clrVal !== null;
+    };
+    CAnimVariant.prototype.isFlt = function() {
+        return this.fltVal !== null;
+    };
+    CAnimVariant.prototype.isInt = function() {
+        return this.intVal !== null;
+    };
+    CAnimVariant.prototype.isStr = function() {
+        return this.strVal !== null;
+    };
+    CAnimVariant.prototype.isSameType = function(oVariant) {
+        if(!oVariant) {
+            return false;
+        }
+        if(this.isBool() && oVariant.isBool()) {
+            return true;
+        }
+        if(this.isClr() && oVariant.isClr()) {
+            return true;
+        }
+        if(this.isFlt() && oVariant.isFlt()) {
+            return true;
+        }
+        if(this.isInt() && oVariant.isInt()) {
+            return true;
+        }
+        if(this.isStr() && oVariant.isStr()) {
+            return true;
+        }
+        return false;
+    };
 
     changesFactory[AscDFH.historyitem_AnimClrByRGB] = CChangeObjectNoId;
     changesFactory[AscDFH.historyitem_AnimClrByHSL] = CChangeObjectNoId;
@@ -3606,28 +3761,22 @@
         if(!oBrush) {
             return;
         }
-        var oStartColor = oBrush.getRGBAColor();
+        var oStartRGBColor = oBrush.getRGBAColor();
+        var oStartUniColor = AscFormat.CreateUniColorRGB(oStartRGBColor.R, oStartRGBColor.G, oStartRGBColor.B);
         var oEndUniColor = null;
         var parents = oTargetObject.getParentObjects();
-        var RGBA = {R: 0, G: 0, B: 0, A: 255};
         if(this.by) {
             oEndUniColor = this.by;
         }
         else if(this.to) {
             oEndUniColor = this.to;
             if(this.from) {
-                this.from.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA);
-                oStartColor = this.from.getRGBAColor();
+                oStartUniColor = this.from;
             }
         }
         if(oEndUniColor) {
             var fRelTime = this.getRelativeTime(nElapsedTime);
-            oEndUniColor.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA);
-            var oEndColor = oEndUniColor.getRGBAColor();
-            var R = this.getAnimatedVal(fRelTime, oStartColor.R, oEndColor.R);
-            var G = this.getAnimatedVal(fRelTime, oStartColor.G, oEndColor.G);
-            var B = this.getAnimatedVal(fRelTime, oStartColor.B, oEndColor.B);
-            var oResultColor = AscFormat.CreateUniColorRGB(R, G, B);
+            var oResultColor = this.getAnimatedClr(fRelTime, oStartUniColor, oEndUniColor);
             this.setAttributesValue(oAttributes, oResultColor);
         }
     };
@@ -4983,6 +5132,12 @@
     CSet.prototype.getChildren = function() {
         return [this.cBhvr, this.to];
     };
+    CSet.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
+        if(!this.to) {
+            return;
+        }
+        this.setAttributesValue(oAttributes, this.to.getVal());
+    };
 
     changesFactory[AscDFH.historyitem_VideoCMediaNode] = CChangeObject;
     changesFactory[AscDFH.historyitem_VideoFullScrn] = CChangeBool;
@@ -5572,9 +5727,11 @@
             var oRoot = this.player.timings[nTiming].getTimingRootNode();
             if(oRoot) {
                 oRoot.traverseDrawable(this.player);
+                console.clear();
                 for(var sKey in this.sandwiches) {
                     if(this.sandwiches.hasOwnProperty(sKey)) {
                         var oSandwich = this.sandwiches[sKey];
+                        oSandwich.print(oThis.player.getElapsedTicks());
                         var oDrawing = AscCommon.g_oTableId.Get_ById(sKey);
                         if(oDrawing) {
 
@@ -5647,10 +5804,8 @@
                             fRecursiveRecalcTransform(oDrawing.spTree);
                         }
                     }
-
                 }
             }
-
         }
         oPresentation.DrawingDocument.OnRecalculatePage(0, oPresentation.Slides[0]);
         editor.WordControl.OnPaint();
@@ -5778,6 +5933,11 @@
         return oAttributes;
     };
 
+    CAnimSandwich.prototype.print = function(nElapsedTime) {
+        var oAttributes = this.getAttributesMap(nElapsedTime);
+        console.log(oAttributes);
+    };
+
     var GLOBAL_PLAYER = null;
 
     function StartTestAnimation() {
@@ -5849,4 +6009,5 @@
     window['AscFormat'].CAnimationTimer = CAnimationTimer;
     window['AscFormat'].CAnimationPlayer = CAnimationPlayer;
     window['AscFormat'].StartTestAnimation = StartTestAnimation;
+    window['AscFormat'].CBaseAnimObject = CBaseAnimObject;
 })(window);

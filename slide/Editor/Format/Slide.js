@@ -1271,10 +1271,12 @@ Slide.prototype =
     draw: function(graphics)
     {
         //For animation testing
-        //if (graphics.IsSlideBoundsCheckerType) {
-        //    graphics.rect(0, 0, this.Width, this.Height);
-        //    return;
-        //}
+        if (graphics.IsSlideBoundsCheckerType) {
+            if(this.graphicObjects.getAnimPlayer()) {
+                graphics.rect(0, 0, this.Width, this.Height);
+                return;
+            }
+        }
         var _bounds, i;
         DrawBackground(graphics, this.backgroundFill, this.Width, this.Height);
         if(this.needMasterSpDraw())
