@@ -9863,6 +9863,30 @@
 		return false;
 	};
 
+	Worksheet.prototype.protectedRangesContainsRange = function (range) {
+		if (this.aProtectedRanges && this.aProtectedRanges.length) {
+			for (var i = 0; i < this.aProtectedRanges.length; i++) {
+				if (this.aProtectedRanges[i].containsRange(range)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	};
+
+	Worksheet.prototype.getLockedRange = function (range) {
+		var res = false;
+		this.getRange3(range.r1, range.c1, range.r2, range.c2)._foreach2(function(cell){
+			var cellxfs = cell.xfs;
+			var isLocked = cellxfs && cellxfs.asc_getLocked();
+			if (isLocked === null || isLocked === true) {
+				res = true;
+				return true;
+			}
+		});
+		return res;
+	};
+
 	Worksheet.prototype.getProtectedRanges = function (needClone) {
 		var protectedRanges = this.aProtectedRanges;
 		var res = null;

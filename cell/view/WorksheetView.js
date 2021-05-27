@@ -10769,7 +10769,7 @@
         var activeCell = this.model.selectionRange.activeCell.clone();
         var arn = this.model.selectionRange.getLast().clone(true);
 
-        if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatCells)) {
+        if (prop !== "sort" && prop !== "customSort" && this.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatCells)) {
 			this.handlers.trigger("onErrorEvent", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
         	return false;
 		}
@@ -10988,6 +10988,14 @@
                        	var opt_by_rows = false;
 						//var props = t.getSortProps(true);
                         //t.cellCommentator.sortComments(range.sort(val.type, opt_by_rows ? activeCell.row : activeCell.col, val.color, true, opt_by_rows, props.levels));
+
+						if (t.model.getSheetProtection()) {
+							if (!t.model.protectedRangesContainsRange(range) || t.model.getLockedRange(range)) {
+								t.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+								return;
+							}
+						}
+
                         t.cellCommentator.sortComments(t._doSort(range, val.type, opt_by_rows ? activeCell.row : activeCell.col, val.color, true, opt_by_rows));
 						t.setSortProps(t._generateSortProps(val.type, opt_by_rows ? activeCell.row : activeCell.col, val.color, true, opt_by_rows, range.bbox), true);
                         break;
@@ -10996,6 +11004,13 @@
 						if (isLargeRange && !callTrigger) {
 							callTrigger = true;
 							t.handlers.trigger("slowOperation", true);
+						}
+
+						if (t.model.getSheetProtection()) {
+							if (!t.model.protectedRangesContainsRange(range) || t.model.getLockedRange(range)) {
+								t.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+								return;
+							}
 						}
 
 						t.setSortProps(val);
@@ -20397,6 +20412,14 @@
 		//bExpand - ответ от этой функции, который протаскивается через интерфейс
 		//если мультиселект - дизейбл кнопки sort
 		var selection = t.model.selectionRange.getLast();
+
+		if (this.model.getSheetProtection()) {
+			if (!this.model.protectedRangesContainsRange(selection) && this.model.getLockedRange(selection)) {
+				this.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+				return;
+			}
+		}
+
 		var activeCell = t.model.selectionRange.activeCell.clone();
 		var oldSelection = selection.clone();
 
@@ -20578,6 +20601,14 @@
 
 		var t = this;
 		var selection = t.model.selectionRange.getLast();
+
+		if (this.model.getSheetProtection()) {
+			if (!this.model.protectedRangesContainsRange(selection) || this.model.getLockedRange(selection)) {
+				this.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+				return;
+			}
+		}
+
 		var activeCell = t.model.selectionRange.activeCell.clone();
 
 		var revertSelection = function() {

@@ -869,6 +869,16 @@
 		return false;
 	};
 
+	CProtectedRange.prototype.containsRange = function (range) {
+		//TODO  в каком виде будет хранится sqref?
+		for (var i = 0; i < this.sqref.length; i++) {
+			if (this.sqref[i].containsRange(range)) {
+				return true;
+			}
+		}
+		return false;
+	};
+
 	CProtectedRange.prototype.asc_getSqref = function (val) {
 		var t = this;
 		if (val) {
