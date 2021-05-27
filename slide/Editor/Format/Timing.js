@@ -572,6 +572,45 @@
         }
         return null;
     };
+    CTimeNodeBase.prototype.getTargetObjectRot = function() {
+        var oObject = this.getTargetObject();
+        if(!oObject) {
+            return null;
+        }
+        return oObject.rot;
+    };
+    CTimeNodeBase.prototype.getTargetObjectBrush = function() {
+        var oObject = this.getTargetObject();
+        if(!oObject) {
+            return null;
+        }
+        return oObject.brush;
+    };
+    CTimeNodeBase.prototype.getTargetObjectPen = function() {
+        var oObject = this.getTargetObject();
+        if(!oObject) {
+            return null;
+        }
+        return oObject.pen;
+    };
+    CTimeNodeBase.prototype.getAnimatedVal = function(fTime, fStart, fEnd) {
+        return fStart*(1 - fTime) + fEnd * fTime;
+    };
+    CTimeNodeBase.prototype.getAttributes = function() {
+        if(!this.cBhvr) {
+            return [];
+        }
+        return this.cBhvr.getAttributes();
+    };
+    CTimeNodeBase.prototype.setAttributesValue = function(oAttributes, val) {
+        var aAttributes = this.getAttributes();
+        for(var nAttr = 0; nAttr < aAttributes.length; ++nAttr) {
+            var oAttr = aAttributes[nAttr];
+            if(oAttr.text !== null) {
+                oAttributes[oAttr.text] = val;
+            }
+        }
+    };
 
     function CAnimationTime(val) {
         this.val = 0;
@@ -2076,6 +2115,12 @@
         }
         return null;
     };
+    CCBhvr.prototype.getAttributes = function() {
+        if(!this.attrNameLst) {
+            return [];
+        }
+        return this.attrNameLst.list;
+    };
 
     changesFactory[AscDFH.historyitem_CTnChildTnLst] = CChangeObject;
     changesFactory[AscDFH.historyitem_CTnEndCondLst] = CChangeObject;
@@ -3552,6 +3597,40 @@
     CAnimClr.prototype.getChildren = function() {
         return [this.cBhvr];
     };
+    CAnimClr.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
+        var oTargetObject = this.getTargetObject();
+        if(!oTargetObject) {
+            return;
+        }
+        var oBrush = this.getTargetObjectBrush();
+        if(!oBrush) {
+            return;
+        }
+        var oStartColor = oBrush.getRGBAColor();
+        var oEndUniColor = null;
+        var parents = oTargetObject.getParentObjects();
+        var RGBA = {R: 0, G: 0, B: 0, A: 255};
+        if(this.by) {
+            oEndUniColor = this.by;
+        }
+        else if(this.to) {
+            oEndUniColor = this.to;
+            if(this.from) {
+                this.from.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA);
+                oStartColor = this.from.getRGBAColor();
+            }
+        }
+        if(oEndUniColor) {
+            var fRelTime = this.getRelativeTime(nElapsedTime);
+            oEndUniColor.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA);
+            var oEndColor = oEndUniColor.getRGBAColor();
+            var R = this.getAnimatedVal(fRelTime, oStartColor.R, oEndColor.R);
+            var G = this.getAnimatedVal(fRelTime, oStartColor.G, oEndColor.G);
+            var B = this.getAnimatedVal(fRelTime, oStartColor.B, oEndColor.B);
+            var oResultColor = AscFormat.CreateUniColorRGB(R, G, B);
+            this.setAttributesValue(oAttributes, oResultColor);
+        }
+    };
 
     changesFactory[AscDFH.historyitem_AnimEffectCBhvr] = CChangeObject;
     changesFactory[AscDFH.historyitem_AnimEffectProgress] = CChangeObject;
@@ -4211,7 +4290,24 @@
         return [this.cBhvr];
     };
     CAnimRot.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
-
+        var oTargetObject = this.getTargetObject();
+        if(!oTargetObject) {
+            return;
+        }
+        var fRelTime = this.getRelativeTime(nElapsedTime);
+        var dR = null;
+        if(this.by !== null) {
+            dR = this.by * AscFormat.cToRad *fRelTime;
+        }
+        else if(this.to !== null) {
+            dR = this.to * AscFormat.cToRad *fRelTime;
+            if(this.from) {
+                dR += (this.from * AscFormat.cToRad *fRelTime)*(1.0 - fRelTime);
+            }
+        }
+        if(dR !== null) {
+            oAttributes["r"] = AscFormat.normalizeRotate(this.getTargetObjectRot() + dR);
+        }
     };
 
 
@@ -4347,6 +4443,37 @@
     };
     CAnimScale.prototype.getChildren = function() {
         return [this.cBhvr];
+    };
+    CAnimScale.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
+        var oTargetObject = this.getTargetObject();
+        if(!oTargetObject) {
+            return;
+        }
+        var fRelTime = this.getRelativeTime(nElapsedTime);
+        var fromX = 1, fromY = 1;
+        var toX = null, toY = null;
+        if(this.by) {
+            toX = this.by.x / 100000;
+            toY = this.by.y / 100000;
+        }
+        else if(this.to) {
+            toX = this.to.x / 100000;
+            toY = this.to.y / 100000;
+            if(this.from) {
+                fromX = this.from.x / 100000;
+                fromY = this.from.y / 100000;
+            }
+        }
+        if(toX !== null && toY !== null) {
+            var extX = this.getTargetObjectExtX();
+            var extY = this.getTargetObjectExtY();
+            var x = this.getTargetObjectPosX();
+            var y = this.getTargetObjectPosY();
+            oAttributes["ppt_w"] = extX*this.getAnimatedVal(fRelTime, fromX, toX);
+            oAttributes["ppt_y"] = extY*this.getAnimatedVal(fRelTime, fromY, toY);
+            oAttributes["ppt_x"] = x + extX / 2.0 - oAttributes["ppt_w"] / 2.0;
+            oAttributes["ppt_y"] = y + extY / 2.0 - oAttributes["ppt_h"] / 2.0;
+        }
     };
 
     changesFactory[AscDFH.historyitem_AudioCMediaNode] = CChangeObject;
