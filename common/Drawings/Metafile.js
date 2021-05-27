@@ -1145,6 +1145,7 @@
 
 		this.ctHyperlink = 160;
 		this.ctLink      = 161;
+		this.ctFormField = 162;
 
 		this.ctPageWidth  = 200;
 		this.ctPageHeight = 201;
@@ -1956,6 +1957,88 @@
 			this.Memory.WriteDouble(dx);
 			this.Memory.WriteDouble(dy);
 			this.Memory.WriteLong(dPage);
+		},
+
+		AddFormField : function(nX, nY, nW, nH, nBaseLineOffset, oForm)
+		{
+			if (!oForm)
+				return;
+
+			var oParagraph = oForm.GetParagraph();
+
+			this.Memory.WriteByte(CommandType.ctFormField);
+
+			var nStartPos = this.Memory.GetCurPosition();
+			this.Memory.Skip(4);
+
+			this.Memory.WriteDouble(nX);
+			this.Memory.WriteDouble(nY);
+			this.Memory.WriteDouble(nW);
+			this.Memory.WriteDouble(nH);
+			this.Memory.WriteDouble(nBaseLineOffset);
+
+			var nFlagPos = this.Memory.GetCurPosition();
+			this.Memory.Skip(4);
+			var nFlag = 0;
+
+			var oFormPr = oForm.GetFormPr();
+
+			var sFormKey = oFormPr.GetKey();
+			if (sFormKey)
+			{
+				nFlag |= 1;
+				this.Memory.WriteString(sFormKey);
+			}
+
+			var sHelpText = oFormPr.GetHelpText();
+			if (sHelpText)
+			{
+				nFlag |= (1 << 1);
+				this.Memory.WriteString(sHelpText);
+			}
+
+			if (oFormPr.GetRequired())
+				nFlag |= (1 << 2);
+
+			if (oForm.IsPlaceHolder())
+				nFlag |= (1 << 3);
+
+			// 0 - Неизвестно поле
+			// 1 - Текстовое поле
+
+			if (oForm.IsTextForm())
+			{
+				this.Memory.WriteLong(1);
+				var oTextFormPr = oForm.GetTextFormPr();
+
+				if (oTextFormPr.Comb)
+					nFlag |= (1 << 20);
+
+				if (oTextFormPr.MaxCharacters > 0)
+				{
+					nFlag |= (1 << 21);
+					this.Memory.WriteLong(oTextFormPr.MaxCharacters);
+				}
+
+				var sValue = oForm.GetSelectedText(true);
+				if (sValue)
+				{
+					nFlag |= (1 << 22);
+					this.Memory.WriteString(sValue);
+				}
+			}
+			else
+			{
+				this.Memory.WriteLong(0);
+			}
+
+			var nEndPos = this.Memory.GetCurPosition();
+			this.Memory.Seek(nFlagPos);
+			this.Memory.WriteLong(nFlag);
+
+			this.Memory.Seek(nStartPos);
+			this.Memory.WriteLong(nEndPos - nStartPos);
+			this.Memory.Seek(nEndPos);
 		}
 	};
 
@@ -2728,6 +2811,12 @@
 		{
 			if (0 !== this.m_lPagesCount)
 				this.m_arrayPages[this.m_lPagesCount - 1].AddLink(x, y, w, h, dx, dy, dPage);
+		},
+
+		AddFormField : function(nX, nY, nW, nH, nBaseLineOffset, oForm)
+		{
+			if (0 !== this.m_lPagesCount)
+				this.m_arrayPages[this.m_lPagesCount - 1].AddFormField(nX, nY, nW, nH, nBaseLineOffset, oForm);
 		}
 	};
 
