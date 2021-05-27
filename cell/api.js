@@ -5664,7 +5664,7 @@ var editor;
       if (ws.sheetProtection) {
         res = ws.sheetProtection.clone();
       } else {
-        res = new window["AscCommonExcel"].CSheetProtection();
+        res = new window["Asc"].CSheetProtection();
         res.setDefaultInterface();
       }
     }

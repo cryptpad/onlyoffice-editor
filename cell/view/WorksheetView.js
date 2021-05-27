@@ -927,7 +927,10 @@
 
     // mouseX - это разница стартовых координат от мыши при нажатии и границы
     WorksheetView.prototype.changeColumnWidth = function (col, x2, mouseX) {
-		var viewMode = this.handlers.trigger('getViewMode');
+		if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatColumns)) {
+			return;
+		}
+    	var viewMode = this.handlers.trigger('getViewMode');
         var t = this;
         // Учитываем координаты точки, где мы начали изменение размера
         x2 += mouseX;
@@ -992,7 +995,10 @@
 
     // mouseY - это разница стартовых координат от мыши при нажатии и границы
     WorksheetView.prototype.changeRowHeight = function (row, y2, mouseY) {
-		var viewMode = this.handlers.trigger('getViewMode');
+		if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatRows)) {
+			return;
+		}
+    	var viewMode = this.handlers.trigger('getViewMode');
         var t = this;
         // Учитываем координаты точки, где мы начали изменение размера
         y2 += mouseY;
@@ -7938,7 +7944,8 @@
 				return oResDefault;
 			}
 			isNotFirst = (r.row !== (-1 !== rFrozen ? 0 : this.visibleRange.r1));
-			f = (canEdit || viewMode) && (isNotFirst && y < r.top + epsChangeSize || y >= r.bottom - epsChangeSize) && readyMode;
+			f = (canEdit || viewMode) && (isNotFirst && y < r.top + epsChangeSize || y >= r.bottom - epsChangeSize) &&
+				readyMode && !this.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatRows);
 			// ToDo В Excel зависимость epsilon от размера ячейки (у нас фиксированный 3)
 			return {
 				cursor: f ? kCurRowResize : kCurRowSelect,
@@ -7955,7 +7962,8 @@
 				return oResDefault;
 			}
 			isNotFirst = c.col !== (-1 !== cFrozen ? 0 : this.visibleRange.c1);
-			f = (canEdit || viewMode) && (isNotFirst && x < c.left + epsChangeSize || x >= c.right - epsChangeSize) && readyMode;
+			f = (canEdit || viewMode) && (isNotFirst && x < c.left + epsChangeSize || x >= c.right - epsChangeSize) &&
+				readyMode && !this.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatColumns);
 			// ToDo В Excel зависимость epsilon от размера ячейки (у нас фиксированный 3)
 			return {
 				cursor: f ? kCurColResize : kCurColSelect,
@@ -13619,6 +13627,9 @@
 
 		switch (prop) {
 			case "colWidth":
+				if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatColumns)) {
+					return;
+				}
 				functionModelAction = function () {
 					t.model.setColWidth(val, checkRange.c1, checkRange.c2);
 					isUpdateCols = true;
@@ -13629,6 +13640,9 @@
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
 			case "showCols":
+				if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatColumns)) {
+					return;
+				}
 				functionModelAction = function () {
 					//AscCommonExcel.checkFilteringMode(function () {
 						t.model.setColHidden(false, arn.c1, arn.c2);
@@ -13641,6 +13655,9 @@
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
 			case "hideCols":
+				if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatColumns)) {
+					return;
+				}
 				functionModelAction = function () {
 					//AscCommonExcel.checkFilteringMode(function () {
 						t.model.setColHidden(true, arn.c1, arn.c2);
@@ -13654,6 +13671,9 @@
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
 			case "rowHeight":
+				if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatRows)) {
+					return;
+				}
 				functionModelAction = function () {
 					// Приводим к px (чтобы было ровно)
 					val = val / AscCommonExcel.sizePxinPt;
@@ -13666,6 +13686,9 @@
 				};
 				return this._isLockedAll(onChangeWorksheetCallback);
 			case "showRows":
+				if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatRows)) {
+					return;
+				}
 				functionModelAction = function () {
 					//TODO пока убираю проверку на FilteringMode. перепроверить, нужна ли она?!
 					//AscCommonExcel.checkFilteringMode(function () {
@@ -13681,6 +13704,9 @@
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
 			case "hideRows":
+				if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatRows)) {
+					return;
+				}
 				functionModelAction = function () {
 					//AscCommonExcel.checkFilteringMode(function () {
 						t.model.setRowHidden(true, arn.r1, arn.r2);
@@ -14186,7 +14212,10 @@
 		}
 	};
     WorksheetView.prototype.autoFitColumnsWidth = function (col) {
-		var viewMode = this.handlers.trigger('getViewMode');
+		if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatColumns)) {
+			return;
+		}
+    	var viewMode = this.handlers.trigger('getViewMode');
         var t = this;
         var r1 = 0, r2 = this.model.getRowsCount() - 1;
 		var ranges = [];
@@ -14233,7 +14262,10 @@
     };
 
     WorksheetView.prototype.autoFitRowHeight = function (r1, r2) {
-		var viewMode = this.handlers.trigger('getViewMode');
+		if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatRows)) {
+			return;
+		}
+    	var viewMode = this.handlers.trigger('getViewMode');
         var t = this;
 		if (null === r1) {
 			var lastSelection = this.model.selectionRange.getLast();
