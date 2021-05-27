@@ -2801,7 +2801,7 @@ CAutoshapeTrack.prototype =
                 var flag = false;
                 var elemX , elemY;
                 switch (elem.id) {
-                    // case 0:
+                    case 0:
                     case 1:
                         elemX = elem.X;
                         elemY = elem.Y;
@@ -2818,24 +2818,74 @@ CAutoshapeTrack.prototype =
 
                 if (elemX !== undefined && elemY !== undefined) {
                     for (var i = 0; i < geom.ellipsePointsList.length; i++) {
-                        var ellX = parseFloat(geom.ellipsePointsList[i].curCoords.X.toFixed(4));
-                        var ellY = parseFloat(geom.ellipsePointsList[i].curCoords.Y.toFixed(4));
+                        var ellPoint = geom.ellipsePointsList[i];
+                        var ellX = parseFloat(ellPoint.curCoords.X.toFixed(4));
+                        var ellY = parseFloat(ellPoint.curCoords.Y.toFixed(4));
                         elemX = parseFloat(elemX.toFixed(4));
                         elemY = parseFloat(elemY.toFixed(4));
-                        if (ellX === elemX && ellY === elemY && elem.id !== 4 && elem.id !== 0) {
-                            geom.ellipsePointsList[i].curCoords.pathCommand = count;
+
+                        if (ellX === elemX && ellY === elemY && elem.id !== 4) {
+                            if(elem.id === 0) {
+                                ellPoint.curCoords.pathCommand = ellPoint.curCoords.pathCommand;
+                                ellPoint.isStartPoint = true;
+                            }
+
                             flag = true;
                         }
                     }
-                    if (!flag) {
-                        geom.gmEditList.push({curCoords: {id: elem.id, X: elemX, Y: elemY, pathCommand: count}});
+                    if (!flag && elem.id !== 0) {
+                        geom.gmEditList.push({curCoords: elem});
+                        geom.gmEditList[geom.gmEditList.length - 1].curCoords.id = elem.id;
+                        geom.gmEditList[geom.gmEditList.length - 1].curCoords.X = elemX;
+                        geom.gmEditList[geom.gmEditList.length - 1].curCoords.Y = elemY;
+                        geom.gmEditList[geom.gmEditList.length - 1].curCoords.pathCommand = count;
                     }
                 }
                 ++count;
             });
         }
 
-        geom.gmEditList = geom.gmEditList.concat(geom.ellipsePointsList);
+        for (var i = 0; i <  geom.gmEditList.length; i++) {
+                geom.ellipsePointsList = geom.ellipsePointsList.filter(function(elem) {
+                    return elem.curCoords.pathCommand !== geom.gmEditList[i].curCoords.pathCommand;
+                })
+        }
+
+        var pathPoints = geom.pathLst[0].ArrPathCommand;
+        var sortGmEdit = [];
+        var countBezie = 0;
+        var countArc = 0;
+        pathPoints.forEach(function (elem) {
+            switch(elem.id) {
+                case 1:
+                case 3:
+                case 4:
+                    if(geom.gmEditList[countBezie]) {
+                        sortGmEdit.push(geom.gmEditList[countBezie]);
+                        countBezie++;
+                    }
+                    break;
+                case 2:
+                    if(geom.ellipsePointsList[countArc]) {
+                        sortGmEdit.push(geom.ellipsePointsList[countArc]);
+                        countArc++;
+                    }
+                    break;
+
+            }
+        });
+
+        geom.gmEditList = sortGmEdit;
+
+        var startPointX = parseFloat(geom.pathLst[0].ArrPathCommand[0].X.toFixed(4))
+        var startPointY = parseFloat(geom.pathLst[0].ArrPathCommand[0].Y.toFixed(4))
+        geom.gmEditList.forEach(function (elem) {
+            var elemX = parseFloat(elem.curCoords.X.toFixed(4));
+            var elemY = parseFloat(elem.curCoords.Y.toFixed(4));
+            if (elemX === startPointX && elemY === startPointY) {
+                 elem.isStartPoint = true;
+            }
+        })
 
         if(geom.gmEditList[geom.gmEditList.length - 1])
         geom.gmEditList[geom.gmEditList.length - 1].nextCoords =  geom.gmEditList[0].curCoords;

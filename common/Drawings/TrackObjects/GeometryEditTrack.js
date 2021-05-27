@@ -70,6 +70,7 @@
         var _relative_y = invert_transform.TransformPointY(posX, posY);
 
             var pathCommand = arrPathCommand[geometry.gmEditPoint.curCoords.pathCommand];
+
             var id = pathCommand.id;
             switch (id) {
                 // case 0:
@@ -80,42 +81,14 @@
                 case 2:
                     // ignore clock direction
                     var curPoint = geometry.gmEditPoint.curCoords;
-                    var dAngle1 = curPoint.dAngle1;
-                    var dAngle2 = curPoint.dAngle2;
-                    var fWidth = pathCommand.wR;
-                    var fHeight = pathCommand.hR;
-
-                    var sin1 = Math.sin(dAngle1);
-                    var cos1 = Math.cos(dAngle1);
-
-                    var __x = cos1 / fWidth;
-                    var __y = sin1 / fHeight;
-                    var l = 1 / Math.sqrt(__x * __x + __y * __y);
-
-                    var cx = pathCommand.stX - l * cos1;
-                    var cy = pathCommand.stY - l * sin1;
-
-                    var fX = cx - fWidth / 2;
-                    var fY = cy - fHeight / 2;
-
-                    var fAlpha = Math.sin( dAngle2 - dAngle1 ) * ( Math.sqrt( 4.0 + 3.0 * Math.tan( (dAngle2 - dAngle1) / 2.0 ) * Math.tan( (dAngle2 - dAngle1) / 2.0 ) ) - 1.0 ) / 3.0;
-
-                    var sin1 = Math.sin(dAngle1);
-                    var cos1 = Math.cos(dAngle1);
-                    var sin2 = Math.sin(dAngle2);
-                    var cos2 = Math.cos(dAngle2);
-
-                    var fX1 = fX + fX * cos1;
-                    var fY1 = fY + fY * sin1;
-
                     var fX2 = _relative_x;
                     var fY2 = _relative_y;
 
-                    var fCX1 = fX1 - fAlpha * _relative_x * sin1;
-                    var fCY1 = fY1 + fAlpha * _relative_y * cos1;
+                    var fCX1 = fX2 - curPoint.fX2 + curPoint.X0;
+                    var fCY1 = fY2 - curPoint.fY2 + curPoint.Y0;
 
-                    var fCX2 = fX2 + fAlpha * _relative_x * sin2;
-                    var fCY2 = fY2 - fAlpha * _relative_y * cos2;
+                    var fCX2 = fX2 - curPoint.fX2 + curPoint.X1;
+                    var fCY2 = fY2 - curPoint.fY2 + curPoint.Y1;
 
                     var command = {
                         id: 4,
@@ -126,53 +99,28 @@
                         X2:_relative_x,
                         Y2: _relative_y
                     }
-                    arrPathCommand[geometry.gmEditPoint.curCoords.pathCommand] = command;
+                    if(geometry.gmEditPoint.isStartPoint) {
+                        arrPathCommand[0].X = _relative_x;
+                        arrPathCommand[0].Y = _relative_y;
+                    }
 
-
-
+                    arrPathCommand[curPoint.pathCommand] = command;
 
                     var nextPathCommand = arrPathCommand[geometry.gmEditPoint.nextCoords.pathCommand];
                     //refactoring
-                    if(nextPathCommand && nextPathCommand.id === 2) {
+                    if(nextPathCommand && (nextPathCommand.id === 2 || nextPathCommand.id === 4)) {
                         nextPathCommand.id = 4;
 
-                        var nextCoords = geometry.gmEditPoint.nextCoords;
-                        var dAngle1 = nextCoords.dAngle1;
-                        var dAngle2 = nextCoords.dAngle2;
-                        var fWidth = nextPathCommand.wR;
-                        var fHeight = nextPathCommand.hR;
-
-                        var sin1 = Math.sin(dAngle1);
-                        var cos1 = Math.cos(dAngle1);
-
-                        var __x = cos1 / fWidth;
-                        var __y = sin1 / fHeight;
-                        var l = 1 / Math.sqrt(__x * __x + __y * __y);
-
-                        var cx = nextPathCommand.stX - l * cos1;
-                        var cy = nextPathCommand.stY - l * sin1;
-
-                        var fX = cx - fWidth / 2;
-                        var fY = cy - fHeight / 2;
-
-                        var fAlpha = Math.sin( dAngle2 - dAngle1 ) * ( Math.sqrt( 4.0 + 3.0 * Math.tan( (dAngle2 - dAngle1) / 2.0 ) * Math.tan( (dAngle2 - dAngle1) / 2.0 ) ) - 1.0 ) / 3.0;
-
-                        var sin1 = Math.sin(dAngle1);
-                        var cos1 = Math.cos(dAngle1);
-                        var sin2 = Math.sin(dAngle2);
-                        var cos2 = Math.cos(dAngle2);
+                        var nextPoint = geometry.gmEditPoint.nextCoords;
 
                         var fX1 = _relative_x;
                         var fY1 = _relative_y;
 
-                        var fX2 = fX + fX * cos2;
-                        var fY2 = fY + fY * sin2;
+                        var fCX1 = fX1 - curPoint.fX2 + nextPoint.X0;
+                        var fCY1 = fY1 - curPoint.fY2 + nextPoint.Y0;
 
-                        var fCX1 = fX1 - fAlpha * _relative_x * sin1;
-                        var fCY1 = fY1 + fAlpha * _relative_y * cos1;
-
-                        var fCX2 = fX2 + fAlpha * _relative_x * sin2;
-                        var fCY2 = fY2 - fAlpha * _relative_y * cos2;
+                        var fCX2 = fX1 - curPoint.fX2 + nextPoint.X1;
+                        var fCY2 = fY1 - curPoint.fY2 + nextPoint.Y1;
 
                         nextPathCommand.X0 = fCX1;
                         nextPathCommand.Y0 = fCY1;
@@ -181,7 +129,6 @@
                         nextPathCommand.X2 = geometry.gmEditPoint.nextCoords.fX2;
                         nextPathCommand.Y2 = geometry.gmEditPoint.nextCoords.fY2;
                     }
-
                     break;
                 case 3:
                     pathCommand.X1 = _relative_x;
@@ -189,34 +136,51 @@
                     break;
                 case 4:
 
-                    var dAngle1 = geometry.gmEditPoint.curCoords.dAngle1;
-                    var dAngle2 = geometry.gmEditPoint.curCoords.dAngle2;
-
-                    var fAlpha = Math.sin( dAngle2 - dAngle1 ) * ( Math.sqrt( 4.0 + 3.0 * Math.tan( (dAngle2 - dAngle1) / 2.0 ) * Math.tan( (dAngle2 - dAngle1) / 2.0 ) ) - 1.0 ) / 3.0;
-
-                    var sin1 = Math.sin(dAngle1);
-                    var cos1 = Math.cos(dAngle1);
-                    var sin2 = Math.sin(dAngle2);
-                    var cos2 = Math.cos(dAngle2);
-
-                    var fX1 = _relative_x + _relative_x * cos1;
-                    var fY1 = _relative_y + _relative_y * sin1;
+                    var curPoint = geometry.gmEditPoint.curCoords;
 
                     var fX2 = _relative_x;
                     var fY2 = _relative_y;
 
-                    var fCX1 = fX1 - fAlpha * _relative_x * sin1;
-                    var fCY1 = fY1 + fAlpha * _relative_y * cos1;
+                    var fCX1 = fX2 - curPoint.fX2 + curPoint.X0;
+                    var fCY1 = fY2 - curPoint.fY2 + curPoint.Y0;
 
-                    var fCX2 = fX2 + fAlpha * _relative_x * sin2;
-                    var fCY2 = fY2 - fAlpha * _relative_y * cos2;
+                    var fCX2 = fX2 - curPoint.fX2 + curPoint.X1;
+                    var fCY2 = fY2 - curPoint.fY2 + curPoint.Y1;
 
-                    pathCommand.X0 = fCX1;
-                    pathCommand.Y0 = fCY1;
-                    pathCommand.X1 = fCX2;
-                    pathCommand.Y1 = fCY2;
-                    pathCommand.X2 = _relative_x;
-                    pathCommand.Y2 = _relative_y;
+                    arrPathCommand[curPoint.pathCommand].X0 = fCX1;
+                    arrPathCommand[curPoint.pathCommand].Y0 = fCY1;
+                    arrPathCommand[curPoint.pathCommand].X1 = fCX2;
+                    arrPathCommand[curPoint.pathCommand].Y1 = fCY2;
+                    arrPathCommand[curPoint.pathCommand].X2 = _relative_x;
+                    arrPathCommand[curPoint.pathCommand].Y2 = _relative_y;
+
+                    if(geometry.gmEditPoint.isStartPoint) {
+                        arrPathCommand[0].X = _relative_x;
+                        arrPathCommand[0].Y = _relative_y;
+                    }
+
+                    var nextPathCommand = arrPathCommand[geometry.gmEditPoint.nextCoords.pathCommand];
+                    //refactoring
+                    if(nextPathCommand) {
+
+                        var nextPoint = geometry.gmEditPoint.nextCoords;
+
+                        var fX1 = _relative_x;
+                        var fY1 = _relative_y;
+
+                        var fCX1 = fX1 - curPoint.fX2 + nextPoint.X0;
+                        var fCY1 = fY1 - curPoint.fY2 + nextPoint.Y0;
+
+                        var fCX2 = fX1 - curPoint.fX2 + nextPoint.X1;
+                        var fCY2 = fY1 - curPoint.fY2 + nextPoint.Y1;
+                        nextPathCommand.id = 4;
+                        nextPathCommand.X0 = fCX1;
+                        nextPathCommand.Y0 = fCY1;
+                        nextPathCommand.X1 = fCX2;
+                        nextPathCommand.Y1 = fCY2;
+                        nextPathCommand.X2 = geometry.gmEditPoint.nextCoords.fX2;
+                        nextPathCommand.Y2 = geometry.gmEditPoint.nextCoords.fY2;
+                    }
                     break;
             }
 

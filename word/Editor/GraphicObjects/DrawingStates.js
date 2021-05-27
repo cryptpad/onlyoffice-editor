@@ -1702,7 +1702,7 @@ PreGeometryEditState.prototype = {
         var selectedObj = this.drawingObjects.selectedObjects[0];
         var ret = AscFormat.handleSelectedObjects(this.drawingObjects, e, x, y, null, pageIndex, true);
 
-        if(e.Type === 0 && ret.hit) {
+        if(e.Type === 0 && ret && ret.hit) {
             this.drawingObjects.arrTrackObjects.push(new AscFormat.EditShapeGeometryTrack(selectedObj, this.majorObject));
             var hit_to_handles = selectedObj.hitToHandles(x, y);
             var card_direction = selectedObj.getCardDirectionByNum(hit_to_handles);
