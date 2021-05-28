@@ -2852,9 +2852,7 @@ CAutoshapeTrack.prototype =
         }
 
         var pathPoints = geom.pathLst[0].ArrPathCommand;
-        var sortGmEdit = [];
-        var countBezie = 0;
-        var countArc = 0;
+        var sortGmEdit = [], countBezie = 0, countArc = 0;
         pathPoints.forEach(function (elem) {
             switch(elem.id) {
                 case 1:
@@ -2871,7 +2869,6 @@ CAutoshapeTrack.prototype =
                         countArc++;
                     }
                     break;
-
             }
         });
 
@@ -2895,12 +2892,47 @@ CAutoshapeTrack.prototype =
             if (i + 1 < geom.gmEditList.length)
                 geom.gmEditList[i].nextCoords = geom.gmEditList[i + 1].curCoords;
 
-            var cx = (xDst + dKoefX * (matrix.TransformPointX(geom.gmEditList[i].curCoords.X, geom.gmEditList[i].curCoords.Y))) >> 0;
-            var cy = (yDst + dKoefY * (matrix.TransformPointY(geom.gmEditList[i].curCoords.X, geom.gmEditList[i].curCoords.Y))) >> 0;
-            overlay.AddRect2(cx, cy, TRACK_RECT_SIZE);
+            var gmEditPointX = (xDst + dKoefX * (matrix.TransformPointX(geom.gmEditList[i].curCoords.X, geom.gmEditList[i].curCoords.Y))) >> 0;
+            var gmEditPointY = (yDst + dKoefY * (matrix.TransformPointY(geom.gmEditList[i].curCoords.X, geom.gmEditList[i].curCoords.Y))) >> 0;
+            overlay.AddRect2(gmEditPointX, gmEditPointY, TRACK_RECT_SIZE);
         }
+
             ctx.stroke();
             ctx.fill();
+
+        if(geom.gmEditPoint && geom.gmEditList[geom.gmEditPoint.index]) {
+            var index = geom.gmEditPoint.index;
+            var curCurve = geom.gmEditList[index].curCoords;
+            var nextCurve =  geom.gmEditList[index].nextCoords;
+
+            var curPointX = (xDst + dKoefX * (matrix.TransformPointX(curCurve.X, curCurve.Y))) >> 0;
+            var curPointY = (yDst + dKoefY * (matrix.TransformPointY(curCurve.X, curCurve.Y))) >> 0;
+
+            var commandPointX1 = (xDst + dKoefX * (matrix.TransformPointX(nextCurve.X0, nextCurve.Y0))) >> 0;
+            var commandPointY1 = (yDst + dKoefY * (matrix.TransformPointY(nextCurve.X0, nextCurve.Y0))) >> 0;
+            var commandPointX2 = (xDst + dKoefX * (matrix.TransformPointX(curCurve.X1, curCurve.Y1))) >> 0;
+            var commandPointY2 = (yDst + dKoefY * (matrix.TransformPointY(curCurve.X1, curCurve.Y1))) >> 0;
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#7f7fff';
+            ctx.moveTo(commandPointX1, commandPointY1);
+            ctx.lineTo(curPointX, curPointY);
+            ctx.lineTo(commandPointX2, commandPointY2);
+
+            ctx.stroke();
+            ctx.fill();
+
+            ctx.beginPath();
+            overlay.AddRect2(commandPointX1, commandPointY1, TRACK_RECT_SIZE);
+            overlay.AddRect2(commandPointX2, commandPointY2, TRACK_RECT_SIZE);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = "#000000";
+            ctx.stroke();
+            ctx.fill();
+            ctx.fillStyle = '#000000';
+            ctx.strokeStyle = "#ffffff";
+        }
     },
 
     DrawEditWrapPointsPolygon : function(points, matrix)

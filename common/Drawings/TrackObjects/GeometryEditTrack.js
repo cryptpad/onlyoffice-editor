@@ -78,14 +78,15 @@
                     pathCommand.X = _relative_x;
                     pathCommand.Y = _relative_y;
                     break;
+                case 4:
                 case 2:
                     // ignore clock direction
                     var curPoint = geometry.gmEditPoint.curCoords;
                     var fX2 = _relative_x;
                     var fY2 = _relative_y;
 
-                    var fCX1 = fX2 - curPoint.fX2 + curPoint.X0;
-                    var fCY1 = fY2 - curPoint.fY2 + curPoint.Y0;
+                    var fCX1 = curPoint.X0;
+                    var fCY1 = curPoint.Y0;
 
                     var fCX2 = fX2 - curPoint.fX2 + curPoint.X1;
                     var fCY2 = fY2 - curPoint.fY2 + curPoint.Y1;
@@ -119,8 +120,8 @@
                         var fCX1 = fX1 - curPoint.fX2 + nextPoint.X0;
                         var fCY1 = fY1 - curPoint.fY2 + nextPoint.Y0;
 
-                        var fCX2 = fX1 - curPoint.fX2 + nextPoint.X1;
-                        var fCY2 = fY1 - curPoint.fY2 + nextPoint.Y1;
+                        var fCX2 = nextPoint.X1;
+                        var fCY2 = nextPoint.Y1;
 
                         nextPathCommand.X0 = fCX1;
                         nextPathCommand.Y0 = fCY1;
@@ -133,54 +134,6 @@
                 case 3:
                     pathCommand.X1 = _relative_x;
                     pathCommand.Y1 = _relative_y;
-                    break;
-                case 4:
-
-                    var curPoint = geometry.gmEditPoint.curCoords;
-
-                    var fX2 = _relative_x;
-                    var fY2 = _relative_y;
-
-                    var fCX1 = curPoint.X0;
-                    var fCY1 = curPoint.Y0;
-
-                    var fCX2 = fX2 - curPoint.fX2 + curPoint.X1;
-                    var fCY2 = fY2 - curPoint.fY2 + curPoint.Y1;
-
-                    arrPathCommand[curPoint.pathCommand].X0 = fCX1;
-                    arrPathCommand[curPoint.pathCommand].Y0 = fCY1;
-                    arrPathCommand[curPoint.pathCommand].X1 = fCX2;
-                    arrPathCommand[curPoint.pathCommand].Y1 = fCY2;
-                    arrPathCommand[curPoint.pathCommand].X2 = _relative_x;
-                    arrPathCommand[curPoint.pathCommand].Y2 = _relative_y;
-
-                    if(geometry.gmEditPoint.isStartPoint) {
-                        arrPathCommand[0].X = _relative_x;
-                        arrPathCommand[0].Y = _relative_y;
-                    }
-
-                    var nextPathCommand = arrPathCommand[geometry.gmEditPoint.nextCoords.pathCommand];
-                    //refactoring
-                    if(nextPathCommand) {
-
-                        var nextPoint = geometry.gmEditPoint.nextCoords;
-
-                        var fX1 = _relative_x;
-                        var fY1 = _relative_y;
-
-                        var fCX1 = fX1 - curPoint.fX2 + nextPoint.X0;
-                        var fCY1 = fY1 - curPoint.fY2 + nextPoint.Y0;
-
-                        var fCX2 = nextPoint.X1;
-                        var fCY2 = nextPoint.Y1;
-                        nextPathCommand.id = 4;
-                        nextPathCommand.X0 = fCX1;
-                        nextPathCommand.Y0 = fCY1;
-                        nextPathCommand.X1 = fCX2;
-                        nextPathCommand.Y1 = fCY2;
-                        nextPathCommand.X2 = geometry.gmEditPoint.nextCoords.fX2;
-                        nextPathCommand.Y2 = geometry.gmEditPoint.nextCoords.fY2;
-                    }
                     break;
             }
 
