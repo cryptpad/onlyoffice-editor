@@ -7609,7 +7609,7 @@
 		this.ReadWorkbookProtection = function (type, length, workbookProtection) {
 		    var res = c_oSerConstants.ReadOk;
 			if (c_oSerWorkbookProtection.LockStructure == type) {
-				workbookProtection.LockStructure = this.stream.GetBool();
+				workbookProtection.lockStructure = this.stream.GetBool();
 			} else if (c_oSerWorkbookProtection.LockWindows == type) {
 				workbookProtection.lockWindows = this.stream.GetBool();
 			} else if (c_oSerWorkbookProtection.LockRevision == type) {

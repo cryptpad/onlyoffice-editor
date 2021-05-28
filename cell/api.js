@@ -2191,6 +2191,10 @@ var editor;
       return false;
     }
 
+    if (this.asc_isProtectedWorkbook()) {
+      return false;
+    }
+
     if (!arrSheets) {
       arrSheets = [this.wbModel.getActive()];
     }
@@ -2396,7 +2400,11 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_showWorksheet = function(index) {
-    if (typeof index === "number") {
+  	if (this.asc_isProtectedWorkbook()) {
+      return false;
+  	}
+
+  	if (typeof index === "number") {
       var t = this;
       var ws = this.wbModel.getWorksheet(index);
       var isHidden = ws.getHidden();
@@ -2419,6 +2427,10 @@ var editor;
   spreadsheet_api.prototype.asc_hideWorksheet = function (arrSheets) {
     // Проверка глобального лока
     if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+      return false;
+    }
+
+    if (this.asc_isProtectedWorkbook()) {
       return false;
     }
 
