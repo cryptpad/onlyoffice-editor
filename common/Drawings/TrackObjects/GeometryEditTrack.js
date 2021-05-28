@@ -141,8 +141,8 @@
                     var fX2 = _relative_x;
                     var fY2 = _relative_y;
 
-                    var fCX1 = fX2 - curPoint.fX2 + curPoint.X0;
-                    var fCY1 = fY2 - curPoint.fY2 + curPoint.Y0;
+                    var fCX1 = curPoint.X0;
+                    var fCY1 = curPoint.Y0;
 
                     var fCX2 = fX2 - curPoint.fX2 + curPoint.X1;
                     var fCY2 = fY2 - curPoint.fY2 + curPoint.Y1;
@@ -171,8 +171,8 @@
                         var fCX1 = fX1 - curPoint.fX2 + nextPoint.X0;
                         var fCY1 = fY1 - curPoint.fY2 + nextPoint.Y0;
 
-                        var fCX2 = fX1 - curPoint.fX2 + nextPoint.X1;
-                        var fCY2 = fY1 - curPoint.fY2 + nextPoint.Y1;
+                        var fCX2 = nextPoint.X1;
+                        var fCY2 = nextPoint.Y1;
                         nextPathCommand.id = 4;
                         nextPathCommand.X0 = fCX1;
                         nextPathCommand.Y0 = fCY1;
