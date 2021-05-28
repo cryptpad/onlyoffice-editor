@@ -2459,6 +2459,10 @@ var editor;
       return false;
     }
 
+    if (this.asc_isProtectedWorkbook()) {
+      return false;
+    }
+
     var i = this.wbModel.getActive();
     var sheetId = this.wbModel.getWorksheet(i).getId();
     var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheetId, sheetId);
@@ -2488,12 +2492,20 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_addWorksheet = function (name) {
-    var i = this.wbModel.getActive();
+    if (this.asc_isProtectedWorkbook()) {
+      return false;
+    }
+
+  	var i = this.wbModel.getActive();
     this._addWorksheets([name], i + 1);
   };
 
   spreadsheet_api.prototype.asc_insertWorksheet = function (arrNames) {
-    // Support old versions
+    if (this.asc_isProtectedWorkbook()) {
+      return false;
+    }
+
+  	// Support old versions
     if (!Array.isArray(arrNames)) {
       arrNames = [arrNames];
     }
@@ -2505,6 +2517,10 @@ var editor;
   spreadsheet_api.prototype.asc_deleteWorksheet = function (arrSheets) {
     // Проверка глобального лока
     if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+      return false;
+    }
+
+    if (this.asc_isProtectedWorkbook()) {
       return false;
     }
 
@@ -2550,7 +2566,12 @@ var editor;
       return false;
     }
 
-    if (!arrSheets) {
+    if (this.asc_isProtectedWorkbook()) {
+      return false;
+    }
+
+
+	  if (!arrSheets) {
       arrSheets = [this.wbModel.getActive()];
     }
 
@@ -2600,6 +2621,10 @@ var editor;
   spreadsheet_api.prototype.asc_copyWorksheet = function (where, arrNames, arrSheets) {
     // Проверка глобального лока
     if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+      return false;
+    }
+
+    if (this.asc_isProtectedWorkbook()) {
       return false;
     }
 
@@ -2654,6 +2679,10 @@ var editor;
 		  return false;
 	  }
 
+	  if (this.asc_isProtectedWorkbook()) {
+		  return false;
+	  }
+
 	  //если выделены все - берём последний активный, если всего один - не переносим
 	  if(this.wbModel.aWorksheets.length === 1) {
 		  return null;
@@ -2677,6 +2706,10 @@ var editor;
   spreadsheet_api.prototype.asc_EndMoveSheet = function(where, arrNames, arrSheets) {
 	  // Проверка глобального лока
 	  if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
+		  return false;
+	  }
+
+	  if (this.asc_isProtectedWorkbook()) {
 		  return false;
 	  }
 
@@ -5716,26 +5749,15 @@ var editor;
       if (wb.workbookProtection) {
         res = wb.workbookProtection.clone();
       } else {
-        res = new window["AscCommonExcel"].CWorkbookProtection();
+        res = asc.CWorkbookProtection();
       }
     }
     return res;
   };
 
-  spreadsheet_api.prototype.asc_isProtectedWorkbook = function (isWindowLocked) {
+  spreadsheet_api.prototype.asc_isProtectedWorkbook = function (type) {
     var wb = this.wbModel;
-    var res = null;
-    if (wb) {
-      var workbookProtection = wb.workbookProtection;
-      if (workbookProtection) {
-        if (!isWindowLocked) {
-          res = workbookProtection.asc_getLockStructure();
-        } else {
-          res = workbookProtection.asc_getLockWindows();
-        }
-      }
-    }
-    return res;
+    return wb && wb.getWorkbookProtection(type);
   };
 
   spreadsheet_api.prototype.asc_setProtectedWorkbook = function (props) {

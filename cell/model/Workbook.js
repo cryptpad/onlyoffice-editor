@@ -3752,10 +3752,10 @@
 
 		if (this.workbookProtection) {
 			switch (type) {
-				case Asc.c_oAscSheetProtectType.lockWindows:
+				case Asc.c_oAscWorkbookProtectType.lockWindows:
 					res = this.workbookProtection.asc_getLockWindows();
 					break;
-				case Asc.c_oAscSheetProtectType.lockRevisions:
+				case Asc.c_oAscWorkbookProtectType.lockRevisions:
 					res = this.workbookProtection.asc_getLockRevision();
 					break;
 				case Asc.c_oAscWorkbookProtectType.lockStructure:
