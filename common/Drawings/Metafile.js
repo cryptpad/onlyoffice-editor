@@ -1964,8 +1964,6 @@
 			if (!oForm)
 				return;
 
-			var oParagraph = oForm.GetParagraph();
-
 			this.Memory.WriteByte(CommandType.ctFormField);
 
 			var nStartPos = this.Memory.GetCurPosition();
@@ -2003,8 +2001,11 @@
 			if (oForm.IsPlaceHolder())
 				nFlag |= (1 << 3);
 
-			// 0 - Неизвестно поле
-			// 1 - Текстовое поле
+			// 0 - Unknown
+			// 1 - Text
+			// 2 - ComboBox/DropDownList
+			// 3 - CheckBox/RadioButton
+			// 4 - Picture
 
 			if (oForm.IsTextForm())
 			{
@@ -2026,6 +2027,64 @@
 					nFlag |= (1 << 22);
 					this.Memory.WriteString(sValue);
 				}
+			}
+			else if (oForm.IsComboBox() || oForm.IsDropDownList())
+			{
+				this.Memory.WriteLong(2);
+				var isComboBox = oForm.IsComboBox();
+
+				var oFormPr = isComboBox ? oForm.GetComboBoxPr() : oForm.GetDropDownListPr();
+
+				if (!isComboBox)
+					nFlag |= (1 << 20);
+
+				var sValue         = oForm.GetSelectedText(true);
+				var nSelectedIndex = -1;
+
+				var nItemsCount = oFormPr.GetItemsCount();
+				this.Memory.WriteLong(nItemsCount);
+				for (var nIndex = 0; nIndex < nItemsCount; ++nIndex)
+				{
+					var sItemValue = oFormPr.GetItemDisplayText(nIndex);
+					if (sItemValue === sValue)
+						nSelectedIndex = nIndex;
+
+					this.Memory.WriteString(sItemValue);
+				}
+
+				this.Memory.WriteLong(nSelectedIndex);
+
+				if (sValue)
+				{
+					nFlag |= (1 << 22);
+					this.Memory.WriteString(sValue);
+				}
+			}
+			else if (oForm.IsCheckBox())
+			{
+				this.Memory.WriteLong(3);
+
+				var oCheckBoxPr = oForm.GetCheckBoxPr();
+
+				if (oCheckBoxPr.GetChecked())
+					nFlag |= (1 << 20);
+
+				this.Memory.WriteLong(oCheckBoxPr.GetCheckedSymbol());
+				this.Memory.WriteString(oCheckBoxPr.GetCheckedFont());
+				this.Memory.WriteLong(oCheckBoxPr.GetUncheckedSymbol());
+				this.Memory.WriteString(oCheckBoxPr.GetUncheckedFont());
+
+				var sGroupName = oCheckBoxPr.GetGroupKey();
+				if (sGroupName)
+				{
+					nFlag |= (1 << 21);
+					this.Memory.WriteString(sGroupName);
+				}
+			}
+			else if (oForm.IsPicture())
+			{
+				this.Memory.WriteLong(4);
+				// TODO: Параметры для картиночной формы
 			}
 			else
 			{
