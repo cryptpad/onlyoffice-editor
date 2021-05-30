@@ -2001,6 +2001,22 @@
 			if (oForm.IsPlaceHolder())
 				nFlag |= (1 << 3);
 
+			// 7-ой и 8-ой биты зарезервированы для бордера
+			var oBorder = oForm.GetTextFormPr() ? oForm.GetTextFormPr().CombBorder : null;
+			if (oBorder && !oBorder.IsNone())
+			{
+				nFlag |= (1 << 6);
+
+				var oColor = oBorder.GetColor();
+				this.Memory.WriteLong(1);
+				this.Memory.WriteDouble(oBorder.GetWidth());
+				this.Memory.WriteByte(oColor.r);
+				this.Memory.WriteByte(oColor.g);
+				this.Memory.WriteByte(oColor.b);
+				this.Memory.WriteByte(0x255);
+			}
+
+
 			// 0 - Unknown
 			// 1 - Text
 			// 2 - ComboBox/DropDownList
@@ -2041,9 +2057,10 @@
 				var sValue         = oForm.GetSelectedText(true);
 				var nSelectedIndex = -1;
 
+				// Первый элемент всегда "Choose an item"
 				var nItemsCount = oFormPr.GetItemsCount();
-				this.Memory.WriteLong(nItemsCount);
-				for (var nIndex = 0; nIndex < nItemsCount; ++nIndex)
+				this.Memory.WriteLong(nItemsCount - 1);
+				for (var nIndex = 1; nIndex < nItemsCount; ++nIndex)
 				{
 					var sItemValue = oFormPr.GetItemDisplayText(nIndex);
 					if (sItemValue === sValue)
