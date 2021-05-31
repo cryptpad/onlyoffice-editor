@@ -2057,16 +2057,31 @@
 				var sValue         = oForm.GetSelectedText(true);
 				var nSelectedIndex = -1;
 
-				// Первый элемент всегда "Choose an item"
+				// Обработка "Choose an item"
 				var nItemsCount = oFormPr.GetItemsCount();
-				this.Memory.WriteLong(nItemsCount - 1);
-				for (var nIndex = 1; nIndex < nItemsCount; ++nIndex)
+				if (nItemsCount > 0 && AscCommon.translateManager.getValue("Choose an item") === oFormPr.GetItemDisplayText(0))
 				{
-					var sItemValue = oFormPr.GetItemDisplayText(nIndex);
-					if (sItemValue === sValue)
-						nSelectedIndex = nIndex;
+					this.Memory.WriteLong(nItemsCount - 1);
+					for (var nIndex = 1; nIndex < nItemsCount; ++nIndex)
+					{
+						var sItemValue = oFormPr.GetItemDisplayText(nIndex);
+						if (sItemValue === sValue)
+							nSelectedIndex = nIndex;
 
-					this.Memory.WriteString(sItemValue);
+						this.Memory.WriteString(sItemValue);
+					}
+				}
+				else
+				{
+					this.Memory.WriteLong(nItemsCount);
+					for (var nIndex = 0; nIndex < nItemsCount; ++nIndex)
+					{
+						var sItemValue = oFormPr.GetItemDisplayText(nIndex);
+						if (sItemValue === sValue)
+							nSelectedIndex = nIndex;
+
+						this.Memory.WriteString(sItemValue);
+					}
 				}
 
 				this.Memory.WriteLong(nSelectedIndex);
