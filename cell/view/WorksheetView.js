@@ -5052,7 +5052,7 @@
             lastRow = this.topLeftFrozenCell.getRow0();
         }
         History.Create_NewPoint();
-        var oData = new AscCommonExcel.UndoRedoData_FromTo(new AscCommonExcel.UndoRedoData_BBox(new asc_Range(lastCol, lastRow, lastCol, lastRow)), new AscCommonExcel.UndoRedoData_BBox(new asc_Range(col, row, col, row)), null);
+        var oData = new AscCommonExcel.UndoRedoData_FromTo(new AscCommonExcel.UndoRedoData_FrozenBBox(new asc_Range(lastCol, lastRow, lastCol, lastRow)), new AscCommonExcel.UndoRedoData_FrozenBBox(new asc_Range(col, row, col, row)), null);
         History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_ChangeFrozenCell,
           this.model.getId(), null, oData);
 
@@ -5088,7 +5088,70 @@
         }
     };
 
-    /** */
+	WorksheetView.prototype._getFreezePaneOffset = function (type, range, bInsert) {
+		if (this.topLeftFrozenCell) {
+			var lastCol = this.topLeftFrozenCell.getCol0();
+			var lastRow = this.topLeftFrozenCell.getRow0();
+			var row, col;
+			if ((type === c_oAscInsertOptions.InsertColumns || type === c_oAscInsertOptions.DeleteColumns) && lastCol) {
+				var diffCol;
+				if (bInsert) {
+					if (lastCol >= range.c1) {
+						diffCol =  range.c2 - range.c1 + 1;
+					}
+					if (diffCol) {
+						col = lastCol + diffCol;
+					}
+				} else {
+					if (range.c2 <= lastCol) {
+						diffCol = range.c2 - range.c1 + 1;
+					} else if (lastCol >= range.c1) {
+						diffCol = lastCol - range.c1;
+					}
+
+					if (diffCol > 0) {
+						col = lastCol - diffCol;
+					}
+				}
+				if (col < 0) {
+					col = 0;
+				}
+			}
+			if ((type === c_oAscInsertOptions.InsertRows || type === c_oAscInsertOptions.DeleteRows) && lastRow) {
+				var diffRow;
+				if (bInsert) {
+					if (lastRow >= range.r1) {
+						diffRow =  range.r2 - range.r1 + 1;
+					}
+					if (diffRow) {
+						row = lastRow + diffRow;
+					}
+				} else {
+					if (range.r2 <= lastRow) {
+						diffRow = range.r2 - range.r1 + 1;
+					} else if (lastRow >= range.r1) {
+						diffRow = lastRow - range.r1;
+					}
+
+					if (diffRow > 0) {
+						row = lastRow - diffRow;
+					}
+				}
+				if (row < 0) {
+					row = 0;
+				}
+			}
+
+			if (row !== undefined || col !== undefined) {
+				return {row: row === undefined ? lastRow : row, col: col === undefined ? lastCol : col};
+			}
+		}
+
+		return null;
+	};
+
+
+	/** */
 
     WorksheetView.prototype._drawSelectionElement = function (visibleRange, offsetX, offsetY, args) {
         var range = args[0];
@@ -13597,6 +13660,20 @@
 			return true;
 		};
 
+		var changeFreezePane;
+		var _checkFreezePaneOffset = function (_type, _range, callback, bInsert) {
+			changeFreezePane = t._getFreezePaneOffset(_type, _range, bInsert);
+			if (changeFreezePane) {
+				t._isLockedFrozenPane(function (_success) {
+					if (_success) {
+						callback();
+					}
+				});
+			} else {
+				callback();
+			}
+		};
+
 		switch (prop) {
 			case "colWidth":
 				functionModelAction = function () {
@@ -13779,12 +13856,17 @@
 							updateDrawingObjectsInfo2 = {bInsert: true, operType: val, updateRange: arn};
 							t.cellCommentator.updateCommentsDependencies(true, val, arn);
 							t.model.shiftDataValidation(true, val, arn, true);
+							if (changeFreezePane) {
+								t._updateFreezePane(changeFreezePane.col, changeFreezePane.row, true);
+							}
 							History.EndTransaction();
 						};
 
 						arrChangedRanges.push(lockRange);
-						this._isLockedCells(lockRange, c_oAscLockTypeElemSubType.InsertColumns,
-							onChangeWorksheetCallback);
+						_checkFreezePaneOffset(val, lockRange, function () {
+							t._isLockedCells(lockRange, c_oAscLockTypeElemSubType.InsertColumns,
+								onChangeWorksheetCallback);
+						}, true);
 						break;
 					case c_oAscInsertOptions.InsertRows:
 						lockRange = new asc_Range(0, arn.r1, gc_nMaxCol0, arn.r2);
@@ -13807,10 +13889,16 @@
 							updateDrawingObjectsInfo2 = {bInsert: true, operType: val, updateRange: arn};
 							t.cellCommentator.updateCommentsDependencies(true, val, arn);
 							t.model.shiftDataValidation(true, val, arn, true);
+							if (changeFreezePane) {
+								t._updateFreezePane(changeFreezePane.col, changeFreezePane.row, true);
+							}
 						};
 
 						arrChangedRanges.push(lockRange);
-						this._isLockedCells(lockRange, c_oAscLockTypeElemSubType.InsertRows, onChangeWorksheetCallback);
+						_checkFreezePaneOffset(val, lockRange, function () {
+							t._isLockedCells(lockRange, c_oAscLockTypeElemSubType.InsertRows,
+								onChangeWorksheetCallback);
+						}, true);
 						break;
 				}
 				break;
@@ -13929,13 +14017,18 @@
 							t.model.autoFilters.isEmptyAutoFilters(arn, c_oAscDeleteOptions.DeleteColumns);
 							t.model.removeCols(checkRange.c1, checkRange.c2);
 							t._updateGroups(true);
+							if (changeFreezePane) {
+								t._updateFreezePane(changeFreezePane.col, changeFreezePane.row, true);
+							}
 							updateDrawingObjectsInfo2 = {bInsert: false, operType: val, updateRange: arn};
 							History.EndTransaction();
 						};
 
 						arrChangedRanges.push(lockRange);
-						this._isLockedCells(lockRange, c_oAscLockTypeElemSubType.DeleteColumns,
-							onChangeWorksheetCallback);
+						_checkFreezePaneOffset(val, lockRange, function () {
+							t._isLockedCells(lockRange, c_oAscLockTypeElemSubType.DeleteColumns,
+								onChangeWorksheetCallback);
+						});
 						break;
 					case c_oAscDeleteOptions.DeleteRows:
 						isCheckChangeAutoFilter =
@@ -13972,11 +14065,17 @@
 							t._updateSlicers(arn);
 							t._updateGroups();
 							updateDrawingObjectsInfo2 = {bInsert: false, operType: val, updateRange: arn};
+							if (changeFreezePane) {
+								t._updateFreezePane(changeFreezePane.col, changeFreezePane.row, true);
+							}
 							History.EndTransaction();
 						};
 
 						arrChangedRanges.push(lockRange);
-						this._isLockedCells(lockRange, c_oAscLockTypeElemSubType.DeleteRows, onChangeWorksheetCallback);
+						_checkFreezePaneOffset(val, lockRange, function () {
+							t._isLockedCells(lockRange, c_oAscLockTypeElemSubType.DeleteRows,
+								onChangeWorksheetCallback);
+						});
 						break;
 				}
 				this.handlers.trigger("selectionNameChanged", t.getSelectionName(/*bRangeText*/false));
