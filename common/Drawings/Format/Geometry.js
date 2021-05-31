@@ -1160,6 +1160,7 @@ Geometry.prototype=
         this.gdLst["ssd8"]=this.gdLst["ss"]/8;
         this.gdLst["ssd16"]=this.gdLst["ss"]/16;
         this.gdLst["ssd32"]=this.gdLst["ss"]/32;
+        this.ellipsePointsList = [];
         CalculateGuideLst(this.gdLstInfo, this.gdLst);
         CalculateCnxLst(this.cnxLstInfo, this.cnxLst, this.gdLst);
         CalculateAhXYList(this.ahXYLstInfo, this.ahXYLst, this.gdLst);
@@ -1374,9 +1375,9 @@ Geometry.prototype=
                           X2: nextS.X2, Y2: nextS.Y2, fX1: nextS.fX1, fY1: nextS.fY1, fX2: nextS.fX2, fY2: nextS.fY2,
                           dAngle1: nextS.dAngle1, dAngle2: nextS.dAngle2, pathCommand: nextS.pathCommand
                       },
-                      isStartPoint: gmArr.isStartPoint,
-                      index: i
+                      isStartPoint: gmArr.isStartPoint
                   };
+
                   //refactoring
                   var pathCmd = this.pathLst[0].ArrPathCommand[gmArr.curCoords.pathCommand];
                   if (pathCmd.id === 4) {

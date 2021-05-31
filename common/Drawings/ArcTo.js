@@ -226,8 +226,8 @@
                 if (geom) {
                     var flag = false;
                     for (var i = 0; i < geom.ellipsePointsList.length; i++) {
-                        var elemX = parseFloat(geom.ellipsePointsList[i].X.toFixed(4));
-                        var elemY = parseFloat(geom.ellipsePointsList[i].Y.toFixed(4));
+                        var elemX = parseFloat(geom.ellipsePointsList[i].curCoords.X.toFixed(4));
+                        var elemY = parseFloat(geom.ellipsePointsList[i].curCoords.Y.toFixed(4));
                         if (elemX === parseFloat(EndPoint.X.toFixed(4)) && elemY === parseFloat(EndPoint.Y.toFixed))
                             flag = true;
                     }

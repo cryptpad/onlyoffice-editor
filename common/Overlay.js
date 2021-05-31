@@ -2792,6 +2792,7 @@ CAutoshapeTrack.prototype =
         var dKoefX = wDst / this.CurrentPageInfo.width_mm;
         var dKoefY = hDst / this.CurrentPageInfo.height_mm;
         var matrix =  shape.getTransformMatrix();
+
             geom.gmEditList = [];
 
         for (var i = 0; i < geom.pathLst.length; i++) {
@@ -2887,7 +2888,13 @@ CAutoshapeTrack.prototype =
         if(geom.gmEditList[geom.gmEditList.length - 1])
         geom.gmEditList[geom.gmEditList.length - 1].nextCoords =  geom.gmEditList[0].curCoords;
 
+        var index;
+
         for (var i = 0; i < geom.gmEditList.length; i++) {
+
+            if (geom.gmEditPoint)
+                if (geom.gmEditList[i].curCoords.pathCommand === geom.gmEditPoint.curCoords.pathCommand)
+                    index = i;
 
             if (i + 1 < geom.gmEditList.length)
                 geom.gmEditList[i].nextCoords = geom.gmEditList[i + 1].curCoords;
@@ -2900,8 +2907,9 @@ CAutoshapeTrack.prototype =
             ctx.stroke();
             ctx.fill();
 
-        if(geom.gmEditPoint && geom.gmEditList[geom.gmEditPoint.index]) {
-            var index = geom.gmEditPoint.index;
+
+
+        if(geom.gmEditPoint && geom.gmEditList[index]) {
             var curCurve = geom.gmEditList[index].curCoords;
             var nextCurve =  geom.gmEditList[index].nextCoords;
 

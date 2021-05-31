@@ -1755,8 +1755,6 @@ GeometryEditState.prototype = {
         // this.drawingObjects.clearTrackObjects();
         this.drawingObjects.updateOverlay();
         RotateState.prototype.onMouseUp.call(this, e, x, y, pageIndex);
-        var track_object = this.drawingObjects.arrTrackObjects[0];
-        this.ellipsePointsList = [];
     }
 }
 
