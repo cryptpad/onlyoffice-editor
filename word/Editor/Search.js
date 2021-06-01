@@ -274,15 +274,57 @@ CDocumentSearch.prototype.private_CalculatePrefix = function()
 
 	for (var nPos = 1, nK = 0; nPos < nLen; ++nPos)
 	{
-		nK = this.Prefix[nPos - 1]
-		while (nK > 0 && this.Text[nPos] !== this.Text[nK])
-			nK = this.Prefix[nK - 1];
+		if (this.Text[nPos - 1] !== "^")
+		{
+			nK = this.Prefix[nPos - 1]
+			while (nK > 0 && !(this.Text[nPos] === this.Text[nK] || this.Check_text_is_special_symbol(this.Text, nPos, nK)
+				 || this.Check_special_symbol_is_special_symbol(this.Text, nPos, nK)))
+				nK = this.Prefix[nK - 1];
 
-		if (this.Text[nPos] === this.Text[nK])
-			nK++;
+			if (this.Text[nPos] === this.Text[nK] || this.Check_text_is_special_symbol(this.Text, nPos, nK)
+				|| this.Check_special_symbol_is_special_symbol(this.Text, nPos, nK))
+				nK++;
 
-		this.Prefix[nPos] = nK;
+			this.Prefix[nPos] = nK;
+		}
+		else
+		{
+			(this.Prefix[nPos - 1] !== 0) ? this.Prefix[nPos] = this.Prefix[nPos - 1] : this.Prefix[nPos] = 0;
+		}
 	}
+};
+CDocumentSearch.prototype.Check_text_is_special_symbol = function(sStringText, nPos, nK)
+{
+	var bText = true;
+	if (sStringText[nPos] === '^')
+	{
+		if (sStringText[nPos + 1] === '?')
+			return true;
+		((sStringText[nPos + 1] === '#') &&  ((sStringText[nK] === '^' && sStringText[nK + 1] === '#') || (sStringText[nK] === '^' && sStringText[nK + 1] === '?')
+			|| (sStringText[nK - 1] === '^' && sStringText[nK] === '#') || (sStringText[nK - 1] === '^' && sStringText[nK] === '?'))) ? bText === true : bText === false;
+		((sStringText[nPos + 1] === '$') && 
+		((sStringText[nK] === '^' && sStringText[nK + 1] === '$') || (sStringText[nK] === '^' && sStringText[nK + 1] === '?')
+		|| (sStringText[nK - 1] === '^' && sStringText[nK] === '$') || (sStringText[nK - 1] === '^' && sStringText[nK] === '?'))) ? bText === true : bText === false;
+	}
+	return bText;
+};
+CDocumentSearch.prototype.Check_special_symbol_is_special_symbol = function(sStringText, nPos, nK)
+{
+	var bText = true;
+	if (sStringText[nPos] === '^')
+	{
+		if (sStringText[nPos + 1] === '?')
+			return true;
+		((sStringText[nPos + 1] === '#') &&  (sStringText[nK] >= '0' && sStringText[nK] <= '9')) ? bText === true : bText === false;
+		((sStringText[nPos + 1] === '$') && 
+			((sStringText[nK] >= 'A' && sStringText[nK] <= 'Z')
+			|| (sStringText[nK] >= 'a' && sStringText[nK] <= 'z')
+			|| (sStringText[nK] >= 'А' && sStringText[nK] <= 'Я')
+			|| (sStringText[nK] >= 'а' && sStringText[nK] <= 'я')
+			|| (sStringText[nK] === 'Ё')
+			|| (sStringText[nK] === 'ё'))) ? bText === true : bText === false;
+	}
+	return bText;
 };
 CDocumentSearch.prototype.GetPrefix = function(nIndex)
 {
@@ -1267,10 +1309,15 @@ ParaRun.prototype.Search = function(ParaSearch)
 			oItem.Search(Str, Props, SearchEngine, Type);
 			ParaSearch.Reset();
 		}
-		while (ParaSearch.SearchIndex > 0 && !ParaSearch.Check(ParaSearch.SearchIndex, oItem) && ParaSearch.Str[ParaSearch.SearchIndex] !== "^")
+		var bElement = ParaSearch.Check(ParaSearch.SearchIndex, oItem);
+	    if (!bElement && Str[ParaSearch.SearchIndex] === '^')
+		    bElement = this.Check_Special_Symbol(oItem, ParaSearch.SearchIndex, ParaSearch.Str);
+
+		while (ParaSearch.SearchIndex > 0 && !bElement && this.Content[nPos - 1].Value !== 94)
 		{
-			ParaSearch.SearchIndex = ParaSearch.GetPrefix(ParaSearch.SearchIndex - 1);
 			if (ParaSearch.Str[ParaSearch.SearchIndex] === "^")
+				ParaSearch.SearchIndex = ParaSearch.GetPrefix(ParaSearch.SearchIndex - 2);
+			else
 				ParaSearch.SearchIndex = ParaSearch.GetPrefix(ParaSearch.SearchIndex - 1);
 			if (0 === ParaSearch.SearchIndex)
 			{
@@ -1415,12 +1462,14 @@ ParaRun.prototype.CheckSpecialSymbol = function(ParaSearch, nPos, bCheck)
 			(ParaRun1.Content[nPos].Type === 4) ? ParaSearch.SearchIndex++ : RestParaAndBFalse();
 		},
 		'?': function(){
-			(ParaRun1.Content[nPos].Value !== undefined && ParaRun1.Content[nPos].Value !== 32 &&
-				!((ParaRun1.Content[nPos].Value >=1040 && ParaRun1.Content[nPos].Value <= 1071)
+			(ParaRun1.Content[nPos].Value !== undefined /*&&
+				((ParaRun1.Content[nPos].Value >=1040 && ParaRun1.Content[nPos].Value <= 1071)
 				|| (ParaRun1.Content[nPos].Value >=1072 && ParaRun1.Content[nPos].Value <= 1103)
 					|| (ParaRun1.Content[nPos].Value === 1105 || ParaRun1.Content[nPos].Value === 1025)
 						|| (ParaRun1.Content[nPos].Value >= 65 && ParaRun1.Content[nPos].Value <= 90)
-							|| (ParaRun1.Content[nPos].Value >= 97 && ParaRun1.Content[nPos].Value <= 122)))
+							|| (ParaRun1.Content[nPos].Value >= 97 && ParaRun1.Content[nPos].Value <= 122))
+							  	|| (ParaRun1.Content[nPos].Value >= 48 && ParaRun1.Content[nPos].Value <=57)
+								  	|| ParaRun1.Content[nPos].Value == 32)*/)
 								? ParaSearch.SearchIndex++ : RestParaAndBFalse();
 		},
 		'#': function(){
@@ -1485,6 +1534,96 @@ ParaRun.prototype.CheckSpecialSymbol = function(ParaSearch, nPos, bCheck)
 	};
 	(sLetters[ParaSearch.Str[ParaSearch.SearchIndex + 1]] || sLetters['default'])();
 	return bCheck;
+};
+ParaRun.prototype.Check_Special_Symbol = function(oItem, SearchIndex, sText)
+{
+	var bElement = true;
+	if (sText[SearchIndex] === '^')
+	{
+		var sLetters = {
+			'l': function(){
+				(oItem.Type === 16) ? bElement = true : bElement = false;
+			},
+			't': function(){
+				(oItem.Type === 21) ? bElement = true : bElement = false;
+			},
+			'p': function(){
+				(oItem.Type === 4) ? bElement = true : bElement = false;
+			},
+			'?': function(){
+				(oItem.Value !== undefined /*&&
+					((oItem.Value >=1040 && oItem.Value <= 1071)
+					|| (oItem.Value >=1072 && oItem.Value <= 1103)
+						|| (oItem.Value === 1105 || oItem.Value === 1025)
+							|| (oItem.Value >= 65 && oItem.Value <= 90)
+								|| (oItem.Value >= 97 && oItem.Value <= 122))
+										|| (oItem.Value >= 48 && oItem.Value <=57)
+											|| oItem.Value == 32)*/)
+									? bElement = true : bElement = false;
+			},
+			'#': function(){
+				(oItem.Value >= 48 && oItem.Value <=57) ? bElement = true : bElement = false;
+			},
+			'$': function(){
+				((oItem.Value >=1040 && oItem.Value <= 1071)
+							|| (oItem.Value >=1072 && oItem.Value <= 1103)
+								|| (oItem.Value === 1105 || oItem.Value === 1025)
+									|| (oItem.Value >= 65 && oItem.Value <= 90)
+										|| (oItem.Value >= 97 && oItem.Value <= 122))
+												? bElement = true : bElement = false;
+			},
+			'n': function(){
+				(oItem.BreakType === 3) ? bElement = true : bElement = false;
+			},
+			'e': function(){
+				(oItem.Type === 64) ? bElement = true : bElement = false;
+			},
+			'd': function(){
+				(oItem.Type === 69) ? bElement = true : bElement = false;
+			},
+			'f': function(){
+				(oItem.Type === 57) ? bElement = true : bElement = false;
+			},
+			'g': function(){
+				(oItem.DrawingType === 1) ? bElement = true : bElement = false;
+			},
+			'm': function(){
+				(oItem.BreakType === 2) ? bElement = true : bElement = false;
+			},
+			'~': function(){
+				(oItem.Value === 45) ? bElement = true : bElement = false;
+			},
+			's': function(){
+				(oItem.Value === 160) ? bElement = true : bElement = false;
+			},
+			'^': function(){
+				(oItem.Value === 94) ? bElement = true : bElement = false;
+			},
+			'w': function(){
+				(oItem.Value === 32 
+					|| oItem.Value === 160 
+						|| oItem.Type === 21)
+								? bElement = true : bElement = false;
+			},
+			'+': function(){
+				(oItem.Value >=8208 && oItem.Value <= 8213) ? bElement = true : bElement = false;
+			},
+			'=': function(){
+				(oItem.Value === 45) ? bElement = true : bElement = false;
+			},
+			'%': function(){
+				(oItem.Value === 167) ? bElement = true : bElement = false;
+			},
+			'v': function(){
+				(oItem.Value === 182) ? bElement = true : bElement = false;
+			},
+			'default': function(){
+				bElement = false;
+			}
+		};
+		(sLetters[sText[SearchIndex + 1]] || sLetters['default'])();
+	}
+	return bElement;
 };
 ParaRun.prototype.AddSearchResult = function(oSearchResult, isStart, oContentPos, nDepth)
 {
