@@ -24861,11 +24861,15 @@ CDocument.prototype.ChangeTextCase = function(nCaseType)
 			var oChangeEngine = new CDocumentChangeTextCaseEngine(nCaseType);
 
 			var arrParagraphs = this.GetSelectedParagraphs();
+			
 			for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
 			{
 				oChangeEngine.Reset();
 
 				var oParagraph = arrParagraphs[nIndex];
+
+				oChangeEngine.str = this.GetStr(oParagraph);
+
 				oParagraph.CheckRunContent(function(oRun)
 				{
 					oRun.ChangeTextCase(oChangeEngine);
@@ -24887,6 +24891,18 @@ CDocument.prototype.ChangeTextCase = function(nCaseType)
 		this.LoadDocumentState(oState);
 		this.UpdateSelection();
 	}
+};
+CDocument.prototype.GetStr = function(oParagraph)
+{
+	var sStr = "";
+    for (var i = 0; i < oParagraph.Content.length; i++)
+    {
+    	for (var j = 0; j < oParagraph.Content[i].Content.length; j++)
+    	{
+            sStr += String.fromCharCode(oParagraph.Content[i].Content[j].Value);
+    	}
+    }
+    return sStr;
 };
 /**
  * @returns {boolean}
@@ -27942,24 +27958,44 @@ CDocumentChangeTextCaseEngine.prototype.FlushWord = function()
 
 		if (nLowerCode !== nCharCode || nUpperCode !== nCharCode)
 		{
-			if (nLowerCode === nCharCode
-				&& ((Asc.c_oAscChangeTextCaseType.SentenceCase === nCaseType && (this.StartSentence && 0 === nIndex))
-					|| Asc.c_oAscChangeTextCaseType.ToggleCase === nCaseType
-					|| Asc.c_oAscChangeTextCaseType.UpperCase === nCaseType
-					|| (Asc.c_oAscChangeTextCaseType.CapitalizeWords === nCaseType && 0 === nIndex)))
+			if (!this.AllWordsUpper)
 			{
-				oRun.AddToContent(nInRunPos, new ParaText(nUpperCode), false);
-				oRun.RemoveFromContent(nInRunPos + 1, 1, false);
+				if (nLowerCode === nCharCode
+					&& ((Asc.c_oAscChangeTextCaseType.SentenceCase === nCaseType && (this.StartSentence && 0 === nIndex))
+						|| Asc.c_oAscChangeTextCaseType.ToggleCase === nCaseType
+						|| Asc.c_oAscChangeTextCaseType.UpperCase === nCaseType
+						|| (Asc.c_oAscChangeTextCaseType.CapitalizeWords === nCaseType && 0 === nIndex)))
+				{
+					oRun.AddToContent(nInRunPos, new ParaText(nUpperCode), false);
+					oRun.RemoveFromContent(nInRunPos + 1, 1, false);
+				}
+				else if (nUpperCode === nCharCode
+					&& (Asc.c_oAscChangeTextCaseType.ToggleCase === nCaseType
+						|| Asc.c_oAscChangeTextCaseType.LowerCase === nCaseType
+						|| (Asc.c_oAscChangeTextCaseType.CapitalizeWords === nCaseType && 0 !== nIndex && !isAllCapital)
+						|| (Asc.c_oAscChangeTextCaseType.CapitalizeWords === nCaseType && 0 !== nIndex && this.AllWordsUpper)
+						|| (Asc.c_oAscChangeTextCaseType.CapitalizeWords === nCaseType && 0 !== nIndex && this.AllFirstLettersUpper && isAllCapital && !this.Mistake)
+						|| (Asc.c_oAscChangeTextCaseType.SentenceCase === nCaseType && !isAllCapital
+							&& (0 !== nIndex || (!this.StartSentence && !isAllExceptFirstLower)))
+						|| ((Asc.c_oAscChangeTextCaseType.SentenceCase === nCaseType && this.AllFirstLettersUpper && !isAllCapital && (!this.StartSentence && 0 === nIndex)))
+						|| ((Asc.c_oAscChangeTextCaseType.SentenceCase === nCaseType && this.AllFirstLettersUpper && isAllCapital && !this.Mistake && !(this.StartSentence && 0 === nIndex)))))
+				{
+					oRun.AddToContent(nInRunPos, new ParaText(nLowerCode), false);
+					oRun.RemoveFromContent(nInRunPos + 1, 1, false);
+				}
 			}
-			else if (nUpperCode === nCharCode
-				&& (Asc.c_oAscChangeTextCaseType.ToggleCase === nCaseType
-					|| Asc.c_oAscChangeTextCaseType.LowerCase === nCaseType
-					|| (Asc.c_oAscChangeTextCaseType.CapitalizeWords === nCaseType && 0 !== nIndex && !isAllCapital)
-					|| (Asc.c_oAscChangeTextCaseType.SentenceCase === nCaseType && !isAllCapital
-						&& (0 !== nIndex || (!this .StartSentence && !isAllExceptFirstLower)))))
+			else
 			{
-				oRun.AddToContent(nInRunPos, new ParaText(nLowerCode), false);
-				oRun.RemoveFromContent(nInRunPos + 1, 1, false);
+				if (this.StartSentence && 0 === nIndex)
+				{
+                    oRun.AddToContent(nInRunPos, new ParaText(nUpperCode), false);
+					oRun.RemoveFromContent(nInRunPos + 1, 1, false);
+				}
+				else
+				{
+					oRun.AddToContent(nInRunPos, new ParaText(nLowerCode), false);
+				    oRun.RemoveFromContent(nInRunPos + 1, 1, false);
+				}
 			}
 		}
 	}
