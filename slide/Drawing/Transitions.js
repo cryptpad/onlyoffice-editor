@@ -2725,7 +2725,7 @@ function CDemonstrationManager(htmlpage)
         this.SlideImages[slide_index] = new CCacheSlideImage();
         this.SlideImages[slide_index].Image = _image;
         this.SlideIndexes[slide_index] = slide_num;
-    }
+    };
 
     this.PrepareTransition = function(is_first, is_backward)
     {
@@ -2824,7 +2824,7 @@ function CDemonstrationManager(htmlpage)
                 }
             }
         }
-    }
+    };
 
     this.PrepareSlide = function()
     {
@@ -2864,14 +2864,14 @@ function CDemonstrationManager(htmlpage)
                 this.SlideImage = 0;
             }
         }
-    }
+    };
 
     this.CorrectSlideNum = function()
     {
         this.SlidesCount = this.HtmlPage.m_oDrawingDocument.SlidesCount;
         if (this.SlideNum > this.SlidesCount)
             this.SlideNum = this.SlidesCount;
-    }
+    };
 
     this.StartWaitReporter = function(main_div_id, start_slide_num, is_play_mode)
     {
@@ -2892,7 +2892,7 @@ function CDemonstrationManager(htmlpage)
 			this.HtmlPage.m_oApi.hideVideoControl();
 			window["AscDesktopEditor"]["SetFullscreen"](true);
 		}
-    }
+    };
 
     this.EndWaitReporter = function(isNoStart)
     {
@@ -2909,7 +2909,7 @@ function CDemonstrationManager(htmlpage)
         if (true !== isNoStart)
             this.Start(this.waitReporterObject[0], this.waitReporterObject[1], this.waitReporterObject[2], true);
         this.waitReporterObject = null;
-    }
+    };
 
     this.Start = function(main_div_id, start_slide_num, is_play_mode, is_no_fullscreen)
     {
@@ -2961,7 +2961,7 @@ function CDemonstrationManager(htmlpage)
         this.SlideIndexes[1] = -1;
 
         this.StartSlide(true, true);
-    }
+    };
 
     this.StartSlide = function(is_transition_use, is_first_play)
     {
@@ -3016,7 +3016,7 @@ function CDemonstrationManager(htmlpage)
         }
 
         oThis.OnPaintSlide(false);
-    }
+    };
 
     this.StartSlideBackward = function()
     {
@@ -3057,7 +3057,7 @@ function CDemonstrationManager(htmlpage)
             oThis.SlideNum = this.GetPrevVisibleSlide(true);
 
         oThis.OnPaintSlide(false);
-    }
+    };
 
     this.StopTransition = function()
     {
@@ -3068,7 +3068,7 @@ function CDemonstrationManager(htmlpage)
             clearTimeout(this.CheckSlideDuration);
 
         this.CheckSlideDuration = -1;
-    }
+    };
 
     this.StartTransition = function(_transition, is_first, is_backward)
     {
@@ -3099,7 +3099,7 @@ function CDemonstrationManager(htmlpage)
 
         oThis.PrepareTransition(is_first, is_backward);
         oThis.Transition.Start(false);
-    }
+    };
 
     this.OnEndTransition = function(bIsAttack)
     {
@@ -3110,7 +3110,7 @@ function CDemonstrationManager(htmlpage)
         }
 
         this.OnPaintSlide(true);
-    }
+    };
 
     this.OnPaintSlide = function(is_clear_overlay)
     {
@@ -3163,7 +3163,7 @@ function CDemonstrationManager(htmlpage)
             },
                 _transition.SlideAdvanceDuration);
         }
-    }
+    };
 
     this.End = function(isNoUseFullScreen)
     {
@@ -3228,7 +3228,7 @@ function CDemonstrationManager(htmlpage)
 		}
 
 		this.StartSlideNum = -1;
-    }
+    };
 
     this.IsVisibleSlide = function(slideNum)
     {
@@ -3377,12 +3377,12 @@ function CDemonstrationManager(htmlpage)
         }
 
         this.TmpSlideVisible = -1;
-    }
+    };
 
     this.isLoop = function()
     {
         return (this.HtmlPage.m_oApi.WordControl.m_oLogicDocument.isLoopShowMode() || this.HtmlPage.m_oApi.isEmbedVersion);
-    }
+    };
 
     this.PrevSlide = function(isNoSendFormReporter)
     {
@@ -3411,7 +3411,7 @@ function CDemonstrationManager(htmlpage)
         }
 
 		this.TmpSlideVisible = -1;
-    }
+    };
 
     this.GoToSlide = function(slideNum, isNoSendFormReporter)
     {
@@ -3430,7 +3430,7 @@ function CDemonstrationManager(htmlpage)
         this.HtmlPage.m_oApi.sync_DemonstrationSlideChanged(this.SlideNum);
 
         this.StartSlide(true, false);
-    }
+    };
 
     this.Play = function(isNoSendFormReporter)
     {
@@ -3440,12 +3440,17 @@ function CDemonstrationManager(htmlpage)
         {
             this.NextSlide(isNoSendFormReporter);
         }
-    }
+    };
 
     this.Pause = function()
     {
         this.IsPlayMode = false;
-    }
+    };
+
+    this.OnRecalculateAnimationFrame = function(oPlayer)
+    {
+        oPlayer.drawFrame(oThis.Canvas);
+    };
 
     // manipulators
     this.onKeyDownCode = function(code)
@@ -3486,7 +3491,7 @@ function CDemonstrationManager(htmlpage)
 			default:
 				break;
 		}
-    }
+    };
 
     this.onKeyDown = function(e)
     {
@@ -3508,7 +3513,7 @@ function CDemonstrationManager(htmlpage)
 
         oThis.HtmlPage.IsKeyDownButNoPress = true;
         return false;
-    }
+    };
 
     this.documentMouseInfo = function(e)
     {
@@ -3536,7 +3541,7 @@ function CDemonstrationManager(htmlpage)
             return { x : _x, y : _y, page : oThis.SlideNum };
         }
         return null;
-    }
+    };
 
     this.onMouseDown = function(e)
     {
@@ -3555,7 +3560,7 @@ function CDemonstrationManager(htmlpage)
         oThis.isMouseDown = true;
         e.preventDefault();
         return false;
-    }
+    };
 
     this.onMouseLeave = function(e)
     {
@@ -3568,7 +3573,7 @@ function CDemonstrationManager(htmlpage)
 
         e.preventDefault();
         return false;
-    }
+    };
 
     this.onMouseMove = function(e)
     {
@@ -3611,7 +3616,7 @@ function CDemonstrationManager(htmlpage)
 
         e.preventDefault();
         return false;
-    }
+    };
 
     this.onMouseUp = function(e, isAttack, isFromMainToReporter)
     {
@@ -3680,7 +3685,7 @@ function CDemonstrationManager(htmlpage)
 
 		AscCommon.stopEvent(e);
         return false;
-    }
+    };
 
     this.onMouseWheelDelta = function(delta)
     {
@@ -3692,7 +3697,7 @@ function CDemonstrationManager(htmlpage)
 		{
 			this.PrevSlide();
 		}
-    }
+    };
 
     this.onMouseWhell = function(e)
     {
@@ -3724,7 +3729,7 @@ function CDemonstrationManager(htmlpage)
 
         AscCommon.stopEvent(e);
         return false;
-    }
+    };
 
     this.Resize = function(isNoSend)
     {
@@ -3778,7 +3783,7 @@ function CDemonstrationManager(htmlpage)
             this.StartSlide(this.Transition.IsPlaying(), false);
 
 		oThis.HtmlPage.m_oApi.disableReporterEvents = false;
-    }
+    };
 
     this.PointerMove = function(x, y, w, h)
     {
@@ -3812,7 +3817,7 @@ function CDemonstrationManager(htmlpage)
             };
 			this.HtmlPage.m_oApi.sendFromReporter(JSON.stringify(_msg_));
         }
-    }
+    };
 
     this.PointerRemove = function()
     {
@@ -3830,5 +3835,5 @@ function CDemonstrationManager(htmlpage)
 
 			this.HtmlPage.m_oApi.sendFromReporter("{ \"reporter_command\" : \"pointer_remove\" }");
 		}
-    }
+    };
 }

@@ -4088,9 +4088,6 @@
     CAnimMotion.prototype.getChildren = function() {
         return [this.cBhvr];
     };
-
-
-
     CAnimMotion.prototype.privateCalculateParams = function() {
         if(this.path) {
             this.parsedPath = new CSVGPath(this.path);
@@ -4455,7 +4452,7 @@
             }
         }
         if(dR !== null) {
-            oAttributes["r"] = AscFormat.normalizeRotate(this.getTargetObjectRot() + dR);
+            oAttributes["r"] = dR;
         }
     };
 
@@ -5678,7 +5675,6 @@
         }
         return false;
     };
-
     CAnimationScheduler.prototype.addEvent = function(oEvent) {
         this.events.push(oEvent);
     };
@@ -5704,9 +5700,38 @@
         return this.player.getElapsedTicks();
     };
 
+    function CTexturesCache(oDrawer) {
+        this.drawer = oDrawer;
+        this.map = {};
+    }
+    CTexturesCache.prototype.checkTexture = function(sId) {
+        if(!this.map[sId]) {
+            var oTexture = this.createDrawingTexture(sId);
+            this.map[sId] = oTexture;
+            if(!this.map[sId]) {
+                this.removeTexture(sId);
+                return undefined;
+            }
+        }
+        return this.map[sId];
+    };
+    CTexturesCache.prototype.createDrawingTexture = function(sId) {
+        var oDrawing = AscCommon.g_oTableId.Get_ById(sId);
+        if(!oDrawing) {
+            return undefined;
+        }
+        return oDrawing.getCachedCanvas();
+    };
+    CTexturesCache.prototype.removeTexture = function(sId) {
+        if(this.map[sId]) {
+            delete this.map[sId];
+        }
+    };
+
     function CAnimationDrawer(player) {
         this.player = player;
         this.sandwiches = {};//map by drawing id
+        this.texturesCache = new CTexturesCache(this);
     }
     CAnimationDrawer.prototype.clearSandwiches = function() {
         this.sandwiches = {};
@@ -5719,105 +5744,108 @@
         oSandwich.addAnimation(oAnimation);
     };
     CAnimationDrawer.prototype.onFrame = function() {
+        this.collectSandwiches();
+        if(this.checkNeedRedrawFrame()) {
+            this.onRecalculateFrame();
+        }
+    };
+    CAnimationDrawer.prototype.checkNeedRedrawFrame = function() {
+        return true;
+    };
+    CAnimationDrawer.prototype.drawFrame = function(oCanvas, oRect) {
+        var oSlide = this.getSlide();
+        if(!oSlide) {
+            return;
+        }
+        var oGraphics = this.createGraphics(oCanvas, oRect);
+        oGraphics.animationDrawer = this;
+        oSlide.draw(oGraphics);
+    };
+    CAnimationDrawer.prototype.drawObject = function(oDrawing, oGraphics) {
+        var sDrawingId = oDrawing.Get_Id();
+        var oSandwich = this.getSandwich(sDrawingId);
+
+        var oIdentityMatrix = new AscCommon.CMatrix();
+        if(!oSandwich) {
+            var oTexture = this.texturesCache.checkTexture(sDrawingId);
+            if(!oTexture) {
+                this.drawByOwn(oDrawing, oGraphics);
+            }
+            else {
+                this.drawTexture(oGraphics, oTexture, oIdentityMatrix)
+            }
+        }
+        this.drawByOwn(oDrawing, oGraphics);
+    };
+    CAnimationDrawer.prototype.drawByOwn = function(oDrawing, oGraphics) {
+        oGraphics.animationDrawer = null;
+        oDrawing.draw(oGraphics);
+        oGraphics.animationDrawer = this;
+    };
+    CAnimationDrawer.prototype.drawTexture = function(oGraphics, oTexture, oTransform) {
+
+    };
+    CAnimationDrawer.prototype.createGraphics = function(oCanvas, oRect) {
+        var wPix = oRect.w;
+        var hPix = oRect.h;
+        var wMM = this.getSlideWidth();
+        var hMM = this.getSlideHeight();
+        var oGraphics = new AscCommon.CGraphics();
+        oGraphics.init(oCanvas.getContext('2d'), wPix, hPix, wMM, hMM);
+        oGraphics.m_oFontManager = AscCommon.g_fontManager;
+        oGraphics.transform(1,0,0,1,0,0);
+        oGraphics.IsNoDrawingEmptyPlaceholder = true;
+        oGraphics.IsDemonstrationMode = true;
+        return oGraphics;
+    };
+    CAnimationDrawer.prototype.onRecalculateFrame = function() {
+        this.player.onRecalculateFrame();
+    };
+    CAnimationDrawer.prototype.collectSandwiches = function() {
         this.clearSandwiches();
         var oThis = this;
-
         var oPresentation = editor.WordControl.m_oLogicDocument;
         for(var nTiming = 0; nTiming < this.player.timings.length; ++nTiming) {
             var oRoot = this.player.timings[nTiming].getTimingRootNode();
             if(oRoot) {
                 oRoot.traverseDrawable(this.player);
-                console.clear();
-                for(var sKey in this.sandwiches) {
-                    if(this.sandwiches.hasOwnProperty(sKey)) {
-                        var oSandwich = this.sandwiches[sKey];
-                        oSandwich.print(oThis.player.getElapsedTicks());
-                        var oDrawing = AscCommon.g_oTableId.Get_ById(sKey);
-                        if(oDrawing) {
-
-                            for(var nNode = 0; nNode < oSandwich.animations.length; ++nNode) {
-                                var oNode = oSandwich.animations[nNode];
-                                if (oNode instanceof CAnimMotion) {
-
-                                    var oParentNode = oNode.getParentTimeNode();
-                                    var bAutoRev = false;
-                                    if(oParentNode) {
-                                        bAutoRev = oParentNode.getAttributesObject().autoRev;
-                                        if(bAutoRev) {
-                                            bAutoRev = (oParentNode.simpleDurationIdx % 2 === 1);
-                                        }
-                                    }
-                                    var fRelTime = (oThis.player.getElapsedTicks() - oNode.startTick) / oNode.simpleDuration.getVal();//TODO
-                                    //if(bAutoRev) {
-                                    //    fRelTime = 1 - fRelTime;
-                                    //}
-                                    if (oNode.parsedPath) {
-                                        var oPos = oNode.parsedPath.getPosition(fRelTime);
-                                        if (oPos) {
-                                            var W = oPresentation.GetWidthMM();
-                                            var H = oPresentation.GetHeightMM();
-                                            var DX = W * oPos.x;
-                                            var DY = H * oPos.y;
-                                            //console.log("Elapsed " + oThis.player.getElapsedTicks());
-                                            //console.log("DX " + DX);
-                                            //console.log("DY " + DY);
-                                            var fMoveDr = function (oDrawing) {
-                                                if (oDrawing) {
-                                                    if (!oDrawing.origX) {
-                                                        oDrawing.origX = oDrawing.spPr.xfrm.offX;
-                                                        oDrawing.origY = oDrawing.spPr.xfrm.offY;
-                                                    }
-                                                    oDrawing.spPr.xfrm.offX = oDrawing.origX + DX;
-                                                    oDrawing.spPr.xfrm.offY = oDrawing.origY + DY;
-                                                }
-                                            };
-                                            fMoveDr(oDrawing);
-                                        }
-                                    }
-                                }
-                                if (oNode instanceof CAnimRot) {
-                                    var fRelTime = (oThis.player.getElapsedTicks() - oNode.startTick) / oNode.simpleDuration.getVal();//TODO
-                                    var dR = 2 * Math.PI * fRelTime;
-                                    var fMoveDr = function (oDrawing) {
-                                        if (oDrawing) {
-                                            if (!AscFormat.isRealNumber(oDrawing.origRot)) {
-                                                oDrawing.origRot = oDrawing.rot;
-                                            }
-
-                                            oDrawing.spPr.xfrm.rot =  oDrawing.origRot  + dR;
-                                        }
-                                    };
-                                    fMoveDr(oDrawing);
-                                }
-                            }
-                            oDrawing.recalculateTransform();
-                            oDrawing.localTransform = oDrawing.transform;
-                            var  fRecursiveRecalcTransform = function(aSpTree) {
-                                if (Array.isArray(aSpTree)) {
-                                    for (var i = 0; i < aSpTree.length; ++i) {
-                                        aSpTree[i].recalculateTransform();
-                                        aSpTree[i].localTransform = aSpTree[i].transform;
-                                        fRecursiveRecalcTransform(aSpTree[i].spTree);
-                                    }
-                                }
-                            };
-                            fRecursiveRecalcTransform(oDrawing.spTree);
-                        }
-                    }
-                }
             }
         }
-        oPresentation.DrawingDocument.OnRecalculatePage(0, oPresentation.Slides[0]);
-        editor.WordControl.OnPaint();
+    };
+    CAnimationDrawer.prototype.getSlideWidth = function() {
+        return this.player.getSlideWidth();
+    };
+    CAnimationDrawer.prototype.getSlideHeight = function() {
+        return this.player.getSlideHeight();
+    };
+    CAnimationDrawer.prototype.getSlide = function() {
+        return editor.WordControl.m_oLogicDocument.Slides[editor.WordControl.m_oLogicDocument.CurPage];
+    };
+    CAnimationDrawer.prototype.getSandwich = function(sId) {
+        var oSandwich = this.sandwiches[sId];
+        if(!oSandwich) {
+            return null;
+        }
+        return oSandwich;
     };
 
-    function CAnimationPlayer(aTimings) {
+    function CAnimationPlayer(aTimings, drawer) {
         this.timings = aTimings;
         this.eventsProcessor = new CEventsProcessor(this);
         this.animationScheduler = new CAnimationScheduler(this);
         this.animationDrawer = new CAnimationDrawer(this);
         this.timer = new CAnimationTimer(this);
+        this.drawer = drawer;
     }
+    CAnimationPlayer.prototype.getPresentation = function() {
+        return editor.WordControl.m_oLogicDocument;
+    };
+    CAnimationPlayer.prototype.getSlideWidth = function() {
+        return this.getPresentation().GetWidthMM();
+    };
+    CAnimationPlayer.prototype.getSlideHeight = function() {
+        return this.getPresentation().GetHeightMM();
+    };
     CAnimationPlayer.prototype.start = function() {
         this.timer.start();
         for(var nTiming = 0; nTiming < this.timings.length; ++nTiming) {
@@ -5902,6 +5930,14 @@
     CAnimationPlayer.prototype.addAnimationToDraw = function(sDrawingId, oAnimation) {
         this.animationDrawer.addAnimationToDraw(sDrawingId, oAnimation);
     };
+    CAnimationPlayer.prototype.drawFrame = function(oCanvas, oRect) {
+        this.animationDrawer.drawFrame(oCanvas, oRect);
+    };
+    CAnimationPlayer.prototype.onRecalculateFrame = function() {
+        if(this.drawer) {
+            this.drawer.OnRecalculateAnimationFrame(this);
+        }
+    };
 
 
     var DEFAULT_SIMPLE_TRIGGER = function() {
@@ -5911,6 +5947,14 @@
         return false;
     };
 
+    function CAnimAttributes(oDrawer) {
+        this.drawer = oDrawer;
+        this.attr = {};
+    }
+    CAnimAttributes.prototype.setDrawingStyle = function(style) {
+    };
+    CAnimAttributes.prototype.setDrawingSpPr = function(style) {
+    };
     function CAnimSandwich(sDrawingId) {
         this.drawingId = sDrawingId;
         this.animations = [];
@@ -5925,23 +5969,588 @@
     CAnimSandwich.prototype.checkOnAdd = function() {
         //TODO: sort
     };
+    CAnimSandwich.prototype.getDrawing = function() {
+        return AscCommon.g_oTableId.Get_ById(this.drawingId);
+    };
     CAnimSandwich.prototype.getAttributesMap = function(nElapsedTime) {
+
         var oAttributes = {};
         for(var nAnim = 0; nAnim < this.animations.length; ++nAnim) {
             this.animations[nAnim].calculateAttributes(nElapsedTime, oAttributes);
         }
         return oAttributes;
     };
-
     CAnimSandwich.prototype.print = function(nElapsedTime) {
         var oAttributes = this.getAttributesMap(nElapsedTime);
         console.log(oAttributes);
     };
 
+
+    //--------------------------------------------
+    //Formula parser
+
+
+    function CParseQueue(oParser) {
+        this.queue = [];
+        this.pos = -1;
+        this.parser = oParser;
+    }
+    CParseQueue.prototype.add = function(oToken){
+        this.queue.push(oToken);
+        this.pos = this.queue.length - 1;
+    };
+    CParseQueue.prototype.last = function(){
+        return this.queue[this.queue.length - 1];
+    };
+    CParseQueue.prototype.getNext = function(){
+        if(this.pos > -1){
+            return this.queue[--this.pos];
+        }
+        return null;
+    };
+    CParseQueue.prototype.calculate = function(oVarMap){
+        this.pos = this.queue.length - 1;
+        var oLastToken = this.queue[this.pos];
+        return oLastToken.calculate(oVarMap);
+    };
+
+
+    function CTokenBase(oQueue) {
+        this.queue = oQueue;
+        this.result = null;
+        this.error = null;
+    }
+    CTokenBase.prototype.argumentsCount = 0;
+    CTokenBase.prototype.precedence = 0;
+    CTokenBase.prototype.getPrecedence = function() {
+        return this.precedence;
+    };
+    CTokenBase.prototype.calculate = function(oVarMap) {
+        this.result = null;
+        this.error = null;
+        if(!this.queue) {
+            this.error = true;
+            return false;
+        }
+        var aArgs = [];
+        var oToken;
+        var nArgCount = this.getArgumentsCount();
+        for(var nArg = 0; nArg < nArgCount; ++nArg) {
+            oToken = this.queue.getNext();
+            if(!oToken) {
+                this.error = true;
+                return;
+            }
+            var bOk = oToken.calculate(oVarMap);
+            if(bOk) {
+                aArgs.push(oToken.getResult());
+            }
+            else {
+                return false;
+            }
+        }
+        this._calculate(aArgs, oVarMap);
+        this.error = !AscFormat.isRealNumber(this.result);
+        return !this.error;
+    };
+    CTokenBase.prototype._calculate = function(aArgs, oVarMap) {
+        this.result = null;
+    };
+    CTokenBase.prototype.getArgumentsCount = function() {
+        return this.argumentsCount;
+    };
+    CTokenBase.prototype.getResult = function() {
+        return this.result;
+    };
+    CTokenBase.prototype.isFunction = function() {
+        return false;
+    };
+    CTokenBase.prototype.isOperator = function() {
+        return false;
+    };
+
+    function CConstantToken(oQueue, sValue) {
+        CTokenBase.call(this, oQueue);
+        this.value = sValue;
+    }
+    InitClass(CConstantToken, CTokenBase, undefined);
+    CConstantToken.prototype.argumentsCount = 0;
+    CConstantToken.prototype.precedence = 9;
+    CConstantToken.prototype._calculate = function(aArgs, oVarMap) {
+        this.result = this.value;
+    };
+
+    function CVariableToken(oQueue, sName) {
+        CTokenBase.call(this, oQueue);
+        this.name = sName;
+    }
+    InitClass(CVariableToken, CTokenBase, undefined);
+    CVariableToken.prototype.argumentsCount = 0;
+    CVariableToken.prototype.precedence = 9;
+    CVariableToken.prototype._calculate = function(aArgs, oVarMap) {
+        this.result = oVarMap[this.name];
+    };
+    CVariableToken.prototype.setName = function(sName) {
+        this.name = sName;
+    };
+    CVariableToken.prototype.variables = {
+        "$": true,
+        "#ppt_x": true,
+        "#ppt_y": true,
+        "#ppt_w": true,
+        "#ppt_h": true
+    };
+    function CFunctionToken(oQueue, sName) {
+        CTokenBase.call(this, oQueue);
+        this.name = sName;
+        this.operands = [];
+    }
+    InitClass(CFunctionToken, CTokenBase, undefined);
+    CFunctionToken.prototype.argumentsCount = 0;
+    CFunctionToken.prototype.precedence = 9;
+    CFunctionToken.prototype._calculate = function(aArgs, oVarMap) {
+        var fFunction = this.functions[this.name];
+        if(!fFunction) {
+            this.result = null;
+            return;
+        }
+        this.result = fFunction.apply(null, aArgs);
+    };
+    CFunctionToken.prototype.functions = {
+        "abs": function(x) {return Math.abs(x);},
+        "acos": function(x) {return Math.acos(x);},
+        "asin": function (x) {return Math.asin(x);},
+        "atan": function (x) {return Math.atan(x);},
+        "ceil": function(x){return Math.ceil(x);},
+        "cos": function(x){return Math.cos(x);},
+        "cosh": function(x){return Math.cosh(x);},
+        "deg": function(x){return x * AscFormat.cToDeg;},
+        "exp": function(x){return Math.exp(x);},
+        "floor": function(x){return Math.floor(x);},
+        "ln": function(x){return Math.log(x);},
+        "max": function(x, y){return Math.max(x, y);},
+        "min": function(x, y){return Math.min(x, y);},
+        "rad": function(x){return x * AscFormat.cToRad;},
+        "rand": function(x){return Math.random()* x;},
+        "sin": function(x){return Math.sin(x);},
+        "sinh": function(x){return Math.sinh(x);},
+        "sqrt": function(x){return Math.sqrt(x);},
+        "tan": function(x){return Math.tan(x);},
+        "tanh": function(x){return Math.tanh(x);}
+    };
+    CFunctionToken.prototype.getArgumentsCount = function() {
+        if(this.name === "max" || this.name === "min") {
+            return 2;
+        }
+        var fFunction = this.functions[this.name];
+        if(fFunction) {
+            return 1;
+        }
+        return 0;
+    };
+    CFunctionToken.prototype.addOperand = function(oOperand) {
+        return this.operands.push(oOperand);
+    };
+    CFunctionToken.prototype.getOperandsCount = function() {
+        return this.operands.length;
+    };
+    CFunctionToken.prototype.isFunction = function() {
+        return true;
+    };
+
+    function CBinaryOperatorToken(oQueue, sName) {
+        CTokenBase.call(this, oQueue);
+        this.name = sName;
+    }
+    InitClass(CBinaryOperatorToken, CTokenBase, undefined);
+    CBinaryOperatorToken.prototype.argumentsCount = 2;
+    CBinaryOperatorToken.prototype.getPrecedence = function() {
+        if(this.name === "^") {
+            return 7;
+        }
+        if(this.name === "*" || this.name === "/" || this.name === "%") {
+            return 6;
+        }
+        if(this.name === "+" || this.name === "-") {
+            return 5;
+        }
+        return 0;
+    };
+    CBinaryOperatorToken.prototype._calculate = function(aArgs, oVarMap) {
+        var fFunction = this.operators[this.name];
+        if(!fFunction) {
+            this.result = null;
+            return;
+        }
+        this.result = fFunction.apply(null, aArgs);
+    };
+    CBinaryOperatorToken.prototype.operators = {
+        "+": function (x, y) {return y + x},
+        "-": function (x, y) {return y - x},
+        "*": function (x, y) {return y * x},
+        "/": function (x, y) {return y / x},
+        "%": function (x, y) {return y % x},
+        "^": function (x, y) {return Math.pow(y, x)}
+    };
+    CBinaryOperatorToken.prototype.isOperator = function() {
+        return true;
+    };
+
+    function CUnaryOperatorToken(oQueue, sName) {
+        CTokenBase.call(this, oQueue);
+        this.name = sName;
+    }
+    InitClass(CUnaryOperatorToken, CTokenBase, undefined);
+    CUnaryOperatorToken.prototype.argumentsCount = 1;
+    CUnaryOperatorToken.prototype.precedence = 8;
+    CUnaryOperatorToken.prototype._calculate = function(aArgs, oVarMap) {
+        var fFunction = this.operators[this.name];
+        if(!fFunction) {
+            this.result = null;
+            return;
+        }
+        this.result = fFunction.apply(null, aArgs);
+    };
+    CUnaryOperatorToken.prototype.operators = {
+        "+": function (x) {return +x},
+        "-": function (x) {return -x}
+    };
+    CUnaryOperatorToken.prototype.isOperator = function() {
+        return true;
+    };
+    function CLeftParenToken(oQueue) {
+        CTokenBase.call(this, oQueue);
+    }
+    InitClass(CLeftParenToken, CTokenBase, undefined);
+    CLeftParenToken.prototype.argumentsCount = 0;
+    CLeftParenToken.prototype.precedence = 1;
+    CLeftParenToken.prototype._calculate = function(aArgs, oVarMap) {
+    };
+    function CRightParenToken(oQueue) {
+        CTokenBase.call(this, oQueue);
+    }
+    InitClass(CRightParenToken, CTokenBase, undefined);
+    CRightParenToken.prototype.argumentsCount = 0;
+    CRightParenToken.prototype.precedence = 1;
+    CRightParenToken.prototype._calculate = function(aArgs, oVarMap) {
+    };
+
+    function CArgSeparatorToken(oQueue) {
+        CTokenBase.call(this, oQueue);
+    }
+    InitClass(CRightParenToken, CTokenBase, undefined);
+    CArgSeparatorToken.prototype.argumentsCount = 0;
+    CArgSeparatorToken.prototype.precedence = 9;
+    CArgSeparatorToken.prototype._calculate = function(aArgs, oVarMap) {
+    };
+
+
+    var OPERATORS_MAP = {
+        "+": true,
+        "-": true,
+        "*": true,
+        "/": true,
+        "%": true,
+        "^": true
+    };
+
+    var FUNC_REGEXPSTR = "(abs\|acos\|asin\|atan\|ceil\|cos\|cosh\|deg\|exp\|floor\|ln\|max\|min\|rad\|rand\|sin\|sinh\|sqrt\|tan\|tanh)";
+    var FUNC_REGEXP = new RegExp(FUNC_REGEXPSTR, "g");
+
+    var CONST_REGEXPSTR = "(pi\|e)";
+    var CONST_REGEXP = new RegExp(CONST_REGEXPSTR, "g");
+
+    var NUMBER_REGEXPSTR = "[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?";
+    var NUMBER_REGEXP = new RegExp(NUMBER_REGEXPSTR, "g");
+
+    var VAR_REGEXPSTR = "(\\$\|#ppt_x\|#ppt_y\|#ppt_w\|#ppt_h)";
+    var VAR_REGEXP = new RegExp(VAR_REGEXPSTR, "g");
+
+    var PARSER_FLAGS_CONSTVAR = 1;
+    var PARSER_FLAGS_FUNCTION = 2;
+    var PARSER_FLAGS_BINARYOP = 4;
+    var PARSER_FLAGS_UNARYOP  = 8;
+    var PARSER_FLAGS_LEFTPAR  = 16;
+    var PARSER_FLAGS_RIGHTPAR = 32;
+    var PARSER_FLAGS_ARGSEP   = 64;
+    function CFormulaParser(sFormula) {
+        this.formula = sFormula;
+        this.pos = 0;
+        this.flags = 0;
+        this.queue = new CParseQueue();
+    }
+    CFormulaParser.prototype.setFlag = function(nMask, bVal) {
+        if(bVal){
+            this.flags |= nMask;
+        }
+        else{
+            this.flags &= (~nMask);
+        }
+    };
+    CFormulaParser.prototype.getFlag = function(nMask) {
+        return (this.flags & nMask) === nMask;
+    };
+    CFormulaParser.prototype.parse = function() {
+        this.pos = 0;
+        this.setFlag(PARSER_FLAGS_CONSTVAR, true);
+        this.setFlag(PARSER_FLAGS_FUNCTION, true);
+        this.setFlag(PARSER_FLAGS_BINARYOP, false);
+        this.setFlag(PARSER_FLAGS_UNARYOP, true);
+        this.setFlag(PARSER_FLAGS_LEFTPAR, true);
+        this.setFlag(PARSER_FLAGS_RIGHTPAR, false);
+        this.setFlag(PARSER_FLAGS_ARGSEP, false);
+        var oCurToken;
+        var aStack = [];
+        var aFunctionsStack = [];
+        var oLastToken = null;
+        var oToken;
+        var oLastFunction;
+        while (oCurToken = this.parseCurrent()){
+            if(oCurToken instanceof CConstantToken || oCurToken instanceof CVariableToken) {
+                if(!this.getFlag(PARSER_FLAGS_CONSTVAR)) {
+                    return null;
+                }
+                this.queue.add(oCurToken);
+                this.setFlag(PARSER_FLAGS_CONSTVAR, false);
+                this.setFlag(PARSER_FLAGS_FUNCTION, false);
+                this.setFlag(PARSER_FLAGS_BINARYOP, true);
+                this.setFlag(PARSER_FLAGS_UNARYOP, false);
+                this.setFlag(PARSER_FLAGS_LEFTPAR, false);
+                this.setFlag(PARSER_FLAGS_RIGHTPAR, true);
+                this.setFlag(PARSER_FLAGS_ARGSEP, aFunctionsStack.length > 0);
+            }
+            else if(oCurToken instanceof CFunctionToken) {
+                if(!this.getFlag(PARSER_FLAGS_FUNCTION)) {
+                    return null;
+                }
+                aStack.push(oCurToken);
+                this.setFlag(PARSER_FLAGS_CONSTVAR, false);
+                this.setFlag(PARSER_FLAGS_FUNCTION, false);
+                this.setFlag(PARSER_FLAGS_BINARYOP, false);
+                this.setFlag(PARSER_FLAGS_UNARYOP, false);
+                this.setFlag(PARSER_FLAGS_LEFTPAR, true);
+                this.setFlag(PARSER_FLAGS_RIGHTPAR, false);
+                this.setFlag(PARSER_FLAGS_ARGSEP, false);
+            }
+            else if(oCurToken instanceof CArgSeparatorToken){
+                if(!this.getFlag(PARSER_FLAGS_ARGSEP)) {
+                    return null;
+                }
+                if(aFunctionsStack.length > 0){
+                    while(aStack.length > 0 && !(aStack[aStack.length-1] instanceof CLeftParenToken)){
+                        oToken = aStack.pop();
+
+                        this.queue.add(oToken);
+                    }
+                    if(aStack.length === 0){
+                        return null;
+                    }
+                    oLastFunction = aFunctionsStack[aFunctionsStack.length-1];
+                    oLastFunction.addOperand(this.queue.last());
+                    if(oLastFunction.addOperand(this.queue.last()) >= oLastFunction.getArgumentsCount()){
+                        return null;
+                    }
+                }
+                else{
+                    return null;
+                }
+                this.setFlag(PARSER_FLAGS_CONSTVAR, true);
+                this.setFlag(PARSER_FLAGS_FUNCTION, true);
+                this.setFlag(PARSER_FLAGS_BINARYOP, false);
+                this.setFlag(PARSER_FLAGS_UNARYOP, true);
+                this.setFlag(PARSER_FLAGS_LEFTPAR, true);
+                this.setFlag(PARSER_FLAGS_RIGHTPAR, false);
+                this.setFlag(PARSER_FLAGS_ARGSEP, false);
+            }
+            else if(oCurToken instanceof CLeftParenToken){
+                if(!this.getFlag(PARSER_FLAGS_LEFTPAR)) {
+                    return null;
+                }
+                aStack.push(oCurToken);
+                if(oLastToken && oLastToken.isFunction(oLastToken)){
+                    aFunctionsStack.push(oLastToken);
+                }
+                this.setFlag(PARSER_FLAGS_CONSTVAR, true);
+                this.setFlag(PARSER_FLAGS_FUNCTION, true);
+                this.setFlag(PARSER_FLAGS_BINARYOP, false);
+                this.setFlag(PARSER_FLAGS_UNARYOP, true);
+                this.setFlag(PARSER_FLAGS_LEFTPAR, true);
+                this.setFlag(PARSER_FLAGS_RIGHTPAR, true);
+                this.setFlag(PARSER_FLAGS_ARGSEP, false);
+            }
+            else if(oCurToken instanceof CRightParenToken){
+                while(aStack.length > 0 && !(aStack[aStack.length-1] instanceof CLeftParenToken)){
+                    oToken = aStack.pop();
+                    this.queue.add(oToken);
+                }
+
+                if(aStack.length === 0){
+                    return null;
+                }
+                aStack.pop();//remove left paren
+                if(aStack[aStack.length-1] && aStack[aStack.length-1].isFunction()){
+                    aFunctionsStack.pop();
+                    oLastFunction = aStack[aStack.length-1];
+                    oLastFunction.addOperand(this.queue.last());
+                    if(oLastFunction.getOperandsCount() !== oLastFunction.getArgumentsCount()){
+                        return null;
+                    }
+                    oToken = aStack.pop();
+                    this.queue.add(oToken);
+                }
+                this.setFlag(PARSER_FLAGS_CONSTVAR, false);
+                this.setFlag(PARSER_FLAGS_FUNCTION, false);
+                this.setFlag(PARSER_FLAGS_BINARYOP, true);
+                this.setFlag(PARSER_FLAGS_UNARYOP, false);
+                this.setFlag(PARSER_FLAGS_LEFTPAR, false);
+                this.setFlag(PARSER_FLAGS_RIGHTPAR, true);
+                this.setFlag(PARSER_FLAGS_ARGSEP, aFunctionsStack.length > 0);
+            }
+            else if(oCurToken.isOperator()){
+                if(oCurToken instanceof CUnaryOperatorToken){
+                    if(!this.getFlag(PARSER_FLAGS_UNARYOP)){
+                        return null;
+                    }
+                    this.setFlag(PARSER_FLAGS_UNARYOP, false);
+                }
+                else{
+                    if(!this.getFlag(PARSER_FLAGS_BINARYOP)) {
+                        return null;
+                    }
+                    this.setFlag(PARSER_FLAGS_UNARYOP, true);
+                }
+                while(aStack.length > 0 && (!(aStack[aStack.length-1] instanceof CLeftParenToken) && aStack[aStack.length-1].getPrecedence() >= oCurToken.getPrecedence())){
+                    oToken = aStack.pop();
+                    this.queue.add(oToken);
+                }
+                this.setFlag(PARSER_FLAGS_CONSTVAR, true);
+                this.setFlag(PARSER_FLAGS_FUNCTION, true);
+                this.setFlag(PARSER_FLAGS_BINARYOP, false);
+                this.setFlag(PARSER_FLAGS_LEFTPAR, true);
+                this.setFlag(PARSER_FLAGS_RIGHTPAR, false);
+                this.setFlag(PARSER_FLAGS_ARGSEP, false);
+                aStack.push(oCurToken);
+            }
+
+            oLastToken = oCurToken;
+        }
+
+        if(this.pos < this.formula.length){
+            return null;
+        }
+        while (aStack.length > 0){
+            oCurToken = aStack.pop();
+            if(oCurToken instanceof CLeftParenToken || oCurToken instanceof CRightParenToken){
+                return null;
+            }
+            this.queue.add(oCurToken);
+        }
+        return this.queue;
+    };
+    CFormulaParser.prototype.isOperator = function(sSymbol) {
+        return !!OPERATORS_MAP[sSymbol];
+    };
+    CFormulaParser.prototype.parseCurrent = function() {
+        //skip spaces
+        while(this.formula[this.pos] == " ") {
+            ++this.pos;
+        }
+        if(this.pos >= this.formula.length) {
+            return null;
+        }
+        var sCurSymbol = this.formula[this.pos];
+        if(sCurSymbol === "(") {
+            ++this.pos;
+            return new CLeftParenToken(this.queue);
+        }
+        if(sCurSymbol === ")") {
+            ++this.pos;
+            return new CRightParenToken(this.queue);
+        }
+        if(sCurSymbol === ",") {
+            ++this.pos;
+            return new CArgSeparatorToken(this.queue);
+        }
+        if(this.isOperator(sCurSymbol)) {
+            ++this.pos;
+            return this.parseOperator(sCurSymbol);
+        }
+        //check function
+        var oRet = this.checkExpression(FUNC_REGEXP, this.parseFunction);
+        if(oRet){
+            return oRet;
+        }
+        oRet = this.checkExpression(VAR_REGEXP, this.parseVar);
+        if(oRet){
+            return oRet;
+        }
+        oRet = this.checkExpression(CONST_REGEXP, this.parseConst);
+        if(oRet){
+            return oRet;
+        }
+        oRet = this.checkExpression(NUMBER_REGEXP, this.parseNumber);
+        if(oRet){
+            return oRet;
+        }
+        return null;
+    };
+    CFormulaParser.prototype.parseFunction = function(nStartPos, nEndPos){
+        var sFunction = this.formula.slice(nStartPos, nEndPos);
+        if(CFunctionToken.prototype.functions[sFunction]) {
+            return new CFunctionToken(this.queue, sFunction);
+        }
+        return null;
+    };
+    CFormulaParser.prototype.parseVar = function(nStartPos, nEndPos){
+        var sVar = this.formula.slice(nStartPos, nEndPos);
+        if(CVariableToken.prototype.variables[sVar]) {
+            return new CVariableToken(this.queue, sVar);
+        }
+        return null;
+    };
+    CFormulaParser.prototype.parseConst = function(nStartPos, nEndPos){
+        var sConst = this.formula.slice(nStartPos, nEndPos);
+        if(sConst === "pi") {
+            return new CConstantToken(this.queue, Math.PI);
+        }
+        else if(sConst === "e") {
+            return new CConstantToken(this.queue, Math.E);
+        }
+        return null;
+    };
+    CFormulaParser.prototype.parseNumber = function(nStartPos, nEndPos){
+        var sNumber = this.formula.slice(nStartPos, nEndPos);
+        var fNumer = parseFloat(sNumber);
+        if(AscFormat.isRealNumber(fNumer)) {
+            return  new CConstantToken(this.queue, fNumer);
+        }
+        return null;
+    };
+    CFormulaParser.prototype.checkExpression = function(oRegExp, fCallback){
+        oRegExp.lastIndex = this.pos;
+        var oRes = oRegExp.exec(this.formula);
+        if(oRes && oRes.index === this.pos){
+            var ret = fCallback.call(this, this.pos, oRegExp.lastIndex);
+            this.pos = oRegExp.lastIndex;
+            return ret;
+        }
+        return null;
+    };
+    CFormulaParser.prototype.parseOperator = function(sOperator) {
+        if(sOperator === "+" || sOperator === "-") {
+            if(this.getFlag(PARSER_FLAGS_UNARYOP)) {
+                return new CUnaryOperatorToken(this.queue, sOperator);
+            }
+        }
+        return new CBinaryOperatorToken(this.queue, sOperator);
+    };
+    //--------------------------------------------------------------------------
+
+
     var GLOBAL_PLAYER = null;
 
     function StartTestAnimation() {
-        var oSlide = editor.WordControl.m_oLogicDocument.Slides[0];
+        var oSlide = editor.WordControl.m_oLogicDocument.Slides[editor.WordControl.m_oLogicDocument.CurPage];
         var oRootNode = oSlide.timing.getTimingRootNode();
         var oPlayer = new AscFormat.CAnimationPlayer([oSlide.timing]);
         GLOBAL_PLAYER = oPlayer;
@@ -6010,4 +6619,5 @@
     window['AscFormat'].CAnimationPlayer = CAnimationPlayer;
     window['AscFormat'].StartTestAnimation = StartTestAnimation;
     window['AscFormat'].CBaseAnimObject = CBaseAnimObject;
+    window['AscFormat'].CAnimFormulaParser = CFormulaParser;
 })(window);
