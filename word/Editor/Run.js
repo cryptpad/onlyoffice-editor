@@ -12975,8 +12975,90 @@ ParaRun.prototype.ChangeTextCase = function(oEngine)
 			nEndPos   = nTemp;
 		}
 	}
-
-	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+    function isLetter1(nP) {
+        return ((nP >= 'a' && nP <= 'z') || (nP >= 'A' && nP <= 'Z') || (nP >= 'а' && nP <= 'я') || (nP >= 'А' && nP <= 'Я') || (nP == "ё") || (nP == "Ё"));
+    }
+    oEngine.Mistake = false;
+    var splits = oEngine.str.split(" ");
+    for (var nPos = 0, nCount = splits.length; nPos < nCount; nPos++)
+    {
+    	if (splits[nPos].charCodeAt(0) !== 92)
+    	{
+    		var nUpperLetters = 0;
+    		var cLetters = 0;
+    		for (var nPos1 = 0, nCount1 = splits[nPos].length; nPos1 < nCount1; nPos1++)
+    		{
+    			if (isLetter1(splits[nPos][nPos1]))
+    			    cLetters++;
+    			if (splits[nPos].charCodeAt(nPos1) !== 92)
+    			{
+    				var nCharCode1  = splits[nPos].charCodeAt(nPos1);
+					var nLowerCode1 = String.fromCharCode(nCharCode1).toLowerCase().charCodeAt(0);
+					var nUpperCode1 = String.fromCharCode(nCharCode1).toUpperCase().charCodeAt(0);
+					if (nCharCode1 === nUpperCode1 && isLetter1(splits[nPos][nPos1]))
+						nUpperLetters++;
+    			}
+    			else
+    			{
+    				nPos1 = nCount1;
+    			}
+    		}
+    		if (!(cLetters === splits[nPos].length - nUpperLetters) && cLetters !== nUpperLetters && !(nUpperLetters === 1 
+    		    && (splits[nPos].charCodeAt(0) === String.fromCharCode(splits[nPos].charCodeAt(0)).toUpperCase().charCodeAt(0))))
+                oEngine.Mistake = true;
+    	}
+    }
+    var i = 0;
+    if (this.Content.length !== 0)
+    {
+        (oEngine.AllWordsUpper === undefined || oEngine.AllWordsUpper === true) ? oEngine.AllWordsUpper = true : oEngine.AllWordsUpper = false;
+    	while (!oEngine.StartSentence && !(!this.Content[i].Value === 0x002E && !this.Content[i].IsPunctuation() 
+        && para_Tab !== this.Content[i].Type && para_Space !== this.Content[i].Type))
+		{
+            if (i + 1 >= this.Content.length)
+                break;
+            i++;
+		}
+        if (!(this.Content.length === 1 && !isLetter1(this.Content[0])))
+        {
+            ((this.Content[i].Value === String.fromCharCode(this.Content[i].Value).toUpperCase().charCodeAt(0) 
+                || (this.Content[i].Value === String.fromCharCode(this.Content[i].Value).toLowerCase().charCodeAt(0) && oEngine.LastLetterIsUpper)))
+                ? oEngine.AllFirstLettersUpper = true : oEngine.AllFirstLettersUpper = false; 
+        }
+            for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+		{
+			var oItem = this.Content[nPos];
+			if (!oItem.IsDot() && !oItem.IsPunctuation() 
+				&& para_Tab !== oItem.Type && para_Space !== oItem.Type)
+			{
+				var nCharCode  = oItem.Value;
+				var nLowerCode = String.fromCharCode(nCharCode).toLowerCase().charCodeAt(0);
+				var nUpperCode = String.fromCharCode(nCharCode).toUpperCase().charCodeAt(0);
+				if (nCharCode === nLowerCode)
+				{
+					oEngine.AllWordsUpper = false;
+				}
+			}
+			else
+			{
+				var oItem1; 
+				if (this.Content[nPos + 1] !== undefined)
+				{
+					oItem1 = this.Content[nPos + 1];
+					var nCharCode  = oItem1.Value;
+					var nLowerCode = String.fromCharCode(nCharCode).toLowerCase().charCodeAt(0);
+					var nUpperCode = String.fromCharCode(nCharCode).toUpperCase().charCodeAt(0);
+					if ((nLowerCode !== nCharCode || nUpperCode !== nCharCode) && nLowerCode === nCharCode)
+					{
+						oEngine.AllFirstLettersUpper = false;
+					}
+				}
+			}
+        }
+		this.Content[this.Content.length - 1].Value === String.fromCharCode(this.Content[this.Content.length - 1].Value).toUpperCase().charCodeAt(0)
+			? oEngine.LastLetterIsUpper = true : oEngine.LastLetterIsUpper = false;
+    }
+    for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 	{
 		var oItem = this.Content[nPos];
 		if (para_Text === oItem.Type)
