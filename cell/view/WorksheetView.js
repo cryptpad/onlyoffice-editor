@@ -1181,7 +1181,7 @@
                         c = hasNumber.arrCols[i];
                         cell = t._getVisibleCell(c, arCopy.r2);
 						text = (new asc_Range(c, arCopy.r1, c, arCopy.r2 - 1)).getName();
-                        val = "=" + functionName + "(" + text + ")";
+                        val = t.generateAutoCompleteFormula(functionName, text);
                         // ToDo - при вводе формулы в заголовок автофильтра надо писать "0"
                         cell.setValue(val);
                     }
@@ -1190,13 +1190,13 @@
                         r = hasNumber.arrRows[i];
                         cell = t._getVisibleCell(arCopy.c2, r);
                         text = (new asc_Range(arCopy.c1, r, arCopy.c2 - 1, r)).getName();
-                        val = "=" + functionName + "(" + text + ")";
+                        val = t.generateAutoCompleteFormula(functionName, text);
                         cell.setValue(val);
                     }
                     // Значение в правой нижней ячейке
                     cell = t._getVisibleCell(arCopy.c2, arCopy.r2);
                     text = (new asc_Range(arCopy.c1, arCopy.r2, arCopy.c2 - 1, arCopy.r2)).getName();
-                    val = "=" + functionName + "(" + text + ")";
+                    val = t.generateAutoCompleteFormula(functionName, text);
                     cell.setValue(val);
                 };
             } else if (true === hasNumberInLastRow && false === hasNumberInLastColumn) {
@@ -1210,7 +1210,7 @@
                         r = hasNumber.arrRows[i];
                         cell = t._getVisibleCell(arCopy.c2, r);
                         text = (new asc_Range(arCopy.c1, r, arCopy.c2 - 1, r)).getName();
-                        val = "=" + functionName + "(" + text + ")";
+                        val = t.generateAutoCompleteFormula(functionName, text);
                         cell.setValue(val);
                     }
                 };
@@ -1225,7 +1225,7 @@
                         c = hasNumber.arrCols[i];
                         cell = t._getVisibleCell(c, arCopy.r2);
                         text = (new asc_Range(c, arCopy.r1, c, arCopy.r2 - 1)).getName();
-                        val = "=" + functionName + "(" + text + ")";
+                        val = t.generateAutoCompleteFormula(functionName, text);
                         cell.setValue(val);
                     }
                 };
@@ -1238,7 +1238,7 @@
                         cell = t._getVisibleCell(arCopy.c2, arCopy.r2);
                         // ToDo вводить в первое свободное место, а не сразу за диапазоном
                         text = (new asc_Range(arCopy.c1, arCopy.r2, arCopy.c2 - 1, arCopy.r2)).getName();
-                        val = "=" + functionName + "(" + text + ")";
+                        val = t.generateAutoCompleteFormula(functionName, text);
                         cell.setValue(val);
                     };
                 } else {
@@ -1252,7 +1252,7 @@
                             cell = t._getVisibleCell(c, arCopy.r2);
                             // ToDo вводить в первое свободное место, а не сразу за диапазоном
                             text = (new asc_Range(c, arCopy.r1, c, arCopy.r2 - 1)).getName();
-                            val = "=" + functionName + "(" + text + ")";
+                            val = t.generateAutoCompleteFormula(functionName, text);
                             cell.setValue(val);
                         }
                     };
@@ -1402,6 +1402,33 @@
 
 		return result;
     };
+
+	WorksheetView.prototype.generateAutoCompleteFormula = function (name, text) {
+		var _res = null;
+
+		var activeCell = this.model.selectionRange.activeCell;
+		var bLocale = AscCommonExcel.oFormulaLocaleInfo.Parse;
+		var cFormulaList = (bLocale && AscCommonExcel.cFormulaFunctionLocalized) ? AscCommonExcel.cFormulaFunctionLocalized : AscCommonExcel.cFormulaFunction;
+		name = name.toUpperCase();
+		var isSumFunc;
+		if (cFormulaList && name in cFormulaList) {
+			var tempFunc = cFormulaList[name];
+			if (tempFunc && tempFunc.prototype && tempFunc.prototype.name === "SUM") {
+				isSumFunc = true;
+			}
+		}
+
+		if (isSumFunc && ((this.model.AutoFilter && this.model.AutoFilter.isApplyAutoFilter()) || this.model.autoFilters._getTableIntersectionWithActiveCell(activeCell, true, true))) {
+			var _name = "SUBTOTAL";
+			var _f = bLocale && AscCommonExcel.cFormulaFunctionToLocale ? AscCommonExcel.cFormulaFunctionToLocale[_name] : _name;
+			var _separator = AscCommon.FormulaSeparators.functionArgumentSeparator;
+			var funcType = 9;
+
+			_res = "=" + _f + "(" + funcType + _separator + text + ")";
+		}
+
+		return _res ? _res : ("=" + name + "(" + text + ")");
+	};
 
     WorksheetView.prototype._prepareComments = function () {
         // ToDo возможно не нужно это делать именно тут..
@@ -5025,7 +5052,7 @@
             lastRow = this.topLeftFrozenCell.getRow0();
         }
         History.Create_NewPoint();
-        var oData = new AscCommonExcel.UndoRedoData_FromTo(new AscCommonExcel.UndoRedoData_BBox(new asc_Range(lastCol, lastRow, lastCol, lastRow)), new AscCommonExcel.UndoRedoData_BBox(new asc_Range(col, row, col, row)), null);
+        var oData = new AscCommonExcel.UndoRedoData_FromTo(new AscCommonExcel.UndoRedoData_FrozenBBox(new asc_Range(lastCol, lastRow, lastCol, lastRow)), new AscCommonExcel.UndoRedoData_FrozenBBox(new asc_Range(col, row, col, row)), null);
         History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_ChangeFrozenCell,
           this.model.getId(), null, oData);
 
@@ -5061,7 +5088,70 @@
         }
     };
 
-    /** */
+	WorksheetView.prototype._getFreezePaneOffset = function (type, range, bInsert) {
+		if (this.topLeftFrozenCell) {
+			var lastCol = this.topLeftFrozenCell.getCol0();
+			var lastRow = this.topLeftFrozenCell.getRow0();
+			var row, col;
+			if ((type === c_oAscInsertOptions.InsertColumns || type === c_oAscInsertOptions.DeleteColumns) && lastCol) {
+				var diffCol;
+				if (bInsert) {
+					if (lastCol >= range.c1) {
+						diffCol =  range.c2 - range.c1 + 1;
+					}
+					if (diffCol) {
+						col = lastCol + diffCol;
+					}
+				} else {
+					if (range.c2 <= lastCol) {
+						diffCol = range.c2 - range.c1 + 1;
+					} else if (lastCol >= range.c1) {
+						diffCol = lastCol - range.c1;
+					}
+
+					if (diffCol > 0) {
+						col = lastCol - diffCol;
+					}
+				}
+				if (col < 0) {
+					col = 0;
+				}
+			}
+			if ((type === c_oAscInsertOptions.InsertRows || type === c_oAscInsertOptions.DeleteRows) && lastRow) {
+				var diffRow;
+				if (bInsert) {
+					if (lastRow >= range.r1) {
+						diffRow =  range.r2 - range.r1 + 1;
+					}
+					if (diffRow) {
+						row = lastRow + diffRow;
+					}
+				} else {
+					if (range.r2 <= lastRow) {
+						diffRow = range.r2 - range.r1 + 1;
+					} else if (lastRow >= range.r1) {
+						diffRow = lastRow - range.r1;
+					}
+
+					if (diffRow > 0) {
+						row = lastRow - diffRow;
+					}
+				}
+				if (row < 0) {
+					row = 0;
+				}
+			}
+
+			if (row !== undefined || col !== undefined) {
+				return {row: row === undefined ? lastRow : row, col: col === undefined ? lastCol : col};
+			}
+		}
+
+		return null;
+	};
+
+
+	/** */
 
     WorksheetView.prototype._drawSelectionElement = function (visibleRange, offsetX, offsetY, args) {
         var range = args[0];
@@ -6285,7 +6375,11 @@
 				if (this.updateRowHeightValuePx) {
                     this.updateRowHeightValuePx = newHeight;
 				}
-				rowInfo.height = Asc.round(newHeight * this.getZoom());
+				//TODO правлю на хотфикс ошибку. это следствие, а не причина. нужно пересмотреть! баг 50489
+				var _rowHeight = Asc.round(newHeight * this.getZoom());
+				if (rowInfo) {
+					rowInfo.height = _rowHeight;
+				}
 				History.TurnOff();
 				res = newHeight;
 				var oldExcludeCollapsed = this.model.bExcludeCollapsed;
@@ -6300,7 +6394,7 @@
 						maxW = tm.width;
 					}
 
-					cache.textBound = this.stringRender.getTransformBound(cache.angle, colWidth, rowInfo.height, tm.width,
+					cache.textBound = this.stringRender.getTransformBound(cache.angle, colWidth, _rowHeight, tm.width,
 						cache.cellHA, va, maxW);
 				}
 
@@ -13566,6 +13660,20 @@
 			return true;
 		};
 
+		var changeFreezePane;
+		var _checkFreezePaneOffset = function (_type, _range, callback, bInsert) {
+			changeFreezePane = t._getFreezePaneOffset(_type, _range, bInsert);
+			if (changeFreezePane) {
+				t._isLockedFrozenPane(function (_success) {
+					if (_success) {
+						callback();
+					}
+				});
+			} else {
+				callback();
+			}
+		};
+
 		switch (prop) {
 			case "colWidth":
 				functionModelAction = function () {
@@ -13748,12 +13856,17 @@
 							updateDrawingObjectsInfo2 = {bInsert: true, operType: val, updateRange: arn};
 							t.cellCommentator.updateCommentsDependencies(true, val, arn);
 							t.model.shiftDataValidation(true, val, arn, true);
+							if (changeFreezePane) {
+								t._updateFreezePane(changeFreezePane.col, changeFreezePane.row, true);
+							}
 							History.EndTransaction();
 						};
 
 						arrChangedRanges.push(lockRange);
-						this._isLockedCells(lockRange, c_oAscLockTypeElemSubType.InsertColumns,
-							onChangeWorksheetCallback);
+						_checkFreezePaneOffset(val, lockRange, function () {
+							t._isLockedCells(lockRange, c_oAscLockTypeElemSubType.InsertColumns,
+								onChangeWorksheetCallback);
+						}, true);
 						break;
 					case c_oAscInsertOptions.InsertRows:
 						lockRange = new asc_Range(0, arn.r1, gc_nMaxCol0, arn.r2);
@@ -13776,10 +13889,16 @@
 							updateDrawingObjectsInfo2 = {bInsert: true, operType: val, updateRange: arn};
 							t.cellCommentator.updateCommentsDependencies(true, val, arn);
 							t.model.shiftDataValidation(true, val, arn, true);
+							if (changeFreezePane) {
+								t._updateFreezePane(changeFreezePane.col, changeFreezePane.row, true);
+							}
 						};
 
 						arrChangedRanges.push(lockRange);
-						this._isLockedCells(lockRange, c_oAscLockTypeElemSubType.InsertRows, onChangeWorksheetCallback);
+						_checkFreezePaneOffset(val, lockRange, function () {
+							t._isLockedCells(lockRange, c_oAscLockTypeElemSubType.InsertRows,
+								onChangeWorksheetCallback);
+						}, true);
 						break;
 				}
 				break;
@@ -13898,13 +14017,18 @@
 							t.model.autoFilters.isEmptyAutoFilters(arn, c_oAscDeleteOptions.DeleteColumns);
 							t.model.removeCols(checkRange.c1, checkRange.c2);
 							t._updateGroups(true);
+							if (changeFreezePane) {
+								t._updateFreezePane(changeFreezePane.col, changeFreezePane.row, true);
+							}
 							updateDrawingObjectsInfo2 = {bInsert: false, operType: val, updateRange: arn};
 							History.EndTransaction();
 						};
 
 						arrChangedRanges.push(lockRange);
-						this._isLockedCells(lockRange, c_oAscLockTypeElemSubType.DeleteColumns,
-							onChangeWorksheetCallback);
+						_checkFreezePaneOffset(val, lockRange, function () {
+							t._isLockedCells(lockRange, c_oAscLockTypeElemSubType.DeleteColumns,
+								onChangeWorksheetCallback);
+						});
 						break;
 					case c_oAscDeleteOptions.DeleteRows:
 						isCheckChangeAutoFilter =
@@ -13941,11 +14065,17 @@
 							t._updateSlicers(arn);
 							t._updateGroups();
 							updateDrawingObjectsInfo2 = {bInsert: false, operType: val, updateRange: arn};
+							if (changeFreezePane) {
+								t._updateFreezePane(changeFreezePane.col, changeFreezePane.row, true);
+							}
 							History.EndTransaction();
 						};
 
 						arrChangedRanges.push(lockRange);
-						this._isLockedCells(lockRange, c_oAscLockTypeElemSubType.DeleteRows, onChangeWorksheetCallback);
+						_checkFreezePaneOffset(val, lockRange, function () {
+							t._isLockedCells(lockRange, c_oAscLockTypeElemSubType.DeleteRows,
+								onChangeWorksheetCallback);
+						});
 						break;
 				}
 				this.handlers.trigger("selectionNameChanged", t.getSelectionName(/*bRangeText*/false));
@@ -16434,6 +16564,10 @@
 		}
 		var c = this._getVisibleCell(col, row);
 		var isMerged = ct.flags.isMerged(), range, isWrapped = ct.flags.wrapText;
+
+		if (isMerged) {
+			range = ct.flags.merged;
+		}
 
 		var colL = isMerged ? range.c1 : Math.max(col, col - ct.sideL);
 		var colR = isMerged ? Math.min(range.c2, this.nColsCount - 1) : Math.min(col, col + ct.sideR);

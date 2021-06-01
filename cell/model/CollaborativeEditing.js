@@ -76,7 +76,7 @@
 			this.m_oInsertColumns			= {}; // Массив листов с массивами списков добавленных колонок
 			this.m_oInsertRows				= {}; // Массив листов с массивами списков добавленных строк
 
-      this.m_bFast  = false;
+			this.m_bFast = false;
 
 			this.init();
 
@@ -108,12 +108,12 @@
 			this.m_bIsViewerMode = isViewerMode;
 		};
 
-  CCollaborativeEditing.prototype.setFast = function (bFast) {
-    return this.m_bFast = bFast;
-  };
-  CCollaborativeEditing.prototype.getFast = function () {
-    return this.m_bFast;
-  };
+		CCollaborativeEditing.prototype.setFast = function (bFast) {
+			return this.m_bFast = bFast;
+		};
+		CCollaborativeEditing.prototype.getFast = function () {
+			return this.m_bFast;
+		};
 		CCollaborativeEditing.prototype.Is_SingleUser = function () {
 			return !this.getCollaborativeEditing();
 		};
@@ -123,9 +123,9 @@
 			return 1 !== this.m_nUseType;
 		};
 
-  CCollaborativeEditing.prototype.haveOtherChanges = function () {
-    return 0 < this.m_arrChanges.length;
-  };
+		CCollaborativeEditing.prototype.haveOtherChanges = function () {
+			return 0 < this.m_arrChanges.length;
+		};
 
 		CCollaborativeEditing.prototype.getOwnLocksLength = function () {
 			return this.m_arrNeedUnlock2.length;
@@ -688,44 +688,44 @@
 
 		// Undo для добавления/удаления столбцов
 		CCollaborativeEditing.prototype.undoCols = function (sheetId, count) {
-      if (!this.m_oRecalcIndexColumns.hasOwnProperty(sheetId))
-        return;
-      this.m_oRecalcIndexColumns[sheetId].remove(count);
+			if (!this.m_oRecalcIndexColumns.hasOwnProperty(sheetId))
+				return;
+			this.m_oRecalcIndexColumns[sheetId].remove(count);
 		};
 		// Undo для добавления/удаления строк
 		CCollaborativeEditing.prototype.undoRows = function (sheetId, count) {
-      if (!this.m_oRecalcIndexRows.hasOwnProperty(sheetId))
-        return;
-      this.m_oRecalcIndexRows[sheetId].remove(count);
+			if (!this.m_oRecalcIndexRows.hasOwnProperty(sheetId))
+				return;
+			this.m_oRecalcIndexRows[sheetId].remove(count);
 		};
 
 		CCollaborativeEditing.prototype.removeCols = function (sheetId, position, count) {
-      if (!this.m_oRecalcIndexColumns.hasOwnProperty(sheetId)) {
-        this.m_oRecalcIndexColumns[sheetId] = new CRecalcIndex();
-      }
-      this.m_oRecalcIndexColumns[sheetId].add(c_oAscRecalcIndexTypes.RecalcIndexRemove, position,
-        count, /*bIsSaveIndex*/false);
+			if (!this.m_oRecalcIndexColumns.hasOwnProperty(sheetId)) {
+				this.m_oRecalcIndexColumns[sheetId] = new CRecalcIndex();
+			}
+			this.m_oRecalcIndexColumns[sheetId].add(c_oAscRecalcIndexTypes.RecalcIndexRemove, position,
+				count, /*bIsSaveIndex*/false);
 		};
 		CCollaborativeEditing.prototype.addCols = function (sheetId, position, count) {
-      if (!this.m_oRecalcIndexColumns.hasOwnProperty(sheetId)) {
-        this.m_oRecalcIndexColumns[sheetId] = new CRecalcIndex();
-      }
-      this.m_oRecalcIndexColumns[sheetId].add(c_oAscRecalcIndexTypes.RecalcIndexAdd, position,
-        count, /*bIsSaveIndex*/false);
+			if (!this.m_oRecalcIndexColumns.hasOwnProperty(sheetId)) {
+				this.m_oRecalcIndexColumns[sheetId] = new CRecalcIndex();
+			}
+			this.m_oRecalcIndexColumns[sheetId].add(c_oAscRecalcIndexTypes.RecalcIndexAdd, position,
+				count, /*bIsSaveIndex*/false);
 		};
 		CCollaborativeEditing.prototype.removeRows = function (sheetId, position, count) {
-      if (!this.m_oRecalcIndexRows.hasOwnProperty(sheetId)) {
-        this.m_oRecalcIndexRows[sheetId] = new CRecalcIndex();
-      }
-      this.m_oRecalcIndexRows[sheetId].add(c_oAscRecalcIndexTypes.RecalcIndexRemove, position,
-        count, /*bIsSaveIndex*/false);
+			if (!this.m_oRecalcIndexRows.hasOwnProperty(sheetId)) {
+				this.m_oRecalcIndexRows[sheetId] = new CRecalcIndex();
+			}
+			this.m_oRecalcIndexRows[sheetId].add(c_oAscRecalcIndexTypes.RecalcIndexRemove, position,
+				count, /*bIsSaveIndex*/false);
 		};
 		CCollaborativeEditing.prototype.addRows = function (sheetId, position, count) {
-      if (!this.m_oRecalcIndexRows.hasOwnProperty(sheetId)) {
-        this.m_oRecalcIndexRows[sheetId] = new CRecalcIndex();
-      }
-      this.m_oRecalcIndexRows[sheetId].add(c_oAscRecalcIndexTypes.RecalcIndexAdd, position,
-        count, /*bIsSaveIndex*/false);
+			if (!this.m_oRecalcIndexRows.hasOwnProperty(sheetId)) {
+				this.m_oRecalcIndexRows[sheetId] = new CRecalcIndex();
+			}
+			this.m_oRecalcIndexRows[sheetId].add(c_oAscRecalcIndexTypes.RecalcIndexAdd, position,
+				count, /*bIsSaveIndex*/false);
 		};
 		CCollaborativeEditing.prototype.addColsRange = function (sheetId, range) {
 			if (!this.m_oInsertColumns.hasOwnProperty(sheetId)) {

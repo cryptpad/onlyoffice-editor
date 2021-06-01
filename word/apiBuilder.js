@@ -3180,7 +3180,7 @@
 		{
 			// Проверка на параграф
 			if (oElement instanceof ApiParagraph | oElement instanceof ApiDocument)
-				oElement.AddComment(Comment, Autor);
+				return oElement.AddComment(Comment, Autor);
 		}
 		// Проверка на массив с ранами
 		else if (Array.isArray(oElement))
