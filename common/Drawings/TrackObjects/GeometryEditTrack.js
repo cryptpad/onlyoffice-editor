@@ -328,6 +328,9 @@
             case 3:
                 break;
         }
+
+        geom.originalEditPoint.curCoords = command;
+
         var command = {
             id: 4,
             X0: nextCoords.X0,
@@ -338,6 +341,7 @@
             Y2: nextCoords.Y2
         }
 
+        geom.originalEditPoint.nextCoords = command;
         geom.pathLst[0].ArrPathCommand[gmEditPoint.nextCoords.pathCommand] = command;
 
         gmEditPoint.curCoords.id = 4;
