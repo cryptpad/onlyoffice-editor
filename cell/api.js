@@ -1712,7 +1712,7 @@ var editor;
   {
 	  if (true === AscCommon.CollaborativeEditing.Is_Fast())
 	  {
-		  //t.WordControl.m_oLogicDocument.Update_ForeignCursor(e[e.length - 1]['cursor'], e[e.length - 1]['user'], true, e[e.length - 1]['useridoriginal']);
+		  t.wb.Update_ForeignCursor(e[e.length - 1]['cursor'], e[e.length - 1]['user'], true, e[e.length - 1]['useridoriginal']);
 	  }
   };
 	  };
@@ -4559,8 +4559,9 @@ var editor;
 		  return;
         }
 
-		if (AscCommon.CollaborativeEditing.Is_Fast() /*&& !AscCommon.CollaborativeEditing.Is_SingleUser()*/)
-			this.wb.sendCursor("test");
+		if (AscCommon.CollaborativeEditing.Is_Fast() /*&& !AscCommon.CollaborativeEditing.Is_SingleUser()*/) {
+			this.wb.sendCursor();
+		}
 
 		if (!History.Have_Changes(true) && !(this.collaborativeEditing.getCollaborativeEditing() &&
 			0 !== this.collaborativeEditing.getOwnLocksLength())) {

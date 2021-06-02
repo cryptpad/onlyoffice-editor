@@ -3855,7 +3855,7 @@
 			var HaveChanges = History.Have_Changes(true);
 			if (true !== HaveChanges)
 			{
-				var CursorInfo = "test";
+				var CursorInfo = this.getCursorInfo();
 				if (null !== CursorInfo)
 				{
 					this.Api.CoAuthoringApi.sendCursor(CursorInfo);
@@ -3871,6 +3871,47 @@
 	WorkbookView.prototype.updateTargetForCollaboration = function()
 	{
 		this.NeedUpdateTargetForCollaboration = true;
+	};
+
+	WorkbookView.prototype.Update_ForeignCursor = function(CursorInfo, UserId, Show, UserShortId)
+	{
+		if (UserId === this.Api.CoAuthoringApi.getUserConnectionId())
+			return;
+
+		// "" - это означает, что курсор нужно удалить
+		if (!CursorInfo || "" === CursorInfo)
+		{
+			this.Remove_ForeignCursor(UserId);
+			return;
+		}
+
+
+		//AscCommon.getUserColorById(this.ShortId, null, true)
+
+		//var CursorPos = [{Class : Run, Position : InRunPos}];
+		//this.collaborativeEditing.Add_ForeignCursor(UserId, CursorInfo, UserShortId);
+
+		//if (true === Show)
+			//this.CollaborativeEditing.Update_ForeignCursorPosition(UserId, Run, InRunPos, true);
+	};
+	WorkbookView.prototype.Remove_ForeignCursor = function(UserId)
+	{
+		this.collaborativeEditing.Remove_ForeignCursor(UserId);
+	};
+	WorkbookView.prototype.getCursorInfo = function()
+	{
+		var aWs = this.getActiveWS();
+		var id = aWs.getId();
+		var selection = aWs.getSelection();
+		var isEdit = this.getCellEditMode();
+
+		var rangeStr = "";
+		for (var i = 0; i < selection.ranges.length; i++) {
+			var _range = selection.ranges[i];
+			rangeStr += _range.r1 + ";" + _range.c1 + ";" + _range.r2 + ";" + _range.c2 + ";"
+		}
+
+		return id + ";" + isEdit + ";" + rangeStr;
 	};
 
 
