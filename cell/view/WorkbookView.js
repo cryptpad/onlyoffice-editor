@@ -274,6 +274,9 @@
     this.autoCorrectStore = null;//объект для хранения параметров иконки авторазвертывания таблиц
 	this.cutIdSheet = null;
 
+    this.NeedUpdateTargetForCollaboration = true;
+    this.LastUpdateTargetTime = 0;
+
     return this;
   }
 
@@ -1029,6 +1032,8 @@
     this.oSelectionInfo = ws.getSelectionInfo();
     this.lastSendInfoRange = ws.model.selectionRange.clone();
     this.lastSendInfoRangeIsSelectOnShape = ws.getSelectionShape();
+    this.updateTargetForCollaboration();
+
     return true;
   };
   WorkbookView.prototype._onWSSelectionChanged = function(isSaving) {
@@ -3840,6 +3845,32 @@
 
 	WorkbookView.prototype.updateSkin = function () {
 		this.defaults.worksheetView.updateStyle();
+	};
+
+	WorkbookView.prototype.sendCursor = function () {
+		var CurTime = new Date().getTime();
+		if (true === this.NeedUpdateTargetForCollaboration && (CurTime - this.LastUpdateTargetTime > 1000))
+		{
+			this.NeedUpdateTargetForCollaboration = false;
+			var HaveChanges = History.Have_Changes(true);
+			if (true !== HaveChanges)
+			{
+				var CursorInfo = "test";
+				if (null !== CursorInfo)
+				{
+					this.Api.CoAuthoringApi.sendCursor(CursorInfo);
+					this.LastUpdateTargetTime = CurTime;
+				}
+			}
+			else
+			{
+				this.LastUpdateTargetTime = CurTime;
+			}
+		}
+	};
+	WorkbookView.prototype.updateTargetForCollaboration = function()
+	{
+		this.NeedUpdateTargetForCollaboration = true;
 	};
 
 

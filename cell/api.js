@@ -1708,6 +1708,13 @@ var editor;
         t.collaborativeEditing._recalcLockArray(c_oAscLockTypes.kLockTypeOther, oRecalcIndexColumns, oRecalcIndexRows);
       }
     };
+  this.CoAuthoringApi.onCursor                 = function(e)
+  {
+	  if (true === AscCommon.CollaborativeEditing.Is_Fast())
+	  {
+		  //t.WordControl.m_oLogicDocument.Update_ForeignCursor(e[e.length - 1]['cursor'], e[e.length - 1]['user'], true, e[e.length - 1]['useridoriginal']);
+	  }
+  };
 	  };
 
   spreadsheet_api.prototype._onSaveChanges = function(recalcIndexColumns, recalcIndexRows, isAfterAskSave) {
@@ -4551,6 +4558,9 @@ var editor;
 		if (this.asc_getCellEditMode() || this.asc_getIsTrackShape()) {
 		  return;
         }
+
+		if (AscCommon.CollaborativeEditing.Is_Fast() /*&& !AscCommon.CollaborativeEditing.Is_SingleUser()*/)
+			this.wb.sendCursor("test");
 
 		if (!History.Have_Changes(true) && !(this.collaborativeEditing.getCollaborativeEditing() &&
 			0 !== this.collaborativeEditing.getOwnLocksLength())) {
