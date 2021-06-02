@@ -212,7 +212,11 @@
         return oTrigger;
     };
     CTimeNodeBase.prototype.getDur = function() {
-        return this.parseTime(this.getAttributesObject().dur);
+        var oAttr = this.getAttributesObject();
+        if(oAttr.dur === null) {
+            return new CAnimationTime(0);
+        }
+        return this.parseTime(oAttr.dur);
     };
     CTimeNodeBase.prototype.getRepeatDur = function() {
         return this.parseTime(this.getAttributesObject().repeatDur);
@@ -642,20 +646,31 @@
             }
         }
     };
-    CTimeNodeBase.prototype.getTargetObjectAttributeValue = function(sAttrName) {
+    CTimeNodeBase.prototype.getOrigAttrVal = function(sAttrName) {
+        var oTargetObject = this.getTargetObject();
+        if(!oTargetObject) {
+            return null;
+        }
+        var oBounds = this.getBoundsByDrawing();
+        var dCenterX = oBounds.x + oBounds.w / 2;
+        var dCenterY = oBounds.y + oBounds.h / 2;
+        var dSlideW = this.getSlideWidth();
+        var dSlideH = this.getSlideHeight();
+        var dSpWidth = oBounds.w;
+        var dSpHeight = oBounds.h;
+
         if(sAttrName === "ppt_x") {
-            return this.getTargetObjectPosX();
+            return dCenterX / dSlideW;
         }
         else if(sAttrName === "ppt_y") {
-            return this.getTargetObjectPosY();
+            return dCenterY / dSlideH;
         }
         if(sAttrName === "ppt_w") {
-            return this.getTargetObjectExtX();
+            return dSpWidth / dSlideW;
         }
         else if(sAttrName === "ppt_h") {
-            return this.getTargetObjectExtY();
+            return dSpHeight / dSlideH;
         }
-        //TODO: other attributes
         return null;
     };
 
@@ -1869,6 +1884,11 @@
     drawingsChangesMap[AscDFH.historyitem_AnimFrom] = function(oClass, value) {oClass.from = value;};
     drawingsChangesMap[AscDFH.historyitem_AnimTo] = function(oClass, value) {oClass.to = value;};
     drawingsChangesMap[AscDFH.historyitem_AnimValueType] = function(oClass, value) {oClass.valueType = value;};
+
+
+    var VALUE_TYPE_NUM = 0;
+    var VALUE_TYPE_CLR = 1;
+    var VALUE_TYPE_STR = 2;
     function CAnim() {
         CTimeNodeBase.call(this);
         this.cBhvr = null;
@@ -1974,6 +1994,12 @@
     CAnim.prototype.getChildren = function() {
         return [this.cBhvr, this.tavLst];
     };
+    CAnim.prototype.getValueType = function() {
+        if(this.valueType === null) {
+            return VALUE_TYPE_NUM;
+        }
+        return this.valueType;
+    };
     CAnim.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
         var oTargetObject = this.getTargetObject();
         if(!oTargetObject) {
@@ -1984,31 +2010,134 @@
             return;
         }
         var oFirstAttribute = aAttributes[0];
+        var sAnimAttrName = oFirstAttribute.text;
+        if(!(typeof sAnimAttrName === "string") || sAnimAttrName.length === 0) {
+            return;
+        }
         var val;
         var fRelTime = this.getRelativeTime(nElapsedTime);
-        if(this.by !== null) {
-            //TODO: parse by
-        }
-        else if(this.to !== null) {
-            //TODO: to, from
-        }
-        else if(this.tavLst) {
+        var nValueType = this.getValueType();
+        var oVarMap;
+        if(this.tavLst) {
             var aTav = this.tavLst.list;
             var aTavPct = [];
             for(var nTav = 0; nTav < aTav.length; ++nTav) {
-                aTavPct.push(this.parsePercentage(aTav[nTav].tm));
+                aTavPct.push(aTav[nTav].getTime());
                 if(nTav > 0 && fRelTime <= aTavPct[nTav]) {
                     break;
                 }
             }
             if(nTav < aTav.length) {
+                var oFirstTav = aTav[nTav - 1];
+                var oSecondTav = aTav[nTav];
+
                 var fTimeInsideInterval = (fRelTime - aTavPct[nTav - 1]) / (aTavPct[nTav] - aTavPct[nTav - 1]);
-                val = this.calculateBetweenTwoVals(aTav[nTav - 1].val, aTav[nTav].val, fTimeInsideInterval);
+                val = this.calculateBetweenTwoVals(oFirstTav.val, oSecondTav.val, fTimeInsideInterval);
                 if(val !== null) {
-                    oAttributes[oFirstAttribute.text] = val;
+                    if(oFirstTav.fmla) {
+                        oVarMap = {};
+                        oVarMap["$"] = val;
+                        oVarMap["#ppt_x"] = this.getOrigAttrVal("ppt_x");
+                        oVarMap["#ppt_y"] = this.getOrigAttrVal("ppt_y");
+                        oVarMap["#ppt_w"] = this.getOrigAttrVal("ppt_w");
+                        oVarMap["#ppt_h"] = this.getOrigAttrVal("ppt_h");
+                        var fFmlaResult = this.getFormulaResult(oFirstTav.fmla, oVarMap);
+                        if(fFmlaResult !== null) {
+                            oAttributes[oFirstAttribute.text] = fFmlaResult;
+                        }
+                    }
+                    else {
+                        oAttributes[oFirstAttribute.text] = val;
+                    }
                 }
             }
         }
+        else {
+            if(this.from !== null && this.to !== null && this.by === null ||
+            this.from !== null && this.to === null && this.by !== null ||
+            this.from === null && this.to !== null && this.by === null ||
+            this.from === null && this.to === null && this.by !== null) {
+                if(nValueType === VALUE_TYPE_NUM) {
+                    oVarMap = this.getVarMapForFromTo();
+                    var fFrom, fTo, fBy;
+                    if(this.from !== null) {
+                        fFrom = this.getFormulaResult(this.from, oVarMap);
+                        if(fFrom === null) {
+                            return;
+                        }
+                    }
+                    if(this.to !== null) {
+                        fTo = this.getFormulaResult(this.to, oVarMap);
+                        if(fTo === null) {
+                            return;
+                        }
+                    }
+                    if(this.by !== null) {
+                        fBy = this.getFormulaResult(this.by, oVarMap);
+                        if(fBy === null) {
+                            return;
+                        }
+                    }
+                    if(this.from !== null && this.to !== null && this.by === null) {
+                        if(fFrom !== null && fTo !== null && fBy === null) {
+                            oAttributes[sAnimAttrName] =  this.getAnimatedVal(fRelTime, fFrom, fTo);
+                        }
+                    }
+                    else if(this.from !== null && this.to === null && this.by !== null) {
+                        if(fFrom !== null && fTo === null && fBy !== null) {
+                            oAttributes[sAnimAttrName] =  this.getAnimatedVal(fRelTime, fFrom, fFrom + fBy);
+                        }
+                    }
+                    else if(this.from === null && this.to !== null && this.by === null) {
+                        if(fFrom === null && fTo !== null && fBy === null) {
+                            oAttributes[sAnimAttrName] =  this.getAnimatedVal(fRelTime, 0.0, fTo);
+                        }
+                    }
+                    else if(this.from === null && this.to === null && this.by !== null) {
+                        if(fFrom === null && fTo === null && fBy !== null) {
+                            oAttributes[sAnimAttrName] =  this.getAnimatedVal(fRelTime, 0.0, fBy);
+                        }
+                    }
+                }
+                else if(nValueType === VALUE_TYPE_CLR) {
+                    //TODO: implement
+                }
+                else if(nValueType === VALUE_TYPE_STR) {
+                    //TODO: implement
+                }
+            }
+        }
+    };
+
+    CAnim.prototype.getVarMapForFromTo = function() {
+        return {
+            "ppt_x": this.getOrigAttrVal("ppt_x"),
+            "ppt_y": this.getOrigAttrVal("ppt_y"),
+            "ppt_w": this.getOrigAttrVal("ppt_w"),
+            "ppt_h": this.getOrigAttrVal("ppt_h")
+        }
+    };
+    CAnim.prototype.getVarMapForFromTo = function() {
+        return {
+            "ppt_x": this.getOrigAttrVal("ppt_x"),
+            "ppt_y": this.getOrigAttrVal("ppt_y"),
+            "ppt_w": this.getOrigAttrVal("ppt_w"),
+            "ppt_h": this.getOrigAttrVal("ppt_h")
+        }
+    };
+    CAnim.prototype.getFormulaResult = function(sFormula, oVarMap) {
+        var aVarNames = [];
+        for(var sVarName in oVarMap) {
+            if(oVarMap.hasOwnProperty(sVarName)) {
+                aVarNames.push(sVarName);
+            }
+        }
+        var oParser = new CFormulaParser(sFormula, aVarNames);
+        var oParseResult = oParser.parse();
+        if(!oParseResult) {
+            return null;
+        }
+        return oParseResult.calculate(oVarMap);
     };
     CAnim.prototype.calculateBetweenTwoVals = function(oVal1, oVal2, fRelTime) {
         if(!oVal1 || !oVal2) {
@@ -2732,19 +2861,20 @@
     CCond.prototype.getChildren = function() {
         return [this.tgtEl];
     };
+    CCond.prototype.getDelayTime = function() {
+        if(this.delay === null) {
+            return new CAnimationTime(0);
+        }
+        return this.parseTime(this.delay);
+    };
     CCond.prototype.createDelaySimpleTrigger = function (oPlayer) {
-        var oDelay = this.parseTime(this.delay);
+        var oDelay = this.getDelayTime();
         if(oDelay.isIndefinite()) {
             return null;
         }
         var oStart = oPlayer.getElapsedTime();
         var oEnd;
-        if(oDelay.isUnspecified()) {
-            oEnd = oStart.copy();
-        }
-        else {
-            oEnd = oStart.plus(oDelay);
-        }
+        oEnd = oStart.plus(oDelay);
         return function () {
             var oElapsedTime = oPlayer.getElapsedTime();
             return oElapsedTime.greaterOrEquals(oEnd);
@@ -2761,7 +2891,7 @@
                 return DEFAULT_NEVER_TRIGGER;
             }
             var oEvent = new CExternalEvent(nType, sSpId);
-            var oDelay = oThis.parseTime(oThis.delay);
+            var oDelay = oThis.getDelayTime();
             return oThis.createEventTrigger(oPlayer, function() {
                 return oPlayer.checkExternalEvent(oEvent);
             })
@@ -2771,7 +2901,7 @@
         var oThis = this;
         return (function() {
             var oEnd = null;
-            var oDelay = oThis.parseTime(oThis.delay);
+            var oDelay = oThis.getDelayTime();
             return function () {
                 if(oEnd) {
                     var oElapsedTime = oPlayer.getElapsedTime();
@@ -2849,7 +2979,7 @@
                     }
                 }
                 if(oTrigger) {
-                    return oTrigger.isFired()
+                    return oTrigger.isFired();
                 }
                 return false;
             }
@@ -3318,32 +3448,6 @@
         pReader.stream.SkipRecord();
     };
 
-
-    changesFactory[AscDFH.historyitem_TmVal] = CChangeDouble2;
-    drawingsChangesMap[AscDFH.historyitem_TmVal] = function(oClass, value) {oClass.val = value;};
-    function CTm() {
-        CBaseAnimObject.call(this);
-        this.val = null
-    }
-    InitClass(CTm, CBaseAnimObject, AscDFH.historyitem_type_Tm);
-    CTm.prototype.setVal = function(pr) {
-        oHistory.Add(new CChangeDouble2(this, AscDFH.historyitem_TmVal, this.val, pr));
-        this.val = pr;
-    };
-    CTm.prototype.fillObject = function(oCopy, oIdMap) {
-        if(this.val !== null) {
-            oCopy.setVal(this.val);
-        }
-    };
-    CTm.prototype.privateWriteAttributes = function(pWriter) {
-    };
-    CTm.prototype.writeChildren = function(pWriter) {
-    };
-    CTm.prototype.readAttribute = function(nType, pReader) {
-    };
-    CTm.prototype.readChild = function(nType, pReader) {
-    };
-
     changesFactory[AscDFH.historyitem_TavVal] = CChangeObject;
     changesFactory[AscDFH.historyitem_TavFmla] = CChangeString;
     changesFactory[AscDFH.historyitem_TavTm] = CChangeString;
@@ -3408,6 +3512,19 @@
     };
     CTav.prototype.getChildren = function() {
         return [this.val];
+    };
+    CTav.prototype.getTime = function() {
+        if(this.tm === null) {
+            return 0;
+        }
+        if(this.tm.indexOf("%") === this.tm.length - 1) {
+            return this.parsePercentage(this.tm);
+        }
+        var nTm = parseInt(this.tm);
+        if(!isNaN(nTm)) {
+            return nTm / 100000;
+        }
+        return 0;
     };
 
 
@@ -3757,27 +3874,32 @@
         if(!oTargetObject) {
             return;
         }
-        var oBrush = this.getTargetObjectBrush();
-        if(!oBrush) {
+        var aAttributes = this.getAttributes();
+        if(aAttributes.length < 1) {
             return;
         }
-        var oStartRGBColor = oBrush.getRGBAColor();
-        var oStartUniColor = AscFormat.CreateUniColorRGB(oStartRGBColor.R, oStartRGBColor.G, oStartRGBColor.B);
-        var oEndUniColor = null;
-        var parents = oTargetObject.getParentObjects();
-        if(this.by) {
-            oEndUniColor = this.by;
+        var sFirstAttrName = aAttributes[0].text;
+        if(sFirstAttrName !== "style.color" && sFirstAttrName !== "fillcolor"  && sFirstAttrName !== "stroke.color") {
+            return;
         }
-        else if(this.to) {
-            oEndUniColor = this.to;
-            if(this.from) {
-                oStartUniColor = this.from;
+        var oStartUniColor;
+        if(this.from) {
+            oStartUniColor = this.from;
+        }
+        else {
+            var oBrush = this.getTargetObjectBrush();
+            if(oBrush) {
+                var oStartRGBColor = oBrush.getRGBAColor();
+                oStartUniColor = AscFormat.CreateUniColorRGB(oStartRGBColor.R, oStartRGBColor.G, oStartRGBColor.B);
+            }
+            else {
+                oStartUniColor = AscFormat.CreateUniColorRGB(255, 255, 255);
             }
         }
+        var oEndUniColor = this.to || this.by;
         if(oEndUniColor) {
             var fRelTime = this.getRelativeTime(nElapsedTime);
-            var oResultColor = this.getAnimatedClr(fRelTime, oStartUniColor, oEndUniColor);
-            this.setAttributesValue(oAttributes, oResultColor);
+            oAttributes[sFirstAttrName] = this.getAnimatedClr(fRelTime, oStartUniColor, oEndUniColor);
         }
     };
 
@@ -4104,35 +4226,51 @@
         var fRelTime = this.getRelativeTime(nElapsedTime);
         var dPosX = null, dPosY = null;
         var dRelX = null, dRelY = null;
+        var oBounds = oTargetObject.getBoundsByDrawing();
+        var fObjRelX = oBounds.x / this.getSlideWidth();
+        var fObjRelY = oBounds.Y / this.getSlideHeight();
         if (this.parsedPath) {
             var oPos = this.parsedPath.getPosition(fRelTime);
             dRelX = oPos.x;
             dRelY = oPos.y;
         }
+        else if(this.to && this.from) {
+            dRelX = (this.from.x + (this.to.x - this.from.x) * fRelTime) / 100;
+            dRelY = (this.from.y + (this.to.y - this.from.y) * fRelTime) / 100;
+        }
+        else if(this.by && this.from) {
+            dRelX = (this.from.x + this.by.x * fRelTime) / 100;
+            dRelY = (this.from.y + this.by.y * fRelTime) / 100;
+        }
         else if(this.by) {
-            dRelX = (this.by.x / 100)*fRelTime;
-            dRelY = (this.by.y / 100)*fRelTime;
+            dRelX = fObjRelX + (this.by.x / 100)*fRelTime;
+            dRelY = fObjRelY + (this.by.y / 100)*fRelTime;
         }
         else if(this.to) {
-            dRelX = (this.to.x / 100)*fRelTime;
-            dRelY = (this.to.y / 100)*fRelTime;
-            if(this.from) {
-                dRelX += (this.from.x / 100)*(1.0 - fRelTime);
-                dRelY += (this.from.y / 100)*(1.0 - fRelTime);
-            }
+            dRelX = fObjRelX + ((this.to.x / 100) - fObjRelX)*fRelTime;
+            dRelY = fObjRelY + ((this.to.y / 100) - fObjRelY)*fRelTime;
         }
         if(dRelX !== null && dRelY !== null) {
-            if(this.origin === ORIGIN_LAYOUT) {
-                dPosX = this.getTargetObjectPosX() + dRelX*this.getSlideWidth();
-                dPosY = this.getTargetObjectPosY() + dRelY*this.getSlideHeight();
+            var aAttr = this.getAttributes();
+            if(aAttr[0] && this.isAllowedAttribute(aAttr[0].text)) {
+                oAttributes[aAttr[0].text] = dPosX;
             }
             else {
-                dPosX = dRelX * this.getSlideWidth() - this.getTargetObjectExtX() / 2.0;
-                dPosY = dRelY * this.getSlideHeight() - this.getTargetObjectExtY() / 2.0;
+                oAttributes["ppt_x"] = dPosX;
             }
-            oAttributes["ppt_x"] = dPosX;
-            oAttributes["ppt_y"] = dPosY;
+            if(aAttr[1] && this.isAllowedAttribute(aAttr[1].text)) {
+                oAttributes[aAttr[1].text] = dPosY;
+            }
+            else {
+                oAttributes["ppt_y"] = dPosY;
+            }
         }
+    };
+    CAnimMotion.prototype.isAllowedAttribute = function(sAttrName) {
+        return sAttrName === "ppt_x" || "ppt_y" || "ppt_w" ||
+            "ppt_h" || "ppt_r" || "style.fontSize" ||
+            "xskew" || "yskew" || "xshear" ||
+            "yshear" || "scaleX" || "or scaleY";
     };
 
     function CSVGPath(sPath) {
@@ -4442,18 +4580,30 @@
         }
         var fRelTime = this.getRelativeTime(nElapsedTime);
         var dR = null;
+        if(this.to && this.from) {
+            dR = this.from + (this.to - this.from) & fRelTime;
+        }
+        else if(this.by && this.from) {
+            dR = this.from + fRelTime*this.by;
+        }
         if(this.by !== null) {
-            dR = this.by * AscFormat.cToRad *fRelTime;
+            dR = this.by*fRelTime;
         }
         else if(this.to !== null) {
-            dR = this.to * AscFormat.cToRad *fRelTime;
-            if(this.from) {
-                dR += (this.from * AscFormat.cToRad *fRelTime)*(1.0 - fRelTime);
-            }
+            dR = this.to*fRelTime;
         }
         if(dR !== null) {
-            oAttributes["r"] = dR;
+            var aAttr = this.getAttributes();
+            if(aAttr[0] && this.isAllowedAttribute(aAttr[0].text)) {
+                oAttributes[aAttr[0].text] = dR;
+            }
+            else {
+                oAttributes["r"] = dR;
+            }
         }
+    };
+    CAnimRot.prototype.isAllowedAttribute = function() {
+        return "ppt_r" || "r" || "style.rotation";
     };
 
 
@@ -4596,29 +4746,26 @@
             return;
         }
         var fRelTime = this.getRelativeTime(nElapsedTime);
-        var fromX = 1, fromY = 1;
-        var toX = null, toY = null;
-        if(this.by) {
-            toX = this.by.x / 100000;
-            toY = this.by.y / 100000;
+        var dRelX = null, dRelY = null;
+        if(this.to && this.from) {
+            dRelX = (this.from.x + (this.to.x - this.from.x) * fRelTime) / 100000;
+            dRelY = (this.from.y + (this.to.y - this.from.y) * fRelTime) / 100000;
+        }
+        else if(this.by && this.from) {
+            dRelX = (this.from.x + this.by.x * fRelTime) / 100000;
+            dRelY = (this.from.y + this.by.y * fRelTime) / 100000;
+        }
+        else if(this.by) {
+            dRelX = 1.0 + (this.by.x / 100000)*fRelTime;
+            dRelY = 1.0 + (this.by.y / 100000)*fRelTime;
         }
         else if(this.to) {
-            toX = this.to.x / 100000;
-            toY = this.to.y / 100000;
-            if(this.from) {
-                fromX = this.from.x / 100000;
-                fromY = this.from.y / 100000;
-            }
+            dRelX = (this.to.x / 100000)*fRelTime;
+            dRelY = (this.to.y / 100000)*fRelTime;
         }
-        if(toX !== null && toY !== null) {
-            var extX = this.getTargetObjectExtX();
-            var extY = this.getTargetObjectExtY();
-            var x = this.getTargetObjectPosX();
-            var y = this.getTargetObjectPosY();
-            oAttributes["ppt_w"] = extX*this.getAnimatedVal(fRelTime, fromX, toX);
-            oAttributes["ppt_y"] = extY*this.getAnimatedVal(fRelTime, fromY, toY);
-            oAttributes["ppt_x"] = x + extX / 2.0 - oAttributes["ppt_w"] / 2.0;
-            oAttributes["ppt_y"] = y + extY / 2.0 - oAttributes["ppt_h"] / 2.0;
+        if(dRelX !== null && dRelY !== null) {
+            oAttributes["ScaleX"] = dRelX;
+            oAttributes["ScaleY"] = dRelY;
         }
     };
 
@@ -5939,7 +6086,6 @@
         }
     };
 
-
     var DEFAULT_SIMPLE_TRIGGER = function() {
         return true;
     };
@@ -5947,14 +6093,151 @@
         return false;
     };
 
-    function CAnimAttributes(oDrawer) {
-        this.drawer = oDrawer;
-        this.attr = {};
-    }
-    CAnimAttributes.prototype.setDrawingStyle = function(style) {
-    };
-    CAnimAttributes.prototype.setDrawingSpPr = function(style) {
-    };
+
+/* Attributes names
+    style.opacity
+    style.rotation
+    style.visibility
+    style.color
+    style.fontSize
+    style.fontWeight
+    style.fontStyle
+    style.fontFamily
+    style.textEffectEmboss
+    style.textShadow
+    style.textTransform
+    style.textDecorationUnderline
+    style.textEffectOutline
+    style.textDecorationLineThrough
+    style.sRotation
+    imageData.cropTop
+    imageData.cropBottom
+    imageData.cropLeft
+    imageData.cropRight
+    imageData.cropRight
+    imageData.gain
+    imageData.blacklevel
+    imageData.gamma
+    imageData.grayscale
+    imageData.chromakey
+    fill.on
+    fill.type
+    fill.color
+    fill.opacity
+    fill.color2
+    fill.method
+    fill.opacity2
+    fill.angle
+    fill.focus
+    fill.focusposition.x
+    fill.focusposition.y
+    fill.focussize.x
+    fill.focussize.y
+    stroke.on
+    stroke.color
+    stroke.weight
+    stroke.opacity
+    stroke.linestyle
+    stroke.dashstyle
+    stroke.filltype
+    stroke.src
+    stroke.color2
+    stroke.imagesize.x
+    stroke.imagesize.y
+    stroke.startArrow
+    stroke.endArrow
+    stroke.startArrowWidth
+    stroke.startArrowLength
+    stroke.endArrowWidth
+    stroke.endArrowLength
+    shadow.on
+    shadow.type
+    shadow.color
+    shadow.color2
+    shadow.opacity
+    shadow.offset.x
+    shadow.offset.y
+    shadow.offset2.x
+    shadow.offset2.y
+    shadow.origin.x
+    shadow.origin.y
+    shadow.matrix.xtox
+    shadow.matrix.ytox
+    shadow.matrix.xtox
+    shadow.matrix.ytoy
+    shadow.matrix.perspectiveX
+    shadow.matrix.perspectiveY
+    skew.on
+    skew.offset.x
+    skew.offset.y
+    skew.origin.x
+    skew.origin.y
+    skew.matrix.xtox
+    skew.matrix.ytox
+    skew.matrix.xtox
+    skew.matrix.ytoy
+    skew.matrix.perspectiveX
+    skew.matrix.perspectiveY
+    extrusion.on
+    extrusion.type
+    extrusion.render
+    extrusion.viewpointorigin.x
+    extrusion.viewpointorigin.y,
+    extrusion.viewpoint.x
+    extrusion.viewpoint.y
+    extrusion.viewpoint.z
+    extrusion.plane
+    extrusion.skewangle
+    extrusion.skewamt
+    extrusion.backdepth
+    extrusion.foredepth
+    extrusion.orientation.x
+    extrusion.orientation.y
+    extrusion.orientation.z
+    extrusion.orientationangle
+    extrusion.color
+    extrusion.rotationangle.x
+    extrusion.rotationangle.y
+    extrusion.lockrotationcenter
+    extrusion.autorotationcenter
+    extrusion.rotationcenter.x
+    extrusion.rotationcenter.y
+    extrusion.rotationcenter.z
+    extrusion.colormode
+    ppt_x
+    ppt_y
+    ppt_w
+    ppt_h
+    ppt_c
+    ppt_r
+    xshear
+    yshear
+    image
+    ScaleX
+    ScaleY
+    r
+    fillcolor
+    3d.object.rotation.x
+    3d.object.rotation.y
+    3d.object.rotation.z
+    3d.view.rotation.x
+    3d.view.rotation.y
+    3d.view.rotation.z
+    3d.object.scale.x
+    3d.object.scale.y
+    3d.object.scale.z
+    3d.view.scale.x
+    3d.view.scale.y
+    3d.view.scale.z
+    3d.object.translation.x
+    3d.object.translation.y
+    3d.object.translation.z
+    3d.view.translation.x
+    3d.view.translation.y
+    3d.view.translation.z
+    drawProgress
+    drawProgressAllAtOnce
+    */
     function CAnimSandwich(sDrawingId) {
         this.drawingId = sDrawingId;
         this.animations = [];
@@ -6011,7 +6294,11 @@
     CParseQueue.prototype.calculate = function(oVarMap){
         this.pos = this.queue.length - 1;
         var oLastToken = this.queue[this.pos];
-        return oLastToken.calculate(oVarMap);
+        if(!oLastToken) {
+            return null;
+        }
+        oLastToken.calculate(oVarMap);
+        return oLastToken.result;
     };
 
 
@@ -6092,13 +6379,6 @@
     };
     CVariableToken.prototype.setName = function(sName) {
         this.name = sName;
-    };
-    CVariableToken.prototype.variables = {
-        "$": true,
-        "#ppt_x": true,
-        "#ppt_y": true,
-        "#ppt_w": true,
-        "#ppt_h": true
     };
     function CFunctionToken(oQueue, sName) {
         CTokenBase.call(this, oQueue);
@@ -6263,8 +6543,6 @@
     var NUMBER_REGEXPSTR = "[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?";
     var NUMBER_REGEXP = new RegExp(NUMBER_REGEXPSTR, "g");
 
-    var VAR_REGEXPSTR = "(\\$\|#ppt_x\|#ppt_y\|#ppt_w\|#ppt_h)";
-    var VAR_REGEXP = new RegExp(VAR_REGEXPSTR, "g");
 
     var PARSER_FLAGS_CONSTVAR = 1;
     var PARSER_FLAGS_FUNCTION = 2;
@@ -6273,8 +6551,9 @@
     var PARSER_FLAGS_LEFTPAR  = 16;
     var PARSER_FLAGS_RIGHTPAR = 32;
     var PARSER_FLAGS_ARGSEP   = 64;
-    function CFormulaParser(sFormula) {
+    function CFormulaParser(sFormula, aVars) {
         this.formula = sFormula;
+        this.variables = aVars;
         this.pos = 0;
         this.flags = 0;
         this.queue = new CParseQueue();
@@ -6480,6 +6759,13 @@
         if(oRet){
             return oRet;
         }
+        for(var nVarName = 0; nVarName < this.variables.length; ++nVarName) {
+            var sVarName = this.variables;
+            if(this.formula.indexOf(sVarName, this.pos) === this.pos) {
+                this.pos += sVarName.length;
+                return new CVariableToken(this.queue, sVarName);
+            }
+        }
         oRet = this.checkExpression(VAR_REGEXP, this.parseVar);
         if(oRet){
             return oRet;
@@ -6498,13 +6784,6 @@
         var sFunction = this.formula.slice(nStartPos, nEndPos);
         if(CFunctionToken.prototype.functions[sFunction]) {
             return new CFunctionToken(this.queue, sFunction);
-        }
-        return null;
-    };
-    CFormulaParser.prototype.parseVar = function(nStartPos, nEndPos){
-        var sVar = this.formula.slice(nStartPos, nEndPos);
-        if(CVariableToken.prototype.variables[sVar]) {
-            return new CVariableToken(this.queue, sVar);
         }
         return null;
     };
