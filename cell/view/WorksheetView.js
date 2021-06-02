@@ -5441,6 +5441,20 @@
             }
         }
 
+        //draw foreign cursors
+		if (this.collaborativeEditing.getCollaborativeEditing() && this.collaborativeEditing.getFast()) {
+			var foreignCursors = this.collaborativeEditing.m_aForeignCursorsData
+			for (var i in foreignCursors) {
+				if (foreignCursors[i] && foreignCursors[i].sheetId === this.model.Id) {
+					var color = AscCommon.getUserColorById(foreignCursors[i].shortId, null, true)
+					for (var j = 0; j < foreignCursors[i].ranges.length; j++) {
+						this._drawElements(this._drawSelectionElement, foreignCursors[i].ranges[j],
+							AscCommonExcel.selectionLineType.None, color);
+					}
+				}
+			}
+		}
+
         // restore canvas' original clipping range
         ctx.restore();
 

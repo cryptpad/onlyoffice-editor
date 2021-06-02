@@ -78,6 +78,8 @@
 
 			this.m_bFast = false;
 
+			this.m_aForeignCursorsData = {};
+
 			this.init();
 
 			return this;
@@ -933,6 +935,13 @@
 			}
 			this.onEndCheckLock(callbackEx);
 			return bRet;
+		};
+		CCollaborativeEditing.prototype.Add_ForeignCursor = function(UserId, DocumentPos, UserShortId)
+		{
+			if (DocumentPos) {
+				DocumentPos.shortId = UserShortId;
+			}
+			this.m_aForeignCursorsData[UserId] = DocumentPos;
 		};
 
 		/**

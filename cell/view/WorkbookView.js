@@ -3889,7 +3889,26 @@
 		//AscCommon.getUserColorById(this.ShortId, null, true)
 
 		//var CursorPos = [{Class : Run, Position : InRunPos}];
-		//this.collaborativeEditing.Add_ForeignCursor(UserId, CursorInfo, UserShortId);
+		var aCursorInfo = CursorInfo.split(";");
+		var newCursorInfo = {sheetId: aCursorInfo[0], isEdit: aCursorInfo[1]};
+		var i = 2;
+		while(i < aCursorInfo.length) {
+			if (!newCursorInfo.ranges) {
+				newCursorInfo.ranges = [];
+			}
+			if (i + 4 < aCursorInfo.length) {
+				var _c1 = aCursorInfo[i] - 0;
+				var _r1 = aCursorInfo[i + 1] - 0;
+				var _c2 = aCursorInfo[i + 2] - 0;
+				var _r2 = aCursorInfo[i + 3] - 0;
+
+				newCursorInfo.ranges.push(new Asc.Range(_c1, _r1, _c2, _r2));
+			}
+			i += 4;
+		}
+
+		this.collaborativeEditing.Add_ForeignCursor(UserId, newCursorInfo, UserShortId);
+		this.getWorksheet()._drawSelection();
 
 		//if (true === Show)
 			//this.CollaborativeEditing.Update_ForeignCursorPosition(UserId, Run, InRunPos, true);
@@ -3908,7 +3927,7 @@
 		var rangeStr = "";
 		for (var i = 0; i < selection.ranges.length; i++) {
 			var _range = selection.ranges[i];
-			rangeStr += _range.r1 + ";" + _range.c1 + ";" + _range.r2 + ";" + _range.c2 + ";"
+			rangeStr += _range.c1 + ";" + _range.r1 + ";" + _range.c2 + ";" + _range.r2 + ";"
 		}
 
 		return id + ";" + isEdit + ";" + rangeStr;
