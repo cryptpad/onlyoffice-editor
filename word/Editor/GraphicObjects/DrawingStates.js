@@ -1701,22 +1701,19 @@ PreGeometryEditState.prototype = {
     {
         var selectedObj = this.drawingObjects.selectedObjects[0];
         var ret = AscFormat.handleSelectedObjects(this.drawingObjects, e, x, y, null, pageIndex, true);
-
-        if(e.Type === 0 && ret && ret.hit) {
-            this.drawingObjects.arrTrackObjects.push(new AscFormat.EditShapeGeometryTrack(selectedObj, this.majorObject));
-            var hit_to_handles = selectedObj.hitToHandles(x, y);
-            var card_direction = selectedObj.getCardDirectionByNum(hit_to_handles);
-            this.drawingObjects.changeCurrentState(new GeometryEditState(this.drawingObjects, selectedObj, card_direction));
-            console.log(ret);
+        if(e.Type === 0) {
+           if(ret && ret.hit) {
+                this.drawingObjects.arrTrackObjects.push(new AscFormat.EditShapeGeometryTrack(selectedObj, this.majorObject));
+                this.drawingObjects.changeCurrentState(new GeometryEditState(this.drawingObjects, selectedObj));
+            } else if ((ret && !ret.hit) || !ret) {
+                this.drawingObjects.selection.geometrySelection.calcGeometry.gmEditList = [];
+                this.drawingObjects.selection.geometrySelection = null;
+                this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
+                this.drawingObjects.clearTrackObjects();
+                this.drawingObjects.updateOverlay();
+            }
+            return ret;
         }
-        if(e.Type === 0 && ((ret && !ret.hit) || !ret)) {
-            this.drawingObjects.selection.geometrySelection.calcGeometry.gmEditList = [];
-            this.drawingObjects.selection.geometrySelection = null;
-            this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
-            this.drawingObjects.clearTrackObjects();
-            this.drawingObjects.updateOverlay();
-        }
-        return ret;
     },
     onMouseMove: function(e, x, y, pageIndex)
     {
@@ -1734,6 +1731,7 @@ GeometryEditState.prototype = {
     onMouseDown: function(e, x, y, pageIndex)
     {
         var track_object = this.drawingObjects.arrTrackObjects[0];
+        track_object.convertToBezier(track_object.geometry.gmEditPoint);
         this.drawingObjects.updateOverlay();
         return {objectId: track_object.geometry.Id, hit: true};
     },
@@ -1751,6 +1749,36 @@ GeometryEditState.prototype = {
     },
     onMouseUp: function(e, x, y, pageIndex)
     {
+        var geom = this.drawingObjects.arrTrackObjects[0].geometry;
+        geom.gmEditPoint.isFirstCPoint = false;
+        geom.gmEditPoint.isSecondCPoint = false;
+
+        var curPoint = geom.gmEditPoint.curCoords;
+        var nextPoint = geom.gmEditPoint.nextCoords;
+        var curIndex = geom.gmEditPoint.curCoords.pathCommand;
+        var nextIndex = geom.gmEditPoint.nextCoords.pathCommand;
+        var curPathCommand = geom.pathLst[0].ArrPathCommand[curIndex];
+        var nextPathCommand = geom.pathLst[0].ArrPathCommand[nextIndex];
+
+
+        if (geom.gmEditPoint.curCoords.id === 4) {
+            curPoint.X0 = curPathCommand.X0;
+            curPoint.Y0 = curPathCommand.Y0;
+            curPoint.X1 = curPathCommand.X1;
+            curPoint.Y1 = curPathCommand.Y1;
+            curPoint.X2 = curPathCommand.X2;
+            curPoint.Y2 = curPathCommand.Y2;
+
+            nextPoint.X0 = nextPathCommand.X0;
+            nextPoint.Y0 = nextPathCommand.Y0;
+            nextPoint.X1 = nextPathCommand.X1;
+            nextPoint.Y1 = nextPathCommand.Y1;
+            nextPoint.X2 = nextPathCommand.X2;
+            nextPoint.Y2 = nextPathCommand.Y2;
+        }
+
+
+
         this.drawingObjects.changeCurrentState(new PreGeometryEditState(this.drawingObjects));
         // this.drawingObjects.clearTrackObjects();
         this.drawingObjects.updateOverlay();

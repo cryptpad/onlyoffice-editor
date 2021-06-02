@@ -228,7 +228,7 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
     if(!ret) {
         if(oGeometryEditSelection && oGeometryEditSelection.length !== 0) {
            hit_to_handles = selected_objects[0].hitToHandles(x, y);
-           ret = oGeometryEditSelection.hitToGeometryEdit( x, y);
+           ret = oGeometryEditSelection.hitToGeometryEdit(e, x, y);
            if(!ret) {
                ret = AscFormat.handleFloatObjects(drawingObjectsController, selected_objects, e, x, y, null, pageIndex, true);
                drawing = selected_objects[0];

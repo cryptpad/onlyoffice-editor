@@ -2885,8 +2885,10 @@ CAutoshapeTrack.prototype =
             }
         })
 
-        if(geom.gmEditList[geom.gmEditList.length - 1])
-        geom.gmEditList[geom.gmEditList.length - 1].nextCoords =  geom.gmEditList[0].curCoords;
+        if(geom.gmEditList[geom.gmEditList.length - 1]) {
+            geom.gmEditList[geom.gmEditList.length - 1].nextCoords = geom.gmEditList[0].curCoords;
+            geom.gmEditList[0].prevCoords = geom.gmEditList[geom.gmEditList.length - 1].curCoords;
+        }
 
         var index;
 
@@ -2896,8 +2898,11 @@ CAutoshapeTrack.prototype =
                 if (geom.gmEditList[i].curCoords.pathCommand === geom.gmEditPoint.curCoords.pathCommand)
                     index = i;
 
-            if (i + 1 < geom.gmEditList.length)
+            if (i + 1 < geom.gmEditList.length) {
                 geom.gmEditList[i].nextCoords = geom.gmEditList[i + 1].curCoords;
+                geom.gmEditList[i + 1].prevCoords = geom.gmEditList[i].curCoords;
+            }
+
 
             var gmEditPointX = (xDst + dKoefX * (matrix.TransformPointX(geom.gmEditList[i].curCoords.X, geom.gmEditList[i].curCoords.Y))) >> 0;
             var gmEditPointY = (yDst + dKoefY * (matrix.TransformPointY(geom.gmEditList[i].curCoords.X, geom.gmEditList[i].curCoords.Y))) >> 0;
@@ -2928,7 +2933,7 @@ CAutoshapeTrack.prototype =
             ctx.lineTo(commandPointX2, commandPointY2);
 
             ctx.stroke();
-            ctx.fill();
+            ctx.closePath();
 
             ctx.beginPath();
             overlay.AddRect2(commandPointX1, commandPointY1, TRACK_RECT_SIZE);
