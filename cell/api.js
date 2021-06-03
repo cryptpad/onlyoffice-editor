@@ -125,7 +125,7 @@ var editor;
     this.formulasList = null;	// Список всех формул
 
 	this.openingEnd = {bin: false, xlsxStart: false, xlsx: false, data: null};
-	
+
 	this.tmpR1C1mode = null;
 
     this.insertDocumentUrlsData = null;
@@ -1512,7 +1512,10 @@ var editor;
     }, this.getViewMode());
 
     this.CoAuthoringApi.onConnectionStateChanged = function(e) {
-      t.handlers.trigger("asc_onConnectionStateChanged", e);
+		if (true === AscCommon.CollaborativeEditing.Is_Fast() && false === e['state']) {
+			t.wb.Remove_ForeignCursor(e['id']);
+		}
+    	t.handlers.trigger("asc_onConnectionStateChanged", e);
     };
     this.CoAuthoringApi.onLocksAcquired = function(e) {
       if (t._coAuthoringCheckEndOpenDocument(t.CoAuthoringApi.onLocksAcquired, e)) {
@@ -5590,6 +5593,13 @@ var editor;
 	}
   	this.wb.undo({All : true});
   };
+
+	spreadsheet_api.prototype.showForeignSelectLabel = function (UserId, X, Y, Color) {
+		//this.sendEvent("asc_onShowForeignSelectLabel", UserId, X, Y, new AscCommon.CColor(Color.r, Color.g, Color.b, 255));
+	};
+	spreadsheet_api.prototype.hideForeignSelectLabel = function (UserId) {
+		this.sendEvent("asc_onHideForeignSelectLabel", UserId);
+	};
 
   /*
    * Export

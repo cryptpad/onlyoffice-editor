@@ -3907,18 +3907,20 @@
 			i += 4;
 		}
 
-		console.time("asd")
 		this.getWorksheet().cleanSelection();
 		this.collaborativeEditing.Add_ForeignCursor(UserId, newCursorInfo, UserShortId);
+		this.Api.showForeignSelectLabel();
 		this.getWorksheet()._drawSelection();
-		console.timeEnd("asd")
 
 		//if (true === Show)
 			//this.CollaborativeEditing.Update_ForeignCursorPosition(UserId, Run, InRunPos, true);
 	};
 	WorkbookView.prototype.Remove_ForeignCursor = function(UserId)
 	{
+		this.getWorksheet().cleanSelection();
 		this.collaborativeEditing.Remove_ForeignCursor(UserId);
+		this.Api.hideForeignSelectLabel(UserId);
+		this.getWorksheet()._drawSelection();
 	};
 	WorkbookView.prototype.getCursorInfo = function()
 	{

@@ -943,6 +943,9 @@
 			}
 			this.m_aForeignCursorsData[UserId] = DocumentPos;
 		};
+		CCollaborativeEditing.prototype.Remove_ForeignCursor = function(UserId){
+			delete this.m_aForeignCursorsData[UserId];
+		};
 
 		/**
 		 * Отвечает за лок в совместном редактировании
