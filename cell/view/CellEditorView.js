@@ -1303,7 +1303,7 @@
 
 	CellEditor.prototype._adjustCanvas = function () {
 		var z = this.defaults.canvasZIndex;
-		var borderSize = AscCommon.AscBrowser.convertToRetinaValue(1, true);
+		var borderSize = AscBrowser.retinaPixelRatio === 1.5 ? 1 : AscCommon.AscBrowser.convertToRetinaValue(1, true);
 		var left = this.left * this.kx;
 		var top = this.top * this.ky;
 		var width, height, widthStyle, heightStyle;
