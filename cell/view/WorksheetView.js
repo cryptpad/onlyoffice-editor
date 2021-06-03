@@ -15625,6 +15625,7 @@
 		var onChangeAutoFilterCallback = function (isSuccess) {
 			if (false === isSuccess && nActive === null) {
 				t.model.workbook.slicersUpdateAfterChangeTable(autoFilterObject.displayName);
+				t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
 				return;
 			}
 
@@ -15776,6 +15777,7 @@
 
 		var onChangeAutoFilterCallback = function (isSuccess) {
 			if (false === isSuccess) {
+				t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
 				return;
 			}
 
@@ -15930,6 +15932,7 @@
 
         var onChangeAutoFilterCallback = function (isSuccess) {
             if (false === isSuccess) {
+				t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
                 return;
             }
 
@@ -16044,6 +16047,7 @@
 		var nActive = t.model.getActiveNamedSheetViewId();
 		var onChangeAutoFilterCallback = function (isSuccess) {
 			if (false === isSuccess && nActive === null) {
+				t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
 				return;
 			}
 
