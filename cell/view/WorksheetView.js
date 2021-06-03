@@ -5787,6 +5787,30 @@
             });
         }
 
+		//clean foreign cursors
+		if (this.collaborativeEditing.getCollaborativeEditing() && this.collaborativeEditing.getFast()) {
+			var foreignCursors = this.collaborativeEditing.m_aForeignCursorsData;
+			for (var n in foreignCursors) {
+				if (foreignCursors[n] && foreignCursors[n].sheetId === this.model.Id) {
+					for (var j = 0; j < foreignCursors[n].ranges.length; j++) {
+						var _range = foreignCursors[n].ranges[j];
+						arnIntersection = _range.intersectionSimple(range);
+						if (arnIntersection) {
+							_x1 = t._getColLeft(arnIntersection.c1) - offsetX - 2;
+							_x2 = t._getColLeft(arnIntersection.c2 + 1) - offsetX + 1 + /* Это ширина "квадрата" для автофильтра от границы ячейки */2;
+							_y1 = t._getRowTop(arnIntersection.r1) - offsetY - 2;
+							_y2 = t._getRowTop(arnIntersection.r2 + 1) - offsetY + 1 + /* Это высота "квадрата" для автофильтра от границы ячейки */2;
+
+							x1 = Math.min(x1, _x1);
+							x2 = Math.max(x2, _x2);
+							y1 = Math.min(y1, _y1);
+							y2 = Math.max(y2, _y2);
+						}
+					}
+				}
+			}
+		}
+
         if (!(Number.MAX_VALUE === x1 && -Number.MAX_VALUE === x2 && Number.MAX_VALUE === y1 &&
           -Number.MAX_VALUE === y2)) {
             if(this.workbook.Api.isMobileVersion) {

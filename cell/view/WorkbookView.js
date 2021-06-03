@@ -3907,8 +3907,11 @@
 			i += 4;
 		}
 
+		console.time("asd")
+		this.getWorksheet().cleanSelection();
 		this.collaborativeEditing.Add_ForeignCursor(UserId, newCursorInfo, UserShortId);
 		this.getWorksheet()._drawSelection();
+		console.timeEnd("asd")
 
 		//if (true === Show)
 			//this.CollaborativeEditing.Update_ForeignCursorPosition(UserId, Run, InRunPos, true);
