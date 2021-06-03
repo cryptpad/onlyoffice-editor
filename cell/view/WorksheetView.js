@@ -14569,9 +14569,7 @@
 		var isSC = options.isSpellCheck;
 		if (options.indexInArray >= aReplaceCells.length) {
 			//49467 - проблема в том, что пересчёт запускается после отрисовки на endTransaction
-			//либо перерисовку переносить после endTransaction, либо всегда переесчёт запускать здесь
-			//TODO необходимо перепроверить
-			//this.model.workbook.dependencyFormulas.unlockRecal();
+			this.model.workbook.dependencyFormulas.unlockRecal();
 			this.draw(lockDraw);
 			return callback(options);
 		}
