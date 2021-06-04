@@ -2103,6 +2103,13 @@
     CGraphicObjectBase.prototype.getBoundsByDrawing = function() {
         return this.bounds;//TODO: do not count shape rect
     };
+    CGraphicObjectBase.prototype.getPresentionSize = function() {
+        var oPresentattion = editor.WordControl.m_oLogicDocument;
+        return {
+            w: oPresentattion.GetWidthMM(),
+            h: oPresentattion.GetHeightMM(),
+        }
+    };
     CGraphicObjectBase.prototype.getCachedCanvas = function(scale) {
         var oBounds = this.getBoundsByDrawing();
         var nWidth = (oBounds.w * scale + 0.5) >> 0;
