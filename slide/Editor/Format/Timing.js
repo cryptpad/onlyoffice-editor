@@ -214,7 +214,7 @@
     CTimeNodeBase.prototype.getDur = function() {
         var oAttr = this.getAttributesObject();
         if(oAttr.dur === null) {
-            return new CAnimationTime(0);
+            return (new CAnimationTime(0)).setUnspecified();
         }
         return this.parseTime(oAttr.dur);
     };
@@ -322,6 +322,9 @@
         return null;
     };
     CTimeNodeBase.prototype.finishCallback = function(oPlayer) {
+        if(!this.isActive()) {
+            return;
+        }
         var aChildren = this.getChildrenTimeNodes();
         for(var nChild = 0; nChild < aChildren.length; ++nChild) {
             aChildren[nChild].finishCallback(oPlayer);
@@ -329,6 +332,9 @@
         this.setFinished(oPlayer);
     };
     CTimeNodeBase.prototype.setFinished = function(oPlayer) {
+        if(!this.isActive()) {
+            return;
+        }
         this.setState(TIME_NODE_STATE_FINISHED);
         oPlayer.cancelCallerEvent(this);
         var oParentNode = this.getParentTimeNode();
@@ -3622,7 +3628,7 @@
             this.setClrVal(pReader.ReadUniColor());
         }
     };
-    CAnimVariant.prototype.getVal = function(nType, pReader) {
+    CAnimVariant.prototype.getVal = function() {
         if(this.boolVal !== null) {
             return this.boolVal;
         }
@@ -3997,6 +4003,21 @@
     };
     CAnimEffect.prototype.getChildren = function() {
         return [this.cBhvr, this.progress];
+    };
+    CAnimEffect.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
+        if(!this.filter) {
+            return;
+        }
+        var fRelTime = this.getRelativeTime(nElapsedTime);
+        if(this.progress && this.progress.isFlt()) {
+            fRelTime = this.progress.getVal()
+        }
+        var sFilter = this.filter.split(";")[0];
+        return oAttributes["effect"] = {
+            filter: sFilter,
+            time: fRelTime,
+            prLst: this.prLst
+        };
     };
 
     changesFactory[AscDFH.historyitem_AnimMotionBy] = CChangeObject;
@@ -6870,7 +6891,6 @@
     window['AscFormat'].CSndTgt = CSndTgt;
     window['AscFormat'].CSpTgt = CSpTgt;
     window['AscFormat'].CIterateData = CIterateData;
-    window['AscFormat'].CTm = CTm;
     window['AscFormat'].CTav = CTav;
     window['AscFormat'].CAnimVariant = CAnimVariant;
     window['AscFormat'].CAnimClr = CAnimClr;
