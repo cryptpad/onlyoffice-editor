@@ -5594,6 +5594,24 @@ var editor;
   	this.wb.undo({All : true});
   };
 
+
+
+	/*отправляем инфомарцию, инфомарция в виде строки(id + ";" + isEdit + ";" + rangeStr;)
+		_autoSaveInner -> wb.sendCursor -> CDocsCoApi.prototype.sendCursor
+		NeedUpdateTargetForCollaboration  - флаг высталяем в true, когда поменялся селект, потом предыдущая функция отсылает инфу на сервер
+
+	храним инф. о курсорах в
+		CCollaborativeEditing->m_aForeignCursorsData, добавляем/удаляем с помощью методов Add_ForeignCursor/Remove_ForeignCursor
+
+	удаляем инф. на
+		t.handlers.trigger("asc_onConnectionStateChanged", e) -> Remove_ForeignCursor
+
+	принимаем инфомарцию о курсорах
+		this.CoAuthoringApi.onCursor -> WorkbookView.prototype.Update_ForeignCursor
+
+	эвенты в интерфейс: asc_onShowForeignSelectLabel/asc_onHideForeignSelectLabel*/
+
+	
 	spreadsheet_api.prototype.showForeignSelectLabel = function (UserId, X, Y, Color) {
 		//this.sendEvent("asc_onShowForeignSelectLabel", UserId, X, Y, new AscCommon.CColor(Color.r, Color.g, Color.b, 255));
 	};
