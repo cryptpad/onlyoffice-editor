@@ -1706,8 +1706,10 @@ PreGeometryEditState.prototype = {
                 this.drawingObjects.arrTrackObjects.push(new AscFormat.EditShapeGeometryTrack(selectedObj, this.majorObject));
                 this.drawingObjects.changeCurrentState(new GeometryEditState(this.drawingObjects, selectedObj));
             } else if ((ret && !ret.hit) || !ret) {
+               //refactoring : отдельная функция для зануления
                 this.drawingObjects.selection.geometrySelection.calcGeometry.gmEditList = [];
                 this.drawingObjects.selection.geometrySelection.calcGeometry.gmEditPoint = null;
+               this.drawingObjects.selection.geometrySelection.calcGeometry.ellipsePointsList = [];
                 this.drawingObjects.selection.geometrySelection = null;
                 this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
                 this.drawingObjects.clearTrackObjects();
@@ -1732,7 +1734,7 @@ GeometryEditState.prototype = {
     onMouseDown: function(e, x, y, pageIndex)
     {
         var track_object = this.drawingObjects.arrTrackObjects[0];
-        track_object.convertToBezier(track_object.geometry.gmEditPoint);
+        track_object.convertToBezier();
         this.drawingObjects.updateOverlay();
         return {objectId: track_object.geometry.Id, hit: true};
     },

@@ -217,10 +217,11 @@
                     for (var i = 0; i < geom.ellipsePointsList.length; i++) {
                         var elemX = parseFloat(geom.ellipsePointsList[i].curCoords.X.toFixed(4));
                         var elemY = parseFloat(geom.ellipsePointsList[i].curCoords.Y.toFixed(4));
-                        if (elemX === parseFloat(EndPoint.X.toFixed(4)) && elemY === parseFloat(EndPoint.Y.toFixed))
+                        if (elemX === parseFloat(EndPoint.X.toFixed(4)) && elemY === parseFloat(EndPoint.Y.toFixed(4)))
                             flag = true;
                     }
-                    if (!flag)
+
+                    if (!flag && (EndPoint.X0 !== EndPoint.X1 || EndPoint.X1 !== EndPoint.X2) && (EndPoint.Y0 !== EndPoint.Y1 || EndPoint.Y1 !== EndPoint.Y2))
                         geom.ellipsePointsList.push({curCoords: EndPoint});
                 }
             }

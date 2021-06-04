@@ -291,7 +291,6 @@
         for(var i = 0; i < geom.gmEditList.length; i++) {
             var gmEditPoint = geom.gmEditList[i];
             var curCoords = gmEditPoint.curCoords;
-            var nextCoords = gmEditPoint.nextCoords;
             var prevCoords = gmEditPoint.prevCoords;
             switch (gmEditPoint.curCoords.id) {
                 case 0:
@@ -337,6 +336,25 @@
                 Y2: curCoords.Y2
             }
 
+            //refactoring
+            geom.originalEditPoint.curCoords = {
+                id: 4,
+                X0: geom.gmEditPoint.curCoords.X0,
+                Y0: geom.gmEditPoint.curCoords.Y0,
+                X1: geom.gmEditPoint.curCoords.X1,
+                Y1: geom.gmEditPoint.curCoords.Y1,
+                X2: geom.gmEditPoint.curCoords.X2,
+                Y2: geom.gmEditPoint.curCoords.Y2
+            }
+            geom.originalEditPoint.nextCoords = {
+                id: 4,
+                X0: geom.gmEditPoint.nextCoords.X0,
+                Y0: geom.gmEditPoint.nextCoords.Y0,
+                X1: geom.gmEditPoint.nextCoords.X1,
+                Y1: geom.gmEditPoint.nextCoords.Y1,
+                X2: geom.gmEditPoint.nextCoords.X2,
+                Y2: geom.gmEditPoint.nextCoords.Y2
+            }
             geom.pathLst[0].ArrPathCommand[gmEditPoint.curCoords.pathCommand] = command;
             gmEditPoint.curCoords.id = 4;
         }
