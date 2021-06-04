@@ -278,51 +278,106 @@ CDocumentSearch.prototype.private_CalculatePrefix = function()
 		{
 			nK = this.Prefix[nPos - 1]
 			while (nK > 0 && !(this.Text[nPos] === this.Text[nK] || this.Check_text_is_special_symbol(this.Text, nPos, nK)
-				 || this.Check_special_symbol_is_special_symbol(this.Text, nPos, nK)))
+				 || this.Check_special_symbol_is_special_symbol(this.Text, nPos, nK) || this.Check_special_symbol_is_text(this.Text, nPos, nK)))
 				nK = this.Prefix[nK - 1];
 
-			if (this.Text[nPos] === this.Text[nK] || this.Check_text_is_special_symbol(this.Text, nPos, nK)
+			/*if (this.Text[nPos] === this.Text[nK])
+				nK++;
+			if (this.Check_text_is_special_symbol(this.Text, nPos, nK)
 				|| this.Check_special_symbol_is_special_symbol(this.Text, nPos, nK))
+				nK+=2;*/
+			if ((this.Text[nPos] !== '^' && this.Text[nPos] === this.Text[nK]) || this.Check_text_is_special_symbol(this.Text, nPos, nK)
+				|| this.Check_special_symbol_is_special_symbol(this.Text, nPos, nK) || this.Check_special_symbol_is_text(this.Text, nPos, nK))
 				nK++;
 
 			this.Prefix[nPos] = nK;
 		}
 		else
 		{
-			(this.Prefix[nPos - 1] !== 0) ? this.Prefix[nPos] = this.Prefix[nPos - 1] : this.Prefix[nPos] = 0;
+			(this.Prefix[nPos - 1] !== 0) ? this.Prefix[nPos] = this.Prefix[nPos - 1] + 1 : this.Prefix[nPos] = 0;
 		}
 	}
 };
 CDocumentSearch.prototype.Check_text_is_special_symbol = function(sStringText, nPos, nK)
 {
-	var bText = true;
+	var bText = false;
 	if (sStringText[nPos] === '^')
 	{
-		if (sStringText[nPos + 1] === '?')
-			return true;
-		((sStringText[nPos + 1] === '#') &&  ((sStringText[nK] === '^' && sStringText[nK + 1] === '#') || (sStringText[nK] === '^' && sStringText[nK + 1] === '?')
-			|| (sStringText[nK - 1] === '^' && sStringText[nK] === '#') || (sStringText[nK - 1] === '^' && sStringText[nK] === '?'))) ? bText === true : bText === false;
-		((sStringText[nPos + 1] === '$') && 
-		((sStringText[nK] === '^' && sStringText[nK + 1] === '$') || (sStringText[nK] === '^' && sStringText[nK + 1] === '?')
-		|| (sStringText[nK - 1] === '^' && sStringText[nK] === '$') || (sStringText[nK - 1] === '^' && sStringText[nK] === '?'))) ? bText === true : bText === false;
+		var sLetters = {
+			'?' : function(){
+				bText = true;
+			},
+			'#' : function(){
+				((sStringText[nK] === '^' && sStringText[nK + 1] === '#') || (sStringText[nK] === '^' && sStringText[nK + 1] === '?')
+				|| (sStringText[nK - 1] === '^' && sStringText[nK] === '#') || (sStringText[nK - 1] === '^' && sStringText[nK] === '?')) ? bText = true : bText = false;
+			},
+			'$' : function(){
+				(((sStringText[nK] === '^' && sStringText[nK + 1] === '$') || (sStringText[nK] === '^' && sStringText[nK + 1] === '?')
+				|| (sStringText[nK - 1] === '^' && sStringText[nK] === '$') || (sStringText[nK - 1] === '^' && sStringText[nK] === '?'))) ? bText = true : bText = false;
+			},
+			'default' : function(){
+				bText = false;
+			}
+		};
+		(sLetters[sStringText[nPos + 1]] || sLetters['default'])();
 	}
 	return bText;
 };
 CDocumentSearch.prototype.Check_special_symbol_is_special_symbol = function(sStringText, nPos, nK)
 {
-	var bText = true;
+	var bText = false;
 	if (sStringText[nPos] === '^')
 	{
-		if (sStringText[nPos + 1] === '?')
-			return true;
-		((sStringText[nPos + 1] === '#') &&  (sStringText[nK] >= '0' && sStringText[nK] <= '9')) ? bText === true : bText === false;
-		((sStringText[nPos + 1] === '$') && 
-			((sStringText[nK] >= 'A' && sStringText[nK] <= 'Z')
-			|| (sStringText[nK] >= 'a' && sStringText[nK] <= 'z')
-			|| (sStringText[nK] >= 'А' && sStringText[nK] <= 'Я')
-			|| (sStringText[nK] >= 'а' && sStringText[nK] <= 'я')
-			|| (sStringText[nK] === 'Ё')
-			|| (sStringText[nK] === 'ё'))) ? bText === true : bText === false;
+		var sLetters = {
+			'?' : function(){
+				bText = true;
+			},
+			'#' : function(){
+				((sStringText[nPos + 1] === '#') &&  (sStringText[nK] >= '0' && sStringText[nK] <= '9')) ? bText = true : bText = false;
+			},
+			'$' : function(){
+				((sStringText[nPos + 1] === '$') && 
+					((sStringText[nK] >= 'A' && sStringText[nK] <= 'Z')
+					|| (sStringText[nK] >= 'a' && sStringText[nK] <= 'z')
+					|| (sStringText[nK] >= 'А' && sStringText[nK] <= 'Я')
+					|| (sStringText[nK] >= 'а' && sStringText[nK] <= 'я')
+					|| (sStringText[nK] === 'Ё')
+					|| (sStringText[nK] === 'ё'))) ? bText = true : bText = false;
+			},
+			'default' : function(){
+				bText = false;
+			}
+		};
+		(sLetters[sStringText[nPos + 1]] || sLetters['default'])();
+	}
+	return bText;
+};
+CDocumentSearch.prototype.Check_special_symbol_is_text = function(sStringText, nPos, nK)
+{
+	var bText = false;
+	if (sStringText[nK] === '^')
+	{
+		var sLetters = {
+			'?' : function(){
+				bText = true;
+			},
+			'#' : function(){
+				((sStringText[nK + 1] === '#') &&  (sStringText[nPos] >= '0' && sStringText[nPos] <= '9')) ? bText = true : bText = false;
+			},
+			'$' : function(){
+				((sStringText[nK + 1] === '$') && 
+					((sStringText[nPos] >= 'A' && sStringText[nPos] <= 'Z')
+					|| (sStringText[nPos] >= 'a' && sStringText[nPos] <= 'z')
+					|| (sStringText[nPos] >= 'А' && sStringText[nPos] <= 'Я')
+					|| (sStringText[nPos] >= 'а' && sStringText[nPos] <= 'я')
+					|| (sStringText[nPos] === 'Ё')
+					|| (sStringText[nPos] === 'ё'))) ? bText = true : bText = false;
+			},
+			'default' : function(){
+				bText = false;
+			}
+		};
+		(sLetters[sStringText[nK + 1]] || sLetters['default'])();
 	}
 	return bText;
 };
@@ -343,9 +398,13 @@ CDocument.prototype.Search = function(sStr, oProps, bDraw)
 	this.SearchEngine.Clear();
 	this.SearchEngine.Set(sStr, oProps);
 
+	var oParaSearch1 = new CParagraphSearch(this.Content[0], sStr, oProps, this.SearchEngine, search_Common);
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
-		this.Content[nIndex].Search(sStr, oProps, this.SearchEngine, search_Common);
+		if (oParaSearch1.SearchIndex === 0 || oParaSearch1.SearchIndex === undefined)
+		    oParaSearch1 = this.Content[nIndex].Search(sStr, oProps, this.SearchEngine, search_Common);
+		else
+			oParaSearch1 = this.Content[nIndex].Search1(oParaSearch1);
 	}
 
 	this.SectionsInfo.Search(sStr, oProps, this.SearchEngine);
@@ -1081,6 +1140,14 @@ CTable.prototype.GetSearchElementId = function(bNext, bCurrent)
 //----------------------------------------------------------------------------------------------------------------------
 // Paragraph
 //----------------------------------------------------------------------------------------------------------------------
+Paragraph.prototype.Search1 = function(oParaSearch)
+{
+	for (var nPos = 0, nContentLen = this.Content.length; nPos < nContentLen; ++nPos)
+	{
+		this.Content[nPos].Search(oParaSearch);
+	}
+    return oParaSearch; 
+};
 Paragraph.prototype.Search = function(sStr, oProps, oSearchEngine, nType)
 {
 	//if (SearchIndex)
@@ -1090,7 +1157,7 @@ Paragraph.prototype.Search = function(sStr, oProps, oSearchEngine, nType)
 		this.Content[nPos].Search(oParaSearch);
 	}
 
-    return;
+    return oParaSearch;
 
     // TODO: Здесь расчитываем окружающий текст, надо перенести в отдельную функцию, которая будет вызываться
 	//       из интерфейса, когда сделают панель для поиска
@@ -1313,18 +1380,19 @@ ParaRun.prototype.Search = function(ParaSearch)
 	    if (!bElement && Str[ParaSearch.SearchIndex] === '^')
 		    bElement = this.Check_Special_Symbol(oItem, ParaSearch.SearchIndex, ParaSearch.Str);
 
-		while (ParaSearch.SearchIndex > 0 && !bElement && this.Content[nPos - 1].Value !== 94)
+		while (ParaSearch.SearchIndex > 0 && !bElement && (nPos !== 0 && this.Content[nPos - 1].Value !== 94))
 		{
-			if (ParaSearch.Str[ParaSearch.SearchIndex] === "^")
+			/*if (ParaSearch.Str[ParaSearch.SearchIndex] === "^")
 				ParaSearch.SearchIndex = ParaSearch.GetPrefix(ParaSearch.SearchIndex - 2);
-			else
-				ParaSearch.SearchIndex = ParaSearch.GetPrefix(ParaSearch.SearchIndex - 1);
+			else*/
+			ParaSearch.SearchIndex = ParaSearch.GetPrefix(ParaSearch.SearchIndex - 1);
 			if (0 === ParaSearch.SearchIndex)
 			{
 				ParaSearch.Reset();
 				break;
 			}
-			else if (ParaSearch.Check(ParaSearch.SearchIndex, oItem))
+			else if (ParaSearch.Check(ParaSearch.SearchIndex, oItem)
+				|| this.Check_Special_Symbol(oItem, ParaSearch.SearchIndex, ParaSearch.Str))
 			{
 				ParaSearch.StartPos = ParaSearch.StartPosBuf.pop();
 				break;
@@ -1537,7 +1605,7 @@ ParaRun.prototype.CheckSpecialSymbol = function(ParaSearch, nPos, bCheck)
 };
 ParaRun.prototype.Check_Special_Symbol = function(oItem, SearchIndex, sText)
 {
-	var bElement = true;
+	var bElement = false;
 	if (sText[SearchIndex] === '^')
 	{
 		var sLetters = {
