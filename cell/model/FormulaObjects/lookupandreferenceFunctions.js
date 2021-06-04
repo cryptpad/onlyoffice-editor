@@ -757,7 +757,7 @@ function (window, undefined) {
 			return ret;
 		} else {
 			o.Formula = arg0.toString();
-			AscCommonExcel.executeInR1C1Mode(!!(arg1 && arg1.value === false), parseReference);
+			AscCommonExcel.executeInR1C1Mode(!!(arg1 && arg1.value == false), parseReference);
 			if (found_operand) {
 				if (cElementType.name === found_operand.type || cElementType.name3D === found_operand.type) {
 					found_operand = found_operand.toRef(arguments[1]);
