@@ -192,19 +192,8 @@
                         if (elemX === parseFloat(EndPoint.X.toFixed(4)) && elemY === parseFloat(EndPoint.Y.toFixed(4)))
                             flag = true;
                     }
-                    if (!flag) {
-                            if(isPoint) {
-                                var lastPoint = geom.ellipsePointsList[ geom.ellipsePointsList.length - 1];
-                                lastPoint.fX1 = EndPoint.fX1;
-                                lastPoint.fY1 = EndPoint.fY1;
-                                lastPoint.fX2 = EndPoint.fX2;
-                                lastPoint.fY2 = EndPoint.fY2;
-                                lastPoint.fCX1 = EndPoint.fCX1;
-                                lastPoint.fCY1 = EndPoint.fCY1;
-                                lastPoint.fCX2 = EndPoint.fCX2;
-                                lastPoint.fCY2 = EndPoint.fCY2;
-                            }
-                        geom.ellipsePointsList.push({curCoords: EndPoint});
+                    if (!flag && !isPoint) {
+                            geom.ellipsePointsList.push({curCoords: EndPoint});
                     }
                 }
             }

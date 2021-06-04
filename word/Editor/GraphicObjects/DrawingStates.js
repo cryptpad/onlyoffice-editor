@@ -1707,6 +1707,7 @@ PreGeometryEditState.prototype = {
                 this.drawingObjects.changeCurrentState(new GeometryEditState(this.drawingObjects, selectedObj));
             } else if ((ret && !ret.hit) || !ret) {
                 this.drawingObjects.selection.geometrySelection.calcGeometry.gmEditList = [];
+                this.drawingObjects.selection.geometrySelection.calcGeometry.gmEditPoint = null;
                 this.drawingObjects.selection.geometrySelection = null;
                 this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
                 this.drawingObjects.clearTrackObjects();

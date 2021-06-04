@@ -1359,10 +1359,6 @@ Geometry.prototype=
                 dx = x - this.gmEditList[i].curCoords.X;
                 dy = y - this.gmEditList[i].curCoords.Y;
 
-                dxC1 = x - this.gmEditList[i].curCoords.X1;
-                dyC1 = y - this.gmEditList[i].curCoords.Y1;
-                dxC2 = x - this.gmEditList[i].nextCoords.X0;
-                dyC2 = y - this.gmEditList[i].nextCoords.Y0;
                 var gmArr = this.gmEditList[i];
                 var curS = gmArr.curCoords;
                 var nextS = gmArr.nextCoords;
@@ -1385,42 +1381,22 @@ Geometry.prototype=
                     isStartPoint: gmArr.isStartPoint
                 }
 
-                if (Math.sqrt(dxC1 * dxC1 + dyC1 * dyC1) < distance) {
-                    this.gmEditPoint.isFirstCPoint = true;
-                    return {hit: true, objectId: this.Id};
-                }
-                if (Math.sqrt(dxC2 * dxC2 + dyC2 * dyC2) < distance) {
-                    this.gmEditPoint.isSecondCPoint = true;
-                    return {hit: true, objectId: this.Id};
-                }
-
                 if (Math.sqrt(dx * dx + dy * dy) < distance) {
                     this.gmEditPoint = this.gmEditList[i];
                     this.originalEditPoint = originalEditPoint;
-
-                    // //refactoring
-                    // var pathCmd = this.pathLst[0].ArrPathCommand[gmArr.curCoords.pathCommand];
-                    // if (pathCmd.id === 4) {
-                    //     this.gmEditPoint.curCoords.X0 = pathCmd.X0;
-                    //     this.gmEditPoint.curCoords.Y0 = pathCmd.Y0;
-                    //     this.gmEditPoint.curCoords.X1 = pathCmd.X1;
-                    //     this.gmEditPoint.curCoords.Y1 = pathCmd.Y1;
-                    //     this.gmEditPoint.curCoords.fX2 = pathCmd.X2;
-                    //     this.gmEditPoint.curCoords.fY2 = pathCmd.Y2;
-                    // }
-                    //
-                    // pathCmd = this.pathLst[0].ArrPathCommand[gmArr.nextCoords.pathCommand];
-                    //
-                    // if (pathCmd.id === 4) {
-                    //     this.gmEditPoint.nextCoords.X0 = pathCmd.X0;
-                    //     this.gmEditPoint.nextCoords.Y0 = pathCmd.Y0;
-                    //     this.gmEditPoint.nextCoords.X1 = pathCmd.X1;
-                    //     this.gmEditPoint.nextCoords.Y1 = pathCmd.Y1;
-                    //     this.gmEditPoint.nextCoords.fX2 = this.gmEditPoint.nextCoords.X;
-                    //     this.gmEditPoint.nextCoords.fY2 = this.gmEditPoint.nextCoords.Y;
-                    // }
-
                     return {hit: true, objectId: this.Id};
+                } else if (this.gmEditPoint) {
+                    dxC1 = x - this.gmEditPoint.curCoords.X1;
+                    dyC1 = y - this.gmEditPoint.curCoords.Y1;
+                    dxC2 = x - this.gmEditPoint.nextCoords.X0;
+                    dyC2 = y - this.gmEditPoint.nextCoords.Y0;
+                    if (Math.sqrt(dxC1 * dxC1 + dyC1 * dyC1) < distance) {
+                        this.gmEditPoint.isFirstCPoint = true;
+                        return {hit: true, objectId: this.Id};
+                    } else if (Math.sqrt(dxC2 * dxC2 + dyC2 * dyC2) < distance) {
+                        this.gmEditPoint.isSecondCPoint = true;
+                        return {hit: true, objectId: this.Id};
+                    }
                 }
             }
         }
