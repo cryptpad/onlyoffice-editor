@@ -1326,6 +1326,12 @@ CShape.prototype.applyTextFunction = function (docContentFunction, tableFunction
     }
     if(!editor || !editor.noCreatePoint || editor.exucuteHistory)
     {
+        var point = this.isObjectInSmartArt() && this.getPoint();
+
+        if (args[0].Value.FontSize && point) {
+            point.prSet.setCustT(true);
+            this.setFontSizeInSmartArt(args[0].Value.FontSize);
+        }
         this.checkExtentsByDocContent();
     }
 };
@@ -4408,12 +4414,6 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
         var oBodyPr = this.getBodyPr && this.getBodyPr();
         var oContent = this.getDocContent && this.getDocContent();
         var point = this.isObjectInSmartArt() && this.getPoint();
-        var isPlaceholderInSmartArt = point && point.prSet && point.prSet.phldr;
-        if (isPlaceholderInSmartArt) {
-            point.prSet.setPhldr(false);
-            this.txBody.content2 = null;
-        }
-
         if (this.isObjectInSmartArt()) {
             var arrOfFonts = [];
             this.group.arrGraphicObjects.forEach(function (shape) {
@@ -4444,6 +4444,7 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                     shape.setFontSizeInSmartArt(minFont);
                 }
             });
+
         }
         if(oBodyPr && oContent && this.clipRect)
         {
@@ -4580,6 +4581,21 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                 {
                     this.recalculateContentWitCompiledPr();
                 }
+            }
+        }
+        var isPlaceholderInSmartArt = point && point.prSet && point.prSet.phldr;
+        if (isPlaceholderInSmartArt) {
+            var isNotEmptyShape = oContent.Content.some(function (paragraph) {
+                return paragraph.Content.some(function (paraRun) {
+                    if (paraRun.Content.length > 1 || paraRun.Content.length === 1 && paraRun.Content[0].Value !== undefined) {
+                        return true;
+                    }
+                    return false;
+                });
+            });
+            if (isNotEmptyShape) {
+                point.prSet.setPhldr(false);
+                this.txBody.content2 = null;
             }
         }
     }

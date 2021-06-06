@@ -14211,6 +14211,11 @@
 
       _slide.addToSpTreeToPos(_slide.cSld.spTree.length, smartart);
       _pres.Recalculate();
+      smartart.getDrawing().spTree.forEach(function (shape) {
+        if (shape.isObjectInSmartArt()) {
+          shape.checkExtentsByDocContent();
+        }
+      })
       return smartart;
     }
 
