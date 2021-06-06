@@ -1057,6 +1057,11 @@ CShape.prototype.getObjectType = function () {
     return AscDFH.historyitem_type_Shape;
 };
 
+    CShape.prototype.setSmartArtPoint = function (pr) {
+        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_ShapeSetSmartArtPoint, this.point, pr));
+        this.point = pr;
+    };
+
 CShape.prototype.GetAllDrawingObjects = function(DrawingObjects)
 {
     var oContent = this.getDocContent();
@@ -1788,18 +1793,19 @@ CShape.prototype.getCompiledTransparent = function () {
 };
 
     CShape.prototype.getPoint = function () {
-        if (this.isObjectInSmartArt()) {
-            var ptLst = this.group.group.dataModel.ptLst.list;
-            for (var i = 0; i < ptLst.length; i += 1) {
-                if (this.modelId && this.modelId === ptLst[i].modelId) {
-                    for (var j = 0; j < ptLst.length; j += 1) {
-                        if (ptLst[i].prSet && ptLst[i].prSet.presAssocID && ptLst[i].prSet.presAssocID === ptLst[j].modelId) {
-                            return ptLst[j];
-                        }
-                    }
-                }
-            }
-        }
+        // if (this.isObjectInSmartArt()) {
+        //     var ptLst = this.group.group.dataModel.ptLst.list;
+        //     for (var i = 0; i < ptLst.length; i += 1) {
+        //         if (this.modelId && this.modelId === ptLst[i].modelId) {
+        //             for (var j = 0; j < ptLst.length; j += 1) {
+        //                 if (ptLst[i].prSet && ptLst[i].prSet.presAssocID && ptLst[i].prSet.presAssocID === ptLst[j].modelId) {
+        //                     return ptLst[j];
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+        return this.point;
     }
 
 CShape.prototype.isPlaceholder = function () {
@@ -4273,6 +4279,13 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
         {
             oContent.Recalc_AllParagraphs_CompiledPr();
             this.recalcInfo.recalculateContent = true;
+            if (this.isObjectInSmartArt()) {
+                var point = this.getPoint();
+                var isPlaceholderInSmartArt = point && point.prSet && point.prSet.phldr;
+                if (isPlaceholderInSmartArt) {
+                    this.recalcInfo.recalculateContent2 = true;
+                }
+            }
             this.recalcInfo.recalculateTransformText = true;
             this.recalculate();
         }

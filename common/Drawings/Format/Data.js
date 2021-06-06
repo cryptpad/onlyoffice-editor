@@ -14194,6 +14194,21 @@
           xfrm.setParent(smartart.spPr);
           break;
       }
+      smartart.getDrawing().spTree.forEach(function (shape) {
+        if (shape.isObjectInSmartArt()) {
+          var ptLst = smartart.getDataModel().ptLst.list;
+          for (var i = 0; i < ptLst.length; i += 1) {
+            if (shape.modelId && shape.modelId === ptLst[i].modelId) {
+              for (var j = 0; j < ptLst.length; j += 1) {
+                if (ptLst[i].prSet && ptLst[i].prSet.presAssocID && ptLst[i].prSet.presAssocID === ptLst[j].modelId) {
+                  shape.setSmartArtPoint(ptLst[j]);
+                }
+              }
+            }
+          }
+        }
+      })
+
       _slide.addToSpTreeToPos(_slide.cSld.spTree.length, smartart);
       _pres.Recalculate();
       return smartart;
