@@ -117,6 +117,13 @@
     var TIME_NODE_STATE_FROZEN = 2;
     var TIME_NODE_STATE_FINISHED = 3;
 
+    var oSTATEDESCRMAP = {};
+
+    oSTATEDESCRMAP[TIME_NODE_STATE_IDLE] = 'TIME_NODE_STATE_IDLE';
+    oSTATEDESCRMAP[TIME_NODE_STATE_ACTIVE] = 'TIME_NODE_STATE_ACTIVE';
+    oSTATEDESCRMAP[TIME_NODE_STATE_FROZEN] = 'TIME_NODE_STATE_FROZEN';
+    oSTATEDESCRMAP[TIME_NODE_STATE_FINISHED] = 'TIME_NODE_STATE_FINISHED';
+
 
 
     var NODE_TYPE_AFTEREFFECT	 = 0;
@@ -417,6 +424,7 @@
     };
     CTimeNodeBase.prototype.setState = function(nState) {
         this.state = nState;
+        console.log("Set node state ID: " + this.Id + " TYPE: " + this.constructor.name + " STATE: " + oSTATEDESCRMAP[nState] + " TIME: " + (new Date()).getTime());
     };
     CTimeNodeBase.prototype.cancelEventsRecursive = function(oPlayer) {
         oPlayer.cancelCallerEvent(this);
@@ -694,7 +702,7 @@
         if(!oTargetObject) {
             return null;
         }
-        var oBounds = this.getBoundsByDrawing();
+        var oBounds = oTargetObject.getBoundsByDrawing();
         var dCenterX = oBounds.x + oBounds.w / 2;
         var dCenterY = oBounds.y + oBounds.h / 2;
         var dSlideW = this.getSlideWidth();
@@ -2087,12 +2095,8 @@
                 }
                 if(val !== null) {
                     if(oFirstTav.fmla) {
-                        oVarMap = {};
+                        oVarMap = this.getVarMapForFmla();
                         oVarMap["$"] = val;
-                        oVarMap["#ppt_x"] = this.getOrigAttrVal("ppt_x");
-                        oVarMap["#ppt_y"] = this.getOrigAttrVal("ppt_y");
-                        oVarMap["#ppt_w"] = this.getOrigAttrVal("ppt_w");
-                        oVarMap["#ppt_h"] = this.getOrigAttrVal("ppt_h");
                         var fFmlaResult = this.getFormulaResult(oFirstTav.fmla, oVarMap);
                         if(fFmlaResult !== null) {
                             oAttributes[oFirstAttribute.text] = fFmlaResult;
@@ -2168,12 +2172,12 @@
             "ppt_h": this.getOrigAttrVal("ppt_h")
         }
     };
-    CAnim.prototype.getVarMapForFromTo = function() {
+    CAnim.prototype.getVarMapForFmla = function() {
         return {
-            "ppt_x": this.getOrigAttrVal("ppt_x"),
-            "ppt_y": this.getOrigAttrVal("ppt_y"),
-            "ppt_w": this.getOrigAttrVal("ppt_w"),
-            "ppt_h": this.getOrigAttrVal("ppt_h")
+            "#ppt_x": this.getOrigAttrVal("ppt_x"),
+            "#ppt_y": this.getOrigAttrVal("ppt_y"),
+            "#ppt_w": this.getOrigAttrVal("ppt_w"),
+            "#ppt_h": this.getOrigAttrVal("ppt_h")
         }
     };
     CAnim.prototype.getFormulaResult = function(sFormula, oVarMap) {
@@ -2205,6 +2209,21 @@
         }
         if(oVal1.isClr()) {
             return this.getAnimatedClr(fRelTime, oVal1.clrVal, oVal2.clrVal);
+        }
+        if(oVal1.isStr()) {
+            var oVarMap = this.getVarMapForFmla();
+            oVarMap["$"] = fRelTime;
+            var sStrVal1 = oVal1.getVal();
+            var fResult1 = this.getFormulaResult(sStrVal1, oVarMap);
+            if(fResult1 === null) {
+                return null;
+            }
+            var sStrVal2 = oVal2.getVal();
+            var fResult2 = this.getFormulaResult(sStrVal1, oVarMap);
+            if(fResult2 === null) {
+                return null;
+            }
+            return this.getAnimatedVal(fRelTime, fResult1, fResult2);
         }
         return null;
     };
@@ -6057,6 +6076,8 @@
         var hMM = this.getSlideHeight();
         var oGraphics = new AscCommon.CGraphics();
         oGraphics.init(oCanvas.getContext('2d'), wPix, hPix, wMM, hMM);
+        oGraphics.m_oCoordTransform.tx = oRect.x;
+        oGraphics.m_oCoordTransform.ty = oRect.y;
         oGraphics.m_oFontManager = AscCommon.g_fontManager;
         oGraphics.transform(1,0,0,1,0,0);
         oGraphics.IsNoDrawingEmptyPlaceholder = true;
@@ -6220,10 +6241,12 @@
         if(!this.isStarted()) {
             return;
         }
+        console.log("------------------TICK START----------------------------------------");
         this.timer.onFrame();
         this.animationScheduler.onFrame();
         this.animationDrawer.onFrame();
         this.eventsProcessor.onFrame();
+        console.log("------------------TICK END-------------------------------------------");
     };
     CAnimationPlayer.prototype.getElapsedTicks = function() {
         return this.timer.getElapsedTicks();
@@ -6475,9 +6498,7 @@
         console.log(oAttributes);
     };
     CAnimSandwich.prototype.drawObject = function(oGraphics, oDrawing, oTextureCache) {
-        if("1385" === oDrawing.Id) {
-            this.print();
-        }
+        this.print();
         var oAttributedMap = this.getAttributesMap();
         var sVisibility = oAttributedMap["style.visibility"];
         if(sVisibility === "hidden") {
@@ -6501,7 +6522,7 @@
             }
             else {
                 if(oFillColor) {
-                    if(oDrawing.brush && oDrawing.brush.fill && oDrawing.fill.type === AscFormat.FILL_TYPE_SOLID || sFillType === "solid") {
+                    if(oDrawing.brush && oDrawing.brush.fill && oDrawing.brush.fill.type === AscFormat.FILL_TYPE_SOLID || sFillType === "solid") {
                         oDrawing.brush = AscFormat.CreateUniFillByUniColor(oFillColor);
                     }
                 }
@@ -7056,13 +7077,12 @@
             return oRet;
         }
         for(var nVarName = 0; nVarName < this.variables.length; ++nVarName) {
-            var sVarName = this.variables;
+            var sVarName = this.variables[nVarName];
             if(this.formula.indexOf(sVarName, this.pos) === this.pos) {
                 this.pos += sVarName.length;
                 return new CVariableToken(this.queue, sVarName);
             }
         }
-        oRet = this.checkExpression(VAR_REGEXP, this.parseVar);
         if(oRet){
             return oRet;
         }

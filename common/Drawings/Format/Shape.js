@@ -4837,6 +4837,10 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
             return;
         }
     }
+    if(graphics.animationDrawer) {
+        graphics.animationDrawer.drawObject(this, graphics);
+        return;
+    }
 
     var _transform = transform ? transform : this.transform;
     var _transform_text = transformText ? transformText : this.transformText;
