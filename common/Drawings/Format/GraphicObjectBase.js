@@ -2101,13 +2101,19 @@
         return AscFormat.CShape.prototype.getCanvasContext.call(this);
     };
     CGraphicObjectBase.prototype.getBoundsByDrawing = function() {
-        return this.bounds;//TODO: do not count shape rect
+        var oCopy = this.bounds.copy();
+        oCopy.l -= 5;
+        oCopy.r += 5;
+        oCopy.t -= 5;
+        oCopy.b += 5;
+        oCopy.checkWH();
+        return oCopy;//TODO: do not count shape rect
     };
-    CGraphicObjectBase.prototype.getPresentionSize = function() {
+    CGraphicObjectBase.prototype.getPresentationSize = function() {
         var oPresentattion = editor.WordControl.m_oLogicDocument;
         return {
             w: oPresentattion.GetWidthMM(),
-            h: oPresentattion.GetHeightMM(),
+            h: oPresentattion.GetHeightMM()
         }
     };
     CGraphicObjectBase.prototype.getCachedCanvas = function(scale) {

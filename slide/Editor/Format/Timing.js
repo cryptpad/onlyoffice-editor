@@ -129,6 +129,12 @@
     var NODE_TYPE_WITHEFFECT	 = 7;
     var NODE_TYPE_WITHGROUP		 = 8;
 
+
+    var NODE_FILL_FREEZE = 0;
+    var NODE_FILL_HOLD = 1;
+    var NODE_FILL_REMOVE = 2;
+    var NODE_FILL_TRANSITION = 3;
+
     function CTimeNodeBase() {
         CBaseAnimObject.call(this);
         this.state = TIME_NODE_STATE_IDLE;
@@ -281,7 +287,7 @@
         this.calculateParams(oPlayer);
         this.setState(TIME_NODE_STATE_ACTIVE);
         this.scheduleSimpleDuration(0, oPlayer);
-        this.scheduleFinish(oPlayer);
+        this.scheduleEnd(oPlayer);
     };
     CTimeNodeBase.prototype.scheduleSimpleDuration = function(nIdx, oPlayer) {
         var oThis = this;
@@ -302,17 +308,17 @@
     };
     CTimeNodeBase.prototype.privateCalculateParams = function(oPlayer) {
     };
-    CTimeNodeBase.prototype.scheduleFinish = function(oPlayer) {
-        var fFinishTrigger = this.getFinishTrigger(oPlayer);
+    CTimeNodeBase.prototype.scheduleEnd = function(oPlayer) {
+        var fFinishTrigger = this.getEndTrigger(oPlayer);
         if(fFinishTrigger !== null) {
             oPlayer.scheduleEvent(new CAnimEvent(
-                this.getFinishCallback(oPlayer),
+                this.getEndCallback(oPlayer),
                 fFinishTrigger,
                 this
             ));
         }
     };
-    CTimeNodeBase.prototype.getFinishTrigger = function(oPlayer) {
+    CTimeNodeBase.prototype.getEndTrigger = function(oPlayer) {
         if(this.simpleDuration.isDefinite() && this.repeatCount.isDefinite()) {
             return this.getTimeTrigger(
                 oPlayer,
@@ -331,6 +337,31 @@
         }
         this.setFinished(oPlayer);
     };
+    CTimeNodeBase.prototype.freezeCallback = function(oPlayer) {
+        if(!this.isActive()) {
+            return;
+        }
+        var aChildren = this.getChildrenTimeNodes();
+        for(var nChild = 0; nChild < aChildren.length; ++nChild) {
+            aChildren[nChild].freezeCallback(oPlayer);
+        }
+        this.setFrozen(oPlayer);
+    };
+
+    CTimeNodeBase.prototype.setFrozen = function(oPlayer) {
+        if(!this.isActive()) {
+            return;
+        }
+        this.setState(TIME_NODE_STATE_FROZEN);
+        oPlayer.cancelCallerEvent(this);
+        var oParentNode = this.getParentTimeNode();
+        if(oParentNode) {
+            oParentNode.onFinished(this, oPlayer);
+        }
+        if(this.isRoot()) {
+            oPlayer.stop();
+        }
+    };
     CTimeNodeBase.prototype.setFinished = function(oPlayer) {
         if(!this.isActive()) {
             return;
@@ -345,8 +376,14 @@
             oPlayer.stop();
         }
     };
-    CTimeNodeBase.prototype.getFinishCallback = function(oPlayer) {
+    CTimeNodeBase.prototype.getEndCallback = function(oPlayer) {
         var oThis = this;
+        var oAttribute = this.getAttributesObject();
+        if(oAttribute.fill === NODE_FILL_HOLD || oAttribute.fill === NODE_FILL_FREEZE) {
+            return function () {
+                oThis.setState(TIME_NODE_STATE_FROZEN);
+            }
+        }
         return function () {
             oThis.finishCallback(oPlayer);
         };
@@ -1895,6 +1932,11 @@
     var VALUE_TYPE_NUM = 0;
     var VALUE_TYPE_CLR = 1;
     var VALUE_TYPE_STR = 2;
+
+
+    var CALCMODE_DISCRETE = 0;
+    var CALCMODE_LIN = 1;
+    var CALCMODE_FMLA = 2;
     function CAnim() {
         CTimeNodeBase.call(this);
         this.cBhvr = null;
@@ -2036,9 +2078,13 @@
             if(nTav < aTav.length) {
                 var oFirstTav = aTav[nTav - 1];
                 var oSecondTav = aTav[nTav];
-
-                var fTimeInsideInterval = (fRelTime - aTavPct[nTav - 1]) / (aTavPct[nTav] - aTavPct[nTav - 1]);
-                val = this.calculateBetweenTwoVals(oFirstTav.val, oSecondTav.val, fTimeInsideInterval);
+                if(this.getCalcMode() === CALCMODE_DISCRETE) {
+                    val = oFirstTav.val.getVal();
+                }
+                else {
+                    var fTimeInsideInterval = (fRelTime - aTavPct[nTav - 1]) / (aTavPct[nTav] - aTavPct[nTav - 1]);
+                    val = this.calculateBetweenTwoVals(oFirstTav.val, oSecondTav.val, fTimeInsideInterval);
+                }
                 if(val !== null) {
                     if(oFirstTav.fmla) {
                         oVarMap = {};
@@ -2114,7 +2160,6 @@
             }
         }
     };
-
     CAnim.prototype.getVarMapForFromTo = function() {
         return {
             "ppt_x": this.getOrigAttrVal("ppt_x"),
@@ -2162,6 +2207,12 @@
             return this.getAnimatedClr(fRelTime, oVal1.clrVal, oVal2.clrVal);
         }
         return null;
+    };
+    CAnim.prototype.getCalcMode = function() {
+        if(this.calcmode === null) {
+            return CALCMODE_LIN;
+        }
+        return this.calcmode;
     };
 
     changesFactory[AscDFH.historyitem_CBhvrAttrNameLst] = CChangeObject;
@@ -4242,17 +4293,26 @@
             this.parsedPath = null;
         }
     };
+    CAnimMotion.prototype.getOrigin = function() {
+        if(this.origin !== null) {
+            return this.origin;
+        }
+        return ORIGIN_PARENT;
+    };
     CAnimMotion.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
         var oTargetObject = this.getTargetObject();
         if(!oTargetObject) {
             return;
         }
+        var nOrigin = this.getOrigin();
         var fRelTime = this.getRelativeTime(nElapsedTime);
         var dPosX = null, dPosY = null;
         var dRelX = null, dRelY = null;
         var oBounds = oTargetObject.getBoundsByDrawing();
-        var fObjRelX = oBounds.x / this.getSlideWidth();
-        var fObjRelY = oBounds.Y / this.getSlideHeight();
+        var fSlideW = this.getSlideWidth();
+        var fSlideH = this.getSlideHeight();
+        var fObjRelX = oBounds.x / fSlideW;
+        var fObjRelY = oBounds.Y / fSlideH;
         if (this.parsedPath) {
             var oPos = this.parsedPath.getPosition(fRelTime);
             dRelX = oPos.x;
@@ -4275,19 +4335,26 @@
             dRelY = fObjRelY + ((this.to.y / 100) - fObjRelY)*fRelTime;
         }
         if(dRelX !== null && dRelY !== null) {
+            if(nOrigin === ORIGIN_LAYOUT) {
+                dRelX += ((oBounds.x + oBounds.w/2)/fSlideW);
+                dRelY += ((oBounds.y + oBounds.h/2)/fSlideH);
+            }
             var aAttr = this.getAttributes();
             if(aAttr[0] && this.isAllowedAttribute(aAttr[0].text)) {
-                oAttributes[aAttr[0].text] = dPosX;
+                oAttributes[aAttr[0].text] = dRelX;
             }
             else {
-                oAttributes["ppt_x"] = dPosX;
+                oAttributes["ppt_x"] = dRelX;
             }
             if(aAttr[1] && this.isAllowedAttribute(aAttr[1].text)) {
-                oAttributes[aAttr[1].text] = dPosY;
+                oAttributes[aAttr[1].text] = dRelY;
             }
             else {
-                oAttributes["ppt_y"] = dPosY;
+                oAttributes["ppt_y"] = dRelY;
             }
+        }
+        else {
+            console.log("Something wrong");
         }
     };
     CAnimMotion.prototype.isAllowedAttribute = function(sAttrName) {
@@ -5882,7 +5949,7 @@
         return true;
     };
     CTexture.prototype.draw = function(oGraphics, oTransform) {
-        if(oTransform.IsIdentity2()) {
+        if(false && oTransform.IsIdentity2()) {
             var _x1 = (oGraphics.m_oCoordTransform.TransformPointX(oTransform.tx, oTransform.ty) + 0.5) >> 0;
             var _y1 = (oGraphics.m_oCoordTransform.TransformPointY(oTransform.tx, oTransform.ty) + 0.5) >> 0;
             oGraphics.SaveGrState();
@@ -5895,7 +5962,7 @@
             oGraphics.SaveGrState();
             oGraphics.SetIntegerGrid(false);
             oGraphics.transform3(oTransform, false);
-            oGraphics.drawImage2(this.canvas, 0, 0, this.canvas.width * this.scale, this.canvas.height & this.scale);
+            oGraphics.drawImage2(this.canvas, 0, 0, this.canvas.width / this.scale, this.canvas.height / this.scale);
             oGraphics.RestoreGrState();
             oGraphics.FreeFont();
         }
@@ -5937,14 +6004,13 @@
         this.player = player;
         this.sandwiches = {};//map by drawing id
         this.texturesCache = new CTexturesCache(this);
-
     }
     CAnimationDrawer.prototype.clearSandwiches = function() {
         this.sandwiches = {};
     };
     CAnimationDrawer.prototype.addAnimationToDraw = function(sDrawingId, oAnimation) {
         if(!this.sandwiches[sDrawingId]) {
-            this.sandwiches[sDrawingId] = new CAnimSandwich(sDrawingId, this.player.getElapsedTime());
+            this.sandwiches[sDrawingId] = new CAnimSandwich(sDrawingId, this.player.getElapsedTicks());
         }
         var oSandwich = this.sandwiches[sDrawingId];
         oSandwich.addAnimation(oAnimation);
@@ -5963,7 +6029,9 @@
         if(!oSlide) {
             return;
         }
+        var oCtx = oCanvas.getContext('2d');
         var oGraphics = this.createGraphics(oCanvas, oRect);
+        oGraphics.m_oContext.clearRect(0, 0, oCanvas.width, oCanvas.height);
         oGraphics.animationDrawer = this;
         oSlide.draw(oGraphics);
     };
@@ -5979,17 +6047,8 @@
             oTexture.draw(oGraphics, oMatrix);
         }
         else {
-            oSandwich.drawObject(oDrawing, this.texturesCache);
+            oSandwich.drawObject(oGraphics, oDrawing, this.texturesCache);
         }
-        this.drawByOwn(oDrawing, oGraphics);
-    };
-    CAnimationDrawer.prototype.drawByOwn = function(oDrawing, oGraphics) {
-        oGraphics.animationDrawer = null;
-        oDrawing.draw(oGraphics);
-        oGraphics.animationDrawer = this;
-    };
-    CAnimationDrawer.prototype.drawTexture = function(oGraphics, oTexture, oTransform) {
-
     };
     CAnimationDrawer.prototype.createGraphics = function(oCanvas, oRect) {
         var wPix = oRect.w;
@@ -6016,6 +6075,86 @@
             if(oRoot) {
                 oRoot.traverseDrawable(this.player);
             }
+            //console.clear();
+            //for(var sKey in this.sandwiches) {
+            //    if(this.sandwiches.hasOwnProperty(sKey)) {
+            //        var oSandwich = this.sandwiches[sKey];
+            //        oSandwich.print();
+            //        //var oDrawing = AscCommon.g_oTableId.Get_ById(sKey);
+            //        //if(oDrawing) {
+            //        //
+            //        //    for(var nNode = 0; nNode < oSandwich.animations.length; ++nNode) {
+            //        //        var oNode = oSandwich.animations[nNode];
+            //        //        if (oNode instanceof CAnimMotion) {
+            //        //
+            //        //            var oParentNode = oNode.getParentTimeNode();
+            //        //            var bAutoRev = false;
+            //        //            if(oParentNode) {
+            //        //                bAutoRev = oParentNode.getAttributesObject().autoRev;
+            //        //                if(bAutoRev) {
+            //        //                    bAutoRev = (oParentNode.simpleDurationIdx % 2 === 1);
+            //        //                }
+            //        //            }
+            //        //            var fRelTime = (oThis.player.getElapsedTicks() - oNode.startTick) / oNode.simpleDuration.getVal();//TODO
+            //        //            //if(bAutoRev) {
+            //        //            //    fRelTime = 1 - fRelTime;
+            //        //            //}
+            //        //            if (oNode.parsedPath) {
+            //        //                var oPos = oNode.parsedPath.getPosition(fRelTime);
+            //        //                if (oPos) {
+            //        //                    var W = oPresentation.GetWidthMM();
+            //        //                    var H = oPresentation.GetHeightMM();
+            //        //                    var DX = W * oPos.x;
+            //        //                    var DY = H * oPos.y;
+            //        //                    //console.log("Elapsed " + oThis.player.getElapsedTicks());
+            //        //                    //console.log("DX " + DX);
+            //        //                    //console.log("DY " + DY);
+            //        //                    var fMoveDr = function (oDrawing) {
+            //        //                        if (oDrawing) {
+            //        //                            if (!oDrawing.origX) {
+            //        //                                oDrawing.origX = oDrawing.spPr.xfrm.offX;
+            //        //                                oDrawing.origY = oDrawing.spPr.xfrm.offY;
+            //        //                            }
+            //        //                            oDrawing.spPr.xfrm.offX = oDrawing.origX + DX;
+            //        //                            oDrawing.spPr.xfrm.offY = oDrawing.origY + DY;
+            //        //                        }
+            //        //                    };
+            //        //                    fMoveDr(oDrawing);
+            //        //                }
+            //        //            }
+            //        //        }
+            //        //        if (oNode instanceof CAnimRot) {
+            //        //            var fRelTime = (oThis.player.getElapsedTicks() - oNode.startTick) / oNode.simpleDuration.getVal();//TODO
+            //        //            var dR = 2 * Math.PI * fRelTime;
+            //        //            var fMoveDr = function (oDrawing) {
+            //        //                if (oDrawing) {
+            //        //                    if (!AscFormat.isRealNumber(oDrawing.origRot)) {
+            //        //                        oDrawing.origRot = oDrawing.rot;
+            //        //                    }
+            //        //
+            //        //                    oDrawing.spPr.xfrm.rot =  oDrawing.origRot  + dR;
+            //        //                }
+            //        //            };
+            //        //            fMoveDr(oDrawing);
+            //        //        }
+            //        //    }
+            //        //    oDrawing.recalculateTransform();
+            //        //    oDrawing.localTransform = oDrawing.transform;
+            //        //    var  fRecursiveRecalcTransform = function(aSpTree) {
+            //        //        if (Array.isArray(aSpTree)) {
+            //        //            for (var i = 0; i < aSpTree.length; ++i) {
+            //        //                aSpTree[i].recalculateTransform();
+            //        //                aSpTree[i].localTransform = aSpTree[i].transform;
+            //        //                fRecursiveRecalcTransform(aSpTree[i].spTree);
+            //        //            }
+            //        //        }
+            //        //    };
+            //        //    fRecursiveRecalcTransform(oDrawing.spTree);
+            //        //}
+            //    }
+            //    oPresentation.DrawingDocument.OnRecalculatePage(0, oPresentation.Slides[0]);
+            //    editor.WordControl.OnPaint();
+            //}
         }
     };
     CAnimationDrawer.prototype.getSlideWidth = function() {
@@ -6035,8 +6174,17 @@
         return oSandwich;
     };
 
-    function CAnimationPlayer(aTimings, drawer) {
-        this.timings = aTimings;
+    function CAnimationPlayer(oSlide, drawer) {
+        this.timings = [];
+        if(oSlide.timing) {
+            this.timings.push(oSlide.timing);
+        }
+        if(oSlide.Layout.timing) {
+            this.timings.push(oSlide.Layout.timing);
+        }
+        if(oSlide.Layout.Master.timing) {
+            this.timings.push(oSlide.Layout.Master.timing);
+        }
         this.eventsProcessor = new CEventsProcessor(this);
         this.animationScheduler = new CAnimationScheduler(this);
         this.animationDrawer = new CAnimationDrawer(this);
@@ -6327,6 +6475,9 @@
         console.log(oAttributes);
     };
     CAnimSandwich.prototype.drawObject = function(oGraphics, oDrawing, oTextureCache) {
+        if("1385" === oDrawing.Id) {
+            this.print();
+        }
         var oAttributedMap = this.getAttributesMap();
         var sVisibility = oAttributedMap["style.visibility"];
         if(sVisibility === "hidden") {
@@ -6355,7 +6506,6 @@
                     }
                 }
             }
-
             if(bStrokeOn === false) {
                 oDrawing.pen = AscFormat.CreateNoFillLine();
             }
@@ -6372,8 +6522,15 @@
             oDrawing.pen = oOldPen;
         }
         var oBounds = oDrawing.getBoundsByDrawing();
-        var oPresSize = oDrawing.getPresentionSize();
+        var oPresSize = oDrawing.getPresentationSize();
         var fCenterX, fCenterY;
+
+        //var oTransform = new AscCommon.CMatrix();
+        //var hc = oBounds.w * 0.5;
+        //var vc = oBounds.h * 0.5;
+        //AscCommon.global_MatrixTransformer.TranslateAppend(oTransform, 0, 0);
+        //oTexture.draw(oGraphics, oTransform);
+        //return;
         if(AscFormat.isRealNumber(oAttributedMap["ppt_x"]) && AscFormat.isRealNumber(oAttributedMap["ppt_y"])) {
             fCenterX = oAttributedMap["ppt_x"] * oPresSize.w;
             fCenterY = oAttributedMap["ppt_y"] * oPresSize.h;
@@ -6390,15 +6547,19 @@
         var fR = 0;
         var fAttrRot = oAttributedMap["ppt_r"] || oAttributedMap["r"] || oAttributedMap["style.rotation"];
         if(AscFormat.isRealNumber(fAttrRot)) {
-            fR = fAttrRot / 60000;
+            fR = AscFormat.cToRad * fAttrRot;
         }
 
         var oTransform = new AscCommon.CMatrix();
         var hc = oBounds.w * 0.5;
         var vc = oBounds.h * 0.5;
         AscCommon.global_MatrixTransformer.TranslateAppend(oTransform, -hc, -vc);
-        AscCommon.global_MatrixTransformer.ScaleAppend(oTransform, fScaleX, fScaleY);
-        AscCommon.global_MatrixTransformer.RotateRadAppend(oTransform, -fR);
+        if(fScaleX !== 1 || fScaleY !== 1) {
+            AscCommon.global_MatrixTransformer.ScaleAppend(oTransform, fScaleX, fScaleY);
+        }
+        if(fR !== 0) {
+            AscCommon.global_MatrixTransformer.RotateRadAppend(oTransform, -fR);
+        }
         AscCommon.global_MatrixTransformer.TranslateAppend(oTransform, fCenterX, fCenterY);
         oTexture.draw(oGraphics, oTransform);
     };
@@ -6966,7 +7127,7 @@
     function StartTestAnimation() {
         var oSlide = editor.WordControl.m_oLogicDocument.Slides[editor.WordControl.m_oLogicDocument.CurPage];
         var oRootNode = oSlide.timing.getTimingRootNode();
-        var oPlayer = new AscFormat.CAnimationPlayer([oSlide.timing]);
+        var oPlayer = new AscFormat.CAnimationPlayer(oSlide);
         GLOBAL_PLAYER = oPlayer;
         oSlide.graphicObjects.animPlayer = oPlayer;
         oPlayer.timer.runOwnTimer();

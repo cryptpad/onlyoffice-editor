@@ -3013,6 +3013,13 @@ function CDemonstrationManager(htmlpage)
                 oThis.StartTransition(_transition, is_first_play, false);
                 return;
             }
+            else
+            {
+                var oSlide = this.HtmlPage.m_oLogicDocument.Slides[oThis.SlideNum];
+                oThis.player = new AscFormat.CAnimationPlayer(oSlide, this);
+                oThis.TimerId = __nextFrame(this.onPlayerFrame);
+                oThis.player.start();
+            }
         }
 
         oThis.OnPaintSlide(false);
@@ -3108,8 +3115,18 @@ function CDemonstrationManager(htmlpage)
             oThis.SlideNum = oThis.GetPrevVisibleSlide(true);
             oThis.HtmlPage.m_oApi.sync_DemonstrationSlideChanged(oThis.SlideNum);
         }
-
         this.OnPaintSlide(true);
+        var oSlide = this.HtmlPage.m_oLogicDocument.Slides[oThis.SlideNum];
+        oThis.player = new AscFormat.CAnimationPlayer(oSlide, this);
+        oThis.TimerId = __nextFrame(this.onPlayerFrame);
+        oThis.player.start();
+    };
+    this.onPlayerFrame = function()
+    {
+        oThis.player.onFrame();
+        if (!oThis.Mode)
+            return;
+        oThis.TimerId = __nextFrame(oThis.onPlayerFrame);
     };
 
     this.OnPaintSlide = function(is_clear_overlay)
@@ -3449,7 +3466,13 @@ function CDemonstrationManager(htmlpage)
 
     this.OnRecalculateAnimationFrame = function(oPlayer)
     {
-        oPlayer.drawFrame(oThis.Canvas);
+        if(!oThis.Canvas) {
+            if(oThis.TimerId) {
+                __cancelFrame(oThis.TimerId);
+            }
+            return;
+        }
+        oPlayer.drawFrame(oThis.Canvas, oThis.Transition.Rect);
     };
 
     // manipulators
