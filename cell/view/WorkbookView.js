@@ -754,8 +754,8 @@
 				  self.handlers.trigger("asc_onEditorSelectionChanged", xfs);
 			  }, "onContextMenu": function (event) {
 				  self.handlers.trigger("asc_onContextMenu", event);
-			  }, "updatedEditableFunction": function (fName) {
-				  self.handlers.trigger("asc_onFormulaInfo", fName);
+			  }, "updatedEditableFunction": function (fName, pos) {
+				  self.handlers.trigger("asc_onFormulaInfo", fName, pos);
 			  }, "onSelectionEnd" : function () {
 				  self.handlers.trigger("asc_onSelectionEnd");
         }
