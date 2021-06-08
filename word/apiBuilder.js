@@ -12074,6 +12074,9 @@
 			{
 				for (var nCol = oRange.range.bbox.c1; nCol <= oRange.range.bbox.c2; nCol++)
 				{
+					if (oWorksheet.worksheet.getRowHidden(nRow))
+						continue;
+
 					resultText        = '';
 					tempRange         = oWorksheet.GetRangeByNumber(nRow, nCol);
 					nCountLinesInCell = tempRange.GetValue().split('\n').length;
@@ -12088,7 +12091,10 @@
 					nTextToReplace += nCountLinesInCell;
 
 					if (resultText !== '')
-						tempRange.SetValue(resultText);
+						if (!this.wb.getCellEditMode())
+							tempRange.SetValue(resultText);
+						else
+							this.wb.cellEditor.pasteText(resultText);
 				}
 			}
 		}
@@ -12488,6 +12494,16 @@
 	ApiParaPr.prototype["SetTabs"]                   = ApiParaPr.prototype.SetTabs;
 	ApiParaPr.prototype["SetNumPr"]                  = ApiParaPr.prototype.SetNumPr;
 	ApiParaPr.prototype["SetBullet"]                 = ApiParaPr.prototype.SetBullet;
+	ApiParaPr.prototype["GetStyle"]                  = ApiParaPr.prototype.GetStyle;
+	ApiParaPr.prototype["GetSpacingLineValue"]       = ApiParaPr.prototype.GetSpacingLineValue;
+	ApiParaPr.prototype["GetSpacingLineRule"]        = ApiParaPr.prototype.GetSpacingLineRule;
+	ApiParaPr.prototype["GetSpacingBefore"]          = ApiParaPr.prototype.GetSpacingBefore;
+	ApiParaPr.prototype["GetSpacingAfter"]           = ApiParaPr.prototype.GetSpacingAfter;
+	ApiParaPr.prototype["GetShd"]                    = ApiParaPr.prototype.GetShd;
+	ApiParaPr.prototype["GetJc"]                     = ApiParaPr.prototype.GetJc;
+	ApiParaPr.prototype["GetIndRight"]               = ApiParaPr.prototype.GetIndRight;
+	ApiParaPr.prototype["GetIndLeft"]                = ApiParaPr.prototype.GetIndLeft;
+	ApiParaPr.prototype["GetIndFirstLine"]           = ApiParaPr.prototype.GetIndFirstLine;
 
 	ApiTablePr.prototype["GetClassType"]             = ApiTablePr.prototype.GetClassType;
 	ApiTablePr.prototype["SetStyleColBandSize"]      = ApiTablePr.prototype.SetStyleColBandSize;

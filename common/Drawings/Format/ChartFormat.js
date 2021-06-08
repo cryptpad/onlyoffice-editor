@@ -10587,7 +10587,7 @@
         if(sFormula !== null) {
             for(var nName = 0; nName < aNames.length; ++nName) {
                 sName = aNames[nName];
-                sFormula = sFormula.replace(sName, "#REF");
+                sFormula = sFormula.replace(new RegExp(RegExp.escape(sName), 'g'), "#REF");
             }
             if(this.f !== sFormula) {
                 this.setF(sFormula);
@@ -10598,7 +10598,7 @@
         if(typeof this.f === "string" && this.f.length > 0) {
             var sFormula = this.f;
             if(sFormula.indexOf(sOldSheetName) > -1) {
-                this.setF(sFormula.replace(new RegExp(sOldSheetName, 'g'), sNewSheetName));
+                this.setF(sFormula.replace(new RegExp(RegExp.escape(sOldSheetName), 'g'), sNewSheetName));
             }
         }
     };
@@ -10637,9 +10637,11 @@
         this.setParentToChild(pr);
     };
     CMultiLvlStrRef.prototype.updateCache = function(oSeries) {
-        this.setMultiLvlStrCache(new CMultiLvlStrCache());
-        this.multiLvlStrCache.update(this.f, oSeries);
-        this.onUpdateCache();
+        AscFormat.ExecuteNoHistory(function() {
+            this.setMultiLvlStrCache(new CMultiLvlStrCache());
+            this.multiLvlStrCache.update(this.f, oSeries);
+            this.onUpdateCache();
+        }, this, []);
     };
     CMultiLvlStrRef.prototype.getValues = function(nMaxValues) {
         if(!this.multiLvlStrCache) {
@@ -10676,19 +10678,21 @@
         this.setParentToChild(pr);
     };
     CNumRef.prototype.updateCache = function(displayEmptyCellsAs, displayHidden, ser) {
-        if(!this.numCache) {
-            this.setNumCache(new CNumLit());
-            this.numCache.setFormatCode("General");
-            this.numCache.setPtCount(0);
-        }
-        else {
-            this.numCache.removeAllPts();
-        }
-        if(ser) {
-            ser.isHidden = true;
-        }
-        this.numCache.update(this.f, displayEmptyCellsAs, displayHidden, ser);
-        this.onUpdateCache();
+        AscFormat.ExecuteNoHistory(function() {
+            if(!this.numCache) {
+                this.setNumCache(new CNumLit());
+                this.numCache.setFormatCode("General");
+                this.numCache.setPtCount(0);
+            }
+            else {
+                this.numCache.removeAllPts();
+            }
+            if(ser) {
+                ser.isHidden = true;
+            }
+            this.numCache.update(this.f, displayEmptyCellsAs, displayHidden, ser);
+            this.onUpdateCache();
+        }, this, []);
     };
     CNumRef.prototype.getValuesCount = function() {
         if(!this.numCache) {
@@ -10746,12 +10750,14 @@
         this.setParentToChild(pr);
     };
     CStrRef.prototype.updateCache = function() {
-        if(!this.strCache) {
-            this.setStrCache(new CStrCache());
-        }
-        this.strCache.removeAllPts();
-        this.strCache.update(this.f);
-        this.onUpdateCache();
+        AscFormat.ExecuteNoHistory(function() {
+            if(!this.strCache) {
+                this.setStrCache(new CStrCache());
+            }
+            this.strCache.removeAllPts();
+            this.strCache.update(this.f);
+            this.onUpdateCache();
+        }, this, []);
     };
     CStrRef.prototype.getText = function(bNoUpdate) {
         if(!this.strCache) {
@@ -12541,7 +12547,7 @@
 
     InitClass(CSurfaceSeries, CSeriesBase, AscDFH.historyitem_type_SurfaceSeries);
     CSurfaceSeries.prototype.fillObject = function(oCopy, oIdMap) {
-        CSeriesBase.prototype.fillObject.call(oCopy, oIdMap);
+        CSeriesBase.prototype.fillObject.call(this, oCopy, oIdMap);
     };
     CSurfaceSeries.prototype.setCat = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_SurfaceSeries_SetCat, this.cat, pr));
@@ -13564,40 +13570,42 @@
         return oLit;
     };
     CCat.prototype.update = function(oSeries) {
-        this.calculatedRef = null;
-        if(this.numRef || this.strRef || this.multiLvlStrRef) {
-            var sFormula = this.getFormula();
-            if(typeof sFormula === "string" && sFormula.length > 0) {
-                var oTestCat = new CCat();
-                var oRes = oTestCat.setValues(sFormula);
-                var oNumRef = oTestCat.numRef;
-                var oStrRef = oTestCat.strRef;
-                var oMultiLvlStrRef = oTestCat.multiLvlStrRef;
-                if(oRes && oRes.error === Asc.c_oAscError.ID.No && (oNumRef || oStrRef || oMultiLvlStrRef)) {
-                    this.calculatedRef = oNumRef || oStrRef || oMultiLvlStrRef;
-                    if(this.calculatedRef) {
-                        if(this.calculatedRef.getObjectType() === AscDFH.historyitem_type_MultiLvlStrRef) {
-                            this.calculatedRef.updateCache(oSeries);
-                        }
-                        else {
-                            this.calculatedRef.updateCache();
+        return AscFormat.ExecuteNoHistory(function(){
+            this.calculatedRef = null;
+            if(this.numRef || this.strRef || this.multiLvlStrRef) {
+                var sFormula = this.getFormula();
+                if(typeof sFormula === "string" && sFormula.length > 0) {
+                    var oTestCat = new CCat();
+                    var oRes = oTestCat.setValues(sFormula);
+                    var oNumRef = oTestCat.numRef;
+                    var oStrRef = oTestCat.strRef;
+                    var oMultiLvlStrRef = oTestCat.multiLvlStrRef;
+                    if(oRes && oRes.error === Asc.c_oAscError.ID.No && (oNumRef || oStrRef || oMultiLvlStrRef)) {
+                        this.calculatedRef = oNumRef || oStrRef || oMultiLvlStrRef;
+                        if(this.calculatedRef) {
+                            if(this.calculatedRef.getObjectType() === AscDFH.historyitem_type_MultiLvlStrRef) {
+                                this.calculatedRef.updateCache(oSeries);
+                            }
+                            else {
+                                this.calculatedRef.updateCache();
+                            }
                         }
                     }
                 }
             }
-        }
-        if(this.multiLvlStrRef) {
-            this.multiLvlStrRef.updateCache(oSeries);
-        }
-        if(this.numRef) {
-            this.numRef.updateCache();
-        }
-        if(this.strRef) {
-            this.strRef.updateCache();
-        }
-        if(!this.calculatedRef) {
-            this.calculatedRef = (this.multiLvlStrRef || this.numRef || this.strRef);
-        }
+            if(this.multiLvlStrRef) {
+                this.multiLvlStrRef.updateCache(oSeries);
+            }
+            if(this.numRef) {
+                this.numRef.updateCache();
+            }
+            if(this.strRef) {
+                this.strRef.updateCache();
+            }
+            if(!this.calculatedRef) {
+                this.calculatedRef = (this.multiLvlStrRef || this.numRef || this.strRef);
+            }
+        }, this, []);
     };
     CCat.prototype.getSourceNumFormat = function() {
         if(this.calculatedRef) {
