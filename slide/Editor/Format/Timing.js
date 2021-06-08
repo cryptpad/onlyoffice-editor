@@ -183,6 +183,16 @@
     CTimeNodeBase.prototype.getChildrenTimeNodesInternal = function() {
         return [];
     };
+    CTimeNodeBase.prototype.resetState = function() {
+        this.state = TIME_NODE_STATE_IDLE;
+        this.simpleDurationIdx = -1;
+        if(this.isTimingContainer()) {
+            var aChildren = this.getChildrenTimeNodes();
+            for(var nChild = 0; nChild < aChildren.length; ++nChild) {
+                aChildren[nChild].resetState();
+            }
+        }
+    };
     CTimeNodeBase.prototype.isRoot = function() {
         var oParentNode = this.getParentTimeNode();
         if(!oParentNode) {
@@ -3972,14 +3982,14 @@
         if(!this.isAllowedAttribute(sFirstAttrName)) {
             return;
         }
-        var oStartUniColor;
+        var oStartUniColor, oStartRGBColor;
         if(this.from) {
             oStartUniColor = this.from;
         }
         else {
             var oBrush = this.getTargetObjectBrush();
             if(oBrush) {
-                var oStartRGBColor = oBrush.getRGBAColor();
+                oStartRGBColor = oBrush.getRGBAColor();
                 oStartUniColor = AscFormat.CreateUniColorRGB(oStartRGBColor.R, oStartRGBColor.G, oStartRGBColor.B);
             }
             else {
@@ -3987,10 +3997,40 @@
             }
         }
         var oEndUniColor = this.to || this.by;
-        if(oEndUniColor) {
-            var fRelTime = this.getRelativeTime(nElapsedTime);
-            oAttributes[sFirstAttrName] = this.getAnimatedClr(fRelTime, oStartUniColor, oEndUniColor);
+        if(this.to || this.by) {
+            oEndUniColor = this.to || this.by;
         }
+        else if(this.byRGB || this.byHSL) {
+            var parents = oTargetObject.getParentObjects();
+            var RGBA = {R:0, G:0, B:0, A:255};
+            oStartUniColor.Calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA);
+            oStartRGBColor = oStartUniColor.RGBA;
+            var oEndRGBColor = {R: 255, G: 255, B:255, A: 255};
+            if(this.byRGB) {
+                oEndRGBColor.R = oStartRGBColor.R * (1 + this.byRGB.c1/100000);
+                oEndRGBColor.R = Math.min(255, Math.max(0, oStartRGBColor.R));
+                oEndRGBColor.G = oStartRGBColor.G * (1 + this.byRGB.c2/100000);
+                oEndRGBColor.G = Math.min(255, Math.max(0, oStartRGBColor.G));
+                oEndRGBColor.B = oStartRGBColor.B * (1 + this.byRGB.c3/100000);
+                oEndRGBColor.B = Math.min(255, Math.max(0, oStartRGBColor.B));
+            }
+            else if(this.byHSL) {
+                var oHSL = {};
+                var oColorModifiers = new AscFormat.CColorModifiers();
+                oColorModifiers.RGB2HSL(oStartRGBColor.R, oStartRGBColor.G, oStartRGBColor.B, oHSL);
+                oHSL.H = oHSL.H * (1 + this.byHSL.c1 / 100000);
+                oHSL.H = Math.min(255, Math.max(0, oHSL.H));
+                oHSL.S = oHSL.S * (1 + this.byHSL.c2 / 100000);
+                oHSL.S = Math.min(255, Math.max(0, oHSL.S));
+                oHSL.L = oHSL.L * (1 + this.byHSL.c3 / 100000);
+                oHSL.L = Math.min(255, Math.max(0, oHSL.L));
+                oColorModifiers.HSL2RGB(oHSL, oEndRGBColor);
+            }
+            oEndUniColor = AscFormat.CreateUniColorRGB(oEndRGBColor.R, oEndRGBColor.G, oEndRGBColor.B);
+        }
+
+        var fRelTime = this.getRelativeTime(nElapsedTime);
+        oAttributes[sFirstAttrName] = this.getAnimatedClr(fRelTime, oStartUniColor, oEndUniColor);
     };
 
     changesFactory[AscDFH.historyitem_AnimEffectCBhvr] = CChangeObject;
@@ -6237,6 +6277,7 @@
         for(var nTiming = 0; nTiming < this.timings.length; ++nTiming) {
             var oRoot = this.timings[nTiming].getTimingRootNode();
             if(oRoot) {
+                oRoot.resetState();
                 oRoot.scheduleStart(this);
             }
         }
