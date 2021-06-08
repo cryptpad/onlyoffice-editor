@@ -593,20 +593,25 @@
         }
     };
     CTimeNodeBase.prototype.getRelativeTime = function(nElapsedTime) {
+
+        var bAutoRev = this.getAttributesObject().autoRev;
         if(this.isFrozen()) {
-            return 1.0;
-        }
-        var oParentNode = this.getParentTimeNode();
-        var bAutoRev = false;
-        if(oParentNode) {
-            bAutoRev = oParentNode.getAttributesObject().autoRev;
             if(bAutoRev) {
-                bAutoRev = (oParentNode.simpleDurationIdx % 2 === 1);
+                return 0.0;
+            }
+            else {
+                return 1.0;
             }
         }
-        var fRelTime = (nElapsedTime - this.startTick) / this.simpleDuration.getVal();
+        var fSimpleDur = this.simpleDuration.getVal();
+        var fRelTime = (nElapsedTime - this.startTick) / fSimpleDur;
         if(bAutoRev) {
-            fRelTime = 1 - fRelTime;
+            if(fRelTime <= 0.5) {
+                fRelTime *= 2;
+            }
+            else {
+                fRelTime = (1 - fRelTime) * 2;
+            }
         }
         return fRelTime;
     };
@@ -2202,51 +2207,55 @@
         }
     };
     CAnim.prototype.getFormulaResult = function(sFormula, oVarMap) {
-        var aVarNames = [];
-        for(var sVarName in oVarMap) {
-            if(oVarMap.hasOwnProperty(sVarName)) {
-                aVarNames.push(sVarName);
-            }
-        }
-        var oParser = new CFormulaParser(sFormula, aVarNames);
-        var oParseResult = oParser.parse();
-        if(!oParseResult) {
-            return null;
-        }
-        return oParseResult.calculate(oVarMap);
+        return (new CFormulaParser(sFormula, oVarMap)).getResult();
     };
     CAnim.prototype.calculateBetweenTwoVals = function(oVal1, oVal2, fRelTime) {
         if(!oVal1 || !oVal2) {
             return null;
         }
-        if(!oVal1.isSameType(oVal2)) {
+        if(oVal1.isClr() !== oVal2.isClr()) {
             return null;
-        }
-        if(oVal1.isFlt()) {
-            return this.getAnimatedVal(fRelTime, oVal1.fltVal, oVal2.fltVal);
-        }
-        if(oVal1.isInt()) {
-            return this.getAnimatedVal(fRelTime, oVal1.intVal, oVal2.intVal);
         }
         if(oVal1.isClr()) {
             return this.getAnimatedClr(fRelTime, oVal1.clrVal, oVal2.clrVal);
         }
+        var oVarMap;
+
+        var fVal1 = null;
+        var fVal2 = null;
+
+        if(oVal1.isFlt()) {
+            fVal1 = oVal1.fltVal;
+        }
+        if(oVal1.isInt()) {
+            fVal1 = oVal1.intVal;
+        }
         if(oVal1.isStr()) {
-            var oVarMap = this.getVarMapForFmla();
+            oVarMap = this.getVarMapForFmla();
             oVarMap["$"] = fRelTime;
             var sStrVal1 = oVal1.getVal();
-            var fResult1 = this.getFormulaResult(sStrVal1, oVarMap);
-            if(fResult1 === null) {
-                return null;
-            }
-            var sStrVal2 = oVal2.getVal();
-            var fResult2 = this.getFormulaResult(sStrVal2, oVarMap);
-            if(fResult2 === null) {
-                return null;
-            }
-            return this.getAnimatedVal(fRelTime, fResult1, fResult2);
+            fVal1 = this.getFormulaResult(sStrVal1, oVarMap);
         }
-        return null;
+        if(!AscFormat.isRealNumber(fVal1)) {
+            return null;
+        }
+
+        if(oVal2.isFlt()) {
+            fVal2 = oVal2.fltVal;
+        }
+        if(oVal2.isInt()) {
+            fVal2 = oVal2.intVal;
+        }
+        if(oVal2.isStr()) {
+            oVarMap = this.getVarMapForFmla();
+            oVarMap["$"] = fRelTime;
+            var sStrVal2 = oVal2.getVal();
+            fVal2 = this.getFormulaResult(sStrVal2, oVarMap);
+        }
+        if(!AscFormat.isRealNumber(fVal2)) {
+            return null;
+        }
+        return this.getAnimatedVal(fRelTime, fVal1, fVal2);
     };
     CAnim.prototype.getCalcMode = function() {
         if(this.calcmode === null) {
@@ -4424,7 +4433,7 @@
             }
         }
         else {
-            console.log("Something wrong");
+            console.log("Something went wrong");
         }
     };
     CAnimMotion.prototype.isAllowedAttribute = function(sAttrName) {
@@ -6559,6 +6568,7 @@
         var oFillColor = oAttributedMap["fillcolor"] || oAttributedMap["style.color"];
         var sFillType = oAttributedMap["fill.type"];
         var bFillOn = oAttributedMap["fill.on"];
+        var fOpacity = oAttributedMap["style.opacity"];
 
         var oStrokeColor = oAttributedMap["stroke.color"];
         var bStrokeOn = oAttributedMap["stroke.on"];
@@ -6566,7 +6576,7 @@
         var fScale = oGraphics.m_oCoordTransform.sx;
         var sId = oDrawing.Get_Id();
         var oTexture = oTextureCache.checkTexture(sId, fScale);
-        if(oFillColor || sFillType || bFillOn || oStrokeColor || bStrokeOn) {
+        if(oFillColor || sFillType || bFillOn !== undefined || oStrokeColor || bStrokeOn !== undefined) {
             var oOldBrush = oDrawing.brush;
             var oOldPen = oDrawing.pen;
             if(bFillOn === false) {
@@ -6618,10 +6628,23 @@
             fScaleX = oAttributedMap["ScaleX"];
             fScaleY = oAttributedMap["ScaleY"];
         }
+        if(AscFormat.isRealNumber(oAttributedMap["ppt_w"])) {
+            var fOrigW = oBounds.w / oPresSize.w;
+            fScaleX *= oAttributedMap["ppt_w"]/ fOrigW;
+        }
+        if(AscFormat.isRealNumber(oAttributedMap["ppt_h"])) {
+            var fOrigH = oBounds.h / oPresSize.h;
+            fScaleY *= oAttributedMap["ppt_h"]/ fOrigH;
+        }
         var fR = 0;
         var fAttrRot = oAttributedMap["ppt_r"] || oAttributedMap["r"] || oAttributedMap["style.rotation"];
         if(AscFormat.isRealNumber(fAttrRot)) {
-            fR = AscFormat.cToRad * fAttrRot;
+            if(oAttributedMap["ppt_r"] || oAttributedMap["r"]) {
+                fR = AscFormat.cToRad * fAttrRot;
+            }
+            else if(oAttributedMap["style.rotation"]) {
+                fR = Math.PI * fAttrRot / 180;
+            }
         }
 
         var oTransform = new AscCommon.CMatrix();
@@ -6635,7 +6658,14 @@
             AscCommon.global_MatrixTransformer.RotateRadAppend(oTransform, -fR);
         }
         AscCommon.global_MatrixTransformer.TranslateAppend(oTransform, fCenterX, fCenterY);
+
+        if(fOpacity !== undefined) {
+           oGraphics.put_GlobalAlpha(true,1 - fOpacity);
+        }
         oTexture.draw(oGraphics, oTransform);
+        if(fOpacity !== undefined) {
+            oGraphics.put_GlobalAlpha(false, 1);
+        }
     };
 
 
@@ -6921,13 +6951,27 @@
     var PARSER_FLAGS_LEFTPAR  = 16;
     var PARSER_FLAGS_RIGHTPAR = 32;
     var PARSER_FLAGS_ARGSEP   = 64;
-    function CFormulaParser(sFormula, aVars) {
+    function CFormulaParser(sFormula, oVarMap) {
         this.formula = sFormula;
-        this.variables = aVars;
+        var aVarNames = [];
+        for(var sVarName in oVarMap) {
+            if(oVarMap.hasOwnProperty(sVarName)) {
+                aVarNames.push(sVarName);
+            }
+        }
+        this.varMap = oVarMap;
+        this.variables = aVarNames;
         this.pos = 0;
         this.flags = 0;
         this.queue = new CParseQueue();
     }
+    CFormulaParser.prototype.getResult = function() {
+        var oParseResult = this.parse();
+        if(!oParseResult) {
+            return null;
+        }
+        return oParseResult.calculate(this.varMap);
+    };
     CFormulaParser.prototype.setFlag = function(nMask, bVal) {
         if(bVal){
             this.flags |= nMask;
