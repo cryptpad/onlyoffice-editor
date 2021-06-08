@@ -2219,7 +2219,7 @@
                 return null;
             }
             var sStrVal2 = oVal2.getVal();
-            var fResult2 = this.getFormulaResult(sStrVal1, oVarMap);
+            var fResult2 = this.getFormulaResult(sStrVal2, oVarMap);
             if(fResult2 === null) {
                 return null;
             }
@@ -4380,7 +4380,7 @@
         return sAttrName === "ppt_x" || "ppt_y" || "ppt_w" ||
             "ppt_h" || "ppt_r" || "style.fontSize" ||
             "xskew" || "yskew" || "xshear" ||
-            "yshear" || "scaleX" || "or scaleY";
+            "yshear" || "scaleX" || "scaleY";
     };
 
     function CSVGPath(sPath) {
@@ -4870,8 +4870,8 @@
             dRelY = 1.0 + (this.by.y / 100000)*fRelTime;
         }
         else if(this.to) {
-            dRelX = (this.to.x / 100000)*fRelTime;
-            dRelY = (this.to.y / 100000)*fRelTime;
+            dRelX = 1*(1 - fRelTime) + (this.to.x / 100000)*fRelTime;
+            dRelY = 1*(1 - fRelTime) + (this.to.y / 100000)*fRelTime;
         }
         if(dRelX !== null && dRelY !== null) {
             oAttributes["ScaleX"] = dRelX;
