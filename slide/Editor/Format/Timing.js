@@ -673,14 +673,17 @@
             return null;
         }
         var parents = oTargetObject.getParentObjects();
-        oEndUniColor.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA);
-        oStartUniColor.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA);
-        var oEndColor = oEndUniColor.getRGBAColor();
-        var oStartColor = oStartUniColor.getRGBAColor();
+        var RGBA = {R:0, G:0, B:0, A:255};
+        oEndUniColor.Calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA);
+        oStartUniColor.Calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA);
+        var oEndColor = oEndUniColor.RGBA;
+        var oStartColor = oStartUniColor.RGBA;
         var R = this.getAnimatedVal(fTime, oStartColor.R, oEndColor.R);
         var G = this.getAnimatedVal(fTime, oStartColor.G, oEndColor.G);
         var B = this.getAnimatedVal(fTime, oStartColor.B, oEndColor.B);
-        return AscFormat.CreateUniColorRGB(R, G, B);
+        var oResultColor =  AscFormat.CreateUniColorRGB(R, G, B);
+        oResultColor.Calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA);
+        return oResultColor;
     };
     CTimeNodeBase.prototype.getAttributes = function() {
         if(!this.cBhvr) {
@@ -3958,7 +3961,7 @@
             return;
         }
         var sFirstAttrName = aAttributes[0].text;
-        if(this.isAllowedAttribute(sFirstAttrName)) {
+        if(!this.isAllowedAttribute(sFirstAttrName)) {
             return;
         }
         var oStartUniColor;
@@ -4866,8 +4869,8 @@
             dRelY = (this.from.y + this.by.y * fRelTime) / 100000;
         }
         else if(this.by) {
-            dRelX = 1.0 + (this.by.x / 100000)*fRelTime;
-            dRelY = 1.0 + (this.by.y / 100000)*fRelTime;
+            dRelX = 1*(1 - fRelTime) + (this.by.x / 100000)*fRelTime;
+            dRelY = 1*(1 - fRelTime) + (this.by.y / 100000)*fRelTime;
         }
         else if(this.to) {
             dRelX = 1*(1 - fRelTime) + (this.to.x / 100000)*fRelTime;
