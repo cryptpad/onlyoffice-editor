@@ -4818,7 +4818,7 @@
 						}
 					}
 					if (compareFunction) {
-						this.sheetMergedStyles.setConditionalStyle(oRule.Get_Id(), ranges, compareFunction);
+						this.sheetMergedStyles.setConditionalStyle(oRule, ranges, compareFunction);
 					}
 				}
 			}
