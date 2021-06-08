@@ -6185,7 +6185,11 @@
 				if (this.updateRowHeightValuePx) {
                     this.updateRowHeightValuePx = newHeight;
 				}
-				rowInfo.height = Asc.round(newHeight * this.getZoom());
+				//TODO правлю на хотфикс ошибку. это следствие, а не причина. нужно пересмотреть! баг 50489
+				var _rowHeight = Asc.round(newHeight * this.getZoom());
+				if (rowInfo) {
+					rowInfo.height = _rowHeight;
+				}
 				History.TurnOff();
 				res = newHeight;
 				var oldExcludeCollapsed = this.model.bExcludeCollapsed;
@@ -6200,7 +6204,7 @@
 						maxW = tm.width;
 					}
 
-					cache.textBound = this.stringRender.getTransformBound(cache.angle, colWidth, rowInfo.height, tm.width,
+					cache.textBound = this.stringRender.getTransformBound(cache.angle, colWidth, _rowHeight, tm.width,
 						cache.cellHA, va, maxW);
 				}
 
@@ -8439,7 +8443,8 @@
 		var vr = this.visibleRange;
 		var nRowsCount = this.nRowsCount;
 		var nColsCount = this.nColsCount;
-		var ar = range || this._getSelection().getLast();
+		var selection = this.model.selectionRange || this.model.copySelection;
+		var ar = range || selection.getLast();
 		if (this.getFormulaEditMode()) {
 			// Для формул нужно сделать ограничение по range (у нас хранится полный диапазон)
 			if (ar.c2 >= this.nColsCount || ar.r2 >= this.nRowsCount) {
@@ -16270,6 +16275,10 @@
 		}
 		var c = this._getVisibleCell(col, row);
 		var isMerged = ct.flags.isMerged(), range, isWrapped = ct.flags.wrapText;
+
+		if (isMerged) {
+			range = ct.flags.merged;
+		}
 
 		var colL = isMerged ? range.c1 : Math.max(col, col - ct.sideL);
 		var colR = isMerged ? Math.min(range.c2, this.nColsCount - 1) : Math.min(col, col + ct.sideR);
