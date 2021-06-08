@@ -879,6 +879,26 @@
 		return false;
 	};
 
+	CProtectedRange.prototype.intersection = function (range) {
+		//TODO  в каком виде будет хранится sqref?
+		for (var i = 0; i < this.sqref.length; i++) {
+			if (this.sqref[i].intersection(range)) {
+				return true;
+			}
+		}
+		return false;
+	};
+
+	CProtectedRange.prototype.containsIntoRange = function (range) {
+		//TODO  в каком виде будет хранится sqref?
+		for (var i = 0; i < this.sqref.length; i++) {
+			if (!range.containsRange(this.sqref[i])) {
+				return false;
+			}
+		}
+		return true;
+	};
+
 	CProtectedRange.prototype.asc_getSqref = function (val) {
 		var t = this;
 		if (val) {

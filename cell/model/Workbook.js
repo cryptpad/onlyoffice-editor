@@ -9929,6 +9929,17 @@
 		return null;
 	};
 
+	Worksheet.prototype.getProtectedRangeByRange = function (range) {
+		if (this.aProtectedRanges) {
+			for (var i = 0; i < this.aProtectedRanges.length; i++) {
+				if (this.aProtectedRanges[i].intersection(range)) {
+					return {val: this.aProtectedRanges[i], index: i};
+				}
+			}
+		}
+		return null;
+	};
+
 	Worksheet.prototype.changeProtectedRange = function (from, to, addToHistory) {
 		if (!from) {
 			return;
@@ -9999,9 +10010,9 @@
 
 			if (wsFrom.aProtectedRanges && wsFrom.aProtectedRanges.length) {
 				wsFrom.aProtectedRanges.forEach(function (_protectedRange) {
-					//если клонируем - то добавляем новое правило со смещенным диапазоном пересечения
+					//если клонируем - то добавляем новый диапазон со смещенным диапазоном пересечения
 					//если нет + если в пределах одного листа - меняем диапазона у текущего правила
-					//если на другой лист - меняем диапазон у текущего правила + создаём новое со смещенным диапазоном пересечения
+					//если на другой лист - меняем диапазон у текущего + создаём новый со смещенным диапазоном пересечения
 
 					var isChanged = null;
 					var _protectedSqref = _protectedRange.sqref;
@@ -10023,7 +10034,7 @@
 						}
 					}
 					if (isChanged) {
-						//в случае клонирования фрагмента - создаём новое правило
+						//в случае клонирования фрагмента - создаём новый
 						var _newProtectedRange;
 						if (copyRange) {
 							_newProtectedRange = _protectedRange.clone();
