@@ -574,6 +574,14 @@
     };
     CTimeNodeBase.prototype.calculateAttributes = function(nElapsedTime, oAttributes) {
     };
+    CTimeNodeBase.prototype.setAttributeValue = function(oAttributes, sName, value) {
+        if(AscFormat.isRealNumber(oAttributes[sName])) {
+            oAttributes[sName] += value;
+        }
+        else {
+            oAttributes[sName] = value;
+        }
+    };
     CTimeNodeBase.prototype.getRelativeTime = function(nElapsedTime) {
         if(this.isFrozen()) {
             return 1.0;
@@ -696,7 +704,7 @@
         for(var nAttr = 0; nAttr < aAttributes.length; ++nAttr) {
             var oAttr = aAttributes[nAttr];
             if(oAttr.text !== null) {
-                oAttributes[oAttr.text] = val;
+                this.setAttributeValue(oAttributes, oAttr.text, val);
             }
         }
     };
@@ -4708,10 +4716,10 @@
         if(dR !== null) {
             var aAttr = this.getAttributes();
             if(aAttr[0] && this.isAllowedAttribute(aAttr[0].text)) {
-                oAttributes[aAttr[0].text] = dR;
+                this.setAttributeValue(oAttributes, aAttr[0].text, dR);
             }
             else {
-                oAttributes["r"] = dR;
+                this.setAttributeValue(oAttributes, "r", dR);
             }
         }
     };
@@ -6538,6 +6546,7 @@
                     if(oDrawing.pen) {
                         var oPen = oDrawing.pen.createDuplicate();
                         oPen.Fill = AscFormat.CreateUniFillByUniColor(oStrokeColor);
+                        oDrawing.pen = oPen;
                     }
                 }
             }

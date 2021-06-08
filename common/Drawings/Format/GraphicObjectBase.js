@@ -2133,7 +2133,9 @@
         oGraphics.m_oCoordTransform.tx = -((oBounds.x) * scale + 0.5) >> 0;
         oGraphics.m_oCoordTransform.ty = -((oBounds.y) * scale + 0.5) >> 0;
         oGraphics.transform(1, 0, 0, 1, 0, 0);
+        AscCommon.IsShapeToImageConverter = true;
         this.draw(oGraphics);
+        AscCommon.IsShapeToImageConverter = false;
         return oCanvas;
     };
     CGraphicObjectBase.prototype.setTimingAttributes = function(oAttributes) {
