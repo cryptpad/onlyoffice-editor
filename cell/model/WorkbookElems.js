@@ -3959,9 +3959,9 @@ StyleManager.prototype =
 			}
 		}
 	};
-	SheetMergedStyles.prototype.setConditionalStyle = function(id, ranges, formula) {
+	SheetMergedStyles.prototype.setConditionalStyle = function(rule, ranges, formula) {
 		this.stylesConditionalIterator = null;
-		this.stylesConditional[id] = {ranges: ranges, formula: formula};
+		this.stylesConditional[rule.Get_Id()] = {ranges: ranges, formula: formula, rule: rule};
 	};
 	SheetMergedStyles.prototype.clearConditionalStyle = function(multiplyRange) {
 		this.stylesConditionalIterator = null;
@@ -3982,11 +3982,16 @@ StyleManager.prototype =
 		}
 		if (!this.stylesConditionalIterator) {
 			this.stylesConditionalIterator = new AscCommon.RangeTopBottomIterator();
+			//todo lose stylesConditional sorting
 			this.stylesConditionalIterator.init(Object.values(this.stylesConditional), function(elem) {
 				return elem.ranges;
 			});
 		}
 		var rules = this.stylesConditionalIterator.get(row, col);
+		//todo sort inside RangeTopBottomIterator ?
+		rules.sort(function(v1, v2) {
+			return v2.rule.priority - v1.rule.priority;
+		});
 		for (var i = 0; i < rules.length; ++i) {
 			var xf = rules[i].formula(row, col);
 			if (xf) {

@@ -3686,6 +3686,10 @@
 
 		var oRule, oRuleElement, ranges, values;
 		var aRules = cfIterator.get(row, col);
+		//todo sort inside RangeTopBottomIterator ?
+		aRules.sort(function(v1, v2) {
+			return v2.priority - v1.priority;
+		});
 
 		for (var i = aRules.length - 1; i >= 0; --i) {
 			oRule = aRules[i];
