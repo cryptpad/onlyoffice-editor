@@ -307,6 +307,25 @@
 	JSZipWrapper.prototype.loadAsync = function(data, options) {
 		var t = this;
 
+		if (window.nativeZlibEngine) {
+			return new Promise(function(resolve, reject) {
+				if (!window.nativeZlibEngine.open(data)) {
+					reject(new Error("Failed archive"));
+				}
+				var files = window.nativeZlibEngine.files;
+
+				if (null != files) {
+					for (var _path in files) {
+						t.files[_path] = new JSZipObjectWrapper(_path);
+					}
+					resolve(t);
+				}
+				else {
+					reject(new Error("Failed archive"));
+				}
+			});
+		}
+
 		if (window["native"]) {
 			return new Promise(function(resolve, reject) {
 
@@ -348,6 +367,15 @@
 		this.data = data;
 	}
 	JSZipObjectWrapper.prototype.async = function(type) {
+
+		if (window.nativeZlibEngine) {
+			var t = this;
+			return new Promise(function(resolve, reject) {
+				var data = window.nativeZlibEngine.getFile(t.data);
+				var text = new TextDecoder("utf-8").decode(data);
+				resolve(text);
+			});
+		}
 
 		if (window["native"]) {
 			var t = this;

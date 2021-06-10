@@ -27,7 +27,8 @@
 			"common/apiBase_plugins.js",
 			"word/apiCommon.js",
 			"cell/api.js",
-			"common/spell/spell.js"
+			"common/spell/spell.js",
+			"common/zlib/zlib.js"
 		],
 		"common": [			
 			"common/downloaderfiles.js",
