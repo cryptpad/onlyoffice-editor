@@ -3132,6 +3132,10 @@ CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 	if (this.IsFillingFormMode())
 		this.Api.sync_OnAllRequiredFormsFilled(this.IsAllRequiredSpecialFormsFilled());
 
+	var oCurrentParagraph = this.GetCurrentParagraph(false, false)
+	if (oCurrentParagraph && oCurrentParagraph.IsInAnchorForm())
+		oCurrentParagraph.GetParent().CheckFormViewWindow();
+
 	if (this.Action.UpdateInterface)
 		this.private_UpdateInterface();
 
