@@ -1057,10 +1057,10 @@ CShape.prototype.getObjectType = function () {
     return AscDFH.historyitem_type_Shape;
 };
 
-    CShape.prototype.setSmartArtPoint = function (pr) {
-        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_ShapeSetSmartArtPoint, this.point, pr));
-        this.point = pr;
-    };
+CShape.prototype.setSmartArtPoint = function (pr) {
+    History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_ShapeSetSmartArtPoint, this.point, pr));
+    this.point = pr;
+};
 
 CShape.prototype.GetAllDrawingObjects = function(DrawingObjects)
 {
@@ -1328,13 +1328,121 @@ CShape.prototype.applyTextFunction = function (docContentFunction, tableFunction
     {
         var point = this.isObjectInSmartArt() && this.getPoint();
 
-        if (args[0].Value.FontSize && point) {
+        if (args[0] && args[0].Value && args[0].Value.FontSize && point) {
             point.prSet.setCustT(true);
-            this.setFontSizeInSmartArt(args[0].Value.FontSize);
         }
         this.checkExtentsByDocContent();
     }
 };
+
+CShape.prototype.copyTextInfoFromShapeToPoint = function () {
+    var txBody = this.txBody;
+    if (!txBody) {
+        return;
+    }
+    var copyProps = {
+        bodyPr: ['anchor', 'vert'],
+        rPr: ['Lang', 'Bold', 'err', 'Italic', 'Underline', 'Strikeout', 'Spacing', 'dirty', 'baseline', 'cap'],
+        pPr: ['Jc'] // TODO: algn -> Jc?
+    };
+    var prSet = this.point.prSet;
+    var pointTxBody = this.point.getT() || new AscFormat.CTextBody();
+    if (!this.point.getT()) {
+        this.point.setT(pointTxBody);
+    }
+    var pointBodyPr;
+    if (prSet.custT) {
+        copyProps.rPr.push('FontSize');
+    }
+
+
+    if (txBody) {
+        if (txBody.bodyPr) {
+            pointBodyPr = pointTxBody.bodyPr || new AscFormat.CBodyPr();
+            if (!pointTxBody.bodyPr) {
+                pointTxBody.setBodyPr(pointBodyPr);
+            }
+            copyProps.bodyPr.forEach(function (prop) {
+                if (txBody.bodyPr[prop] !== pointBodyPr[prop]) {
+                    switch (prop) {
+                        case 'anchor':
+                            pointBodyPr.setAnchor(txBody.bodyPr[prop]);
+                            break;
+                        case 'vert':
+                            pointBodyPr.setVert(txBody.bodyPr[prop]);
+                            break;
+                    }
+                }
+            });
+
+        }
+        var oContent = txBody.content;
+        if (oContent) {
+            var pointContent = pointTxBody.content || new AscFormat.CDrawingDocContent(txBody, editor.WordControl.m_oDrawingDocument, 0, 0, 0, 0, false, false, true);
+            if (!pointTxBody.content) {
+                pointTxBody.setContent(pointContent);
+            }
+        oContent.Content.forEach(function (shapeParagraph) {
+            var pointParagraph = new AscCommonWord.Paragraph();
+
+            copyProps.pPr.forEach(function (prop) {
+                if (shapeParagraph.TextPr.Value[prop]) {
+                    switch (prop) {
+                        case "Jc":
+                            pointParagraph.Set_Align(shapeParagraph.TextPr.Value[prop]);
+                            break;
+                    }
+                }
+            });
+            shapeParagraph.Content.forEach(function (shapeParaRun) {
+                var pointParaRun = new AscCommonWord.ParaRun();
+                copyProps.rPr.forEach(function (prop) {
+                    if (shapeParaRun.Pr[prop]) {
+                        switch (prop) {
+                            case 'Lang':
+                                pointParaRun.Set_Lang(shapeParaRun.Pr[prop]);
+                                break;
+                            case 'Bold':
+                                pointParaRun.Set_Bold(shapeParaRun.Pr[prop]);
+                                break;
+                            case 'err':
+                                // pointParaRun.s(shapeParaRun.Pr[prop]);
+                                break;
+                            case 'Italic':
+                                pointParaRun.Set_Italic(shapeParaRun.Pr[prop]);
+                                break;
+                            case 'Underline':
+                                pointParaRun.Set_Underline(shapeParaRun.Pr[prop]);
+                                break;
+                            case 'Strikeout':
+                                pointParaRun.Set_Strikeout(shapeParaRun.Pr[prop]);
+                                break;
+                            case 'Spacing':
+                                pointParaRun.Set_Spacing(shapeParaRun.Pr[prop]);
+                                break;
+                            case 'FontSize':
+                                pointParaRun.Set_FontSize(shapeParaRun.Pr[prop]);
+                                break;
+                            case 'dirty':
+                                // pointParaRun.Set_Dirty(shapeParaRun.Pr[prop]);
+                                break;
+                            case 'baseline':
+                                // pointParaRun.Set_Baseline(shapeParaRun.Pr[prop]);
+                                break;
+                            case 'cap':
+                                // pointParaRun.Set_Cap(shapeParaRun.Pr[prop]);
+                                break;
+                        }
+                    }
+                    pointParagraph.AddToContent(pointParagraph.Content.length, pointParaRun);
+                });
+                pointContent.AddToContent(oContent.Content.length, pointParagraph);
+            });
+        })
+        }
+    }
+
+}
 
 CShape.prototype.clearContent = function () {
     var content = this.getDocContent();
@@ -4597,6 +4705,9 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                 point.prSet.setPhldr(false);
                 this.txBody.content2 = null;
             }
+        }
+        if (this.isObjectInSmartArt()) {
+            this.copyTextInfoFromShapeToPoint();
         }
     }
     return false;

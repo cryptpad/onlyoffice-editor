@@ -13666,12 +13666,10 @@
         point.setSpPr(spPr);
       }
 
-      // if (pointInfo.t) {
-      //   var t = new AscFormat.CTextBody();
-      //   var content = new AscFormat.CDrawingDocContent(t, editor.WordControl.m_oDrawingDocument, 0, 0, 0, 0, false, false, true);
-      //   fillTextBody(t, pointInfo.t, content);
-      //   point.setT(t);
-      // }
+      if (pointInfo.t) {
+        var t = new AscFormat.CTextBody();
+        point.setT(t);
+      }
       return point;
     }
 
