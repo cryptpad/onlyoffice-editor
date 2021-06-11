@@ -1289,6 +1289,8 @@ ParaDrawing.prototype.Copy = function(oPr)
 	c.docPr.setFromOther(this.docPr);
 	if (this.ParaMath)
 		c.Set_ParaMath(this.ParaMath.Copy());
+
+	c.SetForm(this.Form);
 	return c;
 };
 ParaDrawing.prototype.IsEqual = function(oElement)
@@ -2832,6 +2834,7 @@ ParaDrawing.prototype.copy = function()
 	c.Set_AllowOverlap(this.AllowOverlap);
 	c.Set_WrappingType(this.wrappingType);
 	c.Set_BehindDoc(this.behindDoc);
+	c.SetForm(this.Form);
 	var EE = this.EffectExtent;
 	c.setEffectExtent(EE.L, EE.T, EE.R, EE.B);
 	return c;
