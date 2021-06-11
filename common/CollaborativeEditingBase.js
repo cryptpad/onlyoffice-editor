@@ -859,6 +859,9 @@
     CCollaborativeEditingBase.prototype.Update_DocumentPosition = function(DocPos){
         this.m_aDocumentPositions.Update_DocumentPosition(DocPos);
     };
+    CCollaborativeEditingBase.prototype.Update_ForeignCursorPosition = function(UserId, Run, InRunPos, isRemoveLabel) {
+        console.log("Update_ForeignCursorPosition:");
+    };
     CCollaborativeEditingBase.prototype.Update_ForeignCursorsPositions = function(){
     };
     CCollaborativeEditingBase.prototype.Check_ForeignCursorsLabels = function(X, Y, PageIndex) {
@@ -1043,6 +1046,26 @@
             this.Update_DocumentPosition(DocState.FootnotesEnd.StartPos);
         if (DocState.FootnotesEnd && DocState.FootnotesEnd.EndPos)
             this.Update_DocumentPosition(DocState.FootnotesEnd.EndPos);
+    };
+    CCollaborativeEditingBase.prototype.Update_ForeignCursorLabelPosition = function(UserId, X, Y, Color)
+    {
+        var oApi = this.GetEditorApi();
+        if(!oApi) {
+            return;
+        }
+        var Cursor = this.m_aForeignCursorsXY[UserId];
+        if (!Cursor || !Cursor.ShowId)
+            return;
+        oApi.sendEvent("asc_onShowForeignCursorLabel", UserId, X, Y, new AscCommon.CColor(Color.r, Color.g, Color.b, 255));
+    };
+    CCollaborativeEditingBase.prototype.GetDocumentPositionBinary = function(oWriter, PosInfo) {
+        if (!PosInfo)
+            return null;
+        var BinaryPos = oWriter.GetCurPosition();
+        oWriter.WriteString2(PosInfo.Class.Get_Id());
+        oWriter.WriteLong(PosInfo.Position);
+        var BinaryLen = oWriter.GetCurPosition() - BinaryPos;
+        return  (BinaryLen + ";" + oWriter.GetBase64Memory2(BinaryPos, BinaryLen));
     };
     //----------------------------------------------------------------------------------------------------------------------
     // Private area

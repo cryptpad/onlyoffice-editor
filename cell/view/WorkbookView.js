@@ -3889,9 +3889,17 @@
 		//AscCommon.getUserColorById(this.ShortId, null, true)
 
 		//var CursorPos = [{Class : Run, Position : InRunPos}];
-		var aCursorInfo = CursorInfo.split(";");
-		var newCursorInfo = {sheetId: aCursorInfo[0], isEdit: aCursorInfo[1]};
-		var i = 2;
+		var aCursorInfo = CursorInfo.split(",");
+		var sDrawingData = aCursorInfo[0];
+		var oWsView = this.getWorksheet();
+		var oDrawingsController = null;
+		if (oWsView && oWsView.objectRender) {
+			oDrawingsController = oWsView.objectRender.controller;
+		}
+		AscFormat.drawingsUpdateForeignCursor(oDrawingsController, Asc.editor.wbModel.DrawingDocument, sDrawingData, UserId, Show, UserShortId);
+
+		var newCursorInfo = {sheetId: aCursorInfo[1], isEdit: aCursorInfo[2]};
+		var i = 3;
 		while(i < aCursorInfo.length) {
 			if (!newCursorInfo.ranges) {
 				newCursorInfo.ranges = [];
@@ -3924,18 +3932,24 @@
 	};
 	WorkbookView.prototype.getCursorInfo = function()
 	{
-		var aWs = this.getActiveWS();
-		var id = aWs.getId();
-		var selection = aWs.getSelection();
+		var oWs = this.getActiveWS();
+		var id = oWs.getId();
+		var selection = oWs.getSelection();
 		var isEdit = this.getCellEditMode();
 
 		var rangeStr = "";
 		for (var i = 0; i < selection.ranges.length; i++) {
 			var _range = selection.ranges[i];
-			rangeStr += _range.c1 + ";" + _range.r1 + ";" + _range.c2 + ";" + _range.r2 + ";"
+			rangeStr += _range.c1 + "," + _range.r1 + "," + _range.c2 + "," + _range.r2 + ",";
 		}
-
-		return id + ";" + isEdit + ";" + rangeStr;
+		var sDrawingData = "";
+		var oWsView = this.getWorksheet();
+		if (oWsView && oWsView.isSelectOnShape) {
+			if (oWsView.objectRender) {
+				sDrawingData = oWsView.objectRender.getDocumentPositionBinary();
+			}
+		}
+		return sDrawingData + "," + id + "," + isEdit + "," + rangeStr;
 	};
 
 

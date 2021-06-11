@@ -4404,7 +4404,18 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 		}
 		return coords;
 	};
-
+    DrawingObjects.prototype.getDocumentPositionBinary = function() {
+        if(this.controller) {
+            var oPosition = this.controller.getDocumentPositionForCollaborative();
+            if(!oPosition) {
+                return "";
+            }
+            var oWriter = new AscCommon.CMemory(true);
+            oWriter.CheckSize(50);
+            return AscCommon.CollaborativeEditing.GetDocumentPositionBinary(oWriter, oPosition);
+        }
+        return "";
+    };
 function ClickCounter() {
     this.x = 0;
     this.y = 0;

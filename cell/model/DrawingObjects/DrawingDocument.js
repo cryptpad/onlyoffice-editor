@@ -82,8 +82,10 @@ function CDrawingDocument()
     this.m_lTargetPage = -1;
     this.m_dTargetSize = 1;
 
-    this.NeedScrollToTarget = true;
-    this.NeedScrollToTargetFlag = false;
+
+    this.CollaborativeTargets            = [];
+    this.CollaborativeTargetsUpdateTasks = [];
+
 
     this.TargetHtmlElement = null;
     this.TargetHtmlElementLeft = 0;
@@ -1347,6 +1349,83 @@ function CDrawingDocument()
 
     this.OnSelectEnd = function()
     {
+    };
+
+    // collaborative targets
+    this.Collaborative_UpdateTarget      = function(_id, _shortId, _x, _y, _size, _page, _transform, is_from_paint)
+    {
+        if (is_from_paint !== true)
+        {
+            this.CollaborativeTargetsUpdateTasks.push([_id, _shortId, _x, _y, _size, _page, _transform]);
+            return;
+        }
+
+        for (var i = 0; i < this.CollaborativeTargets.length; i++)
+        {
+            if (_id == this.CollaborativeTargets[i].Id)
+            {
+                this.CollaborativeTargets[i].CheckPosition(this, _x, _y, _size, _page, _transform);
+                return;
+            }
+        }
+        var _target     = new CDrawingCollaborativeTarget();
+        _target.Id      = _id;
+        _target.ShortId = _shortId;
+        _target.CheckPosition(this, _x, _y, _size, _page, _transform);
+        this.CollaborativeTargets[this.CollaborativeTargets.length] = _target;
+    };
+    this.Collaborative_RemoveTarget      = function(_id)
+    {
+        var i = 0;
+        for (i = 0; i < this.CollaborativeTargets.length; i++)
+        {
+            if (_id == this.CollaborativeTargets[i].Id)
+            {
+                this.CollaborativeTargets[i].Remove(this);
+                this.CollaborativeTargets.splice(i, 1);
+                i--;
+            }
+        }
+
+        for (i = 0; i < this.CollaborativeTargetsUpdateTasks.length; i++)
+        {
+            var _tmp = this.CollaborativeTargetsUpdateTasks[i];
+            if (_tmp[0] == _id)
+            {
+                this.CollaborativeTargetsUpdateTasks.splice(i, 1);
+                i--;
+            }
+        }
+    };
+    this.Collaborative_TargetsUpdate     = function(bIsChangePosition)
+    {
+        var _len_tasks = this.CollaborativeTargetsUpdateTasks.length;
+        var i          = 0;
+        for (i = 0; i < _len_tasks; i++)
+        {
+            var _tmp = this.CollaborativeTargetsUpdateTasks[i];
+            this.Collaborative_UpdateTarget(_tmp[0], _tmp[1], _tmp[2], _tmp[3], _tmp[4], _tmp[5], _tmp[6], true);
+        }
+        if (_len_tasks != 0)
+            this.CollaborativeTargetsUpdateTasks.splice(0, _len_tasks);
+
+        if (bIsChangePosition)
+        {
+            for (i = 0; i < this.CollaborativeTargets.length; i++)
+            {
+                this.CollaborativeTargets[i].Update(this);
+            }
+        }
+    };
+    this.Collaborative_GetTargetPosition = function(UserId)
+    {
+        for (var i = 0; i < this.CollaborativeTargets.length; i++)
+        {
+            if (UserId == this.CollaborativeTargets[i].Id)
+                return {X : this.CollaborativeTargets[i].HtmlElementX, Y : this.CollaborativeTargets[i].HtmlElementY};
+        }
+
+        return null;
     };
 
     this.privateGetParagraphByString = function(level, levelNum, counterCurrent, x, y, lineHeight, ctx, w, h, spApi)

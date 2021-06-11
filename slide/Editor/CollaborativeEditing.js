@@ -638,29 +638,6 @@ CCollaborativeEditing.prototype.Update_ForeignCursorPosition = function(UserId, 
         this.Remove_ForeignCursorToShow(UserId);
     }
 };
-CCollaborativeEditing.prototype.Remove_ForeignCursorXY = function(UserId)
-{
-    if (this.m_aForeignCursorsXY[UserId])
-    {
-        if (this.m_aForeignCursorsXY[UserId].ShowId)
-        {
-            editor.sync_HideForeignCursorLabel(UserId);
-            clearTimeout(this.m_aForeignCursorsXY[UserId].ShowId);
-        }
-
-        delete this.m_aForeignCursorsXY[UserId];
-    }
-};
-CCollaborativeEditing.prototype.Update_ForeignCursorLabelPosition = function(UserId, X, Y, Color)
-{
-
-    var Cursor = this.m_aForeignCursorsXY[UserId];
-    if (!Cursor || !Cursor.ShowId)
-        return;
-
-    editor.sync_ShowForeignCursorLabel(UserId, X, Y, Color);
-};
-
 
 CCollaborativeEditing.prototype.private_RecalculateDocument = function(arrChanges){
     this.m_oLogicDocument.Recalculate(AscCommon.History.Get_RecalcData(null, arrChanges));
