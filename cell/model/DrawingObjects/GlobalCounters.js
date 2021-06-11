@@ -41,8 +41,8 @@
  */
 function CCollaborativeEditing()
 {
+    AscCommon.CCollaborativeEditingBase.call(this);
     this.WaitImages = {};
-	AscCommon.CCollaborativeEditingBase.call(this);
 }
 
 CCollaborativeEditing.prototype = Object.create(AscCommon.CCollaborativeEditingBase.prototype);

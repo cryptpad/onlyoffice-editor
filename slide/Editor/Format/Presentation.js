@@ -3784,6 +3784,9 @@ CPresentation.prototype.TurnOnCheckSpelling = function () {
 CPresentation.prototype.Get_DrawingDocument = function () {
     return this.DrawingDocument;
 };
+CPresentation.prototype.GetDrawingDocument = function () {
+    return this.DrawingDocument;
+};
 
 CPresentation.prototype.GetCurrentController = function () {
     var oCurSlide = this.Slides[this.CurPage];
@@ -4052,6 +4055,10 @@ CPresentation.prototype.Init = function () {
 };
 
 CPresentation.prototype.Get_Api = function () {
+    return this.Api;
+};
+
+CPresentation.prototype.GetApi = function () {
     return this.Api;
 };
 
