@@ -775,8 +775,12 @@
 
         if (true === bRepaint)
         {
-            editor.WordControl.m_oLogicDocument.DrawingDocument.ClearCachePages();
-            editor.WordControl.m_oLogicDocument.DrawingDocument.FirePaint();
+            var oDrawingDocument = this.GetDrawingDocument();
+            if(oDrawingDocument)
+            {
+                oDrawingDocument.ClearCachePages();
+                oDrawingDocument.FirePaint();
+            }
         }
     };
     //----------------------------------------------------------------------------------------------------------------------
