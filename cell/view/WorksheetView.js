@@ -925,83 +925,83 @@
     };
 
 
-    // mouseX - это разница стартовых координат от мыши при нажатии и границы
-    WorksheetView.prototype.changeColumnWidth = function (col, x2, mouseX) {
+	// mouseX - это разница стартовых координат от мыши при нажатии и границы
+	WorksheetView.prototype.changeColumnWidth = function (col, x2, mouseX) {
 		var viewMode = this.handlers.trigger('getViewMode');
-        var t = this;
-        // Учитываем координаты точки, где мы начали изменение размера
-        x2 += mouseX;
+		var t = this;
+		// Учитываем координаты точки, где мы начали изменение размера
+		x2 += mouseX;
 
-        var offsetFrozenX = 0;
-        var c1 = t.visibleRange.c1;
-        if (this.topLeftFrozenCell) {
-            var cFrozen = this.topLeftFrozenCell.getCol0() - 1;
-            if (0 <= cFrozen) {
-                if (col < c1) {
-                    c1 = 0;
-                } else {
-                    offsetFrozenX = t._getColLeft(cFrozen + 1) - t._getColLeft(0);
-                }
-            }
-        }
-        var offsetX = t._getColLeft(c1) - t.cellsLeft;
-        offsetX -= offsetFrozenX;
+		var offsetFrozenX = 0;
+		var c1 = t.visibleRange.c1;
+		if (this.topLeftFrozenCell) {
+			var cFrozen = this.topLeftFrozenCell.getCol0() - 1;
+			if (0 <= cFrozen) {
+				if (col < c1) {
+					c1 = 0;
+				} else {
+					offsetFrozenX = t._getColLeft(cFrozen + 1) - t._getColLeft(0);
+				}
+			}
+		}
+		var offsetX = t._getColLeft(c1) - t.cellsLeft;
+		offsetX -= offsetFrozenX;
 
-        var x1 = t._getColLeft(col) - offsetX - gridlineSize;
-        var w = Math.max(x2 - x1, 0);
-        if (w === this._getColumnWidth(col)) {
-            return;
-        }
+		var x1 = t._getColLeft(col) - offsetX - gridlineSize;
+		var w = Math.max(x2 - x1, 0);
+		if (w === this._getColumnWidth(col)) {
+			return;
+		}
 		w = Asc.round(w / this.getZoom());
-        var cc = Math.min(this.model.colWidthToCharCount(w), Asc.c_oAscMaxColumnWidth);
+		var cc = Math.min(this.model.colWidthToCharCount(w), Asc.c_oAscMaxColumnWidth);
 
-        var onChangeWidthCallback = function (isSuccess) {
-            if (false === isSuccess) {
-                return;
-            }
+		var onChangeWidthCallback = function (isSuccess) {
+			if (false === isSuccess) {
+				return;
+			}
 
-            if (viewMode) {
+			if (viewMode) {
 				History.TurnOff();
 			}
-            
-            var getHiddenMap = function (start, end, opt_compare) {
-            	var res = null;
-            	for (var j = start; j < end; j++) {
-            		if (opt_compare) {
-            			if (t.model.getColHidden(j) !== opt_compare[j]) {
+
+			var getHiddenMap = function (start, end, opt_compare) {
+				var res = null;
+				for (var j = start; j < end; j++) {
+					if (opt_compare) {
+						if (t.model.getColHidden(j) !== opt_compare[j]) {
 							if (!res) {
 								res = {};
 							}
-            				res[j] = t.model.getColHidden(j);
+							res[j] = t.model.getColHidden(j);
 						}
 					} else {
 						if (!res) {
 							res = {};
 						}
-            			res[j] = t.model.getColHidden(j);
+						res[j] = t.model.getColHidden(j);
 					}
 				}
-            	return res;
+				return res;
 			};
 
-            var getRangesFromMap = function (_tempArrAfter, container) {
+			var getRangesFromMap = function (_tempArrAfter, container) {
 				if (!_tempArrAfter) {
 					return;
 				}
-            	for (var j in _tempArrAfter) {
+				for (var j in _tempArrAfter) {
 					var _oRange = new AscCommonExcel.Range(t.model, 0, parseInt(j), gc_nMaxRow0, parseInt(j));
 					container.push(_oRange);
 				}
 			};
-            
-            var bIsHidden = t.model.getColHidden(col);
-            
+
+			var bIsHidden = t.model.getColHidden(col);
+
 			var bIsHiddenArr;
-            var startUpdateCol = col;
+			var startUpdateCol = col;
 			var _selectionRange = t.model.selectionRange;
-            if (_selectionRange && _selectionRange.ranges && _selectionRange.isContainsOnlyFullRowOrCol(true)) {
-				bIsHiddenArr  = [];
-            	for (var i = 0; i < _selectionRange.ranges.length; i++) {
+			if (_selectionRange && _selectionRange.ranges && _selectionRange.isContainsOnlyFullRowOrCol(true)) {
+				bIsHiddenArr = [];
+				for (var i = 0; i < _selectionRange.ranges.length; i++) {
 					var _range = _selectionRange.ranges[i];
 					var _tempArr = getHiddenMap(_range.c1, _range.c2);
 					t.model.setColWidth(cc, _range.c1, _range.c2);
@@ -1014,71 +1014,74 @@
 				t.model.setColWidth(cc, col, col);
 			}
 
-            t._cleanCache(new asc_Range(0, 0, t.cols.length - 1, t.rows.length - 1));
-            t.changeWorksheet("update", {reinitRanges: true});
+			t._cleanCache(new asc_Range(0, 0, t.cols.length - 1, t.rows.length - 1));
+			t.changeWorksheet("update", {reinitRanges: true});
 			t._updateGroups(true, undefined, undefined, true);
-            t._updateVisibleColsCount();
+			t._updateVisibleColsCount();
 			t.cellCommentator.updateActiveComment();
-            t.cellCommentator.updateAreaComments();
+			t.cellCommentator.updateAreaComments();
 
-            if (bIsHiddenArr) {
-            	if (bIsHiddenArr.length) {
+			if (bIsHiddenArr) {
+				if (bIsHiddenArr.length) {
 					Asc.editor.wb.handleChartsOnWorkbookChange(bIsHiddenArr);
 				}
-			} else if(bIsHidden !==  t.model.getColHidden(col)) {
-                var oRange = new AscCommonExcel.Range(t.model, 0, col, gc_nMaxRow0, col);
-                Asc.editor.wb.handleChartsOnWorkbookChange([oRange]);
-            }
+			} else if (bIsHidden !== t.model.getColHidden(col)) {
+				var oRange = new AscCommonExcel.Range(t.model, 0, col, gc_nMaxRow0, col);
+				Asc.editor.wb.handleChartsOnWorkbookChange([oRange]);
+			}
 
-            if (t.objectRender) {
-                t.objectRender.updateSizeDrawingObjects({target: AscCommonExcel.c_oTargetType.ColumnResize, col: startUpdateCol});
-            }
+			if (t.objectRender) {
+				t.objectRender.updateSizeDrawingObjects({
+					target: AscCommonExcel.c_oTargetType.ColumnResize,
+					col: startUpdateCol
+				});
+			}
 			if (viewMode) {
 				History.TurnOn();
 			}
-        };
-        if (viewMode) {
+		};
+		if (viewMode) {
 			onChangeWidthCallback(true);
 		} else {
 			this._isLockedAll(onChangeWidthCallback);
 		}
-    };
+	};
 
-    // mouseY - это разница стартовых координат от мыши при нажатии и границы
-    WorksheetView.prototype.changeRowHeight = function (row, y2, mouseY) {
+	// mouseY - это разница стартовых координат от мыши при нажатии и границы
+	WorksheetView.prototype.changeRowHeight = function (row, y2, mouseY) {
 		var viewMode = this.handlers.trigger('getViewMode');
-        var t = this;
-        // Учитываем координаты точки, где мы начали изменение размера
-        y2 += mouseY;
+		var t = this;
+		// Учитываем координаты точки, где мы начали изменение размера
+		y2 += mouseY;
 
-        var offsetFrozenY = 0;
-        var r1 = this.visibleRange.r1;
-        if (this.topLeftFrozenCell) {
-            var rFrozen = this.topLeftFrozenCell.getRow0() - 1;
-            if (0 <= rFrozen) {
-                if (row < r1) {
-                    r1 = 0;
-                } else {
-                    offsetFrozenY = this._getRowTop(rFrozen + 1) - this._getRowTop(0);
-                }
-            }
-        }
-        var offsetY = this._getRowTop(r1) - t.cellsTop;
-        offsetY -= offsetFrozenY;
+		var offsetFrozenY = 0;
+		var r1 = this.visibleRange.r1;
+		if (this.topLeftFrozenCell) {
+			var rFrozen = this.topLeftFrozenCell.getRow0() - 1;
+			if (0 <= rFrozen) {
+				if (row < r1) {
+					r1 = 0;
+				} else {
+					offsetFrozenY = this._getRowTop(rFrozen + 1) - this._getRowTop(0);
+				}
+			}
+		}
+		var offsetY = this._getRowTop(r1) - t.cellsTop;
+		offsetY -= offsetFrozenY;
 
-        var y1 = this._getRowTop(row) - offsetY - gridlineSize;
+		var y1 = this._getRowTop(row) - offsetY - gridlineSize;
 		var newHeight = Math.max(y2 - y1, 0);
-        if (newHeight === this._getRowHeight(row)) {
-            return;
-        }
+		if (newHeight === this._getRowHeight(row)) {
+			return;
+		}
 		newHeight = Math.min(this.maxRowHeightPx, Asc.round(newHeight / this.getZoom()));
 
-        var onChangeHeightCallback = function (isSuccess) {
-            if (false === isSuccess) {
-                return;
-            }
+		var onChangeHeightCallback = function (isSuccess) {
+			if (false === isSuccess) {
+				return;
+			}
 
-            var bIsHidden = t.model.getRowHidden(row);
+			var bIsHidden = t.model.getRowHidden(row);
 			if (viewMode) {
 				History.TurnOff();
 			}
@@ -1136,11 +1139,11 @@
 			}
 
 			var updateRange = new asc_Range(0, startUpdateRow, t.cols.length - 1, endUpdateRow);
-            t.model.autoFilters.reDrawFilter(updateRange);
-            t._cleanCache(updateRange);
-            t.changeWorksheet("update", {reinitRanges: true});
-            t._updateGroups(false, undefined, undefined, true);
-            t._updateVisibleRowsCount();
+			t.model.autoFilters.reDrawFilter(updateRange);
+			t._cleanCache(updateRange);
+			t.changeWorksheet("update", {reinitRanges: true});
+			t._updateGroups(false, undefined, undefined, true);
+			t._updateVisibleRowsCount();
 			t.cellCommentator.updateActiveComment();
 			t.cellCommentator.updateAreaComments();
 
@@ -1149,25 +1152,28 @@
 				if (bIsHiddenArr.length) {
 					Asc.editor.wb.handleChartsOnWorkbookChange(bIsHiddenArr);
 				}
-			} else if(bIsHidden !==  t.model.getRowHidden(row)) {
+			} else if (bIsHidden !== t.model.getRowHidden(row)) {
 				var oRange = new AscCommonExcel.Range(t.model, row, gc_nMaxCol0, row, gc_nMaxCol0);
 				Asc.editor.wb.handleChartsOnWorkbookChange([oRange]);
 			}
 
-            if (t.objectRender) {
-                t.objectRender.updateSizeDrawingObjects({target: AscCommonExcel.c_oTargetType.RowResize, row: startUpdateRow});
-            }
+			if (t.objectRender) {
+				t.objectRender.updateSizeDrawingObjects({
+					target: AscCommonExcel.c_oTargetType.RowResize,
+					row: startUpdateRow
+				});
+			}
 			if (viewMode) {
 				History.TurnOn();
 			}
-        };
+		};
 
 		if (viewMode) {
 			onChangeHeightCallback(true);
 		} else {
 			this._isLockedAll(onChangeHeightCallback);
 		}
-    };
+	};
 
 
     // Проверяет, есть ли числовые значения в диапазоне
