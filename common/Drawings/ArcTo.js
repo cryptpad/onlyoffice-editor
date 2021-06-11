@@ -171,7 +171,7 @@
         var dStartAngle = dAngle1;
         var dEndAngle = 0;
         var editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
-
+        var ellipseArcPoints = [];
         if ( !bClockDirection )
         {
             for( var nIndex = nFirstPointQuard; nIndex <= nSecondPointQuard; nIndex++ )
@@ -186,17 +186,13 @@
                 EndPoint = EllipseArc3(ctx, fX, fY, fXRad, fYRad, AngToEllPrm( dStartAngle, fXRad, fYRad ), AngToEllPrm( dEndAngle, fXRad, fYRad ), false, pathCommand);
                 if (geom) {
                     var flag = false;
-                    for (var i = 0; i < geom.ellipsePointsList.length; i++) {
-                        var elemX = parseFloat(geom.ellipsePointsList[i].curCoords.X.toFixed(4));
-                        var elemY = parseFloat(geom.ellipsePointsList[i].curCoords.Y.toFixed(4));
-                        if (elemX === parseFloat(EndPoint.X.toFixed(4)) && elemY === parseFloat(EndPoint.Y.toFixed(4)))
-                            flag = true;
-                    }
-                    if (!flag && !isPoint) {
-                            geom.ellipsePointsList.push({curCoords: EndPoint});
+                    if (!flag && (EndPoint.X0 !== EndPoint.X1 || EndPoint.X1 !== EndPoint.X2) && (EndPoint.Y0 !== EndPoint.Y1 || EndPoint.Y1 !== EndPoint.Y2)) {
+                           ellipseArcPoints.push(EndPoint);
                     }
                 }
             }
+            if (geom && ellipseArcPoints.length !== 0)
+                geom.ellipsePointsList.push(ellipseArcPoints);
         }
         else
         {
@@ -214,15 +210,8 @@
                 EndPoint = EllipseArc3(ctx, fX, fY, fXRad, fYRad, AngToEllPrm( dStartAngle, fXRad, fYRad ), AngToEllPrm( dEndAngle, fXRad, fYRad ), false, pathCommand);
                 if (geom) {
                     var flag = false;
-                    for (var i = 0; i < geom.ellipsePointsList.length; i++) {
-                        var elemX = parseFloat(geom.ellipsePointsList[i].curCoords.X.toFixed(4));
-                        var elemY = parseFloat(geom.ellipsePointsList[i].curCoords.Y.toFixed(4));
-                        if (elemX === parseFloat(EndPoint.X.toFixed(4)) && elemY === parseFloat(EndPoint.Y.toFixed(4)))
-                            flag = true;
-                    }
-
                     if (!flag && (EndPoint.X0 !== EndPoint.X1 || EndPoint.X1 !== EndPoint.X2) && (EndPoint.Y0 !== EndPoint.Y1 || EndPoint.Y1 !== EndPoint.Y2))
-                        geom.ellipsePointsList.push({curCoords: EndPoint});
+                        ellipseArcPoints.push(EndPoint);
                 }
             }
         }

@@ -2225,10 +2225,12 @@ DrawingObjectsController.prototype =
             }
         }
         else if (this.selection.geometrySelection) {
+            var selectedObj = this.selectedObjects[0];
            if(this.curState instanceof AscFormat.NullState) {
-               this.changeCurrentState(new AscFormat.PreGeometryEditState(this));
+               this.changeCurrentState(new AscFormat.GeometryEditState(this, selectedObj));
+               this.arrTrackObjects.push(new AscFormat.EditShapeGeometryTrack(selectedObj, this.majorObject));
            }
-               this.selection.geometrySelection.drawGeometryEdit(drawingDocument);
+               this.selection.geometrySelection.drawGeometryEdit(drawingDocument, this.arrTrackObjects);
 
         }
         else if(this.selection.groupSelection)
@@ -6627,10 +6629,10 @@ DrawingObjectsController.prototype =
             this.arrTrackObjects[i].track(angle, e);
     },
 
-    trackResizeObjects: function(kd1, kd2, e, x, y)
+    trackResizeObjects: function( e, x, y)
     {
         for(var i = 0; i < this.arrTrackObjects.length; ++i)
-            this.arrTrackObjects[i].track(kd1, kd2, e, x, y);
+            this.arrTrackObjects[i].track(e, x, y);
     },
 
     trackEnd: function()

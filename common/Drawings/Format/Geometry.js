@@ -1281,9 +1281,14 @@ Geometry.prototype=
             drawingDocument.DrawAdjustment(transform, _adjustments[_adj_index].posX, _adjustments[_adj_index].posY, bTextWarp);
     },
 
-    drawGeometryEdit : function(drawingDocument, shape)
+    drawGeometryEdit : function(drawingDocument, shape, arrTrackObject)
     {
-        drawingDocument.AutoShapesTrack.DrawGeometryEdit(this, shape);
+        var track_object = arrTrackObject[0];
+        track_object.convertToBezier(this);
+        var gmEditPoint = this.gmEditPoint;
+        var gmEditList = this.gmEditList;
+        var matrix =  shape.getTransformMatrix();
+        drawingDocument.AutoShapesTrack.DrawGeometryEdit(matrix, gmEditList, gmEditPoint);
     },
 
     canFill: function()
@@ -1356,26 +1361,24 @@ Geometry.prototype=
         if (e.Type === 0) {
 
             for (var i = 0; i < this.gmEditList.length; i++) {
-                dx = x - this.gmEditList[i].curCoords.X;
-                dy = y - this.gmEditList[i].curCoords.Y;
+                dx = x - this.gmEditList[i].X;
+                dy = y - this.gmEditList[i].Y;
 
                 var gmArr = this.gmEditList[i];
-                var curS = gmArr.curCoords;
-                var nextS = gmArr.nextCoords;
-                var prevS = gmArr.prevCoords;
+                var nextPoint = gmArr.nextPoint;
+                var prevPoint = gmArr.prevPoint;
 
                 var originalEditPoint = {
-                    curCoords: {
-                        id: curS.id, X: curS.X, Y: curS.Y, X0: curS.X0, Y0: curS.Y0, X1: curS.X1, Y1: curS.Y1,
-                        X2: curS.X2, Y2: curS.Y2, fX1: curS.fX1, fY1: curS.fY1, fX2: curS.fX2, fY2: curS.fY2,
-                        dAngle1: curS.dAngle1, dAngle2: curS.dAngle2, pathCommand: curS.pathCommand
+                    id: gmArr.id, X: gmArr.X, Y: gmArr.Y, g1X: gmArr.g1X, g1Y: gmArr.g1Y, g2X: gmArr.g2X, g2Y:
+                    gmArr.g2Y, pathC1 : gmArr.pathC1, pathC2 : gmArr.pathC2,
+                    nextPoint: {
+                        id: nextPoint.id, X: nextPoint.X, Y: nextPoint.Y, g1X: nextPoint.g1X, g1Y: nextPoint.g1Y,
+                        g2X: nextPoint.g2X, g2Y: nextPoint.g2Y, pathC1 : nextPoint.pathC1, pathC2 : nextPoint.pathC2,
                     },
-                    nextCoords: {
-                        id: nextS.id, X: nextS.X, Y: nextS.Y, X0: nextS.X0, Y0: nextS.Y0, X1: nextS.X1, Y1: nextS.Y1,
-                        X2: nextS.X2, Y2: nextS.Y2, fX1: nextS.fX1, fY1: nextS.fY1, fX2: nextS.fX2, fY2: nextS.fY2,
-                        dAngle1: nextS.dAngle1, dAngle2: nextS.dAngle2, pathCommand: nextS.pathCommand
+                    prevPoint: {
+                        id: prevPoint.id, X: prevPoint.X, Y: prevPoint.Y, g1X: prevPoint.g1X, g1Y: prevPoint.g1Y,
+                        g2X: prevPoint.g2X, g2Y: prevPoint.g2Y, pathC1 : prevPoint.pathC1, pathC2 : prevPoint.pathC2,
                     },
-                    prevCoords: {id: prevS.id, X: prevS.X, Y: prevS.Y},
                     isFirstCPoint: false,
                     isSecondCPoint: false,
                     isStartPoint: gmArr.isStartPoint
@@ -1386,10 +1389,10 @@ Geometry.prototype=
                     this.originalEditPoint = originalEditPoint;
                     return {hit: true, objectId: this.Id};
                 } else if (this.gmEditPoint) {
-                    dxC1 = x - this.gmEditPoint.curCoords.X1;
-                    dyC1 = y - this.gmEditPoint.curCoords.Y1;
-                    dxC2 = x - this.gmEditPoint.nextCoords.X0;
-                    dyC2 = y - this.gmEditPoint.nextCoords.Y0;
+                    dxC1 = x - this.gmEditPoint.g1X;
+                    dyC1 = y - this.gmEditPoint.g1Y;
+                    dxC2 = x - this.gmEditPoint.g2X;
+                    dyC2 = y - this.gmEditPoint.g2Y;
                     if (Math.sqrt(dxC1 * dxC1 + dyC1 * dyC1) < distance) {
                         this.gmEditPoint.isFirstCPoint = true;
                         return {hit: true, objectId: this.Id};

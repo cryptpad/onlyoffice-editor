@@ -55,7 +55,7 @@
         this.overlayObject.draw(overlay);
     };
 
-    EditShapeGeometryTrack.prototype.track = function(kd1, kd2, e, posX, posY) {
+    EditShapeGeometryTrack.prototype.track = function(e, posX, posY) {
 
         var geometry = this.originalObject.calcGeometry;
         var arrPathCommand = geometry.pathLst[0].ArrPathCommand;
@@ -68,91 +68,69 @@
         var transform = this.transform;
         var _relative_x = invert_transform.TransformPointX(posX, posY);
         var _relative_y = invert_transform.TransformPointY(posX, posY);
-        var curPoint = geometry.gmEditPoint.curCoords;
-        var nextPoint = geometry.gmEditPoint.nextCoords;
         var originalPoint = geometry.originalEditPoint;
+        var nextPoint = geometry.gmEditPoint.nextPoint;
+        var prevPoint = geometry.gmEditPoint.prevPoint;
 
-            var pathCommand = arrPathCommand[geometry.gmEditPoint.curCoords.pathCommand];
+            var pathCommand = arrPathCommand[originalPoint.pathC1];
 
             var id = pathCommand.id;
             if(geometry.gmEditPoint.isFirstCPoint) {
-
-                arrPathCommand[curPoint.pathCommand].X1 = _relative_x;
-                arrPathCommand[curPoint.pathCommand].Y1 = _relative_y;
-                geometry.gmEditPoint.curCoords.X1 = _relative_x;
-                geometry.gmEditPoint.curCoords.Y1 = _relative_y;
-                console.log('isFirstCommandPoint');
+                arrPathCommand[originalPoint.pathC1].X1 = _relative_x;
+                arrPathCommand[originalPoint.pathC1].Y1 = _relative_y;
+                geometry.gmEditPoint.g1X = _relative_x;
+                geometry.gmEditPoint.g1Y = _relative_y;
             } else if(geometry.gmEditPoint.isSecondCPoint) {
+                arrPathCommand[originalPoint.pathC2].X0 = _relative_x;
+                arrPathCommand[originalPoint.pathC2].Y0 = _relative_y;
+                geometry.gmEditPoint.g2X = _relative_x;
+                geometry.gmEditPoint.g2Y = _relative_y;
+            } else {
+                var command = {
+                    id: 4,
+                    X0: prevPoint.g2X,
+                    Y0: prevPoint.g2Y,
+                    X1: _relative_x - originalPoint.X + originalPoint.g1X,
+                    Y1: _relative_y - originalPoint.Y + originalPoint.g1Y,
+                    X2: _relative_x,
+                    Y2: _relative_y,
+                    X: _relative_x,
+                    Y: _relative_y
 
-                arrPathCommand[nextPoint.pathCommand].X0 = _relative_x;
-                arrPathCommand[nextPoint.pathCommand].Y0 = _relative_y;
-                geometry.gmEditPoint.nextCoords.X0 = _relative_x;
-                geometry.gmEditPoint.nextCoords.Y0 = _relative_y;
-                console.log('isSecondCommandPoint');
-            } else
-            switch (id) {
-                // case 0:
-                case 1:
-                    pathCommand.X = _relative_x;
-                    pathCommand.Y = _relative_y;
-                    break;
-                case 4:
-                case 2:
-                    // ignore clock direction
-                    var fX2 = _relative_x;
-                    var fY2 = _relative_y;
+                }
+                geometry.gmEditPoint.g1X = command.X1;
+                geometry.gmEditPoint.g1Y = command.Y1;
 
-                    var fCX1 = originalPoint.curCoords.X0;
-                    var fCY1 = originalPoint.curCoords.Y0;
+                if(originalPoint.pathC1 > originalPoint.pathC2) {
+                    arrPathCommand[0].X = _relative_x;
+                    arrPathCommand[0].Y = _relative_y;
+                }
+                arrPathCommand[geometry.gmEditPoint.pathC1] = command;
 
-                    var fCX2 = fX2 - originalPoint.curCoords.X2 + originalPoint.curCoords.X1;
-                    var fCY2 = fY2 - originalPoint.curCoords.Y2 + originalPoint.curCoords.Y1;
+                var command = {
+                    id: 4,
+                    X0: _relative_x - originalPoint.X + originalPoint.g2X,
+                    Y0: _relative_y - originalPoint.Y + originalPoint.g2Y,
+                    X1: nextPoint.g1X,
+                    Y1: nextPoint.g1Y,
+                    X2: nextPoint.X,
+                    Y2: nextPoint.Y,
+                    X: nextPoint.X,
+                    Y: nextPoint.Y
+                }
 
-                    var command = {
-                        id: 4,
-                        X0: fCX1,
-                        Y0: fCY1,
-                        X1: fCX2,
-                        Y1: fCY2,
-                        X2:_relative_x,
-                        Y2: _relative_y
-                    }
-                    if(geometry.gmEditPoint.isStartPoint) {
-                        arrPathCommand[0].X = _relative_x;
-                        arrPathCommand[0].Y = _relative_y;
-                    }
+                geometry.gmEditPoint.g2X = command.X0;
+                geometry.gmEditPoint.g2Y = command.Y0;
 
-                    arrPathCommand[curPoint.pathCommand] = command;
+                geometry.gmEditPoint.X = _relative_x;
+                geometry.gmEditPoint.Y = _relative_y;
 
-                    var nextCommand = arrPathCommand[geometry.gmEditPoint.nextCoords.pathCommand];
-
-                        var fX1 = _relative_x;
-                        var fY1 = _relative_y;
-
-                        var fCX1 = fX1 - originalPoint.curCoords.X2 + originalPoint.nextCoords.X0;
-                        var fCY1 = fY1 - originalPoint.curCoords.Y2 + originalPoint.nextCoords.Y0;
-
-                        var fCX2 = originalPoint.nextCoords.X1;
-                        var fCY2 = originalPoint.nextCoords.Y1;
-
-                        nextCommand.X0 = fCX1;
-                        nextCommand.Y0 = fCY1;
-                        nextCommand.X1 = fCX2;
-                        nextCommand.Y1 = fCY2;
-                        nextCommand.X2 = geometry.gmEditPoint.nextCoords.X2;
-                        nextCommand.Y2 = geometry.gmEditPoint.nextCoords.Y2;
-
-                    break;
-                case 3:
-                    pathCommand.X1 = _relative_x;
-                    pathCommand.Y1 = _relative_y;
-                    break;
+                arrPathCommand[geometry.gmEditPoint.pathC2] = command;
             }
 
-
         /*<------------------------------------------------------------->*/
-        var last_x = arrPathCommand[0].X,
-            last_y = arrPathCommand[0].Y,
+        var last_x = geometry.gmEditList[0].X,
+            last_y = geometry.gmEditList[0].Y,
             xMin = last_x, yMin = last_y, xMax = last_x, yMax = last_y;
         for(var i = 0;  i < arrPathCommand.length; ++i) {
 
@@ -284,80 +262,155 @@
 
     };
 
-    EditShapeGeometryTrack.prototype.convertToBezier = function() {
+    EditShapeGeometryTrack.prototype.convertToBezier = function(geom) {
 
-        var geom = this.originalObject.calcGeometry;
+        var pathPoints = geom.pathLst[0].ArrPathCommand;
 
-        for(var i = 0; i < geom.gmEditList.length; i++) {
-            var gmEditPoint = geom.gmEditList[i];
-            var curCoords = gmEditPoint.curCoords;
-            var prevCoords = gmEditPoint.prevCoords;
-            switch (gmEditPoint.curCoords.id) {
+        for(var i = 0; i < pathPoints.length; i++) {
+            if(pathPoints[i].id === 2 && geom.ellipsePointsList.length === 0)
+                return;
+        };
+
+        geom.gmEditList = [];
+        var countArc = 0;
+        var X = pathPoints[0].X;
+        var Y = pathPoints[0].Y;
+
+     pathPoints.splice(pathPoints.length - 1);
+     pathPoints.splice(0, 1);
+
+     for(var i = 0; i < pathPoints.length; i++) {
+            var elem = pathPoints[i];
+            var elemX, elemY;
+            switch (elem.id) {
                 case 0:
                 case 1:
-                    //пока для массива с одним arrPathCommand
-                    curCoords.X0 = (prevCoords.X + curCoords.X / 2) / (3 / 2);
-                    curCoords.Y0 = (prevCoords.Y + curCoords.Y / 2) / (3 / 2);
-                    curCoords.X1 = (prevCoords.X + curCoords.X * 2) / 3;
-                    curCoords.Y1 = (prevCoords.Y + curCoords.Y * 2) / 3;
-                    curCoords.X2 = curCoords.X;
-                    curCoords.Y2 = curCoords.Y;
-                    curCoords.fX2 = curCoords.X;
-                    curCoords.fY2 = curCoords.Y;
-
+                    elemX = elem.X;
+                    elemY = elem.Y;
                     break;
                 case 2:
-                    curCoords.X2 = curCoords.X;
-                    curCoords.Y2 = curCoords.Y;
+                    if (geom.ellipsePointsList[countArc]) {
+                        pathPoints.splice(i, 1);
+                        geom.ellipsePointsList[countArc].forEach(function (elem) {
+                            var elemArc = {
+                                id: 4,
+                                X: elem.X2,
+                                Y: elem.Y2,
+                                X0: elem.X0,
+                                Y0: elem.Y0,
+                                X1: elem.X1,
+                                Y1: elem.Y1,
+                                X2: elem.X2,
+                                Y2: elem.Y2
+                            }
+                            pathPoints.splice(i, 0, elemArc);
+                            i++;
+                        })
+                        i = i - 1;
+                        countArc++;
+                    }
                     break;
                 case 3:
-                    var X0 = (curCoords.X0 + prevCoords.X) / 2;
-                    var Y0 = (curCoords.Y0 + prevCoords.Y) / 2;
-                    var X1 = (curCoords.X1 + curCoords.X0) / 2;
-                    var Y1 = (curCoords.Y1 + curCoords.Y0) / 2;
-                    var X2 = curCoords.X1;
-                    var Y2 = curCoords.Y1;
-                    curCoords.X0 = X0;
-                    curCoords.Y0 = Y0;
-                    curCoords.X1 = X1;
-                    curCoords.Y1 = Y1;
-                    curCoords.X2 = X2;
-                    curCoords.Y2 = Y2;
+                    elemX = elem.X1;
+                    elemY = elem.Y1;
+                    break;
+                case 4:
+                    elemX = elem.X2;
+                    elemY = elem.Y2;
                     break;
             }
 
-            var command = {
-                id: 4,
-                X0: curCoords.X0,
-                Y0: curCoords.Y0,
-                X1: curCoords.X1,
-                Y1: curCoords.Y1,
-                X2: curCoords.X2,
-                Y2: curCoords.Y2
+            if (elemX !== undefined && elemY !== undefined && elem.id !== 2) {
+                pathPoints[i] = elem;
+                pathPoints[i].X = elemX;
+                pathPoints[i].Y = elemY;
+                elemX = null;
+                elemY = null;
             }
+        };
 
-            //refactoring
-            geom.originalEditPoint.curCoords = {
-                id: 4,
-                X0: geom.gmEditPoint.curCoords.X0,
-                Y0: geom.gmEditPoint.curCoords.Y0,
-                X1: geom.gmEditPoint.curCoords.X1,
-                Y1: geom.gmEditPoint.curCoords.Y1,
-                X2: geom.gmEditPoint.curCoords.X2,
-                Y2: geom.gmEditPoint.curCoords.Y2
-            }
-            geom.originalEditPoint.nextCoords = {
-                id: 4,
-                X0: geom.gmEditPoint.nextCoords.X0,
-                Y0: geom.gmEditPoint.nextCoords.Y0,
-                X1: geom.gmEditPoint.nextCoords.X1,
-                Y1: geom.gmEditPoint.nextCoords.Y1,
-                X2: geom.gmEditPoint.nextCoords.X2,
-                Y2: geom.gmEditPoint.nextCoords.Y2
-            }
-            geom.pathLst[0].ArrPathCommand[gmEditPoint.curCoords.pathCommand] = command;
-            gmEditPoint.curCoords.id = 4;
+
+        var firstPointX = parseFloat(X.toFixed(4));
+        var firstPointY = parseFloat(Y.toFixed(4));
+        var lastPointX = parseFloat(pathPoints[pathPoints.length - 1].X.toFixed(4));
+        var lastPointY = parseFloat(pathPoints[pathPoints.length - 1].Y.toFixed(4));
+        if(firstPointX !== lastPointX || firstPointY !== lastPointY) {
+            var prevCommand = pathPoints[pathPoints.length - 1];
+            pathPoints.push(
+                {
+                    id: 4,
+                    X0: (prevCommand.X + X / 2) / (3 / 2),
+                    Y0: (prevCommand.Y + Y / 2) / (3 / 2),
+                    X1: (prevCommand.X + X * 2) / 3,
+                    Y1: (prevCommand.Y + Y * 2) / 3,
+                    X2: X,
+                    Y2: Y,
+                    X,
+                    Y
+                });
         }
+
+
+
+       pathPoints.forEach(function(elem, index) {
+          var prevCommand = index - 1 >= 0 ? pathPoints[index - 1] : pathPoints[pathPoints.length - 1];
+
+           switch (elem.id) {
+               case 1:
+                   pathPoints[index] = {
+                       id: 4,
+                       X0: (prevCommand.X + elem.X / 2) / (3 / 2),
+                       Y0: (prevCommand.Y + elem.Y / 2) / (3 / 2),
+                       X1: (prevCommand.X + elem.X * 2) / 3,
+                       Y1: (prevCommand.Y + elem.Y * 2) / 3,
+                       X2: elem.X,
+                       Y2: elem.Y,
+                       X: elem.X,
+                       Y: elem.Y
+                   }
+                   break;
+               case 3:
+                   elem = {
+                       X0: (elem.X0 + prevCommand.X) / 2,
+                       Y0: (elem.Y0 + prevCommand.Y) / 2,
+                       X1: (elem.Y1 + elem.Y0) / 2,
+                       Y1: (elem.Y1 + elem.Y0) / 2,
+                       X2: elem.X1,
+                       Y2: elem.Y1,
+                       X: elem.X,
+                       Y: elem.Y,
+                   }
+                   break;
+
+           }
+       });
+
+        for (var index = 0; index < pathPoints.length; index++) {
+            var curCommand = pathPoints[index];
+            var nextIndex = index + 1 <= pathPoints.length - 1 ? index + 1 : 0;
+            var nextCommand = pathPoints[nextIndex];
+
+            var curPoint = {
+                id: curCommand.id,
+                g1X : curCommand.X1,
+                g1Y : curCommand.Y1,
+                g2X:  nextCommand.X0,
+                g2Y:  nextCommand.Y0,
+                X: curCommand.X,
+                Y: curCommand.Y,
+                pathC1: index + 1,
+                pathC2: nextIndex + 1,
+            };
+            geom.gmEditList.push(curPoint);
+        }
+
+        for (var index = 0; index < geom.gmEditList.length; index++) {
+            geom.gmEditList[index].nextPoint = (index + 1 <= geom.gmEditList.length - 1) ? geom.gmEditList[index + 1] : geom.gmEditList[0];
+            geom.gmEditList[index].prevPoint = (index - 1 >= 0) ? geom.gmEditList[index - 1] : geom.gmEditList[geom.gmEditList.length - 1];
+        }
+
+        pathPoints.unshift({id: 0, X, Y});
+        pathPoints.push({id: 5});
     }
 
 

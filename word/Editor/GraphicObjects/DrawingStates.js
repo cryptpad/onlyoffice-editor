@@ -1733,21 +1733,33 @@ function GeometryEditState(drawingObjects, majorObject)
 GeometryEditState.prototype = {
     onMouseDown: function(e, x, y, pageIndex)
     {
-        var track_object = this.drawingObjects.arrTrackObjects[0];
-        track_object.convertToBezier();
-        this.drawingObjects.updateOverlay();
-        return {objectId: track_object.geometry.Id, hit: true};
+        var selectedObj = this.drawingObjects.selectedObjects[0];
+        var ret = AscFormat.handleSelectedObjects(this.drawingObjects, e, x, y, null, pageIndex, true);
+        if(e.Type === 0) {
+            if(ret && ret.hit) {
+                var track_object = this.drawingObjects.arrTrackObjects[0];
+                this.drawingObjects.updateOverlay();
+                return {objectId: track_object.geometry.Id, hit: true};
+            } else if ((ret && !ret.hit) || !ret) {
+                //refactoring : отдельная функция для зануления
+                this.drawingObjects.selection.geometrySelection.calcGeometry.gmEditList = [];
+                this.drawingObjects.selection.geometrySelection.calcGeometry.gmEditPoint = null;
+                this.drawingObjects.selection.geometrySelection.calcGeometry.ellipsePointsList = [];
+                this.drawingObjects.selection.geometrySelection = null;
+                this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
+                this.drawingObjects.clearTrackObjects();
+                this.drawingObjects.updateOverlay();
+            }
+            return ret;
+        }
+
     },
-    onMouseMove: function(e, x, y, pageIndex)
+    onMouseMove: function(e, x, y)
     {
         var track_object = this.drawingObjects.arrTrackObjects[0];
 
-        //написать функцию где зануляются ненужные свойства в geometry
-
         track_object.geometry.setPreset(null);
-        var coords = AscFormat.CheckCoordsNeedPage(x, y, pageIndex, this.majorObject.selectStartPage, this.drawingObjects.drawingDocument);
-        var resize_coef = this.majorObject.getResizeCoefficients(this.handleNum, coords.x, coords.y);
-        this.drawingObjects.trackResizeObjects(resize_coef.kd1, resize_coef.kd2, e, x, y);
+        this.drawingObjects.trackResizeObjects(e, x, y);
         this.drawingObjects.updateOverlay();
     },
     onMouseUp: function(e, x, y, pageIndex)
@@ -1755,35 +1767,6 @@ GeometryEditState.prototype = {
         var geom = this.drawingObjects.arrTrackObjects[0].geometry;
         geom.gmEditPoint.isFirstCPoint = false;
         geom.gmEditPoint.isSecondCPoint = false;
-
-        var curPoint = geom.gmEditPoint.curCoords;
-        var nextPoint = geom.gmEditPoint.nextCoords;
-        var curIndex = geom.gmEditPoint.curCoords.pathCommand;
-        var nextIndex = geom.gmEditPoint.nextCoords.pathCommand;
-        var curPathCommand = geom.pathLst[0].ArrPathCommand[curIndex];
-        var nextPathCommand = geom.pathLst[0].ArrPathCommand[nextIndex];
-
-
-        if (geom.gmEditPoint.curCoords.id === 4) {
-            curPoint.X0 = curPathCommand.X0;
-            curPoint.Y0 = curPathCommand.Y0;
-            curPoint.X1 = curPathCommand.X1;
-            curPoint.Y1 = curPathCommand.Y1;
-            curPoint.X2 = curPathCommand.X2;
-            curPoint.Y2 = curPathCommand.Y2;
-
-            nextPoint.X0 = nextPathCommand.X0;
-            nextPoint.Y0 = nextPathCommand.Y0;
-            nextPoint.X1 = nextPathCommand.X1;
-            nextPoint.Y1 = nextPathCommand.Y1;
-            nextPoint.X2 = nextPathCommand.X2;
-            nextPoint.Y2 = nextPathCommand.Y2;
-        }
-
-
-
-        this.drawingObjects.changeCurrentState(new PreGeometryEditState(this.drawingObjects));
-        // this.drawingObjects.clearTrackObjects();
         this.drawingObjects.updateOverlay();
         RotateState.prototype.onMouseUp.call(this, e, x, y, pageIndex);
     }

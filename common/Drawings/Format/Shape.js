@@ -4444,9 +4444,9 @@ CShape.prototype.drawAdjustments = function (drawingDocument) {
     }
 };
 
-CShape.prototype.drawGeometryEdit = function (drawingDocument) {
+CShape.prototype.drawGeometryEdit = function (drawingDocument, arrTrackObject) {
         if (this.spPr && isRealObject(this.spPr.geometry)) {
-            this.spPr.geometry.drawGeometryEdit(drawingDocument, this);
+            this.spPr.geometry.drawGeometryEdit(drawingDocument, this, arrTrackObject);
         }
     };
 

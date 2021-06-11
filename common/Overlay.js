@@ -2774,7 +2774,7 @@ CAutoshapeTrack.prototype =
         ctx.beginPath();
     },
 
-    DrawGeometryEdit : function(geom, shape) {
+    DrawGeometryEdit : function(matrix, gmEditList, gmEditPoint) {
         var overlay = this.m_oOverlay;
         overlay.Clear();
         var ctx = overlay.m_oContext;
@@ -2791,161 +2791,45 @@ CAutoshapeTrack.prototype =
 
         var dKoefX = wDst / this.CurrentPageInfo.width_mm;
         var dKoefY = hDst / this.CurrentPageInfo.height_mm;
-        var matrix =  shape.getTransformMatrix();
 
-            geom.gmEditList = [];
+        for (var i = 0; i < gmEditList.length; i++) {
 
-        for (var i = 0; i < geom.pathLst.length; i++) {
-            var pathPoints = geom.pathLst[i].ArrPathCommand;
-            var count = 0;
-            pathPoints.forEach(function (elem) {
-                var flag = false;
-                var elemX , elemY;
-                switch (elem.id) {
-                    case 0:
-                    case 1:
-                        elemX = elem.X;
-                        elemY = elem.Y;
-                        break;
-                    case 3:
-                        elemX = elem.X1;
-                        elemY = elem.Y1;
-                        break;
-                    case 4:
-                        elemX = elem.X2;
-                        elemY = elem.Y2;
-                        break;
-                }
-
-                if (elemX !== undefined && elemY !== undefined) {
-                    for (var i = 0; i < geom.ellipsePointsList.length; i++) {
-                        var ellPoint = geom.ellipsePointsList[i];
-                        var ellX = parseFloat(ellPoint.curCoords.X.toFixed(4));
-                        var ellY = parseFloat(ellPoint.curCoords.Y.toFixed(4));
-                        elemX = parseFloat(elemX.toFixed(4));
-                        elemY = parseFloat(elemY.toFixed(4));
-
-                        if (ellX === elemX && ellY === elemY && elem.id !== 4) {
-                            if(elem.id === 0) {
-                                ellPoint.curCoords.pathCommand = ellPoint.curCoords.pathCommand;
-                                ellPoint.isStartPoint = true;
-                            }
-
-                            flag = true;
-                        }
-                    }
-                    if (!flag && elem.id !== 0) {
-                        geom.gmEditList.push({curCoords: elem});
-                        geom.gmEditList[geom.gmEditList.length - 1].curCoords.id = elem.id;
-                        geom.gmEditList[geom.gmEditList.length - 1].curCoords.X = elemX;
-                        geom.gmEditList[geom.gmEditList.length - 1].curCoords.Y = elemY;
-                        geom.gmEditList[geom.gmEditList.length - 1].curCoords.pathCommand = count;
-                    }
-                }
-                ++count;
-            });
-        }
-
-        for (var i = 0; i <  geom.gmEditList.length; i++) {
-                geom.ellipsePointsList = geom.ellipsePointsList.filter(function(elem) {
-                    return elem.curCoords.pathCommand !== geom.gmEditList[i].curCoords.pathCommand;
-                })
-        }
-
-        var pathPoints = geom.pathLst[0].ArrPathCommand;
-        var sortGmEdit = [], countBezie = 0, countArc = 0;
-        pathPoints.forEach(function (elem) {
-            switch(elem.id) {
-                case 1:
-                case 3:
-                case 4:
-                    if(geom.gmEditList[countBezie]) {
-                        sortGmEdit.push(geom.gmEditList[countBezie]);
-                        countBezie++;
-                    }
-                    break;
-                case 2:
-                    if(geom.ellipsePointsList[countArc]) {
-                        sortGmEdit.push(geom.ellipsePointsList[countArc]);
-                        countArc++;
-                    }
-                    break;
-            }
-        });
-
-        geom.gmEditList = sortGmEdit;
-
-        var startPointX = parseFloat(geom.pathLst[0].ArrPathCommand[0].X.toFixed(4))
-        var startPointY = parseFloat(geom.pathLst[0].ArrPathCommand[0].Y.toFixed(4))
-        geom.gmEditList.forEach(function (elem) {
-            var elemX = parseFloat(elem.curCoords.X.toFixed(4));
-            var elemY = parseFloat(elem.curCoords.Y.toFixed(4));
-            if (elemX === startPointX && elemY === startPointY) {
-                 elem.isStartPoint = true;
-            }
-        })
-
-        if(geom.gmEditList[geom.gmEditList.length - 1]) {
-            geom.gmEditList[geom.gmEditList.length - 1].nextCoords = geom.gmEditList[0].curCoords;
-            geom.gmEditList[0].prevCoords = geom.gmEditList[geom.gmEditList.length - 1].curCoords;
-        }
-
-        var index;
-
-        for (var i = 0; i < geom.gmEditList.length; i++) {
-
-            if (geom.gmEditPoint)
-                if (geom.gmEditList[i].curCoords.pathCommand === geom.gmEditPoint.curCoords.pathCommand)
-                    index = i;
-
-            if (i + 1 < geom.gmEditList.length) {
-                geom.gmEditList[i].nextCoords = geom.gmEditList[i + 1].curCoords;
-                geom.gmEditList[i + 1].prevCoords = geom.gmEditList[i].curCoords;
-            }
-
-
-            var gmEditPointX = (xDst + dKoefX * (matrix.TransformPointX(geom.gmEditList[i].curCoords.X, geom.gmEditList[i].curCoords.Y))) >> 0;
-            var gmEditPointY = (yDst + dKoefY * (matrix.TransformPointY(geom.gmEditList[i].curCoords.X, geom.gmEditList[i].curCoords.Y))) >> 0;
+            var gmEditPointX = (xDst + dKoefX * (matrix.TransformPointX(gmEditList[i].X, gmEditList[i].Y))) >> 0;
+            var gmEditPointY = (yDst + dKoefY * (matrix.TransformPointY(gmEditList[i].X, gmEditList[i].Y))) >> 0;
             overlay.AddRect2(gmEditPointX, gmEditPointY, TRACK_RECT_SIZE);
         }
 
             ctx.stroke();
             ctx.fill();
 
+            if(gmEditPoint) {
+                var curPointX = (xDst + dKoefX * (matrix.TransformPointX(gmEditPoint.X, gmEditPoint.Y))) >> 0;
+                var curPointY = (yDst + dKoefY * (matrix.TransformPointY(gmEditPoint.X, gmEditPoint.Y))) >> 0;
 
+                var commandPointX1 = (xDst + dKoefX * (matrix.TransformPointX(gmEditPoint.g1X, gmEditPoint.g1Y))) >> 0;
+                var commandPointY1 = (yDst + dKoefY * (matrix.TransformPointY(gmEditPoint.g1X, gmEditPoint.g1Y))) >> 0;
+                var commandPointX2 = (xDst + dKoefX * (matrix.TransformPointX(gmEditPoint.g2X, gmEditPoint.g2Y))) >> 0;
+                var commandPointY2 = (yDst + dKoefY * (matrix.TransformPointY(gmEditPoint.g2X, gmEditPoint.g2Y))) >> 0;
 
-        if(geom.gmEditPoint && geom.gmEditList[index]) {
-            var curCurve = geom.gmEditList[index].curCoords;
-            var nextCurve =  geom.gmEditList[index].nextCoords;
+                ctx.beginPath();
+                ctx.strokeStyle = '#7f7fff';
+                ctx.moveTo(commandPointX1, commandPointY1);
+                ctx.lineTo(curPointX, curPointY);
+                ctx.lineTo(commandPointX2, commandPointY2);
 
-            var curPointX = (xDst + dKoefX * (matrix.TransformPointX(curCurve.X, curCurve.Y))) >> 0;
-            var curPointY = (yDst + dKoefY * (matrix.TransformPointY(curCurve.X, curCurve.Y))) >> 0;
+                ctx.stroke();
+                ctx.closePath();
+                ctx.beginPath();
+                overlay.AddRect2(commandPointX1, commandPointY1, TRACK_RECT_SIZE);
+                overlay.AddRect2(commandPointX2, commandPointY2, TRACK_RECT_SIZE);
 
-            var commandPointX1 = (xDst + dKoefX * (matrix.TransformPointX(nextCurve.X0, nextCurve.Y0))) >> 0;
-            var commandPointY1 = (yDst + dKoefY * (matrix.TransformPointY(nextCurve.X0, nextCurve.Y0))) >> 0;
-            var commandPointX2 = (xDst + dKoefX * (matrix.TransformPointX(curCurve.X1, curCurve.Y1))) >> 0;
-            var commandPointY2 = (yDst + dKoefY * (matrix.TransformPointY(curCurve.X1, curCurve.Y1))) >> 0;
-
-            ctx.beginPath();
-            ctx.strokeStyle = '#7f7fff';
-            ctx.moveTo(commandPointX1, commandPointY1);
-            ctx.lineTo(curPointX, curPointY);
-            ctx.lineTo(commandPointX2, commandPointY2);
-
-            ctx.stroke();
-            ctx.closePath();
-
-            ctx.beginPath();
-            overlay.AddRect2(commandPointX1, commandPointY1, TRACK_RECT_SIZE);
-            overlay.AddRect2(commandPointX2, commandPointY2, TRACK_RECT_SIZE);
-
-            ctx.fillStyle = '#ffffff';
-            ctx.strokeStyle = "#000000";
-            ctx.stroke();
-            ctx.fill();
-            ctx.fillStyle = '#000000';
-            ctx.strokeStyle = "#ffffff";
-        }
+                ctx.fillStyle = '#ffffff';
+                ctx.strokeStyle = "#000000";
+                ctx.stroke();
+                ctx.fill();
+                ctx.fillStyle = '#000000';
+                ctx.strokeStyle = "#ffffff";
+            }
     },
 
     DrawEditWrapPointsPolygon : function(points, matrix)
