@@ -963,8 +963,57 @@
             if (viewMode) {
 				History.TurnOff();
 			}
+            
+            var getHiddenMap = function (start, end, opt_compare) {
+            	var res = null;
+            	for (var j = start; j < end; j++) {
+            		if (opt_compare) {
+            			if (t.model.getColHidden(j) !== opt_compare[j]) {
+							if (!res) {
+								res = {};
+							}
+            				res[j] = t.model.getColHidden(j);
+						}
+					} else {
+						if (!res) {
+							res = {};
+						}
+            			res[j] = t.model.getColHidden(j);
+					}
+				}
+            	return res;
+			};
+
+            var getRangesFromMap = function (_tempArrAfter, container) {
+				if (!_tempArrAfter) {
+					return;
+				}
+            	for (var j in _tempArrAfter) {
+					var _oRange = new AscCommonExcel.Range(t.model, 0, parseInt(j), gc_nMaxRow0, parseInt(j));
+					container.push(_oRange);
+				}
+			};
+            
             var bIsHidden = t.model.getColHidden(col);
-            t.model.setColWidth(cc, col, col);
+            
+			var bIsHiddenArr;
+            var startUpdateCol = col;
+			var _selectionRange = t.model.selectionRange;
+            if (_selectionRange && _selectionRange.ranges && _selectionRange.isContainsOnlyFullRowOrCol(true)) {
+				bIsHiddenArr  = [];
+            	for (var i = 0; i < _selectionRange.ranges.length; i++) {
+					var _range = _selectionRange.ranges[i];
+					var _tempArr = getHiddenMap(_range.c1, _range.c2);
+					t.model.setColWidth(cc, _range.c1, _range.c2);
+					if (_range.c1 < startUpdateCol) {
+						startUpdateCol = _range.c1;
+					}
+					getRangesFromMap(getHiddenMap(_range.c1, _range.c2, _tempArr), bIsHiddenArr);
+				}
+			} else {
+				t.model.setColWidth(cc, col, col);
+			}
+
             t._cleanCache(new asc_Range(0, 0, t.cols.length - 1, t.rows.length - 1));
             t.changeWorksheet("update", {reinitRanges: true});
 			t._updateGroups(true, undefined, undefined, true);
@@ -972,12 +1021,17 @@
 			t.cellCommentator.updateActiveComment();
             t.cellCommentator.updateAreaComments();
 
-            if(bIsHidden !==  t.model.getColHidden(col)) {
+            if (bIsHiddenArr) {
+            	if (bIsHiddenArr.length) {
+					Asc.editor.wb.handleChartsOnWorkbookChange(bIsHiddenArr);
+				}
+			} else if(bIsHidden !==  t.model.getColHidden(col)) {
                 var oRange = new AscCommonExcel.Range(t.model, 0, col, gc_nMaxRow0, col);
                 Asc.editor.wb.handleChartsOnWorkbookChange([oRange]);
             }
+
             if (t.objectRender) {
-                t.objectRender.updateSizeDrawingObjects({target: AscCommonExcel.c_oTargetType.ColumnResize, col: col});
+                t.objectRender.updateSizeDrawingObjects({target: AscCommonExcel.c_oTargetType.ColumnResize, col: startUpdateCol});
             }
 			if (viewMode) {
 				History.TurnOn();
@@ -1028,20 +1082,80 @@
 			if (viewMode) {
 				History.TurnOff();
 			}
-            t.model.setRowHeight(AscCommonExcel.convertPxToPt(newHeight), row, row, true);
-            t.model.autoFilters.reDrawFilter(null, row);
-            t._cleanCache(new asc_Range(0, row, t.cols.length - 1, row));
+
+			var getHiddenMap = function (start, end, opt_compare) {
+				var res = null;
+				for (var j = start; j < end; j++) {
+					if (opt_compare) {
+						if (t.model.getRowHidden(j) !== opt_compare[j]) {
+							if (!res) {
+								res = {};
+							}
+							res[j] = t.model.getRowHidden(j);
+						}
+					} else {
+						if (!res) {
+							res = {};
+						}
+						res[j] = t.model.getRowHidden(j);
+					}
+				}
+				return res;
+			};
+
+			var getRangesFromMap = function (_tempArrAfter, container) {
+				if (!_tempArrAfter) {
+					return;
+				}
+				for (var j in _tempArrAfter) {
+					var _oRange = new AscCommonExcel.Range(t.model, parseInt(j), gc_nMaxCol0, parseInt(j), gc_nMaxCol0);
+					container.push(_oRange);
+				}
+			};
+
+			var bIsHiddenArr;
+			var startUpdateRow = row;
+			var endUpdateRow = row;
+			var _selectionRange = t.model.selectionRange;
+			if (_selectionRange && _selectionRange.ranges && _selectionRange.isContainsOnlyFullRowOrCol()) {
+				bIsHiddenArr = [];
+				for (var i = 0; i < _selectionRange.ranges.length; i++) {
+					var _range = _selectionRange.ranges[i];
+					var _tempArr = getHiddenMap(_range.r1, _range.r2);
+					t.model.setRowHeight(AscCommonExcel.convertPxToPt(newHeight), _range.r1, _range.r2, true);
+					if (_range.r1 < startUpdateRow) {
+						startUpdateRow = _range.r1;
+					}
+					if (_range.r2 > endUpdateRow) {
+						endUpdateRow = _range.r2;
+					}
+					getRangesFromMap(getHiddenMap(_range.r1, _range.r2, _tempArr), bIsHiddenArr);
+				}
+			} else {
+				t.model.setRowHeight(AscCommonExcel.convertPxToPt(newHeight), row, row, true);
+			}
+
+			var updateRange = new asc_Range(0, startUpdateRow, t.cols.length - 1, endUpdateRow);
+            t.model.autoFilters.reDrawFilter(updateRange);
+            t._cleanCache(updateRange);
             t.changeWorksheet("update", {reinitRanges: true});
             t._updateGroups(false, undefined, undefined, true);
             t._updateVisibleRowsCount();
 			t.cellCommentator.updateActiveComment();
 			t.cellCommentator.updateAreaComments();
-            if(bIsHidden !==  t.model.getRowHidden(row)) {
-                var oRange = new AscCommonExcel.Range(t.model, row, gc_nMaxCol0, row, gc_nMaxCol0);
-                Asc.editor.wb.handleChartsOnWorkbookChange([oRange]);
-            }
+
+
+			if (bIsHiddenArr) {
+				if (bIsHiddenArr.length) {
+					Asc.editor.wb.handleChartsOnWorkbookChange(bIsHiddenArr);
+				}
+			} else if(bIsHidden !==  t.model.getRowHidden(row)) {
+				var oRange = new AscCommonExcel.Range(t.model, row, gc_nMaxCol0, row, gc_nMaxCol0);
+				Asc.editor.wb.handleChartsOnWorkbookChange([oRange]);
+			}
+
             if (t.objectRender) {
-                t.objectRender.updateSizeDrawingObjects({target: AscCommonExcel.c_oTargetType.RowResize, row: row});
+                t.objectRender.updateSizeDrawingObjects({target: AscCommonExcel.c_oTargetType.RowResize, row: startUpdateRow});
             }
 			if (viewMode) {
 				History.TurnOn();
@@ -13713,11 +13827,25 @@
 		switch (prop) {
 			case "colWidth":
 				functionModelAction = function () {
-					t.model.setColWidth(val, checkRange.c1, checkRange.c2);
+
+					var minUpdateCol = checkRange.c1;
+					var _selectionRange = t.model.selectionRange;
+					if (_selectionRange && _selectionRange.ranges) {
+						for (var i = 0; i < _selectionRange.ranges.length; i++) {
+							var _range = _selectionRange.ranges[i];
+							if (_range.c1 < minUpdateCol) {
+								minUpdateCol = _range.c1;
+							}
+							t.model.setColWidth(val, _range.c1, _range.c2);
+						}
+					} else {
+						t.model.setColWidth(val, checkRange.c1, checkRange.c2);
+					}
+
 					isUpdateCols = true;
 					oRecalcType = AscCommonExcel.recalcType.full;
 					reinitRanges = true;
-					updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: checkRange.c1};
+					updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: minUpdateCol};
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
@@ -13751,11 +13879,25 @@
 					// Приводим к px (чтобы было ровно)
 					val = val / AscCommonExcel.sizePxinPt;
 					val = (val | val) * AscCommonExcel.sizePxinPt;
-					t.model.setRowHeight(Math.min(val, Asc.c_oAscMaxRowHeight), checkRange.r1, checkRange.r2, true);
+
+					var minUpdateRow = checkRange.r1;
+					var _selectionRange = t.model.selectionRange;
+					if (_selectionRange && _selectionRange.ranges) {
+						for (var i = 0; i < _selectionRange.ranges.length; i++) {
+							var _range = _selectionRange.ranges[i];
+							if (_range.r1 < minUpdateRow) {
+								minUpdateRow = _range.r1;
+							}
+							t.model.setRowHeight(Math.min(val, Asc.c_oAscMaxRowHeight), _range.r1, _range.r2, true);
+						}
+					} else {
+						t.model.setRowHeight(Math.min(val, Asc.c_oAscMaxRowHeight), checkRange.r1, checkRange.r2, true);
+					}
+
 					isUpdateRows = true;
 					oRecalcType = AscCommonExcel.recalcType.full;
 					reinitRanges = true;
-					updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: checkRange.r1};
+					updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: minUpdateRow};
 				};
 				return this._isLockedAll(onChangeWorksheetCallback);
 			case "showRows":
