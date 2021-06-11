@@ -12975,11 +12975,12 @@ ParaRun.prototype.ChangeTextCase = function(oEngine)
 			nEndPos   = nTemp;
 		}
 	}
+    /*
     function isLetter1(nP) {
         return ((nP >= 'a' && nP <= 'z') || (nP >= 'A' && nP <= 'Z') || (nP >= 'а' && nP <= 'я') || (nP >= 'А' && nP <= 'Я') || (nP == "ё") || (nP == "Ё"));
     }
     oEngine.Mistake = false;
-    var splits = oEngine.str.split(" ");
+    //var splits = oEngine.str.split(" ");
     for (var nPos = 0, nCount = splits.length; nPos < nCount; nPos++)
     {
     	if (splits[nPos].charCodeAt(0) !== 92)
@@ -13057,7 +13058,7 @@ ParaRun.prototype.ChangeTextCase = function(oEngine)
         }
 		this.Content[this.Content.length - 1].Value === String.fromCharCode(this.Content[this.Content.length - 1].Value).toUpperCase().charCodeAt(0)
 			? oEngine.LastLetterIsUpper = true : oEngine.LastLetterIsUpper = false;
-    }
+    }*/
     for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 	{
 		var oItem = this.Content[nPos];
@@ -13065,6 +13066,7 @@ ParaRun.prototype.ChangeTextCase = function(oEngine)
 		{
 			if (oItem.IsDot())
 			{
+                this.CheckWords(oEngine);
 				oEngine.FlushWord();
 				oEngine.SetStartSentence(true);
 			}
@@ -13076,6 +13078,7 @@ ParaRun.prototype.ChangeTextCase = function(oEngine)
 				}
 				else
 				{
+                    this.CheckWords(oEngine);
 					oEngine.FlushWord();
 					oEngine.SetStartSentence(false);
 				}
@@ -13083,12 +13086,116 @@ ParaRun.prototype.ChangeTextCase = function(oEngine)
 		}
 		else
 		{
+            this.CheckWords(oEngine);
 			oEngine.FlushWord();
 
 			if (para_Tab !== oItem.Type && para_Space !== oItem.Type)
 				oEngine.SetStartSentence(false);
 		}
 	}
+};
+ParaRun.prototype.CheckWords = function(oEngine)
+{
+    var currentWord = '';
+    
+    for (var nIndex = 0, nCount = oEngine.WordBuffer.length; nIndex < nCount; ++nIndex)
+	{
+		var nCharCode  = String.fromCharCode(oEngine.WordBuffer[nIndex].Run.GetElement(oEngine.WordBuffer[nIndex].Pos).Value);
+		currentWord += nCharCode;
+    }
+    if (currentWord !== "" && oEngine.sentences.length !== 0 && !(oEngine.sentences.length === 1 && oEngine.sentences[0] === ""))
+    {
+        // добавить проверку на mistake
+        var firstSentence = oEngine.sentences[0];
+        var arrWordsInFirstSentence = firstSentence.split(/[\-\[\]\/\\\{\}\(\)\*\+\?\.\^\$\ \|]/);
+        /*if (currentWord !== "")*/
+        for (var i = 0; i < arrWordsInFirstSentence.length; i++)
+        {
+            if (arrWordsInFirstSentence[i] === "")
+            {
+                arrWordsInFirstSentence.splice(i, 1);
+                i--;
+            }
+        }
+        oEngine.AllWordsUpper = true;
+        oEngine.Mistake       = false;
+        if (firstSentence !== firstSentence.toUpperCase())
+        {
+            oEngine.AllWordsUpper = false;
+        }
+        
+        if (arrWordsInFirstSentence.length > 1)
+        {
+            oEngine.allWordsUpperWithoutFirstWord = true;
+            for (var i = 1; i <  arrWordsInFirstSentence.length; ++i)
+            {
+                if (arrWordsInFirstSentence[i] !== arrWordsInFirstSentence[i].toUpperCase())
+                {
+                    oEngine.allWordsUpperWithoutFirstWord = false;
+                }
+            }
+            var checkEl = arrWordsInFirstSentence[0].toLowerCase();
+            checkEl = checkEl[0].toUpperCase() + checkEl.slice(1)
+            if (arrWordsInFirstSentence[0] !== checkEl)
+            {
+                oEngine.allWordsUpperWithoutFirstWord = false;
+            }
+        }
+        //var wordsInUpperCase = 0;
+        //var lettersCount = 0;
+        /*for (var i = 0; i < firstSentence.length; i++)
+        {
+            if (firstSentence[i] !== firstSentence[i].toUpperCase() && firstSentence[i] === firstSentence[i].toLowerCase())
+            {
+                oEngine.AllWordsUpper = false;
+                //lettersCount++;
+            }
+            if (firstSentence[i] === firstSentence[i].toUpperCase() && firstSentence[i] !== firstSentence[i].toLowerCase())
+            {
+               // wordsInUpperCase++;
+                //lettersCount++;
+            }
+        }*/
+        for (var i = 0; i < arrWordsInFirstSentence.length; i++)
+        {
+            var lettersCount = arrWordsInFirstSentence[i].length;
+            var lettersInUpperCase = 0;
+            for (var j = 0; j < arrWordsInFirstSentence[i].length; j++)
+            {
+                if (arrWordsInFirstSentence[i][j] === arrWordsInFirstSentence[i][j].toUpperCase()
+                    && arrWordsInFirstSentence[i][j] !== arrWordsInFirstSentence[i][j].toLowerCase())
+                    {
+                        lettersInUpperCase++;
+                    }
+            }
+            if (!(lettersCount === lettersInUpperCase || (lettersInUpperCase === 1 && arrWordsInFirstSentence[i][0] === arrWordsInFirstSentence[i][0].toUpperCase())))
+            {
+                oEngine.Mistake = true;
+            }
+        }
+        /*if (lettersCount !== wordsInUpperCase)
+        {
+            oEngine.Mistake = true;
+        }*/
+        oEngine.AllFirstLettersUpper = true;
+        for (var j = 0; j < arrWordsInFirstSentence.length; j++)
+        {
+            if (arrWordsInFirstSentence[j][0] === arrWordsInFirstSentence[j][0].toLowerCase() || arrWordsInFirstSentence[j][0] === arrWordsInFirstSentence[j][0].toUpperCase())
+            {
+                if (arrWordsInFirstSentence[j][0] === arrWordsInFirstSentence[j][0].toLowerCase())
+                {
+                    oEngine.AllFirstLettersUpper = false;
+                }
+            }
+        }
+        oEngine.WordsCount++;
+        if (oEngine.WordsCount === arrWordsInFirstSentence.length)
+        {
+            oEngine.WordsCount = 0;
+            oEngine.sentences.splice(0, 1);
+        }
+    }
+    var el1 = 0;
 };
 ParaRun.prototype.FindNextFillingForm = function(isNext, isCurrent, isStart)
 {
