@@ -13828,76 +13828,76 @@
 			}
 		};
 
+		var minUpdateIndex;
+		var doMultiRanges = function (_func, _start, _end, _byCol) {
+			History.Create_NewPoint();
+			History.StartTransaction();
+			var _selectionRange = t.model.selectionRange;
+			if (_selectionRange && _selectionRange.ranges) {
+				for (var i = 0; i < _selectionRange.ranges.length; i++) {
+					var _range = _selectionRange.ranges[i];
+					if (_byCol) {
+						if (_range.c1 < minUpdateIndex) {
+							minUpdateIndex = _range.c1;
+						}
+						_func(_range.c1, _range.c2, _range);
+					} else {
+						if (_range.r1 < minUpdateIndex) {
+							minUpdateIndex = _range.r1;
+						}
+						_func(_range.r1, _range.r2, _range);
+					}
+				}
+			} else {
+				_func(val, _start, _end);
+			}
+			History.EndTransaction();
+		};
+
 		switch (prop) {
 			case "colWidth":
 				functionModelAction = function () {
 
-					var minUpdateCol = checkRange.c1;
-					var _selectionRange = t.model.selectionRange;
-					if (_selectionRange && _selectionRange.ranges) {
-						for (var i = 0; i < _selectionRange.ranges.length; i++) {
-							var _range = _selectionRange.ranges[i];
-							if (_range.c1 < minUpdateCol) {
-								minUpdateCol = _range.c1;
-							}
-							t.model.setColWidth(val, _range.c1, _range.c2);
-						}
-					} else {
-						t.model.setColWidth(val, checkRange.c1, checkRange.c2);
-					}
+					minUpdateIndex = checkRange.c1;
+					doMultiRanges( function (start, end) {
+						t.model.setColWidth(val, start, end);
+					}, checkRange.c1, checkRange.c2, true);
 
 					isUpdateCols = true;
 					oRecalcType = AscCommonExcel.recalcType.full;
 					reinitRanges = true;
-					updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: minUpdateCol};
+					updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: minUpdateIndex};
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
 			case "showCols":
 				functionModelAction = function () {
-					var minUpdateCol = arn.c1;
-					var _selectionRange = t.model.selectionRange;
-					if (_selectionRange && _selectionRange.ranges) {
-						for (var i = 0; i < _selectionRange.ranges.length; i++) {
-							var _range = _selectionRange.ranges[i];
-							if (_range.c1 < minUpdateCol) {
-								minUpdateCol = _range.c1;
-							}
-							t.model.setColHidden(false, _range.c1, _range.c2);
-						}
-					} else {
-						t.model.setColHidden(false, arn.c1, arn.c2);
-					}
+
+					minUpdateIndex = arn.c1;
+					doMultiRanges( function (start, end) {
+						t.model.setColHidden(false, start, end);
+					}, arn.c1, arn.c2, true);
 
 					t._updateGroups(true);
 					oRecalcType = AscCommonExcel.recalcType.full;
 					reinitRanges = true;
-					updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: minUpdateCol}
+					updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: minUpdateIndex}
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
 			case "hideCols":
 				functionModelAction = function () {
 
-					var minUpdateCol = arn.c1;
-					var _selectionRange = t.model.selectionRange;
-					if (_selectionRange && _selectionRange.ranges) {
-						for (var i = 0; i < _selectionRange.ranges.length; i++) {
-							var _range = _selectionRange.ranges[i];
-							if (_range.c1 < minUpdateCol) {
-								minUpdateCol = _range.c1;
-							}
-							t.model.setColHidden(true, _range.c1, _range.c2);
-						}
-					} else {
-						t.model.setColHidden(true, arn.c1, arn.c2);
-					}
+					minUpdateIndex = arn.c1;
+					doMultiRanges( function (start, end) {
+						t.model.setColHidden(true, start, end);
+					}, arn.c1, arn.c2, true);
 
 					//TODO _updateRowGroups нужно перенести в onChangeWorksheetCallback с соответсвующим флагом обновления
 					t._updateGroups(true);
 					oRecalcType = AscCommonExcel.recalcType.full;
 					reinitRanges = true;
-					updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: minUpdateCol};
+					updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: minUpdateIndex};
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
@@ -13907,24 +13907,15 @@
 					val = val / AscCommonExcel.sizePxinPt;
 					val = (val | val) * AscCommonExcel.sizePxinPt;
 
-					var minUpdateRow = checkRange.r1;
-					var _selectionRange = t.model.selectionRange;
-					if (_selectionRange && _selectionRange.ranges) {
-						for (var i = 0; i < _selectionRange.ranges.length; i++) {
-							var _range = _selectionRange.ranges[i];
-							if (_range.r1 < minUpdateRow) {
-								minUpdateRow = _range.r1;
-							}
-							t.model.setRowHeight(Math.min(val, Asc.c_oAscMaxRowHeight), _range.r1, _range.r2, true);
-						}
-					} else {
-						t.model.setRowHeight(Math.min(val, Asc.c_oAscMaxRowHeight), checkRange.r1, checkRange.r2, true);
-					}
+					minUpdateIndex = checkRange.r1;
+					doMultiRanges( function (start, end) {
+						t.model.setRowHeight(Math.min(val, Asc.c_oAscMaxRowHeight), start, end, true);
+					}, checkRange.r1, checkRange.r2);
 
 					isUpdateRows = true;
 					oRecalcType = AscCommonExcel.recalcType.full;
 					reinitRanges = true;
-					updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: minUpdateRow};
+					updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: minUpdateIndex};
 				};
 				return this._isLockedAll(onChangeWorksheetCallback);
 			case "showRows":
@@ -13932,26 +13923,17 @@
 					//TODO пока убираю проверку на FilteringMode. перепроверить, нужна ли она?!
 					//AscCommonExcel.checkFilteringMode(function () {
 
-					var minUpdateRow = checkRange.r1;
-					var _selectionRange = t.model.selectionRange;
-					if (_selectionRange && _selectionRange.ranges) {
-						for (var i = 0; i < _selectionRange.ranges.length; i++) {
-							var _range = _selectionRange.ranges[i];
-							if (_range.r1 < minUpdateRow) {
-								minUpdateRow = _range.r1;
-							}
-							t.model.setRowHidden(false, _range.r1, _range.r2);
-						}
-					} else {
-						t.model.setRowHidden(false, arn.r1, arn.r2);
-					}
+					minUpdateIndex = checkRange.r1;
+					doMultiRanges( function (start, end, updateRange) {
+						t.model.setRowHidden(false, start, end);
+						t.model.autoFilters.reDrawFilter(updateRange ? updateRange : arn);
+					}, arn.r1, arn.r2);
 
 					//TODO _updateRowGroups нужно перенести в onChangeWorksheetCallback с соответсвующим флагом обновления
 					t._updateGroups();
-					t.model.autoFilters.reDrawFilter(arn);
 					oRecalcType = AscCommonExcel.recalcType.full;
 					reinitRanges = true;
-					updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: minUpdateRow};
+					updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: minUpdateIndex};
 					//});
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
@@ -13960,26 +13942,17 @@
 				functionModelAction = function () {
 					//AscCommonExcel.checkFilteringMode(function () {
 
-					var minUpdateRow = checkRange.r1;
-					var _selectionRange = t.model.selectionRange;
-					if (_selectionRange && _selectionRange.ranges) {
-						for (var i = 0; i < _selectionRange.ranges.length; i++) {
-							var _range = _selectionRange.ranges[i];
-							if (_range.r1 < minUpdateRow) {
-								minUpdateRow = _range.r1;
-							}
-							t.model.setRowHidden(true, _range.r1, _range.r2);
-						}
-					} else {
-						t.model.setRowHidden(true, arn.r1, arn.r2);
-					}
+					minUpdateIndex = checkRange.r1;
+					doMultiRanges( function (start, end, updateRange) {
+						t.model.setRowHidden(true, start, end);
+						t.model.autoFilters.reDrawFilter(updateRange ? updateRange : arn);
+					}, arn.r1, arn.r2);
 
 					//TODO _updateRowGroups нужно перенести в onChangeWorksheetCallback с соответсвующим флагом обновления
 					t._updateGroups();
-					t.model.autoFilters.reDrawFilter(arn);
 					oRecalcType = AscCommonExcel.recalcType.full;
 					reinitRanges = true;
-					updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: minUpdateRow};
+					updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: minUpdateIndex};
 					//});
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
