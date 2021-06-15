@@ -13709,7 +13709,7 @@
 			t._cleanCellsTextMetricsCache();
 			t.objectRender.bUpdateMetrics = false;
 			t._prepareCellTextMetricsCache();
-            t.objectRender.bUpdateMetrics = true;
+			t.objectRender.bUpdateMetrics = true;
 
 			arrChangedRanges = arrChangedRanges.concat(t.model.hiddenManager.getRecalcHidden());
 
@@ -13729,35 +13729,33 @@
 				t.model.onUpdateRanges(arrChangedRanges);
 
 
-                var aRanges = [];
-                var oBBox;
-                for(var nRange = 0; nRange < arrChangedRanges.length; ++nRange) {
-                    oBBox = arrChangedRanges[nRange];
-                    aRanges.push(new AscCommonExcel.Range(t.model, oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2));
-                }
-                if (updateDrawingObjectsInfo2 && updateDrawingObjectsInfo2.updateRange) {
-                    var nOperType = updateDrawingObjectsInfo2.operType;
-                    var oUpdateRange = updateDrawingObjectsInfo2.updateRange;
-                    switch(nOperType) {
-                        case c_oAscInsertOptions.InsertColumns:
-                        case c_oAscDeleteOptions.DeleteColumns:
-                        case c_oAscInsertOptions.InsertCellsAndShiftRight:
-                        case c_oAscDeleteOptions.DeleteCellsAndShiftLeft:
-                        {
-                            aRanges.push(new AscCommonExcel.Range(t.model, oUpdateRange.r1, oUpdateRange.c1, oUpdateRange.r2, gc_nMaxCol0));
-                            break;
-                        }
-                        case c_oAscInsertOptions.InsertRows:
-                        case c_oAscInsertOptions.InsertCellsAndShiftDown:
-                        case c_oAscDeleteOptions.DeleteRows:
-                        case c_oAscDeleteOptions.DeleteCellsAndShiftTop:
-                        {
-                            aRanges.push(new AscCommonExcel.Range(t.model, oUpdateRange.r1, oUpdateRange.c1, gc_nMaxRow0, oUpdateRange.c2));
-                            break;
-                        }
-                    }
-                }
-                Asc.editor.wb.handleChartsOnWorkbookChange(aRanges);
+				var aRanges = [];
+				var oBBox;
+				for (var nRange = 0; nRange < arrChangedRanges.length; ++nRange) {
+					oBBox = arrChangedRanges[nRange];
+					aRanges.push(new AscCommonExcel.Range(t.model, oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2));
+				}
+				if (updateDrawingObjectsInfo2 && updateDrawingObjectsInfo2.updateRange) {
+					var nOperType = updateDrawingObjectsInfo2.operType;
+					var oUpdateRange = updateDrawingObjectsInfo2.updateRange;
+					switch (nOperType) {
+						case c_oAscInsertOptions.InsertColumns:
+						case c_oAscDeleteOptions.DeleteColumns:
+						case c_oAscInsertOptions.InsertCellsAndShiftRight:
+						case c_oAscDeleteOptions.DeleteCellsAndShiftLeft: {
+							aRanges.push(new AscCommonExcel.Range(t.model, oUpdateRange.r1, oUpdateRange.c1, oUpdateRange.r2, gc_nMaxCol0));
+							break;
+						}
+						case c_oAscInsertOptions.InsertRows:
+						case c_oAscInsertOptions.InsertCellsAndShiftDown:
+						case c_oAscDeleteOptions.DeleteRows:
+						case c_oAscDeleteOptions.DeleteCellsAndShiftTop: {
+							aRanges.push(new AscCommonExcel.Range(t.model, oUpdateRange.r1, oUpdateRange.c1, gc_nMaxRow0, oUpdateRange.c2));
+							break;
+						}
+					}
+				}
+				Asc.editor.wb.handleChartsOnWorkbookChange(aRanges);
 			}
 			t.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
 			t.draw(lockDraw);
@@ -13857,26 +13855,49 @@
 				break;
 			case "showCols":
 				functionModelAction = function () {
-					//AscCommonExcel.checkFilteringMode(function () {
+					var minUpdateCol = arn.c1;
+					var _selectionRange = t.model.selectionRange;
+					if (_selectionRange && _selectionRange.ranges) {
+						for (var i = 0; i < _selectionRange.ranges.length; i++) {
+							var _range = _selectionRange.ranges[i];
+							if (_range.c1 < minUpdateCol) {
+								minUpdateCol = _range.c1;
+							}
+							t.model.setColHidden(false, _range.c1, _range.c2);
+						}
+					} else {
 						t.model.setColHidden(false, arn.c1, arn.c2);
-						t._updateGroups(true);
-						oRecalcType = AscCommonExcel.recalcType.full;
-						reinitRanges = true;
-						updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: arn.c1};
-					//});
+					}
+
+					t._updateGroups(true);
+					oRecalcType = AscCommonExcel.recalcType.full;
+					reinitRanges = true;
+					updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: minUpdateCol}
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
 			case "hideCols":
 				functionModelAction = function () {
-					//AscCommonExcel.checkFilteringMode(function () {
+
+					var minUpdateCol = arn.c1;
+					var _selectionRange = t.model.selectionRange;
+					if (_selectionRange && _selectionRange.ranges) {
+						for (var i = 0; i < _selectionRange.ranges.length; i++) {
+							var _range = _selectionRange.ranges[i];
+							if (_range.c1 < minUpdateCol) {
+								minUpdateCol = _range.c1;
+							}
+							t.model.setColHidden(true, _range.c1, _range.c2);
+						}
+					} else {
 						t.model.setColHidden(true, arn.c1, arn.c2);
-						//TODO _updateRowGroups нужно перенести в onChangeWorksheetCallback с соответсвующим флагом обновления
-						t._updateGroups(true);
-						oRecalcType = AscCommonExcel.recalcType.full;
-						reinitRanges = true;
-						updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: arn.c1};
-					//});
+					}
+
+					//TODO _updateRowGroups нужно перенести в onChangeWorksheetCallback с соответсвующим флагом обновления
+					t._updateGroups(true);
+					oRecalcType = AscCommonExcel.recalcType.full;
+					reinitRanges = true;
+					updateDrawingObjectsInfo = {target: c_oTargetType.ColumnResize, col: minUpdateCol};
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
@@ -13910,13 +13931,27 @@
 				functionModelAction = function () {
 					//TODO пока убираю проверку на FilteringMode. перепроверить, нужна ли она?!
 					//AscCommonExcel.checkFilteringMode(function () {
+
+					var minUpdateRow = checkRange.r1;
+					var _selectionRange = t.model.selectionRange;
+					if (_selectionRange && _selectionRange.ranges) {
+						for (var i = 0; i < _selectionRange.ranges.length; i++) {
+							var _range = _selectionRange.ranges[i];
+							if (_range.r1 < minUpdateRow) {
+								minUpdateRow = _range.r1;
+							}
+							t.model.setRowHidden(false, _range.r1, _range.r2);
+						}
+					} else {
 						t.model.setRowHidden(false, arn.r1, arn.r2);
-						//TODO _updateRowGroups нужно перенести в onChangeWorksheetCallback с соответсвующим флагом обновления
-						t._updateGroups();
-						t.model.autoFilters.reDrawFilter(arn);
-						oRecalcType = AscCommonExcel.recalcType.full;
-						reinitRanges = true;
-						updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
+					}
+
+					//TODO _updateRowGroups нужно перенести в onChangeWorksheetCallback с соответсвующим флагом обновления
+					t._updateGroups();
+					t.model.autoFilters.reDrawFilter(arn);
+					oRecalcType = AscCommonExcel.recalcType.full;
+					reinitRanges = true;
+					updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: minUpdateRow};
 					//});
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
@@ -13924,20 +13959,34 @@
 			case "hideRows":
 				functionModelAction = function () {
 					//AscCommonExcel.checkFilteringMode(function () {
+
+					var minUpdateRow = checkRange.r1;
+					var _selectionRange = t.model.selectionRange;
+					if (_selectionRange && _selectionRange.ranges) {
+						for (var i = 0; i < _selectionRange.ranges.length; i++) {
+							var _range = _selectionRange.ranges[i];
+							if (_range.r1 < minUpdateRow) {
+								minUpdateRow = _range.r1;
+							}
+							t.model.setRowHidden(true, _range.r1, _range.r2);
+						}
+					} else {
 						t.model.setRowHidden(true, arn.r1, arn.r2);
-						//TODO _updateRowGroups нужно перенести в onChangeWorksheetCallback с соответсвующим флагом обновления
-						t._updateGroups();
-						t.model.autoFilters.reDrawFilter(arn);
-						oRecalcType = AscCommonExcel.recalcType.full;
-						reinitRanges = true;
-						updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
+					}
+
+					//TODO _updateRowGroups нужно перенести в onChangeWorksheetCallback с соответсвующим флагом обновления
+					t._updateGroups();
+					t.model.autoFilters.reDrawFilter(arn);
+					oRecalcType = AscCommonExcel.recalcType.full;
+					reinitRanges = true;
+					updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: minUpdateRow};
 					//});
 				};
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
 			case "insCell":
 				if (!window['AscCommonExcel'].filteringMode) {
-					if(val === c_oAscInsertOptions.InsertCellsAndShiftRight || val === c_oAscInsertOptions.InsertColumns){
+					if (val === c_oAscInsertOptions.InsertCellsAndShiftRight || val === c_oAscInsertOptions.InsertColumns) {
 						return;
 					}
 				}
@@ -14109,10 +14158,10 @@
 									c_oAscDeleteOptions.DeleteCellsAndShiftLeft);
 							}
 							if (range.deleteCellsShiftLeft(function () {
-									t._cleanCache(lockRange);
-									t.cellCommentator.updateCommentsDependencies(false, val, checkRange);
-									t.model.shiftDataValidation(false, val, checkRange, true);
-								})) {
+								t._cleanCache(lockRange);
+								t.cellCommentator.updateCommentsDependencies(false, val, checkRange);
+								t.model.shiftDataValidation(false, val, checkRange, true);
+							})) {
 								updateDrawingObjectsInfo2 = {bInsert: false, operType: val, updateRange: arn};
 							}
 							History.EndTransaction();
@@ -14147,10 +14196,10 @@
 								t.model.autoFilters.isEmptyAutoFilters(arn, c_oAscDeleteOptions.DeleteCellsAndShiftTop);
 							}
 							if (range.deleteCellsShiftUp(function () {
-									t._cleanCache(lockRange);
-									t.cellCommentator.updateCommentsDependencies(false, val, checkRange);
-									t.model.shiftDataValidation(false, val, checkRange, true);
-								})) {
+								t._cleanCache(lockRange);
+								t.cellCommentator.updateCommentsDependencies(false, val, checkRange);
+								t.model.shiftDataValidation(false, val, checkRange, true);
+							})) {
 								updateDrawingObjectsInfo2 = {bInsert: false, operType: val, updateRange: arn};
 							}
 							History.EndTransaction();
@@ -14265,7 +14314,7 @@
 				this.handlers.trigger("selectionNameChanged", t.getSelectionName(/*bRangeText*/false));
 				break;
 			case "groupRows":
-				if(!val && !this.checkSetGroup(arn)) {
+				if (!val && !this.checkSetGroup(arn)) {
 					return;
 				}
 
@@ -14283,7 +14332,7 @@
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
 			case "groupCols":
-				if(!val && !this.checkSetGroup(arn, true)) {
+				if (!val && !this.checkSetGroup(arn, true)) {
 					return;
 				}
 
@@ -14301,10 +14350,10 @@
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
 			case "clearOutline":
-				var groupArrCol= this.arrColGroups ? this.arrColGroups.groupArr : null;
+				var groupArrCol = this.arrColGroups ? this.arrColGroups.groupArr : null;
 				var groupArrRow = this.arrRowGroups ? this.arrRowGroups.groupArr : null;
 
-				if(!groupArrCol && !groupArrRow) {
+				if (!groupArrCol && !groupArrRow) {
 					return;
 				}
 
