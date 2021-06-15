@@ -3867,6 +3867,9 @@ CT_pivotTableDefinition.prototype._getPivotLabelButtonsRowColLables = function (
 					row = r1 + r + j;
 					col = c1 + i;
 				}
+				if (range && !range.contains(col, row)) {
+					continue;
+				}
 				var fieldItemIndex = item.x[j].getV();
 				var sd = pivotFields[fieldIndex].asc_getVisible(fieldItemIndex);
 				buttons.push({isSortState: null, isSetFilter: false, row: row, col: col, idPivotCollapse: {id: this.Get_Id(), fld: fieldIndex, index: fieldItemIndex, sd: sd}

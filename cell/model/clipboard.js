@@ -1467,7 +1467,7 @@
 
 							var currentRange = worksheet.model.getCell3(row, col);
 							var textRange = currentRange.getValueWithFormat();
-							if (textRange !== '') {
+							if (textRange !== '' && textRange !== undefined) {
 								res += textRange;
 							}
 						}
