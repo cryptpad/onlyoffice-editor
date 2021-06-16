@@ -1756,9 +1756,17 @@ DrawingObjectsController.prototype =
     recalculateCurPos: function(bUpdateX, bUpdateY)
 	{
 		var oTargetDocContent = this.getTargetDocContent(undefined, true);
-		if (oTargetDocContent)
-			return oTargetDocContent.RecalculateCurPos(bUpdateX, bUpdateY);
+		if (oTargetDocContent) {
 
+            var oRet = oTargetDocContent.RecalculateCurPos(bUpdateX, bUpdateY);
+            if(Asc.editor && Asc.editor.wb) {
+                Asc.editor.wb.updateTargetForCollaboration();
+            }
+            return oRet;
+        }
+        if(Asc.editor && Asc.editor.wb) {
+            Asc.editor.wb.updateTargetForCollaboration();
+        }
         return {X : 0, Y : 0, Height : 0, PageNum : 0, Internal : {Line : 0, Page : 0, Range : 0}, Transform : null};
 	},
 
@@ -9411,7 +9419,7 @@ function drawingsUpdateForeignCursor(oDrawingsController, oDrawingDocument, Curs
 
     var RunId = Reader.GetString2();
     var InRunPos = Reader.GetLong();
-
+    //console.log("READ POS: " + InRunPos);
     var Run = AscCommon.g_oTableId.Get_ById(RunId);
     if (!(Run instanceof ParaRun)) {
         oDrawingDocument.Collaborative_RemoveTarget(UserId);
@@ -9430,7 +9438,7 @@ function drawingsUpdateForeignCursor(oDrawingsController, oDrawingDocument, Curs
             oTargetDocContentOrTable = oDrawingsController.getTargetDocContent(undefined, true);
         }
 
-        if (!oTargetDocContentOrTable) {
+        if (!oTargetDocContentOrTable &&  oDrawingsController.drawingObjects && oDrawingsController.drawingObjects.cSld) {
             return;
         }
         var bTable = (oTargetDocContentOrTable instanceof CTable);

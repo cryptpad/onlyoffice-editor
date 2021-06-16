@@ -2197,6 +2197,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         }
         _this.OnUpdateOverlay();
         _this.controller.updateSelectionState(true);
+        AscCommon.CollaborativeEditing.Update_ForeignCursorsPositions();
     };
 
     _this.print = function(oOptions) {
@@ -4416,6 +4417,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
             if(!oPosition) {
                 return "";
             }
+            //console.log("POSITION: " + oPosition.Position);
             var oWriter = new AscCommon.CMemory(true);
             oWriter.CheckSize(50);
             return AscCommon.CollaborativeEditing.GetDocumentPositionBinary(oWriter, oPosition);

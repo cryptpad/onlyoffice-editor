@@ -4562,10 +4562,6 @@ var editor;
 		  return;
         }
 
-		if (AscCommon.CollaborativeEditing.Is_Fast() /*&& !AscCommon.CollaborativeEditing.Is_SingleUser()*/) {
-			this.wb.sendCursor();
-		}
-
 		if (!History.Have_Changes(true) && !(this.collaborativeEditing.getCollaborativeEditing() &&
 			0 !== this.collaborativeEditing.getOwnLocksLength())) {
 			if (this.collaborativeEditing.getFast() && this.collaborativeEditing.haveOtherChanges()) {
@@ -4578,6 +4574,9 @@ var editor;
 				// Шлем update для toolbar-а, т.к. когда select в lock ячейке нужно заблокировать toolbar
 				this.wb._onWSSelectionChanged();
 			}
+            if (AscCommon.CollaborativeEditing.Is_Fast() /*&& !AscCommon.CollaborativeEditing.Is_SingleUser()*/) {
+                this.wb.sendCursor();
+            }
 			return;
 		}
 		if (null === this.lastSaveTime) {
@@ -4590,6 +4589,9 @@ var editor;
 		if (0 <= gap) {
 			this.asc_Save(true);
 		}
+        if (AscCommon.CollaborativeEditing.Is_Fast() /*&& !AscCommon.CollaborativeEditing.Is_SingleUser()*/) {
+            this.wb.sendCursor();
+        }
 	};
 
 	spreadsheet_api.prototype._onUpdateDocumentCanSave = function () {
