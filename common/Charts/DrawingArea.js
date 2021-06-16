@@ -835,7 +835,8 @@ DrawingArea.prototype.drawSelection = function(drawingDocument) {
 
 	var controller = oWS.objectRender.controller;
     if ( controller.selectedObjects.length || this.api.isStartAddShape) {
-		oWS.overlayCtx.clear();
+		oWS.cleanSelection();
+		oWS._drawSelection();
 	}
     var chart;
     var selected_objects = controller.selection.groupSelection ? controller.selection.groupSelection.selectedObjects : controller.selectedObjects;

@@ -3925,6 +3925,9 @@
 	};
 	WorkbookView.prototype.Remove_ForeignCursor = function(UserId)
 	{
+		this.model.DrawingDocument.Collaborative_RemoveTarget(UserId);
+		AscCommon.CollaborativeEditing.Remove_ForeignCursor(UserId);
+
 		this.getWorksheet().cleanSelection();
 		this.collaborativeEditing.Remove_ForeignCursor(UserId);
 		this.Api.hideForeignSelectLabel(UserId);
