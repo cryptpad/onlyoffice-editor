@@ -3947,8 +3947,15 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         _this.lastX = x;
         _this.lastY = y;
         var offsets = _this.drawingArea.getOffsets(x, y, true);
-        if ( offsets )
-            _this.controller.onMouseMove( e, pxToMm(x - offsets.x), pxToMm(y - offsets.y) );
+        if ( offsets ) {
+
+            var fX = pxToMm(x - offsets.x);
+            var fY = pxToMm(y - offsets.y);
+            _this.controller.onMouseMove( e, fX, fY );
+            if(worksheet && worksheet.model) {
+                AscCommon.CollaborativeEditing.Check_ForeignCursorsLabels(fX, fY, worksheet.model.Id);
+            }
+        }
     };
 
     _this.graphicObjectMouseUp = function(e, x, y) {
@@ -3958,8 +3965,6 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     };
 
     _this.isPointInDrawingObjects3 = function(x, y, page, bSelected, bText) {
-
-
         var offsets = _this.drawingArea.getOffsets(x, y, true);
         if ( offsets )
             return _this.controller.isPointInDrawingObjects3(pxToMm(x - offsets.x), pxToMm(y - offsets.y), page, bSelected, bText );

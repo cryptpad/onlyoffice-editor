@@ -899,7 +899,7 @@
         Cursor.ShowId = setTimeout(function()
         {
             Cursor.ShowId = null;
-            Api.sync_HideForeignCursorLabel(UserId);
+            Api.sendEvent("asc_onHideForeignCursorLabel", UserId);
         }, AscCommon.FOREIGN_CURSOR_LABEL_HIDETIME);
 
         var UserShortId = this.m_aForeignCursorsId[UserId] ? this.m_aForeignCursorsId[UserId] : UserId;
@@ -916,12 +916,12 @@
     CCollaborativeEditingBase.prototype.Remove_ForeignCursorToShow = function(UserId) {
         delete this.m_aForeignCursorsToShow[UserId];
     };
-    CCollaborativeEditingBase.prototype.Add_ForeignCursorXY = function(UserId, X, Y, PageIndex, H, Paragraph, isRemoveLabel)
+    CCollaborativeEditingBase.prototype.Add_ForeignCursorXY = function(UserId, X, Y, PageIndex, H, Paragraph, isRemoveLabel, SheetId)
     {
         var Cursor;
         if (!this.m_aForeignCursorsXY[UserId])
         {
-            Cursor = {X: X, Y: Y, H: H, PageIndex: PageIndex, Transform: false, ShowId: null};
+            Cursor = {X: X, Y: Y, H: H, PageIndex: PageIndex, Transform: false, ShowId: null, SheetId: SheetId};
             this.m_aForeignCursorsXY[UserId] = Cursor;
         }
         else
@@ -1055,6 +1055,10 @@
         var Cursor = this.m_aForeignCursorsXY[UserId];
         if (!Cursor || !Cursor.ShowId)
             return;
+        if (this.m_oLogicDocument && this.m_oLogicDocument.IsFocusOnNotes && this.m_oLogicDocument.IsFocusOnNotes())
+        {
+            Y += parseInt(oApi.WordControl.m_oNotesContainer.HtmlElement.style.top);
+        }
         oApi.sendEvent("asc_onShowForeignCursorLabel", UserId, X, Y, new AscCommon.CColor(Color.r, Color.g, Color.b, 255));
     };
     CCollaborativeEditingBase.prototype.GetDocumentPositionBinary = function(oWriter, PosInfo) {

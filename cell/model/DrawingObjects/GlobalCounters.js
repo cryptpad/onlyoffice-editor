@@ -221,7 +221,7 @@
                 }
             }
             DrawingDocument.Collaborative_UpdateTarget(UserId, ShortId, XY.X, XY.Y, XY.Height, sWSId, Paragraph.Get_ParentTextTransform());
-            this.Add_ForeignCursorXY(UserId, XY.X, XY.Y, XY.PageNum, XY.Height, Paragraph, isRemoveLabel);
+            this.Add_ForeignCursorXY(UserId, XY.X, XY.Y, XY.PageNum, XY.Height, Paragraph, isRemoveLabel, sWSId);
 
             if (true === this.m_aForeignCursorsToShow[UserId])
             {
@@ -234,6 +234,23 @@
             DrawingDocument.Collaborative_RemoveTarget(UserId);
             this.Remove_ForeignCursorXY(UserId);
             this.Remove_ForeignCursorToShow(UserId);
+        }
+    };
+
+    CCollaborativeEditing.prototype.Check_ForeignCursorsLabels = function(X, Y, SheetId) {
+        var DrawingDocument = this.GetDrawingDocument();
+        if(!DrawingDocument) {
+            return;
+        }
+        var Px7 = DrawingDocument.GetMMPerDot(7);
+        var Px3 = DrawingDocument.GetMMPerDot(3);
+
+        for (var UserId in this.m_aForeignCursorsXY) {
+            var Cursor = this.m_aForeignCursorsXY[UserId];
+            if ((true === Cursor.Transform && Cursor.SheetId === SheetId && Cursor.X0 - Px3 < X && X < Cursor.X1 + Px3 && Cursor.Y0 - Px3 < Y && Y < Cursor.Y1 + Px3)
+                || (Math.abs(X - Cursor.X) < Px7 && Cursor.Y - Px3 < Y && Y < Cursor.Y + Cursor.H + Px3 && Cursor.SheetId === SheetId)) {
+                this.Show_ForeignCursorLabel(UserId);
+            }
         }
     };
     //-----------------------------------------------------------------------------------
