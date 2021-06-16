@@ -132,8 +132,6 @@
         AscCommon.CCollaborativeEditingBase.prototype.Apply_LinkData.call(this);
         this.Load_Images();
     };
-
-
     CCollaborativeEditing.prototype.CheckWaitingImages = function(aImages)
     {
         this.WaitImages = {};
@@ -142,7 +140,6 @@
             this.WaitImages[aImages] = 1;
         }
     };
-
     CCollaborativeEditing.prototype.SendImagesCallback = function (aImages)
     {
         var oApi = Asc['editor'], bOldVal;
@@ -166,6 +163,78 @@
             this.SendImagesCallback([].concat(this.m_aNewImages));
             this.m_aNewImages.length = 0;
     }
+    };
+
+
+
+    //--------------------------------------------------
+    CCollaborativeEditing.prototype.Update_ForeignCursorsPositions = function()
+    {
+        for (var UserId in this.m_aForeignCursors)
+        {
+            var DocPos = this.m_aForeignCursors[UserId];
+            if (!DocPos || DocPos.length <= 0)
+                continue;
+
+            this.m_aForeignCursorsPos.Update_DocumentPosition(DocPos);
+
+            var Run      = DocPos[DocPos.length - 1].Class;
+            var InRunPos = DocPos[DocPos.length - 1].Position;
+
+            this.Update_ForeignCursorPosition(UserId, Run, InRunPos, false);
+        }
+    };
+    CCollaborativeEditing.prototype.Update_ForeignCursorPosition = function(UserId, Run, InRunPos, isRemoveLabel)
+    {
+        var DrawingDocument = Asc.editor.wbModel.DrawingDocument;
+
+        if (!(Run instanceof AscCommonWord.ParaRun))
+            return;
+
+        var Paragraph = Run.GetParagraph();
+
+        if (!Paragraph)
+        {
+            DrawingDocument.Collaborative_RemoveTarget(UserId);
+            return;
+        }
+
+        var ParaContentPos = Paragraph.Get_PosByElement(Run);
+        if (!ParaContentPos)
+        {
+            DrawingDocument.Collaborative_RemoveTarget(UserId);
+            return;
+        }
+        ParaContentPos.Update(InRunPos, ParaContentPos.Get_Depth() + 1);
+
+        var XY = Paragraph.Get_XYByContentPos(ParaContentPos);
+        if (XY && XY.Height > 0.001)
+        {
+            var ShortId = this.m_aForeignCursorsId[UserId] ? this.m_aForeignCursorsId[UserId] : UserId;
+            var sWSId = null;
+            var oShape = Paragraph.Parent && Paragraph.Parent.Is_DrawingShape(true);
+            if(oShape)
+            {
+                if(oShape.worksheet)
+                {
+                    sWSId = oShape.worksheet.Id;
+                }
+            }
+            DrawingDocument.Collaborative_UpdateTarget(UserId, ShortId, XY.X, XY.Y, XY.Height, sWSId, Paragraph.Get_ParentTextTransform());
+            this.Add_ForeignCursorXY(UserId, XY.X, XY.Y, XY.PageNum, XY.Height, Paragraph, isRemoveLabel);
+
+            if (true === this.m_aForeignCursorsToShow[UserId])
+            {
+                this.Show_ForeignCursorLabel(UserId);
+                this.Remove_ForeignCursorToShow(UserId);
+            }
+        }
+        else
+        {
+            DrawingDocument.Collaborative_RemoveTarget(UserId);
+            this.Remove_ForeignCursorXY(UserId);
+            this.Remove_ForeignCursorToShow(UserId);
+        }
     };
     //-----------------------------------------------------------------------------------
     // Функции для проверки корректности новых изменений

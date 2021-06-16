@@ -2182,6 +2182,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                 }
         _this.OnUpdateOverlay();
         _this.controller.updateSelectionState(true);
+        AscCommon.CollaborativeEditing.Update_ForeignCursorsPositions();
     };
 
     _this.updateRange = function(oRange) {

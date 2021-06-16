@@ -860,7 +860,6 @@
         this.m_aDocumentPositions.Update_DocumentPosition(DocPos);
     };
     CCollaborativeEditingBase.prototype.Update_ForeignCursorPosition = function(UserId, Run, InRunPos, isRemoveLabel) {
-        console.log("Update_ForeignCursorPosition:");
     };
     CCollaborativeEditingBase.prototype.Update_ForeignCursorsPositions = function(){
     };

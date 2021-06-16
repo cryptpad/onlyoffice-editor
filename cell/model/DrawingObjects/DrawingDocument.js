@@ -43,16 +43,85 @@ var global_MatrixTransformer = AscCommon.global_MatrixTransformer;
     var g_dKoef_mm_to_pix = AscCommon.g_dKoef_mm_to_pix;
 
 
-function CDrawingPage()
-{
-    this.left   = 0;
-    this.top    = 0;
-    this.right  = 0;
-    this.bottom = 0;
 
-    this.cachedImage = null;
-}
+    function CDrawingCollaborativeTarget(DrawingDocument)
+    {
+        AscCommon.CDrawingCollaborativeTargetBase.call(this);
+        this.SheetId = null;
+        this.DrawingDocument = DrawingDocument;
+    }
+    CDrawingCollaborativeTarget.prototype = Object.create(AscCommon.CDrawingCollaborativeTargetBase.prototype);
 
+    CDrawingCollaborativeTarget.prototype.GetZoom = function()
+    {
+        return Asc.editor.wb.getZoom();
+    };
+    CDrawingCollaborativeTarget.prototype.ConvertCoords = function(x, y)
+    {
+        var oTrack = this.DrawingDocument.AutoShapesTrack;
+        if(!oTrack)
+        {
+            return {X: 0, Y: 0};
+        }
+        var oGraphics = oTrack.Graphics;
+        if(!oGraphics)
+        {
+            return {X: 0, Y: 0};
+        }
+        var oTransform = oGraphics.m_oCoordTransform;
+        var _offX = 0;
+        var _offY = 0;
+        var dKoef = this.DrawingDocument.drawingObjects.convertMetric(1, 3, 0);
+        if (oTransform)
+        {
+            _offX = oTransform.tx;
+            _offY = oTransform.ty;
+        }
+        var _X = AscCommon.AscBrowser.convertToRetinaValue(_offX + dKoef * x, false);
+        var _Y = AscCommon.AscBrowser.convertToRetinaValue(_offY + dKoef * y, false);
+        return { X : _X, Y : _Y};
+    };
+    CDrawingCollaborativeTarget.prototype.GetMobileTouchManager = function()
+    {
+        return Asc.editor.wb.MobileTouchManager;
+    };
+    CDrawingCollaborativeTarget.prototype.GetParentElement = function()
+    {
+        return Asc.editor.HtmlElement;
+    };
+    CDrawingCollaborativeTarget.prototype.CheckPosition = function(_x, _y, _size, sheetId, _transform)
+    {
+        this.Transform = _transform;
+        this.Size = _size;
+        this.X = _x;
+        this.Y = _y;
+        this.SheetId = sheetId;
+        this.Update();
+    };
+    CDrawingCollaborativeTarget.prototype.CheckStyleDisplay = function()
+    {
+    };
+    CDrawingCollaborativeTarget.prototype.CheckNeedDraw = function()
+    {
+        var bShow = false;
+        var oWorksheetView = Asc.editor.wb.getWorksheet();
+        if(oWorksheetView)
+        {
+            var oModel = oWorksheetView.model;
+            if(oModel)
+            {
+                if(oModel.Id === this.SheetId)
+                {
+                    bShow = true;
+                }
+            }
+        }
+        if(!bShow)
+        {
+            this.HtmlElement.style.display = "none";
+        }
+        return bShow;
+    };
 
 function CDrawingDocument()
 {
@@ -83,13 +152,12 @@ function CDrawingDocument()
     this.m_dTargetSize = 1;
 
 
-    this.CollaborativeTargets            = [];
-    this.CollaborativeTargetsUpdateTasks = [];
-
-
     this.TargetHtmlElement = null;
     this.TargetHtmlElementLeft = 0;
     this.TargetHtmlElementTop = 0;
+
+    this.CollaborativeTargets = [];
+    this.CollaborativeTargetsUpdateTasks = [];
 
     this.m_bIsBreakRecalculate = false;
 
@@ -520,7 +588,7 @@ function CDrawingDocument()
     this.SetTargetSize = function(size)
     {
         this.m_dTargetSize = size;
-        //this.TargetHtmlElement.style.height = Number(this.m_dTargetSize * this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100) + "px";
+        //this.TargetHtmlElement.style.height = Number(this.m_dTargetSize * this.m_oWordControl.m_nZoomValue * AscCommon.g_dKoef_mm_to_pix / 100) + "px";
         //this.TargetHtmlElement.style.width = "2px";
     };
 
@@ -833,7 +901,7 @@ function CDrawingDocument()
 
     this.GetDotsPerMM = function(value)
     {
-        return value * Asc.editor.wb.getZoom() * g_dKoef_mm_to_pix;
+        return value * Asc.editor.wb.getZoom() * AscCommon.g_dKoef_mm_to_pix;
     };
 
     this.GetMMPerDot = function(value)
@@ -1293,13 +1361,13 @@ function CDrawingDocument()
             ctx.fillStyle = "#FFFFFF";
             ctx.fillRect(0, 0, _wPx, _hPx);
 
-            var _pxBoundsW = par.Lines[0].Ranges[0].W * g_dKoef_mm_to_pix;//(_bounds.Right - _bounds.Left) * g_dKoef_mm_to_pix;
-            var _pxBoundsH = (_bounds.Bottom - _bounds.Top) * g_dKoef_mm_to_pix;
+            var _pxBoundsW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;//(_bounds.Right - _bounds.Left) * AscCommon.g_dKoef_mm_to_pix;
+            var _pxBoundsH = (_bounds.Bottom - _bounds.Top) * AscCommon.g_dKoef_mm_to_pix;
 
             if (this.GuiLastTextProps.Position !== undefined && this.GuiLastTextProps.Position != null && this.GuiLastTextProps.Position != 0)
             {
                 // TODO: нужна высота без учета Position
-                // _pxBoundsH -= (this.GuiLastTextProps.Position * g_dKoef_mm_to_pix);
+                // _pxBoundsH -= (this.GuiLastTextProps.Position * AscCommon.g_dKoef_mm_to_pix);
             }
 
             if (_pxBoundsH < _hPx && _pxBoundsW < _wPx)
@@ -1322,7 +1390,7 @@ function CDrawingDocument()
                 ctx.beginPath();
             }
 
-            var _yOffset = (((_hPx + _pxBoundsH) / 2) - baseLineOffset * g_dKoef_mm_to_pix) >> 0;
+            var _yOffset = (((_hPx + _pxBoundsH) / 2) - baseLineOffset * AscCommon.g_dKoef_mm_to_pix) >> 0;
             var _xOffset = ((_wPx - _pxBoundsW) / 2) >> 0;
 
             var graphics = new AscCommon.CGraphics();
@@ -1352,26 +1420,27 @@ function CDrawingDocument()
     };
 
     // collaborative targets
-    this.Collaborative_UpdateTarget      = function(_id, _shortId, _x, _y, _size, _page, _transform, is_from_paint)
+    this.Collaborative_UpdateTarget      = function(_id, _shortId, _x, _y, _size, sheetId, _transform, is_from_paint)
     {
-        if (is_from_paint !== true)
-        {
-            this.CollaborativeTargetsUpdateTasks.push([_id, _shortId, _x, _y, _size, _page, _transform]);
-            return;
-        }
+        //if (is_from_paint !== true)
+        //{
+        //    this.CollaborativeTargetsUpdateTasks.push([_id, _shortId, _x, _y, _size, sheetId, _transform]);
+        //    return;
+        //}
 
         for (var i = 0; i < this.CollaborativeTargets.length; i++)
         {
             if (_id == this.CollaborativeTargets[i].Id)
             {
-                this.CollaborativeTargets[i].CheckPosition(this, _x, _y, _size, _page, _transform);
+                this.CollaborativeTargets[i].CheckPosition(_x, _y, _size, sheetId, _transform);
                 return;
             }
         }
-        var _target     = new CDrawingCollaborativeTarget();
+        var _target     = new CDrawingCollaborativeTarget(this);
         _target.Id      = _id;
         _target.ShortId = _shortId;
-        _target.CheckPosition(this, _x, _y, _size, _page, _transform);
+        _target.SheetId = sheetId;
+        _target.CheckPosition(_x, _y, _size, sheetId, _transform);
         this.CollaborativeTargets[this.CollaborativeTargets.length] = _target;
     };
     this.Collaborative_RemoveTarget      = function(_id)
@@ -1399,21 +1468,11 @@ function CDrawingDocument()
     };
     this.Collaborative_TargetsUpdate     = function(bIsChangePosition)
     {
-        var _len_tasks = this.CollaborativeTargetsUpdateTasks.length;
-        var i          = 0;
-        for (i = 0; i < _len_tasks; i++)
-        {
-            var _tmp = this.CollaborativeTargetsUpdateTasks[i];
-            this.Collaborative_UpdateTarget(_tmp[0], _tmp[1], _tmp[2], _tmp[3], _tmp[4], _tmp[5], _tmp[6], true);
-        }
-        if (_len_tasks != 0)
-            this.CollaborativeTargetsUpdateTasks.splice(0, _len_tasks);
-
         if (bIsChangePosition)
         {
-            for (i = 0; i < this.CollaborativeTargets.length; i++)
+            for (var i = 0; i < this.CollaborativeTargets.length; i++)
             {
-                this.CollaborativeTargets[i].Update(this);
+                this.CollaborativeTargets[i].Update();
             }
         }
     };
@@ -1478,7 +1537,7 @@ function CDrawingDocument()
         var parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
         var parH = (bounds.Bottom - bounds.Top) * AscCommon.g_dKoef_mm_to_pix;
 
-        var yOffset = y - ((baseLineOffset * g_dKoef_mm_to_pix) >> 0);
+        var yOffset = y - ((baseLineOffset * AscCommon.g_dKoef_mm_to_pix) >> 0);
         var xOffset = x;
         switch (level.Align)
         {
