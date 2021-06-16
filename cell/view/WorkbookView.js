@@ -3868,19 +3868,16 @@
 			}
 		}
 	};
-	WorkbookView.prototype.updateTargetForCollaboration = function()
-	{
+	WorkbookView.prototype.updateTargetForCollaboration = function () {
 		this.NeedUpdateTargetForCollaboration = true;
 	};
 
-	WorkbookView.prototype.Update_ForeignCursor = function(CursorInfo, UserId, Show, UserShortId)
-	{
+	WorkbookView.prototype.Update_ForeignCursor = function (CursorInfo, UserId, Show, UserShortId) {
 		if (UserId === this.Api.CoAuthoringApi.getUserConnectionId())
 			return;
 
 		// "" - это означает, что курсор нужно удалить
-		if (!CursorInfo || "" === CursorInfo)
-		{
+		if (!CursorInfo || "" === CursorInfo) {
 			this.Remove_ForeignCursor(UserId);
 			return;
 		}
@@ -3898,17 +3895,26 @@
 		}
 		AscFormat.drawingsUpdateForeignCursor(oDrawingsController, Asc.editor.wbModel.DrawingDocument, sDrawingData, UserId, Show, UserShortId);
 
-		var newCursorInfo = {sheetId: aCursorInfo[1], isEdit: aCursorInfo[2]};
-		var i = 3;
-		while(i < aCursorInfo.length) {
+		var selectionInfo = aCursorInfo[1];
+		var Changes = new AscCommon.CCollaborativeChanges();
+		var Reader = Changes.GetStream(selectionInfo, 0, selectionInfo.length);
+
+		var sheetId = Reader.GetString2();
+		var isEdit = Reader.GetBool();
+		var sRanges = Reader.GetString2();
+
+		var newCursorInfo = {sheetId: sheetId, isEdit: isEdit};
+		var i = 0;
+		var ranges = sRanges.split(",");
+		while (i < ranges.length) {
 			if (!newCursorInfo.ranges) {
 				newCursorInfo.ranges = [];
 			}
-			if (i + 4 < aCursorInfo.length) {
-				var _c1 = aCursorInfo[i] - 0;
-				var _r1 = aCursorInfo[i + 1] - 0;
-				var _c2 = aCursorInfo[i + 2] - 0;
-				var _r2 = aCursorInfo[i + 3] - 0;
+			if (i + 4 < ranges.length) {
+				var _c1 = ranges[i] - 0;
+				var _r1 = ranges[i + 1] - 0;
+				var _c2 = ranges[i + 2] - 0;
+				var _r2 = ranges[i + 3] - 0;
 
 				newCursorInfo.ranges.push(new Asc.Range(_c1, _r1, _c2, _r2));
 			}
@@ -3921,10 +3927,9 @@
 		this.getWorksheet()._drawSelection();
 
 		//if (true === Show)
-			//this.CollaborativeEditing.Update_ForeignCursorPosition(UserId, Run, InRunPos, true);
+		//this.CollaborativeEditing.Update_ForeignCursorPosition(UserId, Run, InRunPos, true);
 	};
-	WorkbookView.prototype.Remove_ForeignCursor = function(UserId)
-	{
+	WorkbookView.prototype.Remove_ForeignCursor = function (UserId) {
 		this.model.DrawingDocument.Collaborative_RemoveTarget(UserId);
 		AscCommon.CollaborativeEditing.Remove_ForeignCursor(UserId);
 
@@ -3933,8 +3938,20 @@
 		this.Api.hideForeignSelectLabel(UserId);
 		this.getWorksheet()._drawSelection();
 	};
-	WorkbookView.prototype.getCursorInfo = function()
-	{
+	WorkbookView.prototype.getCursorInfo = function () {
+		var sSelectionInfo = this.getCursorInfoBinary();
+		var sDrawingData = "";
+		var oWsView = this.getWorksheet();
+		if (oWsView && oWsView.isSelectOnShape) {
+			if (oWsView.objectRender) {
+				sDrawingData = oWsView.objectRender.getDocumentPositionBinary();
+			}
+		}
+		return sDrawingData + "," + sSelectionInfo;
+	};
+
+	WorkbookView.prototype.getCursorInfoBinary = function () {
+
 		var oWs = this.getActiveWS();
 		var id = oWs.getId();
 		var selection = oWs.getSelection();
@@ -3945,14 +3962,16 @@
 			var _range = selection.ranges[i];
 			rangeStr += _range.c1 + "," + _range.r1 + "," + _range.c2 + "," + _range.r2 + ",";
 		}
-		var sDrawingData = "";
-		var oWsView = this.getWorksheet();
-		if (oWsView && oWsView.isSelectOnShape) {
-			if (oWsView.objectRender) {
-				sDrawingData = oWsView.objectRender.getDocumentPositionBinary();
-			}
-		}
-		return sDrawingData + "," + id + "," + isEdit + "," + rangeStr;
+
+		var oWriter = new AscCommon.CMemory(true);
+		oWriter.CheckSize(50);
+
+		var BinaryPos = oWriter.GetCurPosition();
+		oWriter.WriteString2(id);
+		oWriter.WriteBool(isEdit);
+		oWriter.WriteString2(rangeStr);
+		var BinaryLen = oWriter.GetCurPosition() - BinaryPos;
+		return (BinaryLen + ";" + oWriter.GetBase64Memory2(BinaryPos, BinaryLen));
 	};
 
 
