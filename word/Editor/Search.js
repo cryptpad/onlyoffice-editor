@@ -302,6 +302,9 @@ CDocumentSearch.prototype.Check_text_is_special_symbol = function(sStringText, n
 			},
 			'ꙅ' : function(){ // ^$
 				(sStringText[nK] === 'ꙅ' || sStringText[nK] === 'ꙃ') ? bText = true : bText = false;
+			},
+			'default' : function(){
+				bText = false;
 			}
 		};
 		(sLetters1[sStringText[nPos]] || sLetters1['default'])();
@@ -322,6 +325,9 @@ CDocumentSearch.prototype.Check_text_is_special_symbol = function(sStringText, n
 					|| (sStringText[nK] >= 'а' && sStringText[nK] <= 'я')
 					|| (sStringText[nK] === 'Ё')
 					|| (sStringText[nK] === 'ё')) ? bText = true : bText = false;
+			},
+			'default' : function(){
+				bText = false;
 			}
 		};
 		(sLetters2[sStringText[nPos]] || sLetters2['default'])();
@@ -342,6 +348,9 @@ CDocumentSearch.prototype.Check_text_is_special_symbol = function(sStringText, n
 					|| (sStringText[nPos] >= 'а' && sStringText[nPos] <= 'я')
 					|| (sStringText[nPos] === 'Ё')
 					|| (sStringText[nPos] === 'ё')) ? bText = true : bText = false;
+			},
+			'default' : function(){
+				bText = false;
 			}
 		};
 		(sLetters3[sStringText[nK]] || sLetters3['default'])();
@@ -1483,12 +1492,12 @@ ParaRun.prototype.Search = function(ParaSearch)
 			}
 			else if (ParaSearch.Check(ParaSearch.SearchIndex, oItem))
 			{
-				ParaSearch.StartPos = ParaSearch.StartPosBuf.pop();
+				ParaSearch.StartPos = ParaSearch.StartPosBuf.shift();
 				break;
 			}
 			else if (this.Check_Special_Symbol(ParaSearch, nPos))
 			{
-				ParaSearch.StartPos = ParaSearch.StartPosBuf.pop();
+				ParaSearch.StartPos = ParaSearch.StartPosBuf.shift();
 				break;
 			}
 		}
@@ -1531,7 +1540,7 @@ ParaRun.prototype.Search = function(ParaSearch)
 			{
 				if (bCheck)
 				{
-					if (1 === ParaSearch.GetPrefix(ParaSearch.SearchIndex))
+					if (0 !== ParaSearch.GetPrefix(ParaSearch.SearchIndex))
 						ParaSearch.StartPosBuf.push({Run : this, Pos : nPos});
 
 					ParaSearch.SearchIndex++;
@@ -1580,7 +1589,7 @@ ParaRun.prototype.Search = function(ParaSearch)
 			}
 			else
 			{
-				if (1 === ParaSearch.GetPrefix(ParaSearch.SearchIndex))
+				if (0 !== ParaSearch.GetPrefix(ParaSearch.SearchIndex))
 				ParaSearch.StartPosBuf.push({Run : this, Pos : nPos});
 
 				ParaSearch.SearchIndex++;
