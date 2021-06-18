@@ -9752,6 +9752,49 @@
 		}
 		return this.conditionalFormattingRangeIterator;
 	};
+	Worksheet.prototype.updateTopLeftCell = function(range) {
+		this.setTopLeftCell(this.generateTopLeftCellFromRange(range), true);
+	};
+	Worksheet.prototype.generateTopLeftCellFromRange = function(range) {
+		if (!range) {
+			return null;
+		}
+
+		var newVal;
+		if (range.c1 === 0 && range.r1 === 0) {
+			newVal = null;
+		} else {
+			newVal = new Asc.Range(0, 0, 0, 0);
+			newVal.c1 = range.c1;
+			newVal.r1 = range.r1;
+			newVal.c2 = range.c1;
+			newVal.r2 = range.r1;
+		}
+
+		return newVal;
+	};
+	Worksheet.prototype.setTopLeftCell = function(val, addToHistory) {
+		var view = this.sheetViews[0];
+		
+		if (!view) {
+			return;
+		}
+		
+		if (val !== view.topLeftCell || (val && view.topLeftCell && !val.isEqual(view.topLeftCell))) {
+			var oldValue = view.topLeftCell ? view.topLeftCell.clone() : null;
+			view.topLeftCell = val;
+			if (addToHistory) {
+				History.Create_NewPoint();
+				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SetTopLeftCell,
+					this.getId(), null, new UndoRedoData_FromTo(new UndoRedoData_BBox(oldValue), new UndoRedoData_BBox(val)));
+			}
+		}
+	};
+
+	Worksheet.prototype.getTopLeftCell = function() {
+		var view = this.sheetViews && this.sheetViews[0];
+		return view && view.topLeftCell;
+	};
 
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;

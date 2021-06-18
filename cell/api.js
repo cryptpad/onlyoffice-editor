@@ -1129,7 +1129,10 @@ var editor;
           oAdditionalData["delimiterChar"] = options.advancedOptions.asc_getDelimiterChar();
         }
       }
-      dataContainer.data = oBinaryFileWriter.Write(oAdditionalData["nobase64"]);
+      //перед записью подменяю topLeftCell на тот, который видим
+        this.wb.executeWithCurrentTopLeftCell(function () {
+          dataContainer.data = oBinaryFileWriter.Write(oAdditionalData["nobase64"]);
+        });
     }
 
     if (window.isCloudCryptoDownloadAs) {
@@ -2079,6 +2082,12 @@ var editor;
 
 	spreadsheet_api.prototype._onSaveCallbackInner = function () {
 		var t = this;
+
+		var ws = this.wb.getWorksheet();
+		if (ws) {
+			ws.updateTopLeftCell();
+		}
+
 		AscCommon.CollaborativeEditing.Clear_CollaborativeMarks();
 		// Принимаем чужие изменения
 		this.collaborativeEditing.applyChanges();

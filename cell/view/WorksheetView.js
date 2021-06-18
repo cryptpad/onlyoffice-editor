@@ -456,6 +456,7 @@
     }
 
 	WorksheetView.prototype._init = function () {
+		this._initTopLeftCell();
 		this._initWorksheetDefaultWidth();
 		this._initPane();
 		this._updateGroups();
@@ -7453,6 +7454,7 @@
         this.cellCommentator.drawCommentCells();
 		window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Update_Position();
         this.handlers.trigger("toggleAutoCorrectOptions", true);
+        //this.model.updateTopLeftCell(this.visibleRange);
         return this;
     };
 
@@ -7611,6 +7613,7 @@
         this.cellCommentator.drawCommentCells();
 		window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Update_Position();
         this.handlers.trigger("toggleAutoCorrectOptions", true);
+		//this.model.updateTopLeftCell(this.visibleRange);
         return this;
     };
 
@@ -22025,6 +22028,30 @@
 		}
 
 		this._isLockedCF(callback, lockArr);
+	};
+
+	WorksheetView.prototype.updateTopLeftCell = function () {
+		History.StartTransaction();
+		this.model.updateTopLeftCell(this.visibleRange);
+		History.EndTransaction();
+	};
+
+	WorksheetView.prototype.scrollToTopLeftCell = function () {
+		var topLeftCell = this.model.getTopLeftCell();
+		if (topLeftCell) {
+			this._scrollToRange(topLeftCell);
+		}
+	};
+
+	WorksheetView.prototype._initTopLeftCell = function () {
+		var topLeftCell = this.model.getTopLeftCell();
+		if (topLeftCell) {
+			this.visibleRange = topLeftCell.clone();
+		}
+	};
+
+	WorksheetView.prototype.getCurrentTopLeftCell = function () {
+		return this.model.generateTopLeftCellFromRange(this.visibleRange);
 	};
 
 	//------------------------------------------------------------export---------------------------------------------------

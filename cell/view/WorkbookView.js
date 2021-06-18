@@ -862,6 +862,9 @@
     this.model.handlers.add("drawWS", function() {
       self.drawWS.apply(self, arguments);
     });
+    this.model.handlers.add("scrollToTopLeftCell", function() {
+      self.scrollToTopLeftCell.apply(self, arguments);
+    });
     this.model.handlers.add("showDrawingObjects", function() {
       self.onShowDrawingObjects.apply(self, arguments);
     });
@@ -2968,6 +2971,9 @@
   WorkbookView.prototype.drawWS = function() {
     this.getWorksheet().draw();
   };
+  WorkbookView.prototype.scrollToTopLeftCell = function() {
+    this.getWorksheet().scrollToTopLeftCell();
+  };
   WorkbookView.prototype.onShowDrawingObjects = function() {
       var oWSView = this.getWorksheet();
       var oDrawingsRender;
@@ -3842,6 +3848,20 @@
 		this.defaults.worksheetView.updateStyle();
 	};
 
+	WorkbookView.prototype.executeWithCurrentTopLeftCell = function (runFunction) {
+		var i, oWS;
+		var aTrueTopLeftCell = [];
+		for(i = 0; i < this.wsViews.length; i++) {
+			oWS = this.wsViews[i];
+			aTrueTopLeftCell.push(oWS.model.getTopLeftCell());
+			oWS.model.setTopLeftCell(oWS.getCurrentTopLeftCell());
+		}
+		runFunction();
+		for(i = 0; i < this.wsViews.length; i++) {
+			oWS = this.wsViews[i];
+			oWS.model.setTopLeftCell(aTrueTopLeftCell[i]);
+		}
+	};
 
 	//------------------------------------------------------------export---------------------------------------------------
   window['AscCommonExcel'] = window['AscCommonExcel'] || {};
