@@ -9796,6 +9796,137 @@
 		return view && view.topLeftCell;
 	};
 
+	Worksheet.prototype.setCustomSort = function(props, obj, doNotSortRange, cellCommentator, opt_range) {
+		//формируем sortState из настроек
+		var t = this;
+		var selection = opt_range ? opt_range : this.selectionRange.getLast();
+		var sortState = new AscCommonExcel.SortState();
+
+		//? activeRange
+		sortState.Ref = new Asc.Range(selection.c1, selection.r1, selection.c2, selection.r2);
+
+		History.Create_NewPoint();
+		History.StartTransaction();
+
+		var columnSort = props.columnSort;
+		sortState.ColumnSort = !columnSort;
+		sortState.CaseSensitive = props.caseSensitive;
+		for(var i = 0; i < props.levels.length; i++) {
+			var sortCondition = new AscCommonExcel.SortCondition();
+			var level = props.levels[i];
+			var r1 = columnSort ? selection.r1 : level.index + selection.r1;
+			var c1 = columnSort ? selection.c1 + level.index : selection.c1;
+			var r2 = columnSort ? selection.r2 : level.index + selection.r1;
+			var c2  = columnSort ? selection.c1 + level.index : selection.c2;
+			sortCondition.Ref = new Asc.Range(c1, r1, c2, r2);
+			sortCondition.ConditionSortBy = null;
+			sortCondition.ConditionDescending = Asc.c_oAscSortOptions.Descending === level.descending;
+
+			var conditionSortBy = level.sortBy;
+			var sortColor = null, newDxf, isRgbColor;
+			switch (conditionSortBy) {
+				case Asc.c_oAscSortOptions.ByColorFill: {
+					sortCondition.ConditionSortBy = Asc.ESortBy.sortbyCellColor;
+					sortColor = level.color;
+					isRgbColor = sortColor && sortColor.getType && sortColor.getType() === AscCommonExcel.UndoRedoDataTypes.RgbColor;
+					sortColor = sortColor && !isRgbColor ? new AscCommonExcel.RgbColor((sortColor.asc_getR() << 16) + (sortColor.asc_getG() << 8) + sortColor.asc_getB()) : null;
+
+					newDxf = new AscCommonExcel.CellXfs();
+					newDxf.fill = new AscCommonExcel.Fill();
+					newDxf.fill.fromColor(sortColor);
+
+					break;
+				}
+				case Asc.c_oAscSortOptions.ByColorFont: {
+					sortCondition.ConditionSortBy = Asc.ESortBy.sortbyFontColor;
+					sortColor = level.color;
+					isRgbColor = sortColor && sortColor.getType && sortColor.getType() === AscCommonExcel.UndoRedoDataTypes.RgbColor;
+					sortColor = sortColor && !isRgbColor ? new AscCommonExcel.RgbColor((sortColor.asc_getR() << 16) + (sortColor.asc_getG() << 8) + sortColor.asc_getB()) : null;
+
+					newDxf = new AscCommonExcel.CellXfs();
+					newDxf.font = new AscCommonExcel.Font();
+					newDxf.font.setColor(sortColor);
+
+					break;
+				}
+				case Asc.c_oAscSortOptions.ByIcon: {
+					sortCondition.ConditionSortBy = Asc.ESortBy.sortbyIcon;
+					break;
+				}
+				default: {
+					sortCondition.ConditionSortBy = Asc.ESortBy.sortbyValue;
+					break;
+				}
+			}
+
+			if(newDxf) {
+				sortCondition.dxf = AscCommonExcel.g_StyleCache.addXf(newDxf);
+			}
+
+
+			if(!sortState.SortConditions) {
+				sortState.SortConditions = [];
+			}
+
+			sortState.SortConditions.push(sortCondition);
+		}
+
+		if(obj) {
+			History.Add(AscCommonExcel.g_oUndoRedoSortState, AscCH.historyitem_SortState_Add, t.getId(), null,
+				new AscCommonExcel.UndoRedoData_SortState(obj.sortState ? obj.sortState.clone() : null, sortState ? sortState.clone() : null, true, obj.DisplayName));
+
+			obj.SortState = sortState;
+		} else {
+			History.Add(AscCommonExcel.g_oUndoRedoSortState, AscCH.historyitem_SortState_Add, t.getId(), null,
+				new AscCommonExcel.UndoRedoData_SortState(t.sortState ? t.sortState.clone() : null, sortState ? sortState.clone() : null));
+
+			sortState._hasHeaders = props.hasHeaders;
+			t.sortState = sortState;
+		}
+
+		if(!doNotSortRange) {
+			var range = t.getRange3(selection.r1, selection.c1, selection.r2, selection.c2);
+			var oSort = t._doSort(range, null, null, null, null, !columnSort, sortState);
+			if (cellCommentator) {
+				cellCommentator.sortComments(oSort);
+			}
+		}
+
+		History.EndTransaction();
+	};
+
+	Worksheet.prototype._doSort = function (range, nOption, nStartRowCol, sortColor, opt_guessHeader, opt_by_row, opt_custom_sort) {
+		var res;
+
+		var bordersArr = [];
+		range._foreachNoEmpty(function(cell, row, col) {
+			var style = cell ? cell.getStyle() : null;
+			if(style && style.border) {
+				if(!bordersArr[row]) {
+					bordersArr[row] = [];
+				}
+				bordersArr[row][col] = style.border;
+				cell.setBorder(null);
+			}
+		});
+		res = range.sort(nOption, nStartRowCol, sortColor, opt_guessHeader, opt_by_row, opt_custom_sort);
+		for(var i = 0; i < bordersArr.length; i++) {
+			if(bordersArr[i]) {
+				for(var j = 0; j < bordersArr[i].length; j++) {
+					if(bordersArr[i][j]) {
+						var curBorder = bordersArr[i][j];
+						this._getCell(i, j, function(cell) {
+							cell.setBorder(curBorder);
+						});
+
+					}
+				}
+			}
+		}
+
+		return res;
+	};
+
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
 	var g_nCellOffsetXf = g_nCellOffsetFlag + 1;
