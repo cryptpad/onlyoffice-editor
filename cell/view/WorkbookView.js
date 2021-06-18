@@ -2225,66 +2225,66 @@
 		return this.getCellEditMode() ? this.cellEditor.close(!cancel) : true;
 	};
 
-  WorkbookView.prototype.restoreFocus = function() {
-    if (window["NATIVE_EDITOR_ENJINE"]) {
-      return;
-    }
-
-    if (this.cellEditor.hasFocus) {
-      this.cellEditor.restoreFocus();
-    }
-  };
-
-  WorkbookView.prototype._onUpdateCellEditor = function(text, cursorPosition, fPos, fName) {
-    if (this.skipHelpSelector) {
-      return;
-    }
-    // ToDo для ускорения можно завести объект, куда класть результаты поиска по формулам и второй раз не искать.
-    var i, arrResult = [], defNamesList, defName, defNameStr;
-    if (fName) {
-		fName = fName.toUpperCase();
-      for (i = 0; i < this.formulasList.length; ++i) {
-        if (0 === this.formulasList[i].indexOf(fName)) {
-          arrResult.push(new AscCommonExcel.asc_CCompleteMenu(this.formulasList[i], c_oAscPopUpSelectorType.Func));
-        }
-      }
-      defNamesList = this.getDefinedNames(Asc.c_oAscGetDefinedNamesList.WorksheetWorkbook);
-		fName = fName.toLowerCase();
-      for (i = 0; i < defNamesList.length; ++i) {
-
-	  /*defName = defNamesList[i];
-	  if (0 === defName.Name.toLowerCase().indexOf(fName)) {
-		  arrResult.push(new AscCommonExcel.asc_CCompleteMenu(defName.Name, !defName.isTable ? c_oAscPopUpSelectorType.Range : c_oAscPopUpSelectorType.Table));*/
-
-      	defName = defNamesList[i];
-        defNameStr = defName.Name.toLowerCase();
-        if(null !== defName.LocalSheetId && defNameStr === "print_area") {
-			defNameStr = AscCommon.translateManager.getValue("Print_Area");
+	WorkbookView.prototype.restoreFocus = function () {
+		if (window["NATIVE_EDITOR_ENJINE"]) {
+			return;
 		}
 
-        if (0 === defNameStr.toLowerCase().indexOf(fName)) {
-          var _type = c_oAscPopUpSelectorType.Range;
-          if (defName.type === Asc.c_oAscDefNameType.slicer) {
-              _type = c_oAscPopUpSelectorType.Slicer;
-          } else if (defName.type === Asc.c_oAscDefNameType.table) {
-              _type = c_oAscPopUpSelectorType.Table;
-          }
-          arrResult.push(new AscCommonExcel.asc_CCompleteMenu(defNameStr, _type));
-        }
-      }
-    }
-    if (0 < arrResult.length) {
-      this.handlers.trigger('asc_onFormulaCompleteMenu', arrResult, this.cellEditor.calculateOffset(fPos));
+		if (this.cellEditor.hasFocus) {
+			this.cellEditor.restoreFocus();
+		}
+	};
 
-      this.lastFPos = fPos;
-      this.lastFNameLength = fName.length;
-    } else {
-      this.handlers.trigger('asc_onFormulaCompleteMenu', null);
+	WorkbookView.prototype._onUpdateCellEditor = function (text, cursorPosition, fPos, fName) {
+		if (this.skipHelpSelector) {
+			return;
+		}
+		// ToDo для ускорения можно завести объект, куда класть результаты поиска по формулам и второй раз не искать.
+		var i, arrResult = [], defNamesList, defName, defNameStr;
+		if (fName) {
+			fName = fName.toUpperCase();
+			for (i = 0; i < this.formulasList.length; ++i) {
+				if (0 === this.formulasList[i].indexOf(fName)) {
+					arrResult.push(new AscCommonExcel.asc_CCompleteMenu(this.formulasList[i], c_oAscPopUpSelectorType.Func));
+				}
+			}
+			defNamesList = this.getDefinedNames(Asc.c_oAscGetDefinedNamesList.WorksheetWorkbook);
+			fName = fName.toLowerCase();
+			for (i = 0; i < defNamesList.length; ++i) {
 
-      this.lastFPos = -1;
-      this.lastFNameLength = 0;
-    }
-  };
+				/*defName = defNamesList[i];
+				if (0 === defName.Name.toLowerCase().indexOf(fName)) {
+					arrResult.push(new AscCommonExcel.asc_CCompleteMenu(defName.Name, !defName.isTable ? c_oAscPopUpSelectorType.Range : c_oAscPopUpSelectorType.Table));*/
+
+				defName = defNamesList[i];
+				defNameStr = defName.Name.toLowerCase();
+				if (null !== defName.LocalSheetId && defNameStr === "print_area") {
+					defNameStr = AscCommon.translateManager.getValue("Print_Area");
+				}
+
+				if (0 === defNameStr.toLowerCase().indexOf(fName)) {
+					var _type = c_oAscPopUpSelectorType.Range;
+					if (defName.type === Asc.c_oAscDefNameType.slicer) {
+						_type = c_oAscPopUpSelectorType.Slicer;
+					} else if (defName.type === Asc.c_oAscDefNameType.table) {
+						_type = c_oAscPopUpSelectorType.Table;
+					}
+					arrResult.push(new AscCommonExcel.asc_CCompleteMenu(defNameStr, _type));
+				}
+			}
+		}
+		if (0 < arrResult.length) {
+			this.handlers.trigger('asc_onFormulaCompleteMenu', arrResult, this.cellEditor.calculateOffset(fPos));
+
+			this.lastFPos = fPos;
+			this.lastFNameLength = fName.length;
+		} else {
+			this.handlers.trigger('asc_onFormulaCompleteMenu', null);
+
+			this.lastFPos = -1;
+			this.lastFNameLength = 0;
+		}
+	};
 
     // Вставка формулы в редактор
     WorkbookView.prototype.insertInCellEditor = function (name, type, autoComplete) {
