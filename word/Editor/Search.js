@@ -303,6 +303,24 @@ CDocumentSearch.prototype.Check_text_is_special_symbol = function(sStringText, n
 			'ꙅ' : function(){ // ^$
 				(sStringText[nK] === 'ꙅ' || sStringText[nK] === 'ꙃ') ? bText = true : bText = false;
 			},
+			'Ꙍ' : function(){ // ^~
+				(sStringText[nK] === 'Ꙍ' || sStringText[nK] === 'ꙃ') ? bText = true : bText = false;
+			},
+			'ꙍ' :function(){ // ^s
+				(sStringText[nK] === 'ꙍ' || sStringText[nK] === 'ꙃ' || sStringText[nK] === 'ꙏ') ? bText = true : bText = false;
+			},
+			'Ꙏ' : function(){ // ^^
+				(sStringText[nK] === 'Ꙏ' || sStringText[nK] === 'ꙃ') ? bText = true : bText = false;
+			},
+			'ꙏ' : function(){ // ^w
+				(sStringText[nK] === 'ꙏ' || sStringText[nK] === 'ꙃ' || sStringText[nK] === 'ꙍ') ? bText = true : bText = false;
+			},
+			'Ꙑ' : function(){ // ^+
+				(sStringText[nK] === 'Ꙑ' || sStringText[nK] === 'ꙃ') ? bText = true : bText = false;
+			},
+			'ꙑ' : function(){ // ^=
+				(sStringText[nK] === 'ꙑ' || sStringText[nK] === 'ꙃ') ? bText = true : bText = false;
+			},
 			'default' : function(){
 				bText = false;
 			}
@@ -325,6 +343,24 @@ CDocumentSearch.prototype.Check_text_is_special_symbol = function(sStringText, n
 					|| (sStringText[nK] >= 'а' && sStringText[nK] <= 'я')
 					|| (sStringText[nK] === 'Ё')
 					|| (sStringText[nK] === 'ё')) ? bText = true : bText = false;
+			},
+			'Ꙍ' : function(){ // ^~
+				(sStringText[nK] === String.fromCharCode(45)) ? bText = true : bText = false;
+			},
+			'ꙍ' :function(){ // ^s
+				(sStringText[nK] === String.fromCharCode(160)) ? bText = true : bText = false;
+			},
+			'Ꙏ' : function(){ // ^^
+				(sStringText[nK] === String.fromCharCode(94)) ? bText = true : bText = false;
+			},
+			'ꙏ' : function(){ // ^w
+				(sStringText[nK] === String.fromCharCode(32) || sStringText[nK] === String.fromCharCode(160)) ? bText = true : bText = false;
+			},
+			'Ꙑ' : function(){ // ^+
+				(sStringText[nK] >= String.fromCharCode(8208) && sStringText[nK] <= String.fromCharCode(8213)) ? bText = true : bText = false;
+			},
+			'ꙑ' : function(){ // ^=
+				(sStringText[nK] === String.fromCharCode(45)) ? bText = true : bText = false;
 			},
 			'default' : function(){
 				bText = false;
@@ -349,32 +385,30 @@ CDocumentSearch.prototype.Check_text_is_special_symbol = function(sStringText, n
 					|| (sStringText[nPos] === 'Ё')
 					|| (sStringText[nPos] === 'ё')) ? bText = true : bText = false;
 			},
+			'Ꙍ' : function(){ // ^~
+				(sStringText[nPos] === String.fromCharCode(45)) ? bText = true : bText = false;
+			},
+			'ꙍ' :function(){ // ^s
+				(sStringText[nPos] === String.fromCharCode(160)) ? bText = true : bText = false;
+			},
+			'Ꙏ' : function(){ // ^^
+				(sStringText[nPos] === String.fromCharCode(94)) ? bText = true : bText = false;
+			},
+			'ꙏ' : function(){ // ^w
+				(sStringText[nPos] === String.fromCharCode(32) || sStringText[nPos] === String.fromCharCode(160)) ? bText = true : bText = false;
+			},
+			'Ꙑ' : function(){ // ^+
+				(sStringText[nPos] >= String.fromCharCode(8208) && sStringText[nPos] <= String.fromCharCode(8213)) ? bText = true : bText = false;
+			},
+			'ꙑ' : function(){ // ^=
+				(sStringText[nPos] === String.fromCharCode(45)) ? bText = true : bText = false;
+			},
 			'default' : function(){
 				bText = false;
 			}
 		};
 		(sLetters3[sStringText[nK]] || sLetters3['default'])();
 	}
-	/*if (sStringText[nPos] === '^')
-	{
-		var sLetters = {
-			'?' : function(){
-				bText = true;
-			},
-			'#' : function(){
-				((sStringText[nK] === '^' && sStringText[nK + 1] === '#') || (sStringText[nK] === '^' && sStringText[nK + 1] === '?')
-				|| (sStringText[nK - 1] === '^' && sStringText[nK] === '#') || (sStringText[nK - 1] === '^' && sStringText[nK] === '?')) ? bText = true : bText = false;
-			},
-			'$' : function(){
-				(((sStringText[nK] === '^' && sStringText[nK + 1] === '$') || (sStringText[nK] === '^' && sStringText[nK + 1] === '?')
-				|| (sStringText[nK - 1] === '^' && sStringText[nK] === '$') || (sStringText[nK - 1] === '^' && sStringText[nK] === '?'))) ? bText = true : bText = false;
-			},
-			'default' : function(){
-				bText = false;
-			}
-		};
-		(sLetters[sStringText[nPos + 1]] || sLetters['default'])();
-	}*/
 	return bText;
 };
 CDocumentSearch.prototype.Check_special_symbol_is_special_symbol = function(sStringText, nPos, nK)
