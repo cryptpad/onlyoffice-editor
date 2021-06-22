@@ -682,6 +682,12 @@
 	CWorkbookProtection.prototype.asc_setWorkbookSpinCount = function (val) {
 		this.workbookSpinCount = val;
 	};
+	CWorkbookProtection.prototype.asc_setPassword = function (val) {
+		//генерируем хэш
+		this.revisionsAlgorithmName = "test";
+		this.revisionsHashValue = "test";
+		this.revisionsSaltValue = "test";
+	};
 
 
 	function CProtectedRange(ws) {
@@ -1022,6 +1028,7 @@
 	prot["asc_setWorkbookHashValue"] = prot.asc_setWorkbookHashValue;
 	prot["asc_setWorkbookSaltValue"] = prot.asc_setWorkbookSaltValue;
 	prot["asc_setWorkbookSpinCount"] = prot.asc_setWorkbookSpinCount;
+	prot["asc_setPassword"] = prot.asc_setPassword;
 
 	window["Asc"].CProtectedRange = CProtectedRange;
 	prot = CProtectedRange.prototype;
