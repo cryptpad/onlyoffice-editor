@@ -684,9 +684,9 @@
 	};
 	CWorkbookProtection.prototype.asc_setPassword = function (val) {
 		//генерируем хэш
-		this.revisionsAlgorithmName = "test";
-		this.revisionsHashValue = "test";
-		this.revisionsSaltValue = "test";
+		this.workbookAlgorithmName = "test";
+		this.workbookHashValue = "test";
+		this.workbookSaltValue = "test";
 	};
 	CWorkbookProtection.prototype.asc_isPassword = function (val) {
 		return this.workbookAlgorithmName != null;
