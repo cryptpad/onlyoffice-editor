@@ -5743,7 +5743,11 @@ var editor;
       if (res) {
         History.Create_NewPoint();
         History.StartTransaction();
-        t.wbModel.getWorksheet(i).setProtectedSheet(props, true);
+        if (!t.wbModel.getWorksheet(i).setProtectedSheet(props, true)) {
+        	t.handlers.trigger("asc_onError", c_oAscError.ID.LockedWorksheetRename, c_oAscError.Level.NoCritical);
+        }
+        t.handlers.trigger("asc_onChangeProtectWorksheet", i);
+
         History.EndTransaction();
       } else {
         //t.handlers.trigger("asc_onError", c_oAscError.ID.LockedWorksheetRename, c_oAscError.Level.NoCritical);

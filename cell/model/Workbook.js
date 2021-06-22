@@ -9785,6 +9785,7 @@
 			this.sheetProtection = new window["Asc"].CSheetProtection();
 		}
 		this.sheetProtection.set(props, addToHistory, this);
+		return true;
 	};
 
 	Worksheet.prototype.getSheetProtection = function (type) {

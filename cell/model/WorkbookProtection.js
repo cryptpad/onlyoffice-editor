@@ -432,6 +432,16 @@
 	CSheetProtection.prototype.setSelectUnlockedCells = function (val) {
 		this.selectUnlockedCells = val;
 	};
+	CSheetProtection.prototype.asc_setPassword = function (val) {
+		//генерируем хэш
+		this.algorithmName = "test";
+		this.hashValue = "test";
+		this.saltValue = "test";
+		this.spinCount = "test";
+	};
+	CSheetProtection.prototype.asc_isPassword = function () {
+		return this.algorithmName != null;
+	};
 
 	function CWorkbookProtection(wb) {
 		this.lockStructure = null;//false
@@ -1007,6 +1017,9 @@
 	prot["asc_setAutoFilter"] = prot.setAutoFilter;
 	prot["asc_setPivotTables"] = prot.setPivotTables;
 	prot["asc_setSelectUnlockedCells"] = prot.setSelectUnlockedCells;
+	prot["asc_setPassword"] = prot.asc_setPassword;
+	prot["asc_isPassword"] = prot.asc_isPassword;
+
 
 	window["Asc"].CWorkbookProtection = CWorkbookProtection;
 	prot = CWorkbookProtection.prototype;
