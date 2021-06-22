@@ -8083,7 +8083,9 @@
 				sheetProtection.formatCells = this.stream.GetBool();
 			} else if (c_oSerWorksheetProtection.FormatColumns == type) {
 				sheetProtection.formatColumns = this.stream.GetBool();
-			} else if (c_oSerWorksheetProtection.InsertColumns == type) {
+            } else if (c_oSerWorksheetProtection.FormatRows == type) {
+                sheetProtection.formatRows = this.stream.GetBool();
+            } else if (c_oSerWorksheetProtection.InsertColumns == type) {
 				sheetProtection.insertColumns = this.stream.GetBool();
 			} else if (c_oSerWorksheetProtection.InsertHyperlinks == type) {
 				sheetProtection.insertHyperlinks = this.stream.GetBool();
