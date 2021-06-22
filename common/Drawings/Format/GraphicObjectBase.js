@@ -46,6 +46,7 @@
 
     AscDFH.changesFactory[AscDFH.historyitem_ShapeSetMacro]   = AscDFH.CChangesDrawingsString;
     AscDFH.changesFactory[AscDFH.historyitem_ShapeSetTextLink]   = AscDFH.CChangesDrawingsString;
+    AscDFH.changesFactory[AscDFH.historyitem_ShapeSetModelId]   = AscDFH.CChangesDrawingsString;
 
 
 
@@ -132,6 +133,9 @@
     };
     drawingsChangesMap[AscDFH.historyitem_ShapeSetTextLink]         = function(oClass, value){
         oClass.textLink = value;
+    };
+    drawingsChangesMap[AscDFH.historyitem_ShapeSetModelId]         = function(oClass, value){
+        oClass.modelId = value;
     };
 
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_AutoShapes_SetDrawingBasePos] = CDrawingBaseCoordsWritable;
@@ -397,6 +401,7 @@
         this.locks = 0;
         this.macro = null;
         this.textLink = null;
+        this.modelId = null;
 
         /*Calculated fields*/
         this.posX = null;
@@ -572,6 +577,11 @@
     {
         History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_ShapeSetMacro, this.macro, sMacroName));
         this.macro = sMacroName;
+    };
+    CGraphicObjectBase.prototype.setModelId = function(sModelId)
+    {
+        History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_ShapeSetModelId, this.modelId, sModelId));
+        this.modelId = sModelId;
     };
     CGraphicObjectBase.prototype.assignMacro = function(sGuid)
     {
