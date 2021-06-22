@@ -3745,6 +3745,7 @@
 			this.workbookProtection = new window["Asc"].CWorkbookProtection();
 		}
 		this.workbookProtection.set(props, addToHistory, this);
+		return true;
 	};
 
 	Workbook.prototype.getWorkbookProtection = function (type) {

@@ -5789,10 +5789,13 @@ var editor;
     var t = this;
     var callback = function (res) {
       if (res) {
-        History.Create_NewPoint();
-        History.StartTransaction();
-        t.wbModel.setProtectedWorkbook(props, true);
-        History.EndTransaction();
+		History.Create_NewPoint();
+		History.StartTransaction();
+		if (!t.wbModel.setProtectedWorkbook(props, true)) {
+			t.handlers.trigger("asc_onError", c_oAscError.ID.LockedWorksheetRename, c_oAscError.Level.NoCritical);
+		}
+		t.handlers.trigger("asc_onChangeProtectWorkbook");
+		History.EndTransaction();
       } else {
         //t.handlers.trigger("asc_onError", c_oAscError.ID.LockedWorksheetRename, c_oAscError.Level.NoCritical);
       }
