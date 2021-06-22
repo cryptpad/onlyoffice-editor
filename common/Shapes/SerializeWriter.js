@@ -3612,6 +3612,7 @@ function CBinaryFileWriter()
             oThis.WriteUChar(g_nodeAttributeStart);
             oThis._WriteBool2(0, shape.attrUseBgFill);
             oThis._WriteString2(1, shape.macro);
+            oThis._WriteString2(2, shape.modelId);
             oThis.WriteUChar(g_nodeAttributeEnd);
         }
 
@@ -5592,6 +5593,7 @@ function CBinaryFileWriter()
                 _writer.WriteUChar(g_nodeAttributeStart);
                 _writer._WriteBool2(0, shape.attrUseBgFill);
                 _writer._WriteString2(1, shape.macro);
+                _writer._WriteString2(2, shape.modelId);
                 _writer.WriteUChar(g_nodeAttributeEnd);
             }
 
