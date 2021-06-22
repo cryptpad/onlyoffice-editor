@@ -688,6 +688,9 @@
 		this.revisionsHashValue = "test";
 		this.revisionsSaltValue = "test";
 	};
+	CWorkbookProtection.prototype.asc_isPassword = function (val) {
+		return this.workbookAlgorithmName != null;
+	};
 
 
 	function CProtectedRange(ws) {
@@ -1029,6 +1032,7 @@
 	prot["asc_setWorkbookSaltValue"] = prot.asc_setWorkbookSaltValue;
 	prot["asc_setWorkbookSpinCount"] = prot.asc_setWorkbookSpinCount;
 	prot["asc_setPassword"] = prot.asc_setPassword;
+	prot["asc_isPassword"] = prot.asc_isPassword;
 
 	window["Asc"].CProtectedRange = CProtectedRange;
 	prot = CProtectedRange.prototype;
