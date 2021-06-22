@@ -5721,7 +5721,7 @@ var editor;
     var ws = this.wb.getWorksheet(sheetIndex);
     var res = null;
     if (ws) {
-      if (ws.getSheetProtection()) {
+      if (ws.model.getSheetProtection()) {
         res = true;
       }
     }
