@@ -971,6 +971,15 @@
 	CProtectedRange.prototype.asc_setSpinCount = function (val) {
 		this.spinCount = val;
 	};
+	CProtectedRange.prototype.asc_setPassword = function (val) {
+		//генерируем хэш
+		this.algorithmName = "test";
+		this.saltValue = "test";
+		this.workbookSaltValue = "test";
+	};
+	CProtectedRange.prototype.asc_isPassword = function (val) {
+		return this.algorithmName != null;
+	};
 
 	CProtectedRange.sStartLock = 'protectedRange_';
 
@@ -1062,5 +1071,7 @@
 	prot["asc_setHashValue"] = prot.asc_setHashValue;
 	prot["asc_setSaltValue"] = prot.asc_setSaltValue;
 	prot["asc_setSpinCount"] = prot.asc_setSpinCount;
+	prot["asc_setPassword"] = prot.asc_setPassword;
+	prot["asc_isPassword"] = prot.asc_isPassword;
 
 })(window);
