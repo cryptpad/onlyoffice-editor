@@ -11850,7 +11850,16 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                     }
                     case 5:
                     {
-                        s.SkipRecord();
+                        var oGrFrameDrawing = this.Reader.ReadGrFrame();
+                        if(oGrFrameDrawing && oGrFrameDrawing.getObjectType() === AscDFH.historyitem_type_GroupShape)
+                        {
+                            if(paraDrawing && logicDocument)
+                            {
+                                GrObject = oGrFrameDrawing.convertToWord(logicDocument);
+                                GrObject.setParent(paraDrawing);
+                            }
+                        }
+                        //s.SkipRecord();
                         break;
                     }
                     case 9:
