@@ -46,7 +46,8 @@ function (window, undefined) {
 
 var c_oAscConfirm = {
   ConfirmReplaceRange: 0,
-  ConfirmPutMergeRange: 1
+  ConfirmPutMergeRange: 1,
+  ConfirmChangeProtectRange: 2
 };
 
 var c_oAscMergeOptions = {
@@ -572,6 +573,8 @@ var c_oAscPopUpSelectorType = {
   prot = c_oAscConfirm;
   prot['ConfirmReplaceRange'] = prot.ConfirmReplaceRange;
   prot['ConfirmPutMergeRange'] = prot.ConfirmPutMergeRange;
+  prot['ConfirmChangeProtectRange'] = prot.ConfirmChangeProtectRange;
+
   window['Asc']['c_oAscMergeOptions'] = window['Asc'].c_oAscMergeOptions = c_oAscMergeOptions;
   prot = c_oAscMergeOptions;
   prot['Disabled'] = prot.Disabled;

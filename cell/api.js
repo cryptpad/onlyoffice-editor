@@ -5663,6 +5663,11 @@ var editor;
     }
   };
 
+  spreadsheet_api.prototype.asc_checkProtectedRangesPassword = function (val, data) {
+	  var ws = this.wb.getWorksheet();
+	  return ws.model.checkProtectedRangesPassword(val, data);
+  };
+
   spreadsheet_api.prototype._onCheckProtectedRangeRemoveLock = function (lockElem) {
     //лок правила - с правилом делать ничего нельзя
     //лок менеджера - незалоченное правило можно удалять и редактировать. новые правила добавлять нельзя.
@@ -6344,14 +6349,15 @@ var editor;
 
   prot["asc_getEscapeSheetName"] = prot.asc_getEscapeSheetName;
 
-  prot["asc_getProtectedRanges"]   = prot.asc_getProtectedRanges;
-  prot["asc_setProtectedRanges"]   = prot.asc_setProtectedRanges;
-  prot["asc_getProtectedSheet"]    = prot.asc_getProtectedSheet;
-  prot["asc_setProtectedSheet"]    = prot.asc_setProtectedSheet;
-  prot["asc_isProtectedSheet"]     = prot.asc_isProtectedSheet;
-  prot["asc_getProtectedWorkbook"] = prot.asc_getProtectedWorkbook;
-  prot["asc_setProtectedWorkbook"] = prot.asc_setProtectedWorkbook;
-  prot["asc_isProtectedWorkbook"]  = prot.asc_isProtectedWorkbook;
+  prot["asc_getProtectedRanges"]           = prot.asc_getProtectedRanges;
+  prot["asc_setProtectedRanges"]           = prot.asc_setProtectedRanges;
+  prot["asc_checkProtectedRangesPassword"] = prot.asc_checkProtectedRangesPassword;
+  prot["asc_getProtectedSheet"]            = prot.asc_getProtectedSheet;
+  prot["asc_setProtectedSheet"]            = prot.asc_setProtectedSheet;
+  prot["asc_isProtectedSheet"]             = prot.asc_isProtectedSheet;
+  prot["asc_getProtectedWorkbook"]         = prot.asc_getProtectedWorkbook;
+  prot["asc_setProtectedWorkbook"]         = prot.asc_setProtectedWorkbook;
+  prot["asc_isProtectedWorkbook"]          = prot.asc_isProtectedWorkbook;
 
 
 })(window);

@@ -9855,14 +9855,15 @@
 	};
 
 	Worksheet.prototype.protectedRangesContains = function (c, r) {
+		var res = [];
 		if (this.aProtectedRanges && this.aProtectedRanges.length) {
 			for (var i = 0; i < this.aProtectedRanges.length; i++) {
 				if (this.aProtectedRanges[i].contains(c, r)) {
-					return true;
+					res.push(this.aProtectedRanges[i]);
 				}
 			}
 		}
-		return false;
+		return res.length ? res : null;
 	};
 
 	Worksheet.prototype.protectedRangesContainsRange = function (range) {
@@ -9874,6 +9875,19 @@
 			}
 		}
 		return false;
+	};
+
+	Worksheet.prototype.checkProtectedRangesPassword = function (val, data) {
+		var res = false;
+		if (this.aProtectedRanges && this.aProtectedRanges.length) {
+			for (var i = 0; i < this.aProtectedRanges.length; i++) {
+				if (this.aProtectedRanges[i].asc_isPassword() && this.aProtectedRanges[i].contains(data.c1, data.r1) && this.aProtectedRanges[i].asc_checkPassword(val)) {
+					res = true;
+					break;
+				}
+			}
+		}
+		return res;
 	};
 
 	Worksheet.prototype.getLockedRange = function (range) {

@@ -717,6 +717,8 @@
 
 		this.Id = AscCommon.g_oIdCounter.Get_NewId();
 
+		this._isEnterPassword = null;
+
 		return this;
 	}
 
@@ -989,6 +991,9 @@
 	CProtectedRange.prototype.asc_getIsLock = function () {
 		return this.isLock;
 	};
+	CProtectedRange.prototype.asc_checkPassword = function (val) {
+		return true;
+	};
 
 	CProtectedRange.sStartLock = 'protectedRange_';
 
@@ -1083,5 +1088,6 @@
 	prot["asc_setPassword"] = prot.asc_setPassword;
 	prot["asc_isPassword"] = prot.asc_isPassword;
 	prot["asc_getIsLock"] = prot.asc_getIsLock;
+	prot["asc_checkPassword"] = prot.asc_checkPassword;
 
 })(window);
