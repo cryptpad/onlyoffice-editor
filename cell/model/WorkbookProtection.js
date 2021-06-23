@@ -918,7 +918,32 @@
 		return true;
 	};
 
-	CProtectedRange.prototype.asc_getSqref = function (val) {
+	CProtectedRange.prototype.asc_getSqref = function () {
+		var arrResult = [];
+
+		if (this.sqref) {
+			this.sqref.forEach(function (item) {
+				arrResult.push(item.getAbsName());
+			});
+		}
+		return ["=" + arrResult.join(AscCommon.FormulaSeparators.functionArgumentSeparator)];
+	};
+	CProtectedRange.prototype.asc_getName = function () {
+		return this.name;
+	};
+	CProtectedRange.prototype.asc_getAlgorithmName = function () {
+		return this.algorithmName;
+	};
+	CProtectedRange.prototype.asc_getHashValue = function () {
+		return this.hashValue;
+	};
+	CProtectedRange.prototype.asc_getSaltValue = function () {
+		return this.saltValue;
+	};
+	CProtectedRange.prototype.asc_getSpinCount = function () {
+		return this.spinCount;
+	};
+	CProtectedRange.prototype.asc_setSqref = function (val) {
 		var t = this;
 		if (val) {
 			if (val[0] === "=") {
@@ -936,25 +961,6 @@
 				t.sqref.push(AscCommonExcel.g_oRangeCache.getAscRange(item));
 			});
 		}
-	};
-	CProtectedRange.prototype.asc_getName = function () {
-		return this.name;
-	};
-	CProtectedRange.prototype.asc_getAlgorithmName = function () {
-		return this.algorithmName;
-	};
-	CProtectedRange.prototype.asc_getHashValue = function () {
-		return this.hashValue;
-	};
-	CProtectedRange.prototype.asc_getSaltValue = function () {
-		return this.saltValue;
-	};
-	CProtectedRange.prototype.asc_getSpinCount = function () {
-		return this.spinCount;
-	};
-
-	CProtectedRange.prototype.asc_setSqref = function (val) {
-		this.sqref = val;
 	};
 	CProtectedRange.prototype.asc_setName = function (val) {
 		this.name = val;
