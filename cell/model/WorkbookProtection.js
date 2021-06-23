@@ -980,6 +980,9 @@
 	CProtectedRange.prototype.asc_isPassword = function (val) {
 		return this.algorithmName != null;
 	};
+	CProtectedRange.prototype.asc_getIsLock = function () {
+		return this.isLock;
+	};
 
 	CProtectedRange.sStartLock = 'protectedRange_';
 
@@ -1073,5 +1076,6 @@
 	prot["asc_setSpinCount"] = prot.asc_setSpinCount;
 	prot["asc_setPassword"] = prot.asc_setPassword;
 	prot["asc_isPassword"] = prot.asc_isPassword;
+	prot["asc_getIsLock"] = prot.asc_getIsLock;
 
 })(window);
