@@ -322,7 +322,7 @@ CDocumentSearch.prototype.Check_text_is_special_symbol = function(sStringText, n
 				(sStringText[nK] === 'ꙑ' || sStringText[nK] === 'ꙃ') ? bText = true : bText = false;
 			},
 			'default' : function(){
-				bText = false;
+				(sStringText[nPos] === sStringText[nK]) ? bText = true : bText = false;
 			}
 		};
 		(sLetters1[sStringText[nPos]] || sLetters1['default'])();
@@ -480,6 +480,7 @@ CDocument.prototype.Search = function(sStr, oProps, bDraw)
 {
 	//var StartTime = new Date().getTime();
 	sStr = this.ChangeStrWithSpecialSymbols(sStr);
+	this.CheckCorrectSpecialSymbols(sStr); // this function checking special symbols and if it doesn't exist should do something
     oProps.Word = false; // True только искомое слово, False любое совпадение искомого слова 
 	if (this.SearchEngine.Compare(sStr, oProps))
 		return this.SearchEngine;
@@ -568,6 +569,28 @@ CDocument.prototype.ChangeStrWithSpecialSymbols = function(Str)
 	str = str.replaceAll('^v', el.v);
 	
 	return str;
+};
+CDocument.prototype.CheckCorrectSpecialSymbols = function(Str)
+{
+	var bSpecialSymbols = true;
+	var el = '';
+	for (var i = 0; i < Str.length; i++)
+	{
+		if (Str[i] === '^')
+		{
+			bSpecialSymbols = false;
+			if (el === '')
+			{
+				el = Str[i];
+				((Str[i + 1] !== undefined) ? el += Str[i + 1] : el += '');
+			}
+		}
+	}
+	if (bSpecialSymbols === false)
+	{
+		// do something because special symbol doesn't exist
+	}
+	// return el;
 };
 CDocument.prototype.SelectSearchElement = function(Id)
 {
