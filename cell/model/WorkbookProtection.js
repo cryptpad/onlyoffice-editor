@@ -795,7 +795,7 @@
 			};
 
 			History.Add(AscCommonExcel.g_oUndoRedoProtectedRange, AscCH.historyitem_Protected_SetSqref,
-				ws.getId(), null, new AscCommonExcel.UndoRedoData_CF(this.Id, getUndoRedoRange(this.ranges), getUndoRedoRange(location)));
+				ws.getId(), null, new AscCommonExcel.UndoRedoData_ProtectedRange(this.Id, getUndoRedoRange(this.sqref), getUndoRedoRange(location)));
 		}
 		this.ranges = location;
 	};
@@ -816,20 +816,15 @@
 	};
 
 	CProtectedRange.prototype.Write_ToBinary2 = function(w) {
-
-		/*
-		 2945 <xsd:attribute name="sqref" type="ST_Sqref" use="required"/>
-		 2946 <xsd:attribute name="name" type="s:ST_Xstring" use="required"/>
-		 2947 <xsd:attribute name="algorithmName" type="s:ST_Xstring" use="optional"/>
-		 2948 <xsd:attribute name="hashValue" type="xsd:base64Binary" use="optional"/>
-		 2949 <xsd:attribute name="saltValue" type="xsd:base64Binary" use="optional"/>
-		 2950 <xsd:attribute name="spinCount" type="xsd:unsignedInt" use="optional"/>
-		 2951 </xsd:complexType>
-		 */
-
 		if (null != this.sqref) {
 			w.WriteBool(true);
-			w.WriteString2(this.sqref);
+			w.WriteLong(this.sqref.length);
+			for (var i = 0; i < this.sqref.length; i++) {
+				w.WriteLong(this.sqref[i].r1);
+				w.WriteLong(this.sqref[i].c1);
+				w.WriteLong(this.sqref[i].r2);
+				w.WriteLong(this.sqref[i].c2);
+			}
 		} else {
 			w.WriteBool(false);
 		}
@@ -868,7 +863,17 @@
 
 	CProtectedRange.prototype.Read_FromBinary2 = function(r) {
 		if (r.GetBool()) {
-			this.sqref = r.GetString2();
+			var length = r.GetULong();
+			for (var i = 0; i < length; ++i) {
+				if (!this.sqref) {
+					this.sqref = [];
+				}
+				var r1 = r.GetLong();
+				var c1 = r.GetLong();
+				var r2 = r.GetLong();
+				var c2 = r.GetLong();
+				this.sqref.push(new Asc.Range(c1, r1, c2, r2));
+			}
 		}
 		if (r.GetBool()) {
 			this.name = r.GetString2();
