@@ -2788,8 +2788,8 @@
 	window['AscDFH'].historyitem_ShapeSetSignature      = window['AscDFH'].historyitem_type_Shape | 11;
 	window['AscDFH'].historyitem_ShapeSetMacro          = window['AscDFH'].historyitem_type_Shape | 12;
 	window['AscDFH'].historyitem_ShapeSetTextLink       = window['AscDFH'].historyitem_type_Shape | 13;
-	window['AscDFH'].historyitem_ShapeSetTxXfrm         = window['AscDFH'].historyitem_type_Shape | 14;
-	window['AscDFH'].historyitem_ShapeSetModelId        = window['AscDFH'].historyitem_type_Shape | 15;
+	window['AscDFH'].historyitem_ShapeSetModelId        = window['AscDFH'].historyitem_type_Shape | 14;
+	window['AscDFH'].historyitem_ShapeSetTxXfrm         = window['AscDFH'].historyitem_type_Shape | 15;
 	window['AscDFH'].historyitem_ShapeSetSmartArtPoint  = window['AscDFH'].historyitem_type_Shape | 16;
 
 	window['AscDFH'].historyitem_DispUnitsSetBuiltInUnit  = window['AscDFH'].historyitem_type_DispUnits | 1;

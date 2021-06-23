@@ -3174,6 +3174,11 @@ function (window, undefined) {
 			}
 		} else if (AscCH.historyitem_Worksheet_SetShowZeros === Type) {
 			ws.setShowZeros(bUndo ? Data.from : Data.to);
+		} else if (AscCH.historyitem_Worksheet_SetTopLeftCell === Type) {
+			//накатываем только при открытии
+			if (!bUndo && this.wb.bCollaborativeChanges) {
+				ws.setTopLeftCell(Data.to ? new Asc.Range(Data.to.c1, Data.to.r1, Data.to.c2, Data.to.r2) : null);
+			}
 		}
 	};
 	UndoRedoWoorksheet.prototype.forwardTransformationIsAffect = function (Type) {

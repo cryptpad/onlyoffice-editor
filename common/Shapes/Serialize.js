@@ -6655,6 +6655,15 @@ function BinaryPPTYLoader()
                     shape.setMacro(s.GetString2());
                     break;
                 }
+                case 2:
+                {
+                    var sModelId = s.GetString2();
+                    if(typeof AscFormat.SmartArt !== undefined)
+                    {
+                        shape.setModelId(sModelId);
+                    }
+                    break;
+                }
                 default:
                     break;
             }
@@ -7347,7 +7356,7 @@ function BinaryPPTYLoader()
             return null;
 
         return _chart;
-    }
+    };
 
     this.ReadGrFrame = function()
     {
@@ -7391,6 +7400,7 @@ function BinaryPPTYLoader()
         var _table = null;
         var _chart = null;
         var _slicer = null;
+        var _smartArt = null;
 
         while (s.cur < _end_rec)
         {
@@ -7450,6 +7460,11 @@ function BinaryPPTYLoader()
                     }
                     break;
                 }
+                case 8://smartArt
+                {
+                    _smartArt = this.ReadSmartArt();
+                    break;
+                }
                 default:
                 {
                     s.SkipRecord();
@@ -7461,7 +7476,7 @@ function BinaryPPTYLoader()
         s.Seek2(_end_rec);
 
         this.TempGroupObject = null;
-        if (_table == null && _chart == null && _slicer == null)
+        if (_table == null && _chart == null && _slicer == null && _smartArt == null)
             return null;
 
         if (_table != null)
@@ -7542,9 +7557,103 @@ function BinaryPPTYLoader()
             }
             return _slicer;
         }
+        else if(_smartArt != null)
+        {
+            if(!_smartArt.spPr)
+            {
+                _smartArt.setSpPr(new AscFormat.CSpPr());
+                _smartArt.spPr.setParent(_smartArt);
+            }
+            if(!_xfrm){
+                _xfrm = new AscFormat.CXfrm();
+                _xfrm.setOffX(0);
+                _xfrm.setOffY(0);
+                _xfrm.setExtX(0);
+                _xfrm.setExtY(0);
+            }
+            _smartArt.spPr.setXfrm(_xfrm);
+            _xfrm.setParent(_smartArt.spPr);
+            if(AscCommon.isRealObject(_nvGraphicFramePr) )
+            {
+                _smartArt.setNvSpPr(_nvGraphicFramePr);
+                if(AscFormat.isRealNumber(_nvGraphicFramePr.locks))
+                {
+                    _smartArt.setLocks(_nvGraphicFramePr.locks);
+                }
+            }
+            return _smartArt;
+        }
 
         return _graphic_frame;
-    }
+    };
+
+    this.ReadSmartArt = function()
+    {
+        var _smartArt;
+        if(typeof AscFormat.SmartArt !== "undefined")
+        {
+            _smartArt = new AscFormat.SmartArt();
+            _smartArt.fromPPTY(this);
+        }
+        else
+        {
+            //read drawing part of smartArt as a group
+            var s = this.stream;
+            var _rec_start = s.cur;
+            var _end_rec = _rec_start + s.GetULong() + 4;
+            //no attributes
+            while (s.cur < _end_rec)
+            {
+                var _at = s.GetUChar();
+                switch (_at)
+                {
+                    case 0:
+                    {
+                        //DiagramDrawing
+                        var _rec_start2 = s.cur;
+                        var _end_rec2 = _rec_start2 + s.GetULong() + 4;
+                        while (s.cur < _end_rec2)
+                        {
+                            var _at2 = s.GetUChar();
+                            switch (_at2)
+                            {
+                                case 0:
+                                {
+                                    //_smartArt = this.ReadGroupShape();
+                                   var shapes = this.ReadGroupShapeMain();
+                                    _smartArt = new AscFormat.CGroupShape();
+                                    _smartArt.setBDeleted(false);
+                                    for(var nSp = 0; nSp < shapes.length; ++nSp)
+                                    {
+                                        var oSp = shapes[nSp];
+                                        _smartArt.addToSpTree(undefined, oSp);
+                                        oSp.setGroup(_smartArt);
+                                    }
+
+                                    _smartArt.setParent(this.TempMainObject == null ? this.ParaDrawing : null);
+                                    break;
+                                }
+                                default:
+                                {
+                                    s.SkipRecord();
+                                    break;
+                                }
+                            }
+                        }
+                        s.Seek2(_end_rec2);
+                        break;
+                    }
+                    default:
+                    {
+                        s.SkipRecord();
+                        break;
+                    }
+                }
+            }
+        }
+        s.Seek2(_end_rec);
+        return _smartArt;
+    };
 
     this.ReadNvUniProp = function(drawing)
     {
@@ -11741,7 +11850,16 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                     }
                     case 5:
                     {
-                        s.SkipRecord();
+                        var oGrFrameDrawing = this.Reader.ReadGrFrame();
+                        if(oGrFrameDrawing && oGrFrameDrawing.getObjectType() === AscDFH.historyitem_type_GroupShape)
+                        {
+                            if(paraDrawing && logicDocument)
+                            {
+                                GrObject = oGrFrameDrawing.convertToWord(logicDocument);
+                                GrObject.setParent(paraDrawing);
+                            }
+                        }
+                        //s.SkipRecord();
                         break;
                     }
                     case 9:
@@ -12006,6 +12124,15 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                     case 1:
                     {
                         shape.setMacro(s.GetString2());
+                        break;
+                    }
+                    case 2:
+                    {
+                        var sModelId = s.GetString2();
+                        if(typeof AscFormat.SmartArt !== undefined)
+                        {
+                            shape.setModelId(sModelId);
+                        }
                         break;
                     }
                     default:
