@@ -928,7 +928,7 @@
 				arrResult.push(item.getAbsName());
 			});
 		}
-		return ["=" + arrResult.join(AscCommon.FormulaSeparators.functionArgumentSeparator)];
+		return "=" + arrResult.join(AscCommon.FormulaSeparators.functionArgumentSeparator);
 	};
 	CProtectedRange.prototype.asc_getName = function () {
 		return this.name;
