@@ -722,6 +722,14 @@
 		return this;
 	}
 
+	CProtectedRange.prototype.Get_Id = function () {
+		return this.Id;
+	};
+
+	CProtectedRange.prototype.getType = function () {
+		return AscCommonExcel.UndoRedoDataTypes.ProtectedRangeDataInner;
+	};
+
 	CProtectedRange.prototype.clone = function(ws) {
 		var res = new CProtectedRange(ws);
 

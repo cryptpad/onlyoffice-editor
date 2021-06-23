@@ -443,6 +443,7 @@ function (window, undefined) {
 		this.CFormulaCF = 153;
 
 		this.ProtectedRangeData = 160;
+		this.ProtectedRangeDataInner = 161;
 
 		this.Create = function (nType) {
 			switch (nType) {
@@ -635,6 +636,8 @@ function (window, undefined) {
 					return new AscCommonExcel.CFormulaCF();
 				case this.ProtectedRangeData:
 					return new AscCommonExcel.UndoRedoData_ProtectedRange();
+				case this.ProtectedRangeDataInner:
+					return new Asc.CProtectedRange();
 			}
 			return null;
 		};
