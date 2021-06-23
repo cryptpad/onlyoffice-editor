@@ -3854,10 +3854,10 @@
 				this.memory.WriteString2(oProtectedRange.name);
 			}
 
-			if (null != oProtectedRange.sqRef) {
+			if (null != oProtectedRange.sqref) {
 				this.memory.WriteByte(c_oSerProtectedRangeTypes.SqRef);
 				this.memory.WriteByte(c_oSerPropLenType.Variable);
-				var sqRef = getSqRefString(oProtectedRange.sqRef);
+				var sqRef = getSqRefString(oProtectedRange.sqref);
 				this.memory.WriteString2(sqRef);
 			}
 
