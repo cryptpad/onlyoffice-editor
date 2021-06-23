@@ -5765,7 +5765,7 @@ var editor;
       if (wb.workbookProtection) {
         res = wb.workbookProtection.clone();
       } else {
-        res = asc.CWorkbookProtection();
+        res = new asc.CWorkbookProtection();
       }
     }
     return res;
