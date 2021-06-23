@@ -951,8 +951,11 @@
 			if (val[0] === "=") {
 				val = val.slice(1);
 			}
-			val = val.split(",");
 			this.sqref = [];
+			if (!val) {
+				return;
+			}
+			val = val.split(",");
 			val.forEach(function (item) {
 				if (-1 !== item.indexOf("!")) {
 					var is3DRef = AscCommon.parserHelp.parse3DRef(item);
