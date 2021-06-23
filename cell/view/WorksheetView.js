@@ -21832,7 +21832,7 @@
 		this._isLockedCF(callback, lockArr);
 	};
 
-	WorksheetView.prototype.setProtectedRanges = function (arr, deleteIdArr) {
+	WorksheetView.prototype.setProtectedRanges = function (arr, deleteArr) {
 		var t = this;
 
 		var callback = function (success) {
@@ -21858,11 +21858,19 @@
 			History.EndTransaction();
 		};
 
+		var i;
+		var deleteIdArr;
+		if (deleteArr) {
+			deleteIdArr = [];
+			for (i = 0; i < deleteArr.length; i++) {
+				deleteIdArr.push(deleteArr[i].Id);
+			}
+		}
 
 		var unitedArr = [];
 		if (arr) {
-			for (var i = 0; i < arr.length; i++) {
-				unitedArr.push(arr[i].id);
+			for (i = 0; i < arr.length; i++) {
+				unitedArr.push(arr[i].Id);
 			}
 		}
 		if (deleteIdArr && deleteIdArr.length) {

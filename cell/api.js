@@ -5603,13 +5603,13 @@ var editor;
     }
   };
 
-  spreadsheet_api.prototype.asc_setProtectedRanges = function (arr, deleteIdArr) {
+  spreadsheet_api.prototype.asc_setProtectedRanges = function (arr, deleteArr) {
     if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
       return false;
     }
 
     var ws = this.wb.getWorksheet();
-    ws.setProtectedRanges(arr, deleteIdArr);
+    ws.setProtectedRanges(arr, deleteArr);
   };
 
   spreadsheet_api.prototype._onUpdateProtectedRangesLock = function (lockElem) {
