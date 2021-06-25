@@ -6525,31 +6525,26 @@
 			nRow = 1;
 		if (nCol == undefined)
 			nCol = 1;
-		if(!(oCell instanceof ApiTableCell) || nCol <= 0 || nRow <= 0)
-			return null;
-		var CellVMergeCount = this.Table.GetVMergeCount(oCell.Cell.GetIndex(), oCell.Cell.Row.GetIndex());
-		if (CellVMergeCount > 1 && CellVMergeCount < nRow)
-			return null;
 
-		this.Table.Recalculate_Grid();
-		var Grid_start = oCell.Cell.GetRow().Get_CellInfo( oCell.Cell.GetIndex()).StartGridCol;
-		var Grid_span  = oCell.Cell.Get_GridSpan();
-		var Sum_before = this.Table.TableSumGrid[Grid_start - 1];
-		var Sum_with   = this.Table.TableSumGrid[Grid_start + Grid_span - 1];
-		var Span_width = Sum_with - Sum_before;
-		var Grid_width = Span_width / nCol;
-
-		var CellSpacing = oCell.Cell.GetRow().Get_CellSpacing();
-		var CellMar     = oCell.Cell.GetMargins();
-
-		var MinW = CellSpacing + CellMar.Right.W + CellMar.Left.W;
-
-		if (Grid_width < MinW)
+		if (!(oCell instanceof ApiTableCell) || nCol <= 0 || nRow <= 0)
 			return null;
 
 		this.Table.RemoveSelection();
 		this.Table.Set_CurCell(oCell.Cell);
-		this.Table.SplitTableCells(nCol, nRow);
+		this.Table.SelectTable(c_oAscTableSelectionType.Cell);
+
+		if (!this.Table.CanSplitTableCells())
+			return null;
+
+		if (!this.Table.IsRecalculated())
+		{
+			// Reset делаем для случая, когда таблица вообще ни разу не пересчитывалась
+			this.Table.Reset(0, 0, 100, 100, 0, 0, 1);
+			this.Table.Recalculate_Grid();
+		}
+
+		if (!this.Table.SplitTableCells(nCol, nRow, false))
+			return null;
 
 		return this;
 	};

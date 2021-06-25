@@ -9184,9 +9184,12 @@ CTable.prototype.MergeTableCells = function(isClearMerge)
 };
 /**
  * Разделяем текущую ячейку
+ * @param Cols {number}
+ * @param Rows {number}
+ * @param [isFailureEvents=true] {boolean}
  * @returns {boolean}
  */
-CTable.prototype.SplitTableCells = function(Cols, Rows)
+CTable.prototype.SplitTableCells = function(Cols, Rows, isFailureEvents)
 {
 	var bApplyToInnerTable = false;
 	if (false === this.Selection.Use || ( true === this.Selection.Use && table_Selection_Text === this.Selection.Type ))
@@ -9214,7 +9217,7 @@ CTable.prototype.SplitTableCells = function(Cols, Rows)
 	else
 	{
 		Cell_pos = this.Selection.Data[0];
-		Cell     = this.Content[Cell_pos.Row].Get_Cell(Cell_pos.Cell);
+		Cell     = this.GetRow(Cell_pos.Row).GetCell(Cell_pos.Cell);
 	}
 
 	var Row = this.Content[Cell_pos.Row];
@@ -9234,24 +9237,30 @@ CTable.prototype.SplitTableCells = function(Cols, Rows)
 	{
 		if (Rows > VMerge_count)
 		{
-			// Сообщение об ошибке : "Value Rows must be between 1 and " + VMerge_count
-			var ErrData = new AscCommon.CErrorData();
-			ErrData.put_Value(VMerge_count);
-			editor.sendEvent("asc_onError", c_oAscError.ID.SplitCellMaxRows, c_oAscError.Level.NoCritical, ErrData);
+			if (false !== isFailureEvents)
+			{
+				// Сообщение об ошибке : "Value Rows must be between 1 and " + VMerge_count
+				var ErrData = new AscCommon.CErrorData();
+				ErrData.put_Value(VMerge_count);
+				editor.sendEvent("asc_onError", c_oAscError.ID.SplitCellMaxRows, c_oAscError.Level.NoCritical, ErrData);
+			}
 			return false;
 		}
 		else if (0 != VMerge_count % Rows)
 		{
-			// Сообщение об ошибке : "Value must be a divisor of the number " + VMerge_count
-			var ErrData = new AscCommon.CErrorData();
-			ErrData.put_Value(VMerge_count);
-			editor.sendEvent("asc_onError", c_oAscError.ID.SplitCellRowsDivider, c_oAscError.Level.NoCritical, ErrData);
+			if (false !== isFailureEvents)
+			{
+				// Сообщение об ошибке : "Value must be a divisor of the number " + VMerge_count
+				var ErrData = new AscCommon.CErrorData();
+				ErrData.put_Value(VMerge_count);
+				editor.sendEvent("asc_onError", c_oAscError.ID.SplitCellRowsDivider, c_oAscError.Level.NoCritical, ErrData);
+			}
 			return false;
 		}
 	}
 
 	// Сделаем оценку макимального количества колонок
-	if (Cols > 1)
+	if (this.IsRecalculated())
 	{
 		var Sum_before = this.TableSumGrid[Grid_start - 1];
 		var Sum_with   = this.TableSumGrid[Grid_start + Grid_span - 1];
@@ -9266,12 +9275,14 @@ CTable.prototype.SplitTableCells = function(Cols, Rows)
 
 		if (Grid_width < MinW)
 		{
-			var MaxCols = Math.floor(Span_width / MinW);
-
-			// Сообщение об ошибке : "Value Cols must be a between 1 and " + MaxCols
-			var ErrData = new AscCommon.CErrorData();
-			ErrData.put_Value(MaxCols);
-			editor.sendEvent("asc_onError", c_oAscError.ID.SplitCellMaxCols, c_oAscError.Level.NoCritical, ErrData);
+			if (false !== isFailureEvents)
+			{
+				var MaxCols = Math.floor(Span_width / MinW);
+				// Сообщение об ошибке : "Value Cols must be a between 1 and " + MaxCols
+				var ErrData = new AscCommon.CErrorData();
+				ErrData.put_Value(MaxCols);
+				editor.sendEvent("asc_onError", c_oAscError.ID.SplitCellMaxCols, c_oAscError.Level.NoCritical, ErrData);
+			}
 			return false;
 		}
 	}
@@ -9450,6 +9461,10 @@ CTable.prototype.SplitTableCells = function(Cols, Rows)
 		// Добавим в данной строке (Cols - 1) ячеек, с теми же настроками,
 		// что и исходной. Значение GridSpan мы берем из массива Grid_Info_new
 
+		var oCellW = Cell.GetW().Copy();
+		if (!oCellW.IsAuto())
+			oCellW.SetValue(oCellW.GetValue() / Cols);
+
 		for (var Index2 = 0; Index2 < Rows_.length; Index2++)
 		{
 			if (null != Cells[Index2] && null != Cells_pos[Index2])
@@ -9458,15 +9473,15 @@ CTable.prototype.SplitTableCells = function(Cols, Rows)
 				var TempCell     = Cells[Index2];
 				var TempCell_pos = Cells_pos[Index2];
 
-				TempCell.Set_GridSpan(Grid_Info_new[0]);
-				TempCell.Set_W(new CTableMeasurement(tblwidth_Mm, Grid_width));
+				TempCell.SetGridSpan(Grid_Info_new[0]);
+				TempCell.SetW(oCellW.Copy());
 
 				for (var Index = 1; Index < Cols; Index++)
 				{
 					var NewCell = TempRow.Add_Cell(TempCell_pos.Cell + Index, TempRow, null, false);
 					NewCell.Copy_Pr(TempCell.Pr);
-					NewCell.Set_GridSpan(Grid_Info_new[Index]);
-					NewCell.Set_W(new CTableMeasurement(tblwidth_Mm, Grid_width));
+					NewCell.SetGridSpan(Grid_Info_new[Index]);
+					NewCell.SetW(oCellW.Copy());
 					NewCell.CopyParaPrAndTextPr(TempCell);
 				}
 			}
