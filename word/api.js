@@ -8067,6 +8067,24 @@ background-repeat: no-repeat;\
 			this.WordControl.OnResize(true);
 		}
 	};
+	asc_docs_api.prototype.asc_setViewModeTemp = function(isViewMode)
+	{
+		this.isViewMode = !!isViewMode;
+		if (isViewMode)
+		{
+			AscCommon.CollaborativeEditing.Set_GlobalLock(true);
+			this.viewModeStash = {ShowParaMarks: this.get_ShowParaMarks(), m_bIsRuler: this.asc_GetViewRulers()};
+			this.put_ShowParaMarks(false);
+			this.asc_SetViewRulers(false);
+		}
+		else if(this.viewModeStash)
+		{
+			AscCommon.CollaborativeEditing.Set_GlobalLock(false);
+			this.put_ShowParaMarks(this.viewModeStash.ShowParaMarks);
+			this.asc_SetViewRulers(this.viewModeStash.m_bIsRuler);
+			this.viewModeStash = null;
+		}
+	};
 
 	asc_docs_api.prototype.OnMouseUp = function(x, y)
 	{

@@ -879,6 +879,10 @@ var editor;
       this.collaborativeEditing.setViewerMode(isViewMode);
     }
   };
+	spreadsheet_api.prototype.asc_setViewModeTemp = function (isViewMode) {
+		this.viewModeStash = isViewMode ? {} : null;
+		return this.asc_setViewMode(isViewMode);
+	};
 
 	  spreadsheet_api.prototype.asc_setFilteringMode = function (mode) {
 		  window['AscCommonExcel'].filteringMode = !!mode;

@@ -304,7 +304,8 @@
 		ForceSaveButton   : 16,
 		ForceSaveTimeout  : 17,
 		Waiting	: 18,
-		Submit : 19
+		Submit : 19,
+		Disconnect :20
 	};
 
 	var c_oAscAdvancedOptionsID = {
