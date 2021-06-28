@@ -1524,6 +1524,9 @@
         return this.hit(x, y);
     };
     CGraphicObjectBase.prototype.drawLocks = function(transform, graphics){
+        if(AscCommon.IsShapeToImageConverter) {
+            return;
+        }
         var bNotes = !!(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES);
         if(!this.group && !bNotes)
         {
@@ -2102,10 +2105,10 @@
     };
     CGraphicObjectBase.prototype.getBoundsByDrawing = function() {
         var oCopy = this.bounds.copy();
-        oCopy.l -= 5;
-        oCopy.r += 5;
-        oCopy.t -= 5;
-        oCopy.b += 5;
+        oCopy.l -= 1;
+        oCopy.r += 1;
+        oCopy.t -= 1;
+        oCopy.b += 1;
         oCopy.checkWH();
         return oCopy;//TODO: do not count shape rect
     };
