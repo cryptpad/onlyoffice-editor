@@ -60,7 +60,6 @@
 		this.isEmbedVersion = (config['embedded'] === true);
 
 		this.isViewMode = false;
-		this.viewModeStash = null;
 		this.restrictions = Asc.c_oAscRestrictionType.None;
 
 		this.FontLoader  = null;
@@ -536,9 +535,6 @@
 	baseEditorsApi.prototype.asc_setViewMode                 = function()
 	{
 	};
-	baseEditorsApi.prototype.asc_setViewModeTemp             = function()
-	{
-	};
 	baseEditorsApi.prototype.asc_setRestriction              = function(val)
 	{
 		this.restrictions = val;
@@ -547,10 +543,6 @@
 	baseEditorsApi.prototype.getViewMode                     = function()
 	{
 		return this.isViewMode;
-	};
-	baseEditorsApi.prototype.getViewModePermanant            = function()
-	{
-		return this.isViewMode && !this.viewModeStash;
 	};
 	baseEditorsApi.prototype.asc_addRestriction              = function(val)
 	{
@@ -1067,10 +1059,9 @@
 			t.sendEvent('asc_onCoAuthoringChatReceiveMessage', e, clear);
 		};
 		this.CoAuthoringApi.onServerVersion = function (buildVersion, buildNumber) {
-
-			if (t.viewModeStash) {
+			if (t.isRestrictionView()) {
 				t.sync_EndAction(Asc.c_oAscAsyncActionType.Information, Asc.c_oAscAsyncAction.Disconnect);
-				t.asc_setViewModeTemp(false);
+				t.asc_removeRestriction(Asc.c_oAscRestrictionType.View);
 			}
 
 			t.sendEvent('asc_onServerVersion', buildVersion, buildNumber);
@@ -1102,7 +1093,7 @@
 				t._onEndPermissions();
 			} else {
 				if (t.CoAuthoringApi.get_isAuth()) {
-					t.CoAuthoringApi.auth(t.getViewModePermanant(), undefined, t.isIdle());
+					t.CoAuthoringApi.auth(t.getViewMode(), undefined, t.isIdle());
 				} else {
 					//первый запрос или ответ не дошел надо повторить открытие
 					t.asc_LoadDocument(undefined, true);
@@ -1261,17 +1252,17 @@
 				t.asyncServerIdEndLoaded();
 			}
 			if (null != opt_closeCode) {
-				if (t.viewModeStash) {
+				if (t.isRestrictionView()) {
 					t.sync_EndAction(Asc.c_oAscAsyncActionType.Information, Asc.c_oAscAsyncAction.Disconnect);
-					t.asc_setViewModeTemp(false);
+					t.asc_removeRestriction(Asc.c_oAscRestrictionType.View);
 				}
 				var error = AscCommon.getDisconnectErrorCode(t.isDocumentLoadComplete, opt_closeCode);
 				var level = t.isDocumentLoadComplete ? Asc.c_oAscError.Level.NoCritical : Asc.c_oAscError.Level.Critical;
 				t.setViewModeDisconnect(AscCommon.getEnableDownloadByCloseCode(opt_closeCode));
 				t.sendEvent('asc_onError', error, level);
-			} else if (!t.viewModeStash) {
+			} else if (!t.isRestrictionView()) {
 				t.sync_StartAction(Asc.c_oAscAsyncActionType.Information, Asc.c_oAscAsyncAction.Disconnect);
-				t.asc_setViewModeTemp(true);
+				t.asc_addRestriction(Asc.c_oAscRestrictionType.View);
 			}
 		};
 		this.CoAuthoringApi.onDocumentOpen = function (inputWrap) {
