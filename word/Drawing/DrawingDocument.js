@@ -1862,209 +1862,37 @@ function CPage()
 	}
 }
 
-function CDrawingCollaborativeTarget()
+function CDrawingCollaborativeTarget(DrawingDocument)
 {
-	this.Id = "";
-	this.ShortId = "";
-
-	this.X = 0;
-	this.Y = 0;
-	this.Size = 0;
+	AscCommon.CDrawingCollaborativeTargetBase.call(this);
+	this.DrawingDocument = DrawingDocument;
 	this.Page = -1;
-
-	this.Color = null;
-	this.Transform = null;
-
-	this.HtmlElement = null;
-	this.HtmlElementX = 0;
-	this.HtmlElementY = 0;
-
-	this.Color = null;
-
-	this.Style = "";
-	this.IsInsertToDOM = false;
 }
-CDrawingCollaborativeTarget.prototype =
+CDrawingCollaborativeTarget.prototype = Object.create(AscCommon.CDrawingCollaborativeTargetBase.prototype);
+CDrawingCollaborativeTarget.prototype.GetZoom = function()
 {
-	CheckPosition: function (_drawing_doc, _x, _y, _size, _page, _transform)
-	{
-		// 1) создаем новый элемент, если еще его не было
-		var bIsHtmlElementCreate = false;
-		if (this.HtmlElement == null)
-		{
-			bIsHtmlElementCreate = true;
-			this.HtmlElement = document.createElement('canvas');
-			this.HtmlElement.style.cssText = "pointer-events: none;position:absolute;padding:0;margin:0;-webkit-user-select:none;width:1px;height:1px;display:block;z-index:3;";
-			this.HtmlElement.width = 1;
-			this.HtmlElement.height = 1;
-
-			this.Color = AscCommon.getUserColorById(this.ShortId, null, true);
-			this.Style = "rgb(" + this.Color.r + "," + this.Color.g + "," + this.Color.b + ")";
-		}
-
-		// 2) определяем размер
-		this.Transform = _transform;
-		this.Size = _size;
-
-		var _old_x = this.X;
-		var _old_y = this.Y;
-		var _old_page = this.Page;
-
-		this.X = _x;
-		this.Y = _y;
-		this.Page = _page;
-
-		var _oldW = this.HtmlElement.width;
-		var _oldH = this.HtmlElement.height;
-
-		var _newW = 2;
-		var _newH = (this.Size * _drawing_doc.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100) >> 0;
-
-		if (null != this.Transform && !global_MatrixTransformer.IsIdentity2(this.Transform))
-		{
-			var _x1 = this.Transform.TransformPointX(_x, _y);
-			var _y1 = this.Transform.TransformPointY(_x, _y);
-
-			var _x2 = this.Transform.TransformPointX(_x, _y + this.Size);
-			var _y2 = this.Transform.TransformPointY(_x, _y + this.Size);
-
-			var pos1 = _drawing_doc.ConvertCoordsToCursor2(_x1, _y1, this.Page);
-			var pos2 = _drawing_doc.ConvertCoordsToCursor2(_x2, _y2, this.Page);
-
-			_newW = (Math.abs(pos1.X - pos2.X) >> 0) + 1;
-			_newH = (Math.abs(pos1.Y - pos2.Y) >> 0) + 1;
-
-			if (2 > _newW)
-				_newW = 2;
-			if (2 > _newH)
-				_newH = 2;
-
-			if (_oldW == _newW && _oldH == _newH)
-			{
-				if (_newW != 2 && _newH != 2)
-				{
-					// просто очищаем
-					this.HtmlElement.width = _newW;
-				}
-			}
-			else
-			{
-				this.HtmlElement.style.width = _newW + "px";
-				this.HtmlElement.style.height = _newH + "px";
-
-				this.HtmlElement.width = _newW;
-				this.HtmlElement.height = _newH;
-			}
-			var ctx = this.HtmlElement.getContext('2d');
-
-			if (_newW == 2 || _newH == 2)
-			{
-				ctx.fillStyle = this.Style;
-				ctx.fillRect(0, 0, _newW, _newH);
-			}
-			else
-			{
-				ctx.beginPath();
-				ctx.strokeStyle = this.Style;
-				ctx.lineWidth = 2;
-
-				if (((pos1.X - pos2.X) * (pos1.Y - pos2.Y)) >= 0)
-				{
-					ctx.moveTo(0, 0);
-					ctx.lineTo(_newW, _newH);
-				}
-				else
-				{
-					ctx.moveTo(0, _newH);
-					ctx.lineTo(_newW, 0);
-				}
-
-				ctx.stroke();
-			}
-
-			this.HtmlElementX = Math.min(pos1.X, pos2.X) >> 0;
-			this.HtmlElementY = Math.min(pos1.Y, pos2.Y) >> 0;
-			if ((!_drawing_doc.m_oWordControl.MobileTouchManager && !AscCommon.AscBrowser.isSafariMacOs) || !AscCommon.AscBrowser.isWebkit)
-			{
-				this.HtmlElement.style.left = this.HtmlElementX + "px";
-				this.HtmlElement.style.top = this.HtmlElementY + "px";
-			}
-			else
-			{
-				this.HtmlElement.style.left = "0px";
-				this.HtmlElement.style.top = "0px";
-				this.HtmlElement.style["webkitTransform"] = "matrix(1, 0, 0, 1, " + this.HtmlElementX + "," + this.HtmlElementY + ")";
-			}
-		}
-		else
-		{
-			if (_oldW == _newW && _oldH == _newH)
-			{
-				// просто очищаем
-				this.HtmlElement.width = _newW;
-			}
-			else
-			{
-				this.HtmlElement.style.width = _newW + "px";
-				this.HtmlElement.style.height = _newH + "px";
-
-				this.HtmlElement.width = _newW;
-				this.HtmlElement.height = _newH;
-			}
-
-			var ctx = this.HtmlElement.getContext('2d');
-
-			ctx.fillStyle = this.Style;
-			ctx.fillRect(0, 0, _newW, _newH);
-
-			if (null != this.Transform)
-			{
-				_x += this.Transform.tx;
-				_y += this.Transform.ty;
-			}
-
-			var pos = _drawing_doc.ConvertCoordsToCursor2(_x, _y, this.Page);
-
-			this.HtmlElementX = pos.X >> 0;
-			this.HtmlElementY = pos.Y >> 0;
-
-			if ((!_drawing_doc.m_oWordControl.MobileTouchManager && !AscCommon.AscBrowser.isSafariMacOs) || !AscCommon.AscBrowser.isWebkit)
-			{
-				this.HtmlElement.style.left = this.HtmlElementX + "px";
-				this.HtmlElement.style.top = this.HtmlElementY + "px";
-			}
-			else
-			{
-				this.HtmlElement.style.left = "0px";
-				this.HtmlElement.style.top = "0px";
-				this.HtmlElement.style["webkitTransform"] = "matrix(1, 0, 0, 1, " + this.HtmlElementX + "," + this.HtmlElementY + ")";
-			}
-		}
-
-		if (AscCommon.CollaborativeEditing)
-			AscCommon.CollaborativeEditing.Update_ForeignCursorLabelPosition(this.Id, this.HtmlElementX, this.HtmlElementY, this.Color);
-
-		// 3) добавить, если нужно
-		if (bIsHtmlElementCreate)
-		{
-			_drawing_doc.m_oWordControl.m_oMainView.HtmlElement.appendChild(this.HtmlElement);
-			this.IsInsertToDOM = true;
-		}
-	},
-
-	Remove: function (_drawing_doc)
-	{
-		if (this.IsInsertToDOM)
-		{
-			_drawing_doc.m_oWordControl.m_oMainView.HtmlElement.removeChild(this.HtmlElement);
-			this.IsInsertToDOM = false;
-		}
-	},
-
-	Update: function (_drawing_doc)
-	{
-		this.CheckPosition(_drawing_doc, this.X, this.Y, this.Size, this.Page, this.Transform);
-	}
+	return this.DrawingDocument.m_oWordControl.m_nZoomValue / 100;
+};
+CDrawingCollaborativeTarget.prototype.ConvertCoords = function(x, y)
+{
+	return this.DrawingDocument.ConvertCoordsToCursor2(x, y, this.Page);
+};
+CDrawingCollaborativeTarget.prototype.GetMobileTouchManager = function()
+{
+	return this.DrawingDocument.m_oWordControl.MobileTouchManager;
+};
+CDrawingCollaborativeTarget.prototype.GetParentElement = function()
+{
+	return this.DrawingDocument.m_oWordControl.m_oMainView.HtmlElement;
+};
+CDrawingCollaborativeTarget.prototype.CheckPosition = function(_x, _y, _size, _page, _transform)
+{
+	this.Transform = _transform;
+	this.Size = _size;
+	this.X = _x;
+	this.Y = _y;
+	this.Page = _page;
+	this.Update();
 };
 
 function CDrawingDocument()
@@ -2168,7 +1996,6 @@ function CDrawingDocument()
 	this.LastDrawingUrl = "";
 
 	this.GuiCanvasTextProps = null;
-	this.GuiCanvasTextPropsId = "gui_textprops_canvas_id";
 	this.GuiLastTextProps = null;
 
 	this.GuiCanvasFillTOCParentId = "";
@@ -3897,16 +3724,6 @@ function CDrawingDocument()
 		var _r = (drPage.left + dKoefX * this.FrameRect.Rect.R) * rPR;
 		var _b = (drPage.top + dKoefY * this.FrameRect.Rect.B) * rPR;
 
-		if (_x < overlay.min_x)
-			overlay.min_x = _x;
-		if (_r > overlay.max_x)
-			overlay.max_x = _r;
-
-		if (_y < overlay.min_y)
-			overlay.min_y = _y;
-		if (_b > overlay.max_y)
-			overlay.max_y = _b;
-
 		var ctx = overlay.m_oContext;
 		ctx.strokeStyle = "#939393";
 		ctx.lineWidth = Math.round(rPR);
@@ -3939,6 +3756,9 @@ function CDrawingDocument()
 		ctx.fillStyle = "#777777";
 		ctx.fill();
 		ctx.beginPath();
+
+		overlay.CheckPoint(_x - _wc, _y - _wc);
+		overlay.CheckPoint(_r + _wc, _b + _wc);
 
 		// move
 		if (this.FrameRect.IsTracked)
@@ -4529,7 +4349,7 @@ function CDrawingDocument()
 		if (this.IsTextMatrixUse && this.IsTextSelectionOutline)
 		{
 			ctx.strokeStyle = "#9ADBFE";
-			ctx.lineWidth = Math.round(window.devicePixelRatio);
+			ctx.lineWidth = Math.round(AscCommon.AscBrowser.retinaPixelRatio);
 			ctx.globalAlpha = 1.0;
 			ctx.stroke();
 		}
@@ -4566,7 +4386,7 @@ function CDrawingDocument()
 			var _h = _b - _y + 1;
 
 			this.Overlay.CheckRect(rPR * _x, rPR * _y, rPR * _w, rPR * _h);
-			this.Overlay.m_oContext.rect(rPR * _x, rPR *_y, _w * rPR, _h * rPR);
+			this.Overlay.m_oContext.rect((rPR * _x) >> 0, (rPR *_y) >> 0, (_w * rPR) >> 0, (_h * rPR) >> 0);
 			// this.Overlay.
 		}
 		else
@@ -5371,9 +5191,9 @@ function CDrawingDocument()
 	};
 
 	// вот здесь весь трекинг
-	this.DrawTrack = function (type, matrix, left, top, width, height, isLine, canRotate, isNoMove)
+	this.DrawTrack = function (type, matrix, left, top, width, height, isLine, canRotate, isNoMove, isDrawHandles)
 	{
-		this.AutoShapesTrack.DrawTrack(type, matrix, left, top, width, height, isLine, canRotate, isNoMove);
+		this.AutoShapesTrack.DrawTrack(type, matrix, left, top, width, height, isLine, canRotate, isNoMove, isDrawHandles);
 	};
 
 	this.DrawTrackSelectShapes = function (x, y, w, h)
@@ -6532,13 +6352,11 @@ function CDrawingDocument()
             	parent.appendChild(canvas);
 		}
 
-		canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
-        canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
+		AscCommon.calculateCanvasSize(canvas, undefined, true);
+        canvas.width = canvas.width;
 
         var ctx = canvas.getContext("2d");
-
-        if (AscCommon.AscBrowser.retinaPixelRatio >= 2)
-        	ctx.setTransform(2, 0, 0, 2, 0, 0);
+        var rPR = AscCommon.AscBrowser.retinaPixelRatio;
 
         var offset = 10;
         var page_width_mm = props.W;
@@ -6605,29 +6423,47 @@ function CDrawingDocument()
 
 		ctx.fillStyle = "#FFFFFF";
         ctx.strokeStyle = "#000000";
-        ctx.lineWidth = 1;
+        var lineW = Math.round(rPR);
+        ctx.lineWidth = lineW;
+		var indent = 0.5 * Math.round(rPR);
+
+		var __move = function(ctx, x, y, is_vert) {
+			ctx.moveTo(((x * rPR) >> 0) + (is_vert ? indent : 0), ((y * rPR) >> 0) + (is_vert ? 0 : indent));
+		};
+		var __line = function(ctx, x, y, is_vert) {
+			ctx.lineTo(((x * rPR) >> 0) + (is_vert ? indent : 0), ((y * rPR) >> 0) + (is_vert ? 0 : indent));
+		};
+		var __rect = function(ctx, x, y, w, h, indent) {
+			indent = (undefined === indent) ? 0 : indent;
+			ctx.rect(((x * rPR) >> 0) + indent, ((y * rPR) >> 0) + indent, (w * rPR) >> 0, (h * rPR) >> 0);
+		};
+
         for (var page = 0; page < pageRects.length; page++)
 		{
 			// page
 			ctx.beginPath();
-			ctx.rect(pageRects[page].X + 0.5, pageRects[page].Y + 0.5, pageRects[page].W, pageRects[page].H);
+			__rect(ctx, pageRects[page].X, pageRects[page].Y, pageRects[page].W, pageRects[page].H);
 			ctx.fill();
+
+			ctx.beginPath();
+			__rect(ctx, pageRects[page].X, pageRects[page].Y, pageRects[page].W, pageRects[page].H, indent);
 			ctx.stroke();
+			ctx.beginPath();
 
 			// gutter
 			if (gutterSize > 0)
 			{
-                ctx.setLineDash([2, 2]);
+                ctx.setLineDash([Math.round(2 * rPR), Math.round(2 * rPR)]);
                 var gutterEvenOdd = 0;
 				switch (gutterPos)
 				{
 					case 0:
 					{
-                        var x = pageRects[page].X + 0.5;
-						for (var i = 0; i < gutterSize; i++)
+                        var x = pageRects[page].X;
+						for (var i = 0; i < gutterSize; i += lineW)
 						{
-							ctx.moveTo(x + i, pageRects[page].Y + gutterEvenOdd);
-                            ctx.lineTo(x + i, pageRects[page].Y + pageRects[page].H);
+							ctx.moveTo(((x * rPR) >> 0) + i + indent, ((pageRects[page].Y + gutterEvenOdd) * rPR) >> 0);
+							ctx.lineTo(((x * rPR) >> 0) + i + indent, ((pageRects[page].Y + pageRects[page].H) * rPR) >> 0);
                             ctx.stroke();
                             ctx.beginPath();
                             gutterEvenOdd = (0 === gutterEvenOdd) ? 2 : 0;
@@ -6636,11 +6472,11 @@ function CDrawingDocument()
 					}
 					case 1:
 					{
-                        var x = pageRects[page].X + pageRects[page].W - 0.5;
-                        for (var i = 0; i < gutterSize; i++)
+                        var x = pageRects[page].X + pageRects[page].W;
+                        for (var i = 0; i < gutterSize; i += lineW)
                         {
-                            ctx.moveTo(x - i, pageRects[page].Y + gutterEvenOdd);
-                            ctx.lineTo(x - i, pageRects[page].Y + pageRects[page].H);
+							ctx.moveTo(((x * rPR) >> 0) - i - indent, ((pageRects[page].Y + gutterEvenOdd) * rPR) >> 0);
+							ctx.lineTo(((x * rPR) >> 0) - i - indent, ((pageRects[page].Y + pageRects[page].H) * rPR) >> 0);
                             ctx.stroke();
                             ctx.beginPath();
                             gutterEvenOdd = (0 === gutterEvenOdd) ? 2 : 0;
@@ -6649,11 +6485,11 @@ function CDrawingDocument()
 					}
 					case 2:
 					{
-                        var y = pageRects[page].Y + 0.5;
-                        for (var i = 0; i < gutterSize; i++)
+                        var y = pageRects[page].Y;
+                        for (var i = 0; i < gutterSize; i += lineW)
                         {
-                            ctx.moveTo(pageRects[page].X + gutterEvenOdd, y + i);
-                            ctx.lineTo(pageRects[page].X + pageRects[page].W, y + i);
+							ctx.moveTo(((pageRects[page].X + gutterEvenOdd) * rPR) >> 0, ((y * rPR) >> 0) + i + indent);
+							ctx.lineTo(((pageRects[page].X + pageRects[page].W) * rPR) >> 0, ((y * rPR) >> 0) + i + indent);
                             ctx.stroke();
                             ctx.beginPath();
                             gutterEvenOdd = (0 === gutterEvenOdd) ? 2 : 0;
@@ -6716,27 +6552,35 @@ function CDrawingDocument()
             var lf = l + (((r - l) / 8) >> 0);
             var rf = l + (((r - l) / 3) >> 0);
 
-            var cur = t;
+			l = (l * rPR) >> 0;
+			r = (r * rPR) >> 0;
+			b = (b * rPR) >> 0;
+			lf = (lf * rPR) >> 0;
+			rf = (rf * rPR) >> 0;
+            var cur = ((t * rPR) >> 0) + indent;
+            var cur_offset = 2 * lineW;
+			var cur_offset_end = 6 * lineW;
+
             while (cur < b)
 			{
-				ctx.moveTo(lf, cur + 0.5); ctx.lineTo(r, cur + 0.5);
+				ctx.moveTo(lf, cur); ctx.lineTo(r, cur);
 
-				cur += 2;
+				cur += cur_offset;
 				if (cur >= b) break;
 
-                ctx.moveTo(l, cur + 0.5); ctx.lineTo(r, cur + 0.5);
+				ctx.moveTo(l, cur); ctx.lineTo(r, cur);
 
-                cur += 2;
+                cur += cur_offset;
                 if (cur >= b) break;
 
-                ctx.moveTo(l, cur + 0.5); ctx.lineTo(r, cur + 0.5);
+				ctx.moveTo(l, cur); ctx.lineTo(r, cur);
 
-                cur += 2;
+                cur += cur_offset;
                 if (cur >= b) break;
 
-                ctx.moveTo(l, cur + 0.5); ctx.lineTo(rf, cur + 0.5);
+				ctx.moveTo(l, cur); ctx.lineTo(rf, cur);
 
-                cur += 6;
+                cur += cur_offset_end;
 			}
 			ctx.stroke();
             ctx.beginPath();
@@ -6797,6 +6641,7 @@ function CDrawingDocument()
 
         par.Reset(0, 0, 1000, 1000, 0, 0, 1);
         par.Recalculate_Page(0);
+        par.LineNumbersInfo = null;
 
         var baseLineOffset = par.Lines[0].Y;
         var bounds = par.Get_PageBounds(0);
@@ -6941,8 +6786,8 @@ function CDrawingDocument()
             	parent.appendChild(canvas);
         }
 
-        canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
-        canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
+		AscCommon.calculateCanvasSize(canvas, undefined, true);
+        canvas.width = canvas.width;
 
         var ctx = canvas.getContext("2d");
 		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
@@ -7023,8 +6868,11 @@ function CDrawingDocument()
 				right_offset = Math.round((width_px - offsetBase) * rPR),
 				y_dist = Math.round((line_w + line_distance) * rPR);
 
-            ctx.moveTo(offsetBase * rPR, y); ctx.lineTo((width_px - offsetBase) * rPR, y); y += y_dist;
-            ctx.moveTo(offsetBase * rPR, y); ctx.lineTo((width_px - offsetBase) * rPR, y); y += y_dist;
+			var left_offset2 = Math.round(offsetBase * rPR);
+			var right_offset2 = Math.round((width_px - offsetBase) * rPR);
+
+            ctx.moveTo(left_offset2, y); ctx.lineTo(right_offset2, y); y += y_dist;
+            ctx.moveTo(left_offset2, y); ctx.lineTo(right_offset2, y); y += y_dist;
             ctx.stroke();
             ctx.beginPath();
             ctx.strokeStyle = "#000000";
@@ -7038,8 +6886,8 @@ function CDrawingDocument()
             ctx.stroke();
             ctx.beginPath();
             ctx.strokeStyle = "#CBCBCB";
-            ctx.moveTo(offsetBase * rPR, y); ctx.lineTo((width_px - offsetBase) * rPR, y); y += y_dist;
-            ctx.moveTo(offsetBase * rPR, y); ctx.lineTo((width_px - offsetBase) * rPR, y);
+            ctx.moveTo(left_offset2, y); ctx.lineTo(right_offset2, y); y += y_dist;
+            ctx.moveTo(left_offset2, y); ctx.lineTo(right_offset2, y);
             ctx.stroke();
             ctx.beginPath();
         }
@@ -7114,6 +6962,9 @@ function CDrawingDocument()
                             break;
                     }
                 }
+				if (i == 2 && text.indexOf("1.1.") !== -1)
+					props.IsOnes = true;
+
                 AscFonts.FontPickerByCharacter.checkTextLight(text);
 
                 if (curLvl.TextPr && curLvl.TextPr.RFonts)
@@ -7151,7 +7002,7 @@ function CDrawingDocument()
 		var offset = (height_px_p - (line_w << 1)) >> 1;
         var y = (height_px_p >> 1) - (line_w >> 1);
         var text_base_offset_x = offset + ((3.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
-        var text_base_offset_dist = (3.25 * AscCommon.g_dKoef_mm_to_pix) >> 0;
+        var text_base_offset_dist = ( (props.IsOnes ? 2.25 : 3.25) * AscCommon.g_dKoef_mm_to_pix) >> 0;
 
         for (var k = 0; k < 9; k++) 
         {
@@ -7182,7 +7033,7 @@ function CDrawingDocument()
 			var rPR = AscCommon.AscBrowser.retinaPixelRatio;
 
             ctx.lineWidth = 2 * Math.round(rPR);
-            ctx.strokeStyle = "000000"; // "#CBCBCB";
+            ctx.strokeStyle = "#CBCBCB";
 
             var textYs = {x: text_base_offset_x - ((4.25 * AscCommon.g_dKoef_mm_to_pix) >> 0), y: y + (line_w << 1)};
 
@@ -7818,6 +7669,8 @@ function CDrawingDocument()
         var koefX = (drawingPage.right - drawingPage.left) / page.width_mm;
         var koefY = (drawingPage.bottom - drawingPage.top) / page.height_mm;
 
+        var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+
         var x1, y1, x2, y2;
 
         if (!logicObj.Table)
@@ -7825,10 +7678,10 @@ function CDrawingDocument()
             ctx.strokeStyle = "rgba(0, 0, 0, 0.75)";
             ctx.lineWidth = 1;
 
-            x1 = ((drawingPage.left + koefX * logicObj.StartX) >> 0);
-            y1 = ((drawingPage.top + koefY * logicObj.StartY) >> 0);
-            x2 = ((drawingPage.left + koefX * logicObj.EndX) >> 0);
-            y2 = ((drawingPage.top + koefY * logicObj.EndY) >> 0);
+            x1 = (rPR * (drawingPage.left + koefX * logicObj.StartX)) >> 0;
+            y1 = (rPR * (drawingPage.top + koefY * logicObj.StartY)) >> 0;
+            x2 = (rPR * (drawingPage.left + koefX * logicObj.EndX)) >> 0;
+            y2 = (rPR * (drawingPage.top + koefY * logicObj.EndY)) >> 0;
 
             overlay.CheckPoint(x1, y1);
             overlay.CheckPoint(x2, y2);
@@ -7846,10 +7699,10 @@ function CDrawingDocument()
                 ctx.strokeStyle = (elem.Color === "Red") ? "#FF7B7B" : "#000000";
                 ctx.lineWidth = elem.Bold ? 2 : 1;
 
-                x1 = (drawingPage.left + koefX * elem.X1) >> 0;
-                y1 = (drawingPage.top + koefY * elem.Y1) >> 0;
-                x2 = (drawingPage.left + koefX * elem.X2) >> 0;
-                y2 = (drawingPage.top + koefY * elem.Y2) >> 0;
+                x1 = (rPR * (drawingPage.left + koefX * elem.X1)) >> 0;
+                y1 = (rPR * (drawingPage.top + koefY * elem.Y1)) >> 0;
+                x2 = (rPR * (drawingPage.left + koefX * elem.X2)) >> 0;
+                y2 = (rPR * (drawingPage.top + koefY * elem.Y2)) >> 0;
 
                 if (!elem.Bold) {
                     x1 += 0.5;
@@ -7872,10 +7725,10 @@ function CDrawingDocument()
             ctx.strokeStyle = "rgba(255, 123, 123, 0.75)";
             ctx.lineWidth = 1;
 
-            x1 = ((drawingPage.left + koefX * logicObj.StartX) >> 0);
-            y1 = ((drawingPage.top + koefY * logicObj.StartY) >> 0);
-            x2 = ((drawingPage.left + koefX * logicObj.EndX) >> 0);
-            y2 = ((drawingPage.top + koefY * logicObj.EndY) >> 0);
+			x1 = (rPR * (drawingPage.left + koefX * logicObj.StartX)) >> 0;
+			y1 = (rPR * (drawingPage.top + koefY * logicObj.StartY)) >> 0;
+			x2 = (rPR * (drawingPage.left + koefX * logicObj.EndX)) >> 0;
+			y2 = (rPR * (drawingPage.top + koefY * logicObj.EndY)) >> 0;
 
             overlay.CheckPoint(x1, y1);
             overlay.CheckPoint(x2, y2);
@@ -7887,10 +7740,10 @@ function CDrawingDocument()
 
             for (var i = 0; i < drawObj.length; i++)
             {
-                x1 = (drawingPage.left + koefX * drawObj[i].X1) >> 0;
-                y1 = (drawingPage.top  + koefY * drawObj[i].Y1) >> 0;
-                x2 = (drawingPage.left + koefX * drawObj[i].X2) >> 0;
-                y2 = (drawingPage.top  + koefY * drawObj[i].Y2) >> 0;
+                x1 = (rPR * (drawingPage.left + koefX * drawObj[i].X1)) >> 0;
+                y1 = (rPR * (drawingPage.top  + koefY * drawObj[i].Y1)) >> 0;
+                x2 = (rPR * (drawingPage.left + koefX * drawObj[i].X2)) >> 0;
+                y2 = (rPR * (drawingPage.top  + koefY * drawObj[i].Y2)) >> 0;
 
                 overlay.CheckPoint(x1, y1);
                 overlay.CheckPoint(x2, y2);
@@ -8525,14 +8378,14 @@ function CDrawingDocument()
 		{
 			if (_id == this.CollaborativeTargets[i].Id)
 			{
-				this.CollaborativeTargets[i].CheckPosition(this, _x, _y, _size, _page, _transform);
+				this.CollaborativeTargets[i].CheckPosition(_x, _y, _size, _page, _transform);
 				return;
 			}
 		}
-		var _target = new CDrawingCollaborativeTarget();
+		var _target = new CDrawingCollaborativeTarget(this);
 		_target.Id = _id;
 		_target.ShortId = _shortId;
-		_target.CheckPosition(this, _x, _y, _size, _page, _transform);
+		_target.CheckPosition(_x, _y, _size, _page, _transform);
 		this.CollaborativeTargets[this.CollaborativeTargets.length] = _target;
 	};
 	this.Collaborative_RemoveTarget = function (_id)

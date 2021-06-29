@@ -3184,7 +3184,7 @@
 					oHistoryObject.type = redoObject.type;
 					oHistoryObject.cellId = redoObject.cellId;
 					oHistoryObject.autoFiltersObject = redoObject.autoFiltersObject;
-					oHistoryObject.addFormatTableOptionsObj = redoObject.addFormatTableOptionsObj
+					oHistoryObject.addFormatTableOptionsObj = redoObject.addFormatTableOptionsObj;
 					oHistoryObject.moveFrom = redoObject.arnFrom;
 					oHistoryObject.moveTo = redoObject.arnTo;
 					oHistoryObject.bWithoutFilter = bWithoutFilter ? bWithoutFilter : false;
@@ -5730,13 +5730,16 @@
 				return result;
 			},
 
-			_getTableIntersectionWithActiveCell: function (activeCell, checkApplyFiltering) {
+			_getTableIntersectionWithActiveCell: function (activeCell, checkApplyFiltering, excludeHeader) {
 				var result = false;
 
 				var worksheet = this.worksheet;
 				if (worksheet.TableParts && worksheet.TableParts.length > 0) {
 					for (var i = 0; i < worksheet.TableParts.length; i++) {
 						var ref = worksheet.TableParts[i].Ref;
+						if (excludeHeader && worksheet.TableParts[i].isHeaderRow()) {
+							ref = new Asc.Range(ref.c1, ref.r1 + 1, ref.c2, ref.r2);
+						}
 						if (ref.contains(activeCell.col, activeCell.row)) {
 							if (checkApplyFiltering && worksheet.TableParts[i].isApplyAutoFilter()) {
 								result = worksheet.TableParts[i];
@@ -5793,11 +5796,19 @@
 				var nextIndex;
 
 				//ищем среди tableColumns, возможно такое имя уже имеется
+				var tableColumnsNameMap = null;
 				var checkNextName = function () {
 					var nextName = columnName + nextIndex;
-					for (var i = 0; i < tableColumns.length; i++) {
-						if (tableColumns[i].Name === nextName)
-							return false;
+					if (!tableColumnsNameMap) {
+						tableColumnsNameMap = {};
+						for (var i = 0; i < tableColumns.length; i++) {
+							if (tableColumns[i]) {
+								tableColumnsNameMap[tableColumns[i].Name] = 1;
+							}
+						}
+					}
+					if (tableColumnsNameMap[nextName]) {
+						return false;
 					}
 					return true;
 				};

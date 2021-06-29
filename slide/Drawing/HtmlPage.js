@@ -237,6 +237,7 @@ function CEditorPage(api)
 	this.SplitterType = 0;
 
 	this.OldSplitter1Pos = 0;
+	this.OldSplitter2Pos = 0;
 
 	// ----
 	this.OldDocumentWidth  = 0;
@@ -364,6 +365,25 @@ function CEditorPage(api)
 		return false;
 	};
 
+	this.getStylesReporter = function()
+	{
+		var styleContent = "";
+		styleContent += (".btn-text-default { position: absolute; background: " + AscCommon.GlobalSkin.DemButtonBackgroundColor + "; border: 1px solid " + AscCommon.GlobalSkin.DemButtonBorderColor + "; border-radius: 2px; color: " + AscCommon.GlobalSkin.DemButtonTextColor + "; font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; height: 22px; cursor: pointer; }");
+		styleContent += ".btn-text-default-img { background-repeat: no-repeat; position: absolute; background: transparent; border: none; height: 22px; cursor: pointer; }";
+		styleContent += (".btn-text-default-img:focus { outline: 0; outline-offset: 0; } .btn-text-default-img:hover { background-color: " + AscCommon.GlobalSkin.DemButtonBackgroundColorHover + "; }");
+		styleContent += (".btn-text-default-img:active, .btn-text-default.active { background-color: " + AscCommon.GlobalSkin.DemButtonBackgroundColorActive + " !important; -webkit-box-shadow: none; box-shadow: none; }");
+		styleContent += (".btn-text-default:focus { outline: 0; outline-offset: 0; } .btn-text-default:hover { background-color: " + AscCommon.GlobalSkin.DemButtonBackgroundColorHover + "; }");
+		styleContent += (".btn-text-default:active, .btn-text-default.active { background-color: " + AscCommon.GlobalSkin.DemButtonBackgroundColorActive + " !important; color: " + AscCommon.GlobalSkin.DemButtonTextColorActive + "; -webkit-box-shadow: none; box-shadow: none; }");
+		styleContent += (".separator { margin: 0px 10px; height: 19px; display: inline-block; position: absolute; border-left: 1px solid " + AscCommon.GlobalSkin.DemSplitterColor + "; vertical-align: top; padding: 0; width: 0; box-sizing: border-box; }");
+		styleContent += (".btn-text-default-img2 { background-repeat: no-repeat; position: absolute; background-color: " + AscCommon.GlobalSkin.DemButtonBackgroundColorActive + "; border: none; color: #7d858c; font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; height: 22px; cursor: pointer; }");
+		styleContent += ".btn-text-default-img2:focus { outline: 0; outline-offset: 0; }";
+		styleContent += ".btn-text-default::-moz-focus-inner { border: 0; padding: 0; }";
+		styleContent += ".btn-text-default-img::-moz-focus-inner { border: 0; padding: 0; }";
+		styleContent += ".btn-text-default-img2::-moz-focus-inner { border: 0; padding: 0; }";
+		styleContent += (".dem-text-color { color:" + AscCommon.GlobalSkin.DemTextColor + "; }");
+		return styleContent;
+	};
+
 	this.Init = function()
 	{
 		if (this.m_oApi.isReporterMode)
@@ -381,6 +401,7 @@ function CEditorPage(api)
 		this.Splitter2Pos    = (this.IsSupportNotes === true) ? 11 : 0;
 
 		this.OldSplitter1Pos = this.Splitter1Pos;
+		this.OldSplitter2Pos = this.Splitter2Pos;
 
 		this.Splitter1PosMin = 20;
 		this.Splitter1PosMax = 80;
@@ -389,8 +410,12 @@ function CEditorPage(api)
 
 		if (this.m_oApi.isReporterMode)
 		{
-			this.Splitter2Pos = 90;
+			this.Splitter2Pos = window.innerHeight * 0.5 * AscCommon.g_dKoef_pix_to_mm;
 			this.Splitter2PosMax = 200;
+			if (this.Splitter2Pos > this.Splitter2PosMax)
+				this.Splitter2Pos = this.Splitter2PosMax;
+			if (this.Splitter2Pos < this.Splitter2PosMin)
+				this.Splitter2Pos = this.Splitter2PosMin;
 		}
 
 		var ScrollWidthMm  = this.ScrollWidthPx * g_dKoef_pix_to_mm;
@@ -583,7 +608,7 @@ function CEditorPage(api)
 			_documentDem.setAttribute("id", "id_reporter_dem");
 			_documentDem.setAttribute("class", "block_elem");
 			_documentDem.style.overflow = "hidden";
-			_documentDem.style.backgroundColor = GlobalSkin.BackgroundColor;
+			_documentDem.style.backgroundColor = GlobalSkin.BackgroundColorThumbnails;
 			_documentParent.appendChild(_documentDem);
 
 			this.m_oDemonstrationDivId = CreateControlContainer("id_reporter_dem");
@@ -597,7 +622,7 @@ function CEditorPage(api)
 			demBottonsDiv.setAttribute("id", "id_reporter_dem_controller");
 			demBottonsDiv.setAttribute("class", "block_elem");
 			demBottonsDiv.style.overflow = "hidden";
-			demBottonsDiv.style.backgroundColor = GlobalSkin.BackgroundColor;
+			demBottonsDiv.style.backgroundColor = GlobalSkin.BackgroundColorThumbnails;
 			demBottonsDiv.style.cursor = "default";
 			_documentParent.appendChild(demBottonsDiv);
 
@@ -629,26 +654,23 @@ function CEditorPage(api)
 				xOffset2 = "0";
 			}
 
-			styleContent += "";
-			styleContent += (".btn-text-default { position: absolute; background: " + AscCommon.GlobalSkin.DemButtonBackgroundColor + "; border: 1px solid " + AscCommon.GlobalSkin.DemButtonBorderColor + "; border-radius: 2px; color: " + AscCommon.GlobalSkin.DemButtonTextColor + "; font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; height: 22px; cursor: pointer; }");
-			styleContent += ".btn-text-default-img { background-repeat: no-repeat; position: absolute; background: transparent; border: none; height: 22px; cursor: pointer; }";
-			styleContent += (".btn-text-default-img:focus { outline: 0; outline-offset: 0; } .btn-text-default-img:hover { background-color: " + AscCommon.GlobalSkin.DemButtonBackgroundColorHover + "; }");
-			styleContent += (".btn-text-default-img:active, .btn-text-default.active { background-color: " + AscCommon.GlobalSkin.DemButtonBackgroundColorActive + " !important; -webkit-box-shadow: none; box-shadow: none; }");
-			styleContent += (".btn-text-default:focus { outline: 0; outline-offset: 0; } .btn-text-default:hover { background-color: " + AscCommon.GlobalSkin.DemButtonBackgroundColorHover + "; }");
-			styleContent += (".btn-text-default:active, .btn-text-default.active { background-color: " + AscCommon.GlobalSkin.DemButtonBackgroundColorActive + " !important; color: " + AscCommon.GlobalSkin.DemButtonTextColorActive + "; -webkit-box-shadow: none; box-shadow: none; }");
-			styleContent += (".separator { margin: 0px 10px; height: 19px; display: inline-block; position: absolute; border-left: 1px solid " + AscCommon.GlobalSkin.DemSplitterColor + "; vertical-align: top; padding: 0; width: 0; box-sizing: border-box; }");
-			styleContent += (".btn-play { background-position: " + xOffset1 + "px -40px; } .btn-play:active { background-position: " + xOffset2 + "px -40px; }");
-			styleContent += (".btn-prev { background-position: " + xOffset1 + "px 0px; } .btn-prev:active { background-position: " + xOffset2 + "px 0px; }");
-			styleContent += (".btn-next { background-position: " + xOffset1 + "px -20px; } .btn-next:active { background-position: " + xOffset2 + "px -20px; }");
-			styleContent += (".btn-pause { background-position: " + xOffset1 + "px -80px; } .btn-pause:active { background-position: " + xOffset2 + "px -80px; }");
-			styleContent += (".btn-pointer { background-position: " + xOffset1 + "px -100px; } .btn-pointer-active { background-position: " + xOffset2 + "px -100px; }");
-			styleContent += (".btn-pointer:active { background-position: " + xOffset2 + "px -100px; }");
-			styleContent += (".btn-text-default-img2 { background-repeat: no-repeat; position: absolute; background-color: " + AscCommon.GlobalSkin.DemButtonBackgroundColorActive + "; border: none; color: #7d858c; font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; height: 22px; cursor: pointer; }");
-			styleContent += ".btn-text-default-img2:focus { outline: 0; outline-offset: 0; }";
-			styleContent += ".btn-text-default::-moz-focus-inner { border: 0; padding: 0; }";
-			styleContent += ".btn-text-default-img::-moz-focus-inner { border: 0; padding: 0; }";
-			styleContent += ".btn-text-default-img2::-moz-focus-inner { border: 0; padding: 0; }";
+			styleContent += (".btn-play { background-position: " + xOffset1 + "px -40px; }");
+			styleContent += (".btn-prev { background-position: " + xOffset1 + "px 0px; }");
+			styleContent += (".btn-next { background-position: " + xOffset1 + "px -20px; }");
+			styleContent += (".btn-pause { background-position: " + xOffset1 + "px -80px; }");
+			styleContent += (".btn-pointer { background-position: " + xOffset1 + "px -100px; }");
+			styleContent += (".btn-pointer-active { background-position: " + xOffset2 + "px -100px; }");
 
+			if (false) // менять цвет при нажатии
+			{
+				styleContent += (".btn-play:active { background-position: " + xOffset2 + "px -40px; }");
+				styleContent += (".btn-prev:active { background-position: " + xOffset2 + "px 0px; }");
+				styleContent += (".btn-next:active { background-position: " + xOffset2 + "px -20px; }");
+				styleContent += (".btn-pause:active { background-position: " + xOffset2 + "px -80px; }");
+				styleContent += (".btn-pointer:active { background-position: " + xOffset2 + "px -100px; }");
+			}
+
+			styleContent += this.getStylesReporter();
 
 			var style		 = document.createElement('style');
 			style.type 	 = 'text/css';
@@ -668,7 +690,7 @@ function CEditorPage(api)
 			}
 
 			var _buttonsContent = "";
-			_buttonsContent += "<label class=\"block_elem_no_select\" id=\"dem_id_time\" style=\"color:" + AscCommon.GlobalSkin.DemTextColor + ";text-shadow: none;white-space: nowrap;font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11px; position:absolute; left:10px; bottom: 7px;\">00:00:00</label>";
+			_buttonsContent += "<label class=\"block_elem_no_select dem-text-color\" id=\"dem_id_time\" style=\"text-shadow: none;white-space: nowrap;font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11px; position:absolute; left:10px; bottom: 7px;\">00:00:00</label>";
 			_buttonsContent += "<button class=\"btn-text-default-img\" id=\"dem_id_play\" style=\"left: 60px; bottom: 3px; width: 20px; height: 20px;\"><span class=\"btn-play back_image_buttons\" id=\"dem_id_play_span\" style=\"width:100%;height:100%;\"></span></button>";
 			_buttonsContent += ("<button class=\"btn-text-default\" id=\"dem_id_reset\" style=\"left: 85px; bottom: 2px; \">" + this.reporterTranslates[0] + "</button>");
 			_buttonsContent += ("<button class=\"btn-text-default\" id=\"dem_id_end\" style=\"right: 10px; bottom: 2px; \">" + this.reporterTranslates[2] + "</button>");
@@ -678,7 +700,7 @@ function CEditorPage(api)
 
 			_buttonsContent += "<div class=\"separator block_elem_no_select\" id=\"dem_id_sep\" style=\"left: 185px; bottom: 3px;\"></div>";
 
-			_buttonsContent += "<label class=\"block_elem_no_select\" id=\"dem_id_slides\" style=\"color:" + AscCommon.GlobalSkin.DemTextColor + ";text-shadow: none;white-space: nowrap;font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11px; position:absolute; left:207px; bottom: 7px;\"></label>";
+			_buttonsContent += "<label class=\"block_elem_no_select dem-text-color\" id=\"dem_id_slides\" style=\"text-shadow: none;white-space: nowrap;font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11px; position:absolute; left:207px; bottom: 7px;\"></label>";
 
 			_buttonsContent += "<div class=\"separator block_elem_no_select\" id=\"dem_id_sep2\" style=\"left: 350px; bottom: 3px;\"></div>";
 
@@ -1013,10 +1035,7 @@ function CEditorPage(api)
         AscCommon.addMouseEvent(this.m_oOverlay.HtmlElement, "move", this.onMouseMove);
         AscCommon.addMouseEvent(this.m_oOverlay.HtmlElement, "up", this.onMouseUp);
 
-        var _cur         = document.getElementById('id_target_cursor');
-        AscCommon.addMouseEvent(_cur, "down", this.onMouseDownTarget);
-        AscCommon.addMouseEvent(_cur, "move", this.onMouseMoveTarget);
-        AscCommon.addMouseEvent(_cur, "up", this.onMouseUpTarget);
+		document.getElementById('id_target_cursor').style.pointerEvents = "none";
 
 		this.m_oMainContent.HtmlElement.onmousewheel = this.onMouseWhell;
 		if (this.m_oMainContent.HtmlElement.addEventListener)
@@ -1518,31 +1537,48 @@ function CEditorPage(api)
 
 		_ctx.lineWidth   = Math.round(dPR);
 		_ctx.strokeStyle = GlobalSkin.RulerOutline;
+		var rectSize = Math.round(14 * dPR);
+		var lineWidth = _ctx.lineWidth;
 
-		_ctx.strokeRect(2.5 * _ctx.lineWidth, 3.5 * _ctx.lineWidth, Math.round(14 * dPR), Math.round(14 * dPR));
+		_ctx.strokeRect(2.5 * lineWidth, 3.5 * lineWidth, Math.round(14 * dPR), Math.round(14 * dPR));
 		_ctx.beginPath();
 
 		_ctx.strokeStyle = GlobalSkin.RulerTabsColor;
 
-		_ctx.lineWidth = 2 * Math.round(dPR);
+		_ctx.lineWidth = (dPR - Math.floor(dPR) === 0.5) ? 2 * Math.round(dPR) - 1 : 2 * Math.round(dPR);
+
+		var tab_width = Math.round(5 * dPR);
+		var offset = _ctx.lineWidth % 2 === 1 ? 0.5 : 0;
+
+		var dx = Math.round((rectSize - 2 * Math.round(dPR) - tab_width) / 7 * 4);
+		var dy = Math.round((rectSize - 2 * Math.round(dPR) - tab_width) / 7 * 4);
+		var x = 4 * Math.round(dPR) + dx;
+		var y = 4 * Math.round(dPR) + dy;
+
 		if (this.m_nTabsType == tab_Left)
 		{
-			_ctx.moveTo(Math.round(8 * dPR), Math.round(9 * dPR));
-			_ctx.lineTo(Math.round(8 * dPR), Math.round(14 * dPR));
-			_ctx.lineTo(Math.round(13 * dPR), Math.round(14 * dPR));
+			_ctx.moveTo(x + offset, y);
+			_ctx.lineTo(x + offset, y + tab_width + offset);
+			_ctx.lineTo(x + tab_width, y + tab_width + offset);
 		}
 		else if (this.m_nTabsType == tab_Center)
 		{
-			_ctx.moveTo(Math.round(6 * dPR), Math.round(14 * dPR));
-			_ctx.lineTo(Math.round(14 * dPR), Math.round(14 * dPR));
-			_ctx.moveTo(Math.round(10 * dPR), Math.round(9 * dPR));
-			_ctx.lineTo(Math.round(10 * dPR), Math.round(14 * dPR));
+			tab_width = Math.round(8 * dPR);
+			tab_width = (tab_width % 2 === 1) ? tab_width - 1 : tab_width;
+			var dx = Math.round((rectSize - Math.round(dPR) - tab_width) / 2);
+			var x = 3 * Math.round(dPR) + dx;
+			var vert_tab_width = Math.round(5 * dPR);
+			_ctx.moveTo(x , y + vert_tab_width + offset);
+			_ctx.lineTo(x + tab_width, y + vert_tab_width + offset);
+			_ctx.moveTo(x - offset + tab_width / 2, y);
+			_ctx.lineTo(x - offset + tab_width / 2, y + vert_tab_width);
 		}
 		else
 		{
-			_ctx.moveTo(Math.round(12 * dPR), Math.round(9 * dPR));
-			_ctx.lineTo(Math.round(12 * dPR), Math.round(14 * dPR));
-			_ctx.lineTo(Math.round(7 * dPR), Math.round(14 * dPR));
+			var x = 3 * Math.round(dPR) + dx;
+			_ctx.moveTo(x, tab_width + y + offset);
+			_ctx.lineTo(x + tab_width + offset,  tab_width + y + offset);
+			_ctx.lineTo(x + tab_width + offset, y);
 		}
 
 		_ctx.stroke();
@@ -1924,6 +1960,7 @@ function CEditorPage(api)
 	this.OnResizeSplitter = function(isNoNeedResize)
 	{
 		this.OldSplitter1Pos = this.Splitter1Pos;
+		this.OldSplitter2Pos = this.Splitter2Pos;
 
 		this.m_oThumbnailsContainer.Bounds.R    = this.Splitter1Pos;
 		this.m_oThumbnailsContainer.Bounds.AbsW = this.Splitter1Pos;
@@ -2021,6 +2058,11 @@ function CEditorPage(api)
 				{
 					oWordControl.Splitter2Pos = _posY;
 					oWordControl.OnResizeSplitter();
+					oWordControl.m_oApi.syncOnNotesShow();
+					if(oWordControl.m_oLogicDocument)
+					{
+						oWordControl.m_oLogicDocument.CheckNotesShow();
+					}
 				}
 			}
 
@@ -3450,6 +3492,7 @@ function CEditorPage(api)
 		{
 			ctx.fillStyle   = "rgba(51,102,204,255)";
 			ctx.strokeStyle = "#9ADBFE";
+			ctx.lineWidth = Math.round(AscCommon.AscBrowser.retinaPixelRatio);
 
 			ctx.beginPath();
 
@@ -3481,6 +3524,7 @@ function CEditorPage(api)
 			var ctxOverlay = overlayNotes.m_oContext;
 			ctxOverlay.fillStyle   = "rgba(51,102,204,255)";
 			ctxOverlay.strokeStyle = "#9ADBFE";
+			ctxOverlay.lineWidth = Math.round(AscCommon.AscBrowser.retinaPixelRatio);
 
 			ctxOverlay.beginPath();
 
@@ -3492,7 +3536,6 @@ function CEditorPage(api)
 			ctxOverlay.globalAlpha = 1.0;
 			ctxOverlay.stroke();
 			ctxOverlay.beginPath();
-			ctxOverlay.globalAlpha = 1.0;
 		}
 
 		if (this.MobileTouchManager)

@@ -1614,26 +1614,6 @@ function CGroupShape()
         return {posX: pos_x, posY: pos_y};
     };
 
-    CGroupShape.prototype.select = CShape.prototype.select;
-
-    CGroupShape.prototype.deselect = function(drawingObjectsController)
-    {
-        this.selected = false;
-        var selected_objects;
-        if(!isRealObject(this.group))
-            selected_objects = drawingObjectsController.selectedObjects;
-        else
-            selected_objects = this.group.getMainGroup().selectedObjects;
-        for(var i = 0; i < selected_objects.length; ++i)
-        {
-            if(selected_objects[i] === this)
-            {
-                selected_objects.splice(i, 1);
-                break;
-            }
-        }
-        return this;
-    };
 
     CGroupShape.prototype.getParentObjects = function()
     {

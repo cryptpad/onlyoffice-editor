@@ -5909,6 +5909,236 @@
 		return this.MathSelectPolygons[nIndex];
 	};
 
+	function CDrawingCollaborativeTargetBase()
+	{
+		this.Id      = "";
+		this.ShortId = "";
+
+		this.X    = 0;
+		this.Y    = 0;
+		this.Size = 0;
+
+		this.Color     = null;
+		this.Transform = null;
+
+		this.HtmlElement  = null;
+		this.HtmlElementX = 0;
+		this.HtmlElementY = 0;
+
+		this.Style = "";
+		this.HtmlParent = null;
+	}
+	CDrawingCollaborativeTargetBase.prototype.CreateElement = function()
+	{
+		this.HtmlElement = document.createElement('canvas');
+		this.HtmlElement.style.cssText = "pointer-events: none;position:absolute;padding:0;margin:0;-webkit-user-select:none;width:1px;height:1px;display:block;z-index:3;";
+		this.HtmlElement.width = 1;
+		this.HtmlElement.height = 1;
+
+		this.Color = AscCommon.getUserColorById(this.ShortId, null, true);
+		this.Style = "rgb(" + this.Color.r + "," + this.Color.g + "," + this.Color.b + ")";
+	};
+	CDrawingCollaborativeTargetBase.prototype.GetZoom = function()
+	{
+		return 1.0;
+	};
+	CDrawingCollaborativeTargetBase.prototype.CheckStyleDisplay = function()
+	{
+	};
+	CDrawingCollaborativeTargetBase.prototype.ConvertCoords = function(x, y)
+	{
+		return {
+			X: (x * this.GetZoom() * g_dKoef_mm_to_pix ) >> 0,
+			Y: (y * this.GetZoom() * g_dKoef_mm_to_pix ) >> 0
+		};
+	};
+	CDrawingCollaborativeTargetBase.prototype.GetMobileTouchManager = function()
+	{
+		return null;
+	};
+	CDrawingCollaborativeTargetBase.prototype.UseStylePosition = function()
+	{
+		return (!this.GetMobileTouchManager() && !AscCommon.AscBrowser.isSafariMacOs) || !AscCommon.AscBrowser.isWebkit;
+	};
+	CDrawingCollaborativeTargetBase.prototype.GetParentElement = function()
+	{
+		return null;
+	};
+	CDrawingCollaborativeTargetBase.prototype.CalculateSizeAndPos = function()
+	{
+		var _newW = 2;
+		var _newH = (this.Size * this.GetZoom() * g_dKoef_mm_to_pix) >> 0;
+
+		var _oldW = this.HtmlElement.width;
+		var _oldH = this.HtmlElement.height;
+
+		if (null != this.Transform && !AscCommon.global_MatrixTransformer.IsIdentity2(this.Transform))
+		{
+			var _x1 = this.Transform.TransformPointX(this.X, this.Y);
+			var _y1 = this.Transform.TransformPointY(this.X, this.Y);
+
+			var _x2 = this.Transform.TransformPointX(this.X, this.Y + this.Size);
+			var _y2 = this.Transform.TransformPointY(this.X, this.Y + this.Size);
+
+			var pos1 = this.ConvertCoords(_x1, _y1);
+			var pos2 = this.ConvertCoords(_x2, _y2);
+
+			_newW = (Math.abs(pos1.X - pos2.X) >> 0) + 1;
+			_newH = (Math.abs(pos1.Y - pos2.Y) >> 0) + 1;
+
+			if (2 > _newW)
+				_newW = 2;
+			if (2 > _newH)
+				_newH = 2;
+
+			if (_oldW == _newW && _oldH == _newH)
+			{
+				if (_newW != 2 && _newH != 2)
+				{
+					// просто очищаем
+					this.HtmlElement.width = _newW;
+				}
+			}
+			else
+			{
+				this.HtmlElement.style.width = _newW + "px";
+				this.HtmlElement.style.height = _newH + "px";
+
+				this.HtmlElement.width = _newW;
+				this.HtmlElement.height = _newH;
+			}
+			var ctx = this.HtmlElement.getContext('2d');
+
+			if (_newW == 2 || _newH == 2)
+			{
+				ctx.fillStyle = this.Style;
+				ctx.fillRect(0, 0, _newW, _newH);
+			}
+			else
+			{
+				ctx.beginPath();
+				ctx.strokeStyle = this.Style;
+				ctx.lineWidth = 2;
+
+				if (((pos1.X - pos2.X) * (pos1.Y - pos2.Y)) >= 0)
+				{
+					ctx.moveTo(0, 0);
+					ctx.lineTo(_newW, _newH);
+				}
+				else
+				{
+					ctx.moveTo(0, _newH);
+					ctx.lineTo(_newW, 0);
+				}
+
+				ctx.stroke();
+			}
+
+			this.HtmlElementX = Math.min(pos1.X, pos2.X) >> 0;
+			this.HtmlElementY = Math.min(pos1.Y, pos2.Y) >> 0;
+			if (this.UseStylePosition())
+			{
+				this.HtmlElement.style.left = this.HtmlElementX + "px";
+				this.HtmlElement.style.top = this.HtmlElementY + "px";
+			}
+			else
+			{
+				this.HtmlElement.style.left = "0px";
+				this.HtmlElement.style.top = "0px";
+				this.HtmlElement.style["webkitTransform"] = "matrix(1, 0, 0, 1, " + this.HtmlElementX + "," + this.HtmlElementY + ")";
+			}
+		}
+		else
+		{
+			if (_oldW == _newW && _oldH == _newH)
+			{
+				// просто очищаем
+				this.HtmlElement.width = _newW;
+			}
+			else
+			{
+				this.HtmlElement.style.width = _newW + "px";
+				this.HtmlElement.style.height = _newH + "px";
+
+				this.HtmlElement.width = _newW;
+				this.HtmlElement.height = _newH;
+			}
+
+			var ctx = this.HtmlElement.getContext('2d');
+
+			ctx.fillStyle = this.Style;
+			ctx.fillRect(0, 0, _newW, _newH);
+
+			var pos;
+			if (null != this.Transform)
+			{
+				pos = this.ConvertCoords(this.Transform.tx + this.X, this.Transform.ty + this.Y);
+			}
+			else
+			{
+				pos = this.ConvertCoords(this.X, this.Y);
+			}
+
+			this.HtmlElementX = pos.X >> 0;
+			this.HtmlElementY = pos.Y >> 0;
+
+			if (this.UseStylePosition())
+			{
+				this.HtmlElement.style.left = this.HtmlElementX + "px";
+				this.HtmlElement.style.top = this.HtmlElementY + "px";
+			}
+			else
+			{
+				this.HtmlElement.style.left = "0px";
+				this.HtmlElement.style.top = "0px";
+				this.HtmlElement.style["webkitTransform"] = "matrix(1, 0, 0, 1, " + this.HtmlElementX + "," + this.HtmlElementY + ")";
+			}
+		}
+	};
+	CDrawingCollaborativeTargetBase.prototype.CheckPosition = function()
+	{
+	};
+	CDrawingCollaborativeTargetBase.prototype.CheckNeedDraw = function()
+	{
+		return true;
+	};
+	CDrawingCollaborativeTargetBase.prototype.Remove = function()
+	{
+		if(this.HtmlParent)
+		{
+			this.HtmlParent.removeChild(this.HtmlElement);
+			this.HtmlParent = null;
+		}
+	};
+	CDrawingCollaborativeTargetBase.prototype.Update = function()
+	{
+		// 1) создаем новый элемент, если еще его не было
+		if (this.HtmlElement == null)
+		{
+			this.CreateElement();
+		}
+
+		if(!this.CheckNeedDraw())
+		{
+			return;
+		}
+		// 2) определяем размер
+		this.CalculateSizeAndPos();
+
+		if (AscCommon.CollaborativeEditing)
+			AscCommon.CollaborativeEditing.Update_ForeignCursorLabelPosition(this.Id, this.HtmlElementX, this.HtmlElementY, this.Color);
+
+		// 3) добавить, если нужно
+		var oParentElement = this.GetParentElement();
+		if(oParentElement && oParentElement !== this.HtmlParent)
+		{
+			oParentElement.appendChild(this.HtmlElement);
+			this.HtmlParent = oParentElement;
+		}
+		this.CheckStyleDisplay();
+	};
+
+
 	//------------------------------------------------------------fill polyfill--------------------------------------------
 	if (!Array.prototype.findIndex) {
 		Object.defineProperty(Array.prototype, 'findIndex', {
@@ -5977,6 +6207,13 @@
 				return O;
 			}
 		});
+	}
+	if (!Object.values) {
+		Object.values = function (obj) {
+			return Object.keys(obj).map(function (e) {
+				return obj[e];
+			});
+		}
 	}
 	if (typeof Int8Array !== 'undefined' && !Int8Array.prototype.fill) {
 		Int8Array.prototype.fill = Array.prototype.fill;
@@ -6260,13 +6497,13 @@
 		var oReplaceNode = new CStringNode(sReplace, null);
 		var oMatching = new CDiffMatching();
 		oMatching.put(oBaseNode, oReplaceNode);
-		var oDiff  = new Diff(oBaseNode, oReplaceNode);
+		var oDiff  = new AscCommon.Diff(oBaseNode, oReplaceNode);
 		oDiff.equals = function(a, b)
 		{
 			return a.equals(b);
 		};
 		oDiff.matchTrees(oMatching);
-		var oDeltaCollector = new DeltaCollector(oMatching, oBaseNode, oReplaceNode);
+		var oDeltaCollector = new AscCommon.DeltaCollector(oMatching, oBaseNode, oReplaceNode);
 		oDeltaCollector.forEachChange(function(oOperation){
 			aDelta.push(new CStringChange(oOperation));
 		});
@@ -6288,40 +6525,78 @@
 		return { start : val, end: AscCommon.AscBrowser.convertToRetinaValue(val, true) };
 	};
 
-	function calculateCanvasSize(element)
+	function setCanvasSize(element, width, height, is_correction)
 	{
+		if (element.width === width && element.height === height)
+			return;
+
+		if (true !== is_correction)
+		{
+			element.width = width;
+			element.height = height;
+			return;
+		}
+
+		var data = element.getContext("2d").getImageData(0, 0, element.width, element.height);
+		element.width = width;
+		element.height = height;
+		element.getContext("2d").putImageData(data, 0, 0);
+	};
+
+	function calculateCanvasSize(element, is_correction, is_wait_correction)
+	{
+		if (true !== is_correction && undefined !== element.correctionTimeout)
+		{
+			clearTimeout(element.correctionTimeout);
+			element.correctionTimeout = undefined;
+		}
+
 		var scale = AscCommon.AscBrowser.retinaPixelRatio;
-		var new_width = 0;
-		var new_height = 0;
 		if (Math.abs(scale - (scale >> 0)) < 0.001)
 		{
-			new_width = (scale * parseInt(element.style.width));
-			new_height = (scale * parseInt(element.style.height));
-
-			if (element.width !== new_width)
-				element.width = new_width;
-
-			if (element.height !== new_height)
-				element.height = new_height;
-
+			setCanvasSize(element,
+				scale * parseInt(element.style.width),
+				scale * parseInt(element.style.height),
+				is_correction);
 			return;
 		}
 
 		var rect = element.getBoundingClientRect();
-		if (rect.width === 0 && rect.height === 0)
+		var isCorrectRect = (rect.width === 0 && rect.height === 0) ? false : true;
+		if (is_wait_correction || !isCorrectRect)
 		{
-			var style_width = parseInt(element.style.width);
-			var style_height = parseInt(element.style.height);
+			var isNoVisibleElement = false;
+			if (element.style.display === "none")
+				isNoVisibleElement = true;
+			else if (element.parentNode && element.parentNode.style.display === "none")
+				isNoVisibleElement = true;
 
-			rect = {
-				x : 0, left : 0,
-				y : 0, top : 0,
-				width : style_width, right : style_width,
-				height : style_height, bottom : style_height
-			};
+			if (!isNoVisibleElement)
+			{
+				element.correctionTimeout = setTimeout(function (){
+					calculateCanvasSize(element, true);
+				}, 100);
+			}
+
+			if (!isCorrectRect)
+			{
+				var style_width = parseInt(element.style.width);
+				var style_height = parseInt(element.style.height);
+
+				rect = {
+					x: 0, left: 0,
+					y: 0, top: 0,
+					width: style_width, right: style_width,
+					height: style_height, bottom: style_height
+				};
+			}
 		}
 
-		if (!AscCommon.AscBrowser.isMozilla)
+		var new_width = 0;
+		var new_height = 0;
+
+		// в мозилле поправили баг. отключаем особую ветку
+		if (true || !AscCommon.AscBrowser.isMozilla)
 		{
 			new_width = Math.round(scale * rect.right) - Math.round(scale * rect.left);
 			new_height = Math.round(scale * rect.bottom) - Math.round(scale * rect.top);
@@ -6337,11 +6612,10 @@
 			new_height = sizeH.end;
 		}
 
-		if (element.width !== new_width)
-			element.width = new_width;
-
-		if (element.height !== new_height)
-			element.height = new_height;
+		setCanvasSize(element,
+			new_width,
+			new_height,
+			is_correction);
 	};
 
 
@@ -6393,6 +6667,94 @@
 
 	var g_oCRC32 = new CRC32();
 
+	function RangeTopBottomIterator() {
+		this.size = 0;
+		this.rangesTop = null;
+		this.indexTop = 0;
+		this.rangesBottom = null;
+		this.indexBottom = 0;
+		this.lastRow = -1;
+		this.mmap = null;
+		this.mmapCache = null;
+	}
+	RangeTopBottomIterator.prototype.init = function (arr, fGetRanges) {
+		var rangesTop = this.rangesTop = [];
+		var rangesBottom = this.rangesBottom = [];
+		var nextId = 0;
+		this.size = arr.length;
+		arr.forEach(function (elem) {
+			var ranges = fGetRanges(elem);
+			for (var i = 0; i < ranges.length; i++) {
+				var rangeElem = {id: nextId++, bbox: ranges[i], data: elem, isInsert: false};
+				rangesTop.push(rangeElem);
+				rangesBottom.push(rangeElem);
+			}
+		});
+		//Array.sort is stable in all browsers
+		//https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#browser_compatibility
+		this.rangesTop.sort(RangeTopBottomIterator.prototype.compareByLeftTop);
+		this.rangesBottom.sort(RangeTopBottomIterator.prototype.compareByRightBottom);
+		this.reset();
+	};
+	RangeTopBottomIterator.prototype.compareByLeftTop = function (a, b) {
+		return Asc.Range.prototype.compareByLeftTop(a.bbox, b.bbox);
+	};
+	RangeTopBottomIterator.prototype.compareByRightBottom = function (a, b) {
+		return Asc.Range.prototype.compareByRightBottom(a.bbox, b.bbox);
+	};
+	RangeTopBottomIterator.prototype.getSize = function () {
+		return this.size;
+	};
+	RangeTopBottomIterator.prototype.reset = function () {
+		this.indexTop = 0;
+		this.indexBottom = 0;
+		this.lastRow = -1;
+		if (this.mmap) {
+			this.mmap.forEach(function (rangeElem) {
+				rangeElem.isInsert = false;
+			});
+		}
+		this.mmap = new Map();
+		this.mmapCache = null;
+	};
+	RangeTopBottomIterator.prototype.get = function (row, col) {
+		//todo binary search
+		//todo dynamic column range or preassigned column range
+		if (this.lastRow > row) {
+			this.reset();
+		}
+		var rangeElem;
+		while (this.indexTop < this.rangesTop.length && row >= this.rangesTop[this.indexTop].bbox.r1) {
+			rangeElem = this.rangesTop[this.indexTop++];
+			if (row <= rangeElem.bbox.r2) {
+				rangeElem.isInsert = true;
+				this.mmap.set(rangeElem.id, rangeElem);
+				this.mmapCache = null;
+			}
+		}
+		while (this.indexBottom < this.rangesBottom.length && row > this.rangesBottom[this.indexBottom].bbox.r2) {
+			rangeElem = this.rangesBottom[this.indexBottom++];
+			if (rangeElem.isInsert) {
+				rangeElem.isInsert = false;
+				this.mmap.delete(rangeElem.id);
+				this.mmapCache = null;
+			}
+		}
+		var t = this;
+		if (!this.mmapCache) {
+			this.mmapCache = [];
+			this.mmap.forEach(function (rangeElem) {
+				for (var i = rangeElem.bbox.c1; i <= rangeElem.bbox.c2; ++i) {
+					if (!t.mmapCache[i]) {
+						t.mmapCache[i] = [];
+					}
+					t.mmapCache[i].push(rangeElem.data);
+				}
+			});
+		}
+		this.lastRow = row;
+		return t.mmapCache[col] || [];
+	};
 
 	//------------------------------------------------------------export---------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
@@ -6469,6 +6831,7 @@
 	window["AscCommon"].isEastAsianScript = isEastAsianScript;
 	window["AscCommon"].CMathTrack = CMathTrack;
 	window["AscCommon"].CPolygon = CPolygon;
+	window['AscCommon'].CDrawingCollaborativeTargetBase = CDrawingCollaborativeTargetBase;
 
 	window["AscCommon"].JSZipWrapper = JSZipWrapper;
 	window["AscCommon"].g_oDocumentUrls = g_oDocumentUrls;
@@ -6534,6 +6897,7 @@
 
 	window["AscCommon"].CCustomShortcutActionSymbol = window["AscCommon"]["CCustomShortcutActionSymbol"] = CCustomShortcutActionSymbol;
 	window['AscCommon'].g_oCRC32  = g_oCRC32;
+	window["AscCommon"].RangeTopBottomIterator = RangeTopBottomIterator;
 })(window);
 
 window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)

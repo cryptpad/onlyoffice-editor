@@ -7175,7 +7175,8 @@ CStyle.prototype.CreateIntenseQuote = function()
 
 		Shd : {
 			Value : c_oAscShdClear,
-			Color : {r : 0xF2, g : 0xF2, b : 0xF2}
+			Fill  : {r : 0xF2, g : 0xF2, b : 0xF2},
+			Color : {r : 0xff, g : 0xff, b : 0xff, Auto : true}
 		},
 
 		Brd : {
@@ -9870,6 +9871,10 @@ CDocumentColor.prototype.Is_Equal = function(Color)
 {
 	return this.IsEqual(Color);
 };
+CDocumentColor.prototype.IsAuto = function()
+{
+	return this.Auto;
+};
 
 
 function CDocumentShd()
@@ -9879,7 +9884,7 @@ function CDocumentShd()
 	this.Fill    = undefined;
 	this.Unifill = undefined;
 	this.FillRef = undefined;
-
+	this.themeFill = undefined;
 	// TODO:
 	//  1. this.Color по умолчанию должен быть undefined
 	//  2. Добавить аналог для themeFill и переименовать Unifill в themeColor
@@ -10212,7 +10217,7 @@ CDocumentShd.prototype.GetSimpleColor = function(oTheme, oColorMap)
 
 		default:
 		{
-			oResultColor = oStrokeColor;
+			oResultColor = oFillColor;
 			break;
 		}
 	}
@@ -10242,7 +10247,7 @@ CDocumentShd.prototype.Write_ToBinary = function(Writer)
 	{
 		if (this.Color)
 		{
-			Writer.WriteBool(false);
+			Writer.WriteBool(true);
 			this.Color.Write_ToBinary(Writer);
 		}
 		else
@@ -13378,7 +13383,23 @@ CTextPr.prototype.GetIncDecFontSizeCS = function(IncFontSize)
 	}
 	return FontSize_IncreaseDecreaseValue(IncFontSize, FontSize);
 };
+CTextPr.prototype.GetSimpleTextColor = function(oTheme, oColorMap)
+{
+	if (this.Unifill)
+	{
+		if (oTheme && oColorMap)
+			this.Unifill.check(oTheme, oColorMap);
 
+		var oRGBA = this.Unifill.getRGBAColor();
+		return new CDocumentColor(oRGBA.R, oRGBA.G, oRGBA.B);
+	}
+	else if (this.Color)
+	{
+		return this.Color;
+	}
+
+	return new CDocumentColor();
+}
 
 CTextPr.prototype.GetIncDecFontSize = function(IncFontSize)
 {

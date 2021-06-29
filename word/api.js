@@ -1247,7 +1247,14 @@ background-repeat: no-repeat;\
 		}
 
 		if (this.WordControl && this.WordControl.m_oBody)
+		{
 			this.WordControl.OnResize(true);
+			if (this.WordControl.m_oEditor && this.WordControl.m_oEditor.HtmlElement)
+			{
+				this.WordControl.m_oEditor.HtmlElement.fullRepaint = true;
+				this.WordControl.OnScroll();
+			}
+		}
 	};
 
 	asc_docs_api.prototype.GetCopyPasteDivId = function()
@@ -9744,7 +9751,7 @@ background-repeat: no-repeat;\
 		if (!oRun)
 			return null;
 
-		return oRun.GetTextFormAutoWidth();
+		return AscCommon.MMToTwips(oRun.GetTextFormAutoWidth());
 	};
 	asc_docs_api.prototype.asc_GetFormsCountByKey = function(sKey)
 	{
@@ -11103,6 +11110,33 @@ background-repeat: no-repeat;\
 			this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletChangeListLevel(id, props);
     };
 
+	asc_docs_api.prototype.asc_PreConvertTextToTable = function(oProps)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		return oLogicDocument.PreConvertTextToTable(oProps);
+	};
+
+	asc_docs_api.prototype.asc_ConvertTextToTable = function(oProps)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		return oLogicDocument.ConvertTextToTable(oProps);
+	};
+
+	asc_docs_api.prototype.asc_ConvertTableToText = function(sep_type, sep, nested)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		return oLogicDocument.ConvertTableToText({type: sep_type, separator: sep, nested: nested});
+	};
+
 	asc_docs_api.prototype.SetDrawImagePreviewBulletForMenu = function(id, type)
     {
 		if (this.WordControl.m_oDrawingDocument)
@@ -11195,6 +11229,9 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.onUpdateRestrictions = function()
 	{
+		if (this.WordControl)
+			this.WordControl.checkMouseHandMode();
+
 		var oLogicDocument = this.private_GetLogicDocument();
 		if (!oLogicDocument)
 			return;
@@ -11216,6 +11253,56 @@ background-repeat: no-repeat;\
 			oHistory.Clear();
 			oLogicDocument.UpdateInterface();
 		}
+
+		if (this.isDrawTablePen || this.isDrawTableErase)
+		{
+			this.isDrawTablePen && this.sync_TableDrawModeCallback(false);
+			this.isDrawTableErase && this.sync_TableEraseModeCallback(false);
+			oLogicDocument.UpdateCursorType(oLogicDocument.CurPos.RealX, oLogicDocument.CurPos.RealY, oLogicDocument.CurPage, new AscCommon.CMouseEventHandler());
+		}
+		else if (true === this.isMarkerFormat)
+		{
+			this.sync_MarkerFormatCallback(false);
+			oLogicDocument.UpdateCursorType(oLogicDocument.CurPos.RealX, oLogicDocument.CurPos.RealY, oLogicDocument.CurPage, new AscCommon.CMouseEventHandler());
+		}
+		else if (c_oAscFormatPainterState.kOff !== this.isPaintFormat)
+		{
+			this.sync_PaintFormatCallback(c_oAscFormatPainterState.kOff);
+			oLogicDocument.UpdateCursorType(oLogicDocument.CurPos.RealX, oLogicDocument.CurPos.RealY, oLogicDocument.CurPage, new AscCommon.CMouseEventHandler());
+		}
+		else if (this.isStartAddShape)
+		{
+			this.sync_StartAddShapeCallback(false);
+			this.sync_EndAddShape();
+			oLogicDocument.DrawingObjects.endTrackNewShape();
+			oLogicDocument.UpdateCursorType(oLogicDocument.CurPos.RealX, oLogicDocument.CurPos.RealY, oLogicDocument.CurPage, new AscCommon.CMouseEventHandler());
+		}
+
+		oLogicDocument.UpdateSelection();
+	};
+	asc_docs_api.prototype.isShowShapeAdjustments = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (oLogicDocument)
+			return oLogicDocument.IsShowShapeAdjustments();
+
+		return true;
+	};
+	asc_docs_api.prototype.isShowTableAdjustments = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (oLogicDocument)
+			return oLogicDocument.IsShowTableAdjustments();
+
+		return true;
+	};
+	asc_docs_api.prototype.isShowEquationTrack = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (oLogicDocument)
+			return oLogicDocument.IsShowEquationTrack();
+
+		return true;
 	};
 
 	asc_docs_api.prototype.canEditGeometry = function () {
@@ -11797,6 +11884,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["SetDrawImagePlaceTableOfFigures"]			= asc_docs_api.prototype.SetDrawImagePlaceTableOfFigures;
     asc_docs_api.prototype["SetDrawImagePreviewMargins"]				= asc_docs_api.prototype.SetDrawImagePreviewMargins;
     asc_docs_api.prototype["SetDrawImagePreviewBullet"]					= asc_docs_api.prototype.SetDrawImagePreviewBullet;
+    asc_docs_api.prototype["ConvertTextToTable"]						= asc_docs_api.prototype.ConvertTextToTable;
+    asc_docs_api.prototype["ConvertTableToText"]						= asc_docs_api.prototype.ConvertTableToText;
     asc_docs_api.prototype["SetDrawImagePreviewBulletChangeListLevel"]	= asc_docs_api.prototype.SetDrawImagePreviewBulletChangeListLevel;
     asc_docs_api.prototype["SetDrawImagePreviewBulletForMenu"]			= asc_docs_api.prototype.SetDrawImagePreviewBulletForMenu;
 
@@ -11905,6 +11994,11 @@ background-repeat: no-repeat;\
 
     asc_docs_api.prototype['SetTableDrawMode']         					= asc_docs_api.prototype.SetTableDrawMode;
     asc_docs_api.prototype['SetTableEraseMode']         				= asc_docs_api.prototype.SetTableEraseMode;
+
+	asc_docs_api.prototype['asc_PreConvertTextToTable']                 = asc_docs_api.prototype.asc_PreConvertTextToTable;
+	asc_docs_api.prototype['asc_ConvertTextToTable']                    = asc_docs_api.prototype.asc_ConvertTextToTable;
+	asc_docs_api.prototype['asc_ConvertTableToText']                    = asc_docs_api.prototype.asc_ConvertTableToText;
+
 
 	// mobile
 	asc_docs_api.prototype["asc_GetDefaultTableStyles"]             	= asc_docs_api.prototype.asc_GetDefaultTableStyles;

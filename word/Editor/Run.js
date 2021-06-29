@@ -5722,12 +5722,15 @@ ParaRun.prototype.Draw_HighLights = function(PDSH)
     var bDrawColl = PDSH.DrawColl;
 
     var oCompiledPr = this.Get_CompiledPr(false);
-    var oShd = oCompiledPr.Shd;
-    var bDrawShd  = ( oShd === undefined || c_oAscShdNil === oShd.Value || (oShd.Color && true === oShd.Color.Auto) ? false : true );
-    var ShdColor  = ( true === bDrawShd ? oShd.Get_Color( PDSH.Paragraph ) : null );
+    var oShd        = oCompiledPr.Shd;
+    var bDrawShd    = ( oShd === undefined || oShd.IsNil() ? false : true );
+    var ShdColor    = ( true === bDrawShd ? oShd.GetSimpleColor(PDSH.Paragraph.GetTheme(), PDSH.Paragraph.GetColorMap()) : null );
 
-    if(this.Type == para_Math_Run && this.IsPlaceholder())
-        bDrawShd = false;
+    if (!ShdColor || true === ShdColor.Auto || (this.Type === para_Math_Run && this.IsPlaceholder()))
+	{
+		ShdColor = null;
+		bDrawShd = false;
+	}
 
     var X  = PDSH.X;
     var Y0 = PDSH.Y0;
@@ -6716,6 +6719,32 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 
     // Обновляем позицию
     PDSL.X = X;
+};
+
+ParaRun.prototype.SkipDraw = function(PDS)
+{
+	var CurLine  = PDS.Line - this.StartLine;
+	var CurRange = (0 === CurLine ? PDS.Range - this.StartRange : PDS.Range);
+
+	var StartPos = this.protected_GetRangeStartPos(CurLine, CurRange);
+	var EndPos   = this.protected_GetRangeEndPos(CurLine, CurRange);
+
+
+	var X = PDS.X;
+
+	for (var Pos = StartPos; Pos < EndPos; Pos++)
+	{
+		var oItem     = this.private_CheckInstrText(this.Content[Pos]);
+		var nItemType = oItem.Type;
+
+		if (para_End === nItemType)
+			X += oItem.Get_Width();
+		else if (para_Drawing !== nItemType || oItem.Is_Inline())
+			X += oItem.Get_WidthVisible();
+	}
+
+	// Обновим позицию X
+	PDS.X = X;
 };
 //-----------------------------------------------------------------------------------
 // Функции для работы с курсором

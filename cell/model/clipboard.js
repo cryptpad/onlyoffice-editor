@@ -1374,7 +1374,8 @@
 						}
 					}
 
-					var text = val[i].text.replace(/\n/g, '<br>');
+					var text = CopyPasteCorrectString(val[i].text);
+					text = text.replace(/\n/g, '<br>');
 
 					f = val[i].format;
 					var fn = f.getName();
@@ -1466,7 +1467,7 @@
 
 							var currentRange = worksheet.model.getCell3(row, col);
 							var textRange = currentRange.getValueWithFormat();
-							if (textRange !== '') {
+							if (textRange !== '' && textRange !== undefined) {
 								res += textRange;
 							}
 						}

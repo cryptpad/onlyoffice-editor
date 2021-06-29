@@ -98,7 +98,8 @@
 			return;
 		}
 		var t = this;
-		this._formula = new AscCommonExcel.parserFormula(this.text, this, ws);
+		var formulaText = isNum(this.text) ? this.text + "" : this.text;
+		this._formula = new AscCommonExcel.parserFormula(formulaText, this, ws);
 		if (!locale) {
 			AscCommonExcel.executeInR1C1Mode(false, function () {
 				t._formula.parse();
@@ -538,6 +539,18 @@
 		if (list && AscCommonExcel.cElementType.error !== list.type) {
 			if (AscCommonExcel.cElementType.string === list.type) {
 				aValue = list.getValue().split(AscCommon.FormulaSeparators.functionArgumentSeparatorDef);
+				if (aValue && aValue.length) {
+					for (var i = 0; i < aValue.length; i++) {
+						//обрезаем только вначале строки
+						if (aValue[i] && aValue[i].length) {
+							var pos = 0;
+							while((pos < aValue[i].length) && (aValue[i][pos] == ' ')){
+								++pos;
+							}
+							aValue[i] = pos ? aValue[i].substr(pos) : aValue[i];
+						}
+					}
+				}
 			} else {
 				list = list.getRange();
 				if (list) {
@@ -901,6 +914,10 @@
 
 		var newRanges = [];
 		var bDel, isChanged;
+		//TODO правлю ошибку. 50521 - попытаться понять, как получился такой файл.
+		if (!this.ranges) {
+			return -1;
+		}
 		for (var i = 0; i < this.ranges.length; i++) {
 			if (!bInsert && updateRange.containsRange(this.ranges[i])) {
 				bDel = true;

@@ -3045,7 +3045,7 @@ var g_oBorderProperties = {
 		var fill = null;
 		if (val) {
 			fill = new AscCommonExcel.Fill();
-			fill.fromColor(AscCommonExcel.createRgbColor(val.get_r(),val.get_g(),val.get_b()));
+			fill.fromColor(AscCommonExcel.createRgbColor(val.asc_getR(),val.asc_getG(),val.asc_getB()));
 		}
 		return this.setFill(fill);
 	};
@@ -3944,7 +3944,8 @@ StyleManager.prototype =
 	/** @constructor */
 	function SheetMergedStyles() {
 		this.stylesTablePivot = [];
-		this.stylesConditional = [];
+		this.stylesConditional = {};
+		this.stylesConditionalIterator = null;
 	}
 
 	SheetMergedStyles.prototype.setTablePivotStyle = function(range, xf, stripe) {
@@ -3958,14 +3959,19 @@ StyleManager.prototype =
 			}
 		}
 	};
-	SheetMergedStyles.prototype.setConditionalStyle = function(multiplyRange, formula) {
-		this.stylesConditional.push({multiplyRange: multiplyRange, formula: formula});
+	SheetMergedStyles.prototype.setConditionalStyle = function(rule, ranges, formula) {
+		this.stylesConditionalIterator = null;
+		this.stylesConditional[rule.Get_Id()] = {ranges: ranges, formula: formula, rule: rule};
 	};
 	SheetMergedStyles.prototype.clearConditionalStyle = function(multiplyRange) {
-		for (var i = this.stylesConditional.length - 1; i >= 0; --i) {
-			var style = this.stylesConditional[i];
-			if (style.multiplyRange.isIntersect(multiplyRange)) {
-				this.stylesConditional.splice(i, 1);
+		this.stylesConditionalIterator = null;
+		for (var i in this.stylesConditional) {
+			if (this.stylesConditional.hasOwnProperty(i)) {
+				var style = this.stylesConditional[i];
+				var mr = new AscCommonExcel.MultiplyRange(style.ranges);
+				if (mr.isIntersect(multiplyRange)) {
+					delete this.stylesConditional[i];
+				}
 			}
 		}
 	};
@@ -3974,13 +3980,22 @@ StyleManager.prototype =
 		if (opt_ws) {
 			opt_ws._updateConditionalFormatting();
 		}
-		for (var i = 0; i < this.stylesConditional.length; ++i) {
-			var style = this.stylesConditional[i];
-			if (style.multiplyRange.contains(col, row)) {
-				var xf = style.formula(row, col);
-				if (xf) {
-					res.conditional.push(xf);
-				}
+		if (!this.stylesConditionalIterator) {
+			this.stylesConditionalIterator = new AscCommon.RangeTopBottomIterator();
+			//todo lose stylesConditional sorting
+			this.stylesConditionalIterator.init(Object.values(this.stylesConditional), function(elem) {
+				return elem.ranges;
+			});
+		}
+		var rules = this.stylesConditionalIterator.get(row, col);
+		//todo sort inside RangeTopBottomIterator ?
+		rules.sort(function(v1, v2) {
+			return v2.rule.priority - v1.rule.priority;
+		});
+		for (var i = 0; i < rules.length; ++i) {
+			var xf = rules[i].formula(row, col);
+			if (xf) {
+				res.conditional.push(xf);
 			}
 		}
 		for (var i = 0; i < this.stylesTablePivot.length; ++i) {
@@ -4142,7 +4157,7 @@ StyleManager.prototype =
 		return bRes;
 	};
 	Hyperlink.prototype.isValid = function () {
-		var isValidLength = !this.Hyperlink || (this.Hyperlink && this.Hyperlink.length <= Asc.c_nMaxHyperlinkLength);
+		var isValidLength = !this.Hyperlink || (this.Hyperlink && AscCommonExcel.getFullHyperlinkLength(this.Hyperlink) <= Asc.c_nMaxHyperlinkLength);
 		return null != this.Ref && (null != this.getLocation() || null != this.Hyperlink) && isValidLength;
 	};
 	Hyperlink.prototype.setLocationSheet = function (LocationSheet) {
@@ -5172,7 +5187,6 @@ StyleManager.prototype =
 		return sRes;
 	}
 	function isEqualMultiText(multiText1, multiText2) {
-		var sRes = "";
 		if (multiText1 && multiText2) {
 			if (multiText1.length === multiText2.length) {
 				for (var i = 0, length = multiText1.length; i < length; ++i) {
@@ -6438,6 +6452,9 @@ function RangeDataManagerElem(bbox, data)
 
 				for (var j = 0; j < newTableColumns.length; j++) {
 					tableColumn = newTableColumns[j];
+					if (!tableColumn) {
+						tableColumn = newTableColumns[j] = new TableColumn();
+					}
 					if (tableColumn.Name === null) {
 						tableColumn.Name = autoFilters._generateColumnName2(newTableColumns);
 					}
@@ -9867,8 +9884,8 @@ AutoFilterDateElem.prototype.Read_FromBinary2 = function(r) {
 AutoFilterDateElem.prototype.clone = function() {
 	var res = new AutoFilterDateElem();
 	res.start = this.start;
-	this.end = this.end;
-	this.dateTimeGrouping = this.dateTimeGrouping;
+	res.end = this.end;
+	res.dateTimeGrouping = this.dateTimeGrouping;
 
 	return res;
 };
@@ -9942,6 +9959,13 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 				},
 				has: function(key) {
 					return !!this.storage[key];
+				},
+				forEach: function(callback, context) {
+					for (var i in this.storage) {
+						if (this.storage.hasOwnProperty(i)) {
+							callback.call(context, this.storage[i], i, this);
+						}
+					}
 				}
 			};
 
@@ -9955,9 +9979,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	function CSharedStrings () {
 		this.all = [];
 		this.text = new Map();
-		//
-		this.multiText = [];
-		this.multiTextIndex = [];
+		this.multiTextMap = new Map();
 	}
 
 	CSharedStrings.prototype.addText = function(text) {
@@ -9974,17 +9996,24 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	};
 	CSharedStrings.prototype.addMultiText = function(multiText) {
 		var index, i;
-		for (i = 0; i < this.multiText.length; ++i) {
-			if (AscCommonExcel.isEqualMultiText(multiText, this.multiText[i])) {
-				index = this.multiTextIndex[i];
+		var text = multiText.reduce(function(accumulator, currentValue) {
+			return accumulator + currentValue.text;
+		}, '');
+		var mapElem = this.multiTextMap.get(text);
+		if (!mapElem) {
+			mapElem = [];
+			this.multiTextMap.set(text, mapElem);
+		}
+		for (i = 0; i < mapElem.length; ++i) {
+			if (AscCommonExcel.isEqualMultiText(multiText, this.all[mapElem[i] - 1])) {
+				index = mapElem[i];
 				break;
 			}
 		}
 		if (undefined === index) {
 			this.all.push(multiText);
 			index = this.all.length;
-			this.multiText.push(multiText);
-			this.multiTextIndex.push(index);
+			mapElem.push(index);
 			if (AscFonts.IsCheckSymbols) {
 				for (i = 0; i < multiText.length; ++i) {
 					AscFonts.FontPickerByCharacter.getFontsByString(multiText[i].text);
@@ -10000,15 +10029,17 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this.all.length;
 	};
 	CSharedStrings.prototype.generateFontMap = function(oFontMap) {
-		for (var i = 0; i < this.multiText.length; ++i) {
-			var multiText = this.multiText[i];
-			for (var j = 0; j < multiText.length; ++j) {
-				var part = multiText[j];
-				if (null != part.format) {
-					oFontMap[part.format.getName()] = 1;
+		this.multiTextMap.forEach(function(mapElem) {
+			for (var i = 0; i < mapElem.length; ++i) {
+				var multiText = this.all[mapElem[i] - 1];
+				for (var j = 0; j < multiText.length; ++j) {
+					var part = multiText[j];
+					if (part && part.format) {
+						oFontMap[part.format.getName()] = 1;
+					}
 				}
 			}
-		}
+		}, this);
 	};
 
 	/**

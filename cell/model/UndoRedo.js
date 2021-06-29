@@ -1189,6 +1189,43 @@ function (window, undefined) {
 		this.c2 = collaborativeEditing.getLockMeColumn2(nSheetId, this.c2);
 	};
 
+
+	function UndoRedoData_FrozenBBox(oBBox) {
+		if (null != oBBox) {
+			this.c1 = oBBox.c1;
+			this.r1 = oBBox.r1;
+			this.c2 = oBBox.c2;
+			this.r2 = oBBox.r2;
+		} else {
+			this.c1 = null;
+			this.r1 = null;
+			this.c2 = null;
+			this.r2 = null;
+		}
+	}
+
+	UndoRedoData_FrozenBBox.prototype = Object.create(UndoRedoData_BBox.prototype);
+	UndoRedoData_FrozenBBox.prototype.applyCollaborative = function (nSheetId, collaborativeEditing) {
+		var _r1 = this.r1 > 0 ? collaborativeEditing.getLockMeRow2(nSheetId, this.r1 - 1) : null;
+		var _r2 = this.r2 > 0 ? collaborativeEditing.getLockMeRow2(nSheetId, this.r2 - 1) : null;
+		var _c1 = this.c1 > 0 ? collaborativeEditing.getLockMeRow2(nSheetId, this.c1 - 1) : null;
+		var _c2 = this.c2 > 0 ? collaborativeEditing.getLockMeRow2(nSheetId, this.c2 - 1) : null;
+
+		if (_r1 !== null && _r1 !== this.r1 - 1) {
+			this.r1 = _r1 + 1;
+		}
+		if (_r2 !== null && _r2 !== this.r2 - 1) {
+			this.r2 = _r2 + 1;
+		}
+		if (_c1 !== null && _c1 !== this.c1 - 1) {
+			this.c1 = _c1 + 1;
+		}
+		if (_c2 !== null && _c2 !== this.c2 - 1) {
+			this.c2 = _c2 + 1;
+		}
+	};
+
+
 	function UndoRedoData_SortData(bbox, places, sortByRow) {
 		this.bbox = bbox;
 		this.places = places;
@@ -2480,6 +2517,7 @@ function (window, undefined) {
 		}
 		var collaborativeEditing = wb.oApi.collaborativeEditing;
 		var workSheetView;
+		var changeFreezePane;
 		if (AscCH.historyitem_Worksheet_RemoveCell == Type) {
 			nRow = Data.nRow;
 			nCol = Data.nCol;
@@ -2607,6 +2645,13 @@ function (window, undefined) {
 			worksheetView = wb.oApi.wb.getWorksheetById(nSheetId);
 			worksheetView.cellCommentator.updateCommentsDependencies(bInsert, operType, range);
 
+			if (wb.bCollaborativeChanges) {
+				changeFreezePane = worksheetView._getFreezePaneOffset(operType, range, bInsert);
+				if (changeFreezePane) {
+					worksheetView._updateFreezePane(changeFreezePane.col, changeFreezePane.row, true);
+				}
+			}
+
 			//ws.shiftDataValidation(bInsert, operType, range);
 		} else if (AscCH.historyitem_Worksheet_AddCols == Type || AscCH.historyitem_Worksheet_RemoveCols == Type) {
 			from = Data.from;
@@ -2644,6 +2689,13 @@ function (window, undefined) {
 			// ToDo Так делать неправильно, нужно поправить (перенести логику в model, а отрисовку отделить)
 			worksheetView = wb.oApi.wb.getWorksheetById(nSheetId);
 			worksheetView.cellCommentator.updateCommentsDependencies(bInsert, operType, range);
+
+			if (wb.bCollaborativeChanges) {
+				changeFreezePane = worksheetView._getFreezePaneOffset(operType, range, bInsert);
+				if (changeFreezePane) {
+					worksheetView._updateFreezePane(changeFreezePane.col, changeFreezePane.row, true);
+				}
+			}
 
 			//ws.shiftDataValidation(bInsert, operType, range)
 		} else if (AscCH.historyitem_Worksheet_ShiftCellsLeft == Type ||
@@ -2787,9 +2839,9 @@ function (window, undefined) {
 			worksheetView.model.autoFilters.reDrawFilter(from);
 		} else if (AscCH.historyitem_Worksheet_Rename == Type) {
 			if (bUndo) {
-				ws.setName(Data.from, true);
+				ws.setName(Data.from);
 			} else {
-				ws.setName(Data.to, true);
+				ws.setName(Data.to);
 			}
 		} else if (AscCH.historyitem_Worksheet_Hide == Type) {
 			if (bUndo) {
@@ -2894,7 +2946,22 @@ function (window, undefined) {
 		} else if (AscCH.historyitem_Worksheet_ChangeFrozenCell === Type) {
 			worksheetView = wb.oApi.wb.getWorksheetById(nSheetId);
 			var updateData = bUndo ? Data.from : Data.to;
-			worksheetView._updateFreezePane(updateData.c1, updateData.r1, /*lockDraw*/true);
+
+			var _r1 = updateData.r1 > 0 ? collaborativeEditing.getLockOtherRow2(nSheetId, updateData.r1 - 1) : null;
+			var _c1 = updateData.c1 > 0 ? collaborativeEditing.getLockOtherColumn2(nSheetId, updateData.c1 - 1) : null;
+
+			if (_r1 !== null && _r1 !== updateData.r1 - 1) {
+				_r1++;
+			} else {
+				_r1 = updateData.r1;
+			}
+			if (_c1 !== null && _c1 !== updateData.c1 - 1) {
+				_c1++;
+			} else {
+				_c1 = updateData.c1;
+			}
+
+			worksheetView._updateFreezePane(_c1, _r1, /*lockDraw*/true);
 		} else if (AscCH.historyitem_Worksheet_SetTabColor === Type) {
 			ws.setTabColor(bUndo ? Data.from : Data.to);
 		} else if (AscCH.historyitem_Worksheet_SetSummaryRight === Type) {
@@ -3104,6 +3171,13 @@ function (window, undefined) {
 				ws.addCFRule(Data.from);
 			} else {
 				ws.deleteCFRule(Data.id);
+			}
+		} else if (AscCH.historyitem_Worksheet_SetShowZeros === Type) {
+			ws.setShowZeros(bUndo ? Data.from : Data.to);
+		} else if (AscCH.historyitem_Worksheet_SetTopLeftCell === Type) {
+			//накатываем только при открытии
+			if (!bUndo && this.wb.bCollaborativeChanges) {
+				ws.setTopLeftCell(Data.to ? new Asc.Range(Data.to.c1, Data.to.r1, Data.to.c2, Data.to.r2) : null);
 			}
 		}
 	};
@@ -3839,56 +3913,57 @@ function (window, undefined) {
 			return;
 		}
 		var fields;
-		if (Type < AscCH.historyitem_PivotTable_DataFieldSetName) {
-			fields = pivotTable.asc_getPivotFields();
-		} else {
+		if (AscCH.historyitem_PivotTable_DataFieldSetName === Type || Type === AscCH.historyitem_PivotTable_DataFieldSetSubtotal) {
 			fields = pivotTable.asc_getDataFields();
+		} else {
+			fields = pivotTable.asc_getPivotFields();
 		}
-		if (!fields || !fields[Data.index]) {
+		var index = AscCH.historyitem_PivotTable_PivotFieldVisible === Type ? Data.index.from : Data.index;
+		if (!fields || !fields[index]) {
 			return;
 		}
-		var field = fields[Data.index];
+		var field = fields[index];
 		pivotTable.stashCurReportRange();
 
 		var value = bUndo ? Data.from : Data.to;
 		switch (Type) {
 			case AscCH.historyitem_PivotTable_PivotFieldSetName:
-				field.asc_setName(value, pivotTable, Data.index);
+				field.asc_setName(value, pivotTable, index);
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldSetOutline:
-				field.asc_setOutline(value, pivotTable, Data.index);
+				field.asc_setOutline(value, pivotTable, index);
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldSetCompact:
-				field.asc_setCompact(value, pivotTable, Data.index);
+				field.asc_setCompact(value, pivotTable, index);
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldFillDownLabelsDefault:
-				field.setFillDownLabelsDefault(value, pivotTable, Data.index);
+				field.setFillDownLabelsDefault(value, pivotTable, index);
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldSetInsertBlankRow:
-				field.asc_setInsertBlankRow(value, pivotTable, Data.index);
+				field.asc_setInsertBlankRow(value, pivotTable, index);
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldSetDefaultSubtotal:
-				field.asc_setDefaultSubtotal(value, pivotTable, Data.index);
+				field.asc_setDefaultSubtotal(value, pivotTable, index);
 				field.checkSubtotal();
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldSetSubtotalTop:
-				field.asc_setSubtotalTop(value, pivotTable, Data.index);
+				field.asc_setSubtotalTop(value, pivotTable, index);
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldSetShowAll:
-				field.asc_setShowAll(value, pivotTable, Data.index);
+				field.asc_setShowAll(value, pivotTable, index);
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldVisible:
-				field.asc_setVisible(value, pivotTable, Data.index.from, Data.index.to);
+				field.asc_setVisible(value, pivotTable, index, Data.index.to);
 				break;
 			case AscCH.historyitem_PivotTable_PivotFieldSetSubtotals:
-				field.setSubtotals(value, pivotTable, Data.index);
+				field.setSubtotals(value, pivotTable, index);
 				field.checkSubtotal();
 				break;
 			case AscCH.historyitem_PivotTable_DataFieldSetName:
-				field.asc_setName(value, pivotTable, Data.index);
+				field.asc_setName(value, pivotTable, index);
 				break;
 			case AscCH.historyitem_PivotTable_DataFieldSetSubtotal:
-				field.asc_setSubtotal(value, pivotTable, Data.index);
+				field.asc_setSubtotal(value, pivotTable, index);
 				break;
 		}
 	};
@@ -4219,6 +4294,7 @@ function (window, undefined) {
 	window['AscCommonExcel'].UndoRedoData_ColProp = UndoRedoData_ColProp;
 	window['AscCommonExcel'].UndoRedoData_RowProp = UndoRedoData_RowProp;
 	window['AscCommonExcel'].UndoRedoData_BBox = UndoRedoData_BBox;
+	window['AscCommonExcel'].UndoRedoData_FrozenBBox = UndoRedoData_FrozenBBox;
 	window['AscCommonExcel'].UndoRedoData_SortData = UndoRedoData_SortData;
 	window['AscCommonExcel'].UndoRedoData_PivotTable = UndoRedoData_PivotTable;
 	window['AscCommonExcel'].UndoRedoData_PivotTableRedo = UndoRedoData_PivotTableRedo;

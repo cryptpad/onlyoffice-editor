@@ -3956,6 +3956,15 @@ GraphicOption.prototype.union = function(oGraphicOption) {
             _this.controller.onMouseUp( e, pxToMm(x - offsets.x), pxToMm(y - offsets.y) );
     };
 
+    _this.isPointInDrawingObjects3 = function(x, y, page, bSelected, bText) {
+
+
+        var offsets = _this.drawingArea.getOffsets(x, y, true);
+        if ( offsets )
+            return _this.controller.isPointInDrawingObjects3(pxToMm(x - offsets.x), pxToMm(y - offsets.y), page, bSelected, bText );
+        return false;
+    };
+
     // keyboard
 
     _this.graphicObjectKeyDown = function(e) {
@@ -4057,7 +4066,6 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 
         worksheet.endEditChart();
         _this.controller.resetSelectionState();
-        _this.OnUpdateOverlay();
     };
 
     _this.getDrawingObject = function(id) {
@@ -4113,8 +4121,8 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     _this.getCurrentDrawingMacrosName = function() {
         return _this.controller.getCurrentDrawingMacrosName();
     };
-    _this.assignMacrosToCurrentDrawing = function(sName) {
-        _this.controller.assignMacrosToCurrentDrawing(sName);
+    _this.assignMacrosToCurrentDrawing = function(sGuid) {
+        _this.controller.assignMacrosToCurrentDrawing(sGuid);
     };
     _this.setGraphicObjectLayer = function(layerType) {
         _this.controller.setGraphicObjectLayer(layerType);
@@ -4148,7 +4156,16 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                 objectInfo.object = _this.getDrawingBase(graphicObjectInfo.objectId);
                 if(objectInfo.object){
                     objectInfo.id = graphicObjectInfo.objectId;
-                    objectInfo.cursor = graphicObjectInfo.cursorType;
+                    var sCursorType = graphicObjectInfo.cursorType;
+                    var oApi = Asc.editor || editor;
+                    if(oApi) {
+                        if(!oApi.isShowShapeAdjustments()) {
+                            if(sCursorType !== "text") {
+                                sCursorType = "default";
+                            }
+                        }
+                    }
+                    objectInfo.cursor = sCursorType;
                     objectInfo.hyperlink = graphicObjectInfo.hyperlink;
                     objectInfo.macro = graphicObjectInfo.macro;
                     objectInfo.tooltip = graphicObjectInfo.tooltip;

@@ -5697,12 +5697,13 @@ drawLineChart.prototype = {
 			brush = seria.brush;
 			pen = seria.pen;
 
-			if (!(!t.paths.series[j] || !t.paths.series[j][i] || !seria.val.numRef.numCache.pts[i])) {
-				if (seria.val.numRef.numCache && seria.val.numRef.numCache.pts[i].pen) {
-					pen = seria.val.numRef.numCache.pts[i].pen;
+			var numCache = seria.val && seria.val.getNumCache();
+			if (t.paths.series[j] && t.paths.series[j][i] && numCache && numCache.pts[i]) {
+				if (numCache.pts && numCache.pts[i] && numCache.pts[i].pen) {
+					pen = numCache.pts[i].pen;
 				}
-				if (seria.val.numRef.numCache && seria.val.numRef.numCache.pts[i].brush) {
-					brush = seria.val.numRef.numCache.pts[i].brush;
+				if (numCache.pts && numCache.pts[i] && numCache.pts[i].brush) {
+					brush = numCache.pts[i].brush;
 				}
 
 				for (var k = 0; k < t.paths.series[j][i].length; k++) {
@@ -7191,7 +7192,7 @@ drawAreaChart.prototype = {
 				cColorMod.val = 35000;
 			}
 			cColorMod.name = "shade";
-			duplicateBrush.fill.color.Mods.addMod(cColorMod);
+			duplicateBrush.addColorMod(cColorMod);
 			duplicateBrush.calculate(props.theme, props.slide, props.layout, props.master,
 				new AscFormat.CUniColor().RGBA, this.cChartSpace.clrMapOvr);
 

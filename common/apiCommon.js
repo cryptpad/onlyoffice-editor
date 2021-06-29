@@ -1642,19 +1642,55 @@
 	asc_ChartSettings.prototype.getSeparator = function() {
 		return this.separator;
 	};
-	asc_ChartSettings.prototype.changeType = function(type) {
-		this.putType(type);
-		if(this.chartSpace) {
-			var oController = this.chartSpace.getDrawingObjectsController();
-			if(oController) {
-				var oThis = this;
-				var oChartSpace = this.chartSpace;
-				oController.checkSelectedObjectsAndCallback(function() {
-					oChartSpace.changeChartType(type);
-					oThis.updateChart();
-				}, [], false, 0, []);
+	asc_ChartSettings.prototype.sendErrorOnChangeType = function(nType) {
+		var oApi = Asc.editor || editor;
+		if(oApi) {
+			oApi.sendEvent("asc_onError", nType, Asc.c_oAscError.Level.NoCritical);
+			if(oApi.UpdateInterfaceState) {
+				oApi.UpdateInterfaceState();
 			}
 		}
+	};
+	asc_ChartSettings.prototype.changeType = function(type) {
+		if(this.chartSpace) {
+			if(type === Asc.c_oAscChartTypeSettings.stock) {
+				if(!this.chartSpace.canChangeToStockChart()){
+					this.sendErrorOnChangeType(Asc.c_oAscError.ID.StockChartError);
+					return false;
+				}
+			}
+			if(type === Asc.c_oAscChartTypeSettings.comboCustom
+				|| type === Asc.c_oAscChartTypeSettings.comboAreaBar
+				|| type === Asc.c_oAscChartTypeSettings.comboBarLine
+				|| type === Asc.c_oAscChartTypeSettings.comboBarLineSecondary) {
+				if(!this.chartSpace.canChangeToComboChart()){
+					this.sendErrorOnChangeType(Asc.c_oAscError.ID.ComboSeriesError);
+					return false;
+				}
+			}
+			this.putType(type);
+			if(this.chartSpace) {
+				var oController = this.chartSpace.getDrawingObjectsController();
+				if(oController) {
+					var oThis = this;
+					var oChartSpace = this.chartSpace;
+					oController.checkSelectedObjectsAndCallback(function() {
+						oChartSpace.changeChartType(type);
+						oThis.updateChart();
+						var oApi = Asc.editor || editor;
+						if(oApi) {
+							if(oApi.UpdateInterfaceState) {
+								oApi.UpdateInterfaceState();
+							}
+						}
+					}, [], false, 0, []);
+				}
+			}
+		}
+		else {
+			this.putType(type);
+		}
+		return true;
 	};
 	asc_ChartSettings.prototype.getSeries = function() {
 		if(this.chartSpace) {
@@ -1719,6 +1755,10 @@
 		AscCommon.History.StartTransaction();
 	};
 	asc_ChartSettings.prototype.endEdit = function() {
+		if(AscCommon.History.Is_LastPointEmpty()) {
+			this.cancelEdit();
+			return;
+		}
 		this.bStartEdit = false;
 		AscCommon.History.EndTransaction();
 		this.updateChart();
@@ -2445,8 +2485,11 @@
 				}
 			}
 		} else {
+
+			// TODO: Пока мы не работает отдельно с Color и Fill, поэтому пишем и тот и другой
 			this.Value = Asc.c_oAscShdNil;
 			this.Color = CreateAscColorCustom(255, 255, 255);
+			this.Fill  = CreateAscColorCustom(255, 255, 255);
 		}
 	}
 
@@ -2459,6 +2502,7 @@
 			return this.Color;
 		}, asc_putColor: function (v) {
 			this.Color = (v) ? v : null;
+			this.Fill  = (v) ? v : null;
 		}
 	};
 
@@ -4369,6 +4413,7 @@
 		this.FullName = null;
 		this.FirstName = null;
 		this.LastName = null;
+		this.IsAnonymousUser = false;
 	}
 
 	asc_CUserInfo.prototype.asc_putId = asc_CUserInfo.prototype.put_Id = function (v) {
@@ -4394,6 +4439,12 @@
 	};
 	asc_CUserInfo.prototype.asc_getLastName = asc_CUserInfo.prototype.get_LastName = function () {
 		return this.LastName;
+	};
+	asc_CUserInfo.prototype.asc_getIsAnonymousUser = asc_CUserInfo.prototype.get_IsAnonymousUser = function () {
+		return this.IsAnonymousUser;
+	};
+	asc_CUserInfo.prototype.asc_putIsAnonymousUser = asc_CUserInfo.prototype.put_IsAnonymousUser = function (v) {
+		this.IsAnonymousUser = v;
 	};
 
 	/** @constructor */
@@ -4472,6 +4523,9 @@
 	};
 	prot.get_LastName = prot.asc_getLastName = function () {
 		return (this.UserInfo ? this.UserInfo.get_LastName() : null );
+	};
+	prot.get_IsAnonymousUser = prot.get_IsAnonymousUser = function () {
+		return (this.UserInfo ? this.UserInfo.get_IsAnonymousUser() : null );
 	};
 	prot.get_Options = prot.asc_getOptions = function () {
 		return this.Options;
@@ -4842,7 +4896,7 @@
 
 				var _oldTrackRevision = false;
                 if (oApi.getEditorId() == AscCommon.c_oEditorId.Word && oApi.WordControl && oApi.WordControl.m_oLogicDocument)
-                    _oldTrackRevision = oApi.WordControl.GetLocalTrackRevisions();
+                    _oldTrackRevision = oApi.WordControl.m_oLogicDocument.GetLocalTrackRevisions();
 
                 if (false !== _oldTrackRevision)
                     oApi.WordControl.m_oLogicDocument.SetLocalTrackRevisions(false);
@@ -4910,6 +4964,10 @@
 						oShd.Color.r = oCurParS['fill'][0];
 						oShd.Color.g = oCurParS['fill'][1];
 						oShd.Color.b = oCurParS['fill'][2];
+						oShd.Fill = new AscCommonWord.CDocumentColor();
+						oShd.Fill.r = oCurParS['fill'][0];
+						oShd.Fill.g = oCurParS['fill'][1];
+						oShd.Fill.b = oCurParS['fill'][2];
 						oNewParagraph.Set_Shd(oShd, true);
 					}
 					if(AscFormat.isRealNumber(oCurParS['linespacing'])){
@@ -6264,6 +6322,8 @@
 	prot["asc_getFirstName"] = prot["get_FirstName"] = prot.asc_getFirstName;
 	prot["asc_putLastName"] = prot["put_LastName"] = prot.asc_putLastName;
 	prot["asc_getLastName"] = prot["get_LastName"] = prot.asc_getLastName;
+	prot["asc_putIsAnonymousUser"] = prot["put_IsAnonymousUser"] = prot.asc_putIsAnonymousUser;
+	prot["asc_getIsAnonymousUser"] = prot["get_IsAnonymousUser"] = prot.asc_getIsAnonymousUser;
 
 	window["Asc"]["asc_CDocInfo"] = window["Asc"].asc_CDocInfo = asc_CDocInfo;
 	prot = asc_CDocInfo.prototype;

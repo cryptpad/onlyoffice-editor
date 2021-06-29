@@ -3745,6 +3745,10 @@
                 this.bs.WriteItem(c_oSer_SheetView.Pane, function(){oThis.WriteSheetViewPane(oSheetView.pane);});
 			if (null !== ws.selectionRange)
 				this.bs.WriteItem(c_oSer_SheetView.Selection, function(){oThis.WriteSheetViewSelection(ws.selectionRange);});
+            if (null !== oSheetView.showZeros && !oThis.isCopyPaste)
+                this.bs.WriteItem(c_oSer_SheetView.ShowZeros, function(){oThis.memory.WriteBool(oSheetView.showZeros);});
+            if (null !== oSheetView.topLeftCell && !oThis.isCopyPaste)
+                this.bs.WriteItem(c_oSer_SheetView.TopLeftCell, function(){oThis.memory.WriteString3(oSheetView.topLeftCell.getName());});
         };
         this.WriteSheetViewPane = function (oPane) {
             var oThis = this;
@@ -5133,12 +5137,12 @@
         };
     }
     /** @constructor */
-    function BinaryFileWriter(wb, isCopyPaste, saveThreadedComments)
+    function BinaryFileWriter(wb, isCopyPaste)
     {
         this.Memory = new AscCommon.CMemory();
         this.wb = wb;
         this.isCopyPaste = isCopyPaste;
-        this.saveThreadedComments = saveThreadedComments;
+        this.saveThreadedComments = true;
         this.nLastFilePos = 0;
         this.nRealTableCount = 0;
         this.bs = new BinaryCommonWriter(this.Memory);
@@ -8425,8 +8429,9 @@
             {
                 var oCommentCoords = new AscCommonExcel.asc_CCommentCoords();
                 var aCommentData = [];
+                var oAdditionalData = {isThreadedComment: false};
                 res = this.bcr.Read2Spreadsheet(length, function(t,l){
-                    return oThis.ReadComment(t,l, oCommentCoords, aCommentData);
+                    return oThis.ReadComment(t,l, oCommentCoords, aCommentData, oAdditionalData);
                 });
                 if (oCommentCoords.isValid()) {
                     var i;
@@ -8437,6 +8442,10 @@
                         var elem = aCommentData[i];
                         elem.asc_putRow(oCommentCoords.nRow);
                         elem.asc_putCol(oCommentCoords.nCol);
+
+                        if (!oAdditionalData.isThreadedComment) {
+                            elem.convertToThreadedComment();
+                        }
 
                         if (elem.asc_getDocumentFlag()) {
                             this.wb.aComments.push(elem);
@@ -8450,7 +8459,7 @@
                 res = c_oSerConstants.ReadUnknown;
             return res;
         };
-        this.ReadComment = function(type, length, oCommentCoords, aCommentData)
+        this.ReadComment = function(type, length, oCommentCoords, aCommentData, oAdditionalData)
         {
             var res = c_oSerConstants.ReadOk;
             var oThis = this;
@@ -8494,6 +8503,7 @@
                 oCommentCoords.bSizeWithCells = this.stream.GetBool();
             else if ( c_oSer_Comments.ThreadedComment == type ) {
                 if (aCommentData.length > 0) {
+                    oAdditionalData.isThreadedComment = true;
                     var commentData = aCommentData[0];
                     commentData.aReplies = [];
                     // commentData.aMentions = [];
@@ -8826,11 +8836,14 @@
 			} else if (c_oSer_SheetView.ShowWhiteSpace === type) {
 				this.stream.GetBool();
 			} else if (c_oSer_SheetView.ShowZeros === type) {
-				this.stream.GetBool();
+                oSheetView.showZeros = this.stream.GetBool();
 			} else if (c_oSer_SheetView.TabSelected === type) {
 				this.stream.GetBool();
 			} else if (c_oSer_SheetView.TopLeftCell === type) {
-				this.stream.GetString2LE(length);
+                var _topLeftCell = AscCommonExcel.g_oRangeCache.getAscRange(this.stream.GetString2LE(length));
+                if (_topLeftCell) {
+                    oSheetView.topLeftCell = new Asc.Range(_topLeftCell.c1, _topLeftCell.r1, _topLeftCell.c1, _topLeftCell.r1);
+                }
 			} else if (c_oSer_SheetView.View === type) {
 				this.stream.GetUChar();
 			} else if (c_oSer_SheetView.WindowProtection === type) {
