@@ -1710,6 +1710,14 @@ var editor;
         t.collaborativeEditing._recalcLockArray(c_oAscLockTypes.kLockTypeMine, oRecalcIndexColumns, oRecalcIndexRows);
         t.collaborativeEditing._recalcLockArray(c_oAscLockTypes.kLockTypeOther, oRecalcIndexColumns, oRecalcIndexRows);
       }
+        if (true === AscCommon.CollaborativeEditing.Is_Fast()) {
+            var UserId = tmpAdditionalInfo["UserId"];
+            var CursorInfo = tmpAdditionalInfo["CursorInfo"];
+            var UserShortId = tmpAdditionalInfo["UserShortId"];
+            if(UserId && CursorInfo && UserShortId) {
+                AscCommon.CollaborativeEditing.Add_ForeignCursorToUpdate(UserId, CursorInfo, UserShortId);
+            }
+        }
     };
   this.CoAuthoringApi.onCursor                 = function(e)
   {
@@ -1733,6 +1741,19 @@ var editor;
         }
       }
       if (0 < arrChanges.length || null !== deleteIndex || null !== excelAdditionalInfo) {
+          var oWs = this.wb.getWorksheet();
+          var sCursorBinary = "";
+          if (oWs && oWs.objectRender) {
+              sCursorBinary = oWs.objectRender.getDocumentPositionBinary();
+          }
+          if(typeof sCursorBinary === "string" && sCursorBinary.length > 0) {
+              if(!AscCommon.isRealObject(excelAdditionalInfo)) {
+                  excelAdditionalInfo = {};
+              }
+              excelAdditionalInfo["UserId"] = this.CoAuthoringApi.getUserConnectionId();
+              excelAdditionalInfo["UserShortId"] = this.DocInfo.get_UserId();
+              excelAdditionalInfo["CursorInfo"] = this.wb.getCursorInfo();
+          }
         this.CoAuthoringApi.saveChanges(arrChanges, deleteIndex, excelAdditionalInfo, this.canUnlockDocument2, bCollaborative);
         History.CanNotAddChanges = true;
       } else {
@@ -1755,6 +1776,9 @@ var editor;
       // Нужно послать 'обновить свойства' (иначе для удаления данных не обновится строка формул).
       // ToDo Возможно стоит обновлять только строку формул
       AscCommon.CollaborativeEditing.Load_Images();
+      if(AscCommon.CollaborativeEditing.Is_Fast()) {
+          AscCommon.CollaborativeEditing.Refresh_ForeignCursors();
+      }
       this.wb._onWSSelectionChanged();
       History.TurnOff();
       this.wb.drawWorksheet();

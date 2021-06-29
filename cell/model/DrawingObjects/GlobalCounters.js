@@ -326,6 +326,20 @@
     CCollaborativeEditing.prototype.OnEnd_ReadForeignChanges = function()
     {
     };
+    CCollaborativeEditing.prototype.private_UpdateForeignCursor = function(CursorInfo, UserId, Show, UserShortId)
+    {
+        var oApi = this.GetEditorApi();
+        if(!oApi)
+        {
+            return;
+        }
+        var oWB = oApi.wb;
+        if(!oWB)
+        {
+            return;
+        }
+        oWB.Update_ForeignCursor(CursorInfo, UserId, Show, UserShortId);
+    };
     //--------------------------------------------------------export----------------------------------------------------
     window['AscCommon'] = window['AscCommon'] || {};
     window['AscCommon'].CollaborativeEditing = new CCollaborativeEditing();

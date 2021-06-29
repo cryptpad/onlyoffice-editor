@@ -791,18 +791,16 @@
         this.m_aCursorsToUpdate[UserId] = CursorInfo;
         this.m_aCursorsToUpdateShortId[UserId] = UserShortId;
     };
+    CCollaborativeEditingBase.prototype.private_UpdateForeignCursor = function(CursorInfo, UserId, Show, UserShortId)
+    {
+    };
     CCollaborativeEditingBase.prototype.Refresh_ForeignCursors = function()
     {
-        if (!this.m_oLogicDocument)
-            return;
-
         for (var UserId in this.m_aCursorsToUpdate)
         {
             var CursorInfo = this.m_aCursorsToUpdate[UserId];
-            this.m_oLogicDocument.Update_ForeignCursor(CursorInfo, UserId, false, this.m_aCursorsToUpdateShortId[UserId]);
-
-            if (this.Add_ForeignCursorToShow)
-                this.Add_ForeignCursorToShow(UserId);
+            this.private_UpdateForeignCursor(CursorInfo, UserId, false, this.m_aCursorsToUpdateShortId[UserId]);
+            this.Add_ForeignCursorToShow(UserId);
         }
         this.m_aCursorsToUpdate = {};
         this.m_aCursorsToUpdateShortId = {};

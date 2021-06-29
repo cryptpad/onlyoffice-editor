@@ -264,19 +264,6 @@ CCollaborativeEditing.prototype.Send_Changes = function(IsUserSave, AdditionalIn
     // editor.WordControl.m_oLogicDocument.DrawingDocument.ClearCachePages();
     //    editor.WordControl.m_oLogicDocument.DrawingDocument.FirePaint();
 };
-CCollaborativeEditing.prototype.Refresh_ForeignCursors = function()
-{
-    for (var UserId in this.m_aCursorsToUpdate)
-    {
-        var CursorInfo = this.m_aCursorsToUpdate[UserId];
-        editor.WordControl.m_oLogicDocument.Update_ForeignCursor(CursorInfo, UserId, false, this.m_aCursorsToUpdateShortId[UserId]);
-
-        if (this.Add_ForeignCursorToShow)
-            this.Add_ForeignCursorToShow(UserId);
-    }
-    this.m_aCursorsToUpdate = {};
-    this.m_aCursorsToUpdateShortId = {};
-};
 
 CCollaborativeEditing.prototype.Release_Locks = function()
 {
@@ -643,6 +630,10 @@ CCollaborativeEditing.prototype.private_RecalculateDocument = function(arrChange
     this.m_oLogicDocument.Recalculate(AscCommon.History.Get_RecalcData(null, arrChanges));
 };
 
+CCollaborativeEditing.prototype.private_UpdateForeignCursor = function(CursorInfo, UserId, Show, UserShortId)
+{
+    this.m_oLogicDocument.Update_ForeignCursor(CursorInfo, UserId, Show, UserShortId);
+};
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommon'] = window['AscCommon'] || {};

@@ -461,6 +461,10 @@ CWordCollaborativeEditing.prototype.private_RecalculateDocument = function(arrCh
 {
 	this.m_oLogicDocument.RecalculateByChanges(arrChanges);
 };
+CWordCollaborativeEditing.prototype.private_UpdateForeignCursor = function(CursorInfo, UserId, Show, UserShortId)
+{
+    this.m_oLogicDocument.Update_ForeignCursor(CursorInfo, UserId, Show, UserShortId);
+};
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommon'] = window['AscCommon'] || {};
