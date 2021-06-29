@@ -6082,7 +6082,6 @@
         var oEffectData = oEffect.data;
         for(var nFilter = 0; nFilter < aFilters.length; ++nFilter) {
             var nFilterType = aFilters[nFilter];
-            return this.createRandomBarsVertical(oEffectData.time);
             switch (nFilterType) {
                 case FILTER_TYPE_BLINDS_HORIZONTAL: {
                     return this.createBlindsHorizontal(oEffectData.time);
@@ -6123,41 +6122,47 @@
                     break;
                 }
                 case FILTER_TYPE_SLIDE_FROM_TOP: {
+                    return this.createSlideFromTop(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_SLIDE_FROM_BOTTOM: {
+                    return this.createSlideFromBottom(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_SLIDE_FROM_LEFT: {
+                    return this.createSlideFromLeft(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_SLIDE_FROM_RIGHT: {
+                    return this.createSlideFromRight(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_PLUS_IN: {
+                    return this.createPlusIn(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_PLUS_OUT: {
+                    return this.createPlusOut(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_BARN_IN_VERTICAL: {
                     break;
                 }
                 case FILTER_TYPE_BARN_IN_HORIZONTAL: {
-                    return this.createRandomBarsHorizontal(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_BARN_OUT_VERTICAL: {
-                    return this.createRandomBarsVertical(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_BARN_OUT_HORIZONTAL: {
                     break;
                 }
                 case FILTER_TYPE_RANDOM_BARS_HORIZONTAL: {
+                    return this.createRandomBarsHorizontal(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_RANDOM_BARS_VERTICAL: {
+                    return this.createRandomBarsVertical(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_STRIPS_DOWN_LEFT: {
@@ -6173,46 +6178,56 @@
                     break;
                 }
                 case FILTER_TYPE_SLIDE_WEDGE: {
+                    return this.createWedge(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_WHEEL_1: {
+                    return this.createWheel1(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_WHEEL_2: {
+                    return this.createWheel2(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_WHEEL_3: {
+                    return this.createWheel3(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_WHEEL_4: {
+                    return this.createWheel4(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_WHEEL_8: {
+                    return this.createWheel8(oEffectData.time);
                     break;
                 }
-                case FILTER_TYPE_WHIPE_RIGHT: {
+                case FILTER_TYPE_WIPE_RIGHT: {
                     break;
                 }
-                case FILTER_TYPE_WHIPE_LEFT: {
+                case FILTER_TYPE_WIPE_LEFT: {
                     break;
                 }
-                case FILTER_TYPE_WHIPE_DOWN: {
+                case FILTER_TYPE_WIPE_DOWN: {
                     break;
                 }
-                case FILTER_TYPE_WHIPE_UP: {
+                case FILTER_TYPE_WIPE_UP: {
                     break;
                 }
             }
         }
         return this;
     };
-    CTexture.prototype.createCopy = function() {
+    CTexture.prototype.createTexture = function() {
         var oCanvas = document.createElement('canvas');
         oCanvas.width = this.canvas.width;
         oCanvas.height = this.canvas.height;
-        var oCtx = oCanvas.getContext('2d');
-        oCtx.drawImage(this.canvas, 0, 0);
         return new CTexture(oCanvas, this.scale);
+    };
+    CTexture.prototype.createCopy = function() {
+        var oTexture = this.createTexture();
+        var oCtx = oTexture.canvas.getContext('2d');
+        oCtx.drawImage(this.canvas, 0, 0);
+        return oTexture;
     };
     CTexture.prototype.drawRect = function(oCtx, nX, nY, nWidth, nHeight) {
         oCtx.beginPath();
@@ -6471,6 +6486,164 @@
             nHeight = this.canvas.height;
             this.drawRect(oCtx, nX, nY, nWidth, nHeight);
         }
+        return oTexture;
+    };
+    CTexture.prototype.createWedge = function(fTime) {
+        var fHalfAngle = Math.PI * (1 - fTime);
+        var fAngle = 2 * fHalfAngle;
+        if(AscFormat.fApproxEqual(fAngle, 0)) {
+            return this;
+        }
+        var nRadius = Math.sqrt(this.canvas.width* this.canvas.width + this.canvas.height*this.canvas.height) / 2 + 0.5 >> 0;
+        var nXCenter = this.canvas.width / 2 + 0.5 >> 0;
+        var nYCenter = this.canvas.height / 2 + 0.5 >> 0;
+        var oTexture = this.createCopy();
+        var oCanvas = oTexture.canvas;
+        var oCtx = oCanvas.getContext('2d');
+        oCtx.globalCompositeOperation = 'destination-out';
+        var nX1 = nXCenter + (nRadius * Math.cos(fHalfAngle - Math.PI / 2) + 0.5 >> 0);
+        var nY1 = nYCenter + (nRadius * Math.sin(fHalfAngle - Math.PI / 2) + 0.5 >> 0);
+        oCtx.beginPath();
+        oCtx.moveTo(nXCenter, nYCenter);
+        oCtx.lineTo(nX1, nY1);
+        oCtx.arc(nXCenter, nYCenter, nRadius, fHalfAngle - Math.PI / 2, -fHalfAngle - Math.PI / 2, false);
+        oCtx.closePath();
+        oCtx.fill();
+        return oTexture;
+    };
+    CTexture.prototype.createWheel1 = function (fTime) {
+        return this.createWheel(fTime, 1);
+    };
+    CTexture.prototype.createWheel2 = function (fTime) {
+        return this.createWheel(fTime, 2);
+    };
+    CTexture.prototype.createWheel3 = function (fTime) {
+        return this.createWheel(fTime, 3);
+    };
+    CTexture.prototype.createWheel4 = function (fTime) {
+        return this.createWheel(fTime, 4);
+    };
+    CTexture.prototype.createWheel8 = function (fTime) {
+        return this.createWheel(fTime, 8);
+    };
+    CTexture.prototype.createWheel = function(fTime, nCount) {
+        var fStride = 2 * Math.PI / nCount;
+        var fAngle = fStride * fTime;
+
+        if(AscFormat.fApproxEqual(fAngle, 0)) {
+            return this;
+        }
+        var nRadius = Math.sqrt(this.canvas.width* this.canvas.width + this.canvas.height*this.canvas.height) / 2 + 0.5 >> 0;
+        var nXCenter = this.canvas.width / 2 + 0.5 >> 0;
+        var nYCenter = this.canvas.height / 2 + 0.5 >> 0;
+        var oTexture = this.createCopy();
+        var oCanvas = oTexture.canvas;
+        var oCtx = oCanvas.getContext('2d');
+        oCtx.globalCompositeOperation = 'destination-in';
+        for(var nAngle = 0; nAngle < nCount; ++nAngle) {
+            var fEndAngle = fStride * (nAngle + 1) - Math.PI / 2;
+            var nX1 = nXCenter + (nRadius * Math.cos(fEndAngle) + 0.5 >> 0);
+            var nY1 = nYCenter + (nRadius * Math.sin(fEndAngle) + 0.5 >> 0);
+            oCtx.beginPath();
+            oCtx.moveTo(nXCenter, nYCenter);
+            oCtx.lineTo(nX1, nY1);
+            oCtx.arc(nXCenter, nYCenter, nRadius, fEndAngle, fEndAngle - fAngle, false);
+            oCtx.closePath();
+            oCtx.fill();
+        }
+        return oTexture;
+    };
+    CTexture.prototype.createSlideFromTop = function(fTime) {
+        if(fTime === 0) {
+            return this;
+        }
+        var oTexture = this.createTexture();
+        var nX = 0;
+        var nY = -(this.canvas.height * fTime + 0.5 >> 0);
+        var oCanvas = oTexture.canvas;
+        var oCtx = oCanvas.getContext('2d');
+        oCtx.drawImage(this.canvas, nX, nY);
+        return oTexture;
+    };
+    CTexture.prototype.createSlideFromBottom = function(fTime) {
+        if(fTime === 0) {
+            return this;
+        }
+        var oTexture = this.createTexture();
+        var nX = 0;
+        var nY = this.canvas.height * fTime + 0.5 >> 0;
+        var oCanvas = oTexture.canvas;
+        var oCtx = oCanvas.getContext('2d');
+        oCtx.drawImage(this.canvas, nX, nY);
+        return oTexture;
+    };
+    CTexture.prototype.createSlideFromLeft = function(fTime) {
+        if(fTime === 0) {
+            return this;
+        }
+        var oTexture = this.createTexture();
+        var nX = -(this.canvas.width * fTime + 0.5 >> 0);
+        var nY = 0;
+        var oCanvas = oTexture.canvas;
+        var oCtx = oCanvas.getContext('2d');
+        oCtx.drawImage(this.canvas, nX, nY);
+        return oTexture;
+    };
+    CTexture.prototype.createSlideFromRight = function(fTime) {
+        if(fTime === 0) {
+            return this;
+        }
+        var oTexture = this.createTexture();
+        var nX = this.canvas.width * fTime + 0.5 >> 0;
+        var nY = 0;
+        var oCanvas = oTexture.canvas;
+        var oCtx = oCanvas.getContext('2d');
+        oCtx.drawImage(this.canvas, nX, nY);
+        return oTexture;
+    };
+    CTexture.prototype.createPlusOut = function(fTime) {
+        if(fTime === 0) {
+            return this;
+        }
+        var nRectWidth = this.canvas.width * fTime / 2 + 0.5 >> 0;
+        var nRectHeight = this.canvas.height * fTime / 2 + 0.5 >> 0;
+        var oTexture = this.createCopy();
+        var oCanvas = oTexture.canvas;
+        var oCtx = oCanvas.getContext('2d');
+        oCtx.globalCompositeOperation = 'destination-out';
+        this.drawRect(oCtx, 0, 0, nRectWidth, nRectHeight);
+        this.drawRect(oCtx, this.canvas.width - nRectWidth, 0, nRectWidth, nRectHeight);
+        this.drawRect(oCtx, 0, this.canvas.height - nRectHeight, nRectWidth, nRectHeight);
+        this.drawRect(oCtx, this.canvas.width - nRectWidth, this.canvas.height - nRectHeight, nRectWidth, nRectHeight);
+        return oTexture;
+    };
+    CTexture.prototype.createPlusIn = function(fTime) {
+        if(fTime === 1) {
+            return this;
+        }
+        var nRectWidth = this.canvas.width * (1 - fTime) / 2 + 0.5 >> 0;
+        var nRectHeight = this.canvas.height * (1 - fTime) / 2 + 0.5 >> 0;
+        var oTexture = this.createCopy();
+        var oCanvas = oTexture.canvas;
+        var oCtx = oCanvas.getContext('2d');
+        oCtx.globalCompositeOperation = 'destination-out';
+        var nPlusWidth = this.canvas.width - 2*nRectWidth;
+        var nPlusHeight = this.canvas.height - 2*nRectHeight;
+        oCtx.beginPath();
+        oCtx.moveTo(nRectWidth, 0);
+        oCtx.lineTo(this.canvas.width - nRectWidth, 0);
+        oCtx.lineTo(this.canvas.width - nRectWidth, nRectHeight);
+        oCtx.lineTo(this.canvas.width, nRectHeight);
+        oCtx.lineTo(this.canvas.width, this.canvas.height - nRectHeight);
+        oCtx.lineTo(this.canvas.width- nRectWidth, this.canvas.height - nRectHeight);
+        oCtx.lineTo(this.canvas.width - nRectWidth, this.canvas.height);
+        oCtx.lineTo(nRectWidth, this.canvas.height);
+        oCtx.lineTo(nRectWidth, this.canvas.height - nRectHeight);
+        oCtx.lineTo(0, this.canvas.height - nRectHeight);
+        oCtx.lineTo(0, nRectHeight);
+        oCtx.lineTo(nRectWidth, nRectHeight);
+        oCtx.closePath();
+        oCtx.fill();
         return oTexture;
     };
 
@@ -6988,10 +7161,10 @@
     var FILTER_TYPE_WHEEL_3 = 29;
     var FILTER_TYPE_WHEEL_4 = 30;
     var FILTER_TYPE_WHEEL_8 = 31;
-    var FILTER_TYPE_WHIPE_RIGHT = 32;
-    var FILTER_TYPE_WHIPE_LEFT = 33;
-    var FILTER_TYPE_WHIPE_DOWN = 34;
-    var FILTER_TYPE_WHIPE_UP = 35;
+    var FILTER_TYPE_WIPE_RIGHT = 32;
+    var FILTER_TYPE_WIPE_LEFT = 33;
+    var FILTER_TYPE_WIPE_DOWN = 34;
+    var FILTER_TYPE_WIPE_UP = 35;
 
     var FILTER_MAP = {};
     FILTER_MAP["blinds(horizontal)"] = FILTER_TYPE_BLINDS_HORIZONTAL;
@@ -7026,10 +7199,10 @@
     FILTER_MAP["wheel(3)"] = FILTER_TYPE_WHEEL_3;
     FILTER_MAP["wheel(4)"] = FILTER_TYPE_WHEEL_4;
     FILTER_MAP["wheel(8)"] = FILTER_TYPE_WHEEL_8;
-    FILTER_MAP["wipe(right)"] = FILTER_TYPE_WHIPE_RIGHT;
-    FILTER_MAP["wipe(left)"] = FILTER_TYPE_WHIPE_LEFT;
-    FILTER_MAP["wipe(down)"] = FILTER_TYPE_WHIPE_DOWN;
-    FILTER_MAP["wipe(up)"] = FILTER_TYPE_WHIPE_UP;
+    FILTER_MAP["wipe(right)"] = FILTER_TYPE_WIPE_RIGHT;
+    FILTER_MAP["wipe(left)"] = FILTER_TYPE_WIPE_LEFT;
+    FILTER_MAP["wipe(down)"] = FILTER_TYPE_WIPE_DOWN;
+    FILTER_MAP["wipe(up)"] = FILTER_TYPE_WIPE_UP;
 
     function CAnimSandwich(sDrawingId, nElapsedTime) {
         this.drawingId = sDrawingId;
