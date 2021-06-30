@@ -6043,7 +6043,7 @@
     }
 
     var RANDOM_BARS_ARRAY = [62, 4, 27, 42, 80, 34, 67, 20, 74, 32, 10, 54, 3, 77, 36, 55, 26, 53, 97, 90, 68, 65, 57, 12, 52, 70, 23, 64, 30, 73, 79, 22, 14, 51, 9, 0, 49, 1, 15, 71, 93, 86, 19, 28, 45, 41, 39, 60, 25, 7, 92, 46, 2, 98, 33, 40, 31, 72, 69, 24, 75, 84, 43, 47, 87, 50, 18, 56, 13, 61, 76, 17, 91, 37, 8, 11, 78, 6, 5, 48, 59, 95, 66, 63, 81, 96, 35, 88, 94, 89, 38, 99, 82, 29, 16, 83, 21, 58, 44, 85];
-
+    var STRIPS_COUNT = 16;
 
     function CTexture(oCanvas, fScale) {
         this.canvas = oCanvas;
@@ -6107,12 +6107,22 @@
                     return this.createCheckerBoardDown(oEffectData.time);
                     break;
                 }
-                case FILTER_TYPE_CIRCLE: {
-                    return this.createCircle(oEffectData.time);
+                case FILTER_TYPE_CIRCLE:
+                case FILTER_TYPE_CIRCLE_IN: {
+                    return this.createCircleIn(oEffectData.time);
                     break;
                 }
-                case FILTER_TYPE_DIAMOND: {
-                    return this.createDiamond(oEffectData.time);
+                case FILTER_TYPE_CIRCLE_OUT: {
+                    return this.createCircleOut(oEffectData.time);
+                    break;
+                }
+                case FILTER_TYPE_DIAMOND:
+                case FILTER_TYPE_DIAMOND_IN: {
+                    return this.createDiamondIn(oEffectData.time);
+                    break;
+                }
+                case FILTER_TYPE_DIAMOND_OUT: {
+                    return this.createDiamondOut(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_DISSOLVE: {
@@ -6146,15 +6156,19 @@
                     break;
                 }
                 case FILTER_TYPE_BARN_IN_VERTICAL: {
+                    return this.createBarnInVertical(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_BARN_IN_HORIZONTAL: {
+                    return this.createBarnInHorizontal(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_BARN_OUT_VERTICAL: {
+                    return this.createBarnOutVertical(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_BARN_OUT_HORIZONTAL: {
+                    return this.createBarnOutHorizontal(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_RANDOM_BARS_HORIZONTAL: {
@@ -6166,15 +6180,19 @@
                     break;
                 }
                 case FILTER_TYPE_STRIPS_DOWN_LEFT: {
+                    return this.createStripsDownLeft(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_STRIPS_UP_LEFT: {
+                    return this.createStripsUpLeft(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_STRIPS_DOWN_RIGHT: {
+                    return this.createStripsDownRight(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_STRIPS_UP_RIGHT: {
+                    return this.createStripsUpRight(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_SLIDE_WEDGE: {
@@ -6202,15 +6220,19 @@
                     break;
                 }
                 case FILTER_TYPE_WIPE_RIGHT: {
+                    return this.createWipeRight(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_WIPE_LEFT: {
+                    return this.createWipeLeft(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_WIPE_DOWN: {
+                    return this.createWipeDown(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_WIPE_UP: {
+                    return this.createWipeUp(oEffectData.time);
                     break;
                 }
             }
@@ -6375,7 +6397,7 @@
         }
         return oTexture;
     };
-    CTexture.prototype.createCircle = function(fTime) {
+    CTexture.prototype.createCircle = function(fTime, sOperation) {
         var nMaxRadius = this.canvas.width * Math.SQRT1_2;
         var nRadius = nMaxRadius * fTime;
         if(nRadius === 0) {
@@ -6384,22 +6406,92 @@
         var oTexture = this.createCopy();
         var oCanvas = oTexture.canvas;
         var oCtx = oCanvas.getContext('2d');
-        oCtx.globalCompositeOperation = 'destination-out';
+        oCtx.globalCompositeOperation = sOperation;
         oCtx.beginPath();
         var nX = this.canvas.width / 2 + 0.5 >> 0;
         var nY = this.canvas.height / 2 + 0.5 >> 0;
         var nRadiusX = nRadius;
         var nRadiusY = nRadiusX * (this.canvas.height / this.canvas.width) + 0.5 >> 0;
-        var fRoatation = 0;
+        var fRotation = 0;
         var fStartAngle = 0;
         var fEndAngle = 2 * Math.PI;
         var bCounterclockwise = false;
-        oCtx.ellipse(nX, nY, nRadiusX, nRadiusY, fRoatation, fStartAngle, fEndAngle, bCounterclockwise);
+        oCtx.ellipse(nX, nY, nRadiusX, nRadiusY, fRotation, fStartAngle, fEndAngle, bCounterclockwise);
         oCtx.closePath();
         oCtx.fill();
         return oTexture;
     };
-    CTexture.prototype.createDiamond = function(fTime) {
+    CTexture.prototype.createCircleIn = function(fTime) {
+        return this.createCircle(fTime, "destination-out");
+    };
+    CTexture.prototype.createCircleOut = function(fTime) {
+        return this.createCircle(1 - fTime, "destination-in");
+    };
+    CTexture.prototype.createStripsUpRightDiag = function(fTime, sOperation) {
+        var nWidth = this.canvas.width / STRIPS_COUNT;
+        var nHeight = this.canvas.height / STRIPS_COUNT;
+        var nCount = 2*this.canvas.width * fTime / nWidth + 0.5 >> 0;
+        if(nCount === 0) {
+            return this;
+        }
+        var oTexture = this.createCopy();
+        var oCanvas = oTexture.canvas;
+        var oCtx = oCanvas.getContext('2d');
+        var nX = this.canvas.width - nWidth * nCount;
+        var nY = 0;
+        oCtx.globalCompositeOperation = sOperation;
+        oCtx.moveTo(this.canvas.width, 0);
+        oCtx.lineTo(nX, nY);
+        for(var nRect = 0; nRect < nCount; ++nRect) {
+            oCtx.lineTo(nX, nY + nHeight);
+            oCtx.lineTo(nX + nWidth, nY + nHeight);
+            nX += nWidth;
+            nY += nHeight;
+        }
+        oCtx.closePath();
+        oCtx.fill();
+        return oTexture;
+    };
+    CTexture.prototype.createStripsUpRight = function(fTime) {
+        return this.createStripsUpRightDiag(fTime, "destination-out");
+    };
+    CTexture.prototype.createStripsDownLeft = function(fTime) {
+        return this.createStripsUpRightDiag(1 - fTime, "destination-in");
+    };
+    CTexture.prototype.createStripsUpLeftDiag = function(fTime, sOperation) {
+        var nWidth = this.canvas.width / STRIPS_COUNT;
+        var nHeight = this.canvas.height / STRIPS_COUNT;
+        var nCount = 2*this.canvas.width * fTime / nWidth + 0.5 >> 0;
+        if(nCount === 0) {
+            return this;
+        }
+        var oTexture = this.createCopy();
+        var oCanvas = oTexture.canvas;
+        var oCtx = oCanvas.getContext('2d');
+        var nX = nWidth * nCount;
+        var nY = 0;
+        oCtx.globalCompositeOperation = sOperation;
+        oCtx.moveTo(0, 0);
+        oCtx.lineTo(nX, nY);
+        for(var nRect = 0; nRect < nCount; ++nRect) {
+            oCtx.lineTo(nX, nY + nHeight);
+            oCtx.lineTo(nX - nWidth, nY + nHeight);
+            nX -= nWidth;
+            nY += nHeight;
+        }
+        oCtx.closePath();
+        oCtx.fill();
+        return oTexture;
+    };
+    CTexture.prototype.createStripsDownRight = function(fTime) {
+        return this.createStripsUpLeftDiag(1 - fTime, "destination-in");
+    };
+    CTexture.prototype.createStripsUpLeft = function(fTime) {
+        return this.createStripsUpLeftDiag(fTime, "destination-out");
+    };
+
+
+    CTexture.prototype.createDiamond = function(fTime, sOperation) {
         var nMaxWidth = 2*this.canvas.width;
         var nWidth = nMaxWidth*fTime + 0.5 >> 0;
         if(nWidth === 0) {
@@ -6411,7 +6503,7 @@
 
         var oCanvas = oTexture.canvas;
         var oCtx = oCanvas.getContext('2d');
-        oCtx.globalCompositeOperation = 'destination-out';
+        oCtx.globalCompositeOperation = sOperation;
         var nHalfCanvasWidth = this.canvas.width / 2 + 0.5 >> 0;
         var nHalfCanvasHeight = this.canvas.height / 2 + 0.5 >> 0;
         var nHalfWidth = nWidth / 2 + 0.5 >> 0;
@@ -6424,6 +6516,13 @@
         oCtx.closePath();
         oCtx.fill();
         return oTexture;
+    };
+
+    CTexture.prototype.createDiamondIn = function(fTime) {
+        return this.createDiamond(fTime, "destination-out");
+    };
+    CTexture.prototype.createDiamondOut = function(fTime) {
+        return this.createDiamond(1- fTime, "destination-in");
     };
     CTexture.prototype.getRandomRanges = function(fTime) {
         var nFilledBars = RANDOM_BARS_ARRAY.length * fTime + 0.5 >> 0;
@@ -6644,6 +6743,110 @@
         oCtx.lineTo(nRectWidth, nRectHeight);
         oCtx.closePath();
         oCtx.fill();
+        return oTexture;
+    };
+    CTexture.prototype.createWipeLeft = function(fTime) {
+        var nWidth = this.canvas.width * (1 - fTime) + 0.5 >> 0;
+        if(nWidth === this.canvas.width) {
+            return this;
+        }
+        var nHeight = this.canvas.height;
+        var oTexture = this.createCopy();
+        var oCanvas = oTexture.canvas;
+        var oCtx = oCanvas.getContext('2d');
+        oCtx.globalCompositeOperation = 'destination-in';
+        this.drawRect(oCtx, 0, 0, nWidth, nHeight);
+        return oTexture;
+    };
+    CTexture.prototype.createWipeRight = function(fTime) {
+        var nWidth = this.canvas.width * (1 - fTime) + 0.5 >> 0;
+        if(nWidth === this.canvas.width) {
+            return this;
+        }
+        var nHeight = this.canvas.height;
+        var oTexture = this.createCopy();
+        var oCanvas = oTexture.canvas;
+        var oCtx = oCanvas.getContext('2d');
+        oCtx.globalCompositeOperation = 'destination-in';
+        this.drawRect(oCtx, this.canvas.width - nWidth, 0, nWidth, nHeight);
+        return oTexture;
+    };
+    CTexture.prototype.createWipeDown = function(fTime) {
+        var nHeight = this.canvas.height * (1 - fTime) + 0.5 >> 0;
+        if(nHeight === this.canvas.height) {
+            return this;
+        }
+        var nWidth = this.canvas.width;
+        var oTexture = this.createCopy();
+        var oCanvas = oTexture.canvas;
+        var oCtx = oCanvas.getContext('2d');
+        oCtx.globalCompositeOperation = 'destination-in';
+        this.drawRect(oCtx, 0, this.canvas.height - nHeight, nWidth, nHeight);
+        return oTexture;
+    };
+    CTexture.prototype.createWipeUp = function(fTime) {
+        var nHeight = this.canvas.height * (1 - fTime) + 0.5 >> 0;
+        if(nHeight === this.canvas.height) {
+            return this;
+        }
+        var nWidth = this.canvas.width;
+        var oTexture = this.createCopy();
+        var oCanvas = oTexture.canvas;
+        var oCtx = oCanvas.getContext('2d');
+        oCtx.globalCompositeOperation = 'destination-in';
+        this.drawRect(oCtx, 0, 0, nWidth, nHeight);
+        return oTexture;
+    };
+    CTexture.prototype.createBarnOutVertical = function(fTime) {
+        var nWidth = (this.canvas.width * (1 - fTime))  + 0.5 >> 0;
+        if(nWidth === 0) {
+            return this;
+        }
+        var nHeight = this.canvas.height;
+        var oTexture = this.createCopy();
+        var oCanvas = oTexture.canvas;
+        var oCtx = oCanvas.getContext('2d');
+        oCtx.globalCompositeOperation = 'destination-in';
+        this.drawRect(oCtx, (this.canvas.width - nWidth) / 2 + 0.5 >> 0, 0, nWidth, nHeight);
+        return oTexture;
+    };
+    CTexture.prototype.createBarnInVertical = function(fTime) {
+        var nWidth = (this.canvas.width * fTime)  + 0.5 >> 0;
+        if(nWidth === 0) {
+            return this;
+        }
+        var nHeight = this.canvas.height;
+        var oTexture = this.createCopy();
+        var oCanvas = oTexture.canvas;
+        var oCtx = oCanvas.getContext('2d');
+        oCtx.globalCompositeOperation = 'destination-out';
+        this.drawRect(oCtx, (this.canvas.width - nWidth) / 2 + 0.5 >> 0, 0, nWidth, nHeight);
+        return oTexture;
+    };
+    CTexture.prototype.createBarnOutHorizontal = function(fTime) {
+        var nHeight = (this.canvas.height * (1 - fTime))  + 0.5 >> 0;
+        if(nHeight === 0) {
+            return this;
+        }
+        var nWidth = this.canvas.width;
+        var oTexture = this.createCopy();
+        var oCanvas = oTexture.canvas;
+        var oCtx = oCanvas.getContext('2d');
+        oCtx.globalCompositeOperation = 'destination-in';
+        this.drawRect(oCtx, 0, (this.canvas.height - nHeight) / 2 + 0.5 >> 0, nWidth, nHeight);
+        return oTexture;
+    };
+    CTexture.prototype.createBarnInHorizontal = function(fTime) {
+        var nHeight = (this.canvas.height * fTime)  + 0.5 >> 0;
+        if(nHeight === 0) {
+            return this;
+        }
+        var nWidth = this.canvas.width;
+        var oTexture = this.createCopy();
+        var oCanvas = oTexture.canvas;
+        var oCtx = oCanvas.getContext('2d');
+        oCtx.globalCompositeOperation = 'destination-out';
+        this.drawRect(oCtx, 0, (this.canvas.height - nHeight) / 2 + 0.5 >> 0, nWidth, nHeight);
         return oTexture;
     };
 
@@ -7136,35 +7339,39 @@
     var FILTER_TYPE_CHECKERBOARD_ACROSS = 4;
     var FILTER_TYPE_CHECKERBOARD_DOWN = 5;
     var FILTER_TYPE_CIRCLE = 6;
-    var FILTER_TYPE_DIAMOND = 7;
-    var FILTER_TYPE_DISSOLVE = 8;
-    var FILTER_TYPE_FADE = 9;
-    var FILTER_TYPE_SLIDE_FROM_TOP = 10;
-    var FILTER_TYPE_SLIDE_FROM_BOTTOM = 11;
-    var FILTER_TYPE_SLIDE_FROM_LEFT = 12;
-    var FILTER_TYPE_SLIDE_FROM_RIGHT = 13;
-    var FILTER_TYPE_PLUS_IN = 14;
-    var FILTER_TYPE_PLUS_OUT = 15;
-    var FILTER_TYPE_BARN_IN_VERTICAL = 16;
-    var FILTER_TYPE_BARN_IN_HORIZONTAL = 17;
-    var FILTER_TYPE_BARN_OUT_VERTICAL = 18;
-    var FILTER_TYPE_BARN_OUT_HORIZONTAL = 19;
-    var FILTER_TYPE_RANDOM_BARS_HORIZONTAL = 20;
-    var FILTER_TYPE_RANDOM_BARS_VERTICAL = 21;
-    var FILTER_TYPE_STRIPS_DOWN_LEFT = 22;
-    var FILTER_TYPE_STRIPS_UP_LEFT = 23;
-    var FILTER_TYPE_STRIPS_DOWN_RIGHT = 24;
-    var FILTER_TYPE_STRIPS_UP_RIGHT = 25;
-    var FILTER_TYPE_SLIDE_WEDGE = 26;
-    var FILTER_TYPE_WHEEL_1 = 27;
-    var FILTER_TYPE_WHEEL_2 = 28;
-    var FILTER_TYPE_WHEEL_3 = 29;
-    var FILTER_TYPE_WHEEL_4 = 30;
-    var FILTER_TYPE_WHEEL_8 = 31;
-    var FILTER_TYPE_WIPE_RIGHT = 32;
-    var FILTER_TYPE_WIPE_LEFT = 33;
-    var FILTER_TYPE_WIPE_DOWN = 34;
-    var FILTER_TYPE_WIPE_UP = 35;
+    var FILTER_TYPE_CIRCLE_IN = 7;
+    var FILTER_TYPE_CIRCLE_OUT = 8;
+    var FILTER_TYPE_DIAMOND = 9;
+    var FILTER_TYPE_DIAMOND_IN = 10;
+    var FILTER_TYPE_DIAMOND_OUT = 11;
+    var FILTER_TYPE_DISSOLVE = 12;
+    var FILTER_TYPE_FADE = 13;
+    var FILTER_TYPE_SLIDE_FROM_TOP = 14;
+    var FILTER_TYPE_SLIDE_FROM_BOTTOM = 15;
+    var FILTER_TYPE_SLIDE_FROM_LEFT = 16;
+    var FILTER_TYPE_SLIDE_FROM_RIGHT = 17;
+    var FILTER_TYPE_PLUS_IN = 18;
+    var FILTER_TYPE_PLUS_OUT = 19;
+    var FILTER_TYPE_BARN_IN_VERTICAL = 20;
+    var FILTER_TYPE_BARN_IN_HORIZONTAL = 21;
+    var FILTER_TYPE_BARN_OUT_VERTICAL = 22;
+    var FILTER_TYPE_BARN_OUT_HORIZONTAL = 23;
+    var FILTER_TYPE_RANDOM_BARS_HORIZONTAL = 24;
+    var FILTER_TYPE_RANDOM_BARS_VERTICAL = 25;
+    var FILTER_TYPE_STRIPS_DOWN_LEFT = 26;
+    var FILTER_TYPE_STRIPS_UP_LEFT = 27;
+    var FILTER_TYPE_STRIPS_DOWN_RIGHT = 28;
+    var FILTER_TYPE_STRIPS_UP_RIGHT = 29;
+    var FILTER_TYPE_SLIDE_WEDGE = 30;
+    var FILTER_TYPE_WHEEL_1 = 31;
+    var FILTER_TYPE_WHEEL_2 = 32;
+    var FILTER_TYPE_WHEEL_3 = 33;
+    var FILTER_TYPE_WHEEL_4 = 34;
+    var FILTER_TYPE_WHEEL_8 = 35;
+    var FILTER_TYPE_WIPE_RIGHT = 36;
+    var FILTER_TYPE_WIPE_LEFT = 37;
+    var FILTER_TYPE_WIPE_DOWN = 38;
+    var FILTER_TYPE_WIPE_UP = 39;
 
     var FILTER_MAP = {};
     FILTER_MAP["blinds(horizontal)"] = FILTER_TYPE_BLINDS_HORIZONTAL;
@@ -7174,7 +7381,11 @@
     FILTER_MAP["checkerboard(across)"] = FILTER_TYPE_CHECKERBOARD_ACROSS;
     FILTER_MAP["checkerboard(down)"] = FILTER_TYPE_CHECKERBOARD_DOWN;
     FILTER_MAP["circle"] = FILTER_TYPE_CIRCLE;
+    FILTER_MAP["circle(in)"] = FILTER_TYPE_CIRCLE_IN;
+    FILTER_MAP["circle(out)"] = FILTER_TYPE_CIRCLE_OUT;
     FILTER_MAP["diamond"] = FILTER_TYPE_DIAMOND;
+    FILTER_MAP["diamond(in)"] = FILTER_TYPE_DIAMOND_IN;
+    FILTER_MAP["diamond(out)"] = FILTER_TYPE_DIAMOND_OUT;
     FILTER_MAP["dissolve"] = FILTER_TYPE_DISSOLVE;
     FILTER_MAP["fade"] = FILTER_TYPE_FADE;
     FILTER_MAP["slide(fromTop)"] = FILTER_TYPE_SLIDE_FROM_TOP;
