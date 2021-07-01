@@ -2732,7 +2732,8 @@ CGraphicObjects.prototype =
         this.resetSelection();
         this.selectObject(group, page_index);
         this.document.Recalculate();
-
+        this.document.UpdateInterface();
+        this.document.UpdateSelection();
 		if (false !== bTrackRevisions)
 		{
 			this.document.SetLocalTrackRevisions(bTrackRevisions);
@@ -2819,22 +2820,16 @@ CGraphicObjects.prototype =
 
                     nearest_pos = this.document.Get_NearestPos(page_num, sp.bounds.x + sp.posX, sp.bounds.y + sp.posY, true, drawing);
                     nearest_pos.Paragraph.Check_NearestPos(nearest_pos);
-
-                    drawing.Set_XYForAdd(xc - hc, yc - vc, nearest_pos, page_num);
-                    a_objects.push({drawing: drawing, par: parent_paragraph, posX: xc - hc, posY: yc - vc});
-                    this.selectObject(sp, page_num);
-                }
-            }
-            for(i = 0; i < a_objects.length; ++i)
-            {
-                a_objects[i].drawing.Set_Props(new asc_CImgProperty(
+                    var fPosX = xc - hc;
+                    var fPosY = yc - vc;
+                    drawing.Set_Props(new asc_CImgProperty(
                     {
                         PositionH:
                         {
                             RelativeFrom: Asc.c_oAscRelativeFromH.Page,
                             UseAlign : false,
                             Align    : undefined,
-                            Value    : a_objects[i].posX
+                            Value    : 0
                         },
 
                         PositionV:
@@ -2842,12 +2837,18 @@ CGraphicObjects.prototype =
                             RelativeFrom: Asc.c_oAscRelativeFromV.Page,
                             UseAlign    : false,
                             Align       : undefined,
-                            Value       : a_objects[i].posY
+                            Value       : 0
                         }
                     }));
-                a_objects[i].drawing.Add_ToDocument2(a_objects[i].par);
+                    drawing.Set_XYForAdd(fPosX, fPosY, nearest_pos, page_num);
+                    a_objects.push({drawing: drawing, par: parent_paragraph, posX: fPosX, posY: fPosY});
+                    drawing.Add_ToDocument2(parent_paragraph);
+                    this.selectObject(sp, page_num);
+                }
             }
             this.document.Recalculate();
+            this.document.UpdateInterface();
+            this.document.UpdateSelection();
         }
 
 		if (false !== bTrackRevisions)
