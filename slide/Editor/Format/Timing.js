@@ -6045,7 +6045,8 @@
     var RANDOM_BARS_ARRAY = [62, 4, 27, 42, 80, 34, 67, 20, 74, 32, 10, 54, 3, 77, 36, 55, 26, 53, 97, 90, 68, 65, 57, 12, 52, 70, 23, 64, 30, 73, 79, 22, 14, 51, 9, 0, 49, 1, 15, 71, 93, 86, 19, 28, 45, 41, 39, 60, 25, 7, 92, 46, 2, 98, 33, 40, 31, 72, 69, 24, 75, 84, 43, 47, 87, 50, 18, 56, 13, 61, 76, 17, 91, 37, 8, 11, 78, 6, 5, 48, 59, 95, 66, 63, 81, 96, 35, 88, 94, 89, 38, 99, 82, 29, 16, 83, 21, 58, 44, 85];
     var STRIPS_COUNT = 16;
 
-    function CTexture(oCanvas, fScale) {
+    function CTexture(oCache, oCanvas, fScale) {
+        this.cache = oCache;
         this.canvas = oCanvas;
         this.scale = fScale;
     }
@@ -6126,9 +6127,11 @@
                     break;
                 }
                 case FILTER_TYPE_DISSOLVE: {
+                    return this.createDissolve(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_FADE: {
+                    return this.createFade(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_SLIDE_FROM_TOP: {
@@ -6243,7 +6246,7 @@
         var oCanvas = document.createElement('canvas');
         oCanvas.width = this.canvas.width;
         oCanvas.height = this.canvas.height;
-        return new CTexture(oCanvas, this.scale);
+        return new CTexture(this.cache, oCanvas, this.scale);
     };
     CTexture.prototype.createCopy = function() {
         var oTexture = this.createTexture();
@@ -6489,8 +6492,6 @@
     CTexture.prototype.createStripsUpLeft = function(fTime) {
         return this.createStripsUpLeftDiag(fTime, "destination-out");
     };
-
-
     CTexture.prototype.createDiamond = function(fTime, sOperation) {
         var nMaxWidth = 2*this.canvas.width;
         var nWidth = nMaxWidth*fTime + 0.5 >> 0;
@@ -6517,7 +6518,6 @@
         oCtx.fill();
         return oTexture;
     };
-
     CTexture.prototype.createDiamondIn = function(fTime) {
         return this.createDiamond(fTime, "destination-out");
     };
@@ -6557,14 +6557,18 @@
         var oCtx = oCanvas.getContext('2d');
         oCtx.globalCompositeOperation = 'destination-out';
         var nX, nY, nWidth, nHeight;
+
+        oCtx.beginPath();
         for(var nRange = 0; nRange < aFilledRanges.length; ++nRange) {
             var aRange = aFilledRanges[nRange];
             nX = 0;
             nY = (aRange[0] / RANDOM_BARS_ARRAY.length) * this.canvas.height + 0.5 >> 0;
             nWidth = this.canvas.width;
             nHeight = (aRange[1] - aRange[0] + 1) / RANDOM_BARS_ARRAY.length * this.canvas.height + 0.5 >> 0;
-            this.drawRect(oCtx, nX, nY, nWidth, nHeight);
+            oCtx.fillRect(nX, nY, nWidth, nHeight);
         }
+        oCtx.closePath();
+        oCtx.fill();
         return oTexture;
     };
     CTexture.prototype.createRandomBarsVertical = function(fTime) {
@@ -6577,14 +6581,17 @@
         var oCtx = oCanvas.getContext('2d');
         oCtx.globalCompositeOperation = 'destination-out';
         var nX, nY, nWidth, nHeight;
+        oCtx.beginPath();
         for(var nRange = 0; nRange < aFilledRanges.length; ++nRange) {
             var aRange = aFilledRanges[nRange];
             nX = (aRange[0] / RANDOM_BARS_ARRAY.length) * this.canvas.width + 0.5 >> 0;
             nY = 0;
-            nWidth = (aRange[1] - aRange[0] + 1) / RANDOM_BARS_ARRAY.length * this.canvas.width + 0.5 >> 0;;
+            nWidth = (aRange[1] - aRange[0] + 1) / RANDOM_BARS_ARRAY.length * this.canvas.width + 0.5 >> 0;
             nHeight = this.canvas.height;
-            this.drawRect(oCtx, nX, nY, nWidth, nHeight);
+            oCtx.fillRect(nX, nY, nWidth, nHeight);
         }
+        oCtx.closePath();
+        oCtx.fill();
         return oTexture;
     };
     CTexture.prototype.createWedge = function(fTime) {
@@ -6849,6 +6856,47 @@
         this.drawRect(oCtx, 0, (this.canvas.height - nHeight) / 2 + 0.5 >> 0, nWidth, nHeight);
         return oTexture;
     };
+    CTexture.prototype.createDissolve = function(fTime) {
+        var nFilledBars = RANDOM_BARS_ARRAY.length * fTime + 0.5 >> 0;
+        if(nFilledBars === 0) {
+            return this;
+        }
+        var nWidth = this.canvas.width;
+        var oTexture = this.createCopy();
+        var oCanvas = oTexture.canvas;
+        var oCtx = oCanvas.getContext('2d');
+        oCtx.globalCompositeOperation = 'destination-out';
+        var aFilledPix = RANDOM_BARS_ARRAY.slice(0, nFilledBars);
+        oCtx.beginPath();
+        for(var nPix = 0; nPix < aFilledPix.length; ++nPix) {
+            var nPixNum = aFilledPix[nPix];
+            var nX = nPixNum / 10 >> 0;
+            var nY = nPixNum % 10;
+            while (nX < this.canvas.width) {
+                nY = nPix % 10;
+                while (nY < this.canvas.height) {
+                    oCtx.fillRect(nX - 1, nY - 1, 2, 2);
+                    nY += 10;
+                }
+                nX += 10;
+            }
+        }
+        oCtx.closePath();
+        oCtx.fill();
+        return oTexture;
+    };
+    CTexture.prototype.createFade = function(fTime) {
+        if(fTime === 0) {
+            return this;
+        }
+        var oTexture = this.createTexture();
+        var oCanvas = oTexture.canvas;
+        var oCtx = oCanvas.getContext('2d');
+        oCtx.globalAlpha = 1 - fTime;
+        oCtx.drawImage(this.canvas, 0, 0);
+        oCtx.globalAlpha = 1;
+        return oTexture;
+    };
 
 
     function CTexturesCache(oDrawer) {
@@ -6870,7 +6918,7 @@
         if(!oDrawing) {
             return undefined;
         }
-        return new CTexture(oDrawing.getCachedCanvas(fScale), fScale);
+        return new CTexture(this, oDrawing.getCachedCanvas(fScale), fScale);
     };
     CTexturesCache.prototype.removeTexture = function(sId) {
         if(this.map[sId]) {
@@ -7399,7 +7447,9 @@
     FILTER_MAP["barn(outVertical)"] = FILTER_TYPE_BARN_OUT_VERTICAL;
     FILTER_MAP["barn(outHorizontal)"] = FILTER_TYPE_BARN_OUT_HORIZONTAL;
     FILTER_MAP["randomBars(horizontal)"] = FILTER_TYPE_RANDOM_BARS_HORIZONTAL;
+    FILTER_MAP["randombar(horizontal)"] = FILTER_TYPE_RANDOM_BARS_HORIZONTAL;
     FILTER_MAP["randomBars(vertical)"] = FILTER_TYPE_RANDOM_BARS_VERTICAL;
+    FILTER_MAP["randombar(vertical)"] = FILTER_TYPE_RANDOM_BARS_VERTICAL;
     FILTER_MAP["strips(downLeft)"] = FILTER_TYPE_STRIPS_DOWN_LEFT;
     FILTER_MAP["strips(upLeft)"] = FILTER_TYPE_STRIPS_UP_LEFT;
     FILTER_MAP["strips(downRight)"] = FILTER_TYPE_STRIPS_DOWN_RIGHT;
