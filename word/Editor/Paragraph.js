@@ -2979,16 +2979,13 @@ Paragraph.prototype.Internal_Draw_5 = function(CurPage, pGraphics, Pr, BgColor)
 			if (arrRunReviewRectsLine.length > 0)
 				arrRunReviewRects.push(arrRunReviewRectsLine);
 
-			if (this.bFromDocument)
+			// Рисуем рект вокруг измененных ранов (измененных другим пользователем)
+			Element = aCollChange.Get_Next();
+			while (null !== Element)
 			{
-				// Рисуем рект вокруг измененных ранов (измененных другим пользователем)
+				pGraphics.p_color(Element.r, Element.g, Element.b, 255);
+				pGraphics.AddSmartRect(Element.x0, Page.Y + Line.Top, Element.x1 - Element.x0, Line.Bottom - Line.Top, 0);
 				Element = aCollChange.Get_Next();
-				while (null !== Element)
-				{
-					pGraphics.p_color(Element.r, Element.g, Element.b, 255);
-					pGraphics.AddSmartRect(Element.x0, Page.Y + Line.Top, Element.x1 - Element.x0, Line.Bottom - Line.Top, 0);
-					Element = aCollChange.Get_Next();
-				}
 			}
             // Рисуем подчеркивание орфографии
             if (editor && this.LogicDocument && true === this.LogicDocument.Spelling.Use && !(pGraphics.IsThumbnail === true || pGraphics.IsDemonstrationMode === true || AscCommon.IsShapeToImageConverter))
