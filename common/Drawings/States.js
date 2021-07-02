@@ -291,7 +291,9 @@ NullState.prototype =
             this.startTargetTextObject = AscFormat.getTargetTextObject(this.drawingObjects);
             var oAnimPlayer = this.drawingObjects.getAnimPlayer && this.drawingObjects.getAnimPlayer();
             if(oAnimPlayer) {
-                oAnimPlayer.onClick();
+                if(oAnimPlayer.onClick()) {
+                    return true;
+                }
             }
         }
         var ret;

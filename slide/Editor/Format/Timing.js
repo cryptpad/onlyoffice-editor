@@ -136,6 +136,17 @@
     var NODE_TYPE_WITHEFFECT	 = 7;
     var NODE_TYPE_WITHGROUP		 = 8;
 
+    var NODE_TYPE_MAP = {};
+    NODE_TYPE_MAP[NODE_TYPE_AFTEREFFECT	 ] = "AFTEREFFECT";
+    NODE_TYPE_MAP[NODE_TYPE_AFTERGROUP	 ] = "AFTERGROUP";
+    NODE_TYPE_MAP[NODE_TYPE_CLICKEFFECT	 ] = "CLICKEFFECT";
+    NODE_TYPE_MAP[NODE_TYPE_CLICKPAR		 ] = "CLICKPAR";
+    NODE_TYPE_MAP[NODE_TYPE_INTERACTIVESEQ ] = "INTERACTIVESEQ";
+    NODE_TYPE_MAP[NODE_TYPE_MAINSEQ		 ] = "MAINSEQ";
+    NODE_TYPE_MAP[NODE_TYPE_TMROOT		 ] = "TMROOT";
+    NODE_TYPE_MAP[NODE_TYPE_WITHEFFECT	 ] = "WITHEFFECT";
+    NODE_TYPE_MAP[NODE_TYPE_WITHGROUP		 ] = "WITHGROUP";
+
 
     var NODE_FILL_FREEZE = 0;
     var NODE_FILL_HOLD = 1;
@@ -368,7 +379,7 @@
         oPlayer.cancelCallerEvent(this);
         var oParentNode = this.getParentTimeNode();
         if(oParentNode) {
-            oParentNode.onFinished(this, oPlayer);
+            oParentNode.onFrozen(this, oPlayer);
         }
         if(this.isRoot()) {
             oPlayer.stop();
@@ -393,7 +404,7 @@
         var oAttribute = this.getAttributesObject();
         if(oAttribute.fill === NODE_FILL_HOLD || oAttribute.fill === NODE_FILL_FREEZE) {
             return function () {
-                oThis.setState(TIME_NODE_STATE_FROZEN);
+                oThis.freezeCallback(oPlayer);
             }
         }
         return function () {
@@ -429,7 +440,8 @@
     };
     CTimeNodeBase.prototype.setState = function(nState) {
         this.state = nState;
-        //console.log("Set node state ID: " + this.Id + " TYPE: " + this.constructor.name + " STATE: " + oSTATEDESCRMAP[nState] + " TIME: " + (new Date()).getTime());
+        var sNodeType = NODE_TYPE_MAP[this.getAttributesObject().nodeType];
+        console.log("Set node state ID: " + this.Id + " TYPE: " + this.constructor.name + " NODE_TYPE: " + sNodeType + " STATE: " + oSTATEDESCRMAP[nState] + " TIME: " + (new Date()).getTime());
     };
     CTimeNodeBase.prototype.cancelEventsRecursive = function(oPlayer) {
         oPlayer.cancelCallerEvent(this);
@@ -462,7 +474,7 @@
         //TODO
     };
     CTimeNodeBase.prototype.onFrozen = function(oChild, oPlayer) {
-        //TODO
+        return this.onFinished(oChild, oPlayer);
     };
     CTimeNodeBase.prototype.onFinished = function(oChild, oPlayer) {
         if(this.isTimingContainer()) {
@@ -470,7 +482,7 @@
             var nChild;
             if(this.isPar()) {
                 for(nChild = 0; nChild < aChildren.length; ++nChild) {
-                    if(!aChildren[nChild].isFinished()) {
+                    if(!aChildren[nChild].isAtEnd()) {
                         break;
                     }
                 }
@@ -479,7 +491,7 @@
                         this.scheduleSimpleDuration(++this.simpleDurationIdx, oPlayer);
                     }
                     else {
-                        this.setFinished(oPlayer);
+                        this.getEndCallback(oPlayer)();
                     }
                 }
             }
@@ -493,7 +505,7 @@
                         this.scheduleSimpleDuration(++this.simpleDurationIdx, oPlayer);
                     }
                     else {
-                        this.setFinished(oPlayer);
+                        this.getEndCallback(oPlayer)();
                     }
                 }
             }
@@ -513,6 +525,9 @@
     };
     CTimeNodeBase.prototype.isDrawable = function() {
         return this.isActive() || this.isFrozen();
+    };
+    CTimeNodeBase.prototype.isAtEnd = function() {
+        return this.isFinished() || this.isFrozen();
     };
     CTimeNodeBase.prototype.getAttributesObject = function() {
         if(this.cTn) {

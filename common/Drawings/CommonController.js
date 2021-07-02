@@ -1676,8 +1676,9 @@ DrawingObjectsController.prototype =
                 }
             }
             if(oAnimPlayer) {
-                oAnimPlayer.onSpClick(group || object);
-                return {objectId: (group || object).Get_Id(), cursorType: "pointer", bMarker: bInSelect};
+                if(oAnimPlayer.onSpClick(group || object)) {
+                    return {objectId: (group || object).Get_Id(), cursorType: "pointer", bMarker: bInSelect};
+                }
             }
             if(object.canMove())
             {
@@ -1855,7 +1856,9 @@ DrawingObjectsController.prototype =
                 check_hyperlink = fCheckObjectHyperlink(object, x, y);
                 var oAnimPlayer = this.getAnimPlayer();
                 if(oAnimPlayer) {
-                    oAnimPlayer.onSpClick(object);
+                    if(oAnimPlayer.onSpClick(object)) {
+                        return {objectId: (group || object).Get_Id(), cursorType: "pointer", bMarker: false};
+                    }
                 }
                 if(!isRealObject(check_hyperlink))
                 {
@@ -1901,7 +1904,9 @@ DrawingObjectsController.prototype =
             {
                 var oAnimPlayer = this.getAnimPlayer();
                 if(oAnimPlayer) {
-                    oAnimPlayer.onSpClick(object);
+                    if(oAnimPlayer.onSpClick(object)) {
+                        return {objectId: (group || object).Get_Id(), cursorType: "pointer", bMarker: false};
+                    }
                 }
                 check_hyperlink = fCheckObjectHyperlink(object, x, y);
                 if(!isRealObject(check_hyperlink))

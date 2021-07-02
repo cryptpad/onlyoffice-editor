@@ -477,9 +477,10 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
                 var oAnimPlayer = drawingObjectsController.getAnimPlayer();
                 if(oAnimPlayer)
                 {
-                    oAnimPlayer.onSpClick(drawing);
+                    if(oAnimPlayer.onSpClick(drawing)) {
+                        return true;
+                    }
                 }
-                return true;
             }
         }
         var oTextObject = AscFormat.getTargetTextObject(drawingObjectsController);
@@ -2041,10 +2042,12 @@ function handleFloatTable(drawing, drawingObjectsController, e, x, y, group, pag
             var oAnimPlayer = drawingObjectsController.getAnimPlayer();
             if(oAnimPlayer)
             {
-                oAnimPlayer.onSpClick(drawing);
+                if(oAnimPlayer.onSpClick(drawing)) {
+                    return true;
+                }
             }
         }
-        return true;
+        return false;
     }
     if(drawing.hitInBoundingRect(x, y))
     {
