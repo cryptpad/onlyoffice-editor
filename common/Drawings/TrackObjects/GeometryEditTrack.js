@@ -71,32 +71,59 @@
         var originalPoint = geometry.originalEditPoint;
         var nextPoint = geometry.gmEditPoint.nextPoint;
         var prevPoint = geometry.gmEditPoint.prevPoint;
+        var curFirstCommand = arrPathCommand[originalPoint.pathC1];
+        var curSecondCommand = arrPathCommand[originalPoint.pathC1]
 
-            var pathCommand = arrPathCommand[originalPoint.pathC1];
-
-            var id = pathCommand.id;
             if(geometry.gmEditPoint.isFirstCPoint) {
                 arrPathCommand[originalPoint.pathC1].X1 = _relative_x;
                 arrPathCommand[originalPoint.pathC1].Y1 = _relative_y;
                 geometry.gmEditPoint.g1X = _relative_x;
                 geometry.gmEditPoint.g1Y = _relative_y;
+                arrPathCommand[originalPoint.pathC1].isLine = false;
+
+                if(curFirstCommand.isEllipseArc && curSecondCommand.isEllipseArc) {
+                    var g2X = geometry.gmEditPoint.g1X - geometry.gmEditPoint.X;
+                    var g2Y = geometry.gmEditPoint.g1Y - geometry.gmEditPoint.Y;
+
+                    arrPathCommand[originalPoint.pathC2].X0 = geometry.gmEditPoint.X - g2X;
+                    arrPathCommand[originalPoint.pathC2].Y0 = geometry.gmEditPoint.Y - g2Y;
+                    geometry.gmEditPoint.g2X = geometry.gmEditPoint.X - g2X;
+                    geometry.gmEditPoint.g2Y = geometry.gmEditPoint.Y - g2Y;
+                }
             } else if(geometry.gmEditPoint.isSecondCPoint) {
                 arrPathCommand[originalPoint.pathC2].X0 = _relative_x;
                 arrPathCommand[originalPoint.pathC2].Y0 = _relative_y;
                 geometry.gmEditPoint.g2X = _relative_x;
                 geometry.gmEditPoint.g2Y = _relative_y;
+
+                arrPathCommand[originalPoint.pathC2].isLine = false;
+
+                if(curFirstCommand.isEllipseArc && curSecondCommand.isEllipseArc) {
+                    var g1X = geometry.gmEditPoint.g2X - geometry.gmEditPoint.X;
+                    var g1Y = geometry.gmEditPoint.g2Y - geometry.gmEditPoint.Y;
+
+                    arrPathCommand[originalPoint.pathC1].X1 = geometry.gmEditPoint.X - g1X;
+                    arrPathCommand[originalPoint.pathC1].Y1 = geometry.gmEditPoint.Y - g1Y;
+                    geometry.gmEditPoint.g1X = geometry.gmEditPoint.X - g1X;
+                    geometry.gmEditPoint.g1Y = geometry.gmEditPoint.Y - g1Y;
+                }
             } else {
+
+                //second curve relative to point
+                var pathCommand = arrPathCommand[originalPoint.pathC1];
+                var X0 = pathCommand.isLine ? (prevPoint.X + _relative_x / 2) / (3 / 2) : prevPoint.g2X;
+                var Y0 = pathCommand.isLine ? (prevPoint.Y + _relative_y / 2) / (3 / 2) : prevPoint.g2Y;
+                var X1 = pathCommand.isLine ? (prevPoint.X + _relative_x * 2) / 3 : _relative_x - originalPoint.X + originalPoint.g1X;
+                var Y1 = pathCommand.isLine ? (prevPoint.Y + _relative_y * 2) / 3 : _relative_y - originalPoint.Y + originalPoint.g1Y;
+
                 var command = {
-                    id: 4,
-                    X0: prevPoint.g2X,
-                    Y0: prevPoint.g2Y,
-                    X1: _relative_x - originalPoint.X + originalPoint.g1X,
-                    Y1: _relative_y - originalPoint.Y + originalPoint.g1Y,
+                    id: 4, X0, Y0, X1, Y1,
                     X2: _relative_x,
                     Y2: _relative_y,
                     X: _relative_x,
-                    Y: _relative_y
-
+                    Y: _relative_y,
+                    isEllipseArc: pathCommand.isEllipseArc,
+                    isLine: pathCommand.isLine
                 }
                 geometry.gmEditPoint.g1X = command.X1;
                 geometry.gmEditPoint.g1Y = command.Y1;
@@ -107,16 +134,21 @@
                 }
                 arrPathCommand[geometry.gmEditPoint.pathC1] = command;
 
+                //second curve relative to point
+                var pathCommand = arrPathCommand[geometry.gmEditPoint.pathC2]
+                var X0 = pathCommand.isLine ? (nextPoint.X + _relative_x * 2) / 3 : _relative_x - originalPoint.X + originalPoint.g2X;
+                var Y0 = pathCommand.isLine ? (nextPoint.Y + _relative_y * 2) / 3 : _relative_y - originalPoint.Y + originalPoint.g2Y;
+                var X1 = pathCommand.isLine ? (nextPoint.X + _relative_x / 2) / (3 / 2) : nextPoint.g1X;
+                var Y1 = pathCommand.isLine ? (nextPoint.Y + _relative_y / 2) / (3 / 2) : nextPoint.g1Y;
+
                 var command = {
-                    id: 4,
-                    X0: _relative_x - originalPoint.X + originalPoint.g2X,
-                    Y0: _relative_y - originalPoint.Y + originalPoint.g2Y,
-                    X1: nextPoint.g1X,
-                    Y1: nextPoint.g1Y,
+                    id: 4, X0, Y0, X1, Y1,
                     X2: nextPoint.X,
                     Y2: nextPoint.Y,
                     X: nextPoint.X,
-                    Y: nextPoint.Y
+                    Y: nextPoint.Y,
+                    isEllipseArc: pathCommand.isEllipseArc,
+                    isLine: pathCommand.isLine
                 }
 
                 geometry.gmEditPoint.g2X = command.X0;
@@ -132,7 +164,7 @@
         var last_x = geometry.gmEditList[0].X,
             last_y = geometry.gmEditList[0].Y,
             xMin = last_x, yMin = last_y, xMax = last_x, yMax = last_y;
-        for(var i = 0;  i < arrPathCommand.length; ++i) {
+        for(var i = 0; i < arrPathCommand.length; ++i) {
 
             var path_command = arrPathCommand[i];
 
@@ -198,16 +230,6 @@
                     geometry.AddPathCommand(1, ((( arrPathCommand[i].X - xMin) * kw) >> 0) + "", (((arrPathCommand[i].Y - yMin) * kh) >> 0) + "");
                     break;
                 }
-                //оставить или удалить в зависимости от реализации
-                // case 1: {
-                //     geometry.AddPathCommand(2, (((pCommandX - xMin) * kw) >> 0) + "", (((pCommandY - yMin) * kh) >> 0) + "");
-                //     break;
-                // }
-                // case 2: {
-                //     var wR = transform.TransformPointX(arrPathCommand[i].wR, arrPathCommand[i].hR);
-                //     var hR = transform.TransformPointY(arrPathCommand[i].wR, arrPathCommand[i].hR);
-                //     geometry.AddPathCommand(3, (((wR - xMin) * kw) >> 0) + "", (((hR - yMin) * kh) >> 0) + "", arrPathCommand[i].stAng, arrPathCommand[i].swAng);
-                // }
                 case 4: {
                     geometry.AddPathCommand(5, (((arrPathCommand[i].X0 - xMin) * kw) >> 0) + "", (((arrPathCommand[i].Y0 - yMin) * kh) >> 0) + "", (((arrPathCommand[i].X1 - xMin)* kw) >> 0) + "", (((arrPathCommand[i].Y1 - yMin) * kh) >> 0) + "", (((arrPathCommand[i].X2 - xMin) * kw) >> 0) + "", (((arrPathCommand[i].Y2 - yMin) * kh) >> 0) + "");
                     break;
@@ -301,8 +323,10 @@
                                 X1: elem.X1,
                                 Y1: elem.Y1,
                                 X2: elem.X2,
-                                Y2: elem.Y2
+                                Y2: elem.Y2,
+                                isEllipseArc: true
                             }
+
                             pathPoints.splice(i, 0, elemArc);
                             i++;
                         })
@@ -329,7 +353,7 @@
             }
         };
 
-
+        //if the end point is not equal to the start point, then draw a line between them
         var firstPointX = parseFloat(X.toFixed(4));
         var firstPointY = parseFloat(Y.toFixed(4));
         var lastPointX = parseFloat(pathPoints[pathPoints.length - 1].X.toFixed(4));
@@ -346,11 +370,10 @@
                     X2: X,
                     Y2: Y,
                     X,
-                    Y
+                    Y,
+                    isLine: true
                 });
         }
-
-
 
        pathPoints.forEach(function(elem, index) {
           var prevCommand = index - 1 >= 0 ? pathPoints[index - 1] : pathPoints[pathPoints.length - 1];
@@ -366,14 +389,16 @@
                        X2: elem.X,
                        Y2: elem.Y,
                        X: elem.X,
-                       Y: elem.Y
+                       Y: elem.Y,
+                       isLine: true
                    }
                    break;
                case 3:
-                   elem = {
+                   pathPoints[index] = {
+                       id: 4,
                        X0: (elem.X0 + prevCommand.X) / 2,
                        Y0: (elem.Y0 + prevCommand.Y) / 2,
-                       X1: (elem.Y1 + elem.Y0) / 2,
+                       X1: (elem.X1 + elem.X0) / 2,
                        Y1: (elem.Y1 + elem.Y0) / 2,
                        X2: elem.X1,
                        Y2: elem.Y1,

@@ -497,8 +497,13 @@ Path.prototype = {
                         y2=parseInt(cmd.Y2, 10);
                     }
 
+                    var isEllipseArc, isLine;
+                    if(this.ArrPathCommand[i]) {
+                        isEllipseArc = this.ArrPathCommand[i].isEllipseArc;
+                        isLine = this.ArrPathCommand[i].isLine;
+                    }
 
-                    this.ArrPathCommand[i]={id:bezier4, X0:x0*cw, Y0: y0*ch, X1:x1*cw, Y1:y1*ch, X2:x2*cw, Y2:y2*ch};
+                    this.ArrPathCommand[i]={id:bezier4, X0:x0*cw, Y0: y0*ch, X1:x1*cw, Y1:y1*ch, X2:x2*cw, Y2:y2*ch, isEllipseArc, isLine};
 
                     lastX=x2*cw;
                     lastY=y2*ch;
