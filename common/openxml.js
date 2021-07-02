@@ -45,28 +45,28 @@
 	SaxParserBase.prototype.onError = function(msg) {
 		throw new Error(msg);
 	};
-	SaxParserBase.prototype.onStartNode = function(elem, attr, uq, tagend, getStrNode) {
+	SaxParserBase.prototype.onStartNode = function(elem, getAttrs, isTagEnd, getStringNode) {
 		this.depth++;
 		if (!this.isSkip()) {
 			var newContext;
 			if (this.context.onStartNode) {
-				newContext = this.context.onStartNode.apply(this.context, arguments);
+				newContext = this.context.onStartNode.call(this.context, elem, getAttrs, EasySAXParser.entityDecode, isTagEnd, getStringNode);
 				if (!newContext) {
 					this.skip();
 				}
 			}
-			if (!this.isSkip() && !tagend) {
+			if (!this.isSkip() && !isTagEnd) {
 				this.context = newContext ? newContext : this.context;
 				this.contextStack.push(this.context);
 			}
 		}
 	};
-	SaxParserBase.prototype.onTextNode = function(text, uq) {
+	SaxParserBase.prototype.onTextNode = function(text) {
 		if (this.context && this.context.onTextNode) {
-			this.context.onTextNode.apply(this.context, arguments);
+			this.context.onTextNode.call(this.context, text, EasySAXParser.entityDecode);
 		}
 	};
-	SaxParserBase.prototype.onEndNode = function(elem, uq, tagstart, getStrNode) {
+	SaxParserBase.prototype.onEndNode = function(elem, isTagStart, getStringNode) {
 		this.depth--;
 		var isSkip = this.isSkip();
 		if (isSkip && this.depth <= this.depthSkip) {
@@ -74,12 +74,12 @@
 		}
 		if (!isSkip){
 			var prevContext = this.context;
-			if(!tagstart){
+			if(!isTagStart){
 				this.contextStack.pop();
 				this.context = this.contextStack[this.contextStack.length - 1];
 			}
 			if (this.context && this.context.onEndNode) {
-				this.context.onEndNode(prevContext, elem, uq, tagstart, getStrNode);
+				this.context.onEndNode.call(this.context, prevContext, elem, EasySAXParser.entityDecode, isTagStart, getStringNode);
 			}
 		}
 	};
@@ -92,7 +92,7 @@
 	SaxParserBase.prototype.parse = function(xml, context) {
 		var t = this;
 		this.context = context;
-		var parser = new EasySAXParser();
+		var parser = new EasySAXParser({'autoEntity': false});
 		parser.on('error', function() {
 			t.onError.apply(t, arguments);
 		});
