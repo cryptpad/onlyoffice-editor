@@ -842,6 +842,10 @@ DrawingObjectsController.prototype =
                     if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE){
                         if(e.CtrlKey || this.isSlideShow()){
                             editor.sync_HyperlinkClickCallback(oNvPr.hlinkClick.id);
+                            var oAnimPlayer = this.getAnimPlayer();
+                            if(oAnimPlayer) {
+                                oAnimPlayer.onSpClick(drawing);
+                            }
                             return true;
                         }
                     }
@@ -1673,7 +1677,7 @@ DrawingObjectsController.prototype =
             }
             if(oAnimPlayer) {
                 oAnimPlayer.onSpClick(group || object);
-                return;
+                return {objectId: (group || object).Get_Id(), cursorType: "pointer", bMarker: bInSelect};
             }
             if(object.canMove())
             {
@@ -1726,8 +1730,12 @@ DrawingObjectsController.prototype =
     },
 
     getAnimPlayer: function() {
-        if(this.animPlayer) {
-            return this.animPlayer;
+        if(this.drawingObjects && this.drawingObjects.cSld){
+            if(editor && editor.WordControl &&
+                editor.WordControl.DemonstrationManager &&
+                editor.WordControl.DemonstrationManager.Mode) {
+                return editor.WordControl.DemonstrationManager.player;
+            }
         }
         return null;
     },
@@ -1845,6 +1853,10 @@ DrawingObjectsController.prototype =
             if((e.CtrlKey || this.isSlideShow()) && !this.document && !bNotes)
             {
                 check_hyperlink = fCheckObjectHyperlink(object, x, y);
+                var oAnimPlayer = this.getAnimPlayer();
+                if(oAnimPlayer) {
+                    oAnimPlayer.onSpClick(object);
+                }
                 if(!isRealObject(check_hyperlink))
                 {
                     return this.handleMoveHit(object, e, x, y, group, false, pageIndex, bWord);
@@ -1887,6 +1899,10 @@ DrawingObjectsController.prototype =
 
             if((e.CtrlKey || this.isSlideShow()) && !this.document && !bNotes)
             {
+                var oAnimPlayer = this.getAnimPlayer();
+                if(oAnimPlayer) {
+                    oAnimPlayer.onSpClick(object);
+                }
                 check_hyperlink = fCheckObjectHyperlink(object, x, y);
                 if(!isRealObject(check_hyperlink))
                 {
@@ -1932,6 +1948,10 @@ DrawingObjectsController.prototype =
                     check_hyperlink = fCheckObjectHyperlink(object, x, y);
                     if(this.isSlideShow())
                     {
+                        var oAnimPlayer = this.getAnimPlayer();
+                        if(oAnimPlayer) {
+                            oAnimPlayer.onSpMouseOver(object);
+                        }
                         if(isRealObject(check_hyperlink))
                         {
                             ret.hyperlink = check_hyperlink;

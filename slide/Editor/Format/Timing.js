@@ -223,12 +223,7 @@
         var nNodeType = this.getNodeType();
         switch (nNodeType) {
             case NODE_TYPE_CLICKEFFECT: {
-                var oEvent = new CExternalEvent(COND_EVNT_ON_CLICK, null);
-                oTrigger.addTrigger(
-                    function () {
-                        return oPlayer.checkExternalEvent(oEvent);
-                    }
-                );
+                oTrigger.setExternalEvent(new CExternalEvent(oPlayer.eventsProcessor, COND_EVNT_ON_CLICK, null));
                 break;
             }
         }
@@ -2996,11 +2991,10 @@
             if(!sSpId) {
                 return DEFAULT_NEVER_TRIGGER;
             }
-            var oEvent = new CExternalEvent(nType, sSpId);
-            var oDelay = oThis.getDelayTime();
-            return oThis.createEventTrigger(oPlayer, function() {
-                return oPlayer.checkExternalEvent(oEvent);
-            })
+            var oTriggert = oThis.createDelaySimpleTrigger();
+            var oEvent = new CExternalEvent(oPlayer.eventsProcessor, nType, sSpId);
+            oTriggert.setExternalEvent(oEvent);
+            return oTriggert;
         })();
     };
     CCond.prototype.createEventTrigger = function (oPlayer, fEvent) {
@@ -5801,7 +5795,8 @@
         oStream.SkipRecord();
     };
 
-    function CExternalEvent(type, target) {
+    function CExternalEvent(oEventsProcessor, type, target) {
+        this.eventsProcessor = oEventsProcessor;
         this.type = type;
         this.target = target;
     }
@@ -5811,13 +5806,20 @@
         }
         return oEvent.type === this.type && this.target === oEvent.target;
     };
+    CExternalEvent.prototype.isFired = function() {
+        return this.eventsProcessor.checkExternalEvent(this);
+    };
 
     function CEventsProcessor(player) {
         this.player = player;
         this.events = [];
     }
     CEventsProcessor.prototype.addEvent = function(oEvent) {
-        this.events.push(oEvent);
+        if(this.player.isExternalEventScheduled(oEvent)) {
+            this.events.push(oEvent);
+            return true;
+        }
+        return false;
     };
     CEventsProcessor.prototype.clear = function() {
         this.events.length = 0;
@@ -5936,6 +5938,7 @@
 
     function CAnimComplexTrigger(param) {
         this.triggers = [];
+        this.externalEvent = null;
         this.addDefault();
         if(Array.isArray(param)) {
             this.addTriggers(param);
@@ -5950,7 +5953,7 @@
                 return false;
             }
         }
-        return this.triggers.length > 0;
+        return this.triggers.length > 0 && (!this.externalEvent || this.externalEvent.isFired()) ;
     };
     CAnimComplexTrigger.prototype.addDefault = function() {
         this.addTrigger(DEFAULT_SIMPLE_TRIGGER);
@@ -5964,6 +5967,15 @@
         for(var nTrigger = 0; nTrigger < aTriggers.length; ++nTrigger) {
             this.addTrigger(aTriggers[nTrigger]);
         }
+    };
+    CAnimComplexTrigger.prototype.setExternalEvent = function(oExternalEvent) {
+        this.externalEvent = oExternalEvent;
+    };
+    CAnimComplexTrigger.prototype.isExternalEventTrigger = function(oExternalEvent) {
+        if(this.externalEvent && this.externalEvent.isEqual(oExternalEvent)) {
+            return true;
+        }
+        return false;
     };
     
 
@@ -5988,6 +6000,9 @@
             return true;
         }
         return false;
+    };
+    CAnimEvent.prototype.isExternalEventTriggered = function(oExternalEvent) {
+        return this.trigger.isExternalEventTrigger(oExternalEvent);
     };
 
     function CAnimationScheduler(player) {
@@ -6031,6 +6046,14 @@
     };
     CAnimationScheduler.prototype.getElapsedTicks = function() {
         return this.player.getElapsedTicks();
+    };
+    CAnimationScheduler.prototype.isExternalEventScheduled = function(oExternalEvent) {
+        for(var nEvent = 0; nEvent < this.events.length; ++nEvent) {
+            if(this.events[nEvent].isExternalEventTriggered(oExternalEvent)) {
+                return true;
+            }
+        }
+        return false;
     };
 
     function shuffleArray(array) {
@@ -7189,31 +7212,31 @@
         return this.eventsProcessor.checkExternalEvent(oEvent);
     };
     CAnimationPlayer.prototype.onClick = function() {
-        this.eventsProcessor.addEvent(new CExternalEvent(COND_EVNT_ON_CLICK, null));
+        return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_CLICK, null));
     };
     CAnimationPlayer.prototype.onSpClick = function(oSp) {
         if(!oSp) {
-            return;
+            return false;
         }
-        this.eventsProcessor.addEvent(new CExternalEvent(COND_EVNT_ON_CLICK, oSp.Get_Id()));
+        return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_CLICK, oSp.Get_Id()));
     };
     CAnimationPlayer.prototype.onSpDblClick = function(oSp) {
         if(!oSp) {
-            return;
+            return false;
         }
-        this.eventsProcessor.addEvent(new CExternalEvent(COND_EVNT_ON_DBLCLICK, oSp.Get_Id()));
+        return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_DBLCLICK, oSp.Get_Id()));
     };
     CAnimationPlayer.prototype.onSpMouseOver = function(oSp) {
         if(!oSp) {
-            return;
+            return false;
         }
-        this.eventsProcessor.addEvent(new CExternalEvent(COND_EVNT_ON_MOUSEOVER, oSp.Get_Id()));
+        return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_MOUSEOVER, oSp.Get_Id()));
     };
     CAnimationPlayer.prototype.onSpMouseOut = function(oSp) {
         if(!oSp) {
-            return;
+            return false;
         }
-        this.eventsProcessor.addEvent(new CExternalEvent(COND_EVNT_ON_MOUSEOUT, oSp.Get_Id()));
+        return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_MOUSEOUT, oSp.Get_Id()));
     };
     CAnimationPlayer.prototype.addAnimationToDraw = function(sDrawingId, oAnimation) {
         this.animationDrawer.addAnimationToDraw(sDrawingId, oAnimation);
@@ -7225,6 +7248,9 @@
         if(this.drawer) {
             this.drawer.OnRecalculateAnimationFrame(this);
         }
+    };
+    CAnimationPlayer.prototype.isExternalEventScheduled = function(oExternalEvent) {
+      return this.animationScheduler.isExternalEventScheduled(oExternalEvent);
     };
 
     var DEFAULT_SIMPLE_TRIGGER = function() {
