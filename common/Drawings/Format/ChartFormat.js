@@ -16352,14 +16352,14 @@
                     bHorizontalValues = true;
                 }
             }
-            if(bScatter && nTopHeader === -1 && nLeftHeader === -1) {
+            if(bScatter) {
                 if(bHorizontalValues) {
-                    if(nRowsCount > 1) {
+                    if(nTopHeader === -1 && nRowsCount > 1) {
                         nTopHeader = 0;
                     }
                 }
                 else {
-                    if(nColsCount > 1) {
+                    if(nLeftHeader === -1 && nColsCount > 1) {
                         nLeftHeader = 0;
                     }
                 }
