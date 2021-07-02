@@ -7982,6 +7982,11 @@ function BinaryPPTYLoader()
                     cNvPr.setDescr(s.GetString2());
                     break;
                 }
+                case 5:
+                {
+                    cNvPr.form =  s.GetBool();
+                    break;
+                }
                 default:{
                     break;
                 }
