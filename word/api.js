@@ -5730,7 +5730,7 @@ background-repeat: no-repeat;\
 				if (sImageUrl)
 				{
 
-					if (window["AscDesktopEditor"])
+					if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsLocalFile"]())
 					{
 						var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](sImageToDownLoad);
 						_url     = g_oDocumentUrls.getImageUrl(_url);
@@ -9179,7 +9179,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_SetGlobalContentControlHighlightColor = function(r, g, b)
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
-		if (!oLogicDocument)
+		if (!oLogicDocument || !oLogicDocument.CanPerformAction())
 			return;
 
 		// Если цвет не задан
@@ -9217,7 +9217,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_SetGlobalContentControlShowHighlight = function(isShow, r, g, b)
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
-		if (!oLogicDocument)
+		if (!oLogicDocument || !oLogicDocument.CanPerformAction())
 			return;
 
 		// Лок можно не проверять, таким изменения нормально мержаться
@@ -9429,6 +9429,16 @@ background-repeat: no-repeat;\
 					oApi.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_ApplyImagePrWithUrl);
 					oApi.WordControl.m_oLogicDocument.SetImageProps(oImagePr);
 					oCC.SetShowingPlcHdr(false);
+
+					if (oCC.IsPictureForm())
+					{
+						oCC.UpdatePictureFormLayout();
+
+						var oShape = oCC.GetFixedFormWrapperShape();
+						if (oShape && oShape.parent instanceof ParaDrawing)
+							oApi.WordControl.m_oLogicDocument.Select_DrawingObject(oShape.parent.GetId());
+					}
+
 					oApi.WordControl.m_oLogicDocument.UpdateTracks();
 					oApi.WordControl.m_oLogicDocument.FinalizeAction();
 				};
@@ -9448,7 +9458,7 @@ background-repeat: no-repeat;\
 
 			if (sImageUrl)
 			{
-				if (window["AscDesktopEditor"])
+				if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsLocalFile"]())
 				{
 					var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](sImageToDownLoad);
 					_url     = g_oDocumentUrls.getImageUrl(_url);
@@ -9714,7 +9724,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_SetSpecialFormsHighlightColor = function(r, g, b)
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
-		if (!oLogicDocument)
+		if (!oLogicDocument || !oLogicDocument.CanPerformAction())
 			return;
 
 		// Лок можно не проверять, такие изменения нормально мержаться
@@ -9771,15 +9781,69 @@ background-repeat: no-repeat;\
 
 		return oLogicDocument.GetSpecialFormsByKey(sKey).length;
 	};
-	asc_docs_api.prototype.asc_MoveToFillingForm = function(isNext)
+	asc_docs_api.prototype.asc_MoveToFillingForm = function(isNext, isRequired, isNotFilled)
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
 		if (!oLogicDocument)
 			return;
 
-		oLogicDocument.MoveToFillingForm(isNext);
+		if (true === isRequired)
+		{
+			var oStartCC  = oLogicDocument.GetContentControl();
+			var oDocState = oLogicDocument.SaveDocumentState(false);
+
+			// Защита от зависания, по логике сравнение с предыдущим не нужно
+			var oPrevCC = null, oCurCC;
+			while (1)
+			{
+				oLogicDocument.MoveToFillingForm(isNext);
+				oCurCC = oLogicDocument.GetContentControl();
+
+				if (!oCurCC || oCurCC === oStartCC || oCurCC === oPrevCC)
+				{
+					oLogicDocument.LoadDocumentState(oDocState);
+					break;
+				}
+
+				if (oCurCC.IsForm()
+					&& oCurCC.IsFormRequired()
+					&& !oCurCC.IsCheckBox()
+					&& (true !== isNotFilled || !oCurCC.IsFormFilled()))
+					break;
+
+				if (!oStartCC)
+					oStartCC = oCurCC;
+
+				oPrevCC = oCurCC;
+			}
+		}
+		else
+		{
+			oLogicDocument.MoveToFillingForm(isNext);
+		}
+
 		oLogicDocument.UpdateSelection();
 		oLogicDocument.UpdateInterface();
+	};
+	asc_docs_api.prototype.asc_IsAllRequiredFormsFilled = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return true;
+
+		return oLogicDocument.IsAllRequiredSpecialFormsFilled();
+	};
+	asc_docs_api.prototype.sync_OnAllRequiredFormsFilled = function(isFilled)
+	{
+		this.sendEvent("sync_onAllRequiredFormsFilled", isFilled);
+	};
+	asc_docs_api.prototype.asc_SetFixedForm = function(sId, isFixed)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		oLogicDocument.ConvertFormAnchorType(sId, isFixed);
 	};
 
 	asc_docs_api.prototype.asc_UncheckContentControlButtons = function()
@@ -10937,7 +11001,7 @@ background-repeat: no-repeat;\
 		var frameWindow = window.frames[_iframeId];
 		if (frameWindow)
 		{
-			if (null != frameWindow.document && null != frameWindow.document.body)
+			if (null != frameWindow.document && null != frameWindow.document.body && this.WordControl.m_oLogicDocument.CanPerformAction())
 			{
 				ifr.style.display = "block";
 				this.WordControl.m_oLogicDocument.StartAction();
@@ -11905,7 +11969,9 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_GetTextFormAutoWidth']                  = asc_docs_api.prototype.asc_GetTextFormAutoWidth;
 	asc_docs_api.prototype['asc_GetFormsCountByKey']                    = asc_docs_api.prototype.asc_GetFormsCountByKey;
 	asc_docs_api.prototype['asc_MoveToFillingForm']                     = asc_docs_api.prototype.asc_MoveToFillingForm;
+	asc_docs_api.prototype['asc_IsAllRequiredFormsFilled']              = asc_docs_api.prototype.asc_IsAllRequiredFormsFilled;
 	asc_docs_api.prototype['asc_SendForm']                    			= asc_docs_api.prototype.asc_SendForm;
+	asc_docs_api.prototype['asc_SetFixedForm']                          = asc_docs_api.prototype.asc_SetFixedForm;
 
 	asc_docs_api.prototype['asc_BeginViewModeInReview']                 = asc_docs_api.prototype.asc_BeginViewModeInReview;
 	asc_docs_api.prototype['asc_EndViewModeInReview']                   = asc_docs_api.prototype.asc_EndViewModeInReview;

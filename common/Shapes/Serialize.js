@@ -6985,8 +6985,11 @@ function BinaryPPTYLoader()
                                 var _object = this.ReadPic(_type);
                                 if (!IsHiddenObj(_object))
                                 {
-                                    shapes[shapes.length] = _object;
-                                    _object.setParent2(this.TempMainObject);
+                                    if(_type !== 6 || _object.checkCorrect())
+                                    {
+                                        shapes[shapes.length] = _object;
+                                        _object.setParent2(this.TempMainObject);
+                                    }
                                 }
                                 break;
                             }
@@ -7112,14 +7115,6 @@ function BinaryPPTYLoader()
                 {
                     if(isOle) {
                         this.ReadOleInfo(pic);
-                        // if(pic.m_sObjectFile === "maskFile.docx"
-                        //     ||  pic.m_sObjectFile === "maskFile.xlsx"){
-                        //     var oParent = pic.parent;
-                        //     pic = AscFormat.CImageShape.prototype.copy.call(pic);
-                        //     if(oParent){
-                        //         pic.setParent(oParent);
-                        //     }
-                        // }
                     } else {
                         s.SkipRecord();
                     }
@@ -12192,9 +12187,11 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                         var oBinary_DocumentTableReader = new Binary_DocumentTableReader(shape.textBoxContent, oThis.oReadResult, oThis.openParams, oThis.stream, false, oThis.oComments);
                         var nDocLength = oThis.stream.GetULongLE();
                         var content_arr = [];
+                        var oCurParaDrawing = this.ParaDrawing;
                         oThis.bcr.Read1(nDocLength, function(t,l){
                             return oBinary_DocumentTableReader.ReadDocumentContent(t,l, content_arr);
                         });
+                        this.ParaDrawing = oCurParaDrawing;
                         for(var i = 0, length = content_arr.length; i < length; ++i){
                             if(i == length - 1)
                                 shape.textBoxContent.Internal_Content_Add(i, content_arr[i], true);
@@ -12442,14 +12439,6 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                     {
                         if(isOle) {
                             this.ReadOleInfo(pic);
-                            // if(pic.m_sObjectFile === "maskFile.docx"
-                            //     ||  pic.m_sObjectFile === "maskFile.xlsx"){
-                            //     var oParent = pic.parent;
-                            //     pic = AscFormat.CImageShape.prototype.copy.call(pic);
-                            //     if(oParent){
-                            //         pic.setParent(oParent);
-                            //     }
-                            // }
                         } else {
                             s.SkipRecord();
                         }

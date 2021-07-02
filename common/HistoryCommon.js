@@ -1219,6 +1219,9 @@
 			case AscDFH.historydescription_Document_ResolveAllComments:
 				sString = "Document_ResolveAllComments";
 				break;
+			case AscDFH.historydescription_Document_ConvertFormAnchorType:
+				sString = "Document_ConvertFormAnchorType";
+				break;
 		}
 		return sString;
 	}
@@ -1648,6 +1651,7 @@
 	window['AscDFH'].historyitem_Drawing_LayoutInCell      = window['AscDFH'].historyitem_type_Drawing | 17;
 	window['AscDFH'].historyitem_Drawing_SetSizeRelH       = window['AscDFH'].historyitem_type_Drawing | 18;
 	window['AscDFH'].historyitem_Drawing_SetSizeRelV       = window['AscDFH'].historyitem_type_Drawing | 19;
+	window['AscDFH'].historyitem_Drawing_Form              = window['AscDFH'].historyitem_type_Drawing | 20;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CTable
 	//------------------------------------------------------------------------------------------------------------------
@@ -2023,6 +2027,7 @@
 	window['AscDFH'].historyitem_SdtPr_Temporary        = window['AscDFH'].historyitem_type_SdtPr | 20;
 	window['AscDFH'].historyitem_SdtPr_TextForm         = window['AscDFH'].historyitem_type_SdtPr | 21;
 	window['AscDFH'].historyitem_SdtPr_FormPr           = window['AscDFH'].historyitem_type_SdtPr | 22;
+	window['AscDFH'].historyitem_SdtPr_PictureFormPr    = window['AscDFH'].historyitem_type_SdtPr | 23;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CSdtPr
 	//------------------------------------------------------------------------------------------------------------------
@@ -3674,7 +3679,8 @@
 	window['AscDFH'].historydescription_Document_AutoCorrectFirstLetterOfSentence   = 0x0188;
 	window['AscDFH'].historydescription_Document_ConvertTextToTable                 = 0x0189;
 	window['AscDFH'].historydescription_Document_ConvertTableToText                 = 0x018a;
-	window['AscDFH'].historydescription_Document_ResolveAllComments                 = 0x0189;
+	window['AscDFH'].historydescription_Document_ResolveAllComments                 = 0x018b;
+	window['AscDFH'].historydescription_Document_ConvertFormAnchorType              = 0x018c;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

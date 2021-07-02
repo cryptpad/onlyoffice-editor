@@ -377,8 +377,8 @@
 
 	var c_oAscDrawingLayerType = {
 		BringToFront : 0,
-		SendToBack   : 1,
-		BringForward : 2,
+		BringForward : 1,
+		SendToBack   : 2,
 		SendBackward : 3
 	};
 
@@ -2174,6 +2174,13 @@
 			SzWidescreen: 16
 	};
 
+	var c_oAscPictureFormScaleFlag = {
+		Always  : 0,
+		Bigger  : 1,
+		Smaller : 2,
+		Never   : 3,
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -2937,7 +2944,6 @@
 	prot["cellanchorOneCell"] = prot.cellanchorOneCell;
 	prot["cellanchorTwoCell"] = prot.cellanchorTwoCell;
 
-
     window['AscCommon']                             = window['AscCommon'] || {};
 	window["AscCommon"].g_cCharDelimiter            = g_cCharDelimiter;
 	window["AscCommon"].g_cGeneralFormat            = g_cGeneralFormat;
@@ -3284,5 +3290,11 @@
 	prot['SzScreen16x9'] = prot.SzScreen16x9;
 	prot['SzScreen4x3'] = prot.SzScreen4x3;
 	prot['SzWidescreen'] = prot.SzWidescreen;
+
+	prot = window['Asc']['c_oAscPictureFormScaleFlag'] = window['Asc'].c_oAscPictureFormScaleFlag = c_oAscPictureFormScaleFlag;
+	prot['Always']  = prot.Always;
+	prot['Bigger']  = prot.Bigger;
+	prot['Smaller'] = prot.Smaller;
+	prot['Never']   = prot.Never;
 
 })(window);

@@ -3005,6 +3005,16 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 
 		if (!nCombWidth || nCombWidth < 0)
 			nCombWidth = this.TextAscent;
+
+		var oParagraph = this.GetParagraph();
+		if (oParagraph && oParagraph.IsInFixedForm())
+		{
+			var oShape  = oParagraph.Parent.Is_DrawingShape(true);
+			var oBounds = oShape.getFormRelRect();
+
+			if (nMaxComb > 0)
+				nCombWidth = oBounds.W / nMaxComb;
+		}
 	}
 
 	if (nCombWidth && nMaxComb > 0)
@@ -3189,7 +3199,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
     var WordLen             = PRS.WordLen;
 
     var X                   = PRS.X;
-    var XEnd                = PRS.XEnd;
+    var XEnd                = this.Paragraph.IsUseXLimit() ? PRS.XEnd : MEASUREMENT_MAX_MM_VALUE * 10;
 
     var ParaLine            = PRS.Line;
     var ParaRange           = PRS.Range;
@@ -4621,6 +4631,9 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
             }
 			case para_FieldChar:
 			{
+				if (reviewtype_Remove === this.GetReviewType())
+					break;
+
 				if (this.Paragraph && this.Paragraph.m_oPRSW.IsFastRecalculate())
 					PRSC.ComplexFields.ProcessFieldChar(Item);
 				else
@@ -4650,6 +4663,9 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
 			case para_InstrText:
 			{
 				if (this.Paragraph && this.Paragraph.m_oPRSW.IsFastRecalculate())
+					break;
+
+				if (reviewtype_Remove === this.GetReviewType())
 					break;
 
 				PRSC.ComplexFields.ProcessInstruction(Item);
@@ -4975,8 +4991,27 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
                     }
                     else
 					{
+						// ColumnStartX и ParaTop считаются по тексту, смотри баг #50253
+						var nPageStartLine = Para.Pages[_CurPage].StartLine;
+						var nParaTop       = Para.Pages[_CurPage].Y + Para.Lines[nPageStartLine].Y - Para.Lines[nPageStartLine].Metrics.Ascent;
+						var nLineTop       = Para.Pages[CurPage].Y + Para.Lines[CurLine].Y - Para.Lines[CurLine].Metrics.Ascent;
+						var _nColumnStartX = ColumnStartX;
+
+						if (Para.Lines[nPageStartLine].Ranges.length > 1)
+						{
+							var arrTempRanges = Para.Lines[nPageStartLine].Ranges;
+							for (var nTempCurRange = 0, nTempRangesCount = arrTempRanges.length; nTempCurRange < nTempRangesCount; ++nTempCurRange)
+							{
+								if (arrTempRanges[nTempCurRange].W > 0.001 || arrTempRanges[nTempCurRange].WEnd > 0.001)
+								{
+									_nColumnStartX = arrTempRanges[nTempCurRange].X;
+									break;
+								}
+							}
+						}
+
 						// Картинка ложится на или под текст, в данном случае пересчет можно спокойно продолжать
-						Item.Update_Position(PRSA.Paragraph, new CParagraphLayout(PRSA.X, PRSA.Y, PageAbs, PRSA.LastW, ColumnStartX, ColumnEndX, X_Left_Margin, X_Right_Margin, Page_Width, Top_Margin, Bottom_Margin, Page_H, PageFields.X, PageFields.Y, Para.Pages[CurPage].Y + Para.Lines[CurLine].Y - Para.Lines[CurLine].Metrics.Ascent, Para.Pages[_CurPage].Y), PageLimits, PageLimitsOrigin, _CurLine);
+						Item.Update_Position(PRSA.Paragraph, new CParagraphLayout(PRSA.X, PRSA.Y, PageAbs, PRSA.LastW, _nColumnStartX, ColumnEndX, X_Left_Margin, X_Right_Margin, Page_Width, Top_Margin, Bottom_Margin, Page_H, PageFields.X, PageFields.Y, nLineTop, nParaTop), PageLimits, PageLimitsOrigin, _CurLine);
 						Item.Reset_SavedPosition();
 					}
                 }
@@ -5066,17 +5101,10 @@ ParaRun.prototype.Recalculate_PageEndInfo = function(PRSI, _CurLine, _CurRange)
 };
 ParaRun.prototype.RecalculateEndInfo = function(oPRSI)
 {
-	if (this.Paragraph)
-	{
-		if(this.Paragraph.m_oPRSW.IsFastRecalculate())
-		{
-			return;
-		}
-		if(this.Paragraph.bFromDocument === false)
-		{
-			return;
-		}
-	}
+	if (reviewtype_Remove === this.GetReviewType()
+		|| (this.Paragraph
+			&& (this.Paragraph.m_oPRSW.IsFastRecalculate() || this.Paragraph.bFromDocument === false)))
+		return;
 
 	for (var nCurPos = 0, nCount = this.Content.length; nCurPos < nCount; ++nCurPos)
 	{
@@ -6125,79 +6153,82 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
                 if (!Para.LogicDocument || Para.LogicDocument !== Para.Parent)
                     SectPr = undefined;
 
-                if ( undefined === SectPr )
-                {
-                	var oEndTextPr = Para.GetParaEndCompiledPr();
-
-                    if (reviewtype_Common !== ReviewType)
-                    {
-                        pGraphics.SetTextPr(oEndTextPr, PDSE.Theme);
-                        pGraphics.b_color1(ReviewColor.r, ReviewColor.g, ReviewColor.b, 255);
-                    }
-                    else if (oEndTextPr.Unifill)
-                    {
-                        oEndTextPr.Unifill.check(PDSE.Theme, PDSE.ColorMap);
-                        var RGBAEnd = oEndTextPr.Unifill.getRGBAColor();
-                        pGraphics.SetTextPr(oEndTextPr, PDSE.Theme);
-                        if(pGraphics.m_bIsTextDrawer !== true)
-                        {
-                            pGraphics.b_color1(RGBAEnd.R, RGBAEnd.G, RGBAEnd.B, 255);
-                        }
-                    }
-                    else
-                    {
-                        pGraphics.SetTextPr(oEndTextPr, PDSE.Theme);
-                        if(pGraphics.m_bIsTextDrawer !== true)
-                        {
-                            if (true === oEndTextPr.Color.Auto)
-                            {
-                                pGraphics.b_color1(AutoColor.r, AutoColor.g, AutoColor.b, 255);
-                            }
-                            else
-                            {
-                                pGraphics.b_color1(oEndTextPr.Color.r, oEndTextPr.Color.g, oEndTextPr.Color.b, 255);
-                            }
-                        }
-                        else
-                        {
-                            if (true === oEndTextPr.Color.Auto && !oEndTextPr.TextFill)
-                            {
-                                pGraphics.b_color1(AutoColor.r, AutoColor.g, AutoColor.b, 255);
-                            }
-                        }
-                    }
-
-					Y = TempY;
-					switch (oEndTextPr.VertAlign)
+				if (!Para.IsInFixedForm())
+				{
+					if (undefined === SectPr)
 					{
-						case AscCommon.vertalign_SubScript:
+						var oEndTextPr = Para.GetParaEndCompiledPr();
+
+						if (reviewtype_Common !== ReviewType)
 						{
-							Y -= AscCommon.vaKSub * oEndTextPr.FontSize * g_dKoef_pt_to_mm;
-							break;
+							pGraphics.SetTextPr(oEndTextPr, PDSE.Theme);
+							pGraphics.b_color1(ReviewColor.r, ReviewColor.g, ReviewColor.b, 255);
 						}
-						case AscCommon.vertalign_SuperScript:
+						else if (oEndTextPr.Unifill)
 						{
-							Y -= AscCommon.vaKSuper * oEndTextPr.FontSize * g_dKoef_pt_to_mm;
-							break;
+							oEndTextPr.Unifill.check(PDSE.Theme, PDSE.ColorMap);
+							var RGBAEnd = oEndTextPr.Unifill.getRGBAColor();
+							pGraphics.SetTextPr(oEndTextPr, PDSE.Theme);
+							if (pGraphics.m_bIsTextDrawer !== true)
+							{
+								pGraphics.b_color1(RGBAEnd.R, RGBAEnd.G, RGBAEnd.B, 255);
+							}
 						}
+						else
+						{
+							pGraphics.SetTextPr(oEndTextPr, PDSE.Theme);
+							if (pGraphics.m_bIsTextDrawer !== true)
+							{
+								if (true === oEndTextPr.Color.Auto)
+								{
+									pGraphics.b_color1(AutoColor.r, AutoColor.g, AutoColor.b, 255);
+								}
+								else
+								{
+									pGraphics.b_color1(oEndTextPr.Color.r, oEndTextPr.Color.g, oEndTextPr.Color.b, 255);
+								}
+							}
+							else
+							{
+								if (true === oEndTextPr.Color.Auto && !oEndTextPr.TextFill)
+								{
+									pGraphics.b_color1(AutoColor.r, AutoColor.g, AutoColor.b, 255);
+								}
+							}
+						}
+
+						Y = TempY;
+						switch (oEndTextPr.VertAlign)
+						{
+							case AscCommon.vertalign_SubScript:
+							{
+								Y -= AscCommon.vaKSub * oEndTextPr.FontSize * g_dKoef_pt_to_mm;
+								break;
+							}
+							case AscCommon.vertalign_SuperScript:
+							{
+								Y -= AscCommon.vaKSuper * oEndTextPr.FontSize * g_dKoef_pt_to_mm;
+								break;
+							}
+						}
+
+						var bEndCell = false;
+
+						var oDocContent = Para.GetParent();
+						var oCell       = oDocContent.IsTableCellContent(true);
+						if (oCell)
+						{
+							var oCellContent = oCell.GetContent();
+							bEndCell         = Para === oCellContent.GetLastParagraph();
+						}
+
+						Item.Draw(X, Y - this.YOffset, pGraphics, bEndCell, reviewtype_Common !== ReviewType);
 					}
-
-                    var bEndCell = false;
-
-                    var oDocContent = Para.GetParent();
-                    var oCell       = oDocContent.IsTableCellContent(true);
-                    if (oCell)
+					else
 					{
-						var oCellContent = oCell.GetContent();
-						bEndCell = Para === oCellContent.GetLastParagraph();
+						Item.Draw(X, Y - this.YOffset, pGraphics, false, false);
 					}
-
-                    Item.Draw(X, Y - this.YOffset, pGraphics, bEndCell, reviewtype_Common !== ReviewType ?  true : false);
-                }
-                else
-                {
-                    Item.Draw(X, Y - this.YOffset, pGraphics, false, false);
-                }
+				}
 
                 X += Item.Get_Width();
 
@@ -8056,7 +8087,7 @@ ParaRun.prototype.Internal_Compile_Pr = function ()
 
 			var MathFont    = {Name : "Cambria Math", Index : -1};
 			var oShapeStyle = null, oShapeTextPr = null;
-			;
+
 			if (Styles && typeof Styles.lastId === "string")
 			{
 				StyleId      = Styles.lastId;
@@ -11466,17 +11497,18 @@ ParaRun.prototype.GetLineByPosition = function(nPos)
 /**
  * Данная функция вызывается перед удалением данного рана из родительского класса.
  */
-ParaRun.prototype.PreDelete = function()
+ParaRun.prototype.PreDelete = function(isDeep)
 {
 	// TODO: Перенести это, когда удаляется непосредственно элемент из класса
 	//       Сейчас работает не совсем корректно, потому что при большой вложенности у элементов чистится Parent,
 	//       хотя по факту он должен чистится только у первого уровня элементов, с которых начинается удаление
-	this.SetParent(null);
+	if (true !== isDeep)
+		this.SetParent(null);
 
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
 		if (this.Content[nIndex].PreDelete)
-			this.Content[nIndex].PreDelete();
+			this.Content[nIndex].PreDelete(true);
 	}
 
 	this.RemoveSelection();
@@ -12735,6 +12767,9 @@ ParaRun.prototype.CheckRunContent = function(fCheck)
 };
 ParaRun.prototype.ProcessComplexFields = function(oComplexFields)
 {
+	if (reviewtype_Remove === this.GetReviewType())
+		return;
+
 	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 	{
 		var oItem     = this.private_CheckInstrText(this.Content[nPos]);

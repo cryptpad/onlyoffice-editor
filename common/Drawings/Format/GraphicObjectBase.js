@@ -2181,7 +2181,13 @@
     CGraphicObjectBase.prototype.getCanvasContext = function() {
         return AscFormat.CShape.prototype.getCanvasContext.call(this);
     };
-    
+	CGraphicObjectBase.prototype.isForm = function() {
+		return (this.parent && this.parent.IsForm && this.parent.IsForm());
+	}
+	CGraphicObjectBase.prototype.getInnerForm = function() {
+		return null;
+	}
+
     function CRelSizeAnchor() {
         CBaseObject.call(this);
         this.fromX = null;

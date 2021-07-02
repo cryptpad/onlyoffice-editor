@@ -2113,9 +2113,12 @@ DrawingObjectsController.prototype =
         {
             if(this.selection.textSelection.selectStartPage === pageIndex)
             {
-                drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.TEXT, this.selection.textSelection.getTransformMatrix(), 0, 0, this.selection.textSelection.extX, this.selection.textSelection.extY, AscFormat.CheckObjectLine(this.selection.textSelection), this.selection.textSelection.canRotate(), undefined, isDrawHandles);
-                if(this.selection.textSelection.drawAdjustments)
-                    this.selection.textSelection.drawAdjustments(drawingDocument);
+				if (!this.selection.textSelection.isForm())
+				{
+					drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.TEXT, this.selection.textSelection.getTransformMatrix(), 0, 0, this.selection.textSelection.extX, this.selection.textSelection.extY, AscFormat.CheckObjectLine(this.selection.textSelection), this.selection.textSelection.canRotate(), undefined, isDrawHandles);
+					if (this.selection.textSelection.drawAdjustments)
+						this.selection.textSelection.drawAdjustments(drawingDocument);
+				}
             }
         }
         else if(this.selection.cropSelection)
@@ -5211,38 +5214,49 @@ DrawingObjectsController.prototype =
 
 
     checkRedrawOnChangeCursorPosition: function(oStartContent, oStartPara)
-    {
-        if(this.document)
-        {
-            return;
-        }
-        var oEndContent = AscFormat.checkEmptyPlaceholderContent(this.getTargetDocContent());
-        var bRedraw = false;
-        var oEndPara = null;
-        if(oStartContent || oEndContent)
-        {
-            if(oStartContent !== oEndContent)
-            {
-                bRedraw = true;
-            }
-            else
-            {
-                if(oEndContent)
-                {
-                    oEndPara = oEndContent.GetCurrentParagraph();
-                }
-                if(oEndPara !== oStartPara)
-                {
-                    bRedraw = true;
-                }
-            }
-        }
-        if(bRedraw)
-        {
-            this.checkChartTextSelection(true);
-            this.drawingObjects.showDrawingObjects && this.drawingObjects.showDrawingObjects();
-        }
-    },
+	{
+		var bRedraw = false;
+
+		if (this.document)
+		{
+			var oDocContent = this.getTargetDocContent();
+			var oParagraph  = oDocContent.GetElement(0);
+			if (oParagraph && oParagraph.IsParagraph() && oParagraph.IsInFixedForm())
+				bRedraw = oDocContent.CheckFormViewWindow();
+
+			if (bRedraw)
+				this.document.ReDraw(oDocContent.GetAbsolutePage(0));
+		}
+		else
+		{
+			var oEndContent = AscFormat.checkEmptyPlaceholderContent(this.getTargetDocContent());
+			var oEndPara    = null;
+			if (oStartContent || oEndContent)
+			{
+				if (oStartContent !== oEndContent)
+				{
+					bRedraw = true;
+				}
+				else
+				{
+					if (oEndContent)
+					{
+						oEndPara = oEndContent.GetCurrentParagraph();
+					}
+					if (oEndPara !== oStartPara)
+					{
+						bRedraw = true;
+					}
+				}
+			}
+
+			if (bRedraw)
+			{
+				this.checkChartTextSelection(true);
+				this.drawingObjects.showDrawingObjects && this.drawingObjects.showDrawingObjects();
+			}
+		}
+	},
 
     cursorMoveToStartPos: function()
     {
@@ -6414,6 +6428,7 @@ DrawingObjectsController.prototype =
         }
         if (oTargetTextObject) {
 
+            var bRedraw = false;
             var warpGeometry = oTargetTextObject.recalcInfo && oTargetTextObject.recalcInfo.warpGeometry;
             if(warpGeometry && warpGeometry.preset !== "textNoShape" || oTargetTextObject.worksheet)
             {
@@ -6445,13 +6460,25 @@ DrawingObjectsController.prototype =
                     }, this, []);
 
                 }
+                bRedraw = true;
+            }
+            var oDocContent = this.getTargetDocContent();
+            if(oDocContent) {
+                var oParagraph  = oDocContent.GetElement(0);
+                var oForm;
+                if (oParagraph && oParagraph.IsParagraph() && oParagraph.IsInFixedForm() && (oForm = oParagraph.GetInnerForm())) {
+                    oDocContent.ResetShiftView();
+                    bRedraw = true;
+                }
+            }
+            if(bRedraw) {
                 if (this.document)
                 {
                     nPageNum2 = nSelectStartPage;
                 }
                 else if (this.drawingObjects.cSld)
                 {
-                 //   if (!(bNoRedraw === true))
+                    //   if (!(bNoRedraw === true))
                     {
                         nPageNum2 = this.drawingObjects.num;
                     }
@@ -6461,7 +6488,6 @@ DrawingObjectsController.prototype =
                     nPageNum2 = 0;
                 }
             }
-
         }
 
         if(AscFormat.isRealNumber(nPageNum1))
@@ -7315,6 +7341,7 @@ DrawingObjectsController.prototype =
                         flipV: drawing.flipV,
                         canChangeArrows: drawing.canChangeArrows(),
                         bFromChart: false,
+                        bFromGroup: AscCommon.isRealObject(drawing.group),
                         locked: locked,
                         textArtProperties: drawing.getTextArtProperties(),
                         lockAspect: lockAspect,
@@ -7405,6 +7432,7 @@ DrawingObjectsController.prototype =
                         flipV: drawing.flipV,
                         canChangeArrows: drawing.canChangeArrows(),
                         bFromChart: false,
+                        bFromGroup: AscCommon.isRealObject(drawing.group),
                         bFromImage: true,
                         locked: locked,
                         textArtProperties: null,
@@ -7554,6 +7582,7 @@ DrawingObjectsController.prototype =
                         h: drawing.extY ,
                         canChangeArrows: false,
                         bFromChart: true,
+                        bFromGroup: AscCommon.isRealObject(drawing.group),
                         locked: locked,
                         textArtProperties: null,
                         lockAspect: lockAspect,
@@ -7891,6 +7920,7 @@ DrawingObjectsController.prototype =
             shape_props.ShapeProperties.stroke = props.shapeChartProps.stroke;
             shape_props.ShapeProperties.canChangeArrows = props.shapeChartProps.canChangeArrows;
             shape_props.ShapeProperties.bFromChart = props.shapeChartProps.bFromChart;
+            shape_props.ShapeProperties.bFromGroup = props.shapeChartProps.bFromGroup;
             shape_props.ShapeProperties.bFromImage = props.shapeChartProps.bFromImage;
             shape_props.ShapeProperties.lockAspect = props.shapeChartProps.lockAspect;
             shape_props.ShapeProperties.anchor = props.shapeChartProps.anchor;
@@ -7963,6 +7993,7 @@ DrawingObjectsController.prototype =
             shape_props.ShapeProperties.stroke = props.shapeProps.stroke;
             shape_props.ShapeProperties.canChangeArrows = props.shapeProps.canChangeArrows;
             shape_props.ShapeProperties.bFromChart = props.shapeProps.bFromChart;
+            shape_props.ShapeProperties.bFromGroup = props.shapeProps.bFromGroup;
             shape_props.ShapeProperties.bFromImage = props.shapeProps.bFromImage;
             shape_props.ShapeProperties.lockAspect = props.shapeProps.lockAspect;
             shape_props.ShapeProperties.description = props.shapeProps.description;

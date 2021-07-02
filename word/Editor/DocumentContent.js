@@ -68,6 +68,9 @@ function CDocumentContent(Parent, DrawingDocument, X, Y, XLimit, YLimit, Split, 
     this.XLimit = XLimit;
     this.YLimit = YLimit;
 
+    this.UseXLimit = true;
+    this.UseYLimit = true;
+
 	this.StartPage    = 0;
 	this.StartColumn  = 0;
 	this.ColumnsCount = 1;
@@ -132,6 +135,9 @@ function CDocumentContent(Parent, DrawingDocument, X, Y, XLimit, YLimit, Split, 
     };
 
     this.ClipInfo = [];
+
+    this.ShiftViewX = 0;
+    this.ShiftViewY = 0;
 
     this.ApplyToAll = false; // Специальный параметр, используемый в ячейках таблицы.
                              // True, если ячейка попадает в выделение по ячейкам.
@@ -628,7 +634,7 @@ CDocumentContent.prototype.IsFootnote = function(bReturnFootnote)
 };
 CDocumentContent.prototype.Is_DrawingShape = function(bRetShape)
 {
-	if (this.Parent)
+	if (this.Parent && this.Parent.Is_DrawingShape)
 		return this.Parent.Is_DrawingShape(bRetShape);
 	else
 		return (bRetShape ? null : false);
@@ -673,6 +679,14 @@ CDocumentContent.prototype.Reset = function(X, Y, XLimit, YLimit)
 
 	this.ClipInfo = [];
 };
+CDocumentContent.prototype.SetUseXLimit = function(isUse)
+{
+	this.UseXLimit = isUse;
+};
+CDocumentContent.prototype.SetUseYLimit = function(isUse)
+{
+	this.UseYLimit = isUse;
+};
 CDocumentContent.prototype.Recalculate                    = function()
 {
     if (typeof(editor) !== "undefined" && editor.isDocumentEditor)
@@ -693,6 +707,9 @@ CDocumentContent.prototype.Reset_RecalculateCache = function()
 // Пересчитываем отдельную страницу DocumentContent
 CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, bStart)
 {
+	this.ShiftViewX = 0;
+	this.ShiftViewY = 0;
+
 	var oDocContentRI = this.GetDocumentContentForRecalcInfo();
 	var oRecalcInfo   = oDocContentRI.RecalcInfo;
 
@@ -1188,6 +1205,8 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
             {
                 Element.Set_DocumentIndex(Index);
                 Element.Reset(X, Y, XLimit, YLimit, PageIndex, 0, 1);
+                Element.SetUseXLimit(this.UseXLimit);
+                Element.SetUseYLimit(this.UseYLimit);
             }
 
             if (this.IsEmptyParagraphAfterTableInTableCell(Index))
@@ -1533,6 +1552,102 @@ CDocumentContent.prototype.Shift = function(CurPage, Dx, Dy)
 		var ElementPageIndex = this.private_GetElementPageIndex(Index, CurPage, 0, 1);
 		Element.Shift(ElementPageIndex, Dx, Dy);
 	}
+};
+CDocumentContent.prototype.ShiftView = function(nDx, nDy)
+{
+	if (this.Pages.length <= 0)
+		return;
+
+	this.Shift(0, nDx, nDy);
+	this.ShiftViewX += nDx;
+	this.ShiftViewY += nDy;
+};
+CDocumentContent.prototype.ResetShiftView = function()
+{
+	if (this.Pages.length <= 0)
+		return;
+
+	this.Shift(0, -this.ShiftViewX, -this.ShiftViewY);
+	this.ShiftViewX = 0;
+	this.ShiftViewY = 0;
+};
+CDocumentContent.prototype.CheckFormViewWindow = function()
+{
+	var isChanged = false;
+	var oForm = this.GetInnerForm();
+	if (!this.LogicDocument
+		|| !oForm
+		|| oForm.IsCheckBox()
+		|| (oForm.IsTextForm() && oForm.GetTextFormPr().IsComb())
+		|| oForm.IsAutoFitContent()
+		|| this.Content.length !== 1
+		|| !this.Content[0].IsParagraph())
+		return false;
+
+	var oParagraph  = this.GetElement(0);
+	var oPageBounds = this.GetContentBounds(0);
+	var oFormBounds = oForm.GetFixedFormBounds();
+
+	var nDx = 0, nDy = 0, nPad = 0;
+
+	if (oPageBounds.Right - oPageBounds.Left > oFormBounds.W)
+	{
+		if (oPageBounds.Left > oFormBounds.X)
+			nDx = -oPageBounds.Left + oFormBounds.X;
+		else if (oPageBounds.Right < oFormBounds.X + oFormBounds.W)
+			nDx = oFormBounds.X + oFormBounds.W - oPageBounds.Right;
+	}
+	else
+	{
+		nDx = -this.ShiftViewX;
+	}
+
+	if (oPageBounds.Bottom - oPageBounds.Top > oFormBounds.H)
+	{
+		if (oPageBounds.Top > oFormBounds.Y)
+			nDy = -oPageBounds.Top + oFormBounds.Y;
+		else if (oPageBounds.Bottom < oFormBounds.Y + oFormBounds.H)
+			nDy = oFormBounds.Y + oFormBounds.H - oPageBounds.Bottom;
+	}
+	else
+	{
+		nDy = -this.ShiftViewY;
+	}
+
+	if (Math.abs(nDx) > 0.001 || Math.abs(nDy) > 0.001)
+	{
+		this.ShiftView(nDx, nDy);
+		isChanged = true;
+	}
+
+	var oCursorPos = oParagraph.GetCalculatedCurPosXY();
+
+	nDx = 0;
+	nDy = 0;
+
+	if (oPageBounds.Right - oPageBounds.Left > oFormBounds.W)
+	{
+		if (oCursorPos.X < oFormBounds.X + nPad)
+			nDx = oFormBounds.X + nPad - oCursorPos.X;
+		else if (oCursorPos.X > oFormBounds.W - nPad)
+			nDx = oFormBounds.W - nPad - oCursorPos.X;
+	}
+
+	if (oPageBounds.Bottom - oPageBounds.Top > oFormBounds.H)
+	{
+		if (oCursorPos.Y < oFormBounds.Y + nPad)
+			nDy = oFormBounds.Y + nPad - oCursorPos.Y;
+		else if (oCursorPos.Y + oCursorPos.Height > oFormBounds.H - nPad)
+			nDy = oFormBounds.H - nPad - oCursorPos.Y - oCursorPos.Height;
+	}
+
+	if (Math.abs(nDx) > 0.001 || Math.abs(nDy) > 0.001)
+	{
+		this.ShiftView(nDx, nDy);
+		isChanged = true;
+	}
+
+	return isChanged;
 };
 CDocumentContent.prototype.UpdateEndInfo = function()
 {
@@ -2662,6 +2777,9 @@ CDocumentContent.prototype.AddNewParagraph = function(bForceAdd)
 // Y0 - низ последнего параграфа, YLimit - предел страницы
 CDocumentContent.prototype.Extend_ToPos                       = function(X, Y)
 {
+	if (!this.LogicDocument || !this.LogicDocument.CanPerformAction || !this.LogicDocument.CanPerformAction())
+		return;
+
 	if (this.IsBlockLevelSdtContent())
 	{
 		var oParent = this.Parent.GetParent();
@@ -9035,6 +9153,34 @@ CDocumentContent.prototype.SetCalculatedFrame = function(oFrame)
 	{
 		this.Content[nPos].SetCalculatedFrame(oFrame);
 	}
+};
+CDocumentContent.prototype.IsCursorInSpecialForm = function()
+{
+	if (this.Content.length <= 0)
+		return false;
+
+	if (this.Selection.Use)
+	{
+		if (0 !== this.Selection.StartPos || 0 !== this.Selection.EndPos)
+			return false;
+	}
+	else
+	{
+		if (0 !== this.CurPos.ContentPos)
+			return false;
+	}
+
+	if (!this.Content[0].IsParagraph())
+		return false;
+
+	return this.Content[0].IsCursorInSpecialForm();
+};
+CDocumentContent.prototype.GetInnerForm = function()
+{
+	if (this.Content.length !== 1 || !this.Content[0].IsParagraph())
+		return null;
+
+	return this.Content[0].GetInnerForm();
 };
 
 
