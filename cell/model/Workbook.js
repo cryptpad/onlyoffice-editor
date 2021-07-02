@@ -4105,6 +4105,9 @@
 		//по умолчанию null, создаю объект для отладки
 		this.sheetProtection = null;
 		this.aProtectedRanges = [];
+
+		this._openRow = new AscCommonExcel.Row(this);
+		this.drawingRid = null;
 	}
 
 	Worksheet.prototype.getCompiledStyle = function (row, col, opt_cell, opt_styleComponents) {
@@ -4702,12 +4705,12 @@
 						var stdDev;
 						if (oRule.hasStdDev()) {
 							var sum2 = 0;
-							for (cell = 0; cell < values.length; ++cell) {
-								value = values[cell];
-								if (null !== value.v) {
+						 for (cell = 0; cell < values.length; ++cell) {
+						 value = values[cell];
+						 if (null !== value.v) {
 									sum2 += (value.v - tmp) * (value.v - tmp);
-								}
-							}
+						 }
+						 }
 							stdDev = Math.sqrt(sum2 / nc);
 						}
 
@@ -8785,6 +8788,31 @@
 			}
 		}
 	};
+	Worksheet.prototype.onStartNode = function(elem, attr, uq, tagend, getStrNode) {
+		var attrVals;
+		if ('worksheet' === elem) {
+		} else if ('sheetData' === elem) {
+		} else if ('row' === elem) {
+			this._openRow.clear();
+			return this._openRow;
+		} else if ('drawing' === elem) {
+			if (attr()) {
+				attrVals = attr();
+				this.drawingRid = attrVals["r:id"];
+			}
+		}
+		return this;
+	};
+	Worksheet.prototype.onEndNode = function(prevContext, elem) {
+		var res = true;
+		if ('row' === elem) {
+			this._openRow.saveContent();
+		} else {
+			res = false;
+		}
+		return res;
+	};
+
 	//need recalculate formulas after change rows
 	Worksheet.prototype.needRecalFormulas = function(start, stop) {
 		//TODO в данном случае необходим пересчёт только тез формул, которые зависят от данных строк + те, которые
@@ -9900,7 +9928,7 @@
 			}
 			if (oRule.ranges) {
 				this.setDirtyConditionalFormatting(new AscCommonExcel.MultiplyRange(oRule.ranges));
-			}
+		}
 		}
 	};
 
@@ -10009,7 +10037,7 @@
 		for (var i = 0, l = this.aConditionalFormattingRules.length; i < l; ++i) {
 			if (callback(this.aConditionalFormattingRules[i], i)) {
 				break;
-			}
+		}
 		}
 	};
 	Worksheet.prototype.cleanConditionalFormattingRangeIterator = function() {
@@ -11222,7 +11250,7 @@
 								if (isPaste) {
 									if (!_pasteHelper._formulaError) {
 										_pasteHelper._formulaError = true;
-										wb.handlers.trigger("asc_onError", parseResult.error, c_oAscError.Level.NoCritical);
+								wb.handlers.trigger("asc_onError", parseResult.error, c_oAscError.Level.NoCritical);
 									}
 								} else {
 									wb.handlers.trigger("asc_onError", parseResult.error, c_oAscError.Level.NoCritical);
@@ -11640,10 +11668,10 @@
 		var xfs = this.getCompiledStyle();
 		if (this.isFormula()) {
 			if (!(this.ws && this.ws.getSheetProtection() && this.xfs && this.xfs.getHidden())) {
-				this.processFormula(function(parsed) {
-					// ToDo если будет притормаживать, то завести переменную и не рассчитывать каждый раз!
-					oValueText = "=" + parsed.assembleLocale(AscCommonExcel.cFormulaFunctionToLocale, true);
-				});
+			this.processFormula(function(parsed) {
+				// ToDo если будет притормаживать, то завести переменную и не рассчитывать каждый раз!
+				oValueText = "=" + parsed.assembleLocale(AscCommonExcel.cFormulaFunctionToLocale, true);
+			});
 			}
 		} else {
 			if(null != this.text || null != this.number)
@@ -12857,6 +12885,48 @@
 			flags = this.toXLSBFormulaExt(stream, formulaToWrite);
 		}
 		stream.XlsbEndRecord();
+	};
+	Cell.prototype.readAttributes = function(attr, uq) {
+		if (attr()) {
+			var vals = attr();
+			var val;
+			val = vals["r"];
+			if (undefined !== val) {
+				var oCellAddress = AscCommon.g_oCellAddressUtils.getCellAddress(val);
+				this.setRowCol(oCellAddress.getRow0(), oCellAddress.getCol0());
+				this.ws.nRowsCount = Math.max(this.ws.nRowsCount, this.nRow);
+				this.ws.nColsCount = Math.max(this.ws.nColsCount, this.nCol);
+				this.ws.cellsByColRowsCount = Math.max(this.ws.cellsByColRowsCount, this.nCol);
+			}
+			val = vals["t"];
+			if (undefined !== val) {
+				if("s" === val) {
+					this.type = CellValueType.String;
+				}
+			}
+		}
+	};
+	Cell.prototype.onStartNode = function(elem, attr, uq, tagend, getStrNode) {
+		var attrVals;
+		if ('v' === elem) {
+			return this;
+		}
+		return this;
+	};
+	Cell.prototype.onTextNode = function(text, uq) {
+		if(CellValueType.String === this.type) {
+			this.text = AscCommon.unleakString(uq(text));
+		} else if(CellValueType.Number === this.type) {
+			this.number = parseInt(text);
+		}
+	};
+	Cell.prototype.onEndNode = function(prevContext, elem) {
+		var res = true;
+		if ('v' === elem) {
+		} else {
+			res = false;
+		}
+		return res;
 	};
 	Cell.prototype.getXLSBSizeFormula = function(formulaToWrite) {
 		var len = 2 + 4 + 4;
@@ -16818,7 +16888,7 @@
 			var aRules;
 			if (wsTo.aConditionalFormattingRules && wsTo.aConditionalFormattingRules.length) {
 				wsTo.clearConditionalFormattingRulesByRanges([to])
-			}
+		}
 			if (wsFrom.aConditionalFormattingRules && wsFrom.aConditionalFormattingRules.length) {
 				aRules = wsFrom.getIntersectionRules(from);
 			}

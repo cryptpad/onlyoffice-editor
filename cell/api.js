@@ -344,10 +344,17 @@ var editor;
   spreadsheet_api.prototype._openDocument = function(data) {
     this.wbModel = new AscCommonExcel.Workbook(this.handlers, this);
     this.initGlobalObjects(this.wbModel);
-    AscFonts.IsCheckSymbols = true;
-    var oBinaryFileReader = new AscCommonExcel.BinaryFileReader();
-    oBinaryFileReader.Read(data, this.wbModel);
-    AscFonts.IsCheckSymbols = false;
+
+	  this.wbModel.clrSchemeMap = AscFormat.GenerateDefaultColorMap();
+	  if(null == this.wbModel.theme)
+		  this.wbModel.theme = AscFormat.GenerateDefaultTheme(this.wbModel, 'Calibri');
+	  Asc.getBinaryOtherTableGVar(this.wbModel);
+
+    // AscFonts.IsCheckSymbols = true;
+    // var oBinaryFileReader = new AscCommonExcel.BinaryFileReader();
+    // oBinaryFileReader.Read(data, this.wbModel);
+    // AscFonts.IsCheckSymbols = false;
+
     this.openingEnd.bin = true;
     this._onEndOpen();
   };
@@ -1407,6 +1414,9 @@ var editor;
 				nextPromise = jsZipWrapper.loadAsync(data).then(function (zip) {
 					return doc.openFromZip(zip);
 				}).then(function () {
+					doc.getPartByUri("/xl/media/image1.png").data.async().then(function(data){
+						g_oDocumentUrls.replaceUrls(data);
+					});
 					wbPart = doc.getPartByRelationshipType(openXml.relationshipTypes.workbook);
 					return wbPart.getDocumentContent();
 				}).then(function (contentWorkbook) {
@@ -1456,12 +1466,43 @@ var editor;
 							var wsPart;
 							return prevVal.then(function () {
 								if (null !== wbSheetXml.id) {
-									var actions = [];
 									wsPart = wbPart.getPartById(wbSheetXml.id);
+									return wsPart.getDocumentContent();
+								}
+							}).then(function (content) {
+								var ws = new AscCommonExcel.Worksheet(wb, wb.aWorksheets.length);
+								ws.wsPart = wsPart;
+								var wsView = new AscCommonExcel.asc_CSheetViewSettings();
+								wsView.pane = new AscCommonExcel.asc_CPane();
+								ws.sheetViews.push(wsView);
+								if (content) {
+									AscCommonExcel.executeInR1C1Mode(false, function () {
+										new openXml.SaxParserBase().parse(content, ws);
+									});
+								}
+								wb.aWorksheets.push(ws);
+								var drawingPart = wsPart.getPartById(ws.drawingRid);
+								if(drawingPart) {
+									return drawingPart.getDocumentContent();
+								}
+							}).then(function (content) {
+								if (content) {
+									AscCommonExcel.executeInR1C1Mode(false, function () {
+
+										new openXml.SaxParserBase().parse(content, ws);
+									});
+								}
+								if (wsPart) {
+									var actions = [];
 									var pivotParts = wsPart.getPartsByRelationshipType(
 										openXml.relationshipTypes.pivotTable);
 									for (var i = 0; i < pivotParts.length; ++i) {
 										actions.push(pivotParts[i].getDocumentContent());
+									}
+									var worksheets = wsPart.getPartsByRelationshipType(
+										openXml.relationshipTypes.worksheet);
+									for (var i = 0; i < worksheets.length; ++i) {
+										actions.push(worksheets[i].getDocumentContent());
 									}
 									return Promise.all(actions);
 								}
@@ -1488,6 +1529,7 @@ var editor;
 						window.console.log(err);
 					}
 				}).then(function () {
+					wb.init([], [], {});
 					wb.initPostOpenZip(pivotCaches);
 				}).then(function () {
 					jsZipWrapper.close();

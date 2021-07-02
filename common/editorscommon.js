@@ -372,8 +372,12 @@
 			var t = this;
 			return new Promise(function(resolve, reject) {
 				var data = window.nativeZlibEngine.getFile(t.data);
-				var text = new TextDecoder("utf-8").decode(data);
-				resolve(text);
+				if("string" === type) {
+					var text = new TextDecoder("utf-8").decode(data);
+					resolve(text);
+				} else {
+					resolve(data);
+				}
 			});
 		}
 
@@ -492,6 +496,21 @@
 								 window["native"]["setUrlsCount"](this.imageCount);
 							 }
 						 },
+		replaceUrls:         function (data)
+		{
+			for (var i in this.urls)
+			{
+				var url = this.urls[i];
+				if(i.startsWith("media/")) {
+					var blob = new Blob([data], {type: "image/png"});
+					url = window.URL.createObjectURL(blob);
+					var image = new Image();
+					image.src = URL.createObjectURL(blob);
+					document.body.appendChild(image);
+				}
+				this.urls[i] = url;
+			}
+		},
 		addImageUrl:     function (strPath, url)
 						 {
 							 var urls = {};
