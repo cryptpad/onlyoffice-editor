@@ -2283,6 +2283,9 @@
             this.setSymbol(null);
         }
     };
+    CBaseChartObject.prototype.isForm = function() {
+        return false;
+    };
 
     function getMinMaxFromArrPoints(aPoints) {
         if(Array.isArray(aPoints) && aPoints.length > 0) {
@@ -3487,6 +3490,7 @@
     CDLbl.prototype.setSettings = function(nPos, oProps) {
         fCheckDLblSettings(this, nPos, oProps)
     };
+
 
     function CSeriesBase() {
         CBaseChartObject.call(this);
@@ -14714,6 +14718,9 @@
             return this.txPr.getFirstParaParaPr();
         }
         return null;
+    };
+    CalcLegendEntry.prototype.isForm = function() {
+        return false;
     };
 
     function CompiledMarker() {
