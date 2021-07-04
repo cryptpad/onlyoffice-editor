@@ -1613,6 +1613,7 @@
 	window['AscDFH'].historyitem_type_CCommonDataClrList     = 2089 << 16;
 	window['AscDFH'].historyitem_type_BuNone                 = 2090 << 16;
 	window['AscDFH'].historyitem_type_Drawing                = 2091 << 16;
+	window['AscDFH'].historyitem_type_DiagramData            = 2092 << 16;
 
 
 
@@ -3536,6 +3537,8 @@
 	AscDFH.historyitem_RelIdsDm = AscDFH.historyitem_type_RelIds | 2;
 	AscDFH.historyitem_RelIdsLo = AscDFH.historyitem_type_RelIds | 3;
 	AscDFH.historyitem_RelIdsQs = AscDFH.historyitem_type_RelIds | 4;
+
+	AscDFH.historyitem_DiagramDataDataModel = AscDFH.historyitem_type_DiagramData | 1;
 
 	AscDFH.historyitem_PresLayoutVarsAnimLvl = AscDFH.historyitem_type_PresLayoutVars | 1;
 	AscDFH.historyitem_PresLayoutVarsAnimOne = AscDFH.historyitem_type_PresLayoutVars | 2;

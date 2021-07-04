@@ -897,6 +897,59 @@
     var Coordinate_universalMeasure_pc = 4;
     var Coordinate_universalMeasure_pi = 5;
 
+    changesFactory[AscDFH.historyitem_DiagramDataDataModel] = CChangeObject;
+    drawingsChangesMap[AscDFH.historyitem_DiagramDataDataModel] = function (oClass, value) {
+      oClass.dataModel = value;
+    };
+    function DiagramData() {
+      CBaseFormatObject.call(this);
+      this.dataModel = null;
+    }
+
+    InitClass(DiagramData, CBaseFormatObject, AscDFH.historyitem_type_DiagramData);
+
+    DiagramData.prototype.setDataModel = function (oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_DiagramDataDataModel, this.getDataModel(), oPr));
+      this.dataModel = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    DiagramData.prototype.getDataModel = function (oPr) {
+      return this.dataModel;
+    }
+
+    DiagramData.prototype.fillObject = function (oCopy, oIdMap) {
+      if (this.dataModel) {
+        this.setDataModel(this.dataModel.createDuplicate(oIdMap));
+      }
+    }
+
+    DiagramData.prototype.privateWriteAttributes = function(pWriter) {
+    };
+    DiagramData.prototype.writeChildren = function(pWriter) {
+      this.writeRecord2(pWriter, 0, this.dataModel);
+    };
+    DiagramData.prototype.readAttribute = function(nType, pReader) {
+    };
+    DiagramData.prototype.readChild = function(nType, pReader) {
+      var s = this.stream;
+      switch (nType) {
+        case 0: {
+          this.setDataModel(new DataModel());
+          this.dataModel.fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+    DiagramData.prototype.getChildren = function() {
+      return [this.dataModel];
+    };
+
+
     changesFactory[AscDFH.historyitem_DataModelBg] = CChangeObject;
     changesFactory[AscDFH.historyitem_DataModelCxnLst] = CChangeObject;
     changesFactory[AscDFH.historyitem_DataModelExtLst] = CChangeObject;
@@ -996,6 +1049,50 @@
     DataModel.prototype.getWhole = function () {
       return this.whole;
     }
+
+    DataModel.prototype.privateWriteAttributes = function(pWriter) {
+    };
+    DataModel.prototype.writeChildren = function(pWriter) {
+      this.writeRecord2(pWriter, 0, this.ptLst);
+      this.writeRecord2(pWriter, 1, this.cxnLst);
+      this.writeRecord2(pWriter, 2, this.whole);
+      this.writeRecord2(pWriter, 3, this.bg);
+    };
+    DataModel.prototype.readAttribute = function(nType, pReader) {
+    };
+    DataModel.prototype.readChild = function(nType, pReader) {
+      var s = this.stream;
+      switch (nType) {
+        case 0: {
+          this.setPtLst(new PtLst());
+          this.ptLst.fromPPTY(pReader);
+          break;
+        }
+        case 1: {
+          this.setCxnLst(new CxnLst());
+          this.cxnLst.fromPPTY(pReader);
+          break;
+        }
+        case 2: {
+          this.setWhole(new Whole());
+          this.whole.fromPPTY(pReader);
+          break;
+        }
+        case 3: {
+          this.setBg(new BgFormat());
+          this.bg.fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+    DataModel.prototype.getChildren = function() {
+      return [this.ptLst, this.cxnLst, this.whole, this.bg];
+    };
+
 
     changesFactory[AscDFH.historyitem_CCommonDataListAdd] = CChangeContent;
     changesFactory[AscDFH.historyitem_CCommonDataListRemove] = CChangeContent;
@@ -1211,6 +1308,36 @@
       }
     }
 
+    Cxn.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteString2(0, this.modelId);
+      pWriter._WriteString2(1, this.type);
+      pWriter._WriteString2(2, this.destId);
+      pWriter._WriteString2(3, this.destOrd);
+      pWriter._WriteString2(4, this.srcId);
+      pWriter._WriteString2(5, this.srcOrd);
+      pWriter._WriteString2(6, this.parTransId);
+      pWriter._WriteString2(7, this.sibTransId);
+      pWriter._WriteString2(8, this.presId);
+    };
+    Cxn.prototype.writeChildren = function(pWriter) {
+    };
+    Cxn.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setModelId(oStream.GetString2());
+      else if (1 === nType) this.setType(oStream.GetString2());
+      else if (2 === nType) this.setDestId(oStream.GetString2());
+      else if (3 === nType) this.setDestOrd(oStream.GetString2());
+      else if (4 === nType) this.setSrcId(oStream.GetString2());
+      else if (5 === nType) this.setSrcOrd(oStream.GetString2());
+      else if (6 === nType) this.setParTransId(oStream.GetString2());
+      else if (7 === nType) this.setSibTransId(oStream.GetString2());
+      else if (8 === nType) this.setPresId(oStream.GetString2());
+    };
+    Cxn.prototype.readChild = function(nType, pReader) {
+
+    };
+
+
     function ExtLst() {
       CCommonDataList.call(this);
     }
@@ -1289,6 +1416,38 @@
       return this.effect;
     }
 
+    BgFormat.prototype.privateWriteAttributes = function(pWriter) {
+    };
+    BgFormat.prototype.writeChildren = function(pWriter) {
+      this.writeRecord1(pWriter, 0, this.fill);
+      this.writeRecord1(pWriter, 1, this.effect);
+    };
+    BgFormat.prototype.readAttribute = function(nType, pReader) {
+    };
+    BgFormat.prototype.readChild = function(nType, pReader) {
+      var s = this.stream;
+      switch (nType) {
+        case 0: {
+          this.setFill(new AscFormat.CUniFill());
+          this.fill.fromPPTY(pReader);
+          break;
+        }
+        case 1: {
+          this.setEffect(new AscFormat.CEffectProperties());
+          this.effect.fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+    BgFormat.prototype.getChildren = function() {
+      return [this.fill, this.effect];
+    };
+
+
 
     changesFactory[AscDFH.historyitem_WholeEffect] = CChangeObject;
     changesFactory[AscDFH.historyitem_WholeLn] = CChangeObject;
@@ -1335,6 +1494,38 @@
         oCopy.setLn(this.ln.createDuplicate(oIdMap));
       }
     }
+
+    Whole.prototype.privateWriteAttributes = function(pWriter) {
+    };
+    Whole.prototype.writeChildren = function(pWriter) {
+      this.writeRecord2(pWriter, 0, this.ln);
+      this.writeRecord1(pWriter, 1, this.effect);
+    };
+    Whole.prototype.readAttribute = function(nType, pReader) {
+    };
+    Whole.prototype.readChild = function(nType, pReader) {
+      var s = this.stream;
+      switch (nType) {
+        case 0: {
+          this.setLn(new AscFormat.CLn());
+          this.ln.fromPPTY(pReader);
+          break;
+        }
+        case 1: {
+          this.setEffect(new AscFormat.CEffectProperties());
+          this.effect.fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+    Whole.prototype.getChildren = function() {
+      return [this.ln, this.effect];
+    };
+
 
     changesFactory[AscDFH.historyitem_PointCxnId] = CChangeString;
     changesFactory[AscDFH.historyitem_PointModelId] = CChangeString;
@@ -1451,6 +1642,52 @@
     Point.prototype.getT = function () {
       return this.t;
     }
+
+
+    Point.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteString2(0, this.modelId);
+      pWriter._WriteByte1(1, this.type); // TODO: fix it
+      pWriter._WriteString2(2, this.cxnId);
+    };
+    Point.prototype.writeChildren = function(pWriter) {
+      this.writeRecord2(pWriter, 0, this.spPr);
+      this.writeRecord2(pWriter, 1, this.t);
+      this.writeRecord2(pWriter, 2, this.prSet);
+    };
+    Point.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setModelId(oStream.GetString2());
+      else if (1 === nType) this.setType(oStream.GetUChar()); // TODO: fix it
+      else if (2 === nType) this.setCxnId(oStream.GetString2());
+    };
+    Point.prototype.readChild = function(nType, pReader) {
+      var s = this.stream;
+      switch (nType) {
+        case 0: {
+          this.setSpPr(new AscFormat.CSpPr());
+          this.spPr.fromPPTY(pReader);
+          break;
+        }
+        case 1: {
+          this.setT(new AscFormat.CTextBody());
+          this.t.fromPPTY(pReader);
+          break;
+        }
+        case 2: {
+          this.setPrSet(new PrSet());
+          this.prSet.fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+    Point.prototype.getChildren = function() {
+      return [this.spPr, this.t, this.prSet];
+    };
+
 
 
     changesFactory[AscDFH.historyitem_PrSetCoherent3DOff] = CChangeBool;
@@ -1920,6 +2157,95 @@
       return this.presLayoutVars;
     }
 
+    PrSet.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteBool2(1, this.coherent3DOff);
+      pWriter._WriteString2(2, this.csCatId);
+      pWriter._WriteString2(3, this.csTypeId);
+      pWriter._WriteInt2(4, this.custAng);
+      pWriter._WriteBool2(5, this.custFlipHor);
+      pWriter._WriteBool2(6, this.custFlipVert);
+      pWriter._WriteInt2(7, this.custLinFactNeighborX);
+      pWriter._WriteInt2(8, this.custLinFactNeighborY);
+      pWriter._WriteInt2(9, this.custLinFactX);
+      pWriter._WriteInt2(10, this.custLinFactY);
+      pWriter._WriteInt2(11, this.custRadScaleInc);
+      pWriter._WriteInt2(12, this.custRadScaleRad);
+      pWriter._WriteInt2(13, this.custScaleX);
+      pWriter._WriteInt2(14, this.custScaleY);
+      pWriter._WriteInt2(15, this.custSzX);
+      pWriter._WriteInt2(16, this.custSzY);
+      pWriter._WriteBool2(17, this.loCatId);
+      pWriter._WriteString2(18, this.loCatId);
+      pWriter._WriteString2(19, this.loTypeId);
+      pWriter._WriteBool2(20, this.phldr);
+      pWriter._WriteString2(21, this.phldrT);
+      pWriter._WriteString2(22, this.presAssocID);
+      pWriter._WriteString2(23, this.presName);
+      pWriter._WriteInt2(24, this.presStyleCnt);
+      pWriter._WriteInt2(25, this.presStyleIdx);
+      pWriter._WriteString2(26, this.presStyleLbl);
+      pWriter._WriteString2(27, this.qsCatId);
+      pWriter._WriteString2(28, this.qsTypeId);
+    };
+    PrSet.prototype.writeChildren = function(pWriter) {
+      this.writeRecord2(pWriter, 0, this.presLayoutVars);
+      this.writeRecord2(pWriter, 1, this.style);
+    };
+    PrSet.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (1 === nType) this.setCoherent3DOff(oStream.GetBool());
+      else if (2 === nType) this.setCsCatId(oStream.GetString2());
+      else if (3 === nType) this.setCsTypeId(oStream.GetString2());
+      else if (4 === nType) this.setCustAng(oStream.GetLong());
+      else if (5 === nType) this.setCustFlipHor(oStream.GetBool());
+      else if (6 === nType) this.setCustFlipVert(oStream.GetBool());
+      else if (7 === nType) this.setCustLinFactNeighborX(oStream.GetLong());
+      else if (8 === nType) this.setCustLinFactNeighborY(oStream.GetLong());
+      else if (9 === nType) this.setCustLinFactX(oStream.GetLong());
+      else if (10 === nType) this.setCustLinFactY(oStream.GetLong());
+      else if (11 === nType) this.setCustRadScaleInc(oStream.GetLong());
+      else if (12 === nType) this.setCustRadScaleRad(oStream.GetLong());
+      else if (13 === nType) this.setCustScaleX(oStream.GetLong());
+      else if (14 === nType) this.setCustScaleY(oStream.GetLong());
+      else if (15 === nType) this.setCustSzX(oStream.GetLong());
+      else if (16 === nType) this.setCustSzY(oStream.GetLong());
+      else if (17 === nType) this.setLoCatId(oStream.GetString2());
+      else if (18 === nType) this.setLoCatId(oStream.GetString2());
+      else if (19 === nType) this.setLoTypeId(oStream.GetString2());
+      else if (20 === nType) this.setPhldr(oStream.GetBool());
+      else if (21 === nType) this.setPhldrT(oStream.GetString2());
+      else if (22 === nType) this.setPresAssocID(oStream.GetString2());
+      else if (23 === nType) this.setPresName(oStream.GetString2());
+      else if (24 === nType) this.setPresStyleCnt(oStream.GetLong());
+      else if (25 === nType) this.setPresStyleIdx(oStream.GetLong());
+      else if (26 === nType) this.setPresStyleLbl(oStream.GetString2());
+      else if (27 === nType) this.setQsCatId(oStream.GetString2());
+      else if (28 === nType) this.setQsTypeId(oStream.GetString2());
+    };
+    PrSet.prototype.readChild = function(nType, pReader) {
+      var s = this.stream;
+      switch (nType) {
+        case 0: {
+          this.setPresLayoutVars(new PresLayoutVars());
+          this.presLayoutVars.fromPPTY(pReader);
+          break;
+        }
+        case 1: {
+          this.setStyle(new StyleData());
+          this.style.fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+
+    PrSet.prototype.getChildren = function() {
+      return [this.presLayoutVars, this.style];
+    }
+
     changesFactory[AscDFH.historyitem_PresLayoutVarsAnimLvl] = CChangeObject;
     changesFactory[AscDFH.historyitem_PresLayoutVarsAnimOne] = CChangeObject;
     changesFactory[AscDFH.historyitem_PresLayoutVarsBulletEnabled] = CChangeObject;
@@ -2364,6 +2690,21 @@
       oCopy.setType(this.getType());
     }
 
+    SCat.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteString2(0, this.type);
+      pWriter._WriteUInt2(1, this.pri);
+    };
+    SCat.prototype.writeChildren = function(pWriter) {
+    };
+    SCat.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setType(oStream.GetString2());
+      else if (1 === nType) this.setPri(oStream.GetULong());
+    };
+    SCat.prototype.readChild = function(nType, pReader) {
+    };
+
+
     changesFactory[AscDFH.historyitem_ClrDataUseDef] = CChangeBool;
     changesFactory[AscDFH.historyitem_ClrDataDataModel] = CChangeObject;
     drawingsChangesMap[AscDFH.historyitem_ClrDataUseDef] = function (oClass, value) {
@@ -2446,6 +2787,21 @@
       oCopy.setLang(this.getLang());
       oCopy.setVal(this.getVal());
     }
+
+    Desc.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteString2(0, this.lang);
+      pWriter._WriteString2(1, this.val);
+    };
+    Desc.prototype.writeChildren = function(pWriter) {
+    };
+    Desc.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setLang(oStream.GetString2());
+      else if (1 === nType) this.setVal(oStream.GetString2());
+    };
+    Desc.prototype.readChild = function(nType, pReader) {
+    };
+
 
     changesFactory[AscDFH.historyitem_LayoutNodeChOrder] = CChangeLong;
     changesFactory[AscDFH.historyitem_LayoutNodeMoveWith] = CChangeString;
@@ -4535,6 +4891,79 @@
       }
     }
 
+    VarLst.prototype.privateWriteAttributes = function(pWriter) {
+    };
+    VarLst.prototype.writeChildren = function(pWriter) {
+      this.writeRecord2(pWriter, 0, this.animLvl);
+      this.writeRecord2(pWriter, 1, this.animOne);
+      this.writeRecord2(pWriter, 2, this.bulletEnabled);
+      this.writeRecord2(pWriter, 3, this.chMax);
+      this.writeRecord2(pWriter, 4, this.chPref);
+      this.writeRecord2(pWriter, 5, this.dir);
+      this.writeRecord2(pWriter, 6, this.hierBranch);
+      this.writeRecord2(pWriter, 7, this.orgChart);
+      this.writeRecord2(pWriter, 8, this.resizeHandles);
+    };
+    VarLst.prototype.readAttribute = function(nType, pReader) {
+    };
+    VarLst.prototype.readChild = function(nType, pReader) {
+      var s = this.stream;
+      switch (nType) {
+        case 0: {
+          this.setAnimLvl(new AnimLvl());
+          this.animLvl.fromPPTY(pReader);
+          break;
+        }
+        case 1: {
+          this.setAnimOne(new AnimOne());
+          this.animOne.fromPPTY(pReader);
+          break;
+        }
+        case 2: {
+          this.setBulletEnabled(new BulletEnabled());
+          this.bulletEnabled.fromPPTY(pReader);
+          break;
+        }
+        case 3: {
+          this.setChMax(new ChMax());
+          this.chMax.fromPPTY(pReader);
+          break;
+        }
+        case 4: {
+          this.setChPref(new ChPref());
+          this.chPref.fromPPTY(pReader);
+          break;
+        }
+        case 5: {
+          this.setDir(new DiagramDirection());
+          this.dir.fromPPTY(pReader);
+          break;
+        }
+        case 6: {
+          this.setHierBranch(new HierBranch());
+          this.hierBranch.fromPPTY(pReader);
+          break;
+        }
+        case 7: {
+          this.setOrgChart(new OrgChart());
+          this.orgChart.fromPPTY(pReader);
+          break;
+        }
+        case 8: {
+          this.setResizeHandles(new ResizeHandles());
+          this.resizeHandles.fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+    VarLst.prototype.getChildren = function() {
+      return [this.animLvl, this.animOne, this.bulletEnabled, this.chMax, this.chPref, this.dir, this.hierBranch, this.orgChart, this.resizeHandles];
+    };
+
 
     changesFactory[AscDFH.historyitem_AnimLvlVal] = CChangeLong;
     drawingsChangesMap[AscDFH.historyitem_AnimLvlVal] = function (oClass, value) {
@@ -4957,6 +5386,21 @@
       oCopy.setLang(this.getLang());
       oCopy.setVal(this.getVal());
     }
+
+    DiagramTitle.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteString2(0, this.lang);
+      pWriter._WriteString2(1, this.val);
+    };
+    DiagramTitle.prototype.writeChildren = function(pWriter) {
+    };
+    DiagramTitle.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setLang(oStream.GetString2());
+      else if (1 === nType) this.setVal(oStream.GetString2());
+    };
+    DiagramTitle.prototype.readChild = function(nType, pReader) {
+    };
+
 
 
     function LayoutDefHdrLst() {
@@ -5504,6 +5948,65 @@
         oCopy.setTxLinClrLst(this.getTxLinClrLst().createDuplicate(oIdMap));
       }
     }
+
+    ColorDefStyleLbl.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteString2(0, this.name);
+    };
+    ColorDefStyleLbl.prototype.writeChildren = function(pWriter) {
+      this.writeRecord2(pWriter, 0, this.effectClrLst);
+      this.writeRecord2(pWriter, 1, this.fillClrLst);
+      this.writeRecord2(pWriter, 2, this.linClrLst);
+      this.writeRecord2(pWriter, 3, this.txEffectClrLst);
+      this.writeRecord2(pWriter, 4, this.txFillClrLst);
+      this.writeRecord2(pWriter, 5, this.txLinClrLst);
+    };
+    ColorDefStyleLbl.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setName(oStream.GetString2());
+    };
+    ColorDefStyleLbl.prototype.readChild = function(nType, pReader) {
+      var s = this.stream;
+      switch (nType) {
+        case 0: {
+          this.setEffectClrLst(new EffectClrLst());
+          this.effectClrLst.fromPPTY(pReader);
+          break;
+        }
+        case 1: {
+          this.setFillClrLst(new FillClrLst());
+          this.fillClrLst.fromPPTY(pReader);
+          break;
+        }
+        case 2: {
+          this.setLinClrLst(new LinClrLst());
+          this.linClrLst.fromPPTY(pReader);
+          break;
+        }
+        case 3: {
+          this.setTxEffectClrLst(new TxEffectClrLst());
+          this.txEffectClrLst.fromPPTY(pReader);
+          break;
+        }
+        case 4: {
+          this.setTxFillClrLst(new TxFillClrLst());
+          this.txFillClrLst.fromPPTY(pReader);
+          break;
+        }
+        case 5: {
+          this.setTxLinClrLst(new TxLinClrLst());
+          this.txLinClrLst.fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+    ColorDefStyleLbl.prototype.getChildren = function() {
+      return [this.effectClrLst, this.fillClrLst, this.linClrLst, this.txEffectClrLst, this.txFillClrLst, this.txLinClrLst];
+    };
+
 
     function CChangesDrawingClrLst(Class, Type, Pos, Items, isAdd) {
       CChangeContent.call(this, Class, Type, Pos, Items, isAdd);
@@ -6172,6 +6675,52 @@
         oCopy.setTxPr(this.getTxPr().createDuplicate(oIdMap));
       }
     }
+
+    StyleDefStyleLbl.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteString2(0, this.name);
+    };
+    StyleDefStyleLbl.prototype.writeChildren = function(pWriter) {
+      this.writeRecord2(pWriter, 0, this.scene3d);
+      this.writeRecord2(pWriter, 1, this.sp3d);
+      this.writeRecord2(pWriter, 2, this.style);
+      this.writeRecord2(pWriter, 3, this.txPr);
+    };
+    StyleDefStyleLbl.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setName(oStream.GetString2());
+    };
+    StyleDefStyleLbl.prototype.readChild = function(nType, pReader) {
+      var s = this.stream;
+      switch (nType) {
+        case 0: {
+          this.setScene3d(new Scene3d());
+          this.scene3d.fromPPTY(pReader);
+          break;
+        }
+        case 1: {
+          this.setSp3d(new Sp3d());
+          this.sp3d.fromPPTY(pReader);
+          break;
+        }
+        case 2: {
+          this.setStyle(new window['AscFormat'].CShapeStyle());
+          this.style.fromPPTY(pReader);
+          break;
+        }
+        case 3: {
+          this.setTxPr(new TxPr());
+          this.txPr.fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+    StyleDefStyleLbl.prototype.getChildren = function() {
+      return [this.scene3d, this.sp3d, this.style, this.txPr];
+    };
 
     changesFactory[AscDFH.historyitem_BackdropAnchor] = CChangeObject;
     changesFactory[AscDFH.historyitem_BackdropExtLst] = CChangeObject;
@@ -7303,6 +7852,56 @@
         oCopy.setStyleDef(this.getStyleDef().createDuplicate(oIdMap));
       }
     }
+
+    SmartArt.prototype.privateWriteAttributes = function(pWriter) {
+    };
+    SmartArt.prototype.writeChildren = function(pWriter) {
+      this.writeRecord2(pWriter, 0, this.drawing);
+      this.writeRecord2(pWriter, 1, this.dataModel);
+      this.writeRecord2(pWriter, 2, this.colorsDef);
+      this.writeRecord2(pWriter, 3, this.layoutDef);
+      this.writeRecord2(pWriter, 4, this.styleDef);
+    };
+    SmartArt.prototype.readAttribute = function(nType, pReader) {
+    };
+    SmartArt.prototype.readChild = function(nType, pReader) {
+      var s = this.stream;
+      switch (nType) {
+        case 0: {
+          this.setDrawing(new Drawing());
+          this.drawing.fromPPTY(pReader);
+          break;
+        }
+        case 1: {
+          this.setDataModel(new DiagramData());
+          this.dataModel.fromPPTY(pReader);
+          break;
+        }
+        case 2: {
+          this.setColorsDef(new ColorsDef());
+          this.colorsDef.fromPPTY(pReader);
+          break;
+        }
+        case 3: {
+          this.setLayoutDef(new LayoutDef());
+          this.layoutDef.fromPPTY(pReader);
+          break;
+        }
+        case 4: {
+          this.setStyleDef(new StyleDef());
+          this.styleDef.fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+    SmartArt.prototype.getChildren = function() {
+      return [this.drawing, this.dataModel, this.colorsDef, this.layoutDef, this.styleDef];
+    };
+
 
 
     SmartArt.prototype.isPlaceholder = function () {
