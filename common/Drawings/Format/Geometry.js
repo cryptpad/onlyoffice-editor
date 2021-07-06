@@ -1290,7 +1290,9 @@ Geometry.prototype=
     drawGeometryEdit : function(drawingDocument, shape, arrTrackObject)
     {
         var track_object = arrTrackObject[0];
-        track_object.convertToBezier(this);
+        if (!track_object.isConverted) {
+            track_object.convertToBezier(this);
+        }
         var gmEditPoint = this.gmEditPoint;
         var gmEditList = this.gmEditList;
         var matrix =  shape.getTransformMatrix();

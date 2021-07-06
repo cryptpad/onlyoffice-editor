@@ -44,6 +44,7 @@
         this.transform = originalObject.transform;
         this.invertTransform = originalObject.invertTransform;
         this.overlayObject = new AscFormat.OverlayObject(this.geometry, this.resizedExtX, this.originalExtY, oBrush, oPen, this.transform);
+        this.isConverted = false;
     };
 
     EditShapeGeometryTrack.prototype.draw = function(overlay, transform)
@@ -72,7 +73,7 @@
         var nextPoint = geometry.gmEditPoint.nextPoint;
         var prevPoint = geometry.gmEditPoint.prevPoint;
         var curFirstCommand = arrPathCommand[originalPoint.pathC1];
-        var curSecondCommand = arrPathCommand[originalPoint.pathC1]
+        var curSecondCommand = arrPathCommand[originalPoint.pathC2];
 
             if(geometry.gmEditPoint.isFirstCPoint) {
                 arrPathCommand[originalPoint.pathC1].X1 = _relative_x;
@@ -129,8 +130,8 @@
                 geometry.gmEditPoint.g1Y = command.Y1;
 
                 if(originalPoint.pathC1 > originalPoint.pathC2) {
-                    arrPathCommand[0].X = _relative_x;
-                    arrPathCommand[0].Y = _relative_y;
+                    arrPathCommand[originalPoint.pathC2 - 1].X = _relative_x;
+                    arrPathCommand[originalPoint.pathC2 - 1].Y = _relative_y;
                 }
                 arrPathCommand[geometry.gmEditPoint.pathC1] = command;
 
@@ -167,7 +168,6 @@
         for(var i = 0; i < arrPathCommand.length; ++i) {
 
             var path_command = arrPathCommand[i];
-
 
             if (path_command.id === 4) {
 
@@ -225,8 +225,6 @@
 
             switch (arrPathCommand[i].id) {
                 case 0: {
-                    var pCommandX = transform.TransformPointX(arrPathCommand[i].X, arrPathCommand[i].Y);
-                    var pCommandY = transform.TransformPointY(arrPathCommand[i].X, arrPathCommand[i].Y);
                     geometry.AddPathCommand(1, ((( arrPathCommand[i].X - xMin) * kw) >> 0) + "", (((arrPathCommand[i].Y - yMin) * kh) >> 0) + "");
                     break;
                 }
@@ -236,6 +234,9 @@
                 }
                 case 3: {
                   break;
+                }
+                case 5: {
+                    geometry.AddPathCommand(6);
                 }
             }
         }
@@ -295,11 +296,6 @@
 
         geom.gmEditList = [];
         var countArc = 0;
-        var X = pathPoints[0].X;
-        var Y = pathPoints[0].Y;
-
-     pathPoints.splice(pathPoints.length - 1);
-     pathPoints.splice(0, 1);
 
      for(var i = 0; i < pathPoints.length; i++) {
             var elem = pathPoints[i];
@@ -344,7 +340,7 @@
                     break;
             }
 
-            if (elemX !== undefined && elemY !== undefined && elem.id !== 2) {
+            if (elemX !== undefined && elemY !== undefined && elem.id !== 2 && elem.id !== 5) {
                 pathPoints[i] = elem;
                 pathPoints[i].X = elemX;
                 pathPoints[i].Y = elemY;
@@ -353,34 +349,52 @@
             }
         };
 
-        //if the end point is not equal to the start point, then draw a line between them
-        var firstPointX = parseFloat(X.toFixed(4));
-        var firstPointY = parseFloat(Y.toFixed(4));
-        var lastPointX = parseFloat(pathPoints[pathPoints.length - 1].X.toFixed(4));
-        var lastPointY = parseFloat(pathPoints[pathPoints.length - 1].Y.toFixed(4));
-        if(firstPointX !== lastPointX || firstPointY !== lastPointY) {
-            var prevCommand = pathPoints[pathPoints.length - 1];
-            pathPoints.push(
-                {
-                    id: 4,
-                    X0: (prevCommand.X + X / 2) / (3 / 2),
-                    Y0: (prevCommand.Y + Y / 2) / (3 / 2),
-                    X1: (prevCommand.X + X * 2) / 3,
-                    Y1: (prevCommand.Y + Y * 2) / 3,
-                    X2: X,
-                    Y2: Y,
-                    X,
-                    Y,
-                    isLine: true
-                });
+        var index = 0, start_index;
+        // insert pathCommand when end point is not equal to the start point, then draw a line between them
+        for(var cur_index = 0; cur_index < pathPoints.length; cur_index++) {
+            while (pathPoints[cur_index + index] && pathPoints[cur_index + index].id !== 5) {
+                ++index;
+            }
+            var prevCommand = !pathPoints[index + cur_index] ? pathPoints[1] : pathPoints[index + cur_index - 1];
+
+            if (pathPoints[cur_index].id === 0) {
+                start_index = cur_index;
+            }
+
+            if (pathPoints[cur_index].id === 5) {
+                var firstPointX = parseFloat(pathPoints[start_index].X.toFixed(4));
+                var firstPointY = parseFloat(pathPoints[start_index].Y.toFixed(4));
+                var lastPointX = parseFloat(prevCommand.X.toFixed(4));
+                var lastPointY = parseFloat(prevCommand.Y.toFixed(4));
+                if (firstPointX !== lastPointX || firstPointY !== lastPointY) {
+                    pathPoints.splice(cur_index, 0,
+                        {
+                            id: 4,
+                            X0: (prevCommand.X + pathPoints[start_index].X / 2) / (3 / 2),
+                            Y0: (prevCommand.Y + pathPoints[start_index].Y / 2) / (3 / 2),
+                            X1: (prevCommand.X + pathPoints[start_index].X * 2) / 3,
+                            Y1: (prevCommand.Y + pathPoints[start_index].Y * 2) / 3,
+                            X2: pathPoints[start_index].X,
+                            Y2: pathPoints[start_index].Y,
+                            X: pathPoints[start_index].X,
+                            Y: pathPoints[start_index].Y,
+                            isLine: true
+                        });
+                    ++cur_index;
+                }
+            }
+            index = 0;
         }
 
-       pathPoints.forEach(function(elem, index) {
-          var prevCommand = index - 1 >= 0 ? pathPoints[index - 1] : pathPoints[pathPoints.length - 1];
-
+        var index = 0;
+       pathPoints.forEach(function(elem, cur_index) {
+           while (pathPoints[cur_index + index] && pathPoints[cur_index + index].id !== 5) {
+               ++index;
+           }
+           var prevCommand = (pathPoints[cur_index - 1] && pathPoints[cur_index - 1].id === 0) ? pathPoints[index + cur_index - 1] : pathPoints[cur_index - 1];
            switch (elem.id) {
                case 1:
-                   pathPoints[index] = {
+                   pathPoints[cur_index] = {
                        id: 4,
                        X0: (prevCommand.X + elem.X / 2) / (3 / 2),
                        Y0: (prevCommand.Y + elem.Y / 2) / (3 / 2),
@@ -394,7 +408,7 @@
                    }
                    break;
                case 3:
-                   pathPoints[index] = {
+                   pathPoints[cur_index] = {
                        id: 4,
                        X0: (elem.X0 + prevCommand.X) / 2,
                        Y0: (elem.Y0 + prevCommand.Y) / 2,
@@ -408,34 +422,47 @@
                    break;
 
            }
+
+           index = 0;
        });
 
+        var startIndex;
+
         for (var index = 0; index < pathPoints.length; index++) {
-            var curCommand = pathPoints[index];
-            var nextIndex = index + 1 <= pathPoints.length - 1 ? index + 1 : 0;
-            var nextCommand = pathPoints[nextIndex];
+            if(pathPoints[index].id !== 5 && pathPoints[index].id !== 0) {
 
-            var curPoint = {
-                id: curCommand.id,
-                g1X : curCommand.X1,
-                g1Y : curCommand.Y1,
-                g2X:  nextCommand.X0,
-                g2Y:  nextCommand.Y0,
-                X: curCommand.X,
-                Y: curCommand.Y,
-                pathC1: index + 1,
-                pathC2: nextIndex + 1,
-            };
-            geom.gmEditList.push(curPoint);
+                if (pathPoints[index - 1].id === 0)
+                    startIndex = index;
+
+                var curCommand = pathPoints[index];
+                var nextIndex = (index + 1 <= pathPoints.length - 1) ? (pathPoints[index + 1].id === 5 ? startIndex : index + 1) : 1;
+                var nextCommand = pathPoints[nextIndex];
+
+                var curPoint = {
+                    id: curCommand.id,
+                    g1X: curCommand.X1,
+                    g1Y: curCommand.Y1,
+                    g2X: nextCommand.X0,
+                    g2Y: nextCommand.Y0,
+                    X: curCommand.X,
+                    Y: curCommand.Y,
+                    pathC1: index,
+                    pathC2: nextIndex,
+                };
+                geom.gmEditList.push(curPoint);
+            }
         }
 
-        for (var index = 0; index < geom.gmEditList.length; index++) {
-            geom.gmEditList[index].nextPoint = (index + 1 <= geom.gmEditList.length - 1) ? geom.gmEditList[index + 1] : geom.gmEditList[0];
-            geom.gmEditList[index].prevPoint = (index - 1 >= 0) ? geom.gmEditList[index - 1] : geom.gmEditList[geom.gmEditList.length - 1];
+        for (var cur_index = 0; cur_index < geom.gmEditList.length; cur_index++) {
+            var next_path =  geom.gmEditList[cur_index].pathC2;
+            for(var index = 0; index < geom.gmEditList.length; index++) {
+                if(geom.gmEditList[index].pathC1 === next_path) {
+                    geom.gmEditList[cur_index].nextPoint = geom.gmEditList[index];
+                    geom.gmEditList[index].prevPoint = geom.gmEditList[cur_index];
+                }
+            }
         }
-
-        pathPoints.unshift({id: 0, X, Y});
-        pathPoints.push({id: 5});
+        this.isConverted = true;
     }
 
 

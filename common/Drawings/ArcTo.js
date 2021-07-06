@@ -102,10 +102,13 @@
         ctx._c(fX + fXRad, fY - fYRad * c_fKappa, fX + fXRad * c_fKappa, fY - fYRad, fX, fY - fYRad);
         ctx._c(fX - fXRad * c_fKappa, fY - fYRad, fX - fXRad, fY - fYRad * c_fKappa, fX - fXRad, fY);
         if(geom) {
-            geom.ellipsePointsList.push({X: fX, Y: fY + fYRad});
-            geom.ellipsePointsList.push({X: fX + fXRad, Y: fY});
-            geom.ellipsePointsList.push({X: fX, Y: fY - fYRad});
-            geom.ellipsePointsList.push({X: fX - fXRad, Y: fY});
+            //временно
+            var ellipseArcPoints = [];
+            ellipseArcPoints.push({X: fX, Y: fY + fYRad, X0: fX - fXRad, Y0: fY + fYRad * c_fKappa, X1: fX - fXRad * c_fKappa, Y1: fY + fYRad, X2: fX, Y2: fY + fYRad});
+            ellipseArcPoints.push({X: fX + fXRad, Y: fY, X0: fX + fXRad * c_fKappa, Y0: fY + fYRad, X1: fX + fXRad, Y1: fY + fYRad * c_fKappa, X2: fX + fXRad, Y2: fY});
+            ellipseArcPoints.push({X: fX, Y: fY - fYRad, X0: fX + fXRad, Y0: fY - fYRad * c_fKappa, X1: fX + fXRad * c_fKappa, Y1: fY - fYRad, X2: fX, Y2: fY - fYRad});
+            ellipseArcPoints.push({X: fX - fXRad, Y: fY, X0: fX - fXRad * c_fKappa, Y0: fY - fYRad, X1: fX - fXRad, Y1: fY - fYRad * c_fKappa, X2: fX - fXRad, Y2: fY});
+            geom.ellipsePointsList.push(ellipseArcPoints);
         }
     }
 
