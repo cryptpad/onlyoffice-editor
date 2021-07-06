@@ -12770,7 +12770,7 @@
                     chart.selection.title = this;
                     para_drawing = chart.parent;
                 }
-                if(bDocument && para_drawing instanceof ParaDrawing) {
+                if(bDocument && para_drawing instanceof AscCommonWord.ParaDrawing) {
 
                     var hdr_ftr = para_drawing.DocumentContent.IsHdrFtr(true);
                     if(hdr_ftr) {

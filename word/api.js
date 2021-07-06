@@ -9425,7 +9425,7 @@ background-repeat: no-repeat;\
 						oCC.UpdatePictureFormLayout();
 
 						var oShape = oCC.GetFixedFormWrapperShape();
-						if (oShape && oShape.parent instanceof ParaDrawing)
+						if (oShape && oShape.parent instanceof AscCommonWord.ParaDrawing)
 							oApi.WordControl.m_oLogicDocument.Select_DrawingObject(oShape.parent.GetId());
 					}
 

@@ -1661,7 +1661,7 @@ DrawingObjectsController.prototype =
                     this.handleOleObjectDoubleClick(drawing, object, e, x, y, pageIndex);
                     return true;
                 }
-                else if (2 == e.ClickCount && drawing instanceof ParaDrawing && drawing.IsMathEquation())
+                else if (2 == e.ClickCount && drawing instanceof AscCommonWord.ParaDrawing && drawing.IsMathEquation())
                 {
                     this.handleMathDrawingDoubleClick(drawing, e, x, y, pageIndex);
                     return true;
@@ -3838,7 +3838,7 @@ DrawingObjectsController.prototype =
             {
                 oImg = objects_by_type.images[i];
                 oImg.setBlipFill(CreateBlipFillRasterImageId(props.ImageUrl));
-                if(oImg.parent instanceof ParaDrawing)
+                if(oImg.parent instanceof AscCommonWord.ParaDrawing)
                 {
                     var oRun = oImg.parent.GetRun();
                     if(oRun)
@@ -3944,7 +3944,7 @@ DrawingObjectsController.prototype =
                 if(!props.SizeRelH && AscFormat.isRealNumber(props.Width))
                 {
                     objects_by_type.shapes[i].spPr.xfrm.setExtX(props.Width);
-                    if(objects_by_type.shapes[i].parent instanceof ParaDrawing)
+                    if(objects_by_type.shapes[i].parent instanceof AscCommonWord.ParaDrawing)
                     {
                         objects_by_type.shapes[i].parent.SetSizeRelH({RelativeFrom: c_oAscSizeRelFromH.sizerelfromhPage, Percent: 0});
                     }
@@ -3952,12 +3952,12 @@ DrawingObjectsController.prototype =
                 if(!props.SizeRelV && AscFormat.isRealNumber(props.Height))
                 {
                     objects_by_type.shapes[i].spPr.xfrm.setExtY(props.Height);
-                    if(objects_by_type.shapes[i].parent instanceof ParaDrawing)
+                    if(objects_by_type.shapes[i].parent instanceof AscCommonWord.ParaDrawing)
                     {
                         objects_by_type.shapes[i].parent.SetSizeRelV({RelativeFrom: c_oAscSizeRelFromV.sizerelfromvPage, Percent: 0});
                     }
                 }
-                if(objects_by_type.shapes[i].parent instanceof ParaDrawing)
+                if(objects_by_type.shapes[i].parent instanceof AscCommonWord.ParaDrawing)
                 {
                     var oDrawing =  objects_by_type.shapes[i].parent;
                     if (oDrawing.SizeRelH && !oDrawing.SizeRelV)

@@ -6576,7 +6576,7 @@ function getParaDrawing(oDrawing)
     {
         oCurDrawing = oCurDrawing.group;
     }
-    if(oCurDrawing.parent instanceof ParaDrawing)
+    if(oCurDrawing.parent instanceof AscCommonWord.ParaDrawing)
     {
         return oCurDrawing.parent;
     }
