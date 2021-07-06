@@ -477,7 +477,7 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
                 var oAnimPlayer = drawingObjectsController.getAnimPlayer();
                 if(oAnimPlayer)
                 {
-                    if(oAnimPlayer.onSpClick(drawing)) {
+                    if(drawingObjectsController.handleEventMode === HANDLE_EVENT_MODE_HANDLE && oAnimPlayer.onSpClick(drawing)) {
                         return true;
                     }
                 }
@@ -2042,7 +2042,7 @@ function handleFloatTable(drawing, drawingObjectsController, e, x, y, group, pag
             var oAnimPlayer = drawingObjectsController.getAnimPlayer();
             if(oAnimPlayer)
             {
-                if(oAnimPlayer.onSpClick(drawing)) {
+                if(drawingObjectsController.handleEventMode === HANDLE_EVENT_MODE_HANDLE && oAnimPlayer.onSpClick(drawing)) {
                     return true;
                 }
             }

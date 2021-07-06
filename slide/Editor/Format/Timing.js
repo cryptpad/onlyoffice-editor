@@ -428,7 +428,7 @@
         var oThis = this;
         return function() {
             return oThis.activateCallback(oPlayer);
-        }
+        };
     };
     CTimeNodeBase.prototype.getDefaultTrigger = function(oPlayer) {
         return new CAnimComplexTrigger();
@@ -440,8 +440,10 @@
     };
     CTimeNodeBase.prototype.setState = function(nState) {
         this.state = nState;
-        var sNodeType = NODE_TYPE_MAP[this.getAttributesObject().nodeType];
-        console.log("Set node state ID: " + this.Id + " TYPE: " + this.constructor.name + " NODE_TYPE: " + sNodeType + " STATE: " + oSTATEDESCRMAP[nState] + " TIME: " + (new Date()).getTime());
+
+        var oAttr = this.getAttributesObject();
+        var sNodeType = NODE_TYPE_MAP[oAttr.nodeType];
+        console.log("Set node state ID: " + this.Id + " TYPE: " + this.constructor.name + " NODE_TYPE: " + sNodeType + " STATE: " + oSTATEDESCRMAP[nState] + " TIME: " + (new Date()).getTime() + " FORMAT ID: " + oAttr.id);
     };
     CTimeNodeBase.prototype.cancelEventsRecursive = function(oPlayer) {
         oPlayer.cancelCallerEvent(this);
@@ -1221,7 +1223,7 @@
     CCondLst.prototype.createComplexTrigger = function(oPlayer) {
         var oComplexTrigger = new CAnimComplexTrigger();
         for(var nCond = 0; nCond < this.list.length; ++nCond) {
-            oComplexTrigger.addTrigger(this.list[nCond].createSimpleTrigger(oPlayer));
+            this.list[nCond].fillTrigger(oPlayer, oComplexTrigger)
         }
         return oComplexTrigger;
     };
@@ -2997,20 +2999,14 @@
         };
     };
     CCond.prototype.createExternalEventSimpleTrigger = function (oPlayer, nType) {
-        var oThis = this;
-        return (function() {
-            var sSpId;
-            if(oThis.tgtEl) {
-                sSpId = oThis.tgtEl.getSpId();
-            }
-            if(!sSpId) {
-                return DEFAULT_NEVER_TRIGGER;
-            }
-            var oTriggert = oThis.createDelaySimpleTrigger();
-            var oEvent = new CExternalEvent(oPlayer.eventsProcessor, nType, sSpId);
-            oTriggert.setExternalEvent(oEvent);
-            return oTriggert;
-        })();
+        var sSpId;
+        if(this.tgtEl) {
+            sSpId = this.tgtEl.getSpId();
+        }
+        if(!sSpId) {
+            return null;
+        }
+        return new CExternalEvent(oPlayer.eventsProcessor, nType, sSpId);
     };
     CCond.prototype.createEventTrigger = function (oPlayer, fEvent) {
         var oThis = this;
@@ -3056,9 +3052,6 @@
             return oTimeNode.isFinished();
         });
     };
-    CCond.prototype.createOnNextTrigger = function(oPlayer) {
-
-    };
     CCond.prototype.createOnPrevTrigger = function(oPlayer) {
         var oTimeNode = this.getNearestParentOrEqualTimeNode();
         if(oTimeNode && oTimeNode.isSeq()) {
@@ -3086,10 +3079,15 @@
             return function () {
                 if(!oTrigger) {
                     var nActiveIdx = oTimeNode.getActiveChildIdx();
+                    var aChildren = oTimeNode.getChildrenTimeNodes();
                     if(nActiveIdx > -1) {
-                        var aChildren = oTimeNode.getChildrenTimeNodes();
                         if(nActiveIdx < aChildren.length - 1) {
                             oTrigger = aChildren[nActiveIdx + 1].getStartTrigger();
+                        }
+                    }
+                    else {
+                        if(aChildren.length > 0) {
+                            oTrigger = aChildren[0].getStartTrigger();
                         }
                     }
                 }
@@ -3101,57 +3099,56 @@
         }
         return DEFAULT_SIMPLE_TRIGGER;
     };
-    CCond.prototype.createSimpleTrigger = function(oPlayer) {
+    CCond.prototype.fillTrigger = function(oPlayer, oTrigger) {
         switch (this.evt) {
             case COND_EVNT_BEGIN: {
-                return this.createDelaySimpleTrigger(oPlayer);
+                oTrigger.addTrigger(this.createDelaySimpleTrigger(oPlayer));
                 break;
             }
             case COND_EVNT_END: {
-                return this.createDelaySimpleTrigger(oPlayer);
+                oTrigger.addTrigger(this.createDelaySimpleTrigger(oPlayer));
                 break;
             }
             case COND_EVNT_ON_BEGIN: {
-                return this.createOnBeginTrigger(oPlayer);
+                oTrigger.addTrigger(this.createOnBeginTrigger(oPlayer));
                 break;
             }
             case COND_EVNT_ON_CLICK: {
-                return this.createExternalEventSimpleTrigger(oPlayer, COND_EVNT_ON_CLICK);
+                oTrigger.setExternalEvent(this.createExternalEventSimpleTrigger(oPlayer, COND_EVNT_ON_CLICK));
                 break;
             }
             case COND_EVNT_ON_DBLCLICK: {
-                return this.createExternalEventSimpleTrigger(oPlayer, COND_EVNT_ON_DBLCLICK);
+                oTrigger.setExternalEvent(this.createExternalEventSimpleTrigger(oPlayer, COND_EVNT_ON_DBLCLICK));
                 break;
             }
             case COND_EVNT_ON_END: {
-                return this.createOnEndTrigger(oPlayer);
+                oTrigger.addTrigger(this.createOnEndTrigger(oPlayer));
                 break;
             }
             case COND_EVNT_ON_MOUSEOUT: {
-                return this.createExternalEventSimpleTrigger(oPlayer, COND_EVNT_ON_MOUSEOUT);
+                oTrigger.setExternalEvent(this.createExternalEventSimpleTrigger(oPlayer, COND_EVNT_ON_MOUSEOUT));
                 break;
             }
             case COND_EVNT_ON_MOUSEOVER: {
-                return this.createExternalEventSimpleTrigger(oPlayer, COND_EVNT_ON_MOUSEOVER);
+                oTrigger.setExternalEvent(this.createExternalEventSimpleTrigger(oPlayer, COND_EVNT_ON_MOUSEOVER));
                 break;
             }
             case COND_EVNT_ON_NEXT: {
-                return this.createOnNextTrigger(oPlayer);
+                oTrigger.addTrigger(this.createOnNextTrigger(oPlayer));
                 break;
             }
             case COND_EVNT_ON_PREV: {
-                return this.createOnPrevTrigger(oPlayer);
+                oTrigger.addTrigger(this.createOnPrevTrigger(oPlayer));
                 break;
             }
             case COND_EVNT_ON_STOPAUDIO: {
                 break;
             }
             default: {
-                return this.createDelaySimpleTrigger(oPlayer);
+                oTrigger.addTrigger(this.createDelaySimpleTrigger(oPlayer));
                 break;
             }
         }
-        return DEFAULT_SIMPLE_TRIGGER;
     };
 
     changesFactory[AscDFH.historyitem_RtnVal] = CChangeLong;
