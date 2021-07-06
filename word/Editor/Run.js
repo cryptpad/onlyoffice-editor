@@ -13057,7 +13057,10 @@ ParaRun.prototype.ChangeTextCase = function(oEngine)
 				else
 				{
 					oEngine.FlushWord();
-					oEngine.SetStartSentence(false);
+                    if (oItem.Value === 33 || oItem.Value === 63 || oItem.Value === 46)
+					    oEngine.SetStartSentence(true);
+                    else
+                        oEngine.SetStartSentence(false);
 				}
 			}
 		}
