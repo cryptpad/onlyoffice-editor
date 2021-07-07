@@ -2105,24 +2105,25 @@
     };
     CGraphicObjectBase.prototype.getBoundsByDrawing = function() {
         var oCopy = this.bounds.copy();
-        oCopy.l -= 1;
-        oCopy.r += 1;
-        oCopy.t -= 1;
-        oCopy.b += 1;
+
+        oCopy.l -= 3;
+        oCopy.r += 3;
+        oCopy.t -= 3;
+        oCopy.b += 3;
         oCopy.checkWH();
         return oCopy;//TODO: do not count shape rect
     };
     CGraphicObjectBase.prototype.getPresentationSize = function() {
-        var oPresentattion = editor.WordControl.m_oLogicDocument;
+        var oPresentation = editor.WordControl.m_oLogicDocument;
         return {
-            w: oPresentattion.GetWidthMM(),
-            h: oPresentattion.GetHeightMM()
+            w: oPresentation.GetWidthMM(),
+            h: oPresentation.GetHeightMM()
         }
     };
     CGraphicObjectBase.prototype.getCachedCanvas = function(scale) {
         var oBounds = this.getBoundsByDrawing();
-        var nWidth = (oBounds.w * scale + 0.5) >> 0;
-        var nHeight = (oBounds.h * scale + 0.5) >> 0;
+        var nWidth = Math.round(oBounds.w * scale);
+        var nHeight = Math.round(oBounds.h * scale);
         if(nWidth === 0 || nHeight === 0) {
             return null;
         }
@@ -2133,17 +2134,13 @@
         var oGraphics = new AscCommon.CGraphics();
         oGraphics.init(oCtx, nWidth, nHeight, oBounds.w, oBounds.h);
         oGraphics.m_oFontManager = AscCommon.g_fontManager;
-        oGraphics.m_oCoordTransform.tx = -((oBounds.x) * scale + 0.5) >> 0;
-        oGraphics.m_oCoordTransform.ty = -((oBounds.y) * scale + 0.5) >> 0;
+        oGraphics.m_oCoordTransform.tx = -Math.round(oBounds.x * scale);
+        oGraphics.m_oCoordTransform.ty = -Math.round(oBounds.y * scale);
         oGraphics.transform(1, 0, 0, 1, 0, 0);
         AscCommon.IsShapeToImageConverter = true;
         this.draw(oGraphics);
         AscCommon.IsShapeToImageConverter = false;
         return oCanvas;
-    };
-    CGraphicObjectBase.prototype.setTimingAttributes = function(oAttributes) {
-        var oBounds = this.getBoundsByDrawing();
-
     };
     
     function CRelSizeAnchor() {

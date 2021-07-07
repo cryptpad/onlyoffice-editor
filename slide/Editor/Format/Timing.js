@@ -543,13 +543,11 @@
         }
         return null;
     };
-    CTimeNodeBase.prototype.traverseActive = function(fCallback) {
-        if(this.isActive()) {
-            fCallback(this);
-        }
-        var aChildern = this.getChildrenTimeNodes();
-        for(var nChild = 0; nChild < aChildern.length; ++nChild) {
-            aChildern[nChild].traverseActive(fCallback);
+    CTimeNodeBase.prototype.traverseTimeNodes = function(fCallback) {
+        fCallback(this);
+        var aChildren = this.getChildrenTimeNodes();
+        for(var nChild = 0; nChild < aChildren.length; ++nChild) {
+            aChildren[nChild].traverseTimeNodes(fCallback);
         }
     };
     CTimeNodeBase.prototype.traverseDrawable = function(oPlayer) {
@@ -761,6 +759,9 @@
             return dSpHeight / dSlideH;
         }
         return null;
+    };
+    CTimeNodeBase.prototype.doesHideObject = function() {
+        return false;
     };
 
     function CAnimationTime(val) {
@@ -2469,6 +2470,13 @@
         }
         return this.attrNameLst.list;
     };
+
+    var PRESTET_CLASS_EMPH = 0;
+    var PRESTET_CLASS_ENTR = 1;
+    var PRESTET_CLASS_EXIT = 2;
+    var PRESTET_CLASS_MEDIACALL = 3;
+    var PRESTET_CLASS_PATH = 4;
+    var PRESTET_CLASS_VERB = 5;
 
     changesFactory[AscDFH.historyitem_CTnChildTnLst] = CChangeObject;
     changesFactory[AscDFH.historyitem_CTnEndCondLst] = CChangeObject;
@@ -4413,11 +4421,13 @@
         var fSlideW = this.getSlideWidth();
         var fSlideH = this.getSlideHeight();
         var fObjRelX = oBounds.x / fSlideW;
-        var fObjRelY = oBounds.Y / fSlideH;
+        var fObjRelY = oBounds.y / fSlideH;
         if (this.parsedPath) {
             var oPos = this.parsedPath.getPosition(fRelTime);
-            dRelX = oPos.x;
-            dRelY = oPos.y;
+            if(oPos) {
+                dRelX = oPos.x;
+                dRelY = oPos.y;
+            }
         }
         else if(this.to && this.from) {
             dRelX = (this.from.x + (this.to.x - this.from.x) * fRelTime) / 100;
@@ -4478,7 +4488,7 @@
     };
     CSVGPath.prototype.parsePath = function(sPath) {
         var aLastCommand = null;
-        var aElements = sPath.split(" ");
+        var aElementsSplit = sPath.split(" ");
         var nCurElement = 0;
         var sCurElement;
         var aCurCommand;
@@ -4486,6 +4496,13 @@
         var aLastPoint = null;
         var fLastLength = 0.0;
         var fL;
+        var aElements = [];
+        for(nCurElement = 0; nCurElement < aElementsSplit.length; ++nCurElement) {
+            if(aElementsSplit[nCurElement].length > 0) {
+                aElements.push(aElementsSplit[nCurElement]);
+            }
+        }
+        nCurElement = 0;
         while(nCurElement < aElements.length) {
             sCurElement = aElements[nCurElement];
             if(sCurElement.length === 0) {
@@ -5474,6 +5491,23 @@
         }
         this.setAttributesValue(oAttributes, this.to.getVal());
     };
+    CSet.prototype.doesHideObject = function() {
+        var oAttributes = {};
+        this.setAttributesValue(oAttributes, this.to.getVal());
+        if(oAttributes["style.visibility"] === "visible") {
+            var oCurNode = this;
+            var oParentNode;
+            while(oParentNode = oCurNode.getParentTimeNode()) {
+                var oAttrObject = oParentNode.getAttributesObject();
+                if(PRESTET_CLASS_ENTR === oAttrObject.presetClass) {
+                    return true;
+                }
+                oCurNode = oParentNode;
+            }
+        }
+        return false;
+    };
+
 
     changesFactory[AscDFH.historyitem_VideoCMediaNode] = CChangeObject;
     changesFactory[AscDFH.historyitem_VideoFullScrn] = CChangeBool;
@@ -6968,6 +7002,7 @@
         this.player = player;
         this.sandwiches = {};//map by drawing id
         this.texturesCache = new CTexturesCache(this);
+        this.hiddenObjects = {};
     }
     CAnimationDrawer.prototype.clearSandwiches = function() {
         this.sandwiches = {};
@@ -7004,11 +7039,13 @@
         var oSandwich = this.getSandwich(sDrawingId);
         var fScale = oGraphics.m_oCoordTransform.sx;
         if(!oSandwich) {
-            var oTexture = this.texturesCache.checkTexture(sDrawingId, fScale);
-            var oBounds = oDrawing.getBoundsByDrawing();
-            var oMatrix = new AscCommon.CMatrix();
-            AscCommon.global_MatrixTransformer.TranslateAppend(oMatrix, oBounds.x, oBounds.y);
-            oTexture.draw(oGraphics, oMatrix);
+            if(!this.isDrawingHidden(sDrawingId)) {
+                var oTexture = this.texturesCache.checkTexture(sDrawingId, fScale);
+                var oBounds = oDrawing.getBoundsByDrawing();
+                var oMatrix = new AscCommon.CMatrix();
+                AscCommon.global_MatrixTransformer.TranslateAppend(oMatrix, oBounds.x, oBounds.y);
+                oTexture.draw(oGraphics, oMatrix);
+            }
         }
         else {
             oSandwich.drawObject(oGraphics, oDrawing, this.texturesCache);
@@ -7041,86 +7078,6 @@
             if(oRoot) {
                 oRoot.traverseDrawable(this.player);
             }
-            //console.clear();
-            //for(var sKey in this.sandwiches) {
-            //    if(this.sandwiches.hasOwnProperty(sKey)) {
-            //        var oSandwich = this.sandwiches[sKey];
-            //        oSandwich.print();
-            //        //var oDrawing = AscCommon.g_oTableId.Get_ById(sKey);
-            //        //if(oDrawing) {
-            //        //
-            //        //    for(var nNode = 0; nNode < oSandwich.animations.length; ++nNode) {
-            //        //        var oNode = oSandwich.animations[nNode];
-            //        //        if (oNode instanceof CAnimMotion) {
-            //        //
-            //        //            var oParentNode = oNode.getParentTimeNode();
-            //        //            var bAutoRev = false;
-            //        //            if(oParentNode) {
-            //        //                bAutoRev = oParentNode.getAttributesObject().autoRev;
-            //        //                if(bAutoRev) {
-            //        //                    bAutoRev = (oParentNode.simpleDurationIdx % 2 === 1);
-            //        //                }
-            //        //            }
-            //        //            var fRelTime = (oThis.player.getElapsedTicks() - oNode.startTick) / oNode.simpleDuration.getVal();//TODO
-            //        //            //if(bAutoRev) {
-            //        //            //    fRelTime = 1 - fRelTime;
-            //        //            //}
-            //        //            if (oNode.parsedPath) {
-            //        //                var oPos = oNode.parsedPath.getPosition(fRelTime);
-            //        //                if (oPos) {
-            //        //                    var W = oPresentation.GetWidthMM();
-            //        //                    var H = oPresentation.GetHeightMM();
-            //        //                    var DX = W * oPos.x;
-            //        //                    var DY = H * oPos.y;
-            //        //                    //console.log("Elapsed " + oThis.player.getElapsedTicks());
-            //        //                    //console.log("DX " + DX);
-            //        //                    //console.log("DY " + DY);
-            //        //                    var fMoveDr = function (oDrawing) {
-            //        //                        if (oDrawing) {
-            //        //                            if (!oDrawing.origX) {
-            //        //                                oDrawing.origX = oDrawing.spPr.xfrm.offX;
-            //        //                                oDrawing.origY = oDrawing.spPr.xfrm.offY;
-            //        //                            }
-            //        //                            oDrawing.spPr.xfrm.offX = oDrawing.origX + DX;
-            //        //                            oDrawing.spPr.xfrm.offY = oDrawing.origY + DY;
-            //        //                        }
-            //        //                    };
-            //        //                    fMoveDr(oDrawing);
-            //        //                }
-            //        //            }
-            //        //        }
-            //        //        if (oNode instanceof CAnimRot) {
-            //        //            var fRelTime = (oThis.player.getElapsedTicks() - oNode.startTick) / oNode.simpleDuration.getVal();//TODO
-            //        //            var dR = 2 * Math.PI * fRelTime;
-            //        //            var fMoveDr = function (oDrawing) {
-            //        //                if (oDrawing) {
-            //        //                    if (!AscFormat.isRealNumber(oDrawing.origRot)) {
-            //        //                        oDrawing.origRot = oDrawing.rot;
-            //        //                    }
-            //        //
-            //        //                    oDrawing.spPr.xfrm.rot =  oDrawing.origRot  + dR;
-            //        //                }
-            //        //            };
-            //        //            fMoveDr(oDrawing);
-            //        //        }
-            //        //    }
-            //        //    oDrawing.recalculateTransform();
-            //        //    oDrawing.localTransform = oDrawing.transform;
-            //        //    var  fRecursiveRecalcTransform = function(aSpTree) {
-            //        //        if (Array.isArray(aSpTree)) {
-            //        //            for (var i = 0; i < aSpTree.length; ++i) {
-            //        //                aSpTree[i].recalculateTransform();
-            //        //                aSpTree[i].localTransform = aSpTree[i].transform;
-            //        //                fRecursiveRecalcTransform(aSpTree[i].spTree);
-            //        //            }
-            //        //        }
-            //        //    };
-            //        //    fRecursiveRecalcTransform(oDrawing.spTree);
-            //        //}
-            //    }
-            //    oPresentation.DrawingDocument.OnRecalculatePage(0, oPresentation.Slides[0]);
-            //    editor.WordControl.OnPaint();
-            //}
         }
     };
     CAnimationDrawer.prototype.getSlideWidth = function() {
@@ -7138,6 +7095,24 @@
             return null;
         }
         return oSandwich;
+    };
+    CAnimationDrawer.prototype.isDrawingHidden = function(sId) {
+        var oAnim = this.hiddenObjects[sId];
+        if(!oAnim) {
+            return false;
+        }
+        if(!oAnim.isDrawable()) {
+            return true;
+        }
+        return false;
+    };
+    CAnimationDrawer.prototype.checkHiddenObject = function(oTimeNode) {
+        if(oTimeNode.doesHideObject()) {
+            var sId = oTimeNode.getTargetObjectId();
+            if(sId !== null) {
+                this.hiddenObjects[oTimeNode.getTargetObjectId()] = oTimeNode;
+            }
+        }
     };
 
     function CAnimationPlayer(oSlide, drawer) {
@@ -7167,10 +7142,14 @@
         return this.getPresentation().GetHeightMM();
     };
     CAnimationPlayer.prototype.start = function() {
+        var oThis = this;
         this.timer.start();
         for(var nTiming = 0; nTiming < this.timings.length; ++nTiming) {
             var oRoot = this.timings[nTiming].getTimingRootNode();
             if(oRoot) {
+                oRoot.traverseTimeNodes(function(oTimeNode){
+                    oThis.animationDrawer.checkHiddenObject(oTimeNode);
+                });
                 oRoot.resetState();
                 oRoot.scheduleStart(this);
             }
