@@ -488,14 +488,9 @@ CDocument.prototype.Search = function(sStr, oProps, bDraw)
 	this.SearchEngine.Clear();
 	this.SearchEngine.Set(sStr, oProps);
 
-	//var oParaSearch1 = new CParagraphSearch(this.Content[0], sStr, oProps, this.SearchEngine, search_Common);
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
-		//if (oParaSearch1.SearchIndex === 0 || oParaSearch1.SearchIndex === undefined)
-		    /*oParaSearch1 = */
 		this.Content[nIndex].Search(sStr, oProps, this.SearchEngine, search_Common);
-		//else
-		//	oParaSearch1 = this.Content[nIndex].Search1(oParaSearch1);
 	}
 
 	this.SectionsInfo.Search(sStr, oProps, this.SearchEngine);
@@ -1302,24 +1297,15 @@ CTable.prototype.GetSearchElementId = function(bNext, bCurrent)
 //----------------------------------------------------------------------------------------------------------------------
 // Paragraph
 //----------------------------------------------------------------------------------------------------------------------
-/*Paragraph.prototype.Search1 = function(oParaSearch)
-{
-	for (var nPos = 0, nContentLen = this.Content.length; nPos < nContentLen; ++nPos)
-	{
-		this.Content[nPos].Search(oParaSearch);
-	}
-    return oParaSearch; 
-};*/
 Paragraph.prototype.Search = function(sStr, oProps, oSearchEngine, nType)
 {
-	//if (SearchIndex)
 	var oParaSearch = new CParagraphSearch(this, sStr, oProps, oSearchEngine, nType);
 	for (var nPos = 0, nContentLen = this.Content.length; nPos < nContentLen; ++nPos)
 	{
 		this.Content[nPos].Search(oParaSearch);
 	}
 
-    return/* oParaSearch*/;
+    return;
 
     // TODO: Здесь расчитываем окружающий текст, надо перенести в отдельную функцию, которая будет вызываться
 	//       из интерфейса, когда сделают панель для поиска
@@ -1694,14 +1680,7 @@ ParaRun.prototype.CheckSpecialSymbol = function(ParaSearch, nPos, bCheck)
 			(ParaRun1.Content[nPos].Type === 4) ? bCheck = true : RestParaAndBFalse();
 		},
 		'ꙃ': function(){
-			(ParaRun1.Content[nPos].Value !== undefined /*&&
-				((ParaRun1.Content[nPos].Value >=1040 && ParaRun1.Content[nPos].Value <= 1071)
-				|| (ParaRun1.Content[nPos].Value >=1072 && ParaRun1.Content[nPos].Value <= 1103)
-					|| (ParaRun1.Content[nPos].Value === 1105 || ParaRun1.Content[nPos].Value === 1025)
-						|| (ParaRun1.Content[nPos].Value >= 65 && ParaRun1.Content[nPos].Value <= 90)
-							|| (ParaRun1.Content[nPos].Value >= 97 && ParaRun1.Content[nPos].Value <= 122))
-							  	|| (ParaRun1.Content[nPos].Value >= 48 && ParaRun1.Content[nPos].Value <=57)
-								  	|| ParaRun1.Content[nPos].Value == 32)*/)
+			(ParaRun1.Content[nPos].Value !== undefined)
 								? bCheck = true : RestParaAndBFalse();
 		},
 		'Ꙅ': function(){
@@ -1782,14 +1761,7 @@ ParaRun.prototype.Check_Special_Symbol = function(ParaSearch, nPos)
 			(ParaRun1.Content[nPos].Type === 4) ? bElement = true : bElement = false;;
 		},
 		'ꙃ': function(){
-			(ParaRun1.Content[nPos].Value !== undefined /*&&
-				((ParaRun1.Content[nPos].Value >=1040 && ParaRun1.Content[nPos].Value <= 1071)
-				|| (ParaRun1.Content[nPos].Value >=1072 && ParaRun1.Content[nPos].Value <= 1103)
-					|| (ParaRun1.Content[nPos].Value === 1105 || ParaRun1.Content[nPos].Value === 1025)
-						|| (ParaRun1.Content[nPos].Value >= 65 && ParaRun1.Content[nPos].Value <= 90)
-							|| (ParaRun1.Content[nPos].Value >= 97 && ParaRun1.Content[nPos].Value <= 122))
-							  	|| (ParaRun1.Content[nPos].Value >= 48 && ParaRun1.Content[nPos].Value <=57)
-								  	|| ParaRun1.Content[nPos].Value == 32)*/)
+			(ParaRun1.Content[nPos].Value !== undefined)
 								? bElement = true : bElement = false;;
 		},
 		'Ꙅ': function(){
