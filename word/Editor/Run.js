@@ -13024,52 +13024,97 @@ ParaRun.prototype.CheckTextForTextCase = function(oEngine)
 };
 ParaRun.prototype.ChangeTextCase = function(oEngine)
 {
-	var nStartPos = 0;
-	var nEndPos   = -1;
+	var nCaseType = oEngine.GetCaseType();
+	if (Asc.c_oAscChangeTextCaseType.SentenceCase === nCaseType || Asc.c_oAscChangeTextCaseType.CapitalizeWords === nCaseType)
+	{
+		var nStartPos = 0;
+		var nEndPos   = -1;
 
-	if (this.Selection.Use)
-	{
-		nStartPos = this.Selection.StartPos;
-		nEndPos   = this.Selection.EndPos;
-		if (nStartPos > nEndPos)
+		if (this.Selection.Use)
 		{
-			var nTemp = nStartPos;
-			nStartPos = nEndPos;
-			nEndPos   = nTemp;
-		}
-	}
-    for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
-	{
-		var oItem = this.Content[nPos];
-		if (para_Text === oItem.Type)
-		{
-			if (oItem.IsDot())
+			nStartPos = this.Selection.StartPos;
+			nEndPos   = this.Selection.EndPos;
+			if (nStartPos > nEndPos)
 			{
-				oEngine.FlushWord();
-				oEngine.SetStartSentence(true);
+				var nTemp = nStartPos;
+				nStartPos = nEndPos;
+				nEndPos   = nTemp;
 			}
-			else
+		}
+		for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+		{
+			var oItem = this.Content[nPos];
+			if (para_Text === oItem.Type)
 			{
-				if (!oItem.IsPunctuation())
+				if (oItem.IsDot())
 				{
-					oEngine.AddLetter(this, nPos, nPos >= nStartPos && nPos < nEndPos);
+					oEngine.FlushWord();
+					oEngine.SetStartSentence(true);
 				}
 				else
 				{
-					oEngine.FlushWord();
-                    if (oItem.Value === 33 || oItem.Value === 63 || oItem.Value === 46)
-					    oEngine.SetStartSentence(true);
-                    else
-                        oEngine.SetStartSentence(false);
+					if (!oItem.IsPunctuation())
+					{
+						oEngine.AddLetter(this, nPos, nPos >= nStartPos && nPos < nEndPos);
+					}
+					else
+					{
+						oEngine.FlushWord();
+						if (oItem.Value === 33 || oItem.Value === 63 || oItem.Value === 46)
+							oEngine.SetStartSentence(true);
+						else
+							oEngine.SetStartSentence(false);
+					}
 				}
 			}
-		}
-		else
-		{
-			oEngine.FlushWord();
+			else
+			{
+				oEngine.FlushWord();
 
-			if (para_Tab !== oItem.Type && para_Space !== oItem.Type)
-				oEngine.SetStartSentence(false);
+				if (para_Tab !== oItem.Type && para_Space !== oItem.Type)
+					oEngine.SetStartSentence(false);
+			}
+		}
+	}
+	else
+	{
+		var nStartPos = 0;
+		var nEndPos   = -1;
+
+		if (this.Selection.Use)
+		{
+			nStartPos = this.Selection.StartPos;
+			nEndPos   = this.Selection.EndPos;
+			if (nStartPos > nEndPos)
+			{
+				var nTemp = nStartPos;
+				nStartPos = nEndPos;
+				nEndPos   = nTemp;
+			}
+		}
+		for (var nPos = nStartPos; nPos < nEndPos; ++nPos)
+		{
+			var oItem = this.Content[nPos];
+			if (para_Text === oItem.Type)
+			{
+				var nCharCode  = oItem.Value;
+				var nLowerCode = String.fromCharCode(nCharCode).toLowerCase().charCodeAt(0);
+				var nUpperCode = String.fromCharCode(nCharCode).toUpperCase().charCodeAt(0);
+
+				if (nLowerCode !== nCharCode || nUpperCode !== nCharCode)
+				{
+					if (nLowerCode === nCharCode && (Asc.c_oAscChangeTextCaseType.ToggleCase === nCaseType || Asc.c_oAscChangeTextCaseType.UpperCase === nCaseType))
+					{
+						this.AddToContent(nPos, new ParaText(nUpperCode), false);
+						this.RemoveFromContent(nPos + 1, 1, false);
+					}
+					else if (nUpperCode === nCharCode && (Asc.c_oAscChangeTextCaseType.ToggleCase === nCaseType || Asc.c_oAscChangeTextCaseType.LowerCase === nCaseType))
+					{
+						this.AddToContent(nPos, new ParaText(nLowerCode), false);
+						this.RemoveFromContent(nPos + 1, 1, false);
+					}
+				}
+			}
 		}
 	}
 };
