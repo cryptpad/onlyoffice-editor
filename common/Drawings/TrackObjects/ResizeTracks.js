@@ -1368,7 +1368,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 }, this, []);
             }
 
-			if (this.originalObject instanceof CShape && this.originalObject.isForm())
+			if (this.originalObject instanceof AscFormat.CShape && this.originalObject.isForm())
 			{
 				var nW = this.originalObject.spPr.xfrm.extX;
 				var nH = this.originalObject.spPr.xfrm.extY;
