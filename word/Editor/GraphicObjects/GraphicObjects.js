@@ -2301,6 +2301,13 @@ CGraphicObjects.prototype =
                             return oShape.getNearestPos(x, y, pageIndex);
                         }
                     }
+                    else if(object.getObjectType() === AscDFH.historyitem_type_Shape)
+                    {
+                        if(object.hitInTextRect(x, y))
+                        {
+                            return object.getNearestPos(x, y, pageIndex);
+                        }
+                    }
                 }
             }
         }
