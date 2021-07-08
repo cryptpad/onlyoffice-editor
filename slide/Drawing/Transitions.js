@@ -134,7 +134,7 @@ function CTransitionAnimation(htmlpage)
         this.Rect.y = _centerY - _centerSlideY - _ver_height_top;
         this.Rect.w = _slideW;
         this.Rect.h = _slideH;
-    }
+    };
 
     this.CalculateRectDemonstration = function()
     {
@@ -172,7 +172,7 @@ function CTransitionAnimation(htmlpage)
         this.Rect.y = _t >> 0;
         this.Rect.w = _w >> 0;
         this.Rect.h = _h >> 0;
-    }
+    };
 
     this.SetBaseTransform = function()
     {
@@ -190,7 +190,7 @@ function CTransitionAnimation(htmlpage)
             var _ctx2 = oThis.DemonstrationObject.Overlay.getContext('2d');
             _ctx2.setTransform(1, 0, 0, 1, 0, 0);
         }
-    }
+    };
 
     this.DrawImage1 = function(slide_num, _not_use_prev)
     {
@@ -214,24 +214,12 @@ function CTransitionAnimation(htmlpage)
         {
             var _w = this.Rect.w;
             var _h = this.Rect.h;
-            var _w_mm = this.HtmlPage.m_oLogicDocument.GetWidthMM();
-            var _h_mm = this.HtmlPage.m_oLogicDocument.GetHeightMM();
-
             this.CacheImage1.Image = this.CreateImage(_w, _h);
-
-            var g = new AscCommon.CGraphics();
-            g.init(this.CacheImage1.Image.getContext('2d'), _w, _h, _w_mm, _h_mm);
-            g.m_oFontManager = AscCommon.g_fontManager;
-
-            g.transform(1,0,0,1,0,0);
-            g.IsNoDrawingEmptyPlaceholder = true;
-
-            if (this.HtmlPage.DemonstrationManager.Mode)
-                g.IsDemonstrationMode = true;
-
-            this.HtmlPage.m_oLogicDocument.DrawPage(slide_num - 1, g);
+            var oSlide = this.HtmlPage.m_oLogicDocument.GetSlide(slide_num - 1);
+            var oPlayer = new AscFormat.CAnimationPlayer(oSlide, this);
+            oPlayer.drawFrame(this.CacheImage1.Image, {x: 0, y: 0, w: _w, h: _h});
         }
-    }
+    };
 
     this.DrawImage2 = function(slide_num)
     {
@@ -255,24 +243,12 @@ function CTransitionAnimation(htmlpage)
         {
             var _w = this.Rect.w;
             var _h = this.Rect.h;
-            var _w_mm = this.HtmlPage.m_oLogicDocument.GetWidthMM();
-            var _h_mm = this.HtmlPage.m_oLogicDocument.GetHeightMM();
-
             this.CacheImage2.Image = this.CreateImage(_w, _h);
-
-            var g = new AscCommon.CGraphics();
-            g.init(this.CacheImage2.Image.getContext('2d'), _w, _h, _w_mm, _h_mm);
-            g.m_oFontManager = AscCommon.g_fontManager;
-
-            g.transform(1,0,0,1,0,0);
-            g.IsNoDrawingEmptyPlaceholder = true;
-
-            if (this.HtmlPage.DemonstrationManager.Mode)
-                g.IsDemonstrationMode = true;
-
-            this.HtmlPage.m_oLogicDocument.DrawPage(slide_num, g);
+            var oSlide = this.HtmlPage.m_oLogicDocument.GetSlide(slide_num);
+            var oPlayer = new AscFormat.CAnimationPlayer(oSlide, this);
+            oPlayer.drawFrame(this.CacheImage2.Image, {x: 0, y: 0, w: _w, h: _h});
         }
-    }
+    };
 
     this.StopIfPlaying = function()
     {
@@ -281,7 +257,7 @@ function CTransitionAnimation(htmlpage)
             __cancelFrame(this.TimerId);
             this.TimerId = null;
         }
-    }
+    };
 
     this.Start = function(isButtonPreview)
     {
@@ -364,7 +340,7 @@ function CTransitionAnimation(htmlpage)
                 break;
             }
         }
-    }
+    };
 
     this.End = function(bIsAttack)
     {
@@ -390,12 +366,12 @@ function CTransitionAnimation(htmlpage)
         ctx1.setTransform(1, 0, 0, 1, 0, 0);
 
         this.HtmlPage.OnScroll();
-    }
+    };
 
     this.IsPlaying = function()
     {
         return (null != this.TimerId) ? true : false;
-    }
+    };
 
     this.CreateImage = function(w, h)
     {
@@ -403,7 +379,7 @@ function CTransitionAnimation(htmlpage)
         _im.width = w;
         _im.height = h;
         return _im;
-    }
+    };
 
     // animations
     this._startFade = function()
@@ -608,7 +584,7 @@ function CTransitionAnimation(htmlpage)
         }
 
         oThis.TimerId = __nextFrame(oThis._startFade);
-    }
+    };
 
     this._startPush = function()
     {
@@ -750,7 +726,7 @@ function CTransitionAnimation(htmlpage)
         }
 
         oThis.TimerId = __nextFrame(oThis._startPush);
-    }
+    };
 
     this._startWipe = function()
     {
@@ -1302,7 +1278,7 @@ function CTransitionAnimation(htmlpage)
 
         _ctx2.globalCompositeOperation = "source-over";
         oThis.TimerId = __nextFrame(oThis._startWipe);
-    }
+    };
 
     this._startSplit = function()
     {
@@ -1655,7 +1631,7 @@ function CTransitionAnimation(htmlpage)
 
         _ctx2.globalCompositeOperation = "source-over";
         oThis.TimerId = __nextFrame(oThis._startSplit);
-    }
+    };
 
     this._startUnCover = function()
     {
@@ -1806,7 +1782,7 @@ function CTransitionAnimation(htmlpage)
         }
 
         oThis.TimerId = __nextFrame(oThis._startUnCover);
-    }
+    };
 
     this._startCover = function()
     {
@@ -1957,7 +1933,7 @@ function CTransitionAnimation(htmlpage)
         }
 
         oThis.TimerId = __nextFrame(oThis._startCover);
-    }
+    };
 
     this._startClock = function()
     {
@@ -2419,7 +2395,7 @@ function CTransitionAnimation(htmlpage)
         _ctx2.restore();
 
         oThis.TimerId = __nextFrame(oThis._startClock);
-    }
+    };
 
     this._startZoom = function()
     {
@@ -2653,7 +2629,7 @@ function CTransitionAnimation(htmlpage)
 
 
         oThis.TimerId = __nextFrame(oThis._startZoom);
-    }
+    };
 }
 
 function CDemonstrationManager(htmlpage)
@@ -2705,22 +2681,11 @@ function CDemonstrationManager(htmlpage)
     {
         var _w = this.Transition.Rect.w;
         var _h = this.Transition.Rect.h;
-        var _w_mm = this.HtmlPage.m_oLogicDocument.GetWidthMM();
-        var _h_mm = this.HtmlPage.m_oLogicDocument.GetHeightMM();
-
         var _image = this.CacheImagesManager.Lock(_w, _h);
+        var oSlide = this.HtmlPage.m_oLogicDocument.GetSlide(slide_num);
+        var oPlayer = new AscFormat.CAnimationPlayer(oSlide, this);
 
-        var g = new AscCommon.CGraphics();
-        g.init(_image.image.getContext('2d'), _w, _h, _w_mm, _h_mm);
-        g.m_oFontManager = AscCommon.g_fontManager;
-
-        g.transform(1,0,0,1,0,0);
-        g.IsNoDrawingEmptyPlaceholder = true;
-
-        if (this.HtmlPage.DemonstrationManager.Mode)
-            g.IsDemonstrationMode = true;
-
-        this.HtmlPage.m_oLogicDocument.DrawPage(slide_num, g);
+        oPlayer.drawFrame(_image.image, {x:0, y: 0, w: _w, h: _h});
 
         this.SlideImages[slide_index] = new CCacheSlideImage();
         this.SlideImages[slide_index].Image = _image;
@@ -3472,7 +3437,7 @@ function CDemonstrationManager(htmlpage)
             }
             return;
         }
-        oPlayer.drawFrame(oThis.Canvas, oThis.Transition.Rect);
+        oPlayer.drawFrame(oThis.Canvas, this.Transition.Rect);
     };
 
     // manipulators

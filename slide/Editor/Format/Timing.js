@@ -7003,6 +7003,7 @@
         this.sandwiches = {};//map by drawing id
         this.texturesCache = new CTexturesCache(this);
         this.hiddenObjects = {};
+        this.collectHiddenObjects();
     }
     CAnimationDrawer.prototype.clearSandwiches = function() {
         this.sandwiches = {};
@@ -7028,11 +7029,20 @@
         if(!oSlide) {
             return;
         }
-        var oCtx = oCanvas.getContext('2d');
         var oGraphics = this.createGraphics(oCanvas, oRect);
-        oGraphics.m_oContext.clearRect(0, 0, oCanvas.width, oCanvas.height);
+        oGraphics.m_oContext.clearRect(0, 0, oRect.width, oRect.height);
+        var bClip = false;
+        if(oRect.x !== 0 || oRect.y !== 0 ||
+            oRect.width !== oCanvas.width || oRect.height !== oCanvas.height) {
+            oGraphics.SaveGrState();
+            oGraphics.AddClipRect(0, 0, this.getSlideWidth(), this.getSlideHeight());
+            bClip = true;
+        }
         oGraphics.animationDrawer = this;
         oSlide.draw(oGraphics);
+        if(bClip) {
+            oGraphics.RestoreGrState();
+        }
     };
     CAnimationDrawer.prototype.drawObject = function(oDrawing, oGraphics) {
         var sDrawingId = oDrawing.Get_Id();
@@ -7057,13 +7067,16 @@
         var wMM = this.getSlideWidth();
         var hMM = this.getSlideHeight();
         var oGraphics = new AscCommon.CGraphics();
-        oGraphics.init(oCanvas.getContext('2d'), wPix, hPix, wMM, hMM);
+        var oCtx = oCanvas.getContext('2d');
+        oGraphics.init(oCtx, wPix, hPix, wMM, hMM);
         oGraphics.m_oCoordTransform.tx = oRect.x;
         oGraphics.m_oCoordTransform.ty = oRect.y;
         oGraphics.m_oFontManager = AscCommon.g_fontManager;
         oGraphics.transform(1,0,0,1,0,0);
         oGraphics.IsNoDrawingEmptyPlaceholder = true;
-        oGraphics.IsDemonstrationMode = true;
+        if(editor.WordControl.DemonstrationManager.Mode) {
+            oGraphics.IsDemonstrationMode = true;
+        }
         return oGraphics;
     };
     CAnimationDrawer.prototype.onRecalculateFrame = function() {
@@ -7114,6 +7127,18 @@
             }
         }
     };
+    CAnimationDrawer.prototype.collectHiddenObjects = function() {
+        var aTimings = this.player.timings;
+        var oThis = this;
+        for(var nTiming = 0; nTiming < aTimings.length; ++nTiming) {
+            var oRoot = aTimings[nTiming].getTimingRootNode();
+            if(oRoot) {
+                oRoot.traverseTimeNodes(function(oTimeNode) {
+                    oThis.checkHiddenObject(oTimeNode);
+                });
+            }
+        }
+    };
 
     function CAnimationPlayer(oSlide, drawer) {
         this.timings = [];
@@ -7125,6 +7150,12 @@
         }
         if(oSlide.Layout.Master.timing) {
             this.timings.push(oSlide.Layout.Master.timing);
+        }
+        for(var nTiming = 0; nTiming < this.timings.length; ++nTiming) {
+            var oRoot = this.timings[nTiming].getTimingRootNode();
+            if(oRoot) {
+                oRoot.resetState();
+            }
         }
         this.eventsProcessor = new CEventsProcessor(this);
         this.animationScheduler = new CAnimationScheduler(this);
@@ -7142,14 +7173,10 @@
         return this.getPresentation().GetHeightMM();
     };
     CAnimationPlayer.prototype.start = function() {
-        var oThis = this;
         this.timer.start();
         for(var nTiming = 0; nTiming < this.timings.length; ++nTiming) {
             var oRoot = this.timings[nTiming].getTimingRootNode();
             if(oRoot) {
-                oRoot.traverseTimeNodes(function(oTimeNode){
-                    oThis.animationDrawer.checkHiddenObject(oTimeNode);
-                });
                 oRoot.resetState();
                 oRoot.scheduleStart(this);
             }
