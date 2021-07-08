@@ -59,19 +59,22 @@
     EditShapeGeometryTrack.prototype.track = function(e, posX, posY) {
 
         var geometry = this.originalObject.calcGeometry;
-        var arrPathCommand = geometry.pathLst[0].ArrPathCommand;
         geometry.gdLstInfo = [];
         geometry.cnxLstInfo = [];
-        geometry.pathLst[0].ArrPathCommandInfo = [];
         geometry.rectS = null;
 
+        for(var i = 0; i < geometry.pathLst.length; i++) {
+            geometry.pathLst[i].ArrPathCommandInfo = [];
+        }
+
         var invert_transform = this.invertTransform;
-        var transform = this.transform;
         var _relative_x = invert_transform.TransformPointX(posX, posY);
         var _relative_y = invert_transform.TransformPointY(posX, posY);
         var originalPoint = geometry.originalEditPoint;
         var nextPoint = geometry.gmEditPoint.nextPoint;
         var prevPoint = geometry.gmEditPoint.prevPoint;
+        var arrPathCommand = geometry.pathLst[geometry.gmEditPoint.pathIndex].ArrPathCommand;
+
         var curFirstCommand = arrPathCommand[originalPoint.pathC1];
         var curSecondCommand = arrPathCommand[originalPoint.pathC2];
 
@@ -162,7 +165,7 @@
             }
 
         /*<------------------------------------------------------------->*/
-        var last_x = geometry.gmEditList[0].X,
+        /*var last_x = geometry.gmEditList[0].X,
             last_y = geometry.gmEditList[0].Y,
             xMin = last_x, yMin = last_y, xMax = last_x, yMax = last_y;
         for(var i = 0; i < arrPathCommand.length; ++i) {
@@ -241,7 +244,7 @@
             }
         }
 
-        geometry.pathLst[0].pathW = pathW, geometry.pathLst[0].pathH = pathH;
+        geometry.pathLst[0].pathW = pathW, geometry.pathLst[0].pathH = pathH;*/
     };
 
     EditShapeGeometryTrack.prototype.getBounds = function() {
@@ -287,179 +290,185 @@
 
     EditShapeGeometryTrack.prototype.convertToBezier = function(geom) {
 
-        var pathPoints = geom.pathLst[0].ArrPathCommand;
-
-        for(var i = 0; i < pathPoints.length; i++) {
-            if(pathPoints[i].id === 2 && geom.ellipsePointsList.length === 0)
-                return;
-        };
-
-        geom.gmEditList = [];
         var countArc = 0;
+        geom.gmEditList = [];
 
-     for(var i = 0; i < pathPoints.length; i++) {
-            var elem = pathPoints[i];
-            var elemX, elemY;
-            switch (elem.id) {
-                case 0:
-                case 1:
-                    elemX = elem.X;
-                    elemY = elem.Y;
-                    break;
-                case 2:
-                    if (geom.ellipsePointsList[countArc]) {
-                        pathPoints.splice(i, 1);
-                        geom.ellipsePointsList[countArc].forEach(function (elem) {
-                            var elemArc = {
+        for(var j = 0; j < geom.pathLst.length; j++) {
+            var pathPoints = geom.pathLst[j].ArrPathCommand;
+
+            for (var i = 0; i < pathPoints.length; i++) {
+                if (pathPoints[i].id === 2 && geom.ellipsePointsList.length === 0)
+                    return;
+            }
+
+
+            for (var i = 0; i < pathPoints.length; i++) {
+                var elem = pathPoints[i];
+                var elemX, elemY;
+                switch (elem.id) {
+                    case 0:
+                    case 1:
+                        elemX = elem.X;
+                        elemY = elem.Y;
+                        break;
+                    case 2:
+                        if (geom.ellipsePointsList[countArc]) {
+                            pathPoints.splice(i, 1);
+                        // && geom.ellipsePointsList[countArc].arrPathElement === j
+                            geom.ellipsePointsList[countArc].forEach(function (elem) {
+                                var elemArc = {
+                                    id: 4,
+                                    X: elem.X2,
+                                    Y: elem.Y2,
+                                    X0: elem.X0,
+                                    Y0: elem.Y0,
+                                    X1: elem.X1,
+                                    Y1: elem.Y1,
+                                    X2: elem.X2,
+                                    Y2: elem.Y2,
+                                    isEllipseArc: true
+                                }
+
+                                pathPoints.splice(i, 0, elemArc);
+                                i++;
+                            })
+                            i = i - 1;
+                            countArc++;
+                        }
+                        break;
+                    case 3:
+                        elemX = elem.X1;
+                        elemY = elem.Y1;
+                        break;
+                    case 4:
+                        elemX = elem.X2;
+                        elemY = elem.Y2;
+                        break;
+                }
+
+                if (elemX !== undefined && elemY !== undefined && elem.id !== 2 && elem.id !== 5) {
+                    pathPoints[i] = elem;
+                    pathPoints[i].X = elemX;
+                    pathPoints[i].Y = elemY;
+                    elemX = null;
+                    elemY = null;
+                }
+            };
+
+            var index = 0, start_index;
+            // insert pathCommand when end point is not equal to the start point, then draw a line between them
+            for (var cur_index = 0; cur_index < pathPoints.length; cur_index++) {
+                while (pathPoints[cur_index + index] && pathPoints[cur_index + index].id !== 5) {
+                    ++index;
+                }
+                var prevCommand = !pathPoints[index + cur_index] ? pathPoints[1] : pathPoints[index + cur_index - 1];
+
+                if (pathPoints[cur_index].id === 0) {
+                    start_index = cur_index;
+                }
+
+                if (pathPoints[cur_index].id === 5) {
+                    var firstPointX = parseFloat(pathPoints[start_index].X.toFixed(4));
+                    var firstPointY = parseFloat(pathPoints[start_index].Y.toFixed(4));
+                    var lastPointX = parseFloat(prevCommand.X.toFixed(4));
+                    var lastPointY = parseFloat(prevCommand.Y.toFixed(4));
+                    if (firstPointX !== lastPointX || firstPointY !== lastPointY) {
+                        pathPoints.splice(cur_index, 0,
+                            {
                                 id: 4,
-                                X: elem.X2,
-                                Y: elem.Y2,
-                                X0: elem.X0,
-                                Y0: elem.Y0,
-                                X1: elem.X1,
-                                Y1: elem.Y1,
-                                X2: elem.X2,
-                                Y2: elem.Y2,
-                                isEllipseArc: true
-                            }
-
-                            pathPoints.splice(i, 0, elemArc);
-                            i++;
-                        })
-                        i = i - 1;
-                        countArc++;
+                                X0: (prevCommand.X + pathPoints[start_index].X / 2) / (3 / 2),
+                                Y0: (prevCommand.Y + pathPoints[start_index].Y / 2) / (3 / 2),
+                                X1: (prevCommand.X + pathPoints[start_index].X * 2) / 3,
+                                Y1: (prevCommand.Y + pathPoints[start_index].Y * 2) / 3,
+                                X2: pathPoints[start_index].X,
+                                Y2: pathPoints[start_index].Y,
+                                X: pathPoints[start_index].X,
+                                Y: pathPoints[start_index].Y,
+                                isLine: true
+                            });
+                        ++cur_index;
                     }
-                    break;
-                case 3:
-                    elemX = elem.X1;
-                    elemY = elem.Y1;
-                    break;
-                case 4:
-                    elemX = elem.X2;
-                    elemY = elem.Y2;
-                    break;
+                }
+                index = 0;
             }
 
-            if (elemX !== undefined && elemY !== undefined && elem.id !== 2 && elem.id !== 5) {
-                pathPoints[i] = elem;
-                pathPoints[i].X = elemX;
-                pathPoints[i].Y = elemY;
-                elemX = null;
-                elemY = null;
-            }
-        };
-
-        var index = 0, start_index;
-        // insert pathCommand when end point is not equal to the start point, then draw a line between them
-        for(var cur_index = 0; cur_index < pathPoints.length; cur_index++) {
-            while (pathPoints[cur_index + index] && pathPoints[cur_index + index].id !== 5) {
-                ++index;
-            }
-            var prevCommand = !pathPoints[index + cur_index] ? pathPoints[1] : pathPoints[index + cur_index - 1];
-
-            if (pathPoints[cur_index].id === 0) {
-                start_index = cur_index;
-            }
-
-            if (pathPoints[cur_index].id === 5) {
-                var firstPointX = parseFloat(pathPoints[start_index].X.toFixed(4));
-                var firstPointY = parseFloat(pathPoints[start_index].Y.toFixed(4));
-                var lastPointX = parseFloat(prevCommand.X.toFixed(4));
-                var lastPointY = parseFloat(prevCommand.Y.toFixed(4));
-                if (firstPointX !== lastPointX || firstPointY !== lastPointY) {
-                    pathPoints.splice(cur_index, 0,
-                        {
+            var index = 0;
+            pathPoints.forEach(function (elem, cur_index) {
+                while (pathPoints[cur_index + index] && pathPoints[cur_index + index].id !== 5) {
+                    ++index;
+                }
+                var prevCommand = pathPoints[cur_index - 1];
+                switch (elem.id) {
+                    case 1:
+                        pathPoints[cur_index] = {
                             id: 4,
-                            X0: (prevCommand.X + pathPoints[start_index].X / 2) / (3 / 2),
-                            Y0: (prevCommand.Y + pathPoints[start_index].Y / 2) / (3 / 2),
-                            X1: (prevCommand.X + pathPoints[start_index].X * 2) / 3,
-                            Y1: (prevCommand.Y + pathPoints[start_index].Y * 2) / 3,
-                            X2: pathPoints[start_index].X,
-                            Y2: pathPoints[start_index].Y,
-                            X: pathPoints[start_index].X,
-                            Y: pathPoints[start_index].Y,
+                            X0: (prevCommand.X + elem.X / 2) / (3 / 2),
+                            Y0: (prevCommand.Y + elem.Y / 2) / (3 / 2),
+                            X1: (prevCommand.X + elem.X * 2) / 3,
+                            Y1: (prevCommand.Y + elem.Y * 2) / 3,
+                            X2: elem.X,
+                            Y2: elem.Y,
+                            X: elem.X,
+                            Y: elem.Y,
                             isLine: true
-                        });
-                    ++cur_index;
+                        }
+                        break;
+                    case 3:
+                        pathPoints[cur_index] = {
+                            id: 4,
+                            X0: (elem.X0 + prevCommand.X) / 2,
+                            Y0: (elem.Y0 + prevCommand.Y) / 2,
+                            X1: (elem.X1 + elem.X0) / 2,
+                            Y1: (elem.Y1 + elem.Y0) / 2,
+                            X2: elem.X1,
+                            Y2: elem.Y1,
+                            X: elem.X,
+                            Y: elem.Y,
+                        }
+                        break;
+
+                }
+
+                index = 0;
+            });
+
+            var startIndex;
+            for (var index = 0; index < pathPoints.length; index++) {
+                if (pathPoints[index].id !== 5 && pathPoints[index].id !== 0) {
+
+                    if (pathPoints[index - 1].id === 0)
+                        startIndex = index;
+
+                    var curCommand = pathPoints[index];
+                    var nextIndex = (index + 1 <= pathPoints.length - 1) ? (pathPoints[index + 1].id === 5 ? startIndex : index + 1) : 1;
+                    var nextCommand = pathPoints[nextIndex];
+
+                    var curPoint = {
+                        id: curCommand.id,
+                        g1X: curCommand.X1,
+                        g1Y: curCommand.Y1,
+                        g2X: nextCommand.X0,
+                        g2Y: nextCommand.Y0,
+                        X: curCommand.X,
+                        Y: curCommand.Y,
+                        pathC1: index,
+                        pathC2: nextIndex,
+                        pathIndex: j
+                    };
+                    geom.gmEditList.push(curPoint);
                 }
             }
-            index = 0;
         }
 
-        var index = 0;
-       pathPoints.forEach(function(elem, cur_index) {
-           while (pathPoints[cur_index + index] && pathPoints[cur_index + index].id !== 5) {
-               ++index;
-           }
-           var prevCommand = (pathPoints[cur_index - 1] && pathPoints[cur_index - 1].id === 0) ? pathPoints[index + cur_index - 1] : pathPoints[cur_index - 1];
-           switch (elem.id) {
-               case 1:
-                   pathPoints[cur_index] = {
-                       id: 4,
-                       X0: (prevCommand.X + elem.X / 2) / (3 / 2),
-                       Y0: (prevCommand.Y + elem.Y / 2) / (3 / 2),
-                       X1: (prevCommand.X + elem.X * 2) / 3,
-                       Y1: (prevCommand.Y + elem.Y * 2) / 3,
-                       X2: elem.X,
-                       Y2: elem.Y,
-                       X: elem.X,
-                       Y: elem.Y,
-                       isLine: true
-                   }
-                   break;
-               case 3:
-                   pathPoints[cur_index] = {
-                       id: 4,
-                       X0: (elem.X0 + prevCommand.X) / 2,
-                       Y0: (elem.Y0 + prevCommand.Y) / 2,
-                       X1: (elem.X1 + elem.X0) / 2,
-                       Y1: (elem.Y1 + elem.Y0) / 2,
-                       X2: elem.X1,
-                       Y2: elem.Y1,
-                       X: elem.X,
-                       Y: elem.Y,
-                   }
-                   break;
-
-           }
-
-           index = 0;
-       });
-
-        var startIndex;
-
-        for (var index = 0; index < pathPoints.length; index++) {
-            if(pathPoints[index].id !== 5 && pathPoints[index].id !== 0) {
-
-                if (pathPoints[index - 1].id === 0)
-                    startIndex = index;
-
-                var curCommand = pathPoints[index];
-                var nextIndex = (index + 1 <= pathPoints.length - 1) ? (pathPoints[index + 1].id === 5 ? startIndex : index + 1) : 1;
-                var nextCommand = pathPoints[nextIndex];
-
-                var curPoint = {
-                    id: curCommand.id,
-                    g1X: curCommand.X1,
-                    g1Y: curCommand.Y1,
-                    g2X: nextCommand.X0,
-                    g2Y: nextCommand.Y0,
-                    X: curCommand.X,
-                    Y: curCommand.Y,
-                    pathC1: index,
-                    pathC2: nextIndex,
-                };
-                geom.gmEditList.push(curPoint);
-            }
-        }
-
+        var startIndex = 0;
         for (var cur_index = 0; cur_index < geom.gmEditList.length; cur_index++) {
-            var next_path =  geom.gmEditList[cur_index].pathC2;
-            for(var index = 0; index < geom.gmEditList.length; index++) {
-                if(geom.gmEditList[index].pathC1 === next_path) {
-                    geom.gmEditList[cur_index].nextPoint = geom.gmEditList[index];
-                    geom.gmEditList[index].prevPoint = geom.gmEditList[cur_index];
-                }
+            if(geom.gmEditList[cur_index].pathC2 > geom.gmEditList[cur_index].pathC1) {
+                geom.gmEditList[cur_index].nextPoint = geom.gmEditList[cur_index + 1];
+                geom.gmEditList[cur_index + 1].prevPoint = geom.gmEditList[cur_index];
+            } else {
+                geom.gmEditList[cur_index].nextPoint =  geom.gmEditList[startIndex];
+                geom.gmEditList[startIndex].prevPoint = geom.gmEditList[cur_index];
+                startIndex = cur_index + 1;
             }
         }
         this.isConverted = true;

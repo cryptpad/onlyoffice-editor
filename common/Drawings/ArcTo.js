@@ -37,7 +37,7 @@
     var HitInBezier4 = AscFormat.HitInBezier4;
     
     // arcTo new version
-    function Arc3(ctx, fX, fY, fWidth, fHeight, fStartAngle, fSweepAngle, geom, pathCommand)
+    function Arc3(ctx, fX, fY, fWidth, fHeight, fStartAngle, fSweepAngle, geom, arrPathElement)
     {
         var sin1 = Math.sin(fStartAngle);
         var cos1 = Math.cos(fStartAngle);
@@ -49,10 +49,10 @@
         var cx = fX - l * cos1;
         var cy = fY - l * sin1;
 
-        Arc2(ctx, cx - fWidth, cy - fHeight, 2 * fWidth, 2 * fHeight, fStartAngle, fSweepAngle, geom, pathCommand);
+        Arc2(ctx, cx - fWidth, cy - fHeight, 2 * fWidth, 2 * fHeight, fStartAngle, fSweepAngle, geom, arrPathElement);
     }
 
-    function Arc2(ctx, fX, fY, fWidth, fHeight, fStartAngle, fSweepAngle, geom, pathCommand)
+    function Arc2(ctx, fX, fY, fWidth, fHeight, fStartAngle, fSweepAngle, geom, arrPathElement)
     {
         if (0 >= fWidth || 0 >= fHeight)
             return;
@@ -79,11 +79,11 @@
 
         if(Math.abs(fSweepAngle) >= (2 * Math.PI))
         {
-            Ellipse(ctx, fX + fWidth / 2, fY + fHeight / 2, fWidth / 2, fHeight / 2, geom, pathCommand);
+            Ellipse(ctx, fX + fWidth / 2, fY + fHeight / 2, fWidth / 2, fHeight / 2, geom, arrPathElement);
         }
         else
         {
-            EllipseArc(ctx, fX + fWidth / 2, fY + fHeight / 2, fWidth / 2, fHeight / 2, fSrtAngle, fEndAngle, bClockDirection, geom, pathCommand);
+            EllipseArc(ctx, fX + fWidth / 2, fY + fHeight / 2, fWidth / 2, fHeight / 2, fSrtAngle, fEndAngle, bClockDirection, geom, arrPathElement);
         }
     }
 
@@ -112,7 +112,7 @@
         }
     }
 
-    function EllipseArc(ctx, fX, fY, fXRad, fYRad, fAngle1, fAngle2, bClockDirection, geom, pathCommand)
+    function EllipseArc(ctx, fX, fY, fXRad, fYRad, fAngle1, fAngle2, bClockDirection, geom, arrPathElement)
     {
         while ( fAngle1 < 0 )
             fAngle1 += (2 * Math.PI);
@@ -129,35 +129,27 @@
         if ( !bClockDirection )
         {
             if ( fAngle1 <= fAngle2 )
-                EllipseArc2(ctx, fX, fY, fXRad, fYRad, fAngle1, fAngle2, false, geom, pathCommand);
+                EllipseArc2(ctx, fX, fY, fXRad, fYRad, fAngle1, fAngle2, false, geom, arrPathElement);
             else
             {
-                var isPoint;
-                if(geom) {
-                    isPoint = fAngle1 === 2 * Math.PI ? true : false;
-                }
-                EllipseArc2(ctx, fX, fY, fXRad, fYRad, fAngle1, 2 * Math.PI, false, geom, pathCommand, isPoint);
+                EllipseArc2(ctx, fX, fY, fXRad, fYRad, fAngle1, 2 * Math.PI, false, geom, arrPathElement);
 
-                if(geom) {
-                    isPoint = fAngle2 === 0 ? true : false;
-                }
-
-                EllipseArc2(ctx, fX, fY, fXRad, fYRad, 0, fAngle2, false, geom, pathCommand, isPoint);
+                EllipseArc2(ctx, fX, fY, fXRad, fYRad, 0, fAngle2, false, geom, arrPathElement);
             }
         }
         else
         {
             if ( fAngle1 >= fAngle2 )
-                EllipseArc2(ctx, fX, fY, fXRad, fYRad, fAngle1, fAngle2, true, geom, pathCommand);
+                EllipseArc2(ctx, fX, fY, fXRad, fYRad, fAngle1, fAngle2, true, geom, arrPathElement);
             else
             {
-                EllipseArc2(ctx, fX, fY, fXRad, fYRad, fAngle1, 0, true, geom, pathCommand);
-                EllipseArc2(ctx, fX, fY, fXRad, fYRad, 2 * Math.PI, fAngle2, true, geom, pathCommand, true);
+                EllipseArc2(ctx, fX, fY, fXRad, fYRad, fAngle1, 0, true, geom, arrPathElement);
+                EllipseArc2(ctx, fX, fY, fXRad, fYRad, 2 * Math.PI, fAngle2, true, geom, arrPathElement);
             }
         }
     }
 
-    function EllipseArc2(ctx, fX, fY, fXRad, fYRad, dAngle1, dAngle2, bClockDirection, geom, pathCommand, isPoint)
+    function EllipseArc2(ctx, fX, fY, fXRad, fYRad, dAngle1, dAngle2, bClockDirection, geom, arrPathElement)
     {
         var nFirstPointQuard  = ((2 * dAngle1 / Math.PI) >> 0) + 1;
         var nSecondPointQuard = ((2 * dAngle2 / Math.PI) >> 0) + 1;
@@ -170,10 +162,8 @@
         var EndPoint = {X: 0, Y: 0};
         //ctx._l(fStartX, fStartY);
 
-        var fCurX = fStartX, fCurY = fStartY;
         var dStartAngle = dAngle1;
         var dEndAngle = 0;
-        var editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
         var ellipseArcPoints = [];
         if ( !bClockDirection )
         {
@@ -186,7 +176,7 @@
                 if ( !( nIndex == nFirstPointQuard ) )
                     dStartAngle = (nIndex - 1 ) * Math.PI / 2;
 
-                EndPoint = EllipseArc3(ctx, fX, fY, fXRad, fYRad, AngToEllPrm( dStartAngle, fXRad, fYRad ), AngToEllPrm( dEndAngle, fXRad, fYRad ), false, pathCommand);
+                EndPoint = EllipseArc3(ctx, fX, fY, fXRad, fYRad, AngToEllPrm( dStartAngle, fXRad, fYRad ), AngToEllPrm( dEndAngle, fXRad, fYRad ), false, arrPathElement);
                 if (geom) {
                     var flag = false;
                     if (!flag && (EndPoint.X0 !== EndPoint.X1 || EndPoint.X1 !== EndPoint.X2) && (EndPoint.Y0 !== EndPoint.Y1 || EndPoint.Y1 !== EndPoint.Y2)) {
@@ -194,8 +184,10 @@
                     }
                 }
             }
-            if (geom && ellipseArcPoints.length !== 0)
+            if (geom && ellipseArcPoints.length !== 0) {
                 geom.ellipsePointsList.push(ellipseArcPoints);
+                geom.ellipsePointsList[geom.ellipsePointsList.length - 1].arrPathElement = arrPathElement
+            }
         }
         else
         {
@@ -210,17 +202,21 @@
                 else
                     dEndAngle = dAngle2;
 
-                EndPoint = EllipseArc3(ctx, fX, fY, fXRad, fYRad, AngToEllPrm( dStartAngle, fXRad, fYRad ), AngToEllPrm( dEndAngle, fXRad, fYRad ), false, pathCommand);
+                EndPoint = EllipseArc3(ctx, fX, fY, fXRad, fYRad, AngToEllPrm( dStartAngle, fXRad, fYRad ), AngToEllPrm( dEndAngle, fXRad, fYRad ), false, arrPathElement);
                 if (geom) {
                     var flag = false;
                     if (!flag && (EndPoint.X0 !== EndPoint.X1 || EndPoint.X1 !== EndPoint.X2) && (EndPoint.Y0 !== EndPoint.Y1 || EndPoint.Y1 !== EndPoint.Y2))
                         ellipseArcPoints.push(EndPoint);
                 }
             }
+            if (geom && ellipseArcPoints.length !== 0) {
+                geom.ellipsePointsList.push(ellipseArcPoints);
+                geom.ellipsePointsList[geom.ellipsePointsList.length - 1].arrPathElement = arrPathElement;
+            }
         }
     }
 
-    function EllipseArc3(ctx, fX, fY, fXRad, fYRad, dAngle1, dAngle2, bClockDirection, pathCommand)
+    function EllipseArc3(ctx, fX, fY, fXRad, fYRad, dAngle1, dAngle2, bClockDirection, arrPathElement)
     {
         var fAlpha = Math.sin( dAngle2 - dAngle1 ) * ( Math.sqrt( 4.0 + 3.0 * Math.tan( (dAngle2 - dAngle1) / 2.0 ) * Math.tan( (dAngle2 - dAngle1) / 2.0 ) ) - 1.0 ) / 3.0;
 
@@ -244,12 +240,12 @@
         if ( !bClockDirection )
         {
             ctx._c(fCX1, fCY1, fCX2, fCY2, fX2, fY2);
-            return {X: fX2, Y: fY2, id: 2, fX1, fY1, fX2, fY2, X0: fCX1, Y0: fCY1, X1: fCX2, Y1: fCY2, X2: fX2, Y2: fY2, dAngle1, dAngle2, pathCommand};
+            return {X: fX2, Y: fY2, id: 2, fX1, fY1, fX2, fY2, X0: fCX1, Y0: fCY1, X1: fCX2, Y1: fCY2, X2: fX2, Y2: fY2, dAngle1, dAngle2};
         }
         else
         {
             ctx._c(fCX2, fCY2, fCX1, fCY1, fX1, fY1);
-            return {X: fX1, Y: fY1, id: 2, fX1, fY1, fX2, fY2, X0: fCX1, Y0: fCY1, X1: fCX2, Y1: fCY2, dAngle1, dAngle2, pathCommand};
+            return {X: fX1, Y: fY1, id: 2, fX1, fY1, fX2, fY2, X0: fCX1, Y0: fCY1, X1: fCX2, Y1: fCY2, dAngle1, dAngle2};
         }
     }
 

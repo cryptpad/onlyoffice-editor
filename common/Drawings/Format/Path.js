@@ -695,7 +695,7 @@ Path.prototype = {
         }
     },
 
-    draw: function(shape_drawer)
+    draw: function(shape_drawer, arrPathElement)
     {
         if (shape_drawer.bIsCheckBounds === true && this.fill == "none")
         {
@@ -737,7 +737,7 @@ Path.prototype = {
                 case arcTo:
                 {
                     bIsDrawLast = true;
-                    ArcToCurvers(shape_drawer, cmd.stX, cmd.stY, cmd.wR, cmd.hR, cmd.stAng, cmd.swAng, shape_drawer.Shape.calcGeometry, j);
+                    ArcToCurvers(shape_drawer, cmd.stX, cmd.stY, cmd.wR, cmd.hR, cmd.stAng, cmd.swAng, shape_drawer.Shape.calcGeometry, arrPathElement);
                     break;
                 }
                 case close:

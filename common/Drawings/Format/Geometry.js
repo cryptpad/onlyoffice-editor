@@ -1252,7 +1252,7 @@ Geometry.prototype=
             return;
         }
         for (var i=0, n=this.pathLst.length; i<n;++i)
-            this.pathLst[i].draw(shape_drawer);
+            this.pathLst[i].draw(shape_drawer, i);
     },
 
     drawSmart: function(shape_drawer)
