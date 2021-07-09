@@ -3011,9 +3011,6 @@
         if(this.tgtEl) {
             sSpId = this.tgtEl.getSpId();
         }
-        if(!sSpId) {
-            return null;
-        }
         return new CExternalEvent(oPlayer.eventsProcessor, nType, sSpId);
     };
     CCond.prototype.createEventTrigger = function (oPlayer, fEvent) {
@@ -3142,11 +3139,13 @@
                 break;
             }
             case COND_EVNT_ON_NEXT: {
-                oTrigger.addTrigger(this.createOnNextTrigger(oPlayer));
+                //oTrigger.addTrigger(this.createOnNextTrigger(oPlayer));
+                oTrigger.setExternalEvent(this.createExternalEventSimpleTrigger(oPlayer, COND_EVNT_ON_NEXT));
                 break;
             }
             case COND_EVNT_ON_PREV: {
-                oTrigger.addTrigger(this.createOnPrevTrigger(oPlayer));
+                //oTrigger.addTrigger(this.createOnPrevTrigger(oPlayer));
+                oTrigger.setExternalEvent(this.createExternalEventSimpleTrigger(oPlayer, COND_EVNT_ON_PREV));
                 break;
             }
             case COND_EVNT_ON_STOPAUDIO: {
@@ -5382,8 +5381,8 @@
         if(aChildren.length > 0) {
             aChildren[0].scheduleStart(oPlayer);
         }
-        //this.scheduleNext(oPlayer);
-        //this.schedulePrev(oPlayer);
+        this.scheduleNext(oPlayer);
+        this.schedulePrev(oPlayer);
     };
     CSeq.prototype.getActiveChildIdx = function() {
         var aChildren = this.getChildrenTimeNodes();
@@ -5407,31 +5406,45 @@
     CSeq.prototype.scheduleNext = function(oPlayer) {
         if(this.nextCondLst) {
             var oThis = this;
-            oPlayer.scheduleEvent(new CAnimEvent(function() {
+            var oComplexTrigger = this.nextCondLst.createComplexTrigger(oPlayer);
+            if(oComplexTrigger.isFired()) {
+                var nTime = oPlayer.getElapsedTicks() + 1;
+                oComplexTrigger.addTrigger(function() {
+                    return nTime <= oPlayer.getElapsedTicks();
+                });
+            }
+            var oEvent = new CAnimEvent(function() {
                 var aChildren = oThis.getChildrenTimeNodes();
                 var nActive  = oThis.getActiveChildIdx();
                 if(nActive > -1 && nActive < aChildren.length - 1) {
-                    aChildren[nActive].finishCallback(oPlayer);
+                    aChildren[nActive].getEndCallback(oPlayer)();
                     aChildren[nActive + 1].activateCallback(oPlayer);
-                    oThis.scheduleNext(oPlayer);
-                    oThis.schedulePrev(oPlayer);
                 }
-            }, this.nextCondLst.createComplexTrigger(), this));
+                oThis.scheduleNext(oPlayer);
+            }, oComplexTrigger, this);
+            oPlayer.scheduleEvent(oEvent);
         }
     };
     CSeq.prototype.schedulePrev = function(oPlayer) {
         if(this.prevCondLst) {
             var oThis = this;
-            oPlayer.scheduleEvent(new CAnimEvent(function() {
+            var oComplexTrigger = this.prevCondLst.createComplexTrigger(oPlayer);
+            if(oComplexTrigger.isFired()) {
+                var nTime = oPlayer.getElapsedTicks() + 1;
+                oComplexTrigger.addTrigger(function() {
+                    return nTime <= oPlayer.getElapsedTicks();
+                });
+            }
+            var oEvent = new CAnimEvent(function() {
                 var aChildren = oThis.getChildrenTimeNodes();
                 var nActive  = oThis.getActiveChildIdx();
                 if(nActive > -1 && nActive > 0) {
-                    aChildren[nActive].finishCallback(oPlayer);
+                    aChildren[nActive].getEndCallback(oPlayer)();
                     aChildren[nActive - 1].activateCallback(oPlayer);
-                    oThis.scheduleNext(oPlayer);
-                    oThis.schedulePrev(oPlayer);
                 }
-            }, this.prevCondLst.createComplexTrigger(), this));
+                oThis.schedulePrev(oPlayer);
+            }, oComplexTrigger, this);
+            oPlayer.scheduleEvent(oEvent);
         }
     };
 
@@ -7100,7 +7113,7 @@
         return this.player.getSlideHeight();
     };
     CAnimationDrawer.prototype.getSlide = function() {
-        return editor.WordControl.m_oLogicDocument.Slides[editor.WordControl.m_oLogicDocument.CurPage];
+        return this.player.slide;
     };
     CAnimationDrawer.prototype.getSandwich = function(sId) {
         var oSandwich = this.sandwiches[sId];
@@ -7141,6 +7154,7 @@
     };
 
     function CAnimationPlayer(oSlide, drawer) {
+        this.slide = oSlide;
         this.timings = [];
         if(oSlide.timing) {
             this.timings.push(oSlide.timing);
@@ -7255,6 +7269,12 @@
             return false;
         }
         return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_MOUSEOUT, oSp.Get_Id()));
+    };
+    CAnimationPlayer.prototype.onNextSlide = function() {
+        return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_NEXT, null));
+    };
+    CAnimationPlayer.prototype.onPrevSlide = function() {
+        return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_PREV, null));
     };
     CAnimationPlayer.prototype.addAnimationToDraw = function(sDrawingId, oAnimation) {
         this.animationDrawer.addAnimationToDraw(sDrawingId, oAnimation);

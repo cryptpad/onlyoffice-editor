@@ -84,6 +84,7 @@ function CTransitionAnimation(htmlpage)
     this.DemonstrationObject = null;
 
     this.TimerId = null;
+    this.AnimTimerId = null;
     var oThis = this;
 
     this.CalculateRect = function()
@@ -2684,9 +2685,7 @@ function CDemonstrationManager(htmlpage)
         var _image = this.CacheImagesManager.Lock(_w, _h);
         var oSlide = this.HtmlPage.m_oLogicDocument.GetSlide(slide_num);
         var oPlayer = new AscFormat.CAnimationPlayer(oSlide, this);
-
         oPlayer.drawFrame(_image.image, {x:0, y: 0, w: _w, h: _h});
-
         this.SlideImages[slide_index] = new CCacheSlideImage();
         this.SlideImages[slide_index].Image = _image;
         this.SlideIndexes[slide_index] = slide_num;
@@ -2937,6 +2936,7 @@ function CDemonstrationManager(htmlpage)
         }
 
         oThis.StopTransition();
+        oThis.StopAnimation();
 
         if (oThis.SlideNum == oThis.SlidesCount)
         {
@@ -2980,14 +2980,33 @@ function CDemonstrationManager(htmlpage)
             }
             else
             {
-                var oSlide = this.HtmlPage.m_oLogicDocument.Slides[oThis.SlideNum];
-                oThis.player = new AscFormat.CAnimationPlayer(oSlide, this);
-                oThis.TimerId = __nextFrame(this.onPlayerFrame);
-                oThis.player.start();
+                var oSlide = this.HtmlPage.m_oLogicDocument.GetSlide(oThis.SlideNum);
+                oThis.StartAnimation(oSlide);
             }
         }
 
         oThis.OnPaintSlide(false);
+    };
+
+    this.StartAnimation = function(oSlide)
+    {
+        oThis.StopAnimation();
+        oThis.player = new AscFormat.CAnimationPlayer(oSlide, this);
+        oThis.AnimTimerId = __nextFrame(this.onPlayerFrame);
+        oThis.player.start();
+    };
+
+    this.StopAnimation = function()
+    {
+        if(oThis.player)
+        {
+            oThis.player.stop();
+        }
+        if(oThis.AnimTimerId)
+        {
+            __cancelFrame(oThis.AnimTimerId);
+            oThis.AnimTimerId = null;
+        }
     };
 
     this.StartSlideBackward = function()
@@ -2995,6 +3014,7 @@ function CDemonstrationManager(htmlpage)
         oThis.HtmlPage.m_oApi.hideVideoControl();
         var _is_transition = oThis.Transition.IsPlaying();
         oThis.StopTransition();
+        oThis.StopAnimation();
 
         if (oThis.SlideNum == oThis.SlidesCount)
         {
@@ -3081,17 +3101,16 @@ function CDemonstrationManager(htmlpage)
             oThis.HtmlPage.m_oApi.sync_DemonstrationSlideChanged(oThis.SlideNum);
         }
         this.OnPaintSlide(true);
-        var oSlide = this.HtmlPage.m_oLogicDocument.Slides[oThis.SlideNum];
-        oThis.player = new AscFormat.CAnimationPlayer(oSlide, this);
-        oThis.TimerId = __nextFrame(this.onPlayerFrame);
-        oThis.player.start();
+        var oSlide = this.HtmlPage.m_oLogicDocument.GetSlide(oThis.SlideNum);
+        oThis.StartAnimation(oSlide);
     };
     this.onPlayerFrame = function()
     {
         oThis.player.onFrame();
+        oThis.AnimTimerId = null;
         if (!oThis.Mode)
             return;
-        oThis.TimerId = __nextFrame(oThis.onPlayerFrame);
+        oThis.AnimTimerId = __nextFrame(oThis.onPlayerFrame);
     };
 
     this.OnPaintSlide = function(is_clear_overlay)
@@ -3125,7 +3144,7 @@ function CDemonstrationManager(htmlpage)
         if (!_transition)
             return;
 
-        if (_transition.SlideAdvanceAfter === true)
+        if (_transition.SlideAdvanceAfter === true && !_transition.SlideAdvanceOnMouseClick)
         {
             oThis.CheckSlideDuration = setTimeout(function()
             {
@@ -3170,6 +3189,7 @@ function CDemonstrationManager(htmlpage)
             return;
 
         this.StopTransition();
+        this.StopAnimation();
 
         if (null != this.DivEndPresentation)
         {
@@ -3326,7 +3346,7 @@ function CDemonstrationManager(htmlpage)
 		return this.SlidesCount - 1;
 	};
 
-    this.NextSlide = function(isNoSendFormReporter)
+    this.NextSlide = function(isNoSendFormReporter, isNoFromEvent)
     {
         if (!this.Mode)
             return;
@@ -3335,6 +3355,14 @@ function CDemonstrationManager(htmlpage)
 
         if (this.HtmlPage.m_oApi.isReporterMode && !isNoSendFormReporter)
 			this.HtmlPage.m_oApi.sendFromReporter("{ \"reporter_command\" : \"next\" }");
+
+        if(this.player && this.player.isStarted() && !isNoFromEvent)
+        {
+            if(this.player.onNextSlide())
+            {
+                return;
+            }
+        }
 
         this.CorrectSlideNum();
 
@@ -3370,6 +3398,14 @@ function CDemonstrationManager(htmlpage)
     {
         if (!this.Mode)
             return;
+
+        if(this.player && this.player.isStarted())
+        {
+            if(this.player.onPrevSlide())
+            {
+                return;
+            }
+        }
 
 		this.TmpSlideVisible = this.SlideNum;
 
@@ -3420,7 +3456,7 @@ function CDemonstrationManager(htmlpage)
 
         if (-1 == this.CheckSlideDuration)
         {
-            this.NextSlide(isNoSendFormReporter);
+            this.NextSlide(isNoSendFormReporter, true);
         }
     };
 
@@ -3432,9 +3468,7 @@ function CDemonstrationManager(htmlpage)
     this.OnRecalculateAnimationFrame = function(oPlayer)
     {
         if(!oThis.Canvas) {
-            if(oThis.TimerId) {
-                __cancelFrame(oThis.TimerId);
-            }
+            this.StopAnimation();
             return;
         }
         oPlayer.drawFrame(oThis.Canvas, this.Transition.Rect);
