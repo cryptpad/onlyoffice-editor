@@ -1013,6 +1013,7 @@ var GLOBAL_PATH_COUNT = 0;
         dlbl.txPr = oTxPr;
         dlbl.idx = idx;
         dlbl.tx = new AscFormat.CChartText();
+        dlbl.tx.setChart(oChart);
         dlbl.tx.rich = AscFormat.CreateTextBodyFromString(sText, oDrawingDocument, dlbl);
         var content = dlbl.tx.rich.content;
         content.SetApplyToAll(true);
@@ -4970,6 +4971,7 @@ var GLOBAL_PATH_COUNT = 0;
                         dlbl.spPr = y_ax.spPr;
                         dlbl.txPr = y_ax.txPr;
                         dlbl.tx = new AscFormat.CChartText();
+                        dlbl.tx.setChart(this);
                         dlbl.tx.rich = AscFormat.CreateTextBodyFromString(arr_strings[i], this.getDrawingDocument(), dlbl);
                         if(i > 0) {
                             dlbl.lastStyleObject = y_ax.labels.aLabels[0].lastStyleObject;
@@ -5018,6 +5020,7 @@ var GLOBAL_PATH_COUNT = 0;
                         dlbl.spPr = x_ax.spPr;
                         dlbl.txPr = x_ax.txPr;
                         dlbl.tx = new AscFormat.CChartText();
+                        dlbl.tx.setChart(this);
                         dlbl.tx.rich = AscFormat.CreateTextBodyFromString(string_pts[i].val.replace(oNonSpaceRegExp, ' '), this.getDrawingDocument(), dlbl);
                         if(x_ax.labels.aLabels[0]) {
                             dlbl.lastStyleObject = x_ax.labels.aLabels[0].lastStyleObject;
@@ -6135,6 +6138,7 @@ var GLOBAL_PATH_COUNT = 0;
                         dlbl.spPr = val_ax.spPr;
                         dlbl.txPr = val_ax.txPr;
                         dlbl.tx = new AscFormat.CChartText();
+                        dlbl.tx.setChart(this);
                         dlbl.tx.rich = AscFormat.CreateTextBodyFromString(arr_strings[i], this.getDrawingDocument(), dlbl);
                         var t = dlbl.tx.rich.recalculateByMaxWord();
                         if(!lastStyleObject) {
@@ -6704,6 +6708,7 @@ var GLOBAL_PATH_COUNT = 0;
                                 dlbl.spPr = cat_ax.spPr;
                                 dlbl.txPr = cat_ax.txPr;
                                 dlbl.tx = new AscFormat.CChartText();
+                                dlbl.tx.setChart(this);
                                 dlbl.tx.rich = AscFormat.CreateTextBodyFromString(string_pts[i].val.replace(oNonSpaceRegExp, ' '), this.getDrawingDocument(), dlbl);
                                 //dlbl.recalculate();
 
@@ -6976,6 +6981,7 @@ var GLOBAL_PATH_COUNT = 0;
                                     dlbl.spPr = val_ax.spPr;
                                     dlbl.txPr = val_ax.txPr;
                                     dlbl.tx = new AscFormat.CChartText();
+                                    dlbl.tx.setChart(this);
                                     dlbl.tx.rich = AscFormat.CreateTextBodyFromString(arr_series_labels_str[i], this.getDrawingDocument(), dlbl);
                                     var t = dlbl.tx.rich.recalculateByMaxWord();
                                     if(!lastStyleObject) {
@@ -7669,6 +7675,7 @@ var GLOBAL_PATH_COUNT = 0;
                         dlbl.spPr = val_ax.spPr;
                         dlbl.txPr = val_ax.txPr;
                         dlbl.tx = new AscFormat.CChartText();
+                        dlbl.tx.setChart(this);
                         dlbl.tx.rich = AscFormat.CreateTextBodyFromString(arr_strings[i], this.getDrawingDocument(), dlbl);
                         dlbl.txBody = dlbl.tx.rich;
                         if(val_ax.labels.aLabels[0]) {
@@ -8058,6 +8065,7 @@ var GLOBAL_PATH_COUNT = 0;
                                 dlbl.spPr = cat_ax.spPr;
                                 dlbl.txPr = cat_ax.txPr;
                                 dlbl.tx = new AscFormat.CChartText();
+                                dlbl.tx.setChart(this);
                                 dlbl.tx.rich = AscFormat.CreateTextBodyFromString(string_pts[i].val.replace(oNonSpaceRegExp, ' '), this.getDrawingDocument(), dlbl);
                                 if(cat_ax.labels.aLabels[0]) {
                                     dlbl.lastStyleObject = cat_ax.labels.aLabels[0].lastStyleObject;
