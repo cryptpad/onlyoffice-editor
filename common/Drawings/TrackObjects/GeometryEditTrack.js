@@ -314,7 +314,6 @@
                     case 2:
                         if (geom.ellipsePointsList[countArc]) {
                             pathPoints.splice(i, 1);
-                        // && geom.ellipsePointsList[countArc].arrPathElement === j
                             geom.ellipsePointsList[countArc].forEach(function (elem) {
                                 var elemArc = {
                                     id: 4,
