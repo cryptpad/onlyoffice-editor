@@ -1044,7 +1044,9 @@ var c_oSerSdt = {
 	TextFormPrCombSym: 53,
 	TextFormPrCombFont: 54,
 	TextFormPrMaxCharacters: 55,
-	TextFormPrCombBorder: 56
+	TextFormPrCombBorder: 56,
+	TextFormPrAutoFit : 57,
+	TextFormPrMultiLine : 58
 };
 var c_oSerFFData = {
 	CalcOnExit: 0,
@@ -6631,6 +6633,12 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		}
 		if (null != val.CombBorder) {
 			this.bs.WriteItem(c_oSerSdt.TextFormPrCombBorder, function(){oThis.bs.WriteBorder(val.CombBorder);});
+		}
+		if (null != val.AutoFit) {
+			this.bs.WriteItem(c_oSerSdt.TextFormPrAutoFit, function(){oThis.memory.WriteBool(val.AutoFit);});
+		}
+		if (null != val.MultiLine) {
+			this.bs.WriteItem(c_oSerSdt.TextFormPrMultiLine, function(){oThis.memory.WriteBool(val.MultiLine);});
 		}
 	};
 	this.WriteSdtTextFormPrComb = function (val)
@@ -13066,6 +13074,10 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			});
 			if (null != oNewBorber.Value)
 				val.CombBorder = oThis.bpPrr.NormalizeBorder(oNewBorber);
+		} else if (c_oSerSdt.TextFormPrAutoFit === type) {
+			val.AutoFit = this.stream.GetBool();
+		} else if (c_oSerSdt.TextFormPrMultiLine === type) {
+			val.MultiLine = this.stream.GetBool();
 		} else {
 			res = c_oSerConstants.ReadUnknown;
 		}
