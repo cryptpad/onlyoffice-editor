@@ -5416,11 +5416,18 @@
             var oEvent = new CAnimEvent(function() {
                 var aChildren = oThis.getChildrenTimeNodes();
                 var nActive  = oThis.getActiveChildIdx();
-                if(nActive > -1 && nActive < aChildren.length - 1) {
+                if(nActive > -1 && nActive < aChildren.length) {
                     aChildren[nActive].getEndCallback(oPlayer)();
-                    aChildren[nActive + 1].activateCallback(oPlayer);
                 }
-                oThis.scheduleNext(oPlayer);
+                if(nActive + 1 < aChildren.length) {
+                    aChildren[nActive + 1].activateCallback(oPlayer);
+                    oThis.scheduleNext(oPlayer);
+                }
+                else {
+                    if(aChildren[nActive]) {
+                        oThis.onFinished(aChildren[nActive], oPlayer);
+                    }
+                }
             }, oComplexTrigger, this);
             oPlayer.scheduleEvent(oEvent);
         }
@@ -5863,7 +5870,14 @@
         if(!oEvent) {
             return false;
         }
-        return oEvent.type === this.type && this.target === oEvent.target;
+        if(this.target !== oEvent.target) {
+            return false;
+        }
+        if((oEvent.type === COND_EVNT_ON_NEXT || oEvent.type === COND_EVNT_ON_CLICK) &&
+            (this.type === COND_EVNT_ON_NEXT || this.type === COND_EVNT_ON_CLICK)) {
+            return true;
+        }
+        return oEvent.type === this.type;
     };
     CExternalEvent.prototype.isFired = function() {
         return this.eventsProcessor.checkExternalEvent(this);
