@@ -2396,6 +2396,7 @@
 	prot['ForceSaveTimeout']                 = prot.ForceSaveTimeout;
 	prot['Waiting']                          = prot.Waiting;
 	prot['Submit']                           = prot.Submit;
+	prot['Disconnect']                       = prot.Disconnect;
 	window['Asc']['c_oAscAdvancedOptionsID'] = window['Asc'].c_oAscAdvancedOptionsID = c_oAscAdvancedOptionsID;
 	prot                                         = c_oAscAdvancedOptionsID;
 	prot['CSV']                                  = prot.CSV;
