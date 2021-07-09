@@ -2834,8 +2834,8 @@ CInlineLevelSdt.prototype.private_UpdatePictureFormLayout = function(nW, nH)
 			var nSpaceX = nW - nDstW;
 			var nSpaceY = nH - nDstH;
 
-			var nPadL = oPictureFormPr.GetShiftX() / 1000 * nSpaceX;
-			var nPadT = oPictureFormPr.GetShiftY() / 1000 * nSpaceY;
+			var nPadL = oPictureFormPr.GetShiftX() * nSpaceX;
+			var nPadT = oPictureFormPr.GetShiftY() * nSpaceY;
 
 			var oSrcRect = new AscFormat.CSrcRect();
 			oSrcRect.setLTRB(

@@ -1530,8 +1530,8 @@ function CSdtPictureFormPr()
 	this.ScaleFlag   = Asc.c_oAscPictureFormScaleFlag.Always;
 	this.Proportions = true;
 	this.Borders     = false;
-	this.ShiftX      = 500; // 0..1000
-	this.ShiftY      = 500; // 0..1000
+	this.ShiftX      = 0.5; // 0..1
+	this.ShiftY      = 0.5; // 0..1
 }
 CSdtPictureFormPr.prototype.Copy = function()
 {
@@ -1554,16 +1554,16 @@ CSdtPictureFormPr.prototype.WriteToBinary = function(oWriter)
 	oWriter.WriteLong(this.ScaleFlag);
 	oWriter.WriteBool(this.Proportions);
 	oWriter.WriteBool(this.Borders);
-	oWriter.WriteLong(this.ShiftX);
-	oWriter.WriteLong(this.ShiftY);
+	oWriter.WriteDouble(this.ShiftX);
+	oWriter.WriteDouble(this.ShiftY);
 };
 CSdtPictureFormPr.prototype.ReadFromBinary = function(oReader)
 {
 	this.ScaleFlag   = oReader.GetLong();
 	this.Proportions = oReader.GetBool();
 	this.Borders     = oReader.GetBool();
-	this.ShiftX      = oReader.GetLong();
-	this.ShiftY      = oReader.GetLong();
+	this.ShiftX      = oReader.GetDouble();
+	this.ShiftY      = oReader.GetDouble();
 };
 CSdtPictureFormPr.prototype.Write_ToBinary = function(oWriter)
 {
