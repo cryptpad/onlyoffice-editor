@@ -4528,6 +4528,17 @@ DrawingObjectsController.prototype =
         return finish_dlbl_pos;
     },
 
+
+    getChartForRangesDrawing: function()
+    {
+        var chart;
+        var selected_objects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects;
+        if(selected_objects.length === 1 && selected_objects[0].getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+            return selected_objects[0];
+        }
+        return null;
+    },
+
     getChartProps: function()
     {
         var objects_by_types = this.getSelectedObjectsByTypes();
@@ -5078,6 +5089,10 @@ DrawingObjectsController.prototype =
                     }
 
                 }
+                if(worksheet)
+                {
+                    worksheet._endSelectionShape();
+                }
                 this.resetSelection();
                 this.recalculate();
             }
@@ -5093,6 +5108,8 @@ DrawingObjectsController.prototype =
         {
             this.drawingObjects.slideComments.removeSelectedComment();
         }
+
+
     },
 
 

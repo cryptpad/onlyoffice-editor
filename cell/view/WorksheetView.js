@@ -9189,7 +9189,16 @@
         var isSelectOnShape = this.isSelectOnShape;
         if (this.isSelectOnShape) {
             this.isSelectOnShape = false;
+            var bCleanSelection = false;
+            if(this.objectRender.controller && this.objectRender.controller.getChartForRangesDrawing()) {
+                bCleanSelection = true;
+            }
             this.objectRender.unselectDrawingObjects();
+            if(bCleanSelection) {
+                if(this.overlayCtx) {
+                    this.overlayCtx.clear();
+                }
+            }
             this._drawSelection();
 			window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Update_Position();
         }
