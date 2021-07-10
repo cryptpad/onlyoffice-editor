@@ -2164,11 +2164,22 @@ CInlineLevelSdt.prototype.CheckHitInContentControlByXY = function(X, Y, nPageAbs
 		_Y = oTransform.TransformPointY(X, Y);
 	}
 
-	for (var sKey in this.Bounds)
+	if (this.IsFixedForm())
 	{
-		var oBound = this.Bounds[sKey];
-		if (oParagraph.GetAbsolutePage(oBound.PageInternal) === nPageAbs && oBound.X <= _X && _X <= oBound.X + oBound.W && oBound.Y <= _Y && _Y <= oBound.Y + oBound.H)
+		var oShape  = oParagraph.Parent.Is_DrawingShape(true);
+		var oBounds = oShape.getFormRelRect();
+
+		if (oBounds.Page === nPageAbs && oBounds.X <= _X && _X <= oBounds.X + oBounds.W && oBounds.Y <= _Y && _Y <= oBounds.Y + oBounds.H)
 			return true;
+	}
+	else
+	{
+		for (var sKey in this.Bounds)
+		{
+			var oBounds = this.Bounds[sKey];
+			if (oParagraph.GetAbsolutePage(oBound.PageInternal) === nPageAbs && oBounds.X <= _X && _X <= oBounds.X + oBounds.W && oBounds.Y <= _Y && _Y <= oBounds.Y + oBounds.H)
+				return true;
+		}
 	}
 
 	return false;
