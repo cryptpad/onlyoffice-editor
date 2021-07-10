@@ -1510,10 +1510,10 @@ ParaDrawing.prototype.recalculateDocContent = function()
 };
 ParaDrawing.prototype.Shift = function(Dx, Dy)
 {
-	this.ShiftX = Dx;
-	this.ShiftY = Dy;
-	this.X = this.OrigX + Dx;
-	this.Y = this.OrigY + Dy;
+	this.ShiftX += Dx;
+	this.ShiftY += Dy;
+	this.X = this.OrigX + this.ShiftX;
+	this.Y = this.OrigY + this.ShiftY;
 
 	this.updatePosition3(this.PageNum, this.X, this.Y);
 };
