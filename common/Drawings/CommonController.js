@@ -1673,6 +1673,7 @@ DrawingObjectsController.prototype =
                 }
                 if(oAnimPlayer) {
                     oAnimPlayer.onSpDblClick(group || object);
+                    return {objectId: (group || object).Get_Id(), cursorType: "pointer", bMarker: bInSelect};
                 }
             }
             if(oAnimPlayer) {
@@ -1682,6 +1683,10 @@ DrawingObjectsController.prototype =
             }
             if(object.canMove())
             {
+                if(this.isSlideShow())
+                {
+                    return null;
+                }
                 this.checkSelectedObjectsForMove(group, pageIndex);
                 if(!isRealObject(group))
                 {

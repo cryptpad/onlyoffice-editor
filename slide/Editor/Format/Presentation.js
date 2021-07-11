@@ -11075,6 +11075,18 @@ CPresentation.prototype.IsAutoCorrectFirstLetterOfSentences = function()
 {
 	return this.AutoCorrectSettings.FirstLetterOfSentences;
 };
+CPresentation.prototype.StopAnimation = function()
+{
+    for(var nSlide = 0; nSlide < this.Slides.length; ++nSlide)
+    {
+        var oSlide = this.Slides[nSlide];
+        var oPlayer = oSlide.animationPlayer;
+        if(oPlayer)
+        {
+            oPlayer.stop();
+        }
+    }
+};
 
 function collectSelectedObjects(aSpTree, aCollectArray, bRecursive, oIdMap, bSourceFormatting) {
     var oSp;

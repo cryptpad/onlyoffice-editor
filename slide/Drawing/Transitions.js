@@ -192,6 +192,16 @@ function CTransitionAnimation(htmlpage)
         }
     };
 
+    this.DrawImage = function(CacheImage, slide_num)
+    {
+        var _w = this.Rect.w;
+        var _h = this.Rect.h;
+        CacheImage.Image = this.CreateImage(_w, _h);
+        var oSlide = this.HtmlPage.m_oLogicDocument.GetSlide(slide_num);
+        var oPlayer = oSlide.getAnimationPlayer();
+        oPlayer.drawFrame(CacheImage.Image, {x: 0, y: 0, w: _w, h: _h});
+    };
+
     this.DrawImage1 = function(slide_num, _not_use_prev)
     {
         if (undefined === slide_num)
@@ -212,12 +222,7 @@ function CTransitionAnimation(htmlpage)
 
         if (slide_num > 0 && (_not_use_prev !== true))
         {
-            var _w = this.Rect.w;
-            var _h = this.Rect.h;
-            this.CacheImage1.Image = this.CreateImage(_w, _h);
-            var oSlide = this.HtmlPage.m_oLogicDocument.GetSlide(slide_num - 1);
-            var oPlayer = new AscFormat.CAnimationPlayer(oSlide, this);
-            oPlayer.drawFrame(this.CacheImage1.Image, {x: 0, y: 0, w: _w, h: _h});
+            this.DrawImage(this.CacheImage1, slide_num - 1);
         }
     };
 
@@ -241,12 +246,7 @@ function CTransitionAnimation(htmlpage)
 
         if (slide_num >= 0)
         {
-            var _w = this.Rect.w;
-            var _h = this.Rect.h;
-            this.CacheImage2.Image = this.CreateImage(_w, _h);
-            var oSlide = this.HtmlPage.m_oLogicDocument.GetSlide(slide_num);
-            var oPlayer = new AscFormat.CAnimationPlayer(oSlide, this);
-            oPlayer.drawFrame(this.CacheImage2.Image, {x: 0, y: 0, w: _w, h: _h});
+            this.DrawImage(this.CacheImage2, slide_num);
         }
     };
 
@@ -3000,13 +3000,14 @@ function CDemonstrationManager(htmlpage)
         if (!_is_transition && (_transition.TransitionType != c_oAscSlideTransitionTypes.None && _transition.TransitionDuration > 0))
         {
             oThis.StartTransition(_transition, false, true);
+            oThis.StopAnimation(nOldSlideNum);
             return;
         }
 
+        oThis.StopAnimation(nOldSlideNum);
         if (!_is_transition)
             oThis.SlideNum = this.GetPrevVisibleSlide(true);
 
-        oThis.StopAnimation(nOldSlideNum);
 
         oThis.OnPaintSlide(false);
     };
@@ -3126,6 +3127,7 @@ function CDemonstrationManager(htmlpage)
 			this.HtmlPage.m_oApi.sync_endDemonstration();
         }
 		this.HtmlPage.m_oApi.DemonstrationReporterEnd();
+        oThis.HtmlPage.m_oLogicDocument.StopAnimation();
 
         if (this.HtmlPage.m_oApi.isOnlyDemonstration)
             return;
@@ -3297,8 +3299,26 @@ function CDemonstrationManager(htmlpage)
 		return this.SlidesCount - 1;
 	};
 
+	this.GetCurrentAnimPlayer = function()
+	{
+        var oSlide = this.HtmlPage.m_oLogicDocument.GetSlide(this.SlideNum);
+        if(!oSlide)
+        {
+            return null;
+        }
+        return oSlide.getAnimationPlayer();
+	};
+
     this.OnNextSlide = function()
     {
+        var oPlayer = this.GetCurrentAnimPlayer();
+        if(oPlayer)
+        {
+            if(oPlayer.onNextSlide())
+            {
+                return;
+            }
+        }
         this.NextSlide();
     };
 
@@ -3346,6 +3366,14 @@ function CDemonstrationManager(htmlpage)
 
     this.OnPrevSlide = function()
     {
+        var oPlayer = this.GetCurrentAnimPlayer();
+        if(oPlayer)
+        {
+            if(oPlayer.onPrevSlide())
+            {
+                return;
+            }
+        }
         return this.PrevSlide();
     };
 
@@ -3400,7 +3428,7 @@ function CDemonstrationManager(htmlpage)
     this.Play = function(isNoSendFormReporter)
     {
         this.IsPlayMode = true;
-
+        this.HtmlPage.m_oLogicDocument.StopAnimation();
         if (-1 == this.CheckSlideDuration)
         {
             this.NextSlide(isNoSendFormReporter);

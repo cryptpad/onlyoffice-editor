@@ -7230,8 +7230,9 @@
         if(this.isStarted()) {
             return;
         }
+        var bIsPaused = this.isPaused();
         this.timer.start();
-        if(!this.isPaused()) {
+        if(!bIsPaused) {
             this.resetNodesState();
             this.scheduleNodesStart();
         }
