@@ -842,7 +842,7 @@ DrawingObjectsController.prototype =
                     if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE){
                         if(e.CtrlKey || this.isSlideShow()){
                             editor.sync_HyperlinkClickCallback(oNvPr.hlinkClick.id);
-                            var oAnimPlayer = this.getAnimPlayer();
+                            var oAnimPlayer = this.getAnimationPlayer();
                             if(oAnimPlayer) {
                                 oAnimPlayer.onSpClick(drawing);
                             }
@@ -1616,7 +1616,7 @@ DrawingObjectsController.prototype =
             }
         }
         var b_is_selected_inline = this.selectedObjects.length === 1 && (this.selectedObjects[0].parent && this.selectedObjects[0].parent.Is_Inline && this.selectedObjects[0].parent.Is_Inline());
-        var oAnimPlayer = this.getAnimPlayer();
+        var oAnimPlayer = this.getAnimationPlayer();
         if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
         {
             var selector = group ? group : this;
@@ -1730,12 +1730,12 @@ DrawingObjectsController.prototype =
         }
     },
 
-    getAnimPlayer: function() {
+    getAnimationPlayer: function() {
         if(this.drawingObjects && this.drawingObjects.cSld){
             if(editor && editor.WordControl &&
                 editor.WordControl.DemonstrationManager &&
                 editor.WordControl.DemonstrationManager.Mode) {
-                return editor.WordControl.DemonstrationManager.player;
+                return this.drawingObjects.getAnimationPlayer();
             }
         }
         return null;
@@ -1854,7 +1854,7 @@ DrawingObjectsController.prototype =
             if((e.CtrlKey || this.isSlideShow()) && !this.document && !bNotes)
             {
                 check_hyperlink = fCheckObjectHyperlink(object, x, y);
-                var oAnimPlayer = this.getAnimPlayer();
+                var oAnimPlayer = this.getAnimationPlayer();
                 if(oAnimPlayer) {
                     if(oAnimPlayer.onSpClick(object)) {
                         return {objectId: (group || object).Get_Id(), cursorType: "pointer", bMarker: false};
@@ -1902,7 +1902,7 @@ DrawingObjectsController.prototype =
 
             if((e.CtrlKey || this.isSlideShow()) && !this.document && !bNotes)
             {
-                var oAnimPlayer = this.getAnimPlayer();
+                var oAnimPlayer = this.getAnimationPlayer();
                 if(oAnimPlayer) {
                     if(oAnimPlayer.onSpClick(object)) {
                         return {objectId: (group || object).Get_Id(), cursorType: "pointer", bMarker: false};
@@ -1953,7 +1953,7 @@ DrawingObjectsController.prototype =
                     check_hyperlink = fCheckObjectHyperlink(object, x, y);
                     if(this.isSlideShow())
                     {
-                        var oAnimPlayer = this.getAnimPlayer();
+                        var oAnimPlayer = this.getAnimationPlayer();
                         if(oAnimPlayer) {
                             oAnimPlayer.onSpMouseOver(object);
                         }

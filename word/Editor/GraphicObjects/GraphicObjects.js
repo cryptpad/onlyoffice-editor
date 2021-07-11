@@ -4299,7 +4299,7 @@ CGraphicObjects.prototype.documentIsSelectionLocked = function(CheckType)
     if (oDocContent)
         oDocContent.Document_Is_SelectionLocked(CheckType);
 };
-CGraphicObjects.prototype.getAnimPlayer = function()
+CGraphicObjects.prototype.getAnimationPlayer = function()
 {
     return null;
 };

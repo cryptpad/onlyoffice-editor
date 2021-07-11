@@ -474,7 +474,7 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
             }
             if(drawing.hitInInnerArea(x, y))
             {
-                var oAnimPlayer = drawingObjectsController.getAnimPlayer();
+                var oAnimPlayer = drawingObjectsController.getAnimationPlayer();
                 if(oAnimPlayer)
                 {
                     if(drawingObjectsController.handleEventMode === HANDLE_EVENT_MODE_HANDLE && oAnimPlayer.onSpClick(drawing)) {
@@ -2039,7 +2039,7 @@ function handleFloatTable(drawing, drawingObjectsController, e, x, y, group, pag
     {
         if(drawing.hitInInnerArea(x, y))
         {
-            var oAnimPlayer = drawingObjectsController.getAnimPlayer();
+            var oAnimPlayer = drawingObjectsController.getAnimationPlayer();
             if(oAnimPlayer)
             {
                 if(drawingObjectsController.handleEventMode === HANDLE_EVENT_MODE_HANDLE && oAnimPlayer.onSpClick(drawing)) {

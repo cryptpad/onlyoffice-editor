@@ -6582,12 +6582,12 @@ background-repeat: no-repeat;\
 				}
 				case "next":
 				{
-					_this.WordControl.DemonstrationManager.NextSlide();
+					_this.WordControl.DemonstrationManager.OnNextSlide();
 					break;
 				}
 				case "prev":
 				{
-					_this.WordControl.DemonstrationManager.PrevSlide();
+					_this.WordControl.DemonstrationManager.OnPrevSlide();
 					break;
 				}
 				case "go_to_slide":
@@ -6745,11 +6745,11 @@ background-repeat: no-repeat;\
 			}
 			else if (true === _obj["next"])
 			{
-				_this.WordControl.DemonstrationManager.NextSlide(true);
+				_this.WordControl.DemonstrationManager.OnNextSlide(true);
 			}
 			else if (true === _obj["prev"])
 			{
-				_this.WordControl.DemonstrationManager.PrevSlide(true);
+				_this.WordControl.DemonstrationManager.OnPrevSlide(true);
 			}
 			else if (undefined !== _obj["go_to_slide"])
 			{
@@ -6825,14 +6825,14 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.DemonstrationNextSlide = function()
 	{
-		this.WordControl.DemonstrationManager.NextSlide();
+		this.WordControl.DemonstrationManager.OnNextSlide();
 		if (this.reporterWindow)
 			this.sendToReporter("{ \"main_command\" : true, \"next\" : true }");
 	};
 
 	asc_docs_api.prototype.DemonstrationPrevSlide = function()
 	{
-		this.WordControl.DemonstrationManager.PrevSlide();
+		this.WordControl.DemonstrationManager.OnPrevSlide();
 		if (this.reporterWindow)
 			this.sendToReporter("{ \"main_command\" : true, \"prev\" : true }");
 	};

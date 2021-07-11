@@ -289,7 +289,7 @@ NullState.prototype =
                 }
             }
             this.startTargetTextObject = AscFormat.getTargetTextObject(this.drawingObjects);
-            var oAnimPlayer = this.drawingObjects.getAnimPlayer && this.drawingObjects.getAnimPlayer();
+            var oAnimPlayer = this.drawingObjects.getAnimationPlayer && this.drawingObjects.getAnimationPlayer();
             if(oAnimPlayer) {
                 if(oAnimPlayer.onClick()) {
                     return true;
