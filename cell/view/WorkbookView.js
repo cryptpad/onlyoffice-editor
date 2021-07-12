@@ -3923,7 +3923,13 @@
 
 		this.getWorksheet().cleanSelection();
 		this.collaborativeEditing.Add_ForeignCursor(UserId, newCursorInfo, UserShortId);
-		this.Api.showForeignSelectLabel();
+
+		var Color  = AscCommon.getUserColorById(UserShortId, null, true);
+		var firstRange = newCursorInfo.ranges[0];
+		//var isVisible = null !== this.getWorksheet().getCellVisibleRange(firstRange.c2, firstRange.r2);
+		var coord = this.getWorksheet().getCellCoord(firstRange.c2, firstRange.r1);
+		this.Api.showForeignSelectLabel(UserId, coord._x + coord._width, coord._y, Color);
+
 		this.getWorksheet()._drawSelection();
 
 		//if (true === Show)
