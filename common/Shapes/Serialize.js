@@ -7581,6 +7581,17 @@ function BinaryPPTYLoader()
                     _smartArt.setLocks(_nvGraphicFramePr.locks);
                 }
             }
+            if(_smartArt.drawing)
+            {
+                var oDrawing = _smartArt.drawing;
+                oDrawing.setSpPr(new AscFormat.CSpPr());
+                oDrawing.spPr.setParent(_smartArt);
+                oDrawing.spPr.setXfrm(_xfrm.createDuplicate());
+                oDrawing.spPr.xfrm.setParent(oDrawing.spPr);
+                _xfrm = new AscFormat.CXfrm();
+                _xfrm.setOffX(0);
+                _xfrm.setOffY(0);
+            }
             return _smartArt;
         }
 
@@ -7611,41 +7622,7 @@ function BinaryPPTYLoader()
                     case 0:
                     {
                         //DiagramDrawing
-                        var _rec_start2 = s.cur;
-                        var _end_rec2 = _rec_start2 + s.GetULong() + 4;
-                        while (s.cur < _end_rec2)
-                        {
-                            var _at2 = s.GetUChar();
-                            switch (_at2)
-                            {
-                                case 0:
-                                {
-                                    //_smartArt = this.ReadGroupShape();
-                                   var shapes = this.ReadGroupShapeMain();
-                                   if (CDrawing) {
-                                       _smartArt = CDrawing;
-                                   } else {
-                                       _smartArt = new AscFormat.CGroupShape();
-                                   }
-                                    _smartArt.setBDeleted(false);
-                                    for(var nSp = 0; nSp < shapes.length; ++nSp)
-                                    {
-                                        var oSp = shapes[nSp];
-                                        _smartArt.addToSpTree(undefined, oSp);
-                                        oSp.setGroup(_smartArt);
-                                    }
-
-                                    _smartArt.setParent(this.TempMainObject == null ? this.ParaDrawing : null);
-                                    break;
-                                }
-                                default:
-                                {
-                                    s.SkipRecord();
-                                    break;
-                                }
-                            }
-                        }
-                        s.Seek2(_end_rec2);
+                        _smartArt = this.ReadSmartArtGroup(CDrawing);
                         break;
                     }
                     default:
@@ -7658,6 +7635,48 @@ function BinaryPPTYLoader()
         }
         s.Seek2(_end_rec);
         console.log(_smartArt)
+        return _smartArt;
+    };
+
+    this.ReadSmartArtGroup = function(CDrawing)
+    {
+        var _smartArt;
+        var s = this.stream;
+        var _rec_start2 = s.cur;
+        var _end_rec2 = _rec_start2 + s.GetULong() + 4;
+        while (s.cur < _end_rec2)
+        {
+            var _at2 = s.GetUChar();
+            switch (_at2)
+            {
+                case 0:
+                {
+                    //_smartArt = this.ReadGroupShape();
+                    var shapes = this.ReadGroupShapeMain();
+                    if (CDrawing) {
+                        _smartArt = CDrawing;
+                    } else {
+                        _smartArt = new AscFormat.CGroupShape();
+                    }
+                    _smartArt.setBDeleted(false);
+                    for(var nSp = 0; nSp < shapes.length; ++nSp)
+                    {
+                        var oSp = shapes[nSp];
+                        _smartArt.addToSpTree(undefined, oSp);
+                        oSp.setGroup(_smartArt);
+                    }
+
+                    _smartArt.setParent(this.TempMainObject == null ? this.ParaDrawing : null);
+                    break;
+                }
+                default:
+                {
+                    s.SkipRecord();
+                    break;
+                }
+            }
+        }
+        s.Seek2(_end_rec2);
         return _smartArt;
     };
 

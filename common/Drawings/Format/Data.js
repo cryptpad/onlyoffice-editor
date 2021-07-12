@@ -8726,7 +8726,7 @@
         case 0: {
           console.log(42352346245)
           this.setDrawing(new Drawing());
-          pReader.ReadSmartArt(this.drawing);
+          pReader.ReadSmartArtGroup(this.drawing);
           this.addToSpTree(0, this.drawing);
           break;
         }
@@ -8779,14 +8779,6 @@
       oStream.Seek2(nEnd);
     };
     SmartArt.prototype.readAttributes = function(pReader) {
-      var oStream = pReader.stream;
-      oStream.Skip2(1); // start attributes
-      while (true) {
-        var nType = oStream.GetUChar();
-        if (nType == AscCommon.g_nodeAttributeEnd)
-          break;
-        this.readAttribute(nType, pReader)
-      }
     };
 
     SmartArt.prototype.readChildren = function(nEnd, pReader) {
@@ -8803,9 +8795,6 @@
       this.writeChildren(pWriter);
     };
     SmartArt.prototype.writeAttributes = function(pWriter) {
-      pWriter.WriteUChar(AscCommon.g_nodeAttributeStart);
-      this.privateWriteAttributes(pWriter);
-      pWriter.WriteUChar(AscCommon.g_nodeAttributeEnd);
     };
 
     var horizontalListOfPicture = {
