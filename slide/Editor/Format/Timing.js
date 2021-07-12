@@ -248,40 +248,41 @@
         if(!oAttributes || !oAttributes.stCondLst) {
             return this.getDefaultTrigger(oPlayer);
         }
-        var oTrigger = oAttributes.stCondLst.createComplexTrigger(oPlayer);
+        var oTrigger;
         var nNodeType = this.getNodeType();
         var oPreviousTimeNode;
         switch (nNodeType) {
             case NODE_TYPE_MAINSEQ: {
-                oTrigger.addDefault();
+                oTrigger = this.getDefaultTrigger(oPlayer);
                 break;
             }
             case NODE_TYPE_CLICKEFFECT: {
+                oTrigger = oAttributes.stCondLst.createComplexTrigger(oPlayer);
                 oTrigger.setExternalEvent(new CExternalEvent(oPlayer.eventsProcessor, COND_EVNT_ON_CLICK, null));
                 break;
             }
             case NODE_TYPE_WITHEFFECT: {
+                oTrigger = oAttributes.stCondLst.createComplexTrigger(oPlayer);
                 oPreviousTimeNode = this.getPreviousNode();
                 if(oPreviousTimeNode) {
                     oTrigger.addTrigger(function() {
                         return oPreviousTimeNode.isActive();
                     });
                 }
-                else {
-                    oTrigger.addDefault();
-                }
                 break;
             }
             case NODE_TYPE_AFTEREFFECT: {
+                oTrigger = oAttributes.stCondLst.createComplexTrigger(oPlayer);
                 oPreviousTimeNode = this.getPreviousNode();
                 if(oPreviousTimeNode) {
                     oTrigger.addTrigger(function() {
                         return oPreviousTimeNode.isFinished();
                     });
                 }
-                else {
-                    oTrigger.addDefault();
-                }
+                break;
+            }
+            default: {
+                oTrigger = oAttributes.stCondLst.createComplexTrigger(oPlayer);
                 break;
             }
         }
@@ -394,6 +395,26 @@
                 oPlayer,
                 this.startTick + this.simpleDuration.getVal() * this.repeatCount.getVal() / 1000
             );
+        }
+        else {
+            var oEndSync = this.getAttributesObject().endSync;
+            if(oEndSync) {
+                if(this.isTimingContainer()) {
+                    var oTrigger = new CAnimComplexTrigger();
+                    var aChildren = this.getChildrenTimeNodes();
+                    oTrigger.addTrigger(function() {
+                        for(var nChild = 0; nChild < aChildren.length; ++nChild) {
+                            if(!aChildren[nChild].isAtEnd()) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    });
+                    oEndSync.fillTrigger(oPlayer, oTrigger);
+                    return oTrigger;
+                }
+            }
+
         }
         return null;
     };
@@ -538,9 +559,6 @@
                     if(this.repeatCount.isSpecified() && this.simpleDurationIdx + 1 < this.repeatCount.getVal() / 1000) {
                         this.scheduleSimpleDuration(++this.simpleDurationIdx, oPlayer);
                     }
-                    else {
-                        this.getEndCallback(oPlayer)();
-                    }
                 }
             }
             else if(this.isSeq()) {
@@ -551,9 +569,6 @@
                 else {
                     if(this.repeatCount.isSpecified() && this.simpleDurationIdx + 1 < this.repeatCount.getVal() / 1000) {
                         this.scheduleSimpleDuration(++this.simpleDurationIdx, oPlayer);
-                    }
-                    else {
-                        this.getEndCallback(oPlayer)();
                     }
                 }
             }
@@ -5482,11 +5497,6 @@
                 if(nActive + 1 < aChildren.length) {
                     aChildren[nActive + 1].activateCallback(oPlayer);
                     oThis.scheduleNext(oPlayer);
-                }
-                else {
-                    if(aChildren[nActive]) {
-                        oThis.onFinished(aChildren[nActive], oPlayer);
-                    }
                 }
             }, oComplexTrigger, this);
             oPlayer.scheduleEvent(oEvent);
