@@ -7587,18 +7587,19 @@ function BinaryPPTYLoader()
         return _graphic_frame;
     };
 
-    this.ReadSmartArt = function()
+    this.ReadSmartArt = function(CDrawing)
     {
+        var s = this.stream;
         var _smartArt;
-        if(typeof AscFormat.SmartArt !== "undefined")
+        if(typeof AscFormat.SmartArt !== "undefined" && !CDrawing)
         {
             _smartArt = new AscFormat.SmartArt();
             _smartArt.fromPPTY(this);
+            _smartArt.setBDeleted(false);
         }
         else
         {
             //read drawing part of smartArt as a group
-            var s = this.stream;
             var _rec_start = s.cur;
             var _end_rec = _rec_start + s.GetULong() + 4;
             //no attributes
@@ -7621,7 +7622,11 @@ function BinaryPPTYLoader()
                                 {
                                     //_smartArt = this.ReadGroupShape();
                                    var shapes = this.ReadGroupShapeMain();
-                                    _smartArt = new AscFormat.CGroupShape();
+                                   if (CDrawing) {
+                                       _smartArt = CDrawing;
+                                   } else {
+                                       _smartArt = new AscFormat.CGroupShape();
+                                   }
                                     _smartArt.setBDeleted(false);
                                     for(var nSp = 0; nSp < shapes.length; ++nSp)
                                     {
@@ -7652,6 +7657,7 @@ function BinaryPPTYLoader()
             }
         }
         s.Seek2(_end_rec);
+        console.log(_smartArt)
         return _smartArt;
     };
 

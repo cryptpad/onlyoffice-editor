@@ -932,7 +932,7 @@
     DiagramData.prototype.readAttribute = function(nType, pReader) {
     };
     DiagramData.prototype.readChild = function(nType, pReader) {
-      var s = this.stream;
+      var s = pReader.stream;
       switch (nType) {
         case 0: {
           this.setDataModel(new DataModel());
@@ -1061,7 +1061,8 @@
     DataModel.prototype.readAttribute = function(nType, pReader) {
     };
     DataModel.prototype.readChild = function(nType, pReader) {
-      var s = this.stream;
+      var s = pReader.stream;
+
       switch (nType) {
         case 0: {
           this.setPtLst(new PtLst());
@@ -1131,11 +1132,50 @@
       }
     };
 
+    CCommonDataList.prototype.getChildren = function() {
+      return [].concat(this.list);
+    };
+    CCommonDataList.prototype.privateWriteAttributes = function(pWriter) {
+    };
+    CCommonDataList.prototype.writeChildren = function(pWriter) {
+      for (var i = 0; i < this.list.length; i += 1) {
+        this.writeRecord2(pWriter, 0, this.list[i]);
+      }
+    };
+    CCommonDataList.prototype.readAttribute = function(nType, pReader) {
+    };
+
+
     function PtLst() {
       CCommonDataList.call(this);
     }
 
     InitClass(PtLst, CCommonDataList, AscDFH.historyitem_type_PtLst);
+
+    // PtLst.prototype.privateWriteAttributes = function(pWriter) {
+    // };
+    // PtLst.prototype.writeChildren = function(pWriter) {
+    //   for (var i = 0; i < this.list.length; i += 1) {
+    //     this.writeRecord2(pWriter, 0, this.list[i]);
+    //   }
+    // };
+    // PtLst.prototype.readAttribute = function(nType, pReader) {
+    // };
+    PtLst.prototype.readChild = function(nType, pReader) {
+      var s = pReader.stream;
+      switch (nType) {
+        case 0: {
+          this.addToLst(0, new Point());
+          this.list[0].fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+
 
     function CxnLst() {
       CCommonDataList.call(this);
@@ -1143,6 +1183,20 @@
 
     InitClass(CxnLst, CCommonDataList, AscDFH.historyitem_type_CxnLst);
 
+    CxnLst.prototype.readChild = function(nType, pReader) {
+      var s = pReader.stream;
+      switch (nType) {
+        case 0: {
+          this.addToLst(0, new Cxn());
+          this.list[0].fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
 
     changesFactory[AscDFH.historyitem_CxnDestId] = CChangeString;
     changesFactory[AscDFH.historyitem_CxnDestOrd] = CChangeLong;
@@ -1344,6 +1398,21 @@
 
     InitClass(ExtLst, CCommonDataList, AscDFH.historyitem_type_ExtLst);
 
+    ExtLst.prototype.readChild = function(nType, pReader) {
+      var s = pReader.stream;
+      switch (nType) {
+        case 0: {
+          this.addToLst(0, new Ext());
+          this.list[0].fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+
     changesFactory[AscDFH.historyitem_ExtUri] = CChangeString;
     drawingsChangesMap[AscDFH.historyitem_ExtUri] = function (oClass, value) {
       oClass.uri = value;
@@ -1371,11 +1440,11 @@
 
     changesFactory[AscDFH.historyitem_BgFormatFill] = CChangeObject;
     changesFactory[AscDFH.historyitem_BgFormatEffect] = CChangeObject;
-    drawingContentChanges[AscDFH.historyitem_BgFormatFill] = function (oClass) {
-      return oClass.fill;
+    drawingsChangesMap[AscDFH.historyitem_BgFormatFill] = function (oClass, value) {
+      oClass.fill = value;
     };
-    drawingContentChanges[AscDFH.historyitem_BgFormatEffect] = function (oClass) {
-      return oClass.effect;
+    drawingsChangesMap[AscDFH.historyitem_BgFormatEffect] = function (oClass, value) {
+      oClass.effect = value;
     };
 
     function BgFormat() {
@@ -1419,22 +1488,31 @@
     BgFormat.prototype.privateWriteAttributes = function(pWriter) {
     };
     BgFormat.prototype.writeChildren = function(pWriter) {
-      this.writeRecord1(pWriter, 0, this.fill);
-      this.writeRecord1(pWriter, 1, this.effect);
+      pWriter.WriteRecord1(0, this.fill, pWriter.WriteUniFill);
+      var oEffectPr = this.effect;
+      if(oEffectPr)
+      {
+        if(oEffectPr.EffectLst)
+        {
+          pWriter.WriteRecord1(1, oEffectPr.EffectLst, pWriter.WriteEffectLst);
+        }
+        else if(oEffectPr.EffectDag)
+        {
+          pWriter.WriteRecord1(1, oEffectPr.EffectDag, pWriter.WriteEffectDag)
+        }
+      }
     };
     BgFormat.prototype.readAttribute = function(nType, pReader) {
     };
     BgFormat.prototype.readChild = function(nType, pReader) {
-      var s = this.stream;
+      var s = pReader.stream;
       switch (nType) {
         case 0: {
-          this.setFill(new AscFormat.CUniFill());
-          this.fill.fromPPTY(pReader);
+          this.setFill(pReader.ReadUniFill());
           break;
         }
         case 1: {
-          this.setEffect(new AscFormat.CEffectProperties());
-          this.effect.fromPPTY(pReader);
+          this.setEffect(pReader.ReadEffectProperties());
           break;
         }
         default: {
@@ -1498,22 +1576,31 @@
     Whole.prototype.privateWriteAttributes = function(pWriter) {
     };
     Whole.prototype.writeChildren = function(pWriter) {
-      this.writeRecord2(pWriter, 0, this.ln);
-      this.writeRecord1(pWriter, 1, this.effect);
+      pWriter.WriteRecord2(0, this.ln, pWriter.WriteLn);
+      var oEffectPr = this.effect;
+      if(oEffectPr)
+      {
+        if(oEffectPr.EffectLst)
+        {
+          pWriter.WriteRecord1(1, oEffectPr.EffectLst, pWriter.WriteEffectLst);
+        }
+        else if(oEffectPr.EffectDag)
+        {
+          pWriter.WriteRecord1(1, oEffectPr.EffectDag, pWriter.WriteEffectDag)
+        }
+      }
     };
     Whole.prototype.readAttribute = function(nType, pReader) {
     };
     Whole.prototype.readChild = function(nType, pReader) {
-      var s = this.stream;
+      var s = pReader.stream;
       switch (nType) {
         case 0: {
-          this.setLn(new AscFormat.CLn());
-          this.ln.fromPPTY(pReader);
+          this.setLn(pReader.ReadLn());
           break;
         }
         case 1: {
-          this.setEffect(new AscFormat.CEffectProperties());
-          this.effect.fromPPTY(pReader);
+          this.setEffect(pReader.ReadEffectProperties());
           break;
         }
         default: {
@@ -1646,31 +1733,31 @@
 
     Point.prototype.privateWriteAttributes = function(pWriter) {
       pWriter._WriteString2(0, this.modelId);
-      pWriter._WriteByte1(1, this.type); // TODO: fix it
+      pWriter._WriteUChar2(1, this.type);
       pWriter._WriteString2(2, this.cxnId);
     };
     Point.prototype.writeChildren = function(pWriter) {
-      this.writeRecord2(pWriter, 0, this.spPr);
-      this.writeRecord2(pWriter, 1, this.t);
+      pWriter.WriteRecord2(0, this.spPr, pWriter.WriteSpPr);
+      pWriter.WriteRecord2(1, this.t, pWriter.WriteTxBody);
       this.writeRecord2(pWriter, 2, this.prSet);
     };
     Point.prototype.readAttribute = function(nType, pReader) {
       var oStream = pReader.stream;
       if (0 === nType) this.setModelId(oStream.GetString2());
-      else if (1 === nType) this.setType(oStream.GetUChar()); // TODO: fix it
+      else if (1 === nType) this.setType(oStream.GetUChar());
       else if (2 === nType) this.setCxnId(oStream.GetString2());
     };
     Point.prototype.readChild = function(nType, pReader) {
-      var s = this.stream;
+      var s = pReader.stream;
       switch (nType) {
         case 0: {
-          this.setSpPr(new AscFormat.CSpPr());
-          this.spPr.fromPPTY(pReader);
+          var sppr = new AscFormat.CSpPr();
+          this.setSpPr(sppr);
+          pReader.ReadSpPr(this.spPr);
           break;
         }
         case 1: {
-          this.setT(new AscFormat.CTextBody());
-          this.t.fromPPTY(pReader);
+          this.setT(pReader.ReadTextBody());
           break;
         }
         case 2: {
@@ -2223,7 +2310,7 @@
       else if (28 === nType) this.setQsTypeId(oStream.GetString2());
     };
     PrSet.prototype.readChild = function(nType, pReader) {
-      var s = this.stream;
+      var s = pReader.stream;
       switch (nType) {
         case 0: {
           this.setPresLayoutVars(new PresLayoutVars());
@@ -2424,14 +2511,12 @@
     changesFactory[AscDFH.historyitem_LayoutDefUniqueId] = CChangeString;
     changesFactory[AscDFH.historyitem_LayoutDefCatLst] = CChangeObject;
     changesFactory[AscDFH.historyitem_LayoutDefClrData] = CChangeObject;
-    changesFactory[AscDFH.historyitem_LayoutDefAddTitle] = CChangeContent;
-    changesFactory[AscDFH.historyitem_LayoutDefRemoveTitle] = CChangeContent;
+    changesFactory[AscDFH.historyitem_LayoutDefTitle] = CChangeObject;
     changesFactory[AscDFH.historyitem_LayoutDefExtLst] = CChangeObject;
     changesFactory[AscDFH.historyitem_LayoutDefLayoutNode] = CChangeObject;
     changesFactory[AscDFH.historyitem_LayoutDefSampData] = CChangeObject;
     changesFactory[AscDFH.historyitem_LayoutDefStyleData] = CChangeObject;
-    changesFactory[AscDFH.historyitem_LayoutDefAddDesc] = CChangeContent;
-    changesFactory[AscDFH.historyitem_LayoutDefRemoveDesc] = CChangeContent;
+    changesFactory[AscDFH.historyitem_LayoutDefDesc] = CChangeObject;
     drawingsChangesMap[AscDFH.historyitem_LayoutDefDefStyle] = function (oClass, value) {
       oClass.defStyle = value;
     };
@@ -2459,17 +2544,11 @@
     drawingsChangesMap[AscDFH.historyitem_LayoutDefStyleData] = function (oClass, value) {
       oClass.styleData = value;
     };
-    drawingContentChanges[AscDFH.historyitem_LayoutDefAddTitle] = function (oClass) {
-      return oClass.title;
+    drawingsChangesMap[AscDFH.historyitem_LayoutDefTitle] = function (oClass, value) {
+      oClass.title = value;
     };
-    drawingContentChanges[AscDFH.historyitem_LayoutDefRemoveTitle] = function (oClass) {
-      return oClass.title;
-    };
-    drawingContentChanges[AscDFH.historyitem_LayoutDefAddDesc] = function (oClass) {
-      return oClass.desc;
-    };
-    drawingContentChanges[AscDFH.historyitem_LayoutDefRemoveDesc] = function (oClass) {
-      return oClass.desc;
+    drawingsChangesMap[AscDFH.historyitem_LayoutDefDesc] = function (oClass, value) {
+      oClass.desc = desc;
     };
 
     function LayoutDef() {
@@ -2479,12 +2558,12 @@
       this.uniqueId = null;
       this.catLst = null;
       this.clrData = null;
-      this.desc = [];
+      this.desc = null;
       this.extLst = null;
       this.layoutNode = null;
       this.sampData = null;
       this.styleData = null;
-      this.title = [];
+      this.title = null;
     }
 
     InitClass(LayoutDef, CBaseFormatObject, AscDFH.historyitem_type_LayoutDef);
@@ -2540,34 +2619,16 @@
       this.setParentToChild(oPr);
     }
 
-    LayoutDef.prototype.addToLstTitle = function (nIdx, oPr) {
-      var nInsertIdx = Math.min(this.title.length, Math.max(0, nIdx));
-      oHistory.Add(new CChangeContent(this, AscDFH.historyitem_LayoutDefAddTitle, nInsertIdx, [oPr], true));
-      this.title.splice(nInsertIdx, 0, oPr);
+    LayoutDef.prototype.setTitle = function (oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_LayoutDefTitle, this.getTitle(), oPr));
+      this.title = oPr;
       this.setParentToChild(oPr);
     };
 
-    LayoutDef.prototype.removeFromLstTitle = function (nIdx) {
-      if (nIdx > -1 && nIdx < this.title.length) {
-        this.title[nIdx].setParent(null);
-        oHistory.Add(new CChangeContent(this, AscDFH.historyitem_LayoutDefRemoveTitle, nIdx, [this.title[nIdx]], false));
-        this.title.splice(nIdx, 1);
-      }
-    };
-
-    LayoutDef.prototype.addToLstDesc = function (nIdx, oPr) {
-      var nInsertIdx = Math.min(this.desc.length, Math.max(0, nIdx));
-      oHistory.Add(new CChangeContent(this, AscDFH.historyitem_LayoutDefAddDesc, nInsertIdx, [oPr], true));
-      this.desc.splice(nInsertIdx, 0, oPr);
+    LayoutDef.prototype.setDesc = function (oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_LayoutDefDesc, this.getDesc(), oPr));
+      this.desc = oPr;
       this.setParentToChild(oPr);
-    };
-
-    LayoutDef.prototype.removeFromLstDesc = function (nIdx) {
-      if (nIdx > -1 && nIdx < this.desc.length) {
-        this.desc[nIdx].setParent(null);
-        oHistory.Add(new CChangeContent(this, AscDFH.historyitem_LayoutDefRemoveDesc, nIdx, [this.desc[nIdx]], false));
-        this.desc.splice(nIdx, 1);
-      }
     };
 
     LayoutDef.prototype.getDefStyle = function () {
@@ -2636,19 +2697,103 @@
       if (this.getStyleData()) {
         oCopy.setStyleData(this.getStyleData().createDuplicate(oIdMap));
       }
-      for (var nIdx = 0; nIdx < this.title.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.title[nIdx].createDuplicate(oIdMap));
+      if (this.getTitle()) {
+        oCopy.setTitle(this.getTitle().createDuplicate(oIdMap));
       }
-      for (nIdx = 0; nIdx < this.desc.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.desc[nIdx].createDuplicate(oIdMap));
+      if (this.getDesc()) {
+        oCopy.setDesc(this.getDesc().createDuplicate(oIdMap));
       }
     }
+
+    LayoutDef.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteString2(0, this.uniqueId);
+      pWriter._WriteString2(1, this.minVer);
+      pWriter._WriteString2(2, this.defStyle);
+    };
+    LayoutDef.prototype.writeChildren = function(pWriter) {
+      this.writeRecord2(pWriter, 0, this.title);
+      this.writeRecord2(pWriter, 1, this.desc);
+      this.writeRecord2(pWriter, 2, this.catLst);
+      this.writeRecord2(pWriter, 3, this.sampData);
+      this.writeRecord2(pWriter, 4, this.styleData);
+      this.writeRecord2(pWriter, 5, this.clrData);
+      this.writeRecord2(pWriter, 0xa5, this.layoutNode);
+    };
+    LayoutDef.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setUniqueId(oStream.GetString2());
+      else if (1 === nType) this.setMinVer(oStream.GetString2());
+      else if (2 === nType) this.setDefStyle(oStream.GetString2());
+    };
+    LayoutDef.prototype.readChild = function(nType, pReader) {
+      var s = pReader.stream;
+      switch (nType) {
+        case 0: {
+          this.setTitle(new DiagramTitle());
+          this.title.fromPPTY(pReader);
+          break;
+        }
+        case 1: {
+          this.setDesc(new Desc());
+          this.desc.fromPPTY(pReader);
+          break;
+        }
+        case 2: {
+          this.setCatLst(new CatLst());
+          this.catLst.fromPPTY(pReader);
+          break;
+        }
+        case 3: {
+          this.setSampData(new SampData());
+          this.sampData.fromPPTY(pReader);
+          break;
+        }
+        case 4: {
+          this.setStyleData(new StyleData());
+          this.styleData.fromPPTY(pReader);
+          break;
+        }
+        case 5: {
+          this.setClrData(new ClrData());
+          this.clrData.fromPPTY(pReader);
+          break;
+        }
+        case 0xa5: {
+          this.setLayoutNode(new LayoutNode());
+          this.layoutNode.fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+    LayoutDef.prototype.getChildren = function() {
+      return [this.title, this.desc, this.catLst, this.sampData, this.styleData, this.clrData, this.layoutNode];
+    };
+
 
     function CatLst() {
       CCommonDataList.call(this);
     }
 
     InitClass(CatLst, CCommonDataList, AscDFH.historyitem_type_CatLst);
+
+    CatLst.prototype.readChild = function(nType, pReader) {
+      var s = pReader.stream;
+      switch (nType) {
+        case 0: {
+          this.addToLst(0, new SCat());
+          this.list[0].fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
 
     changesFactory[AscDFH.historyitem_SCatPri] = CChangeLong;
     changesFactory[AscDFH.historyitem_SCatType] = CChangeString;
@@ -2747,6 +2892,35 @@
         oCopy.setDataModel(this.getDataModel().createDuplicate(oIdMap));
       }
     }
+
+    ClrData.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteBool2(0, this.useDef);
+    };
+    ClrData.prototype.writeChildren = function(pWriter) {
+      this.writeRecord2(pWriter, 0, this.dataModel); // TODO: add record number
+    };
+    ClrData.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setUseDef(oStream.GetBool());
+    };
+    ClrData.prototype.readChild = function(nType, pReader) {
+      var s = pReader.stream;
+      switch (nType) {
+        case 0: {
+          this.setDataModel(new DataModel());
+          this.dataModel.fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+    ClrData.prototype.getChildren = function() {
+      return [this.dataModel];
+    };
+
 
     changesFactory[AscDFH.historyitem_DescLang] = CChangeString;
     changesFactory[AscDFH.historyitem_DescVal] = CChangeString;
@@ -2872,6 +3046,61 @@
       oCopy.setName(this.getName());
       oCopy.setStyleLbl(this.getStyleLbl());
     }
+    LayoutNode.prototype.readElement = function(pReader, nType) {
+      var oElement = null;
+      switch(nType) {
+        case 0xa1: oElement = new Alg(); break;
+        case 0xa2: oElement = new Choose(); break;
+        case 0xa3: oElement = new ConstrLst(); break;
+        case 0xa4: oElement = new ForEach(); break;
+        case 0xa5: oElement = new LayoutNode(); break;
+        case 0xa6: oElement = new PresOf(); break;
+        case 0xa7: oElement = new RuleLst(); break;
+        case 0xa8: oElement = new SShape(); break;
+        case 0xa9: oElement = new VarLst(); break;
+        default:break;
+      }
+      if(oElement) {
+        oElement.fromPPTY(pReader);
+        this.addToLst(0, oElement);
+      }
+    };
+    LayoutNode.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteString2(0, this.name);
+      pWriter._WriteString2(1, this.styleLbl);
+      pWriter._WriteString2(2, this.moveWith);
+    };
+    LayoutNode.prototype.writeChildren = function(pWriter) {
+      for(var nIndex = 0; nIndex < this.list.length; ++nIndex) {
+        var oElement = this.list[nIndex];
+        switch (oElement.getObjectType()) {
+          case AscDFH.historyitem_type_Alg: this.writeRecord2(pWriter, 0xa1, oElement); break;
+          case AscDFH.historyitem_type_Choose: this.writeRecord2(pWriter, 0xa2, oElement); break;
+          case AscDFH.historyitem_type_ConstrLst: this.writeRecord2(pWriter, 0xa3, oElement); break;
+          case AscDFH.historyitem_type_ForEach: this.writeRecord2(pWriter, 0xa4, oElement); break;
+          case AscDFH.historyitem_type_LayoutNode: this.writeRecord2(pWriter, 0xa5, oElement); break;
+          case AscDFH.historyitem_type_PresOf: this.writeRecord2(pWriter, 0xa6, oElement); break;
+          case AscDFH.historyitem_type_RuleLst: this.writeRecord2(pWriter, 0xa7, oElement); break;
+          case AscDFH.historyitem_type_SShape: this.writeRecord2(pWriter, 0xa8, oElement); break;
+          case AscDFH.historyitem_type_VarLst: this.writeRecord2(pWriter, 0xa9, oElement); break;
+          default: break;
+        }
+      }
+    };
+    LayoutNode.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setName(oStream.GetString2());
+      else if (1 === nType) this.setStyleLbl(oStream.GetString2());
+      else if (2 === nType) this.setMoveWith(oStream.GetString2());
+
+    };
+    LayoutNode.prototype.readChild = function(nType, pReader) {
+        this.readElement(pReader, nType);
+    };
+    LayoutNode.prototype.getChildren = function() {
+      return [].concat(this.list);
+    };
+
 
     changesFactory[AscDFH.historyitem_AlgRev] = CChangeLong;
     changesFactory[AscDFH.historyitem_AlgType] = CChangeLong;
@@ -2957,6 +3186,35 @@
         oCopy.addToLst(nIdx, this.param[nIdx].createDuplicate(oIdMap));
       }
     }
+
+    Alg.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteUInt2(0, this.rev);
+      pWriter._WriteUChar2(1, this.type);
+    };
+    Alg.prototype.writeChildren = function(pWriter) {
+      for (var i = 0;i < this.param.length; i += 1) {
+        this.writeRecord2(pWriter,0, this.param[i]);
+      }
+    };
+    Alg.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setRev(oStream.GetULong());
+      else if (1 === nType) this.setType(oStream.GetUChar());
+    };
+    Alg.prototype.readChild = function(nType, pReader) {
+      switch (nType) {
+        case 0: {
+          this.addToLstParam(0, new Param());
+          this.param[0].fromPPTY(pReader);
+          break;
+        }
+        default:
+          pReader.SkipRecord();
+          break;
+      }
+    };
+    Alg.prototype.getChildren = function() {
+    };
 
 
     changesFactory[AscDFH.historyitem_ParameterValArrowheadStyle] = CChangeLong;
@@ -3552,29 +3810,40 @@
       }
     }
 
+    Param.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteString2(0, this.val);
+      pWriter._WriteUChar2(1, this.type);
+    };
+    Param.prototype.writeChildren = function(pWriter) {
+    };
+    Param.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setVal(oStream.GetString2());
+      else if (1 === nType) this.setType(oStream.GetUChar());
+    };
+    Param.prototype.readChild = function(nType, pReader) {
+    };
+
+
 
     changesFactory[AscDFH.historyitem_ChooseName] = CChangeString;
     changesFactory[AscDFH.historyitem_ChooseElse] = CChangeObject;
-    changesFactory[AscDFH.historyitem_ChooseAddIf] = CChangeContent;
-    changesFactory[AscDFH.historyitem_ChooseRemoveIf] = CChangeContent;
+    changesFactory[AscDFH.historyitem_ChooseIf] = CChangeObject;
     drawingsChangesMap[AscDFH.historyitem_ChooseName] = function (oClass, value) {
       oClass.name = value;
     };
     drawingsChangesMap[AscDFH.historyitem_ChooseElse] = function (oClass, value) {
       oClass.else = value;
     };
-    drawingContentChanges[AscDFH.historyitem_ChooseAddIf] = function (oClass) {
-      return oClass.if;
-    };
-    drawingContentChanges[AscDFH.historyitem_ChooseRemoveIf] = function (oClass) {
-      return oClass.if;
+    drawingsChangesMap[AscDFH.historyitem_ChooseIf] = function (oClass) {
+      oClass.if = value;
     };
 
     function Choose() {
       CBaseFormatObject.call(this);
       this.name = null;
       this.else = null;
-      this.if = [];
+      this.if = null;
     }
 
     InitClass(Choose, CBaseFormatObject, AscDFH.historyitem_type_Choose);
@@ -3590,19 +3859,10 @@
       this.setParentToChild(oPr);
     }
 
-    Choose.prototype.addToLstIf = function (nIdx, oPr) {
-      var nInsertIdx = Math.min(this.if.length, Math.max(0, nIdx));
-      oHistory.Add(new CChangeContent(this, AscDFH.historyitem_ChooseAddIf, nInsertIdx, [oPr], true));
-      this.if.splice(nInsertIdx, 0, oPr);
+    Choose.prototype.setIf = function (oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_ChooseIf, this.getIf(), oPr));
+      this.if = oPr;
       this.setParentToChild(oPr);
-    };
-
-    Choose.prototype.removeFromLstIf = function (nIdx) {
-      if (nIdx > -1 && nIdx < this.if.length) {
-        this.if[nIdx].setParent(null);
-        oHistory.Add(new CChangeContent(this, AscDFH.historyitem_ChooseRemoveIf, nIdx, [this.if[nIdx]], false));
-        this.if.splice(nIdx, 1);
-      }
     };
 
     Choose.prototype.getName = function () {
@@ -3613,15 +3873,55 @@
       return this.else;
     }
 
+    Choose.prototype.getIf = function () {
+      return this.if;
+    }
+
     Choose.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setName(this.getName());
       if (this.getElse()) {
         oCopy.setElse(this.getElse().createDuplicate(oIdMap));
       }
-      for (var nIdx = 0; nIdx < this.if.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.if[nIdx].createDuplicate(oIdMap));
+      if (this.getIf()) {
+        oCopy.setIf(this.getIf().createDuplicate(oIdMap));
       }
     }
+
+    Choose.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteString2(0, this.name);
+    };
+    Choose.prototype.writeChildren = function(pWriter) {
+      this.writeRecord2(pWriter, 0, this.if);
+      this.writeRecord2(pWriter, 1, this.else);
+    };
+    Choose.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setName(oStream.GetString2());
+    };
+    Choose.prototype.readChild = function(nType, pReader) {
+      var s = pReader.stream;
+      switch (nType) {
+        case 0: {
+          this.setIf(new If());
+          this.if.fromPPTY(pReader);
+          break;
+        }
+        case 1: {
+          this.setElse(new Else());
+          this.else.fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+    Choose.prototype.getChildren = function() {
+      return [this.if, this.else];
+    };
+
+
 
     changesFactory[AscDFH.historyitem_ElseName] = CChangeString;
     drawingsChangesMap[AscDFH.historyitem_ElseName] = function (oClass, value) {
@@ -3647,6 +3947,59 @@
     Else.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setName(this.getName());
     }
+
+    Else.prototype.readElement = function(pReader, nType) {
+      var oElement = null;
+      switch(nType) {
+        case 0xa1: oElement = new Alg(); break;
+        case 0xa2: oElement = new Choose(); break;
+        case 0xa3: oElement = new ConstrLst(); break;
+        case 0xa4: oElement = new ForEach(); break;
+        case 0xa5: oElement = new LayoutNode(); break;
+        case 0xa6: oElement = new PresOf(); break;
+        case 0xa7: oElement = new RuleLst(); break;
+        case 0xa8: oElement = new SShape(); break;
+        case 0xa9: oElement = new VarLst(); break;
+        default:break;
+      }
+      if(oElement) {
+        oElement.fromPPTY(pReader);
+        this.addToLst(0, oElement);
+      }
+    };
+
+    Else.prototype.privateWriteAttributes = function(pWriter) {
+        pWriter._WriteString2(0, this.name);
+    };
+
+    Else.prototype.writeChildren = function(pWriter) {
+      for(var nIndex = 0; nIndex < this.list.length; ++nIndex) {
+        var oElement = this.list[nIndex];
+        switch (oElement.getObjectType()) {
+          case AscDFH.historyitem_type_Alg: this.writeRecord2(pWriter, 0xa1, oElement); break;
+          case AscDFH.historyitem_type_Choose: this.writeRecord2(pWriter, 0xa2, oElement); break;
+          case AscDFH.historyitem_type_ConstrLst: this.writeRecord2(pWriter, 0xa3, oElement); break;
+          case AscDFH.historyitem_type_ForEach: this.writeRecord2(pWriter, 0xa4, oElement); break;
+          case AscDFH.historyitem_type_LayoutNode: this.writeRecord2(pWriter, 0xa5, oElement); break;
+          case AscDFH.historyitem_type_PresOf: this.writeRecord2(pWriter, 0xa6, oElement); break;
+          case AscDFH.historyitem_type_RuleLst: this.writeRecord2(pWriter, 0xa7, oElement); break;
+          case AscDFH.historyitem_type_SShape: this.writeRecord2(pWriter, 0xa8, oElement); break;
+          case AscDFH.historyitem_type_VarLst: this.writeRecord2(pWriter, 0xa9, oElement); break;
+          default: break;
+        }
+      }
+    };
+    Else.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+        if (0 === nType) this.setName(oStream.GetString2());
+    };
+
+    Else.prototype.readChild = function(nType, pReader) {
+        this.readElement(pReader, nType);
+    };
+    Else.prototype.getChildren = function() {
+      return [].concat(this.list);
+    };
 
     changesFactory[AscDFH.historyitem_IteratorAttributesAddAxis] = CChangeContent;
     changesFactory[AscDFH.historyitem_IteratorAttributesRemoveAxis] = CChangeContent;
@@ -4101,11 +4454,121 @@
       }
     }
 
+    If.prototype.readElement = function(pReader, nType) {
+      var oElement = null;
+      switch(nType) {
+        case 0xa1: oElement = new Alg(); break;
+        case 0xa2: oElement = new Choose(); break;
+        case 0xa3: oElement = new ConstrLst(); break;
+        case 0xa4: oElement = new ForEach(); break;
+        case 0xa5: oElement = new LayoutNode(); break;
+        case 0xa6: oElement = new PresOf(); break;
+        case 0xa7: oElement = new RuleLst(); break;
+        case 0xa8: oElement = new SShape(); break;
+        case 0xa9: oElement = new VarLst(); break;
+        default:break;
+      }
+      if(oElement) {
+        oElement.fromPPTY(pReader);
+        this.addToLstList(0, oElement);
+      }
+    };
+
+    If.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteString2(0, this.name);
+      for (var i = 0; i < this.st.length; i += 1) {
+        pWriter._WriteInt1(1, this.st[i]);
+      }
+      for (i = 0; i < this.step.length; i += 1) {
+        pWriter._WriteInt1(2, this.step[i]);
+      }
+      for (i = 0; i < this.hideLastTrans.length; i += 1) {
+        pWriter._WriteBool1(3, this.hideLastTrans[i]);
+      }
+      for (i = 0; i < this.cnt.length; i += 1) {
+        pWriter._WriteInt1(4, this.cnt[i]);
+      }
+      for (i = 0; i < this.axis.length; i += 1) {
+        pWriter._WriteUChar1(5, this.axis[i].getVal());
+      }
+      for (i = 0; i < this.ptType.length; i += 1) {
+        pWriter._WriteUChar1(6, this.pTType[i].getVal());
+      }
+      pWriter._WriteString2(7, this.ref);
+      pWriter._WriteUChar2(8, this.op);
+      pWriter._WriteUChar2(9, this.func);
+      pWriter._WriteString2(10, this.val);
+      pWriter._WriteString2(11, this.arg);
+    };
+    If.prototype.writeChildren = function(pWriter) {
+      for(var nIndex = 0; nIndex < this.list.length; ++nIndex) {
+        var oElement = this.list[nIndex];
+        switch (oElement.getObjectType()) {
+          case AscDFH.historyitem_type_Alg: this.writeRecord2(pWriter, 0xa1, oElement); break;
+          case AscDFH.historyitem_type_Choose: this.writeRecord2(pWriter, 0xa2, oElement); break;
+          case AscDFH.historyitem_type_ConstrLst: this.writeRecord2(pWriter, 0xa3, oElement); break;
+          case AscDFH.historyitem_type_ForEach: this.writeRecord2(pWriter, 0xa4, oElement); break;
+          case AscDFH.historyitem_type_LayoutNode: this.writeRecord2(pWriter, 0xa5, oElement); break;
+          case AscDFH.historyitem_type_PresOf: this.writeRecord2(pWriter, 0xa6, oElement); break;
+          case AscDFH.historyitem_type_RuleLst: this.writeRecord2(pWriter, 0xa7, oElement); break;
+          case AscDFH.historyitem_type_SShape: this.writeRecord2(pWriter, 0xa8, oElement); break;
+          case AscDFH.historyitem_type_VarLst: this.writeRecord2(pWriter, 0xa9, oElement); break;
+          default: break;
+        }
+      }
+    };
+    If.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setName(oStream.GetString2());
+      else if (1 === nType) this.addToLstSt(0, oStream.GetLong());
+      else if (2 === nType) this.addToLstStep(0, oStream.GetLong());
+      else if (3 === nType) this.addToLstHideLastTrans(0, oStream.GetBool());
+      else if (4 === nType) this.addToLstCnt(0, oStream.GetLong());
+      else if (5 === nType) {
+        var axis = new AxisType();
+        this.addToLstAxis(0, axis);
+        axis.setVal(oStream.GetUChar());
+      }
+      else if (6 === nType) {
+        var ptType = new ElementType();
+        this.addToLstPtType(0, ptType);
+        ptType.setVal(oStream.GetUChar());
+      }
+      else if (7 === nType) this.setRef(oStream.GetString2());
+      else if (8 === nType) this.setOp(oStream.GetUChar());
+      else if (9 === nType) this.setFunc(oStream.GetUChar());
+      else if (10 === nType) this.setVal(oStream.GetString2());
+      else if (11 === nType) this.setArg(oStream.GetString2());
+    };
+
+    If.prototype.readChild = function(nType, pReader) {
+        this.readElement(pReader, nType);
+    };
+    If.prototype.getChildren = function() {
+      return [].concat(this.list);
+    };
+
     function ConstrLst() {
       CCommonDataList.call(this);
     }
 
     InitClass(ConstrLst, CCommonDataList, AscDFH.historyitem_type_ConstrLst);
+
+    ConstrLst.prototype.readChild = function(nType, pReader) {
+      var s = pReader.stream;
+      switch (nType) {
+        case 0: {
+          this.addToLst(0, new Constr());
+          this.list[0].fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+
 
 
     changesFactory[AscDFH.historyitem_ConstrFact] = CChangeDouble2;
@@ -4307,6 +4770,38 @@
       }
     }
 
+    Constr.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteDoubleReal2(0, this.fact);
+      pWriter._WriteUChar2(1, this.for);
+      pWriter._WriteString2(2, this.forName);
+      pWriter._WriteUChar2(3, this.op);
+      pWriter._WriteUChar2(4, this.ptType);
+      pWriter._WriteUChar2(5, this.refFor);
+      pWriter._WriteString2(6, this.refForName);
+      pWriter._WriteUChar2(7, this.refPtType);
+      pWriter._WriteUChar2(8, this.refType);
+      pWriter._WriteUChar2(9, this.type);
+      pWriter._WriteDoubleReal2(10, this.val);
+    };
+    Constr.prototype.writeChildren = function(pWriter) {
+    };
+    Constr.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setFact(oStream.GetDouble());
+      else if (1 === nType) this.setFor(oStream.GetUChar());
+      else if (2 === nType) this.setForName(oStream.GetString2());
+      else if (3 === nType) this.setOp(oStream.GetUChar());
+      else if (4 === nType) this.setPtType(oStream.GetUChar());
+      else if (5 === nType) this.setRefFor(oStream.GetUChar());
+      else if (6 === nType) this.setRefForName(oStream.GetString2());
+      else if (7 === nType) this.setRefPtType(oStream.GetUChar());
+      else if (8 === nType) this.setRefType(oStream.GetUChar());
+      else if (9 === nType) this.setType(oStream.GetUChar());
+      else if (10 === nType) this.setVal(oStream.GetDouble());
+    };
+    Constr.prototype.readChild = function(nType, pReader) {
+    };
+
     changesFactory[AscDFH.historyitem_PresOfExtLst] = CChangeObject;
     drawingsChangesMap[AscDFH.historyitem_PresOfExtLst] = function (oClass, value) {
       oClass.extLst = value;
@@ -4335,12 +4830,71 @@
       }
     }
 
+    PresOf.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteString2(0, this.name);
+      for (var i = 0; i < this.st.length; i += 1) {
+        pWriter._WriteInt1(1, this.st[i]);
+      }
+      for (i = 0; i < this.step.length; i += 1) {
+        pWriter._WriteInt1(2, this.step[i]);
+      }
+      for (i = 0; i < this.hideLastTrans.length; i += 1) {
+        pWriter._WriteBool1(3, this.hideLastTrans[i]);
+      }
+      for (i = 0; i < this.cnt.length; i += 1) {
+        pWriter._WriteInt1(4, this.cnt[i]);
+      }
+      for (i = 0; i < this.axis.length; i += 1) {
+        pWriter._WriteUChar1(5, this.axis[i].getVal());
+      }
+      for (i = 0; i < this.ptType.length; i += 1) {
+        pWriter._WriteUChar1(6, this.pTType[i].getVal());
+      }
+    };
+    PresOf.prototype.writeChildren = function(pWriter) {
+    };
+    PresOf.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setName(oStream.GetString2());
+      else if (1 === nType) this.addToLstSt(0, oStream.GetLong());
+      else if (2 === nType) this.addToLstStep(0, oStream.GetLong());
+      else if (3 === nType) this.addToLstHideLastTrans(0, oStream.GetBool());
+      else if (4 === nType) this.addToLstCnt(0, oStream.GetLong());
+      else if (5 === nType) {
+        var axis = new AxisType();
+        this.addToLstAxis(0, axis);
+        axis.setVal(oStream.GetUChar());
+      }
+      else if (6 === nType) {
+        var ptType = new ElementType();
+        this.addToLstPtType(0, ptType);
+        ptType.setVal(oStream.GetUChar());
+      }
+    };
+
+    PresOf.prototype.readChild = function(nType, pReader) {
+    };
+
     function RuleLst() {
       CCommonDataList.call(this);
     }
 
     InitClass(RuleLst, CCommonDataList, AscDFH.historyitem_type_RuleLst);
 
+    RuleLst.prototype.readChild = function(nType, pReader) {
+      var s = pReader.stream;
+      switch (nType) {
+        case 0: {
+          this.addToLst(0, new Rule());
+          this.list[0].fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
 
     changesFactory[AscDFH.historyitem_RuleFact] = CChangeDouble2;
     changesFactory[AscDFH.historyitem_RuleFor] = CChangeLong;
@@ -4477,6 +5031,31 @@
         oCopy.setPtType(this.getPtType().createDuplicate(oIdMap));
       }
     }
+
+    Rule.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteDoubleReal2(0, this.fact);
+      pWriter._WriteUChar2(1, this.for);
+      pWriter._WriteString2(2, this.forName);
+      pWriter._WriteUChar2(3, this.ptType);
+      pWriter._WriteUChar2(4, this.type);
+      pWriter._WriteDoubleReal2(5, this.val);
+      pWriter._WriteDoubleReal2(6, this.max);
+    };
+    Rule.prototype.writeChildren = function(pWriter) {
+    };
+    Rule.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setFact(oStream.GetDouble());
+      else if (1 === nType) this.setFor(oStream.GetUChar());
+      else if (2 === nType) this.setForName(oStream.GetString2());
+      else if (3 === nType) this.setPtType(oStream.GetUChar());
+      else if (4 === nType) this.setType(oStream.GetUChar());
+      else if (5 === nType) this.setVal(oStream.GetDouble());
+      else if (6 === nType) this.setMax(oStream.GetDouble());
+    };
+    Rule.prototype.readChild = function(nType, pReader) {
+    };
+
 
     changesFactory[AscDFH.historyitem_LayoutShapeTypeOutputShapeType] = CChangeLong;
     changesFactory[AscDFH.historyitem_LayoutShapeTypeShapeType] = CChangeLong;
@@ -4678,6 +5257,21 @@
 
     InitClass(AdjLst, CCommonDataList, AscDFH.historyitem_type_AdjLst);
 
+    AdjLst.prototype.readChild = function(nType, pReader) {
+      var s = pReader.stream;
+      switch (nType) {
+        case 0: {
+          this.addToLst(0, new Adj());
+          this.list[0].fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+
     changesFactory[AscDFH.historyitem_AdjIdx] = CChangeLong;
     changesFactory[AscDFH.historyitem_AdjVal] = CChangeDouble2;
     drawingsChangesMap[AscDFH.historyitem_AdjIdx] = function (oClass, value) {
@@ -4717,6 +5311,22 @@
       oCopy.setIdx(this.getIdx());
       oCopy.setVal(this.getVal());
     }
+
+    Adj.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteUInt2(0, this.idx);
+      pWriter._WriteDoubleReal2(1, this.val);
+    };
+    Adj.prototype.writeChildren = function(pWriter) {
+    };
+    Adj.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setIdx(oStream.GetULong());
+      else if (1 === nType) this.setVal(oStream.GetDouble());
+    };
+    Adj.prototype.readChild = function(nType, pReader) {
+    };
+    Adj.prototype.getChildren = function() {
+    };
 
 
     changesFactory[AscDFH.historyitem_VarLstAnimLvl] = CChangeObject;
@@ -4907,7 +5517,7 @@
     VarLst.prototype.readAttribute = function(nType, pReader) {
     };
     VarLst.prototype.readChild = function(nType, pReader) {
-      var s = this.stream;
+      var s = pReader.stream;
       switch (nType) {
         case 0: {
           this.setAnimLvl(new AnimLvl());
@@ -5259,6 +5869,93 @@
       }
     }
 
+    ForEach.prototype.readElement = function(pReader, nType) {
+      var oElement = null;
+      switch(nType) {
+        case 0xa1: oElement = new Alg(); break;
+        case 0xa2: oElement = new Choose(); break;
+        case 0xa3: oElement = new ConstrLst(); break;
+        case 0xa4: oElement = new ForEach(); break;
+        case 0xa5: oElement = new LayoutNode(); break;
+        case 0xa6: oElement = new PresOf(); break;
+        case 0xa7: oElement = new RuleLst(); break;
+        case 0xa8: oElement = new SShape(); break;
+        case 0xa9: oElement = new VarLst(); break;
+        default:break;
+      }
+      if(oElement) {
+        oElement.fromPPTY(pReader);
+        this.addToLstList(0, oElement);
+      }
+    };
+
+    ForEach.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteString2(0, this.name);
+      for (var i = 0; i < this.st.length; i += 1) {
+        pWriter._WriteInt1(1, this.st[i]);
+      }
+      for (i = 0; i < this.step.length; i += 1) {
+        pWriter._WriteInt1(2, this.step[i]);
+      }
+      for (i = 0; i < this.hideLastTrans.length; i += 1) {
+        pWriter._WriteBool1(3, this.hideLastTrans[i]);
+      }
+      for (i = 0; i < this.cnt.length; i += 1) {
+        pWriter._WriteInt1(4, this.cnt[i]);
+      }
+      for (i = 0; i < this.axis.length; i += 1) {
+        pWriter._WriteUChar1(5, this.axis[i].getVal());
+      }
+      for (i = 0; i < this.ptType.length; i += 1) {
+        pWriter._WriteUChar1(6, this.pTType[i].getVal());
+      }
+      pWriter._WriteString2(7, this.ref);
+    };
+    ForEach.prototype.writeChildren = function(pWriter) {
+      for(var nIndex = 0; nIndex < this.list.length; ++nIndex) {
+        var oElement = this.list[nIndex];
+        switch (oElement.getObjectType()) {
+          case AscDFH.historyitem_type_Alg: this.writeRecord2(pWriter, 0xa1, oElement); break;
+          case AscDFH.historyitem_type_Choose: this.writeRecord2(pWriter, 0xa2, oElement); break;
+          case AscDFH.historyitem_type_ConstrLst: this.writeRecord2(pWriter, 0xa3, oElement); break;
+          case AscDFH.historyitem_type_ForEach: this.writeRecord2(pWriter, 0xa4, oElement); break;
+          case AscDFH.historyitem_type_LayoutNode: this.writeRecord2(pWriter, 0xa5, oElement); break;
+          case AscDFH.historyitem_type_PresOf: this.writeRecord2(pWriter, 0xa6, oElement); break;
+          case AscDFH.historyitem_type_RuleLst: this.writeRecord2(pWriter, 0xa7, oElement); break;
+          case AscDFH.historyitem_type_SShape: this.writeRecord2(pWriter, 0xa8, oElement); break;
+          case AscDFH.historyitem_type_VarLst: this.writeRecord2(pWriter, 0xa9, oElement); break;
+          default: break;
+        }
+      }
+    };
+    ForEach.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setName(oStream.GetString2());
+      else if (1 === nType) this.addToLstSt(0, oStream.GetLong());
+      else if (2 === nType) this.addToLstStep(0, oStream.GetLong());
+      else if (3 === nType) this.addToLstHideLastTrans(0, oStream.GetBool());
+      else if (4 === nType) this.addToLstCnt(0, oStream.GetLong());
+      else if (5 === nType) {
+        var axis = new AxisType();
+        this.addToLstAxis(0, axis);
+        axis.setVal(oStream.GetUChar());
+      }
+      else if (6 === nType) {
+        var ptType = new ElementType();
+        this.addToLstPtType(0, ptType);
+        ptType.setVal(oStream.GetUChar());
+      }
+      else if (7 === nType) this.setRef(oStream.GetString2());
+    };
+
+    ForEach.prototype.readChild = function(nType, pReader) {
+        this.readElement(pReader);
+    };
+    ForEach.prototype.getChildren = function() {
+      return [].concat(this.list);
+    };
+
+
 
     changesFactory[AscDFH.historyitem_SampDataUseDef] = CChangeBool;
     changesFactory[AscDFH.historyitem_SampDataDataModel] = CChangeObject;
@@ -5303,6 +6000,35 @@
       }
     }
 
+    SampData.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteBool2(0, this.useDef);
+    };
+    SampData.prototype.writeChildren = function(pWriter) {
+      this.writeRecord2(pWriter, 0, this.dataModel);
+    };
+    SampData.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setUseDef(oStream.GetBool());
+    };
+    SampData.prototype.readChild = function(nType, pReader) {
+      var s = pReader.stream;
+      switch (nType) {
+        case 0: {
+          this.setDataModel(new DataModel());
+          this.dataModel.fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+    SampData.prototype.getChildren = function() {
+      return [this.dataModel];
+    };
+
+
     changesFactory[AscDFH.historyitem_StyleDataUseDef] = CChangeBool;
     changesFactory[AscDFH.historyitem_StyleDataDataModel] = CChangeObject;
     drawingsChangesMap[AscDFH.historyitem_StyleDataUseDef] = function (oClass, value) {
@@ -5345,6 +6071,35 @@
         oCopy.setDataModel(this.getDataModel().createDuplicate(oIdMap));
       }
     }
+
+    StyleData.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteBool2(0, this.useDef);
+    };
+    StyleData.prototype.writeChildren = function(pWriter) {
+      this.writeRecord2(pWriter, 0, this.dataModel);
+    };
+    StyleData.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setUseDef(oStream.GetBool());
+    };
+    StyleData.prototype.readChild = function(nType, pReader) {
+      var s = pReader.stream;
+      switch (nType) {
+        case 0: {
+          this.setDataModel(new DataModel());
+          this.dataModel.fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+    StyleData.prototype.getChildren = function() {
+      return [this.dataModel];
+    };
+
 
 
     changesFactory[AscDFH.historyitem_DiagramTitleLang] = CChangeString;
@@ -5645,10 +6400,8 @@
     changesFactory[AscDFH.historyitem_ColorsDefUniqueId] = CChangeString;
     changesFactory[AscDFH.historyitem_ColorsDefCatLst] = CChangeObject;
     changesFactory[AscDFH.historyitem_ColorsDefExtLst] = CChangeObject;
-    changesFactory[AscDFH.historyitem_ColorsDefAddDesc] = CChangeContent;
-    changesFactory[AscDFH.historyitem_ColorsDefRemoveDesc] = CChangeContent;
-    changesFactory[AscDFH.historyitem_ColorsDefAddTitle] = CChangeContent;
-    changesFactory[AscDFH.historyitem_ColorsDefRemoveTitle] = CChangeContent;
+    changesFactory[AscDFH.historyitem_ColorsDefDesc] = CChangeObject;
+    changesFactory[AscDFH.historyitem_ColorsDefTitle] = CChangeObject;
     changesFactory[AscDFH.historyitem_ColorsDefAddStyleLbl] = CChangeContent;
     changesFactory[AscDFH.historyitem_ColorsDefRemoveStyleLbl] = CChangeContent;
     drawingsChangesMap[AscDFH.historyitem_ColorsDefMinVer] = function (oClass, value) {
@@ -5663,17 +6416,11 @@
     drawingsChangesMap[AscDFH.historyitem_ColorsDefExtLst] = function (oClass, value) {
       oClass.extLst = value;
     };
-    drawingContentChanges[AscDFH.historyitem_ColorsDefAddDesc] = function (oClass) {
-      return oClass.desc;
+    drawingsChangesMap[AscDFH.historyitem_ColorsDefDesc] = function (oClass, value) {
+      oClass.desc = value;
     };
-    drawingContentChanges[AscDFH.historyitem_ColorsDefRemoveDesc] = function (oClass) {
-      return oClass.desc;
-    };
-    drawingContentChanges[AscDFH.historyitem_ColorsDefAddTitle] = function (oClass) {
-      return oClass.title;
-    };
-    drawingContentChanges[AscDFH.historyitem_ColorsDefRemoveTitle] = function (oClass) {
-      return oClass.title;
+    drawingsChangesMap[AscDFH.historyitem_ColorsDefTitle] = function (oClass, value) {
+      oClass.title = value;
     };
     drawingContentChanges[AscDFH.historyitem_ColorsDefAddStyleLbl] = function (oClass) {
       return oClass.styleLbl;
@@ -5688,8 +6435,8 @@
       this.uniqueId = null;
       this.catLst = null;
       this.extLst = null;
-      this.desc = [];
-      this.title = [];
+      this.desc = null;
+      this.title = null;
       this.styleLbl = [];
     }
 
@@ -5717,34 +6464,16 @@
       this.setParentToChild(oPr);
     }
 
-    ColorsDef.prototype.addToLstDesc = function (nIdx, oPr) {
-      var nInsertIdx = Math.min(this.desc.length, Math.max(0, nIdx));
-      oHistory.Add(new CChangeContent(this, AscDFH.historyitem_ColorsDefAddDesc, nInsertIdx, [oPr], true));
-      this.desc.splice(nInsertIdx, 0, oPr);
+    ColorsDef.prototype.setDesc = function (oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_ColorsDefDesc, this.getDesc(), oPr));
+      this.desc = oPr;
       this.setParentToChild(oPr);
     };
 
-    ColorsDef.prototype.removeFromLstDesc = function (nIdx) {
-      if (nIdx > -1 && nIdx < this.desc.length) {
-        this.desc[nIdx].setParent(null);
-        oHistory.Add(new CChangeContent(this, AscDFH.historyitem_ColorsDefRemoveDesc, nIdx, [this.desc[nIdx]], false));
-        this.desc.splice(nIdx, 1);
-      }
-    };
-
-    ColorsDef.prototype.addToLstTitle = function (nIdx, oPr) {
-      var nInsertIdx = Math.min(this.title.length, Math.max(0, nIdx));
-      oHistory.Add(new CChangeContent(this, AscDFH.historyitem_ColorsDefAddTitle, nInsertIdx, [oPr], true));
-      this.title.splice(nInsertIdx, 0, oPr);
+    ColorsDef.prototype.setTitle = function (oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_ColorsDefTitle, this.getTitle(), oPr));
+      this.title = oPr;
       this.setParentToChild(oPr);
-    };
-
-    ColorsDef.prototype.removeFromLstTitle = function (nIdx) {
-      if (nIdx > -1 && nIdx < this.title.length) {
-        this.title[nIdx].setParent(null);
-        oHistory.Add(new CChangeContent(this, AscDFH.historyitem_ColorsDefRemoveTitle, nIdx, [this.title[nIdx]], false));
-        this.title.splice(nIdx, 1);
-      }
     };
 
     ColorsDef.prototype.addToLstStyleLbl = function (nIdx, oPr) {
@@ -5778,6 +6507,14 @@
       return this.extLst;
     }
 
+    ColorsDef.prototype.getDesc = function () {
+      return this.desc;
+    }
+
+    ColorsDef.prototype.getTitle = function () {
+      return this.title;
+    }
+
     ColorsDef.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setMinVer(this.getMinVer());
       oCopy.setUniqueId(this.getUniqueId());
@@ -5787,16 +6524,64 @@
       if (this.getExtLst()) {
         oCopy.setExtLst(this.getExtLst().createDuplicate(oIdMap));
       }
-      for (var nIdx = 0; nIdx < this.desc.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.desc[nIdx].createDuplicate(oIdMap));
+      if (this.getDesc()) {
+        oCopy.setDesc(this.getDesc().createDuplicate(oIdMap));
       }
-      for (nIdx = 0; nIdx < this.title.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.title[nIdx].createDuplicate(oIdMap));
+      if (this.getTitle()) {
+        oCopy.setTitle(this.getTitle().createDuplicate(oIdMap));
       }
-      for (nIdx = 0; nIdx < this.styleLbl.length; ++nIdx) {
+      for (var nIdx = 0; nIdx < this.styleLbl.length; ++nIdx) {
         oCopy.addToLst(nIdx, this.styleLbl[nIdx].createDuplicate(oIdMap));
       }
     }
+
+    ColorsDef.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteString2(0, this.uniqueId);
+      pWriter._WriteString2(1, this.minVer);
+    };
+    ColorsDef.prototype.writeChildren = function(pWriter) {
+      this.writeRecord2(pWriter, 0, this.title);
+      this.writeRecord2(pWriter, 1, this.desc);
+      this.writeRecord2(pWriter, 2, this.catLst);
+    };
+    ColorsDef.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setUniqueId(oStream.GetString2());
+      else if (1 === nType) this.setMinVer(oStream.GetString2());
+    };
+    ColorsDef.prototype.readChild = function(nType, pReader) {
+      var s = pReader.stream;
+      switch (nType) {
+        case 0: {
+          this.setTitle(new DiagramTitle());
+          this.title.fromPPTY(pReader);
+          break;
+        }
+        case 1: {
+          this.setDesc(new Desc());
+          this.desc.fromPPTY(pReader);
+          break;
+        }
+        case 2: {
+          this.setCatLst(new CatLst());
+          this.catLst.fromPPTY(pReader);
+          break;
+        }
+        case 3: {
+          this.addToLstStyleLbl(0, new ColorDefStyleLbl());
+          this.styleLbl[0].fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+    ColorsDef.prototype.getChildren = function() {
+      return [this.title, this.desc, this.catLst].concat(this.styleLbl);
+    };
+
 
     changesFactory[AscDFH.historyitem_ColorDefStyleLblName] = CChangeString;
     changesFactory[AscDFH.historyitem_ColorDefStyleLblEffectClrLst] = CChangeObject;
@@ -5965,7 +6750,7 @@
       if (0 === nType) this.setName(oStream.GetString2());
     };
     ColorDefStyleLbl.prototype.readChild = function(nType, pReader) {
-      var s = this.stream;
+      var s = pReader.stream;
       switch (nType) {
         case 0: {
           this.setEffectClrLst(new EffectClrLst());
@@ -6065,6 +6850,38 @@
         oCopy.addToLst(nIdx, this.list[nIdx].createDuplicate(oIdMap));
       }
     };
+
+    CCommonDataClrList.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteUChar2(0, this.hueDir);
+      pWriter._WriteUChar2(1, this.meth);
+    };
+    CCommonDataClrList.prototype.writeChildren = function(pWriter) {
+      for (var i = 0; i < this.list.length; i += 1) {
+        this.writeRecord2(pWriter,0, this.list[i]);
+      }
+    };
+    CCommonDataClrList.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setHueDir(oStream.GetUChar());
+      else if (1 === nType) this.setMeth(oStream.GetUChar());
+    };
+    CCommonDataClrList.prototype.readChild = function(nType, pReader) {
+      var s = pReader.stream;
+      switch (nType) {
+        case 0:
+          this.addToLst(0, new CUniColor());
+          this.list[0].fromPPTY;
+          break;
+        default:
+          s.SkipRecord();
+          break;
+      }
+
+    };
+    CCommonDataClrList.prototype.getChildren = function() {
+      return [].concat(this.list);
+    };
+
 
 
     changesFactory[AscDFH.historyitem_ClrLstHueDir] = CChangeLong;
@@ -6301,10 +7118,8 @@
     changesFactory[AscDFH.historyitem_StyleDefCatLst] = CChangeObject;
     changesFactory[AscDFH.historyitem_StyleDefExtLst] = CChangeObject;
     changesFactory[AscDFH.historyitem_StyleDefScene3d] = CChangeObject;
-    changesFactory[AscDFH.historyitem_StyleDefAddTitle] = CChangeContent;
-    changesFactory[AscDFH.historyitem_StyleDefRemoveTitle] = CChangeContent;
-    changesFactory[AscDFH.historyitem_StyleDefAddDesc] = CChangeContent;
-    changesFactory[AscDFH.historyitem_StyleDefRemoveDesc] = CChangeContent;
+    changesFactory[AscDFH.historyitem_StyleDefTitle] = CChangeObject;
+    changesFactory[AscDFH.historyitem_StyleDefDesc] = CChangeObject;
     changesFactory[AscDFH.historyitem_StyleDefAddStyleLbl] = CChangeContent;
     changesFactory[AscDFH.historyitem_StyleDefRemoveStyleLbl] = CChangeContent;
     drawingsChangesMap[AscDFH.historyitem_StyleDefMinVer] = function (oClass, value) {
@@ -6322,17 +7137,11 @@
     drawingsChangesMap[AscDFH.historyitem_StyleDefScene3d] = function (oClass, value) {
       oClass.scene3d = value;
     };
-    drawingContentChanges[AscDFH.historyitem_StyleDefAddTitle] = function (oClass) {
-      return oClass.title;
+    drawingsChangesMap[AscDFH.historyitem_StyleDefTitle] = function (oClass, value) {
+      oClass.title = value;
     };
-    drawingContentChanges[AscDFH.historyitem_StyleDefRemoveTitle] = function (oClass) {
-      return oClass.title;
-    };
-    drawingContentChanges[AscDFH.historyitem_StyleDefAddDesc] = function (oClass) {
-      return oClass.desc;
-    };
-    drawingContentChanges[AscDFH.historyitem_StyleDefRemoveDesc] = function (oClass) {
-      return oClass.desc;
+    drawingsChangesMap[AscDFH.historyitem_StyleDefDesc] = function (oClass, value) {
+      oClass.desc = value;
     };
     drawingContentChanges[AscDFH.historyitem_StyleDefAddStyleLbl] = function (oClass) {
       return oClass.styleLbl;
@@ -6348,8 +7157,8 @@
       this.catLst = null;
       this.extLst = null;
       this.scene3d = null;
-      this.title = [];
-      this.desc = [];
+      this.title = null;
+      this.desc = null;
       this.styleLbl = [];
     }
 
@@ -6383,35 +7192,17 @@
       this.setParentToChild(oPr);
     }
 
-    StyleDef.prototype.addToLstTitle = function (nIdx, oPr) {
-      var nInsertIdx = Math.min(this.title.length, Math.max(0, nIdx));
-      oHistory.Add(new CChangeContent(this, AscDFH.historyitem_StyleDefAddTitle, nInsertIdx, [oPr], true));
-      this.title.splice(nInsertIdx, 0, oPr);
+    StyleDef.prototype.setTitle = function (oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_StyleDefTitle, this.getTitle(), oPr));
+      this.title = oPr;
       this.setParentToChild(oPr);
-    };
+    }
 
-    StyleDef.prototype.removeFromLstTitle = function (nIdx) {
-      if (nIdx > -1 && nIdx < this.title.length) {
-        this.title[nIdx].setParent(null);
-        oHistory.Add(new CChangeContent(this, AscDFH.historyitem_StyleDefRemoveTitle, nIdx, [this.title[nIdx]], false));
-        this.title.splice(nIdx, 1);
-      }
-    };
-
-    StyleDef.prototype.addToLstDesc = function (nIdx, oPr) {
-      var nInsertIdx = Math.min(this.desc.length, Math.max(0, nIdx));
-      oHistory.Add(new CChangeContent(this, AscDFH.historyitem_StyleDefAddDesc, nInsertIdx, [oPr], true));
-      this.desc.splice(nInsertIdx, 0, oPr);
+    StyleDef.prototype.setDesc = function (oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_StyleDefDesc, this.getDesc(), oPr));
+      this.desc = oPr;
       this.setParentToChild(oPr);
-    };
-
-    StyleDef.prototype.removeFromLstDesc = function (nIdx) {
-      if (nIdx > -1 && nIdx < this.desc.length) {
-        this.desc[nIdx].setParent(null);
-        oHistory.Add(new CChangeContent(this, AscDFH.historyitem_StyleDefRemoveDesc, nIdx, [this.desc[nIdx]], false));
-        this.desc.splice(nIdx, 1);
-      }
-    };
+    }
 
     StyleDef.prototype.addToLstStyleLbl = function (nIdx, oPr) {
       var nInsertIdx = Math.min(this.styleLbl.length, Math.max(0, nIdx));
@@ -6448,6 +7239,14 @@
       return this.scene3d;
     }
 
+    StyleDef.prototype.getTitle = function () {
+      return this.title;
+    }
+
+    StyleDef.prototype.getDesc = function () {
+      return this.desc;
+    }
+
     StyleDef.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setMinVer(this.getMinVer());
       oCopy.setUniqueId(this.getUniqueId());
@@ -6460,16 +7259,74 @@
       if (this.getScene3d()) {
         oCopy.setScene3d(this.getScene3d().createDuplicate(oIdMap));
       }
-      for (var nIdx = 0; nIdx < this.title.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.title[nIdx].createDuplicate(oIdMap));
+      if (this.getTitle()) {
+        oCopy.setTitle(this.getTitle().createDuplicate(oIdMap));
       }
-      for (nIdx = 0; nIdx < this.desc.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.desc[nIdx].createDuplicate(oIdMap));
+      if (this.getDesc()) {
+        oCopy.setDesc(this.getDesc().createDuplicate(oIdMap));
       }
-      for (nIdx = 0; nIdx < this.styleLbl.length; ++nIdx) {
+      for (var nIdx = 0; nIdx < this.styleLbl.length; ++nIdx) {
         oCopy.addToLst(nIdx, this.styleLbl[nIdx].createDuplicate(oIdMap));
       }
     }
+
+    StyleDef.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteString2(0, this.uniqueId);
+      pWriter._WriteString2(1, this.minVer);
+    };
+    StyleDef.prototype.writeChildren = function(pWriter) {
+      this.writeRecord2(pWriter, 0, this.title);
+      this.writeRecord2(pWriter, 1, this.desc);
+      this.writeRecord2(pWriter, 2, this.catLst);
+      this.writeRecord2(pWriter, 3, this.scene3d);
+      for (var i = 0; i < this.styleLbl.length; i += 1) {
+        this.writeRecord2(pWriter, 4, this.styleLbl[i]);
+      }
+    };
+    StyleDef.prototype.readAttribute = function(nType, pReader) {
+      var oStream = pReader.stream;
+      if (0 === nType) this.setUniqueId(oStream.GetString2());
+      else if (1 === nType) this.setMinVer(oStream.GetString2());
+    };
+    StyleDef.prototype.readChild = function(nType, pReader) {
+      var s = pReader.stream;
+      switch (nType) {
+        case 0: {
+          this.setTitle(new DiagramTitle());
+          this.title.fromPPTY(pReader);
+          break;
+        }
+        case 1: {
+          this.setDesc(new Desc());
+          this.desc.fromPPTY(pReader);
+          break;
+        }
+        case 2: {
+          this.setCatLst(new CatLst());
+          this.catLst.fromPPTY(pReader);
+          break;
+        }
+        case 3: {
+          this.setScene3d(new Scene3d());
+          this.scene3d.fromPPTY(pReader);
+          break;
+        }
+        case 4: {
+          this.addToLstStyleLbl(0, new StyleDefStyleLbl());
+          this.styleLbl[0].fromPPTY(pReader);
+          break;
+        }
+        default: {
+          s.SkipRecord();
+          break;
+        }
+      }
+    };
+    StyleDef.prototype.getChildren = function() {
+      return [this.title, this.desc, this.catLst, this.scene3d].concat(this.styleLbl);
+    };
+
+
 
     function BuNone() {
       CBaseFormatObject.call(this);
@@ -6682,7 +7539,7 @@
     StyleDefStyleLbl.prototype.writeChildren = function(pWriter) {
       this.writeRecord2(pWriter, 0, this.scene3d);
       this.writeRecord2(pWriter, 1, this.sp3d);
-      this.writeRecord2(pWriter, 2, this.style);
+      pWriter.WriteRecord2(2, this.style, pWriter.WriteShapeStyle);
       this.writeRecord2(pWriter, 3, this.txPr);
     };
     StyleDefStyleLbl.prototype.readAttribute = function(nType, pReader) {
@@ -6690,7 +7547,7 @@
       if (0 === nType) this.setName(oStream.GetString2());
     };
     StyleDefStyleLbl.prototype.readChild = function(nType, pReader) {
-      var s = this.stream;
+      var s = pReader.stream;
       switch (nType) {
         case 0: {
           this.setScene3d(new Scene3d());
@@ -6703,8 +7560,7 @@
           break;
         }
         case 2: {
-          this.setStyle(new window['AscFormat'].CShapeStyle());
-          this.style.fromPPTY(pReader);
+          this.setStyle(pReader.ReadShapeStyle());
           break;
         }
         case 3: {
@@ -7856,7 +8712,7 @@
     SmartArt.prototype.privateWriteAttributes = function(pWriter) {
     };
     SmartArt.prototype.writeChildren = function(pWriter) {
-      this.writeRecord2(pWriter, 0, this.drawing);
+      pWriter.WriteRecord2(0, this.drawing, pWriter.WriteGroupShape()); // TODO: / fix it
       this.writeRecord2(pWriter, 1, this.dataModel);
       this.writeRecord2(pWriter, 2, this.colorsDef);
       this.writeRecord2(pWriter, 3, this.layoutDef);
@@ -7865,15 +8721,17 @@
     SmartArt.prototype.readAttribute = function(nType, pReader) {
     };
     SmartArt.prototype.readChild = function(nType, pReader) {
-      var s = this.stream;
+      var s = pReader.stream;
       switch (nType) {
         case 0: {
+          console.log(42352346245)
           this.setDrawing(new Drawing());
-          this.drawing.fromPPTY(pReader);
+          pReader.ReadSmartArt(this.drawing);
+          this.addToSpTree(0, this.drawing);
           break;
         }
         case 1: {
-          this.setDataModel(new DiagramData());
+          this.setDataModel(new DataModel());
           this.dataModel.fromPPTY(pReader);
           break;
         }
@@ -7902,8 +8760,6 @@
       return [this.drawing, this.dataModel, this.colorsDef, this.layoutDef, this.styleDef];
     };
 
-
-
     SmartArt.prototype.isPlaceholder = function () {
       return false;
     }
@@ -7912,9 +8768,45 @@
     }
 
     SmartArt.prototype.updateCoordinatesAfterInternalResize = function () {
-
     }
 
+    SmartArt.prototype.fromPPTY = function(pReader) {
+      var oStream = pReader.stream;
+      var nStart = oStream.cur;
+      var nEnd = nStart + oStream.GetULong() + 4;
+      this.readAttributes(pReader);
+      this.readChildren(nEnd, pReader);
+      oStream.Seek2(nEnd);
+    };
+    SmartArt.prototype.readAttributes = function(pReader) {
+      var oStream = pReader.stream;
+      oStream.Skip2(1); // start attributes
+      while (true) {
+        var nType = oStream.GetUChar();
+        if (nType == AscCommon.g_nodeAttributeEnd)
+          break;
+        this.readAttribute(nType, pReader)
+      }
+    };
+
+    SmartArt.prototype.readChildren = function(nEnd, pReader) {
+      var oStream = pReader.stream;
+      while (oStream.cur < nEnd) {
+        var nType = oStream.GetUChar();
+        console.log(nType)
+        this.readChild(nType, pReader);
+      }
+    };
+
+    SmartArt.prototype.toPPTY = function(pWriter) {
+      this.writeAttributes(pWriter);
+      this.writeChildren(pWriter);
+    };
+    SmartArt.prototype.writeAttributes = function(pWriter) {
+      pWriter.WriteUChar(AscCommon.g_nodeAttributeStart);
+      this.privateWriteAttributes(pWriter);
+      pWriter.WriteUChar(AscCommon.g_nodeAttributeEnd);
+    };
 
     var horizontalListOfPicture = {
       colorsDef: {
@@ -14818,4 +15710,5 @@
 
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].createSmartArt = createSmartArt;
+    window['AscFormat'].SmartArt = SmartArt;
   })(window)

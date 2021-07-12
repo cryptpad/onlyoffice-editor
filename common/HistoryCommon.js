@@ -3554,12 +3554,10 @@
 	AscDFH.historyitem_ColorsDefUniqueId = AscDFH.historyitem_type_ColorsDef | 2;
 	AscDFH.historyitem_ColorsDefCatLst = AscDFH.historyitem_type_ColorsDef | 3;
 	AscDFH.historyitem_ColorsDefExtLst = AscDFH.historyitem_type_ColorsDef | 4;
-	AscDFH.historyitem_ColorsDefAddDesc = AscDFH.historyitem_type_ColorsDef | 5;
-	AscDFH.historyitem_ColorsDefRemoveDesc = AscDFH.historyitem_type_ColorsDef | 6;
-	AscDFH.historyitem_ColorsDefAddTitle = AscDFH.historyitem_type_ColorsDef | 7;
-	AscDFH.historyitem_ColorsDefRemoveTitle = AscDFH.historyitem_type_ColorsDef | 8;
-	AscDFH.historyitem_ColorsDefAddStyleLbl = AscDFH.historyitem_type_ColorsDef | 9;
-	AscDFH.historyitem_ColorsDefRemoveStyleLbl = AscDFH.historyitem_type_ColorsDef | 10;
+	AscDFH.historyitem_ColorsDefDesc = AscDFH.historyitem_type_ColorsDef | 5;
+	AscDFH.historyitem_ColorsDefTitle = AscDFH.historyitem_type_ColorsDef | 6;
+	AscDFH.historyitem_ColorsDefAddStyleLbl = AscDFH.historyitem_type_ColorsDef | 7;
+	AscDFH.historyitem_ColorsDefRemoveStyleLbl = AscDFH.historyitem_type_ColorsDef | 8;
 
 	AscDFH.historyitem_ColorDefStyleLblName = AscDFH.historyitem_type_ColorDefStyleLbl | 1;
 	AscDFH.historyitem_ColorDefStyleLblEffectClrLst = AscDFH.historyitem_type_ColorDefStyleLbl | 2;
@@ -3588,12 +3586,10 @@
 	AscDFH.historyitem_StyleDefCatLst = AscDFH.historyitem_type_StyleDef | 3;
 	AscDFH.historyitem_StyleDefExtLst = AscDFH.historyitem_type_StyleDef | 4;
 	AscDFH.historyitem_StyleDefScene3d = AscDFH.historyitem_type_StyleDef | 5;
-	AscDFH.historyitem_StyleDefAddTitle = AscDFH.historyitem_type_StyleDef | 6;
-	AscDFH.historyitem_StyleDefRemoveTitle = AscDFH.historyitem_type_StyleDef | 7;
-	AscDFH.historyitem_StyleDefAddDesc = AscDFH.historyitem_type_StyleDef | 8;
-	AscDFH.historyitem_StyleDefRemoveDesc = AscDFH.historyitem_type_StyleDef | 9;
-	AscDFH.historyitem_StyleDefAddStyleLbl = AscDFH.historyitem_type_StyleDef | 10;
-	AscDFH.historyitem_StyleDefRemoveStyleLbl = AscDFH.historyitem_type_StyleDef | 11;
+	AscDFH.historyitem_StyleDefTitle = AscDFH.historyitem_type_StyleDef | 6;
+	AscDFH.historyitem_StyleDefDesc = AscDFH.historyitem_type_StyleDef | 7;
+	AscDFH.historyitem_StyleDefAddStyleLbl = AscDFH.historyitem_type_StyleDef | 8;
+	AscDFH.historyitem_StyleDefRemoveStyleLbl = AscDFH.historyitem_type_StyleDef | 9;
 
 	AscDFH.historyitem_Scene3dBackdrop = AscDFH.historyitem_type_Scene3d | 1;
 	AscDFH.historyitem_Scene3dCamera = AscDFH.historyitem_type_Scene3d | 2;
