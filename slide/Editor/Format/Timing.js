@@ -222,6 +222,14 @@
         }
         return oCurElem;
     };
+    CTimeNodeBase.prototype.getDepth = function() {
+        var nDepth = 0;
+        var oCurNode = this;
+        while (oCurNode = oCurNode.getParentTimeNode()) {
+            ++nDepth;
+        }
+        return nDepth;
+    };
     CTimeNodeBase.prototype.scheduleStart = function(oPlayer) {
         oPlayer.scheduleEvent(new CAnimEvent(this.getActivateCallback(oPlayer), this.getStartTrigger(oPlayer), this));
     };
@@ -370,7 +378,6 @@
         }
         this.setFrozen(oPlayer);
     };
-
     CTimeNodeBase.prototype.setFrozen = function(oPlayer) {
         if(!this.isActive()) {
             return;
@@ -762,6 +769,18 @@
     };
     CTimeNodeBase.prototype.doesHideObject = function() {
         return false;
+    };
+    CTimeNodeBase.prototype.isAncestor = function(oNode) {
+        var oCurNode = oNode;
+        while(oCurNode = oCurNode.getParentTimeNode()) {
+            if(oCurNode === this) {
+                return true;
+            }
+        }
+        return false;
+    };
+    CTimeNodeBase.prototype.isDescendant = function(oNode) {
+        return oNode.isAncestor(this);
     };
 
     function CAnimationTime(val) {
@@ -3007,7 +3026,7 @@
         };
     };
     CCond.prototype.createExternalEventSimpleTrigger = function (oPlayer, nType) {
-        var sSpId;
+        var sSpId = null;
         if(this.tgtEl) {
             sSpId = this.tgtEl.getSpId();
         }
@@ -5417,7 +5436,9 @@
                 var aChildren = oThis.getChildrenTimeNodes();
                 var nActive  = oThis.getActiveChildIdx();
                 if(nActive > -1 && nActive < aChildren.length) {
-                    aChildren[nActive].getEndCallback(oPlayer)();
+                    if(oThis.concurrent !== true) {
+                        aChildren[nActive].getEndCallback(oPlayer)();
+                    }
                 }
                 if(nActive + 1 < aChildren.length) {
                     aChildren[nActive + 1].activateCallback(oPlayer);
@@ -6049,8 +6070,14 @@
     CAnimComplexTrigger.prototype.setExternalEvent = function(oExternalEvent) {
         this.externalEvent = oExternalEvent;
     };
-    CAnimComplexTrigger.prototype.isExternalEventTrigger = function(oExternalEvent) {
+    CAnimComplexTrigger.prototype.isEqualExternalEvent = function(oExternalEvent) {
         if(this.externalEvent && this.externalEvent.isEqual(oExternalEvent)) {
+            return true;
+        }
+        return false;
+    };
+    CAnimComplexTrigger.prototype.isExternalEventTriggered = function() {
+        if(this.externalEvent) {
             return true;
         }
         return false;
@@ -6062,13 +6089,53 @@
         this.callback = fCallback;
         this.fired = false;
         this.caller = oCaller;
+        this.scheduler = null;
     }
+    CAnimEvent.prototype.setScheduler = function(oScheduler) {
+        this.scheduler = oScheduler;
+    };
+    CAnimEvent.prototype.isScheduled = function() {
+        return this.scheduler !== null;
+    };
     CAnimEvent.prototype.fire = function() {
         this.callback.call();
         this.fired = true;
     };
+
+    CAnimEvent.prototype.findEventBreaker = function(aEvents) {
+        var oExternalEvent = this.trigger.externalEvent;
+        if(oExternalEvent) {
+            var oScheduler = this.scheduler;
+            for(var nEvent = 0; nEvent < aEvents.length; ++nEvent) {
+                var oEvent = aEvents[nEvent];
+                if(oExternalEvent.isEqual(oEvent.trigger.externalEvent)) {
+                    if(oEvent.caller.isDescendant(this.caller)) {
+                        var oParentCallerNode = this.caller.getParentTimeNode();
+                        for(var oNode = oEvent.caller; oNode !== null && oNode !== oParentCallerNode; oNode = oNode.getParentTimeNode()) {
+                            if(oNode.getAttributesObject().evtFilter === "cancelBubble") {
+                                return oEvent;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    };
     CAnimEvent.prototype.checkTrigger = function() {
+        if(!this.isScheduled()) {
+            return false;
+        }
         if(this.trigger.isFired()) {
+            if(this.trigger.isExternalEventTriggered()) {
+                var oScheduler = this.scheduler;
+                if(this.findEventBreaker(oScheduler.events)) {
+                    return false;
+                }
+                if(this.findEventBreaker(oScheduler.firedEvents)) {
+                    return false;
+                }
+            }
             this.fire();
         }
         return this.fired;
@@ -6079,22 +6146,59 @@
         }
         return false;
     };
-    CAnimEvent.prototype.isExternalEventTriggered = function(oExternalEvent) {
-        return this.trigger.isExternalEventTrigger(oExternalEvent);
+    CAnimEvent.prototype.isEqualExternalEvent = function(oEvent) {
+        var oExternalEvent = null;
+        if(oEvent instanceof CExternalEvent) {
+            oExternalEvent = oEvent;
+        }
+        else if(oEvent instanceof CAnimComplexTrigger) {
+            oExternalEvent = oEvent.externalEvent;
+        }
+        else if(oEvent instanceof CAnimEvent){
+            oExternalEvent = oEvent.trigger.externalEvent;
+        }
+        return this.trigger.isEqualExternalEvent(oExternalEvent);
+    };
+    CAnimEvent.prototype.isExternalEventTriggered = function() {
+        return this.trigger.isExternalEventTriggered();
+    };
+    CAnimEvent.prototype.isTriggerFired = function() {
+        return this.trigger.isFired();
     };
 
     function CAnimationScheduler(player) {
         this.player = player;
         this.events = [];
+        this.firedEvents = [];
     }
     CAnimationScheduler.prototype.onFrame = function() {
-        return this.handleEvents();
+        this.handleEvents();
+        this.firedEvents.length = 0;
     };
+    // CAnimationScheduler.prototype.checkEvent = function(oEvent) {
+    //     if(!oEvent.isTriggerFired()) {
+    //         return false;
+    //     }
+    //     if(oEvent.isExternalEventTriggered()) {
+    //         for(var nFired = 0; nFired < this.firedEvents.length; ++nFired) {
+    //             var oFiredEvent = this.firedEvents[nFired];
+    //             if(oFiredEvent.isEqualExternalEvent(oEvent)) {
+    //                 if(oFiredEvent.caller.isDescendant(oEvent.caller)) {
+    //                     return false;
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     oEvent.fire();
+    //     this.firedEvents.push(oEvent);
+    //     return true;
+    // };
     CAnimationScheduler.prototype.handleEvents = function() {
         for(var nCallbacks = this.events.length - 1; nCallbacks > -1; --nCallbacks) {
             var oEvent = this.events[nCallbacks];
             if(oEvent.checkTrigger()) {
                 this.removeEvent(oEvent);
+                this.firedEvents.push(oEvent);
                 //event fire may call changing event list
                 return this.handleEvents();
             }
@@ -6103,11 +6207,16 @@
     };
     CAnimationScheduler.prototype.addEvent = function(oEvent) {
         this.events.push(oEvent);
+        oEvent.setScheduler(this);
+        // this.events.sort(function(a, b) {
+        //     return a.caller.getDepth() - b.caller.getDepth();
+        // });
     };
     CAnimationScheduler.prototype.removeEvent = function(oEvent) {
         for(var nEvent = 0; nEvent < this.events.length; ++nEvent) {
             if(this.events[nEvent] === oEvent) {
                 this.events.splice(nEvent, 1);
+                oEvent.setScheduler(null);
                 return;
             }
         }
@@ -6127,7 +6236,7 @@
     };
     CAnimationScheduler.prototype.isExternalEventScheduled = function(oExternalEvent) {
         for(var nEvent = 0; nEvent < this.events.length; ++nEvent) {
-            if(this.events[nEvent].isExternalEventTriggered(oExternalEvent)) {
+            if(this.events[nEvent].isEqualExternalEvent(oExternalEvent)) {
                 return true;
             }
         }
