@@ -8665,7 +8665,6 @@
     CChartText.prototype.setChart = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartFormatSetChart, this.chart, pr));
         this.chart = pr;
-        this.setParentToChild(pr);
     };
     CChartText.prototype.merge = function(tx, noCopyTextBody) {
         if(tx.rich) {
