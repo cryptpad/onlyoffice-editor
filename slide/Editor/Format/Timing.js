@@ -230,6 +230,16 @@
         }
         return nDepth;
     };
+    CTimeNodeBase.prototype.getPreviousNode = function() {
+        var oParentNode = this.getParentTimeNode();
+        if(!oParentNode) {
+            return null;
+        }
+        return oParentNode.getChildNode(oParentNode.getChildNodeIdx(this) - 1);
+    };
+    CTimeNodeBase.prototype.getChildNode = function(nIdx) {
+        return this.getChildrenTimeNodes()[nIdx] || null;
+    };
     CTimeNodeBase.prototype.scheduleStart = function(oPlayer) {
         oPlayer.scheduleEvent(new CAnimEvent(this.getActivateCallback(oPlayer), this.getStartTrigger(oPlayer), this));
     };
@@ -240,9 +250,38 @@
         }
         var oTrigger = oAttributes.stCondLst.createComplexTrigger(oPlayer);
         var nNodeType = this.getNodeType();
+        var oPreviousTimeNode;
         switch (nNodeType) {
+            case NODE_TYPE_MAINSEQ: {
+                oTrigger.addDefault();
+                break;
+            }
             case NODE_TYPE_CLICKEFFECT: {
                 oTrigger.setExternalEvent(new CExternalEvent(oPlayer.eventsProcessor, COND_EVNT_ON_CLICK, null));
+                break;
+            }
+            case NODE_TYPE_WITHEFFECT: {
+                oPreviousTimeNode = this.getPreviousNode();
+                if(oPreviousTimeNode) {
+                    oTrigger.addTrigger(function() {
+                        return oPreviousTimeNode.isActive();
+                    });
+                }
+                else {
+                    oTrigger.addDefault();
+                }
+                break;
+            }
+            case NODE_TYPE_AFTEREFFECT: {
+                oPreviousTimeNode = this.getPreviousNode();
+                if(oPreviousTimeNode) {
+                    oTrigger.addTrigger(function() {
+                        return oPreviousTimeNode.isFinished();
+                    });
+                }
+                else {
+                    oTrigger.addDefault();
+                }
                 break;
             }
         }
