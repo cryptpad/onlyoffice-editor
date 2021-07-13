@@ -5638,9 +5638,8 @@ var editor;
 	эвенты в интерфейс: asc_onShowForeignSelectLabel/asc_onHideForeignSelectLabel*/
 
 	
-	spreadsheet_api.prototype.showForeignSelectLabel = function (UserId, X, Y, Color) {
-		//this.sendEvent("asc_onShowForeignSelectLabel", UserId, X, Y, new AscCommon.CColor(Color.r, Color.g, Color.b, 255));
-		this.sendEvent("asc_onShowForeignCursorLabel", UserId, X, Y, new AscCommon.CColor(Color.r, Color.g, Color.b, 255));
+	spreadsheet_api.prototype.showForeignSelectLabel = function (UserId, X, Y, Color, isEdit) {
+		this.sendEvent("asc_onShowForeignCursorLabel", UserId, X, Y, new AscCommon.CColor(Color.r, Color.g, Color.b, 255), isEdit);
 	};
 	spreadsheet_api.prototype.hideForeignSelectLabel = function (UserId) {
 		this.sendEvent("asc_onHideForeignSelectLabel", UserId);

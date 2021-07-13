@@ -1705,6 +1705,9 @@
 
       t.Api.cleanSpelling(true);
 
+      t.updateTargetForCollaboration();
+      t.sendCursor();
+
       asc_applyFunction(callback, true);
     };
 
@@ -1760,6 +1763,9 @@
       this.lastFNameLength = 0;
     }
     this.handlers.trigger('asc_onFormulaInfo', null);
+
+    this.updateTargetForCollaboration();
+    this.sendCursor();
   };
 
   WorkbookView.prototype._onEmpty = function() {
@@ -3895,6 +3901,13 @@
 		}
 		AscFormat.drawingsUpdateForeignCursor(oDrawingsController, Asc.editor.wbModel.DrawingDocument, sDrawingData, UserId, Show, UserShortId);
 
+		if (sDrawingData) {
+			this.getWorksheet().cleanSelection();
+			this.collaborativeEditing.Remove_ForeignCursor(UserId);
+			this.getWorksheet()._drawSelection();
+			return;
+		}
+
 		var selectionInfo = aCursorInfo[1];
 		var Changes = new AscCommon.CCollaborativeChanges();
 		var Reader = Changes.GetStream(selectionInfo, 0, selectionInfo.length);
@@ -3923,13 +3936,6 @@
 
 		this.getWorksheet().cleanSelection();
 		this.collaborativeEditing.Add_ForeignCursor(UserId, newCursorInfo, UserShortId);
-
-		var Color  = AscCommon.getUserColorById(UserShortId, null, true);
-		var firstRange = newCursorInfo.ranges[0];
-		//var isVisible = null !== this.getWorksheet().getCellVisibleRange(firstRange.c2, firstRange.r2);
-		var coord = this.getWorksheet().getCellCoord(firstRange.c2, firstRange.r1);
-		this.Api.showForeignSelectLabel(UserId, coord._x + coord._width, coord._y, Color);
-
 		this.getWorksheet()._drawSelection();
 
 		//if (true === Show)
