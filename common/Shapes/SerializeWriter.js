@@ -3804,6 +3804,12 @@ function CBinaryFileWriter()
                 });
                 break;
             }
+            case AscDFH.historyitem_type_SmartArt:
+            {
+                oThis.WriteRecord2(8, grObj, function() {
+                    grObj.toPPTY(oThis);
+                })
+            }
         }
         oThis.EndRecord();
     };
