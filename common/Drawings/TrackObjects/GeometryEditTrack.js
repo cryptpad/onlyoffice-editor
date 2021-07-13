@@ -366,7 +366,7 @@
                     start_index = cur_index;
                 }
 
-                if (pathPoints[cur_index].id === 0 || ((cur_index === pathPoints.length - 1) && pathPoints[cur_index].id === 5)) {
+                if (pathPoints[cur_index].id === 0 && pathPoints[cur_index - 1].id === 5 || ((cur_index === pathPoints.length - 1) && pathPoints[cur_index].id === 5)) {
                     var prevCommand = (pathPoints[cur_index - 1].id === 5) ? pathPoints[cur_index - 2] : pathPoints[cur_index - 1];
                     var firstPointX = parseFloat(pathPoints[start_index].X.toFixed(4));
                     var firstPointY = parseFloat(pathPoints[start_index].Y.toFixed(4));
@@ -441,11 +441,12 @@
                     }
 
                     var i = 1;
-                    while(pathPoints[index + i] && pathPoints[index + i].id !== 0) {
+                    while((index + i < pathPoints.length - 1) && pathPoints[index + i].id !== 0) {
                         ++i;
                     }
-                    var isAddingStartPoint = pathPoints[index].id === 0 && ((pathPoints[index + i - 1].id === 0 && pathPoints[index + i - 2].id !== 5) ||
-                        ((index + i - 1) === pathPoints.length - 1) && pathPoints[index + i - 1].id !== 5);
+
+                    var isAddingStartPoint = pathPoints[index].id === 0 && ((pathPoints[index + i].id === 0 && pathPoints[index + i - 1].id !== 5) ||
+                        ((index + i) === pathPoints.length - 1) && pathPoints[index + i].id !== 5);
 
                     if(pathPoints[index].id !== 0 || isAddingStartPoint) {
                         var curCommand = pathPoints[index];
