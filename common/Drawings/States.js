@@ -289,12 +289,6 @@ NullState.prototype =
                 }
             }
             this.startTargetTextObject = AscFormat.getTargetTextObject(this.drawingObjects);
-            var oAnimPlayer = this.drawingObjects.getAnimationPlayer && this.drawingObjects.getAnimationPlayer();
-            if(oAnimPlayer) {
-                if(oAnimPlayer.onClick()) {
-                    return true;
-                }
-            }
         }
         var ret;
         ret = this.drawingObjects.handleSlideComments(e, x, y, pageIndex);
@@ -375,6 +369,12 @@ NullState.prototype =
                     this.drawingObjects.changeCurrentState(new TrackSelectionRect(this.drawingObjects));
                 }
 
+            }
+            var oAnimPlayer = this.drawingObjects.getAnimationPlayer && this.drawingObjects.getAnimationPlayer();
+            if(oAnimPlayer) {
+                if(oAnimPlayer.onClick()) {
+                    return true;
+                }
             }
         }
         else

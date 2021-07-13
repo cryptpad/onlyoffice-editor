@@ -447,6 +447,14 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
             var sMediaFile = drawing.getMediaFileName();
             if(!sMediaFile)
             {
+                var oAnimPlayer = drawingObjectsController.getAnimationPlayer();
+                if(oAnimPlayer)
+                {
+                    if(drawingObjectsController.handleEventMode === HANDLE_EVENT_MODE_HANDLE && oAnimPlayer.onSpClick(drawing))
+                    {
+                        return true;
+                    }
+                }
                 return false;
             }
         }
