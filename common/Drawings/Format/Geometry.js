@@ -1368,7 +1368,7 @@ Geometry.prototype=
         var dx, dy, dxC1, dyC1, dxC2, dyC2;
         if (e.Type === 0) {
 
-            for (var i = 0; i < this.gmEditList.length; i++) {
+            for (var i = this.gmEditList.length - 1; i >= 0; i--) {
                 dx = x - this.gmEditList[i].X;
                 dy = y - this.gmEditList[i].Y;
 

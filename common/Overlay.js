@@ -2816,6 +2816,13 @@ CAutoshapeTrack.prototype =
             ctx.fill();
 
             if(gmEditPoint) {
+                var firstGuide, secondGuide;
+                if(gmEditPoint.g1X && gmEditPoint.g1Y) {
+                    firstGuide = true;
+                }
+                if(gmEditPoint.g2X && gmEditPoint.g2Y) {
+                    secondGuide = true;
+                }
                 var curPointX = (xDst + dKoefX * (matrix.TransformPointX(gmEditPoint.X, gmEditPoint.Y))) >> 0;
                 var curPointY = (yDst + dKoefY * (matrix.TransformPointY(gmEditPoint.X, gmEditPoint.Y))) >> 0;
 
@@ -2824,16 +2831,28 @@ CAutoshapeTrack.prototype =
                 var commandPointX2 = (xDst + dKoefX * (matrix.TransformPointX(gmEditPoint.g2X, gmEditPoint.g2Y))) >> 0;
                 var commandPointY2 = (yDst + dKoefY * (matrix.TransformPointY(gmEditPoint.g2X, gmEditPoint.g2Y))) >> 0;
 
-                ctx.beginPath();
                 ctx.strokeStyle = '#7f7fff';
-                ctx.moveTo(commandPointX1, commandPointY1);
-                ctx.lineTo(curPointX, curPointY);
-                ctx.lineTo(commandPointX2, commandPointY2);
 
-                ctx.stroke();
+               if(firstGuide) {
+                   ctx.beginPath();
+                   ctx.moveTo(curPointX, curPointY);
+                   ctx.lineTo(commandPointX1, commandPointY1);
+                   ctx.stroke();
+               }
+                if(secondGuide) {
+                    ctx.beginPath();
+                    ctx.moveTo(curPointX, curPointY);
+                    ctx.lineTo(commandPointX2, commandPointY2);
+                    ctx.stroke();
+                }
+
                 ctx.closePath();
                 ctx.beginPath();
+
+                if(firstGuide)
                 overlay.AddRect2(commandPointX1, commandPointY1, TRACK_RECT_SIZE);
+
+                if(secondGuide)
                 overlay.AddRect2(commandPointX2, commandPointY2, TRACK_RECT_SIZE);
 
                 ctx.fillStyle = '#ffffff';
