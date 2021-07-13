@@ -365,9 +365,9 @@
                 if(pathPoints[cur_index].id === 0) {
                     start_index = cur_index;
                 }
-
-                if (pathPoints[cur_index].id === 0 && pathPoints[cur_index - 1].id === 5 || ((cur_index === pathPoints.length - 1) && pathPoints[cur_index].id === 5)) {
-                    var prevCommand = (pathPoints[cur_index - 1].id === 5) ? pathPoints[cur_index - 2] : pathPoints[cur_index - 1];
+                
+                if (pathPoints[cur_index].id === 5 && (!pathPoints[cur_index + 1] || pathPoints[cur_index + 1].id === 0)) {
+                    var prevCommand = pathPoints[cur_index - 1];
                     var firstPointX = parseFloat(pathPoints[start_index].X.toFixed(4));
                     var firstPointY = parseFloat(pathPoints[start_index].Y.toFixed(4));
                     var lastPointX = parseFloat(prevCommand.X.toFixed(4));
