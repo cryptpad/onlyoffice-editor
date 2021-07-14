@@ -33,6 +33,15 @@
 "use strict";
 (function(window, undefined) {
 
+    var PathType = {
+        POINT: 0,
+        LINE: 1,
+        ARC: 2,
+        BEZIER_3: 3,
+        BEZIER_4: 4,
+        END: 5
+    };
+
     function EditShapeGeometryTrack(originalObject) {
         this.geometry = originalObject.calcGeometry;
         this.originalShape = originalObject;
@@ -119,7 +128,7 @@
                 var Y0 = pathCommand.isLine ? (prevPoint.Y + _relative_y / 2) / (3 / 2) : prevPoint.g2Y;
                 var X1 = pathCommand.isLine ? (prevPoint.X + _relative_x * 2) / 3 : _relative_x - originalPoint.X + originalPoint.g1X;
                 var Y1 = pathCommand.isLine ? (prevPoint.Y + _relative_y * 2) / 3 : _relative_y - originalPoint.Y + originalPoint.g1Y;
-                var id = pathCommand.id === 0 ? 0 : 4;
+                var id = pathCommand.id === PathType.POINT ? PathType.POINT : PathType.BEZIER_4;
                 var command = {
                     id, X0, Y0, X1, Y1,
                     X2: _relative_x,
@@ -148,7 +157,7 @@
                     var Y0 = pathCommand.isLine ? (nextPoint.Y + _relative_y * 2) / 3 : _relative_y - originalPoint.Y + originalPoint.g2Y;
                     var X1 = pathCommand.isLine ? (nextPoint.X + _relative_x / 2) / (3 / 2) : nextPoint.g1X;
                     var Y1 = pathCommand.isLine ? (nextPoint.Y + _relative_y / 2) / (3 / 2) : nextPoint.g1Y;
-                    var id = pathCommand.id === 0 ? 0 : 4;
+                    var id = pathCommand.id === PathType.POINT ? PathType.POINT : PathType.BEZIER_4;
                     var command = {
                         id, X0, Y0, X1, Y1,
                         X2: nextPoint.X,
@@ -302,26 +311,25 @@
             var pathPoints = geom.pathLst[j].ArrPathCommand;
 
             for (var i = 0; i < pathPoints.length; i++) {
-                if (pathPoints[i].id === 2 && geom.ellipsePointsList.length === 0)
+                if (pathPoints[i].id === PathType.ARC && geom.ellipsePointsList.length === 0)
                     return;
             }
-
 
             for (var i = 0; i < pathPoints.length; i++) {
                 var elem = pathPoints[i];
                 var elemX, elemY;
                 switch (elem.id) {
-                    case 0:
-                    case 1:
+                    case PathType.POINT:
+                    case PathType.LINE:
                         elemX = elem.X;
                         elemY = elem.Y;
                         break;
-                    case 2:
+                    case PathType.ARC:
                         if (geom.ellipsePointsList[countArc]) {
                             pathPoints.splice(i, 1);
                             geom.ellipsePointsList[countArc].forEach(function (elem) {
                                 var elemArc = {
-                                    id: 4,
+                                    id: PathType.BEZIER_4,
                                     X: elem.X2,
                                     Y: elem.Y2,
                                     X0: elem.X0,
@@ -339,17 +347,17 @@
                             countArc++;
                         }
                         break;
-                    case 3:
+                    case PathType.BEZIER_3:
                         elemX = elem.X1;
                         elemY = elem.Y1;
                         break;
-                    case 4:
+                    case PathType.BEZIER_4:
                         elemX = elem.X2;
                         elemY = elem.Y2;
                         break;
                 }
 
-                if (elemX !== undefined && elemY !== undefined && elem.id !== 2 && elem.id !== 5) {
+                if (elemX !== undefined && elemY !== undefined && elem.id !== PathType.ARC && elem.id !== PathType.END) {
                     pathPoints[i] = elem;
                     pathPoints[i].X = elemX;
                     pathPoints[i].Y = elemY;
@@ -362,20 +370,20 @@
             // insert pathCommand when end point is not equal to the start point, then draw a line between them
             for (var cur_index = 1; cur_index < pathPoints.length; cur_index++) {
 
-                if(pathPoints[cur_index].id === 0) {
+                if(pathPoints[cur_index].id === PathType.POINT) {
                     start_index = cur_index;
                 }
-                
-                if (pathPoints[cur_index].id === 5 && (!pathPoints[cur_index + 1] || pathPoints[cur_index + 1].id === 0)) {
+
+                if (pathPoints[cur_index].id === PathType.END && (!pathPoints[cur_index + 1] || pathPoints[cur_index + 1].id === PathType.POINT)) {
                     var prevCommand = pathPoints[cur_index - 1];
-                    var firstPointX = parseFloat(pathPoints[start_index].X.toFixed(4));
-                    var firstPointY = parseFloat(pathPoints[start_index].Y.toFixed(4));
-                    var lastPointX = parseFloat(prevCommand.X.toFixed(4));
-                    var lastPointY = parseFloat(prevCommand.Y.toFixed(4));
+                    var firstPointX = parseFloat(pathPoints[start_index].X.toFixed(2));
+                    var firstPointY = parseFloat(pathPoints[start_index].Y.toFixed(2));
+                    var lastPointX = parseFloat(prevCommand.X.toFixed(2));
+                    var lastPointY = parseFloat(prevCommand.Y.toFixed(2));
                     if (firstPointX !== lastPointX || firstPointY !== lastPointY) {
                         pathPoints.splice(cur_index, 0,
                             {
-                                id: 4,
+                                id: PathType.BEZIER_4,
                                 X0: (prevCommand.X + pathPoints[start_index].X / 2) / (3 / 2),
                                 Y0: (prevCommand.Y + pathPoints[start_index].Y / 2) / (3 / 2),
                                 X1: (prevCommand.X + pathPoints[start_index].X * 2) / 3,
@@ -397,7 +405,7 @@
                 switch (elem.id) {
                     case 1:
                         pathPoints[cur_index] = {
-                            id: 4,
+                            id: PathType.BEZIER_4,
                             X0: (prevCommand.X + elem.X / 2) / (3 / 2),
                             Y0: (prevCommand.Y + elem.Y / 2) / (3 / 2),
                             X1: (prevCommand.X + elem.X * 2) / 3,
@@ -411,7 +419,7 @@
                         break;
                     case 3:
                         pathPoints[cur_index] = {
-                            id: 4,
+                            id: PathType.BEZIER_4,
                             X0: (elem.X0 + prevCommand.X) / 2,
                             Y0: (elem.Y0 + prevCommand.Y) / 2,
                             X1: (elem.X1 + elem.X0) / 2,
@@ -426,35 +434,53 @@
                 }
             });
 
-            var startIndex = 1;
+            var start_index = 0, isFirstAndLastPointsEqual = false;
             for (var index = 0; index < pathPoints.length; index++) {
-                if (pathPoints[index].id !== 5) {
-                    var nextIndex = 0;
+                var curPath = pathPoints[index];
+                var nextPath = pathPoints[index + 1];
 
-                    if (pathPoints[index + 1] && pathPoints[index + 1].id === 5) {
-                        nextIndex = startIndex;
-                        startIndex = index + 3;
-                    } else if ((pathPoints[index + 1] && pathPoints[index + 1].id === 0) || !pathPoints[index + 1]) {
-                        nextIndex = null;
+                if (curPath.id !== PathType.END) {
+                    var nextIndex = 0;
+                    var isAddingStartPoint = false;
+
+                    if (!nextPath || nextPath.id === PathType.POINT || nextPath.id === PathType.END) {
+
+                        nextIndex = isFirstAndLastPointsEqual ? (index === start_index ? null : start_index + 1) : null;
+
+                        if (nextPath) {
+                            start_index = nextPath.id === PathType.POINT ? index + 1 : index + 2;
+                            isFirstAndLastPointsEqual = false;
+                        }
                     } else {
                         nextIndex = index + 1;
                     }
 
-                    var i = 1;
-                    while((index + i < pathPoints.length - 1) && pathPoints[index + i].id !== 0) {
-                        ++i;
+
+                    if (curPath.id === PathType.POINT) {
+                        //finding last point in figure element
+                        var i = 1;
+                        while((index + i <= pathPoints.length - 1) && pathPoints[index + i].id !== PathType.POINT) {
+                            ++i;
+                        }
+                        if(pathPoints[index + i - 1].id === PathType.END) {
+                            --i;
+                        }
+                        var firstPointX = parseFloat(pathPoints[start_index].X.toFixed(2));
+                        var firstPointY = parseFloat(pathPoints[start_index].Y.toFixed(2));
+                        var lastPointX = parseFloat(pathPoints[index + i - 1].X.toFixed(2));
+                        var lastPointY = parseFloat(pathPoints[index + i - 1].Y.toFixed(2));
+
+                        (firstPointX !== lastPointX || firstPointY !== lastPointY) ? isAddingStartPoint = true : isFirstAndLastPointsEqual = true;
                     }
 
-                    var isAddingStartPoint = pathPoints[index].id === 0 && ((pathPoints[index + i].id === 0 && pathPoints[index + i - 1].id !== 5) ||
-                        ((index + i) === pathPoints.length - 1) && pathPoints[index + i].id !== 5);
-
-                    if(pathPoints[index].id !== 0 || isAddingStartPoint) {
+                    if(pathPoints[index].id !== PathType.POINT || isAddingStartPoint) {
                         var curCommand = pathPoints[index];
                         var nextCommand = pathPoints[nextIndex];
                         var g1X = curCommand ? curCommand.X1 : null;
                         var g1Y = curCommand ? curCommand.Y1 : null;
                         var g2X = nextCommand ? nextCommand.X0 : null;
                         var g2Y = nextCommand ? nextCommand.Y0 : null;
+
                         var curPoint = {
                             id: curCommand.id,
                             g1X, g1Y, g2X, g2Y,
