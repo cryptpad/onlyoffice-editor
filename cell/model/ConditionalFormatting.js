@@ -1742,6 +1742,12 @@
 			this.AxisColor = readColor();
 		}
 	};
+	CDataBar.prototype.asc_setInterfaceDefault = function () {
+		//ms всегда создаёт правило с такими настройками, хотя в документации други дефолтовые значения
+		//дёргаем этот метод при создании нового правила из интерфейса
+		this.MinLength = 0;
+		this.MaxLength = 100;
+	};
 	CDataBar.prototype.asc_getPreview = function (api, id) {
 		var color = this.Color;
 		var aColors = [];
@@ -2764,6 +2770,7 @@
 	prot['asc_setColors'] = prot.asc_setColors;
 
 	prot = CDataBar.prototype;
+	prot['asc_setInterfaceDefault'] = prot.asc_setInterfaceDefault;
 	prot['asc_getShowValue'] = prot.asc_getShowValue;
 	prot['asc_getAxisPosition'] = prot.asc_getAxisPosition;
 	prot['asc_getGradient'] = prot.asc_getGradient;
