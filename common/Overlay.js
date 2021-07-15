@@ -2811,16 +2811,15 @@ CAutoshapeTrack.prototype =
             var gmEditPointY = (yDst + dKoefY * (matrix.TransformPointY(gmEditList[i].X, gmEditList[i].Y))) >> 0;
             overlay.AddRect2(gmEditPointX, gmEditPointY, TRACK_RECT_SIZE);
         }
-
             ctx.stroke();
             ctx.fill();
 
             if(gmEditPoint) {
                 var firstGuide, secondGuide;
-                if(gmEditPoint.g1X && gmEditPoint.g1Y) {
+                if(gmEditPoint.g1X !== undefined && gmEditPoint.g1Y !== undefined) {
                     firstGuide = true;
                 }
-                if(gmEditPoint.g2X && gmEditPoint.g2Y) {
+                if(gmEditPoint.g2X !== undefined && gmEditPoint.g2Y !== undefined) {
                     secondGuide = true;
                 }
                 var curPointX = (xDst + dKoefX * (matrix.TransformPointX(gmEditPoint.X, gmEditPoint.Y))) >> 0;

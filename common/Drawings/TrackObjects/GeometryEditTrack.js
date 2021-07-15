@@ -121,13 +121,19 @@
                     geometry.gmEditPoint.g1Y = geometry.gmEditPoint.Y - g1Y;
                 }
             } else {
-
+                var X0, X1, Y0, Y1;
                 //second curve relative to point
                 var pathCommand = arrPathCommand[originalPoint.pathC1];
-                var X0 = pathCommand.isLine ? (prevPoint.X + _relative_x / 2) / (3 / 2) : prevPoint.g2X;
-                var Y0 = pathCommand.isLine ? (prevPoint.Y + _relative_y / 2) / (3 / 2) : prevPoint.g2Y;
-                var X1 = pathCommand.isLine ? (prevPoint.X + _relative_x * 2) / 3 : _relative_x - originalPoint.X + originalPoint.g1X;
-                var Y1 = pathCommand.isLine ? (prevPoint.Y + _relative_y * 2) / 3 : _relative_y - originalPoint.Y + originalPoint.g1Y;
+                var isPathCommand = (geometry.gmEditPoint.g1X !== undefined && geometry.gmEditPoint.g1Y !== undefined);
+
+                X0 = pathCommand.isLine ? (prevPoint.X + _relative_x / 2) / (3 / 2) : prevPoint.g2X;
+                Y0 = pathCommand.isLine ? (prevPoint.Y + _relative_y / 2) / (3 / 2) : prevPoint.g2Y;
+
+                if (isPathCommand) {
+                    X1 = pathCommand.isLine ? (prevPoint.X + _relative_x * 2) / 3 : _relative_x - originalPoint.X + originalPoint.g1X;
+                    Y1 = pathCommand.isLine ? (prevPoint.Y + _relative_y * 2) / 3 : _relative_y - originalPoint.Y + originalPoint.g1Y;
+                }
+
                 var id = pathCommand.id === PathType.POINT ? PathType.POINT : PathType.BEZIER_4;
                 var command = {
                     id, X0, Y0, X1, Y1,
@@ -138,8 +144,11 @@
                     isEllipseArc: pathCommand.isEllipseArc,
                     isLine: pathCommand.isLine
                 }
-                geometry.gmEditPoint.g1X = command.X1;
-                geometry.gmEditPoint.g1Y = command.Y1;
+
+                if(geometry.gmEditPoint.g1X !== undefined && geometry.gmEditPoint.g1Y !== undefined) {
+                    geometry.gmEditPoint.g1X = command.X1;
+                    geometry.gmEditPoint.g1Y = command.Y1;
+                }
 
                 geometry.gmEditPoint.X = _relative_x;
                 geometry.gmEditPoint.Y = _relative_y;
@@ -152,11 +161,18 @@
 
                 //second curve relative to point
                 if(geometry.gmEditPoint.pathC2) {
+                    var X0, X1, Y0, Y1;
                     var pathCommand = arrPathCommand[geometry.gmEditPoint.pathC2];
-                    var X0 = pathCommand.isLine ? (nextPoint.X + _relative_x * 2) / 3 : _relative_x - originalPoint.X + originalPoint.g2X;
-                    var Y0 = pathCommand.isLine ? (nextPoint.Y + _relative_y * 2) / 3 : _relative_y - originalPoint.Y + originalPoint.g2Y;
-                    var X1 = pathCommand.isLine ? (nextPoint.X + _relative_x / 2) / (3 / 2) : nextPoint.g1X;
-                    var Y1 = pathCommand.isLine ? (nextPoint.Y + _relative_y / 2) / (3 / 2) : nextPoint.g1Y;
+                    var isPathCommand = (geometry.gmEditPoint.g2X !== undefined && geometry.gmEditPoint.g2Y !== undefined);
+
+                    if (isPathCommand) {
+                        X0 = pathCommand.isLine ? (nextPoint.X + _relative_x * 2) / 3 : _relative_x - originalPoint.X + originalPoint.g2X;
+                        Y0 = pathCommand.isLine ? (nextPoint.Y + _relative_y * 2) / 3 : _relative_y - originalPoint.Y + originalPoint.g2Y;
+                    }
+
+                    X1 = pathCommand.isLine ? (nextPoint.X + _relative_x / 2) / (3 / 2) : nextPoint.g1X;
+                    Y1 = pathCommand.isLine ? (nextPoint.Y + _relative_y / 2) / (3 / 2) : nextPoint.g1Y;
+
                     var id = pathCommand.id === PathType.POINT ? PathType.POINT : PathType.BEZIER_4;
                     var command = {
                         id, X0, Y0, X1, Y1,
@@ -168,8 +184,10 @@
                         isLine: pathCommand.isLine
                     }
 
-                    geometry.gmEditPoint.g2X = command.X0;
-                    geometry.gmEditPoint.g2Y = command.Y0;
+                    if (isPathCommand) {
+                        geometry.gmEditPoint.g2X = command.X0;
+                        geometry.gmEditPoint.g2Y = command.Y0;
+                    }
 
                     geometry.gmEditPoint.X = _relative_x;
                     geometry.gmEditPoint.Y = _relative_y;
@@ -179,29 +197,32 @@
             }
 
         /*<------------------------------------------------------------->*/
-        /*var last_x = geometry.gmEditList[0].X,
+      /*  var last_x = geometry.gmEditList[0].X,
             last_y = geometry.gmEditList[0].Y,
             xMin = last_x, yMin = last_y, xMax = last_x, yMax = last_y;
-        for(var i = 0; i < arrPathCommand.length; ++i) {
+        for(var i = 0; i < geometry.pathLst.length; i++) {
+            var arrPathCommand = geometry.pathLst[i].ArrPathCommand;
+            for (var j = 0; j < arrPathCommand.length; ++j) {
 
-            var path_command = arrPathCommand[i];
+                var path_command = arrPathCommand[j];
 
-            if (path_command.id === 4) {
+                if (path_command.id === 4) {
 
-                var bezier_polygon = AscFormat.partition_bezier4(last_x, last_y, path_command.X0, path_command.Y0, path_command.X1, path_command.Y1, path_command.X2, path_command.Y2, AscFormat.APPROXIMATE_EPSILON);
-                for (var point_index = 1; point_index < bezier_polygon.length; ++point_index) {
-                    var cur_point = bezier_polygon[point_index];
-                    if (xMin > cur_point.x)
-                        xMin = cur_point.x;
-                    if (xMax < cur_point.x)
-                        xMax = cur_point.x;
-                    if (yMin > cur_point.y)
-                        yMin = cur_point.y;
-                    if (yMax < cur_point.y)
-                        yMax = cur_point.y;
+                    var bezier_polygon = AscFormat.partition_bezier4(last_x, last_y, path_command.X0, path_command.Y0, path_command.X1, path_command.Y1, path_command.X2, path_command.Y2, AscFormat.APPROXIMATE_EPSILON);
+                    for (var point_index = 1; point_index < bezier_polygon.length; ++point_index) {
+                        var cur_point = bezier_polygon[point_index];
+                        if (xMin > cur_point.x)
+                            xMin = cur_point.x;
+                        if (xMax < cur_point.x)
+                            xMax = cur_point.x;
+                        if (yMin > cur_point.y)
+                            yMin = cur_point.y;
+                        if (yMax < cur_point.y)
+                            yMax = cur_point.y;
 
-                    last_x = path_command.X2;
-                    last_y = path_command.Y2;
+                        last_x = path_command.X2;
+                        last_y = path_command.Y2;
+                    }
                 }
             }
         }
@@ -236,29 +257,30 @@
             kh = 0;
         }
 
-        for(var i = 0;  i < arrPathCommand.length; ++i)
-        {
+        for (var i = 0; i < geometry.pathLst.length; i++) {
+            var arrPathCommand = geometry.pathLst[i].ArrPathCommand;
+            for (var j = 0; j < arrPathCommand.length; ++j) {
 
-
-            switch (arrPathCommand[i].id) {
-                case 0: {
-                    geometry.AddPathCommand(1, ((( arrPathCommand[i].X - xMin) * kw) >> 0) + "", (((arrPathCommand[i].Y - yMin) * kh) >> 0) + "");
-                    break;
-                }
-                case 4: {
-                    geometry.AddPathCommand(5, (((arrPathCommand[i].X0 - xMin) * kw) >> 0) + "", (((arrPathCommand[i].Y0 - yMin) * kh) >> 0) + "", (((arrPathCommand[i].X1 - xMin)* kw) >> 0) + "", (((arrPathCommand[i].Y1 - yMin) * kh) >> 0) + "", (((arrPathCommand[i].X2 - xMin) * kw) >> 0) + "", (((arrPathCommand[i].Y2 - yMin) * kh) >> 0) + "");
-                    break;
-                }
-                case 3: {
-                  break;
-                }
-                case 5: {
-                    geometry.AddPathCommand(6);
+                switch (arrPathCommand[j].id) {
+                    case 0: {
+                        this.addPathCommandInfo(1, i, (((arrPathCommand[j].X - xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y - yMin) * kh) >> 0) + "");
+                        break;
+                    }
+                    case 4: {
+                        this.addPathCommandInfo(5, i,(((arrPathCommand[j].X0 - xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y0 - yMin) * kh) >> 0) + "", (((arrPathCommand[j].X1 - xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y1 - yMin) * kh) >> 0) + "", (((arrPathCommand[j].X2 - xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y2 - yMin) * kh) >> 0) + "");
+                        break;
+                    }
+                    case 3: {
+                        break;
+                    }
+                    case 5: {
+                        this.addPathCommandInfo(6, i);
+                    }
                 }
             }
-        }
+            geometry.pathLst[i].pathW = pathW, geometry.pathLst[i].pathH = pathH;
+        }*/
 
-        geometry.pathLst[0].pathW = pathW, geometry.pathLst[0].pathH = pathH;*/
     };
 
     EditShapeGeometryTrack.prototype.getBounds = function() {
@@ -294,6 +316,45 @@
         bounds_checker.Bounds.extY = this.originalShape.extY;
 
         return bounds_checker.Bounds;
+    };
+
+    EditShapeGeometryTrack.prototype.addPathCommandInfo = function (command, arrPathElem, x1, y1, x2, y2, x3, y3) {
+        switch (command) {
+            case 0: {
+                var path = new AscFormat.Path();
+                path.setExtrusionOk(x1 || false);
+                path.setFill(y1 || "norm");
+                path.setStroke(x2 != undefined ? x2 : true);
+                path.setPathW(y2);
+                path.setPathH(x3);
+                this.AddPath(path);
+                break;
+            }
+            case 1: {
+                this.geometry.pathLst[arrPathElem].moveTo(x1, y1);
+                break;
+            }
+            case 2: {
+                this.geometry.pathLst[arrPathElem].lnTo(x1, y1);
+                break;
+            }
+            case 3: {
+                this.geometry.pathLst[arrPathElem].arcTo(x1/*wR*/, y1/*hR*/, x2/*stAng*/, y2/*swAng*/);
+                break;
+            }
+            case 4: {
+                this.geometry.pathLst[arrPathElem].quadBezTo(x1, y1, x2, y2);
+                break;
+            }
+            case 5: {
+                this.geometry.pathLst[arrPathElem].cubicBezTo(x1, y1, x2, y2, x3, y3);
+                break;
+            }
+            case 6: {
+                this.geometry.pathLst[arrPathElem].close();
+                break;
+            }
+        }
     };
 
     EditShapeGeometryTrack.prototype.trackEnd = function() {
@@ -476,10 +537,10 @@
                     if(pathPoints[index].id !== PathType.POINT || isAddingStartPoint) {
                         var curCommand = pathPoints[index];
                         var nextCommand = pathPoints[nextIndex];
-                        var g1X = curCommand ? curCommand.X1 : null;
-                        var g1Y = curCommand ? curCommand.Y1 : null;
-                        var g2X = nextCommand ? nextCommand.X0 : null;
-                        var g2Y = nextCommand ? nextCommand.Y0 : null;
+                        var g1X = curCommand.X1;
+                        var g1Y = curCommand.Y1;
+                        var g2X = nextCommand ? nextCommand.X0 : undefined;
+                        var g2Y = nextCommand ? nextCommand.Y0 : undefined;
 
                         var curPoint = {
                             id: curCommand.id,
