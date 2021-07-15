@@ -702,7 +702,43 @@ var c_oSer_SettingsType = {
 	BookFoldPrinting: 15,
 	BookFoldPrintingSheets: 16,
 	BookFoldRevPrinting: 17,
-	SpecialFormsHighlight: 18
+	SpecialFormsHighlight: 18,
+	DocumentProtection: 19,
+	WriteProtection: 20
+};
+var c_oDocProtect = {
+	AlgorithmName: 0,
+	Edit: 1,
+	Enforcment: 2,
+	Formatting: 3,
+	HashValue: 4,
+	SaltValue: 5,
+	SpinCount: 6,
+	AlgIdExt: 7,
+	AlgIdExtSource: 8,
+	CryptAlgorithmClass: 9,
+	CryptAlgorithmSid: 10,
+	CryptAlgorithmType: 11,
+	CryptProvider: 12,
+	CryptProviderType: 13,
+	CryptProviderTypeExt: 14,
+	CryptProviderTypeExtSource: 15
+};
+var c_oWriteProtect = {
+	AlgorithmName: 0,
+	Recommended: 1,
+	HashValue: 2,
+	SaltValue: 3,
+	SpinCount: 4,
+	AlgIdExt: 7,
+	AlgIdExtSource: 8,
+	CryptAlgorithmClass: 9,
+	CryptAlgorithmSid: 10,
+	CryptAlgorithmType: 11,
+	CryptProvider: 12,
+	CryptProviderType: 13,
+	CryptProviderTypeExt: 14,
+	CryptProviderTypeExtSource: 15
 };
 var c_oSer_MathPrType = {
 	BrkBin: 0,
@@ -16204,6 +16240,20 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 		{
 			editor.WordControl.m_oLogicDocument.SetMirrorMargins(this.stream.GetBool());
 		}
+		else if ( c_oSer_SettingsType.DocumentProtection === type )
+		{
+			var compat = {name: null, url: null, value: null};
+			res = this.bcr.Read1(length, function(t, l){
+				return oThis.ReadDocProtect(t,l,compat);
+			});
+		}
+		else if ( c_oSer_SettingsType.WriteProtection === type )
+		{
+			var compat = {name: null, url: null, value: null};
+			res = this.bcr.Read1(length, function(t, l){
+				return oThis.ReadWriteProtect(t,l,compat);
+			});
+		}
 		// else if ( c_oSer_SettingsType.PrintTwoOnOne === type )
 		// {
 		// 	editor.WordControl.m_oLogicDocument.Settings.PrintTwoOnOne = this.stream.GetBool();
@@ -16671,6 +16721,149 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 			res = c_oSerConstants.ReadUnknown;
 		return res;
 	};
+	this.ReadDocProtect = function(type, length, pDocProtect)
+	{
+		var res = c_oSerConstants.ReadOk;
+
+		/*if (c_oDocProtect.AlgIdExt == type)
+		{
+			pDocProtect.algIdExt = this.stream.GetString2LE(length);
+		}
+		else if (c_oDocProtect.AlgIdExtSource == type)
+		{
+			pDocProtect.algIdExtSource = this.stream.GetString2LE(length);
+		}
+		else if (c_oDocProtect.AlgorithmName == type)
+		{
+			pDocProtect.algorithmName = this.stream.GetUChar();
+		}
+		else if (c_oDocProtect.CryptAlgorithmClass == type)
+		{
+			pDocProtect.cryptAlgorithmClass = this.stream.GetUChar();
+		}
+		else if (c_oDocProtect.CryptAlgorithmSid == type)
+		{
+			pDocProtect.cryptAlgorithmSid = this.stream.GetULongLE();
+		}
+		else if (c_oDocProtect.CryptAlgorithmType == type)
+		{
+			pDocProtect.cryptAlgorithmType.SetValueFromByte(this.stream.GetUChar());
+		}
+		else if (c_oDocProtect.CryptProvider == type)
+		{
+			pDocProtect.cryptProvider = this.stream.GetString2LE(length);
+		}
+		else if (c_oDocProtect.CryptProviderType == type)
+		{
+			pDocProtect.cryptProviderType.SetValueFromByte(this.stream.GetUChar());
+		}
+		else if (c_oDocProtect.CryptProviderTypeExt == type)
+		{
+			pDocProtect.cryptProviderTypeExt = this.stream.GetString2LE(length);
+		}
+		else if (c_oDocProtect.CryptProviderTypeExtSource == type)
+		{
+			pDocProtect.cryptProviderTypeExtSource = this.stream.GetString2LE(length);
+		}
+		else if (c_oDocProtect.Edit == type)
+		{
+			pDocProtect.edit.SetValueFromByte(this.stream.GetUChar());
+		}
+		else if (c_oDocProtect.Enforcment == type)
+		{
+			pDocProtect.enforcment = this.stream.GetUChar() != 0;
+		}
+		else if (c_oDocProtect.Formatting == type)
+		{
+			pDocProtect.formatting = this.stream.GetUChar() != 0;
+		}
+		else if (c_oDocProtect.HashValue == type)
+		{
+			pDocProtect.hashValue = this.stream.GetString2LE(length);
+		}
+		else if (c_oDocProtect.SaltValue == type)
+		{
+			pDocProtect.saltValue = this.stream.GetString2LE(length);
+		}
+		else if (c_oDocProtect.SpinCount == type)
+		{
+			pDocProtect.spinCount = this.stream.GetULongLE();
+		}
+		else
+			res = c_oSerConstants.ReadUnknown;*/
+
+		return res;
+	};
+	this.ReadWriteProtect = function (type, length, pWriteProtect)
+	{
+		var res = c_oSerConstants.ReadOk;
+
+		/*if (c_oWriteProtect.AlgIdExt == type)
+		{
+			pWriteProtect.m_oAlgIdExt = this.stream.GetString2LE(length);
+		}
+		else if (c_oWriteProtect.AlgIdExtSource == type)
+		{
+			pWriteProtect.m_oAlgIdExtSource = this.stream.GetString2LE(length);
+		}
+		else if (c_oWriteProtect.AlgorithmName == type)
+		{
+			pWriteProtect.m_oAlgorithmName.Init();
+			pWriteProtect.m_oAlgorithmName.SetValueFromByte(this.stream.GetUChar());
+		}
+		else if (c_oWriteProtect.CryptAlgorithmClass == type)
+		{
+			pWriteProtect.m_oCryptAlgorithmClass.Init();
+			pWriteProtect.m_oCryptAlgorithmClass.SetValueFromByte(this.stream.GetUChar());
+		}
+		else if (c_oWriteProtect.CryptAlgorithmSid == type)
+		{
+			pWriteProtect.m_oCryptAlgorithmSid = this.stream.GetULongLE();
+		}
+		else if (c_oWriteProtect.CryptAlgorithmType == type)
+		{
+			pWriteProtect.m_oCryptAlgorithmType.Init();
+			pWriteProtect.m_oCryptAlgorithmType.SetValueFromByte(this.stream.GetUChar());
+		}
+		else if (c_oWriteProtect.CryptProvider == type)
+		{
+			pWriteProtect.m_oCryptProvider = this.stream.GetString2LE(length);
+		}
+		else if (c_oWriteProtect.CryptProviderType == type)
+		{
+			pWriteProtect.m_oCryptProviderType.Init();
+			pWriteProtect.m_oCryptProviderType.SetValueFromByte(this.stream.GetUChar());
+		}
+		else if (c_oWriteProtect.CryptProviderTypeExt == type)
+		{
+			pWriteProtect.m_oCryptProviderTypeExt = this.stream.GetString2LE(length);
+		}
+		else if (c_oWriteProtect.CryptProviderTypeExtSource == type)
+		{
+			pWriteProtect.m_oCryptProviderTypeExtSource = this.stream.GetString2LE(length);
+		}
+		else if (c_oWriteProtect.Recommended == type)
+		{
+			pWriteProtect.m_oRecommended = this.stream.GetUChar() != 0;
+		}
+		else if (c_oWriteProtect.HashValue == type)
+		{
+			pWriteProtect.m_sHashValue = this.stream.GetString2LE(length);
+		}
+		else if (c_oWriteProtect.SaltValue == type)
+		{
+			pWriteProtect.m_sSaltValue = this.stream.GetString2LE(length);
+		}
+		else if (c_oWriteProtect.SpinCount == type)
+		{
+			pWriteProtect.m_oSpinCount = this.stream.GetULongLE();
+		}
+		else
+			res = c_oSerConstants.ReadUnknown;*/
+
+		return res;
+	}
+
 };
 function Binary_NotesTableReader(doc, oReadResult, openParams, stream, notes, logicDocumentNotes)
 {
