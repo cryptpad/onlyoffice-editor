@@ -4741,7 +4741,7 @@
 
 		for (var Index = 0; Index < arrAllDrawing.length; Index++)
 		{
-			if (arrAllDrawing[Index].GraphicObj instanceof CShape)
+			if (arrAllDrawing[Index].GraphicObj instanceof AscFormat.CShape)
 				arrApiShapes.push(new ApiShape(arrAllDrawing[Index].GraphicObj));
 		}
 		
@@ -5857,7 +5857,7 @@
 
 		for (var Index = 0; Index < arrAllDrawing.length; Index++)
 		{
-			if (arrAllDrawing[Index].GraphicObj instanceof CShape)
+			if (arrAllDrawing[Index].GraphicObj instanceof AscFormat.CShape)
 				arrApiShapes.push(new ApiShape(arrAllDrawing[Index].GraphicObj));
 		}
 

@@ -2773,14 +2773,21 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
         
         if(this.bWordShape)
         {
-            var DiffLeft = 0.8;
-            var DiffRight = 1.6;
+            var DiffLeft = 0.01;
+            var DiffRight = 0.01;
+            var DiffLeft2, DiffRight2;
             var aContent = oContent.Content;
             for(var i = 0; i < aContent.length; ++i)
             {
-                if(aContent[i].GetType && type_Paragraph === aContent[i].GetType())
+                var oElement = aContent[i];
+                if(!oElement.GetType)
                 {
-                    var oCompiledParaPr = aContent[i].CompiledPr && aContent[i].CompiledPr.Pr && aContent[i].CompiledPr.Pr.ParaPr;
+                    continue;
+                }
+                var nElementType = oElement.GetType();
+                if(nElementType === AscCommonWord.type_Paragraph)
+                {
+                    var oCompiledParaPr = oElement.CompiledPr && oElement.CompiledPr.Pr && oElement.CompiledPr.Pr.ParaPr;
                     if(oCompiledParaPr)
                     {
                         var oBorders = oCompiledParaPr.Brd;
@@ -2788,7 +2795,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                         {
                             if(oBorders.Left  && AscFormat.isRealNumber(oBorders.Left.Space) && AscFormat.isRealNumber(oBorders.Left.Size) && oBorders.Left.Size > 0.0)
                             {
-                                var DiffLeft2 = oBorders.Left.Space + oBorders.Left.Size + 1.0;
+                                DiffLeft2 = oBorders.Left.Space + oBorders.Left.Size;
                                 if(DiffLeft2 > DiffLeft)
                                 {
                                     DiffLeft = DiffLeft2;
@@ -2796,7 +2803,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                             }
                             if(oBorders.Right && AscFormat.isRealNumber(oBorders.Right.Space) && AscFormat.isRealNumber(oBorders.Right.Size) && oBorders.Right.Size > 0.0)
                             {
-                                var DiffRight2 = oBorders.Right.Space + oBorders.Right.Size + 1.0;
+                                DiffRight2 = oBorders.Right.Space + oBorders.Right.Size;
                                 if(oCompiledParaPr.Ind && AscFormat.isRealNumber(oCompiledParaPr.Ind.Right))
                                 {
                                     DiffRight2 -= oCompiledParaPr.Ind.Right;
@@ -2809,10 +2816,27 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                         }
                     }
                 }
+                else if(nElementType === AscCommonWord.type_Table)
+                {
+                    DiffLeft2 = -oElement.GetTableOffsetCorrection();
+                    if(DiffLeft2 > DiffLeft)
+                    {
+                        DiffLeft = DiffLeft2;
+                    }
+                    DiffRight2 = oElement.GetRightTableOffsetCorrection();
+                    if(DiffRight2 > DiffRight)
+                    {
+                        DiffRight = DiffRight2;
+                    }
+                }
+                else if(nElementType === AscCommonWord.type_BlockLevelSdt)
+                {
+
+                }
             }
 
 
-            var clipW = oRect.r - oRect.l + DiffLeft + DiffRight - l_ins - r_ins;
+            var clipW = oRect.r - oRect.l + DiffLeft + DiffRight;
             if(clipW <= 0)
             {
                 clipW = 0.01;
@@ -2822,7 +2846,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
             {
                 clipH = 0.01;
             }
-            oClipRect = {x: oRect.l + l_ins - DiffLeft, y: oRect.t - Diff + t_ins, w: clipW, h: clipH};
+            oClipRect = {x: oRect.l - DiffLeft, y: oRect.t - Diff + t_ins, w: clipW, h: clipH};
         }
         else
         {
@@ -6553,7 +6577,7 @@ function getParaDrawing(oDrawing)
     {
         oCurDrawing = oCurDrawing.group;
     }
-    if(oCurDrawing.parent instanceof ParaDrawing)
+    if(oCurDrawing.parent instanceof AscCommonWord.ParaDrawing)
     {
         return oCurDrawing.parent;
     }

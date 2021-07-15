@@ -9411,7 +9411,16 @@
         var isSelectOnShape = this.isSelectOnShape;
         if (this.isSelectOnShape) {
             this.isSelectOnShape = false;
+            var bCleanSelection = false;
+            if(this.objectRender.controller && this.objectRender.controller.getChartForRangesDrawing()) {
+                bCleanSelection = true;
+            }
             this.objectRender.unselectDrawingObjects();
+            if(bCleanSelection) {
+                if(this.overlayCtx) {
+                    this.overlayCtx.clear();
+                }
+            }
             this._drawSelection();
 			window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Update_Position();
         }
@@ -21897,7 +21906,12 @@
 				}
 				break;
 			case Asc.c_oAscSelectionForCFType.pivot:
-				// ToDo
+				var _activeCell = this.model.selectionRange.activeCell;
+				var _pivot = this.model.getPivotTable(_activeCell.col, _activeCell.row);
+				if (_pivot) {
+					_ranges = _pivot.location && _pivot.location.ref;
+				}
+
 				break;
 		}
 

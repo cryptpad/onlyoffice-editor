@@ -1185,10 +1185,15 @@ function CDocumentPage()
     this.Pos    = 0;
     this.EndPos = 0;
 
-    this.X      = 0;
-    this.Y      = 0;
-    this.XLimit = 0;
-    this.YLimit = 0;
+	this.X      = 0;
+	this.Y      = 0;
+	this.XLimit = 0;
+	this.YLimit = 0;
+
+	this.OriginX      = 0; // Начальные значения X, Y без учета использования функции Shift
+	this.OriginY      = 0; // Используется, например, при расчете позиции автофигуры внутри ячейки таблицы,
+	this.OriginXLimit = 0; // которая имеет вертикальное выравнивание по центру или по низу
+	this.OriginTLimit = 0;
 
     this.Sections = [];
 
@@ -1202,10 +1207,15 @@ function CDocumentPage()
 
 CDocumentPage.prototype.Update_Limits = function(Limits)
 {
-    this.X      = Limits.X;
-    this.XLimit = Limits.XLimit;
-    this.Y      = Limits.Y;
-    this.YLimit = Limits.YLimit;
+	this.X      = Limits.X;
+	this.XLimit = Limits.XLimit;
+	this.Y      = Limits.Y;
+	this.YLimit = Limits.YLimit;
+
+	this.OriginX      = Limits.X;
+	this.OriginY      = Limits.Y;
+	this.OriginXLimit = Limits.XLimit;
+	this.OriginYLimit = Limits.YLimit;
 };
 CDocumentPage.prototype.Shift = function(Dx, Dy)
 {
@@ -9076,6 +9086,8 @@ CDocument.prototype.InsertContent = function(SelectedContent, NearPos)
 				nInLastClassPos = 0;
 			}
 
+			LastClass.State.ContentPos = nInLastClassPos;
+
 			var nInRunStartPos = LastClass.State.ContentPos;
 			LastClass.AddText(SelectedContent.GetText({ParaEndToSpace : false}), nInLastClassPos);
 			var nInRunEndPos = LastClass.State.ContentPos;
@@ -12812,7 +12824,7 @@ CDocument.prototype.Refresh_RecalcData2 = function(nIndex, nPageRel)
 CDocument.prototype.AddHyperlink = function(HyperProps)
 {
 	// Проверку, возможно ли добавить гиперссылку, должны были вызвать до этой функции
-	if (null != HyperProps.Text && "" != HyperProps.Text && true === this.IsSelectionUse())
+	if (HyperProps.Text && "" !== HyperProps.Text && true === this.IsSelectionUse() && this.GetSelectedText() !== HyperProps.Text)
 	{
 		// Корректировка в данном случае пройдет при добавлении гиперссылки.
 		var SelectionInfo = this.GetSelectedElementsInfo();
@@ -24759,10 +24771,10 @@ CDocument.prototype.IsAllRequiredSpecialFormsFilled = function()
 /**
  * Конвертируем
  * @param sId
- * @param isToAnchor
+ * @param isToFixed
  * @returns {boolean}
  */
-CDocument.prototype.ConvertFormAnchorType = function(sId, isToAnchor)
+CDocument.prototype.ConvertFormFixedType = function(sId, isToFixed)
 {
 	var oForm = this.GetContentControl(sId);
 	if (!oForm || !oForm.IsForm())
@@ -24781,10 +24793,10 @@ CDocument.prototype.ConvertFormAnchorType = function(sId, isToAnchor)
 
 	if (!isLocked)
 	{
-		this.StartAction(AscDFH.historydescription_Document_ConvertFormAnchorType);
+		this.StartAction(AscDFH.historydescription_Document_ConvertFormFixedType);
 
-		if (isToAnchor)
-			oForm.ConvertFormToAnchor();
+		if (isToFixed)
+			oForm.ConvertFormToFixed();
 		else
 			oForm.ConvertFormToInline();
 

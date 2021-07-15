@@ -5659,7 +5659,7 @@ background-repeat: no-repeat;\
 					if (0 == indSlide)
 					{
 						var slideNum         = parseInt(Url.substring(mask.length));
-						Data.Hyperlink.Value = "Slide" + slideNum;
+						Data.Hyperlink.Value = "Slide " + (slideNum + 1);
 					}
 				}
 			}

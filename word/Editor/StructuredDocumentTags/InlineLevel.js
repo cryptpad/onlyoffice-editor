@@ -1281,6 +1281,9 @@ CInlineLevelSdt.prototype.GetContentControlPr = function()
  */
 CInlineLevelSdt.prototype.CanBeDeleted = function()
 {
+	if (this.IsFixedForm())
+		return false;
+
 	return (undefined === this.Pr.Lock || c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.ContentLocked === this.Pr.Lock);
 };
 /**
@@ -2161,11 +2164,22 @@ CInlineLevelSdt.prototype.CheckHitInContentControlByXY = function(X, Y, nPageAbs
 		_Y = oTransform.TransformPointY(X, Y);
 	}
 
-	for (var sKey in this.Bounds)
+	if (this.IsFixedForm())
 	{
-		var oBound = this.Bounds[sKey];
-		if (oParagraph.GetAbsolutePage(oBound.PageInternal) === nPageAbs && oBound.X <= _X && _X <= oBound.X + oBound.W && oBound.Y <= _Y && _Y <= oBound.Y + oBound.H)
+		var oShape  = oParagraph.Parent.Is_DrawingShape(true);
+		var oBounds = oShape.getFormRelRect();
+
+		if (oBounds.Page === nPageAbs && oBounds.X <= _X && _X <= oBounds.X + oBounds.W && oBounds.Y <= _Y && _Y <= oBounds.Y + oBounds.H)
 			return true;
+	}
+	else
+	{
+		for (var sKey in this.Bounds)
+		{
+			var oBounds = this.Bounds[sKey];
+			if (oParagraph.GetAbsolutePage(oBound.PageInternal) === nPageAbs && oBounds.X <= _X && _X <= oBounds.X + oBounds.W && oBounds.Y <= _Y && _Y <= oBounds.Y + oBounds.H)
+				return true;
+		}
 	}
 
 	return false;
@@ -2432,7 +2446,7 @@ CInlineLevelSdt.prototype.IsFormFilled = function()
 
 	return false;
 }
-CInlineLevelSdt.prototype.ConvertFormToAnchor = function()
+CInlineLevelSdt.prototype.ConvertFormToFixed = function()
 {
 	var oParagraph        = this.GetParagraph();
 	var oParent           = this.GetParent();
@@ -2534,7 +2548,8 @@ CInlineLevelSdt.prototype.ConvertFormToAnchor = function()
 
 		var nTextDescent = Math.abs(g_oTextMeasurer.GetDescender());
 
-		oRun.Set_Position(-nTextDescent);
+		oRun.Set_Position(oTextPr.Position - nTextDescent);
+		oInnerRun.Recalc_CompiledPr(true);
 	}
 
 	oParent.RemoveFromContent(nPosInParent, 1, true);
@@ -2830,8 +2845,8 @@ CInlineLevelSdt.prototype.private_UpdatePictureFormLayout = function(nW, nH)
 			var nSpaceX = nW - nDstW;
 			var nSpaceY = nH - nDstH;
 
-			var nPadL = oPictureFormPr.GetShiftX() / 1000 * nSpaceX;
-			var nPadT = oPictureFormPr.GetShiftY() / 1000 * nSpaceY;
+			var nPadL = oPictureFormPr.GetShiftX() * nSpaceX;
+			var nPadT = oPictureFormPr.GetShiftY() * nSpaceY;
 
 			var oSrcRect = new AscFormat.CSrcRect();
 			oSrcRect.setLTRB(

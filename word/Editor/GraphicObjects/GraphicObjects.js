@@ -1710,6 +1710,7 @@ CGraphicObjects.prototype =
         {
             var para = new Paragraph(this.document.DrawingDocument, this.document);
             var selectedObjects, run, drawing, i;
+            var aDrawings = [];
             if(this.selection.groupSelection)
             {
                 selectedObjects = this.selection.groupSelection.selectedObjects;
@@ -1738,6 +1739,7 @@ CGraphicObjects.prototype =
                     }
                     run.Add_ToContent(run.State.ContentPos, drawing, true, false);
                     para.Internal_Content_Add(para.CurPos.ContentPos, run, true);
+                    aDrawings.push(drawing);
                 }
             }
             else
@@ -1758,6 +1760,7 @@ CGraphicObjects.prototype =
                     //drawing.CheckWH();
 					drawing.Set_ParaMath(selectedObjects[i].parent.ParaMath);
                     drawing.docPr.setFromOther(selectedObjects[i].parent.docPr);
+					drawing.SetForm(selectedObjects[i].parent.IsForm());
                     if(selectedObjects[i].parent.DrawingType === drawing_Anchor)
                     {
                         drawing.Set_Distance(selectedObjects[i].parent.Distance.L, selectedObjects[i].parent.Distance.T, selectedObjects[i].parent.Distance.R, selectedObjects[i].parent.Distance.B);
@@ -1785,9 +1788,15 @@ CGraphicObjects.prototype =
                     }
                     run.Add_ToContent(run.State.ContentPos, drawing, true, false);
                     para.Internal_Content_Add(para.CurPos.ContentPos, run, true);
+                    aDrawings.push(drawing);
                 }
             }
-            SelectedContent.Add( new CSelectedElement( para, true ) );
+            var bSelectedAll = true;
+            if(aDrawings.length === 1 && aDrawings[0].IsInline())
+            {
+                bSelectedAll = false;
+            }
+            SelectedContent.Add( new CSelectedElement( para, bSelectedAll ) );
         }
     },
 
@@ -2290,6 +2299,13 @@ CGraphicObjects.prototype =
                         if(oShape)
                         {
                             return oShape.getNearestPos(x, y, pageIndex);
+                        }
+                    }
+                    else if(object.getObjectType() === AscDFH.historyitem_type_Shape)
+                    {
+                        if(object.hitInTextRect(x, y))
+                        {
+                            return object.getNearestPos(x, y, pageIndex);
                         }
                     }
                 }

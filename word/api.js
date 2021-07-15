@@ -9435,7 +9435,7 @@ background-repeat: no-repeat;\
 						oCC.UpdatePictureFormLayout();
 
 						var oShape = oCC.GetFixedFormWrapperShape();
-						if (oShape && oShape.parent instanceof ParaDrawing)
+						if (oShape && oShape.parent instanceof AscCommonWord.ParaDrawing)
 							oApi.WordControl.m_oLogicDocument.Select_DrawingObject(oShape.parent.GetId());
 					}
 
@@ -9843,7 +9843,7 @@ background-repeat: no-repeat;\
 		if (!oLogicDocument)
 			return;
 
-		oLogicDocument.ConvertFormAnchorType(sId, isFixed);
+		oLogicDocument.ConvertFormFixedType(sId, isFixed);
 	};
 
 	asc_docs_api.prototype.asc_UncheckContentControlButtons = function()

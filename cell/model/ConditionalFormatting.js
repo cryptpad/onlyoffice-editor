@@ -419,7 +419,7 @@
 			};
 
 			History.Add(AscCommonExcel.g_oUndoRedoCF, AscCH.historyitem_CFRule_SetRanges,
-				ws.getId(), null, new AscCommonExcel.UndoRedoData_CF(this.id, getUndoRedoRange(this.ranges), getUndoRedoRange(location)));
+				ws.getId(), this.getUnionRange(location), new AscCommonExcel.UndoRedoData_CF(this.id, getUndoRedoRange(this.ranges), getUndoRedoRange(location)));
 		}
 		this.ranges = location;
 		if (ws) {
@@ -430,7 +430,7 @@
 	CConditionalFormattingRule.prototype.checkProperty = function (propOld, propNew, type, ws, addToHistory) {
 		if (propOld !== propNew) {
 			if (addToHistory) {
-				History.Add(AscCommonExcel.g_oUndoRedoCF, type, ws.getId(), null,
+				History.Add(AscCommonExcel.g_oUndoRedoCF, type, ws.getId(), this.getUnionRange(),
 					new AscCommonExcel.UndoRedoData_CF(this.id, propOld, propNew));
 			}
 			return propNew;
@@ -453,15 +453,39 @@
 		}
 	};
 
-	CConditionalFormattingRule.prototype.getUnionRange = function () {
+	CConditionalFormattingRule.prototype.getUnionRange = function (opt_ranges) {
 		var res = null;
-		for (var i = 0; i < this.ranges.length; i++) {
-			if (!res) {
-				res = this.ranges[i].clone();
-			} else {
-				res.union2(this.ranges[i]);
+
+		var _getUnionRanges = function (_ranges) {
+			if (!_ranges) {
+				return null;
+			}
+
+			var _res = null;
+			for (var i = 0; i < _ranges.length; i++) {
+				if (!_res) {
+					_res = _ranges[i].clone();
+				} else {
+					_res.union2(_ranges[i]);
+				}
+			}
+			return _res;
+		};
+
+		if (opt_ranges) {
+			res = _getUnionRanges(opt_ranges);
+		}
+		if (this.ranges) {
+			var tempRange = _getUnionRanges(this.ranges);
+			if (tempRange) {
+				if (res) {
+					res.union2(tempRange)
+				} else {
+					res = tempRange;
+				}
 			}
 		}
+
 		return res;
 	};
 
@@ -1262,7 +1286,17 @@
 				}
 				break;
 			case Asc.c_oAscSelectionForCFType.pivot:
-				// ToDo
+				sheet = wb.getActiveWs();
+				var _activeCell = sheet.selectionRange.activeCell;
+				var _pivot = sheet.getPivotTable(_activeCell.col, _activeCell.row);
+				if (_pivot) {
+					range = _pivot.location && _pivot.location.ref;
+				}
+
+				if (!range) {
+					sheet = null;
+				}
+
 				break;
 		}
 
@@ -1300,7 +1334,7 @@
 		for (var i = 0; i < presetStyles.length; i++) {
 			var formatValueObject = new CConditionalFormatValueObject();
 			formatValueObject.Type = presetStyles[i][0] ? presetStyles[i][0] : null;
-			formatValueObject.Val = presetStyles[i][1] ? presetStyles[i][1] : null;
+			formatValueObject.Val = presetStyles[i][1] ? presetStyles[i][1] + "" : null;
 			var colorObject = new AscCommonExcel.RgbColor(presetStyles[i][2] ? presetStyles[i][2] : 0);
 			this.aCFVOs.push(formatValueObject);
 			this.aColors.push(colorObject);
@@ -1711,6 +1745,12 @@
 			this.AxisColor = readColor();
 		}
 	};
+	CDataBar.prototype.asc_setInterfaceDefault = function () {
+		//ms всегда создаёт правило с такими настройками, хотя в документации други дефолтовые значения
+		//дёргаем этот метод при создании нового правила из интерфейса
+		this.MinLength = 0;
+		this.MaxLength = 100;
+	};
 	CDataBar.prototype.asc_getPreview = function (api, id) {
 		var color = this.Color;
 		var aColors = [];
@@ -1812,6 +1852,9 @@
 	};
 	CDataBar.prototype.asc_setAxisColor = function (val) {
 		this.AxisColor = AscCommonExcel.CorrectAscColor(val);
+	};
+	CDataBar.prototype.getType = function () {
+		return window['AscCommonExcel'].UndoRedoDataTypes.DataBar;
 	};
 
 	function CFormulaCF() {
@@ -2081,6 +2124,9 @@
 	CIconSet.prototype.asc_setIconSets = function (val) {
 		this.aIconSets = val == null ? [] : val;
 	};
+	CIconSet.prototype.getType = function () {
+		return window['AscCommonExcel'].UndoRedoDataTypes.IconSet;
+	};
 
 	function CConditionalFormatValueObject() {
 		this.Gte = true;
@@ -2176,7 +2222,7 @@
 	CConditionalFormatIconSet.prototype.Write_ToBinary2 = function (writer) {
 		if (null != this.IconSet) {
 			writer.WriteBool(true);
-			writer.WriteBool(this.IconSet);
+			writer.WriteLong(this.IconSet);
 		} else {
 			writer.WriteBool(false);
 		}
@@ -2189,7 +2235,7 @@
 	};
 	CConditionalFormatIconSet.prototype.Read_FromBinary2 = function (reader) {
 		if (reader.GetBool()) {
-			this.IconSet = reader.GetBool();
+			this.IconSet = reader.GetLong();
 		}
 		if (reader.GetBool()) {
 			this.IconId = reader.GetLong();
@@ -2727,6 +2773,7 @@
 	prot['asc_setColors'] = prot.asc_setColors;
 
 	prot = CDataBar.prototype;
+	prot['asc_setInterfaceDefault'] = prot.asc_setInterfaceDefault;
 	prot['asc_getShowValue'] = prot.asc_getShowValue;
 	prot['asc_getAxisPosition'] = prot.asc_getAxisPosition;
 	prot['asc_getGradient'] = prot.asc_getGradient;

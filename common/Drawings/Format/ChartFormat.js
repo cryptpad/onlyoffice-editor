@@ -2283,6 +2283,9 @@
             this.setSymbol(null);
         }
     };
+    CBaseChartObject.prototype.isForm = function() {
+        return false;
+    };
 
     function getMinMaxFromArrPoints(aPoints) {
         if(Array.isArray(aPoints) && aPoints.length > 0) {
@@ -2574,8 +2577,17 @@
     CDLbl.prototype.getCompiledStyle = function() {
         return null;
     };
+    CDLbl.prototype.getChartSpace = function() {
+        if(this.chart) {
+            return this.chart;
+        }
+        return CBaseChartObject.prototype.getChartSpace.call(this);
+    };
     CDLbl.prototype.getParentObjects = function() {
-        return this.chart.getParentObjects();
+        var oChartSpace = this.getChartSpace();
+        if(oChartSpace) {
+            return oChartSpace.getParentObjects();
+        }
     };
     CDLbl.prototype.recalculateTransform = function() {
     };
@@ -2838,13 +2850,14 @@
             var style = new CStyle("dataLblStyle", null, null, null, true);
             var text_pr = new CTextPr();
             text_pr.FontSize = 10;
-            if(this.chart && AscFormat.isRealNumber(this.chart.style)) {
+            var oChartSpace = this.getChartSpace();
+            if(oChartSpace && AscFormat.isRealNumber(oChartSpace.style)) {
 
-                if(this.chart.style > 40) {
+                if(oChartSpace.style > 40) {
                     text_pr.Unifill = AscFormat.CreateUnfilFromRGB(255, 255, 255);
                 }
                 else {
-                    var default_style = AscFormat.CHART_STYLE_MANAGER.getDefaultLineStyleByIndex(this.chart.style);
+                    var default_style = AscFormat.CHART_STYLE_MANAGER.getDefaultLineStyleByIndex(oChartSpace.style);
                     var oUnifill = default_style.axisAndMajorGridLines.createDuplicate();
                     if(oUnifill && oUnifill.fill && oUnifill.fill.color && oUnifill.fill.color.Mods) {
                         oUnifill.fill.color.Mods.Mods.length = 0;
@@ -2867,7 +2880,7 @@
             style.TextPr = text_pr;
             var chart_text_pr;
 
-            var oParaPr = this.chart.getTxPrParaPr();
+            var oParaPr = oChartSpace && oChartSpace.getTxPrParaPr();
             if(oParaPr) {
                 style.ParaPr.Merge(oParaPr);
                 if(oParaPr.DefaultRunPr) {
@@ -3040,7 +3053,11 @@
         return compiled_string;
     };
     CDLbl.prototype.getMaxWidth = function(bodyPr) {
+        var oChartSpace = this.getChartSpace();
         if(!(this.parent && (this.parent.axPos === AX_POS_L || this.parent.axPos === AX_POS_R))) {
+            if(!oChartSpace) {
+                return 20000;
+            }
             switch(bodyPr.vert) {
                 case AscFormat.nVertTTeaVert:
                 case AscFormat.nVertTTmongolianVert:
@@ -3049,14 +3066,14 @@
                 case AscFormat.nVertTTwordArtVertRtl:
                 case AscFormat.nVertTTvert270:
                 {
-                    return this.chart.extY / 2;
+                    return oChartSpace.extY / 2;
                 }
                 case AscFormat.nVertTThorz:
                 {
-                    return this.chart.extX / 5
+                    return oChartSpace.extX / 5
                 }
             }
-            return this.chart.extX / 5;
+            return oChartSpace.extX / 5;
         }
         else {
             return 20000;//надписи для осей значений не переносятся поэтому выставляем большую ширину.
@@ -3222,7 +3239,7 @@
             this.txBody.parent = this;
         }
         else {
-            this.txBody = AscFormat.CreateTextBodyFromString(this.getDefaultTextForTxBody(), this.chart.getDrawingDocument(), this);
+            this.txBody = AscFormat.CreateTextBodyFromString(this.getDefaultTextForTxBody(), this.getDrawingDocument(), this);
         }
     };
     CDLbl.prototype.initDefault = function(nDefaultPosition) {
@@ -3487,6 +3504,7 @@
     CDLbl.prototype.setSettings = function(nPos, oProps) {
         fCheckDLblSettings(this, nPos, oProps)
     };
+
 
     function CSeriesBase() {
         CBaseChartObject.call(this);
@@ -8643,10 +8661,10 @@
     CChartText.prototype.getStyles = CDLbl.prototype.getStyles;
     CChartText.prototype.Get_Theme = CDLbl.prototype.Get_Theme;
     CChartText.prototype.Get_ColorMap = CDLbl.prototype.Get_ColorMap;
+    CChartText.prototype.getChartSpace = CDLbl.prototype.getChartSpace;
     CChartText.prototype.setChart = function(pr) {
         History.CanAddChanges() && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartFormatSetChart, this.chart, pr));
         this.chart = pr;
-        this.setParentToChild(pr);
     };
     CChartText.prototype.merge = function(tx, noCopyTextBody) {
         if(tx.rich) {
@@ -12766,7 +12784,7 @@
                     chart.selection.title = this;
                     para_drawing = chart.parent;
                 }
-                if(bDocument && para_drawing instanceof ParaDrawing) {
+                if(bDocument && para_drawing instanceof AscCommonWord.ParaDrawing) {
 
                     var hdr_ftr = para_drawing.DocumentContent.IsHdrFtr(true);
                     if(hdr_ftr) {
@@ -14651,6 +14669,9 @@
     }
 
     CalcLegendEntry.prototype.updatePosition = CShape.prototype.updatePosition;
+    CalcLegendEntry.prototype.getChartSpace = function() {
+        return this.chart;
+    };
     CalcLegendEntry.prototype.getStyles = CDLbl.prototype.getStyles;
     CalcLegendEntry.prototype.recalculateStyle = CDLbl.prototype.recalculateStyle;
     CalcLegendEntry.prototype.Get_Styles = CDLbl.prototype.Get_Styles;
@@ -14714,6 +14735,9 @@
             return this.txPr.getFirstParaParaPr();
         }
         return null;
+    };
+    CalcLegendEntry.prototype.isForm = function() {
+        return false;
     };
 
     function CompiledMarker() {
@@ -16345,14 +16369,14 @@
                     bHorizontalValues = true;
                 }
             }
-            if(bScatter && nTopHeader === -1 && nLeftHeader === -1) {
+            if(bScatter) {
                 if(bHorizontalValues) {
-                    if(nRowsCount > 1) {
+                    if(nTopHeader === -1 && nRowsCount > 1) {
                         nTopHeader = 0;
                     }
                 }
                 else {
-                    if(nColsCount > 1) {
+                    if(nLeftHeader === -1 && nColsCount > 1) {
                         nLeftHeader = 0;
                     }
                 }

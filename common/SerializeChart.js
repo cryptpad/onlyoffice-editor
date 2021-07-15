@@ -7848,6 +7848,7 @@ BinaryChartReader.prototype.ReadCT_DispUnitsLbl = function (type, length, val) {
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_Tx(t, l, oNewVal);
         });
+        oNewVal.setChart(this.curChart);
         val.setTx(oNewVal);
     }
     else if (c_oserct_dispunitslblSPPR === type) {
@@ -8749,6 +8750,7 @@ BinaryChartReader.prototype.ReadCT_DLbl = function (type, length, val) {
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_Tx(t, l, oNewVal);
         });
+        oNewVal.setChart(this.curChart);
         val.setTx(oNewVal);
     }
     else if (c_oserct_dlblTXPR === type) {
@@ -8933,6 +8935,7 @@ BinaryChartReader.prototype.ReadCT_TrendlineLbl = function (type, length, val) {
         res = this.bcr.Read1(length, function (t, l) {
             return oThis.ReadCT_Tx(t, l, oNewVal);
         });
+        oNewVal.setChart(this.curChart);
         val.setTx(oNewVal);
     }
     else if (c_oserct_trendlinelblNUMFMT === type) {

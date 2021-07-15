@@ -1541,7 +1541,7 @@
         if(!this.group && !bNotes)
         {
             var oLock;
-            if(this.parent instanceof ParaDrawing)
+            if(this.parent instanceof AscCommonWord.ParaDrawing)
             {
                 oLock = this.parent.Lock;
             }
