@@ -914,7 +914,7 @@
       this.setParentToChild(oPr);
     }
 
-    DiagramData.prototype.getDataModel = function (oPr) {
+    DiagramData.prototype.getDataModel = function () {
       return this.dataModel;
     }
 
@@ -924,13 +924,11 @@
       }
     }
 
-    DiagramData.prototype.privateWriteAttributes = function(pWriter) {
-    };
+    DiagramData.prototype.privateWriteAttributes = null;
     DiagramData.prototype.writeChildren = function(pWriter) {
       this.writeRecord2(pWriter, 0, this.dataModel);
     };
-    DiagramData.prototype.readAttribute = function(nType, pReader) {
-    };
+    DiagramData.prototype.readAttribute = null;
     DiagramData.prototype.readChild = function(nType, pReader) {
       var s = pReader.stream;
       switch (nType) {
@@ -1050,19 +1048,16 @@
       return this.whole;
     }
 
-    DataModel.prototype.privateWriteAttributes = function(pWriter) {
-    };
+    DataModel.prototype.privateWriteAttributes = null;
     DataModel.prototype.writeChildren = function(pWriter) {
       this.writeRecord2(pWriter, 0, this.ptLst);
       this.writeRecord2(pWriter, 1, this.cxnLst);
       this.writeRecord2(pWriter, 2, this.whole);
       this.writeRecord2(pWriter, 3, this.bg);
     };
-    DataModel.prototype.readAttribute = function(nType, pReader) {
-    };
+    DataModel.prototype.readAttribute = null;
     DataModel.prototype.readChild = function(nType, pReader) {
       var s = pReader.stream;
-
       switch (nType) {
         case 0: {
           this.setPtLst(new PtLst());
@@ -1135,15 +1130,13 @@
     CCommonDataList.prototype.getChildren = function() {
       return [].concat(this.list);
     };
-    CCommonDataList.prototype.privateWriteAttributes = function(pWriter) {
-    };
+    CCommonDataList.prototype.privateWriteAttributes = null;
     CCommonDataList.prototype.writeChildren = function(pWriter) {
       for (var i = 0; i < this.list.length; i += 1) {
         this.writeRecord2(pWriter, 0, this.list[i]);
       }
     };
-    CCommonDataList.prototype.readAttribute = function(nType, pReader) {
-    };
+    CCommonDataList.prototype.readAttribute = null;
 
 
     function PtLst() {
@@ -1485,8 +1478,7 @@
       return this.effect;
     }
 
-    BgFormat.prototype.privateWriteAttributes = function(pWriter) {
-    };
+    BgFormat.prototype.privateWriteAttributes = null;
     BgFormat.prototype.writeChildren = function(pWriter) {
       pWriter.WriteRecord1(0, this.fill, pWriter.WriteUniFill);
       var oEffectPr = this.effect;
@@ -1502,8 +1494,7 @@
         }
       }
     };
-    BgFormat.prototype.readAttribute = function(nType, pReader) {
-    };
+    BgFormat.prototype.readAttribute = null;
     BgFormat.prototype.readChild = function(nType, pReader) {
       var s = pReader.stream;
       switch (nType) {
@@ -1573,8 +1564,7 @@
       }
     }
 
-    Whole.prototype.privateWriteAttributes = function(pWriter) {
-    };
+    Whole.prototype.privateWriteAttributes = null;
     Whole.prototype.writeChildren = function(pWriter) {
       pWriter.WriteRecord2(0, this.ln, pWriter.WriteLn);
       var oEffectPr = this.effect;
@@ -1590,8 +1580,7 @@
         }
       }
     };
-    Whole.prototype.readAttribute = function(nType, pReader) {
-    };
+    Whole.prototype.readAttribute = null;
     Whole.prototype.readChild = function(nType, pReader) {
       var s = pReader.stream;
       switch (nType) {
@@ -5501,8 +5490,7 @@
       }
     }
 
-    VarLst.prototype.privateWriteAttributes = function(pWriter) {
-    };
+    VarLst.prototype.privateWriteAttributes = null;
     VarLst.prototype.writeChildren = function(pWriter) {
       this.writeRecord2(pWriter, 0, this.animLvl);
       this.writeRecord2(pWriter, 1, this.animOne);
@@ -5514,8 +5502,7 @@
       this.writeRecord2(pWriter, 7, this.orgChart);
       this.writeRecord2(pWriter, 8, this.resizeHandles);
     };
-    VarLst.prototype.readAttribute = function(nType, pReader) {
-    };
+    VarLst.prototype.readAttribute = null;
     VarLst.prototype.readChild = function(nType, pReader) {
       var s = pReader.stream;
       switch (nType) {
@@ -6746,6 +6733,7 @@
       this.writeRecord2(pWriter, 5, this.txLinClrLst);
     };
     ColorDefStyleLbl.prototype.readAttribute = function(nType, pReader) {
+      console.log(nType)
       var oStream = pReader.stream;
       if (0 === nType) this.setName(oStream.GetString2());
     };
@@ -6857,7 +6845,7 @@
     };
     CCommonDataClrList.prototype.writeChildren = function(pWriter) {
       for (var i = 0; i < this.list.length; i += 1) {
-        this.writeRecord2(pWriter,0, this.list[i]);
+        pWriter.WriteRecord2(0, this.list[i], pWriter.WriteUniColor);
       }
     };
     CCommonDataClrList.prototype.readAttribute = function(nType, pReader) {
@@ -6869,8 +6857,7 @@
       var s = pReader.stream;
       switch (nType) {
         case 0:
-          this.addToLst(0, new CUniColor());
-          this.list[0].fromPPTY;
+          this.addToLst(0, pReader.ReadUniColor());
           break;
         default:
           s.SkipRecord();
@@ -8709,29 +8696,27 @@
       }
     }
 
-    SmartArt.prototype.privateWriteAttributes = function(pWriter) {
-    };
+    SmartArt.prototype.privateWriteAttributes = null;
     SmartArt.prototype.writeChildren = function(pWriter) {
-      pWriter.WriteRecord2(0, this.drawing, pWriter.WriteGroupShape()); // TODO: / fix it
+      pWriter.WriteRecord2(0, this.drawing.spTree, pWriter.WriteSpTree); // TODO: / fix it
       this.writeRecord2(pWriter, 1, this.dataModel);
       this.writeRecord2(pWriter, 2, this.colorsDef);
       this.writeRecord2(pWriter, 3, this.layoutDef);
       this.writeRecord2(pWriter, 4, this.styleDef);
     };
-    SmartArt.prototype.readAttribute = function(nType, pReader) {
-    };
+    SmartArt.prototype.readAttribute = null;
     SmartArt.prototype.readChild = function(nType, pReader) {
       var s = pReader.stream;
       switch (nType) {
         case 0: {
-          console.log(42352346245)
           this.setDrawing(new Drawing());
           pReader.ReadSmartArtGroup(this.drawing);
+          this.drawing.setGroup(this);
           this.addToSpTree(0, this.drawing);
           break;
         }
         case 1: {
-          this.setDataModel(new DataModel());
+          this.setDataModel(new DiagramData());
           this.dataModel.fromPPTY(pReader);
           break;
         }
@@ -8785,7 +8770,6 @@
       var oStream = pReader.stream;
       while (oStream.cur < nEnd) {
         var nType = oStream.GetUChar();
-        console.log(nType)
         this.readChild(nType, pReader);
       }
     };

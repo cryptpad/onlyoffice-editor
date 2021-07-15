@@ -6707,6 +6707,7 @@ function BinaryPPTYLoader()
 				case 6:
 				{
                     txXfrm = this.ReadXfrm();
+                    shape.setTxXfrm(txXfrm);
 					break;
 				}
                 case 7:
@@ -7571,6 +7572,10 @@ function BinaryPPTYLoader()
                 _xfrm.setExtX(0);
                 _xfrm.setExtY(0);
             }
+            _xfrm.setChOffX(0);
+            _xfrm.setChOffY(0);
+            _xfrm.setChExtX(0);
+            _xfrm.setChExtY(0);
             _smartArt.spPr.setXfrm(_xfrm);
             _xfrm.setParent(_smartArt.spPr);
             if(AscCommon.isRealObject(_nvGraphicFramePr) )
@@ -7588,9 +7593,8 @@ function BinaryPPTYLoader()
                 oDrawing.spPr.setParent(_smartArt);
                 oDrawing.spPr.setXfrm(_xfrm.createDuplicate());
                 oDrawing.spPr.xfrm.setParent(oDrawing.spPr);
-                _xfrm = new AscFormat.CXfrm();
-                _xfrm.setOffX(0);
-                _xfrm.setOffY(0);
+                oDrawing.spPr.xfrm.setOffX(0);
+                oDrawing.spPr.xfrm.setOffY(0);
             }
             return _smartArt;
         }
@@ -7607,6 +7611,20 @@ function BinaryPPTYLoader()
             _smartArt = new AscFormat.SmartArt();
             _smartArt.fromPPTY(this);
             _smartArt.setBDeleted(false);
+            _smartArt.getDrawing().spTree.forEach(function (shape) {
+                if (shape.isObjectInSmartArt()) {
+                    var ptLst = _smartArt.getDataModel().getDataModel().ptLst.list;
+                    for (var i = 0; i < ptLst.length; i += 1) {
+                        if (shape.modelId && shape.modelId === ptLst[i].modelId) {
+                            for (var j = 0; j < ptLst.length; j += 1) {
+                                if (ptLst[i].prSet && ptLst[i].prSet.presAssocID && ptLst[i].prSet.presAssocID === ptLst[j].modelId) {
+                                    shape.setSmartArtPoint(ptLst[j]);
+                                }
+                            }
+                        }
+                    }
+                }
+            })
         }
         else
         {

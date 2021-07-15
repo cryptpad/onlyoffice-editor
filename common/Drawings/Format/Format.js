@@ -138,7 +138,9 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
         var oStream = pReader.stream;
         var nStart = oStream.cur;
         var nEnd = nStart + oStream.GetULong() + 4;
-        this.readAttributes(pReader);
+        if (this.readAttribute) {
+            this.readAttributes(pReader);
+        }
         this.readChildren(nEnd, pReader);
         oStream.Seek2(nEnd);
     };
@@ -165,7 +167,9 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
         pReader.stream.SkipRecord();
     };
     CBaseFormatObject.prototype.toPPTY = function(pWriter) {
-        this.writeAttributes(pWriter);
+        if (this.privateWriteAttributes) {
+            this.writeAttributes(pWriter);
+        }
         this.writeChildren(pWriter);
     };
     CBaseFormatObject.prototype.writeAttributes = function(pWriter) {
