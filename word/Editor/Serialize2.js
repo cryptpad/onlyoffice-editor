@@ -6839,6 +6839,14 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 		if (oThis.Document.IsMirrorMargins()) {
 			this.bs.WriteItem(c_oSer_SettingsType.MirrorMargins, function() {oThis.memory.WriteBool(true);});
 		}
+		if (oThis.Document.Settings && oThis.Document.Settings.DocumentProtection)
+		{
+			this.bs.WriteItem(c_oSer_SettingsType.DocumentProtection, function(){oThis.WriteDocProtect();});
+		}
+		if (oThis.Document.Settings && oThis.Document.Settings.WriteProtection)
+		{
+			this.bs.WriteItem(c_oSer_SettingsType.WriteProtection, function(){oThis.WriteWriteProtect();});
+		}
 		// if (oThis.Document.Settings && null != oThis.Document.Settings.PrintTwoOnOne) {
 		// 	this.bs.WriteItem(c_oSer_SettingsType.PrintTwoOnOne, function() {oThis.memory.WriteBool(oThis.Document.Settings.PrintTwoOnOne);});
 		// }
@@ -7127,6 +7135,111 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 			this.memory.WriteByte(nFileVal);
 		}
     }
+	this.WriteDocProtect = function(oDocProtect)
+	{
+		var oThis = this;
+		if (oDocProtect.algorithmName)
+		{
+			this.bs.WriteItem(c_oDocProtect.AlgorithmName, function () {
+				oThis.memory.WriteByte(oDocProtect.algorithmName);
+			});
+		}
+		if (oDocProtect.edit)
+		{
+			this.bs.WriteItem(c_oDocProtect.Edit, function () {
+				oThis.memory.WriteByte(oDocProtect.edit);
+			});
+		}
+		if (oDocProtect.enforcment)
+		{
+			this.bs.WriteItem(c_oDocProtect.Enforcment, function () {
+				oThis.memory.WriteBool(oDocProtect.enforcment);
+			});
+		}
+		if (oDocProtect.formatting)
+		{
+			this.bs.WriteItem(c_oDocProtect.Formatting, function () {
+				oThis.memory.WriteBool(oDocProtect.formatting);
+			});
+		}
+		if (oDocProtect.hashValue)
+		{
+			this.bs.WriteItem(c_oDocProtect.HashValue, function () {
+				oThis.memory.WriteString2(oDocProtect.hashValue);
+			});
+		}
+		if (oDocProtect.saltValue)
+		{
+			this.bs.WriteItem(c_oDocProtect.SaltValue, function () {
+				oThis.memory.WriteString2(oDocProtect.saltValue);
+			});
+		}
+		if (oDocProtect.spinCount)
+		{
+			this.bs.WriteItem(c_oDocProtect.SpinCount, function () {
+				oThis.memory.WriteLong(oDocProtect.spinCount);
+			});
+		}
+//ext
+		if (oDocProtect.algIdExt)
+		{
+			this.bs.WriteItem(c_oDocProtect.AlgIdExt, function () {
+				oThis.memory.WriteString2(oDocProtect.algIdExt);
+			});
+		}
+		if (oDocProtect.algIdExtSource)
+		{
+			this.bs.WriteItem(c_oDocProtect.AlgIdExtSource, function () {
+				oThis.memory.WriteString2(oDocProtect.algIdExtSource);
+			});
+		}
+		if (oDocProtect.cryptAlgorithmClass)
+		{
+			this.bs.WriteItem(c_oDocProtect.CryptAlgorithmClass, function () {
+				oThis.memory.WriteByte(oDocProtect.cryptAlgorithmClass);
+			});
+		}
+		if (oDocProtect.cryptAlgorithmSid)
+		{
+			this.bs.WriteItem(c_oDocProtect.CryptAlgorithmSid, function () {
+				oThis.memory.WriteLong(oDocProtect.cryptAlgorithmSid);
+			});
+		}
+		if (oDocProtect.CryptAlgorithmType)
+		{
+			this.bs.WriteItem(c_oDocProtect.CryptAlgorithmType, function () {
+				oThis.memory.WriteByte(oDocProtect.CryptAlgorithmType);
+			});
+		}
+		if (oDocProtect.CryptProvider)
+		{
+			this.bs.WriteItem(c_oDocProtect.CryptProvider, function () {
+				oThis.memory.WriteString2(oDocProtect.CryptProvider);
+			});
+		}
+		if (oDocProtect.cryptProviderType)
+		{
+			this.bs.WriteItem(c_oDocProtect.CryptProviderType, function () {
+				oThis.memory.WriteByte(oDocProtect.cryptProviderType);
+			});
+		}
+		if (oDocProtect.cryptProviderTypeExt)
+		{
+			this.bs.WriteItem(c_oDocProtect.CryptProviderTypeExt, function () {
+				oThis.memory.WriteString2(oDocProtect.cryptProviderTypeExt);
+			});
+		}
+		if (oDocProtect.cryptProviderTypeExtSource)
+		{
+			this.bs.WriteItem(c_oDocProtect.CryptProviderTypeExtSource, function () {
+				oThis.memory.WriteString2(oDocProtect.cryptProviderTypeExtSource);
+			});
+		}
+	}
+	this.WriteWriteProtect = function()
+	{
+
+	}
 }
 function BinaryNotesTableWriter(memory, doc, oNumIdMap, oMapCommentId, copyParams, saveParams, notes)
 {
@@ -16242,16 +16355,16 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 		}
 		else if ( c_oSer_SettingsType.DocumentProtection === type )
 		{
-			var compat = {name: null, url: null, value: null};
+			var oDocProtect = new CDocProtect();
 			res = this.bcr.Read1(length, function(t, l){
-				return oThis.ReadDocProtect(t,l,compat);
+				return oThis.ReadDocProtect(t,l,oDocProtect);
 			});
 		}
 		else if ( c_oSer_SettingsType.WriteProtection === type )
 		{
-			var compat = {name: null, url: null, value: null};
+			var oWriteProtect = new CDocProtect();
 			res = this.bcr.Read1(length, function(t, l){
-				return oThis.ReadWriteProtect(t,l,compat);
+				return oThis.ReadWriteProtect(t,l,oWriteProtect);
 			});
 		}
 		// else if ( c_oSer_SettingsType.PrintTwoOnOne === type )
@@ -16725,7 +16838,7 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 	{
 		var res = c_oSerConstants.ReadOk;
 
-		/*if (c_oDocProtect.AlgIdExt == type)
+		if (c_oDocProtect.AlgIdExt == type)
 		{
 			pDocProtect.algIdExt = this.stream.GetString2LE(length);
 		}
@@ -16755,7 +16868,7 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 		}
 		else if (c_oDocProtect.CryptProviderType == type)
 		{
-			pDocProtect.cryptProviderType.SetValueFromByte(this.stream.GetUChar());
+			pDocProtect.cryptProviderType = this.stream.GetUChar();
 		}
 		else if (c_oDocProtect.CryptProviderTypeExt == type)
 		{
@@ -16767,7 +16880,7 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 		}
 		else if (c_oDocProtect.Edit == type)
 		{
-			pDocProtect.edit.SetValueFromByte(this.stream.GetUChar());
+			pDocProtect.edit = this.stream.GetUChar();
 		}
 		else if (c_oDocProtect.Enforcment == type)
 		{
@@ -16790,7 +16903,7 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 			pDocProtect.spinCount = this.stream.GetULongLE();
 		}
 		else
-			res = c_oSerConstants.ReadUnknown;*/
+			res = c_oSerConstants.ReadUnknown;
 
 		return res;
 	};
@@ -16798,72 +16911,67 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 	{
 		var res = c_oSerConstants.ReadOk;
 
-		/*if (c_oWriteProtect.AlgIdExt == type)
+		if (c_oWriteProtect.AlgIdExt == type)
 		{
-			pWriteProtect.m_oAlgIdExt = this.stream.GetString2LE(length);
+			pWriteProtect.algIdExt = this.stream.GetString2LE(length);
 		}
 		else if (c_oWriteProtect.AlgIdExtSource == type)
 		{
-			pWriteProtect.m_oAlgIdExtSource = this.stream.GetString2LE(length);
+			pWriteProtect.algIdExtSource = this.stream.GetString2LE(length);
 		}
 		else if (c_oWriteProtect.AlgorithmName == type)
 		{
-			pWriteProtect.m_oAlgorithmName.Init();
-			pWriteProtect.m_oAlgorithmName.SetValueFromByte(this.stream.GetUChar());
+			pWriteProtect.algorithmName = this.stream.GetUChar();
 		}
 		else if (c_oWriteProtect.CryptAlgorithmClass == type)
 		{
-			pWriteProtect.m_oCryptAlgorithmClass.Init();
-			pWriteProtect.m_oCryptAlgorithmClass.SetValueFromByte(this.stream.GetUChar());
+			pWriteProtect.cryptAlgorithmClass = this.stream.GetUChar();
 		}
 		else if (c_oWriteProtect.CryptAlgorithmSid == type)
 		{
-			pWriteProtect.m_oCryptAlgorithmSid = this.stream.GetULongLE();
+			pWriteProtect.cryptAlgorithmSid = this.stream.GetULongLE();
 		}
 		else if (c_oWriteProtect.CryptAlgorithmType == type)
 		{
-			pWriteProtect.m_oCryptAlgorithmType.Init();
-			pWriteProtect.m_oCryptAlgorithmType.SetValueFromByte(this.stream.GetUChar());
+			pWriteProtect.cryptAlgorithmType = this.stream.GetUChar();
 		}
 		else if (c_oWriteProtect.CryptProvider == type)
 		{
-			pWriteProtect.m_oCryptProvider = this.stream.GetString2LE(length);
+			pWriteProtect.cryptProvider = this.stream.GetString2LE(length);
 		}
 		else if (c_oWriteProtect.CryptProviderType == type)
 		{
-			pWriteProtect.m_oCryptProviderType.Init();
-			pWriteProtect.m_oCryptProviderType.SetValueFromByte(this.stream.GetUChar());
+			pWriteProtect.cryptProviderType = this.stream.GetUChar();
 		}
 		else if (c_oWriteProtect.CryptProviderTypeExt == type)
 		{
-			pWriteProtect.m_oCryptProviderTypeExt = this.stream.GetString2LE(length);
+			pWriteProtect.cryptProviderTypeExt = this.stream.GetString2LE(length);
 		}
 		else if (c_oWriteProtect.CryptProviderTypeExtSource == type)
 		{
-			pWriteProtect.m_oCryptProviderTypeExtSource = this.stream.GetString2LE(length);
+			pWriteProtect.cryptProviderTypeExtSource = this.stream.GetString2LE(length);
 		}
 		else if (c_oWriteProtect.Recommended == type)
 		{
-			pWriteProtect.m_oRecommended = this.stream.GetUChar() != 0;
+			pWriteProtect.recommended = this.stream.GetUChar() != 0;
 		}
 		else if (c_oWriteProtect.HashValue == type)
 		{
-			pWriteProtect.m_sHashValue = this.stream.GetString2LE(length);
+			pWriteProtect.hashValue = this.stream.GetString2LE(length);
 		}
 		else if (c_oWriteProtect.SaltValue == type)
 		{
-			pWriteProtect.m_sSaltValue = this.stream.GetString2LE(length);
+			pWriteProtect.saltValue = this.stream.GetString2LE(length);
 		}
 		else if (c_oWriteProtect.SpinCount == type)
 		{
-			pWriteProtect.m_oSpinCount = this.stream.GetULongLE();
+			pWriteProtect.spinCount = this.stream.GetULongLE();
 		}
 		else
-			res = c_oSerConstants.ReadUnknown;*/
+			res = c_oSerConstants.ReadUnknown;
 
 		return res;
 	}
-
 };
 function Binary_NotesTableReader(doc, oReadResult, openParams, stream, notes, logicDocumentNotes)
 {
