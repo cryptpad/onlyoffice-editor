@@ -7236,9 +7236,100 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 			});
 		}
 	}
-	this.WriteWriteProtect = function()
+	this.WriteWriteProtect = function(oWriteProtect)
 	{
-
+		var oThis = this;
+		/*if (oDocProtect.algorithmName)
+		{
+			this.bs.WriteItem(c_oDocProtect.AlgorithmName, function () {
+				oThis.memory.WriteByte(oDocProtect.algorithmName);
+			});
+		}*/
+		/*if (oWriteProtect.m_oAlgorithmName)
+		{
+			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectAlgorithmName);
+			m_oBcw.m_oStream.WriteBYTE(oWriteProtect.m_oAlgorithmName->GetValue());
+			m_oBcw.WriteItemEnd(nCurPos);
+		}
+		if (oWriteProtect.m_oRecommended)
+		{
+			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectRecommended);
+			m_oBcw.m_oStream.WriteBOOL(oWriteProtect.m_oRecommended.get());
+			m_oBcw.WriteItemEnd(nCurPos);
+		}
+		if (oWriteProtect.m_sHashValue)
+		{
+			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectHashValue);
+			m_oBcw.m_oStream.WriteStringW3(oWriteProtect.m_sHashValue.get());
+			m_oBcw.WriteItemEnd(nCurPos);
+		}
+		if (oWriteProtect.m_sSaltValue)
+		{
+			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectSaltValue);
+			m_oBcw.m_oStream.WriteStringW3(oWriteProtect.m_sSaltValue.get());
+			m_oBcw.WriteItemEnd(nCurPos);
+		}
+		if (oWriteProtect.m_oSpinCount)
+		{
+			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectSpinCount);
+			m_oBcw.m_oStream.WriteLONG(oWriteProtect.m_oSpinCount.get());
+			m_oBcw.WriteItemEnd(nCurPos);
+		}
+//ext
+		if (oWriteProtect.m_oAlgIdExt)
+		{
+			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectAlgIdExt);
+			m_oBcw.m_oStream.WriteStringW3(oWriteProtect.m_oAlgIdExt.get());
+			m_oBcw.WriteItemEnd(nCurPos);
+		}
+		if (oWriteProtect.m_oAlgIdExtSource)
+		{
+			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectAlgIdExtSource);
+			m_oBcw.m_oStream.WriteStringW3(oWriteProtect.m_oAlgIdExtSource.get());
+			m_oBcw.WriteItemEnd(nCurPos);
+		}
+		if (oWriteProtect.m_oCryptAlgorithmClass)
+		{
+			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectCryptAlgorithmClass);
+			m_oBcw.m_oStream.WriteBYTE(oWriteProtect.m_oCryptAlgorithmClass->GetValue());
+			m_oBcw.WriteItemEnd(nCurPos);
+		}
+		if (oWriteProtect.m_oCryptAlgorithmSid)
+		{
+			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectCryptAlgorithmSid);
+			m_oBcw.m_oStream.WriteLONG(oWriteProtect.m_oCryptAlgorithmSid.get());
+			m_oBcw.WriteItemEnd(nCurPos);
+		}
+		if (oWriteProtect.m_oCryptAlgorithmType)
+		{
+			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectCryptAlgorithmType);
+			m_oBcw.m_oStream.WriteBYTE(oWriteProtect.m_oCryptAlgorithmType->GetValue());
+			m_oBcw.WriteItemEnd(nCurPos);
+		}
+		if (oWriteProtect.m_oCryptProvider)
+		{
+			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectCryptProvider);
+			m_oBcw.m_oStream.WriteStringW3(oWriteProtect.m_oCryptProvider.get());
+			m_oBcw.WriteItemEnd(nCurPos);
+		}
+		if (oWriteProtect.m_oCryptProviderType)
+		{
+			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectCryptProviderType);
+			m_oBcw.m_oStream.WriteBYTE(oWriteProtect.m_oCryptProviderType->GetValue());
+			m_oBcw.WriteItemEnd(nCurPos);
+		}
+		if (oWriteProtect.m_oCryptProviderTypeExt)
+		{
+			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectCryptProviderTypeExt);
+			m_oBcw.m_oStream.WriteStringW3(oWriteProtect.m_oCryptProviderTypeExt.get());
+			m_oBcw.WriteItemEnd(nCurPos);
+		}
+		if (oWriteProtect.m_oCryptProviderTypeExtSource)
+		{
+			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectCryptProviderTypeExtSource);
+			m_oBcw.m_oStream.WriteStringW3(oWriteProtect.m_oCryptProviderTypeExtSource.get());
+			m_oBcw.WriteItemEnd(nCurPos);
+		}*/
 	}
 }
 function BinaryNotesTableWriter(memory, doc, oNumIdMap, oMapCommentId, copyParams, saveParams, notes)
