@@ -1049,7 +1049,7 @@ CParagraphContentWithContentBase.prototype.CanSplit = function()
 {
 	return true;
 };
-CParagraphContentWithContentBase.prototype.PreDelete = function()
+CParagraphContentWithContentBase.prototype.PreDelete = function(isDeep)
 {
 };
 CParagraphContentWithContentBase.prototype.private_UpdateDocumentOutline = function()
@@ -2218,7 +2218,7 @@ CParagraphContentWithParagraphLikeContent.prototype.Get_PosInParent = function(P
 };
 CParagraphContentWithParagraphLikeContent.prototype.Correct_Content = function()
 {
-    if (this.Content.length < 0)
+    if (this.Content.length <= 0)
         this.Add_ToContent(0, new ParaRun(this.GetParagraph(), false));
 };
 CParagraphContentWithParagraphLikeContent.prototype.CorrectContent = function()
@@ -4228,7 +4228,7 @@ CParagraphContentWithParagraphLikeContent.prototype.PreDelete = function()
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
 		if (this.Content[nIndex] && this.Content[nIndex].PreDelete)
-			this.Content[nIndex].PreDelete();
+			this.Content[nIndex].PreDelete(true);
 	}
 
 	this.RemoveSelection();

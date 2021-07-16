@@ -1116,7 +1116,7 @@ function CGroupShape()
             {
                 this.updateCoordinatesAfterInternalResize();
             }
-            if(this.parent instanceof ParaDrawing)
+            if(this.parent instanceof AscCommonWord.ParaDrawing)
             {
                 this.parent.CheckWH();
             }

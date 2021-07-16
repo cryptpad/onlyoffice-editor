@@ -1546,7 +1546,7 @@
         if(!this.group && !bNotes)
         {
             var oLock;
-            if(this.parent instanceof ParaDrawing)
+            if(this.parent instanceof AscCommonWord.ParaDrawing)
             {
                 oLock = this.parent.Lock;
             }
@@ -1925,6 +1925,54 @@
         }
     };
 
+    CGraphicObjectBase.prototype.ResetParametersWithResize = function(bNoResetRelSize)
+    {
+        var oParaDrawing = AscFormat.getParaDrawing(this);
+        if(oParaDrawing && !(bNoResetRelSize === true))
+        {
+            if(oParaDrawing.SizeRelH)
+            {
+                oParaDrawing.SetSizeRelH(undefined);
+            }
+            if(oParaDrawing.SizeRelV)
+            {
+                oParaDrawing.SetSizeRelV(undefined);
+            }
+        }
+        if(this instanceof AscFormat.CShape) {
+            var oPropsToSet = null;
+            if (this.bWordShape) {
+                if (!this.textBoxContent)
+                    return;
+                if (this.bodyPr) {
+                    oPropsToSet = this.bodyPr.createDuplicate();
+                } else {
+                    oPropsToSet = new AscFormat.CBodyPr();
+                }
+            } else {
+                if (!this.txBody)
+                    return;
+                if (this.txBody.bodyPr) {
+                    oPropsToSet = this.txBody.bodyPr.createDuplicate();
+                } else {
+                    oPropsToSet = new AscFormat.CBodyPr();
+                }
+            }
+            var oBodyPr = this.getBodyPr();
+            if (oBodyPr.wrap === AscFormat.nTWTNone) {
+                oPropsToSet.wrap = AscFormat.nTWTSquare;
+            }
+            if (this.bWordShape) {
+                this.setBodyPr(oPropsToSet);
+            } else {
+                this.txBody.setBodyPr(oPropsToSet);
+                if (this.checkExtentsByDocContent) {
+                    this.checkExtentsByDocContent(true, true);
+                }
+            }
+        }
+    }
+
     CGraphicObjectBase.prototype.createPlaceholderControl = function()
     {
         var phType = this.getPhType();
@@ -2154,7 +2202,13 @@
     CGraphicObjectBase.prototype.getCanvasContext = function() {
         return AscFormat.CShape.prototype.getCanvasContext.call(this);
     };
-    
+	CGraphicObjectBase.prototype.isForm = function() {
+		return (this.parent && this.parent.IsForm && this.parent.IsForm());
+	}
+	CGraphicObjectBase.prototype.getInnerForm = function() {
+		return null;
+	}
+
     function CRelSizeAnchor() {
         CBaseObject.call(this);
         this.fromX = null;

@@ -5685,6 +5685,14 @@ function CompareShapeProperties(shapeProp1, shapeProp2)
     {
         _result_shape_prop.bFromChart = false;
     }
+    if(shapeProp1.bFromGroup || shapeProp2.bFromGroup)
+    {
+        _result_shape_prop.bFromGroup = true;
+    }
+    else
+    {
+        _result_shape_prop.bFromGroup = false;
+    }
     if(!shapeProp1.bFromImage || !shapeProp2.bFromImage)
     {
         _result_shape_prop.bFromImage = false;
@@ -12405,6 +12413,7 @@ function CreateAscShapePropFromProp(shapeProp)
         obj.canFill = shapeProp.canFill;
     }
     obj.bFromChart = shapeProp.bFromChart;
+    obj.bFromGroup = shapeProp.bFromGroup;
     obj.bFromImage = shapeProp.bFromImage;
     obj.w = shapeProp.w;
     obj.h = shapeProp.h;

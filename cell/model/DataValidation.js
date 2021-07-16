@@ -948,6 +948,10 @@
 	};
 
 	CDataValidation.prototype.clear = function (ranges) {
+		if (!this.ranges) {
+			return null;
+		}
+
 		var newRanges = [];
 		var isChanged;
 		for (var i = 0; i < this.ranges.length; i++) {
@@ -966,6 +970,10 @@
 	};
 
 	CDataValidation.prototype.move = function (oBBoxFrom, copyRange, offset) {
+		if (!this.ranges) {
+			return null;
+		}
+
 		var newRanges = [];
 		var isChanged;
 		for (var i = 0; i < this.ranges.length; i++) {
@@ -989,6 +997,10 @@
 	};
 
 	CDataValidation.prototype.prepeareToPaste = function (range, offset) {
+		if (!this.ranges) {
+			return false;
+		}
+
 		var newRanges = [];
 		for (var j = 0; j < this.ranges.length; j++) {
 			var intersection = range.intersection(this.ranges[j]);
@@ -1144,6 +1156,10 @@
 	};
 
 	CDataValidation.prototype.calculateOffset = function (ws) {
+		if (!this.ranges) {
+			return null;
+		}
+
 		var res = null;
 		//находим левый верхний угол
 		var _row = null, _col = null;
@@ -1432,7 +1448,7 @@
 	};
 
 	CDataValidations.prototype._containRanges = function (_ranges1, _ranges2) {
-		if (_ranges1.length <= _ranges2.length) {
+		if (_ranges1 && _ranges2 && _ranges1.length <= _ranges2.length) {
 			for (var j = 0; j < _ranges1.length; j++) {
 				var _equal = false;
 				for (var n = 0; n < _ranges2.length; n++) {
