@@ -1823,7 +1823,11 @@ function CBinaryFileWriter()
             }
             case AscDFH.historyitem_type_GroupShape:
             {
-                oThis.WriteGroupShape(oSp);
+                if (oSp.getName && oSp.getName() === 'SmartArt') {
+                    oThis.WriteGrFrame(oSp);
+                } else {
+                    oThis.WriteGroupShape(oSp);
+                }
                 break;
             }
             case AscDFH.historyitem_type_GraphicFrame:
@@ -3776,7 +3780,11 @@ function CBinaryFileWriter()
             nvGraphicFramePr = {};
         }
         nvGraphicFramePr.locks = grObj.locks;
-        var nObjectType = grObj.getObjectType();
+        if (grObj.getName && grObj.getName() ==='SmartArt') {
+            var nObjectType = grObj.getName();
+        } else {
+            nObjectType = grObj.getObjectType();
+        }
         nvGraphicFramePr.objectType = nObjectType;
         oThis.WriteRecord1(0, nvGraphicFramePr, oThis.WriteUniNvPr);
         if (grObj.spPr && grObj.spPr.xfrm && grObj.spPr.xfrm.isNotNull())
@@ -3804,7 +3812,7 @@ function CBinaryFileWriter()
                 });
                 break;
             }
-            case AscDFH.historyitem_type_SmartArt:
+            case 'SmartArt':
             {
                 oThis.WriteRecord2(8, grObj, function() {
                     grObj.toPPTY(oThis);

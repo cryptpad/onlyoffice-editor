@@ -4481,7 +4481,7 @@
         pWriter._WriteUChar1(5, this.axis[i].getVal());
       }
       for (i = 0; i < this.ptType.length; i += 1) {
-        pWriter._WriteUChar1(6, this.pTType[i].getVal());
+        pWriter._WriteUChar1(6, this.ptType[i].getVal());
       }
       pWriter._WriteString2(7, this.ref);
       pWriter._WriteUChar2(8, this.op);
@@ -4837,7 +4837,7 @@
         pWriter._WriteUChar1(5, this.axis[i].getVal());
       }
       for (i = 0; i < this.ptType.length; i += 1) {
-        pWriter._WriteUChar1(6, this.pTType[i].getVal());
+        pWriter._WriteUChar1(6, this.ptType[i].getVal());
       }
     };
     PresOf.prototype.writeChildren = function(pWriter) {
@@ -5894,7 +5894,7 @@
         pWriter._WriteUChar1(5, this.axis[i].getVal());
       }
       for (i = 0; i < this.ptType.length; i += 1) {
-        pWriter._WriteUChar1(6, this.pTType[i].getVal());
+        pWriter._WriteUChar1(6, this.ptType[i].getVal());
       }
       pWriter._WriteString2(7, this.ref);
     };
@@ -7761,6 +7761,13 @@
 
     }
 
+    Drawing.prototype.writeChildren = function(pWriter) {
+      pWriter.WriteRecord2(0, this.spTree, pWriter.WriteSpTree);
+    };
+    Drawing.prototype.toPPTY = function(pWriter) {
+      this.writeChildren(pWriter);
+    };
+
 
     changesFactory[AscDFH.historyitem_BackdropNormDx] = CChangeObject;
     changesFactory[AscDFH.historyitem_BackdropNormDy] = CChangeObject;
@@ -8698,7 +8705,7 @@
 
     SmartArt.prototype.privateWriteAttributes = null;
     SmartArt.prototype.writeChildren = function(pWriter) {
-      pWriter.WriteRecord2(0, this.drawing.spTree, pWriter.WriteSpTree); // TODO: / fix it
+      this.writeRecord2(pWriter,0, this.drawing);
       this.writeRecord2(pWriter, 1, this.dataModel);
       this.writeRecord2(pWriter, 2, this.colorsDef);
       this.writeRecord2(pWriter, 3, this.layoutDef);

@@ -1909,6 +1909,22 @@
         }
     };
 
+    CGraphicObjectBase.prototype.writeRecord1 = function(pWriter, nType, oChild) {
+        if(AscCommon.isRealObject(oChild)) {
+            pWriter.WriteRecord1(nType, oChild, function(oChild) {
+                oChild.toPPTY(pWriter);
+            });
+        }
+        else {
+            //TODO: throw an error
+        }
+    };
+    CGraphicObjectBase.prototype.writeRecord2 = function(pWriter, nType, oChild) {
+        if(AscCommon.isRealObject(oChild)) {
+            this.writeRecord1(pWriter, nType, oChild);
+        }
+    };
+
     CGraphicObjectBase.prototype.createPlaceholderControl = function()
     {
         var phType = this.getPhType();
