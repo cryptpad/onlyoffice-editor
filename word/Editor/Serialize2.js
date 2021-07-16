@@ -7239,97 +7239,91 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 	this.WriteWriteProtect = function(oWriteProtect)
 	{
 		var oThis = this;
-		/*if (oDocProtect.algorithmName)
+		if (oWriteProtect.algorithmName)
 		{
-			this.bs.WriteItem(c_oDocProtect.AlgorithmName, function () {
-				oThis.memory.WriteByte(oDocProtect.algorithmName);
+			this.bs.WriteItem(c_oWriteProtect.AlgorithmName, function () {
+				oThis.memory.WriteByte(oWriteProtect.algorithmName);
 			});
-		}*/
-		/*if (oWriteProtect.m_oAlgorithmName)
-		{
-			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectAlgorithmName);
-			m_oBcw.m_oStream.WriteBYTE(oWriteProtect.m_oAlgorithmName->GetValue());
-			m_oBcw.WriteItemEnd(nCurPos);
 		}
-		if (oWriteProtect.m_oRecommended)
+		if (oWriteProtect.recommended)
 		{
-			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectRecommended);
-			m_oBcw.m_oStream.WriteBOOL(oWriteProtect.m_oRecommended.get());
-			m_oBcw.WriteItemEnd(nCurPos);
+			this.bs.WriteItem(c_oWriteProtect.Recommended, function () {
+				oThis.memory.WriteBool(oWriteProtect.recommended);
+			});
 		}
-		if (oWriteProtect.m_sHashValue)
+		if (oWriteProtect.hashValue)
 		{
-			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectHashValue);
-			m_oBcw.m_oStream.WriteStringW3(oWriteProtect.m_sHashValue.get());
-			m_oBcw.WriteItemEnd(nCurPos);
+			this.bs.WriteItem(c_oWriteProtect.HashValue, function () {
+				oThis.memory.WriteString2(oWriteProtect.hashValue);
+			});
 		}
-		if (oWriteProtect.m_sSaltValue)
+		if (oWriteProtect.SaltValue)
 		{
-			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectSaltValue);
-			m_oBcw.m_oStream.WriteStringW3(oWriteProtect.m_sSaltValue.get());
-			m_oBcw.WriteItemEnd(nCurPos);
+			this.bs.WriteItem(c_oWriteProtect.SaltValue, function () {
+				oThis.memory.WriteString2(oWriteProtect.SaltValue);
+			});
 		}
-		if (oWriteProtect.m_oSpinCount)
+		if (oWriteProtect.spinCount)
 		{
-			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectSpinCount);
-			m_oBcw.m_oStream.WriteLONG(oWriteProtect.m_oSpinCount.get());
-			m_oBcw.WriteItemEnd(nCurPos);
+			this.bs.WriteItem(c_oWriteProtect.SpinCount, function () {
+				oThis.memory.WriteLong(oWriteProtect.spinCount);
+			});
 		}
 //ext
-		if (oWriteProtect.m_oAlgIdExt)
+		if (oWriteProtect.algIdExt)
 		{
-			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectAlgIdExt);
-			m_oBcw.m_oStream.WriteStringW3(oWriteProtect.m_oAlgIdExt.get());
-			m_oBcw.WriteItemEnd(nCurPos);
+			this.bs.WriteItem(c_oWriteProtect.AlgIdExt, function () {
+				oThis.memory.WriteString2(oWriteProtect.algIdExt);
+			});
 		}
-		if (oWriteProtect.m_oAlgIdExtSource)
+		if (oWriteProtect.algIdExtSource)
 		{
-			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectAlgIdExtSource);
-			m_oBcw.m_oStream.WriteStringW3(oWriteProtect.m_oAlgIdExtSource.get());
-			m_oBcw.WriteItemEnd(nCurPos);
+			this.bs.WriteItem(c_oWriteProtect.AlgIdExtSource, function () {
+				oThis.memory.WriteString2(oWriteProtect.algIdExtSource);
+			});
 		}
-		if (oWriteProtect.m_oCryptAlgorithmClass)
+		if (oWriteProtect.cryptAlgorithmClass)
 		{
-			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectCryptAlgorithmClass);
-			m_oBcw.m_oStream.WriteBYTE(oWriteProtect.m_oCryptAlgorithmClass->GetValue());
-			m_oBcw.WriteItemEnd(nCurPos);
+			this.bs.WriteItem(c_oWriteProtect.CryptAlgorithmClass, function () {
+				oThis.memory.WriteByte(oWriteProtect.cryptAlgorithmClass);
+			});
 		}
-		if (oWriteProtect.m_oCryptAlgorithmSid)
+		if (oWriteProtect.cryptAlgorithmSid)
 		{
-			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectCryptAlgorithmSid);
-			m_oBcw.m_oStream.WriteLONG(oWriteProtect.m_oCryptAlgorithmSid.get());
-			m_oBcw.WriteItemEnd(nCurPos);
+			this.bs.WriteItem(c_oWriteProtect.CryptAlgorithmSid, function () {
+				oThis.memory.WriteByte(oWriteProtect.cryptAlgorithmSid);
+			});
 		}
-		if (oWriteProtect.m_oCryptAlgorithmType)
+		if (oWriteProtect.cryptAlgorithmType)
 		{
-			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectCryptAlgorithmType);
-			m_oBcw.m_oStream.WriteBYTE(oWriteProtect.m_oCryptAlgorithmType->GetValue());
-			m_oBcw.WriteItemEnd(nCurPos);
+			this.bs.WriteItem(c_oWriteProtect.CryptAlgorithmType, function () {
+				oThis.memory.WriteByte(oWriteProtect.cryptAlgorithmType);
+			});
 		}
-		if (oWriteProtect.m_oCryptProvider)
+		if (oWriteProtect.cryptProvider)
 		{
-			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectCryptProvider);
-			m_oBcw.m_oStream.WriteStringW3(oWriteProtect.m_oCryptProvider.get());
-			m_oBcw.WriteItemEnd(nCurPos);
+			this.bs.WriteItem(c_oWriteProtect.CryptProvider, function () {
+				oThis.memory.WriteString2(oWriteProtect.cryptProvider);
+			});
 		}
-		if (oWriteProtect.m_oCryptProviderType)
+		if (oWriteProtect.cryptProviderType)
 		{
-			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectCryptProviderType);
-			m_oBcw.m_oStream.WriteBYTE(oWriteProtect.m_oCryptProviderType->GetValue());
-			m_oBcw.WriteItemEnd(nCurPos);
+			this.bs.WriteItem(c_oWriteProtect.CryptProviderType, function () {
+				oThis.memory.WriteByte(oWriteProtect.cryptProviderType);
+			});
 		}
-		if (oWriteProtect.m_oCryptProviderTypeExt)
+		if (oWriteProtect.cryptProviderTypeExt)
 		{
-			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectCryptProviderTypeExt);
-			m_oBcw.m_oStream.WriteStringW3(oWriteProtect.m_oCryptProviderTypeExt.get());
-			m_oBcw.WriteItemEnd(nCurPos);
+			this.bs.WriteItem(c_oWriteProtect.CryptProviderTypeExt, function () {
+				oThis.memory.WriteString2(oWriteProtect.cryptProviderTypeExt);
+			});
 		}
-		if (oWriteProtect.m_oCryptProviderTypeExtSource)
+		if (oWriteProtect.cryptProviderTypeExtSource)
 		{
-			nCurPos = m_oBcw.WriteItemStart(c_oWriteProtectCryptProviderTypeExtSource);
-			m_oBcw.m_oStream.WriteStringW3(oWriteProtect.m_oCryptProviderTypeExtSource.get());
-			m_oBcw.WriteItemEnd(nCurPos);
-		}*/
+			this.bs.WriteItem(c_oWriteProtect.CryptProviderTypeExtSource, function () {
+				oThis.memory.WriteString2(oWriteProtect.cryptProviderTypeExtSource);
+			});
+		}
 	}
 }
 function BinaryNotesTableWriter(memory, doc, oNumIdMap, oMapCommentId, copyParams, saveParams, notes)
