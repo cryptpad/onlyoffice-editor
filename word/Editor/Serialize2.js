@@ -6841,7 +6841,7 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 		}
 		if (oThis.Document.Settings && oThis.Document.Settings.DocumentProtection)
 		{
-			this.bs.WriteItem(c_oSer_SettingsType.DocumentProtection, function(){oThis.WriteDocProtect();});
+			this.bs.WriteItem(c_oSer_SettingsType.DocumentProtection, function(){oThis.WriteDocProtect(oThis.Document.Settings.DocumentProtection);});
 		}
 		if (oThis.Document.Settings && oThis.Document.Settings.WriteProtection)
 		{
@@ -7165,13 +7165,13 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 		if (oDocProtect.hashValue)
 		{
 			this.bs.WriteItem(c_oDocProtect.HashValue, function () {
-				oThis.memory.WriteString2(oDocProtect.hashValue);
+				oThis.memory.WriteString3(oDocProtect.hashValue);
 			});
 		}
 		if (oDocProtect.saltValue)
 		{
 			this.bs.WriteItem(c_oDocProtect.SaltValue, function () {
-				oThis.memory.WriteString2(oDocProtect.saltValue);
+				oThis.memory.WriteString3(oDocProtect.saltValue);
 			});
 		}
 		if (oDocProtect.spinCount)
@@ -16444,6 +16444,7 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 			res = this.bcr.Read1(length, function(t, l){
 				return oThis.ReadDocProtect(t,l,oDocProtect);
 			});
+			editor.WordControl.m_oLogicDocument.Settings.DocumentProtection = oDocProtect;
 		}
 		else if ( c_oSer_SettingsType.WriteProtection === type )
 		{
@@ -16945,7 +16946,7 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 		}
 		else if (c_oDocProtect.CryptAlgorithmType == type)
 		{
-			pDocProtect.cryptAlgorithmType.SetValueFromByte(this.stream.GetUChar());
+			pDocProtect.cryptAlgorithmType = this.stream.GetUChar();
 		}
 		else if (c_oDocProtect.CryptProvider == type)
 		{
