@@ -13046,7 +13046,7 @@ CDocument.prototype.CanPerformAction = function(isIgnoreCanEditFlag)
 {
 	return !((!this.CanEdit() && true !== isIgnoreCanEditFlag) || (true === this.CollaborativeEditing.Get_GlobalLock()));
 };
-CDocument.prototype.Document_Is_SelectionLocked = function(CheckType, AdditionalData, DontLockInFastMode, isIgnoreCanEditFlag)
+CDocument.prototype.Document_Is_SelectionLocked = function(CheckType, AdditionalData, DontLockInFastMode, isIgnoreCanEditFlag, fCallback)
 {
 	if (!this.CanPerformAction(isIgnoreCanEditFlag))
 		return true;
@@ -13070,7 +13070,7 @@ CDocument.prototype.Document_Is_SelectionLocked = function(CheckType, Additional
 		}
 	}
 
-	var bResult = this.CollaborativeEditing.OnEnd_CheckLock(DontLockInFastMode);
+	var bResult = this.CollaborativeEditing.OnEnd_CheckLock(DontLockInFastMode, fCallback);
 
 	if (true === bResult)
 	{
@@ -13132,9 +13132,9 @@ CDocument.prototype.private_IsSelectionLockedAdditional = function(oAdditionalDa
 		}
 	}
 };
-CDocument.prototype.IsSelectionLocked = function(nCheckType, oAdditionalData, isDontLockInFastMode, isIgnoreCanEditFlag)
+CDocument.prototype.IsSelectionLocked = function(nCheckType, oAdditionalData, isDontLockInFastMode, isIgnoreCanEditFlag, fCallback)
 {
-	return this.Document_Is_SelectionLocked(nCheckType, oAdditionalData, isDontLockInFastMode, isIgnoreCanEditFlag);
+	return this.Document_Is_SelectionLocked(nCheckType, oAdditionalData, isDontLockInFastMode, isIgnoreCanEditFlag, fCallback);
 };
 CDocument.prototype.CheckSelectionLockedByFormKey = function(nCheckType, sKey, oSkipParagraph)
 {
