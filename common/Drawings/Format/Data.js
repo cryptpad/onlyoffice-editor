@@ -920,7 +920,7 @@
 
     DiagramData.prototype.fillObject = function (oCopy, oIdMap) {
       if (this.dataModel) {
-        this.setDataModel(this.dataModel.createDuplicate(oIdMap));
+        oCopy.setDataModel(this.dataModel.createDuplicate(oIdMap));
       }
     }
 
@@ -1012,19 +1012,19 @@
 
     DataModel.prototype.fillObject = function (oCopy, oIdMap) {
       if (this.bg) {
-        this.setBg(this.bg.createDuplicate(oIdMap));
+        oCopy.setBg(this.bg.createDuplicate(oIdMap));
       }
       if (this.cxnLst) {
-        this.setCxnLst(this.cxnLst.createDuplicate(oIdMap));
+        oCopy.setCxnLst(this.cxnLst.createDuplicate(oIdMap));
       }
       if (this.extLst) {
-        this.setExtLst(this.extLst.createDuplicate(oIdMap));
+        oCopy.setExtLst(this.extLst.createDuplicate(oIdMap));
       }
       if (this.ptLst) {
-        this.setPtLst(this.ptLst.createDuplicate(oIdMap));
+        oCopy.setPtLst(this.ptLst.createDuplicate(oIdMap));
       }
       if (this.whole) {
-        this.setWhole(this.whole.createDuplicate(oIdMap));
+        oCopy.setWhole(this.whole.createDuplicate(oIdMap));
       }
     }
 
@@ -1719,7 +1719,23 @@
       return this.t;
     }
 
-
+  Point.prototype.fillObject = function (oCopy, oIdMap) {
+    oCopy.setCxnId(this.getCxnId());
+    oCopy.setModelId(this.getModelId());
+    oCopy.setType(this.getType());
+    if (this.extLst) {
+      oCopy.setExtLst(this.getExtLst().createDuplicate());
+    }
+    if (this.prSet) {
+      oCopy.setPrSet(this.getPrSet().createDuplicate());
+    }
+    if (this.spPr) {
+      oCopy.setSpPr(this.getSpPr().createDuplicate());
+    }
+    if (this.t) {
+      oCopy.setT(this.getT().createDuplicate());
+    }
+  }
     Point.prototype.privateWriteAttributes = function(pWriter) {
       pWriter._WriteString2(0, this.modelId);
       pWriter._WriteUChar2(1, this.type);
@@ -2234,6 +2250,7 @@
     }
 
     PrSet.prototype.privateWriteAttributes = function(pWriter) {
+      pWriter._WriteBool2(0, this.coherent3DOff); // TODO: fix this
       pWriter._WriteBool2(1, this.coherent3DOff);
       pWriter._WriteString2(2, this.csCatId);
       pWriter._WriteString2(3, this.csTypeId);
@@ -2269,7 +2286,8 @@
     };
     PrSet.prototype.readAttribute = function(nType, pReader) {
       var oStream = pReader.stream;
-      if (1 === nType) this.setCoherent3DOff(oStream.GetBool());
+      if (0 === nType) this.setCoherent3DOff(oStream.GetBool()); // TODO; fix this
+      else if (1 === nType) this.setCoherent3DOff(oStream.GetBool());
       else if (2 === nType) this.setCsCatId(oStream.GetString2());
       else if (3 === nType) this.setCsTypeId(oStream.GetString2());
       else if (4 === nType) this.setCustAng(oStream.GetLong());
@@ -3034,6 +3052,9 @@
       oCopy.setMoveWith(this.getMoveWith());
       oCopy.setName(this.getName());
       oCopy.setStyleLbl(this.getStyleLbl());
+      for (var nIdx = 0; nIdx < this.list.length; ++nIdx) {
+        oCopy.addToLst(nIdx, this.list[nIdx].createDuplicate(oIdMap));
+      }
     }
     LayoutNode.prototype.readElement = function(pReader, nType) {
       var oElement = null;
@@ -3172,7 +3193,7 @@
         oCopy.setExtLst(this.getExtLst().createDuplicate(oIdMap));
       }
       for (var nIdx = 0; nIdx < this.param.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.param[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstParam(nIdx, this.param[nIdx].createDuplicate(oIdMap));
       }
     }
 
@@ -3758,7 +3779,7 @@
 
 
     changesFactory[AscDFH.historyitem_ParamType] = CChangeLong;
-    changesFactory[AscDFH.historyitem_ParamVal] = CChangeObject;
+    changesFactory[AscDFH.historyitem_ParamVal] = CChangeString;
     drawingsChangesMap[AscDFH.historyitem_ParamType] = function (oClass, value) {
       oClass.type = value;
     };
@@ -3780,7 +3801,7 @@
     }
 
     Param.prototype.setVal = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_ParamVal, this.getVal(), oPr));
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_ParamVal, this.getVal(), oPr));
       this.val = oPr;
     }
 
@@ -3794,9 +3815,7 @@
 
     Param.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setType(this.getType());
-      if (this.getVal()) {
-        oCopy.setVal()(this.getVal().createDuplicate(oIdMap));
-      }
+      oCopy.setVal(this.getVal());
     }
 
     Param.prototype.privateWriteAttributes = function(pWriter) {
@@ -3935,6 +3954,9 @@
 
     Else.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setName(this.getName());
+      for (var nIdx = 0; nIdx < this.list.length; ++nIdx) {
+        oCopy.addToLst(nIdx, this.list[nIdx].createDuplicate(oIdMap));
+      }
     }
 
     Else.prototype.readElement = function(pReader, nType) {
@@ -4143,22 +4165,22 @@
 
     IteratorAttributes.prototype.fillObject = function (oCopy, oIdMap) {
       for (var nIdx = 0; nIdx < this.axis.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.axis[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstAxis(nIdx, this.axis[nIdx].createDuplicate(oIdMap));
       }
       for (nIdx = 0; nIdx < this.cnt.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.cnt[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstCnt(nIdx, this.cnt[nIdx].createDuplicate(oIdMap));
       }
       for (nIdx = 0; nIdx < this.hideLastTrans.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.hideLastTrans[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstHideLastTrans(nIdx, this.hideLastTrans[nIdx].createDuplicate(oIdMap));
       }
       for (nIdx = 0; nIdx < this.ptType.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.ptType[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstPtType(nIdx, this.ptType[nIdx].createDuplicate(oIdMap));
       }
       for (nIdx = 0; nIdx < this.st.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.st[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstSt(nIdx, this.st[nIdx].createDuplicate(oIdMap));
       }
       for (nIdx = 0; nIdx < this.step.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.step[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstStep(nIdx, this.step[nIdx].createDuplicate(oIdMap));
       }
     }
 
@@ -4288,6 +4310,14 @@
     FunctionValue.prototype.setInt = function (pr) {
       oHistory.Add(new CChangeLong(this, AscDFH.historyitem_FunctionValueInt, this.getInt(), pr));
       this.int = pr;
+    }
+
+    FunctionValue.prototype.setVal = function (pr) {
+      this.setInt(pr);
+    }
+
+    FunctionValue.prototype.getVal = function () {
+      return this.int;
     }
 
     FunctionValue.prototype.getAnimLvlStr = function () {
@@ -4435,11 +4465,27 @@
       oCopy.setFunc(this.getFunc());
       oCopy.setName(this.getName());
       oCopy.setOp(this.getOp());
-      if (this.getVal()) {
-        oCopy.setVal(this.getVal().createDuplicate(oIdMap));
-      }
+      oCopy.setVal(this.getVal());
       for (var nIdx = 0; nIdx < this.list.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.list[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstList(nIdx, this.list[nIdx].createDuplicate(oIdMap));
+      }
+      for (var nIdx = 0; nIdx < this.axis.length; ++nIdx) {
+        oCopy.addToLstAxis(nIdx, this.axis[nIdx].createDuplicate(oIdMap));
+      }
+      for (nIdx = 0; nIdx < this.cnt.length; ++nIdx) {
+        oCopy.addToLstCnt(nIdx, this.cnt[nIdx].createDuplicate(oIdMap));
+      }
+      for (nIdx = 0; nIdx < this.hideLastTrans.length; ++nIdx) {
+        oCopy.addToLstHideLastTrans(nIdx, this.hideLastTrans[nIdx].createDuplicate(oIdMap));
+      }
+      for (nIdx = 0; nIdx < this.ptType.length; ++nIdx) {
+        oCopy.addToLstPtType(nIdx, this.ptType[nIdx].createDuplicate(oIdMap));
+      }
+      for (nIdx = 0; nIdx < this.st.length; ++nIdx) {
+        oCopy.addToLstSt(nIdx, this.st[nIdx].createDuplicate(oIdMap));
+      }
+      for (nIdx = 0; nIdx < this.step.length; ++nIdx) {
+        oCopy.addToLstStep(nIdx, this.step[nIdx].createDuplicate(oIdMap));
       }
     }
 
@@ -4615,7 +4661,7 @@
       this.for = null;
       this.forName = null;
       this.op = null;
-      this.ptType = null;
+      this.ptType = new ElementType();
       this.refFor = null;
       this.refForName = null;
       this.refPtType = null;
@@ -4764,7 +4810,7 @@
       pWriter._WriteUChar2(1, this.for);
       pWriter._WriteString2(2, this.forName);
       pWriter._WriteUChar2(3, this.op);
-      pWriter._WriteUChar2(4, this.ptType);
+      pWriter._WriteUChar2(4, this.ptType.getVal());
       pWriter._WriteUChar2(5, this.refFor);
       pWriter._WriteString2(6, this.refForName);
       pWriter._WriteUChar2(7, this.refPtType);
@@ -4780,7 +4826,11 @@
       else if (1 === nType) this.setFor(oStream.GetUChar());
       else if (2 === nType) this.setForName(oStream.GetString2());
       else if (3 === nType) this.setOp(oStream.GetUChar());
-      else if (4 === nType) this.setPtType(oStream.GetUChar());
+      else if (4 === nType) {
+        var pt = new ElementType();
+        pt.setVal(oStream.GetUChar());
+        this.setPtType(pt);
+      }
       else if (5 === nType) this.setRefFor(oStream.GetUChar());
       else if (6 === nType) this.setRefForName(oStream.GetString2());
       else if (7 === nType) this.setRefPtType(oStream.GetUChar());
@@ -4816,6 +4866,24 @@
     PresOf.prototype.fillObject = function (oCopy, oIdMap) {
       if (this.getExtLst()) {
         oCopy.setExtLst(this.getExtLst().createDuplicate(oIdMap));
+      }
+      for (var nIdx = 0; nIdx < this.axis.length; ++nIdx) {
+        oCopy.addToLstAxis(nIdx, this.axis[nIdx].createDuplicate(oIdMap));
+      }
+      for (nIdx = 0; nIdx < this.cnt.length; ++nIdx) {
+        oCopy.addToLstCnt(nIdx, this.cnt[nIdx].createDuplicate(oIdMap));
+      }
+      for (nIdx = 0; nIdx < this.hideLastTrans.length; ++nIdx) {
+        oCopy.addToLstHideLastTrans(nIdx, this.hideLastTrans[nIdx].createDuplicate(oIdMap));
+      }
+      for (nIdx = 0; nIdx < this.ptType.length; ++nIdx) {
+        oCopy.addToLstPtType(nIdx, this.ptType[nIdx].createDuplicate(oIdMap));
+      }
+      for (nIdx = 0; nIdx < this.st.length; ++nIdx) {
+        oCopy.addToLstSt(nIdx, this.st[nIdx].createDuplicate(oIdMap));
+      }
+      for (nIdx = 0; nIdx < this.step.length; ++nIdx) {
+        oCopy.addToLstStep(nIdx, this.step[nIdx].createDuplicate(oIdMap));
       }
     }
 
@@ -4927,7 +4995,7 @@
       this.type = null;
       this.val = null;
       this.extLst = null;
-      this.ptType = null;
+      this.ptType = new ElementType();
     }
 
     InitClass(Rule, CBaseFormatObject, AscDFH.historyitem_type_Rule);
@@ -5025,7 +5093,7 @@
       pWriter._WriteDoubleReal2(0, this.fact);
       pWriter._WriteUChar2(1, this.for);
       pWriter._WriteString2(2, this.forName);
-      pWriter._WriteUChar2(3, this.ptType);
+      pWriter._WriteUChar2(3, this.ptType.getVal());
       pWriter._WriteUChar2(4, this.type);
       pWriter._WriteDoubleReal2(5, this.val);
       pWriter._WriteDoubleReal2(6, this.max);
@@ -5037,7 +5105,11 @@
       if (0 === nType) this.setFact(oStream.GetDouble());
       else if (1 === nType) this.setFor(oStream.GetUChar());
       else if (2 === nType) this.setForName(oStream.GetString2());
-      else if (3 === nType) this.setPtType(oStream.GetUChar());
+      else if (3 === nType) {
+        var pt = new ElementType();
+        pt.setVal(oStream.GetUChar());
+        this.setPtType(pt);
+      }
       else if (4 === nType) this.setType(oStream.GetUChar());
       else if (5 === nType) this.setVal(oStream.GetDouble());
       else if (6 === nType) this.setMax(oStream.GetDouble());
@@ -5852,7 +5924,25 @@
       oCopy.setName(this.getName());
       oCopy.setRef(this.getRef());
       for (var nIdx = 0; nIdx < this.list.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.list[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstList(nIdx, this.list[nIdx].createDuplicate(oIdMap));
+      }
+      for (var nIdx = 0; nIdx < this.axis.length; ++nIdx) {
+        oCopy.addToLstAxis(nIdx, this.axis[nIdx].createDuplicate(oIdMap));
+      }
+      for (nIdx = 0; nIdx < this.cnt.length; ++nIdx) {
+        oCopy.addToLstCnt(nIdx, this.cnt[nIdx].createDuplicate(oIdMap));
+      }
+      for (nIdx = 0; nIdx < this.hideLastTrans.length; ++nIdx) {
+        oCopy.addToLstHideLastTrans(nIdx, this.hideLastTrans[nIdx].createDuplicate(oIdMap));
+      }
+      for (nIdx = 0; nIdx < this.ptType.length; ++nIdx) {
+        oCopy.addToLstPtType(nIdx, this.ptType[nIdx].createDuplicate(oIdMap));
+      }
+      for (nIdx = 0; nIdx < this.st.length; ++nIdx) {
+        oCopy.addToLstSt(nIdx, this.st[nIdx].createDuplicate(oIdMap));
+      }
+      for (nIdx = 0; nIdx < this.step.length; ++nIdx) {
+        oCopy.addToLstStep(nIdx, this.step[nIdx].createDuplicate(oIdMap));
       }
     }
 
@@ -6305,10 +6395,10 @@
         oCopy.setExtLst(this.getExtLst().createDuplicate(oIdMap));
       }
       for (var nIdx = 0; nIdx < this.title.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.title[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstTitle(nIdx, this.title[nIdx].createDuplicate(oIdMap));
       }
       for (nIdx = 0; nIdx < this.desc.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.desc[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstDesc(nIdx, this.desc[nIdx].createDuplicate(oIdMap));
       }
     }
 
@@ -6518,7 +6608,7 @@
         oCopy.setTitle(this.getTitle().createDuplicate(oIdMap));
       }
       for (var nIdx = 0; nIdx < this.styleLbl.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.styleLbl[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstStyleLbl(nIdx, this.styleLbl[nIdx].createDuplicate(oIdMap));
       }
     }
 
@@ -6733,7 +6823,6 @@
       this.writeRecord2(pWriter, 5, this.txLinClrLst);
     };
     ColorDefStyleLbl.prototype.readAttribute = function(nType, pReader) {
-      console.log(nType)
       var oStream = pReader.stream;
       if (0 === nType) this.setName(oStream.GetString2());
     };
@@ -6909,6 +6998,9 @@
     ClrLst.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setHueDir(this.getHueDir());
       oCopy.setMeth(this.getMeth());
+      for (var nIdx = 0; nIdx < this.list.length; ++nIdx) {
+        oCopy.addToLst(nIdx, this.list[nIdx].createDuplicate(oIdMap));
+      }
     }
 
     function EffectClrLst() {
@@ -7092,10 +7184,10 @@
         oCopy.setExtLst(this.getExtLst().createDuplicate(oIdMap));
       }
       for (var nIdx = 0; nIdx < this.title.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.title[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstTitle(nIdx, this.title[nIdx].createDuplicate(oIdMap));
       }
       for (nIdx = 0; nIdx < this.desc.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.desc[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstDesc(nIdx, this.desc[nIdx].createDuplicate(oIdMap));
       }
     }
 
@@ -7253,7 +7345,7 @@
         oCopy.setDesc(this.getDesc().createDuplicate(oIdMap));
       }
       for (var nIdx = 0; nIdx < this.styleLbl.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.styleLbl[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstStyleLbl(nIdx, this.styleLbl[nIdx].createDuplicate(oIdMap));
       }
     }
 
@@ -7762,10 +7854,67 @@
     }
 
     Drawing.prototype.writeChildren = function(pWriter) {
-      pWriter.WriteRecord2(0, this.spTree, pWriter.WriteSpTree);
+        pWriter.WriteGroupShape(this, 0);
     };
     Drawing.prototype.toPPTY = function(pWriter) {
       this.writeChildren(pWriter);
+    };
+
+    Drawing.prototype.copy = function(oPr)
+    {
+      var copy = new Drawing();
+      this.copy2(copy, oPr);
+      return copy;
+    };
+
+    Drawing.prototype.copy2 = function(copy, oPr)
+    {
+      if(this.nvGrpSpPr)
+      {
+        copy.setNvGrpSpPr(this.nvGrpSpPr.createDuplicate());
+      }
+      if(this.spPr)
+      {
+        copy.setSpPr(this.spPr.createDuplicate());
+        copy.spPr.setParent(copy);
+      }
+      for(var i = 0; i < this.spTree.length; ++i)
+      {
+        var _copy;
+        if(this.spTree[i].getObjectType() === AscDFH.historyitem_type_GroupShape) {
+          _copy = this.spTree[i].copy(oPr);
+        }
+        else{
+          if(oPr && oPr.bSaveSourceFormatting){
+            _copy = this.spTree[i].getCopyWithSourceFormatting();
+          }
+          else{
+            _copy = this.spTree[i].copy(oPr);
+          }
+
+        }
+        if(oPr && AscCommon.isRealObject(oPr.idMap)){
+          oPr.idMap[this.spTree[i].Id] = _copy.Id;
+        }
+        copy.addToSpTree(copy.spTree.length, _copy);
+        copy.spTree[copy.spTree.length-1].setGroup(copy);
+      }
+      copy.setBDeleted(this.bDeleted);
+      if(this.macro !== null) {
+        copy.setMacro(this.macro);
+      }
+      if(this.textLink !== null) {
+        copy.setTextLink(this.textLink);
+      }
+      copy.cachedImage = this.getBase64Img();
+      copy.cachedPixH = this.cachedPixH;
+      copy.cachedPixW = this.cachedPixW;
+      copy.setLocks(this.locks);
+      if (this.group) {
+        copy.setGroup(this.group);
+      }
+
+      return copy;
     };
 
 
@@ -8582,10 +8731,10 @@
         oCopy.setExtLst(this.getExtLst().createDuplicate(oIdMap));
       }
       for (var nIdx = 0; nIdx < this.desc.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.desc[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstDesc(nIdx, this.desc[nIdx].createDuplicate(oIdMap));
       }
       for (nIdx = 0; nIdx < this.list.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.list[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstList(nIdx, this.list[nIdx].createDuplicate(oIdMap));
       }
     }
 
@@ -8628,6 +8777,24 @@
 
     SmartArt.prototype.getName = function () {
       return 'SmartArt';
+    }
+
+    SmartArt.prototype.setPointsForShapes = function () {
+      var that = this;
+      this.getDrawing().spTree.forEach(function (shape) {
+        if (shape.isObjectInSmartArt()) {
+          var ptLst = that.getDataModel().getDataModel().ptLst.list;
+          for (var i = 0; i < ptLst.length; i += 1) {
+            if (shape.modelId && shape.modelId === ptLst[i].modelId) {
+              for (var j = 0; j < ptLst.length; j += 1) {
+                if (ptLst[i].prSet && ptLst[i].prSet.presAssocID && ptLst[i].prSet.presAssocID === ptLst[j].modelId) {
+                  shape.setSmartArtPoint(ptLst[j]);
+                }
+              }
+            }
+          }
+        }
+      })
     }
 
     SmartArt.prototype.setParent = function (parent) {
@@ -8705,7 +8872,11 @@
 
     SmartArt.prototype.privateWriteAttributes = null;
     SmartArt.prototype.writeChildren = function(pWriter) {
-      this.writeRecord2(pWriter,0, this.drawing);
+      pWriter.StartRecord(0);
+      pWriter.StartRecord(0);
+      pWriter.WriteGroupShape(this.drawing, 0);
+      pWriter.EndRecord();
+      pWriter.EndRecord();
       this.writeRecord2(pWriter, 1, this.dataModel);
       this.writeRecord2(pWriter, 2, this.colorsDef);
       this.writeRecord2(pWriter, 3, this.layoutDef);
@@ -8725,6 +8896,7 @@
         case 1: {
           this.setDataModel(new DiagramData());
           this.dataModel.fromPPTY(pReader);
+          this.setPointsForShapes();
           break;
         }
         case 2: {
@@ -8786,6 +8958,73 @@
       this.writeChildren(pWriter);
     };
     SmartArt.prototype.writeAttributes = function(pWriter) {
+    };
+
+    SmartArt.prototype.copy = function(oPr)
+    {
+      var copy = new SmartArt();
+      this.copy2(copy, oPr);
+      return copy;
+    };
+    SmartArt.prototype.copy2 = function(copy, oPr)
+    {
+      if(this.nvGrpSpPr)
+      {
+        copy.setNvGrpSpPr(this.nvGrpSpPr.createDuplicate());
+      }
+      if(this.spPr)
+      {
+        copy.setSpPr(this.spPr.createDuplicate());
+        copy.spPr.setParent(copy);
+      }
+      for(var i = 0; i < this.spTree.length; ++i)
+      {
+        var _copy;
+        if(this.spTree[i].getObjectType() === AscDFH.historyitem_type_GroupShape) {
+          _copy = this.spTree[i].copy(oPr);
+        }
+        else{
+          if(oPr && oPr.bSaveSourceFormatting){
+            _copy = this.spTree[i].getCopyWithSourceFormatting();
+          }
+          else{
+            _copy = this.spTree[i].copy(oPr);
+          }
+
+        }
+        if(oPr && AscCommon.isRealObject(oPr.idMap)){
+          oPr.idMap[this.spTree[i].Id] = _copy.Id;
+        }
+        copy.addToSpTree(copy.spTree.length, _copy);
+        copy.spTree[copy.spTree.length-1].setGroup(copy);
+      }
+      copy.setBDeleted(this.bDeleted);
+      if(this.macro !== null) {
+        copy.setMacro(this.macro);
+      }
+      if(this.textLink !== null) {
+        copy.setTextLink(this.textLink);
+      }
+      if (this.drawing) {
+        copy.setDrawing(this.drawing.copy());
+      }
+      if (this.layoutDef) {
+        copy.setLayoutDef(this.layoutDef.createDuplicate());
+      }
+      if (this.styleDef) {
+        copy.setStyleDef(this.styleDef.createDuplicate());
+      }
+      if (this.dataModel) {
+        copy.setDataModel(this.dataModel.createDuplicate());
+      }
+      if (this.colorsDef) {
+        copy.setColorsDef(this.colorsDef.createDuplicate());
+      }
+      copy.cachedImage = this.getBase64Img();
+      copy.cachedPixH = this.cachedPixH;
+      copy.cachedPixW = this.cachedPixW;
+      copy.setLocks(this.locks);
+      return copy;
     };
 
     var horizontalListOfPicture = {
@@ -14750,10 +14989,10 @@
 
     function fillColorsDef(colorsDef, colorsDefInfo) {
       colorsDefInfo.titles.forEach(function (e) {
-        colorsDef.addToLstTitle(0, createTitle(e));
+        colorsDef.setTitle(createTitle(e));
       });
       colorsDefInfo.descs.forEach(function (e) {
-        colorsDef.addToLstDesc(0, createDesc(e));
+        colorsDef.setDesc(createDesc(e));
       });
       var catArr = colorsDefInfo.catLst.map(function (e) {
         return createCat(e.pri, e.type);
@@ -14852,11 +15091,11 @@
 
     function fillQuickStyle(quickStyle, quickStyleInfo) {
       quickStyleInfo.titles.forEach(function (e) {
-        quickStyle.addToLstTitle(0, createTitle(e));
+        quickStyle.setTitle(createTitle(e));
       });
 
       quickStyleInfo.descs.forEach(function (e) {
-        quickStyle.addToLstDesc(0, createDesc(e));
+        quickStyle.setDesc(createDesc(e));
       });
 
       var scene3dInfo = quickStyleInfo.scene3d;
@@ -15503,7 +15742,7 @@
       if (chooseInfo.if) {
         var ifObj = new If();
         fillIfObj(ifObj, chooseInfo.if);
-        choose.addToLstIf(0, ifObj);
+        choose.setIf(ifObj);
       }
       if (chooseInfo.else) {
         var elseObj = new Else();
@@ -15514,11 +15753,11 @@
 
     function fillLayoutDef(layoutDef, layoutDefInfo) {
       layoutDefInfo.titles.forEach(function (title) {
-        layoutDef.addToLstTitle(0, createTitle(title));
+        layoutDef.setTitle(createTitle(title));
       });
 
       layoutDefInfo.descs.forEach(function (desc) {
-        layoutDef.addToLstDesc(0, createDesc(desc));
+        layoutDef.setDesc(createDesc(desc));
       });
 
       var catArr = layoutDefInfo.catLst.map(function (cat) {
@@ -15680,15 +15919,12 @@
 
       _slide.addToSpTreeToPos(_slide.cSld.spTree.length, smartart);
       _pres.Recalculate();
-      smartart.getDrawing().spTree.forEach(function (shape) {
-        if (shape.isObjectInSmartArt()) {
-          shape.checkExtentsByDocContent();
-        }
-      })
+
       return smartart;
     }
 
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].createSmartArt = createSmartArt;
     window['AscFormat'].SmartArt = SmartArt;
+    window['AscFormat'].Point = Point;
   })(window)

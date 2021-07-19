@@ -1348,6 +1348,12 @@ CShape.prototype.copyTextInfoFromShapeToPoint = function () {
         rPr: ['Lang', 'Bold', 'err', 'Italic', 'Underline', 'Strikeout', 'Spacing', 'dirty', 'baseline', 'cap'],
         pPr: ['Jc'] // TODO: algn -> Jc?
     };
+    var prSet;
+    if (this.point) {
+        prSet = this.point.prSet;
+    } else {
+        return;
+    }
     var prSet = this.point.prSet;
     var pointTxBody = this.point.getT() || new AscFormat.CTextBody();
     if (!this.point.getT()) {
@@ -3083,6 +3089,10 @@ CShape.prototype.fillObject = function(copy, oPr){
     copy.cachedImage = this.getBase64Img();
     copy.cachedPixH = this.cachedPixH;
     copy.cachedPixW = this.cachedPixW;
+    if (this.txXfrm) {
+        copy.setTxXfrm(this.txXfrm.createDuplicate());
+    }
+    copy.setModelId(this.modelId);
 };
 
 CShape.prototype.copy = function (oPr) {

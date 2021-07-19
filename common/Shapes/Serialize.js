@@ -7606,20 +7606,6 @@ function BinaryPPTYLoader()
             _smartArt = new AscFormat.SmartArt();
             _smartArt.fromPPTY(this);
             _smartArt.setBDeleted(false);
-            _smartArt.getDrawing().spTree.forEach(function (shape) {
-                if (shape.isObjectInSmartArt()) {
-                    var ptLst = _smartArt.getDataModel().getDataModel().ptLst.list;
-                    for (var i = 0; i < ptLst.length; i += 1) {
-                        if (shape.modelId && shape.modelId === ptLst[i].modelId) {
-                            for (var j = 0; j < ptLst.length; j += 1) {
-                                if (ptLst[i].prSet && ptLst[i].prSet.presAssocID && ptLst[i].prSet.presAssocID === ptLst[j].modelId) {
-                                    shape.setSmartArtPoint(ptLst[j]);
-                                }
-                            }
-                        }
-                    }
-                }
-            })
         }
         else
         {
@@ -7648,6 +7634,11 @@ function BinaryPPTYLoader()
         }
         s.Seek2(_end_rec);
         console.log(_smartArt)
+        // _smartArt.getDrawing().spTree.forEach(function (shape) {
+        //     if (shape.isObjectInSmartArt()) {
+        //         shape.checkExtentsByDocContent();
+        //     }
+        // });
         return _smartArt;
     };
 

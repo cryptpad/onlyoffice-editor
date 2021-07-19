@@ -1617,6 +1617,7 @@
 	window['AscDFH'].historyitem_type_BuNone                 = 2090 << 16;
 	window['AscDFH'].historyitem_type_Drawing                = 2091 << 16;
 	window['AscDFH'].historyitem_type_DiagramData            = 2092 << 16;
+	window['AscDFH'].historyitem_type_FunctionValue          = 2093 << 16;
 
 
 
@@ -3688,6 +3689,14 @@
 	AscDFH.historyitem_OrgChartVal = AscDFH.historyitem_type_OrgChart | 1;
 
 	AscDFH.historyitem_HierBranchVal = AscDFH.historyitem_type_HierBranch | 1;
+
+	AscDFH.historyitem_FunctionValueAnimLvlStr       = AscDFH.historyitem_type_FunctionValue | 1;
+	AscDFH.historyitem_FunctionValueAnimOneStr       = AscDFH.historyitem_type_FunctionValue | 2;
+	AscDFH.historyitem_FunctionValueDirection        = AscDFH.historyitem_type_FunctionValue | 3;
+	AscDFH.historyitem_FunctionValueHierBranchStyle  = AscDFH.historyitem_type_FunctionValue | 4;
+	AscDFH.historyitem_FunctionValueResizeHandlesStr = AscDFH.historyitem_type_FunctionValue | 5;
+	AscDFH.historyitem_FunctionValueBool             = AscDFH.historyitem_type_FunctionValue | 6;
+	AscDFH.historyitem_FunctionValueInt              = AscDFH.historyitem_type_FunctionValue | 7;
 
 	AscDFH.historyitem_ParameterValArrowheadStyle             = AscDFH.historyitem_type_ParameterVal | 1;
 	AscDFH.historyitem_ParameterValAutoTextRotation           = AscDFH.historyitem_type_ParameterVal | 2;
