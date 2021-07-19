@@ -1010,6 +1010,9 @@
 	CProtectedRange.prototype.asc_checkPassword = function (val) {
 		return true;
 	};
+	CProtectedRange.prototype.isUserEnteredPassword = function () {
+		return this._isEnterPassword;
+	};
 
 	CProtectedRange.sStartLock = 'protectedRange_';
 

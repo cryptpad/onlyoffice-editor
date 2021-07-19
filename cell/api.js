@@ -4439,6 +4439,44 @@ var editor;
     this.wb.restoreFocus();
   };
 
+	spreadsheet_api.prototype.asc_checkActiveCellProtectedRange = function () {
+		var ws = this.wbModel.getActiveWs();
+		var protectedRanges = ws.getProtectedRangesByActiveCell();
+
+		//входит ли в зону защищенных диапазонов ячейка - null(не входит)/true(входит и защищена паролем)/false(входит и не защищена паролем или была защищена и уже не защищена)
+		var res = null;
+		if (protectedRanges) {
+			for (var i = 0; i < protectedRanges.length; i++) {
+				if (protectedRanges[i].asc_isPassword()) {
+					if (protectedRanges[i].isUserEnteredPassword()) {
+						return false;
+					} else if (res !== false) {
+						res = true;
+					}
+				} else {
+					return false;
+				}
+			}
+		}
+
+		return res;
+	};
+
+	spreadsheet_api.prototype.asc_checkActiveCellPassword = function () {
+		var ws = this.wbModel.getActiveWs();
+		var protectedRanges = ws.getProtectedRangesByActiveCell();
+		if (protectedRanges) {
+			//TODO добавить проверку пароля
+			for (var i = 0; i < protectedRanges.length; i++) {
+				if (protectedRanges[i].asc_isPassword()) {
+					return true;
+				}
+			}
+			return false;
+		}
+		return true;
+	};
+
   // Формат по образцу
   spreadsheet_api.prototype.asc_formatPainter = function(formatPainterState) {
     if (this.wb) {
@@ -6204,6 +6242,9 @@ var editor;
   prot["asc_setCellIndent"] = prot.asc_setCellIndent;
   prot["asc_setCellProtection"] = prot.asc_setCellProtection;
   prot["asc_setCellLocked"] = prot.asc_setCellLocked;
+  prot["asc_checkActiveCellProtectedRange"] = prot.asc_checkActiveCellProtectedRange;
+  prot["asc_checkActiveCellPassword"] = prot.asc_checkActiveCellPassword;
+
 
   prot["asc_formatPainter"] = prot.asc_formatPainter;
   prot["asc_showAutoComplete"] = prot.asc_showAutoComplete;

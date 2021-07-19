@@ -10114,6 +10114,16 @@
 		}
 	};
 
+	Worksheet.prototype.getProtectedRangesByActiveCell = function () {
+		var activeCell = this.selectionRange.activeCell;
+		var res = [];
+		for (var i = 0; i < this.aProtectedRanges.length; i++) {
+			if (this.aProtectedRanges[i].contains(activeCell.col, activeCell.row)) {
+				res.push(this.aProtectedRanges[i]);
+			}
+		}
+		return res.length ? res : null;
+	};
 
 
 //-------------------------------------------------------------------------------------------------
