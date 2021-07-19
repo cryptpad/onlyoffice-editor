@@ -1158,8 +1158,9 @@
       var s = pReader.stream;
       switch (nType) {
         case 0: {
-          this.addToLst(0, new Point());
-          this.list[0].fromPPTY(pReader);
+          var oChild = new Point();
+          oChild.fromPPTY(pReader);
+          this.addToLst(this.list.length, oChild);
           break;
         }
         default: {
@@ -1180,8 +1181,9 @@
       var s = pReader.stream;
       switch (nType) {
         case 0: {
-          this.addToLst(0, new Cxn());
-          this.list[0].fromPPTY(pReader);
+          var oChild = new Cxn();
+          oChild.fromPPTY(pReader);
+          this.addToLst(this.list.length, oChild);
           break;
         }
         default: {
@@ -1395,8 +1397,9 @@
       var s = pReader.stream;
       switch (nType) {
         case 0: {
-          this.addToLst(0, new Ext());
-          this.list[0].fromPPTY(pReader);
+          var oChild = new Ext();
+          oChild.fromPPTY(pReader);
+          this.addToLst(this.list.length, oChild);
           break;
         }
         default: {
@@ -2791,8 +2794,9 @@
       var s = pReader.stream;
       switch (nType) {
         case 0: {
-          this.addToLst(0, new SCat());
-          this.list[0].fromPPTY(pReader);
+          var oChild = new SCat();
+          oChild.fromPPTY(pReader);
+          this.addToLst(this.list.length, oChild);
           break;
         }
         default: {
@@ -4593,8 +4597,9 @@
       var s = pReader.stream;
       switch (nType) {
         case 0: {
-          this.addToLst(0, new Constr());
-          this.list[0].fromPPTY(pReader);
+          var oChild = new Constr();
+          oChild.fromPPTY(pReader);
+          this.addToLst(this.list.length, oChild);
           break;
         }
         default: {
@@ -4942,8 +4947,9 @@
       var s = pReader.stream;
       switch (nType) {
         case 0: {
-          this.addToLst(0, new Rule());
-          this.list[0].fromPPTY(pReader);
+          var oChild = new Rule();
+          oChild.fromPPTY(pReader);
+          this.addToLst(this.list.length, oChild);
           break;
         }
         default: {
@@ -5322,8 +5328,9 @@
       var s = pReader.stream;
       switch (nType) {
         case 0: {
-          this.addToLst(0, new Adj());
-          this.list[0].fromPPTY(pReader);
+          var oChild = new Adj();
+          oChild.fromPPTY(pReader);
+          this.addToLst(this.list.length, oChild);
           break;
         }
         default: {
@@ -6620,6 +6627,9 @@
       this.writeRecord2(pWriter, 0, this.title);
       this.writeRecord2(pWriter, 1, this.desc);
       this.writeRecord2(pWriter, 2, this.catLst);
+      for(var nStyleLbl = 0; nStyleLbl < this.styleLbl.length; ++nStyleLbl) {
+          this.writeRecord2(pWriter, 3, this.styleLbl[nStyleLbl]);
+      }
     };
     ColorsDef.prototype.readAttribute = function(nType, pReader) {
       var oStream = pReader.stream;
@@ -6645,8 +6655,9 @@
           break;
         }
         case 3: {
-          this.addToLstStyleLbl(0, new ColorDefStyleLbl());
-          this.styleLbl[0].fromPPTY(pReader);
+          var oDefStyle = new ColorDefStyleLbl();
+          oDefStyle.fromPPTY(pReader);
+          this.addToLstStyleLbl(this.styleLbl.length, oDefStyle);
           break;
         }
         default: {

@@ -226,45 +226,45 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
         return true;
     };
     //Method for debug
-    //CBaseObject.prototype.compareTypes = function(oOther) {
-    //    if(!oOther || !oOther.compareTypes) {
-    //        debugger;
-    //    }
-    //    for(var sKey in oOther) {
-    //        if((oOther[sKey] === null || oOther[sKey] === undefined) &&
-    //            (this[sKey] !== null && this[sKey] !== undefined)
-    //        || (this[sKey] === null || this[sKey] === undefined) &&
-    //            (oOther[sKey] !== null && oOther[sKey] !== undefined)
-    //        || (typeof this[sKey]) !== (typeof oOther[sKey])) {
-    //            debugger;
-    //        }
-    //        if(this[sKey] !== this.parent &&  typeof this[sKey] === "object" &&  this[sKey] && this[sKey].compareTypes) {
-    //            this[sKey].compareTypes(oOther[sKey]);
-    //        }
-    //        if(Array.isArray(this[sKey])) {
-    //            if(!Array.isArray(oOther[sKey])) {
-    //                debugger;
-    //            }
-    //            else {
-    //                var a1 =  this[sKey];
-    //                var a2 = oOther[sKey];
-    //                if(a1.length !== a2.length) {
-    //                    debugger;
-    //                }
-    //                else {
-    //                    for(var i = 0; i < a1.length; ++i) {
-    //                        if(!a1[i] || !a2[i]) {
-    //                            debugger;
-    //                        }
-    //                        if(typeof a1[i] === "object" &&  a1[i] && a1[i].compareTypes) {
-    //                            a1[i].compareTypes(a2[i]);
-    //                        }
-    //                    }
-    //                }
-    //            }
-    //        }
-    //    }
-    //};
+    CBaseObject.prototype.compareTypes = function(oOther) {
+        if(!oOther || !oOther.compareTypes) {
+            debugger;
+        }
+        for(var sKey in oOther) {
+            if((oOther[sKey] === null || oOther[sKey] === undefined) &&
+                (this[sKey] !== null && this[sKey] !== undefined)
+            || (this[sKey] === null || this[sKey] === undefined) &&
+                (oOther[sKey] !== null && oOther[sKey] !== undefined)
+            || (typeof this[sKey]) !== (typeof oOther[sKey])) {
+                debugger;
+            }
+            if(this[sKey] !== this.parent && this[sKey] !== this.group &&  typeof this[sKey] === "object" &&  this[sKey] && this[sKey].compareTypes) {
+                this[sKey].compareTypes(oOther[sKey]);
+            }
+            if(Array.isArray(this[sKey])) {
+                if(!Array.isArray(oOther[sKey])) {
+                    debugger;
+                }
+                else {
+                    var a1 =  this[sKey];
+                    var a2 = oOther[sKey];
+                    if(a1.length !== a2.length) {
+                        debugger;
+                    }
+                    else {
+                        for(var i = 0; i < a1.length; ++i) {
+                            if(!a1[i] || !a2[i]) {
+                                debugger;
+                            }
+                            if(typeof a1[i] === "object" &&  a1[i] && a1[i].compareTypes) {
+                                a1[i].compareTypes(a2[i]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
 
     function CT_Hyperlink()
     {
