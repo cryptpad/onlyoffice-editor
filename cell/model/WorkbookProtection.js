@@ -163,23 +163,23 @@
 		this.saltValue = this.checkProperty(this.saltValue, val.saltValue, AscCH.historyitem_Protected_SetSaltValue, ws, addToHistory);
 		this.spinCount = this.checkProperty(this.spinCount, val.spinCount, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
 
-		this.sheet = this.checkProperty(this.sheet, val.sheet, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
-		this.objects = this.checkProperty(this.objects, val.objects, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
-		this.scenarios = this.checkProperty(this.scenarios, val.scenarios, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
-		this.formatCells = this.checkProperty(this.formatCells, val.formatCells, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
-		this.formatColumns = this.checkProperty(this.formatColumns, val.formatColumns, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
-		this.formatRows = this.checkProperty(this.formatRows, val.formatRows, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
-		this.insertColumns = this.checkProperty(this.insertColumns, val.insertColumns, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
-		this.insertRows = this.checkProperty(this.insertRows, val.insertRows, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
-		this.insertHyperlinks = this.checkProperty(this.insertHyperlinks, val.insertHyperlinks, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
-		this.deleteColumns = this.checkProperty(this.deleteColumns, val.deleteColumns, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
-		this.deleteRows = this.checkProperty(this.deleteRows, val.deleteRows, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
+		this.sheet = this.checkProperty(this.sheet, val.sheet, AscCH.historyitem_Protected_SetSheet, ws, addToHistory);
+		this.objects = this.checkProperty(this.objects, val.objects, AscCH.historyitem_Protected_SetObjects, ws, addToHistory);
+		this.scenarios = this.checkProperty(this.scenarios, val.scenarios, AscCH.historyitem_Protected_SetScenarios, ws, addToHistory);
+		this.formatCells = this.checkProperty(this.formatCells, val.formatCells, AscCH.historyitem_Protected_SetFormatCells, ws, addToHistory);
+		this.formatColumns = this.checkProperty(this.formatColumns, val.formatColumns, AscCH.historyitem_Protected_SetFormatColumns, ws, addToHistory);
+		this.formatRows = this.checkProperty(this.formatRows, val.formatRows, AscCH.historyitem_Protected_SetFormatRows, ws, addToHistory);
+		this.insertColumns = this.checkProperty(this.insertColumns, val.insertColumns, AscCH.historyitem_Protected_SetInsertColumns, ws, addToHistory);
+		this.insertRows = this.checkProperty(this.insertRows, val.insertRows, AscCH.historyitem_Protected_SetInsertRows, ws, addToHistory);
+		this.insertHyperlinks = this.checkProperty(this.insertHyperlinks, val.insertHyperlinks, AscCH.historyitem_Protected_SetInsertHyperlinks, ws, addToHistory);
+		this.deleteColumns = this.checkProperty(this.deleteColumns, val.deleteColumns, AscCH.historyitem_Protected_SetDeleteColumns, ws, addToHistory);
+		this.deleteRows = this.checkProperty(this.deleteRows, val.deleteRows, AscCH.historyitem_Protected_SetDeleteRows, ws, addToHistory);
 
-		this.selectLockedCells = this.checkProperty(this.selectLockedCells, val.selectLockedCells, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
-		this.sort = this.checkProperty(this.sort, val.sort, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
-		this.autoFilter = this.checkProperty(this.autoFilter, val.autoFilter, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
-		this.pivotTables = this.checkProperty(this.pivotTables, val.pivotTables, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
-		this.selectUnlockedCells = this.checkProperty(this.selectUnlockedCells, val.selectUnlockedCells, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
+		this.selectLockedCells = this.checkProperty(this.selectLockedCells, val.selectLockedCells, AscCH.historyitem_Protected_SetSelectLockedCells, ws, addToHistory);
+		this.sort = this.checkProperty(this.sort, val.sort, AscCH.historyitem_Protected_SetSort, ws, addToHistory);
+		this.autoFilter = this.checkProperty(this.autoFilter, val.autoFilter, AscCH.historyitem_Protected_SetAutoFilter, ws, addToHistory);
+		this.pivotTables = this.checkProperty(this.pivotTables, val.pivotTables, AscCH.historyitem_Protected_SetPivotTables, ws, addToHistory);
+		this.selectUnlockedCells = this.checkProperty(this.selectUnlockedCells, val.selectUnlockedCells, AscCH.historyitem_Protected_SetSelectUnlockedCells, ws, addToHistory);
 	};
 
 	CSheetProtection.prototype.checkProperty = function (propOld, propNew, type, ws, addToHistory) {
