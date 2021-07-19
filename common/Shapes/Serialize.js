@@ -7271,6 +7271,11 @@ function BinaryPPTYLoader()
                     var spid = s.GetString2();
                     break;
                 }
+                case 1:
+                {
+                    var sMacro = s.GetString2();
+                    break;
+                }
                 default:
                     break;
             }
@@ -11710,18 +11715,17 @@ CCore.prototype.Refresh_RecalcData2 = function(){
         this.Start_UseFullUrl = function(insertDocumentUrlsData)
         {
             this.Reader.Start_UseFullUrl(insertDocumentUrlsData);
-        }
+        };
         this.End_UseFullUrl = function()
         {
             return this.Reader.End_UseFullUrl();
-        }
+        };
         this.CheckStreamStart = function(oOtherStream) {
             if (!this.Reader) {
                 this.Reader = new AscCommon.BinaryPPTYLoader();
             }
             this.Reader.ImageMapChecker = this.ImageMapChecker;
             if (!this.stream ||
-                this.stream.obj  !== oOtherStream.obj ||
                 this.stream.data !== oOtherStream.data ||
                 this.stream.size !== oOtherStream.size) {
                 this.stream = new AscCommon.FileStream();
@@ -11740,14 +11744,19 @@ CCore.prototype.Refresh_RecalcData2 = function(){
         this.ReadPPTXElement = function(reader, stream, fReadFunction) {
             var oOldReader = this.BaseReader;
             var oOldLogicDocument = this.LogicDocument;
+            var oOldStream = this.stream;
             if(reader) {
                 this.BaseReader = reader;
             }
             this.CheckStreamStart(stream);
+            var oStream = this.stream;
             var oResult = fReadFunction();
             this.CheckStreamEnd(stream);
+
+
             this.BaseReader = oOldReader;
             this.LogicDocument = oOldLogicDocument;
+            this.stream = oOldStream;
             return oResult;
         };
         this.ReadBodyPr = function(reader, stream) {
@@ -11783,6 +11792,14 @@ CCore.prototype.Refresh_RecalcData2 = function(){
             return this.ReadPPTXElement(reader, stream, function() {
                 oThis.stream.GetUChar();
                 return oThis.Reader.ReadColorMod();
+            });
+        };
+
+
+        this.ReadTheme = function(reader, stream) {
+            var oThis = this;
+            return this.ReadPPTXElement(reader, stream, function() {
+                return oThis.Reader.ReadTheme();
             });
         };
 
@@ -12757,32 +12774,6 @@ CCore.prototype.Refresh_RecalcData2 = function(){
             _xfrm.rot = _rot;
         };
 
-        this.ReadTheme = function(reader, stream)
-        {
-            var oOldReader = this.BaseReader;
-            if(reader)
-            {
-                this.BaseReader = reader;
-            }
-            if (this.Reader == null)
-                this.Reader = new AscCommon.BinaryPPTYLoader();
-
-            if (null == this.stream)
-            {
-                this.stream = new AscCommon.FileStream();
-                this.stream.obj    = stream.obj;
-                this.stream.data   = stream.data;
-                this.stream.size   = stream.size;
-            }
-
-            this.stream.pos    = stream.pos;
-            this.stream.cur    = stream.cur;
-
-            this.Reader.stream = this.stream;
-            this.Reader.ImageMapChecker = this.ImageMapChecker;
-            this.BaseReader = oOldReader;
-            return this.Reader.ReadTheme();
-        };
 
         this.CheckImagesNeeds = function(logicDoc)
         {

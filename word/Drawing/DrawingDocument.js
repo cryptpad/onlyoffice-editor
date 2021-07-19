@@ -6615,12 +6615,7 @@ function CDrawingDocument()
 		if (!api || !oLogicDocument)
 			return;
 
-		var oHistory = oLogicDocument.GetHistory();
-		oHistory.TurnOff();
-		var isLocalTrackRevisions = oLogicDocument.GetLocalTrackRevisions();
-		oLogicDocument.SetLocalTrackRevisions(false);
-
-        var oldViewMode = api.isViewMode;
+		var oldViewMode = api.isViewMode;
         var oldMarks = api.ShowParaMarks;
 
         api.isViewMode = true;
@@ -6707,8 +6702,6 @@ function CDrawingDocument()
         ctx.restore();
         ctx.restore();
 
-		oHistory.TurnOn();
-		oLogicDocument.SetLocalTrackRevisions(isLocalTrackRevisions);
         api.isViewMode = oldViewMode;
         api.ShowParaMarks = oldMarks;
     };
@@ -6834,6 +6827,10 @@ function CDrawingDocument()
             editor.sendEvent("asc_onPreviewLevelChange", level);
         });
 
+        var oDocState = null;
+        if (this.m_oLogicDocument)
+        	oDocState = this.m_oLogicDocument.StartNoHistoryMode();
+
         if (!is_multi_level)
         {
             var offsetBase = 10;
@@ -6936,6 +6933,9 @@ function CDrawingDocument()
                 this.privateGetParagraphByString(props.Lvl[i], level, 1, textYs[i].x, textYs[i].y, line_distance, ctx, width_px, height_px);
             }
         }
+
+        if (oDocState)
+        	this.m_oLogicDocument.EndNoHistoryMode(oDocState);
 	};
 
 	this.SetDrawImagePreviewBulletChangeListLevel = function(id, props, isNoCheckFonts)
@@ -7004,6 +7004,10 @@ function CDrawingDocument()
         var text_base_offset_x = offset + ((3.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
         var text_base_offset_dist = ( (props.IsOnes ? 2.25 : 3.25) * AscCommon.g_dKoef_mm_to_pix) >> 0;
 
+		var oDocState = null;
+		if (this.m_oLogicDocument)
+			oDocState = this.m_oLogicDocument.StartNoHistoryMode();
+
         for (var k = 0; k < 9; k++) 
         {
 			// чтобы убрать отступ у i
@@ -7045,6 +7049,9 @@ function CDrawingDocument()
 
             this.privateGetParagraphByString(props.Lvl[k], k, 1, textYs.x, textYs.y, (height_px >> 1), ctx, width_px, height_px);
         }
+
+        if (oDocState)
+        	this.m_oLogicDocument.EndNoHistoryMode(oDocState);
     };
 
 	this.SetDrawImagePreviewBulletForMenu = function(id, type, props, isNoCheckFonts)
@@ -7262,6 +7269,11 @@ function CDrawingDocument()
             return;
         }
 		var elNone = document.getElementById(id[0]);
+
+		var oDocState = null;
+		if (this.m_oLogicDocument)
+			oDocState = this.m_oLogicDocument.StartNoHistoryMode();
+
 		if (elNone)
 		{
 			var width_px = elNone.clientWidth;
@@ -7282,6 +7294,9 @@ function CDrawingDocument()
 			canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
 
 			var ctx = canvas.getContext("2d");
+			ctx.fillStyle = "#FFFFFF";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			ctx.beginPath();
 			var line_distance = (height_px == 80) ? (height_px / 5 - 1) : ((height_px >> 2) + ((text.length > 6) ? 0 : 2));
 			var par = new Paragraph(this, this.m_oWordControl.m_oLogicDocument);
 			par.MoveCursorToStartPos();
@@ -7334,6 +7349,9 @@ function CDrawingDocument()
 			canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
 
 			var ctx = canvas.getContext("2d");
+			ctx.fillStyle = "#FFFFFF";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			ctx.beginPath();
 			var rPR = AscCommon.AscBrowser.retinaPixelRatio;
 			
 			if (!type)
@@ -7356,6 +7374,9 @@ function CDrawingDocument()
 				canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
 
 				var ctx = canvas.getContext("2d");
+				ctx.fillStyle = "#FFFFFF";
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+				ctx.beginPath();
 				var line_distance = (height_px >> 1) - 2;
 				// TODo: подумать над тем как рассчитать сдвиг влево, эти значения подобраны эксперементально
 				var xShift;
@@ -7427,8 +7448,10 @@ function CDrawingDocument()
 						text_base_offset_x += text_base_offset_dist;
 				}
 			}
-
 		}
+
+		if (this.m_oLogicDocument)
+			this.m_oLogicDocument.EndNoHistoryMode(oDocState);
 	};
 
 	this.StartTableStylesCheck = function ()

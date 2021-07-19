@@ -6791,6 +6791,7 @@ background-repeat: no-repeat;\
 					var oCommentData = oComment.GetData().Copy();
 					oCommentData.SetSolved(true);
 					oComment.SetData(oCommentData);
+					this.sync_ChangeCommentData(arrCommentsId[nIndex], oCommentData);
 				}
 			}
 
@@ -8894,6 +8895,26 @@ background-repeat: no-repeat;\
 		{
 			oLogicDocument.RemoveSelection();
 			oContentControl.SelectContentControl();
+
+			if (oContentControl.IsFixedForm())
+			{
+				var oShape = oContentControl.GetFixedFormWrapperShape();
+				if (!oShape || !(oShape.parent instanceof AscCommonWord.ParaDrawing))
+					return;
+
+				oLogicDocument.Select_DrawingObject(oShape.parent.GetId());
+				if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Remove))
+				{
+					oLogicDocument.StartAction(AscDFH.historydescription_Document_RemoveContentControl);
+					oLogicDocument.Remove(-1, true, false, false, false);
+					oLogicDocument.Recalculate();
+					oLogicDocument.UpdateInterface();
+					oLogicDocument.UpdateSelection();
+					oLogicDocument.FinalizeAction();
+				}
+
+				return;
+			}
 
 			if (c_oAscSdtLevelType.Block === oContentControl.GetContentControlType())
 			{

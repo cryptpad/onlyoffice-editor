@@ -15987,7 +15987,6 @@ function Binary_OtherTableReader(doc, oReadResult, stream)
 		else if ( c_oSerOtherTableTypes.DocxTheme === type )
         {
 		    this.Document.theme = pptx_content_loader.ReadTheme(this, this.stream);
-		    res = c_oSerConstants.ReadUnknown;
 		}
         else
             res = c_oSerConstants.ReadUnknown;

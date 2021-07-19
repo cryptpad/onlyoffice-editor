@@ -7236,6 +7236,26 @@
 			});
 		}
 	};
+	Worksheet.prototype.getSparkLinesMaxColRow = function() {
+		var sparkLinesGroup = this.aSparklineGroups;
+		var r = -1, c = -1;
+
+		if (sparkLinesGroup) {
+			sparkLinesGroup.forEach(function (item) {
+				if (item.arrSparklines) {
+					for (var j = 0; j < item.arrSparklines.length; ++j) {
+						var range = item.arrSparklines[j].sqRef;
+						if (range) {
+							r = Math.max(r, range.r2);
+							c = Math.max(c, range.c2);
+						}
+					}
+				}
+			});
+		}
+
+		return new AscCommon.CellBase(r, c);
+	};
 	Worksheet.prototype.getCwf = function() {
 		var cwf = {};
 		var range = this.getRange3(0,0, gc_nMaxRow0, gc_nMaxCol0);
@@ -15865,6 +15885,7 @@
 				aRules = wsFrom.getIntersectionRules(from);
 			}
 			if(aRules && aRules.length > 0) {
+				//TODO сделать объединение диапазонов! (допустим, при копировании стиля на несколько ячеек)
 				var newRules = [];
 				for (var i = to.c1; i <= to.c2; i += nDx) {
 					for (var j = to.r1; j <= to.r2; j += nDy) {
@@ -15890,8 +15911,8 @@
 							if (fromRule) {
 								fromRule = fromRule.data;
 								var toRule = fromRule.clone();
-								toRule.id = fromRule.id;
-								toRule.ranges = fromRule.ranges.concat(newRules[i]);
+								//toRule.id = fromRule.id;
+								toRule.ranges = newRules[i];
 								wsTo.setCFRule(toRule);
 							}
 						}
