@@ -8885,7 +8885,7 @@
     SmartArt.prototype.writeChildren = function(pWriter) {
       pWriter.StartRecord(0);
       pWriter.StartRecord(0);
-      pWriter.WriteGroupShape(this.drawing, 0);
+      pWriter.WriteGroupShape(this.drawing);
       pWriter.EndRecord();
       pWriter.EndRecord();
       this.writeRecord2(pWriter, 1, this.dataModel);
