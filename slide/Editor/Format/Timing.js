@@ -480,7 +480,7 @@
     CTimeNodeBase.prototype.getActivateCallback = function(oPlayer) {
         var oThis = this;
         return function() {
-            return oThis.activateCallback(oPlayer);
+            oThis.activateCallback(oPlayer);
         };
     };
     CTimeNodeBase.prototype.getDefaultTrigger = function(oPlayer) {
@@ -5437,7 +5437,6 @@
                     var oChild = aChildren[nChild];
                     if(oChild.isActive()) {
                         if(oThis.concurrent !== true) {
-                            oChild.getEndCallback(oPlayer)();
                             return true;
                         }
                         return (nChild + 1) < aChildren.length;
@@ -5473,7 +5472,7 @@
                     var oChild = aChildren[nChild];
                     if(oChild.isActive()) {
                         if(oThis.concurrent !== true) {
-                            return true
+                            return true;
                         }
                         return (nChild - 1) > -1;
                     }

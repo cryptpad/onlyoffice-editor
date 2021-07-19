@@ -3127,7 +3127,10 @@ function CDemonstrationManager(htmlpage)
 			this.HtmlPage.m_oApi.sync_endDemonstration();
         }
 		this.HtmlPage.m_oApi.DemonstrationReporterEnd();
-        oThis.HtmlPage.m_oLogicDocument.StopAnimation();
+        if(oThis.HtmlPage.m_oLogicDocument)
+        {
+            oThis.HtmlPage.m_oLogicDocument.StopAnimation();
+        }
 
         if (this.HtmlPage.m_oApi.isOnlyDemonstration)
             return;
@@ -3428,7 +3431,10 @@ function CDemonstrationManager(htmlpage)
     this.Play = function(isNoSendFormReporter)
     {
         this.IsPlayMode = true;
-        this.HtmlPage.m_oLogicDocument.StopAnimation();
+        if(this.HtmlPage.m_oLogicDocument)
+        {
+            this.HtmlPage.m_oLogicDocument.StopAnimation();
+        }
         if (-1 == this.CheckSlideDuration)
         {
             this.NextSlide(isNoSendFormReporter);
