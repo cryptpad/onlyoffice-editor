@@ -170,6 +170,7 @@
 		this.formatColumns = this.checkProperty(this.formatColumns, val.formatColumns, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
 		this.formatRows = this.checkProperty(this.formatRows, val.formatRows, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
 		this.insertColumns = this.checkProperty(this.insertColumns, val.insertColumns, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
+		this.insertRows = this.checkProperty(this.insertRows, val.insertRows, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
 		this.insertHyperlinks = this.checkProperty(this.insertHyperlinks, val.insertHyperlinks, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
 		this.deleteColumns = this.checkProperty(this.deleteColumns, val.deleteColumns, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
 		this.deleteRows = this.checkProperty(this.deleteRows, val.deleteRows, AscCH.historyitem_Protected_SetSpinCount, ws, addToHistory);
