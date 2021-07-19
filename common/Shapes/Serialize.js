@@ -11656,6 +11656,15 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                     s.Seek2(_end_rec2);
                     break;
                 }
+                case 8:
+                {
+                    var _length = s.GetULong();
+                    var _end_rec2 = s.cur + _length;
+
+                    oPresentattion.Api.vbaMacros = s.GetBuffer(_length);
+                    s.Seek2(_end_rec2);
+                    break;
+                }
 				case 9:
 				{
 					var _length = s.GetULong();

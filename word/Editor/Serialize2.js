@@ -1851,6 +1851,15 @@ function BinaryFileWriter(doc, bMailMergeDocx, bMailMergeHtml, isCompatible, opt
         this.WriteTable(c_oSerTableTypes.Document, new BinaryDocumentTableWriter(this.memory, this.Document, oMapCommentId, oNumIdMap, null, this.saveParams, oBinaryHeaderFooterTableWriter));
         //Write HeaderFooter
         this.WriteTable(c_oSerTableTypes.HdrFtr, oBinaryHeaderFooterTableWriter);
+
+		var vbaMacros = this.Document.DrawingDocument.m_oWordControl.m_oApi.vbaMacros;
+		if (vbaMacros) {
+			this.WriteTable(c_oSerTableTypes.VbaProject, {Write: function(){
+					t.memory.WriteByte(0);
+					t.memory.WriteULong(vbaMacros.length);
+					t.memory.WriteBuffer(vbaMacros, 0, vbaMacros.length);
+				}});
+		}
 		//Write Footnotes
 		if (this.saveParams.footnotesIndex > 0) {
 			this.WriteTable(c_oSerTableTypes.Footnotes, new BinaryNotesTableWriter(this.memory, this.Document, oNumIdMap, oMapCommentId, null, this.saveParams, this.saveParams.footnotes));
@@ -7517,6 +7526,12 @@ function BinaryFileReader(doc, openParams)
 						res = (new Binary_HdrFtrTableReader(this.Document, this.oReadResult,  this.openParams, this.stream)).Read();
 					}
                     break;
+				case c_oSerTableTypes.VbaProject:
+					this.stream.Seek2(mtiOffBits);
+					this.stream.Skip2(1);//type
+					var _len = this.stream.GetULong();
+					this.Document.DrawingDocument.m_oWordControl.m_oApi.vbaMacros = this.stream.GetBuffer(_len);
+					break;
                 // case c_oSerTableTypes.Numbering:
                     // res = (new Binary_NumberingTableReader(this.Document, this.stream, oDocxNum)).Read();
                     // break;

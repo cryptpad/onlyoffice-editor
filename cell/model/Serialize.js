@@ -2868,6 +2868,13 @@
 				this.bs.WriteItem(c_oSerWorkbookTypes.ExternalReferences, function() {oThis.WriteExternalReferences();});
 			}
 			if (!this.isCopyPaste) {
+                if (this.wb.oApi.vbaMacros) {
+                    this.bs.WriteItem(c_oSerWorkbookTypes.VbaProject, function() {
+                        oThis.memory.WriteByte(0);
+                        oThis.memory.WriteULong(oThis.wb.oApi.vbaMacros.length);
+                        oThis.memory.WriteBuffer(oThis.wb.oApi.vbaMacros, 0, oThis.wb.oApi.vbaMacros.length);
+                    });
+                }
 				var macros = this.wb.oApi.macros.GetData();
 				if (macros) {
 					this.bs.WriteItem(c_oSerWorkbookTypes.JsaProject, function() {oThis.memory.WriteXmlString(macros);});
@@ -6917,6 +6924,12 @@
 					return oThis.ReadExternalReferences(t,l);
 				});
 			}
+            else if (c_oSerWorkbookTypes.VbaProject == type)
+            {
+                this.stream.Skip2(1);//type
+                var _len = this.stream.GetULong();
+                this.oReadResult.vbaMacros = this.stream.GetBuffer(_len);
+            }
 			else if (c_oSerWorkbookTypes.JsaProject == type)
 			{
 				this.oReadResult.macros = AscCommon.GetStringUtf8(this.stream, length);
@@ -9519,6 +9532,7 @@
 			sheetData: [],
 			stylesTableReader: null,
 			pivotCacheDefinitions: {},
+			vbaMacros: null,
 			macros: null,
             slicerCaches: {},
 			tableIds: {},
@@ -9916,7 +9930,10 @@
 				AscCommonExcel.c_DateCorrectConst = AscCommon.bDate1904?AscCommonExcel.c_Date1904Const:AscCommonExcel.c_Date1900Const;
 			}
 			if (this.oReadResult.macros) {
-				wb.oApi.macros.SetData(this.oReadResult.macros);
+                wb.oApi.macros.SetData(this.oReadResult.macros);
+            }
+			if (this.oReadResult.vbaMacros) {
+				wb.oApi.vbaMacros = this.oReadResult.vbaMacros;
 			}
             wb.checkCorrectTables();
 		}
