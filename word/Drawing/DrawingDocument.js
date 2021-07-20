@@ -993,8 +993,21 @@ function CCacheManager()
 		// затем нужно сбросить ссылку в ноль (_cache_image = null) <- это обязательно !!!!!!!
 	}
 
-	this.Lock = function (_w, _h)
+	this.Lock = function (_w, _h, _drDocument)
 	{
+		var backgroundColor = "#FFFFFF";
+		var strokeColor = null;
+		if (_drDocument)
+		{
+			var api = _drDocument.m_oWordControl.m_oApi;
+			var backColor = api.getPageBackgroundColor();
+			if (api.isDarkMode)
+			{
+				strokeColor = "#FFFFFF";
+			}
+            backgroundColor = "#" + backColor[0].toString(16) + backColor[1].toString(16) + backColor[2].toString(16);
+        }
+
 		for (var i = 0; i < this.arrayCount; ++i)
 		{
 			if (this.arrayImages[i].image_locked)
@@ -1008,8 +1021,17 @@ function CCacheManager()
 
 				this.arrayImages[i].image.ctx.globalAlpha = 1.0;
 				this.arrayImages[i].image.ctx.setTransform(1, 0, 0, 1, 0, 0);
-				this.arrayImages[i].image.ctx.fillStyle = "#ffffff";
+				this.arrayImages[i].image.ctx.fillStyle = backgroundColor;
 				this.arrayImages[i].image.ctx.fillRect(0, 0, _w, _h);
+
+				if (strokeColor)
+				{
+                    var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+                    this.arrayImages[i].image.ctx.lineWidth = Math.round(rPR);
+                    this.arrayImages[i].image.ctx.strokeStyle = strokeColor;
+                    this.arrayImages[i].image.ctx.strokeRect(0.5 * rPR, 0.5 * rPR, _w - rPR, _h - rPR);
+				}
+
 				return this.arrayImages[i];
 			}
 			this.arrayImages[i].image_unusedCount++;
@@ -1025,8 +1047,17 @@ function CCacheManager()
 		this.arrayImages[index].image.ctx = this.arrayImages[index].image.getContext('2d');
 		this.arrayImages[index].image.ctx.globalAlpha = 1.0;
 		this.arrayImages[index].image.ctx.setTransform(1, 0, 0, 1, 0, 0);
-		this.arrayImages[index].image.ctx.fillStyle = "#ffffff";
+		this.arrayImages[index].image.ctx.fillStyle = backgroundColor;
 		this.arrayImages[index].image.ctx.fillRect(0, 0, _w, _h);
+
+        if (strokeColor)
+        {
+            var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+            this.arrayImages[i].image.ctx.lineWidth = Math.round(rPR);
+            this.arrayImages[i].image.ctx.strokeStyle = strokeColor;
+            this.arrayImages[i].image.ctx.strokeRect(0.5 * rPR, 0.5 * rPR, _w - rPR, _h - rPR);
+        }
+
 		this.arrayImages[index].image_locked = 1;
 		this.arrayImages[index].image_unusedCount = 0;
 		return this.arrayImages[index];
@@ -2450,7 +2481,7 @@ function CDrawingDocument()
 		h = _check[1];
 
 		page.drawingPage.UnLock(this.m_oCacheManager);
-		page.drawingPage.cachedImage = this.m_oCacheManager.Lock(w, h);
+		page.drawingPage.cachedImage = this.m_oCacheManager.Lock(w, h, this);
 
 		//var StartTime = new Date().getTime();
 
@@ -2458,8 +2489,12 @@ function CDrawingDocument()
 		var g = new AscCommon.CGraphics();
 		g.init(page.drawingPage.cachedImage.image.ctx, w, h, page.width_mm, page.height_mm);
 		g.m_oFontManager = AscCommon.g_fontManager;
+		g.endGlobalAlphaColor = this.m_oWordControl.m_oApi.getPageBackgroundColor();
 
 		g.transform(1, 0, 0, 1, 0, 0);
+
+		if (this.m_oWordControl.m_oApi.isDarkMode)
+            g.darkModeOverride();
 
 		if (null == this.m_oDocumentRenderer)
 			this.m_oLogicDocument.DrawPage(pageIndex, g);

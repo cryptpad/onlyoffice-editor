@@ -116,6 +116,8 @@ function CGraphics()
     this.dash_no_smart = null;
 
     this.textAlpha = undefined;
+
+    this.endGlobalAlphaColor = null;
 }
 
 CGraphics.prototype =
@@ -195,7 +197,10 @@ CGraphics.prototype =
             this.m_oContext.setTransform(1,0,0,1,0,0);
         }
 
-        this.b_color1(255, 255, 255, 140);
+        if (!this.endGlobalAlphaColor)
+            this.b_color1(255, 255, 255, 140);
+        else
+            this.b_color1(this.endGlobalAlphaColor[0], this.endGlobalAlphaColor[1], this.endGlobalAlphaColor[2], 140);
 
         this.m_oContext.fillRect(0, 0, this.m_lWidthPix, this.m_lHeightPix);
         this.m_oContext.beginPath();
