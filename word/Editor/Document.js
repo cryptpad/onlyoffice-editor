@@ -9033,7 +9033,10 @@ CDocument.prototype.InsertContent = function(SelectedContent, NearPos)
 	var LastClass   = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
 
 	this.private_CheckSelectedContentBeforePaste(SelectedContent, NearPos);
-
+    for (var nIndex = 0, nCount = SelectedContent.DrawingObjects.length; nIndex < nCount; ++nIndex)
+    {
+        SelectedContent.DrawingObjects[nIndex].Set_Parent(Para);
+    }
 	if (para_Math_Run === LastClass.Type)
 	{
 		var MathRun        = LastClass;
@@ -9092,7 +9095,7 @@ CDocument.prototype.InsertContent = function(SelectedContent, NearPos)
 		}
 		else if (LastClass.GetParentForm())
 		{
-			var nInLastClassPos = ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 1]
+			var nInLastClassPos = ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 1];
 
 			var isPlaceHolder  = LastClass.GetParentForm().IsPlaceHolder();
 			if (isPlaceHolder && LastClass.GetParent() instanceof CInlineLevelSdt)
