@@ -46,6 +46,16 @@ var AscBrowser = AscCommon.AscBrowser;
 var CMatrixL = AscCommon.CMatrixL;
 var global_MatrixTransformer = AscCommon.global_MatrixTransformer;
 
+AscCommon.darkModeEdge = 10;
+AscCommon.darkModeCheckColor = function(r, g, b)
+{
+    return (r < AscCommon.darkModeEdge && g < AscCommon.darkModeEdge && b < AscCommon.darkModeEdge) ? true : false;
+};
+AscCommon.darkModeCorrectColor = function(r, g, b)
+{
+    return AscCommon.darkModeCheckColor(r, g, b) ? { R : 255 - r, G: 255 - g, B : 255 - b } : { R : r, G : g, B : b };
+};
+
 function CGraphics()
 {
     this.m_oContext     = null;
@@ -211,11 +221,12 @@ CGraphics.prototype =
                 this.m_oFullTransform.sy,this.m_oFullTransform.tx,this.m_oFullTransform.ty);
         }
     },
-    darkModeOverride : function(r,g,b,a)
+
+    darkModeOverride : function()
     {
-        this.p_color_old = this.p_color; this.p_color = function(r,g,b,a) { (r<10 && g<10 && b<10) ? this.p_color_old(255-r,255-g,255-b,a) : this.p_color_old(r,g,b,a); };
-		this.b_color1_old = this.b_color1; this.b_color1 = function(r,g,b,a) { (r<10 && g<10 && b<10) ? this.b_color1_old(255-r,255-g,255-b,a) : this.b_color1_old(r,g,b,a); };
-		this.b_color2_old = this.b_color2; this.b_color2 = function(r,g,b,a) { (r<10 && g<10 && b<10) ? this.b_color2_old(255-r,255-g,255-b,a) : this.b_color2_old(r,g,b,a); };
+        this.p_color_old = this.p_color; this.p_color = function(r,g,b,a) { AscCommon.darkModeCheckColor(r, g, b) ? this.p_color_old(255-r,255-g,255-b) : this.p_color_old(r,g,b); };
+		this.b_color1_old = this.b_color1; this.b_color1 = function(r,g,b,a) { AscCommon.darkModeCheckColor(r, g, b) ? this.b_color1_old(255-r,255-g,255-b) : this.b_color1_old(r,g,b); };
+		this.b_color2_old = this.b_color2; this.b_color2 = function(r,g,b,a) { AscCommon.darkModeCheckColor(r, g, b) ? this.b_color2_old(255-r,255-g,255-b) : this.b_color2_old(r,g,b); };
     },
     // pen methods
     p_color : function(r,g,b,a)

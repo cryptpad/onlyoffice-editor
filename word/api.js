@@ -11412,6 +11412,7 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oDrawingDocument.ClearCachePages();
             this.WordControl.m_oDrawingDocument.FirePaint();
+            this.WordControl.m_oDrawingDocument.UpdateTargetNoAttack();
         }
 	};
     asc_docs_api.prototype.getPageBackgroundColor = function()

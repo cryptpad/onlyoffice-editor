@@ -996,15 +996,9 @@ function CCacheManager()
 	this.Lock = function (_w, _h, _drDocument)
 	{
 		var backgroundColor = "#FFFFFF";
-		var strokeColor = null;
 		if (_drDocument)
 		{
-			var api = _drDocument.m_oWordControl.m_oApi;
-			var backColor = api.getPageBackgroundColor();
-			if (api.isDarkMode)
-			{
-				strokeColor = "#FFFFFF";
-			}
+			var backColor = _drDocument.m_oWordControl.m_oApi.getPageBackgroundColor();
             backgroundColor = "#" + backColor[0].toString(16) + backColor[1].toString(16) + backColor[2].toString(16);
         }
 
@@ -1018,20 +1012,10 @@ function CCacheManager()
 			{
 				this.arrayImages[i].image_locked = 1;
 				this.arrayImages[i].image_unusedCount = 0;
-
 				this.arrayImages[i].image.ctx.globalAlpha = 1.0;
 				this.arrayImages[i].image.ctx.setTransform(1, 0, 0, 1, 0, 0);
 				this.arrayImages[i].image.ctx.fillStyle = backgroundColor;
 				this.arrayImages[i].image.ctx.fillRect(0, 0, _w, _h);
-
-				if (strokeColor)
-				{
-                    var rPR = AscCommon.AscBrowser.retinaPixelRatio;
-                    this.arrayImages[i].image.ctx.lineWidth = Math.round(rPR);
-                    this.arrayImages[i].image.ctx.strokeStyle = strokeColor;
-                    this.arrayImages[i].image.ctx.strokeRect(0.5 * rPR, 0.5 * rPR, _w - rPR, _h - rPR);
-				}
-
 				return this.arrayImages[i];
 			}
 			this.arrayImages[i].image_unusedCount++;
@@ -1049,15 +1033,6 @@ function CCacheManager()
 		this.arrayImages[index].image.ctx.setTransform(1, 0, 0, 1, 0, 0);
 		this.arrayImages[index].image.ctx.fillStyle = backgroundColor;
 		this.arrayImages[index].image.ctx.fillRect(0, 0, _w, _h);
-
-        if (strokeColor)
-        {
-            var rPR = AscCommon.AscBrowser.retinaPixelRatio;
-            this.arrayImages[i].image.ctx.lineWidth = Math.round(rPR);
-            this.arrayImages[i].image.ctx.strokeStyle = strokeColor;
-            this.arrayImages[i].image.ctx.strokeRect(0.5 * rPR, 0.5 * rPR, _w - rPR, _h - rPR);
-        }
-
 		this.arrayImages[index].image_locked = 1;
 		this.arrayImages[index].image_unusedCount = 0;
 		return this.arrayImages[index];
@@ -1116,51 +1091,45 @@ function CPage()
 	this.selectionArray = [];
 	this.drawingPage = new CDrawingPage();
 
-	this.Draw = function (context, xDst, yDst, wDst, hDst, contextW, contextH)
+	this.Draw = function (context, xDst, yDst, wDst, hDst, api)
 	{
+		var strokeColor = undefined;
+        if (!g_page_outline_inner)
+            strokeColor = GlobalSkin.PageOutline;
+
 		if (null != this.drawingPage.cachedImage)
 		{
-			if (!g_page_outline_inner)
-			{
-				context.strokeStyle = GlobalSkin.PageOutline;
-				context.lineWidth = 1;
-
-				// ctx.strokeRect(x - 0.5, y - 0.5, w + 1, h + 1);
-				context.beginPath();
-				context.moveTo(xDst - 0.5, yDst - 0.5);
-				context.lineTo(xDst + wDst + 0.5, yDst - 0.5);
-				context.lineTo(xDst + wDst + 0.5, yDst + hDst + 0.5);
-				context.lineTo(xDst - 0.5, yDst + hDst + 0.5);
-				context.closePath();
-				context.stroke();
-				context.beginPath();
-			}
-
 			// потом посмотреть на кусочную отрисовку
 			context.drawImage(this.drawingPage.cachedImage.image, xDst, yDst, wDst, hDst);
 		}
 		else
 		{
-			context.fillStyle = "#ffffff";
-
-			if (!g_page_outline_inner)
+			if (!api.isDarkMode)
+				context.fillStyle = "#FFFFFF";
+			else
 			{
-				context.strokeStyle = GlobalSkin.PageOutline;
-				context.lineWidth = 1;
-
-				// ctx.strokeRect(x - 0.5, y - 0.5, w + 1, h + 1);
-				context.beginPath();
-				context.moveTo(xDst - 0.5, yDst - 0.5);
-				context.lineTo(xDst + wDst + 0.5, yDst - 0.5);
-				context.lineTo(xDst + wDst + 0.5, yDst + hDst + 0.5);
-				context.lineTo(xDst - 0.5, yDst + hDst + 0.5);
-				context.closePath();
-				context.stroke();
-				context.beginPath();
+                var backColor = api.getPageBackgroundColor();
+                context.fillStyle = "#" + backColor[0].toString(16) + backColor[1].toString(16) + backColor[2].toString(16);
 			}
 
+			strokeColor = GlobalSkin.PageOutline;
 			context.fillRect(xDst, yDst, wDst, hDst);
 		}
+
+		if (api && api.isDarkMode)
+		{
+			strokeColor = "#FFFFFF";
+		}
+
+        if (strokeColor)
+        {
+            var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+            context.lineWidth = Math.round(rPR);
+            context.strokeStyle = strokeColor;
+            context.beginPath();
+            context.strokeRect(xDst - 0.5 * rPR, yDst - 0.5 * rPR, wDst + rPR, hDst + rPR);
+            context.beginPath();
+        }
 	};
 
 	this.DrawSelection = function (overlay, xDst, yDst, wDst, hDst, TextMatrix)
@@ -3156,7 +3125,13 @@ function CDrawingDocument()
 
 	this.GetTargetStyle = function ()
 	{
-		return "rgb(" + this.TargetCursorColor.R + "," + this.TargetCursorColor.G + "," + this.TargetCursorColor.B + ")";
+		var color = this.TargetCursorColor;
+
+		if (!this.m_oWordControl.m_oApi.isDarkMode || !AscCommon.darkModeCheckColor(color.R, color.G, color.B))
+			return "rgb(" + color.R + "," + color.G + "," + color.B + ")";
+
+		var newColor = AscCommon.darkModeCorrectColor(color.R, color.G, color.B);
+        return "rgb(" + newColor.R + "," + newColor.G + "," + newColor.B + ")";
 	};
 
 	this.SetTargetColor = function (r, g, b)
