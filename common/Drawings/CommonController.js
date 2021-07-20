@@ -887,6 +887,9 @@ DrawingObjectsController.prototype =
             var bHasLink = oNvPr && oNvPr.hlinkClick && oNvPr.hlinkClick.id !== null;
             if(!drawing.selected && !e.CtrlKey && ( bHasLink || drawing.hasJSAMacro() ) ) {
                 if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE) {
+                    if(e.Button === AscCommon.g_mouse_button_right) {
+                        return false;
+                    }
                     return true;
                 }
                 else{
