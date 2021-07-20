@@ -3185,9 +3185,7 @@ var editor;
     spreadsheet_api.prototype.asc_assignMacrosToCurrentDrawing = function(sName) {
         var ws = this.wb.getWorksheet();
         var sGuid = this.asc_getMacrosGuidByName(sName);
-        if(typeof sGuid === "string" && sGuid.length > 0) {
-            return ws.objectRender.assignMacrosToCurrentDrawing(sGuid);
-        }
+        return ws.objectRender.assignMacrosToCurrentDrawing(sGuid);
     };
     spreadsheet_api.prototype.asc_setSelectedDrawingObjectLayer = function(layerType) {
         var ws = this.wb.getWorksheet();

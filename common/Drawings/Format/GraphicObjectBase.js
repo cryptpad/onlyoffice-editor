@@ -575,7 +575,12 @@
     };
     CGraphicObjectBase.prototype.assignMacro = function(sGuid)
     {
-        this.setMacro(AscFormat.MACRO_PREFIX + sGuid);
+        if(typeof sGuid === "string" && sGuid.length > 0) {
+            this.setMacro(AscFormat.MACRO_PREFIX + sGuid);
+        }
+        else {
+            this.setMacro(null);
+        }
     };
     CGraphicObjectBase.prototype.setTextLink = function(sLink)
     {
