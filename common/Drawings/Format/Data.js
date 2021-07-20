@@ -2270,7 +2270,7 @@
       pWriter._WriteInt2(14, this.custScaleY);
       pWriter._WriteInt2(15, this.custSzX);
       pWriter._WriteInt2(16, this.custSzY);
-      pWriter._WriteBool2(17, this.loCatId);
+      pWriter._WriteBool2(17, this.custT);
       pWriter._WriteString2(18, this.loCatId);
       pWriter._WriteString2(19, this.loTypeId);
       pWriter._WriteBool2(20, this.phldr);
@@ -2306,7 +2306,7 @@
       else if (14 === nType) this.setCustScaleY(oStream.GetLong());
       else if (15 === nType) this.setCustSzX(oStream.GetLong());
       else if (16 === nType) this.setCustSzY(oStream.GetLong());
-      else if (17 === nType) this.setLoCatId(oStream.GetString2());
+      else if (17 === nType) this.setCustT(oStream.GetBool());
       else if (18 === nType) this.setLoCatId(oStream.GetString2());
       else if (19 === nType) this.setLoTypeId(oStream.GetString2());
       else if (20 === nType) this.setPhldr(oStream.GetBool());
