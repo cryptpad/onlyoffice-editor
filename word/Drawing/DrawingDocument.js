@@ -2463,7 +2463,7 @@ function CDrawingDocument()
 		g.transform(1, 0, 0, 1, 0, 0);
 
 		if (this.m_oWordControl.m_oApi.isDarkMode)
-            g.darkModeOverride();
+            g.darkModeOverride2();
 
 		if (null == this.m_oDocumentRenderer)
 			this.m_oLogicDocument.DrawPage(pageIndex, g);
