@@ -913,9 +913,14 @@ ParaComment.prototype.GetId = function()
 {
 	return this.Get_Id();
 };
-ParaComment.prototype.Copy = function(Selected)
+ParaComment.prototype.Copy = function(Selected, oPr)
 {
-	return new ParaComment(this.Start, this.CommentId);
+    var sId = this.CommentId;
+    if(oPr && oPr.Comparison)
+    {
+        sId = oPr.Comparison.copyComment(this.CommentId);
+    }
+	return new ParaComment(this.Start, sId);
 };
 ParaComment.prototype.Recalculate_Range_Spaces = function(PRSA, CurLine, CurRange, CurPage)
 {

@@ -8061,12 +8061,21 @@ function BinaryFileReader(doc, openParams)
 				}
 			}
 		}
-		//посылаем событие о добавлении комментариев
-		var allComments = this.Document.Comments.GetAllComments();
-		for(var i in allComments)
+
+		var bSendComments = true;
+		if(this.openParams && this.openParams.noSendComments)
 		{
-			var oNewComment = allComments[i];
-			this.Document.DrawingDocument.m_oWordControl.m_oApi.sync_AddComment( oNewComment.Id, oNewComment.Data );
+			bSendComments = false;
+		}
+		if(bSendComments)
+		{
+			//посылаем событие о добавлении комментариев
+			var allComments = this.Document.Comments.GetAllComments();
+			for(var i in allComments)
+			{
+				var oNewComment = allComments[i];
+				this.Document.DrawingDocument.m_oWordControl.m_oApi.sync_AddComment( oNewComment.Id, oNewComment.Data );
+			}
 		}
 		//remove bookmarks without end
 		for(var bookmarkIndex in this.oReadResult.bookmarksStarted)
