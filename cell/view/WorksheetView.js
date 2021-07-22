@@ -5576,8 +5576,9 @@
 							AscCommonExcel.selectionLineType.None, color);
 
 						if (j === 0) {
-							var coord = this.getCellCoord(foreignCursors[i].ranges[j].c2, foreignCursors[i].ranges[j].r1);
-							this.workbook.Api.showForeignSelectLabel(i, coord._x + coord._width, coord._y, color, foreignCursors[i].isEdit);
+							this.Show_ForeignCursorLabel(i, foreignCursors[i], j, color);
+							/*var coord = this.getCellCoord(foreignCursors[i].ranges[j].c2, foreignCursors[i].ranges[j].r1);
+							 this.workbook.Api.showForeignSelectLabel(i, coord._x + coord._width, coord._y, color, foreignCursors[i].isEdit);*/
 						}
 					}
 				}
@@ -5591,6 +5592,27 @@
             this._drawActiveHeaders();
         }
     };
+
+	WorksheetView.prototype.Show_ForeignCursorLabel = function(userId, foreignCursor, index, color) {
+		var Api = window["Asc"]["editor"];
+		if(!Api) {
+			return;
+		}
+
+		if (foreignCursor.ShowId)
+			clearTimeout(foreignCursor.ShowId);
+
+		foreignCursor.ShowId = setTimeout(function()
+		{
+			foreignCursor.ShowId = null;
+			Api.hideForeignSelectLabel(userId);
+		}, AscCommon.FOREIGN_CURSOR_LABEL_HIDETIME);
+
+		var coord = this.getCellCoord(foreignCursor.ranges[index].c2, foreignCursor.ranges[index].r1);
+		Api.showForeignSelectLabel(userId, coord._x + coord._width, coord._y, color, foreignCursor.isEdit);
+
+		//this.Update_ForeignCursorLabelPosition(UserId, Coords.X, Coords.Y, Color);
+	};
 
     WorksheetView.prototype._drawSelectionRange = function () {
         var type, selection = this.model.getSelection(), ranges = selection.ranges;

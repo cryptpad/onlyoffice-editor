@@ -5642,7 +5642,7 @@ var editor;
 		this.sendEvent("asc_onShowForeignCursorLabel", UserId, X, Y, new AscCommon.CColor(Color.r, Color.g, Color.b, 255), isEdit);
 	};
 	spreadsheet_api.prototype.hideForeignSelectLabel = function (UserId) {
-		this.sendEvent("asc_onHideForeignSelectLabel", UserId);
+		this.sendEvent("asc_onHideForeignCursorLabel", UserId);
 	};
 
   /*
