@@ -28038,7 +28038,10 @@ CDocumentChangeTextCaseEngine.prototype.SetStartSentence = function(isStart)
 {
 	this.StartSentence = isStart;
 };
-
+CDocumentChangeTextCaseEngine.prototype.GetCaseType = function()
+{
+	return this.ChangeType;
+};
 CDocumentChangeTextCaseEngine.prototype.CheckWords = function(oEngine)
 {
 	var sett = {
