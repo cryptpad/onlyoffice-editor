@@ -4347,11 +4347,14 @@ DrawingObjectsController.prototype =
         if(AscFormat.isRealNumber(nStyle)){
             oProps.putStyle(null);
             oCurProps.putStyle(null);
-            if(oCurProps.isEqual(oProps)) {
-                var aStyle = AscCommon.g_oChartStyles[nCurType] && AscCommon.g_oChartStyles[nCurType][nStyle - 1];
-                if(aStyle) {
-                    oChartSpace.applyChartStyleByIds(AscCommon.g_oChartStyles[nCurType][nStyle - 1]);
-                    return;
+            if(oCurProps.isEqual(oProps) || (window['IS_NATIVE_EDITOR'] && nCurStyle !== nStyle)) {
+                var aTypeStyles = AscCommon.g_oChartStyles[nCurType];
+                if(aTypeStyles) {
+                    var aStyle = aTypeStyles[nStyle - 1];
+                    if(aStyle) {
+                        oChartSpace.applyChartStyleByIds(aStyle);
+                        return;
+                    }
                 }
                 return;
             }
