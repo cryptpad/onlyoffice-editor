@@ -7230,11 +7230,6 @@ function BinaryPPTYLoader()
                     var spid = s.GetString2();
                     break;
                 }
-                case 1:
-                {
-                    var sMacro = s.GetString2();
-                    break;
-                }
                 default:
                     break;
             }
