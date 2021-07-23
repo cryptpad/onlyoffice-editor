@@ -1315,6 +1315,13 @@ function isRealObject(obj)
       var len = this.GetULong();
       return this.GetString1(len);
     }
+    this.GetBuffer = function (length) {
+      var res = new Array(length);
+      for (var i = 0; i < length; ++i) {
+        res[i] = this.data[this.cur++]
+      }
+      return res;
+    };
 
     this.EnterFrame = function(count)
     {

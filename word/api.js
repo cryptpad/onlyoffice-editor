@@ -937,6 +937,8 @@
 
 		this.RevisionChangesStack = [];
 
+		this.isDarkMode = false;
+
 		//g_clipboardBase.Init(this);
 
 		this._init();
@@ -6791,6 +6793,7 @@ background-repeat: no-repeat;\
 					var oCommentData = oComment.GetData().Copy();
 					oCommentData.SetSolved(true);
 					oComment.SetData(oCommentData);
+					this.sync_ChangeCommentData(arrCommentsId[nIndex], oCommentData);
 				}
 			}
 
@@ -8894,6 +8897,26 @@ background-repeat: no-repeat;\
 		{
 			oLogicDocument.RemoveSelection();
 			oContentControl.SelectContentControl();
+
+			if (oContentControl.IsFixedForm())
+			{
+				var oShape = oContentControl.GetFixedFormWrapperShape();
+				if (!oShape || !(oShape.parent instanceof AscCommonWord.ParaDrawing))
+					return;
+
+				oLogicDocument.Select_DrawingObject(oShape.parent.GetId());
+				if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Remove))
+				{
+					oLogicDocument.StartAction(AscDFH.historydescription_Document_RemoveContentControl);
+					oLogicDocument.Remove(-1, true, false, false, false);
+					oLogicDocument.Recalculate();
+					oLogicDocument.UpdateInterface();
+					oLogicDocument.UpdateSelection();
+					oLogicDocument.FinalizeAction();
+				}
+
+				return;
+			}
 
 			if (c_oAscSdtLevelType.Block === oContentControl.GetContentControlType())
 			{
@@ -11379,6 +11402,26 @@ background-repeat: no-repeat;\
 		return true;
 	};
 
+    asc_docs_api.prototype.asc_setContentDarkMode = function(isDarkMode)
+	{
+		if (this.isDarkMode === isDarkMode)
+			return;
+
+        this.isDarkMode = isDarkMode;
+        if (this.WordControl && this.WordControl.m_oDrawingDocument)
+		{
+			this.WordControl.m_oDrawingDocument.ClearCachePages();
+            this.WordControl.m_oDrawingDocument.FirePaint();
+            this.WordControl.m_oDrawingDocument.UpdateTargetNoAttack();
+        }
+	};
+    asc_docs_api.prototype.getPageBackgroundColor = function()
+    {
+		if (this.isDarkMode)
+			return [0x55, 0x55, 0x55];
+		return [0xFF, 0xFF, 0xFF];
+    };
+
 	//-------------------------------------------------------------export---------------------------------------------------
 	window['Asc']                                                       = window['Asc'] || {};
 	CAscSection.prototype['get_PageWidth']                              = CAscSection.prototype.get_PageWidth;
@@ -12074,6 +12117,9 @@ background-repeat: no-repeat;\
 	// passwords
 	asc_docs_api.prototype["asc_setCurrentPassword"] 					= asc_docs_api.prototype.asc_setCurrentPassword;
 	asc_docs_api.prototype["asc_resetPassword"] 						= asc_docs_api.prototype.asc_resetPassword;
+
+	// view modes
+    asc_docs_api.prototype["asc_setContentDarkMode"]					= asc_docs_api.prototype.asc_setContentDarkMode;
 
 	CDocInfoProp.prototype['get_PageCount']             = CDocInfoProp.prototype.get_PageCount;
 	CDocInfoProp.prototype['put_PageCount']             = CDocInfoProp.prototype.put_PageCount;

@@ -2332,6 +2332,10 @@
 			var maxCol = maxCell.col;
 			var maxRow = maxCell.row;
 
+			maxCell = this.model.getSparkLinesMaxColRow();
+			maxCol = Math.max(maxCol, maxCell.col);
+			maxRow = Math.max(maxRow, maxCell.row);
+
 			maxCell = this.model.autoFilters.getMaxColRow();
 			maxCol = Math.max(maxCol, maxCell.col);
 			maxRow = Math.max(maxRow, maxCell.row);
@@ -2943,6 +2947,10 @@
 				var maxCell = this._checkPrintRange(range);
 				var maxCol = maxCell.col;
 				var maxRow = maxCell.row;
+
+				maxCell = this.model.getSparkLinesMaxColRow();
+				maxCol = Math.max(maxCol, maxCell.col);
+				maxRow = Math.max(maxRow, maxCell.row);
 
 				maxCell = this.model.autoFilters.getMaxColRow();
 				maxCol = Math.max(maxCol, maxCell.col);

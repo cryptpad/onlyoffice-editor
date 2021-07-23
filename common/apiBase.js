@@ -180,6 +180,7 @@
 
 		this.disableAutostartMacros = false;
 		this.macros = null;
+		this.vbaMacros = null;
 
         this.openFileCryptBinary = null;
 
