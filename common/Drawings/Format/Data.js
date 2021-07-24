@@ -1145,15 +1145,13 @@
 
     InitClass(PtLst, CCommonDataList, AscDFH.historyitem_type_PtLst);
 
-    // PtLst.prototype.privateWriteAttributes = function(pWriter) {
-    // };
-    // PtLst.prototype.writeChildren = function(pWriter) {
-    //   for (var i = 0; i < this.list.length; i += 1) {
-    //     this.writeRecord2(pWriter, 0, this.list[i]);
-    //   }
-    // };
-    // PtLst.prototype.readAttribute = function(nType, pReader) {
-    // };
+     PtLst.prototype.privateWriteAttributes = null;
+     PtLst.prototype.writeChildren = function(pWriter) {
+       for (var i = 0; i < this.list.length; i += 1) {
+         this.writeRecord2(pWriter, 0, this.list[i]);
+       }
+     };
+    PtLst.prototype.readAttribute = null;
     PtLst.prototype.readChild = function(nType, pReader) {
       var s = pReader.stream;
       switch (nType) {
@@ -2253,7 +2251,6 @@
     }
 
     PrSet.prototype.privateWriteAttributes = function(pWriter) {
-      pWriter._WriteBool2(0, this.coherent3DOff); // TODO: fix this
       pWriter._WriteBool2(1, this.coherent3DOff);
       pWriter._WriteString2(2, this.csCatId);
       pWriter._WriteString2(3, this.csTypeId);
@@ -2289,8 +2286,7 @@
     };
     PrSet.prototype.readAttribute = function(nType, pReader) {
       var oStream = pReader.stream;
-      if (0 === nType) this.setCoherent3DOff(oStream.GetBool()); // TODO; fix this
-      else if (1 === nType) this.setCoherent3DOff(oStream.GetBool());
+        if (1 === nType) this.setCoherent3DOff(oStream.GetBool());
       else if (2 === nType) this.setCsCatId(oStream.GetString2());
       else if (3 === nType) this.setCsTypeId(oStream.GetString2());
       else if (4 === nType) this.setCustAng(oStream.GetLong());
@@ -2323,7 +2319,7 @@
       var s = pReader.stream;
       switch (nType) {
         case 0: {
-          this.setPresLayoutVars(new PresLayoutVars());
+          this.setPresLayoutVars(new VarLst());
           this.presLayoutVars.fromPPTY(pReader);
           break;
         }
@@ -2343,177 +2339,6 @@
       return [this.presLayoutVars, this.style];
     }
 
-    changesFactory[AscDFH.historyitem_PresLayoutVarsAnimLvl] = CChangeObject;
-    changesFactory[AscDFH.historyitem_PresLayoutVarsAnimOne] = CChangeObject;
-    changesFactory[AscDFH.historyitem_PresLayoutVarsBulletEnabled] = CChangeObject;
-    changesFactory[AscDFH.historyitem_PresLayoutVarsChMax] = CChangeObject;
-    changesFactory[AscDFH.historyitem_PresLayoutVarsChPref] = CChangeObject;
-    changesFactory[AscDFH.historyitem_PresLayoutVarsDir] = CChangeObject;
-    changesFactory[AscDFH.historyitem_PresLayoutVarsHierBranch] = CChangeObject;
-    changesFactory[AscDFH.historyitem_PresLayoutVarsOrgChart] = CChangeObject;
-    changesFactory[AscDFH.historyitem_PresLayoutVarsResizeHandles] = CChangeObject;
-    drawingsChangesMap[AscDFH.historyitem_PresLayoutVarsAnimLvl] = function (oClass, value) {
-      oClass.animLvl = value;
-    };
-    drawingsChangesMap[AscDFH.historyitem_PresLayoutVarsAnimOne] = function (oClass, value) {
-      oClass.animOne = value;
-    };
-    drawingsChangesMap[AscDFH.historyitem_PresLayoutVarsBulletEnabled] = function (oClass, value) {
-      oClass.bulletEnabled = value;
-    };
-    drawingsChangesMap[AscDFH.historyitem_PresLayoutVarsChMax] = function (oClass, value) {
-      oClass.chMax = value;
-    };
-    drawingsChangesMap[AscDFH.historyitem_PresLayoutVarsChPref] = function (oClass, value) {
-      oClass.chPref = value;
-    };
-    drawingsChangesMap[AscDFH.historyitem_PresLayoutVarsDir] = function (oClass, value) {
-      oClass.dir = value;
-    };
-    drawingsChangesMap[AscDFH.historyitem_PresLayoutVarsHierBranch] = function (oClass, value) {
-      oClass.hierBranch = value;
-    };
-    drawingsChangesMap[AscDFH.historyitem_PresLayoutVarsOrgChart] = function (oClass, value) {
-      oClass.orgChart = value;
-    };
-    drawingsChangesMap[AscDFH.historyitem_PresLayoutVarsResizeHandles] = function (oClass, value) {
-      oClass.resizeHandles = value;
-    };
-
-    function PresLayoutVars() {
-      CBaseFormatObject.call(this);
-      this.animLvl = null;
-      this.animOne = null;
-      this.bulletEnabled = null;
-      this.chMax = null;
-      this.chPref = null;
-      this.dir = null;
-      this.hierBranch = null;
-      this.orgChart = null;
-      this.resizeHandles = null;
-    }
-
-    InitClass(PresLayoutVars, CBaseFormatObject, AscDFH.historyitem_type_PresLayoutVars);
-
-    PresLayoutVars.prototype.setAnimLvl = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PresLayoutVarsAnimLvl, this.getAnimLvl(), oPr));
-      this.animLvl = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    PresLayoutVars.prototype.setAnimOne = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PresLayoutVarsAnimOne, this.getAnimOne(), oPr));
-      this.animOne = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    PresLayoutVars.prototype.setBulletEnabled = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PresLayoutVarsBulletEnabled, this.getBulletEnabled(), oPr));
-      this.bulletEnabled = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    PresLayoutVars.prototype.setChMax = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PresLayoutVarsChMax, this.getChMax(), oPr));
-      this.chMax = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    PresLayoutVars.prototype.setChPref = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PresLayoutVarsChPref, this.getChPref(), oPr));
-      this.chPref = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    PresLayoutVars.prototype.setDir = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PresLayoutVarsDir, this.getDir(), oPr));
-      this.dir = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    PresLayoutVars.prototype.setHierBranch = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PresLayoutVarsHierBranch, this.getHierBranch(), oPr));
-      this.hierBranch = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    PresLayoutVars.prototype.setOrgChart = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PresLayoutVarsOrgChart, this.getOrgChart(), oPr));
-      this.orgChart = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    PresLayoutVars.prototype.setResizeHandles = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PresLayoutVarsResizeHandles, this.getResizeHandles(), oPr));
-      this.resizeHandles = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    PresLayoutVars.prototype.getAnimLvl = function () {
-      return this.animLvl;
-    }
-
-    PresLayoutVars.prototype.getAnimOne = function () {
-      return this.animOne;
-    }
-
-    PresLayoutVars.prototype.getBulletEnabled = function () {
-      return this.bulletEnabled;
-    }
-
-    PresLayoutVars.prototype.getChMax = function () {
-      return this.chMax;
-    }
-
-    PresLayoutVars.prototype.getChPref = function () {
-      return this.chPref;
-    }
-
-    PresLayoutVars.prototype.getDir = function () {
-      return this.dir;
-    }
-
-    PresLayoutVars.prototype.getHierBranch = function () {
-      return this.hierBranch;
-    }
-
-    PresLayoutVars.prototype.getOrgChart = function () {
-      return this.orgChart;
-    }
-
-    PresLayoutVars.prototype.getResizeHandles = function () {
-      return this.resizeHandles;
-    }
-
-    PresLayoutVars.prototype.fillObject = function (oCopy, oIdMap) {
-      if (this.getAnimLvl()) {
-        oCopy.setAnimLvl(this.getAnimLvl().createDuplicate(oIdMap));
-      }
-      if (this.getAnimOne()) {
-        oCopy.setAnimOne(this.getAnimOne().createDuplicate(oIdMap));
-      }
-      if (this.getBulletEnabled()) {
-        oCopy.setBulletEnabled(this.getBulletEnabled().createDuplicate(oIdMap));
-      }
-      if (this.getChMax()) {
-        oCopy.setChMax(this.getChMax().createDuplicate(oIdMap));
-      }
-      if (this.getChPref()) {
-        oCopy.setChPref(this.getChPref().createDuplicate(oIdMap));
-      }
-      if (this.getDir()) {
-        oCopy.setDir(this.getDir().createDuplicate(oIdMap));
-      }
-      if (this.getHierBranch()) {
-        oCopy.setHierBranch(this.getHierBranch().createDuplicate(oIdMap));
-      }
-      if (this.getOrgChart()) {
-        oCopy.setOrgChart(this.getOrgChart().createDuplicate(oIdMap));
-      }
-      if (this.getResizeHandles()) {
-        oCopy.setResizeHandles(this.getResizeHandles().createDuplicate(oIdMap));
-      }
-    }
 
 
     changesFactory[AscDFH.historyitem_LayoutDefDefStyle] = CChangeString;
@@ -3076,7 +2901,7 @@
       }
       if(oElement) {
         oElement.fromPPTY(pReader);
-        this.addToLst(0, oElement);
+        this.addToLst(this.list.length, oElement);
       }
     };
     LayoutNode.prototype.privateWriteAttributes = function(pWriter) {
@@ -3979,7 +3804,7 @@
       }
       if(oElement) {
         oElement.fromPPTY(pReader);
-        this.addToLst(0, oElement);
+        this.addToLst(this.list.length, oElement);
       }
     };
 
@@ -6957,7 +6782,7 @@
       var s = pReader.stream;
       switch (nType) {
         case 0:
-          this.addToLst(0, pReader.ReadUniColor());
+          this.addToLst(this.list.length, pReader.ReadUniColor());
           break;
         default:
           s.SkipRecord();
@@ -15194,7 +15019,7 @@
         prSet.setPresStyleLbl(prSetInfo.presStyleLbl);
       }
       if (prSetInfo.presLayoutVars && Object.keys(prSetInfo.presLayoutVars)) {
-        var presLayoutVars = new PresLayoutVars();
+        var presLayoutVars = new VarLst();
         fillPresLayoutVars(presLayoutVars, prSetInfo.presLayoutVars);
         prSet.setPresLayoutVars(presLayoutVars);
       }
