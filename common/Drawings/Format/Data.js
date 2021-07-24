@@ -5524,7 +5524,23 @@
     AnimLvl.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setVal(this.getVal());
     }
+      AnimLvl.prototype.privateWriteAttributes = function(pWriter) {
+          pWriter._WriteUChar1(0, this.val !== null ? this.val : 0);
+      };
+      AnimLvl.prototype.writeChildren = function(pWriter) {
+      };
+      AnimLvl.prototype.readAttribute = function(nType, pReader) {
+          var oStream = pReader.stream;
+          if (0 === nType) {
+              var nVal = oStream.GetUChar();
+              if(nVal !== 0) {
+                  this.setVal(nVal);
+              }
+          }
+      };
+      AnimLvl.prototype.readChild = function(nType, pReader) {
 
+      };
 
     changesFactory[AscDFH.historyitem_AnimOneVal] = CChangeLong;
     drawingsChangesMap[AscDFH.historyitem_AnimOneVal] = function (oClass, value) {
@@ -5550,6 +5566,23 @@
     AnimOne.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setVal(this.getVal());
     }
+      AnimOne.prototype.privateWriteAttributes = function(pWriter) {
+          pWriter._WriteUChar1(0, this.val !== null ? this.val : 0);
+      };
+      AnimOne.prototype.writeChildren = function(pWriter) {
+      };
+      AnimOne.prototype.readAttribute = function(nType, pReader) {
+          var oStream = pReader.stream;
+          if (0 === nType) {
+              var nVal = oStream.GetUChar();
+              if(nVal !== 0) {
+                  this.setVal(nVal);
+              }
+          }
+      };
+      AnimOne.prototype.readChild = function(nType, pReader) {
+
+      };
 
     changesFactory[AscDFH.historyitem_BulletEnabledVal] = CChangeBool;
     drawingsChangesMap[AscDFH.historyitem_BulletEnabledVal] = function (oClass, value) {
@@ -5575,6 +5608,21 @@
     BulletEnabled.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setVal(this.getVal());
     }
+      BulletEnabled.prototype.privateWriteAttributes = function(pWriter) {
+          pWriter._WriteUChar1(0, this.val !== null ? (this.val ? 1 : 0) : 0);
+      };
+      BulletEnabled.prototype.writeChildren = function(pWriter) {
+      };
+      BulletEnabled.prototype.readAttribute = function(nType, pReader) {
+          var oStream = pReader.stream;
+          if (0 === nType) {
+              var nVal = oStream.GetUChar();
+              this.setVal(nVal ? true : false);
+          }
+      };
+      BulletEnabled.prototype.readChild = function(nType, pReader) {
+
+      };
 
     changesFactory[AscDFH.historyitem_ChMaxVal] = CChangeLong;
     drawingsChangesMap[AscDFH.historyitem_ChMaxVal] = function (oClass, value) {
@@ -5650,6 +5698,23 @@
     DiagramDirection.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setVal(this.getVal());
     }
+      DiagramDirection.prototype.privateWriteAttributes = function(pWriter) {
+          pWriter._WriteUChar1(0, this.val !== null ? this.val : 0);
+      };
+      DiagramDirection.prototype.writeChildren = function(pWriter) {
+      };
+      DiagramDirection.prototype.readAttribute = function(nType, pReader) {
+          var oStream = pReader.stream;
+          if (0 === nType) {
+              var nVal = oStream.GetUChar();
+              if(nVal !== 0) {
+                  this.setVal(nVal);
+              }
+          }
+      };
+      DiagramDirection.prototype.readChild = function(nType, pReader) {
+
+      };
 
     changesFactory[AscDFH.historyitem_HierBranchVal] = CChangeLong;
     drawingsChangesMap[AscDFH.historyitem_HierBranchVal] = function (oClass, value) {
@@ -5674,7 +5739,24 @@
 
     HierBranch.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setVal(this.getVal());
-    }
+    };
+      HierBranch.prototype.privateWriteAttributes = function(pWriter) {
+          pWriter._WriteUChar1(0, this.val !== null ? this.val : 0);
+      };
+      HierBranch.prototype.writeChildren = function(pWriter) {
+      };
+      HierBranch.prototype.readAttribute = function(nType, pReader) {
+          var oStream = pReader.stream;
+          if (0 === nType) {
+              var nVal = oStream.GetUChar();
+              if(nVal !== 0) {
+                  this.setVal(nVal);
+              }
+          }
+      };
+      HierBranch.prototype.readChild = function(nType, pReader) {
+
+      };
 
     changesFactory[AscDFH.historyitem_OrgChartVal] = CChangeBool;
     drawingsChangesMap[AscDFH.historyitem_OrgChartVal] = function (oClass, value) {
@@ -5700,7 +5782,21 @@
     OrgChart.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setVal(this.getVal());
     }
+      OrgChart.prototype.privateWriteAttributes = function(pWriter) {
+          pWriter._WriteUChar1(0, this.val !== null ? (this.val ? 1 : 0) : 0);
+      };
+      OrgChart.prototype.writeChildren = function(pWriter) {
+      };
+      OrgChart.prototype.readAttribute = function(nType, pReader) {
+          var oStream = pReader.stream;
+          if (0 === nType) {
+              var nVal = oStream.GetUChar();
+              this.setVal(nVal ? true : false);
+          }
+      };
+      OrgChart.prototype.readChild = function(nType, pReader) {
 
+      };
     changesFactory[AscDFH.historyitem_ResizeHandlesVal] = CChangeLong;
     drawingsChangesMap[AscDFH.historyitem_ResizeHandlesVal] = function (oClass, value) {
       oClass.val = value;
@@ -5725,6 +5821,23 @@
     ResizeHandles.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setVal(this.getVal());
     }
+      ResizeHandles.prototype.privateWriteAttributes = function(pWriter) {
+          pWriter._WriteUChar1(0, this.val !== null ? this.val : 0);
+      };
+      ResizeHandles.prototype.writeChildren = function(pWriter) {
+      };
+      ResizeHandles.prototype.readAttribute = function(nType, pReader) {
+          var oStream = pReader.stream;
+          if (0 === nType) {
+              var nVal = oStream.GetUChar();
+              if(nVal !== 0) {
+                  this.setVal(nVal);
+              }
+          }
+      };
+      ResizeHandles.prototype.readChild = function(nType, pReader) {
+
+      };
 
 
     changesFactory[AscDFH.historyitem_ForEachName] = CChangeString;
