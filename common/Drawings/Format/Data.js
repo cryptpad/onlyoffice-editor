@@ -4334,7 +4334,7 @@
       }
       if(oElement) {
         oElement.fromPPTY(pReader);
-        this.addToLstList(0, oElement);
+        this.addToLstList(this.list.length, oElement);
       }
     };
 
@@ -5142,6 +5142,39 @@
         oCopy.setExtLst(this.getExtLst().createDuplicate(oIdMap));
       }
     }
+      SShape.prototype.privateWriteAttributes = function(pWriter) {
+          pWriter._WriteString2(0, this.blip);
+          pWriter._WriteBool2(1, this.blipPhldr);
+          pWriter._WriteBool2(2, this.hideGeom);
+          pWriter._WriteBool2(3, this.lkTxEntry);
+          pWriter._WriteDoubleReal2(4, this.rot);
+          pWriter._WriteInt2(5, this.zOrderOff);
+          pWriter._WriteString2(6, this.type);
+
+      };
+      SShape.prototype.writeChildren = function(pWriter) {
+          this.writeRecord2(pWriter, 0, this.adjLst);
+      };
+      SShape.prototype.readAttribute = function(nType, pReader) {
+          var oStream = pReader.stream;
+          if (0 === nType) this.setBlip(oStream.GetString2());
+          else if (1 === nType) this.setBlipPhldr(oStream.GetBool());
+          else if (2 === nType) this.setHideGeom(oStream.GetBool());
+          else if (3 === nType) this.setLkTxEntry(oStream.GetBool());
+          else if (4 === nType) this.setRot(oStream.GetDouble());
+          else if (5 === nType) this.setZOrderOff(oStream.GetULong());
+          else if (6 === nType) this.setType(oStream.GetDouble());
+      };
+      SShape.prototype.readChild = function(nType, pReader) {
+          switch (nType) {
+              case 0: {
+                  var oLst = new AdjLst();
+                  oLst.fromPPTY(pReader);
+                  this.setAdjLst(oLst);
+                  break;
+              }
+          }
+      };
 
     function AdjLst() {
       CCommonDataList.call(this);
@@ -5794,7 +5827,7 @@
       }
       if(oElement) {
         oElement.fromPPTY(pReader);
-        this.addToLstList(0, oElement);
+        this.addToLstList(this.list.length, oElement);
       }
     };
 
