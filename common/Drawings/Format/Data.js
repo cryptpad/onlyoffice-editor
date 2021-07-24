@@ -3043,8 +3043,9 @@
     Alg.prototype.readChild = function(nType, pReader) {
       switch (nType) {
         case 0: {
-          this.addToLstParam(0, new Param());
-          this.param[0].fromPPTY(pReader);
+            var oChild = new Param();
+            oChild.fromPPTY(pReader);
+          this.addToLstParam(this.param.length, oChild);
           break;
         }
         default:
@@ -4384,19 +4385,19 @@
     If.prototype.readAttribute = function(nType, pReader) {
       var oStream = pReader.stream;
       if (0 === nType) this.setName(oStream.GetString2());
-      else if (1 === nType) this.addToLstSt(0, oStream.GetLong());
-      else if (2 === nType) this.addToLstStep(0, oStream.GetLong());
-      else if (3 === nType) this.addToLstHideLastTrans(0, oStream.GetBool());
-      else if (4 === nType) this.addToLstCnt(0, oStream.GetLong());
+      else if (1 === nType) this.addToLstSt(this.st.length, oStream.GetLong());
+      else if (2 === nType) this.addToLstStep(this.step.length, oStream.GetLong());
+      else if (3 === nType) this.addToLstHideLastTrans(this.hideLastTrans.length, oStream.GetBool());
+      else if (4 === nType) this.addToLstCnt(this.cnt.length, oStream.GetLong());
       else if (5 === nType) {
         var axis = new AxisType();
-        this.addToLstAxis(0, axis);
-        axis.setVal(oStream.GetUChar());
+          axis.setVal(oStream.GetUChar());
+        this.addToLstAxis(this.axis.length, axis);
       }
       else if (6 === nType) {
         var ptType = new ElementType();
-        this.addToLstPtType(0, ptType);
-        ptType.setVal(oStream.GetUChar());
+          ptType.setVal(oStream.GetUChar());
+        this.addToLstPtType(this.ptType.length, ptType);
       }
       else if (7 === nType) this.setRef(oStream.GetString2());
       else if (8 === nType) this.setOp(oStream.GetUChar());
@@ -4743,18 +4744,18 @@
     PresOf.prototype.readAttribute = function(nType, pReader) {
       var oStream = pReader.stream;
       if (0 === nType) this.setName(oStream.GetString2());
-      else if (1 === nType) this.addToLstSt(0, oStream.GetLong());
-      else if (2 === nType) this.addToLstStep(0, oStream.GetLong());
-      else if (3 === nType) this.addToLstHideLastTrans(0, oStream.GetBool());
-      else if (4 === nType) this.addToLstCnt(0, oStream.GetLong());
+      else if (1 === nType) this.addToLstSt(this.st.length, oStream.GetLong());
+      else if (2 === nType) this.addToLstStep(this.step.length, oStream.GetLong());
+      else if (3 === nType) this.addToLstHideLastTrans(this.hideLastTrans.length, oStream.GetBool());
+      else if (4 === nType) this.addToLstCnt(this.cnt.length, oStream.GetLong());
       else if (5 === nType) {
         var axis = new AxisType();
-        this.addToLstAxis(0, axis);
+        this.addToLstAxis(this.axis.length, axis);
         axis.setVal(oStream.GetUChar());
       }
       else if (6 === nType) {
         var ptType = new ElementType();
-        this.addToLstPtType(0, ptType);
+        this.addToLstPtType(this.ptType.length, ptType);
         ptType.setVal(oStream.GetUChar());
       }
     };
@@ -4995,7 +4996,7 @@
     changesFactory[AscDFH.historyitem_SShapeHideGeom] = CChangeBool;
     changesFactory[AscDFH.historyitem_SShapeLkTxEntry] = CChangeBool;
     changesFactory[AscDFH.historyitem_SShapeRot] = CChangeDouble2;
-    changesFactory[AscDFH.historyitem_SShapeType] = CChangeObject;
+    changesFactory[AscDFH.historyitem_SShapeType] = CChangeString;
     changesFactory[AscDFH.historyitem_SShapeZOrderOff] = CChangeLong;
     changesFactory[AscDFH.historyitem_SShapeAdjLst] = CChangeObject;
     changesFactory[AscDFH.historyitem_SShapeExtLst] = CChangeObject;
@@ -5068,7 +5069,7 @@
     }
 
     SShape.prototype.setType = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SShapeType, this.getType(), oPr));
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_SShapeType, this.getType(), oPr));
       this.type = oPr;
     }
 
@@ -5163,7 +5164,7 @@
           else if (3 === nType) this.setLkTxEntry(oStream.GetBool());
           else if (4 === nType) this.setRot(oStream.GetDouble());
           else if (5 === nType) this.setZOrderOff(oStream.GetULong());
-          else if (6 === nType) this.setType(oStream.GetDouble());
+          else if (6 === nType) this.setType(oStream.GetString2());
       };
       SShape.prototype.readChild = function(nType, pReader) {
           switch (nType) {
@@ -5873,25 +5874,25 @@
     ForEach.prototype.readAttribute = function(nType, pReader) {
       var oStream = pReader.stream;
       if (0 === nType) this.setName(oStream.GetString2());
-      else if (1 === nType) this.addToLstSt(0, oStream.GetLong());
-      else if (2 === nType) this.addToLstStep(0, oStream.GetLong());
-      else if (3 === nType) this.addToLstHideLastTrans(0, oStream.GetBool());
-      else if (4 === nType) this.addToLstCnt(0, oStream.GetLong());
+      else if (1 === nType) this.addToLstSt(this.st.length, oStream.GetLong());
+      else if (2 === nType) this.addToLstStep(this.step.length, oStream.GetLong());
+      else if (3 === nType) this.addToLstHideLastTrans(this.hideLastTrans.length, oStream.GetBool());
+      else if (4 === nType) this.addToLstCnt(this.cnt.length, oStream.GetLong());
       else if (5 === nType) {
         var axis = new AxisType();
-        this.addToLstAxis(0, axis);
+        this.addToLstAxis(this.axis.length, axis);
         axis.setVal(oStream.GetUChar());
       }
       else if (6 === nType) {
         var ptType = new ElementType();
-        this.addToLstPtType(0, ptType);
+        this.addToLstPtType(this.ptType.length, ptType);
         ptType.setVal(oStream.GetUChar());
       }
       else if (7 === nType) this.setRef(oStream.GetString2());
     };
 
     ForEach.prototype.readChild = function(nType, pReader) {
-        this.readElement(pReader);
+        this.readElement(pReader, nType);
     };
     ForEach.prototype.getChildren = function() {
       return [].concat(this.list);
@@ -7260,8 +7261,9 @@
           break;
         }
         case 4: {
-          this.addToLstStyleLbl(0, new StyleDefStyleLbl());
-          this.styleLbl[0].fromPPTY(pReader);
+            var oChild = new StyleDefStyleLbl();
+            oChild.fromPPTY(pReader);
+          this.addToLstStyleLbl(this.styleLbl.length, new StyleDefStyleLbl());
           break;
         }
         default: {
