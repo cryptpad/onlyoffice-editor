@@ -1145,15 +1145,13 @@
 
     InitClass(PtLst, CCommonDataList, AscDFH.historyitem_type_PtLst);
 
-    // PtLst.prototype.privateWriteAttributes = function(pWriter) {
-    // };
-    // PtLst.prototype.writeChildren = function(pWriter) {
-    //   for (var i = 0; i < this.list.length; i += 1) {
-    //     this.writeRecord2(pWriter, 0, this.list[i]);
-    //   }
-    // };
-    // PtLst.prototype.readAttribute = function(nType, pReader) {
-    // };
+     PtLst.prototype.privateWriteAttributes = null;
+     PtLst.prototype.writeChildren = function(pWriter) {
+       for (var i = 0; i < this.list.length; i += 1) {
+         this.writeRecord2(pWriter, 0, this.list[i]);
+       }
+     };
+    PtLst.prototype.readAttribute = null;
     PtLst.prototype.readChild = function(nType, pReader) {
       var s = pReader.stream;
       switch (nType) {
@@ -2253,7 +2251,6 @@
     }
 
     PrSet.prototype.privateWriteAttributes = function(pWriter) {
-      pWriter._WriteBool2(0, this.coherent3DOff); // TODO: fix this
       pWriter._WriteBool2(1, this.coherent3DOff);
       pWriter._WriteString2(2, this.csCatId);
       pWriter._WriteString2(3, this.csTypeId);
@@ -2289,8 +2286,7 @@
     };
     PrSet.prototype.readAttribute = function(nType, pReader) {
       var oStream = pReader.stream;
-      if (0 === nType) this.setCoherent3DOff(oStream.GetBool()); // TODO; fix this
-      else if (1 === nType) this.setCoherent3DOff(oStream.GetBool());
+        if (1 === nType) this.setCoherent3DOff(oStream.GetBool());
       else if (2 === nType) this.setCsCatId(oStream.GetString2());
       else if (3 === nType) this.setCsTypeId(oStream.GetString2());
       else if (4 === nType) this.setCustAng(oStream.GetLong());
@@ -2323,7 +2319,7 @@
       var s = pReader.stream;
       switch (nType) {
         case 0: {
-          this.setPresLayoutVars(new PresLayoutVars());
+          this.setPresLayoutVars(new VarLst());
           this.presLayoutVars.fromPPTY(pReader);
           break;
         }
@@ -2343,177 +2339,6 @@
       return [this.presLayoutVars, this.style];
     }
 
-    changesFactory[AscDFH.historyitem_PresLayoutVarsAnimLvl] = CChangeObject;
-    changesFactory[AscDFH.historyitem_PresLayoutVarsAnimOne] = CChangeObject;
-    changesFactory[AscDFH.historyitem_PresLayoutVarsBulletEnabled] = CChangeObject;
-    changesFactory[AscDFH.historyitem_PresLayoutVarsChMax] = CChangeObject;
-    changesFactory[AscDFH.historyitem_PresLayoutVarsChPref] = CChangeObject;
-    changesFactory[AscDFH.historyitem_PresLayoutVarsDir] = CChangeObject;
-    changesFactory[AscDFH.historyitem_PresLayoutVarsHierBranch] = CChangeObject;
-    changesFactory[AscDFH.historyitem_PresLayoutVarsOrgChart] = CChangeObject;
-    changesFactory[AscDFH.historyitem_PresLayoutVarsResizeHandles] = CChangeObject;
-    drawingsChangesMap[AscDFH.historyitem_PresLayoutVarsAnimLvl] = function (oClass, value) {
-      oClass.animLvl = value;
-    };
-    drawingsChangesMap[AscDFH.historyitem_PresLayoutVarsAnimOne] = function (oClass, value) {
-      oClass.animOne = value;
-    };
-    drawingsChangesMap[AscDFH.historyitem_PresLayoutVarsBulletEnabled] = function (oClass, value) {
-      oClass.bulletEnabled = value;
-    };
-    drawingsChangesMap[AscDFH.historyitem_PresLayoutVarsChMax] = function (oClass, value) {
-      oClass.chMax = value;
-    };
-    drawingsChangesMap[AscDFH.historyitem_PresLayoutVarsChPref] = function (oClass, value) {
-      oClass.chPref = value;
-    };
-    drawingsChangesMap[AscDFH.historyitem_PresLayoutVarsDir] = function (oClass, value) {
-      oClass.dir = value;
-    };
-    drawingsChangesMap[AscDFH.historyitem_PresLayoutVarsHierBranch] = function (oClass, value) {
-      oClass.hierBranch = value;
-    };
-    drawingsChangesMap[AscDFH.historyitem_PresLayoutVarsOrgChart] = function (oClass, value) {
-      oClass.orgChart = value;
-    };
-    drawingsChangesMap[AscDFH.historyitem_PresLayoutVarsResizeHandles] = function (oClass, value) {
-      oClass.resizeHandles = value;
-    };
-
-    function PresLayoutVars() {
-      CBaseFormatObject.call(this);
-      this.animLvl = null;
-      this.animOne = null;
-      this.bulletEnabled = null;
-      this.chMax = null;
-      this.chPref = null;
-      this.dir = null;
-      this.hierBranch = null;
-      this.orgChart = null;
-      this.resizeHandles = null;
-    }
-
-    InitClass(PresLayoutVars, CBaseFormatObject, AscDFH.historyitem_type_PresLayoutVars);
-
-    PresLayoutVars.prototype.setAnimLvl = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PresLayoutVarsAnimLvl, this.getAnimLvl(), oPr));
-      this.animLvl = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    PresLayoutVars.prototype.setAnimOne = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PresLayoutVarsAnimOne, this.getAnimOne(), oPr));
-      this.animOne = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    PresLayoutVars.prototype.setBulletEnabled = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PresLayoutVarsBulletEnabled, this.getBulletEnabled(), oPr));
-      this.bulletEnabled = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    PresLayoutVars.prototype.setChMax = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PresLayoutVarsChMax, this.getChMax(), oPr));
-      this.chMax = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    PresLayoutVars.prototype.setChPref = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PresLayoutVarsChPref, this.getChPref(), oPr));
-      this.chPref = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    PresLayoutVars.prototype.setDir = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PresLayoutVarsDir, this.getDir(), oPr));
-      this.dir = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    PresLayoutVars.prototype.setHierBranch = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PresLayoutVarsHierBranch, this.getHierBranch(), oPr));
-      this.hierBranch = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    PresLayoutVars.prototype.setOrgChart = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PresLayoutVarsOrgChart, this.getOrgChart(), oPr));
-      this.orgChart = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    PresLayoutVars.prototype.setResizeHandles = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PresLayoutVarsResizeHandles, this.getResizeHandles(), oPr));
-      this.resizeHandles = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    PresLayoutVars.prototype.getAnimLvl = function () {
-      return this.animLvl;
-    }
-
-    PresLayoutVars.prototype.getAnimOne = function () {
-      return this.animOne;
-    }
-
-    PresLayoutVars.prototype.getBulletEnabled = function () {
-      return this.bulletEnabled;
-    }
-
-    PresLayoutVars.prototype.getChMax = function () {
-      return this.chMax;
-    }
-
-    PresLayoutVars.prototype.getChPref = function () {
-      return this.chPref;
-    }
-
-    PresLayoutVars.prototype.getDir = function () {
-      return this.dir;
-    }
-
-    PresLayoutVars.prototype.getHierBranch = function () {
-      return this.hierBranch;
-    }
-
-    PresLayoutVars.prototype.getOrgChart = function () {
-      return this.orgChart;
-    }
-
-    PresLayoutVars.prototype.getResizeHandles = function () {
-      return this.resizeHandles;
-    }
-
-    PresLayoutVars.prototype.fillObject = function (oCopy, oIdMap) {
-      if (this.getAnimLvl()) {
-        oCopy.setAnimLvl(this.getAnimLvl().createDuplicate(oIdMap));
-      }
-      if (this.getAnimOne()) {
-        oCopy.setAnimOne(this.getAnimOne().createDuplicate(oIdMap));
-      }
-      if (this.getBulletEnabled()) {
-        oCopy.setBulletEnabled(this.getBulletEnabled().createDuplicate(oIdMap));
-      }
-      if (this.getChMax()) {
-        oCopy.setChMax(this.getChMax().createDuplicate(oIdMap));
-      }
-      if (this.getChPref()) {
-        oCopy.setChPref(this.getChPref().createDuplicate(oIdMap));
-      }
-      if (this.getDir()) {
-        oCopy.setDir(this.getDir().createDuplicate(oIdMap));
-      }
-      if (this.getHierBranch()) {
-        oCopy.setHierBranch(this.getHierBranch().createDuplicate(oIdMap));
-      }
-      if (this.getOrgChart()) {
-        oCopy.setOrgChart(this.getOrgChart().createDuplicate(oIdMap));
-      }
-      if (this.getResizeHandles()) {
-        oCopy.setResizeHandles(this.getResizeHandles().createDuplicate(oIdMap));
-      }
-    }
 
 
     changesFactory[AscDFH.historyitem_LayoutDefDefStyle] = CChangeString;
@@ -3076,7 +2901,7 @@
       }
       if(oElement) {
         oElement.fromPPTY(pReader);
-        this.addToLst(0, oElement);
+        this.addToLst(this.list.length, oElement);
       }
     };
     LayoutNode.prototype.privateWriteAttributes = function(pWriter) {
@@ -3218,8 +3043,9 @@
     Alg.prototype.readChild = function(nType, pReader) {
       switch (nType) {
         case 0: {
-          this.addToLstParam(0, new Param());
-          this.param[0].fromPPTY(pReader);
+            var oChild = new Param();
+            oChild.fromPPTY(pReader);
+          this.addToLstParam(this.param.length, oChild);
           break;
         }
         default:
@@ -3979,7 +3805,7 @@
       }
       if(oElement) {
         oElement.fromPPTY(pReader);
-        this.addToLst(0, oElement);
+        this.addToLst(this.list.length, oElement);
       }
     };
 
@@ -4509,7 +4335,7 @@
       }
       if(oElement) {
         oElement.fromPPTY(pReader);
-        this.addToLstList(0, oElement);
+        this.addToLstList(this.list.length, oElement);
       }
     };
 
@@ -4559,19 +4385,19 @@
     If.prototype.readAttribute = function(nType, pReader) {
       var oStream = pReader.stream;
       if (0 === nType) this.setName(oStream.GetString2());
-      else if (1 === nType) this.addToLstSt(0, oStream.GetLong());
-      else if (2 === nType) this.addToLstStep(0, oStream.GetLong());
-      else if (3 === nType) this.addToLstHideLastTrans(0, oStream.GetBool());
-      else if (4 === nType) this.addToLstCnt(0, oStream.GetLong());
+      else if (1 === nType) this.addToLstSt(this.st.length, oStream.GetLong());
+      else if (2 === nType) this.addToLstStep(this.step.length, oStream.GetLong());
+      else if (3 === nType) this.addToLstHideLastTrans(this.hideLastTrans.length, oStream.GetBool());
+      else if (4 === nType) this.addToLstCnt(this.cnt.length, oStream.GetLong());
       else if (5 === nType) {
         var axis = new AxisType();
-        this.addToLstAxis(0, axis);
-        axis.setVal(oStream.GetUChar());
+          axis.setVal(oStream.GetUChar());
+        this.addToLstAxis(this.axis.length, axis);
       }
       else if (6 === nType) {
         var ptType = new ElementType();
-        this.addToLstPtType(0, ptType);
-        ptType.setVal(oStream.GetUChar());
+          ptType.setVal(oStream.GetUChar());
+        this.addToLstPtType(this.ptType.length, ptType);
       }
       else if (7 === nType) this.setRef(oStream.GetString2());
       else if (8 === nType) this.setOp(oStream.GetUChar());
@@ -4918,18 +4744,18 @@
     PresOf.prototype.readAttribute = function(nType, pReader) {
       var oStream = pReader.stream;
       if (0 === nType) this.setName(oStream.GetString2());
-      else if (1 === nType) this.addToLstSt(0, oStream.GetLong());
-      else if (2 === nType) this.addToLstStep(0, oStream.GetLong());
-      else if (3 === nType) this.addToLstHideLastTrans(0, oStream.GetBool());
-      else if (4 === nType) this.addToLstCnt(0, oStream.GetLong());
+      else if (1 === nType) this.addToLstSt(this.st.length, oStream.GetLong());
+      else if (2 === nType) this.addToLstStep(this.step.length, oStream.GetLong());
+      else if (3 === nType) this.addToLstHideLastTrans(this.hideLastTrans.length, oStream.GetBool());
+      else if (4 === nType) this.addToLstCnt(this.cnt.length, oStream.GetLong());
       else if (5 === nType) {
         var axis = new AxisType();
-        this.addToLstAxis(0, axis);
+        this.addToLstAxis(this.axis.length, axis);
         axis.setVal(oStream.GetUChar());
       }
       else if (6 === nType) {
         var ptType = new ElementType();
-        this.addToLstPtType(0, ptType);
+        this.addToLstPtType(this.ptType.length, ptType);
         ptType.setVal(oStream.GetUChar());
       }
     };
@@ -5170,7 +4996,7 @@
     changesFactory[AscDFH.historyitem_SShapeHideGeom] = CChangeBool;
     changesFactory[AscDFH.historyitem_SShapeLkTxEntry] = CChangeBool;
     changesFactory[AscDFH.historyitem_SShapeRot] = CChangeDouble2;
-    changesFactory[AscDFH.historyitem_SShapeType] = CChangeObject;
+    changesFactory[AscDFH.historyitem_SShapeType] = CChangeString;
     changesFactory[AscDFH.historyitem_SShapeZOrderOff] = CChangeLong;
     changesFactory[AscDFH.historyitem_SShapeAdjLst] = CChangeObject;
     changesFactory[AscDFH.historyitem_SShapeExtLst] = CChangeObject;
@@ -5243,7 +5069,7 @@
     }
 
     SShape.prototype.setType = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SShapeType, this.getType(), oPr));
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_SShapeType, this.getType(), oPr));
       this.type = oPr;
     }
 
@@ -5317,6 +5143,39 @@
         oCopy.setExtLst(this.getExtLst().createDuplicate(oIdMap));
       }
     }
+      SShape.prototype.privateWriteAttributes = function(pWriter) {
+          pWriter._WriteString2(0, this.blip);
+          pWriter._WriteBool2(1, this.blipPhldr);
+          pWriter._WriteBool2(2, this.hideGeom);
+          pWriter._WriteBool2(3, this.lkTxEntry);
+          pWriter._WriteDoubleReal2(4, this.rot);
+          pWriter._WriteInt2(5, this.zOrderOff);
+          pWriter._WriteString2(6, this.type);
+
+      };
+      SShape.prototype.writeChildren = function(pWriter) {
+          this.writeRecord2(pWriter, 0, this.adjLst);
+      };
+      SShape.prototype.readAttribute = function(nType, pReader) {
+          var oStream = pReader.stream;
+          if (0 === nType) this.setBlip(oStream.GetString2());
+          else if (1 === nType) this.setBlipPhldr(oStream.GetBool());
+          else if (2 === nType) this.setHideGeom(oStream.GetBool());
+          else if (3 === nType) this.setLkTxEntry(oStream.GetBool());
+          else if (4 === nType) this.setRot(oStream.GetDouble());
+          else if (5 === nType) this.setZOrderOff(oStream.GetULong());
+          else if (6 === nType) this.setType(oStream.GetString2());
+      };
+      SShape.prototype.readChild = function(nType, pReader) {
+          switch (nType) {
+              case 0: {
+                  var oLst = new AdjLst();
+                  oLst.fromPPTY(pReader);
+                  this.setAdjLst(oLst);
+                  break;
+              }
+          }
+      };
 
     function AdjLst() {
       CCommonDataList.call(this);
@@ -5665,7 +5524,23 @@
     AnimLvl.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setVal(this.getVal());
     }
+      AnimLvl.prototype.privateWriteAttributes = function(pWriter) {
+          pWriter._WriteUChar1(0, this.val !== null ? this.val : 0);
+      };
+      AnimLvl.prototype.writeChildren = function(pWriter) {
+      };
+      AnimLvl.prototype.readAttribute = function(nType, pReader) {
+          var oStream = pReader.stream;
+          if (0 === nType) {
+              var nVal = oStream.GetUChar();
+              if(nVal !== 0) {
+                  this.setVal(nVal);
+              }
+          }
+      };
+      AnimLvl.prototype.readChild = function(nType, pReader) {
 
+      };
 
     changesFactory[AscDFH.historyitem_AnimOneVal] = CChangeLong;
     drawingsChangesMap[AscDFH.historyitem_AnimOneVal] = function (oClass, value) {
@@ -5691,6 +5566,23 @@
     AnimOne.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setVal(this.getVal());
     }
+      AnimOne.prototype.privateWriteAttributes = function(pWriter) {
+          pWriter._WriteUChar1(0, this.val !== null ? this.val : 0);
+      };
+      AnimOne.prototype.writeChildren = function(pWriter) {
+      };
+      AnimOne.prototype.readAttribute = function(nType, pReader) {
+          var oStream = pReader.stream;
+          if (0 === nType) {
+              var nVal = oStream.GetUChar();
+              if(nVal !== 0) {
+                  this.setVal(nVal);
+              }
+          }
+      };
+      AnimOne.prototype.readChild = function(nType, pReader) {
+
+      };
 
     changesFactory[AscDFH.historyitem_BulletEnabledVal] = CChangeBool;
     drawingsChangesMap[AscDFH.historyitem_BulletEnabledVal] = function (oClass, value) {
@@ -5716,6 +5608,21 @@
     BulletEnabled.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setVal(this.getVal());
     }
+      BulletEnabled.prototype.privateWriteAttributes = function(pWriter) {
+          pWriter._WriteUChar1(0, this.val !== null ? (this.val ? 1 : 0) : 0);
+      };
+      BulletEnabled.prototype.writeChildren = function(pWriter) {
+      };
+      BulletEnabled.prototype.readAttribute = function(nType, pReader) {
+          var oStream = pReader.stream;
+          if (0 === nType) {
+              var nVal = oStream.GetUChar();
+              this.setVal(nVal ? true : false);
+          }
+      };
+      BulletEnabled.prototype.readChild = function(nType, pReader) {
+
+      };
 
     changesFactory[AscDFH.historyitem_ChMaxVal] = CChangeLong;
     drawingsChangesMap[AscDFH.historyitem_ChMaxVal] = function (oClass, value) {
@@ -5791,6 +5698,23 @@
     DiagramDirection.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setVal(this.getVal());
     }
+      DiagramDirection.prototype.privateWriteAttributes = function(pWriter) {
+          pWriter._WriteUChar1(0, this.val !== null ? this.val : 0);
+      };
+      DiagramDirection.prototype.writeChildren = function(pWriter) {
+      };
+      DiagramDirection.prototype.readAttribute = function(nType, pReader) {
+          var oStream = pReader.stream;
+          if (0 === nType) {
+              var nVal = oStream.GetUChar();
+              if(nVal !== 0) {
+                  this.setVal(nVal);
+              }
+          }
+      };
+      DiagramDirection.prototype.readChild = function(nType, pReader) {
+
+      };
 
     changesFactory[AscDFH.historyitem_HierBranchVal] = CChangeLong;
     drawingsChangesMap[AscDFH.historyitem_HierBranchVal] = function (oClass, value) {
@@ -5815,7 +5739,24 @@
 
     HierBranch.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setVal(this.getVal());
-    }
+    };
+      HierBranch.prototype.privateWriteAttributes = function(pWriter) {
+          pWriter._WriteUChar1(0, this.val !== null ? this.val : 0);
+      };
+      HierBranch.prototype.writeChildren = function(pWriter) {
+      };
+      HierBranch.prototype.readAttribute = function(nType, pReader) {
+          var oStream = pReader.stream;
+          if (0 === nType) {
+              var nVal = oStream.GetUChar();
+              if(nVal !== 0) {
+                  this.setVal(nVal);
+              }
+          }
+      };
+      HierBranch.prototype.readChild = function(nType, pReader) {
+
+      };
 
     changesFactory[AscDFH.historyitem_OrgChartVal] = CChangeBool;
     drawingsChangesMap[AscDFH.historyitem_OrgChartVal] = function (oClass, value) {
@@ -5841,7 +5782,21 @@
     OrgChart.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setVal(this.getVal());
     }
+      OrgChart.prototype.privateWriteAttributes = function(pWriter) {
+          pWriter._WriteUChar1(0, this.val !== null ? (this.val ? 1 : 0) : 0);
+      };
+      OrgChart.prototype.writeChildren = function(pWriter) {
+      };
+      OrgChart.prototype.readAttribute = function(nType, pReader) {
+          var oStream = pReader.stream;
+          if (0 === nType) {
+              var nVal = oStream.GetUChar();
+              this.setVal(nVal ? true : false);
+          }
+      };
+      OrgChart.prototype.readChild = function(nType, pReader) {
 
+      };
     changesFactory[AscDFH.historyitem_ResizeHandlesVal] = CChangeLong;
     drawingsChangesMap[AscDFH.historyitem_ResizeHandlesVal] = function (oClass, value) {
       oClass.val = value;
@@ -5866,6 +5821,23 @@
     ResizeHandles.prototype.fillObject = function (oCopy, oIdMap) {
       oCopy.setVal(this.getVal());
     }
+      ResizeHandles.prototype.privateWriteAttributes = function(pWriter) {
+          pWriter._WriteUChar1(0, this.val !== null ? this.val : 0);
+      };
+      ResizeHandles.prototype.writeChildren = function(pWriter) {
+      };
+      ResizeHandles.prototype.readAttribute = function(nType, pReader) {
+          var oStream = pReader.stream;
+          if (0 === nType) {
+              var nVal = oStream.GetUChar();
+              if(nVal !== 0) {
+                  this.setVal(nVal);
+              }
+          }
+      };
+      ResizeHandles.prototype.readChild = function(nType, pReader) {
+
+      };
 
 
     changesFactory[AscDFH.historyitem_ForEachName] = CChangeString;
@@ -5969,7 +5941,7 @@
       }
       if(oElement) {
         oElement.fromPPTY(pReader);
-        this.addToLstList(0, oElement);
+        this.addToLstList(this.list.length, oElement);
       }
     };
 
@@ -6015,25 +5987,25 @@
     ForEach.prototype.readAttribute = function(nType, pReader) {
       var oStream = pReader.stream;
       if (0 === nType) this.setName(oStream.GetString2());
-      else if (1 === nType) this.addToLstSt(0, oStream.GetLong());
-      else if (2 === nType) this.addToLstStep(0, oStream.GetLong());
-      else if (3 === nType) this.addToLstHideLastTrans(0, oStream.GetBool());
-      else if (4 === nType) this.addToLstCnt(0, oStream.GetLong());
+      else if (1 === nType) this.addToLstSt(this.st.length, oStream.GetLong());
+      else if (2 === nType) this.addToLstStep(this.step.length, oStream.GetLong());
+      else if (3 === nType) this.addToLstHideLastTrans(this.hideLastTrans.length, oStream.GetBool());
+      else if (4 === nType) this.addToLstCnt(this.cnt.length, oStream.GetLong());
       else if (5 === nType) {
         var axis = new AxisType();
-        this.addToLstAxis(0, axis);
+        this.addToLstAxis(this.axis.length, axis);
         axis.setVal(oStream.GetUChar());
       }
       else if (6 === nType) {
         var ptType = new ElementType();
-        this.addToLstPtType(0, ptType);
+        this.addToLstPtType(this.ptType.length, ptType);
         ptType.setVal(oStream.GetUChar());
       }
       else if (7 === nType) this.setRef(oStream.GetString2());
     };
 
     ForEach.prototype.readChild = function(nType, pReader) {
-        this.readElement(pReader);
+        this.readElement(pReader, nType);
     };
     ForEach.prototype.getChildren = function() {
       return [].concat(this.list);
@@ -6957,7 +6929,7 @@
       var s = pReader.stream;
       switch (nType) {
         case 0:
-          this.addToLst(0, pReader.ReadUniColor());
+          this.addToLst(this.list.length, pReader.ReadUniColor());
           break;
         default:
           s.SkipRecord();
@@ -7402,8 +7374,9 @@
           break;
         }
         case 4: {
-          this.addToLstStyleLbl(0, new StyleDefStyleLbl());
-          this.styleLbl[0].fromPPTY(pReader);
+            var oChild = new StyleDefStyleLbl();
+            oChild.fromPPTY(pReader);
+          this.addToLstStyleLbl(this.styleLbl.length, new StyleDefStyleLbl());
           break;
         }
         default: {
@@ -15194,7 +15167,7 @@
         prSet.setPresStyleLbl(prSetInfo.presStyleLbl);
       }
       if (prSetInfo.presLayoutVars && Object.keys(prSetInfo.presLayoutVars)) {
-        var presLayoutVars = new PresLayoutVars();
+        var presLayoutVars = new VarLst();
         fillPresLayoutVars(presLayoutVars, prSetInfo.presLayoutVars);
         prSet.setPresLayoutVars(presLayoutVars);
       }
