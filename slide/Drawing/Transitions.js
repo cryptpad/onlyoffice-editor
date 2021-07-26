@@ -3414,6 +3414,8 @@ function CDemonstrationManager(htmlpage)
         if (!this.Mode)
             return;
 
+        this.PauseAnimation(this.SlideNum);
+
 		if (this.HtmlPage.m_oApi.isReporterMode && !isNoSendFormReporter)
 			this.HtmlPage.m_oApi.sendFromReporter("{ \"reporter_command\" : \"go_to_slide\", \"slide\" : " + slideNum + " }");
 
@@ -3421,7 +3423,7 @@ function CDemonstrationManager(htmlpage)
 
         if ((slideNum == this.SlideNum) || (slideNum < 0) || (slideNum >= this.SlidesCount))
             return;
-
+        
         this.SlideNum = slideNum;
         this.HtmlPage.m_oApi.sync_DemonstrationSlideChanged(this.SlideNum);
 

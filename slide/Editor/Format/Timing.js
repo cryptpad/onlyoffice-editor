@@ -7374,13 +7374,21 @@
         this.animationScheduler.cancelCallerEvents(oCaller);
     };
     CAnimationPlayer.prototype.onClick = function() {
-        return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_CLICK, null));
+        var bClick = this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_CLICK, null));
+        if(bClick) {
+            return true;
+        }
+        return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_NEXT, null));
     };
     CAnimationPlayer.prototype.onSpClick = function(oSp) {
         if(!oSp) {
             return false;
         }
-        return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_CLICK, oSp.Get_Id()));
+        var bClick = this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_CLICK, oSp.Get_Id()));
+        if(bClick) {
+            return true;
+        }
+        return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_NEXT, null));
     };
     CAnimationPlayer.prototype.onSpDblClick = function(oSp) {
         if(!oSp) {
@@ -7401,7 +7409,11 @@
         return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_MOUSEOUT, oSp.Get_Id()));
     };
     CAnimationPlayer.prototype.onNextSlide = function() {
-        return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_NEXT, null));
+        var bNext = this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_NEXT, null));
+        if(bNext) {
+            return true;
+        }
+        this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_CLICK, null));
     };
     CAnimationPlayer.prototype.onPrevSlide = function() {
         return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_PREV, null));
