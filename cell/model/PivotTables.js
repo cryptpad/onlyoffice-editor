@@ -3867,6 +3867,9 @@ CT_pivotTableDefinition.prototype._getPivotLabelButtonsRowColLables = function (
 					row = r1 + r + j;
 					col = c1 + i;
 				}
+				if (range && !range.contains(col, row)) {
+					continue;
+				}
 				var fieldItemIndex = item.x[j].getV();
 				var sd = pivotFields[fieldIndex].asc_getVisible(fieldItemIndex);
 				buttons.push({isSortState: null, isSetFilter: false, row: row, col: col, idPivotCollapse: {id: this.Get_Id(), fld: fieldIndex, index: fieldItemIndex, sd: sd}
@@ -7354,8 +7357,8 @@ CT_Error.prototype.toXml2 = function(writer, name, val, obj) {
 };
 CT_Error.prototype.isSimpleValue = function() {
 	return null === this.u && null === this.f && null === this.c && null === this.cp && null === this.in &&
-		null === this.bc && null === this.fc && null === this.i && null === this.un && null === this.st &&
-		null === this.b && null === 0 === this.tpls.length && 0 === this.x.length;
+		null === this.bc && null === this.fc && false === this.i && false === this.un && false === this.st &&
+		false === this.b && 0 === this.tpls.length && 0 === this.x.length;
 };
 CT_Error.prototype.clean = function() {
 	this.v = null;
@@ -7514,8 +7517,8 @@ CT_Missing.prototype.toXml2 = function(writer, name, obj) {
 };
 CT_Missing.prototype.isSimpleValue = function() {
 	return null === this.u && null === this.f && null === this.c && null === this.cp && null === this.in &&
-		null === this.bc && null === this.fc && null === this.i && null === this.un && null === this.st &&
-		null === this.b && 0 === this.tpls.length && 0 === this.x.length;
+		null === this.bc && null === this.fc && false === this.i && false === this.un && false === this.st &&
+		false === this.b && 0 === this.tpls.length && 0 === this.x.length;
 };
 CT_Missing.prototype.clean = function() {
 	this.v = null;
@@ -7684,8 +7687,8 @@ CT_Number.prototype.toXml2 = function(writer, name, val, obj) {
 };
 CT_Number.prototype.isSimpleValue = function() {
 	return null === this.u && null === this.f && null === this.c && null === this.cp && null === this.in &&
-		null === this.bc && null === this.fc && null === this.i && null === this.un && null === this.st &&
-		null === this.b && 0 === this.tpls.length && 0 === this.x.length;
+		null === this.bc && null === this.fc && false === this.i && false === this.un && false === this.st &&
+		false === this.b && 0 === this.tpls.length && 0 === this.x.length;
 };
 CT_Number.prototype.clean = function() {
 	this.v = null;
@@ -7852,8 +7855,8 @@ CT_String.prototype.toXml2 = function(writer, name, val, obj) {
 };
 CT_String.prototype.isSimpleValue = function() {
 	return null === this.u && null === this.f && null === this.c && null === this.cp && null === this.in &&
-		null === this.bc && null === this.fc && null === this.i && null === this.un && null === this.st &&
-		null === this.b && 0 === this.tpls.length && 0 === this.x.length;
+		null === this.bc && null === this.fc && false === this.i && false === this.un && false === this.st &&
+		false === this.b && 0 === this.tpls.length && 0 === this.x.length;
 };
 CT_String.prototype.clean = function() {
 	this.v = null;

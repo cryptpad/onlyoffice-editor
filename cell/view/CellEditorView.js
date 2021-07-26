@@ -1134,7 +1134,7 @@
 		}
 
 		this.handlers.trigger("updated", s, this.cursorPos, fPos, fName);
-		this.handlers.trigger("updatedEditableFunction", fCurrent);
+		this.handlers.trigger("updatedEditableFunction", fCurrent, fPos !== undefined ? this.calculateOffset(fPos) : null);
 	};
 
 	CellEditor.prototype._getEditableFunction = function (parseResult, bEndCurPos) {
@@ -1303,7 +1303,7 @@
 
 	CellEditor.prototype._adjustCanvas = function () {
 		var z = this.defaults.canvasZIndex;
-		var borderSize = AscCommon.AscBrowser.convertToRetinaValue(1, true);
+		var borderSize = AscBrowser.retinaPixelRatio === 1.5 ? 1 : AscCommon.AscBrowser.convertToRetinaValue(1, true);
 		var left = this.left * this.kx;
 		var top = this.top * this.ky;
 		var width, height, widthStyle, heightStyle;
@@ -1404,6 +1404,21 @@
 			this.handlers.trigger("onSelectionEnd");
 		}
 		return selection;
+	};
+
+	CellEditor.prototype.calculateOffset = function (pos) {
+		var left = 0;
+		var top = 0;
+		if (pos != null && this.textRender) {
+			var _top = this.textRender.calcLineOffset(this.topLineIndex);
+			var _begInfo = this.textRender.calcCharOffset(pos);
+			var _topLine = _begInfo ? this.textRender.calcLineOffset(_begInfo.lineIndex) : null;
+
+			left = _begInfo && _begInfo.left ? AscCommon.AscBrowser.convertToRetinaValue(_begInfo.left) : 0;
+			top = _topLine != null && _top != null ? AscCommon.AscBrowser.convertToRetinaValue(_topLine - _top) : 0;
+		}
+
+		return [left, top];
 	};
 
 	// Cursor

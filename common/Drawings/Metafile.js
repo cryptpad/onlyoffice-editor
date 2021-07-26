@@ -1964,8 +1964,6 @@
 			if (!oForm)
 				return;
 
-			var oParagraph = oForm.GetParagraph();
-
 			this.Memory.WriteByte(CommandType.ctFormField);
 
 			var nStartPos = this.Memory.GetCurPosition();
@@ -2003,8 +2001,27 @@
 			if (oForm.IsPlaceHolder())
 				nFlag |= (1 << 3);
 
-			// 0 - Неизвестно поле
-			// 1 - Текстовое поле
+			// 7-ой и 8-ой биты зарезервированы для бордера
+			var oBorder = oForm.GetTextFormPr() ? oForm.GetTextFormPr().CombBorder : null;
+			if (oBorder && !oBorder.IsNone())
+			{
+				nFlag |= (1 << 6);
+
+				var oColor = oBorder.GetColor();
+				this.Memory.WriteLong(1);
+				this.Memory.WriteDouble(oBorder.GetWidth());
+				this.Memory.WriteByte(oColor.r);
+				this.Memory.WriteByte(oColor.g);
+				this.Memory.WriteByte(oColor.b);
+				this.Memory.WriteByte(0x255);
+			}
+
+
+			// 0 - Unknown
+			// 1 - Text
+			// 2 - ComboBox/DropDownList
+			// 3 - CheckBox/RadioButton
+			// 4 - Picture
 
 			if (oForm.IsTextForm())
 			{
@@ -2026,6 +2043,80 @@
 					nFlag |= (1 << 22);
 					this.Memory.WriteString(sValue);
 				}
+			}
+			else if (oForm.IsComboBox() || oForm.IsDropDownList())
+			{
+				this.Memory.WriteLong(2);
+				var isComboBox = oForm.IsComboBox();
+
+				var oFormPr = isComboBox ? oForm.GetComboBoxPr() : oForm.GetDropDownListPr();
+
+				if (!isComboBox)
+					nFlag |= (1 << 20);
+
+				var sValue         = oForm.GetSelectedText(true);
+				var nSelectedIndex = -1;
+
+				// Обработка "Choose an item"
+				var nItemsCount = oFormPr.GetItemsCount();
+				if (nItemsCount > 0 && AscCommon.translateManager.getValue("Choose an item") === oFormPr.GetItemDisplayText(0))
+				{
+					this.Memory.WriteLong(nItemsCount - 1);
+					for (var nIndex = 1; nIndex < nItemsCount; ++nIndex)
+					{
+						var sItemValue = oFormPr.GetItemDisplayText(nIndex);
+						if (sItemValue === sValue)
+							nSelectedIndex = nIndex;
+
+						this.Memory.WriteString(sItemValue);
+					}
+				}
+				else
+				{
+					this.Memory.WriteLong(nItemsCount);
+					for (var nIndex = 0; nIndex < nItemsCount; ++nIndex)
+					{
+						var sItemValue = oFormPr.GetItemDisplayText(nIndex);
+						if (sItemValue === sValue)
+							nSelectedIndex = nIndex;
+
+						this.Memory.WriteString(sItemValue);
+					}
+				}
+
+				this.Memory.WriteLong(nSelectedIndex);
+
+				if (sValue)
+				{
+					nFlag |= (1 << 22);
+					this.Memory.WriteString(sValue);
+				}
+			}
+			else if (oForm.IsCheckBox())
+			{
+				this.Memory.WriteLong(3);
+
+				var oCheckBoxPr = oForm.GetCheckBoxPr();
+
+				if (oCheckBoxPr.GetChecked())
+					nFlag |= (1 << 20);
+
+				this.Memory.WriteLong(oCheckBoxPr.GetCheckedSymbol());
+				this.Memory.WriteString(oCheckBoxPr.GetCheckedFont());
+				this.Memory.WriteLong(oCheckBoxPr.GetUncheckedSymbol());
+				this.Memory.WriteString(oCheckBoxPr.GetUncheckedFont());
+
+				var sGroupName = oCheckBoxPr.GetGroupKey();
+				if (sGroupName)
+				{
+					nFlag |= (1 << 21);
+					this.Memory.WriteString(sGroupName);
+				}
+			}
+			else if (oForm.IsPicture())
+			{
+				this.Memory.WriteLong(4);
+				// TODO: Параметры для картиночной формы
 			}
 			else
 			{
@@ -3212,10 +3303,11 @@
 		}
 		this.IsIdentity2 = function(m)
 		{
-			if (m.sx == 1.0 &&
-				m.shx == 0.0 &&
-				m.shy == 0.0 &&
-				m.sy == 1.0)
+			var eps = 0.00001;
+			if (Math.abs(m.sx - 1.0) < eps &&
+				Math.abs(m.shx) < eps &&
+				Math.abs(m.shy) < eps &&
+				Math.abs(m.sy - 1.0) < eps)
 			{
 				return true;
 			}
