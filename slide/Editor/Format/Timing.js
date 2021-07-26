@@ -243,6 +243,42 @@
     CTimeNodeBase.prototype.scheduleStart = function(oPlayer) {
         oPlayer.scheduleEvent(new CAnimEvent(this.getActivateCallback(oPlayer), this.getStartTrigger(oPlayer), this));
     };
+    CTimeNodeBase.prototype.createExternalEventTrigger = function(oPlayer, nType, sSpId) {
+        var oThis = this;
+        return function () {
+            var oEvent = oPlayer.getExternalEvent();
+            if(!oEvent) {
+                return false;
+            }
+            if(oEvent.type === nType && (!sSpId || oEvent.target === sSpId)) {
+                var aHandledNodes = oEvent.handledNodes;
+                var nNode, oNode;
+                for(nNode = 0; nNode < aHandledNodes.length; ++nNode) {
+                    oNode = aHandledNodes[nNode];
+                    if(oNode.isSibling(oThis)) {
+                        return false;
+                    }
+                }
+                for(nNode = 0; nNode < aHandledNodes.length; ++nNode) {
+                    oNode = aHandledNodes[nNode];
+                    if(oNode === this) {
+                        break;
+                    }
+                }
+                if(nNode === aHandledNodes.length) {
+                    oEvent.handledNodes.push(oThis);
+                }
+                return true;
+            }
+            return false;
+        };
+    };
+    CTimeNodeBase.prototype.isSibling = function(oNode) {
+        if(this !== oNode && oNode.getParentTimeNode() === this.getParentTimeNode()) {
+            return true;
+        }
+        return false;
+    };
     CTimeNodeBase.prototype.getStartTrigger = function(oPlayer) {
         var oAttributes = this.getAttributesObject();
         if(!oAttributes || !oAttributes.stCondLst) {
@@ -258,7 +294,7 @@
             }
             case NODE_TYPE_CLICKEFFECT: {
                 oTrigger = oAttributes.stCondLst.createComplexTrigger(oPlayer);
-                oTrigger.setExternalEvent(new CExternalEvent(oPlayer.eventsProcessor, COND_EVNT_ON_CLICK, null));
+                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, COND_EVNT_ON_CLICK, null));
                 break;
             }
             case NODE_TYPE_WITHEFFECT: {
@@ -3084,12 +3120,16 @@
             return oElapsedTime.greaterOrEquals(oEnd);
         };
     };
-    CCond.prototype.createExternalEventSimpleTrigger = function (oPlayer, nType) {
+    CCond.prototype.createExternalEventTrigger = function (oPlayer, nType) {
+        var oTimeNode = this.getNearestParentOrEqualTimeNode();
+        if(!oTimeNode) {
+            return null;
+        }
         var sSpId = null;
         if(this.tgtEl) {
             sSpId = this.tgtEl.getSpId();
         }
-        return new CExternalEvent(oPlayer.eventsProcessor, nType, sSpId);
+        return oTimeNode.createExternalEventTrigger(oPlayer, nType, sSpId);
     };
     CCond.prototype.createEventTrigger = function (oPlayer, fEvent) {
         var oThis = this;
@@ -3150,11 +3190,11 @@
                 break;
             }
             case COND_EVNT_ON_CLICK: {
-                oTrigger.setExternalEvent(this.createExternalEventSimpleTrigger(oPlayer, COND_EVNT_ON_CLICK));
+                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, COND_EVNT_ON_CLICK));
                 break;
             }
             case COND_EVNT_ON_DBLCLICK: {
-                oTrigger.setExternalEvent(this.createExternalEventSimpleTrigger(oPlayer, COND_EVNT_ON_DBLCLICK));
+                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, COND_EVNT_ON_DBLCLICK));
                 break;
             }
             case COND_EVNT_ON_END: {
@@ -3162,19 +3202,19 @@
                 break;
             }
             case COND_EVNT_ON_MOUSEOUT: {
-                oTrigger.setExternalEvent(this.createExternalEventSimpleTrigger(oPlayer, COND_EVNT_ON_MOUSEOUT));
+                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, COND_EVNT_ON_MOUSEOUT));
                 break;
             }
             case COND_EVNT_ON_MOUSEOVER: {
-                oTrigger.setExternalEvent(this.createExternalEventSimpleTrigger(oPlayer, COND_EVNT_ON_MOUSEOVER));
+                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, COND_EVNT_ON_MOUSEOVER));
                 break;
             }
             case COND_EVNT_ON_NEXT: {
-                oTrigger.setExternalEvent(this.createExternalEventSimpleTrigger(oPlayer, COND_EVNT_ON_NEXT));
+                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, COND_EVNT_ON_NEXT));
                 break;
             }
             case COND_EVNT_ON_PREV: {
-                oTrigger.setExternalEvent(this.createExternalEventSimpleTrigger(oPlayer, COND_EVNT_ON_PREV));
+                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, COND_EVNT_ON_PREV));
                 break;
             }
             case COND_EVNT_ON_STOPAUDIO: {
@@ -5908,6 +5948,7 @@
         this.eventsProcessor = oEventsProcessor;
         this.type = type;
         this.target = target;
+        this.handledNodes = [];
     }
     CExternalEvent.prototype.isEqual = function(oEvent) {
         if(!oEvent) {
@@ -5922,40 +5963,27 @@
         }
         return oEvent.type === this.type;
     };
-    CExternalEvent.prototype.isFired = function() {
-        return this.eventsProcessor.checkExternalEvent(this);
-    };
     CExternalEvent.prototype.log = function(sPrefix) {
         console.log(sPrefix + " | EXTERNAL EVENT TYPE: " + EVENT_DESCR_MAP[this.type] + " | TARGET: " + this.target);
     };
 
     function CEventsProcessor(player) {
         this.player = player;
-        this.events = [];
+        this.event = null;
     }
     CEventsProcessor.prototype.addEvent = function(oEvent) {
-        var bResult = false;
-        if(this.player.isExternalEventScheduled(oEvent)) {
-            this.events.push(oEvent);
-            bResult = true;
-            oEvent.log("---------------------------------------------------------------------------------------------------------------");
-            oEvent.log("TRY ADD EVENT " + bResult + " ");
-        }
-        return bResult;
+        this.event = oEvent;
+        this.player.onFrame();
+        return oEvent.handledNodes.length > 0;
     };
     CEventsProcessor.prototype.clear = function() {
-        this.events.length = 0;
+        this.event = null;
     };
     CEventsProcessor.prototype.onFrame = function() {
         this.clear();
     };
-    CEventsProcessor.prototype.checkExternalEvent = function(oEvent) {
-        for(var nEvent = 0; nEvent < this.events.length; ++nEvent) {
-            if(this.events[nEvent].isEqual(oEvent)) {
-                return true;
-            }
-        }
-        return false;
+    CEventsProcessor.prototype.getExternalEvent = function () {
+        return this.event;
     };
 
     var PLAYER_STATE_IDLE = 0;
@@ -6065,7 +6093,6 @@
 
     function CAnimComplexTrigger(param) {
         this.triggers = [];
-        this.externalEvent = null;
         this.addDefault();
         if(Array.isArray(param)) {
             this.addTriggers(param);
@@ -6074,19 +6101,24 @@
             this.addTrigger(param);
         }
     }
-    CAnimComplexTrigger.prototype.areTriggersFired = function() {
+    CAnimComplexTrigger.prototype.areTriggersFired = function(oPlayer) {
+        var oExternalEvent = oPlayer.getExternalEvent();
+        var nOldHandledNodes = null;
+        if(oExternalEvent) {
+            nOldHandledNodes = oExternalEvent.handledNodes.length;
+        }
         for(var nTrigger = 0; nTrigger < this.triggers.length; ++nTrigger) {
             if(!this.triggers[nTrigger]()) {
+                if(oExternalEvent && nOldHandledNodes !== null && oExternalEvent.handledNodes.length !== nOldHandledNodes) {
+                    oExternalEvent.handledNodes.length = nOldHandledNodes;
+                }
                 return false;
             }
         }
         return true;
     };
-    CAnimComplexTrigger.prototype.isFired = function() {
-        if(!this.areTriggersFired()) {
-            return false;
-        }
-        return this.triggers.length > 0 && (!this.externalEvent || this.externalEvent.isFired()) ;
+    CAnimComplexTrigger.prototype.isFired = function(oPlayer) {
+        return this.triggers.length > 0 && this.areTriggersFired(oPlayer);
     };
     CAnimComplexTrigger.prototype.addDefault = function() {
         this.addTrigger(DEFAULT_SIMPLE_TRIGGER);
@@ -6100,21 +6132,6 @@
         for(var nTrigger = 0; nTrigger < aTriggers.length; ++nTrigger) {
             this.addTrigger(aTriggers[nTrigger]);
         }
-    };
-    CAnimComplexTrigger.prototype.setExternalEvent = function(oExternalEvent) {
-        this.externalEvent = oExternalEvent;
-    };
-    CAnimComplexTrigger.prototype.isEqualExternalEvent = function(oExternalEvent) {
-        if(this.externalEvent && this.externalEvent.isEqual(oExternalEvent)) {
-            return true;
-        }
-        return false;
-    };
-    CAnimComplexTrigger.prototype.isExternalEventTriggered = function() {
-        if(this.externalEvent) {
-            return true;
-        }
-        return false;
     };
     
 
@@ -6134,46 +6151,10 @@
     CAnimEvent.prototype.fire = function() {
         this.callback.call();
         this.fired = true;
-        this.caller.logState("FIRE CALLBACK");
+        //this.caller.logState("FIRE CALLBACK");
     };
-
-    CAnimEvent.prototype.findEventBreaker = function(aEvents) {
-        var oExternalEvent = this.trigger.externalEvent;
-        if(oExternalEvent) {
-            var oScheduler = this.scheduler;
-            for(var nEvent = 0; nEvent < aEvents.length; ++nEvent) {
-                var oEvent = aEvents[nEvent];
-                if(oExternalEvent.isEqual(oEvent.trigger.externalEvent)) {
-                    if(oEvent.caller.isDescendant(this.caller)) {
-                        var oParentCallerNode = this.caller.getParentTimeNode();
-                        for(var oNode = oEvent.caller; oNode !== null && oNode !== oParentCallerNode; oNode = oNode.getParentTimeNode()) {
-                            if(oNode.getAttributesObject().evtFilter === "cancelBubble") {
-                                return oEvent;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    };
-    CAnimEvent.prototype.checkTrigger = function() {
-        if(!this.isScheduled()) {
-            return false;
-        }
-        if(this.trigger.isFired()) {
-            if(this.trigger.isExternalEventTriggered()) {
-                var oScheduler = this.scheduler;
-                if(this.findEventBreaker(oScheduler.events)) {
-                    return false;
-                }
-                if(this.findEventBreaker(oScheduler.firedEvents)) {
-                    return false;
-                }
-            }
-            this.fire();
-        }
-        return this.fired;
+    CAnimEvent.prototype.checkTrigger = function(oPlayer) {
+        return this.trigger.isFired(oPlayer);
     };
     CAnimEvent.prototype.checkCaller = function(oCaller) {
         if(this.caller === oCaller) {
@@ -6181,74 +6162,28 @@
         }
         return false;
     };
-    CAnimEvent.prototype.isEqualExternalEvent = function(oEvent) {
-        var oExternalEvent = null;
-        if(oEvent instanceof CExternalEvent) {
-            oExternalEvent = oEvent;
-        }
-        else if(oEvent instanceof CAnimComplexTrigger) {
-            oExternalEvent = oEvent.externalEvent;
-        }
-        else if(oEvent instanceof CAnimEvent){
-            oExternalEvent = oEvent.trigger.externalEvent;
-        }
-        return this.trigger.isEqualExternalEvent(oExternalEvent);
-    };
-    CAnimEvent.prototype.isExternalEventTriggered = function() {
-        return this.trigger.isExternalEventTriggered();
-    };
-    CAnimEvent.prototype.isTriggerFired = function() {
-        return this.trigger.isFired();
-    };
 
     function CAnimationScheduler(player) {
         this.player = player;
         this.events = [];
-        this.firedEvents = [];
     }
     CAnimationScheduler.prototype.onFrame = function() {
         this.handleEvents();
-        this.firedEvents.length = 0;
     };
-    // CAnimationScheduler.prototype.checkEvent = function(oEvent) {
-    //     if(!oEvent.isTriggerFired()) {
-    //         return false;
-    //     }
-    //     if(oEvent.isExternalEventTriggered()) {
-    //         for(var nFired = 0; nFired < this.firedEvents.length; ++nFired) {
-    //             var oFiredEvent = this.firedEvents[nFired];
-    //             if(oFiredEvent.isEqualExternalEvent(oEvent)) {
-    //                 if(oFiredEvent.caller.isDescendant(oEvent.caller)) {
-    //                     return false;
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     oEvent.fire();
-    //     this.firedEvents.push(oEvent);
-    //     return true;
-    // };
     CAnimationScheduler.prototype.handleEvents = function() {
-        var aEvents = this.events.splice(0, this.events.length);
-        for(var nEvent = aEvents.length - 1; nEvent > -1; --nEvent) {
-            var oEvent = aEvents[nEvent];
-            if(oEvent.checkTrigger()) {
-                aEvents.splice(nEvent, 1);
-                this.firedEvents.push(oEvent);
+        for(var nEvent = 0; nEvent < this.events.length; ++nEvent) {
+            var oEvent = this.events[nEvent];
+            if(oEvent.checkTrigger(this.player)) {
+                this.events.splice(nEvent, 1);
+                oEvent.fire();
+                return this.handleEvents();
             }
         }
-        for(nEvent = 0; nEvent < aEvents.length; ++nEvent) {
-            this.events.push(aEvents[nEvent]);
-        }
-
         return false;
     };
     CAnimationScheduler.prototype.addEvent = function(oEvent) {
         this.events.push(oEvent);
         oEvent.setScheduler(this);
-        // this.events.sort(function(a, b) {
-        //     return a.caller.getDepth() - b.caller.getDepth();
-        // });
     };
     CAnimationScheduler.prototype.removeEvent = function(oEvent) {
         for(var nEvent = 0; nEvent < this.events.length; ++nEvent) {
@@ -6265,21 +6200,13 @@
     CAnimationScheduler.prototype.cancelCallerEvents = function(oCaller) {
         for(var nCallbacks = this.events.length - 1; nCallbacks > -1; --nCallbacks) {
             if(this.events[nCallbacks].checkCaller(oCaller)) {
-                this.events.splice(nCallbacks, 1);
+                var oEvent = this.events.splice(nCallbacks, 1)[0];
+                oEvent.setScheduler(null);
             }
         }
     };
     CAnimationScheduler.prototype.getElapsedTicks = function() {
         return this.player.getElapsedTicks();
-    };
-    CAnimationScheduler.prototype.isExternalEventScheduled = function(oExternalEvent) {
-        for(var nEvent = 0; nEvent < this.events.length; ++nEvent) {
-            var oEvent = this.events[nEvent];
-            if(oEvent.isEqualExternalEvent(oExternalEvent) && oEvent.trigger.areTriggersFired()) {
-                return true;
-            }
-        }
-        return false;
     };
 
     function shuffleArray(array) {
@@ -7403,6 +7330,7 @@
     };
     CAnimationPlayer.prototype.stop = function() {
         this.timer.stop();
+        this.animationScheduler.cancelAll();
         this.resetNodesState();
     };
     CAnimationPlayer.prototype.pause = function() {
@@ -7444,9 +7372,6 @@
     };
     CAnimationPlayer.prototype.cancelCallerEvent = function(oCaller) {
         this.animationScheduler.cancelCallerEvents(oCaller);
-    };
-    CAnimationPlayer.prototype.checkExternalEvent = function(oEvent) {
-        return this.eventsProcessor.checkExternalEvent(oEvent);
     };
     CAnimationPlayer.prototype.onClick = function() {
         return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_CLICK, null));
@@ -7492,8 +7417,8 @@
             this.drawer.OnRecalculateAnimationFrame(this);
         }
     };
-    CAnimationPlayer.prototype.isExternalEventScheduled = function(oExternalEvent) {
-      return this.animationScheduler.isExternalEventScheduled(oExternalEvent);
+    CAnimationPlayer.prototype.getExternalEvent = function() {
+      return this.eventsProcessor.getExternalEvent();
     };
 
     var DEFAULT_SIMPLE_TRIGGER = function() {
