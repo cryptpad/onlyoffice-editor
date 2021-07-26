@@ -771,11 +771,11 @@ DrawingObjectsController.prototype =
                 if(oNvPr && oNvPr.hlinkClick && oNvPr.hlinkClick.id !== null){
                     if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE){
                         if(e.CtrlKey || this.isSlideShow()){
-                            editor.sync_HyperlinkClickCallback(oNvPr.hlinkClick.id);
                             var oAnimPlayer = this.getAnimationPlayer();
                             if(oAnimPlayer) {
                                 oAnimPlayer.onSpClick(drawing);
                             }
+                            editor.sync_HyperlinkClickCallback(oNvPr.hlinkClick.id);
                             return true;
                         }
                     }
