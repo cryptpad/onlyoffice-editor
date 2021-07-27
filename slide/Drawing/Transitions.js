@@ -364,8 +364,9 @@ function CTransitionAnimation(htmlpage)
 
         var ctx1 = this.HtmlPage.m_oEditor.HtmlElement.getContext('2d');
         ctx1.setTransform(1, 0, 0, 1, 0, 0);
-
+        this.StopAllAnimations();
         this.HtmlPage.OnScroll();
+
     };
 
     this.IsPlaying = function()
@@ -2951,10 +2952,20 @@ function CDemonstrationManager(htmlpage)
 
     this.StopAnimation = function(nSlideNum)
     {
-        var oSlide = this.HtmlPage.m_oLogicDocument.GetSlide(nSlideNum);
-        if(oSlide)
+        if(this.HtmlPage.m_oLogicDocument)
         {
-            oSlide.getAnimationPlayer().stop();
+            var oSlide = this.HtmlPage.m_oLogicDocument.GetSlide(nSlideNum);
+            if(oSlide)
+            {
+                oSlide.getAnimationPlayer().stop();
+            }
+        }
+    };
+    this.StopAllAnimations = function(nSlideNum)
+    {
+        if(this.HtmlPage.m_oLogicDocument)
+        {
+            this.HtmlPage.m_oLogicDocument.StopAnimation();
         }
     };
 
@@ -3127,10 +3138,8 @@ function CDemonstrationManager(htmlpage)
 			this.HtmlPage.m_oApi.sync_endDemonstration();
         }
 		this.HtmlPage.m_oApi.DemonstrationReporterEnd();
-        if(oThis.HtmlPage.m_oLogicDocument)
-        {
-            oThis.HtmlPage.m_oLogicDocument.StopAnimation();
-        }
+
+        this.StopAllAnimations();
 
         if (this.HtmlPage.m_oApi.isOnlyDemonstration)
             return;
@@ -3145,7 +3154,6 @@ function CDemonstrationManager(htmlpage)
             return;
 
         this.StopTransition();
-        this.StopAnimation(this.SlideNum);
 
         if (null != this.DivEndPresentation)
         {

@@ -7339,6 +7339,7 @@
     CAnimationPlayer.prototype.stop = function() {
         this.timer.stop();
         this.animationScheduler.cancelAll();
+        this.animationDrawer.clearSandwiches();
         this.resetNodesState();
     };
     CAnimationPlayer.prototype.pause = function() {
