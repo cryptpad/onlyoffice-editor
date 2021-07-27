@@ -243,7 +243,7 @@
     CTimeNodeBase.prototype.scheduleStart = function(oPlayer) {
         oPlayer.scheduleEvent(new CAnimEvent(this.getActivateCallback(oPlayer), this.getStartTrigger(oPlayer), this));
     };
-    CTimeNodeBase.prototype.createExternalEventTrigger = function(oPlayer, nType, sSpId) {
+    CTimeNodeBase.prototype.createExternalEventTrigger = function(oPlayer, oTrigger, nType, sSpId) {
         var oThis = this;
         return function () {
             var oEvent = oPlayer.getExternalEvent();
@@ -253,20 +253,28 @@
             if(oEvent.type === nType && (!sSpId || oEvent.target === sSpId)) {
                 var aHandledNodes = oEvent.handledNodes;
                 var nNode, oNode;
+                var oHandledTrigger;
                 for(nNode = 0; nNode < aHandledNodes.length; ++nNode) {
-                    oNode = aHandledNodes[nNode];
+                    oNode = aHandledNodes[nNode].node;
+                    oHandledTrigger = aHandledNodes[nNode].trigger;
                     if(oNode.isSibling(oThis)) {
                         return false;
                     }
+                    if(oNode === oThis) {
+                        if(oHandledTrigger !== oTrigger) {
+                            return false;
+                        }
+                    }
                 }
                 for(nNode = 0; nNode < aHandledNodes.length; ++nNode) {
-                    oNode = aHandledNodes[nNode];
-                    if(oNode === this) {
+                    oNode = aHandledNodes[nNode].node;
+                    oHandledTrigger = aHandledNodes[nNode].trigger;
+                    if(oNode === oThis && oHandledTrigger === oTrigger) {
                         break;
                     }
                 }
                 if(nNode === aHandledNodes.length) {
-                    oEvent.handledNodes.push(oThis);
+                    oEvent.handledNodes.push({node: oThis, trigger: oTrigger});
                 }
                 return true;
             }
@@ -294,7 +302,7 @@
             }
             case NODE_TYPE_CLICKEFFECT: {
                 oTrigger = oAttributes.stCondLst.createComplexTrigger(oPlayer);
-                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, COND_EVNT_ON_CLICK, null));
+                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, oTrigger, COND_EVNT_ON_CLICK, null));
                 break;
             }
             case NODE_TYPE_WITHEFFECT: {
@@ -3120,7 +3128,7 @@
             return oElapsedTime.greaterOrEquals(oEnd);
         };
     };
-    CCond.prototype.createExternalEventTrigger = function (oPlayer, nType) {
+    CCond.prototype.createExternalEventTrigger = function (oPlayer, oTrigger, nType) {
         var oTimeNode = this.getNearestParentOrEqualTimeNode();
         if(!oTimeNode) {
             return null;
@@ -3129,7 +3137,7 @@
         if(this.tgtEl) {
             sSpId = this.tgtEl.getSpId();
         }
-        return oTimeNode.createExternalEventTrigger(oPlayer, nType, sSpId);
+        return oTimeNode.createExternalEventTrigger(oPlayer, oTrigger, nType, sSpId);
     };
     CCond.prototype.createEventTrigger = function (oPlayer, fEvent) {
         var oThis = this;
@@ -3190,11 +3198,11 @@
                 break;
             }
             case COND_EVNT_ON_CLICK: {
-                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, COND_EVNT_ON_CLICK));
+                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, oTrigger, COND_EVNT_ON_CLICK));
                 break;
             }
             case COND_EVNT_ON_DBLCLICK: {
-                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, COND_EVNT_ON_DBLCLICK));
+                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, oTrigger, COND_EVNT_ON_DBLCLICK));
                 break;
             }
             case COND_EVNT_ON_END: {
@@ -3202,19 +3210,19 @@
                 break;
             }
             case COND_EVNT_ON_MOUSEOUT: {
-                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, COND_EVNT_ON_MOUSEOUT));
+                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, oTrigger, COND_EVNT_ON_MOUSEOUT));
                 break;
             }
             case COND_EVNT_ON_MOUSEOVER: {
-                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, COND_EVNT_ON_MOUSEOVER));
+                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, oTrigger, COND_EVNT_ON_MOUSEOVER));
                 break;
             }
             case COND_EVNT_ON_NEXT: {
-                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, COND_EVNT_ON_NEXT));
+                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, oTrigger, COND_EVNT_ON_NEXT));
                 break;
             }
             case COND_EVNT_ON_PREV: {
-                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, COND_EVNT_ON_PREV));
+                oTrigger.addTrigger(this.createExternalEventTrigger(oPlayer, oTrigger, COND_EVNT_ON_PREV));
                 break;
             }
             case COND_EVNT_ON_STOPAUDIO: {

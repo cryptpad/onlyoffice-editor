@@ -3433,19 +3433,20 @@ function CDemonstrationManager(htmlpage)
     this.Play = function(isNoSendFormReporter)
     {
         this.IsPlayMode = true;
-        if(this.HtmlPage.m_oLogicDocument)
-        {
-            this.HtmlPage.m_oLogicDocument.StopAnimation();
-        }
         if (-1 == this.CheckSlideDuration)
         {
             this.NextSlide(isNoSendFormReporter);
+        }
+        else
+        {
+            this.StartAnimation(this.SlideNum);
         }
     };
 
     this.Pause = function()
     {
         this.IsPlayMode = false;
+        this.PauseAnimation(this.SlideNum);
     };
 
     this.OnRecalculateAnimationFrame = function(oPlayer)
@@ -3555,6 +3556,10 @@ function CDemonstrationManager(htmlpage)
                 // mouse up will not sended!!!
                 oThis.HtmlPage.m_oLogicDocument.OnMouseUp(global_mouseEvent, documentMI.x, documentMI.y, documentMI.page);
                 return;
+            }
+            else
+            {
+
             }
         }
 
