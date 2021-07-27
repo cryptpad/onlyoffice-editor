@@ -3076,7 +3076,7 @@ CPresentation.prototype.collectHFProps = function (oSlide) {
         }
         if (oDTShape) {
             oContent = oDTShape.getDocContent();
-            if (oContent) {
+            if (oContent && oContent.CalculateAllFields) {
                 var oDateTime = new AscCommonSlide.CAscDateTime();
                 oContent.SetApplyToAll(true);
                 sText = oContent.GetSelectedText(false, {NewLine: true, NewParagraph: true});
