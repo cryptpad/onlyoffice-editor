@@ -3998,19 +3998,19 @@
         oCopy.addToLstAxis(nIdx, this.axis[nIdx].createDuplicate(oIdMap));
       }
       for (nIdx = 0; nIdx < this.cnt.length; ++nIdx) {
-        oCopy.addToLstCnt(nIdx, this.cnt[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstCnt(nIdx, this.cnt[nIdx]);
       }
       for (nIdx = 0; nIdx < this.hideLastTrans.length; ++nIdx) {
-        oCopy.addToLstHideLastTrans(nIdx, this.hideLastTrans[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstHideLastTrans(nIdx, this.hideLastTrans[nIdx]);
       }
       for (nIdx = 0; nIdx < this.ptType.length; ++nIdx) {
-        oCopy.addToLstPtType(nIdx, this.ptType[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstPtType(nIdx, this.ptType[nIdx]);
       }
       for (nIdx = 0; nIdx < this.st.length; ++nIdx) {
-        oCopy.addToLstSt(nIdx, this.st[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstSt(nIdx, this.st[nIdx]);
       }
       for (nIdx = 0; nIdx < this.step.length; ++nIdx) {
-        oCopy.addToLstStep(nIdx, this.step[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstStep(nIdx, this.step[nIdx]);
       }
     }
 
@@ -4303,19 +4303,19 @@
         oCopy.addToLstAxis(nIdx, this.axis[nIdx].createDuplicate(oIdMap));
       }
       for (nIdx = 0; nIdx < this.cnt.length; ++nIdx) {
-        oCopy.addToLstCnt(nIdx, this.cnt[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstCnt(nIdx, this.cnt[nIdx]);
       }
       for (nIdx = 0; nIdx < this.hideLastTrans.length; ++nIdx) {
-        oCopy.addToLstHideLastTrans(nIdx, this.hideLastTrans[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstHideLastTrans(nIdx, this.hideLastTrans[nIdx]);
       }
       for (nIdx = 0; nIdx < this.ptType.length; ++nIdx) {
-        oCopy.addToLstPtType(nIdx, this.ptType[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstPtType(nIdx, this.ptType[nIdx]);
       }
       for (nIdx = 0; nIdx < this.st.length; ++nIdx) {
-        oCopy.addToLstSt(nIdx, this.st[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstSt(nIdx, this.st[nIdx]);
       }
       for (nIdx = 0; nIdx < this.step.length; ++nIdx) {
-        oCopy.addToLstStep(nIdx, this.step[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstStep(nIdx, this.step[nIdx]);
       }
     }
 
@@ -4702,19 +4702,19 @@
         oCopy.addToLstAxis(nIdx, this.axis[nIdx].createDuplicate(oIdMap));
       }
       for (nIdx = 0; nIdx < this.cnt.length; ++nIdx) {
-        oCopy.addToLstCnt(nIdx, this.cnt[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstCnt(nIdx, this.cnt[nIdx]);
       }
       for (nIdx = 0; nIdx < this.hideLastTrans.length; ++nIdx) {
-        oCopy.addToLstHideLastTrans(nIdx, this.hideLastTrans[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstHideLastTrans(nIdx, this.hideLastTrans[nIdx]);
       }
       for (nIdx = 0; nIdx < this.ptType.length; ++nIdx) {
-        oCopy.addToLstPtType(nIdx, this.ptType[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstPtType(nIdx, this.ptType[nIdx]);
       }
       for (nIdx = 0; nIdx < this.st.length; ++nIdx) {
-        oCopy.addToLstSt(nIdx, this.st[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstSt(nIdx, this.st[nIdx]);
       }
       for (nIdx = 0; nIdx < this.step.length; ++nIdx) {
-        oCopy.addToLstStep(nIdx, this.step[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstStep(nIdx, this.step[nIdx]);
       }
     }
 
@@ -5132,9 +5132,7 @@
       oCopy.setHideGeom(this.getHideGeom());
       oCopy.setLkTxEntry(this.getLkTxEntry());
       oCopy.setRot(this.getRot());
-      if (this.getType()) {
-        oCopy.setType(this.getType().createDuplicate(oIdMap));
-      }
+      oCopy.setType(this.getType());
       oCopy.setZOrderOff(this.getZOrderOff());
       if (this.getAdjLst()) {
         oCopy.setAdjLst(this.getAdjLst().createDuplicate(oIdMap));
@@ -5909,19 +5907,19 @@
         oCopy.addToLstAxis(nIdx, this.axis[nIdx].createDuplicate(oIdMap));
       }
       for (nIdx = 0; nIdx < this.cnt.length; ++nIdx) {
-        oCopy.addToLstCnt(nIdx, this.cnt[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstCnt(nIdx, this.cnt[nIdx]);
       }
       for (nIdx = 0; nIdx < this.hideLastTrans.length; ++nIdx) {
-        oCopy.addToLstHideLastTrans(nIdx, this.hideLastTrans[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstHideLastTrans(nIdx, this.hideLastTrans[nIdx]);
       }
       for (nIdx = 0; nIdx < this.ptType.length; ++nIdx) {
-        oCopy.addToLstPtType(nIdx, this.ptType[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstPtType(nIdx, this.ptType[nIdx]);
       }
       for (nIdx = 0; nIdx < this.st.length; ++nIdx) {
-        oCopy.addToLstSt(nIdx, this.st[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstSt(nIdx, this.st[nIdx]);
       }
       for (nIdx = 0; nIdx < this.step.length; ++nIdx) {
-        oCopy.addToLstStep(nIdx, this.step[nIdx].createDuplicate(oIdMap));
+        oCopy.addToLstStep(nIdx, this.step[nIdx]);
       }
     }
 

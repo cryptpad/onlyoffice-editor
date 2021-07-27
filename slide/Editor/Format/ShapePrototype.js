@@ -603,6 +603,18 @@ CShape.prototype.recalculateContent2 = function()
 {
     if(this.txBody)
     {
+        if (this.txXfrm) {
+            if (this.txXfrm.rot) {
+                var normRot = this.txXfrm.rot;
+                while (normRot < 0) {
+                    normRot += 2 * Math.PI;
+                }
+                var nSquare = ((2.0*normRot/Math.PI + 0.5) >> 0);
+                while (nSquare < 0){
+                    nSquare += 4;
+                }
+            }
+        }
         var point = this.isObjectInSmartArt() && this.getPoint();
         var isPlaceholderInSmartArt = point && point.prSet && point.prSet.phldr;
         if(this.isPlaceholder() || isPlaceholderInSmartArt)
@@ -663,7 +675,7 @@ CShape.prototype.recalculateContent2 = function()
 
                 if(!body_pr.upright)
                 {
-                    if(!(body_pr.vert === AscFormat.nVertTTvert || body_pr.vert === AscFormat.nVertTTvert270 || body_pr.vert === AscFormat.nVertTTeaVert))
+                    if(!(body_pr.vert === AscFormat.nVertTTvert || body_pr.vert === AscFormat.nVertTTvert270 || body_pr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1))
                     {
                         this.txBody.contentWidth2 = w;
                         this.txBody.contentHeight2 = h;
@@ -680,7 +692,7 @@ CShape.prototype.recalculateContent2 = function()
                     var _full_rotate = this.getFullRotate();
                     if(AscFormat.checkNormalRotate(_full_rotate))
                     {
-                        if(!(body_pr.vert === AscFormat.nVertTTvert || body_pr.vert === AscFormat.nVertTTvert270 || body_pr.vert === AscFormat.nVertTTeaVert))
+                        if(!(body_pr.vert === AscFormat.nVertTTvert || body_pr.vert === AscFormat.nVertTTvert270 || body_pr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1))
                         {
 
                             this.txBody.contentWidth2 = w;
@@ -694,7 +706,7 @@ CShape.prototype.recalculateContent2 = function()
                     }
                     else
                     {
-                        if(!(body_pr.vert === AscFormat.nVertTTvert || body_pr.vert === AscFormat.nVertTTvert270 || body_pr.vert === AscFormat.nVertTTeaVert))
+                        if(!(body_pr.vert === AscFormat.nVertTTvert || body_pr.vert === AscFormat.nVertTTvert270 || body_pr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1))
                         {
 
                             this.txBody.contentWidth2 = h;
