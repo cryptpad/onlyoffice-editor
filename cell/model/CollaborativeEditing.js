@@ -968,6 +968,19 @@
 		CCollaborativeEditing.prototype.Remove_ForeignCursor = function(UserId){
 			delete this.m_aForeignCursorsData[UserId];
 		};
+		CCollaborativeEditing.prototype.getForeignSelectIntersection = function(col, row){
+			var res = null;
+			for (var i in this.m_aForeignCursorsData) {
+				if (this.m_aForeignCursorsData[i]) {
+					for (var j = 0; j < this.m_aForeignCursorsData[i].ranges.length; j++) {
+						if (this.m_aForeignCursorsData[i].ranges[j].contains(col, row)) {
+							res = this.m_aForeignCursorsData[i];
+						}
+					}
+				}
+			}
+			return res;
+		};
 
 		/**
 		 * Отвечает за лок в совместном редактировании

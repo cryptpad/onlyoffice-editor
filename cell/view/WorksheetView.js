@@ -8103,7 +8103,7 @@
 		var res, c, r, f, offsetX, offsetY, cellCursor;
 		var sheetId = this.model.getId(), userId, lockRangePosLeft, lockRangePosTop, lockInfo, oHyperlink;
 		var widthDiff = 0, heightDiff = 0, isLocked = false, target = c_oTargetType.Cells, row = -1, col = -1,
-			isSelGraphicObject, isNotFirst;
+			isSelGraphicObject, isNotFirst, userIdForeignSelect, foreignSelectPosLeft, foreignSelectPosTop;
 		var dialogOtherRanges = this.getDialogOtherRanges();
 		var readyMode = !(this.getSelectionDialogMode() || this.getCellEditMode());
 
@@ -8409,8 +8409,23 @@
 						userIdAllProps = isLocked.UserId;
 					}
 				}
+				
+				//проверяем, не попали ли мы в чужой селект
+				if (this.collaborativeEditing.getFast()) {
+					var isForeignSelect = this.collaborativeEditing.getForeignSelectIntersection(c.col, r.row);
+					if (isForeignSelect) {
+						userIdForeignSelect = isForeignSelect.userId;
+						foreignSelectPosLeft = this._getColLeft(c1Recalc);
+						foreignSelectPosTop = this._getRowTop(r1Recalc);
+						// Пересчитываем X и Y относительно видимой области
+						foreignSelectPosLeft -= offsetX;
+						foreignSelectPosTop -= offsetY;
+						foreignSelectPosLeft = this.cellsLeft > foreignSelectPosLeft ? this.cellsLeft : foreignSelectPosLeft;
+						foreignSelectPosTop = this.cellsTop > foreignSelectPosTop ? this.cellsTop : foreignSelectPosTop;
+					}
+				}
 			}
-
+			
 			if (canEdit && readyMode) {
 				var pivotButtons = this.model.getPivotTableButtons(new asc_Range(c.col, r.row, c.col, r.row));
 				var pivotButton = pivotButtons.find(function (element) {
