@@ -975,6 +975,7 @@
 					for (var j = 0; j < this.m_aForeignCursorsData[i].ranges.length; j++) {
 						if (this.m_aForeignCursorsData[i].ranges[j].contains(col, row)) {
 							res = this.m_aForeignCursorsData[i];
+							res.userId = i;
 						}
 					}
 				}

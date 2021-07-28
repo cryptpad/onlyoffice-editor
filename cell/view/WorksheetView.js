@@ -8414,9 +8414,11 @@
 				if (this.collaborativeEditing.getFast()) {
 					var isForeignSelect = this.collaborativeEditing.getForeignSelectIntersection(c.col, r.row);
 					if (isForeignSelect) {
+						var foreignRow = isForeignSelect.ranges[0].r1;
+						var foreignCol = isForeignSelect.ranges[0].c2;
 						userIdForeignSelect = isForeignSelect.userId;
-						foreignSelectPosLeft = this._getColLeft(c1Recalc);
-						foreignSelectPosTop = this._getRowTop(r1Recalc);
+						foreignSelectPosLeft = this._getColLeft(foreignCol);
+						foreignSelectPosTop = this._getRowTop(foreignRow);
 						// Пересчитываем X и Y относительно видимой области
 						foreignSelectPosLeft -= offsetX;
 						foreignSelectPosTop -= offsetY;
@@ -8499,7 +8501,10 @@
 				lockAllPosTop: lockAllPosTop,
 				userIdAllSheet: userIdAllSheet,
 				commentIndexes: indexes,
-				commentCoords: coords
+				commentCoords: coords,
+				userIdForeignSelect: userIdForeignSelect,
+				foreignSelectPosLeft: foreignSelectPosLeft,
+				foreignSelectPosTop: foreignSelectPosTop
 			};
 			if(!oHyperlink) {
 				this.model.getCell3(r.row, c.col)._foreachNoEmpty(function (cell) {

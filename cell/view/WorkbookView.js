@@ -1339,6 +1339,17 @@
         }));
       }
 
+		// Отправление эвента о наведении на залоченный объект
+		if (undefined !== ct.userIdForeignSelect) {
+			arrMouseMoveObjects.push(new asc_CMM({
+				type: c_oAscMouseMoveType.ForeignSelect,
+				x: AscCommon.AscBrowser.convertToRetinaValue(ct.foreignSelectPosLeft),
+				y: AscCommon.AscBrowser.convertToRetinaValue(ct.foreignSelectPosTop),
+				userId: ct.userIdForeignSelect
+			}));
+		}
+
+
       // Проверяем комментарии ячейки
       if (ct.commentIndexes) {
         arrMouseMoveObjects.push(new asc_CMM({
