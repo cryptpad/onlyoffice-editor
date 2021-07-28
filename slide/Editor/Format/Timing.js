@@ -438,23 +438,24 @@
             );
         }
         else {
-            var oEndSync = this.getAttributesObject().endSync;
-            if(oEndSync) {
-                if(this.isTimingContainer()) {
-                    var oTrigger = new CAnimComplexTrigger();
-                    var aChildren = this.getChildrenTimeNodes();
-                    oTrigger.addTrigger(function() {
-                        for(var nChild = 0; nChild < aChildren.length; ++nChild) {
-                            if(!aChildren[nChild].isAtEnd()) {
-                                return false;
-                            }
+            if(this.isTimingContainer()) {
+                var oTrigger = new CAnimComplexTrigger();
+                var aChildren = this.getChildrenTimeNodes();
+                oTrigger.addTrigger(function() {
+                    for(var nChild = 0; nChild < aChildren.length; ++nChild) {
+                        if(!aChildren[nChild].isAtEnd()) {
+                            return false;
                         }
-                        return true;
-                    });
+                    }
+                    return true;
+                });
+                var oEndSync = this.getAttributesObject().endSync;
+                if(oEndSync) {
                     oEndSync.fillTrigger(oPlayer, oTrigger);
-                    return oTrigger;
                 }
+                return oTrigger;
             }
+
 
         }
         return null;
@@ -5358,6 +5359,11 @@
         }
     };
 
+    var NEXT_AC_NONE = 0;
+    var NEXT_AC_SEEK = 1;
+
+    var PREV_AC_NONE = 0;
+    var PREV_AC_SKIP_TIMED = 1;
 
     changesFactory[AscDFH.historyitem_SeqNextCondLst] = CChangeObject;
     changesFactory[AscDFH.historyitem_SeqPrevCondLst] = CChangeObject;
@@ -5484,10 +5490,7 @@
                 for(var nChild = aChildren.length - 1; nChild > -1; --nChild) {
                     var oChild = aChildren[nChild];
                     if(oChild.isActive()) {
-                        if(oThis.concurrent !== true) {
-                            return true;
-                        }
-                        return (nChild + 1) < aChildren.length;
+                        return true;//
                     }
                 }
                 return false;
@@ -5496,11 +5499,23 @@
                 for(var nChild = aChildren.length - 1; nChild > -1; --nChild) {
                     var oChild = aChildren[nChild];
                     if(oChild.isActive()) {
+                        if(nChild === aChildren.length - 1) {
+                            oThis.getEndCallback(oPlayer)();
+                            return;
+                        }
                         if(oThis.concurrent !== true) {
                             oChild.getEndCallback(oPlayer)();
                         }
+                        else {
+                            if(oThis.nextAc === NEXT_AC_SEEK) {
+                                oChild.getEndCallback(oPlayer)();
+                            }
+                        }
                         if(nChild + 1 < aChildren.length) {
                             aChildren[nChild + 1].activateCallback(oPlayer);
+                        }
+                        else {
+                            oThis.getEndCallback(oPlayer)();
                         }
                         break;
                     }
@@ -7220,8 +7235,6 @@
     };
     CAnimationDrawer.prototype.collectSandwiches = function() {
         this.clearSandwiches();
-        var oThis = this;
-        var oPresentation = editor.WordControl.m_oLogicDocument;
         for(var nTiming = 0; nTiming < this.player.timings.length; ++nTiming) {
             var oRoot = this.player.timings[nTiming].getTimingRootNode();
             if(oRoot) {
