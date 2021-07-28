@@ -3935,7 +3935,9 @@
 		}
 
 		this.getWorksheet().cleanSelection();
-		this.collaborativeEditing.Add_ForeignCursor(UserId, newCursorInfo, UserShortId);
+		if (this.collaborativeEditing.Add_ForeignCursor(UserId, newCursorInfo, UserShortId)) {
+			newCursorInfo.needDrawLabel = true;
+		}
 		this.getWorksheet()._drawSelection();
 
 		//if (true === Show)

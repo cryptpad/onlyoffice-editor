@@ -5567,7 +5567,7 @@
 
         //draw foreign cursors
 		if (this.collaborativeEditing.getCollaborativeEditing() && this.collaborativeEditing.getFast()) {
-			var foreignCursors = this.collaborativeEditing.m_aForeignCursorsData
+			var foreignCursors = this.collaborativeEditing.m_aForeignCursorsData;
 			for (var i in foreignCursors) {
 				if (foreignCursors[i] && foreignCursors[i].sheetId === this.model.Id) {
 					var color = AscCommon.getUserColorById(foreignCursors[i].shortId, null, true);
@@ -5575,10 +5575,9 @@
 						this._drawElements(this._drawSelectionElement, foreignCursors[i].ranges[j],
 							AscCommonExcel.selectionLineType.None, color);
 
-						if (j === 0) {
+						if (j === 0 && foreignCursors[i].needDrawLabel) {
 							this.Show_ForeignCursorLabel(i, foreignCursors[i], j, color);
-							/*var coord = this.getCellCoord(foreignCursors[i].ranges[j].c2, foreignCursors[i].ranges[j].r1);
-							 this.workbook.Api.showForeignSelectLabel(i, coord._x + coord._width, coord._y, color, foreignCursors[i].isEdit);*/
+							foreignCursors[i].needDrawLabel = null;
 						}
 					}
 				}
