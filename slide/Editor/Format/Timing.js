@@ -461,9 +461,6 @@
         return null;
     };
     CTimeNodeBase.prototype.finishCallback = function(oPlayer) {
-        if(!this.isActive()) {
-            return;
-        }
         var aChildren = this.getChildrenTimeNodes();
         for(var nChild = 0; nChild < aChildren.length; ++nChild) {
             aChildren[nChild].finishCallback(oPlayer);
@@ -471,9 +468,6 @@
         this.setFinished(oPlayer);
     };
     CTimeNodeBase.prototype.freezeCallback = function(oPlayer) {
-        if(!this.isActive()) {
-            return;
-        }
         var aChildren = this.getChildrenTimeNodes();
         for(var nChild = 0; nChild < aChildren.length; ++nChild) {
             aChildren[nChild].freezeCallback(oPlayer);
@@ -481,8 +475,11 @@
         this.setFrozen(oPlayer);
     };
     CTimeNodeBase.prototype.setFrozen = function(oPlayer) {
-        if(!this.isActive()) {
+        if(this.isFrozen()) {
             return;
+        }
+        if(this.isIdle()) {
+            this.calculateParams(oPlayer);
         }
         this.setState(TIME_NODE_STATE_FROZEN);
         oPlayer.cancelCallerEvent(this);
@@ -495,8 +492,11 @@
         }
     };
     CTimeNodeBase.prototype.setFinished = function(oPlayer) {
-        if(!this.isActive()) {
+        if(this.isFinished()) {
             return;
+        }
+        if(this.isIdle()) {
+            this.calculateParams(oPlayer);
         }
         this.setState(TIME_NODE_STATE_FINISHED);
         oPlayer.cancelCallerEvent(this);
@@ -583,30 +583,34 @@
         return this.onFinished(oChild, oPlayer);
     };
     CTimeNodeBase.prototype.onFinished = function(oChild, oPlayer) {
-        if(this.isTimingContainer()) {
-            var aChildren = this.getChildrenTimeNodes();
-            var nChild;
-            if(this.isPar()) {
-                for(nChild = 0; nChild < aChildren.length; ++nChild) {
-                    if(!aChildren[nChild].isAtEnd()) {
-                        break;
-                    }
-                }
-                if(nChild === aChildren.length) {
-                    if(this.repeatCount.isSpecified() && this.simpleDurationIdx + 1 < this.repeatCount.getVal() / 1000) {
-                        this.startSimpleDuration(++this.simpleDurationIdx, oPlayer);
-                    }
+        if(!this.isActive()) {
+            return;
+        }
+        if(!this.isTimingContainer()) {
+            return;
+        }
+        var aChildren = this.getChildrenTimeNodes();
+        var nChild;
+        if(this.isPar()) {
+            for(nChild = 0; nChild < aChildren.length; ++nChild) {
+                if(!aChildren[nChild].isAtEnd()) {
+                    break;
                 }
             }
-            else if(this.isSeq()) {
-                var nChildIdx = this.getChildNodeIdx(oChild);
-                if(nChildIdx < aChildren.length - 1) {
-                    aChildren[nChildIdx + 1].scheduleStart(oPlayer);
+            if(nChild === aChildren.length) {
+                if(this.repeatCount.isSpecified() && this.simpleDurationIdx + 1 < this.repeatCount.getVal() / 1000) {
+                    this.startSimpleDuration(++this.simpleDurationIdx, oPlayer);
                 }
-                else {
-                    if(this.repeatCount.isSpecified() && this.simpleDurationIdx + 1 < this.repeatCount.getVal() / 1000) {
-                        this.startSimpleDuration(++this.simpleDurationIdx, oPlayer);
-                    }
+            }
+        }
+        else if(this.isSeq()) {
+            var nChildIdx = this.getChildNodeIdx(oChild);
+            if(nChildIdx < aChildren.length - 1) {
+                aChildren[nChildIdx + 1].scheduleStart(oPlayer);
+            }
+            else {
+                if(this.repeatCount.isSpecified() && this.simpleDurationIdx + 1 < this.repeatCount.getVal() / 1000) {
+                    this.startSimpleDuration(++this.simpleDurationIdx, oPlayer);
                 }
             }
         }
@@ -624,7 +628,7 @@
         return this.state === TIME_NODE_STATE_FINISHED;
     };
     CTimeNodeBase.prototype.isDrawable = function() {
-        return this.isActive() || this.isFrozen();
+        return this.isActive() || this.isFrozen() || (this.isTimingContainer() || this.isFinished());
     };
     CTimeNodeBase.prototype.isAtEnd = function() {
         return this.isFinished() || this.isFrozen();
@@ -701,24 +705,61 @@
         }
     };
     CTimeNodeBase.prototype.getRelativeTime = function(nElapsedTime) {
-
-        var bAutoRev = this.getAttributesObject().autoRev;
-        if(this.isFrozen()) {
+        var oAttr = this.getAttributesObject();
+        var bAutoRev = oAttr.autoRev;
+        var sTmFilter = oAttr.tmFilter;
+        var fRelTime = 0.0;
+        if(this.isFrozen() || this.isFinished()) {
             if(bAutoRev) {
-                return 0.0;
+                fRelTime = 0.0;
             }
             else {
-                return 1.0;
+                fRelTime = 1.0;
             }
         }
-        var fSimpleDur = this.simpleDuration.getVal();
-        var fRelTime = (nElapsedTime - this.startTick) / fSimpleDur;
-        if(bAutoRev) {
-            if(fRelTime <= 0.5) {
-                fRelTime *= 2;
+        else {
+            var fSimpleDur = this.simpleDuration.getVal();
+            fRelTime = (nElapsedTime - this.startTick) / fSimpleDur;
+            if(bAutoRev) {
+                if(fRelTime <= 0.5) {
+                    fRelTime *= 2;
+                }
+                else {
+                    fRelTime = (1 - fRelTime) * 2;
+                }
             }
-            else {
-                fRelTime = (1 - fRelTime) * 2;
+        }
+        if(typeof sTmFilter === "string" && sTmFilter.length > 0) {
+            var aPairs = sTmFilter.split(";");
+            var aNumPairs = [];
+            for(var nPair = 0; nPair < aPairs.length; ++nPair) {
+                var aPair = aPairs[nPair].split(",");
+                if(aPair.length !== 2) {
+                    return fRelTime;
+                }
+                var fNum1 = parseFloat(aPair[0]);
+                if(!AscFormat.isRealNumber(fNum1)) {
+                    return fRelTime;
+                }
+                var fNum2 = parseFloat(aPair[1]);
+                if(!AscFormat.isRealNumber(fNum2)) {
+                    return fRelTime;
+                }
+                if(AscFormat.fApproxEqual(fRelTime, fNum1)){
+                    return fNum2;
+                }
+                if(fRelTime <= fNum1) {
+                    if(aNumPairs.length > 0) {
+                        var aPrevPair = aNumPairs[aNumPairs.length - 1];
+                        return aPrevPair[1] + (fRelTime - aPrevPair[0])*((fNum2 - aPrevPair[1]) / (fNum1 - aPrevPair[0]));
+                    }
+                    else {
+                        return fRelTime;
+                    }
+                }
+                else {
+                    aNumPairs.push([fNum1, fNum2]);
+                }
             }
         }
         return fRelTime;
@@ -5499,23 +5540,19 @@
                 for(var nChild = aChildren.length - 1; nChild > -1; --nChild) {
                     var oChild = aChildren[nChild];
                     if(oChild.isActive()) {
-                        if(nChild === aChildren.length - 1) {
-                            oThis.getEndCallback(oPlayer)();
-                            return;
-                        }
                         if(oThis.concurrent !== true) {
                             oChild.getEndCallback(oPlayer)();
                         }
                         else {
                             if(oThis.nextAc === NEXT_AC_SEEK) {
-                                oChild.getEndCallback(oPlayer)();
+                                oChild.freezeCallback(oPlayer);
                             }
                         }
                         if(nChild + 1 < aChildren.length) {
                             aChildren[nChild + 1].activateCallback(oPlayer);
                         }
                         else {
-                            oThis.getEndCallback(oPlayer)();
+                            oThis.freezeCallback(oPlayer);
                         }
                         break;
                     }
