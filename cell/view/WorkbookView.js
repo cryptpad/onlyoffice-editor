@@ -1345,7 +1345,8 @@
 				type: c_oAscMouseMoveType.ForeignSelect,
 				x: AscCommon.AscBrowser.convertToRetinaValue(ct.foreignSelectPosLeft),
 				y: AscCommon.AscBrowser.convertToRetinaValue(ct.foreignSelectPosTop),
-				userId: ct.userIdForeignSelect
+				userId: ct.userIdForeignSelect,
+				color: AscCommon.getUserColorById(ct.userIdForeignSelect, null, true)
 			}));
 		}
 

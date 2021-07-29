@@ -8417,7 +8417,7 @@
 						var foreignRow = isForeignSelect.ranges[0].r1;
 						var foreignCol = isForeignSelect.ranges[0].c2;
 						userIdForeignSelect = isForeignSelect.userId;
-						foreignSelectPosLeft = this._getColLeft(foreignCol);
+						foreignSelectPosLeft = this._getColLeft(foreignCol) + this._getColumnWidth(foreignCol);
 						foreignSelectPosTop = this._getRowTop(foreignRow);
 						// Пересчитываем X и Y относительно видимой области
 						foreignSelectPosLeft -= offsetX;
