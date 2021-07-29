@@ -307,10 +307,14 @@
             }
             case NODE_TYPE_WITHEFFECT: {
                 oTrigger = oAttributes.stCondLst.createComplexTrigger(oPlayer);
-                oPreviousTimeNode = this.getPreviousNode();
+
+                oPreviousTimeNode = this;
+                while ((oPreviousTimeNode = oPreviousTimeNode.getPreviousNode()) &&
+                (oPreviousTimeNode.getNodeType() === NODE_TYPE_WITHEFFECT)) {
+                }
                 if(oPreviousTimeNode) {
                     oTrigger.addTrigger(function() {
-                        return oPreviousTimeNode.isActive();
+                        return oPreviousTimeNode.isActive() || oPreviousTimeNode.isAtEnd();
                     });
                 }
                 break;
@@ -320,7 +324,7 @@
                 oPreviousTimeNode = this.getPreviousNode();
                 if(oPreviousTimeNode) {
                     oTrigger.addTrigger(function() {
-                        return oPreviousTimeNode.isFinished();
+                        return oPreviousTimeNode.isAtEnd();
                     });
                 }
                 break;
@@ -442,24 +446,24 @@
         }
         else {
             if(this.isTimingContainer()) {
-                var oTrigger = new CAnimComplexTrigger();
-                var aChildren = this.getChildrenTimeNodes();
-                oTrigger.addTrigger(function() {
-                    for(var nChild = 0; nChild < aChildren.length; ++nChild) {
-                        if(!aChildren[nChild].isAtEnd()) {
-                            return false;
-                        }
-                    }
-                    return true;
-                });
                 var oEndSync = this.getAttributesObject().endSync;
-                if(oEndSync) {
-                    oEndSync.fillTrigger(oPlayer, oTrigger);
+                if(!this.repeatCount.isIndefinite() || oEndSync) {
+                    var oTrigger = new CAnimComplexTrigger();
+                    var aChildren = this.getChildrenTimeNodes();
+                    oTrigger.addTrigger(function() {
+                        for(var nChild = 0; nChild < aChildren.length; ++nChild) {
+                            if(!aChildren[nChild].isAtEnd()) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    });
+                    if(oEndSync) {
+                        oEndSync.fillTrigger(oPlayer, oTrigger);
+                    }
+                    return oTrigger;
                 }
-                return oTrigger;
             }
-
-
         }
         return null;
     };
