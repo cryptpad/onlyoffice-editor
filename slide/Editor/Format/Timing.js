@@ -6254,12 +6254,16 @@
         this.handleEvents();
     };
     CAnimationScheduler.prototype.handleEvents = function() {
-        for(var nEvent = 0; nEvent < this.events.length; ++nEvent) {
+        var nEvent = 0;
+        while(nEvent < this.events.length) {
             var oEvent = this.events[nEvent];
             if(oEvent.checkTrigger(this.player)) {
                 this.events.splice(nEvent, 1);
                 oEvent.fire();
-                return this.handleEvents();
+                nEvent = 0;
+            }
+            else {
+                ++nEvent;
             }
         }
         return false;
