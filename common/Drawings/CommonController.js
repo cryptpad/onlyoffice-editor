@@ -2184,6 +2184,7 @@ DrawingObjectsController.prototype =
 
 		if (this.selectedObjects.length === 1
 			&& this.selectedObjects[0].isForm()
+			&& this.selectedObjects[0].getInnerForm()
 			&& this.selectedObjects[0].getInnerForm().IsFormLocked())
 			isDrawHandles = false;
 
