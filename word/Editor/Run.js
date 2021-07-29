@@ -12638,6 +12638,7 @@ ParaRun.prototype.private_ProcessHyphenWithDashAutoCorrect = function(oDocument,
 			if (this.Content[nTempPos] === oDash)
 			{
 				this.State.ContentPos = nTempPos + 1;
+				oContentPos.Update(nTempPos + 1, oContentPos.GetDepth());
 				break;
 			}
 		}
