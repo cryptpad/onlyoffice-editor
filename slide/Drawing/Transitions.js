@@ -364,7 +364,6 @@ function CTransitionAnimation(htmlpage)
 
         var ctx1 = this.HtmlPage.m_oEditor.HtmlElement.getContext('2d');
         ctx1.setTransform(1, 0, 0, 1, 0, 0);
-        this.StopAllAnimations();
         this.HtmlPage.OnScroll();
 
     };
@@ -2961,7 +2960,7 @@ function CDemonstrationManager(htmlpage)
             }
         }
     };
-    this.StopAllAnimations = function(nSlideNum)
+    this.StopAllAnimations = function()
     {
         if(this.HtmlPage.m_oLogicDocument)
         {
@@ -3139,8 +3138,6 @@ function CDemonstrationManager(htmlpage)
         }
 		this.HtmlPage.m_oApi.DemonstrationReporterEnd();
 
-        this.StopAllAnimations();
-
         if (this.HtmlPage.m_oApi.isOnlyDemonstration)
             return;
 
@@ -3194,6 +3191,8 @@ function CDemonstrationManager(htmlpage)
 		}
 
 		this.StartSlideNum = -1;
+        this.StopAllAnimations();
+
     };
 
     this.IsVisibleSlide = function(slideNum)
@@ -3354,8 +3353,10 @@ function CDemonstrationManager(htmlpage)
             this.GoToNextVisibleSlide();
 		}
 
-        if (this.isLoop() && (this.SlideNum >= this.SlidesCount))
+        if (this.isLoop() && (this.SlideNum >= this.SlidesCount)) {
+            this.StopAllAnimations();
             this.SlideNum = this.GetFirstVisibleSlide();
+        }
 
         if (this.SlideNum > this.SlidesCount)
             this.End();
