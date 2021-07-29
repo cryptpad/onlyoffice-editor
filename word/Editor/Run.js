@@ -345,6 +345,21 @@ ParaRun.prototype.Copy2 = function(oPr)
     return NewRun;
 };
 
+ParaRun.prototype.createDuplicateForSmartArt = function(oPr)
+{
+	var NewRun = new ParaRun(this.Paragraph);
+	NewRun.Set_Pr(this.Pr.createDuplicateForSmartArt(oPr) );
+	var StartPos = 0;
+	var EndPos   = this.Content.length;
+	var CurPos;
+		for (CurPos = StartPos; CurPos < EndPos; CurPos++ )
+		{
+			var Item = this.Content[CurPos];
+			NewRun.Add_ToContent( CurPos - StartPos, Item.Copy(oPr), false );
+		}
+	return NewRun;
+};
+
 ParaRun.prototype.CopyContent = function(Selected)
 {
     return [this.Copy(Selected, {CopyReviewPr : true})];

@@ -123,6 +123,18 @@
         }
         return ret;
     };
+    CTextBody.prototype.createDuplicateForSmartArt = function (oPr) {
+        var ret = new CTextBody();
+        if(this.bodyPr)
+            ret.setBodyPr(this.bodyPr.createDuplicateForSmartArt());
+        if(this.lstStyle)
+            ret.setLstStyle(this.lstStyle.createDuplicate());
+        if(this.content) {
+            ret.setContent(this.content.createDuplicateForSmartArt(ret, oPr));
+        }
+        return ret;
+    }
+
     CTextBody.prototype.Is_TopDocument = function() {
         return false;
     };

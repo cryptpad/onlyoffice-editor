@@ -1340,117 +1340,17 @@ CShape.prototype.applyTextFunction = function (docContentFunction, tableFunction
 
 CShape.prototype.copyTextInfoFromShapeToPoint = function () {
     var txBody = this.txBody;
-    if (!txBody) {
+    var point = this.point;
+    if (txBody && this.point) {
+        var pointCopy;
+        if (this.point.prSet && this.point.prSet.custT) {
+            pointCopy = txBody.createDuplicateForSmartArt({custT: this.point.prSet.custT});
+        } else {
+            pointCopy = txBody.createDuplicateForSmartArt();
+        }
+        point.setT(pointCopy);
         return;
     }
-    var copyProps = {
-        bodyPr: ['anchor', 'vert'],
-        rPr: ['Lang', 'Bold', 'err', 'Italic', 'Underline', 'Strikeout', 'Spacing', 'dirty', 'baseline', 'cap'],
-        pPr: ['Jc'] // TODO: algn -> Jc?
-    };
-    var prSet;
-    if (this.point) {
-        prSet = this.point.prSet;
-    } else {
-        return;
-    }
-    var prSet = this.point.prSet;
-    var pointTxBody = this.point.getT() || new AscFormat.CTextBody();
-    if (!this.point.getT()) {
-        this.point.setT(pointTxBody);
-    }
-    var pointBodyPr;
-    if (prSet.custT) {
-        copyProps.rPr.push('FontSize');
-    }
-
-
-    if (txBody) {
-        if (txBody.bodyPr) {
-            pointBodyPr = pointTxBody.bodyPr || new AscFormat.CBodyPr();
-            if (!pointTxBody.bodyPr) {
-                pointTxBody.setBodyPr(pointBodyPr);
-            }
-            copyProps.bodyPr.forEach(function (prop) {
-                if (txBody.bodyPr[prop] !== pointBodyPr[prop]) {
-                    switch (prop) {
-                        case 'anchor':
-                            pointBodyPr.setAnchor(txBody.bodyPr[prop]);
-                            break;
-                        case 'vert':
-                            pointBodyPr.setVert(txBody.bodyPr[prop]);
-                            break;
-                    }
-                }
-            });
-
-        }
-        var oContent = txBody.content;
-        if (oContent) {
-            var pointContent = pointTxBody.content || new AscFormat.CDrawingDocContent(txBody, editor.WordControl.m_oDrawingDocument, 0, 0, 0, 0, false, false, true);
-            if (!pointTxBody.content) {
-                pointTxBody.setContent(pointContent);
-            }
-        oContent.Content.forEach(function (shapeParagraph) {
-            var pointParagraph = new AscCommonWord.Paragraph();
-
-            copyProps.pPr.forEach(function (prop) {
-                if (shapeParagraph.TextPr.Value[prop]) {
-                    switch (prop) {
-                        case "Jc":
-                            pointParagraph.Set_Align(shapeParagraph.TextPr.Value[prop]);
-                            break;
-                    }
-                }
-            });
-            shapeParagraph.Content.forEach(function (shapeParaRun) {
-                var pointParaRun = new AscCommonWord.ParaRun();
-                copyProps.rPr.forEach(function (prop) {
-                    if (shapeParaRun.Pr[prop]) {
-                        switch (prop) {
-                            case 'Lang':
-                                pointParaRun.Set_Lang(shapeParaRun.Pr[prop]);
-                                break;
-                            case 'Bold':
-                                pointParaRun.Set_Bold(shapeParaRun.Pr[prop]);
-                                break;
-                            case 'err':
-                                // pointParaRun.s(shapeParaRun.Pr[prop]);
-                                break;
-                            case 'Italic':
-                                pointParaRun.Set_Italic(shapeParaRun.Pr[prop]);
-                                break;
-                            case 'Underline':
-                                pointParaRun.Set_Underline(shapeParaRun.Pr[prop]);
-                                break;
-                            case 'Strikeout':
-                                pointParaRun.Set_Strikeout(shapeParaRun.Pr[prop]);
-                                break;
-                            case 'Spacing':
-                                pointParaRun.Set_Spacing(shapeParaRun.Pr[prop]);
-                                break;
-                            case 'FontSize':
-                                pointParaRun.Set_FontSize(shapeParaRun.Pr[prop]);
-                                break;
-                            case 'dirty':
-                                // pointParaRun.Set_Dirty(shapeParaRun.Pr[prop]);
-                                break;
-                            case 'baseline':
-                                // pointParaRun.Set_Baseline(shapeParaRun.Pr[prop]);
-                                break;
-                            case 'cap':
-                                // pointParaRun.Set_Cap(shapeParaRun.Pr[prop]);
-                                break;
-                        }
-                    }
-                    pointParagraph.AddToContent(pointParagraph.Content.length, pointParaRun);
-                });
-                pointContent.AddToContent(oContent.Content.length, pointParagraph);
-            });
-        })
-        }
-    }
-
 }
 
 CShape.prototype.clearContent = function () {
@@ -4800,45 +4700,48 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                     this.txBody.content2 = null;
                 }
             }
-            if (this.isObjectInSmartArt()) {
-                var maxFontSize = 65;
-                var arrOfFonts = [];
-                this.group.arrGraphicObjects.forEach(function (shape) {
-                        var point = shape.getPoint();
-                        var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
-                        var isNotPlaceholder = isFitText && !point.prSet.phldr;
-                        if (isNotPlaceholder) {
-                            arrOfFonts.push(shape.findFitFontSizeForSmartArt());
-                        }
-                    }
-                )
-                var minFont = arrOfFonts.reduce(function (prev, next) {
-                    if (prev > next) {
-                        return next;
-                    }
-                    return prev;
-                }, arrOfFonts[0]);
-                minFont = minFont || maxFontSize;
-                this.group.arrGraphicObjects.forEach(function (shape) {
-                    var point = shape.getPoint();
-                    var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
-                    var isPlaceholder = isFitText && point.prSet.phldr;
-                    if (isPlaceholder) {
-                        var minFontSizeForPlaceholder = shape.findFitFontSizeForSmartArt();
-                        if (minFontSizeForPlaceholder > minFont) {
-                            shape.setFontSizeInSmartArt(minFont);
-                        }
-                    } else if (isFitText) {
-                        shape.setFontSizeInSmartArt(minFont);
-                    }
-                });
-                this.copyTextInfoFromShapeToPoint();
-            }
+            this.setTruthFontSizeInSmartArt();
         }
     }
     return false;
 };
 
+CShape.prototype.setTruthFontSizeInSmartArt = function () {
+    if (this.isObjectInSmartArt()) {
+        var maxFontSize = 65;
+        var arrOfFonts = [];
+        this.group.arrGraphicObjects.forEach(function (shape) {
+                var point = shape.getPoint();
+                var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
+                var isNotPlaceholder = isFitText && !point.prSet.phldr;
+                if (isNotPlaceholder) {
+                    arrOfFonts.push(shape.findFitFontSizeForSmartArt());
+                }
+            }
+        )
+        var minFont = arrOfFonts.reduce(function (prev, next) {
+            if (prev > next) {
+                return next;
+            }
+            return prev;
+        }, arrOfFonts[0]);
+        minFont = minFont || maxFontSize;
+        this.group.arrGraphicObjects.forEach(function (shape) {
+            var point = shape.getPoint();
+            var isFitText = point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
+            var isPlaceholder = isFitText && point.prSet.phldr;
+            if (isPlaceholder) {
+                var minFontSizeForPlaceholder = shape.findFitFontSizeForSmartArt();
+                if (minFontSizeForPlaceholder > minFont) {
+                    shape.setFontSizeInSmartArt(minFont);
+                }
+            } else if (isFitText) {
+                shape.setFontSizeInSmartArt(minFont);
+            }
+        });
+        this.copyTextInfoFromShapeToPoint();
+    }
+}
 
 CShape.prototype.getTransformMatrix = function ()
 {

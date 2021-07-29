@@ -208,6 +208,18 @@ CDocumentContent.prototype.Copy3 = function(Parent)//для заголовков
 	}
 	return DC;
 };
+
+CDocumentContent.prototype.createDuplicateForSmartArt = function (Parent, oPr) {
+	var DC = new CDocumentContent(Parent, this.DrawingDocument, 0, 0, 0, 0, this.Split, this.TurnOffInnerWrap, true);
+	DC.Internal_Content_RemoveAll();
+
+	var Count = this.Content.length;
+	for (var Index = 0; Index < Count; Index++)
+	{
+		DC.Internal_Content_Add(Index, this.Content[Index].createDuplicateForSmartArt(DC, oPr), false);
+	}
+	return DC;
+}
 /**
  * В текущем содержимом получаем все комментарии и создаем их копии. Это иногда нужно делать во время функции
  * копирования, чтобы создавать новый уникальный комментарий с новым Id. Обрабатываются ТОЛЬКО комментарии, у которых

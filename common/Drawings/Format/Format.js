@@ -10204,6 +10204,21 @@ CBodyPr.prototype =
         }
         return duplicate;
     },
+    createDuplicateForSmartArt: function ()
+    {
+        var duplicate = new CBodyPr();
+        duplicate.anchor         = this.anchor;
+        duplicate.vert           = this.vert;
+        duplicate.rot            = this.rot;
+        duplicate.vertOverflow   = this.vertOverflow;
+        duplicate.horzOverflow   = this.horzOverflow;
+        duplicate.upright        = this.upright;
+        duplicate.rtlCol         = this.rtlCol;
+        duplicate.fromWordArt    = this.fromWordArt;
+        duplicate.compatLnSpc    = this.compatLnSpc;
+        duplicate.forceAA        = this.forceAA;
+        return duplicate;
+    },
 
     merge: function(bodyPr)
     {

@@ -7671,11 +7671,6 @@ function BinaryPPTYLoader()
         }
         s.Seek2(_end_rec);
         console.log(_smartArt)
-        // _smartArt.getDrawing().spTree.forEach(function (shape) {
-        //     if (shape.isObjectInSmartArt()) {
-        //         shape.checkExtentsByDocContent();
-        //     }
-        // });
         return _smartArt;
     };
 
