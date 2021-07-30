@@ -6288,6 +6288,9 @@
     CAnimationScheduler.prototype.cancelAll = function() {
         this.events.length = 0;
     };
+    CAnimationScheduler.prototype.stop = function() {
+        this.cancelAll();
+    };
     CAnimationScheduler.prototype.cancelCallerEvents = function(oCaller) {
         for(var nCallbacks = this.events.length - 1; nCallbacks > -1; --nCallbacks) {
             if(this.events[nCallbacks].checkCaller(oCaller)) {
@@ -7227,6 +7230,14 @@
     CAnimationDrawer.prototype.clearSandwiches = function() {
         this.sandwiches = {};
     };
+    CAnimationDrawer.prototype.clearLastFrameSandwiches = function() {
+        this.lastFrameSandwiches = {};
+    };
+    CAnimationDrawer.prototype.stop = function() {
+        this.clearSandwiches();
+        this.clearLastFrameSandwiches();
+        this.texturesCache.clear();
+    };
     CAnimationDrawer.prototype.addAnimationToDraw = function(sDrawingId, oAnimation) {
         if(!this.sandwiches[sDrawingId]) {
             this.sandwiches[sDrawingId] = new CAnimSandwich(sDrawingId, this.player.getElapsedTicks());
@@ -7439,8 +7450,8 @@
     };
     CAnimationPlayer.prototype.stop = function() {
         this.timer.stop();
-        this.animationScheduler.cancelAll();
-        this.animationDrawer.clearSandwiches();
+        this.animationScheduler.stop();
+        this.animationDrawer.stop();
         this.resetNodesState();
     };
     CAnimationPlayer.prototype.pause = function() {
