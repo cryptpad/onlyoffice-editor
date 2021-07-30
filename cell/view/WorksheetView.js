@@ -14592,7 +14592,7 @@
 		}
 	};
     WorksheetView.prototype.autoFitColumnsWidth = function (col) {
-		if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatColumns)) {
+		if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatColumns)) {
 			return;
 		}
     	var viewMode = this.handlers.trigger('getViewMode');
