@@ -1507,14 +1507,7 @@ Slide.prototype =
         for(var i = 0; i < aSpTree.length; ++i)
         {
             var oSp = aSpTree[i];
-            if(oSp.isEmptyPlaceholder())
-            {
-                var oPlaceholder = oSp.createPlaceholderControl();
-                if(oPlaceholder.buttons.length > 0)
-                {
-                    ret.push(oPlaceholder);
-                }
-            }
+            oSp.createPlaceholderControl(ret);
         }
         return ret;
     },

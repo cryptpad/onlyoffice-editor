@@ -7898,6 +7898,11 @@
 
       return copy;
     };
+    Drawing.prototype.createPlaceholderControl = function(aControls) {
+      for(var nSp = 0; nSp < this.spTree.length; ++nSp) {
+          this.spTree[nSp].createPlaceholderControl(aControls);
+      }
+    };
 
 
     changesFactory[AscDFH.historyitem_BackdropNormDx] = CChangeObject;
@@ -8763,21 +8768,25 @@
 
     SmartArt.prototype.setPointsForShapes = function () {
       var that = this;
-      this.getDrawing().spTree.forEach(function (shape) {
-        if (shape.isObjectInSmartArt()) {
-          var ptLst = that.getDataModel().getDataModel().ptLst.list;
-          for (var i = 0; i < ptLst.length; i += 1) {
-            if (shape.modelId && shape.modelId === ptLst[i].modelId) {
-              for (var j = 0; j < ptLst.length; j += 1) {
-                if (ptLst[i].prSet && ptLst[i].prSet.presAssocID && ptLst[i].prSet.presAssocID === ptLst[j].modelId) {
-                  shape.setSmartArtPoint(ptLst[j]);
-                }
+      var oDrawing = this.getDrawing();
+      if(!oDrawing) {
+          return;
+      }
+      oDrawing.spTree.forEach(function (shape) {
+          if (shape.isObjectInSmartArt()) {
+              var ptLst = that.getDataModel().getDataModel().ptLst.list;
+              for (var i = 0; i < ptLst.length; i += 1) {
+                  if (shape.modelId && shape.modelId === ptLst[i].modelId) {
+                      for (var j = 0; j < ptLst.length; j += 1) {
+                          if (ptLst[i].prSet && ptLst[i].prSet.presAssocID && ptLst[i].prSet.presAssocID === ptLst[j].modelId) {
+                              shape.setSmartArtPoint(ptLst[j]);
+                          }
+                      }
+                  }
               }
-            }
           }
-        }
       })
-    }
+    };
 
     SmartArt.prototype.setParent = function (parent) {
       History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_SmartArtParent, this.parent, parent));
@@ -8849,6 +8858,11 @@
       }
       if (this.getStyleDef()) {
         oCopy.setStyleDef(this.getStyleDef().createDuplicate(oIdMap));
+      }
+    }
+    SmartArt.prototype.createPlaceholderControl = function (aControls) {
+      if(this.drawing) {
+          this.drawing.createPlaceholderControl(aControls);
       }
     }
 

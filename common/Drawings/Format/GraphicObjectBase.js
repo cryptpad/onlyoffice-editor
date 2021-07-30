@@ -1981,10 +1981,14 @@
                 }
             }
         }
-    }
+    };
 
-    CGraphicObjectBase.prototype.createPlaceholderControl = function()
+    CGraphicObjectBase.prototype.createPlaceholderControl = function(aControls)
     {
+        if(!this.isEmptyPlaceholder())
+        {
+            return;
+        }
         var phType = this.getPhType();
         var aButtons = [];
         var isLocalDesktop = window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsSupportMedia"] && window["AscDesktopEditor"]["IsSupportMedia"]();
@@ -2096,7 +2100,10 @@
         {
             nSlideNum = this.parent.num;
         }
-        return  AscCommon.CreateDrawingPlaceholder(this.Id, aButtons, nSlideNum, { x : 0, y : 0, w : this.extX, h : this.extY }, this.transform);
+        if(aButtons.length > 0)
+        {
+            aControls.push(AscCommon.CreateDrawingPlaceholder(this.Id, aButtons, nSlideNum, { x : 0, y : 0, w : this.extX, h : this.extY }, this.transform));
+        }
     };
 
     CGraphicObjectBase.prototype.onSlicerUpdate = function(sName){
