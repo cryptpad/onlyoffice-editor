@@ -13829,11 +13829,11 @@
 			if (c_oRangeType.All == nRangeType && null == row.xfs) {
 				return;
 			}
-			row.setlocked(val);
+			row.setLocked(val);
 		}, function (col) {
-			col.setlocked(val);
+			col.setLocked(val);
 		}, function (cell) {
-			cell.setlocked(val);
+			cell.setLocked(val);
 		});
 	};
 	Range.prototype.setType=function(type){

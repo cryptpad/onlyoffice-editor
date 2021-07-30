@@ -2899,13 +2899,13 @@
 			{
 				this.memory.WriteByte(c_oSerProtectionTypes.Hidden);
 				this.memory.WriteByte(c_oSerPropLenType.Byte);
-				this.memory.WriteByte(xf.hidden);
+				this.memory.WriteBool(xf.hidden);
 			}
 			if(null != xf.locked)
 			{
 				this.memory.WriteByte(c_oSerProtectionTypes.Locked);
 				this.memory.WriteByte(c_oSerPropLenType.Byte);
-				this.memory.WriteByte(xf.locked);
+				this.memory.WriteBool(xf.locked);
 			}
 		};
         this.WriteAlign = function(align)

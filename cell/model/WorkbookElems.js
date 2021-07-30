@@ -3092,7 +3092,7 @@ var g_oBorderProperties = {
 		return res;
 	};
 	CellXfs.prototype.asc_getLocked = function () {
-		return this.locked;
+		return this.locked === null || this.locked === true;
 	};
 	CellXfs.prototype.asc_getHidden = function () {
 		return this.hidden;
