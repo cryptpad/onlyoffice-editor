@@ -1666,7 +1666,7 @@ DrawingObjectsController.prototype =
     },
 
     getAnimationPlayer: function() {
-        if(this.drawingObjects && this.drawingObjects.cSld){
+        if(this.drawingObjects && this.drawingObjects.cSld && this.drawingObjects.getAnimationPlayer){
             if(editor && editor.WordControl &&
                 editor.WordControl.DemonstrationManager &&
                 editor.WordControl.DemonstrationManager.Mode) {

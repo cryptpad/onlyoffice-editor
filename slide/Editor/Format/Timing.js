@@ -546,12 +546,12 @@
     CTimeNodeBase.prototype.setState = function(nState) {
         this.state = nState;
 
-        this.logState("SET STATE:");
+        //this.logState("SET STATE:");
     };
     CTimeNodeBase.prototype.logState = function (sPrefix) {
         var oAttr = this.getAttributesObject();
         var sNodeType = NODE_TYPE_MAP[oAttr.nodeType];
-        console.log(sPrefix + " | ID: " + this.Id + " | TYPE: " + this.constructor.name + " | NODE_TYPE: " + sNodeType + " | STATE: " + oSTATEDESCRMAP[this.state] + " | TIME: " + (new Date()).getTime() + " | FORMAT ID: " + oAttr.id);
+        //console.log(sPrefix + " | ID: " + this.Id + " | TYPE: " + this.constructor.name + " | NODE_TYPE: " + sNodeType + " | STATE: " + oSTATEDESCRMAP[this.state] + " | TIME: " + (new Date()).getTime() + " | FORMAT ID: " + oAttr.id);
     };
     CTimeNodeBase.prototype.getFormatId = function () {
         return this.getAttributesObject().id;
@@ -6051,7 +6051,7 @@
         return oEvent.type === this.type;
     };
     CExternalEvent.prototype.log = function(sPrefix) {
-        console.log(sPrefix + " | EXTERNAL EVENT TYPE: " + EVENT_DESCR_MAP[this.type] + " | TARGET: " + this.target);
+        //console.log(sPrefix + " | EXTERNAL EVENT TYPE: " + EVENT_DESCR_MAP[this.type] + " | TARGET: " + this.target);
     };
 
     function CEventsProcessor(player) {
@@ -7483,50 +7483,56 @@
     CAnimationPlayer.prototype.cancelCallerEvent = function(oCaller) {
         this.animationScheduler.cancelCallerEvents(oCaller);
     };
+    CAnimationPlayer.prototype.addExternalEvent = function(oExternalEvent) {
+        if(!this.isStarted()) {
+            return false;
+        }
+        return this.eventsProcessor.addEvent(oExternalEvent);
+    };
     CAnimationPlayer.prototype.onClick = function() {
-        var bClick = this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_CLICK, null));
+        var bClick = this.addExternalEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_CLICK, null));
         if(bClick) {
             return true;
         }
-        return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_NEXT, null));
+        return this.addExternalEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_NEXT, null));
     };
     CAnimationPlayer.prototype.onSpClick = function(oSp) {
         if(!oSp) {
             return false;
         }
-        var bClick = this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_CLICK, oSp.Get_Id()));
+        var bClick = this.addExternalEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_CLICK, oSp.Get_Id()));
         if(bClick) {
             return true;
         }
-        return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_NEXT, null));
+        return this.addExternalEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_NEXT, null));
     };
     CAnimationPlayer.prototype.onSpDblClick = function(oSp) {
         if(!oSp) {
             return false;
         }
-        return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_DBLCLICK, oSp.Get_Id()));
+        return this.addExternalEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_DBLCLICK, oSp.Get_Id()));
     };
     CAnimationPlayer.prototype.onSpMouseOver = function(oSp) {
         if(!oSp) {
             return false;
         }
-        return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_MOUSEOVER, oSp.Get_Id()));
+        return this.addExternalEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_MOUSEOVER, oSp.Get_Id()));
     };
     CAnimationPlayer.prototype.onSpMouseOut = function(oSp) {
         if(!oSp) {
             return false;
         }
-        return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_MOUSEOUT, oSp.Get_Id()));
+        return this.addExternalEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_MOUSEOUT, oSp.Get_Id()));
     };
     CAnimationPlayer.prototype.onNextSlide = function() {
-        var bNext = this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_NEXT, null));
+        var bNext = this.addExternalEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_NEXT, null));
         if(bNext) {
             return true;
         }
-        this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_CLICK, null));
+        this.addExternalEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_CLICK, null));
     };
     CAnimationPlayer.prototype.onPrevSlide = function() {
-        return this.eventsProcessor.addEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_PREV, null));
+        return this.addExternalEvent(new CExternalEvent(this.eventsProcessor, COND_EVNT_ON_PREV, null));
     };
     CAnimationPlayer.prototype.addAnimationToDraw = function(sDrawingId, oAnimation) {
         this.animationDrawer.addAnimationToDraw(sDrawingId, oAnimation);

@@ -3423,6 +3423,11 @@ function CDemonstrationManager(htmlpage)
         if (!this.Mode)
             return;
 
+        if(this.SlideNum === slideNum)
+        {
+            return;
+        }
+
         this.PauseAnimation(this.SlideNum);
 
 		if (this.HtmlPage.m_oApi.isReporterMode && !isNoSendFormReporter)
