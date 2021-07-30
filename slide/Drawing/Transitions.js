@@ -3559,24 +3559,56 @@ function CDemonstrationManager(htmlpage)
         return null;
     };
 
+    this.CheckMouseDown = function(x, y, page)
+    {
+        var ret = oThis.HtmlPage.m_oLogicDocument.OnMouseDown(global_mouseEvent, x, y, page);
+        if (ret == keydownresult_PreventAll)
+        {
+            // mouse up will not sended!!!
+            oThis.HtmlPage.m_oLogicDocument.OnMouseUp(global_mouseEvent, x, y, page);
+            return true;
+        }
+        return false;
+    };
+
     this.onMouseDown = function(e)
     {
         var documentMI = oThis.documentMouseInfo(e);
         if (documentMI)
         {
-            var ret = oThis.HtmlPage.m_oLogicDocument.OnMouseDown(global_mouseEvent, documentMI.x, documentMI.y, documentMI.page);
-            if (ret == keydownresult_PreventAll)
+            var oApi = oThis.HtmlPage.m_oApi;
+            oThis.HtmlPage.m_oApi.disableReporterEvents = true;
+            if(oThis.CheckMouseDown(documentMI.x, documentMI.y, documentMI.page))
             {
-                // mouse up will not sended!!!
-                oThis.HtmlPage.m_oLogicDocument.OnMouseUp(global_mouseEvent, documentMI.x, documentMI.y, documentMI.page);
+                oThis.HtmlPage.m_oApi.disableReporterEvents = false;
+                var oMsg;
+                if (oApi.isReporterMode)
+                {
+                    oMsg =
+                    {
+                        "reporter_command": "on_mouse_down",
+                        "x": documentMI.x,
+                        "y": documentMI.y,
+                        "page": documentMI.page
+                    };
+                    oApi.sendFromReporter(JSON.stringify(oMsg));
+                }
+                if (oApi.reporterWindow)
+                {
+                    oMsg =
+                    {
+                        "main_command": true,
+                        "on_mouse_down": true,
+                        "x": documentMI.x,
+                        "y": documentMI.y,
+                        "page": documentMI.page
+                    };
+                    oApi.sendToReporter(JSON.stringify(oMsg));
+                }
                 return;
             }
-            else
-            {
-
-            }
+            oThis.HtmlPage.m_oApi.disableReporterEvents = false;
         }
-
         oThis.isMouseDown = true;
         e.preventDefault();
         return false;

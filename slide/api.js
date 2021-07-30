@@ -6626,6 +6626,11 @@ background-repeat: no-repeat;\
 					_this.WordControl.DemonstrationManager.Resize(true);
 					break;
 				}
+				case "on_mouse_down":
+				{
+					_this.WordControl.DemonstrationManager.CheckMouseDown(_obj["x"], _obj["y"], _obj["page"]);
+					break;
+				}
 				default:
 					break;
 			}
@@ -6787,6 +6792,10 @@ background-repeat: no-repeat;\
 
 					_this.WordControl.reporterTimerAdd = _this.WordControl.reporterTimerFunc(true);
 				}
+			}
+			else if(true === _obj["on_mouse_down"])
+			{
+				_this.WordControl.DemonstrationManager.CheckMouseDown(_obj["x"], _obj["y"], _obj["page"]);
 			}
 		}
 		catch (err)
