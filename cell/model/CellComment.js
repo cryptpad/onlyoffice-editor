@@ -921,6 +921,10 @@ CCellCommentator.prototype.findComment = function(id) {
 };
 
 CCellCommentator.prototype.addComment = function(comment, bIsNotUpdate) {
+	if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+		return;
+	}
+
 	var t = this;
 	var oComment = comment;
 	var bChange = false;
@@ -954,6 +958,10 @@ CCellCommentator.prototype.addComment = function(comment, bIsNotUpdate) {
 };
 
 CCellCommentator.prototype.changeComment = function(id, oComment, bChangeCoords, bNoEvent, bNoAscLock, bNoDraw) {
+	if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+		return;
+	}
+
 	var t = this;
 	var comment = this.findComment(id);
 	if (null === comment)
@@ -1016,6 +1024,9 @@ CCellCommentator.prototype.changeComment = function(id, oComment, bChangeCoords,
 };
 
 CCellCommentator.prototype.removeComment = function(id, bNoEvent, bNoAscLock, bNoDraw) {
+	if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+		return;
+	}
 	var t = this;
 	var comment = this.findComment(id);
 	if (null === comment)
