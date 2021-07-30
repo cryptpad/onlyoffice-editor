@@ -1860,9 +1860,19 @@ function CDrawingDocument()
                     y += (line_w + line_distance);
                 }
             }
-
         }
     };
+	this.CloseFile = function ()
+	{
+		this.ClearCachePages();
+		this.FirePaint();
+		this.m_arrPages.splice(0, this.m_arrPages.length);
+		this.m_lPagesCount = 0;
+
+		this.m_lDrawingFirst = -1;
+		this.m_lDrawingEnd = -1;
+		this.m_lCurrentPage = -1;
+	};
 }
 
 // заглушка

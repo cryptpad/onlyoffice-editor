@@ -3747,6 +3747,7 @@ function CDrawingDocument()
             return;
         }
 		var elNone = document.getElementById(id[0]);
+		History.TurnOff();
 		if (elNone)
 		{
 			var width_px = elNone.clientWidth;
@@ -3912,8 +3913,8 @@ function CDrawingDocument()
 					y += (line_w + line_distance);
 				}
 			}
-
 		}
+		History.TurnOn();
 	};
 }
 

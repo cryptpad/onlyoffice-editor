@@ -1129,7 +1129,10 @@ var editor;
           oAdditionalData["delimiterChar"] = options.advancedOptions.asc_getDelimiterChar();
         }
       }
-      dataContainer.data = oBinaryFileWriter.Write(oAdditionalData["nobase64"]);
+      //перед записью подменяю topLeftCell на тот, который видим
+        this.wb.executeWithCurrentTopLeftCell(function () {
+          dataContainer.data = oBinaryFileWriter.Write(oAdditionalData["nobase64"]);
+        });
     }
 
     if (window.isCloudCryptoDownloadAs) {
@@ -1273,9 +1276,35 @@ var editor;
   };
 
   spreadsheet_api.prototype.openDocument = function(file) {
+	//todo native.js -> openDocument
+  	if (file.changes && this.VersionHistory) {
+  		this.VersionHistory.changes = file.changes;
+	}
+
 	this._openDocument(file.data);
 	this._openOnClient();
   };
+
+	spreadsheet_api.prototype.asc_CloseFile = function()
+	{
+		History.Clear();
+		g_oIdCounter.Clear();
+		g_oTableId.Clear();
+		AscCommon.CollaborativeEditing.Clear();
+		this.isApplyChangesOnOpenEnabled = true;
+		this.isDocumentLoadComplete = false;
+
+		//удаляю весь handlersList, добавленный при инициализации wbView
+		//потому что старый при открытии использовать нельзя(в случае с истрией версий при повторном открытии файла там остаются старые функции от предыдущего workbookview)
+		//по идее нужно делать его полное зануление, а при открытии создавать заново. но есть функции, которые
+		//добавляются в интерфейсе и в случае с историей версий заново не добавляются
+		this.wb.removeHandlersList();
+
+		if (this.wbModel.DrawingDocument) {
+			this.wbModel.DrawingDocument.CloseFile();
+		}
+	};
+
 	spreadsheet_api.prototype.openDocumentFromZip = function (wb, data) {
 		var t = this;
 		return new Promise(function (resolve, reject) {
@@ -2066,6 +2095,13 @@ var editor;
 			this.sendEvent('asc_onError', c_oAscError.ID.OpenWarning, c_oAscError.Level.NoCritical);
 		}
 
+		if (this.VersionHistory) {
+			if (this.VersionHistory.changes) {
+				this.VersionHistory.applyChanges(this);
+			}
+			this.sheetsChanged();
+			this.asc_Resize();
+		}
 		//this.asc_Resize(); // Убрал, т.к. сверху приходит resize (http://bugzilla.onlyoffice.com/show_bug.cgi?id=14680)
 	};
 
@@ -2113,6 +2149,12 @@ var editor;
 
 	spreadsheet_api.prototype._onSaveCallbackInner = function () {
 		var t = this;
+
+		var ws = this.wb.getWorksheet();
+		if (ws) {
+			ws.updateTopLeftCell();
+		}
+
 		AscCommon.CollaborativeEditing.Clear_CollaborativeMarks();
 		// Принимаем чужие изменения
 		this.collaborativeEditing.applyChanges();
@@ -3537,7 +3579,7 @@ var editor;
     }
     if(fReplaceCallback) {
 
-      if (window["AscDesktopEditor"]) {
+      if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsLocalFile"]()) {
         var firstUrl = window["AscDesktopEditor"]["LocalFileGetImageUrl"](sImageUrl);
         firstUrl = g_oDocumentUrls.getImageUrl(firstUrl);
         fReplaceCallback(firstUrl);
@@ -4731,6 +4773,16 @@ var editor;
     }
   };
 
+	spreadsheet_api.prototype._coAuthoringSetChanges = function(e, oColor)
+	{
+		var Count = e.length;
+		for (var Index = 0; Index < Count; ++Index) {
+			this.CoAuthoringApi.onSaveChanges(e[Index], null, true);
+		}
+		this.collaborativeEditing.applyChanges();
+		//this._onUpdateAfterApplyChanges();
+	};
+
   spreadsheet_api.prototype.asc_nativeGetFile = function() {
     var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
     return oBinaryFileWriter.Write();
@@ -5619,6 +5671,23 @@ var editor;
 	}
   	this.wb.undo({All : true});
   };
+  spreadsheet_api.prototype.asc_ConvertEquationToMath = function(oEquation, isAll)
+  {
+      // TODO: Вообще здесь нужно запрашивать шрифты, которые использовались в старой формуле,
+      //      но пока это только 1 шрифт "Cambria Math".
+      var oWorkbook = this.wb;
+      var loader   = AscCommon.g_font_loader;
+      var fontinfo = AscFonts.g_fontApplication.GetFontInfo("Cambria Math");
+      var isasync  = loader.LoadFont(fontinfo, function()
+      {
+          oWorkbook.convertEquationToMath(oEquation, isAll);
+      }, this);
+
+      if (false === isasync)
+      {
+          oWorkbook.convertEquationToMath(oEquation, isAll);
+      }
+  };
 
 
 
@@ -6110,4 +6179,7 @@ var editor;
   prot["asc_setSkin"] = prot.asc_setSkin;
 
   prot["asc_getEscapeSheetName"] = prot.asc_getEscapeSheetName;
+
+
+  prot["asc_ConvertEquationToMath"] = prot.asc_ConvertEquationToMath;
 })(window);

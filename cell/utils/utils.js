@@ -2371,8 +2371,8 @@
 			if (!canvas) {
 				return;
 			}
-			var w = canvas.clientWidth;
-			var h = canvas.clientHeight;
+			var w = canvas.width;
+			var h = canvas.height;
 
 			var ctx = new Asc.DrawingContext({canvas: canvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont});
 			var graphics = getGraphics(ctx);
@@ -2392,8 +2392,8 @@
 			if (!canvas) {
 				return;
 			}
-			var w = canvas.clientWidth;
-			var h = canvas.clientHeight;
+			var w = canvas.width;
+			var h = canvas.height;
 
 			var ctx = new Asc.DrawingContext({canvas: canvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont});
 			var graphics = getGraphics(ctx);
@@ -2457,6 +2457,10 @@
 
 			for (var i = 0; i < iconImgs.length; i++) {
 				var img = iconImgs[i];
+
+				if (!img) {
+					continue;
+				}
 
 				var geometry = new AscFormat.CreateGeometry("rect");
 				geometry.Recalculate(5, 5, true);
@@ -2677,6 +2681,8 @@
 
 			this.showZeros = null;
 
+			this.topLeftCell = null;
+
 			return this;
 		}
 
@@ -2691,6 +2697,7 @@
 					result.pane = this.pane.clone();
 				}
 				result.showZeros = this.showZeros;
+				result.topLeftCell = this.topLeftCell;
 				return result;
 			},
 			isEqual: function (settings) {
