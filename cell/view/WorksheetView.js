@@ -14436,7 +14436,7 @@
 				hasButton = this._checkFilterButtonInRange(col, row) || pivotButtons.find(function (element) {
 					return element.row === row && element.col === col;
 				});
-				if (null !== hasButton && CellValueType.String === ct.cellType) {
+				if (hasButton && CellValueType.String === ct.cellType) {
 					calcWidth += this._getFilterButtonSize();
 				}
             }
