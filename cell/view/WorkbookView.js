@@ -1346,7 +1346,7 @@
 				x: AscCommon.AscBrowser.convertToRetinaValue(ct.foreignSelectPosLeft),
 				y: AscCommon.AscBrowser.convertToRetinaValue(ct.foreignSelectPosTop),
 				userId: ct.userIdForeignSelect,
-				color: AscCommon.getUserColorById(ct.userIdForeignSelect, null, true)
+				color: AscCommon.getUserColorById(ct.shortIdForeignSelect, null, true)
 			}));
 		}
 

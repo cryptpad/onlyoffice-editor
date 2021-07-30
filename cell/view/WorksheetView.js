@@ -8103,7 +8103,8 @@
 		var res, c, r, f, offsetX, offsetY, cellCursor;
 		var sheetId = this.model.getId(), userId, lockRangePosLeft, lockRangePosTop, lockInfo, oHyperlink;
 		var widthDiff = 0, heightDiff = 0, isLocked = false, target = c_oTargetType.Cells, row = -1, col = -1,
-			isSelGraphicObject, isNotFirst, userIdForeignSelect, foreignSelectPosLeft, foreignSelectPosTop;
+			isSelGraphicObject, isNotFirst, userIdForeignSelect, foreignSelectPosLeft, foreignSelectPosTop,
+			shortIdForeignSelect;
 		var dialogOtherRanges = this.getDialogOtherRanges();
 		var readyMode = !(this.getSelectionDialogMode() || this.getCellEditMode());
 
@@ -8417,6 +8418,7 @@
 						var foreignRow = isForeignSelect.ranges[0].r1;
 						var foreignCol = isForeignSelect.ranges[0].c2;
 						userIdForeignSelect = isForeignSelect.userId;
+						shortIdForeignSelect = isForeignSelect.shortId;
 						foreignSelectPosLeft = this._getColLeft(foreignCol) + this._getColumnWidth(foreignCol);
 						foreignSelectPosTop = this._getRowTop(foreignRow);
 						// Пересчитываем X и Y относительно видимой области
@@ -8504,7 +8506,8 @@
 				commentCoords: coords,
 				userIdForeignSelect: userIdForeignSelect,
 				foreignSelectPosLeft: foreignSelectPosLeft,
-				foreignSelectPosTop: foreignSelectPosTop
+				foreignSelectPosTop: foreignSelectPosTop,
+				shortIdForeignSelect: shortIdForeignSelect
 			};
 			if(!oHyperlink) {
 				this.model.getCell3(r.row, c.col)._foreachNoEmpty(function (cell) {
