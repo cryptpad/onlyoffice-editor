@@ -100,6 +100,7 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Worksheet_CFRuleDelete = 53;
 
 	window['AscCH'].historyitem_Worksheet_SetShowZeros = 54;
+	window['AscCH'].historyitem_Worksheet_SetTopLeftCell = 55;
 
 	window['AscCH'].historyitem_Worksheet_AddProtectedRange = 55;
 	window['AscCH'].historyitem_Worksheet_DelProtectedRange = 56;

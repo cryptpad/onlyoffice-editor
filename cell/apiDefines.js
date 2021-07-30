@@ -47,7 +47,8 @@ function (window, undefined) {
 var c_oAscConfirm = {
   ConfirmReplaceRange: 0,
   ConfirmPutMergeRange: 1,
-  ConfirmChangeProtectRange: 2
+  ConfirmReplaceFormulaInTable: 2,
+  ConfirmChangeProtectRange: 3
 };
 
 var c_oAscMergeOptions = {
@@ -519,6 +520,12 @@ var c_oAscPopUpSelectorType = {
     firstCol: 2
   };
 
+  var ETableType = {
+	  queryTable: 0,
+	  worksheet: 1,
+	  xml: 2
+  };
+
 	var c_oAscWorkbookProtectType = {
 		lockStructure: 0,
 		lockWindows: 1,
@@ -575,6 +582,7 @@ var c_oAscPopUpSelectorType = {
   prot['ConfirmPutMergeRange'] = prot.ConfirmPutMergeRange;
   prot['ConfirmChangeProtectRange'] = prot.ConfirmChangeProtectRange;
 
+  prot['ConfirmReplaceFormulaInTable'] = prot.ConfirmReplaceFormulaInTable;
   window['Asc']['c_oAscMergeOptions'] = window['Asc'].c_oAscMergeOptions = c_oAscMergeOptions;
   prot = c_oAscMergeOptions;
   prot['Disabled'] = prot.Disabled;

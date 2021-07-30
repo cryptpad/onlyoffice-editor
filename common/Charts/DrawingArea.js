@@ -830,18 +830,15 @@ DrawingArea.prototype.drawSelection = function(drawingDocument) {
     trackOverlay.Clear();
     drawingDocument.Overlay = trackOverlay;
 
-    oWS.overlayCtx.clear();
     oWS.overlayGraphicCtx.clear();
     oWS._drawCollaborativeElements(autoShapeTrack);
 
 	var controller = oWS.objectRender.controller;
-    if ( !controller.selectedObjects.length && !this.api.isStartAddShape) {
-		oWS._drawSelection();
+    if ( controller.selectedObjects.length || this.api.isStartAddShape) {
+		oWS.overlayCtx.clear();
 	}
-    var chart;
-    var selected_objects = controller.selection.groupSelection ? controller.selection.groupSelection.selectedObjects : controller.selectedObjects;
-    if(selected_objects.length === 1 && selected_objects[0].getObjectType() === AscDFH.historyitem_type_ChartSpace) {
-        chart = selected_objects[0];
+    var chart = controller.getChartForRangesDrawing();
+    if(chart) {
 		oWS.objectRender.selectDrawingObjectRange(chart);
     }
     for ( var i = 0; i < this.frozenPlaces.length; i++ ) {
