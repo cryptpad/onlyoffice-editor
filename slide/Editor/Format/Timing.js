@@ -549,8 +549,8 @@
         //this.logState("SET STATE:");
     };
     CTimeNodeBase.prototype.logState = function (sPrefix) {
-        var oAttr = this.getAttributesObject();
-        var sNodeType = NODE_TYPE_MAP[oAttr.nodeType];
+        //var oAttr = this.getAttributesObject();
+        //var sNodeType = NODE_TYPE_MAP[oAttr.nodeType];
         //console.log(sPrefix + " | ID: " + this.Id + " | TYPE: " + this.constructor.name + " | NODE_TYPE: " + sNodeType + " | STATE: " + oSTATEDESCRMAP[this.state] + " | TIME: " + (new Date()).getTime() + " | FORMAT ID: " + oAttr.id);
     };
     CTimeNodeBase.prototype.getFormatId = function () {
@@ -7233,10 +7233,13 @@
     CAnimationDrawer.prototype.clearLastFrameSandwiches = function() {
         this.lastFrameSandwiches = {};
     };
+    CAnimationDrawer.prototype.clearTextureCache = function() {
+        this.texturesCache.clear();
+    };
     CAnimationDrawer.prototype.stop = function() {
         this.clearSandwiches();
         this.clearLastFrameSandwiches();
-        this.texturesCache.clear();
+        this.clearTextureCache();
     };
     CAnimationDrawer.prototype.addAnimationToDraw = function(sDrawingId, oAnimation) {
         if(!this.sandwiches[sDrawingId]) {
@@ -7456,6 +7459,7 @@
     };
     CAnimationPlayer.prototype.pause = function() {
         this.timer.pause();
+        this.animationDrawer.clearTextureCache();
     };
     CAnimationPlayer.prototype.onFrame = function() {
         if(!this.isStarted()) {

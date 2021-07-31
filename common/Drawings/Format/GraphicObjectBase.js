@@ -2173,14 +2173,12 @@
     };
 	CGraphicObjectBase.prototype.isForm = function() {
 		return (this.parent && this.parent.IsForm && this.parent.IsForm());
-	}
+	};
 	CGraphicObjectBase.prototype.getInnerForm = function() {
 		return null;
-	}
-
+	};
     CGraphicObjectBase.prototype.getBoundsByDrawing = function() {
         var oCopy = this.bounds.copy();
-
         oCopy.l -= 3;
         oCopy.r += 3;
         oCopy.t -= 3;
@@ -2195,32 +2193,10 @@
             h: oPresentation.GetHeightMM()
         }
     };
-    CGraphicObjectBase.prototype.getCachedCanvas = function(scale) {
-        var oBounds = this.getBoundsByDrawing();
-        var nWidth = Math.round(oBounds.w * scale);
-        var nHeight = Math.round(oBounds.h * scale);
-        if(nWidth === 0 || nHeight === 0) {
-            return null;
-        }
-        var oCanvas = document.createElement('canvas');
-        oCanvas.width = nWidth;
-        oCanvas.height = nHeight;
-        var oCtx = oCanvas.getContext('2d');
-        var oGraphics = new AscCommon.CGraphics();
-        oGraphics.init(oCtx, nWidth, nHeight, oBounds.w, oBounds.h);
-        oGraphics.m_oFontManager = AscCommon.g_fontManager;
-        oGraphics.m_oCoordTransform.tx = -Math.round(oBounds.x * scale);
-        oGraphics.m_oCoordTransform.ty = -Math.round(oBounds.y * scale);
-        oGraphics.transform(1, 0, 0, 1, 0, 0);
-        AscCommon.IsShapeToImageConverter = true;
-        this.draw(oGraphics);
-        AscCommon.IsShapeToImageConverter = false;
-        return oCanvas;
-    };
     CGraphicObjectBase.prototype.getAnimTexture = function(scale) {
         var oBounds = this.getBoundsByDrawing();
-        var nWidth = Math.round(oBounds.w * scale);
-        var nHeight = Math.round(oBounds.h * scale);
+        var nWidth = oBounds.w * scale + 0.5 >> 0;
+        var nHeight = oBounds.h * scale + 0.5 >> 0;
         if(nWidth === 0 || nHeight === 0) {
             return null;
         }
@@ -2229,13 +2205,12 @@
         oCanvas.height = nHeight;
         var oCtx = oCanvas.getContext('2d');
         var oGraphics = new AscCommon.CGraphics();
-        oGraphics.init(oCtx, nWidth, nHeight, oBounds.w, oBounds.h);
+        oGraphics.init(oCtx, nWidth, nHeight, nWidth / scale, nHeight / scale);
         oGraphics.m_oFontManager = AscCommon.g_fontManager;
-        var nX = Math.round(oBounds.x * scale);
-        var nY = Math.round(oBounds.y * scale);
+        var nX = oBounds.x * oGraphics.m_oCoordTransform.sx;
+        var nY = oBounds.y * oGraphics.m_oCoordTransform.sy;
         oGraphics.m_oCoordTransform.tx = -nX;
         oGraphics.m_oCoordTransform.ty = -nY;
-        oGraphics.transform(1, 0, 0, 1, 0, 0);
         AscCommon.IsShapeToImageConverter = true;
         this.draw(oGraphics);
         AscCommon.IsShapeToImageConverter = false;
