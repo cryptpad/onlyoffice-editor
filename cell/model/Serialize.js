@@ -1604,6 +1604,10 @@
 		this.align = null;
 		this.PivotButton = null;
 		this.XfId = null;
+		
+		this.applyProtection = null;
+		this.locked = null;
+		this.hidden = null;
 	}
 	function ReadColorSpreadsheet2(bcr, length) {
 		var output = null;
@@ -2859,12 +2863,6 @@
 				this.memory.WriteByte(c_oSerPropLenType.Variable);
 				this.bs.WriteItemWithLength(function(){oThis.WriteAlign(xfForWrite.alignMinimized);});
 			}
-			if(null != xfForWrite.applyProtection)
-			{
-				this.memory.WriteByte(c_oSerXfsTypes.ApplyProtection);
-				this.memory.WriteByte(c_oSerPropLenType.Byte);
-				this.memory.WriteBool(xfForWrite.applyProtection);
-			}
 
 			if (xf) {
 				if(null != xf.QuotePrefix)
@@ -2885,6 +2883,12 @@
 					this.memory.WriteByte(c_oSerPropLenType.Long);
 					this.memory.WriteLong(xf.XfId);
 				}
+                if(null != xf.applyProtection)
+                {
+                    this.memory.WriteByte(c_oSerXfsTypes.ApplyProtection);
+                    this.memory.WriteByte(c_oSerPropLenType.Byte);
+                    this.memory.WriteBool(xf.applyProtection);
+                }
 				if (null != xf.locked || null != xf.hidden)
 				{
 					this.memory.WriteByte(c_oSerXfsTypes.Protection);
@@ -6988,6 +6992,8 @@
 				// locked
 				if(null != oCellStyleXfs.locked)
 					newXf.locked = oCellStyleXfs.locked;
+                if(null != oCellStyleXfs.applyProtection)
+                    newXf.applyProtection = oCellStyleXfs.applyProtection;
                 // align
                 if(null != oCellStyleXfs.align)
 					newXf.align = oCellStyleXfs.align;
@@ -7066,6 +7072,8 @@
 				// locked
 				if(null != xfs.locked)
 					newXf.locked = xfs.locked;
+                if(null != xfs.applyProtection)
+                    newXf.applyProtection = xfs.applyProtection;
                 if(null != xfs.align)
 					newXf.align = xfs.align;
                 if (null !== xfs.XfId) {
@@ -11470,6 +11478,8 @@
 				// locked
 				if(null != oStyleObject.xfs.locked)
 					newXf.locked = oStyleObject.xfs.locked;
+                if(null != oStyleObject.xfs.applyProtection)
+                    newXf.applyProtection = oStyleObject.xfs.applyProtection;
                 // align
                 if(null != oStyleObject.xfs.align)
 					newXf.align = g_StyleCache.addAlign(oStyleObject.xfs.align);
