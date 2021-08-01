@@ -7088,10 +7088,11 @@
             return this;
         }
         var nHeight = this.canvas.height;
-        var oTexture = this.createTexture();
+        var oTexture = this.createCopy();
         var oCanvas = oTexture.canvas;
         var oCtx = oCanvas.getContext('2d');
-        oCtx.drawImage(this.canvas, this.canvas.width - nWidth, 0);
+        oCtx.globalCompositeOperation = 'destination-in';
+        this.drawRect(oCtx, 0, 0, nWidth, nHeight);
         return oTexture;
     };
     CAnimTexture.prototype.createWipeRight = function(fTime) {
@@ -7100,10 +7101,11 @@
             return this;
         }
         var nHeight = this.canvas.height;
-        var oTexture = this.createTexture();
+        var oTexture = this.createCopy();
         var oCanvas = oTexture.canvas;
         var oCtx = oCanvas.getContext('2d');
-        oCtx.drawImage(this.canvas, nWidth - this.canvas.width, 0);
+        oCtx.globalCompositeOperation = 'destination-in';
+        this.drawRect(oCtx, this.canvas.width - nWidth, 0, nWidth, nHeight);
         return oTexture;
     };
     CAnimTexture.prototype.createWipeDown = function(fTime) {
@@ -7112,10 +7114,11 @@
             return this;
         }
         var nWidth = this.canvas.width;
-        var oTexture = this.createTexture();
+        var oTexture = this.createCopy();
         var oCanvas = oTexture.canvas;
         var oCtx = oCanvas.getContext('2d');
-        oCtx.drawImage(this.canvas, 0, nHeight - this.canvas.height);
+        oCtx.globalCompositeOperation = 'destination-in';
+        this.drawRect(oCtx, 0, this.canvas.height - nHeight, nWidth, nHeight);
         return oTexture;
     };
     CAnimTexture.prototype.createWipeUp = function(fTime) {
@@ -7124,10 +7127,11 @@
             return this;
         }
         var nWidth = this.canvas.width;
-        var oTexture = this.createTexture();
+        var oTexture = this.createCopy();
         var oCanvas = oTexture.canvas;
         var oCtx = oCanvas.getContext('2d');
-        oCtx.drawImage(this.canvas, 0, this.canvas.height - nHeight);
+        oCtx.globalCompositeOperation = 'destination-in';
+        this.drawRect(oCtx, 0, 0, nWidth, nHeight);
         return oTexture;
     };
     CAnimTexture.prototype.createBarnOutVertical = function(fTime) {
@@ -7927,14 +7931,15 @@
         var oPresSize = oDrawing.getPresentationSize();
         var fCenterX, fCenterY;
         var bTransform = false;
-        if(AscFormat.isRealNumber(oAttributesMap["ppt_x"]) && AscFormat.isRealNumber(oAttributesMap["ppt_y"])) {
+        fCenterX = oBounds.x + oBounds.w / 2;
+        fCenterY = oBounds.y + oBounds.h / 2;
+        if(AscFormat.isRealNumber(oAttributesMap["ppt_x"])) {
             fCenterX = oAttributesMap["ppt_x"] * oPresSize.w;
-            fCenterY = oAttributesMap["ppt_y"] * oPresSize.h;
             bTransform = true;
         }
-        else {
-            fCenterX = oBounds.x + oBounds.w / 2;
-            fCenterY = oBounds.y + oBounds.h / 2;
+        if(AscFormat.isRealNumber(oAttributesMap["ppt_y"])) {
+            fCenterY = oAttributesMap["ppt_y"] * oPresSize.h;
+            bTransform = true;
         }
         var fScaleX = 1.0, fScaleY = 1.0;
         if(AscFormat.isRealNumber(oAttributesMap["ScaleX"]) && AscFormat.isRealNumber(oAttributesMap["ScaleY"])) {
@@ -8012,9 +8017,8 @@
                     return false;
                 }
             }
-            return false;
         }
-        for(sKey in oOtherSandwich) {
+        for(sKey in oOtherAttributes) {
             val = oAttributes[sKey];
             if(val === undefined) {
                 return false;
