@@ -1844,6 +1844,18 @@ CShape.prototype.getPlaceholderIndex = function () {
 };
 
 CShape.prototype.getPhType = function () {
+    var pointAssociationPrSet = this.getPointAssociation() && this.getPointAssociation().prSet;
+    if (pointAssociationPrSet) {
+        var imagePlaceholderArrStylelbl = ['alignImgPlace1', 'bgImgPlace1', 'fgImgPlace1'];
+        var imagePlaceholderArrName = ['Image', 'image', 'imageRepeatNode', 'pictRect'];
+        if (imagePlaceholderArrStylelbl.indexOf(pointAssociationPrSet.presStyleLbl) !== -1 ||
+          imagePlaceholderArrName.indexOf(pointAssociationPrSet.presName) !== -1 ||
+          (pointAssociationPrSet.presName === 'rect1' && pointAssociationPrSet.presStyleLbl === 'bgShp') ||
+          (pointAssociationPrSet.presName === 'rect1' && pointAssociationPrSet.presStyleLbl === 'lnNode1') ||
+          (pointAssociationPrSet.presName === 'adorn' && pointAssociationPrSet.presStyleLbl === 'fgAccFollowNode1')) {
+            return AscFormat.phType_pic;
+        }
+    }
     return this.isPlaceholder() ? this.nvSpPr.nvPr.ph.type : null;
 };
 
@@ -3318,26 +3330,32 @@ CShape.prototype.Get_ParentTextTransform = function()
 
 CShape.prototype.isEmptyPlaceholder = function () {
     var point = this.isObjectInSmartArt() && this.getPoint();
-    var isPlaceholderInSmartArt = point && point.prSet && point.prSet.phldr;
-    if (isPlaceholderInSmartArt) {
-        if (this.txBody) {
-            if (this.txBody.content) {
-                return this.txBody.content.Is_Empty();
+    if (point) {
+        var isPlaceholderInSmartArt = point.prSet && point.prSet.phldr;
+        if (isPlaceholderInSmartArt) {
+            if (this.txBody) {
+                if (this.txBody.content) {
+                    return this.txBody.content.Is_Empty();
+                }
+                return true;
             }
-            return true;
         }
+
+    } else if (this.getPointAssociation() && this.getPhType() === AscFormat.phType_pic) {
+        return true;
     }
     if (this.isPlaceholder()) {
-        if (this.nvSpPr.nvPr.ph.type == AscFormat.phType_title
-            || this.nvSpPr.nvPr.ph.type == AscFormat.phType_ctrTitle
-            || this.nvSpPr.nvPr.ph.type == AscFormat.phType_body
-            || this.nvSpPr.nvPr.ph.type == AscFormat.phType_subTitle
-            || this.nvSpPr.nvPr.ph.type == null
-            || this.nvSpPr.nvPr.ph.type == AscFormat.phType_dt
-            || this.nvSpPr.nvPr.ph.type == AscFormat.phType_ftr
-            || this.nvSpPr.nvPr.ph.type == AscFormat.phType_hdr
-            || this.nvSpPr.nvPr.ph.type == AscFormat.phType_sldNum
-            || this.nvSpPr.nvPr.ph.type == AscFormat.phType_sldImg) {
+        var phldrType = this.getPhType();
+        if (phldrType == AscFormat.phType_title
+            || phldrType == AscFormat.phType_ctrTitle
+            || phldrType == AscFormat.phType_body
+            || phldrType == AscFormat.phType_subTitle
+            || phldrType == null
+            || phldrType == AscFormat.phType_dt
+            || phldrType == AscFormat.phType_ftr
+            || phldrType == AscFormat.phType_hdr
+            || phldrType == AscFormat.phType_sldNum
+            || phldrType == AscFormat.phType_sldImg) {
             if (this.txBody) {
                 if (this.txBody.content) {
                     return this.txBody.content.Is_Empty();
@@ -3346,11 +3364,11 @@ CShape.prototype.isEmptyPlaceholder = function () {
             }
             return true;
         }
-        if (this.nvSpPr.nvPr.ph.type == AscFormat.phType_chart
-            || this.nvSpPr.nvPr.ph.type == AscFormat.phType_media) {
+        if (phldrType == AscFormat.phType_chart
+            || phldrType == AscFormat.phType_media) {
             return true;
         }
-        if (this.nvSpPr.nvPr.ph.type == AscFormat.phType_pic) {
+        if (phldrType == AscFormat.phType_pic) {
             var _b_empty_text = true;
             if (this.txBody) {
                 if (this.txBody.content) {
