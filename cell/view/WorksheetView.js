@@ -5580,6 +5580,25 @@
             }
         }
 
+        //draw foreign cursors
+		if (this.collaborativeEditing.getCollaborativeEditing() && this.collaborativeEditing.getFast()) {
+			var foreignCursors = this.collaborativeEditing.m_aForeignCursorsData;
+			for (var i in foreignCursors) {
+				if (foreignCursors[i] && foreignCursors[i].sheetId === this.model.Id) {
+					var color = AscCommon.getUserColorById(foreignCursors[i].shortId, null, true);
+					for (var j = 0; j < foreignCursors[i].ranges.length; j++) {
+						this._drawElements(this._drawSelectionElement, foreignCursors[i].ranges[j],
+							AscCommonExcel.selectionLineType.None, color);
+
+						if (j === 0 && foreignCursors[i].needDrawLabel) {
+							this.Show_ForeignCursorLabel(i, foreignCursors[i], j, color);
+							foreignCursors[i].needDrawLabel = null;
+						}
+					}
+				}
+			}
+		}
+
         // restore canvas' original clipping range
         ctx.restore();
 
@@ -5587,6 +5606,27 @@
             this._drawActiveHeaders();
         }
     };
+
+	WorksheetView.prototype.Show_ForeignCursorLabel = function(userId, foreignCursor, index, color) {
+		var Api = window["Asc"]["editor"];
+		if(!Api) {
+			return;
+		}
+
+		if (foreignCursor.ShowId)
+			clearTimeout(foreignCursor.ShowId);
+
+		foreignCursor.ShowId = setTimeout(function()
+		{
+			foreignCursor.ShowId = null;
+			Api.hideForeignSelectLabel(userId);
+		}, AscCommon.FOREIGN_CURSOR_LABEL_HIDETIME);
+
+		var coord = this.getCellCoord(foreignCursor.ranges[index].c2, foreignCursor.ranges[index].r1);
+		Api.showForeignSelectLabel(userId, coord._x + coord._width, coord._y, color, foreignCursor.isEdit);
+
+		//this.Update_ForeignCursorLabelPosition(UserId, Coords.X, Coords.Y, Color);
+	};
 
     WorksheetView.prototype._drawSelectionRange = function () {
         var type, selection = this.model.getSelection(), ranges = selection.ranges;
@@ -5911,6 +5951,30 @@
                 }
             });
         }
+
+		//clean foreign cursors
+		if (this.collaborativeEditing.getCollaborativeEditing() && this.collaborativeEditing.getFast()) {
+			var foreignCursors = this.collaborativeEditing.m_aForeignCursorsData;
+			for (var n in foreignCursors) {
+				if (foreignCursors[n] && foreignCursors[n].sheetId === this.model.Id) {
+					for (var j = 0; j < foreignCursors[n].ranges.length; j++) {
+						var _range = foreignCursors[n].ranges[j];
+						arnIntersection = _range.intersectionSimple(range);
+						if (arnIntersection) {
+							_x1 = t._getColLeft(arnIntersection.c1) - offsetX - 2;
+							_x2 = t._getColLeft(arnIntersection.c2 + 1) - offsetX + 1 + /* Это ширина "квадрата" для автофильтра от границы ячейки */2;
+							_y1 = t._getRowTop(arnIntersection.r1) - offsetY - 2;
+							_y2 = t._getRowTop(arnIntersection.r2 + 1) - offsetY + 1 + /* Это высота "квадрата" для автофильтра от границы ячейки */2;
+
+							x1 = Math.min(x1, _x1);
+							x2 = Math.max(x2, _x2);
+							y1 = Math.min(y1, _y1);
+							y2 = Math.max(y2, _y2);
+						}
+					}
+				}
+			}
+		}
 
         if (!(Number.MAX_VALUE === x1 && -Number.MAX_VALUE === x2 && Number.MAX_VALUE === y1 &&
           -Number.MAX_VALUE === y2)) {
@@ -8056,7 +8120,8 @@
 		var res, c, r, f, offsetX, offsetY, cellCursor;
 		var sheetId = this.model.getId(), userId, lockRangePosLeft, lockRangePosTop, lockInfo, oHyperlink;
 		var widthDiff = 0, heightDiff = 0, isLocked = false, target = c_oTargetType.Cells, row = -1, col = -1,
-			isSelGraphicObject, isNotFirst;
+			isSelGraphicObject, isNotFirst, userIdForeignSelect, foreignSelectPosLeft, foreignSelectPosTop,
+			shortIdForeignSelect;
 		var dialogOtherRanges = this.getDialogOtherRanges();
 		var readyMode = !(this.getSelectionDialogMode() || this.getCellEditMode());
 
@@ -8362,8 +8427,26 @@
 						userIdAllProps = isLocked.UserId;
 					}
 				}
+				
+				//проверяем, не попали ли мы в чужой селект
+				if (this.collaborativeEditing.getFast()) {
+					var isForeignSelect = this.collaborativeEditing.getForeignSelectIntersection(c.col, r.row);
+					if (isForeignSelect) {
+						var foreignRow = isForeignSelect.ranges[0].r1;
+						var foreignCol = isForeignSelect.ranges[0].c2;
+						userIdForeignSelect = isForeignSelect.userId;
+						shortIdForeignSelect = isForeignSelect.shortId;
+						foreignSelectPosLeft = this._getColLeft(foreignCol) + this._getColumnWidth(foreignCol);
+						foreignSelectPosTop = this._getRowTop(foreignRow);
+						// Пересчитываем X и Y относительно видимой области
+						foreignSelectPosLeft -= offsetX;
+						foreignSelectPosTop -= offsetY;
+						foreignSelectPosLeft = this.cellsLeft > foreignSelectPosLeft ? this.cellsLeft : foreignSelectPosLeft;
+						foreignSelectPosTop = this.cellsTop > foreignSelectPosTop ? this.cellsTop : foreignSelectPosTop;
+					}
+				}
 			}
-
+			
 			if (canEdit && readyMode) {
 				var pivotButtons = this.model.getPivotTableButtons(new asc_Range(c.col, r.row, c.col, r.row));
 				var pivotButton = pivotButtons.find(function (element) {
@@ -8437,7 +8520,11 @@
 				lockAllPosTop: lockAllPosTop,
 				userIdAllSheet: userIdAllSheet,
 				commentIndexes: indexes,
-				commentCoords: coords
+				commentCoords: coords,
+				userIdForeignSelect: userIdForeignSelect,
+				foreignSelectPosLeft: foreignSelectPosLeft,
+				foreignSelectPosTop: foreignSelectPosTop,
+				shortIdForeignSelect: shortIdForeignSelect
 			};
 			if(!oHyperlink) {
 				this.model.getCell3(r.row, c.col)._foreachNoEmpty(function (cell) {
@@ -14436,7 +14523,7 @@
 				hasButton = this._checkFilterButtonInRange(col, row) || pivotButtons.find(function (element) {
 					return element.row === row && element.col === col;
 				});
-				if (null !== hasButton && CellValueType.String === ct.cellType) {
+				if (hasButton && CellValueType.String === ct.cellType) {
 					calcWidth += this._getFilterButtonSize();
 				}
             }

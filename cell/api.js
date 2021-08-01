@@ -125,7 +125,7 @@ var editor;
     this.formulasList = null;	// Список всех формул
 
 	this.openingEnd = {bin: false, xlsxStart: false, xlsx: false, data: null};
-	
+
 	this.tmpR1C1mode = null;
 
     this.insertDocumentUrlsData = null;
@@ -1541,7 +1541,10 @@ var editor;
     }, this.getViewMode());
 
     this.CoAuthoringApi.onConnectionStateChanged = function(e) {
-      t.handlers.trigger("asc_onConnectionStateChanged", e);
+		if (true === AscCommon.CollaborativeEditing.Is_Fast() && false === e['state']) {
+			t.wb.Remove_ForeignCursor(e['id']);
+		}
+    	t.handlers.trigger("asc_onConnectionStateChanged", e);
     };
     this.CoAuthoringApi.onLocksAcquired = function(e) {
       if (t._coAuthoringCheckEndOpenDocument(t.CoAuthoringApi.onLocksAcquired, e)) {
@@ -1736,7 +1739,22 @@ var editor;
         t.collaborativeEditing._recalcLockArray(c_oAscLockTypes.kLockTypeMine, oRecalcIndexColumns, oRecalcIndexRows);
         t.collaborativeEditing._recalcLockArray(c_oAscLockTypes.kLockTypeOther, oRecalcIndexColumns, oRecalcIndexRows);
       }
+        if (true === AscCommon.CollaborativeEditing.Is_Fast()) {
+            var UserId = tmpAdditionalInfo["UserId"];
+            var CursorInfo = tmpAdditionalInfo["CursorInfo"];
+            var UserShortId = tmpAdditionalInfo["UserShortId"];
+            if(UserId && CursorInfo && UserShortId) {
+                AscCommon.CollaborativeEditing.Add_ForeignCursorToUpdate(UserId, CursorInfo, UserShortId);
+            }
+        }
     };
+  this.CoAuthoringApi.onCursor                 = function(e)
+  {
+	  if (true === AscCommon.CollaborativeEditing.Is_Fast())
+	  {
+		  t.wb.Update_ForeignCursor(e[e.length - 1]['cursor'], e[e.length - 1]['user'], true, e[e.length - 1]['useridoriginal']);
+	  }
+  };
 	  };
 
   spreadsheet_api.prototype._onSaveChanges = function(recalcIndexColumns, recalcIndexRows, isAfterAskSave) {
@@ -1752,6 +1770,19 @@ var editor;
         }
       }
       if (0 < arrChanges.length || null !== deleteIndex || null !== excelAdditionalInfo) {
+          var oWs = this.wb.getWorksheet();
+          var sCursorBinary = "";
+          if (oWs && oWs.objectRender) {
+              sCursorBinary = oWs.objectRender.getDocumentPositionBinary();
+          }
+          if(typeof sCursorBinary === "string" && sCursorBinary.length > 0) {
+              if(!AscCommon.isRealObject(excelAdditionalInfo)) {
+                  excelAdditionalInfo = {};
+              }
+              excelAdditionalInfo["UserId"] = this.CoAuthoringApi.getUserConnectionId();
+              excelAdditionalInfo["UserShortId"] = this.DocInfo.get_UserId();
+              excelAdditionalInfo["CursorInfo"] = this.wb.getCursorInfo();
+          }
         this.CoAuthoringApi.saveChanges(arrChanges, deleteIndex, excelAdditionalInfo, this.canUnlockDocument2, bCollaborative);
         History.CanNotAddChanges = true;
       } else {
@@ -1774,6 +1805,9 @@ var editor;
       // Нужно послать 'обновить свойства' (иначе для удаления данных не обновится строка формул).
       // ToDo Возможно стоит обновлять только строку формул
       AscCommon.CollaborativeEditing.Load_Images();
+      if(AscCommon.CollaborativeEditing.Is_Fast()) {
+          AscCommon.CollaborativeEditing.Refresh_ForeignCursors();
+      }
       this.wb._onWSSelectionChanged();
       History.TurnOff();
       this.wb.drawWorksheet();
@@ -4606,6 +4640,9 @@ var editor;
 				// Шлем update для toolbar-а, т.к. когда select в lock ячейке нужно заблокировать toolbar
 				this.wb._onWSSelectionChanged();
 			}
+            if (AscCommon.CollaborativeEditing.Is_Fast() /*&& !AscCommon.CollaborativeEditing.Is_SingleUser()*/) {
+                this.wb.sendCursor();
+            }
 			return;
 		}
 		if (null === this.lastSaveTime) {
@@ -4618,6 +4655,9 @@ var editor;
 		if (0 <= gap) {
 			this.asc_Save(true);
 		}
+        if (AscCommon.CollaborativeEditing.Is_Fast() /*&& !AscCommon.CollaborativeEditing.Is_SingleUser()*/) {
+            this.wb.sendCursor();
+        }
 	};
 
 	spreadsheet_api.prototype._onUpdateDocumentCanSave = function () {
@@ -5648,6 +5688,31 @@ var editor;
           oWorkbook.convertEquationToMath(oEquation, isAll);
       }
   };
+
+
+
+	/*отправляем инфомарцию, инфомарция в виде строки(id + ";" + isEdit + ";" + rangeStr;)
+		_autoSaveInner -> wb.sendCursor -> CDocsCoApi.prototype.sendCursor
+		NeedUpdateTargetForCollaboration  - флаг высталяем в true, когда поменялся селект, потом предыдущая функция отсылает инфу на сервер
+
+	храним инф. о курсорах в
+		CCollaborativeEditing->m_aForeignCursorsData, добавляем/удаляем с помощью методов Add_ForeignCursor/Remove_ForeignCursor
+
+	удаляем инф. на
+		t.handlers.trigger("asc_onConnectionStateChanged", e) -> Remove_ForeignCursor
+
+	принимаем инфомарцию о курсорах
+		this.CoAuthoringApi.onCursor -> WorkbookView.prototype.Update_ForeignCursor
+
+	эвенты в интерфейс: asc_onShowForeignSelectLabel/asc_onHideForeignSelectLabel*/
+
+	
+	spreadsheet_api.prototype.showForeignSelectLabel = function (UserId, X, Y, Color, isEdit) {
+		this.sendEvent("asc_onShowForeignCursorLabel", UserId, X, Y, new AscCommon.CColor(Color.r, Color.g, Color.b, 255), isEdit);
+	};
+	spreadsheet_api.prototype.hideForeignSelectLabel = function (UserId) {
+		this.sendEvent("asc_onHideForeignCursorLabel", UserId);
+	};
 
   /*
    * Export
