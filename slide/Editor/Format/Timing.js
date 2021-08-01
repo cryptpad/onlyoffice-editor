@@ -185,6 +185,13 @@
         }
         return oCurParent;
     };
+    CTimeNodeBase.prototype.isPredecessor = function(oNode) {
+        var oCurParent = this.parent;
+        while (oCurParent && oNode !== oCurParent) {
+            oCurParent = oCurParent.parent;
+        }
+        return AscCommon.isRealObject(oCurParent);
+    };
     CTimeNodeBase.prototype.getChildrenTimeNodes = function() {
         if(!this.isTimingContainer()) {
             return [];
@@ -267,7 +274,7 @@
                             return false;
                         }
                     }
-                    if(sHandledSpId && !sSpId) {
+                    if(sHandledSpId && !sSpId && !oThis.isPredecessor(oNode)) {
                         return false;
                     }
                 }
@@ -338,8 +345,10 @@
                 oTrigger = oAttributes.stCondLst.createComplexTrigger(oPlayer);
                 if(oTrigger.isDefault()) {
                     var oParentNode = this.getParentTimeNode();
-                    if(oParentNode.isSeq()) {
-                        oTrigger.addNever();
+                    if(oParentNode) {
+                        if(oParentNode.isSeq()) {
+                            oTrigger.addNever();
+                        }
                     }
                 }
                 break;
@@ -560,12 +569,12 @@
     CTimeNodeBase.prototype.setState = function(nState) {
         this.state = nState;
 
-        //this.logState("SET STATE:");
+        this.logState("SET STATE:");
     };
     CTimeNodeBase.prototype.logState = function (sPrefix) {
-        //var oAttr = this.getAttributesObject();
-        //var sNodeType = NODE_TYPE_MAP[oAttr.nodeType];
-        //console.log(sPrefix + " | ID: " + this.Id + " | TYPE: " + this.constructor.name + " | NODE_TYPE: " + sNodeType + " | STATE: " + oSTATEDESCRMAP[this.state] + " | TIME: " + (new Date()).getTime() + " | FORMAT ID: " + oAttr.id);
+        var oAttr = this.getAttributesObject();
+        var sNodeType = NODE_TYPE_MAP[oAttr.nodeType];
+        console.log(sPrefix + " | ID: " + this.Id + " | TYPE: " + this.constructor.name + " | NODE_TYPE: " + sNodeType + " | STATE: " + oSTATEDESCRMAP[this.state] + " | TIME: " + (new Date()).getTime() + " | FORMAT ID: " + oAttr.id);
     };
     CTimeNodeBase.prototype.getFormatId = function () {
         return this.getAttributesObject().id;
@@ -3230,7 +3239,13 @@
             oTimeNode = this.findTimeNodeById(this.tn);
         }
         if(!oTimeNode) {
-            return null;
+            var oCurTimeNode = this.getNearestParentOrEqualTimeNode();
+            if(oCurTimeNode) {
+                oTimeNode = oCurTimeNode.getParentTimeNode();
+            }
+            if(!oTimeNode) {
+                return null;
+            }
         }
         return this.createEventTrigger(oPlayer, function() {
             return fTimeNodeCheck(oTimeNode);
@@ -5544,43 +5559,37 @@
         var aChildren = oThis.getChildrenTimeNodes();
         if(aChildren.length > 0) {
             var oFistChild = aChildren[0];
+            oThis.scheduleNext(oPlayer);
+            oThis.schedulePrev(oPlayer);
             var oAnimEvent = new CAnimEvent(function(){
                 oFistChild.activateCallback(oPlayer);
-                oThis.scheduleNext(oPlayer);
-                oThis.schedulePrev(oPlayer);
             }, oFistChild.getStartTrigger(oPlayer), oFistChild);
             oPlayer.scheduleEvent(oAnimEvent);
         }
-    };
-    CSeq.prototype.getActiveChildIdx = function() {
-        var aChildren = this.getChildrenTimeNodes();
-        var oChild;
-        for(var nChild = 0; nChild < aChildren.length; ++nChild) {
-            oChild = aChildren[nChild];
-            if(oChild.isActive()) {
-                return nChild;
-            }
-        }
-        return -1;
     };
     CSeq.prototype.scheduleNext = function(oPlayer) {
         if(this.nextCondLst) {
             var oThis = this;
             var oComplexTrigger = this.nextCondLst.createComplexTrigger(oPlayer);
             var aChildren = oThis.getChildrenTimeNodes();
-            oComplexTrigger.addTrigger(function () {
-                for(var nChild = aChildren.length - 1; nChild > -1; --nChild) {
-                    var oChild = aChildren[nChild];
-                    if(oChild.isActive() || (nChild < aChildren.length - 1 && oChild.isAtEnd())) {
-                        return true;//
-                    }
-                }
-                return false;
-            });
+            //oComplexTrigger.addTrigger(function () {
+            //    for(var nChild = aChildren.length - 1; nChild > -1; --nChild) {
+            //        var oChild = aChildren[nChild];
+            //        if(oChild.isActive() || (nChild < aChildren.length - 1 && oChild.isAtEnd())) {
+            //            return true;//
+            //        }
+            //    }
+            //    return false;
+            //});
             var oEvent = new CAnimEvent(function() {
                 for(var nChild = aChildren.length - 1; nChild > -1; --nChild) {
                     var oChild = aChildren[nChild];
-                    if(oChild.isActive() || (nChild < aChildren.length - 1 && oChild.isAtEnd())) {
+                    if(!oChild.isIdle()) {
+                        break;
+                    }
+                }
+                if(nChild > -1) {
+                    if(!oChild.isAtEnd()) {
                         if(oThis.concurrent !== true) {
                             oChild.getEndCallback(oPlayer)();
                         }
@@ -5589,16 +5598,18 @@
                                 oChild.freezeCallback(oPlayer);
                             }
                         }
-                        if(nChild + 1 < aChildren.length) {
-                            aChildren[nChild + 1].activateCallback(oPlayer);
-                        }
-                        else {
-                            oThis.freezeCallback(oPlayer);
-                        }
-                        break;
                     }
+
                 }
-                oThis.scheduleNext(oPlayer);
+                if(nChild + 1 < aChildren.length) {
+                    aChildren[nChild + 1].activateCallback(oPlayer);
+                }
+                else {
+                    oThis.freezeCallback(oPlayer);
+                }
+                if(oThis.isActive()) {
+                    oThis.scheduleNext(oPlayer);
+                }
             }, oComplexTrigger, this);
             oPlayer.scheduleEvent(oEvent);
         }
@@ -6128,7 +6139,7 @@
         }
         this.elapsed = null;
         this.lastTime = null;
-
+        this.stopFrames();
        // this.lastFire = null;
       //  console.log("Timer is stopped");
     };
