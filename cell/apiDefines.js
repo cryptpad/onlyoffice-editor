@@ -135,7 +135,8 @@ var c_oAscMouseMoveType = {
   ResizeColumn: 4,
   ResizeRow: 5,
   Filter: 6,
-  Tooltip: 7
+  Tooltip: 7,
+  ForeignSelect: 8
 };
 
 var c_oAscMouseMoveLockedObjectType = {
@@ -617,6 +618,7 @@ var c_oAscPopUpSelectorType = {
   prot['ResizeRow'] = prot.ResizeRow;
   prot['Filter'] = prot.Filter;
   prot['Tooltip'] = prot.Tooltip;
+  prot['ForeignSelect'] = prot.ForeignSelect;
   window['Asc']['c_oAscMouseMoveLockedObjectType'] = window['Asc'].c_oAscMouseMoveLockedObjectType = c_oAscMouseMoveLockedObjectType;
   prot = c_oAscMouseMoveLockedObjectType;
   prot['None'] = prot.None;

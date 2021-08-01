@@ -6077,8 +6077,8 @@
 	CDrawingCollaborativeTargetBase.prototype.ConvertCoords = function(x, y)
 	{
 		return {
-			X: (x * this.GetZoom() * g_dKoef_mm_to_pix ) >> 0,
-			Y: (y * this.GetZoom() * g_dKoef_mm_to_pix ) >> 0
+			X: (x * this.GetZoom() * AscCommon.g_dKoef_mm_to_pix ) >> 0,
+			Y: (y * this.GetZoom() * AscCommon.g_dKoef_mm_to_pix ) >> 0
 		};
 	};
 	CDrawingCollaborativeTargetBase.prototype.GetMobileTouchManager = function()
@@ -6096,7 +6096,7 @@
 	CDrawingCollaborativeTargetBase.prototype.CalculateSizeAndPos = function()
 	{
 		var _newW = 2;
-		var _newH = (this.Size * this.GetZoom() * g_dKoef_mm_to_pix) >> 0;
+		var _newH = (this.Size * this.GetZoom() * AscCommon.g_dKoef_mm_to_pix) >> 0;
 
 		var _oldW = this.HtmlElement.width;
 		var _oldH = this.HtmlElement.height;

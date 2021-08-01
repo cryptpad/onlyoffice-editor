@@ -3784,6 +3784,10 @@ CPresentation.prototype.TurnOnCheckSpelling = function () {
 CPresentation.prototype.Get_DrawingDocument = function () {
     return this.DrawingDocument;
 };
+CPresentation.prototype.GetDrawingDocument = function () {
+    return this.DrawingDocument;
+};
+
 CPresentation.prototype.GetSlide = function(nIndex) {
     if(this.Slides[nIndex]) {
         return this.Slides[nIndex];
@@ -4063,6 +4067,10 @@ CPresentation.prototype.Get_Api = function () {
     return this.Api;
 };
 
+CPresentation.prototype.GetApi = function () {
+    return this.Api;
+};
+
 CPresentation.prototype.Get_CollaborativeEditing = function () {
     return this.CollaborativeEditing;
 };
@@ -4152,18 +4160,11 @@ CPresentation.prototype.Continue_FastCollaborativeEditing = function () {
 
 CPresentation.prototype.Get_DocumentPositionInfoForCollaborative = function () {
     var oController = this.GetCurrentController();
+    var oRes;
     if (oController) {
-        var oTargetDocContent = oController.getTargetDocContent(undefined, true);
-        if (oTargetDocContent) {
-            var DocPos = oTargetDocContent.GetContentPosition(oTargetDocContent.IsSelectionUse(), false);
-            if (!DocPos || DocPos.length <= 0)
-                return null;
-
-            var Last = DocPos[DocPos.length - 1];
-            if (!(Last.Class instanceof ParaRun))
-                return {Class: this, Position: 0};
-
-            return Last;
+        oRes = oController.getDocumentPositionForCollaborative();
+        if(oRes) {
+            return oRes;
         }
     }
     return {Class: this, Position: 0};
@@ -4523,43 +4524,7 @@ CPresentation.prototype.Update_ForeignCursor = function (CursorInfo, UserId, Sho
     if (UserId === editor.CoAuthoringApi.getUserConnectionId())
         return;
 
-    if (!CursorInfo) {
-        this.DrawingDocument.Collaborative_RemoveTarget(UserId);
-        AscCommon.CollaborativeEditing.Remove_ForeignCursor(UserId);
-        return;
-    }
-
-    var Changes = new AscCommon.CCollaborativeChanges();
-    var Reader = Changes.GetStream(CursorInfo, 0, CursorInfo.length);
-
-    var RunId = Reader.GetString2();
-    var InRunPos = Reader.GetLong();
-
-    var Run = g_oTableId.Get_ById(RunId);
-    if (!(Run instanceof ParaRun)) {
-        this.DrawingDocument.Collaborative_RemoveTarget(UserId);
-        AscCommon.CollaborativeEditing.Remove_ForeignCursor(UserId);
-        return;
-    }
-
-    var CursorPos = [{Class: Run, Position: InRunPos}];
-	Run.GetDocumentPositionFromObject(CursorPos);
-    AscCommon.CollaborativeEditing.Add_ForeignCursor(UserId, CursorPos, UserShortId);
-
-    if (true === Show) {
-
-        var oTargetDocContentOrTable;
-        var oController = this.GetCurrentController();
-        if (oController) {
-            oTargetDocContentOrTable = oController.getTargetDocContent(undefined, true);
-        }
-
-        if (!oTargetDocContentOrTable) {
-            return;
-        }
-        var bTable = (oTargetDocContentOrTable instanceof CTable);
-        AscCommon.CollaborativeEditing.Update_ForeignCursorPosition(UserId, Run, InRunPos, true, oTargetDocContentOrTable, bTable);
-    }
+    AscFormat.drawingsUpdateForeignCursor(this.GetCurrentController(), this.DrawingDocument, CursorInfo, UserId, Show, UserShortId);
 };
 
 CPresentation.prototype.Remove_ForeignCursor = function (UserId) {
