@@ -493,14 +493,14 @@
     CTimeNodeBase.prototype.finishCallback = function(oPlayer) {
         var aChildren = this.getChildrenTimeNodes();
         for(var nChild = 0; nChild < aChildren.length; ++nChild) {
-            aChildren[nChild].finishCallback(oPlayer);
+            aChildren[nChild].getEndCallback(oPlayer)();
         }
         this.setFinished(oPlayer);
     };
     CTimeNodeBase.prototype.freezeCallback = function(oPlayer) {
         var aChildren = this.getChildrenTimeNodes();
         for(var nChild = 0; nChild < aChildren.length; ++nChild) {
-            aChildren[nChild].freezeCallback(oPlayer);
+            aChildren[nChild].getEndCallback(oPlayer)();
         }
         this.setFrozen(oPlayer);
     };
@@ -6763,7 +6763,8 @@
         var nWidth = this.canvas.width / STRIPS_COUNT;
         var nHeight = this.canvas.height / STRIPS_COUNT;
         var nCount = 2*this.canvas.width * fTime / nWidth + 0.5 >> 0;
-        if(nCount === 0) {
+        if(nCount === 0 && "destination-out" === sOperation ||
+            AscFormat.fApproxEqual(fTime, 1) && "destination-in" === sOperation) {
             return this;
         }
         var oTexture = this.createCopy();
@@ -6926,7 +6927,7 @@
     CAnimTexture.prototype.createWedge = function(fTime) {
         var fHalfAngle = Math.PI * (1 - fTime);
         var fAngle = 2 * fHalfAngle;
-        if(AscFormat.fApproxEqual(fAngle, 0)) {
+        if(AscFormat.fApproxEqual(fAngle, 0) || AscFormat.fApproxEqual(fAngle, 2*Math.PI, 0.01)) {
             return this;
         }
         var nRadius = Math.sqrt(this.canvas.width* this.canvas.width + this.canvas.height*this.canvas.height) / 2 + 0.5 >> 0;
@@ -7087,11 +7088,10 @@
             return this;
         }
         var nHeight = this.canvas.height;
-        var oTexture = this.createCopy();
+        var oTexture = this.createTexture();
         var oCanvas = oTexture.canvas;
         var oCtx = oCanvas.getContext('2d');
-        oCtx.globalCompositeOperation = 'destination-in';
-        this.drawRect(oCtx, 0, 0, nWidth, nHeight);
+        oCtx.drawImage(this.canvas, this.canvas.width - nWidth, 0);
         return oTexture;
     };
     CAnimTexture.prototype.createWipeRight = function(fTime) {
@@ -7100,11 +7100,10 @@
             return this;
         }
         var nHeight = this.canvas.height;
-        var oTexture = this.createCopy();
+        var oTexture = this.createTexture();
         var oCanvas = oTexture.canvas;
         var oCtx = oCanvas.getContext('2d');
-        oCtx.globalCompositeOperation = 'destination-in';
-        this.drawRect(oCtx, this.canvas.width - nWidth, 0, nWidth, nHeight);
+        oCtx.drawImage(this.canvas, nWidth - this.canvas.width, 0);
         return oTexture;
     };
     CAnimTexture.prototype.createWipeDown = function(fTime) {
@@ -7113,11 +7112,10 @@
             return this;
         }
         var nWidth = this.canvas.width;
-        var oTexture = this.createCopy();
+        var oTexture = this.createTexture();
         var oCanvas = oTexture.canvas;
         var oCtx = oCanvas.getContext('2d');
-        oCtx.globalCompositeOperation = 'destination-in';
-        this.drawRect(oCtx, 0, this.canvas.height - nHeight, nWidth, nHeight);
+        oCtx.drawImage(this.canvas, 0, nHeight - this.canvas.height);
         return oTexture;
     };
     CAnimTexture.prototype.createWipeUp = function(fTime) {
@@ -7126,11 +7124,10 @@
             return this;
         }
         var nWidth = this.canvas.width;
-        var oTexture = this.createCopy();
+        var oTexture = this.createTexture();
         var oCanvas = oTexture.canvas;
         var oCtx = oCanvas.getContext('2d');
-        oCtx.globalCompositeOperation = 'destination-in';
-        this.drawRect(oCtx, 0, 0, nWidth, nHeight);
+        oCtx.drawImage(this.canvas, 0, this.canvas.height - nHeight);
         return oTexture;
     };
     CAnimTexture.prototype.createBarnOutVertical = function(fTime) {
