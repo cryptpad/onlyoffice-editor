@@ -4688,6 +4688,15 @@ var editor;
     }
     if (isFull) {
       this._onUpdateAfterApplyChanges();
+
+      if (window["NATIVE_EDITOR_ENJINE"] === true && window["native"]["AddImageInChanges"] && window["NATIVE_EDITOR_ENJINE_NEW_IMAGES"])
+      {
+        var _new_images     = window["NATIVE_EDITOR_ENJINE_NEW_IMAGES"];
+        var _new_images_len = _new_images.length;
+
+        for (var nImage = 0; nImage < _new_images_len; nImage++)
+          window["native"]["AddImageInChanges"](_new_images[nImage]);
+      }
     }
   };
 
