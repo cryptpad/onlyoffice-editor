@@ -250,13 +250,15 @@
             if(!oEvent) {
                 return false;
             }
-            if(oEvent.type === nType && (!sSpId || oEvent.target === sSpId)) {
-                var aHandledNodes = oEvent.handledNodes;
-                var nNode, oNode;
-                var oHandledTrigger;
+            var aHandledNodes = oEvent.handledNodes;
+            var nNode, oNode;
+            var oHandledTrigger;
+            var sHandledSpId;
+            if(oEvent.isEqualType(nType) && (!sSpId || oEvent.target === sSpId)) {
                 for(nNode = 0; nNode < aHandledNodes.length; ++nNode) {
                     oNode = aHandledNodes[nNode].node;
                     oHandledTrigger = aHandledNodes[nNode].trigger;
+                    sHandledSpId = aHandledNodes[nNode].sp;
                     if(oNode.isSibling(oThis)) {
                         return false;
                     }
@@ -264,6 +266,9 @@
                         if(oHandledTrigger !== oTrigger) {
                             return false;
                         }
+                    }
+                    if(sHandledSpId && !sSpId) {
+                        return false;
                     }
                 }
                 for(nNode = 0; nNode < aHandledNodes.length; ++nNode) {
@@ -274,7 +279,7 @@
                     }
                 }
                 if(nNode === aHandledNodes.length) {
-                    oEvent.handledNodes.push({node: oThis, trigger: oTrigger});
+                    oEvent.handledNodes.push({node: oThis, trigger: oTrigger, type: nType, sp: sSpId});
                 }
                 return true;
             }
@@ -331,6 +336,12 @@
             }
             default: {
                 oTrigger = oAttributes.stCondLst.createComplexTrigger(oPlayer);
+                if(oTrigger.isDefault()) {
+                    var oParentNode = this.getParentTimeNode();
+                    if(oParentNode.isSeq()) {
+                        oTrigger.addNever();
+                    }
+                }
                 break;
             }
         }
@@ -397,6 +408,9 @@
         return oCount;
     };
     CTimeNodeBase.prototype.activateCallback = function(oPlayer) {
+        if(this.isActive()) {
+            return;
+        }
         var oParent = this.getParentTimeNode();
         if(oParent) {
             if(!oParent.isActive()) {
@@ -5557,7 +5571,7 @@
             oComplexTrigger.addTrigger(function () {
                 for(var nChild = aChildren.length - 1; nChild > -1; --nChild) {
                     var oChild = aChildren[nChild];
-                    if(oChild.isActive()) {
+                    if(oChild.isActive() || (nChild < aChildren.length - 1 && oChild.isAtEnd())) {
                         return true;//
                     }
                 }
@@ -5566,7 +5580,7 @@
             var oEvent = new CAnimEvent(function() {
                 for(var nChild = aChildren.length - 1; nChild > -1; --nChild) {
                     var oChild = aChildren[nChild];
-                    if(oChild.isActive()) {
+                    if(oChild.isActive() || (nChild < aChildren.length - 1 && oChild.isAtEnd())) {
                         if(oThis.concurrent !== true) {
                             oChild.getEndCallback(oPlayer)();
                         }
@@ -6044,11 +6058,20 @@
         if(this.target !== oEvent.target) {
             return false;
         }
-        if((oEvent.type === COND_EVNT_ON_NEXT || oEvent.type === COND_EVNT_ON_CLICK) &&
+        if(this.isEqualType(oEvent.type)) {
+            return true;
+        }
+        return false;
+    };
+    CExternalEvent.prototype.isEqualType = function(nType) {
+        if(this.type === nType) {
+            return true;
+        }
+        if((nType === COND_EVNT_ON_NEXT || nType === COND_EVNT_ON_CLICK) &&
             (this.type === COND_EVNT_ON_NEXT || this.type === COND_EVNT_ON_CLICK)) {
             return true;
         }
-        return oEvent.type === this.type;
+        return false;
     };
     CExternalEvent.prototype.log = function(sPrefix) {
         //console.log(sPrefix + " | EXTERNAL EVENT TYPE: " + EVENT_DESCR_MAP[this.type] + " | TARGET: " + this.target);
@@ -6085,7 +6108,7 @@
 
         this.elapsedTime = new CAnimationTime();
 
-        this.lastFire = null;
+        //this.lastFire = null;
 
         this.frameId = null;
     }
@@ -6106,7 +6129,7 @@
         this.elapsed = null;
         this.lastTime = null;
 
-        this.lastFire = null;
+       // this.lastFire = null;
       //  console.log("Timer is stopped");
     };
     CAnimationTimer.prototype.pause = function () {
@@ -6114,7 +6137,7 @@
             return;
         }
         this.lastTime = null;
-        this.lastFire = null;
+        //this.lastFire = null;
         this.stopFrames();
     };
     CAnimationTimer.prototype.getElapsedTicks = function () {
@@ -6154,10 +6177,10 @@
 
 
             //for test
-            if(this.lastFire === null || this.elapsed - this.lastFire >= 5000) {
-                this.lastFire = this.elapsed;
-              //  console.log("Timer is ON " + this.elapsed)
-            }
+            //if(this.lastFire === null || this.elapsed - this.lastFire >= 5000) {
+            //    this.lastFire = this.elapsed;
+            //  //  console.log("Timer is ON " + this.elapsed)
+            //}
         }
     };
     CAnimationTimer.prototype.startFrames = function () {
@@ -6210,6 +6233,9 @@
     CAnimComplexTrigger.prototype.addDefault = function() {
         this.addTrigger(DEFAULT_SIMPLE_TRIGGER);
     };
+    CAnimComplexTrigger.prototype.addNever = function() {
+        this.addTrigger(DEFAULT_NEVER_TRIGGER);
+    };
     CAnimComplexTrigger.prototype.addTrigger = function(fTrigger) {
         if(fTrigger !== null) {
             this.triggers.push(fTrigger);
@@ -6219,6 +6245,9 @@
         for(var nTrigger = 0; nTrigger < aTriggers.length; ++nTrigger) {
             this.addTrigger(aTriggers[nTrigger]);
         }
+    };
+    CAnimComplexTrigger.prototype.isDefault = function() {
+        return this.triggers.length === 1 && this.triggers[0] === DEFAULT_SIMPLE_TRIGGER;
     };
     
 
