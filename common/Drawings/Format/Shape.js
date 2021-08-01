@@ -1340,11 +1340,11 @@ CShape.prototype.applyTextFunction = function (docContentFunction, tableFunction
 
 CShape.prototype.copyTextInfoFromShapeToPoint = function () {
     var txBody = this.txBody;
-    var point = this.point;
-    if (txBody && this.point) {
+    var point = this.getPoint();
+    if (txBody && point) {
         var pointCopy;
-        if (this.point.prSet && this.point.prSet.custT) {
-            pointCopy = txBody.createDuplicateForSmartArt({custT: this.point.prSet.custT});
+        if (point.prSet && point.prSet.custT) {
+            pointCopy = txBody.createDuplicateForSmartArt({custT: point.prSet.custT});
         } else {
             pointCopy = txBody.createDuplicateForSmartArt();
         }
@@ -1816,6 +1816,18 @@ CShape.prototype.getCompiledTransparent = function () {
 };
 
     CShape.prototype.getPoint = function () {
+        if (this.point) {
+            return this.point.point;
+        }
+    }
+
+    CShape.prototype.getPointAssociation = function () {
+        if (this.point) {
+            return this.point.association;
+        }
+    }
+
+    CShape.prototype.getPointInfo = function () {
         return this.point;
     }
 
@@ -2120,7 +2132,6 @@ CShape.prototype.recalculateTransformText2 = function () {
         while (nSquare < 0){
             nSquare += 4;
         }
-        console.log(nSquare)
     }
     if (!_body_pr.upright) {
         if (!(_body_pr.vert === AscFormat.nVertTTvert || _body_pr.vert === AscFormat.nVertTTvert270  || _body_pr.vert === AscFormat.nVertTTeaVert || nSquare % 2 === 1)) {

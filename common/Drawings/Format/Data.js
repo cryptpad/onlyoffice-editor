@@ -1604,6 +1604,51 @@
     };
 
 
+    changesFactory[AscDFH.historyitem_PointInfoPoint] = CChangeObject;
+    changesFactory[AscDFH.historyitem_PointInfoAssociation] = CChangeObject;
+    drawingsChangesMap[AscDFH.historyitem_PointInfoPoint] = function (oClass, value) {
+      oClass.point = value;
+    };
+    drawingsChangesMap[AscDFH.historyitem_PointInfoAssociation] = function (oClass, value) {
+      oClass.association = value;
+    };
+    function PointInfo() {
+      this.point = null;
+      this.association = null;
+    }
+    InitClass(PointInfo, CBaseFormatObject, AscDFH.historyitem_type_PointInfo);
+
+    PointInfo.prototype.getPoint = function () {
+      return this.point;
+    }
+
+    PointInfo.prototype.getAssociation = function () {
+      return this.association;
+    }
+
+    PointInfo.prototype.setPoint = function (oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PointInfoPoint, this.getPoint(), oPr));
+      this.point = oPr;
+      this.setParentToChild(oPr);
+    }
+    PointInfo.prototype.setAssociation = function (oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PointInfoAssociation, this.getAssociation(), oPr));
+      this.association = oPr;
+      this.setParentToChild(oPr);
+    }
+
+    PointInfo.prototype.fillObject = function (oCopy, oIdMap) {
+      if (this.point) {
+        oCopy.setPoint(this.getPoint().createDuplicate());
+      }
+      if (this.association) {
+        oCopy.setAssociation(this.getAssociation().createDuplicate());
+      }
+    }
+
+
+
+
     changesFactory[AscDFH.historyitem_PointCxnId] = CChangeString;
     changesFactory[AscDFH.historyitem_PointModelId] = CChangeString;
     changesFactory[AscDFH.historyitem_PointType] = CChangeLong;
