@@ -3844,16 +3844,16 @@
 
     changesFactory[AscDFH.historyitem_IteratorAttributesAddAxis] = CChangeContent;
     changesFactory[AscDFH.historyitem_IteratorAttributesRemoveAxis] = CChangeContent;
-    changesFactory[AscDFH.historyitem_IteratorAttributesAddCnt] = CChangeContent;
-    changesFactory[AscDFH.historyitem_IteratorAttributesRemoveCnt] = CChangeContent;
-    changesFactory[AscDFH.historyitem_IteratorAttributesAddHideLastTrans] = CChangeContent;
-    changesFactory[AscDFH.historyitem_IteratorAttributesRemoveHideLastTrans] = CChangeContent;
+    changesFactory[AscDFH.historyitem_IteratorAttributesAddCnt] = AscDFH.CChangesDrawingsContentLong;
+    changesFactory[AscDFH.historyitem_IteratorAttributesRemoveCnt] = AscDFH.CChangesDrawingsContentLong;
+    changesFactory[AscDFH.historyitem_IteratorAttributesAddHideLastTrans] = AscDFH.CChangesDrawingsContentBool;
+    changesFactory[AscDFH.historyitem_IteratorAttributesRemoveHideLastTrans] = AscDFH.CChangesDrawingsContentBool;
     changesFactory[AscDFH.historyitem_IteratorAttributesAddPtType] = CChangeContent;
     changesFactory[AscDFH.historyitem_IteratorAttributesRemovePtType] = CChangeContent;
-    changesFactory[AscDFH.historyitem_IteratorAttributesAddSt] = CChangeContent;
-    changesFactory[AscDFH.historyitem_IteratorAttributesRemoveSt] = CChangeContent;
-    changesFactory[AscDFH.historyitem_IteratorAttributesAddStep] = CChangeContent;
-    changesFactory[AscDFH.historyitem_IteratorAttributesRemoveStep] = CChangeContent;
+    changesFactory[AscDFH.historyitem_IteratorAttributesAddSt] = AscDFH.CChangesDrawingsContentLong;
+    changesFactory[AscDFH.historyitem_IteratorAttributesRemoveSt] = AscDFH.CChangesDrawingsContentLong;
+    changesFactory[AscDFH.historyitem_IteratorAttributesAddStep] = AscDFH.CChangesDrawingsContentLong;
+    changesFactory[AscDFH.historyitem_IteratorAttributesRemoveStep] = AscDFH.CChangesDrawingsContentLong;
     drawingContentChanges[AscDFH.historyitem_IteratorAttributesAddAxis] = function (oClass) {
       return oClass.axis;
     };
@@ -3920,7 +3920,7 @@
 
     IteratorAttributes.prototype.addToLstCnt = function (nIdx, oPr) {
       var nInsertIdx = Math.min(this.cnt.length, Math.max(0, nIdx));
-      oHistory.Add(new CChangeContent(this, AscDFH.historyitem_IteratorAttributesAddCnt, nInsertIdx, [oPr], true));
+      oHistory.Add(new AscDFH.CChangesDrawingsContentLong(this, AscDFH.historyitem_IteratorAttributesAddCnt, nInsertIdx, [oPr], true));
       this.cnt.splice(nInsertIdx, 0, oPr);
       this.setParentToChild(oPr);
     };
@@ -3928,14 +3928,14 @@
     IteratorAttributes.prototype.removeFromLstCnt = function (nIdx) {
       if (nIdx > -1 && nIdx < this.cnt.length) {
         this.cnt[nIdx].setParent(null);
-        oHistory.Add(new CChangeContent(this, AscDFH.historyitem_IteratorAttributesRemoveCnt, nIdx, [this.cnt[nIdx]], false));
+        oHistory.Add(new AscDFH.CChangesDrawingsContentLong(this, AscDFH.historyitem_IteratorAttributesRemoveCnt, nIdx, [this.cnt[nIdx]], false));
         this.cnt.splice(nIdx, 1);
       }
     };
 
     IteratorAttributes.prototype.addToLstHideLastTrans = function (nIdx, oPr) {
       var nInsertIdx = Math.min(this.hideLastTrans.length, Math.max(0, nIdx));
-      oHistory.Add(new CChangeContent(this, AscDFH.historyitem_IteratorAttributesAddHideLastTrans, nInsertIdx, [oPr], true));
+      oHistory.Add(new AscDFH.CChangesDrawingsContentBool(this, AscDFH.historyitem_IteratorAttributesAddHideLastTrans, nInsertIdx, [oPr], true));
       this.hideLastTrans.splice(nInsertIdx, 0, oPr);
       this.setParentToChild(oPr);
     };
@@ -3943,7 +3943,7 @@
     IteratorAttributes.prototype.removeFromLstHideLastTrans = function (nIdx) {
       if (nIdx > -1 && nIdx < this.hideLastTrans.length) {
         this.hideLastTrans[nIdx].setParent(null);
-        oHistory.Add(new CChangeContent(this, AscDFH.historyitem_IteratorAttributesRemoveHideLastTrans, nIdx, [this.hideLastTrans[nIdx]], false));
+        oHistory.Add(new AscDFH.CChangesDrawingsContentBool(this, AscDFH.historyitem_IteratorAttributesRemoveHideLastTrans, nIdx, [this.hideLastTrans[nIdx]], false));
         this.hideLastTrans.splice(nIdx, 1);
       }
     };
@@ -3965,7 +3965,7 @@
 
     IteratorAttributes.prototype.addToLstSt = function (nIdx, oPr) {
       var nInsertIdx = Math.min(this.st.length, Math.max(0, nIdx));
-      oHistory.Add(new CChangeContent(this, AscDFH.historyitem_IteratorAttributesAddSt, nInsertIdx, [oPr], true));
+      oHistory.Add(new AscDFH.CChangesDrawingsContentLong(this, AscDFH.historyitem_IteratorAttributesAddSt, nInsertIdx, [oPr], true));
       this.st.splice(nInsertIdx, 0, oPr);
       this.setParentToChild(oPr);
     };
@@ -3973,14 +3973,14 @@
     IteratorAttributes.prototype.removeFromLstSt = function (nIdx) {
       if (nIdx > -1 && nIdx < this.st.length) {
         this.st[nIdx].setParent(null);
-        oHistory.Add(new CChangeContent(this, AscDFH.historyitem_IteratorAttributesRemoveSt, nIdx, [this.st[nIdx]], false));
+        oHistory.Add(new AscDFH.CChangesDrawingsContentLong(this, AscDFH.historyitem_IteratorAttributesRemoveSt, nIdx, [this.st[nIdx]], false));
         this.st.splice(nIdx, 1);
       }
     };
 
     IteratorAttributes.prototype.addToLstStep = function (nIdx, oPr) {
       var nInsertIdx = Math.min(this.step.length, Math.max(0, nIdx));
-      oHistory.Add(new CChangeContent(this, AscDFH.historyitem_IteratorAttributesAddStep, nInsertIdx, [oPr], true));
+      oHistory.Add(new AscDFH.CChangesDrawingsContentLong(this, AscDFH.historyitem_IteratorAttributesAddStep, nInsertIdx, [oPr], true));
       this.step.splice(nInsertIdx, 0, oPr);
       this.setParentToChild(oPr);
     };
@@ -3988,7 +3988,7 @@
     IteratorAttributes.prototype.removeFromLstStep = function (nIdx) {
       if (nIdx > -1 && nIdx < this.step.length) {
         this.step[nIdx].setParent(null);
-        oHistory.Add(new CChangeContent(this, AscDFH.historyitem_IteratorAttributesRemoveStep, nIdx, [this.step[nIdx]], false));
+        oHistory.Add(new AscDFH.CChangesDrawingsContentLong(this, AscDFH.historyitem_IteratorAttributesRemoveStep, nIdx, [this.step[nIdx]], false));
         this.step.splice(nIdx, 1);
       }
     };
