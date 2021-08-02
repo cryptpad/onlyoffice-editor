@@ -11620,6 +11620,10 @@ var GLOBAL_PATH_COUNT = 0;
                 return;
             }
         }
+        if(graphics.animationDrawer) {
+            graphics.animationDrawer.drawObject(this, graphics);
+            return;
+        }
         var oldShowParaMarks;
         if(editor) {
             oldShowParaMarks = editor.ShowParaMarks;

@@ -3788,6 +3788,15 @@ CPresentation.prototype.GetDrawingDocument = function () {
     return this.DrawingDocument;
 };
 
+CPresentation.prototype.GetSlide = function(nIndex) {
+    if(this.Slides[nIndex]) {
+        return this.Slides[nIndex];
+    }
+    return null;
+};
+CPresentation.prototype.GetCurrentSlide = function() {
+    return this.GetSlide(this.CurPage);
+};
 CPresentation.prototype.GetCurrentController = function () {
     var oCurSlide = this.Slides[this.CurPage];
     if (oCurSlide) {
@@ -11029,6 +11038,18 @@ CPresentation.prototype.SetAutoCorrectFirstLetterOfSentences = function(isCorrec
 CPresentation.prototype.IsAutoCorrectFirstLetterOfSentences = function()
 {
 	return this.AutoCorrectSettings.FirstLetterOfSentences;
+};
+CPresentation.prototype.StopAnimation = function()
+{
+    for(var nSlide = 0; nSlide < this.Slides.length; ++nSlide)
+    {
+        var oSlide = this.Slides[nSlide];
+        var oPlayer = oSlide.animationPlayer;
+        if(oPlayer)
+        {
+            oPlayer.stop();
+        }
+    }
 };
 
 function collectSelectedObjects(aSpTree, aCollectArray, bRecursive, oIdMap, bSourceFormatting) {
