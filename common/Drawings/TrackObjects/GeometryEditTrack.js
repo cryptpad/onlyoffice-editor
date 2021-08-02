@@ -54,6 +54,10 @@
         this.invertTransform = originalObject.invertTransform;
         this.overlayObject = new AscFormat.OverlayObject(this.geometry, this.resizedExtX, this.originalExtY, oBrush, oPen, this.transform);
         this.isConverted = false;
+        this.xMin = 0;
+        this.yMin = 0;
+        this.xMax = this.shapeWidth;
+        this.yMax =  this.shapeHeight;
     };
 
     EditShapeGeometryTrack.prototype.draw = function(overlay, transform)
@@ -197,7 +201,7 @@
             }
 
         /*<------------------------------------------------------------->*/
-      /*  var last_x = geometry.gmEditList[0].X,
+        var last_x = geometry.gmEditList[0].X,
             last_y = geometry.gmEditList[0].Y,
             xMin = last_x, yMin = last_y, xMax = last_x, yMax = last_y;
         for(var i = 0; i < geometry.pathLst.length; i++) {
@@ -206,7 +210,7 @@
 
                 var path_command = arrPathCommand[j];
 
-                if (path_command.id === 4) {
+                if (path_command.id === PathType.BEZIER_4) {
 
                     var bezier_polygon = AscFormat.partition_bezier4(last_x, last_y, path_command.X0, path_command.Y0, path_command.X1, path_command.Y1, path_command.X2, path_command.Y2, AscFormat.APPROXIMATE_EPSILON);
                     for (var point_index = 1; point_index < bezier_polygon.length; ++point_index) {
@@ -227,6 +231,11 @@
             }
         }
 
+
+        this.xMin = xMin;
+        this.xMax = xMax;
+        this.yMin = yMin;
+        this.yMax = yMax;
 
 
         var shape = this.originalShape;
@@ -262,24 +271,21 @@
             for (var j = 0; j < arrPathCommand.length; ++j) {
 
                 switch (arrPathCommand[j].id) {
-                    case 0: {
+                    case PathType.POINT: {
                         this.addPathCommandInfo(1, i, (((arrPathCommand[j].X - xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y - yMin) * kh) >> 0) + "");
                         break;
                     }
-                    case 4: {
+                    case PathType.BEZIER_4: {
                         this.addPathCommandInfo(5, i,(((arrPathCommand[j].X0 - xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y0 - yMin) * kh) >> 0) + "", (((arrPathCommand[j].X1 - xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y1 - yMin) * kh) >> 0) + "", (((arrPathCommand[j].X2 - xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y2 - yMin) * kh) >> 0) + "");
                         break;
                     }
-                    case 3: {
-                        break;
-                    }
-                    case 5: {
+                    case PathType.END: {
                         this.addPathCommandInfo(6, i);
                     }
                 }
             }
             geometry.pathLst[i].pathW = pathW, geometry.pathLst[i].pathH = pathH;
-        }*/
+        }
 
     };
 
@@ -299,19 +305,20 @@
         arr_p_y.push(tr.TransformPointY(this.originalShape.extX,this.originalShape.extY));
         arr_p_x.push(tr.TransformPointX(0,this.originalShape.extY));
         arr_p_y.push(tr.TransformPointY(0,this.originalShape.extY));
+        
+        arr_p_x.push(this.xMin);
+        arr_p_x.push(this.xMax);
+        arr_p_y.push(this.yMin);
+        arr_p_y.push(this.yMax);
 
-        arr_p_x.push(bounds_checker.Bounds.min_x);
-        arr_p_x.push(bounds_checker.Bounds.max_x);
-        arr_p_y.push(bounds_checker.Bounds.min_y);
-        arr_p_y.push(bounds_checker.Bounds.max_y);
 
         bounds_checker.Bounds.min_x = Math.min.apply(Math, arr_p_x);
         bounds_checker.Bounds.max_x = Math.max.apply(Math, arr_p_x);
         bounds_checker.Bounds.min_y = Math.min.apply(Math, arr_p_y);
         bounds_checker.Bounds.max_y = Math.max.apply(Math, arr_p_y);
 
-        bounds_checker.Bounds.posX = this.originalShape.x;
-        bounds_checker.Bounds.posY = this.originalShape.y;
+        bounds_checker.Bounds.posX = this.originalShape.x + this.xMin;
+        bounds_checker.Bounds.posY = this.originalShape.y + this.yMin;
         bounds_checker.Bounds.extX = this.originalShape.extX;
         bounds_checker.Bounds.extY = this.originalShape.extY;
 
@@ -568,6 +575,18 @@
                 startIndex = cur_index + 1;
             }
         }
+
+        //update gmEditPoint coords
+        if(geom.gmEditPoint) {
+            var pointC1 = geom.gmEditPoint.pathC1;
+            var pointC2 = geom.gmEditPoint.pathC2;
+            geom.gmEditList.forEach(function(elem) {
+                if(elem.pathIndex === geom.gmEditPoint.pathIndex && elem.pathC1 === pointC1 && elem.pathC2 === pointC2) {
+                    geom.gmEditPoint = elem;
+                }
+            })
+        }
+
         this.isConverted = true;
     }
 
