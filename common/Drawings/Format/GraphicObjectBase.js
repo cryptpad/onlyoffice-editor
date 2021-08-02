@@ -1520,12 +1520,9 @@
         }
         return { kd1: 1, kd2: 1 };
     };
-
-
     CGraphicObjectBase.prototype.GetAllContentControls = function(arrContentControls)
     {
     };
-
     CGraphicObjectBase.prototype.CheckContentControlEditingLock = function () {
         if(this.group){
             this.group.CheckContentControlEditingLock();
@@ -1552,6 +1549,9 @@
         return this.hit(x, y);
     };
     CGraphicObjectBase.prototype.drawLocks = function(transform, graphics){
+        if(AscCommon.IsShapeToImageConverter) {
+            return;
+        }
         var bNotes = !!(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES);
         if(!this.group && !bNotes)
         {
@@ -1607,17 +1607,14 @@
         }
         return this.macro;
     };
-
     CGraphicObjectBase.prototype.getCopyWithSourceFormatting = function(oIdMap){
         return this.copy(oIdMap);
     };
-
     CGraphicObjectBase.prototype.checkNeedRecalculate = function(){
         return false;
     };
     CGraphicObjectBase.prototype.handleAllContents = function(fCallback){
     };
-
     CGraphicObjectBase.prototype.canChangeArrows = function () {
         if (!this.spPr || this.spPr.geometry == null) {
             return false;
@@ -1639,7 +1636,6 @@
         }
         return false;
     };
-
     CGraphicObjectBase.prototype.getStroke = function () {
         if(this.pen && this.pen.Fill)
         {
@@ -1655,8 +1651,6 @@
         ret.w = 0;
         return ret;
     };
-
-
     CGraphicObjectBase.prototype.getPresetGeom = function () {
         if (this.spPr && this.spPr.geometry) {
             return this.spPr.geometry.preset;
@@ -1669,8 +1663,6 @@
             return null;
         }
     };
-
-
     CGraphicObjectBase.prototype.getFill = function () {
         if(this.brush && this.brush.fill)
         {
@@ -1678,14 +1670,12 @@
         }
         return AscFormat.CreateNoFillUniFill();
     };
-
     CGraphicObjectBase.prototype.getClipRect = function(){
         if(this.parent && this.parent.GetClipRect){
             return this.parent.GetClipRect();
         }
         return null;
     };
-
     CGraphicObjectBase.prototype.getBlipFill = function(){
         if(this.getObjectType() === AscDFH.historyitem_type_ImageShape || this.getObjectType() === AscDFH.historyitem_type_Shape){
             if(this.blipFill){
@@ -1697,7 +1687,6 @@
         }
         return null;
     };
-
     CGraphicObjectBase.prototype.checkSrcRect = function(){
 
         if(this.getObjectType() === AscDFH.historyitem_type_ImageShape){
@@ -1820,15 +1809,12 @@
             return false;
         }, this, []);
     };
-
     CGraphicObjectBase.prototype.clearCropObject = function(){
         this.cropObject = null;
     };
-
     CGraphicObjectBase.prototype.drawCropTrack = function(graphics, srcRect, transform, cropObjectTransform){
 
     };
-
     CGraphicObjectBase.prototype.calculateSrcRect = function(){
 
         var oldTransform = this.transform.CreateDublicate();
@@ -1848,8 +1834,6 @@
         this.setSrcRect(this.calculateSrcRect2());
         this.clearCropObject();
     };
-
-
     CGraphicObjectBase.prototype.setSrcRect = function(srcRect){
 
         if(this.getObjectType() === AscDFH.historyitem_type_ImageShape)
@@ -1886,8 +1870,6 @@
         }
         return null;
     };
-
-
     CGraphicObjectBase.prototype.updatePosition = function(x, y) {
         this.posX = x;
         this.posY = y;
@@ -1903,7 +1885,6 @@
             this.updateTransformMatrix();
         }
     };
-
     CGraphicObjectBase.prototype.copyComments = function(oLogicDocument)
     {
         if(!oLogicDocument)
@@ -2221,10 +2202,49 @@
     };
 	CGraphicObjectBase.prototype.isForm = function() {
 		return (this.parent && this.parent.IsForm && this.parent.IsForm());
-	}
+	};
 	CGraphicObjectBase.prototype.getInnerForm = function() {
 		return null;
-	}
+	};
+    CGraphicObjectBase.prototype.getBoundsByDrawing = function() {
+        var oCopy = this.bounds.copy();
+        oCopy.l -= 3;
+        oCopy.r += 3;
+        oCopy.t -= 3;
+        oCopy.b += 3;
+        oCopy.checkWH();
+        return oCopy;//TODO: do not count shape rect
+    };
+    CGraphicObjectBase.prototype.getPresentationSize = function() {
+        var oPresentation = editor.WordControl.m_oLogicDocument;
+        return {
+            w: oPresentation.GetWidthMM(),
+            h: oPresentation.GetHeightMM()
+        }
+    };
+    CGraphicObjectBase.prototype.getAnimTexture = function(scale) {
+        var oBounds = this.getBoundsByDrawing();
+        var nWidth = oBounds.w * scale + 0.5 >> 0;
+        var nHeight = oBounds.h * scale + 0.5 >> 0;
+        if(nWidth === 0 || nHeight === 0) {
+            return null;
+        }
+        var oCanvas = document.createElement('canvas');
+        oCanvas.width = nWidth;
+        oCanvas.height = nHeight;
+        var oCtx = oCanvas.getContext('2d');
+        var oGraphics = new AscCommon.CGraphics();
+        oGraphics.init(oCtx, nWidth, nHeight, nWidth / scale, nHeight / scale);
+        oGraphics.m_oFontManager = AscCommon.g_fontManager;
+        var nX = oBounds.x * oGraphics.m_oCoordTransform.sx;
+        var nY = oBounds.y * oGraphics.m_oCoordTransform.sy;
+        oGraphics.m_oCoordTransform.tx = -nX;
+        oGraphics.m_oCoordTransform.ty = -nY;
+        AscCommon.IsShapeToImageConverter = true;
+        this.draw(oGraphics);
+        AscCommon.IsShapeToImageConverter = false;
+        return new AscFormat.CBaseAnimTexture(oCanvas, scale, nX, nY)
+    };
 
     function CRelSizeAnchor() {
         CBaseObject.call(this);

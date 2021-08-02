@@ -635,6 +635,10 @@ CImageShape.prototype.draw = function(graphics, transform)
             return;
         }
     }
+    if(graphics.animationDrawer) {
+        graphics.animationDrawer.drawObject(this, graphics);
+        return;
+    }
 
 
     this.drawShdw &&  this.drawShdw(graphics);

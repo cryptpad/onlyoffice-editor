@@ -464,6 +464,10 @@ function CGroupShape()
         if(this.checkNeedRecalculate && this.checkNeedRecalculate()){
             return;
         }
+        if(graphics.animationDrawer) {
+            graphics.animationDrawer.drawObject(this, graphics);
+            return;
+        }
         var oClipRect;
         if(!graphics.IsSlideBoundsCheckerType){
             oClipRect = this.getClipRect();
