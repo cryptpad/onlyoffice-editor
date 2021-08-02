@@ -3339,10 +3339,9 @@ CShape.prototype.isEmptyPlaceholder = function () {
                 }
                 return true;
             }
-        }
-
-    } else if (this.getPointAssociation() && this.getPhType() === AscFormat.phType_pic) {
-        return true;
+        } else if (this.getPointAssociation() && this.getPhType() === AscFormat.phType_pic) {
+            return true;
+    }
     }
     if (this.isPlaceholder()) {
         var phldrType = this.getPhType();

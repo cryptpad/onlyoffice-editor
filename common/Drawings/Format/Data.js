@@ -7947,14 +7947,17 @@
       var imagePlaceholderArrStylelbl = ['alignImgPlace1', 'bgImgPlace1', 'fgImgPlace1'];
       var imagePlaceholderArrName = ['Image', 'image', 'imageRepeatNode', 'pictRect'];
       for(var nSp = 0; nSp < this.spTree.length; ++nSp) {
-        var pointAssociationPrSet = this.spTree[nSp].getPointAssociation() && this.spTree[nSp].getPointAssociation().prSet;
-        if (pointAssociationPrSet) {
+        var oShape = this.spTree[nSp];
+        var pointAssociation = oShape.getPointAssociation();
+        var pointAssociationPrSet = pointAssociation && pointAssociation.prSet;
+        var isNotBlipFill = pointAssociation && pointAssociation.spPr && !pointAssociation.spPr.Fill || !pointAssociation.spPr;
+        if (pointAssociationPrSet && isNotBlipFill) {
           if (imagePlaceholderArrStylelbl.indexOf(pointAssociationPrSet.presStyleLbl) !== -1 ||
             imagePlaceholderArrName.indexOf(pointAssociationPrSet.presName) !== -1 ||
             (pointAssociationPrSet.presName === 'rect1' && pointAssociationPrSet.presStyleLbl === 'bgShp') ||
             (pointAssociationPrSet.presName === 'rect1' && pointAssociationPrSet.presStyleLbl === 'lnNode1') ||
             (pointAssociationPrSet.presName === 'adorn' && pointAssociationPrSet.presStyleLbl === 'fgAccFollowNode1')) {
-            this.spTree[nSp].createPlaceholderControl(aControls);
+            oShape.createPlaceholderControl(aControls);
           }
         }
       }
@@ -8826,31 +8829,41 @@
       var that = this;
       var oDrawing = this.getDrawing();
       if(!oDrawing) {
-          return;
+        return;
       }
       var dataModel = this.getDataModel() && this.getDataModel().getDataModel();
       var ptLst = dataModel.ptLst.list;
       var cxnLst = dataModel.cxnLst.list;
       oDrawing.spTree.forEach(function (shape) {
         if (shape.isObjectInSmartArt()) {
-          var pointInfo = new PointInfo();
-          var mainPoint;
-          for (var i = 0; i < ptLst.length; i += 1) {
-            if (shape.modelId && shape.modelId === ptLst[i].modelId) {
-              pointInfo.setAssociation(ptLst[i]);
-              for (var j = 0; j < ptLst.length; j += 1) {
-                if (ptLst[i].prSet && ptLst[i].prSet.presAssocID && ptLst[i].prSet.presAssocID === ptLst[j].modelId) {
-                  mainPoint = ptLst[j];
-                  shape.setSmartArtPoint(pointInfo);
-                }
-              }
-              for (j = 0; j < cxnLst.length; j += 1) {
-                if (cxnLst[j].destId === ptLst[i].modelId && mainPoint && cxnLst[j].srcId === mainPoint.modelId) {
-                  pointInfo.setPoint(mainPoint);
-                }
+          var cxn;
+          var isPresParOf = true;
+          for (var i = 0; i < cxnLst.length; i += 1) {
+            if (cxnLst[i].type === 'presOf' && cxnLst[i].destId === shape.modelId) {
+              isPresParOf = false;
+              cxn = cxnLst[i];
+            }
+          }
+          if (isPresParOf) {
+            for (i = 0; i < cxnLst.length; i += 1) {
+              if (cxnLst[i].type === 'presParOf' && cxnLst[i].destId === shape.modelId) {
+                isPresParOf = false;
+                cxn = cxnLst[i];
               }
             }
           }
+          var pointInfo = new PointInfo();
+          for (i = 0; i < ptLst.length; i += 1) {
+            if (cxn) {
+              if (cxn.destId === ptLst[i].modelId) {
+                pointInfo.setAssociation(ptLst[i]);
+              }
+              if (cxn.srcId === ptLst[i].modelId) {
+                pointInfo.setPoint(ptLst[i]);
+              }
+            }
+          }
+          shape.setSmartArtPoint(pointInfo);
         }
       })
     };

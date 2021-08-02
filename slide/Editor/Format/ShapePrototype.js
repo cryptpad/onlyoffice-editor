@@ -634,6 +634,16 @@ CShape.prototype.recalculateContent2 = function()
 
             if (!this.txBody.content2){
                 this.txBody.content2 = AscFormat.CreateDocContentFromString(AscCommon.translateManager.getValue(text), this.getDrawingDocument(), this.txBody);
+                if (this.txBody.content && this.isObjectInSmartArt()) {
+                    var oContent = this.txBody.content;
+                    var oContent2 = this.txBody.content2;
+                    var contentLength = oContent.Content.length;
+                    var phldrParagraph = oContent2.Content[0];
+                    for (var i = 1; i < contentLength; i += 1) {
+                        var oCopy = phldrParagraph.Copy(oContent2, this.getDrawingDocument());
+                        oContent2.Internal_Content_Add(i, oCopy, false);
+                    }
+                }
             }
             else
             {
@@ -727,13 +737,16 @@ CShape.prototype.recalculateContent2 = function()
 
 
             var content_ = this.getDocContent();
-            if(content_ && content_.Content[0])
-            {
-                content.Content[0].Pr  = content_.Content[0].Pr.Copy();
-                if(!content.Content[0].Pr.DefaultRunPr){
-                    content.Content[0].Pr.DefaultRunPr = new AscCommonWord.CTextPr();
+            if (content_) {
+                for (i = 0; i < content.Content.length; i += 1) {
+                    if (content_.Content[i]) {
+                        content.Content[i].Pr  = content_.Content[i].Pr.Copy();
+                        if(!content.Content[i].Pr.DefaultRunPr){
+                            content.Content[i].Pr.DefaultRunPr = new AscCommonWord.CTextPr();
+                        }
+                        content.Content[i].Pr.DefaultRunPr.Merge(content_.Content[i].GetFirstRunPr());
+                    }
                 }
-                content.Content[0].Pr.DefaultRunPr.Merge(content_.Content[0].GetFirstRunPr());
             }
             this.bCheckAutoFitFlag = true;
             this.tmpFontScale = undefined;
