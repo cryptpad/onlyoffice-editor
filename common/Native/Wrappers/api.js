@@ -6951,6 +6951,7 @@ Asc['asc_docs_api'].prototype.openDocument = function(file)
         
         if (null != _api.WordControl.m_oLogicDocument)
         {
+            _api.WordControl.m_oDrawingDocument.CheckGuiControlColors();
             _api.sendColorThemes(_api.WordControl.m_oLogicDocument.theme);
         }
   
@@ -6979,7 +6980,8 @@ Asc['asc_docs_api'].prototype.openDocument = function(file)
 
     if (null != _api.WordControl.m_oLogicDocument)
     {
-         _api.sendColorThemes(_api.WordControl.m_oLogicDocument.theme);
+        _api.WordControl.m_oDrawingDocument.CheckGuiControlColors();
+        _api.sendColorThemes(_api.WordControl.m_oLogicDocument.theme);
     }
 
     window["native"]["onEndLoadingFile"]();
