@@ -2917,6 +2917,12 @@ CShape.prototype.fillObject = function(copy, oPr){
     if(this.textLink !== null) {
         copy.setTextLink(this.textLink);
     }
+    if(this.clientData) {
+        copy.setClientData(this.clientData.createDuplicate());
+    }
+    if(this.fLocksText !== null) {
+        copy.setFLocksText(this.fLocksText);
+    }
     copy.setWordShape(this.bWordShape);
     copy.setBDeleted(this.bDeleted);
     copy.setLocks(this.locks);
@@ -2929,6 +2935,9 @@ CShape.prototype.copy = function (oPr) {
     var copy = new CShape();
     this.fillObject(copy, oPr);
     return copy;
+};
+CShape.prototype.getProtectionLockText = function () {
+    return this.fLocksText !== false;
 };
 
 CShape.prototype.Get_Styles = function (level) {

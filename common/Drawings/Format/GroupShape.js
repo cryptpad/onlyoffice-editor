@@ -321,6 +321,12 @@ function CGroupShape()
         if(this.textLink !== null) {
             copy.setTextLink(this.textLink);
         }
+        if(this.clientData) {
+            copy.setClientData(this.clientData.createDuplicate());
+        }
+        if(this.fLocksText !== null) {
+            copy.setFLocksText(this.fLocksText);
+        }
         copy.cachedImage = this.getBase64Img();
         copy.cachedPixH = this.cachedPixH;
         copy.cachedPixW = this.cachedPixW;

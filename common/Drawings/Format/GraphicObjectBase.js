@@ -48,11 +48,14 @@
     AscDFH.changesFactory[AscDFH.historyitem_ShapeSetTextLink]   = AscDFH.CChangesDrawingsString;
     AscDFH.changesFactory[AscDFH.historyitem_ShapeSetModelId]   = AscDFH.CChangesDrawingsString;
 
+    AscDFH.changesFactory[AscDFH.historyitem_ShapeSetFLocksText]   = AscDFH.CChangesDrawingsBool;
+
 
 
     AscDFH.changesFactory[AscDFH.historyitem_AutoShapes_SetDrawingBasePos] = AscDFH.CChangesDrawingsObjectNoId;
     AscDFH.changesFactory[AscDFH.historyitem_AutoShapes_SetDrawingBaseExt] = AscDFH.CChangesDrawingsObjectNoId;
     AscDFH.changesFactory[AscDFH.historyitem_AutoShapes_SetDrawingBaseCoors] = AscDFH.CChangesDrawingsObjectNoId;
+    AscDFH.changesFactory[AscDFH.historyitem_ShapeSetClientData] = AscDFH.CChangesDrawingsObjectNoId;
 
 
     var drawingsChangesMap = window['AscDFH'].drawingsChangesMap;
@@ -126,6 +129,9 @@
             }
         }
     };
+    drawingsChangesMap[AscDFH.historyitem_ShapeSetClientData] = function(oClass, value){
+        oClass.clientData = value;
+    };
 
 
     drawingsChangesMap[AscDFH.historyitem_ShapeSetMacro]            = function(oClass, value){
@@ -137,10 +143,14 @@
     drawingsChangesMap[AscDFH.historyitem_ShapeSetModelId]         = function(oClass, value){
         oClass.modelId = value;
     };
+    drawingsChangesMap[AscDFH.historyitem_ShapeSetFLocksText]         = function(oClass, value){
+        oClass.fLocksText = value;
+    };
 
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_AutoShapes_SetDrawingBasePos] = CDrawingBaseCoordsWritable;
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_AutoShapes_SetDrawingBaseExt] = CDrawingBaseCoordsWritable;
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_AutoShapes_SetDrawingBaseCoors] = CDrawingBasePosWritable;
+    AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ShapeSetClientData] = CClientData;
 
     var LOCKS_MASKS =
     {
@@ -261,6 +271,23 @@
         this.cx           = AscFormat.readDouble(Reader);
         this.cy           = AscFormat.readDouble(Reader);
     };
+    
+    function CClientData(fLocksWithSheet, fPrintsWithSheet) {
+        this.fLocksWithSheet = fLocksWithSheet;
+        this.fPrintsWithSheet = fPrintsWithSheet;
+    }
+    CClientData.prototype.Write_ToBinary = function(Writer) {
+        AscFormat.writeBool(Writer, this.fLocksWithSheet);
+        AscFormat.writeBool(Writer, this.fPrintsWithSheet);
+    };
+    CClientData.prototype.Read_FromBinary = function(Reader) {
+        this.fLocksWithSheet  = AscFormat.readBool(Reader);
+        this.fPrintsWithSheet = AscFormat.readBool(Reader);
+    };
+    CClientData.prototype.createDuplicate = function() {
+        return new CClientData(this.fLocksWithSheet, this.fPrintsWithSheet);
+    };
+
     /**
      * Class represent bounds graphical object
      * @param {number} l
@@ -402,6 +429,8 @@
         this.macro = null;
         this.textLink = null;
         this.modelId = null;
+        this.fLocksText = null;
+        this.clientData = null;
 
         /*Calculated fields*/
         this.posX = null;
@@ -582,6 +611,45 @@
     {
         History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_ShapeSetModelId, this.modelId, sModelId));
         this.modelId = sModelId;
+    };
+    CGraphicObjectBase.prototype.setFLocksText = function(bLock)
+    {
+        History.Add(new AscDFH.CChangesDrawingsBool(this, AscDFH.historyitem_ShapeSetFLocksText, this.fLocksText, bLock));
+        this.fLocksText = bLock;
+    };
+    CGraphicObjectBase.prototype.setClientData = function(oClientData)
+    {
+        History.Add(new AscDFH.CChangesDrawingsBool(this, AscDFH.historyitem_ShapeSetClientData, this.clientdata, oClientData));
+        this.clientData = oClientData;
+    };
+    CGraphicObjectBase.prototype.checkClientData = function()
+    {
+        if(!this.clientData)
+        {
+            this.setClientData(new CClientData());
+        }
+    };
+    CGraphicObjectBase.prototype.getProtectionLockText = function()
+    {
+        return null;
+    };
+    CGraphicObjectBase.prototype.getProtectionLocked = function()
+    {
+        if(!this.clientData) {
+            return false;
+        }
+        return this.clientData.fLocksWithSheet !== false;
+    };
+    CGraphicObjectBase.prototype.getProtectionPrint = function()
+    {
+        if(!this.clientData) {
+            return false;
+        }
+        return this.clientData.fPrintsWithSheet !== false;
+    };
+    CGraphicObjectBase.prototype.getLock = function()
+    {
+        return undefined;
     };
     CGraphicObjectBase.prototype.assignMacro = function(sGuid)
     {
