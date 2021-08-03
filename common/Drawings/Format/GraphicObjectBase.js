@@ -635,6 +635,9 @@
     };
     CGraphicObjectBase.prototype.getProtectionLocked = function()
     {
+        if(this.group) {
+            return this.group.getProtectionLocked();
+        }
         if(!this.clientData) {
             return false;
         }
@@ -642,6 +645,9 @@
     };
     CGraphicObjectBase.prototype.getProtectionPrint = function()
     {
+        if(this.group) {
+            return this.group.getProtectionPrint();
+        }
         if(!this.clientData) {
             return false;
         }
