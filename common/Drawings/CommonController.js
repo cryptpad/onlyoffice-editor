@@ -424,11 +424,6 @@ function CheckStockChart(oDrawingObjects, oApi)
     return true;
 }
 
-function CheckLinePreset(preset)
-{
-    return CheckLinePresetForParagraphAdd(preset);
-}
-
 function CheckLinePresetForParagraphAdd(preset)
 {
     return preset === "line" ||
@@ -721,7 +716,7 @@ function CanStartEditText(oController)
 {
     var oSelector = oController.selection.groupSelection ? oController.selection.groupSelection : oController;
     if(oSelector.selectedObjects.length === 1 && oSelector.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_Shape
-     && !AscFormat.CheckLinePresetForParagraphAdd(oSelector.selectedObjects[0].getPresetGeom()))
+     && oSelector.selectedObjects[0].canEditText())
     {
         return true;
     }
@@ -1506,7 +1501,7 @@ DrawingObjectsController.prototype =
 
 
     handleDblClickEmptyShape: function(oShape){
-        if(!oShape.getDocContent() && !CheckLinePresetForParagraphAdd(oShape.getPresetGeom())){
+        if(!oShape.getDocContent() && oShape.canEditText()){
             this.checkSelectedObjectsAndCallback(function () {
                 if(!oShape.bWordShape){
                     oShape.createTextBody();
@@ -2045,7 +2040,7 @@ DrawingObjectsController.prototype =
         if(oController.selectedObjects.length === 1 ){
             if(oController.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_Shape){
                 var oShape = oController.selectedObjects[0];
-                if(!AscFormat.CheckLinePresetForParagraphAdd(oShape.getPresetGeom())){
+                if(oShape.canEditText()){
                     if(oShape.bWordShape){
                         if(!oShape.textBoxContent){
                             oShape.createTextBoxContent();
@@ -2115,7 +2110,7 @@ DrawingObjectsController.prototype =
             {
 				if (!this.selection.textSelection.isForm())
 				{
-					drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.TEXT, this.selection.textSelection.getTransformMatrix(), 0, 0, this.selection.textSelection.extX, this.selection.textSelection.extY, AscFormat.CheckObjectLine(this.selection.textSelection), this.selection.textSelection.canRotate(), undefined, isDrawHandles);
+					drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.TEXT, this.selection.textSelection.getTransformMatrix(), 0, 0, this.selection.textSelection.extX, this.selection.textSelection.extY, AscFormat.CheckObjectLine(this.selection.textSelection), this.selection.textSelection.canRotate(), undefined, isDrawHandles && this.selection.textSelection.canEdit());
 					if (this.selection.textSelection.drawAdjustments)
 						this.selection.textSelection.drawAdjustments(drawingDocument);
 				}
@@ -2149,8 +2144,8 @@ DrawingObjectsController.prototype =
                         {
                             drawingDocument.AutoShapesTrack.Graphics.put_GlobalAlpha(true, oldGlobalAlpha);
                         }
-                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, cropObject.getTransformMatrix(), 0, 0, cropObject.extX, cropObject.extY, false, false, undefined, isDrawHandles);
-                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CROP, oCropSelection.getTransformMatrix(), 0, 0, oCropSelection.extX, oCropSelection.extY, false, false, undefined, isDrawHandles);
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, cropObject.getTransformMatrix(), 0, 0, cropObject.extX, cropObject.extY, false, false, undefined, isDrawHandles && cropObject.canEdit());
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CROP, oCropSelection.getTransformMatrix(), 0, 0, oCropSelection.extX, oCropSelection.extY, false, false, undefined, isDrawHandles && oCropSelection.canEdit());
                     }
                 }
             }
@@ -2159,12 +2154,12 @@ DrawingObjectsController.prototype =
         {
             if(this.selection.groupSelection.selectStartPage === pageIndex)
             {
-                drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.GROUP_PASSIVE, this.selection.groupSelection.getTransformMatrix(), 0, 0, this.selection.groupSelection.extX, this.selection.groupSelection.extY, false, this.selection.groupSelection.canRotate(), undefined, isDrawHandles);
+                drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.GROUP_PASSIVE, this.selection.groupSelection.getTransformMatrix(), 0, 0, this.selection.groupSelection.extX, this.selection.groupSelection.extY, false, this.selection.groupSelection.canRotate(), undefined, isDrawHandles && this.selection.groupSelection.canEdit());
                 if(this.selection.groupSelection.selection.textSelection)
                 {
                     for(i = 0; i < this.selection.groupSelection.selectedObjects.length ; ++i)
                     {
-                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.TEXT, this.selection.groupSelection.selectedObjects[i].transform, 0, 0, this.selection.groupSelection.selectedObjects[i].extX, this.selection.groupSelection.selectedObjects[i].extY, AscFormat.CheckObjectLine(this.selection.groupSelection.selectedObjects[i]), this.selection.groupSelection.selectedObjects[i].canRotate(), undefined, isDrawHandles);
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.TEXT, this.selection.groupSelection.selectedObjects[i].transform, 0, 0, this.selection.groupSelection.selectedObjects[i].extX, this.selection.groupSelection.selectedObjects[i].extY, AscFormat.CheckObjectLine(this.selection.groupSelection.selectedObjects[i]), this.selection.groupSelection.selectedObjects[i].canRotate(), undefined, isDrawHandles  && this.selection.groupSelection.canEdit());
                     }
                 }
                 else if(this.selection.groupSelection.selection.chartSelection)
@@ -2175,7 +2170,7 @@ DrawingObjectsController.prototype =
                 {
                     for(i = 0; i < this.selection.groupSelection.selectedObjects.length ; ++i)
                     {
-                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, this.selection.groupSelection.selectedObjects[i].transform, 0, 0, this.selection.groupSelection.selectedObjects[i].extX, this.selection.groupSelection.selectedObjects[i].extY, AscFormat.CheckObjectLine(this.selection.groupSelection.selectedObjects[i]), this.selection.groupSelection.selectedObjects[i].canRotate(), undefined, isDrawHandles);
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, this.selection.groupSelection.selectedObjects[i].transform, 0, 0, this.selection.groupSelection.selectedObjects[i].extX, this.selection.groupSelection.selectedObjects[i].extY, AscFormat.CheckObjectLine(this.selection.groupSelection.selectedObjects[i]), this.selection.groupSelection.selectedObjects[i].canRotate(), undefined, isDrawHandles && this.selection.groupSelection.canEdit());
                     }
                 }
 
@@ -2200,7 +2195,7 @@ DrawingObjectsController.prototype =
             {
                 if(this.selectedObjects[i].selectStartPage === pageIndex)
                 {
-                    drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, this.selectedObjects[i].getTransformMatrix(), 0, 0, this.selectedObjects[i].extX, this.selectedObjects[i].extY, AscFormat.CheckObjectLine(this.selectedObjects[i]), this.selectedObjects[i].canRotate(), undefined, isDrawHandles);
+                    drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.SHAPE, this.selectedObjects[i].getTransformMatrix(), 0, 0, this.selectedObjects[i].extX, this.selectedObjects[i].extY, AscFormat.CheckObjectLine(this.selectedObjects[i]), this.selectedObjects[i].canRotate(), undefined, isDrawHandles && this.selectedObjects[i].canEdit());
                 }
             }
             if(this.selectedObjects.length === 1 && this.selectedObjects[0].drawAdjustments && this.selectedObjects[0].selectStartPage === pageIndex)
@@ -2528,7 +2523,7 @@ DrawingObjectsController.prototype =
                     {
                         if(arr[i].getObjectType() === AscDFH.historyitem_type_Shape)
                         {
-                            if(!AscFormat.CheckLinePresetForParagraphAdd(arr[i].getPresetGeom()))
+                            if(arr[i].canEditText())
                             {
                                 if(arr[i].bWordShape)
                                 {
@@ -2720,7 +2715,7 @@ DrawingObjectsController.prototype =
                 case AscDFH.historyitem_type_Shape:{
                     oContent = oSelectedObject.getDocContent();
                     if(!oContent){
-                        if(!CheckLinePresetForParagraphAdd(oSelectedObject.getPresetGeom())){
+                        if(oSelectedObject.canEditText()){
                             this.checkSelectedObjectsAndCallback(function () {
                                 if(oSelectedObject.bWordShape){
                                     oSelectedObject.createTextBoxContent();
@@ -2839,7 +2834,7 @@ DrawingObjectsController.prototype =
                 };
                 this.applyDocContentFunction(fDocContentCallback, args, tableFunction);
             }
-            else if(this.selectedObjects.length === 1 && ((this.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_Shape && !CheckLinePresetForParagraphAdd(this.selectedObjects[0].getPresetGeom()) && !this.selectedObjects[0].signatureLine) || this.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_GraphicFrame))
+            else if(this.selectedObjects.length === 1 && ((this.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_Shape && this.selectedObjects[0].canEditText()) || this.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_GraphicFrame))
             {
                 this.selection.textSelection = this.selectedObjects[0];
                 if(this.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_GraphicFrame)
@@ -3757,6 +3752,28 @@ DrawingObjectsController.prototype =
                     this.selectedObjects[i].setDrawingBaseEditAs(AscCommon.c_oAscCellAnchorType.cellanchorTwoCell);
                 }
                 this.selectedObjects[i].checkDrawingBaseCoords();
+            }
+        }
+        var aSelectedObjects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects;
+        if(props.protectionLocked !== null && props.protectionLocked !== undefined)
+        {
+            for(i = 0; i < aSelectedObjects.length; ++i)
+            {
+                aSelectedObjects[i].setProtectionLocked(props.protectionLocked );
+            }
+        }
+        if(props.protectionLockText !== null && props.protectionLockText !== undefined)
+        {
+            for(i = 0; i < aSelectedObjects.length; ++i)
+            {
+                aSelectedObjects[i].setProtectionLockText(props.protectionLockText);
+            }
+        }
+        if(props.protectionPrint !== null && props.protectionPrint !== undefined)
+        {
+            for(i = 0; i < aSelectedObjects.length; ++i)
+            {
+                aSelectedObjects[i].setProtectionPrint(props.protectionPrint);
             }
         }
 
@@ -10965,7 +10982,6 @@ function CalcLiterByLength(aAlphaBet, nLength)
     window['AscFormat'].checkObjectInArray = checkObjectInArray;
     window['AscFormat'].getValOrDefault = getValOrDefault;
     window['AscFormat'].CheckStockChart = CheckStockChart;
-    window['AscFormat'].CheckLinePreset = CheckLinePreset;
     window['AscFormat'].CompareGroups = CompareGroups;
     window['AscFormat'].CheckSpPrXfrm = CheckSpPrXfrm;
     window['AscFormat'].CheckSpPrXfrm2 = CheckSpPrXfrm2;

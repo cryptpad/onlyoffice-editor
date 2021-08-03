@@ -62,7 +62,7 @@ var c_oAscFill = Asc.c_oAscFill;
 
 function CheckObjectLine(obj)
 {
-    return (obj instanceof CShape && obj.spPr && obj.spPr.geometry && AscFormat.CheckLinePreset(obj.spPr.geometry.preset));
+    return (obj instanceof CShape && obj.spPr && obj.spPr.geometry && AscFormat.CheckLinePresetForParagraphAdd(obj.spPr.geometry.preset));
 }
 
 
@@ -1268,7 +1268,7 @@ CShape.prototype.createTextBoxContent = function () {
 CShape.prototype.paragraphAdd = function (paraItem, bRecalculate) {
     var content_to_add = this.getDocContent();
     if (!content_to_add) {
-        if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom())) {
+        if(this.canEditText()) {
             if (this.bWordShape) {
                 this.createTextBoxContent();
             }
@@ -1288,7 +1288,7 @@ CShape.prototype.applyTextFunction = function (docContentFunction, tableFunction
     var content_to_add = this.getDocContent();
     if (!content_to_add)
     {
-        if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom())) {
+        if(this.canEditText()) {
 
             if (this.bWordShape)
             {
@@ -1801,7 +1801,7 @@ CShape.prototype.getPhIndex = function () {
 CShape.prototype.setVerticalAlign = function (align) {
     var content_to_add = this.getDocContent();
     if (!content_to_add) {
-        if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom())) {
+        if(this.canEditText()) {
             if (this.bWordShape) {
                 this.createTextBoxContent();
             }
@@ -1827,7 +1827,7 @@ CShape.prototype.setVerticalAlign = function (align) {
 CShape.prototype.setVert = function (vert) {
     var content_to_add = this.getDocContent();
     if (!content_to_add) {
-        if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom())) {
+        if(this.canEditText()) {
             if (this.bWordShape) {
                 this.createTextBoxContent();
             }
