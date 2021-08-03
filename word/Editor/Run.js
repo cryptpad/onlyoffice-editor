@@ -12998,8 +12998,7 @@ ParaRun.prototype.CheckTextForTextCase = function(oEngine)
                         var nLowerCode = String.fromCharCode(nCharCode).toLowerCase().charCodeAt(0);
                         var nUpperCode = String.fromCharCode(nCharCode).toUpperCase().charCodeAt(0);
 
-                        if (nCharCode === 10 || nCharCode === 32 || nCharCode === 160 || nCharCode === 8194 
-                            || nCharCode === 8195 || nCharCode === 8197 || nCharCode === 12288 || nCharCode === 65279)
+                        if (AscCommon.IsSpace(nCharCode))
                             oEngine.word += " ";
                         if (nLowerCode !== nCharCode || nUpperCode !== nCharCode)
                             oEngine.word += String.fromCharCode(nCharCode);
@@ -13054,16 +13053,8 @@ ParaRun.prototype.ChangeTextCase = function(oEngine)
 			{
 				if (oItem.IsDot())
 				{
-                    if (oItem.Value === 10 || oItem.Value === 32 || oItem.Value === 160 || oItem.Value === 8194 
-                        || oItem.Value === 8195 || oItem.Value === 8197 || oItem.Value === 12288 || oItem.Value === 65279)
-                    {
-                        oEngine.FlushWord();
-				        //oEngine.SetStartSentence(false);
-                    }
-                    else
-                    {
-                        oEngine.AddLetter(this, nPos, nPos >= nStartPos && nPos < nEndPos);
-                    }
+                    oEngine.FlushWord();
+                    oEngine.SetStartSentence(true);
 				}
 				else
 				{
