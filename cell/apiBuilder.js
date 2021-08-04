@@ -780,19 +780,28 @@
 			return this.GetCells();
 		} else if (typeof value == "number" || value.indexOf(':') == -1) {
 			value = parseInt(value);
-			if (value > 0) {
+			if (value > 0 && value <=  AscCommon.gc_nMaxRow0 + 1 && value[0] !== NaN) {
 				value --;
+			} else {
+				return new Error('The nRow must be greater than 0 and less then ' + (AscCommon.gc_nMaxRow0 + 1));
 			}
 			return new ApiRange(this.worksheet.getRange3(value, 0, value, AscCommon.gc_nMaxCol0));
 		} else {
 			value = value.split(':');
+			var isError = false;
 			for (var i = 0; i < value.length; ++i) {
 				value[i] = parseInt(value[i]);
-				if (value[i] > 0) {
+				if (value[i] > 0 && value[i] <= AscCommon.gc_nMaxRow0 + 1 && value[0] !== NaN) {
 					value[i] --;
+				} else {
+					isError = true;
 				}
 			}
-			return new ApiRange(this.worksheet.getRange3(value[0], 0, value[1], AscCommon.gc_nMaxCol0));
+			if (isError) {
+				return new Error('The nRow must be greater than 0 and less then ' + (AscCommon.gc_nMaxRow0 + 1));
+			} else {
+				return new ApiRange(this.worksheet.getRange3(value[0], 0, value[1], AscCommon.gc_nMaxCol0));
+			}
 		}
 	};
 
@@ -1548,17 +1557,19 @@
 	 */
 	ApiRange.prototype.GetRows = function (nRow) {
 		if (typeof nRow === "undefined") {
-			var r1 = this.range.bbox.r1 + 1;
-			var r2 = this.range.bbox.r2 + 1;
-			return new ApiWorksheet(this.range.worksheet).GetRows(r1 + ":" + r2);
+			return new ApiRange(this.range.worksheet.getRange3(this.range.bbox.r1, 0, this.range.bbox.r2, AscCommon.gc_nMaxCol0));
 			// return new ApiWorksheet(this.range.worksheet).GetRows();	// return all rows from current sheet
-		} else if ( (nRow >= this.range.bbox.r1) && (nRow <= this.range.bbox.r2) ) {
-			return new ApiWorksheet(this.range.worksheet).GetRows(nRow);
 		} else {
-			var bbox = this.range.bbox;
-			if (nRow)
+			if (typeof nRow === "number" && nRow > 0 && nRow <= AscCommon.gc_nMaxRow0 + 1) {
 				nRow--;
-			return new ApiRange(this.range.worksheet.getRange3(nRow, bbox.c1, nRow, bbox.c2));
+				if ( (nRow >= this.range.bbox.r1) && (nRow <= this.range.bbox.r2) ) {
+					return new ApiRange(this.range.worksheet.getRange3(nRow, 0, nRow, AscCommon.gc_nMaxCol0));
+				} else {
+					return new ApiRange(this.range.worksheet.getRange3(nRow, this.range.bbox.c1, nRow, this.range.bbox.c2));
+				}
+			} else {
+				return new Error('The nRow must be greater than 0 and less then ' + (AscCommon.gc_nMaxRow0 + 1));
+			}
 		}
 	};
 	Object.defineProperty(ApiRange.prototype, "Rows", {
@@ -1575,14 +1586,23 @@
 	 * @returns {ApiRange}
 	 */
 	 ApiRange.prototype.GetCols = function (nCol) {
-		if (nCol) nCol--;
 		if (typeof nCol === "undefined") {
 			return new ApiRange(this.range.worksheet.getRange3(0, this.range.bbox.c1, AscCommon.gc_nMaxRow0, this.range.bbox.c2));
-		} else if ( (nCol >= this.range.bbox.c1) && (nCol <= this.range.bbox.c2) ) {
-			return new ApiRange(this.range.worksheet.getRange3(0, nCol, AscCommon.gc_nMaxRow0, nCol));
 		} else {
-			return new ApiRange(this.range.worksheet.getRange3(this.range.bbox.r1, nCol, this.range.bbox.r2, nCol));
-		}
+			if (typeof nCol === "number" && nCol > 0 && nCol <= AscCommon.gc_nMaxCol0 + 1)
+			{
+				nCol--;
+				if ( (nCol >= this.range.bbox.c1) && (nCol <= this.range.bbox.c2) ) {
+					return new ApiRange(this.range.worksheet.getRange3(0, nCol, AscCommon.gc_nMaxRow0, nCol));
+				}
+				else {
+					return new ApiRange(this.range.worksheet.getRange3(this.range.bbox.r1, nCol, this.range.bbox.r2, nCol));
+				}
+			} else {
+				return new Error('The nCol must be greater than 0 and less then ' + (AscCommon.gc_nMaxCol0 + 1));
+			}
+		} 
+		
 	};
 	Object.defineProperty(ApiRange.prototype, "Cols", {
 		get: function () {
