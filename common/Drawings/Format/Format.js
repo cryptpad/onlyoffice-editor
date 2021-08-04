@@ -2521,6 +2521,26 @@ CSrcRect.prototype =
         this.b = b;
     },
 
+    setValueForFitBlipFill: function (shapeWidth, shapeHeight, imageWidth, imageHeight) {
+        if (imageWidth < imageHeight) {
+            this.l = 0;
+            this.r = 100;
+            var shapeAspectRatio = shapeHeight / shapeWidth;
+            var imageAspectRatio = imageWidth / imageHeight;
+            var stretchPercentage = ((1 - shapeAspectRatio * imageAspectRatio) / 2) * 100;
+            this.t = stretchPercentage;
+            this.b = 100 - stretchPercentage;
+        } else {
+            this.t = 0;
+            this.b = 100;
+            shapeAspectRatio = shapeWidth / shapeHeight;
+            imageAspectRatio = imageHeight / imageWidth;
+            stretchPercentage = ((1 - shapeAspectRatio * imageAspectRatio) / 2) * 100;
+            this.l = stretchPercentage;
+            this.r = 100 - stretchPercentage;
+        }
+    },
+
 
     Write_ToBinary: function (w)
     {
@@ -7875,6 +7895,14 @@ CSpPr.prototype =
         return duplicate;
     },
 
+    createDuplicateForSmartArt: function () {
+        var duplicate = new CSpPr();
+        if(this.Fill!=null)
+        {
+            duplicate.setFill(this.Fill.createDuplicate());
+        }
+        return duplicate;
+    },
     hasRGBFill: function(){
        return this.Fill && this.Fill.fill && this.Fill.fill.color
        && this.Fill.fill.color.color && this.Fill.fill.color.color.type === c_oAscColor.COLOR_TYPE_SRGB;
