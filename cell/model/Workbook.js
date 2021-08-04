@@ -10136,13 +10136,13 @@
 
 	Worksheet.prototype.getUnlockedCellInRange = function (range) {
 		if (!range) {
-			new Asc.Range(0, 0, gc_nMaxCol0, gc_nMaxRow0);
+			range = new Asc.Range(0, 0, gc_nMaxCol0, gc_nMaxRow0);
 		}
 		var res = null;
 		this.getRange3(range.r1, range.c1, range.r2, range.c2)._foreachNoEmpty(function(cell) {
 			if (cell) {
-				var cellxfs = cell.getXfs(false);
-				if (!cellxfs.asc_getLocked()) {
+				var cellxfs = cell.xfs;
+				if (cellxfs && !cellxfs.asc_getLocked()) {
 					res = cell;
 					return true;
 				}
