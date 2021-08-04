@@ -28069,16 +28069,16 @@ CDocumentChangeTextCaseEngine.prototype.CheckWords = function(oEngine)
 			{
 				sett.allFirst = false;
 			}
-			if (oEngine.CurrentParagraph === 0)
-			{
-				if (sett.allFirst === false)
-				{
-					oEngine.GlobalSettings = false;
-				}
-			}
 			if (!CheckEachWord(wordsInSentece[j]))
 			{
 				sett.sentenceMistakes = false;
+			}
+			if (oEngine.CurrentParagraph === 0)
+			{
+				if (sett.allFirst === false || sett.sentenceMistakes === false)
+				{
+					oEngine.GlobalSettings = false;
+				}
 			}
 			if (wordsInSentece.length > 1 && j >= 1)
 			{

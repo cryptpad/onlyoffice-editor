@@ -13000,7 +13000,7 @@ ParaRun.prototype.CheckTextForTextCase = function(oEngine)
 
                         if (AscCommon.IsSpace(nCharCode))
                             oEngine.word += " ";
-                        if (nLowerCode !== nCharCode || nUpperCode !== nCharCode)
+                        if (nLowerCode !== nCharCode || nUpperCode !== nCharCode || oItem.Is_Number())
                             oEngine.word += String.fromCharCode(nCharCode);
                     }
 				}
@@ -13060,7 +13060,8 @@ ParaRun.prototype.ChangeTextCase = function(oEngine)
 				{
 					if (!oItem.IsPunctuation())
 					{
-						oEngine.AddLetter(this, nPos, nPos >= nStartPos && nPos < nEndPos);
+                        if (!AscCommon.IsSpace(oItem.Value))
+						    oEngine.AddLetter(this, nPos, nPos >= nStartPos && nPos < nEndPos);
 					}
 					else
 					{
