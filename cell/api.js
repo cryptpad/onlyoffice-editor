@@ -4448,6 +4448,11 @@ var editor;
     this.wb.restoreFocus();
   };
 
+  spreadsheet_api.prototype.asc_setCellHiddenFormulas = function (val) {
+    this.wb.getWorksheet().setSelectionInfo("hiddenFormulas", val);
+    this.wb.restoreFocus();
+  };
+
 	spreadsheet_api.prototype.asc_checkActiveCellProtectedRange = function () {
 		var ws = this.wbModel.getActiveWs();
 		var protectedRanges = ws.getProtectedRangesByActiveCell();
@@ -6271,6 +6276,7 @@ var editor;
   prot["asc_setCellIndent"] = prot.asc_setCellIndent;
   prot["asc_setCellProtection"] = prot.asc_setCellProtection;
   prot["asc_setCellLocked"] = prot.asc_setCellLocked;
+  prot["asc_setCellHiddenFormulas"] = prot.asc_setCellHiddenFormulas;
   prot["asc_checkActiveCellProtectedRange"] = prot.asc_checkActiveCellProtectedRange;
   prot["asc_checkActiveCellPassword"] = prot.asc_checkActiveCellPassword;
 

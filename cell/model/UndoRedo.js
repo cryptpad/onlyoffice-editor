@@ -3382,6 +3382,8 @@ function (window, undefined) {
 				row.setApplyProtection(Val);
 			} else if (AscCH.historyitem_RowCol_Locked == Type) {
 				row.setLocked(Val);
+			} else if (AscCH.historyitem_RowCol_HiddenFormulas == Type) {
+				row.setHiddenFormulas(Val);
 			}
 		}
 

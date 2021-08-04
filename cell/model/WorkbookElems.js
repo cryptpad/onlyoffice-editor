@@ -3753,7 +3753,7 @@ StyleManager.prototype =
 	{
 		return this._setProperty(oItemWithXfs, val, "locked", CellXfs.prototype.getLocked, CellXfs.prototype.setLocked);
 	},
-	setHidden : function(oItemWithXfs, val)
+	setHiddenFormulas : function(oItemWithXfs, val)
 	{
 		return this._setProperty(oItemWithXfs, val, "hidden", CellXfs.prototype.getHidden, CellXfs.prototype.setHidden);
 	},
@@ -4686,6 +4686,13 @@ StyleManager.prototype =
 				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
 		}
 	};
+	Col.prototype.setHiddenFormulas = function (val) {
+		var oRes = this.ws.workbook.oStyleManager.setHiddenFormulas(this, val);
+		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoCol, AscCH.historyitem_RowCol_HiddenFormulas, this.ws.getId(),
+				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
+		}
+	};
 	Col.prototype.setHidden = function (val) {
 		if (this.index >= 0 && (!this.hd !== !val)) {
 			this.ws.hiddenManager.addHidden(false, this.index);
@@ -5082,6 +5089,13 @@ StyleManager.prototype =
 		var oRes = this.ws.workbook.oStyleManager.setLocked(this, val);
 		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
 			History.Add(AscCommonExcel.g_oUndoRedoRow, AscCH.historyitem_RowCol_Locked, this.ws.getId(),
+				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
+		}
+	};
+	Row.prototype.setHiddenFormulas = function (val) {
+		var oRes = this.ws.workbook.oStyleManager.setHiddenFormulas(this, val);
+		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoRow, AscCH.historyitem_RowCol_HiddenFormulas, this.ws.getId(),
 				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
 		}
 	};

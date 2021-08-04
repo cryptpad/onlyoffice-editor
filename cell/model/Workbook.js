@@ -11222,8 +11222,8 @@
 		if(History.Is_On() && oRes.oldVal != oRes.newVal)
 			History.Add(AscCommonExcel.g_oUndoRedoCell, AscCH.historyitem_Cell_SetLocked, this.ws.getId(), new Asc.Range(this.nCol, this.nRow, this.nCol, this.nRow), new UndoRedoData_CellSimpleData(this.nRow, this.nCol, oRes.oldVal, oRes.newVal));
 	};
-	Cell.prototype.setHidden=function(val){
-		var oRes = this.ws.workbook.oStyleManager.setHidden(this, val);
+	Cell.prototype.setHiddenFormulas=function(val){
+		var oRes = this.ws.workbook.oStyleManager.setHiddenFormulas(this, val);
 		if(History.Is_On() && oRes.oldVal != oRes.newVal)
 			History.Add(AscCommonExcel.g_oUndoRedoCell, AscCH.historyitem_Cell_SetHidden, this.ws.getId(), new Asc.Range(this.nCol, this.nRow, this.nCol, this.nRow), new UndoRedoData_CellSimpleData(this.nRow, this.nCol, oRes.oldVal, oRes.newVal));
 	};
@@ -13839,7 +13839,7 @@
 		var fSetProperty = this._setProperty;
 		var nRangeType = this._getRangeType();
 		if (c_oRangeType.All == nRangeType) {
-			this.worksheet.getAllCol().setlocked(val);
+			this.worksheet.getAllCol().setLocked(val);
 			fSetProperty = this._setPropertyNoEmpty;
 		}
 		fSetProperty.call(this, function (row) {
@@ -13851,6 +13851,26 @@
 			col.setLocked(val);
 		}, function (cell) {
 			cell.setLocked(val);
+		});
+	};
+	Range.prototype.setHiddenFormulas = function (val) {
+		History.Create_NewPoint();
+		this.createCellOnRowColCross();
+		var fSetProperty = this._setProperty;
+		var nRangeType = this._getRangeType();
+		if (c_oRangeType.All == nRangeType) {
+			this.worksheet.getAllCol().setHiddenFormulas(val);
+			fSetProperty = this._setPropertyNoEmpty;
+		}
+		fSetProperty.call(this, function (row) {
+			if (c_oRangeType.All == nRangeType && null == row.xfs) {
+				return;
+			}
+			row.setHiddenFormulas(val);
+		}, function (col) {
+			col.setHiddenFormulas(val);
+		}, function (cell) {
+			cell.setHiddenFormulas(val);
 		});
 	};
 	Range.prototype.setType=function(type){

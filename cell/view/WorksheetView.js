@@ -9518,6 +9518,19 @@
 	};
 
 	WorksheetView.prototype.changeSelectionStartPoint = function (x, y, isCoord, isCtrl) {
+		//protection
+		/*if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.selectUnlockedCells)) {
+			return;
+		}
+		if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.selectLockedCells)) {
+			var newRange = isCoord ? this._calcSelectionEndPointByXY(x, y) :
+				this._calcSelectionEndPointByOffset(x, y);
+			var lockedCell = this.model.getLockedCell(newRange.c1, newRange.r1);
+			if (lockedCell || lockedCell === null) {
+				return;
+			}
+		}*/
+
 		this.cleanSelection();
         this.endEditChart();
 
@@ -11200,6 +11213,9 @@
 						break;
 					case "locked":
 						range.setLocked(val);
+						break;
+					case "hiddenFormulas":
+						range.setHiddenFormulas(val);
 						break;
                     case "rh":
                         range.removeHyperlink(null, true);
