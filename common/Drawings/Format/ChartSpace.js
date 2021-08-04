@@ -12089,8 +12089,8 @@ var GLOBAL_PATH_COUNT = 0;
     CChartSpace.prototype.getTxPrFormStyleEntry = function(oStyleEntry, aColors, nIdx) {
         return AscFormat.CBaseChartObject.prototype.getTxPrFormStyleEntry.call(this, oStyleEntry, aColors, nIdx);
     };
-    CChartSpace.prototype.applyStyleEntry = function(oStyleEntry, aColors, nIdx) {
-        AscFormat.CBaseChartObject.prototype.applyStyleEntry.call(this, oStyleEntry, aColors, nIdx);
+    CChartSpace.prototype.applyStyleEntry = function(oStyleEntry, aColors, nIdx, bReset) {
+        AscFormat.CBaseChartObject.prototype.applyStyleEntry.call(this, oStyleEntry, aColors, nIdx, bReset);
     };
     CChartSpace.prototype.resetFormatting = function() {
         AscFormat.CBaseChartObject.prototype.resetFormatting.call(this);
@@ -12099,7 +12099,7 @@ var GLOBAL_PATH_COUNT = 0;
         AscFormat.CBaseChartObject.prototype.resetOwnFormatting.call(this);
     };
     CChartSpace.prototype.applyChartStyle = function(oChartStyle, oColors, oAdditionalData, bReset) {
-        this.applyStyleEntry(oChartStyle.chartArea, oColors.generateColors(1), 0);
+        this.applyStyleEntry(oChartStyle.chartArea, oColors.generateColors(1), 0, bReset);
         this.chart.applyChartStyle(oChartStyle, oColors, oAdditionalData, bReset);
     };
     CChartSpace.prototype.resetToChartStyle = function() {
