@@ -2720,8 +2720,8 @@ function NativeOpenFileP(_params, documentInfo){
 	    _presentation.CurPage = Math.min(0, _presentation.Slides.length - 1);
         _presentation.Document_UpdateInterfaceState();
         _presentation.DrawingDocument.CheckThemes();
+        _presentation.DrawingDocument.CheckGuiControlColors();
         _api.WordControl.CheckLayouts();
-
         initSpellCheckApi();
 
         if (!_api.bNoSendComments) {
@@ -3235,6 +3235,10 @@ Asc['asc_docs_api'].prototype.openDocument = function(file)
     //     _api.sendColorThemes(oTheme);
     // }
 
+    if (null != this.WordControl.m_oLogicDocument)
+    {
+        this.WordControl.m_oDrawingDocument.CheckGuiControlColors();
+    }
     window["native"]["onEndLoadingFile"](_result);
     this.asc_nativeCalculateFile();
 
