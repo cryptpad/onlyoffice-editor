@@ -22173,6 +22173,29 @@
 		this._isLockedProtectedRange(callback, unitedArr);
 	};
 
+	WorksheetView.prototype.updateAfterChangeSheetProtection = function () {
+		var sheetProtection = this.model.sheetProtection;
+		if (sheetProtection && sheetProtection.getSheet()) {
+			//selection
+			var canSelectLockedCells = !sheetProtection.getSelectLockedCells();
+			var canSelectUnLockedCells = !sheetProtection.getSelectUnlockedCells();
+			if (!canSelectLockedCells && canSelectUnLockedCells) {
+				//если стоим на заблокированной ячейке, то меняем селект на незаблокированный
+				var isUnlocked = this.model.getUnlockedCellInRange(this.model.selectionRange.getLast());
+				if (!isUnlocked) {
+					isUnlocked = this.model.getUnlockedCellInRange();
+				}
+
+				//меняем селект
+				if (isUnlocked) {
+					this.setSelection(new Asc.Range(isUnlocked.nCol, isUnlocked.nRow, isUnlocked.nCol, isUnlocked.nRow));
+				} else {
+					//нужно сделать так, чтобы селект вообще не отображался
+				}
+			}
+		}
+	};
+
 	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window["AscCommonExcel"].CellFlags = CellFlags;

@@ -5786,6 +5786,7 @@ var editor;
       return false;
     }
 
+    var wsView = this.wb.getWorksheet();
     var i = this.wbModel.getActive();
     var sheetId = this.wbModel.getWorksheet(i).getId();
     var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheetId, sheetId);
@@ -5797,7 +5798,9 @@ var editor;
         History.StartTransaction();
         if (!t.wbModel.getWorksheet(i).setProtectedSheet(props, true)) {
         	t.handlers.trigger("asc_onError", c_oAscError.ID.LockedWorksheetRename, c_oAscError.Level.NoCritical);
-        }
+        } else if (wsView) {
+			wsView.updateAfterChangeSheetProtection();
+		}
         t.handlers.trigger("asc_onChangeProtectWorksheet", i);
 
         History.EndTransaction();
