@@ -826,7 +826,7 @@ function CGroupShape()
             }
             else if(this.selectedObjects.length === 1
                 && this.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_Shape
-                &&  !AscFormat.CheckLinePreset(this.selectedObjects[0].getPresetGeom()))
+                &&  !(AscFormat.CheckLinePresetForParagraphAdd(this.selectedObjects[0].getPresetGeom()) || this.selectedObjects[0].isProtectInputInSmartArt()))
             {
                 this.selection.textSelection = this.selectedObjects[0];
                 this.selection.textSelection.paragraphAdd(paraItem, bRecalculate);

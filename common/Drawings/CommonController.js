@@ -721,7 +721,7 @@ function CanStartEditText(oController)
 {
     var oSelector = oController.selection.groupSelection ? oController.selection.groupSelection : oController;
     if(oSelector.selectedObjects.length === 1 && oSelector.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_Shape
-     && !AscFormat.CheckLinePresetForParagraphAdd(oSelector.selectedObjects[0].getPresetGeom()))
+     && (!AscFormat.CheckLinePresetForParagraphAdd(oSelector.selectedObjects[0].getPresetGeom()) || oSelector.selectedObjects[0].isProtectInputInSmartArt()))
     {
         return true;
     }
@@ -1510,7 +1510,7 @@ DrawingObjectsController.prototype =
 
 
     handleDblClickEmptyShape: function(oShape){
-        if(!oShape.getDocContent() && !CheckLinePresetForParagraphAdd(oShape.getPresetGeom())){
+        if(!oShape.getDocContent() && !(AscFormat.CheckLinePresetForParagraphAdd(oShape.getPresetGeom()) || oShape.isProtectInputInSmartArt())){
             this.checkSelectedObjectsAndCallback(function () {
                 if(!oShape.bWordShape){
                     oShape.createTextBody();
@@ -2100,7 +2100,7 @@ DrawingObjectsController.prototype =
         if(oController.selectedObjects.length === 1 ){
             if(oController.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_Shape){
                 var oShape = oController.selectedObjects[0];
-                if(!AscFormat.CheckLinePresetForParagraphAdd(oShape.getPresetGeom())){
+                if(!(AscFormat.CheckLinePresetForParagraphAdd(oShape.getPresetGeom()) || oShape.isProtectInputInSmartArt())){
                     if(oShape.bWordShape){
                         if(!oShape.textBoxContent){
                             oShape.createTextBoxContent();
@@ -2583,7 +2583,7 @@ DrawingObjectsController.prototype =
                     {
                         if(arr[i].getObjectType() === AscDFH.historyitem_type_Shape)
                         {
-                            if(!AscFormat.CheckLinePresetForParagraphAdd(arr[i].getPresetGeom()))
+                            if(!(AscFormat.CheckLinePresetForParagraphAdd(arr[i].getPresetGeom()) || arr[i].isProtectInputInSmartArt()))
                             {
                                 if(arr[i].bWordShape)
                                 {
@@ -2775,7 +2775,7 @@ DrawingObjectsController.prototype =
                 case AscDFH.historyitem_type_Shape:{
                     oContent = oSelectedObject.getDocContent();
                     if(!oContent){
-                        if(!CheckLinePresetForParagraphAdd(oSelectedObject.getPresetGeom())){
+                        if(!(AscFormat.CheckLinePresetForParagraphAdd(oSelectedObject.getPresetGeom()) || oSelectedObject.isProtectInputInSmartArt())){
                             this.checkSelectedObjectsAndCallback(function () {
                                 if(oSelectedObject.bWordShape){
                                     oSelectedObject.createTextBoxContent();
@@ -2894,7 +2894,7 @@ DrawingObjectsController.prototype =
                 };
                 this.applyDocContentFunction(fDocContentCallback, args, tableFunction);
             }
-            else if(this.selectedObjects.length === 1 && ((this.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_Shape && !CheckLinePresetForParagraphAdd(this.selectedObjects[0].getPresetGeom()) && !this.selectedObjects[0].signatureLine) || this.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_GraphicFrame))
+            else if(this.selectedObjects.length === 1 && ((this.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_Shape && !(AscFormat.CheckLinePresetForParagraphAdd(this.selectedObjects[0].getPresetGeom()) || this.selectedObjects[0].isProtectInputInSmartArt()) && !this.selectedObjects[0].signatureLine) || this.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_GraphicFrame))
             {
                 this.selection.textSelection = this.selectedObjects[0];
                 if(this.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_GraphicFrame)

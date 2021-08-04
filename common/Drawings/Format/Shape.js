@@ -1286,7 +1286,7 @@ CShape.prototype.createTextBoxContent = function () {
 CShape.prototype.paragraphAdd = function (paraItem, bRecalculate) {
     var content_to_add = this.getDocContent();
     if (!content_to_add) {
-        if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom())) {
+        if(!(AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom()) || this.isProtectInputInSmartArt())) {
             if (this.bWordShape) {
                 this.createTextBoxContent();
             }
@@ -1306,7 +1306,7 @@ CShape.prototype.applyTextFunction = function (docContentFunction, tableFunction
     var content_to_add = this.getDocContent();
     if (!content_to_add)
     {
-        if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom())) {
+        if(!(AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom()) || this.isProtectInputInSmartArt())) {
 
             if (this.bWordShape)
             {
@@ -1866,7 +1866,7 @@ CShape.prototype.getPhIndex = function () {
 CShape.prototype.setVerticalAlign = function (align) {
     var content_to_add = this.getDocContent();
     if (!content_to_add) {
-        if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom())) {
+        if(!(AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom()) || this.isProtectInputInSmartArt())) {
             if (this.bWordShape) {
                 this.createTextBoxContent();
             }
@@ -1892,7 +1892,7 @@ CShape.prototype.setVerticalAlign = function (align) {
 CShape.prototype.setVert = function (vert) {
     var content_to_add = this.getDocContent();
     if (!content_to_add) {
-        if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom())) {
+        if(!(AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom()) || this.isProtectInputInSmartArt())) {
             if (this.bWordShape) {
                 this.createTextBoxContent();
             }
@@ -3038,6 +3038,14 @@ CShape.prototype.copy = function (oPr) {
     return copy;
 };
 
+CShape.prototype.isProtectInputInSmartArt = function() {
+    return this.isObjectInSmartArt() && !this.isPlaceholderInSmartArt();
+    }
+
+CShape.prototype.isPlaceholderInSmartArt = function () {
+    var point = this.getPoint();
+    return this.isObjectInSmartArt() && point && point.prSet && point.prSet.phldr;
+}
 CShape.prototype.Get_Styles = function (level) {
 
     var _level = AscFormat.isRealNumber(level) ? level : 0;
