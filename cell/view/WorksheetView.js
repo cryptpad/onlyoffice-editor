@@ -11551,18 +11551,24 @@
 				t._loadFonts(fonts, onSelectionCallback);
 			};
 
-			if (this._isNeedLockedAllOnPaste(val)) {
-				this._isLockedAll(function (success) {
-					if (!success) {
-						t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError,
-							c_oAscError.Level.NoCritical);
-						return;
-					}
-					t._isLockedCells(checkRange, /*subType*/null, _pasteCallback);
-				});
-			} else {
-				_pasteCallback(true);
-			}
+			//проверка защиты. пока ставлю здесь. возможно где-то выше придётся поставить(но там нужно знать диапазоны вставки).
+			this.checkProtectRangeOnEdit(checkPasteRange, function (isSuccess) {
+				if (!isSuccess) {
+					return;
+				}
+				if (t._isNeedLockedAllOnPaste(val)) {
+					t._isLockedAll(function (success) {
+						if (!success) {
+							t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError,
+								c_oAscError.Level.NoCritical);
+							return;
+						}
+						t._isLockedCells(checkRange, /*subType*/null, _pasteCallback);
+					});
+				} else {
+					_pasteCallback(true);
+				}
+			});
 		} else {
 			this._isLockedCells(checkRange, /*subType*/null, onSelectionCallback);
 		}
@@ -22210,6 +22216,11 @@
 	WorksheetView.prototype.checkProtectRangeOnEdit = function (aRanges, callback) {
 		var wsModel = this.model;
 		var isProtectSheet = wsModel.getSheetProtection();
+
+		if (!aRanges || !isProtectSheet) {
+			callback(true);
+			return;
+		}
 
 		var aCheckPasswordRanges = [];
 		for (var i = 0; i < aRanges.length; i++) {

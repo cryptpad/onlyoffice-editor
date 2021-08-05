@@ -10188,7 +10188,7 @@
 	};
 
 	Worksheet.prototype.getLockedRange = function (range) {
-		var res = false;
+		var res = true;
 		this.getRange3(range.r1, range.c1, range.r2, range.c2)._foreach2(function(cell){
 			if (!cell) {
 				res = true;
@@ -10199,6 +10199,8 @@
 			if (isLocked === null || isLocked === true) {
 				res = true;
 				return true;
+			} else {
+				res = false;
 			}
 		});
 		return res;
