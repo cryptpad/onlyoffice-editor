@@ -13062,6 +13062,8 @@ ParaRun.prototype.ChangeTextCase = function(oEngine)
 					{
                         if (!AscCommon.IsSpace(oItem.Value))
 						    oEngine.AddLetter(this, nPos, nPos >= nStartPos && nPos < nEndPos);
+                        else
+                            oEngine.FlushWord();  
 					}
 					else
 					{
