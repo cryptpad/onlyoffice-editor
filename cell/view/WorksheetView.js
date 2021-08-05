@@ -22197,6 +22197,11 @@
 				}
 			}
 		}
+        var oObjectRender = this.objectRender;
+        if(oObjectRender && oObjectRender.controller) {
+            oObjectRender.OnUpdateOverlay();
+            oObjectRender.controller.updateSelectionState(true);
+        }
 	};
 
 	//------------------------------------------------------------export---------------------------------------------------
