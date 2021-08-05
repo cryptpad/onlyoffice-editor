@@ -11484,6 +11484,9 @@
 
 				for (var j = 0; j < checkPasteRange.length; j++) {
 					var _checkRange = checkPasteRange[j];
+					/*if () {
+
+					}*/
 					if (this.intersectionFormulaArray(_checkRange)) {
 						t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 						return false;
@@ -22202,6 +22205,50 @@
             oObjectRender.OnUpdateOverlay();
             oObjectRender.controller.updateSelectionState(true);
         }
+	};
+
+	WorksheetView.prototype.checkProtectRangeOnEdit = function (aRanges, callback) {
+		var wsModel = this.model;
+		var isProtectSheet = wsModel.getSheetProtection();
+
+		var aCheckPasswordRanges = [];
+		for (var i = 0; i < aRanges.length; i++) {
+			var range = aRanges[i];
+
+			var lockedCell = isProtectSheet && wsModel.getLockedRange(range);
+			if (lockedCell) {
+				var protectedRanges = wsModel.protectedRangesContainsRange(range);
+				if (!protectedRanges) {
+					this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+					callback(false);
+					return;
+				} else {
+					var needCheckPasswordDialog = true;
+					for (var j = 0; j < protectedRanges.length; j++) {
+						if (!protectedRanges[j].asc_isPassword() || protectedRanges[j]._isEnterPassword) {
+							needCheckPasswordDialog = false;
+							break;
+						}
+					}
+					if (needCheckPasswordDialog) {
+						aCheckPasswordRanges.push(new AscCommon.CellBase(range.r1, range.c1));
+					}
+				}
+			}
+		}
+
+		//в сдучае, допустим, мультиселекта, когда попадаем в несколько диапазонов с паролем, выдаём ошибку
+		//в дальнейшем можно использовать Promise.all
+		if (aCheckPasswordRanges.length > 1) {
+			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+			callback(false);
+		} else if (aCheckPasswordRanges.length === 1) {
+			this.model.workbook.handlers.trigger("asc_onConfirmAction", Asc.c_oAscConfirm.ConfirmChangeProtectRange, function (can) {
+				callback(can);
+			}, aCheckPasswordRanges[0]);
+		} else {
+			callback(true);
+		}
 	};
 
 	//------------------------------------------------------------export---------------------------------------------------

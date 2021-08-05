@@ -1731,40 +1731,18 @@
       }
     };
 
-    var doEdit = function () {
-		// Стартуем редактировать ячейку
+    var doEdit = function (success) {
+		if (!success) {
+			return;
+		}
+    	// Стартуем редактировать ячейку
 		activeCellRange = ws.expandActiveCellByFormulaArray(activeCellRange);
 		if (ws._isLockedCells(activeCellRange, /*subType*/null, editLockCallback)) {
 			editFunction();
 		}
 	};
 
-    var isProtectSheet = activeWsModel.getSheetProtection();
-    var lockedCell = isProtectSheet && activeWsModel.getLockedCell(activeCellRange.c1, activeCellRange.r1);
-    if (lockedCell || lockedCell === null) {
-      var protectedRanges = activeWsModel.protectedRangesContains(activeCellRange.c1, activeCellRange.r1);
-      if (!protectedRanges) {
-		  this.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
-		  return;
-      } else {
-		  var needCheckPasswordDialog = true;
-		  for (var i = 0; i < protectedRanges.length; i++) {
-			  if (!protectedRanges[i].asc_isPassword() || protectedRanges[i]._isEnterPassword) {
-				  needCheckPasswordDialog = false;
-				  break;
-			  }
-		  }
-		  if (needCheckPasswordDialog) {
-			  this.handlers.trigger("asc_onConfirmAction", Asc.c_oAscConfirm.ConfirmChangeProtectRange, function (can) {
-				  if (can) {
-					  doEdit();
-				  }
-			  }, activeCellRange);
-			  return;
-		  }
-      }
-    }
-    doEdit();
+    ws.checkProtectRangeOnEdit([new Asc.Range(activeCellRange.c1, activeCellRange.r1, activeCellRange.c1, activeCellRange.r1)], doEdit);
   };
 
   WorkbookView.prototype._checkStopCellEditorInFormulas = function() {
