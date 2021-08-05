@@ -78,7 +78,7 @@
         }
         geometry.gdLstInfo = [];
         geometry.cnxLstInfo = [];
-        
+
         for(var i = 0; i < geometry.pathLst.length; i++) {
             geometry.pathLst[i].ArrPathCommandInfo = [];
         }
@@ -294,9 +294,8 @@
         var countArc = 0;
         geom.gmEditList = [];
 
-        geom.setPreset(null);
-
         for(var j = 0; j < geom.pathLst.length; j++) {
+            geom.pathLst[j].ArrPathCommandInfo = [];
             var pathPoints = geom.pathLst[j].ArrPathCommand;
 
             for (var i = 0; i < pathPoints.length; i++) {
@@ -509,6 +508,7 @@
         }
 
         this.isConverted = true;
+        geom.setPreset(null);
     };
 
     EditShapeGeometryTrack.prototype.addCommandsInPathInfo = function(geometry) {
@@ -634,7 +634,7 @@
                 geom.gmEditList.splice(index, 1)
                 geom.pathLst[pathIndex].ArrPathCommandInfo = [];
                 geom.gmEditPoint = [];
-                // t.addCommandsInPathInfo(geom, pathIndex);
+                t.addCommandsInPathInfo(geom, pathIndex);
             }
         });
     };
