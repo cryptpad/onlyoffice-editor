@@ -4455,6 +4455,10 @@ var editor;
 
 	spreadsheet_api.prototype.asc_checkActiveCellProtectedRange = function () {
 		var ws = this.wbModel.getActiveWs();
+		if (!ws.isLockedActiveCell()) {
+			return false;
+		}
+
 		var protectedRanges = ws.getProtectedRangesByActiveCell();
 
 		//входит ли в зону защищенных диапазонов ячейка - null(не входит)/true(входит и защищена паролем)/false(входит и не защищена паролем или была защищена и уже не защищена)

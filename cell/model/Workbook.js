@@ -10163,6 +10163,15 @@
 		return res.length ? res : null;
 	};
 
+	Worksheet.prototype.protectedRangesContainsRanges = function (ranges) {
+		for (var i = 0; i < ranges.length; i++) {
+			if (!this.protectedRangesContainsRange(ranges[i])) {
+				return false;
+			}
+		}
+		return true;
+	};
+
 	Worksheet.prototype.protectedRangesContainsRange = function (range) {
 		if (this.aProtectedRanges && this.aProtectedRanges.length) {
 			for (var i = 0; i < this.aProtectedRanges.length; i++) {
@@ -10185,6 +10194,15 @@
 			}
 		}
 		return res;
+	};
+
+	Worksheet.prototype.isIntersectLockedRanges = function (ranges) {
+		for (var i = 0; i < ranges.length; i++) {
+			if (this.getLockedRange(ranges[i])) {
+				return true;
+			}
+		}
+		return false;
 	};
 
 	Worksheet.prototype.getLockedRange = function (range) {
@@ -10424,6 +10442,10 @@
 		return res.length ? res : null;
 	};
 
+	Worksheet.prototype.isLockedActiveCell = function () {
+		var activeCell = this.selectionRange.activeCell;
+		return this.getLockedCell(activeCell.col, activeCell.row);
+	};
 
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;

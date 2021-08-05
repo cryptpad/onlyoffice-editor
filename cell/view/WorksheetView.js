@@ -9758,13 +9758,10 @@
 
 		//проверку отдельно добавляю, возможно стоит добавить внутрь preparePromoteFromTo
 		if (this.model.getSheetProtection() && this.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatCells)) {
-			this.checkProtectRangeOnEdit([to], function (success, isCancel) {
+			this.checkProtectRangeOnEdit([to], function (success) {
 				if (success) {
 					t._isLockedCells(to, null, onApplyFormatPainterCallback);
 				} else {
-					if (!isCancel) {
-						t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.PasswordIsNotCorrect, c_oAscError.Level.NoCritical);
-					}
 					onApplyFormatPainterCallback(false);
 				}
 			})
@@ -11062,11 +11059,6 @@
         var activeCell = this.model.selectionRange.activeCell.clone();
         var arn = this.model.selectionRange.getLast().clone(true);
 
-        if (prop !== "sort" && prop !== "customSort" && this.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatCells)) {
-			this.handlers.trigger("onErrorEvent", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
-        	return false;
-		}
-
         var onSelectionCallback = function (isSuccess) {
             if (false === isSuccess) {
                 return;
@@ -11526,6 +11518,13 @@
 			this.model.selectionRange.ranges.forEach(function (item) {
 				checkRange.push(item.clone());
 			});
+		}
+
+		if (prop !== "sort" && prop !== "customSort" && this.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatCells)) {
+			if (!this.model.protectedRangesContainsRanges(checkRange) && this.model.isIntersectLockedRanges(checkRange)) {
+				this.handlers.trigger("onErrorEvent", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+				return false;
+			}
 		}
 
 		if (("merge" === prop || "sort" === prop || "hyperlink" === prop || "rh" === prop ||
@@ -22228,6 +22227,7 @@
 	};
 
 	WorksheetView.prototype.checkProtectRangeOnEdit = function (aRanges, callback) {
+		var t = this;
 		var wsModel = this.model;
 		var isProtectSheet = wsModel.getSheetProtection();
 
@@ -22269,7 +22269,10 @@
 			callback(false);
 		} else if (aCheckPasswordRanges.length === 1) {
 			this.model.workbook.handlers.trigger("asc_onConfirmAction", Asc.c_oAscConfirm.ConfirmChangeProtectRange, function (can, isCancel) {
-				callback(can, isCancel);
+				if (!can && !isCancel) {
+					t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.PasswordIsNotCorrect, c_oAscError.Level.NoCritical);
+				}
+				callback(can);
 			}, aCheckPasswordRanges[0]);
 		} else {
 			callback(true);
