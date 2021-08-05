@@ -1733,11 +1733,19 @@ function GeometryEditState(drawingObjects, majorObject)
 GeometryEditState.prototype = {
     onMouseDown: function(e, x, y, pageIndex)
     {
-        var selectedObj = this.drawingObjects.selectedObjects[0];
         var ret = AscFormat.handleSelectedObjects(this.drawingObjects, e, x, y, null, pageIndex, true);
         if(e.Type === 0) {
+
+            var track_object = this.drawingObjects.arrTrackObjects[0];
+            var gmEditPoint = track_object.geometry.gmEditPoint;
+
+            if(e.CtrlKey && gmEditPoint) {
+                track_object.deletePoint(track_object.geometry);
+                this.drawingObjects.updateOverlay();
+                return {objectId: track_object.geometry.Id, hit: true};
+            }
+
             if(ret && ret.hit) {
-                var track_object = this.drawingObjects.arrTrackObjects[0];
                 this.drawingObjects.updateOverlay();
                 return {objectId: track_object.geometry.Id, hit: true};
             } else if ((ret && !ret.hit) || !ret) {
@@ -1756,17 +1764,16 @@ GeometryEditState.prototype = {
     },
     onMouseMove: function(e, x, y)
     {
-        var track_object = this.drawingObjects.arrTrackObjects[0];
-
-        track_object.geometry.setPreset(null);
         this.drawingObjects.trackResizeObjects(e, x, y);
         this.drawingObjects.updateOverlay();
     },
     onMouseUp: function(e, x, y, pageIndex)
     {
         var geom = this.drawingObjects.arrTrackObjects[0].geometry;
-        geom.gmEditPoint.isFirstCPoint = false;
-        geom.gmEditPoint.isSecondCPoint = false;
+        if(geom.gmEditPoint) {
+            geom.gmEditPoint.isFirstCPoint = false;
+            geom.gmEditPoint.isSecondCPoint = false;
+        }
         this.drawingObjects.updateOverlay();
         RotateState.prototype.onMouseUp.call(this, e, x, y, pageIndex);
     }

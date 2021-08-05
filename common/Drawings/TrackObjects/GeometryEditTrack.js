@@ -72,10 +72,13 @@
     EditShapeGeometryTrack.prototype.track = function(e, posX, posY) {
 
         var geometry = this.originalObject.calcGeometry;
+
+        if(!geometry.gmEditPoint) {
+            return;
+        }
         geometry.gdLstInfo = [];
         geometry.cnxLstInfo = [];
-        geometry.rectS = null;
-
+        
         for(var i = 0; i < geometry.pathLst.length; i++) {
             geometry.pathLst[i].ArrPathCommandInfo = [];
         }
@@ -201,91 +204,7 @@
             }
 
         /*<------------------------------------------------------------->*/
-        var last_x = geometry.gmEditList[0].X,
-            last_y = geometry.gmEditList[0].Y,
-            xMin = last_x, yMin = last_y, xMax = last_x, yMax = last_y;
-        for(var i = 0; i < geometry.pathLst.length; i++) {
-            var arrPathCommand = geometry.pathLst[i].ArrPathCommand;
-            for (var j = 0; j < arrPathCommand.length; ++j) {
-
-                var path_command = arrPathCommand[j];
-
-                if (path_command.id === PathType.BEZIER_4) {
-
-                    var bezier_polygon = AscFormat.partition_bezier4(last_x, last_y, path_command.X0, path_command.Y0, path_command.X1, path_command.Y1, path_command.X2, path_command.Y2, AscFormat.APPROXIMATE_EPSILON);
-                    for (var point_index = 1; point_index < bezier_polygon.length; ++point_index) {
-                        var cur_point = bezier_polygon[point_index];
-                        if (xMin > cur_point.x)
-                            xMin = cur_point.x;
-                        if (xMax < cur_point.x)
-                            xMax = cur_point.x;
-                        if (yMin > cur_point.y)
-                            yMin = cur_point.y;
-                        if (yMax < cur_point.y)
-                            yMax = cur_point.y;
-
-                        last_x = path_command.X2;
-                        last_y = path_command.Y2;
-                    }
-                }
-            }
-        }
-
-
-        this.xMin = xMin;
-        this.xMax = xMax;
-        this.yMin = yMin;
-        this.yMax = yMax;
-
-
-        var shape = this.originalShape;
-        shape.spPr.xfrm.setExtX(xMax-xMin);
-        shape.spPr.xfrm.setExtY(yMax - yMin);
-        shape.setStyle(AscFormat.CreateDefaultShapeStyle());
-
-        var w = xMax - xMin, h = yMax-yMin;
-        var kw, kh, pathW, pathH;
-        if(w > 0)
-        {
-            pathW = 43200;
-            kw = 43200 / w;
-        }
-        else
-        {
-            pathW = 0;
-            kw = 0;
-        }
-        if(h > 0)
-        {
-            pathH = 43200;
-            kh = 43200 / h;
-        }
-        else
-        {
-            pathH = 0;
-            kh = 0;
-        }
-
-        for (var i = 0; i < geometry.pathLst.length; i++) {
-            var arrPathCommand = geometry.pathLst[i].ArrPathCommand;
-            for (var j = 0; j < arrPathCommand.length; ++j) {
-
-                switch (arrPathCommand[j].id) {
-                    case PathType.POINT: {
-                        this.addPathCommandInfo(1, i, (((arrPathCommand[j].X - xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y - yMin) * kh) >> 0) + "");
-                        break;
-                    }
-                    case PathType.BEZIER_4: {
-                        this.addPathCommandInfo(5, i,(((arrPathCommand[j].X0 - xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y0 - yMin) * kh) >> 0) + "", (((arrPathCommand[j].X1 - xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y1 - yMin) * kh) >> 0) + "", (((arrPathCommand[j].X2 - xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y2 - yMin) * kh) >> 0) + "");
-                        break;
-                    }
-                    case PathType.END: {
-                        this.addPathCommandInfo(6, i);
-                    }
-                }
-            }
-            geometry.pathLst[i].pathW = pathW, geometry.pathLst[i].pathH = pathH;
-        }
+            this.addCommandsInPathInfo(geometry);
 
     };
 
@@ -374,6 +293,8 @@
 
         var countArc = 0;
         geom.gmEditList = [];
+
+        geom.setPreset(null);
 
         for(var j = 0; j < geom.pathLst.length; j++) {
             var pathPoints = geom.pathLst[j].ArrPathCommand;
@@ -588,7 +509,135 @@
         }
 
         this.isConverted = true;
-    }
+    };
+
+    EditShapeGeometryTrack.prototype.addCommandsInPathInfo = function(geometry) {
+        var last_x = geometry.gmEditList[0].X,
+            last_y = geometry.gmEditList[0].Y,
+            xMin = last_x, yMin = last_y, xMax = last_x, yMax = last_y;
+        for (var i = 0; i < geometry.pathLst.length; i++) {
+            var arrPathCommand = geometry.pathLst[i].ArrPathCommand;
+            for (var j = 0; j < arrPathCommand.length; ++j) {
+
+                var path_command = arrPathCommand[j];
+
+                if (path_command.id === PathType.BEZIER_4) {
+
+                    var bezier_polygon = AscFormat.partition_bezier4(last_x, last_y, path_command.X0, path_command.Y0, path_command.X1, path_command.Y1, path_command.X2, path_command.Y2, AscFormat.APPROXIMATE_EPSILON);
+                    for (var point_index = 1; point_index < bezier_polygon.length; ++point_index) {
+                        var cur_point = bezier_polygon[point_index];
+                        if (xMin > cur_point.x)
+                            xMin = cur_point.x;
+                        if (xMax < cur_point.x)
+                            xMax = cur_point.x;
+                        if (yMin > cur_point.y)
+                            yMin = cur_point.y;
+                        if (yMax < cur_point.y)
+                            yMax = cur_point.y;
+
+                        last_x = path_command.X2;
+                        last_y = path_command.Y2;
+                    }
+                }
+            }
+        }
+
+
+        this.xMin = xMin;
+        this.xMax = xMax;
+        this.yMin = yMin;
+        this.yMax = yMax;
+
+
+        var shape = this.originalShape;
+        shape.spPr.xfrm.setExtX(xMax - xMin);
+        shape.spPr.xfrm.setExtY(yMax - yMin);
+        shape.setStyle(AscFormat.CreateDefaultShapeStyle());
+
+        var w = xMax - xMin, h = yMax - yMin;
+        var kw, kh, pathW, pathH;
+        if (w > 0) {
+            pathW = 43200;
+            kw = 43200 / w;
+        }
+        else {
+            pathW = 0;
+            kw = 0;
+        }
+        if (h > 0) {
+            pathH = 43200;
+            kh = 43200 / h;
+        }
+        else {
+            pathH = 0;
+            kh = 0;
+        }
+
+        for (var i = 0; i < geometry.pathLst.length; i++) {
+            var arrPathCommand = geometry.pathLst[i].ArrPathCommand;
+            for (var j = 0; j < arrPathCommand.length; ++j) {
+
+                switch (arrPathCommand[j].id) {
+                    case PathType.POINT: {
+                        this.addPathCommandInfo(1, i, (((arrPathCommand[j].X - xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y - yMin) * kh) >> 0) + "");
+                        break;
+                    }
+                    case PathType.BEZIER_4: {
+                        this.addPathCommandInfo(5, i, (((arrPathCommand[j].X0 - xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y0 - yMin) * kh) >> 0) + "", (((arrPathCommand[j].X1 - xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y1 - yMin) * kh) >> 0) + "", (((arrPathCommand[j].X2 - xMin) * kw) >> 0) + "", (((arrPathCommand[j].Y2 - yMin) * kh) >> 0) + "");
+                        break;
+                    }
+                    case PathType.END: {
+                        this.addPathCommandInfo(6, i);
+                    }
+                }
+            }
+            geometry.pathLst[i].pathW = pathW, geometry.pathLst[i].pathH = pathH;
+        }
+    };
+
+    EditShapeGeometryTrack.prototype.addPoint = function(geom) {
+
+    };
+
+    EditShapeGeometryTrack.prototype.deletePoint = function(geom) {
+        var gmEditPoint = geom.gmEditPoint,
+            pathIndex = gmEditPoint.pathIndex,
+            pathElem = geom.pathLst[pathIndex];
+
+
+        if(pathElem && pathElem.stroke === true && pathElem.fill === "none") {
+            return;
+        }
+
+        var gmEditPoint = geom.gmEditPoint,
+            pathIndex = gmEditPoint.pathIndex,
+            pathC1 = gmEditPoint.pathC1,
+            pathC2 = gmEditPoint.pathC2,
+            startIndex = 0,
+            t = this;
+
+        geom.gmEditList.forEach(function (elem, index) {
+            if(elem.id === 0) {
+                startIndex = index;
+            }
+
+            if (elem.pathIndex === pathIndex && elem.pathC1 === pathC1 && elem.pathC2 === pathC2) {
+
+                if(pathC2 < pathC1) {
+                    pathElem.ArrPathCommand[startIndex].X = pathElem.ArrPathCommand[startIndex + 1].X2;
+                    pathElem.ArrPathCommand[startIndex].Y = pathElem.ArrPathCommand[startIndex + 1].Y2;
+                    pathElem.ArrPathCommand.splice(pathC2, 1);
+                    --pathC1;
+                }
+
+                pathElem.ArrPathCommand.splice(pathC1, 1);
+                geom.gmEditList.splice(index, 1)
+                geom.pathLst[pathIndex].ArrPathCommandInfo = [];
+                geom.gmEditPoint = [];
+                // t.addCommandsInPathInfo(geom, pathIndex);
+            }
+        });
+    };
 
 
     window['AscFormat'] = window['AscFormat'] || {};
