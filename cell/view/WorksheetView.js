@@ -935,7 +935,7 @@
 
 	// mouseX - это разница стартовых координат от мыши при нажатии и границы
 	WorksheetView.prototype.changeColumnWidth = function (col, x2, mouseX) {
-		if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatColumns)) {
+		if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatColumns)) {
 			return;
 		}
     	var viewMode = this.handlers.trigger('getViewMode');
@@ -1060,7 +1060,7 @@
 
 	// mouseY - это разница стартовых координат от мыши при нажатии и границы
 	WorksheetView.prototype.changeRowHeight = function (row, y2, mouseY) {
-		if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatRows)) {
+		if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatRows)) {
 			return;
 		}
     	var viewMode = this.handlers.trigger('getViewMode');
@@ -9756,7 +9756,21 @@
             return;
         }
 
-        this._isLockedCells(to, null, onApplyFormatPainterCallback);
+		//проверку отдельно добавляю, возможно стоит добавить внутрь preparePromoteFromTo
+		if (this.model.getSheetProtection() && this.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatCells)) {
+			this.checkProtectRangeOnEdit([to], function (success, isCancel) {
+				if (success) {
+					t._isLockedCells(to, null, onApplyFormatPainterCallback);
+				} else {
+					if (!isCancel) {
+						t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.PasswordIsNotCorrect, c_oAscError.Level.NoCritical);
+					}
+					onApplyFormatPainterCallback(false);
+				}
+			})
+		} else {
+			this._isLockedCells(to, null, onApplyFormatPainterCallback);
+		}
     };
 
     /* Функция для работы автозаполнения (selection). (x, y) - координаты точки мыши на области */
@@ -14654,7 +14668,7 @@
     };
 
     WorksheetView.prototype.autoFitRowHeight = function (r1, r2) {
-		if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatRows)) {
+		if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatRows)) {
 			return;
 		}
     	var viewMode = this.handlers.trigger('getViewMode');
@@ -22254,8 +22268,8 @@
 			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
 			callback(false);
 		} else if (aCheckPasswordRanges.length === 1) {
-			this.model.workbook.handlers.trigger("asc_onConfirmAction", Asc.c_oAscConfirm.ConfirmChangeProtectRange, function (can) {
-				callback(can);
+			this.model.workbook.handlers.trigger("asc_onConfirmAction", Asc.c_oAscConfirm.ConfirmChangeProtectRange, function (can, isCancel) {
+				callback(can, isCancel);
 			}, aCheckPasswordRanges[0]);
 		} else {
 			callback(true);

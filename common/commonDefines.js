@@ -281,7 +281,8 @@
 			SingleColumnOrRowError: 1020,
 			LocationOrDataRangeError: 1021,
 
-			ChangeOnProtectedSheet: 1030
+			ChangeOnProtectedSheet: 1030,
+			PasswordIsNotCorrect: 1031
 		}
 	};
 
@@ -2376,6 +2377,7 @@
 	prot['SingleColumnOrRowError']           = prot.SingleColumnOrRowError;
 	prot['LocationOrDataRangeError']         = prot.LocationOrDataRangeError;
 	prot['ChangeOnProtectedSheet']           = prot.ChangeOnProtectedSheet;
+	prot['PasswordIsNotCorrect']             = prot.PasswordIsNotCorrect;
 
 
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;

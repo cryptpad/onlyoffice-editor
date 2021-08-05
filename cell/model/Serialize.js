@@ -8713,7 +8713,7 @@
 			var oThis = this;
 			var oProtectedRange = null;
 
-			if (c_oSerWorksheetsTypes.ProtectedRange === type && 0 == aProtectedRanges.length) {
+			if (c_oSerWorksheetsTypes.ProtectedRange === type) {
 				oProtectedRange = new Asc.CProtectedRange();
 				res = this.bcr.Read2(length, function (t, l) {
 					return oThis.ReadProtectedRange(t, l, oProtectedRange);
