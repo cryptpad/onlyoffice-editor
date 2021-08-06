@@ -4482,11 +4482,11 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
                 content = this.txBody.content;
             }
             if (content) {
-                function findParagraphsWithLines(cont) {
+                var findParagraphsWithLines = function (cont) {
                     return cont.Content.reduce(function (prev, next) {
                         return prev.Lines.length < next.Lines.length ? next : prev;
                     }, cont.Content[0]);
-                }
+                };
                 var scalesForSmartArt = Array(61).fill(0).map(function (e, ind) {
                     return ind + 5;
                 });

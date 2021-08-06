@@ -4544,7 +4544,7 @@
       this.for = null;
       this.forName = null;
       this.op = null;
-      this.ptType = new ElementType();
+      this.setPtType(new ElementType());
       this.refFor = null;
       this.refForName = null;
       this.refPtType = null;
@@ -4879,7 +4879,7 @@
       this.type = null;
       this.val = null;
       this.extLst = null;
-      this.ptType = new ElementType();
+      this.setPtType(new ElementType());
     }
 
     InitClass(Rule, CBaseFormatObject, AscDFH.historyitem_type_Rule);
@@ -9066,27 +9066,7 @@
         copy.setSpPr(this.spPr.createDuplicate());
         copy.spPr.setParent(copy);
       }
-      for(var i = 0; i < this.spTree.length; ++i)
-      {
-        var _copy;
-        if(this.spTree[i].getObjectType() === AscDFH.historyitem_type_GroupShape) {
-          _copy = this.spTree[i].copy(oPr);
-        }
-        else{
-          if(oPr && oPr.bSaveSourceFormatting){
-            _copy = this.spTree[i].getCopyWithSourceFormatting();
-          }
-          else{
-            _copy = this.spTree[i].copy(oPr);
-          }
 
-        }
-        if(oPr && AscCommon.isRealObject(oPr.idMap)){
-          oPr.idMap[this.spTree[i].Id] = _copy.Id;
-        }
-        copy.addToSpTree(copy.spTree.length, _copy);
-        copy.spTree[copy.spTree.length-1].setGroup(copy);
-      }
       copy.setBDeleted(this.bDeleted);
       if(this.macro !== null) {
         copy.setMacro(this.macro);
@@ -9095,7 +9075,9 @@
         copy.setTextLink(this.textLink);
       }
       if (this.drawing) {
-        copy.setDrawing(this.drawing.copy());
+        copy.setDrawing(this.drawing.copy(oPr));
+          copy.addToSpTree(0, copy.drawing);
+          copy.drawing.setGroup(copy);
       }
       if (this.layoutDef) {
         copy.setLayoutDef(this.layoutDef.createDuplicate());
@@ -9113,6 +9095,7 @@
       copy.cachedPixH = this.cachedPixH;
       copy.cachedPixW = this.cachedPixW;
       copy.setLocks(this.locks);
+        copy.setPointsForShapes();
       return copy;
     };
 
