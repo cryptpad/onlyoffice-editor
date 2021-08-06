@@ -14275,6 +14275,12 @@
 							return;
 						}
 
+						if (t.model.getSheetProtection() && t.model.getLockedRange(arn)) {
+							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.DeleteColumnContainsLockedCell,
+								c_oAscError.Level.NoCritical);
+							return;
+						}
+
 						functionModelAction = function () {
 							History.Create_NewPoint();
 							History.StartTransaction();
@@ -14314,6 +14320,12 @@
 							return;
 						}
 
+						if (t.model.getSheetProtection() && t.model.getLockedRange(arn)) {
+							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.DeleteRowContainsLockedCell,
+								c_oAscError.Level.NoCritical);
+							return;
+						}
+
 						functionModelAction = function () {
 							History.Create_NewPoint();
 							History.StartTransaction();
@@ -14348,15 +14360,21 @@
 						this._isLockedCells(lockRange, null, onChangeWorksheetCallback);
 						break;
 					case c_oAscDeleteOptions.DeleteColumns:
+						lockRange = new asc_Range(checkRange.c1, 0, checkRange.c2, gc_nMaxRow0);
+
 						if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.deleteColumns)) {
 							return;
+						} else if (t.model.getSheetProtection() && t.model.getLockedRange(lockRange)) {
+							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.DeleteColumnContainsLockedCell,
+								c_oAscError.Level.NoCritical);
+							return;
 						}
+
 						isCheckChangeAutoFilter = t.model.autoFilters.isActiveCellsCrossHalfFTable(checkRange,
 							c_oAscDeleteOptions.DeleteColumns, prop);
 						if (isCheckChangeAutoFilter === false) {
 							return;
 						}
-						lockRange = new asc_Range(checkRange.c1, 0, checkRange.c2, gc_nMaxRow0);
 						count = checkRange.c2 - checkRange.c1 + 1;
 						if (this.model.checkShiftPivotTable(lockRange, new AscCommon.CellBase(0, -count))) {
 							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot,
@@ -14392,16 +14410,23 @@
 						});
 						break;
 					case c_oAscDeleteOptions.DeleteRows:
+						lockRange = new asc_Range(0, checkRange.r1, gc_nMaxCol0, checkRange.r2);
+
 						if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.deleteRows)) {
 							return;
+						} else if (t.model.getSheetProtection() && t.model.getLockedRange(lockRange)) {
+							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.DeleteRowContainsLockedCell,
+								c_oAscError.Level.NoCritical);
+							return;
 						}
+
+
 						isCheckChangeAutoFilter =
 							t.model.autoFilters.isActiveCellsCrossHalfFTable(checkRange, c_oAscDeleteOptions.DeleteRows,
 								prop);
 						if (isCheckChangeAutoFilter === false) {
 							return;
 						}
-						lockRange = new asc_Range(0, checkRange.r1, gc_nMaxCol0, checkRange.r2);
 						count = checkRange.r2 - checkRange.r1 + 1;
 						if (this.model.checkShiftPivotTable(lockRange, new AscCommon.CellBase(-count, 0))) {
 							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot,

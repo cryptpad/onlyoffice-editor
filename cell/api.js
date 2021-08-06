@@ -4605,6 +4605,16 @@ var editor;
   };
 
 	spreadsheet_api.prototype.asc_ChangeColorScheme = function (sSchemeName) {
+		if (this.wbModel) {
+			for (var i = 0; i < this.wbModel.aWorksheets.length; ++i) {
+				var sheet = this.wbModel.aWorksheets[i];
+				if (sheet.getSheetProtection()) {
+					//TODO error
+					return;
+				}
+			}
+		}
+
 		var t = this;
 		var onChangeColorScheme = function (res) {
 			if (res) {
@@ -4624,6 +4634,17 @@ var editor;
     if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
       return;
     }
+
+    if (this.wbModel) {
+      for (var i = 0; i < this.wbModel.aWorksheets.length; ++i) {
+      	var sheet = this.wbModel.aWorksheets[i];
+      	if (sheet.getSheetProtection()) {
+      		//TODO error
+     		return;
+     	 }
+      }
+    }
+
     var t = this;
     var onChangeColorScheme = function (res) {
       if (res) {

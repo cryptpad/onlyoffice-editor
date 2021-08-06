@@ -282,7 +282,9 @@
 			LocationOrDataRangeError: 1021,
 
 			ChangeOnProtectedSheet: 1030,
-			PasswordIsNotCorrect: 1031
+			PasswordIsNotCorrect: 1031,
+			DeleteColumnContainsLockedCell: 1032,
+			DeleteRowContainsLockedCell: 1033
 		}
 	};
 
@@ -2378,6 +2380,8 @@
 	prot['LocationOrDataRangeError']         = prot.LocationOrDataRangeError;
 	prot['ChangeOnProtectedSheet']           = prot.ChangeOnProtectedSheet;
 	prot['PasswordIsNotCorrect']             = prot.PasswordIsNotCorrect;
+	prot['DeleteColumnContainsLockedCell']   = prot.DeleteColumnContainsLockedCell;
+	prot['DeleteRowContainsLockedCell']      = prot.DeleteRowContainsLockedCell;
 
 
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;

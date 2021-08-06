@@ -921,7 +921,7 @@ CCellCommentator.prototype.findComment = function(id) {
 };
 
 CCellCommentator.prototype.addComment = function(comment, bIsNotUpdate) {
-	if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+	if (this.model.getSheetProtection && this.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
 		return;
 	}
 
@@ -958,14 +958,14 @@ CCellCommentator.prototype.addComment = function(comment, bIsNotUpdate) {
 };
 
 CCellCommentator.prototype.changeComment = function(id, oComment, bChangeCoords, bNoEvent, bNoAscLock, bNoDraw) {
-	if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
-		return;
-	}
-
 	var t = this;
 	var comment = this.findComment(id);
 	if (null === comment)
 		return;
+
+	if (this.model.getSheetProtection && this.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+		return;
+	}
 
 	var onChangeCommentCallback = function (isSuccess) {
 		if (false === isSuccess)
@@ -1024,13 +1024,14 @@ CCellCommentator.prototype.changeComment = function(id, oComment, bChangeCoords,
 };
 
 CCellCommentator.prototype.removeComment = function(id, bNoEvent, bNoAscLock, bNoDraw) {
-	if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
-		return;
-	}
 	var t = this;
 	var comment = this.findComment(id);
 	if (null === comment)
 		return;
+
+	if (this.model.getSheetProtection && this.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+		return;
+	}
 
 	var onRemoveCommentCallback = function (isSuccess) {
 		if (false === isSuccess)
