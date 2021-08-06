@@ -16270,6 +16270,7 @@
 				activeRangeOrCellId = AscCommonExcel.g_oRangeCache.getAscRange(cellId);
 				activeCellOrCellId = new AscCommon.CellBase(activeRangeOrCellId.r1, activeRangeOrCellId.c1);
 			}
+			//TODO проверка защиты
 			var pivotTable = this.model.inPivotTable(activeRangeOrCellId);
 			if (pivotTable) {
 				pivotTable.asc_sortByCell(t.model.workbook.oApi, type, activeCellOrCellId.row, activeCellOrCellId.col);
@@ -16355,16 +16356,22 @@
 		if (!doSortRange) {
 			doSortRange = activeRange;
 		}
-		if (t.model.inPivotTable(doSortRange)) {
-			t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
-			return;
-		}
 
-		if(!this.intersectionFormulaArray(doSortRange, true)) {
-			this._isLockedAll(onChangeAutoFilterCallback);
-		} else {
-			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
-		}
+
+		this.checkProtectRangeOnEdit([doSortRange], function (success) {
+			if (success) {
+				if (t.model.inPivotTable(doSortRange)) {
+					t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
+					return;
+				}
+
+				if(!t.intersectionFormulaArray(doSortRange, true)) {
+					t._isLockedAll(onChangeAutoFilterCallback);
+				} else {
+					t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+				}
+			}
+		})
     };
 
     WorksheetView.prototype.getAddFormatTableOptions = function (range, isPivot) {

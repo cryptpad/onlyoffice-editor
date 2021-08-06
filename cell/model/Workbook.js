@@ -10173,14 +10173,15 @@
 	};
 
 	Worksheet.prototype.protectedRangesContainsRange = function (range) {
+		var res = [];
 		if (this.aProtectedRanges && this.aProtectedRanges.length) {
 			for (var i = 0; i < this.aProtectedRanges.length; i++) {
 				if (this.aProtectedRanges[i].containsRange(range)) {
-					return true;
+					res.push(this.aProtectedRanges[i]);
 				}
 			}
 		}
-		return false;
+		return res.length ? res : null;
 	};
 
 	Worksheet.prototype.checkProtectedRangesPassword = function (val, data) {
