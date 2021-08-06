@@ -1693,8 +1693,15 @@
     InitClass(Point, CBaseFormatObject, AscDFH.historyitem_type_Point);
 
     Point.prototype.getDrawingDocument = function () {
-
     }
+    
+    Point.prototype.Get_Theme = function () {
+      return null;
+    }
+
+    Point.prototype.Get_ColorMap = function() {
+      return null;
+    };
 
     Point.prototype.setCxnId = function (pr) {
       oHistory.Add(new CChangeString(this, AscDFH.historyitem_PointCxnId, this.getCxnId(), pr));
@@ -7950,7 +7957,7 @@
         var oShape = this.spTree[nSp];
         var pointAssociation = oShape.getPointAssociation();
         var pointAssociationPrSet = pointAssociation && pointAssociation.prSet;
-        var isNotBlipFill = pointAssociation && pointAssociation.spPr && !pointAssociation.spPr.Fill || !pointAssociation.spPr;
+        var isNotBlipFill = pointAssociation && (pointAssociation.spPr && !pointAssociation.spPr.Fill || !pointAssociation.spPr);
         if (pointAssociationPrSet && isNotBlipFill) {
           if (imagePlaceholderArrStylelbl.indexOf(pointAssociationPrSet.presStyleLbl) !== -1 ||
             imagePlaceholderArrName.indexOf(pointAssociationPrSet.presName) !== -1 ||
@@ -8823,6 +8830,12 @@
 
     SmartArt.prototype.getName = function () {
       return 'SmartArt';
+    }
+
+    SmartArt.prototype.getTypeOfSmartArt = function () {
+      var layoutDef = this.getLayoutDef();
+      var uniId = layoutDef.getUniqueId().split('/');
+      return uniId[uniId.length - 1];
     }
 
     SmartArt.prototype.setPointsForShapes = function () {
