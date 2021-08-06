@@ -281,7 +281,7 @@ CShape.prototype.handleUpdateTheme = function()
 
     if(this.isPlaceholder()
         && !( this.spPr && this.spPr.xfrm &&
-        (this.getObjectType() === AscDFH.historyitem_type_GroupShape && this.spPr.xfrm.isNotNullForGroup() || this.getObjectType() !== AscDFH.historyitem_type_GroupShape && this.spPr.xfrm.isNotNull() ) ))
+        (this.isGroupObject && this.isGroupObject() && this.spPr.xfrm.isNotNullForGroup() || this.getObjectType() !== AscDFH.historyitem_type_GroupShape && this.spPr.xfrm.isNotNull() ) ))
     {
         this.recalcTransform();
         this.recalcGeometry()

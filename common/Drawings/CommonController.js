@@ -606,6 +606,7 @@ function getObjectsByTypesFromArr(arr, bGrouped)
                 break;
             }
             case AscDFH.historyitem_type_GroupShape:
+            case AscDFH.historyitem_type_SmartArt:
             {
                 ret.groups.push(drawing);
                 if(bGrouped)

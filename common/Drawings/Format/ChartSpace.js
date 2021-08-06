@@ -13287,6 +13287,8 @@ var GLOBAL_PATH_COUNT = 0;
                 break;
             }
             case AscDFH.historyitem_type_GroupShape:
+            case AscDFH.historyitem_type_SmartArt:
+            case AscDFH.historyitem_type_Drawing:
             {
                 for(var i = 0; i < sp.spTree.length; ++i) {
                     checkBlipFillRasterImages(sp.spTree[i]);

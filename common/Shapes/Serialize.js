@@ -7963,6 +7963,7 @@ function BinaryPPTYLoader()
                             }
                             case AscDFH.historyitem_type_GraphicFrame:
                             case AscDFH.historyitem_type_ChartSpace:
+                            case AscDFH.historyitem_type_SmartArt:
                             {
                                 s.Skip2(1); // attribute start
                                 while (true)

@@ -7873,6 +7873,9 @@
 
     InitClass(Drawing, CGroupShape, AscDFH.historyitem_type_Drawing);
 
+    Drawing.prototype.getObjectType = function () {
+      return AscDFH.historyitem_type_Drawing;
+    }
     Drawing.prototype.getName = function () {
       return 'Drawing';
     }
@@ -8821,9 +8824,12 @@
 
     InitClass(SmartArt, CGroupShape, AscDFH.historyitem_type_SmartArt);
 
+      SmartArt.prototype.getObjectType = function() {
+          return AscDFH.historyitem_type_SmartArt;
+      };
     SmartArt.prototype.getName = function () {
       return 'SmartArt';
-    }
+    };
 
     SmartArt.prototype.setPointsForShapes = function () {
       var that = this;

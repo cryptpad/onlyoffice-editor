@@ -827,9 +827,21 @@
     };
 
     CGraphicObjectBase.prototype.isObjectInSmartArt = function () {
-        return this.group && this.group.getName &&
-          (this.group.getName() === 'Drawing' || this.group.getName() === 'SmartArt');
-    }
+        if(this.group && this.group.isSmartArtObject()) {
+            return true;
+        }
+        return false;
+
+    };
+    CGraphicObjectBase.prototype.isGroupObject = function () {
+        var nType = this.getObjectType();
+        return nType === AscDFH.historyitem_type_GroupShape || nType === AscDFH.historyitem_type_LockedCanvas || this.isSmartArtObject();
+    };
+    CGraphicObjectBase.prototype.isSmartArtObject = function () {
+        var nType = this.getObjectType();
+        return nType === AscDFH.historyitem_type_SmartArt ||
+            nType === AscDFH.historyitem_type_Drawing;
+    };
 
 
     CGraphicObjectBase.prototype.drawShdw = function(graphics){
@@ -1372,7 +1384,7 @@
 
     CGraphicObjectBase.prototype.getMainGroup = function () {
         if(!AscCommon.isRealObject(this.group)){
-            if(this.getObjectType() === AscDFH.historyitem_type_GroupShape || this.getObjectType() === AscDFH.historyitem_type_LockedCanvas){
+            if(this.isGroupObject()){
                 return this;
             }
             return null;
