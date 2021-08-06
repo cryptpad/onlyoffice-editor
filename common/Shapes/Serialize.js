@@ -7670,7 +7670,8 @@ function BinaryPPTYLoader()
             }
         }
         s.Seek2(_end_rec);
-        console.log(_smartArt)
+        _smartArt.setType(_smartArt.getTypeOfSmartArt());
+        console.log(_smartArt);
         return _smartArt;
     };
 
