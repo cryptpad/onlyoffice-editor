@@ -1739,12 +1739,6 @@ GeometryEditState.prototype = {
             var track_object = this.drawingObjects.arrTrackObjects[0];
             var gmEditPoint = track_object.geometry.gmEditPoint;
 
-            if(e.CtrlKey && gmEditPoint) {
-                track_object.deletePoint(track_object.geometry);
-                this.drawingObjects.updateOverlay();
-                return {objectId: track_object.geometry.Id, hit: true};
-            }
-
             if(ret && ret.hit) {
                 this.drawingObjects.updateOverlay();
                 return {objectId: track_object.geometry.Id, hit: true};
@@ -1773,6 +1767,11 @@ GeometryEditState.prototype = {
         if(geom.gmEditPoint) {
             geom.gmEditPoint.isFirstCPoint = false;
             geom.gmEditPoint.isSecondCPoint = false;
+
+            if(e.CtrlKey) {
+                var track_object = this.drawingObjects.arrTrackObjects[0];
+                track_object.deletePoint(track_object.geometry);
+            }
         }
         this.drawingObjects.updateOverlay();
         RotateState.prototype.onMouseUp.call(this, e, x, y, pageIndex);

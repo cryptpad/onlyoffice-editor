@@ -517,6 +517,7 @@
             xMin = last_x, yMin = last_y, xMax = last_x, yMax = last_y;
         for (var i = 0; i < geometry.pathLst.length; i++) {
             var arrPathCommand = geometry.pathLst[i].ArrPathCommand;
+            geometry.pathLst[i].ArrPathCommandInfo = [];
             for (var j = 0; j < arrPathCommand.length; ++j) {
 
                 var path_command = arrPathCommand[j];
@@ -614,6 +615,7 @@
             pathC1 = gmEditPoint.pathC1,
             pathC2 = gmEditPoint.pathC2,
             startIndex = 0,
+            pointCount = 0,
             t = this;
 
         geom.gmEditList.forEach(function (elem, index) {
@@ -621,21 +623,28 @@
                 startIndex = index;
             }
 
-            if (elem.pathIndex === pathIndex && elem.pathC1 === pathC1 && elem.pathC2 === pathC2) {
 
-                if(pathC2 < pathC1) {
-                    pathElem.ArrPathCommand[startIndex].X = pathElem.ArrPathCommand[startIndex + 1].X2;
-                    pathElem.ArrPathCommand[startIndex].Y = pathElem.ArrPathCommand[startIndex + 1].Y2;
-                    pathElem.ArrPathCommand.splice(pathC2, 1);
-                    --pathC1;
+
+                if (elem.pathIndex === pathIndex && elem.pathC1 === pathC1 && elem.pathC2 === pathC2) {
+
+                    while (pathElem.ArrPathCommand[startIndex + pointCount + 1] && pathElem.ArrPathCommand[startIndex + pointCount + 1].id !== 5 &&
+                    pathElem.ArrPathCommand[startIndex + pointCount + 1].id !== 0) {
+                        ++pointCount;
+                    }
+
+                    if(pointCount > 2) {
+                        if (pathC2 < pathC1) {
+                            pathElem.ArrPathCommand[startIndex].X = pathElem.ArrPathCommand[startIndex + 1].X2;
+                            pathElem.ArrPathCommand[startIndex].Y = pathElem.ArrPathCommand[startIndex + 1].Y2;
+                            pathElem.ArrPathCommand.splice(pathC2, 1);
+                            --pathC1;
+                        }
+                        pathElem.ArrPathCommand.splice(pathC1, 1);
+                        geom.gmEditList.splice(index, 1);
+                    }
+                    geom.gmEditPoint = [];
+                    t.addCommandsInPathInfo(geom, pathIndex);
                 }
-
-                pathElem.ArrPathCommand.splice(pathC1, 1);
-                geom.gmEditList.splice(index, 1)
-                geom.pathLst[pathIndex].ArrPathCommandInfo = [];
-                geom.gmEditPoint = [];
-                t.addCommandsInPathInfo(geom, pathIndex);
-            }
         });
     };
 
