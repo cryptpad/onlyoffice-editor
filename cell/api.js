@@ -3107,6 +3107,11 @@ var editor;
 
   spreadsheet_api.prototype.asc_addChartDrawingObject = function(chart) {
     var ws = this.wb.getWorksheet();
+    if (ws.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+      this.asc_onCloseChartFrame();
+      return false;
+    }
+
     AscFonts.IsCheckSymbols = true;
     var ret = ws.objectRender.addChartDrawingObject(chart);
     AscFonts.IsCheckSymbols = false;
@@ -3124,11 +3129,15 @@ var editor;
   spreadsheet_api.prototype.asc_addImageDrawingObject = function (imageUrl, imgProp, token) {
 
     var t = this;
+    var ws = t.wb.getWorksheet();
+    if (ws.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+      return false;
+    }
+
     AscCommon.sendImgUrls(this, [imageUrl], function(data) {
 
       if (data && data[0] && data[0].url !== "error")
       {
-        var ws = t.wb.getWorksheet();
         ws.objectRender.addImageDrawingObject([data[0].url], null);
       }
 
@@ -3173,6 +3182,10 @@ var editor;
     // signatures
     spreadsheet_api.prototype.asc_addSignatureLine = function (oPr, Width, Height, sImgUrl) {
       var ws = this.wb.getWorksheet();
+      if (ws.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+        return false;
+      }
+
       if(ws && ws.objectRender){
           ws.objectRender.addSignatureLine(oPr, Width, Height, sImgUrl);
       }
@@ -3315,6 +3328,10 @@ var editor;
 
   spreadsheet_api.prototype.asc_addTextArt = function(nStyle) {
     var ws = this.wb.getWorksheet();
+    if (ws.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+      return false;
+    }
+
     return ws.objectRender.addTextArt(nStyle);
   };
 
@@ -3421,8 +3438,12 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_startAddShape = function(sPreset) {
-    this.isStartAddShape = this.controller.isShapeAction = true;
     var ws = this.wb.getWorksheet();
+    if (ws.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+      this.asc_endAddShape();
+      return false;
+    }
+    this.isStartAddShape = this.controller.isShapeAction = true;
     ws.objectRender.controller.startTrackNewShape(sPreset);
   };
 
@@ -3435,6 +3456,10 @@ var editor;
     spreadsheet_api.prototype.asc_addShapeOnSheet = function(sPreset) {
         if(this.wb){
           var ws = this.wb.getWorksheet();
+          if (ws.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+            return false;
+          }
+
           if(ws && ws.objectRender){
             ws.objectRender.addShapeOnSheet(sPreset);
           }
@@ -3446,6 +3471,10 @@ var editor;
     var _image = this.ImageLoader.LoadImage(AscCommon.getFullImageSrc2(sLocalUrl), 1);
     if (null != _image){
         var ws = this.wb.getWorksheet();
+        if (ws.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+          return false;
+        }
+
       if(ws.objectRender){
         this.asc_canPaste();
         ws.objectRender.addOleObject(fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId);
