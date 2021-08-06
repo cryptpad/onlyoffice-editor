@@ -11922,7 +11922,14 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                         }
                         case 5:
                         {
-                            s.SkipRecord();
+                            GrObject = oThis.Reader.ReadGrFrame();
+                            if(GrObject)
+                            {
+                                if(paraDrawing){
+                                    GrObject.setParent(paraDrawing);
+                                }
+                            }
+                            //s.SkipRecord();
                             break;
                         }
                         case 9:

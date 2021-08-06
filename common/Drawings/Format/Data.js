@@ -7646,7 +7646,7 @@
       this.writeRecord2(pWriter, 0, this.scene3d);
       this.writeRecord2(pWriter, 1, this.sp3d);
       pWriter.WriteRecord2(2, this.style, pWriter.WriteShapeStyle);
-      this.writeRecord2(pWriter, 3, this.txPr);
+        pWriter.WriteRecord2(3, this.txPr, pWriter.WriteTxBody);
     };
     StyleDefStyleLbl.prototype.readAttribute = function(nType, pReader) {
       var oStream = pReader.stream;
@@ -7670,8 +7670,7 @@
           break;
         }
         case 3: {
-          this.setTxPr(new TxPr());
-          this.txPr.fromPPTY(pReader);
+          this.setTxPr(pReader.ReadTextBody());
           break;
         }
         default: {
