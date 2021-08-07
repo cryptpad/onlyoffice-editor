@@ -1912,9 +1912,10 @@
 			this.asc_setDocInfo(this.DocInfo);
 			this.asc_LoadDocument(this.VersionHistory);
 		} else if (this.VersionHistory.currentChangeId < newObj.currentChangeId) {
+			var oApi = Asc.editor || editor;
 			// Нужно только добавить некоторые изменения
 			AscCommon.CollaborativeEditing.Clear_CollaborativeMarks();
-			editor.VersionHistory.applyChanges(editor);
+			oApi.VersionHistory.applyChanges(oApi);
 			AscCommon.CollaborativeEditing.Apply_Changes();
 		}
 	};
