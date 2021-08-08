@@ -798,7 +798,7 @@ Slide.prototype =
             switch (drawing.getObjectType())
             {
                 case AscDFH.historyitem_type_ChartSpace:
-                { 
+                {
                     if(!drawing.nvGraphicFramePr)
                     {
                         nv_sp_pr = new AscFormat.UniNvPr();
@@ -1621,7 +1621,7 @@ Slide.prototype =
                 }
             }
             else{
-                if(sp.getObjectType() === AscDFH.historyitem_type_GroupShape){
+                if(sp.isGroupObject()){
                     sp.handleUpdateTheme();
                     sp.checkExtentsByDocContent();
                 }

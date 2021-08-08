@@ -1828,11 +1828,12 @@ function CBinaryFileWriter()
             }
             case AscDFH.historyitem_type_GroupShape:
             {
-                if (oSp.getName && oSp.getName() === 'SmartArt') {
-                    oThis.WriteGrFrame(oSp);
-                } else {
-                    oThis.WriteGroupShape(oSp);
-                }
+                oThis.WriteGroupShape(oSp);
+                break;
+            }
+            case AscDFH.historyitem_type_SmartArt:
+            {
+                oThis.WriteGrFrame(oSp);
                 break;
             }
             case AscDFH.historyitem_type_GraphicFrame:
@@ -3785,11 +3786,7 @@ function CBinaryFileWriter()
             nvGraphicFramePr = {};
         }
         nvGraphicFramePr.locks = grObj.locks;
-        if (grObj.getName && grObj.getName() ==='SmartArt') {
-            var nObjectType = grObj.getName();
-        } else {
-            nObjectType = grObj.getObjectType();
-        }
+        var nObjectType = grObj.getObjectType();
         nvGraphicFramePr.objectType = nObjectType;
         oThis.WriteRecord1(0, nvGraphicFramePr, oThis.WriteUniNvPr);
         if (grObj.spPr && grObj.spPr.xfrm && grObj.spPr.xfrm.isNotNull())
@@ -3817,7 +3814,7 @@ function CBinaryFileWriter()
                 });
                 break;
             }
-            case 'SmartArt':
+            case AscDFH.historyitem_type_SmartArt:
             {
                 oThis.WriteRecord2(8, grObj, function() {
                     grObj.toPPTY(oThis);
@@ -4574,6 +4571,7 @@ function CBinaryFileWriter()
                 case AscDFH.historyitem_type_GraphicFrame:
                 case AscDFH.historyitem_type_ChartSpace:
                 case AscDFH.historyitem_type_SlicerView:
+                case AscDFH.historyitem_type_SmartArt:
                 {
                     oThis.WriteRecord1(1, nv.locks, oThis.WriteGrFrameCNvPr);
                     break;
@@ -5587,6 +5585,7 @@ function CBinaryFileWriter()
                 }
                 case AscDFH.historyitem_type_ChartSpace:
                 case AscDFH.historyitem_type_SlicerView:
+                case AscDFH.historyitem_type_SmartArt:
                 {
                     this.BinaryFileWriter.WriteGrFrame(grObject);
                     break;

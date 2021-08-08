@@ -5999,7 +5999,7 @@ CPresentation.prototype.CollectStyleId = function (oMap, aSpTree) {
                     oMap[aSpTree[i].graphicObject.TableStyle] = true;
                 }
             }
-        } else if (aSpTree[i].getObjectType() === AscDFH.historyitem_type_GroupShape) {
+        } else if (aSpTree[i].isGroupObject()) {
             this.CollectStyleId(oMap, aSpTree[i].spTree);
         }
     }
@@ -11082,7 +11082,7 @@ function collectSelectedObjects(aSpTree, aCollectArray, bRecursive, oIdMap, bSou
         // }
         if (oSp.selected) {
             var oCopy;
-            if (oSp.getObjectType() === AscDFH.historyitem_type_GroupShape) {
+            if (oSp.isGroupObject()) {
                 oCopy = oSp.copy(oPr);
                 oCopy.setParent(oSp.parent);
             } else {
@@ -11109,7 +11109,7 @@ function collectSelectedObjects(aSpTree, aCollectArray, bRecursive, oIdMap, bSou
                 oIdMap[oSp.Id] = oCopy.Id;
             }
         }
-        if (bRecursive && oSp.getObjectType() === AscDFH.historyitem_type_GroupShape) {
+        if (bRecursive && oSp.isGroupObject()) {
             collectSelectedObjects(oSp.spTree, aCollectArray, bRecursive, oIdMap, bSourceFormatting);
         }
     }

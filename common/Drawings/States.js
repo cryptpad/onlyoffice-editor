@@ -694,7 +694,7 @@ RotateState.prototype =
                     {
                         copy.setParent2(this.drawingObjects.drawingObjects);
                         if(!copy.spPr || !copy.spPr.xfrm
-                            || (copy.getObjectType() === AscDFH.historyitem_type_GroupShape && !copy.spPr.xfrm.isNotNullForGroup() || copy.getObjectType() !== AscDFH.historyitem_type_GroupShape && !copy.spPr.xfrm.isNotNull()))
+                            || ((copy.getObjectType() === AscDFH.historyitem_type_GroupShape || copy.getObjectType() === AscDFH.historyitem_type_SmartArt) && !copy.spPr.xfrm.isNotNullForGroup() || copy.getObjectType() !== AscDFH.historyitem_type_GroupShape && !copy.spPr.xfrm.isNotNull()))
                         {
                             copy.recalculateTransform();
                         }

@@ -490,7 +490,7 @@ CSelectedContent.prototype =
             var DrawingObj = this.DrawingObjects[Pos];
             var ShapeType = DrawingObj.GraphicObj.getObjectType();
 
-            if ( AscDFH.historyitem_type_Shape === ShapeType || AscDFH.historyitem_type_GroupShape === ShapeType )
+            if ( AscDFH.historyitem_type_Shape === ShapeType || DrawingObj.GraphicObj.isGroupObject() )
             {
                 this.HaveShape = true;
                 break;

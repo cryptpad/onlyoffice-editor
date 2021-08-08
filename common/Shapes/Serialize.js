@@ -7964,6 +7964,7 @@ function BinaryPPTYLoader()
                             }
                             case AscDFH.historyitem_type_GraphicFrame:
                             case AscDFH.historyitem_type_ChartSpace:
+                            case AscDFH.historyitem_type_SmartArt:
                             {
                                 s.Skip2(1); // attribute start
                                 while (true)
@@ -11922,7 +11923,14 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                         }
                         case 5:
                         {
-                            s.SkipRecord();
+                            GrObject = oThis.Reader.ReadGrFrame();
+                            if(GrObject)
+                            {
+                                if(paraDrawing){
+                                    GrObject.setParent(paraDrawing);
+                                }
+                            }
+                            //s.SkipRecord();
                             break;
                         }
                         case 9:

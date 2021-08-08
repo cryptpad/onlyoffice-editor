@@ -351,6 +351,9 @@
     {
         if(this.Old){
             var oObject = AscCommon.g_oTableId.Get_ById(this.Old);
+            if(!oObject) {
+                return false;
+            }
             if(oObject.CheckCorrect){
                 if(!oObject.CheckCorrect()){
                     return false;

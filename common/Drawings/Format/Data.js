@@ -7653,7 +7653,7 @@
       this.writeRecord2(pWriter, 0, this.scene3d);
       this.writeRecord2(pWriter, 1, this.sp3d);
       pWriter.WriteRecord2(2, this.style, pWriter.WriteShapeStyle);
-      this.writeRecord2(pWriter, 3, this.txPr);
+        pWriter.WriteRecord2(3, this.txPr, pWriter.WriteTxBody);
     };
     StyleDefStyleLbl.prototype.readAttribute = function(nType, pReader) {
       var oStream = pReader.stream;
@@ -7677,8 +7677,7 @@
           break;
         }
         case 3: {
-          this.setTxPr(new TxPr());
-          this.txPr.fromPPTY(pReader);
+          this.setTxPr(pReader.ReadTextBody());
           break;
         }
         default: {
@@ -7880,6 +7879,9 @@
 
     InitClass(Drawing, CGroupShape, AscDFH.historyitem_type_Drawing);
 
+    Drawing.prototype.getObjectType = function () {
+      return AscDFH.historyitem_type_Drawing;
+    }
     Drawing.prototype.getName = function () {
       return 'Drawing';
     }
@@ -8833,9 +8835,12 @@
 
     InitClass(SmartArt, CGroupShape, AscDFH.historyitem_type_SmartArt);
 
+      SmartArt.prototype.getObjectType = function() {
+          return AscDFH.historyitem_type_SmartArt;
+      };
     SmartArt.prototype.getName = function () {
       return 'SmartArt';
-    }
+    };
 
     SmartArt.prototype.getTypeOfSmartArt = function () {
       // Russian name -> type
