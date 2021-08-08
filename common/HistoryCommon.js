@@ -1546,7 +1546,6 @@
 	window['AscDFH'].historyitem_type_Alg                    = 2018 << 16;
 	window['AscDFH'].historyitem_type_Param                  = 2019 << 16;
 	window['AscDFH'].historyitem_type_Choose                 = 2020 << 16;
-	window['AscDFH'].historyitem_type_Else                   = 2021 << 16;
 	window['AscDFH'].historyitem_type_IteratorAttributes     = 2022 << 16;
 	window['AscDFH'].historyitem_type_Else                   = 2023 << 16;
 	window['AscDFH'].historyitem_type_AxisType               = 2024 << 16;
@@ -1571,7 +1570,6 @@
 	window['AscDFH'].historyitem_type_LayoutDefHdrLst        = 2043 << 16;
 	window['AscDFH'].historyitem_type_LayoutDefHdr           = 2044 << 16;
 	window['AscDFH'].historyitem_type_RelIds                 = 2045 << 16;
-	window['AscDFH'].historyitem_type_PresLayoutVars         = 2046 << 16;
 	window['AscDFH'].historyitem_type_ColorsDef              = 2047 << 16;
 	window['AscDFH'].historyitem_type_ColorDefStyleLbl       = 2048 << 16;
 	window['AscDFH'].historyitem_type_ClrLst                 = 2049 << 16;
@@ -3545,15 +3543,15 @@
 
 	AscDFH.historyitem_DiagramDataDataModel = AscDFH.historyitem_type_DiagramData | 1;
 
-	AscDFH.historyitem_PresLayoutVarsAnimLvl = AscDFH.historyitem_type_PresLayoutVars | 1;
-	AscDFH.historyitem_PresLayoutVarsAnimOne = AscDFH.historyitem_type_PresLayoutVars | 2;
-	AscDFH.historyitem_PresLayoutVarsBulletEnabled = AscDFH.historyitem_type_PresLayoutVars | 3;
-	AscDFH.historyitem_PresLayoutVarsChMax = AscDFH.historyitem_type_PresLayoutVars | 4;
-	AscDFH.historyitem_PresLayoutVarsChPref = AscDFH.historyitem_type_PresLayoutVars | 5;
-	AscDFH.historyitem_PresLayoutVarsDir = AscDFH.historyitem_type_PresLayoutVars | 6;
-	AscDFH.historyitem_PresLayoutVarsHierBranch = AscDFH.historyitem_type_PresLayoutVars | 7;
-	AscDFH.historyitem_PresLayoutVarsOrgChart = AscDFH.historyitem_type_PresLayoutVars | 8;
-	AscDFH.historyitem_PresLayoutVarsResizeHandles = AscDFH.historyitem_type_PresLayoutVars | 9;
+	AscDFH.historyitem_VarLstAnimLvl = AscDFH.historyitem_type_VarLst | 1;
+	AscDFH.historyitem_VarLstAnimOne = AscDFH.historyitem_type_VarLst | 2;
+	AscDFH.historyitem_VarLstBulletEnabled = AscDFH.historyitem_type_VarLst | 3;
+	AscDFH.historyitem_VarLstChMax = AscDFH.historyitem_type_VarLst | 4;
+	AscDFH.historyitem_VarLstChPref = AscDFH.historyitem_type_VarLst | 5;
+	AscDFH.historyitem_VarLstDir = AscDFH.historyitem_type_VarLst | 6;
+	AscDFH.historyitem_VarLstHierBranch = AscDFH.historyitem_type_VarLst | 7;
+	AscDFH.historyitem_VarLstOrgChart = AscDFH.historyitem_type_VarLst | 8;
+	AscDFH.historyitem_VarLstResizeHandles = AscDFH.historyitem_type_VarLst | 9;
 
 	AscDFH.historyitem_ColorsDefMinVer = AscDFH.historyitem_type_ColorsDef | 1;
 	AscDFH.historyitem_ColorsDefUniqueId = AscDFH.historyitem_type_ColorsDef | 2;
@@ -3795,6 +3793,7 @@
 	AscDFH.historyitem_SmartArtDataModel = AscDFH.historyitem_type_SmartArt | 4;
 	AscDFH.historyitem_SmartArtStyleDef  = AscDFH.historyitem_type_SmartArt | 5;
 	AscDFH.historyitem_SmartArtParent    = AscDFH.historyitem_type_SmartArt | 6;
+	AscDFH.historyitem_SmartArtType      = AscDFH.historyitem_type_SmartArt | 7;
 
 	AscDFH.historyitem_CCommonDataClrListAdd    = AscDFH.historyitem_type_CCommonDataClrList | 1;
 	AscDFH.historyitem_CCommonDataClrListRemove = AscDFH.historyitem_type_CCommonDataClrList | 2;
