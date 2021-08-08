@@ -1615,7 +1615,7 @@
 	window['AscDFH'].historyitem_type_SmartArt               = 2088 << 16;
 	window['AscDFH'].historyitem_type_CCommonDataClrList     = 2089 << 16;
 	window['AscDFH'].historyitem_type_BuNone                 = 2090 << 16;
-	window['AscDFH'].historyitem_type_Drawing                = 2091 << 16;
+	window['AscDFH'].historyitem_type_SmartArtDrawing        = 2091 << 16;
 	window['AscDFH'].historyitem_type_DiagramData            = 2092 << 16;
 	window['AscDFH'].historyitem_type_FunctionValue          = 2093 << 16;
 	window['AscDFH'].historyitem_type_PointInfo              = 2094 << 16;

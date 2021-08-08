@@ -50,6 +50,7 @@
     var CChangeObject = AscDFH.CChangesDrawingsObject;
     var CChangeContent = AscDFH.CChangesDrawingsContent;
     var CChangeDouble2 = AscDFH.CChangesDrawingsDouble2;
+    var CChangesContentNoId = AscDFH.CChangesDrawingsContentNoId;
 
     var drawingsChangesMap = AscDFH.drawingsChangesMap;
     var drawingContentChanges = AscDFH.drawingContentChanges;
@@ -1441,6 +1442,9 @@
       oClass.effect = value;
     };
 
+      drawingConstructorsMap[AscDFH.historyitem_BgFormatFill] = AscFormat.CUniFill;
+      drawingConstructorsMap[AscDFH.historyitem_BgFormatEffect] = AscFormat.CEffectProperties;
+
     function BgFormat() {
       CBaseFormatObject.call(this);
       this.fill = null;
@@ -1451,13 +1455,13 @@
 
 
     BgFormat.prototype.setFill = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BgFormatFill, this.getFill(), oPr));
+      oHistory.Add(new CChangeObjectNoId(this, AscDFH.historyitem_BgFormatFill, this.getFill(), oPr));
       this.fill = oPr;
       this.setParentToChild(oPr);
     }
 
     BgFormat.prototype.setEffect = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BgFormatEffect, this.getEffect(), oPr));
+      oHistory.Add(new CChangeObjectNoId(this, AscDFH.historyitem_BgFormatEffect, this.getEffect(), oPr));
       this.effect = oPr;
       this.setParentToChild(oPr);
     }
@@ -6896,30 +6900,10 @@
     };
 
 
-    function CChangesDrawingClrLst(Class, Type, Pos, Items, isAdd) {
-      CChangeContent.call(this, Class, Type, Pos, Items, isAdd);
-    }
-
-    CChangesDrawingClrLst.prototype = Object.create(CChangeContent.prototype);
-    CChangesDrawingClrLst.prototype.superclass = CChangeContent;
-    CChangesDrawingClrLst.prototype.constructor = CChangeContent;
-
-    CChangesDrawingClrLst.prototype.private_WriteItem = function (writer) {
-      // writer.WriteBool(this.IsAdd());
-      // writer.WriteLong(this.Pos);
-      // AscDFH.CChangesBaseContentChange.prototype.WriteToBinary.call(this, writer);
-    }
-
-    CChangesDrawingClrLst.prototype.private_ReadItem = function (reader) {
-      // reader.Seek2(reader.GetCurPos() - 4);
-      // this.Type = reader.GetLong();
-      // this.Add = reader.GetBool();
-      // this.Pos = reader.GetLong();
-      // AscDFH.CChangesBaseContentChange.prototype.ReadFromBinary.call(this, reader);
-    }
-
-    changesFactory[AscDFH.historyitem_CCommonDataClrListAdd] = CChangesDrawingClrLst;
-    changesFactory[AscDFH.historyitem_CCommonDataClrListRemove] = CChangesDrawingClrLst;
+    changesFactory[AscDFH.historyitem_CCommonDataClrListAdd] = CChangesContentNoId;
+    changesFactory[AscDFH.historyitem_CCommonDataClrListRemove] = CChangesContentNoId;
+      drawingConstructorsMap[AscDFH.historyitem_CCommonDataClrListAdd] = AscFormat.CUniColor;
+      drawingConstructorsMap[AscDFH.historyitem_CCommonDataClrListRemove] = AscFormat.CUniColor;
     drawingContentChanges[AscDFH.historyitem_CCommonDataClrListAdd] = function (oClass) {
       return oClass.list;
     };
@@ -6936,14 +6920,14 @@
 
     CCommonDataClrList.prototype.addToLst = function (nIdx, oPr) {
       var nInsertIdx = Math.min(this.list.length, Math.max(0, nIdx));
-      oHistory.Add(new CChangesDrawingClrLst(this, AscDFH.historyitem_CCommonDataListAdd, nInsertIdx, [oPr], true));
+      oHistory.Add(new CChangesContentNoId(this, AscDFH.historyitem_CCommonDataListAdd, nInsertIdx, [oPr], true));
       this.list.splice(nInsertIdx, 0, oPr);
     };
 
     CCommonDataClrList.prototype.removeFromLst = function (nIdx) {
       if (nIdx > -1 && nIdx < this.list.length) {
         this.list[nIdx].setParent(null);
-        oHistory.Add(new CChangesDrawingClrLst(this, AscDFH.historyitem_CCommonDataListRemove, nIdx, [this.list[nIdx]], false));
+        oHistory.Add(new CChangesContentNoId(this, AscDFH.historyitem_CCommonDataListRemove, nIdx, [this.list[nIdx]], false));
         this.list.splice(nIdx, 1);
       }
     };
@@ -7870,10 +7854,10 @@
       CGroupShape.call(this);
     }
 
-    InitClass(Drawing, CGroupShape, AscDFH.historyitem_type_Drawing);
+    InitClass(Drawing, CGroupShape, AscDFH.historyitem_type_SmartArtDrawing);
 
     Drawing.prototype.getObjectType = function () {
-      return AscDFH.historyitem_type_Drawing;
+      return AscDFH.historyitem_type_SmartArtDrawing;
     }
     Drawing.prototype.getName = function () {
       return 'Drawing';
@@ -8819,6 +8803,8 @@
       this.dataModel = null;
       this.styleDef = null;
       this.parent = null;
+
+        this.calcGeometry = null;
     }
 
     InitClass(SmartArt, CGroupShape, AscDFH.historyitem_type_SmartArt);
@@ -8877,57 +8863,46 @@
       History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_SmartArtParent, this.parent, parent));
       this.parent = parent;
     };
-
     SmartArt.prototype.setColorsDef = function (oPr) {
       oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SmartArtColorsDef, this.getColorsDef(), oPr));
       this.colorsDef = oPr;
       oPr.setParent(this);
-    }
-
+    };
     SmartArt.prototype.setDrawing = function (oPr) {
       oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SmartArtDrawing, this.getDrawing(), oPr));
       this.drawing = oPr;
       oPr.setParent(this);
-    }
-
+    };
     SmartArt.prototype.setLayoutDef = function (oPr) {
       oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SmartArtLayoutDef, this.getLayoutDef(), oPr));
       this.layoutDef = oPr;
       oPr.setParent(this);
-    }
-
+    };
     SmartArt.prototype.setDataModel = function (oPr) {
       oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SmartArtDataModel, this.getDataModel(), oPr));
       this.dataModel = oPr;
       oPr.setParent(this);
-    }
-
+    };
     SmartArt.prototype.setStyleDef = function (oPr) {
       oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SmartArtStyleDef, this.getStyleDef(), oPr));
       this.styleDef = oPr;
       oPr.setParent(this);
-    }
-
+    };
     SmartArt.prototype.getColorsDef = function () {
       return this.colorsDef;
-    }
-
+    };
     SmartArt.prototype.getDrawing = function () {
       return this.drawing;
-    }
-
+    };
     SmartArt.prototype.getLayoutDef = function () {
       return this.layoutDef;
-    }
-
+    };
     SmartArt.prototype.getDataModel = function () {
       return this.dataModel;
-    }
-
+    };
     SmartArt.prototype.getStyleDef = function () {
       return this.styleDef;
-    }
-
+    };
     SmartArt.prototype.fillObject = function (oCopy, oIdMap) {
       if (this.getColorsDef()) {
         oCopy.setColorsDef(this.getColorsDef().createDuplicate(oIdMap));
@@ -8944,13 +8919,12 @@
       if (this.getStyleDef()) {
         oCopy.setStyleDef(this.getStyleDef().createDuplicate(oIdMap));
       }
-    }
+    };
     SmartArt.prototype.createPlaceholderControl = function (aControls) {
       if(this.drawing) {
           this.drawing.createPlaceholderControl(aControls);
       }
-    }
-
+    };
     SmartArt.prototype.privateWriteAttributes = null;
     SmartArt.prototype.writeChildren = function(pWriter) {
       pWriter.StartRecord(0);
@@ -9004,16 +8978,84 @@
     SmartArt.prototype.getChildren = function() {
       return [this.drawing, this.dataModel, this.colorsDef, this.layoutDef, this.styleDef];
     };
-
     SmartArt.prototype.isPlaceholder = function () {
       return false;
-    }
+    };
     SmartArt.prototype.canRotate = function () {
       return false;
-    }
-
+    };
+    SmartArt.prototype.canFill = function () {
+      return true;
+    };
     SmartArt.prototype.updateCoordinatesAfterInternalResize = function () {
-    }
+        var oXfrm = this.spPr && this.spPr.xfrm;
+        if(!oXfrm) {
+            return {posX: this.x, posY: this.y};
+        }
+        return {posX: oXfrm.offX, posY: oXfrm.offY};
+    };
+    SmartArt.prototype.recalculateTransform = function() {
+        var oThis = this;
+      AscFormat.ExecuteNoHistory(function(){
+          AscFormat.CGroupShape.prototype.recalculateTransform.call(this);
+          this.calcGeometry = AscFormat.CreateGeometry("rect");
+          this.calcGeometry.Recalculate(this.extX, this.extY);
+      }, this, []);
+    };
+    SmartArt.prototype.draw = function(graphics) {
+        if(this.checkNeedRecalculate()){
+            return;
+        }
+        if(this.calcGeometry) {
+            graphics.SaveGrState();
+            graphics.SetIntegerGrid(false);
+            graphics.transform3(this.transform, false);
+            var oDrawer = new AscCommon.CShapeDrawer();
+            oDrawer.fromShape2(this, graphics, this.calcGeometry);
+            oDrawer.draw(this.calcGeometry);
+            graphics.RestoreGrState();
+        }
+        AscFormat.CGroupShape.prototype.draw.call(this, graphics);
+    };
+    SmartArt.prototype.recalculateBrush = function () {
+        this.brush = null;
+        var oDataModel = this.getDataModel() && this.getDataModel().getDataModel();
+        if(!oDataModel) {
+            return;
+        }
+        var oBg = oDataModel.bg;
+        if(!oBg) {
+            return;
+        }
+        if(!oBg.fill) {
+            return;
+        }
+        this.brush = oBg.fill.createDuplicate();
+        var oParents = this.getParentObjects();
+        var RGBA = {R: 0, G: 0, B: 0, A: 255};
+        this.brush.calculate(oParents.theme, oParents.slide, oParents.layout, oParents.master, RGBA);
+    };
+
+    SmartArt.prototype.recalculatePen = function () {
+        this.pen = null;
+        var oDataModel = this.getDataModel() && this.getDataModel().getDataModel();
+        if(!oDataModel) {
+            return;
+        }
+        var oWhole = oDataModel.whole;
+        if(!oWhole) {
+            return;
+        }
+        if(!oWhole.ln) {
+            return;
+        }
+        this.pen = oWhole.ln.createDuplicate();
+        if(this.pen.Fill) {
+            var oParents = this.getParentObjects();
+            var RGBA = {R: 0, G: 0, B: 0, A: 255};
+            this.pen.calculate(oParents.theme, oParents.slide, oParents.layout, oParents.master, RGBA);
+        }
+    };
 
     SmartArt.prototype.fromPPTY = function(pReader) {
       var oStream = pReader.stream;

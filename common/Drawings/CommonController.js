@@ -6877,7 +6877,7 @@ DrawingObjectsController.prototype =
         var ret_array = [];
         for(var _index = 0; _index < _arr_selected_objects.length; ++_index)
         {
-            if(_arr_selected_objects[_index].getObjectType() === AscDFH.historyitem_type_GroupShape && _arr_selected_objects[_index].canUnGroup()
+            if(_arr_selected_objects[_index].canUnGroup()
                 && (!_arr_selected_objects[_index].parent || _arr_selected_objects[_index].parent && (!_arr_selected_objects[_index].parent.Is_Inline || !_arr_selected_objects[_index].parent.Is_Inline())))
             {
                 if(!(bRetArray === true))
@@ -7396,8 +7396,9 @@ DrawingObjectsController.prototype =
             {
                 case AscDFH.historyitem_type_Shape:
                 case AscDFH.historyitem_type_Cnx:
+                case AscDFH.historyitem_type_SmartArt:
                 {
-
+                    var oBodyPr = drawing.getBodyPr();
                     new_shape_props =
                     {
                         canFill: drawing.canFill(),
@@ -7405,8 +7406,8 @@ DrawingObjectsController.prototype =
                         fill: drawing.getFill(),
                         stroke: drawing.getStroke(),
                         paddings: drawing.getPaddings(),
-                        verticalTextAlign: drawing.getBodyPr().anchor,
-                        vert: drawing.getBodyPr().vert,
+                        verticalTextAlign: oBodyPr.anchor,
+                        vert: oBodyPr.vert,
                         w: drawing.extX,
                         h: drawing.extY,
                         rot: drawing.rot,

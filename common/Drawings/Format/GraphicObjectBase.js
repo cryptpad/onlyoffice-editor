@@ -698,7 +698,7 @@
         return this.getNoGrp() === false;
     };
     CGraphicObjectBase.prototype.canUnGroup = function() {
-        return this.getNoUngrp() === false;
+        return this.getObjectType() === AscDFH.historyitem_type_GroupShape && this.getNoUngrp() === false;
     };
     CGraphicObjectBase.prototype.canChangeAdjustments = function () {
         return this.getNoAdjustHandles() === false;
@@ -840,7 +840,7 @@
     CGraphicObjectBase.prototype.isSmartArtObject = function () {
         var nType = this.getObjectType();
         return nType === AscDFH.historyitem_type_SmartArt ||
-            nType === AscDFH.historyitem_type_Drawing;
+            nType === AscDFH.historyitem_type_SmartArtDrawing;
     };
 
 
@@ -1626,6 +1626,35 @@
         return false;
     };
     CGraphicObjectBase.prototype.handleAllContents = function(fCallback){
+    };
+    CGraphicObjectBase.prototype.canFill = function() {
+        return false;
+    };
+    CGraphicObjectBase.prototype.getPaddings = function() {
+        return null;
+    };
+    CGraphicObjectBase.prototype.getBodyPr = function() {
+        var oThis = this;
+        return AscFormat.ExecuteNoHistory(function(){
+            var ret = new AscFormat.CBodyPr();
+            ret.setDefault();
+            return ret;
+        }, oThis, []);
+    };
+    CGraphicObjectBase.prototype.getTextArtProperties = function() {
+        return null;
+    };
+    CGraphicObjectBase.prototype.getColumnNumber = function() {
+        return null;
+    };
+    CGraphicObjectBase.prototype.getColumnSpace = function() {
+        return null;
+    };
+    CGraphicObjectBase.prototype.getTextFitType = function() {
+        return null;
+    };
+    CGraphicObjectBase.prototype.getVertOverflowType = function() {
+        return null;
     };
     CGraphicObjectBase.prototype.canChangeArrows = function () {
         if (!this.spPr || this.spPr.geometry == null) {
