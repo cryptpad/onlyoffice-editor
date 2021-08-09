@@ -2593,7 +2593,7 @@ background-repeat: no-repeat;\
 					var url = input["data"];
 					if (url)
 					{
-						t.processSavedFile(url, downloadType);
+						t.processSavedFile(url, downloadType, input["filetype"]);
 					}
 					else
 					{
@@ -2715,7 +2715,7 @@ background-repeat: no-repeat;\
 		if (this.bInit_word_control)
 			this.WordControl.OnScroll();
 	};
-	asc_docs_api.prototype.processSavedFile             = function(url, downloadType)
+	asc_docs_api.prototype.processSavedFile             = function(url, downloadType, filetype)
 	{
 		var t = this;
 		if (this.mailMergeFileData)
@@ -2743,7 +2743,7 @@ background-repeat: no-repeat;\
 		}
 		else
 		{
-			AscCommon.baseEditorsApi.prototype.processSavedFile.call(this, url, downloadType);
+			AscCommon.baseEditorsApi.prototype.processSavedFile.call(this, url, downloadType, filetype);
 		}
 	};
 	asc_docs_api.prototype.endInsertDocumentUrls = function()
