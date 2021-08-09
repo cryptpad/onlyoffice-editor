@@ -1873,6 +1873,9 @@
 			this.asc_coAuthoringDisconnect();
 		}
 
+		if (this.SpellCheckApi && this.SpellCheckApi.restart /* старый спеллчек (серверный - не поддеживает этот метод */)
+			this.SpellCheckApi.restart();
+
 		var bUpdate = true;
 		if (null === this.VersionHistory) {
 			this.VersionHistory = new window["Asc"].asc_CVersionHistory(newObj);
