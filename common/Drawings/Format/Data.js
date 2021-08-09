@@ -1193,14 +1193,14 @@
     };
 
     changesFactory[AscDFH.historyitem_CxnDestId] = CChangeString;
-    changesFactory[AscDFH.historyitem_CxnDestOrd] = CChangeLong;
+    changesFactory[AscDFH.historyitem_CxnDestOrd] = CChangeString;
     changesFactory[AscDFH.historyitem_CxnModelId] = CChangeString;
     changesFactory[AscDFH.historyitem_CxnParTransId] = CChangeString;
     changesFactory[AscDFH.historyitem_CxnPresId] = CChangeString;
     changesFactory[AscDFH.historyitem_CxnSibTransId] = CChangeString;
     changesFactory[AscDFH.historyitem_CxnSrcId] = CChangeString;
-    changesFactory[AscDFH.historyitem_CxnSrcOrd] = CChangeLong;
-    changesFactory[AscDFH.historyitem_CxnType] = CChangeLong;
+    changesFactory[AscDFH.historyitem_CxnSrcOrd] = CChangeString;
+    changesFactory[AscDFH.historyitem_CxnType] = CChangeString;
     changesFactory[AscDFH.historyitem_CxnExtLst] = CChangeObject;
     drawingsChangesMap[AscDFH.historyitem_CxnDestId] = function (oClass, value) {
       oClass.destId = value;
@@ -1256,7 +1256,7 @@
     }
 
     Cxn.prototype.setDestOrd = function (pr) {
-      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_CxnDestOrd, this.getDestOrd(), pr));
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_CxnDestOrd, this.getDestOrd(), pr));
       this.destOrd = pr;
     }
 
@@ -1286,12 +1286,12 @@
     }
 
     Cxn.prototype.setSrcOrd = function (pr) {
-      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_CxnSrcOrd, this.getSrcOrd(), pr));
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_CxnSrcOrd, this.getSrcOrd(), pr)); // TODO: srcord, type is long maybe
       this.srcOrd = pr;
     }
 
     Cxn.prototype.setType = function (pr) {
-      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_CxnType, this.getType(), pr));
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_CxnType, this.getType(), pr));
       this.type = pr;
     }
 
@@ -1868,7 +1868,7 @@
     changesFactory[AscDFH.historyitem_PrSetQsCatId] = CChangeString;
     changesFactory[AscDFH.historyitem_PrSetQsTypeId] = CChangeString;
     changesFactory[AscDFH.historyitem_PrSetStyle] = CChangeObject;
-    changesFactory[AscDFH.historyitem_PrSetPresLayoutStyle] = CChangeObject;
+    changesFactory[AscDFH.historyitem_PrSetPresLayoutVars] = CChangeObject;
     drawingsChangesMap[AscDFH.historyitem_PrSetCoherent3DOff] = function (oClass, value) {
       oClass.coherent3DOff = value;
     };
@@ -1956,8 +1956,8 @@
     drawingsChangesMap[AscDFH.historyitem_PrSetStyle] = function (oClass, value) {
       oClass.style = value;
     };
-    drawingsChangesMap[AscDFH.historyitem_PrSetPresLayoutStyle] = function (oClass, value) {
-      oClass.presLayoutStyle = value;
+    drawingsChangesMap[AscDFH.historyitem_PrSetPresLayoutVars] = function (oClass, value) {
+      oClass.presLayoutVars = value;
     };
 
     function PrSet() {
@@ -3729,7 +3729,7 @@
     drawingsChangesMap[AscDFH.historyitem_ChooseElse] = function (oClass, value) {
       oClass.else = value;
     };
-    drawingsChangesMap[AscDFH.historyitem_ChooseIf] = function (oClass) {
+    drawingsChangesMap[AscDFH.historyitem_ChooseIf] = function (oClass, value) {
       oClass.if = value;
     };
 
@@ -4060,7 +4060,7 @@
         oCopy.addToLstHideLastTrans(nIdx, this.hideLastTrans[nIdx]);
       }
       for (nIdx = 0; nIdx < this.ptType.length; ++nIdx) {
-        oCopy.addToLstPtType(nIdx, this.ptType[nIdx]);
+        oCopy.addToLstPtType(nIdx, this.ptType[nIdx].createDuplicate(oIdMap));
       }
       for (nIdx = 0; nIdx < this.st.length; ++nIdx) {
         oCopy.addToLstSt(nIdx, this.st[nIdx]);
@@ -4365,7 +4365,7 @@
         oCopy.addToLstHideLastTrans(nIdx, this.hideLastTrans[nIdx]);
       }
       for (nIdx = 0; nIdx < this.ptType.length; ++nIdx) {
-        oCopy.addToLstPtType(nIdx, this.ptType[nIdx]);
+        oCopy.addToLstPtType(nIdx, this.ptType[nIdx].createDuplicate(oIdMap));
       }
       for (nIdx = 0; nIdx < this.st.length; ++nIdx) {
         oCopy.addToLstSt(nIdx, this.st[nIdx]);
@@ -4764,7 +4764,7 @@
         oCopy.addToLstHideLastTrans(nIdx, this.hideLastTrans[nIdx]);
       }
       for (nIdx = 0; nIdx < this.ptType.length; ++nIdx) {
-        oCopy.addToLstPtType(nIdx, this.ptType[nIdx]);
+        oCopy.addToLstPtType(nIdx, this.ptType[nIdx].createDuplicate(oIdMap));
       }
       for (nIdx = 0; nIdx < this.st.length; ++nIdx) {
         oCopy.addToLstSt(nIdx, this.st[nIdx]);
@@ -5969,7 +5969,7 @@
         oCopy.addToLstHideLastTrans(nIdx, this.hideLastTrans[nIdx]);
       }
       for (nIdx = 0; nIdx < this.ptType.length; ++nIdx) {
-        oCopy.addToLstPtType(nIdx, this.ptType[nIdx]);
+        oCopy.addToLstPtType(nIdx, this.ptType[nIdx].createDuplicate(oIdMap));
       }
       for (nIdx = 0; nIdx < this.st.length; ++nIdx) {
         oCopy.addToLstSt(nIdx, this.st[nIdx]);
@@ -7016,7 +7016,8 @@
       oCopy.setHueDir(this.getHueDir());
       oCopy.setMeth(this.getMeth());
       for (var nIdx = 0; nIdx < this.list.length; ++nIdx) {
-        oCopy.addToLst(nIdx, this.list[nIdx].createDuplicate(oIdMap));
+        var oColor = this.list[nIdx].createDuplicate(oIdMap);
+        oCopy.addToLst(nIdx, oColor);
       }
     }
 

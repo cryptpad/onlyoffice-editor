@@ -921,6 +921,8 @@ function SetXfrmFromMetrics(oDrawing, metrics)
 
            AscDFH.changesFactory[AscDFH.historyitem_ShapeSetNvSpPr]   = AscDFH.CChangesDrawingsObject;
            AscDFH.changesFactory[AscDFH.historyitem_ShapeSetSpPr]   = AscDFH.CChangesDrawingsObject;
+           AscDFH.changesFactory[AscDFH.historyitem_ShapeSetTxXfrm]   = AscDFH.CChangesDrawingsObject;
+           AscDFH.changesFactory[AscDFH.historyitem_ShapeSetSmartArtPoint]   = AscDFH.CChangesDrawingsObject;
            AscDFH.changesFactory[AscDFH.historyitem_ShapeSetStyle]   = AscDFH.CChangesDrawingsObject;
            AscDFH.changesFactory[AscDFH.historyitem_ShapeSetTxBody]   = AscDFH.CChangesDrawingsObject;
            AscDFH.changesFactory[AscDFH.historyitem_ShapeSetTextBoxContent]   = AscDFH.CChangesDrawingsObject;
@@ -929,11 +931,15 @@ function SetXfrmFromMetrics(oDrawing, metrics)
            AscDFH.changesFactory[AscDFH.historyitem_ShapeSetParent]   = AscDFH.CChangesDrawingsObject;
            AscDFH.changesFactory[AscDFH.historyitem_ShapeSetGroup]   = AscDFH.CChangesDrawingsObject;
            AscDFH.changesFactory[AscDFH.historyitem_ShapeSetWordShape]   = AscDFH.CChangesDrawingsBool;
+           AscDFH.changesFactory[AscDFH.historyitem_ShapeSetModelId]   = AscDFH.CChangesDrawingsString;
            AscDFH.changesFactory[AscDFH.historyitem_ShapeSetSignature]   = AscDFH.CChangesDrawingsObjectNoId;
 
 
 
     AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetNvSpPr]               = function(oClass, value){oClass.nvSpPr = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetSmartArtPoint]        = function(oClass, value){oClass.point = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetTxXfrm]               = function(oClass, value){oClass.txXfrm = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetModelId]              = function(oClass, value){oClass.modelId = value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetSpPr]                 = function(oClass, value){oClass.spPr = value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetStyle]                = function(oClass, value){oClass.style = value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetTxBody]               = function(oClass, value){oClass.txBody = value;};

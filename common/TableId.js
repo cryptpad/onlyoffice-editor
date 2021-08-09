@@ -215,6 +215,7 @@
 		this.m_oFactoryClass[AscDFH.historyitem_type_ShapeStyle]             = AscFormat.CShapeStyle;
 		this.m_oFactoryClass[AscDFH.historyitem_type_Xfrm]                   = AscFormat.CXfrm;
 		this.m_oFactoryClass[AscDFH.historyitem_type_SpPr]                   = AscFormat.CSpPr;
+		this.m_oFactoryClass[AscDFH.historyitem_type_UniColor]               = AscFormat.CUniColor;
 		this.m_oFactoryClass[AscDFH.historyitem_type_ClrScheme]              = AscFormat.ClrScheme;
 		this.m_oFactoryClass[AscDFH.historyitem_type_ClrMap]                 = AscFormat.ClrMap;
 		this.m_oFactoryClass[AscDFH.historyitem_type_ExtraClrScheme]         = AscFormat.ExtraClrScheme;

@@ -3431,10 +3431,8 @@
 
 	AscDFH.historyitem_ChooseName     = AscDFH.historyitem_type_Choose | 1;
 	AscDFH.historyitem_ChooseElse     = AscDFH.historyitem_type_Choose | 2;
-	AscDFH.historyitem_ChooseAddIf    = AscDFH.historyitem_type_Choose | 3;
-	AscDFH.historyitem_ChooseRemoveIf = AscDFH.historyitem_type_Choose | 4;
+	AscDFH.historyitem_ChooseIf    = AscDFH.historyitem_type_Choose | 3;
 
-	AscDFH.historyitem_ElseName = AscDFH.historyitem_type_Else | 1;
 
 	AscDFH.historyitem_IteratorAttributesAddAxis = AscDFH.historyitem_type_IteratorAttributes | 1;
 	AscDFH.historyitem_IteratorAttributesRemoveAxis = AscDFH.historyitem_type_IteratorAttributes | 2;
