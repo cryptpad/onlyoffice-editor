@@ -364,7 +364,7 @@
 		this.m_oFactoryClass[AscDFH.historyitem_type_SmartArt          ]     = AscFormat.SmartArt;
 		this.m_oFactoryClass[AscDFH.historyitem_type_CCommonDataClrList]     = AscFormat.CCommonDataClrList;
 		this.m_oFactoryClass[AscDFH.historyitem_type_BuNone            ]     = AscFormat.BuNone;
-		this.m_oFactoryClass[AscDFH.historyitem_type_Drawing           ]     = AscFormat.Drawing;
+		this.m_oFactoryClass[AscDFH.historyitem_type_SmartArtDrawing   ]     = AscFormat.Drawing;
 		this.m_oFactoryClass[AscDFH.historyitem_type_DiagramData       ]     = AscFormat.DiagramData;
 		this.m_oFactoryClass[AscDFH.historyitem_type_FunctionValue     ]     = AscFormat.FunctionValue;
 		this.m_oFactoryClass[AscDFH.historyitem_type_PointInfo         ]     = AscFormat.PointInfo;
