@@ -1523,8 +1523,10 @@
 
 
 
-    changesFactory[AscDFH.historyitem_WholeEffect] = CChangeObject;
-    changesFactory[AscDFH.historyitem_WholeLn] = CChangeObject;
+    changesFactory[AscDFH.historyitem_WholeEffect] = CChangeObjectNoId;
+    changesFactory[AscDFH.historyitem_WholeLn] = CChangeObjectNoId;
+    drawingConstructorsMap[AscDFH.historyitem_WholeLn] = AscFormat.CUniFill;
+    drawingConstructorsMap[AscDFH.historyitem_WholeEffect] = AscFormat.CEffectProperties;
     drawingsChangesMap[AscDFH.historyitem_WholeEffect] = function (oClass, value) {
       oClass.effect = value;
     };
@@ -1541,13 +1543,13 @@
     InitClass(Whole, CBaseFormatObject, AscDFH.historyitem_type_Whole);
 
     Whole.prototype.setEffect = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_WholeEffect, this.getEffect(), oPr));
+      oHistory.Add(new CChangeObjectNoId(this, AscDFH.historyitem_WholeEffect, this.getEffect(), oPr));
       this.effect = oPr;
       this.setParentToChild(oPr);
     }
 
     Whole.prototype.setLn = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_WholeLn, this.getLn(), oPr));
+      oHistory.Add(new CChangeObjectNoId(this, AscDFH.historyitem_WholeLn, this.getLn(), oPr));
       this.ln = oPr;
       this.setParentToChild(oPr);
     }
@@ -6927,14 +6929,14 @@
 
     CCommonDataClrList.prototype.addToLst = function (nIdx, oPr) {
       var nInsertIdx = Math.min(this.list.length, Math.max(0, nIdx));
-      oHistory.Add(new CChangesContentNoId(this, AscDFH.historyitem_CCommonDataListAdd, nInsertIdx, [oPr], true));
+      oHistory.Add(new CChangesContentNoId(this, AscDFH.historyitem_CCommonDataClrListAdd, nInsertIdx, [oPr], true));
       this.list.splice(nInsertIdx, 0, oPr);
     };
 
     CCommonDataClrList.prototype.removeFromLst = function (nIdx) {
       if (nIdx > -1 && nIdx < this.list.length) {
         this.list[nIdx].setParent(null);
-        oHistory.Add(new CChangesContentNoId(this, AscDFH.historyitem_CCommonDataListRemove, nIdx, [this.list[nIdx]], false));
+        oHistory.Add(new CChangesContentNoId(this, AscDFH.historyitem_CCommonDataClrListRemove, nIdx, [this.list[nIdx]], false));
         this.list.splice(nIdx, 1);
       }
     };
@@ -9186,13 +9188,23 @@
         }
         AscFormat.CGroupShape.prototype.draw.call(this, graphics);
     };
+      SmartArt.prototype.getBg = function() {
+          var oDataModel = this.getDataModel() && this.getDataModel().getDataModel();
+          if(!oDataModel) {
+              return;
+          }
+          return oDataModel.bg;
+      };
+      SmartArt.prototype.getWhole = function() {
+          var oDataModel = this.getDataModel() && this.getDataModel().getDataModel();
+          if(!oDataModel) {
+              return;
+          }
+          return oDataModel.whole;
+      };
     SmartArt.prototype.recalculateBrush = function () {
         this.brush = null;
-        var oDataModel = this.getDataModel() && this.getDataModel().getDataModel();
-        if(!oDataModel) {
-            return;
-        }
-        var oBg = oDataModel.bg;
+        var oBg = this.getBg();
         if(!oBg) {
             return;
         }
@@ -9207,11 +9219,7 @@
 
     SmartArt.prototype.recalculatePen = function () {
         this.pen = null;
-        var oDataModel = this.getDataModel() && this.getDataModel().getDataModel();
-        if(!oDataModel) {
-            return;
-        }
-        var oWhole = oDataModel.whole;
+        var oWhole = this.getWhole();
         if(!oWhole) {
             return;
         }
@@ -9225,6 +9233,35 @@
             this.pen.calculate(oParents.theme, oParents.slide, oParents.layout, oParents.master, RGBA);
         }
     };
+    SmartArt.prototype.changeFill = function (fill) {
+        var oBg = this.getBg();
+        if(!oBg) {
+            return;
+        }
+       if(this.recalcInfo.recalculateBrush)
+        {
+            this.recalculateBrush();
+        }
+        var oUniFill = AscFormat.CorrectUniFill(fill, this.brush, this.getEditorType());
+        oUniFill.convertToPPTXMods();
+        oBg.setFill(oUniFill);
+    };
+      SmartArt.prototype.changeLine = function (line) {
+          var oWhole = this.getWhole();
+          if(!oWhole) {
+              return;
+          }
+          if(this.recalcInfo.recalculatePen)
+          {
+              this.recalculatePen();
+          }
+          var stroke = AscFormat.CorrectUniStroke(line, this.pen);
+          if(stroke.Fill)
+          {
+              stroke.Fill.convertToPPTXMods();
+          }
+          oWhole.setLn(stroke);
+      };
 
     SmartArt.prototype.fromPPTY = function(pReader) {
       var oStream = pReader.stream;

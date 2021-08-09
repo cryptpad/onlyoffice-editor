@@ -581,7 +581,7 @@ function CheckSpPrXfrm2(object)
 
 function getObjectsByTypesFromArr(arr, bGrouped)
 {
-    var ret = {shapes: [], images: [], groups: [], charts: [], tables: [], oleObjects: [], slicers: []};
+    var ret = {shapes: [], images: [], groups: [], charts: [], tables: [], oleObjects: [], slicers: [], smartArts: []};
     var selected_objects = arr;
     for(var i = 0;  i < selected_objects.length; ++i)
     {
@@ -605,8 +605,12 @@ function getObjectsByTypesFromArr(arr, bGrouped)
                 ret.oleObjects.push(drawing);
                 break;
             }
-            case AscDFH.historyitem_type_GroupShape:
             case AscDFH.historyitem_type_SmartArt:
+            {
+                ret.smartArts.push(drawing);
+                break;
+            }
+            case AscDFH.historyitem_type_GroupShape:
             {
                 ret.groups.push(drawing);
                 if(bGrouped)
@@ -3728,6 +3732,10 @@ DrawingObjectsController.prototype =
             {
                 objects_by_type.images[i].changeLine(props.stroke);
             }
+            for(i = 0; i < objects_by_type.smartArts.length; ++i)
+            {
+                objects_by_type.smartArts[i].changeLine(props.stroke);
+            }
         }
         if(isRealObject(props.fill))
         {
@@ -3742,6 +3750,10 @@ DrawingObjectsController.prototype =
             for(i = 0; i < objects_by_type.charts.length; ++i)
             {
                 objects_by_type.charts[i].changeFill(props.fill);
+            }
+            for(i = 0; i < objects_by_type.smartArts.length; ++i)
+            {
+                objects_by_type.smartArts[i].changeFill(props.fill);
             }
         }
         if(isRealObject(props.shadow) || props.shadow === null)
@@ -3758,8 +3770,11 @@ DrawingObjectsController.prototype =
             {
                 objects_by_type.images[i].changeShadow(props.shadow);
             }
+            for(i = 0; i < objects_by_type.smartArts.length; ++i)
+            {
+                objects_by_type.smartArts[i].changeShadow(props.shadow);
+            }
         }
-
         if(props.title !== null && props.title !== undefined)
         {
             for(i = 0; i < objects_by_type.shapes.length; ++i)
@@ -3778,9 +3793,11 @@ DrawingObjectsController.prototype =
             {
                 objects_by_type.images[i].setTitle(props.title);
             }
+            for(i = 0; i < objects_by_type.smartArts.length; ++i)
+            {
+                objects_by_type.smartArts[i].setTitle(props.title);
+            }
         }
-
-
         if(props.description !== null && props.description !== undefined)
         {
             for(i = 0; i < objects_by_type.shapes.length; ++i)
@@ -3795,10 +3812,13 @@ DrawingObjectsController.prototype =
             {
                 objects_by_type.charts[i].setDescription(props.description);
             }
-
             for(i = 0; i < objects_by_type.images.length; ++i)
             {
                 objects_by_type.images[i].setDescription(props.description);
+            }
+            for(i = 0; i < objects_by_type.smartArts.length; ++i)
+            {
+                objects_by_type.smartArts[i].setDescription(props.description);
             }
         }
 
@@ -3986,6 +4006,20 @@ DrawingObjectsController.prototype =
                     }
                     objects_by_type.charts[i].checkDrawingBaseCoords();
                 }
+                for(i = 0; i < objects_by_type.smartArts.length; ++i)
+                {
+                    var oSmartArt = objects_by_type.smartArts[i];
+                    CheckSpPrXfrm3(oSmartArt);
+                    var kw, kh;
+                    kw = props.Width / oSmartArt.spPr.xfrm.extX;
+                    kh = props.Height / oSmartArt.spPr.xfrm.extY;
+                    oSmartArt.changeSize(kw, kh);
+                    if(oSmartArt.group)
+                    {
+                        checkObjectInArray(aGroups, oSmartArt.group.getMainGroup());
+                    }
+                    oSmartArt.checkDrawingBaseCoords();
+                }
                 for(i = 0; i < objects_by_type.oleObjects.length; ++i)
                 {
                     CheckSpPrXfrm3(objects_by_type.oleObjects[i]);
@@ -4034,6 +4068,10 @@ DrawingObjectsController.prototype =
             for(i = 0; i < objects_by_type.slicers.length; ++i)
             {
                 objects_by_type.slicers[i].setNoChangeAspect(props.lockAspect ? true : undefined);
+            }
+            for(i = 0; i < objects_by_type.smartArts.length; ++i)
+            {
+                objects_by_type.smartArts[i].setNoChangeAspect(props.lockAspect ? true : undefined);
             }
         }
         if(isRealObject(props.Position) && AscFormat.isRealNumber(props.Position.X) && AscFormat.isRealNumber(props.Position.Y)
@@ -4153,6 +4191,28 @@ DrawingObjectsController.prototype =
                     }
                     oSlicer.checkDrawingBaseCoords();
                     oSlicer.recalculate();
+                }
+
+                var aSmartArts = objects_by_type.smartArts;
+                for(i = 0; i < aSmartArts.length; ++i)
+                {
+                    var oSmartArt = aSmartArts[i];
+                    CheckSpPrXfrm(oSmartArt);
+                    if(AscFormat.isRealNumber(props.Position.X))
+                    {
+                        oSmartArt.spPr.xfrm.setOffX(props.Position.X);
+                    }
+                    if(AscFormat.isRealNumber(props.Position.Y))
+                    {
+                        oSmartArt.spPr.xfrm.setOffY(props.Position.Y);
+                    }
+
+                    if(oSmartArt.group)
+                    {
+                        checkObjectInArray(aGroups, oSmartArt.group.getMainGroup());
+                    }
+                    oSmartArt.checkDrawingBaseCoords();
+                    oSmartArt.recalculate();
                 }
             }
             if(editorId === AscCommon.c_oEditorId.Presentation || editorId === AscCommon.c_oEditorId.Spreadsheet){
