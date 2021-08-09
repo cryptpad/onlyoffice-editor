@@ -2849,7 +2849,7 @@ var g_oBorderProperties = {
                 break;
         }
     };
-	CellXfs.prototype.Write_ToBinary2 = function (writer) {
+	/*CellXfs.prototype.Write_ToBinary2 = function (writer) {
 		var t = this;
 		var oBinaryStylesTableWriter = new AscCommonExcel.BinaryStylesTableWriter(writer);
 		oBinaryStylesTableWriter.bs.WriteItem(0, function(){oBinaryStylesTableWriter.WriteDxf(t);});
@@ -2866,7 +2866,7 @@ var g_oBorderProperties = {
 			return bsr.ReadDxf(t, l, oThis);
 		});
 		return this;
-	};
+	};*/
     CellXfs.prototype.getBorder = function () {
         return this.border;
     };
@@ -5882,11 +5882,11 @@ function RangeDataManagerElem(bbox, data)
 			var _r2 = isVertDataRange ? dataRange.r1 + i : dataRange.r2;
 			var _c1 = !isVertDataRange ? dataRange.c1 + i: dataRange.c1;
 			var _c2 = !isVertDataRange ? dataRange.c1 + i: dataRange.c2;
-			var f;
 			AscCommonExcel.executeInR1C1Mode(false, function () {
-				f = (dataRange.sheet ? dataRange.sheet : t.worksheet.sName) + "!" + new Asc.Range(_c1, _r1, _c2, _r2).getName();
+				var sheetName = dataRange.sheet ? dataRange.sheet : t.worksheet.sName;
+				var f = AscCommon.parserHelp.get3DRef(sheetName, new Asc.Range(_c1, _r1, _c2, _r2).getName());
+				sL.setF(f);
 			});
-			sL.setF(f);
 
 			var _col = !isVertLocationRange ? locationRange.c1 + i : locationRange.c1;
 			var _row = isVertLocationRange ? locationRange.r1 + i : locationRange.r1;
@@ -6289,6 +6289,7 @@ function RangeDataManagerElem(bbox, data)
 		this.sqRef.setAbs(true, true, true, true);
 	};
 	sparkline.prototype.setF = function (f) {
+		//TODO AscCommonExcel.executeInR1C1Mode. пока выставляю сверху. перепроверить и добавить здесь.
 		this.f = f;
 		this._f = AscCommonExcel.g_oRangeCache.getRange3D(this.f);
 	};
@@ -6811,6 +6812,19 @@ function RangeDataManagerElem(bbox, data)
 		var endRow = this.TotalsRowCount ? this.Ref.r2 - 1 : this.Ref.r2;
 
 		return Asc.Range(this.Ref.c1, startRow, this.Ref.c2, endRow);
+	};
+
+	TablePart.prototype.getColumnRange = function (index, withoutHeader, withoutFooter, opt_range) {
+		var tableRange = opt_range ? opt_range : this.Ref;
+		var startRow = tableRange.r1;
+		if (withoutHeader && this.isHeaderRow()) {
+			startRow++;
+		}
+		var endRow = tableRange.r2;
+		if (withoutFooter && this.isTotalsRow()) {
+			endRow--;
+		}
+		return Asc.Range(tableRange.c1 + index, startRow, tableRange.c1 + index, endRow);
 	};
 
 	TablePart.prototype.checkTotalRowFormula = function (ws) {
