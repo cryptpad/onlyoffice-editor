@@ -2787,14 +2787,12 @@ CAutoshapeTrack.prototype =
         ctx.beginPath();
     },
 
-    DrawGeometryEdit : function(matrix, gmEditList, gmEditPoint) {
+    DrawGeometryEdit: function (matrix, gmEditList, gmEditPoint) {
         var overlay = this.m_oOverlay;
         overlay.Clear();
         var ctx = overlay.m_oContext;
         var rPR = AscCommon.AscBrowser.retinaPixelRatio;
         var drPage = this.CurrentPageInfo.drawingPage;
-        ctx.strokeStyle = "#ffffff";
-        ctx.fillStyle = "#000000";
         ctx.lineWidth = Math.round(rPR);
 
         var xDst = this.m_oOverlay.IsCellEditor ? drPage.left : drPage.left * rPR;
@@ -2805,62 +2803,65 @@ CAutoshapeTrack.prototype =
         var dKoefX = wDst / this.CurrentPageInfo.width_mm;
         var dKoefY = hDst / this.CurrentPageInfo.height_mm;
 
+        if (gmEditPoint) {
+            var firstGuide, secondGuide;
+            if (gmEditPoint.g1X !== undefined && gmEditPoint.g1Y !== undefined) {
+                firstGuide = true;
+            }
+            if (gmEditPoint.g2X !== undefined && gmEditPoint.g2Y !== undefined) {
+                secondGuide = true;
+            }
+            var curPointX = (xDst + dKoefX * (matrix.TransformPointX(gmEditPoint.X, gmEditPoint.Y))) >> 0;
+            var curPointY = (yDst + dKoefY * (matrix.TransformPointY(gmEditPoint.X, gmEditPoint.Y))) >> 0;
+
+            var commandPointX1 = (xDst + dKoefX * (matrix.TransformPointX(gmEditPoint.g1X, gmEditPoint.g1Y))) >> 0;
+            var commandPointY1 = (yDst + dKoefY * (matrix.TransformPointY(gmEditPoint.g1X, gmEditPoint.g1Y))) >> 0;
+            var commandPointX2 = (xDst + dKoefX * (matrix.TransformPointX(gmEditPoint.g2X, gmEditPoint.g2Y))) >> 0;
+            var commandPointY2 = (yDst + dKoefY * (matrix.TransformPointY(gmEditPoint.g2X, gmEditPoint.g2Y))) >> 0;
+
+            ctx.strokeStyle = "#0d15f9";
+
+            if (firstGuide) {
+                ctx.beginPath();
+                ctx.moveTo(curPointX, curPointY);
+                ctx.lineTo(commandPointX1, commandPointY1);
+                ctx.stroke();
+            }
+            if (secondGuide) {
+                ctx.beginPath();
+                ctx.moveTo(curPointX, curPointY);
+                ctx.lineTo(commandPointX2, commandPointY2);
+                ctx.stroke();
+            }
+
+            ctx.closePath();
+            ctx.beginPath();
+            ctx.fillStyle = "#ffffff";
+            ctx.strokeStyle = "#000000";
+
+            if (firstGuide)
+                overlay.AddRect2(commandPointX1, commandPointY1, TRACK_RECT_SIZE);
+
+            if (secondGuide)
+                overlay.AddRect2(commandPointX2, commandPointY2, TRACK_RECT_SIZE);
+
+            ctx.stroke();
+            ctx.fill();
+        }
+
+        ctx.closePath();
+        ctx.beginPath();
+        ctx.strokeStyle = "#ffffff";
+        ctx.fillStyle = "#000000";
+
         for (var i = 0; i < gmEditList.length; i++) {
 
             var gmEditPointX = (xDst + dKoefX * (matrix.TransformPointX(gmEditList[i].X, gmEditList[i].Y))) >> 0;
             var gmEditPointY = (yDst + dKoefY * (matrix.TransformPointY(gmEditList[i].X, gmEditList[i].Y))) >> 0;
             overlay.AddRect2(gmEditPointX, gmEditPointY, TRACK_RECT_SIZE);
         }
-            ctx.stroke();
-            ctx.fill();
-
-            if(gmEditPoint) {
-                var firstGuide, secondGuide;
-                if(gmEditPoint.g1X !== undefined && gmEditPoint.g1Y !== undefined) {
-                    firstGuide = true;
-                }
-                if(gmEditPoint.g2X !== undefined && gmEditPoint.g2Y !== undefined) {
-                    secondGuide = true;
-                }
-                var curPointX = (xDst + dKoefX * (matrix.TransformPointX(gmEditPoint.X, gmEditPoint.Y))) >> 0;
-                var curPointY = (yDst + dKoefY * (matrix.TransformPointY(gmEditPoint.X, gmEditPoint.Y))) >> 0;
-
-                var commandPointX1 = (xDst + dKoefX * (matrix.TransformPointX(gmEditPoint.g1X, gmEditPoint.g1Y))) >> 0;
-                var commandPointY1 = (yDst + dKoefY * (matrix.TransformPointY(gmEditPoint.g1X, gmEditPoint.g1Y))) >> 0;
-                var commandPointX2 = (xDst + dKoefX * (matrix.TransformPointX(gmEditPoint.g2X, gmEditPoint.g2Y))) >> 0;
-                var commandPointY2 = (yDst + dKoefY * (matrix.TransformPointY(gmEditPoint.g2X, gmEditPoint.g2Y))) >> 0;
-
-                ctx.strokeStyle = '#7f7fff';
-
-               if(firstGuide) {
-                   ctx.beginPath();
-                   ctx.moveTo(curPointX, curPointY);
-                   ctx.lineTo(commandPointX1, commandPointY1);
-                   ctx.stroke();
-               }
-                if(secondGuide) {
-                    ctx.beginPath();
-                    ctx.moveTo(curPointX, curPointY);
-                    ctx.lineTo(commandPointX2, commandPointY2);
-                    ctx.stroke();
-                }
-
-                ctx.closePath();
-                ctx.beginPath();
-
-                if(firstGuide)
-                overlay.AddRect2(commandPointX1, commandPointY1, TRACK_RECT_SIZE);
-
-                if(secondGuide)
-                overlay.AddRect2(commandPointX2, commandPointY2, TRACK_RECT_SIZE);
-
-                ctx.fillStyle = '#ffffff';
-                ctx.strokeStyle = "#000000";
-                ctx.stroke();
-                ctx.fill();
-                ctx.fillStyle = '#000000';
-                ctx.strokeStyle = "#ffffff";
-            }
+        ctx.stroke();
+        ctx.fill();
     },
 
     DrawEditWrapPointsPolygon : function(points, matrix)

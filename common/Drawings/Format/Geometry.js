@@ -1396,18 +1396,20 @@ Geometry.prototype=
                     this.gmEditPoint = this.gmEditList[i];
                     this.originalEditPoint = originalEditPoint;
                     return {hit: true, objectId: this.Id};
-                } else if (this.gmEditPoint) {
-                    dxC1 = x - this.gmEditPoint.g1X;
-                    dyC1 = y - this.gmEditPoint.g1Y;
-                    dxC2 = x - this.gmEditPoint.g2X;
-                    dyC2 = y - this.gmEditPoint.g2Y;
-                    if (Math.sqrt(dxC1 * dxC1 + dyC1 * dyC1) < distance) {
-                        this.gmEditPoint.isFirstCPoint = true;
-                        return {hit: true, objectId: this.Id};
-                    } else if (Math.sqrt(dxC2 * dxC2 + dyC2 * dyC2) < distance) {
-                        this.gmEditPoint.isSecondCPoint = true;
-                        return {hit: true, objectId: this.Id};
-                    }
+                }
+            }
+
+            if (this.gmEditPoint) {
+                dxC1 = x - this.gmEditPoint.g1X;
+                dyC1 = y - this.gmEditPoint.g1Y;
+                dxC2 = x - this.gmEditPoint.g2X;
+                dyC2 = y - this.gmEditPoint.g2Y;
+                if (Math.sqrt(dxC1 * dxC1 + dyC1 * dyC1) < distance) {
+                    this.gmEditPoint.isFirstCPoint = true;
+                    return {hit: true, objectId: this.Id};
+                } else if (Math.sqrt(dxC2 * dxC2 + dyC2 * dyC2) < distance) {
+                    this.gmEditPoint.isSecondCPoint = true;
+                    return {hit: true, objectId: this.Id};
                 }
             }
         }
