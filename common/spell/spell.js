@@ -34,23 +34,23 @@
 
 function CSpellchecker(settings)
 {
-	var useWasm = false;
+	this.useWasm = false;
 	var webAsmObj = window["WebAssembly"];
 	if (typeof webAsmObj === "object")
 	{
 		if (typeof webAsmObj["Memory"] === "function")
 		{
 			if ((typeof webAsmObj["instantiateStreaming"] === "function") || (typeof webAsmObj["instantiate"] === "function"))
-				useWasm = true;
+				this.useWasm = true;
 		}
 	}
 
-	var enginePath = "./spell/";
+	this.enginePath = "./spell/";
 	if (settings && settings.enginePath)
 	{
-		enginePath = settings.enginePath;
-		if (enginePath.substring(enginePath.length - 1) != "/")
-			enginePath += "/";
+		this.enginePath = settings.enginePath;
+		if (this.enginePath.substring(this.enginePath.length - 1) != "/")
+			this.enginePath += "/";
 	}
 
 	var dictionariesPath = "./../dictionaries";
@@ -61,12 +61,11 @@ function CSpellchecker(settings)
 			dictionariesPath = dictionariesPath.substr(0, dictionariesPath.length - 1);
 	}
 
-	var isUseSharedWorker = !!window.SharedWorker;
-	if (isUseSharedWorker && (false === settings.useShared))
-		isUseSharedWorker = false;
+	this.isUseSharedWorker = false;//!!window.SharedWorker;
+	if (this.isUseSharedWorker && (false === settings.useShared))
+		this.isUseSharedWorker = false;
 
-	var worker_src = useWasm ? "spell.js" : "spell_ie.js";
-	worker_src = enginePath + worker_src;
+	this.worker = null;
 
 	this.languages = {
 		"1068" : "az_Latn_AZ",
@@ -122,8 +121,43 @@ function CSpellchecker(settings)
 		if (!this.worker)
 			return;
 
-		this.worker.terminate();
+		try
+		{
+			if (this.worker.port)
+				this.worker.port.close();
+			else if (this.worker.terminate)
+				this.worker.terminate();
+		}
+		catch (err)
+		{
+		}
+
 		this.worker = null;
+	};
+
+	this.restart = function()
+	{
+		this.stop();
+
+		var worker_src = this.useWasm ? "spell.js" : "spell_ie.js";
+		worker_src = this.enginePath + worker_src;
+
+		if (this.isUseSharedWorker)
+		{
+			this.worker = new SharedWorker(worker_src, "onlyoffice-spellchecker");
+			this.worker.creator = this;
+			this.worker.onerror = function() {
+				var creator = this.creator;
+				creator.worker = new Worker(worker_src);
+				creator._start(creator.worker);
+			};
+			this._start(this.worker.port);
+		}
+		else
+		{
+			this.worker = new Worker(worker_src);
+			this._start(this.worker);
+		}
 	};
 
 	this.oncommand = function(message) { console.log(message); };
@@ -153,20 +187,5 @@ function CSpellchecker(settings)
 		};
 	};
 
-	if (isUseSharedWorker)
-	{
-		this.worker = new SharedWorker(worker_src, "onlyoffice-spellchecker");
-		this.worker.creator = this;
-		this.worker.onerror = function() {
-			var creator = this.creator;
-			creator.worker = new Worker(worker_src);
-			creator._start(creator.worker);
-		};
-		this._start(this.worker.port);
-	}
-	else
-	{
-		this.worker = new Worker(worker_src);
-		this._start(this.worker);
-	}
+	this.restart();
 }

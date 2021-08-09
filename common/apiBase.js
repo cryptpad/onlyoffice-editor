@@ -1415,8 +1415,16 @@
 
             window["asc_nativeOnSpellCheck"] = function(response) {
                 var _editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
-                if (_editor.SpellCheckApi)
-                    _editor.SpellCheckApi.onSpellCheck(response);
+                if (_editor.SpellCheckApi) {
+                	// поверяем на сообщение о полной очистке очереди задач для текущего
+                	if ("clear" === response) {
+						_editor.SpellCheckApi.isRestart = false;
+						return;
+					}
+					if (_editor.SpellCheckApi.isRestart === true)
+						return;
+					_editor.SpellCheckApi.onSpellCheck(response);
+				}
             };
 
 			this.SpellCheckApi.spellCheck = function (spellData) {
@@ -1424,6 +1432,11 @@
 			};
 			this.SpellCheckApi.disconnect = function () {
 			};
+			this.SpellCheckApi.restart = function() {
+				this.isRestart = true;
+				window["AscDesktopEditor"]["SpellCheck"]("clear");
+			};
+
 			if (window["AscDesktopEditor"]["IsLocalFile"] && !window["AscDesktopEditor"]["IsLocalFile"]())
 			{
 				this.sendEvent('asc_onSpellCheckInit', [
@@ -1503,6 +1516,9 @@
 				};
 				this.SpellCheckApi.disconnect = function ()
 				{
+				};
+				this.SpellCheckApi.restart = function() {
+					this.worker.restart();
 				};
 
 				this.sendEvent('asc_onSpellCheckInit', this.SpellCheckApi.worker.getLanguages());
