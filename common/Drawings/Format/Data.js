@@ -1433,10 +1433,11 @@
       oCopy.setUri(this.getUri());
     }
 
-    changesFactory[AscDFH.historyitem_BgFormatFill] = CChangeObject;
-    changesFactory[AscDFH.historyitem_BgFormatEffect] = CChangeObject;
+    changesFactory[AscDFH.historyitem_BgFormatFill] = CChangeObjectNoId;
+    changesFactory[AscDFH.historyitem_BgFormatEffect] = CChangeObjectNoId;
     drawingsChangesMap[AscDFH.historyitem_BgFormatFill] = function (oClass, value) {
       oClass.fill = value;
+        oClass.handleUpdateFill();
     };
     drawingsChangesMap[AscDFH.historyitem_BgFormatEffect] = function (oClass, value) {
       oClass.effect = value;
@@ -1457,7 +1458,7 @@
     BgFormat.prototype.setFill = function (oPr) {
       oHistory.Add(new CChangeObjectNoId(this, AscDFH.historyitem_BgFormatFill, this.getFill(), oPr));
       this.fill = oPr;
-      this.setParentToChild(oPr);
+        this.handleUpdateFill();
     }
 
     BgFormat.prototype.setEffect = function (oPr) {
@@ -1521,11 +1522,43 @@
       return [this.fill, this.effect];
     };
 
+      BgFormat.prototype.getSmartArt = function() {
+          var oCurParent = this.parent;
+          while (oCurParent) {
+              if(oCurParent instanceof SmartArt) {
+                  break;
+              }
+              oCurParent = oCurParent.parent;
+          }
+          return oCurParent;
+      };
+      BgFormat.prototype.handleUpdateFill = function() {
+        var oSmartArt = this.getSmartArt();
+          if(oSmartArt) {
+              oSmartArt.handleUpdateFill();
+          }
+      };
+      BgFormat.prototype.Refresh_RecalcData = function(data)
+      {
+          switch(data.Type)
+          {
+              case AscDFH.historyitem_BgFormatFill:
+              {
+                  this.handleUpdateFill();
+                  break;
+              }
+          }
+      };
+
+      BgFormat.prototype.Refresh_RecalcData2 = function(data)
+      {
+      };
+
 
 
     changesFactory[AscDFH.historyitem_WholeEffect] = CChangeObjectNoId;
     changesFactory[AscDFH.historyitem_WholeLn] = CChangeObjectNoId;
-    drawingConstructorsMap[AscDFH.historyitem_WholeLn] = AscFormat.CUniFill;
+    drawingConstructorsMap[AscDFH.historyitem_WholeLn] = AscFormat.CLn;
     drawingConstructorsMap[AscDFH.historyitem_WholeEffect] = AscFormat.CEffectProperties;
     drawingsChangesMap[AscDFH.historyitem_WholeEffect] = function (oClass, value) {
       oClass.effect = value;
@@ -1608,6 +1641,38 @@
     Whole.prototype.getChildren = function() {
       return [this.ln, this.effect];
     };
+
+      Whole.prototype.getSmartArt = function() {
+          var oCurParent = this.parent;
+          while (oCurParent) {
+              if(oCurParent instanceof SmartArt) {
+                  break;
+              }
+              oCurParent = oCurParent.parent;
+          }
+          return oCurParent;
+      };
+      Whole.prototype.handleUpdateLn = function() {
+          var oSmartArt = this.getSmartArt();
+          if(oSmartArt) {
+              oSmartArt.handleUpdateLn();
+          }
+      };
+      Whole.prototype.Refresh_RecalcData = function(data)
+      {
+          switch(data.Type)
+          {
+              case AscDFH.historyitem_WholeLn:
+              {
+                  this.handleUpdateLn();
+                  break;
+              }
+          }
+      };
+
+      Whole.prototype.Refresh_RecalcData2 = function(data)
+      {
+      };
 
 
     changesFactory[AscDFH.historyitem_PointInfoPoint] = CChangeObject;
@@ -8981,7 +9046,7 @@
         }
       });
       return type;
-    }
+    };
 
     SmartArt.prototype.setPointsForShapes = function () {
       var oDrawing = this.getDrawing();
@@ -9037,7 +9102,7 @@
     SmartArt.prototype.setType = function (oPr) {
         oHistory.Add(new CChangeString(this, AscDFH.historyitem_SmartArtType, this.type, oPr));
         this.type = oPr;
-    }
+    };
 
     SmartArt.prototype.setDrawing = function (oPr) {
       oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SmartArtDrawing, this.getDrawing(), oPr));
@@ -9251,18 +9316,48 @@
           if(!oWhole) {
               return;
           }
-          if(this.recalcInfo.recalculatePen)
-          {
+          if(this.recalcInfo.recalculatePen) {
               this.recalculatePen();
           }
           var stroke = AscFormat.CorrectUniStroke(line, this.pen);
-          if(stroke.Fill)
-          {
+          if(stroke.Fill) {
               stroke.Fill.convertToPPTXMods();
           }
           oWhole.setLn(stroke);
       };
+      SmartArt.prototype.changeShadow = function (oShadow) {
+          var oBg = this.getBg();
+          if(!oBg) {
+              return;
+          }
+          if(oShadow) {
+              var oEffectProps = oBg.effect ? oBg.effect.createDuplicate() : new AscFormat.CEffectProperties();
+              if(!oEffectProps.EffectLst) {
+                  oEffectProps.EffectLst = new CEffectLst();
+              }
+              oEffectProps.EffectLst.outerShdw = oShadow.createDuplicate();
+              oBg.setEffect(oEffectProps);
+          }
+          else {
+              if(oBg.effect) {
+                  if(oBg.effect.EffectLst) {
+                      if(oBg.effect.EffectLst.outerShdw) {
+                          var oEffectProps = oBg.effect.createDuplicate();
+                          oEffectProps.effect.outerShdw = null;
+                          oBg.setEffect(oEffectProps);
+                      }
+                  }
+              }
+          }
+      };
 
+      SmartArt.prototype.getOuterShdw = function(){
+          var oBg = this.getBg();
+          if(oBg && oBg.effect && oBg.effect.EffectLst && oBg.effect.EffectLst.outerShdw) {
+              return oBg.effect.EffectLst.outerShdw;
+          }
+          return null;
+      };
     SmartArt.prototype.fromPPTY = function(pReader) {
       var oStream = pReader.stream;
       var nStart = oStream.cur;
@@ -9337,6 +9432,14 @@
       copy.setLocks(this.locks);
         copy.setPointsForShapes();
       return copy;
+    };
+    SmartArt.prototype.handleUpdateFill = function() {
+      this.recalcInfo.recalculateBrush = true;
+      this.addToRecalculate();
+    };
+    SmartArt.prototype.handleUpdateLn = function() {
+      this.recalcInfo.recalculatePen = true;
+      this.addToRecalculate();
     };
 
     var horizontalListOfPicture = {
