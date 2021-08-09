@@ -4247,11 +4247,11 @@
     }
 
 
-    changesFactory[AscDFH.historyitem_IfArg] = CChangeLong;
+    changesFactory[AscDFH.historyitem_IfArg] = CChangeString;
     changesFactory[AscDFH.historyitem_IfFunc] = CChangeLong;
     changesFactory[AscDFH.historyitem_IfName] = CChangeString;
     changesFactory[AscDFH.historyitem_IfOp] = CChangeLong;
-    changesFactory[AscDFH.historyitem_IfVal] = CChangeObject;
+    changesFactory[AscDFH.historyitem_IfVal] = CChangeString;
     changesFactory[AscDFH.historyitem_IfAddList] = CChangeContent;
     changesFactory[AscDFH.historyitem_IfRemoveList] = CChangeContent;
     drawingsChangesMap[AscDFH.historyitem_IfArg] = function (oClass, value) {
@@ -4289,7 +4289,7 @@
     InitClass(If, IteratorAttributes, AscDFH.historyitem_type_If);
 
     If.prototype.setArg = function (pr) {
-      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_IfArg, this.getArg(), pr));
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_IfArg, this.getArg(), pr));
       this.arg = pr;
     }
 
@@ -4309,7 +4309,7 @@
     }
 
     If.prototype.setVal = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_IfVal, this.getVal(), oPr));
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_IfVal, this.getVal(), oPr));
       this.val = oPr;
     }
 
@@ -7413,7 +7413,7 @@
         case 4: {
             var oChild = new StyleDefStyleLbl();
             oChild.fromPPTY(pReader);
-          this.addToLstStyleLbl(this.styleLbl.length, new StyleDefStyleLbl());
+          this.addToLstStyleLbl(this.styleLbl.length, oChild);
           break;
         }
         default: {
