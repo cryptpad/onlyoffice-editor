@@ -1143,7 +1143,7 @@ var editor;
     }
   };
 
-  spreadsheet_api.prototype.processSavedFile             = function(url, downloadType)
+  spreadsheet_api.prototype.processSavedFile             = function(url, downloadType, filetype)
   {
     if (this.insertDocumentUrlsData && this.insertDocumentUrlsData.convertCallback)
     {
@@ -1151,7 +1151,7 @@ var editor;
     }
     else
     {
-      AscCommon.baseEditorsApi.prototype.processSavedFile.call(this, url, downloadType);
+      AscCommon.baseEditorsApi.prototype.processSavedFile.call(this, url, downloadType, filetype);
     }
   };
 

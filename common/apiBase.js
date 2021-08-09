@@ -806,13 +806,13 @@
             window["AscDesktopEditor"]["onDocumentContentReady"]();
 	};
 	// Save
-	baseEditorsApi.prototype.processSavedFile                    = function(url, downloadType)
+	baseEditorsApi.prototype.processSavedFile                    = function(url, downloadType, filetype)
 	{
 		if (AscCommon.DownloadType.None !== downloadType)
 		{
 			this.sendEvent(downloadType, url, function(hasError)
 			{
-			});
+			}, filetype);
 		}
 		else
 		{
@@ -1651,7 +1651,7 @@
 						if (url)
 						{
 							error = c_oAscError.ID.No;
-							t.processSavedFile(url, downloadType);
+							t.processSavedFile(url, downloadType, input["filetype"]);
 						}
 					}
 					else
