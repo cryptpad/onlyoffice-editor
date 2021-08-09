@@ -810,9 +810,7 @@
 	{
 		if (AscCommon.DownloadType.None !== downloadType)
 		{
-			this.sendEvent(downloadType, url, function(hasError)
-			{
-			}, filetype);
+			this.sendEvent(downloadType, url, filetype);
 		}
 		else
 		{
