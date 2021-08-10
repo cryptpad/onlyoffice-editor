@@ -9184,11 +9184,24 @@
       return true;
     };
     SmartArt.prototype.updateCoordinatesAfterInternalResize = function () {
-        var oXfrm = this.spPr && this.spPr.xfrm;
-        if(!oXfrm) {
-            return {posX: this.x, posY: this.y};
+        if(!this.spPr) {
+            this.setSpPr(new AscFormat.CSpPr());
+            this.spPr.setParent(this);
         }
-        return {posX: oXfrm.offX, posY: oXfrm.offY};
+        if(!this.spPr.xfrm) {
+            this.spPr.setXfrm(new AscFormat.CXfrm());
+            this.spPr.xfrm.setParent(this.spPr);
+        }
+        var oXfrm = this.spPr.xfrm;
+        oXfrm.setOffX(this.x);
+        oXfrm.setOffY(this.y);
+        oXfrm.setChOffX(0);
+        oXfrm.setChOffY(0);
+        oXfrm.setChExtX(this.extX);
+        oXfrm.setChExtY(this.extY);
+        oXfrm.setExtX(this.extX);
+        oXfrm.setExtY(this.extY);
+        return {posX: this.x, posY: this.y};
     };
     SmartArt.prototype.recalculateTransform = function() {
         var oThis = this;
