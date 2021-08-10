@@ -4482,13 +4482,13 @@ var editor;
     this.wb.restoreFocus();
   };
 
-	spreadsheet_api.prototype.asc_checkActiveCellProtectedRange = function () {
+	spreadsheet_api.prototype.asc_checkProtectedRange = function () {
 		var ws = this.wbModel.getActiveWs();
-		if (!ws.isLockedActiveCell()) {
+		/*if (!ws.isLockedActiveCell()) {
 			return false;
-		}
+		}*/
 
-		var protectedRanges = ws.getProtectedRangesByActiveCell();
+		var protectedRanges = ws.getProtectedRangesByActiveRange();
 
 		//входит ли в зону защищенных диапазонов ячейка - null(не входит)/true(входит и защищена паролем)/false(входит и не защищена паролем или была защищена и уже не защищена)
 		var res = null;
@@ -4506,6 +4506,18 @@ var editor;
 			}
 		}
 
+		return res;
+	};
+
+	spreadsheet_api.prototype.asc_checkLockedCells = function () {
+		var ws = this.wbModel.getActiveWs();
+		var res = null;
+		if (ws) {
+			var _selection = ws.getSelection();
+			if (_selection && _selection.ranges) {
+				res = ws.isIntersectLockedRanges(_selection.ranges);
+			}
+		}
 		return res;
 	};
 
@@ -6331,8 +6343,9 @@ var editor;
   prot["asc_setCellProtection"] = prot.asc_setCellProtection;
   prot["asc_setCellLocked"] = prot.asc_setCellLocked;
   prot["asc_setCellHiddenFormulas"] = prot.asc_setCellHiddenFormulas;
-  prot["asc_checkActiveCellProtectedRange"] = prot.asc_checkActiveCellProtectedRange;
+  prot["asc_checkProtectedRange"] = prot.asc_checkProtectedRange;
   prot["asc_checkActiveCellPassword"] = prot.asc_checkActiveCellPassword;
+  prot["asc_checkLockedCells"] = prot.asc_checkLockedCells;
 
 
   prot["asc_formatPainter"] = prot.asc_formatPainter;

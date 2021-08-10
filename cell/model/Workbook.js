@@ -10443,6 +10443,23 @@
 		return res.length ? res : null;
 	};
 
+	Worksheet.prototype.getProtectedRangesByActiveRange = function () {
+		var res = [];
+		var activeRanges = this.selectionRange.ranges;
+
+		if (this.aProtectedRanges) {
+			for (var i = 0; i < this.aProtectedRanges.length; i++) {
+				for (var j = 0; j < activeRanges.length; j++) {
+					if (this.aProtectedRanges[i].intersection(activeRanges[j])) {
+						res.push(this.aProtectedRanges[i]);
+					}
+				}
+			}
+		}
+
+		return res.length ? res : null;
+	};
+
 	Worksheet.prototype.isLockedActiveCell = function () {
 		var activeCell = this.selectionRange.activeCell;
 		return this.getLockedCell(activeCell.col, activeCell.row);
