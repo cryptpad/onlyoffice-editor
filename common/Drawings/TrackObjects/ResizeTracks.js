@@ -1172,7 +1172,26 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 if (this.originalObject.group && (this.originalObject.group.y + this.originalObject.group.extY < this.resizedPosY + this.resizedExtY)) {
                     this.resizedExtY = this.originalObject.group.extY - this.resizedPosY;
                 }
-
+                var point = this.originalObject.getPointAssociation();
+                if (point) {
+                    var prSet = point.getPrSet();
+                    var defaultExtX = this.originalExtX;
+                    var defaultExtY = this.originalExtY;
+                    if (prSet) {
+                        if (prSet.custScaleX) {
+                            defaultExtX /= prSet.custScaleX / 100000;
+                        }
+                        if (prSet.custScaleY) {
+                            defaultExtY /= prSet.custScaleY / 100000;
+                        }
+                        if (this.resizedExtX !== this.originalExtX) {
+                            prSet.setCustScaleX((this.resizedExtX / defaultExtX) * 100000);
+                        }
+                        if (this.resizedExtY !== this.originalExtY) {
+                            prSet.setCustScaleY((this.resizedExtY / defaultExtY) * 100000);
+                        }
+                    }
+            }
             }
             if(this.chartSpace)
             {
