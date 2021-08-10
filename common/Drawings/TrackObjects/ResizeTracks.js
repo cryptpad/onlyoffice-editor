@@ -1166,11 +1166,15 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                     this.resizedPosY = 0.000001; // TODO: fix this
                     this.resizedExtY = this.originalExtY + this.originalObject.y;
                 }
-                if (this.originalObject.group && (this.originalObject.group.x + this.originalObject.group.extX < this.resizedPosX + this.resizedExtX)) {
-                    this.resizedExtX = this.originalObject.group.extX - this.resizedPosX;
-                }
-                if (this.originalObject.group && (this.originalObject.group.y + this.originalObject.group.extY < this.resizedPosY + this.resizedExtY)) {
-                    this.resizedExtY = this.originalObject.group.extY - this.resizedPosY;
+
+                var oSmartArt = this.originalObject.group && this.originalObject.group.group;
+                if(oSmartArt) {
+                    if (oSmartArt.x + oSmartArt.extX < this.resizedPosX + this.resizedExtX) {
+                        this.resizedExtX = oSmartArt.extX - this.resizedPosX;
+                    }
+                    if (oSmartArt.y + oSmartArt.extY < this.resizedPosY + this.resizedExtY) {
+                        this.resizedExtY = oSmartArt.extY - this.resizedPosY;
+                    }
                 }
 
             }

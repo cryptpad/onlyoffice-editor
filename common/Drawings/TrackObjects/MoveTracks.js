@@ -283,11 +283,14 @@ function MoveShapeImageTrack(originalObject)
             if (t < 0) {
                 this.y = this.y - t + 0.00001; // TODO: fix this
             }
-            if (this.originalObject.group && (this.originalObject.group.extX < r)) {
-                this.x = this.originalObject.group.extX - this.originalObject.bounds.w;
-            }
-            if (this.originalObject.group && (this.originalObject.group.extY < b)) {
-                this.y = this.originalObject.group.extY - (b - t);
+            var oSmartArt = this.originalObject.group && this.originalObject.group.group;
+            if(oSmartArt) {
+                if (oSmartArt.extX < r) {
+                    this.x = oSmartArt.extX - this.originalObject.bounds.w;
+                }
+                if (oSmartArt.extY < b) {
+                    this.y = oSmartArt.extY - (b - t);
+                }
             }
         }
         var scale_coefficients, ch_off_x, ch_off_y;

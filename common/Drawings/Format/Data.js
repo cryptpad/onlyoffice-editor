@@ -9193,15 +9193,21 @@
             this.spPr.xfrm.setParent(this.spPr);
         }
         var oXfrm = this.spPr.xfrm;
-        oXfrm.setOffX(this.x);
-        oXfrm.setOffY(this.y);
+        if(AscCommonWord.ParaDrawing && (this.parent instanceof AscCommonWord.ParaDrawing)) {
+            oXfrm.setOffX(0);
+            oXfrm.setOffY(0);
+        }
+        else {
+            oXfrm.setOffX(this.x);
+            oXfrm.setOffY(this.y);
+        }
         oXfrm.setChOffX(0);
         oXfrm.setChOffY(0);
         oXfrm.setChExtX(this.extX);
         oXfrm.setChExtY(this.extY);
         oXfrm.setExtX(this.extX);
         oXfrm.setExtY(this.extY);
-        return {posX: this.x, posY: this.y};
+        return {posX: oXfrm.offX, posY: oXfrm.offY};
     };
     SmartArt.prototype.recalculateTransform = function() {
         var oThis = this;
