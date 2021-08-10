@@ -1684,6 +1684,7 @@
       oClass.association = value;
     };
     function PointInfo() {
+        CBaseFormatObject.call(this);
       this.point = null;
       this.association = null;
     }
