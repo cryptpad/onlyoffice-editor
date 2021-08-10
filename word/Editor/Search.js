@@ -84,7 +84,7 @@ CDocumentSearch.prototype.Reset = function()
 };
 CDocumentSearch.prototype.Compare = function(Text, Props)
 {
-	return (this.Text === Text && this.MatchCase === Props.MatchCase && this.Word === Props.Word);
+	return (this.Text === Text && this.NeedToSearchAgain && this.MatchCase === Props.MatchCase && this.Word === Props.Word);
 };
 CDocumentSearch.prototype.Clear = function()
 {
@@ -275,199 +275,141 @@ CDocumentSearch.prototype.private_CalculatePrefix = function()
 	for (var nPos = 1, nK = 0; nPos < nLen; ++nPos)
 	{
 		nK = this.Prefix[nPos - 1]
-		while (nK > 0 && !(this.Text[nPos] === this.Text[nK] || this.Check_text_is_special_symbol(this.Text, nPos, nK)))
+		while (nK > 0 && !(this.Text[nPos] === this.Text[nK] || CheckTextForSpecialSymbols(this.Text, nPos, nK)))
 			nK = this.Prefix[nK - 1];
 
-		if (this.Text[nPos] === this.Text[nK] || this.Check_text_is_special_symbol(this.Text, nPos, nK))
+		if (this.Text[nPos] === this.Text[nK] || CheckTextForSpecialSymbols(this.Text, nPos, nK))
 			nK++;
 
 		this.Prefix[nPos] = nK;
 	}
-};
-CDocumentSearch.prototype.Check_text_is_special_symbol = function(sStringText, nPos, nK)
-{
-	var bText = false;
-	function Check(sStringText, el)
+	function CheckTextForSpecialSymbols(sStringText, nPos, nK)
 	{
-		return (sStringText[el] >= 'Ꙁ' && sStringText[el] <= 'ꙓ');
-	}
-	if (Check(sStringText, nPos) && Check(sStringText, nK))
-	{
-		var sLetters1 = {
-			'ꙃ' : function(){ // ^?
-				bText = true;
-			},
-			'Ꙅ' : function(){ // ^#
-				(sStringText[nK] === 'Ꙅ' || sStringText[nK] === 'ꙃ') ? bText = true : bText = false;
-			},
-			'ꙅ' : function(){ // ^$
-				(sStringText[nK] === 'ꙅ' || sStringText[nK] === 'ꙃ') ? bText = true : bText = false;
-			},
-			'Ꙍ' : function(){ // ^~
-				(sStringText[nK] === 'Ꙍ' || sStringText[nK] === 'ꙃ') ? bText = true : bText = false;
-			},
-			'ꙍ' :function(){ // ^s
-				(sStringText[nK] === 'ꙍ' || sStringText[nK] === 'ꙃ' || sStringText[nK] === 'ꙏ') ? bText = true : bText = false;
-			},
-			'Ꙏ' : function(){ // ^^
-				(sStringText[nK] === 'Ꙏ' || sStringText[nK] === 'ꙃ') ? bText = true : bText = false;
-			},
-			'ꙏ' : function(){ // ^w
-				(sStringText[nK] === 'ꙏ' || sStringText[nK] === 'ꙃ' || sStringText[nK] === 'ꙍ') ? bText = true : bText = false;
-			},
-			'Ꙑ' : function(){ // ^+
-				(sStringText[nK] === 'Ꙑ' || sStringText[nK] === 'ꙃ') ? bText = true : bText = false;
-			},
-			'ꙑ' : function(){ // ^=
-				(sStringText[nK] === 'ꙑ' || sStringText[nK] === 'ꙃ') ? bText = true : bText = false;
-			},
-			'default' : function(){
-				(sStringText[nPos] === sStringText[nK]) ? bText = true : bText = false;
-			}
-		};
-		(sLetters1[sStringText[nPos]] || sLetters1['default'])();
-	}
-	else if (Check(sStringText, nPos) && !Check(sStringText, nK))
-	{
-		var sLetters2 = {
-			'ꙃ' : function(){ // ^?
-				bText = true;
-			},
-			'Ꙅ' : function(){ // ^#
-				(sStringText[nK] >= '0' && sStringText[nK] <= '9') ? bText = true : bText = false;
-			},
-			'ꙅ' : function(){ // ^$
-				((sStringText[nK] >= 'A' && sStringText[nK] <= 'Z')
-					|| (sStringText[nK] >= 'a' && sStringText[nK] <= 'z')
-					|| (sStringText[nK] >= 'А' && sStringText[nK] <= 'Я')
-					|| (sStringText[nK] >= 'а' && sStringText[nK] <= 'я')
-					|| (sStringText[nK] === 'Ё')
-					|| (sStringText[nK] === 'ё')) ? bText = true : bText = false;
-			},
-			'Ꙍ' : function(){ // ^~
-				(sStringText[nK] === String.fromCharCode(45)) ? bText = true : bText = false;
-			},
-			'ꙍ' :function(){ // ^s
-				(sStringText[nK] === String.fromCharCode(160)) ? bText = true : bText = false;
-			},
-			'Ꙏ' : function(){ // ^^
-				(sStringText[nK] === String.fromCharCode(94)) ? bText = true : bText = false;
-			},
-			'ꙏ' : function(){ // ^w
-				(sStringText[nK] === String.fromCharCode(32) || sStringText[nK] === String.fromCharCode(160)) ? bText = true : bText = false;
-			},
-			'Ꙑ' : function(){ // ^+
-				(sStringText[nK] >= String.fromCharCode(8208) && sStringText[nK] <= String.fromCharCode(8213)) ? bText = true : bText = false;
-			},
-			'ꙑ' : function(){ // ^=
-				(sStringText[nK] === String.fromCharCode(45)) ? bText = true : bText = false;
-			},
-			'default' : function(){
-				bText = false;
-			}
-		};
-		(sLetters2[sStringText[nPos]] || sLetters2['default'])();
-	}
-	else if (!Check(sStringText, nPos) && Check(sStringText, nK))
-	{
-		var sLetters3 = {
-			'ꙃ' : function(){ // ^?
-				bText = true;
-			},
-			'Ꙅ' : function(){ // ^#
-				(sStringText[nPos] >= '0' && sStringText[nPos] <= '9') ? bText = true : bText = false;
-			},
-			'ꙅ' : function(){ // ^$
-				((sStringText[nPos] >= 'A' && sStringText[nPos] <= 'Z')
-					|| (sStringText[nPos] >= 'a' && sStringText[nPos] <= 'z')
-					|| (sStringText[nPos] >= 'А' && sStringText[nPos] <= 'Я')
-					|| (sStringText[nPos] >= 'а' && sStringText[nPos] <= 'я')
-					|| (sStringText[nPos] === 'Ё')
-					|| (sStringText[nPos] === 'ё')) ? bText = true : bText = false;
-			},
-			'Ꙍ' : function(){ // ^~
-				(sStringText[nPos] === String.fromCharCode(45)) ? bText = true : bText = false;
-			},
-			'ꙍ' :function(){ // ^s
-				(sStringText[nPos] === String.fromCharCode(160)) ? bText = true : bText = false;
-			},
-			'Ꙏ' : function(){ // ^^
-				(sStringText[nPos] === String.fromCharCode(94)) ? bText = true : bText = false;
-			},
-			'ꙏ' : function(){ // ^w
-				(sStringText[nPos] === String.fromCharCode(32) || sStringText[nPos] === String.fromCharCode(160)) ? bText = true : bText = false;
-			},
-			'Ꙑ' : function(){ // ^+
-				(sStringText[nPos] >= String.fromCharCode(8208) && sStringText[nPos] <= String.fromCharCode(8213)) ? bText = true : bText = false;
-			},
-			'ꙑ' : function(){ // ^=
-				(sStringText[nPos] === String.fromCharCode(45)) ? bText = true : bText = false;
-			},
-			'default' : function(){
-				bText = false;
-			}
-		};
-		(sLetters3[sStringText[nK]] || sLetters3['default'])();
-	}
-	return bText;
-};
-CDocumentSearch.prototype.Check_special_symbol_is_special_symbol = function(sStringText, nPos, nK)
-{
-	var bText = false;
-	if (sStringText[nPos] === '^')
-	{
-		var sLetters = {
-			'?' : function(){
-				bText = true;
-			},
-			'#' : function(){
-				((sStringText[nPos + 1] === '#') &&  (sStringText[nK] >= '0' && sStringText[nK] <= '9')) ? bText = true : bText = false;
-			},
-			'$' : function(){
-				((sStringText[nPos + 1] === '$') && 
+		var bText = false;
+		function Check(sStringText, el)
+		{
+			return (sStringText[el] >= 'Ꙁ' && sStringText[el] <= 'ꙓ');
+		}
+		if (Check(sStringText, nPos) && Check(sStringText, nK))
+		{
+			var sLetters1 = {
+				'ꙃ' : function(){ // ^?
+					bText = true;
+				},
+				'Ꙅ' : function(){ // ^#
+					(sStringText[nK] === 'Ꙅ' || sStringText[nK] === 'ꙃ') ? bText = true : bText = false;
+				},
+				'ꙅ' : function(){ // ^$
+					(sStringText[nK] === 'ꙅ' || sStringText[nK] === 'ꙃ') ? bText = true : bText = false;
+				},
+				'Ꙍ' : function(){ // ^~
+					(sStringText[nK] === 'Ꙍ' || sStringText[nK] === 'ꙃ') ? bText = true : bText = false;
+				},
+				'ꙍ' :function(){ // ^s
+					(sStringText[nK] === 'ꙍ' || sStringText[nK] === 'ꙃ' || sStringText[nK] === 'ꙏ') ? bText = true : bText = false;
+				},
+				'Ꙏ' : function(){ // ^^
+					(sStringText[nK] === 'Ꙏ' || sStringText[nK] === 'ꙃ') ? bText = true : bText = false;
+				},
+				'ꙏ' : function(){ // ^w
+					(sStringText[nK] === 'ꙏ' || sStringText[nK] === 'ꙃ' || sStringText[nK] === 'ꙍ') ? bText = true : bText = false;
+				},
+				'Ꙑ' : function(){ // ^+
+					(sStringText[nK] === 'Ꙑ' || sStringText[nK] === 'ꙃ') ? bText = true : bText = false;
+				},
+				'ꙑ' : function(){ // ^=
+					(sStringText[nK] === 'ꙑ' || sStringText[nK] === 'ꙃ') ? bText = true : bText = false;
+				},
+				'default' : function(){
+					(sStringText[nPos] === sStringText[nK]) ? bText = true : bText = false;
+				}
+			};
+			(sLetters1[sStringText[nPos]] || sLetters1['default'])();
+		}
+		else if (Check(sStringText, nPos) && !Check(sStringText, nK))
+		{
+			var sLetters2 = {
+				'ꙃ' : function(){ // ^?
+					bText = true;
+				},
+				'Ꙅ' : function(){ // ^#
+					(sStringText[nK] >= '0' && sStringText[nK] <= '9') ? bText = true : bText = false;
+				},
+				'ꙅ' : function(){ // ^$
 					((sStringText[nK] >= 'A' && sStringText[nK] <= 'Z')
-					|| (sStringText[nK] >= 'a' && sStringText[nK] <= 'z')
-					|| (sStringText[nK] >= 'А' && sStringText[nK] <= 'Я')
-					|| (sStringText[nK] >= 'а' && sStringText[nK] <= 'я')
-					|| (sStringText[nK] === 'Ё')
-					|| (sStringText[nK] === 'ё'))) ? bText = true : bText = false;
-			},
-			'default' : function(){
-				bText = false;
-			}
-		};
-		(sLetters[sStringText[nPos + 1]] || sLetters['default'])();
-	}
-	return bText;
-};
-CDocumentSearch.prototype.Check_special_symbol_is_text = function(sStringText, nPos, nK)
-{
-	var bText = false;
-	if (sStringText[nK] === '^')
-	{
-		var sLetters = {
-			'?' : function(){
-				bText = true;
-			},
-			'#' : function(){
-				((sStringText[nK + 1] === '#') &&  (sStringText[nPos] >= '0' && sStringText[nPos] <= '9')) ? bText = true : bText = false;
-			},
-			'$' : function(){
-				((sStringText[nK + 1] === '$') && 
+						|| (sStringText[nK] >= 'a' && sStringText[nK] <= 'z')
+						|| (sStringText[nK] >= 'А' && sStringText[nK] <= 'Я')
+						|| (sStringText[nK] >= 'а' && sStringText[nK] <= 'я')
+						|| (sStringText[nK] === 'Ё')
+						|| (sStringText[nK] === 'ё')) ? bText = true : bText = false;
+				},
+				'Ꙍ' : function(){ // ^~
+					(sStringText[nK] === String.fromCharCode(45)) ? bText = true : bText = false;
+				},
+				'ꙍ' :function(){ // ^s
+					(sStringText[nK] === String.fromCharCode(160)) ? bText = true : bText = false;
+				},
+				'Ꙏ' : function(){ // ^^
+					(sStringText[nK] === String.fromCharCode(94)) ? bText = true : bText = false;
+				},
+				'ꙏ' : function(){ // ^w
+					(sStringText[nK] === String.fromCharCode(32) || sStringText[nK] === String.fromCharCode(160)) ? bText = true : bText = false;
+				},
+				'Ꙑ' : function(){ // ^+
+					(sStringText[nK] >= String.fromCharCode(8208) && sStringText[nK] <= String.fromCharCode(8213)) ? bText = true : bText = false;
+				},
+				'ꙑ' : function(){ // ^=
+					(sStringText[nK] === String.fromCharCode(45)) ? bText = true : bText = false;
+				},
+				'default' : function(){
+					bText = false;
+				}
+			};
+			(sLetters2[sStringText[nPos]] || sLetters2['default'])();
+		}
+		else if (!Check(sStringText, nPos) && Check(sStringText, nK))
+		{
+			var sLetters3 = {
+				'ꙃ' : function(){ // ^?
+					bText = true;
+				},
+				'Ꙅ' : function(){ // ^#
+					(sStringText[nPos] >= '0' && sStringText[nPos] <= '9') ? bText = true : bText = false;
+				},
+				'ꙅ' : function(){ // ^$
 					((sStringText[nPos] >= 'A' && sStringText[nPos] <= 'Z')
-					|| (sStringText[nPos] >= 'a' && sStringText[nPos] <= 'z')
-					|| (sStringText[nPos] >= 'А' && sStringText[nPos] <= 'Я')
-					|| (sStringText[nPos] >= 'а' && sStringText[nPos] <= 'я')
-					|| (sStringText[nPos] === 'Ё')
-					|| (sStringText[nPos] === 'ё'))) ? bText = true : bText = false;
-			},
-			'default' : function(){
-				bText = false;
-			}
-		};
-		(sLetters[sStringText[nK + 1]] || sLetters['default'])();
+						|| (sStringText[nPos] >= 'a' && sStringText[nPos] <= 'z')
+						|| (sStringText[nPos] >= 'А' && sStringText[nPos] <= 'Я')
+						|| (sStringText[nPos] >= 'а' && sStringText[nPos] <= 'я')
+						|| (sStringText[nPos] === 'Ё')
+						|| (sStringText[nPos] === 'ё')) ? bText = true : bText = false;
+				},
+				'Ꙍ' : function(){ // ^~
+					(sStringText[nPos] === String.fromCharCode(45)) ? bText = true : bText = false;
+				},
+				'ꙍ' :function(){ // ^s
+					(sStringText[nPos] === String.fromCharCode(160)) ? bText = true : bText = false;
+				},
+				'Ꙏ' : function(){ // ^^
+					(sStringText[nPos] === String.fromCharCode(94)) ? bText = true : bText = false;
+				},
+				'ꙏ' : function(){ // ^w
+					(sStringText[nPos] === String.fromCharCode(32) || sStringText[nPos] === String.fromCharCode(160)) ? bText = true : bText = false;
+				},
+				'Ꙑ' : function(){ // ^+
+					(sStringText[nPos] >= String.fromCharCode(8208) && sStringText[nPos] <= String.fromCharCode(8213)) ? bText = true : bText = false;
+				},
+				'ꙑ' : function(){ // ^=
+					(sStringText[nPos] === String.fromCharCode(45)) ? bText = true : bText = false;
+				},
+				'default' : function(){
+					bText = false;
+				}
+			};
+			(sLetters3[sStringText[nK]] || sLetters3['default'])();
+		}
+		return bText;
 	}
-	return bText;
 };
 CDocumentSearch.prototype.GetPrefix = function(nIndex)
 {
@@ -479,18 +421,22 @@ CDocumentSearch.prototype.GetPrefix = function(nIndex)
 CDocument.prototype.Search = function(sStr, oProps, bDraw)
 {
 	//var StartTime = new Date().getTime();
-	sStr = this.ChangeStrWithSpecialSymbols(sStr);
-	this.CheckCorrectSpecialSymbols(sStr); // this function checking special symbols and if it doesn't exist should do something
-    oProps.Word = false; // True только искомое слово, False любое совпадение искомого слова 
+	sStr = this.ChangeStrWithSpecialSymbols(sStr, this.SearchEngine);
+	this.CheckCorrectSpecialSymbols(sStr); 	// this function checking special symbols and if it doesn't exist should do something
+    oProps.Word = false; 					// True только искомое слово, False любое совпадение искомого слова 
 	if (this.SearchEngine.Compare(sStr, oProps))
 		return this.SearchEngine;
 
 	this.SearchEngine.Clear();
 	this.SearchEngine.Set(sStr, oProps);
 
+	var oParaSearch = new CParagraphSearch(this.Content[0], sStr, oProps, this.SearchEngine, search_Common);
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
-		this.Content[nIndex].Search(sStr, oProps, this.SearchEngine, search_Common);
+		if (this.Content[nIndex].IsParagraph())
+		    this.Content[nIndex].Search_(oParaSearch);
+		else
+		    this.Content[nIndex].Search(sStr, oProps, this.SearchEngine, search_Common);
 	}
 
 	this.SectionsInfo.Search(sStr, oProps, this.SearchEngine);
@@ -516,53 +462,51 @@ CDocument.prototype.Search = function(sStr, oProps, bDraw)
 
 	return this.SearchEngine;
 };
-CDocument.prototype.ChangeStrWithSpecialSymbols = function(Str)
+CDocument.prototype.ChangeStrWithSpecialSymbols = function(Str, ParaSearch)
 {
 	var str = Str;
 	var el = {
-		l : String.fromCharCode(42560), // ^l - new line
-		t : String.fromCharCode(42561), // ^t - tab
-		p : String.fromCharCode(42562), // ^p - paraEnd
-		q : String.fromCharCode(42563), // ^? - any symbol
-		a : String.fromCharCode(42564), // ^# - any digit
-		z : String.fromCharCode(42565), // ^$ - any letter
-		n : String.fromCharCode(42566), // ^n - column Break
-		e : String.fromCharCode(42567), // ^e - endnote mark
-		d : String.fromCharCode(42568), // ^d - field
-		f : String.fromCharCode(42569), // ^f - footnote mark
-		g : String.fromCharCode(42570), // ^g - graphic object
-		m : String.fromCharCode(42571), // ^m - break page
-		x : String.fromCharCode(42572), // ^~ - nonbreaking hyphen
-		s : String.fromCharCode(42573), // ^s - nonbreaking space
-		r : String.fromCharCode(42574), // ^^ - caret character
-		w : String.fromCharCode(42575), // ^w - any space
-		y : String.fromCharCode(42576), // ^+ - em dash
-		i : String.fromCharCode(42577), // ^= - en dash
-		b : String.fromCharCode(42578), // ^% - § Section Character
-		v : String.fromCharCode(42579)  // ^v - ¶ Paragraph Character
+		"l" : String.fromCharCode(42560), // ^l - new line
+		"t" : String.fromCharCode(42561), // ^t - tab
+		"p" : String.fromCharCode(42562), // ^p - paraEnd
+		"?" : String.fromCharCode(42563), // ^? - any symbol
+		"#" : String.fromCharCode(42564), // ^# - any digit
+		"$" : String.fromCharCode(42565), // ^$ - any letter
+		"n" : String.fromCharCode(42566), // ^n - column Break
+		"e" : String.fromCharCode(42567), // ^e - endnote mark
+		"d" : String.fromCharCode(42568), // ^d - field
+		"f" : String.fromCharCode(42569), // ^f - footnote mark
+		"g" : String.fromCharCode(42570), // ^g - graphic object
+		"m" : String.fromCharCode(42571), // ^m - break page
+		"~" : String.fromCharCode(42572), // ^~ - nonbreaking hyphen
+		"s" : String.fromCharCode(42573), // ^s - nonbreaking space
+		"^" : String.fromCharCode(42574), // ^^ - caret character
+		"w" : String.fromCharCode(42575), // ^w - any space
+		"+" : String.fromCharCode(42576), // ^+ - em dash
+		"=" : String.fromCharCode(42577), // ^= - en dash
+		"%" : String.fromCharCode(42578), // ^% - § Section Character
+		"v" : String.fromCharCode(42579)  // ^v - ¶ Paragraph Character
 	};
 	var ss = "ltp?#$nedfgm~s^w+=%v";
-	str = str.replaceAll('^l', el.l);
-	str = str.replaceAll('^t', el.t);
-	str = str.replaceAll('^p', el.p);
-	str = str.replaceAll('^?', el.q);
-	str = str.replaceAll('^#', el.a);
-	str = str.replaceAll('^$', el.z);
-	str = str.replaceAll('^n', el.n);
-	str = str.replaceAll('^e', el.e);
-	str = str.replaceAll('^d', el.d);
-	str = str.replaceAll('^f', el.f);
-	str = str.replaceAll('^g', el.g);
-	str = str.replaceAll('^m', el.m);
-	str = str.replaceAll('^~', el.x);
-	str = str.replaceAll('^s', el.s);
-	str = str.replaceAll('^^', el.r);
-	str = str.replaceAll('^w', el.w);
-	str = str.replaceAll('^+', el.y);
-	str = str.replaceAll('^=', el.i);
-	str = str.replaceAll('^%', el.b);
-	str = str.replaceAll('^v', el.v);
-	
+	var substr = str;
+	var bNeedToSearchAgain;
+	for (var i = 0; i < str.length; i++)
+	{
+		if (str[i] === "^" && i !== str.length - 1)
+		{
+			if (ss.indexOf(str[i + 1]) !== -1)
+			{
+				var op = "^" + str[i + 1];
+				str = str.replaceAll(op, el[str[i + 1]]);
+				substr = substr.replaceAll(op, 1);
+				bNeedToSearchAgain = false;
+				i--;
+			}
+		}
+	}
+	(ParaSearch.Substr === substr) ? bNeedToSearchAgain = true : bNeedToSearchAgain = false;
+	ParaSearch.NeedToSearchAgain = bNeedToSearchAgain;
+	ParaSearch.Substr = substr;
 	return str;
 };
 CDocument.prototype.CheckCorrectSpecialSymbols = function(Str)
@@ -1297,6 +1241,17 @@ CTable.prototype.GetSearchElementId = function(bNext, bCurrent)
 //----------------------------------------------------------------------------------------------------------------------
 // Paragraph
 //----------------------------------------------------------------------------------------------------------------------
+Paragraph.prototype.Search_ = function(oParaSearch)
+{
+	var Para = this;
+	oParaSearch.Paragraph = Para;
+	for (var nPos = 0, nContentLen = this.Content.length; nPos < nContentLen; ++nPos)
+	{
+		this.Content[nPos].Search(oParaSearch);
+	}
+
+    return;
+};
 Paragraph.prototype.Search = function(sStr, oProps, oSearchEngine, nType)
 {
 	var oParaSearch = new CParagraphSearch(this, sStr, oProps, oSearchEngine, nType);
@@ -1524,7 +1479,7 @@ ParaRun.prototype.Search = function(ParaSearch)
 			oItem.Search(Str, Props, SearchEngine, Type);
 			ParaSearch.Reset();
 		}
-		var bElement = (ParaSearch.Check(ParaSearch.SearchIndex, oItem) || this.Check_Special_Symbol(ParaSearch, nPos));
+		var bElement = (ParaSearch.Check(ParaSearch.SearchIndex, oItem) || this.IsElementEqSpesialSymbol(ParaSearch, nPos));
 		while (ParaSearch.SearchIndex > 0 && !bElement)
 		{
 			ParaSearch.SearchIndex = ParaSearch.GetPrefix(ParaSearch.SearchIndex - 1);
@@ -1538,13 +1493,13 @@ ParaRun.prototype.Search = function(ParaSearch)
 				ParaSearch.StartPos = ParaSearch.StartPosBuf.shift();
 				break;
 			}
-			else if (this.Check_Special_Symbol(ParaSearch, nPos))
+			else if (this.IsElementEqSpesialSymbol(ParaSearch, nPos))
 			{
 				ParaSearch.StartPos = ParaSearch.StartPosBuf.shift();
 				break;
 			}
 		}
-		if (ParaSearch.Check(ParaSearch.SearchIndex, oItem) || this.CheckRangeSpecialSymbols(ParaSearch.Str, ParaSearch.SearchIndex))
+		if (ParaSearch.Check(ParaSearch.SearchIndex, oItem) || this.CheckRangeSpecialSymbols(ParaSearch.Str, ParaSearch.SearchEngine.Substr, ParaSearch.SearchIndex))
 		{		
 			var bCheck = true;
 			if (0 === ParaSearch.SearchIndex)
@@ -1575,7 +1530,7 @@ ParaRun.prototype.Search = function(ParaSearch)
 					ParaSearch.StartPos = {Run : this, Pos : nPos};
 				}
 			}
-			if (this.CheckRangeSpecialSymbols(ParaSearch.Str, ParaSearch.SearchIndex))
+			if (this.CheckRangeSpecialSymbols(ParaSearch.Str, ParaSearch.SearchEngine.Substr, ParaSearch.SearchIndex))
 			{
 				bCheck = this.CheckSpecialSymbol(ParaSearch, nPos, bCheck);
 			}
@@ -1657,9 +1612,9 @@ ParaRun.prototype.Search = function(ParaSearch)
 		}	
      }	 
 };
-ParaRun.prototype.CheckRangeSpecialSymbols = function(Str, index)
+ParaRun.prototype.CheckRangeSpecialSymbols = function(Str, Substr, index)
 {
-	return (Str[index] >= 'Ꙁ' && Str[index] <= 'ꙓ');
+	return (Str[index] >= 'Ꙁ' && Str[index] <= 'ꙓ' && Substr[index] === "1");
 };
 ParaRun.prototype.CheckSpecialSymbol = function(ParaSearch, nPos, bCheck)
 {
@@ -1746,7 +1701,7 @@ ParaRun.prototype.CheckSpecialSymbol = function(ParaSearch, nPos, bCheck)
 	(sLetters[ParaSearch.Str[ParaSearch.SearchIndex]] || sLetters['default'])();
 	return bCheck;
 };
-ParaRun.prototype.Check_Special_Symbol = function(ParaSearch, nPos)
+ParaRun.prototype.IsElementEqSpesialSymbol = function(ParaSearch, nPos)
 {
 	var bElement = false;
 	var ParaRun1 = this;
@@ -1993,6 +1948,8 @@ CParagraphSearch.prototype.Reset = function()
 CParagraphSearch.prototype.Check = function(nIndex, oItem)
 {
 	var nItemType = oItem.Type;
+	if (oItem.value === this.Str.charCodeAt(nIndex) && this.Substr[nIndex] === "1" && (this.Str[nIndex] >= 'Ꙁ' && this.Str[nIndex] <= 'ꙓ'))
+		return false;
 	return ((para_Space === nItemType && " " === this.Str[nIndex])
 		|| (para_Math_Text === nItemType && oItem.value === this.Str.charCodeAt(nIndex))
 		|| (para_Text === nItemType
