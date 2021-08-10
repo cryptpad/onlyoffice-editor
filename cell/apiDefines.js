@@ -531,6 +531,14 @@ var c_oAscPopUpSelectorType = {
 		lockWindows: 1,
 		lockRevisions: 2
 	};
+
+	var c_oAscSelectionSortExpand = {
+		expandAndNotShowMessage: 0,
+		notExpandAndNotShowMessage: 1,
+		showExpandMessage: 2,
+		showLockMessage: 3
+	};
+
   
   //----------------------------------------------------------export----------------------------------------------------
   window['AscCommonExcel'] = window['AscCommonExcel'] || {};
@@ -865,6 +873,13 @@ var c_oAscPopUpSelectorType = {
   prot['lockStructure'] = prot.lockStructure;
   prot['lockWindows'] = prot.lockWindows;
   prot['lockRevisions'] = prot.lockRevisions;
+
+  window['Asc']['c_oAscSelectionSortExpand'] = window['Asc'].c_oAscSelectionSortExpand = c_oAscSelectionSortExpand;
+  prot = c_oAscSelectionSortExpand;
+  prot['expandAndNotShowMessage'] = prot.expandAndNotShowMessage;
+  prot['notExpandAndNotShowMessage'] = prot.notExpandAndNotShowMessage;
+  prot['showExpandMessage'] = prot.showExpandMessage;
+  prot['showLockMessage'] = prot.showLockMessage;
 
 
 })(window);

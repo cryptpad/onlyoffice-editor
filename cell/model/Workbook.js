@@ -10172,12 +10172,15 @@
 		return true;
 	};
 
-	Worksheet.prototype.protectedRangesContainsRange = function (range) {
+	Worksheet.prototype.protectedRangesContainsRange = function (range, ignoreWithoutPassword) {
 		var res = [];
 		if (this.aProtectedRanges && this.aProtectedRanges.length) {
 			for (var i = 0; i < this.aProtectedRanges.length; i++) {
 				if (this.aProtectedRanges[i].containsRange(range)) {
-					res.push(this.aProtectedRanges[i]);
+					var isPassword = this.aProtectedRanges[i].asc_isPassword();
+					if (!ignoreWithoutPassword || (ignoreWithoutPassword && this.aProtectedRanges[i].asc_isPassword() && !this.aProtectedRanges[i].isUserEnteredPassword)) {
+						res.push(this.aProtectedRanges[i]);
+					}
 				}
 			}
 		}

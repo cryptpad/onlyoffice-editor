@@ -8966,12 +8966,12 @@
 		var arn = this.model.selectionRange.getLast().clone(true);
 
 		//null - не выдавать сообщение и не расширять, false - не выдавать сообщение и расширЯть, true - выдавать сообщение
-		var bResult = false;
+		var bResult = Asc.c_oAscSelectionSortExpand.expandAndNotShowMessage;
 
 		//если внутри форматированной таблиц, никогда не выдаем сообщение
 		if(this.model.autoFilters._isTablePartsContainsRange(arn) || this.model.inPivotTable(arn))
 		{
-			bResult = null;
+			bResult = Asc.c_oAscSelectionSortExpand.notExpandAndNotShowMessage;
 		}
 		else if(!arn.isOneCell())//в случае одной выделенной ячейки - всегда не выдаём сообщение и автоматически расширяем
 		{
@@ -8980,7 +8980,7 @@
 			var isMerged = cell.hasMerged();
 
 			if(isMerged && isMerged.isEqual(arn)) {
-				return false;
+				return Asc.c_oAscSelectionSortExpand.expandAndNotShowMessage;
 			}
 
 			var colCount = arn.c2 - arn.c1 + 1;
@@ -8988,7 +8988,7 @@
 			//если выделено более одного столбца и более одной строки - не выдаем сообщение и не расширяем
 			if(colCount > 1 && rowCount > 1)
 			{
-				bResult = null;
+				bResult = Asc.c_oAscSelectionSortExpand.notExpandAndNotShowMessage;
 			}
 			else
 			{
@@ -8999,18 +8999,29 @@
 				var expandRange = this.model.autoFilters.expandRange(activeCellRange, true);
 				expandRange = this.model.autoFilters.checkExpandRangeForSort(expandRange);
 
+				if (this.model.getSheetProtection()) {
+					var difference = arn.difference(expandRange);
+					if (difference && difference.length) {
+						for (var i = 0; i < difference.length; i++) {
+							if (!this.model.protectedRangesContainsRange(difference[i], true) && this.model.getLockedRange(difference[i])) {
+								return Asc.c_oAscSelectionSortExpand.showLockMessage;
+							}
+						}
+					}
+				}
+
 				//если диапазон не расширяется за счет близлежащих ячеек - не выдаем сообщение и не расширяем
 				if(arn.isEqual(expandRange) || activeCellRange.isEqual(expandRange))
 				{
-					bResult = null;
+					bResult = Asc.c_oAscSelectionSortExpand.notExpandAndNotShowMessage;
 				}
 				else if(arn.c1 === expandRange.c1 && arn.c2 === expandRange.c2)
 				{
-					bResult = null;
+					bResult = Asc.c_oAscSelectionSortExpand.notExpandAndNotShowMessage;
 				}
 				else
 				{
-					bResult = true;
+					bResult = Asc.c_oAscSelectionSortExpand.showExpandMessage;
 				}
 			}
 		}
