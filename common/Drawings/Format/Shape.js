@@ -5769,6 +5769,9 @@ CShape.prototype.changePresetGeom = function (sPreset) {
 
     if(sPreset === "textRect")
     {
+        if (this.isObjectInSmartArt()) {
+            return;
+        }
         this.spPr.setGeometry(AscFormat.CreateGeometry("rect"));
 
         if(this.bWordShape)
@@ -5958,16 +5961,29 @@ CShape.prototype.changePresetGeom = function (sPreset) {
             break;
         }
     }
+    var point = this.getPointAssociation();
+    if (point) {
+        if (!point.spPr) {
+            point.setSpPr(new AscFormat.CSpPr());
+        }
+    }
     if (_final_preset != null) {
         this.spPr.setGeometry(AscFormat.CreateGeometry(_final_preset));
+        if (point) {
+            point.spPr.setGeometry(AscFormat.CreateGeometry(_final_preset));
+        }
     }
     else {
         this.spPr.setGeometry(null);
+        if (point) {
+            point.spPr.setGeometry(null);
+        }
     }
     if(!this.bWordShape)
     {
         this.checkExtentsByDocContent();
     }
+    var setLine = _new_line;
     if ((!this.brush || !this.brush.fill) && (!this.pen || !this.pen.Fill || !this.pen.Fill.fill)) {
         var new_line2 = new AscFormat.CLn();
         new_line2.Fill = new AscFormat.CUniFill();
@@ -5978,10 +5994,12 @@ CShape.prototype.changePresetGeom = function (sPreset) {
         if (isRealObject(_new_line)) {
             new_line2.merge(_new_line);
         }
-        this.spPr.setLn(new_line2);
+        setLine = new_line2;
     }
-    else
-        this.spPr.setLn(_new_line);
+    this.spPr.setLn(setLine);
+    if (point) {
+        point.spPr.setLn(setLine);
+    }
 };
 
 CShape.prototype.changeFill = function (unifill) {
@@ -5993,11 +6011,25 @@ CShape.prototype.changeFill = function (unifill) {
     var unifill2 = AscFormat.CorrectUniFill(unifill, this.brush, this.getEditorType());
     unifill2.convertToPPTXMods();
     this.spPr.setFill(unifill2);
+    var point = this.getPoint();
+    if (point) {
+        if (!point.spPr) {
+            point.setSpPr(new AscFormat.CSpPr());
+        }
+        point.spPr.setFill(unifill2);
+    }
 };
 CShape.prototype.changeShadow = function (oShadow) {
 
 
     this.spPr && this.spPr.changeShadow(oShadow);
+    var point = this.getPoint();
+    if (point) {
+        if (!point.spPr) {
+            point.setSpPr(new AscFormat.CSpPr());
+        }
+        point.spPr.changeShadow(oShadow);
+    }
 };
 CShape.prototype.setFill = function (fill) {
 
@@ -6016,6 +6048,13 @@ CShape.prototype.changeLine = function (line)
         stroke.Fill.convertToPPTXMods();
     }
     this.spPr.setLn(stroke);
+    var point = this.getPoint();
+    if (point) {
+        if (!point.spPr) {
+            point.setSpPr(new AscFormat.CSpPr());
+        }
+        point.spPr.setLn(stroke);
+    }
 };
 
 CShape.prototype.hitToAdjustment = function (x, y) {
