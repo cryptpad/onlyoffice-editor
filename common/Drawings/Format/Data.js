@@ -9312,7 +9312,7 @@
           if(oShadow) {
               var oEffectProps = oBg.effect ? oBg.effect.createDuplicate() : new AscFormat.CEffectProperties();
               if(!oEffectProps.EffectLst) {
-                  oEffectProps.EffectLst = new CEffectLst();
+                  oEffectProps.EffectLst = new AscFormat.CEffectLst();
               }
               oEffectProps.EffectLst.outerShdw = oShadow.createDuplicate();
               oBg.setEffect(oEffectProps);
@@ -9322,7 +9322,7 @@
                   if(oBg.effect.EffectLst) {
                       if(oBg.effect.EffectLst.outerShdw) {
                           var oEffectProps = oBg.effect.createDuplicate();
-                          oEffectProps.effect.outerShdw = null;
+                          oEffectProps.EffectLst.outerShdw = null;
                           oBg.setEffect(oEffectProps);
                       }
                   }
