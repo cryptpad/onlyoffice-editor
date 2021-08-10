@@ -227,10 +227,11 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
 
     if(!ret) {
         if(oGeometryEditSelection && oGeometryEditSelection.length !== 0) {
-           ret = oGeometryEditSelection.hitToGeometryEdit(e, x, y);
+            drawing = selected_objects[0];
+            var oCanvas = drawing.getCanvasContext();
+           ret = oGeometryEditSelection.hitToGeometryEdit(drawingObjectsController.arrTrackObjects[0], oCanvas, e, x, y);
            if(!ret) {
                ret = AscFormat.handleFloatObjects(drawingObjectsController, selected_objects, e, x, y, null, pageIndex, true);
-               drawing = selected_objects[0];
            }
         }
     }

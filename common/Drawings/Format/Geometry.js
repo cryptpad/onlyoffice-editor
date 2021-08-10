@@ -1324,14 +1324,14 @@ Geometry.prototype=
         return false;
     },
 
-    hitInPath: function(canvasContext, x, y)
+    hitInPath: function(canvasContext, x, y, arrTrackObject)
     {
         var _path_list = this.pathLst;
         var _path_count = _path_list.length;
         var _path_index;
         for(_path_index = 0; _path_index < _path_count; ++_path_index)
         {
-            if(_path_list[_path_index].hitInPath(canvasContext, x, y) === true)
+            if(_path_list[_path_index].hitInPath(canvasContext, x, y, arrTrackObject, _path_index) === true)
                 return true;
         }
         return false;
@@ -1364,8 +1364,11 @@ Geometry.prototype=
         return {hit: false, adjPolarFlag: null, adjNum: null};
     },
 
-    hitToGeomEdit: function(e, x, y, distance) {
+    hitToGeomEdit: function(arrTrackObject, oCanvas, e, x, y, distance) {
         var dx, dy, dxC1, dyC1, dxC2, dyC2;
+
+        var isHitInPath = this.hitInPath(oCanvas, x, y, arrTrackObject);
+        
         if (e.Type === 0) {
 
             for (var i = this.gmEditList.length - 1; i >= 0; i--) {
@@ -1411,6 +1414,12 @@ Geometry.prototype=
                     this.gmEditPoint.isSecondCPoint = true;
                     return {hit: true, objectId: this.Id};
                 }
+            }
+
+            if(isHitInPath) {
+                arrTrackObject.addPoint(arrTrackObject.originalShape.getInvertTransform(), this, x, y);
+                arrTrackObject.convertToBezier(this);
+                return {hit: true, objectId: this.Id, addingNewPoint: true};
             }
         }
            return  {hit: false};

@@ -1734,13 +1734,10 @@ GeometryEditState.prototype = {
     onMouseDown: function(e, x, y, pageIndex)
     {
         var ret = AscFormat.handleSelectedObjects(this.drawingObjects, e, x, y, null, pageIndex, true);
-        if(e.Type === 0) {
-
+        if (e.Type === 0) {
             var track_object = this.drawingObjects.arrTrackObjects[0];
             var gmEditPoint = track_object.geometry.gmEditPoint;
-
-            if(ret && ret.hit) {
-                this.drawingObjects.updateOverlay();
+            if (ret && ret.hit) {
                 return {objectId: track_object.geometry.Id, hit: true};
             } else if ((ret && !ret.hit) || !ret) {
                 //refactoring : отдельная функция для зануления
@@ -1750,8 +1747,8 @@ GeometryEditState.prototype = {
                 this.drawingObjects.selection.geometrySelection = null;
                 this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
                 this.drawingObjects.clearTrackObjects();
-                this.drawingObjects.updateOverlay();
             }
+            this.drawingObjects.updateOverlay();
             return ret;
         }
 

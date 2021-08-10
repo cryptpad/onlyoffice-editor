@@ -58,6 +58,7 @@
         this.yMin = 0;
         this.xMax = this.shapeWidth;
         this.yMax =  this.shapeHeight;
+        this.addingPoint = {pathIndex: null, commandIndex: null};
     };
 
     EditShapeGeometryTrack.prototype.draw = function(overlay, transform)
@@ -596,7 +597,32 @@
         }
     };
 
-    EditShapeGeometryTrack.prototype.addPoint = function(geom) {
+    EditShapeGeometryTrack.prototype.addPoint = function(invert_transform, geom, X, Y) {
+        var commandIndex = this.addingPoint.commandIndex;
+        var pathIndex = this.addingPoint.pathIndex;
+
+        var pathElem = geom.pathLst[pathIndex].ArrPathCommand;
+        var curCommand = pathElem[commandIndex];
+
+        var prevCommand_1 = pathElem[commandIndex - 1];
+        var gmEditListElem = geom.gmEditList.filter(function(elem) {
+            return elem.pathC1 === commandIndex;
+        })[0];
+
+        var prevCommand_2 = gmEditListElem.prevPoint;
+
+        var X0 = prevCommand_1.X - (X - prevCommand_2.X) / 4;
+        var Y0 = prevCommand_1.Y - (Y - prevCommand_2.Y) / 4;
+        var X1 = X - (curCommand.X - prevCommand_1.X) / 4;
+        var Y1 = Y - (curCommand.Y - prevCommand_1.Y) / 4;
+        var newPathElem = {id: 4, X0, Y0, X1, Y1, X2: X, Y2: Y, X, Y};
+        curCommand.X0 = X + (curCommand.X - prevCommand_1.X) / 4;
+        curCommand.Y0 = Y + (curCommand.Y - prevCommand_1.Y) / 4;
+
+        pathElem.splice(commandIndex, 0, newPathElem);
+
+        geom.pathLst[pathIndex].ArrPathCommandInfo = [];
+        this.addCommandsInPathInfo(geom);
 
     };
 
@@ -604,7 +630,6 @@
         var gmEditPoint = geom.gmEditPoint,
             pathIndex = gmEditPoint.pathIndex,
             pathElem = geom.pathLst[pathIndex];
-
 
         if(pathElem && pathElem.stroke === true && pathElem.fill === "none") {
             return;
@@ -622,8 +647,6 @@
             if(elem.id === 0) {
                 startIndex = index;
             }
-
-
 
                 if (elem.pathIndex === pathIndex && elem.pathC1 === pathC1 && elem.pathC2 === pathC2) {
 

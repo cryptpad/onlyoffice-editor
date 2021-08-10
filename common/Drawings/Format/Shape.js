@@ -5706,13 +5706,13 @@ CShape.prototype.hitToAdjustment = function (x, y) {
     return { hit: false, adjPolarFlag: null, adjNum: null, warp: false };
 };
 
-CShape.prototype.hitToGeometryEdit = function (e, x, y) {
+CShape.prototype.hitToGeometryEdit = function (arrTrackObject, oCanvas, e, x, y) {
           var dx, dy;
           var _calcGeom = this.calcGeometry;
           var invert_transform = this.getInvertTransform();
           var t_x = invert_transform.TransformPointX(x, y);
           var t_y = invert_transform.TransformPointY(x, y);
-         return _calcGeom.hitToGeomEdit(e, t_x, t_y, this.convertPixToMM(global_mouseEvent.KoefPixToMM * AscCommon.TRACK_CIRCLE_RADIUS));
+         return _calcGeom.hitToGeomEdit(arrTrackObject, oCanvas, e, t_x, t_y, this.convertPixToMM(global_mouseEvent.KoefPixToMM * AscCommon.TRACK_CIRCLE_RADIUS));
     };
 
 CShape.prototype.hit = function (x, y) {

@@ -851,7 +851,7 @@ Path.prototype = {
         return false;
     },
 
-    hitInPath: function(canvasContext, x, y)
+    hitInPath: function(canvasContext, x, y, arrTrackObject, _path_index)
     {
         var _arr_commands = this.ArrPathCommand;
         var _commands_count = _arr_commands.length;
@@ -898,8 +898,13 @@ Path.prototype = {
                 }
                 case bezier4:
                 {
-                    if(HitInBezier4(canvasContext, x, y, _last_x, _last_y, _command.X0, _command.Y0, _command.X1, _command.Y1, _command.X2, _command.Y2))
+                    if(HitInBezier4(canvasContext, x, y, _last_x, _last_y, _command.X0, _command.Y0, _command.X1, _command.Y1, _command.X2, _command.Y2)) {
+                        if(arrTrackObject) {
+                            arrTrackObject.addingPoint.pathIndex = _path_index;
+                            arrTrackObject.addingPoint.commandIndex = _command_index;
+                        }
                         return true;
+                    }
                     _last_x=_command.X2;
                     _last_y=_command.Y2;
                     break;
