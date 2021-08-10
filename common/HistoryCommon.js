@@ -3397,14 +3397,12 @@
 	AscDFH.historyitem_LayoutDefUniqueId    = AscDFH.historyitem_type_LayoutDef | 3;
 	AscDFH.historyitem_LayoutDefCatLst      = AscDFH.historyitem_type_LayoutDef | 4;
 	AscDFH.historyitem_LayoutDefClrData     = AscDFH.historyitem_type_LayoutDef | 5;
-	AscDFH.historyitem_LayoutDefAddDesc     = AscDFH.historyitem_type_LayoutDef | 6;
-	AscDFH.historyitem_LayoutDefRemoveDesc  = AscDFH.historyitem_type_LayoutDef | 7;
-	AscDFH.historyitem_LayoutDefExtLst      = AscDFH.historyitem_type_LayoutDef | 8;
-	AscDFH.historyitem_LayoutDefLayoutNode  = AscDFH.historyitem_type_LayoutDef | 9;
-	AscDFH.historyitem_LayoutDefSampData    = AscDFH.historyitem_type_LayoutDef | 10;
-	AscDFH.historyitem_LayoutDefStyleData   = AscDFH.historyitem_type_LayoutDef | 11;
-	AscDFH.historyitem_LayoutDefAddTitle    = AscDFH.historyitem_type_LayoutDef | 12;
-	AscDFH.historyitem_LayoutDefRemoveTitle = AscDFH.historyitem_type_LayoutDef | 13;
+	AscDFH.historyitem_LayoutDefDesc        = AscDFH.historyitem_type_LayoutDef | 6;
+	AscDFH.historyitem_LayoutDefExtLst      = AscDFH.historyitem_type_LayoutDef | 7;
+	AscDFH.historyitem_LayoutDefLayoutNode  = AscDFH.historyitem_type_LayoutDef | 8;
+	AscDFH.historyitem_LayoutDefSampData    = AscDFH.historyitem_type_LayoutDef | 9;
+	AscDFH.historyitem_LayoutDefStyleData   = AscDFH.historyitem_type_LayoutDef | 10;
+	AscDFH.historyitem_LayoutDefTitle       = AscDFH.historyitem_type_LayoutDef | 11;
 
 	AscDFH.historyitem_SCatPri = AscDFH.historyitem_type_SCat | 1;
 	AscDFH.historyitem_SCatType = AscDFH.historyitem_type_SCat | 2;

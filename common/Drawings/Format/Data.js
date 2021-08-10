@@ -2506,7 +2506,7 @@
       oClass.title = value;
     };
     drawingsChangesMap[AscDFH.historyitem_LayoutDefDesc] = function (oClass, value) {
-      oClass.desc = desc;
+      oClass.desc = value;
     };
 
     function LayoutDef() {
@@ -5071,47 +5071,6 @@
     };
     Rule.prototype.readChild = function(nType, pReader) {
     };
-
-
-    changesFactory[AscDFH.historyitem_LayoutShapeTypeOutputShapeType] = CChangeLong;
-    changesFactory[AscDFH.historyitem_LayoutShapeTypeShapeType] = CChangeLong;
-    drawingsChangesMap[AscDFH.historyitem_LayoutShapeTypeOutputShapeType] = function (oClass, value) {
-      oClass.outputShapeType = value;
-    };
-    drawingsChangesMap[AscDFH.historyitem_LayoutShapeTypeShapeType] = function (oClass, value) {
-      oClass.shapeType = value;
-    };
-
-    function LayoutShapeType() {
-      CBaseFormatObject.call(this);
-      this.outputShapeType = null;
-      this.shapeType = null;
-    }
-
-    InitClass(LayoutShapeType, CBaseFormatObject, AscDFH.historyitem_type_LayoutShapeType);
-
-    LayoutShapeType.prototype.setOutputShapeType = function (pr) {
-      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_LayoutShapeTypeOutputShapeType, this.getOutputShapeType(), pr));
-      this.outputShapeType = pr;
-    }
-
-    LayoutShapeType.prototype.setShapeType = function (pr) {
-      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_LayoutShapeTypeShapeType, this.getShapeType(), pr));
-      this.shapeType = pr;
-    }
-
-    LayoutShapeType.prototype.getOutputShapeType = function () {
-      return this.outputShapeType;
-    }
-
-    LayoutShapeType.prototype.getShapeType = function () {
-      return this.shapeType;
-    }
-
-    LayoutShapeType.prototype.fillObject = function (oCopy, oIdMap) {
-      oCopy.setOutputShapeType(this.getOutputShapeType());
-      oCopy.setShapeType(this.getShapeType());
-    }
 
 
     changesFactory[AscDFH.historyitem_SShapeBlip] = CChangeString;
