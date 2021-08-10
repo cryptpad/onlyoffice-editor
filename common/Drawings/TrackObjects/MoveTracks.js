@@ -289,6 +289,26 @@ function MoveShapeImageTrack(originalObject)
             if (this.originalObject.group && (this.originalObject.group.extY < b)) {
                 this.y = this.originalObject.group.extY - (b - t);
             }
+            var point = this.originalObject.getPointAssociation();
+            if (point) {
+                var prSet = point.getPrSet();
+                var originalPosX = this.originalObject.x;
+                var originalPosY = this.originalObject.y;
+                if (prSet) {
+                    if (prSet.custLinFactNeighborX) {
+                        originalPosX -= (prSet.custLinFactNeighborX / 100000) * this.originalObject.extX;
+                    }
+                    if (prSet.custLinFactNeighborY) {
+                        originalPosY -= (prSet.custLinFactNeighborY / 100000) * this.originalObject.extY;
+                    }
+                    if (this.x !== this.originalObject.x) {
+                        prSet.setCustLinFactNeighborX(((this.x - originalPosX) / this.originalObject.extX) * 100000);
+                    }
+                    if (this.y !== this.originalObject.y) {
+                        prSet.setCustLinFactNeighborY(((this.y - originalPosY) / this.originalObject.extY) * 100000);
+                    }
+                }
+            }
         }
         var scale_coefficients, ch_off_x, ch_off_y;
         if(this.originalObject.isCrop)
