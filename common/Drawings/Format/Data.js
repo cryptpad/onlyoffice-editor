@@ -2378,7 +2378,7 @@
       pWriter._WriteBool2(1, this.coherent3DOff);
       pWriter._WriteString2(2, this.csCatId);
       pWriter._WriteString2(3, this.csTypeId);
-      pWriter._WriteInt2(4, this.custAng);
+      pWriter._WriteInt2(4, this.custAng / AscFormat.cToRad);
       pWriter._WriteBool2(5, this.custFlipHor);
       pWriter._WriteBool2(6, this.custFlipVert);
       pWriter._WriteInt2(7, this.custLinFactNeighborX);

@@ -431,8 +431,22 @@ function RotateTrackShapeImage(originalObject)
             return;
         }
         AscFormat.CheckSpPrXfrm(this.originalObject);
+        var originalRot = this.originalObject.spPr.xfrm.rot || 0;
         this.originalObject.spPr.xfrm.setRot(this.angle);
         if(this.originalObject.isObjectInSmartArt()) {
+            var point = this.originalObject.getPointAssociation();
+            if (point) {
+                var prSet = point.getPrSet();
+                if (prSet) {
+                    var defaultRot = originalRot;
+                    if (prSet.custAng) {
+                        defaultRot += prSet.custAng;
+                    }
+                    if (originalRot !== this.angle) {
+                        prSet.setCustAng(Math.abs(defaultRot - this.angle));
+                    }
+                }
+            }
             this.originalObject.recalculate();
             var oBounds = this.originalObject.bounds;
             var oSmartArt = this.originalObject.group.group;
