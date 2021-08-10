@@ -235,8 +235,13 @@ function checkEmptyPlaceholderContent(content)
         return content;
     }
     if(content.Parent && content.Parent.parent){
-        if(content.Is_Empty() && content.Parent.parent.isPlaceholder && content.Parent.parent.isPlaceholder()){
-            return content;
+        if(content.Is_Empty()){
+            if(content.Parent.parent.isPlaceholder && content.Parent.parent.isPlaceholder()) {
+                return content;
+            }
+            if(content.isDocumentContentInSmartArtShape && content.isDocumentContentInSmartArtShape) {
+                return content;
+            }
         }
         if(content.Parent.parent.txWarpStruct){
             return content;

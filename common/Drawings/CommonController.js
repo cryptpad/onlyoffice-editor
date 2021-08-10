@@ -5350,45 +5350,55 @@ DrawingObjectsController.prototype =
 	{
 		var bRedraw = false;
 
+        var oDocContent = this.getTargetDocContent();
 		if (this.document)
 		{
-			var oDocContent = this.getTargetDocContent();
-			var oParagraph  = oDocContent.GetElement(0);
-			if (oParagraph && oParagraph.IsParagraph() && oParagraph.IsInFixedForm())
-				bRedraw = oDocContent.CheckFormViewWindow();
-
-			if (bRedraw)
-				this.document.ReDraw(oDocContent.GetAbsolutePage(0));
+            if(oDocContent)
+            {
+                var oParagraph  = oDocContent.GetElement(0);
+                if (oParagraph && oParagraph.IsParagraph() && oParagraph.IsInFixedForm())
+                    bRedraw = oDocContent.CheckFormViewWindow();
+            }
 		}
-		else
-		{
-			var oEndContent = AscFormat.checkEmptyPlaceholderContent(this.getTargetDocContent());
-			var oEndPara    = null;
-			if (oStartContent || oEndContent)
-			{
-				if (oStartContent !== oEndContent)
-				{
-					bRedraw = true;
-				}
-				else
-				{
-					if (oEndContent)
-					{
-						oEndPara = oEndContent.GetCurrentParagraph();
-					}
-					if (oEndPara !== oStartPara)
-					{
-						bRedraw = true;
-					}
-				}
-			}
 
-			if (bRedraw)
-			{
-				this.checkChartTextSelection(true);
-				this.drawingObjects.showDrawingObjects && this.drawingObjects.showDrawingObjects();
-			}
-		}
+        if(!bRedraw)
+        {
+            var oEndContent = AscFormat.checkEmptyPlaceholderContent(oDocContent);
+            var oEndPara    = null;
+            if (oStartContent || oEndContent)
+            {
+                if (oStartContent !== oEndContent)
+                {
+                    bRedraw = true;
+                }
+                else
+                {
+                    if (oEndContent)
+                    {
+                        oEndPara = oEndContent.GetCurrentParagraph();
+                    }
+                    if (oEndPara !== oStartPara)
+                    {
+                        bRedraw = true;
+                    }
+                }
+            }
+        }
+        if (bRedraw)
+        {
+            if(this.document)
+            {
+                if(oDocContent)
+                {
+                    this.document.ReDraw(oDocContent.GetAbsolutePage(0));
+                }
+            }
+            else
+            {
+                this.checkChartTextSelection(true);
+                this.drawingObjects.showDrawingObjects && this.drawingObjects.showDrawingObjects();
+            }
+        }
 	},
 
     cursorMoveToStartPos: function()
