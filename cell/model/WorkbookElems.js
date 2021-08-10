@@ -941,6 +941,41 @@ var g_oFontProperties = {
 			this.repeat = oDefVal.repeat;
 		}
 	};
+	Font.prototype.subtractEqual = function (oFont, oDefVal) {
+		if (this.fn === oFont.fn) {
+			this.fn = oDefVal.fn;
+		}
+		if (this.scheme === oFont.scheme) {
+			this.scheme = oDefVal.scheme;
+		}
+		if (this.fs === oFont.fs) {
+			this.fs = oDefVal.fs;
+		}
+		if (this.b === oFont.b) {
+			this.b = oDefVal.b;
+		}
+		if (this.i === oFont.i) {
+			this.i = oDefVal.i;
+		}
+		if (this.u === oFont.u) {
+			this.u = oDefVal.u;
+		}
+		if (this.s === oFont.s) {
+			this.s = oDefVal.s;
+		}
+		if (g_oColorManager.isEqual(this.c, oFont.c)) {
+			this.c = oDefVal.c;
+		}
+		if (this.va === oFont.va) {
+			this.va = oDefVal.va;
+		}
+		if (this.skip === oFont.skip) {
+			this.skip = oDefVal.skip;
+		}
+		if (this.repeat === oFont.repeat) {
+			this.repeat = oDefVal.repeat;
+		}
+	};
 	Font.prototype.getName = function () {
 		return this.fn || g_oDefaultFormat.Font.fn;
 	};

@@ -10523,9 +10523,10 @@
 		if(History.Is_On())
 			DataOld = this.getValueData();
 		//[{text:"",format:TextFormat},{}...]
+		var xfTableAndCond = this.getCompiledStyleCustom(true, false, true);
 		this.setFormulaInternal(null);
 		this.cleanText();
-		this._setValue2(array);
+		this._setValue2(array, undefined, xfTableAndCond);
 		this.ws.workbook.dependencyFormulas.addToChangedCell(this);
 		this.ws.workbook.sortDependency();
 		var DataNew = null;
@@ -11166,6 +11167,9 @@
 			return xfs.font;
 		return g_oDefaultFormat.Font;
 	};
+	Cell.prototype.getCellFont = function() {
+		return (this.xfs && this.xfs.font) || g_oDefaultFormat.Font;
+	};
 	Cell.prototype.getFillColor = function () {
 		return this.getFill().bg();
 	};
@@ -11540,7 +11544,7 @@
 			}
 		}
 	}
-	Cell.prototype._setValue2 = function(aVal, ignoreHyperlink)
+	Cell.prototype._setValue2 = function(aVal, ignoreHyperlink, xfTableAndCond)
 	{
 		var sSimpleText = "";
 		for(var i = 0, length = aVal.length; i < length; ++i)
@@ -11569,6 +11573,7 @@
 					}
 					this.multiText.push(oNewElem);
 				}
+				this._subtractFontFromMultiText(xfTableAndCond && xfTableAndCond.font);
 				this._minimizeMultiText(true);
 			}
 			//обрабатываем QuotePrefix
@@ -11726,11 +11731,24 @@
 		}
 		return cErrorLocal["nil"];
 	};
+	Cell.prototype._subtractFontFromMultiText = function(font) {
+		if (!font) {
+			return;
+		}
+		var cellFont = this.getCellFont();
+		for (var i = 0; i < this.multiText.length; i++) {
+			var elem = this.multiText[i];
+			if (null != elem.format) {
+				elem.format = elem.format.clone();
+				elem.format.subtractEqual(font, cellFont);
+			}
+		}
+	};
 	Cell.prototype._minimizeMultiText = function(bSetCellFont) {
 		var bRes = false;
 		if(null != this.multiText && this.multiText.length > 0)
 		{
-			var cellFont = this.getFont();
+			var cellFont = this.getCellFont();
 			var oIntersectFont = null;
 			for (var i = 0, length = this.multiText.length; i < length; i++) {
 				var elem = this.multiText[i];
