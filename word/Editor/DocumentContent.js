@@ -1998,9 +1998,6 @@ CDocumentContent.prototype.Is_Empty = function()
 	return this.Content[0].IsEmpty({SkipPlcHldr : false});
 };
 
-CDocumentContent.prototype.isDocumentContentInSmartArtShape = function () {
-	return this.Parent && this.Parent.parent && this.Parent.parent.isObjectInSmartArt && this.Parent.parent.isObjectInSmartArt();
-}
 
 CDocumentContent.prototype.IsEmpty = function()
 {

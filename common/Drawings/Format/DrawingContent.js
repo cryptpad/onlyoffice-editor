@@ -757,6 +757,22 @@
             }
         }
     };
+    CDrawingDocContent.prototype.Is_Empty = function()
+    {
+        if (this.isDocumentContentInSmartArtShape()) {
+            var oShape = this.Parent.parent;
+            var point = oShape.getPoint();
+            var isPhldr = point && point.prSet && point.prSet.phldr;
+            if (isPhldr) {
+                return true;
+            }
+        }
+        return CDocumentContent.prototype.Is_Empty.call(this);
+    };
+
+    CDrawingDocContent.prototype.isDocumentContentInSmartArtShape = function () {
+        return this.Parent && this.Parent.parent && this.Parent.parent.isObjectInSmartArt && this.Parent.parent.isObjectInSmartArt();
+    }
     // TODO: сделать по-нормальному!!!
     function CDocument_prototype_private_GetElementPageIndexByXY(ElementPos, X, Y, PageIndex)
     {

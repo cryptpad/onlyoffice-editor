@@ -9184,10 +9184,29 @@
       return true;
     };
     SmartArt.prototype.updateCoordinatesAfterInternalResize = function () {
-        var oXfrm = this.spPr && this.spPr.xfrm;
-        if(!oXfrm) {
-            return {posX: this.x, posY: this.y};
+        if(!this.spPr) {
+            this.setSpPr(new AscFormat.CSpPr());
+            this.spPr.setParent(this);
         }
+        if(!this.spPr.xfrm) {
+            this.spPr.setXfrm(new AscFormat.CXfrm());
+            this.spPr.xfrm.setParent(this.spPr);
+        }
+        var oXfrm = this.spPr.xfrm;
+        if(AscCommonWord.ParaDrawing && (this.parent instanceof AscCommonWord.ParaDrawing)) {
+            oXfrm.setOffX(0);
+            oXfrm.setOffY(0);
+        }
+        else {
+            oXfrm.setOffX(this.x);
+            oXfrm.setOffY(this.y);
+        }
+        oXfrm.setChOffX(0);
+        oXfrm.setChOffY(0);
+        oXfrm.setChExtX(this.extX);
+        oXfrm.setChExtY(this.extY);
+        oXfrm.setExtX(this.extX);
+        oXfrm.setExtY(this.extY);
         return {posX: oXfrm.offX, posY: oXfrm.offY};
     };
     SmartArt.prototype.recalculateTransform = function() {
@@ -9293,7 +9312,7 @@
           if(oShadow) {
               var oEffectProps = oBg.effect ? oBg.effect.createDuplicate() : new AscFormat.CEffectProperties();
               if(!oEffectProps.EffectLst) {
-                  oEffectProps.EffectLst = new CEffectLst();
+                  oEffectProps.EffectLst = new AscFormat.CEffectLst();
               }
               oEffectProps.EffectLst.outerShdw = oShadow.createDuplicate();
               oBg.setEffect(oEffectProps);
@@ -9303,7 +9322,7 @@
                   if(oBg.effect.EffectLst) {
                       if(oBg.effect.EffectLst.outerShdw) {
                           var oEffectProps = oBg.effect.createDuplicate();
-                          oEffectProps.effect.outerShdw = null;
+                          oEffectProps.EffectLst.outerShdw = null;
                           oBg.setEffect(oEffectProps);
                       }
                   }
