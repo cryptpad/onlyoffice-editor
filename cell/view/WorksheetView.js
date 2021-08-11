@@ -5529,6 +5529,10 @@
             return;
         }
 
+		if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.selectUnlockedCells)) {
+			return;
+		}
+
         var selectionDialogMode = this.getSelectionDialogMode();
         var dialogOtherRanges = this.getDialogOtherRanges();
 
@@ -10322,6 +10326,22 @@
                 }
             };
 
+            //если все разлоченные ячейки - разрешаем. если перекрываем один защищенный диапазон(с паролем) - запрашиваем пароль, если более одного - ошибка
+			//если хоть одна залоченная ячейка, которая не принадлежит защищенному диапазону - ошибка
+			if (this.model.getSheetProtection()) {
+				this.checkProtectRangeOnEdit([changedRange], function (success) {
+					if (success) {
+						t._isLockedCells(changedRange, /*subType*/null, applyFillHandleCallback);
+					} else {
+						// Сбрасываем параметры автозаполнения
+						this.activeFillHandle = null;
+						this.fillHandleDirection = -1;
+						// Перерисовываем
+						this._drawSelection();
+					}
+				}, true);
+				return;
+			}
 			if (this.model.inPivotTable(changedRange)) {
 				// Сбрасываем параметры автозаполнения
 				this.activeFillHandle = null;
@@ -10846,6 +10866,11 @@
             this._cleanSelectionMoveRange();
             return;
         }
+		if (this.model.getSheetProtection() && (this.model.getLockedRange(arnFrom) || this.model.getLockedRange(arnTo))) {
+			this._cleanSelectionMoveRange();
+			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+			return;
+		}
 		var errorPivot = this.model.checkMovePivotTable(arnFrom, arnTo, ctrlKey);
 		if (c_oAscError.ID.No !== errorPivot) {
 			this._cleanSelectionMoveRange();
@@ -22269,7 +22294,7 @@
         }
 	};
 
-	WorksheetView.prototype.checkProtectRangeOnEdit = function (aRanges, callback) {
+	WorksheetView.prototype.checkProtectRangeOnEdit = function (aRanges, callback, checkLockedRangeOnProtect) {
 		var t = this;
 		var wsModel = this.model;
 		var isProtectSheet = wsModel.getSheetProtection();
