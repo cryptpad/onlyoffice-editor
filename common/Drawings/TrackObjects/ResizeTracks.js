@@ -519,7 +519,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 if(this.bConnector){
                     this.resizeConnector(kd1, kd2, e, x, y);
                 }
-                else if(!e.CtrlKey){
+                else if(!(e.CtrlKey || this.originalObject.isObjectInSmartArt())){
                     this.resize(kd1, kd2, e.ShiftKey);
                 }
                 else{
@@ -1181,6 +1181,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                     var prSet = point.getPrSet();
                     var defaultExtX = this.originalExtX;
                     var defaultExtY = this.originalExtY;
+
                     if (prSet) {
                         if (prSet.custScaleX) {
                             defaultExtX /= prSet.custScaleX / 100000;
