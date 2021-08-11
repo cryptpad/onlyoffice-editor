@@ -11098,8 +11098,10 @@ function collectSelectedObjects(aSpTree, aCollectArray, bRecursive, oIdMap, bSou
                         oCopy.rot = oSp.rot;
                         AscFormat.CheckSpPrXfrm(oCopy, true);
                     }
+                    oCopy.convertFromSmartArt();
                 } else {
                     oCopy = oSp.getCopyWithSourceFormatting();
+                    oCopy.convertFromSmartArt();
                     oCopy.setParent(oSp.parent);
                 }
 

@@ -1720,7 +1720,16 @@ CGraphicObjects.prototype =
                 {
                     run =  new ParaRun(para, false);
                     selectedObjects[i].recalculate();
-                    drawing = new ParaDrawing(0, 0, selectedObjects[i].copy(), this.document.DrawingDocument, this.document, null);
+                    var oGraphicObj = selectedObjects[i].copy();
+                    if(this.selection.groupSelection.getObjectType() === AscDFH.historyitem_type_SmartArt)
+                    {
+                        oGraphicObj = oGraphicObj.convertFromSmartArt();
+                        if(oGraphicObj.getObjectType() === AscDFH.historyitem_type_Shape)
+                        {
+                            oGraphicObj = oGraphicObj.convertToWord(this.document);
+                        }
+                    }
+                    drawing = new ParaDrawing(0, 0, oGraphicObj, this.document.DrawingDocument, this.document, null);
                     drawing.Set_DrawingType(groupParaDrawing.DrawingType);
                     drawing.GraphicObj.setParent(drawing);
                     if(drawing.GraphicObj.spPr && drawing.GraphicObj.spPr.xfrm && AscFormat.isRealNumber(drawing.GraphicObj.spPr.xfrm.offX) && AscFormat.isRealNumber(drawing.GraphicObj.spPr.xfrm.offY))

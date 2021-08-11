@@ -1120,6 +1120,7 @@ CShape.prototype.setSignaturePr = function(oPr, sUrl)
 
 CShape.prototype.convertToWord = function (document) {
     this.setBDeleted(true);
+    this.convertFromSmartArt();
     var c = new CShape();
     c.setWordShape(true);
     c.setBDeleted(false);
@@ -6959,6 +6960,10 @@ CShape.prototype.getColumnNumber = function(){
                 oCopy.extY = this.extY;
                 AscFormat.CheckSpPrXfrm(oCopy, true);
             }
+        }
+        if(this.txXfrm) {
+            oCopy.setTxXfrm(this.txXfrm.createDuplicate());
+            oCopy.convertFromSmartArt();
         }
         return oCopy;
     };
