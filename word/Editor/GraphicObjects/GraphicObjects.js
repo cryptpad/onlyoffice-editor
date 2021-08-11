@@ -2798,7 +2798,6 @@ CGraphicObjects.prototype =
         {
             this.resetSelection();
             var i, j, nearest_pos, cur_group, sp_tree, sp, parent_paragraph, page_num;
-            var a_objects = [];
             var arrCenterPos = [], aPos;
             for(i = 0; i < ungroup_arr.length; ++i)
             {
@@ -2828,10 +2827,12 @@ CGraphicObjects.prototype =
                 cur_group.setBDeleted(true);
                 sp_tree = cur_group.spTree;
                 aPos = arrCenterPos[i];
+                var aDrawings = [];
+                var drawing;
                 for(j = 0; j < sp_tree.length; ++j)
                 {
                     sp = sp_tree[j];
-                    var drawing = new ParaDrawing(0, 0, sp_tree[j], this.drawingDocument, null, null);
+                    drawing = new ParaDrawing(0, 0, sp_tree[j], this.drawingDocument, null, null);
 
                     var xc, yc, hc = sp.extX/2, vc = sp.extY/2;
                     if(aPos && aPos[j]){
@@ -2883,9 +2884,13 @@ CGraphicObjects.prototype =
                         }
                     }));
                     drawing.Set_XYForAdd(fPosX, fPosY, nearest_pos, page_num);
-                    a_objects.push({drawing: drawing, par: parent_paragraph, posX: fPosX, posY: fPosY});
+                    aDrawings.push(drawing);
+                }
+                for(j = 0; j < aDrawings.length; ++j)
+                {
+                    drawing = aDrawings[j];
                     drawing.Add_ToDocument2(parent_paragraph);
-                    this.selectObject(sp, page_num);
+                    this.selectObject(drawing.GraphicObj, page_num);
                 }
             }
             this.document.Recalculate();
