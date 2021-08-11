@@ -27938,8 +27938,11 @@ CDocumentChangeTextCaseEngine.prototype.Reset = function()
 };
 CDocumentChangeTextCaseEngine.prototype.FlushWord = function()
 {
-	var sCurrentWord = "";
+	var sCurrentWord  = "";
 	var bNeddToChange = true;
+	var bIsAllUpper   = true;
+	var bIsAllLower   = true;
+	var bIsProperName = true;
 
 	for (var nIndex = 0, nCount = this.WordBuffer.length; nIndex < nCount; ++nIndex)
 	{
@@ -27947,26 +27950,35 @@ CDocumentChangeTextCaseEngine.prototype.FlushWord = function()
 		var nLowerCode = String.fromCharCode(nCharCode).toLowerCase().charCodeAt(0);
 		var nUpperCode = String.fromCharCode(nCharCode).toUpperCase().charCodeAt(0);
 
+		if (nIndex === 0 && nCharCode === nLowerCode)
+			bIsProperName = false;
+		if (nCharCode === nLowerCode)
+			bIsAllUpper = false;
+		if (nCharCode === nUpperCode)
+		{
+			bIsAllLower = false;
+			if (nIndex !== 0)
+				bIsProperName = false;
+		}
 		sCurrentWord += String.fromCharCode(nCharCode);
 	}
 
 	if (sCurrentWord)
 	{
-		var el = sCurrentWord;
-		var el1 = el.slice(1);
-		if (el[0] === el[0].toUpperCase() && el1 === el1.toLowerCase())
+		if (bIsProperName)
 		{
 			bNeddToChange = false;
 		}
-		else if (el === el.toUpperCase())
+		else if (bIsAllUpper)
 		{
 			bNeddToChange = false;
 		}
-		else if (el === el.toLowerCase())
+		else if (bIsAllLower)
 		{
 			bNeddToChange = false;
 		}
-		else {
+		else 
+		{
 			bNeddToChange = true;
 		}
 	}
@@ -28002,7 +28014,7 @@ CDocumentChangeTextCaseEngine.prototype.FlushWord = function()
 					|| (Asc.c_oAscChangeTextCaseType.CapitalizeWords === nCaseType && 0 !== nIndex && bNeddToChange)
 					|| (Asc.c_oAscChangeTextCaseType.CapitalizeWords === nCaseType && this.SentenceSettings[0].allFirst === true && this.SentenceSettings[0].sentenceMistakes === true && !this.SentenceSettings[0].allUpperWithoutFirst && 0 !== nIndex)
 					|| (Asc.c_oAscChangeTextCaseType.SentenceCase === nCaseType && this.GlobalSettings === true && this.isAllinTable === false && !(this.StartSentence && 0 === nIndex))
-					|| (Asc.c_oAscChangeTextCaseType.SentenceCase === nCaseType /*&& this.GlobalSettings === true*/&& this.isAllinTable === true && this.SentenceSettings[0].allFirst === true && this.SentenceSettings[0].sentenceMistakes === true && !this.SentenceSettings[0].allUpperWithoutFirst && !(this.StartSentence && 0 === nIndex))
+					|| (Asc.c_oAscChangeTextCaseType.SentenceCase === nCaseType && this.isAllinTable === true && this.SentenceSettings[0].allFirst === true && this.SentenceSettings[0].sentenceMistakes === true && !this.SentenceSettings[0].allUpperWithoutFirst && !(this.StartSentence && 0 === nIndex))
 					|| (Asc.c_oAscChangeTextCaseType.SentenceCase === nCaseType && bNeddToChange && !(this.StartSentence && 0 === nIndex))
 					))
 			{
@@ -28042,6 +28054,23 @@ CDocumentChangeTextCaseEngine.prototype.GetCaseType = function()
 {
 	return this.ChangeType;
 };
+CDocumentChangeTextCaseEngine.prototype.CheckEachWord = function(sElement)
+{
+	var el1 = sElement.slice(1);
+	if (sElement[0] === sElement[0].toUpperCase() && el1 === el1.toLowerCase())
+	{
+		return true;
+	}
+	if (sElement === sElement.toUpperCase())
+	{
+		return true;
+	}
+	if (sElement === sElement.toLowerCase())
+	{
+		return true;
+	}
+	return false;
+};
 CDocumentChangeTextCaseEngine.prototype.CheckWords = function(oEngine)
 {
 	var sett = {
@@ -28069,7 +28098,7 @@ CDocumentChangeTextCaseEngine.prototype.CheckWords = function(oEngine)
 			{
 				sett.allFirst = false;
 			}
-			if (!CheckEachWord(wordsInSentece[j]))
+			if (!this.CheckEachWord(wordsInSentece[j]))
 			{
 				sett.sentenceMistakes = false;
 			}
@@ -28095,23 +28124,6 @@ CDocumentChangeTextCaseEngine.prototype.CheckWords = function(oEngine)
 		}
 		oEngine.SentenceSettings[oEngine.flag] = sett;
 		oEngine.flag++;
-	}
-	function CheckEachWord(el)
-	{
-		var el1 = el.slice(1);
-		if (el[0] === el[0].toUpperCase() && el1 === el1.toLowerCase())
-		{
-		  return true;
-		}
-		if (el === el.toUpperCase())
-		{
-		  return true;
-		}
-		if (el === el.toLowerCase())
-		{
-		  return true;
-		}
-		return false;
 	}
 	  oEngine.currentSentence = "";
 };
