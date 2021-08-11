@@ -297,18 +297,26 @@ function MoveShapeImageTrack(originalObject)
                 var prSet = point.getPrSet();
                 var originalPosX = this.originalObject.x;
                 var originalPosY = this.originalObject.y;
+                var defaultExtX = this.originalObject.extX;
+                var defaultExtY = this.originalObject.extY;
                 if (prSet) {
+                    if (prSet.custScaleX) {
+                        defaultExtX /= prSet.custScaleX / 100000;
+                    }
+                    if (prSet.custScaleY) {
+                        defaultExtY /= prSet.custScaleY / 100000;
+                    }
                     if (prSet.custLinFactNeighborX) {
-                        originalPosX -= (prSet.custLinFactNeighborX / 100000) * this.originalObject.extX;
+                        originalPosX -= (prSet.custLinFactNeighborX / 100000) * defaultExtX;
                     }
                     if (prSet.custLinFactNeighborY) {
-                        originalPosY -= (prSet.custLinFactNeighborY / 100000) * this.originalObject.extY;
+                        originalPosY -= (prSet.custLinFactNeighborY / 100000) * defaultExtY;
                     }
                     if (this.x !== this.originalObject.x) {
-                        prSet.setCustLinFactNeighborX(((this.x - originalPosX) / this.originalObject.extX) * 100000);
+                        prSet.setCustLinFactNeighborX(((this.x - originalPosX) / defaultExtX) * 100000);
                     }
                     if (this.y !== this.originalObject.y) {
-                        prSet.setCustLinFactNeighborY(((this.y - originalPosY) / this.originalObject.extY) * 100000);
+                        prSet.setCustLinFactNeighborY(((this.y - originalPosY) / defaultExtY) * 100000);
                     }
                 }
             }
