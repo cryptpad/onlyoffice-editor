@@ -1895,6 +1895,13 @@ function CGroupShape()
             this.spTree[i].GetAllSeqFieldsByType(sType, aFields)
         }
     };
+    CGroupShape.prototype.createPlaceholderControl = function(aControls)
+    {
+        for(var i = 0; i < this.spTree.length; ++i)
+        {
+            this.spTree[i].createPlaceholderControl(aControls);
+        }
+    };
     CGroupShape.prototype.onSlicerUpdate = function(sName)
     {
         var bRet = false;

@@ -2777,7 +2777,14 @@ CGraphicObjects.prototype =
             for(i = 0; i < ungroup_arr.length; ++i)
             {
                 cur_group = ungroup_arr[i];
-                sp_tree = cur_group.spTree;
+                if(cur_group.getObjectType() === AscDFH.historyitem_type_SmartArt)
+                {
+                    sp_tree = cur_group.drawing.spTree;
+                }
+                else
+                {
+                    sp_tree = cur_group.spTree;
+                }
                 aPos = [];
                 for(j = 0; j < sp_tree.length; ++j)
                 {
@@ -2800,7 +2807,14 @@ CGraphicObjects.prototype =
                 cur_group.parent.Remove_FromDocument(false);
 				cur_group.parent.bNotPreDelete = undefined;
                 cur_group.setBDeleted(true);
-                sp_tree = cur_group.spTree;
+                if(cur_group.getObjectType() === AscDFH.historyitem_type_SmartArt)
+                {
+                    sp_tree = cur_group.drawing.spTree;
+                }
+                else
+                {
+                    sp_tree = cur_group.spTree;
+                }
                 aPos = arrCenterPos[i];
                 for(j = 0; j < sp_tree.length; ++j)
                 {
@@ -2858,6 +2872,7 @@ CGraphicObjects.prototype =
                     }));
                     drawing.Set_XYForAdd(fPosX, fPosY, nearest_pos, page_num);
                     a_objects.push({drawing: drawing, par: parent_paragraph, posX: fPosX, posY: fPosY});
+                    sp.convertFromSmartArt();
                     drawing.Add_ToDocument2(parent_paragraph);
                     this.selectObject(sp, page_num);
                 }
