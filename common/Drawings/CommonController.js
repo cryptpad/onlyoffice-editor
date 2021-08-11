@@ -5648,6 +5648,12 @@ DrawingObjectsController.prototype =
     canEdit: function()
     {
         var oApi = this.getEditorApi();
+        if(oApi && oApi.wb && oApi.wb.getWorksheet) {
+            var ws = oApi.wb.getWorksheet();
+            if(ws && ws.model && ws.model.getSheetProtection(window["Asc"].c_oAscSheetProtectType.objects)){
+                return false;
+            }
+        }
         var _ret = true;
         if(oApi){
             _ret = oApi.canEdit();
