@@ -875,7 +875,10 @@ CParagraphContentBase.prototype.SetThisElementCurrentInParagraph = function()
 
 	this.Paragraph.Set_ParaContentPos(oContentPos, true, -1, -1, false);
 };
-
+CParagraphContentBase.prototype.createDuplicateForSmartArt = function(oPr)
+{
+	return this.Copy(false, oPr, false);
+};
 /**
  * Это базовый класс для элементов содержимого(контент) параграфа, у которых есть свое содержимое.
  * @constructor
