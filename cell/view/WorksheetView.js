@@ -16696,7 +16696,9 @@
 				if (ws.TableParts[i].AutoFilter && ws.TableParts[i].HeaderRowCount !== 0) {
 					drawCurrentFilterButtons(ws.TableParts[i], true);
 				}
-				this._drawRightDownTableCorner(ws.TableParts[i], updatedRange, offsetX, offsetY);
+				if (!ws.getSheetProtection()) {
+					this._drawRightDownTableCorner(ws.TableParts[i], updatedRange, offsetX, offsetY);
+				}
 			}
 		}
 
@@ -21180,6 +21182,10 @@
 			return;
 		}
 
+		if (this.model.getSheetProtection()) {
+			return;
+		}
+
 		var t = this;
 		var api = window["Asc"]["editor"];
 		var bFast = api.collaborativeEditing.m_bFast;
@@ -22292,6 +22298,7 @@
             oObjectRender.OnUpdateOverlay();
             oObjectRender.controller.updateSelectionState(true);
         }
+		this.draw();
 	};
 
 	WorksheetView.prototype.checkProtectRangeOnEdit = function (aRanges, callback, checkLockedRangeOnProtect) {
