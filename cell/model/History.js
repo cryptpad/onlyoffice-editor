@@ -100,6 +100,7 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Worksheet_CFRuleDelete = 53;
 
 	window['AscCH'].historyitem_Worksheet_SetShowZeros = 54;
+	window['AscCH'].historyitem_Worksheet_SetTopLeftCell = 55;
 
 	window['AscCH'].historyitem_RowCol_Fontname = 1;
 	window['AscCH'].historyitem_RowCol_Fontsize = 2;
@@ -966,6 +967,10 @@ CHistory.prototype.Add = function(Class, Type, sheetid, range, Data, LocalChange
 			var ContentChanges = new AscCommon.CContentChangesElement(bAdd == true ? AscCommon.contentchanges_Add : AscCommon.contentchanges_Remove, Class.Pos, Count, Class);
 			Class.Class.Add_ContentChanges(ContentChanges);
 			AscCommon.CollaborativeEditing.Add_NewDC(Class.Class);
+			if (true === bAdd)
+				AscCommon.CollaborativeEditing.Update_DocumentPositionsOnAdd(Class.Class, Class.Pos);
+			else
+				AscCommon.CollaborativeEditing.Update_DocumentPositionsOnRemove(Class.Class, Class.Pos, Count);
 		}
 	}
 };

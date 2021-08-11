@@ -125,7 +125,7 @@ var editor;
     this.formulasList = null;	// Список всех формул
 
 	this.openingEnd = {bin: false, xlsxStart: false, xlsx: false, data: null};
-	
+
 	this.tmpR1C1mode = null;
 
     this.insertDocumentUrlsData = null;
@@ -537,6 +537,7 @@ var editor;
 								cp['data'] = data;
 								callback(new AscCommon.asc_CAdvancedOptions(cp));
 							}
+							_api.endInsertDocumentUrls();
 						});
 					}
 				}, endCallback: function (_api) {
@@ -545,6 +546,7 @@ var editor;
 
 			var _options = new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.TXT);
 			_options.isNaturalDownload = true;
+			_options.isGetTextFromUrl = true;
 			this.asc_DownloadAs(_options);
 		}
 	};
@@ -656,7 +658,9 @@ var editor;
 					this.wb.model.nActive = ws.model.index;
 					ws.draw();
 				} else {
+					ws.cleanSelection();
 					ws.model.selectionRange = selectionRange;
+					ws._drawSelection();
 				}
 			}
 		}
@@ -1129,7 +1133,10 @@ var editor;
           oAdditionalData["delimiterChar"] = options.advancedOptions.asc_getDelimiterChar();
         }
       }
-      dataContainer.data = oBinaryFileWriter.Write(oAdditionalData["nobase64"]);
+      //перед записью подменяю topLeftCell на тот, который видим
+        this.wb.executeWithCurrentTopLeftCell(function () {
+          dataContainer.data = oBinaryFileWriter.Write(oAdditionalData["nobase64"]);
+        });
     }
 
     if (window.isCloudCryptoDownloadAs) {
@@ -1140,7 +1147,7 @@ var editor;
     }
   };
 
-  spreadsheet_api.prototype.processSavedFile             = function(url, downloadType)
+  spreadsheet_api.prototype.processSavedFile             = function(url, downloadType, filetype)
   {
     if (this.insertDocumentUrlsData && this.insertDocumentUrlsData.convertCallback)
     {
@@ -1148,7 +1155,7 @@ var editor;
     }
     else
     {
-      AscCommon.baseEditorsApi.prototype.processSavedFile.call(this, url, downloadType);
+      AscCommon.baseEditorsApi.prototype.processSavedFile.call(this, url, downloadType, filetype);
     }
   };
 
@@ -1273,9 +1280,35 @@ var editor;
   };
 
   spreadsheet_api.prototype.openDocument = function(file) {
+	//todo native.js -> openDocument
+  	if (file.changes && this.VersionHistory) {
+  		this.VersionHistory.changes = file.changes;
+	}
+
 	this._openDocument(file.data);
 	this._openOnClient();
   };
+
+	spreadsheet_api.prototype.asc_CloseFile = function()
+	{
+		History.Clear();
+		g_oIdCounter.Clear();
+		g_oTableId.Clear();
+		AscCommon.CollaborativeEditing.Clear();
+		this.isApplyChangesOnOpenEnabled = true;
+		this.isDocumentLoadComplete = false;
+
+		//удаляю весь handlersList, добавленный при инициализации wbView
+		//потому что старый при открытии использовать нельзя(в случае с истрией версий при повторном открытии файла там остаются старые функции от предыдущего workbookview)
+		//по идее нужно делать его полное зануление, а при открытии создавать заново. но есть функции, которые
+		//добавляются в интерфейсе и в случае с историей версий заново не добавляются
+		this.wb.removeHandlersList();
+
+		if (this.wbModel.DrawingDocument) {
+			this.wbModel.DrawingDocument.CloseFile();
+		}
+	};
+
 	spreadsheet_api.prototype.openDocumentFromZip = function (wb, data) {
 		var t = this;
 		return new Promise(function (resolve, reject) {
@@ -1512,7 +1545,10 @@ var editor;
     }, this.getViewMode());
 
     this.CoAuthoringApi.onConnectionStateChanged = function(e) {
-      t.handlers.trigger("asc_onConnectionStateChanged", e);
+		if (true === AscCommon.CollaborativeEditing.Is_Fast() && false === e['state']) {
+			t.wb.Remove_ForeignCursor(e['id']);
+		}
+    	t.handlers.trigger("asc_onConnectionStateChanged", e);
     };
     this.CoAuthoringApi.onLocksAcquired = function(e) {
       if (t._coAuthoringCheckEndOpenDocument(t.CoAuthoringApi.onLocksAcquired, e)) {
@@ -1707,7 +1743,22 @@ var editor;
         t.collaborativeEditing._recalcLockArray(c_oAscLockTypes.kLockTypeMine, oRecalcIndexColumns, oRecalcIndexRows);
         t.collaborativeEditing._recalcLockArray(c_oAscLockTypes.kLockTypeOther, oRecalcIndexColumns, oRecalcIndexRows);
       }
+        if (true === AscCommon.CollaborativeEditing.Is_Fast()) {
+            var UserId = tmpAdditionalInfo["UserId"];
+            var CursorInfo = tmpAdditionalInfo["CursorInfo"];
+            var UserShortId = tmpAdditionalInfo["UserShortId"];
+            if(UserId && CursorInfo && UserShortId) {
+                AscCommon.CollaborativeEditing.Add_ForeignCursorToUpdate(UserId, CursorInfo, UserShortId);
+            }
+        }
     };
+  this.CoAuthoringApi.onCursor                 = function(e)
+  {
+	  if (true === AscCommon.CollaborativeEditing.Is_Fast())
+	  {
+		  t.wb.Update_ForeignCursor(e[e.length - 1]['cursor'], e[e.length - 1]['user'], true, e[e.length - 1]['useridoriginal']);
+	  }
+  };
 	  };
 
   spreadsheet_api.prototype._onSaveChanges = function(recalcIndexColumns, recalcIndexRows, isAfterAskSave) {
@@ -1723,6 +1774,19 @@ var editor;
         }
       }
       if (0 < arrChanges.length || null !== deleteIndex || null !== excelAdditionalInfo) {
+          var oWs = this.wb.getWorksheet();
+          var sCursorBinary = "";
+          if (oWs && oWs.objectRender) {
+              sCursorBinary = oWs.objectRender.getDocumentPositionBinary();
+          }
+          if(typeof sCursorBinary === "string" && sCursorBinary.length > 0) {
+              if(!AscCommon.isRealObject(excelAdditionalInfo)) {
+                  excelAdditionalInfo = {};
+              }
+              excelAdditionalInfo["UserId"] = this.CoAuthoringApi.getUserConnectionId();
+              excelAdditionalInfo["UserShortId"] = this.DocInfo.get_UserId();
+              excelAdditionalInfo["CursorInfo"] = this.wb.getCursorInfo();
+          }
         this.CoAuthoringApi.saveChanges(arrChanges, deleteIndex, excelAdditionalInfo, this.canUnlockDocument2, bCollaborative);
         History.CanNotAddChanges = true;
       } else {
@@ -1745,6 +1809,9 @@ var editor;
       // Нужно послать 'обновить свойства' (иначе для удаления данных не обновится строка формул).
       // ToDo Возможно стоит обновлять только строку формул
       AscCommon.CollaborativeEditing.Load_Images();
+      if(AscCommon.CollaborativeEditing.Is_Fast()) {
+          AscCommon.CollaborativeEditing.Refresh_ForeignCursors();
+      }
       this.wb._onWSSelectionChanged();
       History.TurnOff();
       this.wb.drawWorksheet();
@@ -2032,6 +2099,13 @@ var editor;
 			this.sendEvent('asc_onError', c_oAscError.ID.OpenWarning, c_oAscError.Level.NoCritical);
 		}
 
+		if (this.VersionHistory) {
+			if (this.VersionHistory.changes) {
+				this.VersionHistory.applyChanges(this);
+			}
+			this.sheetsChanged();
+			this.asc_Resize();
+		}
 		//this.asc_Resize(); // Убрал, т.к. сверху приходит resize (http://bugzilla.onlyoffice.com/show_bug.cgi?id=14680)
 	};
 
@@ -2079,6 +2153,12 @@ var editor;
 
 	spreadsheet_api.prototype._onSaveCallbackInner = function () {
 		var t = this;
+
+		var ws = this.wb.getWorksheet();
+		if (ws) {
+			ws.updateTopLeftCell();
+		}
+
 		AscCommon.CollaborativeEditing.Clear_CollaborativeMarks();
 		// Принимаем чужие изменения
 		this.collaborativeEditing.applyChanges();
@@ -3183,9 +3263,7 @@ var editor;
     spreadsheet_api.prototype.asc_assignMacrosToCurrentDrawing = function(sName) {
         var ws = this.wb.getWorksheet();
         var sGuid = this.asc_getMacrosGuidByName(sName);
-        if(typeof sGuid === "string" && sGuid.length > 0) {
-            return ws.objectRender.assignMacrosToCurrentDrawing(sGuid);
-        }
+        return ws.objectRender.assignMacrosToCurrentDrawing(sGuid);
     };
     spreadsheet_api.prototype.asc_setSelectedDrawingObjectLayer = function(layerType) {
         var ws = this.wb.getWorksheet();
@@ -3503,7 +3581,7 @@ var editor;
     }
     if(fReplaceCallback) {
 
-      if (window["AscDesktopEditor"]) {
+      if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsLocalFile"]()) {
         var firstUrl = window["AscDesktopEditor"]["LocalFileGetImageUrl"](sImageUrl);
         firstUrl = g_oDocumentUrls.getImageUrl(firstUrl);
         fReplaceCallback(firstUrl);
@@ -4564,6 +4642,9 @@ var editor;
 				// Шлем update для toolbar-а, т.к. когда select в lock ячейке нужно заблокировать toolbar
 				this.wb._onWSSelectionChanged();
 			}
+            if (AscCommon.CollaborativeEditing.Is_Fast() /*&& !AscCommon.CollaborativeEditing.Is_SingleUser()*/) {
+                this.wb.sendCursor();
+            }
 			return;
 		}
 		if (null === this.lastSaveTime) {
@@ -4576,6 +4657,9 @@ var editor;
 		if (0 <= gap) {
 			this.asc_Save(true);
 		}
+        if (AscCommon.CollaborativeEditing.Is_Fast() /*&& !AscCommon.CollaborativeEditing.Is_SingleUser()*/) {
+            this.wb.sendCursor();
+        }
 	};
 
 	spreadsheet_api.prototype._onUpdateDocumentCanSave = function () {
@@ -4688,8 +4772,27 @@ var editor;
     }
     if (isFull) {
       this._onUpdateAfterApplyChanges();
+
+      if (window["NATIVE_EDITOR_ENJINE"] === true && window["native"]["AddImageInChanges"] && window["NATIVE_EDITOR_ENJINE_NEW_IMAGES"])
+      {
+        var _new_images     = window["NATIVE_EDITOR_ENJINE_NEW_IMAGES"];
+        var _new_images_len = _new_images.length;
+
+        for (var nImage = 0; nImage < _new_images_len; nImage++)
+          window["native"]["AddImageInChanges"](_new_images[nImage]);
+      }
     }
   };
+
+	spreadsheet_api.prototype._coAuthoringSetChanges = function(e, oColor)
+	{
+		var Count = e.length;
+		for (var Index = 0; Index < Count; ++Index) {
+			this.CoAuthoringApi.onSaveChanges(e[Index], null, true);
+		}
+		this.collaborativeEditing.applyChanges();
+		//this._onUpdateAfterApplyChanges();
+	};
 
   spreadsheet_api.prototype.asc_nativeGetFile = function() {
     var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
@@ -5579,6 +5682,48 @@ var editor;
 	}
   	this.wb.undo({All : true});
   };
+  spreadsheet_api.prototype.asc_ConvertEquationToMath = function(oEquation, isAll)
+  {
+      // TODO: Вообще здесь нужно запрашивать шрифты, которые использовались в старой формуле,
+      //      но пока это только 1 шрифт "Cambria Math".
+      var oWorkbook = this.wb;
+      var loader   = AscCommon.g_font_loader;
+      var fontinfo = AscFonts.g_fontApplication.GetFontInfo("Cambria Math");
+      var isasync  = loader.LoadFont(fontinfo, function()
+      {
+          oWorkbook.convertEquationToMath(oEquation, isAll);
+      }, this);
+
+      if (false === isasync)
+      {
+          oWorkbook.convertEquationToMath(oEquation, isAll);
+      }
+  };
+
+
+
+	/*отправляем инфомарцию, инфомарция в виде строки(id + ";" + isEdit + ";" + rangeStr;)
+		_autoSaveInner -> wb.sendCursor -> CDocsCoApi.prototype.sendCursor
+		NeedUpdateTargetForCollaboration  - флаг высталяем в true, когда поменялся селект, потом предыдущая функция отсылает инфу на сервер
+
+	храним инф. о курсорах в
+		CCollaborativeEditing->m_aForeignCursorsData, добавляем/удаляем с помощью методов Add_ForeignCursor/Remove_ForeignCursor
+
+	удаляем инф. на
+		t.handlers.trigger("asc_onConnectionStateChanged", e) -> Remove_ForeignCursor
+
+	принимаем инфомарцию о курсорах
+		this.CoAuthoringApi.onCursor -> WorkbookView.prototype.Update_ForeignCursor
+
+	эвенты в интерфейс: asc_onShowForeignSelectLabel/asc_onHideForeignSelectLabel*/
+
+	
+	spreadsheet_api.prototype.showForeignSelectLabel = function (UserId, X, Y, Color, isEdit) {
+		this.sendEvent("asc_onShowForeignCursorLabel", UserId, X, Y, new AscCommon.CColor(Color.r, Color.g, Color.b, 255), isEdit);
+	};
+	spreadsheet_api.prototype.hideForeignSelectLabel = function (UserId) {
+		this.sendEvent("asc_onHideForeignCursorLabel", UserId);
+	};
 
   /*
    * Export
@@ -6045,4 +6190,7 @@ var editor;
   prot["asc_setSkin"] = prot.asc_setSkin;
 
   prot["asc_getEscapeSheetName"] = prot.asc_getEscapeSheetName;
+
+
+  prot["asc_ConvertEquationToMath"] = prot.asc_ConvertEquationToMath;
 })(window);

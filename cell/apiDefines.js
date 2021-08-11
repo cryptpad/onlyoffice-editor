@@ -135,7 +135,8 @@ var c_oAscMouseMoveType = {
   ResizeColumn: 4,
   ResizeRow: 5,
   Filter: 6,
-  Tooltip: 7
+  Tooltip: 7,
+  ForeignSelect: 8
 };
 
 var c_oAscMouseMoveLockedObjectType = {
@@ -501,6 +502,12 @@ var c_oAscPopUpSelectorType = {
     firstCol: 2
   };
 
+  var ETableType = {
+	  queryTable: 0,
+	  worksheet: 1,
+	  xml: 2
+  };
+
   //----------------------------------------------------------export----------------------------------------------------
   window['AscCommonExcel'] = window['AscCommonExcel'] || {};
   window['AscCommonExcel'].c_oAscDrawDepOptions = c_oAscDrawDepOptions;
@@ -611,6 +618,7 @@ var c_oAscPopUpSelectorType = {
   prot['ResizeRow'] = prot.ResizeRow;
   prot['Filter'] = prot.Filter;
   prot['Tooltip'] = prot.Tooltip;
+  prot['ForeignSelect'] = prot.ForeignSelect;
   window['Asc']['c_oAscMouseMoveLockedObjectType'] = window['Asc'].c_oAscMouseMoveLockedObjectType = c_oAscMouseMoveLockedObjectType;
   prot = c_oAscMouseMoveLockedObjectType;
   prot['None'] = prot.None;

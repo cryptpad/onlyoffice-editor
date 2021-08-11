@@ -4247,7 +4247,7 @@ function CEditorPage(api)
 			//return;
 		}
 
-		if (this.DemonstrationManager.Mode && !isReporterUpdateSlide)
+		if (this.DemonstrationManager.Mode && !isReporterUpdateSlide && !isFromZoom)
 		{
             return this.m_oApi.DemonstrationGoToSlide(lPageNum);
 		}
