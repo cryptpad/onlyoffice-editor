@@ -565,6 +565,7 @@ CShape.prototype.setRecalculateInfo = function()
 CShape.prototype.recalcContent = function()
 {
     this.recalcInfo.recalculateContent = true;
+    this.recalcInfo.recalculateContent2 = true;
 };
 
 CShape.prototype.getDrawingDocument = function()
@@ -712,6 +713,7 @@ CShape.prototype.getParentObjects = function ()
 CShape.prototype.recalcText = function()
 {
     this.recalcInfo.recalculateContent = true;
+    this.recalcInfo.recalculateContent2 = true;
     this.recalcInfo.recalculateTransformText = true;
 };
 

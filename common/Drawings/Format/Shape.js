@@ -897,7 +897,7 @@ function SetXfrmFromMetrics(oDrawing, metrics)
     var rot = AscFormat.isRealNumber(oDrawing.spPr.xfrm.rot) ? AscFormat.normalizeRotate(oDrawing.spPr.xfrm.rot) : 0;
 
     var metricExtX, metricExtY;
-    if(!(oDrawing instanceof AscFormat.CGroupShape))
+    if(oDrawing.getObjectType() !==  AscDFH.historyitem_type_GroupShape)
     {
         metricExtX = metrics.extX;
         metricExtY = metrics.extY;

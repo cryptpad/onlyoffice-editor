@@ -3139,6 +3139,7 @@
 		this.bFromChart = false;
 		this.bFromGroup = false;
 		this.bFromImage = false;
+		this.bFromSmartArt = false;
 		this.Locked = false;
 		this.w = null;
 		this.h = null;
@@ -3197,6 +3198,12 @@
 		},
 		asc_setFromChart: function (v) {
 			this.bFromChart = v;
+		},
+		asc_getFromSmartArt: function () {
+			return this.bFromSmartArt;
+		},
+		asc_setFromSmartArt: function (v) {
+			this.bFromSmartArt = v;
 		},
 		asc_getFromGroup: function () {
 			return this.bFromGroup;

@@ -1748,42 +1748,45 @@ CGraphicObjects.prototype =
                 for(i = 0; i < selectedObjects.length; ++i)
                 {
                     run =  new ParaRun(para, false);
-                    selectedObjects[i].recalculate();
-                    drawing = new ParaDrawing(0, 0, selectedObjects[i].copy(), this.document.DrawingDocument, this.document, null);
+                    var oSp = selectedObjects[i];
+                    var oDr = oSp.parent;
+                    oSp.recalculate();
+                    drawing = new ParaDrawing(0, 0, oSp.copy(), this.document.DrawingDocument, this.document, null);
 
-                    drawing.Set_DrawingType(selectedObjects[i].parent.DrawingType);
-                    if(selectedObjects[i].parent.Extent)
+                    drawing.Set_DrawingType(oDr.DrawingType);
+                    if(oDr.Extent)
                     {
-                        drawing.setExtent(selectedObjects[i].parent.Extent.W, selectedObjects[i].parent.Extent.H)
+                        drawing.setExtent(oDr.Extent.W, oDr.Extent.H)
                     }
                     drawing.GraphicObj.setParent(drawing);
+                    drawing.GraphicObj.setTransformParams(0, 0, oSp.extX, oSp.extY, oSp.rot, oSp.flipH, oSp.flipV);
                     //drawing.CheckWH();
-					drawing.Set_ParaMath(selectedObjects[i].parent.ParaMath);
-                    drawing.docPr.setFromOther(selectedObjects[i].parent.docPr);
-					drawing.SetForm(selectedObjects[i].parent.IsForm());
-                    if(selectedObjects[i].parent.DrawingType === drawing_Anchor)
+					drawing.Set_ParaMath(oDr.ParaMath);
+                    drawing.docPr.setFromOther(oDr.docPr);
+					drawing.SetForm(oDr.IsForm());
+                    if(oDr.DrawingType === drawing_Anchor)
                     {
-                        drawing.Set_Distance(selectedObjects[i].parent.Distance.L, selectedObjects[i].parent.Distance.T, selectedObjects[i].parent.Distance.R, selectedObjects[i].parent.Distance.B);
-                        drawing.Set_WrappingType(selectedObjects[i].parent.wrappingType);
-                        drawing.Set_BehindDoc(selectedObjects[i].parent.behindDoc);
-                        if(selectedObjects[i].parent.wrappingPolygon && drawing.wrappingPolygon)
+                        drawing.Set_Distance(oDr.Distance.L, oDr.Distance.T, oDr.Distance.R, oDr.Distance.B);
+                        drawing.Set_WrappingType(oDr.wrappingType);
+                        drawing.Set_BehindDoc(oDr.behindDoc);
+                        if(oDr.wrappingPolygon && drawing.wrappingPolygon)
                         {
-                            drawing.wrappingPolygon.fromOther(selectedObjects[i].parent.wrappingPolygon);
+                            drawing.wrappingPolygon.fromOther(oDr.wrappingPolygon);
                         }
-                        drawing.Set_BehindDoc(selectedObjects[i].parent.behindDoc);
-                        drawing.Set_RelativeHeight(selectedObjects[i].parent.RelativeHeight);
-                        if(selectedObjects[i].parent.PositionH.Align){
-                            drawing.Set_PositionH(selectedObjects[i].parent.PositionH.RelativeFrom, selectedObjects[i].parent.PositionH.Align, selectedObjects[i].parent.PositionH.Value, selectedObjects[i].parent.PositionH.Percent);
+                        drawing.Set_BehindDoc(oDr.behindDoc);
+                        drawing.Set_RelativeHeight(oDr.RelativeHeight);
+                        if(oDr.PositionH.Align){
+                            drawing.Set_PositionH(oDr.PositionH.RelativeFrom, oDr.PositionH.Align, oDr.PositionH.Value, oDr.PositionH.Percent);
                         }
                         else{
-                            drawing.Set_PositionH(selectedObjects[i].parent.PositionH.RelativeFrom, selectedObjects[i].parent.PositionH.Align, selectedObjects[i].parent.PositionH.Value + selectedObjects[i].bounds.x, selectedObjects[i].parent.PositionH.Percent);
+                            drawing.Set_PositionH(oDr.PositionH.RelativeFrom, oDr.PositionH.Align, oDr.PositionH.Value + oSp.bounds.x, oDr.PositionH.Percent);
                         }
 
-                        if(selectedObjects[i].parent.PositionV.Align){
-                            drawing.Set_PositionV(selectedObjects[i].parent.PositionV.RelativeFrom, selectedObjects[i].parent.PositionV.Align, selectedObjects[i].parent.PositionV.Value, selectedObjects[i].parent.PositionV.Percent);
+                        if(oDr.PositionV.Align){
+                            drawing.Set_PositionV(oDr.PositionV.RelativeFrom, oDr.PositionV.Align, oDr.PositionV.Value, oDr.PositionV.Percent);
                         }
                         else{
-                            drawing.Set_PositionV(selectedObjects[i].parent.PositionV.RelativeFrom, selectedObjects[i].parent.PositionV.Align, selectedObjects[i].parent.PositionV.Value + selectedObjects[i].bounds.y, selectedObjects[i].parent.PositionV.Percent);
+                            drawing.Set_PositionV(oDr.PositionV.RelativeFrom, oDr.PositionV.Align, oDr.PositionV.Value + oSp.bounds.y, oDr.PositionV.Percent);
                         }
                     }
                     run.Add_ToContent(run.State.ContentPos, drawing, true, false);

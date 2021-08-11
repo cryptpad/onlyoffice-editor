@@ -9428,6 +9428,17 @@
       this.addToRecalculate();
     };
 
+      SmartArt.prototype.convertToWord = function(document) {
+          var oCopy = this.copy();
+          oCopy.setBDeleted2(false)
+          return oCopy;
+      };
+      SmartArt.prototype.convertToPPTX = function(drawingDocument, worksheet) {
+          var oCopy = this.copy();
+          oCopy.setBDeleted2(false)
+          return oCopy;
+      };
+
     var horizontalListOfPicture = {
       colorsDef: {
         titles: [''],

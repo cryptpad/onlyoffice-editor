@@ -968,6 +968,12 @@
         this.spPr.xfrm.setOffY(y);
         this.spPr.xfrm.setExtX(extX);
         this.spPr.xfrm.setExtY(extY);
+        if(this.isGroupObject()) {
+            this.spPr.xfrm.setChOffX(0);
+            this.spPr.xfrm.setChOffY(0);
+            this.spPr.xfrm.setChExtX(extX);
+            this.spPr.xfrm.setChExtY(extY);
+        }
         this.spPr.xfrm.setRot(rot);
         this.spPr.xfrm.setFlipH(flipH);
         this.spPr.xfrm.setFlipV(flipV);
