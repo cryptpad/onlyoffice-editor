@@ -5014,103 +5014,106 @@ DrawingObjectsController.prototype =
                 }
                 else
                 {
-                    aSO = this.selection.groupSelection.selectedObjects;
-                    this.resetConnectors(aSO);
-                    var group_map = {}, group_arr = [], i, cur_group, sp, xc, yc, hc, vc, rel_xc, rel_yc, j;
-                    for(i = 0; i < aSO.length; ++i)
+                    if(this.selection.groupSelection.getObjectType() === AscDFH.historyitem_type_GroupShape)
                     {
-                        oSp = aSO[i];
-                        if(oSp.getObjectType() === AscDFH.historyitem_type_SlicerView)
+                        aSO = this.selection.groupSelection.selectedObjects;
+                        this.resetConnectors(aSO);
+                        var group_map = {}, group_arr = [], i, cur_group, sp, xc, yc, hc, vc, rel_xc, rel_yc, j;
+                        for(i = 0; i < aSO.length; ++i)
                         {
-                            aSlicerNames.push(oSp.getName());
-                        }
-                        else
-                        {
-                            oSp.group.removeFromSpTree(oSp.Get_Id());
-                            group_map[oSp.group.Get_Id()] = oSp.group;
-                            oSp.setBDeleted(true);
-                        }
-                    }
-                    group_map[this.selection.groupSelection.Get_Id()+""] = this.selection.groupSelection;
-                    for(var key in group_map)
-                    {
-                        if(group_map.hasOwnProperty(key))
-                            group_arr.push(group_map[key]);
-                    }
-                    group_arr.sort(CompareGroups);
-                    for(i = 0; i < group_arr.length; ++i)
-                    {
-                        cur_group = group_arr[i];
-                        if(isRealObject(cur_group.group))
-                        {
-                            if(cur_group.spTree.length === 0)
+                            oSp = aSO[i];
+                            if(oSp.getObjectType() === AscDFH.historyitem_type_SlicerView)
                             {
-                                cur_group.group.removeFromSpTree(cur_group.Get_Id());
-                            }
-                            else if(cur_group.spTree.length === 1 && cur_group.getObjectType() === AscDFH.historyitem_type_GroupShape)
-                            {
-                                sp = cur_group.spTree[0];
-                                hc = sp.spPr.xfrm.extX/2;
-                                vc = sp.spPr.xfrm.extY/2;
-                                xc = sp.transform.TransformPointX(hc, vc);
-                                yc = sp.transform.TransformPointY(hc, vc);
-                                rel_xc = cur_group.group.invertTransform.TransformPointX(xc, yc);
-                                rel_yc = cur_group.group.invertTransform.TransformPointY(xc, yc);
-                                sp.spPr.xfrm.setOffX(rel_xc - hc);
-                                sp.spPr.xfrm.setOffY(rel_yc - vc);
-                                sp.spPr.xfrm.setRot(AscFormat.normalizeRotate(cur_group.rot + sp.rot));
-                                sp.spPr.xfrm.setFlipH(cur_group.spPr.xfrm.flipH === true ? !(sp.spPr.xfrm.flipH === true) : sp.spPr.xfrm.flipH === true);
-                                sp.spPr.xfrm.setFlipV(cur_group.spPr.xfrm.flipV === true ? !(sp.spPr.xfrm.flipV === true) : sp.spPr.xfrm.flipV === true);
-                                sp.setGroup(cur_group.group);
-                                for(j = 0; j < cur_group.group.spTree.length; ++j)
-                                {
-                                    if(cur_group.group.spTree[j] === cur_group)
-                                    {
-                                        cur_group.group.addToSpTree(j, sp);
-                                        cur_group.group.removeFromSpTree(cur_group.Get_Id());
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if(cur_group.spTree.length === 0)
-                            {
-                                this.resetInternalSelection();
-                                this.removeCallback(-1, undefined, undefined, undefined, undefined, undefined);
-                                return;
-                            }
-                            else if(cur_group.spTree.length === 1 && cur_group.getObjectType() === AscDFH.historyitem_type_GroupShape)
-                            {
-                                sp = cur_group.spTree[0];
-                                sp.spPr.xfrm.setOffX(cur_group.spPr.xfrm.offX + sp.spPr.xfrm.offX);
-                                sp.spPr.xfrm.setOffY(cur_group.spPr.xfrm.offY + sp.spPr.xfrm.offY);
-                                sp.spPr.xfrm.setRot(AscFormat.normalizeRotate(cur_group.rot + sp.rot));
-                                sp.spPr.xfrm.setFlipH(cur_group.spPr.xfrm.flipH === true ? !(sp.spPr.xfrm.flipH === true) : sp.spPr.xfrm.flipH === true);
-                                sp.spPr.xfrm.setFlipV(cur_group.spPr.xfrm.flipV === true ? !(sp.spPr.xfrm.flipV === true) : sp.spPr.xfrm.flipV === true);
-                                sp.setGroup(null);
-                                sp.addToDrawingObjects();
-                                sp.checkDrawingBaseCoords();
-                                cur_group.deleteDrawingBase();
-                                this.resetSelection();
-                                this.selectObject(sp, cur_group.selectStartPage);
+                                aSlicerNames.push(oSp.getName());
                             }
                             else
                             {
-                                cur_group.updateCoordinatesAfterInternalResize();
+                                oSp.group.removeFromSpTree(oSp.Get_Id());
+                                group_map[oSp.group.Get_Id()] = oSp.group;
+                                oSp.setBDeleted(true);
                             }
-                            this.resetInternalSelection();
-                            this.recalculate();
-                            oWBView = Asc.editor && Asc.editor.wb;
-                            if(aSlicerNames.length > 0 && oWBView)
-                            {
-                                History.StartTransaction();
-                                oWBView.deleteSlicers(aSlicerNames);
-                            }
-                            return;
                         }
+                        group_map[this.selection.groupSelection.Get_Id()+""] = this.selection.groupSelection;
+                        for(var key in group_map)
+                        {
+                            if(group_map.hasOwnProperty(key))
+                                group_arr.push(group_map[key]);
+                        }
+                        group_arr.sort(CompareGroups);
+                        for(i = 0; i < group_arr.length; ++i)
+                        {
+                            cur_group = group_arr[i];
+                            if(isRealObject(cur_group.group))
+                            {
+                                if(cur_group.spTree.length === 0)
+                                {
+                                    cur_group.group.removeFromSpTree(cur_group.Get_Id());
+                                }
+                                else if(cur_group.spTree.length === 1)
+                                {
+                                    sp = cur_group.spTree[0];
+                                    hc = sp.spPr.xfrm.extX/2;
+                                    vc = sp.spPr.xfrm.extY/2;
+                                    xc = sp.transform.TransformPointX(hc, vc);
+                                    yc = sp.transform.TransformPointY(hc, vc);
+                                    rel_xc = cur_group.group.invertTransform.TransformPointX(xc, yc);
+                                    rel_yc = cur_group.group.invertTransform.TransformPointY(xc, yc);
+                                    sp.spPr.xfrm.setOffX(rel_xc - hc);
+                                    sp.spPr.xfrm.setOffY(rel_yc - vc);
+                                    sp.spPr.xfrm.setRot(AscFormat.normalizeRotate(cur_group.rot + sp.rot));
+                                    sp.spPr.xfrm.setFlipH(cur_group.spPr.xfrm.flipH === true ? !(sp.spPr.xfrm.flipH === true) : sp.spPr.xfrm.flipH === true);
+                                    sp.spPr.xfrm.setFlipV(cur_group.spPr.xfrm.flipV === true ? !(sp.spPr.xfrm.flipV === true) : sp.spPr.xfrm.flipV === true);
+                                    sp.setGroup(cur_group.group);
+                                    for(j = 0; j < cur_group.group.spTree.length; ++j)
+                                    {
+                                        if(cur_group.group.spTree[j] === cur_group)
+                                        {
+                                            cur_group.group.addToSpTree(j, sp);
+                                            cur_group.group.removeFromSpTree(cur_group.Get_Id());
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if(cur_group.spTree.length === 0)
+                                {
+                                    this.resetInternalSelection();
+                                    this.removeCallback(-1, undefined, undefined, undefined, undefined, undefined);
+                                    return;
+                                }
+                                else if(cur_group.spTree.length === 1)
+                                {
+                                    sp = cur_group.spTree[0];
+                                    sp.spPr.xfrm.setOffX(cur_group.spPr.xfrm.offX + sp.spPr.xfrm.offX);
+                                    sp.spPr.xfrm.setOffY(cur_group.spPr.xfrm.offY + sp.spPr.xfrm.offY);
+                                    sp.spPr.xfrm.setRot(AscFormat.normalizeRotate(cur_group.rot + sp.rot));
+                                    sp.spPr.xfrm.setFlipH(cur_group.spPr.xfrm.flipH === true ? !(sp.spPr.xfrm.flipH === true) : sp.spPr.xfrm.flipH === true);
+                                    sp.spPr.xfrm.setFlipV(cur_group.spPr.xfrm.flipV === true ? !(sp.spPr.xfrm.flipV === true) : sp.spPr.xfrm.flipV === true);
+                                    sp.setGroup(null);
+                                    sp.addToDrawingObjects();
+                                    sp.checkDrawingBaseCoords();
+                                    cur_group.deleteDrawingBase();
+                                    this.resetSelection();
+                                    this.selectObject(sp, cur_group.selectStartPage);
+                                }
+                                else
+                                {
+                                    cur_group.updateCoordinatesAfterInternalResize();
+                                }
+                                this.resetInternalSelection();
+                                this.recalculate();
+                                oWBView = Asc.editor && Asc.editor.wb;
+                                if(aSlicerNames.length > 0 && oWBView)
+                                {
+                                    History.StartTransaction();
+                                    oWBView.deleteSlicers(aSlicerNames);
+                                }
+                                return;
+                            }
+                        }
+                        this.resetInternalSelection();
                     }
-                    this.resetInternalSelection();
                 }
             }
             else if(this.selection.chartSelection)
@@ -6909,7 +6912,14 @@ DrawingObjectsController.prototype =
 
 
 
-                sp_tree = cur_group.spTree;
+                if(cur_group.getObjectType() === AscDFH.historyitem_type_SmartArt)
+                {
+                    sp_tree = cur_group.drawing.spTree;
+                }
+                else
+                {
+                    sp_tree = cur_group.spTree;
+                }
                 var xc, yc;
                 for(j = 0; j < sp_tree.length; ++j)
                 {
@@ -6933,6 +6943,7 @@ DrawingObjectsController.prototype =
                         sp.addToDrawingObjects();
                     }
                     sp.checkDrawingBaseCoords();
+                    sp.convertFromSmartArt();
                     this.selectObject(sp, 0);
                 }
                 cur_group.setBDeleted(true);

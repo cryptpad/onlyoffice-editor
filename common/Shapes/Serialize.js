@@ -6751,48 +6751,7 @@ function BinaryPPTYLoader()
         }
         if(txXfrm ){
             if(!AscFormat.SmartArt)  {
-                if(AscFormat.isRealNumber(txXfrm.rot) && shape.txBody) {
-                    var oCopyBodyPr;
-                    var rot2 = txXfrm.rot;
-                    while(rot2 < 0){
-                        rot2 += 2*Math.PI;
-                    }
-                    var nSquare = ((2.0*rot2/Math.PI + 0.5) >> 0);
-                    while (nSquare < 0){
-                        nSquare += 4;
-                    }
-                    switch (nSquare){
-                        case 0:
-                        {
-                            oCopyBodyPr = shape.txBody.bodyPr ? shape.txBody.bodyPr.createDuplicate() : new AscFormat.CBodyPr();
-                            oCopyBodyPr.rot = (rot2/AscFormat.cToRad + 0.5) >> 0;
-                            shape.txBody.setBodyPr(oCopyBodyPr);
-                            break;
-                        }
-                        case 1:
-                        {
-                            oCopyBodyPr = shape.txBody.bodyPr ? shape.txBody.bodyPr.createDuplicate() : new AscFormat.CBodyPr();
-                            oCopyBodyPr.vert = AscFormat.nVertTTvert;
-                            shape.txBody.setBodyPr(oCopyBodyPr);
-                            break;
-                        }
-                        case 2:
-                        {
-                            oCopyBodyPr = shape.txBody.bodyPr ? shape.txBody.bodyPr.createDuplicate() : new AscFormat.CBodyPr();
-                            oCopyBodyPr.rot = (rot2/AscFormat.cToRad + 0.5) >> 0;
-                            shape.txBody.setBodyPr(oCopyBodyPr);
-                            break;
-                        }
-                        case 3:
-                        {
-                            oCopyBodyPr = shape.txBody.bodyPr ? shape.txBody.bodyPr.createDuplicate() : new AscFormat.CBodyPr();
-                            oCopyBodyPr.vert = AscFormat.nVertTTvert270;
-                            shape.txBody.setBodyPr(oCopyBodyPr);
-                            break;
-                        }
-                    }
-                }
-                shape.setTxXfrm(null);
+                shape.convertFromSmartArt();
             }
         }
 

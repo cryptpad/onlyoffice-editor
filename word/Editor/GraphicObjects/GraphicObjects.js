@@ -2777,7 +2777,14 @@ CGraphicObjects.prototype =
             for(i = 0; i < ungroup_arr.length; ++i)
             {
                 cur_group = ungroup_arr[i];
-                sp_tree = cur_group.spTree;
+                if(cur_group.getObjectType() === AscDFH.historyitem_type_SmartArt)
+                {
+                    sp_tree = cur_group.drawing.spTree;
+                }
+                else
+                {
+                    sp_tree = cur_group.spTree;
+                }
                 aPos = [];
                 for(j = 0; j < sp_tree.length; ++j)
                 {
@@ -2800,7 +2807,14 @@ CGraphicObjects.prototype =
                 cur_group.parent.Remove_FromDocument(false);
 				cur_group.parent.bNotPreDelete = undefined;
                 cur_group.setBDeleted(true);
-                sp_tree = cur_group.spTree;
+                if(cur_group.getObjectType() === AscDFH.historyitem_type_SmartArt)
+                {
+                    sp_tree = cur_group.drawing.spTree;
+                }
+                else
+                {
+                    sp_tree = cur_group.spTree;
+                }
                 aPos = arrCenterPos[i];
                 for(j = 0; j < sp_tree.length; ++j)
                 {
@@ -2858,6 +2872,7 @@ CGraphicObjects.prototype =
                     }));
                     drawing.Set_XYForAdd(fPosX, fPosY, nearest_pos, page_num);
                     a_objects.push({drawing: drawing, par: parent_paragraph, posX: fPosX, posY: fPosY});
+                    sp.convertFromSmartArt();
                     drawing.Add_ToDocument2(parent_paragraph);
                     this.selectObject(sp, page_num);
                 }
@@ -3056,115 +3071,118 @@ CGraphicObjects.prototype =
                 }
                 else
                 {
-                    var group_map = {}, group_arr = [], i, cur_group, sp, xc, yc, hc, vc, rel_xc, rel_yc, j;
-                    for(i = 0; i < this.selection.groupSelection.selectedObjects.length; ++i)
+                    if(this.selection.groupSelection.getObjectType() === AscDFH.historyitem_type_GroupShape)
                     {
-                        this.selection.groupSelection.selectedObjects[i].group.removeFromSpTree(this.selection.groupSelection.selectedObjects[i].Get_Id());
-                        group_map[this.selection.groupSelection.selectedObjects[i].group.Get_Id()+""] = this.selection.groupSelection.selectedObjects[i].group;
-                    }
-                    group_map[this.selection.groupSelection.Get_Id()] = this.selection.groupSelection;
-                    for(var key in group_map)
-                    {
-                        if(group_map.hasOwnProperty(key))
-                            group_arr.push(group_map[key]);
-                    }
-                    group_arr.sort(AscFormat.CompareGroups);
-                    for(i = 0; i < group_arr.length; ++i)
-                    {
-                        cur_group = group_arr[i];
-                        if(isRealObject(cur_group.group))
+                        var group_map = {}, group_arr = [], i, cur_group, sp, xc, yc, hc, vc, rel_xc, rel_yc, j;
+                        for(i = 0; i < this.selection.groupSelection.selectedObjects.length; ++i)
                         {
-                            if(cur_group.spTree.length === 0)
+                            this.selection.groupSelection.selectedObjects[i].group.removeFromSpTree(this.selection.groupSelection.selectedObjects[i].Get_Id());
+                            group_map[this.selection.groupSelection.selectedObjects[i].group.Get_Id()+""] = this.selection.groupSelection.selectedObjects[i].group;
+                        }
+                        group_map[this.selection.groupSelection.Get_Id()] = this.selection.groupSelection;
+                        for(var key in group_map)
+                        {
+                            if(group_map.hasOwnProperty(key))
+                                group_arr.push(group_map[key]);
+                        }
+                        group_arr.sort(AscFormat.CompareGroups);
+                        for(i = 0; i < group_arr.length; ++i)
+                        {
+                            cur_group = group_arr[i];
+                            if(isRealObject(cur_group.group))
                             {
-                                cur_group.group.removeFromSpTree(cur_group.Get_Id());
-                            }
-                            else if(cur_group.spTree.length === 1 && cur_group.getObjectType() === AscDFH.historyitem_type_GroupShape)
-                            {
-                                sp = cur_group.spTree[0];
-                                hc = sp.spPr.xfrm.extX/2;
-                                vc = sp.spPr.xfrm.extY/2;
-                                xc = sp.transform.TransformPointX(hc, vc);
-                                yc = sp.transform.TransformPointY(hc, vc);
-                                rel_xc = cur_group.group.invertTransform.TransformPointX(xc, yc);
-                                rel_yc = cur_group.group.invertTransform.TransformPointY(xc, yc);
-                                sp.spPr.xfrm.setOffX(rel_xc - hc);
-                                sp.spPr.xfrm.setOffY(rel_yc - vc);
-                                sp.spPr.xfrm.setRot(AscFormat.normalizeRotate(cur_group.rot + sp.rot));
-                                sp.spPr.xfrm.setFlipH(cur_group.spPr.xfrm.flipH === true ? !(sp.spPr.xfrm.flipH === true) : sp.spPr.xfrm.flipH === true);
-                                sp.spPr.xfrm.setFlipV(cur_group.spPr.xfrm.flipV === true ? !(sp.spPr.xfrm.flipV === true) : sp.spPr.xfrm.flipV === true);
-                                sp.setGroup(cur_group.group);
-                                for(j = 0; j < cur_group.group.spTree.length; ++j)
+                                if(cur_group.spTree.length === 0)
                                 {
-                                    if(cur_group.group.spTree[j] === cur_group)
+                                    cur_group.group.removeFromSpTree(cur_group.Get_Id());
+                                }
+                                else if(cur_group.spTree.length === 1)
+                                {
+                                    sp = cur_group.spTree[0];
+                                    hc = sp.spPr.xfrm.extX/2;
+                                    vc = sp.spPr.xfrm.extY/2;
+                                    xc = sp.transform.TransformPointX(hc, vc);
+                                    yc = sp.transform.TransformPointY(hc, vc);
+                                    rel_xc = cur_group.group.invertTransform.TransformPointX(xc, yc);
+                                    rel_yc = cur_group.group.invertTransform.TransformPointY(xc, yc);
+                                    sp.spPr.xfrm.setOffX(rel_xc - hc);
+                                    sp.spPr.xfrm.setOffY(rel_yc - vc);
+                                    sp.spPr.xfrm.setRot(AscFormat.normalizeRotate(cur_group.rot + sp.rot));
+                                    sp.spPr.xfrm.setFlipH(cur_group.spPr.xfrm.flipH === true ? !(sp.spPr.xfrm.flipH === true) : sp.spPr.xfrm.flipH === true);
+                                    sp.spPr.xfrm.setFlipV(cur_group.spPr.xfrm.flipV === true ? !(sp.spPr.xfrm.flipV === true) : sp.spPr.xfrm.flipV === true);
+                                    sp.setGroup(cur_group.group);
+                                    for(j = 0; j < cur_group.group.spTree.length; ++j)
                                     {
-                                        cur_group.group.addToSpTree(j, sp);
-                                        cur_group.group.removeFromSpTree(cur_group.Get_Id());
+                                        if(cur_group.group.spTree[j] === cur_group)
+                                        {
+                                            cur_group.group.addToSpTree(j, sp);
+                                            cur_group.group.removeFromSpTree(cur_group.Get_Id());
+                                        }
                                     }
                                 }
-                            }
-                        }
-                        else
-                        {
-                            var para_drawing = cur_group.parent;
-                            if(cur_group.spTree.length === 0)
-                            {
-                                this.resetInternalSelection();
-                                this.remove();
-                                return;
-                            }
-                            else if(cur_group.spTree.length === 1 && cur_group.getObjectType() === AscDFH.historyitem_type_GroupShape)
-                            {
-                                sp = cur_group.spTree[0];
-                                sp.spPr.xfrm.setOffX(0);
-                                sp.spPr.xfrm.setOffY(0);
-                                sp.spPr.xfrm.setRot(AscFormat.normalizeRotate(cur_group.rot + sp.rot));
-                                sp.spPr.xfrm.setFlipH(cur_group.spPr.xfrm.flipH === true ? !(sp.spPr.xfrm.flipH === true) : sp.spPr.xfrm.flipH === true);
-                                sp.spPr.xfrm.setFlipV(cur_group.spPr.xfrm.flipV === true ? !(sp.spPr.xfrm.flipV === true) : sp.spPr.xfrm.flipV === true);
-                                sp.setGroup(null);
-                                para_drawing.Set_GraphicObject(sp);
-                                sp.setParent(para_drawing);
-                                this.resetSelection();
-                                this.selectObject(sp, cur_group.selectStartPage);
-                                new_x = sp.transform.tx;
-                                new_y = sp.transform.ty;
-                                para_drawing.CheckWH();
-                                if(!para_drawing.Is_Inline())
-                                {
-                                    para_drawing.Set_XY(new_x, new_y, para_drawing.Get_ParentParagraph(), para_drawing.GraphicObj.selectStartPage, true);
-                                }
-                                this.document.Recalculate();
-                                return;
                             }
                             else
                             {
-                                this.resetInternalSelection();
-                                var new_x, new_y;
-                               // var pos = cur_group.getBoundsPos();
-                                var oPos = cur_group.updateCoordinatesAfterInternalResize();
-
-                                var g_pos_x = 0, g_pos_y = 0;
-                                if(oPos)
+                                var para_drawing = cur_group.parent;
+                                if(cur_group.spTree.length === 0)
                                 {
-                                    if(AscFormat.isRealNumber(oPos.posX))
-                                    {
-                                        g_pos_x = oPos.posX;
-                                    }
-                                    if(AscFormat.isRealNumber(oPos.posY))
-                                    {
-                                        g_pos_y = oPos.posY;
-                                    }
+                                    this.resetInternalSelection();
+                                    this.remove();
+                                    return;
                                 }
-                                new_x = cur_group.x + g_pos_x;
-                                new_y = cur_group.y + g_pos_y;
+                                else if(cur_group.spTree.length === 1)
+                                {
+                                    sp = cur_group.spTree[0];
+                                    sp.spPr.xfrm.setOffX(0);
+                                    sp.spPr.xfrm.setOffY(0);
+                                    sp.spPr.xfrm.setRot(AscFormat.normalizeRotate(cur_group.rot + sp.rot));
+                                    sp.spPr.xfrm.setFlipH(cur_group.spPr.xfrm.flipH === true ? !(sp.spPr.xfrm.flipH === true) : sp.spPr.xfrm.flipH === true);
+                                    sp.spPr.xfrm.setFlipV(cur_group.spPr.xfrm.flipV === true ? !(sp.spPr.xfrm.flipV === true) : sp.spPr.xfrm.flipV === true);
+                                    sp.setGroup(null);
+                                    para_drawing.Set_GraphicObject(sp);
+                                    sp.setParent(para_drawing);
+                                    this.resetSelection();
+                                    this.selectObject(sp, cur_group.selectStartPage);
+                                    new_x = sp.transform.tx;
+                                    new_y = sp.transform.ty;
+                                    para_drawing.CheckWH();
+                                    if(!para_drawing.Is_Inline())
+                                    {
+                                        para_drawing.Set_XY(new_x, new_y, para_drawing.Get_ParentParagraph(), para_drawing.GraphicObj.selectStartPage, true);
+                                    }
+                                    this.document.Recalculate();
+                                    return;
+                                }
+                                else
+                                {
+                                    this.resetInternalSelection();
+                                    var new_x, new_y;
+                                    // var pos = cur_group.getBoundsPos();
+                                    var oPos = cur_group.updateCoordinatesAfterInternalResize();
 
-                                cur_group.spPr.xfrm.setOffX(0);
-                                cur_group.spPr.xfrm.setOffY(0);
-                                para_drawing.CheckWH();
-                                para_drawing.Set_XY(new_x, new_y, cur_group.parent.Get_ParentParagraph(), cur_group.selectStartPage, false);//X, Y, Paragraph, PageNum, bResetAlign
-                                this.document.Recalculate();
-                                break;
+                                    var g_pos_x = 0, g_pos_y = 0;
+                                    if(oPos)
+                                    {
+                                        if(AscFormat.isRealNumber(oPos.posX))
+                                        {
+                                            g_pos_x = oPos.posX;
+                                        }
+                                        if(AscFormat.isRealNumber(oPos.posY))
+                                        {
+                                            g_pos_y = oPos.posY;
+                                        }
+                                    }
+                                    new_x = cur_group.x + g_pos_x;
+                                    new_y = cur_group.y + g_pos_y;
+
+                                    cur_group.spPr.xfrm.setOffX(0);
+                                    cur_group.spPr.xfrm.setOffY(0);
+                                    para_drawing.CheckWH();
+                                    para_drawing.Set_XY(new_x, new_y, cur_group.parent.Get_ParentParagraph(), cur_group.selectStartPage, false);//X, Y, Paragraph, PageNum, bResetAlign
+                                    this.document.Recalculate();
+                                    break;
+                                }
+
                             }
-
                         }
                     }
                 }

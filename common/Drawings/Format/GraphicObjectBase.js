@@ -698,7 +698,7 @@
         return this.getNoGrp() === false;
     };
     CGraphicObjectBase.prototype.canUnGroup = function() {
-        return this.getObjectType() === AscDFH.historyitem_type_GroupShape && this.getNoUngrp() === false;
+        return (this.getObjectType() === AscDFH.historyitem_type_GroupShape || this.getObjectType() === AscDFH.historyitem_type_SmartArt && this.drawing)  && this.getNoUngrp() === false;
     };
     CGraphicObjectBase.prototype.canChangeAdjustments = function () {
         return this.getNoAdjustHandles() === false;
@@ -2294,6 +2294,9 @@
         this.draw(oGraphics);
         AscCommon.IsShapeToImageConverter = false;
         return new AscFormat.CBaseAnimTexture(oCanvas, scale, nX, nY)
+    };
+    CGraphicObjectBase.prototype.convertFromSmartArt = function() {
+        return this;
     };
 
     function CRelSizeAnchor() {

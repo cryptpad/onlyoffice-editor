@@ -1984,14 +1984,6 @@ CDocumentContent.prototype.AddContent = function(arrElements)
 };
 CDocumentContent.prototype.Is_Empty = function()
 {
-	if (this.isDocumentContentInSmartArtShape()) {
-		var oShape = this.Parent.parent;
-		var point = oShape.getPoint();
-		var isPhldr = point && point.prSet && point.prSet.phldr;
-		if (isPhldr) {
-			return true;
-		}
-	}
 	if (this.Content.length > 1 || type_Paragraph !== this.Content[0].GetType())
 		return false;
 

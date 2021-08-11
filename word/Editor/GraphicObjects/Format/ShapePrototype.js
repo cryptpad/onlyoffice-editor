@@ -157,6 +157,11 @@ CShape.prototype.recalcTextStyles = function()
 };
 CShape.prototype.recalcTxBoxContent = function()
 {
+    if(!this.bWordShape)
+    {
+        this.recalcInfo.recalculateContent = true;
+        this.recalcInfo.recalculateContent2 = true;
+    }
     this.recalcInfo.recalculateTxBoxContent = true;
     this.recalcInfo.AllDrawings = [];
     if(this.checkAutofit && this.checkAutofit() && (!editor || !editor.noCreatePoint || editor.exucuteHistory))

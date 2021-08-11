@@ -1203,7 +1203,54 @@ CShape.prototype.convertToPPTX = function (drawingDocument, worksheet, bIsAddMat
     return c;
 };
 
-
+CShape.prototype.convertFromSmartArt = function() {
+    var txXfrm = this.txXfrm;
+    if(txXfrm){
+        if(AscFormat.isRealNumber(txXfrm.rot) && this.txBody) {
+            var oCopyBodyPr;
+            var rot2 = txXfrm.rot;
+            while(rot2 < 0){
+                rot2 += 2*Math.PI;
+            }
+            var nSquare = ((2.0*rot2/Math.PI + 0.5) >> 0);
+            while (nSquare < 0){
+                nSquare += 4;
+            }
+            switch (nSquare){
+                case 0:
+                {
+                    oCopyBodyPr = this.txBody.bodyPr ? this.txBody.bodyPr.createDuplicate() : new AscFormat.CBodyPr();
+                    oCopyBodyPr.rot = (rot2/AscFormat.cToRad + 0.5) >> 0;
+                    this.txBody.setBodyPr(oCopyBodyPr);
+                    break;
+                }
+                case 1:
+                {
+                    oCopyBodyPr = this.txBody.bodyPr ? this.txBody.bodyPr.createDuplicate() : new AscFormat.CBodyPr();
+                    oCopyBodyPr.vert = AscFormat.nVertTTvert;
+                    this.txBody.setBodyPr(oCopyBodyPr);
+                    break;
+                }
+                case 2:
+                {
+                    oCopyBodyPr = this.txBody.bodyPr ? this.txBody.bodyPr.createDuplicate() : new AscFormat.CBodyPr();
+                    oCopyBodyPr.rot = (rot2/AscFormat.cToRad + 0.5) >> 0;
+                    this.txBody.setBodyPr(oCopyBodyPr);
+                    break;
+                }
+                case 3:
+                {
+                    oCopyBodyPr = this.txBody.bodyPr ? this.txBody.bodyPr.createDuplicate() : new AscFormat.CBodyPr();
+                    oCopyBodyPr.vert = AscFormat.nVertTTvert270;
+                    this.txBody.setBodyPr(oCopyBodyPr);
+                    break;
+                }
+            }
+        }
+        this.setTxXfrm(null);
+    }
+    return this;
+};
     CShape.prototype.handleAllContents = function(fCallback){
         var content = this.getDocContent();
         if (content) {
@@ -3070,12 +3117,12 @@ CShape.prototype.copy = function (oPr) {
 
 CShape.prototype.isProtectInputInSmartArt = function() {
     return this.isObjectInSmartArt() && !this.isPlaceholderInSmartArt();
-    }
+    };
 
 CShape.prototype.isPlaceholderInSmartArt = function () {
     var point = this.getPoint();
     return this.isObjectInSmartArt() && point && point.prSet && point.prSet.phldr;
-}
+};
 CShape.prototype.Get_Styles = function (level) {
 
     var _level = AscFormat.isRealNumber(level) ? level : 0;

@@ -4136,7 +4136,14 @@
       for (nIdx = 0; nIdx < this.step.length; ++nIdx) {
         oCopy.addToLstStep(nIdx, this.step[nIdx]);
       }
-    }
+    };
+
+    IteratorAttributes.prototype.Clear_ContentChanges = function() {
+    };
+    IteratorAttributes.prototype.Add_ContentChanges = function(Changes) {
+    };
+    IteratorAttributes.prototype.Refresh_ContentChanges = function() {
+    };
 
 
     changesFactory[AscDFH.historyitem_AxisTypeVal] = CChangeLong;
