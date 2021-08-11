@@ -5047,7 +5047,7 @@ DrawingObjectsController.prototype =
                             {
                                 cur_group.group.removeFromSpTree(cur_group.Get_Id());
                             }
-                            else if(cur_group.spTree.length == 1)
+                            else if(cur_group.spTree.length === 1 && cur_group.getObjectType() === AscDFH.historyitem_type_GroupShape)
                             {
                                 sp = cur_group.spTree[0];
                                 hc = sp.spPr.xfrm.extX/2;
@@ -5080,7 +5080,7 @@ DrawingObjectsController.prototype =
                                 this.removeCallback(-1, undefined, undefined, undefined, undefined, undefined);
                                 return;
                             }
-                            else if(cur_group.spTree.length === 1)
+                            else if(cur_group.spTree.length === 1 && cur_group.getObjectType() === AscDFH.historyitem_type_GroupShape)
                             {
                                 sp = cur_group.spTree[0];
                                 sp.spPr.xfrm.setOffX(cur_group.spPr.xfrm.offX + sp.spPr.xfrm.offX);

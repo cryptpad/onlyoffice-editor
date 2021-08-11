@@ -1240,13 +1240,15 @@ CShape.prototype.setNvSpPr = function (pr) {
 CShape.prototype.setTxXfrm = function (pr) {
     History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_ShapeSetTxXfrm, this.txXfrm, pr));
     this.txXfrm = pr;
-    this.txXfrm.setParent(this);
-    };
+    if(this.txXfrm) {
+        this.txXfrm.setParent(this);
+    }
+};
 
 CShape.prototype.setModelId = function (pr) {
     History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_ShapeSetModelId, this.modelId, pr));
     this.modelId = pr;
-}
+};
 
 CShape.prototype.setSpPr = function (spPr) {
     History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_ShapeSetSpPr, this.spPr, spPr));

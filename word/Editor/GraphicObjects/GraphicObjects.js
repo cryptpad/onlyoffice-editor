@@ -3078,7 +3078,7 @@ CGraphicObjects.prototype =
                             {
                                 cur_group.group.removeFromSpTree(cur_group.Get_Id());
                             }
-                            else if(cur_group.spTree.length == 1)
+                            else if(cur_group.spTree.length === 1 && cur_group.getObjectType() === AscDFH.historyitem_type_GroupShape)
                             {
                                 sp = cur_group.spTree[0];
                                 hc = sp.spPr.xfrm.extX/2;
@@ -3112,7 +3112,7 @@ CGraphicObjects.prototype =
                                 this.remove();
                                 return;
                             }
-                            else if(cur_group.spTree.length === 1)
+                            else if(cur_group.spTree.length === 1 && cur_group.getObjectType() === AscDFH.historyitem_type_GroupShape)
                             {
                                 sp = cur_group.spTree[0];
                                 sp.spPr.xfrm.setOffX(0);
