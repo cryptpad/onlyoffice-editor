@@ -2413,7 +2413,7 @@
         if (1 === nType) this.setCoherent3DOff(oStream.GetBool());
       else if (2 === nType) this.setCsCatId(oStream.GetString2());
       else if (3 === nType) this.setCsTypeId(oStream.GetString2());
-      else if (4 === nType) this.setCustAng(oStream.GetLong());
+      else if (4 === nType) this.setCustAng(oStream.GetLong() * AscFormat.cToRad);
       else if (5 === nType) this.setCustFlipHor(oStream.GetBool());
       else if (6 === nType) this.setCustFlipVert(oStream.GetBool());
       else if (7 === nType) this.setCustLinFactNeighborX(oStream.GetLong());
