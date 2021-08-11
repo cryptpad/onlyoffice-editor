@@ -10202,14 +10202,14 @@
 
 	Worksheet.prototype.isIntersectLockedRanges = function (ranges) {
 		for (var i = 0; i < ranges.length; i++) {
-			if (this.getLockedRange(ranges[i])) {
+			if (this.isLockedRange(ranges[i])) {
 				return true;
 			}
 		}
 		return false;
 	};
 
-	Worksheet.prototype.getLockedRange = function (range) {
+	Worksheet.prototype.isLockedRange = function (range) {
 		var res = true;
 		this.getRange3(range.r1, range.c1, range.r2, range.c2)._foreach2(function(cell){
 			if (!cell) {
@@ -10227,6 +10227,31 @@
 		});
 		return res;
 	};
+
+	Worksheet.prototype.getLockedRanges = function (range) {
+		var res = [range.clone()];
+		this.getRange3(range.r1, range.c1, range.r2, range.c2)._foreachNoEmpty(function(cell){
+			if (!cell) {
+				return;
+			}
+			var cellxfs = cell && cell.xfs;
+			var isLocked = cellxfs && cellxfs.asc_getLocked();
+			if (isLocked === false) {
+				//исключаем ячейку из общего диапазона
+				var _range = new Asc.Range(cell.nCol, cell.nRow, cell.nCol, cell.nRow);
+				var newRange = [];
+				for (var i = 0; i < res.length; i++) {
+					var _difference = _range.difference(res[i]);
+					if (_difference && _difference.length) {
+						newRange = newRange.concat(_difference);
+					}
+				}
+				res = newRange;
+			}
+		});
+		return res;
+	};
+
 
 	Worksheet.prototype.getProtectedRanges = function (needClone) {
 		var protectedRanges = this.aProtectedRanges;

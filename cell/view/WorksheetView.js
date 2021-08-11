@@ -9007,7 +9007,7 @@
 					var difference = arn.difference(expandRange);
 					if (difference && difference.length) {
 						for (var i = 0; i < difference.length; i++) {
-							if (!this.model.protectedRangesContainsRange(difference[i], true) && this.model.getLockedRange(difference[i])) {
+							if (!this.model.protectedRangesContainsRange(difference[i], true) && this.model.isLockedRange(difference[i])) {
 								return Asc.c_oAscSelectionSortExpand.showLockMessage;
 							}
 						}
@@ -10334,10 +10334,10 @@
 						t._isLockedCells(changedRange, /*subType*/null, applyFillHandleCallback);
 					} else {
 						// Сбрасываем параметры автозаполнения
-						this.activeFillHandle = null;
-						this.fillHandleDirection = -1;
+						t.activeFillHandle = null;
+						t.fillHandleDirection = -1;
 						// Перерисовываем
-						this._drawSelection();
+						t._drawSelection();
 					}
 				}, true);
 				return;
@@ -10866,7 +10866,7 @@
             this._cleanSelectionMoveRange();
             return;
         }
-		if (this.model.getSheetProtection() && (this.model.getLockedRange(arnFrom) || this.model.getLockedRange(arnTo))) {
+		if (this.model.getSheetProtection() && (this.model.isLockedRange(arnFrom) || this.model.isLockedRange(arnTo))) {
 			this._cleanSelectionMoveRange();
 			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
 			return;
@@ -11315,7 +11315,7 @@
                         t.cellCommentator.sortComments(t.model._doSort(range, val.type, opt_by_rows ? activeCell.row : activeCell.col, val.color, true, opt_by_rows));
 
 						if (t.model.getSheetProtection()) {
-							if (!(t.model.protectedRangesContainsRange(range.bbox) || !t.model.getLockedRange(range.bbox))) {
+							if (!(t.model.protectedRangesContainsRange(range.bbox) || !t.model.isLockedRange(range.bbox))) {
 								t.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
 								return;
 							}
@@ -11331,7 +11331,7 @@
 						}
 
 						if (t.model.getSheetProtection()) {
-							if (!(t.model.protectedRangesContainsRange(range.bbox) || !t.model.getLockedRange(range.bbox))) {
+							if (!(t.model.protectedRangesContainsRange(range.bbox) || !t.model.isLockedRange(range.bbox))) {
 								t.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
 								return;
 							}
@@ -14311,7 +14311,7 @@
 							return;
 						}
 
-						if (t.model.getSheetProtection() && t.model.getLockedRange(arn)) {
+						if (t.model.getSheetProtection() && t.model.isLockedRange(arn)) {
 							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.DeleteColumnContainsLockedCell,
 								c_oAscError.Level.NoCritical);
 							return;
@@ -14356,7 +14356,7 @@
 							return;
 						}
 
-						if (t.model.getSheetProtection() && t.model.getLockedRange(arn)) {
+						if (t.model.getSheetProtection() && t.model.isLockedRange(arn)) {
 							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.DeleteRowContainsLockedCell,
 								c_oAscError.Level.NoCritical);
 							return;
@@ -14400,7 +14400,7 @@
 
 						if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.deleteColumns)) {
 							return;
-						} else if (t.model.getSheetProtection() && t.model.getLockedRange(lockRange)) {
+						} else if (t.model.getSheetProtection() && t.model.isLockedRange(lockRange)) {
 							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.DeleteColumnContainsLockedCell,
 								c_oAscError.Level.NoCritical);
 							return;
@@ -14450,7 +14450,7 @@
 
 						if (t.model.getSheetProtection(Asc.c_oAscSheetProtectType.deleteRows)) {
 							return;
-						} else if (t.model.getSheetProtection() && t.model.getLockedRange(lockRange)) {
+						} else if (t.model.getSheetProtection() && t.model.isLockedRange(lockRange)) {
 							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.DeleteRowContainsLockedCell,
 								c_oAscError.Level.NoCritical);
 							return;
@@ -20892,7 +20892,7 @@
 		var selection = t.model.selectionRange.getLast();
 
 		if (this.model.getSheetProtection()) {
-			if (!(t.model.protectedRangesContainsRange(selection) || !t.model.getLockedRange(selection))) {
+			if (!(t.model.protectedRangesContainsRange(selection) || !t.model.isLockedRange(selection))) {
 				this.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
 				return;
 			}
@@ -21081,7 +21081,7 @@
 		var selection = t.model.selectionRange.getLast();
 
 		if (this.model.getSheetProtection()) {
-			if (!(t.model.protectedRangesContainsRange(selection) || !t.model.getLockedRange(selection))) {
+			if (!(t.model.protectedRangesContainsRange(selection) || !t.model.isLockedRange(selection))) {
 				this.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
 				return;
 			}
@@ -22304,27 +22304,45 @@
 			return;
 		}
 
+		var checkRange = function (_protectedRanges, _range) {
+			var needCheckPasswordDialog = true;
+			for (var j = 0; j < _protectedRanges.length; j++) {
+				if (!_protectedRanges[j].asc_isPassword() || _protectedRanges[j]._isEnterPassword) {
+					needCheckPasswordDialog = false;
+					break;
+				}
+			}
+			if (needCheckPasswordDialog) {
+				aCheckPasswordRanges.push(new AscCommon.CellBase(_range.r1, _range.c1));
+			}
+		};
+
 		var aCheckPasswordRanges = [];
 		for (var i = 0; i < aRanges.length; i++) {
 			var range = aRanges[i];
-
-			var lockedCell = isProtectSheet && wsModel.getLockedRange(range);
+			var lockedCell = isProtectSheet && wsModel.isLockedRange(range);
+			var protectedRanges;
 			if (lockedCell) {
-				var protectedRanges = wsModel.protectedRangesContainsRange(range);
-				if (!protectedRanges) {
-					this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
-					callback(false);
-					return;
-				} else {
-					var needCheckPasswordDialog = true;
-					for (var j = 0; j < protectedRanges.length; j++) {
-						if (!protectedRanges[j].asc_isPassword() || protectedRanges[j]._isEnterPassword) {
-							needCheckPasswordDialog = false;
-							break;
+				if (checkLockedRangeOnProtect) {
+					var lockedRanges = wsModel.getLockedRanges(range);
+					for (var n = 0; n < lockedRanges.length; n++) {
+						protectedRanges = wsModel.protectedRangesContainsRange(lockedRanges[i]);
+						if (!protectedRanges) {
+							t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+							callback(false);
+							return false;
+						} else {
+							checkRange(protectedRanges, lockedRanges[i]);
 						}
 					}
-					if (needCheckPasswordDialog) {
-						aCheckPasswordRanges.push(new AscCommon.CellBase(range.r1, range.c1));
+				} else {
+					protectedRanges = wsModel.protectedRangesContainsRange(range);
+					if (!protectedRanges) {
+						t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+						callback(false);
+						return false;
+					} else {
+						checkRange(protectedRanges, range);
 					}
 				}
 			}

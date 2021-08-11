@@ -1002,7 +1002,7 @@
 		this.saltValue = "test";
 		this.workbookSaltValue = "test";
 	};
-	CProtectedRange.prototype.asc_isPassword = function (val) {
+	CProtectedRange.prototype.asc_isPassword = function () {
 		return this.algorithmName != null;
 	};
 	CProtectedRange.prototype.asc_getIsLock = function () {
