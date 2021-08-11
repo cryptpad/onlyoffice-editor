@@ -11330,6 +11330,10 @@
 		// if (CellValueType.Error == this.getType()) {
 		// 	return this._getValueTypeError(textValueForEdit);
 		// }
+		if (this.isFormula() && this.ws && this.ws.getSheetProtection() && this.xfs && this.xfs.getHidden()) {
+			return "";
+		}
+
 		var res = AscCommonExcel.getStringFromMultiText(this.getValueForEdit2());
 		return this.formulaParsed && this.formulaParsed.ref && checkFormulaArray ? "{" + res + "}" : res;
 	};
@@ -11342,10 +11346,12 @@
 		var oValueArray = null;
 		var xfs = this.getCompiledStyle();
 		if (this.isFormula()) {
-			this.processFormula(function(parsed) {
-				// ToDo если будет притормаживать, то завести переменную и не рассчитывать каждый раз!
-				oValueText = "=" + parsed.assembleLocale(AscCommonExcel.cFormulaFunctionToLocale, true);
-			});
+			if (!(this.ws && this.ws.getSheetProtection() && this.xfs && this.xfs.getHidden())) {
+				this.processFormula(function(parsed) {
+					// ToDo если будет притормаживать, то завести переменную и не рассчитывать каждый раз!
+					oValueText = "=" + parsed.assembleLocale(AscCommonExcel.cFormulaFunctionToLocale, true);
+				});
+			}
 		} else {
 			if(null != this.text || null != this.number)
 			{
