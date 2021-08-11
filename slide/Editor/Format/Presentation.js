@@ -4987,8 +4987,9 @@ CPresentation.prototype.addImages = function (aImages, placeholder) {
                     var oBlipFillUniFill = AscFormat.CreateBlipFillUniFillFromUrl(_image.src);
                     oBlipFillUniFill.fill.setSrcRect(srcRect);
                     oPh.spPr.setFill(oBlipFillUniFill);
-                    if (oPh.getPointAssociation()) {
-                      oPh.getPointAssociation().setSpPr(oPh.spPr.createDuplicateForSmartArt());
+                    var point = oPh.getPointAssociation();
+                    if (point) {
+                      point.setSpPr(oPh.spPr.createDuplicateForSmartArt());
                     }
                   }
                   oController.selectObject(oPh, 0);
