@@ -190,6 +190,7 @@
 			"word/Editor/EndnotesChanges.js",
 		    "word/Editor/GlossaryDocument.js",
 		    "word/Editor/GlossaryDocumentChanges.js",
+			"word/Editor/DocumentProtection.js",
 
 			"word/Drawing/Graphics.js",
 			"word/Drawing/ShapeDrawer.js",
