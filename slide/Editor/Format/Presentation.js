@@ -4989,7 +4989,10 @@ CPresentation.prototype.addImages = function (aImages, placeholder) {
                     oPh.spPr.setFill(oBlipFillUniFill);
                     var point = oPh.getPointAssociation();
                     if (point) {
-                      point.setSpPr(oPh.spPr.createDuplicateForSmartArt());
+                      if (!point.spPr) {
+                        point.setSpPr(new AscFormat.CSpPr());
+                      }
+                      point.spPr.setFill(oBlipFillUniFill);
                     }
                   }
                   oController.selectObject(oPh, 0);

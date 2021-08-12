@@ -6259,7 +6259,7 @@ CShape.prototype.changeFill = function (unifill) {
     var unifill2 = AscFormat.CorrectUniFill(unifill, this.brush, this.getEditorType());
     unifill2.convertToPPTXMods();
     this.spPr.setFill(unifill2);
-    var point = this.getPoint();
+    var point = this.getPointAssociation();
     if (point) {
         if (!point.spPr) {
             point.setSpPr(new AscFormat.CSpPr());
