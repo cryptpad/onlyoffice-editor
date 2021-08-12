@@ -7510,6 +7510,7 @@ DrawingObjectsController.prototype =
                         canChangeArrows: drawing.canChangeArrows(),
                         bFromChart: false,
                         bFromSmartArt: drawing.getObjectType() === AscDFH.historyitem_type_SmartArt,
+                        bFromSmartArtInternal: drawing.isFromSmartArt(),
                         bFromGroup: AscCommon.isRealObject(drawing.group),
                         locked: locked,
                         textArtProperties: drawing.getTextArtProperties(),
@@ -7602,6 +7603,7 @@ DrawingObjectsController.prototype =
                         canChangeArrows: drawing.canChangeArrows(),
                         bFromChart: false,
                         bFromSmartArt: false,
+                        bFromSmartArtInternal: false,
                         bFromGroup: AscCommon.isRealObject(drawing.group),
                         bFromImage: true,
                         locked: locked,
@@ -7753,6 +7755,7 @@ DrawingObjectsController.prototype =
                         canChangeArrows: false,
                         bFromChart: true,
                         bFromSmartArt: false,
+                        bFromSmartArtInternal: false,
                         bFromGroup: AscCommon.isRealObject(drawing.group),
                         locked: locked,
                         textArtProperties: null,
@@ -8092,6 +8095,7 @@ DrawingObjectsController.prototype =
             shape_props.ShapeProperties.canChangeArrows = props.shapeChartProps.canChangeArrows;
             shape_props.ShapeProperties.bFromChart = props.shapeChartProps.bFromChart;
             shape_props.ShapeProperties.bFromSmartArt = props.shapeChartProps.bFromSmartArt;
+            shape_props.ShapeProperties.bFromSmartArtInternal = props.shapeChartProps.bFromSmartArtInternal;
             shape_props.ShapeProperties.bFromGroup = props.shapeChartProps.bFromGroup;
             shape_props.ShapeProperties.bFromImage = props.shapeChartProps.bFromImage;
             shape_props.ShapeProperties.lockAspect = props.shapeChartProps.lockAspect;
@@ -8166,6 +8170,7 @@ DrawingObjectsController.prototype =
             shape_props.ShapeProperties.canChangeArrows = props.shapeProps.canChangeArrows;
             shape_props.ShapeProperties.bFromChart = props.shapeProps.bFromChart;
             shape_props.ShapeProperties.bFromSmartArt = props.shapeProps.bFromSmartArt;
+            shape_props.ShapeProperties.bFromSmartArtInternal = props.shapeProps.bFromSmartArtInternal;
             shape_props.ShapeProperties.bFromGroup = props.shapeProps.bFromGroup;
             shape_props.ShapeProperties.bFromImage = props.shapeProps.bFromImage;
             shape_props.ShapeProperties.lockAspect = props.shapeProps.lockAspect;

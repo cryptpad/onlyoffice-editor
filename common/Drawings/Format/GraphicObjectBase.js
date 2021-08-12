@@ -871,6 +871,12 @@
         return nType === AscDFH.historyitem_type_SmartArt ||
             nType === AscDFH.historyitem_type_SmartArtDrawing;
     };
+    CGraphicObjectBase.prototype.isFromSmartArt = function () {
+        if(this.group && this.group.getObjectType() === AscDFH.historyitem_type_SmartArtDrawing) {
+            return true;
+        }
+        return false;
+    };
 
 
     CGraphicObjectBase.prototype.drawShdw = function(graphics){
