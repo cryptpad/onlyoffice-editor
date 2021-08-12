@@ -4253,6 +4253,10 @@ DrawingObjectsController.prototype =
             var oParaTextPr;
             var nStyle = oAscTextArtProperties.asc_getStyle();
             var bWord = (typeof CGraphicObjects !== "undefined" &&  (this instanceof CGraphicObjects));
+            if(this.selection.groupSelection && this.selection.groupSelection.isSmartArtObject())
+            {
+                bWord = false;
+            }
             if(AscFormat.isRealNumber(nStyle))
             {
                 var oPreviewManager = this.getTextArtPreviewManager();

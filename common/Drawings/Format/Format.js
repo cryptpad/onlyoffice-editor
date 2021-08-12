@@ -5743,6 +5743,10 @@ function CompareShapeProperties(shapeProp1, shapeProp2)
     }
     _result_shape_prop.lockAspect = !!(shapeProp1.lockAspect && shapeProp2.lockAspect);
     _result_shape_prop.textArtProperties = CompareTextArtProperties(shapeProp1.textArtProperties, shapeProp2.textArtProperties);
+    if(shapeProp1.bFromSmartArtInternal && !shapeProp2.bFromSmartArtInternal || !shapeProp1.bFromSmartArtInternal && shapeProp2.bFromSmartArtInternal)
+    {
+        _result_shape_prop.textArtProperties = null;
+    }
     if(shapeProp1.title === shapeProp2.title){
         _result_shape_prop.title = shapeProp1.title;
     }
