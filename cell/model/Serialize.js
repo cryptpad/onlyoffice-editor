@@ -9093,6 +9093,7 @@
                 if (aCommentData.length > 0) {
                     oAdditionalData.isThreadedComment = true;
                     var commentData = aCommentData[0];
+                    commentData.asc_putSolved(false);
                     commentData.aReplies = [];
                     // commentData.aMentions = [];
                     res = this.bcr.Read1(length, function(t, l) {

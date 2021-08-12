@@ -4643,16 +4643,19 @@
 						}
 
 						tmp = sum / nc;
-						/*if (oRule.hasStdDev()) {
-						 sum = 0;
-						 for (cell = 0; cell < values.length; ++cell) {
-						 value = values[cell];
-						 if (null !== value.v) {
-						 sum += (value.v - tmp) * (value.v - tmp);
-						 }
-						 }
-						 sum = Math.sqrt(sum / (nc - 1));
-						 }*/
+
+						var stdDev;
+						if (oRule.hasStdDev()) {
+							var sum2 = 0;
+							for (cell = 0; cell < values.length; ++cell) {
+								value = values[cell];
+								if (null !== value.v) {
+									sum2 += (value.v - tmp) * (value.v - tmp);
+								}
+							}
+							stdDev = Math.sqrt(sum2 / nc);
+						}
+
 						compareFunction = (function(rule, average, stdDev) {
 							return function(row, col) {
 								var val;
@@ -4661,7 +4664,7 @@
 								});
 								return (null !== val && rule.getAverage(val, average, stdDev)) ? rule.dxf : null;
 							};
-						})(oRule, tmp, sum);
+						})(oRule, tmp, stdDev);
 					} else {
 						if (!oRule.dxf) {
 							continue;
@@ -9626,6 +9629,22 @@
 		if (!from) {
 			return;
 		}
+
+		var updateRange;
+		if (from) {
+			updateRange = from.ranges;
+		}
+		if (to) {
+			if (updateRange) {
+				updateRange = updateRange.concat(to.ranges);
+			} else {
+				updateRange = to.ranges;
+			}
+		}
+		if (updateRange) {
+			this.setDirtyConditionalFormatting(new AscCommonExcel.MultiplyRange(updateRange));
+		}
+
 		from.set(to, addToHistory, this);
 	};
 
@@ -9653,6 +9672,7 @@
 			return;
 		}
 
+		var isDel = false;
 		if (ranges) {
 			var _newRanges = [];
 
@@ -9675,7 +9695,8 @@
 			}
 
 			if (!_newRanges.length) {
-				this.deleteCFRule(rule.id, true)
+				this.deleteCFRule(rule.id, true);
+				isDel = true;
 			} else {
 				var newRule = rule.clone();
 				newRule.ranges = _newRanges;
@@ -9683,7 +9704,10 @@
 			}
 		} else {
 			this.deleteCFRule(rule.id, true);
+			isDel = true;
 		}
+
+		return isDel;
 	};
 
 	Worksheet.prototype.deleteCFRule = function (id, addToHistory) {
@@ -9694,6 +9718,9 @@
 			if (addToHistory) {
 				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_CFRuleDelete, this.getId(), oRule.val.getUnionRange(),
 					new AscCommonExcel.UndoRedoData_CF(id, oRule.val));
+			}
+			if (oRule.ranges) {
+				this.setDirtyConditionalFormatting(new AscCommonExcel.MultiplyRange(oRule.ranges));
 			}
 		}
 	};
@@ -9725,14 +9752,14 @@
 			oRule.setOffset(offset, range, this, true);
 		}
 	};
-	Worksheet.prototype.moveConditionalFormatting = function (oBBoxFrom, oBBoxTo, copyRange, offset, wsTo, wsFrom) {
+	Worksheet.prototype.moveConditionalFormatting = function (oBBoxFrom, oBBoxTo, copyRange, offset, wsTo, wsFrom, bTransposeTo) {
 		var t = this;
 		if (!wsTo) {
 			wsTo = this;
 		}
 		if (false === this.workbook.bUndoChanges && false === this.workbook.bRedoChanges) {
 			//чистим ту область, куда переносим
-			wsTo.clearConditionalFormattingRulesByRanges([oBBoxTo]);
+			wsTo.clearConditionalFormattingRulesByRanges([oBBoxTo], oBBoxFrom);
 
 			if (!wsFrom) {
 				wsFrom = this;
@@ -9753,6 +9780,9 @@
 						if (!copyRange) {
 							constantPart = oBBoxFrom.difference(ruleRanges[i]);
 							_constantRanges = _constantRanges.concat(constantPart);
+						}
+						if (bTransposeTo) {
+							movePart = movePart.transpose(oBBoxFrom.c1, oBBoxFrom.r1);
 						}
 						movePart.setOffset(offset);
 						_moveRanges.push(movePart);
@@ -9787,11 +9817,13 @@
 		}
 	};
 
-	Worksheet.prototype.clearConditionalFormattingRulesByRanges = function (ranges) {
-		var t = this;
-		this.forEachConditionalFormattingRules(function (_rule) {
-			t.tryClearCFRule(_rule, ranges);
-		});
+	Worksheet.prototype.clearConditionalFormattingRulesByRanges = function (ranges, exceptionRange) {
+		for (var i = 0, l = this.aConditionalFormattingRules.length; i < l; ++i) {
+			var isExcept = exceptionRange && this.aConditionalFormattingRules[i].getIntersections(exceptionRange);
+			if (!isExcept && this.tryClearCFRule(this.aConditionalFormattingRules[i], ranges)) {
+				i--;
+			}
+		}
 	};
 
 	Worksheet.prototype.forEachConditionalFormattingRules = function (callback) {
@@ -10457,7 +10489,16 @@
 								return this.setValueGetParsed("=" + newFP.getFormula(), callback, isCopyPaste, byRef);
 							default :
 							{
-								wb.handlers.trigger("asc_onError", parseResult.error, c_oAscError.Level.NoCritical);
+								var _pasteHelper = window['AscCommon'].g_specialPasteHelper;
+								var isPaste = _pasteHelper && _pasteHelper.pasteStart;
+								if (isPaste) {
+									if (!_pasteHelper._formulaError) {
+										_pasteHelper._formulaError = true;
+										wb.handlers.trigger("asc_onError", parseResult.error, c_oAscError.Level.NoCritical);
+									}
+								} else {
+									wb.handlers.trigger("asc_onError", parseResult.error, c_oAscError.Level.NoCritical);
+								}
 								if (callback) {
 									callback(false);
 								}
@@ -10482,9 +10523,10 @@
 		if(History.Is_On())
 			DataOld = this.getValueData();
 		//[{text:"",format:TextFormat},{}...]
+		var xfTableAndCond = this.getCompiledStyleCustom(true, false, true);
 		this.setFormulaInternal(null);
 		this.cleanText();
-		this._setValue2(array);
+		this._setValue2(array, undefined, xfTableAndCond);
 		this.ws.workbook.dependencyFormulas.addToChangedCell(this);
 		this.ws.workbook.sortDependency();
 		var DataNew = null;
@@ -11125,6 +11167,9 @@
 			return xfs.font;
 		return g_oDefaultFormat.Font;
 	};
+	Cell.prototype.getCellFont = function() {
+		return (this.xfs && this.xfs.font) || g_oDefaultFormat.Font;
+	};
 	Cell.prototype.getFillColor = function () {
 		return this.getFill().bg();
 	};
@@ -11499,7 +11544,7 @@
 			}
 		}
 	}
-	Cell.prototype._setValue2 = function(aVal, ignoreHyperlink)
+	Cell.prototype._setValue2 = function(aVal, ignoreHyperlink, xfTableAndCond)
 	{
 		var sSimpleText = "";
 		for(var i = 0, length = aVal.length; i < length; ++i)
@@ -11528,6 +11573,7 @@
 					}
 					this.multiText.push(oNewElem);
 				}
+				this._subtractFontFromMultiText(xfTableAndCond && xfTableAndCond.font);
 				this._minimizeMultiText(true);
 			}
 			//обрабатываем QuotePrefix
@@ -11685,11 +11731,24 @@
 		}
 		return cErrorLocal["nil"];
 	};
+	Cell.prototype._subtractFontFromMultiText = function(font) {
+		if (!font) {
+			return;
+		}
+		var cellFont = this.getCellFont();
+		for (var i = 0; i < this.multiText.length; i++) {
+			var elem = this.multiText[i];
+			if (null != elem.format) {
+				elem.format = elem.format.clone();
+				elem.format.subtractEqual(font, cellFont);
+			}
+		}
+	};
 	Cell.prototype._minimizeMultiText = function(bSetCellFont) {
 		var bRes = false;
 		if(null != this.multiText && this.multiText.length > 0)
 		{
-			var cellFont = this.getFont();
+			var cellFont = this.getCellFont();
 			var oIntersectFont = null;
 			for (var i = 0, length = this.multiText.length; i < length; i++) {
 				var elem = this.multiText[i];
@@ -15926,7 +15985,10 @@
 							var ranges = oRule.ranges;
 							for (var n = 0; n < ranges.length; n++) {
 								var _newRange = new Asc.Range(i + ranges[n].c1 - from.c1, j + ranges[n].r1 - from.r1, i + ranges[n].c2 - from.c1, j + ranges[n].r2 - from.r1);
-								if (to.containsRange(_newRange)) {
+								if (!to.containsRange(_newRange)) {
+									_newRange = to.intersection(_newRange);
+								}
+								if (_newRange) {
 									if (!newRules[k]) {
 										newRules[k] = [];
 									}
@@ -15944,7 +16006,12 @@
 								fromRule = fromRule.data;
 								var toRule = fromRule.clone();
 								//toRule.id = fromRule.id;
-								toRule.ranges = newRules[i];
+								if (bIsPromote) {
+									toRule.id = fromRule.id;
+									toRule.ranges = fromRule.ranges.concat(newRules[i]);
+								} else {
+									toRule.ranges = newRules[i];
+								}
 								wsTo.setCFRule(toRule);
 							}
 						}

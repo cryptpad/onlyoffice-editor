@@ -199,10 +199,15 @@ function hitToHandles(x, y, object)
 {
     var oApi = Asc.editor || editor;
     var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
+
+    if (isDrawHandles && object && object.isForm && object.isForm() && object.getInnerForm() && object.getInnerForm().IsFormLocked())
+    	isDrawHandles = false;
+
     if(isDrawHandles === false)
     {
         return -1;
     }
+
     if(object.cropObject)
     {
         return hitToCropHandles(x, y, object);
@@ -6309,6 +6314,10 @@ CShape.prototype.hitToAdjustment = function (x, y) {
 
     var oApi = Asc.editor || editor;
     var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
+
+    if (isDrawHandles && this.isForm() && this.getInnerForm() && this.getInnerForm().IsFormLocked())
+    	isDrawHandles = false;
+
     if(isDrawHandles === false)
     {
         return { hit: false, adjPolarFlag: null, adjNum: null, warp: false };

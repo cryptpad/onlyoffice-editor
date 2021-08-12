@@ -1044,6 +1044,18 @@
 		Range.prototype.getHeight = function() {
 			return this.r2 - this.r1 + 1;
 		};
+		Range.prototype.transpose = function(startCol, startRow) {
+			if (startCol === undefined) {
+				startCol = this.c1;
+			}
+			if (startRow === undefined) {
+				startRow = this.r1;
+			}
+			var row0 = this.c1 - startCol + startRow;
+			var col0 = this.r1 - startRow + startCol;
+
+			return new Range(col0, row0,  col0 + (this.r2 - this.r1), row0 + (this.c2 - this.c1));
+		};
 
 		/**
 		 *
@@ -2455,27 +2467,32 @@
 			var shapeDrawer = new AscCommon.CShapeDrawer();
 			shapeDrawer.Graphics = graphics;
 
-			for (var i = 0; i < iconImgs.length; i++) {
-				var img = iconImgs[i];
 
-				if (!img) {
-					continue;
-				}
+			AscFormat.ExecuteNoHistory(
+				function () {
+					for (var i = 0; i < iconImgs.length; i++) {
+						var img = iconImgs[i];
 
-				var geometry = new AscFormat.CreateGeometry("rect");
-				geometry.Recalculate(5, 5, true);
+						if (!img) {
+							continue;
+						}
 
-				var oUniFill = new AscFormat.builder_CreateBlipFill(img, "stretch");
-				graphics.save();
-				var oMatrix = new AscCommon.CMatrix();
-				oMatrix.tx = i*5;
-				oMatrix.ty = 0;
-				graphics.transform3(oMatrix);
+						var geometry = new AscFormat.CreateGeometry("rect");
+						geometry.Recalculate(5, 5, true);
 
-				shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
-				shapeDrawer.draw(geometry);
-				graphics.restore();
-			}
+						var oUniFill = new AscFormat.builder_CreateBlipFill(img, "stretch");
+						graphics.save();
+						var oMatrix = new AscCommon.CMatrix();
+						oMatrix.tx = i*5;
+						oMatrix.ty = 0;
+						graphics.transform3(oMatrix);
+
+						shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
+						shapeDrawer.draw(geometry);
+						graphics.restore();
+					}
+				}, this, []
+			);
 		}
 
 		//-----------------------------------------------------------------

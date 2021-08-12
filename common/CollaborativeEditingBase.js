@@ -80,7 +80,13 @@
             oChange.ReadFromBinary(Reader);
 
             if (true === CollaborativeEditing.private_AddOverallChange(oChange))
+            {
                 oChange.Load(this.m_oColor);
+
+                if (oChange.GetClass() && oChange.GetClass().SetIsRecalculated && oChange.IsNeedRecalculate())
+                    oChange.GetClass().SetIsRecalculated(false);
+
+            }
 
             return true;
         }
@@ -1209,6 +1215,10 @@
                     mapDrawings[oClass.parent.Get_Id()] = oClass.parent;
                 }
                 arrReverseChanges[nIndex].Load();
+
+                if (oClass && oClass.SetIsRecalculated && (!arrReverseChanges[nIndex] || arrReverseChanges[nIndex].IsNeedRecalculate()))
+                    oClass.SetIsRecalculated(false);
+
                 this.m_aAllChanges.push(arrReverseChanges[nIndex]);
             }
 

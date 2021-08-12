@@ -6677,11 +6677,6 @@ function BinaryPPTYLoader()
                     shape.attrUseBgFill = s.GetBool();
                     break;
                 }
-                case 1:
-                {
-                    shape.setMacro(s.GetString2());
-                    break;
-                }
                 case 2:
                 {
                     var sModelId = s.GetString2();
@@ -6740,6 +6735,11 @@ function BinaryPPTYLoader()
                 case 7:
                 {
                     shape.setSignature(this.ReadSignatureLine());
+                    break;
+                }
+                case 0xA1:
+                {
+                    shape.readMacro(s);
                     break;
                 }
                 default:
@@ -7049,26 +7049,6 @@ function BinaryPPTYLoader()
         var _rec_start = s.cur;
         var _end_rec = _rec_start + s.GetULong() + 4;
 
-        s.Skip2(1); // start attributes
-
-        while (true)
-        {
-            var _at = s.GetUChar();
-            if (_at == g_nodeAttributeEnd)
-                break;
-
-            switch (_at)
-            {
-                case 0:
-                {
-                    pic.setMacro(s.GetString2());
-                    break;
-                }
-                default:
-                    break;
-            }
-        }
-
         var sMaskFileName;
         while (s.cur < _end_rec)
         {
@@ -7147,6 +7127,11 @@ function BinaryPPTYLoader()
                     }
                     break;
                 }
+                case 0xA1:
+                {
+                    pic.readMacro(s);
+                    break;
+                }
                 default:
                 {
                     this.stream.SkipRecord();
@@ -7177,28 +7162,6 @@ function BinaryPPTYLoader()
         var _rec_start = s.cur;
         var _end_rec = _rec_start + s.GetULong() + 4;
 
-
-        s.Skip2(1); // start attributes
-
-        while (true)
-        {
-            var _at = s.GetUChar();
-            if (_at == g_nodeAttributeEnd)
-                break;
-
-            switch (_at)
-            {
-                case 0:
-                {
-                    shape.setMacro(s.GetString2());
-                    break;
-                }
-                default:
-                    break;
-            }
-        }
-
-
         while (s.cur < _end_rec)
         {
             var _at = s.GetUChar();
@@ -7225,6 +7188,11 @@ function BinaryPPTYLoader()
                 case 2:
                 {
                     shape.setStyle(this.ReadShapeStyle());
+                    break;
+                }
+                case 0xA1:
+                {
+                    shape.readMacro(s);
                     break;
                 }
                 default:
@@ -7261,11 +7229,6 @@ function BinaryPPTYLoader()
                 case 0:
                 {
                     var spid = s.GetString2();
-                    break;
-                }
-                case 1:
-                {
-                    var sMacro = s.GetString2();
                     break;
                 }
                 default:
@@ -7376,12 +7339,6 @@ function BinaryPPTYLoader()
                     var spid = s.GetString2();
                     break;
                 }
-                case 1:
-                {
-                    var sMacro = s.GetString2();
-                    _graphic_frame.setMacro(sMacro);
-                    break;
-                }
                 default:
                     break;
             }
@@ -7455,6 +7412,11 @@ function BinaryPPTYLoader()
                 case 8://smartArt
                 {
                     _smartArt = this.ReadSmartArt();
+                    break;
+                }
+                case 0xA1:
+                {
+                    _graphic_frame.readMacro(s);
                     break;
                 }
                 default:
@@ -12023,11 +11985,6 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                         shape.attrUseBgFill = s.GetBool();
                         break;
                     }
-                    case 1:
-                    {
-                        shape.setMacro(s.GetString2());
-                        break;
-                    }
                     case 2:
                     {
                         var sModelId = s.GetString2();
@@ -12131,6 +12088,11 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                         shape.setSignature(this.Reader.ReadSignatureLine());
                         break;
                     }
+                    case 0xA1:
+                    {
+                        shape.readMacro(s);
+                        break;
+                    }
                     default:
                     {
                         s.SkipRecord();
@@ -12215,27 +12177,6 @@ CCore.prototype.Refresh_RecalcData2 = function(){
             var _rec_start = s.cur;
             var _end_rec = _rec_start + s.GetULong() + 4;
 
-            s.Skip2(1); // start attributes
-
-            while (true)
-            {
-                var _at = s.GetUChar();
-                if (_at == g_nodeAttributeEnd)
-                    break;
-
-                switch (_at)
-                {
-                    case 0:
-                    {
-                        shape.setMacro(s.GetString2());
-                        break;
-                    }
-                    default:
-                        break;
-                }
-            }
-
-
             while (s.cur < _end_rec)
             {
                 var _at = s.GetUChar();
@@ -12256,6 +12197,11 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                     case 2:
                     {
                         shape.setStyle(this.Reader.ReadShapeStyle());
+                        break;
+                    }
+                    case 0xA1:
+                    {
+                        shape.readMacro(s);
                         break;
                     }
                     default:
@@ -12280,27 +12226,6 @@ CCore.prototype.Refresh_RecalcData2 = function(){
 
             var _rec_start = s.cur;
             var _end_rec = _rec_start + s.GetULong() + 4;
-
-            s.Skip2(1); // start attributes
-
-            while (true)
-            {
-                var _at = s.GetUChar();
-                if (_at == g_nodeAttributeEnd)
-                    break;
-
-                switch (_at)
-                {
-                    case 0:
-                    {
-                        pic.setMacro(s.GetString2());
-                        break;
-                    }
-                    default:
-                        break;
-                }
-            }
-
 
             var sMaskFileName = "";
             while (s.cur < _end_rec)
@@ -12372,6 +12297,11 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                         else{
                             s.SkipRecord();
                         }
+                        break;
+                    }
+                    case 0xA1:
+                    {
+                        pic.readMacro(s);
                         break;
                     }
                     default:
