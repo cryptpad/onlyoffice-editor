@@ -573,6 +573,21 @@
         AscCommon.History.Add( new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_AutoShapes_SetLocks, this.locks, nLocks));
         this.locks = nLocks;
     };
+    CGraphicObjectBase.prototype.readMacro = function(oStream)
+    {
+        var nLength = oStream.GetULong();//length
+        var nType = oStream.GetUChar();//attr type - 0
+        this.setMacro(oStream.GetString2());
+    };
+    CGraphicObjectBase.prototype.writeMacro = function(oWriter)
+    {
+        if(typeof this.macro === "string" && this.macro.length > 0)
+        {
+            oWriter.StartRecord(0xA1);
+            oWriter._WriteString1(0, this.macro);
+            oWriter.EndRecord();
+        }
+    };
     CGraphicObjectBase.prototype.setMacro = function(sMacroName)
     {
         History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_ShapeSetMacro, this.macro, sMacroName));
@@ -585,7 +600,12 @@
     };
     CGraphicObjectBase.prototype.assignMacro = function(sGuid)
     {
-        this.setMacro(AscFormat.MACRO_PREFIX + sGuid);
+        if(typeof sGuid === "string" && sGuid.length > 0) {
+            this.setMacro(AscFormat.MACRO_PREFIX + sGuid);
+        }
+        else {
+            this.setMacro(null);
+        }
     };
     CGraphicObjectBase.prototype.setTextLink = function(sLink)
     {
@@ -701,7 +721,7 @@
         return (this.getObjectType() === AscDFH.historyitem_type_GroupShape || this.getObjectType() === AscDFH.historyitem_type_SmartArt && this.drawing)  && this.getNoUngrp() === false;
     };
     CGraphicObjectBase.prototype.canChangeAdjustments = function () {
-        return this.getNoAdjustHandles() === false;
+        return !this.isObjectInSmartArt() && this.getNoAdjustHandles() === false;
     };
     CGraphicObjectBase.prototype.Reassign_ImageUrls = function(mapUrl){
         var blip_fill;
@@ -2303,6 +2323,106 @@
     };
     CGraphicObjectBase.prototype.convertFromSmartArt = function() {
         return this;
+    };
+    CGraphicObjectBase.prototype.changeRot = function(dAngle) {
+        if(this.spPr && this.spPr.xfrm) {
+            var oXfrm = this.spPr.xfrm;
+            var originalRot = oXfrm.rot || 0;
+            var dRot = AscFormat.normalizeRotate(dAngle);
+            oXfrm.setRot(dRot);
+            if(this.isObjectInSmartArt()) {
+                var point = this.getPointAssociation();
+                if (point) {
+                    var prSet = point.getPrSet();
+                    if (prSet) {
+                        var defaultRot = originalRot;
+                        if (prSet.custAng) {
+                            var oldCustAng = prSet.custAng;
+                            if (oldCustAng > defaultRot) {
+                                defaultRot += Math.PI * 2 * Math.ceil(oldCustAng / (Math.PI * 2));
+                            }
+                            defaultRot -= oldCustAng;
+                        }
+                        if (originalRot !== dRot) {
+                            var currentAngle = dRot;
+                            if (defaultRot > currentAngle) {
+                                currentAngle += Math.PI * 2 * Math.ceil(defaultRot / (Math.PI * 2));
+                            }
+                            var newCustAng = (currentAngle - defaultRot);
+                            prSet.setCustAng(newCustAng);
+                        }
+                    }
+                }
+                this.recalculate();
+                var oBounds = this.bounds;
+                var oSmartArt = this.group.group;
+                var diffX = null, diffY = null;
+                if(oBounds.r > oSmartArt.x + oSmartArt.extX) {
+                    diffX = oSmartArt.x + oSmartArt.extX - oBounds.r;
+                }
+                if(oBounds.l < oSmartArt.x) {
+                    diffX = oSmartArt.x - oBounds.l;
+                }
+                if(oBounds.b > oSmartArt.y + oSmartArt.extY) {
+                    diffY = oSmartArt.y + oSmartArt.extY - oBounds.b;
+                }
+                if(oBounds.t < oSmartArt.y) {
+                    diffY = oSmartArt.y - oBounds.t;
+                }
+                var originalPosX = this.spPr.xfrm.offX;
+                var originalPosY = this.spPr.xfrm.offY;
+
+                if(diffX !== null) {
+                    this.spPr.xfrm.setOffX(this.spPr.xfrm.offX + diffX);
+                }
+                if(diffY !== null) {
+                    this.spPr.xfrm.setOffY(this.spPr.xfrm.offY + diffY);
+                }
+
+                var posX = this.spPr.xfrm.offX;
+                var posY = this.spPr.xfrm.offY;
+                var defaultExtX = this.extX;
+                var defaultExtY = this.extY;
+                if (prSet) {
+                    if (prSet.custScaleX) {
+                        defaultExtX /= prSet.custScaleX / 100000;
+                    }
+                    if (prSet.custScaleY) {
+                        defaultExtY /= prSet.custScaleY / 100000;
+                    }
+                    if (prSet.custLinFactNeighborX) {
+                        originalPosX -= (prSet.custLinFactNeighborX / 100000) * defaultExtX;
+                    }
+                    if (prSet.custLinFactNeighborY) {
+                        originalPosY -= (prSet.custLinFactNeighborY / 100000) * defaultExtY;
+                    }
+                    if (posX !== this.x) {
+                        prSet.setCustLinFactNeighborX(((posX - originalPosX) / defaultExtX) * 100000);
+                    }
+                    if (posY !== this.y) {
+                        prSet.setCustLinFactNeighborY(((posY - originalPosY) / defaultExtY) * 100000);
+                    }
+                }
+            }
+        }
+    };
+    CGraphicObjectBase.prototype.changeFlipH = function(bFlipH) {
+        if(this.spPr && this.spPr.xfrm) {
+            var oXfrm = this.spPr.xfrm;
+            oXfrm.setFlipH(bFlipH);
+            if(this.isObjectInSmartArt()) {
+                //TODO
+            }
+        }
+    };
+    CGraphicObjectBase.prototype.changeFlipV = function(bFlipV) {
+        if(this.spPr && this.spPr.xfrm) {
+            var oXfrm = this.spPr.xfrm;
+            oXfrm.setFlipH(bFlipV);
+            if(this.isObjectInSmartArt()) {
+                //TODO
+            }
+        }
     };
 
     function CRelSizeAnchor() {

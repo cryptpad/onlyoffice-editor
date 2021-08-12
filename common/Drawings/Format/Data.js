@@ -2676,7 +2676,7 @@
       this.writeRecord2(pWriter, 3, this.sampData);
       this.writeRecord2(pWriter, 4, this.styleData);
       this.writeRecord2(pWriter, 5, this.clrData);
-      this.writeRecord2(pWriter, 0xa5, this.layoutNode);
+      this.writeRecord2(pWriter, 0xb5, this.layoutNode);
     };
     LayoutDef.prototype.readAttribute = function(nType, pReader) {
       var oStream = pReader.stream;
@@ -2717,7 +2717,7 @@
           this.clrData.fromPPTY(pReader);
           break;
         }
-        case 0xa5: {
+        case 0xb5: {
           this.setLayoutNode(new LayoutNode());
           this.layoutNode.fromPPTY(pReader);
           break;
@@ -3012,15 +3012,15 @@
     LayoutNode.prototype.readElement = function(pReader, nType) {
       var oElement = null;
       switch(nType) {
-        case 0xa1: oElement = new Alg(); break;
-        case 0xa2: oElement = new Choose(); break;
-        case 0xa3: oElement = new ConstrLst(); break;
-        case 0xa4: oElement = new ForEach(); break;
-        case 0xa5: oElement = new LayoutNode(); break;
-        case 0xa6: oElement = new PresOf(); break;
-        case 0xa7: oElement = new RuleLst(); break;
-        case 0xa8: oElement = new SShape(); break;
-        case 0xa9: oElement = new VarLst(); break;
+        case 0xb1: oElement = new Alg(); break;
+        case 0xb2: oElement = new Choose(); break;
+        case 0xb3: oElement = new ConstrLst(); break;
+        case 0xb4: oElement = new ForEach(); break;
+        case 0xb5: oElement = new LayoutNode(); break;
+        case 0xb6: oElement = new PresOf(); break;
+        case 0xb7: oElement = new RuleLst(); break;
+        case 0xb8: oElement = new SShape(); break;
+        case 0xb9: oElement = new VarLst(); break;
         default:break;
       }
       if(oElement) {
@@ -3037,15 +3037,15 @@
       for(var nIndex = 0; nIndex < this.list.length; ++nIndex) {
         var oElement = this.list[nIndex];
         switch (oElement.getObjectType()) {
-          case AscDFH.historyitem_type_Alg: this.writeRecord2(pWriter, 0xa1, oElement); break;
-          case AscDFH.historyitem_type_Choose: this.writeRecord2(pWriter, 0xa2, oElement); break;
-          case AscDFH.historyitem_type_ConstrLst: this.writeRecord2(pWriter, 0xa3, oElement); break;
-          case AscDFH.historyitem_type_ForEach: this.writeRecord2(pWriter, 0xa4, oElement); break;
-          case AscDFH.historyitem_type_LayoutNode: this.writeRecord2(pWriter, 0xa5, oElement); break;
-          case AscDFH.historyitem_type_PresOf: this.writeRecord2(pWriter, 0xa6, oElement); break;
-          case AscDFH.historyitem_type_RuleLst: this.writeRecord2(pWriter, 0xa7, oElement); break;
-          case AscDFH.historyitem_type_SShape: this.writeRecord2(pWriter, 0xa8, oElement); break;
-          case AscDFH.historyitem_type_VarLst: this.writeRecord2(pWriter, 0xa9, oElement); break;
+          case AscDFH.historyitem_type_Alg: this.writeRecord2(pWriter, 0xb1, oElement); break;
+          case AscDFH.historyitem_type_Choose: this.writeRecord2(pWriter, 0xb2, oElement); break;
+          case AscDFH.historyitem_type_ConstrLst: this.writeRecord2(pWriter, 0xb3, oElement); break;
+          case AscDFH.historyitem_type_ForEach: this.writeRecord2(pWriter, 0xb4, oElement); break;
+          case AscDFH.historyitem_type_LayoutNode: this.writeRecord2(pWriter, 0xb5, oElement); break;
+          case AscDFH.historyitem_type_PresOf: this.writeRecord2(pWriter, 0xb6, oElement); break;
+          case AscDFH.historyitem_type_RuleLst: this.writeRecord2(pWriter, 0xb7, oElement); break;
+          case AscDFH.historyitem_type_SShape: this.writeRecord2(pWriter, 0xb8, oElement); break;
+          case AscDFH.historyitem_type_VarLst: this.writeRecord2(pWriter, 0xb9, oElement); break;
           default: break;
         }
       }
@@ -3916,15 +3916,15 @@
     Else.prototype.readElement = function(pReader, nType) {
       var oElement = null;
       switch(nType) {
-        case 0xa1: oElement = new Alg(); break;
-        case 0xa2: oElement = new Choose(); break;
-        case 0xa3: oElement = new ConstrLst(); break;
-        case 0xa4: oElement = new ForEach(); break;
-        case 0xa5: oElement = new LayoutNode(); break;
-        case 0xa6: oElement = new PresOf(); break;
-        case 0xa7: oElement = new RuleLst(); break;
-        case 0xa8: oElement = new SShape(); break;
-        case 0xa9: oElement = new VarLst(); break;
+        case 0xb1: oElement = new Alg(); break;
+        case 0xb2: oElement = new Choose(); break;
+        case 0xb3: oElement = new ConstrLst(); break;
+        case 0xb4: oElement = new ForEach(); break;
+        case 0xb5: oElement = new LayoutNode(); break;
+        case 0xb6: oElement = new PresOf(); break;
+        case 0xb7: oElement = new RuleLst(); break;
+        case 0xb8: oElement = new SShape(); break;
+        case 0xb9: oElement = new VarLst(); break;
         default:break;
       }
       if(oElement) {
@@ -3941,15 +3941,15 @@
       for(var nIndex = 0; nIndex < this.list.length; ++nIndex) {
         var oElement = this.list[nIndex];
         switch (oElement.getObjectType()) {
-          case AscDFH.historyitem_type_Alg: this.writeRecord2(pWriter, 0xa1, oElement); break;
-          case AscDFH.historyitem_type_Choose: this.writeRecord2(pWriter, 0xa2, oElement); break;
-          case AscDFH.historyitem_type_ConstrLst: this.writeRecord2(pWriter, 0xa3, oElement); break;
-          case AscDFH.historyitem_type_ForEach: this.writeRecord2(pWriter, 0xa4, oElement); break;
-          case AscDFH.historyitem_type_LayoutNode: this.writeRecord2(pWriter, 0xa5, oElement); break;
-          case AscDFH.historyitem_type_PresOf: this.writeRecord2(pWriter, 0xa6, oElement); break;
-          case AscDFH.historyitem_type_RuleLst: this.writeRecord2(pWriter, 0xa7, oElement); break;
-          case AscDFH.historyitem_type_SShape: this.writeRecord2(pWriter, 0xa8, oElement); break;
-          case AscDFH.historyitem_type_VarLst: this.writeRecord2(pWriter, 0xa9, oElement); break;
+          case AscDFH.historyitem_type_Alg: this.writeRecord2(pWriter, 0xb1, oElement); break;
+          case AscDFH.historyitem_type_Choose: this.writeRecord2(pWriter, 0xb2, oElement); break;
+          case AscDFH.historyitem_type_ConstrLst: this.writeRecord2(pWriter, 0xb3, oElement); break;
+          case AscDFH.historyitem_type_ForEach: this.writeRecord2(pWriter, 0xb4, oElement); break;
+          case AscDFH.historyitem_type_LayoutNode: this.writeRecord2(pWriter, 0xb5, oElement); break;
+          case AscDFH.historyitem_type_PresOf: this.writeRecord2(pWriter, 0xb6, oElement); break;
+          case AscDFH.historyitem_type_RuleLst: this.writeRecord2(pWriter, 0xb7, oElement); break;
+          case AscDFH.historyitem_type_SShape: this.writeRecord2(pWriter, 0xb8, oElement); break;
+          case AscDFH.historyitem_type_VarLst: this.writeRecord2(pWriter, 0xb9, oElement); break;
           default: break;
         }
       }
@@ -4453,15 +4453,15 @@
     If.prototype.readElement = function(pReader, nType) {
       var oElement = null;
       switch(nType) {
-        case 0xa1: oElement = new Alg(); break;
-        case 0xa2: oElement = new Choose(); break;
-        case 0xa3: oElement = new ConstrLst(); break;
-        case 0xa4: oElement = new ForEach(); break;
-        case 0xa5: oElement = new LayoutNode(); break;
-        case 0xa6: oElement = new PresOf(); break;
-        case 0xa7: oElement = new RuleLst(); break;
-        case 0xa8: oElement = new SShape(); break;
-        case 0xa9: oElement = new VarLst(); break;
+        case 0xb1: oElement = new Alg(); break;
+        case 0xb2: oElement = new Choose(); break;
+        case 0xb3: oElement = new ConstrLst(); break;
+        case 0xb4: oElement = new ForEach(); break;
+        case 0xb5: oElement = new LayoutNode(); break;
+        case 0xb6: oElement = new PresOf(); break;
+        case 0xb7: oElement = new RuleLst(); break;
+        case 0xb8: oElement = new SShape(); break;
+        case 0xb9: oElement = new VarLst(); break;
         default:break;
       }
       if(oElement) {
@@ -4500,15 +4500,15 @@
       for(var nIndex = 0; nIndex < this.list.length; ++nIndex) {
         var oElement = this.list[nIndex];
         switch (oElement.getObjectType()) {
-          case AscDFH.historyitem_type_Alg: this.writeRecord2(pWriter, 0xa1, oElement); break;
-          case AscDFH.historyitem_type_Choose: this.writeRecord2(pWriter, 0xa2, oElement); break;
-          case AscDFH.historyitem_type_ConstrLst: this.writeRecord2(pWriter, 0xa3, oElement); break;
-          case AscDFH.historyitem_type_ForEach: this.writeRecord2(pWriter, 0xa4, oElement); break;
-          case AscDFH.historyitem_type_LayoutNode: this.writeRecord2(pWriter, 0xa5, oElement); break;
-          case AscDFH.historyitem_type_PresOf: this.writeRecord2(pWriter, 0xa6, oElement); break;
-          case AscDFH.historyitem_type_RuleLst: this.writeRecord2(pWriter, 0xa7, oElement); break;
-          case AscDFH.historyitem_type_SShape: this.writeRecord2(pWriter, 0xa8, oElement); break;
-          case AscDFH.historyitem_type_VarLst: this.writeRecord2(pWriter, 0xa9, oElement); break;
+          case AscDFH.historyitem_type_Alg: this.writeRecord2(pWriter, 0xb1, oElement); break;
+          case AscDFH.historyitem_type_Choose: this.writeRecord2(pWriter, 0xb2, oElement); break;
+          case AscDFH.historyitem_type_ConstrLst: this.writeRecord2(pWriter, 0xb3, oElement); break;
+          case AscDFH.historyitem_type_ForEach: this.writeRecord2(pWriter, 0xb4, oElement); break;
+          case AscDFH.historyitem_type_LayoutNode: this.writeRecord2(pWriter, 0xb5, oElement); break;
+          case AscDFH.historyitem_type_PresOf: this.writeRecord2(pWriter, 0xb6, oElement); break;
+          case AscDFH.historyitem_type_RuleLst: this.writeRecord2(pWriter, 0xb7, oElement); break;
+          case AscDFH.historyitem_type_SShape: this.writeRecord2(pWriter, 0xb8, oElement); break;
+          case AscDFH.historyitem_type_VarLst: this.writeRecord2(pWriter, 0xb9, oElement); break;
           default: break;
         }
       }
@@ -6016,15 +6016,15 @@
     ForEach.prototype.readElement = function(pReader, nType) {
       var oElement = null;
       switch(nType) {
-        case 0xa1: oElement = new Alg(); break;
-        case 0xa2: oElement = new Choose(); break;
-        case 0xa3: oElement = new ConstrLst(); break;
-        case 0xa4: oElement = new ForEach(); break;
-        case 0xa5: oElement = new LayoutNode(); break;
-        case 0xa6: oElement = new PresOf(); break;
-        case 0xa7: oElement = new RuleLst(); break;
-        case 0xa8: oElement = new SShape(); break;
-        case 0xa9: oElement = new VarLst(); break;
+        case 0xb1: oElement = new Alg(); break;
+        case 0xb2: oElement = new Choose(); break;
+        case 0xb3: oElement = new ConstrLst(); break;
+        case 0xb4: oElement = new ForEach(); break;
+        case 0xb5: oElement = new LayoutNode(); break;
+        case 0xb6: oElement = new PresOf(); break;
+        case 0xb7: oElement = new RuleLst(); break;
+        case 0xb8: oElement = new SShape(); break;
+        case 0xb9: oElement = new VarLst(); break;
         default:break;
       }
       if(oElement) {
@@ -6059,15 +6059,15 @@
       for(var nIndex = 0; nIndex < this.list.length; ++nIndex) {
         var oElement = this.list[nIndex];
         switch (oElement.getObjectType()) {
-          case AscDFH.historyitem_type_Alg: this.writeRecord2(pWriter, 0xa1, oElement); break;
-          case AscDFH.historyitem_type_Choose: this.writeRecord2(pWriter, 0xa2, oElement); break;
-          case AscDFH.historyitem_type_ConstrLst: this.writeRecord2(pWriter, 0xa3, oElement); break;
-          case AscDFH.historyitem_type_ForEach: this.writeRecord2(pWriter, 0xa4, oElement); break;
-          case AscDFH.historyitem_type_LayoutNode: this.writeRecord2(pWriter, 0xa5, oElement); break;
-          case AscDFH.historyitem_type_PresOf: this.writeRecord2(pWriter, 0xa6, oElement); break;
-          case AscDFH.historyitem_type_RuleLst: this.writeRecord2(pWriter, 0xa7, oElement); break;
-          case AscDFH.historyitem_type_SShape: this.writeRecord2(pWriter, 0xa8, oElement); break;
-          case AscDFH.historyitem_type_VarLst: this.writeRecord2(pWriter, 0xa9, oElement); break;
+          case AscDFH.historyitem_type_Alg: this.writeRecord2(pWriter, 0xb1, oElement); break;
+          case AscDFH.historyitem_type_Choose: this.writeRecord2(pWriter, 0xb2, oElement); break;
+          case AscDFH.historyitem_type_ConstrLst: this.writeRecord2(pWriter, 0xb3, oElement); break;
+          case AscDFH.historyitem_type_ForEach: this.writeRecord2(pWriter, 0xb4, oElement); break;
+          case AscDFH.historyitem_type_LayoutNode: this.writeRecord2(pWriter, 0xb5, oElement); break;
+          case AscDFH.historyitem_type_PresOf: this.writeRecord2(pWriter, 0xb6, oElement); break;
+          case AscDFH.historyitem_type_RuleLst: this.writeRecord2(pWriter, 0xb7, oElement); break;
+          case AscDFH.historyitem_type_SShape: this.writeRecord2(pWriter, 0xb8, oElement); break;
+          case AscDFH.historyitem_type_VarLst: this.writeRecord2(pWriter, 0xb9, oElement); break;
           default: break;
         }
       }
@@ -9421,21 +9421,23 @@
     };
     SmartArt.prototype.handleUpdateFill = function() {
       this.recalcInfo.recalculateBrush = true;
+        CGroupShape.prototype.handleUpdateFill.call(this);
       this.addToRecalculate();
     };
     SmartArt.prototype.handleUpdateLn = function() {
       this.recalcInfo.recalculatePen = true;
+        CGroupShape.prototype.handleUpdateLn.call(this);
       this.addToRecalculate();
     };
 
       SmartArt.prototype.convertToWord = function(document) {
           var oCopy = this.copy();
-          oCopy.setBDeleted2(false)
+          oCopy.setBDeleted2(false);
           return oCopy;
       };
       SmartArt.prototype.convertToPPTX = function(drawingDocument, worksheet) {
           var oCopy = this.copy();
-          oCopy.setBDeleted2(false)
+          oCopy.setBDeleted2(false);
           return oCopy;
       };
 

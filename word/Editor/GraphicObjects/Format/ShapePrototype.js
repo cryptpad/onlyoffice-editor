@@ -1113,6 +1113,12 @@ CShape.prototype.checkPosTransformText = function()
             global_MatrixTransformer.TranslateAppend(this.transformTextWordArt, this.posX, this.posY);
             this.invertTransformTextWordArt = global_MatrixTransformer.Invert(this.transformTextWordArt);
         }
+        if(this.localTransformText2)
+        {
+            this.transformText2 = this.localTransformText2.CreateDublicate();
+            global_MatrixTransformer.TranslateAppend(this.transformText2, this.posX, this.posY);
+            this.invertTransformText2 = global_MatrixTransformer.Invert(this.transformText2);
+        }
     }
 };
 CShape.prototype.getNearestPos = function(x, y, pageIndex)

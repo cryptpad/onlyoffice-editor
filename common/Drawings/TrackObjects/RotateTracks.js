@@ -431,6 +431,7 @@ function RotateTrackShapeImage(originalObject)
             return;
         }
         AscFormat.CheckSpPrXfrm(this.originalObject);
+        this.originalObject.changeRot(this.angle);
         var originalRot = this.originalObject.spPr.xfrm.rot || 0;
         this.originalObject.spPr.xfrm.setRot(this.angle);
         if(this.originalObject.isObjectInSmartArt()) {

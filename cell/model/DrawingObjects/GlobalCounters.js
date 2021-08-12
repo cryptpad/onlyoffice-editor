@@ -130,6 +130,11 @@
     CCollaborativeEditing.prototype.Apply_LinkData = function()
     {
         AscCommon.CCollaborativeEditingBase.prototype.Apply_LinkData.call(this);
+        //stub for asc_nativeApplyChanges2(Load_Images clears m_aNewImages) remove it together with Load_Images above
+        if (window["NATIVE_EDITOR_ENJINE"] === true)
+        {
+            window["NATIVE_EDITOR_ENJINE_NEW_IMAGES"] = this.m_aNewImages.concat();
+        }
         this.Load_Images();
     };
     CCollaborativeEditing.prototype.CheckWaitingImages = function(aImages)

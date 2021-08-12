@@ -2352,7 +2352,11 @@ function CBinaryFileWriter()
     this.WriteBodyPr = function(bodyPr)
     {
         if (undefined === bodyPr || null == bodyPr)
-            return;
+		{
+			oThis.WriteUChar(g_nodeAttributeStart);
+			oThis.WriteUChar(g_nodeAttributeEnd);
+			return;
+		}
 
         oThis.WriteUChar(g_nodeAttributeStart);
         oThis._WriteInt2(0, bodyPr.flatTx);
@@ -3613,15 +3617,11 @@ function CBinaryFileWriter()
     {
         if(shape.getObjectType() === AscDFH.historyitem_type_Cnx){
             oThis.StartRecord(3);
-            oThis.WriteUChar(g_nodeAttributeStart);
-            oThis._WriteString2(0, shape.macro);
-            oThis.WriteUChar(g_nodeAttributeEnd);
         }
         else{
             oThis.StartRecord(1);
             oThis.WriteUChar(g_nodeAttributeStart);
             oThis._WriteBool2(0, shape.attrUseBgFill);
-            oThis._WriteString2(1, shape.macro);
             oThis._WriteString2(2, shape.modelId);
             oThis.WriteUChar(g_nodeAttributeEnd);
         }
@@ -3662,6 +3662,7 @@ function CBinaryFileWriter()
         oThis.WriteRecord2(3, shape.txBody, oThis.WriteTxBody);
         oThis.WriteRecord2(6, shape.txXfrm, oThis.WriteXfrm);
         oThis.WriteRecord2(7, shape.signatureLine, oThis.WriteSignatureLine);
+        shape.writeMacro(oThis);
 
         if (isUseTmpFill)
         {
@@ -3679,9 +3680,6 @@ function CBinaryFileWriter()
         if(isOle){
             oThis.StartRecord(6);
             //важно писать в начале
-            oThis.WriteUChar(g_nodeAttributeStart);
-            oThis._WriteString2(0, image.macro);
-            oThis.WriteUChar(g_nodeAttributeEnd);
             oThis.WriteRecord1(4, image, oThis.WriteOleInfo);
         } else {
             var _type;
@@ -3696,9 +3694,6 @@ function CBinaryFileWriter()
                 _type = 2;
             }
             oThis.StartRecord(_type);
-            oThis.WriteUChar(g_nodeAttributeStart);
-            oThis._WriteString2(0, image.macro);
-            oThis.WriteUChar(g_nodeAttributeEnd);
             if(bMedia){
                 oThis.WriteRecord1(5, null, function(){
                     oThis.WriteUChar(g_nodeAttributeStart);
@@ -3742,7 +3737,7 @@ function CBinaryFileWriter()
             image.spPr.geometry = null;
         }
         oThis.WriteRecord2(3, image.style, oThis.WriteShapeStyle);
-
+        image.writeMacro(oThis);
         image.spPr.WriteXfrm = null;
 
         oThis.EndRecord();
@@ -3774,7 +3769,6 @@ function CBinaryFileWriter()
     {
         oThis.StartRecord(5);
         oThis.WriteUChar(g_nodeAttributeStart);
-        oThis._WriteString2(1, grObj.macro);
         oThis.WriteUChar(g_nodeAttributeEnd);
         var nvGraphicFramePr;
         if(grObj.nvGraphicFramePr)
@@ -3821,6 +3815,7 @@ function CBinaryFileWriter()
                 })
             }
         }
+        grObj.writeMacro(oThis);
         oThis.EndRecord();
     };
 
@@ -5603,15 +5598,11 @@ function CBinaryFileWriter()
 
             if(shape.getObjectType() === AscDFH.historyitem_type_Cnx){
                 _writer.StartRecord(3);
-                _writer.WriteUChar(g_nodeAttributeStart);
-                _writer._WriteString2(0, shape.macro);
-                _writer.WriteUChar(g_nodeAttributeEnd);
             }
             else{
                 _writer.StartRecord(1);
                 _writer.WriteUChar(g_nodeAttributeStart);
                 _writer._WriteBool2(0, shape.attrUseBgFill);
-                _writer._WriteString2(1, shape.macro);
                 _writer._WriteString2(2, shape.modelId);
                 _writer.WriteUChar(g_nodeAttributeEnd);
             }
@@ -5662,7 +5653,7 @@ function CBinaryFileWriter()
                 _writer.EndRecord();
             }
             _writer.WriteRecord2(7, shape.signatureLine, _writer.WriteSignatureLine);
-
+            shape.writeMacro(_writer);
             if (isUseTmpFill)
             {
                 shape.spPr.Fill = tmpFill;
@@ -5686,11 +5677,6 @@ function CBinaryFileWriter()
             if(isOle){
                 _writer.StartRecord(6);
                 //важно писать в начале
-
-                _writer.WriteUChar(g_nodeAttributeStart);
-                _writer._WriteString2(0, image.macro);
-                _writer.WriteUChar(g_nodeAttributeEnd);
-
                 _writer.WriteRecord1(4, image, _writer.WriteOleInfo);
             } else {
                 var _type;
@@ -5705,9 +5691,6 @@ function CBinaryFileWriter()
                     _type = 2;
                 }
                 _writer.StartRecord(_type);
-                _writer.WriteUChar(g_nodeAttributeStart);
-                _writer._WriteString2(0, image.macro);
-                _writer.WriteUChar(g_nodeAttributeEnd);
                 if(bMedia){
                     _writer.WriteRecord1(5, null, function(){
                         _writer.WriteUChar(g_nodeAttributeStart);
@@ -5735,7 +5718,7 @@ function CBinaryFileWriter()
             _writer.WriteRecord1(1, _unifill, _writer.WriteUniFill);
             _writer.WriteRecord1(2, image.spPr, _writer.WriteSpPr);
             _writer.WriteRecord2(3, image.style, _writer.WriteShapeStyle);
-
+            image.writeMacro(_writer);
             delete image.spPr.WriteXfrm;
 
             _writer.EndRecord();

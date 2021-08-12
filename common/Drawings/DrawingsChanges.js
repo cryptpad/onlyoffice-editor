@@ -921,7 +921,7 @@
 						this.NewPr[i]._f.c2 = collaborativeEditing.getLockOtherColumn2(nSheetId, this.NewPr[i]._f.c2);
 
 						AscCommonExcel.executeInR1C1Mode(false, function () {
-							t.NewPr[i].f = t.NewPr[0]._f.getName();
+							t.NewPr[i].f = t.NewPr[i]._f.getName();
 						});
 					}
 				}
@@ -949,7 +949,7 @@
                 this.NewPr[i]._f.c2 = collaborativeEditing.getLockMeColumn2(nSheetId, this.NewPr[i]._f.c2);
 
                 AscCommonExcel.executeInR1C1Mode(false, function () {
-                    t.NewPr[i].f = t.NewPr[0]._f.getName();
+                    t.NewPr[i].f = t.NewPr[i]._f.getName();
                 });
             }
         }
@@ -987,7 +987,7 @@
         Writer.WriteBool(this.bReverse === true);
     };
     CChangesSparklinesRemoveData.prototype.ReadFromBinary = function(Reader){
-        var bIsObject = Reader.GetLong();
+        var bIsObject = Reader.GetBool();
         if(bIsObject){
             this.sparkline = new AscCommonExcel.sparkline();
             var col = Reader.GetLong();

@@ -3140,6 +3140,7 @@
 		this.bFromGroup = false;
 		this.bFromImage = false;
 		this.bFromSmartArt = false;
+		this.bFromSmartArtInternal = false;
 		this.Locked = false;
 		this.w = null;
 		this.h = null;
@@ -3204,6 +3205,12 @@
 		},
 		asc_setFromSmartArt: function (v) {
 			this.bFromSmartArt = v;
+		},
+		asc_getFromSmartArtInternal: function () {
+			return this.bFromSmartArtInternal;
+		},
+		asc_setFromSmartArtInternal: function (v) {
+			this.bFromSmartArtInternal = v;
 		},
 		asc_getFromGroup: function () {
 			return this.bFromGroup;
@@ -6047,6 +6054,10 @@
 	prot["set_CanChangeArrows"] = prot["asc_setCanChangeArrows"] = prot.asc_setCanChangeArrows;
 	prot["get_FromChart"] = prot["asc_getFromChart"] = prot.asc_getFromChart;
 	prot["set_FromChart"] = prot["asc_setFromChart"] = prot.asc_setFromChart;
+	prot["set_FromSmartArt"] = prot["asc_setFromSmartArt"] = prot.asc_setFromSmartArt;
+	prot["get_FromSmartArt"] = prot["asc_getFromSmartArt"] = prot.asc_getFromSmartArt;
+	prot["set_FromSmartArtInternal"] = prot["asc_setFromSmartArtInternal"] = prot.asc_setFromSmartArtInternal;
+	prot["get_FromSmartArtInternal"] = prot["asc_getFromSmartArtInternal"] = prot.asc_getFromSmartArtInternal;
 	prot["get_FromGroup"] = prot["asc_getFromGroup"] = prot.asc_getFromGroup;
 	prot["set_FromGroup"] = prot["asc_setFromGroup"] = prot.asc_setFromGroup;
 	prot["get_Locked"] = prot["asc_getLocked"] = prot.asc_getLocked;
