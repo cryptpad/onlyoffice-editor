@@ -1549,7 +1549,7 @@ var editor;
       	t._onUnlockProtectedRange.apply(t, arguments);
       },
       "checkProtectedRangeRemoveLock": function(lockElem) {
-     	return t._onCheckProtectedRangeRemoveLock(lockElem);
+      	return t._onCheckProtectedRangeRemoveLock(lockElem);
       }
     }, this.getViewMode());
 
@@ -6028,14 +6028,6 @@ var editor;
     //TODO проверить, может быть нужен глобальный лок?
     this.collaborativeEditing.lock(arrLocks, callback);
     return true;
-  };
-
-  spreadsheet_api.prototype.asc_clearCF = function (type, id) {
-    var rules = this.wbModel.getRulesByType(type, id);
-    if (rules && rules.length) {
-      var ws = this.wb.getWorksheet();
-      ws.deleteCF(rules, type);
-    }
   };
 
   spreadsheet_api.prototype.asc_setSkin = function (theme) {
