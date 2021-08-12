@@ -1184,16 +1184,16 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
 
                     if (prSet) {
                         if (prSet.custScaleX) {
-                            defaultExtX /= prSet.custScaleX / 100000;
+                            defaultExtX /= prSet.custScaleX;
                         }
                         if (prSet.custScaleY) {
-                            defaultExtY /= prSet.custScaleY / 100000;
+                            defaultExtY /= prSet.custScaleY;
                         }
                         if (this.resizedExtX !== this.originalExtX) {
-                            prSet.setCustScaleX((this.resizedExtX / defaultExtX) * 100000);
+                            prSet.setCustScaleX((this.resizedExtX / defaultExtX));
                         }
                         if (this.resizedExtY !== this.originalExtY) {
-                            prSet.setCustScaleY((this.resizedExtY / defaultExtY) * 100000);
+                            prSet.setCustScaleY((this.resizedExtY / defaultExtY));
                         }
                     }
             }

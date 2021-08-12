@@ -301,22 +301,22 @@ function MoveShapeImageTrack(originalObject)
                 var defaultExtY = this.originalObject.extY;
                 if (prSet) {
                     if (prSet.custScaleX) {
-                        defaultExtX /= prSet.custScaleX / 100000;
+                        defaultExtX /= prSet.custScaleX;
                     }
                     if (prSet.custScaleY) {
-                        defaultExtY /= prSet.custScaleY / 100000;
+                        defaultExtY /= prSet.custScaleY;
                     }
                     if (prSet.custLinFactNeighborX) {
-                        originalPosX -= (prSet.custLinFactNeighborX / 100000) * defaultExtX;
+                        originalPosX -= (prSet.custLinFactNeighborX) * defaultExtX;
                     }
                     if (prSet.custLinFactNeighborY) {
-                        originalPosY -= (prSet.custLinFactNeighborY / 100000) * defaultExtY;
+                        originalPosY -= (prSet.custLinFactNeighborY) * defaultExtY;
                     }
                     if (this.x !== this.originalObject.x) {
-                        prSet.setCustLinFactNeighborX(((this.x - originalPosX) / defaultExtX) * 100000);
+                        prSet.setCustLinFactNeighborX(((this.x - originalPosX) / defaultExtX));
                     }
                     if (this.y !== this.originalObject.y) {
-                        prSet.setCustLinFactNeighborY(((this.y - originalPosY) / defaultExtY) * 100000);
+                        prSet.setCustLinFactNeighborY(((this.y - originalPosY) / defaultExtY));
                     }
                 }
             }
