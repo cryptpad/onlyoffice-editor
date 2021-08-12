@@ -2670,4 +2670,5 @@ window['AscFormat'].TextAddState = TextAddState;
 window['AscFormat'].SplineBezierState = SplineBezierState;
 window['AscFormat'].PolyLineAddState = PolyLineAddState;
 window['AscFormat'].AddPolyLine2State = AddPolyLine2State;
+window['AscFormat'].checkEmptyPlaceholderContent = checkEmptyPlaceholderContent;
 })(window);

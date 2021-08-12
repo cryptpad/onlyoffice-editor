@@ -2553,7 +2553,7 @@ DrawingObjectsController.prototype =
             var ret = false, ret2;
             for(var i = 0; i < arr.length; ++i)
             {
-                if(arr[i].getObjectType() === AscDFH.historyitem_type_GroupShape)
+                if(arr[i].getObjectType() === AscDFH.historyitem_type_GroupShape || arr[i].getObjectType() === AscDFH.historyitem_type_SmartArt)
                 {
                     ret2 = applyToArrayDrawings(arr[i].arrGraphicObjects);
                     if(ret2)
