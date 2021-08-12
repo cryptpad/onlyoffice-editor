@@ -2522,20 +2522,20 @@ CSrcRect.prototype =
     },
 
     setValueForFitBlipFill: function (shapeWidth, shapeHeight, imageWidth, imageHeight) {
-        if (imageWidth < imageHeight) {
+        if (imageWidth < imageHeight || (imageHeight / imageWidth) > (shapeHeight / shapeWidth)) {
             this.l = 0;
             this.r = 100;
-            var shapeAspectRatio = shapeHeight / shapeWidth;
-            var imageAspectRatio = imageWidth / imageHeight;
-            var stretchPercentage = ((1 - shapeAspectRatio * imageAspectRatio) / 2) * 100;
+            var widthAspectRatio = imageWidth / shapeWidth;
+            var heightAspectRatio = shapeHeight / imageHeight;
+            var stretchPercentage = ((1 - widthAspectRatio * heightAspectRatio) / 2) * 100;
             this.t = stretchPercentage;
             this.b = 100 - stretchPercentage;
         } else {
             this.t = 0;
             this.b = 100;
-            shapeAspectRatio = shapeWidth / shapeHeight;
-            imageAspectRatio = imageHeight / imageWidth;
-            stretchPercentage = ((1 - shapeAspectRatio * imageAspectRatio) / 2) * 100;
+            heightAspectRatio = imageHeight / shapeHeight;
+            widthAspectRatio = shapeWidth / imageWidth;
+            stretchPercentage = ((1 - heightAspectRatio * widthAspectRatio) / 2) * 100;
             this.l = stretchPercentage;
             this.r = 100 - stretchPercentage;
         }
