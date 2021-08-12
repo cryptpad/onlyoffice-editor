@@ -806,13 +806,11 @@
             window["AscDesktopEditor"]["onDocumentContentReady"]();
 	};
 	// Save
-	baseEditorsApi.prototype.processSavedFile                    = function(url, downloadType)
+	baseEditorsApi.prototype.processSavedFile                    = function(url, downloadType, filetype)
 	{
 		if (AscCommon.DownloadType.None !== downloadType)
 		{
-			this.sendEvent(downloadType, url, function(hasError)
-			{
-			});
+			this.sendEvent(downloadType, url, filetype);
 		}
 		else
 		{
@@ -1427,8 +1425,16 @@
 
             window["asc_nativeOnSpellCheck"] = function(response) {
                 var _editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
-                if (_editor.SpellCheckApi)
-                    _editor.SpellCheckApi.onSpellCheck(response);
+                if (_editor.SpellCheckApi) {
+                	// поверяем на сообщение о полной очистке очереди задач для текущего
+                	if ("clear" === response) {
+						_editor.SpellCheckApi.isRestart = false;
+						return;
+					}
+					if (_editor.SpellCheckApi.isRestart === true)
+						return;
+					_editor.SpellCheckApi.onSpellCheck(response);
+				}
             };
 
 			this.SpellCheckApi.spellCheck = function (spellData) {
@@ -1436,6 +1442,11 @@
 			};
 			this.SpellCheckApi.disconnect = function () {
 			};
+			this.SpellCheckApi.restart = function() {
+				this.isRestart = true;
+				window["AscDesktopEditor"]["SpellCheck"]("clear");
+			};
+
 			if (window["AscDesktopEditor"]["IsLocalFile"] && !window["AscDesktopEditor"]["IsLocalFile"]())
 			{
 				this.sendEvent('asc_onSpellCheckInit', [
@@ -1515,6 +1526,9 @@
 				};
 				this.SpellCheckApi.disconnect = function ()
 				{
+				};
+				this.SpellCheckApi.restart = function() {
+					this.worker.restart();
 				};
 
 				this.sendEvent('asc_onSpellCheckInit', this.SpellCheckApi.worker.getLanguages());
@@ -1602,6 +1616,33 @@
 			oAdditionalData["withoutPassword"] = true;
 			oAdditionalData["inline"] = 1;
 		}
+		if (Asc.c_oAscFileType.JPG === options.fileType || Asc.c_oAscFileType.TIFF === options.fileType
+			|| Asc.c_oAscFileType.TGA === options.fileType || Asc.c_oAscFileType.GIF === options.fileType
+			|| Asc.c_oAscFileType.PNG === options.fileType || Asc.c_oAscFileType.EMF === options.fileType
+			|| Asc.c_oAscFileType.WMF === options.fileType || Asc.c_oAscFileType.BMP === options.fileType
+			|| Asc.c_oAscFileType.CR2 === options.fileType || Asc.c_oAscFileType.PCX === options.fileType
+			|| Asc.c_oAscFileType.RAS === options.fileType || Asc.c_oAscFileType.PSD === options.fileType
+			|| Asc.c_oAscFileType.ICO === options.fileType) {
+			oAdditionalData["thumbnail"] = {
+				"aspect": 2,
+				"first": false
+			}
+			switch (options.fileType) {
+				case Asc.c_oAscFileType.PNG:
+					oAdditionalData["thumbnail"]["format"] = 4;
+					break;
+				case Asc.c_oAscFileType.GIF:
+					oAdditionalData["thumbnail"]["format"] = 2;
+					break;
+				case Asc.c_oAscFileType.BMP:
+					oAdditionalData["thumbnail"]["format"] = 1;
+					break;
+				default:
+					oAdditionalData["thumbnail"]["format"] = 3;
+					break;
+			}
+			oAdditionalData["title"] = AscCommon.changeFileExtention(this.documentTitle, "zip", Asc.c_nMaxDownloadTitleLen);
+		}
 
 		if (this._downloadAs(actionType, options, oAdditionalData, dataContainer))
 		{
@@ -1624,13 +1665,13 @@
 						if (url)
 						{
 							error = c_oAscError.ID.No;
-							t.processSavedFile(url, downloadType);
+							t.processSavedFile(url, downloadType, input["filetype"]);
 						}
 					}
 					else
 					{
 						error = AscCommon.mapAscServerErrorToAscError(parseInt(input["data"]),
-							AscCommon.c_oAscAdvancedOptionsAction.Save);
+							(options && options.isGetTextFromUrl) ? AscCommon.c_oAscAdvancedOptionsAction.Open : AscCommon.c_oAscAdvancedOptionsAction.Save);
 					}
 				}
 				if (c_oAscError.ID.No !== error)
@@ -1869,6 +1910,9 @@
 			this.asc_coAuthoringDisconnect();
 		}
 
+		if (this.SpellCheckApi && this.SpellCheckApi.restart /* старый спеллчек (серверный - не поддеживает этот метод */)
+			this.SpellCheckApi.restart();
+
 		var bUpdate = true;
 		if (null === this.VersionHistory) {
 			this.VersionHistory = new window["Asc"].asc_CVersionHistory(newObj);
@@ -1885,9 +1929,10 @@
 			this.asc_setDocInfo(this.DocInfo);
 			this.asc_LoadDocument(this.VersionHistory);
 		} else if (this.VersionHistory.currentChangeId < newObj.currentChangeId) {
+			var oApi = Asc.editor || editor;
 			// Нужно только добавить некоторые изменения
 			AscCommon.CollaborativeEditing.Clear_CollaborativeMarks();
-			editor.VersionHistory.applyChanges(editor);
+			oApi.VersionHistory.applyChanges(oApi);
 			AscCommon.CollaborativeEditing.Apply_Changes();
 		}
 	};

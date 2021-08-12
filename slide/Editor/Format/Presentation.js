@@ -3076,7 +3076,7 @@ CPresentation.prototype.collectHFProps = function (oSlide) {
         }
         if (oDTShape) {
             oContent = oDTShape.getDocContent();
-            if (oContent) {
+            if (oContent && oContent.CalculateAllFields) {
                 var oDateTime = new AscCommonSlide.CAscDateTime();
                 oContent.SetApplyToAll(true);
                 sText = oContent.GetSelectedText(false, {NewLine: true, NewParagraph: true});
@@ -3784,7 +3784,19 @@ CPresentation.prototype.TurnOnCheckSpelling = function () {
 CPresentation.prototype.Get_DrawingDocument = function () {
     return this.DrawingDocument;
 };
+CPresentation.prototype.GetDrawingDocument = function () {
+    return this.DrawingDocument;
+};
 
+CPresentation.prototype.GetSlide = function(nIndex) {
+    if(this.Slides[nIndex]) {
+        return this.Slides[nIndex];
+    }
+    return null;
+};
+CPresentation.prototype.GetCurrentSlide = function() {
+    return this.GetSlide(this.CurPage);
+};
 CPresentation.prototype.GetCurrentController = function () {
     var oCurSlide = this.Slides[this.CurPage];
     if (oCurSlide) {
@@ -4055,6 +4067,10 @@ CPresentation.prototype.Get_Api = function () {
     return this.Api;
 };
 
+CPresentation.prototype.GetApi = function () {
+    return this.Api;
+};
+
 CPresentation.prototype.Get_CollaborativeEditing = function () {
     return this.CollaborativeEditing;
 };
@@ -4144,18 +4160,11 @@ CPresentation.prototype.Continue_FastCollaborativeEditing = function () {
 
 CPresentation.prototype.Get_DocumentPositionInfoForCollaborative = function () {
     var oController = this.GetCurrentController();
+    var oRes;
     if (oController) {
-        var oTargetDocContent = oController.getTargetDocContent(undefined, true);
-        if (oTargetDocContent) {
-            var DocPos = oTargetDocContent.GetContentPosition(oTargetDocContent.IsSelectionUse(), false);
-            if (!DocPos || DocPos.length <= 0)
-                return null;
-
-            var Last = DocPos[DocPos.length - 1];
-            if (!(Last.Class instanceof ParaRun))
-                return {Class: this, Position: 0};
-
-            return Last;
+        oRes = oController.getDocumentPositionForCollaborative();
+        if(oRes) {
+            return oRes;
         }
     }
     return {Class: this, Position: 0};
@@ -4515,43 +4524,7 @@ CPresentation.prototype.Update_ForeignCursor = function (CursorInfo, UserId, Sho
     if (UserId === editor.CoAuthoringApi.getUserConnectionId())
         return;
 
-    if (!CursorInfo) {
-        this.DrawingDocument.Collaborative_RemoveTarget(UserId);
-        AscCommon.CollaborativeEditing.Remove_ForeignCursor(UserId);
-        return;
-    }
-
-    var Changes = new AscCommon.CCollaborativeChanges();
-    var Reader = Changes.GetStream(CursorInfo, 0, CursorInfo.length);
-
-    var RunId = Reader.GetString2();
-    var InRunPos = Reader.GetLong();
-
-    var Run = g_oTableId.Get_ById(RunId);
-    if (!(Run instanceof ParaRun)) {
-        this.DrawingDocument.Collaborative_RemoveTarget(UserId);
-        AscCommon.CollaborativeEditing.Remove_ForeignCursor(UserId);
-        return;
-    }
-
-    var CursorPos = [{Class: Run, Position: InRunPos}];
-	Run.GetDocumentPositionFromObject(CursorPos);
-    AscCommon.CollaborativeEditing.Add_ForeignCursor(UserId, CursorPos, UserShortId);
-
-    if (true === Show) {
-
-        var oTargetDocContentOrTable;
-        var oController = this.GetCurrentController();
-        if (oController) {
-            oTargetDocContentOrTable = oController.getTargetDocContent(undefined, true);
-        }
-
-        if (!oTargetDocContentOrTable) {
-            return;
-        }
-        var bTable = (oTargetDocContentOrTable instanceof CTable);
-        AscCommon.CollaborativeEditing.Update_ForeignCursorPosition(UserId, Run, InRunPos, true, oTargetDocContentOrTable, bTable);
-    }
+    AscFormat.drawingsUpdateForeignCursor(this.GetCurrentController(), this.DrawingDocument, CursorInfo, UserId, Show, UserShortId);
 };
 
 CPresentation.prototype.Remove_ForeignCursor = function (UserId) {
@@ -10019,16 +9992,18 @@ CPresentation.prototype.changeColorScheme = function (colorScheme) {
 
 CPresentation.prototype.removeSlide = function (pos) {
     if (AscFormat.isRealNumber(pos) && pos > -1 && pos < this.Slides.length) {
-        History.Add(new AscDFH.CChangesDrawingsContentPresentation(this, AscDFH.historyitem_Presentation_RemoveSlide, pos, [this.Slides[pos]], false));
-        var aSlideComments = this.Slides[pos] && this.Slides[pos].slideComments && this.Slides[pos].slideComments.comments;
+        var oSlide = this.Slides[pos];
+        History.Add(new AscDFH.CChangesDrawingsContentPresentation(this, AscDFH.historyitem_Presentation_RemoveSlide, pos, [oSlide], false));
+        var aSlideComments = oSlide && oSlide.slideComments && oSlide.slideComments.comments;
         editor.sync_HideComment();
         if (Array.isArray(aSlideComments)) {
             for (var i = aSlideComments.length - 1; i > -1; --i) {
                 var sId = aSlideComments[i].Id;
-                this.Slides[i].removeComment(sId, true);
+                oSlide.removeComment(sId, true);
             }
         }
-        return this.Slides.splice(pos, 1)[0];
+        this.Slides.splice(pos, 1);
+        return oSlide;
     }
     return null;
 };
@@ -11065,6 +11040,18 @@ CPresentation.prototype.SetAutoCorrectFirstLetterOfSentences = function(isCorrec
 CPresentation.prototype.IsAutoCorrectFirstLetterOfSentences = function()
 {
 	return this.AutoCorrectSettings.FirstLetterOfSentences;
+};
+CPresentation.prototype.StopAnimation = function()
+{
+    for(var nSlide = 0; nSlide < this.Slides.length; ++nSlide)
+    {
+        var oSlide = this.Slides[nSlide];
+        var oPlayer = oSlide.animationPlayer;
+        if(oPlayer)
+        {
+            oPlayer.stop();
+        }
+    }
 };
 
 function collectSelectedObjects(aSpTree, aCollectArray, bRecursive, oIdMap, bSourceFormatting) {

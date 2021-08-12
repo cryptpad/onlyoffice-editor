@@ -242,6 +242,11 @@ CGraphicObjects.prototype =
             {
                 var oApi = Asc.editor || editor;
                 var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
+
+                var oShape = null;
+                if (isDrawHandles && (oShape = AscCommon.g_oTableId.Get_ById(ret.objectId)) && oShape.isForm() && oShape.getInnerForm() && oShape.getInnerForm().IsFormLocked())
+                	isDrawHandles = false;
+
                 if(isDrawHandles === false)
                 {
                     this.drawingDocument.SetCursorType("default");
@@ -4318,6 +4323,10 @@ CGraphicObjects.prototype.documentIsSelectionLocked = function(CheckType)
 
     if (oDocContent)
         oDocContent.Document_Is_SelectionLocked(CheckType);
+};
+CGraphicObjects.prototype.getAnimationPlayer = function()
+{
+    return null;
 };
 
 function ComparisonByZIndexSimpleParent(obj1, obj2)

@@ -938,10 +938,14 @@ CCellCommentator.prototype.addComment = function(comment, bIsNotUpdate) {
 			oComment.asc_putRow(activeCell.row);
 		}
 
-		var existComment = this.getComment(oComment.nCol, oComment.nRow, false);
+		var existComment = this.getComment(oComment.nCol, oComment.nRow, false, true);
 		if (existComment) {
-			oComment = existComment;
-			bChange = true;
+			if (!AscCommon.UserInfoParser.canViewComment(existComment.sUserName)) {
+				return;
+			} else {
+				oComment = existComment;
+				bChange = true;
+			}
 		}
 	}
 
@@ -1033,6 +1037,10 @@ CCellCommentator.prototype.removeComment = function(id, bNoEvent, bNoAscLock, bN
 		return;
 	}
 
+	if (!AscCommon.UserInfoParser.canViewComment(comment.sUserName)) {
+		return;
+	}
+
 	var onRemoveCommentCallback = function (isSuccess) {
 		if (false === isSuccess)
 			return;
@@ -1048,7 +1056,7 @@ CCellCommentator.prototype.removeComment = function(id, bNoEvent, bNoAscLock, bN
 
 // Extra functions
 
-	CCellCommentator.prototype.getComment = function (col, row, excludeHidden) {
+	CCellCommentator.prototype.getComment = function (col, row, excludeHidden, notCheckCanView) {
 		// Array of root items
 		var comment = null;
 		var _col = col, _row = row, mergedRange = null;
@@ -1080,7 +1088,9 @@ CCellCommentator.prototype.removeComment = function(id, bNoEvent, bNoAscLock, bN
 					}
 				}
 				if (comment) {
-					return ((excludeHidden && this._checkHidden(comment)) || !AscCommon.UserInfoParser.canViewComment(comment.sUserName)) ? null : comment;
+					var _isHidden = excludeHidden && this._checkHidden(comment);
+					var _canView = notCheckCanView || (!notCheckCanView && AscCommon.UserInfoParser.canViewComment(comment.sUserName));
+					return (_isHidden || !_canView) ? null : comment;
 				}
 			}
 		}
@@ -1133,6 +1143,10 @@ CCellCommentator.prototype._addComment = function (oComment, bChange, bIsNotUpda
 
 	CCellCommentator.prototype._removeComment = function (comment, bNoEvent, isDraw) {
 		if (!comment) {
+			return;
+		}
+
+		if (!AscCommon.UserInfoParser.canViewComment(comment.sUserName)) {
 			return;
 		}
 
@@ -1377,6 +1391,16 @@ CCellCommentator.prototype.Redo = function(type, data) {
 	};
 	CCellCommentator.prototype.showSolved = function () {
 		return this.model.workbook.handlers.trigger('showSolved');
+	};
+	CCellCommentator.prototype.isContainsOtherComments = function (range) {
+		var aComments = this.model.aComments;
+		for (var i = 0; i < aComments.length; ++i) {
+			var comment = aComments[i];
+			if (range.contains(comment.nCol, comment.nRow) && !AscCommon.UserInfoParser.canViewComment(comment.sUserName)) {
+				return true;
+			}
+		}
+		return false;
 	};
 
 	//----------------------------------------------------------export----------------------------------------------------

@@ -370,6 +370,12 @@ NullState.prototype =
                 }
 
             }
+            var oAnimPlayer = this.drawingObjects.getAnimationPlayer && this.drawingObjects.getAnimationPlayer();
+            if(oAnimPlayer) {
+                if(oAnimPlayer.onClick()) {
+                    return true;
+                }
+            }
         }
         else
         {

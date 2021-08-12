@@ -766,6 +766,10 @@ DrawingObjectsController.prototype =
                 if(oNvPr && oNvPr.hlinkClick && oNvPr.hlinkClick.id !== null){
                     if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE){
                         if(e.CtrlKey || this.isSlideShow()){
+                            var oAnimPlayer = this.getAnimationPlayer();
+                            if(oAnimPlayer) {
+                                oAnimPlayer.onSpClick(drawing);
+                            }
                             editor.sync_HyperlinkClickCallback(oNvPr.hlinkClick.id);
                             return true;
                         }
@@ -812,6 +816,9 @@ DrawingObjectsController.prototype =
             var bHasLink = oNvPr && oNvPr.hlinkClick && oNvPr.hlinkClick.id !== null;
             if(!drawing.selected && !e.CtrlKey && ( bHasLink || drawing.hasJSAMacro() ) ) {
                 if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE) {
+                    if(e.Button === AscCommon.g_mouse_button_right) {
+                        return false;
+                    }
                     return true;
                 }
                 else{
@@ -1537,6 +1544,7 @@ DrawingObjectsController.prototype =
             }
         }
         var b_is_selected_inline = this.selectedObjects.length === 1 && (this.selectedObjects[0].parent && this.selectedObjects[0].parent.Is_Inline && this.selectedObjects[0].parent.Is_Inline());
+        var oAnimPlayer = this.getAnimationPlayer();
         if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
         {
             var selector = group ? group : this;
@@ -1591,9 +1599,22 @@ DrawingObjectsController.prototype =
                     this.handleMathDrawingDoubleClick(drawing, e, x, y, pageIndex);
                     return true;
                 }
+                if(oAnimPlayer) {
+                    oAnimPlayer.onSpDblClick(group || object);
+                    return {objectId: (group || object).Get_Id(), cursorType: "pointer", bMarker: bInSelect};
+                }
+            }
+            if(oAnimPlayer) {
+                if(oAnimPlayer.onSpClick(group || object)) {
+                    return {objectId: (group || object).Get_Id(), cursorType: "pointer", bMarker: bInSelect};
+                }
             }
             if(object.canMove())
             {
+                if(this.isSlideShow())
+                {
+                    return null;
+                }
                 this.checkSelectedObjectsForMove(group, pageIndex);
                 if(!isRealObject(group))
                 {
@@ -1635,10 +1656,23 @@ DrawingObjectsController.prototype =
                     sCursorType = "pointer";
                 }
             }
+            if(oAnimPlayer) {
+                oAnimPlayer.onSpMouseOver(group || object);
+            }
             return {objectId: sId, cursorType: sCursorType, bMarker: bInSelect};
         }
     },
 
+    getAnimationPlayer: function() {
+        if(this.drawingObjects && this.drawingObjects.cSld && this.drawingObjects.getAnimationPlayer){
+            if(editor && editor.WordControl &&
+                editor.WordControl.DemonstrationManager &&
+                editor.WordControl.DemonstrationManager.Mode) {
+                return this.drawingObjects.getAnimationPlayer();
+            }
+        }
+        return null;
+    },
 
     handleChartTitleMoveHit: function(title, e, x, y, drawing, group, pageIndex)
     {
@@ -1681,9 +1715,17 @@ DrawingObjectsController.prototype =
     recalculateCurPos: function(bUpdateX, bUpdateY)
 	{
 		var oTargetDocContent = this.getTargetDocContent(undefined, true);
-		if (oTargetDocContent)
-			return oTargetDocContent.RecalculateCurPos(bUpdateX, bUpdateY);
+		if (oTargetDocContent) {
 
+            var oRet = oTargetDocContent.RecalculateCurPos(bUpdateX, bUpdateY);
+            if(Asc.editor && Asc.editor.wb) {
+                Asc.editor.wb.updateTargetForCollaboration();
+            }
+            return oRet;
+        }
+        if(Asc.editor && Asc.editor.wb) {
+            Asc.editor.wb.updateTargetForCollaboration();
+        }
         return {X : 0, Y : 0, Height : 0, PageNum : 0, Internal : {Line : 0, Page : 0, Range : 0}, Transform : null};
 	},
 
@@ -1753,6 +1795,12 @@ DrawingObjectsController.prototype =
             if((e.CtrlKey || this.isSlideShow()) && !this.document && !bNotes)
             {
                 check_hyperlink = fCheckObjectHyperlink(object, x, y);
+                var oAnimPlayer = this.getAnimationPlayer();
+                if(oAnimPlayer) {
+                    if(oAnimPlayer.onSpClick(object)) {
+                        return {objectId: (group || object).Get_Id(), cursorType: "pointer", bMarker: false};
+                    }
+                }
                 if(!isRealObject(check_hyperlink))
                 {
                     return this.handleMoveHit(object, e, x, y, group, false, pageIndex, bWord);
@@ -1795,6 +1843,12 @@ DrawingObjectsController.prototype =
 
             if((e.CtrlKey || this.isSlideShow()) && !this.document && !bNotes)
             {
+                var oAnimPlayer = this.getAnimationPlayer();
+                if(oAnimPlayer) {
+                    if(oAnimPlayer.onSpClick(object)) {
+                        return {objectId: (group || object).Get_Id(), cursorType: "pointer", bMarker: false};
+                    }
+                }
                 check_hyperlink = fCheckObjectHyperlink(object, x, y);
                 if(!isRealObject(check_hyperlink))
                 {
@@ -1840,6 +1894,10 @@ DrawingObjectsController.prototype =
                     check_hyperlink = fCheckObjectHyperlink(object, x, y);
                     if(this.isSlideShow())
                     {
+                        var oAnimPlayer = this.getAnimationPlayer();
+                        if(oAnimPlayer) {
+                            oAnimPlayer.onSpMouseOver(object);
+                        }
                         if(isRealObject(check_hyperlink))
                         {
                             ret.hyperlink = check_hyperlink;
@@ -2103,6 +2161,13 @@ DrawingObjectsController.prototype =
 
         var oApi = Asc.editor || editor;
         var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
+
+		if (this.selectedObjects.length === 1
+			&& this.selectedObjects[0].isForm()
+			&& this.selectedObjects[0].getInnerForm()
+			&& this.selectedObjects[0].getInnerForm().IsFormLocked())
+			isDrawHandles = false;
+
         var i;
         if(this.selection.textSelection)
         {
@@ -4291,11 +4356,14 @@ DrawingObjectsController.prototype =
         if(AscFormat.isRealNumber(nStyle)){
             oProps.putStyle(null);
             oCurProps.putStyle(null);
-            if(oCurProps.isEqual(oProps)) {
-                var aStyle = AscCommon.g_oChartStyles[nCurType] && AscCommon.g_oChartStyles[nCurType][nStyle - 1];
-                if(aStyle) {
-                    oChartSpace.applyChartStyleByIds(AscCommon.g_oChartStyles[nCurType][nStyle - 1]);
-                    return;
+            if(oCurProps.isEqual(oProps) || (window['IS_NATIVE_EDITOR'] && nCurStyle !== nStyle)) {
+                var aTypeStyles = AscCommon.g_oChartStyles[nCurType];
+                if(aTypeStyles) {
+                    var aStyle = aTypeStyles[nStyle - 1];
+                    if(aStyle) {
+                        oChartSpace.applyChartStyleByIds(aStyle);
+                        return;
+                    }
                 }
                 return;
             }
@@ -9446,10 +9514,62 @@ DrawingObjectsController.prototype =
             }
         }
         return i < this.eventListeners.length;
+    },
+    getDocumentPositionForCollaborative: function () {
+        var oTargetDocContent = this.getTargetDocContent(undefined, true);
+        if (oTargetDocContent) {
+            var DocPos = oTargetDocContent.GetContentPosition(oTargetDocContent.IsSelectionUse(), false);
+            if (!DocPos || DocPos.length <= 0)
+                return null;
+
+            var Last = DocPos[DocPos.length - 1];
+            if (!(Last.Class instanceof ParaRun))
+                return {Class: this, Position: 0};
+
+            return Last;
+        }
+        return null;
     }
 };
 
+function drawingsUpdateForeignCursor(oDrawingsController, oDrawingDocument, CursorInfo, UserId, Show, UserShortId) {
+    if (!CursorInfo || !oDrawingsController) {
+        oDrawingDocument.Collaborative_RemoveTarget(UserId);
+        AscCommon.CollaborativeEditing.Remove_ForeignCursor(UserId);
+        return;
+    }
 
+    var Changes = new AscCommon.CCollaborativeChanges();
+    var Reader = Changes.GetStream(CursorInfo, 0, CursorInfo.length);
+
+    var RunId = Reader.GetString2();
+    var InRunPos = Reader.GetLong();
+    //console.log("READ POS: " + InRunPos);
+    var Run = AscCommon.g_oTableId.Get_ById(RunId);
+    if (!(Run instanceof ParaRun)) {
+        oDrawingDocument.Collaborative_RemoveTarget(UserId);
+        AscCommon.CollaborativeEditing.Remove_ForeignCursor(UserId);
+        return;
+    }
+
+    var CursorPos = [{Class: Run, Position: InRunPos}];
+    Run.GetDocumentPositionFromObject(CursorPos);
+    AscCommon.CollaborativeEditing.Add_ForeignCursor(UserId, CursorPos, UserShortId);
+
+    if (true === Show) {
+
+        var oTargetDocContentOrTable;
+        if (oDrawingsController) {
+            oTargetDocContentOrTable = oDrawingsController.getTargetDocContent(undefined, true);
+        }
+
+        if (!oTargetDocContentOrTable &&  oDrawingsController.drawingObjects && oDrawingsController.drawingObjects.cSld) {
+            return;
+        }
+        var bTable = (oTargetDocContentOrTable instanceof CTable);
+        AscCommon.CollaborativeEditing.Update_ForeignCursorPosition(UserId, Run, InRunPos, true, oTargetDocContentOrTable, bTable);
+    }
+}
 
 function CBoundsController()
 {
@@ -11022,4 +11142,5 @@ function CalcLiterByLength(aAlphaBet, nLength)
 	window['AscFormat'].getNumberingType = getNumberingType;
 	window['AscFormat'].fGetDefaultShapeExtents = fGetDefaultShapeExtents;
 	window['AscFormat'].HitToRect = HitToRect;
+	window['AscFormat'].drawingsUpdateForeignCursor = drawingsUpdateForeignCursor;
 })(window);

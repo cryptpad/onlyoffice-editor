@@ -20,6 +20,7 @@
 			"cell/apiDefines.js",
 			"cell/utils/utils.js",
 			"cell/view/HandlerList.js",
+			"common/CollaborativeEditingBase.js",
 			"cell/model/CollaborativeEditing.js",
 			"common/macros.js",
 			"common/apiBase.js",
@@ -247,6 +248,7 @@
 			"slide/apiBuilder.js",
 			"cell/apiBuilder.js",
 
+			"common/versionHistory.js",
 			"common/clipboard_base.js",
 			"common/text_input.js",
 			"common/Drawings/Format/OleObject.js",
@@ -271,6 +273,7 @@
 			"common": []
 		},
 		"mobile": [
+			"common/Charts/ChartStyles.js",
 			"common/Native/Wrappers/TextMeasurerWrapper.js",
 			"common/Native/Wrappers/DrawingStream.js",
 			"common/Native/Wrappers/ShapeDrawer.js",

@@ -99,7 +99,22 @@
 		POTX : 0x0087,
 		POTM : 0x0088,
 		FODP : 0x0089,
-		OTP  : 0x008a
+		OTP  : 0x008a,
+
+		//image
+		JPG  : 0x0401,
+		TIFF : 0x0402,
+		TGA  : 0x0403,
+		GIF  : 0x0404,
+		PNG  : 0x0405,
+		EMF  : 0x0406,
+		WMF  : 0x0407,
+		BMP  : 0x0408,
+		CR2  : 0x0409,
+		PCX  : 0x040a,
+		RAS  : 0x040b,
+		PSD  : 0x040c,
+		ICO  : 0x040d
 	};
 
 	var c_oAscError = {

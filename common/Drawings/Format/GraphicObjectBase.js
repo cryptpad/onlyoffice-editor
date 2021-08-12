@@ -591,6 +591,21 @@
         AscCommon.History.Add( new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_AutoShapes_SetLocks, this.locks, nLocks));
         this.locks = nLocks;
     };
+    CGraphicObjectBase.prototype.readMacro = function(oStream)
+    {
+        var nLength = oStream.GetULong();//length
+        var nType = oStream.GetUChar();//attr type - 0
+        this.setMacro(oStream.GetString2());
+    };
+    CGraphicObjectBase.prototype.writeMacro = function(oWriter)
+    {
+        if(typeof this.macro === "string" && this.macro.length > 0)
+        {
+            oWriter.StartRecord(0xA1);
+            oWriter._WriteString1(0, this.macro);
+            oWriter.EndRecord();
+        }
+    };
     CGraphicObjectBase.prototype.setMacro = function(sMacroName)
     {
         History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_ShapeSetMacro, this.macro, sMacroName));
@@ -698,7 +713,12 @@
 
     CGraphicObjectBase.prototype.assignMacro = function(sGuid)
     {
-        this.setMacro(AscFormat.MACRO_PREFIX + sGuid);
+        if(typeof sGuid === "string" && sGuid.length > 0) {
+            this.setMacro(AscFormat.MACRO_PREFIX + sGuid);
+        }
+        else {
+            this.setMacro(null);
+        }
     };
     CGraphicObjectBase.prototype.setTextLink = function(sLink)
     {
@@ -1610,6 +1630,9 @@
         return this.hit(x, y);
     };
     CGraphicObjectBase.prototype.drawLocks = function(transform, graphics){
+        if(AscCommon.IsShapeToImageConverter) {
+            return;
+        }
         var bNotes = !!(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES);
         if(!this.group && !bNotes)
         {
@@ -2232,6 +2255,47 @@
 	};
 	CGraphicObjectBase.prototype.getInnerForm = function() {
 		return null;
+	};
+    CGraphicObjectBase.prototype.getBoundsByDrawing = function() {
+        var oCopy = this.bounds.copy();
+        oCopy.l -= 3;
+        oCopy.r += 3;
+        oCopy.t -= 3;
+        oCopy.b += 3;
+        oCopy.checkWH();
+        return oCopy;//TODO: do not count shape rect
+    };
+    CGraphicObjectBase.prototype.getPresentationSize = function() {
+        var oPresentation = editor.WordControl.m_oLogicDocument;
+        return {
+            w: oPresentation.GetWidthMM(),
+            h: oPresentation.GetHeightMM()
+        }
+    };
+    CGraphicObjectBase.prototype.getAnimTexture = function(scale) {
+        var oBounds = this.getBoundsByDrawing();
+        var nWidth = oBounds.w * scale + 0.5 >> 0;
+        var nHeight = oBounds.h * scale + 0.5 >> 0;
+        if(nWidth === 0 || nHeight === 0) {
+            return null;
+        }
+        var oCanvas = document.createElement('canvas');
+        oCanvas.width = nWidth;
+        oCanvas.height = nHeight;
+        var oCtx = oCanvas.getContext('2d');
+        var oGraphics = new AscCommon.CGraphics();
+        oGraphics.init(oCtx, nWidth, nHeight, nWidth / scale, nHeight / scale);
+        oGraphics.m_oFontManager = AscCommon.g_fontManager;
+        var nX = oBounds.x * oGraphics.m_oCoordTransform.sx;
+        var nY = oBounds.y * oGraphics.m_oCoordTransform.sy;
+        oGraphics.m_oCoordTransform.tx = -nX;
+        oGraphics.m_oCoordTransform.ty = -nY;
+        AscCommon.IsShapeToImageConverter = true;
+        this.draw(oGraphics);
+        AscCommon.IsShapeToImageConverter = false;
+        return new AscFormat.CBaseAnimTexture(oCanvas, scale, nX, nY)
+    };
+    
 	};
 	CGraphicObjectBase.prototype.canEditText = function() {
         if(this.getObjectType() === AscDFH.historyitem_type_Shape) {

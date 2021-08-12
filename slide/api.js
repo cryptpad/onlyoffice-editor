@@ -6581,12 +6581,12 @@ background-repeat: no-repeat;\
 				}
 				case "next":
 				{
-					_this.WordControl.DemonstrationManager.NextSlide();
+					_this.WordControl.DemonstrationManager.OnNextSlide();
 					break;
 				}
 				case "prev":
 				{
-					_this.WordControl.DemonstrationManager.PrevSlide();
+					_this.WordControl.DemonstrationManager.OnPrevSlide();
 					break;
 				}
 				case "go_to_slide":
@@ -6624,6 +6624,11 @@ background-repeat: no-repeat;\
 				case "resize":
 				{
 					_this.WordControl.DemonstrationManager.Resize(true);
+					break;
+				}
+				case "on_mouse_down":
+				{
+					_this.WordControl.DemonstrationManager.CheckMouseDown(_obj["x"], _obj["y"], _obj["page"]);
 					break;
 				}
 				default:
@@ -6744,11 +6749,11 @@ background-repeat: no-repeat;\
 			}
 			else if (true === _obj["next"])
 			{
-				_this.WordControl.DemonstrationManager.NextSlide(true);
+				_this.WordControl.DemonstrationManager.OnNextSlide(true);
 			}
 			else if (true === _obj["prev"])
 			{
-				_this.WordControl.DemonstrationManager.PrevSlide(true);
+				_this.WordControl.DemonstrationManager.OnPrevSlide(true);
 			}
 			else if (undefined !== _obj["go_to_slide"])
 			{
@@ -6788,6 +6793,10 @@ background-repeat: no-repeat;\
 					_this.WordControl.reporterTimerAdd = _this.WordControl.reporterTimerFunc(true);
 				}
 			}
+			else if(true === _obj["on_mouse_down"])
+			{
+				_this.WordControl.DemonstrationManager.CheckMouseDown(_obj["x"], _obj["y"], _obj["page"]);
+			}
 		}
 		catch (err)
 		{
@@ -6824,14 +6833,14 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.DemonstrationNextSlide = function()
 	{
-		this.WordControl.DemonstrationManager.NextSlide();
+		this.WordControl.DemonstrationManager.OnNextSlide();
 		if (this.reporterWindow)
 			this.sendToReporter("{ \"main_command\" : true, \"next\" : true }");
 	};
 
 	asc_docs_api.prototype.DemonstrationPrevSlide = function()
 	{
-		this.WordControl.DemonstrationManager.PrevSlide();
+		this.WordControl.DemonstrationManager.OnPrevSlide();
 		if (this.reporterWindow)
 			this.sendToReporter("{ \"main_command\" : true, \"prev\" : true }");
 	};
@@ -7489,6 +7498,15 @@ background-repeat: no-repeat;\
 			AscCommon.CollaborativeEditing.Check_MergeData();
 
 			AscCommon.CollaborativeEditing.OnEnd_ReadForeignChanges();
+
+			if (window["NATIVE_EDITOR_ENJINE"] === true && window["native"]["AddImageInChanges"])
+			{
+				var _new_images     = AscCommon.CollaborativeEditing.m_aNewImages;
+				var _new_images_len = _new_images.length;
+
+				for (var nImage = 0; nImage < _new_images_len; nImage++)
+					window["native"]["AddImageInChanges"](_new_images[nImage]);
+			}
 		}
 
 		g_oIdCounter.Set_Load(false);

@@ -62,6 +62,15 @@ AscCommon.darkModeCorrectColor = function(r, g, b)
 {
     return AscCommon.darkModeCheckColor(r, g, b) ? { R : 255 - r, G: 255 - g, B : 255 - b } : { R : r, G : g, B : b };
 };
+AscCommon.darkModeCorrectColor2 = function(r, g, b)
+{
+	var oHSL = {}, oRGB = {};
+	AscFormat.CColorModifiers.prototype.RGB2HSL(r, g, b, oHSL);
+	var dKoefL = (255 - 58) / 255;
+	oHSL.L = 255 - ((dKoefL * oHSL.L) >> 0);
+	AscFormat.CColorModifiers.prototype.HSL2RGB(oHSL, oRGB);
+	return oRGB;
+};
 
 function CGraphics()
 {
@@ -259,6 +268,27 @@ CGraphics.prototype =
 					_func.call(_this, 255 - r, 255 - g, 255 - b, a);
 				else
 					_func.call(_this, r, g, b, a);
+			};
+		}
+
+		this.p_color_old = this.p_color; this.p_color = _darkColor(this, this.p_color_old);
+		this.b_color1_old = this.b_color1; this.b_color1 = _darkColor(this, this.b_color1_old);
+		this.b_color2_old = this.b_color2; this.b_color2 = _darkColor(this, this.b_color2_old);
+	},
+	darkModeOverride3 : function()
+	{
+		this.isDarkMode = true;
+		function _darkColor(_this, _func) {
+			return function(r, g, b, a) {
+				if (_this.isDarkMode && !this.isShapeDraw)
+				{
+					var c = AscCommon.darkModeCorrectColor2(r, g, b);
+					_func.call(_this, c.R, c.G, c.B, a);
+				}
+				else
+                {
+					_func.call(_this, r, g, b, a);
+                }
 			};
 		}
 

@@ -1118,7 +1118,7 @@ function CPage()
 
 		if (api && api.isDarkMode)
 		{
-			strokeColor = "#FFFFFF";
+			strokeColor = api.getPageStrokeColor();
 		}
 
         if (strokeColor)
@@ -2463,7 +2463,7 @@ function CDrawingDocument()
 		g.transform(1, 0, 0, 1, 0, 0);
 
 		if (this.m_oWordControl.m_oApi.isDarkMode)
-            g.darkModeOverride2();
+            g.darkModeOverride3();
 
 		if (null == this.m_oDocumentRenderer)
 			this.m_oLogicDocument.DrawPage(pageIndex, g);
@@ -3127,7 +3127,7 @@ function CDrawingDocument()
 	{
 		var color = this.TargetCursorColor;
 
-		if (!this.m_oWordControl.m_oApi.isDarkMode || !AscCommon.darkModeCheckColor(color.R, color.G, color.B))
+		if (!this.m_oWordControl.m_oApi.isDarkMode)
 			return "rgb(" + color.R + "," + color.G + "," + color.B + ")";
 
 		var newColor = AscCommon.darkModeCorrectColor(color.R, color.G, color.B);
