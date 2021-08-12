@@ -9421,21 +9421,23 @@
     };
     SmartArt.prototype.handleUpdateFill = function() {
       this.recalcInfo.recalculateBrush = true;
+        CGroupShape.prototype.handleUpdateFill.call(this);
       this.addToRecalculate();
     };
     SmartArt.prototype.handleUpdateLn = function() {
       this.recalcInfo.recalculatePen = true;
+        CGroupShape.prototype.handleUpdateLn.call(this);
       this.addToRecalculate();
     };
 
       SmartArt.prototype.convertToWord = function(document) {
           var oCopy = this.copy();
-          oCopy.setBDeleted2(false)
+          oCopy.setBDeleted2(false);
           return oCopy;
       };
       SmartArt.prototype.convertToPPTX = function(drawingDocument, worksheet) {
           var oCopy = this.copy();
-          oCopy.setBDeleted2(false)
+          oCopy.setBDeleted2(false);
           return oCopy;
       };
 
