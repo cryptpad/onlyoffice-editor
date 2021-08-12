@@ -2385,22 +2385,22 @@
                 var defaultExtY = this.extY;
                 if (prSet) {
                     if (prSet.custScaleX) {
-                        defaultExtX /= prSet.custScaleX / 100000;
+                        defaultExtX /= prSet.custScaleX;
                     }
                     if (prSet.custScaleY) {
-                        defaultExtY /= prSet.custScaleY / 100000;
+                        defaultExtY /= prSet.custScaleY;
                     }
                     if (prSet.custLinFactNeighborX) {
-                        originalPosX -= (prSet.custLinFactNeighborX / 100000) * defaultExtX;
+                        originalPosX -= (prSet.custLinFactNeighborX) * defaultExtX;
                     }
                     if (prSet.custLinFactNeighborY) {
-                        originalPosY -= (prSet.custLinFactNeighborY / 100000) * defaultExtY;
+                        originalPosY -= (prSet.custLinFactNeighborY) * defaultExtY;
                     }
                     if (posX !== this.x) {
-                        prSet.setCustLinFactNeighborX(((posX - originalPosX) / defaultExtX) * 100000);
+                        prSet.setCustLinFactNeighborX(((posX - originalPosX) / defaultExtX));
                     }
                     if (posY !== this.y) {
-                        prSet.setCustLinFactNeighborY(((posY - originalPosY) / defaultExtY) * 100000);
+                        prSet.setCustLinFactNeighborY(((posY - originalPosY) / defaultExtY));
                     }
                 }
             }
