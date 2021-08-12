@@ -2588,7 +2588,7 @@ var editor;
       return false;
     }
 
-  	var i = this.wbModel.getActive();
+    var i = this.wbModel.getActive();
     this._addWorksheets([name], i + 1);
   };
 
@@ -2663,7 +2663,7 @@ var editor;
     }
 
 
-	  if (!arrSheets) {
+    if (!arrSheets) {
       arrSheets = [this.wbModel.getActive()];
     }
 

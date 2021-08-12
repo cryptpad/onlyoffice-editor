@@ -239,7 +239,7 @@
         SlicerCaches: 18,
         SlicerCachesExt: 19,
         SlicerCache: 20,
-		WorkbookProtection: 21
+        WorkbookProtection: 21
     };
     /** @enum */
     var c_oSerWorkbookPrTypes =
@@ -320,11 +320,11 @@
 		SortState: 36,
         Slicers: 37,
         SlicersExt: 38,
-		Slicer: 39,
-		NamedSheetView: 40,
-		ProtectionSheet: 41,
-		ProtectedRanges: 42,
-		ProtectedRange: 43
+        Slicer: 39,
+        NamedSheetView: 40,
+        ProtectionSheet: 41,
+        ProtectedRanges: 42,
+        ProtectedRange: 43
     };
     /** @enum */
     var c_oSerWorksheetPropTypes =
@@ -4058,7 +4058,7 @@
 				this.memory.WriteByte(c_oSerPropLenType.Variable);
 				this.memory.WriteString2(sheetProtection.saltValue);
 			}
-            //todo password
+			//todo password
 			if (null != sheetProtection.password) {
 				this.memory.WriteByte(c_oSerWorksheetProtection.Password);
 				this.memory.WriteByte(c_oSerPropLenType.Variable);
@@ -6992,22 +6992,22 @@
 				// locked
 				if(null != oCellStyleXfs.locked)
 					newXf.locked = oCellStyleXfs.locked;
-                if(null != oCellStyleXfs.applyProtection)
+				if(null != oCellStyleXfs.applyProtection)
                     newXf.applyProtection = oCellStyleXfs.applyProtection;
                 // align
-                if(null != oCellStyleXfs.align)
-					newXf.align = oCellStyleXfs.align;
+				if(null != oCellStyleXfs.align)
+                    newXf.align = oCellStyleXfs.align;
                 // ApplyBorder (ToDo возможно это свойство должно быть в xfs)
-                if (null !== oCellStyleXfs.ApplyBorder)
+				if (null !== oCellStyleXfs.ApplyBorder)
                     oCellStyle.ApplyBorder = oCellStyleXfs.ApplyBorder;
                 // ApplyFill (ToDo возможно это свойство должно быть в xfs)
-                if (null !== oCellStyleXfs.ApplyFill)
+				if (null !== oCellStyleXfs.ApplyFill)
                     oCellStyle.ApplyFill = oCellStyleXfs.ApplyFill;
                 // ApplyFont (ToDo возможно это свойство должно быть в xfs)
-                if (null !== oCellStyleXfs.ApplyFont)
+				if (null !== oCellStyleXfs.ApplyFont)
                     oCellStyle.ApplyFont = oCellStyleXfs.ApplyFont;
                 // ApplyNumberFormat (ToDo возможно это свойство должно быть в xfs)
-                if (null !== oCellStyleXfs.ApplyNumberFormat)
+				if (null !== oCellStyleXfs.ApplyNumberFormat)
                     oCellStyle.ApplyNumberFormat = oCellStyleXfs.ApplyNumberFormat;
 
 				oCellStyle.xfs = g_StyleCache.addXf(newXf);
@@ -7908,7 +7908,7 @@
 			else if (c_oSerWorkbookTypes.WorkbookProtection == type && typeof Asc.CWorkbookProtection != "undefined")
 			{
 				this.oWorkbook.workbookProtection = new Asc.CWorkbookProtection(this.oWorkbook);
-			    res = this.bcr.Read2Spreadsheet(length, function(t,l){
+				res = this.bcr.Read2Spreadsheet(length, function(t,l){
 					return oThis.ReadWorkbookProtection(t,l, oThis.oWorkbook.workbookProtection);
 				});
 			}
@@ -8681,9 +8681,9 @@
 				sheetProtection.formatCells = this.stream.GetBool();
 			} else if (c_oSerWorksheetProtection.FormatColumns == type) {
 				sheetProtection.formatColumns = this.stream.GetBool();
-            } else if (c_oSerWorksheetProtection.FormatRows == type) {
-                sheetProtection.formatRows = this.stream.GetBool();
-            } else if (c_oSerWorksheetProtection.InsertColumns == type) {
+			} else if (c_oSerWorksheetProtection.FormatRows == type) {
+				sheetProtection.formatRows = this.stream.GetBool();
+			} else if (c_oSerWorksheetProtection.InsertColumns == type) {
 				sheetProtection.insertColumns = this.stream.GetBool();
 			} else if (c_oSerWorksheetProtection.InsertHyperlinks == type) {
 				sheetProtection.insertHyperlinks = this.stream.GetBool();

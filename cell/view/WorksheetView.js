@@ -1063,7 +1063,7 @@
 		if (this.model.getSheetProtection(Asc.c_oAscSheetProtectType.formatRows)) {
 			return;
 		}
-    	var viewMode = this.handlers.trigger('getViewMode');
+		var viewMode = this.handlers.trigger('getViewMode');
 		var t = this;
 		// Учитываем координаты точки, где мы начали изменение размера
 		y2 += mouseY;

@@ -2728,7 +2728,7 @@ var g_oBorderProperties = {
         this.XfId = null;
 
         this.applyProtection = null;
-		this.locked = null;
+        this.locked = null;
         this.hidden = null;
 
         //inner
@@ -2748,9 +2748,9 @@ var g_oBorderProperties = {
             this._hash += this.QuotePrefix + '|';
             this._hash += this.PivotButton + '|';
             this._hash += this.XfId + '|';
-			this._hash += this.applyProtection + '|';
-			this._hash += this.locked + '|';
-			this._hash += this.hidden + '|';
+            this._hash += this.applyProtection + '|';
+            this._hash += this.locked + '|';
+            this._hash += this.hidden + '|';
         }
         return this._hash;
     };
@@ -2812,9 +2812,9 @@ var g_oBorderProperties = {
             cache.QuotePrefix = this._mergeProperty(null, xfs.QuotePrefix, this.QuotePrefix);
             cache.PivotButton = this._mergeProperty(null, xfs.PivotButton, this.PivotButton);
             cache.XfId = this._mergeProperty(null, xfs.XfId, this.XfId);
-			cache.applyProtection = this._mergeProperty(null, xfs.applyProtection, this.applyProtection);
-			cache.locked = this._mergeProperty(null, xfs.locked, this.locked);
-			cache.hidden = this._mergeProperty(null, xfs.hidden, this.hidden);
+            cache.applyProtection = this._mergeProperty(null, xfs.applyProtection, this.applyProtection);
+            cache.locked = this._mergeProperty(null, xfs.locked, this.locked);
+            cache.hidden = this._mergeProperty(null, xfs.hidden, this.hidden);
             cache = g_StyleCache.addXf(cache);
             this.setOperationCache("merge", xfIndexNumber, cache);
         }
@@ -2836,9 +2836,9 @@ var g_oBorderProperties = {
         res.QuotePrefix = this.QuotePrefix;
         res.PivotButton = this.PivotButton;
         res.XfId = this.XfId;
-		res.applyProtection = this.applyProtection;
-		res.locked = this.locked;
-		res.hidden = this.hidden;
+        res.applyProtection = this.applyProtection;
+        res.locked = this.locked;
+        res.hidden = this.hidden;
 
         return res;
     };
@@ -2872,12 +2872,12 @@ var g_oBorderProperties = {
                 return this.PivotButton;
             case this.Properties.XfId:
                 return this.XfId;
-			case this.Properties.applyProtection:
-				return this.applyProtection;
-			case this.Properties.locked:
-				return this.locked;
-			case this.Properties.hidden:
-				return this.hidden;
+            case this.Properties.applyProtection:
+                return this.applyProtection;
+            case this.Properties.locked:
+                return this.locked;
+            case this.Properties.hidden:
+                return this.hidden;
         }
     };
     CellXfs.prototype.setProperty = function (nType, value) {
@@ -2906,15 +2906,15 @@ var g_oBorderProperties = {
             case this.Properties.XfId:
                 this.XfId = value;
                 break;
-			case this.Properties.applyProtection:
-				this.applyProtection = value;
-				break;
-			case this.Properties.locked:
-				this.locked = value;
-				break;
-			case this.Properties.hidden:
-				this.hidden = value;
-				break;
+            case this.Properties.applyProtection:
+                this.applyProtection = value;
+                break;
+            case this.Properties.locked:
+                this.locked = value;
+                break;
+            case this.Properties.hidden:
+                this.hidden = value;
+                break;
         }
     };
 	/*CellXfs.prototype.Write_ToBinary2 = function (writer) {
