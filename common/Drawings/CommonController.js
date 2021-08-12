@@ -4102,22 +4102,22 @@ DrawingObjectsController.prototype =
                     }
                 }
                 if(AscFormat.isRealBool(props.flipH)){
-                    objects_by_type.shapes[i].spPr.xfrm.setFlipH(props.flipH);
+                    objects_by_type.shapes[i].changeFlipH(props.flipH);
                 }
                 if(AscFormat.isRealBool(props.flipV)){
-                    objects_by_type.shapes[i].spPr.xfrm.setFlipV(props.flipV);
+                    objects_by_type.shapes[i].changeFlipV(props.flipV);
                 }
                 if(props.flipHInvert){
-                    objects_by_type.shapes[i].spPr.xfrm.setFlipH(!objects_by_type.shapes[i].flipH);
+                    objects_by_type.shapes[i].changeFlipH(!objects_by_type.shapes[i].flipH);
                 }
                 if(props.flipVInvert){
-                    objects_by_type.shapes[i].spPr.xfrm.setFlipV(!objects_by_type.shapes[i].flipV);
+                    objects_by_type.shapes[i].changeFlipV(!objects_by_type.shapes[i].flipV);
                 }
                 if(AscFormat.isRealNumber(props.rotAdd)){
-                    objects_by_type.shapes[i].spPr.xfrm.setRot(AscFormat.normalizeRotate(objects_by_type.shapes[i].rot + props.rotAdd));
+                    objects_by_type.shapes[i].changeRot(AscFormat.normalizeRotate(objects_by_type.shapes[i].rot + props.rotAdd));
                 }
                 if(AscFormat.isRealNumber(props.rot)){
-                    objects_by_type.shapes[i].spPr.xfrm.setRot(AscFormat.normalizeRotate(props.rot));
+                    objects_by_type.shapes[i].changeRot(AscFormat.normalizeRotate(props.rot));
                 }
                 if(objects_by_type.shapes[i].group)
                 {
@@ -4139,22 +4139,22 @@ DrawingObjectsController.prototype =
                     }
                 }
                 if(AscFormat.isRealBool(props.flipH)){
-                    objects_by_type.images[i].spPr.xfrm.setFlipH(props.flipH);
+                    objects_by_type.images[i].changeFlipH(props.flipH);
                 }
                 if(AscFormat.isRealBool(props.flipV)){
-                    objects_by_type.images[i].spPr.xfrm.setFlipV(props.flipV);
+                    objects_by_type.images[i].changeFlipV(props.flipV);
                 }
                 if(props.flipHInvert){
-                    objects_by_type.images[i].spPr.xfrm.setFlipH(!objects_by_type.images[i].flipH);
+                    objects_by_type.images[i].changeFlipH(!objects_by_type.images[i].flipH);
                 }
                 if(props.flipVInvert){
-                    objects_by_type.images[i].spPr.xfrm.setFlipV(!objects_by_type.images[i].flipV);
+                    objects_by_type.images[i].changeFlipV(!objects_by_type.images[i].flipV);
                 }
                 if(AscFormat.isRealNumber(props.rot)){
-                    objects_by_type.images[i].spPr.xfrm.setRot(AscFormat.normalizeRotate( props.rot));
+                    objects_by_type.images[i].changeRot(AscFormat.normalizeRotate( props.rot));
                 }
                 if(AscFormat.isRealNumber(props.rotAdd)){
-                    objects_by_type.images[i].spPr.xfrm.setRot(AscFormat.normalizeRotate( objects_by_type.images[i].rot + props.rotAdd));
+                    objects_by_type.images[i].changeRot(AscFormat.normalizeRotate( objects_by_type.images[i].rot + props.rotAdd));
                 }
                 if(objects_by_type.images[i].group)
                 {
@@ -7510,7 +7510,7 @@ DrawingObjectsController.prototype =
                         canChangeArrows: drawing.canChangeArrows(),
                         bFromChart: false,
                         bFromSmartArt: drawing.getObjectType() === AscDFH.historyitem_type_SmartArt,
-                        bFromSmartArtInternal: drawing.isFromSmartArt(),
+                        bFromSmartArtInternal: drawing.isObjectInSmartArt(),
                         bFromGroup: AscCommon.isRealObject(drawing.group),
                         locked: locked,
                         textArtProperties: drawing.getTextArtProperties(),

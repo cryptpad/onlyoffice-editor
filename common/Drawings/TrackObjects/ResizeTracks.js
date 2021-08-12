@@ -1355,7 +1355,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 {
                     AscFormat.ExecuteNoHistory(function(){
                         this.originalObject.recalculateGeometry();
-                    }, this, [])
+                    }, this, []);
 
                     this.originalObject.transform = this.transform;
                     this.originalObject.invertTransform = AscCommon.global_MatrixTransformer.Invert(this.transform);

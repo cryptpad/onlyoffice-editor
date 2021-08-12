@@ -871,12 +871,6 @@
         return nType === AscDFH.historyitem_type_SmartArt ||
             nType === AscDFH.historyitem_type_SmartArtDrawing;
     };
-    CGraphicObjectBase.prototype.isFromSmartArt = function () {
-        if(this.group && this.group.getObjectType() === AscDFH.historyitem_type_SmartArtDrawing) {
-            return true;
-        }
-        return false;
-    };
 
 
     CGraphicObjectBase.prototype.drawShdw = function(graphics){
@@ -2329,6 +2323,106 @@
     };
     CGraphicObjectBase.prototype.convertFromSmartArt = function() {
         return this;
+    };
+    CGraphicObjectBase.prototype.changeRot = function(dAngle) {
+        if(this.spPr && this.spPr.xfrm) {
+            var oXfrm = this.spPr.xfrm;
+            var originalRot = oXfrm.rot || 0;
+            var dRot = AscFormat.normalizeRotate(dAngle);
+            oXfrm.setRot(dRot);
+            if(this.isObjectInSmartArt()) {
+                var point = this.getPointAssociation();
+                if (point) {
+                    var prSet = point.getPrSet();
+                    if (prSet) {
+                        var defaultRot = originalRot;
+                        if (prSet.custAng) {
+                            var oldCustAng = prSet.custAng;
+                            if (oldCustAng > defaultRot) {
+                                defaultRot += Math.PI * 2 * Math.ceil(oldCustAng / (Math.PI * 2));
+                            }
+                            defaultRot -= oldCustAng;
+                        }
+                        if (originalRot !== dRot) {
+                            var currentAngle = dRot;
+                            if (defaultRot > currentAngle) {
+                                currentAngle += Math.PI * 2 * Math.ceil(defaultRot / (Math.PI * 2));
+                            }
+                            var newCustAng = (currentAngle - defaultRot);
+                            prSet.setCustAng(newCustAng);
+                        }
+                    }
+                }
+                this.recalculate();
+                var oBounds = this.bounds;
+                var oSmartArt = this.group.group;
+                var diffX = null, diffY = null;
+                if(oBounds.r > oSmartArt.x + oSmartArt.extX) {
+                    diffX = oSmartArt.x + oSmartArt.extX - oBounds.r;
+                }
+                if(oBounds.l < oSmartArt.x) {
+                    diffX = oSmartArt.x - oBounds.l;
+                }
+                if(oBounds.b > oSmartArt.y + oSmartArt.extY) {
+                    diffY = oSmartArt.y + oSmartArt.extY - oBounds.b;
+                }
+                if(oBounds.t < oSmartArt.y) {
+                    diffY = oSmartArt.y - oBounds.t;
+                }
+                var originalPosX = this.spPr.xfrm.offX;
+                var originalPosY = this.spPr.xfrm.offY;
+
+                if(diffX !== null) {
+                    this.spPr.xfrm.setOffX(this.spPr.xfrm.offX + diffX);
+                }
+                if(diffY !== null) {
+                    this.spPr.xfrm.setOffY(this.spPr.xfrm.offY + diffY);
+                }
+
+                var posX = this.spPr.xfrm.offX;
+                var posY = this.spPr.xfrm.offY;
+                var defaultExtX = this.extX;
+                var defaultExtY = this.extY;
+                if (prSet) {
+                    if (prSet.custScaleX) {
+                        defaultExtX /= prSet.custScaleX / 100000;
+                    }
+                    if (prSet.custScaleY) {
+                        defaultExtY /= prSet.custScaleY / 100000;
+                    }
+                    if (prSet.custLinFactNeighborX) {
+                        originalPosX -= (prSet.custLinFactNeighborX / 100000) * defaultExtX;
+                    }
+                    if (prSet.custLinFactNeighborY) {
+                        originalPosY -= (prSet.custLinFactNeighborY / 100000) * defaultExtY;
+                    }
+                    if (posX !== this.x) {
+                        prSet.setCustLinFactNeighborX(((posX - originalPosX) / defaultExtX) * 100000);
+                    }
+                    if (posY !== this.y) {
+                        prSet.setCustLinFactNeighborY(((posY - originalPosY) / defaultExtY) * 100000);
+                    }
+                }
+            }
+        }
+    };
+    CGraphicObjectBase.prototype.changeFlipH = function(bFlipH) {
+        if(this.spPr && this.spPr.xfrm) {
+            var oXfrm = this.spPr.xfrm;
+            oXfrm.setFlipH(bFlipH);
+            if(this.isObjectInSmartArt()) {
+                //TODO
+            }
+        }
+    };
+    CGraphicObjectBase.prototype.changeFlipV = function(bFlipV) {
+        if(this.spPr && this.spPr.xfrm) {
+            var oXfrm = this.spPr.xfrm;
+            oXfrm.setFlipH(bFlipV);
+            if(this.isObjectInSmartArt()) {
+                //TODO
+            }
+        }
     };
 
     function CRelSizeAnchor() {
