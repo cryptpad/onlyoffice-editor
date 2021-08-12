@@ -5062,7 +5062,7 @@ CShape.prototype.recalculateGeometry = function () {
     }
 };
 CShape.prototype.drawAdjustments = function (drawingDocument) {
-    if (this.spPr && isRealObject(this.spPr.geometry)) {
+    if (this.spPr && isRealObject(this.spPr.geometry) && this.canChangeAdjustments()) {
         this.spPr.geometry.drawAdjustments(drawingDocument, this.transform, false);
     }
     if(this.recalcInfo.warpGeometry)
