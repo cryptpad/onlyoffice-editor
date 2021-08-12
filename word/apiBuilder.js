@@ -3908,10 +3908,10 @@
 		return "unsupported";
 	};
 	/**
-	 * Add a comment to the desired element or array of elements.
+	 * Add a comment to the desired element or array of Runs.
 	 * @memberof Api
 	 * @typeofeditors ["CDE"]
-	 * @param {Array | ApiParagraph | ApiDocument} oElement - May be Document, Paragraph or Run[].
+	 * @param {ApiRun[] | ApiParagraph | ApiDocument} oElement - May be Document, Paragraph or Run[].
 	 * @param {string} Comment - The comment text.
 	 * @param {string} Autor - The author's name (not obligatory).
 	 * @returns {bool} - returns false if params are invalid.
@@ -4741,7 +4741,7 @@
 
 		for (var Index = 0; Index < arrAllDrawing.length; Index++)
 		{
-			if (arrAllDrawing[Index].GraphicObj instanceof CShape)
+			if (arrAllDrawing[Index].GraphicObj instanceof AscFormat.CShape)
 				arrApiShapes.push(new ApiShape(arrAllDrawing[Index].GraphicObj));
 		}
 		
@@ -5857,7 +5857,7 @@
 
 		for (var Index = 0; Index < arrAllDrawing.length; Index++)
 		{
-			if (arrAllDrawing[Index].GraphicObj instanceof CShape)
+			if (arrAllDrawing[Index].GraphicObj instanceof AscFormat.CShape)
 				arrApiShapes.push(new ApiShape(arrAllDrawing[Index].GraphicObj));
 		}
 
@@ -7358,31 +7358,26 @@
 			nRow = 1;
 		if (nCol == undefined)
 			nCol = 1;
-		if(!(oCell instanceof ApiTableCell) || nCol <= 0 || nRow <= 0)
-			return null;
-		var CellVMergeCount = this.Table.GetVMergeCount(oCell.Cell.GetIndex(), oCell.Cell.Row.GetIndex());
-		if (CellVMergeCount > 1 && CellVMergeCount < nRow)
-			return null;
 
-		this.Table.Recalculate_Grid();
-		var Grid_start = oCell.Cell.GetRow().Get_CellInfo( oCell.Cell.GetIndex()).StartGridCol;
-		var Grid_span  = oCell.Cell.Get_GridSpan();
-		var Sum_before = this.Table.TableSumGrid[Grid_start - 1];
-		var Sum_with   = this.Table.TableSumGrid[Grid_start + Grid_span - 1];
-		var Span_width = Sum_with - Sum_before;
-		var Grid_width = Span_width / nCol;
-
-		var CellSpacing = oCell.Cell.GetRow().Get_CellSpacing();
-		var CellMar     = oCell.Cell.GetMargins();
-
-		var MinW = CellSpacing + CellMar.Right.W + CellMar.Left.W;
-
-		if (Grid_width < MinW)
+		if (!(oCell instanceof ApiTableCell) || nCol <= 0 || nRow <= 0)
 			return null;
 
 		this.Table.RemoveSelection();
 		this.Table.Set_CurCell(oCell.Cell);
-		this.Table.SplitTableCells(nCol, nRow);
+		this.Table.SelectTable(c_oAscTableSelectionType.Cell);
+
+		if (!this.Table.CanSplitTableCells())
+			return null;
+
+		if (!this.Table.IsRecalculated())
+		{
+			// Reset делаем для случая, когда таблица вообще ни разу не пересчитывалась
+			this.Table.Reset(0, 0, 100, 100, 0, 0, 1);
+			this.Table.Recalculate_Grid();
+		}
+
+		if (!this.Table.SplitTableCells(nCol, nRow, false))
+			return null;
 
 		return this;
 	};
@@ -12793,7 +12788,8 @@
 						var nPosToAdd   = nPosToDel
 						var nCharsToDel = Math.min(oChange.deleteCount, oInfo.StringCount);
 						
-						if ((nPosToDel >= oInfo.Run.Content.length && nCharsToDel !== 0) || (nCharsToDel === 0 && oChange.deleteCount !== 0))
+						if ((nPosToDel >= oInfo.Run.Content.length && nCharsToDel !== 0) || (nCharsToDel === 0 && oChange.deleteCount !== 0)
+							|| nPosToAdd > oInfo.Run.Content.length)
 							continue;
 
 						for (var nChar = 0; nChar < nCharsToDel; nChar++)
@@ -12907,12 +12903,18 @@
 			{
 				for (var nCol = oRange.range.bbox.c1; nCol <= oRange.range.bbox.c2; nCol++)
 				{
+					if (oWorksheet.worksheet.getRowHidden(nRow))
+						continue;
+
 					resultText        = '';
 					tempRange         = oWorksheet.GetRangeByNumber(nRow, nCol);
 					nCountLinesInCell = tempRange.GetValue().split('\n').length;
 
 					for (var nText = nTextToReplace; nText < nTextToReplace + nCountLinesInCell; nText++) 
 					{
+						if (!arrString[nText])
+							continue;
+							
 						resultText += arrString[nText];
 						if (nText !== nTextToReplace + nCountLinesInCell - 1)
 							resultText += '\n';
@@ -12921,7 +12923,10 @@
 					nTextToReplace += nCountLinesInCell;
 
 					if (resultText !== '')
-						tempRange.SetValue(resultText);
+						if (!this.wb.getCellEditMode())
+							tempRange.SetValue(resultText);
+						else
+							this.wb.cellEditor.pasteText(resultText);
 				}
 			}
 		}
@@ -12931,7 +12936,11 @@
 			arrSelectedParas = oDocument.Document.GetSelectedParagraphs();
 			
 			ReplaceInParas(arrSelectedParas);
-			oDocument.Document.RemoveSelection();
+			
+			if (arrSelectedParas[0] && arrSelectedParas[0].Parent)
+				arrSelectedParas[0].Parent.RemoveSelection();
+			else 
+				oDocument.Document.RemoveSelection();
 		}
 	};
 	Api.prototype.CoAuthoringChatSendMessage = function(sString)
@@ -13343,6 +13352,16 @@
 	ApiParaPr.prototype["SetTabs"]                   = ApiParaPr.prototype.SetTabs;
 	ApiParaPr.prototype["SetNumPr"]                  = ApiParaPr.prototype.SetNumPr;
 	ApiParaPr.prototype["SetBullet"]                 = ApiParaPr.prototype.SetBullet;
+	ApiParaPr.prototype["GetStyle"]                  = ApiParaPr.prototype.GetStyle;
+	ApiParaPr.prototype["GetSpacingLineValue"]       = ApiParaPr.prototype.GetSpacingLineValue;
+	ApiParaPr.prototype["GetSpacingLineRule"]        = ApiParaPr.prototype.GetSpacingLineRule;
+	ApiParaPr.prototype["GetSpacingBefore"]          = ApiParaPr.prototype.GetSpacingBefore;
+	ApiParaPr.prototype["GetSpacingAfter"]           = ApiParaPr.prototype.GetSpacingAfter;
+	ApiParaPr.prototype["GetShd"]                    = ApiParaPr.prototype.GetShd;
+	ApiParaPr.prototype["GetJc"]                     = ApiParaPr.prototype.GetJc;
+	ApiParaPr.prototype["GetIndRight"]               = ApiParaPr.prototype.GetIndRight;
+	ApiParaPr.prototype["GetIndLeft"]                = ApiParaPr.prototype.GetIndLeft;
+	ApiParaPr.prototype["GetIndFirstLine"]           = ApiParaPr.prototype.GetIndFirstLine;
 
 	ApiTablePr.prototype["GetClassType"]             = ApiTablePr.prototype.GetClassType;
 	ApiTablePr.prototype["SetStyleColBandSize"]      = ApiTablePr.prototype.SetStyleColBandSize;
@@ -13675,6 +13694,7 @@
 			oShd.Value = Asc.c_oAscShdClear;
 
 		oShd.Color.Set(r, g, b, isAuto);
+		oShd.Fill = new CDocumentColor(r, g, b, isAuto);
 		return oShd;
 	}
 

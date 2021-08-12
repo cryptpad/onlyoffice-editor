@@ -155,6 +155,125 @@
 		return false;
 	};
 
+	RegExp.escape = function ( text ) {
+		return text.replace( /[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&" );
+	};
+
+	Math.sinh = function ( arg ) {
+		return (this.pow( this.E, arg ) - this.pow( this.E, -arg )) / 2;
+	};
+
+	Math.cosh = function ( arg ) {
+		return (this.pow( this.E, arg ) + this.pow( this.E, -arg )) / 2;
+	};
+
+	Math.tanh = Math.tanh || function(x) {
+			if (x === Infinity) {
+				return 1;
+			} else if (x === -Infinity) {
+				return -1;
+			} else {
+				var y = Math.exp(2 * x);
+				if (y === Infinity) {
+					return 1;
+				} else if (y === -Infinity) {
+					return -1;
+				}
+				return (y - 1) / (y + 1);
+			}
+		};
+
+	Math.asinh = function ( arg ) {
+		return this.log( arg + this.sqrt( arg * arg + 1 ) );
+	};
+
+	Math.acosh = function ( arg ) {
+		return this.log( arg + this.sqrt( arg + 1 ) * this.sqrt( arg - 1 ) );
+	};
+
+	Math.atanh = function ( arg ) {
+		return 0.5 * this.log( (1 + arg) / (1 - arg) );
+	};
+
+	Math.fact = function ( n ) {
+		var res = 1;
+		n = this.floor( n );
+		if ( n < 0 ) {
+			return NaN;
+		} else if (n > 170) {
+			return Infinity;
+		}
+		while ( n !== 0 ) {
+			res *= n--;
+		}
+		return res;
+	};
+
+	Math.doubleFact = function ( n ) {
+		var res = 1;
+		n = this.floor( n );
+		if ( n < 0 ) {
+			return NaN;
+		} else if (n > 170) {
+			return Infinity;
+		}
+//    n = Math.floor((n+1)/2);
+		while ( n > 0 ) {
+			res *= n;
+			n -= 2;
+		}
+		return res;
+	};
+
+	Math.factor = function ( n ) {
+		var res = 1;
+		n = this.floor( n );
+		while ( n !== 0 ) {
+			res = res * n--;
+		}
+		return res;
+	};
+
+	Math.ln = Math.log;
+
+	Math.log10 = function ( x ) {
+		return this.log( x ) / this.log( 10 );
+	};
+
+	Math.log1p = Math.log1p || function(x) {
+		return Math.log(1 + x);
+	};
+
+	Math.expm1 = Math.expm1 || function(x) {
+		return Math.exp(x) - 1;
+	};
+
+	Math.binomCoeff = function ( n, k ) {
+		return this.fact( n ) / (this.fact( k ) * this.fact( n - k ));
+	};
+
+	Math.permut = function ( n, k ) {
+		return this.floor( this.fact( n ) / this.fact( n - k ) + 0.5 );
+	};
+
+	Math.approxEqual = function ( a, b ) {
+		if ( a === b ) {
+			return true;
+		}
+		return this.abs( a - b ) < 1e-15;
+	};
+
+	if (typeof Math.sign != 'function') {
+		Math['sign'] = Math.sign = function (n) {
+			return n == 0 ? 0 : n < 0 ? -1 : 1;
+		};
+	}
+
+	Math.trunc = Math.trunc || function(v) {
+		v = +v;
+		return (v - v % 1)   ||   (!isFinite(v) || v === 0 ? v : v < 0 ? -0 : 0);
+	};
+
 	if (typeof require === 'function' && !window['XRegExp'])
 	{
 		window['XRegExp'] = require('xregexp');
@@ -4103,9 +4222,20 @@
 		return sResult;
 	}
 
+	/**
+	 * Корректируем значение размера шрифта к допустимому
+	 * @param {number} nFontSize
+	 * @param {boolean} isCeil
+	 */
+	function CorrectFontSize(nFontSize, isCeil)
+	{
+		return isCeil ? Math.ceil(nFontSize * 2) / 2 : Math.floor(nFontSize * 2) / 2;
+	}
+
 	var c_oAscSpaces = [];
 	c_oAscSpaces[0x000A] = 1;
 	c_oAscSpaces[0x0020] = 1;
+	c_oAscSpaces[0x00A0] = 1;
 	c_oAscSpaces[0x2002] = 1;
 	c_oAscSpaces[0x2003] = 1;
 	c_oAscSpaces[0x2005] = 1;
@@ -5948,8 +6078,8 @@
 	CDrawingCollaborativeTargetBase.prototype.ConvertCoords = function(x, y)
 	{
 		return {
-			X: (x * this.GetZoom() * g_dKoef_mm_to_pix ) >> 0,
-			Y: (y * this.GetZoom() * g_dKoef_mm_to_pix ) >> 0
+			X: (x * this.GetZoom() * AscCommon.g_dKoef_mm_to_pix ) >> 0,
+			Y: (y * this.GetZoom() * AscCommon.g_dKoef_mm_to_pix ) >> 0
 		};
 	};
 	CDrawingCollaborativeTargetBase.prototype.GetMobileTouchManager = function()
@@ -5967,7 +6097,7 @@
 	CDrawingCollaborativeTargetBase.prototype.CalculateSizeAndPos = function()
 	{
 		var _newW = 2;
-		var _newH = (this.Size * this.GetZoom() * g_dKoef_mm_to_pix) >> 0;
+		var _newH = (this.Size * this.GetZoom() * AscCommon.g_dKoef_mm_to_pix) >> 0;
 
 		var _oldW = this.HtmlElement.width;
 		var _oldH = this.HtmlElement.height;
@@ -6818,6 +6948,7 @@
 	window["AscCommon"].LatinNumberingToInt = LatinNumberingToInt;
 	window["AscCommon"].IntToNumberFormat = IntToNumberFormat;
 	window["AscCommon"].IsSpace = IsSpace;
+	window["AscCommon"].CorrectFontSize = CorrectFontSize;
 
 	window["AscCommon"].loadSdk = loadSdk;
     window["AscCommon"].loadScript = loadScript;

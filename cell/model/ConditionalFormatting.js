@@ -387,7 +387,7 @@
 		if (!compareElements(this.aRuleElements, val.aRuleElements)) {
 			if (addToHistory) {
 				History.Add(AscCommonExcel.g_oUndoRedoCF, AscCH.historyitem_CFRule_SetRuleElements,
-					ws.getId(), null, new AscCommonExcel.UndoRedoData_CF(this.id, this.aRuleElements, val.aRuleElements));
+					ws.getId(), this.getUnionRange(), new AscCommonExcel.UndoRedoData_CF(this.id, this.aRuleElements, val.aRuleElements));
 			}
 
 			this.aRuleElements = val.aRuleElements;
@@ -397,7 +397,7 @@
 			var elem = val.dxf ? val.dxf.clone() : null;
 			if (addToHistory) {
 				History.Add(AscCommonExcel.g_oUndoRedoCF, AscCH.historyitem_CFRule_SetDxf,
-					ws.getId(), null, new AscCommonExcel.UndoRedoData_CF(this.id, this.dxf, elem));
+					ws.getId(), this.getUnionRange(), new AscCommonExcel.UndoRedoData_CF(this.id, this.dxf, elem));
 			}
 
 			this.dxf = elem;
@@ -419,7 +419,7 @@
 			};
 
 			History.Add(AscCommonExcel.g_oUndoRedoCF, AscCH.historyitem_CFRule_SetRanges,
-				ws.getId(), null, new AscCommonExcel.UndoRedoData_CF(this.id, getUndoRedoRange(this.ranges), getUndoRedoRange(location)));
+				ws.getId(), this.getUnionRange(location), new AscCommonExcel.UndoRedoData_CF(this.id, getUndoRedoRange(this.ranges), getUndoRedoRange(location)));
 		}
 		this.ranges = location;
 		if (ws) {
@@ -430,7 +430,7 @@
 	CConditionalFormattingRule.prototype.checkProperty = function (propOld, propNew, type, ws, addToHistory) {
 		if (propOld !== propNew) {
 			if (addToHistory) {
-				History.Add(AscCommonExcel.g_oUndoRedoCF, type, ws.getId(), null,
+				History.Add(AscCommonExcel.g_oUndoRedoCF, type, ws.getId(), this.getUnionRange(),
 					new AscCommonExcel.UndoRedoData_CF(this.id, propOld, propNew));
 			}
 			return propNew;
@@ -441,27 +441,116 @@
 	CConditionalFormattingRule.prototype.setOffset = function(offset, range, ws, addToHistory) {
 		var newRanges = [];
 		var isChange = false;
+
+		var _setDiff = function (_range) {
+			//TODO объединть в одну функцию с dataValidation(.shift)
+			var _newRanges, _offset, tempRange, intersection, otherPart, diff;
+
+			if (range && range.getType() === Asc.c_oAscSelectionType.RangeCells) {
+				if (offset.row !== 0) {
+					//c_oAscInsertOptions.InsertCellsAndShiftDown
+					tempRange = new Asc.Range(range.c1, range.r1, range.c2, AscCommon.gc_nMaxRow0);
+					intersection = tempRange.intersection(_range);
+					if (intersection) {
+						diff = range.r2 - range.r1 + 1;
+
+						_newRanges = [];
+						//добавляем сдвинутую часть диапазона
+						_newRanges.push(intersection);
+						_offset = new AscCommon.CellBase(offset.row > 0 ? diff : -diff, 0);
+						otherPart = _newRanges[0].difference(_range);
+						_newRanges[0].setOffset(_offset);
+						//исключаем сдвинутую часть из диапазона
+						_newRanges = _newRanges.concat(otherPart);
+
+					}
+				} else if (offset.col !== 0) {
+					//c_oAscInsertOptions.InsertCellsAndShiftRight
+					tempRange = new Asc.Range(range.c1, range.r1, AscCommon.gc_nMaxCol0, range.r2);
+					intersection = tempRange.intersection(_range);
+					if (intersection) {
+						diff = range.c2 - range.c1 + 1;
+						_newRanges = [];
+						//добавляем сдвинутую часть диапазона
+						_newRanges.push(intersection);
+						_offset = new AscCommon.CellBase(0, offset.col > 0 ? diff : -diff, 0);
+						otherPart = _newRanges[0].difference(_range);
+						_newRanges[0].setOffset(_offset);
+						//исключаем сдвинутую часть из диапазона
+						_newRanges = _newRanges.concat(otherPart);
+					}
+				}
+			}
+
+			return _newRanges;
+		};
+
 		for (var i = 0; i < this.ranges.length; i++) {
 			var newRange = this.ranges[i].clone();
-			if (newRange.forShift(range, offset)) {
-				isChange = true;
+			if (range.isIntersectForShift(newRange, offset)) {
+				if (newRange.forShift(range, offset)) {
+					if (ws.autoFilters.isAddTotalRow && newRange.containsRange(this.ranges[i])) {
+						newRange = this.ranges[i].clone();
+					} else {
+						isChange = true;
+					}
+				}
+				newRanges.push(newRange);
+			} else {
+				if (ws.autoFilters.isAddTotalRow && newRange.containsRange(this.ranges[i])) {
+					newRange = this.ranges[i].clone();
+				} else {
+					var changedRanges = _setDiff(this.ranges[i]);
+					if (changedRanges) {
+						newRanges = newRanges.concat(changedRanges);
+						isChange = true;
+					} else {
+						newRanges = newRanges.concat(this.ranges[i].clone());
+					}
+				}
 			}
-			newRanges.push(newRange);
 		}
 		if (isChange) {
 			this.setLocation(newRanges, ws, addToHistory);
+			if (ws) {
+				ws.setDirtyConditionalFormatting(new AscCommonExcel.MultiplyRange(newRanges))
+			}
 		}
 	};
 
-	CConditionalFormattingRule.prototype.getUnionRange = function () {
+	CConditionalFormattingRule.prototype.getUnionRange = function (opt_ranges) {
 		var res = null;
-		for (var i = 0; i < this.ranges.length; i++) {
-			if (!res) {
-				res = this.ranges[i].clone();
-			} else {
-				res.union2(this.ranges[i]);
+
+		var _getUnionRanges = function (_ranges) {
+			if (!_ranges) {
+				return null;
+			}
+
+			var _res = null;
+			for (var i = 0; i < _ranges.length; i++) {
+				if (!_res) {
+					_res = _ranges[i].clone();
+				} else {
+					_res.union2(_ranges[i]);
+				}
+			}
+			return _res;
+		};
+
+		if (opt_ranges) {
+			res = _getUnionRanges(opt_ranges);
+		}
+		if (this.ranges) {
+			var tempRange = _getUnionRanges(this.ranges);
+			if (tempRange) {
+				if (res) {
+					res.union2(tempRange)
+				} else {
+					res = tempRange;
+				}
 			}
 		}
+
 		return res;
 	};
 
@@ -681,9 +770,9 @@
 	};
 	CConditionalFormattingRule.prototype.getAverage = function (val, average, stdDev) {
 		var res = false;
-		/*if (this.stdDev) {
-		 average += (this.aboveAverage ? 1 : -1) * this.stdDev + stdDev;
-		 }*/
+		if (this.stdDev && stdDev) {
+			average += ((this.aboveAverage ? 1 : -1) * this.stdDev) * stdDev;
+		}
 		if (this.aboveAverage) {
 			res = val > average;
 		} else {
@@ -728,13 +817,39 @@
 		}
 		return res;
 	};
+	CConditionalFormattingRule.prototype.containsIntoRange = function (range) {
+		var res = null;
+		if (this.ranges && this.ranges.length > 0) {
+			res = true;
+			for (var i = 0; i < this.ranges.length; ++i) {
+				if (!range.containsRange(this.ranges[i])) {
+					res = false;
+					break;
+				}
+			}
+		}
+		return res;
+	};
+	CConditionalFormattingRule.prototype.getIntersections = function (range) {
+		var res = [];
+		if (this.ranges) {
+			for (var i = 0; i < this.ranges.length; ++i) {
+				var intersection = this.ranges[i].intersection(range);
+				if (intersection) {
+					res.push(intersection);
+				}
+			}
+		}
+		return res.length ? res : null;
+	};
 	CConditionalFormattingRule.prototype.getIndexRule = function (values, ws, value) {
 		var valueCFVO;
 		var aCFVOs = this._getCFVOs();
+		var bReverse = this.aRuleElements && this.aRuleElements[0] && this.aRuleElements[0].Reverse;
 		for (var i = aCFVOs.length - 1; i >= 0; --i) {
 			valueCFVO = this._getValue(values, aCFVOs[i], ws);
 			if (value > valueCFVO || (aCFVOs[i].Gte && value === valueCFVO)) {
-				return i;
+				return bReverse ? aCFVOs.length - 1 - i : i;
 			}
 		}
 		return 0;
@@ -960,7 +1075,7 @@
 	CConditionalFormattingRule.prototype.asc_setType = function (val) {
 		this.type = val;
 		this._cleanAfterChangeType();
-		var formula = this.getFormulaByType();
+		var formula = this.getFormulaByType(this.text);
 		if (formula) {
 			this.aRuleElements = [];
 			this.aRuleElements[0] = new CFormulaCF();
@@ -1025,7 +1140,7 @@
 	CConditionalFormattingRule.prototype.getFormulaByType = function (val) {
 		var t = this;
 		var _generateTimePeriodFunction = function () {
-			switch (this.timePeriod) {
+			switch (t.timePeriod) {
 				case AscCommonExcel.ST_TimePeriod.yesterday:
 					res = "FLOOR(" + firstCellInRange + ",1)" + "=TODAY()-1";
 					break;
@@ -1060,8 +1175,21 @@
 		};
 
 		var res = null;
+		var range;
+		if (val !== null && val !== undefined) {
+			val = this._addQuotes(val);
+		}
 		if (this.ranges && this.ranges[0]) {
-			var firstCellInRange = new Asc.Range(this.ranges[0].c1, this.ranges[0].r1, this.ranges[0].c1, this.ranges[0].r1);
+			range = this.ranges[0];
+		} else {
+			var api_sheet = Asc['editor'];
+			var wb = api_sheet.wbModel;
+			var sheet = wb.getActiveWs();
+			range = sheet && sheet.selectionRange && sheet.selectionRange.ranges && sheet.selectionRange.ranges[0];
+		}
+
+		if (range) {
+			var firstCellInRange = new Asc.Range(range.c1, range.r1, range.c1, range.r1);
 
 			AscCommonExcel.executeInR1C1Mode(false, function () {
 				firstCellInRange = firstCellInRange.getName();
@@ -1069,16 +1197,24 @@
 
 			switch (this.type) {
 				case Asc.ECfType.notContainsText:
-					res = "LEFT(" + firstCellInRange + ",LEN(" + val + "=" + val;
+					if (val !== null && val !== undefined) {
+						res = "ISERROR(SEARCH(" + val + "," + firstCellInRange + "))";
+					}
 					break;
 				case Asc.ECfType.containsText:
-					res = "NOT(ISERROR(SEARCH(" + val + "," + firstCellInRange + ")))";
+					if (val !== null && val !== undefined) {
+						res = "NOT(ISERROR(SEARCH(" + val + "," + firstCellInRange + ")))";
+					}
 					break;
 				case Asc.ECfType.endsWith:
-					res = "RIGHT(" + firstCellInRange + ",LEN(" + val + "=" + val;
+					if (val !== null && val !== undefined) {
+						res = "RIGHT(" + firstCellInRange + ",LEN(" + val + "))" + "=" + val;
+					}
 					break;
 				case Asc.ECfType.beginsWith:
-					res = "ISERROR(SEARCH(" + val + "," + firstCellInRange + "))";
+					if (val !== null && val !== undefined) {
+						res = "LEFT(" + firstCellInRange + ",LEN(" + val + "))" + "=" + val;
+					}
 					break;
 				case Asc.ECfType.notContainsErrors:
 					res = "NOT(ISERROR(" + firstCellInRange + "))";
@@ -1140,9 +1276,8 @@
 		this.text = val;
 	};
 	CConditionalFormattingRule.prototype.asc_setValue1 = function (val) {
-		if (!this.aRuleElements) {
-			this.aRuleElements = [];
-		}
+		//чищу всегда, поскольку от интерфейса всегда заново выставляются оба значения
+		this.aRuleElements = [];
 		val = this.correctFromInterface(val);
 
 		this.aRuleElements[0] = new CFormulaCF();
@@ -1161,17 +1296,6 @@
 
 	CConditionalFormattingRule.prototype.correctFromInterface = function (val) {
 		var t = this;
-
-		var addQuotes = function (_val) {
-			var _res;
-			if (_val[0] === '"') {
-				_res = _val.replace(/\"/g, "\"\"");
-				_res = "\"" + _res + "\"";
-			} else {
-				_res = "\"" + _val + "\"";
-			}
-			return _res;
-		};
 
 		var isNumeric = !isNaN(parseFloat(val)) && isFinite(val);
 		if (!isNumeric) {
@@ -1192,11 +1316,22 @@
 			}
 
 			if (!isFormula) {
-				val = addQuotes(val);
+				val = this._addQuotes(val);
 			}
 		}
 
 		return val;
+	};
+
+	CConditionalFormattingRule.prototype._addQuotes = function (val) {
+		var _res;
+		if (val[0] === '"') {
+			_res = val.replace(/\"/g, "\"\"");
+			_res = "\"" + _res + "\"";
+		} else {
+			_res = "\"" + val + "\"";
+		}
+		return _res;
 	};
 
 	CConditionalFormattingRule.prototype.asc_setColorScaleOrDataBarOrIconSetRule = function (val) {
@@ -1237,7 +1372,17 @@
 				}
 				break;
 			case Asc.c_oAscSelectionForCFType.pivot:
-				// ToDo
+				sheet = wb.getActiveWs();
+				var _activeCell = sheet.selectionRange.activeCell;
+				var _pivot = sheet.getPivotTable(_activeCell.col, _activeCell.row);
+				if (_pivot) {
+					range = _pivot.location && _pivot.location.ref;
+				}
+
+				if (!range) {
+					sheet = null;
+				}
+
 				break;
 		}
 
@@ -1275,7 +1420,7 @@
 		for (var i = 0; i < presetStyles.length; i++) {
 			var formatValueObject = new CConditionalFormatValueObject();
 			formatValueObject.Type = presetStyles[i][0] ? presetStyles[i][0] : null;
-			formatValueObject.Val = presetStyles[i][1] ? presetStyles[i][1] : null;
+			formatValueObject.Val = presetStyles[i][1] ? presetStyles[i][1] + "" : null;
 			var colorObject = new AscCommonExcel.RgbColor(presetStyles[i][2] ? presetStyles[i][2] : 0);
 			this.aCFVOs.push(formatValueObject);
 			this.aColors.push(colorObject);
@@ -1454,7 +1599,7 @@
 			if (!_color1 && !_color2) {
 				return true;
 			}
-			if (_color1 && _color2 && _color2.isEqual(_color2)) {
+			if (_color1 && _color2 && _color1.isEqual(_color2)) {
 				return true;
 			}
 			return false;
@@ -1486,7 +1631,7 @@
 	};
 	CDataBar.prototype.applyPreset = function (styleIndex) {
 		var _generateRgbColor = function (_color) {
-			if (!_color) {
+			if (_color === undefined || _color === null) {
 				return null;
 			}
 
@@ -1495,18 +1640,18 @@
 
 		var presetStyles = conditionalFormattingPresets[Asc.c_oAscCFRuleTypeSettings.dataBar][styleIndex];
 
-		this.AxisColor = _generateRgbColor(presetStyles[0] ? presetStyles[0] : null);
+		this.AxisColor = _generateRgbColor(presetStyles[0]);
 		this.AxisPosition = 0;
-		this.BorderColor = _generateRgbColor(presetStyles[1] ? presetStyles[1] : null);
-		this.Color = _generateRgbColor(presetStyles[2] ? presetStyles[2] : null);
+		this.BorderColor = _generateRgbColor(presetStyles[1]);
+		this.Color = _generateRgbColor(presetStyles[2]);
 		this.Direction = 0;
 		this.Gradient = presetStyles[3];
 		this.MaxLength = 100;
 		this.MinLength = 0;
 		this.NegativeBarBorderColorSameAsPositive = false;
 		this.NegativeBarColorSameAsPositive = false;
-		this.NegativeBorderColor = _generateRgbColor(presetStyles[4] ? presetStyles[4] : null);
-		this.NegativeColor = _generateRgbColor(presetStyles[5] ? presetStyles[5] : null);
+		this.NegativeBorderColor = _generateRgbColor(presetStyles[4]);
+		this.NegativeColor = _generateRgbColor(presetStyles[5]);
 		this.ShowValue = true;
 
 		var formatValueObject1 = new CConditionalFormatValueObject();
@@ -1593,7 +1738,7 @@
 		}
 		if (null != this.BorderColor) {
 			writer.WriteBool(true);
-			writer.WriteLong(this.Color.getType());
+			writer.WriteLong(this.BorderColor.getType());
 			this.BorderColor.Write_ToBinary2(writer);
 		} else {
 			writer.WriteBool(false);
@@ -1666,10 +1811,11 @@
 			if (null != _color.Read_FromBinary2) {
 				_color.Read_FromBinary2(reader);
 			} else if (null != _color.Read_FromBinary2AndReplace) {
-				_color = elem.Read_FromBinary2AndReplace(reader);
+				_color = _color.Read_FromBinary2AndReplace(reader);
 			}
 			return _color;
 		};
+
 		if (reader.GetBool()) {
 			this.Color = readColor();
 		}
@@ -1685,6 +1831,12 @@
 		if (reader.GetBool()) {
 			this.AxisColor = readColor();
 		}
+	};
+	CDataBar.prototype.asc_setInterfaceDefault = function () {
+		//ms всегда создаёт правило с такими настройками, хотя в документации други дефолтовые значения
+		//дёргаем этот метод при создании нового правила из интерфейса
+		this.MinLength = 0;
+		this.MaxLength = 100;
 	};
 	CDataBar.prototype.asc_getPreview = function (api, id) {
 		var color = this.Color;
@@ -1781,12 +1933,18 @@
 	};
 	CDataBar.prototype.asc_setBorderColor = function (val) {
 		this.BorderColor = AscCommonExcel.CorrectAscColor(val);
+		if (val === null) {
+			this.asc_setNegativeBorderColor(val);
+		}
 	};
 	CDataBar.prototype.asc_setNegativeBorderColor = function (val) {
 		this.NegativeBorderColor = AscCommonExcel.CorrectAscColor(val);
 	};
 	CDataBar.prototype.asc_setAxisColor = function (val) {
 		this.AxisColor = AscCommonExcel.CorrectAscColor(val);
+	};
+	CDataBar.prototype.getType = function () {
+		return window['AscCommonExcel'].UndoRedoDataTypes.DataBar;
 	};
 
 	function CFormulaCF() {
@@ -2056,6 +2214,9 @@
 	CIconSet.prototype.asc_setIconSets = function (val) {
 		this.aIconSets = val == null ? [] : val;
 	};
+	CIconSet.prototype.getType = function () {
+		return window['AscCommonExcel'].UndoRedoDataTypes.IconSet;
+	};
 
 	function CConditionalFormatValueObject() {
 		this.Gte = true;
@@ -2123,7 +2284,7 @@
 		this.Type = val;
 	};
 	CConditionalFormatValueObject.prototype.asc_setVal = function (val) {
-		this.Val = val;
+		this.Val = (val !== undefined && val !== null) ? val + "" : val;
 	};
 	CConditionalFormatValueObject.prototype.isEqual = function (elem) {
 		if (this.Gte === elem.Gte && this.Type === elem.Type && this.Val === elem.Val && this.Type === elem.Type) {
@@ -2151,7 +2312,7 @@
 	CConditionalFormatIconSet.prototype.Write_ToBinary2 = function (writer) {
 		if (null != this.IconSet) {
 			writer.WriteBool(true);
-			writer.WriteBool(this.IconSet);
+			writer.WriteLong(this.IconSet);
 		} else {
 			writer.WriteBool(false);
 		}
@@ -2164,7 +2325,7 @@
 	};
 	CConditionalFormatIconSet.prototype.Read_FromBinary2 = function (reader) {
 		if (reader.GetBool()) {
-			this.IconSet = reader.GetBool();
+			this.IconSet = reader.GetLong();
 		}
 		if (reader.GetBool()) {
 			this.IconId = reader.GetLong();
@@ -2702,6 +2863,7 @@
 	prot['asc_setColors'] = prot.asc_setColors;
 
 	prot = CDataBar.prototype;
+	prot['asc_setInterfaceDefault'] = prot.asc_setInterfaceDefault;
 	prot['asc_getShowValue'] = prot.asc_getShowValue;
 	prot['asc_getAxisPosition'] = prot.asc_getAxisPosition;
 	prot['asc_getGradient'] = prot.asc_getGradient;
