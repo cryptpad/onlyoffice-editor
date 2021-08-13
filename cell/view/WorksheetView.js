@@ -10766,7 +10766,8 @@
         // Удаляем выделенные графичекие объекты
         if ( this.objectRender.selectedGraphicObjectsExists() ) {
 			var isIntoShape = this.objectRender.controller.getTargetDocContent();
-			if(bIsCut && isIntoShape) {
+            var isMobileVersion = this.workbook && this.workbook.Api && this.workbook.Api.isMobileVersion;
+			if((bIsCut || isMobileVersion) && isIntoShape) {
                 if(isIntoShape.Selection && isIntoShape.Selection.Use) {
                     this.objectRender.controller.remove(-1, undefined, undefined, undefined, undefined);
                 }
