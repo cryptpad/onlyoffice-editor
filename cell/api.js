@@ -4942,7 +4942,7 @@ var editor;
         }
       }
       if(aImages.length > 0)      {
-         window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImages);
+         window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImages, true);
       }
       callback();
     });

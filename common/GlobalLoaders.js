@@ -495,8 +495,23 @@
             }
         };
         
-        this.LoadDocumentImages = function(_images)
+        this.LoadDocumentImages = function(_images, isCheckExists)
         {
+            if (isCheckExists)
+            {
+                for (var i = _images.length - 1; i >= 0; i--)
+                {
+                    var _id = AscCommon.getFullImageSrc2(_images[i]);
+                    if (this.map_image_index[_id] && (this.map_image_index[_id].Status === ImageLoadStatus.Complete))
+                    {
+                        _images.splice(i, 1);
+                    }
+                }
+
+                if (0 === _images.length)
+                    return;
+            }
+
             // сначала заполним массив
             if (this.ThemeLoader == null)
                 this.Api.asyncImagesDocumentStartLoaded();
