@@ -3740,6 +3740,9 @@
 		var isReverse = AscCommonExcel.EDataBarDirection.rightToLeft === oRuleElement.Direction;
 		var isMiddle = (AscCommonExcel.EDataBarAxisPosition.middle === oRuleElement.AxisPosition) ||
 			(AscCommonExcel.EDataBarAxisPosition.automatic === oRuleElement.AxisPosition && 0 > min && 0 < max);
+		var automaticAxisPos = AscCommonExcel.EDataBarAxisPosition.automatic === oRuleElement.AxisPosition && 0 > min && 0 < max;
+		var trueMin = min;
+		var trueMax = max;
 		if (isMiddle) {
 			if (isPositive) {
 				min = Math.max(0, min);
@@ -3761,22 +3764,43 @@
 			cellValue = max;
 		}
 
+		var axisLineWidth = oRuleElement.AxisColor ? 1 : 0;
 		var minLength = Math.floor(width * oRuleElement.MinLength / 100);
 		var maxLength = Math.floor(width * oRuleElement.MaxLength / 100);
-		var k = max - min;
+		var k = automaticAxisPos ? (trueMax - trueMin) : (max - min);
+		var middleX = ((maxLength - minLength) / k) * (AscCommonExcel.EDataBarDirection.rightToLeft === oRuleElement.Direction ? Math.abs(trueMax) : Math.abs(trueMin));
 		k = k ? ((maxLength - minLength) / k) : 0;
-		var dataBarLength = minLength + (cellValue - min) * k;
-
+		var dataBarLength = automaticAxisPos ? (minLength + (Math.abs(cellValue) * k)) : (minLength + (cellValue - min) * k);
 		color = (isPositive || oRuleElement.NegativeBarColorSameAsPositive) ? oRuleElement.Color : oRuleElement.NegativeColor;
 		if (0 !== dataBarLength && color) {
 			if (isMiddle) {
 				if (oRuleElement.AxisColor) {
 					ctx.setLineWidth(1).setLineDash([3, 1]).setStrokeStyle(oRuleElement.AxisColor);
-					ctx.beginPath().lineVer(x - 1 + Asc.floor(width / 2), top - 1, top - 1 + height - 1).stroke();
+					if (automaticAxisPos) {
+						ctx.beginPath().lineVer(x + middleX, top - 1, top - 1 + height - 1).stroke();
+					} else {
+						ctx.beginPath().lineVer(x + Asc.floor(width / 2), top - 1, top - 1 + height - 1).stroke();
+					}
 				}
 
-				dataBarLength = Asc.floor(dataBarLength / 2);
-				x += Asc.floor(width / 2) * (isReverse ? -1 : 1);
+				if (!automaticAxisPos) {
+					dataBarLength = Asc.floor(dataBarLength / 2);
+					x += (Asc.floor(width / 2) + axisLineWidth) * (isReverse ? -1 : 1);
+				} else {
+					if (AscCommonExcel.EDataBarDirection.rightToLeft === oRuleElement.Direction) {
+						if (isPositive) {
+							x -= width - middleX;
+						} else {
+							x += middleX + axisLineWidth;
+						}
+					} else {
+						if (isPositive) {
+							x += middleX + axisLineWidth;
+						} else {
+							x -= width - middleX;
+						}
+					}
+				}
 			}
 
 			if (isReverse) {
