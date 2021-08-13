@@ -284,6 +284,7 @@
 	var sUploadServiceLocalUrl = "../../../../upload";
 	var sUploadServiceLocalUrlOld = "../../../../uploadold";
 	var sSaveFileLocalUrl = "../../../../savefile";
+	var sDownloadFileLocalUrl = "../../../../downloadfile";
 	var nMaxRequestLength = 5242880;//5mb <requestLimits maxAllowedContentLength="30000000" /> default 30mb
 
 	function getSockJs()
@@ -1884,6 +1885,18 @@
 		}
 	}
 
+	function DownloadOriginalFile(documentId, url, token, callback) {
+		asc_ajax({
+			url:      sDownloadFileLocalUrl + '/' + documentId,
+			responseType: "arraybuffer",
+			headers: {
+				'Authorization':'Bearer ' + token,
+				'x-url':url
+			},
+			success:  callback,
+			error:    callback
+		});
+	}
 	function UploadImageFiles(files, documentId, documentUserId, jwt, callback)
 	{
 		if (files.length > 0)
@@ -3296,6 +3309,7 @@
 			error = null, success = null, httpRequest = null,
 			contentType                               = "application/x-www-form-urlencoded",
 			responseType = '',
+			headers = null,
 
 			init                                      = function (obj)
 			{
@@ -3334,6 +3348,10 @@
 				if (typeof (obj.responseType) !== 'undefined')
 				{
 					responseType = obj.responseType;
+				}
+				if (typeof (obj.headers) !== 'undefined')
+				{
+					headers = obj.headers;
 				}
 
 				if (window.XMLHttpRequest)
@@ -3374,6 +3392,13 @@
 				httpRequest.open(type, url, async);
 				if (type === "POST")
 					httpRequest.setRequestHeader("Content-Type", contentType);
+				if (headers) {
+					for (var header in headers) {
+						if (headers.hasOwnProperty(header)) {
+							httpRequest.setRequestHeader(header, headers[header]);
+						}
+					}
+				}
 				if (responseType)
 					httpRequest.responseType = responseType;
 				httpRequest.send(data);
@@ -6922,6 +6947,7 @@
 	window["AscCommon"].InitDragAndDrop = InitDragAndDrop;
 	window["AscCommon"].UploadImageFiles = UploadImageFiles;
     window["AscCommon"].UploadImageUrls = UploadImageUrls;
+	window["AscCommon"].DownloadOriginalFile = DownloadOriginalFile;
 	window["AscCommon"].CanDropFiles = CanDropFiles;
 	window["AscCommon"].getUrlType = getUrlType;
 	window["AscCommon"].prepareUrl = prepareUrl;
