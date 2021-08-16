@@ -1079,6 +1079,7 @@ function CShape()
 
     this.tmpFontScale = undefined;
     this.tmpLnSpcReduction = undefined;
+    this.shapeSmartArtInfo = null;
 }
 
 	CShape.prototype = Object.create(AscFormat.CGraphicObjectBase.prototype);
@@ -1091,7 +1092,17 @@ CShape.prototype.getObjectType = function () {
 CShape.prototype.setSmartArtPoint = function (pr) {
     History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_ShapeSetSmartArtPoint, this.point, pr));
     this.point = pr;
+    this.point.setParent(this);
 };
+CShape.prototype.setShapeSmartArtInfo = function (pr) {
+    this.shapeSmartArtInfo = pr;
+}
+CShape.prototype.isActiveBlipFillPlaceholder = function () {
+    var pointAssociation = this.getPointAssociation();
+    var isNotBlipFill = pointAssociation && (pointAssociation.spPr && !pointAssociation.spPr.Fill || !pointAssociation.spPr);
+    return isNotBlipFill && pointAssociation.isBlipFillPlaceholder();
+}
+
 
 CShape.prototype.GetAllDrawingObjects = function(DrawingObjects)
 {
@@ -1925,18 +1936,10 @@ CShape.prototype.getPlaceholderIndex = function () {
 };
 
 CShape.prototype.getPhType = function () {
-    var pointAssociationPrSet = this.getPointAssociation() && this.getPointAssociation().prSet;
-    if (pointAssociationPrSet) {
-        var imagePlaceholderArrStylelbl = ['alignImgPlace1', 'bgImgPlace1', 'fgImgPlace1'];
-        var imagePlaceholderArrName = ['Image', 'image', 'imageRepeatNode', 'pictRect'];
-        if (imagePlaceholderArrStylelbl.indexOf(pointAssociationPrSet.presStyleLbl) !== -1 ||
-          imagePlaceholderArrName.indexOf(pointAssociationPrSet.presName) !== -1 ||
-          (pointAssociationPrSet.presName === 'rect1' && pointAssociationPrSet.presStyleLbl === 'bgShp') ||
-          (pointAssociationPrSet.presName === 'rect1' && pointAssociationPrSet.presStyleLbl === 'lnNode1') ||
-          (pointAssociationPrSet.presName === 'adorn' && pointAssociationPrSet.presStyleLbl === 'fgAccFollowNode1')) {
+    var point = this.getPointAssociation();
+        if (point && point.isBlipFillPlaceholder()) {
             return AscFormat.phType_pic;
         }
-    }
     return this.isPlaceholder() ? this.nvSpPr.nvPr.ph.type : null;
 };
 

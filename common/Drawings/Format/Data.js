@@ -1844,6 +1844,17 @@
       return this.t;
     }
 
+    Point.prototype.isBlipFillPlaceholder = function () {
+      var imagePlaceholderArrStylelbl = ['alignImgPlace1', 'bgImgPlace1', 'fgImgPlace1'];
+      var imagePlaceholderArrName = ['Image', 'image', 'imageRepeatNode', 'pictRect'];
+      var pointAssociationPrSet = this.prSet;
+      return pointAssociationPrSet && ((imagePlaceholderArrStylelbl.indexOf(pointAssociationPrSet.presStyleLbl) !== -1) ||
+        (imagePlaceholderArrName.indexOf(pointAssociationPrSet.presName) !== -1) ||
+        (pointAssociationPrSet.presName === 'rect1' && pointAssociationPrSet.presStyleLbl === 'bgShp') ||
+        (pointAssociationPrSet.presName === 'rect1' && pointAssociationPrSet.presStyleLbl === 'lnNode1') ||
+        (pointAssociationPrSet.presName === 'adorn' && pointAssociationPrSet.presStyleLbl === 'fgAccFollowNode1'))
+    }
+
   Point.prototype.fillObject = function (oCopy, oIdMap) {
     oCopy.setCxnId(this.getCxnId());
     oCopy.setModelId(this.getModelId());
@@ -7972,21 +7983,10 @@
       return copy;
     };
     Drawing.prototype.createPlaceholderControl = function(aControls) {
-      var imagePlaceholderArrStylelbl = ['alignImgPlace1', 'bgImgPlace1', 'fgImgPlace1'];
-      var imagePlaceholderArrName = ['Image', 'image', 'imageRepeatNode', 'pictRect'];
       for(var nSp = 0; nSp < this.spTree.length; ++nSp) {
         var oShape = this.spTree[nSp];
-        var pointAssociation = oShape.getPointAssociation();
-        var pointAssociationPrSet = pointAssociation && pointAssociation.prSet;
-        var isNotBlipFill = pointAssociation && (pointAssociation.spPr && !pointAssociation.spPr.Fill || !pointAssociation.spPr);
-        if (pointAssociationPrSet && isNotBlipFill) {
-          if (imagePlaceholderArrStylelbl.indexOf(pointAssociationPrSet.presStyleLbl) !== -1 ||
-            imagePlaceholderArrName.indexOf(pointAssociationPrSet.presName) !== -1 ||
-            (pointAssociationPrSet.presName === 'rect1' && pointAssociationPrSet.presStyleLbl === 'bgShp') ||
-            (pointAssociationPrSet.presName === 'rect1' && pointAssociationPrSet.presStyleLbl === 'lnNode1') ||
-            (pointAssociationPrSet.presName === 'adorn' && pointAssociationPrSet.presStyleLbl === 'fgAccFollowNode1')) {
-            oShape.createPlaceholderControl(aControls);
-          }
+        if (oShape.isActiveBlipFillPlaceholder()) {
+          oShape.createPlaceholderControl(aControls);
         }
       }
     };
@@ -8811,6 +8811,24 @@
         oCopy.addToLstList(nIdx, this.list[nIdx].createDuplicate(oIdMap));
       }
     }
+    
+    function ShapeSmartArtInfo() {
+      this.spPrPoint = null;
+      this.shapePoint = null;
+      this.contentPoint = [];
+    }
+    
+    ShapeSmartArtInfo.prototype.setSpPrPoint = function (pr) {
+      this.spPrPoint = pr;
+    }
+
+    ShapeSmartArtInfo.prototype.setShapePoint = function (pr) {
+      this.shapePoint = pr;
+    }
+
+    ShapeSmartArtInfo.prototype.addToLstContentPoint = function (pr) {
+      this.contentPoint.push(pr);
+    }
 
     changesFactory[AscDFH.historyitem_SmartArtColorsDef] = CChangeObject;
     changesFactory[AscDFH.historyitem_SmartArtDrawing] = CChangeObject;
@@ -9128,6 +9146,92 @@
           this.drawing.createPlaceholderControl(aControls);
       }
     };
+
+    SmartArt.prototype.setConnections = function () {
+      var dataModel = this.getDataModel() && this.getDataModel().getDataModel();
+      if (dataModel) {
+        var connections = [];
+        var cxnLst = dataModel.cxnLst.list;
+        var ptLst = dataModel.ptLst.list;
+        cxnLst.forEach(function (cxn) {
+          ptLst.forEach(function (point) {
+            if (point.modelId === cxn.destId) {
+              var isCheck = connections.some(function (con) {
+                return con.id === cxn.destId;
+              });
+              console.log(isCheck)
+              if (!isCheck) {
+                connections.push({
+                  point: point,
+                  id: cxn.destId,
+                  conn: [],
+                  srcOrd: cxn.srcOrd,
+                  destOrd: cxn.destOrd
+                })
+              }
+            }
+          })
+        });
+        cxnLst.forEach(function (cxn) {
+          ptLst.forEach(function (point) {
+            if (point.modelId === cxn.srcId) {
+              connections.forEach(function (c) {
+                if (c.id === cxn.destId && point.type !== 3/*&&  && point.type !== 3*/ /*&& (cxn.srcOrd !== c.srcOrd || cxn.destOrd !== c.destOrd)*/) {
+                  c.conn.push({
+                    point: point,
+                    srcOrd: cxn.srcOrd,
+                    destOrd: cxn.destOrd,
+                  });
+                }
+              })
+            }
+          });
+        })
+        var shapeMap = {};
+        var shapeTree = this.getDrawing().spTree;
+        var shapeSmartArtInfo = {};
+        var shapeLst = shapeTree.map(function (shape) {
+          shapeMap[shape.modelId] = shape;
+          return shape.modelId;
+        });
+        connections = connections.filter(function (conn) {
+          return shapeLst.indexOf(conn.id) !== -1;
+        })
+        connections.forEach(function (connect) {
+          var smartArtInfo = new ShapeSmartArtInfo();
+          var shape = shapeMap[connect.id];
+          smartArtInfo.setShapePoint(connect);
+          var content = shape.txBody && shape.txBody.content && shape.txBody.content.Content;
+          if (content && content.length) {
+            if (connect.conn.length === content.length) {
+              content.forEach(function (paragraph, idx) {
+                connect.conn.forEach(function (contentPoint) {
+                  if (contentPoint.srcOrd === connect.srcOrd && contentPoint.destOrd === idx) {
+                    smartArtInfo.addToLstContentPoint(contentPoint);
+                  }
+                })
+              })
+            } else {
+
+            }
+          } else if (connect.point.isBlipFillPlaceholder()) {
+
+            if (connect.conn.length !== 0) {
+              smartArtInfo.setSpPrPoint(connect.conn[0]);
+            } else {
+              smartArtInfo.setSpPrPoint(connect.point);
+            }
+
+            shape.setShapeSmartArtInfo(smartArtInfo);
+            console.log(smartArtInfo);
+            console.log('oliiiii')
+          }
+        })
+        console.log(connections);
+        return connections;
+      }
+    }
+
     SmartArt.prototype.privateWriteAttributes = null;
     SmartArt.prototype.writeChildren = function(pWriter) {
       pWriter.StartRecord(0);
@@ -9155,6 +9259,7 @@
           this.setDataModel(new DiagramData());
           this.dataModel.fromPPTY(pReader);
           this.setPointsForShapes();
+          this.setConnections();
           break;
         }
         case 2: {
