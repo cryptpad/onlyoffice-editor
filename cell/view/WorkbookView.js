@@ -3263,7 +3263,7 @@
 		var pivotStyleInfo;
 
 		var defaultStyles, styleThumbnailHeight, row, col = 5;
-		var styleThumbnailWidth = window["IS_NATIVE_EDITOR"] ? 90 : 61;
+		var styleThumbnailWidth = window["IS_NATIVE_EDITOR"] ? 90 : 60;
 		if(bPivotTable)
 		{
 			styleThumbnailHeight = 49;
