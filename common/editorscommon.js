@@ -685,7 +685,7 @@
 		}
 		return false;
 	}
-	function openFileCommand(binUrl, changesUrl, Signature, callback)
+	function openFileCommand(docId, binUrl, changesUrl, changesToken, Signature, callback)
 	{
 		var bError = false, oResult = new OpenFileResult(), bEndLoadFile = false, bEndLoadChanges = false;
 		var onEndOpen = function ()
@@ -730,16 +730,11 @@
 		if (changesUrl)
 		{
 			oZipImages = {};
-			getJSZipUtils().getBinaryContent(changesUrl, function (err, data)
-			{
-				if (err)
-				{
-					bEndLoadChanges = true;
-					bError = true;
-					onEndOpen();
-					return;
-				}
-
+			AscCommon.DownloadOriginalFile(docId, changesUrl, 'changesUrl', changesToken, function () {
+				bEndLoadChanges = true;
+				bError = true;
+				onEndOpen();
+			}, function(data) {
 				oResult.changes = [];
 				getJSZip().loadAsync(data).then(function (zipChanges)
 				{
@@ -1885,16 +1880,19 @@
 		}
 	}
 
-	function DownloadOriginalFile(documentId, url, token, callback) {
+	function DownloadOriginalFile(documentId, url, urlPathInToken, token, fError, fSuccess) {
 		asc_ajax({
-			url:      sDownloadFileLocalUrl + '/' + documentId,
+			url: sDownloadFileLocalUrl + '/' + documentId,
 			responseType: "arraybuffer",
 			headers: {
-				'Authorization':'Bearer ' + token,
-				'x-url':url
+				'Authorization': 'Bearer ' + token,
+				'x-url': url,
+				'x-url-path-in-token': urlPathInToken
 			},
-			success:  callback,
-			error:    callback
+			success: function(resp) {
+				fSuccess(resp.response);
+			},
+			error: fError
 		});
 	}
 	function UploadImageFiles(files, documentId, documentUserId, jwt, callback)
