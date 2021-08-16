@@ -2220,7 +2220,7 @@ DrawingObjectsController.prototype =
             var selectedObj = this.selectedObjects[0];
            if(this.curState instanceof AscFormat.NullState) {
                this.changeCurrentState(new AscFormat.GeometryEditState(this, selectedObj));
-               this.arrTrackObjects.push(new AscFormat.EditShapeGeometryTrack(selectedObj, this.majorObject));
+               this.arrTrackObjects.push(new AscFormat.EditShapeGeometryTrack(selectedObj, this.document, this.curState.drawingObjects));
            }
                this.selection.geometrySelection.drawGeometryEdit(drawingDocument, this.arrTrackObjects);
 

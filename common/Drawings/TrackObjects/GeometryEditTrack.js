@@ -42,8 +42,10 @@
         END: 5
     };
 
-    function EditShapeGeometryTrack(originalObject) {
-        this.geometry = originalObject.calcGeometry;
+    function EditShapeGeometryTrack(originalObject, document, drawingObjects) {
+        this.drawingObjects = drawingObjects;
+        this.geometry = originalObject.spPr.geometry.createDuplicate();
+        this.geometry.parent = originalObject.spPr.geometry.parent;
         this.originalShape = originalObject;
         this.originalObject = originalObject;
         this.shapeWidth = originalObject.extX;
@@ -59,6 +61,9 @@
         this.xMax = this.shapeWidth;
         this.yMax =  this.shapeHeight;
         this.addingPoint = {pathIndex: null, commandIndex: null};
+
+        this.document = document;
+        this.geometry.Recalculate(this.shapeWidth, this.shapeHeight);
     };
 
     EditShapeGeometryTrack.prototype.draw = function(overlay, transform)
@@ -72,7 +77,7 @@
 
     EditShapeGeometryTrack.prototype.track = function(e, posX, posY) {
 
-        var geometry = this.originalObject.calcGeometry;
+        var geometry = this.geometry;
 
         if(!geometry.gmEditPoint) {
             return;
@@ -88,51 +93,52 @@
         var _relative_x = invert_transform.TransformPointX(posX, posY);
         var _relative_y = invert_transform.TransformPointY(posX, posY);
         var originalPoint = geometry.originalEditPoint;
-        var nextPoint = geometry.gmEditPoint.nextPoint;
-        var prevPoint = geometry.gmEditPoint.prevPoint;
-        var arrPathCommand = geometry.pathLst[geometry.gmEditPoint.pathIndex].ArrPathCommand;
+        var gmEditPoint = geometry.gmEditPoint;
+        var nextPoint = gmEditPoint.nextPoint;
+        var prevPoint = gmEditPoint.prevPoint;
+        var arrPathCommand = geometry.pathLst[gmEditPoint.pathIndex].ArrPathCommand;
 
-        var cur_command_1 = arrPathCommand[originalPoint.pathC1];
-        var cur_command_2 = arrPathCommand[originalPoint.pathC2];
+        var cur_command_1 = arrPathCommand[gmEditPoint.pathC1];
+        var cur_command_2 = arrPathCommand[gmEditPoint.pathC2];
 
-            if(geometry.gmEditPoint.isFirstCPoint) {
-                arrPathCommand[originalPoint.pathC1].X1 = _relative_x;
-                arrPathCommand[originalPoint.pathC1].Y1 = _relative_y;
-                geometry.gmEditPoint.g1X = _relative_x;
-                geometry.gmEditPoint.g1Y = _relative_y;
-                arrPathCommand[originalPoint.pathC1].isLine = false;
+            if(gmEditPoint.isFirstCPoint) {
+                arrPathCommand[gmEditPoint.pathC1].X1 = _relative_x;
+                arrPathCommand[gmEditPoint.pathC1].Y1 = _relative_y;
+                gmEditPoint.g1X = _relative_x;
+                gmEditPoint.g1Y = _relative_y;
+                arrPathCommand[gmEditPoint.pathC1].isLine = false;
 
                 if(cur_command_1 && cur_command_1.isEllipseArc && cur_command_2 && cur_command_2.isEllipseArc) {
-                    var g2X = geometry.gmEditPoint.g1X - geometry.gmEditPoint.X;
-                    var g2Y = geometry.gmEditPoint.g1Y - geometry.gmEditPoint.Y;
+                    var g2X = gmEditPoint.g1X - gmEditPoint.X;
+                    var g2Y = gmEditPoint.g1Y - gmEditPoint.Y;
 
-                    arrPathCommand[originalPoint.pathC2].X0 = geometry.gmEditPoint.X - g2X;
-                    arrPathCommand[originalPoint.pathC2].Y0 = geometry.gmEditPoint.Y - g2Y;
-                    geometry.gmEditPoint.g2X = geometry.gmEditPoint.X - g2X;
-                    geometry.gmEditPoint.g2Y = geometry.gmEditPoint.Y - g2Y;
+                    arrPathCommand[gmEditPoint.pathC2].X0 = gmEditPoint.X - g2X;
+                    arrPathCommand[gmEditPoint.pathC2].Y0 = gmEditPoint.Y - g2Y;
+                    gmEditPoint.g2X = gmEditPoint.X - g2X;
+                    gmEditPoint.g2Y = gmEditPoint.Y - g2Y;
                 }
-            } else if(geometry.gmEditPoint.isSecondCPoint) {
-                arrPathCommand[originalPoint.pathC2].X0 = _relative_x;
-                arrPathCommand[originalPoint.pathC2].Y0 = _relative_y;
-                geometry.gmEditPoint.g2X = _relative_x;
-                geometry.gmEditPoint.g2Y = _relative_y;
+            } else if(gmEditPoint.isSecondCPoint) {
+                arrPathCommand[gmEditPoint.pathC2].X0 = _relative_x;
+                arrPathCommand[gmEditPoint.pathC2].Y0 = _relative_y;
+                gmEditPoint.g2X = _relative_x;
+                gmEditPoint.g2Y = _relative_y;
 
-                arrPathCommand[originalPoint.pathC2].isLine = false;
+                arrPathCommand[gmEditPoint.pathC2].isLine = false;
 
                 if(cur_command_1 && cur_command_1.isEllipseArc && cur_command_2 && cur_command_2.isEllipseArc) {
-                    var g1X = geometry.gmEditPoint.g2X - geometry.gmEditPoint.X;
-                    var g1Y = geometry.gmEditPoint.g2Y - geometry.gmEditPoint.Y;
+                    var g1X = gmEditPoint.g2X - gmEditPoint.X;
+                    var g1Y = gmEditPoint.g2Y - gmEditPoint.Y;
 
-                    arrPathCommand[originalPoint.pathC1].X1 = geometry.gmEditPoint.X - g1X;
-                    arrPathCommand[originalPoint.pathC1].Y1 = geometry.gmEditPoint.Y - g1Y;
-                    geometry.gmEditPoint.g1X = geometry.gmEditPoint.X - g1X;
-                    geometry.gmEditPoint.g1Y = geometry.gmEditPoint.Y - g1Y;
+                    arrPathCommand[gmEditPoint.pathC1].X1 = gmEditPoint.X - g1X;
+                    arrPathCommand[gmEditPoint.pathC1].Y1 = gmEditPoint.Y - g1Y;
+                    gmEditPoint.g1X = gmEditPoint.X - g1X;
+                    gmEditPoint.g1Y = gmEditPoint.Y - g1Y;
                 }
             } else {
                 var X0, X1, Y0, Y1;
                 //second curve relative to point
-                var pathCommand = arrPathCommand[originalPoint.pathC1];
-                var isPathCommand = (geometry.gmEditPoint.g1X !== undefined && geometry.gmEditPoint.g1Y !== undefined);
+                var pathCommand = arrPathCommand[gmEditPoint.pathC1];
+                var isPathCommand = (gmEditPoint.g1X !== undefined && gmEditPoint.g1Y !== undefined);
 
                 X0 = pathCommand.isLine ? (prevPoint.X + _relative_x / 2) / (3 / 2) : prevPoint.g2X;
                 Y0 = pathCommand.isLine ? (prevPoint.Y + _relative_y / 2) / (3 / 2) : prevPoint.g2Y;
@@ -153,25 +159,25 @@
                     isLine: pathCommand.isLine
                 }
 
-                if(geometry.gmEditPoint.g1X !== undefined && geometry.gmEditPoint.g1Y !== undefined) {
-                    geometry.gmEditPoint.g1X = command.X1;
-                    geometry.gmEditPoint.g1Y = command.Y1;
+                if(gmEditPoint.g1X !== undefined && gmEditPoint.g1Y !== undefined) {
+                    gmEditPoint.g1X = command.X1;
+                    gmEditPoint.g1Y = command.Y1;
                 }
 
-                geometry.gmEditPoint.X = _relative_x;
-                geometry.gmEditPoint.Y = _relative_y;
+                gmEditPoint.X = _relative_x;
+                gmEditPoint.Y = _relative_y;
 
-                if(originalPoint.pathC1 && originalPoint.pathC2 && (originalPoint.pathC1 > originalPoint.pathC2)) {
-                    arrPathCommand[originalPoint.pathC2 - 1].X = _relative_x;
-                    arrPathCommand[originalPoint.pathC2 - 1].Y = _relative_y;
+                if(gmEditPoint.pathC1 && gmEditPoint.pathC2 && (gmEditPoint.pathC1 > gmEditPoint.pathC2)) {
+                    arrPathCommand[gmEditPoint.pathC2 - 1].X = _relative_x;
+                    arrPathCommand[gmEditPoint.pathC2 - 1].Y = _relative_y;
                 }
-                arrPathCommand[geometry.gmEditPoint.pathC1] = command;
+                arrPathCommand[gmEditPoint.pathC1] = command;
 
                 //second curve relative to point
-                if(geometry.gmEditPoint.pathC2) {
+                if(gmEditPoint.pathC2) {
                     var X0, X1, Y0, Y1;
-                    var pathCommand = arrPathCommand[geometry.gmEditPoint.pathC2];
-                    var isPathCommand = (geometry.gmEditPoint.g2X !== undefined && geometry.gmEditPoint.g2Y !== undefined);
+                    var pathCommand = arrPathCommand[gmEditPoint.pathC2];
+                    var isPathCommand = (gmEditPoint.g2X !== undefined && gmEditPoint.g2Y !== undefined);
 
                     if (isPathCommand) {
                         X0 = pathCommand.isLine ? (nextPoint.X + _relative_x * 2) / 3 : _relative_x - originalPoint.X + originalPoint.g2X;
@@ -193,14 +199,14 @@
                     }
 
                     if (isPathCommand) {
-                        geometry.gmEditPoint.g2X = command.X0;
-                        geometry.gmEditPoint.g2Y = command.Y0;
+                        gmEditPoint.g2X = command.X0;
+                        gmEditPoint.g2Y = command.Y0;
                     }
 
-                    geometry.gmEditPoint.X = _relative_x;
-                    geometry.gmEditPoint.Y = _relative_y;
+                    gmEditPoint.X = _relative_x;
+                    gmEditPoint.Y = _relative_y;
 
-                    arrPathCommand[geometry.gmEditPoint.pathC2] = command;
+                    arrPathCommand[gmEditPoint.pathC2] = command;
                 }
             }
 
@@ -285,9 +291,8 @@
     };
 
     EditShapeGeometryTrack.prototype.trackEnd = function() {
-
+        this.originalObject.spPr.setGeometry(this.geometry.createDuplicate());
         AscFormat.CheckSpPrXfrm(this.originalShape);
-
     };
 
     EditShapeGeometryTrack.prototype.convertToBezier = function(geom) {
@@ -510,6 +515,7 @@
 
         this.isConverted = true;
         geom.setPreset(null);
+        this.addCommandsInPathInfo(geom);
     };
 
     EditShapeGeometryTrack.prototype.addCommandsInPathInfo = function(geometry) {

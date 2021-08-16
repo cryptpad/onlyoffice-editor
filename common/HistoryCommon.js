@@ -3684,6 +3684,7 @@
 	window['AscDFH'].historydescription_Document_ConvertTableToText                 = 0x018a;
 	window['AscDFH'].historydescription_Document_ResolveAllComments                 = 0x018b;
 	window['AscDFH'].historydescription_Document_ConvertFormFixedType               = 0x018c;
+	window['AscDFH'].historydescription_Document_ChangeGeometryEdit                 = 0x018d;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

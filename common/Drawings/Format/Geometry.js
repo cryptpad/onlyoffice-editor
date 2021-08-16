@@ -900,6 +900,12 @@ Geometry.prototype=
         {
             g.AddRect(this.rectS.l, this.rectS.t, this.rectS.r, this.rectS.b);
         }
+        if(this.gmEditPoint)
+        {
+            var point = this.gmEditPoint;
+            g.AddGeomPoint(point.id, point.X, point.Y, point.g1X, point.g1Y, point.g2X, point.g2Y, point.pathC1, point.pathC2, point.nextPoint, point.prevPoint,
+                point.isFirstCPoint, point.isSecondCPoint, point.isStartPoint, point.pathIndex);
+        }
         return g;
     },
 
@@ -1079,6 +1085,32 @@ Geometry.prototype=
         this.rectS.t = t;
         this.rectS.r = r;
         this.rectS.b = b;
+    },
+
+    AddGeomPoint: function(id, X, Y, g1X, g1Y, g2X, g2Y, pathC1, pathC2, prevPoint, nextPoint, isFirstCPoint, isSecondCPoint, isStartPoint, pathIndex)
+    {
+        this.gmEditPoint = {};
+        this.gmEditPoint.id = id;
+        this.gmEditPoint.X = X;
+        this.gmEditPoint.Y = Y;
+        this.gmEditPoint.g1X = g1X;
+        this.gmEditPoint.g1Y = g1Y;
+        this.gmEditPoint.g2X = g2X;
+        this.gmEditPoint.g2Y = g2Y;
+        this.gmEditPoint.pathC1 = pathC1;
+        this.gmEditPoint.pathC2 = pathC2;
+        this.gmEditPoint.nextPoint = {
+            id: nextPoint.id, X: nextPoint.X, Y: nextPoint.Y, g1X: nextPoint.g1X, g1Y: nextPoint.g1Y,
+                g2X: nextPoint.g2X, g2Y: nextPoint.g2Y, pathC1 : nextPoint.pathC1, pathC2 : nextPoint.pathC2,
+        };
+        this.gmEditPoint.prevPoint = {
+            id: prevPoint.id, X: prevPoint.X, Y: prevPoint.Y, g1X: prevPoint.g1X, g1Y: prevPoint.g1Y,
+                g2X: prevPoint.g2X, g2Y: prevPoint.g2Y, pathC1 : prevPoint.pathC1, pathC2 : prevPoint.pathC2,
+        },
+        this.gmEditPoint.isFirstCPoint = isFirstCPoint;
+        this.gmEditPoint.isSecondCPoint = isSecondCPoint;
+        this.gmEditPoint.isStartPoint = isStartPoint;
+        this.gmEditPoint.pathIndex = pathIndex;
     },
 
     findConnector: function(x, y, distanse){
@@ -1290,11 +1322,12 @@ Geometry.prototype=
     drawGeometryEdit : function(drawingDocument, shape, arrTrackObject)
     {
         var track_object = arrTrackObject[0];
+        var geometry = track_object.geometry;
         if (!track_object.isConverted) {
-            track_object.convertToBezier(this);
+            track_object.convertToBezier(geometry);
         }
-        var gmEditPoint = this.gmEditPoint;
-        var gmEditList = this.gmEditList;
+        var gmEditPoint = geometry.gmEditPoint;
+        var gmEditList = geometry.gmEditList;
         var matrix =  shape.getTransformMatrix();
         drawingDocument.AutoShapesTrack.DrawGeometryEdit(matrix, gmEditList, gmEditPoint);
     },
@@ -1366,16 +1399,16 @@ Geometry.prototype=
 
     hitToGeomEdit: function(arrTrackObject, oCanvas, e, x, y, distance) {
         var dx, dy, dxC1, dyC1, dxC2, dyC2;
-
-        var isHitInPath = this.hitInPath(oCanvas, x, y, arrTrackObject);
+        var geometry = arrTrackObject.geometry;
+        var isHitInPath = geometry.hitInPath(oCanvas, x, y, arrTrackObject);
         
         if (e.Type === 0) {
 
-            for (var i = this.gmEditList.length - 1; i >= 0; i--) {
-                dx = x - this.gmEditList[i].X;
-                dy = y - this.gmEditList[i].Y;
+            for (var i = geometry.gmEditList.length - 1; i >= 0; i--) {
+                dx = x - geometry.gmEditList[i].X;
+                dy = y - geometry.gmEditList[i].Y;
 
-                var gmArr = this.gmEditList[i];
+                var gmArr = geometry.gmEditList[i];
                 var nextPoint = gmArr.nextPoint;
                 var prevPoint = gmArr.prevPoint;
 
@@ -1396,30 +1429,30 @@ Geometry.prototype=
                 }
 
                 if (Math.sqrt(dx * dx + dy * dy) < distance) {
-                    this.gmEditPoint = this.gmEditList[i];
-                    this.originalEditPoint = originalEditPoint;
-                    return {hit: true, objectId: this.Id};
+                    geometry.gmEditPoint = geometry.gmEditList[i];
+                    geometry.originalEditPoint = originalEditPoint;
+                    return {hit: true, objectId: geometry.Id};
                 }
             }
 
-            if (this.gmEditPoint) {
-                dxC1 = x - this.gmEditPoint.g1X;
-                dyC1 = y - this.gmEditPoint.g1Y;
-                dxC2 = x - this.gmEditPoint.g2X;
-                dyC2 = y - this.gmEditPoint.g2Y;
+            if(geometry.gmEditPoint) {
+                dxC1 = x - geometry.gmEditPoint.g1X;
+                dyC1 = y - geometry.gmEditPoint.g1Y;
+                dxC2 = x - geometry.gmEditPoint.g2X;
+                dyC2 = y - geometry.gmEditPoint.g2Y;
                 if (Math.sqrt(dxC1 * dxC1 + dyC1 * dyC1) < distance) {
-                    this.gmEditPoint.isFirstCPoint = true;
-                    return {hit: true, objectId: this.Id};
+                    geometry.gmEditPoint.isFirstCPoint = true;
+                    return {hit: true, objectId: geometry.Id};
                 } else if (Math.sqrt(dxC2 * dxC2 + dyC2 * dyC2) < distance) {
-                    this.gmEditPoint.isSecondCPoint = true;
-                    return {hit: true, objectId: this.Id};
+                    geometry.gmEditPoint.isSecondCPoint = true;
+                    return {hit: true, objectId: geometry.Id};
                 }
             }
 
             if(isHitInPath) {
-                arrTrackObject.addPoint(arrTrackObject.originalShape.getInvertTransform(), this, x, y);
-                arrTrackObject.convertToBezier(this);
-                return {hit: true, objectId: this.Id, addingNewPoint: true};
+                arrTrackObject.addPoint(arrTrackObject.originalShape.getInvertTransform(), geometry, x, y);
+                arrTrackObject.convertToBezier(geometry);
+                return {hit: true, objectId: geometry.Id, addingNewPoint: true};
             }
         }
            return  {hit: false};
