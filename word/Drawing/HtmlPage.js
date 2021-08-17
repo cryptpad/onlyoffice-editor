@@ -1661,6 +1661,10 @@ function CEditorPage(api)
 				pos = oWordControl.m_oDrawingDocument.ConvertCoordsFromCursor2(global_mouseEvent.X, global_mouseEvent.Y);
 				if (oWordControl.MouseHandObject.check(oWordControl, pos))
 				{
+					oThis.m_oApi.sync_MouseMoveStartCallback();
+					oThis.m_oApi.sync_MouseMoveCallback(new AscCommon.CMouseMoveData());
+					oThis.m_oApi.sync_MouseMoveEndCallback();
+
 					oWordControl.m_oDrawingDocument.SetCursorType("grab");
 					return;
 				}
