@@ -61,7 +61,6 @@
         this.xMax = this.shapeWidth;
         this.yMax =  this.shapeHeight;
         this.addingPoint = {pathIndex: null, commandIndex: null};
-
         this.document = document;
         this.geometry.Recalculate(this.shapeWidth, this.shapeHeight);
     };
@@ -76,7 +75,6 @@
     };
 
     EditShapeGeometryTrack.prototype.track = function(e, posX, posY) {
-
         var geometry = this.geometry;
 
         if(!geometry.gmEditPoint) {
@@ -292,12 +290,12 @@
 
     EditShapeGeometryTrack.prototype.trackEnd = function() {
         this.originalObject.spPr.setGeometry(this.geometry.createDuplicate());
-        AscFormat.CheckSpPrXfrm(this.originalShape);
     };
 
     EditShapeGeometryTrack.prototype.convertToBezier = function(geom) {
 
         var countArc = 0;
+        var originalGeometry = this.originalObject.calcGeometry;
         geom.gmEditList = [];
 
         for(var j = 0; j < geom.pathLst.length; j++) {
@@ -305,7 +303,7 @@
             var pathPoints = geom.pathLst[j].ArrPathCommand;
 
             for (var i = 0; i < pathPoints.length; i++) {
-                if (pathPoints[i].id === PathType.ARC && geom.ellipsePointsList.length === 0)
+                if (pathPoints[i].id === PathType.ARC && originalGeometry.ellipsePointsList.length === 0)
                     return;
             }
 
@@ -319,9 +317,9 @@
                         elemY = elem.Y;
                         break;
                     case PathType.ARC:
-                        if (geom.ellipsePointsList[countArc]) {
+                        if (originalGeometry.ellipsePointsList[countArc]) {
                             pathPoints.splice(i, 1);
-                            geom.ellipsePointsList[countArc].forEach(function (elem) {
+                            originalGeometry.ellipsePointsList[countArc].forEach(function (elem) {
                                 var elemArc = {
                                     id: PathType.BEZIER_4,
                                     X: elem.X2,
@@ -515,6 +513,7 @@
 
         this.isConverted = true;
         geom.setPreset(null);
+        geom.rectS = null;
         this.addCommandsInPathInfo(geom);
     };
 
