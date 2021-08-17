@@ -1026,6 +1026,17 @@
 
 		return false;
 	};
+	CContentControlTrack.prototype.fillText = function(ctx, text, x, y, maxWidth)
+	{
+		if (AscCommon.AscBrowser.isMozilla)
+			ctx.fillText(text, x, y, maxWidth);
+		else
+			ctx.fillText(text, x, y);
+	};
+	CContentControlTrack.prototype.CalculateNameRectNatural = function()
+	{
+		return this.parent.measure(this.Name);
+	};
 	CContentControlTrack.prototype.CalculateNameRect = function(koefX, koefY)
 	{
 		if (this.Name == "")
@@ -1415,19 +1426,13 @@
 		{
 			if (!this.measures[text])
 			{
-				this.measures[text] = [0, 0];
-
 				var ctx = this.document.CanvasHitContext;
 				ctx.font = "11px Helvetica, Arial, sans-serif";
 
-				this.measures[text][0] = ctx.measureText(text).width;
-
-				ctx.setTransform(2, 0, 0, 2, 0, 0);
-				this.measures[text][1] = ctx.measureText(text).width;
-				ctx.setTransform(1, 0, 0, 1, 0, 0);
+				this.measures[text] = ctx.measureText(text).width;
 			}
 
-			return this.measures[text][AscCommon.AscBrowser.isCustomScalingAbove2() ? 1 : 0];
+			return this.measures[text];
 		};
 
 		// сохранение текущих в последние
@@ -1848,7 +1853,7 @@
 
 									ctx.fillStyle = (_object.ActiveButtonIndex == -1) ? AscCommon.GlobalSkin.ContentControlsTextActive : AscCommon.GlobalSkin.ContentControlsText;
 									ctx.font = Math.round(11 * rPR) + "px Helvetica, Arial, sans-serif";
-									ctx.fillText(_object.Name, xText + Math.round(3 * rPR), _y + Math.round(20 * rPR) - Math.round(6 * rPR));
+									_object.fillText(ctx, _object.Name, xText + Math.round(3 * rPR), _y + Math.round(20 * rPR) - Math.round(6 * rPR), _object.CalculateNameRectNatural() * rPR);
 
 									if (_object.IsNameAdvanced() && !_object.IsNoUseButtons())
 									{
@@ -2070,7 +2075,7 @@
 
 									ctx.fillStyle = (_object.ActiveButtonIndex == -1) ? AscCommon.GlobalSkin.ContentControlsTextActive : AscCommon.GlobalSkin.ContentControlsText;
 									ctx.font = this.getFont(_koefY);
-									ctx.fillText(_object.Name, xText + 3 / _koefX, _y + (20 - 6) / _koefY);
+									_object.fillText(ctx, _object.Name, xText + 3 / _koefX, _y + (20 - 6) / _koefY, _object.CalculateNameRectNatural() / _koefX);
 
 									if (_object.IsNameAdvanced() && !_object.IsNoUseButtons())
 									{
