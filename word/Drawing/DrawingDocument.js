@@ -128,15 +128,7 @@ CColumnsMarkup.prototype.CreateDuplicate = function ()
 
 function CTableOutlineDr()
 {
-	this.image = new Image();
-	this.image.src = "../../../../sdkjs/common/Images/table_move.png";
-	this.image.onload = function() { this.asc_complete = true; };
-	AscCommon.backoffOnErrorImg(this.image);
-
-	this.image2 = new Image();
-	this.image2.src = "../../../../sdkjs/common/Images/table_move_2x.png";
-	this.image2.onload = function() { this.asc_complete = true; };
-	AscCommon.backoffOnErrorImg(this.image2);
+	this.mover_size = 13;
 
 	this.TableOutline = null;
 	this.Counter = 0;
@@ -3093,7 +3085,7 @@ function CDrawingDocument()
 		if (page != _table.PageNum)
 			return false;
 
-		var _dist = this.TableOutlineDr.image.width * g_dKoef_pix_to_mm;
+		var _dist = this.TableOutlineDr.mover_size * g_dKoef_pix_to_mm;
 		_dist *= (100 / this.m_oWordControl.m_nZoomValue);
 
 		var _x = _table.X;
