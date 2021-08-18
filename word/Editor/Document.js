@@ -25482,94 +25482,31 @@ CDocument.prototype.private_ConvertTextToTable = function(oProps, oSelectedConte
 * Подготовка к преобразованию текста в таблицу
  * @param oProps
  */
-CDocument.prototype.PreConvertTextToTable = function(oProps)
+CDocument.prototype.GetConvertTextToTableProps = function(oProps)
 {
 	if (!oProps)
 	{
-		oProps = new Asc.CAscTextToTableProperties(this, this.GetSelectedContent());
-		var separator = {tab : true, comma : true};
-		var Elements = oProps.Selected.Elements;
-		var parseParagraph = function(oPara)
+		oProps = new Asc.CAscTextToTableProperties(this.GetSelectedContent(false));
+
+		var oEngine = new CTextToTableEngine();
+		oEngine.SetCheckSeparatorMode();
+		for (var nIndex = 0, nCount = oProps.Selected.Elements.length; nIndex < nCount; ++nIndex)
 		{
-			if (separator.tab || separator.comma)
-			{
-				var hasTab = false;
-				var hasComma = false;
-				for (var j = 0; j <= oPara.GetElementsCount() && (!hasTab || !hasComma); j++)
-				{
-					var oInsideEl = oPara.Content[j];
-					if (oInsideEl.GetType() === para_Run)
-					{
-						for (var k = 0; k < oInsideEl.Content.length; k++)
-						{
-							if (oInsideEl.Content[k].GetType() === para_Tab)
-								hasTab = true;
-
-							if (oInsideEl.Content[k].Value === 0x3B)
-								hasComma = true;
-						}
-					}
-					else if (oInsideEl.GetType() === para_Math || oInsideEl.Type === para_InlineLevelSdt)
-					{
-						var Content = oInsideEl.GetType() === para_Math ? oInsideEl.Root.Content : oInsideEl.Content;
-						for (var k = 0; k < Content.length; k++)
-						{
-							var oThirdEl = Content[k];
-							if (oThirdEl.GetType() !== para_Math_Run && oThirdEl.GetType() !== para_Run)
-								continue;
-							
-							for (var p = 0; p < oThirdEl.Content.length; p++)
-							{
-								var oFourthEl = oThirdEl.Content[p];
-								var value = oFourthEl.value || oFourthEl.Value;
-								if (oFourthEl.Type === para_Tab)
-									hasTab = true;
-	
-								if (value === 0x3B)
-									hasComma = true;
-							}
-						}
-					}
-				}
-				separator.tab = hasTab;
-				separator.comma = hasComma;
-			}
-		};
-
-		for (var i = 0; i < Elements.length && (separator.comma || separator.tab); i++)
-		{
-			var oEl = Elements[i].Element;
-
-			if (oEl.IsBlockLevelSdt())
-			{
-				for (var k = 0; k < oEl.Content.Content.length; k++)
-				{
-					var oSecondEl = oEl.Content.Content[k];
-
-					if (oSecondEl.IsTable())
-						continue;
-					
-					if (oSecondEl.IsParagraph())
-						parseParagraph(oSecondEl);
-				}
-			}
-			else if (oEl.IsParagraph())
-			{
-				parseParagraph(oEl);
-			}
+			var oElement = oProps.Selected.Elements[nIndex].Element;
+			oElement.CalculateTextToTable(oEngine);
 		}
 
-		if (separator.tab)
+		if (oEngine.HaveTab())
 		{
-			oProps.put_SeparatorType(2);
+			oProps.put_SeparatorType(Asc.c_oAscTextToTableSeparator.Tab);
 		}
-		else if (separator.comma)
+		else if (oEngine.HaveSemicolon())
 		{
-			oProps.put_SeparatorType(3);
+			oProps.put_SeparatorType(Asc.c_oAscTextToTableSeparator.Symbol);
 			oProps.put_Separator(0x003B);
 		}
 	}
-	oProps.private_recalculate();
+	oProps.CalculateTableSize();
 	return oProps;
 };
 CDocument.prototype.private_PreConvertTextToTable = function(oProps, oSelectedContent)

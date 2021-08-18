@@ -16646,6 +16646,18 @@ Paragraph.prototype.IsInFixedForm = function()
 	var oShape = this.Parent ? this.Parent.Is_DrawingShape(true) : null;
 	return (oShape && oShape.isForm());
 };
+Paragraph.prototype.CalculateTextToTable = function(oEngine)
+{
+	oEngine.OnStartParagraph();
+
+	for (var nIndex = 0, nCount = this.Content.length - 1; nIndex < nCount; ++nIndex)
+	{
+		this.Content[nIndex].CalculateTextToTable(oEngine);
+	}
+
+	oEngine.OnEndParagraph();
+};
+
 
 Paragraph.prototype.asc_getText = function()
 {

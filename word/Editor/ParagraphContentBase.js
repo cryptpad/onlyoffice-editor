@@ -875,6 +875,11 @@ CParagraphContentBase.prototype.SetThisElementCurrentInParagraph = function()
 
 	this.Paragraph.Set_ParaContentPos(oContentPos, true, -1, -1, false);
 };
+/**
+ * Подсчитываем на сколько элементов разбивается данный элемент с заданным сепаратором
+ * @param oEngine {CTextToTableEngine}
+ */
+CParagraphContentBase.prototype.CalculateTextToTable = function(oEngine){};
 
 /**
  * Это базовый класс для элементов содержимого(контент) параграфа, у которых есть свое содержимое.
@@ -4458,6 +4463,13 @@ CParagraphContentWithParagraphLikeContent.prototype.SetIsRecalculated = function
 {
 	if (!isRecalculated && this.GetParagraph())
 		this.GetParagraph().SetIsRecalculated(false);
+};
+CParagraphContentWithParagraphLikeContent.prototype.CalculateTextToTable = function(oEngine)
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		this.Content[nIndex].CalculateTextToTable(oEngine);
+	}
 };
 
 //----------------------------------------------------------------------------------------------------------------------

@@ -13184,6 +13184,42 @@ ParaRun.prototype.FindNextFillingForm = function(isNext, isCurrent, isStart)
 
 	return null;
 };
+ParaRun.prototype.CalculateTextToTable = function(oEngine)
+{
+	// В формулах делим только по ранам, находящимся в самом верху стэка формулы
+	if (this.IsMathRun() && (!this.ParaMath || this.Parent !== this.ParaMath.Root))
+		return;
+
+	if (oEngine.IsCalculateTableSizeMode())
+	{
+		for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+		{
+			var oItem     = this.Content[nPos];
+			var nItemType = oItem.Type;
+
+			if ((para_Tab === nItemType && oEngine.IsTabSeparator())
+				|| (para_Text === nItemType && oEngine.IsSymbolSeparator(oItem.Value))
+				|| (para_Space === nItemType && oEngine.IsSymbolSeparator(oItem.Value)))
+			{
+				oEngine.AddItem();
+			}
+		}
+	}
+	else if (oEngine.IsCheckSeparatorMode())
+	{
+		for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+		{
+			var oItem     = this.Content[nPos];
+			var nItemType = oItem.Type;
+
+			if (para_Tab === nItemType)
+				oEngine.AddTab();
+			else if (para_Text === nItemType && 0x3B === oItem.Value)
+				oEngine.AddSemicolon();
+		}
+	}
+};
+
 
 function CParaRunStartState(Run)
 {

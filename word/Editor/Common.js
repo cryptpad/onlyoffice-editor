@@ -59,3 +59,180 @@ function Common_CopyObj(Obj)
     }
     return c;
 }
+
+/**
+ * Класс для обркботки конвертации текста в таблицу
+ * @constructor
+ */
+function CTextToTableEngine()
+{
+	this.SeparatorType = Asc.c_oAscTextToTableSeparator.Paragraph;
+	this.Separator     = 0;
+	this.MaxCols       = 0;
+
+	this.Mode = 0; // Режим, 0 - вычисляем размер, 1 - проверяем типы разделителей
+
+	this.Cols    = 0;
+	this.Rows    = 0;
+	this.CurCols = 0;
+
+	this.Tab           = true;
+	this.Semicolon     = true;
+	this.ParaTab       = false;
+	this.ParaSemicolon = false;
+}
+CTextToTableEngine.prototype.Reset = function()
+{
+	this.Cols    = 0;
+	this.Rows    = 0;
+	this.CurCols = 0;
+
+	this.Tab           = true;
+	this.Semicolon     = true;
+	this.ParaTab       = false;
+	this.ParaSemicolon = false;
+};
+CTextToTableEngine.prototype.GetSeparatorType = function()
+{
+	return this.Type;
+};
+CTextToTableEngine.prototype.GetSeparator = function()
+{
+	return this.Separator;
+};
+CTextToTableEngine.prototype.AddItem = function()
+{
+	if (this.IsParagraphSeparator())
+		return;
+
+	if (this.MaxCols)
+	{
+		if (this.CurCols < this.MaxCols)
+		{
+			this.CurCols++;
+		}
+		else
+		{
+			if (this.Cols < this.CurCols)
+				this.Cols = this.CurCols;
+
+			this.Rows++;
+			this.CurCols = 0;
+		}
+	}
+	else
+	{
+		this.CurCols++;
+	}
+};
+CTextToTableEngine.prototype.OnStartParagraph = function()
+{
+	if (this.IsCalculateTableSizeMode())
+	{
+		this.AddItem();
+	}
+	else if (this.IsCheckSeparatorMode())
+	{
+		this.ParaTab       = false;
+		this.ParaSemicolon = false;
+	}
+};
+CTextToTableEngine.prototype.OnEndParagraph = function()
+{
+	if (this.IsCalculateTableSizeMode())
+	{
+		if (this.IsParagraphSeparator())
+		{
+			if (this.MaxCols)
+			{
+				if (0 === this.CurCols)
+					this.Rows++;
+
+				if (this.CurCols < this.MaxCols)
+				{
+					this.CurCols++;
+				}
+				else
+				{
+					if (this.Cols < this.CurCols)
+						this.Cols = this.CurCols;
+
+					this.Rows++;
+					this.CurCols = 1;
+				}
+			}
+			else
+			{
+				this.Rows++;
+			}
+		}
+		else
+		{
+			if (this.CurCols)
+			{
+				if (this.Cols < this.CurCols)
+					this.Cols = this.CurCols;
+
+				this.Rows++;
+				this.CurCols = 0;
+			}
+		}
+	}
+	else if (this.IsCheckSeparatorMode())
+	{
+		this.Tab       = this.Tab && this.ParaTab;
+		this.Semicolon = this.Semicolon && this.ParaSemicolon;
+	}
+};
+CTextToTableEngine.prototype.IsParagraphSeparator = function()
+{
+	return this.SeparatorType === Asc.c_oAscTextToTableSeparator.Paragraph;
+};
+CTextToTableEngine.prototype.IsSymbolSeparator = function(nCharCode)
+{
+	return (this.SeparatorType === Asc.c_oAscTextToTableSeparator.Symbol && this.Separator === nCharCode);
+};
+CTextToTableEngine.prototype.IsTabSeparator = function()
+{
+	return this.SeparatorType === Asc.c_oAscTextToTableSeparator.Tab;
+};
+CTextToTableEngine.prototype.SetCalculateTableSizeMode = function(nSeparatorType, nSeparator, nMaxCols)
+{
+	this.Mode = 0;
+
+	this.SeparatorType = undefined !== nSeparatorType ? nSeparatorType : Asc.c_oAscTextToTableSeparator.Paragraph;
+	this.Separator     = undefined !== nSeparator ? nSeparator : 0;
+	this.MaxCols       = undefined !== nMaxCols ? nMaxCols : 0;
+};
+CTextToTableEngine.prototype.SetCheckSeparatorMode = function()
+{
+	this.Mode = 1;
+};
+CTextToTableEngine.prototype.IsCalculateTableSizeMode = function()
+{
+	return (0 === this.Mode);
+};
+CTextToTableEngine.prototype.IsCheckSeparatorMode = function()
+{
+	return (1 === this.Mode);
+};
+CTextToTableEngine.prototype.AddTab = function()
+{
+	this.ParaTab = true;
+};
+CTextToTableEngine.prototype.AddSemicolon = function()
+{
+	this.ParaSemicolon = true;
+};
+CTextToTableEngine.prototype.HaveTab = function()
+{
+	return this.Tab;
+};
+CTextToTableEngine.prototype.HaveSemicolon = function()
+{
+	return this.Semicolon;
+};
+
+//--------------------------------------------------------export--------------------------------------------------------
+window['AscCommonWord'] = window['AscCommonWord'] || {};
+window['AscCommonWord'].CTextToTableEngine = CTextToTableEngine;

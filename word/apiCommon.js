@@ -2328,28 +2328,17 @@
 
 	/**
 	* Класс для настроек конвертации текста в таблицу
-	* @param CDocument
+	* oSelectedContent {CSelectedContent}
 	* @constructor
 	*/
-	function CAscTextToTableProperties(CDocument, oSelectedContent)
+	function CAscTextToTableProperties(oSelectedContent)
 	{
-		/* Separator types:
-			1 - ParaEnd
-			2 - Tab
-			3 - Other symbol
-		*/
-		/* Autofit types:
-			1 - Fixed column width
-			2 - Autofit to content
-			3 - Autofit to window
-		*/
 		this.Rows			= 0;
 		this.Cols			= 0;
-		this.AutoFitType	= 1;
+		this.AutoFitType	= Asc.c_oAscTextToTableAutoFitType.Fixed;
 		this.FitValue		= -1;
-		this.SeparatorType	= 1;
+		this.SeparatorType	= Asc.c_oAscTextToTableSeparator.Paragraph;
 		this.Separator		= null;
-		this.Document		= CDocument;
 		this.Selected		= oSelectedContent;
 		this.IsFTCC         = false; // flag indicating whether it will be CC or not
 	}
@@ -2357,25 +2346,23 @@
 	{
 		return [this.Rows, this.Cols];
 	};
-	CAscTextToTableProperties.prototype.put_ColsCount = function(count, needRecal)
+	CAscTextToTableProperties.prototype.put_ColsCount = function(nCols)
 	{
-		this.Cols = (count > 1) ? count : 1;
-		if (needRecal)
-			this.private_recalculate(true);
-
+		this.Cols = (nCols > 1) ? nCols : 1;
+		this.CalculateTableSize(true);
 		return this.get_Size();
 	};
-	CAscTextToTableProperties.prototype.put_RowsCount = function(count)
+	CAscTextToTableProperties.prototype.put_RowsCount = function(nRows)
 	{
-		this.Rows = (count > 1) ? count : 1;
+		this.Rows = (nRows > 1) ? nRows : 1;
 	};
 	CAscTextToTableProperties.prototype.get_AutoFitType = function()
 	{
 		return this.AutoFitType;
 	};
-	CAscTextToTableProperties.prototype.put_AutoFitType = function(type)
+	CAscTextToTableProperties.prototype.put_AutoFitType = function(nAutoFitType)
 	{
-		this.AutoFitType = (type > 0 && type <= 3) ? type : 1;
+		this.AutoFitType = nAutoFitType;
 	};
 	CAscTextToTableProperties.prototype.get_Fit = function()
 	{
@@ -2389,186 +2376,37 @@
 	{
 		return this.SeparatorType;
 	};
-	CAscTextToTableProperties.prototype.put_SeparatorType = function(type, needRecal)
+	CAscTextToTableProperties.prototype.put_SeparatorType = function(nSeparatorType)
 	{
-		this.SeparatorType = (type > 0 && type <= 3) ? type : 1;
-		if (needRecal)
-			this.private_recalculate();
-
+		this.SeparatorType = nSeparatorType;
+		this.CalculateTableSize();
 		return this.get_Size();
 	};
 	CAscTextToTableProperties.prototype.get_Separator = function()
 	{
 		return this.Separator;
 	};
-	CAscTextToTableProperties.prototype.put_Separator = function(val, needRecal)
+	CAscTextToTableProperties.prototype.put_Separator = function(nCharCode)
 	{
-		this.Separator = val;
-		return this.put_SeparatorType(3, needRecal);
+		this.Separator = nCharCode;
+		return this.put_SeparatorType(Asc.c_oAscTextToTableSeparator.Symbol);
 	};
-	CAscTextToTableProperties.prototype.private_recalculate = function(bFixed)
+	CAscTextToTableProperties.prototype.CalculateTableSize = function(isColsFixed)
 	{
-		var SeparatorType = this.get_SeparatorType();
-		var Separator     = (SeparatorType == 3) ? this.get_Separator() : null;
-		var oCollsCount   = 0;
-		var oRowsCount    = 0;
-		var Cells         = 0;
-		var Elements      = this.Selected.Elements;
-		var Cols          = bFixed ? this.Cols : 0;
-		var types         = { 1 : 1, 2 : 1, 52 : 1, 53 : 1, 55 : 1, Run : 39, Math : 38, Tab : 21, InlineStd: 68, MathRun : 49};
-
-		var parseParagraph = function(oPara)
+		var nMaxCols = isColsFixed ? this.Cols : 0;
+		var oEngine  = new AscCommonWord.CTextToTableEngine();
+		oEngine.SetCalculateTableSizeMode(this.SeparatorType, this.Separator, nMaxCols);
+		for (var nIndex = 0, nCount = this.Selected.Elements.length; nIndex < nCount; ++nIndex)
 		{
-			Cells++;
-
-			// функция, чтобы не проверять на paraEnd
-			for (var j = 0; j <= oPara.GetElementsCount(); j++)
-			{
-				var oSecondEl = oPara.Content[j];
-				if (oSecondEl.GetType() === types.Run)
-				{
-					for (var k = 0; k < oSecondEl.Content.length; k++)
-					{
-						var oThirdEl = oSecondEl.Content[k];
-
-						if ( (SeparatorType === 2 && oThirdEl.GetType() === types.Tab) || (types[oThirdEl.GetType()] && oThirdEl.Value === Separator) )
-						{
-							if (Cols)
-							{
-								if (Cells < Cols)
-								{
-									Cells++;
-								}
-								else
-								{
-									if (oCollsCount < Cells)
-										oCollsCount = Cells;
-									
-									oRowsCount++;
-									Cells = 1;
-								}
-							}
-							else
-							{
-								Cells++;
-							}
-						}
-					}
-				}
-				else if ( (oSecondEl.GetType() === types.Math || oSecondEl.GetType() === types.InlineStd) && SeparatorType !== 1)
-				{
-					var Content = oSecondEl.GetType() === types.Math  ? oSecondEl.Root.Content : oSecondEl.Content;
-					for (var k = 0; k < Content.length; k++)
-					{
-						var oThirdEl = Content[k];
-						if (oThirdEl.GetType() !== types.MathRun && oThirdEl.GetType() !== types.Run)
-							continue;
-
-						for (var p = 0; p < oThirdEl.Content.length; p++)
-						{
-							var oFourthEl = oThirdEl.Content[p];
-							var value = oFourthEl.value || oFourthEl.Value;
-							if ( (SeparatorType === 2 && oFourthEl.Type === types.Tab) || (types[oFourthEl.Type] && value === Separator) )
-							{
-								if (Cols)
-								{
-									if (Cells < Cols)
-									{
-										Cells++;
-									}
-									else
-									{
-										if (oCollsCount < Cells)
-											oCollsCount = Cells;
-										
-										oRowsCount++;
-										Cells = 1;
-									}
-								}
-								else
-								{
-									Cells++;
-								}
-							}
-						}
-					}
-				}
-			}
-		};
-		
-		for (var i = 0; i < Elements.length; i++)
-		{
-			var oElement = Elements[i].Element;
-			if (oElement.IsParagraph() && SeparatorType !== 1)
-			{
-				parseParagraph(oElement);
-			}
-			else if (oElement.IsBlockLevelSdt())
-			{
-				for (var k = 0; k < oElement.Content.Content.length; k++)
-				{
-					if (oElement.Content.Content[k].IsTable())
-						continue;
-
-					if (SeparatorType === 1)
-					{
-							oRowsCount++;
-					}
-					else
-					{
-						parseParagraph(oElement.Content.Content[k]);
-						if (Cells)
-						{
-							if (oCollsCount < Cells)
-							oCollsCount = Cells;
-	
-							oRowsCount++;
-							Cells = 0;
-						}
-					}
-				}
-			}
-			else if (!oElement.IsTable() || i === Elements.length - 1)
-			{
-				if (Cols)
-				{
-					if (Cells < Cols)
-					{
-						Cells++;
-					}
-					else
-					{
-						if (oCollsCount < Cells)
-							oCollsCount = Cells;
-
-						oRowsCount++;
-						Cells = 1;
-					}
-				}
-				else
-				{
-					Cells++;
-				}
-			}
-
-			if (Cells)
-			{
-				if ( SeparatorType == 1 && (Cells < Cols && (i !== Elements.length -1) ) )
-				{
-					continue;
-				}
-				else
-				{
-					if (oCollsCount < Cells)
-						oCollsCount = Cells;
-
-					oRowsCount++;
-					Cells = 0;
-				}
-			}
+			var oElement = this.Selected.Elements[nIndex].Element;
+			oElement.CalculateTextToTable(oEngine);
 		}
-		this.put_ColsCount( (bFixed ? Cols : oCollsCount), false);
-		this.put_RowsCount(oRowsCount);
+
+		var nCols = isColsFixed ? nMaxCols : oEngine.Cols;
+		var nRows = oEngine.Rows;
+
+		this.Cols = (nCols > 1) ? nCols : 1;
+		this.Rows = (nRows > 1) ? nRows : 1;
 	};
 
 	window['Asc']['CAscTextToTableProperties']				 = window['Asc'].CAscTextToTableProperties = CAscTextToTableProperties;

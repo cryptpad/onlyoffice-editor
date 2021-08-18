@@ -9203,6 +9203,13 @@ CDocumentContent.prototype.GetInnerForm = function()
 
 	return this.Content[0].GetInnerForm();
 };
+CDocumentContent.prototype.CalculateTextToTable = function(oEngine)
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		this.Content[nIndex].CalculateTextToTable(oEngine);
+	}
+};
 
 
 function CDocumentContentStartState(DocContent)
