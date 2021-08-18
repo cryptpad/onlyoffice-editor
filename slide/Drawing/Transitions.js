@@ -93,29 +93,21 @@ function CTransitionAnimation(htmlpage)
         var _page = this.HtmlPage;
 
         var w = _page.m_oEditor.HtmlElement.width;
-        var _px_h = _page.m_oEditor.HtmlElement.height;
-        w /= AscCommon.AscBrowser.retinaPixelRatio;
-        _px_h /= AscCommon.AscBrowser.retinaPixelRatio;
+        var h = _page.m_oEditor.HtmlElement.height;
 
-        var h = (((_page.m_oBody.AbsolutePosition.B - _page.m_oBody.AbsolutePosition.T) -
-            (_page.m_oTopRuler.AbsolutePosition.B - _page.m_oTopRuler.AbsolutePosition.T)) * g_dKoef_mm_to_pix) >> 0;
+        var koefMMToPx = g_dKoef_mm_to_pix * AscCommon.AscBrowser.retinaPixelRatio;
 
-        var _pageWidth = _page.m_oLogicDocument.GetWidthMM() * g_dKoef_mm_to_pix;
-        var _pageHeight = _page.m_oLogicDocument.GetHeightMM() * g_dKoef_mm_to_pix;
+        var _pageWidth = _page.m_oLogicDocument.GetWidthMM() * koefMMToPx;
+        var _pageHeight = _page.m_oLogicDocument.GetHeightMM() * koefMMToPx;
 
-        var _hor_Zoom = 100;
-        if (0 != _pageWidth)
-            _hor_Zoom = (100 * (w - 2 * _page.SlideDrawer.CONST_BORDER)) / _pageWidth;
-        var _ver_Zoom = 100;
-        if (0 != _pageHeight)
-            _ver_Zoom = (100 * (h - 2 * _page.SlideDrawer.CONST_BORDER)) / _pageHeight;
+        var koefX = (w - 2 * _page.SlideDrawer.CONST_BORDER) / _pageWidth;
+        var koefY = (h - 2 * _page.SlideDrawer.CONST_BORDER) / _pageHeight;
 
-        var _new_value = (Math.min(_hor_Zoom, _ver_Zoom) - 0.5) >> 0;
+        var koefMin = Math.min(koefX, koefY);
+        if (koefMin < 0.05)
+            koefMin = 0.05;
 
-        if (_new_value < 5)
-            _new_value = 5;
-
-        var dKoef = (_new_value * g_dKoef_mm_to_pix / 100);
+        var dKoef = koefMin * koefMMToPx;
 
         var _slideW = (dKoef * _page.m_oLogicDocument.GetWidthMM()) >> 0;
         var _slideH = (dKoef * _page.m_oLogicDocument.GetHeightMM()) >> 0;
@@ -125,10 +117,10 @@ function CTransitionAnimation(htmlpage)
         var _hor_width_left = Math.min(0, _centerX - (_centerSlideX) - _page.SlideDrawer.CONST_BORDER);
         var _hor_width_right = Math.max(w - 1, _centerX + (_slideW - _centerSlideX) + _page.SlideDrawer.CONST_BORDER);
 
-        var _centerY = (_px_h / 2) >> 0;
+        var _centerY = (h / 2) >> 0;
         var _centerSlideY = (dKoef * _page.m_oLogicDocument.GetHeightMM() / 2) >> 0;
         var _ver_height_top = Math.min(0, _centerY - _centerSlideY - _page.SlideDrawer.CONST_BORDER);
-        var _ver_height_bottom = Math.max(_px_h - 1, _centerX + (_slideH - _centerSlideY) + _page.SlideDrawer.CONST_BORDER);
+        var _ver_height_bottom = Math.max(h - 1, _centerX + (_slideH - _centerSlideY) + _page.SlideDrawer.CONST_BORDER);
 
         this.Rect.x = _centerX - _centerSlideX - _hor_width_left;
         this.Rect.y = _centerY - _centerSlideY - _ver_height_top;
@@ -179,7 +171,7 @@ function CTransitionAnimation(htmlpage)
         if (this.DemonstrationObject == null)
         {
             var ctx1 = this.HtmlPage.m_oEditor.HtmlElement.getContext('2d');
-            ctx1.setTransform(AscCommon.AscBrowser.retinaPixelRatio, 0, 0, AscCommon.AscBrowser.retinaPixelRatio, 0, 0);
+            ctx1.setTransform(1, 0, 0, 1, 0, 0);
             this.HtmlPage.m_oOverlayApi.SetBaseTransform();
         }
         else
@@ -309,12 +301,6 @@ function CTransitionAnimation(htmlpage)
 
         this.StartTime = new Date().getTime();
         this.EndTime = this.StartTime + this.Duration;
-
-        if (AscCommon.AscBrowser.isCustomScaling())
-        {
-            var ctx1 = oThis.HtmlPage.m_oEditor.HtmlElement.getContext('2d');
-            ctx1.setTransform(AscCommon.AscBrowser.retinaPixelRatio, 0, 0, AscCommon.AscBrowser.retinaPixelRatio, 0, 0);
-        }
 
         switch (this.Type)
         {

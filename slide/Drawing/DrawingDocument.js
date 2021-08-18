@@ -6474,9 +6474,6 @@ function CNotesDrawer(page)
 			g.darkModeOverride();
 		}
 
-		if (AscCommon.AscBrowser.isCustomScalingAbove2())
-			g.IsRetina = true;
-
 		g.SaveGrState();
 
 		g.m_oCoordTransform.tx = this.OffsetX;
