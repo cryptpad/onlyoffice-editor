@@ -761,10 +761,14 @@
     {
         if (this.isDocumentContentInSmartArtShape()) {
             var oShape = this.Parent.parent;
-            var point = oShape.getPoint();
-            var isPhldr = point && point.prSet && point.prSet.phldr;
-            if (isPhldr) {
-                return true;
+            var contentPoints = oShape.getSmartArtPointContent();
+            if (contentPoints && contentPoints.length !== 0) {
+                var isPhldr = contentPoints.every(function (point) {
+                    return point && point.prSet && point.prSet.phldr;
+                });
+                if (isPhldr) {
+                    return true;
+                }
             }
         }
         return CDocumentContent.prototype.Is_Empty.call(this);

@@ -2422,7 +2422,7 @@
             var dRot = AscFormat.normalizeRotate(dAngle);
             oXfrm.setRot(dRot);
             if(this.isObjectInSmartArt()) {
-                var point = this.getPointAssociation();
+                var point = this.getSmartArtShapePoint();
                 if (point) {
                     var prSet = point.getPrSet();
                     if (prSet) {

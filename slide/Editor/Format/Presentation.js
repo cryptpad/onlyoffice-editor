@@ -4987,7 +4987,7 @@ CPresentation.prototype.addImages = function (aImages, placeholder) {
                     var oBlipFillUniFill = AscFormat.CreateBlipFillUniFillFromUrl(_image.src);
                     oBlipFillUniFill.fill.setSrcRect(srcRect);
                     oPh.spPr.setFill(oBlipFillUniFill);
-                    var point = oPh.getPointAssociation();
+                    var point = oPh.getSmartArtSpPrPoint();
                     if (point) {
                       if (!point.spPr) {
                         point.setSpPr(new AscFormat.CSpPr());

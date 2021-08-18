@@ -9189,7 +9189,6 @@
         })
         var shapeMap = {};
         var shapeTree = this.getDrawing().spTree;
-        var shapeSmartArtInfo = {};
         var shapeLst = shapeTree.map(function (shape) {
           shapeMap[shape.modelId] = shape;
           return shape.modelId;
@@ -9200,14 +9199,14 @@
         connections.forEach(function (connect) {
           var smartArtInfo = new ShapeSmartArtInfo();
           var shape = shapeMap[connect.id];
-          smartArtInfo.setShapePoint(connect);
+          smartArtInfo.setShapePoint(connect.point);
           var content = shape.txBody && shape.txBody.content && shape.txBody.content.Content;
           if (content && content.length) {
             if (connect.conn.length === content.length) {
               content.forEach(function (paragraph, idx) {
                 connect.conn.forEach(function (contentPoint) {
-                  if (contentPoint.srcOrd === connect.srcOrd && contentPoint.destOrd === idx) {
-                    smartArtInfo.addToLstContentPoint(contentPoint);
+                  if (contentPoint.srcOrd === connect.srcOrd && parseInt(contentPoint.destOrd) === idx) {
+                    smartArtInfo.addToLstContentPoint(contentPoint.point);
                   }
                 })
               })
@@ -9217,15 +9216,12 @@
           } else if (connect.point.isBlipFillPlaceholder()) {
 
             if (connect.conn.length !== 0) {
-              smartArtInfo.setSpPrPoint(connect.conn[0]);
+              smartArtInfo.setSpPrPoint(connect.conn[0].point);
             } else {
               smartArtInfo.setSpPrPoint(connect.point);
             }
-
-            shape.setShapeSmartArtInfo(smartArtInfo);
-            console.log(smartArtInfo);
-            console.log('oliiiii')
           }
+          shape.setShapeSmartArtInfo(smartArtInfo);
         })
         console.log(connections);
         return connections;
