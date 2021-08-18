@@ -1581,6 +1581,9 @@
 	};
 	baseEditorsApi.prototype.downloadAs                         = function (actionType, options)
 	{
+		if (this.isLongAction()) {
+			return;
+		}
 		var isCloudCrypto = !!(window["AscDesktopEditor"] && (0 < window["AscDesktopEditor"]["CryptoMode"]));
 		if (isCloudCrypto)
 		{
