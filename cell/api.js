@@ -2480,10 +2480,6 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_showWorksheet = function(index) {
-  	if (this.asc_isProtectedWorkbook()) {
-      return false;
-  	}
-
   	if (typeof index === "number") {
       var t = this;
       var ws = this.wbModel.getWorksheet(index);
