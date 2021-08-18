@@ -9286,6 +9286,40 @@
     SmartArt.prototype.getChildren = function() {
       return [this.drawing, this.dataModel, this.colorsDef, this.layoutDef, this.styleDef];
     };
+
+    SmartArt.prototype.switchRightToLeft = function () {
+      var isRightToLeft;
+      var point = this.getNullNamePoint();
+      var pointDir = point && point.prSet && point.prSet.presLayoutVars && point.prSet.presLayoutVars.dir && (point.prSet.presLayoutVars.dir.val === 'norm' || point.prSet.presLayoutVars.dir.val === null);
+      if (pointDir) {
+        isRightToLeft = true;
+        point.prSet.presLayoutVars.dir.setVal('rev');
+      } else {
+        isRightToLeft = false;
+        if (!point.prSet) {
+          point.setPrSet(new PrSet());
+        }
+        if (!point.prSet.presLayoutVars) {
+          point.prSet.setPresLayoutVars(new VarLst());
+        }
+        if (!point.prSet.presLayoutVars.dir) {
+          point.prSet.presLayoutVars.setDir(new DiagramDirection());
+        }
+        point.prSet.presLayoutVars.dir.setVal('norm');
+      }
+      return isRightToLeft;
+    }
+
+    SmartArt.prototype.getNullNamePoint = function () {
+      var dataModel = this.getDataModel() && this.getDataModel().getDataModel();
+      var ptLst = dataModel.ptLst.list;
+      for (var i = 0; i < ptLst.length; i += 1) {
+        if (ptLst[i].type === 3 && ptLst[i].prSet && ptLst[i].prSet.presName === 'Name0') { // TODO: ptLst type = 'pres' is 4
+          return ptLst[i];
+        }
+      }
+    }
+
     SmartArt.prototype.isPlaceholder = function () {
       return false;
     };
