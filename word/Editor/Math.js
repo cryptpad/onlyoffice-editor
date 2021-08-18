@@ -3467,6 +3467,10 @@ ParaMath.prototype.IsParentEquationPlaceholder = function()
 
 	return false;
 };
+ParaMath.prototype.CalculateTextToTable = function(oEngine)
+{
+	this.Root.CalculateTextToTable(oEngine);
+};
 
 function MatGetKoeffArgSize(FontSize, ArgSize)
 {

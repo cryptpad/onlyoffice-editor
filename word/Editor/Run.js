@@ -13199,7 +13199,8 @@ ParaRun.prototype.CalculateTextToTable = function(oEngine)
 
 			if ((para_Tab === nItemType && oEngine.IsTabSeparator())
 				|| (para_Text === nItemType && oEngine.IsSymbolSeparator(oItem.Value))
-				|| (para_Space === nItemType && oEngine.IsSymbolSeparator(oItem.Value)))
+				|| (para_Space === nItemType && oEngine.IsSymbolSeparator(oItem.Value))
+				|| (para_Math_Text === nItemType && oEngine.IsSymbolSeparator(oItem.value)))
 			{
 				oEngine.AddItem();
 			}
@@ -13214,7 +13215,7 @@ ParaRun.prototype.CalculateTextToTable = function(oEngine)
 
 			if (para_Tab === nItemType)
 				oEngine.AddTab();
-			else if (para_Text === nItemType && 0x3B === oItem.Value)
+			else if ((para_Text === nItemType && 0x3B === oItem.Value) || (para_Math_Text === nItemType && 0x3B === oItem.value))
 				oEngine.AddSemicolon();
 		}
 	}
