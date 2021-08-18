@@ -72,6 +72,7 @@
 		this.documentUserId      = undefined;
 		this.documentUrl         = "null";
 		this.documentUrlChanges  = null;
+		this.documentTokenChanges  = null;
 		this.documentCallbackUrl = undefined;		// Ссылка для отправления информации о документе
 		this.documentFormat      = "null";
 		this.documentTitle       = "null";
@@ -723,10 +724,11 @@
 	baseEditorsApi.prototype._onOpenCommand                      = function(data)
 	{
 		var t = this;
-		AscCommon.openFileCommand(data, this.documentUrlChanges, AscCommon.c_oSerFormat.Signature, function(error, result)
+		AscCommon.openFileCommand(this.documentId, data, this.documentUrlChanges, this.documentTokenChanges, AscCommon.c_oSerFormat.Signature, function(error, result)
 		{
 			if (error || (!result.bSerFormat && !Asc.c_rUneditableTypes.test(t.DocInfo && t.DocInfo.get_Format())))
 			{
+				t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.Open);
 				var err = error ? c_oAscError.ID.Unknown : c_oAscError.ID.ConvertationOpenError;
 				t.sendEvent("asc_onError",  err, c_oAscError.Level.Critical);
 				return;
@@ -1926,6 +1928,7 @@
 			this.DocInfo.put_Id(this.VersionHistory.docId);
 			this.DocInfo.put_Url(this.VersionHistory.url);
 			this.documentUrlChanges = this.VersionHistory.urlChanges;
+			this.documentTokenChanges = this.VersionHistory.token;
 			this.asc_setDocInfo(this.DocInfo);
 			this.asc_LoadDocument(this.VersionHistory);
 		} else if (this.VersionHistory.currentChangeId < newObj.currentChangeId) {

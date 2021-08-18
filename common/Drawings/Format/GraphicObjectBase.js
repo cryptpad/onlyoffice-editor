@@ -48,11 +48,14 @@
     AscDFH.changesFactory[AscDFH.historyitem_ShapeSetTextLink]   = AscDFH.CChangesDrawingsString;
     AscDFH.changesFactory[AscDFH.historyitem_ShapeSetModelId]   = AscDFH.CChangesDrawingsString;
 
+    AscDFH.changesFactory[AscDFH.historyitem_ShapeSetFLocksText]   = AscDFH.CChangesDrawingsBool;
+
 
 
     AscDFH.changesFactory[AscDFH.historyitem_AutoShapes_SetDrawingBasePos] = AscDFH.CChangesDrawingsObjectNoId;
     AscDFH.changesFactory[AscDFH.historyitem_AutoShapes_SetDrawingBaseExt] = AscDFH.CChangesDrawingsObjectNoId;
     AscDFH.changesFactory[AscDFH.historyitem_AutoShapes_SetDrawingBaseCoors] = AscDFH.CChangesDrawingsObjectNoId;
+    AscDFH.changesFactory[AscDFH.historyitem_ShapeSetClientData] = AscDFH.CChangesDrawingsObjectNoId;
 
 
     var drawingsChangesMap = window['AscDFH'].drawingsChangesMap;
@@ -126,6 +129,9 @@
             }
         }
     };
+    drawingsChangesMap[AscDFH.historyitem_ShapeSetClientData] = function(oClass, value){
+        oClass.clientData = value;
+    };
 
 
     drawingsChangesMap[AscDFH.historyitem_ShapeSetMacro]            = function(oClass, value){
@@ -137,10 +143,14 @@
     drawingsChangesMap[AscDFH.historyitem_ShapeSetModelId]         = function(oClass, value){
         oClass.modelId = value;
     };
+    drawingsChangesMap[AscDFH.historyitem_ShapeSetFLocksText]         = function(oClass, value){
+        oClass.fLocksText = value;
+    };
 
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_AutoShapes_SetDrawingBasePos] = CDrawingBaseCoordsWritable;
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_AutoShapes_SetDrawingBaseExt] = CDrawingBaseCoordsWritable;
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_AutoShapes_SetDrawingBaseCoors] = CDrawingBasePosWritable;
+    AscDFH.drawingsConstructorsMap[AscDFH.historyitem_ShapeSetClientData] = CClientData;
 
     var LOCKS_MASKS =
     {
@@ -261,6 +271,23 @@
         this.cx           = AscFormat.readDouble(Reader);
         this.cy           = AscFormat.readDouble(Reader);
     };
+
+    function CClientData(fLocksWithSheet, fPrintsWithSheet) {
+        this.fLocksWithSheet = fLocksWithSheet !== undefined ? fLocksWithSheet : null;
+        this.fPrintsWithSheet = fPrintsWithSheet !== undefined ? fPrintsWithSheet : null;
+    }
+    CClientData.prototype.Write_ToBinary = function(Writer) {
+        AscFormat.writeBool(Writer, this.fLocksWithSheet);
+        AscFormat.writeBool(Writer, this.fPrintsWithSheet);
+    };
+    CClientData.prototype.Read_FromBinary = function(Reader) {
+        this.fLocksWithSheet  = AscFormat.readBool(Reader);
+        this.fPrintsWithSheet = AscFormat.readBool(Reader);
+    };
+    CClientData.prototype.createDuplicate = function() {
+        return new CClientData(this.fLocksWithSheet, this.fPrintsWithSheet);
+    };
+
     /**
      * Class represent bounds graphical object
      * @param {number} l
@@ -402,6 +429,8 @@
         this.macro = null;
         this.textLink = null;
         this.modelId = null;
+        this.fLocksText = null;
+        this.clientData = null;
 
         /*Calculated fields*/
         this.posX = null;
@@ -432,10 +461,8 @@
             AscCommon.g_oTableId.Add(this, this.Id);
         }
     }
-
     CGraphicObjectBase.prototype = Object.create(CBaseObject.prototype);
     CGraphicObjectBase.prototype.constructor = CGraphicObjectBase;
-
     /**
      * Create a scheme color
      * @memberof CGraphicObjectBase
@@ -446,15 +473,11 @@
         this.calculateSnapArrays(aCheckX, aCheckY, this.localTransform);
         return new CGraphicBounds(Math.min.apply(Math, aCheckX), Math.min.apply(Math, aCheckY), Math.max.apply(Math, aCheckX), Math.max.apply(Math, aCheckY));
     };
-
-
     /**
      * Set default recalculate info
      * @memberof CGraphicObjectBase
      */
     CGraphicObjectBase.prototype.setRecalculateInfo = function(){};
-
-
     /**
      * Get object bounds for defining group size
      * @memberof CGraphicObjectBase
@@ -473,7 +496,6 @@
             return new CGraphicBounds(xc - vc, yc - hc, xc + vc, yc + hc);
         }
     };
-
     /**
      * Normalize a size object in group
      * @memberof CGraphicObjectBase
@@ -499,7 +521,6 @@
         Math.abs(new_ext_x - xfrm.extX) > AscFormat.MOVE_DELTA &&  xfrm.setExtX(new_ext_x);
         Math.abs(new_ext_y - xfrm.extY) > AscFormat.MOVE_DELTA &&  xfrm.setExtY(new_ext_y);
     };
-
     /**
      * Check point hit to bounds object
      * @memberof CGraphicObjectBase
@@ -534,7 +555,6 @@
         }
         return false;
     };
-
     /**
      * Internal method for calculating snap arrays
      * @param {Array} snapArrayX
@@ -557,7 +577,6 @@
         snapArrayX.push(t.TransformPointX(0, this.extY));
         snapArrayY.push(t.TransformPointY(0, this.extY));
     };
-
     /**
      * Public method for calculating snap arrays
      * @memberof CGraphicObjectBase
@@ -568,7 +587,6 @@
         this.snapArrayY.length = 0;
         this.calculateSnapArrays(this.snapArrayX, this.snapArrayY, null);
     };
-
     CGraphicObjectBase.prototype.setLocks = function(nLocks){
         AscCommon.History.Add( new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_AutoShapes_SetLocks, this.locks, nLocks));
         this.locks = nLocks;
@@ -598,6 +616,101 @@
         History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_ShapeSetModelId, this.modelId, sModelId));
         this.modelId = sModelId;
     };
+    CGraphicObjectBase.prototype.setFLocksText = function(bLock)
+    {
+        History.Add(new AscDFH.CChangesDrawingsBool(this, AscDFH.historyitem_ShapeSetFLocksText, this.fLocksText, bLock));
+        this.fLocksText = bLock;
+    };
+    CGraphicObjectBase.prototype.setClientData = function(oClientData)
+    {
+        History.Add(new AscDFH.CChangesDrawingsBool(this, AscDFH.historyitem_ShapeSetClientData, this.clientdata, oClientData));
+        this.clientData = oClientData;
+    };
+    CGraphicObjectBase.prototype.checkClientData = function()
+    {
+        if(!this.clientData)
+        {
+            this.setClientData(new CClientData());
+        }
+    };
+    CGraphicObjectBase.prototype.getProtectionLockText = function()
+    {
+        return null;
+    };
+    CGraphicObjectBase.prototype.getProtectionLocked = function()
+    {
+        if(this.group) {
+            return this.group.getProtectionLocked();
+        }
+        if(!this.clientData) {
+            return false;
+        }
+        return this.clientData.fLocksWithSheet !== false;
+    };
+    CGraphicObjectBase.prototype.getProtectionPrint = function()
+    {
+        if(this.group) {
+            return this.group.getProtectionPrint();
+        }
+        if(!this.clientData) {
+            return false;
+        }
+        return this.clientData.fPrintsWithSheet !== false;
+    };
+
+    CGraphicObjectBase.prototype.setProtectionLockText = function(bVal)
+    {
+        if(this.getObjectType() === AscDFH.historyitem_type_Shape)
+        {
+            if(bVal === true || bVal === false)
+            {
+                var bValToSet = bVal ? null : false;
+                if(this.fLocksText !== bValToSet)
+                {
+                    this.setFLocksText(bValToSet);
+                }
+            }
+        }
+    };
+    CGraphicObjectBase.prototype.setProtectionLocked = function(bVal)
+    {
+        if(bVal === true || bVal === false)
+        {
+            if(this.group)
+            {
+                this.group.setProtectionLocked(bVal);
+                return
+            }
+            this.checkClientData();
+            var bValToSet = bVal ? undefined : false;
+            if(this.clientData.fLocksWithSheet !== bValToSet)
+            {
+                var oData = this.clientData.createDuplicate();
+                oData.fLocksWithSheet = bValToSet;
+                this.setClientData(oData);
+            }
+        }
+    };
+    CGraphicObjectBase.prototype.setProtectionPrint = function(bVal)
+    {
+        if(bVal === true || bVal === false)
+        {
+            if(this.group)
+            {
+                this.group.setProtectionPrint(bVal);
+                return
+            }
+            this.checkClientData();
+            var bValToSet = bVal ? undefined : false;
+            if(this.clientData.fPrintsWithSheet !== bValToSet)
+            {
+                var oData = this.clientData.createDuplicate();
+                oData.fPrintsWithSheet = bValToSet;
+                this.setClientData(oData);
+            }
+        }
+    };
+
     CGraphicObjectBase.prototype.assignMacro = function(sGuid)
     {
         if(typeof sGuid === "string" && sGuid.length > 0) {
@@ -619,7 +732,6 @@
         }
         return false;
     };
-
     CGraphicObjectBase.prototype.hasJSAMacro = function()
     {
         if(typeof this.macro === "string" && this.macro.indexOf(AscFormat.MACRO_PREFIX) === 0) {
@@ -634,11 +746,9 @@
         }
         return null;
     };
-
     CGraphicObjectBase.prototype.getLockValue = function(nMask) {
         return  !!((this.locks & nMask) && (this.locks & (nMask << 1)));
     };
-
     CGraphicObjectBase.prototype.setLockValue = function(nMask, bValue) {
         if(!AscFormat.isRealBool(bValue)) {
             this.setLocks((~nMask) & this.locks);
@@ -647,7 +757,6 @@
             this.setLocks(this.locks | nMask | (bValue ? nMask << 1 : 0));
         }
     };
-
     CGraphicObjectBase.prototype.getNoGrp = function(){
         return this.getLockValue(LOCKS_MASKS.noGrp);
     };
@@ -700,9 +809,15 @@
         return this.setLockValue(LOCKS_MASKS.noChangeAspect, bValue);
     };
     CGraphicObjectBase.prototype.canRotate = function() {
+        if(!this.canEdit()) {
+            return false;
+        }
         return this.getNoRot() === false;
     };
     CGraphicObjectBase.prototype.canResize = function() {
+        if(!this.canEdit()) {
+            return false;
+        }
         return this.getNoResize() === false;
     };
     CGraphicObjectBase.prototype.canMove = function() {
@@ -712,15 +827,27 @@
         {
             return false;
         }
+        if(!this.canEdit()) {
+            return false;
+        }
         return this.getNoMove() === false;
     };
     CGraphicObjectBase.prototype.canGroup = function() {
+        if(!this.canEdit()) {
+            return false;
+        }
         return this.getNoGrp() === false;
     };
     CGraphicObjectBase.prototype.canUnGroup = function() {
+        if(!this.canEdit()) {
+            return false;
+        }
         return (this.getObjectType() === AscDFH.historyitem_type_GroupShape || this.getObjectType() === AscDFH.historyitem_type_SmartArt && this.drawing)  && this.getNoUngrp() === false;
     };
     CGraphicObjectBase.prototype.canChangeAdjustments = function () {
+        if(!this.canEdit()) {
+            return false;
+        }
         return !this.isObjectInSmartArt() && this.getNoAdjustHandles() === false;
     };
     CGraphicObjectBase.prototype.Reassign_ImageUrls = function(mapUrl){
@@ -751,7 +878,6 @@
             }
         }
     };
-
     CGraphicObjectBase.prototype.getAllFonts = function(mapUrl){
     };
     CGraphicObjectBase.prototype.collectEquations3 = function(aEquations) {
@@ -764,7 +890,6 @@
             aEquations.push(this);
         }
     };
-
     CGraphicObjectBase.prototype.getOuterShdw = function(){
         if(this.spPr && this.spPr.effectProps && this.spPr.effectProps.EffectLst && this.spPr.effectProps.EffectLst.outerShdw)
         {
@@ -772,7 +897,6 @@
         }
         return null;
     };
-
     CGraphicObjectBase.prototype.recalculateShdw = function(){
 
         this.shdwSp = null;
@@ -890,47 +1014,35 @@
             this.shdwSp.draw(graphics);
         }
     };
-
-
     CGraphicObjectBase.prototype.getAllRasterImages = function(mapUrl){
     };
-
     CGraphicObjectBase.prototype.getAllSlicerViews = function(aSlicerView) {
 
     };
-
     CGraphicObjectBase.prototype.checkCorrect = function(){
         if(this.bDeleted === true){
             return false;
         }
         return this.checkTypeCorrect();
     };
-
-
-
     CGraphicObjectBase.prototype.Clear_ContentChanges = function()
     {
     };
-
     CGraphicObjectBase.prototype.Add_ContentChanges = function(Changes)
     {
     };
-
     CGraphicObjectBase.prototype.Refresh_ContentChanges = function()
     {
     };
-
     CGraphicObjectBase.prototype.getWatermarkProps = function()
     {
         var oProps = new Asc.CAscWatermarkProperties();
         oProps.put_Type(Asc.c_oAscWatermarkType.None);
         return oProps;
     };
-
     CGraphicObjectBase.prototype.CheckCorrect = function(){
         return this.checkCorrect();
     };
-
     CGraphicObjectBase.prototype.checkTypeCorrect = function(){
         return true;
     };
@@ -998,22 +1110,18 @@
         this.spPr.xfrm.setFlipH(flipH);
         this.spPr.xfrm.setFlipV(flipV);
     };
-
     CGraphicObjectBase.prototype.getPlaceholderType = function()
     {
         return null;
     };
-
     CGraphicObjectBase.prototype.getPlaceholderIndex = function()
     {
         return null;
     };
-
     CGraphicObjectBase.prototype.getPhType = function()
     {
         return null;
     };
-
     CGraphicObjectBase.prototype.getPhIndex = function()
     {
         return null;
@@ -1033,7 +1141,6 @@
         }
         return null;
     };
-
     CGraphicObjectBase.prototype.checkDrawingBaseCoords = function()
     {
         if(this.drawingBase && this.spPr && this.spPr.xfrm && !this.group) {
@@ -1098,7 +1205,6 @@
             this.handleUpdateExtents();
         }
 };
-
     CGraphicObjectBase.prototype.setDrawingBaseCoords = function(fromCol, fromColOff, fromRow, fromRowOff, toCol, toColOff, toRow, toRowOff, posX, posY, extX, extY)
     {
         if(this.drawingBase)
@@ -1151,8 +1257,6 @@
             this.handleUpdateExtents();
         }
     };
-
-
     CGraphicObjectBase.prototype.setWorksheet = function(worksheet)
     {
         AscCommon.History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_AutoShapes_SetWorksheet, this.worksheet ? this.worksheet.getId() : null, worksheet ? worksheet.getId() : null));
@@ -1180,12 +1284,10 @@
             }
         }
     };
-
     CGraphicObjectBase.prototype.getWorksheet = function()
     {
         return this.worksheet;
     };
-
     CGraphicObjectBase.prototype.getWorkbook = function()
     {
         var oWorksheet = this.getWorksheet();
@@ -1199,11 +1301,9 @@
         }
         return null;
     };
-
     CGraphicObjectBase.prototype.getUniNvProps = function(){
         return this.nvSpPr || this.nvPicPr || this.nvGrpSpPr || this.nvGraphicFramePr || null;
     };
-
     CGraphicObjectBase.prototype.getCNvProps = function(){
         var oUniNvPr = this.getUniNvProps();
         if(oUniNvPr){
@@ -1218,7 +1318,6 @@
         }
         return null;
     };
-
     CGraphicObjectBase.prototype.getNvProps = function(){
         var oUniNvPr = this.getUniNvProps();
         if(oUniNvPr){
@@ -1226,8 +1325,6 @@
         }
         return null;
     };
-
-
     CGraphicObjectBase.prototype.setTitle = function(sTitle){
         if(undefined === sTitle || null === sTitle){
             return;
@@ -1237,7 +1334,6 @@
             oNvPr.setTitle(sTitle ? sTitle : null);
         }
     };
-
     CGraphicObjectBase.prototype.setDescription = function(sDescription){
         if(undefined === sDescription || null === sDescription){
             return;
@@ -1247,7 +1343,6 @@
             oNvPr.setDescr(sDescription ? sDescription : null);
         }
     };
-
     CGraphicObjectBase.prototype.getTitle = function(){
         var oNvPr = this.getCNvProps();
         if(oNvPr){
@@ -1255,7 +1350,6 @@
         }
         return undefined;
     };
-
     CGraphicObjectBase.prototype.getDescription = function(){
         var oNvPr = this.getCNvProps();
         if(oNvPr){
@@ -1263,14 +1357,11 @@
         }
         return undefined;
     };
-
     CGraphicObjectBase.prototype.setBDeleted = function(pr)
     {
         History.Add(new AscDFH.CChangesDrawingsBool(this, AscDFH.historyitem_ShapeSetBDeleted, this.bDeleted, pr));
         this.bDeleted = pr;
     };
-
-
     CGraphicObjectBase.prototype.getEditorType = function()
     {
         return 1;
@@ -1279,20 +1370,16 @@
     {
         return false;
     };
-
     CGraphicObjectBase.prototype.Restart_CheckSpelling = function()
     {
     };
-
     CGraphicObjectBase.prototype.GetAllFields = function(isUseSelection, arrFields)
     {
         return arrFields ? arrFields : [];
     };
-
     CGraphicObjectBase.prototype.GetAllSeqFieldsByType = function(sType, aFields)
     {
     };
-
     CGraphicObjectBase.prototype.convertToConnectionParams = function(rot, flipH, flipV, oTransform, oBounds, oConnectorInfo){
         var _ret =  new AscFormat.ConnectionParams();
         var _rot = oConnectorInfo.ang*AscFormat.cToRad + rot;
@@ -1328,9 +1415,6 @@
         _ret.idx = oConnectorInfo.idx;
         return _ret;
     };
-
-
-
     CGraphicObjectBase.prototype.getGeom = function () {
 
         var _geom;
@@ -1354,7 +1438,6 @@
         }
         return _geom;
     };
-
     CGraphicObjectBase.prototype.findGeomConnector = function(x, y){
         var _geom = this.getGeom();
         var oInvertTransform = this.invertTransform;
@@ -1363,7 +1446,6 @@
         return _geom.findConnector(_x, _y, this.convertPixToMM(AscCommon.global_mouseEvent.KoefPixToMM * AscCommon.TRACK_CIRCLE_RADIUS));
 
     };
-
     CGraphicObjectBase.prototype.findConnector = function(x, y){
         var oConnGeom = this.findGeomConnector(x, y);
         if(oConnGeom){
@@ -1383,7 +1465,6 @@
         }
         return null;
     };
-
     CGraphicObjectBase.prototype.findConnectionShape = function(x, y){
         if(this.hit(x, y)){
             return this;
@@ -1393,30 +1474,24 @@
     CGraphicObjectBase.prototype.getAllDocContents = function(aDrawings){
 
     };
-
-
     CGraphicObjectBase.prototype.getFullRotate = function () {
         return !AscCommon.isRealObject(this.group) ? this.rot : this.rot + this.group.getFullRotate();
     };
-
     CGraphicObjectBase.prototype.getAspect = function (num) {
         var _tmp_x = this.extX !== 0 ? this.extX : 0.1;
         var _tmp_y = this.extY !== 0 ? this.extY : 0.1;
         return num === 0 || num === 4 ? _tmp_x / _tmp_y : _tmp_y / _tmp_x;
     };
-
     CGraphicObjectBase.prototype.getFullFlipH = function () {
         if (!AscCommon.isRealObject(this.group))
             return this.flipH;
         return this.group.getFullFlipH() ? !this.flipH : this.flipH;
     };
-
     CGraphicObjectBase.prototype.getFullFlipV = function () {
         if (!AscCommon.isRealObject(this.group))
             return this.flipV;
         return this.group.getFullFlipV() ? !this.flipV : this.flipV;
     };
-
     CGraphicObjectBase.prototype.getMainGroup = function () {
         if(!AscCommon.isRealObject(this.group)){
             if(this.isGroupObject()){
@@ -1426,8 +1501,6 @@
         }
         return this.group.getMainGroup();
     };
-
-
     CGraphicObjectBase.prototype.drawConnectors = function(overlay)
     {
         var _geom = this.getGeom();
@@ -1473,7 +1546,6 @@
         }
         return null;
     };
-
     CGraphicObjectBase.prototype.getCardDirectionByNum = function (num) {
         var num_north = this.getNumByCardDirection(AscFormat.CARD_DIRECTION_N);
         var full_flip_h = this.getFullFlipH();
@@ -1484,11 +1556,9 @@
 
         return (AscFormat.CARD_DIRECTION_N - (num - num_north) + 8) % 8;
     };
-
     CGraphicObjectBase.prototype.getTransformMatrix = function(){
         return this.transform;
     };
-
     CGraphicObjectBase.prototype.getNumByCardDirection = function (cardDirection) {
         var hc = this.extX * 0.5;
         var vc = this.extY * 0.5;
@@ -1530,11 +1600,9 @@
             return (north_number + cardDirection) % 8;
         return (north_number - cardDirection + 8) % 8;
     };
-
     CGraphicObjectBase.prototype.getInvertTransform = function(){
         return this.invertTransform;
     };
-
     CGraphicObjectBase.prototype.getResizeCoefficients = function (numHandle, x, y) {
         var cx, cy;
         cx = this.extX > 0 ? this.extX : 0.01;
@@ -1925,7 +1993,6 @@
             this.spPr.setFill(brush);
         }
     };
-
     CGraphicObjectBase.prototype.calculateSrcRect2 = function(){
 
         var oShapeDrawer = new AscCommon.CShapeDrawer();
@@ -2039,7 +2106,6 @@
             }
         }
     };
-
     CGraphicObjectBase.prototype.createPlaceholderControl = function(aControls)
     {
         if(!this.isEmptyPlaceholder())
@@ -2162,21 +2228,18 @@
             aControls.push(AscCommon.CreateDrawingPlaceholder(this.Id, aButtons, nSlideNum, { x : 0, y : 0, w : this.extX, h : this.extY }, this.transform));
         }
     };
-
     CGraphicObjectBase.prototype.onSlicerUpdate = function(sName){
         return false;
     };
 
     CGraphicObjectBase.prototype.onSlicerLock = function(sName, bLock){
     };
-
     CGraphicObjectBase.prototype.onSlicerDelete = function(sName){
         return false;
     };
     CGraphicObjectBase.prototype.onSlicerChangeName = function(sName, sNewName){
         return false;
     };
-
     CGraphicObjectBase.prototype.onUpdate = function (oRect) {
         if(this.drawingBase) {
             this.drawingBase.onUpdate(oRect);
@@ -2252,7 +2315,6 @@
         }
         return this;
     };
-
     CGraphicObjectBase.prototype.hitInBoundingRect = function (x, y) {
         if(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES){
             return false;
@@ -2321,6 +2383,32 @@
         AscCommon.IsShapeToImageConverter = false;
         return new AscFormat.CBaseAnimTexture(oCanvas, scale, nX, nY)
     };
+	CGraphicObjectBase.prototype.canEditText = function() {
+        if(this.getObjectType() === AscDFH.historyitem_type_Shape) {
+            if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom()) && !this.signatureLine) {
+                if(this.getProtectionLockText()) {
+                    if(this.worksheet) {
+                        if(this.worksheet.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+        }
+        return false;
+	};
+    CGraphicObjectBase.prototype.canEdit = function() {
+        if(this.getProtectionLocked()) {
+            if(this.worksheet) {
+                if(this.worksheet.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    };
+
     CGraphicObjectBase.prototype.convertFromSmartArt = function() {
         return this;
     };
@@ -2438,17 +2526,14 @@
         this.parent = null;
         this.drawingBase = null;
     }
-
     CRelSizeAnchor.prototype = Object.create(CBaseObject.prototype);
     CRelSizeAnchor.prototype.constructor = CRelSizeAnchor;
-
     CRelSizeAnchor.prototype.setDrawingBase = function(drawingBase){
         this.drawingBase = drawingBase;
     };
     CRelSizeAnchor.prototype.getObjectType = function () {
         return AscDFH.historyitem_type_RelSizeAnchor;
     };
-
     CRelSizeAnchor.prototype.setFromTo = function (fromX, fromY, toX, toY) {
         History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_RelSizeAnchorFromX, this.fromX, fromX));
         History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_RelSizeAnchorFromY, this.fromY, fromY));
@@ -2466,12 +2551,10 @@
             object.setParent(this);
         }
     };
-
     CRelSizeAnchor.prototype.setParent = function (object) {
         History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_RelSizeAnchorParent, this.parent, object));
         this.parent = object;
     };
-
     CRelSizeAnchor.prototype.copy = function(oPr){
         var copy = new CRelSizeAnchor();
         copy.setFromTo(this.fromX, this.fromY, this.toX, this.toY);

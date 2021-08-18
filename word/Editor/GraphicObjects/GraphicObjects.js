@@ -2548,7 +2548,7 @@ CGraphicObjects.prototype =
     },
 
     handleDblClickEmptyShape: function(oShape){
-        if(!oShape.getDocContent() && !(AscFormat.CheckLinePresetForParagraphAdd(oShape.getPresetGeom()) || oShape.isProtectInputInSmartArt())){
+        if(!oShape.getDocContent() && oShape.canEditText()){
 
             if(false === this.document.Document_Is_SelectionLocked(changestype_Drawing_Props))
             {

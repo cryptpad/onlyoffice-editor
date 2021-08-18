@@ -284,6 +284,7 @@
 	var sUploadServiceLocalUrl = "../../../../upload";
 	var sUploadServiceLocalUrlOld = "../../../../uploadold";
 	var sSaveFileLocalUrl = "../../../../savefile";
+	var sDownloadFileLocalUrl = "../../../../downloadfile";
 	var nMaxRequestLength = 5242880;//5mb <requestLimits maxAllowedContentLength="30000000" /> default 30mb
 
 	function getSockJs()
@@ -684,7 +685,7 @@
 		}
 		return false;
 	}
-	function openFileCommand(binUrl, changesUrl, Signature, callback)
+	function openFileCommand(docId, binUrl, changesUrl, changesToken, Signature, callback)
 	{
 		var bError = false, oResult = new OpenFileResult(), bEndLoadFile = false, bEndLoadChanges = false;
 		var onEndOpen = function ()
@@ -729,16 +730,11 @@
 		if (changesUrl)
 		{
 			oZipImages = {};
-			getJSZipUtils().getBinaryContent(changesUrl, function (err, data)
-			{
-				if (err)
-				{
-					bEndLoadChanges = true;
-					bError = true;
-					onEndOpen();
-					return;
-				}
-
+			AscCommon.DownloadOriginalFile(docId, changesUrl, 'changesUrl', changesToken, function () {
+				bEndLoadChanges = true;
+				bError = true;
+				onEndOpen();
+			}, function(data) {
 				oResult.changes = [];
 				getJSZip().loadAsync(data).then(function (zipChanges)
 				{
@@ -1884,6 +1880,21 @@
 		}
 	}
 
+	function DownloadOriginalFile(documentId, url, urlPathInToken, token, fError, fSuccess) {
+		asc_ajax({
+			url: sDownloadFileLocalUrl + '/' + documentId,
+			responseType: "arraybuffer",
+			headers: {
+				'Authorization': 'Bearer ' + token,
+				'x-url': url,
+				'x-url-path-in-token': urlPathInToken
+			},
+			success: function(resp) {
+				fSuccess(resp.response);
+			},
+			error: fError
+		});
+	}
 	function UploadImageFiles(files, documentId, documentUserId, jwt, callback)
 	{
 		if (files.length > 0)
@@ -3296,6 +3307,7 @@
 			error = null, success = null, httpRequest = null,
 			contentType                               = "application/x-www-form-urlencoded",
 			responseType = '',
+			headers = null,
 
 			init                                      = function (obj)
 			{
@@ -3334,6 +3346,10 @@
 				if (typeof (obj.responseType) !== 'undefined')
 				{
 					responseType = obj.responseType;
+				}
+				if (typeof (obj.headers) !== 'undefined')
+				{
+					headers = obj.headers;
 				}
 
 				if (window.XMLHttpRequest)
@@ -3374,6 +3390,13 @@
 				httpRequest.open(type, url, async);
 				if (type === "POST")
 					httpRequest.setRequestHeader("Content-Type", contentType);
+				if (headers) {
+					for (var header in headers) {
+						if (headers.hasOwnProperty(header)) {
+							httpRequest.setRequestHeader(header, headers[header]);
+						}
+					}
+				}
 				if (responseType)
 					httpRequest.responseType = responseType;
 				httpRequest.send(data);
@@ -6922,6 +6945,7 @@
 	window["AscCommon"].InitDragAndDrop = InitDragAndDrop;
 	window["AscCommon"].UploadImageFiles = UploadImageFiles;
     window["AscCommon"].UploadImageUrls = UploadImageUrls;
+	window["AscCommon"].DownloadOriginalFile = DownloadOriginalFile;
 	window["AscCommon"].CanDropFiles = CanDropFiles;
 	window["AscCommon"].getUrlType = getUrlType;
 	window["AscCommon"].prepareUrl = prepareUrl;

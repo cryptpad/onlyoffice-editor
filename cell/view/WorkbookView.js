@@ -1157,6 +1157,19 @@
         }
 
         var ws = this.getWorksheet();
+		if (ws.model.getSheetProtection(Asc.c_oAscSheetProtectType.selectUnlockedCells)) {
+			return;
+		}
+		if (ws.model.getSheetProtection(Asc.c_oAscSheetProtectType.selectLockedCells)) {
+			//TODO _getRangeByXY ?
+			var newRange = isCoord ? ws._getRangeByXY(dc, dr) :
+				ws._calcSelectionEndPointByOffset(dc, dr);
+			var lockedCell = ws.model.getLockedCell(newRange.c2, newRange.r2);
+			if (lockedCell || lockedCell === null) {
+				return;
+			}
+		}
+
         if (this.selectionDialogMode && !ws.model.selectionRange) {
             if (isCoord) {
                 ws.model.selectionRange = new AscCommonExcel.SelectionRange(ws.model);
@@ -1738,11 +1751,18 @@
       }
     };
 
-    // Стартуем редактировать ячейку
-	  activeCellRange = ws.expandActiveCellByFormulaArray(activeCellRange);
-    if (ws._isLockedCells(activeCellRange, /*subType*/null, editLockCallback)) {
-      editFunction();
-    }
+    var doEdit = function (success) {
+		if (!success) {
+			return;
+		}
+    	// Стартуем редактировать ячейку
+		activeCellRange = ws.expandActiveCellByFormulaArray(activeCellRange);
+		if (ws._isLockedCells(activeCellRange, /*subType*/null, editLockCallback)) {
+			editFunction();
+		}
+	};
+
+    ws.checkProtectRangeOnEdit([new Asc.Range(activeCellRange.c1, activeCellRange.r1, activeCellRange.c1, activeCellRange.r1)], doEdit);
   };
 
   WorkbookView.prototype._checkStopCellEditorInFormulas = function() {

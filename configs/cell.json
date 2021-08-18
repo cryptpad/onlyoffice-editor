@@ -132,6 +132,7 @@
 			"cell/model/ConditionalFormatting.js",
 			"cell/model/DataValidation.js",
 			"cell/model/HeaderFooter.js",
+			"cell/model/WorkbookProtection.js",
 			"cell/model/CellInfo.js",
 			"cell/model/Slicer.js",
 			"cell/model/NamedSheetViews.js",

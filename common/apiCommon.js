@@ -3165,6 +3165,10 @@
 		this.flipVInvert = null;
 		this.shadow = undefined;
 		this.anchor = null;
+
+		this.protectionLockText = null;
+		this.protectionLocked = null;
+		this.protectionPrint = null;
 	}
 
 	asc_CShapeProperty.prototype = {
@@ -3363,6 +3367,25 @@
 
 		asc_putAnchor: function(v){
 			this.anchor = v;
+		},
+		asc_getProtectionLockText: function(){
+			return this.protectionLockText;
+		},
+		asc_putProtectionLockText: function(v){
+			this.protectionLockText = v;
+		},
+		asc_getProtectionLocked: function(){
+			return this.protectionLocked;
+		},
+
+		asc_putProtectionLocked: function(v){
+			this.protectionLocked = v;
+		},
+		asc_getProtectionPrint: function(){
+			return this.protectionPrint;
+		},
+		asc_putProtectionPrint: function(v){
+			this.protectionPrint = v;
 		}
 	};
 
@@ -3584,6 +3607,10 @@
 			this.resetCrop =  obj.resetCrop != undefined ? obj.resetCrop : undefined;
 			this.anchor =  obj.anchor != undefined ? obj.anchor : undefined;
 
+			this.protectionLockText = obj.protectionLockText;
+			this.protectionLocked = obj.protectionLocked;
+			this.protectionPrint = obj.protectionPrint;
+
 		} else {
 			this.CanBeFlow = true;
 			this.Width = undefined;
@@ -3636,6 +3663,10 @@
 			this.flipV = undefined;
 			this.resetCrop = undefined;
 			this.anchor = undefined;
+
+			this.protectionLockText = undefined;
+			this.protectionLocked = undefined;
+			this.protectionPrint = undefined;
 		}
 	}
 
@@ -3951,6 +3982,25 @@
 
 		asc_putAnchor: function(v){
 			this.anchor = v;
+		},
+		asc_getProtectionLockText: function(){
+			return this.protectionLockText;
+		},
+		asc_putProtectionLockText: function(v){
+			this.protectionLockText = v;
+		},
+		asc_getProtectionLocked: function(){
+			return this.protectionLocked;
+		},
+
+		asc_putProtectionLocked: function(v){
+			this.protectionLocked = v;
+		},
+		asc_getProtectionPrint: function(){
+			return this.protectionPrint;
+		},
+		asc_putProtectionPrint: function(v){
+			this.protectionPrint = v;
 		}
 	};
 
@@ -6106,6 +6156,13 @@
 	prot["get_Shadow"] = prot.get_Shadow = prot["get_shadow"] = prot.get_shadow = prot["asc_getShadow"] = prot.asc_getShadow;
 	prot["put_Anchor"] = prot.put_Anchor = prot["asc_putAnchor"] = prot.asc_putAnchor;
 	prot["get_Anchor"] = prot.get_Anchor = prot["asc_getAnchor"] = prot.asc_getAnchor;
+	prot["get_ProtectionLockText"] = prot["asc_getProtectionLockText"] = prot.asc_getProtectionLockText;
+	prot["put_ProtectionLockText"] = prot["asc_putProtectionLockText"] = prot.asc_putProtectionLockText;
+	prot["get_ProtectionLocked"] = prot["asc_getProtectionLocked"] = prot.asc_getProtectionLocked;
+	prot["put_ProtectionLocked"] = prot["asc_putProtectionLocked"] = prot.asc_putProtectionLocked;
+	prot["get_ProtectionPrint"] = prot["asc_getProtectionPrint"] = prot.asc_getProtectionPrint;
+	prot["put_ProtectionPrint"] = prot["asc_putProtectionPrint"] = prot.asc_putProtectionPrint;
+
 
 	window["Asc"]["asc_TextArtProperties"] = window["Asc"].asc_TextArtProperties = asc_TextArtProperties;
 	prot = asc_TextArtProperties.prototype;
@@ -6243,6 +6300,12 @@
 
 	prot["put_Anchor"] = prot.put_Anchor = prot["asc_putAnchor"] = prot.asc_putAnchor;
 	prot["get_Anchor"] = prot.get_Anchor = prot["asc_getAnchor"] = prot.asc_getAnchor;
+	prot["get_ProtectionLockText"] = prot["asc_getProtectionLockText"] = prot.asc_getProtectionLockText;
+	prot["put_ProtectionLockText"] = prot["asc_putProtectionLockText"] = prot.asc_putProtectionLockText;
+	prot["get_ProtectionLocked"] = prot["asc_getProtectionLocked"] = prot.asc_getProtectionLocked;
+	prot["put_ProtectionLocked"] = prot["asc_putProtectionLocked"] = prot.asc_putProtectionLocked;
+	prot["get_ProtectionPrint"] = prot["asc_getProtectionPrint"] = prot.asc_getProtectionPrint;
+	prot["put_ProtectionPrint"] = prot["asc_putProtectionPrint"] = prot.asc_putProtectionPrint;
 
 
 
