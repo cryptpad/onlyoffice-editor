@@ -2385,6 +2385,9 @@
     };
 	CGraphicObjectBase.prototype.canEditText = function() {
         if(this.getObjectType() === AscDFH.historyitem_type_Shape) {
+            if (this.isObjectInSmartArt()) {
+                return this.isPlaceholderInSmartArt();
+            }
             if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom()) && !this.signatureLine) {
                 if(this.getProtectionLockText()) {
                     if(this.worksheet) {
