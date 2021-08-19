@@ -198,15 +198,20 @@ CTextToTableEngine.prototype.OnEndParagraph = function(oParagraph)
 	}
 	else if (this.IsConvertMode())
 	{
-		if (this.IsParagraphSeparator() || !this.ParaPositions.length)
+		// Если у нас данный параграф не делится на несколько частей и находится в контроле и он единственный
+		// элемент в этом контроле, то его надо оставить в том контроле
+		var oElement = oParagraph;
+		var oParent  = oParagraph.GetParent();
+		if (this.ItemsBuffer.length <= 0 && oParent
+			&& oParent.IsBlockLevelSdtContent()
+			&& 1 === oParent.GetElementsCount()
+			&& (this.IsParagraphSeparator() || !this.ParaPositions.length))
 		{
-			// Если у нас данный параграф не делится на несколько частей и находится в контроле и он единственный
-			// элемент в этом контроле, то его надо оставить в том контроле
-			var oElement = oParagraph;
-			var oParent  = oParagraph.GetParent();
-			if (this.ItemsBuffer.length <= 0 && oParent && oParent.IsBlockLevelSdtContent() && 1 === oParent.GetElementsCount())
-				oElement = oParent.Parent;
+			oElement = oParent.Parent;
+		}
 
+		if (this.IsParagraphSeparator())
+		{
 			this.CheckBuffer();
 			this.Rows[this.CurRow][this.CurCol].push(oElement.Copy());
 
@@ -247,7 +252,7 @@ CTextToTableEngine.prototype.OnEndParagraph = function(oParagraph)
 			this.CurCol = 0;
 
 			this.CheckBuffer();
-			this.Rows[this.CurRow][this.CurCol].push(oParagraph.Copy());
+			this.Rows[this.CurRow][this.CurCol].push(oElement.Copy());
 			this.CurCol++;
 
 			if (this.CurCol >= this.MaxCols)

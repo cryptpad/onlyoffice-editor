@@ -12352,7 +12352,7 @@ Paragraph.prototype.Split = function(oNewParagraph, oContentPos, isNoDuplicate)
 	{
 		// Разделяем текущий элемент (возвращается правая, отделившаяся часть, если она null, тогда заменяем
 		// ее на пустой ран с заданными настройками).
-		var NewElement = this.Content[CurPos].Split(ContentPos, 1);
+		var NewElement = this.Content[nCurPos].Split(oContentPos, 1);
 
 		if (null === NewElement)
 		{
@@ -12361,13 +12361,13 @@ Paragraph.prototype.Split = function(oNewParagraph, oContentPos, isNoDuplicate)
 		}
 
 		// Теперь делим наш параграф на три части:
-		// 1. До элемента с номером CurPos включительно (оставляем эту часть в исходном параграфе)
-		// 2. После элемента с номером CurPos (добавляем эту часть в новый параграф)
-		// 3. Новый элемент, полученный после разделения элемента с номером CurPos, который мы
+		// 1. До элемента с номером nCurPos включительно (оставляем эту часть в исходном параграфе)
+		// 2. После элемента с номером nCurPos (добавляем эту часть в новый параграф)
+		// 3. Новый элемент, полученный после разделения элемента с номером nCurPos, который мы
 		//    добавляем в начало нового параграфа.
 
-		var NewContent = this.Content.slice(CurPos + 1);
-		this.Internal_Content_Remove2(CurPos + 1, this.Content.length - CurPos - 1);
+		var NewContent = this.Content.slice(nCurPos + 1);
+		this.Internal_Content_Remove2(nCurPos + 1, this.Content.length - nCurPos - 1);
 
 		// В старый параграф добавим ран с концом параграфа
 		var EndRun = new ParaRun(this);
