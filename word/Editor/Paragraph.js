@@ -12586,7 +12586,7 @@ Paragraph.prototype.Continue = function(NewParagraph)
  */
 Paragraph.prototype.SplitNoDuplicate = function(oContentPos, oNewParagraph)
 {
-	return this.Split(oContentPos, oNewParagraph, true);
+	return this.Split(oNewParagraph, oContentPos, true);
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Undo/Redo функции
@@ -16694,7 +16694,7 @@ Paragraph.prototype.CalculateTextToTable = function(oEngine)
 		this.Content[nIndex].CalculateTextToTable(oEngine);
 	}
 
-	oEngine.OnEndParagraph();
+	oEngine.OnEndParagraph(this);
 };
 
 
@@ -18354,6 +18354,7 @@ function CParagraphRunElements(ContentPos, Count, arrTypes, isReverse)
 
 	this.BreakBadType        = false; // Заканчиваем ли поиск при нахождении неподходящих типов
 	this.BreakDifferentClass = false; // Заканчиваем ли поиск при достижении элемента, находящегося в классе отличном от this.StartClass
+	this.SkipMath            = true;  // TODO: Временно так делаем
 
 	this.CurContentPos        = new CParagraphContentPos();
 	this.SaveContentPositions = false;
@@ -18514,6 +18515,21 @@ CParagraphRunElements.prototype.CheckClass = function(oClass)
 		if (this.BreakDifferentDepth)
 			this.Count = 0;
 	}
+};
+/**
+ * Пропускаем ли математические формулы
+ * @param {boolean} isSkip
+ */
+CParagraphRunElements.prototype.SetSkipMath = function(isSkip)
+{
+	this.SkipMath = isSkip;
+};
+/**
+ * @returns {boolean}
+ */
+CParagraphRunElements.prototype.IsSkipMath = function()
+{
+	return this.SkipMath;
 };
 
 function CParagraphStatistics(Stats)

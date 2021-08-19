@@ -18909,6 +18909,10 @@ CTable.prototype.GetDocumentPositionFromObject = function(arrPos)
 	}
 	return arrPos;
 };
+CTable.prototype.CalculateTextToTable = function(oEngine)
+{
+	oEngine.OnTable(this);
+};
 
 //----------------------------------------------------------------------------------------------------------------------
 // Класс  CTableLook

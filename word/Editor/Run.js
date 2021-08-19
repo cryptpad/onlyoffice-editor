@@ -13208,13 +13208,7 @@ ParaRun.prototype.CalculateTextToTable = function(oEngine)
 	{
 		for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 		{
-			var oItem     = this.Content[nPos];
-			var nItemType = oItem.Type;
-
-			if ((para_Tab === nItemType && oEngine.IsTabSeparator())
-				|| (para_Text === nItemType && oEngine.IsSymbolSeparator(oItem.Value))
-				|| (para_Space === nItemType && oEngine.IsSymbolSeparator(oItem.Value))
-				|| (para_Math_Text === nItemType && oEngine.IsSymbolSeparator(oItem.value)))
+			if (oEngine.CheckSeparator(this.Content[nPos]))
 			{
 				oEngine.AddItem();
 			}
@@ -13231,6 +13225,30 @@ ParaRun.prototype.CalculateTextToTable = function(oEngine)
 				oEngine.AddTab();
 			else if ((para_Text === nItemType && 0x3B === oItem.Value) || (para_Math_Text === nItemType && 0x3B === oItem.value))
 				oEngine.AddSemicolon();
+		}
+	}
+	else if (oEngine.IsConvertMode())
+	{
+		var oRunPos = null, oParagraph = null;
+		for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+		{
+			if (oEngine.CheckSeparator(this.Content[nPos]))
+			{
+				if (!oRunPos)
+				{
+					oParagraph = this.GetParagraph();
+					if (!oParagraph)
+						return;
+
+					oRunPos = oParagraph.GetPosByElement(this);
+					if (!oRunPos)
+						return;
+				}
+
+				var oContentPos = oRunPos.Copy();
+				oContentPos.Add(nPos);
+				oEngine.AddParaPosition(oContentPos);
+			}
 		}
 	}
 };

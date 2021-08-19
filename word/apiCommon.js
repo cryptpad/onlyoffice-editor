@@ -2352,9 +2352,17 @@
 		this.CalculateTableSize(true);
 		return this.get_Size();
 	};
+	CAscTextToTableProperties.prototype.get_ColsCount = function()
+	{
+		return this.Cols;
+	};
 	CAscTextToTableProperties.prototype.put_RowsCount = function(nRows)
 	{
 		this.Rows = (nRows > 1) ? nRows : 1;
+	};
+	CAscTextToTableProperties.prototype.get_RowsCount = function()
+	{
+		return this.Rows;
 	};
 	CAscTextToTableProperties.prototype.get_AutoFitType = function()
 	{
@@ -2412,7 +2420,9 @@
 	window['Asc']['CAscTextToTableProperties']				 = window['Asc'].CAscTextToTableProperties = CAscTextToTableProperties;
 	CAscTextToTableProperties.prototype['get_Size']			 = CAscTextToTableProperties.prototype.get_Size;
 	CAscTextToTableProperties.prototype['put_RowsCount']	 = CAscTextToTableProperties.prototype.put_RowsCount;
+	CAscTextToTableProperties.prototype['get_RowsCount']	 = CAscTextToTableProperties.prototype.get_RowsCount;
 	CAscTextToTableProperties.prototype['put_ColsCount']	 = CAscTextToTableProperties.prototype.put_ColsCount;
+	CAscTextToTableProperties.prototype['get_ColsCount']	 = CAscTextToTableProperties.prototype.get_ColsCount;
 	CAscTextToTableProperties.prototype['get_AutoFitType']	 = CAscTextToTableProperties.prototype.get_AutoFitType;
 	CAscTextToTableProperties.prototype['put_AutoFitType'] 	 = CAscTextToTableProperties.prototype.put_AutoFitType;
 	CAscTextToTableProperties.prototype['get_Fit']			 = CAscTextToTableProperties.prototype.get_Fit;

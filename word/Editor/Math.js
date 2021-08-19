@@ -1656,6 +1656,21 @@ ParaMath.prototype.Get_Layout = function(DrawingLayout, UseContentPos, ContentPo
         DrawingLayout.X += this.Width;
 };
 
+ParaMath.prototype.GetNextRunElements = function(oRunElements, isUseContentPos, nDepth)
+{
+	if (oRunElements.IsSkipMath())
+		return;
+
+	this.Root.GetNextRunElements(oRunElements, isUseContentPos, nDepth);
+};
+ParaMath.prototype.GetPrevRunElements = function(oRunElements, isUseContentPos, nDepth)
+{
+	if (oRunElements.IsSkipMath())
+		return;
+
+	this.Root.GetPrevRunElements(oRunElements, isUseContentPos, nDepth);
+};
+
 ParaMath.prototype.CollectDocumentStatistics = function(ParaStats)
 {
     // TODO: ParaMath.CollectDocumentStatistics
@@ -3282,6 +3297,14 @@ ParaMath.prototype.Split = function (ContentPos, Depth)
     this.Root.SplitContent(NewParaMath.Root, ContentPos, Depth);
 
     return NewParaMath;
+};
+ParaMath.prototype.SplitNoDuplicate = function(oContentPos, nDepth, oNewParagraph)
+{
+	var oNewElement = this.Split(oContentPos, nDepth);
+	if (!oNewElement)
+		return;
+
+	oNewParagraph.AddToContent(oNewParagraph.Content.length, oNewElement, false);
 };
 
 /**
