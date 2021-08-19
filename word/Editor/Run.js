@@ -2469,7 +2469,21 @@ ParaRun.prototype.Split2 = function(CurPos, Parent, ParentPos)
     AscCommon.CollaborativeEditing.OnEnd_SplitRun(NewRun);
     return NewRun;
 };
+ParaRun.prototype.SplitNoDuplicate = function(oContentPos, nDepth, oNewParagraph)
+{
+	if (this.IsSolid())
+		return;
 
+	var oNewRun = this.Split(oContentPos, nDepth);
+	if (!oNewRun)
+		return;
+
+	var oLogicDocument = this.GetLogicDocument();
+	if (oLogicDocument && oNewRun.GetRStyle() === oLogicDocument.GetStyles().GetDefaultHyperlink())
+		oNewRun.SetRStyle(null);
+
+	oNewParagraph.AddToContent(oNewParagraph.Content.length, oNewRun, false);
+};
 
 ParaRun.prototype.Check_NearestPos = function(ParaNearPos, Depth)
 {

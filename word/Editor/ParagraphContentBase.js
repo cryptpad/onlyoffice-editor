@@ -214,6 +214,10 @@ CParagraphContentBase.prototype.Split = function()
 {
 	return new ParaRun();
 };
+CParagraphContentBase.prototype.SplitNoDuplicate = function(oContentPos, nDepth, oNewParagraph)
+{
+
+};
 CParagraphContentBase.prototype.Get_Text = function(Text)
 {
 };
@@ -2153,6 +2157,22 @@ CParagraphContentWithParagraphLikeContent.prototype.Split = function(ContentPos,
     Element.Add_ToContent( 0, NewElement, false );
 
     return Element;
+};
+CParagraphContentWithParagraphLikeContent.prototype.SplitNoDuplicate = function(oContentPos, nDepth, oNewParagraph)
+{
+	if (this.IsSolid())
+		return;
+
+	var nCurPos = oContentPos.Get(nDepth);
+
+	this.Content[nCurPos].SplitNoDuplicate(oContentPos, nDepth + 1, oNewParagraph);
+
+	var arrNewContent = this.Content.slice(nCurPos + 1);
+	this.RemoveFromContent(nCurPos + 1, this.Content.length - nCurPos - 1, false);
+
+	var nNewPos = oNewParagraph.Content.length;
+	for (var nPos = 0, nCount = arrNewContent.length; nPos < nCount; ++nPos)
+		oNewParagraph.AddToContent(nNewPos + nPos, arrNewContent[nPos], false);
 };
 CParagraphContentWithParagraphLikeContent.prototype.Get_Text = function(Text)
 {
@@ -4468,6 +4488,9 @@ CParagraphContentWithParagraphLikeContent.prototype.CalculateTextToTable = funct
 {
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
+		if (this.Content[nIndex].IsSolid())
+			continue;
+
 		this.Content[nIndex].CalculateTextToTable(oEngine);
 	}
 };
