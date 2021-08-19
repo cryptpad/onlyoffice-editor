@@ -13200,6 +13200,9 @@ ParaRun.prototype.FindNextFillingForm = function(isNext, isCurrent, isStart)
 };
 ParaRun.prototype.CalculateTextToTable = function(oEngine)
 {
+	if (reviewtype_Remove === this.GetReviewType())
+		return;
+
 	// В формулах делим только по ранам, находящимся в самом верху стэка формулы
 	if (this.IsMathRun() && (!this.ParaMath || this.Parent !== this.ParaMath.Root))
 		return;

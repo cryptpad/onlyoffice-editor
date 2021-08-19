@@ -2340,7 +2340,6 @@
 		this.SeparatorType	= Asc.c_oAscTextToTableSeparator.Paragraph;
 		this.Separator		= null;
 		this.Selected		= oSelectedContent;
-		this.IsFTCC         = false; // flag indicating whether it will be CC or not
 	}
 	CAscTextToTableProperties.prototype.get_Size = function()
 	{

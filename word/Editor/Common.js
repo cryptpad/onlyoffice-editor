@@ -89,6 +89,7 @@ function CTextToTableEngine()
 	this.ItemsBuffer   = [];
 	this.CurCol        = 0;
 	this.CurRow        = 0;
+	this.CC            = null;
 }
 CTextToTableEngine.prototype.Reset = function()
 {
@@ -200,12 +201,14 @@ CTextToTableEngine.prototype.OnEndParagraph = function(oParagraph)
 	{
 		// Если у нас данный параграф не делится на несколько частей и находится в контроле и он единственный
 		// элемент в этом контроле, то его надо оставить в том контроле
+		// За исключением самого первого контрола, который лежит в верху, его мы используем для обертки
 		var oElement = oParagraph;
 		var oParent  = oParagraph.GetParent();
 		if (this.ItemsBuffer.length <= 0 && oParent
 			&& oParent.IsBlockLevelSdtContent()
 			&& 1 === oParent.GetElementsCount()
-			&& (this.IsParagraphSeparator() || !this.ParaPositions.length))
+			&& (this.IsParagraphSeparator() || !this.ParaPositions.length)
+			&& oParent.Parent !== this.CC)
 		{
 			oElement = oParent.Parent;
 		}
@@ -392,6 +395,14 @@ CTextToTableEngine.prototype.AddParaPosition = function(oParaContentPos)
 CTextToTableEngine.prototype.GetRows = function()
 {
 	return this.Rows;
+};
+CTextToTableEngine.prototype.SetContentControl = function(oCC)
+{
+	this.CC = oCC;
+};
+CTextToTableEngine.prototype.GetContentControl = function()
+{
+	return this.CC;
 };
 
 //--------------------------------------------------------export--------------------------------------------------------
