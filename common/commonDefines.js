@@ -40,7 +40,7 @@
 {
 	var g_cCharDelimiter      = String.fromCharCode(5);
 	var g_cGeneralFormat      = 'General';
-	var FONT_THUMBNAIL_HEIGHT = (7 * 96.0 / 25.4) >> 0;
+	var FONT_THUMBNAIL_HEIGHT = 28;
 	var c_oAscMaxColumnWidth  = 255;
 	var c_oAscMaxRowHeight    = 409.5;
 	var c_nMaxConversionTime  = 900000;//depends on config
@@ -138,6 +138,7 @@
 			AccessDeny            : -23,
 			LoadingScriptError    : -24,
 			EditingError          :	-25,
+			LoadingFontError      : -26,
 
 			SplitCellMaxRows     : -30,
 			SplitCellMaxCols     : -31,
@@ -905,7 +906,8 @@
 		Hyperlink    : 1,
 		LockedObject : 2,
 		Footnote     : 3,
-		Form         : 4
+		Form         : 4,
+		Review       : 5
 	};
 
 	// selection type
@@ -2180,6 +2182,13 @@
 		Never   : 3,
 	};
 
+	var c_oAscDisplayModeInReview = {
+		Edit     : 0,
+		Final    : 1,
+		Original : 2,
+		Simple   : 3
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -2272,6 +2281,7 @@
 	prot['AccessDeny']                       = prot.AccessDeny;
 	prot['LoadingScriptError']               = prot.LoadingScriptError;
 	prot['EditingError']                     = prot.EditingError;
+	prot['LoadingFontError']                 = prot.LoadingFontError;
 	prot['SplitCellMaxRows']                 = prot.SplitCellMaxRows;
 	prot['SplitCellMaxCols']                 = prot.SplitCellMaxCols;
 	prot['SplitCellRowsDivider']             = prot.SplitCellRowsDivider;
@@ -2788,6 +2798,7 @@
 	prot['LockedObject'] = prot.LockedObject;
 	prot['Footnote']     = prot.Footnote;
 	prot['Form']         = prot.Form;
+	prot['Review']       = prot.Review;
 
 	window['Asc']['c_oAscMaxTooltipLength'] = window['Asc'].c_oAscMaxTooltipLength = c_oAscMaxTooltipLength;
 	window['Asc']['c_oAscMaxCellOrCommentLength'] = window['Asc'].c_oAscMaxCellOrCommentLength = c_oAscMaxCellOrCommentLength;
@@ -3295,5 +3306,11 @@
 	prot['Bigger']  = prot.Bigger;
 	prot['Smaller'] = prot.Smaller;
 	prot['Never']   = prot.Never;
+
+	prot = window['Asc']['c_oAscDisplayModeInReview'] = window['Asc'].c_oAscDisplayModeInReview = c_oAscDisplayModeInReview;
+	prot['Edit']     = prot.Edit;
+	prot['Final']    = prot.Final;
+	prot['Original'] = prot.Original;
+	prot['Simple']   = prot.Simple;
 
 })(window);

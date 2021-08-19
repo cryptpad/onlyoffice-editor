@@ -94,7 +94,7 @@
 	}
 
 	CDataFormula.prototype._init = function (ws, locale, doNotBuildDependencies) {
-		if (this._formula || !this.text) {
+		if (this._formula || this.text == null ) {
 			return;
 		}
 		var t = this;
@@ -1230,6 +1230,9 @@
 	};
 
 	CDataValidations.prototype.change = function (ws, from, to, addToHistory) {
+		if (!to || !to.ranges || !to.ranges.length) {
+			return;
+		}
 		to.Id = from.Id;
 		for (var i = 0; i < this.elems.length; i++) {
 			if (this.elems[i].Id === to.Id) {
@@ -1376,7 +1379,7 @@
 		var i;
 		if (this.elems) {
 			for (i = 0; i < this.elems.length; i++) {
-				if (this._containRanges(this.elems[i].ranges, ranges)) {
+				if (this._isPartOfRanges(this.elems[i].ranges, ranges)) {
 					if (!equalRangeDataValidation) {
 						equalRangeDataValidation = [];
 					}
@@ -1446,7 +1449,7 @@
 		}
 	};
 
-	CDataValidations.prototype._containRanges = function (_ranges1, _ranges2) {
+	CDataValidations.prototype._isPartOfRanges = function (_ranges1, _ranges2) {
 		if (_ranges1 && _ranges2 && _ranges1.length <= _ranges2.length) {
 			for (var j = 0; j < _ranges1.length; j++) {
 				var _equal = false;
@@ -1467,18 +1470,47 @@
 		return true;
 	};
 
+	CDataValidations.prototype._containRanges = function (_ranges1, _ranges2) {
+		//проверка на то, что диапазон первого range входит в дипапазон второго
+		if (_ranges1 && _ranges2 && _ranges1.length && _ranges2.length) {
+			for (var j = 0; j < _ranges1.length; j++) {
+				var _contains = false;
+				for (var n = 0; n < _ranges2.length; n++) {
+					if (_ranges1[j].containsRange(_ranges2[n])) {
+						_contains = true;
+						break;
+					}
+				}
+				if (!_contains) {
+					return false;
+				}
+			}
+		} else {
+			return false;
+		}
+
+		return true;
+	};
+
 	CDataValidations.prototype.clear = function (ws, ranges, addToHistory) {
 		for (var i = 0; i < this.elems.length; i++) {
-			if (this._containRanges(this.elems[i].ranges, ranges)) {
+			var isEmptyRanges = !this.elems[i].ranges || !this.elems[i].ranges.length;
+			if (isEmptyRanges || this._containRanges(this.elems[i].ranges, ranges)) {
 				if (this.delete(ws, this.elems[i].Id, addToHistory)) {
 					i--;
 				}
 			} else {
 				var changedRanges = this.elems[i].clear(ranges);
 				if (changedRanges) {
-					var newDataValidation = this.elems[i].clone();
-					newDataValidation.ranges = changedRanges;
-					this.change(ws, this.elems[i], newDataValidation, addToHistory);
+					if (!changedRanges.length) {
+						if (this.delete(ws, this.elems[i].Id, addToHistory)) {
+							i--;
+						}
+					} else {
+						var newDataValidation = this.elems[i].clone();
+						newDataValidation.ranges = changedRanges;
+						this.change(ws, this.elems[i], newDataValidation, addToHistory);
+					}
 				}
 			}
 		}

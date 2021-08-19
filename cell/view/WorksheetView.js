@@ -117,9 +117,9 @@
     var kCurDefault = "default";
     var kCurCorner = "pointer";
     var kCurColSelect = "select-table-column";
-    var kCurColResize = "col-resize";
+    var kCurColResize = "move-border-horizontally";
     var kCurRowSelect = "select-table-row";
-    var kCurRowResize = "row-resize";
+    var kCurRowResize = "move-border-vertically";
     // Курсор для автозаполнения
     var kCurFillHandle = "crosshair";
     // Курсор для гиперссылки
@@ -134,6 +134,8 @@
     var kCurFormatPainterExcel = "se-formatpainter";
     AscCommon.g_oHtmlCursor.register(AscCommonExcel.kCurCells, "plus", "6 6", "cell");
 	AscCommon.g_oHtmlCursor.register(kCurFormatPainterExcel, "plus_copy", "6 12", "pointer");
+	AscCommon.g_oHtmlCursor.register("move-border-vertically", "move_border_vertically", "9 9", "default");
+	AscCommon.g_oHtmlCursor.register("move-border-horizontally", "move_border_horizontally", "9 9", "default");
 
     var kNewLine = "\n";
 
@@ -3740,6 +3742,9 @@
 		var isReverse = AscCommonExcel.EDataBarDirection.rightToLeft === oRuleElement.Direction;
 		var isMiddle = (AscCommonExcel.EDataBarAxisPosition.middle === oRuleElement.AxisPosition) ||
 			(AscCommonExcel.EDataBarAxisPosition.automatic === oRuleElement.AxisPosition && 0 > min && 0 < max);
+		var automaticAxisPos = AscCommonExcel.EDataBarAxisPosition.automatic === oRuleElement.AxisPosition && 0 > min && 0 < max;
+		var trueMin = min;
+		var trueMax = max;
 		if (isMiddle) {
 			if (isPositive) {
 				min = Math.max(0, min);
@@ -3761,22 +3766,43 @@
 			cellValue = max;
 		}
 
+		var axisLineWidth = oRuleElement.AxisColor ? 1 : 0;
 		var minLength = Math.floor(width * oRuleElement.MinLength / 100);
 		var maxLength = Math.floor(width * oRuleElement.MaxLength / 100);
-		var k = max - min;
+		var k = automaticAxisPos ? (trueMax - trueMin) : (max - min);
+		var middleX = ((maxLength - minLength) / k) * (AscCommonExcel.EDataBarDirection.rightToLeft === oRuleElement.Direction ? Math.abs(trueMax) : Math.abs(trueMin));
 		k = k ? ((maxLength - minLength) / k) : 0;
-		var dataBarLength = minLength + (cellValue - min) * k;
-
+		var dataBarLength = automaticAxisPos ? (minLength + (Math.abs(cellValue) * k)) : (minLength + (cellValue - min) * k);
 		color = (isPositive || oRuleElement.NegativeBarColorSameAsPositive) ? oRuleElement.Color : oRuleElement.NegativeColor;
 		if (0 !== dataBarLength && color) {
 			if (isMiddle) {
 				if (oRuleElement.AxisColor) {
 					ctx.setLineWidth(1).setLineDash([3, 1]).setStrokeStyle(oRuleElement.AxisColor);
-					ctx.beginPath().lineVer(x - 1 + Asc.floor(width / 2), top - 1, top - 1 + height - 1).stroke();
+					if (automaticAxisPos) {
+						ctx.beginPath().lineVer(x + middleX, top - 1, top - 1 + height - 1).stroke();
+					} else {
+						ctx.beginPath().lineVer(x + Asc.floor(width / 2), top - 1, top - 1 + height - 1).stroke();
+					}
 				}
 
-				dataBarLength = Asc.floor(dataBarLength / 2);
-				x += Asc.floor(width / 2) * (isReverse ? -1 : 1);
+				if (!automaticAxisPos) {
+					dataBarLength = Asc.floor(dataBarLength / 2);
+					x += (Asc.floor(width / 2) + axisLineWidth) * (isReverse ? -1 : 1);
+				} else {
+					if (AscCommonExcel.EDataBarDirection.rightToLeft === oRuleElement.Direction) {
+						if (isPositive) {
+							x -= width - middleX;
+						} else {
+							x += middleX + axisLineWidth;
+						}
+					} else {
+						if (isPositive) {
+							x += middleX + axisLineWidth;
+						} else {
+							x -= width - middleX;
+						}
+					}
+				}
 			}
 
 			if (isReverse) {
@@ -10766,7 +10792,8 @@
         // Удаляем выделенные графичекие объекты
         if ( this.objectRender.selectedGraphicObjectsExists() ) {
 			var isIntoShape = this.objectRender.controller.getTargetDocContent();
-			if(bIsCut && isIntoShape) {
+            var isMobileVersion = this.workbook && this.workbook.Api && this.workbook.Api.isMobileVersion;
+			if((bIsCut || isMobileVersion) && isIntoShape) {
                 if(isIntoShape.Selection && isIntoShape.Selection.Use) {
                     this.objectRender.controller.remove(-1, undefined, undefined, undefined, undefined);
                 }

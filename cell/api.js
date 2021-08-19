@@ -120,7 +120,7 @@ var editor;
 
 	  // Styles sizes
       this.styleThumbnailWidth = 112;
-	  this.styleThumbnailHeight = 38;
+	  this.styleThumbnailHeight = 40;
 
     this.formulasList = null;	// Список всех формул
 
@@ -2007,6 +2007,17 @@ var editor;
 
 		this.wb = new AscCommonExcel.WorkbookView(this.wbModel, this.controller, this.handlers, this.HtmlElement,
 			this.topLineEditorElement, this, this.collaborativeEditing, this.fontRenderingMode);
+
+		if (this.isCopyOutEnabled && this.topLineEditorElement) {
+			if (this.isCopyOutEnabled() === false) {
+				this.topLineEditorElement.oncopy = function () {
+					return false;
+				};
+				this.topLineEditorElement.oncut = function () {
+					return false;
+				};
+			}
+		}
 
 		if (this.isMobileVersion) {
 			this.wb.defaults.worksheetView.halfSelection = true;
@@ -4942,7 +4953,7 @@ var editor;
         }
       }
       if(aImages.length > 0)      {
-         window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImages);
+         window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImages, true);
       }
       callback();
     });

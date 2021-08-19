@@ -128,15 +128,7 @@ CColumnsMarkup.prototype.CreateDuplicate = function ()
 
 function CTableOutlineDr()
 {
-	this.image = new Image();
-	this.image.src = "../../../../sdkjs/common/Images/table_move.png";
-	this.image.onload = function() { this.asc_complete = true; };
-	AscCommon.backoffOnErrorImg(this.image);
-
-	this.image2 = new Image();
-	this.image2.src = "../../../../sdkjs/common/Images/table_move_2x.png";
-	this.image2.onload = function() { this.asc_complete = true; };
-	AscCommon.backoffOnErrorImg(this.image2);
+	this.mover_size = 13;
 
 	this.TableOutline = null;
 	this.Counter = 0;
@@ -1356,6 +1348,7 @@ function CPage()
 	{
 		var dKoefX = wDst / this.width_mm;
 		var dKoefY = hDst / this.height_mm;
+		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
 
 		var ctx = overlay.m_oContext;
 		for (var i = 0; i < _searching.length; i++)
@@ -1370,11 +1363,11 @@ function CPage()
 				{
 					if (undefined === place.Ex)
 					{
-						var _x = ((xDst + dKoefX * place.X) >> 0) - 0.5;
-						var _y = ((yDst + dKoefY * place.Y) >> 0) - 0.5;
+						var _x = (rPR * (xDst + dKoefX * place.X)) >> 0;
+						var _y = (rPR * (yDst + dKoefY * place.Y)) >> 0;
 
-						var _w = ((dKoefX * place.W) >> 0) + 1;
-						var _h = ((dKoefY * place.H) >> 0) + 1;
+						var _w = (rPR * (dKoefX * place.W)) >> 0;
+						var _h = (rPR * (dKoefY * place.H)) >> 0;
 
 						if (_x < overlay.min_x)
 							overlay.min_x = _x;
@@ -1390,23 +1383,23 @@ function CPage()
 					}
 					else
 					{
-						var _x1 = (xDst + dKoefX * place.X) >> 0;
-						var _y1 = (yDst + dKoefY * place.Y) >> 0;
+						var _x1 = (rPR * (xDst + dKoefX * place.X)) >> 0;
+						var _y1 = (rPR * (yDst + dKoefY * place.Y)) >> 0;
 
 						var x2 = place.X + place.W * place.Ex;
 						var y2 = place.Y + place.W * place.Ey;
-						var _x2 = (xDst + dKoefX * x2) >> 0;
-						var _y2 = (yDst + dKoefY * y2) >> 0;
+						var _x2 = (rPR * (xDst + dKoefX * x2)) >> 0;
+						var _y2 = (rPR * (yDst + dKoefY * y2)) >> 0;
 
 						var x3 = x2 - place.H * place.Ey;
 						var y3 = y2 + place.H * place.Ex;
-						var _x3 = (xDst + dKoefX * x3) >> 0;
-						var _y3 = (yDst + dKoefY * y3) >> 0;
+						var _x3 = (rPR * (xDst + dKoefX * x3)) >> 0;
+						var _y3 = (rPR * (yDst + dKoefY * y3)) >> 0;
 
 						var x4 = place.X - place.H * place.Ey;
 						var y4 = place.Y + place.H * place.Ex;
-						var _x4 = (xDst + dKoefX * x4) >> 0;
-						var _y4 = (yDst + dKoefY * y4) >> 0;
+						var _x4 = (rPR * (xDst + dKoefX * x4)) >> 0;
+						var _y4 = (rPR * (yDst + dKoefY * y4)) >> 0;
 
 						overlay.CheckPoint(_x1, _y1);
 						overlay.CheckPoint(_x2, _y2);
@@ -1560,6 +1553,7 @@ function CPage()
 	{
 		var dKoefX = wDst / this.width_mm;
 		var dKoefY = hDst / this.height_mm;
+		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
 
 		var len = places.length;
 
@@ -1572,11 +1566,11 @@ function CPage()
 			var place = places[i];
 			if (undefined === place.Ex)
 			{
-				var _x = ((xDst + dKoefX * place.X) >> 0) - 0.5;
-				var _y = ((yDst + dKoefY * place.Y) >> 0) - 0.5;
+				var _x = (rPR * (xDst + dKoefX * place.X)) >> 0;
+				var _y = (rPR * (yDst + dKoefY * place.Y)) >> 0;
 
-				var _w = ((dKoefX * place.W) >> 0) + 1;
-				var _h = ((dKoefY * place.H) >> 0) + 1;
+				var _w = (rPR * (dKoefX * place.W)) >> 0;
+				var _h = (rPR * (dKoefY * place.H)) >> 0;
 
 				if (_x < overlay.min_x)
 					overlay.min_x = _x;
@@ -1592,23 +1586,23 @@ function CPage()
 			}
 			else
 			{
-				var _x1 = (xDst + dKoefX * place.X) >> 0;
-				var _y1 = (yDst + dKoefY * place.Y) >> 0;
+				var _x1 = (rPR * (xDst + dKoefX * place.X)) >> 0;
+				var _y1 = (rPR * (yDst + dKoefY * place.Y)) >> 0;
 
 				var x2 = place.X + place.W * place.Ex;
 				var y2 = place.Y + place.W * place.Ey;
-				var _x2 = (xDst + dKoefX * x2) >> 0;
-				var _y2 = (yDst + dKoefY * y2) >> 0;
+				var _x2 = (rPR * (xDst + dKoefX * x2)) >> 0;
+				var _y2 = (rPR * (yDst + dKoefY * y2)) >> 0;
 
 				var x3 = x2 - place.H * place.Ey;
 				var y3 = y2 + place.H * place.Ex;
-				var _x3 = (xDst + dKoefX * x3) >> 0;
-				var _y3 = (yDst + dKoefY * y3) >> 0;
+				var _x3 = (rPR * (xDst + dKoefX * x3)) >> 0;
+				var _y3 = (rPR * (yDst + dKoefY * y3)) >> 0;
 
 				var x4 = place.X - place.H * place.Ey;
 				var y4 = place.Y + place.H * place.Ex;
-				var _x4 = (xDst + dKoefX * x4) >> 0;
-				var _y4 = (yDst + dKoefY * y4) >> 0;
+				var _x4 = (rPR * (xDst + dKoefX * x4)) >> 0;
+				var _y4 = (rPR * (yDst + dKoefY * y4)) >> 0;
 
 				overlay.CheckPoint(_x1, _y1);
 				overlay.CheckPoint(_x2, _y2);
@@ -3091,7 +3085,7 @@ function CDrawingDocument()
 		if (page != _table.PageNum)
 			return false;
 
-		var _dist = this.TableOutlineDr.image.width * g_dKoef_pix_to_mm;
+		var _dist = this.TableOutlineDr.mover_size * g_dKoef_pix_to_mm;
 		_dist *= (100 / this.m_oWordControl.m_nZoomValue);
 
 		var _x = _table.X;
@@ -7355,10 +7349,10 @@ function CDrawingDocument()
 		
 		if (!isNoCheckFonts)
 		{
-            // check need load fonts
-            var fontsDict = {};
-            for (var i = 0, count = props.length; i < count; i++)
-            {
+			// check need load fonts
+			var fontsDict = {};
+			for (var i = 0, count = props.length; i < count; i++)
+			{
 				if (type == 2)
 				{
 					for (var k = 0; k < props[i].length; k++)
@@ -7419,27 +7413,27 @@ function CDrawingDocument()
 						if (curLvl.TextPr.RFonts.CS) fontsDict[curLvl.TextPr.RFonts.CS.Name] = true;
 					}
 				}
-            }
+			}
 
-            var fonts = [];
-            for (var familyName in fontsDict)
-            {
-                fonts.push(new AscFonts.CFont(AscFonts.g_fontApplication.GetFontInfoName(familyName), 0, "", 0, null));
-            }
-            AscFonts.FontPickerByCharacter.extendFonts(fonts);
-
-            if (false === AscCommon.g_font_loader.CheckFontsNeedLoading(fonts))
-            {
-                return this.SetDrawImagePreviewBulletForMenu(id, type, props, true);
-            }
-
-            this.m_oWordControl.m_oApi.asyncMethodCallback = function()
+			var fonts = [];
+			for (var familyName in fontsDict)
 			{
-                this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletForMenu(id, type, props, true);
-            };
-            AscCommon.g_font_loader.LoadDocumentFonts2(fonts);
-            return;
-        }
+				fonts.push(new AscFonts.CFont(AscFonts.g_fontApplication.GetFontInfoName(familyName), 0, "", 0, null));
+			}
+			AscFonts.FontPickerByCharacter.extendFonts(fonts);
+
+			if (false === AscCommon.g_font_loader.CheckFontsNeedLoading(fonts))
+			{
+				return this.SetDrawImagePreviewBulletForMenu(id, type, props, true);
+			}
+
+			this.m_oWordControl.m_oApi.asyncMethodCallback = function()
+			{
+				this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletForMenu(id, type, props, true);
+			};
+			AscCommon.g_font_loader.LoadDocumentFonts2(fonts);
+			return;
+ 		}
 		var elNone = document.getElementById(id[0]);
 
 		var oDocState = null;
@@ -7528,67 +7522,59 @@ function CDrawingDocument()
 			
 			if (!type)
 			{
-				var width_px = parent.clientWidth;
-				var height_px = parent.clientHeight;
+				var line_distance = 32, x = 0, y = 0;
 
-				var canvas = parent.firstChild;
-				if (!canvas)
+				var text = "";
+				for (var k = 0; k < props[i].Text.length; k++)
 				{
-					canvas = document.createElement('canvas');
-					canvas.style.cssText = "padding:0;margin:0;user-select:none;";
-					canvas.style.width = width_px + "px";
-					canvas.style.height = height_px + "px";
-					if (width_px > 0 && height_px > 0)
-						parent.appendChild(canvas);
+					switch (props[i].Text[k].Type)
+					{
+						case Asc.c_oAscNumberingLvlTextType.Text:
+							text += props[i].Text[k].Value;
+							break;
+						case Asc.c_oAscNumberingLvlTextType.Num:
+							var correctNum = 1;
+							if (levelNum === props[i].Text[k].Value)
+								correctNum = counterCurrent;
+							text += AscCommon.IntToNumberFormat(correctNum, props[i].Format);
+							break;
+						default:
+							break;
+					}
 				}
 
-				canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
-				canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
+				var textPr = props[i].TextPr.Copy();
+				textPr.FontSize = textPr.FontSizeCS = ((2 * line_distance * 72 / 96) >> 0) / 2;
 
-				var ctx = canvas.getContext("2d");
-				ctx.fillStyle = "#FFFFFF";
-				ctx.fillRect(0, 0, canvas.width, canvas.height);
-				ctx.beginPath();
-				var line_distance = (height_px >> 1) - 2;
-				// TODo: подумать над тем как рассчитать сдвиг влево, эти значения подобраны эксперементально
-				var xShift;
-				var yShift;
-                switch (i) {
-                    case 1:
-                        xShift = 3;
-                        yShift = 5;
-                        break;
-                    case 2:
-                        xShift = 5;
-                        yShift = 4;
-                        break;
-                    case 3:
-                        xShift = 4;
-                        yShift = 7;
-                        break;
-                    case 4:
-                        xShift = 8;
-                        yShift = 7;
-                        break;
-                    case 5:
-                        xShift = 6;
-                        yShift = 6;
-                        break;
-                    case 6:
-                        xShift = 7;
-                        yShift = 7;
-                        break;
-                    case 7:
-                        xShift = 6;
-                        yShift = 5;
-                        break;
-                    case 8:
-                        xShift = 5;
-                        yShift = 5;
-                        break;
-                } 
-                var x = (width_px >> 1 ) - xShift;
-                var y = (height_px >> 1) + yShift;
+				if (1 === text.length)
+				{
+					g_oTextMeasurer.SetTextPr(textPr);
+					g_oTextMeasurer.SetFontSlot(fontslot_ASCII, 1);
+					var oInfo = g_oTextMeasurer.Measure2Code(text.charCodeAt(0));
+
+					x = (width_px >> 1) - Math.round((oInfo.WidthG / 2 + oInfo.rasterOffsetX) * AscCommon.g_dKoef_mm_to_pix);
+					y = (width_px >> 1) + Math.round((oInfo.Height / 2 + (oInfo.Ascent - oInfo.Height + oInfo.rasterOffsetY)) * AscCommon.g_dKoef_mm_to_pix);
+				}
+				else
+				{
+					var par = new Paragraph(this, this.m_oWordControl.m_oLogicDocument);
+					par.MoveCursorToStartPos();
+
+					par.Pr = new CParaPr();
+					var parRun = new ParaRun(par);
+					parRun.Set_Pr(textPr);
+					parRun.AddText(text);
+					par.AddToContent(0, parRun);
+
+					par.Reset(0, 0, 1000, 1000, 0, 0, 1);
+					par.Recalculate_Page(0);
+
+					var parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
+					x = (width_px >> 1) - Math.round(parW / 2);
+					// в office 19 на такой же высоте
+					y = par.Lines[0].Y * AscCommon.g_dKoef_mm_to_pix;
+				}
+
 				// для размеров окна 38 на 38
 				this.privateGetParagraphByString(props[i], 0, 0, x, y, line_distance, ctx, width_px, height_px);
 			}

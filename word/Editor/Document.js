@@ -2569,8 +2569,8 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.CheckContentControlsLock = true;
 
 	this.ViewModeInReview = {
-		mode                : 0,     // -1 - исходный, 0 - со всеми изменениями, 1 - результат
-		isFastCollaboration : false
+		mode                : Asc.c_oAscDisplayModeInReview.Edit,
+		isFastCollaboration : false,
 	};
 
 	this.SpecialForms            = {}; // Список специальных форм в документе
@@ -2614,6 +2614,18 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 CDocument.prototype = Object.create(CDocumentContentBase.prototype);
 CDocument.prototype.constructor = CDocument;
 
+CDocument.prototype.IsDocumentEditor = function()
+{
+	return true;
+};
+CDocument.prototype.IsPresentationEditor = function()
+{
+	return false;
+};
+CDocument.prototype.IsSpreadSheetEditor = function()
+{
+	return false;
+};
 CDocument.prototype.Init                           = function()
 {
 
@@ -9089,6 +9101,7 @@ CDocument.prototype.InsertContent = function(SelectedContent, NearPos)
 			var arrParaDrawings = oDstPictureCC.GetAllDrawingObjects();
 			if (arrParaDrawings.length > 0 && oSrcPicture)
 			{
+				oDstPictureCC.SetShowingPlcHdr(false);
 				oSrcPicture.setParent(arrParaDrawings[0]);
 				arrParaDrawings[0].Set_GraphicObject(oSrcPicture);
 
@@ -9380,6 +9393,21 @@ CDocument.prototype.UpdateCursorType = function(X, Y, PageAbs, MouseEvent)
 
 	this.Api.sync_MouseMoveEndCallback();
 };
+CDocument.prototype.CloseAllWindowsPopups = function()
+{
+	// Закрываем всплывашки на MouseMove
+	this.Api.sync_MouseMoveStartCallback();
+	this.Api.sync_MouseMoveCallback(new AscCommon.CMouseMoveData());
+	this.Api.sync_MouseMoveEndCallback();
+
+	// Закрываем балун с рецензированием
+	this.TrackRevisionsManager.BeginCollectChanges(false);
+	this.TrackRevisionsManager.EndCollectChanges(this);
+
+	// Закрываем балун с комментариями
+	this.SelectComment(null, false);
+	this.Api.sync_HideComment();
+};
 /**
  * Проверяем попадание в границу таблицы.
  * @param X
@@ -9565,6 +9593,9 @@ CDocument.prototype.Is_UseInDocument = function(Id)
 };
 CDocument.prototype.OnKeyDown = function(e)
 {
+	// if (e.KeyCode < 34 || e.KeyCode > 40)
+	// 	this.CloseAllWindowsPopups();
+
     var OldRecalcId = this.RecalcId;
 
     // Если мы только что расширяли документ двойным щелчком, то сохраняем это действие
@@ -10192,6 +10223,9 @@ CDocument.prototype.OnKeyDown = function(e)
 		}
 		else if (e.KeyCode === 27) // Esc
 		{
+			// TODO: Когда вернем вызов этой функции на любое нажатие клавиши, тут убрать
+			this.CloseAllWindowsPopups();
+
 			// 1. Если начался drag-n-drop сбрасываем его.
 			// 2. Если у нас сейчас происходит выделение маркером, тогда его отменяем
 			// 3. Если у нас сейчас происходит форматирование по образцу, тогда его отменяем
@@ -12109,13 +12143,13 @@ CDocument.prototype.private_UpdateInterface = function(bSaveCurRevisionChange)
 	// Удаляем весь список
 	this.Api.sync_BeginCatchSelectedElements();
 
-	this.TrackRevisionsManager.BeginCollectChanges(bSaveCurRevisionChange);
+	this.TrackRevisionsManager.BeginCollectChanges(bSaveCurRevisionChange && !this.IsSimpleMarkupInReview());
 
 	// Уберем из интерфейса записи о том где мы находимся (параграф, таблица, картинка или колонтитул)
 	this.Api.ClearPropObjCallback();
 
 	this.Controller.UpdateInterfaceState();
-	this.TrackRevisionsManager.EndCollectChanges(this.Api);
+	this.TrackRevisionsManager.EndCollectChanges(this);
 
 	// Сообщаем, что список составлен
 	this.Api.sync_EndCatchSelectedElements();
@@ -17239,7 +17273,7 @@ CDocument.prototype.RejectRevisionChange = function(oChange)
 };
 CDocument.prototype.AcceptRevisionChangesBySelection = function()
 {
-	var CurrentChange = this.TrackRevisionsManager.Get_CurrentChange();
+	var CurrentChange = this.TrackRevisionsManager.GetCurrentChange();
 	if (null !== CurrentChange)
 	{
 		this.AcceptRevisionChange(CurrentChange);
@@ -17285,7 +17319,7 @@ CDocument.prototype.AcceptRevisionChangesBySelection = function()
 };
 CDocument.prototype.RejectRevisionChangesBySelection = function()
 {
-	var CurrentChange = this.TrackRevisionsManager.Get_CurrentChange();
+	var CurrentChange = this.TrackRevisionsManager.GetCurrentChange();
 	if (null !== CurrentChange)
 	{
 		this.RejectRevisionChange(CurrentChange);
@@ -21966,28 +22000,31 @@ CDocument.prototype.OnEndLoadScript = function()
 		arrParagraphs[nIndex].Recalc_RunsCompiledPr();
 	}
 };
-CDocument.prototype.BeginViewModeInReview = function(isResult)
+CDocument.prototype.BeginViewModeInReview = function(nMode)
 {
-	if (0 !== this.ViewModeInReview.mode)
+	if (this.IsViewModeInReview())
 		this.EndViewModeInReview();
 
-	this.ViewModeInReview.mode = isResult ? 1 : -1;
+	this.ViewModeInReview.mode = undefined !== nMode ? nMode : Asc.c_oAscDisplayModeInReview.Final;
 
 	this.ViewModeInReview.isFastCollaboration = this.CollaborativeEditing.Is_Fast();
 	this.CollaborativeEditing.Set_Fast(false);
 
 	this.History.SaveRedoPoints();
-	if (isResult)
+	if (this.ViewModeInReview.mode === Asc.c_oAscDisplayModeInReview.Final)
 		this.AcceptAllRevisionChanges(true, false);
 	else
 		this.RejectAllRevisionChanges(true, false);
 
 	this.CollaborativeEditing.Set_GlobalLock(true);
 };
-CDocument.prototype.EndViewModeInReview = function()
+CDocument.prototype.EndViewModeInReview = function(nMode)
 {
-	if (0 === this.ViewModeInReview.mode)
+	if (!this.IsViewModeInReview())
+	{
+		this.ViewModeInReview.mode = undefined !== nMode ? nMode : Asc.c_oAscDisplayModeInReview.Edit;
 		return;
+	}
 
 	this.CollaborativeEditing.Set_GlobalLock(false);
 
@@ -21998,7 +22035,40 @@ CDocument.prototype.EndViewModeInReview = function()
 	if (this.ViewModeInReview.isFastCollaboration)
 		this.CollaborativeEditing.Set_Fast(true);
 
-	this.ViewModeInReview.mode = 0;
+	this.ViewModeInReview.mode = undefined !== nMode ? nMode : Asc.c_oAscDisplayModeInReview.Edit;
+};
+CDocument.prototype.IsViewModeInReview = function()
+{
+	return (Asc.c_oAscDisplayModeInReview.Final === this.ViewModeInReview.mode
+		|| Asc.c_oAscDisplayModeInReview.Original === this.ViewModeInReview.mode);
+};
+CDocument.prototype.IsSimpleMarkupInReview = function()
+{
+	return (this.ViewModeInReview.mode === Asc.c_oAscDisplayModeInReview.Simple);
+};
+CDocument.prototype.SetDisplayModeInReview = function(nMode, isSendEvent)
+{
+	// У нас есть два режима редактирования Edit, Simple и два режима просмотра Final, Original
+	if (this.ViewModeInReview.mode === nMode)
+		return;
+
+	if (isSendEvent)
+		this.Api.sendEvent("asc_onChangeDisplayModeInReview", nMode);
+
+	if (Asc.c_oAscDisplayModeInReview.Edit === nMode || Asc.c_oAscDisplayModeInReview.Simple === nMode)
+	{
+		this.EndViewModeInReview(nMode);
+	}
+	else
+	{
+		this.BeginViewModeInReview(nMode);
+	}
+
+	this.UpdateInterface();
+};
+CDocument.prototype.GetDisplayModeInReview = function()
+{
+	return this.ViewModeInReview.mode;
 };
 CDocument.prototype.StartCollaborationEditing = function()
 {
@@ -22007,10 +22077,6 @@ CDocument.prototype.StartCollaborationEditing = function()
 		this.DrawingDocument.Start_CollaborationEditing();
 		this.EndViewModeInReview();
 	}
-};
-CDocument.prototype.IsViewModeInReview = function()
-{
-	return 0 !== this.ViewModeInReview.mode ? true : false;
 };
 CDocument.prototype.AddField = function(nType, oPr)
 {
@@ -26684,11 +26750,11 @@ CTrackRevisionsManager.prototype.SetCurrentChange = function(oCurChange)
 		this.CurElement = oCurChange.GetElement();
 	}
 };
-CTrackRevisionsManager.prototype.Get_CurrentChangeParagraph = function()
+CTrackRevisionsManager.prototype.GetCurrentChangeElement = function()
 {
     return this.CurElement;
 };
-CTrackRevisionsManager.prototype.Get_CurrentChange = function()
+CTrackRevisionsManager.prototype.GetCurrentChange = function()
 {
     return this.CurChange;
 };
@@ -26804,10 +26870,21 @@ CTrackRevisionsManager.prototype.BeginCollectChanges = function(bSaveCurrentChan
 		}
 	}
 };
-CTrackRevisionsManager.prototype.EndCollectChanges = function(oEditor)
+CTrackRevisionsManager.prototype.EndCollectChanges = function(oDocument)
 {
-    if (true === this.private_HaveParasToCheck())
-        return;
+	if (true === this.private_HaveParasToCheck())
+		return;
+
+	var oEditor = oDocument.GetApi();
+	if (oDocument.IsSimpleMarkupInReview())
+	{
+		this.VisibleChanges = [];
+		this.CurChange      = null;
+
+		oEditor.sync_BeginCatchRevisionsChanges();
+		oEditor.sync_EndCatchRevisionsChanges();
+		return;
+	}
 
     if (null !== this.CurChange)
         this.VisibleChanges = [this.CurChange];

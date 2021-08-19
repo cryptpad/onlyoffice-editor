@@ -1039,55 +1039,37 @@ function CEditorPage(api)
 			y = yy;
 		}
 
-		var rectSize = (navi.H * this.m_nZoomValue * g_dKoef_mm_to_pix / 100);
-		var pos      = this.m_oDrawingDocument.ConvertCoordsToCursor2(x, y, PageNum);
+		var rectH = (navi.H * this.m_nZoomValue * g_dKoef_mm_to_pix / 100);
+		var pos = this.m_oDrawingDocument.ConvertCoordsToCursor2(x, y, PageNum);
 
 		if (true === pos.Error)
 			return;
 
 		var boxX = 0;
 		var boxY = 0;
-		var boxR = this.m_oEditor.HtmlElement.width - 2;
-		var boxB = this.m_oEditor.HtmlElement.height - rectSize;
+		var boxR = ((this.m_oEditor.HtmlElement.width / AscCommon.AscBrowser.retinaPixelRatio) >> 0) - 2;
+		var boxB = ((this.m_oEditor.HtmlElement.height / AscCommon.AscBrowser.retinaPixelRatio) >> 0) - rectH;
 
-		/*
-		 if (true == this.m_bIsRuler)
-		 {
-		 boxX += Number(5 * g_dKoef_mm_to_pix);
-		 boxY += Number(7 * g_dKoef_mm_to_pix);
-		 boxR += Number(5 * g_dKoef_mm_to_pix);
-		 boxB += Number(7 * g_dKoef_mm_to_pix);
-		 }
-		 */
+		var offsetBorder = 20;
 
 		var nValueScrollHor = 0;
 		if (pos.X < boxX)
 		{
-			//nValueScrollHor = boxX - pos.X;
-			//nValueScrollHor = pos.X;
-			nValueScrollHor = this.GetHorizontalScrollTo(x, PageNum);
+			nValueScrollHor = pos.X - boxX - offsetBorder;
 		}
 		if (pos.X > boxR)
 		{
-			//nValueScrollHor = boxR - pos.X;
-			//nValueScrollHor = pos.X + this.m_oWordControl.m_oEditor.HtmlElement.width;
-			var _mem        = x - g_dKoef_pix_to_mm * this.m_oEditor.HtmlElement.width * 100 / this.m_nZoomValue;
-			nValueScrollHor = this.GetHorizontalScrollTo(_mem, PageNum);
+			nValueScrollHor = pos.X - boxR + offsetBorder;
 		}
 
 		var nValueScrollVer = 0;
 		if (pos.Y < boxY)
 		{
-			//nValueScrollVer = boxY - pos.Y;
-			//nValueScrollVer = pos.Y;
-			nValueScrollVer = this.GetVerticalScrollTo(y, PageNum);
+			nValueScrollVer = pos.Y - boxY - offsetBorder;
 		}
 		if (pos.Y > boxB)
 		{
-			//nValueScrollVer = boxB - pos.Y;
-			//nValueScrollHor = pos.Y + this.m_oWordControl.m_oEditor.HtmlElement.height;
-			var _mem        = y + navi.H + 10 - g_dKoef_pix_to_mm * this.m_oEditor.HtmlElement.height * 100 / this.m_nZoomValue;
-			nValueScrollVer = this.GetVerticalScrollTo(_mem, PageNum);
+			nValueScrollVer = pos.Y - boxB + offsetBorder;
 		}
 
 		var isNeedScroll = false;
@@ -1095,15 +1077,13 @@ function CEditorPage(api)
 		{
 			isNeedScroll                   = true;
 			this.m_bIsUpdateTargetNoAttack = true;
-			var temp                       = nValueScrollHor * this.m_dScrollX_max / (this.m_dDocumentWidth - this.m_oEditor.HtmlElement.width);
-			this.m_oScrollHorApi.scrollToX(parseInt(temp), false);
+			this.m_oScrollHorApi.scrollByX(nValueScrollHor);
 		}
 		if (0 != nValueScrollVer)
 		{
 			isNeedScroll                   = true;
 			this.m_bIsUpdateTargetNoAttack = true;
-			var temp                       = nValueScrollVer * this.m_dScrollY_max / (this.m_dDocumentHeight - this.m_oEditor.HtmlElement.height);
-			this.m_oScrollVerApi.scrollToY(parseInt(temp), false);
+			this.m_oScrollVerApi.scrollByY(nValueScrollVer);
 		}
 
 		if (true === isNeedScroll)
@@ -1661,6 +1641,10 @@ function CEditorPage(api)
 				pos = oWordControl.m_oDrawingDocument.ConvertCoordsFromCursor2(global_mouseEvent.X, global_mouseEvent.Y);
 				if (oWordControl.MouseHandObject.check(oWordControl, pos))
 				{
+					oThis.m_oApi.sync_MouseMoveStartCallback();
+					oThis.m_oApi.sync_MouseMoveCallback(new AscCommon.CMouseMoveData());
+					oThis.m_oApi.sync_MouseMoveEndCallback();
+
 					oWordControl.m_oDrawingDocument.SetCursorType("grab");
 					return;
 				}
@@ -2836,6 +2820,9 @@ function CEditorPage(api)
 
 		if (this.MobileTouchManager)
 			this.MobileTouchManager.Resize_After();
+
+		if (AscCommon.g_imageControlsStorage)
+			AscCommon.g_imageControlsStorage.resize();
 	};
 
 	this.checkNeedRules     = function()
