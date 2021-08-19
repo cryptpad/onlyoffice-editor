@@ -483,20 +483,20 @@
 		return res;
 	};
 
-	CWorkbookProtection.prototype.set = function (val, addToHistory, ws) {
-		this.lockStructure = this.checkProperty(this.lockStructure, val.lockStructure, AscCH.historyitem_Protected_SetAlgorithmName, addToHistory);
-		this.lockWindows = this.checkProperty(this.lockWindows, val.lockWindows, AscCH.historyitem_Protected_SetHashValue, addToHistory);
-		this.lockRevision = this.checkProperty(this.lockRevision, val.lockRevision, AscCH.historyitem_Protected_SetSaltValue, addToHistory);
+	CWorkbookProtection.prototype.set = function (val, addToHistory) {
+		this.lockStructure = this.checkProperty(this.lockStructure, val.lockStructure, AscCH.historyitem_Protected_SetLockStructure, addToHistory);
+		this.lockWindows = this.checkProperty(this.lockWindows, val.lockWindows, AscCH.historyitem_Protected_SetLockWindows, addToHistory);
+		this.lockRevision = this.checkProperty(this.lockRevision, val.lockRevision, AscCH.historyitem_Protected_SetLockRevision, addToHistory);
 
-		this.revisionsAlgorithmName = this.checkProperty(this.revisionsAlgorithmName, val.revisionsAlgorithmName, AscCH.historyitem_Protected_SetSpinCount, addToHistory);
-		this.revisionsHashValue = this.checkProperty(this.revisionsHashValue, val.revisionsHashValue, AscCH.historyitem_Protected_SetSpinCount, addToHistory);
-		this.revisionsSaltValue = this.checkProperty(this.revisionsSaltValue, val.revisionsSaltValue, AscCH.historyitem_Protected_SetSpinCount, addToHistory);
-		this.revisionsSpinCount = this.checkProperty(this.revisionsSpinCount, val.revisionsSpinCount, AscCH.historyitem_Protected_SetSpinCount, addToHistory);
+		this.revisionsAlgorithmName = this.checkProperty(this.revisionsAlgorithmName, val.revisionsAlgorithmName, AscCH.historyitem_Protected_SetRevisionsAlgorithmName, addToHistory);
+		this.revisionsHashValue = this.checkProperty(this.revisionsHashValue, val.revisionsHashValue, AscCH.historyitem_Protected_SetRevisionsHashValue, addToHistory);
+		this.revisionsSaltValue = this.checkProperty(this.revisionsSaltValue, val.revisionsSaltValue, AscCH.historyitem_Protected_SetRevisionsSaltValue, addToHistory);
+		this.revisionsSpinCount = this.checkProperty(this.revisionsSpinCount, val.revisionsSpinCount, AscCH.historyitem_Protected_SetRevisionsSpinCount, addToHistory);
 
-		this.workbookAlgorithmName = this.checkProperty(this.workbookAlgorithmName, val.workbookAlgorithmName, AscCH.historyitem_Protected_SetSpinCount, addToHistory);
-		this.workbookHashValue = this.checkProperty(this.workbookHashValue, val.workbookHashValue, AscCH.historyitem_Protected_SetSpinCount, addToHistory);
-		this.workbookSaltValue = this.checkProperty(this.workbookSaltValue, val.workbookSaltValue, AscCH.historyitem_Protected_SetSpinCount, addToHistory);
-		this.workbookSpinCount = this.checkProperty(this.workbookSpinCount, val.workbookSpinCount, AscCH.historyitem_Protected_SetSpinCount, addToHistory);
+		this.workbookAlgorithmName = this.checkProperty(this.workbookAlgorithmName, val.workbookAlgorithmName, AscCH.historyitem_Protected_SetWorkbookAlgorithmName, addToHistory);
+		this.workbookHashValue = this.checkProperty(this.workbookHashValue, val.workbookHashValue, AscCH.historyitem_Protected_SetWorkbookHashValue, addToHistory);
+		this.workbookSaltValue = this.checkProperty(this.workbookSaltValue, val.workbookSaltValue, AscCH.historyitem_Protected_SetWorkbookSaltValue, addToHistory);
+		this.workbookSpinCount = this.checkProperty(this.workbookSpinCount, val.workbookSpinCount, AscCH.historyitem_Protected_SetWorkbookSpinCount, addToHistory);
 	};
 
 	CWorkbookProtection.prototype.checkProperty = function (propOld, propNew, type, addToHistory) {

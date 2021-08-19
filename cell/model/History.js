@@ -102,8 +102,8 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Worksheet_SetShowZeros = 54;
 	window['AscCH'].historyitem_Worksheet_SetTopLeftCell = 55;
 
-	window['AscCH'].historyitem_Worksheet_AddProtectedRange = 55;
-	window['AscCH'].historyitem_Worksheet_DelProtectedRange = 56;
+	window['AscCH'].historyitem_Worksheet_AddProtectedRange = 56;
+	window['AscCH'].historyitem_Worksheet_DelProtectedRange = 57;
 
 	window['AscCH'].historyitem_RowCol_Fontname = 1;
 	window['AscCH'].historyitem_RowCol_Fontsize = 2;
