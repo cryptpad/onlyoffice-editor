@@ -11236,7 +11236,7 @@ background-repeat: no-repeat;\
 		if (!oLogicDocument)
 			return;
 
-		return oLogicDocument.PreConvertTextToTable(oProps);
+		return oLogicDocument.GetConvertTextToTableProps(oProps);
 	};
 
 	asc_docs_api.prototype.asc_ConvertTextToTable = function(oProps)

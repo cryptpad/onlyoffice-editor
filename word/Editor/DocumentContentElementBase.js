@@ -1233,6 +1233,11 @@ CDocumentContentElementBase.prototype.GetMaxTableGridWidth = function(){return {
  * Обновляем нумерацию строк
  */
 CDocumentContentElementBase.prototype.UpdateLineNumbersInfo = function(){};
+/**
+ * Подсчитываем на сколько элементов разбивается данный элемент с заданным сепаратором
+ * @param oEngine {CTextToTableEngine}
+ */
+CDocumentContentElementBase.prototype.CalculateTextToTable = function(oEngine){};
 
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

@@ -25308,8 +25308,7 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 		var oSelectedContent = this.GetSelectedContent(true);
 		if (!this.private_ConvertTextToTable(oProps, oSelectedContent))
 		{
-			// здесь надо откатить всё в истории и закрыть точку (так как преобразования не будет)
-			History.Remove_LastPoint();
+			this.History.Remove_LastPoint();
 			this.FinalizeAction();
 			return;
 		}
@@ -25318,142 +25317,40 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 		var oParent = oParagraph.GetParent();
 		if (oSelectedContent && oParent)
 		{
-			if (oProps.IsFTCC)
+			if (oParent === this || (oParent instanceof CDocumentContent && !oTable))
 			{
-				// если есть форматированный текст CC, то RemoveBeforePaste работает не также, как если бы это было без CC
-				// если есть хоть один CC, который выделен целиком и в нём нет таблицы (если есть таблица, то CC удаляется), то итоговый результат помещается в CC
-				// если попадает нижняя граница CC, то CC удаляется (результат не в CC)
-				// если попадает верхняя граница CC, то из CC удаляется верхняя часть, а нижняя остаётся как CC (результат не в CC)
-
-				var IsInCC = false; // флаг, который указывает будет ли таблица внутри CC
-				var Start  = Math.min(this.Selection.StartPos, this.Selection.EndPos);
-				var End    = Math.max(this.Selection.StartPos, this.Selection.EndPos);
-				var Before = [];
-				var After  = [];
-				
-				for (var i = Start + 1; i < End && !IsInCC; i++)
+				this.RemoveBeforePaste();
+				if (oParagraph)
 				{
-					if (this.Content[i].IsBlockLevelSdt())
-						IsInCC = true;
-				}
+					if (oParagraph.GetIndex() < 0 || oParagraph.Parent.IsInTable())
+						oParagraph = this.GetCurrentParagraph();
 
-				if (this.Content[End].IsBlockLevelSdt())
-				{
-					if (this.Content[End].IsSelectedAll())
+					var oAnchorPos = oParagraph.GetCurrentAnchorPosition();
+					if (oAnchorPos && this.Can_InsertContent(oSelectedContent, oAnchorPos))
 					{
-						IsInCC = true;
+						oParagraph.Check_NearestPos(oAnchorPos);
+						oParagraph.Parent.InsertContent(oSelectedContent, oAnchorPos);
+						if (oParagraph.IsEmpty() && oParagraph.IsUseInDocument())
+							this.RemoveFromContent(oParagraph.GetIndex(), 1, true);
+						// this.MoveCursorRight(false, false, false);
 					}
-					else
-					{
-						this.Content[End].Content.private_Remove(-1);
-					}
-
-					if (this.Content[End].GetAllTables().length)
-					{
-						for (var j = 0; j < this.Content[End].Content.Content.length; j++)
-							After.push(this.Content[End].Content.Content[j].Copy());
-					}
-				}
-
-				if (this.Content[Start].IsBlockLevelSdt())
-				{
-					
-					if (this.Content[Start].IsSelectedAll())
-					{
-						IsInCC = true;
-					}
-					else
-					{
-						var tables = this.Content[Start].GetAllTables();
-						var flag = tables.length && tables.pop().Selection.Use;
-						this.Content[Start].Content.private_Remove(-1, false, false, flag);
-						for (var j = 0; j < this.Content[Start].Content.Content.length; j++)
-							Before.push(this.Content[Start].Content.Content[j].Copy());
-					}
-				}
-
-				var s = Before.length || this.Content[Start].IsSelectedAll() ? Start: Start + 1;
-				var count = End - s + (After.length || Before.length || this.Content[End].IsSelectedAll() ? 1 : 0);
-				this.RemoveFromContent(s, count);
-				oParagraph = new Paragraph(this.DrawingDocument, this);
-				this.AddToContent(s, oParagraph);
-				var oAnchorPos = oParagraph.GetCurrentAnchorPosition();
-				if (oAnchorPos && this.Can_InsertContent(oSelectedContent, oAnchorPos))
-				{
-					oParagraph.Check_NearestPos(oAnchorPos);
-					if (IsInCC)
-					{
-						var oBlockControl = new CBlockLevelSdt(this, this);
-						oBlockControl.Content.ClearContent(false);
-						oBlockControl.Content.AddToContent(0, oSelectedContent.Elements[0].Element);
-						oSelectedContent.Reset();
-						for (var i = 0; i < Before.length; i++)
-							oSelectedContent.Add(new CSelectedElement(Before[i], true));
-
-						oSelectedContent.Add(new CSelectedElement(oBlockControl, true));
-
-						for (var i = 0; i < After.length; i++)
-							oSelectedContent.Add(new CSelectedElement(After[i], true));
-					}
-					else
-					{
-						if (Before.length)
-						{
-							var tmp = oSelectedContent.Elements[0];
-							oSelectedContent.Reset();
-
-							for (var i = 0; i < Before.length; i++)
-								oSelectedContent.Add(new CSelectedElement(Before[i], true));
-
-							oSelectedContent.Add(tmp);
-						}
-
-						for (var i = 0; i < After.length; i++)
-							oSelectedContent.Add(new CSelectedElement(After[i], true));
-					}
-					oParagraph.Parent.InsertContent(oSelectedContent, oAnchorPos);
-					this.RemoveFromContent(oParagraph.GetIndex(), 1, true);
-					this.SelectRange(Start + Before.length, Start + Before.length);
-					// this.MoveCursorRight(false, false, false);
 				}
 			}
-			else
+			else if (oTable) // если внутри ячейки таблицы
 			{
-				if (oParent === this || (oParent instanceof CDocumentContent && !oTable))
-				{
-					this.RemoveBeforePaste();
-					if (oParagraph)
-					{
-						if (oParagraph.GetIndex() < 0 || oParagraph.Parent.IsInTable())
-							oParagraph = this.GetCurrentParagraph();
+				var oElement = oTable.CurCell.Content;
+				var start    = Math.min(oElement.Selection.StartPos, oElement.Selection.EndPos);
+				if (!oElement.Content[start].IsSelectedAll())
+					start++;
 
-						var oAnchorPos = oParagraph.GetCurrentAnchorPosition();
-						if (oAnchorPos && this.Can_InsertContent(oSelectedContent, oAnchorPos))
-						{
-							oParagraph.Check_NearestPos(oAnchorPos);
-							oParagraph.Parent.InsertContent(oSelectedContent, oAnchorPos);
-							if (oParagraph.IsEmpty() && oParagraph.IsUseInDocument())
-								this.RemoveFromContent(oParagraph.GetIndex(), 1, true);
-							// this.MoveCursorRight(false, false, false);
-						}
-					}
-				} 
-				else if (oTable) // если внутри ячейки таблицы
-				{
-					var oElement = oTable.CurCell.Content;
-					var start = Math.min(oElement.Selection.StartPos, oElement.Selection.EndPos);
-					if (!oElement.Content[start].IsSelectedAll())
-						start++;
+				this.RemoveBeforePaste();
 
-					this.RemoveBeforePaste();
-
-					oElement.Internal_Content_Add(start, oSelectedContent.Elements[0].Element, false);
-					oElement.Selection.StartPos = oElement.Selection.EndPos = start;
-					oElement.SetSelectionUse(true);
-					oTable.SetSelectionUse(true);
-					this.Selection.StartPos = this.Selection.EndPos = oTable.GetIndex();
-					this.Selection.Use = true;
-				}
+				oElement.Internal_Content_Add(start, oSelectedContent.Elements[0].Element, false);
+				oElement.Selection.StartPos = oElement.Selection.EndPos = start;
+				oElement.SetSelectionUse(true);
+				oTable.SetSelectionUse(true);
+				this.Selection.StartPos = this.Selection.EndPos = oTable.GetIndex();
+				this.Selection.Use      = true;
 			}
 		}
 
@@ -25464,11 +25361,26 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 };
 CDocument.prototype.private_ConvertTextToTable = function(oProps, oSelectedContent)
 {
-	var TableSeize = oProps.get_Size();
-	TableSeize = {rows: TableSeize[0], cols : TableSeize[1]};
-	var TableArr = this.private_PreConvertTextToTable(oProps, oSelectedContent);
-	if (!TableArr)
-		return;
+	var nCols = oProps.get_ColsCount();
+	var nRows = oProps.get_RowsCount();
+
+	var oEngine = new CTextToTableEngine();
+	oEngine.SetConvertMode(oProps.get_SeparatorType(), oProps.get_Separator(), oProps.get_ColsCount());
+	for (var nIndex = 0, nCount = oSelectedContent.Elements.length; nIndex < nCount; ++nIndex)
+	{
+		var oElement = oSelectedContent.Elements[nIndex].Element;
+		if (oElement.IsBlockLevelSdt() && !oEngine.GetContentControl())
+			oEngine.SetContentControl(oElement);
+
+		oElement.CalculateTextToTable(oEngine);
+	}
+	oEngine.FinalizeConvert();
+
+	var arrRows = oEngine.GetRows();
+	if (arrRows.length <= 0)
+		return false;
+
+	nRows = Math.max(nRows, arrRows.length);
 
 	var oFirstItem = oSelectedContent.Elements[0].Element.GetParent();
 	var haveTable = oSelectedContent.HaveTable;
@@ -25493,44 +25405,39 @@ CDocument.prototype.private_ConvertTextToTable = function(oProps, oSelectedConte
 	
 				W += nAdd;
 			}
-		W = Math.max(W, TableSeize.cols * 2 * 1.9);
+		W = Math.max(W, nCols * 2 * 1.9);
 	}
 	else
 	{
 		var nAdd = this.GetCompatibilityMode() <= AscCommon.document_compatibility_mode_Word14 && oItem.IsTableCellContent() ?  2 * 1.9 : 0;
-		W = Math.max(oItem.XLimit - oItem.X + nAdd, TableSeize.cols * 2 * 1.9);
+		W = Math.max(oItem.XLimit - oItem.X + nAdd, nCols * 2 * 1.9);
 	}
 
-	for (var Index = 0; Index < TableSeize.cols; Index++)
-		Grid[Index] = W / TableSeize.cols;
+	for (var Index = 0; Index < nCols; Index++)
+		Grid[Index] = W / nCols;
 	
-	var oTable = new CTable(this.DrawingDocument, this, true, TableSeize.rows, TableSeize.cols, Grid);
-	
-	var index = -1;
-	var k = 1;
-	var SeparatorType = oProps.get_SeparatorType();
-	for (var i = 0; i < TableArr.length; i++)
+	var oTable = new CTable(this.DrawingDocument, this, true, nRows, nCols, Grid);
+	for (var nCurRow = 0, nRowsCount = arrRows.length; nCurRow < nRowsCount; ++nCurRow)
 	{
-		if (SeparatorType !== 1)
-			k = 1;
+		var oRow = oTable.GetRow(nCurRow);
+		if (!oRow)
+			break;
 
-		for (var j = 0; j < TableArr[i].length; j++, k++)
+		for (var nCurCell = 0, nCellsCount = arrRows[nCurRow].length; nCurCell < nCellsCount; ++nCurCell)
 		{
-			if (k == 1)
-				index++;
+			var oCell = oRow.GetCell(nCurCell);
+			if (!oCell)
+				break;
 
-			var oCellContent = oTable.GetRow(index).GetCell(k-1).GetContent();
+			var oCellContent = oCell.GetContent();
 			oCellContent.Internal_Content_RemoveAll();
-			for (var p = 0; p < TableArr[i][j].length; p++)
-				oCellContent.Internal_Content_Add(p, TableArr[i][j][p], false);
-
-			if (k == TableSeize.cols && ( (TableArr[i].length == 1 || j < TableArr[i].length - 1) && (i < TableArr.length -1 || SeparatorType !== 1)) )
-				k = 0;
+			for (var nItemPos = 0, nItemsCount = arrRows[nCurRow][nCurCell].length; nItemPos < nItemsCount; ++nItemPos)
+				oCellContent.Internal_Content_Add(nItemPos, arrRows[nCurRow][nCurCell][nItemPos], false);
 		}
 	}
 
 	oTable.SelectAll();
-	if (oProps.get_AutoFitType() !== 3)
+	if (oProps.get_AutoFitType() !== Asc.c_oAscTextToTableAutoFitType.Window)
 	{
 		var width = oProps.get_Fit();
 		var oTableProps = new Asc.CTableProp();
@@ -25541,332 +25448,52 @@ CDocument.prototype.private_ConvertTextToTable = function(oProps, oSelectedConte
 		
 		oTable.SetTableProps(oTableProps);
 	}
-	oSelectedContent.Add(new CSelectedElement(oTable, true));
+
+	var oCC = oEngine.GetContentControl();
+	if (oCC)
+	{
+		var oDocContent = oCC.GetContent();
+		oDocContent.Internal_Content_RemoveAll();
+		oDocContent.AddToContent(0, oTable, false);
+		oSelectedContent.Add(new CSelectedElement(oCC, true));
+	}
+	else
+	{
+		oSelectedContent.Add(new CSelectedElement(oTable, true));
+	}
+
 	return true;
 };
 /**
 * Подготовка к преобразованию текста в таблицу
  * @param oProps
  */
-CDocument.prototype.PreConvertTextToTable = function(oProps)
+CDocument.prototype.GetConvertTextToTableProps = function(oProps)
 {
 	if (!oProps)
 	{
-		oProps = new Asc.CAscTextToTableProperties(this, this.GetSelectedContent());
-		var separator = {tab : true, comma : true};
-		var Elements = oProps.Selected.Elements;
-		var parseParagraph = function(oPara)
+		oProps = new Asc.CAscTextToTableProperties(this.GetSelectedContent(false));
+
+		var oEngine = new CTextToTableEngine();
+		oEngine.SetCheckSeparatorMode();
+		for (var nIndex = 0, nCount = oProps.Selected.Elements.length; nIndex < nCount; ++nIndex)
 		{
-			if (separator.tab || separator.comma)
-			{
-				var hasTab = false;
-				var hasComma = false;
-				for (var j = 0; j < oPara.Content.length && (!hasTab || !hasComma); j++)
-				{
-					var oInsideEl = oPara.Content[j];
-					if (oInsideEl.Type === para_Run)
-					{
-						for (var k = 0; k < oInsideEl.Content.length; k++)
-						{
-							if (oInsideEl.Content[k].Type === para_Tab)
-								hasTab = true;
-
-							if (oInsideEl.Content[k].Value === 0x3B)
-								hasComma = true;
-						}
-					}
-					else if (oInsideEl.Type === para_Math || oInsideEl.Type === para_InlineLevelSdt)
-					{
-						var Content = oInsideEl.Type === para_Math ? oInsideEl.Root.Content : oInsideEl.Content;
-						for (var k = 0; k < Content.length; k++)
-						{
-							var oThirdEl = Content[k];
-							if (oThirdEl.Type !== para_Math_Run && oThirdEl.Type !== para_Run)
-								continue;
-							
-							for (var p = 0; p < oThirdEl.Content.length; p++)
-							{
-								var oFourthEl = oThirdEl.Content[p];
-								var value = oFourthEl.value || oFourthEl.Value;
-								if (oFourthEl.Type === para_Tab)
-									hasTab = true;
-	
-								if (value === 0x3B)
-									hasComma = true;
-							}
-						}
-					}
-				}
-				separator.tab = hasTab;
-				separator.comma = hasComma;
-			}
-		};
-
-		for (var i = 0; i < Elements.length && (separator.comma || separator.tab); i++)
-		{
-			var oEl = Elements[i].Element;
-
-			if (oEl.IsBlockLevelSdt())
-			{
-				for (var k = 0; k < oEl.Content.Content.length; k++)
-				{
-					var oSecondEl = oEl.Content.Content[k];
-
-					if (oSecondEl.IsTable())
-						continue;
-					
-					if (oSecondEl.IsParagraph())
-						parseParagraph(oSecondEl);
-				}
-			}
-			else if (oEl.IsParagraph())
-			{
-				parseParagraph(oEl);
-			}
+			var oElement = oProps.Selected.Elements[nIndex].Element;
+			oElement.CalculateTextToTable(oEngine);
 		}
 
-		if (separator.tab)
+		if (oEngine.HaveTab())
 		{
-			oProps.put_SeparatorType(2);
+			oProps.put_SeparatorType(Asc.c_oAscTextToTableSeparator.Tab);
 		}
-		else if (separator.comma)
+		else if (oEngine.HaveSemicolon())
 		{
-			oProps.put_SeparatorType(3);
+			oProps.put_SeparatorType(Asc.c_oAscTextToTableSeparator.Symbol);
 			oProps.put_Separator(0x003B);
 		}
 	}
-	oProps.private_recalculate();
+	oProps.CalculateTableSize();
 	return oProps;
-};
-CDocument.prototype.private_PreConvertTextToTable = function(oProps, oSelectedContent)
-{
-	var SeparatorType = oProps.get_SeparatorType();
-	var Separator     = (SeparatorType == 3) ? oProps.get_Separator() : null;
-	var Elements      = oSelectedContent.Elements;
-	var oArrRows      = [];
-	var oArrCells     = [];
-	var types         = { 1 : 1, 2 : 1, 52 : 1, 53 : 1, 55 : 1};
-	var bEmptyRow     = true;
-	
-	var parseParagraph = function(oPara, oDoc)
-	{
-		var oNewParagraph = new Paragraph(oDoc.DrawingDocument, oDoc);
-		oArrCells.unshift([oNewParagraph]);
-		bEmptyRow = false;
-
-		for (var j = oPara.Content.length - 1; j >= 0; j--)
-		{
-			var oSecondEl = oPara.Content[j];
-			if (oSecondEl.Type === para_Run)
-			{
-				for (var k = oSecondEl.Content.length - 1; k >= 0; k--)
-				{
-					var oThirdEl = oSecondEl.Content[k];
-					if (oThirdEl.Type === para_End)
-						continue;
-
-					if ( (SeparatorType === 2 && oThirdEl.Type === para_Tab) || (types[oThirdEl.Type] && oThirdEl.Value === Separator) )
-					{
-						var oNewRun = oSecondEl.Split2(k);
-						oNewRun.Remove_FromContent(0, 1);
-						oNewParagraph.AddToContent(0, oNewRun);
-						oNewParagraph = new Paragraph(oDoc.DrawingDocument, oDoc);
-						oArrCells.unshift([oNewParagraph]);
-						bEmptyRow = false;
-					}
-
-					if (!k && oSecondEl.Content.length)
-						oNewParagraph.AddToContent(0, oSecondEl);
-				}
-			}
-			else if (oSecondEl.Type === para_Math && SeparatorType ===3)
-			{
-				var oMath = new ParaMath();
-				for (var k = oSecondEl.Root.Content.length -1; k >= 0; k--)
-				{
-					var oThirdEl = oSecondEl.Root.Content[k];
-					if (oThirdEl.Type !== para_Math_Run)
-					{
-						oMath.Root.AddToContent(0, oThirdEl);
-						oSecondEl.Root.Remove_FromContent(k, 1);
-						continue;
-					}
-
-					for (var p = oThirdEl.Content.length -1 ; p >= 0; p--)
-					{
-						var oFourthEl = oThirdEl.Content[p];
-						if (types[oFourthEl.Type] && oFourthEl.value === Separator)
-						{
-							var oNewRun = oThirdEl.Split2(p);
-							oNewRun.Remove_FromContent(0, 1);
-							oMath.Root.AddToContent(0, oNewRun);
-							oMath.Root.Correct_Content();
-							oNewParagraph.AddToContent(0, oMath);
-							oMath = new ParaMath();
-							oNewParagraph = new Paragraph(oDoc.DrawingDocument, oDoc);
-							oArrCells.unshift([oNewParagraph]);
-							bEmptyRow = false;
-						}
-
-						if (!p && oThirdEl.Content.length)
-						{
-							oMath.Root.AddToContent(0, oThirdEl);
-							oSecondEl.Root.Remove_FromContent(k, 1);
-						}
-					}
-					
-					if (!k && oMath.Root.Content.length)
-					{
-						oMath.Root.Correct_Content();
-						oNewParagraph.AddToContent(0, oMath);
-					}
-				}
-			}
-			else if (oSecondEl.Type === para_InlineLevelSdt && SeparatorType !== 1 && !oSecondEl.IsForm())
-			{
-				if (oSecondEl.IsPlaceHolder())
-				{
-					var text = oSecondEl.GetPlaceholderText();
-					if (text.indexOf(String.fromCharCode(Separator)) !== -1)
-					{
-						return; 
-					}
-					else
-					{
-						oNewParagraph.AddToContent(0, oSecondEl);
-						continue;
-					}
-				}
-				else
-				{
-					for (var k = oSecondEl.Content.length - 1; k >= 0; k--)
-					{
-						var oThirdEl = oSecondEl.Content[k];
-						for (var p = oThirdEl.Content.length - 1; p >= 0; p--)
-						{
-							var oFourthEl = oThirdEl.Content[p];
-							if ( (SeparatorType === 2 && oFourthEl.Type === para_Tab) || (types[oFourthEl.Type] && oFourthEl.Value === Separator) )
-							{
-								if (oSecondEl.IsCheckBox() || oSecondEl.IsDropDownList())
-									return;
-								
-								var oNewRun = oThirdEl.Split2(p);
-								oNewRun.Remove_FromContent(0, 1);
-								oNewParagraph.AddToContent(0, oNewRun);
-								oNewParagraph = new Paragraph(oDoc.DrawingDocument, oDoc);
-								oArrCells.unshift([oNewParagraph]);
-							}
-
-						}
-						// оставляем CC даже если он пустой
-						if (!k)
-						{
-							if (oSecondEl.Is_Empty())
-								oSecondEl.private_FillPlaceholderContent();
-
-							oNewParagraph.AddToContent(0, oSecondEl);
-						}
-						bEmptyRow = false;
-					}
-				}
-			}
-			else
-			{
-				oNewParagraph.AddToContent(0, oSecondEl);
-			}
-		}
-		return true;
-	};
-
-	for (var i = Elements.length - 1; i >= 0; i--)
-	{
-		var oElement = Elements[i].Element;
-		if (oElement.Parent.GetParent() instanceof CBlockLevelSdt)
-			oProps.IsFTCC = true;
-
-		if (oElement.IsParagraph() && SeparatorType !== 1)
-		{
-			if (!parseParagraph(oElement, this))
-				return;
-		}
-		else if (oElement.IsBlockLevelSdt && ! oElement.IsForm())
-		{
-			if (oElement.IsPlaceHolder())
-			{
-				if (SeparatorType === 3)
-				{
-					var text = oElement.GetPlaceholderText();
-					if (text.indexOf(String.fromCharCode(Separator)) !== -1)
-						return; 
-				}
-
-				oArrRows.unshift([[oElement]]);
-				oArrCells = [];
-			}
-			else
-			{
-				// если CC плейсхолдер, то с ним ничего не происходит
-				oProps.IsFTCC = true;
-				for (var k = oElement.Content.Content.length - 1; k >= 0; k--)
-				{
-					if (SeparatorType === 1)
-					{
-						oArrRows.unshift([[oElement.Content.Content[k]]]);
-						oArrCells = [];
-					}
-					else if (oElement.Content.Content[k].IsParagraph())
-					{
-						parseParagraph(oElement.Content.Content[k], this);
-						if (!bEmptyRow)
-						{
-							oArrRows.unshift(oArrCells);
-							oArrCells = [];
-							bEmptyRow = true;
-						}
-					}
-					else
-					{
-						oArrRows.unshift([[oElement.Content.Content[k]]]);
-						oArrCells = [];
-						bEmptyRow = true;
-					}
-					if (k > 0 && oElement.Content.Content[k-1].IsTable())
-					{
-						oArrRows[0][0].unshift(oElement.Content.Content[k-1]);
-						k--;
-						if (oArrRows[0][0][1].IsEmpty())
-							oArrRows[0][0].splice(1,1);
-					}
-				}
-			}
-			bEmptyRow = true;
-		}
-		else
-		{
-			oArrRows.unshift([[oElement]]);
-			oArrCells = [];
-			bEmptyRow = true;
-		}
-
-		if (!bEmptyRow)
-		{
-			oArrRows.unshift(oArrCells);
-			oArrCells = [];
-			bEmptyRow = true;
-		}
-
-		if (i > 0 && Elements[i-1].Element.IsTable())
-		{
-			oArrRows[0][0].unshift(Elements[i-1].Element);
-			i--;
-			if (oArrRows[0][0][1].IsEmpty())
-				oArrRows[0][0].splice(1,1);
-
-			if (Elements[i].Element.Parent.GetParent() instanceof CBlockLevelSdt)
-				oProps.IsFTCC = true;
-		}
-	}
-	return oArrRows;
 };
 /**
  * Конвертируем текущую таблицу в текст

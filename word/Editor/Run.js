@@ -2469,7 +2469,21 @@ ParaRun.prototype.Split2 = function(CurPos, Parent, ParentPos)
     AscCommon.CollaborativeEditing.OnEnd_SplitRun(NewRun);
     return NewRun;
 };
+ParaRun.prototype.SplitNoDuplicate = function(oContentPos, nDepth, oNewParagraph)
+{
+	if (this.IsSolid())
+		return;
 
+	var oNewRun = this.Split(oContentPos, nDepth);
+	if (!oNewRun)
+		return;
+
+	var oLogicDocument = this.GetLogicDocument();
+	if (oLogicDocument && oNewRun.GetRStyle() === oLogicDocument.GetStyles().GetDefaultHyperlink())
+		oNewRun.SetRStyle(null);
+
+	oNewParagraph.AddToContent(oNewParagraph.Content.length, oNewRun, false);
+};
 
 ParaRun.prototype.Check_NearestPos = function(ParaNearPos, Depth)
 {
@@ -13184,6 +13198,64 @@ ParaRun.prototype.FindNextFillingForm = function(isNext, isCurrent, isStart)
 
 	return null;
 };
+ParaRun.prototype.CalculateTextToTable = function(oEngine)
+{
+	if (reviewtype_Remove === this.GetReviewType())
+		return;
+
+	// В формулах делим только по ранам, находящимся в самом верху стэка формулы
+	if (this.IsMathRun() && (!this.ParaMath || this.Parent !== this.ParaMath.Root))
+		return;
+
+	if (oEngine.IsCalculateTableSizeMode())
+	{
+		for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+		{
+			if (oEngine.CheckSeparator(this.Content[nPos]))
+			{
+				oEngine.AddItem();
+			}
+		}
+	}
+	else if (oEngine.IsCheckSeparatorMode())
+	{
+		for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+		{
+			var oItem     = this.Content[nPos];
+			var nItemType = oItem.Type;
+
+			if (para_Tab === nItemType)
+				oEngine.AddTab();
+			else if ((para_Text === nItemType && 0x3B === oItem.Value) || (para_Math_Text === nItemType && 0x3B === oItem.value))
+				oEngine.AddSemicolon();
+		}
+	}
+	else if (oEngine.IsConvertMode())
+	{
+		var oRunPos = null, oParagraph = null;
+		for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+		{
+			if (oEngine.CheckSeparator(this.Content[nPos]))
+			{
+				if (!oRunPos)
+				{
+					oParagraph = this.GetParagraph();
+					if (!oParagraph)
+						return;
+
+					oRunPos = oParagraph.GetPosByElement(this);
+					if (!oRunPos)
+						return;
+				}
+
+				var oContentPos = oRunPos.Copy();
+				oContentPos.Add(nPos);
+				oEngine.AddParaPosition(oContentPos);
+			}
+		}
+	}
+};
+
 
 function CParaRunStartState(Run)
 {

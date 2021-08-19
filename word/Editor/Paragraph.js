@@ -12398,28 +12398,27 @@ Paragraph.prototype.Get_FrameAnchorPara = function()
 };
 /**
  * Разделяем данный параграф, возвращаем правую часть
- * @param {Paragraph} [NewParagraph=undefined] Если не задан, тогда мы создаем новый
+ * @param {Paragraph} [oNewParagraph=undefined] Если не задан, тогда мы создаем новый
+ * @param {CParagraphContentPos} [oContentPos=undefined]
+ * @param {boolean} [isNoDuplicate=false] специальный режим для Split, смотри функцию SplitNoDuplicate
  * @returns {Paragraph}
  */
-Paragraph.prototype.Split = function(NewParagraph)
+Paragraph.prototype.Split = function(oNewParagraph, oContentPos, isNoDuplicate)
 {
-	if (!NewParagraph)
-		NewParagraph = new Paragraph(this.DrawingDocument, this.Parent);
+	if (!oNewParagraph)
+		oNewParagraph = new Paragraph(this.DrawingDocument, this.Parent);
 
-	NewParagraph.DeleteCommentOnRemove = false;
-	this.DeleteCommentOnRemove         = false;
+	oNewParagraph.DeleteCommentOnRemove = false;
+	this.DeleteCommentOnRemove          = false;
 
 	// Обнулим селект и курсор
 	this.RemoveSelection();
-	NewParagraph.RemoveSelection();
+	oNewParagraph.RemoveSelection();
 
-	// Переносим контент, идущий с текущей позиции в параграфе и до конца параграфа,
-	// в новый параграф.
+	if (!oContentPos)
+		oContentPos = this.Get_ParaContentPos(false, false);
 
-	var ContentPos = this.Get_ParaContentPos(false, false);
-	var CurPos     = ContentPos.Get(0);
-
-	var TextPr = this.Get_TextPr(ContentPos);
+	var TextPr = this.Get_TextPr(oContentPos);
 
 	var oLogicDocument = this.GetLogicDocument();
 	var oStyles        = oLogicDocument && oLogicDocument.GetStyles ? oLogicDocument.GetStyles() : null;
@@ -12429,41 +12428,62 @@ Paragraph.prototype.Split = function(NewParagraph)
 		TextPr.RStyle = undefined;
 	}
 
-	// Разделяем текущий элемент (возвращается правая, отделившаяся часть, если она null, тогда заменяем
-	// ее на пустой ран с заданными настройками).
-	var NewElement = this.Content[CurPos].Split(ContentPos, 1);
-
-	if (null === NewElement)
+	var nCurPos = oContentPos.Get(0);
+	if (true === isNoDuplicate)
 	{
-		NewElement = new ParaRun(NewParagraph);
-		NewElement.Set_Pr(TextPr.Copy());
+		oNewParagraph.Internal_Content_Remove2(0, oNewParagraph.Content.length);
+
+		this.Content[nCurPos].SplitNoDuplicate(oContentPos, 1, oNewParagraph);
+
+		var arrNewContent = this.Content.slice(nCurPos + 1);
+		this.RemoveFromContent(nCurPos + 1, this.Content.length - nCurPos - 1, false);
+
+		// В старый параграф добавим ран с концом параграфа
+		var oEndRun = new ParaRun(this);
+		oEndRun.AddToContent(0, new ParaEnd());
+		this.AddToContent(this.Content.length, oEndRun);
+
+		oNewParagraph.Internal_Content_Concat(arrNewContent);
+		oNewParagraph.CorrectContent();
 	}
+	else
+	{
+		// Разделяем текущий элемент (возвращается правая, отделившаяся часть, если она null, тогда заменяем
+		// ее на пустой ран с заданными настройками).
+		var NewElement = this.Content[nCurPos].Split(oContentPos, 1);
 
-	// Теперь делим наш параграф на три части:
-	// 1. До элемента с номером CurPos включительно (оставляем эту часть в исходном параграфе)
-	// 2. После элемента с номером CurPos (добавляем эту часть в новый параграф)
-	// 3. Новый элемент, полученный после разделения элемента с номером CurPos, который мы
-	//    добавляем в начало нового параграфа.
+		if (null === NewElement)
+		{
+			NewElement = new ParaRun(oNewParagraph);
+			NewElement.Set_Pr(TextPr.Copy());
+		}
 
-	var NewContent = this.Content.slice(CurPos + 1);
-	this.Internal_Content_Remove2(CurPos + 1, this.Content.length - CurPos - 1);
+		// Теперь делим наш параграф на три части:
+		// 1. До элемента с номером nCurPos включительно (оставляем эту часть в исходном параграфе)
+		// 2. После элемента с номером nCurPos (добавляем эту часть в новый параграф)
+		// 3. Новый элемент, полученный после разделения элемента с номером nCurPos, который мы
+		//    добавляем в начало нового параграфа.
 
-	// В старый параграф добавим ран с концом параграфа
-	var EndRun = new ParaRun(this);
-	EndRun.Add_ToContent(0, new ParaEnd());
+		var NewContent = this.Content.slice(nCurPos + 1);
+		this.Internal_Content_Remove2(nCurPos + 1, this.Content.length - nCurPos - 1);
 
-	this.Internal_Content_Add(this.Content.length, EndRun);
+		// В старый параграф добавим ран с концом параграфа
+		var EndRun = new ParaRun(this);
+		EndRun.Add_ToContent(0, new ParaEnd());
 
-	// Очищаем новый параграф и добавляем в него Right элемент и NewContent
-	NewParagraph.Internal_Content_Remove2(0, NewParagraph.Content.length);
-	NewParagraph.Internal_Content_Concat(NewContent);
-	NewParagraph.Internal_Content_Add(0, NewElement);
-	NewParagraph.Correct_Content();
+		this.Internal_Content_Add(this.Content.length, EndRun);
+
+		// Очищаем новый параграф и добавляем в него Right элемент и NewContent
+		oNewParagraph.Internal_Content_Remove2(0, oNewParagraph.Content.length);
+		oNewParagraph.Internal_Content_Concat(NewContent);
+		oNewParagraph.Internal_Content_Add(0, NewElement);
+		oNewParagraph.Correct_Content();
+	}
 
 	// Копируем все настройки в новый параграф. Делаем это после того как определили контент параграфов.
 	// У нового параграфа настройки конца параграфа делаем, как у старого (происходит в функции CopyPr), а у старого
 	// меняем их на настройки текущего рана.
-	this.CopyPr(NewParagraph);
+	this.CopyPr(oNewParagraph);
 	this.TextPr.Clear_Style();
 	this.TextPr.Apply_TextPr(TextPr);
 
@@ -12472,16 +12492,16 @@ Paragraph.prototype.Split = function(NewParagraph)
 	if (undefined !== SectPr)
 	{
 		this.Set_SectionPr(undefined);
-		NewParagraph.Set_SectionPr(SectPr);
+		oNewParagraph.Set_SectionPr(SectPr);
 	}
 
 	this.MoveCursorToEndPos(false, false);
-	NewParagraph.MoveCursorToStartPos(false);
+	oNewParagraph.MoveCursorToStartPos(false);
 
-	NewParagraph.DeleteCommentOnRemove = true;
-	this.DeleteCommentOnRemove         = true;
+	oNewParagraph.DeleteCommentOnRemove = true;
+	this.DeleteCommentOnRemove          = true;
 
-	return NewParagraph;
+	return oNewParagraph;
 };
 /**
  * Присоединяем контент параграфа Para к текущему параграфу
@@ -12649,6 +12669,22 @@ Paragraph.prototype.Continue = function(NewParagraph)
 			NewParagraph.Content[Pos].Set_Pr(TextPr.Copy());
 	}
 
+};
+/**
+ * Особенность и отличие данного сплита от обычного, в том, что мы не пытаемся
+ * сделать дубликаты разделенных элементов (кроме рана), вместо этого мы оставляем сам элемент слева, а в правую часть
+ * выносим его разделенные внутренние элементы.
+ * Например, при разделении InlineLevelSdt мы не получаем 2 скопированных контрола, один начальный мы оставляем слева,
+ * а справа будет его разделенное содержимое. При таком сплите элементы типа контролов, полей, гиперссылок и т.д. не
+ * будут сдублированны.
+ * NB: В функции нет отслеживания меток типа комментариев и сложных полей, поэтому при разделении это нужно иметь ввиду
+ * @param {CParagraphContentPos} oContentPos
+ * @param {Paragraph} [oNewParagraph=undefined]
+ * @returns {Paragraph}
+ */
+Paragraph.prototype.SplitNoDuplicate = function(oContentPos, oNewParagraph)
+{
+	return this.Split(oNewParagraph, oContentPos, true);
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Undo/Redo функции
@@ -16744,6 +16780,21 @@ Paragraph.prototype.IsInFixedForm = function()
 	var oShape = this.Parent ? this.Parent.Is_DrawingShape(true) : null;
 	return (oShape && oShape.isForm());
 };
+Paragraph.prototype.CalculateTextToTable = function(oEngine)
+{
+	oEngine.OnStartParagraph();
+
+	for (var nIndex = 0, nCount = this.Content.length - 1; nIndex < nCount; ++nIndex)
+	{
+		if (this.Content[nIndex].IsSolid())
+			continue;
+
+		this.Content[nIndex].CalculateTextToTable(oEngine);
+	}
+
+	oEngine.OnEndParagraph(this);
+};
+
 
 Paragraph.prototype.asc_getText = function()
 {
@@ -18401,6 +18452,7 @@ function CParagraphRunElements(ContentPos, Count, arrTypes, isReverse)
 
 	this.BreakBadType        = false; // Заканчиваем ли поиск при нахождении неподходящих типов
 	this.BreakDifferentClass = false; // Заканчиваем ли поиск при достижении элемента, находящегося в классе отличном от this.StartClass
+	this.SkipMath            = true;  // TODO: Временно так делаем
 
 	this.CurContentPos        = new CParagraphContentPos();
 	this.SaveContentPositions = false;
@@ -18561,6 +18613,21 @@ CParagraphRunElements.prototype.CheckClass = function(oClass)
 		if (this.BreakDifferentDepth)
 			this.Count = 0;
 	}
+};
+/**
+ * Пропускаем ли математические формулы
+ * @param {boolean} isSkip
+ */
+CParagraphRunElements.prototype.SetSkipMath = function(isSkip)
+{
+	this.SkipMath = isSkip;
+};
+/**
+ * @returns {boolean}
+ */
+CParagraphRunElements.prototype.IsSkipMath = function()
+{
+	return this.SkipMath;
 };
 
 function CParagraphStatistics(Stats)

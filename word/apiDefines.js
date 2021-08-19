@@ -270,6 +270,18 @@ var c_oAscDocumentRefenceToType = {
 	NoteNumberFormatted : 9
 };
 
+var c_oAscTextToTableSeparator = {
+	Paragraph : 1,
+	Tab       : 2,
+	Symbol    : 3
+};
+
+var c_oAscTextToTableAutoFitType = {
+	Fixed   : 1,
+	Content : 2,
+	Window  : 3
+};
+
 //------------------------------------------------------------export---------------------------------------------------
 var prot;
 window['Asc'] = window['Asc'] || {};
@@ -440,3 +452,12 @@ prot['OnlyCaptionText']    = prot.OnlyCaptionText;
 prot['NoteNumber']         = prot.NoteNumber;
 prot['NoteNumberFormatted'] = prot.NoteNumberFormatted;
 
+prot = window['Asc']['c_oAscTextToTableSeparator'] = window['Asc'].c_oAscTextToTableSeparator = c_oAscTextToTableSeparator;
+prot['Paragraph'] = prot.Paragraph;
+prot['Tab']       = prot.Tab;
+prot['Symbol']    = prot.Symbol;
+
+prot = window['Asc']['c_oAscTextToTableAutoFitType'] = window['Asc'].c_oAscTextToTableAutoFitType = c_oAscTextToTableAutoFitType;
+prot['Fixed']   = prot.Fixed;
+prot['Content'] = prot.Content;
+prot['Window']  = prot.Window;
