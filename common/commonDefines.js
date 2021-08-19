@@ -138,6 +138,7 @@
 			AccessDeny            : -23,
 			LoadingScriptError    : -24,
 			EditingError          :	-25,
+			LoadingFontError      : -26,
 
 			SplitCellMaxRows     : -30,
 			SplitCellMaxCols     : -31,
@@ -2280,6 +2281,7 @@
 	prot['AccessDeny']                       = prot.AccessDeny;
 	prot['LoadingScriptError']               = prot.LoadingScriptError;
 	prot['EditingError']                     = prot.EditingError;
+	prot['LoadingFontError']                 = prot.LoadingFontError;
 	prot['SplitCellMaxRows']                 = prot.SplitCellMaxRows;
 	prot['SplitCellMaxCols']                 = prot.SplitCellMaxCols;
 	prot['SplitCellRowsDivider']             = prot.SplitCellRowsDivider;
