@@ -10232,6 +10232,20 @@
 		return res;
 	};
 
+	Worksheet.prototype.checkProtectedRangeName = function (name) {
+		var res = c_oAscDefinedNameReason.OK;
+		if (!AscCommon.rx_defName.test(name.toLowerCase()) || name.length > g_nDefNameMaxLength) {
+			res.reason = c_oAscDefinedNameReason.WrongName;
+			return c_oAscDefinedNameReason.WrongName;
+		}
+
+		var pR = this.getProtectedRangeByName(name);
+		if (pR) {
+			res = c_oAscDefinedNameReason.Existed;
+		}
+		return res;
+	};
+
 	Worksheet.prototype.isIntersectLockedRanges = function (ranges) {
 		for (var i = 0; i < ranges.length; i++) {
 			if (this.isLockedRange(ranges[i])) {
@@ -10327,6 +10341,17 @@
 		if (this.aProtectedRanges) {
 			for (var i = 0; i < this.aProtectedRanges.length; i++) {
 				if (this.aProtectedRanges[i].intersection(range)) {
+					return {val: this.aProtectedRanges[i], index: i};
+				}
+			}
+		}
+		return null;
+	};
+
+	Worksheet.prototype.getProtectedRangeByName = function (name) {
+		if (this.aProtectedRanges) {
+			for (var i = 0; i < this.aProtectedRanges.length; i++) {
+				if (this.aProtectedRanges[i].name === name) {
 					return {val: this.aProtectedRanges[i], index: i};
 				}
 			}
