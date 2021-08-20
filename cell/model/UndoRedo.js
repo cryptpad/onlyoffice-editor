@@ -2534,7 +2534,7 @@ function (window, undefined) {
 			}  else if (AscCH.historyitem_Cell_SetLocked == Type) {
 				cell.setLocked(Val);
 			}  else if (AscCH.historyitem_Cell_SetHidden == Type) {
-				cell.setHidden(Val);
+				cell.setHiddenFormulas(Val);
 			}
 		});
 	};

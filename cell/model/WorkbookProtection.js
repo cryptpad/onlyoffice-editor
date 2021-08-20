@@ -798,18 +798,80 @@
 			History.Add(AscCommonExcel.g_oUndoRedoProtectedRange, AscCH.historyitem_Protected_SetSqref,
 				ws.getId(), null, new AscCommonExcel.UndoRedoData_ProtectedRange(this.Id, getUndoRedoRange(this.sqref), getUndoRedoRange(location)));
 		}
-		this.ranges = location;
+		this.sqref = location;
 	};
 
 	CProtectedRange.prototype.setOffset = function(offset, range, ws, addToHistory) {
 		var newRanges = [];
 		var isChange = false;
+
+		var _setDiff = function (_range) {
+			//TODO объединть в одну функцию с dataValidation(.shift)
+			var _newRanges, _offset, tempRange, intersection, otherPart, diff;
+
+			if (range && range.getType() === Asc.c_oAscSelectionType.RangeCells) {
+				if (offset.row !== 0) {
+					//c_oAscInsertOptions.InsertCellsAndShiftDown
+					tempRange = new Asc.Range(range.c1, range.r1, range.c2, AscCommon.gc_nMaxRow0);
+					intersection = tempRange.intersection(_range);
+					if (intersection) {
+						diff = range.r2 - range.r1 + 1;
+
+						_newRanges = [];
+						//добавляем сдвинутую часть диапазона
+						_newRanges.push(intersection);
+						_offset = new AscCommon.CellBase(offset.row > 0 ? diff : -diff, 0);
+						otherPart = _newRanges[0].difference(_range);
+						_newRanges[0].setOffset(_offset);
+						//исключаем сдвинутую часть из диапазона
+						_newRanges = _newRanges.concat(otherPart);
+
+					}
+				} else if (offset.col !== 0) {
+					//c_oAscInsertOptions.InsertCellsAndShiftRight
+					tempRange = new Asc.Range(range.c1, range.r1, AscCommon.gc_nMaxCol0, range.r2);
+					intersection = tempRange.intersection(_range);
+					if (intersection) {
+						diff = range.c2 - range.c1 + 1;
+						_newRanges = [];
+						//добавляем сдвинутую часть диапазона
+						_newRanges.push(intersection);
+						_offset = new AscCommon.CellBase(0, offset.col > 0 ? diff : -diff, 0);
+						otherPart = _newRanges[0].difference(_range);
+						_newRanges[0].setOffset(_offset);
+						//исключаем сдвинутую часть из диапазона
+						_newRanges = _newRanges.concat(otherPart);
+					}
+				}
+			}
+
+			return _newRanges;
+		};
+
 		for (var i = 0; i < this.sqref.length; i++) {
 			var newRange = this.sqref[i].clone();
-			if (newRange.forShift(range, offset)) {
-				isChange = true;
+			if (range.isIntersectForShift(newRange, offset)) {
+				if (newRange.forShift(range, offset)) {
+					if (ws.autoFilters.isAddTotalRow && newRange.containsRange(this.sqref[i])) {
+						newRange = this.sqref[i].clone();
+					} else {
+						isChange = true;
+					}
+				}
+				newRanges.push(newRange);
+			} else {
+				if (ws.autoFilters.isAddTotalRow && newRange.containsRange(this.sqref[i])) {
+					newRange = this.sqref[i].clone();
+				} else {
+					var changedRanges = _setDiff(this.sqref[i]);
+					if (changedRanges) {
+						newRanges = newRanges.concat(changedRanges);
+						isChange = true;
+					} else {
+						newRanges = newRanges.concat(this.sqref[i].clone());
+					}
+				}
 			}
-			newRanges.push(newRange);
 		}
 		if (isChange) {
 			this.setSqref(newRanges, ws, addToHistory);
