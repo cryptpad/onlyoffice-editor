@@ -1425,10 +1425,16 @@ CShape.prototype.applyTextFunction = function (docContentFunction, tableFunction
     }
     if(!editor || !editor.noCreatePoint || editor.exucuteHistory)
     {
-        var point = this.isObjectInSmartArt() && this.getPoint();
-
-        if (args[0] && args[0].Value && args[0].Value.FontSize && point) {
-            point.prSet.setCustT(true);
+        var pointContent = this.isObjectInSmartArt() && this.getSmartArtPointContent();
+        if (pointContent && pointContent.length !== 0) {
+            var argsValue = args[0] && args[0].Value;
+            if (argsValue) {
+                if (argsValue.FontSize) {
+                    pointContent.forEach(function (point) {
+                        point.prSet.setCustT(true);
+                    })
+                }
+            }
         }
         this.checkExtentsByDocContent();
     }
@@ -1436,16 +1442,37 @@ CShape.prototype.applyTextFunction = function (docContentFunction, tableFunction
 
 CShape.prototype.copyTextInfoFromShapeToPoint = function () {
     var txBody = this.txBody;
-    var point = this.getPoint();
-    if (txBody && point) {
-        var pointCopy;
-        if (point.prSet && point.prSet.custT) {
-            pointCopy = txBody.createDuplicateForSmartArt({custT: point.prSet.custT});
-        } else {
-            pointCopy = txBody.createDuplicateForSmartArt();
-        }
-        point.setT(pointCopy);
-        return;
+    var pointContent = this.getSmartArtPointContent();
+    var options = {};
+    if (txBody && pointContent && pointContent.length !== 0) {
+        options.pointContentLength = pointContent.length;
+        var pointsCopy;
+        var arrPrSet = pointContent.map(function (point) {
+            return point.prSet;
+        });
+        var custTPrSet = arrPrSet.some(function (prSet) {
+            return prSet.custT;
+        });
+            if (custTPrSet) {
+                options.custT = true;
+            }
+
+        // if (prSet.lIns !== undefined || prSet.lIns !== null) {
+        //     options.lIns = true;
+        // }
+        // if (prSet.rIns !== undefined || prSet.rIns !== null) {
+        //     options.rIns = true;
+        // }
+        // if (prSet.bIns !== undefined || prSet.bIns !== null) {
+        //     options.bIns = true;
+        // }
+        // if (prSet.tIns !== undefined || prSet.tIns !== null) {
+        //     options.tIns = true; TODO: add it's with change ins
+        // }
+        pointsCopy = txBody.createDuplicateForSmartArt(options);
+            pointContent.forEach(function (point, idx) {
+                point.setT(pointsCopy[idx])
+            });
     }
 }
 
@@ -4562,8 +4589,13 @@ CShape.prototype.getSmartArtShapePoint = function () {
                     }
                 }
             }
-            var point = this.isObjectInSmartArt() && this.getPoint();
-            var isPlaceholderInSmartArt = point && point.prSet && point.prSet.phldr;
+            var pointContent = this.getSmartArtPointContent();
+            var isPlaceholderInSmartArt = false;
+            if ( pointContent && pointContent.length !== 0) {
+                isPlaceholderInSmartArt = pointContent.every(function (point) {
+                    return point && point.prSet && point.prSet.phldr;
+                })
+            }
             if(this.isPlaceholder() || isPlaceholderInSmartArt)
             {
                 if(!this.isEmptyPlaceholder())
@@ -4574,7 +4606,7 @@ CShape.prototype.getSmartArtShapePoint = function () {
                 if(typeof AscCommonSlide !== "undefined" && AscCommonSlide.CNotes && this.parent instanceof AscCommonSlide.CNotes && this.nvSpPr.nvPr.ph.type === AscFormat.phType_body){
                     text = "Click to add notes";
                 } else if (this.isObjectInSmartArt()) {
-                    text = point.prSet.phldrT;
+                    text = pointContent[0].prSet.phldrT;
                 } else {
                     text = typeof pHText[0][this.nvSpPr.nvPr.ph.type] === "string" && pHText[0][this.nvSpPr.nvPr.ph.type].length > 0 ?  pHText[0][this.nvSpPr.nvPr.ph.type] : pHText[0][AscFormat.phType_body];
                 }
@@ -4730,8 +4762,14 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
             oContent.Recalc_AllParagraphs_CompiledPr();
             this.recalcInfo.recalculateContent = true;
             if (this.isObjectInSmartArt()) {
-                var point = this.getPoint();
-                var isPlaceholderInSmartArt = point && point.prSet && point.prSet.phldr;
+                var pointContent = this.getSmartArtPointContent();
+                var isPlaceholderInSmartArt = false;
+                if ( pointContent && pointContent.length !== 0) {
+                    isPlaceholderInSmartArt = pointContent.every(function (point) {
+                        return point && point.prSet && point.prSet.phldr;
+                    })
+                }
+
                 if (isPlaceholderInSmartArt) {
                     this.recalcInfo.recalculateContent2 = true;
                 }
@@ -4760,8 +4798,13 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
     CShape.prototype.findFitFontSizeForSmartArt = function () {
         var maxFontSize = 65;
         if (this.txBody) {
-            var point = this.isObjectInSmartArt() && this.getPoint();
-            var isPlaceholderInSmartArt = point && point.prSet && point.prSet.phldr;
+            var pointContent = this.isObjectInSmartArt() && this.getSmartArtPointContent();
+            var isPlaceholderInSmartArt = false;
+            if ( pointContent && pointContent.length !== 0) {
+                isPlaceholderInSmartArt = pointContent.every(function (point) {
+                    return point && point.prSet && point.prSet.phldr;
+                })
+            }
             var content;
             if (isPlaceholderInSmartArt) {
                 content = this.txBody.content2;
@@ -4867,7 +4910,7 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
     {
         var oBodyPr = this.getBodyPr && this.getBodyPr();
         var oContent = this.getDocContent && this.getDocContent();
-        var point = this.isObjectInSmartArt() && this.getPoint();
+        var pointContent = this.getSmartArtPointContent();
         if(oBodyPr && oContent && this.clipRect)
         {
             var oTextFit = oBodyPr.textFit;
@@ -5008,7 +5051,12 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                     this.recalculateContentWitCompiledPr();
                 }
             }
-            var isPlaceholderInSmartArt = point && point.prSet && point.prSet.phldr;
+            var isPlaceholderInSmartArt = false;
+            if ( pointContent && pointContent.length !== 0) {
+                 isPlaceholderInSmartArt = pointContent.some(function (point) {
+                     return point && point.prSet && point.prSet.phldr;
+                 })
+            }
             if (isPlaceholderInSmartArt) {
                 var isNotEmptyShape = oContent.Content.some(function (paragraph) {
                     return paragraph.Content.some(function (paraRun) {
@@ -5019,7 +5067,9 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                     });
                 });
                 if (isNotEmptyShape) {
-                    point.prSet.setPhldr(false);
+                    pointContent.forEach(function (point) {
+                        point.prSet.setPhldr(false);
+                    })
                     this.txBody.content2 = null;
                 }
             }

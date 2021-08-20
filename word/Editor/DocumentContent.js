@@ -209,16 +209,37 @@ CDocumentContent.prototype.Copy3 = function(Parent)//для заголовков
 	return DC;
 };
 
-CDocumentContent.prototype.createDuplicateForSmartArt = function (Parent, oPr) {
-	var DC = new CDocumentContent(Parent, this.DrawingDocument, 0, 0, 0, 0, this.Split, this.TurnOffInnerWrap, true);
-	DC.Internal_Content_RemoveAll();
+CDocumentContent.prototype.createDuplicateForSmartArt = function (oPr, arrayOfTxBody) {
+	if (!arrayOfTxBody) {
+		return;
+	}
+	var that = this;
+	var arrayOfDC = Array(arrayOfTxBody.length).fill(0).map(function (value, idx) {
+		var DC = new CDocumentContent(arrayOfTxBody[idx], that.DrawingDocument, 0, 0, 0, 0, that.Split, that.TurnOffInnerWrap, true);
+		DC.Internal_Content_RemoveAll();
+		return DC;
+	});
 
 	var Count = this.Content.length;
-	for (var Index = 0; Index < Count; Index++)
-	{
-		DC.Internal_Content_Add(Index, this.Content[Index].createDuplicateForSmartArt(DC, oPr), false);
+	if (Count % arrayOfDC.length === 0) {
+		var amountOfParOfPer = Count / arrayOfDC.length;
+	} else {
+		amountOfParOfPer = (Count - Count % (arrayOfDC.length)) / (arrayOfDC.length);
 	}
-	return DC;
+	for (var i = 0; i < arrayOfDC.length; i += 1) {
+		var DC = arrayOfDC[i];
+		var firstParOnThisDC = i * amountOfParOfPer;
+		var lastParOnThisDC = firstParOnThisDC + amountOfParOfPer;
+		if (i === arrayOfDC.length - 1) {
+			lastParOnThisDC = Count;
+		}
+		for (var j = firstParOnThisDC; j < lastParOnThisDC; j += 1) {
+			DC.Internal_Content_Add(DC.Content.length, this.Content[j].createDuplicateForSmartArt(DC, oPr), false);
+		}
+	}
+	arrayOfTxBody.forEach(function (txBody, idx) {
+		txBody.setContent(arrayOfDC[idx]);
+	})
 }
 /**
  * В текущем содержимом получаем все комментарии и создаем их копии. Это иногда нужно делать во время функции

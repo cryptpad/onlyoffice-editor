@@ -124,15 +124,21 @@
         return ret;
     };
     CTextBody.prototype.createDuplicateForSmartArt = function (oPr) {
-        var ret = new CTextBody();
-        if(this.bodyPr)
-            ret.setBodyPr(this.bodyPr.createDuplicateForSmartArt());
-        if(this.lstStyle)
-            ret.setLstStyle(this.lstStyle.createDuplicate());
-        if(this.content) {
-            ret.setContent(this.content.createDuplicateForSmartArt(ret, oPr));
+        var arrayOfTextBody = [];
+        for (var i = 0; i < oPr.pointContentLength; i += 1) {
+            arrayOfTextBody.push(new CTextBody());
         }
-        return ret;
+        var that = this;
+        arrayOfTextBody.forEach(function (txBody) {
+            if(that.bodyPr)
+                txBody.setBodyPr(that.bodyPr.createDuplicateForSmartArt(oPr));
+            if(that.lstStyle)
+                txBody.setLstStyle(that.lstStyle.createDuplicate());
+        })
+        if(this.content) {
+            this.content.createDuplicateForSmartArt(oPr, arrayOfTextBody);
+        }
+        return arrayOfTextBody;
     }
 
     CTextBody.prototype.Is_TopDocument = function() {
