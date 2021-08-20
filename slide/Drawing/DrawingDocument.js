@@ -4218,10 +4218,10 @@ function CThumbnailsManager()
 
 		var drawRect = this.m_arrPages[pageIndex];
 		var _ret     = {
-			X : this.m_oWordControl.X + drawRect.left,
-			Y : this.m_oWordControl.X + drawRect.top,
-			W : drawRect.right - drawRect.left + 1,
-			H : drawRect.bottom - drawRect.top + 1
+			X : AscCommon.AscBrowser.convertToRetinaValue(drawRect.left),
+			Y : AscCommon.AscBrowser.convertToRetinaValue(drawRect.top),
+			W : AscCommon.AscBrowser.convertToRetinaValue(drawRect.right - drawRect.left),
+			H : AscCommon.AscBrowser.convertToRetinaValue(drawRect.bottom - drawRect.top)
 		};
 		return _ret;
 	};
@@ -5056,7 +5056,8 @@ function CThumbnailsManager()
 				}
 				else
 				{
-					word_control.m_oThumbnails_scroll.HtmlElement.style.display = "block";
+					if (!word_control.m_oApi.isMobileVersion)
+						word_control.m_oThumbnails_scroll.HtmlElement.style.display = "block";
 				}
 
 				word_control.m_oThumbnailsContainer.Resize(__w, __h, word_control);
