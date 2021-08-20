@@ -122,7 +122,16 @@ function cloneMatrixNS(nsmatrix) {
     return nn;
 };
 
-
+var EasySAXEvent = {
+    Unknown: 0,
+    START_ELEMENT: 1,
+    CHARACTERS: 2,
+    END_ELEMENT: 3,
+    CDATA: 4,
+    Comment: 5,
+    Attention: 6,
+    Question: 7
+}
 
 function EasySAXParser(config) {
     if (!this) {
@@ -262,6 +271,16 @@ function EasySAXParser(config) {
     this.parse = function(xml) {
         this.write(xml);
         this.end();
+    };
+    this.staxParseStream = function(staxStream) {
+        this.staxInit(staxStream);
+        staxParseWithEvents();
+        returnError = '';
+        this.end();
+    };
+    this.staxParseXml = function(xml) {
+        var xmls = [xml];
+        this.staxParseStream({read: function(){return xmls.pop();}});
     };
 
     this.stop = function() {
@@ -814,5 +833,388 @@ function EasySAXParser(config) {
             };
         };
     };
+
+    var staxStream, staxState_nsmatrix, staxStateisTagStart, staxStateisTagEnd, staxStatestopEmit, staxStatenodeName, staxStateeventType, staxStatetext;
+    function staxInit(_staxStream) {
+        init = true;
+        reset();
+        staxCleanState();
+
+        staxStream = _staxStream;
+        xml = staxStream.read();
+    }
+    function staxCleanState() {
+        staxState_nsmatrix = null;
+        staxStateisTagStart = false;
+        staxStateisTagEnd = false;
+        staxStatestopEmit = null;
+        staxStatenodeName = null;
+
+        staxStateeventType = null;
+        staxStatetext = null;
+    }
+    function staxHasNext() {
+        return !isParseStop;
+    }
+    function staxGetEventType() {
+        return staxStateeventType;
+    }
+    function staxGetName() {
+        return staxStatenodeName;
+    }
+    function staxGetText() {
+        return staxStatetext;
+    }
+    function staxGetDepth() {
+        return parseStackNodes.length;
+    }
+    
+    function staxParseWithEvents(){
+        staxCleanState();
+
+        returnError = null; // сброс ошибки неудачного разбора
+        while (staxHasNext()) {
+            staxNext();
+            if (staxStatestopEmit) {
+                continue;
+            }
+            switch (staxGetEventType()) {
+                case EasySAXEvent.START_ELEMENT:
+                    onStartNode(staxGetName(), getAttrs, staxStateisTagEnd, getStringNode);
+                    break;
+                case EasySAXEvent.CHARACTERS:
+                    onTextNode(staxGetText());
+                    break;
+                case EasySAXEvent.END_ELEMENT:
+                    onEndNode(staxGetName(), staxStateisTagStart, getStringNode);
+                    break;
+                case EasySAXEvent.CDATA:
+                    onCDATA(staxGetText());
+                    break;
+                case EasySAXEvent.Comment:
+                    if (is_onComment) {
+                        onComment(staxGetText());
+                    }
+                    break;
+                case EasySAXEvent.Attention:
+                    if (is_onAttention) {
+                        onAttention(staxGetText());
+                    }
+                    break;
+                case EasySAXEvent.Question:
+                    if (is_onQuestion) {
+                        onQuestion(staxGetText());
+                    }
+                    break;
+            }
+        }
+    }
+
+    function staxNext() {
+        // разбор идет по элементам (тег, текст cdata, ...).
+        // элемент должен быть целиком в памяти
+
+        // var _nsmatrix;
+        // var isTagStart = false;
+        // var isTagEnd = false;
+        // //var nodeBody;
+        // var stopEmit; // используется при разборе "namespace" . если встретился неизвестное пространство то события не генерируются
+        // var nodeName;
+        var xmlns;
+        var iD;
+        var iQ;
+        var w;
+        var i; // number
+
+        if (staxStateisTagEnd) {
+            if (staxStateisTagStart && staxStateeventType === EasySAXEvent.START_ELEMENT) {
+                staxStateeventType = EasySAXEvent.END_ELEMENT;
+                return;
+            };
+            if (isNamespace && staxStateeventType === EasySAXEvent.END_ELEMENT) {
+                if (staxStateisTagStart) {
+                    nsmatrix = staxState_nsmatrix;
+                } else {
+                    nsmatrix = parseStackMatrixNS.pop();
+                };
+            };
+        };
+
+        staxStateeventType = EasySAXEvent.Unknown;
+        staxStatestopEmit = stopIndexNS > 0;
+
+        // поиск начала тега
+        if (xml.charCodeAt(indexStartXML) === 60) { // "<"
+            i = indexStartXML;
+        } else {
+            i = xml.indexOf('<', indexStartXML);
+        };
+
+        if (i === -1) { // узел не найден. повторим попытку на след. write
+            // --- нужно подумать как обрабатывать начало файла ---
+            // if (indexStartXML === 0) { // разбор еше не начат. возможно это начало файла. мусор до первого тега игнор
+            //     returnError = 'missing first tag';
+            //     return;
+            // };
+
+            if (indexStartXML > 0) {
+                xml = xml.substring(indexStartXML);
+                indexStartXML = 0;
+            };
+            let chunk = staxStream.read();
+            if(chunk) {
+                xml = xml + chunk;
+
+                // поиск начала тега
+                if (xml.charCodeAt(indexStartXML) === 60) { // "<"
+                    i = indexStartXML;
+                } else {
+                    i = xml.indexOf('<', indexStartXML);
+                };
+            }
+
+            if (i === -1) {
+                if (parseStackNodes.length) {
+                    returnError = 'unexpected end parse';
+                };
+                if (returnError) {
+                    onError(returnError);
+                    returnError = '';
+                };
+                isParseStop = true;
+                return;
+            }
+        };
+
+        if (indexStartXML !== i) { // все что до тега это текст
+            let text = xml.substring(indexStartXML, i);
+            indexStartXML = i; // до этой позиции разбор завершен
+
+            staxStateeventType = EasySAXEvent.CHARACTERS;
+            staxStatetext = isAutoEntity ? entityDecode(text) : text;
+            return;
+        };
+
+        // ELEMENT
+        // ---------------------------------------------
+
+        w = xml.charCodeAt(i + 1);
+
+        if (w === 33) { // 33 == "!"
+            let wNext = xml.charCodeAt(i + 2);
+
+            // CDATA
+            // ---------------------------------------------
+            if (wNext === 91 && xml.substr(i + 3, 6) === 'CDATA[') { // 91 == "["
+                let indexStartCDATA = i + 9;
+                let indexEndCDATA = xml.indexOf(']]>', indexStartCDATA);
+                if (indexEndCDATA === -1) {
+                    returnError = 'cdata, not found ...]]>'; // не закрыт CDATA. повторим попытку на след. write
+                    isParseStop = true;
+                    return;
+                };
+
+                indexStartXML = indexEndCDATA + 3;
+                staxStateeventType = EasySAXEvent.CDATA;
+                staxStatetext = xml.substring(indexStartCDATA, indexEndCDATA);
+                return;
+            };
+
+
+            // COMMENT
+            // ---------------------------------------------
+            if (wNext === 45 && xml.charCodeAt(i + 3) === 45) { // 45 == "-"
+                let indexStartComment = i + 4;
+                let indexEndComment = xml.indexOf('-->', indexStartComment);
+                if (indexEndComment === -1) {
+                    returnError = 'expected -->'; // не закрыт комментарий. повторим попытку на след. write
+                    isParseStop = true;
+                    return;
+                };
+
+                indexStartXML = indexEndComment + 3;
+                staxStateeventType = EasySAXEvent.Comment;
+                staxStatetext = xml.substring(indexStartComment, indexEndComment);
+                return;
+            };
+
+            // ATTENTION
+            // ---------------------------------------------
+            {
+                let indexStartAttention = i + 1;
+                let indexEndAttention = xml.indexOf('>', indexStartAttention);
+                if (indexEndAttention === -1) {
+                    returnError = 'expected attention ...>'; // повторим попытку на след. write
+                    isParseStop = true;
+                    return;
+                };
+
+                indexStartXML = indexEndAttention + 1;
+                staxStateeventType = EasySAXEvent.Attention;
+                staxStatetext = xml.substring(i, indexStartXML);
+                return;
+            };
+
+            return;
+        };
+
+        // QUESTION
+        // ---------------------------------------------
+        if (w === 63) { // "?"
+            let indexEndQuestion = xml.indexOf('?>', i);
+            if (indexEndQuestion === -1) { // error
+                returnError = 'expected question ...?>'; // повторим попытку на след. write
+                isParseStop = true;
+                return;
+            };
+
+            indexStartXML = indexEndQuestion + 2;
+            staxStateeventType = EasySAXEvent.Question;
+            staxStatetext = xml.substring(i, indexStartXML);
+            return;
+        };
+
+
+        // NODE ELEMENT
+        // ---------------------------------------------
+
+        if (w === 47) { // </...
+            let indexEndNode = xml.indexOf('>', i + 1);
+            if (indexEndNode === -1) { // error  ...> // не нашел знак закрытия тега
+                returnError = 'unclosed tag'; // повторим попытку на след. write
+                isParseStop = true;
+                return;
+            };
+
+            staxStateisTagStart = false;
+            staxStateisTagEnd = true;
+
+            // проверяем что тег должен быть закрыт тот-же что и открывался
+            if (!parseStackNodes.length) {
+                returnError = 'close tag, requires open tag';
+                isParseStop = true; // дальнейший разбор невозможен
+                return;
+            };
+
+            staxStatenodeName = parseStackNodes.pop();
+            iQ = i + 2 + staxStatenodeName.length;
+
+            if (staxStatenodeName !== xml.substring(i + 2, iQ)) {
+                returnError = 'close tag, not equal to the open tag';
+                isParseStop = true; // дальнейший разбор невозможен
+                return;
+            };
+
+            // проверим что в закрываюшем теге нет лишнего
+            for(; iQ < indexEndNode; iQ++) {
+                let wNext = xml.charCodeAt(iQ);
+                if (wNext === 32 || wNext === 9 || wNext === 10 || wNext === 11 || wNext === 12 || wNext === 13) { // \f\n\r\t\v
+                    continue;
+                };
+
+                returnError = 'close tag, unallowable char';
+                isParseStop = true; // дальнейший разбор невозможен
+                return;
+            };
+
+            indexStartXML = indexEndNode + 1;
+
+        } else {
+            let indexEndNode = parseNode(i);
+            if (indexEndNode === -1) { // error  ...> // не нашел знак закрытия тега
+                returnError = returnError || 'unclosed tag'; // повторим попытку на след. write
+                isParseStop = true;
+                return;
+            };
+
+            staxStateisTagStart = true;
+            staxStateisTagEnd = xml.charCodeAt(indexEndNode - 1) === 47;
+            staxStatenodeName = nodeParseName;
+
+            if (!staxStateisTagEnd) {
+                parseStackNodes.push(staxStatenodeName);
+            };
+
+            indexStartXML = indexEndNode + 1;
+        };
+
+
+        if (isNamespace) {
+            if (staxStatestopEmit) { // потомки неизвестного пространства имен
+                if (staxStateisTagEnd) {
+                    if (!staxStateisTagStart) {
+                        if (--stopIndexNS === 0) {
+                            nsmatrix = parseStackMatrixNS.pop();
+                        };
+                    };
+
+                } else {
+                    stopIndexNS += 1;
+                };
+                return;
+            };
+
+            // добавляем в parseStackMatrixNS только если !staxStateisTagEnd, иначе сохраняем контекст пространств в переменной
+            staxState_nsmatrix = nsmatrix;
+            if (!staxStateisTagEnd) {
+                parseStackMatrixNS.push(nsmatrix);
+            };
+
+            if (staxStateisTagStart && nodeParseHasNS) {  // есть подозрение на staxStatexmlns //  && (nodeParseAttrResult === null)
+                upNSMATRIX();
+            };
+
+            iD = staxStatenodeName.indexOf(':');
+            if (iD !== -1) {
+                xmlns = nsmatrix[staxStatenodeName.substring(0, iD)];
+                staxStatenodeName = staxStatenodeName.substr(iD + 1);
+
+            } else {
+                xmlns = nsmatrix.xmlns;
+            };
+
+            if (!xmlns) {
+                // элемент неизвестного пространства имен
+                if (staxStateisTagEnd) {
+                    nsmatrix = staxState_nsmatrix; // так как тут всегда staxStateisTagStart
+                } else {
+                    stopIndexNS = 1; // первый элемент для которого не определено пространство имен
+                };
+                return;
+            };
+
+            staxStatenodeName = xmlns + ':' + staxStatenodeName;
+        };
+
+        stringNodePosStart = i; // stringNodePosStart, stringNodePosEnd - для ручного разбора getStringNode()
+        stringNodePosEnd = indexStartXML;
+
+        // if (staxStateisTagStart) {
+        //     staxStateeventType = EasySAXEvent.START_ELEMENT;
+        //     return;
+        // };
+        // if (staxStateisTagEnd) {
+        //     staxStateeventType = EasySAXEvent.END_ELEMENT;
+        //     return;
+        // };
+
+        if (staxStateisTagStart) {
+            staxStateeventType = EasySAXEvent.START_ELEMENT;
+            return;
+        };
+        if (staxStateisTagEnd) {
+            staxStateeventType = EasySAXEvent.END_ELEMENT;
+            return;
+        };
+    }
+    
+    this.staxInit = staxInit;
+    this.staxHasNext = staxHasNext;
+    this.staxNext = staxNext;
+    this.staxGetEventType = staxGetEventType;
+    this.staxGetName = staxGetName;
+    this.staxGetAttrs = getAttrs;
+    this.staxGetText = staxGetText;
+    this.staxGetDepth = staxGetDepth;
 };
 
