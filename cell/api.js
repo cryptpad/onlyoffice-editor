@@ -6610,6 +6610,8 @@ var editor;
   prot["asc_getProtectedRanges"]           = prot.asc_getProtectedRanges;
   prot["asc_setProtectedRanges"]           = prot.asc_setProtectedRanges;
   prot["asc_checkProtectedRangesPassword"] = prot.asc_checkProtectedRangesPassword;
+  prot["asc_checkProtectedRangeName"]      = prot.asc_checkProtectedRangeName;
+
   prot["asc_getProtectedSheet"]            = prot.asc_getProtectedSheet;
   prot["asc_setProtectedSheet"]            = prot.asc_setProtectedSheet;
   prot["asc_isProtectedSheet"]             = prot.asc_isProtectedSheet;
