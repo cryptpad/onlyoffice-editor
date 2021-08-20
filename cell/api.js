@@ -5916,7 +5916,7 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_checkProtectedRangeName = function(checkName) {
-  	var ws = this.wb.getWorksheet();
+  	var ws = this.wbModel.getActiveWs();
   	return ws.checkProtectedRangeName(checkName);
   };
 
