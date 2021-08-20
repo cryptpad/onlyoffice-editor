@@ -1111,6 +1111,8 @@ Geometry.prototype=
         this.gmEditPoint.isSecondCPoint = isSecondCPoint;
         this.gmEditPoint.isStartPoint = isStartPoint;
         this.gmEditPoint.pathIndex = pathIndex;
+
+        this.originalEditPoint = {X, Y, g1X, g1Y, g2X, g2Y};
     },
 
     findConnector: function(x, y, distanse){
@@ -1403,30 +1405,12 @@ Geometry.prototype=
         var isHitInPath = geometry.hitInPath(oCanvas, x, y, arrTrackObject);
         
         if (e.Type === 0) {
-
             for (var i = geometry.gmEditList.length - 1; i >= 0; i--) {
                 dx = x - geometry.gmEditList[i].X;
                 dy = y - geometry.gmEditList[i].Y;
 
                 var gmArr = geometry.gmEditList[i];
-                var nextPoint = gmArr.nextPoint;
-                var prevPoint = gmArr.prevPoint;
-
-                var originalEditPoint = {
-                    id: gmArr.id, X: gmArr.X, Y: gmArr.Y, g1X: gmArr.g1X, g1Y: gmArr.g1Y, g2X: gmArr.g2X, g2Y:
-                    gmArr.g2Y, pathC1 : gmArr.pathC1, pathC2 : gmArr.pathC2,
-                    nextPoint: {
-                        id: nextPoint.id, X: nextPoint.X, Y: nextPoint.Y, g1X: nextPoint.g1X, g1Y: nextPoint.g1Y,
-                        g2X: nextPoint.g2X, g2Y: nextPoint.g2Y, pathC1 : nextPoint.pathC1, pathC2 : nextPoint.pathC2,
-                    },
-                    prevPoint: {
-                        id: prevPoint.id, X: prevPoint.X, Y: prevPoint.Y, g1X: prevPoint.g1X, g1Y: prevPoint.g1Y,
-                        g2X: prevPoint.g2X, g2Y: prevPoint.g2Y, pathC1 : prevPoint.pathC1, pathC2 : prevPoint.pathC2,
-                    },
-                    isFirstCPoint: false,
-                    isSecondCPoint: false,
-                    isStartPoint: gmArr.isStartPoint
-                }
+                var originalEditPoint = {id: gmArr.id, X: gmArr.X, Y: gmArr.Y, g1X: gmArr.g1X, g1Y: gmArr.g1Y, g2X: gmArr.g2X, g2Y: gmArr.g2Y}
 
                 if (Math.sqrt(dx * dx + dy * dy) < distance) {
                     geometry.gmEditPoint = geometry.gmEditList[i];

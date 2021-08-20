@@ -7095,6 +7095,17 @@ DrawingObjectsController.prototype =
                 this.selection.cropSelection.cropObject = null;
             }
         }
+        else if(selection_state.geometryObject && !selection_state.geometryObject.bDeleted)
+        {
+            this.selectObject(selection_state.geometryObject, selection_state.selectStartPage);
+            this.selection.geometrySelection = selection_state.geometryObject;
+            var paraDrawing = selection_state.geometryObject.GetParaDrawing();
+            var extX = paraDrawing.Extent.W;
+            var extY = paraDrawing.Extent.H;
+            this.arrTrackObjects.push(new AscFormat.EditShapeGeometryTrack(this.selection.geometrySelection, this.document, this.curState.drawingObjects, extX, extY));
+            this.changeCurrentState(new AscFormat.GeometryEditState(this, this.selection.geometrySelection.spPr.parent));
+            this.selection.geometrySelection.drawGeometryEdit(this.drawingDocument, this.arrTrackObjects);
+        }
         else
         {
             if(Array.isArray(selection_state.selection)){
@@ -7153,6 +7164,11 @@ DrawingObjectsController.prototype =
             selection_state.cropObject = this.selection.cropSelection;
             selection_state.cropImage = this.selection.cropSelection.cropObject;
             selection_state.selectStartPage = this.selection.cropSelection.selectStartPage;
+        }
+        else if(this.selection.geometrySelection)
+        {
+            selection_state.focus = true;
+            selection_state.geometryObject = this.selection.geometrySelection;
         }
         else
         {

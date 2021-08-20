@@ -1775,7 +1775,6 @@ GeometryEditState.prototype = {
         var ret = AscFormat.handleSelectedObjects(this.drawingObjects, e, x, y, null, pageIndex, true);
         if (e.Type === 0) {
             var track_object = this.drawingObjects.arrTrackObjects[0];
-            var gmEditPoint = track_object.geometry.gmEditPoint;
             if (ret && ret.hit) {
                 return {objectId: track_object.geometry.Id, hit: true};
             } else if ((ret && !ret.hit) || !ret) {

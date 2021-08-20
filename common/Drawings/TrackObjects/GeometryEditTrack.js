@@ -42,39 +42,43 @@
         END: 5
     };
 
-    function EditShapeGeometryTrack(originalObject, document, drawingObjects) {
-        this.drawingObjects = drawingObjects;
-        this.geometry = originalObject.spPr.geometry.createDuplicate();
-        this.geometry.parent = originalObject.spPr.geometry.parent;
-        this.originalShape = originalObject;
-        this.originalObject = originalObject;
-        this.shapeWidth = originalObject.extX;
-        this.shapeHeight = originalObject.extY;
-        var oPen = originalObject.pen;
-        var oBrush = originalObject.brush;
-        this.transform = originalObject.transform;
-        this.invertTransform = originalObject.invertTransform;
-        this.overlayObject = new AscFormat.OverlayObject(this.geometry, this.resizedExtX, this.originalExtY, oBrush, oPen, this.transform);
-        this.isConverted = false;
-        this.xMin = 0;
-        this.yMin = 0;
-        this.xMax = this.shapeWidth;
-        this.yMax =  this.shapeHeight;
-        this.addingPoint = {pathIndex: null, commandIndex: null};
-        this.document = document;
-        this.geometry.Recalculate(this.shapeWidth, this.shapeHeight);
+    function EditShapeGeometryTrack(originalObject, document, drawingObjects, extX, extY) {
+        AscFormat.ExecuteNoHistory(function() {
+            this.drawingObjects = drawingObjects;
+            this.geometry = originalObject.spPr.geometry.createDuplicate();
+            this.geometry.parent = originalObject.spPr.geometry.parent;
+            this.originalShape = originalObject;
+            this.originalObject = originalObject;
+            this.shapeWidth = extX ? extX : originalObject.extX;
+            this.shapeHeight = extY ? extY : originalObject.extY;
+            var oPen = originalObject.pen;
+            var oBrush = originalObject.brush;
+            this.transform = originalObject.transform;
+            this.overlayObject = new AscFormat.OverlayObject(this.geometry, this.resizedExtX, this.originalExtY, oBrush, oPen, this.transform);
+            this.isConverted = false;
+            this.xMin = 0;
+            this.yMin = 0;
+            this.xMax = this.shapeWidth;
+            this.yMax = this.shapeHeight;
+            this.addingPoint = {pathIndex: null, commandIndex: null};
+            this.document = document;
+            this.geometry.Recalculate(this.shapeWidth, this.shapeHeight);
+        }, this, []);
     };
 
-    EditShapeGeometryTrack.prototype.draw = function(overlay, transform)
+    EditShapeGeometryTrack.prototype.draw = function(overlay)
     {
         if(AscFormat.isRealNumber(this.originalShape.selectStartPage) && overlay.SetCurrentPage)
         {
             overlay.SetCurrentPage(this.originalShape.selectStartPage);
         }
+        //Check correct
+        this.overlayObject.TransformMatrix = this.originalShape.transform;
         this.overlayObject.draw(overlay);
     };
 
     EditShapeGeometryTrack.prototype.track = function(e, posX, posY) {
+        AscFormat.ExecuteNoHistory(function() {
         var geometry = this.geometry;
 
         if(!geometry.gmEditPoint) {
@@ -87,7 +91,7 @@
             geometry.pathLst[i].ArrPathCommandInfo = [];
         }
 
-        var invert_transform = this.invertTransform;
+        var invert_transform = this.originalShape.invertTransform;
         var _relative_x = invert_transform.TransformPointX(posX, posY);
         var _relative_y = invert_transform.TransformPointY(posX, posY);
         var originalPoint = geometry.originalEditPoint;
@@ -210,11 +214,11 @@
 
         /*<------------------------------------------------------------->*/
             this.addCommandsInPathInfo(geometry);
+        }, this, []);
 
     };
 
     EditShapeGeometryTrack.prototype.getBounds = function() {
-        //временно, в качестве заглушки
         var bounds_checker = new  AscFormat.CSlideBoundsChecker();
         bounds_checker.init(Page_Width, Page_Height, Page_Width, Page_Height);
         this.draw(bounds_checker);
@@ -670,7 +674,7 @@
                         pathElem.ArrPathCommand.splice(pathC1, 1);
                         geom.gmEditList.splice(index, 1);
                     }
-                    geom.gmEditPoint = [];
+                    geom.gmEditPoint = null;
                     t.addCommandsInPathInfo(geom, pathIndex);
                 }
         });

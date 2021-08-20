@@ -11466,7 +11466,7 @@ background-repeat: no-repeat;\
 		var selectedObject = drawingObjects.selection.groupSelection ? drawingObjects.selection.groupSelection.selectedObjects[0] :
 		drawingObjects.selectedObjects[0];
 
-		if (selectedObject) {
+		if (selectedObject && (selectedObject instanceof AscFormat.CShape)) {
 			drawingObjects.selection.geometrySelection = selectedObject;
 			drawingObjects.drawSelect(selectedObject.selectStartPage);
 		}
