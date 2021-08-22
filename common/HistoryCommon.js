@@ -1617,6 +1617,7 @@
 	window['AscDFH'].historyitem_type_DiagramData            = 2092 << 16;
 	window['AscDFH'].historyitem_type_FunctionValue          = 2093 << 16;
 	window['AscDFH'].historyitem_type_PointInfo              = 2094 << 16;
+	window['AscDFH'].historyitem_type_ShapeSmartArtInfo      = 2095 << 16;
 
 
 
@@ -2778,24 +2779,25 @@
 	window['AscDFH'].historyitem_PageSetupSetUseFirstPageNumb = window['AscDFH'].historyitem_type_PageSetup | 10;
 	window['AscDFH'].historyitem_PageSetupSetVerticalDpi      = window['AscDFH'].historyitem_type_PageSetup | 11;
 
-	window['AscDFH'].historyitem_ShapeSetBDeleted       = window['AscDFH'].historyitem_type_Shape | 1;
-	window['AscDFH'].historyitem_ShapeSetNvSpPr         = window['AscDFH'].historyitem_type_Shape | 2;
-	window['AscDFH'].historyitem_ShapeSetSpPr           = window['AscDFH'].historyitem_type_Shape | 3;
-	window['AscDFH'].historyitem_ShapeSetStyle          = window['AscDFH'].historyitem_type_Shape | 4;
-	window['AscDFH'].historyitem_ShapeSetTxBody         = window['AscDFH'].historyitem_type_Shape | 5;
-	window['AscDFH'].historyitem_ShapeSetTextBoxContent = window['AscDFH'].historyitem_type_Shape | 6;
-	window['AscDFH'].historyitem_ShapeSetParent         = window['AscDFH'].historyitem_type_Shape | 7;
-	window['AscDFH'].historyitem_ShapeSetGroup          = window['AscDFH'].historyitem_type_Shape | 8;
-	window['AscDFH'].historyitem_ShapeSetBodyPr         = window['AscDFH'].historyitem_type_Shape | 9;
-	window['AscDFH'].historyitem_ShapeSetWordShape      = window['AscDFH'].historyitem_type_Shape | 10;
-	window['AscDFH'].historyitem_ShapeSetSignature      = window['AscDFH'].historyitem_type_Shape | 11;
-	window['AscDFH'].historyitem_ShapeSetMacro          = window['AscDFH'].historyitem_type_Shape | 12;
-	window['AscDFH'].historyitem_ShapeSetTextLink       = window['AscDFH'].historyitem_type_Shape | 13;
-	window['AscDFH'].historyitem_ShapeSetModelId        = window['AscDFH'].historyitem_type_Shape | 14;
-	window['AscDFH'].historyitem_ShapeSetTxXfrm         = window['AscDFH'].historyitem_type_Shape | 15;
-	window['AscDFH'].historyitem_ShapeSetSmartArtPoint  = window['AscDFH'].historyitem_type_Shape | 16;
-	window['AscDFH'].historyitem_ShapeSetFLocksText     = window['AscDFH'].historyitem_type_Shape | 17;
-	window['AscDFH'].historyitem_ShapeSetClientData     = window['AscDFH'].historyitem_type_Shape | 18;
+	window['AscDFH'].historyitem_ShapeSetBDeleted               = window['AscDFH'].historyitem_type_Shape | 1;
+	window['AscDFH'].historyitem_ShapeSetNvSpPr                 = window['AscDFH'].historyitem_type_Shape | 2;
+	window['AscDFH'].historyitem_ShapeSetSpPr                   = window['AscDFH'].historyitem_type_Shape | 3;
+	window['AscDFH'].historyitem_ShapeSetStyle                  = window['AscDFH'].historyitem_type_Shape | 4;
+	window['AscDFH'].historyitem_ShapeSetTxBody                 = window['AscDFH'].historyitem_type_Shape | 5;
+	window['AscDFH'].historyitem_ShapeSetTextBoxContent         = window['AscDFH'].historyitem_type_Shape | 6;
+	window['AscDFH'].historyitem_ShapeSetParent                 = window['AscDFH'].historyitem_type_Shape | 7;
+	window['AscDFH'].historyitem_ShapeSetGroup                  = window['AscDFH'].historyitem_type_Shape | 8;
+	window['AscDFH'].historyitem_ShapeSetBodyPr                 = window['AscDFH'].historyitem_type_Shape | 9;
+	window['AscDFH'].historyitem_ShapeSetWordShape              = window['AscDFH'].historyitem_type_Shape | 10;
+	window['AscDFH'].historyitem_ShapeSetSignature              = window['AscDFH'].historyitem_type_Shape | 11;
+	window['AscDFH'].historyitem_ShapeSetMacro                  = window['AscDFH'].historyitem_type_Shape | 12;
+	window['AscDFH'].historyitem_ShapeSetTextLink               = window['AscDFH'].historyitem_type_Shape | 13;
+	window['AscDFH'].historyitem_ShapeSetModelId                = window['AscDFH'].historyitem_type_Shape | 14;
+	window['AscDFH'].historyitem_ShapeSetTxXfrm                 = window['AscDFH'].historyitem_type_Shape | 15;
+	window['AscDFH'].historyitem_ShapeSetSmartArtPoint          = window['AscDFH'].historyitem_type_Shape | 16;
+	window['AscDFH'].historyitem_ShapeSetFLocksText             = window['AscDFH'].historyitem_type_Shape | 17;
+	window['AscDFH'].historyitem_ShapeSetClientData             = window['AscDFH'].historyitem_type_Shape | 18;
+	window['AscDFH'].historyitem_ShapeSetShapeSmartArtPointInfo = window['AscDFH'].historyitem_type_Shape | 19;
 
 	window['AscDFH'].historyitem_DispUnitsSetBuiltInUnit  = window['AscDFH'].historyitem_type_DispUnits | 1;
 	window['AscDFH'].historyitem_DispUnitsSetCustUnit     = window['AscDFH'].historyitem_type_DispUnits | 2;
@@ -3692,6 +3694,11 @@
 	AscDFH.historyitem_FunctionValueResizeHandlesStr = AscDFH.historyitem_type_FunctionValue | 5;
 	AscDFH.historyitem_FunctionValueBool             = AscDFH.historyitem_type_FunctionValue | 6;
 	AscDFH.historyitem_FunctionValueInt              = AscDFH.historyitem_type_FunctionValue | 7;
+
+	AscDFH.historyitem_ShapeSmartArtInfoSpPrPoint             = AscDFH.historyitem_type_ShapeSmartArtInfo | 1;
+	AscDFH.historyitem_ShapeSmartArtInfoShapePoint            = AscDFH.historyitem_type_ShapeSmartArtInfo | 2;
+	AscDFH.historyitem_ShapeSmartArtInfoAddLstContentPoint    = AscDFH.historyitem_type_ShapeSmartArtInfo | 3;
+	AscDFH.historyitem_ShapeSmartArtInfoRemoveLstContentPoint = AscDFH.historyitem_type_ShapeSmartArtInfo | 4;
 
 	AscDFH.historyitem_PointInfoPoint                = AscDFH.historyitem_type_PointInfo | 1;
 	AscDFH.historyitem_PointInfoAssociation          = AscDFH.historyitem_type_PointInfo | 2;

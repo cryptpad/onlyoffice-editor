@@ -946,6 +946,7 @@ function SetXfrmFromMetrics(oDrawing, metrics)
 
            AscDFH.changesFactory[AscDFH.historyitem_ShapeSetNvSpPr]   = AscDFH.CChangesDrawingsObject;
            AscDFH.changesFactory[AscDFH.historyitem_ShapeSetSpPr]   = AscDFH.CChangesDrawingsObject;
+           AscDFH.changesFactory[AscDFH.historyitem_ShapeSetShapeSmartArtPointInfo]   = AscDFH.CChangesDrawingsObject;
            AscDFH.changesFactory[AscDFH.historyitem_ShapeSetTxXfrm]   = AscDFH.CChangesDrawingsObject;
            AscDFH.changesFactory[AscDFH.historyitem_ShapeSetSmartArtPoint]   = AscDFH.CChangesDrawingsObject;
            AscDFH.changesFactory[AscDFH.historyitem_ShapeSetStyle]   = AscDFH.CChangesDrawingsObject;
@@ -961,20 +962,21 @@ function SetXfrmFromMetrics(oDrawing, metrics)
 
 
 
-    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetNvSpPr]               = function(oClass, value){oClass.nvSpPr = value;};
-    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetSmartArtPoint]        = function(oClass, value){oClass.point = value;};
-    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetTxXfrm]               = function(oClass, value){oClass.txXfrm = value;};
-    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetModelId]              = function(oClass, value){oClass.modelId = value;};
-    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetSpPr]                 = function(oClass, value){oClass.spPr = value;};
-    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetStyle]                = function(oClass, value){oClass.style = value;};
-    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetTxBody]               = function(oClass, value){oClass.txBody = value;};
-    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetTextBoxContent]       = function(oClass, value){oClass.textBoxContent = value;};
-    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetBodyPr]               = function(oClass, value){oClass.bodyPr = value;};
-    AscDFH.drawingsChangesMap[AscDFH.historyitem_AutoShapes_SetBFromSerialize] = function(oClass, value){oClass.fromSerialize = value;};
-    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetParent]               = function(oClass, value){oClass.parent = value;};
-    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetGroup]                = function(oClass, value){oClass.group = value;};
-    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetWordShape]            = function(oClass, value){oClass.bWordShape = value;};
-    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetSignature]            = function(oClass, value){
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetNvSpPr]                 = function(oClass, value){oClass.nvSpPr = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetSmartArtPoint]          = function(oClass, value){oClass.point = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetShapeSmartArtPointInfo] = function(oClass, value){oClass.shapeSmartArtInfo = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetTxXfrm]                 = function(oClass, value){oClass.txXfrm = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetModelId]                = function(oClass, value){oClass.modelId = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetSpPr]                   = function(oClass, value){oClass.spPr = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetStyle]                  = function(oClass, value){oClass.style = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetTxBody]                 = function(oClass, value){oClass.txBody = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetTextBoxContent]         = function(oClass, value){oClass.textBoxContent = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetBodyPr]                 = function(oClass, value){oClass.bodyPr = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_AutoShapes_SetBFromSerialize]   = function(oClass, value){oClass.fromSerialize = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetParent]                 = function(oClass, value){oClass.parent = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetGroup]                  = function(oClass, value){oClass.group = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetWordShape]              = function(oClass, value){oClass.bWordShape = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetSignature]              = function(oClass, value){
         var oldSignature = oClass.signatureLine;
         var newSignature = value;
         oClass.signatureLine = value;
@@ -1094,8 +1096,11 @@ CShape.prototype.setSmartArtPoint = function (pr) {
     this.point = pr;
     this.point.setParent(this);
 };
+
 CShape.prototype.setShapeSmartArtInfo = function (pr) {
+    History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_ShapeSetShapeSmartArtPointInfo, this.shapeSmartArtInfo, pr));
     this.shapeSmartArtInfo = pr;
+    this.shapeSmartArtInfo.setParent(this);
 }
 CShape.prototype.isActiveBlipFillPlaceholder = function () {
     var pointAssociation = this.getSmartArtSpPrPoint();
