@@ -292,7 +292,7 @@ function MoveShapeImageTrack(originalObject)
                     this.y = oSmartArt.extY - (b - t);
                 }
             }
-            var point = this.originalObject.getPointAssociation();
+            var point = this.originalObject.getSmartArtShapePoint();
             if (point) {
                 var prSet = point.getPrSet();
                 var originalPosX = this.originalObject.x;

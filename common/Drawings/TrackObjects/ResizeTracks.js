@@ -1176,7 +1176,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                         this.resizedExtY = oSmartArt.extY - this.resizedPosY;
                     }
                 }
-                var point = this.originalObject.getPointAssociation();
+                var point = this.originalObject.getSmartArtShapePoint();
                 if (point) {
                     var prSet = point.getPrSet();
                     var defaultExtX = this.originalExtX;
