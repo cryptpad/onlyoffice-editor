@@ -10267,7 +10267,7 @@ CBodyPr.prototype =
         }
         return duplicate;
     },
-    createDuplicateForSmartArt: function ()
+    createDuplicateForSmartArt: function (oPr)
     {
         var duplicate = new CBodyPr();
         duplicate.anchor         = this.anchor;
@@ -10280,6 +10280,18 @@ CBodyPr.prototype =
         duplicate.fromWordArt    = this.fromWordArt;
         duplicate.compatLnSpc    = this.compatLnSpc;
         duplicate.forceAA        = this.forceAA;
+        if (oPr.lIns) {
+            duplicate.lIns = this.lIns;
+        }
+        if (oPr.rIns) {
+            duplicate.rIns = this.rIns;
+        }
+        if (oPr.tIns) {
+            duplicate.tIns = this.tIns;
+        }
+        if (oPr.bIns) {
+            duplicate.bIns = this.bIns;
+        }
         return duplicate;
     },
 

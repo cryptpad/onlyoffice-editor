@@ -12926,7 +12926,7 @@ CTextPr.prototype.createDuplicateForSmartArt = function(oPr) {
 	TextPr.Lang       = this.Lang.Copy();
 	TextPr.Spacing    = this.Spacing;
 
-	if (oPr && oPr.custT) {
+	if (oPr.custT) {
 		TextPr.FontSize = this.FontSize;
 	}
 
