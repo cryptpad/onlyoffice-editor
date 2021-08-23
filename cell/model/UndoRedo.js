@@ -2534,7 +2534,7 @@ function (window, undefined) {
 			}  else if (AscCH.historyitem_Cell_SetLocked == Type) {
 				cell.setLocked(Val);
 			}  else if (AscCH.historyitem_Cell_SetHidden == Type) {
-				cell.setHidden(Val);
+				cell.setHiddenFormulas(Val);
 			}
 		});
 	};
@@ -3245,7 +3245,7 @@ function (window, undefined) {
 			if (bUndo) {
 				ws.deleteProtectedRange(Data.id);
 			} else {
-				Data.to.id = Data.id;
+				Data.to.Id = Data.id;
 				ws.addProtectedRange(Data.to);
 			}
 		} else if (AscCH.historyitem_Worksheet_DelProtectedRange === Type) {
@@ -4482,7 +4482,6 @@ function (window, undefined) {
 					protectedSheet.setSpinCount(value);
 					break;
 				}
-
 				case AscCH.historyitem_Protected_SetSheet: {
 					protectedSheet.setSheet(value);
 					break;
@@ -4499,12 +4498,20 @@ function (window, undefined) {
 					protectedSheet.setFormatCells(value);
 					break;
 				}
+				case AscCH.historyitem_Protected_SetFormatColumns: {
+					protectedSheet.setFormatColumns(value);
+					break;
+				}
 				case AscCH.historyitem_Protected_SetInsertColumns: {
 					protectedSheet.setInsertColumns(value);
 					break;
 				}
 				case AscCH.historyitem_Protected_SetInsertRows: {
 					protectedSheet.setInsertRows(value);
+					break;
+				}
+				case AscCH.historyitem_Protected_SetFormatRows: {
+					protectedSheet.setFormatRows(value);
 					break;
 				}
 				case AscCH.historyitem_Protected_SetInsertHyperlinks: {
@@ -4536,6 +4543,7 @@ function (window, undefined) {
 					break;
 				}
 			}
+			this.wb.handlers.trigger("asc_onChangeProtectWorksheet", oModel.index);
 		}
 	};
 
@@ -4618,6 +4626,7 @@ function (window, undefined) {
 					break;
 				}
 			}
+			oModel.handlers.trigger("asc_onChangeProtectWorkbook");
 		}
 	};
 

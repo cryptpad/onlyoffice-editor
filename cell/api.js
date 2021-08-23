@@ -2480,10 +2480,6 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_showWorksheet = function(index) {
-  	if (this.asc_isProtectedWorkbook()) {
-      return false;
-  	}
-
   	if (typeof index === "number") {
       var t = this;
       var ws = this.wbModel.getWorksheet(index);
@@ -5919,6 +5915,11 @@ var editor;
     return res;
   };
 
+  spreadsheet_api.prototype.asc_checkProtectedRangeName = function(checkName) {
+  	var ws = this.wbModel.getActiveWs();
+  	return ws.checkProtectedRangeName(checkName);
+  };
+
   spreadsheet_api.prototype.asc_getProtectedSheet = function () {
     var ws = this.wbModel.getActiveWs();
     var res = null;
@@ -6609,6 +6610,8 @@ var editor;
   prot["asc_getProtectedRanges"]           = prot.asc_getProtectedRanges;
   prot["asc_setProtectedRanges"]           = prot.asc_setProtectedRanges;
   prot["asc_checkProtectedRangesPassword"] = prot.asc_checkProtectedRangesPassword;
+  prot["asc_checkProtectedRangeName"]      = prot.asc_checkProtectedRangeName;
+
   prot["asc_getProtectedSheet"]            = prot.asc_getProtectedSheet;
   prot["asc_setProtectedSheet"]            = prot.asc_setProtectedSheet;
   prot["asc_isProtectedSheet"]             = prot.asc_isProtectedSheet;

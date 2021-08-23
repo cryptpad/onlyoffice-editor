@@ -942,8 +942,8 @@
 			var isEqual = function (val1, val2) {
 				var res = false;
 				if (val1.isEdit === val2.isEdit && val1.sheetId === val2.sheetId) {
-					res = true;
 					if (val1.ranges.length === val2.ranges.length) {
+						res = true;
 						for (var i = 0; i < val1.ranges.length; i++) {
 							if (!val1.ranges[i].isEqual(val2.ranges[i])) {
 								res = false;

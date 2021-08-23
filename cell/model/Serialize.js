@@ -3665,7 +3665,7 @@
 		this.WriteWorkbookProtection = function(workbookProtection)
 		{
 			if (null != workbookProtection.lockStructure) {
-				this.memory.WriteByte(c_oSerWorksheetProtection.LockStructure);
+				this.memory.WriteByte(c_oSerWorkbookProtection.LockStructure);
 				this.memory.WriteByte(c_oSerPropLenType.Byte);
 				this.memory.WriteBool(workbookProtection.lockStructure);
 			}
