@@ -61,7 +61,7 @@ function CSpellchecker(settings)
 			dictionariesPath = dictionariesPath.substr(0, dictionariesPath.length - 1);
 	}
 
-	this.isUseSharedWorker = false;//!!window.SharedWorker;
+	this.isUseSharedWorker = !!window.SharedWorker;
 	if (this.isUseSharedWorker && (false === settings.useShared))
 		this.isUseSharedWorker = false;
 
