@@ -1443,6 +1443,7 @@ function CDrawingDocument()
 			var _textPr        = new CTextPr();
 			_textPr.FontFamily = {Name : "Arial", Index : -1};
 			_textPr.FontSize = (AscCommon.AscBrowser.convertToRetinaValue(11 << 1, true) >> 0) * 0.5;
+			_textPr.RFonts.SetAll("Arial");
 
 			_textPr.Strikeout = this.GuiLastTextProps.Strikeout;
 
