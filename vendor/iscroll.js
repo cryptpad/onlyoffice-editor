@@ -256,6 +256,9 @@ var utils = (function () {
 	};
 
 	me.click = function (e) {
+		// отключаем клики
+		return;
+
 		var target = e.target,
 			ev;
 
