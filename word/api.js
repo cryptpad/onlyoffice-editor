@@ -11468,7 +11468,6 @@ background-repeat: no-repeat;\
 
 		if (selectedObject && (selectedObject instanceof AscFormat.CShape)) {
 			drawingObjects.selection.geometrySelection = selectedObject;
-			drawingObjects.drawSelect(selectedObject.selectStartPage);
 		}
 	};
 

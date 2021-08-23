@@ -296,15 +296,14 @@
         this.originalObject.spPr.setGeometry(this.geometry.createDuplicate());
     };
 
-    EditShapeGeometryTrack.prototype.convertToBezier = function(geom) {
+    EditShapeGeometryTrack.prototype.convertToBezier = function(geometry) {
 
-        var countArc = 0;
-        var originalGeometry = this.originalObject.calcGeometry;
-        geom.gmEditList = [];
+        geometry.gmEditList = [];
+        var originalGeometry = this.originalObject.calcGeometry, countArc = 0;
 
-        for(var j = 0; j < geom.pathLst.length; j++) {
-            geom.pathLst[j].ArrPathCommandInfo = [];
-            var pathPoints = geom.pathLst[j].ArrPathCommand;
+        for(var j = 0; j < geometry.pathLst.length; j++) {
+            geometry.pathLst[j].ArrPathCommandInfo = [];
+            var pathPoints = geometry.pathLst[j].ArrPathCommand;
 
             for (var i = 0; i < pathPoints.length; i++) {
                 if (pathPoints[i].id === PathType.ARC && originalGeometry.ellipsePointsList.length === 0)
@@ -313,7 +312,7 @@
 
             for (var i = 0; i < pathPoints.length; i++) {
                 var elem = pathPoints[i];
-                var elemX, elemY;
+                var elemX = null, elemY = null;
                 switch (elem.id) {
                     case PathType.POINT:
                     case PathType.LINE:
@@ -357,8 +356,6 @@
                     pathPoints[i] = elem;
                     pathPoints[i].X = elemX;
                     pathPoints[i].Y = elemY;
-                    elemX = null;
-                    elemY = null;
                 }
             };
 
@@ -423,14 +420,25 @@
                             X2: elem.X1,
                             Y2: elem.Y1,
                             X: elem.X,
-                            Y: elem.Y,
+                            Y: elem.Y
                         }
                         break;
-
                 }
             });
+        }
 
+        this.createGeometryEditList(geometry);
+
+        this.isConverted = true;
+        geometry.setPreset(null);
+        geometry.rectS = null;
+        this.addCommandsInPathInfo(geometry);
+    };
+
+    EditShapeGeometryTrack.prototype.createGeometryEditList = function(geometry) {
+        for(var j = 0; j < geometry.pathLst.length; j++) {
             var start_index = 0, isFirstAndLastPointsEqual = false;
+            var pathPoints = geometry.pathLst[j].ArrPathCommand;
             for (var index = 0; index < pathPoints.length; index++) {
                 var curPath = pathPoints[index];
                 var nextPath = pathPoints[index + 1];
@@ -478,7 +486,7 @@
                         var g2Y = nextCommand ? nextCommand.Y0 : undefined;
 
                         var curPoint = {
-                            id: curCommand.id,
+                            id : curCommand.id,
                             g1X, g1Y, g2X, g2Y,
                             X: curCommand.X,
                             Y: curCommand.Y,
@@ -486,41 +494,36 @@
                             pathC2: nextIndex,
                             pathIndex: j
                         };
-                        geom.gmEditList.push(curPoint);
+                        geometry.gmEditList.push(curPoint);
                     }
                 }
             }
         }
 
         var startIndex = 0;
-        for (var cur_index = 0; cur_index < geom.gmEditList.length; cur_index++) {
-            if(geom.gmEditList[cur_index].pathC2 > geom.gmEditList[cur_index].pathC1) {
-                geom.gmEditList[cur_index].nextPoint = geom.gmEditList[cur_index + 1];
-                geom.gmEditList[cur_index + 1].prevPoint = geom.gmEditList[cur_index];
+        for (var cur_index = 0; cur_index < geometry.gmEditList.length; cur_index++) {
+            if(geometry.gmEditList[cur_index].pathC2 > geometry.gmEditList[cur_index].pathC1) {
+                geometry.gmEditList[cur_index].nextPoint = geometry.gmEditList[cur_index + 1];
+                geometry.gmEditList[cur_index + 1].prevPoint = geometry.gmEditList[cur_index];
             } else {
-                geom.gmEditList[cur_index].nextPoint =  geom.gmEditList[startIndex];
-                geom.gmEditList[startIndex].prevPoint = geom.gmEditList[cur_index];
+                geometry.gmEditList[cur_index].nextPoint =  geometry.gmEditList[startIndex];
+                geometry.gmEditList[startIndex].prevPoint = geometry.gmEditList[cur_index];
                 startIndex = cur_index + 1;
             }
         }
 
         //update gmEditPoint coords
-        if(geom.gmEditPoint) {
-            var pointC1 = geom.gmEditPoint.pathC1;
-            var pointC2 = geom.gmEditPoint.pathC2;
-            geom.gmEditList.forEach(function(elem) {
-                if(elem.pathIndex === geom.gmEditPoint.pathIndex && elem.pathC1 === pointC1 && elem.pathC2 === pointC2) {
-                    geom.gmEditPoint = elem;
+        if(geometry.gmEditPoint) {
+            var pointC1 = geometry.gmEditPoint.pathC1;
+            var pointC2 = geometry.gmEditPoint.pathC2;
+            geometry.gmEditList.forEach(function(elem) {
+                if(elem.pathIndex === geometry.gmEditPoint.pathIndex && elem.pathC1 === pointC1 && elem.pathC2 === pointC2) {
+                    geometry.gmEditPoint = elem;
                 }
             })
         }
 
-        this.isConverted = true;
-        geom.setPreset(null);
-        geom.rectS = null;
-        this.addCommandsInPathInfo(geom);
-    };
-
+    }
     EditShapeGeometryTrack.prototype.addCommandsInPathInfo = function(geometry) {
         var last_x = geometry.gmEditList[0].X,
             last_y = geometry.gmEditList[0].Y,

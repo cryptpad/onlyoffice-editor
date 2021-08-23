@@ -7104,7 +7104,6 @@ DrawingObjectsController.prototype =
             var extY = paraDrawing.Extent.H;
             this.arrTrackObjects.push(new AscFormat.EditShapeGeometryTrack(this.selection.geometrySelection, this.document, this.curState.drawingObjects, extX, extY));
             this.changeCurrentState(new AscFormat.GeometryEditState(this, this.selection.geometrySelection.spPr.parent));
-            this.selection.geometrySelection.drawGeometryEdit(this.drawingDocument, this.arrTrackObjects);
         }
         else
         {
