@@ -257,8 +257,9 @@
             return false;
         };
 
-        this.LoadDocumentFonts2 = function(_fonts)
+        this.LoadDocumentFonts2 = function(_fonts, _blockType)
         {
+            this.BlockOperationType = _blockType;
             // сначала заполняем массив this.fonts_loading объекстами fontinfo
             for (var i in _fonts)
             {
@@ -266,7 +267,7 @@
             }
 
             if (null == this.ThemeLoader)
-                this.Api.asyncFontsDocumentStartLoaded();
+                this.Api.asyncFontsDocumentStartLoaded(this.BlockOperationType);
             else
                 this.ThemeLoader.asyncFontsStartLoaded();
 
@@ -280,9 +281,11 @@
             if (0 == this.fonts_loading.length)
             {
                 if (null == this.ThemeLoader)
-                    this.Api.asyncFontsDocumentEndLoaded();
+                    this.Api.asyncFontsDocumentEndLoaded(this.BlockOperationType);
                 else
                     this.ThemeLoader.asyncFontsEndLoaded();
+
+                this.BlockOperationType = undefined;
 
                 if (this.bIsLoadDocumentFirst === true)
                 {

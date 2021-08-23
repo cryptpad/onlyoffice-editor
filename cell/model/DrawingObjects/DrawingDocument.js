@@ -1604,7 +1604,7 @@ function CDrawingDocument()
             {
                 this.wbModel.DrawingDocument.SetDrawImagePreviewBulletForMenu(id, type, spApi, props, true);
             };
-            AscCommon.g_font_loader.LoadDocumentFonts2(fonts);
+            AscCommon.g_font_loader.LoadDocumentFonts2(fonts, Asc.c_oAscAsyncActionType.Information);
             return;
         }
 

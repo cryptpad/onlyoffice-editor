@@ -1246,15 +1246,15 @@ var editor;
     this.handlers.trigger("asc_onSheetsChanged");
   };
 
-  spreadsheet_api.prototype.asyncFontsDocumentStartLoaded = function() {
+  spreadsheet_api.prototype.asyncFontsDocumentStartLoaded = function(blockType) {
     this.OpenDocumentProgress.Type = c_oAscAsyncAction.LoadDocumentFonts;
     this.OpenDocumentProgress.FontsCount = this.FontLoader.fonts_loading.length;
     this.OpenDocumentProgress.CurrentFont = 0;
-    this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.LoadDocumentFonts);
+    this.sync_StartAction(undefined === blockType ? c_oAscAsyncActionType.BlockInteraction : blockType, c_oAscAsyncAction.LoadDocumentFonts);
   };
 
-  spreadsheet_api.prototype.asyncFontsDocumentEndLoaded = function() {
-    this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.LoadDocumentFonts);
+  spreadsheet_api.prototype.asyncFontsDocumentEndLoaded = function(blockType) {
+    this.sync_EndAction(undefined === blockType ? c_oAscAsyncActionType.BlockInteraction : blockType, c_oAscAsyncAction.LoadDocumentFonts);
 
     if (this.asyncMethodCallback !== undefined) {
       this.asyncMethodCallback();

@@ -510,7 +510,8 @@
 	};
 	baseEditorsApi.prototype.sync_StartAction                = function(type, id)
 	{
-		this.sendEvent('asc_onStartAction', type, id);
+		if (type !== c_oAscAsyncActionType.Empty)
+			this.sendEvent('asc_onStartAction', type, id);
 		//console.log("asc_onStartAction: type = " + type + " id = " + id);
 
 		if (c_oAscAsyncActionType.BlockInteraction === type)
@@ -520,7 +521,8 @@
 	};
 	baseEditorsApi.prototype.sync_EndAction                  = function(type, id)
 	{
-		this.sendEvent('asc_onEndAction', type, id);
+		if (type !== c_oAscAsyncActionType.Empty)
+			this.sendEvent('asc_onEndAction', type, id);
 		//console.log("asc_onEndAction: type = " + type + " id = " + id);
 
 		if (c_oAscAsyncActionType.BlockInteraction === type)

@@ -6934,7 +6934,7 @@ background-repeat: no-repeat;\
 	};
 
 	// работа с шрифтами
-	asc_docs_api.prototype.asyncFontsDocumentStartLoaded = function()
+	asc_docs_api.prototype.asyncFontsDocumentStartLoaded = function(blockType)
 	{
 		// здесь прокинуть евент о заморозке меню
 		// и нужно вывести информацию в статус бар
@@ -6944,7 +6944,7 @@ background-repeat: no-repeat;\
 			this.sync_StartAction(c_oAscAsyncActionType.Information, c_oAscAsyncAction.LoadFont);
 		else
 		{
-			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.LoadDocumentFonts);
+			this.sync_StartAction(undefined === blockType ? c_oAscAsyncActionType.BlockInteraction : blockType, c_oAscAsyncAction.LoadDocumentFonts);
 
             if (undefined !== this.asyncMethodCallback)
             	return;
@@ -7007,7 +7007,7 @@ background-repeat: no-repeat;\
 				LogicDocument.Set_ShowParagraphMarks(true, false);
 		}
 	};
-	asc_docs_api.prototype.asyncFontsDocumentEndLoaded   = function()
+	asc_docs_api.prototype.asyncFontsDocumentEndLoaded   = function(blockType)
 	{
 		// все, шрифты загружены. Теперь нужно подгрузить картинки
 		if (this.isPasteFonts_Images)
@@ -7015,7 +7015,7 @@ background-repeat: no-repeat;\
 		else if (this.isSaveFonts_Images)
 			this.sync_EndAction(c_oAscAsyncActionType.Information, c_oAscAsyncAction.LoadFont);
 		else
-			this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.LoadDocumentFonts);
+			this.sync_EndAction(undefined === blockType ? c_oAscAsyncActionType.BlockInteraction : blockType, c_oAscAsyncAction.LoadDocumentFonts);
 
         if (undefined !== this.asyncMethodCallback)
         {

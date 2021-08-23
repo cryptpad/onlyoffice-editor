@@ -339,7 +339,8 @@
 
 	var c_oAscAsyncActionType = {
 		Information      : 0,
-		BlockInteraction : 1
+		BlockInteraction : 1,
+		Empty            : 2
 	};
 
 	var DownloadType = {
