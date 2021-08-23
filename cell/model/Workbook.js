@@ -10455,9 +10455,7 @@
 						//в случае клонирования фрагмента - создаём новый
 						var _newProtectedRange;
 						if (copyRange) {
-							_newProtectedRange = _protectedRange.clone();
-							_newProtectedRange.ranges = _moveRanges;
-							wsTo.addProtectedRange(_newProtectedRange, true);
+							_protectedRange.setSqref(_protectedRange.sqref.concat(_moveRanges), t, true);
 						} else {
 							if (t !== wsTo) {
 								if (_moveRanges.length) {
