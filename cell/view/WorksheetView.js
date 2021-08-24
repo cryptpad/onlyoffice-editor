@@ -12024,22 +12024,24 @@
 			}
 		}
 
+		if (fromBinary && refInsertBinary) {
+			var offsetAll = new AscCommon.CellBase(arnToRange.r1 - refInsertBinary.r1, arnToRange.c1 - refInsertBinary.c1);
+			//conditional formatting
+			if (specialPasteProps.format) {
+				t.model.moveConditionalFormatting(refInsertBinary, arnToRange, true, offsetAll, this.model, val, specialPasteProps.transpose);
+			}
 
-		var offsetAll = new AscCommon.CellBase(arnToRange.r1 - refInsertBinary.r1, arnToRange.c1 - refInsertBinary.c1);
-		//conditional formatting
-		if (specialPasteProps.format && fromBinary) {
-			t.model.moveConditionalFormatting(refInsertBinary, arnToRange, true, offsetAll, this.model, val, specialPasteProps.transpose);
+			//sparklines
+			if (specialPasteProps.val && specialPasteProps.format) {
+				t.model.moveSparklineGroup(refInsertBinary, arnToRange, false, offsetAll, this.model, val);
+			}
+
+			//protected ranges
+			if (specialPasteProps.format) {
+				t.model.moveProtectedRange(refInsertBinary, arnToRange, true, offsetAll, this.model, val);
+			}
 		}
 
-		//sparklines
-		if (specialPasteProps.val && specialPasteProps.format && fromBinary) {
-			t.model.moveSparklineGroup(refInsertBinary, arnToRange, false, offsetAll, this.model, val);
-		}
-
-		//protected ranges
-		if (specialPasteProps.format && fromBinary) {
-			t.model.moveProtectedRange(refInsertBinary, arnToRange, true, offsetAll, this.model, val);
-		}
 
 		//делаем unmerge ф/т
 		intersectionRangeWithTableParts = t.model.autoFilters._intersectionRangeWithTableParts(arnToRange);
