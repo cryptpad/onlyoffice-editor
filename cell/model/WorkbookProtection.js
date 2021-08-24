@@ -975,7 +975,6 @@
 		}
 		return false;
 	};
-
 	CProtectedRange.prototype.intersection = function (range) {
 		//TODO  в каком виде будет хранится sqref?
 		for (var i = 0; i < this.sqref.length; i++) {
@@ -985,7 +984,6 @@
 		}
 		return false;
 	};
-
 	CProtectedRange.prototype.containsIntoRange = function (range) {
 		//TODO  в каком виде будет хранится sqref?
 		for (var i = 0; i < this.sqref.length; i++) {
@@ -995,7 +993,21 @@
 		}
 		return true;
 	};
-
+	CProtectedRange.prototype.generateNewName = function (modelProtectedRanges) {
+		if (modelProtectedRanges.length) {
+			var mapNames = [];
+			for (var i = 0; i < modelProtectedRanges.length; i++) {
+				mapNames[modelProtectedRanges[i].name] = 1;
+			}
+			var counter = 1;
+			var newName = this.name;
+			while (mapNames[newName]) {
+				newName = this.name + "_" + counter;
+				counter++;
+			}
+			this.name = newName;
+		}
+	};
 	CProtectedRange.prototype.asc_getSqref = function () {
 		var arrResult = [];
 
