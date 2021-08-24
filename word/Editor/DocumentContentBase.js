@@ -2226,3 +2226,6 @@ CDocumentContentBase.prototype.IsEmptyParagraphAfterTableInTableCell = function(
 {
 	return false;
 };
+CDocumentContentBase.prototype.SetThisElementCurrent = function(isUpdateStates)
+{
+};
