@@ -25341,8 +25341,7 @@ CDocument.prototype.ConvertTextToTable = function(oProps)
 						oParagraph.Check_NearestPos(oAnchorPos);
 						oParagraph.Parent.InsertContent(oSelectedContent, oAnchorPos);
 						if (oParagraph.IsEmpty() && oParagraph.IsUseInDocument())
-							this.RemoveFromContent(oParagraph.GetIndex(), 1, true);
-						// this.MoveCursorRight(false, false, false);
+							oParagraph.Parent.RemoveFromContent(oParagraph.GetIndex(), 1, true);
 					}
 				}
 			}
