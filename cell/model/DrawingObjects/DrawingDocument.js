@@ -1600,11 +1600,11 @@ function CDrawingDocument()
                 return this.SetDrawImagePreviewBulletForMenu(id, type, spApi, props, true);
             }
 
-            spApi.asyncMethodCallback = function()
-            {
+            var loader = new AscCommon.CGlobalFontLoader();
+            loader.put_Api(spApi);
+            loader.LoadDocumentFonts2(fonts, Asc.c_oAscAsyncActionType.Information, function(){
                 this.wbModel.DrawingDocument.SetDrawImagePreviewBulletForMenu(id, type, spApi, props, true);
-            };
-            AscCommon.g_font_loader.LoadDocumentFonts2(fonts, Asc.c_oAscAsyncActionType.Information);
+            });
             return;
         }
 

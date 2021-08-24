@@ -7428,11 +7428,11 @@ function CDrawingDocument()
 				return this.SetDrawImagePreviewBulletForMenu(id, type, props, true);
 			}
 
-			this.m_oWordControl.m_oApi.asyncMethodCallback = function()
-			{
+			var loader = new AscCommon.CGlobalFontLoader();
+			loader.put_Api(this.m_oWordControl.m_oApi);
+			loader.LoadDocumentFonts2(fonts, Asc.c_oAscAsyncActionType.Information, function(){
 				this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBulletForMenu(id, type, props, true);
-			};
-			AscCommon.g_font_loader.LoadDocumentFonts2(fonts, Asc.c_oAscAsyncActionType.Information);
+			});
 			return;
  		}
 		var elNone = document.getElementById(id[0]);
