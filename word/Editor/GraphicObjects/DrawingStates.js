@@ -1800,8 +1800,8 @@ GeometryEditState.prototype = {
     {
         var geom = this.drawingObjects.arrTrackObjects[0].geometry;
         if(geom.gmEditPoint) {
-            geom.gmEditPoint.isFirstCPoint = false;
-            geom.gmEditPoint.isSecondCPoint = false;
+            geom.gmEditPoint.isHitInFirstCPoint = false;
+            geom.gmEditPoint.isHitInSecondCPoint = false;
 
             if(e.CtrlKey) {
                 var track_object = this.drawingObjects.arrTrackObjects[0];
