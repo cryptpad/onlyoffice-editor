@@ -10948,7 +10948,7 @@
 		}
 
 		//todo не должны удаляться ссылки, если сделать merge ее части.
-		if (this.isNullTextString()) {
+		if (this.isNullTextString() && !this.isFormula()) {
 			var cell = this.ws.getCell3(this.nRow, this.nCol);
 			cell.removeHyperlink();
 		}
