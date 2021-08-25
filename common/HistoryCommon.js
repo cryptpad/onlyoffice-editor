@@ -1618,6 +1618,9 @@
 	window['AscDFH'].historyitem_type_FunctionValue          = 2093 << 16;
 	window['AscDFH'].historyitem_type_PointInfo              = 2094 << 16;
 	window['AscDFH'].historyitem_type_ShapeSmartArtInfo      = 2095 << 16;
+	window['AscDFH'].historyitem_type_SmartArtTree           = 2096 << 16;
+	window['AscDFH'].historyitem_type_SmartArtNode           = 2097 << 16;
+	window['AscDFH'].historyitem_type_SmartArtNodeData       = 2098 << 16;
 
 
 
@@ -3700,8 +3703,25 @@
 	AscDFH.historyitem_ShapeSmartArtInfoAddLstContentPoint    = AscDFH.historyitem_type_ShapeSmartArtInfo | 3;
 	AscDFH.historyitem_ShapeSmartArtInfoRemoveLstContentPoint = AscDFH.historyitem_type_ShapeSmartArtInfo | 4;
 
+	AscDFH.historyitem_SmartArtTreeRoot = AscDFH.historyitem_type_SmartArtTree | 1;
+
+	AscDFH.historyitem_SmartArtNodeInfo                  = AscDFH.historyitem_type_SmartArtNode | 1;
+	AscDFH.historyitem_SmartArtNodeData                  = AscDFH.historyitem_type_SmartArtNode | 2;
+	AscDFH.historyitem_SmartArtNodeAddToLstChildren      = AscDFH.historyitem_type_SmartArtNode | 3;
+	AscDFH.historyitem_SmartArtNodeRemoveFromLstChildren = AscDFH.historyitem_type_SmartArtNode | 4;
+
+	AscDFH.historyitem_SmartArtNodeDataParPoint              = AscDFH.historyitem_type_SmartArtNodeData | 1;
+	AscDFH.historyitem_SmartArtNodeDataSibPoint               = AscDFH.historyitem_type_SmartArtNodeData | 2;
+	AscDFH.historyitem_SmartArtNodeDataCxn                    = AscDFH.historyitem_type_SmartArtNodeData | 3;
+	AscDFH.historyitem_SmartArtNodeDataMainPoint              = AscDFH.historyitem_type_SmartArtNodeData | 4;
+	AscDFH.historyitem_SmartArtNodeDataAddToLstShapes         = AscDFH.historyitem_type_SmartArtNodeData | 5;
+	AscDFH.historyitem_SmartArtNodeDataRemoveFromLstShapes    = AscDFH.historyitem_type_SmartArtNodeData | 6;
+	AscDFH.historyitem_SmartArtNodeDataAddToLstPresPoint      = AscDFH.historyitem_type_SmartArtNodeData | 7;
+	AscDFH.historyitem_SmartArtNodeDataRemoveFromLstPresPoint = AscDFH.historyitem_type_SmartArtNodeData | 8;
+
 	AscDFH.historyitem_PointInfoPoint                = AscDFH.historyitem_type_PointInfo | 1;
 	AscDFH.historyitem_PointInfoAssociation          = AscDFH.historyitem_type_PointInfo | 2;
+
 	AscDFH.historyitem_ParameterValArrowheadStyle             = AscDFH.historyitem_type_ParameterVal | 1;
 	AscDFH.historyitem_ParameterValAutoTextRotation           = AscDFH.historyitem_type_ParameterVal | 2;
 	AscDFH.historyitem_ParameterValBendPoint                  = AscDFH.historyitem_type_ParameterVal | 3;
@@ -3799,6 +3819,7 @@
 	AscDFH.historyitem_SmartArtStyleDef  = AscDFH.historyitem_type_SmartArt | 5;
 	AscDFH.historyitem_SmartArtParent    = AscDFH.historyitem_type_SmartArt | 6;
 	AscDFH.historyitem_SmartArtType      = AscDFH.historyitem_type_SmartArt | 7;
+	AscDFH.historyitem_SmartArtTree      = AscDFH.historyitem_type_SmartArt | 8;
 
 	AscDFH.historyitem_CCommonDataClrListAdd    = AscDFH.historyitem_type_CCommonDataClrList | 1;
 	AscDFH.historyitem_CCommonDataClrListRemove = AscDFH.historyitem_type_CCommonDataClrList | 2;

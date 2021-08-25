@@ -8831,6 +8831,7 @@
     };
 
     function ShapeSmartArtInfo() {
+      CBaseFormatObject.call(this);
       this.spPrPoint = null;
       this.shapePoint = null;
       this.contentPoint = [];
@@ -8866,6 +8867,7 @@
 
     changesFactory[AscDFH.historyitem_SmartArtColorsDef] = CChangeObject;
     changesFactory[AscDFH.historyitem_SmartArtDrawing] = CChangeObject;
+    changesFactory[AscDFH.historyitem_SmartArtTree] = CChangeObject;
     changesFactory[AscDFH.historyitem_SmartArtLayoutDef] = CChangeObject;
     changesFactory[AscDFH.historyitem_SmartArtDataModel] = CChangeObject;
     changesFactory[AscDFH.historyitem_SmartArtStyleDef] = CChangeObject;
@@ -8873,6 +8875,9 @@
     changesFactory[AscDFH.historyitem_SmartArtType] = CChangeString;
     drawingsChangesMap[AscDFH.historyitem_SmartArtColorsDef] = function (oClass, value) {
       oClass.colorsDef = value;
+    };
+    drawingsChangesMap[AscDFH.historyitem_SmartArtTree] = function (oClass, value) {
+      oClass.tree = value;
     };
     drawingsChangesMap[AscDFH.historyitem_SmartArtType] = function (oClass, value) {
       oClass.type = value;
@@ -8902,8 +8907,9 @@
       this.styleDef = null;
       this.parent = null;
       this.type = null;
+      this.tree = null;
 
-        this.calcGeometry = null;
+      this.calcGeometry = null;
     }
 
     InitClass(SmartArt, CGroupShape, AscDFH.historyitem_type_SmartArt);
@@ -8914,6 +8920,145 @@
     SmartArt.prototype.getName = function () {
       return 'SmartArt';
     };
+
+    SmartArt.prototype.setTree = function (oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SmartArtTree, this.getTree(), oPr));
+      this.tree = oPr;
+      oPr.setParent(this);
+    }
+
+    SmartArt.prototype.getTree = function () {
+      return this.tree;
+    }
+
+    SmartArt.prototype.getShapeMap = function () {
+      var shapes = this.getDrawing() && this.getDrawing().spTree;
+      var shapeMap = {};
+      if (shapes) {
+        shapes.forEach(function (shape) {
+          shapeMap[shape.modelId] = shape;
+        });
+        return shapeMap;
+      }
+    }
+
+    SmartArt.prototype.getPtMap = function () {
+      var dataModel = this.getDataModel() && this.getDataModel().getDataModel();
+      var ptLst = this.getPtLst();
+      var ptMap = {};
+      if (ptLst) {
+        ptLst.forEach(function (point) {
+          ptMap[point.modelId] = point;
+        });
+        return ptMap;
+      }
+    }
+
+    SmartArt.prototype.getPtLst = function () {
+      var dataModel = this.getDataModel() && this.getDataModel().getDataModel();
+      return dataModel && dataModel.getPtLst() && dataModel.getPtLst().list;
+    }
+
+    SmartArt.prototype.getCxnLst = function () {
+      var dataModel = this.getDataModel() && this.getDataModel().getDataModel();
+      return dataModel && dataModel.getCxnLst() && dataModel.getCxnLst().list;
+    }
+
+    SmartArt.prototype.createDataForHierarchy = function () {
+      var shapeMap = this.getShapeMap();
+      var ptMap = this.getPtMap();
+      var ptLst = this.getPtLst();
+      var cxnLst = this.getCxnLst();
+      var elements = [];
+      var ptLstWithNoType = [];
+      var ptLstWithTypePres = [];
+      var docPoint;
+      if (cxnLst && ptLst) {
+        var cxnWithNoPres = cxnLst.filter(function (cxn) {return !cxn.type;});
+
+        ptLst.forEach(function (point) {
+          if (point.type === 3) {
+            ptLstWithTypePres.push(point);
+          } else if (!point.type) {
+            ptLstWithNoType.push(point);
+          } else if (point.type === 2) {
+            docPoint = point;
+          }
+        });
+
+        for (var i = 0; i < ptLstWithNoType.length + 1; i += 1) {
+          var elem = new SmartArtNodeData();
+
+          if (i === ptLstWithNoType.length) {
+            var mPoint = docPoint;
+          } else {
+            mPoint = ptLstWithNoType[i];
+          }
+
+          elem.setMainPoint(mPoint);
+          cxnWithNoPres.forEach(function (cxn) {
+            if (cxn.destId === mPoint.modelId) {
+              elem.setCxn(cxn);
+              if (ptMap) {
+                elem.setSibPoint(ptMap[cxn.sibTransId]);
+                elem.setParPoint(ptMap[cxn.parTransId]);
+              }
+            }
+          });
+
+          ptLstWithTypePres.forEach(function (pointWithTypePres) {
+            var prSet = pointWithTypePres.prSet;
+            if (prSet && (prSet.presAssocID === mPoint.modelId || (elem.sibPoint && prSet.presAssocID === elem.sibPoint.modelId) || (elem.parPoint && prSet.presAssocID === elem.parPoint.modelId))) {
+              elem.addToLstPresPoint(elem.presPoint.length, pointWithTypePres);
+              if (shapeMap && shapeMap[pointWithTypePres.modelId]) {
+                elem.addToLstShapes(elem.shapes.length, shapeMap[pointWithTypePres.modelId]);
+              }
+            }
+          });
+          elements.push(elem);
+        }
+        return elements;
+      }
+    }
+    
+    SmartArt.prototype.createHierarchy = function () {
+      var cxnLst = this.getCxnLst();
+
+      if (cxnLst) {
+        var cxnWithNoPres = cxnLst.filter(function (cxn) {return !cxn.type;});
+
+        var elements = this.createDataForHierarchy();
+
+        var root = elements.reduce(function (acc, next) {
+          if (next.mainPoint.type === 2) {
+            return next;
+          }
+          return acc;
+        }, undefined);
+
+        if (root) {
+          var rootInfo = root.mainPoint && root.mainPoint.modelId;
+          var tree = new SmartArtTree(rootInfo, root);
+
+          cxnWithNoPres = cxnWithNoPres.sort(function (a, b) {
+            return parseInt(a.srcOrd) - parseInt(b.srcOrd);
+          });
+          for (var i = 0; i < cxnWithNoPres.length; i += 1) {
+            for (var j = 0; j < cxnWithNoPres.length; j += 1) {
+              var _cxn = cxnWithNoPres[j];
+              var childData = elements.reduce(function (acc, next) {
+                if (next.mainPoint.modelId === _cxn.destId) {
+                  return next;
+                }
+                return acc;
+              }, undefined);
+              tree.add(_cxn.destId, _cxn.srcId, childData);
+            }
+          }
+        }
+      }
+      return tree;
+    }
 
     SmartArt.prototype.getTypeOfSmartArt = function () {
       // Russian name -> type
@@ -9256,7 +9401,6 @@
           }
           shape.setShapeSmartArtInfo(smartArtInfo);
         })
-        console.log(connections);
         return connections;
       }
     }
@@ -9288,7 +9432,8 @@
           this.setDataModel(new DiagramData());
           this.dataModel.fromPPTY(pReader);
           this.setPointsForShapes();
-          this.setConnections();
+           this.setConnections();
+          // this.setTree(this.createHierarchy());
           break;
         }
         case 2: {
@@ -9609,6 +9754,245 @@
           return oCopy;
       };
 
+      changesFactory[AscDFH.historyitem_SmartArtTreeRoot] = CChangeObject;
+      drawingsChangesMap[AscDFH.historyitem_SmartArtTreeRoot] = function (oClass, value) {
+        oClass.root = value;
+      }
+    function SmartArtTree(rootInfo, rootData) {
+      CBaseFormatObject.call(this);
+      var child = new SmartArtNode();
+      child.setInfo(rootInfo);
+      child.setData(rootData);
+      this.root = child;
+    }
+    InitClass(SmartArtTree, CBaseFormatObject, AscDFH.historyitem_type_SmartArtTree);
+
+    SmartArtTree.prototype.traverseDF = function (callback) {
+      (function recurse(currentNode) {
+        for (var i = 0; i < currentNode.children.length; i += 1) {
+          recurse(currentNode.children[i]);
+        }
+        callback(currentNode);
+      })(this.root);
+    }
+    SmartArtTree.prototype.setRoot = function (oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SmartArtTreeRoot, this.getRoot(), oPr));
+      this.root = oPr;
+      oPr.setParent(this);
+    }
+
+    SmartArtTree.prototype.traverseBF = function (callback) {
+      var queue = [];
+      var currentTree = this.root;
+
+      while (currentTree) {
+        for (var i = 0; i < currentTree.children.length; i += 1) {
+          queue.push(currentTree.children[i]);
+        }
+        callback(currentTree);
+        currentTree = queue.shift();
+      }
+    }
+
+    SmartArtTree.prototype.contains = function (callback, isTraverseDF) {
+      var traverse = isTraverseDF ? this.traverseDF : this.traverseBF;
+      traverse.call(this, callback);
+    }
+
+    SmartArtTree.prototype.add = function (childInfo, parentInfo, childData, isTraverseDF) {
+      var traverse = isTraverseDF ? this.traverseDF : this.traverseBF;
+      var parent;
+      var child = new SmartArtNode();
+      child.setInfo(childInfo);
+      child.setData(childData);
+
+      var callback = function (node) {
+        if (node.info === parentInfo) {
+          parent = node;
+        }
+      };
+      this.contains(callback, traverse === this.traverseDF);
+
+      if (parent) {
+        var parentHaveChild = parent.children.some(function (ch) {
+          return ch.info === childInfo;
+        });
+        if (!parentHaveChild) {
+          parent.addToLstChildren(parent.children.length, child);
+        }
+      }
+    };
+    
+    SmartArtTree.prototype.remove = function (node, parent) {
+      
+    }
+    changesFactory[AscDFH.historyitem_SmartArtNodeInfo] = CChangeString;
+    drawingsChangesMap[AscDFH.historyitem_SmartArtNodeInfo] = function (oClass, value) {
+      oClass.info = value;
+    }
+    changesFactory[AscDFH.historyitem_SmartArtNodeData] = CChangeObject;
+    drawingsChangesMap[AscDFH.historyitem_SmartArtNodeData] = function (oClass, value) {
+      oClass.data = value;
+    }
+    changesFactory[AscDFH.historyitem_SmartArtNodeAddToLstChildren] = CChangeContent;
+    drawingContentChanges[AscDFH.historyitem_SmartArtNodeAddToLstChildren] = function (oClass) {
+      return oClass.children;
+    }
+    changesFactory[AscDFH.historyitem_SmartArtNodeRemoveFromLstChildren] = CChangeContent;
+    drawingContentChanges[AscDFH.historyitem_SmartArtNodeRemoveFromLstChildren] = function (oClass) {
+      return oClass.children;
+    }
+
+
+    function SmartArtNode() {
+      CBaseFormatObject.call(this);
+      this.info = null;
+      this.data = null;
+      this.children = [];
+    }
+    InitClass(SmartArtNode, CBaseFormatObject, AscDFH.historyitem_type_SmartArtNode);
+
+    SmartArtNode.prototype.setInfo = function (oPr) {
+      oHistory.Add(new CChangeString(this, AscDFH.historyitem_SmartArtNodeInfo, this.getInfo(), oPr));
+      this.info = oPr;
+    }
+
+    SmartArtNode.prototype.getInfo = function () {
+      return this.info;
+    }
+
+    SmartArtNode.prototype.setData = function (oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SmartArtNodeData, this.getData(), oPr));
+      this.data = oPr;
+      oPr.setParent(this);
+    }
+
+    SmartArtNode.prototype.getData = function () {
+      return this.data;
+    }
+
+    SmartArtNode.prototype.addToLstChildren = function (nIdx, oPr) {
+      var nInsertIdx = Math.min(this.children.length, Math.max(0, nIdx));
+      oHistory.Add(new CChangeContent(this, AscDFH.historyitem_SmartArtNodeAddToLstChildren, nInsertIdx, [oPr], true));
+      this.children.splice(nInsertIdx, 0, oPr);
+    }
+
+    SmartArtNode.prototype.removeFromLstChildren = function (nIdx) {
+        if (nIdx > -1 && nIdx < this.children.length) {
+            this.children[nIdx].setParent(null);
+            oHistory.Add(new CChangeContent(this, AscDFH.historyitem_SmartArtNodeRemoveFromLstChildren, nIdx, [this.children[nIdx]], false));
+            this.children.splice(nIdx, 1);
+        }
+    }
+
+
+    changesFactory[AscDFH.historyitem_SmartArtNodeDataCxn] = CChangeObject;
+    drawingsChangesMap[AscDFH.historyitem_SmartArtNodeDataCxn] = function (oClass, value) {
+      oClass.cxn = value;
+    }
+    changesFactory[AscDFH.historyitem_SmartArtNodeDataSibPoint] = CChangeObject;
+    drawingsChangesMap[AscDFH.historyitem_SmartArtNodeDataSibPoint] = function (oClass, value) {
+      oClass.sibPoint = value;
+    }
+    changesFactory[AscDFH.historyitem_SmartArtNodeDataParPoint] = CChangeObject;
+    drawingsChangesMap[AscDFH.historyitem_SmartArtNodeDataParPoint] = function (oClass, value) {
+      oClass.parPoint = value;
+    }
+    changesFactory[AscDFH.historyitem_SmartArtNodeDataMainPoint] = CChangeObject;
+    drawingsChangesMap[AscDFH.historyitem_SmartArtNodeDataMainPoint] = function (oClass, value) {
+      oClass.mainPoint = value;
+    }
+    changesFactory[AscDFH.historyitem_SmartArtNodeDataAddToLstShapes] = CChangeContent;
+    drawingContentChanges[AscDFH.historyitem_SmartArtNodeDataAddToLstShapes] = function (oClass) {
+      return oClass.shapes;
+    }
+    changesFactory[AscDFH.historyitem_SmartArtNodeDataRemoveFromLstShapes] = CChangeContent;
+    drawingContentChanges[AscDFH.historyitem_SmartArtNodeDataRemoveFromLstShapes] = function (oClass) {
+      return oClass.shapes;
+    }
+    changesFactory[AscDFH.historyitem_SmartArtNodeDataAddToLstPresPoint] = CChangeContent;
+    drawingContentChanges[AscDFH.historyitem_SmartArtNodeDataAddToLstPresPoint] = function (oClass) {
+      return oClass.presPoint;
+    }
+    changesFactory[AscDFH.historyitem_SmartArtNodeDataRemoveFromLstPresPoint] = CChangeContent;
+    drawingContentChanges[AscDFH.historyitem_SmartArtNodeDataRemoveFromLstPresPoint] = function (oClass) {
+      return oClass.presPoint;
+    }
+
+    function SmartArtNodeData() {
+      CBaseFormatObject.call(this);
+      this.cxn = null;
+      this.sibPoint = null;
+      this.parPoint = null;
+      this.mainPoint = null;
+      this.shapes = [];
+      this.presPoint = [];
+    }
+    InitClass(SmartArtNodeData, CBaseFormatObject, AscDFH.historyitem_type_SmartArtNodeData);
+
+    SmartArtNodeData.prototype.setSibPoint = function (oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SmartArtNodeDataSibPoint, this.getSibPoint(), oPr));
+      this.sibPoint = oPr;
+    }
+    SmartArtNodeData.prototype.getSibPoint = function () {
+      return this.sibPoint;
+    }
+
+    SmartArtNodeData.prototype.setCxn = function (oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SmartArtNodeDataCxn, this.getCxn(), oPr));
+      this.cxn = oPr;
+    }
+    SmartArtNodeData.prototype.getCxn = function () {
+      return this.cxn;
+    }
+
+    SmartArtNodeData.prototype.setParPoint = function (oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SmartArtNodeDataParPoint, this.getParPoint(), oPr));
+      this.parPoint = oPr;
+    }
+
+    SmartArtNodeData.prototype.getParPoint = function () {
+      return this.parPoint;
+    }
+
+    SmartArtNodeData.prototype.setMainPoint = function (oPr) {
+      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SmartArtNodeDataMainPoint, this.getMainPoint(), oPr));
+      this.mainPoint = oPr;
+    }
+
+    SmartArtNodeData.prototype.getMainPoint = function () {
+      return this.mainPoint;
+    }
+
+    SmartArtNodeData.prototype.addToLstShapes = function (nIdx, oPr) {
+      var nInsertIdx = Math.min(this.shapes.length, Math.max(0, nIdx));
+      oHistory.Add(new CChangeContent(this, AscDFH.historyitem_SmartArtNodeDataAddToLstShapes, nInsertIdx, [oPr], true));
+      this.shapes.splice(nInsertIdx, 0, oPr);
+    }
+
+    SmartArtNodeData.prototype.removeFromLstShapes = function (nIdx) {
+        if (nIdx > -1 && nIdx < this.shapes.length) {
+            this.shapes[nIdx].setParent(null);
+            oHistory.Add(new CChangeContent(this, AscDFH.historyitem_SmartArtNodeDataRemoveFromLstShapes, nIdx, [this.shapes[nIdx]], false));
+            this.shapes.splice(nIdx, 1);
+        }
+    }
+
+      SmartArtNodeData.prototype.addToLstPresPoint = function (nIdx, oPr) {
+        var nInsertIdx = Math.min(this.presPoint.length, Math.max(0, nIdx));
+        oHistory.Add(new CChangeContent(this, AscDFH.historyitem_SmartArtNodeDataAddToLstPresPoint, nInsertIdx, [oPr], true));
+        this.presPoint.splice(nInsertIdx, 0, oPr);
+      }
+
+      SmartArtNodeData.prototype.removeFromLstPresPoint = function (nIdx) {
+          if (nIdx > -1 && nIdx < this.presPoint.length) {
+              this.presPoint[nIdx].setParent(null);
+              oHistory.Add(new CChangeContent(this, AscDFH.historyitem_SmartArtNodeDataRemoveFromLstPresPoint, nIdx, [this.presPoint[nIdx]], false));
+              this.presPoint.splice(nIdx, 1);
+          }
+      }
+
+
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].PrSet                  = PrSet;
     window['AscFormat'].CCommonDataList        = CCommonDataList;
@@ -9701,4 +10085,8 @@
     window['AscFormat'].DiagramData            = DiagramData;
     window['AscFormat'].FunctionValue          = FunctionValue;
     window['AscFormat'].PointInfo              = PointInfo;
+    window['AscFormat'].ShapeSmartArtInfo      = ShapeSmartArtInfo;
+    window['AscFormat'].SmartArtTree           = SmartArtTree;
+    window['AscFormat'].SmartArtNode           = SmartArtNode;
+    window['AscFormat'].SmartArtNodeData       = SmartArtNodeData;
   })(window)
