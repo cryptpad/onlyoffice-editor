@@ -9432,7 +9432,7 @@
           this.setDataModel(new DiagramData());
           this.dataModel.fromPPTY(pReader);
           this.setPointsForShapes();
-           this.setConnections();
+          this.setConnections();
           this.setTree(this.createHierarchy());
           break;
         }
@@ -9729,7 +9729,9 @@
       copy.cachedPixH = this.cachedPixH;
       copy.cachedPixW = this.cachedPixW;
       copy.setLocks(this.locks);
-        copy.setPointsForShapes();
+      copy.setPointsForShapes();
+      copy.setConnections();
+      copy.createHierarchy();
       return copy;
     };
     SmartArt.prototype.handleUpdateFill = function() {
@@ -9761,8 +9763,12 @@
     function SmartArtTree(rootInfo, rootData) {
       CBaseFormatObject.call(this);
       var child = new SmartArtNode();
-      child.setInfo(rootInfo);
-      child.setData(rootData);
+      if (rootInfo) {
+        child.setInfo(rootInfo);
+      }
+      if (rootData) {
+        child.setData(rootData);
+      }
       this.root = child;
     }
     InitClass(SmartArtTree, CBaseFormatObject, AscDFH.historyitem_type_SmartArtTree);
@@ -9803,8 +9809,12 @@
       var traverse = isTraverseDF ? this.traverseDF : this.traverseBF;
       var parent;
       var child = new SmartArtNode();
-      child.setInfo(childInfo);
-      child.setData(childData);
+      if (childInfo) {
+        child.setInfo(childInfo);
+      }
+      if (childData) {
+        child.setData(childData);
+      }
 
       var callback = function (node) {
         if (node.info === parentInfo) {
