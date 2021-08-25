@@ -97,19 +97,24 @@
         var gmEditPoint = geometry.gmEditPoint;
         var nextPoint = gmEditPoint.nextPoint;
         var prevPoint = gmEditPoint.prevPoint;
-        var arrPathCommand = geometry.pathLst[gmEditPoint.pathIndex].ArrPathCommand;
+        var currentPath = geometry.pathLst[gmEditPoint.pathIndex];
+        var arrPathCommand = currentPath.ArrPathCommand;
 
-        var cur_command_1 = arrPathCommand[gmEditPoint.pathC1];
-        var cur_command_2 = arrPathCommand[gmEditPoint.pathC2];
+        var cur_command_type_array = geometry.arrPathCommandsType[gmEditPoint.pathIndex];
+        var cur_command_type_1 = cur_command_type_array[gmEditPoint.pathC1];
+        var cur_command_type_2 = cur_command_type_array[gmEditPoint.pathC2];
 
             if(gmEditPoint.isHitInFirstCPoint) {
                 arrPathCommand[gmEditPoint.pathC1].X1 = _relative_x;
                 arrPathCommand[gmEditPoint.pathC1].Y1 = _relative_y;
                 gmEditPoint.g1X = _relative_x;
                 gmEditPoint.g1Y = _relative_y;
-                arrPathCommand[gmEditPoint.pathC1].isLine = false;
 
-                if(cur_command_1 && cur_command_1.isEllipseArc && cur_command_2 && cur_command_2.isEllipseArc) {
+                if(cur_command_type_1 === PathType.LINE) {
+                    cur_command_type_array[gmEditPoint.pathC1] = PathType.BEZIER_4;
+                }
+
+                if(cur_command_type_1 === PathType.ARC && cur_command_type_2 === PathType.ARC) {
                     var g2X = gmEditPoint.g1X - gmEditPoint.X;
                     var g2Y = gmEditPoint.g1Y - gmEditPoint.Y;
 
@@ -124,9 +129,11 @@
                 gmEditPoint.g2X = _relative_x;
                 gmEditPoint.g2Y = _relative_y;
 
-                arrPathCommand[gmEditPoint.pathC2].isLine = false;
+                if(cur_command_type_2 === PathType.LINE) {
+                    cur_command_type_array[gmEditPoint.pathC2] = PathType.BEZIER_4;
+                }
 
-                if(cur_command_1 && cur_command_1.isEllipseArc && cur_command_2 && cur_command_2.isEllipseArc) {
+                if(cur_command_type_1 === PathType.ARC && cur_command_type_2 === PathType.ARC) {
                     var g1X = gmEditPoint.g2X - gmEditPoint.X;
                     var g1Y = gmEditPoint.g2Y - gmEditPoint.Y;
 
@@ -141,12 +148,12 @@
                 var pathCommand = arrPathCommand[gmEditPoint.pathC1];
                 var isPathCommand = (gmEditPoint.g1X !== undefined && gmEditPoint.g1Y !== undefined);
 
-                X0 = pathCommand.isLine ? (prevPoint.X + _relative_x / 2) / (3 / 2) : prevPoint.g2X;
-                Y0 = pathCommand.isLine ? (prevPoint.Y + _relative_y / 2) / (3 / 2) : prevPoint.g2Y;
+                X0 = cur_command_type_1 === PathType.LINE ? (prevPoint.X + _relative_x / 2) / (3 / 2) : prevPoint.g2X;
+                Y0 = cur_command_type_1 === PathType.LINE ? (prevPoint.Y + _relative_y / 2) / (3 / 2) : prevPoint.g2Y;
 
                 if (isPathCommand) {
-                    X1 = pathCommand.isLine ? (prevPoint.X + _relative_x * 2) / 3 : _relative_x - originalPoint.X + originalPoint.g1X;
-                    Y1 = pathCommand.isLine ? (prevPoint.Y + _relative_y * 2) / 3 : _relative_y - originalPoint.Y + originalPoint.g1Y;
+                    X1 = cur_command_type_1 === PathType.LINE ? (prevPoint.X + _relative_x * 2) / 3 : _relative_x - originalPoint.X + originalPoint.g1X;
+                    Y1 = cur_command_type_1 === PathType.LINE ? (prevPoint.Y + _relative_y * 2) / 3 : _relative_y - originalPoint.Y + originalPoint.g1Y;
                 }
 
                 var id = pathCommand.id === PathType.POINT ? PathType.POINT : PathType.BEZIER_4;
@@ -155,9 +162,7 @@
                     X2: _relative_x,
                     Y2: _relative_y,
                     X: _relative_x,
-                    Y: _relative_y,
-                    isEllipseArc: pathCommand.isEllipseArc,
-                    isLine: pathCommand.isLine
+                    Y: _relative_y
                 }
 
                 if(gmEditPoint.g1X !== undefined && gmEditPoint.g1Y !== undefined) {
@@ -181,12 +186,12 @@
                     var isPathCommand = (gmEditPoint.g2X !== undefined && gmEditPoint.g2Y !== undefined);
 
                     if (isPathCommand) {
-                        X0 = pathCommand.isLine ? (nextPoint.X + _relative_x * 2) / 3 : _relative_x - originalPoint.X + originalPoint.g2X;
-                        Y0 = pathCommand.isLine ? (nextPoint.Y + _relative_y * 2) / 3 : _relative_y - originalPoint.Y + originalPoint.g2Y;
+                        X0 = cur_command_type_2 === PathType.LINE ? (nextPoint.X + _relative_x * 2) / 3 : _relative_x - originalPoint.X + originalPoint.g2X;
+                        Y0 = cur_command_type_2 === PathType.LINE ? (nextPoint.Y + _relative_y * 2) / 3 : _relative_y - originalPoint.Y + originalPoint.g2Y;
                     }
 
-                    X1 = pathCommand.isLine ? (nextPoint.X + _relative_x / 2) / (3 / 2) : nextPoint.g1X;
-                    Y1 = pathCommand.isLine ? (nextPoint.Y + _relative_y / 2) / (3 / 2) : nextPoint.g1Y;
+                    X1 = cur_command_type_2 === PathType.LINE ? (nextPoint.X + _relative_x / 2) / (3 / 2) : nextPoint.g1X;
+                    Y1 = cur_command_type_2 === PathType.LINE ? (nextPoint.Y + _relative_y / 2) / (3 / 2) : nextPoint.g1Y;
 
                     var id = pathCommand.id === PathType.POINT ? PathType.POINT : PathType.BEZIER_4;
                     var command = {
@@ -194,9 +199,7 @@
                         X2: nextPoint.X,
                         Y2: nextPoint.Y,
                         X: nextPoint.X,
-                        Y: nextPoint.Y,
-                        isEllipseArc: pathCommand.isEllipseArc,
-                        isLine: pathCommand.isLine
+                        Y: nextPoint.Y
                     }
 
                     if (isPathCommand) {
@@ -300,15 +303,20 @@
         for(var j = 0; j < geometry.pathLst.length; j++) {
             geometry.pathLst[j].ArrPathCommandInfo = [];
             var pathPoints = geometry.pathLst[j].ArrPathCommand;
-
+            var arrCommandsType = [];
             for (var i = 0; i < pathPoints.length; i++) {
                 var elem = pathPoints[i];
                 var elemX = null, elemY = null;
                 switch (elem.id) {
                     case PathType.POINT:
+                        elemX = elem.X;
+                        elemY = elem.Y;
+                        arrCommandsType.push(PathType.POINT);
+                        break;
                     case PathType.LINE:
                         elemX = elem.X;
                         elemY = elem.Y;
+                        arrCommandsType.push(PathType.LINE);
                         break;
                     case PathType.ARC:
                         if (originalGeometry.ellipsePointsList[countArc]) {
@@ -321,9 +329,9 @@
                                     X1: elem.X1,
                                     Y1: elem.Y1,
                                     X2: elem.X2,
-                                    Y2: elem.Y2,
-                                    isEllipseArc: true
+                                    Y2: elem.Y2
                                 }
+                                arrCommandsType.push(PathType.ARC);
                                 pathPoints.splice(i, 0, elemArc);
                                 i++;
                             })
@@ -334,10 +342,15 @@
                     case PathType.BEZIER_3:
                         elemX = elem.X1;
                         elemY = elem.Y1;
+                        arrCommandsType.push(PathType.BEZIER_3);
                         break;
                     case PathType.BEZIER_4:
                         elemX = elem.X2;
                         elemY = elem.Y2;
+                        arrCommandsType.push(PathType.BEZIER_4);
+                        break;
+                    case PathType.END:
+                        arrCommandsType.push(PathType.END);
                         break;
                 }
 
@@ -345,7 +358,6 @@
                     pathPoints[i] = elem;
                 }
             };
-
             var start_index = 0;
             // insert pathCommand when end point is not equal to the start point, then draw a line between them
             for (var cur_index = 1; cur_index < pathPoints.length; cur_index++) {
@@ -370,8 +382,9 @@
                             {
                                 id: PathType.LINE,
                                 X: pointCommand.X,
-                                Y: pointCommand.Y,
+                                Y: pointCommand.Y
                             });
+                      arrCommandsType.splice(cur_index, 0, PathType.LINE);
                         ++cur_index;
                     }
                 }
@@ -394,8 +407,7 @@
                             X1: (prevCommandX + elem.X * 2) / 3,
                             Y1: (prevCommandY + elem.Y * 2) / 3,
                             X2: elem.X,
-                            Y2: elem.Y,
-                            isLine: true
+                            Y2: elem.Y
                         }
                         break;
                     case 3:
@@ -411,6 +423,9 @@
                         break;
                 }
             });
+            if(geometry.arrPathCommandsType.length < geometry.pathLst.length) {
+                geometry.arrPathCommandsType.push(arrCommandsType);
+            }
         }
 
         geometry.isGeomConverted = true;
@@ -608,38 +623,35 @@
         }
     };
 
-    EditShapeGeometryTrack.prototype.addPoint = function(invert_transform, geom, X, Y) {
+    EditShapeGeometryTrack.prototype.addPoint = function(invert_transform, geometry, X, Y) {
         var commandIndex = this.addingPoint.commandIndex;
         var pathIndex = this.addingPoint.pathIndex;
 
-        var pathElem = geom.pathLst[pathIndex].ArrPathCommand;
+        var pathElem = geometry.pathLst[pathIndex].ArrPathCommand;
         var curCommand = pathElem[commandIndex];
 
-        var prevCommand_1 = pathElem[commandIndex - 1];
-        var gmEditListElem = geom.gmEditList.filter(function(elem) {
+        var gmEditListElem = geometry.gmEditList.filter(function(elem) {
             return elem.pathC1 === commandIndex;
         })[0];
+        var prevCommand_1 = gmEditListElem.prevPoint;
+        var prevCommand_2 = prevCommand_1.prevPoint;
 
-        var prevCommand_2 = gmEditListElem.prevPoint;
-
-        var prevCommand_1X = prevCommand_1.X !== undefined ? prevCommand_1.X : prevCommand_1.X2;
-        var prevCommand_1Y = prevCommand_1.Y !== undefined ? prevCommand_1.Y : prevCommand_1.Y2;
-        var prevCommand_2X = prevCommand_2.X !== undefined ? prevCommand_2.X : prevCommand_2.X2;
-        var prevCommand_2Y = prevCommand_2.Y !== undefined ? prevCommand_2.Y : prevCommand_2.Y2;
         var curCommandX = curCommand.X !== undefined ? curCommand.X : curCommand.X2;
         var curCommandY = curCommand.Y !== undefined ? curCommand.Y : curCommand.Y2;
 
-        var X0 = prevCommand_1X - (X - prevCommand_2X) / 4;
-        var Y0 = prevCommand_1Y - (Y - prevCommand_2Y) / 4;
-        var X1 = X - (curCommandX - prevCommand_1X) / 4;
-        var Y1 = Y - (curCommandY - prevCommand_1Y) / 4;
-        var newPathElem = {id: 4, X0, Y0, X1, Y1, X2: X, Y2: Y, X, Y};
-        curCommand.X0 = X + (curCommandX - prevCommand_1X) / 4;
-        curCommand.Y0 = Y + (curCommandY - prevCommand_1Y) / 4;
+        var X0 = prevCommand_1.X + (X - prevCommand_2.X) / 4;
+        var Y0 = prevCommand_1.Y + (Y - prevCommand_2.Y) / 4;
+        var X1 = X - (curCommandX - prevCommand_1.X) / 4;
+        var Y1 = Y - (curCommandY - prevCommand_1.Y) / 4;
+        var newPathElem = {id: PathType.BEZIER_4, X0, Y0, X1, Y1, X2: X, Y2: Y, X, Y};
+        curCommand.X0 = X + (curCommandX - prevCommand_1.X) / 4;
+        curCommand.Y0 = Y + (curCommandY - prevCommand_1.Y) / 4;
 
         pathElem.splice(commandIndex, 0, newPathElem);
+        geometry.arrPathCommandsType[pathIndex].splice(commandIndex, 0, PathType.BEZIER_4);
 
-        geom.pathLst[pathIndex].ArrPathCommandInfo = [];
+
+        geometry.pathLst[pathIndex].ArrPathCommandInfo = [];
 
     };
 
@@ -657,8 +669,7 @@
             pathC1 = gmEditPoint.pathC1,
             pathC2 = gmEditPoint.pathC2,
             startIndex = 0,
-            pointCount = 0,
-            t = this;
+            pointCount = 0;
 
         geometry.gmEditList.forEach(function (elem, index) {
             if(elem.id === 0) {
@@ -677,9 +688,11 @@
                             pathElem.ArrPathCommand[startIndex].X = pathElem.ArrPathCommand[startIndex + 1].X2;
                             pathElem.ArrPathCommand[startIndex].Y = pathElem.ArrPathCommand[startIndex + 1].Y2;
                             pathElem.ArrPathCommand.splice(pathC2, 1);
+                            geometry.arrPathCommandsType[pathIndex].splice(pathC2, 1);
                             --pathC1;
                         }
                         pathElem.ArrPathCommand.splice(pathC1, 1);
+                        geometry.arrPathCommandsType[pathIndex].splice(pathC1, 1);
                         geometry.gmEditList.splice(index, 1);
                     }
                     geometry.gmEditPoint = null;

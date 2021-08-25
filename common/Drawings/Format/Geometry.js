@@ -810,6 +810,7 @@ function Geometry()
     this.gmEditPoint = null;
     this.ellipsePointsList = [];
     this.isGeomConverted = false;
+    this.arrPathCommandsType = [];
 
     this.pathLst        = [];
     this.preset = null;
@@ -907,6 +908,15 @@ Geometry.prototype=
             var point = this.gmEditPoint;
             g.AddGeomPoint(point.id, point.X, point.Y, point.g1X, point.g1Y, point.g2X, point.g2Y, point.pathC1, point.pathC2, point.nextPoint, point.prevPoint,
                 point.isHitInFirstCPoint, point.isHitInSecondCPoint, point.isStartPoint, point.pathIndex);
+        }
+        for(i = 0; i < this.arrPathCommandsType.length; i++)
+        {
+            var arrCommandsType = this.arrPathCommandsType[i];
+            var curArrCommandsType = [];
+            for (var j = 0; j < arrCommandsType.length; j++) {
+                curArrCommandsType.push(arrCommandsType[i]);
+            }
+            g.arrPathCommandsType.push(arrCommandsType);
         }
         g.isGeomConverted = this.isGeomConverted;
         return g;
