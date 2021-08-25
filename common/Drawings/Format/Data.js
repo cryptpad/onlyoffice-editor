@@ -9433,7 +9433,7 @@
           this.dataModel.fromPPTY(pReader);
           this.setPointsForShapes();
            this.setConnections();
-          // this.setTree(this.createHierarchy());
+          this.setTree(this.createHierarchy());
           break;
         }
         case 2: {
