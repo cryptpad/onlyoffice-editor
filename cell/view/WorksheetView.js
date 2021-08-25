@@ -14457,9 +14457,9 @@
 									c_oAscDeleteOptions.DeleteCellsAndShiftLeft);
 							}
 							if (range.deleteCellsShiftLeft(function () {
-								t._cleanCache(lockRange);
 								t.cellCommentator.updateCommentsDependencies(false, val, checkRange);
 								t.model.shiftDataValidation(false, val, checkRange, true);
+								t._cleanCache(lockRange);
 							})) {
 								updateDrawingObjectsInfo2 = {bInsert: false, operType: val, updateRange: arn};
 							}
@@ -14505,9 +14505,9 @@
 								t.model.autoFilters.isEmptyAutoFilters(arn, c_oAscDeleteOptions.DeleteCellsAndShiftTop);
 							}
 							if (range.deleteCellsShiftUp(function () {
-								t._cleanCache(lockRange);
 								t.cellCommentator.updateCommentsDependencies(false, val, checkRange);
 								t.model.shiftDataValidation(false, val, checkRange, true);
+								t._cleanCache(lockRange);
 							})) {
 								updateDrawingObjectsInfo2 = {bInsert: false, operType: val, updateRange: arn};
 							}
