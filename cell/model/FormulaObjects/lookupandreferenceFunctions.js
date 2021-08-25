@@ -1311,6 +1311,7 @@ function (window, undefined) {
 			//TODO возможно стоит на вход функции Calculate в случае применения как формулы массива сразу передавать преобразованный range в array
 			if(!this.bArrayFormula) {
 				arg0 = arg0.cross(arguments[1]);
+				return arg0;
 			} else {
 				arg0 = arg0.getMatrix();
 			}
