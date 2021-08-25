@@ -1094,6 +1094,12 @@
 				this.text = null;
 				this.rank = null;
 				break;
+			case Asc.ECfType.colorScale:
+				this.dxf = null;
+				break;
+		}
+		if (this.type !== Asc.ECfType.top10) {
+			this.rank = null;
 		}
 	};
 	CConditionalFormattingRule.prototype.asc_setDxf = function (val) {
@@ -1177,7 +1183,7 @@
 		var res = null;
 		var range;
 		if (val !== null && val !== undefined) {
-			val = this._addQuotes(val);
+			val = addQuotes(val);
 		}
 		if (this.ranges && this.ranges[0]) {
 			range = this.ranges[0];
@@ -1278,7 +1284,7 @@
 	CConditionalFormattingRule.prototype.asc_setValue1 = function (val) {
 		//чищу всегда, поскольку от интерфейса всегда заново выставляются оба значения
 		this.aRuleElements = [];
-		val = this.correctFromInterface(val);
+		val = correctFromInterface(val);
 
 		this.aRuleElements[0] = new CFormulaCF();
 		this.aRuleElements[0].Text = val;
@@ -1288,50 +1294,10 @@
 			this.aRuleElements = [];
 		}
 
-		val = this.correctFromInterface(val);
+		val = correctFromInterface(val);
 
 		this.aRuleElements[1] = new CFormulaCF();
 		this.aRuleElements[1].Text = val;
-	};
-
-	CConditionalFormattingRule.prototype.correctFromInterface = function (val) {
-		var t = this;
-
-		var isNumeric = !isNaN(parseFloat(val)) && isFinite(val);
-		if (!isNumeric) {
-			var isDate;
-			var isFormula;
-
-			if (val[0] === "=") {
-				val = val.slice(1);
-				isFormula = true;
-			} else {
-				isDate = AscCommon.g_oFormatParser.parseDate(val, AscCommon.g_oDefaultCultureInfo);
-			}
-
-			//храним число
-			if (isDate) {
-				val = isDate.value;
-				return val;
-			}
-
-			if (!isFormula) {
-				val = this._addQuotes(val);
-			}
-		}
-
-		return val;
-	};
-
-	CConditionalFormattingRule.prototype._addQuotes = function (val) {
-		var _res;
-		if (val[0] === '"') {
-			_res = val.replace(/\"/g, "\"\"");
-			_res = "\"" + _res + "\"";
-		} else {
-			_res = "\"" + val + "\"";
-		}
-		return _res;
 	};
 
 	CConditionalFormattingRule.prototype.asc_setColorScaleOrDataBarOrIconSetRule = function (val) {
@@ -2275,7 +2241,7 @@
 		return this.Type;
 	};
 	CConditionalFormatValueObject.prototype.asc_getVal = function () {
-		return this.Val;
+		return !isNumeric(this.Val) ? "=" + this.Val : this.Val;
 	};
 	CConditionalFormatValueObject.prototype.asc_setGte = function (val) {
 		this.Gte = val;
@@ -2284,6 +2250,7 @@
 		this.Type = val;
 	};
 	CConditionalFormatValueObject.prototype.asc_setVal = function (val) {
+		val = correctFromInterface(val);
 		this.Val = (val !== undefined && val !== null) ? val + "" : val;
 	};
 	CConditionalFormatValueObject.prototype.isEqual = function (elem) {
@@ -2411,25 +2378,28 @@
 					stack[0].type === AscCommonExcel.cElementType.cellsRange3D)) {
 					return asc_error.NotSingleReferenceCannotUsed;
 				}
-				for (var i = 0; i < stack.length; i++) {
-					if (stack[i]) {
-						//допускаются только абсолютные ссылки
-						if (stack[i].type === AscCommonExcel.cElementType.cellsRange ||
-							stack[i].type === AscCommonExcel.cElementType.cellsRange3D ||
-							stack[i].type === AscCommonExcel.cElementType.cell ||
-							stack[i].type === AscCommonExcel.cElementType.cell3D) {
-							//ссылки должны быть только абсолютные
-							var _range = stack[i].getRange();
-							if (_range.bbox) {
-								_range = _range.bbox;
-							}
-							var isAbsRow1 = _range.isAbsRow(_range.refType1);
-							var isAbsCol1 = _range.isAbsCol(_range.refType1);
-							var isAbsRow2 = _range.isAbsRow(_range.refType2);
-							var isAbsCol2 = _range.isAbsCol(_range.refType2);
 
-							if (!isAbsRow1 || !isAbsCol1 || !isAbsRow2 || !isAbsCol2) {
-								return asc_error.CannotUseRelativeReference;
+				if (type === Asc.ECfType.colorScale || type === Asc.ECfType.dataBar || type === Asc.ECfType.iconSet) {
+					for (var i = 0; i < stack.length; i++) {
+						if (stack[i]) {
+							//допускаются только абсолютные ссылки
+							if (stack[i].type === AscCommonExcel.cElementType.cellsRange ||
+								stack[i].type === AscCommonExcel.cElementType.cellsRange3D ||
+								stack[i].type === AscCommonExcel.cElementType.cell ||
+								stack[i].type === AscCommonExcel.cElementType.cell3D) {
+								//ссылки должны быть только абсолютные
+								var _range = stack[i].getRange();
+								if (_range.bbox) {
+									_range = _range.bbox;
+								}
+								var isAbsRow1 = _range.isAbsRow(_range.refType1);
+								var isAbsCol1 = _range.isAbsCol(_range.refType1);
+								var isAbsRow2 = _range.isAbsRow(_range.refType2);
+								var isAbsCol2 = _range.isAbsCol(_range.refType2);
+
+								if (!isAbsRow1 || !isAbsCol1 || !isAbsRow2 || !isAbsCol2) {
+									return asc_error.CannotUseRelativeReference;
+								}
 							}
 						}
 					}
@@ -2461,9 +2431,6 @@
 			return _formulaParsed;
 		};
 
-		var isNumeric = function (_val) {
-			return !isNaN(parseFloat(_val)) && isFinite(_val);
-		};
 
 		var _checkValue = function(_val, _type, _isNumeric) {
 			var fParser, _error;
@@ -2609,6 +2576,48 @@
 		}
 	}
 
+	function correctFromInterface(val) {
+		var _isNumeric = isNumeric(val);
+		if (!_isNumeric) {
+			var isDate;
+			var isFormula;
+
+			if (val[0] === "=") {
+				val = val.slice(1);
+				isFormula = true;
+			} else {
+				isDate = AscCommon.g_oFormatParser.parseDate(val, AscCommon.g_oDefaultCultureInfo);
+			}
+
+			//храним число
+			if (isDate) {
+				val = isDate.value;
+				return val;
+			}
+
+			if (!isFormula) {
+				val = addQuotes(val);
+			}
+		}
+
+		return val;
+	}
+
+	function addQuotes (val) {
+		var _res;
+		if (val[0] === '"') {
+			_res = val.replace(/\"/g, "\"\"");
+			_res = "\"" + _res + "\"";
+		} else {
+			_res = "\"" + val + "\"";
+		}
+		return _res;
+	}
+
+	var isNumeric = function (_val) {
+		return !isNaN(parseFloat(_val)) && isFinite(_val);
+	};
+
 	var cDefIconSize = 16;
 	var cDefIconFont = 11;
 
@@ -2655,7 +2664,7 @@
 		"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEgNUgxNVYxMUgxVjVaIiBmaWxsPSIjRkZDRjMzIi8+CjxwYXRoIGQ9Ik0xLjUgNS41SDE0LjVWMTAuNUgxLjVWNS41WiIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLW9wYWNpdHk9IjAuMiIvPgo8L3N2Zz4K",
 		"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEgMTJIMTVMOCAzTDEgMTJaIiBmaWxsPSIjMkU5OTVGIi8+CjxwYXRoIGQ9Ik04IDMuODE0NDFMMTMuOTc3NyAxMS41SDIuMDIyMzJMOCAzLjgxNDQxWiIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLW9wYWNpdHk9IjAuMiIvPgo8L3N2Zz4K",
 		"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNy41IDIuMTI5NzhMOS4xMzk0OSA1LjQ1MTc1QzkuMjg1MTUgNS43NDY4OSA5LjU2NjcyIDUuOTUxNDYgOS44OTI0MyA1Ljk5ODc5TDEzLjU1ODQgNi41MzE0OUwxMC45MDU3IDkuMTE3MjlDMTAuNjcgOS4zNDcwMiAxMC41NjI1IDkuNjc4MDIgMTAuNjE4MSAxMC4wMDI0TDExLjI0NDMgMTMuNjUzNkw3Ljk2NTM0IDExLjkyOThDNy42NzQwMiAxMS43NzY2IDcuMzI1OTggMTEuNzc2NiA3LjAzNDY2IDExLjkyOThMMy43NTU2OCAxMy42NTM2TDQuMzgxOTEgMTAuMDAyNEM0LjQzNzU0IDkuNjc4MDMgNC4zMyA5LjM0NzAyIDQuMDk0MzEgOS4xMTcyOUwxLjQ0MTU2IDYuNTMxNDlMNS4xMDc1NyA1Ljk5ODc5QzUuNDMzMjggNS45NTE0NiA1LjcxNDg1IDUuNzQ2ODkgNS44NjA1MSA1LjQ1MTc1TDcuNSAyLjEyOTc4WiIgZmlsbD0id2hpdGUiIHN0cm9rZT0iIzczNzM3MyIvPjwvc3ZnPg==",
-		"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48bWFzayBpZD0ibWFzazAiIG1hc2stdHlwZT0iYWxwaGEiIG1hc2tVbml0cz0idXNlclNwYWNlT25Vc2UiIHg9IjEiIHk9IjEiIHdpZHRoPSI3IiBoZWlnaHQ9IjE1Ij48cmVjdCB3aWR0aD0iNyIgaGVpZ2h0PSIxNSIgdHJhbnNmb3JtPSJtYXRyaXgoLTEgMCAwIDEgOCAxKSIgZmlsbD0iI0M0QzRDNCIvPjwvbWFzaz48ZyBtYXNrPSJ1cmwoI21hc2swKSI+PHBhdGggZD0iTTggMi4xMjk3OEw2LjM2MDUxIDUuNDUxNzVDNi4yMTQ4NSA1Ljc0Njg5IDUuOTMzMjggNS45NTE0NiA1LjYwNzU3IDUuOTk4NzlMMS45NDE1NiA2LjUzMTQ5TDQuNTk0MzEgOS4xMTcyOUM0LjgzIDkuMzQ3MDIgNC45Mzc1NCA5LjY3ODAyIDQuODgxOTEgMTAuMDAyNEw0LjI1NTY4IDEzLjY1MzZMNy41MzQ2NiAxMS45Mjk4QzcuODI1OTggMTEuNzc2NiA4LjE3NDAyIDExLjc3NjYgOC40NjUzNCAxMS45Mjk4TDExLjc0NDMgMTMuNjUzNkwxMS4xMTgxIDEwLjAwMjRDMTEuMDYyNSA5LjY3ODAzIDExLjE3IDkuMzQ3MDIgMTEuNDA1NyA5LjExNzI5TDE0LjA1ODQgNi41MzE0OUwxMC4zOTI0IDUuOTk4NzlDMTAuMDY2NyA1Ljk1MTQ2IDkuNzg1MTUgNS43NDY4OSA5LjYzOTQ5IDUuNDUxNzVMOCAyLjEyOTc4WiIgZmlsbD0iI0ZGQ0YzMyIgc3Ryb2tlPSIjRERBMTA5Ii8+PC9nPjxtYXNrIGlkPSJtYXNrMSIgbWFzay10eXBlPSJhbHBoYSIgbWFza1VuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeD0iOCIgeT0iMSIgd2lkdGg9IjciIGhlaWdodD0iMTUiPjxyZWN0IHdpZHRoPSI3IiBoZWlnaHQ9IjE1IiB0cmFuc2Zvcm09Im1hdHJpeCgtMSAwIDAgMSAxNSAxKSIgZmlsbD0iI0M0QzRDNCIvPjwvbWFzaz48ZyBtYXNrPSJ1cmwoI21hc2sxKSI+PHBhdGggZD0iTTggMi4xMjk3OEw2LjM2MDUxIDUuNDUxNzVDNi4yMTQ4NSA1Ljc0Njg5IDUuOTMzMjggNS45NTE0NiA1LjYwNzU3IDUuOTk4NzlMMS45NDE1NiA2LjUzMTQ5TDQuNTk0MzEgOS4xMTcyOUM0LjgzIDkuMzQ3MDIgNC45Mzc1NSA5LjY3ODAyIDQuODgxOTEgMTAuMDAyNEw0LjI1NTY4IDEzLjY1MzZMNy41MzQ2NiAxMS45Mjk4QzcuODI1OTggMTEuNzc2NiA4LjE3NDAyIDExLjc3NjYgOC40NjUzNCAxMS45Mjk4TDExLjc0NDMgMTMuNjUzNkwxMS4xMTgxIDEwLjAwMjRDMTEuMDYyNSA5LjY3ODAzIDExLjE3IDkuMzQ3MDIgMTEuNDA1NyA5LjExNzI5TDE0LjA1ODQgNi41MzE0OUwxMC4zOTI0IDUuOTk4NzlDMTAuMDY2NyA1Ljk1MTQ2IDkuNzg1MTUgNS43NDY4OSA5LjYzOTQ5IDUuNDUxNzVMOCAyLjEyOTc4WiIgZmlsbD0id2hpdGUiIHN0cm9rZT0iIzczNzM3MyIvPjwvZz48L3N2Zz4=",
+		"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTggMi4xMjk3OEw2LjM2MDUxIDUuNDUxNzVDNi4yMTQ4NSA1Ljc0Njg5IDUuOTMzMjggNS45NTE0NiA1LjYwNzU3IDUuOTk4NzlMMS45NDE1NiA2LjUzMTQ5TDQuNTk0MzEgOS4xMTcyOUM0LjgzIDkuMzQ3MDIgNC45Mzc1NCA5LjY3ODAyIDQuODgxOTEgMTAuMDAyNEw0LjI1NTY4IDEzLjY1MzZMNy41MzQ2NiAxMS45Mjk4QzcuODI1OTggMTEuNzc2NiA4LjE3NDAyIDExLjc3NjYgOC40NjUzNCAxMS45Mjk4TDExLjc0NDMgMTMuNjUzNkwxMS4xMTgxIDEwLjAwMjRDMTEuMDYyNSA5LjY3ODAzIDExLjE3IDkuMzQ3MDIgMTEuNDA1NyA5LjExNzI5TDE0LjA1ODQgNi41MzE0OUwxMC4zOTI0IDUuOTk4NzlDMTAuMDY2NyA1Ljk1MTQ2IDkuNzg1MTUgNS43NDY4OSA5LjYzOTQ5IDUuNDUxNzVMOCAyLjEyOTc4WiIgZmlsbD0iI0ZGQ0YzMyIgc3Ryb2tlPSIjRERBMTA5Ii8+CjxwYXRoIGQ9Ik04IDEyLjMxNDlDOC4wNzk5MSAxMi4zMTQ5IDguMTU5ODIgMTIuMzM0IDguMjMyNjQgMTIuMzcyM0wxMS41MTE2IDE0LjA5NjJDMTEuODc4NCAxNC4yODkgMTIuMzA3MiAxMy45Nzc2IDEyLjIzNzEgMTMuNTY5MUwxMS42MTA5IDkuOTE3OUMxMS41ODMgOS43NTU3IDExLjYzNjggOS41OTAyIDExLjc1NDcgOS40NzUzM0wxNC40MDc0IDYuODg5NTRDMTQuNzA0MiA2LjYwMDI3IDE0LjU0MDQgNi4wOTYyOCAxNC4xMzAzIDYuMDM2NjlMMTAuNDY0MyA1LjUwMzk5QzEwLjMwMTQgNS40ODAzMiAxMC4xNjA3IDUuMzc4MDQgMTAuMDg3OCA1LjIzMDQ3TDguNDQ4MzQgMS45MDg0OUM4LjM1NjY0IDEuNzIyNjkgOC4xNzgzMiAxLjYyOTc5IDggMS42Mjk3OFYxMi4zMTQ5WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTggMTIuMzE0OUM4LjA3OTkxIDEyLjMxNDkgOC4xNTk4MiAxMi4zMzQgOC4yMzI2NCAxMi4zNzIzTDExLjUxMTYgMTQuMDk2MkMxMS44Nzg0IDE0LjI4OSAxMi4zMDcyIDEzLjk3NzYgMTIuMjM3MSAxMy41NjkxTDExLjYxMDkgOS45MTc5QzExLjU4MyA5Ljc1NTcgMTEuNjM2OCA5LjU5MDIgMTEuNzU0NyA5LjQ3NTMzTDE0LjQwNzQgNi44ODk1NEMxNC43MDQyIDYuNjAwMjcgMTQuNTQwNCA2LjA5NjI4IDE0LjEzMDMgNi4wMzY2OUwxMC40NjQzIDUuNTAzOTlDMTAuMzAxNCA1LjQ4MDMyIDEwLjE2MDcgNS4zNzgwNCAxMC4wODc4IDUuMjMwNDdMOC40NDgzNCAxLjkwODQ5QzguMzU2NjQgMS43MjI2OSA4LjE3ODMyIDEuNjI5NzkgOCAxLjYyOTc4VjMuMjU5NjFMOS4xOTEwOSA1LjY3MzAzQzkuNDA5NTkgNi4xMTU3NSA5LjgzMTk0IDYuNDIyNiAxMC4zMjA1IDYuNDkzNTlMMTIuOTgzOSA2Ljg4MDYxTDExLjA1NjcgOC43NTkyNEMxMC43MDMxIDkuMTAzODUgMTAuNTQxOCA5LjYwMDM1IDEwLjYyNTMgMTAuMDg2OUwxMS4wODAyIDEyLjczOTZMOC42OTc5OCAxMS40ODcyQzguNDc5NSAxMS4zNzIzIDguMjM5NzUgMTEuMzE0OSA4IDExLjMxNDlWMTIuMzE0OVoiIGZpbGw9IiM3MzczNzMiLz4KPHBhdGggZD0iTTggMTIuMzE0OUM4LjA3OTkxIDEyLjMxNDkgOC4xNTk4MiAxMi4zMzQgOC4yMzI2NCAxMi4zNzIzTDExLjUxMTYgMTQuMDk2MkMxMS44Nzg0IDE0LjI4OSAxMi4zMDcyIDEzLjk3NzYgMTIuMjM3MSAxMy41NjkxTDExLjYxMDkgOS45MTc5QzExLjU4MyA5Ljc1NTcgMTEuNjM2OCA5LjU5MDIgMTEuNzU0NyA5LjQ3NTMzTDE0LjQwNzQgNi44ODk1NEMxNC43MDQyIDYuNjAwMjcgMTQuNTQwNCA2LjA5NjI4IDE0LjEzMDMgNi4wMzY2OUwxMC40NjQzIDUuNTAzOTlDMTAuMzAxNCA1LjQ4MDMyIDEwLjE2MDcgNS4zNzgwNCAxMC4wODc4IDUuMjMwNDdMOC40NDgzNCAxLjkwODQ5QzguMzU2NjQgMS43MjI2OSA4LjE3ODMyIDEuNjI5NzkgOCAxLjYyOTc4VjMuMjU5NjFMOS4xOTEwOSA1LjY3MzAzQzkuNDA5NTkgNi4xMTU3NSA5LjgzMTk0IDYuNDIyNiAxMC4zMjA1IDYuNDkzNTlMMTIuOTgzOSA2Ljg4MDYxTDExLjA1NjcgOC43NTkyNEMxMC43MDMxIDkuMTAzODUgMTAuNTQxOCA5LjYwMDM1IDEwLjYyNTMgMTAuMDg2OUwxMS4wODAyIDEyLjczOTZMOC42OTc5OCAxMS40ODcyQzguNDc5NSAxMS4zNzIzIDguMjM5NzUgMTEuMzE0OSA4IDExLjMxNDlWMTIuMzE0OVoiIGZpbGw9IiM3MzczNzMiLz4KPC9zdmc+",
 		"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNy41IDIuMTI5NzhMOS4xMzk0OSA1LjQ1MTc1QzkuMjg1MTUgNS43NDY4OSA5LjU2NjcyIDUuOTUxNDYgOS44OTI0MyA1Ljk5ODc5TDEzLjU1ODQgNi41MzE0OUwxMC45MDU3IDkuMTE3MjlDMTAuNjcgOS4zNDcwMiAxMC41NjI1IDkuNjc4MDIgMTAuNjE4MSAxMC4wMDI0TDExLjI0NDMgMTMuNjUzNkw3Ljk2NTM0IDExLjkyOThDNy42NzQwMiAxMS43NzY2IDcuMzI1OTggMTEuNzc2NiA3LjAzNDY2IDExLjkyOThMMy43NTU2OCAxMy42NTM2TDQuMzgxOTEgMTAuMDAyNEM0LjQzNzU0IDkuNjc4MDMgNC4zMyA5LjM0NzAyIDQuMDk0MzEgOS4xMTcyOUwxLjQ0MTU2IDYuNTMxNDlMNS4xMDc1NyA1Ljk5ODc5QzUuNDMzMjggNS45NTE0NiA1LjcxNDg1IDUuNzQ2ODkgNS44NjA1MSA1LjQ1MTc1TDcuNSAyLjEyOTc4WiIgZmlsbD0iI0ZGQ0YzMyIgc3Ryb2tlPSIjRERBMTA5Ii8+PC9zdmc+",
 		"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iMSIgeT0iMiIgd2lkdGg9IjYiIGhlaWdodD0iNiIgZmlsbD0iI0NDQ0NDQyIvPgo8cmVjdCB4PSIxLjUiIHk9IjIuNSIgd2lkdGg9IjUiIGhlaWdodD0iNSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLW9wYWNpdHk9IjAuMiIvPgo8cmVjdCB4PSI4IiB5PSIyIiB3aWR0aD0iNiIgaGVpZ2h0PSI2IiBmaWxsPSIjQ0NDQ0NDIi8+CjxyZWN0IHg9IjguNSIgeT0iMi41IiB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBzdHJva2U9ImJsYWNrIiBzdHJva2Utb3BhY2l0eT0iMC4yIi8+CjxyZWN0IHg9IjgiIHk9IjkiIHdpZHRoPSI2IiBoZWlnaHQ9IjYiIGZpbGw9IiNDQ0NDQ0MiLz4KPHJlY3QgeD0iOC41IiB5PSI5LjUiIHdpZHRoPSI1IiBoZWlnaHQ9IjUiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz4KPHJlY3QgeD0iMSIgeT0iOSIgd2lkdGg9IjYiIGhlaWdodD0iNiIgZmlsbD0iI0NDQ0NDQyIvPgo8cmVjdCB4PSIxLjUiIHk9IjkuNSIgd2lkdGg9IjUiIGhlaWdodD0iNSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLW9wYWNpdHk9IjAuMiIvPgo8L3N2Zz4K",
 		"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iMSIgeT0iMiIgd2lkdGg9IjYiIGhlaWdodD0iNiIgZmlsbD0iI0NDQ0NDQyIvPgo8cmVjdCB4PSIxLjUiIHk9IjIuNSIgd2lkdGg9IjUiIGhlaWdodD0iNSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLW9wYWNpdHk9IjAuMiIvPgo8cmVjdCB4PSI4IiB5PSIyIiB3aWR0aD0iNiIgaGVpZ2h0PSI2IiBmaWxsPSIjQ0NDQ0NDIi8+CjxyZWN0IHg9IjguNSIgeT0iMi41IiB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBzdHJva2U9ImJsYWNrIiBzdHJva2Utb3BhY2l0eT0iMC4yIi8+CjxyZWN0IHg9IjgiIHk9IjkiIHdpZHRoPSI2IiBoZWlnaHQ9IjYiIGZpbGw9IiNDQ0NDQ0MiLz4KPHJlY3QgeD0iOC41IiB5PSI5LjUiIHdpZHRoPSI1IiBoZWlnaHQ9IjUiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS1vcGFjaXR5PSIwLjIiLz4KPHJlY3QgeD0iMSIgeT0iOSIgd2lkdGg9IjYiIGhlaWdodD0iNiIgZmlsbD0iIzIzNjFCRSIvPgo8cmVjdCB4PSIxLjUiIHk9IjkuNSIgd2lkdGg9IjUiIGhlaWdodD0iNSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLW9wYWNpdHk9IjAuMiIvPgo8L3N2Zz4K",

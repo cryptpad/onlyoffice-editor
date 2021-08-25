@@ -1554,7 +1554,11 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         }
         case 56: // ASC_MENU_EVENT_TYPE_INSERT_PAGENUMBER
         {
-            this.put_PageNum((_params[0] >> 16) & 0xFFFF, _params[0] & 0xFFFF);
+            if (_params[0] < 0) {
+                this.put_PageNum(-1);
+            } else {
+                this.put_PageNum((_params[0] >> 16) & 0xFFFF, _params[0] & 0xFFFF);
+            }
             break;
         }
         case 57: // ASC_MENU_EVENT_TYPE_INSERT_SECTIONBREAK

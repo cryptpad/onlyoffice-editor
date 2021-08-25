@@ -1216,8 +1216,13 @@ CCellCommentator.prototype.isMissComments = function (range) {
 CCellCommentator.prototype.mergeComments = function (range) {
 	var aComments = this.model.aComments;
 	var i, length, deleteComments = [], oComment, r1 = range.r1, c1 = range.c1, mergeComment = null;
+	var containsNotCanViewComment;
 	for (i = 0, length = aComments.length; i < length; ++i) {
 		oComment = aComments[i];
+		if (!AscCommon.UserInfoParser.canViewComment(oComment.sUserName)) {
+			containsNotCanViewComment = true;
+			continue;
+		}
 		if (range.contains(oComment.nCol, oComment.nRow)) {
 			if (null === mergeComment)
 				mergeComment = oComment;
@@ -1227,6 +1232,10 @@ CCellCommentator.prototype.mergeComments = function (range) {
 			} else
 				deleteComments.push(oComment);
 		}
+	}
+
+	if (containsNotCanViewComment && mergeComment) {
+		mergeComment = null;
 	}
 
 	if (mergeComment && (mergeComment.nCol !== c1 || mergeComment.nRow !== r1)) {

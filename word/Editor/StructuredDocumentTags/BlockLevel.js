@@ -2576,6 +2576,10 @@ CBlockLevelSdt.prototype.CheckHitInContentControlByXY = function(X, Y, nPageAbs)
 
 	return false;
 };
+CBlockLevelSdt.prototype.CalculateTextToTable = function(oEngine)
+{
+	this.Content.CalculateTextToTable(oEngine);
+};
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CBlockLevelSdt = CBlockLevelSdt;

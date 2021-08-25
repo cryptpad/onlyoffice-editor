@@ -9707,7 +9707,7 @@
 		this.aConditionalFormattingRules.push(val);
 		this.cleanConditionalFormattingRangeIterator();
 		if (addToHistory) {
-			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_CFRuleAdd, this.getId(), val.getUnionRange(), new AscCommonExcel.UndoRedoData_CF(val.id, null, val));
+			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_CFRuleAdd, this.getId(), val.getUnionRange(), new AscCommonExcel.UndoRedoData_CF(val.id, null, val.clone ? val.clone() : val));
 		}
 	};
 
@@ -9862,7 +9862,7 @@
 	};
 
 	Worksheet.prototype.clearConditionalFormattingRulesByRanges = function (ranges, exceptionRange) {
-		for (var i = 0, l = this.aConditionalFormattingRules.length; i < l; ++i) {
+		for (var i = 0; i < this.aConditionalFormattingRules.length; ++i) {
 			var isExcept = exceptionRange && this.aConditionalFormattingRules[i].getIntersections(exceptionRange);
 			if (!isExcept && this.tryClearCFRule(this.aConditionalFormattingRules[i], ranges)) {
 				i--;
