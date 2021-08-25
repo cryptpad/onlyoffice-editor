@@ -316,8 +316,6 @@
                             originalGeometry.ellipsePointsList[countArc].forEach(function (elem) {
                                 var elemArc = {
                                     id: PathType.ARC,
-                                    X: elem.X2,
-                                    Y: elem.Y2,
                                     X0: elem.X0,
                                     Y0: elem.Y0,
                                     X1: elem.X1,
@@ -345,8 +343,6 @@
 
                 if (elemX !== undefined && elemY !== undefined && elem.id !== PathType.ARC && elem.id !== PathType.END) {
                     pathPoints[i] = elem;
-                    pathPoints[i].X = elemX;
-                    pathPoints[i].Y = elemY;
                 }
             };
 
@@ -361,23 +357,20 @@
                 if (pathPoints[cur_index].id === PathType.END && (!pathPoints[cur_index + 1] || pathPoints[cur_index + 1].id === PathType.POINT)) {
                     var prevCommand = pathPoints[cur_index - 1];
                     var pointCommand = pathPoints[start_index];
+                    var prevCommandX = prevCommand.X !== undefined ? prevCommand.X : prevCommand.X2;
+                    var prevCommandY = prevCommand.Y !== undefined ? prevCommand.Y : prevCommand.Y2;
+
                     var firstPointX = parseFloat(pathPoints[start_index].X.toFixed(2));
                     var firstPointY = parseFloat(pathPoints[start_index].Y.toFixed(2));
-                    var lastPointX = parseFloat(prevCommand.X.toFixed(2));
-                    var lastPointY = parseFloat(prevCommand.Y.toFixed(2));
+                    var lastPointX = parseFloat(prevCommandX.toFixed(2));
+                    var lastPointY = parseFloat(prevCommandY.toFixed(2));
                     if (firstPointX !== lastPointX || firstPointY !== lastPointY) {
+
                         pathPoints.splice(cur_index, 0,
                             {
                                 id: PathType.LINE,
-                                X0: (prevCommand.X + pointCommand.X / 2) / (3 / 2),
-                                Y0: (prevCommand.Y + pointCommand.Y / 2) / (3 / 2),
-                                X1: (prevCommand.X + pointCommand.X * 2) / 3,
-                                Y1: (prevCommand.Y + pointCommand.Y * 2) / 3,
-                                X2: pointCommand.X,
-                                Y2: pointCommand.Y,
                                 X: pointCommand.X,
                                 Y: pointCommand.Y,
-                                isLine: true
                             });
                         ++cur_index;
                     }
@@ -387,32 +380,33 @@
             pathPoints.forEach(function (elem, cur_index) {
 
                 var prevCommand = pathPoints[cur_index - 1];
+                if(prevCommand) {
+                    var prevCommandX = prevCommand.X !== undefined ? prevCommand.X : prevCommand.X2;
+                    var prevCommandY = prevCommand.Y !== undefined ? prevCommand.Y : prevCommand.Y2;
+                }
+
                 switch (elem.id) {
                     case 1:
                         pathPoints[cur_index] = {
                             id: PathType.LINE,
-                            X0: (prevCommand.X + elem.X / 2) / (3 / 2),
-                            Y0: (prevCommand.Y + elem.Y / 2) / (3 / 2),
-                            X1: (prevCommand.X + elem.X * 2) / 3,
-                            Y1: (prevCommand.Y + elem.Y * 2) / 3,
+                            X0: (prevCommandX + elem.X / 2) / (3 / 2),
+                            Y0: (prevCommandY + elem.Y / 2) / (3 / 2),
+                            X1: (prevCommandX + elem.X * 2) / 3,
+                            Y1: (prevCommandY + elem.Y * 2) / 3,
                             X2: elem.X,
                             Y2: elem.Y,
-                            X: elem.X,
-                            Y: elem.Y,
                             isLine: true
                         }
                         break;
                     case 3:
                         pathPoints[cur_index] = {
                             id: PathType.BEZIER_3,
-                            X0: (elem.X0 + prevCommand.X) / 2,
-                            Y0: (elem.Y0 + prevCommand.Y) / 2,
+                            X0: (elem.X0 + prevCommandX) / 2,
+                            Y0: (elem.Y0 + prevCommandY) / 2,
                             X1: (elem.X1 + elem.X0) / 2,
                             Y1: (elem.Y1 + elem.Y0) / 2,
                             X2: elem.X1,
-                            Y2: elem.Y1,
-                            X: elem.X,
-                            Y: elem.Y,
+                            Y2: elem.Y1
                         }
                         break;
                 }
