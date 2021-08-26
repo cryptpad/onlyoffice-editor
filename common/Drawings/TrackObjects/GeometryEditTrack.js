@@ -658,49 +658,43 @@
     EditShapeGeometryTrack.prototype.deletePoint = function(geometry) {
         var gmEditPoint = geometry.gmEditPoint,
             pathIndex = gmEditPoint.pathIndex,
-            pathElem = geometry.pathLst[pathIndex];
+            pathElem = geometry.pathLst[pathIndex],
+            arrayCommands = geometry.pathLst[pathIndex].ArrPathCommand;
 
         if(pathElem && pathElem.stroke === true && pathElem.fill === "none") {
             return;
         }
 
         var gmEditPoint = geometry.gmEditPoint,
-            pathIndex = gmEditPoint.pathIndex,
             pathC1 = gmEditPoint.pathC1,
             pathC2 = gmEditPoint.pathC2,
-            startIndex = 0,
             pointCount = 0;
 
-        geometry.gmEditList.forEach(function (elem, index) {
-            if(elem.id === 0) {
-                startIndex = index;
+        var increment_index = pathC1;
+        var decrement_index = pathC1;
+
+        while(arrayCommands[decrement_index] && arrayCommands[decrement_index].id !== PathType.POINT) {
+            --decrement_index;
+            ++pointCount;
+        }
+        while(arrayCommands[increment_index + 1] && arrayCommands[increment_index + 1].id !== PathType.END) {
+            ++increment_index;
+            ++pointCount;
+        }
+
+        if(pointCount > 2) {
+
+            if (pathC1 > pathC2) {
+                arrayCommands[decrement_index] = {id: PathType.POINT, X: arrayCommands[pathC1 - 1].X2, Y: arrayCommands[pathC1 - 1].Y2};
             }
+            arrayCommands.splice(pathC1, 1);
+            geometry.arrPathCommandsType[pathIndex].splice(pathC1, 1);
 
-                if (elem.pathIndex === pathIndex && elem.pathC1 === pathC1 && elem.pathC2 === pathC2) {
-
-                    while (pathElem.ArrPathCommand[startIndex + pointCount + 1] && pathElem.ArrPathCommand[startIndex + pointCount + 1].id !== 5 &&
-                    pathElem.ArrPathCommand[startIndex + pointCount + 1].id !== 0) {
-                        ++pointCount;
-                    }
-
-                    if(pointCount > 2) {
-                        if (pathC2 < pathC1) {
-                            pathElem.ArrPathCommand[startIndex].X = pathElem.ArrPathCommand[startIndex + 1].X2;
-                            pathElem.ArrPathCommand[startIndex].Y = pathElem.ArrPathCommand[startIndex + 1].Y2;
-                            pathElem.ArrPathCommand.splice(pathC2, 1);
-                            geometry.arrPathCommandsType[pathIndex].splice(pathC2, 1);
-                            --pathC1;
-                        }
-                        pathElem.ArrPathCommand.splice(pathC1, 1);
-                        geometry.arrPathCommandsType[pathIndex].splice(pathC1, 1);
-                        geometry.gmEditList.splice(index, 1);
-                    }
-                    geometry.gmEditPoint = null;
-                }
-        });
-
-        geometry.isGeomConverted = false;
-        this.addCommandsInPathInfo(geometry, pathIndex);
+            this.createGeometryEditList(geometry);
+            geometry.gmEditPoint = null;
+            geometry.isGeomConverted = false;
+            this.addCommandsInPathInfo(geometry, pathIndex);
+        }
     };
 
     EditShapeGeometryTrack.prototype.isCanContinue = function() {
