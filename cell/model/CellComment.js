@@ -940,12 +940,7 @@ CCellCommentator.prototype.addComment = function(comment, bIsNotUpdate) {
 
 		var existComment = this.getComment(oComment.nCol, oComment.nRow, false, true);
 		if (existComment) {
-			if (!AscCommon.UserInfoParser.canViewComment(existComment.sUserName)) {
-				return;
-			} else {
-				oComment = existComment;
-				bChange = true;
-			}
+			return;
 		}
 	}
 
