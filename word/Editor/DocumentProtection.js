@@ -32,8 +32,15 @@
 
 "use strict";
 
-function CDocProtect()
-{
+var EDocProtect = {
+	Comments: 0,
+	Forms: 1,
+	None: 2,
+	ReadOnly: 3,
+	TrackedChanges: 4
+};
+
+function CDocProtect() {
 	this.algorithmName = null;
 	this.edit = null;
 	this.enforcment = null;
@@ -52,9 +59,11 @@ function CDocProtect()
 	this.cryptProviderTypeExt = null;
 	this.cryptProviderTypeExtSource = null;
 }
+CDocProtect.prototype.isOnlyView = function () {
+	return this.edit === EDocProtect.ReadOnly;
+};
 
-function CWriteProtection()
-{
+function CWriteProtection() {
 	this.algorithmName = null;
 	this.recommended = null;
 	this.hashValue = null;

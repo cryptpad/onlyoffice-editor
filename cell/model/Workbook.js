@@ -9707,7 +9707,7 @@
 		this.aConditionalFormattingRules.push(val);
 		this.cleanConditionalFormattingRangeIterator();
 		if (addToHistory) {
-			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_CFRuleAdd, this.getId(), val.getUnionRange(), new AscCommonExcel.UndoRedoData_CF(val.id, null, val));
+			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_CFRuleAdd, this.getId(), val.getUnionRange(), new AscCommonExcel.UndoRedoData_CF(val.id, null, val.clone ? val.clone() : val));
 		}
 	};
 
@@ -9862,7 +9862,7 @@
 	};
 
 	Worksheet.prototype.clearConditionalFormattingRulesByRanges = function (ranges, exceptionRange) {
-		for (var i = 0, l = this.aConditionalFormattingRules.length; i < l; ++i) {
+		for (var i = 0; i < this.aConditionalFormattingRules.length; ++i) {
 			var isExcept = exceptionRange && this.aConditionalFormattingRules[i].getIntersections(exceptionRange);
 			if (!isExcept && this.tryClearCFRule(this.aConditionalFormattingRules[i], ranges)) {
 				i--;
@@ -10409,7 +10409,7 @@
 		}
 	};
 
-	Worksheet.prototype.moveProtectedRange = function (oBBoxFrom, oBBoxTo, copyRange, offset, wsTo, wsFrom) {
+	Worksheet.prototype.moveProtectedRange = function (oBBoxFrom, oBBoxTo, copyRange, offset, wsTo, wsFrom, bTransposeTo) {
 		var t = this;
 		if (!wsTo) {
 			wsTo = this;
@@ -10427,13 +10427,13 @@
 			}
 
 			if (wsFrom.aProtectedRanges && wsFrom.aProtectedRanges.length) {
-				wsFrom.aProtectedRanges.forEach(function (_protectedRange) {
+				wsFrom.aProtectedRanges.forEach(function (pR) {
 					//если клонируем - то добавляем новый диапазон со смещенным диапазоном пересечения
 					//если нет + если в пределах одного листа - меняем диапазона у текущего правила
 					//если на другой лист - меняем диапазон у текущего + создаём новый со смещенным диапазоном пересечения
 
 					var isChanged = null;
-					var _protectedSqref = _protectedRange.sqref;
+					var _protectedSqref = pR.sqref;
 					var constantPart, movePart;
 					var _moveRanges = [];
 					var _constantRanges = [];
@@ -10444,6 +10444,11 @@
 								constantPart = oBBoxFrom.difference(_protectedSqref[i]);
 								_constantRanges = _constantRanges.concat(constantPart);
 							}
+
+							if (bTransposeTo) {
+								movePart = movePart.transpose(oBBoxFrom.c1, oBBoxFrom.r1);
+							}
+
 							movePart.setOffset(offset);
 							_moveRanges.push(movePart);
 							isChanged = true;
@@ -10453,23 +10458,28 @@
 					}
 					if (isChanged) {
 						//в случае клонирования фрагмента - создаём новый
-						var _newProtectedRange;
+						var _newPr;
 						if (copyRange) {
-							_newProtectedRange = _protectedRange.clone();
-							_newProtectedRange.ranges = _moveRanges;
-							wsTo.addProtectedRange(_newProtectedRange, true);
+							if (wsFrom === wsTo) {
+								pR.setSqref(pR.sqref.concat(_moveRanges), t, true);
+							} else {
+								_newPr = pR.clone();
+								_newPr.sqref = _moveRanges;
+								_newPr.generateNewName(wsTo.aProtectedRanges);
+								wsTo.addProtectedRange(_newPr, true);
+							}
 						} else {
 							if (t !== wsTo) {
 								if (_moveRanges.length) {
-									_newProtectedRange = _protectedRange.clone();
-									_newProtectedRange.sqref = _moveRanges;
-									wsTo.addProtectedRange(_newProtectedRange, true);
+									_newPr = pR.clone();
+									_newPr.sqref = _moveRanges;
+									wsTo.addProtectedRange(_newPr, true);
 								}
 								if (_constantRanges.length) {
-									_protectedRange.setSqref(_constantRanges, t, true);
+									pR.setSqref(_constantRanges, t, true);
 								}
 							} else {
-								_protectedRange.setSqref(_constantRanges.concat(_moveRanges), t, true);
+								pR.setSqref(_constantRanges.concat(_moveRanges), t, true);
 							}
 						}
 					}
@@ -10938,7 +10948,7 @@
 		}
 
 		//todo не должны удаляться ссылки, если сделать merge ее части.
-		if (this.isNullTextString()) {
+		if (this.isNullTextString() && !this.isFormula()) {
 			var cell = this.ws.getCell3(this.nRow, this.nCol);
 			cell.removeHyperlink();
 		}

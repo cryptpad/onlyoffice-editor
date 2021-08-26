@@ -8245,6 +8245,7 @@ function parserFormula( formula, parent, _ws ) {
 	window['AscCommonExcel'].cUndefined = cUndefined;
 	window['AscCommonExcel'].cBaseFunction = cBaseFunction;
 	window['AscCommonExcel'].cUnknownFunction = cUnknownFunction;
+	window['AscCommonExcel'].cStrucTable = cStrucTable;
 
 	window['AscCommonExcel'].checkTypeCell = checkTypeCell;
 	window['AscCommonExcel'].cFormulaFunctionGroup = cFormulaFunctionGroup;

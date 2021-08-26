@@ -586,6 +586,7 @@
 		this.bNoSendComments = false;
 
 		this.isApplyChangesOnOpen        = false;
+		this.isApplyChangesOnVersionHistory = false;
 
         this.IsSpellCheckCurrentWord = false;
 
@@ -1344,7 +1345,7 @@ background-repeat: no-repeat;\
 
 		this.CreateCSS();
 
-		var _innerHTML = "<div id=\"id_panel_thumbnails\" class=\"block_elem\" style=\"touch-action:none;background-color:" + AscCommon.GlobalSkin.BackgroundColorThumbnails + ";\">\
+		var _innerHTML = "<div id=\"id_panel_thumbnails\" class=\"block_elem\" style=\"touch-action:none;-webkit-touch-callout:none;background-color:" + AscCommon.GlobalSkin.BackgroundColorThumbnails + ";\">\
 									<div id=\"id_panel_thumbnails_split\" class=\"block_elem\" style=\"pointer-events:none;background-color:" + AscCommon.GlobalSkin.BackgroundColorThumbnails + ";\"></div>\
 		                            <canvas id=\"id_thumbnails_background\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;z-index:1\"></canvas>\
 		                            <canvas id=\"id_thumbnails\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;z-index:2\"></canvas>\
@@ -4972,7 +4973,7 @@ background-repeat: no-repeat;\
 
 
 	// работа с шрифтами
-	asc_docs_api.prototype.asyncFontsDocumentStartLoaded = function()
+	asc_docs_api.prototype.asyncFontsDocumentStartLoaded = function(blockType)
 	{
 		// здесь прокинуть евент о заморозке меню
 		// и нужно вывести информацию в статус бар
@@ -4980,7 +4981,7 @@ background-repeat: no-repeat;\
 			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.LoadFont);
 		else
 		{
-			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.LoadDocumentFonts);
+			this.sync_StartAction(undefined === blockType ? c_oAscAsyncActionType.BlockInteraction : blockType, c_oAscAsyncAction.LoadDocumentFonts);
 
 			// заполним прогресс
 			var _progress         = this.OpenDocumentProgress;
@@ -5011,13 +5012,13 @@ background-repeat: no-repeat;\
 	{
 		return;
 	};
-	asc_docs_api.prototype.asyncFontsDocumentEndLoaded   = function()
+	asc_docs_api.prototype.asyncFontsDocumentEndLoaded   = function(blockType)
 	{
 		// все, шрифты загружены. Теперь нужно подгрузить картинки
 		if (this.isPasteFonts_Images)
 			this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.LoadFont);
 		else
-			this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.LoadDocumentFonts);
+			this.sync_EndAction(undefined === blockType ? c_oAscAsyncActionType.BlockInteraction : blockType, c_oAscAsyncAction.LoadDocumentFonts);
 
         if (undefined !== this.asyncMethodCallback)
         {
@@ -5443,6 +5444,11 @@ background-repeat: no-repeat;\
 		{
 			this.isApplyChangesOnOpen = false;
 			this._openDocumentEndCallback();
+		}
+		if (this.isApplyChangesOnVersionHistory)
+		{
+			this.isApplyChangesOnVersionHistory = false;
+			this._openVersionHistoryEndCallback();
 		}
 
 		this.WordControl.SlideDrawer.CheckRecalculateSlide();
@@ -7650,8 +7656,8 @@ background-repeat: no-repeat;\
         this.ShowParaMarks                    = false;
         _renderer.IsNoDrawingEmptyPlaceholder = true;
 
-        var pxW = 85; if (params && params.length && params[0]) pxW = params[0];
-        var pxH = 38; if (params && params.length && params[1]) pxH = params[1];
+        var pxW = AscCommon.GlobalSkin.THEMES_THUMBNAIL_WIDTH; if (params && params.length && params[0]) pxW = params[0];
+        var pxH = AscCommon.GlobalSkin.THEMES_THUMBNAIL_HEIGHT; if (params && params.length && params[1]) pxH = params[1];
         var mmW = pxW * AscCommon.g_dKoef_pix_to_mm;
         var mmH = pxH * AscCommon.g_dKoef_pix_to_mm;
 

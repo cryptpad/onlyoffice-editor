@@ -808,13 +808,24 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
         if (type_Table === Element.GetType() && true != Element.Is_Inline())
         {
             bFlow = true;
+
             if (true === oRecalcInfo.Can_RecalcObject())
             {
-                Element.Set_DocumentIndex(Index);
-                Element.Reset(X, Y, XLimit, YLimit, PageIndex, 0, 1);
-                var TempRecalcResult = Element.Recalculate_Page(0);
+				var ElementPageIndex = 0;
+				if ((0 === Index && 0 === PageIndex) || Index !== StartIndex)
+				{
+					Element.Set_DocumentIndex(Index);
+					Element.Reset(X, Y, XLimit, YLimit, PageIndex, 0, 1);
+					ElementPageIndex = 0;
+				}
+				else
+				{
+					ElementPageIndex = PageIndex - Element.PageNum;
+				}
 
-				oRecalcInfo.Set_FlowObject(Element, 0, TempRecalcResult, -1, {
+                var TempRecalcResult = Element.Recalculate_Page(ElementPageIndex);
+
+				oRecalcInfo.Set_FlowObject(Element, ElementPageIndex, TempRecalcResult, -1, {
                     X      : X,
                     Y      : Y,
                     XLimit : XLimit,
@@ -2713,6 +2724,13 @@ CDocumentContent.prototype.AddNewParagraph = function(bForceAdd)
 				{
 					if (true === Item.IsCursorAtEnd())
 					{
+						if (!Item.Lock.Is_Locked())
+						{
+							var oParaEndRun = Item.GetParaEndRun();
+							if (oParaEndRun)
+								oParaEndRun.ProcessAutoCorrectOnParaEnd();
+						}
+
 						var StyleId = Item.Style_Get();
 						var NextId  = undefined;
 
@@ -4637,15 +4655,26 @@ CDocumentContent.prototype.InsertContent = function(SelectedContent, NearPos)
 			var arrParaDrawings = oDstPictureCC.GetAllDrawingObjects();
 			if (arrParaDrawings.length > 0 && oSrcPicture)
 			{
+				oDstPictureCC.SetShowingPlcHdr(false);
 				oSrcPicture.setParent(arrParaDrawings[0]);
 				arrParaDrawings[0].Set_GraphicObject(oSrcPicture);
+
+				if (oDstPictureCC.IsPictureForm())
+					oDstPictureCC.UpdatePictureFormLayout();
 
 				if (this.LogicDocument)
 				{
 					this.LogicDocument.RemoveSelection();
 					oDstPictureCC.SelectContentControl();
+
+					var sKey = oDstPictureCC.GetFormKey();
+					if (arrParaDrawings[0].IsPicture() && sKey)
+					{
+						this.LogicDocument.OnChangeForm(sKey, oDstPictureCC, arrParaDrawings[0].GraphicObj.getImageUrl());
+					}
 				}
 			}
+
 
 			return;
 		}
@@ -9033,7 +9062,7 @@ CDocumentContent.prototype.Document_Is_SelectionLocked = function(CheckType)
 					{
 						var CurElement = this.Content[this.CurPos.ContentPos];
 
-						if ( AscCommon.changestype_Document_Content_Add === CheckType && type_Paragraph === CurElement.GetType() && true === CurElement.IsCursorAtEnd() )
+						if (AscCommon.changestype_Document_Content_Add === CheckType && CurElement.IsParagraph() && CurElement.IsCursorAtEnd() && CurElement.Lock.Is_Locked())
 							AscCommon.CollaborativeEditing.Add_CheckLock(false);
 						else
 							this.Content[this.CurPos.ContentPos].Document_Is_SelectionLocked(CheckType);
@@ -9227,6 +9256,13 @@ CDocumentContent.prototype.GetInnerForm = function()
 		return null;
 
 	return this.Content[0].GetInnerForm();
+};
+CDocumentContent.prototype.CalculateTextToTable = function(oEngine)
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		this.Content[nIndex].CalculateTextToTable(oEngine);
+	}
 };
 
 

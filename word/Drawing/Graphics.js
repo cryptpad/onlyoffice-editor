@@ -137,7 +137,6 @@ function CGraphics()
     this.m_oLastFont2       = null;
 
     this.ClearMode          = false;
-    this.IsRetina           = false;
 
     this.dash_no_smart = null;
 

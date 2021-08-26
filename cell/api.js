@@ -120,7 +120,7 @@ var editor;
 
 	  // Styles sizes
       this.styleThumbnailWidth = 112;
-	  this.styleThumbnailHeight = 38;
+	  this.styleThumbnailHeight = 40;
 
     this.formulasList = null;	// Список всех формул
 
@@ -624,6 +624,12 @@ var editor;
 			specialPasteHelper.specialPasteProps.property = Asc.c_oSpecialPasteProps.useTextImport;
 			specialPasteHelper.specialPasteProps.asc_setAdvancedOptions(options);
 
+			//remove last empty string
+			if (opt_text && opt_text.length > 1 && opt_text[opt_text.length - 1] &&
+				opt_text[opt_text.length - 1].length === 1 && opt_text[opt_text.length - 1][0] === "") {
+				opt_text.splice(opt_text.length - 1, 1);
+			}
+
 			var selectionRange;
 			var activeSheet = null;
 			if (opt_activeRange) {
@@ -645,10 +651,10 @@ var editor;
 				if (range) {
 					if (activeSheet) {
 						selectionRange = activeSheet.selectionRange.clone();
-						activeSheet.selectionRange.ranges = [range];
+						activeSheet.selectionRange.ranges = [range.clone()];
 					} else {
 						selectionRange = ws.model.selectionRange.clone();
-						ws.model.selectionRange.ranges = [range];
+						ws.model.selectionRange.ranges = [range.clone()];
 					}
 				}
 			}
@@ -1246,15 +1252,15 @@ var editor;
     this.handlers.trigger("asc_onSheetsChanged");
   };
 
-  spreadsheet_api.prototype.asyncFontsDocumentStartLoaded = function() {
+  spreadsheet_api.prototype.asyncFontsDocumentStartLoaded = function(blockType) {
     this.OpenDocumentProgress.Type = c_oAscAsyncAction.LoadDocumentFonts;
     this.OpenDocumentProgress.FontsCount = this.FontLoader.fonts_loading.length;
     this.OpenDocumentProgress.CurrentFont = 0;
-    this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.LoadDocumentFonts);
+    this.sync_StartAction(undefined === blockType ? c_oAscAsyncActionType.BlockInteraction : blockType, c_oAscAsyncAction.LoadDocumentFonts);
   };
 
-  spreadsheet_api.prototype.asyncFontsDocumentEndLoaded = function() {
-    this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.LoadDocumentFonts);
+  spreadsheet_api.prototype.asyncFontsDocumentEndLoaded = function(blockType) {
+    this.sync_EndAction(undefined === blockType ? c_oAscAsyncActionType.BlockInteraction : blockType, c_oAscAsyncAction.LoadDocumentFonts);
 
     if (this.asyncMethodCallback !== undefined) {
       this.asyncMethodCallback();
@@ -1827,6 +1833,11 @@ var editor;
       this.wb.drawWorksheet();
       History.TurnOn();
     }
+    if (this.isApplyChangesOnVersionHistory)
+    {
+      this.isApplyChangesOnVersionHistory = false;
+      this._openVersionHistoryEndCallback();
+    }
   };
 
   spreadsheet_api.prototype._onCleanSelection = function() {
@@ -2069,6 +2080,17 @@ var editor;
 
 		this.wb = new AscCommonExcel.WorkbookView(this.wbModel, this.controller, this.handlers, this.HtmlElement,
 			this.topLineEditorElement, this, this.collaborativeEditing, this.fontRenderingMode);
+
+		if (this.isCopyOutEnabled && this.topLineEditorElement) {
+			if (this.isCopyOutEnabled() === false) {
+				this.topLineEditorElement.oncopy = function () {
+					return false;
+				};
+				this.topLineEditorElement.oncut = function () {
+					return false;
+				};
+			}
+		}
 
 		if (this.isMobileVersion) {
 			this.wb.defaults.worksheetView.halfSelection = true;
@@ -5193,7 +5215,7 @@ var editor;
         }
       }
       if(aImages.length > 0)      {
-         window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImages);
+         window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImages, true);
       }
       callback();
     });
