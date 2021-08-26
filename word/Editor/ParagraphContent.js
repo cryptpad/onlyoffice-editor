@@ -330,6 +330,14 @@ CRunElementBase.prototype.IsSpaceAfter = function()
 {
 	return false;
 };
+/**
+ * Является ли данный элемент буквой (не цифрой, не знаком пунктуации и т.д.)
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsLetter = function()
+{
+	return false;
+};
 
 /**
  * Класс представляющий текстовый символ
@@ -595,7 +603,7 @@ ParaText.prototype.GetAutoCorrectFlags = function()
 
 	// слэш и обратный слэш - исключения, на них мы не должны стартовать атозамену первой буквы предложения
 	if ((this.IsPunctuation() || this.Is_Number()) && 92 !== this.Value && 47 !== this.Value)
-		return AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE;
+		return AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE | AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH;
 };
 ParaText.prototype.IsDiacriticalSymbol = function()
 {
@@ -688,6 +696,10 @@ ParaText.prototype.private_DrawGapsBackground = function(X, Y, oContext, PDSE, o
 
 	if (this.RGapFont)
 		oContext.SetTextPr(oTextPr, PDSE.Theme);
+};
+ParaText.prototype.IsLetter = function()
+{
+	return (!this.IsPunctuation() && !this.Is_Number() && !this.IsNBSP());
 };
 
 
@@ -1136,7 +1148,8 @@ ParaEnd.prototype.Read_FromBinary = function(Reader)
 ParaEnd.prototype.GetAutoCorrectFlags = function()
 {
 	return (AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE
-		| AUTOCORRECT_FLAGS_HYPERLINK);
+		| AUTOCORRECT_FLAGS_HYPERLINK
+		| AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH);
 };
 
 /**
