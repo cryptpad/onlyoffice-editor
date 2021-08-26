@@ -721,6 +721,13 @@ CBlockLevelSdt.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSel
 
 	return this.Content.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
 };
+CBlockLevelSdt.prototype.GetCurrentTablesStack = function(arrTables)
+{
+	if (!arrTables)
+		arrTables = [];
+
+	return this.Content.GetCurrentTablesStack(arrTables);
+};
 CBlockLevelSdt.prototype.AddTableRow = function(bBefore, nCount)
 {
 	if (this.IsPlaceHolder())
@@ -866,6 +873,42 @@ CBlockLevelSdt.prototype.GetBoundingPolygonFirstLineH = function()
 	// TODO: Когда специальные формы будут реализованы и с помощью блочного контрола, тогда
 	//       надо будет рассчитать тут
 	return 0;
+};
+/**
+ * Специальная функция для мобильных версий, возвращает правую среднюю точку границы
+ * @return {{X:number, Y:number, Page:number, Transform:object}}
+ */
+CBlockLevelSdt.prototype.GetBoundingPolygonAnchorPoint = function()
+{
+	var nR  = 0;
+	var nT = -1;
+	var nB = -1;
+
+	var nCurPage = -1;
+	for (var nPageIndex = 0, nPagesCount = this.GetPagesCount(); nPageIndex < nPagesCount; ++nPageIndex)
+	{
+		if (this.IsEmptyPage(nPageIndex))
+			continue;
+
+		if (-1 === nCurPage)
+			nCurPage = nPageIndex;
+		else if (nCurPage !== nPageIndex)
+			break;
+
+		var oBounds = this.Content.GetContentBounds(nPageIndex);
+
+		if (nR < oBounds.Right)
+			nR = oBounds.Right;
+
+		if (-1 === nT || nT > oBounds.Top)
+			nT = oBounds.Top;
+
+		if (-1 === nB || nB < oBounds.Bottom)
+			nB = oBounds.Bottom;
+	}
+	var nPageAbs = this.GetAbsolutePage(nCurPage);
+
+	return {X : nR, Y : (nT + nB) / 2, Page : nPageAbs, Transform : this.Get_ParentTextTransform()};
 };
 CBlockLevelSdt.prototype.DrawContentControlsTrack = function(isHover, X, Y, nCurPage)
 {
@@ -1076,9 +1119,9 @@ CBlockLevelSdt.prototype.IsCell = function(isReturnCell)
 {
 	return this.Parent.IsTableCellContent(isReturnCell);
 };
-CBlockLevelSdt.prototype.Is_DrawingShape = function()
+CBlockLevelSdt.prototype.Is_DrawingShape = function(bRetShape)
 {
-	return this.Parent.Is_DrawingShape();
+	return this.Parent.Is_DrawingShape(bRetShape);
 };
 CBlockLevelSdt.prototype.Get_Numbering = function()
 {
@@ -1554,6 +1597,14 @@ CBlockLevelSdt.prototype.GetLastElement = function()
 
 	return this.Content.GetElement(nCount - 1);
 };
+CBlockLevelSdt.prototype.GetElement = function(nIndex)
+{
+	return this.Content.GetElement(nIndex);
+};
+CBlockLevelSdt.prototype.GetElementsCount = function()
+{
+	return this.Content.GetElementsCount();
+};
 CBlockLevelSdt.prototype.GetLastParagraph = function()
 {
 	return this.Content.GetLastParagraph();
@@ -1802,17 +1853,21 @@ CBlockLevelSdt.prototype.GetCheckBoxPr = function()
 };
 /**
  * Выставляем состояние чекбокса
+ * @param {boolean|undefined} [isChecked=undefined]
  */
-CBlockLevelSdt.prototype.ToggleCheckBox = function()
+CBlockLevelSdt.prototype.ToggleCheckBox = function(isChecked)
 {
 	if (!this.IsCheckBox())
+		return;
+
+	if (undefined !== isChecked && this.Pr.CheckBox.Checked === isChecked)
 		return;
 
 	var oLogicDocument = this.GetLogicDocument();
 	if (oLogicDocument || this.IsRadioButton() || this.GetFormKey())
 		oLogicDocument.OnChangeForm(this.IsRadioButton() ? this.Pr.CheckBox.GroupKey : this.GetFormKey(), this);
 
-	if (this.IsRadioButton() && true === this.Pr.CheckBox.Checked)
+	if (undefined === isChecked && this.IsRadioButton() && true === this.Pr.CheckBox.Checked)
 		return;
 
 	this.SetCheckBoxChecked(!this.Pr.CheckBox.Checked);
@@ -2520,6 +2575,10 @@ CBlockLevelSdt.prototype.CheckHitInContentControlByXY = function(X, Y, nPageAbs)
 	}
 
 	return false;
+};
+CBlockLevelSdt.prototype.CalculateTextToTable = function(oEngine)
+{
+	this.Content.CalculateTextToTable(oEngine);
 };
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

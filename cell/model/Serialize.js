@@ -724,7 +724,8 @@
         DataBar			: 15,
         FormulaCF		: 16,
 		IconSet			: 17,
-		Dxf				: 18
+		Dxf				: 18,
+		isExt			: 19
     };
     var c_oSer_ConditionalFormattingRuleColorScale = {
         CFVO			: 0,
@@ -3744,6 +3745,8 @@
                 this.bs.WriteItem(c_oSer_SheetView.Pane, function(){oThis.WriteSheetViewPane(oSheetView.pane);});
 			if (null !== ws.selectionRange)
 				this.bs.WriteItem(c_oSer_SheetView.Selection, function(){oThis.WriteSheetViewSelection(ws.selectionRange);});
+            if (null !== oSheetView.showZeros && !oThis.isCopyPaste)
+                this.bs.WriteItem(c_oSer_SheetView.ShowZeros, function(){oThis.memory.WriteBool(oSheetView.showZeros);});
         };
         this.WriteSheetViewPane = function (oPane) {
             var oThis = this;
@@ -4127,7 +4130,6 @@
         {
             var oThis = this;
             var oPPTXWriter = pptx_content_writer.BinaryFileWriter;
-            oPPTXWriter.ClearIdMap();
             for(var i = 0, length = aDrawings.length; i < length; ++i)
             {
                 //write only active drawing, if copy/paste
@@ -4171,7 +4173,6 @@
                     }
                 }
             }
-            oPPTXWriter.ClearIdMap();
         };
         this.WriteDrawing = function(oDrawing, curDrawing)
         {
@@ -5134,12 +5135,12 @@
         };
     }
     /** @constructor */
-    function BinaryFileWriter(wb, isCopyPaste, saveThreadedComments)
+    function BinaryFileWriter(wb, isCopyPaste)
     {
         this.Memory = new AscCommon.CMemory();
         this.wb = wb;
         this.isCopyPaste = isCopyPaste;
-        this.saveThreadedComments = saveThreadedComments;
+        this.saveThreadedComments = true;
         this.nLastFilePos = 0;
         this.nRealTableCount = 0;
         this.bs = new BinaryCommonWriter(this.Memory);
@@ -7604,7 +7605,9 @@
 				res = this.bcr.Read2(length, function(t, l) {
 					return oThis.ReadDataValidation(t, l, dataValidation);
 				});
-				dataValidations.elems.push(dataValidation);
+				if (dataValidation && dataValidation.ranges) {
+					dataValidations.elems.push(dataValidation);
+				}
 			} else
 				res = c_oSerConstants.ReadUnknown;
 			return res;
@@ -8426,8 +8429,9 @@
             {
                 var oCommentCoords = new AscCommonExcel.asc_CCommentCoords();
                 var aCommentData = [];
+                var oAdditionalData = {isThreadedComment: false};
                 res = this.bcr.Read2Spreadsheet(length, function(t,l){
-                    return oThis.ReadComment(t,l, oCommentCoords, aCommentData);
+                    return oThis.ReadComment(t,l, oCommentCoords, aCommentData, oAdditionalData);
                 });
                 if (oCommentCoords.isValid()) {
                     var i;
@@ -8438,6 +8442,10 @@
                         var elem = aCommentData[i];
                         elem.asc_putRow(oCommentCoords.nRow);
                         elem.asc_putCol(oCommentCoords.nCol);
+
+                        if (!oAdditionalData.isThreadedComment) {
+                            elem.convertToThreadedComment();
+                        }
 
                         if (elem.asc_getDocumentFlag()) {
                             this.wb.aComments.push(elem);
@@ -8451,7 +8459,7 @@
                 res = c_oSerConstants.ReadUnknown;
             return res;
         };
-        this.ReadComment = function(type, length, oCommentCoords, aCommentData)
+        this.ReadComment = function(type, length, oCommentCoords, aCommentData, oAdditionalData)
         {
             var res = c_oSerConstants.ReadOk;
             var oThis = this;
@@ -8495,7 +8503,9 @@
                 oCommentCoords.bSizeWithCells = this.stream.GetBool();
             else if ( c_oSer_Comments.ThreadedComment == type ) {
                 if (aCommentData.length > 0) {
+                    oAdditionalData.isThreadedComment = true;
                     var commentData = aCommentData[0];
+                    commentData.asc_putSolved(false);
                     commentData.aReplies = [];
                     // commentData.aMentions = [];
                     res = this.bcr.Read1(length, function(t, l) {
@@ -8585,8 +8595,9 @@
             }
             else if (c_oSer_ConditionalFormatting.ConditionalFormattingRule === type) {
                 oConditionalFormattingRule = new AscCommonExcel.CConditionalFormattingRule();
+                var ext = {isExt: false};
                 res = this.bcr.Read1(length, function (t, l) {
-                    return oThis.ReadConditionalFormattingRule(t, l, oConditionalFormattingRule);
+                    return oThis.ReadConditionalFormattingRule(t, l, oConditionalFormattingRule, ext);
                 });
                 oConditionalFormatting.aRules.push(oConditionalFormattingRule);
             }
@@ -8594,7 +8605,7 @@
                 res = c_oSerConstants.ReadUnknown;
             return res;
         };
-        this.ReadConditionalFormattingRule = function (type, length, oConditionalFormattingRule) {
+        this.ReadConditionalFormattingRule = function (type, length, oConditionalFormattingRule, ext) {
             var res = c_oSerConstants.ReadOk;
             var oThis = this;
             var oConditionalFormattingRuleElement = null;
@@ -8658,6 +8669,8 @@
                     return oThis.ReadIconSet(t, l, oConditionalFormattingRuleElement);
                 });
                 oConditionalFormattingRule.aRuleElements.push(oConditionalFormattingRuleElement);
+            } else if (c_oSer_ConditionalFormattingRule.isExt === type) {
+                ext.isExt = this.stream.GetBool();
             } else
                 res = c_oSerConstants.ReadUnknown;
             return res;
@@ -8710,6 +8723,9 @@
 				var color = ReadColorSpreadsheet2(this.bcr, length);
 				if (color) {
 					oDataBar.AxisColor = color;
+				} else {
+					//TODO наличие оси определяется по наличию AxisColor при отрисовке. других маркеров нет. пересмотреть!
+					oDataBar.AxisColor = new AscCommonExcel.RgbColor(0);
 				}
 			} else if (c_oSer_ConditionalFormattingDataBar.NegativeBorderColor === type) {
 				var color = ReadColorSpreadsheet2(this.bcr, length);
@@ -8824,7 +8840,7 @@
 			} else if (c_oSer_SheetView.ShowWhiteSpace === type) {
 				this.stream.GetBool();
 			} else if (c_oSer_SheetView.ShowZeros === type) {
-				this.stream.GetBool();
+                oSheetView.showZeros = this.stream.GetBool();
 			} else if (c_oSer_SheetView.TabSelected === type) {
 				this.stream.GetBool();
 			} else if (c_oSer_SheetView.TopLeftCell === type) {
@@ -9362,7 +9378,6 @@
             else if ( c_oSer_OtherType.Theme === type )
             {
                 this.wb.theme = pptx_content_loader.ReadTheme(this, this.stream);
-                res = c_oSerConstants.ReadUnknown;
             }
             else
                 res = c_oSerConstants.ReadUnknown;
@@ -10605,7 +10620,31 @@
     window["Asc"].EDateTimeGroup = EDateTimeGroup;
     window["Asc"].ETableStyleType = ETableStyleType;
     window["Asc"].EFontScheme = EFontScheme;
-    window["Asc"].EIconSetType = EIconSetType;
+
+	window['Asc']['EIconSetType'] = window["Asc"].EIconSetType = EIconSetType;
+	prot = EIconSetType;
+	prot['Arrows3'] = prot.Arrows3;
+	prot['Arrows3Gray'] = prot.Arrows3Gray;
+	prot['Flags3'] = prot.Flags3;
+	prot['Signs3'] = prot.Signs3;
+	prot['Symbols3'] = prot.Symbols3;
+	prot['Symbols3_2'] = prot.Symbols3_2;
+	prot['Traffic3Lights1'] = prot.Traffic3Lights1;
+	prot['Traffic3Lights2'] = prot.Traffic3Lights2;
+	prot['Arrows4'] = prot.Arrows4;
+	prot['Arrows4Gray'] = prot.Arrows4Gray;
+	prot['Rating4'] = prot.Rating4;
+	prot['RedToBlack4'] = prot.RedToBlack4;
+	prot['Traffic4Lights'] = prot.Traffic4Lights;
+	prot['Arrows5'] = prot.Arrows5;
+	prot['Arrows5Gray'] = prot.Arrows5Gray;
+	prot['Quarters5'] = prot.Quarters5;
+	prot['Rating5'] = prot.Rating5;
+	prot['Triangles3'] = prot.Triangles3;
+	prot['Stars3'] = prot.Stars3;
+	prot['Boxes5'] = prot.Boxes5;
+	prot['NoIcons'] = prot.NoIcons;
+
     window["Asc"].c_oSer_DrawingType = c_oSer_DrawingType;
     window["Asc"].c_oSer_DrawingPosType = c_oSer_DrawingPosType;
 
@@ -10636,6 +10675,7 @@
     prot['dataBar'] = prot.dataBar;
     prot['duplicateValues'] = prot.duplicateValues;
     prot['expression'] = prot.expression;
+    prot['iconSet'] = prot.iconSet;
     prot['notContainsBlanks'] = prot.notContainsBlanks;
     prot['notContainsErrors'] = prot.notContainsErrors;
     prot['notContainsText'] = prot.notContainsText;

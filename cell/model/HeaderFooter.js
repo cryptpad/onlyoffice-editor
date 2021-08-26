@@ -1836,7 +1836,7 @@
 	window["AscCommonExcel"].HeaderFooterParser = HeaderFooterParser;
 	window["AscCommonExcel"].CHeaderFooterEditorSection = CHeaderFooterEditorSection;
 
-	window["AscCommonExcel"].CHeaderFooterEditor = window["AscCommonExcel"]["CHeaderFooterEditor"] = CHeaderFooterEditor;
+	window["Asc"]["asc_CHeaderFooterEditor"] = window["AscCommonExcel"].CHeaderFooterEditor = CHeaderFooterEditor;
 	var prot = CHeaderFooterEditor.prototype;
 	prot["click"] 	= prot.click;
 	prot["destroy"] = prot.destroy;

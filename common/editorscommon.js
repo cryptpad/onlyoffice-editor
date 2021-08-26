@@ -427,7 +427,7 @@
 			if (AscBrowser.isIE || AscBrowser.isIeEdge)
 			{
 				this.map[type] = ("url(../../../../sdkjs/common/Images/cursors/" + name + ".cur), " + default_css_value);
-                this.mapRetina[type] = ("url(../../../../sdkjs/common/Images/cursors/" + name + "_2x.cur), " + default_css_value);
+				this.mapRetina[type] = ("url(../../../../sdkjs/common/Images/cursors/" + name + "_2x.cur), " + default_css_value);
 			}
 			else if (window.opera)
 			{
@@ -437,13 +437,13 @@
 			{
 				if (!AscCommon.AscBrowser.isChrome && !AscCommon.AscBrowser.isSafari)
 				{
-                    this.map[type] = "url('../../../../sdkjs/common/Images/cursors/" + name + ".svg') " + target +
-                        ", url('../../../../sdkjs/common/Images/cursors/" + name + ".png') " + target + ", " + default_css_value;
-                }
-                else
+					this.map[type] = "url('../../../../sdkjs/common/Images/cursors/" + name + ".svg') " + target +
+						", url('../../../../sdkjs/common/Images/cursors/" + name + ".png') " + target + ", " + default_css_value;
+				}
+				else
 				{
-                    this.map[type] = "-webkit-image-set(url(../../../../sdkjs/common/Images/cursors/" + name + ".png) 1x," +
-                        " url(../../../../sdkjs/common/Images/cursors/" + name + "_2x.png) 2x) " + target + ", " + default_css_value;
+					this.map[type] = "-webkit-image-set(url(../../../../sdkjs/common/Images/cursors/" + name + ".png) 1x," +
+						" url(../../../../sdkjs/common/Images/cursors/" + name + "_2x.png) 2x) " + target + ", " + default_css_value;
 				}
 			}
 		};
@@ -1334,6 +1334,11 @@
 		SupportedFormats: ["docx", "doc", "docm", "dot", "dotm", "dotx", "epub", "fodt", "odt", "ott", "rtf", "wps"]
 	};
 
+	var c_oAscTextUploadProp = {
+		MaxFileSize:      25000000, //25 mb
+		SupportedFormats: ["txt", "csv"]
+	};
+
 	/**
 	 *
 	 * @param sName
@@ -1678,6 +1683,11 @@
 			callback(Asc.c_oAscError.ID.Unknown);
 		}
 	}
+	function ShowTextFileDialog(callback) {
+		if (false === _ShowFileDialog(getAcceptByArray(c_oAscTextUploadProp.SupportedFormats), false, false, ValidateUploadText, callback)) {
+			callback(Asc.c_oAscError.ID.Unknown);
+		}
+	}
 
 	function InitDragAndDrop(oHtmlElement, callback)
 	{
@@ -1936,6 +1946,10 @@
 	function ValidateUploadDocument(files)
 	{
 		return ValidateUpload(files, c_oAscServerError.UploadDocumentExtension, c_oAscServerError.UploadDocumentContentLength, c_oAscServerError.UploadDocumentCountFiles, c_oAscDocumentUploadProp);
+	}
+	function ValidateUploadText(files)
+	{
+		return ValidateUpload(files, c_oAscServerError.UploadDocumentExtension, c_oAscServerError.UploadDocumentContentLength, c_oAscServerError.UploadDocumentCountFiles, c_oAscTextUploadProp);
 	}
 
 	function CanDropFiles(event)
@@ -2966,8 +2980,10 @@
 			range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
 		}
 
-		if (!range && Asc.c_oAscSelectionDialogType.DataValidation !== dialogType)
+		if (!range && Asc.c_oAscSelectionDialogType.DataValidation !== dialogType && Asc.c_oAscSelectionDialogType.ConditionalFormattingRule !== dialogType)
+		{
 			return Asc.c_oAscError.ID.DataRangeError;
+		}
 
 		if (fullCheck)
 		{
@@ -3026,6 +3042,23 @@
 				if (null !== dataValidaionTest)
 				{
 					return dataValidaionTest;
+				}
+			}
+			else if (Asc.c_oAscSelectionDialogType.ConditionalFormattingRule === dialogType)
+			{
+				if (dataRange === null || dataRange === "")
+				{
+					return Asc.c_oAscError.ID.DataRangeError;
+				}
+				else
+				{
+					if (dataRange[0] === "=") {
+						dataRange = dataRange.slice(1);
+					}
+					if (!parserHelp.isArea(dataRange) && !parserHelp.isRef(dataRange) && !parserHelp.isTable(dataRange))
+					{
+						return Asc.c_oAscError.ID.DataRangeError;
+					}
 				}
 			}
 		}
@@ -4074,6 +4107,16 @@
 		return sResult;
 	}
 
+	/**
+	 * Корректируем значение размера шрифта к допустимому
+	 * @param {number} nFontSize
+	 * @param {boolean} isCeil
+	 */
+	function CorrectFontSize(nFontSize, isCeil)
+	{
+		return isCeil ? Math.ceil(nFontSize * 2) / 2 : Math.floor(nFontSize * 2) / 2;
+	}
+
 	var c_oAscSpaces = [];
 	c_oAscSpaces[0x000A] = 1;
 	c_oAscSpaces[0x0020] = 1;
@@ -4270,6 +4313,10 @@
 		{
 			loadScript('./../../../../sdkjs/' + sdkName + '/sdk-all.js', onSuccess, onError);
 		}
+	}
+
+	function loadChartStyles(onSuccess, onError) {
+		loadScript('../../../../sdkjs/common/Charts/ChartStyles.js', onSuccess, onError);
 	}
 
 	function getAltGr(e)
@@ -6348,6 +6395,56 @@
 			is_correction);
 	};
 
+
+	function CRC32()
+	{
+		this.m_aTable = [];
+		this.private_InitTable();
+	}
+	CRC32.prototype.private_InitTable = function()
+	{
+		var CRC_POLY = 0xEDB88320;
+		var nChar;
+		for (var nIndex = 0; nIndex < 256; nIndex++)
+		{
+			nChar = nIndex;
+			for (var nCounter = 0; nCounter < 8; nCounter++)
+			{
+				nChar = ((nChar & 1) ? ((nChar >>> 1) ^ CRC_POLY) : (nChar >>> 1));
+			}
+			this.m_aTable[nIndex] = nChar;
+		}
+	};
+	CRC32.prototype.Calculate_ByString = function(sStr, nSize)
+	{
+		var CRC_MASK = 0xD202EF8D;
+		var nCRC     = 0 ^ (-1);
+
+		for (var nIndex = 0; nIndex < nSize; nIndex++)
+		{
+			nCRC = this.m_aTable[(nCRC ^ sStr.charCodeAt(nIndex)) & 0xFF] ^ (nCRC >>> 8);
+			nCRC ^= CRC_MASK;
+		}
+
+		return (nCRC ^ (-1)) >>> 0;
+	};
+	CRC32.prototype.Calculate_ByByteArray = function(aArray, nSize)
+	{
+		var CRC_MASK = 0xD202EF8D;
+		var nCRC     = 0 ^ (-1);
+
+		for (var nIndex = 0; nIndex < nSize; nIndex++)
+		{
+			nCRC = (nCRC >>> 8) ^ this.m_aTable[(nCRC ^ aArray[nIndex]) & 0xFF];
+			nCRC ^= CRC_MASK;
+		}
+
+		return (nCRC ^ (-1)) >>> 0;
+	};
+
+	var g_oCRC32 = new CRC32();
+
+
 	//------------------------------------------------------------export---------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window["AscCommon"].getSockJs = getSockJs;
@@ -6380,6 +6477,7 @@
 	window["AscCommon"].InitOnMessage = InitOnMessage;
 	window["AscCommon"].ShowImageFileDialog = ShowImageFileDialog;
 	window["AscCommon"].ShowDocumentFileDialog = ShowDocumentFileDialog;
+	window["AscCommon"].ShowTextFileDialog = ShowTextFileDialog;
 	window["AscCommon"].InitDragAndDrop = InitDragAndDrop;
 	window["AscCommon"].UploadImageFiles = UploadImageFiles;
     window["AscCommon"].UploadImageUrls = UploadImageUrls;
@@ -6409,9 +6507,11 @@
 	window["AscCommon"].LatinNumberingToInt = LatinNumberingToInt;
 	window["AscCommon"].IntToNumberFormat = IntToNumberFormat;
 	window["AscCommon"].IsSpace = IsSpace;
+	window["AscCommon"].CorrectFontSize = CorrectFontSize;
 
 	window["AscCommon"].loadSdk = loadSdk;
     window["AscCommon"].loadScript = loadScript;
+    window["AscCommon"].loadChartStyles = loadChartStyles;
 	window["AscCommon"].getAltGr = getAltGr;
 	window["AscCommon"].getColorSchemeByName = getColorSchemeByName;
 	window["AscCommon"].getColorSchemeByIdx = getColorSchemeByIdx;
@@ -6485,7 +6585,7 @@
 	prot["AddCustomActionSymbol"] = prot.AddCustomActionSymbol;
 
 	window["AscCommon"].CCustomShortcutActionSymbol = window["AscCommon"]["CCustomShortcutActionSymbol"] = CCustomShortcutActionSymbol;
-
+	window['AscCommon'].g_oCRC32  = g_oCRC32;
 })(window);
 
 window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)

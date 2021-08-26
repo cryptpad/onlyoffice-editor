@@ -179,10 +179,15 @@ function hitToHandles(x, y, object)
 {
     var oApi = Asc.editor || editor;
     var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
+
+    if (isDrawHandles && object && object.isForm && object.isForm() && object.getInnerForm() && object.getInnerForm().IsFormLocked())
+    	isDrawHandles = false;
+
     if(isDrawHandles === false)
     {
         return -1;
     }
+
     if(object.cropObject)
     {
         return hitToCropHandles(x, y, object);
@@ -334,7 +339,7 @@ function CreateUniFillByUniColor(uniColor)
 {
     var ret = new AscFormat.CUniFill();
     ret.setFill(new AscFormat.CSolidFill());
-    ret.fill.setColor(uniColor.createDuplicate());
+    ret.fill.setColor(uniColor);
     return ret;
 }
 
@@ -1304,6 +1309,9 @@ CShape.prototype.applyTextFunction = function (docContentFunction, tableFunction
     }
     if (content_to_add)
     {
+    	if (this.isForm() && !content_to_add.IsCursorInSpecialForm())
+    		return;
+
         docContentFunction.apply(content_to_add, args);
     }
     if(!editor || !editor.noCreatePoint || editor.exucuteHistory)
@@ -1938,6 +1946,9 @@ CShape.prototype.recalculateTransformText = function () {
 
     var oBodyPr = this.getBodyPr();
     this.clipRect = this.checkTransformTextMatrix(this.localTransformText, oContent, oBodyPr, false);
+    if(this.isForm && this.isForm()) {
+        this.clipRect = {x: -0.2, y: -0.2, w: this.extX + 0.4, h: this.extY + 0.4};
+    }
     this.transformText = this.localTransformText.CreateDublicate();
     this.invertTransformText = global_MatrixTransformer.Invert(this.transformText);
 
@@ -2324,6 +2335,46 @@ CShape.prototype.getTextRect = function () {
         b: this.extY
     };
 };
+CShape.prototype.getFormRelRect = function () {
+    var oSpTransform = this.transform;
+    var oInvTextTransform = this.invertTransformText;
+
+    var aX = [0, this.extX];
+    var aY = [0, this.extY];
+    var fX0, fY0;
+
+    if (!oSpTransform || !oInvTextTransform) {
+		return {
+			X    : 0,
+			Y    : 0,
+			W    : this.extX,
+			H    : this.extY,
+			Page : this.parent.PageNum
+		};
+	}
+
+	var aRelX = [], aRelY = [];
+	for(var nX = 0; nX < aX.length; ++nX) {
+		fX0 = aX[nX];
+		for(var nY = 0; nY < aY.length; ++nY) {
+			fY0 = aY[nY];
+			var fX = oSpTransform.TransformPointX(fX0, fY0);
+			var fY = oSpTransform.TransformPointY(fX0, fY0);
+			var fRelX = oInvTextTransform.TransformPointX(fX, fY);
+			var fRelY = oInvTextTransform.TransformPointY(fX, fY);
+			aRelX.push(fRelX);
+			aRelY.push(fRelY);
+		}
+	}
+
+    return {
+        X    : Math.min.apply(Math, aRelX),
+        Y    : Math.min.apply(Math, aRelY),
+        W    : this.extX,
+        H    : this.extY,
+        Page : this.parent.PageNum
+    };
+};
 
 CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr, bWordArtTransform, bIgnoreInsets) {
     oMatrix.Reset();
@@ -2416,6 +2467,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
     var _text_rect_height = _b - _t;
     var _text_rect_width = _r - _l;
     var oClipRect;
+    var Diff = 1.6;
     if (!oBodyPr.upright) {
         if (!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert)) {
             if (bWordArtTransform) {
@@ -2487,12 +2539,16 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                         }
                     }
                     else{
-                        _vertical_shift = _text_rect_height - _content_height;
-                        if (oBodyPr.anchor === 0) {
-                            _vertical_shift = _text_rect_height - _content_height;
+                        if(this.bWordShape) {
+                            _vertical_shift = 0;
                         }
                         else {
-                            _vertical_shift = 0;
+                            if (oBodyPr.anchor === 0) {
+                                _vertical_shift = _text_rect_height - _content_height;
+                            }
+                            else {
+                                _vertical_shift = 0;
+                            }
                         }
                     }
 
@@ -2546,12 +2602,16 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                 }
                 else {
 
-
-                    if (oBodyPr.anchor === 0) {
-                        _vertical_shift = _text_rect_width - _content_height;
+                    if(this.bWordShape) {
+                        _vertical_shift = 0;
                     }
                     else {
-                        _vertical_shift = 0;
+                        if (oBodyPr.anchor === 0) {
+                            _vertical_shift = _text_rect_width - _content_height;
+                        }
+                        else {
+                            _vertical_shift = 0;
+                        }
                     }
                 }
             }
@@ -2581,7 +2641,6 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
         }
         if (this.spPr && isRealObject(this.spPr.geometry) && isRealObject(this.spPr.geometry.rect)) {
             var rect = this.spPr.geometry.rect;
-            var Diff = 1.6;
             var clipW = rect.r - rect.l + Diff;
             if(clipW <= 0)
             {
@@ -2666,11 +2725,16 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                 }
             }
             else {
-                if (oBodyPr.anchor === 0) {
-                    _vertical_shift = content_height2 - _content_height;
+                if(this.bWordShape) {
+                    _vertical_shift = 0;
                 }
                 else {
-                    _vertical_shift = 0;
+                    if (oBodyPr.anchor === 0) {
+                        _vertical_shift = content_height2 - _content_height;
+                    }
+                    else {
+                        _vertical_shift = 0;
+                    }
                 }
             }
 
@@ -2710,19 +2774,24 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
             global_MatrixTransformer.TranslateAppend(oMatrix, _content_width * 0.5, content_height2 * 0.5);
         }
         global_MatrixTransformer.TranslateAppend(oMatrix, _transformed_text_xc - _content_width * 0.5, _transformed_text_yc - content_height2 * 0.5);
-
-
-        var Diff = 1.6;
+        
         if(this.bWordShape)
         {
-            var DiffLeft = 0.8;
-            var DiffRight = 1.6;
+            var DiffLeft = 0.01;
+            var DiffRight = 0.01;
+            var DiffLeft2, DiffRight2;
             var aContent = oContent.Content;
             for(var i = 0; i < aContent.length; ++i)
             {
-                if(aContent[i].GetType && type_Paragraph === aContent[i].GetType())
+                var oElement = aContent[i];
+                if(!oElement.GetType)
                 {
-                    var oCompiledParaPr = aContent[i].CompiledPr && aContent[i].CompiledPr.Pr && aContent[i].CompiledPr.Pr.ParaPr;
+                    continue;
+                }
+                var nElementType = oElement.GetType();
+                if(nElementType === AscCommonWord.type_Paragraph)
+                {
+                    var oCompiledParaPr = oElement.CompiledPr && oElement.CompiledPr.Pr && oElement.CompiledPr.Pr.ParaPr;
                     if(oCompiledParaPr)
                     {
                         var oBorders = oCompiledParaPr.Brd;
@@ -2730,7 +2799,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                         {
                             if(oBorders.Left  && AscFormat.isRealNumber(oBorders.Left.Space) && AscFormat.isRealNumber(oBorders.Left.Size) && oBorders.Left.Size > 0.0)
                             {
-                                var DiffLeft2 = oBorders.Left.Space + oBorders.Left.Size + 1.0;
+                                DiffLeft2 = oBorders.Left.Space + oBorders.Left.Size;
                                 if(DiffLeft2 > DiffLeft)
                                 {
                                     DiffLeft = DiffLeft2;
@@ -2738,7 +2807,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                             }
                             if(oBorders.Right && AscFormat.isRealNumber(oBorders.Right.Space) && AscFormat.isRealNumber(oBorders.Right.Size) && oBorders.Right.Size > 0.0)
                             {
-                                var DiffRight2 = oBorders.Right.Space + oBorders.Right.Size + 1.0;
+                                DiffRight2 = oBorders.Right.Space + oBorders.Right.Size;
                                 if(oCompiledParaPr.Ind && AscFormat.isRealNumber(oCompiledParaPr.Ind.Right))
                                 {
                                     DiffRight2 -= oCompiledParaPr.Ind.Right;
@@ -2751,10 +2820,27 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                         }
                     }
                 }
+                else if(nElementType === AscCommonWord.type_Table)
+                {
+                    DiffLeft2 = -oElement.GetTableOffsetCorrection();
+                    if(DiffLeft2 > DiffLeft)
+                    {
+                        DiffLeft = DiffLeft2;
+                    }
+                    DiffRight2 = oElement.GetRightTableOffsetCorrection();
+                    if(DiffRight2 > DiffRight)
+                    {
+                        DiffRight = DiffRight2;
+                    }
+                }
+                else if(nElementType === AscCommonWord.type_BlockLevelSdt)
+                {
+
+                }
             }
 
 
-            var clipW = oRect.r - oRect.l + DiffLeft + DiffRight - l_ins - r_ins;
+            var clipW = oRect.r - oRect.l + DiffLeft + DiffRight;
             if(clipW <= 0)
             {
                 clipW = 0.01;
@@ -2764,7 +2850,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
             {
                 clipH = 0.01;
             }
-            oClipRect = {x: oRect.l + l_ins - DiffLeft, y: oRect.t - Diff + t_ins, w: clipW, h: clipH};
+            oClipRect = {x: oRect.l - DiffLeft, y: oRect.t - Diff + t_ins, w: clipW, h: clipH};
         }
         else
         {
@@ -2829,6 +2915,12 @@ CShape.prototype.fillObject = function(copy, oPr){
     if(this.signatureLine && copy.setSignature){
         copy.setSignature(this.signatureLine.copy());
     }
+    if(this.macro !== null) {
+        copy.setMacro(this.macro);
+    }
+    if(this.textLink !== null) {
+        copy.setTextLink(this.textLink);
+    }
     copy.setWordShape(this.bWordShape);
     copy.setBDeleted(this.bDeleted);
     copy.setLocks(this.locks);
@@ -2870,10 +2962,7 @@ CShape.prototype.recalculateTextStyles = function (level) {
         default_style.ParaPr.Align = AscCommon.align_Center;
         if(parent_objects.theme)
         {
-            default_style.TextPr.RFonts.Ascii = {Name: "+mn-lt", Index: -1};
-            default_style.TextPr.RFonts.EastAsia = {Name: "+mn-ea", Index: -1};
-            default_style.TextPr.RFonts.CS = {Name: "+mn-cs", Index: -1};
-            default_style.TextPr.RFonts.HAnsi = {Name: "+mn-lt", Index: -1};
+            default_style.TextPr.RFonts.SetFontStyle(AscFormat.fntStyleInd_minor);;
         }
         if(!this.bCheckAutoFitFlag)
         {
@@ -2976,22 +3065,9 @@ CShape.prototype.recalculateTextStyles = function (level) {
         var compiled_style = this.getCompiledStyle && this.getCompiledStyle();
         if (isRealObject(compiled_style) && isRealObject(compiled_style.fontRef)) {
             shape_text_style = new CStyle("shapeTextStyle", null, null, null, true);
-            var first_name;
-            if (compiled_style.fontRef.idx === AscFormat.fntStyleInd_major)
-                first_name = "+mj-";
-            else
-                first_name = "+mn-";
-
-            shape_text_style.TextPr.RFonts.Ascii = {Name: first_name + "lt", Index: -1};
-            shape_text_style.TextPr.RFonts.EastAsia = {Name: first_name + "ea", Index: -1};
-            shape_text_style.TextPr.RFonts.CS = {Name: first_name + "cs", Index: -1};
-            shape_text_style.TextPr.RFonts.HAnsi = {Name: first_name + "lt", Index: -1};
-
-            if (compiled_style.fontRef.Color != null && compiled_style.fontRef.Color.color != null) {
-                var unifill = new AscFormat.CUniFill();
-                unifill.fill = new AscFormat.CSolidFill();
-                unifill.fill.color = compiled_style.fontRef.Color;
-                shape_text_style.TextPr.Unifill = unifill;
+            shape_text_style.TextPr.RFonts.SetFontStyle(compiled_style.fontRef.idx);
+            if (compiled_style.fontRef.Color && compiled_style.fontRef.Color.isCorrect()) {
+                shape_text_style.TextPr.Unifill = AscFormat.CreateUniFillByUniColor(compiled_style.fontRef.Color);
             }
         }
         var Styles = new CStyles(false);
@@ -4174,8 +4250,15 @@ CShape.prototype.recalculateDocContent = function(oDocContent, oBodyPr)
         while ( recalcresult2_End !== RecalcResult  )
             RecalcResult = oDocContent.Recalculate_Page( CurPage++, true );*/
 
-        oDocContent.RecalculateContent(oRet.w, oRet.h, nStartPage);
+		var oContentW = oRet.w;
 
+		var oForm = null;
+		if (this.isForm() && (oForm = this.getInnerForm()) && !oForm.IsMultiLineForm())
+			oDocContent.SetUseXLimit(false);
+		else
+			oDocContent.SetUseXLimit(true);
+
+        oDocContent.RecalculateContent(oContentW, oRet.h, nStartPage);
         oRet.contentH = oDocContent.GetSummaryHeight();
 
         if(this.bWordShape)
@@ -4405,6 +4488,10 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
             }
             else
             {
+            	var oForm;
+            	if (this.isForm() && (oForm = this.getInnerForm()) && oForm.IsAutoFitContent() && oForm.GetLogicDocument() && oForm.GetLogicDocument().CheckFormAutoFit)
+					oForm.GetLogicDocument().CheckFormAutoFit(oForm);
+
                 if(bForce)
                 {
                     this.recalculateContentWitCompiledPr();
@@ -4472,45 +4559,6 @@ CShape.prototype.getHandlePosByIndex = function(numHandle){
     }
 };
 
-CShape.prototype.select = function (drawingObjectsController, pageIndex)
-{
-    this.selected = true;
-    this.selectStartPage = pageIndex;
-    var content = this.getDocContent && this.getDocContent();
-    if(content)
-        content.Set_StartPage(pageIndex);
-    var selected_objects;
-    if (!isRealObject(this.group))
-        selected_objects = drawingObjectsController.selectedObjects;
-    else
-        selected_objects = this.group.getMainGroup().selectedObjects;
-    for (var i = 0; i < selected_objects.length; ++i) {
-        if (selected_objects[i] === this)
-            break;
-    }
-    if (i === selected_objects.length)
-        selected_objects.push(this);
-};
-
-CShape.prototype.deselect = function (drawingObjectsController) {
-    this.selected = false;
-    var selected_objects;
-    if (!isRealObject(this.group))
-        selected_objects = drawingObjectsController.selectedObjects;
-    else
-        selected_objects = this.group.getMainGroup().selectedObjects;
-    for (var i = 0; i < selected_objects.length; ++i) {
-        if (selected_objects[i] === this) {
-            selected_objects.splice(i, 1);
-            break;
-        }
-    }
-    if(this.graphicObject)
-    {
-        this.graphicObject.RemoveSelection();
-    }
-    return this;
-};
 
 CShape.prototype.getGroupHierarchy = function () {
     if (this.recalcInfo.recalculateGroupHierarchy) {
@@ -4535,12 +4583,7 @@ CShape.prototype.hitInTextRectWord = function(x, y)
     var content = this.getDocContent && this.getDocContent();
     if (content && this.invertTransform)
     {
-        var t_x, t_y;
-        t_x = this.invertTransform.TransformPointX(x, y);
-        t_y = this.invertTransform.TransformPointY(x, y);
-
         var w, h, x_, y_;
-
         if(this.spPr && this.spPr.geometry && this.spPr.geometry.rect
             && AscFormat.isRealNumber(this.spPr.geometry.rect.l) && AscFormat.isRealNumber(this.spPr.geometry.rect.t)
             && AscFormat.isRealNumber(this.spPr.geometry.rect.r) && AscFormat.isRealNumber(this.spPr.geometry.rect.r))
@@ -4557,7 +4600,7 @@ CShape.prototype.hitInTextRectWord = function(x, y)
             w = this.extX ;
             h = this.extY ;
         }
-        return t_x > x_  && t_x < x_ + w && t_y > y_ && t_y < y_ + h;
+        return AscFormat.HitToRect(x, y, this.invertTransform, x_, y_, w, h);
     }
     return false;
 };
@@ -4583,10 +4626,7 @@ CShape.prototype.hitInTextRect = function (x, y) {
         var content = this.getDocContent && this.getDocContent();
         if ( content && this.invertTransformText)
         {
-            var t_x, t_y;
-            t_x = this.invertTransformText.TransformPointX(x, y);
-            t_y = this.invertTransformText.TransformPointY(x, y);
-            return t_x > 0 && t_x < this.contentWidth && t_y > 0 && t_y < this.contentHeight;
+            return AscFormat.HitToRect(x, y, this.invertTransformText, 0, 0, this.contentWidth, this.contentHeight);
         }
     }
     else
@@ -5696,6 +5736,10 @@ CShape.prototype.hitToAdjustment = function (x, y) {
 
     var oApi = Asc.editor || editor;
     var isDrawHandles = oApi ? oApi.isShowShapeAdjustments() : true;
+
+    if (isDrawHandles && this.isForm() && this.getInnerForm() && this.getInnerForm().IsFormLocked())
+    	isDrawHandles = false;
+
     if(isDrawHandles === false)
     {
         return { hit: false, adjPolarFlag: null, adjNum: null, warp: false };
@@ -6436,6 +6480,10 @@ CShape.prototype.getColumnNumber = function(){
             }
         }
     };
+    CShape.prototype.getInnerForm = function() {
+		return this.textBoxContent ? this.textBoxContent.GetInnerForm() : null;
+	}
+
 function CreateBinaryReader(szSrc, offset, srcLen)
 {
     var nWritten = 0;
@@ -6537,7 +6585,7 @@ function getParaDrawing(oDrawing)
     {
         oCurDrawing = oCurDrawing.group;
     }
-    if(oCurDrawing.parent instanceof ParaDrawing)
+    if(oCurDrawing.parent instanceof AscCommonWord.ParaDrawing)
     {
         return oCurDrawing.parent;
     }

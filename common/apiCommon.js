@@ -1517,9 +1517,9 @@
 		this.style = parseInt(index, 10);
 		if(this.bStartEdit && this.chartSpace) {
 			if(AscFormat.isRealNumber(this.style)){
-				var oPreset = AscCommon.g_oChartPresets[this.type] && AscCommon.g_oChartPresets[this.type][this.style - 1];
-				if(oPreset) {
-					AscFormat.ApplyPresetToChartSpace(this.chartSpace, oPreset, false);
+				var aStyle = AscCommon.g_oChartStyles[this.type] && AscCommon.g_oChartStyles[this.type][this.style - 1];
+				if(Array.isArray(aStyle)) {
+					this.chartSpace.applyChartStyleByIds(aStyle);
 					this.updateChart();
 				}
 			}
@@ -3137,6 +3137,7 @@
 		this.canFill = true;
 		this.canChangeArrows = false;
 		this.bFromChart = false;
+		this.bFromGroup = false;
 		this.bFromImage = false;
 		this.Locked = false;
 		this.w = null;
@@ -3190,11 +3191,20 @@
 			return this.canChangeArrows;
 		}, asc_setCanChangeArrows: function (v) {
 			this.canChangeArrows = v;
-		}, asc_getFromChart: function () {
+		},
+		asc_getFromChart: function () {
 			return this.bFromChart;
-		}, asc_setFromChart: function (v) {
+		},
+		asc_setFromChart: function (v) {
 			this.bFromChart = v;
-		}, asc_getLocked: function () {
+		},
+		asc_getFromGroup: function () {
+			return this.bFromGroup;
+		},
+		asc_setFromGroup: function (v) {
+			this.bFromGroup = v;
+		},
+		asc_getLocked: function () {
 			return this.Locked;
 		}, asc_setLocked: function (v) {
 			this.Locked = v;
@@ -4257,6 +4267,11 @@
 					this.Number = 1;
 					break;
 				}
+				case c_oAscMouseMoveDataTypes.Review:
+				{
+					this.ReviewChange = obj && obj.ReviewChange ? obj.ReviewChange : null;
+					break;
+				}
 			}
 		}
 		else
@@ -4299,6 +4314,10 @@
 	CMouseMoveData.prototype.get_FormHelpText = function()
 	{
 		return this.Text;
+	};
+	CMouseMoveData.prototype.get_ReviewChange = function()
+	{
+		return this.ReviewChange;
 	};
 
 
@@ -4413,6 +4432,7 @@
 		this.FullName = null;
 		this.FirstName = null;
 		this.LastName = null;
+		this.IsAnonymousUser = false;
 	}
 
 	asc_CUserInfo.prototype.asc_putId = asc_CUserInfo.prototype.put_Id = function (v) {
@@ -4438,6 +4458,12 @@
 	};
 	asc_CUserInfo.prototype.asc_getLastName = asc_CUserInfo.prototype.get_LastName = function () {
 		return this.LastName;
+	};
+	asc_CUserInfo.prototype.asc_getIsAnonymousUser = asc_CUserInfo.prototype.get_IsAnonymousUser = function () {
+		return this.IsAnonymousUser;
+	};
+	asc_CUserInfo.prototype.asc_putIsAnonymousUser = asc_CUserInfo.prototype.put_IsAnonymousUser = function (v) {
+		this.IsAnonymousUser = v;
 	};
 
 	/** @constructor */
@@ -4516,6 +4542,9 @@
 	};
 	prot.get_LastName = prot.asc_getLastName = function () {
 		return (this.UserInfo ? this.UserInfo.get_LastName() : null );
+	};
+	prot.get_IsAnonymousUser = prot.get_IsAnonymousUser = function () {
+		return (this.UserInfo ? this.UserInfo.get_IsAnonymousUser() : null );
 	};
 	prot.get_Options = prot.asc_getOptions = function () {
 		return this.Options;
@@ -6020,6 +6049,8 @@
 	prot["set_CanChangeArrows"] = prot["asc_setCanChangeArrows"] = prot.asc_setCanChangeArrows;
 	prot["get_FromChart"] = prot["asc_getFromChart"] = prot.asc_getFromChart;
 	prot["set_FromChart"] = prot["asc_setFromChart"] = prot.asc_setFromChart;
+	prot["get_FromGroup"] = prot["asc_getFromGroup"] = prot.asc_getFromGroup;
+	prot["set_FromGroup"] = prot["asc_setFromGroup"] = prot.asc_setFromGroup;
 	prot["get_Locked"] = prot["asc_getLocked"] = prot.asc_getLocked;
 	prot["set_Locked"] = prot["asc_setLocked"] = prot.asc_setLocked;
 	prot["get_Width"] = prot["asc_getWidth"] = prot.asc_getWidth;
@@ -6301,6 +6332,7 @@
 	prot["get_FootnoteText"] =  prot.get_FootnoteText;
 	prot["get_FootnoteNumber"] = prot.get_FootnoteNumber;
 	prot["get_FormHelpText"] = prot.get_FormHelpText;
+	prot["get_ReviewChange"] = prot.get_ReviewChange;
 
 	window["Asc"]["asc_CUserInfo"] = window["Asc"].asc_CUserInfo = asc_CUserInfo;
 	prot = asc_CUserInfo.prototype;
@@ -6312,6 +6344,8 @@
 	prot["asc_getFirstName"] = prot["get_FirstName"] = prot.asc_getFirstName;
 	prot["asc_putLastName"] = prot["put_LastName"] = prot.asc_putLastName;
 	prot["asc_getLastName"] = prot["get_LastName"] = prot.asc_getLastName;
+	prot["asc_putIsAnonymousUser"] = prot["put_IsAnonymousUser"] = prot.asc_putIsAnonymousUser;
+	prot["asc_getIsAnonymousUser"] = prot["get_IsAnonymousUser"] = prot.asc_getIsAnonymousUser;
 
 	window["Asc"]["asc_CDocInfo"] = window["Asc"].asc_CDocInfo = asc_CDocInfo;
 	prot = asc_CDocInfo.prototype;

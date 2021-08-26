@@ -148,8 +148,11 @@ function (window, undefined)
 			if (_cursor.target == AscCommonExcel.c_oTargetType.MoveResizeRange)
 				return true;
 		}
-
-		return this.WB.getWorksheet().objectRender.controller.isPointInDrawingObjects3(x, y, page, bSelected, bText);
+		var tx = (global_mouseEvent.X - this.Offset.X) * AscCommon.AscBrowser.retinaPixelRatio;
+		var ty = (global_mouseEvent.Y - this.Offset.Y) * AscCommon.AscBrowser.retinaPixelRatio;
+		var oWS = this.WB.getWorksheet();
+		var oObjectRender = oWS.objectRender;
+		return oObjectRender.isPointInDrawingObjects3(tx, ty, page, bSelected, bText);
 	};
 	CMobileDelegateEditorCell.prototype.GetSelectionRectsBounds = function()
 	{

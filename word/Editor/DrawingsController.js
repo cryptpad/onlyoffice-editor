@@ -369,7 +369,10 @@ CDrawingsController.prototype.IsSelectionEmpty = function(bCheckHidden)
 };
 CDrawingsController.prototype.DrawSelectionOnPage = function(PageAbs)
 {
-	this.DrawingDocument.SetTextSelectionOutline(true);
+	var oParaDrawing = this.DrawingObjects.getMajorParaDrawing();
+	if (!oParaDrawing || !oParaDrawing.IsForm())
+		this.DrawingDocument.SetTextSelectionOutline(true);
+
 	this.DrawingObjects.drawSelectionPage(PageAbs);
 };
 CDrawingsController.prototype.GetSelectionBounds = function()
@@ -429,6 +432,10 @@ CDrawingsController.prototype.GetCurrentParagraph = function(bIgnoreSelection, a
 {
 	return this.DrawingObjects.getCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
 };
+CDrawingsController.prototype.GetCurrentTablesStack = function(arrTables)
+{
+	return this.DrawingObjects.getCurrentTablesStack(arrTables);
+};
 CDrawingsController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
 	var oContentControl = this.private_GetParentContentControl();
@@ -445,6 +452,15 @@ CDrawingsController.prototype.GetSelectedElementsInfo = function(oInfo)
 	}
 
 	this.DrawingObjects.getSelectedElementsInfo(oInfo);
+
+	var oParaDrawing = this.DrawingObjects.getMajorParaDrawing();
+	if (oParaDrawing && oParaDrawing.IsForm())
+	{
+		var oInnerForm = oParaDrawing.GetInnerForm();
+		if (oInnerForm)
+			oInfo.SetInlineLevelSdt(oInnerForm);
+	}
+
 };
 CDrawingsController.prototype.AddTableRow = function(bBefore, nCount)
 {

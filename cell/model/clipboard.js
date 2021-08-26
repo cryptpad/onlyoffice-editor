@@ -533,7 +533,6 @@
 					sBase64 = this._getBinaryShapeContent(isIntoShape);
 				} else {
 					pptx_content_writer.Start_UseFullUrl();
-					pptx_content_writer.BinaryFileWriter.ClearIdMap();
 
 					var unselectedIndexes = [];
 					if(selectAll) {
@@ -596,7 +595,6 @@
 					//WRITE
 					var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(wb, !ignoreCopyPaste ? selectionRange : false);
 					sBase64 = "xslData;" + oBinaryFileWriter.Write();
-					pptx_content_writer.BinaryFileWriter.ClearIdMap();
 					pptx_content_writer.End_UseFullUrl();
 
 					if(selectAll) {
@@ -790,8 +788,11 @@
 					}
 					return oCopyProcessor.getInnerHtml();
 				} else if (isSelectedImages && isSelectedImages !== -1) {//графические объекты
-					container = doc.createElement("DIV");
 					htmlObj = this._generateHtmlImg(isSelectedImages, worksheet);
+					if (!htmlObj) {
+						return false;
+					}
+					container = doc.createElement("DIV");
 					container.appendChild(htmlObj);
 
 					if (sBase64 && container.children[0]) {
@@ -3310,7 +3311,9 @@
 
 				if (textImport) {
 					var advancedOptions = specialPasteProps.asc_getAdvancedOptions();
-					text = AscCommon.parseText(text, advancedOptions, true);
+					if (Asc.typeOf(text) !== "array") {
+						text = AscCommon.parseText(text, advancedOptions, true);
+					}
 				}
 				var aResult = this._getTableFromText(text, textImport);
 				if (aResult && !(aResult.onlyImages && window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor)) {

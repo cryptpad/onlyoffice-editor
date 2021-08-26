@@ -311,7 +311,7 @@ ParaComment.prototype =
     {
     },
 
-    Shift_Range : function(Dx, Dy, _CurLine, _CurRange)
+    Shift_Range : function(Dx, Dy, _CurLine, _CurRange, _CurPage)
     {
     },
 //-----------------------------------------------------------------------------------
@@ -1036,6 +1036,20 @@ CComment.prototype =
         return this.Data.HasUserReplies(sUserId);
     },
 
+    isMineComment: function ()
+    {
+        var oDocInfo = editor && editor.DocInfo;
+        if(oDocInfo)
+        {
+            return this.isUserComment(oDocInfo.get_UserId());
+        }
+        return false;
+    },
+
+    IsSolved: function() {
+        return this.Data.Get_Solved();
+    },
+
     isUserComment: function(sUserId)
     {
         if(!this.Data)
@@ -1054,8 +1068,22 @@ CComment.prototype =
         return this.Data.HasUserData(sUserId);
     },
 
+    canBeDeleted: function()
+    {
+        var sUserName = this.GetUserName();
+        if(AscCommon.UserInfoParser.canViewComment(sUserName)
+            && AscCommon.UserInfoParser.canDeleteComment(sUserName)) {
+            return true;
+        }
+        return false;
+    },
+
     hit: function(x, y)
     {
+        if(AscCommon.UserInfoParser.canViewComment(this.GetUserName()) === false)
+        {
+            return false;
+        }
         var Flags = 0;
         if(this.selected)
         {
@@ -1294,6 +1322,15 @@ CComment.prototype =
 
         if ( false === bUse )
             editor.WordControl.m_oLogicDocument.RemoveComment( this.Id, true );
+    },
+
+    GetUserName: function()
+    {
+        if(this.Data)
+        {
+            return this.Data.Get_Name();
+        }
+        return "";
     }
 };
 

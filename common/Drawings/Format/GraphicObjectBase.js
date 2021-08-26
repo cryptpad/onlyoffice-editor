@@ -44,6 +44,9 @@
     AscDFH.changesFactory[AscDFH.historyitem_AutoShapes_SetWorksheet] = AscDFH.CChangesDrawingsString;
     AscDFH.changesFactory[AscDFH.historyitem_ShapeSetBDeleted] = AscDFH.CChangesDrawingsBool;
 
+    AscDFH.changesFactory[AscDFH.historyitem_ShapeSetMacro]   = AscDFH.CChangesDrawingsString;
+    AscDFH.changesFactory[AscDFH.historyitem_ShapeSetTextLink]   = AscDFH.CChangesDrawingsString;
+
 
 
     AscDFH.changesFactory[AscDFH.historyitem_AutoShapes_SetDrawingBasePos] = AscDFH.CChangesDrawingsObjectNoId;
@@ -121,6 +124,14 @@
                 oClass.handleUpdateExtents();
             }
         }
+    };
+
+
+    drawingsChangesMap[AscDFH.historyitem_ShapeSetMacro]            = function(oClass, value){
+        oClass.macro = value;
+    };
+    drawingsChangesMap[AscDFH.historyitem_ShapeSetTextLink]         = function(oClass, value){
+        oClass.textLink = value;
     };
 
     AscDFH.drawingsConstructorsMap[AscDFH.historyitem_AutoShapes_SetDrawingBasePos] = CDrawingBaseCoordsWritable;
@@ -384,6 +395,8 @@
         this.parent = null;
         this.bDeleted = true;
         this.locks = 0;
+        this.macro = null;
+        this.textLink = null;
 
         /*Calculated fields*/
         this.posX = null;
@@ -555,6 +568,62 @@
         AscCommon.History.Add( new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_AutoShapes_SetLocks, this.locks, nLocks));
         this.locks = nLocks;
     };
+    CGraphicObjectBase.prototype.readMacro = function(oStream)
+    {
+        var nLength = oStream.GetULong();//length
+        var nType = oStream.GetUChar();//attr type - 0
+        this.setMacro(oStream.GetString2());
+    };
+    CGraphicObjectBase.prototype.writeMacro = function(oWriter)
+    {
+        if(typeof this.macro === "string" && this.macro.length > 0)
+        {
+            oWriter.StartRecord(0xA1);
+            oWriter._WriteString1(0, this.macro);
+            oWriter.EndRecord();
+        }
+    };
+    CGraphicObjectBase.prototype.setMacro = function(sMacroName)
+    {
+        History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_ShapeSetMacro, this.macro, sMacroName));
+        this.macro = sMacroName;
+    };
+    CGraphicObjectBase.prototype.assignMacro = function(sGuid)
+    {
+        if(typeof sGuid === "string" && sGuid.length > 0) {
+            this.setMacro(AscFormat.MACRO_PREFIX + sGuid);
+        }
+        else {
+            this.setMacro(null);
+        }
+    };
+    CGraphicObjectBase.prototype.setTextLink = function(sLink)
+    {
+        History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_ShapeSetTextLink, this.textLink, sLink));
+        this.textLink = sLink;
+    };
+    CGraphicObjectBase.prototype.hasMacro = function()
+    {
+        if(typeof this.macro === "string" && this.macro.length > 0) {
+            return true;
+        }
+        return false;
+    };
+
+    CGraphicObjectBase.prototype.hasJSAMacro = function()
+    {
+        if(typeof this.macro === "string" && this.macro.indexOf(AscFormat.MACRO_PREFIX) === 0) {
+            return true;
+        }
+        return false;
+    };
+    CGraphicObjectBase.prototype.getJSAMacroId = function()
+    {
+        if(typeof this.macro === "string" && this.macro.indexOf(AscFormat.MACRO_PREFIX) === 0) {
+            return this.macro.slice(AscFormat.MACRO_PREFIX.length);
+        }
+        return null;
+    };
 
     CGraphicObjectBase.prototype.getLockValue = function(nMask) {
         return  !!((this.locks & nMask) && (this.locks & (nMask << 1)));
@@ -704,7 +773,7 @@
                 }
                 if(outerShdw.color)
                 {
-                    shape.spPr.Fill = AscFormat.CreateUniFillByUniColor(outerShdw.color);
+                    shape.spPr.Fill = AscFormat.CreateUniFillByUniColorCopy(outerShdw.color);
                 }
                 else
                 {
@@ -1087,6 +1156,13 @@
         var oUniNvPr = this.getUniNvProps();
         if(oUniNvPr){
             return oUniNvPr.cNvPr;
+        }
+        return null;
+    };
+    CGraphicObjectBase.prototype.getFormatId = function(){
+        var oCNvPr = this.getCNvProps();
+        if(oCNvPr) {
+            return oCNvPr.id;
         }
         return null;
     };
@@ -1475,7 +1551,7 @@
         if(!this.group && !bNotes)
         {
             var oLock;
-            if(this.parent instanceof ParaDrawing)
+            if(this.parent instanceof AscCommonWord.ParaDrawing)
             {
                 oLock = this.parent.Lock;
             }
@@ -1515,6 +1591,16 @@
     };
     CGraphicObjectBase.prototype.getSignatureLineGuid = function(){
         return null;
+    };
+    CGraphicObjectBase.prototype.getMacrosName = function(){
+        var sGuid = this.getJSAMacroId();
+        if(sGuid) {
+            var oApi = Asc.editor || editor;
+            if(oApi) {
+                return oApi.asc_getMacrosByGuid(sGuid);
+            }
+        }
+        return this.macro;
     };
 
     CGraphicObjectBase.prototype.getCopyWithSourceFormatting = function(oIdMap){
@@ -1984,7 +2070,86 @@
     CGraphicObjectBase.prototype.createFontMap = function(oMap) {
         this.documentCreateFontMap(oMap);
     };
-    
+    CGraphicObjectBase.prototype.isComparable = function(oDrawing) {
+        var oPr = this.getCNvProps();
+        var oOtherPr = oDrawing.getCNvProps();
+        if(!oPr && !oOtherPr) {
+            return true;
+        }
+        if(!oPr)  {
+            return false;
+        }
+        return oPr.hasSameNameAndId(oOtherPr);
+    };
+    CGraphicObjectBase.prototype.select = function (drawingObjectsController, pageIndex)
+    {
+        this.selected = true;
+        this.selectStartPage = pageIndex;
+        var content = this.getDocContent && this.getDocContent();
+        if(content)
+            content.Set_StartPage(pageIndex);
+        var selected_objects;
+        if (!AscCommon.isRealObject(this.group))
+            selected_objects = drawingObjectsController.selectedObjects;
+        else
+            selected_objects = this.group.getMainGroup().selectedObjects;
+        for (var i = 0; i < selected_objects.length; ++i) {
+            if (selected_objects[i] === this)
+                break;
+        }
+        if (i === selected_objects.length)
+            selected_objects.push(this);
+    };
+    CGraphicObjectBase.prototype.deselect = function (drawingObjectsController) {
+        this.selected = false;
+        var selected_objects;
+        if (!AscCommon.isRealObject(this.group))
+            selected_objects = drawingObjectsController.selectedObjects;
+        else
+            selected_objects = this.group.getMainGroup().selectedObjects;
+        for (var i = 0; i < selected_objects.length; ++i) {
+            if (selected_objects[i] === this) {
+                selected_objects.splice(i, 1);
+                break;
+            }
+        }
+        if(this.graphicObject)
+        {
+            this.graphicObject.RemoveSelection();
+        }
+        return this;
+    };
+
+    CGraphicObjectBase.prototype.hitInBoundingRect = function (x, y) {
+        if(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES){
+            return false;
+        }
+        var invert_transform = this.getInvertTransform();
+        if(!invert_transform)
+        {
+            return false;
+        }
+        var x_t = invert_transform.TransformPointX(x, y);
+        var y_t = invert_transform.TransformPointY(x, y);
+
+        var _hit_context = this.getCanvasContext();
+
+        return !(AscFormat.CheckObjectLine(this)) && (AscFormat.HitInLine(_hit_context, x_t, y_t, 0, 0, this.extX, 0) ||
+            AscFormat.HitInLine(_hit_context, x_t, y_t, this.extX, 0, this.extX, this.extY) ||
+            AscFormat.HitInLine(_hit_context, x_t, y_t, this.extX, this.extY, 0, this.extY) ||
+            AscFormat.HitInLine(_hit_context, x_t, y_t, 0, this.extY, 0, 0) ||
+            (this.canRotate && this.canRotate() && AscFormat.HitInLine(_hit_context, x_t, y_t, this.extX * 0.5, 0, this.extX * 0.5, -this.convertPixToMM(AscCommon.TRACK_DISTANCE_ROTATE))));
+    };
+    CGraphicObjectBase.prototype.getCanvasContext = function() {
+        return AscFormat.CShape.prototype.getCanvasContext.call(this);
+    };
+	CGraphicObjectBase.prototype.isForm = function() {
+		return (this.parent && this.parent.IsForm && this.parent.IsForm());
+	}
+	CGraphicObjectBase.prototype.getInnerForm = function() {
+		return null;
+	}
+
     function CRelSizeAnchor() {
         CBaseObject.call(this);
         this.fromX = null;
@@ -2184,4 +2349,5 @@
     window['AscFormat'].CalculateSrcRect      = CalculateSrcRect;
     window['AscFormat'].CCopyObjectProperties = CCopyObjectProperties;
     window['AscFormat'].LOCKS_MASKS           = LOCKS_MASKS;
+    window['AscFormat'].MACRO_PREFIX = "jsaProject_"
 })(window);

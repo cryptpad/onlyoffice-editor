@@ -760,7 +760,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 			else
 			{
 				this.CurPos.ContentPos = StartPos;
-				if (Count < 0 && type_Table === this.Content[StartPos].GetType() && true === this.Content[StartPos].IsCellSelection() && true != bOnTextAdd)
+				if (Count < 0 && this.Content[StartPos].IsTable() && true === this.Content[StartPos].IsCellSelection() && true !== bOnTextAdd)
 				{
 					this.RemoveTableCells();
 				}
@@ -2221,4 +2221,11 @@ CDocumentContentBase.prototype.GetNextDocumentElement = function()
 		return this.Parent.GetNextDocumentElement();
 
 	return null;
+};
+CDocumentContentBase.prototype.IsEmptyParagraphAfterTableInTableCell = function(nIndex)
+{
+	return false;
+};
+CDocumentContentBase.prototype.SetThisElementCurrent = function(isUpdateStates)
+{
 };

@@ -442,6 +442,24 @@ CShape.prototype.getParentObjects = function ()
             }
         }
     }
+    else
+    {
+        var oPresentation = editor.WordControl.m_oLogicDocument;
+        if(oPresentation)
+        {
+            var oSlide = oPresentation.Slides[oPresentation.CurPage];
+            if(oSlide)
+            {
+                return {
+                    presentation: oPresentation,
+                    slide: oSlide,
+                    layout: oSlide.Layout,
+                    master: oSlide.Layout ? oSlide.Layout.Master : null,
+                    theme: this.themeOverride ? this.themeOverride : (oSlide.Layout && oSlide.Layout.Master ? oSlide.Layout.Master.Theme : null)
+                };
+            }
+        }
+    }
     return { slide: null, layout: null, master: null, theme: null};
 };
 

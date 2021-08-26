@@ -651,7 +651,7 @@ CChartsDrawer.prototype =
 			var heightAxisTitle = axis.title.extY;
 
 			var layout = this.cChartSpace.chart.plotArea.layout;
-			if(layout) {
+			if(layout && AscFormat.isRealNumber(layout.y) && AscFormat.isRealNumber(layout.h)) {
 				var x1 = layout.x * this.calcProp.widthCanvas;
 				var y1 = layout.y * this.calcProp.heightCanvas;
 				var w = layout.w * this.calcProp.widthCanvas;
@@ -7192,7 +7192,7 @@ drawAreaChart.prototype = {
 				cColorMod.val = 35000;
 			}
 			cColorMod.name = "shade";
-			duplicateBrush.fill.color.Mods.addMod(cColorMod);
+			duplicateBrush.addColorMod(cColorMod);
 			duplicateBrush.calculate(props.theme, props.slide, props.layout, props.master,
 				new AscFormat.CUniColor().RGBA, this.cChartSpace.clrMapOvr);
 

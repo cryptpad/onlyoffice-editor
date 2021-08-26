@@ -40,10 +40,11 @@
 {
 	var g_cCharDelimiter      = String.fromCharCode(5);
 	var g_cGeneralFormat      = 'General';
-	var FONT_THUMBNAIL_HEIGHT = (7 * 96.0 / 25.4) >> 0;
+	var FONT_THUMBNAIL_HEIGHT = 28;
 	var c_oAscMaxColumnWidth  = 255;
 	var c_oAscMaxRowHeight    = 409.5;
 	var c_nMaxConversionTime  = 900000;//depends on config
+	var c_nCommonRequestTime  = 30000;//30sec
 	var c_nMaxDownloadTitleLen= 255;
 	var c_nVersionNoBase64 = 10;
 	var c_dMaxParaRunContentLength = 256;
@@ -137,6 +138,7 @@
 			AccessDeny            : -23,
 			LoadingScriptError    : -24,
 			EditingError          :	-25,
+			LoadingFontError      : -26,
 
 			SplitCellMaxRows     : -30,
 			SplitCellMaxCols     : -31,
@@ -265,7 +267,20 @@
 			Password : -1000,
 
 			SecondaryAxis: 1001,
-			ComboSeriesError: 1002
+			ComboSeriesError: 1002,
+
+			//conditional formatting
+			NotValidPercentile : 1003,
+			CannotAddConditionalFormatting: 1004,
+			NotValidPercentage: 1005,
+			NotSingleReferenceCannotUsed: 1006,
+			CannotUseRelativeReference: 1007,
+			ValueMustBeGreaterThen: 1008,
+			IconDataRangesOverlap: 1009,
+			ErrorTop10Between: 1010,
+
+			SingleColumnOrRowError: 1020,
+			LocationOrDataRangeError: 1021
 		}
 	};
 
@@ -324,7 +339,8 @@
 
 	var c_oAscAsyncActionType = {
 		Information      : 0,
-		BlockInteraction : 1
+		BlockInteraction : 1,
+		Empty            : 2
 	};
 
 	var DownloadType = {
@@ -362,8 +378,8 @@
 
 	var c_oAscDrawingLayerType = {
 		BringToFront : 0,
-		SendToBack   : 1,
-		BringForward : 2,
+		BringForward : 1,
+		SendToBack   : 2,
 		SendBackward : 3
 	};
 
@@ -774,7 +790,8 @@
 		COLOR_TYPE_SRGB   : 1,
 		COLOR_TYPE_PRST   : 2,
 		COLOR_TYPE_SCHEME : 3,
-		COLOR_TYPE_SYS    : 4
+		COLOR_TYPE_SYS    : 4,
+		COLOR_TYPE_STYLE  : 5
 	};
 
 	var c_oAscFill = {
@@ -890,7 +907,8 @@
 		Hyperlink    : 1,
 		LockedObject : 2,
 		Footnote     : 3,
-		Form         : 4
+		Form         : 4,
+		Review       : 5
 	};
 
 	// selection type
@@ -2158,6 +2176,20 @@
 			SzWidescreen: 16
 	};
 
+	var c_oAscPictureFormScaleFlag = {
+		Always  : 0,
+		Bigger  : 1,
+		Smaller : 2,
+		Never   : 3,
+	};
+
+	var c_oAscDisplayModeInReview = {
+		Edit     : 0,
+		Final    : 1,
+		Original : 2,
+		Simple   : 3
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -2165,6 +2197,7 @@
 	window['Asc']['c_oAscMaxColumnWidth']  = window['Asc'].c_oAscMaxColumnWidth = c_oAscMaxColumnWidth;
 	window['Asc']['c_oAscMaxRowHeight'] = window['Asc'].c_oAscMaxRowHeight = c_oAscMaxRowHeight;
     window['Asc']['c_nMaxConversionTime'] = window['Asc'].c_nMaxConversionTime = c_nMaxConversionTime;
+	window['Asc']['c_nCommonRequestTime'] = window['Asc'].c_nCommonRequestTime = c_nCommonRequestTime;
 	window['Asc']['c_nMaxDownloadTitleLen'] = window['Asc'].c_nMaxDownloadTitleLen = c_nMaxDownloadTitleLen;
 	window['Asc']['c_nVersionNoBase64'] = window['Asc'].c_nVersionNoBase64 = c_nVersionNoBase64;
 	window['Asc']['c_dMaxParaRunContentLength'] = window['Asc'].c_dMaxParaRunContentLength = c_dMaxParaRunContentLength;
@@ -2249,6 +2282,7 @@
 	prot['AccessDeny']                       = prot.AccessDeny;
 	prot['LoadingScriptError']               = prot.LoadingScriptError;
 	prot['EditingError']                     = prot.EditingError;
+	prot['LoadingFontError']                 = prot.LoadingFontError;
 	prot['SplitCellMaxRows']                 = prot.SplitCellMaxRows;
 	prot['SplitCellMaxCols']                 = prot.SplitCellMaxCols;
 	prot['SplitCellRowsDivider']             = prot.SplitCellRowsDivider;
@@ -2338,6 +2372,18 @@
 	prot['NamedRangeNotFound']               = prot.NamedRangeNotFound;
 	prot['FormulaEvaluateError']             = prot.FormulaEvaluateError;
 	prot['DataValidateInvalidList']          = prot.DataValidateInvalidList;
+
+	prot['NotValidPercentile']               = prot.NotValidPercentile;
+	prot['CannotAddConditionalFormatting']   = prot.CannotAddConditionalFormatting;
+	prot['NotValidPercentage']               = prot.NotValidPercentage;
+	prot['NotSingleReferenceCannotUsed']     = prot.NotSingleReferenceCannotUsed;
+	prot['CannotUseRelativeReference']       = prot.CannotUseRelativeReference;
+	prot['ValueMustBeGreaterThen']           = prot.ValueMustBeGreaterThen;
+	prot['IconDataRangesOverlap']            = prot.IconDataRangesOverlap;
+	prot['ErrorTop10Between']                = prot.ErrorTop10Between;
+	prot['SingleColumnOrRowError']           = prot.SingleColumnOrRowError;
+	prot['LocationOrDataRangeError']         = prot.LocationOrDataRangeError;
+
 
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
 	prot                                     = c_oAscAsyncAction;
@@ -2671,6 +2717,7 @@
 	prot['COLOR_TYPE_PRST']     = prot.COLOR_TYPE_PRST;
 	prot['COLOR_TYPE_SCHEME']   = prot.COLOR_TYPE_SCHEME;
 	prot['COLOR_TYPE_SYS']      = prot.COLOR_TYPE_SYS;
+	prot['COLOR_TYPE_STYLE']      = prot.COLOR_TYPE_STYLE;
 	window['Asc']['c_oAscFill'] = window['Asc'].c_oAscFill = c_oAscFill;
 	prot                                = c_oAscFill;
 	prot['FILL_TYPE_NONE']              = prot.FILL_TYPE_NONE;
@@ -2752,6 +2799,7 @@
 	prot['LockedObject'] = prot.LockedObject;
 	prot['Footnote']     = prot.Footnote;
 	prot['Form']         = prot.Form;
+	prot['Review']       = prot.Review;
 
 	window['Asc']['c_oAscMaxTooltipLength'] = window['Asc'].c_oAscMaxTooltipLength = c_oAscMaxTooltipLength;
 	window['Asc']['c_oAscMaxCellOrCommentLength'] = window['Asc'].c_oAscMaxCellOrCommentLength = c_oAscMaxCellOrCommentLength;
@@ -2906,7 +2954,6 @@
 	prot["cellanchorAbsolute"] = prot.cellanchorAbsolute;
 	prot["cellanchorOneCell"] = prot.cellanchorOneCell;
 	prot["cellanchorTwoCell"] = prot.cellanchorTwoCell;
-
 
     window['AscCommon']                             = window['AscCommon'] || {};
 	window["AscCommon"].g_cCharDelimiter            = g_cCharDelimiter;
@@ -3254,5 +3301,17 @@
 	prot['SzScreen16x9'] = prot.SzScreen16x9;
 	prot['SzScreen4x3'] = prot.SzScreen4x3;
 	prot['SzWidescreen'] = prot.SzWidescreen;
+
+	prot = window['Asc']['c_oAscPictureFormScaleFlag'] = window['Asc'].c_oAscPictureFormScaleFlag = c_oAscPictureFormScaleFlag;
+	prot['Always']  = prot.Always;
+	prot['Bigger']  = prot.Bigger;
+	prot['Smaller'] = prot.Smaller;
+	prot['Never']   = prot.Never;
+
+	prot = window['Asc']['c_oAscDisplayModeInReview'] = window['Asc'].c_oAscDisplayModeInReview = c_oAscDisplayModeInReview;
+	prot['Edit']     = prot.Edit;
+	prot['Final']    = prot.Final;
+	prot['Original'] = prot.Original;
+	prot['Simple']   = prot.Simple;
 
 })(window);

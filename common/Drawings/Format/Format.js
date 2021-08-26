@@ -1146,34 +1146,12 @@ var DEC_GAMMA          = 2.3;
 var INC_GAMMA          = 1.0 / DEC_GAMMA;
 var MAX_PERCENT        = 100000;
 
-function CColorModifiers()
-{
-    this.Mods = [];
-
-}
-
-CColorModifiers.prototype =
-{
-    isUsePow : (!AscCommon.AscBrowser.isSailfish || !AscCommon.AscBrowser.isEmulateDevicePixelRatio),
-
-    getObjectType: function()
+    function CColorModifiers()
     {
-        return AscDFH.historyitem_type_ColorModifiers;
-    },
-
-    Get_Id: function()
-    {
-        return this.Id;
-    },
-    Refresh_RecalcData: function()
-    {},
-
-    getModsToWrite: function()
-    {
-
-    },
-
-    getModValue: function(sName)
+        this.Mods = [];
+    }
+    CColorModifiers.prototype.isUsePow = (!AscCommon.AscBrowser.isSailfish || !AscCommon.AscBrowser.isEmulateDevicePixelRatio);
+    CColorModifiers.prototype.getModValue = function(sName)
     {
         if(Array.isArray(this.Mods))
         {
@@ -1186,10 +1164,8 @@ CColorModifiers.prototype =
             }
         }
         return null;
-    },
-
-
-    Write_ToBinary: function(w)
+    };
+    CColorModifiers.prototype.Write_ToBinary = function(w)
     {
         w.WriteLong(this.Mods.length);
         for(var i = 0; i < this.Mods.length; ++i)
@@ -1197,9 +1173,8 @@ CColorModifiers.prototype =
             w.WriteString2(this.Mods[i].name);
             w.WriteLong(this.Mods[i].val);
         }
-    },
-
-    Read_FromBinary: function(r)
+    };
+    CColorModifiers.prototype.Read_FromBinary = function(r)
     {
         var len = r.GetLong();
         for(var i = 0; i < len; ++i)
@@ -1209,21 +1184,16 @@ CColorModifiers.prototype =
             mod.val = r.GetLong();
             this.Mods.push(mod);
         }
-    },
-
-    addMod: function(mod)
+    };
+    CColorModifiers.prototype.addMod = function(mod)
     {
         this.Mods.push(mod);
-    },
-
-
-    removeMod: function(pos)
+    };
+    CColorModifiers.prototype.removeMod = function(pos)
     {
         this.Mods.splice(pos, 1)[0];
-    },
-
-
-    IsIdentical : function(mods)
+    };
+    CColorModifiers.prototype.IsIdentical = function(mods)
     {
         if(mods == null)
         {
@@ -1244,9 +1214,8 @@ CColorModifiers.prototype =
         }
         return true;
 
-    },
-
-    createDuplicate : function()
+    };
+    CColorModifiers.prototype.createDuplicate = function()
     {
         var duplicate = new CColorModifiers();
         for(var  i=0; i< this.Mods.length; ++i)
@@ -1254,9 +1223,8 @@ CColorModifiers.prototype =
             duplicate.Mods[i] = this.Mods[i].createDuplicate();
         }
         return duplicate;
-    },
-
-    RGB2HSL : function(R, G, B, HLS)
+    };
+    CColorModifiers.prototype.RGB2HSL = function(R, G, B, HLS)
     {
         var iMin = (R < G ? R : G); iMin = iMin < B ? iMin : B;//Math.min(R, G, B);
         var iMax = (R > G ? R : G); iMax = iMax > B ? iMax : B;//Math.max(R, G, B);
@@ -1306,9 +1274,8 @@ CColorModifiers.prototype =
         HLS.H = H;
         HLS.S = S;
         HLS.L = L;
-    },
-
-    HSL2RGB : function(HSL, RGB)
+    };
+    CColorModifiers.prototype.HSL2RGB = function(HSL, RGB)
     {
         if (HSL.S == 0)
         {
@@ -1352,9 +1319,8 @@ CColorModifiers.prototype =
             RGB.G = G;
             RGB.B = B;
         }
-    },
-
-    Hue_2_RGB : function(v1,v2,vH)
+    };
+    CColorModifiers.prototype.Hue_2_RGB = function(v1,v2,vH)
     {
         if (vH < 0.0)
             vH += 1.0;
@@ -1367,24 +1333,20 @@ CColorModifiers.prototype =
         if (vH < cd23)
             return v1 + (v2 - v1) * (cd23 - vH) * 6.0;
         return v1;
-    },
-
-    lclRgbCompToCrgbComp: function(value)
+    };
+    CColorModifiers.prototype.lclRgbCompToCrgbComp = function(value)
     {
         return (value * MAX_PERCENT / 255);
-    },
-
-    lclCrgbCompToRgbComp: function(value)
+    };
+    CColorModifiers.prototype.lclCrgbCompToRgbComp = function(value)
     {
         return (value * 255 / MAX_PERCENT);
-    },
-
-    lclGamma: function(nComp, fGamma)
+    };
+    CColorModifiers.prototype.lclGamma = function(nComp, fGamma)
     {
         return (Math.pow(nComp/MAX_PERCENT, fGamma)*MAX_PERCENT + 0.5) >> 0;
-    },
-
-    RgbtoCrgb: function(RGBA)
+    };
+    CColorModifiers.prototype.RgbtoCrgb = function(RGBA)
     {
         //RGBA.R = this.lclGamma(this.lclRgbCompToCrgbComp(RGBA.R), DEC_GAMMA);
         //RGBA.G = this.lclGamma(this.lclRgbCompToCrgbComp(RGBA.G), DEC_//GAMMA);
@@ -1396,10 +1358,8 @@ CColorModifiers.prototype =
             RGBA.G = (Math.pow(RGBA.G / 255, DEC_GAMMA) * MAX_PERCENT + 0.5) >> 0;
             RGBA.B = (Math.pow(RGBA.B / 255, DEC_GAMMA) * MAX_PERCENT + 0.5) >> 0;
         }
-    },
-
-
-    CrgbtoRgb: function(RGBA)
+    };
+    CColorModifiers.prototype.CrgbtoRgb = function(RGBA)
     {
         //RGBA.R = (this.lclCrgbCompToRgbComp(this.lclGamma(RGBA.R, INC_GAMMA)) + 0.5) >> 0;
         //RGBA.G = (this.lclCrgbCompToRgbComp(this.lclGamma(RGBA.G, INC_GAMMA)) + 0.5) >> 0;
@@ -1417,9 +1377,8 @@ CColorModifiers.prototype =
             RGBA.G = AscFormat.ClampColor(RGBA.G);
             RGBA.B = AscFormat.ClampColor(RGBA.B);
         }
-    },
-
-    Apply : function(RGBA)
+    };
+    CColorModifiers.prototype.Apply = function(RGBA)
     {
         if (null == this.Mods)
             return;
@@ -1591,8 +1550,14 @@ CColorModifiers.prototype =
                 this.CrgbtoRgb(RGBA);
             }
         }
-    }
-};
+    };
+    CColorModifiers.prototype.Merge = function(oOther)
+    {
+        if(!oOther) {
+            return;
+        }
+        this.Mods = oOther.Mods.concat(this.Mods);
+    };
 
 function CSysColor()
 {
@@ -2003,6 +1968,52 @@ CSchemeColor.prototype =
     }
 };
 
+    function CStyleColor()
+    {
+        this.bAuto = false;
+        this.val = null;
+    }
+    CStyleColor.prototype.type = c_oAscColor.COLOR_TYPE_STYLE;
+    CStyleColor.prototype.check = function(theme, colorMap)
+    {
+    };
+    CStyleColor.prototype.Write_ToBinary = function (w)
+    {
+        w.WriteLong(this.type);
+        writeBool(w, this.bAuto);
+        writeLong(w, this.val);
+    };
+    CStyleColor.prototype.Read_FromBinary = function (r)
+    {
+        this.bAuto = readBool(r);
+        this.val = readLong(r);
+    };
+    CStyleColor.prototype.IsIdentical = function(color)
+    {
+        return color && color.type == this.type && color.bAuto == this.bAuto && this.val === color.val;
+    };
+    CStyleColor.prototype.createDuplicate = function()
+    {
+        var duplicate = new CStyleColor();
+        duplicate.bAuto = this.bAuto;
+        duplicate.val = this.val;
+        return duplicate;
+    };
+    CStyleColor.prototype.Calculate = function(theme, slide, layout, masterSlide, RGBA, colorMap)
+    {
+    };
+    CStyleColor.prototype.getNoStyleUnicolor = function(nIdx, aColors)
+    {
+        if(this.bAuto || this.val === null)
+        {
+            return aColors[nIdx % aColors.length];
+        }
+        else
+        {
+            return aColors[this.val % aColors.length];
+        }
+    };
+
 function CUniColor()
 {
     this.color = null;
@@ -2017,7 +2028,7 @@ function CUniColor()
 
 CUniColor.prototype =
 {
-    checkPhColor: function(unicolor)
+    checkPhColor: function(unicolor, bMergeMods)
     {
         if(this.color && this.color.type === c_oAscColor.COLOR_TYPE_SCHEME && this.color.id === 14)
         {
@@ -2029,7 +2040,17 @@ CUniColor.prototype =
                 }
                 if(unicolor.Mods)
                 {
-                    this.Mods = unicolor.Mods.createDuplicate();
+                    if(!this.Mods || this.Mods.Mods.length === 0)
+                    {
+                        this.Mods = unicolor.Mods.createDuplicate();
+                    }
+                    else
+                    {
+                        if(bMergeMods)
+                        {
+                            this.Mods.Merge(unicolor.Mods);
+                        }
+                    }
                 }
             }
         }
@@ -2200,6 +2221,12 @@ CUniColor.prototype =
                 case c_oAscColor.COLOR_TYPE_SYS:
                 {
                     this.color = new CSysColor();
+                    this.color.Read_FromBinary(r);
+                    break;
+                }
+                case c_oAscColor.COLOR_TYPE_STYLE:
+                {
+                    this.color = new CStyleColor();
                     this.color.Read_FromBinary(r);
                     break;
                 }
@@ -2391,6 +2418,27 @@ CUniColor.prototype =
         }
         var _css = "rgba(" + this.RGBA.R + "," + this.RGBA.G + "," + this.RGBA.B + "," + (this.RGBA.A / 255) + ")";
         return _css;
+    },
+
+    isCorrect: function()
+    {
+        if(this.color !== null && this.color !== undefined) {
+            return true;
+        }
+        return false;
+    },
+
+    getNoStyleUnicolor: function(nIdx, aColors)
+    {
+        if(!this.color)
+        {
+            return null;
+        }
+        if(this.color.type !== c_oAscColor.COLOR_TYPE_STYLE)
+        {
+            return this;
+        }
+        return this.color.getNoStyleUnicolor(nIdx, aColors);
     }
 };
 
@@ -3562,7 +3610,7 @@ var  EFFECT_TYPE_BLEND			=	30;
     CInnerShdw.prototype.createDuplicate = function()
     {
         var oCopy = new CInnerShdw();
-        oCopy.color = oCopy.color.createDuplicate();
+        oCopy.color = this.color.createDuplicate();
         oCopy.blurRad = this.blurRad;
         oCopy.dir = this.dir;
         oCopy.dist = this.dist;
@@ -4903,31 +4951,20 @@ function FormatRGBAColor()
     this.A = 255;
 }
 
-function CUniFill()
-{
-    this.fill = null;
-    this.transparent = null;
-}
-
-CUniFill.prototype =
-{
-    Get_Id: function()
+    function CUniFill()
     {
-        return this.Id;
-    },
-    Refresh_RecalcData: function()
-    {},
+        this.fill = null;
+        this.transparent = null;
+    }
 
-    check: function(theme, colorMap)
+    CUniFill.prototype.check = function(theme, colorMap)
     {
         if(this.fill)
         {
             this.fill.check(theme, colorMap);
         }
-    },
-
-
-    addColorMod: function(mod)
+    };
+    CUniFill.prototype.addColorMod = function(mod)
     {
         if(this.fill)
         {
@@ -4972,9 +5009,8 @@ CUniFill.prototype =
                 }
             }
         }
-    },
-
-    checkPhColor: function(unicolor)
+    };
+    CUniFill.prototype.checkPhColor = function(unicolor, bMergeMods)
     {
         if(this.fill)
         {
@@ -4990,7 +5026,7 @@ CUniFill.prototype =
                 {
                     if(this.fill.color && this.fill.color)
                     {
-                        this.fill.color.checkPhColor(unicolor);
+                        this.fill.color.checkPhColor(unicolor, bMergeMods);
                     }
                     break;
                 }
@@ -5000,7 +5036,7 @@ CUniFill.prototype =
                     {
                         if(this.fill.colors[i] && this.fill.colors[i].color)
                         {
-                            this.fill.colors[i].color.checkPhColor(unicolor);
+                            this.fill.colors[i].color.checkPhColor(unicolor, bMergeMods);
                         }
                     }
                     break;
@@ -5009,19 +5045,28 @@ CUniFill.prototype =
                 {
                     if(this.fill.bgClr)
                     {
-                        this.fill.bgClr.checkPhColor(unicolor);
+                        this.fill.bgClr.checkPhColor(unicolor, bMergeMods);
                     }
                     if(this.fill.fgClr)
                     {
-                        this.fill.fgClr.checkPhColor(unicolor);
+                        this.fill.fgClr.checkPhColor(unicolor, bMergeMods);
                     }
                     break;
                 }
             }
         }
-    },
-
-    Get_TextBackGroundColor: function()
+    };
+    CUniFill.prototype.checkPatternType = function(nType)
+    {
+        if(this.fill)
+        {
+            if(this.fill.type === c_oAscFill.FILL_TYPE_PATT)
+            {
+                this.fill.ftype = nType;
+            }
+        }
+    };
+    CUniFill.prototype.Get_TextBackGroundColor = function()
     {
         if(!this.fill)
         {
@@ -5065,52 +5110,36 @@ CUniFill.prototype =
             }
         }
         return oColor;
-    },
-
-    checkWordMods: function()
+    };
+    CUniFill.prototype.checkWordMods = function()
     {
         return this.fill && this.fill.checkWordMods();
-    },
-
-    convertToPPTXMods: function()
+    };
+    CUniFill.prototype.convertToPPTXMods = function()
     {
         this.fill && this.fill.convertToPPTXMods();
-    },
-
-    canConvertPPTXModsToWord: function()
+    };
+    CUniFill.prototype.canConvertPPTXModsToWord = function()
     {
         return this.fill && this.fill.canConvertPPTXModsToWord();
-    },
-
-    convertToWordMods: function()
+    };
+    CUniFill.prototype.convertToWordMods = function()
     {
         this.fill && this.fill.convertToWordMods();
-    },
-
-
-    getObjectType: function()
-    {
-        return AscDFH.historyitem_type_UniFill;
-    },
-
-    setFill: function(fill)
+    };
+    CUniFill.prototype.setFill = function(fill)
     {
         this.fill = fill;
-    },
-
-    setTransparent: function(transparent)
+    };
+    CUniFill.prototype.setTransparent = function(transparent)
     {
         this.transparent = transparent;
-    },
-
-
-    Set_FromObject: function(o)
+    };
+    CUniFill.prototype.Set_FromObject = function(o)
     {
         //TODO:
-    },
-
-
-    Write_ToBinary: function(w)
+    };
+    CUniFill.prototype.Write_ToBinary = function(w)
     {
         writeDouble(w, this.transparent);
         w.WriteBool(isRealObject(this.fill));
@@ -5120,9 +5149,8 @@ CUniFill.prototype =
             this.fill.Write_ToBinary(w);
         }
 
-    },
-
-    Read_FromBinary: function(r)
+    };
+    CUniFill.prototype.Read_FromBinary = function(r)
     {
         this.transparent = readDouble(r);
         if(r.GetBool())
@@ -5168,9 +5196,8 @@ CUniFill.prototype =
                 }
             }
         }
-    },
-
-    calculate : function(theme, slide, layout, masterSlide, RGBA, colorMap)
+    };
+    CUniFill.prototype.calculate = function(theme, slide, layout, masterSlide, RGBA, colorMap)
     {
         if(this.fill )
         {
@@ -5190,9 +5217,8 @@ CUniFill.prototype =
             if (this.fill.bgClr)
                 this.fill.bgClr.Calculate(theme, slide, layout, masterSlide, RGBA, colorMap);
         }
-    },
-
-    getRGBAColor : function()
+    };
+    CUniFill.prototype.getRGBAColor = function()
     {
         if (this.fill)
         {
@@ -5239,9 +5265,8 @@ CUniFill.prototype =
             }
         }
         return new FormatRGBAColor();
-    },
-
-    createDuplicate : function()
+    };
+    CUniFill.prototype.createDuplicate = function()
     {
         var duplicate = new CUniFill();
         if(this.fill != null)
@@ -5250,9 +5275,8 @@ CUniFill.prototype =
         }
         duplicate.transparent = this.transparent;
         return duplicate;
-    },
-
-    saveSourceFormatting: function()
+    };
+    CUniFill.prototype.saveSourceFormatting = function()
     {
         var duplicate = new CUniFill();
         if(this.fill)
@@ -5267,9 +5291,8 @@ CUniFill.prototype =
         }
         duplicate.transparent = this.transparent;
         return duplicate;
-    },
-
-    merge : function(unifill)
+    };
+    CUniFill.prototype.merge = function(unifill)
     {
         if(unifill )
         {
@@ -5291,9 +5314,8 @@ CUniFill.prototype =
                 this.transparent = unifill.transparent;
             }
         }
-    },
-
-    IsIdentical : function(unifill)
+    };
+    CUniFill.prototype.IsIdentical = function(unifill)
     {
         if(unifill == null)
         {
@@ -5318,14 +5340,12 @@ CUniFill.prototype =
         {
             return false;
         }
-    },
-
-    Is_Equal : function(unfill)
+    };
+    CUniFill.prototype.Is_Equal = function(unfill)
     {
         return this.IsIdentical(unfill);
-    },
-
-    compare : function(unifill)
+    };
+    CUniFill.prototype.compare = function(unifill)
     {
         if(unifill == null)
         {
@@ -5340,23 +5360,17 @@ CUniFill.prototype =
             }
         }
         return _ret.fill;
-    },
-
-    isAccent1: function() {
-        return (this.fill && this.fill.color && this.fill.color.color
-        && this.fill.color.color.type === window['Asc'].c_oAscColor.COLOR_TYPE_SCHEME &&  this.fill.color.color.id === 0)
-    },
-    isSolidFillRGB: function() {
+    };
+    CUniFill.prototype.isSolidFillRGB = function() {
         return (this.fill && this.fill.color && this.fill.color.color
         && this.fill.color.color.type === window['Asc'].c_oAscColor.COLOR_TYPE_SRGB)
-    },
-    isNoFill: function() {
+    };
+    CUniFill.prototype.isNoFill = function() {
         return this.fill && this.fill.type === window['Asc'].c_oAscFill.FILL_TYPE_NOFILL;
-    },
-    isVisible: function() {
+    };
+    CUniFill.prototype.isVisible = function() {
         return this.fill && this.fill.type !== window['Asc'].c_oAscFill.FILL_TYPE_NOFILL;
-    }
-};
+    };
 
 function CompareUniFill(unifill_1, unifill_2)
 {
@@ -5532,6 +5546,14 @@ function CompareUniColor(u1, u2)
                 }
                 break;
             }
+            case c_oAscColor.COLOR_TYPE_STYLE:
+            {
+                if(u1.bAuto !== u2.bAuto || u1.val !== u2.val)
+                {
+                    return false;
+                }
+                break;
+            }
         }
     }
     if(!u1.Mods && u2.Mods || !u2.Mods && u1.Mods)
@@ -5658,6 +5680,14 @@ function CompareShapeProperties(shapeProp1, shapeProp2)
     else
     {
         _result_shape_prop.bFromChart = false;
+    }
+    if(shapeProp1.bFromGroup || shapeProp2.bFromGroup)
+    {
+        _result_shape_prop.bFromGroup = true;
+    }
+    else
+    {
+        _result_shape_prop.bFromGroup = false;
     }
     if(!shapeProp1.bFromImage || !shapeProp2.bFromImage)
     {
@@ -6376,7 +6406,9 @@ function CNvPr()
     this.hlinkHover = null;
 
     this.Id = g_oIdCounter.Get_NewId();
-    g_oTableId.Add(this, this.Id)
+    g_oTableId.Add(this, this.Id);
+
+    this.setId(AscCommon.CreateDurableId());
 }
 
 
@@ -6398,7 +6430,6 @@ CNvPr.prototype =
     createDuplicate: function()
     {
         var duplicate = new CNvPr();
-        duplicate.setId(this.id);
         duplicate.setName(this.name);
         duplicate.setIsHidden(this.isHidden);
         duplicate.setDescr(this.descr);
@@ -6478,6 +6509,15 @@ CNvPr.prototype =
     Read_FromBinary2: function (r)
     {
         this.Id = r.GetString2();
+    },
+
+    hasSameNameAndId: function(oPr)
+    {
+        if(!oPr)
+        {
+            return false;
+        }
+        return this.id === oPr.id && this.name === oPr.name;
     }
 };
 
@@ -6821,6 +6861,7 @@ UniNvPr.prototype =
     },
 
 
+
     Write_ToBinary2: function (w)
     {
         w.WriteLong(this.getObjectType());
@@ -6914,6 +6955,15 @@ StyleRef.prototype =
             this.Color = new CUniColor();
             this.Color.Read_FromBinary(r);
         }
+    },
+
+    getNoStyleUnicolor: function(nIdx, aColors)
+    {
+        if(this.Color && this.Color.isCorrect())
+        {
+            return this.Color.getNoStyleUnicolor(nIdx, aColors);
+        }
+        return null;
     }
 };
 
@@ -6969,6 +7019,24 @@ FontRef.prototype =
             this.Color = new CUniColor();
             this.Color.Read_FromBinary(r);
         }
+    },
+
+    getNoStyleUnicolor: function(nIdx, aColors)
+    {
+        if(this.Color && this.Color.isCorrect())
+        {
+            return this.Color.getNoStyleUnicolor(nIdx, aColors);
+        }
+        return null;
+    },
+
+    getFirstPartThemeName: function()
+    {
+        if (this.idx === AscFormat.fntStyleInd_major)
+        {
+            return "+mj-";
+        }
+        return "+mn-";
     }
 };
 
@@ -8029,11 +8097,20 @@ CSpPr.prototype =
             this.parent.handleUpdateFill();
         }
     },
+
     handleUpdateLn: function()
     {
         if(this.parent && this.parent.handleUpdateLn)
         {
             this.parent.handleUpdateLn();
+        }
+    },
+
+    setLineFill: function()
+    {
+        if(this.ln && this.ln.Fill)
+        {
+            this.setFill(this.ln.Fill.createDuplicate());
         }
     }
 };
@@ -8552,7 +8629,7 @@ FmtScheme.prototype =
             if (!ret)
                 return null;
             var ret2 = ret.createDuplicate();
-            ret2.checkPhColor(unicolor);
+            ret2.checkPhColor(unicolor, false);
             return ret2;
         }
         else if (number >= 1001)
@@ -8561,7 +8638,7 @@ FmtScheme.prototype =
             if (!ret)
                 return null;
             var ret2 = ret.createDuplicate();
-            ret2.checkPhColor(unicolor);
+            ret2.checkPhColor(unicolor, false);
             return ret2;
         }
         return null;
@@ -8745,7 +8822,7 @@ CTheme.prototype =
                 ret = this.themeElements.fmtScheme.fillStyleLst[idx-1].createDuplicate();
                 if(ret)
                 {
-                    ret.checkPhColor(unicolor);
+                    ret.checkPhColor(unicolor, false);
                     return ret;
                 }
             }
@@ -8757,7 +8834,7 @@ CTheme.prototype =
                 ret = this.themeElements.fmtScheme.bgFillStyleLst[idx-1001].createDuplicate();
                 if(ret)
                 {
-                    ret.checkPhColor(unicolor);
+                    ret.checkPhColor(unicolor, false);
                     return ret;
                 }
             }
@@ -8767,12 +8844,16 @@ CTheme.prototype =
 
     getLnStyle: function(idx, unicolor)
     {
+        if(idx === 0)
+        {
+            return AscFormat.CreateNoFillLine();
+        }
         if (this.themeElements.fmtScheme.lnStyleLst[idx-1])
         {
             var ret = this.themeElements.fmtScheme.lnStyleLst[idx-1].createDuplicate();
             if(ret.Fill)
             {
-                ret.Fill.checkPhColor(unicolor);
+                ret.Fill.checkPhColor(unicolor, false);
             }
             return ret;
         }
@@ -12328,6 +12409,7 @@ function CreateAscShapePropFromProp(shapeProp)
         obj.canFill = shapeProp.canFill;
     }
     obj.bFromChart = shapeProp.bFromChart;
+    obj.bFromGroup = shapeProp.bFromGroup;
     obj.bFromImage = shapeProp.bFromImage;
     obj.w = shapeProp.w;
     obj.h = shapeProp.h;
@@ -13262,6 +13344,7 @@ function CorrectUniColor(asc_color, unicolor, flag)
     window['AscFormat'].CPrstColor = CPrstColor;
     window['AscFormat'].CRGBColor = CRGBColor;
     window['AscFormat'].CSchemeColor = CSchemeColor;
+    window['AscFormat'].CStyleColor = CStyleColor;
     window['AscFormat'].CUniColor = CUniColor;
     window['AscFormat'].CreateUniColorRGB = CreateUniColorRGB;
     window['AscFormat'].CreateUniColorRGB2 = CreateUniColorRGB2;

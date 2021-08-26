@@ -244,7 +244,7 @@ CEndnotesController.prototype.IsEmptyPage = function(nPageAbs)
 {
 	var oPage = this.Pages[nPageAbs];
 	if (!oPage)
-		return false;
+		return true;
 
 	for (var nIndex = 0, nCount = oPage.Sections.length; nIndex < nCount; ++nIndex)
 	{
@@ -2701,6 +2701,13 @@ CEndnotesController.prototype.GetSelectedText = function(bClearText, oPr)
 CEndnotesController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
 {
 	return this.CurEndnote.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
+};
+CEndnotesController.prototype.GetCurrentTablesStack = function(arrTables)
+{
+	if (!arrTables)
+		arrTables = [];
+
+	return this.CurEndnote.GetCurrentTablesStack(arrTables);
 };
 CEndnotesController.prototype.GetSelectedElementsInfo = function(oInfo)
 {

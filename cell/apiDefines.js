@@ -46,7 +46,8 @@ function (window, undefined) {
 
 var c_oAscConfirm = {
   ConfirmReplaceRange: 0,
-  ConfirmPutMergeRange: 1
+  ConfirmPutMergeRange: 1,
+  ConfirmReplaceFormulaInTable: 2
 };
 
 var c_oAscMergeOptions = {
@@ -112,7 +113,8 @@ var c_oAscSelectionDialogType = {
   PivotTableReport: 7,
   PrintTitles: 8,
   Function: 9,
-  DataValidation: 10
+  DataValidation: 10,
+  ConditionalFormattingRule: 11
 };
 
 var c_oAscScrollType = {
@@ -487,6 +489,18 @@ var c_oAscPopUpSelectorType = {
     line: 2
   };
 
+  var c_oAscCFRuleTypeSettings = {
+    dataBar: 1,
+    colorScale: 2,
+    icons: 3,
+    format: 4
+  };
+
+  var c_oAscFrozenPaneAddType = {
+    firstRow: 1,
+    firstCol: 2
+  };
+
   //----------------------------------------------------------export----------------------------------------------------
   window['AscCommonExcel'] = window['AscCommonExcel'] || {};
   window['AscCommonExcel'].c_oAscDrawDepOptions = c_oAscDrawDepOptions;
@@ -535,6 +549,7 @@ var c_oAscPopUpSelectorType = {
   prot = c_oAscConfirm;
   prot['ConfirmReplaceRange'] = prot.ConfirmReplaceRange;
   prot['ConfirmPutMergeRange'] = prot.ConfirmPutMergeRange;
+  prot['ConfirmReplaceFormulaInTable'] = prot.ConfirmReplaceFormulaInTable;
   window['Asc']['c_oAscMergeOptions'] = window['Asc'].c_oAscMergeOptions = c_oAscMergeOptions;
   prot = c_oAscMergeOptions;
   prot['Disabled'] = prot.Disabled;
@@ -580,6 +595,8 @@ var c_oAscPopUpSelectorType = {
   prot['PrintTitles'] = prot.PrintTitles;
   prot['Function'] = prot.Function;
   prot['DataValidation'] = prot.DataValidation;
+  prot['ConditionalFormattingRule'] = prot.ConditionalFormattingRule;
+
   window['Asc']['c_oAscHyperlinkType'] = window['Asc'].c_oAscHyperlinkType = c_oAscHyperlinkType;
   prot = c_oAscHyperlinkType;
   prot['WebLink'] = prot.WebLink;
@@ -779,6 +796,20 @@ var c_oAscPopUpSelectorType = {
   prot = c_oAscFrozenPaneBorderType;
   prot['shadow'] = prot.shadow;
   prot['line'] = prot.line;
+
+  window['Asc']['c_oAscCFRuleTypeSettings'] = window['Asc'].c_oAscCFRuleTypeSettings = c_oAscCFRuleTypeSettings;
+  prot = c_oAscCFRuleTypeSettings;
+  prot['dataBar'] = prot.dataBar;
+  prot['colorScale'] = prot.colorScale;
+  prot['icons'] = prot.icons;
+  prot['format'] = prot.format;
+
+  window['Asc']['c_oAscFrozenPaneAddType'] = window['Asc'].c_oAscFrozenPaneAddType = c_oAscFrozenPaneAddType;
+  prot = c_oAscFrozenPaneAddType;
+  prot['firstRow'] = prot.firstRow;
+  prot['firstCol'] = prot.firstCol;
+
+
 
 
 })(window);

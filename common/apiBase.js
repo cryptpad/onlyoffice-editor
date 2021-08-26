@@ -251,6 +251,10 @@
             t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
         });
 
+		AscCommon.loadChartStyles(function() {}, function(err) {
+			t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.NoCritical);
+		});
+
 		var oldOnError = window.onerror;
 		window.onerror = function(errorMsg, url, lineNumber, column, errorObj) {
 			//send only first error to reduce number of requests. also following error may be consequences of first
@@ -506,7 +510,8 @@
 	};
 	baseEditorsApi.prototype.sync_StartAction                = function(type, id)
 	{
-		this.sendEvent('asc_onStartAction', type, id);
+		if (type !== c_oAscAsyncActionType.Empty)
+			this.sendEvent('asc_onStartAction', type, id);
 		//console.log("asc_onStartAction: type = " + type + " id = " + id);
 
 		if (c_oAscAsyncActionType.BlockInteraction === type)
@@ -516,7 +521,8 @@
 	};
 	baseEditorsApi.prototype.sync_EndAction                  = function(type, id)
 	{
-		this.sendEvent('asc_onEndAction', type, id);
+		if (type !== c_oAscAsyncActionType.Empty)
+			this.sendEvent('asc_onEndAction', type, id);
 		//console.log("asc_onEndAction: type = " + type + " id = " + id);
 
 		if (c_oAscAsyncActionType.BlockInteraction === type)
@@ -711,6 +717,10 @@
 	};
 	baseEditorsApi.prototype._openDocumentEndCallback            = function()
 	{
+	};
+	baseEditorsApi.prototype._openVersionHistoryEndCallback            = function()
+	{
+		this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.Open);
 	};
 	baseEditorsApi.prototype._openOnClient                       = function()
 	{
@@ -1411,8 +1421,16 @@
 
             window["asc_nativeOnSpellCheck"] = function(response) {
                 var _editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
-                if (_editor.SpellCheckApi)
-                    _editor.SpellCheckApi.onSpellCheck(response);
+                if (_editor.SpellCheckApi) {
+                	// поверяем на сообщение о полной очистке очереди задач для текущего
+                	if ("clear" === response) {
+						_editor.SpellCheckApi.isRestart = false;
+						return;
+					}
+					if (_editor.SpellCheckApi.isRestart === true)
+						return;
+					_editor.SpellCheckApi.onSpellCheck(response);
+				}
             };
 
 			this.SpellCheckApi.spellCheck = function (spellData) {
@@ -1420,6 +1438,11 @@
 			};
 			this.SpellCheckApi.disconnect = function () {
 			};
+			this.SpellCheckApi.restart = function() {
+				this.isRestart = true;
+				window["AscDesktopEditor"]["SpellCheck"]("clear");
+			};
+
 			if (window["AscDesktopEditor"]["IsLocalFile"] && !window["AscDesktopEditor"]["IsLocalFile"]())
 			{
 				this.sendEvent('asc_onSpellCheckInit', [
@@ -1476,6 +1499,7 @@
 				this.SpellCheckApi = {};
 				this.SpellCheckApi.log = false;
 				this.SpellCheckApi.worker = new CSpellchecker({
+					api: this,
 					enginePath: "../../../../sdkjs/common/spell/spell",
 					dictionariesPath: "./../../../../dictionaries"
 				});
@@ -1499,6 +1523,9 @@
 				};
 				this.SpellCheckApi.disconnect = function ()
 				{
+				};
+				this.SpellCheckApi.restart = function() {
+					this.worker.restart();
 				};
 
 				this.sendEvent('asc_onSpellCheckInit', this.SpellCheckApi.worker.getLanguages());
@@ -1614,7 +1641,7 @@
 					else
 					{
 						error = AscCommon.mapAscServerErrorToAscError(parseInt(input["data"]),
-							AscCommon.c_oAscAdvancedOptionsAction.Save);
+							(options && options.isGetTextFromUrl) ? AscCommon.c_oAscAdvancedOptionsAction.Open : AscCommon.c_oAscAdvancedOptionsAction.Save);
 					}
 				}
 				if (c_oAscError.ID.No !== error)
@@ -1853,6 +1880,9 @@
 			this.asc_coAuthoringDisconnect();
 		}
 
+		if (this.SpellCheckApi && this.SpellCheckApi.restart /* старый спеллчек (серверный - не поддеживает этот метод */)
+			this.SpellCheckApi.restart();
+
 		var bUpdate = true;
 		if (null === this.VersionHistory) {
 			this.VersionHistory = new window["Asc"].asc_CVersionHistory(newObj);
@@ -1869,6 +1899,8 @@
 			this.asc_setDocInfo(this.DocInfo);
 			this.asc_LoadDocument(this.VersionHistory);
 		} else if (this.VersionHistory.currentChangeId < newObj.currentChangeId) {
+			this.isApplyChangesOnVersionHistory = true;
+			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.Open);
 			// Нужно только добавить некоторые изменения
 			AscCommon.CollaborativeEditing.Clear_CollaborativeMarks();
 			editor.VersionHistory.applyChanges(editor);
@@ -2934,12 +2966,22 @@
 
 	baseEditorsApi.prototype._beforeEvalCommand = function()
 	{
+		var oApi = this;
 		switch (this.editorId)
 		{
 			case AscCommon.c_oEditorId.Word:
 			{
 				if (this.WordControl && this.WordControl.m_oLogicDocument)
 					this.WordControl.m_oLogicDocument.LockPanelStyles();
+				break;
+			}
+			case AscCommon.c_oEditorId.Spreadsheet:
+			{
+				if (AscCommonExcel)
+				{
+					oApi.tmpR1C1mode = AscCommonExcel.g_R1C1Mode;
+					AscCommonExcel.g_R1C1Mode = false;
+				}
 				break;
 			}
 			default:
@@ -3015,6 +3057,12 @@
 
 					endAction && endAction();
 				});
+				
+				if (AscCommonExcel)
+				{
+					AscCommonExcel.g_R1C1Mode = oApi.tmpR1C1mode;
+					oApi.tmpR1C1mode = null;
+				}
 				break;
 			}
 			default:
@@ -3034,6 +3082,39 @@
     	this._beforeEvalCommand();
 		this.macros.runAuto();
 		this._afterEvalCommand(undefined);
+    };
+	baseEditorsApi.prototype.asc_runMacros = function(sGuid)
+    {
+    	if (!this.macros)
+    		return;
+
+    	if (!this.asc_canPaste())
+    		return;
+
+    	this._beforeEvalCommand();
+		this.macros.run(sGuid);
+		this._afterEvalCommand(undefined);
+    };
+	baseEditorsApi.prototype.asc_getAllMacrosNames = function()
+    {
+    	if (!this.macros)
+    		return [];
+
+		return this.macros.getAllNames();
+    };
+	baseEditorsApi.prototype.asc_getMacrosGuidByName = function(sName)
+    {
+    	if (!this.macros)
+    		return "";
+
+		return this.macros.getGuidByName(sName);
+    };
+	baseEditorsApi.prototype.asc_getMacrosByGuid = function(sGuid)
+    {
+    	if (!this.macros)
+    		return "";
+
+		return this.macros.getNameByGuid(sGuid);
     };
 
 	baseEditorsApi.prototype.asc_getSelectedDrawingObjectsCount = function()
@@ -3349,6 +3430,21 @@
 		this.hideVideoControl();
 	};
 
+	// ---------------------------------------------------- wopi ---------------------------------------------
+	baseEditorsApi.prototype.asc_wopi_renameFile = function(name) {
+		var t = this;
+		var callback = function(isTimeout, response) {
+			if (response) {
+				t.CoAuthoringApi.onMeta({'title': response['Name'] + '.' + AscCommon.GetFileExtension(t.documentTitle)});
+			} else {
+				t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
+			}
+		};
+		if (!this.CoAuthoringApi.callPRC({'type': 'wopi_RenameFile', 'name': name}, Asc.c_nCommonRequestTime, callback)) {
+			callback(false, undefined);
+		}
+	};
+
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommon']                = window['AscCommon'] || {};
 	window['AscCommon'].baseEditorsApi = baseEditorsApi;
@@ -3363,6 +3459,8 @@
 	prot['asc_GetCurrentColorSchemeName'] = prot.asc_GetCurrentColorSchemeName;
 	prot['asc_GetCurrentColorSchemeIndex'] = prot.asc_GetCurrentColorSchemeIndex;
 	prot['asc_runAutostartMacroses'] = prot.asc_runAutostartMacroses;
+	prot['asc_runMacros'] = prot.asc_runMacros;
+	prot['asc_getAllMacrosNames'] = prot.asc_getAllMacrosNames;
 	prot['asc_setVisiblePasteButton'] = prot.asc_setVisiblePasteButton;
 	prot['asc_getAutoCorrectMathSymbols'] = prot.asc_getAutoCorrectMathSymbols;
 	prot['asc_getAutoCorrectMathFunctions'] = prot.asc_getAutoCorrectMathFunctions;
@@ -3379,6 +3477,7 @@
 	prot['asc_getShortcutAction'] = prot.asc_getShortcutAction;
 	prot['asc_removeShortcuts'] = prot.asc_removeShortcuts;
 	prot['asc_addCustomShortcutInsertSymbol'] = prot.asc_addCustomShortcutInsertSymbol;
+	prot['asc_wopi_renameFile'] = prot.asc_wopi_renameFile;
 
 	prot['asc_isCrypto'] = prot.asc_isCrypto;
 

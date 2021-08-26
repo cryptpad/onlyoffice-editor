@@ -109,6 +109,92 @@ function (window, undefined)
 		{
 		}
 	};
+	CDocumentMacros.prototype.run = function(sGuid)
+	{
+		try
+		{
+			var obj = JSON.parse(this.Data);
+			if (!obj["macrosArray"])
+				return;
+			for (var i = 0; i < obj["macrosArray"].length; i++)
+			{
+				if (sGuid === obj["macrosArray"][i]["guid"])
+				{
+					var script = "(function(){ var Api = window.g_asc_plugins.api;\n" + obj["macrosArray"][i]["value"] + "\n})();";
+					eval(script);
+					break;
+				}
+			}
+		}
+		catch (err)
+		{
+		}
+	};
+	CDocumentMacros.prototype.getGuidByName = function(sName)
+	{
+		try
+		{
+			var obj = JSON.parse(this.Data);
+			if (!obj["macrosArray"])
+				return;
+			for (var i = 0; i < obj["macrosArray"].length; i++)
+			{
+				if (sName === obj["macrosArray"][i]["name"])
+				{
+					return obj["macrosArray"][i]["guid"];
+				}
+			}
+		}
+		catch (err)
+		{
+		}
+		return "";
+	};
+	CDocumentMacros.prototype.getNameByGuid = function(sGuid)
+	{
+		try
+		{
+			var obj = JSON.parse(this.Data);
+			if (!obj["macrosArray"])
+				return;
+			for (var i = 0; i < obj["macrosArray"].length; i++)
+			{
+				if (sGuid === obj["macrosArray"][i]["guid"])
+				{
+					return obj["macrosArray"][i]["name"];
+				}
+			}
+		}
+		catch (err)
+		{
+		}
+		return "";
+	};
+	CDocumentMacros.prototype.getAllNames = function()
+	{
+		try
+		{
+			var obj = JSON.parse(this.Data);
+			if (!obj["macrosArray"])
+				return [];
+			var oNamesMap = {};
+			var aNames = [];
+			for (var i = 0; i < obj["macrosArray"].length; i++)
+			{
+				var sName = obj["macrosArray"][i]["name"];
+				if(!oNamesMap[sName])
+				{
+					oNamesMap[sName] = true;
+					aNames.push(sName);
+				}
+			}
+			return aNames;
+		}
+		catch (err)
+		{
+		}
+		return [];
+	};
     CDocumentMacros.prototype.isExistAuto = function()
     {
         try

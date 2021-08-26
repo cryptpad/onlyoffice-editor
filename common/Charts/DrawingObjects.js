@@ -784,6 +784,8 @@ CSparklineView.prototype.initFromSparkline = function(oSparkline, oSparklineGrou
             oSerie.spPr.setLn(oLn);
             if(oSparklineGroup.markers && oSparklineGroup.colorMarkers)
             {
+                chart_space.chart.plotArea.charts[0].setMarker(true);
+                chart_space.recalcInfo.recalculateReferences = false;
                 oSerie.marker = CreateSparklineMarker(CreateUniFillFromExcelColor(oSparklineGroup.colorMarkers), bForPreview);
             }
 
@@ -854,8 +856,6 @@ CSparklineView.prototype.initFromSparkline = function(oSparkline, oSparklineGrou
         {
             if(fCallbackSeries)
             {
-
-
                 if(oSparklineGroup.negative && oSparklineGroup.colorNegative)
                 {
                     for(i = 0; i < aSeriesPoints.length; ++i)
@@ -3956,6 +3956,15 @@ GraphicOption.prototype.union = function(oGraphicOption) {
             _this.controller.onMouseUp( e, pxToMm(x - offsets.x), pxToMm(y - offsets.y) );
     };
 
+    _this.isPointInDrawingObjects3 = function(x, y, page, bSelected, bText) {
+
+
+        var offsets = _this.drawingArea.getOffsets(x, y, true);
+        if ( offsets )
+            return _this.controller.isPointInDrawingObjects3(pxToMm(x - offsets.x), pxToMm(y - offsets.y), page, bSelected, bText );
+        return false;
+    };
+
     // keyboard
 
     _this.graphicObjectKeyDown = function(e) {
@@ -4057,7 +4066,6 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 
         worksheet.endEditChart();
         _this.controller.resetSelectionState();
-        _this.OnUpdateOverlay();
     };
 
     _this.getDrawingObject = function(id) {
@@ -4110,6 +4118,12 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     // Position
     //-----------------------------------------------------------------------------------
 
+    _this.getCurrentDrawingMacrosName = function() {
+        return _this.controller.getCurrentDrawingMacrosName();
+    };
+    _this.assignMacrosToCurrentDrawing = function(sGuid) {
+        _this.controller.assignMacrosToCurrentDrawing(sGuid);
+    };
     _this.setGraphicObjectLayer = function(layerType) {
         _this.controller.setGraphicObjectLayer(layerType);
     };
@@ -4153,6 +4167,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                     }
                     objectInfo.cursor = sCursorType;
                     objectInfo.hyperlink = graphicObjectInfo.hyperlink;
+                    objectInfo.macro = graphicObjectInfo.macro;
                     objectInfo.tooltip = graphicObjectInfo.tooltip;
                 }
                 else{

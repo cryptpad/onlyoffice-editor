@@ -160,7 +160,7 @@
 
 		/** @type RegExp */
 		this.rangeChars = ["=", "-", "+", "*", "/", "(", "{", "<", ">", "^", "!", "&", ":", " ", "."];
-		this.reNotFormula = new XRegExp( "[^\\p{L}\\\\_\\]\\[\\p{N}\\.]", "i" );
+		this.reNotFormula = new XRegExp( "[^\\p{L}\\\\_\\]\\[\\p{N}\\.\"\]", "i" );
 		this.reFormula = new XRegExp( "^([\\p{L}\\\\_\\]\\[][\\p{L}\\\\_\\]\\[\\p{N}\\.]*)", "i" );
 
 		this.defaults = {
@@ -1406,6 +1406,21 @@
 		return selection;
 	};
 
+	CellEditor.prototype.calculateOffset = function (pos) {
+		var left = 0;
+		var top = 0;
+		if (pos != null && this.textRender) {
+			var _top = this.textRender.calcLineOffset(this.topLineIndex);
+			var _begInfo = this.textRender.calcCharOffset(pos);
+			var _topLine = _begInfo ? this.textRender.calcLineOffset(_begInfo.lineIndex) : null;
+
+			left = _begInfo && _begInfo.left ? _begInfo.left : 0;
+			top = _topLine != null && _top != null ? _topLine - _top : 0;
+		}
+
+		return [left, top];
+	};
+
 	// Cursor
 
     CellEditor.prototype._updateCursorStyle = function (cursor) {
@@ -1963,7 +1978,7 @@
 		var last = t._findFragment( endPos );
 
 		if ( !first || !last ) {
-			throw "Can not extract fragment of text";
+			throw new Error("Can not extract fragment of text");
 		}
 
 		if ( first.index === last.index ) {
@@ -1992,13 +2007,13 @@
 
 		fr = this._findFragment(startPos, fragments);
 		if (!fr) {
-			throw "Can not extract fragment of text";
+			throw new Error("Can not extract fragment of text");
 		}
 		this._splitFragment(fr, startPos, fragments);
 
 		fr = this._findFragment(startPos + length, fragments);
 		if (!fr) {
-			throw "Can not extract fragment of text";
+			throw new Error("Can not extract fragment of text");
 		}
 		this._splitFragment(fr, startPos + length, fragments);
 	};

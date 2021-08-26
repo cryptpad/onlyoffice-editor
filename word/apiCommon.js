@@ -1780,6 +1780,7 @@
 		this.Restart = -1;
 		this.Suff    = Asc.c_oAscNumberingSuff.Tab;
 		this.Align   = AscCommon.align_Left;
+		this.PStyle  = undefined;
 	}
 	CAscNumberingLvl.prototype.get_LvlNum = function()
 	{
@@ -1841,6 +1842,14 @@
 	{
 		this.Align = nAlign;
 	};
+	CAscNumberingLvl.prototype.get_PStyle = function()
+	{
+		return this.PStyle;
+	};
+	CAscNumberingLvl.prototype.put_PStyle = function(sStyleId)
+	{
+		this.PStyle = sStyleId;
+	};
 	window['Asc']['CAscNumberingLvl'] = window['Asc'].CAscNumberingLvl = CAscNumberingLvl;
 	CAscNumberingLvl.prototype['get_LvlNum']  = CAscNumberingLvl.prototype.get_LvlNum;
 	CAscNumberingLvl.prototype['get_Format']  = CAscNumberingLvl.prototype.get_Format;
@@ -1857,6 +1866,8 @@
 	CAscNumberingLvl.prototype['put_Suff']    = CAscNumberingLvl.prototype.put_Suff;
 	CAscNumberingLvl.prototype['get_Align']   = CAscNumberingLvl.prototype.get_Align;
 	CAscNumberingLvl.prototype['put_Align']   = CAscNumberingLvl.prototype.put_Align;
+	CAscNumberingLvl.prototype['get_PStyle']  = CAscNumberingLvl.prototype.get_PStyle;
+	CAscNumberingLvl.prototype['put_PStyle']  = CAscNumberingLvl.prototype.put_PStyle;
 
 
 	function CAscWatermarkProperties()
@@ -2314,5 +2325,110 @@
 		}
 		this.Name += AscCommon.IntToNumberFormat(1, this.Format);
 	};
+
+	/**
+	* Класс для настроек конвертации текста в таблицу
+	* oSelectedContent {CSelectedContent}
+	* @constructor
+	*/
+	function CAscTextToTableProperties(oSelectedContent)
+	{
+		this.Rows			= 0;
+		this.Cols			= 0;
+		this.AutoFitType	= Asc.c_oAscTextToTableAutoFitType.Fixed;
+		this.FitValue		= -1;
+		this.SeparatorType	= Asc.c_oAscTextToTableSeparator.Paragraph;
+		this.Separator		= null;
+		this.Selected		= oSelectedContent;
+	}
+	CAscTextToTableProperties.prototype.get_Size = function()
+	{
+		return [this.Rows, this.Cols];
+	};
+	CAscTextToTableProperties.prototype.put_ColsCount = function(nCols)
+	{
+		this.Cols = (nCols > 1) ? nCols : 1;
+		this.CalculateTableSize(true);
+		return this.get_Size();
+	};
+	CAscTextToTableProperties.prototype.get_ColsCount = function()
+	{
+		return this.Cols;
+	};
+	CAscTextToTableProperties.prototype.put_RowsCount = function(nRows)
+	{
+		this.Rows = (nRows > 1) ? nRows : 1;
+	};
+	CAscTextToTableProperties.prototype.get_RowsCount = function()
+	{
+		return this.Rows;
+	};
+	CAscTextToTableProperties.prototype.get_AutoFitType = function()
+	{
+		return this.AutoFitType;
+	};
+	CAscTextToTableProperties.prototype.put_AutoFitType = function(nAutoFitType)
+	{
+		this.AutoFitType = nAutoFitType;
+	};
+	CAscTextToTableProperties.prototype.get_Fit = function()
+	{
+		return this.FitValue;
+	};
+	CAscTextToTableProperties.prototype.put_Fit = function(val)
+	{
+		this.FitValue = val;
+	};
+	CAscTextToTableProperties.prototype.get_SeparatorType = function()
+	{
+		return this.SeparatorType;
+	};
+	CAscTextToTableProperties.prototype.put_SeparatorType = function(nSeparatorType)
+	{
+		this.SeparatorType = nSeparatorType;
+		this.CalculateTableSize();
+		return this.get_Size();
+	};
+	CAscTextToTableProperties.prototype.get_Separator = function()
+	{
+		return this.Separator;
+	};
+	CAscTextToTableProperties.prototype.put_Separator = function(nCharCode)
+	{
+		this.Separator = nCharCode;
+		return this.put_SeparatorType(Asc.c_oAscTextToTableSeparator.Symbol);
+	};
+	CAscTextToTableProperties.prototype.CalculateTableSize = function(isColsFixed)
+	{
+		var nMaxCols = isColsFixed ? this.Cols : 0;
+		var oEngine  = new AscCommonWord.CTextToTableEngine();
+		oEngine.SetCalculateTableSizeMode(this.SeparatorType, this.Separator, nMaxCols);
+		for (var nIndex = 0, nCount = this.Selected.Elements.length; nIndex < nCount; ++nIndex)
+		{
+			var oElement = this.Selected.Elements[nIndex].Element;
+			oElement.CalculateTextToTable(oEngine);
+		}
+
+		var nCols = isColsFixed ? nMaxCols : oEngine.Cols;
+		var nRows = oEngine.Rows;
+
+		this.Cols = (nCols > 1) ? nCols : 1;
+		this.Rows = (nRows > 1) ? nRows : 1;
+	};
+
+	window['Asc']['CAscTextToTableProperties']				 = window['Asc'].CAscTextToTableProperties = CAscTextToTableProperties;
+	CAscTextToTableProperties.prototype['get_Size']			 = CAscTextToTableProperties.prototype.get_Size;
+	CAscTextToTableProperties.prototype['put_RowsCount']	 = CAscTextToTableProperties.prototype.put_RowsCount;
+	CAscTextToTableProperties.prototype['get_RowsCount']	 = CAscTextToTableProperties.prototype.get_RowsCount;
+	CAscTextToTableProperties.prototype['put_ColsCount']	 = CAscTextToTableProperties.prototype.put_ColsCount;
+	CAscTextToTableProperties.prototype['get_ColsCount']	 = CAscTextToTableProperties.prototype.get_ColsCount;
+	CAscTextToTableProperties.prototype['get_AutoFitType']	 = CAscTextToTableProperties.prototype.get_AutoFitType;
+	CAscTextToTableProperties.prototype['put_AutoFitType'] 	 = CAscTextToTableProperties.prototype.put_AutoFitType;
+	CAscTextToTableProperties.prototype['get_Fit']			 = CAscTextToTableProperties.prototype.get_Fit;
+	CAscTextToTableProperties.prototype['put_Fit']			 = CAscTextToTableProperties.prototype.put_Fit;
+	CAscTextToTableProperties.prototype['get_SeparatorType'] = CAscTextToTableProperties.prototype.get_SeparatorType;
+	CAscTextToTableProperties.prototype['put_SeparatorType'] = CAscTextToTableProperties.prototype.put_SeparatorType;
+	CAscTextToTableProperties.prototype['get_Separator']	 = CAscTextToTableProperties.prototype.get_Separator;
+	CAscTextToTableProperties.prototype['put_Separator']	 = CAscTextToTableProperties.prototype.put_Separator;
 
 })(window, undefined);

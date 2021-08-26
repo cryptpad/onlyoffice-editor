@@ -156,6 +156,12 @@ CImageShape.prototype.copy = function(oPr)
         copy.setStyle(this.style.createDuplicate());
     }
     copy.setBDeleted(this.bDeleted);
+    if(this.macro !== null) {
+        copy.setMacro(this.macro);
+    }
+    if(this.textLink !== null) {
+        copy.setTextLink(this.textLink);
+    }
     copy.cachedImage = this.getBase64Img();
     copy.cachedPixH = this.cachedPixH;
     copy.cachedPixW = this.cachedPixW;
@@ -703,8 +709,6 @@ CImageShape.prototype.draw = function(graphics, transform)
     graphics.SetIntegerGrid(true);
 };
 
-CImageShape.prototype.select = CShape.prototype.select;
-
 
     CImageShape.prototype.handleUpdateLn = function()
     {
@@ -743,24 +747,6 @@ CImageShape.prototype.hit = CShape.prototype.hit;
         this.spPr.setLn(stroke);
     };
 
-CImageShape.prototype.deselect = function(drawingObjectsController)
-{
-    this.selected = false;
-    var selected_objects;
-    if(!isRealObject(this.group))
-        selected_objects = drawingObjectsController.selectedObjects;
-    else
-        selected_objects = this.group.getMainGroup().selectedObjects;
-    for(var i = 0; i < selected_objects.length; ++i)
-    {
-        if(selected_objects[i] === this)
-        {
-            selected_objects.splice(i, 1);
-            break;
-        }
-    }
-    return this;
-};
 
 CImageShape.prototype.drawAdjustments = function(drawingDocument)
 {

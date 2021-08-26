@@ -306,6 +306,12 @@ function CGroupShape()
             copy.spTree[copy.spTree.length-1].setGroup(copy);
         }
         copy.setBDeleted(this.bDeleted);
+        if(this.macro !== null) {
+            copy.setMacro(this.macro);
+        }
+        if(this.textLink !== null) {
+            copy.setTextLink(this.textLink);
+        }
         copy.cachedImage = this.getBase64Img();
         copy.cachedPixH = this.cachedPixH;
         copy.cachedPixW = this.cachedPixW;
@@ -1110,7 +1116,7 @@ function CGroupShape()
             {
                 this.updateCoordinatesAfterInternalResize();
             }
-            if(this.parent instanceof ParaDrawing)
+            if(this.parent instanceof AscCommonWord.ParaDrawing)
             {
                 this.parent.CheckWH();
             }
@@ -1608,26 +1614,6 @@ function CGroupShape()
         return {posX: pos_x, posY: pos_y};
     };
 
-    CGroupShape.prototype.select = CShape.prototype.select;
-
-    CGroupShape.prototype.deselect = function(drawingObjectsController)
-    {
-        this.selected = false;
-        var selected_objects;
-        if(!isRealObject(this.group))
-            selected_objects = drawingObjectsController.selectedObjects;
-        else
-            selected_objects = this.group.getMainGroup().selectedObjects;
-        for(var i = 0; i < selected_objects.length; ++i)
-        {
-            if(selected_objects[i] === this)
-            {
-                selected_objects.splice(i, 1);
-                break;
-            }
-        }
-        return this;
-    };
 
     CGroupShape.prototype.getParentObjects = function()
     {

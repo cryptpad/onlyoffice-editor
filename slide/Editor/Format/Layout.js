@@ -118,7 +118,6 @@ function SlideLayout()
     this.Height = 190.5;
 
     this.Master = null;
-    this.maxId = 1000;
 
     this.m_oContentChanges = new AscCommon.CContentChanges(); // список изменений(добавление/удаление элементов)
     this.bounds = new AscFormat.CGraphicBounds(0.0, 0.0, 0.0, 0.0);
@@ -1121,7 +1120,7 @@ function CLayoutThumbnailDrawer()
     {
         _layout.recalculate2();
 
-        var h_px = 68;
+        var h_px = AscCommon.GlobalSkin.THEMES_LAYOUT_THUMBNAIL_HEIGHT;
         var w_px = (this.WidthMM * h_px / this.HeightMM) >> 0;
         w_px = (w_px >> 2) << 2;
 
