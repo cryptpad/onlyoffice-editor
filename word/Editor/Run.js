@@ -12776,7 +12776,7 @@ ParaRun.prototype.private_ProcessHyperlinkAutoCorrect = function(oDocument, oPar
 {
 	if (!oDocument.IsAutoCorrectHyperlinks())
 		return false;
-	
+
 	var isPresentation = oDocument.IsPresentationEditor();
 
 	if (this.IsInHyperlink())

@@ -601,9 +601,11 @@ ParaText.prototype.GetAutoCorrectFlags = function()
 		|| 63 === this.Value)
 		return AUTOCORRECT_FLAGS_ALL;
 
-	// слэш и обратный слэш - исключения, на них мы не должны стартовать атозамену первой буквы предложения
-	if ((this.IsPunctuation() || this.Is_Number()) && 92 !== this.Value && 47 !== this.Value)
+	// /,\,@  - исключения, на них мы не должны стартовать атозамену первой буквы предложения
+	if ((this.IsPunctuation() || this.Is_Number()) && 92 !== this.Value && 47 !== this.Value && 64 !== this.Value)
 		return AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE | AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH;
+
+	return AUTOCORRECT_FLAGS_NONE;
 };
 ParaText.prototype.IsDiacriticalSymbol = function()
 {
