@@ -107,40 +107,67 @@
             if(gmEditPoint.isHitInFirstCPoint) {
                 arrPathCommand[gmEditPoint.pathC1].X1 = _relative_x;
                 arrPathCommand[gmEditPoint.pathC1].Y1 = _relative_y;
-                gmEditPoint.g1X = _relative_x;
-                gmEditPoint.g1Y = _relative_y;
 
                 if(cur_command_type_1 === PathType.LINE) {
                     cur_command_type_array[gmEditPoint.pathC1] = PathType.BEZIER_4;
                 }
 
-                if(cur_command_type_1 === PathType.ARC && cur_command_type_2 === PathType.ARC) {
-                    var g2X = gmEditPoint.g1X - gmEditPoint.X;
-                    var g2Y = gmEditPoint.g1Y - gmEditPoint.Y;
+                var g1X = gmEditPoint.g1X;
+                var g1Y = gmEditPoint.g1Y;
 
-                    arrPathCommand[gmEditPoint.pathC2].X0 = gmEditPoint.X - g2X;
-                    arrPathCommand[gmEditPoint.pathC2].Y0 = gmEditPoint.Y - g2Y;
-                    gmEditPoint.g2X = gmEditPoint.X - g2X;
-                    gmEditPoint.g2Y = gmEditPoint.Y - g2Y;
+                gmEditPoint.g1X = _relative_x;
+                gmEditPoint.g1Y = _relative_y;
+
+                if(cur_command_type_1 === PathType.ARC && cur_command_type_2 === PathType.ARC) {
+
+                    var isEllipseArc = Math.abs((gmEditPoint.X - g1X) * (gmEditPoint.g2Y - g1Y) - (gmEditPoint.g2X - g1X) * (gmEditPoint.Y - g1Y));
+
+                    if(Math.floor(isEllipseArc) === 0) {
+                        var g2X = gmEditPoint.g1X - gmEditPoint.X;
+                        var g2Y = gmEditPoint.g1Y - gmEditPoint.Y;
+
+                        arrPathCommand[gmEditPoint.pathC2].X0 = gmEditPoint.X - g2X;
+                        arrPathCommand[gmEditPoint.pathC2].Y0 = gmEditPoint.Y - g2Y;
+                        gmEditPoint.g2X = gmEditPoint.X - g2X;
+                        gmEditPoint.g2Y = gmEditPoint.Y - g2Y;
+                    } else {
+                        var pathElemType =  geometry.arrPathCommandsType[gmEditPoint.pathIndex];
+                        pathElemType[gmEditPoint.pathC1] = PathType.BEZIER_4;
+                        pathElemType[gmEditPoint.pathC2] = PathType.BEZIER_4;
+                    }
                 }
             } else if(gmEditPoint.isHitInSecondCPoint) {
                 arrPathCommand[gmEditPoint.pathC2].X0 = _relative_x;
                 arrPathCommand[gmEditPoint.pathC2].Y0 = _relative_y;
-                gmEditPoint.g2X = _relative_x;
-                gmEditPoint.g2Y = _relative_y;
 
                 if(cur_command_type_2 === PathType.LINE) {
                     cur_command_type_array[gmEditPoint.pathC2] = PathType.BEZIER_4;
                 }
 
-                if(cur_command_type_1 === PathType.ARC && cur_command_type_2 === PathType.ARC) {
-                    var g1X = gmEditPoint.g2X - gmEditPoint.X;
-                    var g1Y = gmEditPoint.g2Y - gmEditPoint.Y;
+                var g2X = gmEditPoint.g2X;
+                var g2Y = gmEditPoint.g2Y;
 
-                    arrPathCommand[gmEditPoint.pathC1].X1 = gmEditPoint.X - g1X;
-                    arrPathCommand[gmEditPoint.pathC1].Y1 = gmEditPoint.Y - g1Y;
-                    gmEditPoint.g1X = gmEditPoint.X - g1X;
-                    gmEditPoint.g1Y = gmEditPoint.Y - g1Y;
+                gmEditPoint.g2X = _relative_x;
+                gmEditPoint.g2Y = _relative_y;
+
+                if(cur_command_type_1 === PathType.ARC && cur_command_type_2 === PathType.ARC) {
+
+
+                    var isEllipseArc = Math.abs((gmEditPoint.X - gmEditPoint.g1X) * (g2Y - gmEditPoint.g1Y) - (g2X - gmEditPoint.g1X) * (gmEditPoint.Y - gmEditPoint.g1Y));
+
+                    if(Math.floor(isEllipseArc) === 0) {
+                        var g1X = gmEditPoint.g2X - gmEditPoint.X;
+                        var g1Y = gmEditPoint.g2Y - gmEditPoint.Y;
+
+                        arrPathCommand[gmEditPoint.pathC1].X1 = gmEditPoint.X - g1X;
+                        arrPathCommand[gmEditPoint.pathC1].Y1 = gmEditPoint.Y - g1Y;
+                        gmEditPoint.g1X = gmEditPoint.X - g1X;
+                        gmEditPoint.g1Y = gmEditPoint.Y - g1Y;
+                    } else {
+                       var pathElemType =  geometry.arrPathCommandsType[gmEditPoint.pathIndex];
+                       pathElemType[gmEditPoint.pathC1] = PathType.BEZIER_4;
+                       pathElemType[gmEditPoint.pathC2] = PathType.BEZIER_4;
+                    }
                 }
             } else {
                 var X0, X1, Y0, Y1;
