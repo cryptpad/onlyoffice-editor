@@ -25663,7 +25663,7 @@ CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 			var	oLastCell;
 			if (oSelectedRows.Start === oSelectedRows.End)
 			{
-				if (oTable.Selection.StartPos.Pos.Cell === oTable.Selection.EndPos.Pos.Cell)
+				if (oTable.Selection.StartPos.Pos.Cell === oTable.Selection.EndPos.Pos.Cell && oTable.GetRow(oSelectedRows.Start).GetCellsCount() > 1)
 				{
 					isConvertAll = true;
 				}
