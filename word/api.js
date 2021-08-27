@@ -5296,15 +5296,11 @@ background-repeat: no-repeat;\
 	{
 		this.asc_addImage();
 	};
-	asc_docs_api.prototype.AddImageUrl2 = function(url)
-	{
-		this.AddImageUrl(AscCommon.getFullImageSrc2(url));
-	};
 
 	asc_docs_api.prototype._addImageUrl      = function(urls, obj)
 	{
         if(obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj["obj"] || (obj instanceof AscCommon.CContentControlPr && obj.GetInternalId()))){
-            this.AddImageUrl(urls[0], undefined, undefined, obj);
+            this.AddImageUrlAction(urls[0], undefined, obj);
         }
         else{
             if(this.ImageLoader){
@@ -5337,23 +5333,7 @@ background-repeat: no-repeat;\
             }
         }
 	};
-	asc_docs_api.prototype.AddImageUrl       = function(url, imgProp, token, obj)
-	{
-		if (g_oDocumentUrls.getLocal(url))
-		{
-			this.AddImageUrlAction(url, imgProp, obj);
-		}
-		else
-		{
-		    var t = this;
-			AscCommon.sendImgUrls(this, [url], function(data) {
 
-                if (data && data[0] && data[0].url !== "error")
-                    t.AddImageUrlAction(data[0].url, imgProp, obj);
-
-            }, false, undefined, token);
-		}
-	};
 	asc_docs_api.prototype.AddImageUrlAction = function(url, imgProp, obj)
 	{
 		var _image = this.ImageLoader.LoadImage(url, 1);
@@ -10630,6 +10610,14 @@ background-repeat: no-repeat;\
 
 		return oLogicDocument.SetAutoCorrectFirstLetterOfSentences(isCorrect);
 	};
+	asc_docs_api.prototype.asc_SetAutoCorrectHyperlinks = function(isCorrect)
+	{
+		var oLogicDocument = this.WordControl.m_oLogicDocument;
+		if (!oLogicDocument)
+			return;
+
+		return oLogicDocument.SetAutoCorrectHyperlinks(isCorrect);
+	};
 
 	asc_docs_api.prototype.asc_GetSelectedText = function()
 	{
@@ -11830,7 +11818,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['ChangeShapeImageFromFile']                  = asc_docs_api.prototype.ChangeShapeImageFromFile;
 	asc_docs_api.prototype['AddImage']                                  = asc_docs_api.prototype.AddImage;
 	asc_docs_api.prototype['asc_addImage']                              = asc_docs_api.prototype.asc_addImage;
-	asc_docs_api.prototype['AddImageUrl2']                              = asc_docs_api.prototype.AddImageUrl2;
 	asc_docs_api.prototype['AddImageUrl']                               = asc_docs_api.prototype.AddImageUrl;
 	asc_docs_api.prototype['AddImageUrlAction']                         = asc_docs_api.prototype.AddImageUrlAction;
 	asc_docs_api.prototype['AddImageToPage']                            = asc_docs_api.prototype.AddImageToPage;
@@ -12152,6 +12139,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_SetAutoCorrectSmartQuotes']             = asc_docs_api.prototype.asc_SetAutoCorrectSmartQuotes;
 	asc_docs_api.prototype['asc_SetAutoCorrectHyphensWithDash']         = asc_docs_api.prototype.asc_SetAutoCorrectHyphensWithDash;
 	asc_docs_api.prototype['asc_SetAutoCorrectFirstLetterOfSentences']  = asc_docs_api.prototype.asc_SetAutoCorrectFirstLetterOfSentences;
+	asc_docs_api.prototype['asc_SetAutoCorrectHyperlinks']              = asc_docs_api.prototype.asc_SetAutoCorrectHyperlinks;
 
 	asc_docs_api.prototype['asc_GetSelectedText']                       = asc_docs_api.prototype.asc_GetSelectedText;
 	asc_docs_api.prototype['asc_AddBlankPage']                          = asc_docs_api.prototype.asc_AddBlankPage;

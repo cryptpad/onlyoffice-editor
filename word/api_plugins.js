@@ -521,6 +521,7 @@
 	window["asc_docs_api"].prototype["pluginMethod_MoveToComment"] = function(sId)
 	{
 		this.asc_selectComment(sId);
+		this.asc_showComment(sId);
 	};
 	/**
 	 * Set the display mode for track changes

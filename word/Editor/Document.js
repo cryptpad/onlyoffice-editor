@@ -2552,7 +2552,8 @@ function CDocument(DrawingDocument, isMainLogicDocument)
     	AutomaticBulletedLists : true,
 		AutomaticNumberedLists : true,
 		FrenchPunctuation      : true,
-		FirstLetterOfSentences : true
+		FirstLetterOfSentences : true,
+		Hyperlinks             : true
 	};
 
     // Контролируем изменения интерфейса
@@ -18347,6 +18348,8 @@ CDocument.prototype.controller_AddNewParagraph = function(bRecalculate, bForceAd
 	//    выполнить автозамены
 	if (type_Paragraph === Item.GetType())
 	{
+		var isCheckAutoCorrect = false;
+
 		// Если текущий параграф пустой и с нумерацией, тогда удаляем нумерацию и отступы левый и первой строки
 		if (true !== bForceAdd && undefined != Item.GetNumPr() && true === Item.IsEmpty({SkipNewLine : true}) && true === Item.IsCursorAtBegin())
 		{
@@ -18376,11 +18379,7 @@ CDocument.prototype.controller_AddNewParagraph = function(bRecalculate, bForceAd
 				if (true === Item.IsCursorAtEnd())
 				{
 					if (!Item.Lock.Is_Locked())
-					{
-						var oParaEndRun = Item.GetParaEndRun();
-						if (oParaEndRun)
-							oParaEndRun.ProcessAutoCorrectOnParaEnd();
-					}
+						isCheckAutoCorrect = true;
 
 					var StyleId = Item.Style_Get();
 					var NextId  = undefined;
@@ -18448,6 +18447,17 @@ CDocument.prototype.controller_AddNewParagraph = function(bRecalculate, bForceAd
 				Item.SetReviewType(reviewtype_Common);
 			}
             NewParagraph.CheckSignatureLinesOnAdd();
+		}
+
+		if (isCheckAutoCorrect)
+		{
+			var nContentPos = this.CurPos.ContentPos;
+
+			var oParaEndRun = Item.GetParaEndRun();
+			if (oParaEndRun)
+				oParaEndRun.ProcessAutoCorrectOnParaEnd();
+
+			this.CurPos.ContentPos = nContentPos;
 		}
 	}
 	else if (type_Table === Item.GetType() || type_BlockLevelSdt === Item.GetType())
@@ -23503,6 +23513,22 @@ CDocument.prototype.SetAutoCorrectFirstLetterOfSentences = function(isCorrect)
 CDocument.prototype.IsAutoCorrectFirstLetterOfSentences = function()
 {
 	return this.AutoCorrectSettings.FirstLetterOfSentences;
+};
+/**
+ * Выставляем настройку атозамены для гиперссылок
+ * @param {boolean} isCorrect
+ */
+CDocument.prototype.SetAutoCorrectHyperlinks = function(isCorrect)
+{
+	this.AutoCorrectSettings.Hyperlinks = isCorrect;
+};
+/**
+ * Запрашиваем настройку атозамены для гиперссылок
+ * @return {boolean}
+ */
+CDocument.prototype.IsAutoCorrectHyperlinks = function()
+{
+	return this.AutoCorrectSettings.Hyperlinks;
 };
 /**
  * Получаем идентификатор текущего пользователя

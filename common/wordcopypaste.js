@@ -8186,6 +8186,9 @@ PasteProcessor.prototype =
 				var computedStyle = oThis._getComputedStyle(node.parentNode);
 				var tempWhiteSpacing = oThis._getStyle(node.parentNode, computedStyle, "white-space");
 				whiteSpacing = "pre" === tempWhiteSpacing || "pre-wrap" === tempWhiteSpacing;
+				if (!whiteSpacing && value === " " && node.parentNode.nodeName && "span" === node.parentNode.nodeName.toLowerCase()) {
+					whiteSpacing = true;
+				}
 			}
 
 			//Вначале и конце вырезаем \r|\t|\n, в середине текста заменяем их на пробелы
