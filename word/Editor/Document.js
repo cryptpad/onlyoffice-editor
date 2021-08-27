@@ -2552,7 +2552,8 @@ function CDocument(DrawingDocument, isMainLogicDocument)
     	AutomaticBulletedLists : true,
 		AutomaticNumberedLists : true,
 		FrenchPunctuation      : true,
-		FirstLetterOfSentences : true
+		FirstLetterOfSentences : true,
+		Hyperlinks             : true
 	};
 
     // Контролируем изменения интерфейса
@@ -23512,6 +23513,22 @@ CDocument.prototype.SetAutoCorrectFirstLetterOfSentences = function(isCorrect)
 CDocument.prototype.IsAutoCorrectFirstLetterOfSentences = function()
 {
 	return this.AutoCorrectSettings.FirstLetterOfSentences;
+};
+/**
+ * Выставляем настройку атозамены для гиперссылок
+ * @param {boolean} isCorrect
+ */
+CDocument.prototype.SetAutoCorrectHyperlinks = function(isCorrect)
+{
+	this.AutoCorrectSettings.Hyperlinks = isCorrect;
+};
+/**
+ * Запрашиваем настройку атозамены для гиперссылок
+ * @return {boolean}
+ */
+CDocument.prototype.IsAutoCorrectHyperlinks = function()
+{
+	return this.AutoCorrectSettings.Hyperlinks;
 };
 /**
  * Получаем идентификатор текущего пользователя

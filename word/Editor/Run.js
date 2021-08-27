@@ -12764,7 +12764,7 @@ ParaRun.prototype.private_ProcessSpaceHyphenWithDashAutoCorrect = function(oDocu
 };
 /**
  * Производим автозаменку для гиперссылок
- * @param oDocument {CDocument}
+ * @param oDocument {CDocument | CPresentation}
  * @param oParagraph {Paragraph}
  * @param oContentPos {CParagraphContentPos}
  * @param nPos {number}
@@ -12774,7 +12774,10 @@ ParaRun.prototype.private_ProcessSpaceHyphenWithDashAutoCorrect = function(oDocu
  */
 ParaRun.prototype.private_ProcessHyperlinkAutoCorrect = function(oDocument, oParagraph, oContentPos, nPos, oRunElementsBefore, sText)
 {
-	var isPresentation = !!(AscCommonSlide.CPresentation && oDocument instanceof AscCommonSlide.CPresentation);
+	if (!oDocument.IsAutoCorrectHyperlinks())
+		return false;
+	
+	var isPresentation = oDocument.IsPresentationEditor();
 
 	if (this.IsInHyperlink())
 		return false;

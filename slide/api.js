@@ -7256,6 +7256,14 @@ background-repeat: no-repeat;\
 
 		return oLogicDocument.SetAutoCorrectFirstLetterOfSentences(isCorrect);
 	};
+	asc_docs_api.prototype.asc_SetAutoCorrectHyperlinks = function(isCorrect)
+	{
+		var oLogicDocument = this.WordControl.m_oLogicDocument;
+		if (!oLogicDocument)
+			return;
+
+		return oLogicDocument.SetAutoCorrectHyperlinks(isCorrect);
+	};
 
 	asc_docs_api.prototype.asc_GetSelectedText = function()
 	{
@@ -8197,6 +8205,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_SetAutoCorrectSmartQuotes']             = asc_docs_api.prototype.asc_SetAutoCorrectSmartQuotes;
 	asc_docs_api.prototype['asc_SetAutoCorrectHyphensWithDash']         = asc_docs_api.prototype.asc_SetAutoCorrectHyphensWithDash;
 	asc_docs_api.prototype['asc_SetAutoCorrectFirstLetterOfSentences']  = asc_docs_api.prototype.asc_SetAutoCorrectFirstLetterOfSentences;
+	asc_docs_api.prototype['asc_SetAutoCorrectHyperlinks']              = asc_docs_api.prototype.asc_SetAutoCorrectHyperlinks;
 
 	asc_docs_api.prototype["asc_GetSelectedText"]                 = asc_docs_api.prototype.asc_GetSelectedText;
 
