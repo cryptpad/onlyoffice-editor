@@ -180,19 +180,13 @@
 		}
 		if(null === oCanvas)
 		{
+			var rPR = AscCommon.AscBrowser.retinaPixelRatio;
 			oCanvas = document.createElement('canvas');
 			oCanvas.style.width = "100%";
 			oCanvas.style.height = "100%";
 			oDiv.appendChild(oCanvas);
-			var nCanvasW = oCanvas.clientWidth;
-			var nCanvasH = oCanvas.clientHeight;
-			if (AscCommon.AscBrowser.isRetina)
-			{
-				nCanvasW = AscCommon.AscBrowser.convertToRetinaValue(nCanvasW, true);
-				nCanvasH = AscCommon.AscBrowser.convertToRetinaValue(nCanvasH, true);
-			}
-			oCanvas.width = nCanvasW;
-			oCanvas.height = nCanvasH;
+			oCanvas.width = Math.round(oCanvas.clientWidth * rPR);
+			oCanvas.height = Math.round(oCanvas.clientHeight * rPR);
 		}
 		return oCanvas;
 	}
@@ -291,7 +285,7 @@
 	asc_CSignatureLine.prototype.asc_setEmail = function(v){ this.email = v; };
 	asc_CSignatureLine.prototype.asc_getInstructions = function(){ return this.instructions; };
 	asc_CSignatureLine.prototype.asc_setInstructions = function(v){ this.instructions = v; };
-	asc_CSignatureLine.prototype.asc_getShowDate = function(){ return this.showDate; };
+	asc_CSignatureLine.prototype.asc_getShowDate = function(){ return this.showDate !== false; };
 	asc_CSignatureLine.prototype.asc_setShowDate = function(v){ this.showDate = v; };
 	asc_CSignatureLine.prototype.asc_getValid = function(){ return this.valid; };
 	asc_CSignatureLine.prototype.asc_setValid = function(v){ this.valid = v; };
@@ -1253,7 +1247,7 @@
 		this.separator = null;
 		this.inColumns = null;
 
-		this.aRanges = [];
+		this.sRange = null;
 
 
 		this.showMarker = null;
@@ -1432,13 +1426,8 @@
 		!(this.separator === ' ' && oPr.separator == null || oPr.separator === ' ' && this.separator == null)){
 			return false;
 		}
-		if(this.aRanges.length !== oPr.aRanges.length){
+		if(this.sRange !== oPr.sRange){
 			return false;
-		}
-		for(var i = 0; i < this.aRanges.length; ++i) {
-			if(this.aRanges[i] !== oPr.aRanges[i]) {
-				return false;
-			}
 		}
 		if(!this.equalBool(this.inColumns, oPr.inColumns)){
 			return false;
@@ -1488,15 +1477,31 @@
 		return this.bLine;
 	};
 	asc_ChartSettings.prototype.putRanges = function(aRanges) {
-		if(Array.isArray(aRanges)) {
-			this.aRanges = aRanges;
+		if(Array.isArray(aRanges) && aRanges.length > 0) {
+			var sRange = "=";
+			for(var nRange = 0; nRange < aRanges.length; ++nRange) {
+				if(nRange > 0) {
+					sRange += ",";
+				}
+				sRange += aRanges[nRange];
+			}
+			this.sRange = sRange;
 		}
 		else {
-			this.aRanges.length = 0;
+			this.sRange = null;
 		}
 	};
 	asc_ChartSettings.prototype.getRanges = function() {
-		return this.aRanges;
+		var sRange = this.sRange;
+		if(typeof sRange === "string" && sRange > 0) {
+			if(sRange.charAt(0) === '=') {
+				sRange = sRange.slice(1);
+			}
+			return sRange.split(",");
+		}
+		else {
+			return [];
+		}
 	};
 	asc_ChartSettings.prototype.putSmooth = function(v) {
 		this.smooth = v;
@@ -1505,12 +1510,16 @@
 		return this.smooth;
 	};
 	asc_ChartSettings.prototype.putStyle = function(index) {
+		if(!AscFormat.isRealNumber(index)) {
+			this.style = null;
+			return;
+		}
 		this.style = parseInt(index, 10);
 		if(this.bStartEdit && this.chartSpace) {
 			if(AscFormat.isRealNumber(this.style)){
-				var oPreset = AscCommon.g_oChartPresets[this.type] && AscCommon.g_oChartPresets[this.type][this.style - 1];
-				if(oPreset) {
-					AscFormat.ApplyPresetToChartSpace(this.chartSpace, oPreset, false);
+				var aStyle = AscCommon.g_oChartStyles[this.type] && AscCommon.g_oChartStyles[this.type][this.style - 1];
+				if(Array.isArray(aStyle)) {
+					this.chartSpace.applyChartStyleByIds(aStyle);
 					this.updateChart();
 				}
 			}
@@ -1520,8 +1529,7 @@
 		return this.style;
 	};
 	asc_ChartSettings.prototype.putRange = function(range) {
-		this.aRanges.length = 0;
-		this.aRanges[0] = range;
+		this.sRange = range;
 	};
 	asc_ChartSettings.prototype.setRange = function(sRange) {
 		if(this.chartSpace) {
@@ -1530,33 +1538,25 @@
 		}
 	};
 	asc_ChartSettings.prototype.isValidRange = function(sRange) {
-		if(sRange === "") {
-			return Asc.c_oAscError.ID.No;
-		}
-		var sCheck = sRange;
-		if(sRange[0] === "=") {
-			sCheck = sRange.slice(1);
-		}
-		var aRanges = AscFormat.fParseChartFormula(sCheck);
-		return (aRanges.length !== 0) ? Asc.c_oAscError.ID.No : Asc.c_oAscError.ID.DataRangeError;
+		return AscFormat.isValidChartRange(sRange);
 	};
 	asc_ChartSettings.prototype.getRange = function() {
 		if(this.chartSpace) {
 			return this.chartSpace.getCommonRange();
 		}
-		if(this.aRanges.length > 0 && typeof this.aRanges[0] === "string" ) {
-			var sRange = this.aRanges[0];
-			if(sRange.length > 0) {
-				return sRange;
-			}
-		}
-		return null;
+		return this.sRange;
 	};
 	asc_ChartSettings.prototype.putInColumns = function(inColumns) {
 		this.inColumns = inColumns;
 	};
 	asc_ChartSettings.prototype.getInColumns = function() {
 		return this.inColumns;
+	};
+	asc_ChartSettings.prototype.getInRows = function() {
+		if(this.inColumns === true || this.inColumns === false) {
+			return !this.inColumns;
+		}
+		return null;
 	};
 	asc_ChartSettings.prototype.putTitle = function(v) {
 		this.title = v;
@@ -1588,8 +1588,35 @@
 		}
 		return this.type;
 	};
+	asc_ChartSettings.prototype.checkParams = function() {
+		if(this.type === null || this.type === Asc.c_oAscChartTypeSettings.comboAreaBar
+			|| this.type === Asc.c_oAscChartTypeSettings.comboBarLine
+		|| this.type === Asc.c_oAscChartTypeSettings.comboBarLineSecondary
+		|| this.type === Asc.c_oAscChartTypeSettings.comboCustom) {
+			return;
+		}
+		if(AscFormat.getIsMarkerByType(this.type)) {
+			this.showMarker = true;
+		}
+		else {
+			this.showMarker = false;
+		}
+		if(AscFormat.getIsSmoothByType(this.type)) {
+			this.smooth = true;
+		}
+		else {
+			this.smooth = false;
+		}
+		if(AscFormat.getIsLineByType(this.type)) {
+			this.bLine = true;
+		}
+		else {
+			this.bLine = false;
+		}
+	};
 	asc_ChartSettings.prototype.putType = function(v) {
 		this.type = v;
+		this.checkParams();
 	};
 	asc_ChartSettings.prototype.putShowSerName = function(v) {
 		this.showSerName = v;
@@ -1615,15 +1642,34 @@
 	asc_ChartSettings.prototype.getSeparator = function() {
 		return this.separator;
 	};
-	asc_ChartSettings.prototype.changeType = function(type) {
-		this.putType(type);
-		if(this.chartSpace) {
-			var oApi = Asc && Asc.editor;
-			if(oApi && oApi.editorId === AscCommon.c_oEditorId.Spreadsheet) {
-				this.chartSpace.changeChartType(type);
-				this.updateChart();
+	asc_ChartSettings.prototype.sendErrorOnChangeType = function(nType) {
+		var oApi = Asc.editor || editor;
+		if(oApi) {
+			oApi.sendEvent("asc_onError", nType, Asc.c_oAscError.Level.NoCritical);
+			if(oApi.UpdateInterfaceState) {
+				oApi.UpdateInterfaceState();
 			}
-			else {
+		}
+	};
+	asc_ChartSettings.prototype.changeType = function(type) {
+		if(this.chartSpace) {
+			if(type === Asc.c_oAscChartTypeSettings.stock) {
+				if(!this.chartSpace.canChangeToStockChart()){
+					this.sendErrorOnChangeType(Asc.c_oAscError.ID.StockChartError);
+					return false;
+				}
+			}
+			if(type === Asc.c_oAscChartTypeSettings.comboCustom
+				|| type === Asc.c_oAscChartTypeSettings.comboAreaBar
+				|| type === Asc.c_oAscChartTypeSettings.comboBarLine
+				|| type === Asc.c_oAscChartTypeSettings.comboBarLineSecondary) {
+				if(!this.chartSpace.canChangeToComboChart()){
+					this.sendErrorOnChangeType(Asc.c_oAscError.ID.ComboSeriesError);
+					return false;
+				}
+			}
+			this.putType(type);
+			if(this.chartSpace) {
 				var oController = this.chartSpace.getDrawingObjectsController();
 				if(oController) {
 					var oThis = this;
@@ -1631,10 +1677,20 @@
 					oController.checkSelectedObjectsAndCallback(function() {
 						oChartSpace.changeChartType(type);
 						oThis.updateChart();
+						var oApi = Asc.editor || editor;
+						if(oApi) {
+							if(oApi.UpdateInterfaceState) {
+								oApi.UpdateInterfaceState();
+							}
+						}
 					}, [], false, 0, []);
 				}
 			}
 		}
+		else {
+			this.putType(type);
+		}
+		return true;
 	};
 	asc_ChartSettings.prototype.getSeries = function() {
 		if(this.chartSpace) {
@@ -1699,6 +1755,10 @@
 		AscCommon.History.StartTransaction();
 	};
 	asc_ChartSettings.prototype.endEdit = function() {
+		if(AscCommon.History.Is_LastPointEmpty()) {
+			this.cancelEdit();
+			return;
+		}
 		this.bStartEdit = false;
 		AscCommon.History.EndTransaction();
 		this.updateChart();
@@ -2396,17 +2456,40 @@
 
 		if (obj) {
 			this.Value = (undefined != obj.Value) ? obj.Value : null;
-			if (obj.Unifill && obj.Unifill.fill && obj.Unifill.fill.type === c_oAscFill.FILL_TYPE_SOLID &&
-				obj.Unifill.fill.color) {
-				this.Color = CreateAscColor(obj.Unifill.fill.color);
-			} else {
-				this.Color =
-					(undefined != obj.Color && null != obj.Color) ? CreateAscColorCustom(obj.Color.r, obj.Color.g, obj.Color.b) :
-						null;
+
+			// TODO: В UI пока поддерживается ровно два типа заливки Nil, Clear
+			if (null !== this.Value && this.Value !== Asc.c_oAscShd.Nil)
+				this.Value = Asc.c_oAscShd.Clear;
+
+			if (obj.GetSimpleColor) {
+
+				if (Asc.c_oAscShd.Clear === obj.Value
+					&& obj.Unifill
+					&& obj.Unifill.fill
+					&& obj.Unifill.fill.type === c_oAscFill.FILL_TYPE_SOLID
+					&& obj.Unifill.fill.color) {
+					this.Color = CreateAscColor(obj.Unifill.fill.color);
+				} else {
+					var oColor = obj.GetSimpleColor();
+					this.Color = CreateAscColorCustom(oColor.r, oColor.g, oColor.b, oColor.Auto);
+				}
+			}
+			else {
+				if (obj.Unifill && obj.Unifill.fill && obj.Unifill.fill.type === c_oAscFill.FILL_TYPE_SOLID &&
+					obj.Unifill.fill.color) {
+					this.Color = CreateAscColor(obj.Unifill.fill.color);
+				} else {
+					this.Color =
+						(undefined != obj.Color && null != obj.Color) ? CreateAscColorCustom(obj.Color.r, obj.Color.g, obj.Color.b) :
+							null;
+				}
 			}
 		} else {
+
+			// TODO: Пока мы не работает отдельно с Color и Fill, поэтому пишем и тот и другой
 			this.Value = Asc.c_oAscShdNil;
 			this.Color = CreateAscColorCustom(255, 255, 255);
+			this.Fill  = CreateAscColorCustom(255, 255, 255);
 		}
 	}
 
@@ -2419,6 +2502,7 @@
 			return this.Color;
 		}, asc_putColor: function (v) {
 			this.Color = (v) ? v : null;
+			this.Fill  = (v) ? v : null;
 		}
 	};
 
@@ -3053,6 +3137,7 @@
 		this.canFill = true;
 		this.canChangeArrows = false;
 		this.bFromChart = false;
+		this.bFromGroup = false;
 		this.bFromImage = false;
 		this.Locked = false;
 		this.w = null;
@@ -3078,6 +3163,10 @@
 		this.flipVInvert = null;
 		this.shadow = undefined;
 		this.anchor = null;
+
+		this.protectionLockText = null;
+		this.protectionLocked = null;
+		this.protectionPrint = null;
 	}
 
 	asc_CShapeProperty.prototype = {
@@ -3106,11 +3195,20 @@
 			return this.canChangeArrows;
 		}, asc_setCanChangeArrows: function (v) {
 			this.canChangeArrows = v;
-		}, asc_getFromChart: function () {
+		},
+		asc_getFromChart: function () {
 			return this.bFromChart;
-		}, asc_setFromChart: function (v) {
+		},
+		asc_setFromChart: function (v) {
 			this.bFromChart = v;
-		}, asc_getLocked: function () {
+		},
+		asc_getFromGroup: function () {
+			return this.bFromGroup;
+		},
+		asc_setFromGroup: function (v) {
+			this.bFromGroup = v;
+		},
+		asc_getLocked: function () {
 			return this.Locked;
 		}, asc_setLocked: function (v) {
 			this.Locked = v;
@@ -3255,6 +3353,25 @@
 
 		asc_putAnchor: function(v){
 			this.anchor = v;
+		},
+		asc_getProtectionLockText: function(){
+			return this.protectionLockText;
+		},
+		asc_putProtectionLockText: function(v){
+			this.protectionLockText = v;
+		},
+		asc_getProtectionLocked: function(){
+			return this.protectionLocked;
+		},
+
+		asc_putProtectionLocked: function(v){
+			this.protectionLocked = v;
+		},
+		asc_getProtectionPrint: function(){
+			return this.protectionPrint;
+		},
+		asc_putProtectionPrint: function(v){
+			this.protectionPrint = v;
 		}
 	};
 
@@ -3476,6 +3593,10 @@
 			this.resetCrop =  obj.resetCrop != undefined ? obj.resetCrop : undefined;
 			this.anchor =  obj.anchor != undefined ? obj.anchor : undefined;
 
+			this.protectionLockText = obj.protectionLockText;
+			this.protectionLocked = obj.protectionLocked;
+			this.protectionPrint = obj.protectionPrint;
+
 		} else {
 			this.CanBeFlow = true;
 			this.Width = undefined;
@@ -3528,6 +3649,10 @@
 			this.flipV = undefined;
 			this.resetCrop = undefined;
 			this.anchor = undefined;
+
+			this.protectionLockText = undefined;
+			this.protectionLocked = undefined;
+			this.protectionPrint = undefined;
 		}
 	}
 
@@ -3843,6 +3968,25 @@
 
 		asc_putAnchor: function(v){
 			this.anchor = v;
+		},
+		asc_getProtectionLockText: function(){
+			return this.protectionLockText;
+		},
+		asc_putProtectionLockText: function(v){
+			this.protectionLockText = v;
+		},
+		asc_getProtectionLocked: function(){
+			return this.protectionLocked;
+		},
+
+		asc_putProtectionLocked: function(v){
+			this.protectionLocked = v;
+		},
+		asc_getProtectionPrint: function(){
+			return this.protectionPrint;
+		},
+		asc_putProtectionPrint: function(v){
+			this.protectionPrint = v;
 		}
 	};
 
@@ -4173,6 +4317,11 @@
 					this.Number = 1;
 					break;
 				}
+				case c_oAscMouseMoveDataTypes.Review:
+				{
+					this.ReviewChange = obj && obj.ReviewChange ? obj.ReviewChange : null;
+					break;
+				}
 			}
 		}
 		else
@@ -4215,6 +4364,10 @@
 	CMouseMoveData.prototype.get_FormHelpText = function()
 	{
 		return this.Text;
+	};
+	CMouseMoveData.prototype.get_ReviewChange = function()
+	{
+		return this.ReviewChange;
 	};
 
 
@@ -4329,6 +4482,7 @@
 		this.FullName = null;
 		this.FirstName = null;
 		this.LastName = null;
+		this.IsAnonymousUser = false;
 	}
 
 	asc_CUserInfo.prototype.asc_putId = asc_CUserInfo.prototype.put_Id = function (v) {
@@ -4354,6 +4508,12 @@
 	};
 	asc_CUserInfo.prototype.asc_getLastName = asc_CUserInfo.prototype.get_LastName = function () {
 		return this.LastName;
+	};
+	asc_CUserInfo.prototype.asc_getIsAnonymousUser = asc_CUserInfo.prototype.get_IsAnonymousUser = function () {
+		return this.IsAnonymousUser;
+	};
+	asc_CUserInfo.prototype.asc_putIsAnonymousUser = asc_CUserInfo.prototype.put_IsAnonymousUser = function (v) {
+		this.IsAnonymousUser = v;
 	};
 
 	/** @constructor */
@@ -4432,6 +4592,9 @@
 	};
 	prot.get_LastName = prot.asc_getLastName = function () {
 		return (this.UserInfo ? this.UserInfo.get_LastName() : null );
+	};
+	prot.get_IsAnonymousUser = prot.get_IsAnonymousUser = function () {
+		return (this.UserInfo ? this.UserInfo.get_IsAnonymousUser() : null );
 	};
 	prot.get_Options = prot.asc_getOptions = function () {
 		return this.Options;
@@ -4802,10 +4965,10 @@
 
 				var _oldTrackRevision = false;
                 if (oApi.getEditorId() == AscCommon.c_oEditorId.Word && oApi.WordControl && oApi.WordControl.m_oLogicDocument)
-                    _oldTrackRevision = oApi.WordControl.m_oLogicDocument.TrackRevisions;
+                    _oldTrackRevision = oApi.WordControl.m_oLogicDocument.GetLocalTrackRevisions();
 
-                if (_oldTrackRevision)
-                    oApi.WordControl.m_oLogicDocument.TrackRevisions = false;
+                if (false !== _oldTrackRevision)
+                    oApi.WordControl.m_oLogicDocument.SetLocalTrackRevisions(false);
 
                 var bRemoveDocument = false;
                 if(oApi.WordControl && !oApi.WordControl.m_oLogicDocument)
@@ -4870,6 +5033,10 @@
 						oShd.Color.r = oCurParS['fill'][0];
 						oShd.Color.g = oCurParS['fill'][1];
 						oShd.Color.b = oCurParS['fill'][2];
+						oShd.Fill = new AscCommonWord.CDocumentColor();
+						oShd.Fill.r = oCurParS['fill'][0];
+						oShd.Fill.g = oCurParS['fill'][1];
+						oShd.Fill.b = oCurParS['fill'][2];
 						oNewParagraph.Set_Shd(oShd, true);
 					}
 					if(AscFormat.isRealNumber(oCurParS['linespacing'])){
@@ -4980,8 +5147,8 @@
                     oApi.ShowParaMarks = oldShowParaMarks;
 				}
 
-				if (_oldTrackRevision)
-					oApi.WordControl.m_oLogicDocument.TrackRevisions = true;
+				if (false !== _oldTrackRevision)
+					oApi.WordControl.m_oLogicDocument.SetLocalTrackRevisions(_oldTrackRevision);
 
 			}, this, [obj]);
 
@@ -5325,6 +5492,7 @@
 		this.name    = "";
 		this.guid    = "";
 		this.baseUrl = "";
+		this.minVersion = "";
 
 		this.variations = [];
 	}
@@ -5352,6 +5520,14 @@
 	CPlugin.prototype["set_BaseUrl"] = function(value)
 	{
 		this.baseUrl = value;
+	};
+	CPlugin.prototype["get_MinVersion"] = function()
+	{
+		return this.minVersion;
+	};
+	CPlugin.prototype["set_MinVersion"] = function(value)
+	{
+		this.minVersion = value;
 	};
 
 	CPlugin.prototype["get_Variations"] = function()
@@ -5622,6 +5798,7 @@
 	prot["getRanges"] = prot.getRanges;
 	prot["putInColumns"] = prot.putInColumns;
 	prot["getInColumns"] = prot.getInColumns;
+	prot["getInRows"] = prot.getInRows;
 	prot["putShowMarker"] = prot.putShowMarker;
 	prot["getShowMarker"] = prot.getShowMarker;
 	prot["putLine"] = prot.putLine;
@@ -5922,6 +6099,8 @@
 	prot["set_CanChangeArrows"] = prot["asc_setCanChangeArrows"] = prot.asc_setCanChangeArrows;
 	prot["get_FromChart"] = prot["asc_getFromChart"] = prot.asc_getFromChart;
 	prot["set_FromChart"] = prot["asc_setFromChart"] = prot.asc_setFromChart;
+	prot["get_FromGroup"] = prot["asc_getFromGroup"] = prot.asc_getFromGroup;
+	prot["set_FromGroup"] = prot["asc_setFromGroup"] = prot.asc_setFromGroup;
 	prot["get_Locked"] = prot["asc_getLocked"] = prot.asc_getLocked;
 	prot["set_Locked"] = prot["asc_setLocked"] = prot.asc_setLocked;
 	prot["get_Width"] = prot["asc_getWidth"] = prot.asc_getWidth;
@@ -5968,6 +6147,13 @@
 	prot["get_Shadow"] = prot.get_Shadow = prot["get_shadow"] = prot.get_shadow = prot["asc_getShadow"] = prot.asc_getShadow;
 	prot["put_Anchor"] = prot.put_Anchor = prot["asc_putAnchor"] = prot.asc_putAnchor;
 	prot["get_Anchor"] = prot.get_Anchor = prot["asc_getAnchor"] = prot.asc_getAnchor;
+	prot["get_ProtectionLockText"] = prot["asc_getProtectionLockText"] = prot.asc_getProtectionLockText;
+	prot["put_ProtectionLockText"] = prot["asc_putProtectionLockText"] = prot.asc_putProtectionLockText;
+	prot["get_ProtectionLocked"] = prot["asc_getProtectionLocked"] = prot.asc_getProtectionLocked;
+	prot["put_ProtectionLocked"] = prot["asc_putProtectionLocked"] = prot.asc_putProtectionLocked;
+	prot["get_ProtectionPrint"] = prot["asc_getProtectionPrint"] = prot.asc_getProtectionPrint;
+	prot["put_ProtectionPrint"] = prot["asc_putProtectionPrint"] = prot.asc_putProtectionPrint;
+
 
 	window["Asc"]["asc_TextArtProperties"] = window["Asc"].asc_TextArtProperties = asc_TextArtProperties;
 	prot = asc_TextArtProperties.prototype;
@@ -6105,6 +6291,12 @@
 
 	prot["put_Anchor"] = prot.put_Anchor = prot["asc_putAnchor"] = prot.asc_putAnchor;
 	prot["get_Anchor"] = prot.get_Anchor = prot["asc_getAnchor"] = prot.asc_getAnchor;
+	prot["get_ProtectionLockText"] = prot["asc_getProtectionLockText"] = prot.asc_getProtectionLockText;
+	prot["put_ProtectionLockText"] = prot["asc_putProtectionLockText"] = prot.asc_putProtectionLockText;
+	prot["get_ProtectionLocked"] = prot["asc_getProtectionLocked"] = prot.asc_getProtectionLocked;
+	prot["put_ProtectionLocked"] = prot["asc_putProtectionLocked"] = prot.asc_putProtectionLocked;
+	prot["get_ProtectionPrint"] = prot["asc_getProtectionPrint"] = prot.asc_getProtectionPrint;
+	prot["put_ProtectionPrint"] = prot["asc_putProtectionPrint"] = prot.asc_putProtectionPrint;
 
 
 
@@ -6203,6 +6395,7 @@
 	prot["get_FootnoteText"] =  prot.get_FootnoteText;
 	prot["get_FootnoteNumber"] = prot.get_FootnoteNumber;
 	prot["get_FormHelpText"] = prot.get_FormHelpText;
+	prot["get_ReviewChange"] = prot.get_ReviewChange;
 
 	window["Asc"]["asc_CUserInfo"] = window["Asc"].asc_CUserInfo = asc_CUserInfo;
 	prot = asc_CUserInfo.prototype;
@@ -6214,6 +6407,8 @@
 	prot["asc_getFirstName"] = prot["get_FirstName"] = prot.asc_getFirstName;
 	prot["asc_putLastName"] = prot["put_LastName"] = prot.asc_putLastName;
 	prot["asc_getLastName"] = prot["get_LastName"] = prot.asc_getLastName;
+	prot["asc_putIsAnonymousUser"] = prot["put_IsAnonymousUser"] = prot.asc_putIsAnonymousUser;
+	prot["asc_getIsAnonymousUser"] = prot["get_IsAnonymousUser"] = prot.asc_getIsAnonymousUser;
 
 	window["Asc"]["asc_CDocInfo"] = window["Asc"].asc_CDocInfo = asc_CDocInfo;
 	prot = asc_CDocInfo.prototype;

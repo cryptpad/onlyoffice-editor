@@ -472,7 +472,7 @@
 			this.cacheDefinition.initAfterSerialize(this.ws.workbook);
 			var tableCache = this.cacheDefinition.tableSlicerCache;
 			if (tableCache) {
-				var _obj = tableCache.initPostOpen(tableIds);
+				var _obj = tableCache.initPostOpen(tableIds, this.cacheDefinition.sourceName);
 				if (_obj) {
 					this.cacheDefinition._type = insertSlicerType.table;
 				}
@@ -649,13 +649,6 @@
 	};
 	CT_slicer.prototype.getCacheDefinition = function () {
 		return this.cacheDefinition;
-	};
-	CT_slicer.prototype.setCacheDefinition = function (cacheDefinition) {
-		var oldVal = new AscCommonExcel.UndoRedoData_BinaryWrapper2(this.cacheDefinition);
-		this.cacheDefinition = cacheDefinition;
-		var newVal = new AscCommonExcel.UndoRedoData_BinaryWrapper2(this.cacheDefinition);
-		History.Add(AscCommonExcel.g_oUndoRedoSlicer, AscCH.historyitem_Slicer_SetCacheData,
-			null, null, new AscCommonExcel.UndoRedoData_Slicer(this.cacheDefinition.name, oldVal, newVal));
 	};
 	CT_slicer.prototype.generateName = function (name) {
 		var wb = this.ws.workbook;
@@ -1063,14 +1056,14 @@
 				var cacheFields = cacheDefinition.getFields();
 				var fieldIndex = cacheDefinition.getFieldIndexByName(name);
 				var cacheField = -1 !== fieldIndex && cacheFields[fieldIndex];
-				if (cacheField && cacheField.sharedItems) {
+				if (cacheField) {
 					this.sourceName = name;
 					//TODO для генерации имени нужна отдельная функция
 					this.name = this.generateSlicerCacheName(name);
 					this.data = new CT_slicerCacheData();
 					this.data.tabular = new CT_tabularSlicerCache();
 					pivotTable.checkPivotCacheId();
-					this.data.tabular.pivotCacheDefinition = cacheDefinition;
+					this.setPivotCacheDefinition(cacheDefinition);
 
 					var table = new CT_slicerCachePivotTable();
 					table.name = pivotTable.asc_getName();
@@ -1094,7 +1087,36 @@
 			olap.initAfterSerialize(this.wb, pivotCachesOpen);
 		}
 	};
-
+	CT_slicerCacheDefinition.prototype.setPivotCacheDefinition = function (pivotCacheDefinition) {
+		var tabular = this.getTabular();
+		if (tabular) {
+			tabular.setPivotCacheDefinition(pivotCacheDefinition);
+		}
+		var olap = this.getOlap();
+		if (olap) {
+			olap.setPivotCacheDefinition(pivotCacheDefinition);
+		}
+	};
+	CT_slicerCacheDefinition.prototype.moveToWb = function (wb) {
+		this.initAfterSerialize(wb);
+		var realPivotTables = wb.getPivotTablesByCacheId(this.getPivotCacheId());
+		var oldPivotTables = this.pivotTables;
+		this.pivotTables = [];
+		for(var i = 0; i < oldPivotTables.length; ++i) {
+			for(var j = 0; j < realPivotTables.length; ++j) {
+				if(oldPivotTables[i].name === realPivotTables[j].name) {
+					this.addPivotTable(realPivotTables[j]);
+				}
+			}
+		}
+		return !this.getTabular() || -1 !== this.getPivotFieldIndex();
+	};
+	CT_slicerCacheDefinition.prototype.addPivotTable = function (pivotTable) {
+		var table = new CT_slicerCachePivotTable();
+		table.name = pivotTable.asc_getName();
+		table.sheetId = pivotTable.GetWS().getId();
+		this.pivotTables.push(table);
+	};
 	CT_slicerCacheDefinition.prototype.clone = function (wb) {
 		var res = new CT_slicerCacheDefinition(wb);
 
@@ -1426,6 +1448,13 @@
 		if (pivotTables.length === 0) {
 			return;
 		}
+		//todo assign values instead of setVisibleFromValues ?
+		var visible = {};
+		for (var i = 0; i < values.length; ++i) {
+			if (values[i].visible) {
+				visible[values[i].val] = 1;
+			}
+		}
 		var wb = this.wb;
 		for (var i = 0; i < pivotTables.length; ++i) {
 			var pivotTable = pivotTables[i];
@@ -1434,7 +1463,7 @@
 			}
 			var autoFilterObject = new Asc.AutoFiltersOptions();
 			pivotTable.fillAutoFiltersOptions(autoFilterObject, fld);
-			autoFilterObject.setVisibleFromValues(values);
+			autoFilterObject.setVisibleFromValues(visible);
 			autoFilterObject.filter.type = Asc.c_oAscAutoFilterTypes.Filters;
 			changeRes = api._changePivot(pivotTable, confirmation, false, function(ws) {
 				pivotTable.filterPivotItems(fld, autoFilterObject);
@@ -1447,7 +1476,7 @@
 			}
 		}
 		var oldVal = new AscCommonExcel.UndoRedoData_BinaryWrapper2(this);
-		this.data.tabular.fromAutoFiltersOptionsElements(values);
+		this.data.tabular.fromAutoFiltersOptionsElements(visible);
 		//add to history for 0 connection case(usually duplicate of syncSlicersWithPivot)
 		var newVal = new AscCommonExcel.UndoRedoData_BinaryWrapper2(this);
 		History.Add(AscCommonExcel.g_oUndoRedoSlicer, AscCH.historyitem_Slicer_SetCacheData,
@@ -1459,6 +1488,9 @@
 			}
 		}
 		return changeRes;
+	};
+	CT_slicerCacheDefinition.prototype.getSourceName = function () {
+		return this.sourceName;
 	};
 	CT_slicerCacheDefinition.prototype.setSourceName = function (val) {
 		this.sourceName = val;
@@ -1627,10 +1659,11 @@
 	CT_slicerCacheDefinition.prototype.checkModelContent = function (model) {
 		var res = null;
 		var type = this.getType();
+		var wb = model.workbook;
 		switch (type) {
 			case insertSlicerType.table: {
 				var tableCache = this.tableSlicerCache;
-				var table = model.workbook.getTableByName(tableCache.tableId);
+				var table = wb.getTableByName(tableCache.tableId);
 				if (table) {
 					if (null !== table.getColIdByName(tableCache.column)) {
 						res = true;
@@ -1641,7 +1674,7 @@
 			case insertSlicerType.pivotTable: {
 				var tabular = this.getTabular();
 				var olap = this.getOlap();
-				if ((!tabular || tabular.checkModelContent(model)) && (!olap || olap.checkModelContent(model))) {
+				if ((!tabular || tabular.checkModelContent(wb)) && (!olap || olap.checkModelContent(wb))) {
 					res = true;
 				}
 				break;
@@ -1652,6 +1685,11 @@
 	CT_slicerCacheDefinition.prototype.getPivotCache = function() {
 		var tabular = this.getTabular();
 		return tabular && tabular.pivotCacheDefinition || null;
+	};
+	CT_slicerCacheDefinition.prototype.getPivotCacheId = function() {
+		//todo olap
+		var tabular = this.getTabular();
+		return tabular && tabular.pivotCacheDefinition && tabular.pivotCacheDefinition.getPivotCacheId() || null;
 	};
 	CT_slicerCacheDefinition.prototype.getPivotFieldIndex = function() {
 		var tabular = this.getTabular();
@@ -1700,7 +1738,7 @@
 		var cacheFields = pivotTable.cacheDefinition.getFields();
 		var fieldIndex = pivotTable.cacheDefinition.getFieldIndexByName(this.sourceName);
 		var cacheField = -1 !== fieldIndex && cacheFields[fieldIndex];
-		if (cacheField && cacheField.sharedItems) {
+		if (cacheField) {
 			pivotTable.checkPivotFieldItems(fieldIndex);
 			var pivotField = pivotTable.asc_getPivotFields()[fieldIndex];
 
@@ -2140,6 +2178,10 @@
 			this.pivotCacheId = null;
 		}
 	};
+	CT_olapSlicerCache.prototype.setPivotCacheDefinition = function (pivotCacheDefinition) {
+		this.pivotCacheDefinition = pivotCacheDefinition;
+		this.pivotCacheId = null;
+	};
 	CT_olapSlicerCache.prototype.checkModelContent = function (wb) {
 		return null !== this.pivotCacheId && !!wb.getPivotCacheById(this.pivotCacheId);
 	};
@@ -2523,13 +2565,17 @@
 
 		return res;
 	};
-	CT_tableSlicerCache.prototype.initPostOpen = function (tableIds) {
+	CT_tableSlicerCache.prototype.initPostOpen = function (tableIds, sourceName) {
 		var table = null;
 		if (null != this.tableIdOpen && null != this.columnOpen) {
 			table = tableIds[this.tableIdOpen];
 			if (table) {
 				this.tableId = table.DisplayName;
-				this.column = table.getTableNameColumnByIndex(this.columnOpen - 1);
+				if (sourceName && null !== table.getIndexByColumnName(sourceName)) {
+					this.column = sourceName;
+				} else {
+					this.column = table.getTableNameColumnByIndex(this.columnOpen - 1);
+				}
 			}
 		}
 		return table;
@@ -2636,6 +2682,10 @@
 			}
 		}
 	};
+	CT_tabularSlicerCache.prototype.setPivotCacheDefinition = function (pivotCacheDefinition) {
+		this.pivotCacheDefinition = pivotCacheDefinition;
+		this.pivotCacheId = null;
+	};
 	CT_tabularSlicerCache.prototype.checkModelContent = function (wb) {
 		return null !== this.pivotCacheId && !!wb.getPivotCacheById(this.pivotCacheId);
 	};
@@ -2721,7 +2771,7 @@
 	};
 	CT_tabularSlicerCache.prototype.syncWithCache = function (cacheField, pivotField, cacheFieldWithData) {
 		var pivotItems = pivotField.getItems();
-		var count = Math.min(cacheField.getSharedSize(), pivotItems.length);
+		var count = Math.min(cacheField.getGroupOrSharedSize(), pivotItems.length);
 		if (cacheFieldWithData) {
 			count = Math.min(count, cacheFieldWithData.length);
 		}
@@ -2738,7 +2788,7 @@
 				this.items.push(item);
 			}
 		}
-		this.sortItems(this.sortOrder, cacheField.sharedItems);
+		this.sortItems(this.sortOrder, cacheField.getGroupOrSharedItems());
 	};
 	CT_tabularSlicerCache.prototype.sortItems = function(type, sharedItems) {
 		var sign = ST_tabularSlicerCacheSortOrder.Ascending === type ? 1 : -1;
@@ -2761,9 +2811,11 @@
 		for (var i = 0; i < this.items.length; ++i) {
 			var item = this.items[i];
 			var elem = AscCommonExcel.AutoFiltersOptionsElements();
-			var sharedItem = cacheField.getSharedItem(item.x);
+			var sharedItem = cacheField.getGroupOrSharedItem(item.x);
+			var num = sharedItem.isDateOrNum() && cacheField.getNumFormat();
 			var cellValue = sharedItem.getCellValue();
-			elem.val = elem.text = cellValue.getTextValue();
+			elem.val = item.x;
+			elem.text = cellValue.getTextValue(num);
 			elem.visible = item.s;
 			elem.hiddenByOtherColumns = item.nd || undefined;//todo
 			elem.isDateFormat = false;
@@ -2775,9 +2827,9 @@
 		}
 		return values;
 	};
-	CT_tabularSlicerCache.prototype.fromAutoFiltersOptionsElements = function(values) {
-		for(var i = 0; i < this.items.length && i < values.length; ++i){
-			this.items[i].s = values[i].visible;
+	CT_tabularSlicerCache.prototype.fromAutoFiltersOptionsElements = function(visible) {
+		for(var i = 0; i < this.items.length; ++i){
+			this.items[i].s = !!visible[this.items[i].x];
 		}
 	};
 	CT_tabularSlicerCache.prototype.setSortOrder = function (val) {

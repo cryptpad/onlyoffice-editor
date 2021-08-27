@@ -651,7 +651,7 @@ CChartsDrawer.prototype =
 			var heightAxisTitle = axis.title.extY;
 
 			var layout = this.cChartSpace.chart.plotArea.layout;
-			if(layout) {
+			if(layout && AscFormat.isRealNumber(layout.y) && AscFormat.isRealNumber(layout.h)) {
 				var x1 = layout.x * this.calcProp.widthCanvas;
 				var y1 = layout.y * this.calcProp.heightCanvas;
 				var w = layout.w * this.calcProp.widthCanvas;
@@ -3892,11 +3892,7 @@ CChartsDrawer.prototype =
 		var res = null;
 
 		if (val) {
-			if (val.numRef && val.numRef.numCache) {
-				res = val.numRef.numCache;
-			} else if (val.numLit) {
-				res = val.numLit;
-			}
+			res = val.getNumCache();
 		}
 
 		return res;
@@ -5701,12 +5697,13 @@ drawLineChart.prototype = {
 			brush = seria.brush;
 			pen = seria.pen;
 
-			if (!(!t.paths.series[j] || !t.paths.series[j][i] || !seria.val.numRef.numCache.pts[i])) {
-				if (seria.val.numRef.numCache && seria.val.numRef.numCache.pts[i].pen) {
-					pen = seria.val.numRef.numCache.pts[i].pen;
+			var numCache = seria.val && seria.val.getNumCache();
+			if (t.paths.series[j] && t.paths.series[j][i] && numCache && numCache.pts[i]) {
+				if (numCache.pts && numCache.pts[i] && numCache.pts[i].pen) {
+					pen = numCache.pts[i].pen;
 				}
-				if (seria.val.numRef.numCache && seria.val.numRef.numCache.pts[i].brush) {
-					brush = seria.val.numRef.numCache.pts[i].brush;
+				if (numCache.pts && numCache.pts[i] && numCache.pts[i].brush) {
+					brush = numCache.pts[i].brush;
 				}
 
 				for (var k = 0; k < t.paths.series[j][i].length; k++) {
@@ -7183,7 +7180,7 @@ drawAreaChart.prototype = {
 		if (k !== 5 && k !== 0) {
 			var props = this.cChartSpace.getParentObjects();
 
-			if (brush.fill.type === Asc.c_oAscFill.FILL_TYPE_NOFILL) {
+			if (brush.isNoFill()) {
 				return;
 			}
 
@@ -7195,7 +7192,7 @@ drawAreaChart.prototype = {
 				cColorMod.val = 35000;
 			}
 			cColorMod.name = "shade";
-			duplicateBrush.fill.color.Mods.addMod(cColorMod);
+			duplicateBrush.addColorMod(cColorMod);
 			duplicateBrush.calculate(props.theme, props.slide, props.layout, props.master,
 				new AscFormat.CUniColor().RGBA, this.cChartSpace.clrMapOvr);
 
@@ -10355,7 +10352,11 @@ drawRadarChart.prototype = {
 
 			seria = this.chart.series[i];
 
-			dataSeries = this.cChartDrawer.getNumCache(seria.val);
+			var oNumCache = this.cChartDrawer.getNumCache(seria.val);
+			if(!oNumCache) {
+				continue;
+			}
+			dataSeries = oNumCache.pts;
 			if(!dataSeries) {
 				continue;
 			}

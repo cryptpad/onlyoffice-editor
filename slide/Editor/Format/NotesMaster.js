@@ -533,9 +533,7 @@
         oTxLstStyle.levels[0].DefaultRunPr.FontSize = 12;
         oTxLstStyle.levels[0].DefaultRunPr.Unifill = AscFormat.CreateUniFillSchemeColorWidthTint(15, 0);
 
-        oTxLstStyle.levels[0].DefaultRunPr.RFonts.Ascii = {Name :"+mn-lt", Index: -1};
-        oTxLstStyle.levels[0].DefaultRunPr.RFonts.EastAsia =  {Name :"+mn-ea", Index: -1};
-        oTxLstStyle.levels[0].DefaultRunPr.RFonts.CS  = {Name :"+mn-cs", Index: -1};
+        oTxLstStyle.levels[0].DefaultRunPr.RFonts.SetFontStyle(AscFormat.fntStyleInd_minor);
 
         oTxLstStyle.levels[1] = oTxLstStyle.levels[0].Copy();
         oTxLstStyle.levels[1].Ind.Left = 457200/36000;

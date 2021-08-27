@@ -255,12 +255,12 @@
 			asc_getColumnName : function() { return this.columnName; },
 			asc_getSheetColumnName : function() { return this.sheetColumnName; },
 
-			setVisibleFromValues: function(values) {
+			setVisibleFromValues: function(visible) {
 				if (!this.values) {
 					return;
 				}
-				for (var i = 0; i < this.values.length && i < values.length; ++i) {
-					this.values[i].visible = values[i].visible;
+				for (var i = 0; i < this.values.length; ++i) {
+					this.values[i].visible = !!visible[this.values[i].val];
 				}
 			}
 		};
@@ -462,6 +462,11 @@
 			this.applyCollaborativeChangedRowsArr = [];
 
 			this.m_oColor = new AscCommon.CColor(120, 120, 120);
+
+			//при добавлении строки итогов не нужно чтобы на ней распространялось, допустим, УФ
+			//добавляю флаг, чтобы не протаскивать через несколько функций
+			this.isAddTotalRow = null;
+
 			return this;
 		}
 
@@ -524,7 +529,7 @@
 								shiftRange = worksheet.getRange3(filterRange.r2, filterRange.c1, filterRange.r2, filterRange.c2);
 								shiftRange.addCellsShiftBottom();
 								wsView.cellCommentator.updateCommentsDependencies(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox);
-								worksheet.shiftDataValidation(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox)
+								worksheet.shiftDataValidation(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox, true);
 								moveToRange = new Asc.Range(filterRange.c1, filterRange.r1 + 1, filterRange.c2, filterRange.r2);
 							}
 							worksheet._moveRange(rangeWithoutDiff, moveToRange);
@@ -540,7 +545,7 @@
 										shiftRange = worksheet.getRange3(filterRange.r2, filterRange.c1, filterRange.r2, filterRange.c2);
 										shiftRange.addCellsShiftBottom();
 										wsView.cellCommentator.updateCommentsDependencies(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox);
-										worksheet.shiftDataValidation(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox)
+										worksheet.shiftDataValidation(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox, true)
 									}
 								}
 							}
@@ -2773,6 +2778,10 @@
 				var worksheet = this.worksheet;
 				var isSetValue = false;
 				var isSetType = false;
+				var t = this;
+
+				var bUndoChanges = worksheet.workbook.bUndoChanges;
+				var bRedoChanges = worksheet.workbook.bRedoChanges;
 
 				var tablePart = this._getFilterByDisplayName(tableName);
 
@@ -2783,7 +2792,7 @@
 				History.Create_NewPoint();
 				History.StartTransaction();
 
-				var bAddHistoryPoint = true, clearRange;
+				var bAddHistoryPoint = true, clearRange, _range;
 				var undoData = val !== undefined ? !val : undefined;
 
 				switch (optionType) {
@@ -2806,9 +2815,15 @@
 					case c_oAscChangeTableStyleInfo.rowTotal: {
 						if (val === false)//снимаем галку - удаляем строку итогов
 						{
-							if (!this._isPartTablePartsUnderRange(tablePart.Ref)) {
+							if (!this._isPartTablePartsUnderRange(tablePart.Ref) && !worksheet.checkShiftPivotTable(tablePart.Ref, new AscCommon.CellBase(1, 0))) {
 								AscFormat.ExecuteNoHistory(function () {
-									worksheet.getRange3(tablePart.Ref.r2, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2).deleteCellsShiftUp();
+									t.isAddTotalRow = true;
+									_range = worksheet.getRange3(tablePart.Ref.r2, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2);
+									_range.deleteCellsShiftUp();
+									if ((bUndoChanges || bRedoChanges)) {
+										worksheet.updateConditionalFormattingOffset(_range.bbox, new AscCommon.CellBase(-1, 0));
+									}
+									t.isAddTotalRow = null;
 								}, this, []);
 							} else {
 								clearRange = new AscCommonExcel.Range(worksheet, tablePart.Ref.r2, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2);
@@ -2822,7 +2837,7 @@
 							var rangeUnderTable = new Asc.Range(tablePart.Ref.c1, tablePart.Ref.r2 + 1, tablePart.Ref.c2, tablePart.Ref.r2 + 1);
 
 							//внизу часть форматированной таблицы - следовательно сдвигать нельзя, проверяем пустую строчку по ф/т
-							if (this._isPartTablePartsUnderRange(tablePart.Ref)) {
+							if (this._isPartTablePartsUnderRange(tablePart.Ref) || worksheet.checkShiftPivotTable(tablePart.Ref, new AscCommon.CellBase(1, 0))) {
 								if(this._isEmptyRange(rangeUnderTable, 0)) {
 									isSetValue = true;
 									isSetType = true;
@@ -2832,7 +2847,13 @@
 								}
 							} else {
 								AscFormat.ExecuteNoHistory(function () {
-									worksheet.getRange3(tablePart.Ref.r2 + 1, tablePart.Ref.c1, tablePart.Ref.r2 + 1, tablePart.Ref.c2).addCellsShiftBottom();
+									t.isAddTotalRow = true;
+									_range = worksheet.getRange3(tablePart.Ref.r2 + 1, tablePart.Ref.c1, tablePart.Ref.r2 + 1, tablePart.Ref.c2);
+									_range.addCellsShiftBottom();
+									if ((bUndoChanges || bRedoChanges)) {
+										worksheet.updateConditionalFormattingOffset(_range.bbox, new AscCommon.CellBase(1, 0));
+									}
+									t.isAddTotalRow = null;
 								}, this, []);
 
 								isSetValue = true;
@@ -3184,7 +3205,7 @@
 					oHistoryObject.type = redoObject.type;
 					oHistoryObject.cellId = redoObject.cellId;
 					oHistoryObject.autoFiltersObject = redoObject.autoFiltersObject;
-					oHistoryObject.addFormatTableOptionsObj = redoObject.addFormatTableOptionsObj
+					oHistoryObject.addFormatTableOptionsObj = redoObject.addFormatTableOptionsObj;
 					oHistoryObject.moveFrom = redoObject.arnFrom;
 					oHistoryObject.moveTo = redoObject.arnTo;
 					oHistoryObject.bWithoutFilter = bWithoutFilter ? bWithoutFilter : false;
@@ -5639,7 +5660,7 @@
 				return result;
 			},
 
-			isPartFilterUnderRange: function (range) {
+			isPartFilterUnderRange: function (range, checkFirstRow) {
 				var worksheet = this.worksheet;
 				var result = false;
 
@@ -5648,7 +5669,9 @@
 					var allColRef = new Asc.Range(range.c1, range.r1, range.c2, AscCommon.gc_nMaxRow0);
 
 					if (allColRef.intersection(ref) && !allColRef.containsRange(ref)) {
-						result = true;
+						if (!checkFirstRow || (checkFirstRow && allColRef.r1 <= ref.r1)) {
+							result = true;
+						}
 					}
 
 				}
@@ -5656,7 +5679,7 @@
 				return result;
 			},
 
-			isPartFilterRightRange: function (range) {
+			isPartFilterRightRange: function (range, checkFirstCol) {
 				var worksheet = this.worksheet;
 				var result = false;
 
@@ -5665,7 +5688,9 @@
 					var allColRef = new Asc.Range(range.c1, range.r1, AscCommon.gc_nMaxCol0, range.r2);
 
 					if (allColRef.intersection(ref) && !allColRef.containsRange(ref)) {
-						result = true;
+						if (!checkFirstCol || (checkFirstCol && (allColRef.c1 <= ref.c1 || allColRef.r1 <= ref.r1))) {
+							result = true;
+						}
 					}
 
 				}
@@ -5726,13 +5751,16 @@
 				return result;
 			},
 
-			_getTableIntersectionWithActiveCell: function (activeCell, checkApplyFiltering) {
+			_getTableIntersectionWithActiveCell: function (activeCell, checkApplyFiltering, excludeHeader) {
 				var result = false;
 
 				var worksheet = this.worksheet;
 				if (worksheet.TableParts && worksheet.TableParts.length > 0) {
 					for (var i = 0; i < worksheet.TableParts.length; i++) {
 						var ref = worksheet.TableParts[i].Ref;
+						if (excludeHeader && worksheet.TableParts[i].isHeaderRow()) {
+							ref = new Asc.Range(ref.c1, ref.r1 + 1, ref.c2, ref.r2);
+						}
 						if (ref.contains(activeCell.col, activeCell.row)) {
 							if (checkApplyFiltering && worksheet.TableParts[i].isApplyAutoFilter()) {
 								result = worksheet.TableParts[i];
@@ -5789,11 +5817,19 @@
 				var nextIndex;
 
 				//ищем среди tableColumns, возможно такое имя уже имеется
+				var tableColumnsNameMap = null;
 				var checkNextName = function () {
 					var nextName = columnName + nextIndex;
-					for (var i = 0; i < tableColumns.length; i++) {
-						if (tableColumns[i].Name === nextName)
-							return false;
+					if (!tableColumnsNameMap) {
+						tableColumnsNameMap = {};
+						for (var i = 0; i < tableColumns.length; i++) {
+							if (tableColumns[i]) {
+								tableColumnsNameMap[tableColumns[i].Name] = 1;
+							}
+						}
+					}
+					if (tableColumnsNameMap[nextName]) {
+						return false;
 					}
 					return true;
 				};

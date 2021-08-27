@@ -598,6 +598,20 @@ $( function () {
 		}
 	}
 
+	function _getValue(from, row, col) {
+		var res;
+		if (from.type === AscCommonExcel.cElementType.array) {
+			res = from.getElementRowCol(row !== undefined ? row : 0, col !== undefined ? col : 0).getValue();
+		} else if (from.type === AscCommonExcel.cElementType.cellsRange || from.type === AscCommonExcel.cElementType.cellsRange3D) {
+			res = from.getValueByRowCol(row !== undefined ? row : 0, col !== undefined ? col : 0).getValue();
+		} else if (from.type === AscCommonExcel.cElementType.cell || from.type === AscCommonExcel.cElementType.cell3D) {
+			res = from.getValue().getValue();
+		} else {
+			res = from.getValue();
+		}
+		return res;
+	}
+
 	function consoleLog(val) {
 		//console.log(val);
 	}
@@ -3602,6 +3616,43 @@ $( function () {
 		ok( oParser.parse(), formulaStr );
 		strictEqual( oParser.calculate().getValue(), "#NUM!", formulaStr );
 
+		formulaStr = 'NETWORKDAYS.INTL(DATE(1901,1,1),DATE(2006,2,1),"0000000",{"1/2/2006","1/16/2006"})';
+		oParser = new parserFormula( formulaStr, "A2", ws );
+		ok( oParser.parse(), formulaStr );
+		strictEqual( oParser.calculate().getValue(), 38381, formulaStr );
+
+		formulaStr = 'NETWORKDAYS.INTL(DATE(1901,1,1),DATE(2006,2,1),17,{"1/2/2006","1/16/2006"})';
+		oParser = new parserFormula( formulaStr, "A2", ws );
+		ok( oParser.parse(), formulaStr );
+		strictEqual( oParser.calculate().getValue(), 32898, formulaStr );
+
+		formulaStr = 'NETWORKDAYS.INTL(100.123,10003.556,11)';
+		oParser = new parserFormula( formulaStr, "A2", ws );
+		ok( oParser.parse(), formulaStr );
+		strictEqual( oParser.calculate().getValue(), 8490, formulaStr );
+
+		formulaStr = 'NETWORKDAYS.INTL(100.123,10003.556,1)';
+		oParser = new parserFormula( formulaStr, "A2", ws );
+		ok( oParser.parse(), formulaStr );
+		strictEqual( oParser.calculate().getValue(), 7075, formulaStr );
+
+		formulaStr = 'NETWORKDAYS.INTL(100.123,10003.556,2)';
+		oParser = new parserFormula( formulaStr, "A2", ws );
+		ok( oParser.parse(), formulaStr );
+		strictEqual( oParser.calculate().getValue(), 7075, formulaStr );
+
+		//TODO посмотреть почему неверно считается
+		//проблема повторяется с новым и со старым вариантом реализации NETWORKDAYS.INTL
+
+		/*formulaStr = 'NETWORKDAYS.INTL(100.123,10003.556,5)';
+		oParser = new parserFormula( formulaStr, "A2", ws );
+		ok( oParser.parse(), formulaStr );
+		strictEqual( oParser.calculate().getValue(), 7074, formulaStr );
+
+		formulaStr = 'NETWORKDAYS.INTL(100.123,10003.556,5,{123,1000})';
+		oParser = new parserFormula( formulaStr, "A2", ws );
+		ok( oParser.parse(), formulaStr );
+		strictEqual( oParser.calculate().getValue(), 7073, formulaStr );*/
 	} );
 
 	test( "Test: \"N\"", function () {
@@ -8295,64 +8346,79 @@ $( function () {
 		ws.getRange2( "A111" ).setValue( "2517" );
 		ws.getRange2( "A112" ).setValue( "2540" );
 
-		ws.getRange2( 'B102' ).setValue( '2')
-		ws.getRange2( 'B103' ).setValue( '2')
-		ws.getRange2( 'B104' ).setValue( '3')
-		ws.getRange2( 'B105' ).setValue( '3')
-		ws.getRange2( 'B106' ).setValue( '2')
-		ws.getRange2( 'B107' ).setValue( '4')
-		ws.getRange2( 'B108' ).setValue( '2')
-		ws.getRange2( 'B109' ).setValue( '2')
-		ws.getRange2( 'B110' ).setValue( '3')
-		ws.getRange2( 'B111' ).setValue( '4')
-		ws.getRange2( 'B112' ).setValue( '2')
+		ws.getRange2('B102').setValue('2');
+		ws.getRange2('B103').setValue('2');
+		ws.getRange2('B104').setValue('3');
+		ws.getRange2('B105').setValue('3');
+		ws.getRange2('B106').setValue('2');
+		ws.getRange2('B107').setValue('4');
+		ws.getRange2('B108').setValue('2');
+		ws.getRange2('B109').setValue('2');
+		ws.getRange2('B110').setValue('3');
+		ws.getRange2('B111').setValue('4');
+		ws.getRange2('B112').setValue('2');
 
-		ws.getRange2( 'C102' ).setValue( '2')
-		ws.getRange2( 'C103' ).setValue( '2')
-		ws.getRange2( 'C104' ).setValue( '1.5')
-		ws.getRange2( 'C105' ).setValue( '2')
-		ws.getRange2( 'C106' ).setValue( '3')
-		ws.getRange2( 'C107' ).setValue( '2')
-		ws.getRange2( 'C108' ).setValue( '1.5')
-		ws.getRange2( 'C109' ).setValue( '2')
-		ws.getRange2( 'C110' ).setValue( '3')
-		ws.getRange2( 'C111' ).setValue( '4')
-		ws.getRange2( 'C112' ).setValue( '3')
+		ws.getRange2('C102').setValue('2');
+		ws.getRange2('C103').setValue('2');
+		ws.getRange2('C104').setValue('1.5');
+		ws.getRange2('C105').setValue('2');
+		ws.getRange2('C106').setValue('3');
+		ws.getRange2('C107').setValue('2');
+		ws.getRange2('C108').setValue('1.5');
+		ws.getRange2('C109').setValue('2');
+		ws.getRange2('C110').setValue('3');
+		ws.getRange2('C111').setValue('4');
+		ws.getRange2('C112').setValue('3');
 
-		ws.getRange2( 'D102' ).setValue( '20')
-		ws.getRange2( 'D103' ).setValue( '12')
-		ws.getRange2( 'D104' ).setValue( '33')
-		ws.getRange2( 'D105' ).setValue( '43')
-		ws.getRange2( 'D106' ).setValue( '53')
-		ws.getRange2( 'D107' ).setValue( '23')
-		ws.getRange2( 'D108' ).setValue( '99')
-		ws.getRange2( 'D109' ).setValue( '34')
-		ws.getRange2( 'D110' ).setValue( '23')
-		ws.getRange2( 'D111' ).setValue( '55')
-		ws.getRange2( 'D112' ).setValue( '22')
+		ws.getRange2('D102').setValue('20');
+		ws.getRange2('D103').setValue('12');
+		ws.getRange2('D104').setValue('33');
+		ws.getRange2('D105').setValue('43');
+		ws.getRange2('D106').setValue('53');
+		ws.getRange2('D107').setValue('23');
+		ws.getRange2('D108').setValue('99');
+		ws.getRange2('D109').setValue('34');
+		ws.getRange2('D110').setValue('23');
+		ws.getRange2('D111').setValue('55');
+		ws.getRange2('D112').setValue('22');
 
-		ws.getRange2( 'E102' ).setValue( '142000')
-		ws.getRange2( 'E103' ).setValue( '144000')
-		ws.getRange2( 'E104' ).setValue( '151000')
-		ws.getRange2( 'E105' ).setValue( '150000')
-		ws.getRange2( 'E106' ).setValue( '139000')
-		ws.getRange2( 'E107' ).setValue( '169000')
-		ws.getRange2( 'E108' ).setValue( '126000')
-		ws.getRange2( 'E109' ).setValue( '142900')
-		ws.getRange2( 'E110' ).setValue( '163000')
-		ws.getRange2( 'E111' ).setValue( '169000')
-		ws.getRange2( 'E112' ).setValue( '149000')
+		ws.getRange2('E102').setValue('142000');
+		ws.getRange2('E103').setValue('144000');
+		ws.getRange2('E104').setValue('151000');
+		ws.getRange2('E105').setValue('150000');
+		ws.getRange2('E106').setValue('139000');
+		ws.getRange2('E107').setValue('169000');
+		ws.getRange2('E108').setValue('126000');
+		ws.getRange2('E109').setValue('142900');
+		ws.getRange2('E110').setValue('163000');
+		ws.getRange2('E111').setValue('169000');
+		ws.getRange2('E112').setValue('149000');
 
 		oParser = new parserFormula( "LINEST(E102:E112,A102:D112,TRUE,TRUE)", "A1", ws );
 		oParser.setArrayFormulaRef(ws.getRange2("E120:E123").bbox);
 		ok( oParser.parse() );
-		var array = oParser.calculate();
+		array = oParser.calculate();
 		if(AscCommonExcel.cElementType.array === array.type) {
 			strictEqual( array.getElementRowCol(0,0).getValue().toFixed(7) - 0, -234.2371645);
 			strictEqual( array.getElementRowCol(1,0).getValue().toFixed(8) - 0, 13.26801148);
 			strictEqual( array.getElementRowCol(2,0).getValue().toFixed(9) - 0, 0.996747993);
 			strictEqual( array.getElementRowCol(3,0).getValue().toFixed(7) - 0, 459.7536742);
 		}
+
+		ws.getRange2( "A120" ).setValue( "1" );
+		ws.getRange2( "B120" ).setValue( "2" );
+
+		oParser = new parserFormula( "LINEST(A120:B120)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1);
+
+		oParser = new parserFormula( "LINEST({1;2})", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1);
+
+		oParser = new parserFormula( "LINEST({1,2})", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1);
 
 	} );
 
@@ -10037,99 +10103,99 @@ $( function () {
 
 		oParser = new parserFormula( "XLOOKUP(14,A551:A561,C551:C561)", "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), "u2" );
+		strictEqual( _getValue(oParser.calculate()), "u2" );
 
 		oParser = new parserFormula( "XLOOKUP(C565,A551:A561,B551:C561)", "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), "n" );
-		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue(), "m1" );
+		strictEqual( _getValue(oParser.calculate(), 0, 0), "n" );
+		strictEqual( _getValue(oParser.calculate(), 0, 1), "m1" );
 
 		oParser = new parserFormula( 'XLOOKUP(1,A551:A561,B551:C561,"not found")', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue(), "not found" );
+		strictEqual( _getValue(oParser.calculate()), "not found" );
 
 		oParser = new parserFormula( 'XLOOKUP(10,A551:A561,B551:C561,0,1,1)', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), "f" );
-		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue(), "h3" );
+		strictEqual( _getValue(oParser.calculate(), 0, 0), "f" );
+		strictEqual( _getValue(oParser.calculate(), 0, 1), "h3" );
 
 		oParser = new parserFormula( 'XLOOKUP(10,A551:A561,B551:C561,0,-1,1)', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), "a" );
-		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue(), "a1" );
+		strictEqual( _getValue(oParser.calculate(), 0, 0), "a" );
+		strictEqual( _getValue(oParser.calculate(), 0, 1), "a1" );
 
 		oParser = new parserFormula( 'XLOOKUP(10,A551:A561,B551:C561,0,0)', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue(), 0 );
+		strictEqual( _getValue(oParser.calculate()), 0 );
 
 		oParser = new parserFormula( 'XLOOKUP(10,A551:A561,B551:C561)', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue(), "#N/A" );
+		strictEqual( _getValue(oParser.calculate()), "#N/A" );
 
 		oParser = new parserFormula( 'XLOOKUP(10,A551:A561,B551:C561,,,2)', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue(), "#N/A" );
+		strictEqual( _getValue(oParser.calculate()), "#N/A" );
 
 		oParser = new parserFormula( 'XLOOKUP(10,A551:A561,B551:C561,,,-2)', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue(), "#N/A" );
+		strictEqual( _getValue(oParser.calculate()), "#N/A" );
 
 		oParser = new parserFormula( 'XLOOKUP(10,A551:A561,B551:C561,,-1,-2)', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue(), "#N/A" );
+		strictEqual( _getValue(oParser.calculate()), "#N/A" );
 
 		oParser = new parserFormula( 'XLOOKUP("test",A551:A561,B551:C561,,-1,2)', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), "n" );
+		strictEqual( _getValue(oParser.calculate(), 0, 0), "n" );
 
 		oParser = new parserFormula( 'XLOOKUP("tt",A551:A561,B551:C561,,-1,2)', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), "u" );
+		strictEqual( _getValue(oParser.calculate(), 0, 0), "u" );
 
 		oParser = new parserFormula( 'XLOOKUP("t???",A551:A561,B551:C561,,2)', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), "c" );
+		strictEqual( _getValue(oParser.calculate(), 0, 0), "c" );
 
 		oParser = new parserFormula( 'XLOOKUP("t???",A551:A561,B551:C561,,2)', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), "c" );
+		strictEqual( _getValue(oParser.calculate(), 0, 0), "c" );
 
 		oParser = new parserFormula( 'XLOOKUP("t?",A551:A561,B551:C561,,2)', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), "u" );
+		strictEqual( _getValue(oParser.calculate(), 0, 0), "u" );
 
 		oParser = new parserFormula( 'XLOOKUP("t?",A551:A561,B551:C561,,0)', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue(), "#N/A" );
+		strictEqual( _getValue(oParser.calculate()), "#N/A" );
 
 		oParser = new parserFormula( 'XLOOKUP("t*",A551:A561,B551:C561,,0)', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue(), "#N/A" );
+		strictEqual( _getValue(oParser.calculate()), "#N/A" );
 
 		oParser = new parserFormula( 'XLOOKUP("t*",A551:A561,B551:C561,,2)', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), "c" );
-		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue(), "test2" );
+		strictEqual( _getValue(oParser.calculate(), 0, 0), "c" );
+		strictEqual( _getValue(oParser.calculate(), 0, 1), "test2" );
 
 		oParser = new parserFormula( 'XLOOKUP(1,{1,2,3},{2,2,3})', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 2 );
+		strictEqual( _getValue(oParser.calculate(), 0, 0), 2 );
 
 		oParser = new parserFormula( 'XLOOKUP(1,{1,2,3,4},{2,2,3})', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+		strictEqual( _getValue(oParser.calculate()), "#VALUE!" );
 
 		oParser = new parserFormula( 'XLOOKUP(4,{1,2,6},{2,2,3},,1)', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 3 );
+		strictEqual( _getValue(oParser.calculate()), 3 );
 
 		oParser = new parserFormula( 'XLOOKUP(4,{1,2,6},{2,2,3},,-1)', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), 2 );
+		strictEqual( _getValue(oParser.calculate()), 2 );
 
 		oParser = new parserFormula( 'XLOOKUP(4,{1,2,6},{2,2,3})', "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue(), "#N/A" );
+		strictEqual( _getValue(oParser.calculate()), "#N/A" );
 	} );
 
 
@@ -13866,6 +13932,21 @@ $( function () {
 		strictEqual( oParser.calculate().getElementRowCol(3,1).getValue(), 123 );
 		strictEqual( oParser.calculate().getElementRowCol(4,1).getValue(), 6 );
 		strictEqual( oParser.calculate().getElementRowCol(5,1).getValue(), 4 );
+
+		ws.getRange2( "A120" ).setValue( "1" );
+		ws.getRange2( "B120" ).setValue( "2" );
+
+		oParser = new parserFormula( "UNIQUE(A120:B120)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1);
+
+		oParser = new parserFormula( "UNIQUE({1;2})", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1);
+
+		oParser = new parserFormula( "UNIQUE({1,2})", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1);
 	} );
 
 	test( "Test: \"GROWTH\"", function () {
@@ -13937,6 +14018,21 @@ $( function () {
 		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 12.00187209);
 		strictEqual( oParser.calculate().getElementRowCol(0,1).getValue().toFixed(3) - 0, 676231620.297);
 		strictEqual( oParser.calculate().getElementRowCol(0,2).getValue().toFixed(3) - 0, 612512904.254)
+
+		ws.getRange2( "A120" ).setValue( "1" );
+		ws.getRange2( "B120" ).setValue( "2" );
+
+		oParser = new parserFormula( "GROWTH(A120:B120)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1);
+
+		oParser = new parserFormula( "GROWTH({1;2})", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1);
+
+		oParser = new parserFormula( "GROWTH({1,2})", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 1);
 	} );
 
 
@@ -14030,6 +14126,21 @@ $( function () {
 		strictEqual( oParser.calculate().getElementRowCol(2,0).getValue().toFixed(4) - 0, 0.9944);
 		strictEqual( oParser.calculate().getElementRowCol(3,0).getValue().toFixed(4) - 0, 1416.4887);
 		strictEqual( oParser.calculate().getElementRowCol(4,0).getValue().toFixed(4) - 0, 294.9627);
+
+		ws.getRange2( "A120" ).setValue( "1" );
+		ws.getRange2( "B120" ).setValue( "2" );
+
+		oParser = new parserFormula( "LOGEST(A120:B120)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 2);
+
+		oParser = new parserFormula( "LOGEST({1;2})", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 2);
+
+		oParser = new parserFormula( "LOGEST({1,2})", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(8) - 0, 2);
 
 	} );
 

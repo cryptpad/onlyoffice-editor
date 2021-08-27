@@ -128,7 +128,6 @@ CGroupShape.prototype.setDrawingBase = CShape.prototype.setDrawingBase;
 CGroupShape.prototype.deleteDrawingBase = CShape.prototype.deleteDrawingBase;
 CGroupShape.prototype.addToRecalculate = CShape.prototype.addToRecalculate;
 CGroupShape.prototype.convertPixToMM = CShape.prototype.convertPixToMM;
-CGroupShape.prototype.getCanvasContext = CShape.prototype.getCanvasContext;
 CGroupShape.prototype.getHierarchy = CShape.prototype.getHierarchy;
 CGroupShape.prototype.getIsSingleBody = CShape.prototype.getIsSingleBody;
 CGroupShape.prototype.getParentObjects = CShape.prototype.getParentObjects;
@@ -182,8 +181,6 @@ CGroupShape.prototype.recalculateBounds = function()
     this.bounds.h = this.bounds.b - this.bounds.t;
 };
 
-CGroupShape.prototype.deselect = CShape.prototype.deselect;
-CGroupShape.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CGroupShape.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CGroupShape.prototype.handleUpdatePosition = function()
 {

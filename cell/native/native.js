@@ -978,6 +978,12 @@ function asc_menu_ReadShapePr(_params, _cursor){
             case 6:
             {
                 _settings.InsertPageNum = _params[_cursor.pos++];
+                break;
+            }
+            case 7:
+            {
+                _settings.bFromGroup = _params[_cursor.pos++];
+                break;
             }
             case 255:
             default:
@@ -1015,6 +1021,12 @@ function asc_menu_WriteShapePr(_type, _shapePr, _stream){
     {
         _stream["WriteByte"](5);
         _stream["WriteBool"](_shapePr.bFromChart);
+    }
+    //6-InsertPageNum
+    if (_shapePr.bFromGroup !== undefined && _shapePr.bFromGroup !== null)
+    {
+        _stream["WriteByte"](7);
+        _stream["WriteBool"](_shapePr.bFromGroup);
     }
     
     _stream["WriteByte"](255);
@@ -2278,7 +2290,11 @@ function asc_WriteCCellInfo(c, s) {
     s['WriteBool'](c.asc_getLockText());
     
     asc_WriteCFont(6, xfs, s);
-    asc_menu_WriteColor(8, xfs.asc_getFillColor(), s);
+
+    if (null != xfs.asc_getFillColor() && xfs.asc_getFillColor().asc_getAuto() !== true) { 
+        asc_menu_WriteColor(8, xfs.asc_getFillColor(), s);
+    }
+
     asc_WriteCBorders(9, c.asc_getBorders(), s);
 
     v = c.asc_getInnerText();
@@ -3288,6 +3304,7 @@ function OfflineEditor () {
             	t.asc_WriteAllWorksheets(true);
             	t.asc_WriteCurrentCell();
             
+                _api.asc_CheckGuiControlColors();
             	_api.sendColorThemes(_api.wbModel.theme);
             	_api.asc_ApplyColorScheme(false);
             	_api._applyFirstLoadChanges();
@@ -3309,29 +3326,26 @@ function OfflineEditor () {
             	if (chartData.length > 0) {
                 	var json = JSON.parse(chartData);
                 	if (json) {
-                    
-                    	var nativeToEditor = 1.0 / deviceScale;
-                    
-                    	var screenWidth = t.initSettings["screenWidth"] * nativeToEditor / 2.54 - ws.headersWidth;
-                    	var screenHeight = t.initSettings["screenHeight"] * nativeToEditor / 2.54 - ws.headersHeight;
-                    
+
                     	_api.asc_addChartDrawingObject(json);
                     
                     	var objects = ws.objectRender.controller.drawingObjects.getDrawingObjects();
                     	if (objects.length > 0) {
+                            
+                            var left = t.initSettings["chartLeft"];
+                            var top = t.initSettings["chartTop"];
+                            var right = t.initSettings["chartRight"];
+                            var bottom = t.initSettings["chartBottom"];
                         
-                        	var gr = objects[0].graphicObject;
+                        	var chart = objects[0].graphicObject;
                         
-                        	var w = gr.spPr.xfrm.extX;
-                        	var h = gr.spPr.xfrm.extY;
-                        
-                        	var offX = Math.max(0, (screenWidth - w) * 0.5);
-                        	var offY = Math.max(screenHeight * 0.2, (screenHeight - w) * 0.5);
-                        
-                        	gr.spPr.xfrm.setOffX(offX);
-                        	gr.spPr.xfrm.setOffY(offY);
-                        	gr.checkDrawingBaseCoords();
-                        	gr.recalculate();
+                        	chart.spPr.xfrm.setOffX(parseInt(left));
+                        	chart.spPr.xfrm.setOffY(parseInt(top));
+                            chart.spPr.xfrm.setExtX(parseInt(right - left));
+                            chart.spPr.xfrm.setExtY(parseInt(bottom - top));
+                        	
+                            chart.checkDrawingBaseCoords();
+                            chart.recalculate();
                     	}
                     
                     	//console.log(JSON.stringify(json));
@@ -3505,6 +3519,8 @@ function OfflineEditor () {
                                   stream["WriteString2"](JSON.stringify(options));
                                   window["native"]["OnCallMenuEvent"](22000, stream); // ASC_MENU_EVENT_TYPE_ADVANCED_OPTIONS
                                   });
+                                  
+        _api.asc_registerCallback("asc_onSendThemeColors", onApiSendThemeColors);
 
         // Comments
 
@@ -4114,8 +4130,8 @@ function OfflineEditor () {
         hor_axis_settings.putGridlines(Asc.c_oAscGridLinesSettings.none);
         settings.addHorAxesProps(hor_axis_settings);
 
-        var series = AscFormat.getChartSeries(ws.model, settings);
-        if(series && series.series.length > 1)
+        var series = AscFormat.getChartSeries(settings);
+        if(series.length > 1)
         {
             settings.putLegendPos(Asc.c_oAscChartLegendShowSettings.right);
         }
@@ -4156,7 +4172,7 @@ function OfflineEditor () {
                                               this.chartsByTypes[type] = this.getChartByType(type);
                                               
                                               var chart_space = this.chartsByTypes[type];
-                                              AscFormat.ApplyPresetToChartSpace(chart_space, AscCommon.g_oChartPresets[type][styleIndex]);
+                                                chart_space.applyChartStyleByIds(AscCommon.g_oChartStyles[type][styleIndex]);
                                               chart_space.recalcInfo.recalculateReferences = false;
                                               chart_space.recalculate();
 
@@ -4181,8 +4197,8 @@ function OfflineEditor () {
                     
                     var _graphics = new CDrawingStream();
                     
-                    if(AscCommon.g_oChartPresets[chartType]){
-                        var nStylesCount = AscCommon.g_oChartPresets[chartType].length;
+                    if(AscCommon.g_oChartStyles[chartType]){
+                        var nStylesCount = AscCommon.g_oChartStyles[chartType].length;
                         for(var i = 0; i < nStylesCount; ++i)
                             this.createChartPreview(_graphics, chartType, i);
                     }
@@ -4455,7 +4471,7 @@ window["native"]["offline_get_selection"] = function(x, y, width, height, autoco
 window["native"]["offline_get_charts_ranges"] = function() {
     var ws = _api.wb.getWorksheet();
     
-    var ranges = _api.wb.getWorksheet().__chartsRanges();
+    var ranges = ws.__chartsRanges();
     var cattbbox = null;
     var serbbox = null;
     
@@ -4464,11 +4480,34 @@ window["native"]["offline_get_charts_ranges"] = function() {
     var selected_objects = controller.selection.groupSelection ? controller.selection.groupSelection.selectedObjects : controller.selectedObjects;
     if (selected_objects.length === 1 && selected_objects[0].getObjectType() === AscDFH.historyitem_type_ChartSpace) {
         chart = selected_objects[0];
-        ranges = ranges ? ranges : _api.wb.getWorksheet().__chartsRanges([chart.bbox.seriesBBox]);
-        cattbbox = chart.bbox.catBBox ? _api.wb.getWorksheet().__chartsRanges([chart.bbox.catBBox]) : null;
-        serbbox = chart.bbox.serBBox ? _api.wb.getWorksheet().__chartsRanges([chart.bbox.serBBox]) : null;
+        var oDataRange = null, oCatRange = null, oSerRange = null;
+        if (ws.isChartAreaEditMode && ws.oOtherRanges) {
+            var aChartRanges = ws.oOtherRanges.ranges;
+            for(var nRange = 0; nRange < aChartRanges.length; ++nRange) {
+                var oChartRange = aChartRanges[nRange];
+                if(oChartRange.chartRangeIndex === 0) {
+                    oDataRange = oChartRange;
+                }
+                else if(oChartRange.chartRangeIndex === 1) {
+                    oSerRange = oChartRange;
+                }
+                else if(oChartRange.chartRangeIndex === 2) {
+                    oCatRange = oChartRange;
+                }
+            }
+            if(oDataRange) {
+                var ranges = ranges ? ranges : ws.__chartsRanges([oDataRange]);
+                var catbbox = null;//oCatRange ? ws.__chartsRanges([oCatRange]) : null;
+                var serbbox = null;//oSerRange ? ws.__chartsRanges([oSerRange]) : null;
+                return {
+                    'ranges': ranges,
+                    'cattbbox': catbbox,
+                    'serbbox': serbbox
+                };
+            }
+        }
+        return {'ranges': null, 'cattbbox': null, 'serbbox': null};
     }
-    
     return {'ranges':ranges, 'cattbbox':cattbbox, 'serbbox':serbbox};
 }
 window["native"]["offline_get_worksheet_bounds"] = function() {return _s.getMaxBounds();}
@@ -6378,7 +6417,32 @@ window["native"]["offline_apply_event"] = function(type,params) {
                 }
                 break;
             }
-            
+
+        case 25001: // ASC_MENU_EVENT_TYPE_DO_API_FUNCTION_CALL
+        {
+            var json = JSON.parse(params[0]),
+                func = json["func"],
+                params = json["params"] || [],
+                returnable = json["returnable"] || false; // need return result
+
+            if (json && func) {
+                if (_api[func]) {
+                    if (returnable) {
+                        var _stream = global_memory_stream_menu;
+                        _stream["ClearNoAttack"]();
+                        var result = _api[func].apply(_api, params);
+                        _stream["WriteString2"](JSON.stringify({
+                            result: result
+                        }));
+                        _return = _stream;
+                    } else {
+                        _api[func].apply(_api, params);
+                    }
+                }
+            }
+            break;
+        }
+
         default:
             break;
     }
@@ -6387,6 +6451,16 @@ window["native"]["offline_apply_event"] = function(type,params) {
 }
 
 // Common
+
+function getHexColor(r, g, b) {
+    r = r.toString(16);
+    g = g.toString(16);
+    b = b.toString(16);
+    if (r.length == 1) r = '0' + r;
+    if (g.length == 1) g = '0' + g;
+    if (b.length == 1) b = '0' + b;
+    return r + g + b;
+}
 
 function postDataAsJSONString(data, eventId) {
     var stream = global_memory_stream_menu;
@@ -6587,6 +6661,19 @@ function onDocumentPlaceChanged() {
     postDataAsJSONString(null, 23012); // ASC_MENU_EVENT_TYPE_DOCUMENT_PLACE_CHANGED
 }
 
+function onApiSendThemeColors(theme_colors, standart_colors) {
+    var colors = {
+        "themeColors": theme_colors.map(function(color) {
+            return getHexColor(color.get_r(), color.get_g(), color.get_b());
+        })
+    }
+    if (standart_colors != null) {
+        colors["standartColors"] = standart_colors.map(function(color) {
+            return getHexColor(color.get_r(), color.get_g(), color.get_b());
+        });
+    }
+    postDataAsJSONString(colors, 2417); // ASC_MENU_EVENT_TYPE_THEMECOLORS
+}
 window["Asc"]["spreadsheet_api"].prototype.asc_setDocumentPassword = function(password)
 {
     var v = {

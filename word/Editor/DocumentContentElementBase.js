@@ -62,6 +62,8 @@ function CDocumentContentElementBase(oParent)
 	this.PageNum      = 0;
 	this.ColumnNum    = 0;
 	this.ColumnsCount = 0;
+	this.UseXLimit    = true;
+	this.UseYLimit    = true;
 }
 
 CDocumentContentElementBase.prototype.Get_Type = function()
@@ -120,6 +122,22 @@ CDocumentContentElementBase.prototype.Get_DocumentPrev = function()
 {
 	return this.Prev;
 };
+CDocumentContentElementBase.prototype.GetNextDocumentElement = function()
+{
+	var oNext = this.Get_DocumentNext();
+	if (!oNext && this.Parent && this.Parent.GetNextDocumentElement)
+		return this.Parent.GetNextDocumentElement();
+
+	return oNext;
+};
+CDocumentContentElementBase.prototype.GetPrevDocumentElement = function()
+{
+	var oPrev = this.Get_DocumentPrev();
+	if (!oPrev && this.Parent && this.Parent.GetPrevDocumentElement)
+		return this.Parent.GetPrevDocumentElement();
+
+	return oPrev;
+};
 CDocumentContentElementBase.prototype.GetParent = function()
 {
 	return this.Parent;
@@ -153,6 +171,22 @@ CDocumentContentElementBase.prototype.Reset = function(X, Y, XLimit, YLimit, Pag
 	this.PageNum      = PageAbs;
 	this.ColumnNum    = ColumnAbs ? ColumnAbs : 0;
 	this.ColumnsCount = ColumnsCount ? ColumnsCount : 1;
+};
+CDocumentContentElementBase.prototype.SetUseXLimit = function(isUse)
+{
+	this.UseXLimit = isUse;
+};
+CDocumentContentElementBase.prototype.IsUseXLimit = function()
+{
+	return this.UseXLimit;
+};
+CDocumentContentElementBase.prototype.SetUseYLimit = function(isUse)
+{
+	this.UseYLimit = isUse;
+};
+CDocumentContentElementBase.prototype.IsUseYLimit = function()
+{
+	return this.UseYLimit;
 };
 CDocumentContentElementBase.prototype.Recalculate_Page = function(CurPage)
 {
@@ -546,6 +580,10 @@ CDocumentContentElementBase.prototype.GetSelectedText = function(bClearText, oPr
 CDocumentContentElementBase.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs)
 {
 	return null;
+};
+CDocumentContentElementBase.prototype.GetCurrentTablesStack = function(arrTables)
+{
+	return arrTables ? arrTables : [];
 };
 CDocumentContentElementBase.prototype.AddTableRow = function(bBefore, nCount)
 {
@@ -1195,6 +1233,11 @@ CDocumentContentElementBase.prototype.GetMaxTableGridWidth = function(){return {
  * Обновляем нумерацию строк
  */
 CDocumentContentElementBase.prototype.UpdateLineNumbersInfo = function(){};
+/**
+ * Подсчитываем на сколько элементов разбивается данный элемент с заданным сепаратором
+ * @param oEngine {CTextToTableEngine}
+ */
+CDocumentContentElementBase.prototype.CalculateTextToTable = function(oEngine){};
 
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

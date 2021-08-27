@@ -416,13 +416,16 @@ module.exports = function(grunt) {
 							expand: true,
 							cwd: '../common/',
 							src: [
+								'Charts/ChartStyles.js',
 								'Images/*',
 								'Images/placeholders/*',
 								'Images/content_controls/*',
 								'Images/cursors/*',
+								'Images/reporter/*',
 								'Native/*.js',
 								'libfont/js/fonts.*',
-								'libfont/wasm/fonts.*'
+								'libfont/wasm/fonts.*',
+								'spell/spell/*'
 							],
 							dest: path.join(deploy, 'common')
 						},

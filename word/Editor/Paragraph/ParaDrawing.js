@@ -64,6 +64,8 @@ function ParaDrawing(W, H, GraphicObj, DrawingDocument, DocumentContent, Parent)
 	this.DrawingType = drawing_Inline;
 	this.GraphicObj  = GraphicObj;
 
+	this.Form = false; // Флаг, означающий, является ли данная автофигура контейнером для специальной формой
+
 	this.X      = 0;
 	this.Y      = 0;
 	this.Width  = 0;
@@ -226,7 +228,13 @@ ParaDrawing.prototype.GetSearchElementId = function(bNext, bCurrent)
 
 	return null;
 };
+ParaDrawing.prototype.FindNextFillingForm = function(isNext, isCurrent)
+{
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.FindNextFillingForm === "function")
+		return this.GraphicObj.FindNextFillingForm(isNext, isCurrent);
 
+	return null;
+};
 ParaDrawing.prototype.CheckCorrect = function(){
 	if(!this.GraphicObj){
 		return false;
@@ -1000,9 +1008,14 @@ ParaDrawing.prototype.CheckWH = function()
 	var oldExtH = this.Extent.H;
 	if (this.GraphicObj.spPr && this.GraphicObj.spPr.xfrm
 		&& AscFormat.isRealNumber(this.GraphicObj.spPr.xfrm.extX)
-		&& AscFormat.isRealNumber(this.GraphicObj.spPr.xfrm.extY)){
+		&& AscFormat.isRealNumber(this.GraphicObj.spPr.xfrm.extY))
+	{
 		this.Extent.W = this.GraphicObj.spPr.xfrm.extX;
 		this.Extent.H = this.GraphicObj.spPr.xfrm.extY;
+	}
+	if(this.GraphicObj.getObjectType() === AscDFH.historyitem_type_Shape)
+	{
+		this.GraphicObj.handleUpdateExtents();
 	}
 	this.GraphicObj.recalculate();
 	this.Extent.W = oldExtW;
@@ -1276,6 +1289,8 @@ ParaDrawing.prototype.Copy = function(oPr)
 	c.docPr.setFromOther(this.docPr);
 	if (this.ParaMath)
 		c.Set_ParaMath(this.ParaMath.Copy());
+
+	c.SetForm(this.Form);
 	return c;
 };
 ParaDrawing.prototype.IsEqual = function(oElement)
@@ -1493,12 +1508,15 @@ ParaDrawing.prototype.selectionIsEmpty = function()
 ParaDrawing.prototype.recalculateDocContent = function()
 {
 };
-ParaDrawing.prototype.Shift = function(Dx, Dy)
+ParaDrawing.prototype.Shift = function(Dx, Dy, nPageAbs)
 {
-	this.ShiftX = Dx;
-	this.ShiftY = Dy;
-	this.X = this.OrigX + Dx;
-	this.Y = this.OrigY + Dy;
+	if (undefined !== nPageAbs)
+		this.PageNum = nPageAbs;
+
+	this.ShiftX += Dx;
+	this.ShiftY += Dy;
+	this.X = this.OrigX + this.ShiftX;
+	this.Y = this.OrigY + this.ShiftY;
 
 	this.updatePosition3(this.PageNum, this.X, this.Y);
 };
@@ -1648,6 +1666,19 @@ ParaDrawing.prototype.IsInline = function()
 {
 	return this.Is_Inline();
 };
+ParaDrawing.prototype.IsForm = function()
+{
+	return this.Form;
+};
+ParaDrawing.prototype.SetForm = function(isForm)
+{
+	History.Add(new CChangesParaDrawingForm(this, this.DrawingType, isForm));
+	this.Form = isForm;
+}
+ParaDrawing.prototype.GetInnerForm = function()
+{
+	return this.GraphicObj ? this.GraphicObj.getInnerForm() : null;
+};
 ParaDrawing.prototype.Use_TextWrap = function()
 {
 	// Если автофигура привязана к параграфу с рамкой, обтекание не делается
@@ -1718,28 +1749,28 @@ ParaDrawing.prototype.OnEnd_MoveInline = function(NearPos)
 		}
 	}
 
-	// Ничего никуда не переносим в такой ситуации
-	if (oPictureCC)
+	var oDstRun = null;
+	var arrClasses = NearPos.Paragraph.GetClassesByPos(NearPos.ContentPos);
+	for (var nIndex = arrClasses.length - 1; nIndex >= 0; --nIndex)
 	{
-		var oDstRun = null;
-		var arrClasses = NearPos.Paragraph.GetClassesByPos(NearPos.ContentPos);
-		for (var nIndex = arrClasses.length - 1; nIndex >= 0; --nIndex)
+		if (arrClasses[nIndex] instanceof ParaRun)
 		{
-			if (arrClasses[nIndex] instanceof ParaRun)
-			{
-				oDstRun = arrClasses[nIndex];
-				break;
-			}
+			oDstRun = arrClasses[nIndex];
+			break;
 		}
-
-		if (oDstRun === oRun)
-			return;
 	}
 
-	var RunPr = this.Remove_FromDocument(false);
+	// Ничего никуда не переносим в такой ситуации
+	if (!oDstRun || (oPictureCC && oDstRun === oRun) || oDstRun.GetParentForm())
+	{
+		NearPos.Paragraph.Clear_NearestPosArray();
+		return;
+	}
 
 	// При переносе всегда создаем копию, чтобы в совместном редактировании не было проблем
 	var NewParaDrawing = this.Copy();
+	var RunPr = this.Remove_FromDocument(false);
+
 	this.DocumentContent.Select_DrawingObject(NewParaDrawing.GetId());
 	NewParaDrawing.Add_ToDocument(NearPos, true, RunPr, undefined, oPictureCC);
 };
@@ -1771,6 +1802,15 @@ ParaDrawing.prototype.Remove_FromDocument = function(bRecalculate)
 	var oRun = this.Parent.Get_DrawingObjectRun(this.Id);
 	if (oRun)
 	{
+
+		var oGrObject = this.GraphicObj;
+		if(oGrObject && oGrObject.getObjectType() === AscDFH.historyitem_type_Shape)
+		{
+			if(oGrObject.signatureLine)
+			{
+				oGrObject.setSignature(oGrObject.signatureLine);
+			}
+		}
 		var oPictureCC         = null;
 		var arrContentControls = oRun.GetParentContentControls();
 		for (var nIndex = arrContentControls.length - 1; nIndex >= 0; --nIndex)
@@ -1790,6 +1830,15 @@ ParaDrawing.prototype.Remove_FromDocument = function(bRecalculate)
 			oResult = new CTextPr();
 		else
 			oResult = oRun.GetTextPr();
+
+		if(oGrObject && oGrObject.getObjectType() === AscDFH.historyitem_type_Shape)
+		{
+			if(oGrObject.signatureLine)
+			{
+				editor.sendEvent("asc_onRemoveSignature", oGrObject.signatureLine.id);
+				oGrObject.setSignature(oGrObject.signatureLine);
+			}
+		}
 	}
 
 	if (false != bRecalculate)
@@ -1870,6 +1919,7 @@ ParaDrawing.prototype.Add_ToDocument = function(NearPos, bRecalculate, RunPr, Ru
 	var SelectedContent = new CSelectedContent();
 	SelectedContent.Add(SelectedElement);
 	SelectedContent.SetMoveDrawing(true);
+	SelectedContent.DrawingObjects.push(this);
 
 	NearPos.Paragraph.Parent.InsertContent(SelectedContent, NearPos);
 	NearPos.Paragraph.Clear_NearestPosArray();
@@ -2787,6 +2837,7 @@ ParaDrawing.prototype.copy = function()
 	c.Set_AllowOverlap(this.AllowOverlap);
 	c.Set_WrappingType(this.wrappingType);
 	c.Set_BehindDoc(this.behindDoc);
+	c.SetForm(this.Form);
 	var EE = this.EffectExtent;
 	c.setEffectExtent(EE.L, EE.T, EE.R, EE.B);
 	return c;
@@ -2927,6 +2978,22 @@ ParaDrawing.prototype.PreDelete = function()
 	{
 		arrDocContents[nIndex].PreDelete();
 	}
+	var oGrObject = this.GraphicObj;
+	if(oGrObject && oGrObject.signatureLine)
+	{
+		var oOldSignature = oGrObject.signatureLine;
+		oGrObject.setSignature(null);
+		editor && editor.sendEvent("asc_onRemoveSignature", oOldSignature);
+		oGrObject.setSignature(oOldSignature);
+	}
+};
+ParaDrawing.prototype.CheckSignatureLineOnAdd = function()
+{
+	var oGrObject = this.GraphicObj;
+	if(oGrObject && oGrObject.signatureLine)
+	{
+		editor && editor.sendEvent("asc_onAddSignature", oGrObject.signatureLine.id);
+	}
 };
 ParaDrawing.prototype.CheckContentControlEditingLock = function(){
 	if(this.DocumentContent && this.DocumentContent.CheckContentControlEditingLock){
@@ -2943,6 +3010,17 @@ ParaDrawing.prototype.Document_Is_SelectionLocked = function(CheckType)
 
 ParaDrawing.prototype.CheckDeletingLock = function()
 {
+	if (this.LogicDocument
+		&& this.LogicDocument.IsDocumentEditor()
+		&& (!this.LogicDocument.CanEdit() || this.LogicDocument.IsFillingFormMode()))
+	{
+		return AscCommon.CollaborativeEditing.Add_CheckLock(true);
+	}
+
+	var oForm = this.GetInnerForm();
+	if (oForm)
+		oForm.SkipSpecialContentControlLock(true);
+
 	var arrDocContents = this.GetAllDocContents();
 	for (var nIndex = 0, nCount = arrDocContents.length; nIndex < nCount; ++nIndex)
 	{
@@ -2950,6 +3028,9 @@ ParaDrawing.prototype.CheckDeletingLock = function()
 		arrDocContents[nIndex].Document_Is_SelectionLocked(AscCommon.changestype_Remove);
 		arrDocContents[nIndex].SetApplyToAll(false);
 	}
+
+	if (oForm)
+		oForm.SkipSpecialContentControlLock(false);
 };
 ParaDrawing.prototype.GetAllFields = function(isUseSelection, arrFields)
 {
@@ -2998,6 +3079,26 @@ ParaDrawing.prototype.IsShape = function()
 ParaDrawing.prototype.IsGroup = function()
 {
 	return (this.GraphicObj.getObjectType() === AscDFH.historyitem_type_GroupShape);
+};
+ParaDrawing.prototype.IsComparable = function(oDrawing)
+{
+	if(!oDrawing)
+	{
+		return false;
+	}
+	if(!this.docPr.hasSameNameAndId(oDrawing.docPr))
+	{
+		return false;
+	}
+	if(!this.GraphicObj || !oDrawing.GraphicObj)
+	{
+		return false;
+	}
+	if(this.GraphicObj.getObjectType() !== oDrawing.GraphicObj.getObjectType())
+	{
+		return false;
+	}
+	return this.GraphicObj.isComparable(oDrawing.GraphicObj);
 };
 /**
  * Класс, описывающий текущее положение параграфа при рассчете позиции автофигуры.

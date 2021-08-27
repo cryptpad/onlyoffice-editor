@@ -68,6 +68,11 @@ ChartPreviewManager.prototype.getAscChartSeriesDefault = function(type) {
 	switch(type)
 	{
 		case c_oAscChartTypeSettings.lineNormal:
+		case c_oAscChartTypeSettings.lineNormalMarker:
+		case c_oAscChartTypeSettings.scatterLine:
+		case c_oAscChartTypeSettings.scatterLineMarker:
+		case c_oAscChartTypeSettings.scatterSmooth:
+		case c_oAscChartTypeSettings.scatterSmoothMarker:
 		{
 			ser = new AscFormat.asc_CChartSeria();
 			ser.Val.NumCache = [ createItem(2), createItem(3), createItem(2), createItem(3) ];
@@ -88,6 +93,7 @@ ChartPreviewManager.prototype.getAscChartSeriesDefault = function(type) {
             break;
         }
 		case c_oAscChartTypeSettings.lineStacked:
+		case c_oAscChartTypeSettings.lineStackedMarker:
 		{
 			ser = new AscFormat.asc_CChartSeria();
 			ser.Val.NumCache = [ createItem(1), createItem(6), createItem(2), createItem(8) ];
@@ -98,6 +104,7 @@ ChartPreviewManager.prototype.getAscChartSeriesDefault = function(type) {
 			break;
 		}
 		case c_oAscChartTypeSettings.lineStackedPer:
+		case c_oAscChartTypeSettings.lineStackedPerMarker:
 		{
 			ser = new AscFormat.asc_CChartSeria();
 			ser.Val.NumCache = [ createItem(2), createItem(4), createItem(2), createItem(4) ];
@@ -299,7 +306,7 @@ ChartPreviewManager.prototype.getChartByType = function(type)
 	{
 		var settings = new Asc.asc_ChartSettings();
 		settings.type = type;
-		var chartSeries = {series: this.getAscChartSeriesDefault(type), parsedHeaders: {bLeft: true, bTop: true}};
+		var chartSeries = this.getAscChartSeriesDefault(type);
 		var chart_space = AscFormat.DrawingObjectsController.prototype._getChartSpace(chartSeries, settings, true);
         chart_space.bPreview = true;
 		if (Asc['editor'] && AscCommon.c_oEditorId.Spreadsheet === Asc['editor'].getEditorId()) {
@@ -361,9 +368,6 @@ ChartPreviewManager.prototype.getChartByType = function(type)
 				vert_axis_settings = val_ax_props;
 				hor_axis_settings = val_ax_props;
 				isScatter = true;
-                settings.showMarker = true;
-                settings.smooth = false;
-                settings.bLine = false;
 				break;
 			}
             case c_oAscChartTypeSettings.areaNormal:
@@ -432,12 +436,12 @@ ChartPreviewManager.prototype.clearPreviews = function()
 {
 	this.previewGroups.length = 0;
 };
-ChartPreviewManager.prototype.createChartPreview = function(graphics, type, preset) {
+ChartPreviewManager.prototype.createChartPreview = function(graphics, type, aStyle) {
 	if (!this.chartsByTypes[type]) {
 		this.chartsByTypes[type] = this.getChartByType(type);
 	}
 	var chart_space = this.chartsByTypes[type];
-	AscFormat.ApplyPresetToChartSpace(chart_space, preset);
+	chart_space.applyChartStyleByIds(aStyle);
 	chart_space.recalcInfo.recalculateReferences = false;
 	chart_space.recalculate();
 	graphics.save();
@@ -455,13 +459,8 @@ ChartPreviewManager.prototype._isCachedChartStyles = function(chartType) {
 ChartPreviewManager.prototype._getGraphics = function() {
 	if (null === this._canvas_charts) {
 		this._canvas_charts = document.createElement('canvas');
-		this._canvas_charts.width = this.CHART_PREVIEW_WIDTH_PIX;
-		this._canvas_charts.height = this.CHART_PREVIEW_HEIGHT_PIX;
-
-		if (AscCommon.AscBrowser.isRetina) {
-			this._canvas_charts.width = AscCommon.AscBrowser.convertToRetinaValue(this._canvas_charts.width, true);
-			this._canvas_charts.height = AscCommon.AscBrowser.convertToRetinaValue(this._canvas_charts.height, true);
-		}
+		this._canvas_charts.width = AscCommon.AscBrowser.convertToRetinaValue(this.CHART_PREVIEW_WIDTH_PIX, true);
+		this._canvas_charts.height = AscCommon.AscBrowser.convertToRetinaValue(this.CHART_PREVIEW_HEIGHT_PIX, true);
 	}
 
 	var _canvas = this._canvas_charts;
@@ -476,12 +475,12 @@ ChartPreviewManager.prototype._getGraphics = function() {
 ChartPreviewManager.prototype.getChartPreviews = function(chartType) {
 	if (AscFormat.isRealNumber(chartType)) {
 		if (!this._isCachedChartStyles(chartType)) {
-			var presets = AscCommon.g_oChartPresets[chartType];
-			if (presets) {
+			var aStyles = AscCommon.g_oChartStyles[chartType];
+			if (Array.isArray(aStyles)) {
 				AscFormat.ExecuteNoHistory(function () {
 					var graphics = this._getGraphics();
-					for (var i = 0; i < presets.length; ++i) {
-						this.createChartPreview(graphics, chartType, presets[i]);
+					for (var i = 0; i < aStyles.length; ++i) {
+						this.createChartPreview(graphics, chartType, aStyles[i]);
 						if (!window["IS_NATIVE_EDITOR"]) {
 							var chartStyle = new AscCommon.CStyleImage();
 							chartStyle.name = i + 1;
@@ -693,16 +692,16 @@ TextArtPreviewManager.prototype.getCanvas = function()
 {
 	if (null === this.canvas)
 	{
-		this.canvas = document.createElement('canvas');
-		this.canvas.width = this.canvasWidth;
-		this.canvas.height = this.canvasHeight;
-
-		if (AscCommon.AscBrowser.isRetina) {
-			this.canvas.width <<= 1;
-			this.canvas.height <<= 1;
-		}
+		this.canvas = this.createCanvas();
 	}
 	return this.canvas;
+};
+TextArtPreviewManager.prototype.createCanvas = function()
+{
+	var oCanvas = document.createElement('canvas');
+	oCanvas.width = AscCommon.AscBrowser.convertToRetinaValue(this.canvasWidth, true);
+	oCanvas.height = AscCommon.AscBrowser.convertToRetinaValue(this.canvasHeight, true);
+	return oCanvas;
 };
 
 TextArtPreviewManager.prototype.getShapeByPrst = function(prst)
@@ -774,7 +773,7 @@ TextArtPreviewManager.prototype.getShapeByPrst = function(prst)
 	}
 	oContent.SetApplyToAll(true);
 	oContent.SetParagraphAlign(AscCommon.align_Center);
-	oContent.AddToParagraph(new ParaTextPr({FontSize: 36, Spacing: TextSpacing}));
+	oContent.AddToParagraph(new ParaTextPr({FontSize: 36, Spacing: TextSpacing, Unifill: AscFormat.CreateUnfilFromRGB(0, 0, 0)}));
 	oContent.SetApplyToAll(false);
 
 	var oBodypr = oShape.getBodyPr().createDuplicate();
@@ -783,6 +782,10 @@ TextArtPreviewManager.prototype.getShapeByPrst = function(prst)
 		{
 			return AscFormat.CreatePrstTxWarpGeometry(prst)
 		}, []);
+	oBodypr.lIns = 2.54;
+	oBodypr.tIns = 2.54;
+	oBodypr.rIns = 2.54;
+	oBodypr.bIns = 2.54;
 	if(!oShape.bWordShape)
 	{
 		oShape.txBody.setBodyPr(oBodypr);
@@ -792,7 +795,12 @@ TextArtPreviewManager.prototype.getShapeByPrst = function(prst)
 		oShape.setBodyPr(oBodypr);
 	}
 	oShape.setBDeleted(false);
+	oShape.recalcText();
 	oShape.recalculate();
+	if(oShape.bWordShape)
+	{
+		oShape.recalculateText();
+	}
 	return oShape;
 };
 TextArtPreviewManager.prototype.getShape =  function()
@@ -856,36 +864,43 @@ TextArtPreviewManager.prototype.getShape =  function()
 
 TextArtPreviewManager.prototype.getTAShape = function()
 {
-	if(!this.TAShape)
+	if (!this.TAShape)
 	{
-
 		var MainLogicDocument = (editor && editor.WordControl && editor.WordControl.m_oLogicDocument ? editor && editor.WordControl && editor.WordControl.m_oLogicDocument : null);
-		var TrackRevisions = (MainLogicDocument && MainLogicDocument.IsTrackRevisions ? MainLogicDocument.IsTrackRevisions() : false);
-		if (MainLogicDocument && true === TrackRevisions)
-			MainLogicDocument.SetTrackRevisions(false);
-		var oShape = this.getShape();
-        if(!oShape)
-        {
-			if (MainLogicDocument && true === TrackRevisions)
-				MainLogicDocument.SetTrackRevisions(true);
-            return null;
-        }
-		var oContent = oShape.getDocContent();
-		if(oContent)
+		var TrackRevisions    = false;
+		if (MainLogicDocument && MainLogicDocument.IsTrackRevisions && MainLogicDocument.IsTrackRevisions())
 		{
-			if(oContent.MoveCursorToStartPos)
+			TrackRevisions = MainLogicDocument.GetLocalTrackRevisions();
+			MainLogicDocument.SetLocalTrackRevisions(false);
+		}
+
+		var oShape = this.getShape();
+		if (!oShape)
+		{
+			if (false !== TrackRevisions)
+				MainLogicDocument.SetLocalTrackRevisions(TrackRevisions);
+
+			return null;
+		}
+
+		var oContent = oShape.getDocContent();
+		if (oContent)
+		{
+			if (oContent.MoveCursorToStartPos)
 			{
 				oContent.MoveCursorToStartPos();
 			}
 			oContent.AddText("Ta");
 			oContent.SetApplyToAll(true);
-			oContent.AddToParagraph(new ParaTextPr({FontSize: 109, RFonts: {Ascii : {Name: "Arial", Index: -1}}}));
+			oContent.AddToParagraph(new ParaTextPr({FontSize : 109, RFonts : {Ascii : {Name : "Arial", Index : -1}}}));
 			oContent.SetParagraphAlign(AscCommon.align_Center);
-			oContent.SetParagraphIndent({FirstLine: 0, Left: 0, Right: 0});
+			oContent.SetParagraphIndent({FirstLine : 0, Left : 0, Right : 0});
 			oContent.SetApplyToAll(false);
 		}
-		if (MainLogicDocument && true === TrackRevisions)
-			MainLogicDocument.SetTrackRevisions(true);
+
+		if (false !== TrackRevisions)
+			MainLogicDocument.SetLocalTrackRevisions(TrackRevisions);
+
 		this.TAShape = oShape;
 	}
 	return this.TAShape;
@@ -893,7 +908,26 @@ TextArtPreviewManager.prototype.getTAShape = function()
 
 TextArtPreviewManager.prototype.getWordArtPreview = function(prst)
 {
-	var _canvas = this.getCanvas();
+	return this.getWordArtPreviewCanvas(prst).toDataURL("image/png");
+};
+TextArtPreviewManager.prototype.getWordArtPreviews = function()
+{
+	return AscFormat.ExecuteNoHistory(function(){
+		var aRet = [];
+		for(var nIdx = 0; nIdx < AscCommon.g_aTextArtPresets.length; ++nIdx)
+		{
+			var sPreset = AscCommon.g_aTextArtPresets[nIdx];
+			var oPreview = {};
+			oPreview["Type"] = sPreset;
+			oPreview["Image"] = this.getWordArtPreview(sPreset);
+			aRet.push(oPreview);
+		}
+		return aRet;
+	}, this, []);
+};
+TextArtPreviewManager.prototype.getWordArtPreviewCanvas = function(prst)
+{
+	var _canvas = this.createCanvas();
 	var ctx = _canvas.getContext('2d');
 	var graphics = new AscCommon.CGraphics();
 	var oShape = this.getShapeByPrst(prst);
@@ -917,7 +951,7 @@ TextArtPreviewManager.prototype.getWordArtPreview = function(prst)
 	{
 		editor.ShowParaMarks = oldShowParaMarks;
 	}
-	return _canvas.toDataURL("image/png");
+	return _canvas;
 };
 
 TextArtPreviewManager.prototype.generateTextArtStyles = function()
@@ -975,26 +1009,6 @@ TextArtPreviewManager.prototype.generateTextArtStyles = function()
     }, this, []);
 };
 
-
-
-function GenerateWordArtPrewiewCode()
-{
-	var oWordArtPreview = new TextArtPreviewManager();
-	var i, j;
-	var oRetString =  "g_PresetTxWarpTypes = \n [";
-	for(i = 0; i < AscCommon.g_PresetTxWarpTypes.length; ++i)
-	{
-		var aByTypes = AscCommon.g_PresetTxWarpTypes[i];
-		oRetString += "\n\t[";
-		for(j = 0; j < aByTypes.length; ++j)
-		{
-			oRetString += "\n\t\t{Type: \"" + aByTypes[j]['Type'] + "\", Image: \"" + oWordArtPreview.getWordArtPreview(aByTypes[j]['Image']) + "\"}" + ((j === aByTypes.length - 1) ? "" : ",");
-		}
-		oRetString += "\n\t]" + (i < (AscCommon.g_PresetTxWarpTypes.length - 1) ? "," : "");
-	}
-	oRetString += "\n];";
-	return oRetString;
-}
 
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};

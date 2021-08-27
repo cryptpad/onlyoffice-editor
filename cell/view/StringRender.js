@@ -873,7 +873,7 @@
 
 				if (fmt.getRepeat()) {
 					if (hasRepeats)
-						throw "Repeat should occur no more than once";
+						throw new Error("Repeat should occur no more than once");
 
 					this._getCharPropAt(pIndex).repeat = true;
 					this._getCharPropAt(pIndex).total = 0;
@@ -904,7 +904,7 @@
 
             if (hasRepeats) {
                 if (maxWidth === undefined) {
-                    throw "Undefined width of cell width Numeric Format";
+                    throw new Error("Undefined width of cell width Numeric Format");
                 }
                 this._insertRepeatChars(maxWidth);
             }

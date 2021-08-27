@@ -76,7 +76,9 @@
 			this.m_oInsertColumns			= {}; // Массив листов с массивами списков добавленных колонок
 			this.m_oInsertRows				= {}; // Массив листов с массивами списков добавленных строк
 
-      this.m_bFast  = false;
+			this.m_bFast = false;
+
+			this.m_aForeignCursorsData = {};
 
 			this.init();
 
@@ -108,12 +110,12 @@
 			this.m_bIsViewerMode = isViewerMode;
 		};
 
-  CCollaborativeEditing.prototype.setFast = function (bFast) {
-    return this.m_bFast = bFast;
-  };
-  CCollaborativeEditing.prototype.getFast = function () {
-    return this.m_bFast;
-  };
+		CCollaborativeEditing.prototype.setFast = function (bFast) {
+			return this.m_bFast = bFast;
+		};
+		CCollaborativeEditing.prototype.getFast = function () {
+			return this.m_bFast;
+		};
 		CCollaborativeEditing.prototype.Is_SingleUser = function () {
 			return !this.getCollaborativeEditing();
 		};
@@ -123,9 +125,9 @@
 			return 1 !== this.m_nUseType;
 		};
 
-  CCollaborativeEditing.prototype.haveOtherChanges = function () {
-    return 0 < this.m_arrChanges.length;
-  };
+		CCollaborativeEditing.prototype.haveOtherChanges = function () {
+			return 0 < this.m_arrChanges.length;
+		};
 
 		CCollaborativeEditing.prototype.getOwnLocksLength = function () {
 			return this.m_arrNeedUnlock2.length;
@@ -317,7 +319,7 @@
 				for (;nIndex < nCount; ++nIndex) {
 					oLock = this.m_arrNeedUnlock[nIndex];
 					if (c_oAscLockTypes.kLockTypeOther2 === oLock.getType()) {
-						if (!this.handlers.trigger("checkCommentRemoveLock", oLock.Element)) {
+						if (!this.handlers.trigger("checkCommentRemoveLock", oLock.Element) && !this.handlers.trigger("checkCFRemoveLock", oLock.Element)) {
 							drawing = AscCommon.g_oTableId.Get_ById(oLock.Element["rangeOrObjectId"]);
 							if(drawing && drawing.lockType !== c_oAscLockTypes.kLockTypeNone) {
 								var bLocked = drawing.lockType !== c_oAscLockTypes.kLockTypeNone && drawing.lockType !== c_oAscLockTypes.kLockTypeMine;
@@ -380,6 +382,8 @@
 				this.handlers.trigger("onUpdateAllPrintScaleLock");
 				this.handlers.trigger("updateAllSheetViewLock");
 
+				this.handlers.trigger("unlockCF");
+				this.handlers.trigger("unlockProtectedRange");
 
 				if (0 === this.m_nUseType)
 					this.m_nUseType = 1;
@@ -687,44 +691,44 @@
 
 		// Undo для добавления/удаления столбцов
 		CCollaborativeEditing.prototype.undoCols = function (sheetId, count) {
-      if (!this.m_oRecalcIndexColumns.hasOwnProperty(sheetId))
-        return;
-      this.m_oRecalcIndexColumns[sheetId].remove(count);
+			if (!this.m_oRecalcIndexColumns.hasOwnProperty(sheetId))
+				return;
+			this.m_oRecalcIndexColumns[sheetId].remove(count);
 		};
 		// Undo для добавления/удаления строк
 		CCollaborativeEditing.prototype.undoRows = function (sheetId, count) {
-      if (!this.m_oRecalcIndexRows.hasOwnProperty(sheetId))
-        return;
-      this.m_oRecalcIndexRows[sheetId].remove(count);
+			if (!this.m_oRecalcIndexRows.hasOwnProperty(sheetId))
+				return;
+			this.m_oRecalcIndexRows[sheetId].remove(count);
 		};
 
 		CCollaborativeEditing.prototype.removeCols = function (sheetId, position, count) {
-      if (!this.m_oRecalcIndexColumns.hasOwnProperty(sheetId)) {
-        this.m_oRecalcIndexColumns[sheetId] = new CRecalcIndex();
-      }
-      this.m_oRecalcIndexColumns[sheetId].add(c_oAscRecalcIndexTypes.RecalcIndexRemove, position,
-        count, /*bIsSaveIndex*/false);
+			if (!this.m_oRecalcIndexColumns.hasOwnProperty(sheetId)) {
+				this.m_oRecalcIndexColumns[sheetId] = new CRecalcIndex();
+			}
+			this.m_oRecalcIndexColumns[sheetId].add(c_oAscRecalcIndexTypes.RecalcIndexRemove, position,
+				count, /*bIsSaveIndex*/false);
 		};
 		CCollaborativeEditing.prototype.addCols = function (sheetId, position, count) {
-      if (!this.m_oRecalcIndexColumns.hasOwnProperty(sheetId)) {
-        this.m_oRecalcIndexColumns[sheetId] = new CRecalcIndex();
-      }
-      this.m_oRecalcIndexColumns[sheetId].add(c_oAscRecalcIndexTypes.RecalcIndexAdd, position,
-        count, /*bIsSaveIndex*/false);
+			if (!this.m_oRecalcIndexColumns.hasOwnProperty(sheetId)) {
+				this.m_oRecalcIndexColumns[sheetId] = new CRecalcIndex();
+			}
+			this.m_oRecalcIndexColumns[sheetId].add(c_oAscRecalcIndexTypes.RecalcIndexAdd, position,
+				count, /*bIsSaveIndex*/false);
 		};
 		CCollaborativeEditing.prototype.removeRows = function (sheetId, position, count) {
-      if (!this.m_oRecalcIndexRows.hasOwnProperty(sheetId)) {
-        this.m_oRecalcIndexRows[sheetId] = new CRecalcIndex();
-      }
-      this.m_oRecalcIndexRows[sheetId].add(c_oAscRecalcIndexTypes.RecalcIndexRemove, position,
-        count, /*bIsSaveIndex*/false);
+			if (!this.m_oRecalcIndexRows.hasOwnProperty(sheetId)) {
+				this.m_oRecalcIndexRows[sheetId] = new CRecalcIndex();
+			}
+			this.m_oRecalcIndexRows[sheetId].add(c_oAscRecalcIndexTypes.RecalcIndexRemove, position,
+				count, /*bIsSaveIndex*/false);
 		};
 		CCollaborativeEditing.prototype.addRows = function (sheetId, position, count) {
-      if (!this.m_oRecalcIndexRows.hasOwnProperty(sheetId)) {
-        this.m_oRecalcIndexRows[sheetId] = new CRecalcIndex();
-      }
-      this.m_oRecalcIndexRows[sheetId].add(c_oAscRecalcIndexTypes.RecalcIndexAdd, position,
-        count, /*bIsSaveIndex*/false);
+			if (!this.m_oRecalcIndexRows.hasOwnProperty(sheetId)) {
+				this.m_oRecalcIndexRows[sheetId] = new CRecalcIndex();
+			}
+			this.m_oRecalcIndexRows[sheetId].add(c_oAscRecalcIndexTypes.RecalcIndexAdd, position,
+				count, /*bIsSaveIndex*/false);
 		};
 		CCollaborativeEditing.prototype.addColsRange = function (sheetId, range) {
 			if (!this.m_oInsertColumns.hasOwnProperty(sheetId)) {
@@ -889,6 +893,95 @@
 			if (!this.m_oRecalcIndexRows.hasOwnProperty(sheetId))
 				return row;
 			return this.m_oRecalcIndexRows[sheetId].getLockSaveOther(row);
+		};
+		CCollaborativeEditing.prototype.checkObjectsLock = function(aObjectId, callback) {
+			var oApi = Asc.editor;
+			var bCanNotEdit = this.getGlobalLock() || oApi && !oApi.canEdit();
+			if(bCanNotEdit) {
+				if(callback) {
+					callback(false, true);
+				}
+				return false;
+			}
+			if(oApi) {
+				oApi.incrementCounterLongAction();
+			}
+			var callbackEx = function(result, sync) {
+				if(oApi) {
+					oApi.decrementCounterLongAction();
+				}
+				if ( callback )
+					callback(result, sync);
+			};
+			var bRet = true;
+			if (!aObjectId.length) {
+				asc_applyFunction(callbackEx, true, true);
+				return bRet;
+			}
+			this.onStartCheckLock();
+			for ( var i = 0; i < aObjectId.length; i++ ) {
+				var lockInfo = this.getLockInfo( AscCommonExcel.c_oAscLockTypeElem.Object, null, "", aObjectId[i] );
+				if ( false === this.getCollaborativeEditing() ) {
+					asc_applyFunction(callbackEx, true, true);
+					callbackEx = undefined;
+				}
+				if ( false !== this.getLockIntersection(lockInfo, c_oAscLockTypes.kLockTypeMine, false) ) {
+					continue;
+				}
+				else if ( false !== this.getLockIntersection(lockInfo, c_oAscLockTypes.kLockTypeOther, false) ) {
+					asc_applyFunction(callbackEx, false);
+					return false;
+				}
+				this.addCheckLock(lockInfo);
+			}
+			this.onEndCheckLock(callbackEx);
+			return bRet;
+		};
+		CCollaborativeEditing.prototype.Add_ForeignCursor = function(UserId, DocumentPos, UserShortId)
+		{
+			var isEqual = function (val1, val2) {
+				var res = false;
+				if (val1.isEdit === val2.isEdit && val1.sheetId === val2.sheetId) {
+					if (val1.ranges.length === val2.ranges.length) {
+						res = true;
+						for (var i = 0; i < val1.ranges.length; i++) {
+							if (!val1.ranges[i].isEqual(val2.ranges[i])) {
+								res = false;
+								break;
+							}
+						}
+					}
+				}
+				return res;
+			};
+
+			if (this.m_aForeignCursorsData[UserId] && isEqual(this.m_aForeignCursorsData[UserId], DocumentPos)) {
+				return false;
+			}
+
+			if (DocumentPos) {
+				DocumentPos.shortId = UserShortId;
+			}
+			this.m_aForeignCursorsData[UserId] = DocumentPos;
+
+			return true;
+		};
+		CCollaborativeEditing.prototype.Remove_ForeignCursor = function(UserId){
+			delete this.m_aForeignCursorsData[UserId];
+		};
+		CCollaborativeEditing.prototype.getForeignSelectIntersection = function(col, row){
+			var res = null;
+			for (var i in this.m_aForeignCursorsData) {
+				if (this.m_aForeignCursorsData[i]) {
+					for (var j = 0; j < this.m_aForeignCursorsData[i].ranges.length; j++) {
+						if (this.m_aForeignCursorsData[i].ranges[j].contains(col, row)) {
+							res = this.m_aForeignCursorsData[i];
+							res.userId = i;
+						}
+					}
+				}
+			}
+			return res;
 		};
 
 		/**

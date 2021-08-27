@@ -171,6 +171,15 @@ var PARATEXT_FLAGS_NON_CAPITALS           = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS
 
 var TEXTWIDTH_DIVIDER = 16384;
 
+var AUTOCORRECT_FLAGS_NONE                  = 0x00000000;
+var AUTOCORRECT_FLAGS_ALL                   = 0xFFFFFFFF;
+var AUTOCORRECT_FLAGS_FRENCH_PUNCTUATION    = 0x00000001;
+var AUTOCORRECT_FLAGS_SMART_QUOTES          = 0x00000002;
+var AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH      = 0x00000004;
+var AUTOCORRECT_FLAGS_HYPERLINK             = 0x00000008;
+var AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE = 0x00000010;
+var AUTOCORRECT_FLAGS_NUMBERING             = 0x00000020;
+
 /**
  * Базовый класс для элементов, лежащих внутри рана.
  * @constructor
@@ -242,12 +251,28 @@ CRunElementBase.prototype.IsDiacriticalSymbol = function()
 	return false;
 };
 /**
- * Проверять ли автозамену на вводе данного элемента
+ * Может ли строка начинаться с данного элемента
  * @returns {boolean}
  */
-CRunElementBase.prototype.CanStartAutoCorrect = function()
+CRunElementBase.prototype.CanBeAtBeginOfLine = function()
 {
-	return false;
+	return true;
+};
+/**
+ * Может ли строка заканчиваться данным элементом
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.CanBeAtEndOfLine = function()
+{
+	return true;
+};
+/**
+ * Какие мы можем выполнять автозамены на вводе данного элемента
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.GetAutoCorrectFlags = function()
+{
+	return AUTOCORRECT_FLAGS_NONE;
 };
 /**
  * Является ли данный элемент символом пунктуации
@@ -266,6 +291,22 @@ CRunElementBase.prototype.IsDot = function()
 	return false;
 };
 /**
+ * Проверяем является ли элемент символом знака восклицания
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsExclamationMark = function()
+{
+	return false;
+};
+/**
+ * Проверяем является ли элемент символом знака вопроса
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsQuestionMark = function()
+{
+	return false;
+};
+/**
  * Является ли данный элемент символом дефиса
  * @returns {boolean}
  */
@@ -280,6 +321,22 @@ CRunElementBase.prototype.IsHyphen = function()
 CRunElementBase.prototype.IsEqual = function(oElement)
 {
 	return (this.Type === oElement.Type)
+};
+/**
+ * Нужно ли ставить разрыв слова после данного элемента
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsSpaceAfter = function()
+{
+	return false;
+};
+/**
+ * Является ли данный элемент буквой (не цифрой, не знаком пунктуации и т.д.)
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsLetter = function()
+{
+	return false;
 };
 
 /**
@@ -526,7 +583,7 @@ ParaText.prototype.CanBeAtEndOfLine = function()
 
 	return (!(AscCommon.g_aPunctuation[this.Value] & AscCommon.PUNCTUATION_FLAG_CANT_BE_AT_END));
 };
-ParaText.prototype.CanStartAutoCorrect = function()
+ParaText.prototype.GetAutoCorrectFlags = function()
 {
 	// 33 !
 	// 34 "
@@ -535,14 +592,18 @@ ParaText.prototype.CanStartAutoCorrect = function()
 	// 58 :
 	// 59 ;
 	// 63 ?
+	if (33 === this.Value
+		|| 34 === this.Value
+		|| 39 === this.Value
+		|| 45 === this.Value
+		|| 58 === this.Value
+		|| 59 === this.Value
+		|| 63 === this.Value)
+		return AUTOCORRECT_FLAGS_ALL;
 
-	return (33 === this.Value
-	|| 34 === this.Value
-	|| 39 === this.Value
-	|| 45 === this.Value
-	|| 58 === this.Value
-	|| 59 === this.Value
-	|| 63 === this.Value);
+	// слэш и обратный слэш - исключения, на них мы не должны стартовать атозамену первой буквы предложения
+	if ((this.IsPunctuation() || this.Is_Number()) && 92 !== this.Value && 47 !== this.Value)
+		return AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE | AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH;
 };
 ParaText.prototype.IsDiacriticalSymbol = function()
 {
@@ -551,6 +612,14 @@ ParaText.prototype.IsDiacriticalSymbol = function()
 ParaText.prototype.IsDot = function()
 {
 	return (this.Value === 0x002E);
+};
+ParaText.prototype.IsExclamationMark = function()
+{
+	return (this.Value === 0x0021);
+};
+ParaText.prototype.IsQuestionMark = function()
+{
+	return (this.Value === 0x003F);
 };
 ParaText.prototype.IsHyphen = function()
 {
@@ -561,7 +630,8 @@ ParaText.prototype.SetGaps = function(nLeftGap, nRightGap)
 	this.LGap = nLeftGap;
 	this.RGap = nRightGap;
 
-	this.Width += ((nLeftGap + nRightGap) * TEXTWIDTH_DIVIDER) | 0;
+	this.Width        += ((nLeftGap + nRightGap) * TEXTWIDTH_DIVIDER) | 0;
+	this.WidthVisible += ((nLeftGap + nRightGap) * TEXTWIDTH_DIVIDER) | 0;
 };
 ParaText.prototype.ResetGapBackground = function()
 {
@@ -627,6 +697,10 @@ ParaText.prototype.private_DrawGapsBackground = function(X, Y, oContext, PDSE, o
 	if (this.RGapFont)
 		oContext.SetTextPr(oTextPr, PDSE.Theme);
 };
+ParaText.prototype.IsLetter = function()
+{
+	return (!this.IsPunctuation() && !this.Is_Number() && !this.IsNBSP());
+};
 
 
 /**
@@ -644,6 +718,9 @@ function ParaSpace(nCharCode)
     this.Width        = 0x00000000 | 0;
     this.WidthVisible = 0x00000000 | 0;
     this.WidthOrigin  = 0x00000000 | 0;
+
+	if (AscFonts.IsCheckSymbols)
+		AscFonts.FontPickerByCharacter.getFontBySymbol(this.Value);
 }
 ParaSpace.prototype = Object.create(CRunElementBase.prototype);
 ParaSpace.prototype.constructor = ParaSpace;
@@ -700,6 +777,12 @@ ParaSpace.prototype.Measure = function(Context, TextPr)
 		this.SpaceGap = 0;
 
 	// Не меняем здесь WidthVisible, это значение для пробела высчитывается отдельно, и не должно меняться при пересчете
+
+	if (this.LGap || this.RGap)
+	{
+		delete this.LGap;
+		delete this.RGap;
+	}
 };
 ParaSpace.prototype.Get_FontKoef = function()
 {
@@ -750,9 +833,9 @@ ParaSpace.prototype.Read_FromBinary = function(Reader)
 {
 	this.Value = Reader.GetLong();
 };
-ParaSpace.prototype.CanStartAutoCorrect = function()
+ParaSpace.prototype.GetAutoCorrectFlags = function()
 {
-	return true;
+	return AUTOCORRECT_FLAGS_ALL;
 };
 ParaSpace.prototype.SetCondensedWidth = function(nKoef)
 {
@@ -1062,6 +1145,12 @@ ParaEnd.prototype.Write_ToBinary = function(Writer)
 ParaEnd.prototype.Read_FromBinary = function(Reader)
 {
 };
+ParaEnd.prototype.GetAutoCorrectFlags = function()
+{
+	return (AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE
+		| AUTOCORRECT_FLAGS_HYPERLINK
+		| AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH);
+};
 
 /**
  * Класс представляющий разрыв строки/колонки/страницы
@@ -1353,6 +1442,11 @@ ParaNewLine.prototype.IsColumnBreak = function()
 ParaNewLine.prototype.IsLineBreak = function()
 {
 	return (break_Line === this.BreakType);
+};
+ParaNewLine.prototype.GetAutoCorrectFlags = function()
+{
+	return (AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE
+		| AUTOCORRECT_FLAGS_HYPERLINK);
 };
 
 

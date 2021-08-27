@@ -481,128 +481,11 @@ var g_nFormulaStringMaxLength = 255;
 
 
 
-Math.sinh = function ( arg ) {
-    return (this.pow( this.E, arg ) - this.pow( this.E, -arg )) / 2;
-};
-
-Math.cosh = function ( arg ) {
-    return (this.pow( this.E, arg ) + this.pow( this.E, -arg )) / 2;
-};
-
-Math.tanh = Math.tanh || function(x) {
-	if (x === Infinity) {
-		return 1;
-	} else if (x === -Infinity) {
-		return -1;
-	} else {
-		var y = Math.exp(2 * x);
-		if (y === Infinity) {
-			return 1;
-		} else if (y === -Infinity) {
-			return -1;
-		}
-		return (y - 1) / (y + 1);
-	}
-};
-
-Math.asinh = function ( arg ) {
-    return this.log( arg + this.sqrt( arg * arg + 1 ) );
-};
-
-Math.acosh = function ( arg ) {
-    return this.log( arg + this.sqrt( arg + 1 ) * this.sqrt( arg - 1 ) );
-};
-
-Math.atanh = function ( arg ) {
-    return 0.5 * this.log( (1 + arg) / (1 - arg) );
-};
-
-Math.fact = function ( n ) {
-    var res = 1;
-    n = this.floor( n );
-    if ( n < 0 ) {
-        return NaN;
-  } else if (n > 170) {
-        return Infinity;
-    }
-    while ( n !== 0 ) {
-        res *= n--;
-    }
-    return res;
-};
-
-Math.doubleFact = function ( n ) {
-    var res = 1;
-    n = this.floor( n );
-    if ( n < 0 ) {
-        return NaN;
-  } else if (n > 170) {
-        return Infinity;
-    }
-//    n = Math.floor((n+1)/2);
-    while ( n > 0 ) {
-        res *= n;
-        n -= 2;
-    }
-    return res;
-};
-
-Math.factor = function ( n ) {
-    var res = 1;
-    n = this.floor( n );
-    while ( n !== 0 ) {
-        res = res * n--;
-    }
-    return res;
-};
-
-Math.ln = Math.log;
-
-Math.log10 = function ( x ) {
-    return this.log( x ) / this.log( 10 );
-};
-
-Math.log1p = Math.log1p || function(x) {
-	return Math.log(1 + x);
-};
-
-Math.expm1 = Math.expm1 || function(x) {
-	return Math.exp(x) - 1;
-};
-
 Math.fmod = function ( a, b ) {
-    return Number( (a - (this.floor( a / b ) * b)).toPrecision( cExcelSignificantDigits ) );
+	return Number( (a - (this.floor( a / b ) * b)).toPrecision( cExcelSignificantDigits ) );
 };
 
-Math.binomCoeff = function ( n, k ) {
-    return this.fact( n ) / (this.fact( k ) * this.fact( n - k ));
-};
 
-Math.permut = function ( n, k ) {
-    return this.floor( this.fact( n ) / this.fact( n - k ) + 0.5 );
-};
-
-Math.approxEqual = function ( a, b ) {
-    if ( a === b ) {
-        return true;
-    }
-    return this.abs( a - b ) < 1e-15;
-};
-
-if (typeof Math.sign != 'function') {
-	Math['sign'] = Math.sign = function (n) {
-		return n == 0 ? 0 : n < 0 ? -1 : 1;
-	};
-}
-
-Math.trunc = Math.trunc || function(v) {
-	v = +v;
-	return (v - v % 1)   ||   (!isFinite(v) || v === 0 ? v : v < 0 ? -0 : 0);
-};
-
-RegExp.escape = function ( text ) {
-    return text.replace( /[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&" );
-};
 
 parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSeparator);
 
@@ -4964,7 +4847,7 @@ _func.binarySearchByRange = function ( sElem, area, regExp ) {
 	var bbox, ws;
 	if (cElementType.cellsRange3D === area.type) {
 		bbox = area.bbox;
-		ws = area.getWs();
+		ws = area.getWS();
 	} else if (cElementType.cellsRange === area.type) {
 		bbox = area.range.bbox;
 		ws = area.ws;
@@ -6151,7 +6034,7 @@ function parserFormula( formula, parent, _ws ) {
 					parseResult.activeArgumentPos = argFuncMap[currentFuncLevel].count;
 				}
 			}
-			if (argPosArrMap[currentFuncLevel]) {
+			if (argPosArrMap[currentFuncLevel] && levelFuncMap[currentFuncLevel]) {
 				//проверяем, вдруг данная функция может принимать в качестве данного аргумента массив
 				var _curFunc = levelFuncMap[currentFuncLevel].func;
 				var _curArg = argPosArrMap[currentFuncLevel].length;
@@ -7420,10 +7303,25 @@ function parserFormula( formula, parent, _ws ) {
 					var range = wsR[j];
 					if (range) {
 						this._buildDependenciesRef(range.getWorksheet().getId(), range.getBBox0(), isDefName, true);
-						}
-							}
-						}
 					}
+				}
+			} else if (cElementType.operator === ref.type && ref.name === ":" && this.outStack[i - 1] &&
+				this.outStack[i - 2] &&
+				((cElementType.cell === this.outStack[i - 1].type && cElementType.cell === this.outStack[i - 2].type) ||
+				(cElementType.cell3D === this.outStack[i - 1].type &&
+				cElementType.cell3D === this.outStack[i - 2].type)) && this.outStack[i - 1].isValid() &&
+				this.outStack[i - 2].isValid()) {
+				var _wsId = this.outStack[i - 1].getWsId();
+				if (_wsId === this.outStack[i - 2].getWsId()) {
+					var _ref1 = this.outStack[i - 2].getRange().getBBox0();
+					var _ref2 = this.outStack[i - 1].getRange().getBBox0();
+					if (_ref1 && _ref2 && _ref1.c1 <= _ref2.c1 && _ref1.r1 <= _ref2.r1) {
+						var _range = new Asc.Range(_ref1.c1, _ref1.r1, _ref2.c1, _ref2.r1);
+						this._buildDependenciesRef(_wsId, _range, isDefName, true);
+					}
+				}
+			}
+		}
 	};
 	parserFormula.prototype.removeDependencies = function() {
 		if (!this.isInDependencies) {
@@ -7459,9 +7357,24 @@ function parserFormula( formula, parent, _ws ) {
 					var range = wsR[j];
 					if (range) {
 						this._buildDependenciesRef(range.getWorksheet().getId(), range.getBBox0(), isDefName, false);
-				}
 					}
 				}
+			} else if (cElementType.operator === ref.type && ref.name === ":" && this.outStack[i - 1] &&
+				this.outStack[i - 2] &&
+				((cElementType.cell === this.outStack[i - 1].type && cElementType.cell === this.outStack[i - 2].type) ||
+				(cElementType.cell3D === this.outStack[i - 1].type &&
+				cElementType.cell3D === this.outStack[i - 2].type)) && this.outStack[i - 1].isValid() &&
+				this.outStack[i - 2].isValid()) {
+				var _wsId = this.outStack[i - 1].getWsId();
+				if (_wsId === this.outStack[i - 2].getWsId()) {
+					var _ref1 = this.outStack[i - 2].getRange().getBBox0();
+					var _ref2 = this.outStack[i - 1].getRange().getBBox0();
+					if (_ref1 && _ref2 && _ref1.c1 <= _ref2.c1 && _ref1.r1 <= _ref2.r1) {
+						var _range = new Asc.Range(_ref1.c1, _ref1.r1, _ref2.c1, _ref2.r1);
+						this._buildDependenciesRef(_wsId, _range, isDefName, false);
+					}
+				}
+			}
 		}
 	};
 	parserFormula.prototype._buildDependenciesRef = function(wsId, bbox, isDefName, isStart) {
@@ -7622,7 +7535,7 @@ function parserFormula( formula, parent, _ws ) {
 		}
 		return false;
 	};
-	parserFormula.prototype.simplifyRefType = function(val, opt_ws, opt_row, opt_col) {
+	parserFormula.prototype.simplifyRefType = function (val, opt_ws, opt_row, opt_col) {
 		var ref = this.getArrayFormulaRef(), row, col;
 
 		if (cElementType.cell === val.type || cElementType.cell3D === val.type) {
@@ -7632,10 +7545,10 @@ function parserFormula( formula, parent, _ws ) {
 				val = new cNumber(0);
 			}
 		} else if (cElementType.array === val.type) {
-			if(ref && opt_ws) {
+			if (ref && opt_ws) {
 				row = 1 === val.array.length ? 0 : opt_row - ref.r1;
 				col = 1 === val.array[0].length ? 0 : opt_col - ref.c1;
-				if(val.array[row] && val.array[row][col]) {
+				if (val.array[row] && val.array[row][col]) {
 					val = val.getElementRowCol(row, col);
 				} else {
 					val = new window['AscCommonExcel'].cError(window['AscCommonExcel'].cErrorType.not_available);
@@ -7646,23 +7559,26 @@ function parserFormula( formula, parent, _ws ) {
 
 			//сделано для формул массива
 			//внутри массива может лежать ссылка на диапазон(например, функция index возвращает area/ref)
-			if(cElementType.cellsRange === val.type || cElementType.cellsRange3D === val.type || cElementType.array === val.type || cElementType.cell === val.type || cElementType.cell3D === val.type) {
+			if (val && (cElementType.cellsRange === val.type || cElementType.cellsRange3D === val.type ||
+				cElementType.array === val.type || cElementType.cell === val.type ||
+				cElementType.cell3D === val.type)) {
 				val = this.simplifyRefType(val, opt_ws, opt_row, opt_col);
 			}
 		} else if (cElementType.cellsRange === val.type || cElementType.cellsRange3D === val.type) {
 			if (opt_ws) {
 				var range;
-				if(ref) {
+				if (ref) {
 					range = val.getRange();
-					if(range) {
+					if (range) {
 						var bbox = range.bbox;
 						var rowCount = bbox.r2 - bbox.r1 + 1;
 						var colCount = bbox.c2 - bbox.c1 + 1;
 						row = 1 === rowCount ? 0 : opt_row - ref.r1;
 						col = 1 === colCount ? 0 : opt_col - ref.c1;
 						val = val.getValueByRowCol(row, col);
-						if(!val) {
-							val = new window['AscCommonExcel'].cError(window['AscCommonExcel'].cErrorType.not_available);
+						if (!val) {
+							val =
+								new window['AscCommonExcel'].cError(window['AscCommonExcel'].cErrorType.not_available);
 						}
 					} else {
 						val = new window['AscCommonExcel'].cError(window['AscCommonExcel'].cErrorType.not_available);
@@ -8329,6 +8245,7 @@ function parserFormula( formula, parent, _ws ) {
 	window['AscCommonExcel'].cUndefined = cUndefined;
 	window['AscCommonExcel'].cBaseFunction = cBaseFunction;
 	window['AscCommonExcel'].cUnknownFunction = cUnknownFunction;
+	window['AscCommonExcel'].cStrucTable = cStrucTable;
 
 	window['AscCommonExcel'].checkTypeCell = checkTypeCell;
 	window['AscCommonExcel'].cFormulaFunctionGroup = cFormulaFunctionGroup;

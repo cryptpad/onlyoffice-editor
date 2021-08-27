@@ -112,7 +112,9 @@ var c_oSerPaddingType = {
 var c_oSerShdType = {
     Value: 0,
     Color: 1,
-	ColorTheme: 2
+	ColorTheme: 2,
+    Fill: 3,
+	FillTheme: 4
 };
   var c_oSer_ColorThemeType = {
     Auto: 0,
@@ -258,14 +260,46 @@ BinaryCommonWriter.prototype.WriteShd = function(Shd)
         var RGBA = Shd.Unifill.getRGBAColor();
         color = new AscCommonWord.CDocumentColor(RGBA.R, RGBA.G, RGBA.B);
     }
+	var fill = null;
+	if (null != Shd.Fill)
+		fill = Shd.Fill;
+	else if (null != Shd.themeFill) {
+		var doc = editor.WordControl.m_oLogicDocument;
+		Shd.themeFill.check(doc.Get_Theme(), doc.Get_ColorMap());
+		var RGBA = Shd.themeFill.getRGBAColor();
+		fill = new AscCommonWord.CDocumentColor(RGBA.R, RGBA.G, RGBA.B);
+	}
     if (null != color && !color.Auto)
         this.WriteColor(c_oSerShdType.Color, color);
+	if (null != fill && !fill.Auto)
+        this.WriteColor(c_oSerShdType.Fill, fill);
 	if(null != Shd.Unifill || (null != Shd.Color && Shd.Color.Auto))
     {
-		this.memory.WriteByte(c_oSerShdType.ColorTheme);
+		//ColorTheme и FillTheme перепутаны в x2t
+		this.memory.WriteByte(c_oSerShdType.FillTheme);
 		this.memory.WriteByte(c_oSerPropLenType.Variable);
 		this.WriteItemWithLength(function(){_this.WriteColorTheme(Shd.Unifill, Shd.Color);});
     }
+
+	// TODO: Пока оставим так, до тех пор пока не будут переделаны по-нормальному ThemeFill и ThemeColor
+	if (Shd.themeFill || (Shd.Fill && Shd.Fill.Auto))
+	{
+		this.memory.WriteByte(c_oSerShdType.ColorTheme);
+		this.memory.WriteByte(c_oSerPropLenType.Variable);
+		this.WriteItemWithLength(function()
+		{
+			_this.WriteColorTheme(Shd.themeFill, Shd.Fill);
+		});
+	}
+	else if (Shd.Unifill)
+	{
+		this.memory.WriteByte(c_oSerShdType.ColorTheme);
+		this.memory.WriteByte(c_oSerPropLenType.Variable);
+		this.WriteItemWithLength(function()
+		{
+			_this.WriteColorTheme(Shd.Unifill, Shd.Fill);
+		});
+	}
 };
 BinaryCommonWriter.prototype.WritePaddings = function(Paddings)
 {
@@ -300,6 +334,12 @@ BinaryCommonWriter.prototype.WritePaddings = function(Paddings)
 };
 BinaryCommonWriter.prototype.WriteColorSpreadsheet = function(color)
 {
+	if (!color) {
+		this.memory.WriteByte(c_oSer_ColorObjectType.Type);
+		this.memory.WriteByte(c_oSerPropLenType.Byte);
+		this.memory.WriteByte(c_oSer_ColorType.Auto);
+		return;
+	}
 	if(color instanceof AscCommonExcel.ThemeColor)
 	{
 		if(null != color.theme)
@@ -541,7 +581,7 @@ Binary_CommonReader.prototype.ReadColor = function()
     var b = this.stream.GetUChar();
     return new AscCommonWord.CDocumentColor(r, g, b);
 };
-Binary_CommonReader.prototype.ReadShd = function(type, length, Shd, themeColor)
+Binary_CommonReader.prototype.ReadShd = function(type, length, Shd, themeColor, themeFill)
 {
     var res = c_oSerConstants.ReadOk;
 	var oThis = this;
@@ -550,6 +590,15 @@ Binary_CommonReader.prototype.ReadShd = function(type, length, Shd, themeColor)
         case c_oSerShdType.Value: Shd.Value = this.stream.GetUChar();break;
         case c_oSerShdType.Color: Shd.Color = this.ReadColor();break;
 		case c_oSerShdType.ColorTheme:
+			//ColorTheme и FillTheme перепутаны в x2t
+			res = this.Read2(length, function(t, l){
+				return oThis.ReadColorTheme(t, l, themeFill);
+			});
+			break;
+		case c_oSerShdType.Fill:
+            Shd.Fill = this.ReadColor();
+			break;
+		case c_oSerShdType.FillTheme:
 			res = this.Read2(length, function(t, l){
 				return oThis.ReadColorTheme(t, l, themeColor);
 			});
@@ -1266,6 +1315,13 @@ function isRealObject(obj)
       var len = this.GetULong();
       return this.GetString1(len);
     }
+    this.GetBuffer = function (length) {
+      var res = new Array(length);
+      for (var i = 0; i < length; ++i) {
+        res[i] = this.data[this.cur++]
+      }
+      return res;
+    };
 
     this.EnterFrame = function(count)
     {

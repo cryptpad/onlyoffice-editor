@@ -146,7 +146,7 @@ Asc['asc_docs_api'].prototype.asc_Save = function (isNoUserSave, isSaveAs, isRes
 		this.LastUserSavedIndex = AscCommon.History.UserSavedIndex;
 	}
 
-    if (true === this.canSave && !this.isLongAction())
+    if (true === this.canSave && this._saveCheck())
 	{
 		var _isNaturalSave = this.IsUserSave;
 		this.canSave = false;
@@ -184,9 +184,7 @@ window["DesktopOfflineAppDocumentStartSave"] = function(isSaveAs, password, isFo
 	var _param = "";
 	if (isSaveAs === true)
 		_param += "saveas=true;";
-	if (AscCommon.AscBrowser.isRetina)
-		_param += "retina=true;";
-	
+
 	window["AscDesktopEditor"]["LocalFileSave"](_param, (password === undefined) ? editor.currentPassword : password, docinfo);
 };
 window["DesktopOfflineAppDocumentEndSave"] = function(error, hash, password)
@@ -240,10 +238,13 @@ Asc['asc_docs_api'].prototype.asc_DownloadAs = function(options)
 	this.asc_Save(false, true);
 };
 
-Asc['asc_docs_api'].prototype.AddImageUrl = function(url, imgProp, token, obj)
+Asc['asc_docs_api'].prototype.AddImageUrl = function(urls, imgProp, token, obj)
 {
-	var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](url);
-	this.AddImageUrlAction(AscCommon.g_oDocumentUrls.getImageUrl(_url), imgProp, obj);
+	var _urls = urls.map(function(currentValue) {
+		var localUrl = window["AscDesktopEditor"]["LocalFileGetImageUrl"](currentValue);
+		return AscCommon.g_oDocumentUrls.getImageUrl(localUrl);
+	});
+	this._addImageUrl(_urls, imgProp, obj);
 };
 Asc['asc_docs_api'].prototype.AddImage = Asc['asc_docs_api'].prototype.asc_addImage = function(obj)
 {
@@ -251,8 +252,7 @@ Asc['asc_docs_api'].prototype.AddImage = Asc['asc_docs_api'].prototype.asc_addIm
 		var file = _file;
 		if (Array.isArray(file))
 			file = file[0];
-
-		if (file == "")
+		if (!file)
 			return;
 
 		var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](file);

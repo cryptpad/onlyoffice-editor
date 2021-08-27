@@ -381,6 +381,12 @@
 		}
 		return false;
 	};
+	CDocsCoApi.prototype.callPRC = function(data, timeout, callback) {
+		if (this._CoAuthoringApi && this._onlineWork) {
+			return this._CoAuthoringApi.callPRC(data, timeout, callback);
+		}
+		return false;
+	};
 
   CDocsCoApi.prototype.callback_OnAuthParticipantsChanged = function(e, id) {
     if (this.onAuthParticipantsChanged) {
@@ -589,6 +595,8 @@
     this._participantsTimestamp;
     this._countEditUsers = 0;
     this._countUsers = 0;
+    this._countCalls = 0;
+    this._waitingForResponse = {};
 
     this.isLicenseInit = false;
     this._locks = {};
@@ -662,6 +670,7 @@
     this.jwtOpen = undefined;
     this.jwtSession = undefined;
     this.encrypted = undefined;
+    this.IsAnonymousUser = undefined;
     this._isViewer = false;
     this._isReSaveAfterAuth = false;	// Флаг для сохранения после повторной авторизации (для разрыва соединения во время сохранения)
     this._lockBuffer = [];
@@ -930,6 +939,25 @@
 		}
 		return res;
 	};
+  DocsCoApi.prototype.callPRC = function(data, timeout, callback) {
+    var t = this;
+    var responseKey = ++this._countCalls;
+    this._waitingForResponse[responseKey] = callback;
+    if (timeout > 0) {
+      setTimeout(function() {
+        t._onPRC(responseKey, true, undefined);
+      }, timeout)
+    }
+    this._send({'type': 'rpc', 'responseKey': responseKey, 'data': data});
+    return true;
+  };
+  DocsCoApi.prototype._onPRC = function(responseKey, isTimeout, response) {
+    var callback = this._waitingForResponse[responseKey];
+    delete this._waitingForResponse[responseKey];
+    if (callback) {
+      callback(isTimeout, response);
+    }
+  };
 
   DocsCoApi.prototype.openDocument = function(data) {
     this._send({"type": "openDocument", "message": data});
@@ -1587,6 +1615,7 @@
 	this.lang = docInfo.get_Lang();
 	this.jwtOpen = docInfo.get_Token();
     this.encrypted = docInfo.get_Encrypted();
+    this.IsAnonymousUser = docInfo.get_IsAnonymousUser();
 
     this.setDocId(docid);
     this._initSocksJs();
@@ -1640,6 +1669,7 @@
       'mode': this.mode,
       'permissions': this.permissions,
       'encrypted': this.encrypted,
+      'IsAnonymousUser': this.IsAnonymousUser,
       'jwtOpen': this.jwtOpen,
       'jwtSession': this.jwtSession
     });
@@ -1754,6 +1784,9 @@
 			case 'forceSave' :
 				this._onForceSave(dataObject["messages"]);
 				break;
+			case 'rpc' :
+				this._onPRC(dataObject["responseKey"], false, dataObject["data"]);
+				break;
 		}
 	};
 	DocsCoApi.prototype._onServerClose = function (evt) {
@@ -1767,7 +1800,7 @@
 			}
 		}
 		this._state = ConnectionState.Reconnect;
-		var bIsDisconnectAtAll = ((c_oCloseCode.serverShutdown <= evt.code && evt.code <= c_oCloseCode.drop) ||
+		var bIsDisconnectAtAll = (-1 !== Object.values(c_oCloseCode).indexOf(evt.code) ||
 			this.attemptCount >= this.maxAttemptCount);
 		var code = null;
 		if (bIsDisconnectAtAll) {

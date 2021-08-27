@@ -408,7 +408,7 @@ CTable.prototype.private_RecalculateGrid = function()
 		this.RecalcInfo.TableGrid = false;
 	}
 
-	var TopTable = this.Parent.IsInTable(true);
+	var TopTable = this.Parent ? this.Parent.IsInTable(true) : null;
 	if ((null === TopTable && tbllayout_AutoFit === TablePr.TableLayout) || (null != TopTable && tbllayout_AutoFit === TopTable.Get_CompiledPr(false).TablePr.TableLayout))
 	{
 		//---------------------------------------------------------------------------
@@ -454,20 +454,27 @@ CTable.prototype.private_RecalculateGrid = function()
 
 		var oPageFields;
 
-		// Случай, когда таблица лежит внутри CBlockLevelSdt
-		if (this.Parent instanceof CDocumentContent && this.LogicDocument && this.Parent.IsBlockLevelSdtContent() && this.Parent.GetTopDocumentContent() === this.LogicDocument && !this.Parent.IsTableCellContent())
+		if (!this.Parent)
 		{
-			var nTopIndex = -1;
-			var arrPos    = this.GetDocumentPositionFromObject();
-			if (arrPos.length > 0)
-				nTopIndex = arrPos[0].Position;
-
-			if (-1 !== nTopIndex)
-				oPageFields = this.LogicDocument.Get_ColumnFields(nTopIndex, this.Get_AbsoluteColumn(this.PageNum), this.GetAbsolutePage(this.PageNum));
+			oPageFields = {X : 0, Y : 0, XLimit : 0, YLimit : 0};
 		}
+		else
+		{
+			// Случай, когда таблица лежит внутри CBlockLevelSdt
+			if (this.Parent instanceof CDocumentContent && this.LogicDocument && this.Parent.IsBlockLevelSdtContent() && this.Parent.GetTopDocumentContent() === this.LogicDocument && !this.Parent.IsTableCellContent())
+			{
+				var nTopIndex = -1;
+				var arrPos    = this.GetDocumentPositionFromObject();
+				if (arrPos.length > 0)
+					nTopIndex = arrPos[0].Position;
 
-		if (!oPageFields)
-			oPageFields = this.Parent.Get_ColumnFields ? this.Parent.Get_ColumnFields(this.Get_Index(), this.Get_AbsoluteColumn(this.PageNum), this.GetAbsolutePage(this.PageNum)) : this.Parent.Get_PageFields(this.private_GetRelativePageIndex(this.PageNum));
+				if (-1 !== nTopIndex)
+					oPageFields = this.LogicDocument.Get_ColumnFields(nTopIndex, this.Get_AbsoluteColumn(this.PageNum), this.GetAbsolutePage(this.PageNum));
+			}
+
+			if (!oPageFields)
+				oPageFields = this.Parent.Get_ColumnFields ? this.Parent.Get_ColumnFields(this.Get_Index(), this.Get_AbsoluteColumn(this.PageNum), this.GetAbsolutePage(this.PageNum)) : this.Parent.Get_PageFields(this.private_GetRelativePageIndex(this.PageNum));
+		}
 
 		var oFramePr = this.GetFramePr();
 		if (oFramePr && undefined !== oFramePr.GetW())
@@ -761,6 +768,7 @@ CTable.prototype.private_RecalculateGridMinContent = function(nPctWidth, arrMinM
 
 	var arrMergedColumns   = [];
 	var arrMergedPreferred = [];
+	var nMergedPrefCount   = 0;
 	for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
 	{
 		var oRow = this.GetRow(nCurRow);
@@ -807,6 +815,8 @@ CTable.prototype.private_RecalculateGridMinContent = function(nPctWidth, arrMinM
 					Start : nCurGridCol,
 					W     : nBeforeW
 				});
+
+				nMergedPrefCount++;
 			}
 		}
 
@@ -869,6 +879,8 @@ CTable.prototype.private_RecalculateGridMinContent = function(nPctWidth, arrMinM
 						Start : nCurGridCol,
 						W     : nPreferred
 					});
+
+					nMergedPrefCount++;
 				}
 			}
 
@@ -912,40 +924,51 @@ CTable.prototype.private_RecalculateGridMinContent = function(nPctWidth, arrMinM
 					Start : nCurGridCol,
 					W     : nAfterW
 				});
+
+				nMergedPrefCount++;
 			}
 		}
 	}
-
-	for (var nGridSpan = 2, nMaxGridSpan = arrMergedPreferred.length; nGridSpan < nMaxGridSpan; ++nGridSpan)
+	
+	while (nMergedPrefCount > 0)
 	{
-		if (!arrMergedPreferred[nGridSpan])
-			continue;
+		var nPrevCount = nMergedPrefCount;
 
-		for (var nIndex = 0, nCount = arrMergedPreferred[nGridSpan].length; nIndex < nCount; ++nIndex)
+		for (var nGridSpan = 2, nMaxGridSpan = arrMergedPreferred.length; nGridSpan < nMaxGridSpan; ++nGridSpan)
 		{
-			var nStart     = arrMergedPreferred[nGridSpan][nIndex].Start;
-			var nPreferred = arrMergedPreferred[nGridSpan][nIndex].W;
+			if (!arrMergedPreferred[nGridSpan])
+				continue;
 
-			var nPreferredSum = 0;
-			for (var nCurSpan = nStart; nCurSpan < nStart + nGridSpan; ++nCurSpan)
+			for (var nIndex = arrMergedPreferred[nGridSpan].length - 1; nIndex >= 0; --nIndex)
 			{
-				if (nCurSpan < nStart + nGridSpan - 1)
+				var nStart     = arrMergedPreferred[nGridSpan][nIndex].Start;
+				var nPreferred = arrMergedPreferred[nGridSpan][nIndex].W;
+
+				var nPreferredSum = 0;
+
+				for (var nCurSpan = nStart; nCurSpan < nStart + nGridSpan - 1; ++nCurSpan)
 				{
 					if (arrPreferred[nCurSpan] > 0 && -1 !== nPreferredSum)
 						nPreferredSum += arrPreferred[nCurSpan];
 					else
 						nPreferredSum = -1;
 				}
-			}
 
-			if (nPreferredSum > 0 && nPreferred > nPreferredSum && arrPreferred[nStart + nGridSpan - 1] < nPreferred - nPreferredSum)
-			{
-				arrPreferred[nStart + nGridSpan - 1] = nPreferred - nPreferredSum;
+				if (-1 !== nPreferredSum && nPreferred > nPreferredSum && arrPreferred[nStart + nGridSpan - 1] < nPreferred - nPreferredSum)
+				{
+					arrPreferred[nStart + nGridSpan - 1] = nPreferred - nPreferredSum;
 
-				if (arrMinContent[nStart + nGridSpan - 1] < arrPreferred[nStart + nGridSpan - 1])
-					arrMinContent[nStart + nGridSpan - 1] = arrPreferred[nStart + nGridSpan - 1];
+					if (arrMinContent[nStart + nGridSpan - 1] < arrPreferred[nStart + nGridSpan - 1])
+						arrMinContent[nStart + nGridSpan - 1] = arrPreferred[nStart + nGridSpan - 1];
+
+					arrMergedPreferred[nGridSpan].splice(nIndex, 1);
+					nMergedPrefCount--;
+				}
 			}
 		}
+
+		if (nPrevCount <= nMergedPrefCount)
+			break;
 	}
 
 	for (var nIndex = 0, nCount = arrMergedColumns.length; nIndex < nCount; ++nIndex)
@@ -1010,7 +1033,7 @@ CTable.prototype.private_RecalculateGridMinContent = function(nPctWidth, arrMinM
 
 		if (nMinNoPref > nSumSpanMinNoPref)
 		{
-			if (nSumSpanMinNoPref < 0.001)
+			if (nSumSpanMin < 0.001)
 			{
 				for (var nCurSpan = nStart; nCurSpan < nStart + nGridSpan; ++nCurSpan)
 				{
@@ -1021,7 +1044,7 @@ CTable.prototype.private_RecalculateGridMinContent = function(nPctWidth, arrMinM
 			{
 				for (var nCurSpan = nStart; nCurSpan < nStart + nGridSpan; ++nCurSpan)
 				{
-					arrMinNoPreferred[nCurSpan] = arrMinContent[nCurSpan] * nMinNoPref / nSumSpanMinNoPref;
+					arrMinNoPreferred[nCurSpan] = arrMinContent[nCurSpan] * nMinNoPref / nSumSpanMin;
 				}
 			}
 		}
@@ -1620,7 +1643,7 @@ CTable.prototype.private_RecalculateHeader = function()
 {
     // Если у нас таблица внутри таблицы, тогда в ней заголовочных строк не должно быть,
     // потому что так делает Word.
-    if ( true === this.Parent.IsTableCellContent() )
+    if (!this.Parent || true === this.Parent.IsTableCellContent())
     {
         this.HeaderInfo.Count = 0;
         return;
@@ -1859,6 +1882,26 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
 
     var Y = StartPos.Y;
     var TableHeight = 0;
+
+    if (this.LogicDocument && this.LogicDocument.IsDocumentEditor())
+	{
+		var arrRanges = this.Parent.CheckRange(Page.X, Page.Y, Page.XLimit, Page.Y + 0.001, Page.Y, Page.Y + 0.001, Page.X, Page.XLimit, CurPage);
+		if (arrRanges.length > 0)
+		{
+			for (var nRangeIndex = 0, nRangesCount = arrRanges.length; nRangeIndex < nRangesCount; ++nRangeIndex)
+			{
+				if (Y < arrRanges[nRangeIndex].Y1)
+				{
+					var nShiftY = arrRanges[nRangeIndex].Y1 - Y;
+
+					Y      = arrRanges[nRangeIndex].Y1 + 0.001;
+					Page.Y = Y;
+
+					Page.Bounds.Top += nShiftY;
+				}
+			}
+		}
+	}
 
     var TableBorders = this.Get_Borders();
 

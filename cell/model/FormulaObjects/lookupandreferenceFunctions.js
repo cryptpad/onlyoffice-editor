@@ -719,6 +719,7 @@ function (window, undefined) {
 
 		function parseReference() {
 			if ((ref = parserHelp.is3DRef.call(o, o.Formula, o.pCurrPos, true))[0]) {
+				var _tableTMP;
 				var wsFrom = _getWorksheetByName(ref[1]);
 				var wsTo = (null !== ref[2]) ? _getWorksheetByName(ref[2]) : wsFrom;
 				if (!(wsFrom && wsTo)) {
@@ -741,6 +742,14 @@ function (window, undefined) {
 				found_operand = new cRef(o.real_str ? o.real_str.toUpperCase() : o.operand_str.toUpperCase(), ws);
 			} else if (parserHelp.isName.call(o, o.Formula, o.pCurrPos)) {
 				found_operand = new cName(o.operand_str, ws);
+			} else if (_tableTMP = parserHelp.isTable.call(o, o.Formula, o.pCurrPos)) {
+				found_operand = AscCommonExcel.cStrucTable.prototype.createFromVal(_tableTMP, wb, ws);
+
+				if (found_operand.type === cElementType.error) {
+					found_operand = null;
+				} else {
+					found_operand = found_operand.toRef ? found_operand.toRef() : null;
+				}
 			}
 		}
 
@@ -757,7 +766,7 @@ function (window, undefined) {
 			return ret;
 		} else {
 			o.Formula = arg0.toString();
-			AscCommonExcel.executeInR1C1Mode(!!(arg1 && arg1.value === false), parseReference);
+			AscCommonExcel.executeInR1C1Mode(!!(arg1 && arg1.value == false), parseReference);
 			if (found_operand) {
 				if (cElementType.name === found_operand.type || cElementType.name3D === found_operand.type) {
 					found_operand = found_operand.toRef(arguments[1]);
@@ -1302,6 +1311,7 @@ function (window, undefined) {
 			//TODO возможно стоит на вход функции Calculate в случае применения как формулы массива сразу передавать преобразованный range в array
 			if(!this.bArrayFormula) {
 				arg0 = arg0.cross(arguments[1]);
+				return arg0;
 			} else {
 				arg0 = arg0.getMatrix();
 			}
@@ -1345,6 +1355,7 @@ function (window, undefined) {
 	cUNIQUE.prototype.arrayIndexes = {0: 1};
 	cUNIQUE.prototype.argumentsType = [argType.reference, argType.logical, argType.logical];
 	cUNIQUE.prototype.isXLFN = true;
+	cUNIQUE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cUNIQUE.prototype.Calculate = function (arg) {
 
 		var _getUniqueArr = function (_arr, _byCol, _exactlyOnce) {
@@ -2124,7 +2135,8 @@ function (window, undefined) {
 	cXLOOKUP.prototype.argumentsMin = 3;
 	cXLOOKUP.prototype.argumentsMax = 6;
 	cXLOOKUP.prototype.arrayIndexes = {1: 1, 2: 1};
-	cXLOOKUP.prototype.argumentsType = [argType.any, argType.reference, argType.reference];
+	cXLOOKUP.prototype.argumentsType = [argType.any, argType.reference, argType.reference, argType.any, argType.number, argType.number];
+	cXLOOKUP.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cXLOOKUP.prototype.isXLFN = true;
 	cXLOOKUP.prototype.Calculate = function (arg) {
 
@@ -2218,17 +2230,38 @@ function (window, undefined) {
 				if (dimensions2.bbox) {
 					_startRange = bVertical ? dimensions2.bbox.r1 : dimensions2.bbox.c1;
 				}
-				var _length = !bVertical ? dimensions2.row : dimensions2.col;
-				var _array = new cArray();
-				for (var i = 0; i < _length; i++) {
-					var _row = !bVertical ? i : res - _startRange;
-					var _col = bVertical ? i : res - _startRange;
-					var _elem = arg2.getElementRowCol ? arg2.getElementRowCol(_row, _col) : arg2.getValueByRowCol(_row, _col);
-					if (!bVertical) {
-						_array.addRow();
-						_array.addElement(_elem);
+
+				if (cElementType.cellsRange === arg2.type || cElementType.cellsRange3D === arg2.type) {
+					var _r1 = !bVertical ? dimensions2.bbox.r1 : res - _startRange + dimensions2.bbox.r1;
+					var _cl = bVertical ? dimensions2.bbox.c1 : res - _startRange + dimensions2.bbox.c1;
+					var _r2 = !bVertical ? dimensions2.bbox.r2 : res - _startRange + dimensions2.bbox.r1;
+					var _c2 = bVertical ? dimensions2.bbox.c2 : res - _startRange + dimensions2.bbox.c1;
+					var _range = new Asc.Range(_cl, _r1, _c2, _r2);
+
+					var _res;
+					var rangeName;
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						rangeName = _range.getName();
+					});
+					if (cElementType.cellsRange === arg2.type) {
+						_res = _range.isOneCell() ? new cRef(rangeName, arg2.getWS()) : new cArea(rangeName, arg2.getWS());
 					} else {
-						_array.addElement(_elem);
+						_res = _range.isOneCell() ?  new cRef3D(rangeName, arg2.getWS()) : new cArea3D(rangeName, arg2.getWS());
+					}
+					return _res;
+				} else {
+					var _length = !bVertical ? dimensions2.row : dimensions2.col;
+					var _array = new cArray();
+					for (var i = 0; i < _length; i++) {
+						var _row = !bVertical ? i : res - _startRange;
+						var _col = bVertical ? i : res - _startRange;
+						var _elem = arg2.getElementRowCol ? arg2.getElementRowCol(_row, _col) : arg2.getValueByRowCol(_row, _col);
+						if (!bVertical) {
+							_array.addRow();
+							_array.addElement(_elem);
+						} else {
+							_array.addElement(_elem);
+						}
 					}
 				}
 

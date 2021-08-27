@@ -566,7 +566,7 @@ function NewShapeTrack(presetGeom, startX, startY, theme, master, layout, slide,
         this.overlayObject.draw(overlay);
     };
 
-    this.getShape = function(bFromWord, DrawingDocument, drawingObjects)
+    this.getShape = function(bFromWord, DrawingDocument, drawingObjects, isClickMouseEvent)
     {
         var _sp_pr, shape;
         if(this.bConnector){
@@ -663,6 +663,7 @@ function NewShapeTrack(presetGeom, startX, startY, theme, master, layout, slide,
         if(this.presetGeom === "textRect")
         {
             shape.spPr.setGeometry(AscFormat.CreateGeometry("rect"));
+            shape.setTxBox(true);
             var fill, ln;
             if(!drawingObjects || !drawingObjects.cSld)
             {
@@ -716,7 +717,11 @@ function NewShapeTrack(presetGeom, startX, startY, theme, master, layout, slide,
                     else{
                         body_pr.textFit = new AscFormat.CTextFit();
                         body_pr.textFit.type = AscFormat.text_fit_Auto;
-                        body_pr.wrap = AscFormat.nTWTSquare;
+                        if (isClickMouseEvent) {
+                            body_pr.wrap = AscFormat.nTWTNone;
+                        } else {
+                            body_pr.wrap = AscFormat.nTWTSquare;
+                        }
                        bNeedCheckExtents = true;
                     }
                 }

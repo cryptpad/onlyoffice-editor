@@ -157,26 +157,7 @@ DrawingObjectsController.prototype.recalculate = function(bAll, Point, bCheckPoi
     {
         History.Get_RecalcData(Point);//Только для таблиц
     }
-    if(bAll)
-    {
-        var drawings = this.getDrawingObjects();
-        for(var i = 0; i < drawings.length; ++i)
-        {
-            if(drawings[i].recalcText)
-            {
-                drawings[i].recalcText();
-            }
-            drawings[i].recalculate();
-        }
-    }
-    else
-    {
-        for(var key in this.objectsForRecalculate)
-        {
-            this.objectsForRecalculate[key].recalculate();
-        }
-    }
-    this.objectsForRecalculate = {};
+    this.recalculate2(bAll);
 };
 
 DrawingObjectsController.prototype.recalculate2 = function(bAll)
@@ -251,10 +232,10 @@ DrawingObjectsController.prototype.checkSelectedObjectsAndFireCallback = functio
         return;
     }
     var selection_state = this.getSelectionState();
-    this.drawingObjects.objectLocker.reset();
+    var aId = [];
     for(var i = 0; i < this.selectedObjects.length; ++i)
     {
-        this.drawingObjects.objectLocker.addObjectId(this.selectedObjects[i].Get_Id());
+        aId.push(this.selectedObjects[i].Get_Id());
     }
     var _this = this;
     var callback2 = function(bLock, bSync)
@@ -268,7 +249,7 @@ DrawingObjectsController.prototype.checkSelectedObjectsAndFireCallback = functio
             callback.apply(_this, args);
         }
     };
-    this.drawingObjects.objectLocker.checkObjects(callback2);
+    oApi.checkObjectsLock(aId, callback2);
 };
 DrawingObjectsController.prototype.onMouseDown = function(e, x, y)
 {
@@ -353,18 +334,24 @@ DrawingObjectsController.prototype.handleChartDoubleClick = function()
 
 DrawingObjectsController.prototype.handleOleObjectDoubleClick = function(drawing, oleObject, e, x, y, pageIndex)
 {
+
     var drawingObjects = this.drawingObjects;
     var oThis = this;
     var fCallback = function(){
-        var pluginData = new Asc.CPluginData();
-        pluginData.setAttribute("data", oleObject.m_sData);
-        pluginData.setAttribute("guid", oleObject.m_sApplicationId);
-        pluginData.setAttribute("width", oleObject.extX);
-        pluginData.setAttribute("height", oleObject.extY);
-        pluginData.setAttribute("widthPix", oleObject.m_nPixWidth);
-        pluginData.setAttribute("heightPix", oleObject.m_nPixHeight);
-        pluginData.setAttribute("objectId", oleObject.Id);
-        window["Asc"]["editor"].asc_pluginRun(oleObject.m_sApplicationId, 0, pluginData);
+        if(oleObject.m_oMathObject) {
+            window["Asc"]["editor"].sendEvent("asc_onConvertEquationToMath", oleObject);
+        }
+        else {
+            var pluginData = new Asc.CPluginData();
+            pluginData.setAttribute("data", oleObject.m_sData);
+            pluginData.setAttribute("guid", oleObject.m_sApplicationId);
+            pluginData.setAttribute("width", oleObject.extX);
+            pluginData.setAttribute("height", oleObject.extY);
+            pluginData.setAttribute("widthPix", oleObject.m_nPixWidth);
+            pluginData.setAttribute("heightPix", oleObject.m_nPixHeight);
+            pluginData.setAttribute("objectId", oleObject.Id);
+            window["Asc"]["editor"].asc_pluginRun(oleObject.m_sApplicationId, 0, pluginData);
+        }
         oThis.clearTrackObjects();
         oThis.clearPreTrackObjects();
         oThis.changeCurrentState(new AscFormat.NullState(oThis));
@@ -380,7 +367,7 @@ DrawingObjectsController.prototype.handleOleObjectDoubleClick = function(drawing
 DrawingObjectsController.prototype.addChartDrawingObject = function(options)
 {
     History.Create_NewPoint();
-    var chart = this.getChartSpace(this.drawingObjects.getWorksheetModel(), options, true);
+    var chart = this.getChartSpace(options, false);
     if(chart)
     {
         chart.setWorksheet(this.drawingObjects.getWorksheetModel());
@@ -440,7 +427,7 @@ DrawingObjectsController.prototype.addChartDrawingObject = function(options)
             options.putRange(null);
             options.putStyle(null);
             options.removeAllAxesProps();
-            options.putShowMarker(null);
+            //options.putShowMarker(null);
             this.editChartCallback(options);
             options.putStyle(1);
            // options.bCreate = true;
@@ -535,9 +522,7 @@ DrawingObjectsController.prototype.getDrawingDocument = function()
 DrawingObjectsController.prototype.convertPixToMM = function(pix)
 {
     var _ret = this.drawingObjects ? this.drawingObjects.convertMetric(pix, 0, 3) : 0;
-    if(AscCommon.AscBrowser.isRetina){
-        _ret *= 2;
-    }
+    _ret *= AscCommon.AscBrowser.retinaPixelRatio;
     return _ret;
 };
 
@@ -631,6 +616,14 @@ DrawingObjectsController.prototype.onKeyPress = function(e)
         Code = 0;//special char
 
     var bRetValue = false;
+    var aSelectedObjects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects;
+    if(aSelectedObjects.length === 1 && aSelectedObjects[0].getObjectType() === AscDFH.historyitem_type_Shape)
+    {
+        if(!aSelectedObjects[0].canEditText())
+        {
+            return false;
+        }
+    }
     if ( Code > 0x20 )
     {
         var oApi = window["Asc"] && window["Asc"]["editor"];

@@ -93,14 +93,24 @@
 		this._formula = null;
 	}
 
-	CDataFormula.prototype._init = function (ws) {
-		if (this._formula || !this.text) {
+	CDataFormula.prototype._init = function (ws, locale, doNotBuildDependencies) {
+		if (this._formula || this.text == null ) {
 			return;
 		}
+		var t = this;
+		var formulaText = isNum(this.text) ? this.text + "" : this.text;
+		this._formula = new AscCommonExcel.parserFormula(formulaText, this, ws);
+		if (!locale) {
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				t._formula.parse();
+			});
+		} else {
+			this._formula.parse(locale);
+		}
 
-		this._formula = new AscCommonExcel.parserFormula(this.text, this, ws);
-		this._formula.parse();
-		this._formula.buildDependencies();
+		if (!doNotBuildDependencies) {
+			this._formula.buildDependencies();
+		}
 	};
 	CDataFormula.prototype.clone = function () {
 		var res = new CDataFormula();
@@ -113,8 +123,11 @@
 			this.text = eventData.assemble;
 		}
 	};
-	CDataFormula.prototype.getValue = function (ws, returnRaw) {
-		this._init(ws);
+	CDataFormula.prototype.getValue = function (ws, returnRaw, local, offset) {
+		this._init(ws, local);
+		if (offset) {
+			this._formula.changeOffset(offset);
+		}
 		var activeCell = ws.getSelection().activeCell;
 		var res = this._formula.calculate(null, new Asc.Range(activeCell.col, activeCell.row, activeCell.col, activeCell.row));
 		return returnRaw ? this._formula.simplifyRefType(res) : res;
@@ -138,6 +151,12 @@
 	CDataFormula.prototype.asc_setValue = function (val) {
 		this.text = val;
 	};
+	CDataFormula.prototype.setOffset = function (offset) {
+		if (this._formula) {
+			this.text = this._formula.changeOffset(offset, null, true).assemble(true);
+		}
+	};
+
 
 
 	function CDataValidation() {
@@ -175,12 +194,20 @@
 	CDataValidation.prototype.getType = function () {
 		return AscCommonExcel.UndoRedoDataTypes.DataValidationInner;
 	};
-	CDataValidation.prototype._init = function (ws) {
+	CDataValidation.prototype._init = function (ws, doNotBuildDependencies) {
 		if (this.formula1) {
-			this.formula1._init(ws);
+			this.formula1._init(ws, null, doNotBuildDependencies);
 		}
 		if (this.formula2) {
-			this.formula2._init(ws);
+			this.formula2._init(ws, null, doNotBuildDependencies);
+		}
+	};
+	CDataValidation.prototype._buildDependencies = function (ws, doNotBuildDependencies) {
+		if (this.formula1 && this.formula1._formula) {
+			this.formula1._formula.buildDependencies();
+		}
+		if (this.formula2 && this.formula2._formula) {
+			this.formula2._formula.buildDependencies();
 		}
 	};
 	CDataValidation.prototype.clone = function (needSaveId) {
@@ -258,6 +285,14 @@
 			}
 		}
 		return false;
+	};
+	CDataValidation.prototype.setOffset = function (offset) {
+		if (this.formula1) {
+			this.formula1.setOffset(offset);
+		}
+		if (this.formula2) {
+			this.formula2.setOffset(offset);
+		}
 	};
 	CDataValidation.prototype.Write_ToBinary2 = function (writer) {
 		//for wrapper
@@ -443,7 +478,7 @@
 				return -1 !== aValue.indexOf(val);
 			}
 		} else if (EDataValidationType.Custom === this.type) {
-			var v = this.formula1 && this.formula1.getValue(ws, true);
+			var v = this.formula1 && this.formula1.clone().getValue(ws, true, null, this.calculateOffset(ws));
 			v = v && v.tocBool();
 			return !!(v && AscCommonExcel.cElementType.bool === v.type && v.toBool());
 		} else {
@@ -504,6 +539,18 @@
 		if (list && AscCommonExcel.cElementType.error !== list.type) {
 			if (AscCommonExcel.cElementType.string === list.type) {
 				aValue = list.getValue().split(AscCommon.FormulaSeparators.functionArgumentSeparatorDef);
+				if (aValue && aValue.length) {
+					for (var i = 0; i < aValue.length; i++) {
+						//обрезаем только вначале строки
+						if (aValue[i] && aValue[i].length) {
+							var pos = 0;
+							while((pos < aValue[i].length) && (aValue[i][pos] == ' ')){
+								++pos;
+							}
+							aValue[i] = pos ? aValue[i].substr(pos) : aValue[i];
+						}
+					}
+				}
 			} else {
 				list = list.getRange();
 				if (list) {
@@ -542,13 +589,16 @@
 
 			return _val;
 		};
-		if (this.operator === EDataValidationOperator.Between || this.operator === EDataValidationOperator.NotBetween) {
-			if (this.formula1 && this.formula2) {
-				var nFormula1 = _getNumber(this.formula1.text);
-				var nFormula2 = _getNumber(this.formula2.text);
 
-				if (nFormula1 !== null && nFormula2 !== null && nFormula2 < nFormula1) {
-					return Asc.c_oAscError.ID.DataValidateMinGreaterMax;
+		if (this.type !== EDataValidationType.Custom && this.type !== EDataValidationType.List) {
+			if (this.operator === EDataValidationOperator.Between || this.operator === EDataValidationOperator.NotBetween) {
+				if (this.formula1 && this.formula2) {
+					var nFormula1 = _getNumber(this.formula1.text);
+					var nFormula2 = _getNumber(this.formula2.text);
+
+					if (nFormula1 !== null && nFormula2 !== null && nFormula2 < nFormula1) {
+						return Asc.c_oAscError.ID.DataValidateMinGreaterMax;
+					}
 				}
 			}
 		}
@@ -622,7 +672,7 @@
 		var formula, fResult, isNumeric, date;
 		if (_val[0] === "=") {
 			formula = new CDataFormula(_val.slice(1));
-			fResult = formula.getValue(ws);
+			fResult = formula.getValue(ws, null, true);
 			var formulaError = _checkFormulaOnError(fResult, formula);
 			if (formulaError !== null) {
 				return formulaError;
@@ -763,11 +813,6 @@
 	CDataValidation.prototype.getFormula2 = function () {
 		return this.formula2;
 	};
-
-	CDataValidation.prototype.setAllowBlank = function (newVal, addToHistory) {
-		//setTableProperty(this, this.name, newVal, addToHistory, AscCH.historyitem_PivotTable_SetName);
-		this.name = newVal;
-	};
 	CDataValidation.prototype.setAllowBlank = function (newVal, addToHistory) {
 		this.allowBlank = newVal;
 	};
@@ -869,6 +914,10 @@
 
 		var newRanges = [];
 		var bDel, isChanged;
+		//TODO правлю ошибку. 50521 - попытаться понять, как получился такой файл.
+		if (!this.ranges) {
+			return -1;
+		}
 		for (var i = 0; i < this.ranges.length; i++) {
 			if (!bInsert && updateRange.containsRange(this.ranges[i])) {
 				bDel = true;
@@ -899,6 +948,10 @@
 	};
 
 	CDataValidation.prototype.clear = function (ranges) {
+		if (!this.ranges) {
+			return null;
+		}
+
 		var newRanges = [];
 		var isChanged;
 		for (var i = 0; i < this.ranges.length; i++) {
@@ -917,6 +970,10 @@
 	};
 
 	CDataValidation.prototype.move = function (oBBoxFrom, copyRange, offset) {
+		if (!this.ranges) {
+			return null;
+		}
+
 		var newRanges = [];
 		var isChanged;
 		for (var i = 0; i < this.ranges.length; i++) {
@@ -940,6 +997,10 @@
 	};
 
 	CDataValidation.prototype.prepeareToPaste = function (range, offset) {
+		if (!this.ranges) {
+			return false;
+		}
+
 		var newRanges = [];
 		for (var j = 0; j < this.ranges.length; j++) {
 			var intersection = range.intersection(this.ranges[j]);
@@ -959,7 +1020,7 @@
 
 	};
 
-	CDataValidation.prototype.correctToInterface = function () {
+	CDataValidation.prototype.correctToInterface = function (ws) {
 		var t = this;
 		var doCorrect = function (_formula) {
 			var _val = _formula.text;
@@ -970,6 +1031,9 @@
 				if (!_isNum) {
 					_val = _formula.text = _val.slice(1, -1);
 					_isNum = isNum(_val);
+					if (!_isNum) {
+						_val = _formula.text = _val.replace(/\"\"/g, "\"");
+					}
 				}
 
 				if (_isNum) {
@@ -989,7 +1053,16 @@
 				}
 
 			} else {
-				_formula.text = "=" + _val;
+				if (_formula && _formula._formula) {
+					//если формула содержит ссылки на диапазоны, то в зависимости от активной области нужно их сдвинуть
+					var offset = t.calculateOffset(ws);
+					if (offset) {
+						_formula._formula.changeOffset(offset);
+					}
+					_formula.text = "=" + _formula._formula.assembleLocale(AscCommonExcel.cFormulaFunctionToLocale);
+				} else {
+					_formula.text = "=" + _val;
+				}
 			}
 		};
 
@@ -1003,6 +1076,18 @@
 
 	CDataValidation.prototype.correctFromInterface = function (ws) {
 		var t = this;
+
+		var addQuotes = function (_val) {
+			var _res;
+			if (_val[0] === '"') {
+				_res = _val.replace(/\"/g, "\"\"");
+				_res = "\"" + _res + "\"";
+			} else {
+				_res = "\"" + _val + "\"";
+			}
+			return _res;
+		};
+
 		var doCorrect = function (_formula) {
 			var _val = _formula.text;
 			var isNumeric = isNum(_val);
@@ -1026,7 +1111,7 @@
 							return;
 						}
 						var _tempFormula = new CDataFormula(_val);
-						isFormula = _tempFormula.getValue(ws);
+						isFormula = _tempFormula.getValue(ws, null, true);
 					} else if (t.type !== EDataValidationType.List) {
 						isDate = AscCommon.g_oFormatParser.parseDate(_val, AscCommon.g_oDefaultCultureInfo);
 					}
@@ -1039,7 +1124,9 @@
 				}
 
 				if (!isFormula) {
-					_formula.text = '"' + _formula.text + '"';
+					_formula.text = addQuotes(_formula.text);
+				} else if (_tempFormula && _tempFormula._formula) {
+					_formula.text = _tempFormula._formula.assemble();
 				}
 			}
 		};
@@ -1050,6 +1137,49 @@
 		if (this.formula2) {
 			doCorrect(this.formula2);
 		}
+	};
+
+	CDataValidation.prototype.checkFormulaStackOnCell = function (row, col) {
+		var stack = this.formula1 && this.formula1._formula && this.formula1._formula.outStack;
+		if (stack && stack.length) {
+			for (var i = 0; i < stack.length; i++) {
+				if (stack[i]) {
+					if (stack[i].type === AscCommonExcel.cElementType.cell || stack[i].type === AscCommonExcel.cElementType.cellsRange) {
+						if (stack[i].range && stack[i].range.bbox && stack[i].range.bbox.contains(col, row)) {
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
+	};
+
+	CDataValidation.prototype.calculateOffset = function (ws) {
+		if (!this.ranges) {
+			return null;
+		}
+
+		var res = null;
+		//находим левый верхний угол
+		var _row = null, _col = null;
+		for (var i = 0; i < this.ranges.length; i++) {
+			if (_row === null && _col === null) {
+				_row = this.ranges[i].r1;
+				_col = this.ranges[i].c1;
+			} else if (_row > this.ranges[i].r1) {
+				_row = this.ranges[i].r1;
+			} else if (_col > this.ranges[i].c1) {
+				_col = this.ranges[i].c1;
+			}
+		}
+		if (_row !== null && _col !== null) {
+			var selectionRange = ws.selectionRange;
+			var activeCell = selectionRange.activeCell;
+			res = new AscCommon.CellBase(activeCell.row - _row, activeCell.col - _col);
+		}
+
+		return res;
 	};
 
 	function CDataValidations() {
@@ -1081,7 +1211,9 @@
 		for (var i = 0; i < this.elems.length; i++) {
 			var isUpdate = this.elems[i].shift(bInsert, type, updateRange);
 			if (isUpdate === -1) {
-				this.delete(ws, this.elems[i].Id, addToHistory);
+				if (this.delete(ws, this.elems[i].Id, addToHistory)) {
+					i--;
+				}
 			} else if (isUpdate) {
 				var to = this.elems[i].clone();
 				to.ranges = isUpdate;
@@ -1099,6 +1231,9 @@
 	};
 
 	CDataValidations.prototype.change = function (ws, from, to, addToHistory) {
+		if (!to || !to.ranges || !to.ranges.length) {
+			return;
+		}
 		to.Id = from.Id;
 		for (var i = 0; i < this.elems.length; i++) {
 			if (this.elems[i].Id === to.Id) {
@@ -1112,18 +1247,20 @@
 	};
 
 	CDataValidations.prototype.delete = function (ws, id, addToHistory) {
-		var from;
+		var deleteElem;
 		for (var i = 0; i < this.elems.length; i++) {
 			if (this.elems[i].Id === id) {
-				from = this.elems[i];
+				deleteElem = this.elems[i];
 				this.elems.splice(i, 1);
 			}
 		}
 
-		if (addToHistory) {
+		if (addToHistory && deleteElem) {
 			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_DataValidationDelete, ws.getId(), null,
-				new AscCommonExcel.UndoRedoData_DataValidation(from.Id, from, null));
+				new AscCommonExcel.UndoRedoData_DataValidation(deleteElem.Id, deleteElem, null));
 		}
+
+		return deleteElem;
 	};
 
 	CDataValidations.prototype.getById = function (id) {
@@ -1173,7 +1310,7 @@
 		return {intersection: intersectionArr, contain: containArr};
 	};
 
-	CDataValidations.prototype.getProps = function (ranges, doExtend) {
+	CDataValidations.prototype.getProps = function (ranges, doExtend, ws) {
 		var _obj = this.getIntersections(ranges);
 		var dataValidationIntersection = _obj.intersection;
 		var dataValidationContain = _obj.contain;
@@ -1194,6 +1331,7 @@
 			var _res = new window['AscCommonExcel'].CDataValidation();
 			_res.showErrorMessage = true;
 			_res.showInputMessage = true;
+			_res.allowBlank = true;
 			return _res;
 		};
 
@@ -1211,7 +1349,8 @@
 			res = getNewObject();
 		}
 
-		res.correctToInterface();
+		res._init(ws);
+		res.correctToInterface(ws);
 
 		return res;
 	};
@@ -1220,25 +1359,6 @@
 		var _obj = this.getIntersections(ranges);
 		var instersection = _obj.intersection;
 		var contain = _obj.contain;
-
-		var _containRanges = function (_ranges1, _ranges2) {
-			if (_ranges1.length <= _ranges2.length) {
-				for (var j = 0; j < _ranges1.length; j++) {
-					var _equal = false;
-					for (var n = 0; n < _ranges2.length; n++) {
-						if (_ranges1[j].isEqual(_ranges2[n])) {
-							_equal = true;
-							break;
-						}
-					}
-					if (!_equal) {
-						return false;
-					}
-				}
-			}
-
-			return true;
-		};
 
 		var prepeareAdd = function (_props, modelRanges) {
 			var _dataValidation = _props.clone();
@@ -1260,7 +1380,7 @@
 		var i;
 		if (this.elems) {
 			for (i = 0; i < this.elems.length; i++) {
-				if (_containRanges(this.elems[i].ranges, ranges)) {
+				if (this._isPartOfRanges(this.elems[i].ranges, ranges)) {
 					if (!equalRangeDataValidation) {
 						equalRangeDataValidation = [];
 					}
@@ -1309,9 +1429,13 @@
 					_newRanges = _newRanges.concat(tempRanges);
 				}
 
-				var newDataValidation = _dataValidation.clone();
-				newDataValidation.ranges = _newRanges;
-				t.change(ws, _dataValidation, prepeareAdd(newDataValidation), true);
+				if (!_newRanges.length) {
+					t.delete(ws, _dataValidation.Id, true)
+				} else {
+					var newDataValidation = _dataValidation.clone();
+					newDataValidation.ranges = _newRanges;
+					t.change(ws, _dataValidation, prepeareAdd(newDataValidation, _newRanges), true);
+				}
 			};
 
 			var k;
@@ -1326,13 +1450,69 @@
 		}
 	};
 
+	CDataValidations.prototype._isPartOfRanges = function (_ranges1, _ranges2) {
+		if (_ranges1 && _ranges2 && _ranges1.length <= _ranges2.length) {
+			for (var j = 0; j < _ranges1.length; j++) {
+				var _equal = false;
+				for (var n = 0; n < _ranges2.length; n++) {
+					if (_ranges1[j].isEqual(_ranges2[n])) {
+						_equal = true;
+						break;
+					}
+				}
+				if (!_equal) {
+					return false;
+				}
+			}
+		} else {
+			return false;
+		}
+
+		return true;
+	};
+
+	CDataValidations.prototype._containRanges = function (_ranges1, _ranges2) {
+		//проверка на то, что диапазон первого range входит в дипапазон второго
+		if (_ranges1 && _ranges2 && _ranges1.length && _ranges2.length) {
+			for (var j = 0; j < _ranges1.length; j++) {
+				var _contains = false;
+				for (var n = 0; n < _ranges2.length; n++) {
+					if (_ranges1[j].containsRange(_ranges2[n])) {
+						_contains = true;
+						break;
+					}
+				}
+				if (!_contains) {
+					return false;
+				}
+			}
+		} else {
+			return false;
+		}
+
+		return true;
+	};
+
 	CDataValidations.prototype.clear = function (ws, ranges, addToHistory) {
 		for (var i = 0; i < this.elems.length; i++) {
-			var changedRanges = this.elems[i].clear(ranges);
-			if (changedRanges) {
-				var newDataValidation = this.elems[i].clone();
-				newDataValidation.ranges = changedRanges;
-				this.change(ws, this.elems[i], newDataValidation, addToHistory);
+			var isEmptyRanges = !this.elems[i].ranges || !this.elems[i].ranges.length;
+			if (isEmptyRanges || this._containRanges(this.elems[i].ranges, ranges)) {
+				if (this.delete(ws, this.elems[i].Id, addToHistory)) {
+					i--;
+				}
+			} else {
+				var changedRanges = this.elems[i].clear(ranges);
+				if (changedRanges) {
+					if (!changedRanges.length) {
+						if (this.delete(ws, this.elems[i].Id, addToHistory)) {
+							i--;
+						}
+					} else {
+						var newDataValidation = this.elems[i].clone();
+						newDataValidation.ranges = changedRanges;
+						this.change(ws, this.elems[i], newDataValidation, addToHistory);
+					}
+				}
 			}
 		}
 	};
@@ -1356,6 +1536,17 @@
 				var newDataValidation = this.elems[i].clone();
 				newDataValidation.ranges = changedRanges;
 				res.push(newDataValidation);
+			}
+		}
+		return res.length ? res : null;
+	};
+
+	CDataValidations.prototype.getIntersectionByRange = function (range) {
+		var res = [];
+		for (var i = 0; i < this.elems.length; i++) {
+			var changedRanges = this.elems[i].getIntersections(range);
+			if (changedRanges) {
+				res.push({ranges: changedRanges, id: this.elems[i].Id});
 			}
 		}
 		return res.length ? res : null;
