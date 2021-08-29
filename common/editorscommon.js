@@ -1445,6 +1445,11 @@
 		SupportedFormats: ["docx", "doc", "docm", "dot", "dotm", "dotx", "epub", "fodt", "odt", "ott", "rtf", "wps"]
 	};
 
+	var c_oAscSpreadsheetUploadProp = {
+		MaxFileSize:      104857600, //100 mb
+		SupportedFormats: ["xlsx", "xlsm", "xls", "ods", "csv", "xltx", "xltm", "xlt", "fods", "ots"]
+	};
+
 	var c_oAscTextUploadProp = {
 		MaxFileSize:      25000000, //25 mb
 		SupportedFormats: ["txt", "csv"]
@@ -1794,6 +1799,11 @@
 			callback(Asc.c_oAscError.ID.Unknown);
 		}
 	}
+	function ShowSpreadsheetFileDialog(callback) {
+		if (false === _ShowFileDialog(getAcceptByArray(c_oAscSpreadsheetUploadProp.SupportedFormats), false, false, ValidateUploadSpreadsheet, callback)) {
+			callback(Asc.c_oAscError.ID.Unknown);
+		}
+	}
 	function ShowTextFileDialog(callback) {
 		if (false === _ShowFileDialog(getAcceptByArray(c_oAscTextUploadProp.SupportedFormats), false, false, ValidateUploadText, callback)) {
 			callback(Asc.c_oAscError.ID.Unknown);
@@ -2072,6 +2082,10 @@
 	function ValidateUploadDocument(files)
 	{
 		return ValidateUpload(files, c_oAscServerError.UploadDocumentExtension, c_oAscServerError.UploadDocumentContentLength, c_oAscServerError.UploadDocumentCountFiles, c_oAscDocumentUploadProp);
+	}
+	function ValidateUploadSpreadsheet(files)
+	{
+		return ValidateUpload(files, c_oAscServerError.UploadDocumentExtension, c_oAscServerError.UploadDocumentContentLength, c_oAscServerError.UploadDocumentCountFiles, c_oAscSpreadsheetUploadProp);
 	}
 	function ValidateUploadText(files)
 	{
@@ -6941,6 +6955,7 @@
 	window["AscCommon"].InitOnMessage = InitOnMessage;
 	window["AscCommon"].ShowImageFileDialog = ShowImageFileDialog;
 	window["AscCommon"].ShowDocumentFileDialog = ShowDocumentFileDialog;
+	window["AscCommon"].ShowSpreadsheetFileDialog = ShowSpreadsheetFileDialog;
 	window["AscCommon"].ShowTextFileDialog = ShowTextFileDialog;
 	window["AscCommon"].InitDragAndDrop = InitDragAndDrop;
 	window["AscCommon"].UploadImageFiles = UploadImageFiles;
