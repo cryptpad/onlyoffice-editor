@@ -2522,7 +2522,7 @@ CSrcRect.prototype =
     },
 
     setValueForFitBlipFill: function (shapeWidth, shapeHeight, imageWidth, imageHeight) {
-        if (imageWidth < imageHeight || (imageHeight / imageWidth) > (shapeHeight / shapeWidth)) {
+        if ((imageHeight / imageWidth) > (shapeHeight / shapeWidth)) {
             this.l = 0;
             this.r = 100;
             var widthAspectRatio = imageWidth / shapeWidth;
