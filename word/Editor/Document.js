@@ -25663,7 +25663,7 @@ CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 			var	oLastCell;
 			if (oSelectedRows.Start === oSelectedRows.End)
 			{
-				if (oTable.Selection.StartPos.Pos.Cell === oTable.Selection.EndPos.Pos.Cell)
+				if (oTable.Selection.StartPos.Pos.Cell === oTable.Selection.EndPos.Pos.Cell && oTable.GetRow(oSelectedRows.Start).GetCellsCount() > 1)
 				{
 					isConvertAll = true;
 				}
@@ -25724,7 +25724,8 @@ CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 								isNewPar = true;
 							}
 							oNewParagraph.Concat(oElement, true);
-							oNewParagraph.SetParagraphAlign(1);
+							if (oProps.type !== 1)
+								oNewParagraph.SetParagraphAlign(1);
 							break;
 						case type_Table:
 							var oNestedContent = (oProps.nested) ? this.private_ConvertTableToText(oElement, oProps) : [oElement];
