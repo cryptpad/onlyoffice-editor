@@ -269,7 +269,7 @@ CDocumentSearch.prototype.SetDirection = function(bDirection)
 };
 CDocumentSearch.prototype.private_CalculatePrefix = function()
 {
-	var nLen = this.ElementsArr.arrElements.length;
+	var nLen = this.TextItemBase.arrElements.length;
 
 	this.Prefix    = new Int32Array(nLen);
 	this.Prefix[0] = 0;
@@ -277,10 +277,10 @@ CDocumentSearch.prototype.private_CalculatePrefix = function()
 	for (var nPos = 1, nK = 0; nPos < nLen; ++nPos)
 	{
 		nK = this.Prefix[nPos - 1]
-		while (nK > 0 && !(this.ElementsArr.arrElements[nPos].Value === this.ElementsArr.arrElements[nK].Value || CheckTextForSpecialSymbols(this.ElementsArr, nPos, nK)))
+		while (nK > 0 && !(this.TextItemBase.arrElements[nPos].Value === this.TextItemBase.arrElements[nK].Value || CheckTextForSpecialSymbols(this.TextItemBase, nPos, nK)))
 			nK = this.Prefix[nK - 1];
 
-		if (this.ElementsArr.arrElements[nPos].Value === this.ElementsArr.arrElements[nK].Value || CheckTextForSpecialSymbols(this.ElementsArr, nPos, nK))
+		if (this.TextItemBase.arrElements[nPos].Value === this.TextItemBase.arrElements[nK].Value || CheckTextForSpecialSymbols(this.TextItemBase, nPos, nK))
 			nK++;
 
 		this.Prefix[nPos] = nK;
@@ -437,6 +437,27 @@ var para_special_emDash 			= 0x1011; // 4112
 var para_special_enDash 			= 0x1012; // 4113
 var para_special_sectionCharacter   = 0x1013; // 4114
 var para_special_paragraphCharater  = 0x1014; // 4115
+document.addEventListener('keydown', function(event) 
+{
+	if (event.code == 'KeyX' && (event.altKey || event.metaKey)) 
+	{
+		/*var elements = document.getElementsByClassName('title');
+		var texting = getSelectionText();
+    	elements[3].innerHTML = texting;*/
+		/*var texting;
+		texting = GetSelectedText();*/
+	}
+});
+function getSelectionText() {
+	var text ;
+	if (window.getSelection) {
+		text = window.getSelection();
+	} else if (document.selection && document.selection.type !== "Control") {
+		text = document.selection.createRange().text;
+	}
+	return text;
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 // CSearchTextItemBase
 //----------------------------------------------------------------------------------------------------------------------
@@ -653,13 +674,9 @@ CSearchTextSpecialParagraphCharater.prototype = Object.create(CSearchTextItemBas
 //----------------------------------------------------------------------------------------------------------------------
 // CDocument
 //----------------------------------------------------------------------------------------------------------------------
-//var newContentArr = [];
-//var CurrentWords = 0;
 CDocument.prototype.Search = function(sStr, oProps, bDraw)
 {
 	//var StartTime = new Date().getTime();
-	//sStr = this.ChangeStrWithSpecialSymbols(sStr, this.SearchEngine);
-	//this.CheckCorrectSpecialSymbols(sStr); 	// this function checking special symbols and if it doesn't exist should do something
     oProps.Word = false; 					// True только искомое слово, False любое совпадение искомого слова 
 	if (this.SearchEngine.Compare(sStr, oProps))
 		return this.SearchEngine;
@@ -667,14 +684,10 @@ CDocument.prototype.Search = function(sStr, oProps, bDraw)
 	var ArrElement = new CSearchTextItemBase();
 	ArrElement.SetElements(sStr);
 
-	this.SearchEngine.ElementsArr = ArrElement;
+	this.SearchEngine.TextItemBase = ArrElement;
 
 	this.SearchEngine.Clear();
 	this.SearchEngine.Set(sStr, oProps);
-
-	//newContentArr = [];
-	//CurrentWords = 0;
-	
 
 	var oParaSearch = new CParagraphSearch(this.Content[0], sStr, oProps, this.SearchEngine, search_Common);
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
@@ -713,75 +726,6 @@ CDocument.prototype.Search = function(sStr, oProps, bDraw)
 	//console.log( "Search logic: " + ((new Date().getTime() - StartTime) / 1000) + " s"  );
 
 	return this.SearchEngine;
-};
-CDocument.prototype.ChangeStrWithSpecialSymbols = function(Str, ParaSearch)
-{
-	var str = Str;
-	var Elements = {
-		"l" : String.fromCharCode(42560), // ^l - new line
-		"t" : String.fromCharCode(42561), // ^t - tab
-		"p" : String.fromCharCode(42562), // ^p - paraEnd
-		"?" : String.fromCharCode(42563), // ^? - any symbol
-		"#" : String.fromCharCode(42564), // ^# - any digit
-		"$" : String.fromCharCode(42565), // ^$ - any letter
-		"n" : String.fromCharCode(42566), // ^n - column Break
-		"e" : String.fromCharCode(42567), // ^e - endnote mark
-		"d" : String.fromCharCode(42568), // ^d - field
-		"f" : String.fromCharCode(42569), // ^f - footnote mark
-		"g" : String.fromCharCode(42570), // ^g - graphic object
-		"m" : String.fromCharCode(42571), // ^m - break page
-		"~" : String.fromCharCode(42572), // ^~ - nonbreaking hyphen
-		"s" : String.fromCharCode(42573), // ^s - nonbreaking space
-		"^" : String.fromCharCode(42574), // ^^ - caret character
-		"w" : String.fromCharCode(42575), // ^w - any space
-		"+" : String.fromCharCode(42576), // ^+ - em dash
-		"=" : String.fromCharCode(42577), // ^= - en dash
-		"%" : String.fromCharCode(42578), // ^% - § Section Character
-		"v" : String.fromCharCode(42579)  // ^v - ¶ Paragraph Character
-	};
-	var sSpecial = "ltp?#$nedfgm~s^w+=%v";
-	var substr = str;
-	var bNeedToSearchAgain;
-	for (var i = 0; i < str.length; i++)
-	{
-		if (str[i] === "^" && i !== str.length - 1)
-		{
-			if (sSpecial.indexOf(str[i + 1]) !== -1)
-			{
-				var op = "^" + str[i + 1];
-				str = str.replaceAll(op, Elements[str[i + 1]]);
-				substr = substr.replaceAll(op, 1);
-				bNeedToSearchAgain = false;
-				i--;
-			}
-		}
-	}
-	(ParaSearch.Substr === substr) ? bNeedToSearchAgain = true : bNeedToSearchAgain = false;
-	ParaSearch.NeedToSearchAgain = bNeedToSearchAgain;
-	ParaSearch.Substr = substr;
-	return str;
-};
-CDocument.prototype.CheckCorrectSpecialSymbols = function(Str)
-{
-	var bSpecialSymbols = true;
-	var el = '';
-	for (var i = 0; i < Str.length; i++)
-	{
-		if (Str[i] === '^')
-		{
-			bSpecialSymbols = false;
-			if (el === '')
-			{
-				el = Str[i];
-				((Str[i + 1] !== undefined) ? el += Str[i + 1] : el += '');
-			}
-		}
-	}
-	if (bSpecialSymbols === false)
-	{
-		// do something because special symbol doesn't exist
-	}
-	// return el;
 };
 CDocument.prototype.SelectSearchElement = function(Id)
 {
@@ -1732,8 +1676,6 @@ ParaRun.prototype.Search = function(ParaSearch)
 			if (oItem.DrawingType !== 1)
 				ParaSearch.Reset();
 		}
-		//newContentArr[CurrentWords] = oItem;
-		//CurrentWords++;
 
 		var bElement = (ParaSearch.Check(ParaSearch.SearchIndex, oItem) || this.IsElementEqSpesialSymbol(ParaSearch, nPos));
 		while (ParaSearch.SearchIndex > 0 && !bElement)
@@ -1755,7 +1697,7 @@ ParaRun.prototype.Search = function(ParaSearch)
 				break;
 			}
 		}
-		if (ParaSearch.Check(ParaSearch.SearchIndex, oItem) || ParaSearch.SearchEngine.ElementsArr.arrElements[ParaSearch.SearchIndex].IsSpecialItem())
+		if (ParaSearch.Check(ParaSearch.SearchIndex, oItem) || ParaSearch.SearchEngine.TextItemBase.arrElements[ParaSearch.SearchIndex].IsSpecialItem())
 		{		
 			var bCheck = true;
 			if (0 === ParaSearch.SearchIndex)
@@ -1786,7 +1728,7 @@ ParaRun.prototype.Search = function(ParaSearch)
 					ParaSearch.StartPos = {Run : this, Pos : nPos};
 				}
 			}
-			if (ParaSearch.SearchEngine.ElementsArr.arrElements[ParaSearch.SearchIndex].IsSpecialItem())
+			if (ParaSearch.SearchEngine.TextItemBase.arrElements[ParaSearch.SearchIndex].IsSpecialItem())
 			{
 				bCheck = this.CheckSpecialSymbol(ParaSearch, nPos, bCheck);
 			}
@@ -1799,7 +1741,7 @@ ParaRun.prototype.Search = function(ParaSearch)
 
 					ParaSearch.SearchIndex++;
 
-					if (ParaSearch.SearchIndex === ParaSearch.SearchEngine.ElementsArr.arrElements.length)
+					if (ParaSearch.SearchIndex === ParaSearch.SearchEngine.TextItemBase.arrElements.length)
 					{
 						if (nPos === nContentLen - 1)
 						{
@@ -1848,7 +1790,7 @@ ParaRun.prototype.Search = function(ParaSearch)
 
 				ParaSearch.SearchIndex++;
 
-				if (ParaSearch.SearchIndex === ParaSearch.SearchEngine.ElementsArr.arrElements.length)
+				if (ParaSearch.SearchIndex === ParaSearch.SearchEngine.TextItemBase.arrElements.length)
 				{
 					if (ParaSearch.StartPos)
 					{
@@ -1950,7 +1892,7 @@ ParaRun.prototype.CheckSpecialSymbol = function(ParaSearch, nPos, bCheck)
 			RestParaAndBFalse();
 		}
 	};
-	(sLetters[ParaSearch.SearchEngine.ElementsArr.arrElements[ParaSearch.SearchIndex].TypeName] || sLetters['default'])();
+	(sLetters[ParaSearch.SearchEngine.TextItemBase.arrElements[ParaSearch.SearchIndex].TypeName] || sLetters['default'])();
 	return bCheck;
 };
 ParaRun.prototype.IsElementEqSpesialSymbol = function(ParaSearch, nPos)
@@ -2031,7 +1973,7 @@ ParaRun.prototype.IsElementEqSpesialSymbol = function(ParaSearch, nPos)
 			bElement = false;;
 		}
 	};
-	(sLetters[ParaSearch.SearchEngine.ElementsArr.arrElements[ParaSearch.SearchIndex].TypeName] || sLetters['default'])();
+	(sLetters[ParaSearch.SearchEngine.TextItemBase.arrElements[ParaSearch.SearchIndex].TypeName] || sLetters['default'])();
 	return bElement;
 };
 ParaRun.prototype.AddSearchResult = function(oSearchResult, isStart, oContentPos, nDepth)
@@ -2200,13 +2142,12 @@ CParagraphSearch.prototype.Reset = function()
 CParagraphSearch.prototype.Check = function(nIndex, oItem)
 {
 	var nItemType = oItem.Type;
-	if (oItem.value === this.Str.charCodeAt(nIndex) && this.SearchEngine.Substr[nIndex] === "1" && (this.Str[nIndex] >= 'Ꙁ' && this.Str[nIndex] <= 'ꙓ'))
-		return false;
-	return ((para_Space === nItemType && 32 === this.SearchEngine.ElementsArr.arrElements[nIndex].Value)
-		|| (para_Math_Text === nItemType && oItem.value === this.SearchEngine.ElementsArr.arrElements[nIndex].Value)
+
+	return ((para_Space === nItemType && 32 === this.SearchEngine.TextItemBase.arrElements[nIndex].Value)
+		|| (para_Math_Text === nItemType && oItem.value === this.SearchEngine.TextItemBase.arrElements[nIndex].Value)
 		|| (para_Text === nItemType
-			&& ((true !== this.Props.MatchCase && (String.fromCharCode(oItem.Value)).toLowerCase() === String.fromCharCode(this.SearchEngine.ElementsArr.arrElements[nIndex].Value).toLowerCase())
-				|| (true === this.Props.MatchCase && oItem.Value === this.SearchEngine.ElementsArr.arrElements[nIndex].Value))));
+			&& ((true !== this.Props.MatchCase && (String.fromCharCode(oItem.Value)).toLowerCase() === String.fromCharCode(this.SearchEngine.TextItemBase.arrElements[nIndex].Value).toLowerCase())
+				|| (true === this.Props.MatchCase && oItem.Value === this.SearchEngine.TextItemBase.arrElements[nIndex].Value))));
 };
 CParagraphSearch.prototype.GetPrefix = function(nIndex)
 {
