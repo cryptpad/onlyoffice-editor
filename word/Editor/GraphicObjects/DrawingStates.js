@@ -1730,40 +1730,6 @@ TextAddState.prototype =
 
 };
 
-function PreGeometryEditState(drawingObjects)
-{
-    this.drawingObjects = drawingObjects;
-}
-
-PreGeometryEditState.prototype = {
-    onMouseDown: function(e, x, y, pageIndex)
-    {
-        var selectedObj = this.drawingObjects.selectedObjects[0];
-        var ret = AscFormat.handleSelectedObjects(this.drawingObjects, e, x, y, null, pageIndex, true);
-        if(e.Type === 0) {
-           if(ret && ret.hit) {
-                this.drawingObjects.arrTrackObjects.push(new AscFormat.EditShapeGeometryTrack(selectedObj, this.majorObject));
-                this.drawingObjects.changeCurrentState(new GeometryEditState(this.drawingObjects, selectedObj));
-            } else if ((ret && !ret.hit) || !ret) {
-               //refactoring : отдельная функция для зануления
-                this.drawingObjects.selection.geometrySelection.calcGeometry.gmEditList = [];
-                this.drawingObjects.selection.geometrySelection.calcGeometry.gmEditPoint = null;
-               this.drawingObjects.selection.geometrySelection.calcGeometry.ellipsePointsList = [];
-                this.drawingObjects.selection.geometrySelection = null;
-                this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
-                this.drawingObjects.clearTrackObjects();
-                this.drawingObjects.updateOverlay();
-            }
-            return ret;
-        }
-    },
-    onMouseMove: function(e, x, y, pageIndex)
-    {
-    },
-    onMouseUp: function(e, x, y, pageIndex)
-    {
-    }
-}
 function GeometryEditState(drawingObjects, majorObject)
 {
     this.drawingObjects = drawingObjects;
@@ -1779,9 +1745,8 @@ GeometryEditState.prototype = {
                 return {objectId: track_object.geometry.Id, hit: true};
             } else if ((ret && !ret.hit) || !ret) {
                 //refactoring : отдельная функция для зануления
-                this.drawingObjects.selection.geometrySelection.calcGeometry.gmEditList = [];
-                this.drawingObjects.selection.geometrySelection.calcGeometry.gmEditPoint = null;
-                this.drawingObjects.selection.geometrySelection.calcGeometry.ellipsePointsList = [];
+                if (track_object)
+                    track_object.clearPoints();
                 this.drawingObjects.selection.geometrySelection = null;
                 this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
                 this.drawingObjects.clearTrackObjects();
@@ -2739,7 +2704,6 @@ window['AscFormat'].PreRotateInGroupState = PreRotateInGroupState;
 window['AscFormat'].PreResizeInGroupState = PreResizeInGroupState;
 window['AscFormat'].PreChangeAdjInGroupState = PreChangeAdjInGroupState;
 window['AscFormat'].TextAddState = TextAddState;
-window['AscFormat'].PreGeometryEditState = PreGeometryEditState;
 window['AscFormat'].GeometryEditState = GeometryEditState;
 window['AscFormat'].SplineBezierState = SplineBezierState;
 window['AscFormat'].PolyLineAddState = PolyLineAddState;

@@ -738,6 +738,15 @@
         return true;
     };
 
+    EditShapeGeometryTrack.prototype.clearPoints = function() {
+        var originalGeometry = this.originalObject.calcGeometry;
+        if(originalGeometry) {
+            originalGeometry.gmEditList = [];
+            originalGeometry.gmEditPoint = null;
+            originalGeometry.ellipsePointsList = [];
+        }
+    }
+
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].EditShapeGeometryTrack = EditShapeGeometryTrack;
 })(window);
