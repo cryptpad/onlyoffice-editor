@@ -2455,7 +2455,7 @@ function CEditorPage(api)
 		var _ret_mouseDown               = oWordControl.m_oLogicDocument.OnKeyDown(global_keyboardEvent);
 		oWordControl.bIsUseKeyPress      = ((_ret_mouseDown & keydownresult_PreventKeyPress) != 0) ? false : true;
 
-		oWordControl.EndUpdateOverlay();
+		oWordControl.EndUpdateOverlay(e);
 
 		if ((_ret_mouseDown & keydownresult_PreventDefault) != 0)// || (true === global_keyboardEvent.AltKey && !AscBrowser.isMacOs))
 		{
@@ -2938,18 +2938,18 @@ function CEditorPage(api)
 	{
 		this.IsUpdateOverlayOnlyEnd = true;
 	};
-	this.EndUpdateOverlay   = function()
+	this.EndUpdateOverlay   = function(e)
 	{
 		if (this.IsUpdateOverlayOnlyEndReturn)
 			return;
 
 		this.IsUpdateOverlayOnlyEnd = false;
 		if (this.IsUpdateOverlayOnEndCheck)
-			this.OnUpdateOverlay();
+			this.OnUpdateOverlay(e);
 		this.IsUpdateOverlayOnEndCheck = false;
 	};
 
-	this.OnUpdateOverlay = function()
+	this.OnUpdateOverlay = function(e)
 	{
 		if (this.IsUpdateOverlayOnlyEnd)
 		{
@@ -3061,9 +3061,9 @@ function CEditorPage(api)
 					this.m_oDrawingDocument.AutoShapesTrack.PageIndex = indP;
 					this.m_oLogicDocument.DrawingObjects.drawSelect(indP);
 				}
-
-				if (this.m_oLogicDocument.DrawingObjects.needUpdateOverlay())
+				if (this.m_oLogicDocument.DrawingObjects.needUpdateOverlay(e))
 				{
+
 					overlay.Show();
 					this.m_oDrawingDocument.AutoShapesTrack.PageIndex = -1;
 					this.m_oLogicDocument.DrawingObjects.drawOnOverlay(this.m_oDrawingDocument.AutoShapesTrack);

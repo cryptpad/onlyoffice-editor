@@ -2525,9 +2525,15 @@ CGraphicObjects.prototype =
         this.startTrackPos.pageIndex = pageIndex;
     },
 
-    needUpdateOverlay: function()
+    needUpdateOverlay: function(e)
     {
-        return this.arrTrackObjects.length > 0 || this.curState.InlinePos;
+        var isDeletingGeomEdit = e && e.key === "Delete";
+
+        if(isDeletingGeomEdit && (this.curState instanceof AscFormat.GeometryEditState)) {
+            this.changeCurrentState(new AscFormat.NullState(this));
+            this.arrTrackObjects.length = 0;
+        }
+        return (this.arrTrackObjects.length > 0 && !isDeletingGeomEdit) || this.curState.InlinePos;
     },
 
     changeCurrentState: function(state)
