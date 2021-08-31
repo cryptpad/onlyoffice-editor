@@ -1764,16 +1764,17 @@ GeometryEditState.prototype = {
     onMouseUp: function(e, x, y, pageIndex)
     {
         var geom = this.drawingObjects.arrTrackObjects[0].geometry;
+        var track_object = this.drawingObjects.arrTrackObjects[0];
         if(geom.gmEditPoint) {
             geom.gmEditPoint.isHitInFirstCPoint = false;
             geom.gmEditPoint.isHitInSecondCPoint = false;
 
             if(e.CtrlKey) {
-                var track_object = this.drawingObjects.arrTrackObjects[0];
                 track_object.deletePoint(track_object.geometry);
             }
         }
         this.drawingObjects.updateOverlay();
+        track_object.addCommandsInPathInfo(track_object.geometry);
         RotateState.prototype.onMouseUp.call(this, e, x, y, pageIndex);
     }
 }

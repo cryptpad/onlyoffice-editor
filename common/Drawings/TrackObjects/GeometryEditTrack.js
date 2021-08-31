@@ -319,7 +319,6 @@
     };
 
     EditShapeGeometryTrack.prototype.trackEnd = function() {
-        this.addCommandsInPathInfo(this.geometry);
         this.originalObject.spPr.setGeometry(this.geometry.createDuplicate());
     };
 
