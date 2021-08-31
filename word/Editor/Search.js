@@ -700,12 +700,12 @@ CDocument.prototype.Search = function(sStr, oProps, bDraw)
 
 	this.SectionsInfo.Search(sStr, oProps, this.SearchEngine);
 
-	//-------------------------------------------------------
+	/*//-------------------------------------------------------
 	var counts = "Elements found: " + this.SearchEngine.Count;
     var elements = document.getElementsByClassName('title');
     elements[3].innerHTML = counts;
 	//-------------------------------------------------------
-
+	*/
 	var arrFootnotes = this.GetFootnotesList(null, null);
 	this.SearchEngine.SetFootnotes(arrFootnotes);
 	for (var nIndex = 0, nCount = arrFootnotes.length; nIndex < nCount; ++nIndex)
