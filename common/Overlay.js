@@ -2787,7 +2787,7 @@ CAutoshapeTrack.prototype =
         ctx.beginPath();
     },
 
-    DrawGeometryEdit: function (matrix, gmEditList, gmEditPoint) {
+    DrawGeometryEdit: function (matrix, pathLst, gmEditList, gmEditPoint) {
         var overlay = this.m_oOverlay;
         overlay.Clear();
         var ctx = overlay.m_oContext;
@@ -2802,6 +2802,31 @@ CAutoshapeTrack.prototype =
 
         var dKoefX = wDst / this.CurrentPageInfo.width_mm;
         var dKoefY = hDst / this.CurrentPageInfo.height_mm;
+
+
+        //red outline
+        overlay.m_oContext.strokeStyle = '#ff0000';
+        var t = this;
+        for (var i = 0; i < pathLst.length; i++) {
+            pathLst[i].ArrPathCommand.forEach(function (elem) {
+                if (elem.id === 0) {
+                    var pointX = (xDst + dKoefX * (matrix.TransformPointX(elem.X, elem.Y))) >> 0;
+                    var pointY = (yDst + dKoefY * (matrix.TransformPointY(elem.X, elem.Y))) >> 0;
+                    t._m(pointX, pointY)
+                } else if (elem.id === 4)
+                var pointX0 = (xDst + dKoefX * (matrix.TransformPointX(elem.X0, elem.Y0))) >> 0;
+                var pointY0 = (yDst + dKoefY * (matrix.TransformPointY(elem.X0, elem.Y0))) >> 0;
+                var pointX1 = (xDst + dKoefX * (matrix.TransformPointX(elem.X1, elem.Y1))) >> 0;
+                var pointY1 = (yDst + dKoefY * (matrix.TransformPointY(elem.X1, elem.Y1))) >> 0;
+                var pointX2 = (xDst + dKoefX * (matrix.TransformPointX(elem.X2, elem.Y2))) >> 0;
+                var pointY2 = (yDst + dKoefY * (matrix.TransformPointY(elem.X2, elem.Y2))) >> 0;
+                t._c(pointX0, pointY0, pointX1, pointY1, pointX2, pointY2);
+            })
+        }
+        ctx.stroke();
+        ctx.closePath();
+
+        ctx.beginPath();
 
         if (gmEditPoint) {
             var firstGuide, secondGuide;

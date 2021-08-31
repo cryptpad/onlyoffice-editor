@@ -9725,7 +9725,6 @@ function CSlideBoundsChecker()
 
     this.IsNoSupportTextDraw = true;
 
-    this.geometryEditPoints = [];
     this.LineWidth = null;
     this.AutoCheckLineWidth = false;
 }

@@ -1347,8 +1347,9 @@ Geometry.prototype=
         
         var gmEditPoint = geometry.gmEditPoint;
         var gmEditList = geometry.gmEditList;
+        var pathLst = geometry.pathLst;
         var matrix =  shape.getTransformMatrix();
-        drawingDocument.AutoShapesTrack.DrawGeometryEdit(matrix, gmEditList, gmEditPoint);
+        drawingDocument.AutoShapesTrack.DrawGeometryEdit(matrix, pathLst, gmEditList, gmEditPoint);
     },
 
     canFill: function()
