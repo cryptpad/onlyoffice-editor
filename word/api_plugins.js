@@ -322,7 +322,7 @@
      * @alias GetSelectedText
      * @param {object} prop
      * @return {string} selected text
-	 * @example
+     * @example
      * window.Asc.plugin.executeMethod("GetSelectedText", [{NewLine:true, NewLineParagraph:true, Numbering:true}])
      */
     window["asc_docs_api"].prototype["pluginMethod_GetSelectedText"] = function(prop)
@@ -331,25 +331,25 @@
         if (!oLogicDocument)
             return;
 
-		var properties;
-		if (typeof prop === "object")
-		{
-			properties =
-			{
-				NewLine : (prop.hasOwnProperty("NewLine")) ? prop.NewLine : true,
-				NewLineParagraph : (prop.hasOwnProperty("NewLineParagraph")) ? prop.NewLineParagraph : true,
-				Numbering : (prop.hasOwnProperty("Numbering")) ? prop.Numbering : true
-			}
-		}
-		else
-		{
-			properties = 
-			{
-				NewLine : true,
-				NewLineParagraph : true,
-				Numbering : true
-			}
-		}
+        var properties;
+        if (typeof prop === "object")
+        {
+            properties =
+            {
+                NewLine : (prop.hasOwnProperty("NewLine")) ? prop.NewLine : true,
+                NewLineParagraph : (prop.hasOwnProperty("NewLineParagraph")) ? prop.NewLineParagraph : true,
+                Numbering : (prop.hasOwnProperty("Numbering")) ? prop.Numbering : true
+            }
+        }
+        else
+        {
+            properties = 
+            {
+                NewLine : true,
+                NewLineParagraph : true,
+                Numbering : true
+            }
+        }
 
         return oLogicDocument.GetSelectedText(false, properties);
     };
