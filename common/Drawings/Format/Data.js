@@ -2743,6 +2743,13 @@
       return [this.title, this.desc, this.catLst, this.sampData, this.styleData, this.clrData, this.layoutNode];
     };
 
+    LayoutDef.prototype.startAlgorithm = function (pointTree) {
+      var entry = this.getLayoutNode();
+      if (entry) {
+        entry.startAlgorithm(pointTree);
+      }
+    }
+
 
     function CatLst() {
       CCommonDataList.call(this);
@@ -3074,6 +3081,27 @@
     LayoutNode.prototype.getChildren = function() {
       return [].concat(this.list);
     };
+
+
+    LayoutNode.prototype.getConstrLst = function () {
+      return this.list.reduce(function (save, next) {
+        return next instanceof ConstrLst ? next : save;
+      }, undefined);
+    }
+
+    LayoutNode.prototype.startAlgorithm = function (pointTree) {
+      if (this.list) {
+        this.list.forEach(function (element) {
+          if (element instanceof AscFormat.ForEach || element instanceof AscFormat.LayoutNode || element instanceof AscFormat.Choose) {
+            element.startAlgorithm(pointTree);
+          }
+        });
+      }
+    }
+
+    LayoutNode.prototype.findPoint = function (pointInfo) {
+
+    }
 
 
     changesFactory[AscDFH.historyitem_AlgRev] = CChangeLong;
@@ -3893,6 +3921,19 @@
     Choose.prototype.getChildren = function() {
       return [this.if, this.else];
     };
+    
+    Choose.prototype.startAlgorithm = function (pointTree) {
+      var check;
+      if (this.if) {
+        check = this.if.startAlgorithm(pointTree);
+        if (check) {
+          if (this.else) {
+            this.else.startAlgorithm(pointTree);
+          }
+        }
+      }
+      console.log(check)
+    }
 
 
 
@@ -3976,6 +4017,14 @@
     Else.prototype.getChildren = function() {
       return [].concat(this.list);
     };
+
+    Else.prototype.startAlgorithm = function (pointTree) {
+      this.list.forEach(function (element) {
+        if (element instanceof AscFormat.ForEach || element instanceof AscFormat.LayoutNode || element instanceof AscFormat.Choose) {
+          element.startAlgorithm(pointTree);
+        }
+      });
+    }
 
     changesFactory[AscDFH.historyitem_IteratorAttributesAddAxis] = CChangeContent;
     changesFactory[AscDFH.historyitem_IteratorAttributesRemoveAxis] = CChangeContent;
@@ -4554,6 +4603,110 @@
     If.prototype.getChildren = function() {
       return [].concat(this.list);
     };
+    
+    If.prototype.startAlgorithm = function (pointTree) {
+      var check = this.checkCondition(pointTree);
+      if (check) {
+        this.list.forEach(function (element) {
+          if (element instanceof AscFormat.ForEach || element instanceof AscFormat.LayoutNode || element instanceof AscFormat.Choose) {
+            element.startAlgorithm(pointTree);
+          }
+        });
+      }
+      return check;
+    }
+    
+    If.prototype.getAxis = function (pointTree) {
+
+      switch (this.axis) {
+
+      }
+      
+    }
+    
+    If.prototype.checkCondition = function (pointTree) {
+      if (pointTree) {
+        var dataOfDoc = pointTree.root;
+        if (dataOfDoc) {
+
+        }
+      }
+      switch (this.func) {
+        case If_func_cnt:
+          return this.funcCnt();
+        case If_func_depth:
+          return this.funcDepth();
+        case If_func_maxDepth:
+          return this.funcMaxDepth();
+        case If_func_pos:
+          return this.funcPos();
+        case If_func_posEven:
+          return this.funcPosEven();
+        case If_func_posOdd:
+          return this.funcPosOdd();
+        case If_func_revPos:
+          return this.funcRevPos();
+        case If_func_var:
+          return this.funcVar();
+        default:
+          return false;
+      }
+    }
+    
+    If.prototype.compare = function () {
+      
+    }
+
+    If.prototype.funcVar = function () {
+
+    }
+
+    If.prototype.funcCnt = function () {
+
+    }
+
+    If.prototype.funcDepth = function () {
+
+    }
+
+    If.prototype.funcMaxDepth = function () {
+
+    }
+
+    If.prototype.funcPos = function () {
+
+    }
+
+    If.prototype.funcPosEven = function () {
+
+    }
+
+    If.prototype.funcPosOdd = function () {
+
+    }
+
+    If.prototype.funcRevPos = function () {
+
+    }
+
+    If.prototype.compare = function (comparingArg) {
+      switch (this.op) {
+        case 'equ':
+          return comparingArg === this.val;
+        case 'gt':
+          return comparingArg > this.val;
+        case 'gte':
+          return comparingArg >= this.val;
+        case 'lt':
+          return comparingArg < this.val;
+        case 'lte':
+          return comparingArg <= this.val;
+        case 'neq':
+          return comparingArg !== this.val;
+        default:
+          return false;
+      }
+    }
 
     function ConstrLst() {
       CCommonDataList.call(this);
@@ -6109,6 +6262,10 @@
     ForEach.prototype.getChildren = function() {
       return [].concat(this.list);
     };
+
+    ForEach.prototype.startAlgorithm = function () {
+
+    }
 
 
 
@@ -8921,6 +9078,13 @@
       return 'SmartArt';
     };
 
+    SmartArt.prototype.startAlgorithm = function () {
+      var layoutDef = this.getLayoutDef();
+      if (layoutDef) {
+        layoutDef.startAlgorithm(this.tree);
+      }
+    }
+
     SmartArt.prototype.setTree = function (oPr) {
       oHistory.Add(new CChangeObject(this, AscDFH.historyitem_SmartArtTree, this.getTree(), oPr));
       this.tree = oPr;
@@ -9444,6 +9608,7 @@
         case 3: {
           this.setLayoutDef(new LayoutDef());
           this.layoutDef.fromPPTY(pReader);
+          this.startAlgorithm();
           break;
         }
         case 4: {
