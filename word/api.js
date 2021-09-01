@@ -2577,7 +2577,7 @@ background-repeat: no-repeat;\
 		var downloadType = bIsDownloadEvent ? DownloadType.Download : DownloadType.None;
 		var rData        = {
 			"c"     : 'pathurl',
-			"title" : this.documentTitle,
+			"title" : AscCommon.changeFileExtention(this.documentTitle, this.documentFormat, Asc.c_nMaxDownloadTitleLen),
 			"data"  : 'origin.' + this.documentFormat
 		};
 		var t            = this;
