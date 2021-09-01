@@ -9934,6 +9934,7 @@
       if (rootData) {
         child.setData(rootData);
       }
+      child.setParent(this);
       this.root = child;
     }
     InitClass(SmartArtTree, CBaseFormatObject, AscDFH.historyitem_type_SmartArtTree);
@@ -10050,6 +10051,7 @@
       var nInsertIdx = Math.min(this.children.length, Math.max(0, nIdx));
       oHistory.Add(new CChangeContent(this, AscDFH.historyitem_SmartArtNodeAddToLstChildren, nInsertIdx, [oPr], true));
       this.children.splice(nInsertIdx, 0, oPr);
+      this.setParentToChild(oPr);
     }
 
     SmartArtNode.prototype.removeFromLstChildren = function (nIdx) {
@@ -10058,6 +10060,159 @@
             oHistory.Add(new CChangeContent(this, AscDFH.historyitem_SmartArtNodeRemoveFromLstChildren, nIdx, [this.children[nIdx]], false));
             this.children.splice(nIdx, 1);
         }
+    }
+
+    SmartArtNode.prototype.getAxis = function (axisType) {
+      switch (axisType) {
+        case 'ancst':
+          return this.getAncst();
+        case 'ancstOrSelf':
+          return this.getAncstOrSelf();
+        case 'ch':
+          return this.getCh();
+        case 'des':
+          return this.getDes();
+        case 'desOrSelf':
+          return this.getDesOrSelf();
+        case 'follow':
+          return this.getFollow();
+        case 'followSib':
+          return this.getFollowSib();
+        case 'none':
+          return this.getNone();
+        case 'par':
+          return this.getPar();
+        case 'preced':
+          return this.getPreced();
+        case 'precedSib':
+          return this.getPrecedSib();
+        case 'root':
+          return this.getRoot();
+        case 'self':
+          return this.getSelf();
+        default:
+          return;
+
+      }
+    }
+
+    SmartArtNode.prototype.getAncst = function () {
+      var ancestors = [];
+      var root = this;
+      while (!(root instanceof SmartArtTree)) {
+        if (root !== this) {
+          ancestors.unshift(root);
+        }
+        root = root.parent;
+      }
+      return ancestors;
+    }
+
+    SmartArtNode.prototype.getAncstOrSelf = function () {
+      return this.getAncst().concat(this.getSelf());
+    }
+
+    SmartArtNode.prototype.getCh = function () {
+      return this.children;
+    }
+
+    SmartArtNode.prototype.getDes = function () {
+      var descendant = [];
+      (function recurse(context) {
+        context.children.forEach(function (children) {
+          descendant.push(children);
+          recurse(children);
+        });
+      })(this);
+      return descendant;
+    }
+
+    SmartArtNode.prototype.getDesOrSelf = function () {
+      return this.getSelf().concat(this.getDes());
+    }
+
+    SmartArtNode.prototype.getFollow = function () {
+      if (this.parent instanceof SmartArtTree) {
+        return;
+      }
+      var follow = [];
+      var followSib = this.getFollowSib();
+      followSib.forEach(function (follower) {
+        follow = follow.concat(follower.getDesOrSelf());
+      });
+      return follow;
+    }
+
+    SmartArtNode.prototype.getFollowSib = function () {
+      if (this.parent instanceof SmartArtTree) {
+        return;
+      }
+      var followSib = [];
+      var isFollowSib;
+      var parent = this.parent;
+      var childs = parent.children;
+      for (var i = 0; i < childs.length; i += 1) {
+        var child = childs[i];
+        if (isFollowSib) {
+          followSib.push(child);
+        }
+        if (this === child) {
+          isFollowSib = true;
+        }
+      }
+      return followSib;
+    }
+
+    SmartArtNode.prototype.getNone = function () {
+      return [];
+    }
+
+    SmartArtNode.prototype.getPar = function () {
+      return [this.parent];
+    }
+
+    SmartArtNode.prototype.getPreced = function () {
+      if (this.parent instanceof SmartArtTree) {
+        return;
+      }
+      var preced = [];
+      var precedSib = this.getPrecedSib();
+      precedSib.forEach(function (preceder) {
+        preced = preced.concat(preceder.getDesOrSelf());
+      });
+      return preced;
+    }
+
+    SmartArtNode.prototype.getPrecedSib = function () {
+      if (this.parent instanceof SmartArtTree) {
+        return;
+      }
+      var precedSib = [];
+      var isPrecedSib;
+      var parent = this.parent;
+      var childs = parent.children;
+      for (var i = childs.length - 1; i >= 0; i -= 1) {
+        var child = childs[i];
+        if (isPrecedSib) {
+          precedSib.push(child);
+        }
+        if (this === child) {
+          isPrecedSib = true;
+        }
+      }
+      return precedSib;
+    }
+
+    SmartArtNode.prototype.getRoot = function () {
+      var root = this;
+      while (!(root instanceof SmartArtTree)) {
+        root = root.parent;
+      }
+      return [root.root];
+    }
+
+    SmartArtNode.prototype.getSelf = function () {
+      return [this];
     }
 
 
