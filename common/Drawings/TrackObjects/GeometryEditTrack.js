@@ -713,8 +713,21 @@
             if (pathC1 > pathC2) {
                 arrayCommands[decrement_index] = {id: PathType.POINT, X: arrayCommands[pathC1 - 1].X2, Y: arrayCommands[pathC1 - 1].Y2};
             }
+            var curArrCommandsType = geometry.arrPathCommandsType[pathIndex];
+
+            //if next command is line, then recalculate to make it
+            var nextPath = gmEditPoint.nextPoint.pathC1;
+            if (curArrCommandsType[nextPath] && (curArrCommandsType[nextPath] === PathType.LINE)) {
+                var prevX = gmEditPoint.prevPoint.X, prevY = gmEditPoint.prevPoint.Y,
+                    nextX = gmEditPoint.nextPoint.X, nextY = gmEditPoint.nextPoint.Y;
+                arrayCommands[nextPath].X0 = (nextX + prevX * 2) / 3;
+                arrayCommands[nextPath].Y0 = (nextY + prevY * 2) / 3;
+                arrayCommands[nextPath].X1 = (nextX + prevX / 2) / (3 / 2);
+                arrayCommands[nextPath].Y1 = (nextY + prevY / 2) / (3 / 2);
+            }
             arrayCommands.splice(pathC1, 1);
-            geometry.arrPathCommandsType[pathIndex].splice(pathC1, 1);
+            curArrCommandsType.splice(pathC1, 1);
+
 
             this.createGeometryEditList(geometry);
             geometry.gmEditPoint = null;
