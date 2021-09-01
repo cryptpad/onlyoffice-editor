@@ -8987,9 +8987,13 @@ var GLOBAL_PATH_COUNT = 0;
                 this.legendLength = 0;
                 if(ser) {
                     var pts = ser.getNumPts(), pt;
-                    var cat_str_lit;
+                    var oLitForLegend;
                     if(ser && ser.cat) {
-                        cat_str_lit = ser.cat.getStringPointsLit();
+                        oLitForLegend = ser.cat.getLit();
+                    }
+                    var oLitFormat = null, oPtFormat = null;
+                    if(oLitForLegend && typeof oLitForLegend.formatCode === "string" && oLitForLegend.formatCode.length > 0) {
+                        oLitFormat = oNumFormatCache.get(oLitForLegend.formatCode);
                     }
                     this.legendLength = pts.length;
 
@@ -9008,11 +9012,29 @@ var GLOBAL_PATH_COUNT = 0;
                         else {
                             pt = pts[i];
                         }
-                        var str_pt = cat_str_lit ? cat_str_lit.getPtByIndex(i) : null;
-                        if(str_pt)
-                            arr_str_labels.push(str_pt.val);
-                        else
+                        var str_pt = oLitForLegend ? oLitForLegend.getPtByIndex(i) : null;
+                        if(str_pt) {
+                            var sPt;
+                            if(typeof str_pt.formatCode === "string" && str_pt.formatCode.length > 0) {
+                                oPtFormat = oNumFormatCache.get(str_pt.formatCode);
+                                if(oPtFormat) {
+                                    sPt = oPtFormat.formatToChart(str_pt.val);
+                                }
+                                else {
+                                    sPt = str_pt.val + "";
+                                }
+                            }
+                            else if(oLitFormat) {
+                                sPt = oLitFormat.formatToChart(str_pt.val);
+                            }
+                            else {
+                                sPt = str_pt.val + "";
+                            }
+                            arr_str_labels.push(sPt);
+                        }
+                        else {
                             arr_str_labels.push((pt ? (pt.idx + 1) : "") + "");
+                        }
 
                         calc_entry = new AscFormat.CalcLegendEntry(legend, this, i);
                         calc_entry.txBody = AscFormat.CreateTextBodyFromString(arr_str_labels[arr_str_labels.length - 1], this.getDrawingDocument(), calc_entry);
