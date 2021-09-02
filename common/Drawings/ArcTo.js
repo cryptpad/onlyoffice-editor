@@ -104,10 +104,12 @@
         if(geom) {
             //временно
             var ellipseArcPoints = [];
-            ellipseArcPoints.push({X: fX, Y: fY + fYRad, X0: fX - fXRad, Y0: fY + fYRad * c_fKappa, X1: fX - fXRad * c_fKappa, Y1: fY + fYRad, X2: fX, Y2: fY + fYRad});
-            ellipseArcPoints.push({X: fX + fXRad, Y: fY, X0: fX + fXRad * c_fKappa, Y0: fY + fYRad, X1: fX + fXRad, Y1: fY + fYRad * c_fKappa, X2: fX + fXRad, Y2: fY});
-            ellipseArcPoints.push({X: fX, Y: fY - fYRad, X0: fX + fXRad, Y0: fY - fYRad * c_fKappa, X1: fX + fXRad * c_fKappa, Y1: fY - fYRad, X2: fX, Y2: fY - fYRad});
-            ellipseArcPoints.push({X: fX - fXRad, Y: fY, X0: fX - fXRad * c_fKappa, Y0: fY - fYRad, X1: fX - fXRad, Y1: fY - fYRad * c_fKappa, X2: fX - fXRad, Y2: fY});
+            ellipseArcPoints.push({X: fX - fXRad, Y: fY});
+            ellipseArcPoints.push({X0: fX - fXRad, Y0: fY + fYRad * c_fKappa, X1: fX - fXRad * c_fKappa, Y1: fY + fYRad, X2: fX, Y2: fY + fYRad});
+            ellipseArcPoints.push({X0: fX + fXRad * c_fKappa, Y0: fY + fYRad, X1: fX + fXRad, Y1: fY + fYRad * c_fKappa, X2: fX + fXRad, Y2: fY});
+            ellipseArcPoints.push({X0: fX + fXRad, Y0: fY - fYRad * c_fKappa, X1: fX + fXRad * c_fKappa, Y1: fY - fYRad, X2: fX, Y2: fY - fYRad});
+            ellipseArcPoints.push({X0: fX - fXRad * c_fKappa, Y0: fY - fYRad, X1: fX - fXRad, Y1: fY - fYRad * c_fKappa, X2: fX - fXRad, Y2: fY});
+
             geom.ellipsePointsList.push(ellipseArcPoints);
         }
     }
@@ -258,12 +260,12 @@
         if ( !bClockDirection )
         {
             ctx._c(fCX1, fCY1, fCX2, fCY2, fX2, fY2);
-            return {X: fX2, Y: fY2, id: 2, fX1, fY1, fX2, fY2, X0: fCX1, Y0: fCY1, X1: fCX2, Y1: fCY2, X2: fX2, Y2: fY2, dAngle1, dAngle2};
+            return {id: 2, X0: fCX1, Y0: fCY1, X1: fCX2, Y1: fCY2, X2: fX2, Y2: fY2};
         }
         else
         {
             ctx._c(fCX2, fCY2, fCX1, fCY1, fX1, fY1);
-            return {X: fX1, Y: fY1, id: 2, fX1, fY1, fX2, fY2, X0: fCX1, Y0: fCY1, X1: fCX2, Y1: fCY2, dAngle1, dAngle2};
+            return {id: 2, X0: fCX1, Y0: fCY1, X1: fCX2, Y1: fCY2, X2: fX2, Y2: fY2};
         }
     }
 

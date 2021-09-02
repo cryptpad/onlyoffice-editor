@@ -348,18 +348,23 @@
                         if (originalGeometry.ellipsePointsList[countArc]) {
                             pathPoints.splice(i, 1);
                             originalGeometry.ellipsePointsList[countArc].forEach(function (elem) {
-                                var elemArc = {
-                                    id: PathType.ARC,
-                                    X0: elem.X0,
-                                    Y0: elem.Y0,
-                                    X1: elem.X1,
-                                    Y1: elem.Y1,
-                                    X2: elem.X2,
-                                    Y2: elem.Y2
+                                if(elem.X && elem.Y && pathPoints[i - 1] && pathPoints[i - 1].id === PathType.POINT) {
+                                   pathPoints[i - 1].X = elem.X;
+                                   pathPoints[i - 1].Y = elem.Y;
+                                } else {
+                                    var elemArc = {
+                                        id: PathType.ARC,
+                                        X0: elem.X0,
+                                        Y0: elem.Y0,
+                                        X1: elem.X1,
+                                        Y1: elem.Y1,
+                                        X2: elem.X2,
+                                        Y2: elem.Y2
+                                    }
+                                    arrCommandsType.push(PathType.ARC);
+                                    pathPoints.splice(i, 0, elemArc);
+                                    i++;
                                 }
-                                arrCommandsType.push(PathType.ARC);
-                                pathPoints.splice(i, 0, elemArc);
-                                i++;
                             })
                             i = i - 1;
                             countArc++;
