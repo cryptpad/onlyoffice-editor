@@ -2812,7 +2812,7 @@ CAutoshapeTrack.prototype =
                 if (elem.id === 0) {
                     var pointX = (xDst + dKoefX * (matrix.TransformPointX(elem.X, elem.Y))) >> 0;
                     var pointY = (yDst + dKoefY * (matrix.TransformPointY(elem.X, elem.Y))) >> 0;
-                    t._m(pointX, pointY)
+                    ctx.moveTo(pointX + 0.5, pointY + 0.5);
                 } else if (elem.id === 4)
                 var pointX0 = (xDst + dKoefX * (matrix.TransformPointX(elem.X0, elem.Y0))) >> 0;
                 var pointY0 = (yDst + dKoefY * (matrix.TransformPointY(elem.X0, elem.Y0))) >> 0;
@@ -2820,7 +2820,7 @@ CAutoshapeTrack.prototype =
                 var pointY1 = (yDst + dKoefY * (matrix.TransformPointY(elem.X1, elem.Y1))) >> 0;
                 var pointX2 = (xDst + dKoefX * (matrix.TransformPointX(elem.X2, elem.Y2))) >> 0;
                 var pointY2 = (yDst + dKoefY * (matrix.TransformPointY(elem.X2, elem.Y2))) >> 0;
-                t._c(pointX0, pointY0, pointX1, pointY1, pointX2, pointY2);
+                ctx.bezierCurveTo(pointX0 + 0.5, pointY0 + 0.5, pointX1 + 0.5, pointY1 + 0.5, pointX2 + 0.5, pointY2 + 0.5);
             })
         }
         ctx.stroke();
